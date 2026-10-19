@@ -529,7 +529,7 @@ export function ProjectLogisticsManagement({
     if (dimension === "equipment") { const target = logistics.equipment.find(row => row.id === id); if (target) setEquipmentModal({open:true,mode:"edit",target}); }
     if (dimension === "system") { const target = logistics.systems.find(row => row.id === id); if (target) setSystemModal({open:true,mode:"edit",target}); }
     if (dimension === "process") { const target = logistics.processes.find(row => row.id === id); if (target) setProcessModal({open:true,mode:"edit",target}); }
-  }, [editable,busy,isSubmitting,logistics]);
+  }, [editable,busy,isSubmitting,logistics,setEquipmentModal,setSystemModal,setProcessModal]);
   useEffect(() => {
     if (!wbsEntityOpenRequest || handledWbsRequest.current === wbsEntityOpenRequest.sequence || busy || !editable || isSubmitting) return;
     handledWbsRequest.current = wbsEntityOpenRequest.sequence;

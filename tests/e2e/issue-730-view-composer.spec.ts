@@ -73,7 +73,7 @@ async function geometry(page: Page, root: Locator, width: number) {
     }
   }
   const evidence = { ...measurement, buttons };
-  const directory = resolve("output/playwright/issue-730");
+  const directory = resolve(process.env.ISSUE730_E2E_ARTIFACT_DIR ?? "output/playwright/issue-730");
   await mkdir(directory, { recursive: true });
   await root.getByRole("region", { name: "공통 계층 표 스크롤", exact: true }).scrollIntoViewIfNeeded();
   await root.getByRole("region", { name: "공통 계층 표 스크롤", exact: true }).evaluate(element => { element.scrollLeft = 0; });
@@ -83,7 +83,7 @@ async function geometry(page: Page, root: Locator, width: number) {
   return evidence;
 }
 
-test("#730 pending original scope yields to newer detail or row-name search", async ({ page, isolatedApplication: origin, observeIsolatedApi }) => {
+test("#730 지연 원본은 새 상세·상세 Task 명령·이름 검색에 양보한다", async ({ page, isolatedApplication: origin, observeIsolatedApi }) => {
   test.setTimeout(180_000);
   const f = await seedWbsViewComposer(page, origin, observeIsolatedApi);
   await openRoot(page, "equipment");
@@ -92,8 +92,11 @@ test("#730 pending original scope yields to newer detail or row-name search", as
   const pattern = "**/api/projects/" + f.publicId + "/resource-dashboard/views";
   const release: Array<() => void> = [];
   let settled = 0;
+  let delayScope = true;
+  let passScopes = 0;
   await page.route(pattern, async route => {
-    if (route.request().postDataJSON().projection?.kind !== "scope") return route.continue();
+    if (!delayScope || route.request().postDataJSON().projection?.kind !== "scope") return route.continue();
+    if (passScopes > 0) { passScopes--; return route.continue(); }
     const response = await route.fetch();
     expect(response.status()).toBe(200);
     await new Promise<void>(unblock => { release.push(unblock); });
@@ -101,23 +104,97 @@ test("#730 pending original scope yields to newer detail or row-name search", as
     finally { settled++; }
   });
   const original = row.getByRole("button", { name: "원본", exact: true });
+  const equipmentTab = page.getByRole("tablist", { name: "대시보드 보기", exact: true }).getByRole("tab", { name: "설비", exact: true });
+  const initialScreen = new URL(page.url()).searchParams.get("screen");
+  // 설비 원본의 실제 목적지는 관리 모달이다. Task dialog만 검사하면 오작동을 놓친다.
+  const assertNoEquipmentDestination = async () => {
+    // 응답 전달 뒤 브라우저의 promise 처리와 React commit까지 관찰한다.
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expect(page.getByRole("dialog", { name: "설비 수정", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(equipmentTab).toHaveAttribute("aria-selected", "true");
+    expect(new URL(page.url()).searchParams.get("screen")).toBe(initialScreen);
+  };
   await original.click();
   await expect.poll(() => release.length).toBe(1);
   await row.getByRole("button", { name: "상세", exact: true }).click();
   await expect(root.getByRole("region", { name: "계층 원본 상세", exact: true })).toBeVisible();
   release[0]();
   await expect.poll(() => settled).toBe(1);
-  await expect(page.getByRole("dialog", { name: "작업 정보", exact: true })).toHaveCount(0);
+  await assertNoEquipmentDestination();
+  await expect(row).toHaveAttribute("aria-selected", "true");
+  await expect(root.getByRole("region", { name: "계층 원본 상세", exact: true }).getByRole("heading")).toHaveText(f.equipment.name);
   await expect(root).toBeVisible();
-  await root.getByRole("button", { name: "상세 닫기", exact: true }).click();
+  // 이미 열린 상세의 원본 명령도 이전 기준정보 탐색을 즉시 취소해야 한다.
+  const detail = root.getByRole("region", { name: "계층 원본 상세", exact: true });
+  const taskOriginal = detail.getByRole("button", { name: `${f.task.name} Task 원본`, exact: true });
+  await expect(taskOriginal).toBeVisible();
   await original.click();
   await expect.poll(() => release.length).toBe(2);
-  await root.getByLabel("표의 이름 찾기", { exact: true }).fill("등록만 설비");
-  await expect(row).toHaveCount(0);
+  await taskOriginal.click();
+  await expect.poll(() => release.length).toBe(3);
   release[1]();
   await expect.poll(() => settled).toBe(2);
-  await expect(page.getByRole("dialog", { name: "작업 정보", exact: true })).toHaveCount(0);
+  await assertNoEquipmentDestination();
+  await expect(detail).toBeVisible();
+  release[2]();
+  await expect.poll(() => settled).toBe(3);
+  const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await expect(editor).toBeVisible();
+  await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(f.task.name);
+  delayScope = false;
+  await page.keyboard.press("Escape");
+  await expect(editor).toHaveCount(0);
+  await expect(taskOriginal).toBeFocused();
+  await assertNoEquipmentDestination();
+  delayScope = true;
+  // 반대 순서에서도 늦은 상세 원본이 최신 설비 원본 명령을 덮어쓰지 않는다.
+  await taskOriginal.click();
+  await expect.poll(() => release.length).toBe(4);
+  await original.click();
+  await expect.poll(() => release.length).toBe(5);
+  release[3]();
+  await expect.poll(() => settled).toBe(4);
+  await assertNoEquipmentDestination();
+  await expect(detail).toBeVisible();
+  release[4]();
+  await expect.poll(() => settled).toBe(5);
+  const equipmentEditor = page.getByRole("dialog", { name: "설비 수정", exact: true });
+  await expect(equipmentEditor).toBeVisible();
+  await expect(equipmentEditor.getByLabel("설비명 *", { exact: true })).toHaveValue(f.equipment.name);
+  await expect(editor).toHaveCount(0);
+  delayScope = false;
+  await equipmentEditor.getByRole("button", { name: "취소", exact: true }).click();
+  await expect(equipmentEditor).toHaveCount(0);
+  await expect(root).toBeVisible();
+  await expect(detail).toBeVisible();
+  delayScope = true;
+  await root.getByRole("button", { name: "상세 닫기", exact: true }).click();
+  await original.click();
+  await expect.poll(() => release.length).toBe(6);
+  await root.getByLabel("표의 이름 찾기", { exact: true }).fill("등록만 설비");
+  await expect(row).toHaveCount(0);
+  release[5]();
+  await expect.poll(() => settled).toBe(6);
+  await assertNoEquipmentDestination();
+  await expect(root.getByRole("region", { name: "계층 원본 상세", exact: true })).toHaveCount(0);
   await expect(root.getByLabel("표의 이름 찾기", { exact: true })).toHaveValue("등록만 설비");
+  // 상세 검증 뒤 host가 다시 확인하는 두 번째 scope에서도 같은 최신 의도를 지킨다.
+  await root.getByLabel("표의 이름 찾기", { exact: true }).fill("");
+  await row.getByRole("button", { name: "상세", exact: true }).click();
+  await expect(taskOriginal).toBeVisible();
+  passScopes = 1;
+  await detail.getByRole("button", { name: "이 범위 일정 보기", exact: true }).click();
+  await expect.poll(() => release.length).toBe(7);
+  await root.getByLabel("표의 이름 찾기", { exact: true }).fill("등록만 설비");
+  await expect(detail).toHaveCount(0);
+  release[6]();
+  await expect.poll(() => settled).toBe(7);
+  await assertNoEquipmentDestination();
+  await expect(page.getByRole("tablist", { name: "프로젝트 작업공간", exact: true }).getByRole("tab", { name: "대시보드", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(root).toBeVisible();
+  await expect(root.getByLabel("표의 이름 찾기", { exact: true })).toHaveValue("등록만 설비");
+  await expect(page.getByRole("region", { name: "임시 조회 범위", exact: true })).toHaveCount(0);
   await page.unroute(pattern);
 });
 
@@ -354,6 +431,11 @@ test("#730 실제 HTTP Milestone·리소스·WorkArea 원본 ID와 취소 후 �
   test.setTimeout(180_000);
   const f = await seedWbsViewComposer(page, origin, observeIsolatedApi);
   const baseline = await f.snapshot();
+  const frame = page.locator(".project-gantt-frame");
+  const instance = await frame.getAttribute("data-project-gantt-instance");
+  const originalGantt = await frame.locator(".wx-gantt").elementHandle();
+  let mutations = 0;
+  page.on("request", request => { if (request.url().includes(`/api/projects/${f.publicId}/`) && !["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) mutations++; });
   await openRoot(page, "milestone");
   let root = dashboard(page);
   const milestoneOriginal = root.locator(`tr[data-dimension="milestone"][data-entity-id="${f.milestone.taskId}"]`).getByRole("button", { name: "원본", exact: true });
@@ -396,6 +478,29 @@ test("#730 실제 HTTP Milestone·리소스·WorkArea 원본 ID와 취소 후 �
   await expect(areaEditor).toHaveCount(0);
   await expect(root).toBeVisible();
   await expect(workAreaOriginal).toBeFocused();
+  // 정상 조회의 busy 전환은 사용자의 이동 의도를 자체 취소하지 않는다.
+  for (const [view, dimension, id] of [["resource", "resource", f.resource.id], ["milestone", "milestone", f.milestone.taskId]] as const) {
+    await openRoot(page, view);
+    const source = dashboard(page);
+    const selected = source.locator(`tr[data-dimension="${dimension}"][data-entity-id="${id}"]`);
+    await selected.getByRole("button", { name: "상세", exact: true }).click();
+    const detail = source.getByRole("region", { name: "계층 원본 상세", exact: true });
+    await expect(detail.locator(`[data-canonical-task-id="${f.task.taskId}"]`)).toBeVisible();
+    const schedule = detail.getByRole("button", { name: "이 범위 일정 보기", exact: true });
+    const selectedKey = await selected.getAttribute("data-view-row-key");
+    await schedule.click();
+    await expect(page.getByRole("tablist", { name: "프로젝트 작업공간", exact: true }).getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "true");
+    await page.getByRole("region", { name: "임시 조회 범위", exact: true }).getByRole("button", { name: /원래 보기/ }).click();
+    await expect(source).toBeVisible();
+    await expect(selected).toHaveAttribute("aria-selected", "true");
+    await expect(selected).toHaveAttribute("data-view-row-key", selectedKey!);
+    await expect(detail.getByRole("button", { name: "Task 보기", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(detail.locator(`[data-canonical-task-id="${f.task.taskId}"]`)).toBeVisible();
+    await expect(schedule).toBeFocused();
+    await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
+    expect(await originalGantt!.evaluate(element => element.isConnected)).toBe(true);
+  }
+  expect(mutations).toBe(0);
   expect((await f.snapshot()).data).toEqual(baseline.data);
 });
 

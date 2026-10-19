@@ -1,3 +1,4 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { expectRawIdentifier } from "./helpers/identifier-details";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { ISSUE_623_TARGET_RESOURCE as oracle } from "../fixtures/issue-623-target-resource";
@@ -119,7 +120,7 @@ test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방�
   expect(await f.snapshot()).toEqual(initial);
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   const writes: { method: string; path: string; body: unknown }[] = [];
-  page.on("request", request => { const path = new URL(request.url()).pathname; if (path.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !path.endsWith("/resource-dashboard/query")) writes.push({ method: request.method(), path, body: request.postDataJSON() }); });
+  page.on("request", request => { const path = new URL(request.url()).pathname; if (path.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !path.endsWith("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes.push({ method: request.method(), path, body: request.postDataJSON() }); });
   const assertSaved = async (count: number) => {
     expect(writes).toHaveLength(count);
     const fresh = await readBrowserCanonicalSnapshot(page, `/api/projects/${f.publicId}`, observeIsolatedApi);
@@ -209,7 +210,7 @@ test("#623 실제 Target 다열·중첩Group 다섯화면폭 geometry·keyboard�
   const f = await seedIssue623(page, origin, observeIsolatedApi, true);
   const before = await f.snapshot();
   const frame = page.locator(".project-gantt-frame"); const instance = await frame.getAttribute("data-project-gantt-instance");
-  const writes: string[] = []; page.on("request", request => { if (new URL(request.url()).pathname.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !request.url().includes("/resource-dashboard/query")) writes.push(request.url()); });
+  const writes: string[] = []; page.on("request", request => { if (new URL(request.url()).pathname.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !request.url().includes("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes.push(request.url()); });
   const start = performance.now(); const root = await resource(page); const renderMilliseconds = performance.now() - start;
   const measurements = []; await mkdir("output/playwright/issue-623", { recursive: true });
   for (const width of [390, 768, 1024, 1440, 1920]) for (const layout of ["tree", "matrix"]) {

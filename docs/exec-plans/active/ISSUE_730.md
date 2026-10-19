@@ -48,10 +48,10 @@ GSC `1.0.0-candidate` REVIEW_PENDING를 적용한다. 같은 Gantt host와 기�
 - `docs/API.md`: UPDATED
 - `docs/REQUIREMENTS.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
+- `docs/ISSUE_730_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/TARGET_RESOURCE_USER_GUIDE.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_730.md`: UPDATED
-- `docs/ISSUE_730_FAILURE_ANALYSIS.md`: UPDATED (first remote failure; same Issue append-only ledger)
 - `CHANGELOG.md`: UPDATED
 - `docs/DB_SCHEMA.md`: N/A(기존 DB schema·migration·Repository·저장 writer 변경 없음)
 - `docs/SCHEDULING_ENGINE.md`: N/A(기존 Calendar·공수·full Gate 알고리즘 및 Gantt canonical writer 재사용이며 일정 산식 변경 없음)
@@ -168,3 +168,28 @@ npm run verify:prepr -- --mode=targeted --base=01fdc08bf4b2f69f9797a8bd411d6712e
 - 세 갈래 최초 공통 파일 15개를 baseline-relative edit로 대조했다. API/UX/KPI/아키텍처/가이드/PLAN/TEST_PLAN의 두 이슈 추가 내용을 보존, manifest/lock은 0.124.0 후보로 유지하며 0.123.0(#731) CHANGELOG을 보존했다. 실제 공통 React 두 파일에서는 #731의 KPI 통합 source/원본 Resource/WorkArea 작업과 #730의 WBS 원본 이동·세대 검증·공통 구성기를 함께 연결한다.
 - GitHub blobs/원본 patch 재구성은 정적 보존 검증이다. 전체 실제 TypeScript·E2E·Docker·Main/Trusted QA는 새 exact source CI까지 NOT TESTED. 다음 브랜치 ref 업데이트는 기존 #730 HEAD를 첫 부모, 최신 main을 둘째 부모로 보존하는 non-force fast-forward merge이며 branch/PR 정렬 결과로 판단한다.
 - 리뷰 R730-001 동기 취소·F730-001 read-only POST watcher 보완, 회귀 검사기와 단일 실패 원장 경로는 [누적 분석](../../ISSUE_730_FAILURE_ANALYSIS.md)에 기록했다. 사용자 승인 범위는 **새 Full PR CI 시작**까지이며 병합·GHCR·정식 Release·Issue 종료·CI 모니터링은 여전히 제외한다.
+
+## F730-002 재개 — 두 원본 Run의 누적 검증 (2026-10-19)
+
+- 기준 remote Head `b4ba9994ee77a8dbc4a3bb36c8ee6e00beab7a51`, 최신 main `fbe7db83a4baa2877a75db0769a59077bbe308c4`이며 이미 조상 통합 완료. 별도 `fix/issue-730-ci-cumulative` worktree에서 기존 보완과 #731 변경을 보존한다. version0.124.0/dependency/권한/원격 gate 불변, HIGH/OWNER_MANAGED/qa_required=true/release_authorized=false.
+- [같은 전용 실패 원장 §7](../../ISSUE_730_FAILURE_ANALYSIS.md)에 #3001.1/3003.1 원본 run/attempt·artifact/Head/base/test merge·실제 FAIL과 취소/미실행·원인/보완을 추가한다. 처음부터 끝까지 원장/Issue·PR 댓글·리뷰를 읽고 #724/#726/#717/#729 및 통합 #731 원장의 관련 경계를 대조했다.
+- 최신 실패는 React Compiler Hook inferred deps 누락3개이며 frontend가 setter 의존성만 보완했다. 부모·상세 사이의 모든 원본 요청에 최신 intent가 우선하는지, 조회 POST 관찰기의 같은 원인 누락과 음성 테스트의 실제 목적지 오라클을 함께 검토한다.
+- 통합/순수 상태·원장·helper 음성과 누적 E2E/직접·인접 소비자를 선정해 동일 source에서 실행하며 실제 결과/지문을 §7에 이어 기록한다. 최초 구현이나 b4에서 NOT TESTED였던 결과를 재사용하지 않는다. DESIGN/API/DB/일정·Import/Export 계약의 추가 변경은 없으며 현재 제품·상태 보존 규범을 적용한다.
+
+### F730-002 보완의 영향·문서 대조
+
+| 보완 producer | 직접·인접 소비자와 실제 선정 | 음성·제외 경계 |
+| --- | --- | --- |
+| `openWbsEntity` Hook deps | 전체 ESLint, 실제 #730 설비/System/WorkArea 원본 및 #624 통합 소비자 | 세 setter 의존성만 보완, CRUD·원본 ID·권한 불변 |
+| 부모/Details 공통 intent와 host 일정 handoff | #730 지연 원본→상세/검색·교차 Task 명령·두 번째 host scope, Milestone/Resource 정상 일정 이동·원래 보기·저장160RAF | 실제 설비 수정 modal0/정확 Task·focus·업무 mutation0; busy 자기 취소 방지, legacy/KPI signal 없는 기존 경로 유지 |
+| exact 조회 관찰기 소비자 | 누적 실제 실패 #463 전체7개, 실제 WBS 진입 watcher13개 및 #518 인접1개 | helper Unit23개로 다른 POST/PATCH·잘못된 method/path·Task/Assignment/설비 mutation은 여전히 쓰기; KPI-only/master-only/일정-only는 조회에 진입하지 않음 |
+| 공통 WBS/model/transport/domain/HTTP | 직접13files/195Unit·실제 SQLite HTTP, 통합 #731 KPI17개 포함 | 독립 helper23개 재실행은 부분집합이며 중복 합산하지 않음 |
+
+이번 재작업은 Architecture·Project UX·사용자 가이드의 최신 의도/정상 복귀, TEST_PLAN·PLAN·CHANGELOG 및 같은 실패 원장을 동기화한다. `DESIGN.md`·UI/UX 가이드의 기존 시각/keyboard/focus/상태 보존을 적용하며 레이아웃·제품 용어 변경은 없다. 공개 API·DB·보안·일정 산식·Import/Export는 추가 변경 N/A(일시적 app-owned intent 신호만 추가, 공개 DTO/저장 이력에 넣지 않음). 원격 CI/QA 정책·required 이름·권한·package version/lock 변경도 없다. 전체 production build/audit/Unit/E2E/Docker와 환경별 검증은 해당 원격/환경 gate에 남기며 로컬 선정 결과로 승격하지 않는다.
+
+### F730-002 최종 로컬 판정과 단일 게시 인계
+
+- 최종13files/195Unit·SQLite HTTP **PASS/exit0**. 같은 source Chromium27개 **26PASS/1FAIL**, #623전체2개 단발 진단 **1PASS/1FAIL/exit1**. 모두 sourceStable=true, fixture/단언/timeout/retry/원격 gate 변경 없음. #623의 마지막1920px matrix에서 전체30초 제한이 두 번 관측됐고 원인은 UNKNOWN이며 **LOCAL_VALIDATED=FAIL**이다. 중간27PASS/195Unit 및 통제 음성FAIL은 최종 결과로 이월하지 않는다. [누적 원장 §7.7–7.8](../../ISSUE_730_FAILURE_ANALYSIS.md), [통합 로컬 원장](../../evidence/issue-730/rework-20261019/local-validation.json), [최종 UI 영수증](../../../output/playwright/issue-730-rework/local-ui-receipt.json)을 따른다.
+- 최종 전체 typecheck/lint·version0.124.0·test discovery PASS; lint0errors/13warnings, 발견248unit files/747browser cases는 실행 수가 아니다. 변경source35/전체product·E2E656개 지문 mismatch0, tracked Next/이전 증거 복원, raw/DB/auth 제외, owned process0이다.
+- 실제 PrePR fast/targeted는 **BLOCKED/exit1/sourceStable=true**, UNKNOWN5/missing0/실행단계0, 선정36/38files 미실행. logistics3producer·WBS fixture·readonly helper의 수동 영향 매핑은 위 표와 원장을 따르며 CLI 정책/PASS는 바꾸지 않는다. [fast](../../evidence/issue-730/rework-20261019/prepr-fast.json)/[targeted](../../evidence/issue-730/rework-20261019/prepr-targeted.json)의 명령/base/head/working 지문을 보존한다.
+- 별도 qa_docs source/문서 사전검토 P1/P2 미해결0, 최초26/1 및 단발1/1 보존·UNKNOWN 위험을 확인했다. HIGH/qa_required=true/OWNER_MANAGED/manager_decision=NOT TESTED이며 독립 인간 QA/Trusted/Owner·Manager 최종 승인이 아니다. 로컬 시간 위험을 명시하고 기존 PR747의 단일 게시·Full CI 시작까지만 인계한다. 게시 전후 리뷰/충돌·exact Head/main/tree/Run·Attempt 확인 후 Issue/PR STATUS로 남기며 완료 모니터링·병합/Release/Issue 종료는 하지 않는다.

@@ -1,0 +1,456 @@
+{
+  "description": "최종 동결 소스의 선정 Chromium 27개 중 26개 PASS, 기존 #623 geometry 1개는 전체 30초 제한으로 FAIL했다. 동일 소스의 파일 전체 2개 단발 진단은 별도로 기록하며 최초 실패를 덮어쓰지 않는다.",
+  "generatedAt": "2026-10-19T09:03:24.179347+00:00",
+  "status": "FAIL",
+  "localValidated": "FAIL",
+  "uniqueCases": 27,
+  "realHttpCases": 14,
+  "mockBackedLegacyCases": 13,
+  "passed": 26,
+  "failed": 1,
+  "skipped": 0,
+  "flaky": 0,
+  "retries": 0,
+  "workers": 1,
+  "maxFailures": 0,
+  "allSubprocessExitCodes": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+  ],
+  "driverExitCode": 0,
+  "sourceStable": true,
+  "sourceSha256": "c743f9103205eab7cae3f5550f0097bcf0c3621a0d64054ea13379bc7f09cbda",
+  "sourceFiles": 656,
+  "batches": [
+    {
+      "batch": "final-direct-focus",
+      "receipt": "final-direct-focus-receipt.json",
+      "exitCode": 0,
+      "sourceStable": true,
+      "stats": {
+        "duration": 101693.178,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "batch": "final-direct-remaining",
+      "receipt": "final-direct-remaining-receipt.json",
+      "exitCode": 0,
+      "sourceStable": true,
+      "stats": {
+        "duration": 168957.71600000001,
+        "expected": 4,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "batch": "final-milestone-failure-union",
+      "receipt": "final-milestone-failure-union-receipt.json",
+      "exitCode": 0,
+      "sourceStable": true,
+      "stats": {
+        "duration": 32094.133,
+        "expected": 7,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "batch": "final-watcher-http-milestone",
+      "receipt": "final-watcher-http-milestone-receipt.json",
+      "exitCode": 0,
+      "sourceStable": true,
+      "stats": {
+        "duration": 99059.185,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "batch": "final-watcher-http-resource",
+      "receipt": "final-watcher-http-resource-receipt.json",
+      "exitCode": 1,
+      "sourceStable": true,
+      "stats": {
+        "duration": 260811.128,
+        "expected": 4,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "batch": "final-watcher-mock",
+      "receipt": "final-watcher-mock-receipt.json",
+      "exitCode": 0,
+      "sourceStable": true,
+      "stats": {
+        "duration": 71877.683,
+        "expected": 6,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    }
+  ],
+  "cases": [
+    {
+      "title": "#730 지연 원본은 새 상세·상세 Task 명령·이름 검색에 양보한다",
+      "file": "issue-730-view-composer.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 28665
+        }
+      ]
+    },
+    {
+      "title": "#730 실제 HTTP Milestone·리소스·WorkArea 원본 ID와 취소 후 정확한 조회 복귀",
+      "file": "issue-730-view-composer.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 34183
+        }
+      ]
+    },
+    {
+      "title": "#730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 복원·Gantt 보존",
+      "file": "issue-730-view-composer.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 36024
+        }
+      ]
+    },
+    {
+      "title": "#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차단·구버전 설정 복구",
+      "file": "issue-730-view-composer.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 25481
+        }
+      ]
+    },
+    {
+      "title": "#730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키보드·읽기 전용 가상 그룹",
+      "file": "issue-730-view-composer.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 23981
+        }
+      ]
+    },
+    {
+      "title": "#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관점 보존",
+      "file": "issue-730-view-composer.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 22393
+        }
+      ]
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 7013
+        }
+      ]
+    },
+    {
+      "title": "#463 request reversal, stale error and explicit retry preserve filters",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2519
+        }
+      ]
+    },
+    {
+      "title": "#463 server date authority, bounded day refresh and same-day catalog catch-up",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2975
+        }
+      ]
+    },
+    {
+      "title": "#463 shared multi-selection, null conversion and canonical/catalog invalidation",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3589
+        }
+      ]
+    },
+    {
+      "title": "#463 aborted request to cached query still permits focus catch-up",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2922
+        }
+      ]
+    },
+    {
+      "title": "#463 public viewport and native scroll survive peer/layout, stale restore is consumed",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5335
+        }
+      ]
+    },
+    {
+      "title": "#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4297
+        }
+      ]
+    },
+    {
+      "title": "#717 실제 HTTP·SQLite에서 동명 Milestone·공정의 정확한 식별자 편집·삭제·readonly 복사",
+      "file": "issue-717-identity-persistence.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 15683
+        }
+      ]
+    },
+    {
+      "title": "#462 actual SQLite stage filter·Grid·common Editor·canonical and geometry",
+      "file": "milestone-stage-grid.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 23035
+        }
+      ]
+    },
+    {
+      "title": "#552 실제 UI Summary Copy는 숨은 Milestone·내부 관계·소속 전체를 보존하고 표시 전환은 저장하지 않는다",
+      "file": "milestone-visibility-persistence.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 11689
+        }
+      ]
+    },
+    {
+      "title": "#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱신·dirty/pending",
+      "file": "issue-621-resource-target.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 27848
+        }
+      ]
+    },
+    {
+      "title": "#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0",
+      "file": "issue-621-resource-target.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 34926
+        }
+      ]
+    },
+    {
+      "title": "#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방향 동일원본 복귀",
+      "file": "issue-623-resource-mvp.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 50086
+        }
+      ]
+    },
+    {
+      "title": "#623 실제 Target 다열·중첩Group 다섯화면폭 geometry·keyboard·query0·렌더관측",
+      "file": "issue-623-resource-mvp.spec.ts",
+      "status": "unexpected",
+      "results": [
+        {
+          "status": "failed",
+          "durationMs": 30818
+        }
+      ]
+    },
+    {
+      "title": "#624 same canonical Project across four logistics perspectives, full Milestone gate, exact drill and five widths",
+      "file": "issue-624-logistics-unified.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 34085
+        }
+      ]
+    },
+    {
+      "title": "#719 milestone 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+      "file": "issue-719-contextual-help.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 10408
+        }
+      ]
+    },
+    {
+      "title": "#719 resource 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+      "file": "issue-719-contextual-help.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 8131
+        }
+      ]
+    },
+    {
+      "title": "Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API 불변 경계를 유지한다",
+      "file": "project-filter-toolbar-consistency.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 17754
+        }
+      ]
+    },
+    {
+      "title": "Task 통합 검색과 초기화는 canonical Gantt 인스턴스를 유지한다",
+      "file": "project-search-filter.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3046
+        }
+      ]
+    },
+    {
+      "title": "#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5폭 tab geometry",
+      "file": "project-workspace-tabs-518.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 11253
+        }
+      ]
+    },
+    {
+      "title": "compact context와 일정/리소스 peer view가 Gantt 상태를 보존한다",
+      "file": "project-workspace-ux.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3872
+        }
+      ]
+    }
+  ],
+  "browserEnvironment": {
+    "node": "v22.14.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "playwright": "1.63.0",
+    "project": "chromium",
+    "installedChromiumVersion": "Google Chrome for Testing 153.0.8010.12"
+  },
+  "ownedProcessCleanup": {
+    "status": "PASS",
+    "remainingProcesses": []
+  },
+  "evidenceBoundaries": [
+    "실제 HTTP 14개와 기존 모의 데이터 기반 화면 13개를 구분한다. 모의 프로젝트에서 새 WBS 읽기 요청이 404인 경우를 신규 WBS 기능 PASS로 계산하지 않는다.",
+    "중간 소스 정상27개 및 controllednegative의 의도적 FAIL은 별도 이력이며 최종27개에 합산하지 않는다.",
+    "조회 helper 음성 단위23개는 Manager 단위검증 집합에 포함되므로 중복 합산하지 않는다.",
+    "현재 fixture의 WBS 상세는 50행을 넘지 않는다. >50행 WBS 상세 페이지 클릭은 NOT TESTED다."
+  ],
+  "controlledNegativeReceipt": "controlled-negative-receipt.json",
+  "intermediateEvidence": "intermediate-before-host-handoff/summary.json",
+  "rawDiagnostics": ".prepr-reports/issue-730-rework/ (Git 제외)",
+  "remoteCi": "NOT TESTED",
+  "diagnosticReceipt": "diagnostic-resource623-receipt.json",
+  "firstFailure": {
+    "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+    "line": 223,
+    "error": "Test timeout of 30000ms exceeded",
+    "completedScreenshots": 9,
+    "totalLayoutWidthCombinations": 10,
+    "interruptedWidth": 1920,
+    "interruptedLayout": "matrix",
+    "pollElapsedMs": 0.4,
+    "classification": "UNKNOWN",
+    "causeConfirmed": false,
+    "hypothesis": "ENV_CANDIDATE"
+  },
+  "diagnosticResult": {
+    "caseCount": 2,
+    "passed": 1,
+    "failed": 1,
+    "exitCode": 1,
+    "sourceStable": true,
+    "automaticRetry": false,
+    "additionalRunCount": 1,
+    "classification": "UNKNOWN",
+    "causeConfirmed": false,
+    "hypothesis": "ENV_CANDIDATE"
+  },
+  "failureTimingComparison": "failure-timing-comparison.json"
+}

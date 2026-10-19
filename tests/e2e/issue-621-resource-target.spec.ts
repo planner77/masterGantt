@@ -1,3 +1,4 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
 import { mkdir, writeFile } from "node:fs/promises";
 import type { Locator, Page } from "@playwright/test";
@@ -98,7 +99,7 @@ test("#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱�
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
   const writes: { method: string; path: string }[] = [];
-  page.on("request", request => { const path = new URL(request.url()).pathname; if (path.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !path.endsWith("/resource-dashboard/query")) writes.push({ method: request.method(), path }); });
+  page.on("request", request => { const path = new URL(request.url()).pathname; if (path.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !path.endsWith("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes.push({ method: request.method(), path }); });
   const root = await openResource(page);
   await openShared(root);
   const editor = await taskEditor(page);
@@ -159,7 +160,7 @@ test("#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native key
   page.on("request", request => { if (new URL(request.url()).pathname.includes("/resource-dashboard")) navigationNetwork.push({ at: Date.now(), phase: "request", path: new URL(request.url()).pathname, method: request.method() }); });
   page.on("response", response => { if (new URL(response.url()).pathname.includes("/resource-dashboard")) navigationNetwork.push({ at: Date.now(), phase: "response", path: new URL(response.url()).pathname, status: response.status() }); });
   page.on("request", request => { if (request.method() === "POST" && new URL(request.url()).pathname.endsWith("/resource-dashboard/query")) { const body = request.postDataJSON(); boundQueries.push({ scope: body.scope, filters: body.filters, projection: body.projection }); } });
-  page.on("request", request => { if (/\/api\/projects\//.test(request.url()) && ["POST", "PATCH", "PUT", "DELETE"].includes(request.method()) && !new URL(request.url()).pathname.endsWith("/resource-dashboard/query")) writes.push(request.method() + " " + new URL(request.url()).pathname); });
+  page.on("request", request => { if (/\/api\/projects\//.test(request.url()) && ["POST", "PATCH", "PUT", "DELETE"].includes(request.method()) && !new URL(request.url()).pathname.endsWith("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes.push(request.method() + " " + new URL(request.url()).pathname); });
   page.on("response", async response => { if (new URL(response.url()).pathname === `/api/projects/${f.publicId}/resource-dashboard` && response.ok()) { const body = await response.json().catch(() => null); if (body) reports.push(body.data); } });
   const root = await openResource(page);
   await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");

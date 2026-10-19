@@ -40,15 +40,25 @@ function WbsViewDashboardRoot({publicId,revision,root,active,busy,binding,onOpen
   const [selection,setSelection] = useState<{node:WbsViewNode;snapshot:string;key:string}|null>(null);
   // Independent generations for report fetch and original navigation.
   const reportGeneration=useRef(0); const originalGeneration=useRef(0);
+  const intentController=useRef<AbortController|null>(null);
   const originalController=useRef<AbortController|null>(null); const liveContext=useRef("");
-  const cancelOriginal=useCallback(() => {
+  const cancelOriginalRequest=useCallback(() => {
     originalGeneration.current++;
     originalController.current?.abort();
     originalController.current=null;
   },[]);
-  useLayoutEffect(()=>{liveContext.current=JSON.stringify([active,busy,revision,state.spec,state.filters,staleSnapshot]);cancelOriginal();},[active,busy,revision,state.spec,state.filters,staleSnapshot,cancelOriginal]);
-  useEffect(()=>()=>cancelOriginal(),[cancelOriginal]); const scroll=useRef<HTMLDivElement>(null); const trigger=useRef<HTMLElement|null>(null); const fallback=useRef<HTMLHeadingElement>(null);
+  const cancelOriginal=useCallback(() => {
+    cancelOriginalRequest();
+    intentController.current?.abort();
+    intentController.current=new AbortController();
+    return intentController.current.signal;
+  },[cancelOriginalRequest]);
+
+  useEffect(()=>()=>{cancelOriginal();},[cancelOriginal]); const scroll=useRef<HTMLDivElement>(null); const trigger=useRef<HTMLElement|null>(null); const fallback=useRef<HTMLHeadingElement>(null);
   const scope=binding?.scope ?? drill.binding?.scope;
+  useLayoutEffect(()=>{liveContext.current=JSON.stringify([active,busy,revision,state.spec,state.filters,scope,staleSnapshot]);if(busy)cancelOriginalRequest();},[active,busy,revision,state.spec,state.filters,scope,staleSnapshot,cancelOriginalRequest]);
+  // Host pending state locks the first query without revoking its handed-off intent.
+  useLayoutEffect(()=>{cancelOriginal();},[active,revision,state.spec,state.filters,scope,staleSnapshot,cancelOriginal]);
   const queryKey=useMemo(() => JSON.stringify({revision,spec:state.spec,filters:state.filters,scope}),[revision,state.spec,state.filters,scope]);
   const validRange=!state.filters.from || !state.filters.to || state.filters.from <= state.filters.to;
   useEffect(() => {
@@ -114,7 +124,7 @@ function WbsViewDashboardRoot({publicId,revision,root,active,busy,binding,onOpen
       <div ref={scroll} data-wbs-scroll className={styles.scroll} role="region" tabIndex={0} aria-label="공통 계층 표 스크롤" onScroll={event=>{const target=event.currentTarget;setState(previous=>({...previous,scroll:{top:target.scrollTop,left:target.scrollLeft}}));}} onFocusCapture={event=>{const row=event.target.closest<HTMLElement>("[data-view-row-key]");if(row)setState(previous=>({...previous,focus:row.dataset.viewRowKey??null}));}}><WbsViewTable data={data} expanded={new Set(state.expanded)} sort={state.sort??"name-asc"} locked={locked} selected={state.selected?.viewRowKey??null} rowSearch={state.rowSearch} onToggle={key=>{cancelOriginal();setState(previous=>({...previous,expanded:previous.expanded.includes(key)?previous.expanded.filter(item=>item!==key):[...previous.expanded,key]}));}} onDetails={(node,element)=>{cancelOriginal();trigger.current=element;setSelection({node,snapshot:data.snapshotId,key:queryKey});setState(previous=>({...previous,selected:{viewRowKey:node.viewRowKey,path:node.path}}));}} onOriginal={onOpenEntity?openOriginal:undefined}/></div>
       {!data.children.length?<p>현재 조건에 해당하는 결과가 없습니다.</p>:null}
       <details><summary>조회 snapshot·원본 출처</summary><p className={styles.subtle}>snapshot {data.snapshotId} · Project revision {data.projectRevision}</p><pre className={styles.subtle}>{JSON.stringify(data.sourceContext,null,2)}</pre></details>
-      {currentSelection?<div hidden={!currentReport || staleSnapshot===data.snapshotId} inert={!currentReport || staleSnapshot===data.snapshotId}><WbsViewDetails key={currentSelection.node.viewRowKey} data={data} node={currentSelection.node} locked={locked||!active} onStale={markStale} onClose={close} onOpenTask={onOpenTask??drill.onOpenTask} onOpenAssignment={onOpenAssignment??drill.onOpenAssignment} onSchedule={onSchedule??drill.onWbsSchedule}/></div>:null}
+      {currentSelection?<div hidden={!currentReport || staleSnapshot===data.snapshotId} inert={!currentReport || staleSnapshot===data.snapshotId}><WbsViewDetails key={currentSelection.node.viewRowKey} data={data} node={currentSelection.node} locked={locked||!active} onStale={markStale} onClose={close} onIntent={cancelOriginal} onOpenTask={onOpenTask??drill.onOpenTask} onOpenAssignment={onOpenAssignment??drill.onOpenAssignment} onSchedule={onSchedule??drill.onWbsSchedule}/></div>:null}
     </>:null}
   </section>;
 }

@@ -1,0 +1,107 @@
+{
+  "description": "host 두 번째 scope로 공유 취소 의도를 넘기는 후속 보완 전의 중간 소스 검증이다. 최종 소스 검증으로 재사용하지 않는다.",
+  "batch": "watcher-mock",
+  "startedAt": "2026-10-19T08:34:41.200248+00:00",
+  "finishedAt": "2026-10-19T08:36:04.677035+00:00",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--config",
+    "tests/config/playwright.config.ts",
+    "tests/e2e/issue-719-contextual-help.spec.ts",
+    "tests/e2e/project-workspace-ux.spec.ts",
+    "tests/e2e/project-filter-toolbar-consistency.spec.ts",
+    "tests/e2e/project-search-filter.spec.ts",
+    "tests/e2e/project-workspace-tabs-518.spec.ts",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=0",
+    "--reporter=list,json",
+    "--output=/home/planner/Dev/masterGantt-issue-730-rework/.prepr-reports/issue-730-rework/watcher-mock",
+    "--grep",
+    "#719 (milestone|resource) 동일|compact context|Phase 4 일정·리소스|Task 통합 검색과 초기화|#518 일정"
+  ],
+  "exitCode": 0,
+  "sourceStable": true,
+  "sourceFiles": 656,
+  "changedSourceFiles": [],
+  "stats": {
+    "duration": 84178.20499999999,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "title": "#719 milestone 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+      "file": "issue-719-contextual-help.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 11271
+        }
+      ]
+    },
+    {
+      "title": "#719 resource 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+      "file": "issue-719-contextual-help.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 9711
+        }
+      ]
+    },
+    {
+      "title": "Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API 불변 경계를 유지한다",
+      "file": "project-filter-toolbar-consistency.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 22157
+        }
+      ]
+    },
+    {
+      "title": "Task 통합 검색과 초기화는 canonical Gantt 인스턴스를 유지한다",
+      "file": "project-search-filter.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3404
+        }
+      ]
+    },
+    {
+      "title": "#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5폭 tab geometry",
+      "file": "project-workspace-tabs-518.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 12750
+        }
+      ]
+    },
+    {
+      "title": "compact context와 일정/리소스 peer view가 Gantt 상태를 보존한다",
+      "file": "project-workspace-ux.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4099
+        }
+      ]
+    }
+  ],
+  "sourceSha256Before": "ed9aa41ae4b7a5b606edf6a29ee7924c7cf0439be2275f702b156602fbc80937",
+  "sourceSha256After": "ed9aa41ae4b7a5b606edf6a29ee7924c7cf0439be2275f702b156602fbc80937",
+  "sourceManifest": "source-freeze.json"
+}

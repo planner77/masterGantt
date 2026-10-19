@@ -12,6 +12,8 @@ export interface WbsViewScheduleRequest {
   trigger: HTMLElement;
   taskId?: string;
   assignmentId?: string;
+  /** Transient UI intent lease; never persisted in navigation history. */
+  intentSignal?: AbortSignal;
 }
 export interface ResourceScheduleRequest {
   data: ResourceDashboardDto;

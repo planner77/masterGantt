@@ -1,3 +1,4 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { mkdir, writeFile } from "node:fs/promises";
 import type { APIResponse, Page } from "@playwright/test";
@@ -43,7 +44,7 @@ test("#462 actual SQLite stage filter·Grid·common Editor·canonical and geomet
   const frame = page.locator(".project-gantt-frame"), instance = await frame.getAttribute("data-project-gantt-api-instance"), row = (taskId: string) => page.locator(`.project-gantt-widget .wx-table-container .wx-row[data-id=":${taskId}"]`).first();
   const header = page.locator(".project-gantt-widget .wx-table-container .wx-header").first();
   let reads = 0, writes = 0;
-  page.on("request", (request) => { if (new URL(request.url()).pathname === api && request.method() === "GET") reads++; if (request.url().includes(api) && !["GET", "HEAD"].includes(request.method())) writes++; });
+  page.on("request", (request) => { if (new URL(request.url()).pathname === api && request.method() === "GET") reads++; if (request.url().includes(api) && !["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) writes++; });
   const stage = () => page.locator("#project-panel-schedule .project-stage-filter-trigger");
   const select = async (value: string) => { await stage().click(); const input = page.getByRole("combobox", { name: "Milestone 이름·외부 ID·작업 ID 검색" }); await input.fill(`  ${value.toUpperCase()}  `); await expect(page.getByRole("listbox", { name: "Milestone 조회 조건" }).getByRole("option")).toHaveCount(3); await input.press("End"); await input.press("Enter"); };
   await expect(header.getByText("Milestone", { exact: true })).toHaveCount(0);

@@ -1,3 +1,4 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import type { ProjectLogisticsDto } from "../../src/contracts/logistics";
 import type { ProjectSnapshotResponse } from "../../src/contracts/projects";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
@@ -105,7 +106,7 @@ test("#717 실제 HTTP·SQLite에서 동명 Milestone·공정의 정확한 식�
   let readonlyMutations = 0;
   try {
     const peer = await readonly.newPage();
-    peer.on("request", request => { if (["POST", "PATCH", "PUT", "DELETE"].includes(request.method()) && new URL(request.url()).pathname.startsWith(api)) readonlyMutations++; });
+    peer.on("request", request => { if (["POST", "PATCH", "PUT", "DELETE"].includes(request.method()) && new URL(request.url()).pathname.startsWith(api) && !isWbsViewReadQuery(request)) readonlyMutations++; });
     await peer.goto(`/projects/${publicId}`);
     await expect(peer.getByText("읽기 전용", { exact: true }).first()).toBeVisible();
     await openWorkspaceView(peer, "milestones");

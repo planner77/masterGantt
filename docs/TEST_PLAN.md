@@ -1,3 +1,7 @@
+## Issue #730 — F730-001/002 누적 CI 재작업
+
+원본 [전용 실패 원장 §7](ISSUE_730_FAILURE_ANALYSIS.md)에 두 Full Run의 서로 다른 원인과 source artifact·취소 로그를 누적한다. 첫 #463 readonly POST 관찰기 결함과 최신 Hook deps 누락을 함께 회귀하고 b4의 P2 취소 보완·#731 main 통합을 유지한다. 실제 query를 소비하는 인접 관찰기만 exact method/path helper로 보완하며 업무 mutation0을 약화하지 않는다. parent/Details 원본 명령의 양방향 응답 역전·실제 설비 modal 목적지 음성을 검증하고 후보 source/test를 동결한 뒤 과거 실패 파일·직접/인접/음성 소비자를 실행한다. 실행 명령·고유 케이스·지문/미검증은 같은 원장과 Work Packet에 추가한다. Required3/Trusted/Owner 및 CI 시작 이후 완료 모니터링 경계는 그대로다. 최종 source195Unit PASS, Chromium 원본26PASS/1FAIL 및 #623전체 단발 진단1PASS/1FAIL을 보존한다. #623전체30초 제한의 원인은 UNKNOWN이고 LOCAL_VALIDATED=FAIL이며 실제 PrePR fast/targeted의 UNKNOWN5/BLOCKED를 수동 검증으로 PASS로 바꾸지 않는다.
+
 ## Issue #731 — 기존 KPI 통합 소비자 수용
 
 [기능 보존표·AC·실패 원장](exec-plans/active/ISSUE_731.md)을 기준으로 기존 UI와 전용 API를 함께 검증한다. 로컬 빠른 검증과 PR Required Quality/E2E/Docker·Trusted QA·Owner 최종 승인은 별도다.

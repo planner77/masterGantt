@@ -530,6 +530,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     wbsRequest?: WbsViewScheduleRequest;
     destination: ResourceNavigationState;
     label: string;
+    releaseIntent?: () => void;
   } | null>(null);
   useLayoutEffect(() => {
     navigationGuards.current = {
@@ -1916,6 +1917,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     label: string,
     wbsRequest?: WbsViewScheduleRequest,
   ) {
+    if (wbsRequest?.intentSignal?.aborted) return;
     if (!scope.taskCount && !destination.filter.taskIds?.length) {
       notify(
         "info",
@@ -1944,12 +1946,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       capturePeerViewport();
       source = { ...source, viewport: navigationViewport.current };
     }
+    const savedWbsRequest = wbsRequest ? { ...wbsRequest } : undefined;
+    if (savedWbsRequest) delete savedWbsRequest.intentSignal;
     const frame: ResourceNavigationFrame = {
       source: { ...source, viewport: cloneResourceNavigationViewport(source.viewport) },
       destinationBefore: { ...before, viewport: cloneResourceNavigationViewport(source.viewport) },
       destination: nextDestination,
       scope,
-      wbsRequest,
+      wbsRequest: savedWbsRequest,
       label,
     };
     const pushed = pushResourceDrillFrame(navigationFrames, frame);
@@ -2004,8 +2008,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     }>,
     sourceTrigger?: HTMLElement,
     kpiSource?: KpiNavigationSource,
+    intentSignal?: AbortSignal,
   ) {
-    if (!navigationAllowed()) return;
+    if (intentSignal?.aborted || !navigationAllowed()) return;
     if (navigationFrames.length >= 8) {
       notify(
         "info",
@@ -2014,10 +2019,30 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       );
       return;
     }
+    if (navigationConfirmation.current?.releaseIntent) {
+      navigationConfirmation.current.releaseIntent();
+      navigationConfirmation.current = null;
+      setNavigationConflict(null);
+    }
     const source = { ...captureNavigation(sourceTrigger), ...(kpiSource ? { kpiSource } : {}) },
       revision = confirmedSnapshotReference.current!.data.project.revision,
       current = ++navigationGeneration.current,
       controller = new AbortController();
+    const releaseIntent = () => {
+      intentSignal?.removeEventListener("abort", abortIntent);
+      controller.signal.removeEventListener("abort", releaseIntent);
+    };
+    const abortIntent = () => {
+      controller.abort();
+      const pending = navigationConfirmation.current;
+      if (pending?.releaseIntent === releaseIntent) {
+        releaseIntent();
+        navigationConfirmation.current = null;
+        setNavigationConflict(null);
+      }
+    };
+    intentSignal?.addEventListener("abort", abortIntent, { once: true });
+    controller.signal.addEventListener("abort", releaseIntent, { once: true });
     navigationAbort.current = controller;
     navigationPending.current = true;
     setNavigationLoading(true);
@@ -2100,7 +2125,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         result.scope.ancestorSummaryIds,
       );
       if (conflict.hiddenTaskCount) {
-        navigationConfirmation.current = { source, ...result };
+        navigationConfirmation.current?.releaseIntent?.();
+        navigationConfirmation.current = { source, ...result, ...(intentSignal ? { releaseIntent } : {}) };
         setNavigationConflict({
           hidden: conflict.hiddenTaskCount,
           total: conflict.taskCount,
@@ -2128,6 +2154,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         focusNavigation(source, true);
       }
     } finally {
+      if (navigationConfirmation.current?.releaseIntent !== releaseIntent) releaseIntent();
       if (current === navigationGeneration.current) {
         navigationPending.current = false;
         setNavigationLoading(false);
@@ -2174,7 +2201,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       return { scope, wbsRequest: request, label: request.label, destination: { ...source,
         view: "schedule", rootTaskId: null, filter: { ...EMPTY_TASK_FILTER, taskIds: scope.taskIds },
         selection: request.taskId ? [request.taskId] : [], trigger: null, positions: [] } };
-    }, request.trigger);
+    }, request.trigger, undefined, request.intentSignal);
   }
   function scheduleResourceRequest(request: ResourceScheduleRequest) {
     void performResourceNavigation(async (signal) => {
@@ -2510,6 +2537,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   }
   function cancelNavigationConfirmation() {
     const pending = navigationConfirmation.current;
+    pending?.releaseIntent?.();
     navigationAbort.current?.abort();
     navigationGeneration.current++;
     navigationPending.current = false;
@@ -2520,9 +2548,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   }
   async function approveNavigationConfirmation() {
     const pending = navigationConfirmation.current;
-    if (!pending || !navigationAllowed()) return;
+    if (!pending) return;
+    const intentSignal = pending.wbsRequest?.intentSignal;
+    if (intentSignal?.aborted) { cancelNavigationConfirmation(); return; }
+    if (!navigationAllowed()) return;
     const generation = ++navigationGeneration.current;
     const controller = new AbortController();
+    const abortIntent = () => controller.abort();
+    intentSignal?.addEventListener("abort", abortIntent, { once: true });
     navigationAbort.current = controller;
     navigationPending.current = true;
     setNavigationLoading(true);
@@ -2533,6 +2566,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       else await validateNavigationSource(pending.scope.sourceContext, controller.signal);
       if (
         controller.signal.aborted ||
+        intentSignal?.aborted ||
         generation !== navigationGeneration.current
       )
         return;
@@ -2545,6 +2579,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         pending.label,
         pending.wbsRequest,
       );
+      pending.releaseIntent?.();
       setNavigationConflict(null);
       navigationConfirmation.current = null;
     } catch (error) {
@@ -2557,6 +2592,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           "범위 이동",
         );
     } finally {
+      intentSignal?.removeEventListener("abort", abortIntent);
       if (generation === navigationGeneration.current) {
         navigationPending.current = false;
         setNavigationLoading(false);

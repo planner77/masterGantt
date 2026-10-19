@@ -1,3 +1,4 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { withIntegratedKpi } from "../fixtures/logistics-integrated-kpi";
 import { mkdir, writeFile } from "node:fs/promises";
 import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
@@ -60,7 +61,7 @@ for (const surface of surfaces) test(`#719 ${surface} 동일 fixture 5폭 설명
   const browserErrors: string[] = [];
   page.on("pageerror", error => browserErrors.push(error.message));
   page.on("console", message => { if (message.type() === "error" && /hydration|cannot (be|contain)|descendant/i.test(message.text())) browserErrors.push(message.text()); });
-  page.on("request", request => { if (request.url().includes("/api/") && !["GET", "HEAD"].includes(request.method()) && !request.url().includes("admin-sessions")) writes.push(`${request.method()} ${new URL(request.url()).pathname}`); });
+  page.on("request", request => { if (request.url().includes("/api/") && !["GET", "HEAD"].includes(request.method()) && !request.url().includes("admin-sessions") && !isWbsViewReadQuery(request)) writes.push(`${request.method()} ${new URL(request.url()).pathname}`); });
   const root = await openSurface(page, surface);
   const dir = `output/playwright/issue-719/${before ? "before" : "after"}`;
   await mkdir(dir, { recursive: true });
