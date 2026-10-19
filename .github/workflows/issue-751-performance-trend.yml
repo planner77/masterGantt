@@ -1,0 +1,36 @@
+name: Issue 751 E2E performance trend
+on:
+  workflow_dispatch:
+    inputs:
+      lookback_runs:
+        description: "Recent main runs (1-30)"
+        required: true
+        default: "20"
+permissions:
+  contents: read
+  actions: read
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Compare sanitized historical timing artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_COUNT: ${{ inputs.lookback_runs }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/issue-751-performance-trend.py --repository "$REPOSITORY" --limit "$RUN_COUNT" --output issue-751-trend.json --summary "$GITHUB_STEP_SUMMARY"
+      - name: Store sanitized report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: issue-751-trend
+          path: issue-751-trend.json
+          if-no-files-found: ignore
+          retention-days: 30
