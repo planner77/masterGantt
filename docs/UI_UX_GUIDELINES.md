@@ -1,3 +1,10 @@
+## Issue #751 / #622 — 비동기 Resource 상세 편집기 포커스 복원 (2026-10-20)
+
+- Resource Plan에서 Task/Assignment를 편집하는 native Dialog를 닫으면 **기존 Task/Assignment 행의 동일한 활성 제어로 포커스를 복귀**시킨다. 저장 직후 canonical Projection 상세가 `stale → loading → ready`로 교체되는 경우 이전 DOM의 버튼이 남아 있거나 다시 그려져도 데이터 준비 완료와 동일하지 않다.
+- Dialog `:modal` 종료·현재 Resource Dashboard `data-ready=true`, 원래 상세의 `data-detail-state=ready` 및 유효한 `data-detail-confirmation-id`가 모두 확인될 때만 포커스 복원을 허용한다. 임의 60-RAF 예산 소진을 준비 완료의 증거로 사용하거나 숨은/비활성 제어로 포커스하지 않는다.
+- 비동기 준비 완료 시점은 MutationObserver(일회성·범위·해제·상한 있는 관측)로 재평가한다. 다음 사용자 pointerdown/keydown/wheel, 새 Modal, 새로운 탐색 generation, 숨은 Panel은 기존 복원을 취소하여 최신 사용자 의도를 우선한다. 원래 행이 실제로 제외된 경우엔 확인된 새 보고서의 활성 검색 제어로 fallback할 수 있다.
+- CSS Focus ring, 현재 filter/기간/Target/Task/Assignment identity, 원본 mutation·권한/readonly·처리 지연 조건을 유지한다. 변경된 구현은 [Issue #751 누적 원장 F-006](ISSUE_751_FAILURE_ANALYSIS.md), [#622 Resource Plan Chromium 회귀](exec-plans/active/ISSUE_751.md)로 검증한다. 기존 `DESIGN.md`의 keyboard/focus 및 scope 보존 원칙을 구체화하는 Design Delta B이며 새 전역 원칙은 아니다.
+
 ## Issue #731 — 기존 KPI와 펼침 진단
 
 기존 KPI 네 카드·품질 패널·세부 탭/표는 그대로 두고 추가 구성/연결 진단만 native disclosure로 펼친다. 기존 표에 고정 열을 추가하지 않는다. 이름·단위·현재 선택과 전체 구성 참고의 분모·full Gate 경고를 직접 표시하고 긴 계산 설명은 상황형 도움말로 제공한다. 정상 미연결/WorkArea 미사용을 오류 색상만으로 평가하지 않는다.

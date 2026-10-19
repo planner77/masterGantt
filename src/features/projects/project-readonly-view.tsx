@@ -37,6 +37,7 @@ import {
 import { planDetailQuery } from "@/features/resources/resource-plan-model";
 import { dashboardError } from "@/features/resources/use-resource-dashboard";
 import { canCreateSchedulingLink, linkStructureLocked, MIXED_LINK_EXPLANATION, COMPLETED_LINK_EXPLANATION } from "@/features/gantt/relation-editor-model";
+import { resourceEditorFocusDecision } from "./resource-editor-focus-return";
 import { StageFilterPicker } from "./stage-filter-picker";
 import { ProjectMilestoneDashboard } from "@/features/milestones/project-milestone-dashboard";
 import { MilestoneCreateDialog } from "@/features/milestones/milestone-create-dialog";
@@ -1379,25 +1380,88 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (editorOriginViewReference.current === "resources") {
       const generation = ++taskFocusGeneration.current;
       const closingDialog = document.querySelector<HTMLDialogElement>('dialog[aria-labelledby="task-editor-title"]');
-      const restore = (frame: number) => {
-        if (generation !== taskFocusGeneration.current) return;
-        const panel = document.getElementById("project-panel-resources");
-        if (!panel || panel.hidden) return;
-        if (document.querySelector("dialog:modal")) { if(frame < 60) requestAnimationFrame(() => restore(frame + 1)); return; }
-        const focused = document.activeElement;
-        if (focused instanceof HTMLElement && focused !== document.body && focused !== closingDialog && !closingDialog?.contains(focused) && !panel.contains(focused)) return;
-        if (panel.querySelector('[data-ready="false"]') && frame < 60) { requestAnimationFrame(() => restore(frame + 1)); return; }
-        const pending = Boolean(panel.querySelector('[data-ready="false"], [data-detail-state="loading"]'));
-        if (pending && frame < 60) { requestAnimationFrame(() => restore(frame + 1)); return; }
-        const detailKey = editorResourceDetailKey.current;
-        const detailRoot = detailKey ? panel.querySelector<HTMLElement>(`[data-projection-detail-key="${CSS.escape(detailKey)}"]`) : panel;
-        const logical = taskId ? detailRoot?.querySelector<HTMLElement>(`[data-canonical-task-id="${CSS.escape(taskId)}"]${editorAssignment ? `[data-canonical-assignment-id="${CSS.escape(editorAssignment.assignmentId)}"]` : ""} ${editorAssignment ? "button[data-resource-assignment-edit]" : "button"}`) : null;
-        const fallback = panel.querySelector<HTMLElement>('input[type="search"]');
-        const target = isVisibleFocusTarget(trigger) ? trigger : isVisibleFocusTarget(logical) ? logical : fallback;
-        target?.focus({preventScroll:true});
-        if (!isVisibleFocusTarget(trigger) && !isVisibleFocusTarget(logical)) notify("info", pending ? "최신 결과를 확인하고 있습니다. 필터와 상세 범위는 유지됩니다." : "원본 행이 현재 조건에서 제외되었거나 변경되었습니다. 필터를 확인하세요.", "Resource 보기");
+      const detailKey = editorResourceDetailKey.current;
+      const assignmentId = editorAssignment?.assignmentId;
+      const controller = new AbortController();
+      let scheduled: number | null = null;
+      const handoff: { observer: MutationObserver | null; deadline: number } = { observer: null, deadline: 0 };
+      let cancelled = false;
+      const stop = () => {
+        if (cancelled) return;
+        cancelled = true;
+        controller.abort();
+        handoff.observer?.disconnect();
+        if (scheduled !== null) cancelAnimationFrame(scheduled);
+        if (handoff.deadline !== 0) window.clearTimeout(handoff.deadline);
       };
-      requestAnimationFrame(() => restore(0));
+      const schedule = () => {
+        if (cancelled || scheduled !== null) return;
+        scheduled = requestAnimationFrame(() => {
+          scheduled = null;
+          restore();
+        });
+      };
+      const restore = () => {
+        if (cancelled) return;
+        if (generation !== taskFocusGeneration.current) { stop(); return; }
+        const panel = document.getElementById("project-panel-resources");
+        if (!panel || !panel.isConnected || panel.hidden || panel.closest("[inert]")) { stop(); return; }
+        const modals = [...document.querySelectorAll<HTMLDialogElement>("dialog:modal")];
+        const modal = modals.some(dialog => dialog !== closingDialog) ? "foreign" as const
+          : modals.length ? "closing" as const : "none" as const;
+        const detailRoot = detailKey
+          ? panel.querySelector<HTMLElement>('[data-projection-detail-key="' + CSS.escape(detailKey) + '"]')
+          : panel;
+        const decision = resourceEditorFocusDecision({
+          modal,
+          reportPending: Boolean(panel.querySelector('[data-ready="false"]')),
+          reportConfirmed: Boolean(panel.querySelector<HTMLElement>('[data-resource-dashboard="true"][data-ready="true"]')?.dataset.reportConfirmationId),
+          detailOrigin: Boolean(detailKey),
+          detailPresent: Boolean(detailRoot),
+          detailState: detailRoot?.getAttribute("data-detail-state") ?? null,
+          detailConfirmationId: detailRoot?.dataset.detailConfirmationId,
+        });
+        if (decision === "CANCEL") { stop(); return; }
+        if (decision === "WAIT") return;
+        const focused = document.activeElement;
+        if (focused instanceof HTMLElement && focused !== document.body &&
+            focused !== closingDialog && !closingDialog?.contains(focused) &&
+            !panel.contains(focused)) { stop(); return; }
+        const logical = taskId ? detailRoot?.querySelector<HTMLElement>(
+          '[data-canonical-task-id="' + CSS.escape(taskId) + '"]' +
+          (assignmentId ? '[data-canonical-assignment-id="' + CSS.escape(assignmentId) + '"] button[data-resource-assignment-edit]' : " button"),
+        ) : null;
+        const target = isVisibleFocusTarget(logical) ? logical :
+          isVisibleFocusTarget(trigger) && panel.contains(trigger) ? trigger :
+          Array.from(panel.querySelectorAll<HTMLElement>('input[type="search"]')).find(isVisibleFocusTarget) ?? null;
+        if (!target) return;
+        target.focus({ preventScroll: true });
+        if (document.activeElement !== target) return;
+        // Confirm after React's next commit: a late projection replacement must
+        // not silently leave focus on body while the canonical row is present.
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          if (cancelled) return;
+          if (!target.isConnected || document.activeElement !== target) { schedule(); return; }
+          if (!isVisibleFocusTarget(trigger) && !isVisibleFocusTarget(logical))
+            notify("info", "원본 행이 현재 조건에서 제외되었거나 변경되었습니다. 필터를 확인하세요.", "Resource 보기");
+          stop();
+        }));
+      };
+      // Wait for actual canonical report/detail readiness. A fixed 60-frame
+      // ceiling previously fell through while the detail was still loading;
+      // MutationObserver wakes precisely when that receipt is committed.
+      handoff.observer = new MutationObserver(schedule);
+      handoff.observer.observe(document.body, {
+        childList: true, subtree: true, attributes: true,
+        attributeFilter: ["open", "data-ready", "data-detail-state",
+          "data-detail-confirmation-id", "hidden", "inert", "disabled"],
+      });
+      for (const event of ["pointerdown", "keydown", "wheel"] as const)
+        window.addEventListener(event, stop, { capture: true, passive: true, signal: controller.signal });
+      // Bounded cleanup only; never turns pending data into a successful focus
+      // or extends any Playwright/test/request timeout.
+      handoff.deadline = window.setTimeout(stop, 6_000);
+      schedule();
       return;
     }
     requestAnimationFrame(() => {

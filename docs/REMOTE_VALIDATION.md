@@ -1,3 +1,10 @@
+## Issue #751 — Shard5 원본 Trace 기반 Focus 교정 검증 (2026-10-20)
+
+- PR #754 Full #3026.1 Run `39314211842` attempt 1, Head `d658baa366eaa613ac1e295a2f2320f5dd1a49ae`, Base `5df178868139c4a307701e4807896691971b3376`, test merge `f641b46402e2cb421d8cccb72412ada55b45fe65`을 원본 `ci-pr-source-39314211842-1` Artifact와 검증. E2E Shard5 `118272495898`의 정식 [Playwright 원본 Artifact](https://github.com/planner77/masterGantt/actions/runs/39314211842/artifacts/12215654837)에서 #622 Task Editor 닫힌 뒤 detail stale/loading→ready, Focus 실패를 확인했다. Raw Trace/스크린샷·개인정보를 원격 Git에 올리지 않는다.
+- 직접 테스트: `tests/e2e/issue-622-resource-plan-target.spec.ts`의 동일 Task ID, Assignment ID, Resource, Target 선택, 배정60→40, 상세 재검증 및 버튼 strict Focus를 **원본 단언 그대로** 실행. 신규 순수 phase Unit `tests/features/projects/resource-editor-focus-return.test.ts`에서는 modal open·foreign modal·report pending·detail stale/loading/confirmed ready·fallback을 모두 검증한다.
+- 교정 후에는 새 HEAD의 실제 Chromium6 전체 및 Required Quality/Docker, Trusted QA와 Owner 최종 AC 판정을 따로 확인한다. UI Focus 대기 경계만 canonical 로드 이벤트 기반으로 개선하였고 Playwright Timeout/Retry/Skip 증가 없음. 60 RAF cutoff 재사용 금지.
+- 원인 확증 수준: 원본에서 실제 `stale → loading → ready`가 장시간 걸린 것과 코드의 frame limit 및 포커스 미복원은 확인됨. 그 요청과 Focus callback의 정확 인터리빙은 런타임 instrumentation 없이는 추론이며, 메모리/SQL/네트워크/OOM을 근인으로 단정하지 않는다.
+
 ## Issue #751 — Trace/HAR 정제 및 원격 수용 절차 (2026-10-19)
 
 - [Work Packet](exec-plans/active/ISSUE_751.md), [실패 원장](ISSUE_751_FAILURE_ANALYSIS.md)를 따른다. 성공한 과거 #3021.1/Trusted #663.1과 다음 변경 HEAD를 구분한다. Fixture 120000ms와 #623 본문60000ms를 합산하지 않는다.

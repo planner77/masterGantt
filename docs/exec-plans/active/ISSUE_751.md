@@ -17,13 +17,14 @@ Status: IMPLEMENTED / NEW-HEAD REMOTE ACCEPTANCE NOT TESTED; before-after measur
 
 ## DOCUMENTATION_SYNC
 
-- `DESIGN.md`: N/A(화면·기하·조작/키보드와 렌더링 동작은 변경하지 않음)
+- `DESIGN.md`: N/A(기존 Keyboard/Focus·scope 보존 원칙의 비동기 복귀 세칙 구체화; Design Delta B로 UI_UX_GUIDELINES에 기록)
 - `docs/API.md`: N/A(공개 HTTP endpoint/응답 계약은 불변이며 서버 내부 E2E 로그 필드만 선택적으로 추가)
 - `docs/DB_SCHEMA.md`: N/A(SQLite migration 및 영속 테이블·인덱스·Query 의미 변경 없음)
 - `AGENTS.md`: N/A(기존 Issue Lifecycle 보호 규칙과 OWNER_MANAGED/QA 승인 절차 불변)
 - `docs/QA_REVIEW_POLICY.md`: N/A(독립 검증 및 세 Required aggregate 의무와 운영 게이트를 변경하지 않음)
 - `docs/CI_CD.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
+- `docs/UI_UX_GUIDELINES.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: N/A(새 토큰이나 저장소 권한·Issue 병합 및 릴리스 절차 도입 없음)
 - `docs/REMOTE_VALIDATION.md`: UPDATED
 
@@ -56,3 +57,12 @@ Status: IMPLEMENTED / NEW-HEAD REMOTE ACCEPTANCE NOT TESTED; before-after measur
 - Full PR [#3024.1](https://github.com/planner77/masterGantt/actions/runs/39276316902) Head `1acb01cb2b06054ecfbb43e3df5914715a42dc52` / Base `5df178868139c4a307701e4807896691971b3376`는 QA Preflight/Policy/TypeScript SUCCESS, ESLint prefer-const 및 Vitest issue-751-performance-receipt array oracle 두 직접 FAIL을 기록했다. Build/Chromium6/Docker는 Fast Gate로 SKIPPED, Required Aggregate FAILURE는 파생 결과. 이 원본 실패는 불변으로 유지한다.
 - [전용 누적 실패 원장 F-005](../../ISSUE_751_FAILURE_ANALYSIS.md)에 F-001~F-004와 구 HEAD 성공 S-001 교차 비교를 기록했다. SQL observer의 Proxy는 const로 바꾸고 Vitest는 **원본 2건 모두** 검사하여 raw URL/SQL/ID의 비공개를 계속 단언한다. 기존 assert 강도, 타임아웃·skip·retry 및 6 Shard 정책 불변.
 - 이 세션의 로컬 테스트는 NOT TESTED. 새 커밋의 Full PR CI가 시작되더라도 결과/Trusted QA/Owner AC 완료 판정은 실행 후 증거가 필요하다. 일단 새 Run 시작까지만 진행하고 CI 모니터링·병합·Main CI·GHCR·Issue 종료는 수행하지 않는다.
+
+## 2026-10-20 — F-006 Resource Plan Focus 원본 재현/회귀 경계
+
+- Full [#3026.1](https://github.com/planner77/masterGantt/actions/runs/39314211842) Run 39314211842 attempt1, PR #754 Head `d658baa366eaa613ac1e295a2f2320f5dd1a49ae`, Base `5df178868139c4a307701e4807896691971b3376`: Quality/Build/Docker 직접 PASS, Chromium Shard5 #622 Focus FAILED, 나머지 다섯 Shard는 FAIL-FAST 취소(고유 미관측 FAIL 없음), 전체 E2E/Trusted 최종 불가. 최초 F-001~F-005 및 구 HEAD #3021.1 PASS와 별도 원장 F-006을 대조한다.
+- 원본 Trace `playwright-report-shard-5`의 native Task Editor 닫힘 이후 Resource detail 상태 전이 `stale→loading→ready` 동안 변경 전 Resource focus handler는 최대 60 RAF 후 준비 확인 없이 통과하는 경로를 가진다. 포커스 복원 실패는 확인; 정확한 단일 callback race는 관찰 미완으로 추론이다.
+- 보완은 `src/features/projects/project-readonly-view.tsx` Resource Editor 닫기 branch의 **준비 완료 전 포커스 시도 자체를 제거**하고, `resource-editor-focus-return.ts`의 current report/detail receipt 결정과 MutationObserver 알림을 통해 현재 Assignment 버튼에만 반환한다. 새 사용자 pointer/keyboard/wheel·새 Modal·숨은 Panel/화면 변경 시 기존 restoration 취소; 유효한 current report에서 행이 사라진 경우 활성 fallback에 포커스. Watchdog는 관측 리소스를 회수할 뿐 pending을 ready로 바꾸지 않는다.
+- `tests/features/projects/resource-editor-focus-return.test.ts`에서 stale/loading/0/모달/ready 및 fallback 검사. 실제 `tests/e2e/issue-622-resource-plan-target.spec.ts`의 Focus strict assertion 및 데이터·투입률·Excel·5폭 geometry는 수정하지 않는다. 관련 consumer: #621/#622/#623 Resource/Target, KPI/Plan Dashboard, Workspace focus, 기존 해당 E2E 병합.
+- 이 작업은 Release 필수 QA/Owner 승인을 자동 수용하는 것이 아니다. 새 commit의 local npm/typecheck/Chromium 환경 결과는 이 API 세션에서 NOT TESTED, 새 PR CI Required Quality/E2E6/Docker·Trusted 결과도 실행 전 NOT TESTED. PR Draft, release_required=false/release_authorized=false 유지.
+
