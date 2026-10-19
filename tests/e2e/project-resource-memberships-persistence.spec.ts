@@ -88,7 +88,8 @@ test("membership real SQLite registration survives reload/restart and exact assi
   await page.reload(); await openMembership();
   await expect(panel.getByText("등록 1명", { exact: true })).toBeVisible();
   const memberships = await browserResourceRead<{ resources: Array<{ id: string; registered: boolean }> }>("resource-memberships");
-  expect(memberships.resources.find((row: { id: string }) => row.id === member.id).registered).toBe(true);
+  const registeredMember = memberships.resources.find((row: { id: string }) => row.id === member.id);
+  expect(registeredMember, "등록한 리소스가 재시작 후에도 원래 ID로 남아야 합니다.").toMatchObject({ registered: true });
   expect((await browserSnapshot()).tasks).toEqual(before.tasks);
   expect((await browserResourceRead<{ assignments: typeof assignedBefore }>("assigned-targets")).assignments).toEqual(assignedBefore);
 });

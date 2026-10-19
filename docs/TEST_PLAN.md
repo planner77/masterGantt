@@ -1,3 +1,9 @@
+## Issue #730 — F730-009 #3025.1 TypeScript strict-null TypeCheck 보완 (2026-10-20)
+
+[Issue #730 전용 누적 실패 원장 §18](ISSUE_730_FAILURE_ANALYSIS.md)을 기준으로 원격 Full #3025.1 `TS2532` 실패를 직접 교정한다. `project-resource-memberships-persistence.spec.ts`의 `memberships.resources.find(...).registered`에서 `Array.find()`의 `undefined` 가능성이 TypeScript strict null 오류를 유발했다. 같은 원본 ID로 찾은 `registeredMember` 객체에 `toMatchObject({ registered:true })`를 적용하여 **엔터티 부재와 등록=false 모두 실패**를 유지하고 `!`/`any`/타입 게이트 완화는 하지 않는다. 원본 Run의 TypeCheck FAILURE와 PR Fast Gate FAILURE, PR Build/E2E6/Docker 실행 Job SKIPPED를 구분한다.
+
+보완 HEAD에서 `npm run typecheck`(필수)·lint·단위 검증 및 `project-resource-memberships-persistence.spec.ts` 실제 Chromium, 새 동일 출처 GET helper의 error/no-retry·redirect 음성, #726/#731 Task Editor/#730 조회·원본 회귀, 누적 실제 E2E 실패6파일을 원격 Full PR CI Quality/E2E6/Docker로 판정한다. F730-008의 원본 읽기/권한·등록·Task·Assignment/dirty guard/원본 ID/재시작을 완화하지 않는다. 이번 GitHub 편집 작업의 로컬 전체 TypeScript·Unit/Browser/Docker 결과는 NOT TESTED이며 새 원격 Run 이전 PASS 주장은 금지한다.
+
 ## Issue #730 — F730-008 PR #747 Full #3023.1 멤버십 후행 canonical GET 회귀 (2026-10-20)
 
 [Issue #730 단일 실패 원장 §17](ISSUE_730_FAILURE_ANALYSIS.md)의 직접 #727 멤버십 저장 이후 `apiRequestContext.get: read ECONNRESET`를 참조한다. Shard1 82PASS/1FAIL, Shard3 SUCCESS, 다른 4개 Shard CANCELLED, Required Quality/Docker SUCCESS·E2E/QA Final FAILURE를 별도 판정한다. 프로젝트 신규 등록·Task/Assignment setup API 클라이언트는 유지하고 **실제 UI 리소스 등록 이후** canonical Project2회/assigned-targets2회/resource-memberships1회 조회만 동일 origin browser fetch/no-store 및 observer로 분리한다. 상태200·유효 JSON·해당 배열, 저장 Task/Links·동일 Assignment·등록 상태·재시작·dirty guard·Gantt instance/scroll 확인을 완화하지 않는다.
