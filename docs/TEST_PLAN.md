@@ -1,3 +1,10 @@
+## Issue #729 — Main CI F-001·교정 PR #745 문서/테스트 동기화 (2026-10-19)
+
+- **원인:** PR #744 병합 `59f42e291a48608d1280951a7d7874a21992aaa5`에서 multiline `commit_message`로 [Main CI #2993.1](https://github.com/planner77/masterGantt/actions/runs/39200938710)의 run trace 검증이 실패했다. Product Quality/E2E/Docker는 **skipped**, aggregate FAILURE, 임시 GHCR skipped였다. 원본 실패 보존과 반영 지침은 [전용 실패 원장](ISSUE_729_FAILURE_ANALYSIS.md)을 참조한다.
+- **회귀 추가:** `tests/server/resources/wbs-dashboard-views-http.test.ts`의 migrated SQLite→실제 Node HTTP에 `process → siblings[equipment,system]`와 역순 `process → siblings[system,equipment]`을 각각 요청한다. 전체 및 두 공정의 Task/Assignment raw ID 고유 합집합, 부모 totals, 두 typed sibling child dimension을 비교하는 **AC2/AC3 양방향 순서 메타모픽**을 검증한다. test file 변경·원본 #729 source/지표/버전 `0.122.0` 불변.
+- **교정 CI:** [PR #745](https://github.com/planner77/masterGantt/pull/745)의 최초 [Full #2994.1](https://github.com/planner77/masterGantt/actions/runs/39201801581)은 QA Preflight의 `DOCUMENTATION_SYNC`에서 본 `TEST_PLAN` 문서 갱신/명시 N/A 근거 누락으로 조기 중단되어 제품 테스트를 실행하지 못했다. 이번 문서 변경으로 교차 영향과 AC 매핑을 명시하며 이후 **새 HEAD의 Full PR CI 및 기본 Trusted QA**에서 다시 검증한다.
+- **Main 복구 조건:** 원본 실패 Main을 성공으로 변경·우회하지 않는다. 동일 Issue/연속 non-docs/동일 version 교정 PR의 Full CI·Trusted/Owner ACCEPT 후, `scripts/main_ci_run_name.py --as-merge-payload`의 짧은 한글 제목 및 `commit_message=""`로 two-parent merge하고 새 Main CI Required Quality/E2E6/Docker, ci-SHA GHCR digest 및 Finalizer의 실패 승계/정식 v0.122.0 release를 별도 확인한다. 현재 신규 CI 결과는 NOT TESTED.
+
 ## Issue #729 — WBS 다관점 HTTP·SQLite 수용
 
 `tests/server/resources/wbs-dashboard-views-http.test.ts`는 migration된 실제 합성 SQLite와 production Handler→Service→Repository를 Node HTTP socket으로 호출한다. mock API 데이터가 아니며 실제 Next 서버·브라우저 네트워크 실행과는 구분한다. `tests/fixtures/wbs-dashboard-views.ts`의 direct(Target0)/Target-only/혼합 원장을 #728 golden과 대조한다.
