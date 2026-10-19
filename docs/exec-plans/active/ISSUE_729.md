@@ -129,3 +129,10 @@ gantt_standard_version: `GSC 1.0.0-candidate` (`REVIEW_PENDING`). 읽은 문서 
 - PR #744 미해결 Review Thread: 0건. 최신 main과 30커밋 차이, 공통 변경 9파일(상단 독립 문서7개 및 package/lock2개)은 #729 소개 문단과 선행 main 문맥을 함께 보존하고 새 버전 `0.122.0`으로 조정한다. 구현 source/test은 PR 원본 blob을 유지한다.
 - 최초 source/test 14파일의 기존 SQLite/HTTP·Unit 증거는 해당 구현 source에 한정된다. 합성 merge에 포함된 최신 main UI 및 version 변경의 전체 제품 검증은 새 exact-head PR CI Quality/E2E6/Docker에서 수행하며 실행 결과는 NOT TESTED이다. 사전 로컬 Pre-PR BLOCKED도 종전대로 유지한다.
 - 이 정렬 작업은 병합 전 PR 검증 재시작까지이고 Owner ACCEPT, GHCR, 정식 Release, 이슈 종료를 허가하거나 수행하지 않는다.
+
+## #729 동일 Issue 교정 F-001 — Main trace 오류 (2026-10-19)
+
+- [누적 실패 원장](../../ISSUE_729_FAILURE_ANALYSIS.md) F-001: PR #744의 Full #2992.1와 Trusted QA #634.1 SUCCESS, two-parent Merge SHA `59f42e291a48608d1280951a7d7874a21992aaa5`의 Main #2993.1은 API에 전달한 **여러 줄 commit_message**로 trace 검증 즉시 실패. Quality/E2E/Docker aggregate는 건너뛰기 결과 FAIL, GHCR skipped. 원본 결과는 불변이며 CI·기능 검증 성공으로 바꾸지 않는다.
+- Owner Manager ACCEPT·정식 v0.122.0 release 승인 [Issue comment #6259829502](https://github.com/planner77/masterGantt/issues/729#issuecomment-6259829502)이 추가되었다. 최초 Work Packet의 `release_authorized=false`는 당시 기록이며 현재 승인 정책과 다르다.
+- 이번 작업: 동일 Issue·동일 version `0.122.0`·non-docs 교정 PR에서 형제 차원 정렬의 Task/Assignment·KPI 비가산 교차 검증을 한 케이스 보강. PR에서 Full CI/Trusted QA와 Owner 재수용을 거친 뒤 `scripts/main_ci_run_name.py`의 **빈 본문 병합 Payload**로 정렬한다.
+- GitHub Main CI와 `ci-<SHA>` GHCR·공식 v0.122.0 태그/이미지 검증·Finalizer/Issue 종료는 아직 NOT TESTED. 동일 Issue 실패 supersession에는 중간 다른 Issue merge 금지 등 strict 기준이 적용된다.

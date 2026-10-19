@@ -112,6 +112,23 @@ describe("#729 migrated SQLite → production handler → actual HTTP acceptance
     expect(grouped.totals.assignments.effort.knownMd).toBe(14);
   });
 
+  it("AC2/3 reversing equipment/system siblings preserves process task and assignment unions", async () => {
+    const f = await fixture("mixed");
+    const forward = (await f.report(spec("process", [{ kind: "siblings", dimensions: ["equipment", "system"] }]))).data;
+    const reversed = (await f.report(spec("process", [{ kind: "siblings", dimensions: ["system", "equipment"] }]))).data;
+    expect([...forward.taskIds].sort()).toEqual([...reversed.taskIds].sort());
+    expect([...forward.assignmentIds].sort()).toEqual([...reversed.assignmentIds].sort());
+    expect(forward.totals).toEqual(reversed.totals);
+    for (const id of [f.processA.publicId, f.processB.publicId]) {
+      const first = node(forward, "process", id), second = node(reversed, "process", id);
+      expect([...first.taskIds].sort()).toEqual([...second.taskIds].sort());
+      expect([...first.assignmentIds].sort()).toEqual([...second.assignmentIds].sort());
+      expect(first.totals).toEqual(second.totals);
+      expect(new Set(first.children.map(row => row.selector.dimension))).toEqual(new Set(["equipment", "system"]));
+      expect(new Set(second.children.map(row => row.selector.dimension))).toEqual(new Set(["equipment", "system"]));
+    }
+  });
+
   it("AC4 E1→shared Milestone→process never widens to E2-T2; exact detail pages and drill match IDs", async () => {
     const f = await fixture("direct"), view = spec("equipment", ["milestone", "process", "resource"]);
     const data = (await f.report(view)).data;
