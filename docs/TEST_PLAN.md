@@ -4744,3 +4744,10 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 - 원격 E2E 직접 실패는 `tests/e2e/milestone-dashboard-state.spec.ts` #463의 mutation0 assertion (expected 0, observed 1). 새 WBS read-only POST query `/api/projects/{UUID}/resource-dashboard/views`는 예외로 분류하되 **메서드 POST + 정확한 경로**만 제외한다. PUT/PATCH/DELETE 및 다른 POST 변경 요청은 여전히 감시한다.
 - 영향 소비자: `milestone-dashboard-state.spec.ts`, `milestone-visibility.spec.ts`, `project-workspace-tabs-518.spec.ts`, `issue-730-view-composer.spec.ts`. 비동기 원본 scope 확인 중 후속 상세·행 검색이 늦은 이동을 차단하는 실제 HTTP E2E를 추가한다. 기존 #624 기능/원시 ID/Gantt 불변 및 E2E6 게이트를 보존한다.
 - Shard1 7 PASS/1 FAIL/127 NOT RUN 및 다른 Shard5 CANCELLED, Quality/Docker PASS, QA Final 파생 FAIL은 구분한다. 새 source의 로컬/Full·Trusted QA는 실행 이전 **NOT TESTED**. [누적 원장](ISSUE_730_FAILURE_ANALYSIS.md).
+
+## Issue #730 — F730-004 PR #747 Full #3008.1 #550 canonical GET 전송 보호 (2026-10-19)
+
+- 누적 원격 직접 실패 합집합: 기존 #463 `tests/e2e/milestone-dashboard-state.spec.ts` 읽기 전용 POST 집계오류 및 신규 `tests/e2e/milestone-management-persistence.spec.ts`의 #550 (past) 원시 `GET /api/projects/{id}` ECONNRESET. #3003 ESLint/Hook, #3005 npm 헤더 다운로드 ECONNRESET과 원인이 다르며 #3008의 Quality/Docker 성공·E2E Shard6 실패와 나머지5 취소를 구별한다.
+- #550 실 SQLite/HTTP 케이스(빈 Milestone-only past/future 및 원래 실제 restart/readonly): 기존 GET 200/Project revision·Task ID·Milestone Gate/관계·변경 API 보호 단언은 유지. 처음 canonical GET에는 `Connection: close`, 기존 Observer로 실제 ECONNRESET을 기록한 뒤 같은 조회만 최대 두 번(최초+1회) 사용한다. 전체 global Playwright/CI retry·timeout·skip을 변경하지 않는다.
+- 기존 `tests/scripts/isolated-readonly-get.test.ts` 여섯 유한 양성/음성 계약(정상 GET 1회, 첫 ECONNRESET → 1회 한정, 두 번째 재실패 차단, HTTP404/409/503와 ETIMEDOUT/ECONNREFUSED/invalid JSON/비Error 재시도 금지, 정규화 route 기록)을 후속 Unit 영향으로 선택한다. 새 `tests/e2e/milestone-management-persistence.spec.ts`가 정확한 observer를 획득하는지 TypeScript/Full E2E6로 확인한다. 어떤 업무 POST/PUT/PATCH/DELETE도 다시 보내지 않는다.
+- 기존 #730 WBS 조회/원본/일정 경합, #703/#624 격리 canonical GET, #731 KPI·Resource/Milestone 원본 및 기존 #550 실제 SQLite restart 케이스를 전체 원격6 Shard 교차로 검증한다. 이 GitHub 편집 환경에서 로컬 Test/Next/Playwright/Docker 실행은 NOT TESTED. Source of Truth: [#730 동일 Issue 누적 실패 원장](ISSUE_730_FAILURE_ANALYSIS.md).

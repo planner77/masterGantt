@@ -146,3 +146,29 @@ Primary Issue: [#730](https://github.com/planner77/masterGantt/issues/730) · PR
 - 공통 수정 네 경로: `CHANGELOG.md`, `docs/PROJECT_UX.md`, `docs/TEST_PLAN.md`, `src/features/logistics/project-logistics-management.tsx`. 원본 공통 base fbe7…를 기준으로 양쪽 diff 적용 결과가 각각 원본 blob과 정확히 동일함을 확인한 뒤 병합했다. `TEST_PLAN.md`의 동일 위치 신규 섹션은 #731 M-001 이력을 먼저, #730 기존 원장을 이어 보존했으며 React의 #731 정확 KPI 원본 포커스와 #730 WBS 조회/원본 인계·callback을 모두 포함한다. 그 외 main-only #731 테스트·원장/소스는 main tree에서 보존하고 branch-only #730 기능은 기존 Head에서 보존한다.
 - 브랜치 정렬 커밋은 기존 c8f…를 첫 부모, a029…를 둘째 부모로 사용하는 non-force fast-forward merge여야 한다. 게시 후 `behind_by=0`, `mergeable=true`, 미해결 리뷰0과 새로운 exact Head Full PR CI 등록을 **한 번** 검증한다. 결과 완료 모니터링/재실행은 사용자 요청에서 제외된다. 별도 Owner/Trusted QA/병합/GHCR/Release/Issue 종료를 승인하거나 수행하지 않는다.
 - 본 단계의 원격 CI 새 HEAD 결과, 실제 로컬 npm/Playwright/TypeScript/Docker 재실행은 **NOT TESTED**. #3005 기존 성공한 일부 Job을 새 source의 전체 PASS로 사용하지 않는다.
+
+## 10. F730-004 — Full PR CI #3008.1 Shard6 #550 canonical GET transport reset (2026-10-19)
+
+### 원본 Run / Attempt, 직접·파생 오류
+
+| 항목 | 원본 관측 |
+| --- | --- |
+| Full CI | [#3008.1 / Run 39234279476](https://github.com/planner77/masterGantt/actions/runs/39234279476), pull_request, attempt 1, Head `435ccfffdf60eb4d1695b2260175e7c8728e3918`, Base `a0297cd4b01e0083273ad3444edc7fa1ed0a145f`, test merge `472b1313424e12fe67df4864295a0ee4cf5f9c01` |
+| 직접 FAIL | [Chromium Shard6 Job 118000414173](https://github.com/planner77/masterGantt/actions/runs/39234279476/job/118000414173), `tests/e2e/milestone-management-persistence.spec.ts:190,200,230`, #550 Milestone-only(past). `page.request.get(api)`에서 `apiRequestContext.get: read ECONNRESET`; 71 PASS / 1 FAIL / 62 DID NOT RUN |
+| 이전 성공과 구별 | 동일 테스트의 Milestone 생성 POST는 HTTP201, Revision2 데이터 화면/원본 trace에 존재. GET의 HTTP 오류 응답(4xx/5xx) 또는 SQLite commit/Task identity mismatch는 관측되지 않음 |
+| Required 및 실행 Job | QA Preflight, Fast Gate, Policy, Typecheck, ESLint, Vitest, PR Next.js Build 및 Docker 구현/aggregate SUCCESS; 다른 E2E Shard1~5는 FAIL-FAST CANCELLED (Shard5 로그에 84 PASS가 기록되어도 Job conclusion은 CANCELLED). Chromium aggregate 118005620472 FAILURE |
+| QA Final | Job 118005655193: `required e2e 미성공`이므로 종속 FAIL. 별도 제품 테스트 오류로 중복 계산하지 않음 |
+
+### 실패 진단 원본과 불확실성
+
+- [Shard6 Playwright artifact 12179655842](https://github.com/planner77/masterGantt/actions/runs/39234279476/artifacts/12179655842) digest `sha256:2c11ee0da18d2b43708330b42475ab7502699d959bd0a7b082871a1b5588fc03`의 제한된 ZIP 내부 `isolated-application-diagnostics`와 API trace를 읽기 전용 대조. 원시 ZIP/trace, 헤더·cookie·실제 URL·인증값은 Git에 넣지 않음.
+- 실패 후 격리 Next CLI process alive=true, exitCode=null, signal=null(전후 동일); 독립 `/api/health/ready` HTTP200/27ms. cgroup `oom=0`, `oomKill=0`; 사용량 약 7.34GB→8.37GB 및 호스트 free 약 11.78GB→10.84GB. 자식 HTTP worker의 연속 생존/전체 메모리 임계값까지 증명되지는 않았으므로 서버 재시작·OOM·Next 버그·stale pooled socket을 근거 없이 확정하지 않는다.
+- 판정: **INIT_TRANSPORT / read-only Project GET ECONNRESET, root cause UNKNOWN**. F730-003(#3005.1)의 외부 `nodejs.org/SHASUMS256.txt` 설치 네트워크 ECONNRESET과는 다른 단계·endpoint다. 같은 문자열만으로 동일 사건으로 묶지 않는다. 이전 F730-001(#3001.1)의 #463 read-only POST watcher, F730-002(#3003.1)의 Hook/ESLint 오류 및 R730-001 지연 원본 navigation P2 보완은 불변이다.
+
+### 전체 실패 합집합·직접 교정과 회귀 기준
+
+- 이슈 #730의 접근 가능한 원격 Full 4회는 #3001.1, #3003.1, #3005.1, #3008.1(모두 별도 Head/attempt1/FAIL)이다. **직접 실제 E2E 실패 파일 합집합은** `tests/e2e/milestone-dashboard-state.spec.ts`(#3001)와 `tests/e2e/milestone-management-persistence.spec.ts`(#3008). F730-002는 ESLint, F730-003은 npm install이므로 신규 브라우저 FAIL이 아니다.
+- 변경 범위: #550 직접 실패 파일 `tests/e2e/milestone-management-persistence.spec.ts`의 두 원래 `get()` 소비자(관리/프로세스 restart, Milestone-only past/future)에서 기존 `observedReadOnlyGet(observeIsolatedApi, path, operation)`을 재사용하며 요청 GET에 `Connection: close` 적용. 즉시 재전송하지 않고 첫 번째 GET의 ECONNRESET을 **실제 observer가 기록하고 서버 Health/process/cgroup을 수집한 뒤** 동일 읽기 전용 GET을 최대 한 번만 추가 검증한다. 관련 공식 선례: [#703 누적 실패 원장](ISSUE_703_FAILURE_ANALYSIS.md), [원격 검증](REMOTE_VALIDATION.md), [#624 transport 기록](ISSUE_624_CI_FAILURE_ANALYSIS.md).
+- 기존 helper와 tests/scripts/isolated-readonly-get.test.ts의 정상 1회 / 첫 ECONNRESET bounded 2회 / 두 번째 실패 / HTTP404·409·503, ETIMEDOUT·ECONNREFUSED·잘못된 JSON·비 Error 음성을 유지. **업무 POST/PUT/PATCH/DELETE 재전송 0, HTTP 실패·불일치·2차 ECONNRESET은 FAIL**, Milestone/Task·원본 ID·revision·Gate·readonly·프로세스 재시작의 정확 단언/전역 Retry/Timeout/Skip은 변경하지 않는다.
+- 직접 #550와 기존 #463, 인접 #703/#624, #731 KPI/Milestone·Resource 및 #730 조회/원본 복귀는 새 HEAD PR Full 6 Shard를 통해 검증한다. GitHub 파일/로그/trace 정적 근거 외 로컬 새 코드 npm/Playwright/Docker는 이 세션에서 **NOT TESTED**. 새 Head PR Required Quality/E2E/Docker, Trusted QA·Owner 수용 전 병합·Main/GHCR/Release/이슈 종료 금지.
+- 원본 다른 Shard CANCELLED/NOT RUN 및 과거 로컬 #623 30s 불명 시간 위험·PrePR BLOCKED는 해소했다고 선언하지 않는다. 동일 이슈 재실패 시 **본 문서 F730-005 이후에 누적**, 별도 실패 원장 금지. 이번 요청은 새로운 Full PR CI 시작 확인까지만이고 CI 완료 모니터링은 금지.
