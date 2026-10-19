@@ -1,3 +1,14 @@
+## Issue #730 — 동적 조회 구성·상태·정확 원본 회귀
+
+- 순수 model의 schema/property/pairwise 검증은 다섯 고정 root·모든 하위 차원·root-only·형제 양방향·두 설비-root 예시와 root 반복/중복/순환·잘못된 형제·depth 초과를 서버 parser oracle과 비교한다. 모든 순열 E2E를 생성하지 않는다.
+- browser storage는 Project/root 격리·schema/손상/구버전·허용하지 않은 필드·접근 거부 복구를 검증한다. 설정에 원본 응답·인증값·업무 mutation을 저장하지 않는다. 다른 사용자의 공유 설정이라고 가정하지 않는다.
+- 기존 #728/#729 SQLite/HTTP golden과 함께 E10 다중 WorkArea 상위10·같은 Task5 M/D 여러 경로 상위5·공정0/등록-only·미배정·E1→Milestone 경로 t2 누출0을 확인한다. UI 숫자는 server totals를 그대로 표시하고 raw Task/Assignment 범위를 인계한다.
+- 대표 실제 Chromium 흐름에서 고정 root·하위 구성/순서/삭제/초기화·두 사용자 계층 저장/복원·typed 형제·필터·접힘/정렬·내부 scroll·페이지·정확 editor/일정/복귀를 검증한다. 실제 backend/합성 mock 응답·오류 주입은 증거에서 구별한다.
+- revision/snapshot stale409·네트워크 실패·늦은 응답·조건 탈락/삭제·empty/readonly에서 과거 상세/원본 명령 차단과 재조회·focus 복구를 확인한다. 조회/정렬/계층 변경에 업무 API mutation0·Gantt remount0·기존 marker-OFF/선택/viewport 보존을 검증한다.
+- 390/768/1024/1440/1920px의 긴 이름·수치에서 header/body 경계·열 budget·표 owner overflow/document overflow0·hit area·Tab/Enter/Space/Escape/focus·touch 접근을 실제 DOM으로 확인한다. 화면 캡처는 keyboard/권한/상태 검증을 대신하지 않는다.
+
+실제 명령·고유 케이스·최초 실패·동결 source와 미검증은 [Work Packet](exec-plans/active/ISSUE_730.md) 및 그 증거 링크를 따른다. Local PASS는 PR Required3/Trusted QA·Owner 승인이 아니며 사용자 요청은 PR CI 시작까지만이다.
+
 ## Issue #729 — Main CI F-001·교정 PR #745 문서/테스트 동기화 (2026-10-19)
 
 - **원인:** PR #744 병합 `59f42e291a48608d1280951a7d7874a21992aaa5`에서 multiline `commit_message`로 [Main CI #2993.1](https://github.com/planner77/masterGantt/actions/runs/39200938710)의 run trace 검증이 실패했다. Product Quality/E2E/Docker는 **skipped**, aggregate FAILURE, 임시 GHCR skipped였다. 원본 실패 보존과 반영 지침은 [전용 실패 원장](ISSUE_729_FAILURE_ANALYSIS.md)을 참조한다.

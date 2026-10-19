@@ -98,9 +98,11 @@ test("#624 same canonical Project across four logistics perspectives, full Miles
   const writes: string[] = [];
   page.on("request", request => {
     const path = new URL(request.url()).pathname;
+    // #730 shares this host with a public POST read query; canonical writes stay counted.
+    const wbsRead = request.method() === "POST" && path === `/api/projects/${f.publicId}/resource-dashboard/views`;
     if (path.startsWith(`/api/projects/${f.publicId}`) &&
       ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) &&
-      !path.endsWith("/resource-dashboard/query")) writes.push(`${request.method()} ${path}`);
+      !path.endsWith("/resource-dashboard/query") && !wbsRead) writes.push(`${request.method()} ${path}`);
   });
 
   const reports: Partial<Record<keyof typeof orders, ResourceDashboardDto>> = {};

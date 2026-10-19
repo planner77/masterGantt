@@ -4,6 +4,15 @@ import type { ResourceExportEvidence } from "./resource-export-model";
 import type { ResourceDashboardDto } from "@/contracts/resource-dashboard";
 import type { ResourceDrillProjection } from "@/contracts/resource-drill";
 import type { ResourceDrillBinding } from "./resource-drill-transport";
+import type { WbsViewReportDto, WbsViewPathEntry } from "@/contracts/wbs-dashboard-views";
+export interface WbsViewScheduleRequest {
+  data: WbsViewReportDto;
+  path: WbsViewPathEntry[];
+  label: string;
+  trigger: HTMLElement;
+  taskId?: string;
+  assignmentId?: string;
+}
 export interface ResourceScheduleRequest {
   data: ResourceDashboardDto;
   projection: Extract<ResourceDrillProjection, { kind: "scope" }>;
@@ -17,6 +26,7 @@ export interface ResourceScheduleRequest {
 export const ResourceDrillContext = createContext<{
   binding: ResourceDrillBinding | null;
   onSchedule?: (request: ResourceScheduleRequest) => void;
+  onWbsSchedule?: (request: WbsViewScheduleRequest) => void;
   onReport?: (data: ResourceDashboardDto) => void;
   onOpenTask?: (taskId: string) => void;
   onOpenAssignment?: (taskId: string, assignmentId: string, resourceId: string, trigger: HTMLElement) => void;

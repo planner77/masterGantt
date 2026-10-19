@@ -1,3 +1,9 @@
+## Issue #730 — 고정 root·동적 하위 축 공통 UI (2026-10-19)
+
+main `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` / #729 versioned API를 기준으로 [Work Packet](ISSUE_730.md)의 다섯 root·사용자 하위 구성·typed 형제·공통 표/정확 상세·개인 browser 상태·기존 editor/drill 복귀를 구현한다. 기존 KPI/Milestone/Resource 기능과 WBS 원본·서버 합계를 보존한다. DESIGN·화면/사용자 가이드·API 소비/테스트를 함께 갱신한다.
+
+frontend UI/상태/탐색·E2E, read-only ui_ux/qa_docs와 Manager 문서/통합을 분리한다. 후보0.124.0(열린 #731의0.123.0과 구분), HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. PR Full CI 시작까지만 수행하고 완료 모니터링·병합·Main/GHCR·Release·Issue 종료는 하지 않는다. 원격 Required3/Trusted·Owner ACCEPT는 NOT TESTED다.
+
 ## Issue #729 — versioned WBS 다관점·snapshot·정확 상세 (2026-10-19)
 
 초기 기준 main `6f6dadb1b3ac10bc837c09273a0922611b2e3f81`, 정렬 main `0ad91e7b075aa339b3b73ee0b4b3e8bc64e992f2`의 #725/#727/#728을 기준으로 [Work Packet](ISSUE_729.md)의 opt-in view spec/root·설비/System 형제 분기·raw union·same-snapshot 상세/drill·기존 Excel 호환 경계를 구현한다. Task 명시 공정0..N과 legacy 유도 의미를 분리하고 기존 projectionOrder/API·full Milestone Gate·Capacity R를 유지한다. UI·DB writer·CI gate 변경은 없다.

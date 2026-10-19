@@ -1,3 +1,9 @@
+## Issue #730 — app-owned 다관점 조회 UI
+
+클라이언트의 공통 composer/table/detail는 #729의 versioned 공개 read API를 소비한다. pure client model의 spec 검증과 Project+root별 versioned browser 설정은 server-only parser를 번들에 가져오지 않는다. 계산 authority·Repository·DB writer는 그대로이며 숫자는 서버 응답에서 읽는다. 원본 ID와 경로 viewRowKey를 분리하고 typed sibling은 조회 행으로만 표현한다.
+
+조회·상세 요청은 조건과 snapshot·generation/AbortController를 결속하고 원본 편집/일정 복귀는 기존 host/provider의 권한·canonical gateway·탐색 상태를 재사용한다. WBS source는 legacy Resource source와 구별하여 검증하며 안전하지 않은 source cast로 두 API를 혼용하지 않는다. 조회 설정은 개인 브라우저 상태이며 Project 업무 revision·다른 사용자의 설정을 갱신하지 않는다. [Project UX](PROJECT_UX.md), [실행 계약](exec-plans/active/ISSUE_730.md)을 따른다.
+
 ## Issue #729 — versioned WBS 다관점 read adapter
 
 신규 opt-in 조회는 기존 ResourceDashboardService 및 read snapshot/repository와 #728 `wbs-task-ledger`를 연결한다. Route Handler → Service → Repository → SQLite 경계를 유지하고 한 read transaction에서 Project·공정/WorkArea·Target/member/legacy·Task 문맥·Resource 등록/사용/책임·Calendar를 읽는다. 이름·활성·관계 변경까지 fingerprint에 포함하며 별도 영속 snapshot·WBS/Assignment writer를 만들지 않는다. 기존 호출은 기존 snapshot/공정 유도/`projectionOrder` 의미를 유지한다.

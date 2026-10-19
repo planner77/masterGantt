@@ -1,0 +1,161 @@
+{
+  "schema": "issue-730-local-validation/1",
+  "issue": 730,
+  "capturedAtUtc": "2026-10-19T07:13:48.140155+00:00",
+  "baselineSha": "01fdc08bf4b2f69f9797a8bd411d6712e7478c09",
+  "candidateVersion": "0.124.0",
+  "scope": "로컬 직접·인접 검증 원장이다. PR Required3/Trusted QA·Owner 승인과 구분한다.",
+  "environment": {
+    "platform": "WSL2 Linux 6.6.87.2",
+    "node": "22.14.0",
+    "npm": "11.10.0",
+    "playwright": "1.63.0",
+    "installation": "npm ci --prefer-offline --no-audit;447 packages; frozen install"
+  },
+  "manualChecks": [
+    {
+      "command": "npm run typecheck",
+      "status": "PASS",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run lint",
+      "status": "PASS",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/verify-release-version.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "version": "0.124.0"
+    },
+    {
+      "command": "node scripts/check-markdown-links.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "files": 270
+    },
+    {
+      "command": "node scripts/verify-test-discovery.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "unitFiles": 246,
+      "browserDiscoveredCases": 733,
+      "note": "발견 개수이며 실제 전체 실행 개수가 아니다."
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS",
+      "exitCode": 0
+    }
+  ],
+  "unit": {
+    "status": "PASS",
+    "exitCode": 0,
+    "files": 11,
+    "passed": 155,
+    "failed": 0,
+    "evidence": "unit-results.json",
+    "scope": "직접 model/storage/transport/navigation와 기존 물류/domain/실제 SQLite HTTP. 독립 사전 검토75개는 부분집합이므로 중복 합산하지 않는다.",
+    "command": "npx vitest run --config tests/config/vitest.config.ts tests/domain/wbs-task-ledger-acceptance.test.ts tests/domain/wbs-task-ledger.test.ts tests/features/project-workspace-navigation.test.ts tests/server/resources/resource-drill.test.ts tests/server/resources/wbs-dashboard-views-http.test.ts tests/features/resources/resource-drill-navigation-model.test.ts tests/features/resources/resource-drill-transport.test.ts tests/features/resources/resource-navigation-viewport.test.ts tests/features/resources/wbs-view-model.test.ts tests/features/resources/wbs-view-transport.test.ts tests/features/logistics/logistics-unified-model.test.ts --reporter=json --outputFile=docs/evidence/issue-730/unit-results.json"
+  },
+  "browser": {
+    "uniqueObservedCases": 11,
+    "evidence": "../../../output/playwright/issue-730/local-ui-receipt.json",
+    "sourceBoundary": "broad11개 동결 PASS와 후속5파일 보완 뒤 저장·취소·원본 복귀 검증을 분리한다. 전체 최종 소스11개 재실행을 주장하지 않는다.",
+    "finalFrozenCancelReturnCases": 2,
+    "finalFrozenCancelReturnExitCode": 0,
+    "delayedSaveFrames": 160,
+    "delayedSaveStatus": "PASS",
+    "historicalOldFocusFrames": 32,
+    "historicalOldFocusStatus": "FAIL",
+    "historicalCombinedProcessExitCode": 143
+  },
+  "prepr": {
+    "fast": {
+      "status": "BLOCKED",
+      "exitCode": 1,
+      "sourceStable": true,
+      "startFingerprint": "6e816040174aac50d284a645b9984cb6c6b01ced7a80a922f2c5bc4b6df37e38",
+      "endFingerprint": "6e816040174aac50d284a645b9984cb6c6b01ced7a80a922f2c5bc4b6df37e38",
+      "unknown": [
+        {
+          "path": "src/features/logistics/project-logistics-management.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "src/features/logistics/project-logistics-unified.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "src/features/logistics/project-process-management.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "tests/e2e/fixtures/wbs-view-composer.ts",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        }
+      ],
+      "missing": [],
+      "executedSteps": 0,
+      "selectedFiles": 26
+    },
+    "targeted": {
+      "status": "BLOCKED",
+      "exitCode": 1,
+      "sourceStable": true,
+      "startFingerprint": "6e816040174aac50d284a645b9984cb6c6b01ced7a80a922f2c5bc4b6df37e38",
+      "endFingerprint": "6e816040174aac50d284a645b9984cb6c6b01ced7a80a922f2c5bc4b6df37e38",
+      "unknown": [
+        {
+          "path": "src/features/logistics/project-logistics-management.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "src/features/logistics/project-logistics-unified.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "src/features/logistics/project-process-management.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "tests/e2e/fixtures/wbs-view-composer.ts",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        }
+      ],
+      "missing": [],
+      "executedSteps": 0,
+      "selectedFiles": 27
+    }
+  },
+  "documentation": {
+    "documentation_sync": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING",
+    "ac_test_coverage": "MAPPING_PASS_SEMANTIC_REVIEW_PENDING",
+    "localSemanticReview": "Manager 및 별도 read-only qa_docs의 구현/문서 대조; 원격 Trusted QA 대체 아님"
+  },
+  "sourceManifest": "source-freeze.json",
+  "qa": {
+    "risk_level": "HIGH",
+    "qa_required": true,
+    "qa_method": "OWNER_MANAGED",
+    "independent_qa": "N/A(Owner-managed, 독립 인간 검토 없음)",
+    "separateReadOnlyAgentReview": "PASS; source22/85 지문·UI 영수증·5폭 geometry·문서 의미·PrePR BLOCKED를 별도 qa_docs가 읽기 전용 대조, 미해결 P1/P2 0건. Trusted QA/독립 인간 QA·Owner ACCEPT 아님.",
+    "manager_decision": "NOT TESTED"
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "mainGhcr": "NOT TESTED",
+    "releaseAuthorized": false,
+    "endBoundary": "PR Full CI 시작까지; 결과 모니터링·병합·Release 없음"
+  },
+  "notTested": [
+    "상세50개 초과 실제 다음/이전 페이지 클릭",
+    "전체 Unit/Playwright/production build/audit/Docker 로컬 실행",
+    "실물 touch·최종 수동 UX·실제 운영 환경"
+  ],
+  "rawArtifacts": "원시 로그/trace/DB/인증 상태는 Git에서 제외한다."
+}

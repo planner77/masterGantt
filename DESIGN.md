@@ -202,6 +202,16 @@ Table이 아닌 Resource/Admin list·card·pane도 **명시적 geometry budget**
 - mobile/tablet에서도 toolbar가 Gantt의 가시 높이를 과도하게 줄이지 않게 한다.
 - view 전환으로 Gantt instance, scroll, tree, column, scale, selection을 불필요하게 초기화하지 않는다.
 
+### 동적 조회 구조와 WBS 원본 (Issue #730)
+
+대시보드의 Milestone·공정&WorkArea·설비·물류 시스템·리소스는 해당 관점의 root를 고정하고, 사용자가 하위 축을 추가·삭제·재정렬하거나 하위 없는 요약으로 조회한다. 구성 preset은 수정 가능한 시작점이며 실제 업무 계층을 강제하는 분류가 아니다. 조회 구성·정렬·접힘을 변경해 WBS parent, Task, Assignment, Target 또는 기준정보를 생성·재배치하지 않는다.
+
+다른 부모 아래 설비와 물류 시스템을 함께 배치할 때는 같은 깊이의 typed 형제 분기를 사용한다. 이를 설비→시스템의 실제 종속 관계로 표시하지 않는다. 설비 root 자체는 고정 관점이므로 `설비 → 공정 → 물류 시스템 → 리소스`, `설비 → Milestone → 공정`처럼 서로 다른 하위 경로를 허용한다. 실제 구성 membership·controls/coordinates와 같은 Task를 공유하는 업무 연관을 구별한다.
+
+같은 원본이 여러 WorkArea·공정·Milestone 경로에 나타나도 원본 ID는 하나이며 경로별 행 ID만 다르다. 상위 고유 총계는 서버의 Task/Assignment 합집합 값이고 중첩 소계의 합이 아니다. 구성 수량·등록 인원·관련 Task·개인 Assignment·계획공수·Milestone 전체 Gate의 단위를 분리한다. 등록-only·미연결·미배정은 삭제나 오류로 간주하지 않는다.
+
+조회 설정은 Project와 관점별 개인 브라우저 상태로 관리하고 업무 revision·다른 사용자의 설정과 분리한다. 구성기와 표는 기존 compact control·이름 우선·상황형 도움말·표 소유 scroll을 사용한다. 출발 관점의 조건·snapshot·펼침·선택·스크롤·focus를 정확한 원본 편집과 조회 복귀에서도 보존하고, stale 원본에서 상세나 이동을 실행하지 않는다. 세부 검증·저장·복구 계약은 [UI/UX 가이드](docs/UI_UX_GUIDELINES.md)와 [Project UX](docs/PROJECT_UX.md)를 따른다.
+
 ### Task Editor
 
 - tab 기반 정보 구조를 유지한다.

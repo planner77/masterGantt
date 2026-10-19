@@ -1,3 +1,7 @@
+## Issue #730 — versioned view의 UI 소비
+
+대시보드 공통 구성기/표는 아래 #729의 POST `/resource-dashboard/views`를 사용한다. 새 endpoint·공개 DTO·서버 계산·기존 API default 변경은 없다. 고정 root는 화면이 선택하고 사용자는 levels를 편집한다. root-only는 빈 levels, 설비/System 동급은 siblings 한 단계이며 `projectionOrder`나 Target 필터로 변환하지 않는다. report/details/scope의 spec·filters·scope·snapshotId·path를 동일하게 유지하고 stale409에서는 재조회한다. 새 view spec의 기존 Excel 미지원 오류를 유지한다. 화면별 개인 설정 저장은 browser storage이며 이 read API나 Project revision mutation이 아니다. [화면 계약](PROJECT_UX.md), [Work Packet](exec-plans/active/ISSUE_730.md)을 따른다.
+
 ## Issue #729 — versioned WBS 다관점 조회
 
 `POST /api/projects/{publicId}/resource-dashboard/views`는 새 WBS source를 명시적으로 선택하는 읽기 전용 API다. 기존 `/resource-dashboard`, `/query`, `/details`, `/scope`, Plan 및 `projectionOrder`의 요청/응답·공정 의미는 유지한다. Project 편집 session 없이 public-read이며 exact `Origin`, JSON body, canonical UUID Project ID를 검증한다. URL query는 허용하지 않는다. 조회는 mutation0이고 응답은 `Cache-Control: private, no-store`·`nosniff`다.

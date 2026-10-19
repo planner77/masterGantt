@@ -1,3 +1,9 @@
+## Issue #730 — 공통 동적 표의 지표 소비
+
+공통 조회 UI는 #729 view spec/report/details/scope를 그대로 사용한다. root와 하위 경로 변경은 저장 WBS나 Assignment를 바꾸지 않는다. 고유 Task·개인 Assignment·기간가중 진척·계획 M/D/M/M은 서버 원시 합집합 값이며 구성 수량/등록 인원·중첩 소계와 분리한다. 하위 소계를 합쳐 상위 지표를 재계산하지 않으며 등록-only/작업0·미배정·미설정·null을 빈 성공이나 오류로 대체하지 않는다.
+
+설비/System 형제 분기는 동일 깊이·동일 후속 축을 사용한다. 다중 WorkArea의 동일 설비와 Task/Assignment는 경로별 viewRowKey가 다르지만 원본은 같다. 상세/일정 이동은 선택 path와 snapshot을 재검증하고 exact Task/Assignment 교집합을 유지한다. full Milestone Gate는 선택 작업 완료와 별도다. 기존 Resource KPI/Plan 및 Target 호환 조회는 계속 제공하며 새 spec의 Excel 미지원 계약을 기존 workbook으로 우회하지 않는다. [Project UX](PROJECT_UX.md), [Work Packet](exec-plans/active/ISSUE_730.md)을 따른다.
+
 ## Issue #729 — versioned WBS 조회 소비 계약
 
 신규 opt-in view API는 #728 원장의 일반 Task 합집합과 개인 Assignment 공수를 분리한다. 등록-only Resource는 작업0 root로 남지만 등록/책임 역할로 Task 배정·공수·Capacity R를 생성하지 않는다. 공정·설비·System·Group·Milestone 소계는 중첩 가능하며 상위 총계를 소계 합으로 계산하지 않는다. 기존 Resource Dashboard/Plan/Target 필터·projectionOrder의 의미와 기본 응답은 유지한다.

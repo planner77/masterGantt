@@ -3,13 +3,18 @@ import { expect, test } from "@playwright/test";
 import { dashboardFixture } from "../fixtures/milestone-dashboard";
 import { installStatefulProjectFixture, projectPath, publicId } from "../fixtures/stateful-project";
 
+// #730's public POST is a read query. Keep every business mutation counted.
+function isWbsReadQuery(request: { method(): string; url(): string }) {
+  return request.method() === "POST" && /^\/api\/projects\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/resource-dashboard\/views$/.test(new URL(request.url()).pathname);
+}
+
 test("#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5폭 tab geometry", async ({ page }) => {
   test.setTimeout(120_000);
   const state = await installStatefulProjectFixture(page);
   state.sessionEditable = false;
   let writes = 0;
   page.on("request", (request) => {
-    if (request.url().includes(projectPath) && !["GET", "HEAD"].includes(request.method())) writes++;
+    if (request.url().includes(projectPath) && !["GET", "HEAD"].includes(request.method()) && !isWbsReadQuery(request)) writes++;
   });
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) =>
     route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
@@ -132,7 +137,7 @@ test("#724 exact screen·legacy URL·저장된 보기와 Resource 관리자 경�
   const state = await installStatefulProjectFixture(page);
   state.sessionEditable = true;
   let writes = 0;
-  page.on("request", request => { if (!['GET', 'HEAD'].includes(request.method())) writes++; });
+  page.on("request", request => { if (!['GET', 'HEAD'].includes(request.method()) && !isWbsReadQuery(request)) writes++; });
   await page.route(`**${projectPath}/milestone-dashboard?*`, route => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await page.route(`**${projectPath}/resource-memberships?*`, route => route.fulfill({ json: { data: { projectRevision: state.project.revision, catalogRevision: 1, total: 0, offset: 0, limit: 50, groups: [], counts: { registered: 0, assigned: 0, roleOnly: 0, inactive: 0 }, resources: [] } } }));
   await page.goto(`/projects/${publicId}?screen=master.resources&view=milestones`);

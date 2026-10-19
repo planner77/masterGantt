@@ -1,3 +1,11 @@
+## Issue #730 — 고정 root와 동적 조회 구성
+
+Milestone·공정&WorkArea·설비·물류 시스템·리소스의 root는 현재 관점에 고정한다. 접힌 보기 구성에서 하위 축을 추가·삭제·위/아래로 이동하고, 적용 전 초안과 현재 표의 경로를 구별한다. 하위 없음은 root-only 요약이며 설비/System 형제는 한 단계다. root 재등장·중복 축·잘못된 형제·깊이 초과는 서버와 같은 계약으로 거부하고 이유와 삭제/초기화 복구를 제공한다. readonly에서도 조회 설정을 바꿀 수 있지만 원본 수정은 기존 권한을 따른다.
+
+단일 native table과 펼친 행을 사용한다. 이름 열의 native 펼침 버튼은 행 이름과 펼침 상태를 보조기술에 전달하고, Task/Assignment 상세는 종류와 선택 경로를 구별한다. 공수·작업·완료·지연·명령의 fixed/minimum budget과 유연한 이름 열을 사용하고 표 container만 가로 scroll을 소유한다. 깊이 들여쓰기로 이름이 사라지지 않도록 상한을 둔다. 390/768/1024/1440/1920px에서 긴 이름/수치·열 경계·document overflow·44px 조작 영역을 실제 DOM으로 확인한다.
+
+상세 제목에 focus하고 Escape/닫기로 호출 지점 또는 현재 보이는 조회 control에 복귀한다. root/spec/filter/revision/snapshot이 달라지거나 응답이 역전되면 과거 상세와 원본 이동을 무효화한다. 손상·구버전 개인 browser 설정에는 복구 안내를 제공하고 storage 실패가 public read 자체를 막지 않게 한다. 저장 설정을 다른 사용자의 공유 업무 상태로 표시하지 않는다. 총계와 정확 ID는 서버 응답을 사용하고 표 행의 소계를 합산하지 않는다. [설계 원칙](../DESIGN.md), [실행/AC 증거](exec-plans/active/ISSUE_730.md)를 따른다.
+
 ## Issue #717 — 이름 우선과 식별 정보 요청 조회
 
 `DESIGN.md` §1.3을 적용한다. 일반 행·후보·KPI는 이름과 업무 맥락을 우선하고 코드/UUID는 기본 접힌 `IdentifierDetails`에서 원문을 확인·복사한다. native details/summary·44px·focus ring·readonly textarea 전체 선택·Clipboard 실패 안내를 사용한다. option/listbox 내부에 disclosure/button을 중첩하지 않는다. 동일 표시 후보는 실제 부모 이름/날짜/상태를 비교하고 불충분할 때만 보조 코드를 표시한다. 공정명은 최소220px, 전체 표 예산을 소유한 내부 scroll을 사용한다. [화면 인벤토리](ISSUE_717_IDENTITY_INVENTORY.md)와 [실행 계획](exec-plans/active/ISSUE_717.md)의 실제 검증 범위·미검증 상태를 따른다.

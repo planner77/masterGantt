@@ -7,7 +7,7 @@ import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { emptyMembershipFilters, membershipError, membershipGrades, membershipQuery, membershipRoles, type MembershipFilters } from "./project-resource-memberships-model";
 import styles from "./project-resource-memberships.module.css";
 
-type Props = { publicId: string; revision: number; active: boolean; editable: boolean; disabled: boolean; recoveryRequired?: boolean; onChanged: () => Promise<boolean>; onUnauthorized: () => void; onOpenAssignment: (taskId: string, assignmentId: string, resourceId: string, trigger: HTMLElement) => void; taskNames: ReadonlyMap<string, string> };
+type Props = { openResourceRequest?: {id:string;sequence:number;trigger:HTMLElement} | null; onResourceRequestHandled?: () => void; publicId: string; revision: number; active: boolean; editable: boolean; disabled: boolean; recoveryRequired?: boolean; onChanged: () => Promise<boolean>; onUnauthorized: () => void; onOpenAssignment: (taskId: string, assignmentId: string, resourceId: string, trigger: HTMLElement) => void; taskNames: ReadonlyMap<string, string> };
 function validResponse(value: unknown): value is MembershipResponse {
   if (!value || typeof value !== "object" || !("data" in value)) return false;
   const data = value.data as MembershipResponse["data"] | null;
@@ -33,11 +33,11 @@ function ResourceCells({ resource }: { resource: Resource }) {
     <td><div>{resource.registered ? "등록됨" : "등록 필요"}</div><div className={styles.metadata}>{resource.usage.taskAssignments ? `작업 배정 ${resource.usage.taskAssignments}건` : "작업 미배정"}{resource.usage.responsibilityAssignments ? ` · Summary·Milestone 책임 참조 ${resource.usage.responsibilityAssignments}건` : ""}{resource.usage.equipmentRoles ? ` · 설비 담당 ${resource.usage.equipmentRoles}건` : ""}{resource.usage.systemRoles ? ` · 시스템 책임 역할 ${resource.usage.systemRoles}건` : ""}</div></td></>;
 }
 function ResourceTable({ resources, children }: { resources: Resource[]; children: (row: Resource) => ReactNode }) {
-  return <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="프로젝트 리소스 목록, 가로 스크롤 가능"><table className={styles.table}><thead><tr><th scope="col">이름</th><th scope="col">전역 역할 / 등급</th><th scope="col">Group</th><th scope="col">등록 / 프로젝트 사용</th><th scope="col">동작</th></tr></thead><tbody>{resources.map(row => <tr key={row.id}><ResourceCells resource={row} /><td>{children(row)}</td></tr>)}</tbody></table></div>;
+  return <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="프로젝트 리소스 목록, 가로 스크롤 가능"><table className={styles.table}><thead><tr><th scope="col">이름</th><th scope="col">전역 역할 / 등급</th><th scope="col">Group</th><th scope="col">등록 / 프로젝트 사용</th><th scope="col">동작</th></tr></thead><tbody>{resources.map(row => <tr key={row.id} data-canonical-resource-id={row.id}><ResourceCells resource={row} /><td>{children(row)}</td></tr>)}</tbody></table></div>;
 }
 
 export function ProjectResourceMemberships(props: Props) {
-  const { publicId, revision, active, editable, disabled, recoveryRequired } = props;
+  const { publicId, revision, active, editable, disabled, recoveryRequired, openResourceRequest, onResourceRequestHandled } = props;
   const endpoint = `/api/projects/${encodeURIComponent(publicId)}/resource-memberships`;
   const [data, setData] = useState<MembershipResponse["data"] | null>(null);
   const [catalog, setCatalog] = useState<MembershipResponse["data"] | null>(null);
@@ -67,6 +67,40 @@ export function ProjectResourceMemberships(props: Props) {
   const writeRecoveryRequired = useRef(false);
   const restoreAfterMutation = useRef(false);
   useEffect(() => { if (!busy && restoreAfterMutation.current) { restoreAfterMutation.current = false; const target = trigger.current?.isConnected ? trigger.current : registerTrigger.current; (target?.matches(":disabled") ? refreshTrigger.current : target)?.focus({ preventScroll: true }); } }, [busy]);
+  const handledResourceRequest = useRef<number | null>(null);
+  const requestedResourceOpen = useRef(false);
+  useEffect(() => {
+    const request = openResourceRequest;
+    if (!active || !request || disabled || busy || handledResourceRequest.current === request.sequence) return;
+    const controller = new AbortController();
+    setError(null); setLoading(true);
+    void (async () => {
+      try {
+        let catalogRevision: number | null = null;
+        for (let page = 0; page < 1000; page++) {
+          const response = await fetch(`${endpoint}?${new URLSearchParams({scope:"project",offset:String(page * 100),limit:"100"})}`, {credentials:"same-origin",cache:"no-store",signal:controller.signal});
+          const body:unknown = await response.json();
+          if (controller.signal.aborted) return;
+          if (!response.ok || !validResponse(body) || body.data.projectRevision !== revision) throw Error("STALE");
+          if (catalogRevision !== null && catalogRevision !== body.data.catalogRevision) throw Error("STALE");
+          catalogRevision = body.data.catalogRevision;
+          const resource = body.data.resources.find(row => row.id === request.id);
+          if (resource) {
+            handledResourceRequest.current = request.sequence; requestedResourceOpen.current = true;
+            trigger.current = request.trigger; setAssignments(null); setAssignmentError(null); setAssignmentResource(resource);
+            return;
+          }
+          if (!body.data.resources.length || (page + 1) * 100 >= body.data.total) throw Error("MISSING");
+        }
+        throw Error("LIMIT");
+      } catch { if (!controller.signal.aborted) {handledResourceRequest.current=request.sequence;setError("선택한 리소스 원본을 현재 프로젝트에서 확인하지 못했습니다. 최신 조회로 돌아가 다시 선택해 주세요.");} }
+      finally { if (!controller.signal.aborted) setLoading(false); }
+    })();
+    return () => controller.abort();
+  }, [active,openResourceRequest,disabled,busy,endpoint,revision]);
+  useEffect(() => {
+    if (!assignmentResource && requestedResourceOpen.current) {requestedResourceOpen.current=false;onResourceRequestHandled?.();}
+  }, [assignmentResource,onResourceRequestHandled]);
   const selectionRevision = useRef<{ project: number; catalog: number } | null>(null);
   const groups = useRef(new Map<string, string>());
   const [groupOptions, setGroupOptions] = useState(new Map<string, string>());
@@ -140,6 +174,7 @@ export function ProjectResourceMemberships(props: Props) {
   const disabledMutation = !editable || disabled || busy || stale;
   const projectRows = data?.resources ?? [];
   return <div className={styles.panel} aria-busy={loading || busy}>
+    {openResourceRequest ? <button type="button" className="secondary-button" disabled={busy} onClick={() => {setAssignmentResource(null);requestedResourceOpen.current=false;onResourceRequestHandled?.();}}>원래 계층 조회로 돌아가기</button> : null}
     <div className={styles.heading}><div><h2>프로젝트 리소스</h2><p className={styles.description}>등록은 작업 배정이나 편집 권한을 부여하지 않습니다. 작업 배정은 수행 계획이며 실적이 아닙니다.</p></div><div className={styles.toolbar}><button className="primary-button" ref={registerTrigger} type="button" disabled={disabledMutation} onClick={() => { trigger.current = registerTrigger.current; setSelection(null); setCatalogFilters({ ...emptyMembershipFilters }); setCatalogOffset(0); setDialog(true); }}>리소스 등록</button><button ref={refreshTrigger} className="secondary-button" type="button" disabled={busy || (disabled && !props.recoveryRequired) || loading} onClick={() => void refresh()}>최신 상태 조회</button><a href="/resources" target="_blank" rel="noreferrer">공용 리소스 관리 (별도 관리자)</a></div></div>
     {!editable ? <p className={styles.notice}>읽기 전용입니다. 등록·해제하려면 프로젝트 편집 잠금을 해제해 주세요.</p> : null}
     <div className={styles.counts} aria-label="프로젝트 전체 인원"><span>등록 {data?.counts.registered ?? "—"}명</span><span>작업 배정 {data?.counts.assigned ?? "—"}명</span><span>책임 역할만 {data?.counts.roleOnly ?? "—"}명</span><span>비활성 {data?.counts.inactive ?? "—"}명</span></div>
@@ -151,7 +186,7 @@ export function ProjectResourceMemberships(props: Props) {
     {dialog ? <WorkspaceDialog title="프로젝트 리소스 등록" size="wide" onClose={closeRegistration} busy={busy} restoreFocusRef={trigger}><div className={styles.dialogBody} aria-busy={catalogLoading || busy}><p>공용 리소스를 선택해 이 프로젝트에 등록합니다. 작업 배정·공수·편집 권한은 추가하지 않습니다.</p><Filters disabled={busy} prefix="공용 리소스" value={catalogFilters} groups={groupOptions} onChange={value => { setCatalogFilters(value); setCatalogOffset(0); }} />{catalogError ? <p role="alert" className={styles.notice}>{catalogError}</p> : null}{stale ? <button type="button" className="secondary-button" disabled={busy} onClick={() => void refresh()}>최신 목록 다시 불러오기</button> : null}{catalogLoading ? <p role="status">공용 리소스를 불러오는 중…</p> : null}{!catalogLoading && !catalogError && catalog ? <><p className={styles.metadata}>검색 결과 {catalog.total}명</p>{catalog.resources.length ? <ResourceTable resources={catalog.resources}>{row => <label><input type="radio" name="project-resource-selection" checked={selection?.id === row.id} disabled={busy || !row.active || row.registered || stale} onChange={() => { setSelection(row); selectionRevision.current = { project: catalog.projectRevision, catalog: catalog.catalogRevision }; }} /> {row.registered ? "이미 등록됨" : !row.active ? "비활성: 등록 불가" : "선택"}</label>}</ResourceTable> : <p className={styles.notice}>조건에 맞는 공용 리소스가 없습니다. 필터를 해제하거나 공용 리소스 관리에서 원본을 확인해 주세요.</p>}<Pagination offset={catalogOffset} total={catalog.total} disabled={busy} onChange={setCatalogOffset} /></> : null}<div className={styles.selection}><span>{selection ? `선택: ${selection.name}` : "등록할 리소스를 선택해 주세요."}</span><button className="primary-button" type="button" disabled={disabledMutation || !selection || catalogLoading || !!catalogError} onClick={() => selection && void mutate(selection, true)}>{busy ? "등록 중…" : "선택 리소스 등록"}</button></div></div></WorkspaceDialog> : null}
     {discard ? <WorkspaceDialog title="리소스 선택 취소" onClose={() => setDiscard(false)}><p>선택한 리소스를 등록하지 않고 닫으시겠습니까?</p><div className={styles.toolbar}><button type="button" className="secondary-button" onClick={() => setDiscard(false)}>계속 선택</button><button type="button" onClick={() => { setDiscard(false); setSelection(null); setDialog(false); }}>선택 버리고 닫기</button></div></WorkspaceDialog> : null}
     {remove ? <WorkspaceDialog title="프로젝트 리소스 등록 해제" busy={busy} restoreFocusRef={trigger} onClose={() => setRemove(null)}><p>{remove.name}의 프로젝트 등록을 해제하시겠습니까? 공용 리소스 원본과 과거 배정은 삭제하지 않습니다.</p>{error ? <p role="alert">{error}</p> : null}<button className="primary-button" type="button" disabled={disabledMutation} onClick={() => void mutate(remove, false)}>등록 해제 확인</button></WorkspaceDialog> : null}
-    {assignmentResource ? <WorkspaceDialog title={`${assignmentResource.name} 작업 배정`} restoreFocusRef={trigger} onClose={() => setAssignmentResource(null)}>{assignmentError ? <p role="alert">{assignmentError}</p> : assignments ? assignments.length ? assignments.map(item => <p key={item.id}><button className="secondary-button" type="button" disabled={disabled || !editable} onClick={() => { const origin = trigger.current ?? registerTrigger.current; setAssignmentResource(null); if (origin) props.onOpenAssignment(item.taskId, item.id, assignmentResource.id, origin); }}>{props.taskNames.get(item.taskId) ?? "작업"} 배정 편집</button>{!editable ? " (읽기 전용)" : ""}</p>) : <p>개인 작업 배정이 없습니다.</p> : <p role="status">작업 배정을 불러오는 중…</p>}</WorkspaceDialog> : null}
+    {assignmentResource ? <WorkspaceDialog title={`${assignmentResource.name} 작업 배정`} restoreFocusRef={trigger} onClose={() => setAssignmentResource(null)}><ResourceTable resources={[assignmentResource]}>{() => <span>공용 프로필 편집은 별도 리소스 관리자 권한이 필요합니다.</span>}</ResourceTable>{assignmentError ? <p role="alert">{assignmentError}</p> : assignments ? assignments.length ? assignments.map(item => <p key={item.id}><button className="secondary-button" type="button" disabled={disabled || !editable} onClick={() => { const origin = trigger.current ?? registerTrigger.current; setAssignmentResource(null); if (origin) props.onOpenAssignment(item.taskId, item.id, assignmentResource.id, origin); }}>{props.taskNames.get(item.taskId) ?? "작업"} 배정 편집</button>{!editable ? " (읽기 전용)" : ""}</p>) : <p>개인 작업 배정이 없습니다.</p> : <p role="status">작업 배정을 불러오는 중…</p>}</WorkspaceDialog> : null}
   </div>;
 }
 function Pagination({ offset, total, disabled, onChange }: { offset: number; total: number; disabled: boolean; onChange: (offset: number) => void }) { return <div className={styles.pagination}><button type="button" className="secondary-button" disabled={disabled || offset === 0} onClick={() => onChange(Math.max(0, offset - 50))}>이전 50명</button><button type="button" className="secondary-button" disabled={disabled || offset + 50 >= total} onClick={() => onChange(offset + 50)}>다음 50명</button></div>; }

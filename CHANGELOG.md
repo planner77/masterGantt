@@ -473,6 +473,11 @@
 
 # Changelog
 
+## [0.124.0] - 2026-10-19
+
+- Issue #730: 다섯 고정 관점의 동적 하위 축 구성기와 공통 조회 표·정확 상세, 개인 조회 상태 저장/복원 및 기존 원본/일정 복귀를 추가한다. 서버 고유 합계·typed 설비/System 형제·WBS 원본과 기존 KPI/Milestone/Resource 기능을 보존한다.
+- DESIGN·UI/UX·화면/사용자 가이드·API 소비·테스트 계획을 동기화한다. 정식 게시 승인은 별도이며 PR CI 시작은 원격 검증 완료를 뜻하지 않는다.
+
 ## [Unreleased] — Issue #551 Milestone Timeline main 통합 (2026-10-12)
 
 ### Added

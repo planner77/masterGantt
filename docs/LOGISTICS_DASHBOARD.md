@@ -1,3 +1,7 @@
+## Issue #730 — 공정·설비·System 공통 조회 구성
+
+대시보드의 공정&WorkArea·설비·물류 시스템은 #729 versioned 원장을 소비하는 공통 하위 축 구성기/표를 사용한다. 고정 root·하위 없는 요약·사용자 축 추가/삭제/순서 변경·typed 설비/System 형제와 정확 상세를 제공한다. 기존 Target 호환 source·프로젝트 KPI의 기능/산식은 별도 보존하며 새 명시 Task 공정 기준을 구 API default로 강제하지 않는다. 표의 상위 총계는 서버 고유 합집합이며 다중 WorkArea 소계를 합산하지 않는다. [Project UX](PROJECT_UX.md), [사용 안내](TARGET_RESOURCE_USER_GUIDE.md#동적-조회-구성과-정확-상세), [실행 증거](exec-plans/active/ISSUE_730.md)를 따른다.
+
 ## Issue #729 — 신규 WBS source와 설비/System 형제 조회
 
 신규 opt-in view API는 #728 명시 Task 공정/WorkArea 원장을 사용하며 기존 공정 KPI/Target API의 자동 유도 의미를 바꾸지 않는다. `process`는 Project-local 공정 ID이고 `processOccurrence` 및 legacy projection의 공정과 구별한다. 공정0 Task는 미연결 분기에 남고 Project/System/Resource/Milestone 전체에서 유실되지 않는다. 설비의 교차 공정 WorkArea0..N은 구성 관계이며 Task 공정 선택을 생성하지 않는다.

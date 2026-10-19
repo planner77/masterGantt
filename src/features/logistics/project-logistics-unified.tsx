@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ProjectLogisticsDto } from "@/contracts/logistics";
 import type { ResourceDashboardFilterInput, ResourceDashboardSelector, ResourceDashboardSummary } from "@/contracts/resource-dashboard";
-import { ResourceDrillContext, type ResourceScheduleRequest } from "@/features/resources/resource-drill-context";
+import { WbsViewDashboard } from "@/features/resources/wbs-view-dashboard";
+import type { WbsViewDimension } from "@/contracts/wbs-dashboard-views";
+import { ResourceDrillContext, type WbsViewScheduleRequest, type ResourceScheduleRequest } from "@/features/resources/resource-drill-context";
 import { dashboardQuery, plannedEffort } from "@/features/resources/resource-dashboard-model";
 import { ResourceDashboardDetails } from "@/features/resources/resource-dashboard-details";
 import { ResourceTargetFilters, ResourceTargetViews } from "@/features/resources/resource-target-views";
@@ -21,10 +23,12 @@ interface Props {
   busy: boolean;
   editable: boolean;
   logistics: ProjectLogisticsDto;
-  onOpenTask?: (taskId: string) => void;
+  onOpenTask?: (taskId: string, trigger?: HTMLElement) => void;
   onOpenAssignment?: (taskId: string, assignmentId: string, resourceId: string, trigger: HTMLElement) => void;
   onOpenTarget?: (targetId: string, trigger: HTMLElement, code?: string | null) => void;
   onOpenMilestone?: (taskId: string) => void;
+  onWbsSchedule?: (request: WbsViewScheduleRequest) => void;
+  onWbsOpenEntity?: (dimension: WbsViewDimension, id: string, trigger: HTMLElement) => void;
   onResourceSchedule?: (request: ResourceScheduleRequest) => void;
 }
 
@@ -36,11 +40,13 @@ export function ProjectLogisticsUnified(props: Props) {
     <ResourceDrillContext.Provider value={{
       binding: null,
       locked: props.busy,
+      onWbsSchedule: props.onWbsSchedule,
       onOpenTask: props.onOpenTask,
       onOpenAssignment: props.editable ? props.onOpenAssignment : undefined,
       onOpenTarget: props.editable ? props.onOpenTarget : undefined,
       onSchedule: props.onResourceSchedule ? (request) => props.onResourceSchedule?.({ ...request, binding: null }) : undefined,
     }}>
+      {(["process", "equipment", "system"] as const).map(root => <div key={root} hidden={(props.perspective ?? "process") !== root} inert={(props.perspective ?? "process") !== root}><WbsViewDashboard publicId={props.publicId} revision={props.revision} root={root} active={props.active && (props.perspective ?? "process") === root} busy={props.busy} onOpenTask={props.onOpenTask} onOpenAssignment={props.editable ? props.onOpenAssignment : undefined} onOpenEntity={props.editable ? props.onWbsOpenEntity : undefined} onSchedule={props.onWbsSchedule}/></div>)}
       <UnifiedContent {...props} />
     </ResourceDrillContext.Provider>
   );

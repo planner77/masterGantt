@@ -1,0 +1,31 @@
+{
+  "schema": "issue-730-source-freeze/1",
+  "baselineSha": "01fdc08bf4b2f69f9797a8bd411d6712e7478c09",
+  "capturedAtUtc": "2026-10-19T07:12:20.406014+00:00",
+  "changedSourceFileCount": 22,
+  "sourceSha256": {
+    "src/features/logistics/project-logistics-management.tsx": "e174e4d9ddf8536bb4375f5b4cd6830b92807d6b6fe41329dd1875f59a1490e3",
+    "src/features/logistics/project-logistics-unified.tsx": "ccfb1308ca0fe1f62cdf3587523e22e857f3fb1f7113b49e5cf1453176e7ef6f",
+    "src/features/logistics/project-process-management.tsx": "81b9e1014bf318601853c97315c30a7b8b15e035516ab9547cabe840fa48b57d",
+    "src/features/projects/project-readonly-view.tsx": "d613f3145b0a1b40f50e2e6f841000e4dce135e75ccd73b87d4a489e48518e4c",
+    "src/features/resources/project-resource-memberships.tsx": "20ba7422ba28b992dc0d0b434abd77643cf4d911f6a99d14db79cd65705b579e",
+    "src/features/resources/resource-drill-context.tsx": "ecda2302e941fcbd9451a30b2b6f6e1dcdaf3ba88c611ccd8ce3ce87df1e9d66",
+    "src/features/resources/resource-drill-navigation-model.ts": "af5d10a51835a7ff2fec17ec9be8d7ebad77a59c43956e277183c64a973b8f8e",
+    "src/features/resources/wbs-view-composer.tsx": "3dda370034bb408dca72a908cf2603cb784f3bf105eff3454f5af95d64766889",
+    "src/features/resources/wbs-view-dashboard.tsx": "e17a70ef6af9dc2f7d56785cc5a5c84ce88eda307dc31383091a7995a2a70594",
+    "src/features/resources/wbs-view-details.tsx": "a53d70e62c45e88466a0226370ee93c4976f092fe9a7b4d05887fb5beb3ff25e",
+    "src/features/resources/wbs-view-model.ts": "116d4bd1f86eaec29dac3422bd62b8d7f46c9d43e07c4a515607e30395258181",
+    "src/features/resources/wbs-view-storage.ts": "15a952c99339f75870ac75539129882f70eb893cd060cb1f848c50cc2b9a012d",
+    "src/features/resources/wbs-view-table.tsx": "c4805666e608512c49ca3a9613d7d43349ecaca6041c4f20c4d61cb6ebf3f679",
+    "src/features/resources/wbs-view-transport.ts": "43e26c5a6fd486f6d9236b6ca52d225083ef6141e84b940ec4845a5ca7634cd7",
+    "src/features/resources/wbs-view.module.css": "280529e1203ea99436da48238bb2dbdf93e70ea9aa3ffd13831afcab58e43b76",
+    "tests/e2e/fixtures/wbs-view-composer.ts": "6f096b3b00a0af79396a9f2ead3e8d85267f942632c17bc33bad6d16a713fc33",
+    "tests/e2e/issue-624-logistics-unified.spec.ts": "42dc34bbce68b13b75ab4c6dddf48e2f617d2cdd028062b8336a4b1fef192323",
+    "tests/e2e/issue-730-view-composer.spec.ts": "d9247fa3d1727b9190459395b2aa9f75637d81d93634f7cb95fbd60c556f73b6",
+    "tests/e2e/project-workspace-tabs-518.spec.ts": "795f59a4ade6c3a161a15847982ecabd0e4c6375b77ca3a3fc219c4cd58699e8",
+    "tests/features/resources/resource-drill-navigation-model.test.ts": "3f3ab4feb447eab2adfa9ed0495956802fdbc1be6f70eaa5f78015bd148996c4",
+    "tests/features/resources/wbs-view-model.test.ts": "9149094cad6ac9bc71ad49bb485b00171f7632b89b11a4b4fdf2f19de67fad5e",
+    "tests/features/resources/wbs-view-transport.test.ts": "ce1ff9bc867f85b508739d6e79ec3ed171d743f142d015cf653b1b3239174607"
+  },
+  "aggregateSha256": "9cfe5bd7e03bdd5d6c7ec88c181c009f0fc98eb09b39df3e8926e45e3f4a5252"
+}
