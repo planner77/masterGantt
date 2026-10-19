@@ -1,9 +1,10 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { withIntegratedKpi } from "../fixtures/logistics-integrated-kpi";
 import { mkdir, writeFile } from "node:fs/promises";
 import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
 import { expect, test, type Page, type Locator } from "@playwright/test";
 import { dashboardFixture } from "../fixtures/milestone-dashboard";
-import { installStatefulProjectFixture, projectPath, publicId } from "../fixtures/stateful-project";
+import { deferred, installStatefulProjectFixture, projectPath, publicId } from "../fixtures/stateful-project";
 import { resourceAdmin453, loginResourceAdmin453 } from "../fixtures/resource-admin-453";
 import { mockMaster455, loginMaster455 } from "../fixtures/project-master-455";
 import { mockLogistics454, loginLogistics454 } from "../fixtures/logistics-admin-454";
@@ -13,7 +14,7 @@ const widths = [390, 768, 1024, 1440, 1920];
 const surfaces = ["milestone", "resource", "resource-admin", "logistics", "logistics-admin", "master"] as const;
 type Surface = typeof surfaces[number];
 
-async function openSurface(page: Page, surface: Surface): Promise<Locator> {
+async function openSurface(page: Page, surface: Surface, wbsResponseGate?: Promise<void>): Promise<Locator> {
   if (surface === "resource-admin") { await resourceAdmin453(page); await loginResourceAdmin453(page); return page.locator("main"); }
   if (surface === "master") { await mockMaster455(page); await loginMaster455(page); return page.locator("main"); }
   if (surface === "logistics-admin") { await mockLogistics454(page); await loginLogistics454(page); return page.locator("main"); }
@@ -26,6 +27,14 @@ async function openSurface(page: Page, surface: Surface): Promise<Locator> {
     const params = new URL(route.request().url()).searchParams;
     const row = { id: "proc-1", code: "PROC-01", name: "긴 한글 입고 공정 Long English Process Name", active: true, taskCount: 1, progressPercent: 50, overdueTaskCount: 0, plannedMd: 1, taskIds: [state.tasks[2].taskId] };
     return route.fulfill({ json: { data: withIntegratedKpi({ projectRevision: state.project.revision, catalogRevision: 1, asOfDate: params.get("asOfDate") || "2026-09-29", timezone: "Asia/Seoul", calculatedAt: "2026-09-29T00:00:00Z", horizonDays: Number(params.get("horizonDays") || 14), systemView: params.get("systemView") === "coordination" ? "coordination" : "direct", activeOnly: params.get("activeOnly") === "true", includedTaskIds: row.taskIds, includedMilestoneIds: [], kpi: { progressPercent: 50, totalDuration: 2, taskCount: 1, overdueTaskCount: 0, overdueTaskIds: [], milestoneTotalCount: 0, milestoneOverdueCount: 0, milestoneOverdueIds: [], milestoneUpcomingCount: 0, milestoneUpcomingIds: [] }, effort: { plannedMd: 1, plannedMm: null, mdPerMm: null, unsetAllocationCount: 0, workloadRange: { from: null, to: null } }, quality: { unlinkedLeafTaskCount: 0, totalLeafTaskCount: 1, unlinkedLeafTaskPercent: 0, equipmentWithoutPrimaryControllerCount: 0, equipmentWithoutOwnerCount: 0, systemsWithoutPrimaryPICount: 0, totalEquipmentMasterCount: 0, totalEquipmentQuantity: 0 }, breakdowns: { processes: [row], equipment: [], systems: [] } }) } });
+  });
+  // This Project exists only in the legacy UI fixture, not in SQLite. Keep
+  // the sibling WBS query's original 404 explicit instead of leaking it to
+  // the real server, whose pending→error height change races help geometry.
+  await page.route(`**${projectPath}/resource-dashboard/views`, async route => {
+    if (route.request().method() !== "POST") return route.fallback();
+    await wbsResponseGate;
+    await route.fulfill({ status: 404, json: { error: { code: "PROJECT_NOT_FOUND", message: "프로젝트를 찾을 수 없습니다." } } });
   });
   await page.goto(`/projects/${publicId}`);
   // #724 F03: follow the real 3/6/4 navigation; old top-level labels no longer exist.
@@ -40,6 +49,14 @@ async function openSurface(page: Page, surface: Surface): Promise<Locator> {
   const root = surface === "milestone" ? page.getByTestId("milestone-dashboard") : surface === "resource" ? page.locator('[data-resource-dashboard="true"]') : page.getByTestId("logistics-dashboard-view");
   if (surface !== "logistics") await expect(root).toHaveAttribute("data-ready", "true");
   else await expect(root.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
+  if (surface === "milestone" || surface === "resource") {
+    // Legacy data-ready alone does not settle the preceding WBS sibling.
+    // This is terminal error readiness, not a successful WBS report fixture.
+    const wbs = page.locator(`[data-wbs-view="${surface}"]`);
+    await expect(wbs).toHaveAttribute("data-wbs-state", "error");
+    await expect(wbs.getByRole("alert")).toContainText("프로젝트를 찾을 수 없습니다.");
+    await expect(wbs.getByRole("status")).toHaveCount(0);
+  }
   return surface === "logistics" ? page.locator(".project-logistics-panel") : root;
 }
 
@@ -60,7 +77,7 @@ for (const surface of surfaces) test(`#719 ${surface} 동일 fixture 5폭 설명
   const browserErrors: string[] = [];
   page.on("pageerror", error => browserErrors.push(error.message));
   page.on("console", message => { if (message.type() === "error" && /hydration|cannot (be|contain)|descendant/i.test(message.text())) browserErrors.push(message.text()); });
-  page.on("request", request => { if (request.url().includes("/api/") && !["GET", "HEAD"].includes(request.method()) && !request.url().includes("admin-sessions")) writes.push(`${request.method()} ${new URL(request.url()).pathname}`); });
+  page.on("request", request => { if (request.url().includes("/api/") && !["GET", "HEAD"].includes(request.method()) && !request.url().includes("admin-sessions") && !isWbsViewReadQuery(request)) writes.push(`${request.method()} ${new URL(request.url()).pathname}`); });
   const root = await openSurface(page, surface);
   const dir = `output/playwright/issue-719/${before ? "before" : "after"}`;
   await mkdir(dir, { recursive: true });
@@ -84,8 +101,11 @@ for (const surface of surfaces) test(`#719 ${surface} 동일 fixture 5폭 설명
       expect(bounds.x).toBeGreaterThanOrEqual(0); expect(bounds.x + bounds.width).toBeLessThanOrEqual(width + 1); expect(bounds.y).toBeGreaterThanOrEqual(0); expect(bounds.y + bounds.height).toBeLessThanOrEqual(901);
       await page.screenshot({ path: `${dir}/${surface}-help-${width}.png`, fullPage: false });
       await page.keyboard.press("Escape"); await expect(tooltip).toBeHidden(); await expect(trigger).toBeFocused();
-      const closed = await geometry(root); await trigger.press("Space"); await expect(tooltip).toBeVisible();
+      const panelScroll = () => root.evaluate(e => e.closest('.project-milestone-panel,.project-resource-panel,.project-logistics-panel')?.scrollTop ?? 0);
+      const closed = await geometry(root); const closedScroll = await panelScroll();
+      await trigger.press("Space"); await expect(tooltip).toBeVisible();
       const opened = await geometry(root); expect(opened.primaryDataTop).toBe(closed.primaryDataTop); expect(opened.documentWidth).toBe(closed.documentWidth);
+      expect(await panelScroll()).toBe(closedScroll);
       await page.keyboard.press("Escape");
       await page.mouse.move(0, 0); await trigger.blur(); await trigger.hover(); await expect(tooltip).toBeVisible();
       await page.keyboard.press("Escape"); await expect(tooltip).toBeHidden(); await expect(trigger).toBeFocused();
@@ -198,4 +218,39 @@ test("#719 긴 도움말을 키보드로 스크롤하고 Escape 시 초점을 �
   await page.keyboard.press("Escape");
   await expect(tooltip).toBeHidden();
   await expect(trigger).toBeFocused();
+});
+
+for (const surface of ["milestone", "resource"] as const) test(`#719 ${surface} 도움말 fixture는 지연 WBS 오류와 기존 데이터가 모두 준비될 때까지 기다린다`, async ({ page }) => {
+  const gate = deferred();
+  let opened = false;
+  const writes: string[] = [];
+  const browserErrors: string[] = [];
+  page.on("pageerror", error => browserErrors.push(error.message));
+  page.on("request", request => {
+    if (request.url().includes("/api/") && !["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) writes.push(`${request.method()} ${new URL(request.url()).pathname}`);
+  });
+  const opening = openSurface(page, surface, gate.promise).then(root => { opened = true; return root; });
+  try {
+    const legacy = surface === "milestone" ? page.getByTestId("milestone-dashboard") : page.locator('[data-resource-dashboard="true"]');
+    await expect(legacy).toHaveAttribute("data-ready", "true");
+    await expect(page.locator(`[data-wbs-view="${surface}"]`)).toHaveAttribute("data-wbs-state", "pending");
+    expect(opened).toBe(false);
+  } finally { gate.resolve(); }
+  const root = await opening;
+  expect(opened).toBe(true);
+  const trigger = root.getByRole("button", { name: /도움말/ }).first();
+  await trigger.scrollIntoViewIfNeeded();
+  const closed = await geometry(root);
+  const scroll = () => root.evaluate(e => e.closest('.project-milestone-panel,.project-resource-panel')!.scrollTop);
+  const closedScroll = await scroll();
+  await trigger.press("Space");
+  await expect(page.getByRole("tooltip")).toBeVisible();
+  const shown = await geometry(root);
+  expect(shown.primaryDataTop).toBe(closed.primaryDataTop);
+  expect(shown.documentWidth).toBe(closed.documentWidth);
+  expect(await scroll()).toBe(closedScroll);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("tooltip")).toBeHidden();
+  expect(writes).toEqual([]);
+  expect(browserErrors).toEqual([]);
 });

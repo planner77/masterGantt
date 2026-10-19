@@ -1,3 +1,33 @@
+## Issue #730 — F730-011 Full #3029.1 Task Editor 3시간대 30초 예산 실패 (2026-10-20)
+
+[Issue #730 전용 원장 §20](ISSUE_730_FAILURE_ANALYSIS.md#20-f730-011--pr-747-full-30291-task-editor-3시간대-재확인-test-budget-실패-2026-10-20), [PR Full #3029.1](https://github.com/planner77/masterGantt/actions/runs/39320381909) 원본 Trace에 따르면 TypeScript/Unit/ESLint/Build/Docker와 E2E 5개 Shard가 PASS했으나 Shard4의 `project-task-editor-persistence.spec.ts:8`가 기본30초 제한에 도달했다. 같은 실 Task Editor 저장/원본 revision·Task 정보·Gantt/URL 팝업 검증 완료 후 UTC, Asia/Seoul 새 Context와 America/New_York 최종 Editor 진입까지 실행하였다. fixture startup 약15.53초는 test body 시간과 별도로, body 앞부분14.93초 + 시간대 재조회 약4.01/5.44/5.62초에서 deadline. 실제 값 불일치/제품 실패는 관측되지 않았다. Shard4 79PASS/1FAIL/83NOT RUN·다른5 Shard SUCCESS·E2E/QA 파생 FAIL을 구분한다.
+
+**보완:** 처음 한 개 E2E case에만 실측 기반 `test.setTimeout(45_000)` 적용. 세 새 BrowserContext·세 시간대/같은 Task 원본·요청 시작일·기간·이름·원본 PATCH1회·revision/Description/URL·팝업·Gantt 인스턴스/재진입/메뉴 검증을 모두 유지하며 다른 case/global Playwright/CI timeout/retry/skip/Required Gate 변경 없음. 테스트별 단일 원본 연속성 보존을 위해 별도 Project fixture로 분리하지 않는다. 해당 실제 Chromium 첫 case와 같은 파일 나머지 case, 누적 #730 E2E 실패7파일, #623/726/727/731 인접·진단 음성, Required Quality/E2E6/Docker를 exact-Head에서 교차 검증한다. 새 소스의 로컬 전체 typecheck/실 Browser·HTTP·SQLite/Build/Docker는 NOT TESTED이며 원격 최초 Run의 다른 Shard PASS를 새 Source의 PASS로 전용하지 않는다.
+
+## Issue #730 — F730-010 PR #747 Full #3027.1 #623 여섯 mutation 제한시간 재발 (2026-10-20)
+
+[단일 실패 원장 F730-010](ISSUE_730_FAILURE_ANALYSIS.md#19-f730-010--pr-full-30271의-623-여섯-mutation-테스트-예산-재발-2026-10-20)에 따르면 Shard3 [#3027.1](https://github.com/planner77/masterGantt/actions/runs/39314765099)에서 #623 독립 Golden/OOXML는32.4초 PASS, 여섯 연속 UI 저장 테스트는 body61,586ms로 기존60초 제한을 소진했다. phase fixture20,790ms, 원본4,948ms, WBS명5,015ms/시작일8,587ms/화면전환2,778ms/상태6,379ms/진척5,920ms/배정7,170ms(중단), 여섯 번째 Target 작업은 NOT RUN이다. 마지막 GET이 60초 전체를 소비했다는 잘못된 해석을 금지한다. Quality/Docker/Build 및 Shard3 다른44 PASS와 Fail-fast 취소5Shard를 구분한다.
+
+## 보완·교차 회귀
+
+`tests/e2e/issue-623-resource-mvp.spec.ts`의 **여섯 UI mutation 한 case에만** 60→90초의 유한하고 근거가 명시된 budget을 적용한다. 동일 Project 안 4 PATCH+2 PUT·canonical raw ID·revision+6/6회 저장·Target subset/개인80%·원래 WBS/Resource·Gantt DOM 동일성·조회-only mutation0 및 오류/권한/readonly 단언을 모두 유지한다. 여섯 mutation을 각각 별도 Project로 분리하면 동일 프로젝트의 종단간 원본 연쇄 증거를 상실하므로 이번에는 분리하지 않는다. 새 소스에서는 #623 Golden1/6mutation1/폭별5개, 누적 #730 과거 E2E 실패6파일과 #726/#727/#731/Task Editor 인접, diagnostic/GET helper 음성, 실제 Full Required3를 검증한다. 일괄 timeout·retry·skip·기타 assertion/CI 정책 변경0. 새 HEAD 원격 실제 실행 이전에는 NOT TESTED, TypeScript parser만 확인한 상태이다.
+
+## Issue #730 — F730-009 #3025.1 TypeScript strict-null TypeCheck 보완 (2026-10-20)
+
+[Issue #730 전용 누적 실패 원장 §18](ISSUE_730_FAILURE_ANALYSIS.md)을 기준으로 원격 Full #3025.1 `TS2532` 실패를 직접 교정한다. `project-resource-memberships-persistence.spec.ts`의 `memberships.resources.find(...).registered`에서 `Array.find()`의 `undefined` 가능성이 TypeScript strict null 오류를 유발했다. 같은 원본 ID로 찾은 `registeredMember` 객체에 `toMatchObject({ registered:true })`를 적용하여 **엔터티 부재와 등록=false 모두 실패**를 유지하고 `!`/`any`/타입 게이트 완화는 하지 않는다. 원본 Run의 TypeCheck FAILURE와 PR Fast Gate FAILURE, PR Build/E2E6/Docker 실행 Job SKIPPED를 구분한다.
+
+보완 HEAD에서 `npm run typecheck`(필수)·lint·단위 검증 및 `project-resource-memberships-persistence.spec.ts` 실제 Chromium, 새 동일 출처 GET helper의 error/no-retry·redirect 음성, #726/#731 Task Editor/#730 조회·원본 회귀, 누적 실제 E2E 실패6파일을 원격 Full PR CI Quality/E2E6/Docker로 판정한다. F730-008의 원본 읽기/권한·등록·Task·Assignment/dirty guard/원본 ID/재시작을 완화하지 않는다. 이번 GitHub 편집 작업의 로컬 전체 TypeScript·Unit/Browser/Docker 결과는 NOT TESTED이며 새 원격 Run 이전 PASS 주장은 금지한다.
+
+## Issue #730 — F730-008 PR #747 Full #3023.1 멤버십 후행 canonical GET 회귀 (2026-10-20)
+
+[Issue #730 단일 실패 원장 §17](ISSUE_730_FAILURE_ANALYSIS.md)의 직접 #727 멤버십 저장 이후 `apiRequestContext.get: read ECONNRESET`를 참조한다. Shard1 82PASS/1FAIL, Shard3 SUCCESS, 다른 4개 Shard CANCELLED, Required Quality/Docker SUCCESS·E2E/QA Final FAILURE를 별도 판정한다. 프로젝트 신규 등록·Task/Assignment setup API 클라이언트는 유지하고 **실제 UI 리소스 등록 이후** canonical Project2회/assigned-targets2회/resource-memberships1회 조회만 동일 origin browser fetch/no-store 및 observer로 분리한다. 상태200·유효 JSON·해당 배열, 저장 Task/Links·동일 Assignment·등록 상태·재시작·dirty guard·Gantt instance/scroll 확인을 완화하지 않는다.
+
+회귀: `project-resource-memberships-persistence.spec.ts`, 신규 `browser-project-resource-data.spec.ts`(두 endpoint 정상·abort/401/500/bad JSON/bad shape/동일·다른 origin redirect/path 음성·요청 횟수1), `tests/server/e2e/isolated-application-diagnostics.test.ts`(정확 route template·민감 경로 차단), 인접 `project-task-editor-persistence.spec.ts`, `issue-726-task-logistics.spec.ts`, #730 원본/일정, 누적 직접 실패6파일(#463/#550/#719/#623/#726/#727). 원격 Full E2E6/Quality/Docker/Trusted QA로 전체를 재평가하고 새 source 결과 이전까지 NOT TESTED로 둔다. global retry/timeout/skip·workflow 정책/제품 동작·schema 변경 없음.
+
+## Issue #730 — Full #3022 누적 전송·도움말 fixture 회귀
+
+[동일 실패 원장 §14–16](ISSUE_730_FAILURE_ANALYSIS.md)에서 누락된 #3012 #62360초 실패와 #3022 Task 물류 연결 GET reset을 누적한다. 과거 실제 실패5파일(#463/#550/#719/#623/#726) 전체·직접 #730·전송/관측 정상·음성을 최종 source에 귀속한다. GET reset의 소켓 내부 근인은 UNKNOWN이며 후행 browser/no-store·observer 교정은 업무 HTTP 오류·잘못된 JSON·권한/readonly·정확 원시 ID/revision 단언을 유지한다. #719는 WBS 조회 응답 준비와 도움말 열림을 분리해 async404 영역 높이를 도움말 flow 변경으로 오인하지 않으며 기존 primaryDataTop/documentWidth 정확 동일값·5폭/키보드/터치 단언을 보존한다. 원본·통제 RED·최종 실행 수/소스 지문·미검증·새 PR CI 시작을 구분한다. Required3/6-shard·retry/timeout/skip·Trusted/Owner 승인 규정 불변.
+
 ## Issue #731 — Main M-003 누적 실패·교차 검증 (2026-10-19)
 
 [단일 실패 원장](ISSUE_731_FAILURE_ANALYSIS.md#11-m-003--pr-749-병합-main-30111의-시간-예산저장-후-조회-실패)의 F-001~F-004/M-001~M-003을 함께 검증한다. 최신 Main #3011.1은 #623 통합60초 종료/후행 disposed 응답과 Task Editor Summary 저장 후 GET ECONNRESET 두 직접 실패다. 원시 socket/Next 내부 근인은 UNKNOWN이며 Quality SUCCESS와 Docker implementation SKIPPED를 구별한다.
@@ -7,6 +37,10 @@
 - Task Editor: 실제 UI 저장 후 canonical GET6곳의 browser same-origin/no-store/observer·HTTP200/JSON, Summary Description/URL 저장·삭제 revision+1/+2 및 derived readonly. setup API GET3곳·독립 mutation/권한 검사는 유지한다. helper의 외부/잘못된 경로·상태/JSON 실패 음성과 Editor readonly/422/500/network/401/412 소비자를 확인한다.
 - 과거 경계: #725 SQLite 재시작/read-only GET405 이후 실제 PATCH200/JSON·정확 WorkAreaIDs, #726 process-context null/명시0·권한/stale·5폭, KPI master focus/외부 사용자 focus 우선2case와 F-001 WorkArea full canonical Task/Assignment 구성을 회귀한다. 과거 PASS는 새 source 검증으로 이월하지 않는다.
 - 최종 source hash·명령/횟수/시간·처음 로컬 FAIL 및 보완·Pre-PR 실제 결과·한계는 원장과 Work Packet에 연결한다. 전체5파일 1회와 별도 반복은 고유 case 수로 합산하지 않는다. 동일 host의 로컬 PASS는 독립 Runner 안정성·새 PR/Main CI·Trusted/Owner ACCEPT가 아니다.
+
+## Issue #730 — F730-001/002 누적 CI 재작업
+
+원본 [전용 실패 원장 §7](ISSUE_730_FAILURE_ANALYSIS.md)에 두 Full Run의 서로 다른 원인과 source artifact·취소 로그를 누적한다. 첫 #463 readonly POST 관찰기 결함과 최신 Hook deps 누락을 함께 회귀하고 b4의 P2 취소 보완·#731 main 통합을 유지한다. 실제 query를 소비하는 인접 관찰기만 exact method/path helper로 보완하며 업무 mutation0을 약화하지 않는다. parent/Details 원본 명령의 양방향 응답 역전·실제 설비 modal 목적지 음성을 검증하고 후보 source/test를 동결한 뒤 과거 실패 파일·직접/인접/음성 소비자를 실행한다. 실행 명령·고유 케이스·지문/미검증은 같은 원장과 Work Packet에 추가한다. Required3/Trusted/Owner 및 CI 시작 이후 완료 모니터링 경계는 그대로다. 최종 source195Unit PASS, Chromium 원본26PASS/1FAIL 및 #623전체 단발 진단1PASS/1FAIL을 보존한다. #623전체30초 제한의 원인은 UNKNOWN이고 LOCAL_VALIDATED=FAIL이며 실제 PrePR fast/targeted의 UNKNOWN5/BLOCKED를 수동 검증으로 PASS로 바꾸지 않는다.
 
 ## Issue #731 — 기존 KPI 통합 소비자 수용
 
@@ -23,6 +57,17 @@
 | 간접 소비자 | 기존 logistics request-state·Milestone stage/시간축·#719 도움말·Task Editor 밀도 fixture의 KPI API mock 계약 동기화; 구 API 직접 회귀는 유지 |
 
 전용 서버 `tests/server/logistics/issue-731*.test.ts`, UI `tests/e2e/logistics-dashboard-request-state.spec.ts`의 #731 추가 케이스와 기존 조회 상태 케이스 및 관련 Domain/Resource/full Gate/route inventory를 영향 기반으로 실행한다. 최초 실패를 삭제하지 않고 원인·수정·새 실행 결과와 미실행을 Work Packet에 누적한다. 실제 screen reader/운영 데이터·Windows/최종 수동 UX는 브라우저 자동 검증으로 대체하지 않는다.
+
+## Issue #730 — 동적 조회 구성·상태·정확 원본 회귀
+
+- 순수 model의 schema/property/pairwise 검증은 다섯 고정 root·모든 하위 차원·root-only·형제 양방향·두 설비-root 예시와 root 반복/중복/순환·잘못된 형제·depth 초과를 서버 parser oracle과 비교한다. 모든 순열 E2E를 생성하지 않는다.
+- browser storage는 Project/root 격리·schema/손상/구버전·허용하지 않은 필드·접근 거부 복구를 검증한다. 설정에 원본 응답·인증값·업무 mutation을 저장하지 않는다. 다른 사용자의 공유 설정이라고 가정하지 않는다.
+- 기존 #728/#729 SQLite/HTTP golden과 함께 E10 다중 WorkArea 상위10·같은 Task5 M/D 여러 경로 상위5·공정0/등록-only·미배정·E1→Milestone 경로 t2 누출0을 확인한다. UI 숫자는 server totals를 그대로 표시하고 raw Task/Assignment 범위를 인계한다.
+- 대표 실제 Chromium 흐름에서 고정 root·하위 구성/순서/삭제/초기화·두 사용자 계층 저장/복원·typed 형제·필터·접힘/정렬·내부 scroll·페이지·정확 editor/일정/복귀를 검증한다. 실제 backend/합성 mock 응답·오류 주입은 증거에서 구별한다.
+- revision/snapshot stale409·네트워크 실패·늦은 응답·조건 탈락/삭제·empty/readonly에서 과거 상세/원본 명령 차단과 재조회·focus 복구를 확인한다. 조회/정렬/계층 변경에 업무 API mutation0·Gantt remount0·기존 marker-OFF/선택/viewport 보존을 검증한다.
+- 390/768/1024/1440/1920px의 긴 이름·수치에서 header/body 경계·열 budget·표 owner overflow/document overflow0·hit area·Tab/Enter/Space/Escape/focus·touch 접근을 실제 DOM으로 확인한다. 화면 캡처는 keyboard/권한/상태 검증을 대신하지 않는다.
+
+실제 명령·고유 케이스·최초 실패·동결 source와 미검증은 [Work Packet](exec-plans/active/ISSUE_730.md) 및 그 증거 링크를 따른다. Local PASS는 PR Required3/Trusted QA·Owner 승인이 아니며 사용자 요청은 PR CI 시작까지만이다.
 
 ## Issue #729 — Main CI F-001·교정 PR #745 문서/테스트 동기화 (2026-10-19)
 
@@ -4741,3 +4786,16 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 - **검증 계약:** `src/app/api/projects/[publicId]/logistics/equipment/[equipmentId]/route.ts`는 PATCH/DELETE-only. [공식 Next Route Handler 405](https://nextjs.org/docs/app/getting-started/route-handlers)에 근거하여 격리 fixture가 선택적으로 같은 origin 정확 설비 route를 읽기 전용 `GET→405`로 재시작 **준비 단계**에서 검증한다. GET404/transport transient는 기존 90초 setup budget 이내의 bounded poll로만 취급하고 그 외 status/비정상 URL/프로세스 종료·초과는 FAIL. 실패한 실제 PATCH를 재시도하거나 성공 mock을 사용하지 않는다.
 - **추가 후행 E2E:** `tests/e2e/issue-725-process-workareas.spec.ts`의 재시작 후 원본 `PATCH` 2회(A 소속 해제, 전체 해제)는 각각 실제 browser network `method+exact URL`의 status200·`application/json`을 엄격 검증하고 raw body/쿠키 없이 status·mime·x-request-id 존재 여부만 첨부. `expect(dialog).toHaveCount(0)`, WorkAreaIds B만→명시`[]`, quantity10·Task/Target0·Copy/Template 및 정확 수정 횟수/권한/390px 기준 불변. 기존 의도적 failure/dirty/409/412·readonly는 완화하지 않음.
 - **영향 회귀:** 직접 #725 persisted E10/isolated restart API, #726 process-context 후행 canonical HTTP, #731 KPI original focus, 간접 #724/#717 master tab navigation, #728/#729 source/snapshot·Resource·Milestone Gate 및 다른 restart fixture 사용자(옵션 생략 호환), 실제 SQLite/Next16 development route readiness. 새 Full PR CI Quality/E2E 6 Shard/Docker를 동일 교정 HEAD로 실행; Git Data 정적 대조 외 로컬 Node/Vitest/Chromium 실실행 NOT TESTED. 원래 #3006 PR PASS와 #3007 Main FAIL은 불변; GHCR/Formal Release/Owner 승인 별도.
+
+## Issue #730 — PR #747 Full #3001.1 원인 교차 검증 (2026-10-19)
+
+- 원격 E2E 직접 실패는 `tests/e2e/milestone-dashboard-state.spec.ts` #463의 mutation0 assertion (expected 0, observed 1). 새 WBS read-only POST query `/api/projects/{UUID}/resource-dashboard/views`는 예외로 분류하되 **메서드 POST + 정확한 경로**만 제외한다. PUT/PATCH/DELETE 및 다른 POST 변경 요청은 여전히 감시한다.
+- 영향 소비자: `milestone-dashboard-state.spec.ts`, `milestone-visibility.spec.ts`, `project-workspace-tabs-518.spec.ts`, `issue-730-view-composer.spec.ts`. 비동기 원본 scope 확인 중 후속 상세·행 검색이 늦은 이동을 차단하는 실제 HTTP E2E를 추가한다. 기존 #624 기능/원시 ID/Gantt 불변 및 E2E6 게이트를 보존한다.
+- Shard1 7 PASS/1 FAIL/127 NOT RUN 및 다른 Shard5 CANCELLED, Quality/Docker PASS, QA Final 파생 FAIL은 구분한다. 새 source의 로컬/Full·Trusted QA는 실행 이전 **NOT TESTED**. [누적 원장](ISSUE_730_FAILURE_ANALYSIS.md).
+
+## Issue #730 — F730-004 PR #747 Full #3008.1 #550 canonical GET 전송 보호 (2026-10-19)
+
+- 누적 원격 직접 실패 합집합: 기존 #463 `tests/e2e/milestone-dashboard-state.spec.ts` 읽기 전용 POST 집계오류 및 신규 `tests/e2e/milestone-management-persistence.spec.ts`의 #550 (past) 원시 `GET /api/projects/{id}` ECONNRESET. #3003 ESLint/Hook, #3005 npm 헤더 다운로드 ECONNRESET과 원인이 다르며 #3008의 Quality/Docker 성공·E2E Shard6 실패와 나머지5 취소를 구별한다.
+- #550 실 SQLite/HTTP 케이스(빈 Milestone-only past/future 및 원래 실제 restart/readonly): 기존 GET 200/Project revision·Task ID·Milestone Gate/관계·변경 API 보호 단언은 유지. 처음 canonical GET에는 `Connection: close`, 기존 Observer로 실제 ECONNRESET을 기록한 뒤 같은 조회만 최대 두 번(최초+1회) 사용한다. 전체 global Playwright/CI retry·timeout·skip을 변경하지 않는다.
+- 기존 `tests/scripts/isolated-readonly-get.test.ts` 여섯 유한 양성/음성 계약(정상 GET 1회, 첫 ECONNRESET → 1회 한정, 두 번째 재실패 차단, HTTP404/409/503와 ETIMEDOUT/ECONNREFUSED/invalid JSON/비Error 재시도 금지, 정규화 route 기록)을 후속 Unit 영향으로 선택한다. 새 `tests/e2e/milestone-management-persistence.spec.ts`가 정확한 observer를 획득하는지 TypeScript/Full E2E6로 확인한다. 어떤 업무 POST/PUT/PATCH/DELETE도 다시 보내지 않는다.
+- 기존 #730 WBS 조회/원본/일정 경합, #703/#624 격리 canonical GET, #731 KPI·Resource/Milestone 원본 및 기존 #550 실제 SQLite restart 케이스를 전체 원격6 Shard 교차로 검증한다. 이 GitHub 편집 환경에서 로컬 Test/Next/Playwright/Docker 실행은 NOT TESTED. Source of Truth: [#730 동일 Issue 누적 실패 원장](ISSUE_730_FAILURE_ANALYSIS.md).

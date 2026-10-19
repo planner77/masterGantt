@@ -10,6 +10,22 @@ Task/Assignment·기준정보는 기존 편집/관리 경로를 재사용한다.
 
 `screenKey=dashboard.kpi`의 #720 매뉴얼 인계는 [KPI 가이드](TARGET_RESOURCE_USER_GUIDE.md#kpi와-구성연결-진단)다. 앱 내 `/manual` route/버튼 신설은 이 작업 범위가 아니다. [기능 보존표·Design Delta B·검증 상태](exec-plans/active/ISSUE_731.md)를 따른다.
 
+## Issue #730 — 다관점 공통 조회와 원본 복귀
+
+대시보드의 다섯 관점은 같은 WBS 작업 원장을 조회하는 공통 구성기/표를 사용한다. 현재 탭의 root를 고정하고 하위 없음·하위 축 추가/삭제/순서 변경·적용/초기화를 제공한다. 공정 아래 설비/System은 같은 깊이 typed 형제이며 설비 root의 공정→System→Resource 및 Milestone→공정 경로를 허용한다. 기존 KPI·Milestone 생성/편집/소속과 full Gate·Resource Plan/기존 상세 기능을 유지한다.
+
+표의 이름 찾기는 표시 행만 좁히는 개인 설정이며 서버 고유 총계의 모집단을 바꾸지 않는다. 작업 검색·기간·상태 조건은 서버 조회 범위다. 실제 적용 기간과 기준일·명시 Task 문맥 출처를 표시하여 두 의미를 구별한다.
+
+Project+관점의 개인 browser 설정은 업무 revision과 분리한다. 다른 Project/root의 조건·펼침·선택·스크롤·focus를 섞지 않고 잘못된 schema/spec은 안내와 명시 복구를 제공한다. 현재 적용 경로와 미적용 구성 초안을 구별한다. 새 명시 공정0..N은 기존 Target/설비/System 유도 공정과 다른 source이며 구 API 기본값을 바꾸지 않는다. 구성 소속과 같은 Task의 업무 연관을 구별하고 등록-only·미배정·미연결도 정상 행으로 남긴다.
+
+표의 viewRowKey는 경로 식별이며 원본 ID가 아니다. 정확 상세와 원본 편집/일정은 동일 spec/filter/path/source snapshot과 서버 Task/Assignment 교집합을 사용한다. E1-t1-M/E2-t2-M에서 E1 상세로 t2를 확장하지 않고 full Milestone Gate만 전체 canonical membership을 유지한다. 조건·source·revision이 달라지면 이전 상세/이동을 무효화하고 재조회한다. 원본 저장 뒤 같은 viewRowKey/path가 새 보고서에도 존재하면 새 snapshot의 상세 완료 영수증을 확인한 후 선택을 복원한다. 경로가 삭제되거나 조건에서 제외되면 이전 상세를 다시 열지 않는다. 기존 editor/탐색 stack·focus 복귀와 같은 Gantt 인스턴스를 사용하며 조회 설정으로 Task/Assignment/Target mutation을 만들지 않는다.
+
+원본 창 열기나 일정 전환의 범위 확인이 대기 중일 때 새 행·상세 명령, 검색·정렬·구성 적용은 이전 이동을 대체한다. 표와 상세 내부의 명령 사이에도 같은 최신 의도를 적용하며, 일정 이동의 추가 범위 확인과 충돌 승인까지 과거 응답이 새 선택을 덮지 않아야 한다. 화면 자체의 로딩 상태는 새 사용자 의도가 아니므로 현재 유효한 이동을 취소하지 않는다.
+
+리소스 원본은 기존 Project 참여/프로필·배정 상세를 정확 ID로 연다. 전역 리소스 프로필 수정은 별도 관리자 영역이며 Project 편집권으로 승격하지 않는다. WorkArea 원본은 기존 공정 카탈로그의 정확 ID를 대상으로 하며 별도 관리자 로그인 전에는 대상을 보존하고 복귀할 수 있다. 인증·취소·초안 닫기 후 출발 관점과 focus를 복원한다.
+
+#720 매뉴얼 인계: `dashboard.milestones`, `dashboard.process`, `dashboard.equipment`, `dashboard.system`, `dashboard.resources` → [동적 조회 구성과 정확 상세](TARGET_RESOURCE_USER_GUIDE.md#동적-조회-구성과-정확-상세). 앱 내 매뉴얼 진입 자체는 #720 후속 범위다. 실제 keyboard/5폭/서버/브라우저 증거와 미검증은 [Work Packet](exec-plans/active/ISSUE_730.md)에 기록한다.
+
 ## Issue #726 — 기준정보 관리와 Target 없는 Task 물류 연결
 
 기준정보의 `master.equipment` / `master.systems`는 기존 한 LogisticsManagement host의 목록·검색·활성 필터·추가/수정/삭제·담당 역할·제어/조율 dialog를 공유한다. Target 구성에서 원본 편집을 열 때도 동일 인스턴스 ID와 editor를 사용한다. 설비의 주 관리 공정·단품/Fleet·수량·Owner·업체/모델·다중 WorkArea, System의 유형·controller/coordinator·공통/복수 공정·PI/개발자·공급사·controls/coordinates를 보존한다.

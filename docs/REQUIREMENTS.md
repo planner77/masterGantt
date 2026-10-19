@@ -2,7 +2,7 @@
 
 Task/Assignment 원장을 공정·WorkArea·설비·물류 시스템·Resource·Milestone·Group·Role 관점으로 조회하는 versioned opt-in API를 제공한다. root-only 및 순차 단계와 설비/System 형제 분기를 지원하고 등록-only root와 미배정 Task를 보존한다. Task 직접 공정0..N·명시0은 구성/Target/조상에서 채우지 않으며 legacy API의 자동 공정 유도 의미와 구분한다.
 
-고유 원시 합집합 총계·경로별 행 식별·실제 관계 provenance, 한 read snapshot의 문맥/이름/등록/Calendar fingerprint와 bounded 정확 상세/drill을 제공한다. 공유 Milestone/설비/System을 거쳐 다른 Task로 범위를 넓히지 않는다. 미지원 새 spec Excel은 조건을 조용히 버리지 않고 전체 거부한다. 기존 public-read/edit 권한과 source/rows/cells/JSON 한도를 유지한다. [공개 계약](API.md#issue-729--versioned-wbs-다관점-조회), [실행 계획](exec-plans/active/ISSUE_729.md)을 따른다. 화면은 #730~#736의 별도 범위다.
+고유 원시 합집합 총계·경로별 행 식별·실제 관계 provenance, 한 read snapshot의 문맥/이름/등록/Calendar fingerprint와 bounded 정확 상세/drill을 제공한다. 공유 Milestone/설비/System을 거쳐 다른 Task로 범위를 넓히지 않는다. 미지원 새 spec Excel은 조건을 조용히 버리지 않고 전체 거부한다. 기존 public-read/edit 권한과 source/rows/cells/JSON 한도를 유지한다. [공개 계약](API.md#issue-729--versioned-wbs-다관점-조회), [실행 계획](exec-plans/active/ISSUE_729.md)을 따른다. 공통 구성기/표는 #730에서 이 계약을 소비하며 관점별 추가 기능은 #731~#736의 별도 범위다.
 
 ## Issue #726 — Task 직접 물류 연결 우선
 

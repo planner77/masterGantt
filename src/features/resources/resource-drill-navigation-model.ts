@@ -149,3 +149,28 @@ export function resourceDrillLiveVisits<State>(
     ]),
   ];
 }
+
+/** Display adapter only: the caller must separately retain and revalidate the WBS request. */
+export function wbsScheduleDisplayScope(
+  scope: Pick<import("@/contracts/wbs-dashboard-views").WbsViewScopeDto, "taskIds" | "assignmentIds" | "ancestorSummaryIds" | "sourceContext" | "snapshotId">,
+  selected: { taskId?: string; assignmentId?: string },
+  assignments: readonly { id: string; taskId: string }[],
+): import("@/contracts/resource-drill").ResourceDrillScopeDto {
+  if (selected.taskId && !scope.taskIds.includes(selected.taskId)) throw Error("REPORT_STALE");
+  if (selected.assignmentId && (!selected.taskId || !scope.assignmentIds.includes(selected.assignmentId) || !assignments.some(row => row.id === selected.assignmentId && row.taskId === selected.taskId))) throw Error("REPORT_STALE");
+  const taskIds = selected.taskId ? [selected.taskId] : scope.taskIds;
+  const assignmentIds = scope.assignmentIds.filter(id => (!selected.assignmentId || id === selected.assignmentId) && (!selected.taskId || assignments.some(row => row.id === id && row.taskId === selected.taskId)));
+  const source = scope.sourceContext;
+  return {
+    schema: "resource-dashboard/1", snapshotId: scope.snapshotId,
+    sourceContext: {
+      projectPublicId: source.projectPublicId, projectRevision: source.projectRevision,
+      catalogRevision: source.catalogRevision, calendarRevision: source.calendarRevision, dataSnapshotId: source.dataSnapshotId,
+      range: source.range, asOfDate: source.asOfDate, mdPerMm: source.mdPerMm,
+      mdPerMmSource: source.mdPerMmSource, mdPerMmProvided: source.mdPerMmProvided,
+      sourceProjection: { kind: "schedule" },
+    },
+    taskIds, assignmentIds, taskCount: taskIds.length, assignmentCount: assignmentIds.length,
+    ancestorSummaryIds: scope.ancestorSummaryIds,
+  };
+}

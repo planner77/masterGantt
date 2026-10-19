@@ -1,4 +1,5 @@
 import { openWorkspaceView } from "./helpers/workspace-navigation";
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { expect, test, type Page } from "@playwright/test";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -35,7 +36,7 @@ async function capture(page: Page, name: string, data: unknown) {
 test("#552 marker OFF membership/reset/peer preserve canonical data and instance", async ({ page }) => {
   const state = await fixture(page), identity = await rememberGanttRoot(page), canonical = JSON.stringify([state.tasks, state.links]);
   const writes: string[] = [], reads: string[] = [];
-  page.on("request", request => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.method()); if (new URL(request.url()).pathname === projectPath && request.method() === "GET") reads.push(request.url()); });
+  page.on("request", request => { if (!["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) writes.push(request.method()); if (new URL(request.url()).pathname === projectPath && request.method() === "GET") reads.push(request.url()); });
   await page.locator("#project-panel-schedule .project-stage-filter-trigger").click();
   const search = page.getByRole("combobox", { name: "Milestone 이름·외부 ID·작업 ID 검색" });
   await search.fill(state.tasks[3].taskId); await search.press("End"); await search.press("Enter");

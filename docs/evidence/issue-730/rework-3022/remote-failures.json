@@ -1,0 +1,2161 @@
+{
+  "schema": "issue-730-ci-failure-triage/2",
+  "issue": 730,
+  "pr": 747,
+  "collectedDate": "2026-10-19",
+  "collectionLimits": [
+    "PR 검색에서 canonical Primary #730 PR은 #747 한 건. 다른 검색 결과는 #730을 선행/후속으로 언급하는 타 Issue PR이며 합산하지 않음.",
+    "알려진7개 Head의 commit workflow 조회는 각각 Full run 한 건/표시 attempt1을 반환. 이 wrapper는 pull_request 첫 페이지만 지원하며 숨은 과거 rerun 전체 시도를 독립적으로 완전 확인했다고 주장하지 않음.",
+    "각7개 run jobs 최신 attempt 첫 페이지를 재조회.25개 이하로 반환; 별도 metadata Full run은 해당7Head 조회에서 발견하지 않음.",
+    "#3001 취소 shard 세부는 기존 정제 원장의 인용. #3008/#3009/#3012/#3022의 취소 shard 로그와 모든7개 직접 실패 job 로그는 이번 세션 재조회.",
+    "artifact는 비신뢰 자료이며 ZIP/JSON 읽기 전용 및 checksum 대조일 뿐 Trusted QA 승인/commit→PR API 검증을 대체하지 않음."
+  ],
+  "runs": [
+    {
+      "runId": 39215173057,
+      "runNumber": 3001,
+      "attempt": 1,
+      "event": "pull_request",
+      "workflow": "CI",
+      "workflowId": 356198495,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057",
+      "source": {
+        "headSha": "3962299f07e90108990f75b5dbdd811815057e02",
+        "baseSha": "01fdc08bf4b2f69f9797a8bd411d6712e7478c09",
+        "testMergeSha": "aed0793999f7642d5daf154d36ced58069a97fc4",
+        "branch": "feat/issue-730-view-composer"
+      },
+      "sourceEvidence": {
+        "priorEvidence": "docs/evidence/issue-730/rework-20261019/remote-failures.json",
+        "priorSourceArtifact": {
+          "id": 12169166787,
+          "name": "ci-pr-source-39215173057-1",
+          "digest": "sha256:10ea707d8c7169c8f21d6e7f1fc616a69b265eb4007fdcbbc283a9a1e2c2f5ef",
+          "expired": false,
+          "digestValidated": true,
+          "jsonReadOnlyValidated": true
+        },
+        "currentCheckoutLogMatchesTestMerge": true
+      },
+      "jobs": [
+        {
+          "id": 117937225757,
+          "name": "변경 경로 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937226183,
+          "name": "QA Final 신뢰 경계 확인",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937329943,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937331610,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937404626,
+          "name": "ESLint",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937404661,
+          "name": "Vitest 단위·통합 테스트",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937404710,
+          "name": "정책·저장소 계약 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937404895,
+          "name": "TypeScript 타입 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937406098,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937406486,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937406718,
+          "name": "Next.js production build",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937872616,
+          "name": "PR 빠른 검사 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937947299,
+          "name": "Chromium E2E shard 3/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 117937947331,
+          "name": "Chromium E2E shard 5/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 117937947399,
+          "name": "Docker smoke 구현",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937947414,
+          "name": "Chromium E2E shard 6/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 117937947430,
+          "name": "Chromium E2E shard 4/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 117937947454,
+          "name": "Chromium E2E shard 1/6 · PR",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117937947529,
+          "name": "PR Next.js production build",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937947644,
+          "name": "Chromium E2E shard 2/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 117938574494,
+          "name": "Build, static checks, and unit tests",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117938744232,
+          "name": "Docker build and runtime smoke test",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117939346560,
+          "name": "Chromium end-to-end tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117939373635,
+          "name": "QA Final — Automated",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117939375659,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        }
+      ],
+      "failure": {
+        "classification": "TEST_CONTRACT",
+        "jobId": 117937947454,
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "line": 85,
+        "error": "expect(writes).toBe(0): Expected 0, Received 1",
+        "passed": 7,
+        "failed": 1,
+        "didNotRun": 127
+      },
+      "cancelledShardObservations": [
+        {
+          "jobId": 117937947299,
+          "shard": 3,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 38,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "인용: rework-20261019/remote-failures.json",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 117937947331,
+          "shard": 5,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 21,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "인용: rework-20261019/remote-failures.json",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 117937947414,
+          "shard": 6,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 28,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "인용: rework-20261019/remote-failures.json",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 117937947430,
+          "shard": 4,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 7,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "인용: rework-20261019/remote-failures.json",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 117937947644,
+          "shard": 2,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 27,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "인용: rework-20261019/remote-failures.json",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        }
+      ],
+      "derivedQaFailure": "required quality 미성공 또는 required e2e 미성공. 별도 제품 결함으로 중복 계수하지 않음"
+    },
+    {
+      "runId": 39221287023,
+      "runNumber": 3003,
+      "attempt": 1,
+      "event": "pull_request",
+      "workflow": "CI",
+      "workflowId": 356198495,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023",
+      "source": {
+        "headSha": "b4ba9994ee77a8dbc4a3bb36c8ee6e00beab7a51",
+        "baseSha": "fbe7db83a4baa2877a75db0769a59077bbe308c4",
+        "testMergeSha": "91d7cd32c4a00339f4e401294cadc267ab7be35e",
+        "branch": "feat/issue-730-view-composer"
+      },
+      "sourceEvidence": {
+        "priorEvidence": "docs/evidence/issue-730/rework-20261019/remote-failures.json",
+        "priorSourceArtifact": {
+          "id": 12172285386,
+          "name": "ci-pr-source-39221287023-1",
+          "digest": "sha256:6d4245feb0a28c4cd1f761a8172878c9c17c775d468d99ea111f0d2ed7fd3119",
+          "expired": false,
+          "digestValidated": true,
+          "jsonReadOnlyValidated": true
+        },
+        "currentCheckoutLogMatchesTestMerge": true
+      },
+      "jobs": [
+        {
+          "id": 117956933754,
+          "name": "QA Final 신뢰 경계 확인",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117956934229,
+          "name": "변경 경로 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957050745,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957053226,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957148373,
+          "name": "정책·저장소 계약 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957148492,
+          "name": "Vitest 단위·통합 테스트",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957148634,
+          "name": "TypeScript 타입 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957148731,
+          "name": "ESLint",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 6,
+              "name": "Run npm run lint",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117957149885,
+          "name": "Next.js production build",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957150119,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957150545,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957800228,
+          "name": "PR 빠른 검사 판정",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 3,
+              "name": "PR 필수 빠른 검사 결과 검증",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117957869921,
+          "name": "Chromium end-to-end tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117957870200,
+          "name": "Docker build and runtime smoke test",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "Docker smoke 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117957870277,
+          "name": "Build, static checks, and unit tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "병렬 quality 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117957871753,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6 · PR",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957871973,
+          "name": "PR Next.js production build",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957872271,
+          "name": "Docker smoke 구현",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957906105,
+          "name": "QA Final — Automated",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117957908518,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        }
+      ],
+      "failure": {
+        "classification": "PRODUCT",
+        "jobId": 117957148731,
+        "file": "src/features/logistics/project-logistics-management.tsx",
+        "line": 526,
+        "column": 37,
+        "error": "react-hooks/preserve-manual-memoization: Compilation Skipped: Existing memoization could not be preserved",
+        "errors": 3,
+        "warnings": 13,
+        "e2eImplementation": "SKIPPED",
+        "dockerImplementation": "SKIPPED"
+      },
+      "cancelledShardObservations": [],
+      "derivedQaFailure": "required quality 미성공 또는 required e2e 미성공. 별도 제품 결함으로 중복 계수하지 않음"
+    },
+    {
+      "runId": 39228148584,
+      "runNumber": 3005,
+      "attempt": 1,
+      "event": "pull_request",
+      "workflow": "CI",
+      "workflowId": 356198495,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39228148584",
+      "source": {
+        "headSha": "c8f0c283ceb87ff9afc205cd51080c5baed42fea",
+        "baseSha": "fbe7db83a4baa2877a75db0769a59077bbe308c4",
+        "testMergeSha": "2e783966b1c6214f44aeb39e9afdb4a95a3dd915",
+        "branch": "feat/issue-730-view-composer"
+      },
+      "sourceEvidence": {
+        "priorEvidence": "docs/ISSUE_730_FAILURE_ANALYSIS.md",
+        "currentCheckoutLogMatchesTestMerge": true,
+        "sourceArtifactReDownloaded": false
+      },
+      "jobs": [
+        {
+          "id": 117979398179,
+          "name": "변경 경로 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117979398628,
+          "name": "QA Final 신뢰 경계 확인",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117979506931,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117979508747,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117979619654,
+          "name": "정책·저장소 계약 검사",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 5,
+              "name": "Node/npm setup 계측",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117979619718,
+          "name": "TypeScript 타입 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117979619806,
+          "name": "ESLint",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117979619950,
+          "name": "Vitest 단위·통합 테스트",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117979621659,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117979621873,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117979622843,
+          "name": "Next.js production build",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117980299218,
+          "name": "PR 빠른 검사 판정",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 3,
+              "name": "PR 필수 빠른 검사 결과 검증",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117980368004,
+          "name": "Chromium end-to-end tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117980368158,
+          "name": "Build, static checks, and unit tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "병렬 quality 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117980368191,
+          "name": "Docker build and runtime smoke test",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "Docker smoke 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117980369587,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6 · PR",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117980369643,
+          "name": "PR Next.js production build",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117980369816,
+          "name": "Docker smoke 구현",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117980405072,
+          "name": "QA Final — Automated",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117980406967,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        }
+      ],
+      "failure": {
+        "classification": "ENVIRONMENT",
+        "jobId": 117979619654,
+        "step": "npm ci",
+        "error": "better-sqlite3 node-gyp: Node v22.23.3 SHASUMS256.txt request ECONNRESET",
+        "productFailureObserved": false,
+        "e2eImplementation": "SKIPPED",
+        "dockerImplementation": "SKIPPED"
+      },
+      "cancelledShardObservations": [],
+      "derivedQaFailure": "required quality 미성공 또는 required e2e 미성공. 별도 제품 결함으로 중복 계수하지 않음"
+    },
+    {
+      "runId": 39234279476,
+      "runNumber": 3008,
+      "attempt": 1,
+      "event": "pull_request",
+      "workflow": "CI",
+      "workflowId": 356198495,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39234279476",
+      "source": {
+        "headSha": "435ccfffdf60eb4d1695b2260175e7c8728e3918",
+        "baseSha": "a0297cd4b01e0083273ad3444edc7fa1ed0a145f",
+        "testMergeSha": "472b1313424e12fe67df4864295a0ee4cf5f9c01",
+        "branch": "feat/issue-730-view-composer"
+      },
+      "sourceEvidence": {
+        "priorEvidence": "docs/ISSUE_730_FAILURE_ANALYSIS.md",
+        "currentCheckoutLogMatchesTestMerge": true,
+        "sourceArtifactReDownloaded": false
+      },
+      "jobs": [
+        {
+          "id": 117999472053,
+          "name": "변경 경로 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117999472564,
+          "name": "QA Final 신뢰 경계 확인",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117999592176,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117999594305,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117999716659,
+          "name": "ESLint",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117999716853,
+          "name": "Vitest 단위·통합 테스트",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117999716894,
+          "name": "정책·저장소 계약 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117999717240,
+          "name": "TypeScript 타입 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117999718820,
+          "name": "Next.js production build",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117999718935,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117999719052,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118000332868,
+          "name": "PR 빠른 검사 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118000413909,
+          "name": "PR Next.js production build",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118000413955,
+          "name": "Docker smoke 구현",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118000414110,
+          "name": "Chromium E2E shard 5/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118000414173,
+          "name": "Chromium E2E shard 6/6 · PR",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 118000414180,
+          "name": "Chromium E2E shard 4/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118000414183,
+          "name": "Chromium E2E shard 3/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118000414226,
+          "name": "Chromium E2E shard 1/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118000414230,
+          "name": "Chromium E2E shard 2/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118001250805,
+          "name": "Docker build and runtime smoke test",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118001281648,
+          "name": "Build, static checks, and unit tests",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118005620472,
+          "name": "Chromium end-to-end tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 118005655193,
+          "name": "QA Final — Automated",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 118005657102,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        }
+      ],
+      "failure": {
+        "classification": "INIT_TRANSPORT",
+        "rootCause": "UNKNOWN",
+        "jobId": 118000414173,
+        "file": "tests/e2e/milestone-management-persistence.spec.ts",
+        "line": 190,
+        "error": "apiRequestContext.get: read ECONNRESET",
+        "passed": 71,
+        "failed": 1,
+        "didNotRun": 62
+      },
+      "cancelledShardObservations": [
+        {
+          "jobId": 118000414110,
+          "shard": 5,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 84,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118000414180,
+          "shard": 4,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 40,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118000414183,
+          "shard": 3,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 86,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118000414226,
+          "shard": 1,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 75,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118000414230,
+          "shard": 2,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 108,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        }
+      ],
+      "derivedQaFailure": "required quality 미성공 또는 required e2e 미성공. 별도 제품 결함으로 중복 계수하지 않음"
+    },
+    {
+      "runId": 39238265650,
+      "runNumber": 3009,
+      "attempt": 1,
+      "event": "pull_request",
+      "workflow": "CI",
+      "workflowId": 356198495,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39238265650",
+      "source": {
+        "headSha": "da6d256290f1c5fcc6edd5e33643098e19b92cd3",
+        "baseSha": "a0297cd4b01e0083273ad3444edc7fa1ed0a145f",
+        "testMergeSha": "1cab9bf9d867cc212b2c8147b1e8dc718a740f25",
+        "branch": "feat/issue-730-view-composer"
+      },
+      "sourceEvidence": {
+        "priorEvidence": "docs/ISSUE_730_FAILURE_ANALYSIS.md",
+        "currentCheckoutLogMatchesTestMerge": true,
+        "sourceArtifactReDownloaded": false
+      },
+      "jobs": [
+        {
+          "id": 118012554564,
+          "name": "QA Final 신뢰 경계 확인",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118012554798,
+          "name": "변경 경로 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118012671721,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118012673219,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118012783390,
+          "name": "정책·저장소 계약 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118012783423,
+          "name": "ESLint",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118012783543,
+          "name": "TypeScript 타입 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118012783707,
+          "name": "Vitest 단위·통합 테스트",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118012785166,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118012785362,
+          "name": "Next.js production build",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118012785577,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118013501569,
+          "name": "PR 빠른 검사 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118013575175,
+          "name": "Chromium E2E shard 5/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118013575200,
+          "name": "PR Next.js production build",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118013575204,
+          "name": "Chromium E2E shard 6/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118013575239,
+          "name": "Docker smoke 구현",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118013575295,
+          "name": "Chromium E2E shard 4/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118013575296,
+          "name": "Chromium E2E shard 1/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118013575315,
+          "name": "Chromium E2E shard 2/6 · PR",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 118013575336,
+          "name": "Chromium E2E shard 3/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118014052633,
+          "name": "Build, static checks, and unit tests",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118014467444,
+          "name": "Docker build and runtime smoke test",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118015638193,
+          "name": "Chromium end-to-end tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 118015668935,
+          "name": "QA Final — Automated",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 118015671028,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        }
+      ],
+      "failure": {
+        "classification": "UNKNOWN",
+        "jobId": 118013575315,
+        "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "line": 89,
+        "error": "opened.primaryDataTop expected 1099, received 1119",
+        "passed": 34,
+        "failed": 1,
+        "didNotRun": 95
+      },
+      "cancelledShardObservations": [
+        {
+          "jobId": 118013575175,
+          "shard": 5,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 28,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118013575204,
+          "shard": 6,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 30,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118013575295,
+          "shard": 4,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 13,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118013575296,
+          "shard": 1,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 53,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118013575336,
+          "shard": 3,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 39,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        }
+      ],
+      "derivedQaFailure": "required quality 미성공 또는 required e2e 미성공. 별도 제품 결함으로 중복 계수하지 않음"
+    },
+    {
+      "runId": 39245366403,
+      "runNumber": 3012,
+      "attempt": 1,
+      "event": "pull_request",
+      "workflow": "CI",
+      "workflowId": 356198495,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39245366403",
+      "source": {
+        "headSha": "1b793b3652dac75cd75ca652069ea5abd18fcedb",
+        "baseSha": "0aa1d3d71f13df6976539ef4ebaaadb9037121c4",
+        "testMergeSha": "fc5a439a939a25cecadd73f6dcad898c04a88905",
+        "branch": "feat/issue-730-view-composer"
+      },
+      "sourceEvidence": {
+        "sourceArtifact": {
+          "id": 12183586741,
+          "name": "ci-pr-source-39245366403-1",
+          "digest": "sha256:79270df371d2eb08f01537f768b3020d92b05d32be9353e866fb7537a8b72031",
+          "expired": false,
+          "downloadSha256Matches": true,
+          "jsonReadOnlyValidated": true
+        },
+        "currentCheckoutLogMatchesTestMerge": true
+      },
+      "jobs": [
+        {
+          "id": 118035869177,
+          "name": "변경 경로 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118035869473,
+          "name": "QA Final 신뢰 경계 확인",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118035978085,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118035979851,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118036104569,
+          "name": "ESLint",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118036104585,
+          "name": "정책·저장소 계약 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118036104608,
+          "name": "Vitest 단위·통합 테스트",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118036104719,
+          "name": "TypeScript 타입 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118036105831,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118036106762,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118036107059,
+          "name": "Next.js production build",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118036784875,
+          "name": "PR 빠른 검사 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118036857152,
+          "name": "Chromium E2E shard 6/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118036857171,
+          "name": "Chromium E2E shard 5/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118036857202,
+          "name": "Docker smoke 구현",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118036857253,
+          "name": "Chromium E2E shard 3/6 · PR",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 118036857260,
+          "name": "Chromium E2E shard 4/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118036857290,
+          "name": "PR Next.js production build",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118036857315,
+          "name": "Chromium E2E shard 1/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118036857526,
+          "name": "Chromium E2E shard 2/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118037407087,
+          "name": "Build, static checks, and unit tests",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118037863371,
+          "name": "Docker build and runtime smoke test",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118040985127,
+          "name": "Chromium end-to-end tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 118041025112,
+          "name": "QA Final — Automated",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 118041027225,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        }
+      ],
+      "failure": {
+        "classification": "TEST_CONTRACT",
+        "rootCause": "원본은 통합 시나리오 전체 60000ms 소진. 마지막 GET 자체의 독립 hang 원인은 입증되지 않음.",
+        "jobId": 118036857253,
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "caseLine": 62,
+        "line": 188,
+        "error": "apiRequestContext.get: Test timeout of 60000ms exceeded",
+        "passed": 43,
+        "failed": 1,
+        "didNotRun": 59,
+        "additionalReporterErrors": 1,
+        "priorMainCorrection": "#731 M-003에서 독립 mutation/시나리오로 분리됨; #3022가 선행 실패하여 원격 완주 재검증 미완료"
+      },
+      "cancelledShardObservations": [
+        {
+          "jobId": 118036857152,
+          "shard": 6,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 65,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118036857171,
+          "shard": 5,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 40,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118036857260,
+          "shard": 4,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 18,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118036857315,
+          "shard": 1,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 63,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118036857526,
+          "shard": 2,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 77,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        }
+      ],
+      "derivedQaFailure": "required quality 미성공 또는 required e2e 미성공. 별도 제품 결함으로 중복 계수하지 않음"
+    },
+    {
+      "runId": 39267641340,
+      "runNumber": 3022,
+      "attempt": 1,
+      "event": "pull_request",
+      "workflow": "CI",
+      "workflowId": 356198495,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39267641340",
+      "source": {
+        "headSha": "2a97043f40f3437778e2936b9413ff3269d197af",
+        "baseSha": "5df178868139c4a307701e4807896691971b3376",
+        "testMergeSha": "c519dffd7b59a0b7a9a32b936e64f39ab7f99997",
+        "branch": "feat/issue-730-view-composer"
+      },
+      "sourceEvidence": {
+        "sourceArtifact": {
+          "id": 12192639409,
+          "name": "ci-pr-source-39267641340-1",
+          "digest": "sha256:2f0d6959bae32e4c1e32f2fa3c120d6a0b64ae668d048d39fb3ccf64590a4555",
+          "expired": false,
+          "downloadSha256Matches": true,
+          "jsonReadOnlyValidated": true
+        },
+        "currentCheckoutLogMatchesTestMerge": true
+      },
+      "jobs": [
+        {
+          "id": 118111296856,
+          "name": "변경 경로 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118111297118,
+          "name": "QA Final 신뢰 경계 확인",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118111442631,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118111445703,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118111593833,
+          "name": "정책·저장소 계약 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118111593834,
+          "name": "Vitest 단위·통합 테스트",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118111593871,
+          "name": "TypeScript 타입 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118111593903,
+          "name": "ESLint",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118111596090,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118111596841,
+          "name": "Next.js production build",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118111597067,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118112477099,
+          "name": "PR 빠른 검사 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118112573865,
+          "name": "Chromium E2E shard 5/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118112573912,
+          "name": "Docker smoke 구현",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118112573918,
+          "name": "PR Next.js production build",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118112573920,
+          "name": "Chromium E2E shard 6/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118112573965,
+          "name": "Chromium E2E shard 4/6 · PR",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 118112573997,
+          "name": "Chromium E2E shard 2/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118112574000,
+          "name": "Chromium E2E shard 1/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118112574260,
+          "name": "Chromium E2E shard 3/6 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 118113171221,
+          "name": "Build, static checks, and unit tests",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118113752230,
+          "name": "Docker build and runtime smoke test",
+          "status": "completed",
+          "conclusion": "success",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 118114067957,
+          "name": "Chromium end-to-end tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 118114116896,
+          "name": "QA Final — Automated",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedOrCancelledSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 118114120194,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedOrCancelledSteps": []
+        }
+      ],
+      "failure": {
+        "classification": "INIT_TRANSPORT",
+        "rootCause": "UNKNOWN",
+        "jobId": 118112573965,
+        "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+        "caseLine": 66,
+        "line": 39,
+        "callerLine": 118,
+        "error": "apiRequestContext.get: read ECONNRESET",
+        "method": "GET",
+        "route": "/api/projects/[publicId]/tasks/[taskId]/logistics-links",
+        "passed": 4,
+        "failed": 1,
+        "didNotRun": 158,
+        "additionalReporterErrors": 1
+      },
+      "cancelledShardObservations": [
+        {
+          "jobId": 118112573865,
+          "shard": 5,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 8,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118112573920,
+          "shard": 6,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 13,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118112573997,
+          "shard": 2,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 24,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118112574000,
+          "shard": 1,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 4,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        },
+        {
+          "jobId": 118112574260,
+          "shard": 3,
+          "conclusion": "CANCELLED",
+          "observedPassedCaseCount": 34,
+          "additionalActualTestFailuresObserved": 0,
+          "evidence": "이번 GitHub job log 재조회",
+          "boundary": "부분 성공은 shard 전체 PASS/미실행 PASS가 아님"
+        }
+      ],
+      "derivedQaFailure": "required quality 미성공 또는 required e2e 미성공. 별도 제품 결함으로 중복 계수하지 않음"
+    }
+  ],
+  "currentPr": {
+    "headSha": "2a97043f40f3437778e2936b9413ff3269d197af",
+    "baseSha": "5df178868139c4a307701e4807896691971b3376",
+    "testMergeSha": "c519dffd7b59a0b7a9a32b936e64f39ab7f99997",
+    "mergeable": true,
+    "mainAncestorOfHead": true,
+    "extraMainMergeRequired": false,
+    "compareDirection": "head...main",
+    "compareAheadBy": 0,
+    "compareBehindBy": 7,
+    "reviewThreads": [
+      {
+        "id": "PRRT_kwDOUUB7Bc6t0iIK",
+        "isResolved": true,
+        "isOutdated": true
+      }
+    ],
+    "unresolvedReviewThreads": 0,
+    "newlyResolvedThreads": 0,
+    "newConflictsResolved": 0
+  },
+  "latestDiagnostics": {
+    "artifactId": 12194515233,
+    "artifactSha256": "e673122f7d40b8b600da9cc5cc6cb680071f068392598ab9c5d9ca48fc7e076b",
+    "downloadSha256Matches": true,
+    "attachment": "isolated-application-diagnostics",
+    "reason": "test_failure",
+    "beforeProbeElapsedMs": 33170,
+    "processes": [
+      {
+        "pid": 3299,
+        "generation": 1,
+        "exitCode": null,
+        "signal": null,
+        "expectedShutdown": false,
+        "alive": true
+      }
+    ],
+    "lifecycle": [
+      {
+        "event": "spawn",
+        "pid": 3299,
+        "generation": 1,
+        "expectedShutdown": false,
+        "elapsedMs": 215
+      }
+    ],
+    "baselineResources": {
+      "hostFreeBytes": 12143976448,
+      "hostTotalBytes": 16766410752,
+      "workerRssBytes": 224776192,
+      "workerHeapUsedBytes": 86571568,
+      "processes": [
+        {
+          "pid": 3299,
+          "parentPid": 3166,
+          "rssKb": 75460,
+          "threads": 11
+        },
+        {
+          "pid": 3311,
+          "parentPid": 3299,
+          "rssKb": 1914208,
+          "threads": 17
+        },
+        {
+          "pid": 3423,
+          "parentPid": 3311,
+          "rssKb": 61204,
+          "threads": 2
+        }
+      ],
+      "processTreeTruncated": false,
+      "cgroup": {
+        "currentBytes": 6535196672,
+        "maxBytes": null,
+        "oom": 0,
+        "oomKill": 0
+      }
+    },
+    "resources": {
+      "hostFreeBytes": 9244934144,
+      "hostTotalBytes": 16766410752,
+      "workerRssBytes": 232452096,
+      "workerHeapUsedBytes": 72743920,
+      "processes": [
+        {
+          "pid": 3299,
+          "parentPid": 3166,
+          "rssKb": 71816,
+          "threads": 11
+        },
+        {
+          "pid": 3311,
+          "parentPid": 3299,
+          "rssKb": 4127688,
+          "threads": 17
+        },
+        {
+          "pid": 3956,
+          "parentPid": 3311,
+          "rssKb": 72712,
+          "threads": 7
+        },
+        {
+          "pid": 3964,
+          "parentPid": 3311,
+          "rssKb": null,
+          "threads": 1
+        },
+        {
+          "pid": 3973,
+          "parentPid": 3311,
+          "rssKb": 113116,
+          "threads": 7
+        },
+        {
+          "pid": 3981,
+          "parentPid": 3311,
+          "rssKb": 79412,
+          "threads": 7
+        },
+        {
+          "pid": 3988,
+          "parentPid": 3311,
+          "rssKb": 71212,
+          "threads": 7
+        },
+        {
+          "pid": 3996,
+          "parentPid": 3311,
+          "rssKb": 78500,
+          "threads": 7
+        },
+        {
+          "pid": 4003,
+          "parentPid": 3311,
+          "rssKb": 60064,
+          "threads": 8
+        },
+        {
+          "pid": 4012,
+          "parentPid": 3311,
+          "rssKb": 46476,
+          "threads": 7
+        }
+      ],
+      "processTreeTruncated": false,
+      "cgroup": {
+        "currentBytes": 9287057408,
+        "maxBytes": null,
+        "oom": 0,
+        "oomKill": 0
+      }
+    },
+    "health": {
+      "status": 200,
+      "durationMs": 77,
+      "failure": null
+    },
+    "missingObservation": "실패한 readLinks는 observeIsolatedApi를 거치지 않아 failed request 타임라인 미수집",
+    "inferenceBoundary": "프로세스 종료/OOM 관측 없음. 개별 HTTP worker 또는 pooled socket 원인 UNKNOWN."
+  },
+  "newHeadRequiredResults": "NOT TESTED",
+  "remoteMutationPerformed": false
+}

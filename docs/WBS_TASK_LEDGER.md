@@ -76,7 +76,7 @@ selector를 순차 적용할 때 매 단계의 선택 Task ID와 Assignment ID �
 
 MCS1의 공통 T0=2 M/D, 조립 T1=3, 검사 T2=4, 양쪽 T3=5에서 전체는4 Task·14 M/D다. 조립은 T1/T3·8, 검사는 T2/T3·9, 공정 미연결은 T0·2다. 공정 소계17을 전체로 사용하거나 T3를50:50으로 나누지 않는다. 같은5일100% Assignment가 여러 경로에 보이면 전체5 M/D이며 다른 개인의50% Assignment가 추가되면7.5다.
 
-검증은 [Work Packet](exec-plans/active/ISSUE_728.md)의 AC별 테스트와 실행 원장에 기록한다. 새 공정 기준으로 포함 Task가 바뀌는 경우 이전 자동 공정 분류와 숫자까지 같다고 주장하지 않는다. 같은 원시 Task/Assignment 집합의 기존 계산 oracle 일치가 호환 조건이다. #729는 이 source/version과 exact ID 범위를 공개 API/snapshot/detail에 결속해야 하며 구 `projectionOrder`의 의미를 조용히 바꾸지 않는다. #730은 동급 설비/System 분기와 표시용 row key를 구현하며 Task/WBS/Assignment 원본에는 쓰지 않는다.
+검증은 [Work Packet](exec-plans/active/ISSUE_728.md)의 AC별 테스트와 실행 원장에 기록한다. 새 공정 기준으로 포함 Task가 바뀌는 경우 이전 자동 공정 분류와 숫자까지 같다고 주장하지 않는다. 같은 원시 Task/Assignment 집합의 기존 계산 oracle 일치가 호환 조건이다. #729는 이 source/version과 exact ID 범위를 공개 API/snapshot/detail에 결속해야 하며 구 `projectionOrder`의 의미를 조용히 바꾸지 않는다. #730의 공통 구성기/표는 동급 설비/System 분기와 표시용 row key를 소비하며 Task/WBS/Assignment 원본에는 쓰지 않는다. Project+관점의 개인 조회 설정·정확 상세·원본 복귀의 현재 화면은 [Project UX](PROJECT_UX.md), 실제 검증 범위는 [#730 Work Packet](exec-plans/active/ISSUE_730.md)을 따른다.
 
 ## Issue #729 — HTTP 소비와 snapshot 결속
 

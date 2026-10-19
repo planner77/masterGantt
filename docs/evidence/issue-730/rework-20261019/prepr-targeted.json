@@ -1,0 +1,707 @@
+{
+  "schemaVersion": 1,
+  "tool": "mastergantt-prepr",
+  "issue": 730,
+  "pr": 747,
+  "mode": "targeted",
+  "status": "BLOCKED",
+  "startedAt": "2026-10-19T09:04:33.376Z",
+  "sourceStart": {
+    "baseRef": "fbe7db83a4baa2877a75db0769a59077bbe308c4",
+    "baseSha": "fbe7db83a4baa2877a75db0769a59077bbe308c4",
+    "headSha": "b4ba9994ee77a8dbc4a3bb36c8ee6e00beab7a51",
+    "workingDiffSha256": "4fb8780f93cdb913ee2c36eb57b05d7afb50422fbd47529c72cbc42cce7af9b6",
+    "fingerprint": "a8a5c562d1b68b7f1b1620af7bff020e4bce912d08b433fb329920795b53509e",
+    "dirty": true,
+    "changed": [
+      "CHANGELOG.md",
+      "DESIGN.md",
+      "docs/API.md",
+      "docs/ARCHITECTURE.md",
+      "docs/ISSUE_730_FAILURE_ANALYSIS.md",
+      "docs/LOGISTICS_DASHBOARD.md",
+      "docs/PROJECT_UX.md",
+      "docs/REQUIREMENTS.md",
+      "docs/RESOURCE_KPI_DASHBOARD.md",
+      "docs/TARGET_RESOURCE_USER_GUIDE.md",
+      "docs/TEST_PLAN.md",
+      "docs/UI_UX_GUIDELINES.md",
+      "docs/WBS_TASK_LEDGER.md",
+      "docs/evidence/issue-730/local-validation.json",
+      "docs/evidence/issue-730/prepr-fast-summary.md",
+      "docs/evidence/issue-730/prepr-fast.json",
+      "docs/evidence/issue-730/prepr-targeted-summary.md",
+      "docs/evidence/issue-730/prepr-targeted.json",
+      "docs/evidence/issue-730/rework-20261019/remote-failures.json",
+      "docs/evidence/issue-730/rework-20261019/source-freeze.json",
+      "docs/evidence/issue-730/rework-20261019/trace-readonly-observation.json",
+      "docs/evidence/issue-730/rework-20261019/unit-before-handoff-results.json",
+      "docs/evidence/issue-730/rework-20261019/unit-results.json",
+      "docs/evidence/issue-730/source-freeze.json",
+      "docs/evidence/issue-730/unit-results.json",
+      "docs/exec-plans/active/ISSUE_730.md",
+      "docs/exec-plans/active/PLAN.md",
+      "output/playwright/issue-730-rework/composer-1024.png",
+      "output/playwright/issue-730-rework/composer-1440.png",
+      "output/playwright/issue-730-rework/composer-1920.png",
+      "output/playwright/issue-730-rework/composer-390.png",
+      "output/playwright/issue-730-rework/composer-768.png",
+      "output/playwright/issue-730-rework/controlled-negative-receipt.json",
+      "output/playwright/issue-730-rework/diagnostic-resource623-receipt.json",
+      "output/playwright/issue-730-rework/failure-timing-comparison.json",
+      "output/playwright/issue-730-rework/final-direct-focus-receipt.json",
+      "output/playwright/issue-730-rework/final-direct-remaining-receipt.json",
+      "output/playwright/issue-730-rework/final-milestone-failure-union-receipt.json",
+      "output/playwright/issue-730-rework/final-source-freeze.json",
+      "output/playwright/issue-730-rework/final-watcher-http-milestone-receipt.json",
+      "output/playwright/issue-730-rework/final-watcher-http-resource-receipt.json",
+      "output/playwright/issue-730-rework/final-watcher-mock-receipt.json",
+      "output/playwright/issue-730-rework/geometry-1024.json",
+      "output/playwright/issue-730-rework/geometry-1440.json",
+      "output/playwright/issue-730-rework/geometry-1920.json",
+      "output/playwright/issue-730-rework/geometry-390.json",
+      "output/playwright/issue-730-rework/geometry-768.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/composer-1024.png",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/composer-1440.png",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/composer-1920.png",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/composer-390.png",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/composer-768.png",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/direct-race-receipt.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/direct-rest-receipt.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/geometry-1024.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/geometry-1440.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/geometry-1920.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/geometry-390.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/geometry-768.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/milestone-failure-union-receipt.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/source-freeze.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/summary.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/watcher-http-milestone-receipt.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/watcher-http-resource-receipt.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/watcher-mock-receipt.json",
+      "output/playwright/issue-730-rework/local-ui-receipt.json",
+      "output/playwright/issue-730-rework/selection.json",
+      "output/playwright/issue-730/composer-1024.png",
+      "output/playwright/issue-730/composer-1440.png",
+      "output/playwright/issue-730/composer-1920.png",
+      "output/playwright/issue-730/composer-390.png",
+      "output/playwright/issue-730/composer-768.png",
+      "output/playwright/issue-730/geometry-1024.json",
+      "output/playwright/issue-730/geometry-1440.json",
+      "output/playwright/issue-730/geometry-1920.json",
+      "output/playwright/issue-730/geometry-390.json",
+      "output/playwright/issue-730/geometry-768.json",
+      "output/playwright/issue-730/local-ui-receipt.json",
+      "output/playwright/issue-730/source-after.json",
+      "output/playwright/issue-730/source-before.json",
+      "output/playwright/issue-730/source-broad-after.json",
+      "output/playwright/issue-730/source-current-freeze.json",
+      "output/playwright/issue-730/source-final-two-before.json",
+      "output/playwright/issue-730/source-followup-after.json",
+      "output/playwright/issue-730/source-followup-before.json",
+      "package-lock.json",
+      "package.json",
+      "src/features/logistics/project-logistics-management.tsx",
+      "src/features/logistics/project-logistics-unified.tsx",
+      "src/features/logistics/project-process-management.tsx",
+      "src/features/projects/project-readonly-view.tsx",
+      "src/features/resources/project-resource-memberships.tsx",
+      "src/features/resources/resource-drill-context.tsx",
+      "src/features/resources/resource-drill-navigation-model.ts",
+      "src/features/resources/wbs-view-composer.tsx",
+      "src/features/resources/wbs-view-dashboard.tsx",
+      "src/features/resources/wbs-view-details.tsx",
+      "src/features/resources/wbs-view-model.ts",
+      "src/features/resources/wbs-view-storage.ts",
+      "src/features/resources/wbs-view-table.tsx",
+      "src/features/resources/wbs-view-transport.ts",
+      "src/features/resources/wbs-view.module.css",
+      "tests/e2e/fixtures/wbs-view-composer.ts",
+      "tests/e2e/helpers/read-only-requests.ts",
+      "tests/e2e/issue-621-resource-target.spec.ts",
+      "tests/e2e/issue-623-resource-mvp.spec.ts",
+      "tests/e2e/issue-624-logistics-unified.spec.ts",
+      "tests/e2e/issue-717-identity-persistence.spec.ts",
+      "tests/e2e/issue-719-contextual-help.spec.ts",
+      "tests/e2e/issue-730-view-composer.spec.ts",
+      "tests/e2e/milestone-dashboard-state.spec.ts",
+      "tests/e2e/milestone-stage-grid.spec.ts",
+      "tests/e2e/milestone-visibility-persistence.spec.ts",
+      "tests/e2e/milestone-visibility.spec.ts",
+      "tests/e2e/project-filter-toolbar-consistency.spec.ts",
+      "tests/e2e/project-search-filter.spec.ts",
+      "tests/e2e/project-workspace-tabs-518.spec.ts",
+      "tests/e2e/project-workspace-ux.spec.ts",
+      "tests/features/resources/resource-drill-navigation-model.test.ts",
+      "tests/features/resources/wbs-view-model.test.ts",
+      "tests/features/resources/wbs-view-transport.test.ts",
+      "tests/scripts/e2e-read-only-requests.test.ts"
+    ]
+  },
+  "sourceEnd": {
+    "baseRef": "fbe7db83a4baa2877a75db0769a59077bbe308c4",
+    "baseSha": "fbe7db83a4baa2877a75db0769a59077bbe308c4",
+    "headSha": "b4ba9994ee77a8dbc4a3bb36c8ee6e00beab7a51",
+    "workingDiffSha256": "4fb8780f93cdb913ee2c36eb57b05d7afb50422fbd47529c72cbc42cce7af9b6",
+    "fingerprint": "a8a5c562d1b68b7f1b1620af7bff020e4bce912d08b433fb329920795b53509e",
+    "dirty": true,
+    "changed": [
+      "CHANGELOG.md",
+      "DESIGN.md",
+      "docs/API.md",
+      "docs/ARCHITECTURE.md",
+      "docs/ISSUE_730_FAILURE_ANALYSIS.md",
+      "docs/LOGISTICS_DASHBOARD.md",
+      "docs/PROJECT_UX.md",
+      "docs/REQUIREMENTS.md",
+      "docs/RESOURCE_KPI_DASHBOARD.md",
+      "docs/TARGET_RESOURCE_USER_GUIDE.md",
+      "docs/TEST_PLAN.md",
+      "docs/UI_UX_GUIDELINES.md",
+      "docs/WBS_TASK_LEDGER.md",
+      "docs/evidence/issue-730/local-validation.json",
+      "docs/evidence/issue-730/prepr-fast-summary.md",
+      "docs/evidence/issue-730/prepr-fast.json",
+      "docs/evidence/issue-730/prepr-targeted-summary.md",
+      "docs/evidence/issue-730/prepr-targeted.json",
+      "docs/evidence/issue-730/rework-20261019/remote-failures.json",
+      "docs/evidence/issue-730/rework-20261019/source-freeze.json",
+      "docs/evidence/issue-730/rework-20261019/trace-readonly-observation.json",
+      "docs/evidence/issue-730/rework-20261019/unit-before-handoff-results.json",
+      "docs/evidence/issue-730/rework-20261019/unit-results.json",
+      "docs/evidence/issue-730/source-freeze.json",
+      "docs/evidence/issue-730/unit-results.json",
+      "docs/exec-plans/active/ISSUE_730.md",
+      "docs/exec-plans/active/PLAN.md",
+      "output/playwright/issue-730-rework/composer-1024.png",
+      "output/playwright/issue-730-rework/composer-1440.png",
+      "output/playwright/issue-730-rework/composer-1920.png",
+      "output/playwright/issue-730-rework/composer-390.png",
+      "output/playwright/issue-730-rework/composer-768.png",
+      "output/playwright/issue-730-rework/controlled-negative-receipt.json",
+      "output/playwright/issue-730-rework/diagnostic-resource623-receipt.json",
+      "output/playwright/issue-730-rework/failure-timing-comparison.json",
+      "output/playwright/issue-730-rework/final-direct-focus-receipt.json",
+      "output/playwright/issue-730-rework/final-direct-remaining-receipt.json",
+      "output/playwright/issue-730-rework/final-milestone-failure-union-receipt.json",
+      "output/playwright/issue-730-rework/final-source-freeze.json",
+      "output/playwright/issue-730-rework/final-watcher-http-milestone-receipt.json",
+      "output/playwright/issue-730-rework/final-watcher-http-resource-receipt.json",
+      "output/playwright/issue-730-rework/final-watcher-mock-receipt.json",
+      "output/playwright/issue-730-rework/geometry-1024.json",
+      "output/playwright/issue-730-rework/geometry-1440.json",
+      "output/playwright/issue-730-rework/geometry-1920.json",
+      "output/playwright/issue-730-rework/geometry-390.json",
+      "output/playwright/issue-730-rework/geometry-768.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/composer-1024.png",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/composer-1440.png",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/composer-1920.png",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/composer-390.png",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/composer-768.png",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/direct-race-receipt.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/direct-rest-receipt.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/geometry-1024.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/geometry-1440.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/geometry-1920.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/geometry-390.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/geometry-768.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/milestone-failure-union-receipt.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/source-freeze.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/summary.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/watcher-http-milestone-receipt.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/watcher-http-resource-receipt.json",
+      "output/playwright/issue-730-rework/intermediate-before-host-handoff/watcher-mock-receipt.json",
+      "output/playwright/issue-730-rework/local-ui-receipt.json",
+      "output/playwright/issue-730-rework/selection.json",
+      "output/playwright/issue-730/composer-1024.png",
+      "output/playwright/issue-730/composer-1440.png",
+      "output/playwright/issue-730/composer-1920.png",
+      "output/playwright/issue-730/composer-390.png",
+      "output/playwright/issue-730/composer-768.png",
+      "output/playwright/issue-730/geometry-1024.json",
+      "output/playwright/issue-730/geometry-1440.json",
+      "output/playwright/issue-730/geometry-1920.json",
+      "output/playwright/issue-730/geometry-390.json",
+      "output/playwright/issue-730/geometry-768.json",
+      "output/playwright/issue-730/local-ui-receipt.json",
+      "output/playwright/issue-730/source-after.json",
+      "output/playwright/issue-730/source-before.json",
+      "output/playwright/issue-730/source-broad-after.json",
+      "output/playwright/issue-730/source-current-freeze.json",
+      "output/playwright/issue-730/source-final-two-before.json",
+      "output/playwright/issue-730/source-followup-after.json",
+      "output/playwright/issue-730/source-followup-before.json",
+      "package-lock.json",
+      "package.json",
+      "src/features/logistics/project-logistics-management.tsx",
+      "src/features/logistics/project-logistics-unified.tsx",
+      "src/features/logistics/project-process-management.tsx",
+      "src/features/projects/project-readonly-view.tsx",
+      "src/features/resources/project-resource-memberships.tsx",
+      "src/features/resources/resource-drill-context.tsx",
+      "src/features/resources/resource-drill-navigation-model.ts",
+      "src/features/resources/wbs-view-composer.tsx",
+      "src/features/resources/wbs-view-dashboard.tsx",
+      "src/features/resources/wbs-view-details.tsx",
+      "src/features/resources/wbs-view-model.ts",
+      "src/features/resources/wbs-view-storage.ts",
+      "src/features/resources/wbs-view-table.tsx",
+      "src/features/resources/wbs-view-transport.ts",
+      "src/features/resources/wbs-view.module.css",
+      "tests/e2e/fixtures/wbs-view-composer.ts",
+      "tests/e2e/helpers/read-only-requests.ts",
+      "tests/e2e/issue-621-resource-target.spec.ts",
+      "tests/e2e/issue-623-resource-mvp.spec.ts",
+      "tests/e2e/issue-624-logistics-unified.spec.ts",
+      "tests/e2e/issue-717-identity-persistence.spec.ts",
+      "tests/e2e/issue-719-contextual-help.spec.ts",
+      "tests/e2e/issue-730-view-composer.spec.ts",
+      "tests/e2e/milestone-dashboard-state.spec.ts",
+      "tests/e2e/milestone-stage-grid.spec.ts",
+      "tests/e2e/milestone-visibility-persistence.spec.ts",
+      "tests/e2e/milestone-visibility.spec.ts",
+      "tests/e2e/project-filter-toolbar-consistency.spec.ts",
+      "tests/e2e/project-search-filter.spec.ts",
+      "tests/e2e/project-workspace-tabs-518.spec.ts",
+      "tests/e2e/project-workspace-ux.spec.ts",
+      "tests/features/resources/resource-drill-navigation-model.test.ts",
+      "tests/features/resources/wbs-view-model.test.ts",
+      "tests/features/resources/wbs-view-transport.test.ts",
+      "tests/scripts/e2e-read-only-requests.test.ts"
+    ]
+  },
+  "sourceStable": true,
+  "versions": {
+    "os": "linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "cpuCount": 16,
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "packageVersion": "0.124.0",
+    "lockVersion": "0.124.0",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "ciNode": "22",
+    "ciPlaywright": "1.63.0",
+    "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+    "e2e": {
+      "fullyParallel": true,
+      "workers": 1,
+      "shardsLocal": 1,
+      "shardsGitHub": 6,
+      "config": "tests/config/playwright.config.ts"
+    }
+  },
+  "risk": "HIGH",
+  "selection": {
+    "risk": "HIGH",
+    "inferredRisk": "HIGH",
+    "matched": [
+      {
+        "path": "package-lock.json",
+        "rule": "issue-552-locked-dependencies",
+        "reason": "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+      },
+      {
+        "path": "package.json",
+        "rule": "prepr-tooling",
+        "reason": "Pre-PR tool parser, source provenance, failure and safety regression"
+      },
+      {
+        "path": "src/features/projects/project-readonly-view.tsx",
+        "rule": "issue-552-project-workspace",
+        "reason": "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+      },
+      {
+        "path": "src/features/resources/project-resource-memberships.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/resource-drill-context.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/resource-drill-navigation-model.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/wbs-view-composer.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/wbs-view-dashboard.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/wbs-view-details.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/wbs-view-model.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/wbs-view-storage.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/wbs-view-table.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/wbs-view-transport.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/wbs-view.module.css",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      }
+    ],
+    "unknown": [
+      {
+        "path": "src/features/logistics/project-logistics-management.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-logistics-unified.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-process-management.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "tests/e2e/fixtures/wbs-view-composer.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "tests/e2e/helpers/read-only-requests.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      }
+    ],
+    "missing": [],
+    "excluded": [],
+    "selected": [
+      {
+        "path": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-621-resource-target.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself",
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-624-logistics-unified.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-717-identity-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-730-view-composer.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself",
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths",
+          "Changed test itself",
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-stage-editor.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-stage-grid.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-visibility-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-visibility.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-edit-authorization.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-filter-toolbar-consistency.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-multi-task-copy-paste.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-notifications.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-resource-calendar-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-search-filter.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-delete-context.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-quick-view.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-work-calendar-preview.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-workspace-tabs-518.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-workspace-ux.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/resource-drill-ui.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/axis-transaction.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/canonical-recovery-runtime.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/date-adapter.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/milestone-timeline-adapter.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/features/resources/resource-drill-navigation-model.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/features/resources/wbs-view-model.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/features/resources/wbs-view-transport.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/scripts/e2e-read-only-requests.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Changed test itself",
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/scripts/prepr-verifier.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility",
+          "Pre-PR tool parser, source provenance, failure and safety regression"
+        ]
+      },
+      {
+        "path": "tests/server/logistics/issue-731-kpi.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/server/resources/wbs-dashboard-views-http.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Manager manual include"
+        ]
+      }
+    ],
+    "state": "BLOCKED",
+    "notSelectedReason": "Not a mapped direct/adjacent consumer for this change; remote Required coverage unchanged"
+  },
+  "diagnostic": null,
+  "steps": [],
+  "deferred": [
+    {
+      "check": "GitHub QA Preflight / Trusted QA / Owner",
+      "state": "DEFERRED",
+      "reason": "GitHub PR metadata, protected base validator and signed approval required"
+    },
+    {
+      "check": "PR Required Quality/E2E/Docker aggregates",
+      "state": "DEFERRED",
+      "reason": "Exact PR head/base/test-merge/run/attempt must be verified by GitHub Actions"
+    },
+    {
+      "check": "6 independent Chromium runners and fail-fast",
+      "state": "DEFERRED",
+      "reason": "Local worker=1 cannot reproduce six GitHub runners"
+    },
+    {
+      "check": "npm audit --omit=dev",
+      "state": "DEFERRED",
+      "reason": "Requires npm registry and CI environment; run explicitly if available"
+    },
+    {
+      "check": "remote Compose/transport/GHCR",
+      "state": "DEFERRED",
+      "reason": "Local test never accesses production runtime or registry"
+    }
+  ],
+  "errors": [
+    "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+  ],
+  "artifacts": [],
+  "completedAt": "2026-10-19T09:04:33.668Z"
+}

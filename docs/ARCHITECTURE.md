@@ -2,6 +2,12 @@
 
 기존 Logistics KPI 컴포넌트를 보존하고 전용 `/logistics/kpi?source=integrated` read adapter를 둔다. 한 SQLite read transaction에서 #729의 bounded Project snapshot과 #728의 공통 원장을 읽고 기존 Logistics KPI 계산 authority를 재사용한다. 유효 Task/개인 Assignment 합집합·진단 ID·구성 참고·source/snapshot을 전달하며 기존 `/logistics/dashboard`·Resource/Target default는 바꾸지 않는다. 저장 writer/DB migration·공통 resolver/계산기·Gantt Core/viewport writer는 추가하지 않는다. [계약](LOGISTICS_DASHBOARD.md#issue-731--기존-kpi와-통합-출처).
 
+## Issue #730 — app-owned 다관점 조회 UI
+
+클라이언트의 공통 composer/table/detail는 #729의 versioned 공개 read API를 소비한다. pure client model의 spec 검증과 Project+root별 versioned browser 설정은 server-only parser를 번들에 가져오지 않는다. 계산 authority·Repository·DB writer는 그대로이며 숫자는 서버 응답에서 읽는다. 원본 ID와 경로 viewRowKey를 분리하고 typed sibling은 조회 행으로만 표현한다.
+
+조회·상세 요청은 조건과 snapshot·generation/AbortController를 결속하고 원본 편집/일정 복귀는 기존 host/provider의 권한·canonical gateway·탐색 상태를 재사용한다. WBS source는 legacy Resource source와 구별하여 검증하며 안전하지 않은 source cast로 두 API를 혼용하지 않는다. 조회 설정은 개인 브라우저 상태이며 Project 업무 revision·다른 사용자의 설정을 갱신하지 않는다. 부모 조회·상세·host 일정 이동은 현재 사용자 의도의 일시적 AbortSignal을 공유하여 후속 명령이 이전 원본 조회, 추가 범위 조회와 충돌 승인을 취소한다. 자체 로딩은 새 의도로 취급하지 않으며 이 신호를 저장된 탐색 이력이나 공개 DTO에 포함하지 않는다. [Project UX](PROJECT_UX.md), [실행 계약](exec-plans/active/ISSUE_730.md)을 따른다.
+
 ## Issue #729 — versioned WBS 다관점 read adapter
 
 신규 opt-in 조회는 기존 ResourceDashboardService 및 read snapshot/repository와 #728 `wbs-task-ledger`를 연결한다. Route Handler → Service → Repository → SQLite 경계를 유지하고 한 read transaction에서 Project·공정/WorkArea·Target/member/legacy·Task 문맥·Resource 등록/사용/책임·Calendar를 읽는다. 이름·활성·관계 변경까지 fingerprint에 포함하며 별도 영속 snapshot·WBS/Assignment writer를 만들지 않는다. 기존 호출은 기존 snapshot/공정 유도/`projectionOrder` 의미를 유지한다.

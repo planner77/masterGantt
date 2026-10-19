@@ -21,6 +21,10 @@
 
 원본 조회는 기존 Task/Assignment·관계 한도를 적용하고 응답2MiB·요청 URL16384자 초과는422 `REPORT_LIMIT_EXCEEDED`로 전체 실패하며 절삭 결과를 반환하지 않는다. 원본 계약 불충분은422 `KPI_SOURCE_INVALID`다. 새로운 일정·실적·원가 계산/Export authority는 없으며 자세한 분모는 [KPI 계약](LOGISTICS_DASHBOARD.md#issue-731--기존-kpi와-통합-출처), 실제 검증과 최초 실패는 [Work Packet](exec-plans/active/ISSUE_731.md)을 따른다.
 
+## Issue #730 — versioned view의 UI 소비
+
+대시보드 공통 구성기/표는 아래 #729의 POST `/resource-dashboard/views`를 사용한다. 새 endpoint·공개 DTO·서버 계산·기존 API default 변경은 없다. 고정 root는 화면이 선택하고 사용자는 levels를 편집한다. root-only는 빈 levels, 설비/System 동급은 siblings 한 단계이며 `projectionOrder`나 Target 필터로 변환하지 않는다. report/details/scope의 spec·filters·scope·snapshotId·path를 동일하게 유지하고 stale409에서는 재조회한다. 새 view spec의 기존 Excel 미지원 오류를 유지한다. 화면별 개인 설정 저장은 browser storage이며 이 read API나 Project revision mutation이 아니다. [화면 계약](PROJECT_UX.md), [Work Packet](exec-plans/active/ISSUE_730.md)을 따른다.
+
 ## Issue #729 — versioned WBS 다관점 조회
 
 `POST /api/projects/{publicId}/resource-dashboard/views`는 새 WBS source를 명시적으로 선택하는 읽기 전용 API다. 기존 `/resource-dashboard`, `/query`, `/details`, `/scope`, Plan 및 `projectionOrder`의 요청/응답·공정 의미는 유지한다. Project 편집 session 없이 public-read이며 exact `Origin`, JSON body, canonical UUID Project ID를 검증한다. URL query는 허용하지 않는다. 조회는 mutation0이고 응답은 `Cache-Control: private, no-store`·`nosniff`다.

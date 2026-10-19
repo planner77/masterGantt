@@ -1,3 +1,4 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { expectRawIdentifier } from "./helpers/identifier-details";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { ISSUE_623_TARGET_RESOURCE as oracle } from "../fixtures/issue-623-target-resource";
@@ -182,7 +183,10 @@ test("#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot", as
 });
 
 test("#623 여섯 별도 mutation·양방향 동일원본 복귀", async ({ page, isolatedApplication: origin, observeIsolatedApi, phaseTiming }, info) => {
-  test.setTimeout(60_000);
+  // #730 F730-010: remote #3027.1 ran for 61,586ms (20,790ms seed) before the
+  // original 60s deadline; retain all six writes, exact IDs and revision +6.
+  // Only this integrated scenario gets a measured finite 90s budget.
+  test.setTimeout(90_000);
   page.setDefaultTimeout(15_000);
   phaseTiming.beginBody();
   const f = await seedIssue623(page, origin, observeIsolatedApi);
@@ -195,7 +199,7 @@ test("#623 여섯 별도 mutation·양방향 동일원본 복귀", async ({ page
   const assignmentId = (await f.details(union)).rows[0].assignment!.assignmentId;
   phaseTiming.mark("mutation/1-wbs-name");
   const writes: { method: string; path: string; body: unknown }[] = [];
-  page.on("request", request => { const path = new URL(request.url()).pathname; if (path.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !path.endsWith("/resource-dashboard/query")) writes.push({ method: request.method(), path, body: request.postDataJSON() }); });
+  page.on("request", request => { const path = new URL(request.url()).pathname; if (path.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !path.endsWith("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes.push({ method: request.method(), path, body: request.postDataJSON() }); });
   const assertSaved = async (count: number) => {
     expect(writes).toHaveLength(count);
     const fresh = await readBrowserCanonicalSnapshot(page, `/api/projects/${f.publicId}`, observeIsolatedApi);
@@ -300,7 +304,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) {
     phaseTiming.mark(`ui/${width}px-resource-transition`);
     const before = await f.snapshot();
     const frame = page.locator(".project-gantt-frame"); const instance = await frame.getAttribute("data-project-gantt-instance");
-    const writes: string[] = []; page.on("request", request => { if (new URL(request.url()).pathname.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !request.url().includes("/resource-dashboard/query")) writes.push(request.url()); });
+    const writes: string[] = []; page.on("request", request => { if (new URL(request.url()).pathname.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !request.url().includes("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes.push(request.url()); });
     const start = performance.now(); const root = await resource(page); const renderMilliseconds = performance.now() - start;
     const measurements = []; await mkdir("output/playwright/issue-623", { recursive: true });
     for (const layout of ["tree", "matrix"]) {

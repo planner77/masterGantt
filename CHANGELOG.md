@@ -487,6 +487,19 @@
 
 # Changelog
 
+## [0.124.0] - 2026-10-19
+
+- PR #747 Full #3029.1 F730-011: 실제 Task Editor 저장·원본/URL 팝업 다음 3개 독립 시간대 Context를 검증하다 기본30초 Test Budget을 소진(Shard4)하였다. 원본 Trace를 근거로 해당 E2E 한 건만 유한45초를 적용하고 동일 Task/3시간대·Task revision/URL·Gantt·Context 종료 단언 및 전역 CI/Retry/Skip을 그대로 유지한다. 정확 원인과 시점·실제 미검증은 [#730 전용 실패 원장 §20](docs/ISSUE_730_FAILURE_ANALYSIS.md)에 보존하며 새 Full CI 이전에는 NOT TESTED다.
+- PR #747 Full #3027.1의 #623 여섯 UI mutation 단일60초 Test budget 재발(F730-010): 실제 단계계측 body61.586초(준비20.790초)가 예산을 초과해 Shard3가 FAIL한 원인을 #730 누적 원장에 기록한다. 동일 Project·Task/Assignment의 4PATCH+2PUT, 원본 ID/revision+6·Gantt/조회0/양방향 복귀 단언을 모두 보존하고 **해당 E2E 한 건의 유한 제한만 실측 근거로90초 조정**한다. Global timeout/retry/skip/Assertions/CI workflow·제품 코드 불변이며 정확 새 Head Full CI 전 NOT TESTED.
+- PR #747 Full #3025.1의 TypeScript TS2532(F730-009): #727 리소스 재시작 등록 검증에서 `find(...)`가 `undefined`일 수 있는 반환을 직접 역참조한 테스트 코드를 동일 원본 ID의 `toMatchObject({ registered: true })`로 보완한다. 원본 ID 미존재/등록 false를 계속 실패로 검증하며 TypeCheck·Fast Gate·Required 집계 파생 실패를 #730 전용 원장에 보존한다. F730-008 원본 조회와 CI 설정 불변, 새 Full CI 이전 원격 성과 NOT TESTED.
+- PR #747 Full #3023.1의 리소스 멤버십 등록 후 canonical Project GET `ECONNRESET`을 #730 실패 원장 F730-008에 기록한다. 초기 seed/권한 API와 저장/원본 단언을 유지하면서 UI 저장 이후 동일 출처 browser GET·비식별 관측 및 리소스 조회 정상/오류·리다이렉트·형식 음성을 보강한다. 정확 TCP 근인 UNKNOWN, 새 Full CI/Trusted·Owner 판정 전 NOT TESTED, retry/timeout/제품 API 변경 없음.
+- PR #747 Full #3022 후행 Task 물류 연결의 실제 browser 조회/오류 관측 누락과 #719 도움말 합성 fixture의 WBS 응답 경합을 보완한다. 원시 ID·revision·권한·geometry 단언과 기존 CI Gate를 유지하며 원격 최초 실패·소켓 근인 UNKNOWN·누적 로컬 결과를 같은 #730 실패 원장에 기록한다.
+
+- PR #747 누적 보완: 원본 편집 callback의 Hook 의존성·최신 탐색 의도와 조회 POST 회귀 관찰기를 교정하고 Issue #730 단일 실패 원장에 원격 원인·재검증을 보존한다.
+
+- Issue #730: 다섯 고정 관점의 동적 하위 축 구성기와 공통 조회 표·정확 상세, 개인 조회 상태 저장/복원 및 기존 원본/일정 복귀를 추가한다. 서버 고유 합계·typed 설비/System 형제·WBS 원본과 기존 KPI/Milestone/Resource 기능을 보존한다.
+- DESIGN·UI/UX·화면/사용자 가이드·API 소비·테스트 계획을 동기화한다. 정식 게시 승인은 별도이며 PR CI 시작은 원격 검증 완료를 뜻하지 않는다.
+
 ## [Unreleased] — Issue #551 Milestone Timeline main 통합 (2026-10-12)
 
 ### Added

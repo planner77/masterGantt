@@ -1,10 +1,40 @@
+## Issue #730 — PR #747 Full #3029.1 Editor timezone 시간 예산 REWORK (2026-10-20)
+
+원본 Full #3029.1 Run `39320381909`, HEAD `0e229ca683bf6fc14fcc81013b6e809e61d5dade`, base `5df178868139c4a307701e4807896691971b3376`: Quality/Build/Docker 및 Chromium 5Shard SUCCESS, Shard4 `project-task-editor-persistence.spec.ts:8` 기본30초 Test deadline 후 E2E/QA 파생 실패. [#730 단일 실패 원장 F730-011 §20](../../ISSUE_730_FAILURE_ANALYSIS.md)에서 원시 Trace의 fixture와 body 경계 및 3시간대 별도 Context 실행, 과거 F730-001~010/#731 M-003 연관성을 대조한다. 첫 Task Editor E2E만 유한45초로 변경하고 저장 PATCH/revision·Task/URL·Gantt 인스턴스 및 UTC/Seoul/New York의 동일 원본 확인·각 Context 종료를 보존한다. 단순 분리는 원본 저장→3시간대 연속 증거 약화 위험으로 보류. Local 실제 Node/SQLite/Chromium/PrePR/Build/Docker는 NOT TESTED이며 source 텍스트 정적 비교만 완료. 기존7파일 직접 실패 합집합 및 간접/음성 consumer는 새 Full PR CI에 남긴다. main/review/충돌 확인 후 단일 비강제 commit 및 PR CI 등록까지만 진행하고 모니터링·병합·GHCR·정식 릴리스·Issue 종료 금지.
+
+## Issue #730 — Full #3027.1 여섯 mutation 시간 예산 직접 보완 (2026-10-20)
+
+PR Head `6005dfcf00bbe006e5345938d944cce9ee3c7014`/main `5df178868139c4a307701e4807896691971b3376`의 [CI #3027.1](https://github.com/planner77/masterGantt/actions/runs/39314765099)는 Quality/Build/Docker SUCCESS, Chromium Shard3의 `issue-623-resource-mvp.spec.ts` 여섯 연속 mutation test가 body61.586초로60초 test budget을 넘어 직접 FAIL했다. 시점별 Trace와 기존 F730-006·#731 M-003-A를 [단일 #730 누적 실패 원장 §19](../../ISSUE_730_FAILURE_ANALYSIS.md)에서 대조한다. 단일 Project/Task/Assignment에 여섯 저장·원래 보기/원본 ID/revision+6 검증을 보존하도록 테스트1건에만90초 유한 budget 적용하며, 다른 timeout·skip·retry·전역 CI 규정은 불변. 3개 독립 Project로 분리하는 안은 cross-6 단일 ID 통합 증거 손실로 채택하지 않는다. source 수정 문법 검증은 완료, 로컬 실제 Next/SQLite/Chromium/TypeScript 전체/Unit/Docker/PrePR는 NOT TESTED. 이전 E2E FAIL6파일과 직접·간접 회귀는 새 Head Full CI에 남기며 main/리뷰/충돌 확인 후 PR CI 시작까지만 진행, 완료 모니터링·병합/GHCR/Release·Issue 종료 없음.
+
+## Issue #730 — PR #747 Full #3025.1 TS2532 Fast Gate 차단 보완 (2026-10-20)
+
+PR HEAD `827db790ab567b80ff3a53374f00842ad1ed89b4`/main `5df178868139c4a307701e4807896691971b3376`의 [Run #3025.1](https://github.com/planner77/masterGantt/actions/runs/39313371409)은 TypeScript `project-resource-memberships-persistence.spec.ts:91`의 nullable `find()` 반환 역참조로 직접 실패했다. [#730 단일 실패 원장 F730-009](../../ISSUE_730_FAILURE_ANALYSIS.md)에서 TypeCheck→Fast Gate→Required Aggregate 파생을 분리하고 앞선 F730-001~008과 직접 E2E 실패6파일 이력을 보존한다. 동일 ID를 찾아 `toMatchObject({ registered:true })`로 존재/등록 참값을 함께 검증한다. 현재 연결 Github 환경에서 전체 Node/Vitest/Chromium/Docker 미실행=NOT TESTED; 타입 검사/런타임 게이트 변경 없음. MAIN 정렬·리뷰/충돌 0 확인 및 원장/문서와 함께 새 HEAD 단일 커밋 PR Full CI 시작까지만 수행하며 모니터링·병합·GHCR·릴리스·종료하지 않는다.
+
+## Issue #730 — PR #747 Full #3023.1 멤버십 canonical 조회 교정 (2026-10-20)
+
+PR Head `ec1a18e67b7d1a12b040e8298bde98ba93d93256`/main `5df178868139c4a307701e4807896691971b3376`의 [#3023.1](https://github.com/planner77/masterGantt/actions/runs/39274370437) Shard1 `project-resource-memberships-persistence.spec.ts` 조회 ECONNRESET을 #730 전용 [§17 실패 원장](../../ISSUE_730_FAILURE_ANALYSIS.md)에 추가한다. 기존 setup/권한 API 클라이언트는 유지하고 UI 등록 후 browser canonical/Resource source 조회에 동일 origin·observer·HTTP/JSON/원본 단언을 적용한다. 전송/redirect/shape 음성·진단 라우트 비식별 회귀를 추가하며 기존 직접 실패6파일과 #730 기능이 새 Full CI의 영향 범위다. 실제 TCP 원인은 UNKNOWN. 이번 연결 GitHub 세션의 로컬 Node/SQLite/Chromium/Build/Docker는 NOT TESTED이며 이전42 Chromium/219 Unit PASS는 과거 source만의 증거다. HIGH/OWNER_MANAGED/version0.124.0/release_authorized=false, 미해결 리뷰/충돌·main 확인 후 한 묶음 PR CI 시작까지만 진행하고 완료 모니터링·병합·GHCR·릴리스·Issue 종료는 제외한다.
+
+## Issue #730 — PR #747 Full #3022 누적 실패 보완
+
+Head2a97043f/main5df17886에서 누락 #3012와 최신 #3022를 [단일 실패 원장](../../ISSUE_730_FAILURE_ANALYSIS.md)에 추가한다. #726 후행 조회 전송/관측 누락과 #719 synthetic WBS 응답 경합을 분리 보완하고 누적 실제 실패5파일·직접/음성 경로를 같은 최종 source에서 검증한다. [Work Packet](ISSUE_730.md)대로 HIGH/OWNER_MANAGED/0.124.0/release_authorized=false를 유지하며 리뷰·main 충돌 확인 후 새 PR Full CI 시작까지만 진행한다. 최종 로컬 고유42 Chromium/16파일219Unit·정적 검사 PASS, source963 mismatch0. PrePR targeted는 dry-run NOT TESTED/UNKNOWN7/steps0이며 exact-Head 원격 전체 검증을 대신하지 않는다. CI 완료 모니터링·main 병합·릴리스·Issue 종료는 범위 밖이다.
+
 ## Issue #731 — Main #3011.1 후속 누적 교정 (2026-10-19)
 
 최신 main `0aa1d3d71f13df6976539ef4ebaaadb9037121c4` /0.123.0에서 `fix/issue-731-main-ci-cumulative`로 재개한다. #62360초 통합 예산과 Task Editor 저장 후 GET reset을 보완하고 과거 실패 파일5개 합집합·음성/인접 회귀를 동일 source에서 검증한다. [단일 실패 원장](../../ISSUE_731_FAILURE_ANALYSIS.md)과 [현재 Work Packet](ISSUE_731.md)을 갱신한다. 제품/버전/CI 정책 변경0, HIGH/OWNER_MANAGED/release_required=true/release_authorized=false. 리뷰/충돌 확인 후 새 PR Full CI 시작까지만 수행하며 완료 모니터링·병합·릴리스는 범위 밖이다. 아래 최초 구현/과거 재개 상태는 당시 기록이다.
 
+## Issue #730 — PR #747 F730-002 누적 보완 재개 (2026-10-19)
+
+최신 main fbe7db83을 이미 통합한 Head b4ba9994에서 두 Full Run/원장·취소 Shard를 대조한다. setter Hook deps 누락3개·readonly POST 인접 관찰기·P2 parent/상세 최신 intent를 [동일 실패 원장](../../ISSUE_730_FAILURE_ANALYSIS.md)에 누적하고 같은 동결 소스의 직접·과거 실패·인접·음성 검증 후 단일 Head를 게시한다. 버전0.124.0/HIGH/OWNER_MANAGED/release_authorized=false. 최종195Unit PASS, Chromium26PASS/1FAIL·#623단발1PASS/1FAIL/원인UNKNOWN, PrePR UNKNOWN5/BLOCKED를 보존해 LOCAL_VALIDATED=FAIL로 인계한다. 미해결 리뷰·충돌을 재확인하고 이 위험을 명시한 새 Full CI 시작까지만 수행하며 완료 모니터링·병합·Release는 하지 않는다.
+
 ## Issue #731 — 기존 KPI 보존·통합 source와 구성 진단 (2026-10-19)
 
 main `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` /0.122.0에서 별도 `feat/issue-731-kpi-integration`으로 진행한다. 기존 네 카드·세 표·필터·공수/품질/full Gate를 유지하고 #728/#729 공통 원장을 전용 KPI consumer에 연결한다. 추가 구성/연결 진단과 정확 원본 drill·snapshot/focus, 기능 보존표/지표/매뉴얼을 동기화한다. [Work Packet](ISSUE_731.md) 참조. HIGH/OWNER_MANAGED/qa_required=true, candidate0.123.0, release_required=true/release_authorized=false. 요청 종료점은 구현·로컬 검증·문서·PR Full CI 시작이며 CI 모니터링·병합·Main/GHCR·Release·Issue 종료는 범위 밖이다.
+
+## Issue #730 — 고정 root·동적 하위 축 공통 UI (2026-10-19)
+
+main `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` / #729 versioned API를 기준으로 [Work Packet](ISSUE_730.md)의 다섯 root·사용자 하위 구성·typed 형제·공통 표/정확 상세·개인 browser 상태·기존 editor/drill 복귀를 구현한다. 기존 KPI/Milestone/Resource 기능과 WBS 원본·서버 합계를 보존한다. DESIGN·화면/사용자 가이드·API 소비/테스트를 함께 갱신한다.
+
+frontend UI/상태/탐색·E2E, read-only ui_ux/qa_docs와 Manager 문서/통합을 분리한다. 후보0.124.0(열린 #731의0.123.0과 구분), HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. PR Full CI 시작까지만 수행하고 완료 모니터링·병합·Main/GHCR·Release·Issue 종료는 하지 않는다. 원격 Required3/Trusted·Owner ACCEPT는 NOT TESTED다.
 
 ## Issue #729 — versioned WBS 다관점·snapshot·정확 상세 (2026-10-19)
 
