@@ -4,6 +4,7 @@ import { createTargetProject, targetMasterPassword } from "./fixtures/target-pro
 import { chooseTaskInformation } from "./helpers/task-context-menu";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import type { ProjectLogisticsDto } from "../../src/contracts/logistics";
+import type { TaskProcessContextResponse } from "../../src/contracts/process-context";
 
 // Successful reads/writes use real HTTP and disposable SQLite. Intercepts below
 // only delay real requests or return explicit errors; they never invent a save.
@@ -240,10 +241,27 @@ test("#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류
   const initialTasks = (await f.snapshot()).data.tasks;
   const areaA = f.catalog.data.workAreas.find(row => row.code === "WA-A")!;
   const contextUrl = `${f.api}/tasks/${f.task.taskId}/process-context`;
+  // Like the existing #667 post-Editor canonical checks, verify persisted
+  // context over the same-origin browser transport, not a pooled APIRequestContext
+  // socket. This is real HTTP/SQLite; no retry or mocked successful response.
   const readContext = async (taskId = f.task.taskId) => {
-    const response = await page.request.get(`${f.api}/tasks/${taskId}/process-context`);
-    expect(response.status()).toBe(200);
-    return (await response.json()).data.context;
+    const path = `/api/projects/${f.publicId}/tasks/${taskId}/process-context`;
+    const response = await observeIsolatedApi(path, "GET", async () => {
+      const read = await page.evaluate(async url => {
+        const result = await fetch(url, { credentials: "same-origin", cache: "no-store" });
+        const raw = await result.text();
+        let body: unknown = null, validJson = true;
+        try { body = JSON.parse(raw); } catch { validJson = false; }
+        return { status: result.status, requestId: result.headers.get("x-request-id"), body, validJson };
+      }, path);
+      return { status: () => read.status, headers: () => ({ "x-request-id": read.requestId ?? "" }),
+        body: read.body, validJson: read.validJson };
+    });
+    expect(response.status(), "공정 문맥 원본 조회 HTTP status").toBe(200);
+    expect(response.validJson, "공정 문맥 원본 JSON").toBe(true);
+    const body = response.body as TaskProcessContextResponse;
+    expect(body).toHaveProperty("data.context");
+    return body.data.context;
   };
   expect((await readContext()).processLinks).toBeNull();
   await f.mutate("/logistics/processes", { name: "미매핑 활성 공정" });
