@@ -307,3 +307,38 @@ Primary Issue: [#730](https://github.com/planner77/masterGantt/issues/730) · PR
 - **리뷰·main:** 이전 P2 Review Thread `PRRT_kwDOUUB7Bc6t0iIK`은 resolved/outdated. 이번 새 검토에서 unresolved 0, main 기존 HEAD 조상/behind 0 및 mergeable=true인 경우 새 충돌 해결0, 별도 main 정렬0로 기록한다. 게시 직전 기준이 이동했으면 재확인·통합하여 원장에 추가한다.
 - **운영 경계:** issue-specific 누적 원장만 갱신하고 `AGENTS.md`, `ISSUE_LIFECYCLE`, `TEST_PLAN`, Work Packet·Changelog 기준을 유지한다. HIGH/OWNER_MANAGED, candidate `0.124.0`, `release_authorized=false` 불변. 한 묶음 커밋 Push로 `pull_request.synchronize` 새 Full PR CI 등록과 정확 Head/base/Run만 확인하며 **완료 모니터링·재실행·병합·Main CI·GHCR·Finalizer·Release·Issue 종료는 하지 않는다**.
 
+## 19. F730-010 — PR Full #3027.1의 #623 여섯 mutation 테스트 예산 재발 (2026-10-20)
+
+### 19.1 원본 실패·실행 귀속
+
+- Full [PR #747 CI #3027.1 / Run 39314765099](https://github.com/planner77/masterGantt/actions/runs/39314765099), `pull_request`, attempt1, source HEAD `6005dfcf00bbe006e5345938d944cce9ee3c7014`, base `5df178868139c4a307701e4807896691971b3376`; test merge `0bd9deb2a72b85de1b0ed2f8403e40d9a9ff6380`는 정확 두 부모 base/head 및 동일 Git tree `2a4457a6135f74f38fd5bd00d3507932cf575df6`를 갖는다. 기존 F730-001~009의 서로 다른 Head/Run/Attempt 원본 실패 판정은 소급 변경하지 않는다.
+- 직접 실패: [Chromium Shard3 Job 118274194932](https://github.com/planner77/masterGantt/actions/runs/39314765099/job/118274194932)의 `tests/e2e/issue-623-resource-mvp.spec.ts:185` ‘#623 여섯 별도 mutation·양방향 동일원본 복귀’ — **Test timeout of 60000ms exceeded**. 마지막 stack은 `readMutationSource`의 `page.evaluate`(:82), 호출 :251(`assigned-targets` GET). 이는 전체 예산 종료 시 남아 있던 작업일 뿐 단일 GET이60초 걸렸다는 증거가 아니다.
+- Shard3: **44 PASS / 1 FAIL / 63 NOT RUN**, 다른 Shard1/2/4/5/6 CANCELLED. 바로 앞 Golden/OOXML 독립 case는32.4초 PASS. PR Build Job118274194530, TypeScript118273496926, ESLint118273496952, Vitest118273497064, Policy118273497041, Docker 구현118274194790, Required Quality118274963587·Docker118275212283은 SUCCESS. Required E2E118279802717 FAILURE 및 QA Final118279856115 FAILURE는 최초 E2E로부터 파생된 게이트 판정. CANCELLED·NOT RUN을 PASS로 바꾸지 않는다.
+- 실제 원본 [E2E Timing Shard3 Artifact #12217861381](https://github.com/planner77/masterGantt/actions/runs/39314765099/artifacts/12217861381) digest `sha256:5032bbcd5eb51363e1b0347d93d4a91f2a034fa2c8ab4a97e55dc68be7c2b564`; [Playwright Report Shard3 #12217981209](https://github.com/planner77/masterGantt/actions/runs/39314765099/artifacts/12217981209) digest `sha256:94f031e0ab41aca5824c491efbc09ff0ac7be16ef10c2f980e8448721a486804`. Trace의 정제 `issue623-phase-timing` JSON은 status `timedOut`, test budget `60000ms`, body `61586ms`, wall `61627ms`. Raw ZIP/trace·쿠키·실 Project ID/URL/DB는 Git에 포함하지 않는다.
+
+### 19.2 이전 실패 합집합과 정확 원인 분석
+
+| 실제 계측 구간 | 관측값 |
+| --- | ---: |
+| fixture setup | 41ms |
+| 실제 SQLite/HTTP fixture seed | 20,790ms |
+| 변경 전 원본 Task/Assignment 확인 | 4,948ms |
+| 1 WBS 작업명 PATCH·원본 | 5,015ms |
+| 2 Target 경유 시작일 PATCH·원본 | 8,587ms |
+| Resource 화면 전환 | 2,778ms |
+| 3 Task 상태 PATCH·원본 | 6,379ms |
+| 4 진척률 PATCH·원본 | 5,920ms |
+| 5 Assignment allocation PUT 진행·기한 중단 | 7,170ms |
+| 6 Target member PUT | NOT RUN |
+
+- 전체 budget은 여러 단계의 실제 준비·화면 변경·저장/원본 조회가 소비했다. 마지막 `page.evaluate`나 SQL 쿼리가 단독으로60초 정체했다고 주장할 수 없다. 테스트 전체 시간이 개별 정상 HTTP 요청의 합계보다 길어져 실패한 **TEST_CONTRACT / TIME_BUDGET_COUPLING**으로 분류한다. Next worker, TCP socket, OOM, SQLite 이상이 근본 원인이라는 직접 증거는 없다.
+- #730 F730-006(#3012.1) 및 #731 M-003-A(#3011.1)는 Golden/Mutation/폭별 대형 테스트 분리로 일부 개선되었다. 이번에는 **여섯 UI 저장 검증 자체가 단일60초 예산**이었으며 동일 문제가 재발했다. 다른 직접 E2E 실패 파일6개(기존 #463/#550/#719/#623/#726/#727)는 변경 없이 합집합에 남는다. #3003 ESLint·#3005 npm·#3025 TypeScript 오류는 별도 원인으로 계속 보존한다.
+
+### 19.3 보완의 선택 이유, 검증 및 잔여 위험
+
+- 3개 독립 SQLite fixture의 두 mutation씩 분리안을 비교했다. 이 안은 더 짧은 실행 단위 대신 **같은 Project/Task/Assignment에 여섯 UI mutation을 연속 적용하는 통합 수용 증거를 없애며**, 반복 fixture seed로 CI 시간이 증가한다. #623 AC2의 단일 원본/6개별 저장·다관점 왕복을 보존하기 위해 **채택하지 않는다**. 준비 과정의 미게시 Git Blob은 PR 브랜치나 코드에 연결하지 않는다.
+- **최종 코드 교정은 한 건:** 기존 `tests/e2e/issue-623-resource-mvp.spec.ts`의 위 테스트에만 `test.setTimeout(60_000)` → **`test.setTimeout(90_000)`**를 적용한다. 이는 원본에서 실제 body61,586ms로 검증된 시나리오 하나에만 적용하는 유한한 28,414ms의 실행 여유이며, 전역 timeout·다른 E2E case/Shard/Job·CI runner 정책 변경이 아니다. 해당 test 내부 모든 6개의 원본 ID·Task/Assignment 관계·revision+1~6·업무 실제 저장6회(4PATCH+2PUT)·Target subset/개인80%·조회 mutation0·Gantt 동일 인스턴스·WBS↔Resource/Target 및 일정 복귀, exact HTTP/JSON 오류·stale/권한은 **그대로 유지한다**. Skip/Retry/Assertion 완화도 하지 않는다.
+- 회귀 범위는 동일 `issue-623-resource-mvp.spec.ts`의 Golden/OOXML, 여섯 mutation, 폭별 5케이스 전체와 기존 직접 실패6파일, 인접 #726/#727 Resource/Task 원본·#731 Task Editor, #730 WBS 원본·#719, Resource/Target SQL/DTO 및 diagnostic helper 정상·음성이다. 전용 `issue623-phase-timing`/원시 ID attachment는 계속 기록하며 #752 진단 도입 전까지 향후 >90초 재발 시 동일 원장·Trace에서 새 단계별 병목을 분석한다. 이 대응은 **E2E 정상 동작 완료를 보장하거나 서버 지연 자체를 제거했다는 의미가 아니다**.
+- **검증 구분:** 원격 실패 원본·Trace와 단계 계측은 실증 확인. 수정 후보는 동일 Git Blob 원본에서 단일 변경만 적용했으며 로컬 TypeScript5.8.3 parser `syntax errors=0`, 원래 6개 저장 단언/기존60초 다른 case 불변을 확인했다. 이 환경에서 저장소 전체 의존성·실 SQLite/Next/Playwright/`npm run typecheck`/Vitest/Build/Docker·PrePR 실제 명령은 **NOT TESTED**. 정적 parser를 전체 typecheck 또는 Chromium PASS라고 주장하지 않는다. 이전42 browser/219 unit 로컬 PASS는 과거 source에 귀속하며 새 HEAD 검증은 Full CI 시작 뒤 결과로만 평가한다.
+- **리뷰·정렬:** 이전 P2 Thread `PRRT_kwDOUUB7Bc6t0iIK`는 resolved/outdated이며 신규 unresolved0. baseline HEAD `6005dfcf...`는 main `5df17886...`를 포함하고 PR mergeable=true/behind0였으므로 새 conflict0/추가 main 통합 N/A(게시 직전 재확인). HIGH/OWNER_MANAGED·버전0.124.0·`release_authorized=false` 유지. 동일 이슈 전용 원장/TEST_PLAN/Work Packet/active PLAN/CHANGELOG와 **단일 non-force commit**로 게시한 뒤 새 PR Full CI 등록만 확인한다. 사용자 지시대로 결과 모니터링·병합/Main/GHCR/Finalizer/Release/Issue 종료는 하지 않는다.
+

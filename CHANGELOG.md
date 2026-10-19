@@ -489,6 +489,7 @@
 
 ## [0.124.0] - 2026-10-19
 
+- PR #747 Full #3027.1의 #623 여섯 UI mutation 단일60초 Test budget 재발(F730-010): 실제 단계계측 body61.586초(준비20.790초)가 예산을 초과해 Shard3가 FAIL한 원인을 #730 누적 원장에 기록한다. 동일 Project·Task/Assignment의 4PATCH+2PUT, 원본 ID/revision+6·Gantt/조회0/양방향 복귀 단언을 모두 보존하고 **해당 E2E 한 건의 유한 제한만 실측 근거로90초 조정**한다. Global timeout/retry/skip/Assertions/CI workflow·제품 코드 불변이며 정확 새 Head Full CI 전 NOT TESTED.
 - PR #747 Full #3025.1의 TypeScript TS2532(F730-009): #727 리소스 재시작 등록 검증에서 `find(...)`가 `undefined`일 수 있는 반환을 직접 역참조한 테스트 코드를 동일 원본 ID의 `toMatchObject({ registered: true })`로 보완한다. 원본 ID 미존재/등록 false를 계속 실패로 검증하며 TypeCheck·Fast Gate·Required 집계 파생 실패를 #730 전용 원장에 보존한다. F730-008 원본 조회와 CI 설정 불변, 새 Full CI 이전 원격 성과 NOT TESTED.
 - PR #747 Full #3023.1의 리소스 멤버십 등록 후 canonical Project GET `ECONNRESET`을 #730 실패 원장 F730-008에 기록한다. 초기 seed/권한 API와 저장/원본 단언을 유지하면서 UI 저장 이후 동일 출처 browser GET·비식별 관측 및 리소스 조회 정상/오류·리다이렉트·형식 음성을 보강한다. 정확 TCP 근인 UNKNOWN, 새 Full CI/Trusted·Owner 판정 전 NOT TESTED, retry/timeout/제품 API 변경 없음.
 - PR #747 Full #3022 후행 Task 물류 연결의 실제 browser 조회/오류 관측 누락과 #719 도움말 합성 fixture의 WBS 응답 경합을 보완한다. 원시 ID·revision·권한·geometry 단언과 기존 CI Gate를 유지하며 원격 최초 실패·소켓 근인 UNKNOWN·누적 로컬 결과를 같은 #730 실패 원장에 기록한다.

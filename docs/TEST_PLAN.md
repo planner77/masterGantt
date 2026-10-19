@@ -1,3 +1,11 @@
+## Issue #730 — F730-010 PR #747 Full #3027.1 #623 여섯 mutation 제한시간 재발 (2026-10-20)
+
+[단일 실패 원장 F730-010](ISSUE_730_FAILURE_ANALYSIS.md#19-f730-010--pr-full-30271의-623-여섯-mutation-테스트-예산-재발-2026-10-20)에 따르면 Shard3 [#3027.1](https://github.com/planner77/masterGantt/actions/runs/39314765099)에서 #623 독립 Golden/OOXML는32.4초 PASS, 여섯 연속 UI 저장 테스트는 body61,586ms로 기존60초 제한을 소진했다. phase fixture20,790ms, 원본4,948ms, WBS명5,015ms/시작일8,587ms/화면전환2,778ms/상태6,379ms/진척5,920ms/배정7,170ms(중단), 여섯 번째 Target 작업은 NOT RUN이다. 마지막 GET이 60초 전체를 소비했다는 잘못된 해석을 금지한다. Quality/Docker/Build 및 Shard3 다른44 PASS와 Fail-fast 취소5Shard를 구분한다.
+
+## 보완·교차 회귀
+
+`tests/e2e/issue-623-resource-mvp.spec.ts`의 **여섯 UI mutation 한 case에만** 60→90초의 유한하고 근거가 명시된 budget을 적용한다. 동일 Project 안 4 PATCH+2 PUT·canonical raw ID·revision+6/6회 저장·Target subset/개인80%·원래 WBS/Resource·Gantt DOM 동일성·조회-only mutation0 및 오류/권한/readonly 단언을 모두 유지한다. 여섯 mutation을 각각 별도 Project로 분리하면 동일 프로젝트의 종단간 원본 연쇄 증거를 상실하므로 이번에는 분리하지 않는다. 새 소스에서는 #623 Golden1/6mutation1/폭별5개, 누적 #730 과거 E2E 실패6파일과 #726/#727/#731/Task Editor 인접, diagnostic/GET helper 음성, 실제 Full Required3를 검증한다. 일괄 timeout·retry·skip·기타 assertion/CI 정책 변경0. 새 HEAD 원격 실제 실행 이전에는 NOT TESTED, TypeScript parser만 확인한 상태이다.
+
 ## Issue #730 — F730-009 #3025.1 TypeScript strict-null TypeCheck 보완 (2026-10-20)
 
 [Issue #730 전용 누적 실패 원장 §18](ISSUE_730_FAILURE_ANALYSIS.md)을 기준으로 원격 Full #3025.1 `TS2532` 실패를 직접 교정한다. `project-resource-memberships-persistence.spec.ts`의 `memberships.resources.find(...).registered`에서 `Array.find()`의 `undefined` 가능성이 TypeScript strict null 오류를 유발했다. 같은 원본 ID로 찾은 `registeredMember` 객체에 `toMatchObject({ registered:true })`를 적용하여 **엔터티 부재와 등록=false 모두 실패**를 유지하고 `!`/`any`/타입 게이트 완화는 하지 않는다. 원본 Run의 TypeCheck FAILURE와 PR Fast Gate FAILURE, PR Build/E2E6/Docker 실행 Job SKIPPED를 구분한다.
