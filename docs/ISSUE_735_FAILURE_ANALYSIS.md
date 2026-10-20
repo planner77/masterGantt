@@ -3,7 +3,7 @@
 Primary Issue: [#735](https://github.com/planner77/masterGantt/issues/735) · PR [#757](https://github.com/planner77/masterGantt/pull/757) · 갱신일: 2026-10-20.
 Source of truth: [PR CI 실패 원장 정책](PR_CI_FAILURE_TRIAGE.md), [Work Packet](exec-plans/active/ISSUE_735.md).
 
-최신 재개 인덱스: §6 F735-002 / #3054.1 및 §7 누적 교정. §1~5는 첫 재개 당시의 원본 기록으로 보존한다.
+최신 재개 인덱스: §9 F735-003 / #3055.1 및 §10 검증·인계. §1~8의 시점별 원본 실패·가설·보완은 보존한다.
 
 ## 1. Run/Attempt 전체 목록
 
@@ -123,3 +123,77 @@ branch `feat/issue-735-system-dashboard` / event `pull_request`의 접근 가능
 - 최종 정적 검사: `npm run typecheck`, 변경 spec ESLint, version0.126.0, Markdown281파일, `docs_gate` 구조/AC mapping, diff whitespace PASS. 실제 managed Chromium153.0.8010.12를 별도 launch로 확인했다. 전체 Build/Vitest/E2E6/Docker·원격 Trusted QA는 새 Full PR CI 범위이며 이 로컬 결과로 대체하지 않는다. 원격 최신 main은 `05f1e560eee456e6fba5535255c9ede30a357c16`으로 재확인했고 기존 Head의 ancestor다. 새 Head/run/attempt·리뷰/충돌 최종 상태는 게시 후 Issue STATUS에 기록한다.
 
 - 최종 독립 Agent `/root/system_qa` 사전 QA PASS/미해결 지적0. 실제 HTML의 직접8+인접2 expected10/unexpected·flaky·skipped0 및 최종13file 지문을 독립 재검산했다. 생성 설정 복원 시점 문구 지적1건도 교정했다. 이는 독립 인간 QA·Trusted QA·Owner 최종 ACCEPT가 아니며 원본2Run FAIL/TCP 근인 UNKNOWN을 유지한다.
+
+
+## 9. F735-003 — #3055.1, #116 반응형 메뉴 단일 Test의 30초 예산 결합
+
+### 9.1 세 Run 전체 이력과 직접/파생 결과
+
+재개 시 접근 가능한 같은 branch의 PR CI는 #3051.1/#3054.1/#3055.1 총3Run, 각각 attempt1이다. 이전 F735-001/002와 모든 취소·미실행 이력을 대조했다. 최신6Shard 로그도 각각 읽어 추가 실제 실패0/접근 불가0을 확인했다. 원격 실제 출처·진단·단계 시간·setup/timing은 [새 정제 보조 증거](evidence/issue-735/ci-39424501289-attempt-1.json)에 보존하며 이전 증거 파일은 변경하지 않는다.
+
+| Run / attempt | Head / base / test merge | Required / 실제 결과 |
+| --- | --- | --- |
+| [#3055.1 / 39424501289](https://github.com/planner77/masterGantt/actions/runs/39424501289) / 1 / pull_request | Head `c7159c7fc253a6d9ea154ba915a2ce11a2a75cf1`; base `05f1e560eee456e6fba5535255c9ede30a357c16`; test merge `934ba5c140b142de7cb97f47d38cfdfe46a4c3d5` | Quality [118635107448](https://github.com/planner77/masterGantt/actions/runs/39424501289/job/118635107448) SUCCESS; Docker [118635561449](https://github.com/planner77/masterGantt/actions/runs/39424501289/job/118635561449) SUCCESS; E2E [118645032226](https://github.com/planner77/masterGantt/actions/runs/39424501289/job/118645032226) FAILURE; QA118645079778 파생 FAILURE |
+
+| Shard | Job ID | 원본 결론 / 관측 |
+| --- | --- | --- |
+| 1 | 118634553773 | CANCELLED, 추가 실제 FAIL 없음 |
+| 2 | 118634553618 | CANCELLED, 추가 실제 FAIL 없음 |
+| 3 | 118634553683 | SUCCESS,107PASS/1SKIP, 본문15.7분, Job16분33초 |
+| 4 | 118634553840 | CANCELLED, 추가 실제 FAIL 없음 |
+| 5 | 118634553624 | CANCELLED, 추가 실제 FAIL 없음 |
+| 6 | 118634553699 | FAILURE,92PASS/1FAIL/45 did not run, 본문21.4분, Job22분18초 |
+
+- 직접 오류: [Shard6 Job118634553699](https://github.com/planner77/masterGantt/actions/runs/39424501289/job/118634553699), Step7 `E2E shard 실행`, `tests/e2e/project-task-context-menu.spec.ts:135`의 `Issue #116 task submenus stay operable at viewport corners and in short viewports`. `Test timeout of 30000ms exceeded.`가 `2026-10-20T13:08:04.9564293Z`에 기록됐고 reporter duration은30999ms다. Job은 `12:45:52Z`~`13:08:10Z`;35분 Job capacity 취소가 아니다.
+- 실제 [Playwright report/trace/진단 artifact12266746897](https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12266746897), [source12264748293](https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12264748293), [timing612266841787](https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12266841787). 최신 artifact15개는 조회 당시 expired=false다. 원문 trace/쿠키/인증 자료는 Git에 저장하지 않는다.
+- trace는 fixture Before Hooks15792ms와 테스트 본문 약29962ms를 구분한다. Before Hooks는30초 본문 예산 밖이며 합산해서31초의 원인으로 삼지 않는다. 마지막 Summary disabled 검증과 이어지는 focus/ArrowLeft/Escape에도 개별 assertion error가 기록되지 않았지만 전체 Test deadline에 도달했다. 최종 browser canonical GET은170ms/HTTP200/JSON PASS다. 프로세스 generation1/alive, exitCode/signal=null, 별도 Health20015ms, oom/oomKill0→0이며 서버 종료·OOM은 관측되지 않았다.
+- F735-001 Copy ID와 F735-002 hierarchy는 이번 Run의 fail-fast 뒤 **NOT RUN**이다. #116 안의 browser GET 성공을 이전 두 case의 원격 PASS로 확대하지 않는다. 이전 TCP 내부 근인 UNKNOWN과 원본 FAIL은 유지한다.
+
+### 9.2 단계 시간과 원인 판별
+
+| 이전 source 구간 | 실제 직접 step span | 내용 |
+| --- | --- | --- |
+| 137~147 | 6461ms | UI Project/Task 준비·reload |
+| 152~233 | 15013ms | 390/768/1024/1440px ×4corner, Add pointer/keyboard/focus/geometry |
+| 235~257 | 421ms | 390px Convert/Move |
+| 259~314 | 2602ms | 390×160px 내부 scroll/Home/End/Back·Task below·같은 Gantt |
+| 316~359 | 3503ms | 실제 Clipboard 및 mobile/desktop Convert/Paste/Move |
+| 360~382 | 1033ms | 자식 생성으로 Summary 전환·disabled Convert |
+
+모든 구간의 관측 step error는0이다. source line에 직접 위치한 step의 최소/최대 시각을 사용했으므로 helper 위치의 공백은 포함하지 않으며 표의 합을 전체 wall-clock 예측으로 사용하지 않는다. 한 Test에 준비·16corner·서로 다른 메뉴/상태 흐름을 모두 결합한 **TEST_CONTRACT / PER_TEST_TIME_BUDGET_COUPLING**으로 판단한다. #733 F733-008의 한 본문30초 결합 선례와 같고, #733 M733-001의35분 Shard capacity와는 다르다.
+
+기존 #116은 Main #3050.1에서26.4초, 앞선 #735 로컬에서28.8/29.2초로 PASS했으나 여유가 작았다. 이번 원형을 변경 없이 `CI_E2E_FULLY_PARALLEL=true npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-task-context-menu.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --grep 'Issue #116 task submenus'`로 실제 재실행하여 **FAIL/31.0초**를 재현했다. 로컬은 늦은 desktop focus 검증(:354) 중 Test timeout으로 browser session이 닫혔으며, 별도 제품 focus 불일치를 확정한 결과가 아니다. 이번 오류를 F735-001/002의 GET 전송 오류 재발로 합치지 않는다.
+
+### 9.3 부담 재배분과 비용·커버리지 보존
+
+단일 본문을 **독립 Test2개**로 재배분했다. A는 기존4폭×4corner 행렬 전체, B는 기존 mobile Convert/Move→short viewport/Task below→Clipboard/Paste→desktop submenu→Summary disabled 흐름을 같은 순서로 검증한다. 공통 준비 함수는 각 Test 본문에서 호출하며 각각 새 Project/SQLite/BrowserContext를 사용한다. serial state 재사용·상태 공유는 없다. 각 default30초·retry0·원래 단언을 유지하고 `test.step()`만 나누거나 timeout을 늘리지 않는다.
+
+분할은 최소2개로 정했다. 원격의 준비+행렬 약21.5초와 후반+새 준비 약14초라는 관측이 이를 뒷받침하며, 폭마다4개와 후반1개의5분할은 불필요한 fixture4회 추가를 만든다. 최종2분할은 격리 fixture1개만 추가한다. 첫 분할 교차 실행은 A20.2초/B13.4초 **2PASS**, 총1.1분이며 source SHA256 `0fcb9cfab7bf28ae04a4133a0893be5dc2c9644c2465bfd28b77484999f5aafd`다. 이 합계를 종전 단일 Test보다 전체 실행 비용이 절감됐다는 뜻으로 사용하지 않는다. 준비 반복으로 runner-minutes·Shard wall-clock은 증가할 수 있다.
+
+- **전역 Shard 이동은 하지 않는다.** 이번 Job은22분18초/본문30초 실패이지35분 용량 취소가 아니다. 과거 [Main #3050.1 Shard6 Job118559903136](https://github.com/planner77/masterGantt/actions/runs/39402320673/job/118559903136)은20분24초/134PASS/본문19.4분 SUCCESS였지만, #726 추가와 새 테스트 이전 population이므로 현재 Shard6 성공을 보장하지 않는다. 현재 미실행45개와 partial timing을10개 successful run baseline 또는 전체 용량 예측으로 쓰지 않는다. 후속 실제35분 취소·setup/자원 근거가 생기면 #733의 동일한 원장 규칙으로 파일 재배치를 검토한다.
+- 기존 matcher93개와 전체 setup/action/mutation/단언 순서를 TypeScript AST·lexical token 정규화로 비교해 누락0/추가0, 나머지7개 test callback은 byte 동일임을 확인했다. 의도한 차이는 fresh setup1회 추가와 테스트 수8→9다. [보존 검산](evidence/issue-735/issue116-split-preservation.json), 원래 흐름 token SHA256 `5e214ab58c60f2eb099640f71455e85f2dd346b752365b1b0fa5cfc562c98a5d`를 남긴다.
+- DESIGN.md와 공통 UI/UX 가이드의 keyboard/focus/화면 내부 scroll·기존 Context Menu 계약을 참조했다. 사용자 화면/제품·Gantt·공통 helper/fixture·API/DB·version·CI/workflow/6Shard/worker1/35분/필수 aggregate는 변경0이다.
+
+### 9.4 전 이력 Cross-run 매트릭스
+
+| 사건 | 원인·교정 이력 | 이번 관계 / 동결 검증 범위 |
+| --- | --- | --- |
+| F735-001 / #3051.1 Copy ID | 독립 API GET ECONNRESET, TCP 근인 UNKNOWN,24호출 browser GET/observer 교정 | #3055 fail-fast 후 NOT RUN. 새 같은 파일 전체9case에서 직접 재검증 |
+| F735-002 / #3054.1 hierarchy | 같은 GET 경계의 다른 case, 이전 F001은 해당 Run PASS, 원본 FAIL 보존 | #3055 fail-fast 후 NOT RUN. 새 전체9case의 actual canonical/계층/Gantt 단언 보존 |
+| F735-003 / #3055.1 #116 viewport | 별도 TEST_CONTRACT 본문30초 결합, 원형 자연 RED 재현 | 전체 수용조건을 독립2Test로 재배분; 기존93matcher·4폭16corner·명령 순서 보존 |
+
+누적 실패 파일 합집합은 `tests/e2e/project-task-context-menu.spec.ts` 1개/실제3case다. 새 동결 source에서 이 파일 전체9case(분할2+기존7)를 fail-fast 없이 검증한다. 별도 공통 helper/fixture·제품을 변경하지 않았고 그 입력 지문도 이전과 동일하므로 이전 Unit30개와 Task Editor/Milestone 인접2개의 PASS는 당시 증거로 보존하고 이번 결과에 재합산하지 않는다. 변경의 직접·간접·음성 소비자는 같은 파일의 corner·keyboard·focus/scroll/Clipboard·계층/Link/Cut·readonly·GET transport 차단 및 실제 canonical 검증에 모두 남는다.
+
+## 10. F735-003 동결 검증과 새 CI 인계
+
+최종 spec 동결 후 전체9case를 실행하며 결과·지문·정적 검사·독립 검토를 아래에 누적한다. 기존 PrePR diagnose는 동일 파일의 서로 다른 실패 case3개도 서로 다른 consumer 파일2개로 인정하지 않으므로 앞의 BLOCKED를 보존하고 수동 제한 합집합 진단으로 인계한다. 입력을 위조하거나 CLI 기준을 완화하지 않는다. 새 exact Head의 Required3/Trusted QA·Owner ACCEPT는 NOT TESTED/MERGE_READY BLOCKED, 요청 범위는 새 CI 시작까지다.
+
+
+- 최종 동결 source에서 `CI_E2E_FULLY_PARALLEL=true npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-task-context-menu.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0` → **9/9 PASS**,4.6분. 각5.8/20.2/13.5/23.9/6.2/19.4/11.2/11.9/5.3초다. 분할 A/B는20.2/13.5초로 각 default30초 안에 완료됐고, F735-001/002에 해당하는 Copy ID/hierarchy 실제 저장·canonical 검증도 포함됐다. 처음 selected2 GREEN을 새 case2개로 더하지 않으며 고유 결과는9개다.
+- 시작/끝 spec SHA256 `0fcb9cfab7bf28ae04a4133a0893be5dc2c9644c2465bfd28b77484999f5aafd`가 같다. 선택13개 test/helper/fixture/config/package의 결합 지문은 [최종 manifest](evidence/issue-735/rework-3055-validation-source.json)에 기록한다. 이전 manifest 대비 spec 외12file의 hash가 모두 같고 제품/전용 Unit/API13file 지문도 불변이다. 기존 Unit30·인접2case는 입력 불변 확인으로 당시 증거를 보존했으며 이번에 재실행하지 않아 새 PASS 수에 넣지 않는다.
+- 비용 관측: 이전 local8case3.8분에서 이번9case4.6분으로 command duration이 증가했다. 추가 fixture1회와 개별 case/환경 변동이 함께 있으므로 분할만으로 증가 원인을 정량 확정하거나 성능 개선으로 보고하지 않는다. 새 PR/Main의 실제 full Shard6/runner-minutes는 NOT TESTED다. 기존6Shard selector를 실제6회 실행해133spec이 정확1회 배정(누락/중복0), counts `[23,23,23,22,21,21]`이며 같은 spec은 Shard6 그대로다.
+- Next 생성 next-env.d.ts/tsconfig.json은 로컬9case 종료 후 원래 추적 값으로 복원했다. raw 실패/최종 report는 로컬에만 보존하고 정제 지문·시간·보존 검산만 Git에 넣는다. 이후 typecheck·변경 spec ESLint·version/문서·구조 gate와 독립 검토를 확인하고 새 Head/Full CI 시작은 Issue STATUS에 기록한다. 이전3Run FAIL과 TCP 내부 근인 UNKNOWN은 그대로다.
+
+- 최종 typecheck·변경 spec ESLint·version0.126.0·Markdown281파일·DOC_SYNC 구조/AC mapping·diff 검사 PASS. 원격 main `05f1e560eee456e6fba5535255c9ede30a357c16` 재조회 및 현재 Head의 ancestor를 확인했고 unmerged index0이다. 최종 독립 사전 검토 후 전체 tree/부모/expected Head를 대조해 단일 Ref 게시한다. 원격 새 Head/Run·Attempt·리뷰/충돌 최종 상태는 Issue STATUS에 남기며 완료 모니터링·병합·릴리스는 수행하지 않는다.
+
+- 최종 독립 Agent `/root/system_qa` 사전 QA PASS/미해결 지적0. AST/전체 명령 token·93matcher·다른7callback 보존, 실제 HTML9/9(expected9/unexpected·flaky·skipped0), 최종13file 지문 `5c885d644cad5bbaf76ee3b86e25a70d907e5a5b338f574e57dd8c6226037529`를 독립 재검산했다. 기존3Run FAIL/F001·002 TCP 근인 UNKNOWN/자동 diagnose BLOCKED를 보존하며 이 결과는 독립 인간 QA·Trusted QA·Owner 최종 ACCEPT가 아니다.

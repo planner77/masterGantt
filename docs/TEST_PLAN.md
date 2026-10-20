@@ -4902,3 +4902,8 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 [누적 원장 F735-001/002](ISSUE_735_FAILURE_ANALYSIS.md)의 두 원본 CI 실패는 같은 Context Menu snapshot helper의 독립 API GET에서 발생했으며 TCP 내부 근인은 UNKNOWN이다. 두 진단에서 서버 생존·Health200·OOM0, 35분 용량 취소 없음이 확인되어 샤드 재배분은 하지 않는다. `project-task-context-menu.spec.ts`의 UI 후 canonical 검증24곳을 기존 `readBrowserCanonicalSnapshot`+필수 observer로 통일한다. browser GET은 같은 출처에서1회, retry0이며 seed/mutation API 및 기존 원본ID/revision/계층/Clipboard/Gantt 단언은 보존한다.
 
 실제 Project/Task를 둔 independent API GET 차단 controlled red/green 회귀1개와 기존 전체7case를 한 번의 fail-fast 없는8case에 포함한다. 기존 `tests/server/e2e/browser-canonical-snapshot.test.ts`의 HTTP500·invalidJSON·transport·foreign path/no retry 음성과 진단기/GET helper Unit, 인접 Task Editor 저장/reload·Milestone persistence를 선택한다. 원격 전체6Shard/Docker·Trusted/Owner는 새 exact Head에서 별도 검증하며 로컬 비재현·통제 오류와 원격 실제 실패를 구분한다.
+
+
+## Issue #735 F735-003 — 반응형 메뉴 단일 본문 부담 재배분 (2026-10-20)
+
+[누적 원장 §9](ISSUE_735_FAILURE_ANALYSIS.md)의 #3055.1은 #116 반응형 메뉴 단일 Test30초 초과다. fixture Before Hooks와 본문을 구분한 실제 trace/원형 RED31초로 결합 부담을 확인했고, Job35분 capacity 실패와 이전 GET 전송 오류와 구분했다. timeout/retry/단언을 유지하며4폭×4corner 행렬과 모바일/짧은 화면/Clipboard/desktop/Summary 흐름을 새 Project·SQLite·Context의 독립2Test로 나눈다. 각30초, 전체8→9case, 기존93matcher와 전체 명령 순서·나머지7case 내용 보존을 검산한다. 기존 실제 실패3case가 속한 같은 파일 전체9case를 동결 소스에서 fail-fast 없이 실행한다. fixture1회 추가의 비용은 별도로 기록하며 전역 Shard 이동·성능 절감은 주장하지 않는다. 전체6Shard/Docker·Trusted/Owner는 새 원격 exact Head에서 별도 검증한다.

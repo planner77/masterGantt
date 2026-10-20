@@ -165,3 +165,21 @@ producer는 system root spec/selector·report/detail/scope와 consumer/hydration
 - 최종 typecheck·변경 spec ESLint·version0.126.0·Markdown281파일·DOC_SYNC 구조/AC mapping·diff 검사 PASS. 실제 Chromium153.0.8010.12 확인, Next 설정 복원 diff0, 기존 main ancestor 확인이다. 원격 게시·새 Full CI 시작 증거와 최종 리뷰/충돌은 Issue STATUS로 연결하며 원격 PASS·Owner 최종 승인을 주장하지 않는다.
 
 - 최종 독립 Agent `/root/system_qa` 사전 QA PASS/미해결 지적0. 실제 HTML의 직접8+인접2 expected10/unexpected·flaky·skipped0 및 최종13file 지문을 독립 재검산했다. 생성 설정 복원 시점 문구 지적1건도 교정했다. 이는 독립 인간 QA·Trusted QA·Owner 최종 ACCEPT가 아니며 원본2Run FAIL/TCP 근인 UNKNOWN을 유지한다.
+
+
+## F735-003 재실패 REWORK — 단일 본문 부담 재배분 (2026-10-20)
+
+- 현재 Head `c7159c7fc253a6d9ea154ba915a2ce11a2a75cf1`, main/base `05f1e560eee456e6fba5535255c9ede30a357c16`, application0.126.0, HIGH/OWNER_MANAGED·qa_required=true 및 release_authorized=false를 유지한다. 사용자 요청은 원인별 보완·동일 이슈 누적 원장·리뷰/충돌 해결·새 CI 시작까지다.
+- Manager/infra가 [단일 실패 원장 §1~10](../../ISSUE_735_FAILURE_ANALYSIS.md)과 실제3Run/attempt1·각6Shard를 대조했다. #3055.1 직접 F735-003은 #116 단일 Test30초 초과(31.0초), Quality/Docker SUCCESS·E2E/QA 파생 FAIL이다. Shard3 SUCCESS,1/2/4/5 CANCELLED, 추가 실제 테스트 FAIL0이다. F001/002는 fail-fast 뒤 NOT RUN이며 원격 PASS로 바꾸지 않는다.
+- fixture15.792초와 본문29.962초를 분리한 trace, 개별 step error0·browser canonical GET200/JSON170ms, local 원형 RED31초를 통해 TEST_CONTRACT의 다중 상태 본문 예산 결합을 확인했다. Job22분18초이므로 #733 M733-001의35분 capacity와 구분한다. DESIGN.md·UI/UX 가이드의 기존 메뉴/focus/내부 scroll 계약 및 #733 F733-008 분할 선례를 참조했다.
+- frontend 소유 변경은 `project-task-context-menu.spec.ts`만이다. A 기존4폭16corner, B 기존 mobile/short/Clipboard/desktop/Summary 흐름의 독립2Test로 부담을 재배분했다. 준비 helper는 각 본문에서 호출하므로 각 Project/SQLite/Context가 새로 생성된다. 원래93matcher·전체 action/mutation 순서 및 다른7case 내용은 동일하며 [보존 검산](../../evidence/issue-735/issue116-split-preservation.json)을 남겼다. 전체8→9case, fixture1회 추가, default30초·retry0·skip0 추가·단언 불변이다. 사용자 제품/공통 helper/fixture/API/DB/version/CI/6Shard/worker1/35분 변경0이다.
+- 원격 단계 관측은 matrix+준비 약21.5초/후반+새 준비 약14초로2분할을 뒷받침한다. 최초 교정 A20.2초/B13.4초2PASS 총1.1분, spec SHA256 `0fcb9cfab7bf28ae04a4133a0893be5dc2c9644c2465bfd28b77484999f5aafd`. 추가 fixture는 전체 runner 비용을 늘릴 수 있다. 실제 capacity가 없어 전역 Shard 파일 이동은 하지 않으며 과거 Main6 SUCCESS20분24초를 현재 population의 보장 또는 성능 절감으로 사용하지 않는다.
+- 영향 producer는 단일 테스트의 준비·실행 경계다. 직접/과거 실패 합집합은 같은 파일 전체9case로, 기존 GET 차단/readonly/Copy ID·hierarchy·Link/Cut·keyboard/focus/scroll·Clipboard·원본 canonical/실제 mutation까지 모두 포함한다. 공유 helper·fixture와 제품·Unit 입력은 변경0이므로 이전 Unit30개·Task Editor/Milestone 인접2case PASS는 당시 증거로 보존하고 새 결과에 합산하지 않는다. 이번 최종 동결 전체9case·ESLint·typecheck·문서/매핑·selector 및 독립 검토를 수행한다.
+- 기존 PrePR diagnose의 서로 다른 consumer 파일2개 조건은 이번3개 실패도 같은1file이라 충족하지 않는다. 이전 실제 BLOCKED report를 보존하고 가짜 이력을 넣거나 CLI 기준을 완화하지 않는다. 실제 원형 RED→분할2 GREEN→최종9 전체의 제한적 수동 합집합 진단을 원장에 기록한다.
+- Manager는 원장/TEST_PLAN/Changelog/본 Packet과 정제 증거를, infra는 원격 출처/단일 게시를, qa_docs는 실제 분리된 read-only 사전 검토를 담당한다. 이번 보완의 API·DB·UI 시각 규범·CI 정책 추가 수정은 N/A이며 본 기능의 기존 UPDATED 문서는 유지한다. 새 Head의 Required3/Trusted QA·Owner ACCEPT는 NOT TESTED, MERGE_READY BLOCKED다.
+
+- 최종 동결 전체9/9 PASS4.6분, 분할 A20.2초/B13.5초이며 Copy ID·hierarchy·transport 경계·기존 나머지 흐름도 포함한다. 고유9개에 초기2GREEN을 더하지 않는다. [최종 manifest](../../evidence/issue-735/rework-3055-validation-source.json)를 참조한다. spec 외 선택12file 및 기존 제품13file 지문은 불변이다. 기존 Unit30/인접2case는 이번 실행 수에 합산하지 않는다. 이전8case3.8분→이번9case4.6분 비용 차이는 fixture1회 추가/환경 변동과 구분하며 성능 개선을 주장하지 않는다. Next 생성 설정은 최종 실행 후 원래 추적 값으로 복원한다.
+
+- 최종 typecheck·변경 spec ESLint·version0.126.0·Markdown281파일·DOC_SYNC 구조/AC mapping·diff 검사 PASS. 원격 main `05f1e560eee456e6fba5535255c9ede30a357c16` 재조회 및 현재 Head의 ancestor를 확인했고 unmerged index0이다. 최종 독립 사전 검토 후 전체 tree/부모/expected Head를 대조해 단일 Ref 게시한다. 원격 새 Head/Run·Attempt·리뷰/충돌 최종 상태는 Issue STATUS에 남기며 완료 모니터링·병합·릴리스는 수행하지 않는다.
+
+- 최종 독립 Agent `/root/system_qa` 사전 QA PASS/미해결 지적0. AST/전체 명령 token·93matcher·다른7callback 보존, 실제 HTML9/9(expected9/unexpected·flaky·skipped0), 최종13file 지문 `5c885d644cad5bbaf76ee3b86e25a70d907e5a5b338f574e57dd8c6226037529`를 독립 재검산했다. 기존3Run FAIL/F001·002 TCP 근인 UNKNOWN/자동 diagnose BLOCKED를 보존하며 이 결과는 독립 인간 QA·Trusted QA·Owner 최종 ACCEPT가 아니다.

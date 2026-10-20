@@ -1,5 +1,7 @@
 ## [0.126.0] — Unreleased / Issue #735
 
+- PR CI #3055.1의 반응형 메뉴 단일 Test30초 초과를 실제 trace와 원형 재현으로 확인하고, 기존4폭16corner 및 모바일·짧은 화면·Clipboard·Summary 검증을 독립2Test로 재배분한다. 원래93개 단언·명령 순서·30초/retry·제품·CI gate를 보존하며 fixture1회 추가 비용을 기록한다.
+
 - PR CI #3051.1/#3054.1의 Context Menu 원본 조회 연결 종료를 누적 기록하고, 테스트의 UI 후 canonical GET을 기존 브라우저 같은 출처 단일 조회·필수 관측 경로로 통일한다. 실제 TCP 근인은 UNKNOWN이며 제품·mutation·단언·retry·timeout·6-shard·버전은 유지한다.
 
 - 물류 시스템 전용 대시보드에 시스템 단독·공정/WorkArea/설비/리소스 및 Milestone 교차 조회 예시와 속성 선택·구성/작업 KPI·진단을 추가한다. Target 생성 없이 단일 원본·고유 Task/Assignment 합집합을 사용한다.

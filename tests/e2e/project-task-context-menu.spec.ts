@@ -132,7 +132,7 @@ test("Issue #77 Context Menu opens without activating a submenu", async ({ page,
   await page.keyboard.press("Escape");
 });
 
-test("Issue #116 task submenus stay operable at viewport corners and in short viewports", async ({ page, observeIsolatedApi }) => {
+async function prepareIssue116(page: import("@playwright/test").Page, observeIsolatedApi: ObserveIsolatedApi) {
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Context responsive ${suffix}`);
@@ -149,6 +149,11 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
   const rootMenu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
   const childMenu = page.getByRole("menu", { name: "Add", exact: true });
   const target = row(page, "Responsive menu task").getByText("Responsive menu task", { exact: true });
+  return { api, rootMenu, childMenu, target };
+}
+
+test("Issue #116 task submenus stay operable at all viewport corners", async ({ page, observeIsolatedApi }) => {
+  const { rootMenu, childMenu, target } = await prepareIssue116(page, observeIsolatedApi);
   for (const width of [390, 768, 1024, 1440]) {
     const height = 844;
     await settleViewportBeforeContextMenu(page, target, width, height);
@@ -231,7 +236,10 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
       await expect(row(page, "Responsive menu task")).toBeFocused();
     }
   }
+});
 
+test("Issue #116 short viewport scrolling clipboard and summary commands preserve menu contracts", async ({ page, observeIsolatedApi }) => {
+  const { api, rootMenu, childMenu, target } = await prepareIssue116(page, observeIsolatedApi);
   await settleViewportBeforeContextMenu(page, target, 390, 844);
   for (const name of ["Convert to", "Move"] as const) {
     await dispatchTaskContextMenuAt(page, target, 380, 836);
