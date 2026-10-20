@@ -228,14 +228,26 @@ test("#734 설비 원본 dirty 유지·정확 PATCH 저장·새 snapshot과 focu
   await editor.getByRole("button", { name: "저장", exact: true }).click();
   await expect(confirmation).toBeVisible();
   await expect(confirmation.getByRole("button", { name: "공유 사용처 확인 후 원본 저장", exact: true })).toBeEnabled();
+  const confirmationBefore = Number(await root(page).getAttribute("data-report-confirmation-id"));
   const [saved, refreshed] = await Promise.all([
     page.waitForResponse(response => response.request().method() === "PATCH" && new URL(response.url()).pathname === `/api/projects/${f.publicId}/logistics/equipment/${f.equipment.id}`, { timeout: 30_000 }),
     nextReport(page),
     confirmation.getByRole("button", { name: "공유 사용처 확인 후 원본 저장", exact: true }).click(),
   ]);
-  expect(saved.status(), await saved.text()).toBe(200);
-  const after = (await refreshed.json()).data as WbsViewReportDto;
-  await expect(root(page)).toHaveAttribute("data-ready", "true"); expect(after.projectRevision).toBe(before.projectRevision + 1); expect(after.snapshotId).not.toBe(before.snapshotId); expect(after.spec).toEqual(before.spec);
+  // Browser Response bodies can be discarded by the canonical post-save navigation.
+  // Keep the actual UI response/status and assert its committed render separately.
+  expect(saved.status(), "실제 설비 PATCH").toBe(200);
+  expect(refreshed.status(), "실제 WBS 조회 응답").toBe(200);
+  await expect(root(page)).toHaveAttribute("data-ready", "true");
+  await expect.poll(async () => Number(await root(page).getAttribute("data-report-confirmation-id"))).toBeGreaterThan(confirmationBefore);
+  // A request-context response retains its body across navigation; reuse the UI's exact query.
+  const verified = await page.request.post(`${origin}/api/projects/${f.publicId}/resource-dashboard/views`, {
+    headers: { Origin: origin },
+    data: refreshed.request().postDataJSON(),
+  });
+  expect(verified.status(), await verified.text()).toBe(200);
+  const after = (await verified.json()).data as WbsViewReportDto;
+  expect(after.projectRevision).toBe(before.projectRevision + 1); expect(after.snapshotId).not.toBe(before.snapshotId); expect(after.spec).toEqual(before.spec);
   await expect(editor).toHaveCount(0); await expect(row).toContainText(name); await expect(trigger).toBeFocused();
   const savedEquipment = (await f.snapshot()).data.logistics!.equipment.find(equipment => equipment.id === f.equipment.id)!;
   expect(savedEquipment.name).toBe(name); expect(savedEquipment.workAreaLinks).toHaveLength(2); expect(savedEquipment.workAreaLinks).toEqual(expect.arrayContaining([f.workArea, f.area2].map(area => ({ processId: f.processIds[0], workAreaId: area.id }))));

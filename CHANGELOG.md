@@ -1,8 +1,15 @@
-## [0.127.0] — Unreleased / Issue #734
+## [0.128.0] — Unreleased / Issue #734
 
 - 설비를 최상위로 두는 전용 대시보드에서 단독 요약·사용자 동적 축·유형 필터, 전체 WorkArea/Owner/명시 제어 원본 정보와 고유 Task/공수·Milestone full Gate를 제공한다.
 - 기존 공통 원장·조회/정확 editor·일정 복귀를 재사용하고 같은 read snapshot의 설비 metadata·유형 이름과 서버 필터를 연결한다. 다중 경로를 합산하거나 Task 업무 연관을 실제 제어관계로 만들지 않는다.
 - 지표/UX/API·매뉴얼/테스트·Work Packet을 동기화한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false; 새 PR CI 시작은 원격 PASS·Owner 승인·병합/정식 릴리스가 아니다.
+
+## [0.127.0] — Unreleased / Issue #732
+
+- Milestone 전용 동적 관점에 root 단독과 수정 가능한 두 하위 축 예시, 선택 일반 Task/개인 Assignment 지표와 전체 Milestone Gate의 별도 요약을 추가한다. 기존 Milestone 추가·편집·소속·관계·검색/기간/상태·삭제 보호와 동일 원본/복귀를 보존한다.
+- 생성 성공 후 정확 원본 Editor와 조건 밖 목록 접근 안내를 제공한다. 공통 read projection·기존 Gate/공수 계산기·marker OFF·Task당 단일 effective 소속 및 Gantt 상태 계약은 유지한다. Target/새 writer·DB migration을 만들지 않는다.
+- 화면·지표·사용 절차·테스트·Work Packet을 동기화한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false. PR CI 시작은 공식 회귀 PASS·Owner 승인·정식 릴리스 완료가 아니다.
+
 ## [0.126.0] — Unreleased / Issue #735
 
 - PR CI #3055.1의 반응형 메뉴 단일 Test30초 초과를 실제 trace와 원형 재현으로 확인하고, 기존4폭16corner 및 모바일·짧은 화면·Clipboard·Summary 검증을 독립2Test로 재배분한다. 원래93개 단언·명령 순서·30초/retry·제품·CI gate를 보존하며 fixture1회 추가 비용을 기록한다.

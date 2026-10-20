@@ -633,3 +633,7 @@ Project Template은 공정 occurrence/선택 WorkArea와 Target/typed members를
 ## Issue #618 — Logistics Target F4 기본 구성·연결 UX
 
 기존 물류 Workspace에서 공정/선택 WorkArea 또는 명시 프로젝트 공통 Target을 구성하고 기존 Equipment/System 인스턴스를 생성/재사용한다. Task/Summary는 복수 Target·whole/subset·self/subtree·optional 작업수량을 편집하며 직접/상속/legacy 출처를 구분한다. Target 상세↔WBS는 canonical 동일 Task Editor와 동일 Target composer를 사용하고 조회 때문에 Task를 복제하거나 원본 WBS를 재구성하지 않는다. 공유/whole/subset 영향·삭제 보호·revision·권한·초안·접근성·반응형 계약은 [Target 계약](LOGISTICS_TARGETS.md)과 [F4 실행 원장](exec-plans/active/ISSUE_618.md)을 따른다. Resource 집계와 고급 Dashboard/전용 Timeline은 후속이다.
+
+## Issue #732 — Milestone 전용 관점과 기존 관리 보존
+
+대시보드의 Milestone root 단독·사용자 동적 하위 축을 공통 versioned 조회로 제공하고 기존 추가·편집·소속·관계·전체 Gate·필터·삭제 보호를 보존한다. Target0 직접 연결, selected Task/Assignment와 full Gate 분리, 조건 밖 생성 성공 안내·동일 원본 Editor/복귀, 날짜미정/member0/selected0·미배정·미연결 구분과 marker OFF·조회 mutation0이 요구된다. 기존 단일 effective 소속·Gate/공수 계산 authority는 그대로다. [Work Packet](exec-plans/active/ISSUE_732.md)의 보존표·AC별 실제 증거로 판정한다.

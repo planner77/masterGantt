@@ -1,6 +1,8 @@
 ## Issue #734 — 설비 최상위 동적 대시보드
 
-main `05f1e560eee456e6fba5535255c9ede30a357c16` /0.125.0에서 `feat/issue-734-equipment-dashboard`로 구현한다. 기존 공통 원장/API·조회 구성기/표·정확 원본 editor/drill을 재사용하여 설비 단독·두 사용자 동적 계층·원본 다중 WorkArea/Owner/명시 제어·유형 필터를 제공한다. [Work Packet](ISSUE_734.md)의 AC/문서/실제 분리 Agent/변경 영향 검증을 따른다. 후보0.127.0, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. 구현·문서·리뷰/충돌 정리 후 새 PR Full CI 시작까지만 수행하며 완료 모니터링·병합·Main/GHCR·Release·Issue 종료는 하지 않는다. 원격 Required3·Trusted·Owner ACCEPT는 NOT TESTED다. #734 최종 로컬13파일140 Unit·통합, 실제 Chromium 주요3개, typecheck/전체 lint/문서·version·discovery PASS. 런타임 중단으로 나머지5 Chromium/5폭 캡처는 NOT TESTED, 자동 PrePR UNKNOWN4는 BLOCKED이며 공식 원격 전체 회귀를 대신하지 않는다.
+main `05f1e560eee456e6fba5535255c9ede30a357c16` /0.125.0에서 `feat/issue-734-equipment-dashboard`로 구현한다. 기존 공통 원장/API·조회 구성기/표·정확 원본 editor/drill을 재사용하여 설비 단독·두 사용자 동적 계층·원본 다중 WorkArea/Owner/명시 제어·유형 필터를 제공한다. [Work Packet](ISSUE_734.md)의 AC/문서/실제 분리 Agent/변경 영향 검증을 따른다. 후보0.128.0, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. 구현·문서·리뷰/충돌 정리 후 새 PR Full CI 시작까지만 수행하며 완료 모니터링·병합·Main/GHCR·Release·Issue 종료는 하지 않는다. 원격 Required3·Trusted·Owner ACCEPT는 NOT TESTED다. #734 최종 로컬13파일140 Unit·통합, 실제 Chromium 주요3개, typecheck/전체 lint/문서·version·discovery PASS. 런타임 중단으로 나머지5 Chromium/5폭 캡처는 NOT TESTED, 자동 PrePR UNKNOWN4는 BLOCKED이며 공식 원격 전체 회귀를 대신하지 않는다.
+
+#734의 최신 main 정렬(2026-10-21): #732 Milestone 동적 관점 병합 SHA `5ffe02a334d2279fabb63943c90614a7acfaf6ad`/0.127.0을 보존하고 설비 관점을 v0.128.0 MINOR 후보로 재정렬한다. F734-004 Response body 소실은 browser HTTP200·UI 완료 증거 뒤 동일 read-only API JSON으로 검증한다. 기존 F734-001~003 및 #730/#732/#735 회귀·6 Shard 유지. 새 source Local/원격 NOT TESTED, `release_authorized=false`.
 ## Issue #735 — 물류 시스템 root·직접/조율·동적 교차 조회
 
 main `8a0fc9773d33326b40f8d97f6307c17ae0cb6933` /0.125.0에서 별도 `feat/issue-735-system-dashboard`로 구현한다. 후보0.126.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false다. 기존 #729/#730 원장을 소비하는 시스템 전용 consumer와 직접/조율·정확 시스템 선택의 공통 spec 보완만 수행하고 구성/Task/공수·full Gate를 구분한다. [Work Packet](ISSUE_735.md)의 AC·소유권·문서/매뉴얼·누적 실행 원장을 따른다. 종료점은 구현·리뷰 thread/충돌 해결·최신 Head Full PR CI 시작이며 CI 모니터링·병합·main/GHCR·Release·Issue 종료는 수행하지 않는다. 공식 원격 Required3/Trusted QA·Owner ACCEPT는 NOT TESTED다.
@@ -1264,3 +1266,7 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 #715 문서 PR #716이 통합된 main d2768676/application0.116.0에서 `feat/issue-719-contextual-help`로 제품 구현을 진행한다. PATCH0.116.1, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false다. [Work Packet](ISSUE_719.md)의 화면별 inventory·공통 도움말·핵심 경고 보존·동일 fixture5폭 측정·기존 상태 교차 회귀와 DOCUMENTATION_SYNC를 따른다.
 
 사용자 요청 종료점은 구현·리뷰 thread/충돌 정리·최신 Head Full PR CI 시작이다. CI 모니터링·병합·Main/GHCR·Finalizer·정식 게시·Issue 종료는 수행하지 않으며 원격 Required3/Trusted QA/Owner ACCEPT는 NOT TESTED다. 기존 #717 이름/ID 표시는 별도 범위로 유지한다.
+
+## Issue #732 — Milestone 최상위 동적 대시보드
+
+최신 main `05f1e560eee456e6fba5535255c9ede30a357c16`의 공통 #729/#730 조회와 기존 Milestone 관리에 전용 consumer를 연결한다. root 단독·두 사용자 계층·선택 지표/전체 Gate 분리와 생성/소속/관계/필터·marker OFF를 보존한다. 실제 역할·파일 소유권·AC/테스트·문서 영향은 [Work Packet](ISSUE_732.md)을 따른다. 후보0.127.0 / HIGH / qa_required=true / OWNER_MANAGED / release_required=true / release_authorized=false. 요청 범위는 구현·문서·리뷰/충돌 정리·새 PR CI 시작까지이며 CI 모니터링·병합·main/GHCR·Issue 종료를 포함하지 않는다. 원격 Required3/Trusted/Owner 최종 승인 NOT TESTED.

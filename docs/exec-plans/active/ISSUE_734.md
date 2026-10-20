@@ -1,13 +1,15 @@
 # Issue #734 — 설비 최상위 동적 대시보드
 
-> 최신 통합: 게시 직전 #735/PR #757이 main `08a1d9ff25a97aba67f08d6b67029ac55d45121a`에 반영되어 문서11개·host·공통 projection 충돌13개를 해소했다. 시스템 direct/coordination·선택 ID·캐시/한도와 설비 유형 OR를 함께 보존한다. 후보는 main0.126.0 이후 MINOR **0.127.0**이다. 새 통합 소스의15파일155 Unit·통합/타입 검사 PASS. 앞선140 Unit/3 Chromium/분리 사전 리뷰는 통합 전 증거이며, 최종 Head Chromium8개·독립 재검토·Required3/Trusted/Owner ACCEPT는 NOT TESTED다.
+> 최신 재정렬(2026-10-21): #732 Milestone 관점 main `5ffe02a334d2279fabb63943c90614a7acfaf6ad` / v0.127.0을 보존한 통합 후보는 설비 관점 v0.128.0이다. 과거 CI PASS는 최신 통합 Head의 PASS가 아니며 모든 Required/Trusted QA 및 수동 UX 재검증은 NOT TESTED다.
+>
+> 과거 #735 통합 인계(역사적): #735/PR #757이 main `08a1d9ff25a97aba67f08d6b67029ac55d45121a`에 반영되어 문서11개·host·공통 projection 충돌13개를 해소했다. 시스템 direct/coordination·선택 ID·캐시/한도와 설비 유형 OR를 함께 보존한다. 당시 후보는 main0.126.0 이후 MINOR **0.127.0**이었다. 새 통합 소스의15파일155 Unit·통합/타입 검사 PASS. 앞선140 Unit/3 Chromium/분리 사전 리뷰는 통합 전 증거이며, 최종 Head Chromium8개·독립 재검토·Required3/Trusted/Owner ACCEPT는 NOT TESTED다.
 
 ## Issue Work Packet
 
 - Issue: [#734](https://github.com/planner77/masterGantt/issues/734), 상위 #723; 선행 #724/#726/#728/#729/#730, 기존 KPI/통합 조회 #624/#731 및 공정 consumer #733 재사용.
 - baseline_sha: `05f1e560eee456e6fba5535255c9ede30a357c16`; baseline_version: `0.125.0`.
 - branch: `feat/issue-734-equipment-dashboard`; worktree: `/home/planner/Dev/masterGantt-734`. 기존 checkout의 미추적 증거는 보존한다.
-- candidate_version: `0.127.0` MINOR. 제품의 설비 전용 조회 기능 추가이며 dependency 변경은 없다.
+- candidate_version: `0.128.0` MINOR (main #732 0.127.0 통합 후 상향). 제품의 설비 전용 조회 기능 추가이며 dependency 변경은 없다.
 - risk_level: HIGH; risk_reason: 설비 consumer·같은 snapshot의 원본 metadata·유형 필터 및 공통 조회/편집 복귀 경계의 영향.
 - qa_required: true; qa_method: OWNER_MANAGED; independent_qa: N/A(Owner-managed, 독립 인간 검토 없음); manager_decision: NOT TESTED; MERGE_READY: BLOCKED.
 - release_required: true; release_authorized: false. 사용자 요청 종료점은 구현·문서·미해결 리뷰/충돌 해소 후 PR Full CI 시작 확인이다.
@@ -134,3 +136,12 @@ Manager가 실제 코드와 대조한 문서별 영향 기록이다. 실행 증�
 - 이번 변경으로 설비 전용 WBS consumer의 aria-label이 '고유 총계'가 아닌 '설비 작업 고유 총계'로 실제 렌더된다. 이전 #730 테스트의 세 locator 및 후단 Task1 텍스트 기대를 새 계약(고유 Task 1건)으로 갱신한다. 검색 전후 총계 불변·응답 역전·원본 Task/Assignment 왕복·오류 409/503·stale·focus·기존 저장 schema 복구는 유지한다.
 - #3064.1 취소 Shard1에서 #734 8 case 전부 개별 PASS(이전 F734-001/002 테스트 포함)했으나 Required 전체 PASS 아님. 누적 실패 2파일·3 case와 인접 #733/#735/#730/#624, GSC 1.0.0-candidate(01/07/08/09/11) 영향 검증 범위를 보존한다.
 - 제품 코드/DB/API/보안/디자인/Gantt/CI 정책 불변. 이번 수정은 #730 E2E 선택자·본 Work Packet·docs/TEST_PLAN.md·#734 실패 원장 업데이트이며 나머지 문서는 N/A. 180초 timeout 확대·전체6 Shard 분배 변경·retry/skip/단언 완화 없이 신규 Head의 실제 CI 시작까지만 수행한다. 신규 local/npm/Chromium/Trusted QA·Owner ACCEPT는 NOT TESTED, 병합·릴리스 승인과 GHCR/Issue 종료는 BLOCKED.
+
+
+### Full PR CI #3066.1 F734-004 — Read-only report 본문 관찰 경합 및 최신 main #732 통합 (2026-10-21)
+
+- [#734 누적 원장](../../ISSUE_734_FAILURE_ANALYSIS.md) §1/4/5/6에서 #3058.1 F734-001, #3061.1 F734-002, #3064.1 F734-003, #3066.1 F734-004 총 네 Full Run/Attempt를 분리 기록. 최신 Run `39490390734.1`, Head `1bec79f666147b9d98711542e470592ea441439e`; Quality/Docker/Build/Typecheck/Lint/Unit SUCCESS, Shard1 12PASS/1FAIL/137NOT RUN, 다른 다섯 Shard CANCELLED.
+- #3066.1의 직접 오류는 `issue-734-equipment-dashboard.spec.ts:237`의 `refreshed.json()`에서 Network.getResponseBody resource 없음. 실제 설비 수정 성공 후 canonical navigation이 진행되어 늦게 읽는 Page.Response body가 소실되는 테스트 관찰 경합이다. #3064.1 같은 case 27s PASS와 양립하며 이번 25.2s 오류는 **120s Test Timeout/Shard 과부하가 아니다**.
+- 실 실제 browser PATCH200·WBS read200을 유지하고 `data-ready` + report confirmation ID 증가를 확인한 뒤, browser 원본 request의 동일 WBS 입력을 별도 Playwright APIRequestContext에 읽기 전용 POST하여 확정 JSON/snapshot/revision/spec를 비교한다. 기존 워크에리어2·원본명/초안·mutation 0→1·Focus·stale/readonly 및 첫 두 실패 회귀·#730 선택자 보완을 유지한다. Browser response body 오류를 catch하고 성공으로 숨기거나 테스트 timeout을 올리지 않는다.
+- #732 Milestone 동적 관점/신규 관리/문서 테스트를 포함한 최신 main `5ffe02a334d2279fabb63943c90614a7acfaf6ad`는 app0.127.0. 이전 branch와 3커밋 diverged였으므로 #732 모든 source+문서를 유지하는 **2-parent main 통합**, 충돌 문서(설비/마일스톤 내용 모두 보존), application/lock 후보 **0.128.0**으로 병합 준비. 기존 `0.127.0`은 #732에 귀속하며 태그 이동/릴리스 승인 없음.
+- 직접 #734 8case, #730 원본/응답 역전, #735 System·#732 Milestone, 공정/KPI·Gantt GSC-01/03/07/08/09/11 및 #729 HTTP·SQLite, readonly/409/401/412/문서 영향의 회귀는 유지. 신규 source의 local node/npm/Playwright/Docker 실행은 현재 checkout/네트워크 부재로 **NOT TESTED**. GitHub source 기준 정적 합성·Tree/부모·문서/version 점검 후 Full PR CI 시작까지만 수행, 종료 모니터링·병합/Main/GHCR/Issue 종료 미실시.

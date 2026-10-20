@@ -100,3 +100,30 @@ Shard1은 앞선 F734-001의 `5폭 긴 이름·내부 overflow·열 정렬·nati
 - DOCUMENTATION_SYNC: 본 Issue #734 단일 실패 원장, docs/exec-plans/active/ISSUE_734.md, docs/TEST_PLAN.md UPDATED. 별도 #730 실패 원장에 이번 #734 PR 오류를 독립 #730 Run으로 잘못 중복 귀속하지 않는다.
 - 새 source의 로컬 npm/Playwright/SQLite/Docker/TypeScript 검증은 실행할 수 없어 NOT TESTED. 정적 diff/코드 계약 대조만 수행했고 이전 HEAD 원격 성공을 신규 HEAD의 성공 근거로 사용하지 않는다. 새 Head에 대한 GitHub Full PR CI를 시작한 후 완료는 모니터링하지 않는다.
 - 리뷰 스레드 미해결0·strict main 정렬·충돌 없음 상태를 게시 전에 재확인한다. HIGH/OWNER_MANAGED, release_required=true, release_authorized=false, manager_decision=NOT TESTED, MERGE_READY=BLOCKED 유지. 병합/Main CI/GHCR/Release/Issue 종료는 별도 승인 전 수행하지 않는다.
+
+
+## 6. F734-004 — Full #3066.1 원본 저장 뒤 Browser Response Body 소실 (2026-10-20 UTC)
+
+### 출처와 직접 실패
+
+- [PR CI #3066.1](https://github.com/planner77/masterGantt/actions/runs/39490390734), Run ID `39490390734`, Attempt `1`, event `pull_request`, Head `1bec79f666147b9d98711542e470592ea441439e`, 당시 Base `08a1d9ff25a97aba67f08d6b67029ac55d45121a`, test-merge `cb4579b2a0b4cf97bfdcb9ecae62fbd349009e13` (두 부모 `[08a1d9ff…,1bec79f…]`, Head와 동일 Tree `09a97d2332bb332f7c4b99169ee635c55a006950`). Full FAILURE.
+- QA Preflight job `118861816116`, TypeScript `118861967488`, ESLint `118861967403`, Vitest `118861967526`, Policy `118861967635`, PR Fast Gate `118862794402`, Next build `118862894928`, Docker smoke `118862894771` 모두 SUCCESS. Required Quality `118863584144` / Docker `118864102619` SUCCESS, Chromium `118866760808` FAILURE. QA Final `118866812105`은 `required e2e 미성공` 파생 FAIL.
+- 실제 실패 [Shard 1 Job 118862894989](https://github.com/planner77/masterGantt/actions/runs/39490390734/job/118862894989): `tests/e2e/issue-734-equipment-dashboard.spec.ts:205` 설비 원본 dirty/정확 PATCH/새 snapshot/focus 테스트의 **237행**에서 `response.json: Protocol error (Network.getResponseBody): No data found for resource with given identifier. Response body is not available for a response that was navigated away from`. 2026-10-20T20:23:53Z, **12 PASS / 1 FAIL / 137 DID NOT RUN**, 실패 자체는 약 **25.2s**로 120s Timeout이 아님. [Playwright report/trace artifact 12296156652](https://github.com/planner77/masterGantt/actions/runs/39490390734/artifacts/12296156652) 보관, 실제 zip/trace 재생 NOT TESTED.
+- Shard2 `118862895033` 부분71PASS, 3 `118862895065` 부분41PASS, 4 `118862895059` 부분31PASS, 5 `118862894943` 부분24PASS, 6 `118862894988` 부분33PASS 후 모두 FAIL-FAST CANCELLED. 로그에서 별도 assertion FAIL은 확인되지 않았으나 전체 샤드 PASS라고 추정하지 않는다. 본 Run의 #730 수정 case가 완전히 수행되었는지는 NOT TESTED.
+
+### 전체 이전 실패 이력 대조 및 원인
+
+| ID/Run | 첫 직접 오류 | 당시 조치와 이번 Run의 증거 |
+| --- | --- | --- |
+| F734-001 · #3058.1 | 설비명272자 HTTP400 | API 최대200자 경계 E2E 변경. #3066.1 해당 5폭 case 22.6초 개별 PASS |
+| F734-002 · #3061.1 | 공유 인스턴스 편집의 명시 승인 누락→PATCH wait120s | 확인·취소·재승인 단계를 E2E에 반영. #3066.1에서 승인/PATCH 이후 단계까지 도달, 이번 본문 읽기 오류는 **다른 실패** |
+| F734-003 · #3064.1 | #730 인접 테스트의 구 `고유 총계` Locator180s | 현재 `설비 작업 고유 총계`/고유 Task1건으로 교정. #3066.1 Shard6의 해당 후단 PASS는 취소로 미확인 |
+| **F734-004 · #3066.1** | 저장 후 조회 응답의 `refreshed.json()` CDP body 소실 | 신규 **FIXTURE_OBSERVABILITY**: 화면 전환 뒤 Browser Response를 뒤늦게 읽는 경쟁 조건. 제품 PATCH 오류/서버 JSON 불량 또는 장기 테스트 Timeout 증거는 없음 |
+
+- 실제 `Promise.all([page.waitForResponse(PATCH),nextReport(page),confirmation.click()])`는 두 HTTP response 이벤트와 클릭 완료만 보장한다. 이후 `await saved.text()`를 수행하는 동안 앱은 성공 저장에 따른 canonical snapshot/revision 및 navigation을 진행한다. Playwright `Page.Response`는 navigation으로 이전 네트워크 리소스 body가 폐기될 수 있어 `refreshed.json()`이 `Network.getResponseBody` 오류를 낸다. 이는 **테스트 관찰 방식의 취약성**이며 실제 서버 응답 데이터가 잘못되었다는 근거가 아니다. 과거 #3064.1의 동일 test 27s PASS는 환경에 따른 레이스의 존재와 모순되지 않는다.
+- **수정:** 브라우저에서 실제 PATCH200/실제 WBS report200 이벤트를 확인한 후, `data-ready=true` 및 `data-report-confirmation-id` 증가로 UI가 새 report를 채택한 사실을 독립 관찰한다. `refreshed.request().postDataJSON()`의 **동일 실 query**로 Playwright `page.request.post`의 별도 **읽기 전용 WBS API**를 호출해 보관되는 `APIResponse.json()`으로 projectRevision+1/snapshot 변경/spec 불변을 검사한다. 기존 canonical 설비 이름·WorkArea2/원본 Focus 복귀 및 승인 전 mutation0→승인 후 PATCH1 모두 유지한다. 새 query POST는 기존 정확 경로의 read-only로 간주하며 업무 mutation은 계속 관찰한다.
+- 브라우저 Response 본문을 무조건 성공 처리하거나 `response.json().catch(()=>empty)`로 오류를 숨기지 않는다. 직접 API POST도 `HTTP200`과 실제 DTO·Revision·Snapshot·Spec 일치를 요구한다. 제품 코드·writer·API·보안·권한·기존 UI snapshot 사용 동작 변경 없이 E2E 관측 원인만 교정한다. 120s test timeout, 30s PATCH response, Retry/Skip, 전체6 Shard/Required3 유지. 시간이 길어서 재분배하는 조치는 이번 원인을 해결하지 못한다.
+- 실제 실패 테스트 파일 누적 합집합 **2파일 / 3고유 case**: `issue-734-equipment-dashboard.spec.ts`의 5폭(case F001), 원본 PATCH/snapshot(서로 다른 두 Run에서 F002/F004 재실패), `issue-730-view-composer.spec.ts`의 원본/응답 역전(F003). 총 **4개 Run에서 4회 direct FAIL**, 고유3case. 취소된 후단 테스트는 NOT TESTED.
+- 이슈 #732 PR #761의 main 병합으로 원본 기준 main `08a1d9ff…` → `5ffe02a334d2279fabb63943c90614a7acfaf6ad` (3 commits), app 0.126.0→0.127.0, Issue #734 PR #759는 `behind=3/mergeable=false`인 **별도 merge-base drift**가 발생했다. #732의 신규 Milestone Dashboard·관리·테스트·문서/0.127.0은 보존하고 #734 후보를 **0.128.0 MINOR**로 재정렬한다. 변경 source/새 exact PR Head의 실제 local TypeScript/Vitest/Chromium/Docker 실행은 NOT TESTED이며 이전 PASS를 이관하지 않는다.
+- 문서 영향: 동일 Issue 실패 원장과 Work Packet, 최신 TEST_PLAN/PLAN, 양쪽 CHANGELOG/UX/API 등 동기화. 신규 #732를 삭제/대체하지 않음. GSC-01/03/07/08/09/11, 기존 권한/원본 편집 및 readonly, #730 인접 + #734 전용 및 #735 System/#732 Milestone 소비자를 Full PR 6-shard 영향 범위에 포함한다.
+- 보완 검증 인계: GitHub 원본 job log vs source/동일 query 계약의 **정적 분석만 수행**, 실제 Node/Chromium/SQLite/Docker는 로컬 GitHub DNS/checkout 부재로 **NOT TESTED**. 새 source가 검증되기 전 출시나 정식 GHCR 승인 없음; `HIGH/OWNER_MANAGED`, `release_required=true`, `release_authorized=false`, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`.
