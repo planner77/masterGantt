@@ -55,6 +55,15 @@ function isTargetsResponse(value: unknown): value is AssignmentTargetsResponse {
   const data = value.data;
   return !!data && typeof data === "object" && "catalogRevision" in data && typeof data.catalogRevision === "number" && "targets" in data && Array.isArray(data.targets) && data.targets.every(isTarget);
 }
+// Exact personal edits must reauthenticate independently of the public
+// assigned-targets read. This is the same session envelope used by the workspace.
+function isCurrentEditPermission(value: unknown): boolean {
+  if (!value || typeof value !== "object" || !("data" in value)) return false;
+  const data = value.data;
+  return !!data && typeof data === "object" && "permission" in data && data.permission === "edit" &&
+    "expiresAt" in data && typeof data.expiresAt === "string" &&
+    data.expiresAt.length > 0 && !Number.isNaN(Date.parse(data.expiresAt));
+}
 function isTargetRef(value: unknown): boolean {
   return !!value && typeof value === "object" && "id" in value && typeof value.id === "string" &&
     "kind" in value && (value.kind === "resource" || value.kind === "group");
@@ -139,8 +148,20 @@ export function TaskAssignmentEditor({ initialAssignment, taskId, revision, edit
         setAllocations(nextAllocations);
         setTargets(assignedBody.data.targets);
         setCatalogRevision(assignedBody.data.catalogRevision);
-        // Exact Assignment editing already has its canonical target in assigned-targets.
-        // Do not delay or fail exact edits on the unrelated full candidate catalog.
+        // The public canonical assignment read does not prove an active edit session.
+        // Exact edits skip the costly candidate search, but still authenticate before ready.
+        if (editable && initialAssignment) {
+          const permissionResponse = await fetch(
+            `/api/projects/${encodeURIComponent(publicId)}/edit-sessions/current`,
+            { credentials: "same-origin", cache: "no-store", signal: controller.signal },
+          );
+          const permissionBody: unknown = await permissionResponse.json().catch(() => null);
+          if (!permissionResponse.ok || !isCurrentEditPermission(permissionBody)) {
+            if (alive) onUnauthorized?.();
+            throw new Error("edit_session");
+          }
+          if (!alive) return;
+        }
         if (editable && !initialAssignment) {
           const candidatesResponse = await fetch(`/api/projects/${encodeURIComponent(publicId)}/assignment-targets`, { credentials: "same-origin", cache: "no-store", signal: controller.signal });
           const candidatesBody: unknown = await candidatesResponse.json().catch(() => null);

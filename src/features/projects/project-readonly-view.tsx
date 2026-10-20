@@ -123,6 +123,7 @@ type ResourceNavigationState = {
   wbsSource?: string;
   wbsDetailIdentity?: string;
   resourceFocusSelector?: string;
+  milestoneFocusSelector?: string;
   resourceDetailKey?: string;
   resourceDetailConfirmationId?: string;
   resourceReportConfirmationId?: string;
@@ -1756,6 +1757,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const wbsRow = trigger?.closest<HTMLElement>("[data-wbs-view] [data-view-row-key]");
     if (wbsRow?.dataset.viewRowKey && trigger?.dataset.resourceAction)
       resourceFocusSelector = `[data-view-row-key="${CSS.escape(wbsRow.dataset.viewRowKey)}"] button[data-resource-action="${CSS.escape(trigger.dataset.resourceAction)}"]`;
+    // A Milestone effort bucket has an immutable Task ID. Re-find that exact
+    // button if an async report replaces its original DOM node during return.
+    const milestoneRow = trigger?.closest<HTMLElement>("[data-milestone-effort-bucket]");
+    const milestoneBucket = milestoneRow?.dataset.milestoneEffortBucket;
+    const milestoneFocusSelector = activeView === "milestones" &&
+      trigger?.hasAttribute("data-milestone-resource-trigger") && milestoneBucket
+      ? `[data-milestone-effort-bucket="${CSS.escape(milestoneBucket)}"] button[data-milestone-resource-trigger]`
+      : undefined;
     return {
       viewport: navigationViewport.current,
       view: activeView,
@@ -1770,6 +1779,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       wbsSource: trigger?.closest<HTMLElement>("[data-wbs-view]")?.dataset.wbsView,
       wbsDetailIdentity,
       resourceFocusSelector,
+      milestoneFocusSelector,
       resourceDetailKey: detailKey,
       resourceDetailConfirmationId: detail?.dataset.detailConfirmationId,
       resourceReportConfirmationId: wbsRoot?.dataset.reportConfirmationId ?? document.querySelector<HTMLElement>(`[data-resource-context-id="${resourceViewId}"] [data-resource-dashboard]`)?.dataset.reportConfirmationId,
@@ -1832,6 +1842,52 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         attributeFilter:["hidden","inert","open","disabled","data-ready","data-wbs-state","data-report-confirmation-id","data-detail-state","data-detail-confirmation-id","data-projection-detail-key","data-wbs-detail-identity"]});
       controller.signal.addEventListener("abort", () => observer.disconnect(), {once:true});
       restore();
+      return;
+    }
+    if (origin && state.view === "milestones" && state.milestoneFocusSelector) {
+      const controller = new AbortController();
+      wbsFocusControllerReference.current = controller;
+      const startingFocus = document.activeElement;
+      const cancel = () => controller.abort();
+      for (const event of ["pointerdown", "keydown", "wheel"] as const)
+        window.addEventListener(event, cancel, { capture: true, passive: true, signal: controller.signal });
+      const restore = () => {
+        if (controller.signal.aborted || focusGeneration !== taskFocusGeneration.current) { controller.abort(); return; }
+        const panel = document.getElementById("project-panel-milestones");
+        if (!panel || panel.hidden || !panel.isConnected || panel.closest("[hidden],[inert]")) return;
+        const dashboard = panel.querySelector<HTMLElement>('[data-testid="milestone-dashboard"]');
+        if (!dashboard || dashboard.dataset.projectPublicId !== publicId ||
+            dashboard.dataset.ready !== "true" || dashboard.getAttribute("aria-busy") === "true" ||
+            document.querySelector("dialog:modal")) return;
+        // Prior cached data may still be displayed while the return report loads.
+        if (dashboard.querySelector<HTMLElement>("[data-stale]")?.dataset.stale !== "false") return;
+        const focused = document.activeElement;
+        if (focused instanceof HTMLElement && focused !== document.body && focused !== startingFocus &&
+            focused !== state.trigger && focused !== milestoneTabReference.current &&
+            !panel.contains(focused) && !focused.closest("[hidden],[inert]")) {
+          controller.abort();
+          return;
+        }
+        for (const position of state.positions)
+          if (position.element.isConnected && panel.contains(position.element)) {
+            position.element.scrollLeft = position.left;
+            position.element.scrollTop = position.top;
+          }
+        const target = dashboard.querySelector<HTMLElement>(state.milestoneFocusSelector!);
+        if (isVisibleFocusTarget(target) && !target?.matches(":disabled")) {
+          target?.focus({ preventScroll: true });
+        } else {
+          workspaceFocusFallback(state.screenKey ?? "dashboard.milestones")?.focus({ preventScroll: true });
+        }
+        controller.abort();
+      };
+      // A successful reactivation/report receipt is a DOM transition, not a
+      // guaranteed two-rAF window. Never poll indefinitely or steal newer focus.
+      const observer = new MutationObserver(restore);
+      observer.observe(document.body, { subtree: true, childList: true, attributes: true,
+        attributeFilter: ["hidden", "inert", "aria-busy", "data-ready", "data-stale", "disabled"] });
+      controller.signal.addEventListener("abort", () => observer.disconnect(), { once: true });
+      requestAnimationFrame(restore);
       return;
     }
     if (origin && state.view === "resources") {

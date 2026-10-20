@@ -84,10 +84,20 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   }
   const assignmentsBefore = (await (await page.request.get(`${f.api}/assigned-targets`)).json()).data.assignments;
   const outsideAssignment = assignmentsBefore.find((assignment: { taskId: string }) => assignment.taskId === f.unset.taskId)!;
+  expect(outsideAssignment).toMatchObject({
+    target: { kind: "resource", id: f.resources[0].id },
+    allocation: { percent: 60 },
+  });
   await expect(row).toHaveAttribute("data-canonical-assignment-id", outsideAssignment.id);
   const edit = row.getByRole("button", { name: `배정 편집: ${f.resources[0].name}`, exact: true });
   await edit.focus(); await page.keyboard.press("Enter");
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await expect(editor).toBeVisible();
+  await expect(editor.getByRole("tab", { name: /^리소스/ })).toHaveAttribute("aria-selected", "true");
+  // The assignment editor resolves two canonical reads asynchronously. Its
+  // Save button becomes enabled only after both reads and revision checks pass.
+  // Do not race the strict percentage assertion against Next dev cold compile.
+  await expect(editor.getByRole("button", { name: /^할당 저장 \(/ })).toBeEnabled({ timeout: 30_000 });
   const allocation = editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입률 (%)`, { exact: true });
   await expect(allocation).toHaveValue("60");
   await allocation.fill("40");

@@ -1,5 +1,7 @@
 ## [0.128.0] — Unreleased / Issue #736
 
+- 교정 PR #764 Full CI #3076.1의 기존 #530 Milestone M1→Resource→일정→M1 LIFO focus 미복귀를 F736-004에 누적하였다. Milestone 원본 UUID/리소스 버튼을 다시 식별하고 현재 조회가 활성·준비되었을 때 취소 가능한 복귀 focus를 수행하며 기존 KPI·범위·원본·Gantt 검증을 유지한다. Codex P2의 정확 개인 Assignment 수정에 대한 편집 권한 재검증 누락은 기존 edit-sessions/current API로 fail-closed 보완한다. 신규 revoked-session 음성 검증을 추가하고 일반 Editor 후보 탐색·인증/Revision/401·412 유지, E2E6/timeout/Retry/Skip/Required 정책 및 version0.128.0은 변경하지 않는다. 원본 Full PR/코드 수정 Main 실패는 불변 이력으로 보존한다.
+
 - 병합 Main CI #3071.1에서 기존 #621 정확 개인 Assignment 편집의 초기 투입률 입력을 5초 내 찾지 못한 실패를 M736-001에 기록했다. 실제 canonical 배정 조회가 성공해도 전체 후보 Resource 조회(Trace 약4초)를 추가로 기다리는 불필요한 의존을 exact edit에서만 제거하고, 기존 이름-first/공동담당 불변/401·412/초안보존/정확 수정 계약과 일반 편집 후보 검색을 유지한다. 원격 교정 PR CI/새 Main 검증 전 과거 Main 성공·GHCR 게시·Issue 종료로 승격하지 않는다.
 
 - Full PR CI #3065.1의 Resource Plan report body 관측 경합을 F736-003에 누적하고, 테스트의 정확 Project/spec/filters/scope·즉시 body receipt·단계별 조건 완료로 보완한다. 과거 TS guard/M/M matcher와 원본 source·취소 shard·남은 미검증을 보존하며 기존 공수/Plan/Excel·권한·CI timeout/6Shard 정책은 변경하지 않는다.
