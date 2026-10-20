@@ -1,3 +1,10 @@
+## Issue #733 — F733-003 Full #3042.1 Playwright clock pause 역행 (2026-10-20)
+
+- [#733 단일 누적 실패 원장 §8](ISSUE_733_FAILURE_ANALYSIS.md)의 [PR CI #3042.1](https://github.com/planner77/masterGantt/actions/runs/39368321617)은 Quality/Build/Docker 성공, Shard6의 #514 `grid-task-start-reveal.spec.ts:126`에서 `clock.pauseAt: Cannot fast-forward to the past` 발생(19PASS/1FAIL/114NOT RUN, 다른5 Shard 취소), E2E/QA Final 파생 FAIL. 이전 #3039.1는 구 Head/base에서 Required3/QA Final 및 E2E6 PASS했으며 현 Head 검증을 대신하지 않는다.
+- **원인/보완:** browser clock `install()` 뒤에도 시간이 진행하는데 새 `new Date()`로 지정한 `pauseAt()` 목표가 원래 가상 시계보다 과거가 될 수 있는 TEST_CONTRACT 경합이다. 기존 #569 교정 방식처럼 `pauseTime`을 한 번 샘플링하고 `install({time:pauseTime-60_000})` → `pauseAt(pauseTime)`의 엄격한 전진 관계를 만든다. 직접 #514 3곳 및 동일 미교정 #529 1곳만 변경한다.
+- **단언 유지:** #514 pending peer wheel/빠른 다중 선택·필터 전환·Task start reveal, #529 native wheel/Resource↔Gantt 복귀·source/filter 우선권, #569 인접 보존, GSC-07/08/09, 날짜/scroll Core+DOM·동일 Gantt 인스턴스·조회 mutation0. 기존 Clock `runFor`, `resume`, 원래 E2E timeout/retries/skip/fail-fast 및 CI Required Quality/E2E6/Docker 불변.
+- 누적 실제 원격 FAIL 집합은 #3035.1 `issue-622-resource-plan-target.spec.ts`, #3038.1 `issue-733-process-configuration.test.ts`, #3042.1 `grid-task-start-reveal.spec.ts`. #3042 취소5 Shard는 PASS 아님. 전체 이력과 artifact/원인/가설/미검증은 [단일 원장](ISSUE_733_FAILURE_ANALYSIS.md) §1/§8에서 추적한다. 새 source의 TypeScript/Vitest/Chromium/SQLite/Build/Docker 실제 재검증은 GitHub Git Data 경로에서 NOT TESTED, 새로운 exact-HEAD PR Full CI로 확인한다.
+
 ## Issue #733 — 공정&WorkArea 전용 관점과 구성-only 회귀
 
 [Work Packet](exec-plans/active/ISSUE_733.md)의 AC1~AC5는 공정 descriptor/consumer의 직접 Unit·실제 Chromium, #728 고유 원장 oracle와 #729 SQLite/HTTP의 등록-only 하위·원본 상세/snapshot 음성으로 검증한다. 공정 단독·WorkArea→typed 형제→리소스·Milestone 교차, E10 두 구역 상위10/Task5M/D 중복0·shared System 다른 Task 누출0·작업0 구성·미배정/미설정·full Gate를 포함한다.

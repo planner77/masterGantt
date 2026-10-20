@@ -1,5 +1,7 @@
 ## [0.125.0] — Unreleased / Issue #733
 
+- PR #755의 main 정렬 후 Full PR CI #3042.1에서 #514 Gantt peer restore의 가상 시계 `clock.pauseAt(new Date())`가 이미 흐른 browser 시간보다 과거를 지정하여 E2E Shard6에 실패했다. 기존 #569 검증 패턴(샘플된 단일 시각보다 60초 전 설치 후 해당 시각 정지)을 #514 세 곳·인접 #529 한 곳에 적용하고 본래 native wheel·선택·RAF·원본 복귀 단언을 유지한다. 이전 #3039 성공과 #3042 실패는 #733 누적 원장에 서로 다른 Head/base로 보존하며 제품 로직/CI 게이트/버전/릴리스 승인 상태는 불변.
+
 - 공정&WorkArea 전용 consumer로 공정 단독·선택 구역·설비/System 동급 분기·Milestone/리소스 교차 예시와 구성/작업 KPI를 제공한다. Target 생성 없이 기존 원장·정확 상세/editor·원래 보기 복귀를 재사용한다.
 - 등록-only 하위 구성과 같은 snapshot의 공정/구역 catalog를 공통 API 소유자와 보완하고 다중 WorkArea 수량·Task/Assignment는 원본 합집합으로 유지한다. 새 계산기/DB/renderer·구성/WBS writer는 추가하지 않는다.
 - 화면별 KPI·UX·테스트·매뉴얼을 동기화한다. HIGH/OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false. PR CI 시작은 공식 검증 PASS·Owner 승인·병합·정식 릴리스가 아니다.

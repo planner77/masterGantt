@@ -235,7 +235,12 @@ test("#529 pending peer restore cancels on native wheel and canonical filter cha
   const position = await chart.boundingBox();
   if (!position) throw new Error("visible chart required");
   await openWorkspaceView(page, "resources"); await expect(page.locator('[data-resource-dashboard="true"]:visible')).toHaveAttribute("data-ready", "true");
-  await page.clock.install(); await page.clock.pauseAt(new Date());
+  // #733 F733-003 / #569: install() keeps time running until pauseAt().
+  // Fix one wall-clock target 60s ahead of the installed virtual baseline,
+  // so CI runner latency cannot turn the intended pause into a backward jump.
+  const pauseTime = new Date();
+  await page.clock.install({ time: new Date(pauseTime.getTime() - 60_000) });
+  await page.clock.pauseAt(pauseTime);
   await page.getByRole("tab", { name: "일정", exact: true }).evaluate(node => (node as HTMLElement).click());
   await expect(frame).toBeVisible();
   // Observe the native show commit without completing the pending app restore.
