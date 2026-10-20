@@ -1,3 +1,9 @@
+## Issue #736 — 리소스 중심 분석과 기존 Plan 보존
+
+Target0에서 Resource 단독 및 사용자 선택 공정/WorkArea/설비·System 형제/Milestone 계층을 제공한다. 명시 등록·역할-only·개인 Assignment·비활성 참조를 구별하며 등록이나 역할로 Task/공수/Capacity를 생성하지 않는다. 개인 필터는 같은 Assignment에 적용하고 공유5M/D 중복0·공동담당자 분리·선택80%/Project140%·기존 Calendar/R/M/M null을 보존한다.
+
+기존 기본 현황·Group/Role/등급·Milestone/Target 비교·주월 Plan·일별 상세·개인 Peak/과투입·견적·Excel은 계속 접근한다. 새 문맥의 지원 Excel은 화면과 같은 source/snapshot/selector·원시 Task/Assignment ID·current/project·미산정을 보존하며 행 반복을 재합산하지 않는다. 미지원 조합은 필터를 버리지 않고 명시적으로 거부한다. 정확 원본 편집·선택 밖 원인 수정·기존 상태 복귀 및 readonly/dirty/stale/권한 오류/응답 역전·5폭 keyboard/focus는 [실행 계획](exec-plans/active/ISSUE_736.md)의 실제 검증을 따른다.
+
 ## Issue #735 — 물류 시스템 최상위 대시보드
 
 System 인스턴스를 root로 하여 Target0에서 단독 및 사용자 선택 공정/WorkArea/설비/리소스·Milestone 교차 조회를 제공한다. 직접 연결만/조율 범위 포함을 명시하고 유형·계층·프로젝트 공통/공정 범위·PI/개발자 속성으로 시스템을 선택한다. 고유 구성 System/제어 설비량, 일반 Task/진척/계획공수와 미배정·미설정·full Milestone Gate를 구별하며 공유 경로의 원시 ID/공수를 중복 합산하지 않는다. 작업0·공정0·역할 미설정은 정상 현황/진단으로 남긴다. 실제 관계 없는 Task 공통 연관을 제어관계로 바꾸거나 실적/가동률을 추정하지 않는다. 원본 상세/편집·정확 일정·같은 조회 복귀와 readonly/dirty/stale/error·5폭 접근성은 기존 gateway를 재사용한다. [수용 기준과 증거](exec-plans/active/ISSUE_735.md)를 따른다.

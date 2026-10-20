@@ -1,3 +1,12 @@
+## [0.128.0] — Unreleased / Issue #736
+
+- Full PR CI #3065.1의 Resource Plan report body 관측 경합을 F736-003에 누적하고, 테스트의 정확 Project/spec/filters/scope·즉시 body receipt·단계별 조건 완료로 보완한다. 과거 TS guard/M/M matcher와 원본 source·취소 shard·남은 미검증을 보존하며 기존 공수/Plan/Excel·권한·CI timeout/6Shard 정책은 변경하지 않는다.
+
+- Target0에서도 개인 Resource 단독·공정/WorkArea/설비·System 형제 및 Milestone/공정 하위 구성을 조회한다. 등록/역할/개인 배정·비활성과 필터된 고유 작업/계획공수를 구분하고 같은 Assignment 범위·M/M null·비가산 원장을 보존한다.
+- 기존 Resource 현황·Group/Role/등급·Milestone/Target 비교·Plan·일별 과투입·개발 견적·Excel은 범위가 명시된 기본 펼침 보조 영역으로 유지한다. 동적 선택은 정확 Assignment adapter로 기존 Plan의 같은 R·Calendar·Project 전체 부하 참고를 재사용한다.
+- Resource root current/project Excel은 같은 WBS source/snapshot/spec/path·필터를 검증하고 기존 writer에 raw Task/Assignment 및 반복 비가산 경로 근거를 전달한다. 다른 root 미지원은 명시 거부하며 기존 개인 Plan/견적 출력을 차단하지 않는다.
+- 관련 API/KPI·UX·교환·사용자 가이드/#720·테스트·실행 계획을 동기화한다. HIGH/OWNER_MANAGED, release_authorized=false. PR CI 시작은 전체 CI PASS·Trusted/Owner 승인·병합·정식 릴리스 완료가 아니다.
+
 ## [0.127.0] — Unreleased / Issue #732
 
 - Milestone 전용 동적 관점에 root 단독과 수정 가능한 두 하위 축 예시, 선택 일반 Task/개인 Assignment 지표와 전체 Milestone Gate의 별도 요약을 추가한다. 기존 Milestone 추가·편집·소속·관계·검색/기간/상태·삭제 보호와 동일 원본/복귀를 보존한다.

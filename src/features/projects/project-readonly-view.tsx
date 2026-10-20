@@ -30,6 +30,7 @@ import {
   sameResourceDataContext,
 } from "@/features/resources/resource-drill-scope-model";
 import { fetchWbsView, stableWbsValue } from "@/features/resources/wbs-view-transport";
+import { ResourceWbsDashboard } from "@/features/resources/resource-wbs-dashboard";
 import { WbsViewDashboard } from "@/features/resources/wbs-view-dashboard";
 import type { WbsViewDimension, WbsViewScopeDto } from "@/contracts/wbs-dashboard-views";
 import type { WbsViewScheduleRequest, ResourceScheduleRequest } from "@/features/resources/resource-drill-context";
@@ -3334,7 +3335,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         {resourceDrillLiveVisits(navigationFrames, {resourceViewId} as ResourceNavigationState, entry => entry.resourceViewId).map(visitId => {
           const visit = visitId === resourceViewId ? null : navigationFrames.flatMap(frame => [frame.source, frame.destinationBefore, frame.destination]).find(entry => entry.resourceViewId === visitId && entry.view === "resources");
           return <div key={visitId} hidden={visitId !== resourceViewId} data-wbs-visit={visitId}>
-            <WbsViewDashboard publicId={publicId} revision={project.revision} root="resource" active={activeView === "resources" && visitId === resourceViewId}
+            <ResourceWbsDashboard onResourceSchedule={scheduleResourceRequest} publicId={publicId} revision={project.revision} active={activeView === "resources" && visitId === resourceViewId}
               busy={busy || navigationLoading || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
               binding={visit ? visit.binding : resourceBinding}
               onOpenTask={(taskId, trigger) => openTaskEditor(taskId, "task", trigger)}
@@ -3342,6 +3343,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               onOpenEntity={openWbsEntity} onSchedule={scheduleWbsRequest} />
           </div>;
         })}
+        <details open data-resource-compatibility><summary>기존 분석·Plan·견적·Excel (별도 조회 조건)</summary><p className="field-help">위 리소스 동적 계층과 독립된 기존 분석입니다. 아래 조건·Milestone/Target 비교·개발 견적·Excel은 아래 보고서 범위를 사용합니다.</p>
         <ProjectResourceWorkload publicId={publicId} revision={project.revision} active={activeView === "resources"} refreshDisabled={navigationLoading ||
               navigationConflict !== null ||
               busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} onRefreshProject={() => { if (!busy && editorSession === null && relationEditorRequest === null && pendingTaskDelete === null) void reloadCanonicalSnapshot(); }} viewId={resourceViewId} binding={resourceBinding}
@@ -3364,6 +3366,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             onOpenTask={openTaskEditor}
             onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, {assignmentId, resourceId})}
             onOpenTarget={(id, trigger, code) => { if(busy || editorSession || navigationLoading || relationEditorRequest || pendingTaskDelete) return; resourceTargetTrigger.current = trigger; setResourceTargetRequest({id, code, sequence: Date.now()}); setActiveScreen("master.targets"); }} />
+        </details>
       </section>
       <section
         id="project-panel-logistics"

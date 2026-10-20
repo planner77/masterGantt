@@ -1,3 +1,16 @@
+## Issue #736 — 리소스 Plan/Excel의 동적 출처
+
+기존 `POST /api/projects/{publicId}/resource-dashboard/views`의 Resource root report는 주/월 Plan(`granularity`) 요청 시 optional `resourceAdapter`를 제공한다. `{report:ResourceDashboardDto,binding:{sourceContext:ResourceDrillSourceContext,scope:ResourceDrillScope}}`는 현재 원시 개인 Assignment ID의 `exactAssignments` 교집합으로 기존 Plan·상세·drill API를 사용하기 위한 adapter다. 다른 개인의 공동담당 Assignment나 책임 역할에서 공수를 생성하지 않는다. WBS의 `wbs-view-source/1`과 기존 Resource source/snapshot은 다른 identity이며 동일하다고 cast하지 않는다.
+
+기존 Project Excel Export의 `resourceDashboard`는 기존 Resource 입력과 함께 Resource-root WBS 입력을 지원한다. 기존 body/Origin·strong If-Match·원자 snapshot 및 예산 검증(public-read, 편집 session 불필요)을 재사용하며 opt-in 없는 기존 출력은 유지한다.
+
+| 선택 | `resourceDashboard`의 필드와 의미 |
+| --- | --- |
+| `basis:"current"` | `expectedReport:{context:WbsViewSourceContext,snapshotId,filters}`·`granularities:["week","month"]`(필요한 주/월). context의 spec·path·scope·기간/환산·snapshot 및 filters를 서버에서 재검증하고 같은 Task/Assignment 원시 교집합을 사용 |
+| `basis:"project"` | `expectedReport:{context:WbsViewSourceContext,filters}`·주/월 목록. 원 출처의 context/spec/path/filter/snapshot을 먼저 재검증한 뒤 기간·기준일·M/M 정책을 유지하고 개인/분류·Task/검색/상태·동적 path/scope 필터를 해제. 원 출처는 근거로 보존 |
+
+WBS source는 새 전체 범위를 얻기 위한 client 승인 토큰이 아니다. 다른 Project·잘못된 spec/path/scope·위조/낡은 context는 기존 fail-closed 검증으로 거부한다. Resource 외 root는 `WBS_VIEW_EXPORT_UNSUPPORTED`를 유지하며 새 spec을 구 `projectionOrder`로 변환하여 필터를 조용히 버리지 않는다. 지원 여부는 report의 `metadata.excel`로 안내한다. Excel의 동적 근거행은 중첩 비가산이며 Project 합계로 재합산하지 않는다. [Excel 세부사항](EXCEL_EXPORT.md#issue-736--리소스-동적-조회와-excel), [AC/실제 증거](exec-plans/active/ISSUE_736.md).
+
 ## Issue #735 — 시스템 root의 직접·조율 선택
 
 기존 `POST /api/projects/{publicId}/resource-dashboard/views`의 `spec.root=system`에서만 additive `systemView?: "direct"|"coordination"`, `systemIds?: string[]`를 허용한다. 생략은 기존 요청 의미를 보존한다. 시스템 ID 생략은 전체, 명시 `[]`는 빈 선택이며 필터 결과0개를 전체로 바꾸지 않는다. 중복 ID는 정규화하고 같은 Project의 등록 시스템·canonical UUID·최대1000개 한도를 서버에서 검증한다. 다른 root의 해당 필드·잘못된 모드/ID·foreign 참조는 거부한다.
@@ -39,7 +52,7 @@
 
 ## Issue #730 — versioned view의 UI 소비
 
-대시보드 공통 구성기/표는 아래 #729의 POST `/resource-dashboard/views`를 사용한다. 새 endpoint·공개 DTO·서버 계산·기존 API default 변경은 없다. 고정 root는 화면이 선택하고 사용자는 levels를 편집한다. root-only는 빈 levels, 설비/System 동급은 siblings 한 단계이며 `projectionOrder`나 Target 필터로 변환하지 않는다. report/details/scope의 spec·filters·scope·snapshotId·path를 동일하게 유지하고 stale409에서는 재조회한다. 새 view spec의 기존 Excel 미지원 오류를 유지한다. 화면별 개인 설정 저장은 browser storage이며 이 read API나 Project revision mutation이 아니다. [화면 계약](PROJECT_UX.md), [Work Packet](exec-plans/active/ISSUE_730.md)을 따른다.
+대시보드 공통 구성기/표는 아래 #729의 POST `/resource-dashboard/views`를 사용한다. 새 endpoint·공개 DTO·서버 계산·기존 API default 변경은 없다. 고정 root는 화면이 선택하고 사용자는 levels를 편집한다. root-only는 빈 levels, 설비/System 동급은 siblings 한 단계이며 `projectionOrder`나 Target 필터로 변환하지 않는다. report/details/scope의 spec·filters·scope·snapshotId·path를 동일하게 유지하고 stale409에서는 재조회한다. 이 #730 단계의 새 view spec Excel은 미지원이었다. 현재 Resource root는 위 #736의 동일 출처 출력을 지원하고 다른 root는 기존 미지원 오류를 유지한다. 화면별 개인 설정 저장은 browser storage이며 이 read API나 Project revision mutation이 아니다. [화면 계약](PROJECT_UX.md), [Work Packet](exec-plans/active/ISSUE_730.md)을 따른다.
 
 ## Issue #729 — versioned WBS 다관점 조회
 

@@ -1,3 +1,13 @@
+## Issue #736 — Full #3065.1 응답 관측 경합 보완
+
+PR #760 Head3c335ba1/main08a1d9ff에서 이전 #3059 TypeScript·#3062 M/M matcher와 이번 #3065 report body의 전체 이력을 대조했다. 정확 query/즉시 body receipt·직렬 필터·이전 조건/다른 spec·scope 음성으로 테스트 관측 경합을 고치고 제품 산식·권한·CI를 유지한다. [실패 원장 F736-003](../../ISSUE_736_FAILURE_ANALYSIS.md)과 [Work Packet](ISSUE_736.md)에 세 Run·취소10Shard·source/merge·실제 선정 검증을 누적한다. 실패test26.9초/Job7분48초라35분Timeout을 위한 shard재분배 근거는 없다. 게시 전 main5ffe02a3(#732)를 통합해 충돌3개를 해소했고 통합 후 Chromium3case·전체 Unit3,136PASS 및 typecheck/lint/build 단계PASS를 확인했다. PrePR CLI는 Next 생성 설정 fingerprint로BLOCKED임을 별도 기록했다. 후보0.128.0/HIGH/OWNER_MANAGED/release_authorized=false, 새 exact Head Full CI 시작 후 모니터링·병합·Release·종료는 수행하지 않는다.
+
+## Issue #736 — 리소스 중심 동적 조회·Plan/견적/Excel 보존
+
+main `05f1e560eee456e6fba5535255c9ede30a357c16` /0.125.0에서 `feat/issue-736-resource-dashboard`로 구현한다. Resource root 전용 consumer와 기존 분석의 명시 보조 영역을 제공하고 Target0·개인 Assignment 교집합·기존 Plan/일별 과투입/견적/Excel을 보존한다. 새 source/snapshot/spec/path를 검증해 기존 Plan/Excel writer에 인계하고 중첩 경로 소계를 재합산하지 않는다. [Work Packet](ISSUE_736.md)의 기능 인벤토리·AC/문서/실제 검증을 따른다.
+
+후보0.128.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. frontend/backend 구현과 읽기 전용 ui_ux/qa_docs 사전 검토를 분리한다. 문서 동기화·관련 Local Fast Feedback·최신 main/미해결 리뷰·충돌 확인 후 새 PR Full CI 시작까지만 수행한다. CI 결과 모니터링·병합·main/GHCR·Release·Issue 종료는 범위 밖이며 최신 Head Required3/Trusted·Owner 승인 전 MERGE_READY=BLOCKED다.
+
 ## Issue #735 — 물류 시스템 root·직접/조율·동적 교차 조회
 
 main `8a0fc9773d33326b40f8d97f6307c17ae0cb6933` /0.125.0에서 별도 `feat/issue-735-system-dashboard`로 구현한다. 후보0.126.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false다. 기존 #729/#730 원장을 소비하는 시스템 전용 consumer와 직접/조율·정확 시스템 선택의 공통 spec 보완만 수행하고 구성/Task/공수·full Gate를 구분한다. [Work Packet](ISSUE_735.md)의 AC·소유권·문서/매뉴얼·누적 실행 원장을 따른다. 종료점은 구현·리뷰 thread/충돌 해결·최신 Head Full PR CI 시작이며 CI 모니터링·병합·main/GHCR·Release·Issue 종료는 수행하지 않는다. 공식 원격 Required3/Trusted QA·Owner ACCEPT는 NOT TESTED다.

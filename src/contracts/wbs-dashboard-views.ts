@@ -54,7 +54,7 @@ export interface WbsViewResponseContext {
   schema: "wbs-view-report/1"; snapshotId: string; projectPublicId: string; projectRevision: number;
   sourceContext: WbsViewSourceContext; spec: WbsViewSpec; filters: ResourceDashboardFilterInput;
   range: { from: string; to: string }; asOfDate: string; mdPerMm: number | null;
-  metadata: WbsTaskLedgerSnapshot["metadata"] & { systemSelection?: { systemView: "direct" | "coordination"; systemIds: string[] }; limits: typeof WBS_VIEW_LIMITS; excel: { supported: false; code: "WBS_VIEW_EXPORT_UNSUPPORTED"; reason: string } };
+  metadata: WbsTaskLedgerSnapshot["metadata"] & { systemSelection?: { systemView: "direct" | "coordination"; systemIds: string[] }; limits: typeof WBS_VIEW_LIMITS; excel: { supported: boolean; code?: "WBS_VIEW_EXPORT_UNSUPPORTED"; reason: string } };
 }
 export interface WbsViewConfigurationCatalog {
   processes: Array<{ id: string; name: string; occurrenceId: string | null }>;
@@ -65,6 +65,8 @@ export interface WbsViewConfigurationCatalog {
 export interface WbsViewReportDto extends WbsViewResponseContext, WbsViewIdentityScope {
   projection: "report"; totals: WbsViewTotals; children: WbsViewNode[];
   taskSources: WbsTaskLedgerRow[]; configuration: WbsTaskLedgerSnapshot["configuration"]; configurationCatalog: WbsViewConfigurationCatalog; diagnostics: WbsTaskLedgerSnapshot["diagnostics"];
+  /** Existing report/Plan/detail adapters retain their own exact-scope identity. */
+  resourceAdapter?: { report: import("./resource-dashboard").ResourceDashboardDto; binding: { sourceContext: import("./resource-drill").ResourceDrillSourceContext; scope: ResourceDrillScope } };
   fullMilestones: ReturnType<typeof summarizeWbsTaskLedger>["fullMilestones"]; plan?: ResourceDashboardPlanDto;
 }
 export interface WbsViewDetailsDto extends WbsViewResponseContext {
