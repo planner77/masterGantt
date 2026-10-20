@@ -64,7 +64,10 @@ export function createWbsViewProjection(ledger: WbsTaskLedgerSnapshot, input: Wb
         for (const systemId of configuration.systemIds) for (const equipment of ledger.configuration.equipment) {
           if (equipment.controlSystems.some(control => control.systemId === systemId)) equipmentIds.add(equipment.id);
         }
-        const membershipAreas = new Set(ledger.configuration.equipmentWorkAreas.filter(row => equipmentIds.has(row.equipmentId)).map(row => row.workAreaId));
+        const membershipAreas = new Set(ledger.configuration.equipmentWorkAreas
+          .filter(row => equipmentIds.has(row.equipmentId) &&
+            (!process || process.id !== null && row.processId === process.id))
+          .map(row => row.workAreaId));
         const areas = logistics.workAreas.filter(area => (!process || process.id !== null && logistics.byProcess.get(process.id)!.occurrenceId === area.occurrenceId) && (!instancePath || membershipAreas.has(area.id)));
         add(areas.map(row => row.id));
         if (summarizeWbsTaskLedgerConfiguration(ledger, [...path, { dimension: "workArea", id: null }]).members.length) add([]);

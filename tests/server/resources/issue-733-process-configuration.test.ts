@@ -41,6 +41,37 @@ describe("#733 registered process/WorkArea configuration through the shared #729
     } finally { f.database.close(); }
   });
 
+
+  it("restricts a shared-occurrence WorkArea to its exact project process through equipment and controller", () => {
+    const f = wbsDashboardViewsFixture("direct");
+    try {
+      const occurrenceId = f.areaA.occurrenceId;
+      const occurrence = f.database.prepare("SELECT business_unit_id AS bu, product_id AS product, site_entity_id AS site FROM site_product_processes WHERE id=?")
+        .get(occurrenceId) as { bu: number; product: number; site: number };
+      const processC = f.logistics.insertProcess({ publicId: randomUUID(), projectId: f.project.id, code: "PC-SHARED", name: "공유 발생 공정", parentId: null, active: 1, now });
+      f.database.prepare("INSERT INTO project_process_occurrence_mappings(project_id,project_process_id,occurrence_id,business_unit_id,product_id,site_entity_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)")
+        .run(f.project.id, processC.id, occurrenceId, occurrence.bu, occurrence.product, occurrence.site, now, now);
+      const foreignAreaId = randomUUID();
+      const foreignArea = Number(f.database.prepare("INSERT INTO work_areas(public_id,occurrence_id,code,name,created_at,updated_at) VALUES(?,?,?,?,?,?)")
+        .run(foreignAreaId, occurrenceId, "C-ONLY", "공유 발생 C 전용 WorkArea", now, now).lastInsertRowid);
+      f.contexts.replaceEquipment(f.project.id, f.equipment[0].id, [{ processId: processC.id, occurrenceId, workAreaId: foreignArea }]);
+      f.logistics.setEquipmentSystems(f.project.id, f.equipment[0].id, [{ systemId: f.systems[2].id, controlRole: "primary" }], now);
+      f.database.prepare("INSERT INTO project_system_processes(project_id,system_id,process_id,created_at) VALUES(?,?,?,?)")
+        .run(f.project.id, f.systems[2].id, processC.id, now);
+      const byInstance: WbsViewSpec = { ...spec, levels: [{ kind: "siblings", dimensions: ["equipment", "system"] }, "workArea"] };
+      const report = f.service.queryWbsView(f.project.publicId, { spec: byInstance, filters }) as WbsViewReportDto;
+      const a = child(report, "process", f.processA.publicId), c = child(report, "process", processC.publicId);
+      for (const [dimension, instanceId] of [["equipment", f.equipment[0].publicId], ["system", f.systems[2].publicId]] as const) {
+        const aInstance = child(a, dimension, instanceId), cInstance = child(c, dimension, instanceId);
+        expect(aInstance.children.some(row => row.selector.dimension === "workArea" && row.selector.id === foreignAreaId)).toBe(false);
+        const actual = child(cInstance, "workArea", foreignAreaId);
+        expect(actual.totals.configurationReference.equipmentIds).toContain(f.equipment[0].publicId);
+        expect(actual.taskIds).toEqual([]);
+        expect(actual.assignmentIds).toEqual([]);
+      }
+    } finally { f.database.close(); }
+  });
+
   it("keeps a Task0 process-scoped System in the null-area state even when every equipment has a real WorkArea", () => {
     const f = wbsDashboardViewsFixture("direct");
     try {

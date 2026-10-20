@@ -1401,23 +1401,35 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (editorOriginViewReference.current === "resources") {
       const generation = ++taskFocusGeneration.current;
       const closingDialog = document.querySelector<HTMLDialogElement>('dialog[aria-labelledby="task-editor-title"]');
+      // #733 F733-001: restore only after the originating Resource detail is confirmed.
+      const maxFrames = 180;
       const restore = (frame: number) => {
         if (generation !== taskFocusGeneration.current) return;
         const panel = document.getElementById("project-panel-resources");
         if (!panel || panel.hidden) return;
-        if (document.querySelector("dialog:modal")) { if(frame < 60) requestAnimationFrame(() => restore(frame + 1)); return; }
+        const next = () => { if (frame < maxFrames) requestAnimationFrame(() => restore(frame + 1)); };
+        if (document.querySelector("dialog:modal")) { next(); return; }
         const focused = document.activeElement;
         if (focused instanceof HTMLElement && focused !== document.body && focused !== closingDialog && !closingDialog?.contains(focused) && !panel.contains(focused)) return;
-        if (panel.querySelector('[data-ready="false"]') && frame < 60) { requestAnimationFrame(() => restore(frame + 1)); return; }
-        const pending = Boolean(panel.querySelector('[data-ready="false"], [data-detail-state="loading"]'));
-        if (pending && frame < 60) { requestAnimationFrame(() => restore(frame + 1)); return; }
         const detailKey = editorResourceDetailKey.current;
-        const detailRoot = detailKey ? panel.querySelector<HTMLElement>(`[data-projection-detail-key="${CSS.escape(detailKey)}"]`) : panel;
+        const detailRoot = detailKey
+          ? [...panel.querySelectorAll<HTMLElement>("[data-projection-detail-key]")].find(element =>
+              element.dataset.projectionDetailKey === detailKey && isVisibleFocusTarget(element))
+          : panel;
+        const pending = Boolean(detailKey && (!detailRoot || detailRoot.dataset.detailState !== "ready")) ||
+          detailRoot?.closest<HTMLElement>("[data-resource-dashboard]")?.getAttribute("data-ready") === "false";
         const logical = taskId ? detailRoot?.querySelector<HTMLElement>(`[data-canonical-task-id="${CSS.escape(taskId)}"]${editorAssignment ? `[data-canonical-assignment-id="${CSS.escape(editorAssignment.assignmentId)}"]` : ""} ${editorAssignment ? "button[data-resource-assignment-edit]" : "button"}`) : null;
+        const owned = (element: HTMLElement | null | undefined) => isVisibleFocusTarget(element) && !!detailRoot?.contains(element);
+        const target = owned(trigger) ? trigger : owned(logical) ? logical : null;
+        if (!pending && target) {
+          target.focus({ preventScroll: true });
+          if (document.activeElement === target) return;
+        }
+        // A transiently disabled/replaced source must not trigger an early fallback.
+        if (frame < maxFrames) { next(); return; }
         const fallback = panel.querySelector<HTMLElement>('input[type="search"]');
-        const target = isVisibleFocusTarget(trigger) ? trigger : isVisibleFocusTarget(logical) ? logical : fallback;
-        target?.focus({preventScroll:true});
-        if (!isVisibleFocusTarget(trigger) && !isVisibleFocusTarget(logical)) notify("info", pending ? "최신 결과를 확인하고 있습니다. 필터와 상세 범위는 유지됩니다." : "원본 행이 현재 조건에서 제외되었거나 변경되었습니다. 필터를 확인하세요.", "Resource 보기");
+        if (isVisibleFocusTarget(fallback)) fallback.focus({ preventScroll: true });
+        notify("info", pending ? "최신 결과를 확인하고 있습니다. 필터와 상세 범위는 유지됩니다." : "원본 행이 현재 조건에서 제외되었거나 변경되었습니다. 필터를 확인하세요.", "Resource 보기");
       };
       requestAnimationFrame(() => restore(0));
       return;
