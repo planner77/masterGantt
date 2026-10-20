@@ -1,5 +1,7 @@
 ## [0.125.0] — Unreleased / Issue #733
 
+- PR #755 Full CI #3043.1에서 #725 실제 SQLite/HTTP 재시작 시 격리 Next 개발 서버의 설비 PATCH-only 동적 경로 준비 GET이 90초 동안 404(예상405)여서 E2E Shard3 실패(57PASS/1FAIL/50NOT RUN; Shard6 134PASS, 다른4 취소)했다. Next 내부 원인은 UNKNOWN; #725 격리 테스트만 공식 지원 Webpack dev opt-in하고 공통 fixture의 기본 Turbopack은 유지한다. 기존 GET405/Task GET200 JSON/PATCH200 JSON과 음성 오류 단언을 유지하며 준비 중 HTML404만 재검사하고 JSON404/기타 응답은 fail-closed, sanitized 진단 근거 추가. #733 단일 누적 실패 원장 F733-004에 #3035/#3038/#3042와 #3039 이전 PASS를 보존하며 CI/제품/버전0.125.0/정식 릴리스 승인 정책 변경 없음.
+
 - PR #755의 main 정렬 후 Full PR CI #3042.1에서 #514 Gantt peer restore의 가상 시계 `clock.pauseAt(new Date())`가 이미 흐른 browser 시간보다 과거를 지정하여 E2E Shard6에 실패했다. 기존 #569 검증 패턴(샘플된 단일 시각보다 60초 전 설치 후 해당 시각 정지)을 #514 세 곳·인접 #529 한 곳에 적용하고 본래 native wheel·선택·RAF·원본 복귀 단언을 유지한다. 이전 #3039 성공과 #3042 실패는 #733 누적 원장에 서로 다른 Head/base로 보존하며 제품 로직/CI 게이트/버전/릴리스 승인 상태는 불변.
 
 - 공정&WorkArea 전용 consumer로 공정 단독·선택 구역·설비/System 동급 분기·Milestone/리소스 교차 예시와 구성/작업 KPI를 제공한다. Target 생성 없이 기존 원장·정확 상세/editor·원래 보기 복귀를 재사용한다.

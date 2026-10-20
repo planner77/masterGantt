@@ -1,3 +1,10 @@
+## Issue #733 — F733-004 Full PR CI #3043.1 isolated restart GET404 (2026-10-20)
+
+- [원본 Run #3043.1](https://github.com/planner77/masterGantt/actions/runs/39370750961) Shard3의 tests/e2e/issue-725-process-workareas.spec.ts:88 real restart case에서 equipment PATCH-only route ready GET HTTP404 vs expected405 (fixtures/isolated-application.ts:216). Quality+Next build+Docker PASS, Shard3 57PASS/1FAIL/50NOT RUN, Shard6 134PASS, 다른 4 Shard 취소. QA Final 파생 실패, #733 단일 [누적 실패 원장 §9](ISSUE_733_FAILURE_ANALYSIS.md)에 이전 F733-001~003/3039.1 PASS와 함께 별도 Run·Head/base/test-merge 고정.
+- 분류 INIT_TRANSPORT: restart child alive/health200/oomKill0이나 동적 PATCH handler가 90s 내 GET405가 되지 않았으며 실제 재시작 후 PATCH는 전혀 호출되지 않았다. 정확 Next internals와 기존 HTTP404 MIME은 UNKNOWN. 기존 #730 F730-014·#731 M-002 근거와 공식 Next dev --webpack opt-in을 비교한다.
+- 테스트/fixture 최소 수정: typed isolatedDevBundler 옵션 기본 turbopack(공유 fixture 사용자 영향 없음); #725 두 실제 E2E 케이스만 webpack opt-in. read-only equipment GET405 준비, Task Context GET200 JSON 및 실제 business PATCH200 JSON 2회/PUT·원본 화면/WorkArea E10/Target0/focus/revision/5폭/readonly/mutation count 단언 유지. Equipment readiness에서 HTML404만 제한적 대기, 실제 JSON404/401/403/500/잘못된 MIME 즉시 실패, sanitized source/bundler/attempts/mutation retry0 첨부. 새 test skip/retry/global timeout/CI shard/임의 완료 체크 금지.
+- 직접/교차/음성: #725 two-case same source real Chromium/SQLite/HTTP; #730/#731 restart equipment+Task, #621/#623 dynamic routes, #726 process-context, 누적 #733 E2E/Unit·#622 editor focus·#514/#529 clock peer, #624 legacy readonly, GSC-07/08/09 및 정확 Req Quality/E2E6/Docker/Trusted QA. 현재 로컬 runnable source 부재로 new source actual tests NOT TESTED; 새 PR Run 결과를 별도로 확인해야 하며 메인/릴리스/Owner 승인 전용 아님.
+
 ## Issue #733 — F733-003 Full #3042.1 Playwright clock pause 역행 (2026-10-20)
 
 - [#733 단일 누적 실패 원장 §8](ISSUE_733_FAILURE_ANALYSIS.md)의 [PR CI #3042.1](https://github.com/planner77/masterGantt/actions/runs/39368321617)은 Quality/Build/Docker 성공, Shard6의 #514 `grid-task-start-reveal.spec.ts:126`에서 `clock.pauseAt: Cannot fast-forward to the past` 발생(19PASS/1FAIL/114NOT RUN, 다른5 Shard 취소), E2E/QA Final 파생 FAIL. 이전 #3039.1는 구 Head/base에서 Required3/QA Final 및 E2E6 PASS했으며 현 Head 검증을 대신하지 않는다.

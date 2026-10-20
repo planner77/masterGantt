@@ -69,12 +69,16 @@ export const test = base.extend<{
   isolatedApplication: string;
   isolatedResourceAdminPassword: string | undefined;
   isolatedProjectMasterAdminPassword: string | undefined;
+  // Default Turbopack remains unchanged; opt into Webpack only for isolated
+  // Next dev tests with persistent dynamic-route 404 after restart.
+  isolatedDevBundler: "turbopack" | "webpack";
   isolatedApplicationRuntime: IsolatedApplicationRuntime;
   restartIsolatedApplication: (patchOnlyReadinessPath?: string, taskContextReadinessPath?: string) => Promise<void>;
   observeIsolatedApi: ObserveIsolatedApi;
 }>({
   isolatedResourceAdminPassword: [undefined, { option: true }],
   isolatedProjectMasterAdminPassword: [undefined, { option: true }],
+  isolatedDevBundler: ["turbopack", { option: true }],
   isolatedApplication: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.origin);
   },
@@ -84,7 +88,7 @@ export const test = base.extend<{
   observeIsolatedApi: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.observeApi);
   },
-  isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword, isolatedProjectMasterAdminPassword }, provide, testInfo) => {
+  isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword, isolatedProjectMasterAdminPassword, isolatedDevBundler }, provide, testInfo) => {
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
@@ -142,7 +146,11 @@ export const test = base.extend<{
       const startApplication = async (patchOnlyReadinessPath?: string, taskContextReadinessPath?: string): Promise<void> => {
         const deadline = Date.now() + startupMilliseconds;
         let spawnError: Error | undefined;
-        child = spawn(process.execPath, [resolve(repositoryRoot, "node_modules/next/dist/bin/next"), "dev", "--hostname", "127.0.0.1", "--port", String(port)], {
+        child = spawn(process.execPath, [
+          resolve(repositoryRoot, "node_modules/next/dist/bin/next"), "dev",
+          ...(isolatedDevBundler === "webpack" ? ["--webpack"] : []),
+          "--hostname", "127.0.0.1", "--port", String(port),
+        ], {
           cwd: repositoryRoot,
           detached: process.platform !== "win32",
           windowsHide: true,
@@ -188,6 +196,8 @@ export const test = base.extend<{
             throw new Error("격리 E2E 재시작 읽기 전용 준비 검사는 해당 프로젝트의 설비 API만 허용합니다.");
           }
           let lastStatus: number | null = null;
+          let lastContentType = "";
+          let attempts = 0;
           while (Date.now() < deadline) {
             if (!child || child.exitCode !== null || child.signalCode !== null) {
               throw new Error("격리 E2E 경로 준비 중 서버가 종료되었습니다. 진단을 확인하세요.");
@@ -195,6 +205,7 @@ export const test = base.extend<{
             const remaining = deadline - Date.now();
             if (remaining <= 0) break;
             let response: Response;
+            attempts++;
             try {
               response = await fetch(route, {
                 method: "GET", cache: "no-store",
@@ -205,16 +216,27 @@ export const test = base.extend<{
               continue;
             }
             lastStatus = response.status;
+            lastContentType = response.headers.get("content-type") ?? "";
             await response.arrayBuffer();
             if (lastStatus === 405) break;
-            if (lastStatus !== 404) {
-              throw new Error(`격리 E2E PATCH 전용 동적 경로 준비 결과가 예상 밖입니다: GET HTTP ${lastStatus} (예상 405).`);
+            // Retry only Next's transient HTML404 during lazy route compilation.
+            // A JSON404 or any other status is an API/contract failure, not warmup.
+            if (lastStatus !== 404 || !lastContentType.includes("text/html")) {
+              throw new Error(`격리 E2E PATCH 동적 경로의 응답이 예상 밖입니다: GET HTTP ${lastStatus} (${lastContentType || "unknown MIME"}, 예상 405 또는 준비 중 HTML404).`);
             }
             await delay(100);
           }
           if (lastStatus !== 405) {
-            throw new Error(`격리 E2E 서버 재시작 후 설비 PATCH 경로가 준비되지 않았습니다: read-only GET 마지막 HTTP ${lastStatus ?? "전송 실패"}, 예상 405. isolated-application-diagnostics 첨부를 확인하세요.`);
+            throw new Error(`격리 E2E 서버 재시작 후 설비 PATCH 경로가 준비되지 않았습니다: read-only GET 마지막 HTTP ${lastStatus ?? "전송 실패"} (${lastContentType || "unknown MIME"}, attempts=${attempts}), 예상 405. isolated-application-diagnostics 첨부를 확인하세요.`);
           }
+          await testInfo.attach("issue-733-equipment-route-ready", {
+            contentType: "application/json",
+            body: Buffer.from(JSON.stringify({
+              route: "/api/projects/[publicId]/logistics/equipment/[equipmentId]",
+              method: "GET", expectedStatus: 405, attempts,
+              originalMutationRetries: 0, bundler: isolatedDevBundler,
+            })),
+          });
         }
         if (taskContextReadinessPath) {
           // #730 PR #756 Full #3037: equipment GET405 alone cannot prove
@@ -297,7 +319,7 @@ export const test = base.extend<{
           await startApplication(patchOnlyReadinessPath, taskContextReadinessPath);
         } finally { restarting = false; }
       };
-      testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
+      testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: bundler=${isolatedDevBundler}; fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
       await provide({ origin, restart, observeApi: observeIsolatedApi(diagnostics, () => captureDiagnostics("api_transport_failure")) });
     } catch (error) {
       await captureDiagnostics("setup_failure").catch(() => undefined);

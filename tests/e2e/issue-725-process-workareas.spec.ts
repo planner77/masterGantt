@@ -5,7 +5,12 @@ import { openWorkspaceView } from "./helpers/workspace-navigation";
 import type { LogisticsMutationResponse, ProjectLogisticsResponse } from "../../src/contracts/logistics";
 import type { ProcessCatalogResponse } from "../../src/contracts/process-catalog";
 
-test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword, viewport: { width: 1440, height: 1000 } });
+// #733 F733-004: this suite exercises actual PATCH/Task dynamic routes across
+// isolated Next dev process restarts. Use the supported Webpack dev bundler
+// only here to avoid the observed persistent Turbopack route-registration 404.
+// Keep exact GET405 readiness and real PATCH200/JSON/Task GET200 assertions.
+test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword,
+  isolatedDevBundler: "webpack", viewport: { width: 1440, height: 1000 } });
 
 test.afterEach(async ({ page }, info) => {
   if (info.status === info.expectedStatus || page.isClosed()) return;
