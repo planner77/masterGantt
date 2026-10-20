@@ -99,7 +99,24 @@ export async function createTargetProject(page: Page, origin: string, observeApi
   const parentTask = parent.data.tasks.find(row => row.name === "관리 Summary")!;
   const child = await (await mutate("/tasks", { name: "통합 시운전", type: "task", parentTaskId: parentTask.taskId, start: "2026-10-14", duration: 2, progress: 0 })).json() as TaskMutationResponse;
   const task = child.data.tasks.find(row => row.name === "통합 시운전")!;
-  await page.goto(`${origin}/projects/${publicId}`);
-  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
+  // #733 F733-006: retain the actual edit-mode assertion while allowing
+  // bounded Next dev hydration after the real HTTP fixture setup.
+  const navigation = await page.goto(`${origin}/projects/${publicId}`);
+  try {
+    await expect(page.getByText("편집 중", { exact: true })).toBeVisible({ timeout: 15_000 });
+  } catch (error) {
+    // Sanitized diagnostics only: do not attach page HTML, URL, cookies or IDs.
+    await playwrightTest.info().attach("issue-733-edit-mode-init", {
+      contentType: "application/json",
+      body: Buffer.from(JSON.stringify({
+        navigationStatus: navigation?.status() ?? null,
+        navigationMediaType: navigation?.headers()["content-type"]?.split(";")[0] ?? null,
+        editModeVisible: await page.getByText("편집 중", { exact: true }).isVisible().catch(() => false),
+        pageReadyState: await page.evaluate(() => document.readyState).catch(() => "unknown"),
+        boundedWaitMs: 15_000,
+      })),
+    }).catch(() => undefined);
+    throw error;
+  }
   return { publicId, api, origin, snapshot, mutate, processIds, task, parentTask, catalog };
 }
