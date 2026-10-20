@@ -113,3 +113,11 @@ Milestone 생성·기존 목록/검색/기간/상태·KPI·명시 Completed·삭
 - 추가 검증 코드: `tests/features/milestones/milestone-wbs-dashboard.test.ts`에 actual SQLite report + 새 Revision 완료/날짜/명칭 변경 시 반례, 신규 report 동기화 시 표시 복원. 기존 #732 전용 E2E/서버/도메인 테스트 유지, timeout/skip/retry/shard/Required 설정 불변. 실행 가능한 checkout/dependency가 없으므로 로컬 결과는 NOT TESTED; 새 정확 Head의 Full CI가 필수.
 - 이슈별 누적 원장: [ISSUE_732_FAILURE_ANALYSIS.md](../../ISSUE_732_FAILURE_ANALYSIS.md)의 `F732-004`에 L732-001~003/R732-001 대비 원격 원인·Job/Attempt/처리·잔여 위험을 추가. 과거 PASS를 현재 성공으로 치환하지 않음.
 - 최신 main/review/mergeability는 PR synchronize 직전 재확인, 개별 리뷰에 수정 근거로 응답하고 Resolve 후 Full CI 시작까지만 수행. CI 이후 Quality/E2E6/Docker/Trusted/Owner ACCEPT는 NOT TESTED, `MERGE_READY=BLOCKED`, `release_authorized=false`.
+
+## 2026-10-21 — #732 Main 실패 후속 Shard Plan 교정
+
+- 실패 출처: Main #3067.1 (Run `39492209464.1`, SHA `5ffe02a334d2279fabb63943c90614a7acfaf6ad`) Shard1 35분 제한 CANCELLED, 145 PASS/1 NOT RUN, Quality/Docker+나머지 Shard PASS, E2E aggregate FAIL, GHCR SKIPPED. 원본 구분·대책은 [F732-005](../../ISSUE_732_FAILURE_ANALYSIS.md) 참조.
+- 최신 기준: 이미 다른 Issue #736이 merge되어 main `1c1938851aa8234febcba404f4007d6c94fb2233`/version0.128.0. #732 기존0.127.0 릴리스 부채와 다른 Issue0.128.0을 합산하거나 승인 이월하지 않는다.
+- 생산자/소비자: Historical `tests/config/e2e-shard-plan.json`의 116 explicit +19 hash fallback spec = 실제 135개 E2E 파일. #735 System1→2, #732 Milestone1→3, Gantt recovery1→4, #736 Resource5→2. 이전 #733 수동 조정 보존, 이동 외131개 동일 배정, 완료 후 파일수21/25/24/23/21/21. 새 spec 누락 검출용 `tests/scripts/e2e-shard-planner.test.ts` 회귀 추가; runtime fallback은 그대로 두어 누락 없이 실행.
+- 검증·AC: 정적 출처/선택 집합·중복0 분석; 실제 Vitest/Chromium/Build/Docker 로컬 NOT TESTED. 이번 교정 PR Full Quality/E2E6/Docker·Trusted QA exact-Head, 리뷰0, Owner HIGH 수용 필요. 기존 #732 4 browser, #735 6, #736 5, Gantt, Excel 마지막 미완료 case를 포함하여 전체 E2E 검증. 기존 35분/6Shard/worker1/CI gates/skip·retry·assertions 모두 유지.
+- 문서: 원장 F732-005/이 Work Packet/TEST_PLAN M732-001 수정. DESIGN/API/DB/ARCHITECTURE/CI_CD/AGENTS/CHANGELOG/매뉴얼: 앱·CI 정책과 SemVer 자체 변경 없으므로 N/A. 현재 버전 0.128.0 유지, release/Finalizer/Issue close BLOCKED. manager_decision=NOT TESTED, MERGE_READY=BLOCKED, QA=OWNER_MANAGED/HIGH. 교정 PR CI 시작까지만 요청되었고 추후 모니터링·병합·Main·GHCR 수행하지 않음.

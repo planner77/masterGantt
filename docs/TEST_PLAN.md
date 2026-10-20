@@ -4925,3 +4925,10 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 ## Issue #735 F735-003 — 반응형 메뉴 단일 본문 부담 재배분 (2026-10-20)
 
 [누적 원장 §9](ISSUE_735_FAILURE_ANALYSIS.md)의 #3055.1은 #116 반응형 메뉴 단일 Test30초 초과다. fixture Before Hooks와 본문을 구분한 실제 trace/원형 RED31초로 결합 부담을 확인했고, Job35분 capacity 실패와 이전 GET 전송 오류와 구분했다. timeout/retry/단언을 유지하며4폭×4corner 행렬과 모바일/짧은 화면/Clipboard/desktop/Summary 흐름을 새 Project·SQLite·Context의 독립2Test로 나눈다. 각30초, 전체8→9case, 기존93matcher와 전체 명령 순서·나머지7case 내용 보존을 검산한다. 기존 실제 실패3case가 속한 같은 파일 전체9case를 동결 소스에서 fail-fast 없이 실행한다. fixture1회 추가의 비용은 별도로 기록하며 전역 Shard 이동·성능 절감은 주장하지 않는다. 전체6Shard/Docker·Trusted/Owner는 새 원격 exact Head에서 별도 검증한다.
+
+## Issue #732 M732-001 — Main #3067 E2E 35분 취소 교정과 Plan 누락 검출 (2026-10-21)
+
+- Main [#3067.1](https://github.com/planner77/masterGantt/actions/runs/39492209464) Shard1 `118868154867` 146 중145 PASS/1 미완료, 35분 Timeout CANCELLED. Quality/Docker·다른 Shard5개 PASS, E2E aggregate `118885430507` FAIL, GHCR SKIPPED. 구 PR [#3063.1](https://github.com/planner77/masterGantt/actions/runs/39485797851) 성공은 Main 성공 아님. [Issue #732 단일 실패 원장 F732-005](ISSUE_732_FAILURE_ANALYSIS.md)에 원본 Job/Attempt·교차 이력 보존.
+- #437 historical plan explicit116/실제 최신135(19 hash fallback): 4개 고부하 배정 수정(#735 System1→2, #732 Milestone1→3, Gantt recovery1→4, #736 Resource5→2). 신규 Issue #736의 Shard5는 PR #3069에서 이미28.7분이므로 초안의 #732→5는 재발 위험으로 철회. 다른131개 unchanged, 목표 파일수[21,25,24,23,21,21]. 오래된 projectedMs/14-run baseline은 수정하지 않음.
+- Planner Unit: `listSpecFiles()` 전체135 vs plan explicit 135(중복·누락0), `selectShardFiles` 6-way 집합 동일, 배정4개와 #733 이전2개 검증. 새 테스트 파일이 미등록이면 Unit 단계에서 조기 FAIL, 안전한 runtime hash fallback은 계속 활성. PR/Main/Release 공유 계획이므로 정확 HEAD 6 shard/Quality/Docker 및 Trusted QA 원격 검증 필수. 변경 영향 E2E: #732 Milestone4, #735 System6, #736 Resource5, Gantt/Resource/Excel(#529 마지막 NOT RUN), 기타 전체 테스트 모두 유지.
+- 테스트 시간 최적화는 실제 Runner/Setup/Fixture 변동성을 포함한 새 PR 및 Main 결과 없이는 PASS 아님. CI Workflow/35분 timeout·worker1·6 shards·required check/skip·retry·assertion/제품/API/DB·버전0.128.0 변경 없음. #732 0.127.0 릴리스 권한·#736 0.128.0 후속 병합의 별도 수명주기 감사를 생략하지 않는다.
