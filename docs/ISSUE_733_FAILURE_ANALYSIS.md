@@ -7,6 +7,8 @@ Primary Issue: [#733](https://github.com/planner77/masterGantt/issues/733), PR [
 
 > **최신 재개 인덱스 (2026-10-20 KST):** §9 F733-004와 §1 #3043.1 행이 최신입니다. §1~8과 #3039.1 PASS·F733-001~003의 시점별 판단은 불변입니다.
 
+> **이후 최신 추가 (2026-10-20):** §11 F733-006 / #3045.1 확인. 과거 판단 유지.
+
 > **최신 이력 (2026-10-20):** §10 F733-005와 §1 #3044.1을 추가했다. 이전 §1~9의 시점별 원장과 성공/실패는 변경하지 않는다.
 
 이 문서가 #733의 단일 누적 정규 원장이다. 재실패 시 동일 파일에 Run/Attempt·새 실패 ID·전체 결과를 이어 붙이고 과거 결과는 소급 PASS로 수정하지 않는다.
@@ -171,3 +173,11 @@ Primary Issue: [#733](https://github.com/planner77/masterGantt/issues/733), PR [
 - tests/e2e/fixtures/target-project.ts: on failed single canonical GET attach sanitized route template, status, MIME class, allowlisted uppercase API error code and presence of request ID. No raw response body, token, cookie, URL or stack. **Original expect(status).toBe(200) stays**, no HTTP500/JSON404/auth/5xx retry or global timeout/retry/skip/CI policy relaxation.
 - Regression set: complete #725 real restart/HTTP/SQLite, #730/#731 equipment/task restart routes, #726 context, #621/#623, #733 process/WorkArea Unit+E2E, historical F733-001~004 (#622 editor focus/#733 SQLite/#514/#529 Clock), #624 readonly, GSC-07/08/09 and negative API/permission/revision/MIME. Recheck all six Shards and exact-Head Quality/E2E/Docker/Trusted QA. GitHub Git Data connection cannot run these tests locally: **NOT TESTED**, and previous runs’ PASSES are not new Head PASS.
 - Documentation: this single #733 ledger, Work Packet, TEST_PLAN, CHANGELOG updated. PRODUCT/API/DB/Design/manual/CI/workflow changes N/A; candidate0.125.0, HIGH/OWNER_MANAGED, manager_decision=NOT TESTED, MERGE_READY=BLOCKED, release_authorized=false. Verify strict latest main, review threads0, mergeability, publish one non-force commit, start new PR Full CI only. No CI completion monitoring, merge/Main/GHCR/Release/Issue closure. Future re-failure: append **§11 F733-006** to this same file without overwriting prior source or history.
+
+
+## 11. F733-006 — Full PR CI #3045.1 공통 E2E 편집 모드 초기화 실패 (2026-10-20)
+
+- [Run #3045.1](https://github.com/planner77/masterGantt/actions/runs/39378742482), run ID 39378742482 / attempt1, HEAD `ec86d7538950530275deab0dcbc6ce5a836bae21`, base `80a42514d2c57490aebe065485f95bdfdac73723`. 실제 실패는 [Shard3 job 118483410486](https://github.com/planner77/masterGantt/actions/runs/39378742482/job/118483410486), `tests/e2e/issue-725-process-workareas.spec.ts:94` 호출의 `tests/e2e/fixtures/target-project.ts:103`, `expect(getByText("편집 중")).toBeVisible()` 5초 내 미발견. Shard3 57 PASS/1 FAIL/50 NOT RUN. Shard1/2/4/5/6 CANCELLED. Quality 118483819983 SUCCESS, Docker 118484113052 SUCCESS; E2E 118487602741 FAILURE, QA Final 118487629422 FAILURE (파생). 기존 #3044의 canonical GET500과 **다른 최초 실패 단계**로서 동일 근인이라고 단정하지 않는다.
+- 실제 UI 응답 코드·MIME, hydration/라우팅/세션 여부와 원본 trace에 기반한 근인은 아직 UNKNOWN. 이 시점의 증거만으로 제품 버그 또는 단순 서버 느림으로 단정하지 않는다. 이전 F733-004 dev route 동적 준비, F733-005 HTTP500 및 #730/#731 재시작 사례는 진단 참고 이력이지 이번 화면 오류의 확정 근인은 아니다.
+- 공통 fixture의 실제 편집 모드 단언은 유지하되, 실 Next dev 환경 초기 렌더링에 유한 15초를 허용하고 실패 시에만 navigation HTTP status·MIME·document.readyState·가시성·대기 상한을 민감정보 없이 attach한다. GET/PATCH/API 재시도나 테스트 skip/CI timeout/제품 권한 완화 없음. **이는 지연 경합을 탐지하기 위한 제한적 안정화이지 UNKNOWN 근인의 확정 조치가 아님**. 후속 Run 재실패 시 이 영수증·원본 trace로 server-side 500/404와 hydration/UI를 분리한다.
+- 변경 후 실제 Node/Chromium 로컬 검증은 이 GitHub-only 실행 경로에서 NOT TESTED. 새 정확 HEAD의 Required3/QA Final PASS를 별도로 확인해야 한다. 버전 0.125.0, HIGH/OWNER_MANAGED, release_authorized=false; 병합·Main·GHCR·종료 불허. CI 시작 후 완료 모니터링 생략.
