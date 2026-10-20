@@ -1,8 +1,20 @@
+## Issue #736 — 리소스 동적 조회와 Excel
+
+Resource root의 새 direct/Target 혼합 조회를 기존 Resource Excel writer에 인계한다. 같은 `wbs-view-source/1` context의 spec·path·scope·snapshot·filters를 서버가 재검증하고, 원시 Task/개인 Assignment 교집합을 기존 Resource/Plan bundle로 변환한다. 새 개인 공수 계산기나 row 소계 재합산은 추가하지 않는다. 기존 Resource source 입력 및 개인별 Plan/견적 Export는 계속 지원한다.
+
+`current`는 화면의 현재 조건과 동적 경로를 유지한다. `project`도 원 조회의 context와 filters를 받아 원 snapshot을 먼저 검증한 뒤 기간·기준일·M/M 환산 정책을 유지하고 개인/Group/Role/등급·Task·검색·상태·Milestone·Target/공정/WorkArea/설비/System·source/path의 선택 제한을 해제한다. 원 출처와 출력 대상 범위를 구별하며 Project 전체 선택은 새 명시 동작이다. 자세한 입력은 [API](API.md#issue-736--리소스-planexcel의-동적-출처)를 따른다.
+
+WBS opt-in은 Target0에서도 같은 개인 Project 전체 참고의 원시 Assignment 근거를 보존하며 구 Target 없는 Workbook의 시트 불변 규칙은 이 명시 opt-in에 적용하지 않는다. opt-in 없는 기존 Workbook의 시트는 유지한다.
+
+Resource Report/Relations의 WBS 근거에는 source/context/spec/path·고유 Task/Assignment ID·직접/Target provenance와 동적 하위 경로를 보존한다. 같은5M/D Assignment가 다중 구역/공정/Milestone 경로에 반복되어도 고유 총계는5M/D이며 근거행은 Project 공수의 가산 항목이 아니다. 일반 Task KPI와 개인 공수는 모집단을 구별하고 M/D/M/M raw 숫자·미설정/partial/configured0·null을 기존 계약대로 유지한다. Plan은 동일 R·Calendar·일별 peak·Project 전체 참고를 사용하며 등록 인원으로 Capacity를 확대하지 않는다.
+
+타 root 및 지원하지 않는 형식은 `WBS_VIEW_EXPORT_UNSUPPORTED` 등 명시 오류로 전체 실패하고 필터를 생략한 파일을 성공시키지 않는다. 이 제한은 기존 지원 Resource Plan/견적 Excel을 차단하지 않는다. 기존 XML/formula/ID/행·셀·bytes/ZIP 예산·현재 revision/권한 및 전부 성공/전부 실패 계약을 유지한다. 실제 ZIP/OOXML 테스트와 Windows Excel/VBA/DRM 열기 검증은 별도 상태이며 [Work Packet](exec-plans/active/ISSUE_736.md)에 기록한다.
+
 ## Issue #729 — 신규 WBS view spec과 기존 보고서 경계
 
 기존 Resource Excel writer·current/project·exact source binding 및 Origin/strong revision 검증은 유지한다. 신규 WBS view spec은 기존 Target `projectionOrder`와 공정 의미가 다르므로 기존 Excel에 자동 변환해 조건을 누락하지 않는다. 신규 API의 exact scope는 snapshot/spec/filter/path와 원시 Task/Assignment/instance ID 및 출처를 함께 인계한다.
 
-이번 신규 동적 spec의 Excel 지원은 명시적으로 미지원이다. 기존 export parser가 신규 spec/source를 받으면 전체 오류를 반환하며 기존 조건만 남긴 성공 workbook을 생성하지 않는다. 일반 기존 Resource Excel은 기존 계약대로 동작한다. 지원되지 않는 spec을 생략한 재요청은 동일 보고서의 Export가 아니므로 사용자 의도 확인 없이 소비자가 자동 수행해서는 안 된다. stale detail/export는 최신 report를 다시 조회한 후 정확 selector를 새로 선택한다. [API](API.md#issue-729--versioned-wbs-다관점-조회)와 [실행 원장](exec-plans/active/ISSUE_729.md)에서 실제 지원 범위를 확인한다.
+이 #729 단계에서는 신규 동적 spec의 Excel이 미지원이었다. 현재 Resource root는 위 #736의 동일 출처 adapter로 지원하며 다른 root는 계속 명시 미지원이다. 지원되지 않는 spec/source는 전체 오류를 반환하며 기존 조건만 남긴 성공 workbook을 생성하지 않는다. 일반 기존 Resource Excel은 기존 계약대로 동작한다. 지원되지 않는 spec을 생략한 재요청은 동일 보고서의 Export가 아니므로 사용자 의도 확인 없이 소비자가 자동 수행해서는 안 된다. stale detail/export는 최신 report를 다시 조회한 후 정확 selector를 새로 선택한다. [API](API.md#issue-729--versioned-wbs-다관점-조회)와 [실행 원장](exec-plans/active/ISSUE_729.md)에서 실제 지원 범위를 확인한다.
 
 ## Issue #727 — 프로젝트 리소스 등록과 보고서
 

@@ -3,6 +3,15 @@
 설비 root는 개인 하위 축 구성과 분리해 고정한다. 기본 단독 요약과 두 동적 예시는 기존 composer를 사용하고 유형 필터를 상위 Target으로 바꾸지 않는다. 원본 이름/유형·단품/Fleet/수량/모든 WorkArea/Owner/실제 controls는 접힌 원본 영역으로 제공하며 기존6열 표의 폭을 늘리지 않는다. 전체 등록 진단과 필터된 작업 지표·구성 수량의 모집단을 인접 라벨로 구별한다.
 
 작업0·미배정·구역 미사용·비활성은 각각의 상태로 읽을 수 있어야 하며 정상0을 실패색으로만 표현하지 않는다. controls와 같은 Task 업무 연관의 차이·중첩 소계 비가산·full Gate 범위는 숨기면 오해하는 필수 맥락이다. 390/768/1024/1440/1920px에서 긴 이름/원본 목록의 줄바꿈, 문서 overflow0, 표 내부 scroll·열 정렬, keyboard Tab/Shift+Tab/Escape와 focus 가시성을 실제 Chromium으로 확인한다. 기존 공통 focus reveal과 editor 복귀를 재사용하며 새로운 Gantt writer는 추가하지 않는다. [화면 UX](PROJECT_UX.md#issue-734--설비-대시보드), [실행·미검증](exec-plans/active/ISSUE_734.md).
+
+## Issue #736 — 리소스 관점과 Plan/Excel의 범위 표시
+
+Resource 단독이 기본이며 기존 browser 하위 축 설정은 존중한다. 공정/WorkArea/설비·System 형제와 Milestone/공정 예시는 native 조회 구성에서 선택하고 원본을 쓰지 않는다. 등록/역할/개인 배정 구성 참고와 현재 필터의 작업/계획공수를 다른 구획으로 표시한다. 이름 우선·접힌 ID·기존 semantic token과 공통 표 열 budget을 사용하며 새 지표는 고정 열을 늘리는 대신 summary에 배치한다.
+
+기존 분석·Plan·견적은 범위를 명시한 보조 경로로 접근한다. 새 동적 조회의 필터와 기존 분석의 독립 필터를 자동 동기화했다고 주장하지 않는다. 같은 source로 Plan/Excel에 이동할 때만 정확 selector를 전달하고 current/project의 조건 해제와 전체 개인 부하 참고를 직접 표시한다. 지원하지 않는 출력은 이유/복구 경로를 제공하며 기존 개인 Plan/견적 Export를 전역 차단하지 않는다.
+
+조회·편집 대기 중 이전 명령은 잠그고 상세/원본 저장 후 최신 raw Task/Assignment ID·snapshot을 확인한다. 이전 방문의 늦은 응답이 현재 방문의 계층/필터/상세/포커스를 덮지 않는다. 기존 연결·가시 trigger 또는 현재 control로 focus를 인계하며 표만 가로 scroll을 소유한다. 390/768/1024/1440/1920px에서 keyboard·focus 가시성·내부 overflow와 readonly/dirty/stale/error를 실제 확인한다. Design Delta B로 기존 [DESIGN](../DESIGN.md)을 구체화한다. [실행 증거](exec-plans/active/ISSUE_736.md).
+
 ## Issue #735 — 시스템 관점의 조회와 속성
 
 DESIGN.md의 기존 Light UI/이름 우선/compact control·상황형 도움말을 적용한다. System은 고정 root이며 단독 및 변경 가능한 하위 preset을 제공한다. 실제 제어/조율 관계와 Task 공통 연관, 구성 System1식/제어 설비량과 작업/개인 계획공수를 시각·문구로 구분한다. 속성 필터는 서버 전체 선택을 바꾸고 이름 찾기는 표시만 바꾼다. 긴 이름·공정·담당자는 줄바꿈하고 코드/ID는 요청 시 표시한다. 설명·역할·진단은 접기 영역에 두며 핵심 mode/상태/새로고침은 즉시 접근 가능해야 한다.

@@ -3,6 +3,13 @@
 설비 전용 descriptor/consumer는 기존 `WbsViewDashboard`의 composer·table·details·storage/transport·host editor/drill을 재사용한다. optional consumer filter/supplement seam으로 유형 조건과 표 뒤 원본 정보를 제공하며 기존 consumer 미지정 동작을 유지한다. 계산 authority와 단일 Gantt/Viewport writer는 추가하지 않는다.
 
 기존 WBS read transaction에서 설비 원본 표시 DTO와 참조된 유형 이름을 catalog로 제공하고 fingerprint에 결속한다. 구성/작업·직접 제어/업무 연관을 서로 대체하지 않으며 유형 필터는 서버의 기존 원장/selector를 사용한다. Repository 저장 경계·DB schema·mutation 권한은 불변이다. [공개 계약](API.md#issue-734--설비-조회-metadata와-유형-필터), [실행·AC](exec-plans/active/ISSUE_734.md).
+
+## Issue #736 — 리소스 consumer와 기존 Plan/Excel adapter
+
+Resource 관점은 #728 WBS 원장→#729 versioned report→#730 renderer를 사용하는 전용 consumer다. 기존 Resource KPI/Calendar/Plan 계산 경계를 유지하며 별도 개인 공수 엔진을 만들지 않는다. 주/월 Plan 요청 시 resource-root report의 optional `resourceAdapter`는 같은 raw Assignment ID의 기존 Resource report와 exact-scope binding을 제공한다. 서로 다른 WBS/legacy source schema와 snapshot identity를 cast하지 않고 서버가 각각 검증한다.
+
+Resource Excel은 새 WBS source context를 opt-in으로 인수하고 동일 read snapshot에서 source/spec/filter/path·Task/Assignment 교집합을 다시 검증한 뒤 기존 Resource workbook writer를 사용한다. 근거행은 동적 조회 구조이며 원본 WBS/배정/Target writer가 아니다. 기존 Plan의 개인 모집단 R·Project 전체 참고·Calendar와 공통 source/response/workbook 예산을 유지한다. 새로운 schema/migration·서버 권한·CI/Release authority는 없으며 [API](API.md#issue-736--리소스-planexcel의-동적-출처), [Excel](EXCEL_EXPORT.md#issue-736--리소스-동적-조회와-excel), [실행 계획](exec-plans/active/ISSUE_736.md)을 따른다.
+
 ## Issue #735 — 시스템 전용 consumer와 공통 조회 seam
 
 Embedded 물류 통합 조회의 원본 열기는 제공된 canonical 부모 handler를 우선 사용한다. 독립 사용에서는 기존 지원 설비/시스템/공정 editor fallback만 유지한다. 공유 System 저장 후의 focus는 새 report 영수증을 기다리는 기존 gateway가 소유하며, 대기 중 새 사용자 focus에 양보한다. 별도 focus/viewport 복원기를 추가하지 않는다.

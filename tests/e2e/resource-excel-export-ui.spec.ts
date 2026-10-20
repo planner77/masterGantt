@@ -1,3 +1,4 @@
+import { isWbsResourceExcelOptions } from "../../src/contracts/resource-excel-export";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
@@ -157,6 +158,7 @@ test("#529 실제 readonly Resource·exact 이동 보고서 XLSX 다운로드와
       : await page.request.get(`${api}/resource-dashboard?${dashboardQuery(filters)}`);
     expect(response.status()).toBe(200); return (await response.json()).data;
   };
+  if (!body.resourceDashboard || isWbsResourceExcelOptions(body.resourceDashboard)) throw new Error("legacy Resource export expected");
   const entries = workbookEntries(await readFile((await download.path())!));
   const currentEvidence = assertReportWorkbook(entries, await actualReport(body.resourceDashboard!), body.resourceDashboard!);
   const xml = [...entries.values()].join(""); expect(xml).toContain("=원래 작업 이름"); expect(xml).not.toContain("<f>");
@@ -175,6 +177,7 @@ test("#529 실제 readonly Resource·exact 이동 보고서 XLSX 다운로드와
     page.waitForEvent("download"), dialog.getByRole("button", { name: "내보내기", exact: true }).click(),
   ]);
   const exactOptions = (exactRequest.postDataJSON() as ProjectExcelExportRequest).resourceDashboard!;
+  if (isWbsResourceExcelOptions(exactOptions)) throw new Error("legacy exact Resource export expected");
   expect(exactOptions.basis).toBe("current");
   if (exactOptions.basis !== "current") throw new Error("current expected");
   expect(exactOptions.binding?.scope.kind).toBe("exactAssignments");
@@ -187,6 +190,7 @@ test("#529 실제 readonly Resource·exact 이동 보고서 XLSX 다운로드와
     page.waitForEvent("download"), dialog.getByRole("button", { name: "내보내기", exact: true }).click(),
   ]);
   const wholeOptions = (wholeRequest.postDataJSON() as ProjectExcelExportRequest).resourceDashboard!;
+  if (isWbsResourceExcelOptions(wholeOptions)) throw new Error("legacy whole Resource export expected");
   expect(wholeOptions.basis).toBe("project"); expect(wholeOptions).not.toHaveProperty("binding");
   const wholeEvidence = assertReportWorkbook(workbookEntries(await readFile((await wholeDownload.path())!)), await actualReport(wholeOptions), wholeOptions);
   await expect(gantt).toHaveAttribute("data-export-kept", "529");

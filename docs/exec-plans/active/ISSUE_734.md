@@ -1,6 +1,8 @@
 # Issue #734 — 설비 최상위 동적 대시보드
 
-> 최신 재정렬(2026-10-21): #732 Milestone 관점 main `5ffe02a334d2279fabb63943c90614a7acfaf6ad` / v0.127.0을 보존한 통합 후보는 설비 관점 v0.128.0이다. 과거 CI PASS는 최신 통합 Head의 PASS가 아니며 모든 Required/Trusted QA 및 수동 UX 재검증은 NOT TESTED다.
+> 최신 재정렬(2026-10-21): #736 Resource 관점·기존 Plan/Excel 기능이 main `1c1938851aa8234febcba404f4007d6c94fb2233` / v0.128.0에 병합되었다. 설비 #734는 모든 #736 기능과 #732 Milestone을 보존하며 **v0.129.0 MINOR 후보**로 통합한다. 기존 remote PASS는 새 exact Head의 PASS가 아니며 Required3/Trusted/Owner 및 수동 UX는 NOT TESTED다.
+>
+> 과거 정렬 이력: #732 Milestone 관점 main `5ffe02a334d2279fabb63943c90614a7acfaf6ad` /v0.127.0을 보존해 당시 #734 후보를 v0.128.0으로 제안했으나 이후 #736이 같은 버전을 사용해 현재 후보를 상향했다.
 >
 > 과거 #735 통합 인계(역사적): #735/PR #757이 main `08a1d9ff25a97aba67f08d6b67029ac55d45121a`에 반영되어 문서11개·host·공통 projection 충돌13개를 해소했다. 시스템 direct/coordination·선택 ID·캐시/한도와 설비 유형 OR를 함께 보존한다. 당시 후보는 main0.126.0 이후 MINOR **0.127.0**이었다. 새 통합 소스의15파일155 Unit·통합/타입 검사 PASS. 앞선140 Unit/3 Chromium/분리 사전 리뷰는 통합 전 증거이며, 최종 Head Chromium8개·독립 재검토·Required3/Trusted/Owner ACCEPT는 NOT TESTED다.
 
@@ -9,7 +11,7 @@
 - Issue: [#734](https://github.com/planner77/masterGantt/issues/734), 상위 #723; 선행 #724/#726/#728/#729/#730, 기존 KPI/통합 조회 #624/#731 및 공정 consumer #733 재사용.
 - baseline_sha: `05f1e560eee456e6fba5535255c9ede30a357c16`; baseline_version: `0.125.0`.
 - branch: `feat/issue-734-equipment-dashboard`; worktree: `/home/planner/Dev/masterGantt-734`. 기존 checkout의 미추적 증거는 보존한다.
-- candidate_version: `0.128.0` MINOR (main #732 0.127.0 통합 후 상향). 제품의 설비 전용 조회 기능 추가이며 dependency 변경은 없다.
+- candidate_version: `0.129.0` MINOR (main #732 0.127.0과 #736 0.128.0 통합 이후 상향). 제품의 설비 전용 조회 기능 추가이며 dependency 변경은 없다.
 - risk_level: HIGH; risk_reason: 설비 consumer·같은 snapshot의 원본 metadata·유형 필터 및 공통 조회/편집 복귀 경계의 영향.
 - qa_required: true; qa_method: OWNER_MANAGED; independent_qa: N/A(Owner-managed, 독립 인간 검토 없음); manager_decision: NOT TESTED; MERGE_READY: BLOCKED.
 - release_required: true; release_authorized: false. 사용자 요청 종료점은 구현·문서·미해결 리뷰/충돌 해소 후 PR Full CI 시작 확인이다.
@@ -145,3 +147,12 @@ Manager가 실제 코드와 대조한 문서별 영향 기록이다. 실행 증�
 - 실 실제 browser PATCH200·WBS read200을 유지하고 `data-ready` + report confirmation ID 증가를 확인한 뒤, browser 원본 request의 동일 WBS 입력을 별도 Playwright APIRequestContext에 읽기 전용 POST하여 확정 JSON/snapshot/revision/spec를 비교한다. 기존 워크에리어2·원본명/초안·mutation 0→1·Focus·stale/readonly 및 첫 두 실패 회귀·#730 선택자 보완을 유지한다. Browser response body 오류를 catch하고 성공으로 숨기거나 테스트 timeout을 올리지 않는다.
 - #732 Milestone 동적 관점/신규 관리/문서 테스트를 포함한 최신 main `5ffe02a334d2279fabb63943c90614a7acfaf6ad`는 app0.127.0. 이전 branch와 3커밋 diverged였으므로 #732 모든 source+문서를 유지하는 **2-parent main 통합**, 충돌 문서(설비/마일스톤 내용 모두 보존), application/lock 후보 **0.128.0**으로 병합 준비. 기존 `0.127.0`은 #732에 귀속하며 태그 이동/릴리스 승인 없음.
 - 직접 #734 8case, #730 원본/응답 역전, #735 System·#732 Milestone, 공정/KPI·Gantt GSC-01/03/07/08/09/11 및 #729 HTTP·SQLite, readonly/409/401/412/문서 영향의 회귀는 유지. 신규 source의 local node/npm/Playwright/Docker 실행은 현재 checkout/네트워크 부재로 **NOT TESTED**. GitHub source 기준 정적 합성·Tree/부모·문서/version 점검 후 Full PR CI 시작까지만 수행, 종료 모니터링·병합/Main/GHCR/Issue 종료 미실시.
+
+
+### Full PR CI #3070.1 F734-005 — Assignment 저장 후 Editor Ready 관측과 main #736 통합 (2026-10-21)
+
+- [Issue #734 단일 실패 원장](../../ISSUE_734_FAILURE_ANALYSIS.md) §1/4/5/6/7: 다섯 PR CI Full Run/Attempt를 분리 추적. 최신 [#3070.1](https://github.com/planner77/masterGantt/actions/runs/39496115287) Head `6a78648a56d476b63e05363000b66ba0abc9a5a7`, Quality/Docker/Vitest/TS/ESLint/Build SUCCESS. Shard1 `issue-734-equipment-dashboard.spec.ts:137` 14PASS/1FAIL/139NOT RUN, 나머지5 Shard CANCELLED, E2E/QA 파생 FAIL.
+- PUT Assignment200 직후 `할당 저장(1)`이 5초 내 재활성화되지 않은 원인은 Editor의 `onApplied → reload(true) → fetchCanonicalSnapshot`과 Resource assignment/catalog 재조회 완료 전에 검사한 관찰 가능성 경합으로 우선 분류. 실행 당 41.6초이며 전체120초 Test Timeout/Shard 과부하가 아니다. 정확한 내부 완료 실패 단계는 Trace 재생 없이 UNKNOWN.
+- PUT 이전 실제 Project revision을 보관하고 새 `f.snapshot()`에서 revision+1·Assignment 정확 ID/투입률50을 확인한 뒤, Editor 표시 Revision/투입률50·기존 할당 버튼 활성→Escape/원본 Focus/일정 왕복을 확인한다. 원래 5s button oracle·전체120s/6Shard/Required3/Retry/Skip 불변. 무조건 기다림·숨김/강제재시도로 성공 처리하지 않는다.
+- #736 main `1c1938851aa8234febcba404f4007d6c94fb2233`의 Resource root/Plan·Excel 계약, UI/서버 원장·문서/테스트를 전부 보존하는 통합을 수행한다. #736의 v0.128.0에 이어 #734 설비 후보를 **v0.129.0**으로 정렬하고 app/lock/CHANGELOG/Plan/PR metadata 동기화. #732 Milestone/#735 System/#730 상세/#736 Resource+Excel의 독립 보존 테스트를 영향 범위에 포함한다.
+- 실제 로컬 Node/npm/Chromium/SQLite/Docker와 새 통합 Head 원격 Required/Trusted QA는 **NOT TESTED**. GitHub Source 대조/정적 검사·Main merge 부모/Tree/Ref·리뷰 스레드0·충돌0 확인 후 새 Full PR CI 시작까지만 수행한다. CI 완료 모니터링·merge/Main/GHCR/Release/Issue close 미실행; HIGH/OWNER_MANAGED/release_authorized=false/MERGE_READY=BLOCKED.

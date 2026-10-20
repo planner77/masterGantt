@@ -2,9 +2,11 @@ import { PublicApiError } from "../http/api-error-core";
 import { z } from "zod";
 
 import { parseResourceDrillQuery, parseResourceDrillSourceContext } from "../resources/resource-drill-query-core";
+import { parseWbsViewQuery } from "../resources/wbs-dashboard-views-query-core";
+import type { WbsViewSourceContext } from "../../contracts/wbs-dashboard-views";
 import { RESOURCE_TARGET_FILTER_KEYS } from "../../contracts/resource-dashboard";
 import { parseResourceDashboardQuery } from "../resources/resource-dashboard-query-core";
-import type { ResourceExcelExportOptions, ResourceExcelSourceBinding } from "../../contracts/resource-excel-export";
+import type { ResourceExcelExportInput, ResourceExcelSourceBinding, WbsResourceExcelExportOptions } from "../../contracts/resource-excel-export";
 import type { ApiErrorDetail } from "@/contracts/projects";
 import type { ProjectExcelExportRequest } from "@/contracts/project-excel-export";
 
@@ -64,12 +66,36 @@ function strictObject(value: unknown, keys: string[]) {
   if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).some(key => !keys.includes(key))) throw new Error("Invalid export object");
   return value as Record<string, unknown>;
 }
-export function parseResourceExcelOptions(value: unknown): ResourceExcelExportOptions {
+function parseWbsExcelContext(value: unknown): WbsViewSourceContext {
+  const input = strictObject(value, ["projectPublicId", "projectRevision", "catalogRevision", "calendarRevision", "dataSnapshotId", "range", "asOfDate", "mdPerMm", "mdPerMmSource", "mdPerMmProvided", "schema", "contextSourceVersion", "snapshotId", "spec", "path", "scope"]);
+  const { schema, contextSourceVersion, snapshotId, spec, path, scope, ...policy } = input;
+  if (schema !== "wbs-view-source/1" || contextSourceVersion !== "explicit-task-context:v1") throw new Error("Invalid WBS source");
+  const checked = parseWbsViewQuery({ spec, ...(scope === undefined ? {} : { scope }), projection: { kind: "scope", snapshotId, path } });
+  if (checked.spec.root !== "resource") throw new PublicApiError(409, "WBS_VIEW_EXPORT_UNSUPPORTED", "이 관점의 동적 Excel은 아직 지원하지 않습니다. 리소스 관점 또는 기존 호환 보고서를 이용해 주세요.");
+  const projection = checked.projection!;
+  if (projection.kind !== "scope") throw new Error("Invalid WBS selection");
+  const context = parseResourceDrillSourceContext({ ...policy, sourceProjection: { kind: "report" } });
+  const base = Object.fromEntries(Object.entries(context).filter(([key]) => key !== "sourceProjection")) as Omit<typeof context, "sourceProjection">;
+  return { ...base, schema, contextSourceVersion, snapshotId: projection.snapshotId, spec: checked.spec, path: projection.path, ...(checked.scope ? { scope: checked.scope } : {}) };
+}
+export function parseResourceExcelOptions(value: unknown): ResourceExcelExportInput {
   if (value && typeof value === "object" && !Array.isArray(value)) {
     const candidate = value as Record<string, unknown>;
     const expected = candidate.expectedReport as { context?: { schema?: string; spec?: unknown } } | undefined;
-    if (candidate.spec !== undefined || candidate.viewSpec !== undefined || candidate.contextSourceVersion === "explicit-task-context:v1" || expected?.context?.schema === "wbs-view-source/1" || expected?.context?.spec !== undefined) {
-      throw new PublicApiError(409, "WBS_VIEW_EXPORT_UNSUPPORTED", "새 WBS 조회 명세의 Excel 내보내기는 아직 지원하지 않습니다. 기존 보고서 조건으로 자동 변환하지 않습니다.");
+    if (expected?.context?.schema === "wbs-view-source/1") {
+      const input = strictObject(value, ["basis", "expectedReport", "granularities"]);
+      if (!Array.isArray(input.granularities) || input.granularities.length < 1 || input.granularities.length > 2 || new Set(input.granularities).size !== input.granularities.length || input.granularities.some(item => item !== "week" && item !== "month")) throw new Error("Invalid granularities");
+      const granularities = input.granularities as ("week" | "month")[];
+      const report = strictObject(input.expectedReport, input.basis === "current" ? ["context", "snapshotId", "filters"] : ["context", "filters"]);
+      const context = parseWbsExcelContext(report.context);
+      if (report.filters === undefined) throw new Error("Missing original WBS filters");
+      const query = parseWbsViewQuery({ spec: context.spec, filters: report.filters, scope: context.scope });
+      if (input.basis === "project") return { basis: "project", expectedReport: { context, filters: query.filters! }, granularities };
+      if (input.basis !== "current" || report.snapshotId !== context.snapshotId) throw new Error("Invalid WBS snapshot");
+      return { basis: "current", expectedReport: { context, snapshotId: context.snapshotId, filters: query.filters! }, granularities } satisfies WbsResourceExcelExportOptions;
+    }
+    if (candidate.spec !== undefined || candidate.viewSpec !== undefined || candidate.contextSourceVersion === "explicit-task-context:v1" || expected?.context?.spec !== undefined) {
+      throw new PublicApiError(409, "WBS_VIEW_EXPORT_UNSUPPORTED", "새 WBS 조회 명세는 정확한 리소스 출처가 필요합니다. 조회를 갱신하거나 기존 호환 보고서를 이용해 주세요.");
     }
   }
   const input = strictObject(value, ["basis", "expectedReport", "binding", "originalSourceContext", "granularities"]);

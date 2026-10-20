@@ -1,8 +1,17 @@
-## [0.128.0] — Unreleased / Issue #734
+## [0.129.0] — Unreleased / Issue #734
 
 - 설비를 최상위로 두는 전용 대시보드에서 단독 요약·사용자 동적 축·유형 필터, 전체 WorkArea/Owner/명시 제어 원본 정보와 고유 Task/공수·Milestone full Gate를 제공한다.
 - 기존 공통 원장·조회/정확 editor·일정 복귀를 재사용하고 같은 read snapshot의 설비 metadata·유형 이름과 서버 필터를 연결한다. 다중 경로를 합산하거나 Task 업무 연관을 실제 제어관계로 만들지 않는다.
 - 지표/UX/API·매뉴얼/테스트·Work Packet을 동기화한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false; 새 PR CI 시작은 원격 PASS·Owner 승인·병합/정식 릴리스가 아니다.
+
+## [0.128.0] — Unreleased / Issue #736
+
+- Full PR CI #3065.1의 Resource Plan report body 관측 경합을 F736-003에 누적하고, 테스트의 정확 Project/spec/filters/scope·즉시 body receipt·단계별 조건 완료로 보완한다. 과거 TS guard/M/M matcher와 원본 source·취소 shard·남은 미검증을 보존하며 기존 공수/Plan/Excel·권한·CI timeout/6Shard 정책은 변경하지 않는다.
+
+- Target0에서도 개인 Resource 단독·공정/WorkArea/설비·System 형제 및 Milestone/공정 하위 구성을 조회한다. 등록/역할/개인 배정·비활성과 필터된 고유 작업/계획공수를 구분하고 같은 Assignment 범위·M/M null·비가산 원장을 보존한다.
+- 기존 Resource 현황·Group/Role/등급·Milestone/Target 비교·Plan·일별 과투입·개발 견적·Excel은 범위가 명시된 기본 펼침 보조 영역으로 유지한다. 동적 선택은 정확 Assignment adapter로 기존 Plan의 같은 R·Calendar·Project 전체 부하 참고를 재사용한다.
+- Resource root current/project Excel은 같은 WBS source/snapshot/spec/path·필터를 검증하고 기존 writer에 raw Task/Assignment 및 반복 비가산 경로 근거를 전달한다. 다른 root 미지원은 명시 거부하며 기존 개인 Plan/견적 출력을 차단하지 않는다.
+- 관련 API/KPI·UX·교환·사용자 가이드/#720·테스트·실행 계획을 동기화한다. HIGH/OWNER_MANAGED, release_authorized=false. PR CI 시작은 전체 CI PASS·Trusted/Owner 승인·병합·정식 릴리스 완료가 아니다.
 
 ## [0.127.0] — Unreleased / Issue #732
 

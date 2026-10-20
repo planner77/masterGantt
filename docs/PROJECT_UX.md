@@ -5,6 +5,15 @@
 Task/Assignment/설비 원본은 기존 editor로 연다. 편집 취소/dirty 확인, 저장 후 같은 경로·필터·선택 복귀, 정확 일정 이동과 복귀는 기존 source 검증·단일 host·Gantt Coordinator를 사용한다. readonly는 조회만 제공하고 pending/stale/401/412·원본 변경에서는 이전 명령을 잠근다. 최신 snapshot 재조회가 성공하면 다시 선택한다. 조회 설정을 바꾸거나 이전 요청이 늦게 끝나도 최신 사용자 의도를 덮지 않는다. 기준정보 명칭/수량/유형 이름 변경은 snapshot fingerprint를 바꾸며 구 source는 stale 처리한다.
 
 이름 우선·상황형 도움말·기존6열 예산/표 내부 overflow·keyboard/Escape/focus 복원을 유지한다. 5폭의 실제 수용 및 환경별 미검증은 [Work Packet](exec-plans/active/ISSUE_734.md), 사용자 단계는 [설비 현황](TARGET_RESOURCE_USER_GUIDE.md#설비-현황)에 기록한다.
+
+## Issue #736 — 리소스 중심 분석
+
+`대시보드 → 리소스`는 개인 Resource를 고정 root로 하는 전용 consumer를 제공한다. Target0·하위 없음에서 시작하며 사용자가 저장한 개인 보기 구성을 보존한다. 공정→WorkArea→설비/System 형제 및 Milestone→공정 예시는 적용 전 초안이며 추가/삭제/재정렬은 원본을 변경하지 않는다. 등록/역할/실제 개인 배정/비활성과 현재 선택 작업·공수의 모집단을 구분한다.
+
+기존 기본 현황·Group/Role/등급·Milestone/Target 비교·Plan·일별 상세·과투입·견적·Excel을 보조 분석으로 유지한다. 기존 분석의 필터와 새 동적 조회는 독립 상태이며 하나의 필터가 양쪽에 적용됐다고 안내하지 않는다. 같은 출처로 Plan을 열 때는 선택 Task의 공동담당자가 아닌 정확 Assignment ID 교집합을 전달한다. 선택80%/Project 전체140%와 Calendar/기존 Capacity R은 별도로 표시한다.
+
+새 리소스 Excel은 현재 또는 명시 Project 전체 범위를 선택하고 동일 snapshot·source/spec/path·원시ID 검증을 거친다. 다른 root/미지원 출력은 조건 생략 성공 대신 오류와 기존 지원 출력 복구 경로를 제공한다. 기존 Plan/견적 출력은 계속 사용할 수 있다. 정확 원본 편집·일별 상세·선택 밖 과투입 원인 수정 후 이전 방문의 필터·계층·선택·스크롤·포커스로 복귀하며 원본 revision이 바뀌면 최신 조회를 재검증한다. readonly/dirty/pending/stale·401/412와 이전 응답 무효화는 기존 host/editor 계약을 따른다. [계산](RESOURCE_KPI_DASHBOARD.md#issue-736--리소스-고정-관점과-기존-분석의-보존), [실행/한계](exec-plans/active/ISSUE_736.md).
+
 ## Issue #735 — 물류 시스템 대시보드
 
 Embedded 물류 통합 조회의 원본 열기는 제공된 canonical 부모 handler를 우선 사용한다. 독립 사용에서는 기존 지원 설비/시스템/공정 editor fallback만 유지한다. 공유 System 저장 후의 focus는 새 report 영수증을 기다리는 기존 gateway가 소유하며, 대기 중 새 사용자 focus에 양보한다. 별도 focus/viewport 복원기를 추가하지 않는다.

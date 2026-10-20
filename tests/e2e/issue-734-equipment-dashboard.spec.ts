@@ -148,12 +148,20 @@ test("#734 정확 Task·Assignment 원본 취소와 일정 복귀는 경로·foc
   const assignment = detail.getByRole("button", { name: `${f.resource.name} Assignment 원본`, exact: true }); await assignment.click();
   await expect(editor.getByRole("status").filter({ hasText: "선택한 개인의 배정만 편집합니다." })).toContainText(`Assignment ID ${f.assignment.id} · Resource ID ${f.resource.id}`);
   await editor.getByRole("spinbutton", { name: new RegExp(`${f.resource.name}.*투입률`) }).fill("50");
+  const beforeAssignment = await f.snapshot();
   const assignmentWrite = page.waitForResponse(response => response.request().method() === "PUT" && new URL(response.url()).pathname === `/api/projects/${f.publicId}/tasks/${f.task.taskId}/assignments`);
-  await editor.getByRole("button", { name: "할당 저장 (1)", exact: true }).click(); expect((await assignmentWrite).status()).toBe(200);
+  await editor.getByRole("button", { name: "할당 저장 (1)", exact: true }).click();
+  expect((await assignmentWrite).status(), "실제 Assignment PUT").toBe(200);
+  // PUT response can precede canonical reload and reloading the resource selector.
+  // Require the committed revision and newly loaded editor session before unlocking.
+  const afterAssignment = await f.snapshot();
+  expect(afterAssignment.data.project.revision).toBe(beforeAssignment.data.project.revision + 1);
+  const savedAssignment = afterAssignment.data.assignments!.find(row => row.id === f.assignment.id)!;
+  expect(savedAssignment.allocation?.percent).toBe(50);
+  await expect(editor.getByText(`Revision ${afterAssignment.data.project.revision}`, { exact: true })).toBeVisible();
+  await expect(editor.getByRole("spinbutton", { name: new RegExp(`${f.resource.name}.*투입률`) })).toHaveValue("50");
   await expect(editor.getByRole("button", { name: "할당 저장 (1)", exact: true })).toBeEnabled();
   await editor.press("Escape"); await expect(editor).toHaveCount(0); await expect(assignment).toBeFocused();
-  const savedAssignment = (await f.snapshot()).data.assignments!.find(row => row.id === f.assignment.id)!;
-  expect(savedAssignment.allocation?.percent).toBe(50);
   const schedule = detail.getByRole("button", { name: "이 범위 일정 보기", exact: true }); await schedule.click();
   await expect(page.getByRole("tablist", { name: "프로젝트 작업공간", exact: true }).getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "true");
   await page.getByRole("region", { name: "임시 조회 범위", exact: true }).getByRole("button", { name: /원래 보기/ }).click();

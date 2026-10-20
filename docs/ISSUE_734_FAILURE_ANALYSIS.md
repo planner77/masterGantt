@@ -127,3 +127,33 @@ Shard1은 앞선 F734-001의 `5폭 긴 이름·내부 overflow·열 정렬·nati
 - 이슈 #732 PR #761의 main 병합으로 원본 기준 main `08a1d9ff…` → `5ffe02a334d2279fabb63943c90614a7acfaf6ad` (3 commits), app 0.126.0→0.127.0, Issue #734 PR #759는 `behind=3/mergeable=false`인 **별도 merge-base drift**가 발생했다. #732의 신규 Milestone Dashboard·관리·테스트·문서/0.127.0은 보존하고 #734 후보를 **0.128.0 MINOR**로 재정렬한다. 변경 source/새 exact PR Head의 실제 local TypeScript/Vitest/Chromium/Docker 실행은 NOT TESTED이며 이전 PASS를 이관하지 않는다.
 - 문서 영향: 동일 Issue 실패 원장과 Work Packet, 최신 TEST_PLAN/PLAN, 양쪽 CHANGELOG/UX/API 등 동기화. 신규 #732를 삭제/대체하지 않음. GSC-01/03/07/08/09/11, 기존 권한/원본 편집 및 readonly, #730 인접 + #734 전용 및 #735 System/#732 Milestone 소비자를 Full PR 6-shard 영향 범위에 포함한다.
 - 보완 검증 인계: GitHub 원본 job log vs source/동일 query 계약의 **정적 분석만 수행**, 실제 Node/Chromium/SQLite/Docker는 로컬 GitHub DNS/checkout 부재로 **NOT TESTED**. 새 source가 검증되기 전 출시나 정식 GHCR 승인 없음; `HIGH/OWNER_MANAGED`, `release_required=true`, `release_authorized=false`, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`.
+
+
+## 7. F734-005 — Full PR CI #3070.1 Assignment 저장 후 Editor ready 관측 경합 (2026-10-20 UTC)
+
+### 원본 Run/Job/실제 실패
+
+- [Full PR CI #3070.1, Run ID 39496115287](https://github.com/planner77/masterGantt/actions/runs/39496115287), Attempt 1, event pull_request, PR #759 Head `6a78648a56d476b63e05363000b66ba0abc9a5a7`, Base main `5ffe02a334d2279fabb63943c90614a7acfaf6ad`. 실제 test-merge SHA는 독립 GitHub 원본 조회 전 **UNKNOWN**. 시작 `2026-10-20T20:55:28Z`; 전체 FAILURE.
+- QA Preflight `118881632396`, TypeScript `118881776933`, ESLint `118881777118`, Vitest `118881776827`, Policy `118881776834`, Fast Gate `118882589242`, Next Production Build `118882733847`, Docker smoke `118882733723` 모두 SUCCESS. Required Quality `118883581224`, Docker `118883993548` SUCCESS. E2E required `118887745995` FAILURE와 QA Final `118887795869` FAILURE(`required e2e 미성공` 파생 차단).
+- 실제 실패 [Chromium Shard 1, job 118882733867](https://github.com/planner77/masterGantt/actions/runs/39496115287/job/118882733867): `tests/e2e/issue-734-equipment-dashboard.spec.ts:137`의 `#734 정확 Task·Assignment 원본 취소와 일정 복귀는 경로·focus를 보존한다` 테스트. `2026-10-20T21:08:02Z`, line 153 `getByRole('dialog',{name:'작업 정보'}).getByRole('button',{name:'할당 저장 (1)'}).toBeEnabled()` → **Expected enabled / Received disabled / Locator assertion timeout 5000ms**. **14 PASS / 1 FAIL / 139 NOT RUN** (총154 test). 해당 테스트 실행 약41.6s이며 Playwright 전체 120s Test Timeout이 아님. [Playwright artifact 12297204517](https://github.com/planner77/masterGantt/actions/runs/39496115287/artifacts/12297204517) 원본 저장, Trace ZIP 재생 **NOT TESTED**.
+- 다른 Shard2(job `118882733662`) 개별71 PASS, Shard3(`118882733742`) 45 PASS, Shard4(`118882733806`) 37 PASS, Shard5(`118882733741`) 28 PASS, Shard6(`118882733825`) 32 PASS 후 모두 **CANCELLED**. 원본 로그에서 별도 직접 assertion FAIL 미관찰. 이들 Shard 전체 PASS·#730 수정 case 종단 검증을 단정하지 않는다.
+
+### 직전 F734-001~004 전체 대조·가설/보완
+
+| ID·Run | 과거 원본 실패 | 이 Run의 후속 증거 |
+| --- | --- | --- |
+| F734-001 #3058.1 | 272자 설비명 API400 | #3070.1은 해당 5폭 case에 도달하지 못함. #3061.1·#3064.1·#3066.1 개별 PASS 이력 보존 |
+| F734-002 #3061.1 | 공유 인스턴스 편집 승인 누락 후 PATCH wait120s | #3064.1 개별 PASS; #3070.1 후단 미실행 |
+| F734-003 #3064.1 | #730 인접 구형 ARIA 총계 locator180s | #3066.1/#3070.1 해당 Shard6은 취소/후단 미실행; 교정 source 존재하나 새 Full 최종 성공 UNKNOWN |
+| F734-004 #3066.1 | Page.Response 본문 navigate-away CDP 소실 | 새 source는 저장/확인 후 별도 API read-only 재조회로 교정; #3070.1 해당 후단 미실행 |
+| **F734-005 #3070.1** | Assignment PUT 응답 직후 버튼 disabled (5s) | 이번 교정 후 신규 exact-Head real Chromium NOT TESTED |
+
+**분류: FIXTURE_OBSERVABILITY / POST_MUTATION_READINESS**. 실제 `PUT /tasks/{taskId}/assignments`의 response.status **200을 관측**한 후 곧바로 `할당 저장(1)` 버튼 활성화를 검사했으나, `TaskAssignmentEditor.save`는 HTTP 응답 이후에도 `await onApplied() → ProjectTaskEditor.reload(true) → onReload(fetchCanonicalSnapshot) → revision/target/catalog 재조회 → ready` 단계를 가진다. 해당 5초 동안 UI가 disabled였다는 사실은 확정이나 **정확히 어떤 단계가 완료되지 않았는지/제품에 지속 lock 결함이 있는지는 원본 Trace 재생 없이 UNKNOWN**. 빠른 응답을 UI 동기화 완료로 등치한 테스트의 완료 판정이 취약하다. 이론상 렌더·재조회 부하에 노출되며 41.6초 실행으로 전체 120초 Test/35분 Job 부하 실패라고 결론 내릴 근거는 없다. git shallow fetch의 GitCommitInfo 3s 경고는 테스트 진행을 막지 않았다.
+
+**보완:** 해당 Test는 저장 전 **실제 Project revision**을 보관하고, PUT200 뒤 별도 `f.snapshot()`으로 **revision 정확히 +1**, 같은 Assignment ID·allocation.percent **정확히 50%**를 확인한다. 이어 실제 작업 Editor 헤더 `Revision {newRevision}`, 해당 Resource 투입률 값 `50`, 기존 `할당 저장(1)` 버튼 활성화를 **순차 확인**한 후 Escape/원본 Focus/일정 왕복을 유지한다. UI를 조기 활성화시키거나 강제 reload/retry·sleep으로 성공을 만들지 않으며 5초 button oracle 자체를 제거하거나 증가시키지 않는다. 신규 관측이 실패하면 실제 canonical/editor/selector 상태를 조사해야 한다. 전체 Test 120s/6Shard/Required3/fail-fast 변경 없음; Shard 재분배는 직접 해결책이 아니다.
+
+**누적 실패:** Issue #734 PR #759의 실제 Direct FAIL **5회/5 Full Runs** (#3058.1,#3061.1,#3064.1,#3066.1,#3070.1), **2 test files / 4 unique test cases** (`issue-734-equipment-dashboard.spec.ts`: 5폭, 설비 원본 저장, Task/Assignment 원본 취소·복귀; `issue-730-view-composer.spec.ts`: 인접 고유총계/원본 복귀). 같은 case의 F734-002/F734-004는 각각 별도 Run/원인으로 보존한다. 미실행은 모두 NOT TESTED.
+
+**상위 변경:** #736/PR #760 main 병합으로 현재 main `1c1938851aa8234febcba404f4007d6c94fb2233` / app0.128.0, 이전 main `5ffe02a334d2279fabb63943c90614a7acfaf6ad` 대비 +5commit; #734 Branch는 behind5, PR mergeable=false. #736의 Resource root/Plan·Excel·공통 WBS DTO/consumer/서비스·문서를 모두 보존하면서 #734 독립 설비 기능을 통합하고 후보 app version을 **0.129.0 MINOR**로 조정한다. Source 경계 소유권: #736 Resource 선택/Excel adapter는 #736, #734 equipment metadata/유형 filter는 #734; 공통 DTO/reader·ResourceDashboardService·UI consumer seam에서는 두 선택 계약을 독립 보존한다. #736 프로젝트 Excel writer나 허용 Root 정책을 전역 변경하지 않는다.
+
+**검증·인계:** 신규 candidate Source의 로컬 Node/TS/Vitest/real Chromium/SQLite/Docker는 현재 connector-only checkout 불가로 **NOT TESTED**. 원격 Source/로그와 Git Data blob/tree·PR 리뷰·Main ref의 정적 계약 분석만 수행한다. #734 8개 전용, #730 원본/response inversion, #732 Milestone/#735 System/#736 Resource/Excel, 기존 #729 원장·GSC-01/03/07/08/09/11 및 권한/readonly/409/412 등 부정 소비자를 새 Full CI 6 Shard에 보존하고 이후 결과는 모니터링하지 않는다. Owner HIGH/OWNER_MANAGED, release_required=true/release_authorized=false, manager_decision=NOT TESTED, MERGE_READY=BLOCKED. 새 Head Required3·QA·Owner 수용 전 merge/Main/GHCR/Issue 종료 없음.

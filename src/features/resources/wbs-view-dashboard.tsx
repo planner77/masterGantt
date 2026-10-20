@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type ComponentType } from "react";
 import type { WbsViewDimension, WbsViewNode, WbsViewReportDto, WbsViewSpec } from "@/contracts/wbs-dashboard-views";
 import type { ResourceDashboardFilterInput } from "@/contracts/resource-dashboard";
 import { ContextHelp } from "@/components/ui/context-help";
@@ -22,6 +22,9 @@ export interface WbsViewConsumer {
   renderSummary: (data: WbsViewReportDto) => ReactNode;
   renderSupplement?: (data: WbsViewReportDto) => ReactNode;
   renderFilters?: (context: { data: WbsViewReportDto | null; filters: ResourceDashboardFilterInput; onChange: (patch: Partial<ResourceDashboardFilterInput>) => void }) => ReactNode;
+  Controls?: ComponentType<{data: WbsViewReportDto | null; filters: ResourceDashboardFilterInput; onChange: (patch: Partial<ResourceDashboardFilterInput>) => void}>;
+  renderExtra?: (data: WbsViewReportDto, state: {locked: boolean; active: boolean; onStale: () => void}) => ReactNode;
+  rowAnnotation?: (data: WbsViewReportDto, node: WbsViewNode) => string | undefined;
 }
 export interface WbsViewDashboardProps {
   consumer?: WbsViewConsumer;
@@ -126,15 +129,17 @@ function WbsViewDashboardRoot({consumer,publicId,revision,root,active,busy,bindi
     <WbsViewComposer spec={state.spec} onApply={apply} onReset={reset} presets={consumer?.presets}/>
     {ConsumerControls ? <ConsumerControls spec={state.spec} onApply={apply} disabled={busy || !!drill.locked}/> : null}
     {warning ? <p role="alert">{warning} <button type="button" onClick={reset}>저장된 조회 초기화</button></p> : null}
-    {ConsumerFilters ? <ConsumerFilters data={data} filters={state.filters} onChange={changeFilters}/> : null}
     <div className={styles.controls}><label>표의 이름 찾기<input type="search" maxLength={200} value={state.rowSearch??""} onChange={event=>{cancelOriginal();setSelection(null);setState(previous=>({...previous,rowSearch:event.target.value,selected:null}));}}/></label><label>작업 검색<input type="search" maxLength={200} value={state.filters.taskSearch??""} onChange={event=>changeFilters({taskSearch:event.target.value})}/></label>
       <label>작업 상태<select value={state.filters.statuses?.[0]??""} onChange={event=>changeFilters({statuses:event.target.value?[event.target.value as "completed"|"not_started"|"in_progress"]:[]})}><option value="">전체</option><option value="not_started">시작 전</option><option value="in_progress">진행 중</option><option value="completed">완료</option></select></label>
       <label>조회 시작일<input type="date" value={state.filters.from??""} onChange={event=>changeFilters({from:event.target.value||undefined})}/></label><label>조회 종료일<input type="date" value={state.filters.to??""} onChange={event=>changeFilters({to:event.target.value||undefined})}/></label>
       <label>이름 정렬<select value={state.sort??"name-asc"} onChange={event=>{cancelOriginal();setState(previous=>({...previous,sort:event.target.value as "name-asc"|"name-desc"}));}}><option value="name-asc">오름차순</option><option value="name-desc">내림차순</option></select></label><button type="button" disabled={pending} onClick={()=>{cancelOriginal();setRefresh(value=>value+1);setSelection(null);}}>계층 새로고침</button></div>
+    {ConsumerFilters ? <ConsumerFilters data={data} filters={state.filters} onChange={changeFilters}/> : null}
+    {consumer?.Controls ? <consumer.Controls data={data} filters={state.filters} onChange={changeFilters}/> : null}
     {!validRange ? <p role="alert">종료일은 시작일보다 빠를 수 없습니다.</p> : null}{pending ? <p role="status">계층 조회 중…</p>:null}{error ? <p role="alert">{error} <button type="button" onClick={()=>{cancelOriginal();setRefresh(value=>value+1);}}>다시 시도</button></p>:null}
     {selection&&!currentSelection || data&&(!currentReport || staleSnapshot===data.snapshotId) ? <p role="status">조회 조건 또는 원본 snapshot이 바뀌었습니다. 새로고침 후 다시 선택하세요.</p>:null}
     {data && (!currentReport || pending || !!error || staleSnapshot===data.snapshotId) ? <p role="status">이전 조회 결과입니다. 최신 조회를 확인한 뒤 상세·원본 이동을 사용할 수 있습니다.</p> : null}
     {data ? <><p className={styles.subtle}>조회 기간 {data.range.from}–{data.range.to} · 기준일 {data.asOfDate} · 명시적 Task 문맥 기준</p>{state.rowSearch?.trim()?<p role="status" className={styles.subtle}>이름이 일치하는 행만 표시합니다. 고유 총계는 전체 서버 조회 결과를 유지합니다.</p>:null}{consumer ? consumer.renderSummary(data) : <dl className={styles.summary} aria-label="고유 총계"><div><dt>구성 설비 수량</dt><dd>{data.totals.configurationReference.equipmentQuantity}대</dd></div><div><dt>구성 시스템</dt><dd>{data.totals.configurationReference.systemCount}식</dd></div><div><dt>Task</dt><dd>{data.totals.tasks.taskCount}</dd></div><div><dt>Assignment</dt><dd>{data.totals.assignments.assignmentCount}</dd></div><div><dt>계획공수 M/D</dt><dd>{plannedEffort(data.totals.assignments.effort,"md")}</dd></div></dl>}
+      {consumer?.renderExtra?.(data,{locked,active,onStale:markStale})}
       <div ref={scroll} data-wbs-scroll className={styles.scroll} role="region" tabIndex={0} aria-label="공통 계층 표 스크롤" onScroll={event=>{const target=event.currentTarget;setState(previous=>({...previous,scroll:{top:target.scrollTop,left:target.scrollLeft}}));}} onFocusCapture={event=>{
         const row=event.target.closest<HTMLElement>("[data-view-row-key]");
         if(row)setState(previous=>({...previous,focus:row.dataset.viewRowKey??null}));
@@ -146,7 +151,7 @@ function WbsViewDashboardRoot({consumer,publicId,revision,root,active,busy,bindi
         const clamp=(value:number)=>Math.max(0,Math.min(owner.scrollWidth-owner.clientWidth,value));
         if(button.left<left)owner.scrollLeft=clamp(owner.scrollLeft+button.left-left);
         else if(button.right>right)owner.scrollLeft=clamp(owner.scrollLeft+button.right-right);
-      }}><WbsViewTable data={data} expanded={new Set(state.expanded)} sort={state.sort??"name-asc"} locked={locked} selected={state.selected?.viewRowKey??null} rowSearch={state.rowSearch} onToggle={key=>{cancelOriginal();setState(previous=>({...previous,expanded:previous.expanded.includes(key)?previous.expanded.filter(item=>item!==key):[...previous.expanded,key]}));}} onDetails={(node,element)=>{cancelOriginal();trigger.current=element;setSelection({node,snapshot:data.snapshotId,key:queryKey});setState(previous=>({...previous,selected:{viewRowKey:node.viewRowKey,path:node.path}}));}} onOriginal={onOpenEntity?openOriginal:undefined}/></div>
+      }}><WbsViewTable rowAnnotation={consumer?.rowAnnotation ? node => consumer.rowAnnotation!(data,node) : undefined} data={data} expanded={new Set(state.expanded)} sort={state.sort??"name-asc"} locked={locked} selected={state.selected?.viewRowKey??null} rowSearch={state.rowSearch} onToggle={key=>{cancelOriginal();setState(previous=>({...previous,expanded:previous.expanded.includes(key)?previous.expanded.filter(item=>item!==key):[...previous.expanded,key]}));}} onDetails={(node,element)=>{cancelOriginal();trigger.current=element;setSelection({node,snapshot:data.snapshotId,key:queryKey});setState(previous=>({...previous,selected:{viewRowKey:node.viewRowKey,path:node.path}}));}} onOriginal={onOpenEntity?openOriginal:undefined}/></div>
       {!data.children.length?<p>현재 조건에 해당하는 결과가 없습니다.</p>:null}
       {consumer?.renderSupplement?.(data)}
       <details><summary>조회 snapshot·원본 출처</summary><p className={styles.subtle}>snapshot {data.snapshotId} · Project revision {data.projectRevision}</p><pre className={styles.subtle}>{JSON.stringify(data.sourceContext,null,2)}</pre></details>

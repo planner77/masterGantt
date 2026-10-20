@@ -10,7 +10,19 @@
 
 **#734 F734-003 회귀(2026-10-21):** [원본 #3064.1](https://github.com/planner77/masterGantt/actions/runs/39485897399)의 Chromium shard6에서 인접 #730의 원본 Task/Assignment/일정 복귀 테스트가 이전 공통 '고유 총계' 접근성 이름을 사용하여 180초 Timeout. #734 설비 뷰는 실제 '설비 작업 고유 총계'와 '고유 Task 1건'이므로 선택자를 그 계약으로 교정하고 표 이름 검색 전후 총계 동일·응답 역전/오류·원본/복귀/focus 검증을 유지한다. 기존 #734 전용8 E2E는 해당 Run 취소 Shard1에서 개별 PASS였으나 Shard 전체는 CANCELLED. 3회 Run의 실제 실패 파일2개·case3개와 미실행 내역은 [단일 누적 원장](ISSUE_734_FAILURE_ANALYSIS.md) §5를 참조한다. 제품 변경·timeout/retries/skip/Shard 재배분 없음. 신규 Head 결과는 NOT TESTED.
 
-**#734 F734-004 (#3066.1 / 2026-10-21):** 설비 저장 E2E는 PATCH/Report 이벤트 뒤 화면 전환으로 Playwright Page.Response body가 소실돼 `refreshed.json()`에서 CDP `Network.getResponseBody` 오류(12PASS/1FAIL/137NOT RUN, 5 Shard CANCELLED). Browser PATCH200/조회200과 UI data-ready/confirmation 증가를 확인하고 동일 입력으로 별도 읽기 전용 APIRequestContext의 WBS POST JSON을 확보해 revision+1/snapshot 변화/spec 불변을 검증한다. WorkArea2·focus·원본명·mutation0→1 및 F734-001/002/003, #730/#732/#735 교차를 유지. 120s/6Shard/Required3/Fail-Fast/Retry/Skip 불변. main #732 v0.127.0을 보존하며 #734 후보 v0.128.0; 새 source의 Local/Remote QA는 NOT TESTED.
+**#734 F734-004 (#3066.1 / 2026-10-21):** 설비 저장 E2E는 PATCH/Report 이벤트 뒤 화면 전환으로 Playwright Page.Response body가 소실돼 `refreshed.json()`에서 CDP `Network.getResponseBody` 오류(12PASS/1FAIL/137NOT RUN, 5 Shard CANCELLED). Browser PATCH200/조회200과 UI data-ready/confirmation 증가를 확인하고 동일 입력으로 별도 읽기 전용 APIRequestContext의 WBS POST JSON을 확보해 revision+1/snapshot 변화/spec 불변을 검증한다. WorkArea2·focus·원본명·mutation0→1 및 F734-001/002/003, #730/#732/#735 교차를 유지. 120s/6Shard/Required3/Fail-Fast/Retry/Skip 불변. main #732 v0.127.0 및 #736 v0.128.0을 보존하며 #734 후보 v0.129.0; 새 source의 Local/Remote QA는 NOT TESTED.
+
+**#734 F734-005 (#3070.1, 2026-10-21):** Assignment PUT200 직후 작업 Editor `할당 저장 (1)` 버튼이 관측5초 내 비활성이라 FAIL(Shard1 14PASS/1FAIL/139NOT RUN). `onApplied → canonical reload → revision/assignment/catalog 재조회 → ready`는 PUT response와 별도 단계다. 테스트는 PUT 전후 실제 Project revision 정확히+1, 해당 Assignment ID/투입률50을 확인한 뒤, Editor Revision/투입률50 및 버튼 enabled를 통해 완료를 검증한다. 정확한 미완료 내부 단계는 아직 UNKNOWN이다. 원래5초 버튼 단언/120초 Test budget/6Shard/Required3/Retry/Skip 불변. 이전 F734-001~004와 신규 case의 누적 실제 실패 합집합 2files·4cases/5runs는 [#734 단일 원장](ISSUE_734_FAILURE_ANALYSIS.md) §7을 따른다. #736 Resource root/Plan/Excel 회귀는 보존, 신규 Candidate 0.129.0의 실제 Chromium은 NOT TESTED.
+
+## Issue #736 — 리소스 관점과 Plan/Excel 인수
+
+F736-003 재실패는 exact Project/spec/filter/scope/projection을 결속한 report body receipt와 단계별 필터 완료로 교정한다. 새 결정적 observer 회귀는 이전 조건/다른 spec·scope 응답을 제외하며 기존 broad matcher 통제 RED와 개선 GREEN을 구별한다. 새 #736 전체5case와 #622 Plan/Excel·#730 지연/원본2case를 직접·인접·음성으로 검증하고 TypeScript guard/기존 Excel Unit도 보존한다. 세 원격 실패/취소10Shard·시간 비교와 실제 결과는 [단일 원장 F736-003](ISSUE_736_FAILURE_ANALYSIS.md#f736-003--full-pr-ci-30651-이전-필터-응답의-body-관측-경합-2026-10-21-kst)을 따른다. 26.9초 assertion/body 실패를35분 shard Timeout으로 취급하거나 timeout/retry/skip을 확대하지 않는다.
+
+[Work Packet](exec-plans/active/ISSUE_736.md)의 AC1~AC5와 기능 보존 인벤토리를 같은 source에서 검증한다. 새 `tests/features/resources/resource-wbs-dashboard-model.test.ts`는 Resource root/preset·참여 상태/미산정·고유 서버 총계·WBS Excel strict payload를 확인한다. `tests/server/resources/issue-736-resource-adapter.test.ts`는 Target0/direct+Target 원장·개인/역할 동일 Assignment·shared5/공동담당7.5·선택80/Project140/기존 Capacity R·M/M null·같은 snapshot current/project OOXML·Project 격리·위조/stale 및 기존 보안/크기 오류를 확인한다. 지원과 실제 실행 결과는 구별한다.
+
+`tests/e2e/issue-736-resource-dashboard.spec.ts`는 실제 SQLite/HTTP consumer의 개인/두 계층·등록-only/역할-only/미설정·Plan/Excel·정확 Assignment 편집 복귀 및 390/768/1024/1440/1920px keyboard/focus/표 내부 overflow·stale/오류 복구를 검증한다. 기존 #621/#622/#623/Resource Excel·Milestone·#730 composer 소비자도 변경 영향에 포함한다. 새 browser test/Unit 결과는 Work Packet에 명령·개수·최초 실패를 기록하고 remote 전체6Shard/Required3와 혼동하지 않는다.
+
+전체 공식 회귀는 새 exact Head의 Quality/E2E/Docker 및 default-main Trusted QA·Owner 승인으로 별도 확인한다. 이번 요청은 PR Full CI 시작에서 종료하므로 이후 완료 결과는 NOT TESTED다. 실제 Windows Excel/VBA/DRM·수동 touch/스크린리더·운영 환경은 별도 미검증이다. CI gate/timeout/retry/skip을 완화해 성공시키지 않는다.
 
 ## Issue #735 — 시스템 root 직접/조율 및 정확 교차 조회
 

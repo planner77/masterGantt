@@ -2,7 +2,25 @@
 
 설비 전용 consumer는 #728/#729의 서버 고유 합집합과 기존 Calendar/allocation/환산 정책을 그대로 표시한다. 개인 미배정 Task도 일반 업무 KPI에 남으며 Owner 책임 역할만으로 Assignment/공수/Capacity를 만들지 않는다. 원본 수량·작업 진척·계획 M/D/MM·미설정·전체 Milestone Gate는 다른 지표다. 다중 WorkArea/Milestone의 소계를 더하지 않고 같은 Assignment는 상위에서 한 번 계산한다.
 
-설비 유형 선택은 서버 조회 조건이다. 같은 Task의 업무 연관은 실제 제어 소속이 아니며 정확한 Task/Assignment ID와 source/snapshot을 기존 editor/drill로 전달한다. 기존 Resource Plan·Capacity R·과투입·견적/Excel 계산과 #624/#731 KPI는 유지한다. 새 WBS view spec Excel은 기존 미지원 경계를 유지한다. [설비 수치 정의](LOGISTICS_DASHBOARD.md#issue-734--설비-최상위-관점), [검증](exec-plans/active/ISSUE_734.md).
+설비 유형 선택은 서버 조회 조건이다. 같은 Task의 업무 연관은 실제 제어 소속이 아니며 정확한 Task/Assignment ID와 source/snapshot을 기존 editor/drill로 전달한다. 기존 Resource Plan·Capacity R·과투입·견적/Excel 계산과 #624/#731 KPI는 유지한다. 설비 root의 동적 Excel은 미지원이며 Resource root는 #736의 동일 출처 Export 계약을 지원한다. [설비 수치 정의](LOGISTICS_DASHBOARD.md#issue-734--설비-최상위-관점), [검증](exec-plans/active/ISSUE_734.md).
+
+## Issue #736 — 리소스 고정 관점과 기존 분석의 보존
+
+리소스 관점은 Target0에서도 `root=resource`·하위 없음으로 시작하고 개인 browser 설정은 보존한다. `리소스→공정→WorkArea→[설비 | 물류 시스템]`, `리소스→Milestone→공정`은 조회 preset이며 축 추가·삭제·재정렬은 원본 WBS/배정/Target을 변경하지 않는다. 새 계산기를 만들지 않고 #728 원장·#729 snapshot API·#730 renderer와 기존 Resource/Plan/Excel 산식을 사용한다.
+
+| 지표/상태 | 원본·범위와 계산 |
+| --- | --- |
+| 명시 등록/역할 사용/개인 배정/비활성 | 동일 snapshot 구성 참고. 등록-only와 역할-only는 Assignment·투입률·실적이 아니다. 전역 전체 사람을 프로젝트 인원으로 간주하지 않는다 |
+| 관련 작업·완료·지연·기간가중 진척 | 현재 source/selector의 고유 일반 Task. 진척=`Σ(duration×progress)/Σ(duration)`·분모0=null, 지연=미완료이며 계획 종료일<기준일 |
+| 개인 계획 M/D·M/M | 같은 Resource의 고유 `(projectPublicId,assignmentId)`와 기존 Calendar/allocation·환산 설정. 다른 공동담당자·역할 참조 공수는 포함하지 않음 |
+| 미설정/부분합/설정0/작업0 | `unset`/`partial`/configured zero/empty를 보존. M/M 환산 미설정은 null이며 사람 수·설비 수량으로 공수를 생성하지 않음 |
+| 담당 공정·설비·System·Milestone | 같은 개인 Assignment의 Task 교집합. 책임 역할·프로젝트 참여만으로 다른 Task/사람을 포함하지 않음 |
+| 선택 부하/Project 전체 참고/Capacity | 기존 Plan의 동일 R·resource-day Calendar 기준. 선택80%여도 다른 대상60%를 포함한 Project140%를 유지하며 등록 인원으로 R을 확대하지 않음 |
+
+다중 WorkArea·공정·Group·Milestone 경로에 같은5M/D Assignment가 반복되더라도 고유 총계는5M/D다. 행·소계는 근거이며 Project 전체로 재합산하지 않는다. Task 완료/진척과 실제 근무실적·물리 설치율은 구별한다. Milestone 선택 작업과 전체 Ready/Blocked/Completed Gate를 분리한다.
+
+기존 기본 현황·Group/Role·등급·Milestone/Target 계층·비교·주월 Plan·일별 상세·개인 Peak/과투입·개발자 견적·Excel은 보조 분석 경로에서 보존한다. 새 개인/동적 조건과 기존 분석의 독립 필터를 같은 조건이라고 표시하지 않는다. 정확 Assignment 편집과 선택 밖 과투입 원인 수정 후 출발 조건/상세로 복귀한다. 지원 Excel의 새 source/snapshot 경계는 [Excel 계약](EXCEL_EXPORT.md#issue-736--리소스-동적-조회와-excel), 보존 인벤토리와 실제 검증은 [Work Packet](exec-plans/active/ISSUE_736.md)을 따른다.
+
 ## Issue #735 — 시스템 관점의 단위와 작업 범위
 
 시스템 관점은 같은 WBS 원장을 직접 또는 명시 조율 범위로 선택한다. 고유 System1식·실제 제어 설비 관리단위/quantity는 구성 참고이고, 고유 일반 Task·완료/지연·기간가중 진척과 개인 Assignment의 M/D/M/M는 현재 서버 선택이다. 같은 원본의 여러 공정/구역/Target 경로 소계는 비가산이다. PI/개발자 책임 등록은 개인 Assignment·공수·Capacity R를 만들지 않는다.
@@ -29,7 +47,7 @@ Legacy 문맥·명시 공정 없음의 원본 문맥 진단은 전체 canonical 
 
 공통 조회 UI는 #729 view spec/report/details/scope를 그대로 사용한다. root와 하위 경로 변경은 저장 WBS나 Assignment를 바꾸지 않는다. 고유 Task·개인 Assignment·기간가중 진척·계획 M/D/M/M은 서버 원시 합집합 값이며 구성 수량/등록 인원·중첩 소계와 분리한다. 하위 소계를 합쳐 상위 지표를 재계산하지 않으며 등록-only/작업0·미배정·미설정·null을 빈 성공이나 오류로 대체하지 않는다.
 
-설비/System 형제 분기는 동일 깊이·동일 후속 축을 사용한다. 다중 WorkArea의 동일 설비와 Task/Assignment는 경로별 viewRowKey가 다르지만 원본은 같다. 상세/일정 이동은 선택 path와 snapshot을 재검증하고 exact Task/Assignment 교집합을 유지한다. full Milestone Gate는 선택 작업 완료와 별도다. 기존 Resource KPI/Plan 및 Target 호환 조회는 계속 제공하며 새 spec의 Excel 미지원 계약을 기존 workbook으로 우회하지 않는다. [Project UX](PROJECT_UX.md), [Work Packet](exec-plans/active/ISSUE_730.md)을 따른다.
+설비/System 형제 분기는 동일 깊이·동일 후속 축을 사용한다. 다중 WorkArea의 동일 설비와 Task/Assignment는 경로별 viewRowKey가 다르지만 원본은 같다. 상세/일정 이동은 선택 path와 snapshot을 재검증하고 exact Task/Assignment 교집합을 유지한다. full Milestone Gate는 선택 작업 완료와 별도다. 기존 Resource KPI/Plan 및 Target 호환 조회는 계속 제공하며 Resource root Excel은 위 #736의 동일 출처 계약을 사용하며 다른 root의 미지원 조건을 기존 workbook으로 우회하지 않는다. [Project UX](PROJECT_UX.md), [Work Packet](exec-plans/active/ISSUE_730.md)을 따른다.
 
 ## Issue #729 — versioned WBS 조회 소비 계약
 
