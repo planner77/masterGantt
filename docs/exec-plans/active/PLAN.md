@@ -1261,3 +1261,7 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 #715 문서 PR #716이 통합된 main d2768676/application0.116.0에서 `feat/issue-719-contextual-help`로 제품 구현을 진행한다. PATCH0.116.1, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false다. [Work Packet](ISSUE_719.md)의 화면별 inventory·공통 도움말·핵심 경고 보존·동일 fixture5폭 측정·기존 상태 교차 회귀와 DOCUMENTATION_SYNC를 따른다.
 
 사용자 요청 종료점은 구현·리뷰 thread/충돌 정리·최신 Head Full PR CI 시작이다. CI 모니터링·병합·Main/GHCR·Finalizer·정식 게시·Issue 종료는 수행하지 않으며 원격 Required3/Trusted QA/Owner ACCEPT는 NOT TESTED다. 기존 #717 이름/ID 표시는 별도 범위로 유지한다.
+
+## Issue #732 — Milestone 최상위 동적 대시보드
+
+최신 main `05f1e560eee456e6fba5535255c9ede30a357c16`의 공통 #729/#730 조회와 기존 Milestone 관리에 전용 consumer를 연결한다. root 단독·두 사용자 계층·선택 지표/전체 Gate 분리와 생성/소속/관계/필터·marker OFF를 보존한다. 실제 역할·파일 소유권·AC/테스트·문서 영향은 [Work Packet](ISSUE_732.md)을 따른다. 후보0.127.0 / HIGH / qa_required=true / OWNER_MANAGED / release_required=true / release_authorized=false. 요청 범위는 구현·문서·리뷰/충돌 정리·새 PR CI 시작까지이며 CI 모니터링·병합·main/GHCR·Issue 종료를 포함하지 않는다. 원격 Required3/Trusted/Owner 최종 승인 NOT TESTED.

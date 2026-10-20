@@ -4891,6 +4891,14 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 - Exact-HEAD requirements: corrective PR Full CI original source Run/attempt/Head/base/test-merge, Quality + complete E2E 6/6 + Docker, Trusted QA/Owner HIGH, zero unresolved review threads, strict latest main. If all pass, non-force protected merge using `scripts/main_ci_run_name.py` canonical Korean title and empty body; **new Main push CI must run on the new merge SHA**. New Main Shard4 and recipient 5/6 wall-clock/memory/setup and per-file timing must meet existing 35min and complete with no cancellation; verified `ci-<new merge SHA>` candidate/digest/SBOM/provenance is prerequisite to formal `v0.125.0` release workflow, GHCR same digest promotion, Finalizer safe branch cleanup and Issue closure. Previous Main run remains CANCELLED historical evidence.
 - Product/API/DB/DESIGN/MANUAL N/A: no feature or runtime source changed. Documentation/test infra only, HIGH due protected `tests/config/**` and release lifecycle. Existing v0.125.0 Owner marker scope remains, new PR Owner Manager ACCEPT is independent. If new PR CI runs only, subsequent gates are NOT TESTED/BLOCKED, no CI completion monitoring as Owner requested.
 
+## Issue #732 — Milestone 전용 consumer 회귀
+
+[Work Packet](exec-plans/active/ISSUE_732.md)의 AC1~AC5를 검증한다. 전용 feature test는 root 단독/두 editable 예시·선택 지표/전체 Gate·빈 상태를, 실제 SQLite service test는 Target0/E1-t1-M/E2-t2-M 경로 교집합·외부 미완료 소속/선행·명시 Completed·WorkArea Task/Assignment dedup·read mutation0을 검증한다. 기존 membership0..1·상속/override와 원장/Gate authority는 변경하지 않는다.
+
+전용 Chromium spec은 실제 Dashboard 생성/필터 밖 안내·동일 원본/복귀와 390/768/1024/1440/1920px의 표 내부 overflow·keyboard/focus·readonly·marker OFF/Gantt instance·조회 mutation0을 확인한다. 기존 Milestone management/Task Editor·공통 WBS stale/역전·401/412·Resource/Gantt spec은 간접 영향 회귀다. 합성 mock, 실제 SQLite/HTTP, 실제 browser, 원격 Required aggregate 결과는 구별한다. 로컬 빠른 검증은 공식 전체 CI PASS가 아니며 새 Head Required Quality/E2E/Docker·Trusted QA·최종 승인과 환경별 수동 UX는 실제 증거 전 NOT TESTED다.
+
+직접 실행 파일은 `tests/features/milestones/milestone-wbs-dashboard.test.ts`, `tests/server/resources/issue-732-milestone-views.test.ts`, `tests/e2e/issue-732-milestone-dashboard.spec.ts`다. 생성 pending/dirty·401/412/network·초안 취소·외부 revision stale는 기존 `tests/e2e/milestone-management.spec.ts`에서 영향 case를 선별한다. 원장/Gate의 간접 unit 회귀는 `tests/domain/milestone-stage-gates.test.ts`, `tests/domain/wbs-task-ledger.test.ts`, `tests/domain/wbs-task-ledger-acceptance.test.ts`다. null 날짜 snapshot의 화면 방어는 정적 코드 검토 범위이며 실제 생성 API/SQLite의 날짜 필수 계약을 우회한 테스트를 만들지 않는다.
+
 
 ## Issue #735 — main 정렬 후 Copy ID 실패 교차 확인 (2026-10-20)
 

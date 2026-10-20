@@ -1,0 +1,107 @@
+# Issue #732 — Milestone 최상위 동적 Dashboard
+
+## Issue Work Packet
+
+- Issue: [#732](https://github.com/planner77/masterGantt/issues/732), 상위 #723; 선행 #724/#728/#729/#730, 관련 #459~#464/#548/#550/#552/#624/#733/#720.
+- baseline_sha: `05f1e560eee456e6fba5535255c9ede30a357c16` (main); branch: `feat/issue-732-milestone-dashboard`; 별도 worktree로 기존 작업·증거 보존.
+- baseline_version: `0.125.0`; candidate_version: `0.126.0` (사용자 Milestone 관점 확장 MINOR; dependency 변경 없음).
+- lifecycle_phase: IMPLEMENTATION → LOCAL_FAST_FEEDBACK → DOCUMENTATION_SYNC → PRE_QA → PR_CI.
+- risk_level: HIGH; risk_reason: Milestone 전체 Gate/선택 원장 범위, 기존 생성·편집과 canonical/원본 복귀에 영향.
+- qa_required: true; qa_method: OWNER_MANAGED; independent_qa: N/A(Owner-managed 최종 경로); manager_decision: NOT TESTED; MERGE_READY: BLOCKED.
+- 별도 qa_docs의 실제 사전 검토는 최종 Trusted QA/Owner 승인과 구분한다. 새 Head의 Required Quality/E2E/Docker·Trusted QA·최종 승인 NOT TESTED.
+- release_required: true; release_authorized: false. 구현·PR CI 시작은 정식 릴리스 승인이 아니다.
+- issue_comment_writer: manager; issue_comment_allowed_types: PLAN, STATUS, EXCEPTION.
+- 요청 종료점: 구현·문서 갱신·리뷰 스레드/충돌 정리·새 Full PR CI 시작. CI 모니터링·병합·main/GHCR·tag/Release·Finalizer·브랜치 삭제·Issue 종료 제외.
+
+## 역할·파일 소유권
+
+- milestone_design / ui_ux: DESIGN/UI_UX_GUIDELINES 및 Milestone 표시/Gantt 상태 계약에 근거한 읽기 전용 설계.
+- milestone_frontend / frontend: `src/features/milestones/**`, Project host의 Milestone 연결·생성 안내, 전용 feature/E2E 테스트.
+- milestone_contract_tests / backend: 신규 `tests/server/resources/issue-732-milestone-views.test.ts`의 실제 SQLite/read service 수용 검증만 소유.
+- Manager: 통합·문서·version·GitHub 게시. 공통 WBS renderer/API/원장 및 Gate 계산은 재사용하며 동시 쓰기 금지.
+- qa_docs: 구현·문서 동기화 뒤 읽기 전용 독립 사전 검토. 구현자 자체 PASS를 독립 QA로 사용하지 않는다.
+
+## 구현과 Design Delta B
+
+기존 generic Milestone root를 전용 consumer로 연결하며 공통 composer/table/detail·Project/root 저장 설정을 재사용한다. 기본 root 단독과 수정 가능한 `Milestone→공정→WorkArea→[설비|물류 시스템]→리소스`, `Milestone→리소스→공정` 예시를 제공한다. 설정은 개인 브라우저 상태이며 Task/WBS/Project 업무 revision을 갱신하지 않는다.
+
+전용 요약은 현재 조건의 고유 일반 Task·완료/지연·기간가중 진척, 개인 Assignment 계획공수·미설정, 미배정·미연결 진단과 전체 canonical Gate를 구분한다. 구성/공수/Gate 모집단과 중첩 경로 소계를 합산하지 않는다. 전체 소속0과 조건 밖0, 날짜 미정을 다른 상태로 읽는다. `E1→M`에서 t1만 선택돼도 M의 다른 E2-t2 및 직접 선행 조건은 전체 Gate에 남는다.
+
+현재 저장/API 계약은 Task/Summary의 explicit 0..1 + 상속된 단일 effective Milestone다. #732의 복수 Milestone 문구를 근거로 다중 소속 writer·schema를 만들지 않으며, 여러 관점/공정/WorkArea/Resource 경로에 중복된 Task/Assignment의 고유 합집합을 보존한다. 이 경계는 기존 MILESTONE_STAGE_GATES가 Source of Truth이며 복수 effective 소속의 신규 모델은 비범위다.
+
+Milestone 생성·기존 목록/검색/기간/상태·KPI·명시 Completed·삭제 보호·편집·소속·관계/일정 이동은 기존 Dashboard와 동일 API/editor를 유지한다. 생성 성공은 정확한 새 ID의 Editor로 연결하고 필터 때문에 목록에서 안 보일 수 있다는 접근 안내를 제공한다. 필터를 자동 초기화하지 않는다. readonly/dirty/pending/stale·401/412와 같은 원본 저장/복귀 gateway를 사용한다. marker OFF·native Milestone 행 분리·단일 Gantt coordinator/viewport writer를 보존한다.
+
+## 기능 보존표
+
+| 기존 기능 | 구현 후 경로 |
+| --- | --- |
+| Milestone 추가·이름/날짜 생성 | 같은 Dashboard 버튼·MilestoneCreateDialog·기존 생성 API·정확 새 ID Editor |
+| 검색/기간/기준일/상태/임박·원본 필터 | 기존 ProjectMilestoneDashboard 유지; 새 계층 조건과 별개 |
+| 목록·지표별 Milestone 확인 | 기존 관리 표와 KPI 선택·해제·초점 유지 |
+| 이름/날짜/상태/명시 Completed 편집 | 같은 canonical Task Editor·Gate guard |
+| 전체 소속·상속/override·직접 선행 | 기존 membership/관계 Editor 및 full Stage projection |
+| 삭제/일반 Task 전환 보호 | 기존 server/host capability·권한·revision·완료 구조 잠금 |
+| 정확 소속 Task 일정/리소스 이동 | 기존 ID/source provider; 숨은 native Milestone 선택·marker 임시 ON 없음 |
+| 조건 밖 생성·빈 목록·날짜 미정 | 생성 성공 안내·정확 Editor 접근; 전체 소속0/조건 밖0 별도 |
+| 원본·Task/Assignment 편집 및 복귀 | 공통 exact snapshot scope 검증과 기존 host/editor/복귀 lease |
+
+## AC_TEST_COVERAGE
+
+- AC1: 기존 Milestone 생성/편집/삭제 보호·membership/관계/필터 보존표; milestone 관리 관련 기존 feature/E2E + 신규 전용 consumer spec.
+- AC2: `tests/features/milestones/milestone-wbs-dashboard.test.ts`와 `tests/server/resources/issue-732-milestone-views.test.ts`, 신규 Milestone dashboard E2E; Target0/root 단독·두 수정 계층·typed 설비/System 형제.
+- AC3: 신규 SQLite service test의 E1-t1-M/E2-t2-M 경로 격리·전체 member/선행 Blocked·명시 Completed·WorkArea Task/Assignment 고유 총계; 기존 Gate/domain 원장 회귀.
+- AC4: 전용 E2E와 기존 Milestone management/Task Editor의 생성 성공·실패/readonly·401/412·pending/stale·필터 밖 생성·정확 원본/복귀; 날짜미정/member0/selected0 구별.
+- AC5: 전용 E2E의 390/768/1024/1440/1920px·keyboard/focus/내부 overflow·readonly·조회 mutation0/Gantt instance/marker OFF; 기존 Milestone/Gantt/Resource 회귀는 원격 Required CI.
+
+## DOCUMENTATION_SYNC
+
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/RESOURCE_KPI_DASHBOARD.md`: UPDATED
+- `docs/MILESTONE_STAGE_GATES.md`: UPDATED
+- `docs/TARGET_RESOURCE_USER_GUIDE.md`: UPDATED
+- `docs/REQUIREMENTS.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/ISSUE_732_FAILURE_ANALYSIS.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_732.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `DESIGN.md`: N/A(기존 Light/system font/semantic token·동적 조회·이름 우선 원칙의 전용 consumer 적용이며 전역 디자인 원칙 변경 없음)
+- `docs/UI_UX_GUIDELINES.md`: N/A(기존 공통 구성기·표 내부 scroll·focus/권한/상태 규칙을 그대로 적용하며 새 공통 interaction 규칙 없음)
+- `docs/MILESTONE_PRESENTATION_POLICY.md`: N/A(marker OFF·native Milestone 행 분리·상세/소속 Task 이동 정책 변경 없음)
+- `docs/GANTT_STATE_CONSISTENCY.md`: N/A(기존 coordinator·canonical gateway·복귀 계약 소비이며 viewport/axis writer 변경 없음)
+- `docs/GANTT_STATE_CONFORMANCE.md`: N/A(기존 상태/SC 계약과 tolerance·timeout·gate를 변경하지 않음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(Gate/Calendar/scheduling 산식 및 membership 저장 계약 변경 없이 기존 read 결과 표시)
+- `docs/API.md`: N/A(기존 versioned views와 Milestone 생성/편집 API 소비이며 endpoint/DTO/권한 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(기존 explicit 0..1/effective 소속·원본 테이블 유지 및 migration 없음)
+- `docs/ARCHITECTURE.md`: N/A(기존 consumer·read projection·editor host 재사용이며 계층/경계 변경 없음)
+- `docs/SECURITY.md`: N/A(기존 server authorization/Origin/revision gateway 유지하며 보안 계약 변경 없음)
+- `AGENTS.md`: N/A(실행 지침과 역할/승인 정책 변경 없음)
+- `docs/QA_REVIEW_POLICY.md`: N/A(최종 QA/Owner 정책 변경 없음)
+- `docs/ISSUE_LIFECYCLE.md`: N/A(기존 단계·문서·원격 gate를 준수하며 정책 변경 없음)
+- `docs/CI_CD.md`: N/A(후보 SemVer만 기존 정책대로 갱신하며 CI workflow/release 정책 변경 없음)
+- `docs/REMOTE_VALIDATION.md`: N/A(기존 Required3와 exact Head/attempt 증거 계약 변경 없음)
+
+#720의 제품 `/manual`·registry는 baseline에서 NOT IMPLEMENTED다. `dashboard.milestones`의 사용자 절차는 기존 사용자 가이드의 Milestone 절을 이번 PR에서 갱신한다. 전역 매뉴얼 아이콘/route 구현이나 #720 완료를 주장하지 않는다.
+
+## 실제 모델·환경 경계
+
+정상 SQLite의 Milestone은 날짜 필수이며 null 날짜 신규 생성은 지원하지 않는다. 날짜 미정 표시는 예외 snapshot의 방어 UI일 뿐 API/DB 계약 확장이 아니다. `blocked=true`는 미완료 직접 선행 조건이고 소속 Task만 미완료면 `ready=false/blocked=false`인 Not Ready다. member0는 수동 이벤트·Ready N/A로 표시한다. 명시 Completed와 파생 판정은 구별한다.
+
+## 검증 상태와 인계
+
+구현과 문서 동기화를 완료했으며 새 Gate 요약의 수동 이벤트/선행 차단 누락 R732-001도 보완했다. 독립 `milestone_preqa`가 source/AC/문서와 해당 수정을 읽기 전용으로 재검토했다. 이 사전 검토는 원격 QA_FINAL·Owner 최종 승인과 별개다.
+
+- pinned frozen install: `npm ci --offline --no-audit --no-fund` exit0, 447packages/24초. 실제 Next/@next/env16.3.8, Playwright1.63.0, Vitest5.0.0, Node22.14.0.
+- 최종 pinned Unit/SQLite/domain: `npx vitest run --config tests/config/vitest.config.ts tests/features/milestones/milestone-wbs-dashboard.test.ts tests/server/resources/issue-732-milestone-views.test.ts tests/domain/milestone-stage-gates.test.ts tests/domain/wbs-task-ledger.test.ts tests/domain/wbs-task-ledger-acceptance.test.ts` — 5files/55tests PASS, 3.60초.
+- 초기 installedNext16.3.4의 feature/server/domain54PASS·수정후feature5PASS·전용browser4PASS는 진단 이력으로만 보존한다. 같은 frozen install의 결과로 재사용하지 않는다.
+- 브라우저는 최종 source의 5폭/keyboard/marker0와 조건 밖 생성/정확 원본/안내 닫기 focus 두 case를 pinned 환경에서 선별 재실행한다. 기존 #550 생성401/412/network·pending/dirty/stale와 나머지 전용2case는 고정 의존성 로컬 재실행 전 NOT TESTED이고 새 PR의 기존 전체 E2E에 맡긴다.
+
+ 새 Head quality/e2e/docker·Trusted QA·Owner ACCEPT NOT TESTED. 이전 Issue의 원격 성공을 새 Head 증거로 재사용하지 않는다. 첫 실패부터 `docs/ISSUE_732_FAILURE_ANALYSIS.md`에 누적하며 skip/retry로 실패를 숨기지 않는다.
+
+최종 pinned 검사: `npm run typecheck` 및 변경 TS/TSX·테스트7파일 대상 ESLint exit0. `npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-732-milestone-dashboard.spec.ts --project chromium --grep '5폭과 keyboard|조건 밖 생성'` — 2/2 PASS, 총2.7분(5폭/keyboard/marker0 53.6초, 조건 밖 생성/정확 원본 재진입/안내 닫기 초점45.1초). synthetic 390/1440 화면은 `docs/evidence/issue-732/after-390.png`, `after-1440.png`다. 화면은 실제 keyboard·HTTP·DB 검증을 대체하지 않는다. 자동 생성 next-env/tsconfig 변화는 정확 HEAD 내용으로 복원하고 게시하지 않는다.
+
+독립 Agent `milestone_preqa` PRE_QA: 코드·문서 PASS, 미해결 P1/P2 0건. R732-001 수정·초점 복귀·전체/선택 범위와 기존 API/DB 경계를 검토했다. Reviewer의 반환 시점에는 마지막 생성 browser case가 NOT TESTED였으나 이후 Manager가 실제2/2 완료를 확인했다. 최종 QA/Owner ACCEPT 및 공식 원격 전체 회귀는 여전히 NOT TESTED다.
+
+## 최신 main 통합과 게시 재개
+
+게시 대기 중 #735가 main `08a1d9ff25a97aba67f08d6b67029ac55d45121a`/version0.126.0으로 병합됐다. 기존 baseline/후보0.126.0/로컬 검증은 위 역사 기록으로 보존한다. 최신 main을 통합하고 CHANGELOG·TEST_PLAN의 문서 충돌 두 곳에서 #732/#735 내용을 모두 유지했다. 새 #732 후보는 MINOR `0.127.0`으로 package/lock/CHANGELOG를 동기화한다. 정식 release_authorized=false 및 PR CI 시작까지만이라는 요청 범위는 그대로다. 공통 WBS의 #735 additive controls/system spec 변화와 Milestone consumer 호환은 새 tree에서 관련 unit/SQLite/typecheck로 다시 확인하며 원격 Required3/Trusted/Owner 판정은 새 Head에서 NOT TESTED다.
