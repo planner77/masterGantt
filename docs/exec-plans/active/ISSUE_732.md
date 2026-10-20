@@ -121,3 +121,10 @@ Milestone 생성·기존 목록/검색/기간/상태·KPI·명시 Completed·삭
 - 생산자/소비자: Historical `tests/config/e2e-shard-plan.json`의 116 explicit +19 hash fallback spec = 실제 135개 E2E 파일. #735 System1→2, #732 Milestone1→3, Gantt recovery1→4, #736 Resource5→2. 이전 #733 수동 조정 보존, 이동 외131개 동일 배정, 완료 후 파일수21/25/24/23/21/21. 새 spec 누락 검출용 `tests/scripts/e2e-shard-planner.test.ts` 회귀 추가; runtime fallback은 그대로 두어 누락 없이 실행.
 - 검증·AC: 정적 출처/선택 집합·중복0 분석; 실제 Vitest/Chromium/Build/Docker 로컬 NOT TESTED. 이번 교정 PR Full Quality/E2E6/Docker·Trusted QA exact-Head, 리뷰0, Owner HIGH 수용 필요. 기존 #732 4 browser, #735 6, #736 5, Gantt, Excel 마지막 미완료 case를 포함하여 전체 E2E 검증. 기존 35분/6Shard/worker1/CI gates/skip·retry·assertions 모두 유지.
 - 문서: 원장 F732-005/이 Work Packet/TEST_PLAN M732-001 수정. DESIGN/API/DB/ARCHITECTURE/CI_CD/AGENTS/CHANGELOG/매뉴얼: 앱·CI 정책과 SemVer 자체 변경 없으므로 N/A. 현재 버전 0.128.0 유지, release/Finalizer/Issue close BLOCKED. manager_decision=NOT TESTED, MERGE_READY=BLOCKED, QA=OWNER_MANAGED/HIGH. 교정 PR CI 시작까지만 요청되었고 추후 모니터링·병합·Main·GHCR 수행하지 않음.
+
+### 2026-10-21 PR #3072.1 Shard2 33.2분 경보 및 병합 전 추가 균형화
+
+- 기존 [Full PR CI #3072.1](https://github.com/planner77/masterGantt/actions/runs/39501650409)은 REQUIRED3·QA 모두 성공했으나 Shard2 Job 33.2분(35분 한계까지1.8분), Shard4 30.2분. 사용자 지시에 따라 해당 성공 HEAD 그대로 병합하지 않고 후속 재배분을 동일 #732 PR #763에 추가한다.
+- 변경 위치: System #735 2→5, project-transfer 2→1, canonical projection 2→3, logistics-target authoring 4→1, project-task-delete 4→3, view composer #730 6→5. 기존 첫 교정(#732 Milestone3, #736 Resource2, Gantt recovery4)과 #733 관련 이동은 보존. 135파일 전체 명시/중복·누락0, Shard 파일 수23/22/26/21/23/20.
+- 성공 PR 실측 Job 분16.6/33.2/22.0/30.2/18.0/27.4에 이사한 테스트의 본문 시간만 적용한 임시 예상22.5/25.5/25.1/25.2/24.9/24.2분은 예측일 뿐. 새 HEAD에 대한 PR CI/Trusted QA/Owner ACCEPT **NOT TESTED**. 재검증 성공 전 Merge, Main, GHCR, Issue-close 진행하지 않음.
+- `tests/config/e2e-shard-plan.json`, `tests/scripts/e2e-shard-planner.test.ts`, #732 단일 누적 실패 원장·Work Packet·TEST_PLAN만 보완. 안전 E2E hash fallback·6Shard/worker1/35분/원본 test·QA/CI required·version0.128.0/제품 계약 불변. 이후 이슈 버전 간 Release 체인은 별도 감사를 요구.

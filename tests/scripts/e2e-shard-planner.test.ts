@@ -110,10 +110,15 @@ describe("historical E2E shard planner", () => {
     expect([...selected].sort()).toEqual(discovered);
     expect(new Set(selected).size).toBe(discovered.length);
     for (const [file, assignedShard] of [
-      ["issue-735-system-dashboard.spec.ts", 2],
+      ["issue-735-system-dashboard.spec.ts", 5],
       ["issue-732-milestone-dashboard.spec.ts", 3],
       ["gantt-state-recovery-editor.spec.ts", 4],
       ["issue-736-resource-dashboard.spec.ts", 2],
+      ["project-transfer-layout-491.spec.ts", 1],
+      ["canonical-projection.spec.ts", 3],
+      ["logistics-target-authoring.spec.ts", 1],
+      ["project-task-delete-context.spec.ts", 3],
+      ["issue-730-view-composer.spec.ts", 5],
       ["issue-733-process-workarea-dashboard.spec.ts", 5],
       ["issue-726-task-logistics.spec.ts", 6],
     ] as const) {
