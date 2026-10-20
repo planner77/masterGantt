@@ -113,3 +113,26 @@ Milestone 생성·기존 목록/검색/기간/상태·KPI·명시 Completed·삭
 - 추가 검증 코드: `tests/features/milestones/milestone-wbs-dashboard.test.ts`에 actual SQLite report + 새 Revision 완료/날짜/명칭 변경 시 반례, 신규 report 동기화 시 표시 복원. 기존 #732 전용 E2E/서버/도메인 테스트 유지, timeout/skip/retry/shard/Required 설정 불변. 실행 가능한 checkout/dependency가 없으므로 로컬 결과는 NOT TESTED; 새 정확 Head의 Full CI가 필수.
 - 이슈별 누적 원장: [ISSUE_732_FAILURE_ANALYSIS.md](../../ISSUE_732_FAILURE_ANALYSIS.md)의 `F732-004`에 L732-001~003/R732-001 대비 원격 원인·Job/Attempt/처리·잔여 위험을 추가. 과거 PASS를 현재 성공으로 치환하지 않음.
 - 최신 main/review/mergeability는 PR synchronize 직전 재확인, 개별 리뷰에 수정 근거로 응답하고 Resolve 후 Full CI 시작까지만 수행. CI 이후 Quality/E2E6/Docker/Trusted/Owner ACCEPT는 NOT TESTED, `MERGE_READY=BLOCKED`, `release_authorized=false`.
+
+## 2026-10-21 — #732 Main 실패 후속 Shard Plan 교정
+
+- 실패 출처: Main #3067.1 (Run `39492209464.1`, SHA `5ffe02a334d2279fabb63943c90614a7acfaf6ad`) Shard1 35분 제한 CANCELLED, 145 PASS/1 NOT RUN, Quality/Docker+나머지 Shard PASS, E2E aggregate FAIL, GHCR SKIPPED. 원본 구분·대책은 [F732-005](../../ISSUE_732_FAILURE_ANALYSIS.md) 참조.
+- 최신 기준: 이미 다른 Issue #736이 merge되어 main `1c1938851aa8234febcba404f4007d6c94fb2233`/version0.128.0. #732 기존0.127.0 릴리스 부채와 다른 Issue0.128.0을 합산하거나 승인 이월하지 않는다.
+- 생산자/소비자: Historical `tests/config/e2e-shard-plan.json`의 116 explicit +19 hash fallback spec = 실제 135개 E2E 파일. #735 System1→2, #732 Milestone1→3, Gantt recovery1→4, #736 Resource5→2. 이전 #733 수동 조정 보존, 이동 외131개 동일 배정, 완료 후 파일수21/25/24/23/21/21. 새 spec 누락 검출용 `tests/scripts/e2e-shard-planner.test.ts` 회귀 추가; runtime fallback은 그대로 두어 누락 없이 실행.
+- 검증·AC: 정적 출처/선택 집합·중복0 분석; 실제 Vitest/Chromium/Build/Docker 로컬 NOT TESTED. 이번 교정 PR Full Quality/E2E6/Docker·Trusted QA exact-Head, 리뷰0, Owner HIGH 수용 필요. 기존 #732 4 browser, #735 6, #736 5, Gantt, Excel 마지막 미완료 case를 포함하여 전체 E2E 검증. 기존 35분/6Shard/worker1/CI gates/skip·retry·assertions 모두 유지.
+- 문서: 원장 F732-005/이 Work Packet/TEST_PLAN M732-001 수정. DESIGN/API/DB/ARCHITECTURE/CI_CD/AGENTS/CHANGELOG/매뉴얼: 앱·CI 정책과 SemVer 자체 변경 없으므로 N/A. 현재 버전 0.128.0 유지, release/Finalizer/Issue close BLOCKED. manager_decision=NOT TESTED, MERGE_READY=BLOCKED, QA=OWNER_MANAGED/HIGH. 교정 PR CI 시작까지만 요청되었고 추후 모니터링·병합·Main·GHCR 수행하지 않음.
+
+### 2026-10-21 PR #3072.1 Shard2 33.2분 경보 및 병합 전 추가 균형화
+
+- 기존 [Full PR CI #3072.1](https://github.com/planner77/masterGantt/actions/runs/39501650409)은 REQUIRED3·QA 모두 성공했으나 Shard2 Job 33.2분(35분 한계까지1.8분), Shard4 30.2분. 사용자 지시에 따라 해당 성공 HEAD 그대로 병합하지 않고 후속 재배분을 동일 #732 PR #763에 추가한다.
+- 변경 위치: System #735 2→5, project-transfer 2→1, canonical projection 2→3, logistics-target authoring 4→1, project-task-delete 4→3, view composer #730 6→5. 기존 첫 교정(#732 Milestone3, #736 Resource2, Gantt recovery4)과 #733 관련 이동은 보존. 135파일 전체 명시/중복·누락0, Shard 파일 수23/22/26/21/23/20.
+- 성공 PR 실측 Job 분16.6/33.2/22.0/30.2/18.0/27.4에 이사한 테스트의 본문 시간만 적용한 임시 예상22.5/25.5/25.1/25.2/24.9/24.2분은 예측일 뿐. 새 HEAD에 대한 PR CI/Trusted QA/Owner ACCEPT **NOT TESTED**. 재검증 성공 전 Merge, Main, GHCR, Issue-close 진행하지 않음.
+- `tests/config/e2e-shard-plan.json`, `tests/scripts/e2e-shard-planner.test.ts`, #732 단일 누적 실패 원장·Work Packet·TEST_PLAN만 보완. 안전 E2E hash fallback·6Shard/worker1/35분/원본 test·QA/CI required·version0.128.0/제품 계약 불변. 이후 이슈 버전 간 Release 체인은 별도 감사를 요구.
+
+### 2026-10-21 — F732-006: PR Full #3073.1 Shard5 Resource assignment readiness 보완
+
+- **실패 증거:** [Run `39508411997.1`](https://github.com/planner77/masterGantt/actions/runs/39508411997), HEAD `d4b78a4f`의 Shard5 #622 `issue-622-resource-plan-target.spec.ts:92`에서 정확 ALICE 투입률60 입력을 5초 내 찾지 못함, 2PASS/1FAIL/99 NOT RUN; 나머지5 Shard CANCELLED, E2E+QA Final FAIL, Quality/Unit/Build/Docker SUCCESS. **35분 Job Timeout과 무관.** [Issue #732 실패 원장 F732-006](../../ISSUE_732_FAILURE_ANALYSIS.md) 참조.
+- **교차 소비자:** 타 Issue #736 Main #3071의 #621도 유사한 개인 투입률 label absence, #732 동일 source PR #3072의 #622 PASS. 아직 raw trace/DOM/네트워크가 검증되지 않아 정확 제품 원인 UNKNOWN, 두 번의 앱 Async Ready 경합 가능성을 제거하는 엄격한 E2E 준비 계약으로 우선 교정. 프로덕션 코드/권한/Assignment 저장은 변경하지 않음.
+- **범위/AC:** #622에서 API canonical allocation60/리소스 ID 단언을 추가하고 리소스 tab selected→실제 할당 ready를 의미하는 Save button enabled(`timeout:30000`, per-expect)→기존 정확 label/value와 60→40/Excel/5폭/동료 불변을 수행. #621에서도 첫 화면·재열기 모두 같은 Ready Gate→100/80/70·401/412·Bob 불변을 검증. 에러면 버튼 비활성/기존 assertion FAIL 유지, sleep/retry/skip 및 전역 timeout 35분 불변.
+- **회귀/검증:** 기존 #621/#622/#623/#736 기존 브라우저 및 모든 PR E2E6·Unit/Build/Docker, Trusted QA. GitHub source 정적 검토 외 로컬 실행 결과는 NOT TESTED; 새 정확 HEAD 성공 전 MERGE_READY=BLOCKED/Owner ACCEPT 미확인. PR branch `fix/issue-732-main-e2e-shard-1-rebalance` 재사용, plan135/6 shard/과거 #733 이동은 변경 없음.
+- **문서/버전:** 단일 실패 원장, Work Packet, TEST_PLAN에 누적. DESIGN/API/DB/CI_CD/AGENTS/CHANGELOG/USER GUIDE는 제품/버전/정책 무변경이라 N/A. #732 v0.127.0 미발행 및 사이의 #736 v0.128.0/Main 실패는 별도 정식 릴리스 부채로 유지.
