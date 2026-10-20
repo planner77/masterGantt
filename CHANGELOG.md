@@ -1,8 +1,8 @@
 ## [0.124.1] — Unreleased / Issue #730 GHCR Release #182 후속 교정
 
-- \`v0.124.0\` Main #3034.1·Generic Finalizer #724.1 성공 후 Release #182 attempts 1·2의 Chromium Shard3 실패(#621 stale 비활성 focus, #623 5폭 30초 budget)를 단일 실패 원장에 보존한다. GHCR promotion·Resume·Issue 종료는 미완료.
+- `v0.124.0` Main #3034.1·Generic Finalizer #724.1 성공 후 Release #182 attempts 1·2의 Chromium Shard3 실패(#621 stale 비활성 focus, #623 5폭 30초 budget)를 단일 실패 원장에 보존한다. GHCR promotion·Resume·Issue 종료는 미완료.
 - #621은 실제 조회 ready·button enabled/focused를 확인한 뒤 기존 native Tab/5폭/scroll/geometry를 판정하고, #623는 신규 SQLite/HTTP+tree/matrix 5폭 테스트만 45초 유한 timeout으로 보완. 실제 업무 writer·API·Gantt/Task·CI gate/Retry/Skip/Assertions 변경 없음.
-- 버전 0.124.1은 새 Owner 고위험 수용·\`expected_version=0.124.1\` 승인 전 정식 릴리스 불가. 기존 v0.124.0 annotated tag/SHA와 실패 원본은 변경하지 않는다.
+- 버전 0.124.1은 새 Owner 고위험 수용·`expected_version=0.124.1` 승인 전 정식 릴리스 불가. 기존 v0.124.0 annotated tag/SHA와 실패 원본은 변경하지 않는다.
 
 ## [0.124.0] — Issue #730 / GHCR 공식 게시 미완료
 

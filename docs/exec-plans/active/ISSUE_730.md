@@ -267,8 +267,8 @@ npm run verify:prepr -- --mode=targeted --base=01fdc08bf4b2f69f9797a8bd411d6712e
 
 ## 2026-10-20 — GHCR Release #182 실패 후 same-Issue 교정 Work Packet
 
-- baseline/main: PR #747 merge \`71b870b75da73f413da54e22e55bb03dc0f5abe7\`; PR #747 Main #3034.1/Finalizer #724.1 SUCCESS. Immutable \`v0.124.0\` tag Release #182.1/#182.2 E2E FAIL. Owner 기존 version-scoped marker는 v0.124.0 한정.
-- corrective branch: \`fix/issue-730-release-e2e-012\`; candidate_version \`0.124.1\` (PATCH), risk_level HIGH, qa_required=true, qa_method OWNER_MANAGED, release_required=true, **release_authorized=false (0.124.1)**, manager_decision NOT TESTED. Same-Issue release-failure supersession 사용, tag 이동/삭제 금지.
+- baseline/main: PR #747 merge `71b870b75da73f413da54e22e55bb03dc0f5abe7`; PR #747 Main #3034.1/Finalizer #724.1 SUCCESS. Immutable `v0.124.0` tag Release #182.1/#182.2 E2E FAIL. Owner 기존 version-scoped marker는 v0.124.0 한정.
+- corrective branch: `fix/issue-730-release-e2e-012`; candidate_version `0.124.1` (PATCH), risk_level HIGH, qa_required=true, qa_method OWNER_MANAGED, release_required=true, **release_authorized=false (0.124.1)**, manager_decision NOT TESTED. Same-Issue release-failure supersession 사용, tag 이동/삭제 금지.
 - 원인 및 보완: [단일 실패 원장 §21–22](../../ISSUE_730_FAILURE_ANALYSIS.md); #621 stale/no-ready focus→Tab 테스트 결함은 server ready/enabled/actual focused를 기다린 후 원래 Tab 단언으로 판정. #623 fresh real SQLite/HTTP seed와 두 layout을 각각 30초에 묶는 다섯 폭의 예산 결합은 45초 유한한 개별 상한으로 교정. 제품 코드, API, Core, CI Workflow/Retry/Skip, 전체 검증단언 불변.
 - 영향 검증: #621/#623 직접 원본과 이전 #730 E2E 실패8파일 합집합 + #730 composer/drill/#719 help/#726 logistics/#727 membership/#731 KPI Task Editor, native focus/stale/readonly/Mutation0/Gantt instance, 새 Head Full PR Quality/E2E6/Docker + Trusted QA. 본 GitHub Data API 편집환경의 실제 npm/typecheck/lint/Vitest/Next/SQLite/Playwright/Docker/PrePR는 **NOT TESTED**. 기존 Run의 성공을 새 Head 결과로 전용하지 않는다.
 - Documentation: UPDATED = #730 단일 FAILURE_ANALYSIS, TEST_PLAN, Work Packet, CHANGELOG, package/lock; N/A = DESIGN/AGENTS/API/DB/CI_CD/REMOTE_VALIDATION/UIUX/CI Workflow (계약 변경0).

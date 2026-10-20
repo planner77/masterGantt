@@ -1,8 +1,8 @@
 ## Issue #730 — GHCR Release #182.1/#182.2 실패 후 same-Issue 교정 (2026-10-20)
 
-[단일 #730 누적 실패 원장 §21–22](ISSUE_730_FAILURE_ANALYSIS.md)의 원본 Release Run \`39336847318\`은 0.124.0 immutable tag의 attempt1(Shard3 #621 focus 1FAIL)·attempt2(Shard3 #621 focus + #623 폭별390/768/1024 timeout 4FAIL) 모두 실패. Prepare/static·5개 shard 성공, quality gate FAIL→verified candidate/promotion/resume SKIPPED. Main #3034.1/Finalizer #724.1 PASS를 정식 GHCR PASS라고 주장하지 않는다.
+[단일 #730 누적 실패 원장 §21–22](ISSUE_730_FAILURE_ANALYSIS.md)의 원본 Release Run `39336847318`은 0.124.0 immutable tag의 attempt1(Shard3 #621 focus 1FAIL)·attempt2(Shard3 #621 focus + #623 폭별390/768/1024 timeout 4FAIL) 모두 실패. Prepare/static·5개 shard 성공, quality gate FAIL→verified candidate/promotion/resume SKIPPED. Main #3034.1/Finalizer #724.1 PASS를 정식 GHCR PASS라고 주장하지 않는다.
 
-**교정 검증:** #621 Resource Target 비교표 \`data-ready=true\`·실제 셀 버튼 \`toBeEnabled\`/ \`toBeFocused\` 후 네이티브 Tab·paint·5폭·header/body 및 조회 mutation0/remount0 원래 단언을 보존한다. #623 fresh real SQLite/HTTP seed + tree/matrix/5폭 독립 testcase만 명시적인 45초 bounded budget; 여섯 연속 mutation 90초 및 기존 retry/skip/assertions/global CI 변경 없음. 누적 #730 직접 E2E 8파일 합집합과 #719/#726/#727/#731/#730 인접·stale/read-only·Query0/fixture negative를 Full PR CI Quality/E2E6/Docker/Trusted QA에서 검사한다. 새 정확 Head의 로컬 npm·Browser·HTTP·Docker는 NOT TESTED.
+**교정 검증:** #621 Resource Target 비교표 `data-ready=true`·실제 셀 버튼 `toBeEnabled`/ `toBeFocused` 후 네이티브 Tab·paint·5폭·header/body 및 조회 mutation0/remount0 원래 단언을 보존한다. #623 fresh real SQLite/HTTP seed + tree/matrix/5폭 독립 testcase만 명시적인 45초 bounded budget; 여섯 연속 mutation 90초 및 기존 retry/skip/assertions/global CI 변경 없음. 누적 #730 직접 E2E 8파일 합집합과 #719/#726/#727/#731/#730 인접·stale/read-only·Query0/fixture negative를 Full PR CI Quality/E2E6/Docker/Trusted QA에서 검사한다. 새 정확 Head의 로컬 npm·Browser·HTTP·Docker는 NOT TESTED.
 
 **릴리스:** 기존 v0.124.0 tag/승인/실패 Run 불변; 같은 Issue #730 교정 후보 0.124.1은 manifest/lock 일치 후 별도 PR CI/Owner HIGH 위험 수용 및 **expected_version=0.124.1 별도 승인**이 있어야 한다. release_required=true/release_authorized=false; 새 Main/GHCR/Issue close는 아직 금지.
 
