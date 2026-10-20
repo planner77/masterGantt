@@ -1,3 +1,11 @@
+## Issue #736 — M736-001 Main E2E #621 exact 편집 로딩/후보 조회 경계 (2026-10-21)
+
+원본 [Main CI #3071.1](https://github.com/planner77/masterGantt/actions/runs/39499988360) Shard3의 `tests/e2e/issue-621-resource-target.spec.ts:370`에서 exact Assignment Alice 100% 입력이 5초 내 렌더되지 않았다. Trace는 정확 assigned-targets HTTP200/328ms 뒤 전체 후보 assignment-targets GET200/4014ms 및 UI loading을 확인했다. 기존 #717 name-first label mismatch와 달리 렌더 준비 지연이다.
+
+`src/features/gantt/task-assignment-editor.tsx` exact mode는 요청/응답·canonical Assignment ID·catalogRevision/다른 개인 불변을 유지하면서 비관련 전체 후보 요청을 생략한다. 비정확 일반 편집의 후보 조회/역할/그룹/검색을 유지한다. 기존 #621 E2E는 `assignment-targets` 요청수0·'할당 저장' 활성 준비(15s bounded)와 정확 Alice percent100→80→70, BOB 불변·412/401 초안 보존·POST/PUT·원본 focus를 전부 검증한다. 이때 테스트 본문 180초·Shard6/35분/worker1·retry/skip/Required3 기본 정책은 불변이며 matcher 5초 제한을 전역 확대하지 않는다.
+
+직접 #621 이외 #622/623 Resource Plan/Excel, #736 조회/정확 원본 편집/return 및 일반 Task Editor/role/group candidates를 인접·음성에 포함하고, Fail-fast 없는 제한적 로컬 후 GitHub Full PR CI6 및 Trusted QA로 교정한다. 현재 새 Head 실제 로컬/원격 검증 NOT TESTED, [#736 단일 실패 원장 M736-001](ISSUE_736_FAILURE_ANALYSIS.md)을 원본 증거로 참조한다.
+
 ## Issue #736 — 리소스 관점과 Plan/Excel 인수
 
 F736-003 재실패는 exact Project/spec/filter/scope/projection을 결속한 report body receipt와 단계별 필터 완료로 교정한다. 새 결정적 observer 회귀는 이전 조건/다른 spec·scope 응답을 제외하며 기존 broad matcher 통제 RED와 개선 GREEN을 구별한다. 새 #736 전체5case와 #622 Plan/Excel·#730 지연/원본2case를 직접·인접·음성으로 검증하고 TypeScript guard/기존 Excel Unit도 보존한다. 세 원격 실패/취소10Shard·시간 비교와 실제 결과는 [단일 원장 F736-003](ISSUE_736_FAILURE_ANALYSIS.md#f736-003--full-pr-ci-30651-이전-필터-응답의-body-관측-경합-2026-10-21-kst)을 따른다. 26.9초 assertion/body 실패를35분 shard Timeout으로 취급하거나 timeout/retry/skip을 확대하지 않는다.

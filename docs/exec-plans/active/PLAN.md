@@ -1,3 +1,7 @@
+## Issue #736 — M736-001 Main CI #3071.1 정확 개인 Assignment 편집 로딩 교정 (2026-10-21)
+
+[Main CI #3071.1](https://github.com/planner77/masterGantt/actions/runs/39499988360) Shard3의 기존 #621 exact Assignment 편집 시 allocation input 미렌더/5s 실패. 실제 Trace에서 assigned-targets200 이후 불필요한 전체 후보 GET200/4014ms를 확인. [단일 누적 원장](../../ISSUE_736_FAILURE_ANALYSIS.md)과 [Work Packet](ISSUE_736.md)에 M736-001을 분리 기록하며 #736 PR #760 과거 Full SUCCESS와 Main FAILURE를 섞지 않는다. 정상 exact 편집은 후보 조회를 생략하고 배정 원본 identity/percent/Revision을 보존, 일반 Task Editor 후보 조회는 유지한다. 기존 #621/#622/#623/#736/Task Editor 회귀를 새 교정 PR Required Quality/E2E6/Docker·Trusted QA에 인계. main v0.128.0 유지, release0.128.0 Owner marker 기존 승인, HIGH/OWNER_MANAGED·새 Head Owner 수용 전 병합금지. [#732 별도 PR #763](https://github.com/planner77/masterGantt/pull/763)의 선행 Main Timeout/릴리스 부채는 독립 장애로 남는다. 사용자 요청대로 Full PR CI 시작 후 모니터링은 하지 않는다.
+
 ## Issue #736 — Full #3065.1 응답 관측 경합 보완
 
 PR #760 Head3c335ba1/main08a1d9ff에서 이전 #3059 TypeScript·#3062 M/M matcher와 이번 #3065 report body의 전체 이력을 대조했다. 정확 query/즉시 body receipt·직렬 필터·이전 조건/다른 spec·scope 음성으로 테스트 관측 경합을 고치고 제품 산식·권한·CI를 유지한다. [실패 원장 F736-003](../../ISSUE_736_FAILURE_ANALYSIS.md)과 [Work Packet](ISSUE_736.md)에 세 Run·취소10Shard·source/merge·실제 선정 검증을 누적한다. 실패test26.9초/Job7분48초라35분Timeout을 위한 shard재분배 근거는 없다. 게시 전 main5ffe02a3(#732)를 통합해 충돌3개를 해소했고 통합 후 Chromium3case·전체 Unit3,136PASS 및 typecheck/lint/build 단계PASS를 확인했다. PrePR CLI는 Next 생성 설정 fingerprint로BLOCKED임을 별도 기록했다. 후보0.128.0/HIGH/OWNER_MANAGED/release_authorized=false, 새 exact Head Full CI 시작 후 모니터링·병합·Release·종료는 수행하지 않는다.

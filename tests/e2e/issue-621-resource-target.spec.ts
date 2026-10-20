@@ -363,11 +363,17 @@ test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 �
   const row = detail.locator(`[data-canonical-task-id="${f.task.taskId}"][data-canonical-assignment-id="${alice.id}"]`);
   await expect(row).toBeVisible();
   const edit = row.getByRole("button", { name: `배정 편집: ${f.resources[0].name}`, exact: true });
+  const candidatesUrl = `**/api/projects/${f.publicId}/assignment-targets`;
+  let candidateLookups = 0;
+  await page.route(candidatesUrl, route => { candidateLookups++; return route.continue(); });
   await edit.focus(); await page.keyboard.press("Enter");
   const editor = await taskEditor(page);
   await expect(editor.getByRole("tab", { name: /^리소스/ })).toHaveAttribute("aria-selected", "true");
+  // The exact personal edit must become ready from the assigned-targets snapshot alone.
+  await expect(editor.getByRole("button", { name: /^할당 저장 \(/ })).toBeEnabled({ timeout: 15_000 });
   const allocation = editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입률 (%)`, { exact: true });
   await expect(allocation).toHaveValue("100");
+  expect(candidateLookups).toBe(0);
   await expect(editor.getByLabel(`리소스 2 ${f.resources[1].name} 투입률 (%)`, { exact: true })).toHaveCount(0);
   await allocation.fill("80");
   await editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입 시작`, { exact: true }).fill("2026-10-14");

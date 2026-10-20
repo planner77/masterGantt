@@ -139,7 +139,9 @@ export function TaskAssignmentEditor({ initialAssignment, taskId, revision, edit
         setAllocations(nextAllocations);
         setTargets(assignedBody.data.targets);
         setCatalogRevision(assignedBody.data.catalogRevision);
-        if (editable) {
+        // Exact Assignment editing already has its canonical target in assigned-targets.
+        // Do not delay or fail exact edits on the unrelated full candidate catalog.
+        if (editable && !initialAssignment) {
           const candidatesResponse = await fetch(`/api/projects/${encodeURIComponent(publicId)}/assignment-targets`, { credentials: "same-origin", cache: "no-store", signal: controller.signal });
           const candidatesBody: unknown = await candidatesResponse.json().catch(() => null);
           if (!candidatesResponse.ok || !isTargetsResponse(candidatesBody)) throw new Error("candidates");
