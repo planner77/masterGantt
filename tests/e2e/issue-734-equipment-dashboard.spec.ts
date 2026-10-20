@@ -164,7 +164,9 @@ test("#734 정확 Task·Assignment 원본 취소와 일정 복귀는 경로·foc
 test("#734 5폭 긴 이름·내부 overflow·열 정렬·native Tab/Escape", async ({ page, isolatedApplication: origin, observeIsolatedApi }, info) => {
     test.setTimeout(120_000);
     const f = await timedSeed(page, origin, observeIsolatedApi);
-    await f.mutate(`/logistics/equipment/${f.equipment.id}`, { name: "LongEquipmentNameWithoutWhitespace".repeat(8) }, "patch"); await page.reload();
+    const longName = "LongEquipmentNameWithoutWhitespace".repeat(5).padEnd(200, "X");
+    expect(longName).toHaveLength(200); // API maximum while preserving unbroken-name overflow coverage.
+    await f.mutate(`/logistics/equipment/${f.equipment.id}`, { name: longName }, "patch"); await page.reload();
     const writes = observeWrites(page, f.publicId);
     const frame = page.locator(".project-gantt-frame"), instance = await frame.getAttribute("data-project-gantt-instance"), gantt = await frame.locator(".wx-gantt").elementHandle();
     await openEquipment(page);

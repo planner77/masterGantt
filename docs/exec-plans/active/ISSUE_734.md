@@ -53,6 +53,7 @@ Manager가 실제 코드와 대조한 문서별 영향 기록이다. 실행 증�
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_734.md`: UPDATED
+- `docs/ISSUE_734_FAILURE_ANALYSIS.md`: CREATED (PR #759 #3058.1 누적 실패 원장)
 - `CHANGELOG.md`: UPDATED
 - `DESIGN.md`: N/A(기존 이름 우선·상황형 도움말·조회 투영을 적용하는 Design Delta B, 새로운 공통 규범 A 없음)
 - `docs/LOGISTICS_DOMAIN_DESIGN.md`: N/A(실물 원본·Owner·controls·WorkArea 관계의 도메인 의미 불변)
@@ -108,3 +109,11 @@ Manager가 실제 코드와 대조한 문서별 영향 기록이다. 실행 증�
 문서의 두 신규 절은 모두 보존하고 공통 host에서 Process/Equipment/System consumer를 각각 연결했다. projection의 기존 시스템 direct/coordination selector 및 systemIds 집합과 설비 유형 OR를 조합하되 기존 Domain authority에서 원시 Task/Assignment·구성 합집합을 재계산한다. #735의 selection/configuration 캐시와50k budget을 유지한다. 초기 통합 typecheck의 wrapper root prop·selector union 타입 오류를 고쳤고 최종 typecheck PASS, 관련15파일155/155 Unit·통합 PASS/FAIL0/SKIP0를 확인했다. 기존13파일에 #735 consumer/server15건을 추가한 결과이며 `.prepr-reports/issue734-merged-unit.json`을 따른다.
 
 원래 baseline과 최초 로컬 증거는 역사로 보존한다. 최신 통합 후 브라우저 전체/5폭/원본 복귀·별도 Reviewer·production build/Docker는 NOT TESTED이며 새 PR Full CI에서 검증한다. 사용자가 요청한 종료점인 새 CI 시작까지만 수행하고 결과를 기다리거나 병합하지 않는다.
+
+### Full PR CI #3058.1 F734-001과 Review P2 재작업 (2026-10-21)
+
+- canonical 누적 원장: [#734 실패 원장](../../ISSUE_734_FAILURE_ANALYSIS.md). 최초 CI [Run 39438998422.1](https://github.com/planner77/masterGantt/actions/runs/39438998422), Head `0786dde2a9fd96539250e91e482e85f4f557407f`, Base `08a1d9ff25a97aba67f08d6b67029ac55d45121a`. Quality/Docker SUCCESS, E2E shard1 FAILURE/2~6 CANCELLED, QA 파생 FAIL.
+- 최초 실패는 `issue-734-equipment-dashboard.spec.ts` 5폭 E2E의 setup이 설비명 `LongEquipmentNameWithoutWhitespace.repeat(8)` = **272자**를 전송해 API의 200자 한도에 HTTP400으로 거부된 TEST_FIXTURE 계약 위반. Playwright 60/120s Timeout은 아님. 이름을 200자 경계값으로 고쳐 5폭/6열 정렬·가로 스크롤·native keyboard·Gantt instance/Marker OFF/읽기 전용 단언 그대로 유지한다.
+- Codex 미해결 P2 두 건: 시스템 root 명시 `systemIds:[]`일 때도 유효하지 않은 `equipmentTypeCodes`를 cross-product 전에 거부하고, 동일한 설비 유형 표시명에만 `이름 (코드)`를 보여 접근 가능한 checkbox label을 구분한다. 서버/모델 Unit 반례 추가.
+- 수정 범위: E2E 전용 파일, 서버 projection, equipment consumer/model, 서버/모델 Unit, 본 Work Packet 및 실패 원장. 인접 #735 system·#730 composer/원본 drill은 기존 Full6 shard 검증 범위를 유지한다. 실패 원인과 무관한 테스트 재분배·Timeout/Retry/Skip/Required3 정책 변경 없음.
+- 본 환경에는 원격 checkout/npm/Chromium·Docker 직접 실행이 불가하여 보완 Head의 로컬/원격 결과는 **NOT TESTED**. 원본 Head Quality/Docker 및 과거 Unit155 PASS는 새 Head의 증거가 아니다. 리뷰 스레드 답글·resolve 및 main/ref 충돌 확인 후 단일 commit으로 Full PR CI를 시작하되 완료 모니터링, 병합, Release/Issue 종료는 수행하지 않는다. `HIGH/OWNER_MANAGED`, `manager_decision=NOT TESTED`, `release_authorized=false`, `MERGE_READY=BLOCKED` 불변.

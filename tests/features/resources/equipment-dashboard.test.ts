@@ -42,4 +42,19 @@ describe("#734 equipment consumer", () => {
       expect(equipmentPresentation(data).withoutOwner.map(row=>row.id)).toContain(f.idleEquipment.publicId);
     } finally { f.database.close(); }
   });
+  it("disambiguates colliding type names without exposing codes for unique names", () => {
+    const f = wbsDashboardViewsFixture("direct");
+    try {
+      const before = f.service.queryWbsView(f.project.publicId, { spec:EQUIPMENT_DEFAULT_SPEC, filters }) as WbsViewReportDto;
+      expect(equipmentPresentation(before).types.every(type => type.label === type.name)).toBe(true);
+      f.database.prepare("INSERT INTO logistics_equipment_types(code,name,active,sort_order,created_at,updated_at) SELECT 'test734',name,1,50,created_at,updated_at FROM logistics_equipment_types WHERE code='amr'").run();
+      f.database.prepare("UPDATE project_equipment SET equipment_type='test734' WHERE id=?").run(f.equipment[1].id);
+      const after = f.service.queryWbsView(f.project.publicId, { spec:EQUIPMENT_DEFAULT_SPEC, filters }) as WbsViewReportDto;
+      const types = equipmentPresentation(after).types;
+      expect(types).toHaveLength(2);
+      expect(types.map(type => type.code).sort()).toEqual(["amr", "test734"]);
+      expect(new Set(types.map(type => type.label)).size).toBe(2);
+      for (const type of types) expect(type.label).toBe(`${type.name} (${type.code})`);
+    } finally { f.database.close(); }
+  });
 });

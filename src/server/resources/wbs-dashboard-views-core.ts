@@ -22,6 +22,10 @@ export function createWbsViewProjection(ledger: WbsTaskLedgerSnapshot, input: Wb
   const systemSelection = input.spec.systemView !== undefined || input.spec.systemIds !== undefined;
   const systemIds = input.spec.systemIds ?? ledger.configuration.systems.map(row => row.id);
   if (systemIds.some(id => !ledger.configuration.systems.some(row => row.id === id))) unavailable();
+  // Validate type codes before expanding a possibly empty systemIds cross-product.
+  const availableEquipmentTypes = new Set(ledger.prepared.logistics!.instances
+    .filter(row => row.kind === "equipment").map(row => row.typeCode));
+  if (equipmentTypes.some(code => !availableEquipmentTypes.has(code))) unavailable();
   const selectors = (path: readonly WbsViewPathEntry[]) => path.map(entry => ({ ...entry, dimension: entry.dimension === "system" && input.spec.systemView === "coordination" ? "systemCoordination" as const : entry.dimension }));
   const branches = (path: WbsViewPathEntry[]) => path.length || !systemSelection ? [selectors(path)] : systemIds.map(id => selectors([{ dimension: "system", id }]));
   const variants = (path: WbsViewPathEntry[]) => branches(path).flatMap(branch => equipmentTypes.length

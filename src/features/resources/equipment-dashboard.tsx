@@ -15,7 +15,7 @@ const consumer: WbsViewConsumer = {
     const selected = filters.equipmentTypeCodes ?? [];
     return <fieldset className={equipmentStyles.filters}><legend>설비 유형</legend><div className={equipmentStyles.types}>
       <button type="button" aria-pressed={!selected.length} onClick={()=>onChange({equipmentTypeCodes:[]})}>전체 유형</button>
-      {types.map(type=><label key={type.code}><input type="checkbox" checked={selected.includes(type.code)} onChange={event=>onChange({equipmentTypeCodes:event.target.checked?[...selected,type.code]:selected.filter(code=>code!==type.code)})}/>{type.name}</label>)}
+      {types.map(type=><label key={type.code}><input type="checkbox" checked={selected.includes(type.code)} onChange={event=>onChange({equipmentTypeCodes:event.target.checked?[...selected,type.code]:selected.filter(code=>code!==type.code)})}/>{type.label}</label>)}
     </div><p className={styles.subtle}>유형은 같은 축에서 OR 조건입니다. 구성 참고와 작업 지표에 유형 조건을 적용합니다. 원본 정보는 전체 등록 설비를 보존합니다.</p></fieldset>;
   },
   renderSummary: data => <EquipmentSummary data={data}/>,

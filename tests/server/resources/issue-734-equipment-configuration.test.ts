@@ -171,6 +171,21 @@ describe("#734 same-snapshot registered Equipment and exact common-ledger scope"
     } finally { f.database.close(); }
   });
 
+  it("rejects an invalid Equipment type for explicit empty systemIds", async () => {
+    const f = wbsDashboardViewsFixture("direct");
+    try {
+      const noSystems = { ...spec, root: "system" as const, systemIds: [] };
+      const valid = await query(f, { spec: noSystems, filters: { ...filters, equipmentTypeCodes: ["amr"] } });
+      expect(valid.status).toBe(200);
+      const data = (await valid.json()).data as WbsViewReportDto;
+      expect(data.children).toEqual([]);
+      expect(data.taskIds).toEqual([]);
+      const invalid = await query(f, { spec: noSystems, filters: { ...filters, equipmentTypeCodes: ["unknown"] } });
+      expect(invalid.status).toBe(400);
+      expect((await invalid.json()).error.code).toBe("INVALID_SELECTION");
+    } finally { f.database.close(); }
+  });
+
   it("rejects unknown/malformed types and stale excluded paths, preserving readonly Origin and snapshot metadata", async () => {
     const f = wbsDashboardViewsFixture("direct");
     try {

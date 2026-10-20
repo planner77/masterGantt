@@ -14,10 +14,14 @@ export function equipmentPresentation(data: WbsViewReportDto) {
   const equipment = data.configurationCatalog.equipment;
   const equipmentRows = data.children.filter(row => row.selector.dimension === "equipment" && row.selector.id !== null);
   const milestoneIds = new Set(data.taskSources.flatMap(row => row.type === "task" && row.milestoneTaskId ? [row.milestoneTaskId] : []));
+  const typeOptions = [...new Map(equipment.map(row => [row.equipmentType, { code: row.equipmentType, name: row.equipmentTypeName }])).values()];
+  const nameCounts = new Map<string, number>();
+  for (const type of typeOptions) nameCounts.set(type.name, (nameCounts.get(type.name) ?? 0) + 1);
   return {
     equipment,
     equipmentRows,
-    types: [...new Map(equipment.map(row => [row.equipmentType, { code: row.equipmentType, name: row.equipmentTypeName }])).values()].sort((a,b) => a.name.localeCompare(b.name,"ko")),
+    types: typeOptions.map(type => ({ ...type, label: (nameCounts.get(type.name) ?? 0) > 1 ? `${type.name} (${type.code})` : type.name }))
+      .sort((a,b) => a.name.localeCompare(b.name,"ko") || a.code.localeCompare(b.code)),
     configuration: data.totals.configurationReference,
     tasks: data.totals.tasks,
     assignments: data.totals.assignments,
