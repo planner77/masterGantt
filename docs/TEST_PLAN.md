@@ -8,6 +8,8 @@
 
 **#734 PR CI 연속 실패 회귀 보완(2026-10-21).** [단일 #734 실패 원장](ISSUE_734_FAILURE_ANALYSIS.md)에 F734-001(#3058.1 272자 설비명 HTTP400 → #3061.1 200자 5폭 case PASS)과 F734-002(#3061.1 공유 사용처 승인 누락→PATCH 응답 대기120s)를 각각 원본 Head/Run으로 보존한다. 설비 원본 editor의 공유 인스턴스 변경 확인은 저장 전 필수 read-only 사용처 preview이므로 `원본 변경 취소`/dirty 유지·mutation0, 재확인 후에만 PATCH200/새 report·revision·2개 WorkArea·focus 복귀를 확인한다. #735 시스템 원본 승인 flow/기존 #730 Task drill, 원장/유형 조회 음성/200자·5폭·Gantt 상태를 함께 보존하며 제품 확인 gate를 우회하거나 120s/Shard6/CI fail-fast를 완화하지 않는다. 수정 새 Head Chromium/Trusted QA는 별도 원격 실행 전 NOT TESTED.
 
+**#734 F734-003 회귀(2026-10-21):** [원본 #3064.1](https://github.com/planner77/masterGantt/actions/runs/39485897399)의 Chromium shard6에서 인접 #730의 원본 Task/Assignment/일정 복귀 테스트가 이전 공통 '고유 총계' 접근성 이름을 사용하여 180초 Timeout. #734 설비 뷰는 실제 '설비 작업 고유 총계'와 '고유 Task 1건'이므로 선택자를 그 계약으로 교정하고 표 이름 검색 전후 총계 동일·응답 역전/오류·원본/복귀/focus 검증을 유지한다. 기존 #734 전용8 E2E는 해당 Run 취소 Shard1에서 개별 PASS였으나 Shard 전체는 CANCELLED. 3회 Run의 실제 실패 파일2개·case3개와 미실행 내역은 [단일 누적 원장](ISSUE_734_FAILURE_ANALYSIS.md) §5를 참조한다. 제품 변경·timeout/retries/skip/Shard 재배분 없음. 신규 Head 결과는 NOT TESTED.
+
 ## Issue #735 — 시스템 root 직접/조율 및 정확 교차 조회
 
 전용 `tests/server/resources/issue-735-system-dashboard.test.ts`, `tests/features/resources/system-dashboard.test.ts`, `tests/e2e/issue-735-system-dashboard.spec.ts`로 Target0 MCS1+ACS A/B의 단독/공정·WorkArea/설비·리소스/Milestone 경로, direct/coordination exact Task·Assignment·공수 합집합, 공유 controller/복수 경로 중복0과 다른 Task 누출0을 확인한다. Project 공통·복수 공정·WorkArea 미사용·작업0/PI 미설정·Target-only/혼합·빈 시스템 선택·잘못된 spec/foreign ID·snapshot stale를 포함한다.

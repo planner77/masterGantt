@@ -74,3 +74,29 @@ Shard1은 앞선 F734-001의 `5폭 긴 이름·내부 overflow·열 정렬·nati
 | F734-002 | `39482448255.1` / `712d3edc` | 같은 E2E 파일의 **다른 test**: 미수행 공유 인스턴스 승인 때문에 PATCH/다음 조회를 무한 대기, 120초 | 확인/취소/재확인 명시 순서 추가, mutation0→승인 후 PATCH200·최신 revision/snapshot·focus 검증 유지. **새 Head 원격 NOT TESTED** |
 
 **현재 누적 실제 실패 파일 합집합**: `tests/e2e/issue-734-equipment-dashboard.spec.ts` 한 파일 안 **서로 다른 2개 case**. §3의 최초 한 Run/한 case 서술은 작성 당시의 스냅샷이며 본 §4가 최신 누적 상태를 추가한다. 리뷰 원본 R734-001/002는 `712d3ed`에서 답글과 해결되었고 당시 최신 PR에서 미해결0/충돌0이었다. 신규 source 게시 전 같은 조건을 재확인한다. Owner-managed HIGH, `release_required=true`, `release_authorized=false`, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`; merge/main/GHCR/이슈 종료는 미수행. 새 PR CI 시작까지만 수행하고 모니터링하지 않는다.
+
+
+## 5. F734-003 — Full PR CI #3064.1 / 옛 고유 총계 Locator Timeout (2026-10-20 UTC)
+
+### 원격 실행·이력
+
+- 출처: [Full PR CI #3064.1, Run 39485897399](https://github.com/planner77/masterGantt/actions/runs/39485897399), event pull_request, attempt1, Head cd7c3a12465478909c8c11d70f793e57bd72d7ff, Base 08a1d9ff25a97aba67f08d6b67029ac55d45121a. GitHub test merge 541e450d56a451e269d124d24a59a3dc5321a6b6의 부모 [08a1d9ff…, cd7c3a12…] 및 Head와 동일한 Tree a9027f6e0927093327f84f364e09b0f3ed4b3c6b 확인.
+- QA Preflight job 118846211190, TypeScript 118846335173, ESLint 118846335277, Policy 118846335100, Vitest 118846335187, PR Fast Gate 118847168880, Next Build 118847280033, Docker Smoke 118847279601 모두 SUCCESS. Required Quality 118847920532 SUCCESS, Docker 118848432370 SUCCESS, E2E 118853592381 FAILURE, QA Final 118853635815 FAILURE(필수 E2E 미성공에 따른 파생 차단).
+- 실제 실패: [Chromium Shard 6, job 118847279897](https://github.com/planner77/masterGantt/actions/runs/39485897399/job/118847279897)의 tests/e2e/issue-730-view-composer.spec.ts:277, case '#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차단·구버전 설정 복구'. line338 locator.innerText()가 getByLabel('고유 총계', exact:true)를 기다리다 180000ms Test Timeout. 2026-10-20T19:57:49Z, shard6 32 PASS / 1 FAIL / 106 DID NOT RUN. [Playwright report/trace artifact 12294272551](https://github.com/planner77/masterGantt/actions/runs/39485897399/artifacts/12294272551)는 별도 ZIP/Trace 재생 NOT TESTED.
+- 다른 Shard는 matrix fail-fast에 의해 CANCELLED: Shard1 job118847279860 개별47PASS, Shard2 job118847280169 개별110PASS, Shard3 job118847279825 개별50PASS, Shard4 job118847279856 개별76PASS, Shard5 job118847279794 개별60PASS. 각 원본 log에서 추가 actual FAIL은 관찰되지 않았다. CANCELLED를 전체 SUCCESS로 승격하지 않는다.
+
+### 원인 및 F734-001/002 비교
+
+- 분류: TEST_CONTRACT / CROSS_CONSUMER_REGRESSION. Issue #734의 설비 전용 consumer에서는 기존 공통 WBS 기본 렌더의 aria-label '고유 총계', text 'Task1' 대신 명시적인 dl aria-label '설비 작업 고유 총계', text '고유 Task 1건'을 제공한다. 원본 데이터는 동일 서버 고유 Task/Assignment 총계를 사용하며 사용자 UI 검색으로 합계가 바뀌면 안 된다는 요구는 그대로다.
+- #730 회귀가 설비 탭에서 예전 라벨을 338/342/363행 세 차례 사용하여 화면에 없는 요소를 180초 내내 기다린 것이 직접 실패. 데이터 조회 지연, E2E 스케줄러 부하, 실제 저장/Focus 장애라고 볼 근거가 없다. GitCommitInfo 3초 timeout 경고 뒤 실제 테스트 진행이 지속된 점도 본 오류와 구분한다.
+- 보완: tests/e2e/issue-730-view-composer.spec.ts의 위 3개 참조를 새 설비 원본 접근성 라벨로 교정하고, 기존 검색 전후 전체 고유 총계 불변·응답 역전 후 고유 Task 정확히 1건·상세/원본/임시 일정 왕복/Focus·stale 409/503 및 잘못된 revision 차단·legacy 저장 설정 복구 단언을 그대로 보존한다. 변경된 UI의 aria-label을 구버전으로 되돌리거나 기대 Task 수를 약화하지 않는다.
+- 앞선 F734-001(첫 #3058.1, 설비명272자로 API400)은 #3061.1에서 200자 5폭 case PASS. F734-002(#3061.1, 저장의 공유 사용처 확인 누락으로 PATCH 응답120초 대기)는 #3064.1에서 설비 저장 case 27.0초 PASS. 또한 #3064.1 Shard1에서 issue-734-equipment-dashboard.spec.ts의 서로 다른 **8개 E2E case 모두 개별 PASS**하였지만 Shard1 전체는 CANCELLED이므로 required E2E PASS로 계산하지 않는다.
+- 누적 실제 실패 파일 합집합: tests/e2e/issue-734-equipment-dashboard.spec.ts (F734-001/002, 서로 다른 2 cases) + tests/e2e/issue-730-view-composer.spec.ts (F734-003, 1 case) = **2파일·3개 고유 case**. 이 Issue의 PR #759에서 확인된 Full Run은 #3058.1, #3061.1, #3064.1 세 번이며 각각 별도 HEAD/attempt를 가진다. 과거 FAIL, 취소와 미검증은 소급 변경하지 않는다.
+
+### 수정·영향·미검증 및 인계
+
+- 제품/DB/API/Auth/Gantt writer/CI workflow 변경 없이 #730 인접 Chromium 테스트 선택자만 업데이트한다. #734 8 E2E/200자·WorkArea/원본 저장/readonly/stale, #730 공통 UI·scope/검색 및 #733 공정/#735 System의 독립 고유 총계, #624 KPI와 GSC-01/07/08/09/11을 전체 PR Quality/E2E6/Docker의 교차 소비자로 보존한다.
+- 테스트 자체의 180s 예산, six-shard, fail-fast, retry/skip 조건은 변경하지 않는다. Timeout의 인과는 없는 locator이므로 테스트 재분배는 직접 해결책이 아니다. 진짜 Shard 부하 불균형은 전체 성공 Run과 실행시간 증거가 수집된 경우 별도 검토.
+- DOCUMENTATION_SYNC: 본 Issue #734 단일 실패 원장, docs/exec-plans/active/ISSUE_734.md, docs/TEST_PLAN.md UPDATED. 별도 #730 실패 원장에 이번 #734 PR 오류를 독립 #730 Run으로 잘못 중복 귀속하지 않는다.
+- 새 source의 로컬 npm/Playwright/SQLite/Docker/TypeScript 검증은 실행할 수 없어 NOT TESTED. 정적 diff/코드 계약 대조만 수행했고 이전 HEAD 원격 성공을 신규 HEAD의 성공 근거로 사용하지 않는다. 새 Head에 대한 GitHub Full PR CI를 시작한 후 완료는 모니터링하지 않는다.
+- 리뷰 스레드 미해결0·strict main 정렬·충돌 없음 상태를 게시 전에 재확인한다. HIGH/OWNER_MANAGED, release_required=true, release_authorized=false, manager_decision=NOT TESTED, MERGE_READY=BLOCKED 유지. 병합/Main CI/GHCR/Release/Issue 종료는 별도 승인 전 수행하지 않는다.
