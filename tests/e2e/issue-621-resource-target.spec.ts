@@ -366,6 +366,9 @@ test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 �
   await edit.focus(); await page.keyboard.press("Enter");
   const editor = await taskEditor(page);
   await expect(editor.getByRole("tab", { name: /^리소스/ })).toHaveAttribute("aria-selected", "true");
+  // Wait for the real assignment snapshot (two reads and revision checks),
+  // not merely the modal opening. Keep the exact 100%/co-assignee/401/412 checks.
+  await expect(editor.getByRole("button", { name: /^할당 저장 \(/ })).toBeEnabled({ timeout: 30_000 });
   const allocation = editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입률 (%)`, { exact: true });
   await expect(allocation).toHaveValue("100");
   await expect(editor.getByLabel(`리소스 2 ${f.resources[1].name} 투입률 (%)`, { exact: true })).toHaveCount(0);
@@ -397,6 +400,8 @@ test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 �
   await expect(editor).toHaveCount(0);
   await expect(edit).toBeFocused();
   await edit.click();
+  await expect(editor.getByRole("tab", { name: /^리소스/ })).toHaveAttribute("aria-selected", "true");
+  await expect(editor.getByRole("button", { name: /^할당 저장 \(/ })).toBeEnabled({ timeout: 30_000 });
   await expect(allocation).toHaveValue("80");
   await allocation.fill("70");
   failure = 401;

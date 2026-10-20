@@ -128,3 +128,11 @@ Milestone 생성·기존 목록/검색/기간/상태·KPI·명시 Completed·삭
 - 변경 위치: System #735 2→5, project-transfer 2→1, canonical projection 2→3, logistics-target authoring 4→1, project-task-delete 4→3, view composer #730 6→5. 기존 첫 교정(#732 Milestone3, #736 Resource2, Gantt recovery4)과 #733 관련 이동은 보존. 135파일 전체 명시/중복·누락0, Shard 파일 수23/22/26/21/23/20.
 - 성공 PR 실측 Job 분16.6/33.2/22.0/30.2/18.0/27.4에 이사한 테스트의 본문 시간만 적용한 임시 예상22.5/25.5/25.1/25.2/24.9/24.2분은 예측일 뿐. 새 HEAD에 대한 PR CI/Trusted QA/Owner ACCEPT **NOT TESTED**. 재검증 성공 전 Merge, Main, GHCR, Issue-close 진행하지 않음.
 - `tests/config/e2e-shard-plan.json`, `tests/scripts/e2e-shard-planner.test.ts`, #732 단일 누적 실패 원장·Work Packet·TEST_PLAN만 보완. 안전 E2E hash fallback·6Shard/worker1/35분/원본 test·QA/CI required·version0.128.0/제품 계약 불변. 이후 이슈 버전 간 Release 체인은 별도 감사를 요구.
+
+### 2026-10-21 — F732-006: PR Full #3073.1 Shard5 Resource assignment readiness 보완
+
+- **실패 증거:** [Run `39508411997.1`](https://github.com/planner77/masterGantt/actions/runs/39508411997), HEAD `d4b78a4f`의 Shard5 #622 `issue-622-resource-plan-target.spec.ts:92`에서 정확 ALICE 투입률60 입력을 5초 내 찾지 못함, 2PASS/1FAIL/99 NOT RUN; 나머지5 Shard CANCELLED, E2E+QA Final FAIL, Quality/Unit/Build/Docker SUCCESS. **35분 Job Timeout과 무관.** [Issue #732 실패 원장 F732-006](../../ISSUE_732_FAILURE_ANALYSIS.md) 참조.
+- **교차 소비자:** 타 Issue #736 Main #3071의 #621도 유사한 개인 투입률 label absence, #732 동일 source PR #3072의 #622 PASS. 아직 raw trace/DOM/네트워크가 검증되지 않아 정확 제품 원인 UNKNOWN, 두 번의 앱 Async Ready 경합 가능성을 제거하는 엄격한 E2E 준비 계약으로 우선 교정. 프로덕션 코드/권한/Assignment 저장은 변경하지 않음.
+- **범위/AC:** #622에서 API canonical allocation60/리소스 ID 단언을 추가하고 리소스 tab selected→실제 할당 ready를 의미하는 Save button enabled(`timeout:30000`, per-expect)→기존 정확 label/value와 60→40/Excel/5폭/동료 불변을 수행. #621에서도 첫 화면·재열기 모두 같은 Ready Gate→100/80/70·401/412·Bob 불변을 검증. 에러면 버튼 비활성/기존 assertion FAIL 유지, sleep/retry/skip 및 전역 timeout 35분 불변.
+- **회귀/검증:** 기존 #621/#622/#623/#736 기존 브라우저 및 모든 PR E2E6·Unit/Build/Docker, Trusted QA. GitHub source 정적 검토 외 로컬 실행 결과는 NOT TESTED; 새 정확 HEAD 성공 전 MERGE_READY=BLOCKED/Owner ACCEPT 미확인. PR branch `fix/issue-732-main-e2e-shard-1-rebalance` 재사용, plan135/6 shard/과거 #733 이동은 변경 없음.
+- **문서/버전:** 단일 실패 원장, Work Packet, TEST_PLAN에 누적. DESIGN/API/DB/CI_CD/AGENTS/CHANGELOG/USER GUIDE는 제품/버전/정책 무변경이라 N/A. #732 v0.127.0 미발행 및 사이의 #736 v0.128.0/Main 실패는 별도 정식 릴리스 부채로 유지.
