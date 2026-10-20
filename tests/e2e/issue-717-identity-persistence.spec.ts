@@ -18,7 +18,10 @@ test("#717 실제 HTTP·SQLite에서 동명 Milestone·공정의 정확한 식�
   const publicId = (await created.json()).data.project.publicId as string;
   const api = `/api/projects/${publicId}`;
   const getSnapshot = async () => {
-    const response = await page.request.get(api);
+    // #734 F734-006: after a successful PATCH the canonical GET may see a
+    // transient ECONNRESET. Retry this idempotent read at most once; never
+    // retry mutations or HTTP error statuses (both remain strict failures).
+    const response = await page.request.get(api, { maxRetries: 1 });
     expect(response.status()).toBe(200);
     return await response.json() as ProjectSnapshotResponse;
   };

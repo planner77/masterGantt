@@ -4941,3 +4941,29 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 ## Issue #735 F735-003 — 반응형 메뉴 단일 본문 부담 재배분 (2026-10-20)
 
 [누적 원장 §9](ISSUE_735_FAILURE_ANALYSIS.md)의 #3055.1은 #116 반응형 메뉴 단일 Test30초 초과다. fixture Before Hooks와 본문을 구분한 실제 trace/원형 RED31초로 결합 부담을 확인했고, Job35분 capacity 실패와 이전 GET 전송 오류와 구분했다. timeout/retry/단언을 유지하며4폭×4corner 행렬과 모바일/짧은 화면/Clipboard/desktop/Summary 흐름을 새 Project·SQLite·Context의 독립2Test로 나눈다. 각30초, 전체8→9case, 기존93matcher와 전체 명령 순서·나머지7case 내용 보존을 검산한다. 기존 실제 실패3case가 속한 같은 파일 전체9case를 동결 소스에서 fail-fast 없이 실행한다. fixture1회 추가의 비용은 별도로 기록하며 전역 Shard 이동·성능 절감은 주장하지 않는다. 전체6Shard/Docker·Trusted/Owner는 새 원격 exact Head에서 별도 검증한다.
+
+## Issue #732 M732-001 — Main #3067 E2E 35분 취소 교정과 Plan 누락 검출 (2026-10-21)
+
+- Main [#3067.1](https://github.com/planner77/masterGantt/actions/runs/39492209464) Shard1 `118868154867` 146 중145 PASS/1 미완료, 35분 Timeout CANCELLED. Quality/Docker·다른 Shard5개 PASS, E2E aggregate `118885430507` FAIL, GHCR SKIPPED. 구 PR [#3063.1](https://github.com/planner77/masterGantt/actions/runs/39485797851) 성공은 Main 성공 아님. [Issue #732 단일 실패 원장 F732-005](ISSUE_732_FAILURE_ANALYSIS.md)에 원본 Job/Attempt·교차 이력 보존.
+- #437 historical plan explicit116/실제 최신135(19 hash fallback): 4개 고부하 배정 수정(#735 System1→2, #732 Milestone1→3, Gantt recovery1→4, #736 Resource5→2). 신규 Issue #736의 Shard5는 PR #3069에서 이미28.7분이므로 초안의 #732→5는 재발 위험으로 철회. 다른131개 unchanged, 목표 파일수[21,25,24,23,21,21]. 오래된 projectedMs/14-run baseline은 수정하지 않음.
+- Planner Unit: `listSpecFiles()` 전체135 vs plan explicit 135(중복·누락0), `selectShardFiles` 6-way 집합 동일, 배정4개와 #733 이전2개 검증. 새 테스트 파일이 미등록이면 Unit 단계에서 조기 FAIL, 안전한 runtime hash fallback은 계속 활성. PR/Main/Release 공유 계획이므로 정확 HEAD 6 shard/Quality/Docker 및 Trusted QA 원격 검증 필수. 변경 영향 E2E: #732 Milestone4, #735 System6, #736 Resource5, Gantt/Resource/Excel(#529 마지막 NOT RUN), 기타 전체 테스트 모두 유지.
+- 테스트 시간 최적화는 실제 Runner/Setup/Fixture 변동성을 포함한 새 PR 및 Main 결과 없이는 PASS 아님. CI Workflow/35분 timeout·worker1·6 shards·required check/skip·retry·assertion/제품/API/DB·버전0.128.0 변경 없음. #732 0.127.0 릴리스 권한·#736 0.128.0 후속 병합의 별도 수명주기 감사를 생략하지 않는다.
+
+### M732-001 검증 보완 — PR #3072.1의 35분 임계치 접근 (2026-10-21)
+
+- 정확한 HEAD `1a776b0769d1d0f4bf5d1915059e96a2c3104aae`의 [Full PR CI #3072.1](https://github.com/planner77/masterGantt/actions/runs/39501650409) Required3+Automated QA SUCCESS/Trusted #713.1 SUCCESS. Job 실행시간 분 [16.6,33.2,22.0,30.2,18.0,27.4]. Shard2 35분 상한까지 1.8분만 남아 기존 Main #3067.1 취소 재발 위험을 판단.
+- 테스트 본문 duration 기반 선택한 여섯 이동: `issue-735-system-dashboard.spec.ts`2→5, `project-transfer-layout-491.spec.ts`2→1, `canonical-projection.spec.ts`2→3, `logistics-target-authoring.spec.ts`4→1, `project-task-delete-context.spec.ts`4→3, `issue-730-view-composer.spec.ts`6→5. 기존 #732/#736/#733 및 Gantt 이전 이동과 다른 spec 분배는 불변.
+- 현행 `listSpecFiles()`135개 === explicit 계획135개·중복0, 6-way selector 전체 일치 및 샤드 지정 11개 위치 Unit guard 갱신. 예상 Job 분 [22.5,25.5,25.1,25.2,24.9,24.2]은 단순 추정, 실제 GitHub Runner 35분 미만 PASS로 간주하지 않음. 새 commit Full CI·Trusted QA·Owner final approval 후에만 Merge 가능, 테스트 skip/retry/worker1/35분/Required3/제품 코드·버전 변경 없음. #736 이전 Main #3071.1은 Shard3 `issue-621-resource-target.spec.ts` 제품/테스트 assertion FAIL로 별도 실패하며 이 #732 변경의 완료 증거가 아님.
+
+### M732-002 — PR #3073.1 exact Assignment modal readiness 회귀 (2026-10-21)
+
+- 원본 [Full PR #3073.1](https://github.com/planner77/masterGantt/actions/runs/39508411997), exact SHA `d4b78a4fb9085ba58ccc967528a210c0889c4f04`, Shard5 #622 정확 할당 60% label `getByLabel` 5000ms `element(s) not found` (2PASS/1FAIL/99NOT RUN), 타 Shard5개 fail-fast 취소. Quality/Unit/Build/Docker PASS, E2E aggregate 및 QA Final FAIL. 원인은 35분 Job limit이 아니라 현재 canonical 할당 데이터 준비 전 필드 탐색 가능성; 실제 network/trace 정밀 RCA는 미완료이므로 제품 원인을 단정하지 않음.
+- 같은 편집기를 쓰는 #621의 #736 Main 실패를 인접 재발 경계로 선정. 소비자 test `issue-622-resource-plan-target.spec.ts`: canonical allocation.percent=60/Resource exact ID→modal visible→resource tab active→할당 저장 버튼 enabled(할당/후보 두 fetch·Revision 검증 완료 시점; 최대30초)→정확한 60→40/Target80/전체140→120/Excel 선택·전체/키보드/5폭/원본/Focus 회귀 유지. `issue-621-resource-target.spec.ts`에도 최초·재열기 Ready Gate를 추가하고 동료 할당 미변경, 401/412 negative assertion과 100→80→70 보존.
+- 새 source PR Full 6 Shard에는 두 변경 파일·인접 #623/#736/Resource/KPI가 모두 포함되어야 하며 모든 테스트 assertion 및 fail-fast/worker1/35분 timeout/Required gate는 불변. 준비 실패·API/revision 오류는 재시도/무시하지 않고 strict FAIL로 남긴다. 새 Head 테스트실행 완료 전 NOT TESTED, 기존 #3072 PASS를 새 Head 통과로 간주하지 않는다.
+
+
+## Issue #734 F734-006 — #717 canonical GET ECONNRESET 및 #732 최신 Shard 교차 회귀 (2026-10-21)
+
+- 실패 원본 [PR #759 / Full #3074.1](https://github.com/planner77/masterGantt/actions/runs/39509862644), exact HEAD `1dd588c8850df026561e1ad03236ccaf7d0837dd`, E2E Shard3 50PASS/1FAIL/57NOT RUN: `tests/e2e/issue-717-identity-persistence.spec.ts` 동명 Milestone PATCH200 뒤 snapshot GET `read ECONNRESET`(9.4초); 다른5Shard 취소. 서버 프로세스 생존·health200·OOM0, TCP reset 근인 UNKNOWN. 이전 5회와 신규 실패 분리는 [#734 단일 실패 원장](ISSUE_734_FAILURE_ANALYSIS.md#8-f734-006--full-30741-인접-717-정확-원본-get-전송-초기화-2026-10-21-kst)에 추적.
+- 읽기 전용 `getSnapshot`에만 Playwright `maxRetries:1`(ECONNRESET 전송에 한함, HTTP500/401/412·잘못된 JSON 및 revision 차이는 원래대로 실패); 생성/PATCH/DELETE retry0. #717 identity·동명·readonly copy/쓰기0·Milestone/공정 정확 source 테스트를 온전히 유지하고 #734 8case, #730 viewer 총계·원본, #735 System, #732 Milestone, #736 Resource+Excel, #621/#622 Assignment ready, #623 Resource, 401/412·GSC focus 부정 흐름을 정확 새 Head Full 6 Shard에 포함한다.
+- 최신 main #732의 135개 명시 샤드·#621/#622 준비 데이터/버튼 gate·Shard 부담 개선을 보존하나, 이 실패는 시간 120초/35분 초과가 아니므로 추가 샤드 분할·전역 timeout/retry/skip/CI policy 수정 없음. 동결 Source 로컬 npm/Chromium/Docker **NOT TESTED**, 원격 새 Required Quality/E2E/Docker·Trusted/Owner는 완료 전 **NOT TESTED**. Review 미해결0/strict main/충돌0 확인 후 CI 시작, 이후 모니터링/병합·릴리스 없음.
