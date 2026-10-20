@@ -1864,7 +1864,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         const focused = document.activeElement;
         if (focused instanceof HTMLElement && focused !== document.body && focused !== startingFocus &&
             focused !== state.trigger && focused !== milestoneTabReference.current &&
-            !panel.contains(focused) && !focused.closest("[hidden],[inert]")) {
+            !focused.matches('[role="tab"]') && !panel.contains(focused) &&
+            !focused.closest("[hidden],[inert]")) {
           controller.abort();
           return;
         }
