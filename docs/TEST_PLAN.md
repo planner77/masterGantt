@@ -1,3 +1,18 @@
+
+## Issue #730 — PR #756 Full #3037.1 재시작 후 Task 공정 연결 GET HTML404 (F730-014 / 2026-10-20)
+
+[같은 #730 실패 원장 §23](ISSUE_730_FAILURE_ANALYSIS.md)의 새 PR Full [#3037.1](https://github.com/planner77/masterGantt/actions/runs/39352213429) Chromium Shard3은 `issue-725-process-workareas.spec.ts:314`의 재시작 뒤 Task process-context GET에서 200 기대 / **Next `text/html` 404 실제**(57PASS/1FAIL/50NOT RUN). Code/TS/Lint/Vitest/Build/Docker SUCCESS, 다른 5 Shard CANCELLED, E2E/QA Final/Trusted QA 실패는 파생. 최초 #3036의 HEAD는 뒤 문서 교정 후 CANCELLED이므로 Full 성공으로 승격하지 않는다. #731 M-002 재시작 뒤 equipment PATCH HTML404와 같은 동적 라우트 준비 누락 계열이지만 기존 equipment GET405는 **다른 Task route의 준비를 보장하지 않았다**.
+
+**교정 및 필수 수용:** fixture `restartIsolatedApplication(equipmentPath, taskContextPath)`의 두 번째 인자를 선택적으로 도입해 재시작 동일 deadline 안의 읽기 전용 GET/no-store로 task route를 사전 확인한다. 오직 Next HTML404만 준비 중 bounded polling; 실제 HTTP200/JSON/context.processLinks 구조가 나와야 PASS, 의미상 JSON404/401/403/500·HTML200·bad JSON/shape/다른 origin/project/path/기간 초과/child 종료는 즉시 실패. 원래 후속 GET은 단 1회 HTTP200 + MIME JSON·`processLinks null→[A,B]→[B]→[]`와 PUT/실제 UI PATCH·WorkArea/수량·Task UUID·Gantt·readonly/5폭 단언을 보존한다. #725 실제 restart·#731 이전 cross-run·선택 옵션 없는 fixture 사용, #726/727 Task 연결 및 전체 #730 누적 직접 E2E **9파일** + #621/#623 Release 회귀, CI Required3/Trusted QA를 동일 new Head에서 검증한다. GitHub-only 보완 소스의 TypeScript/Vitest/real Browser/SQLite/Docker 및 CI 결론은 실행 전 NOT TESTED이다. 0.124.1 PATCH 후보 승인·tag/GHCR/Main/Issue close는 별도 gate.
+
+## Issue #730 — GHCR Release #182.1/#182.2 실패 후 same-Issue 교정 (2026-10-20)
+
+[단일 #730 누적 실패 원장 §21–22](ISSUE_730_FAILURE_ANALYSIS.md)의 원본 Release Run `39336847318`은 0.124.0 immutable tag의 attempt1(Shard3 #621 focus 1FAIL)·attempt2(Shard3 #621 focus + #623 폭별390/768/1024 timeout 4FAIL) 모두 실패. Prepare/static·5개 shard 성공, quality gate FAIL→verified candidate/promotion/resume SKIPPED. Main #3034.1/Finalizer #724.1 PASS를 정식 GHCR PASS라고 주장하지 않는다.
+
+**교정 검증:** #621 Resource Target 비교표 `data-ready=true`·실제 셀 버튼 `toBeEnabled`/ `toBeFocused` 후 네이티브 Tab·paint·5폭·header/body 및 조회 mutation0/remount0 원래 단언을 보존한다. #623 fresh real SQLite/HTTP seed + tree/matrix/5폭 독립 testcase만 명시적인 45초 bounded budget; 여섯 연속 mutation 90초 및 기존 retry/skip/assertions/global CI 변경 없음. 누적 #730 직접 E2E 8파일 합집합과 #719/#726/#727/#731/#730 인접·stale/read-only·Query0/fixture negative를 Full PR CI Quality/E2E6/Docker/Trusted QA에서 검사한다. 새 정확 Head의 로컬 npm·Browser·HTTP·Docker는 NOT TESTED.
+
+**릴리스:** 기존 v0.124.0 tag/승인/실패 Run 불변; 같은 Issue #730 교정 후보 0.124.1은 manifest/lock 일치 후 별도 PR CI/Owner HIGH 위험 수용 및 **expected_version=0.124.1 별도 승인**이 있어야 한다. release_required=true/release_authorized=false; 새 Main/GHCR/Issue close는 아직 금지.
+
 ## Issue #730 — F730-011 Full #3029.1 Task Editor 3시간대 30초 예산 실패 (2026-10-20)
 
 [Issue #730 전용 원장 §20](ISSUE_730_FAILURE_ANALYSIS.md#20-f730-011--pr-747-full-30291-task-editor-3시간대-재확인-test-budget-실패-2026-10-20), [PR Full #3029.1](https://github.com/planner77/masterGantt/actions/runs/39320381909) 원본 Trace에 따르면 TypeScript/Unit/ESLint/Build/Docker와 E2E 5개 Shard가 PASS했으나 Shard4의 `project-task-editor-persistence.spec.ts:8`가 기본30초 제한에 도달했다. 같은 실 Task Editor 저장/원본 revision·Task 정보·Gantt/URL 팝업 검증 완료 후 UTC, Asia/Seoul 새 Context와 America/New_York 최종 Editor 진입까지 실행하였다. fixture startup 약15.53초는 test body 시간과 별도로, body 앞부분14.93초 + 시간대 재조회 약4.01/5.44/5.62초에서 deadline. 실제 값 불일치/제품 실패는 관측되지 않았다. Shard4 79PASS/1FAIL/83NOT RUN·다른5 Shard SUCCESS·E2E/QA 파생 FAIL을 구분한다.

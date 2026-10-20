@@ -267,7 +267,10 @@ test("#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연�
   // route after the isolated restart. This warms route registration before
   // real UI writes without retrying or faking any equipment PATCH response.
   const equipmentPatchPath = `/api/projects/${f.publicId}/logistics/equipment/${equipmentId}`;
-  await restartIsolatedApplication(equipmentPatchPath);
+  const taskContextPath = `/api/projects/${f.publicId}/tasks/${f.task.taskId}/process-context`;
+  // #730 F730-014: warm both independent dynamic handlers using read-only
+  // GET contracts before real post-restart UI PATCH and Task context GET/PUT.
+  await restartIsolatedApplication(equipmentPatchPath, taskContextPath);
   const submitVerifiedPostRestartEdit = async (editDialog: Locator) => {
     const responsePromise = page.waitForResponse(response =>
       response.request().method() === "PATCH" &&
@@ -308,10 +311,12 @@ test("#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연�
   await targets();
   // #726 owns the editor controls. #725 supplies this persisted direct API contract:
   // null (legacy not introduced) is distinct from an explicit empty collection.
-  const taskContextUrl = `${f.api}/tasks/${f.task.taskId}/process-context`;
+  const taskContextUrl = `${origin}${taskContextPath}`;
   const readTaskContext = async () => {
     const response = await page.request.get(taskContextUrl);
-    expect(response.status()).toBe(200);
+    const contentType = response.headers()["content-type"] ?? "";
+    expect(response.status(), `Task context GET 응답 MIME: ${contentType}`).toBe(200);
+    expect(contentType).toContain("application/json");
     return (await response.json()).data.context;
   };
   expect((await readTaskContext()).processLinks).toBeNull();

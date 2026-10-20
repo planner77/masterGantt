@@ -61,7 +61,7 @@ async function stopApplication(child: ChildProcess, closed: Promise<void>): Prom
 /** Browser contexts alone cannot isolate a server's process-global rate limiter. */
 interface IsolatedApplicationRuntime {
   origin: string;
-  restart: (patchOnlyReadinessPath?: string) => Promise<void>;
+  restart: (patchOnlyReadinessPath?: string, taskContextReadinessPath?: string) => Promise<void>;
   observeApi: ObserveIsolatedApi;
 }
 
@@ -70,7 +70,7 @@ export const test = base.extend<{
   isolatedResourceAdminPassword: string | undefined;
   isolatedProjectMasterAdminPassword: string | undefined;
   isolatedApplicationRuntime: IsolatedApplicationRuntime;
-  restartIsolatedApplication: (patchOnlyReadinessPath?: string) => Promise<void>;
+  restartIsolatedApplication: (patchOnlyReadinessPath?: string, taskContextReadinessPath?: string) => Promise<void>;
   observeIsolatedApi: ObserveIsolatedApi;
 }>({
   isolatedResourceAdminPassword: [undefined, { option: true }],
@@ -139,7 +139,7 @@ export const test = base.extend<{
         maxBuffer: 16_384,
         windowsHide: true,
       });
-      const startApplication = async (patchOnlyReadinessPath?: string): Promise<void> => {
+      const startApplication = async (patchOnlyReadinessPath?: string, taskContextReadinessPath?: string): Promise<void> => {
         const deadline = Date.now() + startupMilliseconds;
         let spawnError: Error | undefined;
         child = spawn(process.execPath, [resolve(repositoryRoot, "node_modules/next/dist/bin/next"), "dev", "--hostname", "127.0.0.1", "--port", String(port)], {
@@ -216,11 +216,76 @@ export const test = base.extend<{
             throw new Error(`격리 E2E 서버 재시작 후 설비 PATCH 경로가 준비되지 않았습니다: read-only GET 마지막 HTTP ${lastStatus ?? "전송 실패"}, 예상 405. isolated-application-diagnostics 첨부를 확인하세요.`);
           }
         }
+        if (taskContextReadinessPath) {
+          // #730 PR #756 Full #3037: equipment GET405 alone cannot prove
+          // the independent task process-context GET route is registered.
+          // A Next development HTML 404 is a pending route; a canonical JSON
+          // 404/401/500 is an actual API failure and must never be retried.
+          const route = new URL(taskContextReadinessPath, origin);
+          const match = /^\/api\/projects\/([0-9a-f-]{36})\/tasks\/([0-9a-f-]{36})\/process-context$/.exec(route.pathname);
+          const equipmentProject = patchOnlyReadinessPath?.split("/")[3];
+          if (route.origin !== origin || route.search || route.hash ||
+              route.pathname !== taskContextReadinessPath || !match ||
+              (equipmentProject !== undefined && equipmentProject !== match[1])) {
+            throw new Error("격리 E2E 재시작 Task 공정 연결 준비 경로는 동일 프로젝트의 canonical 읽기 URL이어야 합니다.");
+          }
+          let ready = false;
+          let lastStatus: number | null = null;
+          let attempts = 0;
+          while (Date.now() < deadline) {
+            if (!child || child.exitCode !== null || child.signalCode !== null) {
+              throw new Error("격리 E2E Task 경로 준비 중 서버가 종료되었습니다. 진단을 확인하세요.");
+            }
+            const remaining = deadline - Date.now();
+            if (remaining <= 0) break;
+            let response: Response;
+            attempts++;
+            try {
+              response = await fetch(route, {
+                method: "GET", cache: "no-store",
+                signal: AbortSignal.timeout(Math.min(2_000, remaining)),
+              });
+            } catch {
+              await delay(100); // Before ready: transport/warming only, never retry PUT/PATCH.
+              continue;
+            }
+            lastStatus = response.status;
+            const contentType = response.headers.get("content-type") ?? "";
+            if (response.status === 200) {
+              if (!contentType.includes("application/json")) {
+                throw new Error("격리 E2E Task 공정 연결 경로의 200 응답이 JSON이 아닙니다.");
+              }
+              const payload = await response.json().catch(() => null) as {data?: {context?: Record<string, unknown>}} | null;
+              if (!payload?.data?.context ||
+                  !Object.prototype.hasOwnProperty.call(payload.data.context, "processLinks")) {
+                throw new Error("격리 E2E Task 공정 연결 경로의 JSON context 계약이 유효하지 않습니다.");
+              }
+              ready = true;
+              break;
+            }
+            await response.arrayBuffer();
+            if (response.status !== 404 || !contentType.includes("text/html")) {
+              throw new Error(`격리 E2E Task 공정 연결 경로가 실제 API 오류를 반환했습니다: HTTP ${response.status} (${contentType || "unknown MIME"}).`);
+            }
+            await delay(100); // Only Next's HTML 404 during bounded route compilation.
+          }
+          if (!ready) {
+            throw new Error(`격리 E2E 서버 재시작 후 Task GET 경로 미준비: 마지막 HTTP ${lastStatus ?? "전송 실패"} (예상 200 JSON).`);
+          }
+          await testInfo.attach("issue-730-task-route-ready", {
+            contentType: "application/json",
+            body: Buffer.from(JSON.stringify({
+              route: "/api/projects/[publicId]/tasks/[taskId]/process-context",
+              method: "GET", expectedStatus: 200, contentType: "application/json", attempts,
+              originalMutationRetries: 0,
+            })),
+          });
+        }
       };
       await startApplication();
       baselineResources = await resourceSnapshot(diagnostics.currentPid());
       let restarting = false;
-      const restart = async (patchOnlyReadinessPath?: string): Promise<void> => {
+      const restart = async (patchOnlyReadinessPath?: string, taskContextReadinessPath?: string): Promise<void> => {
         if (restarting) throw new Error("격리 E2E 서버 재시작이 이미 진행 중입니다.");
         if (!child) throw new Error("격리 E2E fixture의 실행 프로세스가 없습니다.");
         restarting = true;
@@ -229,7 +294,7 @@ export const test = base.extend<{
           await stopApplication(child, closed);
           child = undefined;
           // Preserve port/origin, SQLite, build output and environment; no migration rerun.
-          await startApplication(patchOnlyReadinessPath);
+          await startApplication(patchOnlyReadinessPath, taskContextReadinessPath);
         } finally { restarting = false; }
       };
       testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
