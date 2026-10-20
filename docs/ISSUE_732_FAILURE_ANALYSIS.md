@@ -35,3 +35,25 @@ Manager가 ignored 로컬 의존성의 실제 Next/@next/env16.3.4와 manifest/l
 ## 게시 시 최신 main 충돌 정리
 
 #735가 main08a1d9ff/version0.126.0으로 진행한 것을 재조회했다. 기존 #732 후보0.126.0과 CHANGELOG·TEST_PLAN append 충돌은 양쪽 내용을 보존하고 #732의 새 후보0.127.0으로 정리한다. 코드 충돌은 없으며 공유 WBS의 additive 변경은 최신 source의 관련 회귀로 재검증한다. 이전55unit/2browser PASS를 새 Head의 원격 PASS로 전용하지 않는다.
+
+## F732-004 — PR #761 / Full PR CI #3060.1 QA Final BLOCKED 및 P2 Snapshot 리뷰 (2026-10-20 UTC)
+
+- **귀속/원본:** [Issue #732](https://github.com/planner77/masterGantt/issues/732), [PR #761](https://github.com/planner77/masterGantt/pull/761), [Full PR CI Run 39440822411 Attempt 1](https://github.com/planner77/masterGantt/actions/runs/39440822411), workflow `.github/workflows/ci.yml`, event `pull_request`, Head `c2388f2400785a76daa427caee059898cba30e35`, base `08a1d9ff25a97aba67f08d6b67029ac55d45121a`, test merge `863e37e3082b9bf34b96e5f55e6a7bb015d6b64e` (기존 PR 출처 기록; Git 부모 독립 재감사는 NOT TESTED).
+- **실행 Job:** Required Quality `118692433340 SUCCESS`, Chromium E2E aggregate `118705146063 SUCCESS` (실제 PR shard 1~6 각각 SUCCESS: `118691338692/118691338926/118691338714/118691338564/118691338566/118691338419`), Docker aggregate `118692614837 SUCCESS` / Docker smoke `118691338319 SUCCESS`, PR Build `118691338632 SUCCESS`. 독립 Unit/Typecheck/ESLint/정책/Preflight 모두 SUCCESS. 유일한 실패 Job은 [QA Final — Automated 118705197794](https://github.com/planner77/masterGantt/actions/runs/39440822411/job/118705197794)의 `최신 PR 증거·문서·리뷰 확인 (read-only)` 단계.
+- **첫 실제 오류:** 2026-10-20T15:05:44Z, QA 요약 `자동 QA: BLOCKED`, `사유: 미해결 review thread`, exit1. [QA 보고 artifact 12275770984](https://github.com/planner77/masterGantt/actions/runs/39440822411/artifacts/12275770984). 자동 QA 실패는 **POLICY_CI**로 분류하며 Required 테스트 FAIL/Timeout은 0건. 취소·미실행 Shard 없음. 이 Run의 성공 세 Required를 전체 CI 성공으로 소급하지 않는다.
+- **실제 미해결 리뷰 원인 (P2 PRODUCT 표시 정합성):** [discussion_r4326272019](https://github.com/planner77/masterGantt/pull/761#discussion_r4326272019), `src/features/milestones/milestone-wbs-dashboard.tsx:39-42`에서 오래된 `data.fullMilestones[].stageGate`와 최신 원본 `tasks[].name/start/status`를 조합. 변경 직후 새 report가 pending/실패하면 오래된 Not Ready/Blocked Gate와 최신 `완료 기록`이 동시 표시되는 모순 가능. 기존 R732-001(수동 이벤트+Blocked 독립 표현)의 Gate 계산 결함과 별개의 표시 소스/Revision 문제임.
+- **원인별 수정:** `milestoneMetadataForReport`의 이름을 `report.configurationCatalog.milestones` (동일 report snapshot)에서만 사용. 예정일/상태는 `report.projectRevision === 현재 project revision`일 때만 host Task에서 표시. 불일치하면 날짜/상태를 숨기고 이전 조회/갱신 대기를 안내. 전체 Gate/Task·Assignment 지표·직접 선행·원본 편집·readonly/401/412·Gantt writer와 API/DB 계약은 불변.
+- **재발 회귀:** `tests/features/milestones/milestone-wbs-dashboard.test.ts`에 실제 SQLite report 기반 (기존 Revision→완료/날짜/명칭 변경 시 새 metadata 숨김→동일 새 Revision report에서 복원) 단언을 추가. 기존 5폭/keyboard·정확 원본·stale/error E2E, Gate/domain/SQLite, #550 회귀와 CI 전체 shard6을 유지. timeout, retry, shard 분배, assertion 완화 없음.
+- **누적 종합 진단:** L732-001은 잘못된 외부 URL·symlink, L732-002는 로컬 격리 서버 연결 실패·stale dependency, L732-003은 로컬 frozen install SIGTERM, R732-001은 Gate 보조 표시 분기 문제. 이력 삭제/소급 PASS 없이 보존. **이번 실제 원격 실패는 새 P2 리뷰 미해결→QA Final 정책 차단**으로, 앞선 로컬 환경 실패나 본문 Timeout의 재발 근거 없음. 원격 PR CI의 실제 실패 테스트 파일 합집합은 **공집합**, 검증해야 할 제품 회귀는 새 Milestone presentation과 기존 Milestone/원본·Gate 소비자.
+- **검증·인계:** GitHub head의 코드/타입/기존 사용처를 정적으로 대조하고 신·구 Revision, stale 및 report catalog 이름 경계를 신규 회귀 소스로 작성. 현재 실행 환경은 원본 저장소와 node_modules에 접근할 수 없어 로컬 Vitest/Playwright/Build **NOT TESTED**. 기존 Run의 PASS는 변경 후 Head PASS가 아니다. 최신 전체 PR CI는 수정 Head의 push 이벤트로 실행, 별도 결과 확인 전 Quality/E2E6/Docker/Trusted QA **NOT TESTED**. 리뷰 스레드 답글/Resolve, 충돌/최신 main 재확인 후 배포한다. Manager ACCEPT/병합·main/GHCR·Release·Issue 종료는 수행하지 않고 `release_authorized=false`, `MERGE_READY=BLOCKED` 유지.
+
+### F732-004 Cross-run 실패·회귀 매트릭스
+
+| 이력 | 당시 실패/원인 | 이번 영향과 조치 | 변경 Head 실증 |
+| --- | --- | --- | --- |
+| L732-001 (local) | ECONNREFUSED + Turbopack symlink 환경 | product code/CI fixture 변경 없이 보존 | 로컬 환경 NOT TESTED |
+| R732-001 (review) | 수동 이벤트·Blocked 별도 플래그 표시 | `milestoneFullGateLabel` 및 기존 unit 그대로 보존 | 새 Full CI 전 NOT TESTED |
+| L732-002/003 (local) | browser fixture connection, dependency drift, npm 종료 | frozen dependency/timeout 불변 | 새 Full CI 전 NOT TESTED |
+| F732-004 (원격 39440822411.1) | P2 Snapshot 정합성 리뷰 미해결→QA Final 차단 | Milestone name의 report-only provenance, date/status revision guard, unit 회귀 + 리뷰 해결 | 새 Full CI 전 NOT TESTED |
+
+**PR CI 재시작 등록:** 수정 commit에 해당하는 정확한 Run/Attempt URL은 push 후 GitHub Actions에서 확인하고 [Issue #732 상태 댓글](https://github.com/planner77/masterGantt/issues/732)에 연결한다. 한 커밋 이후 Run을 다시 원장 갱신한다는 이유로 별도 synchronize 이벤트를 만들지 않는다.

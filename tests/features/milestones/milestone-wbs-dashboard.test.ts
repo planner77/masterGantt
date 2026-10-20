@@ -1,7 +1,7 @@
 import { projectStageGates, type StageSnapshot } from "../../../src/domain/milestones/stage-gates";
 import { describe, expect, it } from "vitest";
 import { wbsDashboardViewsFixture } from "../../fixtures/wbs-dashboard-views";
-import { MILESTONE_WBS_DEFAULT_SPEC, MILESTONE_WBS_PRESETS, milestoneWbsPresentation, milestoneFullGateLabel } from "../../../src/features/milestones/milestone-wbs-dashboard-model";
+import { MILESTONE_WBS_DEFAULT_SPEC, MILESTONE_WBS_PRESETS, milestoneWbsPresentation, milestoneFullGateLabel, milestoneMetadataForReport } from "../../../src/features/milestones/milestone-wbs-dashboard-model";
 import { validateWbsViewSpec } from "../../../src/features/resources/wbs-view-model";
 import type { WbsViewReportDto } from "../../../src/contracts/wbs-dashboard-views";
 
@@ -37,6 +37,29 @@ describe("#732 Milestone consumer", () => {
       expect(view.fullMilestones[0].stageGate.ready).toBe(false);
     } finally { f.database.close(); }
   });
+  it("uses report metadata and never mixes an old Gate with a newer Milestone completion", () => {
+    const f = wbsDashboardViewsFixture("direct");
+    try {
+      const report = f.service.queryWbsView(f.project.publicId, { spec: MILESTONE_WBS_DEFAULT_SPEC, filters }) as WbsViewReportDto;
+      const milestoneId = f.tasks.get("M")!.publicId;
+      const originalName = report.configurationCatalog.milestones.find(row => row.id === milestoneId)!.name;
+      const original = [{ taskId: milestoneId, start: "2026-10-07", status: "not_started" as const }];
+      expect(milestoneMetadataForReport(report, report.projectRevision, original, milestoneId)).toEqual({
+        name: originalName, start: "2026-10-07", status: "not_started", stale: false,
+      });
+      const changed = [{ taskId: milestoneId, name: "새 Milestone 이름", start: "2026-10-30", status: "completed" as const }];
+      expect(milestoneMetadataForReport(report, report.projectRevision + 1, changed, milestoneId)).toEqual({
+        name: originalName, start: null, status: null, stale: true,
+      });
+      expect(report.fullMilestones.find(row => row.milestoneTaskId === milestoneId)!.stageGate.ready).toBe(false);
+      const refreshed = { ...report, projectRevision: report.projectRevision + 1,
+        configurationCatalog: { ...report.configurationCatalog, milestones: report.configurationCatalog.milestones.map(row => row.id === milestoneId ? { ...row, name: changed[0].name } : row) } };
+      expect(milestoneMetadataForReport(refreshed, refreshed.projectRevision, changed, milestoneId)).toEqual({
+        name: "새 Milestone 이름", start: "2026-10-30", status: "completed", stale: false,
+      });
+    } finally { f.database.close(); }
+  });
+
 });
 
 describe("Milestone full Gate independent labels", () => {

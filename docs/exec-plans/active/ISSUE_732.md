@@ -105,3 +105,11 @@ Milestone 생성·기존 목록/검색/기간/상태·KPI·명시 Completed·삭
 ## 최신 main 통합과 게시 재개
 
 게시 대기 중 #735가 main `08a1d9ff25a97aba67f08d6b67029ac55d45121a`/version0.126.0으로 병합됐다. 기존 baseline/후보0.126.0/로컬 검증은 위 역사 기록으로 보존한다. 최신 main을 통합하고 CHANGELOG·TEST_PLAN의 문서 충돌 두 곳에서 #732/#735 내용을 모두 유지했다. 새 #732 후보는 MINOR `0.127.0`으로 package/lock/CHANGELOG를 동기화한다. 정식 release_authorized=false 및 PR CI 시작까지만이라는 요청 범위는 그대로다. 공통 WBS의 #735 additive controls/system spec 변화와 Milestone consumer 호환은 새 tree에서 관련 unit/SQLite/typecheck로 다시 확인하며 원격 Required3/Trusted/Owner 판정은 새 Head에서 NOT TESTED다.
+
+## 2026-10-21 — Full PR CI #3060.1 실패 분석·Milestone Snapshot P2 보완
+
+- 원본: [PR #761](https://github.com/planner77/masterGantt/pull/761), [Run #3060.1 / 39440822411](https://github.com/planner77/masterGantt/actions/runs/39440822411). Required Quality/Chromium 6 shard/Docker는 SUCCESS, QA Final만 `미해결 review thread`로 BLOCKED. P2 [review](https://github.com/planner77/masterGantt/pull/761#discussion_r4326272019)에서 `stageGate`는 이전 Report, 이름·일정·상태는 최신 Task 목록을 읽는 Revision 혼합 지적. Timeout/Shard 부하는 원인 아님.
+- 수정 소비자: `src/features/milestones/milestone-wbs-dashboard.tsx`, `milestone-wbs-dashboard-model.ts`. 이름은 Full Gate와 동일 `configurationCatalog` report에서 읽고, Date/Status는 report revision과 host canonical revision이 같을 때만 표시. mismatch 시 과거 Gate는 이전 결과로 구분하고 날짜·상태 숨김/조회 대기 안내. 기존 복수 경로 dedup/Gate 산식/API/DB/권한·marker/viewport writer·원본 생성/editor 보존.
+- 추가 검증 코드: `tests/features/milestones/milestone-wbs-dashboard.test.ts`에 actual SQLite report + 새 Revision 완료/날짜/명칭 변경 시 반례, 신규 report 동기화 시 표시 복원. 기존 #732 전용 E2E/서버/도메인 테스트 유지, timeout/skip/retry/shard/Required 설정 불변. 실행 가능한 checkout/dependency가 없으므로 로컬 결과는 NOT TESTED; 새 정확 Head의 Full CI가 필수.
+- 이슈별 누적 원장: [ISSUE_732_FAILURE_ANALYSIS.md](../../ISSUE_732_FAILURE_ANALYSIS.md)의 `F732-004`에 L732-001~003/R732-001 대비 원격 원인·Job/Attempt/처리·잔여 위험을 추가. 과거 PASS를 현재 성공으로 치환하지 않음.
+- 최신 main/review/mergeability는 PR synchronize 직전 재확인, 개별 리뷰에 수정 근거로 응답하고 Resolve 후 Full CI 시작까지만 수행. CI 이후 Quality/E2E6/Docker/Trusted/Owner ACCEPT는 NOT TESTED, `MERGE_READY=BLOCKED`, `release_authorized=false`.

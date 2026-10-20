@@ -1,4 +1,5 @@
 import type { MilestoneStageGateDto } from "@/contracts/milestones";
+import type { ProjectTaskDto } from "@/contracts/projects";
 import type { WbsViewReportDto, WbsViewSpec } from "@/contracts/wbs-dashboard-views";
 
 export const MILESTONE_WBS_DEFAULT_SPEC: WbsViewSpec = {
@@ -27,4 +28,22 @@ export function milestoneFullGateLabel(gate: MilestoneStageGateDto): string {
     ...(gate.blocked ? ["Blocked"] : []),
     ...(gate.completionInconsistent ? ["완료 조건 불일치 진단"] : []),
   ].join(" · ");
+}
+
+/** Only pair canonical task dates/status with a Gate report from the same Project revision. */
+export function milestoneMetadataForReport(
+  report: Pick<WbsViewReportDto, "projectRevision" | "configurationCatalog">,
+  currentRevision: number,
+  tasks: readonly Pick<ProjectTaskDto, "taskId" | "start" | "status">[],
+  milestoneTaskId: string,
+) {
+  const stale = report.projectRevision !== currentRevision;
+  const task = stale ? undefined : tasks.find(row => row.taskId === milestoneTaskId);
+  return {
+    // The display name always comes from the SAME server report as full Gate.
+    name: report.configurationCatalog.milestones.find(row => row.id === milestoneTaskId)?.name ?? "Milestone",
+    start: task?.start ?? null,
+    status: task?.status ?? null,
+    stale,
+  };
 }
