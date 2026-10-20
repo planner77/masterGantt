@@ -1,3 +1,9 @@
+## Issue #733 — 공정 관점 consumer와 공통 조회 보완
+
+공정&WorkArea는 전용 descriptor/consumer에서 기존 `WbsViewDashboard`의 조회 상태·표·상세·editor/drill host를 재사용한다. optional consumer 연결이 없는 다른 root는 기존 동작을 유지한다. client에 별도 계산기나 구성 writer를 추가하지 않는다.
+
+#729 공유 projection은 작업이 없는 하위 구성 후보도 실제 소속에 근거해 보존하고 동일 read snapshot의 공정/구역 catalog를 응답한다. Task 경로는 기존 원장 교집합, 구성 관계는 명시 원본을 사용하며 서로 대체하지 않는다. 기존 DB/Repository 쓰기·권한·단일 Gantt Coordinator/marker-OFF는 유지한다. [API](API.md), [수치 정의](LOGISTICS_DASHBOARD.md#issue-733--공정workarea-전용-관점), [실행·제한](exec-plans/active/ISSUE_733.md)을 따른다.
+
 ## Issue #731 — KPI 전용 통합 read consumer
 
 기존 Logistics KPI 컴포넌트를 보존하고 전용 `/logistics/kpi?source=integrated` read adapter를 둔다. 한 SQLite read transaction에서 #729의 bounded Project snapshot과 #728의 공통 원장을 읽고 기존 Logistics KPI 계산 authority를 재사용한다. 유효 Task/개인 Assignment 합집합·진단 ID·구성 참고·source/snapshot을 전달하며 기존 `/logistics/dashboard`·Resource/Target default는 바꾸지 않는다. 저장 writer/DB migration·공통 resolver/계산기·Gantt Core/viewport writer는 추가하지 않는다. [계약](LOGISTICS_DASHBOARD.md#issue-731--기존-kpi와-통합-출처).

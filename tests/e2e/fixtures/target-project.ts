@@ -1,4 +1,4 @@
-import { expect, type Page, type APIResponse } from "@playwright/test";
+import { expect, test as playwrightTest, type Page, type APIResponse } from "@playwright/test";
 import type { ProjectMasterAdminResponse } from "../../../src/contracts/project-master";
 import type { ProcessCatalogResponse } from "../../../src/contracts/process-catalog";
 import type { CreateProjectResponse, ProjectSnapshotResponse, TaskMutationResponse } from "../../../src/contracts/projects";
@@ -54,6 +54,44 @@ export async function createTargetProject(page: Page, origin: string, observeApi
     // credential-bearing request. All consumers must supply real E2E diagnostics.
     const response = await observedReadOnlyGet(observeApi, `/api/projects/${publicId}`, () =>
       page.request.get(api, { headers: { Connection: "close" } }));
+    if (response.status() !== 200) {
+      // #733 F733-005: classify the single real failed GET before asserting.
+      // Never replay HTTP failures; retain only allowlisted diagnostics, not
+      // IDs/URLs, response body, headers, credentials, or a raw server stack.
+      const type = response.headers()["content-type"]?.toLowerCase() ?? "";
+      const mediaType = type.includes("application/json") ? "application/json"
+        : type.includes("text/html") ? "text/html" : "other";
+      let errorCode = "NON_JSON";
+      let frameworkFailure = "NONE";
+      if (mediaType === "text/html") {
+        // Examine, never retain, the framework-generated HTML error body.
+        // #3047.1 trace showed Next AppRouteRouteModule.loadManifests
+        // throwing JSON.parse on a truncated dev manifest.
+        const html = await response.text();
+        frameworkFailure = html.includes("AppRouteRouteModule.loadManifests")
+          && html.includes("Unexpected end of JSON input")
+          ? "NEXT_MANIFEST_JSON_PARSE"
+          : html.includes('"page":"/_error"') ? "NEXT_ERROR_PAGE" : "NON_API_HTML";
+      }
+      if (mediaType === "application/json") {
+        const payload: unknown = await response.json().catch(() => null);
+        const error = payload && typeof payload === "object" && "error" in payload
+          ? payload.error : null;
+        const code = error && typeof error === "object" && "code" in error
+          ? error.code : null;
+        errorCode = typeof code === "string" && /^[A-Z][A-Z0-9_]{0,63}$/.test(code)
+          ? code : "UNCLASSIFIED";
+      }
+      await playwrightTest.info().attach("issue-733-project-snapshot-http-error", {
+        contentType: "application/json",
+        body: Buffer.from(JSON.stringify({
+          route: "/api/projects/[publicId]", method: "GET",
+          status: response.status(), mediaType, errorCode, frameworkFailure,
+          requestIdPresent: Boolean(response.headers()["x-request-id"]),
+          httpErrorRetried: false, expectedStatus: 200,
+        })),
+      }).catch(() => undefined);
+    }
     expect(response.status()).toBe(200);
     return await (await successful(response)).json() as ProjectSnapshotResponse;
   };
@@ -72,7 +110,24 @@ export async function createTargetProject(page: Page, origin: string, observeApi
   const parentTask = parent.data.tasks.find(row => row.name === "관리 Summary")!;
   const child = await (await mutate("/tasks", { name: "통합 시운전", type: "task", parentTaskId: parentTask.taskId, start: "2026-10-14", duration: 2, progress: 0 })).json() as TaskMutationResponse;
   const task = child.data.tasks.find(row => row.name === "통합 시운전")!;
-  await page.goto(`${origin}/projects/${publicId}`);
-  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
+  // #733 F733-006: retain the actual edit-mode assertion while allowing
+  // bounded Next dev hydration after the real HTTP fixture setup.
+  const navigation = await page.goto(`${origin}/projects/${publicId}`);
+  try {
+    await expect(page.getByText("편집 중", { exact: true })).toBeVisible({ timeout: 15_000 });
+  } catch (error) {
+    // Sanitized diagnostics only: do not attach page HTML, URL, cookies or IDs.
+    await playwrightTest.info().attach("issue-733-edit-mode-init", {
+      contentType: "application/json",
+      body: Buffer.from(JSON.stringify({
+        navigationStatus: navigation?.status() ?? null,
+        navigationMediaType: navigation?.headers()["content-type"]?.split(";")[0] ?? null,
+        editModeVisible: await page.getByText("편집 중", { exact: true }).isVisible().catch(() => false),
+        pageReadyState: await page.evaluate(() => document.readyState).catch(() => "unknown"),
+        boundedWaitMs: 15_000,
+      })),
+    }).catch(() => undefined);
+    throw error;
+  }
   return { publicId, api, origin, snapshot, mutate, processIds, task, parentTask, catalog };
 }

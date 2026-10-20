@@ -69,12 +69,22 @@ export const test = base.extend<{
   isolatedApplication: string;
   isolatedResourceAdminPassword: string | undefined;
   isolatedProjectMasterAdminPassword: string | undefined;
+  // Default Turbopack remains unchanged; opt into Webpack only for isolated
+  // Next dev tests with persistent dynamic-route 404 after restart.
+  isolatedDevBundler: "turbopack" | "webpack";
+  /** #733 F733-007: serial GET-only compile warmup scoped to actual #725 routes. */
+  isolatedRouteWarmup: "base" | "process-workareas";
+  /** #733 F733-005: optionally discard the previous dev compiler cache on restart. */
+  isolatedFreshDistOnRestart: boolean;
   isolatedApplicationRuntime: IsolatedApplicationRuntime;
   restartIsolatedApplication: (patchOnlyReadinessPath?: string, taskContextReadinessPath?: string) => Promise<void>;
   observeIsolatedApi: ObserveIsolatedApi;
 }>({
   isolatedResourceAdminPassword: [undefined, { option: true }],
   isolatedProjectMasterAdminPassword: [undefined, { option: true }],
+  isolatedDevBundler: ["turbopack", { option: true }],
+  isolatedRouteWarmup: ["base", { option: true }],
+  isolatedFreshDistOnRestart: [false, { option: true }],
   isolatedApplication: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.origin);
   },
@@ -84,7 +94,7 @@ export const test = base.extend<{
   observeIsolatedApi: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.observeApi);
   },
-  isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword, isolatedProjectMasterAdminPassword }, provide, testInfo) => {
+  isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword, isolatedProjectMasterAdminPassword, isolatedDevBundler, isolatedRouteWarmup, isolatedFreshDistOnRestart }, provide, testInfo) => {
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
@@ -98,7 +108,9 @@ export const test = base.extend<{
     const temporary = await mkdtemp(resolve(repositoryRoot, ".data", "playwright-isolated-"));
     // Must obey next.config.ts's .next-<lowercase-name> contract. Never reuse
     // the shared mock/demo server's .next-e2e output or a developer's .next.
-    const distName = `.next-e2e-isolated-${randomUUID()}`;
+    const distNames = [`.next-e2e-isolated-${randomUUID()}`];
+    // Every allocated folder is owned by this disposable fixture only.
+    // Do not reuse a running Next dev generation's compilation artifacts.
     let child: ChildProcess | undefined;
     let closed = Promise.resolve();
     const diagnostics = new IsolatedApplicationDiagnostics();
@@ -126,7 +138,7 @@ export const test = base.extend<{
         NODE_ENV: "development",
         APP_BASE_URL: origin,
         DATABASE_PATH: resolve(temporary, "database.sqlite3"),
-        NEXT_DIST_DIR: distName,
+        NEXT_DIST_DIR: distNames[0]!,
         ...(isolatedResourceAdminPassword===undefined?{}:{RESOURCE_CATALOG_ADMIN_PASSWORD:isolatedResourceAdminPassword}),
         ...(isolatedProjectMasterAdminPassword===undefined?{}:{PROJECT_MASTER_ADMIN_PASSWORD:isolatedProjectMasterAdminPassword}),
       };
@@ -142,7 +154,11 @@ export const test = base.extend<{
       const startApplication = async (patchOnlyReadinessPath?: string, taskContextReadinessPath?: string): Promise<void> => {
         const deadline = Date.now() + startupMilliseconds;
         let spawnError: Error | undefined;
-        child = spawn(process.execPath, [resolve(repositoryRoot, "node_modules/next/dist/bin/next"), "dev", "--hostname", "127.0.0.1", "--port", String(port)], {
+        child = spawn(process.execPath, [
+          resolve(repositoryRoot, "node_modules/next/dist/bin/next"), "dev",
+          ...(isolatedDevBundler === "webpack" ? ["--webpack"] : []),
+          "--hostname", "127.0.0.1", "--port", String(port),
+        ], {
           cwd: repositoryRoot,
           detached: process.platform !== "win32",
           windowsHide: true,
@@ -170,12 +186,57 @@ export const test = base.extend<{
         // behavior budget. GET/405 does not consume create/unlock attempts.
         const missing = "00000000-0000-4000-8000-000000000001";
         const paths = ["/", "/projects/new", "/api/project-master/catalog", `/projects/${missing}`, "/api/projects", `/api/projects/${missing}`, `/api/projects/${missing}/edit-sessions`, `/api/projects/${missing}/edit-sessions/current`, `/api/projects/${missing}/edit-password`, `/api/projects/${missing}/tasks`, `/api/projects/${missing}/tasks/${missing}`];
-        for (const path of paths) {
+        // #733 F733-007 / Next dev manifest corruption: force first compilation
+        // of the actual #725 API route families serially, before business writes
+        // and browser navigation can overlap lazy route compilation. Synthetic
+        // UUIDs + GET only: no fixture mutations, authentication or retries.
+        // Every restarted generation gets the same bounded warmup.
+        const processRoutes = isolatedRouteWarmup === "process-workareas" ? [
+          "/api/project-master/admin-sessions",
+          "/api/project-master/admin/items",
+          "/api/project-master/admin/relations",
+          "/api/process-catalog/admin",
+          "/api/process-catalog/admin/types",
+          "/api/process-catalog/admin/occurrences",
+          "/api/process-catalog/admin/work-areas",
+          `/api/projects/${missing}/logistics/processes`,
+          `/api/projects/${missing}/logistics/process-mappings/${missing}`,
+          `/api/projects/${missing}/logistics/equipment`,
+          `/api/projects/${missing}/logistics/equipment/${missing}`,
+          `/api/projects/${missing}/logistics`,
+          `/api/projects/${missing}/logistics/process-context`,
+          `/api/projects/${missing}/logistics/targets`,
+          `/api/projects/${missing}/tasks/${missing}/process-context`,
+        ] : [];
+        const prewarmStatusCounts: Record<string, number> = {};
+        for (const path of [...paths, ...processRoutes]) {
           const remaining = deadline - Date.now();
           if (remaining <= 0) throw new Error("Isolated E2E route warmup exceeded its startup budget.");
           const response = await fetch(`${origin}${path}`, { signal: AbortSignal.timeout(remaining) });
+          const mediaType = response.headers.get("content-type")?.toLowerCase() ?? "";
           await response.arrayBuffer();
           if (response.status >= 500) throw new Error(`격리 E2E 경로 준비 실패: HTTP ${response.status}. isolated-application-diagnostics 첨부를 확인하세요.`);
+          if (processRoutes.includes(path)) {
+            // An HTML 404 is Next's route-not-compiled page, not a real
+            // project/API JSON 404. Fail closed before the test starts.
+            if (response.status === 404 && !mediaType.includes("application/json")) {
+              throw new Error("격리 E2E 공정 API 사전 준비에서 동적 라우트가 HTML404를 반환했습니다.");
+            }
+            const key = String(response.status);
+            prewarmStatusCounts[key] = (prewarmStatusCounts[key] ?? 0) + 1;
+          }
+        }
+        if (processRoutes.length) {
+          await testInfo.attach("issue-733-process-api-serial-prewarm", {
+            contentType: "application/json",
+            body: Buffer.from(JSON.stringify({
+              phase: patchOnlyReadinessPath ? "restart" : "initial",
+              bundler: isolatedDevBundler,
+              routeCount: processRoutes.length,
+              method: "GET", realBusinessRequestsRetried: false,
+              statusCounts: prewarmStatusCounts,
+            })),
+          });
         }
         if (patchOnlyReadinessPath) {
           // A healthy /api/health/ready does not establish that the lazy Next.js
@@ -188,6 +249,8 @@ export const test = base.extend<{
             throw new Error("격리 E2E 재시작 읽기 전용 준비 검사는 해당 프로젝트의 설비 API만 허용합니다.");
           }
           let lastStatus: number | null = null;
+          let lastContentType = "";
+          let attempts = 0;
           while (Date.now() < deadline) {
             if (!child || child.exitCode !== null || child.signalCode !== null) {
               throw new Error("격리 E2E 경로 준비 중 서버가 종료되었습니다. 진단을 확인하세요.");
@@ -195,6 +258,7 @@ export const test = base.extend<{
             const remaining = deadline - Date.now();
             if (remaining <= 0) break;
             let response: Response;
+            attempts++;
             try {
               response = await fetch(route, {
                 method: "GET", cache: "no-store",
@@ -205,16 +269,27 @@ export const test = base.extend<{
               continue;
             }
             lastStatus = response.status;
+            lastContentType = response.headers.get("content-type") ?? "";
             await response.arrayBuffer();
             if (lastStatus === 405) break;
-            if (lastStatus !== 404) {
-              throw new Error(`격리 E2E PATCH 전용 동적 경로 준비 결과가 예상 밖입니다: GET HTTP ${lastStatus} (예상 405).`);
+            // Retry only Next's transient HTML404 during lazy route compilation.
+            // A JSON404 or any other status is an API/contract failure, not warmup.
+            if (lastStatus !== 404 || !lastContentType.includes("text/html")) {
+              throw new Error(`격리 E2E PATCH 동적 경로의 응답이 예상 밖입니다: GET HTTP ${lastStatus} (${lastContentType || "unknown MIME"}, 예상 405 또는 준비 중 HTML404).`);
             }
             await delay(100);
           }
           if (lastStatus !== 405) {
-            throw new Error(`격리 E2E 서버 재시작 후 설비 PATCH 경로가 준비되지 않았습니다: read-only GET 마지막 HTTP ${lastStatus ?? "전송 실패"}, 예상 405. isolated-application-diagnostics 첨부를 확인하세요.`);
+            throw new Error(`격리 E2E 서버 재시작 후 설비 PATCH 경로가 준비되지 않았습니다: read-only GET 마지막 HTTP ${lastStatus ?? "전송 실패"} (${lastContentType || "unknown MIME"}, attempts=${attempts}), 예상 405. isolated-application-diagnostics 첨부를 확인하세요.`);
           }
+          await testInfo.attach("issue-733-equipment-route-ready", {
+            contentType: "application/json",
+            body: Buffer.from(JSON.stringify({
+              route: "/api/projects/[publicId]/logistics/equipment/[equipmentId]",
+              method: "GET", expectedStatus: 405, attempts,
+              originalMutationRetries: 0, bundler: isolatedDevBundler,
+            })),
+          });
         }
         if (taskContextReadinessPath) {
           // #730 PR #756 Full #3037: equipment GET405 alone cannot prove
@@ -293,11 +368,18 @@ export const test = base.extend<{
           diagnostics.expectShutdown(child);
           await stopApplication(child, closed);
           child = undefined;
-          // Preserve port/origin, SQLite, build output and environment; no migration rerun.
+          // Preserve port/origin and persisted SQLite without rerunning migration.
+          // Opt-in tests get a fresh compiler/dist generation after the old
+          // server has terminated, ruling out stale reuse of the first dev cache.
+          if (isolatedFreshDistOnRestart) {
+            const freshName = `.next-e2e-isolated-${randomUUID()}`;
+            distNames.push(freshName);
+            applicationEnvironment.NEXT_DIST_DIR = freshName;
+          }
           await startApplication(patchOnlyReadinessPath, taskContextReadinessPath);
         } finally { restarting = false; }
       };
-      testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
+      testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: bundler=${isolatedDevBundler}; routeWarmup=${isolatedRouteWarmup}; freshDistOnRestart=${isolatedFreshDistOnRestart}; fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
       await provide({ origin, restart, observeApi: observeIsolatedApi(diagnostics, () => captureDiagnostics("api_transport_failure")) });
     } catch (error) {
       await captureDiagnostics("setup_failure").catch(() => undefined);
@@ -310,7 +392,10 @@ export const test = base.extend<{
       }
       // Remove only paths allocated by this fixture, after its server exits.
       await rm(temporary, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-      await rm(resolve(repositoryRoot, distName), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+      for (const name of distNames) {
+        // Only this test's generated folders; never delete another workspace.
+        await rm(resolve(repositoryRoot, name), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+      }
     }
   }, { scope: "test", timeout: 120_000 }],
 });

@@ -1,3 +1,30 @@
+## Issue #733 — F733-005 Full #3044.1 post-restart Project GET500 (2026-10-20)
+
+- [Run #3044.1](https://github.com/planner77/masterGantt/actions/runs/39374553530) Shard3 failed one #725 actual browser case at target-project.ts:57, Project GET expected200 actual500 following successful restart equipment GET405, PATCH200 JSON and Task Context GET/PUT200. Quality/Build/Docker success, five other E2E shards cancelled, E2E/QA downstream fail. Source/Job/artifact, previous F733-001~004 and #3039 historical PASS are in [single #733 ledger §10](ISSUE_733_FAILURE_ANALYSIS.md).
+- Cause UNKNOWN: the old GET404 readiness is not reproduced, but postrestart Webpack dev GET500 response MIME/API code is missing. Minimum test-only remediation is fresh compiler dist per opt-in #725 restart after child stop (same port/SQLite/auth/data, no extra migration) plus safe non200 GET status/MIME/errorCode telemetry. Do not mask/retry actual HTTP500 or relax expected200, GET405/real PATCH200, 90-second readiness/CI global retries/timeouts/skip or six required shard policy.
+- Regression: #725 two real HTTP/SQLite E2E; adjacent #730/#731/#726 and F733-001~004 #622 focus, valid ACS/#733 SQLite, #514/#529 clock, #621/#623, #624 readonly, GSC-07/08/09, original writer/permissions/revision/error MIME. New Head actual local/remote QA NOT TESTED; full CI and Owner acceptance required before merge/release.
+
+## Issue #733 — F733-004 Full PR CI #3043.1 isolated restart GET404 (2026-10-20)
+
+- [원본 Run #3043.1](https://github.com/planner77/masterGantt/actions/runs/39370750961) Shard3의 tests/e2e/issue-725-process-workareas.spec.ts:88 real restart case에서 equipment PATCH-only route ready GET HTTP404 vs expected405 (fixtures/isolated-application.ts:216). Quality+Next build+Docker PASS, Shard3 57PASS/1FAIL/50NOT RUN, Shard6 134PASS, 다른 4 Shard 취소. QA Final 파생 실패, #733 단일 [누적 실패 원장 §9](ISSUE_733_FAILURE_ANALYSIS.md)에 이전 F733-001~003/3039.1 PASS와 함께 별도 Run·Head/base/test-merge 고정.
+- 분류 INIT_TRANSPORT: restart child alive/health200/oomKill0이나 동적 PATCH handler가 90s 내 GET405가 되지 않았으며 실제 재시작 후 PATCH는 전혀 호출되지 않았다. 정확 Next internals와 기존 HTTP404 MIME은 UNKNOWN. 기존 #730 F730-014·#731 M-002 근거와 공식 Next dev --webpack opt-in을 비교한다.
+- 테스트/fixture 최소 수정: typed isolatedDevBundler 옵션 기본 turbopack(공유 fixture 사용자 영향 없음); #725 두 실제 E2E 케이스만 webpack opt-in. read-only equipment GET405 준비, Task Context GET200 JSON 및 실제 business PATCH200 JSON 2회/PUT·원본 화면/WorkArea E10/Target0/focus/revision/5폭/readonly/mutation count 단언 유지. Equipment readiness에서 HTML404만 제한적 대기, 실제 JSON404/401/403/500/잘못된 MIME 즉시 실패, sanitized source/bundler/attempts/mutation retry0 첨부. 새 test skip/retry/global timeout/CI shard/임의 완료 체크 금지.
+- 직접/교차/음성: #725 two-case same source real Chromium/SQLite/HTTP; #730/#731 restart equipment+Task, #621/#623 dynamic routes, #726 process-context, 누적 #733 E2E/Unit·#622 editor focus·#514/#529 clock peer, #624 legacy readonly, GSC-07/08/09 및 정확 Req Quality/E2E6/Docker/Trusted QA. 현재 로컬 runnable source 부재로 new source actual tests NOT TESTED; 새 PR Run 결과를 별도로 확인해야 하며 메인/릴리스/Owner 승인 전용 아님.
+
+## Issue #733 — F733-003 Full #3042.1 Playwright clock pause 역행 (2026-10-20)
+
+- [#733 단일 누적 실패 원장 §8](ISSUE_733_FAILURE_ANALYSIS.md)의 [PR CI #3042.1](https://github.com/planner77/masterGantt/actions/runs/39368321617)은 Quality/Build/Docker 성공, Shard6의 #514 `grid-task-start-reveal.spec.ts:126`에서 `clock.pauseAt: Cannot fast-forward to the past` 발생(19PASS/1FAIL/114NOT RUN, 다른5 Shard 취소), E2E/QA Final 파생 FAIL. 이전 #3039.1는 구 Head/base에서 Required3/QA Final 및 E2E6 PASS했으며 현 Head 검증을 대신하지 않는다.
+- **원인/보완:** browser clock `install()` 뒤에도 시간이 진행하는데 새 `new Date()`로 지정한 `pauseAt()` 목표가 원래 가상 시계보다 과거가 될 수 있는 TEST_CONTRACT 경합이다. 기존 #569 교정 방식처럼 `pauseTime`을 한 번 샘플링하고 `install({time:pauseTime-60_000})` → `pauseAt(pauseTime)`의 엄격한 전진 관계를 만든다. 직접 #514 3곳 및 동일 미교정 #529 1곳만 변경한다.
+- **단언 유지:** #514 pending peer wheel/빠른 다중 선택·필터 전환·Task start reveal, #529 native wheel/Resource↔Gantt 복귀·source/filter 우선권, #569 인접 보존, GSC-07/08/09, 날짜/scroll Core+DOM·동일 Gantt 인스턴스·조회 mutation0. 기존 Clock `runFor`, `resume`, 원래 E2E timeout/retries/skip/fail-fast 및 CI Required Quality/E2E6/Docker 불변.
+- 누적 실제 원격 FAIL 집합은 #3035.1 `issue-622-resource-plan-target.spec.ts`, #3038.1 `issue-733-process-configuration.test.ts`, #3042.1 `grid-task-start-reveal.spec.ts`. #3042 취소5 Shard는 PASS 아님. 전체 이력과 artifact/원인/가설/미검증은 [단일 원장](ISSUE_733_FAILURE_ANALYSIS.md) §1/§8에서 추적한다. 새 source의 TypeScript/Vitest/Chromium/SQLite/Build/Docker 실제 재검증은 GitHub Git Data 경로에서 NOT TESTED, 새로운 exact-HEAD PR Full CI로 확인한다.
+
+## Issue #733 — 공정&WorkArea 전용 관점과 구성-only 회귀
+
+[Work Packet](exec-plans/active/ISSUE_733.md)의 AC1~AC5는 공정 descriptor/consumer의 직접 Unit·실제 Chromium, #728 고유 원장 oracle와 #729 SQLite/HTTP의 등록-only 하위·원본 상세/snapshot 음성으로 검증한다. 공정 단독·WorkArea→typed 형제→리소스·Milestone 교차, E10 두 구역 상위10/Task5M/D 중복0·shared System 다른 Task 누출0·작업0 구성·미배정/미설정·full Gate를 포함한다.
+
+원본 수정 후 stale/새 snapshot·동일 경로/필터·focus 복귀·dirty/readonly/error, 390/768/1024/1440/1920px·긴 이름·표 내부 overflow·keyboard/Escape·조회 mutation0/Gantt remount0/marker-OFF를 실제 브라우저와 원본 ID로 확인한다. #730 실패원장의 POST 조회 예외는 정확 method/endpoint에 한정하고 업무 mutation은 계속 감지한다. shared seam의 인접/음성 #730, 기존 #624/KPI·물류/Resource 소비자를 선정한다.
+
+#730의 이전 실제 실패7파일과 각 원인은 역사로 보존하며 이번 결과로 소급 PASS하지 않는다. Local PrePR fast/targeted의 sourceStable·UNKNOWN과 실제 실행을 구분하고 원격 Full Quality/E2E6/Docker·Trusted QA·Owner 승인은 별도다. 실행 수·최초 실패·수정 후 동결 증거·미실행은 Work Packet의 누적 원장에 기록한다.
 
 ## Issue #730 — PR #756 Full #3037.1 재시작 후 Task 공정 연결 GET HTML404 (F730-014 / 2026-10-20)
 
@@ -4814,3 +4841,37 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 - #550 실 SQLite/HTTP 케이스(빈 Milestone-only past/future 및 원래 실제 restart/readonly): 기존 GET 200/Project revision·Task ID·Milestone Gate/관계·변경 API 보호 단언은 유지. 처음 canonical GET에는 `Connection: close`, 기존 Observer로 실제 ECONNRESET을 기록한 뒤 같은 조회만 최대 두 번(최초+1회) 사용한다. 전체 global Playwright/CI retry·timeout·skip을 변경하지 않는다.
 - 기존 `tests/scripts/isolated-readonly-get.test.ts` 여섯 유한 양성/음성 계약(정상 GET 1회, 첫 ECONNRESET → 1회 한정, 두 번째 재실패 차단, HTTP404/409/503와 ETIMEDOUT/ECONNREFUSED/invalid JSON/비Error 재시도 금지, 정규화 route 기록)을 후속 Unit 영향으로 선택한다. 새 `tests/e2e/milestone-management-persistence.spec.ts`가 정확한 observer를 획득하는지 TypeScript/Full E2E6로 확인한다. 어떤 업무 POST/PUT/PATCH/DELETE도 다시 보내지 않는다.
 - 기존 #730 WBS 조회/원본/일정 경합, #703/#624 격리 canonical GET, #731 KPI·Resource/Milestone 원본 및 기존 #550 실제 SQLite restart 케이스를 전체 원격6 Shard 교차로 검증한다. 이 GitHub 편집 환경에서 로컬 Test/Next/Playwright/Docker 실행은 NOT TESTED. Source of Truth: [#730 동일 Issue 누적 실패 원장](ISSUE_730_FAILURE_ANALYSIS.md).
+
+## Issue #733 / PR #755 — CI #3035.1 누적 회귀 선정 (2026-10-20)
+
+- 최초 원격 실제 FAIL: tests/e2e/issue-622-resource-plan-target.spec.ts, Task Editor 자원 배정 60%→40% 저장·상세 row/Assignment 보존 PASS, 원본 버튼 toBeFocused 5초 FAIL. 제품이 최신 같은 detail/Task/Assignment readiness 확인 뒤 포커스를 복귀하도록 하고, E2E 기존 단언 그대로 + 2 requestAnimationFrame 뒤 포커스 유지 추가. Timeout·skip·retry 완화 금지.
+- Codex P2: tests/server/resources/issue-733-process-configuration.test.ts에서 같은 occurrence를 공유하는 프로젝트 공정 A/C와 C-only WorkArea, 동일 설비/제어 System을 만들어 A 아래 거짓 후보 비노출·C 아래 실제 후보 노출, 등록-only Task/Assignment0를 검증. 다른 occurrence에서 정상 후보와 공정 미소속 system-null 영역 보존.
+- 직접·간접·음성 검증 후보: #622 resource dashboard Target80/Project140, Excel export/5폭, #733 등록 구성·W1·조회 snapshot/Task0, #730 WBS original/detail async, #731 KPI focus, #624 logistics readonly. 최초 #3035.1 E2E 다른 5 Shard CANCELLED는 PASS가 아니므로 신규 Full required 검증 필요. 이슈 누적 [#733 실패 원장](ISSUE_733_FAILURE_ANALYSIS.md)에 원본·가설·반례·교정·NOT TESTED를 기록하며 타 이슈 FAIL 집합을 혼합하지 않는다.
+
+## Issue #733 PR #755 — CI #3038.1 신규 잘못된 fixture와 누적 교차 검증 (2026-10-20)
+
+- [Run #3038.1](https://github.com/planner77/masterGantt/actions/runs/39353259152)의 직접 Unit FAIL은 `tests/server/resources/issue-733-process-configuration.test.ts`에서 `MCS/coordinator`를 직접 설비 `controlSystems`로 넣은 신규 fixture와 도메인의 `INVALID_CONTROL_RELATION` 보호 계약 불일치. 잘못된 fixture를 통과시키려고 production validator/Assertion을 완화하지 않는다.
+- `ACS/controller`와 명시적인 A/C project-process scope에 교정하되 E0의 WorkArea는 C만 유지. 같은 occurrence의 공정 A→equipment/system→C-only WA 비노출, C→동일 원본→C-only WA 노출, Task0·Assignment0·구성량 정확값을 기존 단언 그대로 검증한다. 기존 #733/Target/Legacy/정확 원본/조회 mutation0 계약 유지.
+- 누적 실제 실패 파일 집합은 #3035.1 `tests/e2e/issue-622-resource-plan-target.spec.ts`와 #3038.1 `tests/server/resources/issue-733-process-configuration.test.ts`. 해당 신규 #3038.1은 Vitest 게이트에서 중단되었으므로 최초 focus E2E 또는 PR Build/Docker 제품 결과가 PASS/FAIL한 것으로 판단하지 않는다. 정식 이력/잔여 가설은 [#733 누적 실패 원장](ISSUE_733_FAILURE_ANALYSIS.md) §7에서 추적한다.
+- 직접 소스 동결 이후 typecheck/전체 Unit·관련5+인접 E2E, 6-shard full CI 및 Docker/Trusted QA의 실제 결과가 있어야 최종 PASS. Git Data를 통한 source 교정만 완료한 단계의 로컬/신규 원격 결과는 NOT TESTED; 최신 Head의 Required/Owner 별도 게이트 유지.
+
+
+## Issue #733 F733-007 — Full #3047 Next dev manifest 원인 확정·격리 회귀 (2026-10-20)
+
+- Source: [#3047.1 Job118495139623](https://github.com/planner77/masterGantt/actions/runs/39380724604/job/118495139623), exact Head c50f35c/target main80a4251, Chromium #725 first test canonical GET project expected200 actual500 after four200. Report/Trace artifact12245694524 confirms Next Webpack dev `loadManifest` JSON SyntaxError, HTML500/no app request ID, health200/oomKill0. Detailed historical cross-run matrix: [#733 single cumulative ledger](ISSUE_733_FAILURE_ANALYSIS.md#12-f733-007--30471-next-webpack-개발-서버-manifest-json-파싱-오류-2026-10-20).
+- Scope & producer/consumers: `isolated-application.ts` opt-in GET-only serial cold-route precompile and fresh restart build directory; `issue-725-process-workareas.spec.ts` switch to default Turbopack with strict PATCH/GET contracts; `target-project.ts` allowlisted error class diagnostics on failed HTTP only. Direct 2 #725 tests (real SQLite/restart/GUI, Task/A+B, E10/WorkArea, five widths), indirect process KPI #733/Task #726/#730/#731, historical #622 focus/#514+#529 time race/#624 readonly, negative JSON404/HTML404/auth/mutation 0 and GSC-07/08/09.
+- GitHub-only source review is not a local test PASS. Exact new source Quality/E2E six shards/Docker/Trusted QA + Owner signoff remain NOT TESTED. Do not expand global CI timeouts/retries or skip assertions; no product/DB/permission/CI workflow changes. Link the next immutable Run when created, no completion monitoring.
+
+## Issue #733 / F733-008 — #373 E2E 본문 30초 초과의 A/B/C 독립 검증 (2026-10-20)
+
+- 원본 #3048.1 [Shard2 Job118515445990](https://github.com/planner77/masterGantt/actions/runs/39388666014/job/118515445990), `tests/e2e/task-context-menu-hierarchy.spec.ts:419`: Before Hooks 15.203s ≠ test body 31.4s. 기존 하나의 테스트 30s 초과. Shard3/5/6 성공, Shard1/4 취소, 전체 E2E/QA 실패. 정규 [#733 누적 실패 원장 §13](ISSUE_733_FAILURE_ANALYSIS.md) 참조.
+
+| 원본 #373 통합 수용 조건 | 독립 테스트 및 실제 단언 |
+| --- | --- |
+| Summary/일반 Task 메뉴 구분, canonical rootTask deep link 재진입, edit session·scope 선택, child 표시/형제 숨김, row/header Add 권한 | **A**: real Project setup, sibling menu negative, Summary root action positive, `rootTask` ID, selected scope, edit mode, header/root action enabled, above/below disabled, sibling hidden |
+| Scoped Task 두 번 수정한 최신 revision이 원래 탭에 반영되고 형제 Task가 유지 | **B**: real scoped PATCH200 ×2, PATCH revision monotonic, initial old GET held until second commit, original tab shows second name + sibling unaffected |
+| 로딩 중인 새 탭의 stale initial GET이 최신 편집 결과를 덮지 않음; scoped root 재진입 복원 | **C**: independent fresh Project, receiver GET held at revision N, actual scoped PATCH200 N+1, stale release, receiver shows latest name, scoped reload/rootTab/sibling negative and canonical revision/name equality |
+
+- 세 테스트는 동일 파일 `tests/e2e/task-context-menu-hierarchy.spec.ts`에 각각 독립된 `test()`로 정의. **각 test 호출 시** 공통 setup Helper로 서로 다른 Project/SQLite fixture/BrowserContext를 준비하고, 해당 test 안의 탭만 공유. Test 간 serial/state reuse 금지. Playwright historical file shard plan으로 Shard2에서 `workers=1`이므로 테스트가 순차 실행되나 PR Fast Gate의 첫 실패 중단 정책은 유지. `test.step()`만 나눠 30s 타임아웃을 회피하지 않는다.
+- 테스트 후 파일/AC 정적 대조, 로컬 `npm run typecheck`, `npm run test:e2e -- tests/e2e/task-context-menu-hierarchy.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0` 및 원장 전체 실패 파일 합집합 교차, HTTP/DB/readonly/Gantt 영향 회귀를 지정한다. 실행환경 부재로 현재 source 로컬 명령 결과 **NOT TESTED**; 원격 exact HEAD Required Quality/E2E6/Docker와 Trusted QA가 필수.
+- 분할 후 Before Hooks 재실행으로 Shard2 총 wall-clock/runner-minute 증가 가능: 이전 본문31.4s+fixture15.2s, 새 A/B/C 본문 각각 및 fixture 합계·샤드 전체 소요시간을 artifact 기반 실제 측정. 성능 개선이라고 선제 주장하지 않는다. CI timeout/skip/retries/6 shard/fail-fast 불변.

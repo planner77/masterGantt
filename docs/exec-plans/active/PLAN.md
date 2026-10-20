@@ -1,3 +1,9 @@
+## Issue #733 — 공정&WorkArea 전용 대시보드
+
+main `71b870b75da73f413da54e22e55bb03dc0f5abe7` /0.124.0에서 별도 `feat/issue-733-process-dashboard`로 구현한다. 후보0.125.0, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false다. 공정 descriptor/consumer·기존 표 재사용, #729 등록-only 하위 후보 및 같은 snapshot catalog의 공통 결함을 backend 소유자와 조정하고 새 계산기/DB/renderer는 추가하지 않는다. [Work Packet](ISSUE_733.md)의 공정 단독·동적 교차·고유 합계/출처·원본 복귀·5폭 AC와 #730 누적 실패원장 회귀를 적용한다. 문서/매뉴얼/테스트·미해결 리뷰/충돌 확인 후 PR Full CI 시작까지만 수행하며 CI 완료 모니터링·병합·Main/GHCR·Release·Issue 종료는 하지 않는다. 원격 Required3·Trusted QA·Owner 승인/Manager ACCEPT는 NOT TESTED다.
+
+#733 최종 로컬 검증은 12파일 116개 Unit·고유14개 Chromium(직접5+인접9)·typecheck/전체 lint/production build·문서 검증 PASS다. 자동 PrePR는 UNKNOWN3/missing0/steps0/sourceStable=true로 BLOCKED이며 수동 계약 매핑과 실제 직접 검증을 Work Packet에 보존한다. 별도 사전 검토의 미해결 P1/P2는0건이다. Git Data API의 전체 tree/부모·Ref1회 게시를 대조한 뒤 PR Full CI를 시작한다. 원격 성공/Owner 승인·병합·릴리스는 미완료다.
+
 ## Issue #730 — PR #747 Full #3029.1 Editor timezone 시간 예산 REWORK (2026-10-20)
 
 원본 Full #3029.1 Run `39320381909`, HEAD `0e229ca683bf6fc14fcc81013b6e809e61d5dade`, base `5df178868139c4a307701e4807896691971b3376`: Quality/Build/Docker 및 Chromium 5Shard SUCCESS, Shard4 `project-task-editor-persistence.spec.ts:8` 기본30초 Test deadline 후 E2E/QA 파생 실패. [#730 단일 실패 원장 F730-011 §20](../../ISSUE_730_FAILURE_ANALYSIS.md)에서 원시 Trace의 fixture와 body 경계 및 3시간대 별도 Context 실행, 과거 F730-001~010/#731 M-003 연관성을 대조한다. 첫 Task Editor E2E만 유한45초로 변경하고 저장 PATCH/revision·Task/URL·Gantt 인스턴스 및 UTC/Seoul/New York의 동일 원본 확인·각 Context 종료를 보존한다. 단순 분리는 원본 저장→3시간대 연속 증거 약화 위험으로 보류. Local 실제 Node/SQLite/Chromium/PrePR/Build/Docker는 NOT TESTED이며 source 텍스트 정적 비교만 완료. 기존7파일 직접 실패 합집합 및 간접/음성 consumer는 새 Full PR CI에 남긴다. main/review/충돌 확인 후 단일 비강제 commit 및 PR CI 등록까지만 진행하고 모니터링·병합·GHCR·정식 릴리스·Issue 종료 금지.

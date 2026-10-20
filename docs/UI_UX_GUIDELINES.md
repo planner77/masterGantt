@@ -1,3 +1,9 @@
+## Issue #733 — 공정 전용 consumer와 KPI 구획
+
+기존 공통 계층 표의 열 budget·내부 scroll·44px 조작 영역을 유지한다. 공정 관점 추가 KPI는 표 열을 늘리지 않고 구성/작업 구획으로 표시한다. 공정 단독·WorkArea/typed 형제·Milestone 예시는 기존 조회 구성 disclosure에서 선택하고 개인 저장 설정을 덮지 않는다. 이름 우선·접힌 식별 정보·상황형 도움말을 적용하며 정상 구역없음/작업0을 오류 색으로 평가하지 않는다.
+
+구성 관계와 Task 교차 연관, 구성 총량과 필터된 작업/공수·coverage/full Gate의 범위를 명확히 표시한다. 펼침·keyboard·원본 저장/취소 복귀·stale/오류는 기존 #730 및 host/editor 계약을 사용한다. 키보드 focus-visible 버튼이 표 안에서 가려지면 그 표의 가로 scroll만 조정하고 문서/Gantt 스크롤이나 포인터 focus는 변경하지 않는다. 390/768/1024/1440/1920px의 긴 이름·숫자/단위·표 header/body 정렬·document overflow·focus 가시성을 실제 Chromium으로 검증하고 수동 touch/스크린리더 미검증을 구별한다. [화면 UX](PROJECT_UX.md#issue-733--공정workarea-대시보드), [검증](exec-plans/active/ISSUE_733.md)을 따른다.
+
 ## Issue #731 — 기존 KPI와 펼침 진단
 
 기존 KPI 네 카드·품질 패널·세부 탭/표는 그대로 두고 추가 구성/연결 진단만 native disclosure로 펼친다. 기존 표에 고정 열을 추가하지 않는다. 이름·단위·현재 선택과 전체 구성 참고의 분모·full Gate 경고를 직접 표시하고 긴 계산 설명은 상황형 도움말로 제공한다. 정상 미연결/WorkArea 미사용을 오류 색상만으로 평가하지 않는다.

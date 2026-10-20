@@ -1,3 +1,19 @@
+## [0.125.0] — Unreleased / Issue #733
+
+- PR #755 Full PR CI #3048.1의 Chromium Shard2에서 #373 하위 트리 딥링크/탭 간 최신화 통합 테스트 본문이 30초를 소진(약31.4초, Before Hooks 약15.2초는 별도)하였다. #733 F733-008 누적 실패 원장에 기록하고 원래 단일 Test를 A(딥링크·범위/권한), B(2회 편집·탭 간 최신 Revision), C(stale 초기 GET·newer revision·reload) 독립 3개로 분리하였다. 각 테스트 별도 Project·SQLite/BrowserContext, 기존 단언과 실제 PATCH/GET/권한·revision 유지. Fixture 3회 비용 비교 필요, 전역 Timeout/CI 정책/제품·0.125.0·승인 상태 불변. 새 Head 실실행 NOT TESTED.
+
+- PR #755 Full #3047.1에서는 #725 실SQLite/HTTP setup의 Project GET이 이전200 네 번 후 Next Webpack 개발서버 `loadManifest`의 `Unexpected end of JSON input`으로 HTML500 반환하였다. #733 F733-007에 Trace/Run을 누적했고 Next16 upstream manifest race #97594와 분리 검토했다. #725 격리 두 테스트만 Turbopack+재시작 별도 NEXT_DIST_DIR·GET-only 공정 API 순차 prewarm으로 교정하며, 실패 HTML의 framework error class만 기록한다. 원본 HTTP200/PATCH/GET/SQLite/UI 단언과 CI gates, 제품/버전0.125.0/릴리스 승인 상태는 유지; 새 Head remote NOT TESTED.
+
+- PR #755 Full CI #3044.1에서 장비 route GET405/PATCH200 JSON·Task GET/PUT200 통과 후 Project 원본 GET500(기대200)으로 E2E Shard3 실패하였다. 내부 500 MIME·code는 원본에 없어 근인은 UNKNOWN. #725 테스트만 서버 재시작 시 fresh NEXT_DIST_DIR를 opt-in하여 개발 컴파일 캐시 재사용을 배제해 보고, 실패 GET에는 status·MIME·safe errorCode만 기록한다(HTTP500 재시도/단언 완화 없음). 이력은 #733 F733-005 원장에 추가하며 코드/DB·CI 정책·버전0.125.0·정식 릴리스 권한 불변.
+
+- PR #755 Full CI #3043.1에서 #725 실제 SQLite/HTTP 재시작 시 격리 Next 개발 서버의 설비 PATCH-only 동적 경로 준비 GET이 90초 동안 404(예상405)여서 E2E Shard3 실패(57PASS/1FAIL/50NOT RUN; Shard6 134PASS, 다른4 취소)했다. Next 내부 원인은 UNKNOWN; #725 격리 테스트만 공식 지원 Webpack dev opt-in하고 공통 fixture의 기본 Turbopack은 유지한다. 기존 GET405/Task GET200 JSON/PATCH200 JSON과 음성 오류 단언을 유지하며 준비 중 HTML404만 재검사하고 JSON404/기타 응답은 fail-closed, sanitized 진단 근거 추가. #733 단일 누적 실패 원장 F733-004에 #3035/#3038/#3042와 #3039 이전 PASS를 보존하며 CI/제품/버전0.125.0/정식 릴리스 승인 정책 변경 없음.
+
+- PR #755의 main 정렬 후 Full PR CI #3042.1에서 #514 Gantt peer restore의 가상 시계 `clock.pauseAt(new Date())`가 이미 흐른 browser 시간보다 과거를 지정하여 E2E Shard6에 실패했다. 기존 #569 검증 패턴(샘플된 단일 시각보다 60초 전 설치 후 해당 시각 정지)을 #514 세 곳·인접 #529 한 곳에 적용하고 본래 native wheel·선택·RAF·원본 복귀 단언을 유지한다. 이전 #3039 성공과 #3042 실패는 #733 누적 원장에 서로 다른 Head/base로 보존하며 제품 로직/CI 게이트/버전/릴리스 승인 상태는 불변.
+
+- 공정&WorkArea 전용 consumer로 공정 단독·선택 구역·설비/System 동급 분기·Milestone/리소스 교차 예시와 구성/작업 KPI를 제공한다. Target 생성 없이 기존 원장·정확 상세/editor·원래 보기 복귀를 재사용한다.
+- 등록-only 하위 구성과 같은 snapshot의 공정/구역 catalog를 공통 API 소유자와 보완하고 다중 WorkArea 수량·Task/Assignment는 원본 합집합으로 유지한다. 새 계산기/DB/renderer·구성/WBS writer는 추가하지 않는다.
+- 화면별 KPI·UX·테스트·매뉴얼을 동기화한다. HIGH/OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false. PR CI 시작은 공식 검증 PASS·Owner 승인·병합·정식 릴리스가 아니다.
+
 ## [0.124.1] — Unreleased / Issue #730 GHCR Release #182 후속 교정
 
 - 후속 PR #756의 Full CI #3037.1에서 재시작 이후 Task 공정 연결 `GET`이 Next.js HTML404를 반환한 현상을 #730 누적 실패 원장에 추가했다. 과거 #731 M-002의 장비 `PATCH` HTML404와 같은 동적 경로 준비 결함이나, 설비 경로 준비와 Task 경로 준비가 독립적임을 구분한다.

@@ -103,6 +103,9 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   expect(assignmentsAfter.find((assignment: { id: string }) => assignment.id === outsideAssignment.id)).toMatchObject({ taskId: f.unset.taskId, allocation: { percent: 40 } });
   expect(assignmentsAfter.filter((assignment: { id: string }) => assignment.id !== outsideAssignment.id)).toEqual(assignmentsBefore.filter((assignment: { id: string }) => assignment.id !== outsideAssignment.id));
   await expect(edit).toBeFocused();
+  // Preserve focus across the next two render frames, not just the initial restore.
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await expect(edit).toBeFocused();
   await plan.getByLabel("부하 범위", { exact: true }).selectOption("project");
   await expect(plan).toContainText("평균 120.00 %");
   await plan.getByLabel("부하 범위", { exact: true }).selectOption("selected");

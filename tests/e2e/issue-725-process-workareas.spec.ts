@@ -5,7 +5,16 @@ import { openWorkspaceView } from "./helpers/workspace-navigation";
 import type { LogisticsMutationResponse, ProjectLogisticsResponse } from "../../src/contracts/logistics";
 import type { ProcessCatalogResponse } from "../../src/contracts/process-catalog";
 
-test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword, viewport: { width: 1440, height: 1000 } });
+// #733 F733-007: #3047.1 captured Next 16 Webpack dev manifest JSON
+// parse failure (HTML500) in the real canonical Project GET, after 4 HTTP200.
+// Default Turbopack avoids the documented Webpack manifest race; retain
+// #733 F733-005 fresh dist per restart and serial, read-only route precompile
+// for this suite to address prior Turbopack restart HTML404 (#3043).
+// Exact GET405 / PATCH200 / Task GET200 and all original assertions remain.
+test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword,
+  isolatedDevBundler: "turbopack", isolatedRouteWarmup: "process-workareas",
+  isolatedFreshDistOnRestart: true,
+  viewport: { width: 1440, height: 1000 } });
 
 test.afterEach(async ({ page }, info) => {
   if (info.status === info.expectedStatus || page.isClosed()) return;

@@ -1,3 +1,9 @@
+## Issue #733 — 공정 관점의 구성-only 경로
+
+공정 관점은 기존 원장의 고유 Task/Assignment 교집합과 구성 참고를 재사용한다. 등록 공정/구역·설비/System의 작업0 하위 후보는 실제 소속에 근거해 표시하며 개인 Assignment·Task·제어관계를 만들지 않는다. 공정 단독의 catalog 수와 작업 필터의 일반 Task 수는 다른 모집단이다. 공정 관련 설비는 주관리 공정과 명시 WorkArea 소유 공정의 합집합이며 exact WorkArea 경로는 그 소속을 교차한다. 주관리 A의 E10이 B구역에 연결되면 A/B 관련 소계는 각각10, Project 고유 수량은10이다. 구역의 관련 설비 수량은 명시 다중 소속을 반영하되 상위는 원본 ID 합집합이다. 같은 System/Milestone의 다음 단계에서 다른 Task를 다시 가져오지 않는다. [API](API.md), [수치·출처](LOGISTICS_DASHBOARD.md#issue-733--공정workarea-전용-관점), [검증](exec-plans/active/ISSUE_733.md)을 따른다.
+
+공정/occurrence 아래 구성의 구역 없음은 해당 공정 범위에 연결 구역이 없다는 조회 상태이며 타 공정 구역 소속은 유지한다. root WorkArea 없음은 전체 구역 소속0이고, Task의 명시 WorkArea selector 의미는 변경하지 않는다.
+
 ## Issue #731 — KPI consumer의 지표 인계
 
 전용 KPI API는 공통 resolver와 #729 snapshot 읽기를 재사용하고 기존 Logistics KPI의 기간가중 진척·지연·임박·계획 공수 계산 authority를 유지한다. 공통 원장/계산기 자체는 변경하지 않는다. 화면은 `source=integrated`를 명시하며 구 API default는 그대로다. 명시 공정 축의 원시 Task/Assignment 범위와 구 구성 유도 공정의 범위가 다르면 수치 동일성을 주장하지 않는다.

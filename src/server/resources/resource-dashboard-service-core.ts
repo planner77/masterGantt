@@ -146,7 +146,12 @@ export class ResourceDashboardService {
           data = { ...context, projection: "details", path: projection.path, view: projection.view, offset: projection.offset, limit: projection.limit, totalCount, nextOffset: projection.offset + rows.length < totalCount ? projection.offset + rows.length : null, rows };
         } else {
           const calculated = { snapshot, selection: selected.selection, referenceRows: selected.assignments, excludedRows: [], diagnosticSelection: selected.selection, diagnosticDomain: snapshot.domain };
-          data = { ...context, projection: "report", ...scope, totals: view.totals, children: view.children, taskSources: selected.rows, configuration: ledger.configuration, diagnostics: ledger.diagnostics,
+          data = { ...context, projection: "report", ...scope, totals: view.totals, children: view.children, taskSources: selected.rows, configuration: ledger.configuration, configurationCatalog: {
+              processes: snapshot.targetSnapshot.identity.processes.map(({ id, name, occurrenceId }) => ({ id, name, occurrenceId })),
+              workAreas: snapshot.targetSnapshot.identity.workAreas.map(({ id, name, occurrenceId }) => ({ id, name, occurrenceId, processIds: snapshot.targetSnapshot.identity.processes.filter(process => process.occurrenceId === occurrenceId).map(process => process.id) })),
+              instances: snapshot.targetSnapshot.logistics.instances.map(instance => ({ kind: instance.kind, id: instance.entityId, name: labels.get(JSON.stringify([instance.kind, instance.entityId]))! })),
+              milestones: snapshot.milestones.map(row => ({ id: row.publicId, name: row.name })),
+            }, diagnostics: ledger.diagnostics,
             fullMilestones: [...ledger.prepared.projection.gates].map(([milestoneTaskId, stageGate]) => ({ milestoneTaskId, stageGate })),
             ...(snapshot.filters.granularity ? { plan: this.renderPlan(calculated) } : {}) };
         }

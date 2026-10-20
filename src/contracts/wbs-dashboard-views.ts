@@ -53,9 +53,15 @@ export interface WbsViewResponseContext {
   range: { from: string; to: string }; asOfDate: string; mdPerMm: number | null;
   metadata: WbsTaskLedgerSnapshot["metadata"] & { limits: typeof WBS_VIEW_LIMITS; excel: { supported: false; code: "WBS_VIEW_EXPORT_UNSUPPORTED"; reason: string } };
 }
+export interface WbsViewConfigurationCatalog {
+  processes: Array<{ id: string; name: string; occurrenceId: string | null }>;
+  workAreas: Array<{ id: string; name: string; occurrenceId: string; processIds: string[] }>;
+  instances: Array<{ kind: "equipment" | "system"; id: string; name: string }>;
+  milestones: Array<{ id: string; name: string }>;
+}
 export interface WbsViewReportDto extends WbsViewResponseContext, WbsViewIdentityScope {
   projection: "report"; totals: WbsViewTotals; children: WbsViewNode[];
-  taskSources: WbsTaskLedgerRow[]; configuration: WbsTaskLedgerSnapshot["configuration"]; diagnostics: WbsTaskLedgerSnapshot["diagnostics"];
+  taskSources: WbsTaskLedgerRow[]; configuration: WbsTaskLedgerSnapshot["configuration"]; configurationCatalog: WbsViewConfigurationCatalog; diagnostics: WbsTaskLedgerSnapshot["diagnostics"];
   fullMilestones: ReturnType<typeof summarizeWbsTaskLedger>["fullMilestones"]; plan?: ResourceDashboardPlanDto;
 }
 export interface WbsViewDetailsDto extends WbsViewResponseContext {

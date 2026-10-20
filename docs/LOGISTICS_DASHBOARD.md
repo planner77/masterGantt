@@ -1,3 +1,15 @@
+## Issue #733 — 공정&WorkArea 전용 관점
+
+`대시보드 → 공정&WorkArea`는 Project 공정을 고정 root로 사용하는 전용 consumer이며 기존 #729 snapshot API·#730 표/상세를 재사용한다. 공통 Process Type, 사업장 occurrence, Project 공정 ID와 기존 자유 공정 트리는 서로 다른 원본이다. 단독 공정 요약, 선택 WorkArea 아래 설비/System 동급 형제 및 Resource, Milestone 교차 예시를 제공하며 개인 설정은 업무 구성이나 WBS를 변경하지 않는다.
+
+Legacy 문맥·명시 공정 없음의 원본 문맥 진단은 전체 canonical Task 객체(일반 Task/Summary/Milestone) 기준이며, 필터된 일반 작업 실적 KPI와 모집단이 다르다.
+
+공정/occurrence 아래 구성의 구역 없음은 해당 공정 범위에 연결 구역이 없다는 조회 상태이며 타 공정 구역 소속은 유지한다. root WorkArea 없음은 전체 구역 소속0이고, Task의 명시 WorkArea selector 의미는 변경하지 않는다.
+
+구성 KPI는 snapshot에 결속된 고유 공정/구역·설비관리단위/원본 수량·System을, 작업 KPI는 현재 필터의 고유 일반 Task·완료/지연·기간가중 진척·개인 Assignment 계획 M/D/M/M·미배정/미설정을 표시한다. `configurationReference`와 `relatedMembers`의 구성/관련 작업 범위·coverage는 다른 분모이며 작업0 구성도 남는다. WorkArea별 E10의 관련 수량10/10은 실제 구역 배치20대가 아니고 공정 상위 고유 합계는10이다. 같은 Task5 M/D가 여러 경로에 있어도 상위5 M/D다. 하위 소계 합산·물리 설치완료/실적 추정은 금지한다.
+
+공정 관련 설비 구성은 주관리 공정과 명시 WorkArea 소유 공정의 합집합이며 주관리 공정별 실물 배분과 다르다. 주관리 A의 E10이 B구역에 연결되면 A/B 각각 관련 수량10, Project 고유 수량10이다. 공통 System은 공정/구역마다 자동 복제하지 않는다. 원본의 명시 공정·다중 WorkArea 소속과 같은 Task 업무 연관을 구별한다. 공유 System/Milestone의 다음 단계는 앞서 선택한 Task/Assignment 교집합을 유지하고 Milestone 전체 Gate는 별도로 보존한다. 정확 Task·Assignment·공정/구역/설비/System editor와 원래 보기 복귀는 기존 source 재검증을 사용한다. [사용 안내](TARGET_RESOURCE_USER_GUIDE.md#공정과-workarea-현황), [검증·미검증](exec-plans/active/ISSUE_733.md)을 따른다.
+
 ## Issue #731 — 기존 KPI와 통합 출처
 
 `대시보드 → KPI`는 기존 `ProjectLogisticsDashboard`의 네 카드·공정/설비/System 표·기준일/임박 기간·활성/direct-coordination 조건·품질 패널·full Milestone Gate를 유지한다. [기능 보존표와 실행 원장](exec-plans/active/ISSUE_731.md)을 기준으로 검증한다. 일반 조회는 미연결 Task도 포함하며 등록만으로 진척·개인 공수·실적을 만들지 않는다.
