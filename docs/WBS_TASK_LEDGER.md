@@ -1,3 +1,7 @@
+## Issue #735 — 시스템 직접·조율 selector의 공개 소비
+
+시스템 전용 consumer의 `systemView`는 기존 `system` 또는 `systemCoordination` 선택을 공통 WBS report/details/scope에 일관되게 적용한다. mode와 시스템 ID 선택은 spec/snapshot에 결속하며 하위 경로는 동일 Task/Assignment를 계속 교차한다. 조회 모드가 Task 공정·controls·coordinates·개인배정을 생성하지 않는다. 기존 명시 coordinates/controls 검증과 cyclic/foreign 거부를 재사용하며 화면별 계산기를 추가하지 않는다. [API](API.md#issue-735--시스템-root의-직접조율-선택) 및 [검증 원장](exec-plans/active/ISSUE_735.md)을 따른다.
+
 ## Issue #733 — 공정 관점의 구성-only 경로
 
 공정 관점은 기존 원장의 고유 Task/Assignment 교집합과 구성 참고를 재사용한다. 등록 공정/구역·설비/System의 작업0 하위 후보는 실제 소속에 근거해 표시하며 개인 Assignment·Task·제어관계를 만들지 않는다. 공정 단독의 catalog 수와 작업 필터의 일반 Task 수는 다른 모집단이다. 공정 관련 설비는 주관리 공정과 명시 WorkArea 소유 공정의 합집합이며 exact WorkArea 경로는 그 소속을 교차한다. 주관리 A의 E10이 B구역에 연결되면 A/B 관련 소계는 각각10, Project 고유 수량은10이다. 구역의 관련 설비 수량은 명시 다중 소속을 반영하되 상위는 원본 ID 합집합이다. 같은 System/Milestone의 다음 단계에서 다른 Task를 다시 가져오지 않는다. [API](API.md), [수치·출처](LOGISTICS_DASHBOARD.md#issue-733--공정workarea-전용-관점), [검증](exec-plans/active/ISSUE_733.md)을 따른다.

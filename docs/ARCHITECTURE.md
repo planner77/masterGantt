@@ -1,3 +1,9 @@
+## Issue #735 — 시스템 전용 consumer와 공통 조회 seam
+
+Embedded 물류 통합 조회의 원본 열기는 제공된 canonical 부모 handler를 우선 사용한다. 독립 사용에서는 기존 지원 설비/시스템/공정 editor fallback만 유지한다. 공유 System 저장 후의 focus는 새 report 영수증을 기다리는 기존 gateway가 소유하며, 대기 중 새 사용자 focus에 양보한다. 별도 focus/viewport 복원기를 추가하지 않는다.
+
+시스템 dashboard descriptor/consumer는 기존 WBS view renderer/composer·정확 source gateway를 재사용한다. 시스템 root의 선택적 mode/IDs만 공통 spec에 확장하고 서버는 기존 `selectWbsTaskLedger`의 system/systemCoordination selector와 원시 합집합을 사용한다. 표·요약에서 Task/공수를 재계산하거나 새 DB·writer·제어 엔진·Gantt를 만들지 않는다. 속성 표시는 canonical logistics와 같은 Project revision을 사용하고 실제 report/detail/scope는 서버 snapshot이 authority다. [API](API.md#issue-735--시스템-root의-직접조율-선택), [작업 범위](exec-plans/active/ISSUE_735.md)를 따른다.
+
 ## Issue #733 — 공정 관점 consumer와 공통 조회 보완
 
 공정&WorkArea는 전용 descriptor/consumer에서 기존 `WbsViewDashboard`의 조회 상태·표·상세·editor/drill host를 재사용한다. optional consumer 연결이 없는 다른 root는 기존 동작을 유지한다. client에 별도 계산기나 구성 writer를 추가하지 않는다.

@@ -1,3 +1,7 @@
+## Issue #735 — 물류 시스템 root·직접/조율·동적 교차 조회
+
+main `8a0fc9773d33326b40f8d97f6307c17ae0cb6933` /0.125.0에서 별도 `feat/issue-735-system-dashboard`로 구현한다. 후보0.126.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false다. 기존 #729/#730 원장을 소비하는 시스템 전용 consumer와 직접/조율·정확 시스템 선택의 공통 spec 보완만 수행하고 구성/Task/공수·full Gate를 구분한다. [Work Packet](ISSUE_735.md)의 AC·소유권·문서/매뉴얼·누적 실행 원장을 따른다. 종료점은 구현·리뷰 thread/충돌 해결·최신 Head Full PR CI 시작이며 CI 모니터링·병합·main/GHCR·Release·Issue 종료는 수행하지 않는다. 공식 원격 Required3/Trusted QA·Owner ACCEPT는 NOT TESTED다.
+
 ## Issue #733 — 공정&WorkArea 전용 대시보드
 
 main `71b870b75da73f413da54e22e55bb03dc0f5abe7` /0.124.0에서 별도 `feat/issue-733-process-dashboard`로 구현한다. 후보0.125.0, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false다. 공정 descriptor/consumer·기존 표 재사용, #729 등록-only 하위 후보 및 같은 snapshot catalog의 공통 결함을 backend 소유자와 조정하고 새 계산기/DB/renderer는 추가하지 않는다. [Work Packet](ISSUE_733.md)의 공정 단독·동적 교차·고유 합계/출처·원본 복귀·5폭 AC와 #730 누적 실패원장 회귀를 적용한다. 문서/매뉴얼/테스트·미해결 리뷰/충돌 확인 후 PR Full CI 시작까지만 수행하며 CI 완료 모니터링·병합·Main/GHCR·Release·Issue 종료는 하지 않는다. 원격 Required3·Trusted QA·Owner 승인/Manager ACCEPT는 NOT TESTED다.

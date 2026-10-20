@@ -1,3 +1,13 @@
+## [0.126.0] — Unreleased / Issue #735
+
+- PR CI #3055.1의 반응형 메뉴 단일 Test30초 초과를 실제 trace와 원형 재현으로 확인하고, 기존4폭16corner 및 모바일·짧은 화면·Clipboard·Summary 검증을 독립2Test로 재배분한다. 원래93개 단언·명령 순서·30초/retry·제품·CI gate를 보존하며 fixture1회 추가 비용을 기록한다.
+
+- PR CI #3051.1/#3054.1의 Context Menu 원본 조회 연결 종료를 누적 기록하고, 테스트의 UI 후 canonical GET을 기존 브라우저 같은 출처 단일 조회·필수 관측 경로로 통일한다. 실제 TCP 근인은 UNKNOWN이며 제품·mutation·단언·retry·timeout·6-shard·버전은 유지한다.
+
+- 물류 시스템 전용 대시보드에 시스템 단독·공정/WorkArea/설비/리소스 및 Milestone 교차 조회 예시와 속성 선택·구성/작업 KPI·진단을 추가한다. Target 생성 없이 단일 원본·고유 Task/Assignment 합집합을 사용한다.
+- 공통 WBS spec의 system root에 직접/조율 모드와 정확 시스템 선택을 추가하고 report/detail/scope/snapshot에 결속한다. 명시 coordinates/controls와 같은 Task 업무 연관을 구별하며 기존 요청·KPI/Resource/Gate·저장 계약은 유지한다.
+- 원본 editor·정확 일정/조회 복귀·readonly/dirty/stale/error·5폭 접근성과 관련 문서/사용 가이드·전용 및 인접 테스트를 보강한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false; PR CI 시작은 공식 검증 성공·Owner 승인·병합·정식 릴리스 완료가 아니다.
+
 ## [0.125.0] — Unreleased / Issue #733
 
 - Issue #733의 최초 병합 Main CI [#3050.1](https://github.com/planner77/masterGantt/actions/runs/39402320673)은 Chromium Shard4(168테스트) 35분 Job 제한으로 CANCELLED(162PASS/1SKIPPED/5미완료), E2E 집계 FAIL, Quality/Docker PASS, GHCR 후보 SKIPPED였다. 해당 불변 Run을 #733 원장 M733-001로 기록하고, 과거 #437 timing plan 누락 신규 파일 2개(#733 전용 공정 대시보드, #726 Task 물류)를 hash-assigned Shard4에서 Shard5/6으로 명시 이동한다. 예상 이동 테스트 본문 실행시간은 PR293.2초/Main271.4초로 실제 새 샤드 wall-clock은 미검증이다. 132개 전체 테스트 할당, 6-shard·worker1·timeout35min·기존 CI/GHCR 게이트, 제품/DB/API·버전 0.125.0 불변. 같은 이슈 corrective PR의 신규 Required3/Trusted/Owner 승인을 거쳐 정식 GHCR/Finalizer로 진행하며 이전 Main 결과를 PASS로 간주하지 않는다.

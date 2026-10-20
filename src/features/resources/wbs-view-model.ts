@@ -9,8 +9,11 @@ const fail = (reason: string, message: string, recovery: "reset" | "remove-level
 export function validateWbsViewSpec(value: unknown): WbsViewValidation {
   if (!value || typeof value !== "object" || Array.isArray(value)) return fail("INVALID_SPEC", "조회 구성을 초기화해 주세요.");
   const raw = value as Record<string, unknown>;
-  if (Object.keys(raw).some(key => !["version", "contextSourceVersion", "root", "levels"].includes(key)) || raw.version !== "wbs-view:v1" || raw.contextSourceVersion !== "explicit-task-context:v1") return fail("OBSOLETE_SPEC", "이전 버전의 조회 구성입니다. 초기화해 주세요.");
+  if (Object.keys(raw).some(key => !["version", "contextSourceVersion", "root", "levels", "systemView", "systemIds"].includes(key)) || raw.version !== "wbs-view:v1" || raw.contextSourceVersion !== "explicit-task-context:v1") return fail("OBSOLETE_SPEC", "이전 버전의 조회 구성입니다. 초기화해 주세요.");
   if (!WBS_VIEW_DIMENSIONS.includes(raw.root as WbsViewDimension)) return fail("INVALID_ROOT", "관점을 다시 선택해 주세요.", "choose-dimension");
+  if ((raw.systemView !== undefined || raw.systemIds !== undefined) && raw.root !== "system") return fail("INVALID_SYSTEM_ROOT", "시스템 설정은 물류 시스템 관점에서만 사용할 수 있습니다.");
+  if (raw.systemView !== undefined && raw.systemView !== "direct" && raw.systemView !== "coordination") return fail("INVALID_SYSTEM_VIEW", "직접 또는 조율 조회를 선택해 주세요.");
+  if (raw.systemIds !== undefined && (!Array.isArray(raw.systemIds) || raw.systemIds.length > WBS_VIEW_LIMITS.fanout || raw.systemIds.some(id => typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(id)))) return fail("INVALID_SYSTEM_IDS", "시스템 필터를 다시 선택해 주세요.");
   if (raw.levels !== undefined && !Array.isArray(raw.levels)) return fail("INVALID_LEVELS", "조회 단계를 다시 구성해 주세요.");
   const values: unknown[] = raw.levels as unknown[] | undefined ?? [];
   if (values.length >= WBS_VIEW_LIMITS.depth) return fail("DEPTH_LIMIT", "최상위 관점을 포함하여 최대 8단계입니다.", "remove-level");
@@ -28,7 +31,7 @@ export function validateWbsViewSpec(value: unknown): WbsViewValidation {
     if (dims.some(dim => seen.has(dim))) return fail("DUPLICATE_DIMENSION", "최상위 관점을 포함하여 각 축은 한 번만 사용할 수 있습니다.", "remove-level");
     dims.forEach(dim => seen.add(dim));
   }
-  return { ok: true, spec: { version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root: raw.root as WbsViewDimension, levels } };
+  return { ok: true, spec: { version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root: raw.root as WbsViewDimension, levels, ...(raw.systemView !== undefined ? { systemView: raw.systemView as "direct" | "coordination" } : {}), ...(raw.systemIds !== undefined ? { systemIds: [...new Set(raw.systemIds as string[])].sort() } : {}) } };
 }
 export const wbsViewNodeLabel = (node: WbsViewNode) => node.name ?? (node.selector.dimension === "resource" ? "미배정" : `${WBS_VIEW_LABELS[node.selector.dimension]} 없음`);
 /** Keep the exact server node/totals; overlapping child totals must never be added. */

@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "tool": "mastergantt-prepr",
+  "issue": 735,
+  "pr": 757,
+  "mode": "diagnose",
+  "status": "BLOCKED",
+  "startedAt": "2026-10-20T12:35:24.102Z",
+  "sourceStart": {
+    "baseRef": "ee3ec3a4bc0e9a31f7c933e73febac6ed6b6a60e",
+    "baseSha": "ee3ec3a4bc0e9a31f7c933e73febac6ed6b6a60e",
+    "headSha": "ee3ec3a4bc0e9a31f7c933e73febac6ed6b6a60e",
+    "workingDiffSha256": "0d275a8a6fb0be53d763cc35015f9fefde6ca00a2ccabb4d04f85718fbc20c6e",
+    "fingerprint": "7742ec5c590028ce7970d7b59296c7e6b3218bc614bebfcc7f134ef08f1ab2a5",
+    "dirty": true,
+    "changed": [
+      "CHANGELOG.md",
+      "docs/ISSUE_735_FAILURE_ANALYSIS.md",
+      "docs/TEST_PLAN.md",
+      "docs/evidence/issue-735/ci-39418238483-attempt-1.json",
+      "docs/exec-plans/active/ISSUE_735.md",
+      "next-env.d.ts",
+      "output/playwright/issue-735/frozen-focus-failure/error-context.md",
+      "output/playwright/issue-735/frozen-focus-failure/trace.zip",
+      "output/playwright/issue-735/initial-failures/issue-735-system-dashboard-48802--집합과-고유-Assignment·선택·공정-필터-chromium-error-context.md",
+      "output/playwright/issue-735/initial-failures/issue-735-system-dashboard-48802--집합과-고유-Assignment·선택·공정-필터-chromium-trace.zip",
+      "output/playwright/issue-735/initial-failures/issue-735-system-dashboard-d92e1-소·저장-후-새-snapshot과-같은-조회-복귀-chromium-error-context.md",
+      "output/playwright/issue-735/initial-failures/issue-735-system-dashboard-d92e1-소·저장-후-새-snapshot과-같은-조회-복귀-chromium-trace.zip",
+      "output/playwright/issue-735/second-failures/issue-735-system-dashboard-48802--집합과-고유-Assignment·선택·공정-필터-chromium-error-context.md",
+      "output/playwright/issue-735/second-failures/issue-735-system-dashboard-48802--집합과-고유-Assignment·선택·공정-필터-chromium-trace.zip",
+      "output/playwright/issue-735/second-failures/issue-735-system-dashboard-d92e1-소·저장-후-새-snapshot과-같은-조회-복귀-chromium-error-context.md",
+      "output/playwright/issue-735/second-failures/issue-735-system-dashboard-d92e1-소·저장-후-새-snapshot과-같은-조회-복귀-chromium-trace.zip",
+      "output/playwright/issue-735/second-failures/issue-735-system-dashboard-fc303-c·펼침·상세-선택은-직접-범위로-변환하지-않는다-chromium-error-context.md",
+      "output/playwright/issue-735/second-failures/issue-735-system-dashboard-fc303-c·펼침·상세-선택은-직접-범위로-변환하지-않는다-chromium-trace.zip",
+      "tests/e2e/project-task-context-menu.spec.ts",
+      "tsconfig.json"
+    ]
+  },
+  "sourceEnd": {
+    "baseRef": "ee3ec3a4bc0e9a31f7c933e73febac6ed6b6a60e",
+    "baseSha": "ee3ec3a4bc0e9a31f7c933e73febac6ed6b6a60e",
+    "headSha": "ee3ec3a4bc0e9a31f7c933e73febac6ed6b6a60e",
+    "workingDiffSha256": "0d275a8a6fb0be53d763cc35015f9fefde6ca00a2ccabb4d04f85718fbc20c6e",
+    "fingerprint": "7742ec5c590028ce7970d7b59296c7e6b3218bc614bebfcc7f134ef08f1ab2a5",
+    "dirty": true,
+    "changed": [
+      "CHANGELOG.md",
+      "docs/ISSUE_735_FAILURE_ANALYSIS.md",
+      "docs/TEST_PLAN.md",
+      "docs/evidence/issue-735/ci-39418238483-attempt-1.json",
+      "docs/exec-plans/active/ISSUE_735.md",
+      "next-env.d.ts",
+      "output/playwright/issue-735/frozen-focus-failure/error-context.md",
+      "output/playwright/issue-735/frozen-focus-failure/trace.zip",
+      "output/playwright/issue-735/initial-failures/issue-735-system-dashboard-48802--집합과-고유-Assignment·선택·공정-필터-chromium-error-context.md",
+      "output/playwright/issue-735/initial-failures/issue-735-system-dashboard-48802--집합과-고유-Assignment·선택·공정-필터-chromium-trace.zip",
+      "output/playwright/issue-735/initial-failures/issue-735-system-dashboard-d92e1-소·저장-후-새-snapshot과-같은-조회-복귀-chromium-error-context.md",
+      "output/playwright/issue-735/initial-failures/issue-735-system-dashboard-d92e1-소·저장-후-새-snapshot과-같은-조회-복귀-chromium-trace.zip",
+      "output/playwright/issue-735/second-failures/issue-735-system-dashboard-48802--집합과-고유-Assignment·선택·공정-필터-chromium-error-context.md",
+      "output/playwright/issue-735/second-failures/issue-735-system-dashboard-48802--집합과-고유-Assignment·선택·공정-필터-chromium-trace.zip",
+      "output/playwright/issue-735/second-failures/issue-735-system-dashboard-d92e1-소·저장-후-새-snapshot과-같은-조회-복귀-chromium-error-context.md",
+      "output/playwright/issue-735/second-failures/issue-735-system-dashboard-d92e1-소·저장-후-새-snapshot과-같은-조회-복귀-chromium-trace.zip",
+      "output/playwright/issue-735/second-failures/issue-735-system-dashboard-fc303-c·펼침·상세-선택은-직접-범위로-변환하지-않는다-chromium-error-context.md",
+      "output/playwright/issue-735/second-failures/issue-735-system-dashboard-fc303-c·펼침·상세-선택은-직접-범위로-변환하지-않는다-chromium-trace.zip",
+      "tests/e2e/project-task-context-menu.spec.ts",
+      "tsconfig.json"
+    ]
+  },
+  "sourceStable": true,
+  "versions": {
+    "os": "linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "cpuCount": 16,
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "packageVersion": "0.126.0",
+    "lockVersion": "0.126.0",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "ciNode": "22",
+    "ciPlaywright": "1.63.0",
+    "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+    "e2e": {
+      "fullyParallel": true,
+      "workers": 1,
+      "shardsLocal": 1,
+      "shardsGitHub": 6,
+      "config": "tests/config/playwright.config.ts"
+    }
+  },
+  "risk": "HIGH",
+  "selection": {
+    "risk": "HIGH",
+    "inferredRisk": "HIGH",
+    "matched": [],
+    "unknown": [],
+    "missing": [],
+    "excluded": [],
+    "selected": [
+      {
+        "path": "tests/e2e/project-task-context-menu.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      }
+    ],
+    "state": "READY",
+    "notSelectedReason": "Not a mapped direct/adjacent consumer for this change; remote Required coverage unchanged"
+  },
+  "diagnostic": null,
+  "steps": [],
+  "deferred": [
+    {
+      "check": "GitHub QA Preflight / Trusted QA / Owner",
+      "state": "DEFERRED",
+      "reason": "GitHub PR metadata, protected base validator and signed approval required"
+    },
+    {
+      "check": "PR Required Quality/E2E/Docker aggregates",
+      "state": "DEFERRED",
+      "reason": "Exact PR head/base/test-merge/run/attempt must be verified by GitHub Actions"
+    },
+    {
+      "check": "6 independent Chromium runners and fail-fast",
+      "state": "DEFERRED",
+      "reason": "Local worker=1 cannot reproduce six GitHub runners"
+    },
+    {
+      "check": "npm audit --omit=dev",
+      "state": "DEFERRED",
+      "reason": "Requires npm registry and CI environment; run explicitly if available"
+    },
+    {
+      "check": "remote Compose/transport/GHCR",
+      "state": "DEFERRED",
+      "reason": "Local test never accesses production runtime or registry"
+    }
+  ],
+  "errors": [
+    "Diagnosis needs one PR and failures across two runs and distinct consumers"
+  ],
+  "artifacts": [],
+  "completedAt": "2026-10-20T12:35:24.578Z"
+}

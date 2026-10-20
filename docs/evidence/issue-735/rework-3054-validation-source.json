@@ -1,0 +1,58 @@
+{
+  "issue": 735,
+  "pr": 757,
+  "prior_head": "ee3ec3a4bc0e9a31f7c933e73febac6ed6b6a60e",
+  "base": "05f1e560eee456e6fba5535255c9ede30a357c16",
+  "scope": "13 selected test/helper/fixture/config/package files, sorted path+NUL+bytes SHA256; product unchanged from original validation-source.json",
+  "combined_sha256": "ce292a78efc23f17d0e2ec5d4f50b4c8852097c11505605c7fa5c50888c663c6",
+  "files": {
+    "package-lock.json": "7a31121d1a144595d1e9216e8ae2cf9131fe3cc933e982c9513420688b23ba31",
+    "package.json": "213ef91926d4244dfd6c36f5676263e2b0cf3e5ca4912044fd87612a192920be",
+    "tests/config/e2e-shard-plan.json": "e2f5e6689bcbb5f95e3933303f05808b86f694473610b482f27f31834aa92759",
+    "tests/e2e/fixtures/isolated-application-diagnostics.ts": "8f3deabaec83eb988bafbe798a9486a41584e96e6bf861f85d8f5ad158e2c50d",
+    "tests/e2e/fixtures/isolated-application.ts": "e7f85ad48b4d80c882543278702706ab4b7b359467ea2296a8895fe2bbf871a5",
+    "tests/e2e/helpers/browser-canonical-snapshot.ts": "57c5c151745b48abcc3b15f2c93d2bd8e26ac87bee530b9218e0c54ce90c5b99",
+    "tests/e2e/milestone-management-persistence.spec.ts": "e4914c6ddaff3bcc548ba28a48447a06a890205a61dae8f0f9f439e0fc9d9230",
+    "tests/e2e/project-task-context-menu.spec.ts": "980b0cdd88d1b92942a82e4af1c0e001b7447d118cc9ec11729b693a3aa6d39d",
+    "tests/e2e/project-task-editor-persistence.spec.ts": "40f0f56b3317f8318453b857a5ce93cf9b73ba1b8f4c06d0b66a1ae2e699c705",
+    "tests/scripts/e2e-shard-planner.test.ts": "6cc6ece9987c0a08584c1d21ae6f4c70fc41d472da85b3210a16f0ef6ab88f62",
+    "tests/scripts/isolated-readonly-get.test.ts": "b596cd2ea9ede15d6c753771bccfbf95b5d8e355ebea6554f354b6cb3b9a20fb",
+    "tests/server/e2e/browser-canonical-snapshot.test.ts": "d5e91f57777a7a44e7d7df8e9a28d3598a310d7ee0fbaec7f55f242a3f051bc5",
+    "tests/server/e2e/isolated-application-diagnostics.test.ts": "0ad6cfd0e3e19d4eb9343acb3ea7f946cdfb99e4def5a3e63b9dcb27320cc38f"
+  },
+  "node": "22.14.0",
+  "playwright": "1.63.0",
+  "managed_chromium": "153.0.8010.12",
+  "unit": {
+    "files": 4,
+    "tests": 30,
+    "status": "PASS",
+    "duration_ms": 740
+  },
+  "context_menu": {
+    "tests": 8,
+    "status": "PASS",
+    "duration_minutes": 3.8,
+    "case_seconds": [
+      5.9,
+      29.2,
+      21.3,
+      4.8,
+      14.1,
+      11.1,
+      12.3,
+      4.1
+    ]
+  },
+  "adjacent": {
+    "tests": 2,
+    "status": "PASS",
+    "milestone_past_case_seconds": 17.6,
+    "milestone_command_seconds": 37.0,
+    "editor_case_seconds": 20.2,
+    "editor_command_seconds": 39.0
+  },
+  "prepr_diagnose": "BLOCKED: two runs, one file, distinct consumer constraint; manual bounded coverage executed",
+  "remote_required": "NOT TESTED",
+  "owner_accept": "NOT TESTED"
+}

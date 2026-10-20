@@ -1,3 +1,9 @@
+## Issue #735 — 시스템 root 직접/조율 및 정확 교차 조회
+
+전용 `tests/server/resources/issue-735-system-dashboard.test.ts`, `tests/features/resources/system-dashboard.test.ts`, `tests/e2e/issue-735-system-dashboard.spec.ts`로 Target0 MCS1+ACS A/B의 단독/공정·WorkArea/설비·리소스/Milestone 경로, direct/coordination exact Task·Assignment·공수 합집합, 공유 controller/복수 경로 중복0과 다른 Task 누출0을 확인한다. Project 공통·복수 공정·WorkArea 미사용·작업0/PI 미설정·Target-only/혼합·빈 시스템 선택·잘못된 spec/foreign ID·snapshot stale를 포함한다.
+
+지표는 기존 원장/Calendar/공수/full Gate oracle과 대조하고 System1식/고유 제어 설비량/Task/개인배정·Resource 부하를 분리한다. 실제 UI는 System/Task/Assignment 원본·정확 일정과 복귀·dirty/readonly/stale/error, 390/768/1024/1440/1920px keyboard/focus·내부 overflow/header-body 정렬·긴 이름·조회 mutation0/Gantt remount0을 확인한다. 공통 WBS model/transport/SQLite HTTP·#730/#733 consumer·기존 물류 direct/coordination KPI·#624/Resource 회귀를 영향 범위에 선정한다. 최초 실패·보완·재실행 및 실제 명령/개수는 [Work Packet](exec-plans/active/ISSUE_735.md)에 누적한다. 로컬 실행은 공식 Full PR Quality/E2E6/Docker·Trusted QA·Owner 승인 증거를 대체하지 않는다.
+
 ## Issue #733 — F733-005 Full #3044.1 post-restart Project GET500 (2026-10-20)
 
 - [Run #3044.1](https://github.com/planner77/masterGantt/actions/runs/39374553530) Shard3 failed one #725 actual browser case at target-project.ts:57, Project GET expected200 actual500 following successful restart equipment GET405, PATCH200 JSON and Task Context GET/PUT200. Quality/Build/Docker success, five other E2E shards cancelled, E2E/QA downstream fail. Source/Job/artifact, previous F733-001~004 and #3039 historical PASS are in [single #733 ledger §10](ISSUE_733_FAILURE_ANALYSIS.md).
@@ -4885,3 +4891,19 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 - Exact-HEAD requirements: corrective PR Full CI original source Run/attempt/Head/base/test-merge, Quality + complete E2E 6/6 + Docker, Trusted QA/Owner HIGH, zero unresolved review threads, strict latest main. If all pass, non-force protected merge using `scripts/main_ci_run_name.py` canonical Korean title and empty body; **new Main push CI must run on the new merge SHA**. New Main Shard4 and recipient 5/6 wall-clock/memory/setup and per-file timing must meet existing 35min and complete with no cancellation; verified `ci-<new merge SHA>` candidate/digest/SBOM/provenance is prerequisite to formal `v0.125.0` release workflow, GHCR same digest promotion, Finalizer safe branch cleanup and Issue closure. Previous Main run remains CANCELLED historical evidence.
 - Product/API/DB/DESIGN/MANUAL N/A: no feature or runtime source changed. Documentation/test infra only, HIGH due protected `tests/config/**` and release lifecycle. Existing v0.125.0 Owner marker scope remains, new PR Owner Manager ACCEPT is independent. If new PR CI runs only, subsequent gates are NOT TESTED/BLOCKED, no CI completion monitoring as Owner requested.
 
+
+## Issue #735 — main 정렬 후 Copy ID 실패 교차 확인 (2026-10-20)
+
+기존 PR #757 CI #3051.1의 canonical GET `ECONNRESET`과 취소된5개 샤드는 [누적 실패 원장](ISSUE_735_FAILURE_ANALYSIS.md)에 보존한다. 제품·원형 테스트·fixture·timeout·retry 변경 없이 Copy ID 정상/clipboard 거부 fallback2case를 격리 실제 Chromium에서 재실행해2/2 PASS(54.7초)했다. 로컬 미재현은 원격 원인 해결 증거가 아니며 UNKNOWN을 유지한다. 최신 main shard plan에서 #735를 포함한133개 spec을 실제 selector6회로 정확1회 배정(누락/중복0)했고 기존 전용 source manifest는 동일하다. 새 Full PR CI의 Required3·Trusted QA·Owner 승인은 NOT TESTED다.
+
+
+## Issue #735 — 반복 canonical GET 전송 실패의 경계 교정 (2026-10-20)
+
+[누적 원장 F735-001/002](ISSUE_735_FAILURE_ANALYSIS.md)의 두 원본 CI 실패는 같은 Context Menu snapshot helper의 독립 API GET에서 발생했으며 TCP 내부 근인은 UNKNOWN이다. 두 진단에서 서버 생존·Health200·OOM0, 35분 용량 취소 없음이 확인되어 샤드 재배분은 하지 않는다. `project-task-context-menu.spec.ts`의 UI 후 canonical 검증24곳을 기존 `readBrowserCanonicalSnapshot`+필수 observer로 통일한다. browser GET은 같은 출처에서1회, retry0이며 seed/mutation API 및 기존 원본ID/revision/계층/Clipboard/Gantt 단언은 보존한다.
+
+실제 Project/Task를 둔 independent API GET 차단 controlled red/green 회귀1개와 기존 전체7case를 한 번의 fail-fast 없는8case에 포함한다. 기존 `tests/server/e2e/browser-canonical-snapshot.test.ts`의 HTTP500·invalidJSON·transport·foreign path/no retry 음성과 진단기/GET helper Unit, 인접 Task Editor 저장/reload·Milestone persistence를 선택한다. 원격 전체6Shard/Docker·Trusted/Owner는 새 exact Head에서 별도 검증하며 로컬 비재현·통제 오류와 원격 실제 실패를 구분한다.
+
+
+## Issue #735 F735-003 — 반응형 메뉴 단일 본문 부담 재배분 (2026-10-20)
+
+[누적 원장 §9](ISSUE_735_FAILURE_ANALYSIS.md)의 #3055.1은 #116 반응형 메뉴 단일 Test30초 초과다. fixture Before Hooks와 본문을 구분한 실제 trace/원형 RED31초로 결합 부담을 확인했고, Job35분 capacity 실패와 이전 GET 전송 오류와 구분했다. timeout/retry/단언을 유지하며4폭×4corner 행렬과 모바일/짧은 화면/Clipboard/desktop/Summary 흐름을 새 Project·SQLite·Context의 독립2Test로 나눈다. 각30초, 전체8→9case, 기존93matcher와 전체 명령 순서·나머지7case 내용 보존을 검산한다. 기존 실제 실패3case가 속한 같은 파일 전체9case를 동결 소스에서 fail-fast 없이 실행한다. fixture1회 추가의 비용은 별도로 기록하며 전역 Shard 이동·성능 절감은 주장하지 않는다. 전체6Shard/Docker·Trusted/Owner는 새 원격 exact Head에서 별도 검증한다.

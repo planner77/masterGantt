@@ -809,7 +809,7 @@ export function ProjectLogisticsManagement({
       <div id="panel-unified" role="tabpanel" aria-labelledby={hideSubviewNavigation ? undefined : "subtab-unified"} hidden={activeSubTab !== "unified"}>
         <ProjectLogisticsUnified perspective={perspective} onPerspectiveChange={onPerspectiveChange} publicId={publicId} revision={revision}
           active={active && activeSubTab === "unified"} busy={busy || isSubmitting} editable={editable}
-          logistics={logistics} onWbsSchedule={onWbsSchedule} onWbsOpenEntity={(dimension,id,trigger) => { if (["equipment","system","process"].includes(dimension)) openWbsEntity(dimension,id,trigger); else onWbsOpenEntity?.(dimension,id,trigger); }} onOpenTask={onTargetTaskOpen} onOpenAssignment={onOpenAssignment}
+          logistics={logistics} onWbsSchedule={onWbsSchedule} onWbsOpenEntity={onWbsOpenEntity ?? ((dimension,id,trigger) => { if (["equipment","system","process"].includes(dimension)) openWbsEntity(dimension,id,trigger); })} onOpenTask={onTargetTaskOpen} onOpenAssignment={onOpenAssignment}
           onOpenMilestone={taskId => onStageOpen?.(taskId)} onResourceSchedule={onResourceSchedule}
           onOpenTarget={(id, trigger, code) => {
             if (!editable || busy || isSubmitting) return;

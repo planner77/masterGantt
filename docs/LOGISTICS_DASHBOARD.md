@@ -1,3 +1,15 @@
+## Issue #735 — 물류 시스템 전용 관점
+
+새 조회는 직접 모드로 시작한다. 이전 저장 조회에 시스템 모드/선택 필드가 없으면 **기존 전체 작업 (호환)**으로 명시 유지하며 미연결 작업을 포함한 종전 Project 총계·원본 구성 참고와 접힘/선택/focus를 보존한다. 직접/조율 전환은 사용자 명령이며 새 모드의 Task 모집단 차이를 같은 수치라고 주장하지 않는다.
+
+`대시보드 → 물류 시스템`은 System 인스턴스를 고정 root로 사용하는 전용 consumer다. Target 생성 없이 시스템 단독, 시스템→공정→WorkArea→설비→리소스, 시스템→Milestone→공정의 조회 구성을 제공하며 하위 축은 사용자가 변경한다. 다른 root의 설비/System 동급 형제 규칙과 기존 #624 호환 조회·KPI는 유지한다.
+
+`직접 연결만`은 직접·상속·Target 유효 System 연관이고 `조율 범위 포함`은 기존 원장의 명시 coordinates 도달 시스템과 해당 controller의 실제 controls 설비까지 포함한다. 같은 Task에 연결된 공정/설비/리소스 교차는 제어관계 없이도 유효하지만 controls/coordinates를 생성하지 않는다. 하위 단계는 앞서 선택한 Task/Assignment 교집합을 유지한다. 공정은 Task 명시0..N만 사용하며 프로젝트 공통 MCS의 담당 공정으로 작업을 자동 펼치지 않는다.
+
+시스템 속성 필터는 현재 canonical 원본의 시스템 ID를 서버에 전달하여 KPI·표·상세·일정 범위를 함께 좁힌다. 프로젝트 공통·복수 공정·PI/개발자 역할·유형·Controller/Coordinator는 같은 원본의 속성이다. 구성 System은 고유1개=1식, 제어 설비는 고유 관리단위 수와 원본 quantity이며 관련 Task/공수와 별도다. 작업0·PI/개발자 미설정·공정 범위 누락/불일치는 진단으로 남긴다. 원본 없는 개발 실적·운영 가동률·역할에서 개인 공수를 추정하지 않는다.
+
+작업·진척·공수·미배정/미설정·full Gate는 공통 서버 원시 합집합을 사용한다. 공유 MCS의 t1(A)3+t2(B)4+t3(A/B)5와 공통 t0=2는 MCS14, A8, B9, 미연결2 M/D이며 소계를 더하지 않는다. [사용 안내](TARGET_RESOURCE_USER_GUIDE.md#물류-시스템-현황), [API](API.md#issue-735--시스템-root의-직접조율-선택), [실행 및 미검증](exec-plans/active/ISSUE_735.md)을 따른다.
+
 ## Issue #733 — 공정&WorkArea 전용 관점
 
 `대시보드 → 공정&WorkArea`는 Project 공정을 고정 root로 사용하는 전용 consumer이며 기존 #729 snapshot API·#730 표/상세를 재사용한다. 공통 Process Type, 사업장 occurrence, Project 공정 ID와 기존 자유 공정 트리는 서로 다른 원본이다. 단독 공정 요약, 선택 WorkArea 아래 설비/System 동급 형제 및 Resource, Milestone 교차 예시를 제공하며 개인 설정은 업무 구성이나 WBS를 변경하지 않는다.

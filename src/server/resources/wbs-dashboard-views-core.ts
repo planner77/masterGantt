@@ -6,21 +6,62 @@ import { resourceFingerprint } from "./resource-data-context-core";
 const limit = (): never => { throw new PublicApiError(422, "REPORT_LIMIT_EXCEEDED", "WBS 조회 계층·출처 한도를 초과했습니다. 조회 단계 또는 범위를 줄여 주세요."); };
 const unavailable = (): never => { throw new PublicApiError(400, "INVALID_SELECTION", "현재 WBS 조회의 정확한 경로를 다시 선택해 주세요."); };
 import type { WbsViewNode } from "../../contracts/wbs-dashboard-views";
-export function wbsViewSelectedSources(row: WbsTaskLedgerRow, assignmentIds: ReadonlySet<string>, path: readonly WbsViewPathEntry[] = []) {
+export function wbsViewSelectedSources(row: WbsTaskLedgerRow, assignmentIds: ReadonlySet<string>, path: readonly WbsViewPathEntry[] = [], systemView?: "direct" | "coordination") {
   return row.sources.filter(source => {
     if (source.effective === false) return false;
     if (source.assignmentId) return assignmentIds.has(source.assignmentId);
     if (source.entityKind === "equipment" && !row.equipmentIds.includes(source.entityId) || source.entityKind === "system" && !row.systemIds.includes(source.entityId)) return false;
-    if (["process", "workArea", "equipment", "system"].includes(source.dimension)) return path.filter(entry => entry.dimension === source.dimension).every(entry => entry.id === source.entityId);
+    if (["process", "workArea", "equipment", "system"].includes(source.dimension)) return path.filter(entry => entry.dimension === source.dimension && !(systemView === "coordination" && entry.dimension === "system")).every(entry => entry.id === source.entityId);
     return true;
   });
 }
 /** View stages never create parent-child relations between sibling instance kinds. */
 export function createWbsViewProjection(ledger: WbsTaskLedgerSnapshot, input: WbsViewQueryInput, labels: ReadonlyMap<string, string>, restriction?: { tasks: ReadonlySet<string>; assignments?: ReadonlySet<string> }) {
   const stages: WbsViewDimension[][] = [[input.spec.root], ...(input.spec.levels ?? []).map(level => typeof level === "string" ? [level] : level.dimensions)];
+  const systemSelection = input.spec.systemView !== undefined || input.spec.systemIds !== undefined;
+  const systemIds = input.spec.systemIds ?? ledger.configuration.systems.map(row => row.id);
+  if (systemIds.some(id => !ledger.configuration.systems.some(row => row.id === id))) unavailable();
+  const selectors = (path: readonly WbsViewPathEntry[]) => path.map(entry => ({ ...entry, dimension: entry.dimension === "system" && input.spec.systemView === "coordination" ? "systemCoordination" as const : entry.dimension }));
+  const branches = (path: WbsViewPathEntry[]) => path.length || !systemSelection ? [selectors(path)] : systemIds.map(id => selectors([{ dimension: "system", id }]));
+  // A root union reuses the domain's exact selectors. Bound and cache its scans,
+  // including configuration-only roots, before allocating projected cells.
+  let selectionWork = 0;
+  const scan = (rows: number) => { if (systemSelection && (selectionWork += Math.max(1, rows)) > WBS_VIEW_LIMITS.sourceRows) limit(); };
+  const selections = new Map<string, WbsTaskLedgerSelection>();
+  const ledgerSelection = (path: ReturnType<typeof selectors>) => {
+    const key = JSON.stringify(path), previous = selections.get(key);
+    if (previous) return previous;
+    scan(ledger.rows.length + ledger.prepared.assignments.length);
+    const value = selectWbsTaskLedger(ledger, path); selections.set(key, value); return value;
+  };
+  const configurations = new Map<string, ReturnType<typeof summarizeWbsTaskLedgerConfiguration>>();
+  const configuredSelection = (path: ReturnType<typeof selectors>) => {
+    const key = JSON.stringify(path), previous = configurations.get(key);
+    if (previous) return previous;
+    scan(ledger.configuration.equipment.length + ledger.configuration.systems.length);
+    const value = summarizeWbsTaskLedgerConfiguration(ledger, path); configurations.set(key, value); return value;
+  };
+  const configuration = (path: WbsViewPathEntry[]) => {
+    if (path.length || !systemSelection) return configuredSelection(selectors(path));
+    const base = configuredSelection([]);
+    const members = [...new Map(branches(path).flatMap(branch => configuredSelection(branch).members).map(row => [JSON.stringify([row.kind, row.entityId]), row])).values()];
+    return { ...base, members, equipmentQuantity: members.filter(row => row.kind === "equipment").reduce((sum, row) => sum + row.quantity, 0), systemCount: members.filter(row => row.kind === "system").length,
+      equipmentIds: members.filter(row => row.kind === "equipment").map(row => row.entityId), systemIds: members.filter(row => row.kind === "system").map(row => row.entityId) };
+  };
   let cells = 0, sourceRows = 0, candidateWork = 0;
   const select = (path: WbsViewPathEntry[]): WbsTaskLedgerSelection => {
-    const value = selectWbsTaskLedger(ledger, path);
+    let value = ledgerSelection(selectors(path));
+    if (!path.length && systemSelection) {
+      const values = branches(path).map(branch => ledgerSelection(branch));
+      const byTask = new Map<string, WbsTaskLedgerRow>();
+      for (const branch of values) for (const row of branch.rows) {
+        const previous = byTask.get(row.taskId);
+        byTask.set(row.taskId, previous ? { ...row, systemIds: [...new Set([...previous.systemIds, ...row.systemIds])].sort() } : row);
+      }
+      const rows = [...byTask.values()], assignments = [...new Map(values.flatMap(branch => branch.assignments).map(row => [row.assignmentId, row])).values()];
+      const t0 = [...new Map(values.flatMap(branch => branch.selection.t0).map(row => [row.taskId, row])).values()];
+      value = { ...value, rows, taskIds: rows.map(row => row.taskId), assignments, assignmentIds: assignments.map(row => row.assignmentId), selection: { ...value.selection, assignments, t0, t0Ids: new Set(t0.map(row => row.taskId)) } };
+    }
     if (!restriction) return value;
     let rows = value.rows.filter(row => restriction.tasks.has(row.taskId));
     const selectedIds = new Set(rows.map(row => row.taskId));
@@ -51,17 +92,17 @@ export function createWbsViewProjection(ledger: WbsTaskLedgerSnapshot, input: Wb
     // Only real configuration axes may extend an empty Task branch.
     const logistics = ledger.prepared.logistics!;
     if (path.length && path.every(entry => ["process", "workArea", "equipment", "system"].includes(entry.dimension))) {
-      const configuration = summarizeWbsTaskLedgerConfiguration(ledger, path);
+      const configured = configuration(path);
       if (dimension === "equipment" || dimension === "system") {
-        const ids = dimension === "equipment" ? configuration.equipmentIds : configuration.systemIds;
+        const ids = dimension === "equipment" ? configured.equipmentIds : configured.systemIds;
         if (ids.length) add(ids);
       }
       else if (dimension === "workArea") {
         const process = path.find(entry => entry.dimension === "process");
         const instancePath = path.some(entry => entry.dimension === "equipment" || entry.dimension === "system");
-        const equipmentIds = new Set(configuration.equipmentIds);
+        const equipmentIds = new Set(configured.equipmentIds);
         // A System reaches an area only through its actual controls relation.
-        for (const systemId of configuration.systemIds) for (const equipment of ledger.configuration.equipment) {
+        for (const systemId of configured.systemIds) for (const equipment of ledger.configuration.equipment) {
           if (equipment.controlSystems.some(control => control.systemId === systemId)) equipmentIds.add(equipment.id);
         }
         const membershipAreas = new Set(ledger.configuration.equipmentWorkAreas
@@ -70,12 +111,12 @@ export function createWbsViewProjection(ledger: WbsTaskLedgerSnapshot, input: Wb
           .map(row => row.workAreaId));
         const areas = logistics.workAreas.filter(area => (!process || process.id !== null && logistics.byProcess.get(process.id)!.occurrenceId === area.occurrenceId) && (!instancePath || membershipAreas.has(area.id)));
         add(areas.map(row => row.id));
-        if (summarizeWbsTaskLedgerConfiguration(ledger, [...path, { dimension: "workArea", id: null }]).members.length) add([]);
+        if (configuration([...path, { dimension: "workArea", id: null }]).members.length) add([]);
       } else if (dimension === "process") {
         const area = path.find(entry => entry.dimension === "workArea");
         if (area?.id) add(logistics.processes.filter(process => process.occurrenceId === logistics.byWorkArea.get(area.id!)!.occurrenceId).map(process => process.id));
         else {
-          for (const member of configuration.members) add(member.kind === "equipment" ? [...new Set([...(member.projectProcessId ? [member.projectProcessId] : []), ...ledger.configuration.equipmentWorkAreas.filter(row => row.equipmentId === member.entityId).map(row => row.processId)])] : ledger.configuration.systems.find(row => row.id === member.entityId)!.processIds);
+          for (const member of configured.members) add(member.kind === "equipment" ? [...new Set([...(member.projectProcessId ? [member.projectProcessId] : []), ...ledger.configuration.equipmentWorkAreas.filter(row => row.equipmentId === member.entityId).map(row => row.processId)])] : ledger.configuration.systems.find(row => row.id === member.entityId)!.processIds);
         }
       }
     }
@@ -85,13 +126,13 @@ export function createWbsViewProjection(ledger: WbsTaskLedgerSnapshot, input: Wb
         if (ledger.configuration.systems.some(row => row.scope === "project")) projected.push(null);
       }
       if (dimension === "workArea") projected.push(...logistics.workAreas.map(row => row.id));
-      if (dimension === "equipment" || dimension === "system") projected.push(...logistics.instances.filter(row => row.kind === dimension).map(row => row.entityId));
+      if (dimension === "equipment" || dimension === "system") projected.push(...logistics.instances.filter(row => row.kind === dimension && (!systemSelection || dimension !== "system" || systemIds.includes(row.entityId))).map(row => row.entityId));
       if (dimension === "resource") projected.push(...ledger.configuration.resourceMemberships.map(row => row.id));
       if (dimension === "group") projected.push(...ledger.groupIds);
       if (dimension === "milestone") projected.push(...ledger.prepared.tasks.filter(row => row.type === "milestone").map(row => row.taskId));
       if (dimension === "role") projected.push(...ledger.prepared.resources.flatMap(row => row.roles));
     }
-    const result = [...new Set(projected)].sort((a, b) => a === null ? 1 : b === null ? -1 : a.localeCompare(b));
+    const result = [...new Set(projected)].filter(id => path.length || dimension !== "system" || !systemSelection || id !== null && systemIds.includes(id)).sort((a, b) => a === null ? 1 : b === null ? -1 : a.localeCompare(b));
     if (result.length > WBS_VIEW_LIMITS.fanout) limit();
     return result;
   };
@@ -101,11 +142,11 @@ export function createWbsViewProjection(ledger: WbsTaskLedgerSnapshot, input: Wb
     if (!stages[depth]?.includes(entry.dimension) || !candidates(selectedPath.slice(0, depth), entry.dimension).includes(entry.id)) unavailable();
   }
   const selected = select(selectedPath);
-  const summary = (selection: WbsTaskLedgerSelection) => {
+  const summary = (selection: WbsTaskLedgerSelection, path: WbsViewPathEntry[]) => {
     const totals = summarizeWbsTaskLedger(ledger, selection);
     if (restriction?.assignments) totals.diagnostics = getResourceKpiDiagnostics({ ...ledger.prepared, assignments: ledger.prepared.assignments.filter(row => restriction.assignments!.has(row.assignmentId)) }, selection.selection);
     const { tasks, assignments, relatedMembers, configurationReference, diagnostics, participation } = totals;
-    return { tasks, assignments, relatedMembers, configurationReference, diagnostics, participation };
+    return { tasks, assignments, relatedMembers, configurationReference: systemSelection ? configuration(path) : configurationReference, diagnostics, participation };
   };
   const build = (path: WbsViewPathEntry[], depth: number): WbsViewNode[] => {
     if (depth === stages.length) return [];
@@ -115,11 +156,11 @@ export function createWbsViewProjection(ledger: WbsTaskLedgerSnapshot, input: Wb
     return entries.map(selector => {
       const childPath = [...path, selector], selection = select(childPath);
       const assignments = new Set(selection.assignmentIds);
-      const provenance = selection.rows.map(row => ({ taskId: row.taskId, sources: wbsViewSelectedSources(row, assignments, childPath) }));
+      const provenance = selection.rows.map(row => ({ taskId: row.taskId, sources: wbsViewSelectedSources(row, assignments, childPath, input.spec.systemView) }));
       for (const row of provenance) { sourceRows += row.sources.length; if (sourceRows > WBS_VIEW_LIMITS.sourceRows) limit(); }
       return { selector, path: childPath, viewRowKey: resourceFingerprint({ projectPublicId: ledger.input.snapshotProjectPublicId, spec: input.spec, path: childPath }), name: selector.id === null ? null : labels.get(JSON.stringify([selector.dimension, selector.id])) ?? selector.id,
-        taskIds: selection.taskIds, assignmentIds: selection.assignmentIds, totals: summary(selection), provenance, children: build(childPath, depth + 1) };
+        taskIds: selection.taskIds, assignmentIds: selection.assignmentIds, totals: summary(selection, childPath), provenance, children: build(childPath, depth + 1) };
     });
   };
-  return { selected, totals: summary(selected), children: input.projection?.kind === "details" || input.projection?.kind === "scope" ? [] : build([], 0) };
+  return { selected, totals: summary(selected, selectedPath), children: input.projection?.kind === "details" || input.projection?.kind === "scope" ? [] : build([], 0) };
 }
