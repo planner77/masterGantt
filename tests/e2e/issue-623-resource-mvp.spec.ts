@@ -298,6 +298,9 @@ test("#623 여섯 별도 mutation·양방향 동일원본 복귀", async ({ page
 // with a fresh canonical fixture and the original 30s budget for two layouts.
 for (const width of [390, 768, 1024, 1440, 1920]) {
   test(`#623 실제 Target 다열·중첩Group ${width}px geometry·keyboard·query0·렌더관측`, async ({ page, isolatedApplication: origin, observeIsolatedApi, phaseTiming }, info) => {
+    // #730 Release #182.2: fresh SQLite/HTTP setup plus tree/matrix nearly exhausted 30s in all five widths.
+    // Bounded per-case budget; no changes to assertions, global timeout, retries, or fail-fast.
+    test.setTimeout(45_000);
     phaseTiming.beginBody();
     page.setDefaultTimeout(15_000);
     const f = await seedIssue623(page, origin, observeIsolatedApi, true);

@@ -1,3 +1,11 @@
+## Issue #730 — GHCR Release #182.1/#182.2 실패 후 same-Issue 교정 (2026-10-20)
+
+[단일 #730 누적 실패 원장 §21–22](ISSUE_730_FAILURE_ANALYSIS.md)의 원본 Release Run \`39336847318\`은 0.124.0 immutable tag의 attempt1(Shard3 #621 focus 1FAIL)·attempt2(Shard3 #621 focus + #623 폭별390/768/1024 timeout 4FAIL) 모두 실패. Prepare/static·5개 shard 성공, quality gate FAIL→verified candidate/promotion/resume SKIPPED. Main #3034.1/Finalizer #724.1 PASS를 정식 GHCR PASS라고 주장하지 않는다.
+
+**교정 검증:** #621 Resource Target 비교표 \`data-ready=true\`·실제 셀 버튼 \`toBeEnabled\`/ \`toBeFocused\` 후 네이티브 Tab·paint·5폭·header/body 및 조회 mutation0/remount0 원래 단언을 보존한다. #623 fresh real SQLite/HTTP seed + tree/matrix/5폭 독립 testcase만 명시적인 45초 bounded budget; 여섯 연속 mutation 90초 및 기존 retry/skip/assertions/global CI 변경 없음. 누적 #730 직접 E2E 8파일 합집합과 #719/#726/#727/#731/#730 인접·stale/read-only·Query0/fixture negative를 Full PR CI Quality/E2E6/Docker/Trusted QA에서 검사한다. 새 정확 Head의 로컬 npm·Browser·HTTP·Docker는 NOT TESTED.
+
+**릴리스:** 기존 v0.124.0 tag/승인/실패 Run 불변; 같은 Issue #730 교정 후보 0.124.1은 manifest/lock 일치 후 별도 PR CI/Owner HIGH 위험 수용 및 **expected_version=0.124.1 별도 승인**이 있어야 한다. release_required=true/release_authorized=false; 새 Main/GHCR/Issue close는 아직 금지.
+
 ## Issue #730 — F730-011 Full #3029.1 Task Editor 3시간대 30초 예산 실패 (2026-10-20)
 
 [Issue #730 전용 원장 §20](ISSUE_730_FAILURE_ANALYSIS.md#20-f730-011--pr-747-full-30291-task-editor-3시간대-재확인-test-budget-실패-2026-10-20), [PR Full #3029.1](https://github.com/planner77/masterGantt/actions/runs/39320381909) 원본 Trace에 따르면 TypeScript/Unit/ESLint/Build/Docker와 E2E 5개 Shard가 PASS했으나 Shard4의 `project-task-editor-persistence.spec.ts:8`가 기본30초 제한에 도달했다. 같은 실 Task Editor 저장/원본 revision·Task 정보·Gantt/URL 팝업 검증 완료 후 UTC, Asia/Seoul 새 Context와 America/New_York 최종 Editor 진입까지 실행하였다. fixture startup 약15.53초는 test body 시간과 별도로, body 앞부분14.93초 + 시간대 재조회 약4.01/5.44/5.62초에서 deadline. 실제 값 불일치/제품 실패는 관측되지 않았다. Shard4 79PASS/1FAIL/83NOT RUN·다른5 Shard SUCCESS·E2E/QA 파생 FAIL을 구분한다.
