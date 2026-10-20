@@ -5,12 +5,15 @@ import { openWorkspaceView } from "./helpers/workspace-navigation";
 import type { LogisticsMutationResponse, ProjectLogisticsResponse } from "../../src/contracts/logistics";
 import type { ProcessCatalogResponse } from "../../src/contracts/process-catalog";
 
-// #733 F733-004: this suite exercises actual PATCH/Task dynamic routes across
-// isolated Next dev process restarts. Use the supported Webpack dev bundler
-// only here to avoid the observed persistent Turbopack route-registration 404.
-// Keep exact GET405 readiness and real PATCH200/JSON/Task GET200 assertions.
+// #733 F733-007: #3047.1 captured Next 16 Webpack dev manifest JSON
+// parse failure (HTML500) in the real canonical Project GET, after 4 HTTP200.
+// Default Turbopack avoids the documented Webpack manifest race; retain
+// #733 F733-005 fresh dist per restart and serial, read-only route precompile
+// for this suite to address prior Turbopack restart HTML404 (#3043).
+// Exact GET405 / PATCH200 / Task GET200 and all original assertions remain.
 test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword,
-  isolatedDevBundler: "webpack", isolatedFreshDistOnRestart: true,
+  isolatedDevBundler: "turbopack", isolatedRouteWarmup: "process-workareas",
+  isolatedFreshDistOnRestart: true,
   viewport: { width: 1440, height: 1000 } });
 
 test.afterEach(async ({ page }, info) => {

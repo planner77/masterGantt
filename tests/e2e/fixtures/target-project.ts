@@ -62,6 +62,17 @@ export async function createTargetProject(page: Page, origin: string, observeApi
       const mediaType = type.includes("application/json") ? "application/json"
         : type.includes("text/html") ? "text/html" : "other";
       let errorCode = "NON_JSON";
+      let frameworkFailure = "NONE";
+      if (mediaType === "text/html") {
+        // Examine, never retain, the framework-generated HTML error body.
+        // #3047.1 trace showed Next AppRouteRouteModule.loadManifests
+        // throwing JSON.parse on a truncated dev manifest.
+        const html = await response.text();
+        frameworkFailure = html.includes("AppRouteRouteModule.loadManifests")
+          && html.includes("Unexpected end of JSON input")
+          ? "NEXT_MANIFEST_JSON_PARSE"
+          : html.includes('"page":"/_error"') ? "NEXT_ERROR_PAGE" : "NON_API_HTML";
+      }
       if (mediaType === "application/json") {
         const payload: unknown = await response.json().catch(() => null);
         const error = payload && typeof payload === "object" && "error" in payload
@@ -75,7 +86,7 @@ export async function createTargetProject(page: Page, origin: string, observeApi
         contentType: "application/json",
         body: Buffer.from(JSON.stringify({
           route: "/api/projects/[publicId]", method: "GET",
-          status: response.status(), mediaType, errorCode,
+          status: response.status(), mediaType, errorCode, frameworkFailure,
           requestIdPresent: Boolean(response.headers()["x-request-id"]),
           httpErrorRetried: false, expectedStatus: 200,
         })),

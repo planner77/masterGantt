@@ -72,6 +72,8 @@ export const test = base.extend<{
   // Default Turbopack remains unchanged; opt into Webpack only for isolated
   // Next dev tests with persistent dynamic-route 404 after restart.
   isolatedDevBundler: "turbopack" | "webpack";
+  /** #733 F733-007: serial GET-only compile warmup scoped to actual #725 routes. */
+  isolatedRouteWarmup: "base" | "process-workareas";
   /** #733 F733-005: optionally discard the previous dev compiler cache on restart. */
   isolatedFreshDistOnRestart: boolean;
   isolatedApplicationRuntime: IsolatedApplicationRuntime;
@@ -81,6 +83,7 @@ export const test = base.extend<{
   isolatedResourceAdminPassword: [undefined, { option: true }],
   isolatedProjectMasterAdminPassword: [undefined, { option: true }],
   isolatedDevBundler: ["turbopack", { option: true }],
+  isolatedRouteWarmup: ["base", { option: true }],
   isolatedFreshDistOnRestart: [false, { option: true }],
   isolatedApplication: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.origin);
@@ -91,7 +94,7 @@ export const test = base.extend<{
   observeIsolatedApi: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.observeApi);
   },
-  isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword, isolatedProjectMasterAdminPassword, isolatedDevBundler, isolatedFreshDistOnRestart }, provide, testInfo) => {
+  isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword, isolatedProjectMasterAdminPassword, isolatedDevBundler, isolatedRouteWarmup, isolatedFreshDistOnRestart }, provide, testInfo) => {
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
@@ -183,12 +186,57 @@ export const test = base.extend<{
         // behavior budget. GET/405 does not consume create/unlock attempts.
         const missing = "00000000-0000-4000-8000-000000000001";
         const paths = ["/", "/projects/new", "/api/project-master/catalog", `/projects/${missing}`, "/api/projects", `/api/projects/${missing}`, `/api/projects/${missing}/edit-sessions`, `/api/projects/${missing}/edit-sessions/current`, `/api/projects/${missing}/edit-password`, `/api/projects/${missing}/tasks`, `/api/projects/${missing}/tasks/${missing}`];
-        for (const path of paths) {
+        // #733 F733-007 / Next dev manifest corruption: force first compilation
+        // of the actual #725 API route families serially, before business writes
+        // and browser navigation can overlap lazy route compilation. Synthetic
+        // UUIDs + GET only: no fixture mutations, authentication or retries.
+        // Every restarted generation gets the same bounded warmup.
+        const processRoutes = isolatedRouteWarmup === "process-workareas" ? [
+          "/api/project-master/admin-sessions",
+          "/api/project-master/admin/items",
+          "/api/project-master/admin/relations",
+          "/api/process-catalog/admin",
+          "/api/process-catalog/admin/types",
+          "/api/process-catalog/admin/occurrences",
+          "/api/process-catalog/admin/work-areas",
+          `/api/projects/${missing}/logistics/processes`,
+          `/api/projects/${missing}/logistics/process-mappings/${missing}`,
+          `/api/projects/${missing}/logistics/equipment`,
+          `/api/projects/${missing}/logistics/equipment/${missing}`,
+          `/api/projects/${missing}/logistics`,
+          `/api/projects/${missing}/logistics/process-context`,
+          `/api/projects/${missing}/logistics/targets`,
+          `/api/projects/${missing}/tasks/${missing}/process-context`,
+        ] : [];
+        const prewarmStatusCounts: Record<string, number> = {};
+        for (const path of [...paths, ...processRoutes]) {
           const remaining = deadline - Date.now();
           if (remaining <= 0) throw new Error("Isolated E2E route warmup exceeded its startup budget.");
           const response = await fetch(`${origin}${path}`, { signal: AbortSignal.timeout(remaining) });
+          const mediaType = response.headers.get("content-type")?.toLowerCase() ?? "";
           await response.arrayBuffer();
           if (response.status >= 500) throw new Error(`격리 E2E 경로 준비 실패: HTTP ${response.status}. isolated-application-diagnostics 첨부를 확인하세요.`);
+          if (processRoutes.includes(path)) {
+            // An HTML 404 is Next's route-not-compiled page, not a real
+            // project/API JSON 404. Fail closed before the test starts.
+            if (response.status === 404 && !mediaType.includes("application/json")) {
+              throw new Error("격리 E2E 공정 API 사전 준비에서 동적 라우트가 HTML404를 반환했습니다.");
+            }
+            const key = String(response.status);
+            prewarmStatusCounts[key] = (prewarmStatusCounts[key] ?? 0) + 1;
+          }
+        }
+        if (processRoutes.length) {
+          await testInfo.attach("issue-733-process-api-serial-prewarm", {
+            contentType: "application/json",
+            body: Buffer.from(JSON.stringify({
+              phase: patchOnlyReadinessPath ? "restart" : "initial",
+              bundler: isolatedDevBundler,
+              routeCount: processRoutes.length,
+              method: "GET", realBusinessRequestsRetried: false,
+              statusCounts: prewarmStatusCounts,
+            })),
+          });
         }
         if (patchOnlyReadinessPath) {
           // A healthy /api/health/ready does not establish that the lazy Next.js
@@ -331,7 +379,7 @@ export const test = base.extend<{
           await startApplication(patchOnlyReadinessPath, taskContextReadinessPath);
         } finally { restarting = false; }
       };
-      testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: bundler=${isolatedDevBundler}; freshDistOnRestart=${isolatedFreshDistOnRestart}; fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
+      testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: bundler=${isolatedDevBundler}; routeWarmup=${isolatedRouteWarmup}; freshDistOnRestart=${isolatedFreshDistOnRestart}; fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
       await provide({ origin, restart, observeApi: observeIsolatedApi(diagnostics, () => captureDiagnostics("api_transport_failure")) });
     } catch (error) {
       await captureDiagnostics("setup_failure").catch(() => undefined);
