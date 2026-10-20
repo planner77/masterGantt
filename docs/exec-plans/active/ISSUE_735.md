@@ -10,7 +10,7 @@
 - risk_level: HIGH; risk_reason: 시스템 consumer에 필요한 직접/조율·정확 시스템 선택을 공통 WBS API/spec/snapshot에 연결한다.
 - qa_required: true; qa_method: OWNER_MANAGED; independent_qa: N/A(독립 인간 검토 없음); manager_decision: NOT TESTED; MERGE_READY: BLOCKED.
 - release_required: true; release_authorized: false. 구현·리뷰 thread/충돌 해결·PR CI 시작까지만 요청되었다.
-- documentation_owner: Manager; issue_comment_writer: manager; issue_comment_allowed_types: PLAN, STATUS, EXCEPTION.
+- documentation_owner: Manager; issue_comment_writer: manager; issue_comment_allowed_types: PLAN, STATUS, EXCEPTION, RESUME.
 - 비범위: CI 모니터링·병합·main/GHCR·Release/tag·브랜치 정리·Issue 종료, 새 계산기/DB/제어 엔진/Gantt/WBS·Assignment·Target writer, 운영 실적/가동률 추정.
 
 ## 소유권과 공통 계약 보완
@@ -65,6 +65,7 @@ producer는 system root spec/selector·report/detail/scope와 consumer/hydration
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_735.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
+- `docs/ISSUE_735_FAILURE_ANALYSIS.md`: UPDATED
 - `DESIGN.md`: N/A(기존 시각 언어·동적 조회·동급 분기 규범 적용, 규범 변경 없음)
 - `docs/DB_SCHEMA.md`: N/A(schema/migration/저장 writer 변경 없음)
 - `docs/SCHEDULING_ENGINE.md`: N/A(기존 Calendar/공수/Gate authority 재사용)
@@ -137,3 +138,12 @@ producer는 system root spec/selector·report/detail/scope와 consumer/hydration
 - main `8a0fc9773d33326b40f8d97f6307c17ae0cb6933`를 다시 fetch하고 최종 검토한 tree를 연결 Git Data API로 배치 게시한다. Git push dry-run 인증 실패를 CI/권한 변경으로 우회하지 않는다. local tree와 remote tree 일치·단일 branch/ref 게시 후 canonical `Refs #735` PR과 exact remote Head Full CI의 시작만 확인한다. PR 생성 후 thread/충돌 상태와 run URL·SHA는 Issue STATUS에 기록한다. CI 완료 모니터링·병합·게시·Issue 종료는 수행하지 않는다.
 
 - 최종 독립 Agent `/root/system_qa`: 사전 AC1~AC5 PASS/미해결 코드 지적0. 실제 Playwright HTML에서 expected6/unexpected0/flaky0/skipped0과 source manifest를 직접 확인했다. 이는 독립 인간 승인·Trusted QA·Owner 최종 ACCEPT가 아니다.
+
+
+## main 정렬 재개와 새 CI 인계 (2026-10-20)
+
+- 사용자 요청으로 기존 PR [#757](https://github.com/planner77/masterGantt/pull/757)을 유지하고 Head `abd410fc4fa1f87be3c7975d2fa960b36f8d8877`에 최신 main `05f1e560eee456e6fba5535255c9ede30a357c16`을 merge한다. main의 #733 문서4개·shard plan을 가져오며 자동 병합 성공, 충돌 marker0이다. Changelog/TestPlan의 양쪽 이력과 plan을 보존하고 TEST_PLAN EOF 추가 빈 줄만 정리했다. 제품/전용 테스트/package 변경0이다.
+- 기존 Full CI [#3051.1](https://github.com/planner77/masterGantt/actions/runs/39408703783)은 Quality/Docker SUCCESS, E2E FAILURE다. Copy ID canonical GET의 ECONNRESET 직접 실패·다른5개 Shard 취소·파생 QA 실패를 [단일 누적 실패 원장](../../ISSUE_735_FAILURE_ANALYSIS.md)에 기록했다. 해당 원형 정상/clipboard 거부 fallback2case는 변경·재시도 없이2/2 PASS,54.7초(17.7/4.3초). 원격 근인은 UNKNOWN이며 main의 Shard4 재배치로 해결됐다고 주장하지 않는다.
+- product/전용 Unit·API13파일 결합 SHA256 `87455823a3fd01d42bc5f5512c38b01e49659cc9f1e717b123cf19dd4a699b04`, E2E spec `272e1963913ecc457a8ca6b84a66e915019358c152f9d7bbc7ca814f8d6cf95d`가 기존 동결 검증본과 일치한다. 기능 변경이 없어132개 Unit/API·6+2브라우저를 모두 반복하지 않고 이번 직접/음성2case와 selector·planner·문서 검증을 선정했다. 과거 결과를 새 원격 PASS로 사용하지 않는다.
+- 실제 selector6회: 현재133개 spec 모두 정확1회, 누락/중복0, 분배 `[23,23,23,22,21,21]`, #733→5/#726→6/#735→1. plan은 main과 byte 동일. qa_docs의 planner Unit5개 PASS 및 독립 main 정합 사전 검토 PASS/새 지적0. Next 자동 생성 설정은 원래 추적 값으로 복원한다.
+- 미해결 리뷰 스레드0. 기존 PrePR UNKNOWN3/BLOCKED는 역사적 결과로 유지하며 이번 main-only 정렬이 도구 매핑을 해결하지 않는다. DOC_SYNC·Markdown·version·diff 검증 후 단일 non-force branch update로 새 Head의 Full CI 등록/시작만 확인하고 exact SHA/run/attempt를 Issue STATUS에 기록한다. 새 Required3/Trusted QA·Owner ACCEPT는 NOT TESTED/MERGE_READY BLOCKED, CI 완료 모니터링·병합·릴리스·Issue 종료는 범위 밖이다.

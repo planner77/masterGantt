@@ -6,6 +6,8 @@
 
 ## [0.125.0] — Unreleased / Issue #733
 
+- Issue #733의 최초 병합 Main CI [#3050.1](https://github.com/planner77/masterGantt/actions/runs/39402320673)은 Chromium Shard4(168테스트) 35분 Job 제한으로 CANCELLED(162PASS/1SKIPPED/5미완료), E2E 집계 FAIL, Quality/Docker PASS, GHCR 후보 SKIPPED였다. 해당 불변 Run을 #733 원장 M733-001로 기록하고, 과거 #437 timing plan 누락 신규 파일 2개(#733 전용 공정 대시보드, #726 Task 물류)를 hash-assigned Shard4에서 Shard5/6으로 명시 이동한다. 예상 이동 테스트 본문 실행시간은 PR293.2초/Main271.4초로 실제 새 샤드 wall-clock은 미검증이다. 132개 전체 테스트 할당, 6-shard·worker1·timeout35min·기존 CI/GHCR 게이트, 제품/DB/API·버전 0.125.0 불변. 같은 이슈 corrective PR의 신규 Required3/Trusted/Owner 승인을 거쳐 정식 GHCR/Finalizer로 진행하며 이전 Main 결과를 PASS로 간주하지 않는다.
+
 - PR #755 Full PR CI #3048.1의 Chromium Shard2에서 #373 하위 트리 딥링크/탭 간 최신화 통합 테스트 본문이 30초를 소진(약31.4초, Before Hooks 약15.2초는 별도)하였다. #733 F733-008 누적 실패 원장에 기록하고 원래 단일 Test를 A(딥링크·범위/권한), B(2회 편집·탭 간 최신 Revision), C(stale 초기 GET·newer revision·reload) 독립 3개로 분리하였다. 각 테스트 별도 Project·SQLite/BrowserContext, 기존 단언과 실제 PATCH/GET/권한·revision 유지. Fixture 3회 비용 비교 필요, 전역 Timeout/CI 정책/제품·0.125.0·승인 상태 불변. 새 Head 실실행 NOT TESTED.
 
 - PR #755 Full #3047.1에서는 #725 실SQLite/HTTP setup의 Project GET이 이전200 네 번 후 Next Webpack 개발서버 `loadManifest`의 `Unexpected end of JSON input`으로 HTML500 반환하였다. #733 F733-007에 Trace/Run을 누적했고 Next16 upstream manifest race #97594와 분리 검토했다. #725 격리 두 테스트만 Turbopack+재시작 별도 NEXT_DIST_DIR·GET-only 공정 API 순차 prewarm으로 교정하며, 실패 HTML의 framework error class만 기록한다. 원본 HTTP200/PATCH/GET/SQLite/UI 단언과 CI gates, 제품/버전0.125.0/릴리스 승인 상태는 유지; 새 Head remote NOT TESTED.
