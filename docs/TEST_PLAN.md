@@ -1,3 +1,9 @@
+## Issue #733 — F733-005 Full #3044.1 post-restart Project GET500 (2026-10-20)
+
+- [Run #3044.1](https://github.com/planner77/masterGantt/actions/runs/39374553530) Shard3 failed one #725 actual browser case at target-project.ts:57, Project GET expected200 actual500 following successful restart equipment GET405, PATCH200 JSON and Task Context GET/PUT200. Quality/Build/Docker success, five other E2E shards cancelled, E2E/QA downstream fail. Source/Job/artifact, previous F733-001~004 and #3039 historical PASS are in [single #733 ledger §10](ISSUE_733_FAILURE_ANALYSIS.md).
+- Cause UNKNOWN: the old GET404 readiness is not reproduced, but postrestart Webpack dev GET500 response MIME/API code is missing. Minimum test-only remediation is fresh compiler dist per opt-in #725 restart after child stop (same port/SQLite/auth/data, no extra migration) plus safe non200 GET status/MIME/errorCode telemetry. Do not mask/retry actual HTTP500 or relax expected200, GET405/real PATCH200, 90-second readiness/CI global retries/timeouts/skip or six required shard policy.
+- Regression: #725 two real HTTP/SQLite E2E; adjacent #730/#731/#726 and F733-001~004 #622 focus, valid ACS/#733 SQLite, #514/#529 clock, #621/#623, #624 readonly, GSC-07/08/09, original writer/permissions/revision/error MIME. New Head actual local/remote QA NOT TESTED; full CI and Owner acceptance required before merge/release.
+
 ## Issue #733 — F733-004 Full PR CI #3043.1 isolated restart GET404 (2026-10-20)
 
 - [원본 Run #3043.1](https://github.com/planner77/masterGantt/actions/runs/39370750961) Shard3의 tests/e2e/issue-725-process-workareas.spec.ts:88 real restart case에서 equipment PATCH-only route ready GET HTTP404 vs expected405 (fixtures/isolated-application.ts:216). Quality+Next build+Docker PASS, Shard3 57PASS/1FAIL/50NOT RUN, Shard6 134PASS, 다른 4 Shard 취소. QA Final 파생 실패, #733 단일 [누적 실패 원장 §9](ISSUE_733_FAILURE_ANALYSIS.md)에 이전 F733-001~003/3039.1 PASS와 함께 별도 Run·Head/base/test-merge 고정.

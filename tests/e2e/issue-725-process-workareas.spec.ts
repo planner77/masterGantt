@@ -10,7 +10,8 @@ import type { ProcessCatalogResponse } from "../../src/contracts/process-catalog
 // only here to avoid the observed persistent Turbopack route-registration 404.
 // Keep exact GET405 readiness and real PATCH200/JSON/Task GET200 assertions.
 test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword,
-  isolatedDevBundler: "webpack", viewport: { width: 1440, height: 1000 } });
+  isolatedDevBundler: "webpack", isolatedFreshDistOnRestart: true,
+  viewport: { width: 1440, height: 1000 } });
 
 test.afterEach(async ({ page }, info) => {
   if (info.status === info.expectedStatus || page.isClosed()) return;

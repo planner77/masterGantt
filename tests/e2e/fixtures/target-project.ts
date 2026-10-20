@@ -1,4 +1,4 @@
-import { expect, type Page, type APIResponse } from "@playwright/test";
+import { expect, test as playwrightTest, type Page, type APIResponse } from "@playwright/test";
 import type { ProjectMasterAdminResponse } from "../../../src/contracts/project-master";
 import type { ProcessCatalogResponse } from "../../../src/contracts/process-catalog";
 import type { CreateProjectResponse, ProjectSnapshotResponse, TaskMutationResponse } from "../../../src/contracts/projects";
@@ -54,6 +54,33 @@ export async function createTargetProject(page: Page, origin: string, observeApi
     // credential-bearing request. All consumers must supply real E2E diagnostics.
     const response = await observedReadOnlyGet(observeApi, `/api/projects/${publicId}`, () =>
       page.request.get(api, { headers: { Connection: "close" } }));
+    if (response.status() !== 200) {
+      // #733 F733-005: classify the single real failed GET before asserting.
+      // Never replay HTTP failures; retain only allowlisted diagnostics, not
+      // IDs/URLs, response body, headers, credentials, or a raw server stack.
+      const type = response.headers()["content-type"]?.toLowerCase() ?? "";
+      const mediaType = type.includes("application/json") ? "application/json"
+        : type.includes("text/html") ? "text/html" : "other";
+      let errorCode = "NON_JSON";
+      if (mediaType === "application/json") {
+        const payload: unknown = await response.json().catch(() => null);
+        const error = payload && typeof payload === "object" && "error" in payload
+          ? payload.error : null;
+        const code = error && typeof error === "object" && "code" in error
+          ? error.code : null;
+        errorCode = typeof code === "string" && /^[A-Z][A-Z0-9_]{0,63}$/.test(code)
+          ? code : "UNCLASSIFIED";
+      }
+      await playwrightTest.info().attach("issue-733-project-snapshot-http-error", {
+        contentType: "application/json",
+        body: Buffer.from(JSON.stringify({
+          route: "/api/projects/[publicId]", method: "GET",
+          status: response.status(), mediaType, errorCode,
+          requestIdPresent: Boolean(response.headers()["x-request-id"]),
+          httpErrorRetried: false, expectedStatus: 200,
+        })),
+      }).catch(() => undefined);
+    }
     expect(response.status()).toBe(200);
     return await (await successful(response)).json() as ProjectSnapshotResponse;
   };

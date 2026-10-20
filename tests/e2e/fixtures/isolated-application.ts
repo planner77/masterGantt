@@ -72,6 +72,8 @@ export const test = base.extend<{
   // Default Turbopack remains unchanged; opt into Webpack only for isolated
   // Next dev tests with persistent dynamic-route 404 after restart.
   isolatedDevBundler: "turbopack" | "webpack";
+  /** #733 F733-005: optionally discard the previous dev compiler cache on restart. */
+  isolatedFreshDistOnRestart: boolean;
   isolatedApplicationRuntime: IsolatedApplicationRuntime;
   restartIsolatedApplication: (patchOnlyReadinessPath?: string, taskContextReadinessPath?: string) => Promise<void>;
   observeIsolatedApi: ObserveIsolatedApi;
@@ -79,6 +81,7 @@ export const test = base.extend<{
   isolatedResourceAdminPassword: [undefined, { option: true }],
   isolatedProjectMasterAdminPassword: [undefined, { option: true }],
   isolatedDevBundler: ["turbopack", { option: true }],
+  isolatedFreshDistOnRestart: [false, { option: true }],
   isolatedApplication: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.origin);
   },
@@ -88,7 +91,7 @@ export const test = base.extend<{
   observeIsolatedApi: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.observeApi);
   },
-  isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword, isolatedProjectMasterAdminPassword, isolatedDevBundler }, provide, testInfo) => {
+  isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword, isolatedProjectMasterAdminPassword, isolatedDevBundler, isolatedFreshDistOnRestart }, provide, testInfo) => {
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
@@ -102,7 +105,9 @@ export const test = base.extend<{
     const temporary = await mkdtemp(resolve(repositoryRoot, ".data", "playwright-isolated-"));
     // Must obey next.config.ts's .next-<lowercase-name> contract. Never reuse
     // the shared mock/demo server's .next-e2e output or a developer's .next.
-    const distName = `.next-e2e-isolated-${randomUUID()}`;
+    const distNames = [`.next-e2e-isolated-${randomUUID()}`];
+    // Every allocated folder is owned by this disposable fixture only.
+    // Do not reuse a running Next dev generation's compilation artifacts.
     let child: ChildProcess | undefined;
     let closed = Promise.resolve();
     const diagnostics = new IsolatedApplicationDiagnostics();
@@ -130,7 +135,7 @@ export const test = base.extend<{
         NODE_ENV: "development",
         APP_BASE_URL: origin,
         DATABASE_PATH: resolve(temporary, "database.sqlite3"),
-        NEXT_DIST_DIR: distName,
+        NEXT_DIST_DIR: distNames[0]!,
         ...(isolatedResourceAdminPassword===undefined?{}:{RESOURCE_CATALOG_ADMIN_PASSWORD:isolatedResourceAdminPassword}),
         ...(isolatedProjectMasterAdminPassword===undefined?{}:{PROJECT_MASTER_ADMIN_PASSWORD:isolatedProjectMasterAdminPassword}),
       };
@@ -315,11 +320,18 @@ export const test = base.extend<{
           diagnostics.expectShutdown(child);
           await stopApplication(child, closed);
           child = undefined;
-          // Preserve port/origin, SQLite, build output and environment; no migration rerun.
+          // Preserve port/origin and persisted SQLite without rerunning migration.
+          // Opt-in tests get a fresh compiler/dist generation after the old
+          // server has terminated, ruling out stale reuse of the first dev cache.
+          if (isolatedFreshDistOnRestart) {
+            const freshName = `.next-e2e-isolated-${randomUUID()}`;
+            distNames.push(freshName);
+            applicationEnvironment.NEXT_DIST_DIR = freshName;
+          }
           await startApplication(patchOnlyReadinessPath, taskContextReadinessPath);
         } finally { restarting = false; }
       };
-      testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: bundler=${isolatedDevBundler}; fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
+      testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: bundler=${isolatedDevBundler}; freshDistOnRestart=${isolatedFreshDistOnRestart}; fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
       await provide({ origin, restart, observeApi: observeIsolatedApi(diagnostics, () => captureDiagnostics("api_transport_failure")) });
     } catch (error) {
       await captureDiagnostics("setup_failure").catch(() => undefined);
@@ -332,7 +344,10 @@ export const test = base.extend<{
       }
       // Remove only paths allocated by this fixture, after its server exits.
       await rm(temporary, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-      await rm(resolve(repositoryRoot, distName), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+      for (const name of distNames) {
+        // Only this test's generated folders; never delete another workspace.
+        await rm(resolve(repositoryRoot, name), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+      }
     }
   }, { scope: "test", timeout: 120_000 }],
 });
