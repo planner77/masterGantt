@@ -1,3 +1,10 @@
+
+## Issue #730 — PR #756 Full #3037.1 재시작 후 Task 공정 연결 GET HTML404 (F730-014 / 2026-10-20)
+
+[같은 #730 실패 원장 §23](ISSUE_730_FAILURE_ANALYSIS.md)의 새 PR Full [#3037.1](https://github.com/planner77/masterGantt/actions/runs/39352213429) Chromium Shard3은 `issue-725-process-workareas.spec.ts:314`의 재시작 뒤 Task process-context GET에서 200 기대 / **Next `text/html` 404 실제**(57PASS/1FAIL/50NOT RUN). Code/TS/Lint/Vitest/Build/Docker SUCCESS, 다른 5 Shard CANCELLED, E2E/QA Final/Trusted QA 실패는 파생. 최초 #3036의 HEAD는 뒤 문서 교정 후 CANCELLED이므로 Full 성공으로 승격하지 않는다. #731 M-002 재시작 뒤 equipment PATCH HTML404와 같은 동적 라우트 준비 누락 계열이지만 기존 equipment GET405는 **다른 Task route의 준비를 보장하지 않았다**.
+
+**교정 및 필수 수용:** fixture `restartIsolatedApplication(equipmentPath, taskContextPath)`의 두 번째 인자를 선택적으로 도입해 재시작 동일 deadline 안의 읽기 전용 GET/no-store로 task route를 사전 확인한다. 오직 Next HTML404만 준비 중 bounded polling; 실제 HTTP200/JSON/context.processLinks 구조가 나와야 PASS, 의미상 JSON404/401/403/500·HTML200·bad JSON/shape/다른 origin/project/path/기간 초과/child 종료는 즉시 실패. 원래 후속 GET은 단 1회 HTTP200 + MIME JSON·`processLinks null→[A,B]→[B]→[]`와 PUT/실제 UI PATCH·WorkArea/수량·Task UUID·Gantt·readonly/5폭 단언을 보존한다. #725 실제 restart·#731 이전 cross-run·선택 옵션 없는 fixture 사용, #726/727 Task 연결 및 전체 #730 누적 직접 E2E **9파일** + #621/#623 Release 회귀, CI Required3/Trusted QA를 동일 new Head에서 검증한다. GitHub-only 보완 소스의 TypeScript/Vitest/real Browser/SQLite/Docker 및 CI 결론은 실행 전 NOT TESTED이다. 0.124.1 PATCH 후보 승인·tag/GHCR/Main/Issue close는 별도 gate.
+
 ## Issue #730 — GHCR Release #182.1/#182.2 실패 후 same-Issue 교정 (2026-10-20)
 
 [단일 #730 누적 실패 원장 §21–22](ISSUE_730_FAILURE_ANALYSIS.md)의 원본 Release Run `39336847318`은 0.124.0 immutable tag의 attempt1(Shard3 #621 focus 1FAIL)·attempt2(Shard3 #621 focus + #623 폭별390/768/1024 timeout 4FAIL) 모두 실패. Prepare/static·5개 shard 성공, quality gate FAIL→verified candidate/promotion/resume SKIPPED. Main #3034.1/Finalizer #724.1 PASS를 정식 GHCR PASS라고 주장하지 않는다.
