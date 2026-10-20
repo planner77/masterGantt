@@ -1,3 +1,7 @@
+> 2026-10-21 재개: PR #760 최신 Head `3c335ba1cd4ac3f747f2f841fde16a81353aa490`, main `08a1d9ff25a97aba67f08d6b67029ac55d45121a`의 Full #3065.1 실패를 F736-001/002·초기 L/E/R와 함께 분석한다. frontend는 테스트 observer·정확 요청/즉시 body·직렬 조건/지연 음성을, infra는 원격 전체3Run·취소10Shard·source/merge 귀속을, qa_docs는 read-only 사전 검토를, Manager는 문서/통합·한 번 게시를 담당한다. 버전0.128.0/HIGH/OWNER_MANAGED/qa_required=true/release_authorized=false 유지. 새 CI 시작까지만 수행하며 이후 모니터링·병합·릴리스는 제외한다. 아래 과거 실행 결과는 해당 source의 역사적 증거다.
+
+> 게시 정렬: main이 `5ffe02a334d2279fabb63943c90614a7acfaf6ad`(#732 PR #761)로 전진해 version/CHANGELOG3개 충돌을 해결했다. 아래의 시작 시점 main08a와 과거 실행은 역사적 증거다. 최신 main 통합 후 결과는 이 문서 마지막 F736-003 검증 절을 따른다.
+
 # Issue #736 — 리소스 중심 대시보드와 기존 분석 보존
 
 ## Issue Work Packet
@@ -6,7 +10,7 @@
 - baseline_sha: `05f1e560eee456e6fba5535255c9ede30a357c16` (main); baseline_version: `0.125.0`.
 - branch: `feat/issue-736-resource-dashboard`; 전용 worktree로 기존 작업/미추적 증거와 분리한다.
 - candidate_version: `0.128.0` (MINOR, 새로운 리소스 조회 기능; 열린 #734/#735 후보와 구분). Dependency/lock 해석 변경 없음.
-- lifecycle_phase: LOCAL_VALIDATION; risk_level: HIGH; qa_required: true; qa_method: OWNER_MANAGED.
+- lifecycle_phase: PR_CI; risk_level: HIGH; qa_required: true; qa_method: OWNER_MANAGED.
 - risk_reason: 개인 Assignment 범위와 기존 Plan/과투입/견적/Excel의 서로 다른 조회 범위·snapshot·복귀를 보존해야 한다.
 - independent_qa: N/A(Owner-managed, 독립 인간 검토 없음). 별도 qa_docs Agent는 읽기 전용 사전 검토이며 독립 인간 영수증이 아니다.
 - manager_decision: NOT TESTED; MERGE_READY: BLOCKED. 새 Head의 Required3/Trusted QA 및 Owner 별도 위험 수용·병합 승인은 미완료다.
@@ -110,3 +114,22 @@
 - 보완: response.mdPerMm null + MM option disabled attribute + JS property disabled true + select md fallback을 확인해 제품 계약을 원시 브라우저 속성과 선택 값으로 검증. 기존 80%/140%/수정40%/복귀 단언 모두 유지; source 제품/CI shard/timeout/retry/skip 변경 없음. 기존 [F736-001과 L/E/R 전체 이력](../../ISSUE_736_FAILURE_ANALYSIS.md)과 새 F736-002에 누적 기록.
 - 관련 테스트: tests/e2e/issue-736-resource-dashboard.spec.ts 전체4 case, tests/features/resources/resource-wbs-dashboard-model.test.ts null fallback, 인접 #621/#622/#623 및 Resource Excel·drill 회귀. 새 Head 로컬 Playwright/Unit은 NOT TESTED; 원본 Head의 PASS는 역사적 증거. 새 exact Head GitHub Full Required3 검증 후 별도 판단.
 - 조치 시작 시 PR #760 mergeable=true, main 대비 ahead2/behind0, 미해결 review thread 0. 새 Full PR CI 시작 후에도 HIGH/OWNER_MANAGED, manager_decision=NOT TESTED, MERGE_READY=BLOCKED, release_authorized=false. 사용자 요청대로 CI 완료 모니터링/병합/Main/GHCR/Issue 종료 제외.
+
+
+## F736-003 실행 계획·문서 영향
+
+- 누적 원장 F736-003과 정제 Run/provenance·query timeline을 갱신한다. TS guard·M/M matcher·초기 locator/환경/보호 검토 이력을 삭제하지 않는다.
+- 테스트 observer만 변경하며 제품 API/DB/원장/산식/권한/화면 계약·의존성·version·workflow/Ruleset은 그대로다. 본 재개에서 `docs/ISSUE_736_FAILURE_ANALYSIS.md`, 본 Work Packet, `docs/TEST_PLAN.md`, PLAN/CHANGELOG와 정제 증거가 문서 변경 범위다. 기존 API/UX/Excel 문서는 새 계약 변경이 없으므로 추가 수정 N/A다.
+- 직접+과거 실패: 새 #736 전체5 Chromium과 기존 Resource Excel/adapter/model Unit. 인접+음성: #622 실제 Plan/Excel1case, #730 지연 원본·리소스 원본2case, observer wrong filter/spec/scope 및 늦은 Excel download0.
+- 공식 Required3/Trusted QA·Owner 승인=NOT TESTED이며 QA 사전 Agent 검토는 독립 인간 승인 영수증이 아니다. CI 모니터링·병합/main/GHCR·Release·Issue 종료는 범위 밖이다.
+
+
+### F736-003 검증 결과·최신 main 정렬
+
+- main `5ffe02a334d2279fabb63943c90614a7acfaf6ad`의 #732 Milestone 변경을 통합했다. 충돌3개(CHANGELOG/package/lock)는 #736 후보0.128.0과 양쪽 기록을 보존해 해결했다. 공용 host의 두 consumer/원본 편집/복귀와 main 파일 동일성을 frontend/qa_docs가 읽기 전용 검토했다.
+- 최종 E2E source SHA256: `e42d86c206b9f5dce3a46552fa77acd63eb3cf83b1c457524d2d160d2455de86`. 정렬 전 #7365case+변경 없는 #6221/#7302case 고유8PASS. 정렬 후 #732 원본 저장/조건 밖 생성2case+#736 원격 실패 Plan1case가3PASS(1.3분)다. 중복 제외 고유 범위10case이며 정렬 전 결과를 통합 후 전체 PASS로 확대하지 않는다.
+- 통합 후 PrePR fast의10개 단계는 모두PASS: typecheck, 전체 lint(0error/기존14warning), 전체 Vitest3,136PASS/기존3SKIPPED(255파일PASS/1SKIPPED), production build/runtime-tools 및 정책/문서/발견/의존성 검사. CLI 전체는 Next가 임시 타입 경로를 next-env/tsconfig에 생성해 sourceStable=false/BLOCKED다. 생성본 보존 후 실행 전 HEAD 설정을 복구했으며 전체 CLI PASS로 고쳐 쓰지 않는다.
+- 최초 로컬7PASS/1FAIL의 stale ID oracle(L736-004), 첫 fast의 TS2345(L736-005), 과거 격리 Next 출력 lint(E736-004), 생성 설정 fingerprint(E736-005)를 [단일 누적 원장](../../ISSUE_736_FAILURE_ANALYSIS.md)에 남겼다. 동일 JSON 필드를 보존하는 spread 교정·현재 canonical Assignment ID 검증·외부 출력 보존으로 보완했다. 단언·CI/ignore/timeout/retry/skip 정책은 완화하지 않았다.
+- 정확 명령/시간/단계/지문은 [정제 로컬 영수증](../../evidence/issue-736/f736-003-local-validation.json), 원격3Run/attempt·취소10Shard·test merge 부모는 [누적 원본 증거](../../evidence/issue-736/ci-through-3065-attempt-1.json), query별 HTTP/취소는 [실패 timeline](../../evidence/issue-736/ci-3065-resource-query-timeline.json)에 보존한다. 원시 ZIP/header/쿠키/DB는 Git 밖이다.
+- DOCUMENTATION_SYNC: 본 Work Packet/실패 원장/TEST_PLAN/PLAN/CHANGELOG 및 증거 갱신. 본 수정은 observer 계약이며 API/DB/산식/권한/제품 UI/설계/CI/QA/Release 정책 추가 변경이 없어 관련 Source of Truth 추가 수정N/A다. main에서 가져온 #732 문서 변경은 그대로 보존했다.
+- 새 exact Head/Run/Attempt는 Issue/PR STATUS 댓글로 인계한다. quality/e2e/docker/Trusted QA·Owner ACCEPT=NOT TESTED, MERGE_READY=BLOCKED다. 독립 Agent 소스 사전 검토PASS는 독립 인간 QA 영수증이 아니다. 새 Full PR CI 시작 후 모니터링·병합·main/GHCR·정식 Release·Issue 종료는 제외한다.

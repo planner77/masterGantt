@@ -1,5 +1,7 @@
 # Issue #736 누적 실패·검토 보완 원장
 
+> 최신 재개는 F736-003(#3065.1 응답 관측 경합)이다. 아래 초기 L/E/R 및 F736-001/002는 각 시점의 실패·교정·미검증을 보존한 역사적 기록이며 최신 PASS로 덮지 않는다.
+
 [Work Packet](exec-plans/active/ISSUE_736.md)의 새 리소스 consumer/Plan/Excel·공통 원장 변경에 적용한다. 원격 CI 실패와 로컬 환경/테스트·제품 결함을 분리하며 최초 실패를 후속 PASS로 덮지 않는다. 현재 #736 기존 원격 PR/CI는 없었으며 새 exact Head Full CI 시작 뒤 완료 모니터링은 요청 범위 밖이다. 다른 #730/#733 원장의 실패를 #736 원격 실패로 재분류하지 않는다.
 
 | ID | 관측/직접 원인 | 보완 및 재검증 경계 |
@@ -67,3 +69,89 @@ Resource consumer→공통 view transport/renderer·동일 Assignment 원장→�
 **영향·검증:** 변경은 새 E2E 단언만. 이미 원격 성공한 Head f340a845의 Quality/Docker를 다음 Head 성공으로 전용하지 않는다. 제품 MD/MM fallback은 tests/features/resources/resource-wbs-dashboard-model.test.ts에 Unit이 존재하고 과거 Run Vitest가 SUCCESS. 새 Head의 해당 E2E 4 case·다른 #621/#622/#623 기존 Resource Plan·원본 편집·Excel·full CI6 shards·Quality/Docker는 새 GitHub Full CI에서 검증한다. 연결 환경에 실제 repository checkout/Playwright/browser test runtime이 없어 새 Head local E2E 및 전체 Unit은 NOT TESTED. 기존 180s timeout과 PR required gates/6Shard 그대로다.
 
 **진행 경계:** 수정 source/원장/Work Packet 동일 커밋으로 GitHub PR synchronize, review threads0·main 정렬 확인 후 Full PR CI 자동 시작만 확인한다. 신규 run 결과 모니터링·병합/Main/GHCR/Release·Issue 종료는 수행하지 않는다. HIGH/OWNER_MANAGED, manager_decision=NOT TESTED, MERGE_READY=BLOCKED, release_authorized=false.
+
+
+## F736-003 — Full PR CI #3065.1 이전 필터 응답의 body 관측 경합 (2026-10-21 KST)
+
+이 절은 최초 L/E/R 및 F736-001/002를 그대로 보존한다. 전체 branch의 pull_request Run 목록은 3건이며 모든 attempt1의 Jobs도 확인했다. 정제한 [누적 원본 증거](evidence/issue-736/ci-through-3065-attempt-1.json)와 [실패 직전 query timeline](evidence/issue-736/ci-3065-resource-query-timeline.json)은 raw header/cookie/로그·ZIP 없이 출처와 필요한 상태만 담는다.
+
+| Run/attempt | Head / base / test merge | 직접 실패·파생 상태 |
+| --- | --- | --- |
+| [#3059.1 /39439974649](https://github.com/planner77/masterGantt/actions/runs/39439974649) | 94e602c3ee3c524dc41b348dd8ebe20330d59d1e /08a1d9ff25a97aba67f08d6b67029ac55d45121a /a0289adf7c30db53aab4b07d5e0a1f82edaf35bf | F736-001 TypeScript TS18048; Fast Gate/Required3/QA 파생 FAIL, E2E·Docker 미실행 |
+| [#3062.1 /39485528120](https://github.com/planner77/masterGantt/actions/runs/39485528120) | f340a84526a3b38ed602ebcc8eaf5010807269c2 /08a1d9ff25a97aba67f08d6b67029ac55d45121a /4ca650d052b2a31ef4fb7b47f83f9a0e01500def | F736-002 M/M option matcher; Quality/Docker PASS·E2E/QA FAIL, 다른5 shard CANCELLED |
+| [#3065.1 /39488288938](https://github.com/planner77/masterGantt/actions/runs/39488288938) | 3c335ba1cd4ac3f747f2f841fde16a81353aa490 /08a1d9ff25a97aba67f08d6b67029ac55d45121a /4253da1cb93aa72a69502f15111298357495ab41 | 아래 응답 관측 실패; Quality118856046491/Docker118856618749 PASS, E2E118860027492/QA118860070910 FAIL, 다른5 shard CANCELLED |
+
+세 source artifact를 실행 없이 JSON으로 읽고 Git test-merge 두 부모를 대조했다. 과거 Run의 pull_requests[].head는 최신 Head로 변동되어 표시될 수 있으므로 원본 귀속은 run.head_sha·불변 ci-pr-source artifact를 사용했다. F736-001의 당시 미검증 test merge는 이번 교차 확인으로 보강한다. 과거 실패를 소급 PASS하지 않는다.
+
+### 최초 오류와 가설 검증
+
+- 직접 Job: [Chromium shard5/6 118855505647](https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118855505647), E2E 실행20:03:46Z~20:10:34Z; Job20:02:52Z~20:10:40Z. 원본 Run은20:00:33Z~20:12:14Z.
+- 테스트: `tests/e2e/issue-736-resource-dashboard.spec.ts:85`의 선택80/Project140/선택밖 원인 저장, :97 `response.json()`; 2026-10-20T20:10:34.527Z `Protocol error (Network.getResponseBody): No data found for resource with given identifier`와 body unavailable 문구. testcase26.9초, shard 결과10PASS/1FAIL/83NOT RUN. 앞선 두 #736 시나리오는33.939초/25.709초 PASS.
+- [원본 report/Trace artifact12294613648](https://github.com/planner77/masterGantt/actions/runs/39488288938/artifacts/12294613648), ZIP5947651bytes·SHA256 7445f13a1a5e82682d1f0a4d66e54d07ce4b24759839e49278b085fd078c06ca. 내부 network/trace를 정적으로 읽었고 실행·PR code checkout을 통한 provenance 검증은 하지 않았다.
+- H1(이전 조건 응답 선택): 기존 helper는 method/Project/spec/filter/scope 전체 대신 root/projection만 비교한다. Trace의 taskSearch→from→to 요청3개가 ERR_ABORTED, 개인 resourceIds까지의 요청20:10:33.084는 HTTP200 뒤 ERR_ABORTED, 실제 granularity=week 요청20:10:33.161는 HTTP200/취소없음이다. 따라서 이전 응답을 현재 Plan 영수증으로 받을 수 있는 관측 결함이 원본 오류와 일치한다.
+- H2(body 읽기 전 abort): 응답 헤더 관측 뒤 별도 await로 body를 읽는 사이 queryKey 변경 cleanup의 AbortController가 이전 fetch를 취소한다. Trace의 status200+ERR_ABORTED가 이를 지지한다. CDP 내부에서 body가 제거되는 정확한 기전 전체는 UNKNOWN이다.
+- H3(실제 navigation): goto/reload는 앞선 setup에만 있고 필터 batch에는 없다. 일반적인 navigation 안내 문구만으로 제품 navigation 결함을 주장하지 않는다.
+- 분류: TEST_CONTRACT / ASYNC_RESPONSE_CORRELATION. 제품 수치·원장·Plan·Calendar·권한 결함이나 이전 M/M matcher 재발로 입증된 오류가 아니다.
+
+### 취소·타임아웃·재분배 판단
+
+- #3062 cancelled shard1/2/3/4/6의 실제 관측 PASS는23/111/46/32/53, #3065는13/73/50/32/47. 두 실행 모두 shard2의 기존 skip1개를 따로 보존했다. 취소10개 Job 내부에서 실제 FAIL은 발견되지 않았다. 취소 잔여는 진행 중/미실행을 분리할 자료가 부족해 UNKNOWN이며 전수 PASS로 계산하지 않는다.
+- #3065 실패 shard Job7분48초·test26.9초로35분 E2E Job Timeout이 아니다. GitCommitInfo3초 경고 후 테스트가 계속 실행됐으며 직접 실패가 아니다. 이번 교정 목적으로 shard 배치·180초 case/35분 Job 한도·retry·skip·Required gate를 변경하지 않는다. 완료 Run10개 기반의 비용 baseline도 새로 주장하지 않는다.
+- 별도 과거 #3059 ESLint118687236466의 checkout git fetch는 약599초 정체 후 취소됐고10분 Job 한도와 일치하지만 명시 timed_out annotation은 확보하지 못했다. npm run lint는 실행되지 않았다. 후속 #3062/#3065 ESLint SUCCESS로 재발 미관측이며, E2E 긴 테스트/샤드 문제로 분류하지 않는다.
+
+### 보완 및 동일 source 검증
+
+- 기존 `reportResponse` helper의 모든 소비자에서 Project 경로·POST·projection·spec·filters·scope의 완전한 요청을 비교한 뒤 body를 즉시 소비해 DTO 영수증을 반환한다. 변경한 각 필터의 응답을 직렬 확인하고 그 뒤 week Plan을 요청한다. body 오류·HTTP 오류를 retry/무시하지 않는다.
+- 새로운 결정적 실제 Chromium observer regression은 이전 filter/다른 spec/다른 scope 응답을 먼저 전송한다. 기존 넓은 predicate로 통제 복원하면281ms에 이전 taskSearch=previous를 잘못 선택해 RED, 보완 helper는446ms GREEN이었다. 이는 원격 CDP 예외 자체를 매번 재현했다는 뜻이 아니며 동일 원인 패턴을 잡는 별도 통제 회귀다.
+- report 및 Excel 지연 응답의 release handler 완료와 최신 화면·download0을 음성 검증한다. 기존 고유 Assignment ID·80/140/40수정→120·같은 source/snapshot·readonly/5폭/키보드·M/M null 및 HTTP 오류 단언은 유지한다.
+- 누적 실제 원격 실패 파일 합집합은 `src/server/exports/resource-excel-export-core.ts`와 `tests/e2e/issue-736-resource-dashboard.spec.ts`다. 해당 export guard/Unit, 새 #736 전체5case, 기존 #622 Plan/Excel 및 #730 원본/늦은 intent를 직접·인접·음성으로 선정한다. 전체 공식 회귀는 새 exact Head의6Shard/Required3이며 로컬 선택은 대체 증거가 아니다.
+- 최종 명령·고유 실행 결과·source 지문과 미검증은 아래 후속 기록과 Work Packet에 반영한다. HIGH/OWNER_MANAGED·Owner ACCEPT/Release 권한은 변경하지 않는다.
+
+
+### F736-003 로컬 수집 중 추가 발견
+
+- 첫 선택8 Chromium 실행은7PASS/1FAIL(4.2분)이었다. 직접 #736 앞2case와 readonly/역전·observer 음성, 기존 #6221/#7302는 PASS했다.
+- 새 FAIL은 원격 CDP 오류가 아닌 추가한 정확 ID oracle이다. Plan fixture가 setup PUT으로 개인 배정을 교체하면 초기 `f.assignment.id`는 더 이상 현재 원본이 아니다. 첫 보강이 이 과거 ID와 report를 비교해17.8초에 실패했다. 제품 Assignment 누출/수치 오류로 분류하지 않는다.
+- setup PUT 이후 canonical snapshot에서 정확 Task/Resource의 현재 Assignment를 찾고 allocation80을 확인한 뒤 report의 정확 ID를 비교하도록 교정했다. 길이1만으로 되돌리거나 ID 단언을 제거하지 않았다. 같은 사람의 선택80/전체140 및 선택 밖60→40 저장 후120·원시 ID·focus 복귀 단언은 유지한다.
+- Excel 늦은 응답 handler도 finally 완료를 확인하고 rendering turn 뒤 download0을 검사하도록 음성을 강화했다. 관측 helper/제품 로직은 추가 변경하지 않았다. 동결 후 #736 전체5case를 다시 검증하고 변경 없는 인접3case의 PASS는 중복 합산하지 않는다.
+
+
+### F736-003 최종 로컬 검증과 최신 main 통합
+
+**추가 로컬 실패도 보존한다.** L736-004는 위 setup PUT 이후의 오래된 Assignment ID oracle이고, L736-005는 새 observer의 `toMatchObject(condition.filters ?? {})`에서 발생한 TS2345다. ResourceDashboardFilterInput에는 Record 인덱스 시그니처가 없으므로 `{...condition.filters}`로 같은 필드를 가진 일반 객체를 전달하도록 교정했다. cast·필드 제거·제품 타입/검증 완화는 없다. 첫 PrePR fast는 Typecheck에서 FAIL했으며 이후 Typecheck PASS다.
+
+E736-004는 두 번째 PrePR fast의 lint FAIL이다. 보고된 전체 오류 2,438개와 경고 25,010개 중 오류는 모두 과거 격리 테스트가 남긴 `.next-e2e-isolated-*` 세 디렉터리를 전체 ESLint가 검사하며 발생했다. 실제 소스 경로의 lint 오류는 0개였다. 생성 시각 2026-10-20 22:36~22:43의 디렉터리 `25c328cc-8dbb-45b8-b79b-47ebca0fd3f3`, `3ca71f89-e6ba-4d08-a170-871df004b604`, `e82f6d32-db23-4505-bfed-f4337ee4060f`를 삭제하지 않고 외부 증거 폴더에 보존 이동했다. 해당 worktree의 활성 서버가 없음을 확인했고 ESLint ignore·CI 정책은 바꾸지 않았다. 다음 전체 lint는 오류0/기존 경고14로 PASS했다.
+
+**정렬 전 Chromium:** 공식 Playwright config를 spread한 임시 config에서 webServer만 끄고 isolated-application fixture가 만든 개별 Next/SQLite를 사용했다. Chromium/worker1/retries0/max-failures0, 동일 고정 Playwright1.63.0이다. output/reporter는 Git 밖에 보존했고 임시 config와 Next 생성 설정·화면 출력은 실행 뒤 정리/복구했다.
+
+```bash
+npx playwright test --config tests/config/playwright.issue736.local.ts tests/e2e/issue-736-resource-dashboard.spec.ts tests/e2e/issue-622-resource-plan-target.spec.ts tests/e2e/issue-730-view-composer.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --grep '#736|#622|#730 실제 HTTP Milestone·리소스|#730 지연 원본'
+npx playwright test --config tests/config/playwright.issue736.local.ts tests/e2e/issue-736-resource-dashboard.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0
+```
+
+첫 명령은7PASS/1FAIL(4.2분, L736-004)이고, 교정 후 두 번째 명령은 #736 전체5PASS(2.4분)다. 첫 명령의 변경 없는 인접 #622 Plan/Excel1case와 #730 지연 원본·실제 HTTP 원본2case는 각각30.2/21.4/24.0초에 PASS했다. 따라서 고유8case PASS이며 반복 실행을13개 성공으로 합산하지 않는다. #736의 최종5case 시간은25.2/17.2/24.7/19.3초와 observer95ms다. strict filter/spec/scope 통제 RED281ms/GREEN446ms는 별도 진단 실행이며 위 고유 수에 추가하지 않는다.
+
+브라우저5case 실행 source SHA256은 `c8d145b5eb7c8d6332de75a1ded978813212c4ae9709e97b60b5dbf97ee8fc2e`, L736-005의 spread 한 줄 교정 후 최종 테스트 SHA256은 `e42d86c206b9f5dce3a46552fa77acd63eb3cf83b1c457524d2d160d2455de86`이다. 별도 qa_docs는 이 한 줄이 같은 JSON 필드를 보존함을 확인했다. 정렬 전 실행 증거를 통합 후 전체 기능 PASS로 확대하지 않는다.
+
+**게시 직전 main 전진:** 실제 main은 `5ffe02a334d2279fabb63943c90614a7acfaf6ad`로 전진했다([#732 PR #761](https://github.com/planner77/masterGantt/pull/761)). PR metadata의 과거 base08a 표시와 별개로 인증된 main Ref와 fetch/merge-tree가 실제 충돌을 확인했다. 충돌3개 `CHANGELOG.md`, `package.json`, `package-lock.json`을 해결해 기존 #736 후보0.128.0과 main의0.127.0 변경 기록을 모두 보존했다. 공용 Project host 자동 병합은 Milestone consumer·생성 안내와 Resource consumer·기존 분석/Plan/Excel 구획을 함께 보존하며 frontend와 qa_docs가 양쪽 부모 diff를 읽기 전용으로 확인했다. main에서 가져온 #732 파일은 main 원본과 같고 새로운 의존성·workflow/QA/보안 변경은 없다.
+
+**통합 후 PrePR fast:** 다음 명령의10개 검사 단계는 모두 PASS다. Typecheck, 전체 lint(오류0/기존 경고14), 전체 Vitest255파일/3,136case PASS 및 기존1파일/3case SKIPPED, production build·runtime-tools PASS를 포함한다. skip을 PASS 수에 넣지 않는다. 정책/발견/문서 링크/의존성 단계도 실제 실행 PASS다.
+
+```bash
+npm run verify:prepr -- --mode=fast --base=3c335ba1cd4ac3f747f2f841fde16a81353aa490 --issue=736 --pr=760 --risk=HIGH --report-dir=.prepr-reports/issue736-f003-main-integrated
+```
+
+E736-005: CLI 전체 판정은 **BLOCKED**, `sourceStable=false`다. Next production build가 `next-env.d.ts`와 `tsconfig.json`에 임시 `.next-prepr` 타입 경로를 생성해 시작/종료 fingerprint가 달라졌다. 시작 `eff085327b0156bf9d7821872a40f92984c9c46894ae5c7e3f140d945fe00fde`, 종료 `59e0f831e2ecbda4349e3d771a635c2ad7b92fd0bef1cea94483984fa5939a58`이며 changed 목록의 차이는 두 생성 설정 파일이다. 생성본을 Git 밖에 보존하고 두 파일을 실행 전 HEAD 바이트로 복구했다. 전체 CLI BLOCKED를 PASS로 바꾸거나 보고서를 고치지 않는다. 개별 단계 PASS와 CLI source 변경 판정, 새 Head의 원격 Required3는 서로 구분한다.
+
+증거 위치는 `/home/planner/Dev/masterGantt-736-evidence/f736-003/`의 `first-eight-*`, `final-five*`, `helper-red.log`, `helper-green.log`, `prepr-fast.log`, `prepr-fast-fixed.log`, `prepr-main-integrated.log`, `legacy-isolated-next/`다. 정제한 영속 요약은 [로컬 검증 영수증](evidence/issue-736/f736-003-local-validation.json)에 남긴다. 원시 trace·브라우저 header·쿠키·runtime DB는 Git에 넣지 않는다.
+
+
+**통합 후 Chromium:** 최신 main 통합 source에서 아래3case가 모두 PASS(1.3분)했다. #732 소속 Task 저장/새 snapshot/복귀/stale-error13.8초, #732 조건 밖 생성/필터 보존/정확 원본 접근14.4초, 원격 실패했던 #736 Plan 선택80/Project140/선택 밖40→120/정확 ID·일별 복귀19.6초다. #736 최종 e42d86c2 지문을 실제 브라우저에서 다시 실행했다. 통합 전8case에 새 인접 #7322case를 더한 고유 검증 범위는10case이며 #736 재실행을 추가 성공 수로 중복 합산하지 않는다. 통합 전 나머지7case는 당시 source의 증거로만 유지한다.
+
+```bash
+npx playwright test --config /home/planner/Dev/masterGantt-736-evidence/f736-003/main-integration/playwright.config.ts tests/e2e/issue-736-resource-dashboard.spec.ts tests/e2e/issue-732-milestone-dashboard.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --grep '새 Resource Plan 선택80|Milestone 소속 Task 원본 저장|조건 밖 생성 성공'
+```
+
+새 원격 게시 후보는 기존 Head `3c335ba1cd4ac3f747f2f841fde16a81353aa490`와 main `5ffe02a334d2279fabb63943c90614a7acfaf6ad`를 부모로 보존한다. 게시 전/후 batch lease·tree 검증과 미해결 review threads/mergeability를 재조회하고 새 exact Head/CI Run·Attempt는 Issue/PR STATUS 댓글로 연결한다. 새 Required Quality/E2E/Docker·Trusted QA는 **NOT TESTED**, HIGH/OWNER_MANAGED·Owner 위험 수용/Manager ACCEPT는 **NOT TESTED**, MERGE_READY=BLOCKED다. 사용자 요청대로 새 CI 시작만 확인하며 완료 모니터링·병합·main/GHCR·Release·Issue 종료는 하지 않는다.
+
+최종 생성 설정 복구 후 `npm run typecheck` PASS, `node scripts/check-markdown-links.mjs` 285문서 PASS, staged/unstaged `git diff --check` PASS 및 미해결 index0을 확인했다. CLI 원본 BLOCKED 판정은 그대로 보존한다.

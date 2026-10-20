@@ -1,3 +1,7 @@
+## Issue #736 — Full #3065.1 응답 관측 경합 보완
+
+PR #760 Head3c335ba1/main08a1d9ff에서 이전 #3059 TypeScript·#3062 M/M matcher와 이번 #3065 report body의 전체 이력을 대조했다. 정확 query/즉시 body receipt·직렬 필터·이전 조건/다른 spec·scope 음성으로 테스트 관측 경합을 고치고 제품 산식·권한·CI를 유지한다. [실패 원장 F736-003](../../ISSUE_736_FAILURE_ANALYSIS.md)과 [Work Packet](ISSUE_736.md)에 세 Run·취소10Shard·source/merge·실제 선정 검증을 누적한다. 실패test26.9초/Job7분48초라35분Timeout을 위한 shard재분배 근거는 없다. 게시 전 main5ffe02a3(#732)를 통합해 충돌3개를 해소했고 통합 후 Chromium3case·전체 Unit3,136PASS 및 typecheck/lint/build 단계PASS를 확인했다. PrePR CLI는 Next 생성 설정 fingerprint로BLOCKED임을 별도 기록했다. 후보0.128.0/HIGH/OWNER_MANAGED/release_authorized=false, 새 exact Head Full CI 시작 후 모니터링·병합·Release·종료는 수행하지 않는다.
+
 ## Issue #736 — 리소스 중심 동적 조회·Plan/견적/Excel 보존
 
 main `05f1e560eee456e6fba5535255c9ede30a357c16` /0.125.0에서 `feat/issue-736-resource-dashboard`로 구현한다. Resource root 전용 consumer와 기존 분석의 명시 보조 영역을 제공하고 Target0·개인 Assignment 교집합·기존 Plan/일별 과투입/견적/Excel을 보존한다. 새 source/snapshot/spec/path를 검증해 기존 Plan/Excel writer에 인계하고 중첩 경로 소계를 재합산하지 않는다. [Work Packet](ISSUE_736.md)의 기능 인벤토리·AC/문서/실제 검증을 따른다.
@@ -1267,3 +1271,7 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 #715 문서 PR #716이 통합된 main d2768676/application0.116.0에서 `feat/issue-719-contextual-help`로 제품 구현을 진행한다. PATCH0.116.1, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false다. [Work Packet](ISSUE_719.md)의 화면별 inventory·공통 도움말·핵심 경고 보존·동일 fixture5폭 측정·기존 상태 교차 회귀와 DOCUMENTATION_SYNC를 따른다.
 
 사용자 요청 종료점은 구현·리뷰 thread/충돌 정리·최신 Head Full PR CI 시작이다. CI 모니터링·병합·Main/GHCR·Finalizer·정식 게시·Issue 종료는 수행하지 않으며 원격 Required3/Trusted QA/Owner ACCEPT는 NOT TESTED다. 기존 #717 이름/ID 표시는 별도 범위로 유지한다.
+
+## Issue #732 — Milestone 최상위 동적 대시보드
+
+최신 main `05f1e560eee456e6fba5535255c9ede30a357c16`의 공통 #729/#730 조회와 기존 Milestone 관리에 전용 consumer를 연결한다. root 단독·두 사용자 계층·선택 지표/전체 Gate 분리와 생성/소속/관계/필터·marker OFF를 보존한다. 실제 역할·파일 소유권·AC/테스트·문서 영향은 [Work Packet](ISSUE_732.md)을 따른다. 후보0.127.0 / HIGH / qa_required=true / OWNER_MANAGED / release_required=true / release_authorized=false. 요청 범위는 구현·문서·리뷰/충돌 정리·새 PR CI 시작까지이며 CI 모니터링·병합·main/GHCR·Issue 종료를 포함하지 않는다. 원격 Required3/Trusted/Owner 최종 승인 NOT TESTED.

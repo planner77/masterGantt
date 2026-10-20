@@ -1,14 +1,32 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { isDeepStrictEqual } from "node:util";
 import type { Page } from "@playwright/test";
-import type { WbsViewReportDto } from "../../src/contracts/wbs-dashboard-views";
+import type { WbsViewQueryInput, WbsViewReportDto, WbsViewSpec } from "../../src/contracts/wbs-dashboard-views";
 import { test, expect, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import { seedWbsViewComposer, viewResourcePassword } from "./fixtures/wbs-view-composer";
 import { targetMasterPassword } from "./fixtures/target-project";
 
 test.use({...isolatedApplicationOptions,isolatedProjectMasterAdminPassword:targetMasterPassword,isolatedResourceAdminPassword:viewResourcePassword,viewport:{width:1440,height:1000}});
 const root=(page:Page)=>page.locator('[data-wbs-view="resource"]').filter({visible:true});
-const reportResponse=(page:Page)=>page.waitForResponse(response=>response.url().endsWith("/resource-dashboard/views")&&response.request().postDataJSON().projection?.kind==="report"&&response.request().postDataJSON().spec.root==="resource");
+const defaultSpec: WbsViewSpec={version:"wbs-view:v1",contextSourceVersion:"explicit-task-context:v1",root:"resource",levels:[]};
+type ReportCondition=Pick<WbsViewQueryInput,"spec"|"filters"|"scope">;
+function reportResponse(page:Page,condition:ReportCondition={spec:defaultSpec,filters:{}}){
+ // Match the complete query before consuming the body; later edits abort older fetches.
+ let report!:WbsViewReportDto;
+ const input={...condition,projection:{kind:"report"}};
+ const pathname=`/api${new URL(page.url()).pathname}/resource-dashboard/views`;
+ return page.waitForResponse(async response=>{
+  if(response.request().method()!=="POST"||new URL(response.url()).pathname!==pathname||!isDeepStrictEqual(response.request().postDataJSON(),input))return false;
+  const body=await response.json();
+  expect(response.status(),JSON.stringify(body)).toBe(200);
+  report=body.data;
+  expect(report.projection).toBe("report");expect(report.spec).toEqual(condition.spec);
+  expect(report.filters).toMatchObject({...condition.filters});
+  expect(report.sourceContext.scope).toEqual(condition.scope);
+  return true;
+ }).then(()=>report);
+}
 async function openResource(page:Page){
  await page.getByRole("tablist",{name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"대시보드",exact:true}).click();
  await page.getByRole("tablist",{name:"대시보드 보기",exact:true}).getByRole("tab",{name:"리소스",exact:true}).click();
@@ -18,15 +36,16 @@ async function preset(page:Page,label:string){
  const composer=root(page).locator("details").filter({has:page.locator("summary").filter({hasText:/^조회 구성$/})});
  if(!await composer.evaluate(element=>(element as HTMLDetailsElement).open))await composer.locator("summary").click();
  await composer.getByRole("button",{name:label,exact:true}).click();
- const response=reportResponse(page);await composer.getByRole("button",{name:"적용",exact:true}).click();
- const received=await response;expect(received.status(),await received.text()).toBe(200);
- await expect(root(page)).toHaveAttribute("data-ready","true",{timeout:30_000});return (await received.json()).data as WbsViewReportDto;
+ const levels:Record<string,NonNullable<WbsViewSpec["levels"]>>={"리소스 단독":[],"리소스 → 공정 → WorkArea → 설비 / 물류 시스템":["process","workArea",{kind:"siblings",dimensions:["equipment","system"]}],"리소스 → Milestone → 공정":["milestone","process"]};
+ const response=reportResponse(page,{spec:{...defaultSpec,levels:levels[label]},filters:{}});await composer.getByRole("button",{name:"적용",exact:true}).click();
+ const received=await response;
+ await expect(root(page)).toHaveAttribute("data-ready","true",{timeout:30_000});return received;
 }
 
 test("#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot Excel·정확 Assignment 복귀",async({page,isolatedApplication:origin,observeIsolatedApi})=>{
  test.setTimeout(180_000);
  const f=await seedWbsViewComposer(page,origin,observeIsolatedApi);
- const first=reportResponse(page);await openResource(page);const initial=(await(await first).json()).data as WbsViewReportDto;
+ const first=reportResponse(page);await openResource(page);const initial=await first;
  expect(initial.spec.levels).toEqual([]);
  const before=await f.snapshot();const targets=await page.request.get(`${f.api}/logistics/targets`);expect(targets.status()).toBe(200);expect((await targets.json()).data.targets).toHaveLength(0);
  await expect(root(page).getByTestId("resource-wbs-summary")).toContainText("Project Task 개인 배정 인원");
@@ -34,8 +53,8 @@ test("#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot E
  expect(p.assignmentIds).toEqual(initial.assignmentIds);expect(p.totals.assignments.effort).toEqual(initial.totals.assignments.effort);
  expect(p.spec.levels).toEqual(["process","workArea",{kind:"siblings",dimensions:["equipment","system"]}]);
  const m=await preset(page,"리소스 → Milestone → 공정");expect(m.totals.tasks).toEqual(initial.totals.tasks);
- const filter=reportResponse(page);await root(page).getByRole("combobox",{name:"개인",exact:true}).selectOption(f.resource.id);await filter;await expect(root(page)).toHaveAttribute("data-ready","true",{timeout:30_000});
- const planResponse=reportResponse(page);await root(page).getByRole("combobox",{name:"Plan 기간",exact:true}).selectOption("week");const plan=(await(await planResponse).json()).data as WbsViewReportDto;
+ const filter=reportResponse(page,{spec:m.spec,filters:{resourceIds:[f.resource.id]}});await root(page).getByRole("combobox",{name:"개인",exact:true}).selectOption(f.resource.id);await filter;await expect(root(page)).toHaveAttribute("data-ready","true",{timeout:30_000});
+ const planResponse=reportResponse(page,{spec:m.spec,filters:{resourceIds:[f.resource.id],granularity:"week"}});await root(page).getByRole("combobox",{name:"Plan 기간",exact:true}).selectOption("week");const plan=await planResponse;
  await expect(root(page).getByRole("region",{name:"현재 개인 배정 Plan",exact:true})).toBeVisible();
  expect(plan.resourceAdapter?.report.plan).toEqual(plan.plan);
  const download=page.waitForEvent("download");const exportResponse=page.waitForResponse(response=>response.url().endsWith("/exports/excel")&&response.request().method()==="POST");
@@ -90,11 +109,17 @@ test("#736 새 Resource Plan 선택80·Project140·선택밖 원인 저장 후 �
  const added=await(await f.mutate("/tasks",{name:"선택밖 과투입 원인",type:"task",start:"2026-10-14",duration:1,progress:0})).json();
  const outside=added.data.tasks.find((task:{name:string})=>task.name==="선택밖 과투입 원인");
  await f.mutate(`/tasks/${outside.taskId}/assignments`,{catalogRevision:catalog.revision,targets:[{kind:"resource",id:f.resource.id,allocation:{start:"2026-10-14",end:"2026-10-14",percent:60}}]},"put");
+ const currentAssignment=(await f.snapshot()).data.assignments!.find(row=>row.taskId===f.task.taskId&&row.target.kind==="resource"&&row.target.id===f.resource.id)!;
+ expect(currentAssignment).toMatchObject({allocation:{percent:80}});
  await page.reload();await openResource(page);
- await root(page).getByLabel("작업 검색",{exact:true}).fill(f.task.name);
- await root(page).getByLabel("조회 시작일",{exact:true}).fill("2026-10-14");await root(page).getByLabel("조회 종료일",{exact:true}).fill("2026-10-14");
- await root(page).getByRole("combobox",{name:"개인",exact:true}).selectOption(f.resource.id);
- const response=reportResponse(page);await root(page).getByRole("combobox",{name:"Plan 기간",exact:true}).selectOption("week");const report=(await(await response).json()).data as WbsViewReportDto;expect(report.assignmentIds).toHaveLength(1);
+ // Each edit has its own exact query receipt before the next edit can abort it.
+ const filters={taskSearch:f.task.name,from:"2026-10-14",to:"2026-10-14",resourceIds:[f.resource.id],granularity:"week" as const};
+ const searched=reportResponse(page,{spec:defaultSpec,filters:{taskSearch:filters.taskSearch}});await root(page).getByLabel("작업 검색",{exact:true}).fill(filters.taskSearch);await searched;
+ const started=reportResponse(page,{spec:defaultSpec,filters:{taskSearch:filters.taskSearch,from:filters.from}});await root(page).getByLabel("조회 시작일",{exact:true}).fill(filters.from);await started;
+ const ended=reportResponse(page,{spec:defaultSpec,filters:{taskSearch:filters.taskSearch,from:filters.from,to:filters.to}});await root(page).getByLabel("조회 종료일",{exact:true}).fill(filters.to);await ended;
+ const selected=reportResponse(page,{spec:defaultSpec,filters:{taskSearch:filters.taskSearch,from:filters.from,to:filters.to,resourceIds:filters.resourceIds}});await root(page).getByRole("combobox",{name:"개인",exact:true}).selectOption(f.resource.id);await selected;
+ const response=reportResponse(page,{spec:defaultSpec,filters});await root(page).getByRole("combobox",{name:"Plan 기간",exact:true}).selectOption("week");const report=await response;expect(report.assignmentIds).toEqual([currentAssignment.id]);
+ await expect(root(page)).toHaveAttribute("data-ready","true",{timeout:30_000});
  const plan=root(page).getByRole("region",{name:"Resource Plan",exact:true});await expect(plan).toBeVisible();
  expect(report.mdPerMm).toBeNull();
  const unit=root(page).getByRole("combobox",{name:"Plan 단위",exact:true});
@@ -124,22 +149,45 @@ test("#736 readonly·응답 역전·낡은 Excel 파일 폐기",async({page,brow
   await expect(readonly.getByText("편집 중",{exact:true})).toHaveCount(0);
   await expect(root(readonly).getByRole("button",{name:"계층 Excel 보고서",exact:true})).toBeEnabled();
   const pattern=`**/api/projects/${f.publicId}/resource-dashboard/views`;
-  let captured!:()=>void,release!:()=>void;const capturedPromise=new Promise<void>(resolve=>{captured=resolve;});const gate=new Promise<void>(resolve=>{release=resolve;});
+  let captured!:()=>void,release!:()=>void,oldFinished=false;const capturedPromise=new Promise<void>(resolve=>{captured=resolve;});const gate=new Promise<void>(resolve=>{release=resolve;});
   await readonly.route(pattern,async route=>{
    const query=route.request().postDataJSON();
    if(query.projection?.kind!=="report"||query.filters?.taskSearch!=="없는 작업")return route.continue();
    const response=await route.fetch();captured();await gate;
-   await route.fulfill({response}).catch(()=>{});
+   try{await route.fulfill({response});}catch{/* The superseded browser fetch was aborted. */}finally{oldFinished=true;}
   });
   await root(readonly).getByLabel("작업 검색",{exact:true}).fill("없는 작업");await capturedPromise;
-  const latest=reportResponse(readonly);await root(readonly).getByLabel("작업 검색",{exact:true}).fill(f.task.name);const actual=(await(await latest).json()).data as WbsViewReportDto;expect(actual.assignmentIds).toEqual([f.assignment.id]);
-  await expect(root(readonly)).toHaveAttribute("data-ready","true");release();await readonly.unroute(pattern);
+  const latest=reportResponse(readonly,{spec:defaultSpec,filters:{taskSearch:f.task.name}});await root(readonly).getByLabel("작업 검색",{exact:true}).fill(f.task.name);const actual=await latest;expect(actual.assignmentIds).toEqual([f.assignment.id]);
+  await expect(root(readonly)).toHaveAttribute("data-ready","true");release();await expect.poll(()=>oldFinished).toBe(true);await readonly.unroute(pattern);
   await expect(root(readonly).getByLabel("작업 검색",{exact:true})).toHaveValue(f.task.name);await expect(root(readonly).getByTestId("resource-wbs-summary").getByRole("definition").filter({hasText:"1건"})).not.toHaveCount(0);
-  let exportCaptured!:()=>void,exportRelease!:()=>void;const exportStarted=new Promise<void>(resolve=>{exportCaptured=resolve;});const exportGate=new Promise<void>(resolve=>{exportRelease=resolve;});let downloads=0;readonly.on("download",()=>downloads++);
+  let exportCaptured!:()=>void,exportRelease!:()=>void;const exportStarted=new Promise<void>(resolve=>{exportCaptured=resolve;});const exportGate=new Promise<void>(resolve=>{exportRelease=resolve;});let downloads=0,exportFinished=false;readonly.on("download",()=>downloads++);
   const exportPattern=`**/api/projects/${f.publicId}/exports/excel`;
-  await readonly.route(exportPattern,async route=>{const response=await route.fetch();expect(response.status()).toBe(200);exportCaptured();await exportGate;await route.fulfill({response}).catch(()=>{});});
+  await readonly.route(exportPattern,async route=>{const response=await route.fetch();expect(response.status()).toBe(200);exportCaptured();await exportGate;try{await route.fulfill({response});}catch{/* The obsolete export was aborted. */}finally{exportFinished=true;}});
   await root(readonly).getByRole("button",{name:"계층 Excel 보고서",exact:true}).click();await exportStarted;
-  const changed=reportResponse(readonly);await root(readonly).getByLabel("작업 검색",{exact:true}).fill("없는 작업");await changed;await expect(root(readonly)).toHaveAttribute("data-ready","true");
-  exportRelease();await readonly.unroute(exportPattern);await expect(root(readonly)).toContainText("고유 Task");expect(downloads).toBe(0);
+  const changed=reportResponse(readonly,{spec:defaultSpec,filters:{taskSearch:"없는 작업"}});await root(readonly).getByLabel("작업 검색",{exact:true}).fill("없는 작업");await changed;await expect(root(readonly)).toHaveAttribute("data-ready","true");
+  exportRelease();await expect.poll(()=>exportFinished).toBe(true);await readonly.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));await readonly.unroute(exportPattern);await expect(root(readonly)).toContainText("고유 Task");expect(downloads).toBe(0);
  }finally{await context.close();}
+});
+
+// Transport-observer regression: unrelated completed responses must not win the waiter.
+test("#736 report 관측은 이전 필터·다른 spec·scope 응답을 제외한다",async({page})=>{
+ const origin="http://issue736-observer.test";
+ await page.route(`${origin}/**`,async route=>{
+  if(route.request().method()!=="POST")return route.fulfill({contentType:"text/html",body:"<html><body>observer</body></html>"});
+  const input=route.request().postDataJSON() as WbsViewQueryInput;
+  await route.fulfill({json:{data:{projection:"report",spec:input.spec,filters:input.filters,sourceContext:{scope:input.scope},snapshotId:input.filters?.taskSearch}}});
+ });
+ await page.goto(`${origin}/projects/observer`);
+ const condition:ReportCondition={spec:defaultSpec,filters:{taskSearch:"current",granularity:"week"}};
+ const observed=reportResponse(page,condition);
+ const send=async(input:WbsViewQueryInput)=>page.evaluate(async input=>{
+  const response=await fetch("/api/projects/observer/resource-dashboard/views",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...input,projection:{kind:"report"}})});
+  await response.json();
+ },input);
+ await send({spec:defaultSpec,filters:{taskSearch:"previous",granularity:"week"}});
+ await send({...condition,spec:{...defaultSpec,levels:["process"]}});
+ await send({...condition,scope:{kind:"exactAssignments",assignmentIds:["other-assignment"]}});
+ await send(condition);
+ const report=await observed;
+ expect(report.snapshotId).toBe("current");expect(report.spec).toEqual(defaultSpec);expect(report.filters).toEqual(condition.filters);
 });

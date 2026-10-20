@@ -43,6 +43,8 @@ import { planDetailQuery } from "@/features/resources/resource-plan-model";
 import { dashboardError } from "@/features/resources/use-resource-dashboard";
 import { canCreateSchedulingLink, linkStructureLocked, MIXED_LINK_EXPLANATION, COMPLETED_LINK_EXPLANATION } from "@/features/gantt/relation-editor-model";
 import { StageFilterPicker } from "./stage-filter-picker";
+import milestoneWbsStyles from "@/features/milestones/milestone-wbs-dashboard.module.css";
+import { MilestoneWbsDashboard } from "@/features/milestones/milestone-wbs-dashboard";
 import { ProjectMilestoneDashboard } from "@/features/milestones/project-milestone-dashboard";
 import { MilestoneCreateDialog } from "@/features/milestones/milestone-create-dialog";
 import { milestoneRootPayload, resolveCreatedMilestone, isVisibleFocusTarget, type MilestoneManagementCommand } from "@/features/milestones/milestone-management-model";
@@ -425,6 +427,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const editorOriginViewReference = useRef<WorkspaceView>("schedule");
   const editorOriginScreenReference = useRef<WorkspaceScreen>("schedule");
   const editorOpeningReference = useRef(false);
+  const [createdMilestoneNotice, setCreatedMilestoneNotice] = useState<{ publicId: string; taskId: string; name: string } | null>(null);
   const [milestoneCreate, setMilestoneCreate] = useState<{ revision: number; publicId: string } | null>(null);
   const milestoneCreateReference = useRef<typeof milestoneCreate>(null);
   const milestoneCreateTriggerReference = useRef<HTMLElement | null>(null);
@@ -1302,6 +1305,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       milestoneCreateReference.current = null; setMilestoneCreate(null);
       const created = resolveCreatedMilestone(previous, response);
       if (!created) { notify("info", "생성 결과의 작업 ID를 유일하게 확인하지 못했습니다. 목록에서 단계를 확인해 주세요.", "Milestone 추가"); focusMilestoneDashboard(); return; }
+      setCreatedMilestoneNotice({ publicId: request.publicId, taskId: created.taskId, name: created.name });
       editorOriginViewReference.current = "milestones";
       editorOriginScreenReference.current = "dashboard.milestones";
       editorTriggerReference.current = milestoneCreateTriggerReference.current;
@@ -3308,7 +3312,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       </section>
       <section id="project-panel-milestones" role="tabpanel" aria-labelledby="project-tab-milestones"
         hidden={activeView !== "milestones"} className="project-workspace-panel project-milestone-panel">
-        <WbsViewDashboard publicId={publicId} revision={project.revision} root="milestone" active={activeView === "milestones"}
+        {createdMilestoneNotice?.publicId === publicId ? <div role="status" className={milestoneWbsStyles.notice}>
+          <p>{createdMilestoneNotice.name} Milestone을 추가했습니다. 조회 조건에 따라 목록에 보이지 않을 수 있습니다. 상세에서 확인하거나 아래 전체 상태·관리의 검색·표시 조건을 변경해 주세요.</p>
+          <button type="button" className="secondary-button" disabled={busy || navigationLoading || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null || !tasks.some(task => task.taskId === createdMilestoneNotice.taskId)} onClick={event => openTaskEditor(createdMilestoneNotice.taskId, "task", event.currentTarget)}>추가한 Milestone 상세</button>
+          <button type="button" className="secondary-button" onClick={() => { setCreatedMilestoneNotice(null); focusMilestoneDashboard(); }}>추가 안내 닫기</button>
+        </div> : null}
+        <MilestoneWbsDashboard tasks={tasks} publicId={publicId} revision={project.revision} active={activeView === "milestones"}
           busy={busy || navigationLoading || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
           onOpenTask={(taskId, trigger) => openTaskEditor(taskId, "task", trigger)}
           onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })}

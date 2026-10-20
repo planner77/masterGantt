@@ -1,0 +1,357 @@
+{
+  "schema": "mastergantt-issue-736-local-validation-v1",
+  "issue": 736,
+  "pr": 760,
+  "previous_remote_head": "3c335ba1cd4ac3f747f2f841fde16a81353aa490",
+  "integrated_main": "5ffe02a334d2279fabb63943c90614a7acfaf6ad",
+  "test_source_sha256": "e42d86c206b9f5dce3a46552fa77acd63eb3cf83b1c457524d2d160d2455de86",
+  "validation_scope": "Local Fast Feedback only; never remote CI, Trusted QA or Owner ACCEPT",
+  "environment": {
+    "os": "linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "cpuCount": 16,
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "packageVersion": "0.128.0",
+    "lockVersion": "0.128.0",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "ciNode": "22",
+    "ciPlaywright": "1.63.0",
+    "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+    "e2e": {
+      "fullyParallel": true,
+      "workers": 1,
+      "shardsLocal": 1,
+      "shardsGitHub": 6,
+      "config": "tests/config/playwright.config.ts"
+    }
+  },
+  "prepr": {
+    "status": "BLOCKED",
+    "sourceStable": false,
+    "errors": [
+      "STALE: working source/base/head changed during local verification"
+    ],
+    "sourceStart": {
+      "baseRef": "3c335ba1cd4ac3f747f2f841fde16a81353aa490",
+      "baseSha": "3c335ba1cd4ac3f747f2f841fde16a81353aa490",
+      "headSha": "5e80fa7e756f854384599854449a91d87f4ee2e9",
+      "workingDiffSha256": "bddf863161a8deb47dc0a69500f43ee7be37a1466af46d8564454248688793a9",
+      "fingerprint": "eff085327b0156bf9d7821872a40f92984c9c46894ae5c7e3f140d945fe00fde",
+      "dirty": true,
+      "changed": [
+        "CHANGELOG.md",
+        "docs/ISSUE_732_FAILURE_ANALYSIS.md",
+        "docs/ISSUE_736_FAILURE_ANALYSIS.md",
+        "docs/MILESTONE_STAGE_GATES.md",
+        "docs/PROJECT_UX.md",
+        "docs/REQUIREMENTS.md",
+        "docs/RESOURCE_KPI_DASHBOARD.md",
+        "docs/TARGET_RESOURCE_USER_GUIDE.md",
+        "docs/TEST_PLAN.md",
+        "docs/evidence/issue-732/after-1440.png",
+        "docs/evidence/issue-732/after-390.png",
+        "docs/evidence/issue-736/ci-3065-resource-query-timeline.json",
+        "docs/evidence/issue-736/ci-through-3065-attempt-1.json",
+        "docs/exec-plans/active/ISSUE_732.md",
+        "docs/exec-plans/active/ISSUE_736.md",
+        "docs/exec-plans/active/PLAN.md",
+        "src/features/milestones/milestone-wbs-dashboard-model.ts",
+        "src/features/milestones/milestone-wbs-dashboard.module.css",
+        "src/features/milestones/milestone-wbs-dashboard.tsx",
+        "src/features/milestones/project-milestone-dashboard.tsx",
+        "src/features/projects/project-readonly-view.tsx",
+        "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+        "tests/e2e/issue-736-resource-dashboard.spec.ts",
+        "tests/features/milestones/milestone-wbs-dashboard.test.ts",
+        "tests/server/resources/issue-732-milestone-views.test.ts"
+      ]
+    },
+    "sourceEnd": {
+      "baseRef": "3c335ba1cd4ac3f747f2f841fde16a81353aa490",
+      "baseSha": "3c335ba1cd4ac3f747f2f841fde16a81353aa490",
+      "headSha": "5e80fa7e756f854384599854449a91d87f4ee2e9",
+      "workingDiffSha256": "379751d5ee744f7ebff1b01ef17b11e6b1a6e8928970b13aa745b271a2325eae",
+      "fingerprint": "59e0f831e2ecbda4349e3d771a635c2ad7b92fd0bef1cea94483984fa5939a58",
+      "dirty": true,
+      "changed": [
+        "CHANGELOG.md",
+        "docs/ISSUE_732_FAILURE_ANALYSIS.md",
+        "docs/ISSUE_736_FAILURE_ANALYSIS.md",
+        "docs/MILESTONE_STAGE_GATES.md",
+        "docs/PROJECT_UX.md",
+        "docs/REQUIREMENTS.md",
+        "docs/RESOURCE_KPI_DASHBOARD.md",
+        "docs/TARGET_RESOURCE_USER_GUIDE.md",
+        "docs/TEST_PLAN.md",
+        "docs/evidence/issue-732/after-1440.png",
+        "docs/evidence/issue-732/after-390.png",
+        "docs/evidence/issue-736/ci-3065-resource-query-timeline.json",
+        "docs/evidence/issue-736/ci-through-3065-attempt-1.json",
+        "docs/exec-plans/active/ISSUE_732.md",
+        "docs/exec-plans/active/ISSUE_736.md",
+        "docs/exec-plans/active/PLAN.md",
+        "next-env.d.ts",
+        "src/features/milestones/milestone-wbs-dashboard-model.ts",
+        "src/features/milestones/milestone-wbs-dashboard.module.css",
+        "src/features/milestones/milestone-wbs-dashboard.tsx",
+        "src/features/milestones/project-milestone-dashboard.tsx",
+        "src/features/projects/project-readonly-view.tsx",
+        "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+        "tests/e2e/issue-736-resource-dashboard.spec.ts",
+        "tests/features/milestones/milestone-wbs-dashboard.test.ts",
+        "tests/server/resources/issue-732-milestone-views.test.ts",
+        "tsconfig.json"
+      ]
+    },
+    "steps": [
+      {
+        "label": "Version contract",
+        "command": [
+          "node",
+          "scripts/verify-release-version.mjs"
+        ],
+        "startedAt": "2026-10-20T20:31:31.019Z",
+        "durationMs": 24,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Test discovery",
+        "command": [
+          "node",
+          "scripts/verify-test-discovery.mjs"
+        ],
+        "startedAt": "2026-10-20T20:31:31.044Z",
+        "durationMs": 3206,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Markdown links",
+        "command": [
+          "node",
+          "scripts/check-markdown-links.mjs"
+        ],
+        "startedAt": "2026-10-20T20:31:34.250Z",
+        "durationMs": 71,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "CI cache contract",
+        "command": [
+          "node",
+          "scripts/verify-ci-cache-contract.mjs"
+        ],
+        "startedAt": "2026-10-20T20:31:34.321Z",
+        "durationMs": 24,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Local QA fixture policy",
+        "command": [
+          "python3",
+          "scripts/test_qa_preflight.py"
+        ],
+        "startedAt": "2026-10-20T20:31:34.345Z",
+        "durationMs": 58,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Dependencies",
+        "command": [
+          "npm",
+          "ls",
+          "--depth=0",
+          "--offline"
+        ],
+        "startedAt": "2026-10-20T20:31:34.403Z",
+        "durationMs": 359,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Typecheck",
+        "command": [
+          "npm",
+          "run",
+          "typecheck"
+        ],
+        "startedAt": "2026-10-20T20:31:34.763Z",
+        "durationMs": 3728,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Lint",
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "startedAt": "2026-10-20T20:31:38.491Z",
+        "durationMs": 29502,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Unit",
+        "command": [
+          "npm",
+          "test"
+        ],
+        "startedAt": "2026-10-20T20:32:07.993Z",
+        "durationMs": 21128,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": 3136
+      },
+      {
+        "label": "Production build",
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "startedAt": "2026-10-20T20:32:29.121Z",
+        "durationMs": 46438,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      }
+    ],
+    "source_change_reason": "Next production build generated .next-prepr type paths in next-env.d.ts and tsconfig.json; preserved outside Git and restored to pre-run HEAD. Original BLOCKED report retained."
+  },
+  "unit": {
+    "passed_files": 255,
+    "skipped_files": 1,
+    "passed_cases": 3136,
+    "skipped_cases": 3
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 14
+  },
+  "previous_local_failures": [
+    {
+      "id": "L736-004",
+      "result": "FAIL",
+      "reason": "New assertion used pre-setup Assignment ID; fixed with current canonical snapshot exact Task/Resource and allocation80."
+    },
+    {
+      "id": "L736-005",
+      "result": "FAIL",
+      "reason": "TypeScript TS2345 in new filter assertion; preserve fields with object spread."
+    },
+    {
+      "id": "E736-004",
+      "result": "FAIL",
+      "reason": "Full lint scanned 3 legacy isolated Next outputs; 2438errors all generated paths. Preserved outside worktree; no ignore policy change."
+    },
+    {
+      "id": "E736-005",
+      "result": "BLOCKED",
+      "reason": "PrePR source fingerprint changed from Next generated config. All10commands PASS; no blanket PrePR PASS."
+    }
+  ],
+  "chromium_before_main_integration": {
+    "first_selection": {
+      "passed": 7,
+      "failed": 1,
+      "minutes": 4.2,
+      "failure": "L736-004"
+    },
+    "corrected_issue736": {
+      "passed": 5,
+      "failed": 0,
+      "minutes": 2.4,
+      "tested_source_sha256": "c8d145b5eb7c8d6332de75a1ded978813212c4ae9709e97b60b5dbf97ee8fc2e"
+    },
+    "unchanged_adjacent_passes": [
+      {
+        "issue": 622,
+        "cases": 1
+      },
+      {
+        "issue": 730,
+        "cases": 2
+      }
+    ],
+    "unique_cases_passed": 8,
+    "controlled_observer": {
+      "broad_predicate": "RED",
+      "broad_failure_ms": 281,
+      "exact_predicate": "GREEN",
+      "exact_pass_ms": 446,
+      "reproduces_original_cdp_error": false
+    }
+  },
+  "remote_new_head_validation": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trusted_qa": "NOT TESTED",
+    "manager_decision": "NOT TESTED",
+    "merge_ready": "BLOCKED"
+  },
+  "release_authorized": false,
+  "chromium_after_main_integration": {
+    "passed": 3,
+    "failed": 0,
+    "minutes": 1.3,
+    "cases": [
+      {
+        "issue": 732,
+        "scenario": "Milestone exact Task save/new snapshot/return/stale-error",
+        "seconds": 13.8
+      },
+      {
+        "issue": 732,
+        "scenario": "Out-of-filter creation/filter preservation/exact original access",
+        "seconds": 14.4
+      },
+      {
+        "issue": 736,
+        "scenario": "Resource Plan80/Project140/outside40->120/exact Assignment and daily return",
+        "seconds": 19.6
+      }
+    ],
+    "test_source_sha256": "e42d86c206b9f5dce3a46552fa77acd63eb3cf83b1c457524d2d160d2455de86",
+    "execution": "Chromium workers1 retries0 max-failures0; official config spread; isolated Next/SQLite; external config/reports.",
+    "source_sha256": {
+      "resource_test": "e42d86c206b9f5dce3a46552fa77acd63eb3cf83b1c457524d2d160d2455de86",
+      "milestone_test": "e4b3fc600bb8ca029f6edd0d50e3503d61343f03ea3051aa80dc3bdb9dfc664d",
+      "project_host": "66d65f276a8c5d734805688768bfd53da923d8ffd0a8f83e09c06f838b3986d2"
+    }
+  },
+  "unique_chromium_scope_cases": 10,
+  "evidence_reuse_boundary": "Only3cases executed after main integration. Other7cases retain original pre-integration source provenance. Repeated736case not counted twice.",
+  "post_restore_checks": {
+    "typecheck": "PASS",
+    "markdown_links": "PASS: 285 files",
+    "unstaged_and_staged_diff_check": "PASS",
+    "unmerged_index_entries": 0
+  }
+}
