@@ -235,3 +235,9 @@ Copy/Delete/Move 대상은 전체 canonical subtree이며 숨은 M을 제외하�
 Ready/선행 차단/지연/임박/위험 정의와 전체 상태 정렬 상세는 각 지표/표 인접 도움말로 제공한다. 프로젝트 전체·WBS 미적용, 자동/수동 기준일·현재 snapshot, 지표 중복/건수 합산 불가, 전체 소속·직접 선행 기준과 계획 공수의 다른 분모는 짧게 직접 유지한다. 공수 기간·환산·숨은 Milestone bucket 합산·미설정 수, 완료 처리율/소속 적용률의 분자·분모도 그대로다.
 
 이 변경은 Stage Gate 계산/Ready·Completed·drill/marker-OFF·canonical 계약을 바꾸지 않는다. 동일 fixture 5폭/keyboard·touch·범위/상태 보존 검증은 [Work Packet](exec-plans/active/ISSUE_719.md)을 따른다.
+
+## Issue #732 — 동적 Milestone 조회와 관리 보존
+
+전용 Dashboard consumer는 기존 Milestone Task identity와 full Stage projection을 읽는다. 선택 공정/WorkArea/설비/System/Resource 경로의 Task/Assignment 지표가 전체 소속 E(M)·직접 선행 P(M)의 Gate를 대체하지 않는다. E1-t1-M/E2-t2-M에서 E1 선택으로 t1만 완료돼도 t2나 선행이 미완료면 전체 판정을 그대로 표시하고 Completed를 자동 저장하지 않는다.
+
+소속0/조건 밖0/날짜 미정을 구별하며 원본 생성·편집·소속/관계·삭제/변환 보호는 기존 API/editor다. explicit0..1 + Summary 상속/override라는 저장 계약은 그대로며 다중 effective 소속을 도입하지 않는다. 여러 동적 경로의 Task/Assignment 중복은 고유 원장 합집합으로 해석한다. marker OFF·native Milestone 행 분리는 Gate/소속 원본의 변경 근거가 아니다. [전용 구현과 보존표](exec-plans/active/ISSUE_732.md)를 참조한다.

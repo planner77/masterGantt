@@ -1586,3 +1586,13 @@ WorkArea는 등록된 owner 공정 행으로 이동한다. 가려진/비활성/�
 KPI 진단에서 공정·WorkArea→owner 공정·설비·물류 시스템 원본을 열 때, React commit 뒤 제한된 프레임 안에 정확한 연결/가시 master 행으로 키보드 포커스를 인계한다. 다만 해당 행이 아직 표시되지 않거나 비활성이라 **대기 중**일 때 사용자가 검색창, ‘KPI로 돌아가기’, workspace 탭 등 어느 화면 영역의 **새로 연결되고 가시이며 enabled인 초점 대상**으로 이동하면 이전 자동 인계는 즉시 폐기된다. `#panel-processes` 내부 컨트롤만 사용자 입력이라고 해석해서는 안 된다. 유효한 원본 트리거/정확 row와 일시적으로 body로 이동한 경우는 기존 포커스 시도·복구 계약을 유지한다.
 
 공정 원본은 정확 id/revision/view/row의 접근성·이름을 검증하고 검색/돌아가기/새 선택을 늦은 rAF가 덮지 않는다. 단순 `toBeFocused`와 별개로 검색과 복귀 버튼에 포커스를 명시 이동시키는 E2E 음성 사례를 유지한다. 테스트 단언·시간초과·기존 업무 원본/권한/조회 조건을 완화하지 않으며, 신규 전역 시각 디자인 규칙 없이 기존 interaction/focus 원칙의 Delta B를 확장한다. 증거는 [#731 원장 F-004](ISSUE_731_FAILURE_ANALYSIS.md#9-f-004--pr-748-full-ci-30041-qa-final-p1-review-및-패널-바깥-포커스-가로채기-2026-10-19).
+
+## Issue #732 — Milestone 전용 동적 관점
+
+`대시보드 → Milestone`은 전용 계층 요약과 기존 Milestone 관리 Dashboard를 함께 제공한다. 기존 `Milestone 추가`, 검색·기간·상태/임박 조건, KPI/전체 상태 표, 삭제 보호·소속·관계·Ready/Blocked/명시 Completed와 정확 Task 일정/리소스 이동을 유지한다. 계층 기본은 Milestone 단독이며 예시나 구성기로 하위 축을 추가·삭제·순서 변경한다. 공정→WorkArea→설비/물류 시스템 형제→리소스 및 리소스→공정은 시작 예시이며 고정 보고서가 아니다.
+
+계층의 선택 작업 범위와 전체 Gate는 다른 분모다. 같은 Milestone의 선택 E1 작업만 완료돼도 외부 E2 작업/직접 선행이 미완료면 전체 Gate가 막혀 있다. Completed는 기존 Editor에서 명시 저장한다. 날짜 미정, 전체 소속0, 조건 밖 작업0, 개인 미배정과 물류 미연결을 구별한다. 조회 행/소계의 Task·공수는 중첩 가능하고 Project 총계는 서버 고유 합집합을 사용한다.
+
+생성 성공 후 같은 새 Milestone ID의 기존 Editor를 연다. 현재 조건으로 목록에서 제외될 수 있다는 안내를 제공하고 목록 조건을 자동 초기화하지 않는다. 저장·취소 후 원래 Dashboard/유효 trigger로 초점을 복원하며 trigger가 사라지면 현재 관리 검색·추가 버튼·제목 순으로 유효한 대상을 찾아 복원한다. 원본/Task/Assignment 명령은 동일 snapshot의 정확 경로를 검증한 뒤 기존 editor host로 연결한다. readonly/dirty/pending·401/412/stale·필터 탈락을 새 우회 흐름으로 해결하지 않는다. marker OFF와 native Grid/Chart Milestone 행 분리, Gantt 인스턴스/viewport writer는 그대로다.
+
+세부 보존표·검증 상태·문서 영향은 [#732 Work Packet](exec-plans/active/ISSUE_732.md)을 따른다.

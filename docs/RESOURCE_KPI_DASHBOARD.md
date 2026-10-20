@@ -501,3 +501,11 @@ Resource 상세의 '작업명 / 안정 ID / WBS' 셀은 실제 Task/일정/배�
 투입 시작/종료의 Assignment 기간 자르기, 계획기간 가중 진척 공식, 그룹 구성/저장 절차, Capacity 모집단 필터 예외와 계층 펼침 지침을 인접 도움말로 제공한다. 선택 범위·전체 Project 참고·기간/환산·알려진 부분합/공수 미설정·비가산 소계와 실제 기여/소진 공수 아님은 직접 표시한다. Capacity의 현재 Project 개인 수·유효 근무일1 M/D·전사 인력 아님도 숨기지 않는다. 수량·원가·실제 기여를 추정하지 않으며 서버 보고서와 정확 Assignment·원본 편집·401/412·초안 복귀 경계는 그대로다.
 
 Resource Catalog의 그룹 구성원은 작업 개인 할당의 자동 복제가 아니다. 조회/저장/삭제·권한 실패는 도움말로 대체하지 않는다. 실측·상태/교차 회귀와 원격 검증은 [Work Packet](exec-plans/active/ISSUE_719.md)에서 구별한다.
+
+## Issue #732 — Milestone 관점의 selected 지표와 전체 Gate
+
+Milestone 전용 consumer는 #729의 같은 read report와 #730 구성기/표/상세를 재사용한다. root 단독 및 사용자가 수정한 하위 축은 Target 생성 없이 직접/상속/기존 Target 문맥의 일반 Task·개인 Assignment를 해석한다. 고유 Task 수·완료/지연·기간가중 진척, 고유 Assignment의 계획 M/D·M/M와 미설정/partial/설정0/empty는 기존 서버 값이다. 미배정 Task도 선택 작업 진단에 남고 Milestone/Summary 자체는 일반 작업·공수 원장이 아니다.
+
+전체 Gate는 canonical 전체 E(M)/직접 P(M)의 기존 projection이며 계층 선택·검색·공정/설비/Resource 조건으로 축소하지 않는다. selected Task0은 전체 소속0과 다르고, 선택 Task가 모두 완료된 것과 Ready 및 명시 Completed는 서로 다르다. 원본 날짜/상태·전체 소속과 선택 지표를 함께 읽으며 부분 결과로 완료를 저장하지 않는다. 동일 Task/Assignment가 여러 WorkArea/공정/표 경로에 보이면 소계를 합산하지 않고 상위 원시 합집합을 사용한다. 현행 effective Milestone은 Task당0..1로 유지한다.
+
+Task·Assignment 상세와 원본 이동은 report snapshot/spec/filter/path를 다시 검증하고 stale이면 재조회한다. 기존 Resource/Target API·Capacity R·Calendar·Milestone 관리/공수 bucket은 변경하지 않는다. [사용 절차](TARGET_RESOURCE_USER_GUIDE.md#milestone-추가와-동적-관점), [구현·테스트 경계](exec-plans/active/ISSUE_732.md)를 따른다.
