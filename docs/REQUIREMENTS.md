@@ -1,3 +1,6 @@
+## Issue #734 — 설비 최상위 동적 조회
+
+Target0에서도 설비 root·작업0/미배정/비활성·유형 선택과 단독 요약을 제공하고 사용자가 하위 축을 추가·삭제·정렬해 두 요구 경로를 구성/복원한다. 설비 원본 정보와 모든 WorkArea0..N·Owner·실제 controls, 고유 Task/공수·등록 수량·전체 Milestone Gate의 범위를 구분한다. 다중 구역/Target/Milestone의 원장 합집합 및 같은 Task 교집합을 유지하고 원본을 복제하지 않는다. 정확 원본 편집·일정 이동/복귀·snapshot stale·readonly/dirty/권한과 5폭 keyboard/overflow는 [#734 Work Packet](exec-plans/active/ISSUE_734.md)의 AC1~AC5로 검증한다.
 ## Issue #735 — 물류 시스템 최상위 대시보드
 
 System 인스턴스를 root로 하여 Target0에서 단독 및 사용자 선택 공정/WorkArea/설비/리소스·Milestone 교차 조회를 제공한다. 직접 연결만/조율 범위 포함을 명시하고 유형·계층·프로젝트 공통/공정 범위·PI/개발자 속성으로 시스템을 선택한다. 고유 구성 System/제어 설비량, 일반 Task/진척/계획공수와 미배정·미설정·full Milestone Gate를 구별하며 공유 경로의 원시 ID/공수를 중복 합산하지 않는다. 작업0·공정0·역할 미설정은 정상 현황/진단으로 남긴다. 실제 관계 없는 Task 공통 연관을 제어관계로 바꾸거나 실적/가동률을 추정하지 않는다. 원본 상세/편집·정확 일정·같은 조회 복귀와 readonly/dirty/stale/error·5폭 접근성은 기존 gateway를 재사용한다. [수용 기준과 증거](exec-plans/active/ISSUE_735.md)를 따른다.

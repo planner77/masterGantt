@@ -1,3 +1,10 @@
+## Issue #734 — 설비 consumer·유형·원본 snapshot 수용
+
+전용 `tests/features/resources/equipment-dashboard.test.ts`와 `tests/server/resources/issue-734-equipment-configuration.test.ts`는 기존 SQLite oracle/공통 원장을 사용한다. Target0·AMR10+5/고유15·등록-only·비활성·미배정, 직접/조상/Target whole·subset·혼합의 중복 제거, E10 다중 WorkArea 각10/상위10·Task5 M/D 상위5, shared MCS와 Milestone no-leak·full Gate, 명시 controls와 같은 Task 업무 연관, 유형 OR 필터/등록-only/잘못된 입력·이름 변경 stale를 확인한다.
+
+전용 `tests/e2e/issue-734-equipment-dashboard.spec.ts`는 실제 Chromium/격리 HTTP·SQLite에서 사용자 축 추가/제거/정렬·두 요구 경로/단독/복원·유형, 정확 원본 editor/dirty/저장·Task/Assignment·일정 복귀·stale/401/412/readonly, 5폭390/768/1024/1440/1920px의 긴 이름·Tab/Escape/focus·열 정렬·문서 overflow0/표 내부 scroll·Gantt instance/marker-OFF와 조회 mutation0을 수용한다. 준비/오류/후행 조회는 기존 response observer를 재사용하며 query POST를 업무 mutation과 구별한다.
+
+교차 회귀는 기존 #729 HTTP/view·#728 Domain·#733 process consumer, #730 composer/원본/일정·#624 legacy 설비 통합 조회·#731 KPI와 source/drill transport다. 새 renderer/DB writer·계산 알고리즘/CI policy는 추가하지 않는다. 실제 명령·케이스 수·실패 원인·source 불변·PrePR UNKNOWN 및 미검증은 [Work Packet](exec-plans/active/ISSUE_734.md)에 기록한다. 로컬 선정은 공식 원격 Full6-shard/quality/docker·Trusted QA·Owner 수용을 대신하지 않는다.
 ## Issue #735 — 시스템 root 직접/조율 및 정확 교차 조회
 
 전용 `tests/server/resources/issue-735-system-dashboard.test.ts`, `tests/features/resources/system-dashboard.test.ts`, `tests/e2e/issue-735-system-dashboard.spec.ts`로 Target0 MCS1+ACS A/B의 단독/공정·WorkArea/설비·리소스/Milestone 경로, direct/coordination exact Task·Assignment·공수 합집합, 공유 controller/복수 경로 중복0과 다른 Task 누출0을 확인한다. Project 공통·복수 공정·WorkArea 미사용·작업0/PI 미설정·Target-only/혼합·빈 시스템 선택·잘못된 spec/foreign ID·snapshot stale를 포함한다.

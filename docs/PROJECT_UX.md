@@ -1,3 +1,10 @@
+## Issue #734 — 설비 대시보드
+
+`대시보드 → 설비`는 고정 설비 root·기본 단독 요약과 기존 공통 조회 구성/표/정확 상세를 사용한다. 접힌 조회 구성의 축 추가/삭제/위아래 이동과 두 예시는 개인 보기이며 저장된 설정을 자동 덮어쓰거나 WBS/Target를 수정하지 않는다. 설비 유형과 작업 검색/상태/기간 필터를 구별하고 원본 정보·연결 진단·관련 전체 Gate는 표 뒤에서 펼친다. 주관리 공정과 모든 WorkArea0..N, 실제 controls와 같은 Task 업무 연관을 따로 읽을 수 있다.
+
+Task/Assignment/설비 원본은 기존 editor로 연다. 편집 취소/dirty 확인, 저장 후 같은 경로·필터·선택 복귀, 정확 일정 이동과 복귀는 기존 source 검증·단일 host·Gantt Coordinator를 사용한다. readonly는 조회만 제공하고 pending/stale/401/412·원본 변경에서는 이전 명령을 잠근다. 최신 snapshot 재조회가 성공하면 다시 선택한다. 조회 설정을 바꾸거나 이전 요청이 늦게 끝나도 최신 사용자 의도를 덮지 않는다. 기준정보 명칭/수량/유형 이름 변경은 snapshot fingerprint를 바꾸며 구 source는 stale 처리한다.
+
+이름 우선·상황형 도움말·기존6열 예산/표 내부 overflow·keyboard/Escape/focus 복원을 유지한다. 5폭의 실제 수용 및 환경별 미검증은 [Work Packet](exec-plans/active/ISSUE_734.md), 사용자 단계는 [설비 현황](TARGET_RESOURCE_USER_GUIDE.md#설비-현황)에 기록한다.
 ## Issue #735 — 물류 시스템 대시보드
 
 Embedded 물류 통합 조회의 원본 열기는 제공된 canonical 부모 handler를 우선 사용한다. 독립 사용에서는 기존 지원 설비/시스템/공정 editor fallback만 유지한다. 공유 System 저장 후의 focus는 새 report 영수증을 기다리는 기존 gateway가 소유하며, 대기 중 새 사용자 focus에 양보한다. 별도 focus/viewport 복원기를 추가하지 않는다.

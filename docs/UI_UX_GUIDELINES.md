@@ -1,3 +1,8 @@
+## Issue #734 — 설비 원본과 업무 연관 표시
+
+설비 root는 개인 하위 축 구성과 분리해 고정한다. 기본 단독 요약과 두 동적 예시는 기존 composer를 사용하고 유형 필터를 상위 Target으로 바꾸지 않는다. 원본 이름/유형·단품/Fleet/수량/모든 WorkArea/Owner/실제 controls는 접힌 원본 영역으로 제공하며 기존6열 표의 폭을 늘리지 않는다. 전체 등록 진단과 필터된 작업 지표·구성 수량의 모집단을 인접 라벨로 구별한다.
+
+작업0·미배정·구역 미사용·비활성은 각각의 상태로 읽을 수 있어야 하며 정상0을 실패색으로만 표현하지 않는다. controls와 같은 Task 업무 연관의 차이·중첩 소계 비가산·full Gate 범위는 숨기면 오해하는 필수 맥락이다. 390/768/1024/1440/1920px에서 긴 이름/원본 목록의 줄바꿈, 문서 overflow0, 표 내부 scroll·열 정렬, keyboard Tab/Shift+Tab/Escape와 focus 가시성을 실제 Chromium으로 확인한다. 기존 공통 focus reveal과 editor 복귀를 재사용하며 새로운 Gantt writer는 추가하지 않는다. [화면 UX](PROJECT_UX.md#issue-734--설비-대시보드), [실행·미검증](exec-plans/active/ISSUE_734.md).
 ## Issue #735 — 시스템 관점의 조회와 속성
 
 DESIGN.md의 기존 Light UI/이름 우선/compact control·상황형 도움말을 적용한다. System은 고정 root이며 단독 및 변경 가능한 하위 preset을 제공한다. 실제 제어/조율 관계와 Task 공통 연관, 구성 System1식/제어 설비량과 작업/개인 계획공수를 시각·문구로 구분한다. 속성 필터는 서버 전체 선택을 바꾸고 이름 찾기는 표시만 바꾼다. 긴 이름·공정·담당자는 줄바꿈하고 코드/ID는 요청 시 표시한다. 설명·역할·진단은 접기 영역에 두며 핵심 mode/상태/새로고침은 즉시 접근 가능해야 한다.

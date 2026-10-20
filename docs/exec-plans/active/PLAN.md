@@ -1,3 +1,6 @@
+## Issue #734 — 설비 최상위 동적 대시보드
+
+main `05f1e560eee456e6fba5535255c9ede30a357c16` /0.125.0에서 `feat/issue-734-equipment-dashboard`로 구현한다. 기존 공통 원장/API·조회 구성기/표·정확 원본 editor/drill을 재사용하여 설비 단독·두 사용자 동적 계층·원본 다중 WorkArea/Owner/명시 제어·유형 필터를 제공한다. [Work Packet](ISSUE_734.md)의 AC/문서/실제 분리 Agent/변경 영향 검증을 따른다. 후보0.127.0, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. 구현·문서·리뷰/충돌 정리 후 새 PR Full CI 시작까지만 수행하며 완료 모니터링·병합·Main/GHCR·Release·Issue 종료는 하지 않는다. 원격 Required3·Trusted·Owner ACCEPT는 NOT TESTED다. #734 최종 로컬13파일140 Unit·통합, 실제 Chromium 주요3개, typecheck/전체 lint/문서·version·discovery PASS. 런타임 중단으로 나머지5 Chromium/5폭 캡처는 NOT TESTED, 자동 PrePR UNKNOWN4는 BLOCKED이며 공식 원격 전체 회귀를 대신하지 않는다.
 ## Issue #735 — 물류 시스템 root·직접/조율·동적 교차 조회
 
 main `8a0fc9773d33326b40f8d97f6307c17ae0cb6933` /0.125.0에서 별도 `feat/issue-735-system-dashboard`로 구현한다. 후보0.126.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false다. 기존 #729/#730 원장을 소비하는 시스템 전용 consumer와 직접/조율·정확 시스템 선택의 공통 spec 보완만 수행하고 구성/Task/공수·full Gate를 구분한다. [Work Packet](ISSUE_735.md)의 AC·소유권·문서/매뉴얼·누적 실행 원장을 따른다. 종료점은 구현·리뷰 thread/충돌 해결·최신 Head Full PR CI 시작이며 CI 모니터링·병합·main/GHCR·Release·Issue 종료는 수행하지 않는다. 공식 원격 Required3/Trusted QA·Owner ACCEPT는 NOT TESTED다.

@@ -1,3 +1,8 @@
+## Issue #734 — 설비 관점의 작업·공수 경계
+
+설비 전용 consumer는 #728/#729의 서버 고유 합집합과 기존 Calendar/allocation/환산 정책을 그대로 표시한다. 개인 미배정 Task도 일반 업무 KPI에 남으며 Owner 책임 역할만으로 Assignment/공수/Capacity를 만들지 않는다. 원본 수량·작업 진척·계획 M/D/MM·미설정·전체 Milestone Gate는 다른 지표다. 다중 WorkArea/Milestone의 소계를 더하지 않고 같은 Assignment는 상위에서 한 번 계산한다.
+
+설비 유형 선택은 서버 조회 조건이다. 같은 Task의 업무 연관은 실제 제어 소속이 아니며 정확한 Task/Assignment ID와 source/snapshot을 기존 editor/drill로 전달한다. 기존 Resource Plan·Capacity R·과투입·견적/Excel 계산과 #624/#731 KPI는 유지한다. 새 WBS view spec Excel은 기존 미지원 경계를 유지한다. [설비 수치 정의](LOGISTICS_DASHBOARD.md#issue-734--설비-최상위-관점), [검증](exec-plans/active/ISSUE_734.md).
 ## Issue #735 — 시스템 관점의 단위와 작업 범위
 
 시스템 관점은 같은 WBS 원장을 직접 또는 명시 조율 범위로 선택한다. 고유 System1식·실제 제어 설비 관리단위/quantity는 구성 참고이고, 고유 일반 Task·완료/지연·기간가중 진척과 개인 Assignment의 M/D/M/M는 현재 서버 선택이다. 같은 원본의 여러 공정/구역/Target 경로 소계는 비가산이다. PI/개발자 책임 등록은 개인 Assignment·공수·Capacity R를 만들지 않는다.

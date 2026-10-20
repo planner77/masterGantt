@@ -6,6 +6,7 @@ import { validateWbsViewSpec } from "./wbs-view-model";
 const list = z.array(z.string().uuid()).max(8000);
 const date = z.string().refine(value => { try { parseDateOnly(value, "date"); return true; } catch { return false; } });
 export const wbsViewFiltersSchema = z.object({
+  equipmentTypeCodes: z.array(z.string().min(1).max(64)).max(200).optional(),
   from: date.optional(), to: date.optional(), asOfDate: date.optional(), search: z.string().max(200).optional(), taskSearch: z.string().max(200).optional(),
   mode: z.enum(["resource", "group"]).optional(), granularity: z.enum(["week", "month"]).optional(), resourceActivity: z.enum(["all", "active", "inactive"]).optional(), groupActivity: z.enum(["all", "active", "inactive"]).optional(),
   resourceIds: list.optional(), groupIds: z.array(z.union([z.string().uuid(),z.literal("ungrouped")])).max(8000).optional(), milestoneIds: z.array(z.union([z.string().uuid(),z.literal("unassigned")])).max(8000).optional(), taskIds: list.optional(), wbsRootIds: list.optional(),

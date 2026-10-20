@@ -1,3 +1,12 @@
+## Issue #734 — 설비 최상위 관점
+
+`대시보드 → 설비`는 설비 인스턴스를 root로 고정한 전용 consumer다. 기본은 하위 없는 단독 조회이며 사용자가 하위 축을 추가·제거·정렬하여 `설비 → 공정 → 물류 시스템 → 리소스`, `설비 → Milestone → 공정`을 구성한다. 유형은 root의 필터이고 상위 Target 등록은 필요 없다. 등록-only·작업0·미배정·비활성 기존 원본을 보존한다.
+
+같은 snapshot의 원본 정보는 이름/유형·단품 또는 Fleet·원본 수량·주관리 공정·모든 WorkArea0..N·Owner·명시 제어 관계를 제공한다. 유형 조건의 고유 구성 수량과 현재 작업 검색/상태/기간 조건의 고유 일반 Task·완료/지연·기간가중 진척·Assignment 계획 M/D/MM·공수 미설정을 구분한다. 정상 구역 미사용과 Owner/주제어 미연결은 별도 진단이며 설치완료 대수/가동률을 추정하지 않는다. 원본 정보 전체 목록과 현재 선택 범위의 숫자는 같은 모집단이라고 주장하지 않는다.
+
+구성 수량의 grain은 distinct equipment ID의 quantity, 작업은 distinct 일반 Task, 공수는 distinct 개인 Assignment다. 직접·조상·Target whole/subset은 기존 공통 원장으로 통합하고 Coverage를 수량/공수 배율로 쓰지 않는다. E10이 두 구역에 표시되어도 상위10, AMR10+AMR5는15, Task5 M/D가 여러 Milestone/구역에 반복돼도 고유5 M/D다. 하위 시스템은 같은 Task 업무 연관이며 실제 controls와 별개다. E1→공유 Milestone→공정은 앞서 E1에서 선택한 Task/Assignment 교집합을 유지하고 E2의 다른 Task를 끌어오지 않는다. 관련 Milestone 전체 Gate는 선택 밖 멤버·선행을 포함한다.
+
+기존 KPI와 #624 Target/Resource 통합 조회는 계속 제공한다. 정확한 source 편집·일정 복귀 및 stale/readonly/dirty는 공통 host를 재사용한다. [사용 안내](TARGET_RESOURCE_USER_GUIDE.md#설비-현황), [API](API.md#issue-734--설비-조회-metadata와-유형-필터), [실행 증거와 미검증](exec-plans/active/ISSUE_734.md)을 따른다.
 ## Issue #735 — 물류 시스템 전용 관점
 
 새 조회는 직접 모드로 시작한다. 이전 저장 조회에 시스템 모드/선택 필드가 없으면 **기존 전체 작업 (호환)**으로 명시 유지하며 미연결 작업을 포함한 종전 Project 총계·원본 구성 참고와 접힘/선택/focus를 보존한다. 직접/조율 전환은 사용자 명령이며 새 모드의 Task 모집단 차이를 같은 수치라고 주장하지 않는다.

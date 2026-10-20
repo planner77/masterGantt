@@ -1,3 +1,12 @@
+## Issue #734 — 설비 조회 metadata와 유형 필터
+
+기존 `POST /api/projects/{publicId}/resource-dashboard/views`의 versioned opt-in WBS 조회에 `filters.equipmentTypeCodes: string[]`를 추가한다. 빈 배열/생략은 기존 전체, 복수 코드는 OR이다. 등록된 Project 설비 유형 코드만 허용하고 잘못된 shape/빈 코드/알 수 없는 코드는400 `INVALID_REQUEST` 또는 `INVALID_SELECTION`이다. 기존 본문 크기·조회 depth/fanout/cells/sourceRows/JSON 한도와 public-read Origin/no-store 계약을 유지한다.
+
+유형 조건은 기존 공통 원장의 equipmentType selector를 사용하여 Task·Assignment 원시 합집합과 구성 참고·등록-only root를 같은 조건으로 제한한다. Legacy Target-only 경로 필터로 직접 연결을 지우지 않는다. 상세/범위는 같은 조건·경로·snapshot을 재검증하고 제외된 경로는 `INVALID_SELECTION`, 원본/조건 fingerprint가 달라진 이전 snapshot은409 `REPORT_STALE`이다. 배열 OR에서 여러 유형에 같은 Task/Assignment가 있어도 고유 공수·진척을 다시 계산하며 하위 소계를 더하지 않는다.
+
+`projection=report`의 `configurationCatalog.equipment`는 같은 SQLite read transaction의 전체 등록 설비 표시 metadata다. 유형 후보·전체 원본 정보는 현재 필터의 root/KPI 범위와 구별한다. 각 항목은 `id`, `name`, `equipmentType`, `equipmentTypeName`, `managementUnit`(unit/fleet), `quantity`, `active`, `primaryProcessId`, `workAreaLinks[{processId,occurrenceId,workAreaId}]`, `resourceRoles[{resourceId,resourceName,role,isPrimary,active}]`, `controlSystems[{systemId,controlRole,systemName}]`를 제공한다. WorkArea0..N 전체를 유지하고 명시 controls에 같은 Task 연관 시스템을 추가하지 않는다. 기존 `configurationCatalog.processes/workAreas/instances/milestones`와 참조하며 이름을 원본 ID 대신 저장키로 쓰지 않는다.
+
+참조된 유형 이름도 snapshot fingerprint에 포함한다. Project revision이 같아도 유형/이름·구성 관계가 바뀌면 예전 상세/원본 명령을 최신으로 재사용하지 않는다. 기존 mutation endpoint·인증/session/If-Match·저장 revision·DB schema와 Excel 미지원 경계는 불변이다. [수치 정의](LOGISTICS_DASHBOARD.md#issue-734--설비-최상위-관점), [실행·AC](exec-plans/active/ISSUE_734.md)를 따른다.
 ## Issue #735 — 시스템 root의 직접·조율 선택
 
 기존 `POST /api/projects/{publicId}/resource-dashboard/views`의 `spec.root=system`에서만 additive `systemView?: "direct"|"coordination"`, `systemIds?: string[]`를 허용한다. 생략은 기존 요청 의미를 보존한다. 시스템 ID 생략은 전체, 명시 `[]`는 빈 선택이며 필터 결과0개를 전체로 바꾸지 않는다. 중복 ID는 정규화하고 같은 Project의 등록 시스템·canonical UUID·최대1000개 한도를 서버에서 검증한다. 다른 root의 해당 필드·잘못된 모드/ID·foreign 참조는 거부한다.
