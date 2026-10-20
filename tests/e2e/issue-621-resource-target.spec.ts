@@ -192,13 +192,19 @@ test("#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native key
   await mkdir("output/playwright/issue-621", { recursive: true });
   for (const mode of ["resource", "group"]) {
     await root.getByLabel("Target 비교 행", { exact: true }).selectOption(mode);
+    // #730 Release #182: two old rows can remain while the new projection is stale.
+    await expect(root).toHaveAttribute("data-ready", "true");
     const region = root.getByRole("region", { name: "Resource Target 비교표", exact: true });
     await expect(region.locator("tbody tr")).toHaveCount(2);
     for (const width of [390, 768, 1024, 1440, 1920]) {
       await page.setViewportSize({ width, height: 900 });
       await region.scrollIntoViewIfNeeded();
       const first = region.locator("tbody td button").first();
-      await first.focus(); await page.keyboard.press("Tab");
+      await expect(root).toHaveAttribute("data-ready", "true");
+      await expect(first).toBeEnabled();
+      await first.focus();
+      await expect(first).toBeFocused();
+      await page.keyboard.press("Tab");
       const observation = await region.evaluate(owner => {
         const active = document.activeElement as HTMLElement, box = active.getBoundingClientRect(), bounds = owner.getBoundingClientRect(), style = getComputedStyle(active);
         const ring = parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);

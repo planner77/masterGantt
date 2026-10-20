@@ -4,6 +4,20 @@
 - 등록-only 하위 구성과 같은 snapshot의 공정/구역 catalog를 공통 API 소유자와 보완하고 다중 WorkArea 수량·Task/Assignment는 원본 합집합으로 유지한다. 새 계산기/DB/renderer·구성/WBS writer는 추가하지 않는다.
 - 화면별 KPI·UX·테스트·매뉴얼을 동기화한다. HIGH/OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false. PR CI 시작은 공식 검증 PASS·Owner 승인·병합·정식 릴리스가 아니다.
 
+## [0.124.1] — Unreleased / Issue #730 GHCR Release #182 후속 교정
+
+- 후속 PR #756의 Full CI #3037.1에서 재시작 이후 Task 공정 연결 `GET`이 Next.js HTML404를 반환한 현상을 #730 누적 실패 원장에 추가했다. 과거 #731 M-002의 장비 `PATCH` HTML404와 같은 동적 경로 준비 결함이나, 설비 경로 준비와 Task 경로 준비가 독립적임을 구분한다.
+- 격리 E2E 재시작 시 선택적인 두 번째 Task 경로 read-only readiness(기존 90초 한도 내 실제 200/JSON/context)와 엄격한 HTTP/MIME 응답 확인을 추가한다. 초기 Next HTML404만 제한적으로 재조회하고 JSON404/401/403/500, malformed response, 다른 origin은 차단한다. 원본 WorkArea/Target0·Task 공정 링크 저장·UI 설비 PATCH와 Gantt/readonly·키보드·5폭 검증 및 모든 기존 CI 게이트는 유지한다.
+
+
+- `v0.124.0` Main #3034.1·Generic Finalizer #724.1 성공 후 Release #182 attempts 1·2의 Chromium Shard3 실패(#621 stale 비활성 focus, #623 5폭 30초 budget)를 단일 실패 원장에 보존한다. GHCR promotion·Resume·Issue 종료는 미완료.
+- #621은 실제 조회 ready·button enabled/focused를 확인한 뒤 기존 native Tab/5폭/scroll/geometry를 판정하고, #623는 신규 SQLite/HTTP+tree/matrix 5폭 테스트만 45초 유한 timeout으로 보완. 실제 업무 writer·API·Gantt/Task·CI gate/Retry/Skip/Assertions 변경 없음.
+- 버전 0.124.1은 새 Owner 고위험 수용·`expected_version=0.124.1` 승인 전 정식 릴리스 불가. 기존 v0.124.0 annotated tag/SHA와 실패 원본은 변경하지 않는다.
+
+## [0.124.0] — Issue #730 / GHCR 공식 게시 미완료
+
+- 동적 WBS 관점 composer와 공통 tree table·정확 drill 구현 PR #747 병합 성공. Main CI/Finalizer 성공에도 Release #182 E2E 2회 실패로 정식 GHCR 및 Issue FINAL은 미완료.
+
 ## [0.123.0] — Unreleased / Issue #731
 
 - Main #3011.1의 두 E2E 실패를 보완한다. #623 golden/Excel·여섯 mutation 및 폭별 화면 검증을 독립 시나리오로 구성하고 workbook bytes1회·단계별 시간을 기록한다. Task Editor 저장 후 canonical 조회는 기존 실제 browser/no-store·오류 관측 경로로 일치시킨다. 정확 UUID·수치·원본/권한·revision 단언, 기존 timeout/retry/Required gate를 유지하며 소켓 내부 근인은 UNKNOWN으로 남긴다. 과거10 source CI와 새 로컬 최초 실패·재검증은 같은 #731 실패 원장에 누적한다.
