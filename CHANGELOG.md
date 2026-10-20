@@ -1,5 +1,7 @@
 ## [0.125.0] — Unreleased / Issue #733
 
+- PR #755 Full PR CI #3048.1의 Chromium Shard2에서 #373 하위 트리 딥링크/탭 간 최신화 통합 테스트 본문이 30초를 소진(약31.4초, Before Hooks 약15.2초는 별도)하였다. #733 F733-008 누적 실패 원장에 기록하고 원래 단일 Test를 A(딥링크·범위/권한), B(2회 편집·탭 간 최신 Revision), C(stale 초기 GET·newer revision·reload) 독립 3개로 분리하였다. 각 테스트 별도 Project·SQLite/BrowserContext, 기존 단언과 실제 PATCH/GET/권한·revision 유지. Fixture 3회 비용 비교 필요, 전역 Timeout/CI 정책/제품·0.125.0·승인 상태 불변. 새 Head 실실행 NOT TESTED.
+
 - PR #755 Full #3047.1에서는 #725 실SQLite/HTTP setup의 Project GET이 이전200 네 번 후 Next Webpack 개발서버 `loadManifest`의 `Unexpected end of JSON input`으로 HTML500 반환하였다. #733 F733-007에 Trace/Run을 누적했고 Next16 upstream manifest race #97594와 분리 검토했다. #725 격리 두 테스트만 Turbopack+재시작 별도 NEXT_DIST_DIR·GET-only 공정 API 순차 prewarm으로 교정하며, 실패 HTML의 framework error class만 기록한다. 원본 HTTP200/PATCH/GET/SQLite/UI 단언과 CI gates, 제품/버전0.125.0/릴리스 승인 상태는 유지; 새 Head remote NOT TESTED.
 
 - PR #755 Full CI #3044.1에서 장비 route GET405/PATCH200 JSON·Task GET/PUT200 통과 후 Project 원본 GET500(기대200)으로 E2E Shard3 실패하였다. 내부 500 MIME·code는 원본에 없어 근인은 UNKNOWN. #725 테스트만 서버 재시작 시 fresh NEXT_DIST_DIR를 opt-in하여 개발 컴파일 캐시 재사용을 배제해 보고, 실패 GET에는 status·MIME·safe errorCode만 기록한다(HTTP500 재시도/단언 완화 없음). 이력은 #733 F733-005 원장에 추가하며 코드/DB·CI 정책·버전0.125.0·정식 릴리스 권한 불변.
