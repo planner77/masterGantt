@@ -4813,3 +4813,10 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 - 최초 원격 실제 FAIL: tests/e2e/issue-622-resource-plan-target.spec.ts, Task Editor 자원 배정 60%→40% 저장·상세 row/Assignment 보존 PASS, 원본 버튼 toBeFocused 5초 FAIL. 제품이 최신 같은 detail/Task/Assignment readiness 확인 뒤 포커스를 복귀하도록 하고, E2E 기존 단언 그대로 + 2 requestAnimationFrame 뒤 포커스 유지 추가. Timeout·skip·retry 완화 금지.
 - Codex P2: tests/server/resources/issue-733-process-configuration.test.ts에서 같은 occurrence를 공유하는 프로젝트 공정 A/C와 C-only WorkArea, 동일 설비/제어 System을 만들어 A 아래 거짓 후보 비노출·C 아래 실제 후보 노출, 등록-only Task/Assignment0를 검증. 다른 occurrence에서 정상 후보와 공정 미소속 system-null 영역 보존.
 - 직접·간접·음성 검증 후보: #622 resource dashboard Target80/Project140, Excel export/5폭, #733 등록 구성·W1·조회 snapshot/Task0, #730 WBS original/detail async, #731 KPI focus, #624 logistics readonly. 최초 #3035.1 E2E 다른 5 Shard CANCELLED는 PASS가 아니므로 신규 Full required 검증 필요. 이슈 누적 [#733 실패 원장](ISSUE_733_FAILURE_ANALYSIS.md)에 원본·가설·반례·교정·NOT TESTED를 기록하며 타 이슈 FAIL 집합을 혼합하지 않는다.
+
+## Issue #733 PR #755 — CI #3038.1 신규 잘못된 fixture와 누적 교차 검증 (2026-10-20)
+
+- [Run #3038.1](https://github.com/planner77/masterGantt/actions/runs/39353259152)의 직접 Unit FAIL은 `tests/server/resources/issue-733-process-configuration.test.ts`에서 `MCS/coordinator`를 직접 설비 `controlSystems`로 넣은 신규 fixture와 도메인의 `INVALID_CONTROL_RELATION` 보호 계약 불일치. 잘못된 fixture를 통과시키려고 production validator/Assertion을 완화하지 않는다.
+- `ACS/controller`와 명시적인 A/C project-process scope에 교정하되 E0의 WorkArea는 C만 유지. 같은 occurrence의 공정 A→equipment/system→C-only WA 비노출, C→동일 원본→C-only WA 노출, Task0·Assignment0·구성량 정확값을 기존 단언 그대로 검증한다. 기존 #733/Target/Legacy/정확 원본/조회 mutation0 계약 유지.
+- 누적 실제 실패 파일 집합은 #3035.1 `tests/e2e/issue-622-resource-plan-target.spec.ts`와 #3038.1 `tests/server/resources/issue-733-process-configuration.test.ts`. 해당 신규 #3038.1은 Vitest 게이트에서 중단되었으므로 최초 focus E2E 또는 PR Build/Docker 제품 결과가 PASS/FAIL한 것으로 판단하지 않는다. 정식 이력/잔여 가설은 [#733 누적 실패 원장](ISSUE_733_FAILURE_ANALYSIS.md) §7에서 추적한다.
+- 직접 소스 동결 이후 typecheck/전체 Unit·관련5+인접 E2E, 6-shard full CI 및 Docker/Trusted QA의 실제 결과가 있어야 최종 PASS. Git Data를 통한 source 교정만 완료한 단계의 로컬/신규 원격 결과는 NOT TESTED; 최신 Head의 Required/Owner 별도 게이트 유지.

@@ -55,13 +55,21 @@ describe("#733 registered process/WorkArea configuration through the shared #729
       const foreignArea = Number(f.database.prepare("INSERT INTO work_areas(public_id,occurrence_id,code,name,created_at,updated_at) VALUES(?,?,?,?,?,?)")
         .run(foreignAreaId, occurrenceId, "C-ONLY", "공유 발생 C 전용 WorkArea", now, now).lastInsertRowid);
       f.contexts.replaceEquipment(f.project.id, f.equipment[0].id, [{ processId: processC.id, occurrenceId, workAreaId: foreignArea }]);
-      f.logistics.setEquipmentSystems(f.project.id, f.equipment[0].id, [{ systemId: f.systems[2].id, controlRole: "primary" }], now);
-      f.database.prepare("INSERT INTO project_system_processes(project_id,system_id,process_id,created_at) VALUES(?,?,?,?)")
-        .run(f.project.id, f.systems[2].id, processC.id, now);
+      // MCS (coordinator) cannot directly control equipment: use a true ACS controller.
+      // Bind its scope to both project processes, while the equipment's W1 area stays C-only.
+      const controller = f.logistics.insertSystem({
+        publicId: randomUUID(), projectId: f.project.id, code: "SHARED-ACS", name: "공유 발생 제어 시스템",
+        systemType: "acs", layer: "controller", scope: "processes", now
+      });
+      f.logistics.setEquipmentSystems(f.project.id, f.equipment[0].id, [{ systemId: controller.id, controlRole: "primary" }], now);
+      for (const process of [f.processA, processC]) {
+        f.database.prepare("INSERT INTO project_system_processes(project_id,system_id,process_id,created_at) VALUES(?,?,?,?)")
+          .run(f.project.id, controller.id, process.id, now);
+      }
       const byInstance: WbsViewSpec = { ...spec, levels: [{ kind: "siblings", dimensions: ["equipment", "system"] }, "workArea"] };
       const report = f.service.queryWbsView(f.project.publicId, { spec: byInstance, filters }) as WbsViewReportDto;
       const a = child(report, "process", f.processA.publicId), c = child(report, "process", processC.publicId);
-      for (const [dimension, instanceId] of [["equipment", f.equipment[0].publicId], ["system", f.systems[2].publicId]] as const) {
+      for (const [dimension, instanceId] of [["equipment", f.equipment[0].publicId], ["system", controller.publicId]] as const) {
         const aInstance = child(a, dimension, instanceId), cInstance = child(c, dimension, instanceId);
         expect(aInstance.children.some(row => row.selector.dimension === "workArea" && row.selector.id === foreignAreaId)).toBe(false);
         const actual = child(cInstance, "workArea", foreignAreaId);
