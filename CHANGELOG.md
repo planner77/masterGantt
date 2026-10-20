@@ -1,3 +1,9 @@
+## [0.126.0] — Unreleased / Issue #735
+
+- 물류 시스템 전용 대시보드에 시스템 단독·공정/WorkArea/설비/리소스 및 Milestone 교차 조회 예시와 속성 선택·구성/작업 KPI·진단을 추가한다. Target 생성 없이 단일 원본·고유 Task/Assignment 합집합을 사용한다.
+- 공통 WBS spec의 system root에 직접/조율 모드와 정확 시스템 선택을 추가하고 report/detail/scope/snapshot에 결속한다. 명시 coordinates/controls와 같은 Task 업무 연관을 구별하며 기존 요청·KPI/Resource/Gate·저장 계약은 유지한다.
+- 원본 editor·정확 일정/조회 복귀·readonly/dirty/stale/error·5폭 접근성과 관련 문서/사용 가이드·전용 및 인접 테스트를 보강한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false; PR CI 시작은 공식 검증 성공·Owner 승인·병합·정식 릴리스 완료가 아니다.
+
 ## [0.125.0] — Unreleased / Issue #733
 
 - PR #755 Full PR CI #3048.1의 Chromium Shard2에서 #373 하위 트리 딥링크/탭 간 최신화 통합 테스트 본문이 30초를 소진(약31.4초, Before Hooks 약15.2초는 별도)하였다. #733 F733-008 누적 실패 원장에 기록하고 원래 단일 Test를 A(딥링크·범위/권한), B(2회 편집·탭 간 최신 Revision), C(stale 초기 GET·newer revision·reload) 독립 3개로 분리하였다. 각 테스트 별도 Project·SQLite/BrowserContext, 기존 단언과 실제 PATCH/GET/권한·revision 유지. Fixture 3회 비용 비교 필요, 전역 Timeout/CI 정책/제품·0.125.0·승인 상태 불변. 새 Head 실실행 NOT TESTED.

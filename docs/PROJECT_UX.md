@@ -1,3 +1,13 @@
+## Issue #735 — 물류 시스템 대시보드
+
+Embedded 물류 통합 조회의 원본 열기는 제공된 canonical 부모 handler를 우선 사용한다. 독립 사용에서는 기존 지원 설비/시스템/공정 editor fallback만 유지한다. 공유 System 저장 후의 focus는 새 report 영수증을 기다리는 기존 gateway가 소유하며, 대기 중 새 사용자 focus에 양보한다. 별도 focus/viewport 복원기를 추가하지 않는다.
+
+새 조회는 직접 모드로 시작한다. 이전 저장 조회에 시스템 모드/선택 필드가 없으면 **기존 전체 작업 (호환)**으로 명시 유지하며 미연결 작업을 포함한 종전 Project 총계·원본 구성 참고와 접힘/선택/focus를 보존한다. 직접/조율 전환은 사용자 명령이며 새 모드의 Task 모집단 차이를 같은 수치라고 주장하지 않는다.
+
+`dashboard.system`은 시스템 전용 consumer를 사용한다. 기본 단독 요약에서 조회 구성을 열어 시스템→공정→WorkArea→설비→리소스 또는 시스템→Milestone→공정 예시를 적용하고 하위 축을 변경한다. 직접 연결만/조율 범위 포함과 시스템 속성 선택은 서버 조회 범위를 변경하며 개인 Project/root 설정으로 보존한다. 기존 이름 찾기는 표시 행만 제한하므로 구별한다. 유형·계층·공정 범위·PI/개발자·실제 관계/진단은 접기 영역에서 확인한다.
+
+동일 원본 System·Task·Assignment와 정확 일정은 기존 gateway를 이용한다. dirty 취소/저장·readonly·오류/stale 잠금, 새 snapshot 이후 같은 경로/필터/선택/focus 복귀를 유지하며 조회에 따른 mutation/Gantt remount를 만들지 않는다. Milestone는 현재 작업의 진척과 전체 Gate를 구별한다. #720 매뉴얼의 `dashboard.system`은 [물류 시스템 현황](TARGET_RESOURCE_USER_GUIDE.md#물류-시스템-현황)에 인계하고 앱 내 매뉴얼 route/버튼은 별도 후속이다. [실제 검증 및 미검증](exec-plans/active/ISSUE_735.md)을 따른다.
+
 ## Issue #733 — 공정&WorkArea 대시보드
 
 `dashboard.process`는 공정 전용 consumer를 통해 공정 단독 요약과 교차 조회 예시를 제공한다. 공정→선택 WorkArea→[설비 | 물류 시스템]→리소스 및 공정→Milestone→리소스는 같은 Task의 다른 조회 경로이며 실제 지배/제어관계나 WBS parent를 생성하지 않는다. 처음에는 기존처럼 공정 단독 요약을 보여 주고 교차 예시는 조회 구성에서 명시 적용한다. 기존 Project/root 개인 조회 설정은 우선 보존한다.

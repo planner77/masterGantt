@@ -1,3 +1,7 @@
+## Issue #735 — 물류 시스템 최상위 대시보드
+
+System 인스턴스를 root로 하여 Target0에서 단독 및 사용자 선택 공정/WorkArea/설비/리소스·Milestone 교차 조회를 제공한다. 직접 연결만/조율 범위 포함을 명시하고 유형·계층·프로젝트 공통/공정 범위·PI/개발자 속성으로 시스템을 선택한다. 고유 구성 System/제어 설비량, 일반 Task/진척/계획공수와 미배정·미설정·full Milestone Gate를 구별하며 공유 경로의 원시 ID/공수를 중복 합산하지 않는다. 작업0·공정0·역할 미설정은 정상 현황/진단으로 남긴다. 실제 관계 없는 Task 공통 연관을 제어관계로 바꾸거나 실적/가동률을 추정하지 않는다. 원본 상세/편집·정확 일정·같은 조회 복귀와 readonly/dirty/stale/error·5폭 접근성은 기존 gateway를 재사용한다. [수용 기준과 증거](exec-plans/active/ISSUE_735.md)를 따른다.
+
 ## Issue #733 — 공정&WorkArea 관점
 
 Target0에서 등록 공정/선택 WorkArea를 최상위로 조회하고 단독 요약·설비/System 동급 분기·사용자 Milestone/리소스 교차를 제공한다. 공통 원장·API·renderer를 재사용하며 등록-only/미배정·legacy 출처를 보존한다. 고유 구성 수량과 Task/Assignment·coverage/full Gate의 모집단을 분리하고 다중 경로를 합산하지 않는다. 정확 원본 편집·snapshot stale·원래 보기 복귀·readonly/dirty/error·5폭·keyboard·조회 mutation0/Gantt remount0은 [Work Packet](exec-plans/active/ISSUE_733.md)의 AC1~AC5와 [화면 UX](PROJECT_UX.md#issue-733--공정workarea-대시보드)를 따른다.

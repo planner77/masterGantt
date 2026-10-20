@@ -18,6 +18,7 @@ export interface WbsViewConsumer {
   title: string;
   defaultSpec: WbsViewSpec;
   presets: Array<{ label: string; levels: NonNullable<WbsViewSpec["levels"]> }>;
+  renderControls?: (context: { spec: WbsViewSpec; onApply: (spec: WbsViewSpec) => void; disabled: boolean }) => ReactNode;
   renderSummary: (data: WbsViewReportDto) => ReactNode;
 }
 export interface WbsViewDashboardProps {
@@ -36,6 +37,7 @@ export function WbsViewDashboard(props: WbsViewDashboardProps) {
 }
 function WbsViewDashboardRoot({consumer,publicId,revision,root,active,busy,binding,onOpenTask,onOpenAssignment,onOpenEntity,onSchedule}:WbsViewDashboardProps) {
   const drill = useResourceDrill();
+  const ConsumerControls = consumer?.renderControls;
   const [state,setState] = useState<WbsViewStoredState>(() => emptyState(root,consumer));
   const [hydrated,setHydrated] = useState(false);
   const [warning,setWarning] = useState<string|null>(null);
@@ -119,6 +121,7 @@ function WbsViewDashboardRoot({consumer,publicId,revision,root,active,busy,bindi
     <div className={styles.controls}><h3 ref={fallback} tabIndex={-1}>{consumer?.title ?? `${WBS_VIEW_LABELS[root]} 계층 조회`}</h3><ContextHelp label="공통 계층 조회">하위 축은 개인 조회 설정입니다. 원본 WBS·배정·Target을 변경하지 않습니다. 중복 경로의 소계를 더하지 않고 서버의 고유 총계를 표시합니다. 등록 구성 수량과 Task·Assignment·계획공수 및 전체 Gate는 각각 다른 범위입니다.</ContextHelp></div>
     <p className={styles.subtle}>현재 경로: {[root,...(state.spec.levels??[]).map(level=>typeof level==="string" ? level : level.dimensions)].map(level=>Array.isArray(level)?level.map(d=>WBS_VIEW_LABELS[d]).join(" / "):WBS_VIEW_LABELS[level]).join(" → ")}</p>
     <WbsViewComposer spec={state.spec} onApply={apply} onReset={reset} presets={consumer?.presets}/>
+    {ConsumerControls ? <ConsumerControls spec={state.spec} onApply={apply} disabled={busy || !!drill.locked}/> : null}
     {warning ? <p role="alert">{warning} <button type="button" onClick={reset}>저장된 조회 초기화</button></p> : null}
     <div className={styles.controls}><label>표의 이름 찾기<input type="search" maxLength={200} value={state.rowSearch??""} onChange={event=>{cancelOriginal();setSelection(null);setState(previous=>({...previous,rowSearch:event.target.value,selected:null}));}}/></label><label>작업 검색<input type="search" maxLength={200} value={state.filters.taskSearch??""} onChange={event=>changeFilters({taskSearch:event.target.value})}/></label>
       <label>작업 상태<select value={state.filters.statuses?.[0]??""} onChange={event=>changeFilters({statuses:event.target.value?[event.target.value as "completed"|"not_started"|"in_progress"]:[]})}><option value="">전체</option><option value="not_started">시작 전</option><option value="in_progress">진행 중</option><option value="completed">완료</option></select></label>

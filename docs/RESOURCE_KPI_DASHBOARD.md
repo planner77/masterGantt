@@ -1,3 +1,9 @@
+## Issue #735 — 시스템 관점의 단위와 작업 범위
+
+시스템 관점은 같은 WBS 원장을 직접 또는 명시 조율 범위로 선택한다. 고유 System1식·실제 제어 설비 관리단위/quantity는 구성 참고이고, 고유 일반 Task·완료/지연·기간가중 진척과 개인 Assignment의 M/D/M/M는 현재 서버 선택이다. 같은 원본의 여러 공정/구역/Target 경로 소계는 비가산이다. PI/개발자 책임 등록은 개인 Assignment·공수·Capacity R를 만들지 않는다.
+
+공정0 공통 작업·작업0 시스템·미배정/공수 미설정·기간분모0/null과 M/M 미설정을 보존한다. 필터된 Task 진척이 Milestone 전체 Gate를 대체하지 않으며 Resource의 선택 부하/같은 R의 Project 참고/Capacity 기존 의미는 변경하지 않는다. [시스템 지표와 출처](LOGISTICS_DASHBOARD.md#issue-735--물류-시스템-전용-관점), [AC 및 실제 검증](exec-plans/active/ISSUE_735.md)을 따른다.
+
 ## Issue #733 — 공정 관점 KPI 소비
 
 공정&WorkArea 전용 화면은 #728 원장을 사용하는 #729 `WbsViewReportDto`의 서버 고유 총계와 diagnostics를 소비한다. 화면별 별도 공수·진척 계산기를 만들지 않는다. 구성 공정/구역은 동일 read snapshot catalog의 distinct ID, 설비관리단위는 distinct equipment ID, 수량은 원본 quantity, 시스템은 distinct instance당1식이다. 등록-only 구성은 Task/개인 배정0이어도 조회한다.

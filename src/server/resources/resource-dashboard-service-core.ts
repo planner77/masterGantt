@@ -125,12 +125,14 @@ export class ResourceDashboardService {
         const sourceContext = { ...snapshot.dataContext, range: { from: snapshot.from, to: snapshot.to }, asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, mdPerMmSource: snapshot.mdPerMmSource, mdPerMmProvided: snapshot.filters.mdPerMmProvided,
           schema: "wbs-view-source/1" as const, contextSourceVersion: input.spec.contextSourceVersion, snapshotId, spec: input.spec, path: projection.kind === "report" ? [] : projection.path, ...(input.scope ? { scope: input.scope } : {}) };
         const context: WbsViewResponseContext = { schema: "wbs-view-report/1" as const, snapshotId, projectPublicId: publicId, projectRevision: snapshot.project.revision, sourceContext, spec: input.spec, filters: input.filters ?? {},
-          range: sourceContext.range, asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, metadata: { ...ledger.metadata, limits: WBS_VIEW_LIMITS, excel: { supported: false, code: "WBS_VIEW_EXPORT_UNSUPPORTED", reason: "새 WBS 조회 명세의 Excel 내보내기는 아직 지원하지 않습니다." } } };
+          range: sourceContext.range, asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, metadata: { ...ledger.metadata,
+            ...(input.spec.systemView !== undefined || input.spec.systemIds !== undefined ? { systemSelection: { systemView: input.spec.systemView ?? "direct", systemIds: input.spec.systemIds ?? ledger.configuration.systems.map(row => row.id) } } : {}),
+            limits: WBS_VIEW_LIMITS, excel: { supported: false, code: "WBS_VIEW_EXPORT_UNSUPPORTED", reason: "새 WBS 조회 명세의 Excel 내보내기는 아직 지원하지 않습니다." } } };
         const selectedAssignmentIds = new Set(selected.assignmentIds);
-        const selectedSources = selected.rows.map(row => ({ taskId: row.taskId, sources: wbsViewSelectedSources(row, selectedAssignmentIds, projection.kind === "report" ? [] : projection.path) }));
+        const selectedSources = selected.rows.map(row => ({ taskId: row.taskId, sources: wbsViewSelectedSources(row, selectedAssignmentIds, projection.kind === "report" ? [] : projection.path, input.spec.systemView) }));
         if (selectedSources.reduce((sum, row) => sum + row.sources.length, 0) > WBS_VIEW_LIMITS.sourceRows) resourceDashboardLimit("projection.wbs.sourceRows");
         const instancePaths = selected.rows.flatMap(row => (["equipment", "system"] as const).flatMap(kind => (kind === "equipment" ? row.equipmentIds : row.systemIds).map(instanceId => ({ taskId: row.taskId, kind, instanceId,
-          sources: wbsViewSelectedSources(row, selectedAssignmentIds, projection.kind === "report" ? [] : projection.path).filter(source => source.entityKind === kind && source.entityId === instanceId),
+          sources: wbsViewSelectedSources(row, selectedAssignmentIds, projection.kind === "report" ? [] : projection.path, input.spec.systemView).filter(source => source.entityKind === kind && source.entityId === instanceId),
           targetMembers: row.targetSources.effectiveMembers.filter(member => member.kind === kind && member.entityId === instanceId),
           legacySources: row.targetSources.legacySources.filter(member => member.kind === kind && member.entityId === instanceId) }))));
         if (instancePaths.length > WBS_VIEW_LIMITS.sourceRows) resourceDashboardLimit("projection.wbs.instancePaths");

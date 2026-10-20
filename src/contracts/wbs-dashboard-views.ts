@@ -9,6 +9,9 @@ export interface WbsViewSpec {
   contextSourceVersion: "explicit-task-context:v1";
   root: WbsViewDimension;
   levels?: WbsViewLevel[];
+  systemView?: "direct" | "coordination";
+  /** System-root selection. Omitted means all; an explicit empty list selects none. */
+  systemIds?: string[];
 }
 export const WBS_VIEW_LIMITS = Object.freeze({ bodyBytes: 1024 * 1024, depth: 8, cells: 5000, fanout: 1000, detailRows: 100, responseBytes: 2 * 1024 * 1024, sourceRows: 50000 });
 export type WbsViewProjection = { kind: "report" } | { kind: "details"; snapshotId: string; path: WbsViewPathEntry[]; view: "tasks" | "assignments"; offset: number; limit: number } | { kind: "scope"; snapshotId: string; path: WbsViewPathEntry[] };
@@ -51,7 +54,7 @@ export interface WbsViewResponseContext {
   schema: "wbs-view-report/1"; snapshotId: string; projectPublicId: string; projectRevision: number;
   sourceContext: WbsViewSourceContext; spec: WbsViewSpec; filters: ResourceDashboardFilterInput;
   range: { from: string; to: string }; asOfDate: string; mdPerMm: number | null;
-  metadata: WbsTaskLedgerSnapshot["metadata"] & { limits: typeof WBS_VIEW_LIMITS; excel: { supported: false; code: "WBS_VIEW_EXPORT_UNSUPPORTED"; reason: string } };
+  metadata: WbsTaskLedgerSnapshot["metadata"] & { systemSelection?: { systemView: "direct" | "coordination"; systemIds: string[] }; limits: typeof WBS_VIEW_LIMITS; excel: { supported: false; code: "WBS_VIEW_EXPORT_UNSUPPORTED"; reason: string } };
 }
 export interface WbsViewConfigurationCatalog {
   processes: Array<{ id: string; name: string; occurrenceId: string | null }>;

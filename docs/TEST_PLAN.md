@@ -1,3 +1,9 @@
+## Issue #735 — 시스템 root 직접/조율 및 정확 교차 조회
+
+전용 `tests/server/resources/issue-735-system-dashboard.test.ts`, `tests/features/resources/system-dashboard.test.ts`, `tests/e2e/issue-735-system-dashboard.spec.ts`로 Target0 MCS1+ACS A/B의 단독/공정·WorkArea/설비·리소스/Milestone 경로, direct/coordination exact Task·Assignment·공수 합집합, 공유 controller/복수 경로 중복0과 다른 Task 누출0을 확인한다. Project 공통·복수 공정·WorkArea 미사용·작업0/PI 미설정·Target-only/혼합·빈 시스템 선택·잘못된 spec/foreign ID·snapshot stale를 포함한다.
+
+지표는 기존 원장/Calendar/공수/full Gate oracle과 대조하고 System1식/고유 제어 설비량/Task/개인배정·Resource 부하를 분리한다. 실제 UI는 System/Task/Assignment 원본·정확 일정과 복귀·dirty/readonly/stale/error, 390/768/1024/1440/1920px keyboard/focus·내부 overflow/header-body 정렬·긴 이름·조회 mutation0/Gantt remount0을 확인한다. 공통 WBS model/transport/SQLite HTTP·#730/#733 consumer·기존 물류 direct/coordination KPI·#624/Resource 회귀를 영향 범위에 선정한다. 최초 실패·보완·재실행 및 실제 명령/개수는 [Work Packet](exec-plans/active/ISSUE_735.md)에 누적한다. 로컬 실행은 공식 Full PR Quality/E2E6/Docker·Trusted QA·Owner 승인 증거를 대체하지 않는다.
+
 ## Issue #733 — F733-005 Full #3044.1 post-restart Project GET500 (2026-10-20)
 
 - [Run #3044.1](https://github.com/planner77/masterGantt/actions/runs/39374553530) Shard3 failed one #725 actual browser case at target-project.ts:57, Project GET expected200 actual500 following successful restart equipment GET405, PATCH200 JSON and Task Context GET/PUT200. Quality/Build/Docker success, five other E2E shards cancelled, E2E/QA downstream fail. Source/Job/artifact, previous F733-001~004 and #3039 historical PASS are in [single #733 ledger §10](ISSUE_733_FAILURE_ANALYSIS.md).

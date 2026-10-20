@@ -1,3 +1,9 @@
+## Issue #735 — 시스템 root의 직접·조율 선택
+
+기존 `POST /api/projects/{publicId}/resource-dashboard/views`의 `spec.root=system`에서만 additive `systemView?: "direct"|"coordination"`, `systemIds?: string[]`를 허용한다. 생략은 기존 요청 의미를 보존한다. 시스템 ID 생략은 전체, 명시 `[]`는 빈 선택이며 필터 결과0개를 전체로 바꾸지 않는다. 중복 ID는 정규화하고 같은 Project의 등록 시스템·canonical UUID·최대1000개 한도를 서버에서 검증한다. 다른 root의 해당 필드·잘못된 모드/ID·foreign 참조는 거부한다.
+
+`direct`는 기존 유효 System Task 연관, `coordination`은 기존 Domain의 coordinates 도달 System 및 실제 controller controls 설비 Task를 포함한다. report와 정확 details/scope는 같은 mode/시스템 선택/Task·Assignment 교집합을 사용한다. spec이 snapshotId/sourceContext에 포함되어 모드·선택 변경 시 이전 snapshot의 상세를 재사용할 수 없다. Task 공정은 명시0..N 기준이며 System 담당 공정으로 유도하지 않는다. 명시 opt-in 응답의 `metadata.systemSelection={systemView,systemIds}`는 실제 선택을 기록한다. 기존 spec에서 두 필드를 모두 생략하면 미연결 Task를 포함한 종전 조회이며, 명시 opt-in은 선택 시스템의 Task 합집합이다. 신규 opt-in의 반복 selector/configuration 읽기는 cache와 누적 원시행 작업량50000 한도를 적용하고 초과 시422 `REPORT_LIMIT_EXCEEDED`로 전체 실패한다. 구성 참고와 작업 범위·full Gate는 별도이고 기존 bounded/no-store/Origin/read-only·Excel 미지원 계약을 유지한다. [실행 가능한 원장](WBS_TASK_LEDGER.md), [AC 검증](exec-plans/active/ISSUE_735.md)을 따른다.
+
 ## Issue #733 — 공정 consumer용 동일 snapshot 구성 목록·하위 구성 보존
 
 기존 `POST /api/projects/{publicId}/resource-dashboard/views`의 report 응답에 `configurationCatalog`를 추가한다. 동일 SQLite read snapshot의 `processes[{id,name,occurrenceId}]`, `workAreas[{id,name,occurrenceId,processIds}]`, `instances[{kind,id,name}]`, `milestones[{id,name}]`를 제공하며 공정 단독/다른 축에서도 등록 고유 수·원본 이름을 사용할 수 있다. 별도 global catalog 응답이나 다른 revision의 이름/수치를 합치지 않는다. Project 공정 ID와 occurrence ID, WorkArea 소유 mapping은 구별한다. details/scope의 exact Task·Assignment·snapshot 재검증 및 기존 strict 한도는 유지한다.

@@ -1,3 +1,9 @@
+## Issue #735 — 시스템 관점의 조회와 속성
+
+DESIGN.md의 기존 Light UI/이름 우선/compact control·상황형 도움말을 적용한다. System은 고정 root이며 단독 및 변경 가능한 하위 preset을 제공한다. 실제 제어/조율 관계와 Task 공통 연관, 구성 System1식/제어 설비량과 작업/개인 계획공수를 시각·문구로 구분한다. 속성 필터는 서버 전체 선택을 바꾸고 이름 찾기는 표시만 바꾼다. 긴 이름·공정·담당자는 줄바꿈하고 코드/ID는 요청 시 표시한다. 설명·역할·진단은 접기 영역에 두며 핵심 mode/상태/새로고침은 즉시 접근 가능해야 한다.
+
+기존 공통 계층 표의 열 예산·내부 가로 scroll을 재사용하고 새 요약/필터는 가용 폭에 wrap한다. 390/768/1024/1440/1920px에서 문서 overflow0, header/body 정렬·긴 이름과 keyboard Tab/Enter/Escape·focus 가시성/원본 복귀를 실제 Chromium으로 검증한다. readonly/dirty/stale/error·snapshot 보존은 기존 renderer/editor 규칙을 적용한다. [설계 Delta B와 실행 경계](exec-plans/active/ISSUE_735.md)를 따른다.
+
 ## Issue #733 — 공정 전용 consumer와 KPI 구획
 
 기존 공통 계층 표의 열 budget·내부 scroll·44px 조작 영역을 유지한다. 공정 관점 추가 KPI는 표 열을 늘리지 않고 구성/작업 구획으로 표시한다. 공정 단독·WorkArea/typed 형제·Milestone 예시는 기존 조회 구성 disclosure에서 선택하고 개인 저장 설정을 덮지 않는다. 이름 우선·접힌 식별 정보·상황형 도움말을 적용하며 정상 구역없음/작업0을 오류 색으로 평가하지 않는다.
