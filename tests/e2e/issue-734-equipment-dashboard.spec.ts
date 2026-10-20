@@ -214,9 +214,27 @@ test("#734 설비 원본 dirty 유지·정확 PATCH 저장·새 snapshot과 focu
   await editor.getByRole("button", { name: "취소", exact: true }).click(); await expect(editor).toContainText("저장하지 않은 설비 변경을 폐기할까요?");
   await editor.getByRole("button", { name: "계속 편집", exact: true }).click(); await expect(editor.getByLabel("설비명", { exact: false })).toHaveValue(name);
   const writes = observeWrites(page, f.publicId);
-  const saved = page.waitForResponse(response => response.request().method() === "PATCH" && new URL(response.url()).pathname === `/api/projects/${f.publicId}/logistics/equipment/${f.equipment.id}`);
-  const refreshed = nextReport(page); await editor.getByRole("button", { name: "저장", exact: true }).click(); expect((await saved).status()).toBe(200);
-  const after = (await (await refreshed).json()).data as WbsViewReportDto;
+  await editor.getByRole("button", { name: "저장", exact: true }).click();
+  // The existing shared-instance edit policy requires explicit impact confirmation before PATCH.
+  const confirmation = page.getByRole("dialog", { name: "공유 인스턴스 변경 확인", exact: true });
+  await expect(confirmation).toBeVisible();
+  await expect(confirmation).toContainText(f.equipment.id);
+  await expect(confirmation.getByRole("button", { name: "공유 사용처 확인 후 원본 저장", exact: true })).toBeEnabled();
+  expect(writes).toEqual([]);
+  await confirmation.getByRole("button", { name: "원본 변경 취소", exact: true }).click();
+  await expect(confirmation).toHaveCount(0);
+  await expect(editor.getByLabel("설비명", { exact: false })).toHaveValue(name);
+  expect(writes).toEqual([]);
+  await editor.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(confirmation).toBeVisible();
+  await expect(confirmation.getByRole("button", { name: "공유 사용처 확인 후 원본 저장", exact: true })).toBeEnabled();
+  const [saved, refreshed] = await Promise.all([
+    page.waitForResponse(response => response.request().method() === "PATCH" && new URL(response.url()).pathname === `/api/projects/${f.publicId}/logistics/equipment/${f.equipment.id}`, { timeout: 30_000 }),
+    nextReport(page),
+    confirmation.getByRole("button", { name: "공유 사용처 확인 후 원본 저장", exact: true }).click(),
+  ]);
+  expect(saved.status(), await saved.text()).toBe(200);
+  const after = (await refreshed.json()).data as WbsViewReportDto;
   await expect(root(page)).toHaveAttribute("data-ready", "true"); expect(after.projectRevision).toBe(before.projectRevision + 1); expect(after.snapshotId).not.toBe(before.snapshotId); expect(after.spec).toEqual(before.spec);
   await expect(editor).toHaveCount(0); await expect(row).toContainText(name); await expect(trigger).toBeFocused();
   const savedEquipment = (await f.snapshot()).data.logistics!.equipment.find(equipment => equipment.id === f.equipment.id)!;

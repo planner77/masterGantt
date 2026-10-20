@@ -5,6 +5,9 @@
 전용 `tests/e2e/issue-734-equipment-dashboard.spec.ts`는 실제 Chromium/격리 HTTP·SQLite에서 사용자 축 추가/제거/정렬·두 요구 경로/단독/복원·유형, 정확 원본 editor/dirty/저장·Task/Assignment·일정 복귀·stale/401/412/readonly, 5폭390/768/1024/1440/1920px의 긴 이름·Tab/Escape/focus·열 정렬·문서 overflow0/표 내부 scroll·Gantt instance/marker-OFF와 조회 mutation0을 수용한다. 준비/오류/후행 조회는 기존 response observer를 재사용하며 query POST를 업무 mutation과 구별한다.
 
 교차 회귀는 기존 #729 HTTP/view·#728 Domain·#733 process consumer, #730 composer/원본/일정·#624 legacy 설비 통합 조회·#731 KPI와 source/drill transport다. 새 renderer/DB writer·계산 알고리즘/CI policy는 추가하지 않는다. 실제 명령·케이스 수·실패 원인·source 불변·PrePR UNKNOWN 및 미검증은 [Work Packet](exec-plans/active/ISSUE_734.md)에 기록한다. 로컬 선정은 공식 원격 Full6-shard/quality/docker·Trusted QA·Owner 수용을 대신하지 않는다.
+
+**#734 PR CI 연속 실패 회귀 보완(2026-10-21).** [단일 #734 실패 원장](ISSUE_734_FAILURE_ANALYSIS.md)에 F734-001(#3058.1 272자 설비명 HTTP400 → #3061.1 200자 5폭 case PASS)과 F734-002(#3061.1 공유 사용처 승인 누락→PATCH 응답 대기120s)를 각각 원본 Head/Run으로 보존한다. 설비 원본 editor의 공유 인스턴스 변경 확인은 저장 전 필수 read-only 사용처 preview이므로 `원본 변경 취소`/dirty 유지·mutation0, 재확인 후에만 PATCH200/새 report·revision·2개 WorkArea·focus 복귀를 확인한다. #735 시스템 원본 승인 flow/기존 #730 Task drill, 원장/유형 조회 음성/200자·5폭·Gantt 상태를 함께 보존하며 제품 확인 gate를 우회하거나 120s/Shard6/CI fail-fast를 완화하지 않는다. 수정 새 Head Chromium/Trusted QA는 별도 원격 실행 전 NOT TESTED.
+
 ## Issue #735 — 시스템 root 직접/조율 및 정확 교차 조회
 
 전용 `tests/server/resources/issue-735-system-dashboard.test.ts`, `tests/features/resources/system-dashboard.test.ts`, `tests/e2e/issue-735-system-dashboard.spec.ts`로 Target0 MCS1+ACS A/B의 단독/공정·WorkArea/설비·리소스/Milestone 경로, direct/coordination exact Task·Assignment·공수 합집합, 공유 controller/복수 경로 중복0과 다른 Task 누출0을 확인한다. Project 공통·복수 공정·WorkArea 미사용·작업0/PI 미설정·Target-only/혼합·빈 시스템 선택·잘못된 spec/foreign ID·snapshot stale를 포함한다.
