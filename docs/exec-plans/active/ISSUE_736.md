@@ -102,3 +102,11 @@
 - 수정: WBS Project canonical Assignment의 결손·Task/Resource 원본 불일치·중복 판정 뒤 명시적 return unsupported(...)으로 TypeScript non-null guard를 보장. 동일 예외·계산·원본 식별·Plan/Excel current/project/snapshot·권한 계약 보존. 샤드 재분배, CI timeout/retry/skip/Required3 변경 없음.
 - 영향 범위: tests/server/projects/resource-excel-export.test.ts, tests/server/resources/issue-736-resource-adapter.test.ts, WBS ledger·기존 Resource Plan/Excel·E2E6. 별도 TypeScript 5.8.3 strict guard 최소 재현만 PASS; 새 Source의 실제 전체 typecheck/Unit/ESLint/Build/E2E/Docker는 NOT TESTED. GitHub CI에 인계한다.
 - PR review thread 0, main base 08a1d9ff25a97aba67f08d6b67029ac55d45121a 대비 ahead1/behind0 및 mergeable=true 확인 후 수정. 새 Head/Run 별도 확인 예정. HIGH/OWNER_MANAGED, manager_decision=NOT TESTED, MERGE_READY=BLOCKED, release_authorized=false. 병합/Main/GHCR/Issue 종료 미수행.
+
+### Full PR CI #3062.1 F736-002 E2E 단언 보완 (2026-10-21)
+
+- 이전 Full PR CI [#3062.1](https://github.com/planner77/masterGantt/actions/runs/39485528120): Head f340a84526a3b38ed602ebcc8eaf5010807269c2, TypeScript/Lint/Vitest/Policy/Fast/Build/Docker 및 Required Quality/Docker SUCCESS; E2E shard5 failure, shard1/2/3/4/6 CANCELLED, Required E2E/QA Final FAILURE.
+- 신규 원인: tests/e2e/issue-736-resource-dashboard.spec.ts:99에서 M/M option의 DOM `<option disabled value="mm">`가 관측되었음에도 Playwright toBeDisabled() matcher가 enabled 판정(5s 대기)하여 scenario 1FAIL, shard5의 앞선 10PASS/나머지83NOT RUN. Test 실제 본문36.1s, 180s timeout 아님. GitCommitInfo fetch timeout3s 경고는 이후 테스트 실행되므로 직접 원인 아님.
+- 보완: response.mdPerMm null + MM option disabled attribute + JS property disabled true + select md fallback을 확인해 제품 계약을 원시 브라우저 속성과 선택 값으로 검증. 기존 80%/140%/수정40%/복귀 단언 모두 유지; source 제품/CI shard/timeout/retry/skip 변경 없음. 기존 [F736-001과 L/E/R 전체 이력](../../ISSUE_736_FAILURE_ANALYSIS.md)과 새 F736-002에 누적 기록.
+- 관련 테스트: tests/e2e/issue-736-resource-dashboard.spec.ts 전체4 case, tests/features/resources/resource-wbs-dashboard-model.test.ts null fallback, 인접 #621/#622/#623 및 Resource Excel·drill 회귀. 새 Head 로컬 Playwright/Unit은 NOT TESTED; 원본 Head의 PASS는 역사적 증거. 새 exact Head GitHub Full Required3 검증 후 별도 판단.
+- 조치 시작 시 PR #760 mergeable=true, main 대비 ahead2/behind0, 미해결 review thread 0. 새 Full PR CI 시작 후에도 HIGH/OWNER_MANAGED, manager_decision=NOT TESTED, MERGE_READY=BLOCKED, release_authorized=false. 사용자 요청대로 CI 완료 모니터링/병합/Main/GHCR/Issue 종료 제외.

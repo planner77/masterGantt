@@ -43,3 +43,27 @@ Resource consumer→공통 view transport/renderer·동일 Assignment 원장→�
 **Cross-run / 검증 인계:** 확인 가능한 #736 원격 Full PR CI의 첫 실패는 39439974649.1 단일 건이다. 원격 실제 실패 파일 합집합: src/server/exports/resource-excel-export-core.ts (typecheck); 로컬 기존 L736-001/002/003, E736-001/002/003, 사전 리뷰 R736-001/002/003/004는 기존 표에 보존한다. 격리 TypeScript5.8.3 strict 예제의 동일 guard는 PASS(전체 repository typecheck PASS 증거가 아님). 연결된 원격 저장소를 이 실행 환경에서 checkout/npm 실행할 수 없어 새 Head typecheck, Resource Excel/adapter·원장 관련 Vitest, ESLint, Build, Chromium6, Docker는 NOT TESTED. 새 Full PR CI가 이 범위와 과거 회귀·음성 사례를 검증해야 한다. Timeout/Retry/Skip/6Shard/Required3 정책 및 단언은 변경하지 않는다.
 
 **승인 경계:** HIGH/OWNER_MANAGED, manager_decision=NOT TESTED, MERGE_READY=BLOCKED, release_authorized=false. 새 CI 시작만 확인하고 완료 모니터링·병합·Main CI·GHCR·Issue 종료는 수행하지 않는다. 새 Head/Run은 이슈 STATUS 댓글에 별도 연결한다.
+
+## F736-002 — PR #760 Full PR CI #3062.1 Chromium E2E assertion 실패 (2026-10-20 UTC)
+
+이 절은 F736-001과 최초 L736/E736/R736 이력을 삭제·대체하지 않고 누적한다. #3059.1의 TS18048은 이 실행에서 TypeScript SUCCESS로 교정 확인되었고, 이번에는 별도 E2E assertion의 첫 원격 실패다.
+
+| 분류 | Run/Job/원본 증거 |
+| --- | --- |
+| 실행/귀속 | [Full PR CI #3062.1, Run 39485528120, attempt 1](https://github.com/planner77/masterGantt/actions/runs/39485528120), event pull_request, PR #760, Head f340a84526a3b38ed602ebcc8eaf5010807269c2, base main 08a1d9ff25a97aba67f08d6b67029ac55d45121a; 최초 실패 후 재실행 |
+| 선행 검사 | QA Preflight 118844920898, TypeScript 118845026837, ESLint 118845026873, Vitest 118845026936, Policy 118845026965, PR Fast Gate 118845625089, Next Build 118845905767, Docker smoke 118845905709: SUCCESS |
+| 최초 실제 실패 | [Chromium E2E shard 5/6 job 118845905766](https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845905766), 2026-10-20T19:52:12Z, tests/e2e/issue-736-resource-dashboard.spec.ts:85 scenario `새 Resource Plan 선택80·Project140·선택밖 원인 저장 후 정확 일별 상세 복귀`, assertion line 99 |
+| 기대/실제 | `expect(option[value=mm]).toBeDisabled()` expected disabled / received enabled after 5000ms matcher wait. Playwright call log DOM은 13회 `<option disabled value="mm">M/M</option>`로 관측. Test는 36.1s에 실패했고 E2E 중간 이전 같은 shard에서 10건 PASS(8.2m), 83건 NOT RUN. 원본 오류는 테스트 예산 180s/Playwright 전체 shard Timeout이 아님 |
+| 취소/파생 | shard 1/2/3/4/6는 fail-fast CANCELLED(그 안의 완료된 개별 PASS는 전체 shard PASS가 아님). Required Quality job118846549636 SUCCESS, Docker job118847118908 SUCCESS, Required E2E job118850965427 FAILURE 및 QA Final118851004741 FAILURE는 shard5의 파생 결과 |
+| 증거 | [shard5 trace/report artifact 12294535776](https://github.com/planner77/masterGantt/actions/runs/39485528120/artifacts/12294535776); 원본 job log 확인. Trace 내부 재생·영상 수동 검증은 NOT TESTED. `GitCommitInfo: timeout of 3000ms` 경고는 테스트가 계속 실행됐으므로 직접 실패와 무관 |
+| 원본 메인/리뷰 | REWORK 착수 당시 PR mergeable=true, main ahead2/behind0, review threads 미해결0. 병합/QA/GHCR 승인 없음 |
+
+**원인 판단 — TEST_CONTRACT / ASSERTION_OBSERVABILITY.** 새 Resource Plan은 `data.mdPerMm === null`일 때 React `<option value="mm" disabled>`를 렌더하며, `resourceWbsPlanUnit("mm",null)`은 `md`로 fallback 한다(기존 Resource WBS model Unit PASS). 실제 Playwright 로그도 `disabled` 속성이 렌더된 옵션을 확인했으나 `toBeDisabled()` matcher는 `enabled`로 분류한다. 따라서 해당 matcher와 option 원시 DOM 사이 판정 불일치이며 *M/M UI 옵션을 활성화한 제품 결함으로 입증되지 않았다*. Playwright 내부 판단의 정확한 기술적 기전은 UNKNOWN; DOM 이외 실제 클릭 동작/스크린리더 수동 검증도 NOT TESTED다. 5초는 assertion wait 예산이며 테스트 전체 Timeout이 아니므로 6-shard 재분배·timeout/retry/skip 상향 금지.
+
+**보완:** `tests/e2e/issue-736-resource-dashboard.spec.ts`에서 동일한 제한 정책을 더 직접적으로 검증한다. 응답 `report.mdPerMm`이 null임을 확인하고 M/M option의 `disabled` attribute 존재와 JavaScript property `disabled === true`를 각각 검사하며 select가 M/D (`md`) 상태인 것도 확인한다. `toBeDisabled()`라는 모호한 matcher 1개를 위의 네 조건으로 대체한다. 기존 80%·140%·외부 원인 40% 수정 후 120%, 정확한 Assignment/상태 복귀, 다른 단언과 테스트 180s 예산은 유지한다. 제품 코드는 미수정이며 숨은 환산/공수 조작 없음. Playwright 공식 locatorAssertions의 `toHaveAttribute`/`toHaveJSProperty`는 각각 DOM 속성·JS property를 검증한다.
+
+**과거 전체 실패 교차 진단:** L736-001/002 테스트 parser·stale oracle, L736-003 locator, E736-001/002/003 환경·준비, R736-001 M/M null fallback·R736-002 exact Excel source/R736-004 개인 Assignment 격리를 모두 보존한다. F736-001(src/server/exports/resource-excel-export-core.ts:60 TypeScript)과 F736-002(tests/e2e/issue-736-resource-dashboard.spec.ts:99 option matcher)는 서로 다른 오류 유형이다. 누적 실제 원격 실패 파일 합집합: (1) src/server/exports/resource-excel-export-core.ts (2) tests/e2e/issue-736-resource-dashboard.spec.ts. 기타 취소 shard를 완료 PASS나 실패로 가정하지 않는다.
+
+**영향·검증:** 변경은 새 E2E 단언만. 이미 원격 성공한 Head f340a845의 Quality/Docker를 다음 Head 성공으로 전용하지 않는다. 제품 MD/MM fallback은 tests/features/resources/resource-wbs-dashboard-model.test.ts에 Unit이 존재하고 과거 Run Vitest가 SUCCESS. 새 Head의 해당 E2E 4 case·다른 #621/#622/#623 기존 Resource Plan·원본 편집·Excel·full CI6 shards·Quality/Docker는 새 GitHub Full CI에서 검증한다. 연결 환경에 실제 repository checkout/Playwright/browser test runtime이 없어 새 Head local E2E 및 전체 Unit은 NOT TESTED. 기존 180s timeout과 PR required gates/6Shard 그대로다.
+
+**진행 경계:** 수정 source/원장/Work Packet 동일 커밋으로 GitHub PR synchronize, review threads0·main 정렬 확인 후 Full PR CI 자동 시작만 확인한다. 신규 run 결과 모니터링·병합/Main/GHCR/Release·Issue 종료는 수행하지 않는다. HIGH/OWNER_MANAGED, manager_decision=NOT TESTED, MERGE_READY=BLOCKED, release_authorized=false.

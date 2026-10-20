@@ -96,7 +96,12 @@ test("#736 새 Resource Plan 선택80·Project140·선택밖 원인 저장 후 �
  await root(page).getByRole("combobox",{name:"개인",exact:true}).selectOption(f.resource.id);
  const response=reportResponse(page);await root(page).getByRole("combobox",{name:"Plan 기간",exact:true}).selectOption("week");const report=(await(await response).json()).data as WbsViewReportDto;expect(report.assignmentIds).toHaveLength(1);
  const plan=root(page).getByRole("region",{name:"Resource Plan",exact:true});await expect(plan).toBeVisible();
- await expect(root(page).getByRole("combobox",{name:"Plan 단위",exact:true}).locator('option[value="mm"]')).toBeDisabled();
+ expect(report.mdPerMm).toBeNull();
+ const unit=root(page).getByRole("combobox",{name:"Plan 단위",exact:true});
+ const mmOption=unit.locator('option[value="mm"]');
+ await expect(mmOption).toHaveAttribute("disabled");
+ await expect(mmOption).toHaveJSProperty("disabled",true);
+ await expect(unit).toHaveValue("md");
  await plan.getByLabel("기간 셀 지표",{exact:true}).selectOption("load");await expect(plan).toContainText("평균 80.00 %");
  await plan.getByLabel("부하 범위",{exact:true}).selectOption("project");await expect(plan).toContainText("평균 140.00 %");
  const table=plan.getByRole("region",{name:"개인 기간 계획표",exact:true});
