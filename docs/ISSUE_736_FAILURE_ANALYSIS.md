@@ -20,3 +20,26 @@
 Resource consumer→공통 view transport/renderer·동일 Assignment 원장→기존 Plan/report/detail·exact editor/복귀→Project Excel strict parser/read snapshot/기존 writer를 확인한다. 기본 공통 view, #621/#622/#623, Resource Excel·KPI·미배정 진단·full Gate·Calendar/R/null은 인접 소비자다. 신규 테스트의 해시 배정은 기존6Shard selector에 맡기고 Required3·timeout·retry·skip·기존 E2E 단언을 완화하지 않는다.
 
 실제 실행 명령·종료 상태·최종 source와 아직 미검증 항목은 Work Packet에 기록한다. 별도 Agent 사전 검토는 최종 독립 인간 QA/Owner ACCEPT·새 Head 원격 전체 PASS가 아니다.
+
+## F736-001 — PR #760 Full PR CI #3059.1 TypeScript 실패 (2026-10-20 UTC)
+
+기존 L736/E736/R736의 관측·수정 기록은 보존한다. 이 문서 첫 문단의 '기존 원격 PR/CI 없음'은 최초 기록 시점의 과거 상태이며, 이후 첫 Full PR 실패는 아래와 같다. 타 이슈의 실패·Timeout은 본 이슈의 실패로 합산하지 않는다.
+
+| 분류 | 실제 증거 |
+| --- | --- |
+| Issue/PR | [#736](https://github.com/planner77/masterGantt/issues/736) / [#760](https://github.com/planner77/masterGantt/pull/760); branch feat/issue-736-resource-dashboard |
+| Run/Attempt | [Full PR CI #3059.1, Run 39439974649.1](https://github.com/planner77/masterGantt/actions/runs/39439974649); event pull_request; 시작 2026-10-20T14:31:17Z, 완료 14:42:35Z, conclusion failure |
+| 원본 SHA | Head 94e602c3ee3c524dc41b348dd8ebe20330d59d1e; main base 08a1d9ff25a97aba67f08d6b67029ac55d45121a; 기존 STATUS의 test merge a0289adf7c30db53aab4b07d5e0a1f82edaf35bf (별도 부모 검증 NOT TESTED) |
+| 최초 실제 오류 | [TypeScript job 118687236139](https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118687236139), npm run typecheck / tsc --noEmit, 2026-10-20T14:32:52Z; src/server/exports/resource-excel-export-core.ts(60,22), TS18048: 'assignment' is possibly 'undefined', exit 2 |
+| 선행 성공 | 경로 판정 118686919110, QA Preflight 118687076849, 정책 118687236119, Vitest 118687236102, QA 경계 118686918254 SUCCESS |
+| 취소/미실행 | ESLint 118687236466 CANCELLED; PR Build, Chromium E2E 6 shards, PR Docker Smoke SKIPPED(빠른 검사 게이트가 차단함, 개별 제품 FAIL/Timeout이 아님) |
+| 파생 실패 | PR Fast Gate 118692633668 FAILURE; Required Quality 118692740545, E2E 118692740869, Docker 118692741384 모두 FAILURE; QA Final 118692801510 FAILURE — 선행 TypeScript 오류의 파생 Gate 실패 |
+| 리뷰/충돌 | REWORK 착수 기준 GitHub 미해결 review thread 0; PR mergeable=true, main 대비 ahead1/behind0 |
+
+**유형·원인: PRODUCT/TYPE_SAFETY.** 신규 WBS Resource Excel에서 Map.get()은 Assignment가 없으면 undefined를 반환한다. 기존 코드는 없거나 Task ID·Resource ID 불일치 또는 중복인 경우 unsupported()를 호출하지만, 그 다음 행 projectIds.add(assignment.id)에서 컴파일러가 존재성을 증명하지 못하여 TypeScript TS18048로 차단된다. E2E 본문 실행 전 발생했으므로 Timeout·Playwright Shard 과부하와 인과관계가 없다. 기존 R736-002 source/snapshot 및 R736-004 개인 Assignment 범위 검증과 관련된 위치이지만 과거 Runtime 결함 재발로 볼 증거는 없다.
+
+**조치:** src/server/exports/resource-excel-export-core.ts의 원래 불일치 판정 전체를 유지하면서 조건 분기를 명시적 return unsupported("WBS Project Assignment identity mismatch.")으로 종료한다. 정상 할당은 그대로 projectIds에 추가되며 결손·불일치·중복 원본은 기존 EXPORT_UNSUPPORTED 예외를 유지한다. 강제 non-null 단언, 원본 검증 우회, Task/Assignment ID·공수·Capacity·기간·null·Plan/Excel source/snapshot 로직 수정은 없다.
+
+**Cross-run / 검증 인계:** 확인 가능한 #736 원격 Full PR CI의 첫 실패는 39439974649.1 단일 건이다. 원격 실제 실패 파일 합집합: src/server/exports/resource-excel-export-core.ts (typecheck); 로컬 기존 L736-001/002/003, E736-001/002/003, 사전 리뷰 R736-001/002/003/004는 기존 표에 보존한다. 격리 TypeScript5.8.3 strict 예제의 동일 guard는 PASS(전체 repository typecheck PASS 증거가 아님). 연결된 원격 저장소를 이 실행 환경에서 checkout/npm 실행할 수 없어 새 Head typecheck, Resource Excel/adapter·원장 관련 Vitest, ESLint, Build, Chromium6, Docker는 NOT TESTED. 새 Full PR CI가 이 범위와 과거 회귀·음성 사례를 검증해야 한다. Timeout/Retry/Skip/6Shard/Required3 정책 및 단언은 변경하지 않는다.
+
+**승인 경계:** HIGH/OWNER_MANAGED, manager_decision=NOT TESTED, MERGE_READY=BLOCKED, release_authorized=false. 새 CI 시작만 확인하고 완료 모니터링·병합·Main CI·GHCR·Issue 종료는 수행하지 않는다. 새 Head/Run은 이슈 STATUS 댓글에 별도 연결한다.

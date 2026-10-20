@@ -56,7 +56,9 @@ export function validateResourceExcelReport(snapshot: ProjectSnapshotResponse, i
     const canonicalAssignments = new Map(snapshot.data.assignments?.map(row => [row.id, row]) ?? []);
     for (const row of evidence.projectAssignments) {
       const assignment = canonicalAssignments.get(row.assignment.assignmentId);
-      if (!assignment || assignment.taskId !== row.taskId || assignment.target.kind !== "resource" || assignment.target.id !== row.assignment.resourceId || projectIds.has(assignment.id)) unsupported("WBS Project Assignment identity mismatch.");
+      if (!assignment || assignment.taskId !== row.taskId || assignment.target.kind !== "resource" || assignment.target.id !== row.assignment.resourceId || projectIds.has(assignment.id)) {
+        return unsupported("WBS Project Assignment identity mismatch.");
+      }
       projectIds.add(assignment.id);
     }
     if (bundle.assignments.some(row => !projectIds.has(row.assignment.assignmentId))) unsupported("WBS selected Assignment absent from Project reference.");

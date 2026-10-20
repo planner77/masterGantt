@@ -94,3 +94,11 @@
 2026-10-20 재개: 사용자의 이전 요청 완료 지시에 따라 작업 tree와 main·기존PR을 다시 확인했다. main은 기준05f1e560과 같고 기존736PR은0건이다. 환경 재시작으로 과거 /tmp·프로세스는 소실되었으므로 브라우저 최종 검증은 저장소의 격리 fixture로 다시 실행한다. 구현/정책 범위나 정식 릴리스 권한은 확대하지 않는다.
 
 최종 게시 정렬: 최신 main `08a1d9ff25a97aba67f08d6b67029ac55d45121a`의 #735 시스템 대시보드를 통합했다. 공통 metadata의 systemSelection과 Resource Excel 지원을 함께 보존했고 문서 양쪽 절·버전0.128.0을 유지했다. 이전137 Unit은 이 정렬 전 source의 증거이며 정렬 후 공식 전체 검증은 새 Head CI에 인계한다.
+
+### PR CI #3059.1 재작업 — F736-001 (2026-10-21)
+
+- 출처: [PR #760 Run 39439974649.1](https://github.com/planner77/masterGantt/actions/runs/39439974649), 기존 Head 94e602c3ee3c524dc41b348dd8ebe20330d59d1e; TypeScript job 118687236139의 Resource Excel src/server/exports/resource-excel-export-core.ts:60:22 TS18048. Vitest·Policy·Preflight SUCCESS, ESLint CANCELLED, Build/E2E6/Docker SKIPPED, Required3·QA Final FAILURE(파생). Timeout 아님.
+- 기존 누적 L736/E736/R736 전체 이력과 AGENTS.md/PR_CI_FAILURE_TRIAGE.md를 검토하고 [단일 실패 원장](../../ISSUE_736_FAILURE_ANALYSIS.md)에 F736-001의 원본 Run/Attempt/Job/SHA·원인·비실행·조치를 추가했다.
+- 수정: WBS Project canonical Assignment의 결손·Task/Resource 원본 불일치·중복 판정 뒤 명시적 return unsupported(...)으로 TypeScript non-null guard를 보장. 동일 예외·계산·원본 식별·Plan/Excel current/project/snapshot·권한 계약 보존. 샤드 재분배, CI timeout/retry/skip/Required3 변경 없음.
+- 영향 범위: tests/server/projects/resource-excel-export.test.ts, tests/server/resources/issue-736-resource-adapter.test.ts, WBS ledger·기존 Resource Plan/Excel·E2E6. 별도 TypeScript 5.8.3 strict guard 최소 재현만 PASS; 새 Source의 실제 전체 typecheck/Unit/ESLint/Build/E2E/Docker는 NOT TESTED. GitHub CI에 인계한다.
+- PR review thread 0, main base 08a1d9ff25a97aba67f08d6b67029ac55d45121a 대비 ahead1/behind0 및 mergeable=true 확인 후 수정. 새 Head/Run 별도 확인 예정. HIGH/OWNER_MANAGED, manager_decision=NOT TESTED, MERGE_READY=BLOCKED, release_authorized=false. 병합/Main/GHCR/Issue 종료 미수행.
