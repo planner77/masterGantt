@@ -1,3 +1,10 @@
+## [0.128.0] — Unreleased / Issue #736
+
+- Target0에서도 개인 Resource 단독·공정/WorkArea/설비·System 형제 및 Milestone/공정 하위 구성을 조회한다. 등록/역할/개인 배정·비활성과 필터된 고유 작업/계획공수를 구분하고 같은 Assignment 범위·M/M null·비가산 원장을 보존한다.
+- 기존 Resource 현황·Group/Role/등급·Milestone/Target 비교·Plan·일별 과투입·개발 견적·Excel은 범위가 명시된 기본 펼침 보조 영역으로 유지한다. 동적 선택은 정확 Assignment adapter로 기존 Plan의 같은 R·Calendar·Project 전체 부하 참고를 재사용한다.
+- Resource root current/project Excel은 같은 WBS source/snapshot/spec/path·필터를 검증하고 기존 writer에 raw Task/Assignment 및 반복 비가산 경로 근거를 전달한다. 다른 root 미지원은 명시 거부하며 기존 개인 Plan/견적 출력을 차단하지 않는다.
+- 관련 API/KPI·UX·교환·사용자 가이드/#720·테스트·실행 계획을 동기화한다. HIGH/OWNER_MANAGED, release_authorized=false. PR CI 시작은 전체 CI PASS·Trusted/Owner 승인·병합·정식 릴리스 완료가 아니다.
+
 ## [0.126.0] — Unreleased / Issue #735
 
 - PR CI #3055.1의 반응형 메뉴 단일 Test30초 초과를 실제 trace와 원형 재현으로 확인하고, 기존4폭16corner 및 모바일·짧은 화면·Clipboard·Summary 검증을 독립2Test로 재배분한다. 원래93개 단언·명령 순서·30초/retry·제품·CI gate를 보존하며 fixture1회 추가 비용을 기록한다.

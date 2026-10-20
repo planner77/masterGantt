@@ -342,6 +342,13 @@ export function selectWbsTaskLedger(snapshot: WbsTaskLedgerSnapshot, selectors: 
   const rawPersonallyAssigned = new Set(snapshot.prepared.assignments.filter(row => row.kind === "resource" && snapshot.prepared.byTask.get(row.taskId)!.type === "task").map(row => row.taskId));
   let diagnosticRows = [...rows];
   let assignments = base.assignments;
+  const filters = snapshot.prepared.input.filters;
+  if (filters && (filters.eligibleResourceIds !== undefined || filters.resourceIds?.length || filters.groupIds?.length || filters.includeUngrouped || filters.roles?.length || filters.developerGrades?.length || filters.search?.trim())) {
+    // Personal conditions must resolve on the same Assignment. T0 diagnostics
+    // remain available independently; a co-assignee cannot keep a Task selected.
+    const selectedTaskIds = new Set(assignments.map(row => row.taskId));
+    rows = rows.filter(row => selectedTaskIds.has(row.taskId));
+  }
   for (const selector of selectors) {
     validateSelector(snapshot, selector);
     // Resource KPI normalizes an absent role to ["UNSPECIFIED"]. It is also

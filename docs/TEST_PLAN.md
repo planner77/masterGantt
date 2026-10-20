@@ -1,3 +1,11 @@
+## Issue #736 — 리소스 관점과 Plan/Excel 인수
+
+[Work Packet](exec-plans/active/ISSUE_736.md)의 AC1~AC5와 기능 보존 인벤토리를 같은 source에서 검증한다. 새 `tests/features/resources/resource-wbs-dashboard-model.test.ts`는 Resource root/preset·참여 상태/미산정·고유 서버 총계·WBS Excel strict payload를 확인한다. `tests/server/resources/issue-736-resource-adapter.test.ts`는 Target0/direct+Target 원장·개인/역할 동일 Assignment·shared5/공동담당7.5·선택80/Project140/기존 Capacity R·M/M null·같은 snapshot current/project OOXML·Project 격리·위조/stale 및 기존 보안/크기 오류를 확인한다. 지원과 실제 실행 결과는 구별한다.
+
+`tests/e2e/issue-736-resource-dashboard.spec.ts`는 실제 SQLite/HTTP consumer의 개인/두 계층·등록-only/역할-only/미설정·Plan/Excel·정확 Assignment 편집 복귀 및 390/768/1024/1440/1920px keyboard/focus/표 내부 overflow·stale/오류 복구를 검증한다. 기존 #621/#622/#623/Resource Excel·Milestone·#730 composer 소비자도 변경 영향에 포함한다. 새 browser test/Unit 결과는 Work Packet에 명령·개수·최초 실패를 기록하고 remote 전체6Shard/Required3와 혼동하지 않는다.
+
+전체 공식 회귀는 새 exact Head의 Quality/E2E/Docker 및 default-main Trusted QA·Owner 승인으로 별도 확인한다. 이번 요청은 PR Full CI 시작에서 종료하므로 이후 완료 결과는 NOT TESTED다. 실제 Windows Excel/VBA/DRM·수동 touch/스크린리더·운영 환경은 별도 미검증이다. CI gate/timeout/retry/skip을 완화해 성공시키지 않는다.
+
 ## Issue #735 — 시스템 root 직접/조율 및 정확 교차 조회
 
 전용 `tests/server/resources/issue-735-system-dashboard.test.ts`, `tests/features/resources/system-dashboard.test.ts`, `tests/e2e/issue-735-system-dashboard.spec.ts`로 Target0 MCS1+ACS A/B의 단독/공정·WorkArea/설비·리소스/Milestone 경로, direct/coordination exact Task·Assignment·공수 합집합, 공유 controller/복수 경로 중복0과 다른 Task 누출0을 확인한다. Project 공통·복수 공정·WorkArea 미사용·작업0/PI 미설정·Target-only/혼합·빈 시스템 선택·잘못된 spec/foreign ID·snapshot stale를 포함한다.

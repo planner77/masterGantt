@@ -1,4 +1,4 @@
-import type { ResourceExcelExportOptions, ResourceExcelReportBundle } from "../../contracts/resource-excel-export";
+import type { ResourceExcelExportInput, ResourceExcelReportBundle } from "../../contracts/resource-excel-export";
 import { assertScheduleContextExportSupported } from "./project-context-export-guard-core";
 import { ResourceDashboardService } from "../resources/resource-dashboard-service-core";
 import type Database from "better-sqlite3";
@@ -26,7 +26,7 @@ export class ProjectExportSnapshotService {
     mdPerMmEnvironment?: string;
   } = {}) {}
 
-  get(publicId: string, includeResourceEffort = false, resourceOptions?: ResourceExcelExportOptions, expectedRevision?: number): ProjectExportSnapshotBundle | undefined {
+  get(publicId: string, includeResourceEffort = false, resourceOptions?: ResourceExcelExportInput, expectedRevision?: number): ProjectExportSnapshotBundle | undefined {
     return this.database.transaction(() => {
       const now = (this.options.clock ?? (() => new Date()))();
       const clock = () => now;
