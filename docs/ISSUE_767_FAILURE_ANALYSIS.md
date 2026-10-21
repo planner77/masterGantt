@@ -15,7 +15,7 @@
 
 ## 신규 실패 기록
 
-초기 작성 당시 없음. 아래 F767-001~007로 신규 실패를 누적한다. 새 Full PR/Main/Release 실패 발생 시 `F767-001`부터 원본 Run ID/attempt/Job/정확 테스트/증거/원인/대책/새 SHA/반복 시 차이를 추가한다. 단순 실패 run 재실행이나 timeout 확대는 원인 분석 후 승인에 따르며 CI 실패 이력을 덮어쓰지 않는다.
+초기 작성 당시 없음. 아래 F767-001~008로 신규 실패를 누적한다. 새 Full PR/Main/Release 실패 발생 시 `F767-001`부터 원본 Run ID/attempt/Job/정확 테스트/증거/원인/대책/새 SHA/반복 시 차이를 추가한다. 단순 실패 run 재실행이나 timeout 확대는 원인 분석 후 승인에 따르며 CI 실패 이력을 덮어쓰지 않는다.
 
 ## F767-001 — PR #768 Full #3093.1 QA Preflight Issue AC 식별자 누락 (2026-10-21 KST)
 
@@ -126,3 +126,20 @@
 - [Runs #3097.1](https://github.com/planner77/masterGantt/actions/runs/39658647821), [#3098.1](https://github.com/planner77/masterGantt/actions/runs/39665459118), [#3099.1](https://github.com/planner77/masterGantt/actions/runs/39676585856)의 원본 GitHub Job 로그를 읽고 파일별 관측 **완료 case duration + 인접 결과 타임스탬프 간격**의 3회 최대치를 가중치로 사용. 미완료 case는 미검증이며, 로그 관측치가 실측 전체 Fixture 시간이라는 주장 없음. 가장 긴 파일부터 누적 예측 합이 작은 샤드에 정렬(LPT, 파일명 및 shard 번호 tie-break). `tests/config/e2e-shard-plan.json`의 `manualRebalance767F007`에 모든 136개 파일의 Source sampleCount/maxObservedMs, 8x17 슬롯, 원본 run 귀속을 기록.
 - **정적 결과**: 기존 E2E 136 spec(원본 선택 총791 cases) **8 Shards × 17 specs**, 누락0/중복0. 샤드당 완료된 파일 관측 최대치 합은 **약21.1분**이며 예측/상한 보장이 아니고 Runner 변동·취소 누락 구간은 UNKNOWN. `.github/workflows/ci.yml` PR/Main, `release-image.yml` Release, `e2e-shard-optimizer.yml` (`--shards 8`), `scripts/e2e-shard-planner.mjs` default, Unit pinned15·Layout/PR gate/Release lifecycle static validator에 8-way 일치 반영. Main #639/#616의 **구 원본 6-Shard immutable recovery** 전용 검사는 당시 복구 출처이므로 수정하지 않는다.
 - **검증 경계**: 제품 소스/API/DB/schema/Playwright case/Fixture/assertions/skip·retry/worker1/timeout35분 및 workflow 세 Required Check 이름 불변. 변경 문서: [Work Packet](exec-plans/active/ISSUE_767.md), TEST_PLAN, CI_CD, REMOTE_VALIDATION, AGENTS, PLAN. DESIGN N/A(화면 불변), SCHEDULING_ENGINE N/A(업무 계산 불변), API/DB_SCHEMA N/A. 새 exact Head의 Quality/E2E **8/8**/Docker, default-main Trusted QA, Owner HIGH 수용 전 `MERGE_READY=BLOCKED` `release_authorized=false`. 기존 공식 v0.129.0/Issue736·765 FINAL 불변; PR CI 시작 이후 성공 여부 실증 전 NOT TESTED. 병합/Main/GHCR/Finalizer/Issue 종료는 범위 밖.
+
+## F767-008 — PR #768 Full #3102.1 문서 영향 섹션 누락으로 QA Preflight 차단 (2026-10-22 KST)
+
+### 원본 증거, 직접 실패 및 영향
+- **Original immutable Run**: [Full PR CI #3102.1 / GitHub Run39689006077 attempt1](https://github.com/planner77/masterGantt/actions/runs/39689006077), PR #768 / primary Issue #767, event=`pull_request`, exact HEAD `0911e467133a3e2a33432166e9c6c6302d2df0d6`, base `71f9b9ddb61be7f6e076accc027188f362e18bb1`, strict test merge `91527c358d8b72db39304369185bb46f159012e1`. 결론 `completed/failure` 유지. 이는 Owner 승인 8-way 첫 Full Run이며 새 8/8 완주 검증이 아니다.
+- **직접 실패(Job/step)**: [QA Preflight Job119530296199](https://github.com/planner77/masterGantt/actions/runs/39689006077/job/119530296199) `원본 base SHA의 QA Preflight 실행 (read-only)` 출력 `FAIL / DOCUMENTATION_SYNC: docs/exec-plans/active/ISSUE_767.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE — 문서 영향 기록 없음: docs/CI_CD.md`. 같은 보고의 PRIMARY_ISSUE, RISK_LEVEL, QA_METHOD, QA_REQUIRED, RELEASE_REQUIRED, RELEASE_AUTHORIZED, PATH_POLICY, ISSUE_AC는 PASS. 문서/출처 확인 약 1.8초, Runtime timeout/시나리오 Assertion 불발생.
+- **연쇄 차단(Job)**: Fast Gate119530395051는 `PREFLIGHT_RESULT=failure`에 따라 FAILURE, Policy/TypeScript/Lint/Vitest/PR Build/E2E 8-shard/Docker smoke 구현 Job 모두 **SKIPPED**. Required Quality Job119530473023, E2E aggregate119530472813, Docker aggregate119530472980은 파생 FAILURE; Automated QA Job119530514319 `required quality 미성공`으로 FAIL. E2E 8/8 성능·완료 결과는 이번 Run에서 **NOT TESTED**. 원본 변경 Head의 제품 로직/회귀/샤드 시험 실패를 단정하지 않는다.
+
+### 근본 원인과 이전 실패 교차 검증
+- **출처 코드**: trusted base `scripts/qa_final_automated.py::docs_required()`는 GitHub PR 변경 경로 union에 QA_DOCS(AGENTS, QA_REVIEW_POLICY, CI_CD, TEST_PLAN, GITHUB_OPERATIONS, REMOTE_VALIDATION)를 요구하며, `docs_gate()`는 Work Packet의 독립 `## DOCUMENTATION_SYNC`에서 **각 파일에 대한 정확한 한 줄** `- \`path\`: UPDATED` 또는 `N/A(reason)`만 파싱한다. `UPDATED`는 실제 diff 변경, `N/A`는 변경 없고 의미 있는 설명이 필수다.
+- **원인**: Work Packet 시작의 8-way 최신 `## 10`에 `docs/CI_CD.md` UPDATED라고 서술했지만 검증기가 읽는 오래된 `## DOCUMENTATION_SYNC`에는 `DESIGN.md`, `docs/TEST_PLAN.md`, `docs/SCHEDULING_ENGINE.md`만 엔트리로 있고, 별도 설명에서는 `docs/CI_CD.md`를 구 시점의 N/A로 서술했다. 섹션 외 산문은 구조 검증 증거가 아니므로 실패가 정상이다. CI_CD를 **문서만 신규 수정**한 것이 아니라 이번 PR 이미 변경된 8-way CI 정책 문서의 상태를 **정합화**하는 교정이다.
+- **이전 원장과 차이**: F767-001/#3093 `ISSUE_AC` 누락과 F767-002/#3094 `DOCUMENTATION_SYNC` 필수 구조 누락은 F003~F007 Run에서 사전검사 성공. F767-003/#3095·F005/#3097·F006/#3098·F007/#3099은 **35m 샤드 시간초과 취소**, F767-004/#3096은 Artifact Create ECONNRESET. 이번 #3102는 새로운 8-way에서 E2E 실행 전 **QA DOC_SYNC gate** 차단으로, 구 Timeout 재발이나 Artifact 전송 실패로 분류하지 않는다.
+
+### 보완, 검증 범위 및 실패 안전성
+- **수정**: `docs/exec-plans/active/ISSUE_767.md`의 실제 `## DOCUMENTATION_SYNC`에서 변경된 `AGENTS.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`는 UPDATED로 선언하고, `docs/QA_REVIEW_POLICY.md` 및 `docs/GITHUB_OPERATIONS.md`는 구체 사유를 포함한 N/A로 선언한다. `DESIGN.md`, `docs/SCHEDULING_ENGINE.md`도 근거 있는 N/A, API/DB N/A를 명시하고 AC1~AC7 증거 매핑 유지. 본 단일 F767 원장에 F767-008을 누적.
+- **정적 구조 확인**: 정확히 첫 `## DOCUMENTATION_SYNC`의 항목을 trusted regex와 required QA_DOCS/제품·계산 문서 집합으로 파싱해 모두 present, UPDATED path는 실제 PR changed 경로와 일치함을 확인. 실제 신뢰된 원격 Validator/Unit/E2E 8/8/Docker/QA는 새 Head Full CI 후 판정하며 선행 Run 성과를 소급 재사용하지 않는다.
+- **불변**: 이번 교정에서 app/product/E2E spec/샤드 배분, worker=1, timeout35m, retries0, fail-fast, CI·QA validators/Required3/PR Head trust, version 0.129.1, git tag/GHCR/Finalizer 또는 원래 F767-001~007 원장을 수정하지 않는다. 기존 #736/#765와 formal v0.129.0 불변. 이 Run의 aggregate 실패를 강제로 PASS시키지 않고 새 `pull_request.synchronize` Full CI에서 전 8-shard 실제 재검증. 미해결 review thread0, GitHub mergeable=true는 교정 직전 읽기 전용 스냅샷이며 다음 Head에서는 재확인 필요. `MERGE_READY=BLOCKED`, `release_required=true`, `release_authorized=false`; 병합/정식 게시/Issue 종료 금지.

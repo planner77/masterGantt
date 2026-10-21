@@ -1,3 +1,10 @@
+## 11. F767-008 — Full #3102.1 QA Preflight DOCUMENTATION_SYNC 교정 (2026-10-22)
+
+- **원본 실패**: [PR #768 Full #3102.1 / Run 39689006077.1](https://github.com/planner77/masterGantt/actions/runs/39689006077), exact HEAD `0911e467133a3e2a33432166e9c6c6302d2df0d6`, base `71f9b9ddb61be7f6e076accc027188f362e18bb1`. Preflight Job [119530296199](https://github.com/planner77/masterGantt/actions/runs/39689006077/job/119530296199)에서 `FAIL / DOCUMENTATION_SYNC: 문서 영향 기록 없음: docs/CI_CD.md`. 나머지 Primary Issue/QA/risk/release/AC 항목 PASS. Fast Gate/세 Required/QA Final 실패는 이 사전차단의 파생이며 E2E8/Quality/Docker 구현 Job은 **SKIPPED**, Timeout/Assertion 증거가 아니다.
+- **직접 원인**: top `## 10`에는 CI_CD UPDATED가 있으나 원본 base `scripts/qa_final_automated.py::docs_gate()`는 **첫 번째 독립 `## DOCUMENTATION_SYNC` 섹션**에서만 정확 `- \`path\`: UPDATED|N/A(reason)` 항목을 읽는다. 그 섹션에 `docs/CI_CD.md`를 포함한 활성 QA 문서 union의 엔트리가 누락되었으며 구 #764 시점의 N/A 설명이 남아 있었다.
+- **최소 보완**: 아래 독립 `## DOCUMENTATION_SYNC`를 실제 diff에 맞춰 6개 `QA_DOCS` 전체(AGENTS, QA_REVIEW_POLICY, CI_CD, TEST_PLAN, GITHUB_OPERATIONS, REMOTE_VALIDATION)와 UI/SCHEDULING/API/DB 영향을 전부 명시한다. 변경된 문서는 `UPDATED`, 변경되지 않은 문서는 근거 있는 `N/A`; 기존 AC1~AC7 매핑과 F767-001~007·Release 승인 불변. 새 실패는 [F767-008](../../ISSUE_767_FAILURE_ANALYSIS.md)에 누적한다.
+- **검증 경계**: Repo trusted-base 검증기의 구조 정규식으로 정적 경로/상태 매핑을 사전 확인하되 새 Head 실제 CI 결과는 **NOT TESTED**. PR review threads 0, reviews 0, branch behind main 0, GitHub mergeable=true는 교정 직전 읽기 전용 관측이다. 새 Full CI의 Quality/E2E8/Docker/Trusted·Owner HIGH 수용 전 `MERGE_READY=BLOCKED`, `release_required=true/release_authorized=false`; 공식 GHCR/tag/Finalizer/Issue close/merge는 하지 않는다.
+
 ## 10. Owner 승인 8-Shard 분산 및 F767-007 최종 Full CI (2026-10-22)
 
 - **후속 Issue #767 Scope 변경**: Owner가 명시한 `8 shard로 변경`에 따라 신규 Issue/PR 없이 기존 6→8 분산. 기존 AC1~AC7의 제품·정확 Assignment/Milestone/권한/0.129.1 버전·Immutable v0.129.0 보호 및 Owner HIGH 수용은 그대로이고 **AC4 검증 샤드만 8/8**.
@@ -49,11 +56,19 @@
 
 ## DOCUMENTATION_SYNC
 
-- `DESIGN.md`: N/A(기존 #764 디자인과 상호작용 규칙을 그대로 이관하며 별도 화면 설계 추가 없음)
+- `AGENTS.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(Owner-managed QA 및 정식 승인 규칙은 변경하지 않음)
+- `docs/CI_CD.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
-- `docs/SCHEDULING_ENGINE.md`: N/A(일정·마일스톤 계산 엔진과 의존 관계는 건드리지 않고 UI 복귀 포커스만 수정)
+- `docs/GITHUB_OPERATIONS.md`: N/A(기존 GitHub 운영 권한과 리뷰 및 병합 절차의 변경 없음)
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `DESIGN.md`: N/A(기존 제품의 시각 설계나 키보드 포커스 계약을 추가 변경하지 않음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(스케줄·기간·의존성 계산 및 데이터 관계 변경 없음)
+- `docs/API.md`: N/A(서버 API나 DTO 계약 수정 없음)
+- `docs/DB_SCHEMA.md`: N/A(데이터베이스 및 마이그레이션 계약 수정 없음)
 
-추가 동기화 문서: `CHANGELOG.md`, `docs/exec-plans/active/PLAN.md`, `docs/exec-plans/active/ISSUE_736.md`(구 이슈 RETIRED 공지), `docs/ISSUE_736_FAILURE_ANALYSIS.md`(역사적 단일 원장), `docs/ISSUE_767_FAILURE_ANALYSIS.md`(신규 누적 원장) 및 root package/lockfile의 PATCH version 3곳. `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/CI_CD.md`/QA 정책은 API/schema/CI/QA 규칙 변경 없음에 따라 N/A.
+- 위 UPDATED 문서는 PR #768의 현행 diff에서 실제 변경됨. 원본 제품·테스트/Shard8 정합성은 그대로 두고, `docs/CI_CD.md`의 활성 8-way 운영 계약 및 나머지 변경 정책 문서를 이 **QA Preflight가 실제 파싱하는 섹션**에 누락 없이 명시함. 이 문서의 과거 F767-003~006 항목에서 6-way/CI_CD N/A는 당시 실행의 역사적 사실이며 현재 8-way 정책과 구분한다.
+- 함께 갱신/유지한 자료: `CHANGELOG.md`, `docs/exec-plans/active/PLAN.md`, `docs/exec-plans/active/ISSUE_736.md`(퇴역 이력), `docs/ISSUE_736_FAILURE_ANALYSIS.md`(과거 원장), `docs/ISSUE_767_FAILURE_ANALYSIS.md`(F767-001~008 누적 원장), root package/lockfile PATCH 0.129.1. 문서의 UPDATED 여부와 실제 PR 변경 경로를 교차 비교한다.
 
 ## AC_TEST_COVERAGE
 
