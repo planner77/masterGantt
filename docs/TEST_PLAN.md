@@ -1,3 +1,11 @@
+## Issue #765 — #3085.1 E2E 계획·Vitest 고정 기대값 동기화 (2026-10-21)
+
+PR #766 [Full #3085.1](https://github.com/planner77/masterGantt/actions/runs/39574608432)의 직접 실패는 tests/scripts/e2e-shard-planner.test.ts:126의 Shard 배치 기대값 stale이다. F765-003에서 issue-735-system-dashboard.spec.ts를 5→4, issue-730-view-composer.spec.ts를 5→2로 옮겼으나 해당 Test는 구 위치를 기대했다(3159 PASS/1 FAIL/3 SKIP). project-task-editor(1→6), issue-623-resource-mvp(3→2)의 고정 기대값도 신규 추가한다.
+
+기존 136개 current E2E spec 단일/유일 Shard 배치·6 Shards/35분·workers1·skip/retry/required Quality/E2E/Docker 등은 불변. 이전 Shard5 Timeout은 이번 Run에서 Chromium이 Fast Gate 실패로 미실행되어 아직 재검증하지 않았다. 최신 exact Head의 Unit/E2E6/Docker/Trusted QA 검증 전 Merge 불가. [#765 F765-004 원장](ISSUE_765_FAILURE_ANALYSIS.md) 참조.
+
+---
+
 ## Issue #765 — PR Full #3084.1 Shard5 Job Timeout 및 E2E 완전 커버리지 리밸런싱 (2026-10-21)
 
 PR #766 Full [#3084.1](https://github.com/planner77/masterGantt/actions/runs/39563793357) Quality/Docker 및 E2E Shard1/2/3/4/6 성공, Shard5는 91건 PASS 뒤 35분 Job timeout에서 취소. 원본 테스트 FAIL이 확인된 것이 아니라 4개 남은 스펙을 완료하지 못한 것이며 새 CI에 다시 포함해야 한다. 전체 증거는 [#765 실패 원장 F765-003](ISSUE_765_FAILURE_ANALYSIS.md).

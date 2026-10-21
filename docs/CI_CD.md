@@ -1,3 +1,11 @@
+## Issue #765 — Full #3085.1 Vitest Shard-map 원장 기대값 FAIL (2026-10-21)
+
+[#3085.1](https://github.com/planner77/masterGantt/actions/runs/39574608432) (Head a91a826a728f8169446fac94de074310b5fb1678): QA Preflight/Policy/TypeScript/ESLint PASS; Vitest Unit Job119137125974 3159 PASS, 1 FAIL, 3 SKIP. tests/scripts/e2e-shard-planner.test.ts:126은 실제 Shard4인 issue-735-system-dashboard를 여전히 Shard5로 예상. PR Fast Gate FAILURE의 파생으로 E2E/Docker 구현 SKIPPED 및 Required3 FAILURE; 신규 Browser/Test Runtime 결함이라고 주장하지 않는다.
+
+F765-003에서 변경한 Shard 4파일의 정확 배치를 고정하는 Unit Assertion 14개를 현재 Plan과 일치하도록 갱신하고 136개 Unique spec·6 Shard/35m·Required3·Trust·0.129.0 GHCR Digest는 보존. [#765 실패 원장 F765-004](ISSUE_765_FAILURE_ANALYSIS.md)에 Run/Job/정확 테스트 line·선행 F765-001..003과의 차이를 누적한다. 변경 Head의 정식 CI와 Trusted QA 미검증. 이전 Shard5 Timeout 해결 여부는 새 Full Run의 6개 E2E 결과가 나올 때만 판단한다.
+
+---
+
 ## Issue #765 — Full PR CI #3084.1 Shard5 35분 취소/재분배 (2026-10-21)
 
 Source: [PR #766 / CI #3084.1](https://github.com/planner77/masterGantt/actions/runs/39563793357) 77b4e3ee9e67157fb48c5355c96b3c68177ab057. QA Preflight·Policy·TypeScript/Vitest/Build·Docker 및 E2E 5개 Shard는 SUCCESS, Shard5는 91 PASS 후 35분 Job cap에 따라 CANCELLED; E2E aggregate와 QA Final은 파생 FAIL. 원본 단언 실패/제품 회귀 증거는 없음. 첫 두 실패 [F765-001/F765-002](ISSUE_765_FAILURE_ANALYSIS.md)는 이번 Run에서 보완 검증 통과.

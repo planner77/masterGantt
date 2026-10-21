@@ -87,6 +87,14 @@
 - 단순 완료 case 소요를 이전한 추정 분포는 [26.8,22.2,27.5,25.5,26.9,27.2]분이지만 Shard5 잔여 4개 파일 등 미측정이 있어 실측 완료 전 PASS 아님.
 - 새 Head Full PR CI Quality+E2E6+Docker, Trusted QA/Owner HIGH 및 필요한 Main CI 검증 전 MERGE_READY=BLOCKED. 미완료된 과거 CI를 재실행하지 않고 기존 릴리스 v0.129.0을 보존한다.
 
+## PR CI #3085.1 — E2E Plan Unit 고정 기대값 오류 교정 (F765-004)
+
+- Full [#3085.1](https://github.com/planner77/masterGantt/actions/runs/39574608432), Head a91a826a728f8169446fac94de074310b5fb1678 / Base e20e4a72e59b46bde34c7ae5befd5e0f46ed335b / Test merge 3642c80e817847c9bb0bc6fe251b9e9f75ec54be.
+- QA Preflight/Policy/TypeScript/ESLint PASS, Vitest 3159 PASS / 1 FAIL / 3 SKIP (tests/scripts/e2e-shard-planner.test.ts:126: 실제4/기대5). 이전 Shard5→4인 issue-735의 구 배치 값과 Shard5→2인 issue-730의 구 배치 값이 Test 계약에 남아 있었음.
+- tests/scripts/e2e-shard-planner.test.ts: issue-735→4, issue-730→2로 갱신하고 project-task-editor→6, issue-623-resource-mvp→2의 두 이동도 추가 고정 assertion으로 보호. Plan JSON은 F765-003의 그대로, 136개 unique E2E spec/6 Shard coverage 불변.
+- PR Fast Gate 실패로 해당 #3085 E2E6/Docker 실제 구현 NOT RUN; F765-003 Shard5 35분 Timeout 재분배 효과는 여전히 미검증. [F765-004 누적 원장](../../ISSUE_765_FAILURE_ANALYSIS.md)에 실제 Run/Job/반례 추가.
+- 새 소스에서 기존 14개 명시 위치 모두 Plan JSON과 정적 일치; 원격 단위/Chromium/Build/Docker/Trusted QA는 새 CI 시작 전 NOT TESTED.
+
 ## DOCUMENTATION_SYNC
 
 - `AGENTS.md`: N/A(현재 Owner/HIGH/PR CI/Finalizer 신뢰 경계 기존 정책 준수, 공통 AGENTS 불변)
@@ -100,6 +108,7 @@
 - `docs/exec-plans/active/ISSUE_765.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `tests/config/e2e-shard-plan.json`: UPDATED
+- `tests/scripts/e2e-shard-planner.test.ts`: UPDATED
 - `docs/ISSUE_765_FAILURE_ANALYSIS.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
 - `DESIGN.md`: N/A(사용자 UI/레이아웃·SVAR Gantt 로직/디자인 변경 없음)
@@ -125,6 +134,8 @@
 
 ## PR CI 실패 원장
 
+- [F765-004](../../ISSUE_765_FAILURE_ANALYSIS.md): #3085.1 stale E2E-Shard mapping Vitest (3159 PASS/1 FAIL), Fast Gate로 Chromium/Docker 미실행; 4개 명시 배치 동기화.
+
 - [F765-003](../../ISSUE_765_FAILURE_ANALYSIS.md): #3084.1 Shard5/6 35분 Job 제한 취소, 중간 결과 91 PASS·4개 후속 스펙 NOT RUN; 테스트 분배 교정.
 
 
@@ -132,4 +143,4 @@
 
 ## 현재 단계
 
-IMPLEMENTATION/PR CI: Full #3082.1 Preflight FAIL 교정 후 #3083.1 Preflight PASS, 새 Python Unit 10건 중 위조 RETIRED 사전차단 1건 FAIL(F765-002); 새 Head 전체 CI NOT TESTED. Owner RETIRE 별도 승인 Marker 없음. 기존 v0.129.0 정식 이미지 발행 완료/변경 금지.
+IMPLEMENTATION/PR CI: #3082.1 Preflight FAIL; #3083.1 Python Policy FAIL; #3084.1 E2E Shard5 CANCELLED; #3085.1 Vitest Shard Plan expectation FAIL (F765-004). New exact Head PR CI/Trusted QA NOT TESTED; Owner RETIRE separate approval not granted. Existing v0.129.0 formal GHCR remains immutable.

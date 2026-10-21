@@ -92,3 +92,38 @@
 - 동일 Head/Plan의 static 136 unique coverage, exact Base/PR 상태, Work Packet/Docs sync 후 신규 PR Full CI 시작. 이전 Head #3084 PASS를 신규 Head CI PASS로 소급 전용하지 않는다.
 - 실패한 과거 shard5만 단독 재시도하면 중간 완료 근거는 얻을 수 있어도 리밸런싱 자체/PR 새 Head 3 Required 전체의 통합 검증은 되지 않는다.
 - 미해결 리뷰 스레드/충돌 0인 경우에도 Trusted QA/Owner HIGH 승인/새 Main CI와 실제 퇴역 Owner authorization 전에 merge/RETIRED/FINAL/Close는 금지.
+
+## F765-004 — PR #766 Full #3085.1 Vitest의 Shard 배치 기대값 미동기화 (2026-10-21)
+
+| 항목 | 원본 증거 |
+| --- | --- |
+| Issue / PR | #765 / [PR #766](https://github.com/planner77/masterGantt/pull/766) |
+| Run / Attempt | [PR Full #3085.1 · Run 39574608432](https://github.com/planner77/masterGantt/actions/runs/39574608432) / Attempt 1 / pull_request |
+| Head / Base | a91a826a728f8169446fac94de074310b5fb1678 / e20e4a72e59b46bde34c7ae5befd5e0f46ed335b |
+| Test merge | 3642c80e817847c9bb0bc6fe251b9e9f75ec54be, exact first/second parents Base/Head, tree 236557003d19169a7be584fa17faa9e5d56ae1ea |
+| 직접 실패 | [Vitest Job 119137125974](https://github.com/planner77/masterGantt/actions/runs/39574608432/job/119137125974), FAILURE |
+| 실제 테스트 | tests/scripts/e2e-shard-planner.test.ts:126, explicit unique current browser spec placements |
+| Assertion | expected [4] to deeply equal [5] — current issue-735-system-dashboard.spec.ts Shard4, stale fixture expected Shard5 |
+| Unit 총결과 | 3159 PASS / 1 FAIL / 3 SKIP, Test Files 256 PASS / 1 FAIL / 1 SKIP (258 files), 63.80s |
+| 파생 실패 | Fast Gate 119137807425 FAILURE → Required Quality 119137907215, Required E2E 119137907275, Required Docker 119137907540 모두 FAILURE. E2E Shards/Docker implementation SKIPPED/NOT RUN |
+| 독립 PASS | QA Preflight 119137019168, Policy 119137125697, TypeScript 119137125746, ESLint 119137125870 SUCCESS |
+| 분류 | TEST_CONTRACT (F765-003 shard-plan 재배치 후 소비자 Unit fixture 미갱신), PRODUCT 실패/새 Chromium 실패 아님 |
+
+### 전체 실패 F765-001~004 교차 판단
+
+- F765-001 (#3082.1): Work Packet DOC_SYNC 누락 → #3083/3084/3085 Preflight SUCCESS 확인.
+- F765-002 (#3083.1): OPEN historical source의 위조 RETIRED 검사 누락 → #3084/3085 Policy SUCCESS 확인.
+- F765-003 (#3084.1): E2E Shard5 35분 취소 (91 PASS, 나머지 미실행). #3085에는 Fast Gate 조기 실패로 Chromium을 실행하지 않아 재배분 효과는 여전히 NOT TESTED.
+- F765-004 (#3085.1): 배치가 변한 4파일 중 stale Vitest 기대값. 직접 관측된 issue-735는 실제4/기대5, issue-730-view-composer도 기존5에서 실제2로 이동하여 잠재적 동일 실패. project-task-editor(1→6), issue-623-resource-mvp(3→2)도 명시 mapping assertion 추가하여 누락을 방지.
+
+### 보완 및 검증
+
+- tests/scripts/e2e-shard-planner.test.ts의 고정 매핑 2건을 변경한 실제 Plan에 맞게 갱신하고 2건을 명시적으로 추가: project-task-editor→6, issue-623-resource-mvp→2, issue-735-system-dashboard→4, issue-730-view-composer→2.
+- tests/config/e2e-shard-plan.json은 이전 F765-003에서 확정한 136개 E2E spec의 단일 유일 Shard 배치를 그대로 유지; 동적 탐색된 모든 파일의 정확한 재배치·중복/누락 차단 테스트는 약화하지 않음.
+- JSON Plan의 136개 unique files와 Vitest 파일 내 pinned 14개 explicit mapping이 하나씩 모두 일치함을 static source 비교로 확인. 실제 신규 Vitest/Chromium E2E6/Docker/Trusted QA는 새 Run 전 NOT TESTED.
+- 제품 코드·GHCR/CI 정책 및 35분 제한, Owner/Finalizer, v0.129.0 정식 Digest는 변동 없음.
+
+### 다음 단계
+
+같은 PR #766의 정확한 새 Head에서 Preflight·Policy/신규 Python Unit·Vitest 3159 기존 PASS 집합·6 Chromium shards (기존 4개 미실행 스펙 포함)·Docker/Build를 한 번에 재검증한다. Source/Run/Attempt 결과와 Full PR CI/Trusted QA를 기록하고, 전체 PASS/Owner HIGH 승인 전 병합·복구 mutation은 금지한다.
+
