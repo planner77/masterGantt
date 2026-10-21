@@ -16,3 +16,12 @@
 ## 신규 실패 기록
 
 현재 없음. 새 Full PR/Main/Release 실패 발생 시 `F767-001`부터 원본 Run ID/attempt/Job/정확 테스트/증거/원인/대책/새 SHA/반복 시 차이를 추가한다. 단순 실패 run 재실행이나 timeout 확대는 원인 분석 후 승인에 따르며 CI 실패 이력을 덮어쓰지 않는다.
+
+## F767-001 — PR #768 Full #3093.1 QA Preflight Issue AC 식별자 누락 (2026-10-21 KST)
+
+- **Original immutable Run**: [PR Full #3093.1 / 39609933138 attempt 1](https://github.com/planner77/masterGantt/actions/runs/39609933138), Head `e873e9c54e2812408e0be90381d106dc2828a6b3`, Base `71f9b9ddb61be7f6e076accc027188f362e18bb1`, event=`pull_request`.
+- **직접 실패**: `QA Preflight — 정책·문서 사전 검사` Job `119256007917`, step `원본 base SHA의 QA Preflight 실행 (read-only)`. 보고서 `FAIL / ISSUE_AC: Issue #767 Acceptance Criteria — Primary Issue 본문에 AC1.. 식별자 없음` (artifact `12348994611`). 원본 Issue body는 `## AC` 아래 체크리스트 7줄이 있지만 `AC1`~`AC7` 식별자가 없었다.
+- **파생 결과**: PR Fast Gate/3 Required aggregate/Automated QA FAIL; 실제 Quality/E2E6/Docker 구현 Job은 SKIPPED. 테스트 본문/Shard 35m Timeout, 소스 기능 결함 또는 새 Manifest/lockfile의 테스트 실패 **아님**.
+- **원인**: 신규 후속 Issue #767 등록 시 docs의 Work Packet AC1..AC6과 달리 GitHub Primary Issue checklist에는 번호 접두어가 누락됨. 기존 #629 trusted base `qa_preflight.py`는 Issue 본문 **독립 AC1..** 식별자를 필수로 요구한다. 의도된 fail-closed 판정.
+- **보완**: [Issue #767](https://github.com/planner77/masterGantt/issues/767) 본문의 기존 7개 체크리스트만 `AC1`~`AC7`로 변경해 내용·기준/Owner 권한/릴리스 범위는 불변. 이 실패를 단일 이슈 원장에 누적하고 문서-only 새 commit으로 Full PR CI `synchronize` 실행. 새 CI의 실제 3 Required 및 Trusted QA 결과는 별도 검증, 이전 SUCCESS로 추정 금지.
+- **회귀 정책**: 해당 실패 때문에 글로벌 timeout/Retry/Shard/QA Preflight를 완화·비활성화하지 않음. 동일 issue 재실패 시 Primary Issue 실제 JSON/body와 new Run source를 먼저 대조한다.
