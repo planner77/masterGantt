@@ -57,7 +57,7 @@ Manager가 실제 코드와 대조한 문서별 영향 기록이다. 실행 증�
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_734.md`: UPDATED
-- `docs/ISSUE_734_FAILURE_ANALYSIS.md`: CREATED (PR #759 #3058.1 누적 실패 원장)
+- `docs/ISSUE_734_FAILURE_ANALYSIS.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
 - `DESIGN.md`: N/A(기존 이름 우선·상황형 도움말·조회 투영을 적용하는 Design Delta B, 새로운 공통 규범 A 없음)
 - `docs/LOGISTICS_DOMAIN_DESIGN.md`: N/A(실물 원본·Owner·controls·WorkArea 관계의 도메인 의미 불변)
@@ -74,8 +74,8 @@ Manager가 실제 코드와 대조한 문서별 영향 기록이다. 실행 증�
 - `AGENTS.md`: N/A(기존 역할·문서·실행 지침 적용이며 지침 자체 불변)
 - `docs/ISSUE_LIFECYCLE.md`: N/A(기존 PR CI 시작 단계까지 수행하며 Lifecycle 정책 불변)
 - `docs/QA_REVIEW_POLICY.md`: N/A(HIGH/OWNER_MANAGED 및 Trusted QA/Owner 승인 정책 불변)
-- `docs/CI_CD.md`: N/A(Required3/6-shard·workflow·main/GHCR/Release 계약 불변)
-- `docs/REMOTE_VALIDATION.md`: N/A(기존 원격 gate·환경별 검증을 유지하며 CI 시작까지만 수행)
+- `docs/CI_CD.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: N/A(기존 canonical Refs·원격 게시·Owner 승인 경계 재사용)
 
 ## #720 매뉴얼 인계
@@ -165,3 +165,14 @@ Manager가 실제 코드와 대조한 문서별 영향 기록이다. 실행 증�
 - #732 최신 main `62e715adbc3f497e319918306bf26cbdd73353b7`의 4commit/7file shard135 배정·#621/#622 준비조건·#732 누적 원장/Work Packet 변경과 #734 설비 feature+0.129.0 후보를 병합 충돌 없이 보존한다. 특히 `docs/TEST_PLAN.md`은 양쪽 신규 회귀 지침을 모두 유지한다.
 - **DOC_SYNC:** `tests/e2e/issue-717-identity-persistence.spec.ts` UPDATED(transport-only, 제품단언 불변); `docs/ISSUE_734_FAILURE_ANALYSIS.md` UPDATED(F734-006 누적); `docs/exec-plans/active/ISSUE_734.md` UPDATED(본인 이력); `docs/TEST_PLAN.md` UPDATED(동일 원장 교차 매트릭스·#732 main 병합); #732 main 변경6파일은 그대로 수용. API/ARCHITECTURE/DB_SCHEMA/SECURITY/DESIGN/AGENTS/CI_CD/REMOTE_VALIDATION/Gantt 문서는 계약 변경 없어 N/A.
 - 새 통합 Source의 로컬 npm/Vitest/TS/Playwright/Docker **NOT TESTED**, User Owner HIGH 최종 ACCEPT 및 Trusted QA/원격 Required도 새 Head 완료 전 **NOT TESTED**. 두 리뷰 스레드 이미 resolved/미해결0. 새 Full PR CI 시작까지만 진행, 모니터링·merge/Main/GHCR/Release/Issue close 미실행; `release_authorized=false`, `MERGE_READY=BLOCKED`.
+
+
+### Full PR CI #3078.1 F734-007 — 신규 spec 명시 shard 누락 교정 (2026-10-21)
+
+- [원본 Run39517277420/Attempt1](https://github.com/planner77/masterGantt/actions/runs/39517277420), Head `c1a7e52b6b88932af96a7717af2a7ff176cdf849`, Base `62e715adbc3f497e319918306bf26cbdd73353b7`, test merge `78f379e6277f50a64dfea11d6847c52f91945a35`. Vitest 배치 계약 검사에서135 vs136, 신규 #734 E2E 파일만 누락. Required3/QA는 Fast 차단의 파생 FAIL이며 실제 E2E/build/Docker는 SKIPPED.
+- 기존 F734-001~006 전체 원장·Issue 댓글과 대조했다. 누적 **7 Full Run/Attempt·4실제 실패파일·6고유case**. 이번은 통합 시 배치 coverage 누락으로 이전 API/승인/관찰/전송 오류 재발과 구분한다. [원장 F734-007](../../ISSUE_734_FAILURE_ANALYSIS.md#9-f734-007--full-30781-main-통합-후-신규-e2e-명시-배치-누락-2026-10-21)에 원본 provenance·가설/반증·전체 매트릭스·동일 후보 검증과 잔여 위험을 기록한다.
+- 신규 #734 파일만 shard6에 명시하고 기존135파일 배치·14-run baseline/수동 이력·strict136파일 유일배치·Required3/6-shard/35분/worker1/단언·retry·skip 정책을 보존한다. 이전 추정 시간은 신규 실행 예측이 아니며 새136파일 비용은 미검증이다.
+- 로컬 기존 검사에서 동일 FAIL을 재현하고 수정 후 관련31파일354 Unit/통합 PASS. 누적 실패 E2E3파일15case는 fail-fast없이 실제 isolated HTTP/SQLite로 별도 검증하며 결과·harness 환경오류는 원장에 분리 기록한다. CI_CD/REMOTE_VALIDATION/TEST_PLAN 동기화; 제품/API/UX/DESIGN/버전 추가변경 N/A.
+- Manager가 배치/회귀·문서/게시, infra가 원본 로그/provenance read-only 분석, frontend가 누적 E2E read-only 재검증, qa_docs가 사전 검토를 담당한다. 새 Head CI·Owner/Trusted QA는 NOT TESTED이며 merge/Main/GHCR/Release/Issue 종료 없이 새 Full PR CI 시작까지만 수행한다.
+
+- 최종 동결 검증: 관련31파일354 Unit/통합 및 누적3파일15 Chromium **PASS**, typecheck/scoped lint/문서287개 링크/258 Unit파일·790 browser tests 발견/diff 검사 PASS. 자동 PrePR는 UNKNOWN5/missing0/steps0 **BLOCKED** 그대로 유지한다. E2E 실제 명령·435.464초·source1062파일 manifest SHA256 `3ac2ae9377ffdd6468257af8f6d0995b57e6eb339d40536a2b8ca5625cf593d4`·생성 설정 복원/미추적 캡처5장 갱신 예외를 실패 원장에 기록했다. 사전 독립 qa_docs 정적 검토 PASS이며 Owner 최종 QA·신규 원격 Required3는 NOT TESTED다.

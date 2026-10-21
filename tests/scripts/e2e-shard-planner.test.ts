@@ -111,6 +111,7 @@ describe("historical E2E shard planner", () => {
     expect(new Set(selected).size).toBe(discovered.length);
     for (const [file, assignedShard] of [
       ["issue-735-system-dashboard.spec.ts", 5],
+      ["issue-734-equipment-dashboard.spec.ts", 6],
       ["issue-732-milestone-dashboard.spec.ts", 3],
       ["gantt-state-recovery-editor.spec.ts", 4],
       ["issue-736-resource-dashboard.spec.ts", 2],

@@ -185,3 +185,56 @@ Shard1은 앞선 F734-001의 `5폭 긴 이름·내부 overflow·열 정렬·nati
 - **검증 및 감사:** 연결 GitHub 원본 Job+artifact·Source/HEAD/Base/tree와 Playwright 공식 문서 비교는 수행, 로컬 full checkout/npm/TS/Playwright/SQLite/Docker는 환경 내 원본 실행 조건 부재로 **NOT TESTED**. Source·문서 변경은 새로운 exact Head의 Quality/E2E6/Docker/Trusted QA 결과가 나올 때까지 **NOT TESTED**; 원본 성공 결과와 새 Head 성공 결과를 혼동하지 않는다.
 - **최신 main 충돌 조정:** #732 후속 main `62e715adbc3f497e319918306bf26cbdd73353b7` (base `1c1938851aa8234febcba404f4007d6c94fb2233` 대비 +4 commits)의 135-spec shard plan, #621/#622 readiness 및 #732 failure/Work Packet/TEST_PLAN append를 #734 기능·원장과 합치는 **non-force two-parent merge**. `docs/TEST_PLAN.md`은 각각의 독립 추가를 모두 보존. `0.129.0` 후보/다른 Issue 원장·시스템/리소스/Milestone 기능은 임의 삭제·재버전하지 않는다.
 - **인계/게이트:** 리뷰 스레드 두 건 resolved(미해결0)이며 새로운 PR synchronize 후 다시 확인. 원격 PR head=base 정렬/충돌없음은 실제 commit/ref 기준 검증; 로컬 정적 source 외 테스트 PASS 주장은 하지 않는다. HIGH/OWNER_MANAGED, `qa_required=true`, `release_required=true`, `release_authorized=false`, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`. 새 exact Head Full PR CI 시작까지만 수행, 자동 진행 결과 모니터링·PR merge/Main/GHCR/Release/Issue close 모두 미수행.
+
+
+## 9. F734-007 — Full #3078.1 main 통합 후 신규 E2E 명시 배치 누락 (2026-10-21)
+
+### 원본 출처·직접 실패·파생 차단
+
+- [Full PR CI #3078.1](https://github.com/planner77/masterGantt/actions/runs/39517277420), Run `39517277420`, Attempt `1`, `pull_request`, 시작 `2026-10-20T23:47:28Z`, FAILURE. PR #759 Head `c1a7e52b6b88932af96a7717af2a7ff176cdf849`, Base `62e715adbc3f497e319918306bf26cbdd73353b7`, test merge `78f379e6277f50a64dfea11d6847c52f91945a35`. 원본 [ci-pr-source artifact 12308505957](https://github.com/planner77/masterGantt/actions/runs/39517277420/artifacts/12308505957)의 v1 JSON·checkout 로그·Git commit API에서 부모 `[Base, Head]`와 Head/merge 동일 Tree `dd8ffe426175f53749ca695d972917b262938ecc`를 교차 확인했다.
+- 직접 실패 [Vitest job 118952547800](https://github.com/planner77/masterGantt/actions/runs/39517277420/job/118952547800): `tests/scripts/e2e-shard-planner.test.ts:106:33`, `requires explicit, unique placements for every current browser spec after #732 Main timeout`. `2026-10-20T23:49:12Z`, 배치표 **135**개와 실제 발견 **136**개의 strict equality 실패. 유일한 누락은 `tests/e2e/issue-734-equipment-dashboard.spec.ts`. 원격 Vitest **3159 PASS / 1 FAIL / 3 SKIPPED**, 258파일 중 256 PASS/1 FAIL/1 SKIPPED, 45.87초.
+- QA Preflight `118952440192`, TypeScript `118952547991`, ESLint `118952547886`, 정책 `118952547875` SUCCESS. Fast `118952956881`은 `UNIT_RESULT=failure`; Required Quality `118953031218`, Docker `118953031292`, E2E `118953031433`은 Fast 실패로 파생 FAILURE. QA Final `118953067539`의 `required quality 미성공`도 파생 차단이다. 실제 build/Docker/E2E 구현은 **SKIPPED**이며 E2E assertion 재실패나 세 독립 제품 결함으로 집계하지 않는다.
+
+### 전 이력 교차 진단과 보완
+
+원장 모든 절·Issue #734 진행 댓글·PR #759의 접근 가능한 7 Full Run/Attempt를 대조했다. 이전 기록을 삭제하거나 당시 미실행을 PASS로 바꾸지 않는다.
+
+| 실패 ID·Run/Attempt | 원본 직접 실패·기존 교정 | 현재 후보의 교차 검증·잔여 범위 |
+| --- | --- | --- |
+| F734-001 `39438998422.1` | 272자 이름 HTTP400 → 정확 200자 fixture | #734 5폭/overflow/keyboard case 포함 |
+| F734-002 `39482448255.1` | 원본 공유 사용처 승인 누락 → 취소·재확인·승인 후 PATCH | #734 원본 dirty/저장 case 포함 |
+| F734-003 `39485897399.1` | #730 이전 총계 locator → 현재 설비 접근성 라벨 | #730 파일 전체 포함 |
+| F734-004 `39490390734.1` | navigate-away Browser Response body 소실 → 동일 query 별도 읽기 전용 API | #734 원본 저장/Revision/snapshot case 포함 |
+| F734-005 `39496115287.1` | Assignment PUT200 직후 editor ready 경합 → canonical+1/같은 ID50%·editor ready | #734 정확 Task/Assignment/복귀 case 포함 |
+| F734-006 `39509862644.1` | #717 canonical GET ECONNRESET → 해당 GET에만 transport 재시도1 | #717 파일 포함; TCP reset 근인은 계속 UNKNOWN |
+| **F734-007 `39517277420.1`** | #732 main 통합 후 신규 #734 spec 배치 누락 | 기존 strict 회귀로 로컬 동일 FAIL 재현 후 배치·고정 shard 회귀 교정 |
+
+- **가설과 반증:** (1) main 통합에서 branch 신규 파일 누락, (2) 탐색 기준 불일치, (3) 중복 배치를 검토했다. 실제 파일/plan 차집합은 missing `issue-734-equipment-dashboard.spec.ts` 하나, extra0/duplicate0. 동일 로컬 기존 검사에서도 135 vs136으로 재현되었으며 배치 한 건 추가 후 동일 검사가 PASS했다. 따라서 분류는 `POLICY_CI / INTEGRATION_SHARD_PLAN_COVERAGE`; 전송 오류·Timeout·제품 API 결함이라는 근거는 없다. 별도 계측을 추가할 필요 없이 기존 strict 검사가 실제 seam을 재현하므로 임시 계측/새 중복 테스트는 만들지 않았다.
+- **보완:** `tests/config/e2e-shard-plan.json`에 #734 8-case spec을 **shard6 한 곳**에 명시했다. 기존135개 배치·#732/#733 수동 배치 이력과 14-run historical metrics는 보존한다. #732 postPr3072의 이전 추정24.2분인 shard6은 shard2/3/4/5보다 여유가 있었으나 신규 setup/runtime 비용은 미측정이므로 성능 개선·35분 이내 성공을 보장하지 않는다. 새 `issue734ExplicitPlacement`에 근거/신규 비용 미검증을 기록한다. 기존 projectedMs를 새136개 예측값으로 조작하지 않는다.
+- `tests/scripts/e2e-shard-planner.test.ts`는 발견파일과 정확히 같은 유일 배치·모든6 shard 보존·stale plan에서 신규파일 누락 금지·잘못된 shard/중복 거부를 유지하고 #734→6 고정 배치도 검사한다. strict 검사를 제거하거나 누락을 허용하지 않는다. Workflow/Required3/6-shard/worker1/35분·retry/skip/fail-fast 및 제품/API/Auth/Gantt/DB/버전0.129.0은 불변이다.
+- **누적 실제 실패:** 7 Full Run/Attempt, **4파일/6고유 case**. 합집합은 `tests/e2e/issue-734-equipment-dashboard.spec.ts`(3case, 서로 다른 원인 재실패 포함), `tests/e2e/issue-730-view-composer.spec.ts`(1), `tests/e2e/issue-717-identity-persistence.spec.ts`(1), `tests/scripts/e2e-shard-planner.test.ts`(1). 취소·SKIPPED·NOT RUN은 별도 실제 FAIL로 더하지 않는다.
+
+### 동일 후보 검증·문서·인계
+
+- 로컬 원본 재현: `npx vitest run --config tests/config/vitest.config.ts tests/scripts/e2e-shard-planner.test.ts` → **1 FAIL/5 PASS**, 원격과 동일 missing-file diff. 보완 후 같은 검사 포함 scripts4파일 + `tests/server/resources` + equipment consumer, 총 **31파일354건 PASS**. 명령: `npx vitest run --config tests/config/vitest.config.ts tests/scripts/e2e-shard-planner.test.ts tests/scripts/e2e-shard-optimizer-pr.test.ts tests/scripts/test-config-layout.test.ts tests/scripts/e2e-read-only-requests.test.ts tests/server/resources tests/features/resources/equipment-dashboard.test.ts`. 기존 빈 systemIds×unknown type 거부·동명 유형 식별 회귀도 포함한다.
+- 누적 브라우저 실패 합집합은 fail-fast 없는 Chromium worker1/retry0/max-failures0으로 **3파일15case**를 선정했다. #734 8case + #730 6case + #717 1case이며 각각 실제 격리 HTTP/SQLite fixture를 사용한다. 공용 `PLAYWRIGHT_BASE_URL` 지정은 fixture를 external 모드로 바꿔 ECONNREFUSED15건을 만든 **잘못된 로컬 harness**였으므로 제품/원격 실패로 합산하지 않는다. 변수를 제거하고 공식 config를 import한 임시 wrapper로 격리 fixture를 재실행했다. `defineConfig(config,{webServer:undefined})`는 상속 bootstrap을 실제 제거하지 않아 공식 공용3100 서버도 정상 시작되었으며 각 case는 여전히 별도 port/DB/dist의 실제 격리 fixture를 사용했다. 본문·timeout·단언은 변경하지 않는다. 최종 결과는 아래 검증 기록에 추가한다.
+- 직접 CI 배치 생산자/소비자는 planner·선택 CLI·config layout·전체 발견파일 inventory이다. 기존 실패3개 E2E파일과 #734 server/consumer 및 읽기 전용 음성검사를 확대했다. #732/#735/#736 전체 화면·전체 Vitest/6-shard/Docker·운영환경 검증은 새 GitHub CI/별도 환경에 맡기며 로컬 부분 성공으로 대체하지 않는다.
+- DOCUMENTATION_SYNC: 본 단일 원장·Work Packet·TEST_PLAN·CI_CD·REMOTE_VALIDATION 갱신. DESIGN.md와 제품 UX/API/schema/보안·CHANGELOG는 이번 correction에서 새 제품 계약/버전이 없어 추가 변경 N/A. PR metadata 본문만의 수정으로 불필요한 metadata-only CI를 만들지 않는다.
+- 새 정확 Head Required3·Trusted QA·Owner 최종 ACCEPT는 **NOT TESTED**, `risk_level=HIGH`, `qa_required=true`, `qa_method=OWNER_MANAGED`, `release_authorized=false`, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`. 별도 infra 원본 분석·frontend 실제 재검증·qa_docs 사전 검토는 최종 Owner 수용을 대신하지 않는다. 미해결 리뷰/최신main 충돌을 확인한 뒤 같은 PR synchronize Full CI 시작까지만 수행하며 결과 모니터링·병합/Main/GHCR/Release/Issue 종료는 수행하지 않는다.
+
+- 추가 로컬 정적 검증: `node scripts/check-markdown-links.mjs` **287문서 PASS**, `node scripts/verify-test-discovery.mjs` **258 Unit파일/790 browser tests, root·외부cwd 동일 발견 PASS**. 기본 브랜치 검증기의 `docs_gate`를 현재 변경파일/AC1~5에 적용하여 **STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING / MAPPING_PASS_SEMANTIC_REVIEW_PENDING**을 확인했다. 이는 의미 QA나 Trusted PASS가 아니다.
+- 자동 `npm run verify:prepr -- --mode=fast --base=origin/main --issue=734 --risk=HIGH`는 **BLOCKED, UNKNOWN5/missing0/실제step0**. DTO·host·snapshot repository/projection·shard config의 자동 producer→consumer 매핑 부족이며 `.prepr-reports/2026-10-21T00-02-32.779Z-1301617-c05f6d85/SUMMARY.md`에 보존한다. DTO/metadata는 #734 server/consumer, projection은 resources server, shard config는 planner/config-layout/발견검사, 실제 host/저장·복귀는 누적3파일 Chromium으로 수동 연결한다. 미선정 전체 Gantt/운영/6runner는 NOT TESTED이며 도구 판정을 강제 PASS로 변경하지 않는다.
+- 별도 qa_docs 사전 검토에서 **기존135개 이동0/누락0/extra0, 현재136 unique, #734→6** 및 단언/정책 불변을 확인했고 scripts4파일49검사를 독립 재실행해 PASS했다. 최종 브라우저 결과·자동 생성 config 복원·fingerprint와 최신 리뷰/main 재확인이 남아 있어 Owner 최종 QA/승인으로 보고하지 않는다.
+
+- **과거 출처 보강(당시 UNKNOWN 기록 보존):** F734-005 Run `39496115287.1`의 [원본 source artifact 12298121453](https://github.com/planner77/masterGantt/actions/runs/39496115287/artifacts/12298121453)와 실패 job `118882733867` checkout·Git commit API를 이번에 추가 조회했다. 정확 test merge는 `d26c78075f133e11b6b52c273861a2a3bfd5900d`, 부모 `[5ffe02a334d2279fabb63943c90614a7acfaf6ad,6a78648a56d476b63e05363000b66ba0abc9a5a7]`, merge/Head 동일 Tree `7d01dc10416efc8a2e0d3f04dc5ffc890a22834a`임을 확인했다. 당시 F734-005 실패/미검증 결론은 변하지 않는다.
+
+- **다음 재실패 대응:** 같은 배치 검사가 재실패하면 먼저 실제 CI checkout SHA/plan blob·발견파일 차집합과 이번 게시 source의 일치를 확인하고 누락/중복을 보완한다. 이미 전부 명시되어 있는데 같은 차이가 반복되면 작업 디렉터리·파일 생성/탐색 경계를 진단하며 검사 우회/무수정 rerun은 하지 않는다. F734-006 GET reset이 제한적 재시도 후 다시 발생하면 기존 UNKNOWN 근인을 서버 PID/port/health·cgroup·실제 요청 trace로 조사하고 재시도 횟수를 더 늘리지 않는다. 신규 shard6이 35분 한계에 걸리면 원본 job/test별 실제 시간을 수집해 별도 배치 근거로 사용하며 기존 추정을 성공 증거로 쓰지 않는다. 어떤 후속 실패도 이 원장에 새 Run/Attempt/Head와 전체 실패 합집합을 누적한다.
+
+
+### F734-007 최종 로컬 결과 및 source 동결
+
+- 실제 Chromium 누적 합집합 **3파일15case PASS / FAIL0 / SKIP0**, session82572 exit0. UTC `2026-10-21T00:01:23.859Z`~`00:08:39.323Z`, wall435.464초/Playwright7.1분, case body합272.501초. 명령: `npx playwright test --config .prepr-reports/issue-734-cumulative/playwright.local.config.ts --project chromium --workers 1 --retries 0 --max-failures 0 tests/e2e/issue-734-equipment-dashboard.spec.ts tests/e2e/issue-730-view-composer.spec.ts tests/e2e/issue-717-identity-persistence.spec.ts`. #734 8/#730 6/#717 1 전부 실행했으며 F001~006의5고유 직접 실패 case도 이번 로컬에서 PASS했다. 과거 원격 FAIL/UNKNOWN 근인을 소급 변경하지 않는다.
+- 증거는 ignored `.prepr-reports/issue-734-cumulative/{execution.json,playwright.log,timing.json}` 및 HTML report/generated-output에 보존했다. 시작/종료 E2E SHA256은 #734 `81153dcff9fcd72d2e60d22be9f1b31c135417bfede7c3259fb6e037aa35606a`, #730 `349a81f1e07178d681e206cce3498ca2d22f858c1a76c79e313e9a7015adaaa5`, #717 `d816afa74cd9877f0829ce35ad17c336e9cfee25f9039b40babacf0853e6295d`로 동일했다. 제품 src/기존 E2E 수정0. 보완 config SHA256 `4a6d3ca9b92ea8a8e850eb7bf7059219740345d9dd1fb0c3862cda61bf4c6f1b`, planner test `78eea1ce06e49047c0cbfd1c8478a0ccca663adedc55f1b32f547910fd032448`.
+- 자동생성 next-env.d.ts/tsconfig.json UUID 경로 및 tracked #730 PNG5/JSON5를 원본과 대조·복원했다. 복원 뒤 `npm run typecheck`, scoped `npx eslint tests/scripts/e2e-shard-planner.test.ts`, `git diff --check` 모두 exit0. source1062파일 최종 manifest `.prepr-reports/issue-734-cumulative/final-source-manifest.json` SHA256 `3ac2ae9377ffdd6468257af8f6d0995b57e6eb339d40536a2b8ca5625cf593d4`를 기록했다. 문서만의 후속 갱신은 행동 검증 source를 바꾸지 않는다.
+- **로컬 증거 보존 예외:** 기존 미추적 `output/playwright/issue-734/equipment-{390,768,1024,1440,1920}.png` 5장은 테스트가 같은 경로로 갱신했다. 사전 개별 백업을 하지 않아 이전 이미지는 복원할 수 없다. 기존 browser-run 로그/source-before.json/attempt-1은 보존했고 갱신된 PNG도 삭제하지 않고 ignored generated-output에 복사했다. 사용자에게 이 사실을 알렸으며 새 이미지로 이전 실행 증거를 주장하지 않는다. Git 게시 대상에 이 출력들은 포함하지 않는다.
+- 사전 remote 재확인에서 main `62e715adbc3f497e319918306bf26cbdd73353b7`이 branch 조상이고 PR mergeable=true, 기존2스레드 resolved/미해결0였다. 새 게시 시에도 exact ref/tree와 리뷰/충돌·CI 생성만 재확인한다. 로컬354 Unit/통합+15 Chromium PASS 및 사전 검토 PASS는 새 Head Required3/Trusted QA/Owner ACCEPT가 아니며 이들 원격 결과는 계속 **NOT TESTED**다.
