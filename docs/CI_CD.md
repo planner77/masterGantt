@@ -1,3 +1,16 @@
+## Issue #770 — 변경 영향 Shadow (2026-10-22, P0 Phase A)
+
+`.github/workflows/ci.yml`에 기존 `quality`, `e2e`, `docker`의 결과 이후 **새 비차단 `impact_shadow`** Job을 추가한다. PR opened/reopened/synchronize, main push에서만 실행하며 PR `edited` 메타데이터 감사에는 개입하지 않는다. 3개 Required Check 이름과 의존 관계, PR Fast Gate, Chromium PR 6-way fail-fast/Main 6-way full, Docker smoke, QA Preflight/Trusted/Finalizer/Ruleset/정식 릴리스 승인 및 기존 GHCR 경로 모두 불변. Shadow 실행 자체가 테스트/빌드 6회를 추가하지 않는다.
+
+- 신뢰 실행: PR에서는 정확한 이벤트 base SHA 정책 코드 checkout, Git test-merge 부모=(base,head) 및 SHA 확인, base policy blob·binary diff SHA256 fingerprint, Unit/Chromium 인벤토리, #699의 base 로컬 테스트 영향 지도. PR 본문/브랜치 선언 risk=LOW가 영향을 하향할 수 없다. 도입 PR은 정책 파일이 base에 없어서 `NOT_TESTED` bootstrap JSON만 출력하고 기존 Full CI 수행.
+- 관측 산출: `ci-impact-shadow-<run-id>-<attempt>` 30일 보관 JSON + Job Summary. API를 통해 동일 run/attempt aggregate 3개/6 shard Job 이름·완료를 독립 대조하고, 사용 가능하면 6개 `e2e-timing-ci-shard-*` ZIP의 event/run/attempt/SHA, discovered test files, test-body duration을 보조 관측. 원본 ZIP은 PR-origin 비신뢰 입력이므로 공식 PASS 또는 병합·릴리스 승격에 절대 사용 금지.
+- 산출 상태: `DOCS_VERIFIED`/`FAST_TARGETED`/`FULL_REQUIRED`은 테스트 선택 추천이고 `FULL_GATES_OBSERVED`는 Job 관측 상태일 뿐 verified Full QA 증거가 아니다. 일부 실패/중단/누락·artifact 만료/오염·GitHub 권한/소스 불일치는 `UNKNOWN`/`NOT_TESTED`. 임의 기존 PASS 재사용 금지.
+- 신뢰된 base 실행이 실패해도 **관찰 Job만 비차단**이며 기존 Required3/QA/Owner 판정은 독립적으로 fail-closed. Shadow 출처를 QA check 식별자로 재사용하거나 required 검사로 추가하지 않는다. 불안정 시 비차단 Job 제거만으로 기존 전체 CI 경로로 복귀.
+- 최초 10개 성공 Run의 API 메타데이터/모든 6 샤드·3 gate 통과만 독립 확인했다. 원본 ZIP/Head/Base/Test-Merge·diff와 per-run Job 날짜 상관분석까지 검증하기 전 실제 false negative, 시간·비용 절감, 분류 정확도는 `INSUFFICIENT_DATA`. [작업 원장](exec-plans/active/ISSUE_770.md)과 [TEST_PLAN](TEST_PLAN.md) 참조.
+- #771 Fast/Full, #773 release reuse, #772 LOW 공식 합격은 **이 Phase A 결과만으로 자동 승인되지 않음**. 각각 별도 엄격한 검증·Owner 전환 승인 필요.
+
+---
+
 ## Issue #765 — Full #3085.1 Vitest Shard-map 원장 기대값 FAIL (2026-10-21)
 
 [#3085.1](https://github.com/planner77/masterGantt/actions/runs/39574608432) (Head a91a826a728f8169446fac94de074310b5fb1678): QA Preflight/Policy/TypeScript/ESLint PASS; Vitest Unit Job119137125974 3159 PASS, 1 FAIL, 3 SKIP. tests/scripts/e2e-shard-planner.test.ts:126은 실제 Shard4인 issue-735-system-dashboard를 여전히 Shard5로 예상. PR Fast Gate FAILURE의 파생으로 E2E/Docker 구현 SKIPPED 및 Required3 FAILURE; 신규 Browser/Test Runtime 결함이라고 주장하지 않는다.
