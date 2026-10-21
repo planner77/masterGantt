@@ -15,7 +15,7 @@
 
 ## 신규 실패 기록
 
-초기 작성 당시 없음. 아래 F767-001~003으로 신규 실패를 누적한다. 새 Full PR/Main/Release 실패 발생 시 `F767-001`부터 원본 Run ID/attempt/Job/정확 테스트/증거/원인/대책/새 SHA/반복 시 차이를 추가한다. 단순 실패 run 재실행이나 timeout 확대는 원인 분석 후 승인에 따르며 CI 실패 이력을 덮어쓰지 않는다.
+초기 작성 당시 없음. 아래 F767-001~004로 신규 실패를 누적한다. 새 Full PR/Main/Release 실패 발생 시 `F767-001`부터 원본 Run ID/attempt/Job/정확 테스트/증거/원인/대책/새 SHA/반복 시 차이를 추가한다. 단순 실패 run 재실행이나 timeout 확대는 원인 분석 후 승인에 따르며 CI 실패 이력을 덮어쓰지 않는다.
 
 ## F767-001 — PR #768 Full #3093.1 QA Preflight Issue AC 식별자 누락 (2026-10-21 KST)
 
@@ -42,3 +42,26 @@
 - **최소 교정(기존 #765 원장 보존)**: `tests/config/e2e-shard-plan.json`에서 spec **전체 파일 3개만** Shard6에서 이동: `issue-734-equipment-dashboard.spec.ts` **6→1**(원본 8 PASS/테스트 본문≈5.31분), `project-task-editor.spec.ts` **6→3**(33 PASS/≈3.58분), `issue-726-task-logistics.spec.ts` **6→4**(3 PASS/≈2.81분). 136 unique E2E specs를 6개 Shard에 단일 배치; 이동 이전 이력 `manualRebalance765`, 기존 `metrics.projectedMs` 값은 역사적 값 그대로 유지하고 신규 `manualRebalance767`에서 최근 실측과 부정확도 별도 기록. 예상 Job wall [24.36,29.87,25.85,28.08,25.37,23.67]분은 **테스트 본문만 이관한 정적 추정**이고 Runner/fixture 변동 및 마지막 미완료 Case의 시간을 반영하지 않은 비보증 수치다.
 - **인접 테스트/문서**: `tests/scripts/e2e-shard-planner.test.ts`의 **고정 배치 기대값 3개를 동시 변경**한다(#765 F765-004의 Unit 재실패 유형 방지). `docs/exec-plans/active/ISSUE_767.md`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md`를 함께 갱신하고 `scripts/e2e-shard-planner.mjs`의 유일 배치/전 파일 선택 원칙 준수. Test 내용/Assertions/Fixture/API/DB/Product code와 `35min`/Workers1/Retry0/PR fail-fast/6-Shard/세 Required Aggregate 및 QA/릴리스 Gate 완화 **없음**. `DESIGN.md`, `docs/SCHEDULING_ENGINE.md`는 N/A (UI·일정 계산 계약 불변).
 - **정적 확인/재검증 경계**: GitHub exact Head Tree의 현행 **136개 E2E spec**과 수정 계획의 136개 유일 배치를 비교해야 하고 고정 기대값도 일치해야 한다. 이 연결에서는 실제 `npm test` 및 새 Playwright, 35분 원격 Runner 실증은 **NOT TESTED**; 새 Head PR CI(Preflight/Unit/E2E6/Docker) 및 default-main Trusted QA 성공과 Owner HIGH 승인 전 `MERGE_READY=BLOCKED`. `release_required=true/release_authorized=false`, 공식 `v0.129.0` immutable / 새로운 `v0.129.1` 게시 대기는 불변. 과거 Run #3093.1, #3094.1, #3095.1 판정은 변경하지 않는다.
+
+## F767-004 — PR #768 Full #3096.1 Shard6 E2E PASS 후 timing Artifact CreateArtifact ECONNRESET (2026-10-22 KST)
+
+### 정확한 원본 및 분류
+
+- **귀속**: [Issue #767](https://github.com/planner77/masterGantt/issues/767) · [PR #768](https://github.com/planner77/masterGantt/pull/768) · [Full PR CI #3096.1, Run 39619154900 attempt 1](https://github.com/planner77/masterGantt/actions/runs/39619154900), `event=pull_request`, `.github/workflows/ci.yml`, branch `fix/issue-767-v0.129.1-assignment-focus`, Head `305a6897d56b40e89da639726401b77458e4475d`, Base `71f9b9ddb61be7f6e076accc027188f362e18bb1`, test-merge `420304cf7f29f42186e95a1fb0b15adfe1b6c1de`. Run은 2026-10-21T14:42:11Z 생성, **completed/failure**로 기록되어 있으며 원본 결론을 바꾸지 않는다.
+- **성공과 취소 구분**: QA Preflight/Policy/TypeScript/ESLint/Vitest/PR Build와 Required Quality Job `119289610822`, Docker 구현/Required Docker Job `119290159720` 모두 **SUCCESS**. [E2E Shard6 Job 119288924640](https://github.com/planner77/masterGantt/actions/runs/39619154900/job/119288924640)의 실제 Playwright 결과는 **130/130 PASS (14.8분)**. 이어 `E2E timing artifact 업로드` step8에서 `test-results/e2e-timing-shard-6.json` 파일 존재를 확인했지만 2026-10-21T15:00:29.131Z(한국시간 2026-10-22 00:00:29) `Failed to CreateArtifact: Unable to make request: ECONNRESET` 발생하여 **Shard6 Job FAILURE**. **테스트 실패, shard Job 35분 Timeout, 파일 경로 누락의 증거 없음**.
+- **Artifact 단독 실패 근거**: 원본 Run에 `e2e-timing-ci-shard-6`은 등록되지 않았다. 같은 Job의 `ci-setup-metrics-e2e-shard-6` artifact `12355046698`, `playwright-report-shard-6` artifact `12356070228`는 이후 **SUCCESS**로 업로드했다. 따라서 일시적인 Artifact Create API/네트워크 연결 리셋이 확인되지만 GitHub 서비스·네트워크 중 정확 어느 지점에서 TCP가 종료됐는지는 **UNKNOWN**. 해당 단독 실패는 `ENVIRONMENT / ARTIFACT_TRANSPORT`로 분류하고 제품 기능/보안/Assertion 결함으로 단정하지 않는다.
+- **파생**: PR E2E matrix `strategy.fail-fast=true`로 Shard1~5 Job(`119288924476, 119288924677, 119288924601, 119288924939, 119288924606`)은 **CANCELLED**(미완료 테스트는 NOT RUN; 중간 PASS는 Shard PASS가 아님). E2E Required 집계 Job `119297643788`은 **FAILURE**, 원본 `RESULT=failure`; 자동 QA Final Job `119297684526`은 **BLOCKED**이며 `실행 ID/attempt/검증 대상 SHA 불일치`를 별도 반환. 최종 QA 중 이 메타데이터 차이가 발생한 이유는 현재 증거로는 **UNKNOWN**(원본 run/head/attempt가 이후 조회에서는 일치). 다음 Full 실행에서 독립 재확인, 반복되면 QA source API/status 타이밍 원장으로 분리 분석. QA/Required 성공 증거로 간주 금지.
+- **이전 누적 장애 대비**: F767-001(#3093.1)은 `ISSUE_AC` 형식, F767-002(#3094.1)는 `DOCUMENTATION_SYNC` 형식, F767-003(#3095.1)는 **Shard6 35분 Job 취소**이다. 이번 #3096.1에서 앞의 정책/문서 두 Gate는 SUCCESS이고, F767-003에 따라 6→1/3/4로 3개 파일을 이동한 결과 **Shard6 130건/14.8분 성공**까지 관측하였지만 나머지 Shard 5개가 취소되어 **신규 배치의 6/6 성공은 NOT TESTED**. F767-004는 새 외부 전송 장애로서 기존 코드 회귀로 분류하지 않는다.
+
+### 종합 원인 매트릭스 및 보완
+
+| 누적 사건 | 확인된 직접 실패 | 당시 조치/이번 Run 재발 여부 | 현재 검증·잔여 위험 |
+| --- | --- | --- | --- |
+| F767-001 · Full #3093.1 | Primary Issue AC1.. 식별자 누락 | Issue AC1~AC7 보완; #3096.1 Preflight PASS | 변경 후 브랜치 기본 QA 게이트 계속 유지 |
+| F767-002 · Full #3094.1 | Work Packet DOC_SYNC/AC mapping 누락 | `DOCUMENTATION_SYNC`/`AC_TEST_COVERAGE` 보완; #3096.1 Preflight PASS | 새 문서 변경을 다음 Head로 재검증 |
+| F767-003 · Full #3095.1 | Shard6 35분 예산 초과 173/174 진행 후 취소 | 136개 spec 유지 및 3개 전체 파일을 Shard6에서 분산; #3096.1 Shard6 130/130 PASS, 다른 Shards 취소 | 전체 E2E6 재검증 NOT TESTED |
+| F767-004 · Full #3096.1 | E2E 테스트 전부 통과 후 `upload-artifact CreateArtifact ECONNRESET` | 이슈 전용 원장/TEST_PLAN/Work Packet/PLAN 보완 후 **새 Full PR synchronize**로 전 6 shard 재실행; 소스 제품/CI policy 변경 안 함 | 인프라 재발 가능, 정확 네트워크 지점 UNKNOWN, 다음 Head CI/Trusted NOT TESTED |
+
+- **다음 조치의 근거**: 테스트 단언이나 버전/코드에 의한 결정적 재현 실패가 없고, 원본 업로드 Action의 다른 두 Artifact가 즉시 성공했다. 이 **단일 전송 장애**에 맞춰 테스트/QA fail-closed 조건, artifact failure visibility, matrix fail-fast를 약화하는 소스 변경이나 광역 Retry/Timeout 증가는 하지 않는다. 문서 보완 commit의 **새 exact Head**에서 전체 Required Quality/E2E6/Docker를 다시 실행하여 모든 취소된 Shard의 완주와 timing upload를 확인한다. 기존 실패 Run rerun을 성공으로 소급하지 않는다.
+- **재발 시 결정**: 별도의 새 Run에서도 `CreateArtifact ECONNRESET`이 반복되면 첫 응답 상태/Artifact ID 유무/동일 이름 중복·다른 업로드 성공/공용 uploader 조치 범위를 조사한 뒤 **유한 1회 전송 재시도 + 실패 시 FAIL 유지 + artifact identity/digest 확인**을 CI 정책 보호 경로의 독립된 수정안으로 평가한다. 이미 존재하는 Artifact를 임의 overwrite하거나 실패를 무시하는 `continue-on-error` 우회는 금지.
+- **변경 및 검증**: `docs/ISSUE_767_FAILURE_ANALYSIS.md`, `docs/exec-plans/active/ISSUE_767.md`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md`만 문서 동기화. 제품/테스트/Shard 배치/CI workflow·GitHub Actions/GA/QA validator/버전/`v0.129.0` 태그·digest 전부 **수정하지 않음**. 로컬 GitHub 호스팅 아티팩트 네트워크 재현은 NOT TESTED. 신규 Full CI/Trusted QA/Owner HIGH 수용 전 `MERGE_READY=BLOCKED`, `release_required=true`/`release_authorized=false`; 병합/Main/정식 GHCR/Finalizer/이슈 종료 금지. 미해결 review threads 0, PR mergeable=true는 마지막 확인 상태이며 최종 Gate 시 재검증.

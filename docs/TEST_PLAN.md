@@ -1,3 +1,13 @@
+## Issue #767 — PR #768 CI #3096.1 Artifact Create `ECONNRESET` 및 E2E6 전체 재검증 (2026-10-22)
+
+[원본 Full #3096.1](https://github.com/planner77/masterGantt/actions/runs/39619154900) / Head `305a6897d56b40e89da639726401b77458e4475d`에서 QA Preflight/Quality/Docker는 성공, **Shard6의 130개 E2E는 실제 모두 PASS (14.8m)**하였다. 그러나 `E2E timing artifact` 업로드 요청 중 `CreateArtifact ECONNRESET`이 발생해 Shard6 Job이 실패하고 다른 5개 Shard는 PR matrix fail-fast에 따라 취소되었다. 뒤따른 Shard6 setup-metrics/report artifact 업로드는 성공했으므로 타이밍 파일 누락이나 테스트 Assertion 결함으로 추정하지 않는다. E2E Required/QA Full PASS는 **없음**; QA Final은 별도 source snapshot 불일치로 BLOCKED(확정 근인 UNKNOWN)였다.
+
+[누적 F767-004](ISSUE_767_FAILURE_ANALYSIS.md)와 [Work Packet](exec-plans/active/ISSUE_767.md)에 F767-001~003 전체 원인·교정 및 현재 source 귀속을 유지한다. 이전 #3095 Shard6 35m 문제의 보완으로 136개 고유 spec 중 3개 파일을 이동한 후 이번 Shard6 개별 PASS가 나왔지만, 1~5개 Shard는 미완료이므로 **수정 배치 전체는 NOT TESTED**. 부정/교차 범위: #621 정확 Assignment 권한·Revision/401/412, #530 Milestone→Resource→일정 포커스, #734 설비 관점 및 기본 Editor/Role/Search, 취소된 5개 Shard 전체와 각 Timing Artifact 업로드. PR Quality/E2E6/Docker + 기본 브랜치 Trusted QA를 같은 새 Head에서 검증한다.
+
+**이번 교정 선택:** 단 한 번 관측된 GitHub-hosted Runner ↔ Actions artifact service의 순간적인 전송 리셋에 소스 제품·테스트·6-shard·timeout 35m·Retry0·fail-fast·QA/Required 조건을 수정하지 않는다. 실패 원장을 기록하고 소스 변경 없는 문서-only commit으로 신규 `synchronize` Full PR CI를 시작한다. 재발 시 범위 지정된 Artifact 전송 재시도(최대 한 번, 최종 실패 시 fail-closed, digest/중복 검사)를 별도 검증 대상으로 논의하며 허가 없이 CI 검증 정책을 완화하지 않는다. 새 실행 전 결과는 `NOT TESTED`이고 `MERGE_READY=BLOCKED`, 정식 `v0.129.1` 게시 승인 없음.
+
+---
+
 ## Issue #767 — PR #768 Full #3095.1 E2E Shard6 Job Timeout 재분배 (2026-10-21)
 
 [원본 Run #3095.1](https://github.com/planner77/masterGantt/actions/runs/39611062916)에서 Quality/Docker와 5개 E2E Shard는 PASS, Shard6은 `Running 174 tests` 중 173 PASS 뒤 35분 Job limit CANCELLED(원본 전체 Run CANCELLED); E2E Required/QA 파생 FAIL. 이번 Run의 QA Preflight `ISSUE_AC`/`DOCUMENTATION_SYNC`는 PASS되어 [F767-001/002](ISSUE_767_FAILURE_ANALYSIS.md)와 구분한다. 독립 제품 Assert 실패나 리소스 데이터 소실 증거는 확인되지 않았다.

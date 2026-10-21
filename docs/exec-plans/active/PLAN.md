@@ -1,3 +1,11 @@
+## Issue #767 — PR #768 Full #3096.1 Artifact 업로드 오류 및 F767-004 재검증 (2026-10-22)
+
+[Run 39619154900 / attempt1](https://github.com/planner77/masterGantt/actions/runs/39619154900), Head `305a6897d56b40e89da639726401b77458e4475d`: F767-001 AC/F767-002 DOC_SYNC 문제는 Preflight PASS; F767-003 Shard6 Job Timeout은 재분배 후 Shard6 130/130 E2E 14.8분 PASS로 개별 재발 없음. 그러나 timing artifact `CreateArtifact ECONNRESET`으로 Shard6 Job FAILURE, 나머지5 Shard CANCELLED, E2E required FAIL/QA Final BLOCKED. 동일 Shard의 다른 Artifact 2개는 정상 업로드되어 네트워크 전송 경로의 간헐적인 문제로 분류하지만 정확한 하위 원인은 UNKNOWN. [F767-004](../../ISSUE_767_FAILURE_ANALYSIS.md) 원장에 Run/Job/Artifact/QA snapshot·미검증을 누적한다.
+
+제품·단언·CI·6-shard/35m/Retry/Skip·Shard plan 136 spec 및 Package PATCH 0.129.1은 그대로 보존한다. 문서 4개만 갱신하고 새 exact Head Full PR CI를 시작하여 취소된 다섯 Shard까지 완주시키는 것이 현 단계의 안전한 복구 경로. Artifact error 반복 시 API·Artifact identity/immutable 여부를 조사하여 보호된 CI의 bounded fail-closed upload retry는 별도 검토한다. 현재 Trusted QA/Owner HIGH 승인/정식 GHCR `v0.129.1` 권한 미확정, `release_authorized=false`, `MERGE_READY=BLOCKED` 유지.
+
+---
+
 ## Issue #767 — PR #768 Full #3095.1 E2E6 35분 취소 및 F767-003 단일 원장 보완 (2026-10-21)
 
 [Run #3095.1](https://github.com/planner77/masterGantt/actions/runs/39611062916), Head `d762cecbe00d60d26ce301f4d59b36f05a1d76f2`: QA Preflight/Quality/Docker/E2E Shard1~5 성공, Shard6 173/174 테스트 통과 뒤 35분 Job Timeout에서 CANCELLED, 전체 원본 CANCELLED·E2E/QA aggregate FAIL. `F767-001`/`F767-002`는 이번 Preflight PASS. [원장 F767-003](../../ISSUE_767_FAILURE_ANALYSIS.md)과 [Work Packet](ISSUE_767.md)에서 source/Jobs/시간/미완료 Case를 보존하고 테스트 배치만 6→1 설비 Dashboard(8,≈5.31m), 6→3 Task Editor(33,≈3.58m), 6→4 Task Logistics(3,≈2.81m)로 수정한다. #765 때 고정 기대값 불일치로 Unit 실패한 전례를 참조하여 `tests/scripts/e2e-shard-planner.test.ts` 기대값도 동시에 갱신.
