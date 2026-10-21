@@ -1,3 +1,13 @@
+## Issue #767 — F767-005 Full #3097.1 Shard1 35분 취소 및 전체 재분배 (2026-10-22)
+
+[CI Run39658647821, attempt1](https://github.com/planner77/masterGantt/actions/runs/39658647821), HEAD `aaf9ddaab3b1092b6b8cd3f33251928f9bab0e5a`: Preflight/Quality/Docker/Shards2~6 성공, Shard1 121 중 119 PASS 후 35.28m CANCELLED(남은 2case NOT TESTED). E2E required/QA Final FAIL 및 원본 Run CANCELLED. F767-001/002 정책 및 F767-004 artifact 전송은 이번에 재발하지 않음. Shard2/3/4 실행이 각각31.62/31.35/30.60m로 35m에 근접하여 Shard1 단독 조정만으로는 리스크 감소가 충분하지 않음.
+
+[단일 원장 F767-005](../../ISSUE_767_FAILURE_ANALYSIS.md), [Work Packet](ISSUE_767.md), TEST_PLAN에 따라 완전 E2E spec 6개 재배치: 1→6(issue-734-equipment-dashboard,project-transfer-layout-491,logistics-target-authoring), 2→5(issue-730-view-composer), 3→6(issue-621-resource-target), 4→5(issue-735-system-dashboard). Unit 고정 expected 배치 동시 수정, 원본 136 E2E spec 유일 배치 보존. 기존 `manualRebalance767`과 과거 source metrics는 history로 유지하고 새 `manualRebalance767F005` 별도 추가. 정적 test-body 이동으로 예측한 [25.75,28.35,28.30,26.56,26.21,26.71]m는 미완료 2 case/Fixture·시스템 오버헤드 불명, 실제 원격 CI로 증명 필요.
+
+제품 Source/테스트 단언/6샤드/worker1/35m/PR fail-fast/Required3/default-main Trusted QA/Timeout·Retry·Skip·QA·Release 정책 불변. 새 exact PR Head Full CI 시작 후 결과 NOT TESTED, Owner HIGH 수용·`MERGE_READY=BLOCKED`, formal v0.129.1 `release_authorized=false`. Main 병합·GHCR 태그/이미지·Issue 종료 진행하지 않음.
+
+---
+
 ## Issue #767 — PR #768 Full #3096.1 Artifact 업로드 오류 및 F767-004 재검증 (2026-10-22)
 
 [Run 39619154900 / attempt1](https://github.com/planner77/masterGantt/actions/runs/39619154900), Head `305a6897d56b40e89da639726401b77458e4475d`: F767-001 AC/F767-002 DOC_SYNC 문제는 Preflight PASS; F767-003 Shard6 Job Timeout은 재분배 후 Shard6 130/130 E2E 14.8분 PASS로 개별 재발 없음. 그러나 timing artifact `CreateArtifact ECONNRESET`으로 Shard6 Job FAILURE, 나머지5 Shard CANCELLED, E2E required FAIL/QA Final BLOCKED. 동일 Shard의 다른 Artifact 2개는 정상 업로드되어 네트워크 전송 경로의 간헐적인 문제로 분류하지만 정확한 하위 원인은 UNKNOWN. [F767-004](../../ISSUE_767_FAILURE_ANALYSIS.md) 원장에 Run/Job/Artifact/QA snapshot·미검증을 누적한다.

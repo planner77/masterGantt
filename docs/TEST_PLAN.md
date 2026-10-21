@@ -1,3 +1,15 @@
+## Issue #767 — PR #768 CI #3097.1 Shard1 35분 취소 및 6-way 부하 균형 검증 (2026-10-22)
+
+[Full PR CI #3097.1](https://github.com/planner77/masterGantt/actions/runs/39658647821), HEAD `aaf9ddaab3b1092b6b8cd3f33251928f9bab0e5a`: QA Preflight/Quality/Docker 및 E2E Shards2~6 SUCCESS. Shard1 Job119426748348 `Running 121 tests` 중 119 PASS, 35.28분 cap에서 CANCELLED, 2건 미완료; 전체 Run CANCELLED, E2E aggregate/QA Final 실패. 정책·DOC_SYNC와 Shard6 Artifact 전송 오류(F767-004)는 재발하지 않았다. Shard2/3/4도 31.62/31.35/30.60분으로 임계치 접근하였으므로 1번만이 아니라 6개 전체를 비교하여 수정한다.
+
+[단일 누적 원장 F767-005](ISSUE_767_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_767.md)을 출처로 `tests/config/e2e-shard-plan.json`의 136개 고유 spec 전체 파일을 6번 이동: `issue-734-equipment-dashboard` 1→6 (8,3.94분), `project-transfer-layout-491` 1→6 (8,2.81분), `logistics-target-authoring` 1→6 (7,2.78분), `issue-730-view-composer` 2→5 (6,3.27분), `issue-621-resource-target` 3→6 (6,3.05분), `issue-735-system-dashboard` 4→5 (6,4.04분). `tests/scripts/e2e-shard-planner.test.ts`에서도 **동일 6개의 고정 배치(Unit 5개 변경/1개 신규) 동기화**, `selectShardFiles`의 유일성·전체 Tree 136파일 검증 유지.
+
+현재 배치 파일수 [20,23,25,22,23,23]=136, 원본 Run observed job wall [35.28,31.62,31.35,30.60,18.90,14.13]분. 원본 완료된 Case의 Test body 시간만 이관한 조건부 정적 추정은 [25.75,28.35,28.30,26.56,26.21,26.71]분이다. Runner/Setup/Jitter 및 Shard1 2개 미완료 Case의 미관측 시간을 포함하지 않은 추정으로 CI 성능 PASS를 주장하지 않는다. Historical baseline `metrics.projectedMs`와 #732/#733/#765/#767 F767-003 이동은 불변 기록.
+
+같은 새 PR SHA에서 Policy/TypeScript/ESLint/Vitest, E2E6(원래 미완료 2건 포함), Docker, 기본 브랜치 Trusted QA를 검증하고 #621 exact assignment 권한/투입률100→80→70/401·412, #530 정확 Milestone UUID/LIFO focus, 설비/물류 Dashboard·원본 Task 복귀·Excel의 직접/간접/음성 사례와 과거 F767-001~004 재발 여부를 구분한다. 테스트 body·assertion·fixture/skip/Retry·worker1·Shard6/35m 및 fail-fast, Required3/QA/Release는 수정하지 않는다. 공식 릴리스 `release_authorized=false`, 새 CI 결과 `NOT TESTED` / `MERGE_READY=BLOCKED`.
+
+---
+
 ## Issue #767 — PR #768 CI #3096.1 Artifact Create `ECONNRESET` 및 E2E6 전체 재검증 (2026-10-22)
 
 [원본 Full #3096.1](https://github.com/planner77/masterGantt/actions/runs/39619154900) / Head `305a6897d56b40e89da639726401b77458e4475d`에서 QA Preflight/Quality/Docker는 성공, **Shard6의 130개 E2E는 실제 모두 PASS (14.8m)**하였다. 그러나 `E2E timing artifact` 업로드 요청 중 `CreateArtifact ECONNRESET`이 발생해 Shard6 Job이 실패하고 다른 5개 Shard는 PR matrix fail-fast에 따라 취소되었다. 뒤따른 Shard6 setup-metrics/report artifact 업로드는 성공했으므로 타이밍 파일 누락이나 테스트 Assertion 결함으로 추정하지 않는다. E2E Required/QA Full PASS는 **없음**; QA Final은 별도 source snapshot 불일치로 BLOCKED(확정 근인 UNKNOWN)였다.
