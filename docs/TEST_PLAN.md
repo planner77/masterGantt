@@ -1,3 +1,25 @@
+## Issue #770 — trusted CI 영향 분류·선택 계획/Shadow 수용 (2026-10-22)
+
+[#770 Work Packet](exec-plans/active/ISSUE_770.md)과 #697/#699 로컬 선정표를 **원격 공식 정책에 자동 대체하지 않는다**. 새 `scripts/ci_impact_plan.py`는 인증된 base에서 read-only 실행하고, 변경된 test-merge의 Git tree/diff, #699 static consumer map, 파일별 추가 직접·인접·실패 원장 회귀 후보를 선정하며 기존 Full Required CI는 Phase A에서 변경하지 않는다.
+
+| 변경 유형 | 위험 floor | Shadow 추천 | 검증 대상/보수적 이유 |
+|---|---|---|---|
+| 비보호 문서만 변경 | LOW | DOCS_VERIFIED | 코드·테스트 미변경, docs-only 출처 확인. 공식 기존 CI skip만 별도 검증 |
+| 제한된 프로젝트 목록 UI/문구 및 명시적 화면 독립 CSS | MEDIUM | FAST_TARGETED 가능 | 실제 있는 해당 화면 Unit/Chromium 소비자; #699 미매핑은 trust-base 명시 매핑으로만 보완 |
+| 기존 단일 테스트 파일의 본문 수정 | MEDIUM 이상 | FAST_TARGETED 후보 | 해당 테스트 필수 포함; skip/only/비정적 import는 즉시 FULL |
+| 일반 미등록 화면/스타일/간접 소비자 | HIGH/UNKNOWN | FULL_REQUIRED | 불완전한 소비자 지도는 테스트 제외 근거가 아님 |
+| Gantt shared state/Core/viewport, Calendar, Milestone, Resource, SQL/Server, HTTP/API, auth/revision | HIGH | FULL_REQUIRED | 직접+간접+교차 회귀·보안·계약 검사 집합 |
+| migration, package/lock, Next/tsconfig/CI/QA/workflow/fixtures/helpers | HIGH | FULL_REQUIRED | 신뢰 경로/환경/테스트 인벤토리 자체가 변경됨 |
+| 파일 추가/삭제/이름 변경, 신규/누락/잘못된 테스트 ID, dynamic import, 알 수 없는 확장자 | HIGH/UNKNOWN | FULL_REQUIRED | 기존 베이스/변경 tree 불변성 미확인·커버리지 제거 위조 차단 |
+
+- 6개 대표 실패 계열 #667/#730/#731/#732/#736/#767의 Gantt/Resource/Milestone/security 소비자를 **원장 근거와 함께 선정**한다. 이 매핑은 과거 실패가 동일 변경에서 **재발하는지를 증명하는 실험이 아님**. 고유 실패 Head/Run/Attempt/원본 테스트를 회수해 정확 회귀 누락을 검증하기 전 false-negative=INSUFFICIENT_DATA.
+- 산출물 `mastergantt-impact-plan-v1`: `risk`, `mode_recommendation`, `source`, `input_diff_fingerprint`, `trusted_policy_blob_sha`, `selected_test_ids`, `excluded_test_ids`, `selection_basis`, `failure_ledger_basis`, `test_plan_sha256`, `observed_ci`, `evidence_status`. 정렬/해시 결정적, 변경 PR이 policy floor를 직접 하향할 수 없음.
+- Job API의 3 Required aggregate와 six shard actual success 관측, exact run/attempt test timing artifact ZIP의 test spec 단위 full inventory coverage를 대조한다. ZIP 자체는 비신뢰 자료이고 원본 Required PASS 증명 자료가 아니다. 미실행/부분 수행/취소/만료는 미확인.
+- E2E `timed_test_body_minutes`와 `excluded_test_body_minutes_upper_bound`는 실제 벽시계·비용 절감과 다르며, Runner-minutes는 실제 Job start/end 자료가 있을 때만 기록. #770 Work Packet 10 Run의 baseline은 gate/job 성공은 확인했지만 test-merge/원본 diff/ZIP·시간의 소급 인증이 없어 정량적 효과는 **INSUFFICIENT_DATA**.
+- 관련 Python 수용 테스트: `tests/python/test_ci_impact_plan.py`. 이 신규 보호 검사 자체는 HEAD의 기존 Full Quality/E2E6/Docker, 기본 브랜치 Trusted QA와 Owner HIGH 승인을 필수로 유지.
+
+---
+
 ## Issue #765 — #3085.1 E2E 계획·Vitest 고정 기대값 동기화 (2026-10-21)
 
 PR #766 [Full #3085.1](https://github.com/planner77/masterGantt/actions/runs/39574608432)의 직접 실패는 tests/scripts/e2e-shard-planner.test.ts:126의 Shard 배치 기대값 stale이다. F765-003에서 issue-735-system-dashboard.spec.ts를 5→4, issue-730-view-composer.spec.ts를 5→2로 옮겼으나 해당 Test는 구 위치를 기대했다(3159 PASS/1 FAIL/3 SKIP). project-task-editor(1→6), issue-623-resource-mvp(3→2)의 고정 기대값도 신규 추가한다.
