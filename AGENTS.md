@@ -1,3 +1,14 @@
+## Issue #770 — 인증된 영향 분류·Shadow(OBSERVE) 정책 (2026-10-22)
+
+- CI 영향 분류는 기존 [#697 로컬 영향 검증](docs/TEST_PLAN.md) 및 [#699 Pre-PR](docs/LOCAL_PREPR.md) 규칙을 재사용하고 [#770 작업 원장](docs/exec-plans/active/ISSUE_770.md)·[CI/CD](docs/CI_CD.md)·[원격 검증](docs/REMOTE_VALIDATION.md)의 단일 계약을 따른다.
+- Phase A는 **관찰 전용**이다. `FAST_TARGETED`/`DOCS_VERIFIED`는 추천이며 Required Quality/Chromium 6-shard/Docker, 신뢰된 QA·Owner, Main/Release/Finalizer/Ruleset의 PASS 영수증이 아니다. 이 신규 보호 변경 자체는 HIGH/OWNER_MANAGED, 정식 Release 미승인.
+- PR 시 HEAD 코드·PR 본문 선언을 신뢰된 정책으로 사용하지 않는다. 이벤트의 정확한 base SHA에서만 판정기를 실행하고 PR Head/test-merge는 Git 객체와 출처 증거를 통해 **데이터로만 읽는다**. 최초 도입 PR의 base에 정책이 없으면 `NOT_TESTED` Shadow bootstrap이며 기존 전체 CI는 그대로 수행한다.
+- rename/delete/new test, 정적/동적 소비자 미등록, 공통 Core/상태·SQLite/보안/권한·Next 구성/fixture/workflow/package 변경, 실패 원장 교차 영향 모호성은 `FULL_REQUIRED/UNKNOWN`으로 보수적으로 상향한다. 작은 diff/자가 선언 LOW로 하향 금지. 기존 테스트 검증/누적 실패 원장을 약화시키지 않는다.
+- Shadow artifact는 정확 Run ID·Attempt/Head/Base/test-merge, policy blob SHA/변경 binary diff SHA256, 선정·제외된 실제 테스트 ID와 이유, 실패 원장 근거, test plan hash, 실측 Job/Reporter 출처 및 상태를 기록한다. 취소/누락/만료/잘못된 귀속은 `UNKNOWN/NOT_TESTED`. 절감 추정과 실제 E2E Job elapsed Runner-minutes 분리, per-test artifact 단독 PASS 금지.
+- 해당 신뢰된 정책과 CI가 변경된 PR의 구현 담당자는 `tests/python/test_ci_impact_plan.py` 및 기존 전체 exact-head PR CI를 실행한다. 지속 CI 감시/병합/정식 게시/이슈 종료는 사용자 지시 범위와 별도 승인에 따른다.
+
+---
+
 ## Issue #712 — post-merge Full CI 출처와 Lifecycle Check Run 보호 (2026-10-18)
 
 - 동일 PR Head에 Full PR CI와 병합 후 `edited` metadata-only CI가 세 Required Check Run의 **동일 이름**으로 기록될 수 있다. 마지막 Check Run ID가 아니라 인증된 Full `Run ID + Attempt + event=pull_request + source artifact + PR/head/base/test-merge/repository`를 선택한다. 실제 최신 Full 실패·진행 중은 이전 PASS로 덮지 않는다.
