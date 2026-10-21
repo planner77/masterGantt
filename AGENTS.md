@@ -1,3 +1,9 @@
+## Issue #767 — 활성 PR/Main/Release 8-Shard E2E 품질 지침 (2026-10-22)
+
+- Owner는 기존 #767/PR #768에서 새 Issue 없이 CI E2E 실행만 **6→8 shards**로 조정하도록 승인하였다. 현재 PR/Main/Release 활성 E2E는 `shard n/8`, 동일한 136 E2E spec/791선택 test, `workers=1`, `timeout-minutes:35`이다. 아래 문서의 `six shards` 기록은 당시 정책·불변 원본으로서 존중하고, 구 #639/#616 6-Shard Main recovery 증거 검증 코드는 별도 역사 범위로 보존한다.
+- 근거: #767 Full CI #3095/#3097/#3098/#3099에서 35분 Job Timeout이 Shards6/1/6/5로 반복되어 마지막 [#3099.1](https://github.com/planner77/masterGantt/actions/runs/39676585856)에서 94/109 E2E PASS 뒤 15 미완료. 8-way 계획은 실제 #3097~3099 file별 완료 case duration+결과 출력 간격 최대치 LPT를 활용(8x17 unique specs, 약21.1m/샤드 **예상 가중치**, 성공/속도 보증 아님). 직접 확인 전 새 Head E2E8/8 `NOT TESTED`.
+- 현행 CI/Release/Optimizer/selector, Vitest·Python 정책 검사 정합성과 기존 Required3 Quality/E2E/Docker 이름, default-main Trusted QA/Owner HIGH 승인·branch strict, retry·skip·fail-fast/35m·제품 원본, GHCR/Finalizer exact-version 승인을 보존한다. 임의 Job 재실행 성공이 Full source 검증이나 정식 릴리스 승인으로 승격되지 않는다. [#767 원장](docs/ISSUE_767_FAILURE_ANALYSIS.md) 및 [Work Packet](docs/exec-plans/active/ISSUE_767.md) 참조.
+
 ## Issue #712 — post-merge Full CI 출처와 Lifecycle Check Run 보호 (2026-10-18)
 
 - 동일 PR Head에 Full PR CI와 병합 후 `edited` metadata-only CI가 세 Required Check Run의 **동일 이름**으로 기록될 수 있다. 마지막 Check Run ID가 아니라 인증된 Full `Run ID + Attempt + event=pull_request + source artifact + PR/head/base/test-merge/repository`를 선택한다. 실제 최신 Full 실패·진행 중은 이전 PASS로 덮지 않는다.

@@ -1,3 +1,13 @@
+## Issue #767 — F767-007 Shard5 35분 취소·Owner 승인 8-Shard Full PR CI (2026-10-22)
+
+[원본 #3099.1 / Run39676585856](https://github.com/planner77/masterGantt/actions/runs/39676585856) Head `60d69b88aa990cb03fd827090e90ed365c86bb11`: Shard5 94/109 PASS 뒤 35.35m Job Timeout 취소, 15 미완료. 다른 5Shards/Quality/Docker SUCCESS; E2E aggregate/QA FAIL. 과거 F767-001~006의 사전 정책/Artifact/Shard6→1→6 문제와 분류하고 [F767-007](../../ISSUE_767_FAILURE_ANALYSIS.md)에 Job·Case/원인·회귀 비교를 누적. 동일 테스트 87건의 body≈12.35→19.48m(+58%) 환경편차도 전파하되 지역 단독 원인 확정 금지.
+
+기존 Issue #767 Owner 후속 명령으로 **PR/Main/Release 8Shards**, Source 실제 136spec·원본 791 test 계속 실행. #3097~3099 파일별 MAX 완료 body+인접 결과 간격 추정 LPT 8×17 spec, 샤드당 관측 최대치≈21.1m(비보증). Workflow PR/Main/Release/Optimizer/selector 및 Unit/PR Python/Release lifecycle 정적 계약·AGENTS/TEST_PLAN/CI_CD/REMOTE_VALIDATION 동기화. #639 역사 Main 6샤드 복구 검증은 당시 원본을 보존. Worker1/35m/Retry0/FailFast/Required3/Trusted/Owner High/릴리스 승인 불변.
+
+새 PR #768 Head의 Full 8/8·Required3 및 default-main QA 성공 전 `NOT TESTED`, `MERGE_READY=BLOCKED`, `release_required=true/release_authorized=false`. PR CI 시작까지만, 병합/Main/GHCR 게시 및 이슈 종료 미실시.
+
+---
+
 ## Issue #767 — #3098.1 Timeout F767-006 · 영향 기반 검증 후 1회 Full PR 검증 (2026-10-22)
 
 [원본 #3098.1 Run39665459118](https://github.com/planner77/masterGantt/actions/runs/39665459118): exact Head `26364cce865189122318a49e68f86bcb0f468270`, E2E Shard6 159 중153 PASS 후 35.30분 취소(6 미완료), 다른5 Shard/Quality/Docker SUCCESS, E2E aggregate/QA Final 미성공. 과거 F767-001/002 문서 원인 PASS, F767-003 Shard6 job35m 및 F767-005 Shard1 job35m 이동 오류의 전체 흐름을 [F767-006 원장](../../ISSUE_767_FAILURE_ANALYSIS.md)과 Work Packet/TEST_PLAN에 누적. 예상26.71m 대비 실제35.30m였던 이유는 test-body만 이전하고 파일별 호출·Fixture·서버 시작/정리 전후 비시험 약10.3m를 충분히 고려하지 않은 데 있다(하위 단계의 exact 원인은 #751에서 계측). #3098 기존 소스의 #621(6), #530(7), Editor(33), 권한(2) **48개 영향 선택 E2E 모두 PASS**; 이러한 이력은 새 Head 공식 PASS가 아님.

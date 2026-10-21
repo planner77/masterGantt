@@ -1,3 +1,12 @@
+## 10. Owner 승인 8-Shard 분산 및 F767-007 최종 Full CI (2026-10-22)
+
+- **후속 Issue #767 Scope 변경**: Owner가 명시한 `8 shard로 변경`에 따라 신규 Issue/PR 없이 기존 6→8 분산. 기존 AC1~AC7의 제품·정확 Assignment/Milestone/권한/0.129.1 버전·Immutable v0.129.0 보호 및 Owner HIGH 수용은 그대로이고 **AC4 검증 샤드만 8/8**.
+- [원본 Full #3099.1 Run39676585856](https://github.com/planner77/masterGantt/actions/runs/39676585856) Head `60d69b88aa990cb03fd827090e90ed365c86bb11`, Shard5 94/109 PASS 후 35.35분 취소·15건 NOT TESTED, 다른 5샤드 및 Required Quality/Docker 성공. Cross-run F001~F006 근인 구분·Runner region·같은 87 case 58% 실행시간 증가 분석은 [F767-007](../../ISSUE_767_FAILURE_ANALYSIS.md)에 누적.
+- **8-way 근거/선정**: 원본 #3097~3099 Run의 6-way Job 로그에서 파일별 완료 case duration+인접 완료 timestamp 간격 최대치로 LPT. `tests/config/e2e-shard-plan.json`에 `manualRebalance767F007` 저장 및 **136 spec / 샤드별17개 / 8샤드 누락0·중복0**. 각 샤드 관측최대시간 합≈21.1분은 진단용 추정치로 Runner/fixture 변동·미완료 케이스 때문에 PASS 예측 불가.
+- 변경: `.github/workflows/ci.yml`의 PR/Main, `.github/workflows/release-image.yml`의 Release, `.github/workflows/e2e-shard-optimizer.yml`, `scripts/e2e-shard-planner.mjs`, `tests/config/e2e-shard-plan.json`, `tests/scripts/e2e-shard-planner.test.ts`, `tests/scripts/test-config-layout.test.ts`, `scripts/test_pr_fast_gate.py`, `scripts/verify-issue-lifecycle.py`의 E2E 활성 `8` 계약 동기화. 옛 #639/#616 Main 정확 SHA 복구 스크립트는 **당시 6개 샤드 검증만 위한 역사적 증거**로 수정하지 않음.
+- **DOCUMENTATION_SYNC**: 이 Work Packet, `docs/TEST_PLAN.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md`, `AGENTS.md`, `docs/exec-plans/active/PLAN.md`, `docs/ISSUE_767_FAILURE_ANALYSIS.md` UPDATED. `DESIGN.md` N/A(UI 설계 불변), `docs/SCHEDULING_ENGINE.md` N/A(캘린더/기간계산 불변), `docs/API.md`/`docs/DB_SCHEMA.md` N/A(HTTP/DB 무변경).
+- **AC_TEST_COVERAGE**: PR/Main/Release matrix 1..8, plan 136 unique 및 select union136/8x17, per-source 15 Unit pin과 정책/Release trusted Static CI 테스트, 기존 #621/#530/Task Editor 등 791선택 E2E case 보존. 새로운 Head Quality/E2E8/Docker·QA/Trusted 결과는 실제 실행 전 **NOT TESTED**이며 실패 시 기존 단일 누적 원장에 교차 원인 추가.
+- **불변 보호**: worker1/Job timeout35m/Retry0/PR fail-fast/Main full, Required3 names·Trusted source/Owner HIGH·release authorization·GHCR/Finalizer 불변. `MERGE_READY=BLOCKED`, `release_required=true`, `release_authorized=false`, v0.129.0 tag/digest 및 #736/#765 FINAL 불변. 새 PR CI 시작만 승인됐으며 병합·정식 GHCR/이슈 종료는 별도 증거/승인.
 # Issue #767 — PR #764 교정 승계 및 v0.129.1 PATCH 릴리스
 
 > 상태: IMPLEMENTATION — 신규 이슈/PR 기준 검증 전. Source: [Issue #767](https://github.com/planner77/masterGantt/issues/767). 원본 [PR #764](https://github.com/planner77/masterGantt/pull/764), SHA `5abc65880879647a563c0469bf53c4cd4f654b6b`.

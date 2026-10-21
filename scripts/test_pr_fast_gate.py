@@ -84,7 +84,7 @@ class WorkflowContract(unittest.TestCase):
             self.assertNotIn("needs: [changes, preflight, pr_fast_gate]", lane)
         self.assertIn("fail-fast: false", job(self.yaml, "e2e_shard"))
         self.assertIn("fail-fast: true", job(self.yaml, "pr_e2e_shard"))
-        self.assertIn("shard: [1, 2, 3, 4, 5, 6]", job(self.yaml, "pr_e2e_shard"))
+        self.assertIn("shard: [1, 2, 3, 4, 5, 6, 7, 8]", job(self.yaml, "pr_e2e_shard"))
 
     def test_pr_lane_blocks_on_fast_gate(self):
         for name in ("pr_build", "pr_e2e_shard", "pr_docker_smoke"):
@@ -143,8 +143,8 @@ class WorkflowContract(unittest.TestCase):
         pr_docker = job(self.yaml, "pr_docker_smoke")
         self.assertIn("    name: Next.js production build\n", main_build)
         self.assertIn("    name: PR Next.js production build\n", pr_build)
-        self.assertIn("    name: Chromium E2E shard ${{ matrix.shard }}/6\n", main_e2e)
-        self.assertIn("    name: Chromium E2E shard ${{ matrix.shard }}/6 · PR\n", pr_e2e)
+        self.assertIn("    name: Chromium E2E shard ${{ matrix.shard }}/8\n", main_e2e)
+        self.assertIn("    name: Chromium E2E shard ${{ matrix.shard }}/8 · PR\n", pr_e2e)
         self.assertIn(
             "name: ${{ github.event_name == 'pull_request' && "
             "'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현' }}",
@@ -161,9 +161,9 @@ class WorkflowContract(unittest.TestCase):
             ("PR Next.js production build", "success"),
             ("Main Docker smoke (PR 비대상)", "skipped"),
             ("Docker smoke 구현", "success"),
-            ("Chromium E2E shard ${{ matrix.shard }}/6", "skipped"),
-            *( (f"Chromium E2E shard {shard}/6 · PR", "success")
-               for shard in range(1, 7)),
+            ("Chromium E2E shard ${{ matrix.shard }}/8", "skipped"),
+            *( (f"Chromium E2E shard {shard}/8 · PR", "success")
+               for shard in range(1, 9)),
         ]
         class Attempt:
             prefix = "/repos/planner77/masterGantt"
@@ -207,7 +207,7 @@ class WorkflowContract(unittest.TestCase):
         self.assertIn("fail_fast_args=(--max-failures=1)", main_e2e)
         self.assertIn('if [[ "$PR_E2E_STOP_ON_FAILURE" == "true" ]]', main_e2e)
         self.assertIn('npm run test:e2e -- "${fail_fast_args[@]}" "${shard_files[@]}"', main_e2e)
-        self.assertIn('npm run test:e2e -- "${fail_fast_args[@]}" --shard=${{ matrix.shard }}/6', main_e2e)
+        self.assertIn('npm run test:e2e -- "${fail_fast_args[@]}" --shard=${{ matrix.shard }}/8', main_e2e)
         self.assertIn("github.event.action != 'edited'", main_e2e)
 
     def test_w05_timeout_adjustment_is_finite_and_test_scoped(self):

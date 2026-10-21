@@ -90,7 +90,7 @@ describe("historical E2E shard planner", () => {
     ).toBeNull();
   });
 
-  it("requires explicit unique placements after #732/#765 and #767 F767-003/F767-005 timeout corrections", () => {
+  it("covers all current specs exactly once after #767 eight-shard escalation", () => {
     const path = fileURLToPath(new URL("../config/e2e-shard-plan.json", import.meta.url));
     const plan = JSON.parse(readFileSync(path, "utf8")) as {
       schemaVersion: number;
@@ -100,33 +100,34 @@ describe("historical E2E shard planner", () => {
     const discovered = listSpecFiles();
     const entries = plan.shards.flatMap(group => group.files);
     expect(plan.schemaVersion).toBe(1);
-    expect(plan.shardCount).toBe(6);
-    expect(plan.shards.map(group => group.shard).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(plan.shardCount).toBe(8);
+    expect(plan.shards.map(group => group.shard).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(plan.shards.every(group => group.files.length === 17)).toBe(true);
     expect(new Set(entries).size).toBe(entries.length);
     expect([...entries].sort()).toEqual(discovered); // New specs require deliberate plan slots.
-    const selected = [1, 2, 3, 4, 5, 6].flatMap(shard =>
-      selectShardFiles({ plan, currentFiles: discovered, shard, total: 6 }) ?? [],
+    const selected = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(shard =>
+      selectShardFiles({ plan, currentFiles: discovered, shard, total: 8 }) ?? [],
     );
     expect([...selected].sort()).toEqual(discovered);
     expect(new Set(selected).size).toBe(discovered.length);
     for (const [file, assignedShard] of [
-      // #765 F765-003 and #767 F767-003/F767-005/F767-006 job-timeout correction placements;
-      // validate each current destination and preserve 6 shards/unique coverage.
-      ["project-task-editor.spec.ts", 3],
+      // Current eight-shard placement supersedes historical six-shard corrections;
+      // validate each current destination and preserve unique 136 specs.
+      ["project-task-editor.spec.ts", 2],
       ["issue-623-resource-mvp.spec.ts", 1],
-      ["issue-735-system-dashboard.spec.ts", 5],
-      ["issue-734-equipment-dashboard.spec.ts", 1],
-      ["issue-732-milestone-dashboard.spec.ts", 3],
-      ["issue-621-resource-target.spec.ts", 3],
+      ["issue-735-system-dashboard.spec.ts", 4],
+      ["issue-734-equipment-dashboard.spec.ts", 2],
+      ["issue-732-milestone-dashboard.spec.ts", 7],
+      ["issue-621-resource-target.spec.ts", 8],
       ["gantt-state-recovery-editor.spec.ts", 4],
-      ["issue-736-resource-dashboard.spec.ts", 2],
+      ["issue-736-resource-dashboard.spec.ts", 5],
       ["project-transfer-layout-491.spec.ts", 6],
-      ["canonical-projection.spec.ts", 3],
-      ["logistics-target-authoring.spec.ts", 5],
-      ["project-task-delete-context.spec.ts", 3],
+      ["canonical-projection.spec.ts", 6],
+      ["logistics-target-authoring.spec.ts", 7],
+      ["project-task-delete-context.spec.ts", 5],
       ["issue-730-view-composer.spec.ts", 5],
-      ["issue-733-process-workarea-dashboard.spec.ts", 5],
-      ["issue-726-task-logistics.spec.ts", 4],
+      ["issue-733-process-workarea-dashboard.spec.ts", 4],
+      ["issue-726-task-logistics.spec.ts", 6],
     ] as const) {
       expect(plan.shards.filter(group => group.files.includes(`tests/e2e/${file}`)).map(group => group.shard)).toEqual([assignedShard]);
     }

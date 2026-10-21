@@ -1,3 +1,14 @@
+## Issue #767 — 활성 PR/Main/Release E2E 8-Shard 계약 (2026-10-22)
+
+2026-10-22 Owner의 기존 [Issue #767](https://github.com/planner77/masterGantt/issues/767) 후속 지시로 **현재 실행 구성은 8 shards / worker1 / Job timeout 35분**이다. 아래 #765/#659 등의 `E2E6`·6-Shard 문구는 당시 immutable Run/정책의 역사적 기록이며, 지금부터 활성 `CI` + `release-image` E2E는 8/8을 요구한다. [원본 Full #3099.1](https://github.com/planner77/masterGantt/actions/runs/39676585856)는 Shard5 94/109 PASS 뒤 35분 취소·나머지5Shard와 Quality/Docker PASS, E2E aggregate/QA 파생 FAIL. 근인·이전 F767-001~006 대조는 [F767-007 단일 실패 원장](ISSUE_767_FAILURE_ANALYSIS.md) 참조.
+
+- **동작**: `e2e_shard`(Main/manual) Matrix [1..8], `pr_e2e_shard`(PR) [1..8], Release `release_e2e_shard` [1..8]. 동일 `tests/config/e2e-shard-plan.json`의 136개 E2E specs를 8×17로 한 번씩, `--total 8` selector/`--shard=n/8` native fallback, `E2E_TIMING_SHARD_COUNT=8` timing, optimizer `--shards 8`. 완료 3개 Run(#3097/3098/3099)의 파일별 보고 시험시간+출력간격 MAX 기준 deterministic LPT. 샤드별≈21.1분의 관측 가중치 합은 **실제 35분 이내 완료 보장 아님**; #751에서 각 Fixture 구간 계측, #752에서 반복 취소/진단을 후속한다.
+- **보호**: PR `fail-fast=true`/내부 `--max-failures=1`, Main/manual fail-fast=false, Retry/Skip·test assertions/Fixture/DB/앱 코드·Worker1·`timeout-minutes:35`, 세 Required aggregate 정확 이름, default-main Trusted/Owner HIGH/strict main 및 immutable GHCR Main 후보/SBOM/provenance/Release/Finalizer 권한 **불변**. 신규 8-Shard 설정 전환은 보호 정책 HIGH이며 기존 `v0.129.0` tag/digest와 완료된 #736/#765를 수정하지 않는다.
+- **호환성/롤백**: 기존 `scripts/main_ci_recovery.py` (#639/#616 구 exact Run)의 원본 `Chromium E2E shard n/6` 인증 규칙은 역사적 6-Shard Run 전용이라 수정하지 않는다. 활성 Release E2E 검증기와 정책 테스트는 8-Shard로 갱신한다. 리셋 필요 시 workflow·selector·plan·Unit·정책을 **함께** 이전 6으로 돌려 새 Head Full CI 재검증하며, 과거 원본 판정을 소급 변경하지 않는다.
+- **현 시점**: 새로운 Head Full Quality/E2E 8/8/Docker + Trusted 결과는 실행 전 **NOT TESTED**, `MERGE_READY=BLOCKED`/`release_authorized=false`. 임의로 job timeout/skip/retry/QA 신뢰를 완화해 녹색화 금지.
+
+---
+
 ## Issue #765 — Full #3085.1 Vitest Shard-map 원장 기대값 FAIL (2026-10-21)
 
 [#3085.1](https://github.com/planner77/masterGantt/actions/runs/39574608432) (Head a91a826a728f8169446fac94de074310b5fb1678): QA Preflight/Policy/TypeScript/ESLint PASS; Vitest Unit Job119137125974 3159 PASS, 1 FAIL, 3 SKIP. tests/scripts/e2e-shard-planner.test.ts:126은 실제 Shard4인 issue-735-system-dashboard를 여전히 Shard5로 예상. PR Fast Gate FAILURE의 파생으로 E2E/Docker 구현 SKIPPED 및 Required3 FAILURE; 신규 Browser/Test Runtime 결함이라고 주장하지 않는다.

@@ -1,3 +1,13 @@
+## Issue #767 — Owner 8-Shard 전환 / E2E 전체 커버리지 및 Final Full CI (2026-10-22)
+
+[원본 #3099.1](https://github.com/planner77/masterGantt/actions/runs/39676585856)에서 Shard5 109 중94 PASS/15미완료, 35.35분 Job Timeout CANCELLED; 나머지 5개 Shard+Quality/Docker PASS, E2E aggregate/QA 파생 FAIL. F767-001~006 누적과 구분한 새 [F767-007](ISSUE_767_FAILURE_ANALYSIS.md)에서 #3098 Shard5 동형87개 테스트보다 약58% 느려진 사실·Runner 환경 차이와 원인 미확정을 남긴다. 단일 6-way 배치를 옮길 때마다 Shard6→1→6→5의 한계가 재발해 Owner는 기존 Issue/PR 범위에서 6→**8**을 승인했다.
+
+테스트 본문/fixture/assertions 변경 없이 **136 E2E spec(원래791 cases) 전체 유일 배치**. #3097~3099 완료 file/case durations 및 adjacent completion timestamp gap의 최대 관측 경과시간 기반 deterministic LPT: 8샤드 각각17개 spec, 사전 MAX 시간합≈21.1분/샤드. 과거와 다른 Runner region·test setup·취소 미실행 건의 미관측분 때문에 확정 실행시간/CI 통과 보증은 아니다. `tests/scripts/e2e-shard-planner.test.ts`의 15개 pin, `tests/scripts/test-config-layout.test.ts`의 CI·Release 8-way·35분 고정, Python PR fast gate 및 release lifecycle 검증 일치, exact Git Tree/selector 136개 유일함을 검증한다. `scripts/main_ci_recovery.py` 옛 #639 SHA의 원본 6샤드 Job assertion은 역사적 출처 계약으로 보존한다.
+
+검증하는 기존 계약: #621 exact Assignment(권한 만료/401·412/100→80→70/other assignment), #530 Milestone M1 Resource→일정→복귀 정확 UUID focus, Task Editor/권한, Resource/물류/설비/공정/관점 Dashboard, 기존 오류 회귀. `.github/workflows/ci.yml` PR/Main 및 `release-image.yml` Release Matrix 1..8, native fallback 8 및 원본 Timing ShardCount8, optimizer 8. `workers=1`, per-job Timeout35분, fail-fast/retry/skip/Required Quality+E2E8+Docker3, default-main Trusted QA/Owner HIGH·정식 Release 승인 모두 불변. 새 PR Head Full 8/8 PASS는 실행 전 **NOT TESTED**이며 `MERGE_READY=BLOCKED`/`release_authorized=false`.
+
+---
+
 ## Issue #767 — 원본 E2E 영향 기반 실검증 + F767-006 비용 보정 + 최종 Full CI (2026-10-22)
 
 [원본 Full #3098.1](https://github.com/planner77/masterGantt/actions/runs/39665459118) / Head `26364cce865189122318a49e68f86bcb0f468270`에서 35분 Job cap으로 Shard6 153/159 PASS·6 NOT TESTED 후 CANCELLED. 다른 5Shard 및 Quality/Docker/QA Preflight PASS, 원본 E2E required/QA FAIL. `F767-001~005` 실패 전체의 인과 비교는 [단일 원장 F767-006](ISSUE_767_FAILURE_ANALYSIS.md)에 귀속. 문제는 제품 Assertion 실패가 아니라 증가한 E2E test-body + 독립 Next/SQLite Fixture 준비/정리·타임스탬프 간격과 정확하지 않은 shard wall 예측 결합이다(각 간격의 인과적 상세 분류는 #751에 보류).

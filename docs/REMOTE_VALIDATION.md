@@ -1,3 +1,11 @@
+## Issue #767 — 최신 8-Shard PR/Main/Release 확인 기준 (2026-10-22)
+
+- Owner 승인으로 현행 E2E **8 shards**, worker1/35m, 기존 136 spec·791 test 전수 유지. 이전 문서의 `6/6` 표시·당시 CI는 역사적 source이며 신규 Head의 성능/Quality PASS로 간주하지 않는다.
+- 원격 확인: PR Full `Chromium E2E shard 1/8 · PR`~`8/8 · PR` + Required `Chromium end-to-end tests`, `Build, static checks, and unit tests`, `Docker build and runtime smoke test` 3종, default-main Trusted QA, 정확 `PR/Head/Base/Test-Merge/Run ID/Attempt`. Main/Release도 `1/8`~`8/8` 및 `--total 8`/timing ShardCount8/fallback8 동기화. `tests/config/e2e-shard-plan.json` Source Git Tree 136개와 8×17의 단일 배치가 필수.
+- Timeout이 또 발생하면 `F767-001~007` 누적 원장 전체 및 `#751` fixture 단계 계측 근거와 `#752` 안전한 반복 진단을 대조하고, fail-fast/retry/skip/timeout 상향·임의 assertion 삭제/미완료 자동 PASS 금지. `release_authorized=false`로 공식 GHCR 발행은 별도 승인 필요.
+
+---
+
 ## Issue #624 — Full PR CI #2920.1 Playwright 원본 Trace와 Scroll 경계 수용 (2026-10-18)
 
 - 직접 읽은 [Run #2920.1](https://github.com/planner77/masterGantt/actions/runs/39076400264): HEAD `829953e8a108d18cb816880606926f2220d954eb`, Base `6fea0397bc07d0c3adf2d769f9ba6829473503a2`, test-merge `38c0de7c30b267626bdb99e1bb6d53806d61465c`. [Shard4 Playwright report/artifact 12117856021](https://github.com/planner77/masterGantt/actions/runs/39076400264/artifacts/12117856021)의 `error-context`, `test.trace`, `1-trace.trace` 직접 확인: 기존 #490 scroll 첫 설정에서 expected19/native18이 5s/7 관측 동안 고정. 설정 탭, metadata PATCH, native fullscreen의 보존 단언 전에 중단됐다. 독립 원인으로 오인할 수 있는 runtime OOM/Network 오류를 단정하지 않는다(격리 서버 alive, cgroup oomKill0).
