@@ -1,3 +1,9 @@
+## Issue #765 — PR #766 Full #3084.1 E2E Shard5 35분 취소 최적화 (2026-10-21)
+
+이슈별 [누적 실패 원장 F765-003](../../ISSUE_765_FAILURE_ANALYSIS.md) 확인: PR CI #3084.1 Shard5는 91 PASS 후 35분 제한에 취소, 나머지 5 Shard 및 Quality/Docker 성공. 기존 F765-001 문서 사전검사와 F765-002 Python 정책 실패는 이 Run에서 PASS. 새 제품 수정 없이 역사적 테스트 분포 136개 고유 spec을 6개 Shard로 유일 재배치(1→6 / 3→2 / 5→2 / 5→4 각각 1 spec), PR/Main timeout·workers·fail-fast·QA/Required 유지. 새 exact Head 전체 PR CI/Trusted/Owner 승인 전 병합 금지, #734 v0.129.0 GHCR 기존 Digest 불변.
+
+---
+
 ## Issue #765 — 단일 v0.129.0 이후 실패 Main 릴리스 부채 복구 (2026-10-21)
 
 현재 main e20e4a72e59b46bde34c7ae5befd5e0f46ed335b; 기존 정식 v0.129.0 Release #186/Digest 유지. 동일 버전 정책 복구 PR 하나에 Owner 인증, GHCR 실감사, old #732/#736 RETIRED, #734/#765 일반 FINAL을 구현하고 테스트한다. HIGH/OWNER_MANAGED, qa_required=true, release_required=false, release_authorized=false, protected path 수정. PR CI/Trusted/Owner ACCEPT 및 신규 Main 성공 이전에 복구 실행 권한 없음. [Work Packet](ISSUE_765.md) 참조.

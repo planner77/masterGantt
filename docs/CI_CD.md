@@ -1,3 +1,11 @@
+## Issue #765 — Full PR CI #3084.1 Shard5 35분 취소/재분배 (2026-10-21)
+
+Source: [PR #766 / CI #3084.1](https://github.com/planner77/masterGantt/actions/runs/39563793357) 77b4e3ee9e67157fb48c5355c96b3c68177ab057. QA Preflight·Policy·TypeScript/Vitest/Build·Docker 및 E2E 5개 Shard는 SUCCESS, Shard5는 91 PASS 후 35분 Job cap에 따라 CANCELLED; E2E aggregate와 QA Final은 파생 FAIL. 원본 단언 실패/제품 회귀 증거는 없음. 첫 두 실패 [F765-001/F765-002](ISSUE_765_FAILURE_ANALYSIS.md)는 이번 Run에서 보완 검증 통과.
+
+테스트 분배만 4파일 이동: shard1→6 project-task-editor, 3→2 issue-623-resource-mvp, 5→2 issue-730-view-composer, 5→4 issue-735-system-dashboard. 총 136개 spec 단일 shard 소속, six shards + workers=1, immutable CI required gates, Test/Job Timeout, fail-fast/retry/skip, 기존 app0.129.0·Release #186 이미지와 Digest 불변. [#765 Work Packet](exec-plans/active/ISSUE_765.md)과 [F765-003 원장](ISSUE_765_FAILURE_ANALYSIS.md)에 증거/미검증을 보존. 새 Head Full PR CI 성공 전 PASS 금지.
+
+---
+
 ## Issue #765 — 0.129.0 단일 릴리스 이후 구버전 부채 안전 복구 (2026-10-21)
 
 불변 릴리스: #734 PR759 Main SHA e20e4a72e59b46bde34c7ae5befd5e0f46ed335b, Release #186.1 SUCCESS, verified ci-SHA 및 정식 ghcr.io/planner77/mastergantt:0.129.0 동일 digest sha256:37c9d83696fbfb3b2a6c5ec365f3bc509ee7ebbb80f5249eea9b82d26c6d7032. #765의 코드/CI 변경은 app version 0.129.0 유지·release_required=false.

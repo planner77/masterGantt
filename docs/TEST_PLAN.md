@@ -1,3 +1,11 @@
+## Issue #765 — PR Full #3084.1 Shard5 Job Timeout 및 E2E 완전 커버리지 리밸런싱 (2026-10-21)
+
+PR #766 Full [#3084.1](https://github.com/planner77/masterGantt/actions/runs/39563793357) Quality/Docker 및 E2E Shard1/2/3/4/6 성공, Shard5는 91건 PASS 뒤 35분 Job timeout에서 취소. 원본 테스트 FAIL이 확인된 것이 아니라 4개 남은 스펙을 완료하지 못한 것이며 새 CI에 다시 포함해야 한다. 전체 증거는 [#765 실패 원장 F765-003](ISSUE_765_FAILURE_ANALYSIS.md).
+
+`tests/config/e2e-shard-plan.json`의 테스트 파일만 4건 이전한다: project-task-editor(1→6), issue-623-resource-mvp(3→2), issue-730-view-composer(5→2), issue-735-system-dashboard(5→4). 136 unique test specs 모두 포함(샤드 파일수 22/24/25/22/21/22). 각 스펙/expect·workers=1, Chromium 6-shard, PR fail-fast, 35분 Job Timeout 및 Required Quality/E2E/Docker는 유지한다. 역사적 projectedMs는 이전 baseline이고 바뀐 배치의 실측 예측으로 주장하지 않는다. 실제 새 exact Head 전체 PR CI 및 QA를 통과해야 최종 완료.
+
+---
+
 ## Issue #765 — 미발행 v0.127/v0.128 부채 RETIRED 계약·회귀 (2026-10-21)
 
 정책 필수 실험: python3 scripts/test-release-debt-recovery-765.py (Synthetic fixture, 실 GHCR/GitHub mutation 0).

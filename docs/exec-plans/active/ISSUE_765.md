@@ -78,6 +78,15 @@
 - 브랜치 preflight 실패 시 삭제/댓글/이슈 Close 0건; partial 완료 후 재실행 시 중복 RETIRED 0건.
 - 기존 #622/#633/일반 Finalizer/동일 버전 릴리스 불변; 정확한 새로운 #765 PR CI·Trusted/Owner ACCEPT는 완료 전 NOT TESTED.
 
+## PR CI #3084.1 TIMEOUT 교정 — 테스트 커버리지 유지
+
+- PR #766 Head 77b4e3ee9e67157fb48c5355c96b3c68177ab057에서 #3084.1 (39563793357) Shard 5/6은 91개 test PASS 후 35분 Job Timeout과 일치하는 08:19:06Z 취소. 나머지 5개 Shard 및 Quality/Docker 성공; E2E aggregate/QA Final 실패는 종속 결과다.
+- 기존 실패 F765-001(Preflight), F765-002(위조 RETIRED 정책 Unit)는 #3084에서 Preflight/Policy 성공으로 보완 확인. 별도 원장은 [F765-003](../../ISSUE_765_FAILURE_ANALYSIS.md)에서 누적.
+- 테스트 파일 4개만 tests/config/e2e-shard-plan.json에서 이동: project-task-editor 1→6, issue-623-resource-mvp 3→2, issue-730-view-composer 5→2, issue-735-system-dashboard 5→4.
+- 136개 고유 E2E spec/6 shard/각 파일 정확 1개 배정 고정; 파일 수 [23,22,26,21,23,21] → [22,24,25,22,21,22]. 테스트 구문·대상·단언·Retry/Skip·35분 Job cap·Required checks·QA 정책/이미지·제품 기능 변경 없음.
+- 단순 완료 case 소요를 이전한 추정 분포는 [26.8,22.2,27.5,25.5,26.9,27.2]분이지만 Shard5 잔여 4개 파일 등 미측정이 있어 실측 완료 전 PASS 아님.
+- 새 Head Full PR CI Quality+E2E6+Docker, Trusted QA/Owner HIGH 및 필요한 Main CI 검증 전 MERGE_READY=BLOCKED. 미완료된 과거 CI를 재실행하지 않고 기존 릴리스 v0.129.0을 보존한다.
+
 ## DOCUMENTATION_SYNC
 
 - `AGENTS.md`: N/A(현재 Owner/HIGH/PR CI/Finalizer 신뢰 경계 기존 정책 준수, 공통 AGENTS 불변)
@@ -90,6 +99,7 @@
 - `docs/ISSUE_LIFECYCLE.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_765.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
+- `tests/config/e2e-shard-plan.json`: UPDATED
 - `docs/ISSUE_765_FAILURE_ANALYSIS.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
 - `DESIGN.md`: N/A(사용자 UI/레이아웃·SVAR Gantt 로직/디자인 변경 없음)
@@ -114,6 +124,9 @@
 - I8: 정확 신규 PR Head Required Quality/E2E6/Docker/Trusted/HIGH Owner 후 merge/Main 기준 적용.
 
 ## PR CI 실패 원장
+
+- [F765-003](../../ISSUE_765_FAILURE_ANALYSIS.md): #3084.1 Shard5/6 35분 Job 제한 취소, 중간 결과 91 PASS·4개 후속 스펙 NOT RUN; 테스트 분배 교정.
+
 
 - [F765-001](../../ISSUE_765_FAILURE_ANALYSIS.md): 최초 PR Full #3082.1 QA Preflight DOCUMENTATION_SYNC 구조 실패. 신규 원격 Full CI로 재검증 필요.
 
