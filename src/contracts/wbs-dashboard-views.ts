@@ -1,5 +1,6 @@
 import type { ResourceDashboardFilterInput } from "./resource-dashboard";
 import type { ResourceDrillScope } from "./resource-drill";
+import type { EquipmentDto } from "./logistics";
 export const WBS_VIEW_DIMENSIONS = ["process", "workArea", "equipment", "system", "resource", "milestone", "group", "role"] as const;
 export type WbsViewDimension = typeof WBS_VIEW_DIMENSIONS[number];
 export interface WbsViewPathEntry { dimension: WbsViewDimension; id: string | null }
@@ -56,10 +57,19 @@ export interface WbsViewResponseContext {
   range: { from: string; to: string }; asOfDate: string; mdPerMm: number | null;
   metadata: WbsTaskLedgerSnapshot["metadata"] & { systemSelection?: { systemView: "direct" | "coordination"; systemIds: string[] }; limits: typeof WBS_VIEW_LIMITS; excel: { supported: boolean; code?: "WBS_VIEW_EXPORT_UNSUPPORTED"; reason: string } };
 }
+/** Display metadata from the report's own read snapshot, never a separate UI prop. */
+export interface WbsViewEquipmentCatalogItem extends Pick<EquipmentDto, "id" | "name" | "equipmentType" | "managementUnit" | "quantity" | "active"> {
+  equipmentTypeName: string;
+  primaryProcessId: string;
+  workAreaLinks: Array<{ processId: string; occurrenceId: string; workAreaId: string }>;
+  resourceRoles: Array<Pick<EquipmentDto["resourceRoles"][number], "resourceId" | "resourceName" | "role" | "isPrimary" | "active">>;
+  controlSystems: Array<EquipmentDto["controlSystems"][number] & { systemName: string }>;
+}
 export interface WbsViewConfigurationCatalog {
   processes: Array<{ id: string; name: string; occurrenceId: string | null }>;
   workAreas: Array<{ id: string; name: string; occurrenceId: string; processIds: string[] }>;
   instances: Array<{ kind: "equipment" | "system"; id: string; name: string }>;
+  equipment: WbsViewEquipmentCatalogItem[];
   milestones: Array<{ id: string; name: string }>;
 }
 export interface WbsViewReportDto extends WbsViewResponseContext, WbsViewIdentityScope {

@@ -1,3 +1,9 @@
+## [0.129.0] — Unreleased / Issue #734
+
+- 설비를 최상위로 두는 전용 대시보드에서 단독 요약·사용자 동적 축·유형 필터, 전체 WorkArea/Owner/명시 제어 원본 정보와 고유 Task/공수·Milestone full Gate를 제공한다.
+- 기존 공통 원장·조회/정확 editor·일정 복귀를 재사용하고 같은 read snapshot의 설비 metadata·유형 이름과 서버 필터를 연결한다. 다중 경로를 합산하거나 Task 업무 연관을 실제 제어관계로 만들지 않는다.
+- 지표/UX/API·매뉴얼/테스트·Work Packet을 동기화한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false; 새 PR CI 시작은 원격 PASS·Owner 승인·병합/정식 릴리스가 아니다.
+
 ## [0.128.0] — Unreleased / Issue #736
 
 - Full PR CI #3065.1의 Resource Plan report body 관측 경합을 F736-003에 누적하고, 테스트의 정확 Project/spec/filters/scope·즉시 body receipt·단계별 조건 완료로 보완한다. 과거 TS guard/M/M matcher와 원본 source·취소 shard·남은 미검증을 보존하며 기존 공수/Plan/Excel·권한·CI timeout/6Shard 정책은 변경하지 않는다.

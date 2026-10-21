@@ -949,3 +949,10 @@ Required PR aggregate quality/e2e/docker must now cover Template v2 graph persis
 [PR 변경 묶음 게시](PR_BATCH_PUBLICATION.md)는 코드·테스트·문서 준비 후 target Ref를 한 번 게시하는 개발 운영 절차다. `ci.yml`의 PR opened/reopened/synchronize/edited, Full/metadata concurrency, path 판정, Preflight/Fast Gate, Required Quality/E2E/Docker 및 main/GHCR/Finalizer·Release를 변경하지 않는다. 불필요한 중간 게시를 줄이는 것이며 최종 Head 검증 또는 계획된 진단 checkpoint를 생략하지 않는다.
 
 [기준 측정](evidence/issue-679/ci-publication-baseline.json)의 Run/Attempt별 취소·실제 assigned Job 시간·시작 지연을 구분한다. Job 시간 합은 청구 분이나 wall-clock이 아니고, commit/Ref 요청/이벤트/Run 수가 항상 일치하지 않는다. 이번 PR의 시작 확인만으로 비용 절감·성공률 개선을 PASS로 보고하지 않는다. 복구·도구 제한과 전후 tree/부모/Head 검증은 공통 운영 문서를 따른다.
+
+
+## Issue #734 · 신규 E2E spec 명시 배치 교정 (2026-10-21)
+
+[PR #759 Full #3078.1](https://github.com/planner77/masterGantt/actions/runs/39517277420)의 Vitest strict inventory 검사가 신규 `issue-734-equipment-dashboard.spec.ts`의 명시 shard 누락(135 vs136)을 검출했다. 실제 E2E/build/Docker는 Fast Gate 차단으로 SKIPPED이며 세 Required/QA 실패는 파생 결과다. 전체 이전 여섯 실패·이번 provenance/원인/보완 및 검증은 [#734 단일 누적 원장](ISSUE_734_FAILURE_ANALYSIS.md#9-f734-007--full-30781-main-통합-후-신규-e2e-명시-배치-누락-2026-10-21)을 따른다.
+
+신규 파일만 shard6에 명시하고 기존135개 배치 및 역사적 시간/수동 배치 기록은 보존한다. 현재136개 발견파일 전체의 유일배치와 #734→6 고정 회귀를 검사한다. 신규 case setup/runtime 비용은 기존 projectedMs에 반영됐다고 주장하지 않는다. 기존6-shard·worker1·35분/Required3·단언·retry/skip·fail-fast는 불변이다. 로컬 동일 실패 재현 후 planner/config/읽기 전용 음성·resources server/consumer의31파일354검사가 PASS했다. 과거 실패 E2E 합집합3파일15case를 fail-fast없이 실행해 로컬 PASS했고 실제 명령/source fingerprint·잘못된 harness 시도 및 캡처 보존 예외를 원장에 남겼다. 타입/scoped lint/문서 링크·발견 검사도 PASS했으며 자동 PrePR UNKNOWN5는 BLOCKED를 유지한다. 새 정확 Head Full PR CI 시작 후 결과 모니터링은 수행하지 않으며 quality/e2e/docker·Trusted QA/Owner 최종 결과는 NOT TESTED다.

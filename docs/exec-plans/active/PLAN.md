@@ -1,3 +1,11 @@
+## Issue #734 — 설비 최상위 동적 대시보드
+
+main `05f1e560eee456e6fba5535255c9ede30a357c16` /0.125.0에서 `feat/issue-734-equipment-dashboard`로 구현한다. 기존 공통 원장/API·조회 구성기/표·정확 원본 editor/drill을 재사용하여 설비 단독·두 사용자 동적 계층·원본 다중 WorkArea/Owner/명시 제어·유형 필터를 제공한다. [Work Packet](ISSUE_734.md)의 AC/문서/실제 분리 Agent/변경 영향 검증을 따른다. 후보0.129.0, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. 구현·문서·리뷰/충돌 정리 후 새 PR Full CI 시작까지만 수행하며 완료 모니터링·병합·Main/GHCR·Release·Issue 종료는 하지 않는다. 원격 Required3·Trusted·Owner ACCEPT는 NOT TESTED다. #734 최종 로컬13파일140 Unit·통합, 실제 Chromium 주요3개, typecheck/전체 lint/문서·version·discovery PASS. 런타임 중단으로 나머지5 Chromium/5폭 캡처는 NOT TESTED, 자동 PrePR UNKNOWN4는 BLOCKED이며 공식 원격 전체 회귀를 대신하지 않는다.
+
+#734의 최신 main 정렬(2026-10-21): #732 Milestone 동적 관점 병합 SHA `5ffe02a334d2279fabb63943c90614a7acfaf6ad`/0.127.0을 보존하고 설비 관점을 v0.128.0 MINOR 후보로 재정렬한다. F734-004 Response body 소실은 browser HTTP200·UI 완료 증거 뒤 동일 read-only API JSON으로 검증한다. 기존 F734-001~003 및 #730/#732/#735 회귀·6 Shard 유지. 새 source Local/원격 NOT TESTED, `release_authorized=false`.
+
+#734 최신 main 정렬(2026-10-21): #736 Resource root/Plan·Excel consumer(병합 `1c1938851aa8234febcba404f4007d6c94fb2233` /0.128.0)을 보존하고 설비 관점 후보를 v0.129.0 MINOR로 상향한다. F734-005(#3070.1)의 PUT200 직후 버튼 disabled는 editor reload/최신 revision·할당 대상 로딩 후 기존 활성화와 정확 Focus/복귀를 검증한다. F734-001~005 전체 실패와 #730/#732/#735/#736 회귀·6 Shard/Required3를 보존. 신규 Head Local/Remote NOT TESTED, 출시 권한 BLOCKED.
+
 ## Issue #736 — Full #3065.1 응답 관측 경합 보완
 
 PR #760 Head3c335ba1/main08a1d9ff에서 이전 #3059 TypeScript·#3062 M/M matcher와 이번 #3065 report body의 전체 이력을 대조했다. 정확 query/즉시 body receipt·직렬 필터·이전 조건/다른 spec·scope 음성으로 테스트 관측 경합을 고치고 제품 산식·권한·CI를 유지한다. [실패 원장 F736-003](../../ISSUE_736_FAILURE_ANALYSIS.md)과 [Work Packet](ISSUE_736.md)에 세 Run·취소10Shard·source/merge·실제 선정 검증을 누적한다. 실패test26.9초/Job7분48초라35분Timeout을 위한 shard재분배 근거는 없다. 게시 전 main5ffe02a3(#732)를 통합해 충돌3개를 해소했고 통합 후 Chromium3case·전체 Unit3,136PASS 및 typecheck/lint/build 단계PASS를 확인했다. PrePR CLI는 Next 생성 설정 fingerprint로BLOCKED임을 별도 기록했다. 후보0.128.0/HIGH/OWNER_MANAGED/release_authorized=false, 새 exact Head Full CI 시작 후 모니터링·병합·Release·종료는 수행하지 않는다.

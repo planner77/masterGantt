@@ -944,3 +944,10 @@ CI #2820.1의 Required quality/Docker는 PASS, E2E는 FAIL이었다. 실제 음�
 같은 최종 PR에서 Head/base/test-merge, Full CI Run ID/Attempt/event 및 Quality/E2E/Docker 실행 경로를 확인한다. default-main Trusted QA, metadata/docs-only/fork의 원격 동작과 최종 Owner 판단은 해당 실제 증거가 있어야 판정한다. 이전 Head의 PASS·새 도구의 로컬 PASS·Run 생성만으로 MERGE_READY를 인정하지 않는다.
 
 사용자 범위가 PR CI 시작까지이면 queue/in_progress 생성 snapshot을 확인하고 모니터링을 종료한다. 완료 결과·실제 Runner 분/큐·최종 wall-clock·전후 비용 비교는 NOT TESTED로 인계한다. 권한 만료/도구 차단/partial write/경합 fixture와 실제 원격 실패를 분리하고 응답 불명확 시 재시도보다 read-back을 우선한다.
+
+
+## Issue #734 · Full #3078.1 배치 계약 실패와 재검증 (2026-10-21)
+
+[PR #759 Full #3078.1](https://github.com/planner77/masterGantt/actions/runs/39517277420)의 Vitest strict inventory 검사가 신규 `issue-734-equipment-dashboard.spec.ts`의 명시 shard 누락(135 vs136)을 검출했다. 실제 E2E/build/Docker는 Fast Gate 차단으로 SKIPPED이며 세 Required/QA 실패는 파생 결과다. 전체 이전 여섯 실패·이번 provenance/원인/보완 및 검증은 [#734 단일 누적 원장](ISSUE_734_FAILURE_ANALYSIS.md#9-f734-007--full-30781-main-통합-후-신규-e2e-명시-배치-누락-2026-10-21)을 따른다.
+
+신규 파일만 shard6에 명시하고 기존135개 배치 및 역사적 시간/수동 배치 기록은 보존한다. 현재136개 발견파일 전체의 유일배치와 #734→6 고정 회귀를 검사한다. 신규 case setup/runtime 비용은 기존 projectedMs에 반영됐다고 주장하지 않는다. 기존6-shard·worker1·35분/Required3·단언·retry/skip·fail-fast는 불변이다. 로컬 동일 실패 재현 후 planner/config/읽기 전용 음성·resources server/consumer의31파일354검사가 PASS했다. 과거 실패 E2E 합집합3파일15case를 fail-fast없이 실행해 로컬 PASS했고 실제 명령/source fingerprint·잘못된 harness 시도 및 캡처 보존 예외를 원장에 남겼다. 타입/scoped lint/문서 링크·발견 검사도 PASS했으며 자동 PrePR UNKNOWN5는 BLOCKED를 유지한다. 새 정확 Head Full PR CI 시작 후 결과 모니터링은 수행하지 않으며 quality/e2e/docker·Trusted QA/Owner 최종 결과는 NOT TESTED다.

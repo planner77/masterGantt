@@ -27,7 +27,7 @@ export function WbsViewComposer({ spec, onApply, onReset, presets }: { presets?:
     </li>)}</ol>
     <div className={styles.controls}><button data-add-axis type="button" disabled={levels.length >= 7 || !WBS_VIEW_DIMENSIONS.some(d => d !== spec.root && !levels.some(l => typeof l === "string" ? l === d : l.dimensions.includes(d as "equipment" | "system")))} onClick={() => { const dimension = WBS_VIEW_DIMENSIONS.find(d => d !== spec.root && !levels.some(l => typeof l === "string" ? l === d : l.dimensions.includes(d as "equipment" | "system"))); if (dimension) update([...levels, dimension]); }}>하위 축 추가</button>
       {presets?.map(preset => <button type="button" key={preset.label} onClick={() => update(preset.levels)}>{preset.label}</button>)}
-      {spec.root === "equipment" ? <><button type="button" onClick={() => update(["process", "system", "resource"])}>설비 → 공정 → 시스템 → Resource</button><button type="button" onClick={() => update(["milestone", "process"])}>설비 → Milestone → 공정</button></> : null}
+      {spec.root === "equipment" && !presets ? <><button type="button" onClick={() => update(["process", "system", "resource"])}>설비 → 공정 → 시스템 → Resource</button><button type="button" onClick={() => update(["milestone", "process"])}>설비 → Milestone → 공정</button></> : null}
       <button type="button" onClick={()=>update([])}>하위 없음</button>
       <button type="button" disabled={!validation.ok} onClick={() => { if (validation.ok) onApply(validation.spec); }}>적용</button>
       <button type="button" onClick={onReset}>초기화</button>

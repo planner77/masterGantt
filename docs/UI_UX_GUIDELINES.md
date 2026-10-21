@@ -1,3 +1,9 @@
+## Issue #734 — 설비 원본과 업무 연관 표시
+
+설비 root는 개인 하위 축 구성과 분리해 고정한다. 기본 단독 요약과 두 동적 예시는 기존 composer를 사용하고 유형 필터를 상위 Target으로 바꾸지 않는다. 원본 이름/유형·단품/Fleet/수량/모든 WorkArea/Owner/실제 controls는 접힌 원본 영역으로 제공하며 기존6열 표의 폭을 늘리지 않는다. 전체 등록 진단과 필터된 작업 지표·구성 수량의 모집단을 인접 라벨로 구별한다.
+
+작업0·미배정·구역 미사용·비활성은 각각의 상태로 읽을 수 있어야 하며 정상0을 실패색으로만 표현하지 않는다. controls와 같은 Task 업무 연관의 차이·중첩 소계 비가산·full Gate 범위는 숨기면 오해하는 필수 맥락이다. 390/768/1024/1440/1920px에서 긴 이름/원본 목록의 줄바꿈, 문서 overflow0, 표 내부 scroll·열 정렬, keyboard Tab/Shift+Tab/Escape와 focus 가시성을 실제 Chromium으로 확인한다. 기존 공통 focus reveal과 editor 복귀를 재사용하며 새로운 Gantt writer는 추가하지 않는다. [화면 UX](PROJECT_UX.md#issue-734--설비-대시보드), [실행·미검증](exec-plans/active/ISSUE_734.md).
+
 ## Issue #736 — 리소스 관점과 Plan/Excel의 범위 표시
 
 Resource 단독이 기본이며 기존 browser 하위 축 설정은 존중한다. 공정/WorkArea/설비·System 형제와 Milestone/공정 예시는 native 조회 구성에서 선택하고 원본을 쓰지 않는다. 등록/역할/개인 배정 구성 참고와 현재 필터의 작업/계획공수를 다른 구획으로 표시한다. 이름 우선·접힌 ID·기존 semantic token과 공통 표 열 budget을 사용하며 새 지표는 고정 열을 늘리는 대신 summary에 배치한다.

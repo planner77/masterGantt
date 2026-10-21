@@ -1,3 +1,11 @@
+## Issue #734 — 설비 대시보드
+
+`대시보드 → 설비`는 고정 설비 root·기본 단독 요약과 기존 공통 조회 구성/표/정확 상세를 사용한다. 접힌 조회 구성의 축 추가/삭제/위아래 이동과 두 예시는 개인 보기이며 저장된 설정을 자동 덮어쓰거나 WBS/Target를 수정하지 않는다. 설비 유형과 작업 검색/상태/기간 필터를 구별하고 원본 정보·연결 진단·관련 전체 Gate는 표 뒤에서 펼친다. 주관리 공정과 모든 WorkArea0..N, 실제 controls와 같은 Task 업무 연관을 따로 읽을 수 있다.
+
+Task/Assignment/설비 원본은 기존 editor로 연다. 편집 취소/dirty 확인, 저장 후 같은 경로·필터·선택 복귀, 정확 일정 이동과 복귀는 기존 source 검증·단일 host·Gantt Coordinator를 사용한다. readonly는 조회만 제공하고 pending/stale/401/412·원본 변경에서는 이전 명령을 잠근다. 최신 snapshot 재조회가 성공하면 다시 선택한다. 조회 설정을 바꾸거나 이전 요청이 늦게 끝나도 최신 사용자 의도를 덮지 않는다. 기준정보 명칭/수량/유형 이름 변경은 snapshot fingerprint를 바꾸며 구 source는 stale 처리한다.
+
+이름 우선·상황형 도움말·기존6열 예산/표 내부 overflow·keyboard/Escape/focus 복원을 유지한다. 5폭의 실제 수용 및 환경별 미검증은 [Work Packet](exec-plans/active/ISSUE_734.md), 사용자 단계는 [설비 현황](TARGET_RESOURCE_USER_GUIDE.md#설비-현황)에 기록한다.
+
 ## Issue #736 — 리소스 중심 분석
 
 `대시보드 → 리소스`는 개인 Resource를 고정 root로 하는 전용 consumer를 제공한다. Target0·하위 없음에서 시작하며 사용자가 저장한 개인 보기 구성을 보존한다. 공정→WorkArea→설비/System 형제 및 Milestone→공정 예시는 적용 전 초안이며 추가/삭제/재정렬은 원본을 변경하지 않는다. 등록/역할/실제 개인 배정/비활성과 현재 선택 작업·공수의 모집단을 구분한다.

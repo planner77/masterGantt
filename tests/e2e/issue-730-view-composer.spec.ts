@@ -335,11 +335,14 @@ test("#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차
   await expect(detailTrigger).toBeFocused();
   await detailTrigger.click();
   await expect(detail).toBeVisible();
-  const totalsBeforeNameSearch = await root.getByLabel("고유 총계", { exact: true }).innerText();
+  // The equipment consumer exposes the authoritative totals under its named summary.
+  const equipmentTotals = root.getByLabel("설비 작업 고유 총계", { exact: true });
+  await expect(equipmentTotals).toContainText("고유 Task");
+  const totalsBeforeNameSearch = await equipmentTotals.innerText();
   await root.getByLabel("표의 이름 찾기", { exact: true }).fill("등록만 설비");
   await expect(detail).toHaveCount(0);
   await expect(row).toHaveCount(0);
-  await expect.poll(() => root.getByLabel("고유 총계", { exact: true }).innerText()).toBe(totalsBeforeNameSearch);
+  await expect.poll(() => equipmentTotals.innerText()).toBe(totalsBeforeNameSearch);
   await root.getByLabel("표의 이름 찾기", { exact: true }).fill("");
 
   // Fault injection is explicit; successful query responses remain real HTTP.
@@ -360,7 +363,7 @@ test("#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차
   release();
   await expect.poll(() => oldFinished).toBe(true);
   await expect(root.getByLabel("작업 검색", { exact: true })).toHaveValue("미배정 작업");
-  await expect(root.getByLabel("고유 총계", { exact: true })).toContainText("Task1");
+  await expect(equipmentTotals).toContainText(/고유 Task\s*1건/);
   await page.unroute(pattern);
   await page.route(pattern, route => route.fulfill({ status: 409, json: { error: { code: "STALE_SNAPSHOT", message: "원본 snapshot이 변경되었습니다." } } }));
   await root.getByRole("button", { name: "계층 새로고침", exact: true }).click();

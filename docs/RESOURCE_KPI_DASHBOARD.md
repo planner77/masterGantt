@@ -1,3 +1,9 @@
+## Issue #734 — 설비 관점의 작업·공수 경계
+
+설비 전용 consumer는 #728/#729의 서버 고유 합집합과 기존 Calendar/allocation/환산 정책을 그대로 표시한다. 개인 미배정 Task도 일반 업무 KPI에 남으며 Owner 책임 역할만으로 Assignment/공수/Capacity를 만들지 않는다. 원본 수량·작업 진척·계획 M/D/MM·미설정·전체 Milestone Gate는 다른 지표다. 다중 WorkArea/Milestone의 소계를 더하지 않고 같은 Assignment는 상위에서 한 번 계산한다.
+
+설비 유형 선택은 서버 조회 조건이다. 같은 Task의 업무 연관은 실제 제어 소속이 아니며 정확한 Task/Assignment ID와 source/snapshot을 기존 editor/drill로 전달한다. 기존 Resource Plan·Capacity R·과투입·견적/Excel 계산과 #624/#731 KPI는 유지한다. 설비 root의 동적 Excel은 미지원이며 Resource root는 #736의 동일 출처 Export 계약을 지원한다. [설비 수치 정의](LOGISTICS_DASHBOARD.md#issue-734--설비-최상위-관점), [검증](exec-plans/active/ISSUE_734.md).
+
 ## Issue #736 — 리소스 고정 관점과 기존 분석의 보존
 
 리소스 관점은 Target0에서도 `root=resource`·하위 없음으로 시작하고 개인 browser 설정은 보존한다. `리소스→공정→WorkArea→[설비 | 물류 시스템]`, `리소스→Milestone→공정`은 조회 preset이며 축 추가·삭제·재정렬은 원본 WBS/배정/Target을 변경하지 않는다. 새 계산기를 만들지 않고 #728 원장·#729 snapshot API·#730 renderer와 기존 Resource/Plan/Excel 산식을 사용한다.
