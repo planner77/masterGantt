@@ -80,9 +80,43 @@
 
 ## DOCUMENTATION_SYNC
 
-UPDATED: recovery module, Generic Finalizer, existing Owner trigger, CI policy regression, Finalizer/Lifecycle/CI_CD/TEST_PLAN/CHANGELOG/PLAN/본 Work Packet.
-N/A: AGENTS.md, DESIGN.md, QA_REVIEW_POLICY.md, API.md, DB_SCHEMA.md (공통 Owner/QA policy 유지, 제품 API/UI/DB 불변).
+- `AGENTS.md`: N/A(현재 Owner/HIGH/PR CI/Finalizer 신뢰 경계 기존 정책 준수, 공통 AGENTS 불변)
+- `docs/QA_REVIEW_POLICY.md`: N/A(Owner-managed 보호경로의 Required Quality/E2E/Docker/Trusted 승인 불변)
+- `docs/CI_CD.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: N/A(신규 CLI·운영자 직접 명령 대신 기존 Generic Finalizer에서 실행)
+- `docs/REMOTE_VALIDATION.md`: N/A(원격 PR CI Run 및 실제 증거는 전용 실패 원장·Work Packet·GitHub Actions 인계)
+- `docs/GENERIC_RELEASE_FINALIZER.md`: UPDATED
+- `docs/ISSUE_LIFECYCLE.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_765.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/ISSUE_765_FAILURE_ANALYSIS.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `DESIGN.md`: N/A(사용자 UI/레이아웃·SVAR Gantt 로직/디자인 변경 없음)
+- `docs/API.md`: N/A(제품 공개 API 계약·읽기/쓰기 엔드포인트 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(SQLite 테이블·스키마 마이그레이션 없음)
+
+## AC_TEST_COVERAGE
+
+- AC1: 원본 #732/#736/#734 불변 SHA·PR·First-parent·CI/Release 원장과 현재 main 시점 재조회.
+- AC2: 인증된 private GHCR 전수 조회, Tag SHA/OCI Digest 정상/401/404/429/UNKNOWN 음성 실증.
+- AC3: #764 변경 제외와 기존 Release #186의 #621/#530 회귀 검증 범위 및 남은 리스크 기록.
+- AC4: 버전별 개별 게시 복구 대신 정확 승인된 미발행 퇴역·단일 통합 릴리스 계약 음성/양성 검증.
+- AC5: #732 0.127.0/#736 0.128.0 최신 Owner 철회와 #765 독립 Owner 복구 승인 이력 구분.
+- AC6: 신규 protected 복구 PR 단일화, 변경된 정책/CI/Finalizer와 이슈 관리·원장 테스트 연결.
+- I1: exact Owner marker schema, duplicate/foreign/revoked/edited/wrong SHA/버전 테스트.
+- I2: first-parent 네 역사적 merge와 새 #765 Merge, 원본 Main CANCELLED/FAILURE 및 #734 성공 검증.
+- I3: Git tag/GitHub Release/private GHCR 0.127/0.128 ABSENT, 0.129 digest PRESENT, UNKNOWN 안전차단.
+- I4: 세 과거 PR 브랜치 전부 SHA-leased preflight 후 삭제, #764 OPEN PR/브랜치 제외 테스트.
+- I5: #732/#736 bot RETIRED 및 #734/#765 정상 FINAL 순서, 역사적 FINAL 위조 방지.
+- I6: 중복 trigger·부분 완료 복구·main drift·closed barrier 복원 제한 및 fail-closed.
+- I7: DOCUMENTATION_SYNC 개별 파일·N/A 근거, 독립 Work Packet·CI 실패 원장 보존.
+- I8: 정확 신규 PR Head Required Quality/E2E6/Docker/Trusted/HIGH Owner 후 merge/Main 기준 적용.
+
+## PR CI 실패 원장
+
+- [F765-001](../../ISSUE_765_FAILURE_ANALYSIS.md): 최초 PR Full #3082.1 QA Preflight DOCUMENTATION_SYNC 구조 실패. 신규 원격 Full CI로 재검증 필요.
 
 ## 현재 단계
 
-IMPLEMENTATION/PR CI: 검사 전 NOT TESTED. Owner RETIRE 별도 승인 Marker 없음. 기존 v0.129.0 정식 이미지 발행 완료/변경 금지.
+IMPLEMENTATION/PR CI: 최초 Full #3082.1 Preflight FAIL; 교정 Head 새 CI NOT TESTED. Owner RETIRE 별도 승인 Marker 없음. 기존 v0.129.0 정식 이미지 발행 완료/변경 금지.
