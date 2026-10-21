@@ -25,3 +25,11 @@
 - **원인**: 신규 후속 Issue #767 등록 시 docs의 Work Packet AC1..AC6과 달리 GitHub Primary Issue checklist에는 번호 접두어가 누락됨. 기존 #629 trusted base `qa_preflight.py`는 Issue 본문 **독립 AC1..** 식별자를 필수로 요구한다. 의도된 fail-closed 판정.
 - **보완**: [Issue #767](https://github.com/planner77/masterGantt/issues/767) 본문의 기존 7개 체크리스트만 `AC1`~`AC7`로 변경해 내용·기준/Owner 권한/릴리스 범위는 불변. 이 실패를 단일 이슈 원장에 누적하고 문서-only 새 commit으로 Full PR CI `synchronize` 실행. 새 CI의 실제 3 Required 및 Trusted QA 결과는 별도 검증, 이전 SUCCESS로 추정 금지.
 - **회귀 정책**: 해당 실패 때문에 글로벌 timeout/Retry/Shard/QA Preflight를 완화·비활성화하지 않음. 동일 issue 재실패 시 Primary Issue 실제 JSON/body와 new Run source를 먼저 대조한다.
+
+## F767-002 — PR #768 Full #3094.1 Work Packet DOCUMENTATION_SYNC/AC_TEST_COVERAGE 누락 (2026-10-21 KST)
+
+- **원본 Run**: [PR Full #3094.1 / 39610534229 attempt 1](https://github.com/planner77/masterGantt/actions/runs/39610534229), head `0a7ae24fbb3d862128c719b56a398c42e2abacd7`, base `71f9b9ddb61be7f6e076accc027188f362e18bb1`.
+- **직접 원인**: `QA Preflight — 정책·문서 사전 검사`가 `ISSUE_AC PASS`까지 확인 후 `FAIL / DOCUMENTATION_SYNC: docs/exec-plans/active/ISSUE_767.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE — Work Packet ## DOCUMENTATION_SYNC 누락`으로 중단. #3093.1의 AC 번호 오류는 해결, 이번 실패는 신규 Work Packet의 필수 구조 누락이다.
+- **파생**: Fast Gate/세 Required aggregate/QA Final FAILURE, 실제 Quality/E2E/Docker 구현 job SKIPPED. 35분 E2E timeout 또는 제품 Assertion 오류가 아니다.
+- **개선**: 기준 `scripts/qa_preflight.py`→`scripts/qa_final_automated.py::docs_gate`를 확인하고 신규 Work Packet에 별도 정확한 `## DOCUMENTATION_SYNC`/ `## AC_TEST_COVERAGE` 절을 작성. 변경 path 영향 union의 `DESIGN.md` (N/A 근거), `docs/TEST_PLAN.md` (UPDATED), `docs/SCHEDULING_ENGINE.md` (N/A 근거), Issue 본문 AC1..AC7 모두 각 테스트·증거에 매핑. 새 commit 후 Full CI를 `synchronize`로 다시 실행한다.
+- **과거 증거/안전성**: 원본 #3093.1/#3094.1 실패를 PASS로 바꾸지 않고, 검증기/timeout/Retry/Shard/Required 정책 변경 또는 Owner 자동 승인 생성 금지.

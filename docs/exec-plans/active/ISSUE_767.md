@@ -37,3 +37,21 @@
 - frontend: 기존 수정 소스·회귀 보존, qa_docs: source/docs read-only 검토, infra: branch/PR/CI, Manager: 버전/문서/위험/병합. 연결된 API에서는 단일 에이전트 순차 처리하며 독립 인간 QA를 수행했다고 주장하지 않는다.
 - Risk HIGH / qa_required=true / qa_method=OWNER_MANAGED / independent_qa=N/A(Owner-managed) / manager_decision=NOT TESTED / MERGE_READY=BLOCKED / release_required=true / release_authorized=false (정식 이미지 게시 별도 승인).
 - 실패 발생 시 [단일 실패 원장](../../ISSUE_767_FAILURE_ANALYSIS.md)에 정확한 Run/attempt/Job 및 대응 추가. 기존 #736 실패 원장과 이슈 종료는 변경하지 않음.
+
+## DOCUMENTATION_SYNC
+
+- `DESIGN.md`: N/A(기존 #764 디자인과 상호작용 규칙을 그대로 이관하며 별도 화면 설계 추가 없음)
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/SCHEDULING_ENGINE.md`: N/A(일정·마일스톤 계산 엔진과 의존 관계는 건드리지 않고 UI 복귀 포커스만 수정)
+
+추가 동기화 문서: `CHANGELOG.md`, `docs/exec-plans/active/PLAN.md`, `docs/exec-plans/active/ISSUE_736.md`(구 이슈 RETIRED 공지), `docs/ISSUE_736_FAILURE_ANALYSIS.md`(역사적 단일 원장), `docs/ISSUE_767_FAILURE_ANALYSIS.md`(신규 누적 원장) 및 root package/lockfile의 PATCH version 3곳. `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/CI_CD.md`/QA 정책은 API/schema/CI/QA 규칙 변경 없음에 따라 N/A.
+
+## AC_TEST_COVERAGE
+
+- AC1: #764 Source/Head의 변경 code/test 원시 blob SHA를 #767 PR과 대조하고 #765 main 변경 내용·실패 원장을 보존한다.
+- AC2: root manifest version 1곳과 lockfile 2곳을 정확한 0.129.1로 확인하고 CHANGELOG/old OCI/Tag 변경 부재를 비교한다.
+- AC3: Work Packet/document sync 문서별 UPDATED 또는 N/A 근거, TEST_PLAN 및 PLAN/원장 업데이트와 AC↔테스트를 검증한다.
+- AC4: 새 #767 exact Head Full Quality/E2E6/Docker/Trusted QA source/attempt, 미해결 리뷰0, 최신 main strict를 원격 검증한다.
+- AC5: Owner HIGH 위험 수용 후 정상 two-parent merge commit 표준 한글 제목/빈 본문/expected head/원격 Main CI 시작을 확인한다.
+- AC6: Main CI exact candidate digest/SBOM/provenance와 별도 scoped v0.129.1 release 승인 전 tag/OCI mutation 금지를 검증한다.
+- AC7: 원본 PR #764 미병합 close 및 새 PR #768 링크/이력 보존, #736/#765 Closed 불변을 확인한다.
