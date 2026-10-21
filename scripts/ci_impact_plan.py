@@ -41,7 +41,8 @@ DOC_PROTECTED = re.compile(r"^(?:AGENTS\.md|DESIGN\.md|docs/(?:TEST_PLAN|CI_CD|R
                            r"ISSUE_LIFECYCLE|QA_REVIEW_POLICY|GITHUB_OPERATIONS)\.md)$")
 SCREEN_MAP = {
     "src/features/projects/project-settings-dialog.tsx": [
-        "tests/e2e/project-settings-dialog-layout-unknown.spec.ts",
+        "tests/e2e/project-settings-layout-490.spec.ts",
+        "tests/e2e/project-settings-dialog-layout-490.spec.ts",
     ],
     "src/features/projects/project-list-filter.ts": [
         "tests/e2e/project-list-search-filter.spec.ts",
@@ -85,12 +86,12 @@ CROSS = {
 }
 LEDGERS = {
     "gantt": ["docs/ISSUE_667_FAILURE_ANALYSIS.md", "docs/ISSUE_732_FAILURE_ANALYSIS.md"],
-    "security": ["docs/ISSUE_730_FAILURE_ANALYSIS.md", "docs/ISSUE_767_FAILURE_ANALYSIS.md"],
-    "resource": ["docs/ISSUE_730_FAILURE_ANALYSIS.md", "docs/ISSUE_736_FAILURE_ANALYSIS.md"],
+    "security": ["docs/ISSUE_730_FAILURE_ANALYSIS.md", "docs/ISSUE_736_FAILURE_ANALYSIS.md"],
+    "resource": ["docs/ISSUE_730_FAILURE_ANALYSIS.md", "docs/ISSUE_731_FAILURE_ANALYSIS.md", "docs/ISSUE_736_FAILURE_ANALYSIS.md"],
     "milestone": ["docs/ISSUE_732_FAILURE_ANALYSIS.md", "docs/ISSUE_667_FAILURE_ANALYSIS.md"],
 }
-# The Issue #767 source issue has not necessarily produced a failure ledger.
-LEDGER_OPTIONAL = {"docs/ISSUE_767_FAILURE_ANALYSIS.md"}
+# #767 is represented by its issue/PR source; there is no verified dedicated
+# failure ledger at the baseline, so it is not misreported as a ledger.
 
 
 def git(*args: str, binary: bool = False):
@@ -206,9 +207,10 @@ def local_prepr(paths: list[str], inv: dict, direct: dict) -> dict:
 
 def impact_plan(entries: list[dict], old: dict, current: dict, prepr: dict,
                 base: str, head: str, merge: str, policy_sha: str,
-                run: dict | None = None) -> dict:
+                run: dict | None = None, hazards: set[str] | None = None) -> dict:
     """Pure, deterministic classification. PR metadata cannot lower its risk."""
     paths = sorted({p for item in entries for p in (item["path"], item.get("previous_path")) if p})
+    hazards = hazards or set()
     available = set(current["all"])
     before = set(old["all"])
     after = set(current["all"])
@@ -249,6 +251,9 @@ def impact_plan(entries: list[dict], old: dict, current: dict, prepr: dict,
         previous = item.get("previous_path")
         if item["status"][0] not in "M" or previous:
             raise_risk("HIGH", "NON_MODIFY_CHANGE:" + item["status"] + ":" + path, full=True)
+        if path in hazards:
+            raise_risk("HIGH", "DYNAMIC_OR_BYPASSED_TEST_CONSUMER:" + path,
+                       full=True, ambiguous=True)
         if path in available and not previous:
             select(path, "MODIFIED_TEST")
             raise_risk("MEDIUM", "TEST_CHANGE_UNVERIFIED_ASSERTIONS:" + path)
@@ -291,18 +296,17 @@ def impact_plan(entries: list[dict], old: dict, current: dict, prepr: dict,
 
     for row in prepr.get("selected", []):
         select(row["path"], "LOCAL_PREPR_699:" + ",".join(row.get("reasons", [])[:2]))
-    if prepr.get("unknown") or prepr.get("missing") or prepr.get("state") != "READY":
-        # Existing #699 fail-closed mapping is a hard upper bound. Documents
-        # alone are intentionally excluded from this blocker.
+    # Explicitly reviewed screen maps may extend the narrower #699 local
+    # mapping, but MUST be anchored in trusted base code and existing tests.
+    trusted_screen = lambda p: p in SCREEN_MAP or (p.endswith(".module.css") and
+                            p.removesuffix(".module.css") + ".tsx" in SCREEN_MAP)
+    outstanding = [item for item in prepr.get("unknown", []) if not trusted_screen(item.get("path", ""))]
+    if outstanding or prepr.get("missing") or (prepr.get("state") != "READY" and
+                                                 not prepr.get("unknown")):
         raise_risk("HIGH", "LOCAL_PREPR_UNMAPPED_OR_MISSING", full=True, ambiguous=True)
+    if prepr.get("unknown") and not outstanding:
+        reasons.append("TRUSTED_SCREEN_MAP_SUPPLEMENTS_PREPR_699")
 
-    if any(p.startswith("src/") or p.startswith("tests/") for p in paths):
-        # Identify only literal test imports. Dynamic imports and shared
-        # environment/config are conservatively Full, not falsely uncovered.
-        for p in paths:
-            if p.startswith("src/server/") and p not in prepr.get("matched", []):
-                # #699 itself records missing direct server imports in unknown.
-                pass
     categories = set()
     if any("gantt" in p or "viewport" in p or "canonical" in p for p in paths):
         categories.add("gantt")
@@ -358,6 +362,25 @@ def impact_plan(entries: list[dict], old: dict, current: dict, prepr: dict,
     }
     plan_core["test_plan_sha256"] = sha256(plan_core)
     return plan_core
+
+
+
+def detect_hazards(commit: str, entries: list[dict]) -> set[str]:
+    """Unknown imports, test suppression, non-literal dependencies => Full."""
+    hazardous: set[str] = set()
+    for item in entries:
+        path = item["path"]
+        if item["status"][0] == "D" or not (path.startswith("src/") or path.startswith("tests/")):
+            continue
+        if not re.search(r"\.(?:[cm]?[jt]sx?)$", path):
+            continue
+        body = git_file(commit, path)
+        if re.search(r"\bimport\s*\(\s*(?!['\"\`])", body):
+            hazardous.add(path)
+        if path.startswith("tests/") and re.search(
+                r"\b(?:test|describe|it)\s*\.\s*(?:only|skip|fixme)\s*\(", body):
+            hazardous.add(path)
+    return hazardous
 
 
 def github_jobs(repo: str, run_id: int, attempt: int) -> list[dict]:
@@ -443,7 +466,13 @@ def source_context(event: dict, mode: str) -> dict:
             raise ValueError("INVALID_SOURCE_SHA")
         if git("rev-parse", "HEAD") != base:
             raise ValueError("UNTRUSTED_POLICY_CHECKOUT")
-        git("fetch", "--no-tags", "origin", merge)
+        try:
+            git("fetch", "--no-tags", "origin", merge)
+        except ValueError:
+            # GitHub may disallow fetching an unreachable synthetic merge by
+            # raw SHA. A mutable ref is used only to retrieve bytes; the
+            # immutable event SHA/parent comparison is still authoritative.
+            git("fetch", "--no-tags", "origin", f"refs/pull/{pr['number']}/merge")
         parents = git("rev-list", "--parents", "-n", "1", merge).split()
         if parents != [merge, base, head]:
             raise ValueError("TEST_MERGE_PARENT_MISMATCH")
@@ -502,10 +531,12 @@ def main() -> int:
         paths = sorted({p for item in entries for p in (item["path"], item.get("previous_path")) if p})
         direct = actual_unit_imports(ctx["target"], current["unit"])
         prepr = local_prepr(paths, current, direct)
+        hazards = detect_hazards(ctx["target"], entries)
         run = {"repository": ctx["repo"], "event": "pull_request" if args.mode == "pr" else "push",
                "run_id": ctx["run_id"], "run_attempt": ctx["attempt"],
                "pr_number": ctx["pr"]}
-        report = impact_plan(entries, old, current, prepr, base, head, merge, policy_blob, run)
+        report = impact_plan(entries, old, current, prepr, base, head, merge, policy_blob, run,
+                             hazards=hazards)
         required = os.environ.get("E2E_REQUIRED", "").lower() == "true"
         results = {"quality": os.environ.get("NEED_QUALITY", ""),
                    "e2e": os.environ.get("NEED_E2E", ""),
