@@ -95,6 +95,12 @@
 - PR Fast Gate 실패로 해당 #3085 E2E6/Docker 실제 구현 NOT RUN; F765-003 Shard5 35분 Timeout 재분배 효과는 여전히 미검증. [F765-004 누적 원장](../../ISSUE_765_FAILURE_ANALYSIS.md)에 실제 Run/Job/반례 추가.
 - 새 소스에서 기존 14개 명시 위치 모두 Plan JSON과 정적 일치; 원격 단위/Chromium/Build/Docker/Trusted QA는 새 CI 시작 전 NOT TESTED.
 
+## Main CI #3087.1 실패 및 동일 SHA 복구 계획 (F765-005)
+
+- [Main #3087.1](https://github.com/planner77/masterGantt/actions/runs/39583074075) source SHA `71f9b9ddb61be7f6e076accc027188f362e18bb1`, push event; Quality/Docker 및 5/6 Chromium Shards SUCCESS, Shard1 112PASS/1FAIL, aggregate E2E FAILURE. #765 정책 코드/원장 안전 경계 실패는 아니며 #491 템플릿 저장 POST201 이후 격리 GET가 `ECONNRESET`.
+- Playwright Trace+isolated application diagnostics 확인: GET 전송 경과 약29ms, 테스트 서버 살아있고 Health200, cgroup OOMKill0. 원인 소켓 reset의 세부 기전은 UNKNOWN이며 35분 Timeout, 서버 전체 종료 또는 제품 회귀로 단정 금지.
+- 기존 동일 source PR #3086.1의 #491 동일 테스트 PASS 비교. 소스 변경 없이 exact old Main run `39583074075`의 실패 Job만 다시 실행하여 성공/재실패와 종속 Aggregate/candidate 결과를 감사. 이전 attempt1 FAILURE는 불변으로 보존.
+- canonical F765-005 누적 기록은 별도 docs-only branch에 보존해 **복구 대상 main SHA를 변경하지 않는다**. Repo main 및 등록된 GHCR 0.129.0 Digest/릴리스는 그대로. 정확한 이후 attempt/Artifact 확인 후 추가 기록 예정.
 ## DOCUMENTATION_SYNC
 
 - `AGENTS.md`: N/A(현재 Owner/HIGH/PR CI/Finalizer 신뢰 경계 기존 정책 준수, 공통 AGENTS 불변)

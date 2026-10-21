@@ -127,3 +127,39 @@
 
 같은 PR #766의 정확한 새 Head에서 Preflight·Policy/신규 Python Unit·Vitest 3159 기존 PASS 집합·6 Chromium shards (기존 4개 미실행 스펙 포함)·Docker/Build를 한 번에 재검증한다. Source/Run/Attempt 결과와 Full PR CI/Trusted QA를 기록하고, 전체 PASS/Owner HIGH 승인 전 병합·복구 mutation은 금지한다.
 
+## F765-005 — 병합 후 Main CI #3087.1 Shard1 격리 HTTP 연결 초기화 (2026-10-21)
+
+| 구분 | 원본 증거 |
+| --- | --- |
+| Primary Issue / feature PR | #765 / [merged #766](https://github.com/planner77/masterGantt/pull/766) |
+| Main CI | [#3087.1 / 39583074075](https://github.com/planner77/masterGantt/actions/runs/39583074075), attempt 1, push to main, completed FAILURE |
+| 정확한 Merge SHA | `71f9b9ddb61be7f6e076accc027188f362e18bb1`; first parent `e20e4a72e59b46bde34c7ae5befd5e0f46ed335b`, second parent PR HEAD `2c8cad503a98d145d29e833442db47097744a286` |
+| 단일 원인 Job | [Chromium E2E shard 1/6 · Job 119165266597](https://github.com/planner77/masterGantt/actions/runs/39583074075/job/119165266597) FAILURE |
+| 실패 파일/위치 | `tests/e2e/project-transfer-layout-491.spec.ts:106:5` (시나리오), 실패 표현식 `:112:682`: read-only 템플릿 POST201 뒤 `page.request.get(source.path)` |
+| 실제 오류 | `Error: apiRequestContext.get: read ECONNRESET`, request=`GET /api/projects/<publicId>` at isolated loopback `127.0.0.1:33715`. Trace call ~29.2ms. **HTTP status 응답 없음** |
+| Source artifacts | [Playwright report shard1 / 12340526177](https://github.com/planner77/masterGantt/actions/runs/39583074075/artifacts/12340526177) nested trace `test.trace`, `1-trace.network`, attached isolated-application-diagnostics JSON, error-context Markdown |
+| 해당 Shard | 112 PASS, 1 FAIL; 다른 5개 Chromium Shard 2/3/4/5/6 SUCCESS |
+| 필수 결과 | Quality + Docker SUCCESS; E2E aggregate job119178719044 FAILURE, Main candidate publish job119178755698 SKIPPED; Generic Finalizer #820.1 SKIPPED (parent CI failure) |
+| 직전 Full PR 교차 검증 | [#3086.1 / 39576210249](https://github.com/planner77/masterGantt/actions/runs/39576210249) identical product source Test #491 `:106:5` PASS 23.5s, shard1 113 PASS |
+| 분류 | **INIT_TRANSPORT** — isolated Next dev session의 단일 GET socket reset. 서버 종료·OOM 원인 미입증; 제품 응답 회귀를 단정하지 않음 |
+
+### Trace/Fixture 진단 결과 및 확실성
+
+- 같은 테스트에서 `POST /api/project-templates` → HTTP 201 성공, `expect(dialog).toHaveCount(0)` 성공. 그 후 읽기 전용 최종 원본 비교용 GET에서 즉시 연결 초기화가 발생. 해당 GET의 HTTP status/body를 받은 증거 없음.
+- 중첩 Playwright trace: failed `pw:api GET` start=1567779.152ms, end=1567808.363ms, 경과 ~29.2ms. 오류는 테스트 전체 Timeout이나 35분 Job Timeout이 아니라 **단일 API 요청 전송 실패**.
+- `isolated-application-diagnostics` attached JSON: 원본 격리 dev server PID 19517 상태 `alive=true`, `exitCode=null`, `signal=null`; Health Probe HTTP 200, 15ms; cgroup OOM counter=0 / oomKill=0. 프로세스 RSS와 호스트 메모리 스냅샷은 단일 순간 관측이며 서버 안정성을 절대 보장하지는 않음.
+- 진단 Stdout의 마지막 템플릿 POST201 및 기존 여러 프로젝트 GET200, 실패 요청의 응답/서버 로그 없음. 최초 OOM/서버 프로세스 종료/SQL 장애 인과는 **기각(증거 없음)**; TCP reset 개별 원인은 미확정.
+- 뒤이어 테스트 결과의 다른 테스트는 PASS, 동일 Main E2E shard5까지 6개 중 5개 PASS. 단, 이 증거만으로 모든 환경에서 안정성을 보증하지 않음.
+
+### 누적 이력과 완화 / 원본 유지
+
+- F765-001(#3082.1) 문서 Gate, F765-002(#3083.1) bot RETIRED 음성 Unit, F765-003(#3084.1) PR Shard5 35분 Timeout, F765-004(#3085.1) Shard 배치 pinned Unit stale. #3086.1 exact PR HEAD에서는 Required Quality/E2E6/Docker 및 Trusted PASS. 이번 F765-005는 이전 네 실패와 별도인 **Main 격리 전송** 일회성 증상.
+- 제품 코드, 테스트 단언·대기시간/Retry·Playwright fixture, 136 spec/6 Shard 및 Required CI를 변경하지 않음. 근거 없이 예외를 Skip/무한 재시도/timeout 완화하지 않고, 원본 SHA를 유지한 상태에서 **실패한 Main CI Jobs만 재실행**하여 재현성을 검증.
+- GitHub Actions의 `re-run failed jobs`는 source SHA `71f9b9dd...`를 유지한 새 attempt를 생성한다. 성공한 기존 Jobs/새 attempt의 실제 대상과 종속 E2E Aggregate·GHCR candidate Job의 실행 여부를 별도로 확인, 각 Job/Attempt를 혼용하지 않음.
+- 실패 이력을 `SUCCESS`로 덮어쓰지 않는다. Attempt 1은 FAILURE 불변이고, Run `39583074075`의 이후 attempt가 성공해야만 복구 증거로 사용.
+- **코드 수준 보완은 재현될 경우에만** 정확한 Trace·Fixture 원인에 따른 교정 PR/새 CI로 분리한다. 원인 미확정 상태에서 격리 fixture와 제품 코드를 임의 수정하면 기존 #765의 첫 부모/Owner 복구 SHA 승인 범위까지 변경되는 추가 릴리스 부채가 발생할 수 있음.
+
+### 운영/감사 일지
+
+- 2026-10-21 KST: 최초 Main CI #3087.1 실패 후 원본 Job log, Test Trace, isolated diagnostics 대조. `RERUN_FAILED_JOBS` 처리 예정; 재실행 결과는 별도 실제 Run/attempt로 추가 기록해야 함.
+- 보완 방침: 실패 판정의 **증거 완결성**, 동일 SHA 재검증 및 후속 GHCR candidate handoff 확인. 새로운 제품 코드 수정/배포 없음. owner retrospective RETIRED 권한은 여전히 없음.
