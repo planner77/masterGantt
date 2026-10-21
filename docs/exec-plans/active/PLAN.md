@@ -1,3 +1,11 @@
+## Issue #767 — #3098.1 Timeout F767-006 · 영향 기반 검증 후 1회 Full PR 검증 (2026-10-22)
+
+[원본 #3098.1 Run39665459118](https://github.com/planner77/masterGantt/actions/runs/39665459118): exact Head `26364cce865189122318a49e68f86bcb0f468270`, E2E Shard6 159 중153 PASS 후 35.30분 취소(6 미완료), 다른5 Shard/Quality/Docker SUCCESS, E2E aggregate/QA Final 미성공. 과거 F767-001/002 문서 원인 PASS, F767-003 Shard6 job35m 및 F767-005 Shard1 job35m 이동 오류의 전체 흐름을 [F767-006 원장](../../ISSUE_767_FAILURE_ANALYSIS.md)과 Work Packet/TEST_PLAN에 누적. 예상26.71m 대비 실제35.30m였던 이유는 test-body만 이전하고 파일별 호출·Fixture·서버 시작/정리 전후 비시험 약10.3m를 충분히 고려하지 않은 데 있다(하위 단계의 exact 원인은 #751에서 계측). #3098 기존 소스의 #621(6), #530(7), Editor(33), 권한(2) **48개 영향 선택 E2E 모두 PASS**; 이러한 이력은 새 Head 공식 PASS가 아님.
+
+**최소 재분배**: 실측 파일 전체 관측 간격으로 E2E 파일4개 이동: #734 6→1, #621 6→3, 물류 Target authoring 6→5, #623 Resource MVP 2→1. `tests/config/e2e-shard-plan.json` + `tests/scripts/e2e-shard-planner.test.ts`의 기대값 동시 수정, 136 유일 spec/6Shard/worker1/35min/Required3/Trusted/Owner HIGH 보호 불변. 정적 예상 wall [26.49,23.16,25.89,25.05,26.99,20.32]m, 러너 상황·미실행 6cases 편차로 검증되지 않은 가설. 영향 기반 진단을 마친 뒤 한 PR commit push로 최종 Full PR CI 시작, 병합/Main·GHCR·Finalizer/Issue 종료는 별도 승인·원격 증거 이후. 단발 실행 실패 시 무조건 PR CI 재시작하지 않고 #752 경로 및 기존 원장 기반 근본 분석.
+
+---
+
 ## Issue #767 — F767-005 Full #3097.1 Shard1 35분 취소 및 전체 재분배 (2026-10-22)
 
 [CI Run39658647821, attempt1](https://github.com/planner77/masterGantt/actions/runs/39658647821), HEAD `aaf9ddaab3b1092b6b8cd3f33251928f9bab0e5a`: Preflight/Quality/Docker/Shards2~6 성공, Shard1 121 중 119 PASS 후 35.28m CANCELLED(남은 2case NOT TESTED). E2E required/QA Final FAIL 및 원본 Run CANCELLED. F767-001/002 정책 및 F767-004 artifact 전송은 이번에 재발하지 않음. Shard2/3/4 실행이 각각31.62/31.35/30.60m로 35m에 근접하여 Shard1 단독 조정만으로는 리스크 감소가 충분하지 않음.

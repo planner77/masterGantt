@@ -1,3 +1,15 @@
+## Issue #767 — 원본 E2E 영향 기반 실검증 + F767-006 비용 보정 + 최종 Full CI (2026-10-22)
+
+[원본 Full #3098.1](https://github.com/planner77/masterGantt/actions/runs/39665459118) / Head `26364cce865189122318a49e68f86bcb0f468270`에서 35분 Job cap으로 Shard6 153/159 PASS·6 NOT TESTED 후 CANCELLED. 다른 5Shard 및 Quality/Docker/QA Preflight PASS, 원본 E2E required/QA FAIL. `F767-001~005` 실패 전체의 인과 비교는 [단일 원장 F767-006](ISSUE_767_FAILURE_ANALYSIS.md)에 귀속. 문제는 제품 Assertion 실패가 아니라 증가한 E2E test-body + 독립 Next/SQLite Fixture 준비/정리·타임스탬프 간격과 정확하지 않은 shard wall 예측 결합이다(각 간격의 인과적 상세 분류는 #751에 보류).
+
+**위험 기반 영향 증거 매핑(실제 PASS·별도 Run 미수행)**: ① #621 정확 Assignment 편집·401/412·세션 취소 `tests/e2e/issue-621-resource-target.spec.ts` **6/6 PASS**(Job119450474592), ② #530 Milestone→Resource→일정→M1 focus 및 Resource KPI `resource-kpi-integration-ui.spec.ts` **7/7 PASS**(Job119450474750), ③ 일반 Task Editor 및 권한 경계 `project-task-editor.spec.ts` **33/33 PASS**·`project-edit-permission-recheck.spec.ts` **2/2 PASS**(Job119450474637). 합계 **직접·간접 48 PASS**. 음성 #734 설비8, 공정 물류 authoring7, #623 Resource MVP7 PASS. 원본 Run `39665459118.1`/HEAD `26364cce865189122318a49e68f86bcb0f468270`의 테스트 본문/코드 출처이며 **새 Head Full PASS를 대체하지 않음**.
+
+**작은 계획 보완**: 136개 spec은 전부 유지하면서 `issue-734-equipment-dashboard` 6→1, `issue-621-resource-target` 6→3, `logistics-target-authoring` 6→5, `issue-623-resource-mvp` 2→1 네 개 전체 파일만 이동한다. 본문 시간만이 아니라 종료 테스트 시각의 파일별 관측 간격을 포함한 #3098 실측값으로 새 예상 Job wall `[26.49,23.16,25.89,25.05,26.99,20.32]`분을 표시하되 전혀 보증하지 않는다. 기존 #767/F003/F005 및 #765 계획 정보 삭제 금지; 변경한 `tests/scripts/e2e-shard-planner.test.ts` 고정 배치 기대값 동시 확인, Git Tree 실제 136/136 unique. 기존 `--max-failures=1`/6Shard/worker1/35m·timeout/retry/skip·QA 보호 불변.
+
+**완료 정책**: 영향 기반 분석·정적 파일 배분 검증 후 가능한 한 **한 번의 synchronize Full CI**로 새 exact Head Required3 Quality/E2E6/Docker와 default-main Trusted QA를 검증한다. 이 연결에서 새로운 로컬 Browser subset 실제 실행은 수행되지 않았으며, 새 Head 원격 실행은 **NOT TESTED**. 성능 개선은 새 CI의 여섯 개 Job PASS 및 wall 측정 전까지 미확인. #697/#699 정책과 #751 Fixture 단계 계측·#752 별도 bounded 진단 구현을 별도로 추진하며 기존 릴리스/Owner 게이트 우회 없음. `MERGE_READY=BLOCKED`/`release_authorized=false`.
+
+---
+
 ## Issue #767 — PR #768 CI #3097.1 Shard1 35분 취소 및 6-way 부하 균형 검증 (2026-10-22)
 
 [Full PR CI #3097.1](https://github.com/planner77/masterGantt/actions/runs/39658647821), HEAD `aaf9ddaab3b1092b6b8cd3f33251928f9bab0e5a`: QA Preflight/Quality/Docker 및 E2E Shards2~6 SUCCESS. Shard1 Job119426748348 `Running 121 tests` 중 119 PASS, 35.28분 cap에서 CANCELLED, 2건 미완료; 전체 Run CANCELLED, E2E aggregate/QA Final 실패. 정책·DOC_SYNC와 Shard6 Artifact 전송 오류(F767-004)는 재발하지 않았다. Shard2/3/4도 31.62/31.35/30.60분으로 임계치 접근하였으므로 1번만이 아니라 6개 전체를 비교하여 수정한다.
