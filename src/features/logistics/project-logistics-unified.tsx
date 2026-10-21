@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ProjectLogisticsDto } from "@/contracts/logistics";
 import type { ResourceDashboardFilterInput, ResourceDashboardSelector, ResourceDashboardSummary } from "@/contracts/resource-dashboard";
+import { EquipmentDashboard } from "@/features/resources/equipment-dashboard";
 import { ProcessWorkareaDashboard } from "@/features/resources/process-workarea-dashboard";
 import { SystemDashboard } from "@/features/resources/system-dashboard";
-import { WbsViewDashboard } from "@/features/resources/wbs-view-dashboard";
 import type { WbsViewDimension } from "@/contracts/wbs-dashboard-views";
 import { ResourceDrillContext, type WbsViewScheduleRequest, type ResourceScheduleRequest } from "@/features/resources/resource-drill-context";
 import { dashboardQuery, plannedEffort } from "@/features/resources/resource-dashboard-model";
@@ -49,8 +49,8 @@ export function ProjectLogisticsUnified(props: Props) {
       onSchedule: props.onResourceSchedule ? (request) => props.onResourceSchedule?.({ ...request, binding: null }) : undefined,
     }}>
       {(["process", "equipment", "system"] as const).map(root => {
-        const Dashboard = root === "process" ? ProcessWorkareaDashboard : root === "system" ? SystemDashboard : WbsViewDashboard;
-        return <div key={root} hidden={(props.perspective ?? "process") !== root} inert={(props.perspective ?? "process") !== root}><Dashboard logistics={props.logistics} publicId={props.publicId} revision={props.revision} root={root} active={props.active && (props.perspective ?? "process") === root} busy={props.busy} onOpenTask={props.onOpenTask} onOpenAssignment={props.editable ? props.onOpenAssignment : undefined} onOpenEntity={props.editable ? props.onWbsOpenEntity : undefined} onSchedule={props.onWbsSchedule}/></div>;
+        const Dashboard = root === "process" ? ProcessWorkareaDashboard : root === "equipment" ? EquipmentDashboard : SystemDashboard;
+        return <div key={root} hidden={(props.perspective ?? "process") !== root} inert={(props.perspective ?? "process") !== root}><Dashboard logistics={props.logistics} publicId={props.publicId} revision={props.revision} active={props.active && (props.perspective ?? "process") === root} busy={props.busy} onOpenTask={props.onOpenTask} onOpenAssignment={props.editable ? props.onOpenAssignment : undefined} onOpenEntity={props.editable ? props.onWbsOpenEntity : undefined} onSchedule={props.onWbsSchedule}/></div>;
       })}
       <UnifiedContent {...props} />
     </ResourceDrillContext.Provider>

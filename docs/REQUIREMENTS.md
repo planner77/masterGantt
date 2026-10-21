@@ -1,3 +1,7 @@
+## Issue #734 — 설비 최상위 동적 조회
+
+Target0에서도 설비 root·작업0/미배정/비활성·유형 선택과 단독 요약을 제공하고 사용자가 하위 축을 추가·삭제·정렬해 두 요구 경로를 구성/복원한다. 설비 원본 정보와 모든 WorkArea0..N·Owner·실제 controls, 고유 Task/공수·등록 수량·전체 Milestone Gate의 범위를 구분한다. 다중 구역/Target/Milestone의 원장 합집합 및 같은 Task 교집합을 유지하고 원본을 복제하지 않는다. 정확 원본 편집·일정 이동/복귀·snapshot stale·readonly/dirty/권한과 5폭 keyboard/overflow는 [#734 Work Packet](exec-plans/active/ISSUE_734.md)의 AC1~AC5로 검증한다.
+
 ## Issue #736 — 리소스 중심 분석과 기존 Plan 보존
 
 Target0에서 Resource 단독 및 사용자 선택 공정/WorkArea/설비·System 형제/Milestone 계층을 제공한다. 명시 등록·역할-only·개인 Assignment·비활성 참조를 구별하며 등록이나 역할로 Task/공수/Capacity를 생성하지 않는다. 개인 필터는 같은 Assignment에 적용하고 공유5M/D 중복0·공동담당자 분리·선택80%/Project140%·기존 Calendar/R/M/M null을 보존한다.

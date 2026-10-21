@@ -48,6 +48,29 @@ describe("personal WBS storage",()=>{
   expect(loadWbsViewState(storage,"other","process").state).toBeNull();expect(loadWbsViewState(storage,"p","equipment").state).toBeNull();
   expect(saveWbsViewState(storage,"p","process",{...state,snapshotId:"secret"} as WbsViewStoredState).warning).toBeTruthy();
  });
+ it("persists OR equipment types and subsequent hierarchy changes without storage warnings",()=>{
+  const storage=memory();
+  const equipmentState:WbsViewStoredState={...state,spec:defaultWbsViewSpec("equipment"),filters:{equipmentTypeCodes:["amr","conveyor"]},selected:null};
+  expect(saveWbsViewState(storage,"p","equipment",equipmentState).warning).toBeNull();
+  const changed:WbsViewStoredState={...equipmentState,spec:{...equipmentState.spec,levels:["milestone","process"]},expanded:["equipment-row"],scroll:{top:80,left:120},focus:"equipment-row"};
+  expect(saveWbsViewState(storage,"p","equipment",changed).warning).toBeNull();
+  expect(loadWbsViewState(storage,"p","equipment")).toEqual({state:changed,warning:null});
+  const cleared={...changed,filters:{equipmentTypeCodes:[]}};
+  expect(saveWbsViewState(storage,"p","equipment",cleared).warning).toBeNull();
+  expect(loadWbsViewState(storage,"p","equipment").state).toEqual(cleared);
+ });
+ it("rejects malformed equipment type storage without overwriting the previous valid view",()=>{
+  const storage=memory();
+  const equipmentState:WbsViewStoredState={...state,spec:defaultWbsViewSpec("equipment"),filters:{equipmentTypeCodes:["amr"]},selected:null};
+  expect(saveWbsViewState(storage,"p","equipment",equipmentState).warning).toBeNull();
+  for(const equipmentTypeCodes of ["amr",[1],[null],[""],["x".repeat(65)],Array.from({length:201},(_,i)=>`type${i}`)]){
+   const invalid={...equipmentState,filters:{equipmentTypeCodes}} as WbsViewStoredState;
+   expect(saveWbsViewState(storage,"p","equipment",invalid)).toMatchObject({state:null,warning:expect.any(String)});
+   expect(loadWbsViewState(storage,"p","equipment").state).toEqual(equipmentState);
+   const raw=JSON.stringify({schema:"wbs-view-state/1",projectPublicId:"p",state:invalid});
+   expect(loadWbsViewState({getItem:()=>raw,setItem:()=>{}},"p","equipment")).toMatchObject({state:null,warning:expect.any(String)});
+  }
+ });
  it("recovers visibly from denied/corrupt/obsolete storage and obsolete dimensions",()=>{
   const denied={getItem:()=>{throw Error("denied");},setItem:()=>{throw Error("quota");}};
   expect(loadWbsViewState(denied,"p","process").warning).toBeTruthy();expect(saveWbsViewState(denied,"p","process",state)).toMatchObject({state,warning:expect.any(String)});

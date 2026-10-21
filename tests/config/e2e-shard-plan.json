@@ -58,7 +58,6 @@
         "tests/e2e/project-repeated-input-accessibility.spec.ts",
         "tests/e2e/project-resource-calendar-persistence.spec.ts",
         "tests/e2e/project-resource-memberships-persistence.spec.ts",
-        "tests/e2e/project-task-editor.spec.ts",
         "tests/e2e/project-transfer-layout-491.spec.ts",
         "tests/e2e/relation-dialog-ux.spec.ts",
         "tests/e2e/resource-dashboard-api.spec.ts",
@@ -73,8 +72,10 @@
       "files": [
         "tests/e2e/admin-auth-layout.spec.ts",
         "tests/e2e/gantt-state-product-integration.spec.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
         "tests/e2e/issue-624-logistics-unified.spec.ts",
         "tests/e2e/issue-719-contextual-help.spec.ts",
+        "tests/e2e/issue-730-view-composer.spec.ts",
         "tests/e2e/issue-736-resource-dashboard.spec.ts",
         "tests/e2e/logistics-table-density.spec.ts",
         "tests/e2e/milestone-stage-editor.spec.ts",
@@ -105,7 +106,6 @@
         "tests/e2e/derived-dialog-recovery.spec.ts",
         "tests/e2e/inline-name-persistence.spec.ts",
         "tests/e2e/issue-621-resource-target.spec.ts",
-        "tests/e2e/issue-623-resource-mvp.spec.ts",
         "tests/e2e/issue-717-identity-persistence.spec.ts",
         "tests/e2e/issue-717-name-first.spec.ts",
         "tests/e2e/issue-725-process-workareas.spec.ts",
@@ -133,6 +133,7 @@
       "files": [
         "tests/e2e/gantt-demo.spec.ts",
         "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "tests/e2e/issue-735-system-dashboard.spec.ts",
         "tests/e2e/milestone-stage-gates.spec.ts",
         "tests/e2e/milestone-visibility-persistence.spec.ts",
         "tests/e2e/milestone-visibility.spec.ts",
@@ -161,9 +162,7 @@
         "tests/e2e/admin-legacy-button-spacing.spec.ts",
         "tests/e2e/browser-task-logistics-links.spec.ts",
         "tests/e2e/issue-622-resource-plan-target.spec.ts",
-        "tests/e2e/issue-730-view-composer.spec.ts",
         "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
-        "tests/e2e/issue-735-system-dashboard.spec.ts",
         "tests/e2e/milestone-management.spec.ts",
         "tests/e2e/milestone-stage-dashboard.spec.ts",
         "tests/e2e/milestone-stage-exchange.spec.ts",
@@ -190,6 +189,7 @@
         "tests/e2e/gantt-adapter-poc.spec.ts",
         "tests/e2e/grid-task-start-reveal.spec.ts",
         "tests/e2e/issue-726-task-logistics.spec.ts",
+        "tests/e2e/issue-734-equipment-dashboard.spec.ts",
         "tests/e2e/logistics-dashboard-request-state.spec.ts",
         "tests/e2e/milestone-exchange-state.spec.ts",
         "tests/e2e/milestone-management-persistence.spec.ts",
@@ -202,6 +202,7 @@
         "tests/e2e/project-modal-feedback.spec.ts",
         "tests/e2e/project-summary-bar-visual.spec.ts",
         "tests/e2e/project-task-context-menu.spec.ts",
+        "tests/e2e/project-task-editor.spec.ts",
         "tests/e2e/project-task-hover-tooltip.spec.ts",
         "tests/e2e/project-workspace-ux.spec.ts",
         "tests/e2e/resource-milestone-views.spec.ts",
@@ -399,5 +400,111 @@
       "protection": "6 shards, one worker, job timeout35, no test/skip/retry changes; new exact head full PR CI/Trusted QA required.",
       "validation": "STATIC_PLAN_INVENTORY_VERIFIED;NEW_FULL_PR_CI_NOT_TESTED"
     }
+  },
+  "issue734ExplicitPlacement": {
+    "issue": 734,
+    "failureRunId": 39517277420,
+    "failureAttempt": 1,
+    "file": "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+    "shard": 6,
+    "reason": "#732 main 통합 후 신규 #734 spec의 명시 배치 누락을 교정한다. 기존 135개 배치는 유지하고 136개 전체의 유일 배치를 검사한다.",
+    "basis": "#732 postPr3072 추정 job wall에서 shard6은 24.2분으로 shard2/3/4/5보다 낮았다. 이는 성공 실행시간 예측이 아니며 신규 8 case의 setup/runtime 비용은 새 Full CI에서 검증해야 한다.",
+    "baseline": "상위 historical metrics/projectedMs 및 #732 135-file 기록은 당시 자료 그대로 보존하며 136-file 재측정 결과로 해석하지 않는다.",
+    "validation": "NEW_FULL_PR_CI_NOT_TESTED"
+  },
+  "manualRebalance765": {
+    "issue": 765,
+    "sourcePR": 766,
+    "sourceRunId": 39563793357,
+    "attempt": 1,
+    "failedHeadSha": "77b4e3ee9e67157fb48c5355c96b3c68177ab057",
+    "failedShard": 5,
+    "failedShardJobId": 119101891509,
+    "e2eAggregateJobId": 119116077101,
+    "cause": "PR Full #3084.1 E2E shard5 hit 35m job timeout: 91 completed tests PASS, remaining tests NOT RUN, no assertion failure observed. Other five E2E shards and Quality/Docker completed SUCCESS.",
+    "evidence": {
+      "shardRunMinutes": [
+        30.1,
+        14.5,
+        31.2,
+        21.4,
+        "35m LIMIT (CANCELLED)",
+        23.8
+      ],
+      "sourceHead": "77b4e3ee9e67157fb48c5355c96b3c68177ab057",
+      "successfulShards": [
+        1,
+        2,
+        3,
+        4,
+        6
+      ],
+      "cancelledShard5CompletedCases": 91,
+      "remainingShard5Cases": "NOT RUN / unmeasured; no PASS inferred",
+      "remainingShard5UnstartedFiles": [
+        "resource-milestone-ui.spec.ts",
+        "resource-plan-dashboard.spec.ts",
+        "skip-link.spec.ts",
+        "ui-semantic-tokens.spec.ts"
+      ],
+      "runId": 39563793357
+    },
+    "movedFiles": [
+      {
+        "file": "tests/e2e/project-task-editor.spec.ts",
+        "from": 1,
+        "to": 6,
+        "observedPassedTestBodyMs": 200900,
+        "sourceRunId": 39563793357
+      },
+      {
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "from": 3,
+        "to": 2,
+        "observedPassedTestBodyMs": 220400,
+        "sourceRunId": 39563793357
+      },
+      {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "from": 5,
+        "to": 2,
+        "observedPassedTestBodyMs": 242200,
+        "sourceRunId": 39563793357
+      },
+      {
+        "file": "tests/e2e/issue-735-system-dashboard.spec.ts",
+        "from": 5,
+        "to": 4,
+        "observedPassedTestBodyMs": 246300,
+        "sourceRunId": 39563793357
+      }
+    ],
+    "beforeFileCounts": [
+      23,
+      22,
+      26,
+      21,
+      23,
+      21
+    ],
+    "afterFileCounts": [
+      22,
+      24,
+      25,
+      22,
+      21,
+      22
+    ],
+    "estimatedApproxWallMinutes": [
+      26.8,
+      22.2,
+      27.5,
+      25.5,
+      26.9,
+      27.2
+    ],
+    "estimationCaveat": "Rough shift-only estimate of successful test-body duration; shard5's last 4 files NOT RUN. Runner startup, test latency, fixture stalls and historical projectedMs are not updated or claimed as validated. New exact PR Head required.",
+    "testFileCoverage": "136 explicit unique specs preserved; 6 shards workers=1, PR fail-fast & --max-failures=1, Main fail-fast=false, required 3 aggregates, shard timeout=35min unchanged",
+    "validation": "STATIC_PLAN_COVERAGE_ONLY; NEW_PR_FULL_CI_NOT_TESTED"
   }
 }

@@ -146,12 +146,25 @@ export class ResourceDashboardService {
           data = { ...context, projection: "details", path: projection.path, view: projection.view, offset: projection.offset, limit: projection.limit, totalCount, nextOffset: projection.offset + rows.length < totalCount ? projection.offset + rows.length : null, rows };
         } else {
           const calculated = { snapshot, selection: selected.selection, referenceRows: selected.assignments, excludedRows: [], diagnosticSelection: selected.selection, diagnosticDomain: snapshot.domain };
+          const equipmentTypeNames = new Map(source.equipmentTypes.map(row => [row.code, row.name]));
+          const equipmentAreas = new Map<string, typeof source.equipmentWorkAreas>();
+          for (const link of source.equipmentWorkAreas) {
+            const links = equipmentAreas.get(link.equipmentId) ?? [];
+            links.push(link); equipmentAreas.set(link.equipmentId, links);
+          }
           const resourceScope: ResourceDrillScope = { kind: "exactAssignments", assignmentIds: selected.assignmentIds };
           const resourceReport = input.spec.root === "resource" && snapshot.filters.granularity ? this.getDashboard(publicId, input.filters, resourceScope) : undefined;
           data = { ...context, ...(resourceReport ? { resourceAdapter: { report: resourceReport, binding: { sourceContext: resourceReport.resourceScopeContext!, scope: resourceScope } } } : {}), projection: "report", ...scope, totals: view.totals, children: view.children, taskSources: selected.rows, configuration: ledger.configuration, configurationCatalog: {
               processes: snapshot.targetSnapshot.identity.processes.map(({ id, name, occurrenceId }) => ({ id, name, occurrenceId })),
               workAreas: snapshot.targetSnapshot.identity.workAreas.map(({ id, name, occurrenceId }) => ({ id, name, occurrenceId, processIds: snapshot.targetSnapshot.identity.processes.filter(process => process.occurrenceId === occurrenceId).map(process => process.id) })),
               instances: snapshot.targetSnapshot.logistics.instances.map(instance => ({ kind: instance.kind, id: instance.entityId, name: labels.get(JSON.stringify([instance.kind, instance.entityId]))! })),
+              equipment: source.equipment.map(row => ({ id: row.id, name: row.name, equipmentType: row.equipmentType,
+                equipmentTypeName: equipmentTypeNames.get(row.equipmentType) ?? row.equipmentType,
+                managementUnit: row.managementUnit, quantity: row.quantity, active: row.active, primaryProcessId: row.processId,
+                workAreaLinks: (equipmentAreas.get(row.id) ?? []).map(({ processId, occurrenceId, workAreaId }) => ({ processId, occurrenceId, workAreaId })),
+                resourceRoles: row.resourceRoles.map(({ resourceId, resourceName, role, isPrimary, active }) => ({ resourceId, resourceName, role, isPrimary, active })),
+                controlSystems: row.controlSystems.map(control => ({ ...control, systemName: labels.get(JSON.stringify(["system", control.systemId]))! })),
+              })),
               milestones: snapshot.milestones.map(row => ({ id: row.publicId, name: row.name })),
             }, diagnostics: ledger.diagnostics,
             fullMilestones: [...ledger.prepared.projection.gates].map(([milestoneTaskId, stageGate]) => ({ milestoneTaskId, stageGate })),
@@ -695,7 +708,7 @@ export class ResourceDashboardService {
       resources: resources.map((row) => ({ resourceId: row.publicId, name: row.name, code: row.code, groupSearchText: groups.filter((group) => group.memberResourceIds.includes(row.publicId)).map((group) => `${group.name} ${group.code ?? ""}`).join(" "), groupIds: groupIdsByResource.get(row.publicId) ?? [], roles: row.roles, developerGrade: row.developerGrade })),
       assignments: assignments.map((row) => ({ assignmentId: row.publicId, taskId: row.taskPublicId, kind: row.kind, targetId: row.targetPublicId, start: row.assignmentStart, end: row.assignmentEnd, allocationPercent: row.allocationPercent })),
       projectCalendar, calendarExceptions, maxProjectionCells: LIMITS.cells, mdPerMm: filters.mdPerMmProvided ? filters.mdPerMm : undefined, mdPerMmEnvironment: this.options.mdPerMmEnvironment,
-      filters: { ...targetFilters(filters), eligibleResourceIds, taskIds: filters.taskIds, wbsRootIds: filters.wbsRootIds, milestoneIds: filters.milestoneIds.map((id) => id === "unassigned" ? null : id),
+      filters: { ...targetFilters(filters), ...(includeParticipation ? { equipmentTypeCodes: undefined } : {}), eligibleResourceIds, taskIds: filters.taskIds, wbsRootIds: filters.wbsRootIds, milestoneIds: filters.milestoneIds.map((id) => id === "unassigned" ? null : id),
         resourceIds: filters.resourceIds, groupIds: filters.groupIds.filter((id) => id !== "ungrouped"), includeUngrouped: filters.groupIds.includes("ungrouped"),
         roles: filters.roles, developerGrades: filters.developerGrades, statuses: filters.statuses, search: filters.search, taskSearch: filters.taskSearch } }));
     const snapshotId = fingerprint({ dataSnapshotId: rawData.context.dataSnapshotId, filters: { ...filters, mode: undefined, granularity: undefined, projectionOrder: undefined }, from, to, asOfDate, mdPerMm: domain.mdPerMm });

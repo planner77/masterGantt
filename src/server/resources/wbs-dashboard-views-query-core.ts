@@ -31,7 +31,8 @@ export function parseWbsViewQuery(value: unknown): WbsViewQueryInput {
   }
   const dimensions = [root, ...levels.flatMap(level => typeof level === "string" ? [level] : level.dimensions)];
   if (new Set(dimensions).size !== dimensions.length) invalid();
-  const filters = input.filters === undefined ? {} : object(input.filters, ["from", "to", "asOfDate", "search", "taskSearch", "mode", "granularity", "resourceActivity", "groupActivity", "resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses", "mdPerMm"]);
+  const filters = input.filters === undefined ? {} : object(input.filters, ["from", "to", "asOfDate", "search", "taskSearch", "mode", "granularity", "resourceActivity", "groupActivity", "resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses", "mdPerMm", "equipmentTypeCodes"]);
+  if (filters.equipmentTypeCodes !== undefined && !Array.isArray(filters.equipmentTypeCodes)) invalid();
   const params = new URLSearchParams();
   for (const [key, field] of Object.entries(filters)) {
     if (Array.isArray(field)) { if (field.length > 8000 || field.some(value => typeof value !== "string")) invalid(); if (field.length) params.set(key, field.join(",")); }

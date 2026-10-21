@@ -52,6 +52,26 @@ describe("WBS transport production contract",()=>{
    }
   } finally {f.database.close();}
  });
+ it("requires complete equipment metadata and rejects malformed consumer arrays before rendering",()=>{
+  const f=wbsDashboardViewsFixture();
+  try {
+   const input={spec:defaultWbsViewSpec("equipment")},data=f.service.queryWbsView(f.project.publicId,input)!;
+   if(data.projection!=="report")throw Error("report");
+   const options={projectPublicId:f.project.publicId,projectRevision:data.projectRevision,input};
+   const equipment=data.configurationCatalog.equipment[0];
+   expect(readWbsViewResponse({data},options)).toBe(data);
+   expect(readWbsViewResponse({data},options).projection).toBe("report");
+   for(const invalid of [undefined,null,{},[null],[{...equipment,name:undefined}],[{...equipment,active:"true"}],[{...equipment,managementUnit:"batch"}],[{...equipment,quantity:-1}],[{...equipment,quantity:1.5}],[{...equipment,equipmentTypeName:undefined}],[{...equipment,primaryProcessId:null}],[{...equipment,workAreaLinks:undefined}],[{...equipment,workAreaLinks:[null]}],[{...equipment,workAreaLinks:[{processId:"p",occurrenceId:"o",workAreaId:null}]}],[{...equipment,resourceRoles:null}],[{...equipment,resourceRoles:[{resourceId:"r",resourceName:"담당",role:"owner",isPrimary:true,active:"true"}]}],[{...equipment,controlSystems:"system"}],[{...equipment,controlSystems:[{systemId:"s",systemName:"제어",controlRole:"coordinator"}]}]]){
+    expect(()=>readWbsViewResponse({data:{...data,configurationCatalog:{...data.configurationCatalog,equipment:invalid}}},options)).toThrow("조회 응답의 출처가 일치하지 않습니다");
+   }
+   // Validation must not replace the original metadata or strip extra source fields.
+   const enriched={...data,configurationCatalog:{...data.configurationCatalog,equipment:[{...equipment,sourceAudit:{revision:42}}]}};
+   const parsed=readWbsViewResponse({data:enriched},options);
+   expect(parsed).toBe(enriched);
+   if(parsed.projection!=="report")throw Error("report");
+   expect(parsed.configurationCatalog.equipment).toBe(enriched.configurationCatalog.equipment);
+  }finally{f.database.close();}
+ });
  it("POST is same-origin/no-store and never uses legacy transport",async()=>{
   const f=wbsDashboardViewsFixture();
   try{
