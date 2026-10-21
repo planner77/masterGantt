@@ -1,3 +1,17 @@
+## Issue #765 — 미발행 v0.127/v0.128 부채 RETIRED 계약·회귀 (2026-10-21)
+
+정책 필수 실험: python3 scripts/test-release-debt-recovery-765.py (Synthetic fixture, 실 GHCR/GitHub mutation 0).
+
+Positive: exact first-parent #732 PR761 → #736 PR760 → #732 PR763 → #734 PR759 → 새 #765 PR, old cancelled/failure Main Run 불변, #734 Release #186/digest 인증, #765 신규 Main candidate PASS, 전체 브랜치 preflight 후 bot RETIRED·Close 및 #734/#765 정상 Generic FINAL.
+
+Negative: Owner foreign/malformed/revoked/duplicate, 다른 SHA·PR·중간 Issue·태그/버전·Release run, old Main success 위조, GHCR UNKNOWN/PRESENT·old ci-SHA candidate, digest 불일치, forged bot RETIRED, expired/stale main, preflight 실패 전 writes 0. Repeated trigger·부분 처리 후 중복 marker 0.
+
+Remote acceptance: #765 정확 PR Head/base의 세 Required Quality/E2E6/Docker·Trusted QA·Owner HIGH 수용·Main validated SHA. GHCR real audit는 인증된 GitHub runner에서 수행하며 로컬 fixture PASS를 실제 발행/retirement 증거로 대체하지 않는다.
+
+상세: [#765 Work Packet](exec-plans/active/ISSUE_765.md).
+
+---
+
 ## Issue #734 — 설비 consumer·유형·원본 snapshot 수용
 
 전용 `tests/features/resources/equipment-dashboard.test.ts`와 `tests/server/resources/issue-734-equipment-configuration.test.ts`는 기존 SQLite oracle/공통 원장을 사용한다. Target0·AMR10+5/고유15·등록-only·비활성·미배정, 직접/조상/Target whole·subset·혼합의 중복 제거, E10 다중 WorkArea 각10/상위10·Task5 M/D 상위5, shared MCS와 Milestone no-leak·full Gate, 명시 controls와 같은 Task 업무 연관, 유형 OR 필터/등록-only/잘못된 입력·이름 변경 stale를 확인한다.

@@ -1,3 +1,15 @@
+## Issue #765 — 0.129.0 단일 릴리스 이후 구버전 부채 안전 복구 (2026-10-21)
+
+불변 릴리스: #734 PR759 Main SHA e20e4a72e59b46bde34c7ae5befd5e0f46ed335b, Release #186.1 SUCCESS, verified ci-SHA 및 정식 ghcr.io/planner77/mastergantt:0.129.0 동일 digest sha256:37c9d83696fbfb3b2a6c5ec365f3bc509ee7ebbb80f5249eea9b82d26c6d7032. #765의 코드/CI 변경은 app version 0.129.0 유지·release_required=false.
+
+CI policy Job의 scripts/test-release-debt-recovery-765.py는 Owner marker·first-parent·원본 Main Run·GHCR UNKNOWN·branch preflight·retirement idempotence를 검증한다. 신규 정책 PR Required Quality/E2E6/Docker, default-main Trusted QA, Owner HIGH 수용 및 Main 검증은 불변. 과거 Main은 재실행하거나 결과를 바꾸지 않는다.
+
+기존 release-finalizer.yml의 #765 Owner comment 전용 Job만 trusted default main에서 복구를 실행한다. Private GHCR Packages 전체 페이지가 오류/모호한 404/429이면 과거 SemVer ABSENT를 추론하지 않는다. SHA/digest/OCI 충돌은 fail-closed. old branch SHA-lease cleanup → old RETIRED → 정상 #734/#765 FINAL 순서. #633 예외/일반 supersession과 타 이슈 불변.
+
+참조: [#765 Work Packet](exec-plans/active/ISSUE_765.md).
+
+---
+
 ## Issue #712 — Full PR CI Run/Attempt 선택과 병합 후 edited 감사 분리 (2026-10-18)
 
 **사례:** PR #561 Head `3420e54453b43681c9634565b57f13ae8f0443a9`에서 원본 Full [#2892.1](https://github.com/planner77/masterGantt/actions/runs/39021332528)은 세 Required aggregate PASS. 병합 후 metadata-only [#2898.1](https://github.com/planner77/masterGantt/actions/runs/39027102063)은 새 품질/E2E/Docker 테스트 없이 동일 이름 세 aggregate FAIL을 기록했으며, 기존 Lifecycle의 Check Run ID 최대값 방식이 이를 최신 Full 결과로 오인했다.

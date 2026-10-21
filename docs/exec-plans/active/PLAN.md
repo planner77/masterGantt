@@ -1,3 +1,9 @@
+## Issue #765 — 단일 v0.129.0 이후 실패 Main 릴리스 부채 복구 (2026-10-21)
+
+현재 main e20e4a72e59b46bde34c7ae5befd5e0f46ed335b; 기존 정식 v0.129.0 Release #186/Digest 유지. 동일 버전 정책 복구 PR 하나에 Owner 인증, GHCR 실감사, old #732/#736 RETIRED, #734/#765 일반 FINAL을 구현하고 테스트한다. HIGH/OWNER_MANAGED, qa_required=true, release_required=false, release_authorized=false, protected path 수정. PR CI/Trusted/Owner ACCEPT 및 신규 Main 성공 이전에 복구 실행 권한 없음. [Work Packet](ISSUE_765.md) 참조.
+
+---
+
 ## Issue #734 — 설비 최상위 동적 대시보드
 
 main `05f1e560eee456e6fba5535255c9ede30a357c16` /0.125.0에서 `feat/issue-734-equipment-dashboard`로 구현한다. 기존 공통 원장/API·조회 구성기/표·정확 원본 editor/drill을 재사용하여 설비 단독·두 사용자 동적 계층·원본 다중 WorkArea/Owner/명시 제어·유형 필터를 제공한다. [Work Packet](ISSUE_734.md)의 AC/문서/실제 분리 Agent/변경 영향 검증을 따른다. 후보0.129.0, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. 구현·문서·리뷰/충돌 정리 후 새 PR Full CI 시작까지만 수행하며 완료 모니터링·병합·Main/GHCR·Release·Issue 종료는 하지 않는다. 원격 Required3·Trusted·Owner ACCEPT는 NOT TESTED다. #734 최종 로컬13파일140 Unit·통합, 실제 Chromium 주요3개, typecheck/전체 lint/문서·version·discovery PASS. 런타임 중단으로 나머지5 Chromium/5폭 캡처는 NOT TESTED, 자동 PrePR UNKNOWN4는 BLOCKED이며 공식 원격 전체 회귀를 대신하지 않는다.
