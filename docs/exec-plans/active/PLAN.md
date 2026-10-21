@@ -1,3 +1,9 @@
+## Issue #770 — P0-A trusted CI 영향 판정과 Shadow 준비 (2026-10-22)
+
+Baseline main `71f9b9ddb61be7f6e076accc027188f362e18bb1`, branch `ci/issue-770-trusted-impact-shadow`. #769 Phase A 선행 #697/#699/#437 재사용. 신규 코드 `scripts/ci_impact_plan.py`, `tests/python/test_ci_impact_plan.py` 및 기존 Full PR/Main/Required3 보호를 유지한 비차단 `.github/workflows/ci.yml impact_shadow` 추가. 첫 도입 PR base 정책 없음 → Shadow `NOT_TESTED` bootstrap(자가 승인 방지). [정식 Work Packet](ISSUE_770.md)에 10건 historical full run의 Job 통과 표본, 원본 artifact 미교차검증·시간/false-negative `INSUFFICIENT_DATA`, AC1~7/DOCUMENTATION_SYNC 및 정확 출처/QA/위험 기록 유지. application `0.129.0` 유지, HIGH/OWNER_MANAGED/qa_required=true/manager_decision=NOT TESTED, release_required=false/release_authorized=false. 현재 PR CI 시작까지만 승인, 모니터링·병합·GHCR·정식 릴리스·이슈 종료 금지.
+
+---
+
 ## Issue #765 — PR #766 CI #3085.1 Unit 테스트 Shard 명시 배치 교정 (2026-10-21)
 
 F765-001(DOC_SYNC), F765-002(Python source marker), F765-003(Shard5 35분 취소)에 이어 [F765-004](../../ISSUE_765_FAILURE_ANALYSIS.md): PR Full #3085.1에서 Vitest 3159 PASS/1 FAIL; #3084의 4파일 E2E 배치 변경을 인접 소비자 tests/scripts/e2e-shard-planner.test.ts의 고정 매핑 테스트에 일부 미반영. issue-735→4, issue-730→2를 수정하고 project-task-editor→6, issue-623→2의 명시 검사도 추가한다. 136개 current spec 전체 동적/정적 커버리지, CI 3 Required 및 GHCR/Owner 규칙 불변. 새 exact Head Full PR CI PASS 전 MERGE_READY=BLOCKED.
