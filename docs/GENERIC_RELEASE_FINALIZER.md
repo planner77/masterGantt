@@ -1,3 +1,17 @@
+## Issue #765 — 이미 발행한 v0.129.0의 #732/#736 미발행 부채 안전 복구 (2026-10-21)
+
+범위: 기존 #633 B2나 일반 same-Issue CI supersession을 완화하지 않는다. first-parent의 정확한 #732 PR761, #736 PR760, #732 PR763, #734 PR759, #765 신규 정책 PR 한 구간에만 Owner 인증 복구 예외를 적용한다. 과거 Main CANCELLED/FAILURE는 불변.
+
+전제: v0.127.0/v0.128.0 Git tag·GitHub Release·authenticated private GHCR ABSENT, 구버전 게시 승인 최신 Owner 철회, #734 Release #186.1 SUCCESS, tag v0.129.0 peeled SHA e20e4a72e59b46bde34c7ae5befd5e0f46ed335b, exact OCI digest sha256:37c9d83696fbfb3b2a6c5ec365f3bc509ee7ebbb80f5249eea9b82d26c6d7032, 신규 #765 Main + ci-SHA 증거.
+
+복구 구현: scripts/release_debt_recovery_765.py는 Git/OCI 전체 페이지·Owner marker를 검사하고, 기존 .github/workflows/release-finalizer.yml의 owner_recovery_765 Job은 Issue #765의 정확한 Owner 복구 댓글에서만 trusted main 코드로 실행한다. SHA-leased old merged branches 전체 preflight 후에만 삭제, #732/#736에 인증된 bot-origin mastergantt-release-debt-retired:v1 각각 1개 작성·Closed, 이후 #734 기존 Issue Lifecycle FINAL 및 #765 자체 no-release FINAL. 미병합 PR #764에는 손대지 않는다.
+
+최신 main·Owner 승인·digest·previous tag·Package metadata가 불명확하면 BLOCKED. #765 PR 병합 시 자동 Closed가 먼저 발생하더라도 정확한 Owner marker/CI/first-parent 감사가 확인된 #765 복구 SHA만 일시적으로 actionable로 취급하며, 다른 이슈의 non-actionable barrier는 유지한다. 태그 이동·이전 release 재게시·역사적 FINAL 위조 금지.
+
+상세: [#765 Work Packet](exec-plans/active/ISSUE_765.md).
+
+---
+
 ## Issue #712 — #552 정식 릴리스 BLOCKED 원인과 복구 경계 (2026-10-18)
 
 #552 PR #561의 Full PR CI [#2892.1](https://github.com/planner77/masterGantt/actions/runs/39021332528) PASS와 Main CI [#2895.1](https://github.com/planner77/masterGantt/actions/runs/39025239061) PASS는 병합 후 `edited` metadata-only [#2898.1](https://github.com/planner77/masterGantt/actions/runs/39027102063) 실패로 소급 취소되지 않는다. 해당 metadata-only의 같은 이름 세 Check Run이 Full PASS를 가리는 문제가 있었다. 원본 test-merge `23a81e0cbb7ebf5cf28388147e09463c86e40717`와 실제 two-parent merge `c0eca9ad5bfdb6c14d98dec7c5cfd7256e4619d7`는 Base/Head 부모 및 Git Tree `4e96ac1f52160364e35a48abfb76f89ed6b8844c`가 정확히 같았다.

@@ -1,5 +1,11 @@
 ## [0.129.0] — Unreleased / Issue #734
 
+- Issue #765 (Release-only cleanup): 정식 GHCR v0.129.0 Release #186의 기존 검증 SHA/Digest를 그대로 유지한다. 새 이미지/버전 태그나 재빌드는 없다.
+- 과거 #732 0.127.0, #736 0.128.0은 인증된 GHCR/Git/GitHub Release 부재·Owner의 별도 폐기 승인·정확 PR/Main/버전 이력·branch lease가 충족될 때에만 RETIRED 기록으로 종료한다. 과거 실패 Main CI를 PASS 또는 역사적 FINAL로 전환하지 않는다.
+- #765 코드는 동일 버전(0.129.0) 내부 trusted lifecycle 변경이다. #633 B2/CI Required3/Trusted QA 불변, 별도 PR/Main CI 검증 필수.
+- PR #766 Full #3084.1의 Shard5 35분 실행 제한 취소(91 PASS, 잔여 미실행)로 E2E 파일 4개를 다른 Shard로 분산한다. 136개 파일 전체 단일 소속, 6 Shard/테스트·Timeout/Required/기존 0.129.0 Release 및 OCI Digest 불변. 신규 Head PR CI 검증 전 PASS 아님.
+- PR #766 Full #3085.1 Vitest에서 Shard 재분배 후 고정 기대값이 이전 배치를 참조해 1개 실패(3159 PASS). 변경한 4개 스펙 배치를 Unit 기대값에 동기화하고 136개 E2E 유일 배치·6 Shards·Required CI·기존 v0.129.0 릴리스 Digest를 유지한다. 새 exact Head Full PR CI에서만 통합 PASS를 인정한다.
+
 - 설비를 최상위로 두는 전용 대시보드에서 단독 요약·사용자 동적 축·유형 필터, 전체 WorkArea/Owner/명시 제어 원본 정보와 고유 Task/공수·Milestone full Gate를 제공한다.
 - 기존 공통 원장·조회/정확 editor·일정 복귀를 재사용하고 같은 read snapshot의 설비 metadata·유형 이름과 서버 필터를 연결한다. 다중 경로를 합산하거나 Task 업무 연관을 실제 제어관계로 만들지 않는다.
 - 지표/UX/API·매뉴얼/테스트·Work Packet을 동기화한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false; 새 PR CI 시작은 원격 PASS·Owner 승인·병합/정식 릴리스가 아니다.

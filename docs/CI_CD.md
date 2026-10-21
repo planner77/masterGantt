@@ -1,3 +1,31 @@
+## Issue #765 — Full #3085.1 Vitest Shard-map 원장 기대값 FAIL (2026-10-21)
+
+[#3085.1](https://github.com/planner77/masterGantt/actions/runs/39574608432) (Head a91a826a728f8169446fac94de074310b5fb1678): QA Preflight/Policy/TypeScript/ESLint PASS; Vitest Unit Job119137125974 3159 PASS, 1 FAIL, 3 SKIP. tests/scripts/e2e-shard-planner.test.ts:126은 실제 Shard4인 issue-735-system-dashboard를 여전히 Shard5로 예상. PR Fast Gate FAILURE의 파생으로 E2E/Docker 구현 SKIPPED 및 Required3 FAILURE; 신규 Browser/Test Runtime 결함이라고 주장하지 않는다.
+
+F765-003에서 변경한 Shard 4파일의 정확 배치를 고정하는 Unit Assertion 14개를 현재 Plan과 일치하도록 갱신하고 136개 Unique spec·6 Shard/35m·Required3·Trust·0.129.0 GHCR Digest는 보존. [#765 실패 원장 F765-004](ISSUE_765_FAILURE_ANALYSIS.md)에 Run/Job/정확 테스트 line·선행 F765-001..003과의 차이를 누적한다. 변경 Head의 정식 CI와 Trusted QA 미검증. 이전 Shard5 Timeout 해결 여부는 새 Full Run의 6개 E2E 결과가 나올 때만 판단한다.
+
+---
+
+## Issue #765 — Full PR CI #3084.1 Shard5 35분 취소/재분배 (2026-10-21)
+
+Source: [PR #766 / CI #3084.1](https://github.com/planner77/masterGantt/actions/runs/39563793357) 77b4e3ee9e67157fb48c5355c96b3c68177ab057. QA Preflight·Policy·TypeScript/Vitest/Build·Docker 및 E2E 5개 Shard는 SUCCESS, Shard5는 91 PASS 후 35분 Job cap에 따라 CANCELLED; E2E aggregate와 QA Final은 파생 FAIL. 원본 단언 실패/제품 회귀 증거는 없음. 첫 두 실패 [F765-001/F765-002](ISSUE_765_FAILURE_ANALYSIS.md)는 이번 Run에서 보완 검증 통과.
+
+테스트 분배만 4파일 이동: shard1→6 project-task-editor, 3→2 issue-623-resource-mvp, 5→2 issue-730-view-composer, 5→4 issue-735-system-dashboard. 총 136개 spec 단일 shard 소속, six shards + workers=1, immutable CI required gates, Test/Job Timeout, fail-fast/retry/skip, 기존 app0.129.0·Release #186 이미지와 Digest 불변. [#765 Work Packet](exec-plans/active/ISSUE_765.md)과 [F765-003 원장](ISSUE_765_FAILURE_ANALYSIS.md)에 증거/미검증을 보존. 새 Head Full PR CI 성공 전 PASS 금지.
+
+---
+
+## Issue #765 — 0.129.0 단일 릴리스 이후 구버전 부채 안전 복구 (2026-10-21)
+
+불변 릴리스: #734 PR759 Main SHA e20e4a72e59b46bde34c7ae5befd5e0f46ed335b, Release #186.1 SUCCESS, verified ci-SHA 및 정식 ghcr.io/planner77/mastergantt:0.129.0 동일 digest sha256:37c9d83696fbfb3b2a6c5ec365f3bc509ee7ebbb80f5249eea9b82d26c6d7032. #765의 코드/CI 변경은 app version 0.129.0 유지·release_required=false.
+
+CI policy Job의 scripts/test-release-debt-recovery-765.py는 Owner marker·first-parent·원본 Main Run·GHCR UNKNOWN·branch preflight·retirement idempotence를 검증한다. 신규 정책 PR Required Quality/E2E6/Docker, default-main Trusted QA, Owner HIGH 수용 및 Main 검증은 불변. 과거 Main은 재실행하거나 결과를 바꾸지 않는다.
+
+기존 release-finalizer.yml의 #765 Owner comment 전용 Job만 trusted default main에서 복구를 실행한다. Private GHCR Packages 전체 페이지가 오류/모호한 404/429이면 과거 SemVer ABSENT를 추론하지 않는다. SHA/digest/OCI 충돌은 fail-closed. old branch SHA-lease cleanup → old RETIRED → 정상 #734/#765 FINAL 순서. #633 예외/일반 supersession과 타 이슈 불변.
+
+참조: [#765 Work Packet](exec-plans/active/ISSUE_765.md).
+
+---
+
 ## Issue #712 — Full PR CI Run/Attempt 선택과 병합 후 edited 감사 분리 (2026-10-18)
 
 **사례:** PR #561 Head `3420e54453b43681c9634565b57f13ae8f0443a9`에서 원본 Full [#2892.1](https://github.com/planner77/masterGantt/actions/runs/39021332528)은 세 Required aggregate PASS. 병합 후 metadata-only [#2898.1](https://github.com/planner77/masterGantt/actions/runs/39027102063)은 새 품질/E2E/Docker 테스트 없이 동일 이름 세 aggregate FAIL을 기록했으며, 기존 Lifecycle의 Check Run ID 최대값 방식이 이를 최신 Full 결과로 오인했다.

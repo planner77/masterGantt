@@ -879,6 +879,43 @@ def execute(trigger_sha: str) -> int:
             "- old PR cleanup/Issue close: ONLY after new exact release succeeded",
         ])
 
+    # Issue #765 is an independent, exact Owner-scoped unissued-release
+    # retirement. No permission or effect without its newest trusted marker.
+    # The regular first-parent rule and Issue #633 B2 remain unchanged.
+    from release_debt_recovery_765 import plan_765, finalize_765
+    recovery765_plan = (
+        plan_765(sys.modules[__name__], repo, latest_main)
+        if any(item.issue_number == 765 for item in pending_with_barriers)
+        else None
+    )
+    if recovery765_plan is not None:
+        pending = [
+            item for item in pending
+            if item.target_sha not in recovery765_plan.retired_shas
+        ]
+        # GitHub may automatically close the recovery Issue at PR merge time
+        # before its CI/FINAL exists. Only the exact Owner-authenticated plan
+        # may re-activate this single non-actionable ordering barrier.
+        if not any(item.target_sha == recovery765_plan.recovery_sha for item in pending):
+            recovery_merge = next(
+                (item for item in pending_with_barriers
+                 if item.target_sha == recovery765_plan.recovery_sha),
+                None,
+            )
+            if recovery_merge is None:
+                raise AutoFinalizerBlocked("Issue #765 exact recovery merge absent")
+            pending.append(replace(recovery_merge, actionable=True))
+        write_summary([
+            "### Issue #765 authorized single-release debt retirement",
+            f"- Owner: {recovery765_plan.owner_url}",
+            "- previous Main CI CANCELLED/FAILURE remains immutable",
+            f"- replacement: v0.129.0 / {recovery765_plan.release_item.target_sha}",
+            "- only three historical merge SHAs excluded from lifecycle targets",
+        ])
+        # Finish/replay old branch cleanup and authenticated RETIRED evidence
+        # BEFORE Issue #734 can receive its legitimate existing-release FINAL.
+        finalize_765(sys.modules[__name__], repo, latest_main, recovery765_plan)
+
     if finalized_boundary:
         recovered = resume_unclosed_final(
             repo, finalized_boundary[0], pending_raw, latest_main

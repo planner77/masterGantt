@@ -1,3 +1,33 @@
+## Issue #765 — #3085.1 E2E 계획·Vitest 고정 기대값 동기화 (2026-10-21)
+
+PR #766 [Full #3085.1](https://github.com/planner77/masterGantt/actions/runs/39574608432)의 직접 실패는 tests/scripts/e2e-shard-planner.test.ts:126의 Shard 배치 기대값 stale이다. F765-003에서 issue-735-system-dashboard.spec.ts를 5→4, issue-730-view-composer.spec.ts를 5→2로 옮겼으나 해당 Test는 구 위치를 기대했다(3159 PASS/1 FAIL/3 SKIP). project-task-editor(1→6), issue-623-resource-mvp(3→2)의 고정 기대값도 신규 추가한다.
+
+기존 136개 current E2E spec 단일/유일 Shard 배치·6 Shards/35분·workers1·skip/retry/required Quality/E2E/Docker 등은 불변. 이전 Shard5 Timeout은 이번 Run에서 Chromium이 Fast Gate 실패로 미실행되어 아직 재검증하지 않았다. 최신 exact Head의 Unit/E2E6/Docker/Trusted QA 검증 전 Merge 불가. [#765 F765-004 원장](ISSUE_765_FAILURE_ANALYSIS.md) 참조.
+
+---
+
+## Issue #765 — PR Full #3084.1 Shard5 Job Timeout 및 E2E 완전 커버리지 리밸런싱 (2026-10-21)
+
+PR #766 Full [#3084.1](https://github.com/planner77/masterGantt/actions/runs/39563793357) Quality/Docker 및 E2E Shard1/2/3/4/6 성공, Shard5는 91건 PASS 뒤 35분 Job timeout에서 취소. 원본 테스트 FAIL이 확인된 것이 아니라 4개 남은 스펙을 완료하지 못한 것이며 새 CI에 다시 포함해야 한다. 전체 증거는 [#765 실패 원장 F765-003](ISSUE_765_FAILURE_ANALYSIS.md).
+
+`tests/config/e2e-shard-plan.json`의 테스트 파일만 4건 이전한다: project-task-editor(1→6), issue-623-resource-mvp(3→2), issue-730-view-composer(5→2), issue-735-system-dashboard(5→4). 136 unique test specs 모두 포함(샤드 파일수 22/24/25/22/21/22). 각 스펙/expect·workers=1, Chromium 6-shard, PR fail-fast, 35분 Job Timeout 및 Required Quality/E2E/Docker는 유지한다. 역사적 projectedMs는 이전 baseline이고 바뀐 배치의 실측 예측으로 주장하지 않는다. 실제 새 exact Head 전체 PR CI 및 QA를 통과해야 최종 완료.
+
+---
+
+## Issue #765 — 미발행 v0.127/v0.128 부채 RETIRED 계약·회귀 (2026-10-21)
+
+정책 필수 실험: python3 scripts/test-release-debt-recovery-765.py (Synthetic fixture, 실 GHCR/GitHub mutation 0).
+
+Positive: exact first-parent #732 PR761 → #736 PR760 → #732 PR763 → #734 PR759 → 새 #765 PR, old cancelled/failure Main Run 불변, #734 Release #186/digest 인증, #765 신규 Main candidate PASS, 전체 브랜치 preflight 후 bot RETIRED·Close 및 #734/#765 정상 Generic FINAL.
+
+Negative: Owner foreign/malformed/revoked/duplicate, 다른 SHA·PR·중간 Issue·태그/버전·Release run, old Main success 위조, GHCR UNKNOWN/PRESENT·old ci-SHA candidate, digest 불일치, forged bot RETIRED, expired/stale main, preflight 실패 전 writes 0. Repeated trigger·부분 처리 후 중복 marker 0.
+
+Remote acceptance: #765 정확 PR Head/base의 세 Required Quality/E2E6/Docker·Trusted QA·Owner HIGH 수용·Main validated SHA. GHCR real audit는 인증된 GitHub runner에서 수행하며 로컬 fixture PASS를 실제 발행/retirement 증거로 대체하지 않는다.
+
+상세: [#765 Work Packet](exec-plans/active/ISSUE_765.md).
+
+---
+
 ## Issue #734 — 설비 consumer·유형·원본 snapshot 수용
 
 전용 `tests/features/resources/equipment-dashboard.test.ts`와 `tests/server/resources/issue-734-equipment-configuration.test.ts`는 기존 SQLite oracle/공통 원장을 사용한다. Target0·AMR10+5/고유15·등록-only·비활성·미배정, 직접/조상/Target whole·subset·혼합의 중복 제거, E10 다중 WorkArea 각10/상위10·Task5 M/D 상위5, shared MCS와 Milestone no-leak·full Gate, 명시 controls와 같은 Task 업무 연관, 유형 OR 필터/등록-only/잘못된 입력·이름 변경 stale를 확인한다.
