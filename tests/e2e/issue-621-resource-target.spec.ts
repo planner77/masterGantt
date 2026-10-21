@@ -363,6 +363,16 @@ test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 �
   const row = detail.locator(`[data-canonical-task-id="${f.task.taskId}"][data-canonical-assignment-id="${alice.id}"]`);
   await expect(row).toBeVisible();
   const edit = row.getByRole("button", { name: `배정 편집: ${f.resources[0].name}`, exact: true });
+  // Exact edits must not scan the full candidate catalog, but must reauthenticate.
+  let candidateLookups = 0, sessionLookups = 0;
+  await page.route(`**/api/projects/${f.publicId}/assignment-targets`, route => {
+    candidateLookups++;
+    return route.continue();
+  });
+  await page.route(`**/api/projects/${f.publicId}/edit-sessions/current`, route => {
+    sessionLookups++;
+    return route.continue();
+  });
   await edit.focus(); await page.keyboard.press("Enter");
   const editor = await taskEditor(page);
   await expect(editor.getByRole("tab", { name: /^리소스/ })).toHaveAttribute("aria-selected", "true");
@@ -371,6 +381,8 @@ test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 �
   await expect(editor.getByRole("button", { name: /^할당 저장 \(/ })).toBeEnabled({ timeout: 30_000 });
   const allocation = editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입률 (%)`, { exact: true });
   await expect(allocation).toHaveValue("100");
+  expect(candidateLookups).toBe(0);
+  expect(sessionLookups).toBeGreaterThanOrEqual(1);
   await expect(editor.getByLabel(`리소스 2 ${f.resources[1].name} 투입률 (%)`, { exact: true })).toHaveCount(0);
   await allocation.fill("80");
   await editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입 시작`, { exact: true }).fill("2026-10-14");
@@ -412,6 +424,38 @@ test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 �
   expect((await (await page.request.get(`${f.api}/assigned-targets`)).json()).data.assignments.find((entry: { id: string }) => entry.id === alice.id).allocation.percent).toBe(80);
   expect(requests).toBe(3);
   await info.attach("issue621-exact-assignment", { contentType: "application/json", body: JSON.stringify({ assignmentId: alice.id, resourceId: f.resources[0].id, unchangedAssignmentId: bob.id, requests, successfulWrites: 1, taskId: f.task.taskId }) });
+});
+
+
+test("#736 exact Assignment 편집은 만료된 Project edit session에서 초안을 열지 않는다", async ({ page, isolatedApplication: origin, observeIsolatedApi }) => {
+  test.setTimeout(180_000);
+  const f = await seedIssue621(page, origin, observeIsolatedApi);
+  const root = await openResource(page);
+  await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");
+  await root.getByLabel("Target 표시", { exact: true }).selectOption("matrix");
+  const canonical = await f.snapshot();
+  const assigned = (await (await page.request.get(`${f.api}/assigned-targets`)).json()).data;
+  const exact = assigned.assignments.find((item: { taskId: string; target: { id: string } }) =>
+    item.taskId === f.task.taskId && item.target.id === f.resources[0].id);
+  expect(exact?.id).toBeTruthy();
+  await root.getByRole("region", { name: "Resource Target 비교표", exact: true })
+    .locator("tbody tr").filter({ hasText: f.resources[0].name }).locator("td button").first().click();
+  const row = root.locator(".resource-dashboard-detail")
+    .locator(`[data-canonical-task-id="${f.task.taskId}"][data-canonical-assignment-id="${exact.id}"]`);
+  await expect(row).toBeVisible();
+  let checked = 0;
+  // The workspace was editable when loaded, but its authoritative edit session
+  // is now revoked. A public assigned-targets read alone must not authorize drafts.
+  await page.route(`**/api/projects/${f.publicId}/edit-sessions/current`, route => {
+    checked++;
+    return route.fulfill({ status: 200, json: { data: { permission: "readonly" } } });
+  });
+  await row.getByRole("button", { name: `배정 편집: ${f.resources[0].name}`, exact: true }).click();
+  const editor = await taskEditor(page);
+  await expect(editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입률 (%)`, { exact: true })).toBeDisabled({ timeout: 30_000 });
+  await expect(editor.getByRole("button", { name: /^할당 저장 \(/ })).toHaveCount(0);
+  expect(checked).toBeGreaterThanOrEqual(1);
+  expect(await f.snapshot()).toEqual(canonical);
 });
 
 test("#621 Target 응답역전·실제409 stale·필터탈락 fallback·취소 scope/focus", async ({ page, isolatedApplication: origin, observeIsolatedApi }) => {

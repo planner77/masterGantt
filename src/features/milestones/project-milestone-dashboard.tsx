@@ -692,7 +692,7 @@ export function ProjectMilestoneDashboard({
                 </thead>
                 <tbody>
                   {data.effort.buckets.map((bucket) => (
-                    <tr key={bucket.milestoneTaskId ?? "unassigned"}>
+                    <tr key={bucket.milestoneTaskId ?? "unassigned"} data-milestone-effort-bucket={bucket.milestoneTaskId ?? "unassigned"}>
                       <td>
                         <span className={styles.identity}>
                           {bucket.milestoneTaskId === null
@@ -720,6 +720,7 @@ export function ProjectMilestoneDashboard({
                           </button>
                           <button
                             type="button"
+                            data-milestone-resource-trigger="true"
                             disabled={
                               !resourceAvailable || !bucket.assignmentIds.length
                             }
