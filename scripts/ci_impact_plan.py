@@ -9,12 +9,15 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
 import re
 import subprocess
 import sys
+import zipfile
+from datetime import datetime
 import urllib.error
 import urllib.request
 
@@ -400,8 +403,114 @@ def github_jobs(repo: str, run_id: int, attempt: int) -> list[dict]:
     return jobs
 
 
+
+def github_e2e_timing(repo: str, run_id: int, attempt: int, source_sha: str,
+                      inventory: list[str], selected: set[str], event: str) -> dict:
+    """Untrusted reporter artifact, independently anchored to six successful jobs.
+
+    Never grants CI authority. Any missing, expired, corrupt or partial ZIP
+    becomes UNKNOWN. No raw traces, request URLs, cookies or DBs are exported.
+    """
+    token = os.environ.get("GH_TOKEN", "")
+    if not token or not valid_sha(source_sha):
+        raise ValueError("TIMING_SOURCE_UNVERIFIED")
+    prefix = f"https://api.github.com/repos/{repo}"
+    headers = {"Authorization": "Bearer " + token, "Accept": "application/vnd.github+json",
+               "User-Agent": "masterGantt-impact-shadow-v1",
+               "X-GitHub-Api-Version": "2022-11-28"}
+
+    def download(url: str, size_limit: int):
+        request = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(request, timeout=25) as response:
+            data = response.read(size_limit + 1)
+        if len(data) > size_limit:
+            raise ValueError("TIMING_ARTIFACT_TOO_LARGE")
+        return data
+
+    payload = json.loads(download(f"{prefix}/actions/runs/{run_id}/artifacts?per_page=100",
+                                  1_000_000))
+    if not isinstance(payload.get("artifacts"), list) or payload.get("total_count", 101) > 100:
+        raise ValueError("TIMING_ARTIFACT_PAGINATION_UNVERIFIED")
+    artifacts = payload["artifacts"]
+    entries: list[dict] = []
+    observed: set[str] = set()
+    durations: dict[str, float] = {}
+    for shard in range(1, 7):
+        name = f"e2e-timing-ci-shard-{shard}"
+        rows = [a for a in artifacts if a.get("name") == name and not a.get("expired")]
+        if len(rows) != 1 or not isinstance(rows[0].get("id"), int):
+            raise ValueError("TIMING_SHARD_ARTIFACT_MISSING")
+        raw = download(f"{prefix}/actions/artifacts/{rows[0]['id']}/zip", 4_000_000)
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            members = archive.infolist()
+            expected_name = f"e2e-timing-shard-{shard}.json"
+            if len(members) != 1 or members[0].filename != expected_name or \
+               members[0].file_size > 1_500_000:
+                raise ValueError("TIMING_ARCHIVE_PATH_OR_SIZE_INVALID")
+            record = json.loads(archive.read(expected_name))
+        if (record.get("schemaVersion") != 1 or
+                str(record.get("runId")) != str(run_id) or
+                record.get("runAttempt") != attempt or
+                record.get("headSha") != source_sha or
+                record.get("eventName") != event or
+                record.get("shard") != shard or record.get("shardCount") != 6 or
+                record.get("status") != "passed" or
+                not isinstance(record.get("entries"), list)):
+            raise ValueError("TIMING_ARTIFACT_SOURCE_MISMATCH")
+        for item in record["entries"]:
+            file = item.get("file")
+            value = item.get("durationMs")
+            if file not in inventory or not isinstance(value, (int, float)) or \
+               not (0 <= value < 1_000_000):
+                raise ValueError("TIMING_UNDISCOVERED_FILE_OR_INVALID_DURATION")
+            observed.add(file)
+            durations[file] = durations.get(file, 0) + value
+            entries.append({"file": file, "duration_ms": round(value, 3)})
+    missing = set(inventory) - observed
+    if missing:
+        raise ValueError("TIMING_FULL_FILE_COVERAGE_UNVERIFIED")
+    return {
+        "source": "UNTRUSTED_REPORTER_ARTIFACT_CROSSCHECKED",
+        "status": "FILE_COVERAGE_OBSERVED_NOT_PASS_AUTHORITY",
+        "observed_file_count": len(observed),
+        "passed_case_entries": len(entries),
+        "selected_files_observed": len(observed & selected),
+        "excluded_files_observed": len(observed - selected),
+        "timed_test_body_minutes": round(sum(durations.values()) / 60000, 3),
+        "excluded_test_body_minutes_upper_bound": round(
+            sum(value for file, value in durations.items() if file not in selected) / 60000, 3),
+        "counterfactual_status": "UPPER_BOUND_NOT_ACTUAL_SAVINGS",
+        "false_negative_status": "NOT_MEASURABLE_WITHOUT_FAILED_RUN_REPLAY",
+    }
+
+
+def job_elapsed_minutes(shards: list[dict]) -> dict:
+    times = []
+    for job in shards:
+        try:
+            begin = datetime.fromisoformat(job["started_at"].replace("Z", "+00:00"))
+            end = datetime.fromisoformat(job["completed_at"].replace("Z", "+00:00"))
+        except (KeyError, AttributeError, TypeError, ValueError):
+            return {"status": "UNKNOWN", "reason": "JOB_TIMESTAMPS_MISSING"}
+        duration = (end - begin).total_seconds()
+        if duration < 0:
+            return {"status": "UNKNOWN", "reason": "JOB_TIMESTAMP_INVERSION"}
+        times.append((begin, end, duration))
+    if len(times) != 6:
+        return {"status": "UNKNOWN", "reason": "SHARD_COUNT_NOT_SIX"}
+    return {
+        "status": "JOB_WALL_CLOCK_MEASURED",
+        "e2e_shard_job_runner_minutes": round(sum(x[2] for x in times) / 60, 3),
+        "e2e_six_shards_wall_minutes": round(
+            (max(x[1] for x in times) - min(x[0] for x in times)).total_seconds() / 60, 3),
+        "measurement_limit": "Job elapsed wall time, not invoice/billing minutes",
+    }
+
+
 def observed_ci(repo: str, run_id: int, attempt: int, event: str,
-                e2e_required: bool, results: dict) -> dict:
+                e2e_required: bool, results: dict, source_sha: str = "",
+                inventory: list[str] | None = None,
+                selected_e2e: set[str] | None = None) -> dict:
     """Aggregate identities/attempts, not fictional test-by-test PASS values."""
     observation = {"status": "UNKNOWN", "gate_results": results,
                    "executed_test_ids": "NOT_VERIFIED",
@@ -441,6 +550,14 @@ def observed_ci(repo: str, run_id: int, attempt: int, event: str,
                          any(j["conclusion"] != "success" for j in observation["shard_jobs"])):
         observation["reason"] = "E2E_NOT_SIX_SUCCEEDED_SHARDS"
         return observation
+    if e2e_required and source_sha and inventory is not None and selected_e2e is not None:
+        observation["job_runtime"] = job_elapsed_minutes(observation["shard_jobs"])
+        try:
+            observation["timing"] = github_e2e_timing(repo, run_id, attempt, source_sha,
+                                                      inventory, selected_e2e, event)
+        except (ValueError, urllib.error.URLError, TimeoutError, OSError,
+                json.JSONDecodeError, zipfile.BadZipFile):
+            observation["timing"] = {"status": "UNKNOWN", "reason": "TIMING_EVIDENCE_UNAVAILABLE"}
     if any(x != "success" for x in results.values()):
         observation["status"] = "NOT_TESTED"
         observation["reason"] = "REQUIRED_CHECK_NON_SUCCESS"
@@ -540,8 +657,10 @@ def main() -> int:
         results = {"quality": os.environ.get("NEED_QUALITY", ""),
                    "e2e": os.environ.get("NEED_E2E", ""),
                    "docker": os.environ.get("NEED_DOCKER", "")}
-        report["observed_ci"] = observed_ci(ctx["repo"], ctx["run_id"], ctx["attempt"],
-                                             run["event"], required, results)
+        report["observed_ci"] = observed_ci(
+            ctx["repo"], ctx["run_id"], ctx["attempt"], run["event"], required, results,
+            source_sha=ctx["target"], inventory=current["e2e"],
+            selected_e2e={x["id"] for x in report["selected_test_ids"] if x["kind"] == "CHROMIUM"})
         report["evidence_status"] = "OBSERVE_ONLY" if report["observed_ci"]["status"] != "UNKNOWN" else "UNKNOWN"
         report["tool_versions"] = {"python": sys.version.split()[0],
                                    "policy_blob": policy_blob,
