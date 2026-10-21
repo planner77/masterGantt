@@ -465,6 +465,8 @@ jobs:
         run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_preflight.py
       - name: PR Fast Gate 검증 (#659)
         run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_pr_fast_gate.py
+      - name: Issue #770 Shadow 영향 계획·출처 보호 단위 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_impact_plan.py' -v
       - name: Issue #703 Preview 배포 권한·워크플로 단위 회귀
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_preview_publish.py' -v
       - name: 배포 shell 구문 검증
@@ -1136,6 +1138,79 @@ jobs:
             echo "Docker smoke 구현 job이 실패하거나 취소되었습니다: $RESULT" >&2
             exit 1
           }
+
+
+  # #770: nonblocking OBSERVE-ONLY. Does not feed Required3, QA, GHCR, or
+  # merge decisions. Base trusted code only; introducing PR reports NOT_TESTED.
+  impact_shadow:
+    name: 변경 영향 Shadow 계획 · advisory only (#770)
+    if: >-
+      always() &&
+      ((github.event_name == 'pull_request' && github.event.action != 'edited') ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+    needs: [changes, quality, e2e, docker]
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    continue-on-error: true
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    steps:
+      - name: PR Head가 아닌 인증된 base 정책 checkout (main은 정확 main)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 신규 Shadow 정책 bootstrap — 미설치 시 NOT TESTED
+        if: hashFiles('scripts/ci_impact_plan.py') == ''
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = {
+              "schema": "mastergantt-impact-plan-v1",
+              "evidence_status": "NOT_TESTED",
+              "mode_recommendation": "FULL_REQUIRED",
+              "risk": "UNKNOWN",
+              "reason": "TRUSTED_BASE_POLICY_NOT_INSTALLED",
+              "source": {"repository": os.environ.get("GITHUB_REPOSITORY"),
+                         "run_id": os.environ.get("GITHUB_RUN_ID"),
+                         "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+                         "head_sha": os.environ.get("PR_HEAD_SHA"),
+                         "base_sha": os.environ.get("PR_BASE_SHA"),
+                         "test_merge_sha": os.environ.get("GITHUB_SHA")},
+              "authority": "ADVISORY_NOT_REQUIRED_NOT_QA_NOT_RELEASE",
+          }
+          Path("ci-impact-shadow.json").write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write("## Issue #770 — Shadow bootstrap: NOT TESTED\n")
+              stream.write("인증된 base에 새 판정기가 없어 실행하지 않았습니다. 기존 전체 CI와 QA 결과는 별개입니다.\n")
+          PY
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+      - name: 인증된 base/정확 main 정책으로 영향 계획·실제 CI 관측
+        if: hashFiles('scripts/ci_impact_plan.py') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEED_QUALITY: ${{ needs.quality.result }}
+          NEED_E2E: ${{ needs.e2e.result }}
+          NEED_DOCKER: ${{ needs.docker.result }}
+          E2E_REQUIRED: ${{ needs.changes.outputs.e2e }}
+          SHADOW_MODE: ${{ github.event_name == 'pull_request' && 'pr' || 'main' }}
+        run: python3 scripts/ci_impact_plan.py --mode "$SHADOW_MODE" --output ci-impact-shadow.json
+      - name: Shadow 계획 및 미검증 출처 정제 Artifact
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-impact-shadow-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci-impact-shadow.json
+          retention-days: 30
+          if-no-files-found: warn
 
   # First introduction: main lacks a trusted QA validator. Record NOT TESTED.
   # Never report success of an unexecuted QA check, and never weaken existing required CI.
