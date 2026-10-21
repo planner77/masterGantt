@@ -1,3 +1,15 @@
+## Issue #770 — 신뢰된 Shadow 출처와 원격 full-check 수용 (2026-10-22)
+
+[#770](exec-plans/active/ISSUE_770.md) 구현 PR은 정책 파일·`.github/workflows/ci.yml` 자체를 수정하므로 HIGH/OWNER_MANAGED이며, 변경 헤드의 기존 Quality/Chromium six shards/Docker **전체** PR CI를 통과한 뒤 default-main Trusted QA, 0 review threads와 명시적 Owner 위험 수용을 추가로 충족해야 한다. **Shadow `FAST_TARGETED`/`DOCS_VERIFIED`는 Required PASS가 아니며 병합 권한이 아니다.**
+
+- Introducing PR: 신뢰된 base에 새 스크립트가 없으므로 Shadow Job은 `TRUSTED_BASE_POLICY_NOT_INSTALLED`/`NOT_TESTED`을 artifact/summary에 기록한다. 이 부재는 차단 Job의 실패가 아닌 안전한 미실행 상태이며, 새로운 판정기로 같은 PR을 스스로 승인하지 않는다.
+- 후속 PR/Main: `ci-impact-shadow-<run>-<attempt>`가 PR/head/base/actual test-merge·trusted SHA/diff fingerprint, test plan hash/selected/excluded file IDs, 소스/Job 상태를 정확히 보존하는지 확인한다. 동등 경로에서 변경된 HEAD/Base, PR edited, 실패/취소된 six-shard, artifact 누락/만료, 권한/zip 오류는 `UNKNOWN/NOT_TESTED`, 과거 PASS로 덮지 않는다.
+- Shadow에서 actual six-shard의 Unit/Chromium test file inventory와 skipped/unknown 범위, E2E timing ZIP의 실제 passed test entry를 대조하지만 ZIP이 PR 코드의 산출물임을 인정한다. 비용은 공인 job timestamps의 여섯 shard elapsed Runner-minutes, wall-clock span, reporter test-body 상한을 구분한다. 효과는 동일 모집단·인프라와 충분한 표본을 확보한 뒤 별도로 검증.
+- 현재 #770 Work Packet의 과거 10개 성공 Full metadata는 Job 이름/결론·artifact 목록까지 검사했으나 ZIP 내 exact source/test-merge/파일 변경/시간까지 인증하지 못했으므로 false-negative·절감률/분류 정밀도 **INSUFFICIENT_DATA**. 과거 실패 재생은 동일 출처·테스트 집합을 확보하기 전 유의미한 수치로 주장하지 않는다.
+- Python `tests/python/test_ci_impact_plan.py` negative tests는 PR Policy Job의 필수 단계이며 Unit/Playwright/QA·Release를 대신하지 않는다. 이 PR에서는 병합, Main, 정식 GHCR, 태그, 최종 이슈 종료를 수행하지 않는다.
+
+---
+
 ## Issue #624 — Full PR CI #2920.1 Playwright 원본 Trace와 Scroll 경계 수용 (2026-10-18)
 
 - 직접 읽은 [Run #2920.1](https://github.com/planner77/masterGantt/actions/runs/39076400264): HEAD `829953e8a108d18cb816880606926f2220d954eb`, Base `6fea0397bc07d0c3adf2d769f9ba6829473503a2`, test-merge `38c0de7c30b267626bdb99e1bb6d53806d61465c`. [Shard4 Playwright report/artifact 12117856021](https://github.com/planner77/masterGantt/actions/runs/39076400264/artifacts/12117856021)의 `error-context`, `test.trace`, `1-trace.trace` 직접 확인: 기존 #490 scroll 첫 설정에서 expected19/native18이 5s/7 관측 동안 고정. 설정 탭, metadata PATCH, native fullscreen의 보존 단언 전에 중단됐다. 독립 원인으로 오인할 수 있는 runtime OOM/Network 오류를 단정하지 않는다(격리 서버 alive, cgroup oomKill0).
