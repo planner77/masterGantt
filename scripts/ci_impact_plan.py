@@ -209,7 +209,8 @@ def local_prepr(paths: list[str], inv: dict, direct: dict) -> dict:
 
 def impact_plan(entries: list[dict], old: dict, current: dict, prepr: dict,
                 base: str, head: str, merge: str, policy_sha: str,
-                run: dict | None = None, hazards: set[str] | None = None) -> dict:
+                run: dict | None = None, hazards: set[str] | None = None,
+                diff_fingerprint: str = "") -> dict:
     """Pure, deterministic classification. PR metadata cannot lower its risk."""
     paths = sorted({p for item in entries for p in (item["path"], item.get("previous_path")) if p})
     hazards = hazards or set()
@@ -346,7 +347,7 @@ def impact_plan(entries: list[dict], old: dict, current: dict, prepr: dict,
         "trusted_policy_blob_sha": policy_sha,
         "source": {"base_sha": base, "head_sha": head, "test_merge_sha": merge,
                    **(run or {})},
-        "input_diff_fingerprint": sha256(entries),
+        "input_diff_fingerprint": diff_fingerprint or sha256(entries),
         "changes": entries,
         "risk": risk,
         "mode_recommendation": recommendation,
@@ -593,9 +594,11 @@ def source_context(event: dict, mode: str) -> dict:
         if parents != [merge, base, head]:
             raise ValueError("TEST_MERGE_PARENT_MISMATCH")
         number = int(pr["number"])
+        issue_title = re.search(r"(?:\[Issue #|Issue #)([1-9][0-9]*)", pr.get("title", ""))
+        issue_observed = int(issue_title.group(1)) if issue_title else None
         return {"repo": repo, "run_id": run, "attempt": attempt, "base": base,
                 "head": head, "merge": merge, "target": merge,
-                "pr": number, "issue_observed": None}
+                "pr": number, "issue_observed": issue_observed}
     sha = os.environ["GITHUB_SHA"]
     if not valid_sha(sha) or git("rev-parse", "HEAD") != sha:
         raise ValueError("MAIN_SOURCE_MISMATCH")
@@ -650,9 +653,12 @@ def main() -> int:
         hazards = detect_hazards(ctx["target"], entries)
         run = {"repository": ctx["repo"], "event": "pull_request" if args.mode == "pr" else "push",
                "run_id": ctx["run_id"], "run_attempt": ctx["attempt"],
-               "pr_number": ctx["pr"]}
+               "pr_number": ctx["pr"],
+               "issue_number": ctx.get("issue_observed"),
+               "issue_attribution_status": "UNVERIFIED_PR_METADATA" if ctx["pr"] else "NOT_APPLICABLE"}
+        diff_bytes = git("diff", "--no-ext-diff", "--binary", base, ctx["target"], "--", binary=True)
         report = impact_plan(entries, old, current, prepr, base, head, merge, policy_blob, run,
-                             hazards=hazards)
+                             hazards=hazards, diff_fingerprint=hashlib.sha256(diff_bytes).hexdigest())
         required = os.environ.get("E2E_REQUIRED", "").lower() == "true"
         results = {"quality": os.environ.get("NEED_QUALITY", ""),
                    "e2e": os.environ.get("NEED_E2E", ""),
