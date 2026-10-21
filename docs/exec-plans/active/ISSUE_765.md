@@ -85,7 +85,7 @@
 - `docs/CI_CD.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: N/A(신규 CLI·운영자 직접 명령 대신 기존 Generic Finalizer에서 실행)
-- `docs/REMOTE_VALIDATION.md`: N/A(원격 PR CI Run 및 실제 증거는 전용 실패 원장·Work Packet·GitHub Actions 인계)
+- `docs/REMOTE_VALIDATION.md`: N/A(원격 PR CI Run #3082.1/#3083.1 및 실제 증거는 전용 실패 원장·Work Packet·GitHub Actions 인계)
 - `docs/GENERIC_RELEASE_FINALIZER.md`: UPDATED
 - `docs/ISSUE_LIFECYCLE.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_765.md`: UPDATED
@@ -119,4 +119,4 @@
 
 ## 현재 단계
 
-IMPLEMENTATION/PR CI: 최초 Full #3082.1 Preflight FAIL; 교정 Head 새 CI NOT TESTED. Owner RETIRE 별도 승인 Marker 없음. 기존 v0.129.0 정식 이미지 발행 완료/변경 금지.
+IMPLEMENTATION/PR CI: Full #3082.1 Preflight FAIL 교정 후 #3083.1 Preflight PASS, 새 Python Unit 10건 중 위조 RETIRED 사전차단 1건 FAIL(F765-002); 새 Head 전체 CI NOT TESTED. Owner RETIRE 별도 승인 Marker 없음. 기존 v0.129.0 정식 이미지 발행 완료/변경 금지.

@@ -30,3 +30,22 @@
 - 새 정확 Head로 Full PR CI 새 실행이 필요. 유효한 Required Quality/E2E6/Docker·Trusted QA/Owner HIGH 판정은 새 Run에서만 판단.
 - 원격 CI 재실행을 위해 E2E/Timeout/Required Gate를 완화하지 않음. root cause는 정책 문서 포맷이며 앱 코드 변경은 하지 않음.
 - 실패/취소 항목이 반복되면 최초 F765-001부터 누적 검토 후 변동 source·새 Job/shard evidence를 추가.
+
+## F765-002 — PR #766 두 번째 Full PR CI #3083.1 신규 정책 Unit 음성 실패 (2026-10-21)
+
+| 증거 | 값 |
+|---|---|
+| Head | f2b652c04796de570c67256589d13c50d4cf5a14 |
+| Full PR CI | #3083.1 / Run 39563381737, attempt 1 |
+| 사전 검증 | QA Preflight SUCCESS — F765-001 수정 효과 확인 |
+| 직접 실패 | 정책·저장소 계약 검사 / job 119099938088 |
+| 테스트 | scripts/test-release-debt-recovery-765.py의 test_existing_closed_old_issue_needs_bot_retirement, 10 case 중 1 FAIL |
+| 오류 | line272, 예상 AutoFinalizerBlocked 미발생 — OPEN Issue에 forged RETIRED marker가 있을 때 plan_765가 closed 상태일 때만 읽음 |
+| 파생 영향 | Required Quality·PR CI 최종 SUCCESS 불가; 다른 Job의 SKIPPED/FAIL은 정책 오류와 분리 |
+
+### 원인·조치
+
+- 과거 RETIRED marker 검사는 historical Issue가 CLOSED인 경우에만 적용돼, Owner 계획 단계에서 OPEN Issue에 주입된 비인증 marker를 즉시 차단하지 못했다.
+- 모든 old Issue에 대해 state와 관계없이 정확한 bot-origin RETIRED text/expected source/decision/digest를 먼저 감사하고, CLOSED인 경우 해당 인증 marker가 존재해야 한다는 추가 조건을 적용한다.
+- 이로써 위조된 OPEN marker도 preflight/비가역 mutation 전에 BLOCKED; 기존 partial retired/closed idempotence는 유지한다.
+- 새로운 Head에서 Full PR CI·10가지 정책 테스트/Trusted QA를 재검증한다. 이전 Run 결과/분석은 불변.

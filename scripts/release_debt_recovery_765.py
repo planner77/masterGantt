@@ -316,8 +316,12 @@ def plan_765(core: Any, repo: str, main_sha: str) -> Plan | None:
     plan = Plan(main_sha, recovery.target_sha, recovery.pr_number,
                 owner["evidence_url"], old_items, release, recovery)
     for item in old_items:
+        # Even an OPEN historical Issue must reject forged or conflicting bot
+        # RETIRED text. Otherwise a malicious marker could remain unnoticed
+        # until after the plan audit, contrary to the fail-closed policy.
+        has_retirement = authenticated_retirement(core, repo, plan, item.issue_number)
         if core.is_closed_issue(repo, item):
-            require(core, authenticated_retirement(core, repo, plan, item.issue_number),
+            require(core, has_retirement,
                     "closed historical Issue has no authenticated RETIRED record")
     revoked_versions(core, repo)
     verify_original_ci(core, repo, old_items)
