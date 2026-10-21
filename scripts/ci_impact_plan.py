@@ -42,7 +42,6 @@ DOC_PROTECTED = re.compile(r"^(?:AGENTS\.md|DESIGN\.md|docs/(?:TEST_PLAN|CI_CD|R
 SCREEN_MAP = {
     "src/features/projects/project-settings-dialog.tsx": [
         "tests/e2e/project-settings-layout-490.spec.ts",
-        "tests/e2e/project-settings-dialog-layout-490.spec.ts",
     ],
     "src/features/projects/project-list-filter.ts": [
         "tests/e2e/project-list-search-filter.spec.ts",
