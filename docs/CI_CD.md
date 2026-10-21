@@ -1,3 +1,14 @@
+## Issue #770 — F770-001/F770-002 및 Shadow P1/P2 교정 (2026-10-22)
+
+[Full #3101.1](https://github.com/planner77/masterGantt/actions/runs/39688555697)의 선행 QA 선언/Issue AC 실패는 Fast Gate가 실제 테스트 실행을 차단한 정책 실패다. [Metadata-only #3103.1](https://github.com/planner77/masterGantt/actions/runs/39691582062)은 Full이 실패한 동일 Head의 근거를 재활용할 수 없어 실패했다. 두 원본은 불변; [#770 누적 원장](ISSUE_770_FAILURE_ANALYSIS.md).
+
+- Shadow 분류기의 Node 인벤토리는 인자 대신 stdin으로 전달해 대용량 소스 graph에서도 동일한 trusted base 정책을 실행한다.
+- E2E reporter passed-only `entries` 호환은 보존하면서 `skippedFiles`/`skippedCaseCount`로 정상 skip을 기록한다. 정확 source·Run+Attempt/6 shard 교차 확인 후 passed ∪ skipped 관측과 unknown 누락을 분리한다. 성공하지 않은/만료/스키마가 다른 ZIP은 UNKNOWN, Skip은 Required PASS/절감시간 증거가 아니다.
+- 기존 3 Required Check·6-shard·QA/Trusted·Main/GHCR/Ruleset/Finalizer/Release 및 보호 Run 선택의 의미는 변경하지 않는다. 새 Head Full CI/Owner 승인이 없으면 병합 불가.
+
+
+---
+
 ## Issue #770 — 변경 영향 Shadow (2026-10-22, P0 Phase A)
 
 `.github/workflows/ci.yml`에 기존 `quality`, `e2e`, `docker`의 결과 이후 **새 비차단 `impact_shadow`** Job을 추가한다. PR opened/reopened/synchronize, main push에서만 실행하며 PR `edited` 메타데이터 감사에는 개입하지 않는다. 3개 Required Check 이름과 의존 관계, PR Fast Gate, Chromium PR 6-way fail-fast/Main 6-way full, Docker smoke, QA Preflight/Trusted/Finalizer/Ruleset/정식 릴리스 승인 및 기존 GHCR 경로 모두 불변. Shadow 실행 자체가 테스트/빌드 6회를 추가하지 않는다.

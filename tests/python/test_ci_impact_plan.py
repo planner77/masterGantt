@@ -3,6 +3,7 @@
 These tests never contact GitHub, execute PR code or assert a remote CI PASS.
 """
 import importlib.util
+import json
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -250,6 +251,73 @@ class SourceAndObservationTests(unittest.TestCase):
                                         {"quality": "success", "e2e": "success", "docker": "success"})
         self.assertEqual(result["status"], "UNKNOWN")
 
+
+
+    def test_real_inventory_large_stdin_crosses_linux_argv_threshold(self):
+        """P1: execute actual Node selector with >200 KB producer graph via stdin."""
+        import shutil
+        if not shutil.which("node"):
+            self.skipTest("Node executable unavailable")
+        unit = sorted(str(p.relative_to(ROOT)).replace("\\", "/")
+                      for p in (ROOT / "tests").rglob("*.test.ts"))
+        e2e = sorted(str(p.relative_to(ROOT)).replace("\\", "/")
+                     for p in (ROOT / "tests/e2e").rglob("*.spec.ts"))
+        self.assertGreaterEqual(len(unit), 200)
+        self.assertGreaterEqual(len(e2e), 100)
+        inv = {"unit": unit, "e2e": e2e}
+        direct = {f"src/server/consumer-{n}.ts": unit for n in range(22)}
+        payload = {"paths": ["docs/CI_SHADOW_EXAMPLE.md"],
+                   "tests": {**inv, "directBySource": direct}}
+        self.assertGreater(len(impact.canonical(payload).encode("utf8")), 200_000)
+        result = impact.local_prepr(["docs/CI_SHADOW_EXAMPLE.md"], inv, direct)
+        self.assertEqual(result["state"], "READY")
+        self.assertEqual(result["selected"], [])
+
+    def test_known_skip_covers_file_without_fabricating_test_pass(self):
+        files = ["tests/e2e/resource-tabs.spec.ts", "tests/e2e/project-search-filter.spec.ts"]
+        value = impact.verified_timing_coverage(
+            files, {"tests/e2e/project-search-filter.spec.ts"},
+            {"tests/e2e/resource-tabs.spec.ts"})
+        self.assertEqual(value["observed_file_count"], 2)
+        self.assertEqual(value["passed_file_count"], 1)
+        self.assertEqual(value["skipped_only_file_count"], 1)
+        with self.assertRaisesRegex(ValueError, "TIMING_FULL_FILE_COVERAGE_UNVERIFIED"):
+            impact.verified_timing_coverage(
+                files, {"tests/e2e/project-search-filter.spec.ts"}, set())
+
+    def test_undiscovered_or_duplicated_timing_file_fails_closed(self):
+        files = ["tests/e2e/resource-tabs.spec.ts", "tests/e2e/project-search-filter.spec.ts"]
+        with self.assertRaisesRegex(ValueError, "TIMING_INVENTORY_UNVERIFIED"):
+            impact.verified_timing_coverage(files, set(), {"tests/e2e/absent.spec.ts"})
+        with self.assertRaisesRegex(ValueError, "TIMING_INVENTORY_UNVERIFIED"):
+            impact.verified_timing_coverage(files + [files[0]], set(), set())
+
+    def test_real_reporter_emits_passed_and_skipped_separately(self):
+        import shutil
+        import tempfile
+        import subprocess
+        if not shutil.which("node"):
+            self.skipTest("Node executable unavailable")
+        with tempfile.TemporaryDirectory() as folder:
+            output_file = str(Path(folder) / "timing.json")
+            js = (
+                "const path=require('node:path');"
+                "const Reporter=require('./tests/config/e2e-timing-reporter.cjs');"
+                "const r=new Reporter({outputFile:process.argv[1]});"
+                "const t={location:{file:path.resolve('tests/e2e/resource-tabs.spec.ts')}};"
+                "r.onTestEnd(t,{status:'skipped',duration:0});"
+                "r.onTestEnd(t,{status:'passed',duration:21});"
+                "r.onTestEnd(t,{status:'failed',duration:99});"
+                "r.onEnd({status:'passed'});"
+            )
+            subprocess.run(["node", "-e", js, output_file], cwd=ROOT,
+                           check=True, timeout=15, capture_output=True, text=True)
+            result = json.loads(Path(output_file).read_text(encoding="utf8"))
+        self.assertEqual(result["schemaVersion"], 1)
+        self.assertEqual(result["skippedFiles"], ["tests/e2e/resource-tabs.spec.ts"])
+        self.assertEqual(result["skippedCaseCount"], 1)
+        self.assertEqual(result["entries"], [{
+            "file": "tests/e2e/resource-tabs.spec.ts", "durationMs": 21}])
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,3 +1,13 @@
+## Issue #770 — PR #774 REWORK 원격 검증 (2026-10-22)
+
+- #3101.1 원본 QA Preflight가 메타데이터/AC 식별자에서 실패하여 Full E2E/Unit/Docker는 SKIPPED, #3103.1 metadata-only는 이전 Full FAIL을 검증하여 의도대로 실패했다.
+- PR body와 Issue AC를 정규화하고 P1 large Node argv→stdin, P2 정상 skipped-spec timing 별도 증거를 교정하여 새 커밋에 합친다. Python smoke는 >200KB actual test inventory, reporter skipped/pass/invalid 증거를 포함한다.
+- push 이후 정확 새 PR Head/base/test-merge Full Quality/E2E6/Docker + default-main Trusted QA, no unresolved review, 최신 main/충돌 여부 확인과 Owner HIGH 수용 필수. 과거 metadata-only PASS 또는 Shadow 추천으로 우회 금지.
+- CI 실행 후 지속 모니터링은 요청에 따라 하지 않는다. 상세 Run/Job/원인/미검증은 [#770 원장](ISSUE_770_FAILURE_ANALYSIS.md).
+
+
+---
+
 ## Issue #770 — 신뢰된 Shadow 출처와 원격 full-check 수용 (2026-10-22)
 
 [#770](exec-plans/active/ISSUE_770.md) 구현 PR은 정책 파일·`.github/workflows/ci.yml` 자체를 수정하므로 HIGH/OWNER_MANAGED이며, 변경 헤드의 기존 Quality/Chromium six shards/Docker **전체** PR CI를 통과한 뒤 default-main Trusted QA, 0 review threads와 명시적 Owner 위험 수용을 추가로 충족해야 한다. **Shadow `FAST_TARGETED`/`DOCS_VERIFIED`는 Required PASS가 아니며 병합 권한이 아니다.**

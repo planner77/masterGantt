@@ -8,6 +8,16 @@
 - Main/Ruleset/Release/QA/Finalizer/Rollback authority: **UNCHANGED**. No self-approved risk reduction.
 - Owners: Manager (scope and acceptance), infra (CI read-only classifier), QA (trusted validation after new exact-head full PR CI).
 
+## PR #774 F770-001/F770-002 교정 — 2026-10-22
+
+- 원본 [Full #3101.1](https://github.com/planner77/masterGantt/actions/runs/39688555697): trusted QA Preflight/Bootstrap가 PR risk/QA 필드 선언과 Issue A1~A7을 거절해 PR Fast Gate 차단, 실제 Unit/E2E6/Docker 미실행. 제품·Chromium 결함으로 단정 불가.
+- [Metadata #3103.1](https://github.com/planner77/masterGantt/actions/runs/39691582062): 같은 Head의 실패한 Full #3101.1을 확인해 metadata-only FAIL. 별도의 Full PASS로 위장하거나 원본 결과를 소급 교체 금지.
+- PR body standalone `risk_level: HIGH` / `qa_method: OWNER_MANAGED` / `qa_required: true`와 Issue의 AC1~AC7 식별자를 교정했고 실제 수용 의미/정식 릴리스 권한은 보존함.
+- 리뷰 P1: Python이 Node 단일 argv로 약 277 KB graph 전달→Linux E2BIG; trusted Node 정책은 그대로 두고 JSON을 stdin으로 전달하며 실제 200KB 이상 인벤토리 회귀 테스트 추가.
+- 리뷰 P2: 기존 E2E reporter의 passed-only `entries` 구조를 유지하고 별도 `skippedFiles` / `skippedCaseCount` 기록. `resource-tabs.spec.ts`의 정상 skip을 실행 누락과 구분, skipped≠PASS·time saved 0, 누락/구형/오염된 원본은 UNKNOWN.
+- 정규 누적 실패 문서: [Issue #770 failure ledger](../../ISSUE_770_FAILURE_ANALYSIS.md). CI/QA/Ruleset/Full six shards unchanged. `release_required=false` / `release_authorized=false`, 신규 exact Head Full PR CI 및 Trusted QA/Owner HIGH 수용 전 `MERGE_READY=BLOCKED`.
+
+---
 ## Design & trust boundary
 
 1. `.github/workflows/ci.yml` appends `impact_shadow`, a separately named **nonblocking** advisory job after Quality/E2E/Docker results; it does not feed those aggregate `needs` or any QA/Release consumer. Existing PR 6-shard, Main 6-shard, fast gate, path filter and Docker smoke are untouched.
@@ -61,6 +71,7 @@ The Epic #769 separately reports historical run-level E2E body/runner measuremen
 - `docs/GITHUB_OPERATIONS.md`: N/A(existing PR creation/approval, branch Ruleset, Run and GHCR procedures unchanged; Shadow read-only observation needs no new manual publication command)
 - `docs/ISSUE_LIFECYCLE.md`: N/A(unchanged full Required3/QA/Owner/Finalizer gate, Issue phase and failure-ledger contract; references from AGENTS and TEST_PLAN)
 - `docs/exec-plans/active/ISSUE_770.md`: UPDATED
+- `docs/ISSUE_770_FAILURE_ANALYSIS.md`: UPDATED
 - `DESIGN.md`: N/A(no customer-facing layout/style, Gantt behavior, resource or domain design change; issue scope is CI analysis only)
 - `docs/API.md`: N/A(no application API endpoints or data contracts changed; GitHub Actions read-only API only)
 - `docs/DB_SCHEMA.md`: N/A(no SQLite schema, data files or migration changes)

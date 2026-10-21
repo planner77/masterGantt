@@ -1,3 +1,14 @@
+## Issue #770 — PR #774 F770-001/F770-002 코드 리뷰 보완 (2026-10-22)
+
+[#770 누적 실패 원장](ISSUE_770_FAILURE_ANALYSIS.md) 기록: Full #3101.1은 PR 메타데이터/Issue AC 식별자의 trusted Preflight 실패였고, metadata-only #3103.1은 이전 Full 실패 출처로 차단된 정상 fail-closed 결과다. E2E6/Unit/Docker 테스트 본문은 원본 Run에서 SKIPPED였다.
+
+- P1 Node impact map: base-trusted JS 정책 코드는 변경하지 않고 PR source의 테스트/소비자 JSON을 **stdin**으로 전달한다. 실제 Unit/E2E 파일 목록과 200KB를 넘는 graph를 이용하는 Python→Node 통합 회귀로 OS argv 한계 회피를 검사한다.
+- P2 E2E timing: 기존 optimizer가 읽는 passed-only `entries`는 유지한다. 별도 `skippedFiles`와 `skippedCaseCount`를 기록하여 `resource-tabs.spec.ts`의 정상 skip 등을 passed 테스트·실행 누락과 구별한다. Shadow는 passed ∪ skipped의 원본 파일 커버리지를 확인하고 미보고/미등록/구형 ZIP은 UNKNOWN. Skipped≠PASS, skipped test body를 시간 절감 추정에 가산하지 않는다.
+- 새 정책 테스트 `python3 -m unittest discover -s tests/python -p 'test_ci_impact_plan.py' -v`; 실제 새 Head Quality/E2E6/Docker와 Trusted QA, Owner HIGH 승인 이전 MERGE_READY=BLOCKED.
+
+
+---
+
 ## Issue #770 — trusted CI 영향 분류·선택 계획/Shadow 수용 (2026-10-22)
 
 [#770 Work Packet](exec-plans/active/ISSUE_770.md)과 #697/#699 로컬 선정표를 **원격 공식 정책에 자동 대체하지 않는다**. 새 `scripts/ci_impact_plan.py`는 인증된 base에서 read-only 실행하고, 변경된 test-merge의 Git tree/diff, #699 static consumer map, 파일별 추가 직접·인접·실패 원장 회귀 후보를 선정하며 기존 Full Required CI는 Phase A에서 변경하지 않는다.

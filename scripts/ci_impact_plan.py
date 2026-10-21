@@ -189,16 +189,20 @@ def actual_unit_imports(commit: str, unit: list[str]) -> dict[str, list[str]]:
 
 def local_prepr(paths: list[str], inv: dict, direct: dict) -> dict:
     """Reuse #699's base-only risk and direct/adjacent/negative impact map."""
+    # The 258 Unit/136 Chromium graph exceeds Linux's single-argument limit.
+    # Only the base-trusted Node policy is executable: PR graph travels on stdin.
     source = (
-        "import { selectImpact } from './scripts/prepr-core.mjs';"
-        "const request=JSON.parse(process.argv[1]);"
+        "import {readFileSync} from 'node:fs';"
+        "import {selectImpact} from './scripts/prepr-core.mjs';"
+        "const request=JSON.parse(readFileSync(0,'utf8'));"
         "const result=selectImpact({changed:request.paths,tests:request.tests,risk:'HIGH'});"
         "console.log(JSON.stringify(result));"
     )
     payload = {"paths": paths, "tests": {"unit": inv["unit"], "e2e": inv["e2e"],
                                          "directBySource": direct}}
-    r = subprocess.run(["node", "--input-type=module", "-e", source, canonical(payload)],
-                       capture_output=True, text=True, check=False, timeout=30)
+    r = subprocess.run(["node", "--input-type=module", "-e", source],
+                       input=canonical(payload), capture_output=True, text=True,
+                       check=False, timeout=30)
     if r.returncode:
         raise ValueError("TRUSTED_PREPR_MAP_UNAVAILABLE")
     output = json.loads(r.stdout)
@@ -405,6 +409,22 @@ def github_jobs(repo: str, run_id: int, attempt: int) -> list[dict]:
 
 
 
+def verified_timing_coverage(inventory: list[str], passed: set[str],
+                             skipped: set[str]) -> dict:
+    """A known runtime skip is not a PASS, nor an undetected missing file."""
+    available = set(inventory)
+    if not available or len(available) != len(inventory) or (passed | skipped) - available:
+        raise ValueError("TIMING_INVENTORY_UNVERIFIED")
+    if available - passed - skipped:
+        raise ValueError("TIMING_FULL_FILE_COVERAGE_UNVERIFIED")
+    return {
+        "observed_file_count": len(passed | skipped),
+        "passed_file_count": len(passed),
+        "skipped_file_count": len(skipped),
+        "skipped_only_file_count": len(skipped - passed),
+    }
+
+
 def github_e2e_timing(repo: str, run_id: int, attempt: int, source_sha: str,
                       inventory: list[str], selected: set[str], event: str) -> dict:
     """Untrusted reporter artifact, independently anchored to six successful jobs.
@@ -435,6 +455,8 @@ def github_e2e_timing(repo: str, run_id: int, attempt: int, source_sha: str,
     artifacts = payload["artifacts"]
     entries: list[dict] = []
     observed: set[str] = set()
+    skipped: set[str] = set()
+    skipped_case_count = 0
     durations: dict[str, float] = {}
     for shard in range(1, 7):
         name = f"e2e-timing-ci-shard-{shard}"
@@ -458,25 +480,36 @@ def github_e2e_timing(repo: str, run_id: int, attempt: int, source_sha: str,
                 record.get("status") != "passed" or
                 not isinstance(record.get("entries"), list)):
             raise ValueError("TIMING_ARTIFACT_SOURCE_MISMATCH")
+        skipped_files = record.get("skippedFiles")
+        count = record.get("skippedCaseCount")
+        if (not isinstance(skipped_files, list) or type(count) is not int
+                or count < len(skipped_files) or count < 0
+                or len(skipped_files) != len(set(map(str, skipped_files)))):
+            raise ValueError("TIMING_SKIP_PROVENANCE_UNAVAILABLE")
+        skipped_case_count += count
+        for file in skipped_files:
+            if not isinstance(file, str) or file not in inventory:
+                raise ValueError("TIMING_SKIPPED_FILE_UNDISCOVERED")
+            skipped.add(file)
         for item in record["entries"]:
             file = item.get("file")
             value = item.get("durationMs")
-            if file not in inventory or not isinstance(value, (int, float)) or \
+            if file not in inventory or type(value) not in (int, float) or \
                not (0 <= value < 1_000_000):
                 raise ValueError("TIMING_UNDISCOVERED_FILE_OR_INVALID_DURATION")
             observed.add(file)
             durations[file] = durations.get(file, 0) + value
             entries.append({"file": file, "duration_ms": round(value, 3)})
-    missing = set(inventory) - observed
-    if missing:
-        raise ValueError("TIMING_FULL_FILE_COVERAGE_UNVERIFIED")
+    coverage = verified_timing_coverage(inventory, observed, skipped)
+    accounted = observed | skipped
     return {
         "source": "UNTRUSTED_REPORTER_ARTIFACT_CROSSCHECKED",
         "status": "FILE_COVERAGE_OBSERVED_NOT_PASS_AUTHORITY",
-        "observed_file_count": len(observed),
+        **coverage,
+        "skipped_case_count": skipped_case_count,
         "passed_case_entries": len(entries),
-        "selected_files_observed": len(observed & selected),
-        "excluded_files_observed": len(observed - selected),
+        "selected_files_observed": len(accounted & selected),
+        "excluded_files_observed": len(accounted - selected),
         "timed_test_body_minutes": round(sum(durations.values()) / 60000, 3),
         "excluded_test_body_minutes_upper_bound": round(
             sum(value for file, value in durations.items() if file not in selected) / 60000, 3),
