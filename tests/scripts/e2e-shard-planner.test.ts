@@ -90,7 +90,7 @@ describe("historical E2E shard planner", () => {
     ).toBeNull();
   });
 
-  it("requires explicit unique placements after #732 Main and #765 PR timeout corrections", () => {
+  it("requires explicit unique placements after #732/#765/#767 timeout corrections", () => {
     const path = fileURLToPath(new URL("../config/e2e-shard-plan.json", import.meta.url));
     const plan = JSON.parse(readFileSync(path, "utf8")) as {
       schemaVersion: number;
@@ -110,11 +110,12 @@ describe("historical E2E shard planner", () => {
     expect([...selected].sort()).toEqual(discovered);
     expect(new Set(selected).size).toBe(discovered.length);
     for (const [file, assignedShard] of [
-      // #765 F765-003: rebalance these specs, preserving 6 shards/unique coverage.
-      ["project-task-editor.spec.ts", 6],
+      // #765 F765-003 historical rebalance and #767 F767-003 job-timeout correction;
+      // validate each current destination and preserve 6 shards/unique coverage.
+      ["project-task-editor.spec.ts", 3],
       ["issue-623-resource-mvp.spec.ts", 2],
       ["issue-735-system-dashboard.spec.ts", 4],
-      ["issue-734-equipment-dashboard.spec.ts", 6],
+      ["issue-734-equipment-dashboard.spec.ts", 1],
       ["issue-732-milestone-dashboard.spec.ts", 3],
       ["gantt-state-recovery-editor.spec.ts", 4],
       ["issue-736-resource-dashboard.spec.ts", 2],
@@ -124,7 +125,7 @@ describe("historical E2E shard planner", () => {
       ["project-task-delete-context.spec.ts", 3],
       ["issue-730-view-composer.spec.ts", 2],
       ["issue-733-process-workarea-dashboard.spec.ts", 5],
-      ["issue-726-task-logistics.spec.ts", 6],
+      ["issue-726-task-logistics.spec.ts", 4],
     ] as const) {
       expect(plan.shards.filter(group => group.files.includes(`tests/e2e/${file}`)).map(group => group.shard)).toEqual([assignedShard]);
     }

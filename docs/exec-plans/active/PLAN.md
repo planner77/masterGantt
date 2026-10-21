@@ -1,3 +1,11 @@
+## Issue #767 — PR #768 Full #3095.1 E2E6 35분 취소 및 F767-003 단일 원장 보완 (2026-10-21)
+
+[Run #3095.1](https://github.com/planner77/masterGantt/actions/runs/39611062916), Head `d762cecbe00d60d26ce301f4d59b36f05a1d76f2`: QA Preflight/Quality/Docker/E2E Shard1~5 성공, Shard6 173/174 테스트 통과 뒤 35분 Job Timeout에서 CANCELLED, 전체 원본 CANCELLED·E2E/QA aggregate FAIL. `F767-001`/`F767-002`는 이번 Preflight PASS. [원장 F767-003](../../ISSUE_767_FAILURE_ANALYSIS.md)과 [Work Packet](ISSUE_767.md)에서 source/Jobs/시간/미완료 Case를 보존하고 테스트 배치만 6→1 설비 Dashboard(8,≈5.31m), 6→3 Task Editor(33,≈3.58m), 6→4 Task Logistics(3,≈2.81m)로 수정한다. #765 때 고정 기대값 불일치로 Unit 실패한 전례를 참조하여 `tests/scripts/e2e-shard-planner.test.ts` 기대값도 동시에 갱신.
+
+명시된 136개 E2E spec은 하나도 제거/중복 배치하지 않고 6 Shard/worker1/35m/PR fail-fast/Required3/QA/Trusted 유지. 추정 Job wall은 24.36/29.87/25.85/28.08/25.37/23.67분이며 원격 PASS 보증이 아니다. Test/제품/CI·Finalizer/Owner 정식 게시 권한 불변. 새 PR Head Full CI 시작만 요청 범위이며 병합/정식 GHCR/Issue 종료는 `release_authorized=false` 및 새 증거 부재로 BLOCKED.
+
+---
+
 ## Issue #767 — #764 후속 교정 코드 승계 및 v0.129.1 PATCH 준비 (2026-10-21)
 
 Owner가 “권고안에 따라 교정 릴리스로 정리 후 병합” 지시. Issue #736과 #765는 이미 CLOSED/FINAL이므로 PR 제목·본문의 canonical `Refs` 및 브랜치 `issue-<n>` 일치 규칙에 따라 신규 #767을 Primary로 사용한다. 원본 PR #764(Head `5abc658...`, Full [#3092.1](https://github.com/planner77/masterGantt/actions/runs/39602089760), Trusted [#734.1](https://github.com/planner77/masterGantt/actions/runs/39607021968)) 수정 코드/7파일 및 원장·계획 3파일의 3-way 합성 기록을 복사하되 기존 #765 본문과 실패/복구 증거는 보존. `package/lock 0.129.1` 3곳, CHANGELOG/TEST_PLAN/[ISSUE_767](ISSUE_767.md)/[원장](../../ISSUE_767_FAILURE_ANALYSIS.md)을 동기화한다.

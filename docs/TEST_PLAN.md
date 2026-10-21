@@ -1,3 +1,13 @@
+## Issue #767 — PR #768 Full #3095.1 E2E Shard6 Job Timeout 재분배 (2026-10-21)
+
+[원본 Run #3095.1](https://github.com/planner77/masterGantt/actions/runs/39611062916)에서 Quality/Docker와 5개 E2E Shard는 PASS, Shard6은 `Running 174 tests` 중 173 PASS 뒤 35분 Job limit CANCELLED(원본 전체 Run CANCELLED); E2E Required/QA 파생 FAIL. 이번 Run의 QA Preflight `ISSUE_AC`/`DOCUMENTATION_SYNC`는 PASS되어 [F767-001/002](ISSUE_767_FAILURE_ANALYSIS.md)와 구분한다. 독립 제품 Assert 실패나 리소스 데이터 소실 증거는 확인되지 않았다.
+
+[단일 실패 원장 F767-003](ISSUE_767_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_767.md)대로, 원본 **136개 E2E spec 모두 유지**하면서 세 파일을 완전 이동한다: `issue-734-equipment-dashboard.spec.ts` 6→1 (8 cases, body≈5.31m), `project-task-editor.spec.ts` 6→3 (33, ≈3.58m), `issue-726-task-logistics.spec.ts` 6→4 (3, ≈2.81m). 인접 소비자인 `tests/scripts/e2e-shard-planner.test.ts`의 3개 정확 배치 기대값을 함께 수정한다. 파일 수 23/24/26/23/21/19(합계136), 유일 소속·빠짐 없는 실제 Git Tree 일치 확인. 예상 Job wall 24.36/29.87/25.85/28.08/25.37/23.67분은 직전 Run의 시험 본문 소요시간을 분배한 거친 정적 추정이며 원격 시간 보증이 아니다.
+
+`tests/config/e2e-shard-plan.json`의 `manualRebalance767`에 정확 Run/Attempt/증거/이전·새 배치·추정 한계를 기록하고 원래 historical `generatedAt/metrics/projectedMs` 및 #733/#732/#765 rebalances는 불변. `workers=1`, 각 Shard 35min, E2E6/PR fail-fast/MaxFailures1/Main 전수/Required3/QA/Retry·Skip 모두 불변이며 테스트 본문이나 제품 로직은 수정하지 않는다. 새 exact Head Full PR CI(Preflight/Unit/Chromium6/Docker/QA)와 기본 main Trusted QA가 실제 SUCCESS할 때까지 `NOT TESTED`, `MERGE_READY=BLOCKED`; 정식 v0.129.1 GHCR 승인 별도.
+
+---
+
 ## Issue #767 — v0.129.1 #764 교정 승계 및 회귀 검증 (2026-10-21)
 
 [원본 PR #764](https://github.com/planner77/masterGantt/pull/764) 정확 Git Tree 변경을 신규 issue-767 branch에 승계한다. 원본 Head `5abc65880879647a563c0469bf53c4cd4f654b6b`, Full PR CI [#3092.1](https://github.com/planner77/masterGantt/actions/runs/39602089760) Quality/E2E6/Docker SUCCESS, Trusted QA [#734.1](https://github.com/planner77/masterGantt/actions/runs/39607021968) SUCCESS는 새 VERSION/HEAD의 PASS로 소급 사용하지 않는다.

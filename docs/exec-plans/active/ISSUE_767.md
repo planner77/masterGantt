@@ -55,3 +55,12 @@
 - AC5: Owner HIGH 위험 수용 후 정상 two-parent merge commit 표준 한글 제목/빈 본문/expected head/원격 Main CI 시작을 확인한다.
 - AC6: Main CI exact candidate digest/SBOM/provenance와 별도 scoped v0.129.1 release 승인 전 tag/OCI mutation 금지를 검증한다.
 - AC7: 원본 PR #764 미병합 close 및 새 PR #768 링크/이력 보존, #736/#765 Closed 불변을 확인한다.
+
+
+## 6. F767-003 — PR #768 Full #3095.1 Shard6 35분 취소 보완 (2026-10-21)
+
+- 실제 QA Preflight/Quality/Docker 및 E2E Shard1~5 SUCCESS, Shard6 [Job 119260956062](https://github.com/planner77/masterGantt/actions/runs/39611062916/job/119260956062) 173/174 PASS 뒤 Job 35분 제한에서 CANCELLED; E2E aggregate/QA는 파생 FAIL, 제품 Assertion 실패 관측 없음. 원인/추세/소스 귀속은 [F767-003](../../ISSUE_767_FAILURE_ANALYSIS.md#f767-003--pr-768-full-30951-shard-66-35분-job-timeout-취소-및-재배치-2026-10-21-kst)에 누적.
+- `tests/config/e2e-shard-plan.json`의 136 E2E specs에서 세 **완전 파일**만 이동: `issue-734-equipment-dashboard` 6→1 (8 Case≈5.31m), `project-task-editor` 6→3 (33 Case≈3.58m), `issue-726-task-logistics` 6→4 (3 Case≈2.81m). 기존 #765 배치/원장·원래 14 Run projectedMs는 역사적 기준으로 보존하며 이번 실행 기반 추정 [24.36,29.87,25.85,28.08,25.37,23.67] Job minutes는 검증된 원격 결과가 아니다.
+- #765 F765-004와 동일한 고정 인덱스 기대값 회귀를 피하기 위해 `tests/scripts/e2e-shard-planner.test.ts`의 정확 세 배치 assertion을 함께 갱신한다. 전 spec 단일/유일 배치·6개 Shard/Worker1/35m/QA·Required3 및 테스트 본문·Skip/Retry/시큐리티 계약은 유지한다.
+- **DOCUMENTATION_SYNC 부연**: `tests/config/e2e-shard-plan.json` UPDATED, `tests/scripts/e2e-shard-planner.test.ts` UPDATED, `docs/TEST_PLAN.md` UPDATED, `docs/exec-plans/active/PLAN.md` UPDATED, `docs/ISSUE_767_FAILURE_ANALYSIS.md` UPDATED, 이 Work Packet UPDATED. `DESIGN.md` N/A(새 UI 원칙 없음), `docs/SCHEDULING_ENGINE.md` N/A(스케줄링 계산 무변경), `docs/CI_CD.md` N/A(게이트·35m·6-way·환경 정책 수정 없음), `docs/API.md`/`docs/DB_SCHEMA.md` N/A(서버/DB 변경 없음).
+- 새 Head 실제 Unit/6 E2E/QA/Docker와 Trusted QA는 **NOT TESTED**; Original #3095.1 CANCELLED 판정 유지. CI 시작은 성공/Owner 수용/병합/공식 GHCR 게시 허가가 아니며 `release_authorized=false` 유지.
