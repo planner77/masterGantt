@@ -111,6 +111,58 @@ class LifecycleInventoryParserTests(unittest.TestCase):
         self.assertEqual(candidates[0]["decision"], "CANDIDATE_ONLY")
         self.assertEqual(len(candidates[0]["files"]), 2)
 
+    def test_policy_inventory_preserves_dash_inline_named_and_multiline_commands(self):
+        path = self.root / ".github/workflows/ci.yml"
+        path.write_text(
+            "jobs:\n  policy:\n    name: policy\n    if: always()\n    steps:\n"
+            "      - run: node scripts/verify-release-version.mjs\n"
+            "      - name: custom step\n"
+            "        run: node scripts/verify-ci-cache-contract.mjs\n"
+            "      - run: node scripts/check-markdown-links.mjs\n"
+            "      - name: conditional command\n"
+            "        if: github.event_name != 'workflow_dispatch'\n"
+            "        run: python3 scripts/new-policy-audit.py\n"
+            "      - name: shell syntax checks\n"
+            "        run: |\n"
+            "          sh -n deploy/docker/container-entrypoint.sh\n"
+            "          bash -n scripts/verify-compose-smoke.sh\n"
+            "  other_job:\n    steps:\n      - run: echo do-not-count\n",
+            encoding="utf-8",
+        )
+        commands, _ = inventory.policy_inventory(self.root)
+        self.assertEqual(len(commands), 5)
+        self.assertEqual(
+            [c["scenario"] for c in commands[:4]],
+            [
+                "node scripts/verify-release-version.mjs",
+                "node scripts/verify-ci-cache-contract.mjs",
+                "node scripts/check-markdown-links.mjs",
+                "python3 scripts/new-policy-audit.py",
+            ],
+        )
+        self.assertEqual(
+            commands[4]["scenario"],
+            "sh -n deploy/docker/container-entrypoint.sh\n"
+            "bash -n scripts/verify-compose-smoke.sh",
+        )
+        self.assertIn("step_if=github.event_name", commands[3]["environment"])
+        self.assertTrue(all(c["layer"] == "POLICY" for c in commands))
+
+    def test_unrecognized_new_policy_run_remains_in_inventory(self):
+        rows = inventory._policy_run_steps(
+            "    steps:\n      - name: novel audit\n"
+            "        run: node scripts/future-validator.mjs\n"
+        )
+        self.assertEqual([r["scenario"] for r in rows], ["node scripts/future-validator.mjs"])
+
+    def test_empty_policy_command_block_fails_closed(self):
+        with self.assertRaises(inventory.InventoryError):
+            inventory._policy_run_steps(
+                "    steps:\n      - name: accidental empty script\n"
+                "        run: |\n"
+                "      - name: next step\n        run: echo hello\n"
+            )
+
     def test_policy_job_scan_rejects_missing_job(self):
         (self.root / ".github/workflows/ci.yml").write_text("jobs:\n  quality:\n    run: echo hi\n")
         with self.assertRaises(inventory.InventoryError):
