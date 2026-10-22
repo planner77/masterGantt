@@ -1,3 +1,11 @@
+## Issue #772 — 공식 LOW 선택 E2E 원격 검증 (2026-10-22)
+
+- **기본 OFF 검사:** 정책 변경 PR 자체는 기존 exact Head Full8/8 + Required3 + default-main Trusted QA + Owner HIGH 검토. PR 소스 정책은 자기 인증 불가. 원격 결과/병합/효과 아직 **NOT TESTED**.
+- **관찰 표본:** #770 `ci-impact-shadow-<Run>-<Attempt>`, 기존 Full Run 원본, 정확 Head/Base/Test-Merge, 8개 실제 Job·테스트·성공, 정책 SHA를 교차 검증해 **10 distinct** LOW 성공 원본 도달 여부와 부족 유형을 기록(`INSUFFICIENT_DATA`).
+- **보호된 시험 PR OFF/ON:** 버튼 aria/focus/global UI/navigation/Gantt/auth/DB/test rename/fixture/CI 변형은 FULL_REQUIRED. 정확 허용 `<p>` 문구만 대상. ON 후보는 `ci-low-plan-<Run>-<Attempt>`과 `ci-low-receipt-<Run>-<Attempt>` exact SHA/source 비교, 선정 direct·adjacent·negative 최소3 spec의 모든 실제 case PASS·skip0·retry0, 선택 E2E Job/Required E2E/Trusted 결과 일치; Full8은 **미실행**, Full PASS로 표기 금지.
+- **출처 실패 부정:** fork/policy downgrade·test 삭제/unknown·stale/retry/attempt·synth merge 불일치·이전 Full 실패·취소/요청 제한/ZIP 만료·서로 다른 artifact·release 소스의 대상 오염은 모두 BLOCKED 또는 Full 복귀. QA Trusted, metadata-only, post-merge #712/#713, Lifecycle source가 같은 모드인지 확인.
+- **비용/rollback:** OFF/ON E2E Job elapsed 합=Runner-minutes와 wall-clock, 실제 총 실행 test 수, false PASS/미탐·Owner 승인 지연을 비교. 이상 시 Owner flag OFF, 다음 새 Head의 Full8 Run 확인(오래된 원본 소급 금지). 수동 Ruleset 쓰기 없음. [#772 상세](exec-plans/active/ISSUE_772.md).
+
 ## Issue #773 — Release reuse evidence Remote validation boundary (2026-10-22)
 
 - 신규 보호 CI PR에는 기존 non-draft exact Head Full Quality/Policy/E2E **8/8**/Docker Required3, default-main Trusted QA와 명시 Owner HIGH 위험 수용이 필요. 로컬 Python/Node 단위 PASS나 SHADOW 추천으로 Full·QA/Owner/Release PASS를 주장하지 않는다. 이 요청은 PR CI **시작만** 하며 모니터링·병합·정식 게시 미허용.
