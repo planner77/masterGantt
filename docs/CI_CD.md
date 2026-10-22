@@ -1,3 +1,10 @@
+## Issue #772 — 정책 허용형 LOW Chromium 선택 실행과 Required3 (2026-10-22)
+
+- 현재 정책 보호 PR 자체 **HIGH/OWNER_MANAGED, Full8/8 의무**, `LOW_TARGETED_POLICY_ENABLED` 초기 OFF. 기본 Ready PR은 #771대로 기존 Quality/Chromium8/Docker Full, Draft는 advisory Fast만, `pull_request.edited`는 metadata-only. 세 Required Check 이름·strict Ruleset #24043042·main Full8/Quality/Docker/GHCR·Trusted QA/Owner/Release 보호 불변.
+- 플래그를 Owner가 ON으로 전환한 이후에도 신뢰된 immutable base의 `low_e2e_plan`이 헤드/베이스/synthetic merge/Run+Attempt/정책 SHA 및 #770 map을 검증한 극히 좁은 비대화형 `<p>` 변경만 `TARGETED_POLICY_CANDIDATE`다. 필요 direct·adjacent·negative E2E 3+를 원래 test-merge에서 Playwright JSON reporter로 실제 실행하고 `low_e2e_targeted`의 base attestation + source artifact 둘 모두 필요하다. Missing/dynamic tests, global CSS, focus/button label, API/auth/DB/CI·unknown → Full8; 변조·불일치·skip/retry/cancel/error → BLOCKED.
+- 기존 `Chromium end-to-end tests` aggregate PASS는 FULL_E2E_PASS 의미만 가진 게 아니다. Targeted라면 Summary/영수증에 `E2E execution policy PASS: TARGETED_POLICY_VERIFIED (not FULL_E2E_PASS)`를 명시한다. QA Automated·default-main Trusted/metadata/Lifecycle는 `ci_low_source.py`의 독립 REST/artifact/Blob 재검증을 수행한다.
+- Required3 이름 조정이나 GitHub Ruleset 쓰기 없음. 10 distinct Full Shadow LOW 성공 Run 이상·negative tests·보호 전용 시험 PR OFF/ON, wall-clock/Runner-minutes·누락/허위 PASS/merge leadtime 비교 후 Owner 승인으로만 flag 전환. 롤백은 flag OFF/이전 Full8. [상세 작업 원장](exec-plans/active/ISSUE_772.md).
+
 ## Issue #773 — Release의 인증된 Main Full 증거 Shadow/재사용 (2026-10-22)
 
 `main` push CI의 현재 Full Quality/Policy/Typecheck/Lint/Unit/Build + **Chromium8/8 workers1** + Docker + 임시 `ci-<40SHA>` published exact image/digest smoke는 **일절 축소하지 않는다**. Main의 `main_image` job은 기존 GHCR 검증 뒤 명시적 `--list --reporter=json` 테스트 인벤토리 및 버전/파일/testplan/runtime/OCI digest를 `main-reuse-manifest-<run_id>-<attempt>`(30일) read-only receipt로 보존한다. 이는 standalone PASS가 아니라 인증 전 **UNTRUSTED DATA**다. 새 E2E timing artifact에는 runner image OS/version/arch 필드를 추가하며 오래된 artifact는 소급 보완하지 않는다.
