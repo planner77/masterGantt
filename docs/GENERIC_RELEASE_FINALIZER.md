@@ -1,3 +1,12 @@
+## Issue #773 — Release reuse 증거의 Generic Finalizer 경계 (2026-10-22)
+
+- `REUSED_VERIFIED`는 Main 정확 SHA의 **독립 인증된 Full 원본 성공**을 가리키는 Release 검증 모드이며, Release의 static/E2E는 해당 Run에서 **NOT EXECUTED**다. 기존 Main/PR 소스/Owner 승인/정식 Release 성공 조건을 바꾸거나 `FULL_PASS`로 간주하지 않는다. `REUSE_INELIGIBLE`/UNKNOWN은 Full Release 또는 BLOCKED로 처리하고 실패한 원본 Run을 소급 승인하지 않는다.
+- Release 이미지 후보 digest/source/OCI version·실제 HTTP/HTTPS·DB migration/readiness·SQLite restart/persistence·Project/Task API smoke, image policy, 선택적 attestation, immutable exact SemVer tag/digest promotion과 `release-finalizer-resume.yml`은 모두 원래 `container`→`publish`→`resume_finalizer` 흐름대로 필수. 재사용 대상은 static/E2E 중복 검사 **두 잡**뿐; image build-once #438/Owner marker/first-parent exact target/Issue 단일 종료/Release debt #633/#765 gate는 그대로.
+- **Stage1 기본 SHADOW**, release_required=false/release_authorized=false인 #773 자체는 GHCR 정식 publish/Release/Finalizer 수행을 승인하지 않음. Stage2 Flag ON·freshness 정책은 별도 Owner 정책 승인, 실제 Version tag/Owner 승인도 별도 요건. candidate drift/불변 tag 충돌은 BLOCKED; 임의 재시도/태그 overwrite로 우회 금지.
+- Read-only verifier의 report artifact는 Release/Finalizer의 일반 승인 marker가 아니라 출처 검증 증거다. Generic Finalizer는 새 marker를 생성하거나 이 report만으로 종료하지 않는다. 기존 `Publish release image` 성공 Run/Attempt/immutable tag/exact SHA 및 정식 Owner release marker를 평소대로 재검증한다. [Work Packet](exec-plans/active/ISSUE_773.md).
+
+---
+
 ## Issue #765 — 이미 발행한 v0.129.0의 #732/#736 미발행 부채 안전 복구 (2026-10-21)
 
 범위: 기존 #633 B2나 일반 same-Issue CI supersession을 완화하지 않는다. first-parent의 정확한 #732 PR761, #736 PR760, #732 PR763, #734 PR759, #765 신규 정책 PR 한 구간에만 Owner 인증 복구 예외를 적용한다. 과거 Main CANCELLED/FAILURE는 불변.
