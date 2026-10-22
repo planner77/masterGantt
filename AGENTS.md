@@ -1,3 +1,11 @@
+## Issue #711 — Test Suite Lifecycle 사전 검색·중복/폐기 방지 (2026-10-23)
+
+모든 Issue/PR 구현자는 변경할 AC/입출력·음성·보안·SQLite/경합·브라우저 위험을 식별한 다음 **기존 Vitest/Playwright/Policy 테스트의 시나리오와 assertion을 먼저 검색**하고, Work Packet/PR의 `TEST_LIFECYCLE_REVIEW`에 `ADD/EXTEND/KEEP_UNIQUE/PARTIAL_OVERLAP/CONSOLIDATE_CANDIDATE/RETIRE_CANDIDATE` 판단·검색 경로·근거·실행/미실행과 잔여 위험을 기록한다. 기존 `AC_TEST_COVERAGE`와 연결하고 중복 표를 만들지 않는다. **정책 Source of Truth는 [Test Lifecycle](docs/TEST_PLAN.md)**, 최초 후보·수집기/시범 감사는 [Issue #711 Inventory](docs/TEST_LIFECYCLE_INVENTORY_711.md), 단계·QA gate는 [Issue Lifecycle](docs/ISSUE_LIFECYCLE.md)다.
+
+유사 파일명/테스트 제목은 **삭제 판단 근거가 아닌 후보**이며 보안·Migration·동시성·실제 브라우저/HTTP/SQLite 등 독립 위험 경계는 보존한다. 테스트 자동 삭제, flaky skip, assertion/Required Check 완화는 금지하고 대체 동일 source PASS·AC 매핑·리뷰·Owner 승인·revert 증거를 요구한다. 변경 영향의 선택은 #697, Pre-PR 실행은 #699, 이슈별 실패 원장은 #704, 비용/샤드는 #437, CI Fast Gate는 #659에 맡긴다. **현재 Chromium 8-shard**, 세 Required Checks, Trusted/Owner·Main/GHCR/Finalizer 경계는 불변이다. #711 자체는 HIGH/OWNER_MANAGED, 원격 새 PR Head 결과 전 NOT TESTED, 정식 release N/A.
+
+---
+
 ## Issue #752 — 인증된 반복 PR 실패 알림과 수동 bounded 전체 오류 진단 (2026-10-22)
 
 - [#752 Work Packet](docs/exec-plans/active/ISSUE_752.md), [원장 지침](docs/PR_CI_FAILURE_TRIAGE.md), [CI/CD](docs/CI_CD.md), [원격 검증](docs/REMOTE_VALIDATION.md)를 따른다. 이 경로는 기존 PR Full CI를 대체하거나 QA/Owner/Ruleset/GHCR를 우회하지 않는 **advisory**이다.
