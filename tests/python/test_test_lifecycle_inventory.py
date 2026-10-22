@@ -63,6 +63,22 @@ class LifecycleInventoryParserTests(unittest.TestCase):
         self.assertEqual(len(cases), 2)
         self.assertEqual({case["path"] for case in cases}, {"tests/e2e/scale.spec.ts"})
 
+    def test_playwright_testdir_relative_path_matches_actual_file(self):
+        listing = (
+            "Listing tests:\n"
+            "  [chromium] › scale.spec.ts:3:1 › first scenario\n"
+            "Total: 1 test in 1 file\n"
+        )
+        cases = inventory.parse_playwright_listing(listing, self.root, ["tests/e2e/scale.spec.ts"])
+        self.assertEqual(cases[0]["path"], "tests/e2e/scale.spec.ts")
+
+    def test_ambiguous_name_rejected_not_silently_mapped(self):
+        (self.root / "tests/e2e/a").mkdir()
+        (self.root / "tests/e2e/a/scale.spec.ts").write_text("test()\n")
+        listing = "  [chromium] › scale.spec.ts:1:1 › first\nTotal: 1 test in 1 file\n"
+        with self.assertRaises(inventory.InventoryError):
+            inventory.parse_playwright_listing(listing, self.root, ["tests/e2e/a/scale.spec.ts"])
+
     def test_playwright_incomplete_list_is_not_reported_as_zero(self):
         with self.assertRaises(inventory.InventoryError):
             inventory.parse_playwright_listing("Total: 2 tests in 1 file\n", self.root, ["tests/e2e/scale.spec.ts"])
