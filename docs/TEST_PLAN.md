@@ -1,3 +1,12 @@
+## Issue #772 — LOW 선택 E2E 정책의 검사 및 실증 계획 (2026-10-22)
+
+- 구조 회귀: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_low_*.py' -v`; 기존 #770 `test_ci_impact_plan.py`, #771 `test_ci_fast_development.py`, `scripts/test_qa_final_automated.py`, `scripts/test-pr-metadata-evidence.py`, `scripts/verify-issue-lifecycle.py` 교차 회귀를 유지한다.
+- AC1: 국소 비대화형 문구 변경만 LOW candidate; 같은 코드의 button label/aria/focus, global CSS/tokens/shared/nav/Gantt, API/auth/db/CI/QA/fixtures/lock/unknown/rename/delete 테스트와 자체 risk=LOW 주장은 Full/BLOCKED.
+- AC2: 최소 기존 **세** spec(직접 settings layout + 인접 edit authorization + permission recheck), 실제 Playwright JSON `expected>0`, `unexpected=flaky=skipped=0`, 각 case의 `results=[passed]`, 선정 파일 inventory 완전 일치; 미실행·취소·REPORT 없음·과거 실패 재사용·시간 초과는 BLOCKED.
+- AC3: 정책/selector SHA·binary diff hash·Run/Attempt·PR Head/Base/synthetic Test-Merge·repository 확인 후 base-only QA/Trusted, metadata-only, Lifecycle 구분 테스트. `TARGETED_POLICY_VERIFIED`는 `FULL_E2E_PASS`가 아니다.
+- AC4~AC7: 현재 정책 자체 PR은 기존 **Full Chromium8/8**·Quality·Docker·Trusted/Owner. 기본 OFF. 이후 10 distinct LOW Shadow Full 성공 + 음성 사례, 분리 보호 시험 PR OFF/ON, 원격 개별 Job 실제 테스트/Runner-minutes/wall-clock/false PASS/누락/병합 지연 비교 후 Owner 서명 승인 및 필요시 Ruleset 수동 전환. Main Full8/Release 불변, 실제 원격 검증·효과 **NOT TESTED / INSUFFICIENT_DATA**.
+- 기록 위치: [#772 실행 계획](exec-plans/active/ISSUE_772.md), `ci-low-plan-<Run>-<Attempt>`/`ci-low-receipt-<Run>-<Attempt>`, GitHub Run Summary, #770 `ci-impact-shadow` 및 자체 실패 원장.
+
 ## Issue #773 — Main Full evidence 재사용 Release Shadow 및 승인형 안전 전환 (2026-10-22)
 
 **테스트 대상:** `scripts/release-reuse-main-manifest.py`, `scripts/release-reuse-evidence.py`, `tests/python/test_release_reuse_evidence.py`; `.github/workflows/{ci,release-image}.yml`, `tests/config/e2e-timing-reporter.cjs`. 메인 버전 0.129.1, 공식 E2E **8-way workers1**를 기준으로 진행. 현 CI/Chromium/Release 실제 결과는 `NOT TESTED`.
