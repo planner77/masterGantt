@@ -29,13 +29,13 @@
 
 ## AC_TEST_COVERAGE
 
-- **AC1 (D1)**: Python `test_full_job_provenance`, `test_plan_full_coverage_no_duplicates`, `test_main_e2e_reporter_fails_closed` 및 원본 workflow step/source/digest profile 체크. 실제 Main8/8·Release 비교 `NOT TESTED`.
-- **AC2 (D2)**: 시뮬레이션 missing shard, duplicate job name, cancelled/skip, wrong attempt, expired/duplicate ZIP, failed step, environment drift, skippedCaseCount, owner revoke. Github API/rate limit, tag drift, GHCR live digest failure 시 Full 또는 BLOCKED 운영 검증 `NOT TESTED`.
-- **AC3 (D3)**: `release-image.yml`의 `container`, `publish`, `resume_finalizer`은 검증된 기존 단계; 이번 PR에서 실제 정식 Release 수행하지 않음. `NOT TESTED`.
-- **AC4 (D4)**: 최소 3개 성공 Full Release baseline + 동일 source/version SHADOW/flag 승격 시험, wall-clock/Runner-minutes(단가 아닌 job elapsed), 실제 fallback BLOCKED 사건의 Run ID/Attempt + artifacts/step evidence 비교가 필요. 8-shard 실측이 아직 부족하면 **INSUFFICIENT_DATA**. Release v0.129.0의 6-way 과거 35분은 최신8-way 비교 대조군이 아님.
-- **AC5 (D5)**: formal GHCR/tag/Issue 종료 작업 배제; 모든 기존 v0.129.0 등 immutable Release/GHCR 리소스 불변.
-- **AC6 (D6)**: protected workflow HIGH/OWNER_MANAGED/qa_required=true. 동일 Head **Final Full PR Quality/E2E8/8/Docker + default-main Trusted + Owner 위험 승인**, merge 뒤 Main Full 실제 검증 및 차기 개별 version release 승인 전 policy reuse 승격 금지. flag 기본 off/rollback 설명.
-- **AC7 (D7)**: 아래 DOCUMENTATION_SYNC 및 버전·제품 N/A 기록. Actual remote Python/PW/Docker CI `NOT TESTED` until new PR run.
+- AC1: D1 — Python `test_full_job_provenance`, `test_plan_full_coverage_no_duplicates`, `test_main_e2e_reporter_fails_closed` 및 원본 workflow step/source/digest profile 체크. 실제 Main8/8·Release 비교 `NOT TESTED`.
+- AC2: D2 — 시뮬레이션 missing shard, duplicate job name, cancelled/skip, wrong attempt, expired/duplicate ZIP, failed step, environment drift, skippedCaseCount, owner revoke. Github API/rate limit, tag drift, GHCR live digest failure 시 Full 또는 BLOCKED 운영 검증 `NOT TESTED`.
+- AC3: D3 — `release-image.yml`의 `container`, `publish`, `resume_finalizer`은 검증된 기존 단계; 이번 PR에서 실제 정식 Release 수행하지 않음. `NOT TESTED`.
+- AC4: D4 — 최소 3개 성공 Full Release baseline + 동일 source/version SHADOW/flag 승격 시험, wall-clock/Runner-minutes(단가 아닌 job elapsed), 실제 fallback BLOCKED 사건의 Run ID/Attempt + artifacts/step evidence 비교가 필요. 8-shard 실측이 아직 부족하면 **INSUFFICIENT_DATA**. Release v0.129.0의 6-way 과거 35분은 최신8-way 비교 대조군이 아님.
+- AC5: D5 — formal GHCR/tag/Issue 종료 작업 배제; 모든 기존 v0.129.0 등 immutable Release/GHCR 리소스 불변.
+- AC6: D6 — protected workflow HIGH/OWNER_MANAGED/qa_required=true. 동일 Head **Final Full PR Quality/E2E8/8/Docker + default-main Trusted + Owner 위험 승인**, merge 뒤 Main Full 실제 검증 및 차기 개별 version release 승인 전 policy reuse 승격 금지. flag 기본 off/rollback 설명.
+- AC7: D7 — 아래 DOCUMENTATION_SYNC 및 버전·제품 N/A 기록. Actual remote Python/PW/Docker CI `NOT TESTED` until new PR run.
 
 ## 메트릭 수집과 전환 Gate
 
@@ -66,7 +66,14 @@
 - `package-lock.json`: N/A(no dependencies or lockfile changes)
 - `CHANGELOG.md`: N/A(no end-user application behavior or formal release changes)
 
+## 2026-10-22 Preflight correction — PR #777
+
+- [Full PR CI #3131.1](https://github.com/planner77/masterGantt/actions/runs/39744960939)과 [#3134.1](https://github.com/planner77/masterGantt/actions/runs/39745206861)은 base-trusted QA Preflight가 `DOCUMENTATION_SYNC`를 거부해 실패. Head `8871252ce3c16138ff8eebcf4da8850aad01860c` 및 `753ff55fa6669a147b8d674a3c11e8852b52d36f`에서 AC1~AC7 매핑은 문서에 있었으나, `- **AC1 (D1)**:` 형식이 신뢰된 `qa_final_automated.docs_gate`의 요구형식 `- AC1: ...`와 달라 인식되지 않았다. Policy/Typecheck/Lint/Unit/E2E8/Docker 실제 Job은 그 때문에 시작되지 않았다.
+- 이번 교정은 AC1~AC7을 `- ACn: Dn — <실제 증거/NOT TESTED>`로만 정규화, 원래 각 수용기준의 검증 근거·미검증 구분 보존. 검증기나 Required gate 완화 없음. [Issue 전용 실패 원장](../../ISSUE_773_FAILURE_ANALYSIS.md)에 최초 및 반복 장애를 분리 누적.
+- 문서 계약 검토: `qa_final_automated.docs_gate`의 `AC_TEST_COVERAGE` 정규식과 7/7 일치하는지 사전 구조 검증. 실제 원격 Preflight/Full8/QA 재검증은 새 Head Run 전 `NOT TESTED`.
+- PR #777 inline review thread 0, GitHub mergeable=true, `main...branch` behind 0 (교정 전 조회 기준); 새 SHA/최종 test-merge/Trusted 상태는 새 PR Full CI에서 별도 검증.
+
 ## Handoff
 
-- Start one **non-draft** Full PR against latest `main`. Capture exact PR URL and initiation; user explicitly opted out of continued CI monitoring. No Full/Trusted/QA PASS should be asserted until separate verified results are supplied.
+- [PR #777](https://github.com/planner77/masterGantt/pull/777)은 이미 non-draft이며, 교정 커밋을 해당 Head 브랜치에 게시하면 GitHub의 `pull_request.synchronize`로 새 `FINAL_FULL` PR CI가 자동 시작된다. 새 Run과 Head는 게시 후 별도 확인하되, 사용자 요청에 따라 결과/성공까지 지속 모니터링하지 않는다. Full/Trusted/QA PASS는 새 Run 증거 없이는 주장하지 않는다.
 - Future release enabling requires at least 3 completed independent baseline evidence observations and explicit Owner **separate** policy + version authorization. Current policy Issue PR itself never self-approves.
