@@ -1611,7 +1611,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          CI_E2E_FULLY_PARALLEL=true npm run test:e2e -- --list --reporter=json > "$RUNNER_TEMP/release-reuse-playwright-list.json"
+          CI_E2E_FULLY_PARALLEL=true npm run --silent test:e2e -- --list --reporter=json > "$RUNNER_TEMP/release-reuse-playwright-list.json"
           python3 scripts/release-reuse-main-manifest.py \
             --source-sha "$SOURCE_SHA" --version "$EXPECTED_VERSION" \
             --digest "$CANDIDATE_DIGEST" \
