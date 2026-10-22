@@ -1,3 +1,11 @@
+## Issue #711 — Test Suite Lifecycle 사전 검토 및 폐기 승인 (2026-10-23)
+
+Manager/구현 Agent는 Issue PLAN·REWORK와 PR 준비 시 AC와 #697 변경 영향·positive/negative/보안·DB/경합·실제 브라우저 경계를 확인한 후, **기존 테스트의 파일·시나리오·assertion을 탐색하여** `TEST_LIFECYCLE_REVIEW`(ADD/EXTEND/KEEP_UNIQUE/PARTIAL_OVERLAP/CONSOLIDATE_CANDIDATE/RETIRE_CANDIDATE, 이전 테스트 검색, 실행 근거, 잔여 위험)을 Work Packet/PR에 기록한다. 이 필드는 기존 `AC_TEST_COVERAGE`를 가리키며 별도 중복 AC 표를 강제하지 않는다. 상세 판정/의미 중복·폐기 안전성의 **단일 원본**은 [TEST_PLAN Test Lifecycle](TEST_PLAN.md), 실제 첫 인벤토리는 [Issue #711 Inventory](TEST_LIFECYCLE_INVENTORY_711.md)와 [Work Packet](exec-plans/active/ISSUE_711.md)를 따른다.
+
+서로 다른 권한·보안/SQLite migration/revision·실제 브라우저 경계의 독립 테스트를 단순 제목 유사성이나 느린 실행만으로 통합/폐기하지 않는다. 정확 동일 소스의 대체 PASS, old→new AC/음성 커버리지, QA·Owner 승인과 롤백을 확인하기 전 삭제·무단 skip·assertion 축소 금지. #699(로컬 Pre-PR), #704(실패 원장), #437(샤드), #659(Full/Fast CI)는 역할이 다르며 **현행 8 Chromium shards, Quality/E2E/Docker Required3, Trusted/Owner·Main/Release/Finalizer Gate는 유지**된다. 새 Head 원격 결과 전 상태는 NOT TESTED이며 이 정책 이슈는 HIGH/OWNER_MANAGED/qa_required=true/release_required=false다.
+
+---
+
 ## Issue #772 — Targeted PR 근거와 Main/Release Full의 분리 (2026-10-22)
 
 정확 PR Run/Attempt·이벤트·Head/Base/Test-Merge·base 정책 Blob/전체 diff·Playwright spec/case/Artifact를 재검증한 `TARGETED_POLICY_VERIFIED`에 한해 Owner 플래그 전환 이후 LOW PR 병합 근거로 인정한다. 이 근거는 `FULL_E2E_PASS`가 아니며 `required_checks_ok`의 보고서도 `TARGETED_POLICY_VERIFIED_NOT_FULL`로 표기한다. 병합 후 `edited` metadata-only Check Run이 최신 Full/Targeted 출처를 덮거나 실패 Full을 소급 승인하지 않는다. `FULL_REQUIRED`는 기존 Full8/3 Required, `DOCS_ONLY_VERIFIED`는 기존 문서 경로만 유지, 불명확/누락/취소·fork·정책 downgrade는 BLOCKED.
