@@ -147,29 +147,28 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.prepare.outputs.head_sha }}
+          persist-credentials: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: issue-752-plan-${{ github.run_id }}
           path: control
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ needs.prepare.outputs.head_sha }}
-          path: untrusted-pr
-          persist-credentials: false
       - name: Verify immutable Head matches approved source
         shell: bash
         env:
           EXPECTED_HEAD: ${{ needs.prepare.outputs.head_sha }}
         run: |
           set -euo pipefail
-          test "$(git -C untrusted-pr rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
       - name: Node/npm setup (untrusted runner, read token only)
-        uses: ./untrusted-pr/.github/actions/node-setup
+        uses: ./.github/actions/node-setup
         with:
           node-version: "22"
           use-local-node-headers: "true"
       - name: Playwright Chromium setup
-        uses: ./untrusted-pr/.github/actions/playwright-setup
+        uses: ./.github/actions/playwright-setup
       - name: Execute failure union without retries or fail-fast
         shell: bash
         env:
@@ -192,12 +191,10 @@ jobs:
             exit 0
           fi
           export PLAYWRIGHT_JSON_OUTPUT_FILE="$GITHUB_WORKSPACE/part-$PART/playwright.json"
-          cd untrusted-pr
           set +e
           npm run test:e2e -- "${files[@]}" --project=chromium --workers=1 --retries=0 --max-failures=0 --reporter=json
           code=$?
           set -e
-          cd ..
           python3 - "$code" <<'PY'
           import json,os,sys
           n=int(os.environ["PART"])
