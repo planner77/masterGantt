@@ -34,6 +34,7 @@ def fixtures():
         "policy_blob_sha": "f" * 40, "selector_blob_sha": "e" * 40,
         "diff_sha256": "d" * 64, "shadow_plan_sha256": "1" * 64,
         "shadow_mode": "FAST_TARGETED", "shadow_risk": "MEDIUM",
+        "effective_risk": "LOW",
         "trusted_test_inventory": 136,
     }
     plan["plan_sha256"] = low.digest(plan)
