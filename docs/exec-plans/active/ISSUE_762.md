@@ -216,3 +216,13 @@ infra가 게시 직전 #772/PR778의 새 main `72c2c9d0a912dc906d4101ea41a7a57e0
 정렬 후 최신 정책 회귀는 `python3 -m unittest discover -s tests/python -p 'test_ci_low_*.py'`22/22와 `python3 scripts/test_qa_preflight.py`11/11, `python3 scripts/verify-issue-lifecycle.py` PASS다. 이 Python33검사는 앞선 고유309개 Unit/통합에 합산하지 않는다. 제품 source불변이므로 앞선 local runtime/Chromium6개 결과를 해당 동일 내용 범위에서 재사용한다. 최종공식검증은 새Head/base/testmerge의 원격Full CI다.
 
 최신base정렬 후 Pre-PR fast 실제 실행도 sourceStable=true·selection64/UNKNOWN19/missing0·BLOCKED(exit1), 내부 검사0/NOT TESTED다. targeted dry-run은 NOT TESTED(exit0)이며 자동선택 BLOCKED다. [정렬 후 fast](../../evidence/issue762/prepr-rebased-fast.json)·[정렬 후 선택](../../evidence/issue762/prepr-rebased-selection.json)을 보존하고 이전53aee48e 실행 원장도 삭제하지 않는다. 최종 문서 원장 추가만으로 runtime 검증을 반복하지 않으며 새Head 공식 Required3/Trusted는 별도다.
+
+
+## PR CI F-001 Rework · #3150.1 (2026-10-22)
+
+- 원본 Full [Run #3150.1](https://github.com/planner77/masterGantt/actions/runs/39779367052), attempt1, Head `752d1c464f8f2e7cf61b330e2bbb15c18a8dafbb`/Base `72c2c9d0a912dc906d4101ea41a7a57e0c686597`. 최초 실제 FAIL은 Shard6의 `issue-726-task-logistics.spec.ts:327`: 기존 `/A 작업구역 WA-A/` 선택기가 #762 UI에 표시된 `A 작업구역 · 기존 공유 구역 WA-A`에 불일치하는 `TEST_CONTRACT`. Shard6 36 PASS / 1 FAIL / 54 NOT RUN. 타 7 shard 취소, 로그 상 추가 E2E ✘ 미관측; Quality·Docker PASS, E2E·QA 파생 FAIL.
+- **계약/교정:** 기존 shared legacy owner/UUID·read-only/source 구별을 제거하지 않고 해당 E2E의 5개 WorkArea selector를 정확한 legacy provenance와 code까지 확인하는 helper로 교체. timeout, retries, skip, workflow, backend/DB/권한, 원본 화면 코드는 불변이다.
+- 상세 [Issue #762 전용 누적 실패 원장](../../ISSUE_762_FAILURE_ANALYSIS.md)에 F-001, 취소 Job IDs, 과거 #726 비교, static negative 검사, 다음 verification gate 및 잔여 위험을 보존했다.
+- DOCUMENTATION_SYNC 후속: `docs/ISSUE_762_FAILURE_ANALYSIS.md` **CREATED**, 이 Work Packet **UPDATED**. `AGENTS.md`/`DESIGN.md`/`CI_CD.md`/`TEST_PLAN.md` **N/A** (기존 원칙/선정 정책 유지). 최초 테스트 문서의 AC6/7/8 검증을 약화시키지 않는다.
+- 재작업 test source의 선택기 교체 5/5 및 새 label/구 label/다른 code/owner에 대한 순수 정규식 정적 검증 **PASS**. Playwright/로컬 Pre-PR/TypeScript/ESLint 및 새 PR HEAD의 공식 Full8/Required3/Trusted QA·Owner **NOT TESTED** (별도 runner 결과 필요).
+- 기존 PR #779 유지. 재작업 전 unresolved thread0, inline review0, main behind0, mergeable=true. 새로운 HEAD에 대해서는 동일 gate를 다시 조회. QA·Owner ACCEPT 미확정, release_required=true/release_authorized=false, MERGE_READY=BLOCKED. 이번 승인 범위는 교정·원장·새 PR CI 시작까지이며 Main/GHCR/merge/Finalizer/Issue 종료는 제외한다.
