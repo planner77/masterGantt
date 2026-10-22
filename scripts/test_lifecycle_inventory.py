@@ -163,6 +163,9 @@ def _policy_run_steps(job_body: str) -> list[dict[str, str]]:
     Block scalars are preserved as source text, not executed or evaluated.
     """
     lines = job_body.splitlines()
+    job_header = job_body.split("    steps:\\n", 1)[0]
+    job_if = re.search(r"(?ms)^    if:\\s*(.*?)(?=^    [a-zA-Z_][\\w-]*:\\s*|\\Z)", job_header)
+    job_condition = " ".join(job_if.group(1).split()) if job_if else "UNKNOWN (no policy job if recorded)"
     starts = [i for i, line in enumerate(lines)
               if re.match(r"^      - (?:name|uses|id|run|if):(?:\s|$)", line)]
     if not starts:
@@ -213,7 +216,7 @@ def _policy_run_steps(job_body: str) -> list[dict[str, str]]:
                 "layer": "POLICY",
                 "path": ".github/workflows/ci.yml",
                 "scenario": run_text,
-                "environment": f"CI policy job (job-level if; step={title}; step_if={condition})",
+                "environment": f"CI policy job (job_if={job_condition}; step={title}; step_if={condition})",
                 "count_basis": "complete YAML run-step command source (not executed test cases)",
             })
     if not runs:
@@ -230,7 +233,7 @@ def policy_inventory(root: Path) -> tuple[list[dict[str, str]], int]:
         raise InventoryError("CI policy job is missing or unrecognizable")
     runs = _policy_run_steps(match.group(1))
     declared_methods = 0
-    for name in sorted(set(collect_files(root, "tests/python/test_*.py") + collect_files(root, "scripts/test_*.py")) - {"scripts/test_lifecycle_inventory.py"}):
+    for name in sorted(set(collect_files(root, "tests/python/test_*.py") + collect_files(root, "scripts/test*.py")) - {"scripts/test_lifecycle_inventory.py"}):
         try:
             tree = ast.parse((root / name).read_text(encoding="utf-8"), filename=name)
         except (SyntaxError, OSError) as error:
