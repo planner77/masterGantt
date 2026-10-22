@@ -440,6 +440,12 @@ def verify_same_base_full_run(gh, number, head, base, current_run_id, merge=None
         require(all(jobs.get(name) == "success" for name in required) and
                 jobs.get("PR metadata가 기존 전체 CI 증거를 보존하는지 검증") == "skipped",
                 "동일 base의 full-run quality/e2e/docker 증거 불충분", "FAIL")
+        if jobs.get("Low E2E targeted execution") == "success":
+            from ci_low_source import verified_targeted_source
+            verified_targeted_source(
+                gh, run, {"repository": gh.repo, "pr_number": prior_number,
+                          "head_sha": h, "base_sha": b, "test_merge_sha": m},
+                jobs, enabled=os.environ.get("LOW_TARGETED_POLICY_ENABLED") == "true")
         return int(run["id"])
     raise Blocked("BLOCKED", "동일 PR/head/base의 전체 PR CI run 없음")
 
