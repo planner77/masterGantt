@@ -102,7 +102,10 @@ describe("historical E2E shard planner", () => {
     expect(plan.schemaVersion).toBe(1);
     expect(plan.shardCount).toBe(8);
     expect(plan.shards.map(group => group.shard).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
-    expect(plan.shards.every(group => group.files.length === 17)).toBe(true);
+    // #751 F-010: 136 historical specs + 1 new isolated telemetry spec.
+    // Keep all earlier 8x17 assignments, explicitly slot #751 on shard 1.
+    // Missing or duplicate specs must still fail; no hash fallback here.
+    expect(plan.shards.map(group => group.files.length)).toEqual([18, 17, 17, 17, 17, 17, 17, 17]);
     expect(new Set(entries).size).toBe(entries.length);
     expect([...entries].sort()).toEqual(discovered); // New specs require deliberate plan slots.
     const selected = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(shard =>
@@ -115,6 +118,7 @@ describe("historical E2E shard planner", () => {
       // validate each current destination and preserve unique 136 specs.
       ["project-task-editor.spec.ts", 2],
       ["issue-623-resource-mvp.spec.ts", 1],
+      ["issue-751-performance-telemetry.spec.ts", 1],
       ["issue-735-system-dashboard.spec.ts", 4],
       ["issue-734-equipment-dashboard.spec.ts", 2],
       ["issue-732-milestone-dashboard.spec.ts", 7],
