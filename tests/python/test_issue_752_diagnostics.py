@@ -178,7 +178,7 @@ class IdentityAndHistory(unittest.TestCase):
 
     def test_workflow_displays_korean_without_changing_machine_identifiers(self):
         workflow=(Path(__file__).resolve().parents[2]/".github/workflows/issue-752-diagnostics.yml").read_text(encoding="utf-8")
-        self.assertIn("name: Issue #752 — 반복 PR 실패 진단",workflow)
+        self.assertIn('name: "Issue #752 — 반복 PR 실패 진단"',workflow)
         self.assertIn("name: 누적 실패 집합 실행",workflow)
         self.assertIn("  bounded_e2e:",workflow)
         self.assertIn("fail-fast: false",workflow)

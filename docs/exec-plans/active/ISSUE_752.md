@@ -70,3 +70,9 @@
 
 - 본 브랜치 구현은 GitHub 연결 편집으로 반영. 이 작업 환경은 원격 repository checkout/npm/python/Playwright/Docker를 실행할 수 없으므로 **로컬 실제 실행 NOT TESTED**. 정책 회귀를 `.github/workflows/ci.yml`의 기존 Policy 필수 Job에 추가했고, 새 non-draft PR 생성으로 원격 Full8/8 실행을 시작한다.
 - 원격 새 Head PR CI, Trusted QA, Owner 승인, 재실패 분석, Main/Release 및 실제 `workflow_dispatch` 진단: 현재 `NOT TESTED`; 병합·GHCR·Issue 종료는 이번 요청 범위 밖.
+
+## 2026-10-23 — Full PR CI #3156.1 재실패 후 최소 교정
+
+- [누적 실패 원장 F752-003](../../ISSUE_752_FAILURE_ANALYSIS.md#5-f752-003--full-pr-ci-31561-재실패-2026-10-22-utc--2026-10-23-kst): [Run 39794786478.1](https://github.com/planner77/masterGantt/actions/runs/39794786478) Policy Python 19개 중 1 FAIL(`test_workflow_displays_korean_without_changing_machine_identifiers`). 원인은 YAML 표시명 `name: "Issue #752 — 반복 PR 실패 진단"`과 테스트에서 인용부호가 없는 문자열의 불일치(`TEST_CONTRACT`). E2E8·Docker는 미실행/Skipped이고 집계·QA는 파생 실패다.
+- 교정: Python 기대 문자열 **한 줄만** 원본 YAML 표기에 맞춰 수정하고 기존 실패 원장을 누적 갱신. 워크플로/기능/기존 필수 Gate/Retry/Timeout·Release 정책은 변경 없음. 리뷰 미해결 0건, main 대비 충돌/Behind 0.
+- 검증: 원본 CI 로그와 현재 소스의 차이는 확인함. 로컬 Python 실행은 `NOT TESTED`; 새 동결 HEAD PR CI는 커밋 반영 후 자동 시작, 결과는 요청에 따라 **모니터링하지 않음**. 수정된 HEAD의 Required3·QA·Owner는 검증 전 `NOT TESTED`이며 병합/Main/GHCR/Finalizer/이슈 종료를 수행하지 않는다.

@@ -44,3 +44,13 @@ Primary Issue: [#752](https://github.com/planner77/masterGantt/issues/752) | PR:
 - 개선 code+tests/docs 묶음 게시 후 review 답글과 실제 Resolve를 확인한다. QA gate를 disable/skip 처리하거나 요구된 테스트 단언을 완화하지 않는다.
 - 최신 Head exact Full Required, default-main Trusted QA, Manager/Owner HIGH 승인 `NOT TESTED`. Issue 종료·Release/GHCR/Finalizer는 사용자 별도 승인 사항.
 - 향후 새로운 PR CI 실패가 발생하면 이 파일에 **F752-003 이후로 이어서 기록**하고 최초 두 Run의 취소·리뷰 차단 원본을 삭제·PASS로 바꾸지 않는다.
+
+## 5. F752-003 — Full PR CI #3156.1 재실패 (2026-10-22 UTC / 2026-10-23 KST)
+
+- **원본**: [PR #780 Full CI #3156.1](https://github.com/planner77/masterGantt/actions/runs/39794786478), Run ID `39794786478` / Attempt `1`, event `pull_request`, Head `77337c663e3645628f7114044c089f49ff6e054c`, Base `72c2c9d0a912dc906d4101ea41a7a57e0c686597`. 로그에 전달된 Test-Merge `6956319699f8489ef706078467cf7d8eed08d03a`. 생성 2026-10-22T14:20:13Z, 종료 2026-10-22T14:33:09Z.
+- **최초 실제 FAIL**: `정책·저장소 계약 검사` Job [119879493029](https://github.com/planner77/masterGantt/actions/runs/39794786478/job/119879493029), Step `Issue`의 Python `tests/python/test_issue_752_diagnostics.py:181`, case `test_workflow_displays_korean_without_changing_machine_identifiers`. 전체 `Ran 19 tests`에서 **1 FAIL**.
+- **기대/실제**: 단위 테스트는 `name: Issue #752 — 반복 PR 실패 진단`을 찾았지만, 안전한 YAML 원본에는 `name: "Issue #752 — 반복 PR 실패 진단"`으로 따옴표가 존재한다. Python `assertIn`의 불일치이며 Workflow의 YAML 의미 또는 신규 진단 로직 자체 실패로 증명되지 않았다. 분류: **TEST_CONTRACT**.
+- **파생 결과 분리**: `PR 빠른 검사 판정` Job `119880211948` 실패 → `Build, static checks, and unit tests` `119880313852` / `Chromium end-to-end tests` `119880313904` / `Docker build and runtime smoke test` `119880313718` 집계 실패. **PR E2E Shard 실제 실행 SKIPPED, Docker 구현 SKIPPED, PR Production Build SKIPPED**로, 제품·E2E Assertion 실패가 관측된 것은 아니다. `QA Final — Automated` Job `119880367810` 또한 Required failure 및 원본 검증 ID/Attempt/SHA 불일치로 BLOCKED(파생). 이전 #3152의 E2E8/8 성공을 새 HEAD의 성공으로 재사용하지 않는다.
+- **최소 교정**: 테스트 기대값에 Workflow 원본의 이중 따옴표를 반영한다. YAML에 있는 `#`는 사람이 읽는 이름의 일부이므로 원본 Workflow의 인용부호를 제거하거나 Required Job·검증 조건을 완화하지 않는다. 변경: `tests/python/test_issue_752_diagnostics.py` 해당 Assertion **1줄**, 누적 원장 및 [Work Packet](exec-plans/active/ISSUE_752.md). `.github/workflows/issue-752-diagnostics.yml`·제품 코드·샤드 수·Timeout·Assertion/Retry/Skip 정책은 변경하지 않는다.
+- **이전과 교차 점검**: F752-001 stale HEAD 취소, F752-002 리뷰 스레드 차단은 별개 사건으로 보존. 최신 리뷰 5건 모두 Resolved/0 미해결; main 대비 PR Conflict 0/Behind 0. 해당 19개 정책 테스트의 다른 **18개** 성공은 해당 Head 기록이며 다음 HEAD 새 실행 결과를 증명하지 않는다.
+- **동일 소스 검증 상태**: 원격 실패 로그로 기대/실제 한 줄 차이를 확인했고, 변경 후보의 문자열 일치 여부를 정적 비교함. 직접 Python 실행은 이 GitHub 연결 작업 환경에서 `NOT TESTED`; 다음 정확 HEAD의 원격 `tests/python/test_issue_752_*.py` 및 기존 Required Quality/E2E8/Docker와 QA/Owner는 모두 `NOT TESTED`. 이번 사용자 승인 범위는 **새 PR CI 시작까지(모니터링 제외)**이며 merge/Main/GHCR/Release/Issue 종료 제외.
