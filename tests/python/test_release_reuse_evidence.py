@@ -63,6 +63,23 @@ class ReleaseReuseTests(unittest.TestCase):
         with self.assertRaises(zipfile.BadZipFile):
             V.zip_json(b"not-a-zip", "release-reuse-main-manifest.json")
 
+    def test_primary_issue_trace_accepts_exact_metadata_only(self):
+        pr = {
+            "title": "[Release/CI] Issue #773 — reusable evidence",
+            "body": "Implementation notes\n\nRefs #773\n",
+            "base": {"repo": {"full_name": "planner77/masterGantt"}},
+        }
+        self.assertIsNone(V.verify_primary_issue_trace(pr, "773", "planner77/masterGantt"))
+        invalid = [
+            {**pr, "title": "Issue #773 + Issue #772"},
+            {**pr, "body": "Refs #773\nRefs #772"},
+            {**pr, "body": "Incidental Refs #773 inside prose"},
+            {**pr, "base": {"repo": {"full_name": "attacker/masterGantt"}}},
+        ]
+        for row in invalid:
+            with self.subTest(row=row), self.assertRaises(V.Ineligible):
+                V.verify_primary_issue_trace(row, "773", "planner77/masterGantt")
+
     def test_owner_marker_latest_revocation(self):
         def comment(n, authorized, author="planner77", relationship="OWNER"):
             return {"id": n, "user": {"login": author},
