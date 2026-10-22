@@ -469,6 +469,8 @@ jobs:
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_impact_plan.py' -v
       - name: Issue #703 Preview 배포 권한·워크플로 단위 회귀
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_preview_publish.py' -v
+      - name: Issue #751 source-matched P50/P95 comparison and missing-artifact regression
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_issue_751_*.py' -v
       - name: 배포 shell 구문 검증
         run: |
           sh -n deploy/docker/container-entrypoint.sh
@@ -756,6 +758,7 @@ jobs:
         uses: ./.github/actions/node-setup
         with:
           node-version: ${{ env.NODE_VERSION }}
+          use-local-node-headers: "true"
       - name: Playwright setup 계측
         uses: ./.github/actions/playwright-setup
       - name: E2E shard 실행
@@ -766,6 +769,7 @@ jobs:
           E2E_TIMING_OUTPUT: test-results/e2e-timing-shard-${{ matrix.shard }}.json
           E2E_TIMING_SHARD: ${{ matrix.shard }}
           E2E_TIMING_SHARD_COUNT: "8"
+          E2E_SOURCE_HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -799,6 +803,10 @@ jobs:
           path: test-results/e2e-timing-shard-${{ matrix.shard }}.json
           if-no-files-found: ignore
           retention-days: 30
+      - name: Issue #751 성능 계측 요약 (경고 전용)
+        if: always()
+        shell: bash
+        run: node scripts/issue-751-performance-summary.mjs "test-results/e2e-timing-shard-${{ matrix.shard }}.json" >> "$GITHUB_STEP_SUMMARY"
       - name: E2E setup 계측 artifact 업로드
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

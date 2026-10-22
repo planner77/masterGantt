@@ -6,6 +6,8 @@ import { createServer, type AddressInfo } from "node:net";
 import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { promisify } from "node:util";
+import { IsolatedPerformanceReceipt } from "./isolated-performance-receipt";
+import { isolatedReadOnlyWarmupPaths, isolatedWarmupStage } from "./isolated-route-warmup";
 import { healthObservation, IsolatedApplicationDiagnostics, observeIsolatedApi, resourceSnapshot, type ObserveIsolatedApi } from "./isolated-application-diagnostics";
 
 const repositoryRoot = resolve(__dirname, "../../..");
@@ -63,6 +65,9 @@ interface IsolatedApplicationRuntime {
   origin: string;
   restart: (patchOnlyReadinessPath?: string, taskContextReadinessPath?: string) => Promise<void>;
   observeApi: ObserveIsolatedApi;
+  timeStage: <T>(stage: "seed_issue_623" | "test_body", task: () => Promise<T>) => Promise<T>;
+  listen: (page: Page) => () => void;
+  snapshot: () => ReturnType<IsolatedPerformanceReceipt["snapshot"]>;
 }
 
 export const test = base.extend<{
@@ -79,6 +84,9 @@ export const test = base.extend<{
   isolatedApplicationRuntime: IsolatedApplicationRuntime;
   restartIsolatedApplication: (patchOnlyReadinessPath?: string, taskContextReadinessPath?: string) => Promise<void>;
   observeIsolatedApi: ObserveIsolatedApi;
+  timeIsolatedStage: <T>(stage: "seed_issue_623" | "test_body", task: () => Promise<T>) => Promise<T>;
+  isolatedBrowserNetwork: void;
+  observedIsolatedPerformance: () => ReturnType<IsolatedPerformanceReceipt["snapshot"]>;
 }>({
   isolatedResourceAdminPassword: [undefined, { option: true }],
   isolatedProjectMasterAdminPassword: [undefined, { option: true }],
@@ -94,14 +102,34 @@ export const test = base.extend<{
   observeIsolatedApi: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.observeApi);
   },
+  timeIsolatedStage: async ({ isolatedApplicationRuntime }, provide) => {
+    await provide(isolatedApplicationRuntime.timeStage);
+  },
+  observedIsolatedPerformance: async ({ isolatedApplicationRuntime }, provide) => {
+    await provide(isolatedApplicationRuntime.snapshot);
+  },
+  isolatedBrowserNetwork: [async ({ page, isolatedApplicationRuntime }, provide) => {
+    const stop = isolatedApplicationRuntime.listen(page);
+    try { await provide(); } finally { stop(); }
+  }, { auto: true }],
   isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword, isolatedProjectMasterAdminPassword, isolatedDevBundler, isolatedRouteWarmup, isolatedFreshDistOnRestart }, provide, testInfo) => {
+    const performanceReceipt = new IsolatedPerformanceReceipt(testInfo);
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
-      await provide({ origin: external, observeApi: async (_route, _method, operation) => operation(), restart: async () => {
-        testInfo.annotations.push({ type: "NOT TESTED", description: "사용자 관리 서버에서는 실제 프로세스 재시작을 검증하지 않았습니다." });
-        throw new Error("NOT TESTED: 사용자 관리 외부 서버를 재시작할 수 없습니다.");
-      } });
+      try {
+        await provide({
+          origin: external,
+          timeStage: async (_stage, task) => task(),
+          listen: () => () => {},
+          snapshot: () => performanceReceipt.snapshot(),
+          observeApi: async (_route, _method, operation) => operation(),
+          restart: async () => {
+            testInfo.annotations.push({ type: "NOT TESTED", description: "사용자 관리 서버에서는 실제 프로세스 재시작을 검증하지 않았습니다." });
+            throw new Error("NOT TESTED: 사용자 관리 외부 서버를 재시작할 수 없습니다.");
+          },
+        });
+      } finally { await performanceReceipt.attach(testInfo.status === testInfo.expectedStatus ? "ok" : "error"); }
       return;
     }
     await mkdir(resolve(repositoryRoot, ".data"), { recursive: true });
@@ -139,18 +167,19 @@ export const test = base.extend<{
         APP_BASE_URL: origin,
         DATABASE_PATH: resolve(temporary, "database.sqlite3"),
         NEXT_DIST_DIR: distNames[0]!,
+        ISSUE_751_SQL_METRICS: "true",
         ...(isolatedResourceAdminPassword===undefined?{}:{RESOURCE_CATALOG_ADMIN_PASSWORD:isolatedResourceAdminPassword}),
         ...(isolatedProjectMasterAdminPassword===undefined?{}:{PROJECT_MASTER_ADMIN_PASSWORD:isolatedProjectMasterAdminPassword}),
       };
       // Readiness is deliberately read-only/fileMustExist and cannot bootstrap
       // an empty fixture. Use the existing CLI; never touch another database.
-      await executeFile(process.execPath, ["--import", "tsx", resolve(repositoryRoot, "scripts/migrate.ts")], {
+      await performanceReceipt.measure("sqlite_migrate", () => executeFile(process.execPath, ["--import", "tsx", resolve(repositoryRoot, "scripts/migrate.ts")], {
         cwd: repositoryRoot,
         env: applicationEnvironment,
         timeout: 30_000,
         maxBuffer: 16_384,
         windowsHide: true,
-      });
+      }));
       const startApplication = async (patchOnlyReadinessPath?: string, taskContextReadinessPath?: string): Promise<void> => {
         const deadline = Date.now() + startupMilliseconds;
         let spawnError: Error | undefined;
@@ -169,9 +198,10 @@ export const test = base.extend<{
         diagnostics.track(child);
         const application = child;
         closed = new Promise<void>((done) => application.once("close", () => done()));
+        await performanceReceipt.measure("server_start_readiness", async () => {
         let ready = false;
         while (Date.now() < deadline) {
-          if (spawnError || child.exitCode !== null || child.signalCode !== null) {
+          if (spawnError || application.exitCode !== null || application.signalCode !== null) {
             throw new Error("격리 E2E 서버가 준비 완료 전에 종료되었습니다. isolated-application-diagnostics 첨부를 확인하세요.");
           }
           try {
@@ -182,10 +212,11 @@ export const test = base.extend<{
           await delay(100);
         }
         if (!ready) throw new Error("격리 E2E 서버 준비 시간이 초과되었습니다. isolated-application-diagnostics 첨부를 확인하세요.");
+        });
         // Read-only route warmup belongs to fixture setup, not the test's 30s
         // behavior budget. GET/405 does not consume create/unlock attempts.
         const missing = "00000000-0000-4000-8000-000000000001";
-        const paths = ["/", "/projects/new", "/api/project-master/catalog", `/projects/${missing}`, "/api/projects", `/api/projects/${missing}`, `/api/projects/${missing}/edit-sessions`, `/api/projects/${missing}/edit-sessions/current`, `/api/projects/${missing}/edit-password`, `/api/projects/${missing}/tasks`, `/api/projects/${missing}/tasks/${missing}`];
+        const paths = isolatedReadOnlyWarmupPaths(missing);
         // #733 F733-007 / Next dev manifest corruption: force first compilation
         // of the actual #725 API route families serially, before business writes
         // and browser navigation can overlap lazy route compilation. Synthetic
@@ -209,23 +240,28 @@ export const test = base.extend<{
           `/api/projects/${missing}/tasks/${missing}/process-context`,
         ] : [];
         const prewarmStatusCounts: Record<string, number> = {};
-        for (const path of [...paths, ...processRoutes]) {
-          const remaining = deadline - Date.now();
-          if (remaining <= 0) throw new Error("Isolated E2E route warmup exceeded its startup budget.");
-          const response = await fetch(`${origin}${path}`, { signal: AbortSignal.timeout(remaining) });
-          const mediaType = response.headers.get("content-type")?.toLowerCase() ?? "";
-          await response.arrayBuffer();
-          if (response.status >= 500) throw new Error(`격리 E2E 경로 준비 실패: HTTP ${response.status}. isolated-application-diagnostics 첨부를 확인하세요.`);
-          if (processRoutes.includes(path)) {
-            // An HTML 404 is Next's route-not-compiled page, not a real
-            // project/API JSON 404. Fail closed before the test starts.
-            if (response.status === 404 && !mediaType.includes("application/json")) {
-              throw new Error("격리 E2E 공정 API 사전 준비에서 동적 라우트가 HTML404를 반환했습니다.");
-            }
-            const key = String(response.status);
-            prewarmStatusCounts[key] = (prewarmStatusCounts[key] ?? 0) + 1;
+        await performanceReceipt.measure("next_route_warmup", async () => {
+          for (const path of [...paths, ...processRoutes]) {
+            const readOnlyGet = async () => {
+              const remaining = deadline - Date.now();
+              if (remaining <= 0) throw new Error("Isolated E2E route warmup exceeded its startup budget.");
+              const response = await fetch(`${origin}${path}`, { signal: AbortSignal.timeout(remaining) });
+              const mediaType = response.headers.get("content-type")?.toLowerCase() ?? "";
+              await response.arrayBuffer();
+              if (response.status >= 500) throw new Error(`격리 E2E 경로 준비 실패: HTTP ${response.status}. isolated-application-diagnostics 첨부를 확인하세요.`);
+              if (processRoutes.includes(path)) {
+                if (response.status === 404 && !mediaType.includes("application/json")) {
+                  throw new Error("격리 E2E 공정 API 사전 준비에서 동적 라우트가 HTML404를 반환했습니다.");
+                }
+                const key = String(response.status);
+                prewarmStatusCounts[key] = (prewarmStatusCounts[key] ?? 0) + 1;
+              }
+            };
+            const stage = isolatedWarmupStage(path);
+            if (stage) await performanceReceipt.measure(stage, readOnlyGet);
+            else await readOnlyGet();
           }
-        }
+        });
         if (processRoutes.length) {
           await testInfo.attach("issue-733-process-api-serial-prewarm", {
             contentType: "application/json",
@@ -239,6 +275,7 @@ export const test = base.extend<{
           });
         }
         if (patchOnlyReadinessPath) {
+          await performanceReceipt.measure("next_dynamic_route_warmup", async () => {
           // A healthy /api/health/ready does not establish that the lazy Next.js
           // dynamic PATCH-only route is registered after this isolated restart.
           // Probe GET only (Next returns 405 when the PATCH route is known);
@@ -289,6 +326,7 @@ export const test = base.extend<{
               method: "GET", expectedStatus: 405, attempts,
               originalMutationRetries: 0, bundler: isolatedDevBundler,
             })),
+          });
           });
         }
         if (taskContextReadinessPath) {
@@ -357,7 +395,7 @@ export const test = base.extend<{
           });
         }
       };
-      await startApplication();
+      await performanceReceipt.measure("fixture_setup", () => startApplication());
       baselineResources = await resourceSnapshot(diagnostics.currentPid());
       let restarting = false;
       const restart = async (patchOnlyReadinessPath?: string, taskContextReadinessPath?: string): Promise<void> => {
@@ -376,16 +414,25 @@ export const test = base.extend<{
             distNames.push(freshName);
             applicationEnvironment.NEXT_DIST_DIR = freshName;
           }
-          await startApplication(patchOnlyReadinessPath, taskContextReadinessPath);
+          await performanceReceipt.measure("server_restart", () => startApplication(patchOnlyReadinessPath, taskContextReadinessPath));
         } finally { restarting = false; }
       };
       testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: bundler=${isolatedDevBundler}; routeWarmup=${isolatedRouteWarmup}; freshDistOnRestart=${isolatedFreshDistOnRestart}; fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
-      await provide({ origin, restart, observeApi: observeIsolatedApi(diagnostics, () => captureDiagnostics("api_transport_failure")) });
+      const observed = observeIsolatedApi(diagnostics, () => captureDiagnostics("api_transport_failure"));
+      await provide({
+        origin, restart,
+        listen: page => performanceReceipt.listen(page),
+        snapshot: () => performanceReceipt.snapshot(),
+        timeStage: (stage, task) => performanceReceipt.measure(stage, task),
+        observeApi: (route, method, operation) => performanceReceipt.api(route, method, () => observed(route, method, operation)),
+      });
     } catch (error) {
       await captureDiagnostics("setup_failure").catch(() => undefined);
       throw error;
     } finally {
       if (testInfo.status !== testInfo.expectedStatus) await captureDiagnostics("test_failure").catch(() => undefined);
+      try {
+        await performanceReceipt.measure("fixture_teardown", async () => {
       if (child) {
         diagnostics.expectShutdown(child);
         await stopApplication(child, closed);
@@ -395,6 +442,12 @@ export const test = base.extend<{
       for (const name of distNames) {
         // Only this test's generated folders; never delete another workspace.
         await rm(resolve(repositoryRoot, name), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+      }
+        });
+      } finally {
+        const serverOutput = diagnostics.stdout.snapshot();
+        performanceReceipt.captureServerEvents(serverOutput.records, serverOutput.droppedRecords);
+        await performanceReceipt.attach(testInfo.status === testInfo.expectedStatus ? "ok" : "error");
       }
     }
   }, { scope: "test", timeout: 120_000 }],

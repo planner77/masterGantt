@@ -36,6 +36,40 @@
 
 ---
 
+## Issue #751 — F-009 Playwright browser terminal E2E 증거 계약 (2026-10-20)
+
+- 원본 [#3031.1](https://github.com/planner77/masterGantt/actions/runs/39324488213) Run39324488213 attempt1 Head `4aa0619b39e0bfd9c876a84e74e9e0f4c7d00757` Shard5 `118307697128`: #622 Focus/투입률/Excel 성공 후 신규 #751 HTTP receipt Expected>=2 complete, Actual1 FAIL. 원본 E2E Timing `12221842831`, Playwright Report `12221287851` 보존. 어떤 Raw HAR/Trace도 Git에 커밋하지 않는다.
+- 동일 Browser synthetic API에 대해 `page.waitForEvent("requestfinished", predicate)`와 `page.waitForEvent("requestfailed", predicate)`를 각각 요청 전에 설치하고, HTTP200/503은 body 소비 완료 뒤 terminal event를 확인하며 Abort/Network는 requestfailed를 확인한다. Playwright는 HTTP503을 network failure가 아닌 completed HTTP response로 처리한다. `Request.failure()?.errorText`는 `abort/network/timeout` allowlist로 변환하며 원문/헤더/개인정보는 artifact에 포함하지 않는다. 공식 계약은 [Request](https://playwright.dev/docs/api/class-request) 및 [Page](https://playwright.dev/docs/api/class-page) 참조.
+- 새 Head CI에서 `tests/e2e/issue-751-performance-telemetry.spec.ts` 실제 2 complete200(하나 90ms delayed) + 1 HTTP503 + 1 network failed + 1 aborted가 모두 terminal로 표시되고 `incomplete/other` 0인지 확인한다. 기존 #622 input60→save40→Focus/Excel 5폭, #623/731, Quality·Docker 및 6 Chromium shard를 새 Run/Attempt로 교차 검증한다. Timeout/Fail-Fast/Skip/Retry 정책 불변, CI 모니터링과 병합/릴리스는 작업 범위에서 제외한다.
+
+## Issue #751 — F-008 Dev Route 사전 컴파일과 원격 수용 (2026-10-20)
+
+- Run39321562557/#3030.1(Head `501e10081161cc4971b062e83042088cf60e08a1`) Shard5의 `#622`은 후보 GET 4501.785ms/HTTP200 + 같은 기간 Fast Refresh 3954ms 후 strict `allocation=60` 입력 미표시로 중단. 다른 5 Shards는 cancelled, E2E 신규 Test는 미실행; 이전 F-006 Focus 복귀의 성공/실패로 오인 금지. Source [실패 원장 F-008](ISSUE_751_FAILURE_ANALYSIS.md).
+- 동일 격리 Next Dev 인스턴스의 Readiness 경로에서 존재하지 않는 UUIDv4 project로 `GET assigned-targets`와 `GET assignment-targets`의 **컴파일 완료 시도**를 test body 이전에 추가. GET only, unknown Project 허용 가능한 4xx, 5xx fail-closed, 시간은 `next_assigned_targets_warmup` 및 `next_assignment_targets_warmup` receipt로 확인. 기존 startup 90s, fixture 120s, Playwright 본문/strict Focus/input 5s, mutation/권한 전부 유지.
+- 새 Head에서 (1) fixture 두 warmup Stage 성공, (2) 실제 #622 Input=60과 저장40 이후 Focus 복원, (3) #751 통제 E2E, (4) Chromium6/Quality/Docker 3 Required, (5) Trusted QA/Owner 판정을 원본 Run/Attempt별로 분리 검증한다. 기존 F007 네트워크 오류, F006 Focus와 신규 F008 입력 오류의 사실·가설·반례는 소급 PASS 수정하지 않는다.
+
+## Issue #751 — Native Node header setup 장애 분리 및 원격 판정 (2026-10-20)
+
+- F-007 Run [#3028.1](https://github.com/planner77/masterGantt/actions/runs/39318895759) Shard2 `118288652891`: Node v22.23.3, npm10.9.9, node-gyp11.5.0; `better-sqlite3` native `npm ci`에서 Node header tarball HTTP200 후 SHA checksum URL `ECONNRESET`. E2E 본문은 미실행이며 Shard 5를 포함한 5개 취소는 Focus 문제 재발 여부를 판단할 수 없다.
+- 새 E2E shared setup에서 `npm_config_nodedir`은 setup-node가 설치한 실제 Node binary의 parent prefix가 포함한 `node.h`·`common.gypi`를 직접 확인한 뒤에만 적용. 헤더가 없으면 fail-closed 메시지가 남고 대체 버전 헤더나 raw external artifact를 받아 성공 처리하지 않는다. Quality/Build/Release는 opt-in되지 않으며 GitHub 기본 Run/Attempt/head/base/test-merge 인증과 Job/Shard fail-fast 유지.
+- 원격 새 Full CI에서 E2E Shards 1~6이 모두 실제 실행/성공했는지, Shard 2 `npm ci`가 외부 Node header fetch 없이 완료됐는지, 이전 F-006 #622 Resource Plan Focus와 #751 격리 성능 E2E가 실제로 통과했는지를 분리 확인한다. 이 검증의 새 Run/Attempt 원본 없이는 AC/Owner/merge 준비 판정은 `NOT TESTED`.
+
+## Issue #751 — Shard5 원본 Trace 기반 Focus 교정 검증 (2026-10-20)
+
+- PR #754 Full #3026.1 Run `39314211842` attempt 1, Head `d658baa366eaa613ac1e295a2f2320f5dd1a49ae`, Base `5df178868139c4a307701e4807896691971b3376`, test merge `f641b46402e2cb421d8cccb72412ada55b45fe65`을 원본 `ci-pr-source-39314211842-1` Artifact와 검증. E2E Shard5 `118272495898`의 정식 [Playwright 원본 Artifact](https://github.com/planner77/masterGantt/actions/runs/39314211842/artifacts/12215654837)에서 #622 Task Editor 닫힌 뒤 detail stale/loading→ready, Focus 실패를 확인했다. Raw Trace/스크린샷·개인정보를 원격 Git에 올리지 않는다.
+- 직접 테스트: `tests/e2e/issue-622-resource-plan-target.spec.ts`의 동일 Task ID, Assignment ID, Resource, Target 선택, 배정60→40, 상세 재검증 및 버튼 strict Focus를 **원본 단언 그대로** 실행. 신규 순수 phase Unit `tests/features/projects/resource-editor-focus-return.test.ts`에서는 modal open·foreign modal·report pending·detail stale/loading/confirmed ready·fallback을 모두 검증한다.
+- 교정 후에는 새 HEAD의 실제 Chromium6 전체 및 Required Quality/Docker, Trusted QA와 Owner 최종 AC 판정을 따로 확인한다. UI Focus 대기 경계만 canonical 로드 이벤트 기반으로 개선하였고 Playwright Timeout/Retry/Skip 증가 없음. 60 RAF cutoff 재사용 금지.
+- 원인 확증 수준: 원본에서 실제 `stale → loading → ready`가 장시간 걸린 것과 코드의 frame limit 및 포커스 미복원은 확인됨. 그 요청과 Focus callback의 정확 인터리빙은 런타임 instrumentation 없이는 추론이며, 메모리/SQL/네트워크/OOM을 근인으로 단정하지 않는다.
+
+## Issue #751 — Trace/HAR 정제 및 원격 수용 절차 (2026-10-19)
+
+- [Work Packet](exec-plans/active/ISSUE_751.md), [실패 원장](ISSUE_751_FAILURE_ANALYSIS.md)를 따른다. 성공한 과거 #3021.1/Trusted #663.1과 다음 변경 HEAD를 구분한다. Fixture 120000ms와 #623 본문60000ms를 합산하지 않는다.
+- test-scoped Next/SQLite에서만 `ISSUE_751_SQL_METRICS=true`를 주입한다. Process-context/Assignment-targets/Task Logistics-links의 browser/server duration, SQLite 동기 query count/time, 동시 HTTP 호출 수를 별도 집계한다. 원시 SQL/query/bind/URL/Secret을 새 Artifact에 저장하지 않는다.
+- 원본 Trace/HAR는 Git에 커밋하지 않는다. 별도 격리 머신에서 `python3 scripts/issue-751-sanitize-playwright-trace.py --input trace.zip --output safe.json --run-id RUN --attempt ATTEMPT --job-id JOB --artifact-id ARTIFACT --head-sha SHA` 또는 `node scripts/issue-751-sanitize-har.mjs --input local.har --output safe.json`을 사용한다. 결과 출처는 GitHub 원본을 별도 검증하기 전 `UNVERIFIED`이다.
+- Full CI에서 SQL native better-sqlite3 관측 Unit, 실제 Chromium 격리 E2E 정상/지연90ms/HTTP503/네트워크 오류/Abort, 기존 #623/731 Fixture 회귀, Quality/E2E6/Docker, 기본 브랜치 Trusted QA를 구별하여 확인한다. 테스트 미실행·취소는 PASS 아님.
+- 메인 반영 후 Owner 수동 `Issue 751 E2E performance trend`에서 baseline/candidate GitHub Run IDs를 구분 입력한다. 6/6 Shard 원본, Run/attempt/Head/OS/Node/shard/parallel/test stable ID, 양쪽 독립 성공 Run10개 이상 아니면 `INSUFFICIENT_DATA`; P95 80%는 warning-only.
+- SQL 시간 비중과 cold/warm 차이는 원인 **후보**일 뿐 Next compile 또는 fan-out 근인의 증명은 아니다. 원본 Trace·동일 환경 실측/반례 확보 전 '개선 성공' 판정 금지.
+
 ## Issue #624 — Full PR CI #2920.1 Playwright 원본 Trace와 Scroll 경계 수용 (2026-10-18)
 
 - 직접 읽은 [Run #2920.1](https://github.com/planner77/masterGantt/actions/runs/39076400264): HEAD `829953e8a108d18cb816880606926f2220d954eb`, Base `6fea0397bc07d0c3adf2d769f9ba6829473503a2`, test-merge `38c0de7c30b267626bdb99e1bb6d53806d61465c`. [Shard4 Playwright report/artifact 12117856021](https://github.com/planner77/masterGantt/actions/runs/39076400264/artifacts/12117856021)의 `error-context`, `test.trace`, `1-trace.trace` 직접 확인: 기존 #490 scroll 첫 설정에서 expected19/native18이 5s/7 관측 동안 고정. 설정 탭, metadata PATCH, native fullscreen의 보존 단언 전에 중단됐다. 독립 원인으로 오인할 수 있는 runtime OOM/Network 오류를 단정하지 않는다(격리 서버 alive, cgroup oomKill0).

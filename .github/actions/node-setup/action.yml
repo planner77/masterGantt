@@ -4,6 +4,10 @@ inputs:
   node-version:
     description: Node.js version
     required: true
+  use-local-node-headers:
+    description: Use the exact setup-node runtime's bundled Linux Node headers for node-gyp; E2E opt-in only.
+    required: false
+    default: "false"
 outputs:
   npm-cache-hit:
     description: npm cache exact key hit 여부
@@ -55,7 +59,27 @@ runs:
 
     - name: frozen dependency 설치
       shell: bash
-      run: npm ci --prefer-offline --no-audit
+      env:
+        CI_USE_LOCAL_NODE_HEADERS: ${{ inputs.use-local-node-headers }}
+      run: |
+        set -euo pipefail
+        if [[ "$CI_USE_LOCAL_NODE_HEADERS" == "true" ]]; then
+          # setup-node's Linux binary distribution ships headers matching this
+          # exact runtime. Prevent node-gyp from fetching Node headers/SHASUMS
+          # from nodejs.org during better-sqlite3's frozen native build.
+          if [[ "$(uname -s)" != "Linux" ]]; then
+            echo "::error::Local native headers are only enabled for Linux E2E runners." >&2
+            exit 1
+          fi
+          node_root="$(node -p 'require("node:path").dirname(require("node:path").dirname(process.execPath))')"
+          if [[ ! -s "$node_root/include/node/node.h" || ! -s "$node_root/include/node/common.gypi" ]]; then
+            echo "::error::Matching Node headers are absent from the setup-node installation." >&2
+            exit 1
+          fi
+          export npm_config_nodedir="$node_root"
+          printf 'node-gyp local Node headers enabled for runtime %s\n' "$(node --version)"
+        fi
+        npm ci --prefer-offline --no-audit
 
     - name: npm ci 시간 기록
       if: always()

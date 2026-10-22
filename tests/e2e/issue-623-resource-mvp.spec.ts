@@ -111,12 +111,12 @@ async function sharedDetail(root: Locator, taskId: string) {
   return detail.locator(`[data-canonical-task-id="${taskId}"]`).first();
 }
 
-test("#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot", async ({ page, isolatedApplication: origin, observeIsolatedApi, phaseTiming }, info) => {
+test("#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot", async ({ page, isolatedApplication: origin, observeIsolatedApi, phaseTiming, timeIsolatedStage }, info) => {
   // Split the former near-60s flow at the read-only/first-write boundary.
   phaseTiming.beginBody();
   test.setTimeout(60_000);
   page.setDefaultTimeout(15_000);
-  const f = await seedIssue623(page, origin, observeIsolatedApi);
+  const f = await timeIsolatedStage("seed_issue_623", () => seedIssue623(page, origin, observeIsolatedApi));
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
   const core = await frame.locator(".wx-gantt").elementHandle();
@@ -182,14 +182,14 @@ test("#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot", as
   phaseTiming.finishBody();
 });
 
-test("#623 여섯 별도 mutation·양방향 동일원본 복귀", async ({ page, isolatedApplication: origin, observeIsolatedApi, phaseTiming }, info) => {
+test("#623 여섯 별도 mutation·양방향 동일원본 복귀", async ({ page, isolatedApplication: origin, observeIsolatedApi, phaseTiming, timeIsolatedStage }, info) => {
   // #730 F730-010: remote #3027.1 ran for 61,586ms (20,790ms seed) before the
   // original 60s deadline; retain all six writes, exact IDs and revision +6.
   // Only this integrated scenario gets a measured finite 90s budget.
   test.setTimeout(90_000);
   page.setDefaultTimeout(15_000);
   phaseTiming.beginBody();
-  const f = await seedIssue623(page, origin, observeIsolatedApi);
+  const f = await timeIsolatedStage("seed_issue_623", () => seedIssue623(page, origin, observeIsolatedApi));
   phaseTiming.mark("api/mutation-source-identity");
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
@@ -297,13 +297,13 @@ test("#623 여섯 별도 mutation·양방향 동일원본 복귀", async ({ page
 // Each width retains its tree→matrix transition and complete read-only checks,
 // with a fresh canonical fixture and the original 30s budget for two layouts.
 for (const width of [390, 768, 1024, 1440, 1920]) {
-  test(`#623 실제 Target 다열·중첩Group ${width}px geometry·keyboard·query0·렌더관측`, async ({ page, isolatedApplication: origin, observeIsolatedApi, phaseTiming }, info) => {
+  test(`#623 실제 Target 다열·중첩Group ${width}px geometry·keyboard·query0·렌더관측`, async ({ page, isolatedApplication: origin, observeIsolatedApi, phaseTiming, timeIsolatedStage }, info) => {
     // #730 Release #182.2: fresh SQLite/HTTP setup plus tree/matrix nearly exhausted 30s in all five widths.
     // Bounded per-case budget; no changes to assertions, global timeout, retries, or fail-fast.
     test.setTimeout(45_000);
     phaseTiming.beginBody();
     page.setDefaultTimeout(15_000);
-    const f = await seedIssue623(page, origin, observeIsolatedApi, true);
+    const f = await timeIsolatedStage("seed_issue_623", () => seedIssue623(page, origin, observeIsolatedApi, true));
     phaseTiming.mark(`ui/${width}px-resource-transition`);
     const before = await f.snapshot();
     const frame = page.locator(".project-gantt-frame"); const instance = await frame.getAttribute("data-project-gantt-instance");

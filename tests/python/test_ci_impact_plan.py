@@ -348,6 +348,39 @@ class SourceAndObservationTests(unittest.TestCase):
         self.assertEqual(result["skippedCaseCount"], 1)
         self.assertEqual(result["entries"], [{
             "file": "tests/e2e/resource-tabs.spec.ts", "durationMs": 21}])
+        self.assertEqual(result["receipts"], [])  # No attachment is not a measured success.
+
+    def test_issue_751_reporter_records_valid_receipt_without_changing_skip_semantics(self):
+        import shutil
+        import tempfile
+        import subprocess
+        if not shutil.which("node"):
+            self.skipTest("Node executable unavailable")
+        with tempfile.TemporaryDirectory() as folder:
+            output_file = str(Path(folder) / "timing.json")
+            js = (
+                "const Reporter=require('./tests/config/e2e-timing-reporter.cjs');"
+                "const r=new Reporter({outputFile:process.argv[1]});"
+                "const t={location:{file:require('node:path').resolve('tests/e2e/resource-tabs.spec.ts')}};"
+                "const receipt={schemaVersion:2,status:'error',stages:[],requests:[]};"
+                "r.onTestEnd(t,{status:'failed',duration:99,steps:["
+                "{title:'Before Hooks',duration:12},{title:'After Hooks',duration:7}],"
+                "attachments:[{name:'issue-751-isolated-performance',"
+                "body:Buffer.from(JSON.stringify(receipt))}]});"
+                "r.onTestEnd(t,{status:'skipped',duration:0});"
+                "r.onEnd({status:'failed'});"
+            )
+            subprocess.run(["node", "-e", js, output_file], cwd=ROOT,
+                           check=True, timeout=15, capture_output=True, text=True)
+            result = json.loads(Path(output_file).read_text(encoding="utf8"))
+        self.assertEqual(result["entries"], [])  # Failed/skipped never become PASS.
+        self.assertEqual(result["skippedCaseCount"], 1)
+        self.assertEqual(len(result["receipts"]), 1)
+        self.assertEqual(result["receipts"][0]["resultStatus"], "failed")
+        self.assertEqual(result["receipts"][0]["beforeHooksMs"], 12)
+        self.assertEqual(result["receipts"][0]["afterHooksMs"], 7)
+        self.assertEqual(result["receipts"][0]["bodyResidualEstimateMs"], 80)
+
 
 if __name__ == "__main__":
     unittest.main()

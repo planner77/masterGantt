@@ -149,6 +149,13 @@ Head2a97043f/main5df17886에서 누락 #3012와 최신 #3022를 [단일 실패 �
 
 최신 main fbe7db83을 이미 통합한 Head b4ba9994에서 두 Full Run/원장·취소 Shard를 대조한다. setter Hook deps 누락3개·readonly POST 인접 관찰기·P2 parent/상세 최신 intent를 [동일 실패 원장](../../ISSUE_730_FAILURE_ANALYSIS.md)에 누적하고 같은 동결 소스의 직접·과거 실패·인접·음성 검증 후 단일 Head를 게시한다. 버전0.124.0/HIGH/OWNER_MANAGED/release_authorized=false. 최종195Unit PASS, Chromium26PASS/1FAIL·#623단발1PASS/1FAIL/원인UNKNOWN, PrePR UNKNOWN5/BLOCKED를 보존해 LOCAL_VALIDATED=FAIL로 인계한다. 미해결 리뷰·충돌을 재확인하고 이 위험을 명시한 새 Full CI 시작까지만 수행하며 완료 모니터링·병합·Release는 하지 않는다.
 
+## Issue #751 — isolated fixture performance telemetry (2026-10-19)
+
+- Primary #751, PR #754: fixed Issue title/QA metadata mismatch from [F-001](../../ISSUE_751_FAILURE_ANALYSIS.md) and preserved original failed Run #3014.1.
+- Includes read-only stage, API and browser timing receipts + reporter, unit/controlled synthetic fault cases and existing 30d artifact, warning-only summary, manual default-main trend collection.
+- Source tests remain unchanged except explicit #623 seed timing wrapper; 60s test/120s fixture, asserts/retries/skip, all six Chromium shards and Required3 remain unchanged.
+- Explicit gaps and NOT TESTED contract are in [Work Packet](ISSUE_751.md). No fresh CI result should be claimed until HEAD Full checks complete. Issue HIGH/OWNER_MANAGED, qa_required=true, release_required=false/release_authorized=false; no merge/GHCR/issue close.
+
 ## Issue #731 — 기존 KPI 보존·통합 source와 구성 진단 (2026-10-19)
 
 main `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` /0.122.0에서 별도 `feat/issue-731-kpi-integration`으로 진행한다. 기존 네 카드·세 표·필터·공수/품질/full Gate를 유지하고 #728/#729 공통 원장을 전용 KPI consumer에 연결한다. 추가 구성/연결 진단과 정확 원본 drill·snapshot/focus, 기능 보존표/지표/매뉴얼을 동기화한다. [Work Packet](ISSUE_731.md) 참조. HIGH/OWNER_MANAGED/qa_required=true, candidate0.123.0, release_required=true/release_authorized=false. 요청 종료점은 구현·로컬 검증·문서·PR Full CI 시작이며 CI 모니터링·병합·Main/GHCR·Release·Issue 종료는 범위 밖이다.

@@ -69,6 +69,30 @@ CI policy Job의 scripts/test-release-debt-recovery-765.py는 Owner marker·firs
 
 ---
 
+## Issue #751 F-007 — node-gyp Node 22 헤더 checksum ECONNRESET 국소적 해결 (2026-10-20)
+
+- [전용 누적 실패 원장 F-007](ISSUE_751_FAILURE_ANALYSIS.md): PR #754 Full [#3028.1](https://github.com/planner77/masterGantt/actions/runs/39318895759), Shard 2 `118288652891`은 E2E 테스트 전 `better-sqlite3`의 native `node-gyp rebuild`가 `SHASUMS256.txt`를 가져오다 `ECONNRESET`이 발생했다. 정확 키 `~/.npm` cache hit 및 setup-node Node v22.23.3은 이미 준비되었으나 cache hit이 Node 헤더 준비나 성공 테스트를 보장하지 않는다.
+- `.github/actions/node-setup/action.yml`에는 opt-in `use-local-node-headers`(기본 false)가 있다. `ci.yml`의 `&e2e_shard_steps` 공유 anchor에서 **Main·PR Chromium 6개 Shard만 true**를 선언해 setup-node가 설치한 같은 `process.execPath`의 `include/node/node.h`·`common.gypi`를 검증하고 `npm_config_nodedir`를 설정한다. 불일치/헤더 부재는 명시적 Setup FAIL, `npm ci --prefer-offline --no-audit` 및 lockfile 내용은 불변. 외부 SHA/헤더 URL 재요청을 필요 없게 만들며 npm registry 설치와 Playwright dependency download 전체를 offline이라고 주장하지 않는다.
+- TypeScript/ESLint/Vitest/Build/Docker/기존 Policy·Preflight·Required 3종/6Shard/Trusted QA 및 PR fail-fast `--max-failures=1` 유지. 재시도, Timeout, skip, assertion 감소나 `node_modules` 캐시 도입 없음. E2E 내 실제 Node 헤더 경로 존재 여부는 [회귀 테스트](../tests/scripts/issue-751-native-node-headers.test.ts)와 다음 원격 CI에서 검증한다. 정상 설치 후 이전 #622 Focus 및 신규 #751 계측 E2E는 아직 `NOT TESTED`.
+
+## Issue #751 — 격리 SQL·Next E2E 단계 계측과 P50/P95 원본 비교 (2026-10-19)
+
+- [Issue #751 Work Packet](exec-plans/active/ISSUE_751.md), [F-001~004 실패 원장](ISSUE_751_FAILURE_ANALYSIS.md), [PR #754](https://github.com/planner77/masterGantt/pull/754)를 따르며, 마지막 성공 [Full PR CI #3021.1](https://github.com/planner77/masterGantt/actions/runs/39263069941)과 Trusted #663.1은 **이전 HEAD**의 근거이다. 새 코드에서 Required Quality/E2E6/Docker·Trusted QA는 새로운 동일 HEAD 증거가 필요하다.
+- 개발용 Playwright test-scoped Next/SQLite 프로세스에만 `ISSUE_751_SQL_METRICS=true`를 주입한다. `src/server/db/e2e-sql-observer-core.ts`는 native better-sqlite3 Statement의 get/all/run/iterate 실행만 request-context AsyncLocalStorage 단위로 count/time/exception 집계한다. API 응답/DB Schema·SQL 텍스트·bind 파라미터는 변경/저장하지 않는다. 일반 운영에는 관측기를 설치하지 않는다.
+- 브라우저 fetch/Observer API·Server HTTP duration/SQL 시간과 Fixture migration/start/readiness/Next warmup/restart/teardown·#623 seed/phaseTime은 서로 다른 샘플이다. 겹치는 요청들의 Duration을 합쳐 wall-clock이나 Next compile/SQL 인과로 단정하지 않는다.
+- 기존 `e2e-timing-ci-shard-*` artifact 30일 및 Job Summary warning-only 경로를 유지한다. 새 Server SQL 집계·상위 느린 단계·HTTP 호출 수, Job/Run 링크를 표시하되 인증 누락/취소/만료/정제 손실은 `INSUFFICIENT_DATA`이다. P95 예산80%는 provisional warning이며 Required Gate/타임아웃/skip/retries 변경 없음.
+- `.github/workflows/issue-751-performance-trend.yml`의 read-only 수동 비교는 반드시 기본 main에 반영된 뒤, Owner 입력의 baseline/candidate 인증 Run ID들을 6/6 Shard 완결·동일 환경·테스트 stable ID/HEAD/attempt로 비교한다. 10개 미만 독립 성공 Run/cohort은 평균/백분위 개선 주장을 금지한다. GitHub Actions 외 신규 DB/장기 서비스/자동 승인 없음.
+- PR CI에서 `tests/python/test_issue_751_*.py` 원본 provenance·정제·표본부족 회귀를 강제하며, Vitest SQL/추세·Browser 실제 오류·지연 통제는 기존 Quality/E2E6 범위에서 실행한다. 이 보호 경로 변경은 HIGH/OWNER_MANAGED, release_required=false/release_authorized=false, 최종 Owner 병합 승인 별도다.
+
+## Issue #751 — 단계별 E2E 계측 및 추세 비교 (2026-10-19)
+
+- [Failure F-001](ISSUE_751_FAILURE_ANALYSIS.md): PR #754 최초 Full #3014.1은 PR 제목 Primary Issue #751 패턴 및 QA method 메타데이터 누락으로 preflight 전 중단. Required 3 aggregate FAILURE는 연쇄 결과; 실제 TypeScript/Chromium/Docker 테스트는 SKIPPED.
+- Test fixture stage 및 명시적 #623 seed 구간은 monotonic relative clock으로 정제 기록한다. playwright-result Before Hooks/After Hooks와 test fixture 120s, test body 60s timeout을 서로 다른 관측/예산으로 유지하며 trace 14.6797s fixture를 59.97s body에 더해 오분류하지 않는다.
+- Browser request lifecycle과 명시 observer API를 안전한 route 분류/status/duration/abort/network/timeout으로 저장한다. 임의 URL/query/raw Trace/쿠키/Authorization/UUID/원문 오류는 신규 JSON/Job Summary에 쓰지 않는다. 세션 외 page.request 호출 및 server DB query는 전수 계측이 아님.
+- 기존 e2e-timing-ci-shard-* JSON Artifact(30일)에 성공·실패 receipt를 확장하고 Shard Job Summary는 warning-only; 동일 OS/Node/shard/parallel/test ID/stage 성공표본 10개 미만은 INSUFFICIENT_DATA, 80% 경고 provisional.
+- 별도 read-only workflow_dispatch: issue-751-performance-trend.yml은 main에 병합되어 default-branch에 존재한 뒤 Owner가 수동 실행 가능. GH CLI API로 성공한 최근 Main Run Artifact만 인증 비교하며 missing/expired/invalid는 구별하여 자동 PASS 금지. 외부 DB·장기 상시 감시 없음.
+- HIGH/OWNER_MANAGED, qa_required=true, release_required=false, release_authorized=false, Required Quality/Chromium E2E6/Docker/Trusted QA 및 Owner 위험 승인 불변. 새 Head Full PR CI와 실제 원인 확정·baseline 측정/통제 시나리오 증명은 별개다.
+
 ## Issue #712 — Full PR CI Run/Attempt 선택과 병합 후 edited 감사 분리 (2026-10-18)
 
 **사례:** PR #561 Head `3420e54453b43681c9634565b57f13ae8f0443a9`에서 원본 Full [#2892.1](https://github.com/planner77/masterGantt/actions/runs/39021332528)은 세 Required aggregate PASS. 병합 후 metadata-only [#2898.1](https://github.com/planner77/masterGantt/actions/runs/39027102063)은 새 품질/E2E/Docker 테스트 없이 동일 이름 세 aggregate FAIL을 기록했으며, 기존 Lifecycle의 Check Run ID 최대값 방식이 이를 최신 Full 결과로 오인했다.
