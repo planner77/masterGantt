@@ -1,3 +1,8 @@
+## Issue #772 — Targeted PR 근거와 Main/Release Full의 분리 (2026-10-22)
+
+정확 PR Run/Attempt·이벤트·Head/Base/Test-Merge·base 정책 Blob/전체 diff·Playwright spec/case/Artifact를 재검증한 `TARGETED_POLICY_VERIFIED`에 한해 Owner 플래그 전환 이후 LOW PR 병합 근거로 인정한다. 이 근거는 `FULL_E2E_PASS`가 아니며 `required_checks_ok`의 보고서도 `TARGETED_POLICY_VERIFIED_NOT_FULL`로 표기한다. 병합 후 `edited` metadata-only Check Run이 최신 Full/Targeted 출처를 덮거나 실패 Full을 소급 승인하지 않는다. `FULL_REQUIRED`는 기존 Full8/3 Required, `DOCS_ONLY_VERIFIED`는 기존 문서 경로만 유지, 불명확/누락/취소·fork·정책 downgrade는 BLOCKED.
+본 정책 PR 자체 HIGH·기존 Full8·Owner 승인, 초기 플래그 OFF. Main push E2E8/8·Quality/Docker/GHCR candidate, strict latest main, version 승인, Release/Finalizer 독립 source 필수. [Work Packet](exec-plans/active/ISSUE_772.md).
+
 ## Issue #765 — 검증된 v0.129.0은 유지하고 과거 미발행 부채만 RETIRED (2026-10-21)
 
 이미 발행한 #734 Release #186 / v0.129.0에는 #732·#736·#734의 병합 기능이 포함되어 있다. 하지만 First-parent 앞의 #732 Main CANCELLED, #736 Main FAILURE, #732 교정 Main CANCELLED가 Generic Finalizer를 DEFERRED시키므로 기존 이슈들은 아직 FINAL이 아니다.
