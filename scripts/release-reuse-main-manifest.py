@@ -40,9 +40,25 @@ def list_cases(payload):
             file = spec.get("file")
             if not isinstance(tests, list) or not tests or not isinstance(file, str):
                 raise ValueError("PLAYWRIGHT_SPEC_INVALID")
-            if not file.startswith("tests/e2e/") or not file.endswith(".spec.ts"):
+            # Playwright --list JSON may provide paths relative to testDir
+            # or repository root. Normalize only within the known testDir.
+            # Reject .. and unrelated absolute paths instead of silently
+            # inflating coverage with arbitrary or duplicate inputs.
+            source = Path(file)
+            if ".." in source.parts:
+                raise ValueError("PLAYWRIGHT_FILE_TRAVERSAL")
+            if source.is_absolute():
+                try:
+                    relative = source.resolve().relative_to(ROOT.resolve()).as_posix()
+                except ValueError:
+                    raise ValueError("PLAYWRIGHT_FILE_OUTSIDE_ROOT") from None
+            else:
+                relative = source.as_posix()
+            if not relative.startswith("tests/e2e/"):
+                relative = "tests/e2e/" + relative
+            if not relative.startswith("tests/e2e/") or not relative.endswith(".spec.ts"):
                 raise ValueError("PLAYWRIGHT_FILE_INVALID")
-            files.add(file)
+            files.add(relative)
             count += len(tests)
         for child in node.get("suites", []):
             walk(child)
