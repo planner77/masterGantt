@@ -71,7 +71,8 @@ class E2ETimingReporter {
       entries: this.entries,
       skippedFiles: [...this.skippedFiles].sort(),
       skippedCaseCount: this.skippedCaseCount,
-      environment: {os:process.platform, node:process.versions.node, fullyParallel:process.env.CI_E2E_FULLY_PARALLEL==="true"},
+      environment: {os:process.platform, node:process.versions.node, fullyParallel:process.env.CI_E2E_FULLY_PARALLEL==="true",
+        imageOS:process.env.ImageOS || "", imageVersion:process.env.ImageVersion || "",\n        runnerArch:process.env.RUNNER_ARCH || "", runnerOS:process.env.RUNNER_OS || ""},
       receipts: this.receipts,
     };
     fs.mkdirSync(path.dirname(this.outputFile), { recursive: true });
