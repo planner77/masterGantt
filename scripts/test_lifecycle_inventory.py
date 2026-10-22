@@ -41,7 +41,7 @@ def repo_path(value: str | Path, root: Path) -> str:
         raise InventoryError(f"Test path outside repository: {value}") from error
 
 
-def test_files(root: Path, pattern: str) -> list[str]:
+def collect_files(root: Path, pattern: str) -> list[str]:
     return sorted(p.relative_to(root).as_posix() for p in root.glob(pattern) if p.is_file())
 
 
@@ -163,7 +163,7 @@ def policy_inventory(root: Path) -> tuple[list[dict[str, str]], int]:
     if not runs:
         raise InventoryError("No policy commands identified; do not report zero")
     declared_methods = 0
-    for name in sorted(set(test_files(root, "tests/python/test_*.py") + test_files(root, "scripts/test*.py"))):
+    for name in sorted(set(collect_files(root, "tests/python/test_*.py") + collect_files(root, "scripts/test_*.py")) - {"scripts/test_lifecycle_inventory.py"}):
         try:
             tree = ast.parse((root / name).read_text(encoding="utf-8"), filename=name)
         except (SyntaxError, OSError) as error:
@@ -192,8 +192,8 @@ def candidate_groups(cases: list[dict[str, str]]) -> list[dict[str, object]]:
 
 
 def build(root: Path, mode: str) -> tuple[dict, list[dict[str, str]]]:
-    unit_files = test_files(root, "tests/**/*.test.ts")
-    browser_files = test_files(root, "tests/e2e/**/*.spec.ts")
+    unit_files = collect_files(root, "tests/**/*.test.ts")
+    browser_files = collect_files(root, "tests/e2e/**/*.spec.ts")
     if not unit_files or not browser_files:
         raise InventoryError("Vitest or E2E test files are missing; cannot invent a zero baseline")
     policy, method_count = policy_inventory(root)
