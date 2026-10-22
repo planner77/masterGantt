@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Issue #751: compare sanitized E2E timing receipts; never read raw HAR/Trace.
 
-Only complete six-shard, successful, immutable source groups qualify. Missing,
+Only complete 6-shard or 8-shard successful immutable source groups qualify. Missing,
 cancelled, expired, and mixed-environment evidence remains INSUFFICIENT_DATA.
 """
 from __future__ import annotations
@@ -35,8 +35,8 @@ def valid_source(row: object) -> bool:
         and isinstance(row.get("headSha"), str) and HEX_SHA.fullmatch(row["headSha"])
         and row.get("eventName") in {"push", "pull_request"}
         and row.get("status") == "passed"
-        and type(row.get("shard")) is int and 1 <= row["shard"] <= 6
-        and row.get("shardCount") == 6
+        and type(row.get("shardCount")) is int and row["shardCount"] in {6, 8}
+        and type(row.get("shard")) is int and 1 <= row["shard"] <= row["shardCount"]
         and isinstance(row.get("receipts"), list)
         and isinstance(row.get("environment"), dict)
         and isinstance(row["environment"].get("node"), str)
@@ -71,9 +71,11 @@ def complete_runs(artifacts: list[dict]) -> tuple[list[dict], list[dict]]:
     accepted: list[dict] = []
     failures: list[dict] = []
     for run_id, items in sorted(by_run.items(), key=lambda pair: int(pair[0])):
-        sig = {(i["runAttempt"], i["headSha"], i["eventName"]) for i in items}
+        sig = {(i["runAttempt"], i["headSha"], i["eventName"], i["shardCount"]) for i in items}
         shards = [i["shard"] for i in items]
-        if len(items) != 6 or set(shards) != set(range(1, 7)) or len(sig) != 1:
+        counts = {i["shardCount"] for i in items}
+        count = next(iter(counts)) if len(counts) == 1 else 0
+        if count not in {6, 8} or len(items) != count or set(shards) != set(range(1, count + 1)) or len(sig) != 1:
             failures.append({"runId": run_id, "reason": "INCOMPLETE_OR_MIXED_RUN"})
             continue
         accepted.extend(items)
@@ -86,7 +88,7 @@ def observations(artifacts: list[dict]) -> dict[tuple, dict[str, float]]:
     for artifact in artifacts:
         env = artifact["environment"]
         source_context = (env["os"], env["node"], env["fullyParallel"],
-                          artifact["eventName"], artifact["shard"])
+                          artifact["eventName"], artifact["shardCount"], artifact["shard"])
         for receipt in artifact["receipts"]:
             if not isinstance(receipt, dict):
                 continue
@@ -162,7 +164,7 @@ def compare(baseline_artifacts: list[dict], candidate_artifacts: list[dict],
         # Each independent test run contributes at most one observation.
         enough = len(left) >= minimum_runs and len(right) >= minimum_runs
         row = {
-            "context": list(key[:7]), "kind": key[7], "metric": key[8],
+            "context": list(key[:8]), "kind": key[8], "metric": key[9],
             "baselineRuns": len(left), "candidateRuns": len(right),
             "status": "OBSERVED_WARNING_ONLY" if enough else "INSUFFICIENT_DATA",
         }
@@ -198,7 +200,7 @@ def main() -> None:
     report["invalidCandidateArtifacts"] = len(bad_candidate)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     lines = ["## Issue #751 before/after — warning only", "",
-             "- Evidence: complete 6/6 source-matched runs, >=10 independent successful runs per cohort",
+             "- Evidence: exact 6/6 or 8/8 source-matched runs (never mixed), >=10 independent successful runs per cohort",
              f"- Baseline shards {report['baselineCompleteShardArtifacts']}; candidate shards {report['candidateCompleteShardArtifacts']}",
              f"- Invalid baseline/candidate artifact(s): {len(bad_baseline)}/{len(bad_candidate)}",
              "- Same OS/Node/parallelism/event/shard/project/test stable ID; incomplete never PASS."]

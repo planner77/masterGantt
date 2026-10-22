@@ -1,4 +1,5 @@
 import { openWorkspaceView } from "./helpers/workspace-navigation";
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { workspaceViewTab } from "./helpers/workspace-navigation";
 import { mkdir, writeFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
@@ -19,7 +20,7 @@ const dashboard = (page: Page) => page.getByTestId("milestone-dashboard");
 test("#463 readonly full-state/F separation, keyboard and five-width geometry", async ({ page }) => {
   test.setTimeout(120_000);
   const state = await fixture(page); let writes = 0;
-  page.on("request", (request) => { if (request.url().includes(projectPath) && !["GET", "HEAD"].includes(request.method())) writes++; });
+  page.on("request", (request) => { if (request.url().includes(projectPath) && !["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) writes++; });
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await page.goto(`/projects/${publicId}`); await openWorkspaceView(page, "milestones"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
   const region = page.getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤" });

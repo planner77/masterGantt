@@ -32,36 +32,60 @@ def main():
     groups=defaultdict(list); missing=[]; valid=0
     with tempfile.TemporaryDirectory(prefix="issue751-") as temp:
         for run in runs:
-            if run.get("conclusion")!="success": continue
-            run_id=run["id"]
-            for shard in range(1,7):
-                name="e2e-timing-ci-shard-"+str(shard)
-                dest=pathlib.Path(temp)/str(run_id)/str(shard)
-                dest.mkdir(parents=True,exist_ok=True)
-                try:
-                    call("run","download",str(run_id),"--repo",a.repository,"--name",name,"--dir",str(dest))
-                    item=json.loads((dest/("e2e-timing-shard-"+str(shard)+".json")).read_text())
-                    if (item.get("schemaVersion")!=1 or item.get("runId")!=str(run_id)
-                        or item.get("runAttempt")!=run.get("run_attempt") or item.get("headSha")!=run.get("head_sha")
-                        or item.get("eventName")!="push" or item.get("status")!="passed"
-                        or item.get("shard")!=shard or item.get("shardCount")!=6):
-                        raise ValueError("source mismatch")
-                    valid+=1
-                    env=item.get("environment") or {}
-                    for receipt in item.get("receipts") or []:
-                        source=receipt.get("source") or {}
-                        if (receipt.get("schemaVersion")!=2 or receipt.get("resultStatus")!="passed"
-                            or receipt.get("status")!="ok" or source.get("retry")!=0
-                            or source.get("checkoutSha")!=run.get("head_sha")):
+            if run.get("conclusion") != "success":
+                continue
+            run_id = run["id"]
+
+            def read_shard(shard):
+                name = "e2e-timing-ci-shard-" + str(shard)
+                dest = pathlib.Path(temp) / str(run_id) / str(shard)
+                dest.mkdir(parents=True, exist_ok=True)
+                call("run", "download", str(run_id), "--repo", a.repository, "--name", name, "--dir", str(dest))
+                item = json.loads((dest / ("e2e-timing-shard-" + str(shard) + ".json")).read_text())
+                count = item.get("shardCount")
+                if (item.get("schemaVersion") != 1 or item.get("runId") != str(run_id)
+                    or item.get("runAttempt") != run.get("run_attempt")
+                    or item.get("headSha") != run.get("head_sha")
+                    or item.get("eventName") != "push" or item.get("status") != "passed"
+                    or count not in (6, 8) or type(count) is not int
+                    or item.get("shard") != shard):
+                    raise ValueError("source mismatch")
+                return item
+
+            # Read shard 1 first to identify the authenticated historical
+            # 6-way or current 8-way topology. Never accept six of eight as PASS.
+            try:
+                first = read_shard(1)
+                count = first["shardCount"]
+                items = [first]
+                for shard in range(2, count + 1):
+                    item = read_shard(shard)
+                    if item["shardCount"] != count or item["environment"] != first.get("environment"):
+                        raise ValueError("mixed shard count or environment")
+                    items.append(item)
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError,
+                    OSError, ValueError, KeyError, TypeError) as exc:
+                missing.append({"runId": run_id, "reason": "INCOMPLETE_INVALID_OR_EXPIRED_RUN"})
+                continue
+
+            valid += count
+            for shard, item in enumerate(items, 1):
+                env = item.get("environment") or {}
+                for receipt in item.get("receipts") or []:
+                    source = receipt.get("source") or {}
+                    if (receipt.get("schemaVersion") != 2 or receipt.get("resultStatus") != "passed"
+                        or receipt.get("status") != "ok" or source.get("retry") != 0
+                        or source.get("runId") != str(run_id) or source.get("attempt") != run.get("run_attempt")
+                        or source.get("checkoutSha") != run.get("head_sha")):
+                        continue
+                    for stage in receipt.get("stages", []):
+                        duration = stage.get("durationMs")
+                        if (stage.get("outcome") != "ok" or type(duration) not in (int, float)
+                            or not math.isfinite(duration) or duration < 0):
                             continue
-                        for stage in receipt.get("stages",[]):
-                            duration=stage.get("durationMs")
-                            if stage.get("outcome")!="ok" or not isinstance(duration,(int,float)) or not math.isfinite(duration) or duration<0: continue
-                            key=(env.get("os"),env.get("node"),env.get("fullyParallel"),shard,
-                                 source.get("project"),source.get("testId"),stage.get("stage"))
-                            groups[key].append(duration)
-                except (subprocess.CalledProcessError,subprocess.TimeoutExpired,FileNotFoundError,OSError,ValueError,KeyError,TypeError):
-                    missing.append({"runId":run_id,"shard":shard,"reason":"MISSING_INVALID_OR_EXPIRED"})
+                        key = (env.get("os"), env.get("node"), env.get("fullyParallel"), count,
+                               shard, source.get("project"), source.get("testId"), stage.get("stage"))
+                        groups[key].append(duration)
     rows=[]
     for key,values in sorted(groups.items(),key=lambda x:str(x[0])):
         enough=len(values)>=10
@@ -74,7 +98,7 @@ def main():
         output.write("## Issue #751 performance trend (warning only)\n\n")
         output.write("- Recent successful main CI runs: "+str(len(runs))+", valid shard artifacts: "+str(valid)+"\n")
         output.write("- Missing/expired/incomplete: "+str(len(missing))+"; non-success runs: "+str(len(non_success))+"; never interpret as PASS\n")
-        output.write("- Same OS/Node/shard/fullyParallel/stable test ID/stage; minimum 10 successful samples\n")
+        output.write("- Exact complete 6/6 or 8/8 per run; same OS/Node/shardCount/shard/parallelism/stable test ID/stage; minimum 10 independent successful samples\n")
         for row in rows[:30]:
             output.write("- "+str(row["context"][-1])+": n="+str(row["count"])+", P50="+str(row["p50Ms"])+", P95="+str(row["p95Ms"])+" "+row["status"]+"\n")
         if not rows: output.write("- INSUFFICIENT_DATA\n")

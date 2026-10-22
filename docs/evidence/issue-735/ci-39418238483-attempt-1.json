@@ -1,0 +1,1537 @@
+{
+  "schema": "mastergantt-issue735-sanitized-intake-v1",
+  "scope": "READ_ONLY_HISTORICAL_FAILURE_ANALYSIS_NO_MONITORING",
+  "repository": "planner77/masterGantt",
+  "issue": 735,
+  "pr": 757,
+  "historyQuery": {
+    "totalCount": 2,
+    "scope": "branch=feat/issue-735-system-dashboard,event=pull_request,per_page=100",
+    "runs": [
+      {
+        "id": 39418238483,
+        "runNumber": 3054,
+        "attempt": 1,
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "failure",
+        "head": "ee3ec3a4bc0e9a31f7c933e73febac6ed6b6a60e",
+        "path": ".github/workflows/ci.yml",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483"
+      },
+      {
+        "id": 39408703783,
+        "runNumber": 3051,
+        "attempt": 1,
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "failure",
+        "head": "abd410fc4fa1f87be3c7975d2fa960b36f8d8877",
+        "path": ".github/workflows/ci.yml",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39408703783"
+      }
+    ]
+  },
+  "current": {
+    "head": "ee3ec3a4bc0e9a31f7c933e73febac6ed6b6a60e",
+    "base": "05f1e560eee456e6fba5535255c9ede30a357c16",
+    "testMerge": "58406f47670f18781cc70894df9077179a4cba15",
+    "mergeable": true,
+    "mergeableState": "blocked",
+    "main": "05f1e560eee456e6fba5535255c9ede30a357c16",
+    "mainTree": "09ffb59a35b616297e7ed2ec2f6c86743eaf3a93",
+    "reviews": {
+      "reviews": []
+    },
+    "reviewThreads": {
+      "review_threads": []
+    }
+  },
+  "runs": [
+    {
+      "runId": 39408703783,
+      "attempt": 1,
+      "head": "abd410fc4fa1f87be3c7975d2fa960b36f8d8877",
+      "base": "8a0fc9773d33326b40f8d97f6307c17ae0cb6933",
+      "testMerge": "8c9c9c62e4fa38bdfba677ca4a197d2536aea602",
+      "jobs": [
+        {
+          "id": 118580862998,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118580863172,
+          "name": "변경 경로 판정",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118580953089,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118580954416,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 118581043317,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118581043402,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118581043442,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118581043546,
+          "name": "ESLint",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118581045363,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 118581045802,
+          "name": "Next.js production build",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 118581046130,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-20T10:33:18Z",
+          "completedAt": "2026-10-20T10:33:17Z",
+          "failedSteps": []
+        },
+        {
+          "id": 118581535792,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118581617846,
+          "name": "PR Next.js production build",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118581617873,
+          "name": "Docker smoke 구현",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118581617889,
+          "name": "Chromium E2E shard 6/6 · PR",
+          "conclusion": "failure",
+          "startedAt": "2026-10-20T10:34:50Z",
+          "completedAt": "2026-10-20T10:54:37Z",
+          "failedSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행"
+            }
+          ]
+        },
+        {
+          "id": 118581617893,
+          "name": "Chromium E2E shard 1/6 · PR",
+          "conclusion": "cancelled",
+          "startedAt": "2026-10-20T10:34:50Z",
+          "completedAt": "2026-10-20T10:55:09Z",
+          "failedSteps": []
+        },
+        {
+          "id": 118581617922,
+          "name": "Chromium E2E shard 2/6 · PR",
+          "conclusion": "cancelled",
+          "startedAt": "2026-10-20T10:34:50Z",
+          "completedAt": "2026-10-20T10:55:10Z",
+          "failedSteps": []
+        },
+        {
+          "id": 118581617952,
+          "name": "Chromium E2E shard 5/6 · PR",
+          "conclusion": "cancelled",
+          "startedAt": "2026-10-20T10:34:50Z",
+          "completedAt": "2026-10-20T10:55:01Z",
+          "failedSteps": []
+        },
+        {
+          "id": 118581618000,
+          "name": "Chromium E2E shard 3/6 · PR",
+          "conclusion": "cancelled",
+          "startedAt": "2026-10-20T10:34:50Z",
+          "completedAt": "2026-10-20T10:54:50Z",
+          "failedSteps": []
+        },
+        {
+          "id": 118581618158,
+          "name": "Chromium E2E shard 4/6 · PR",
+          "conclusion": "cancelled",
+          "startedAt": "2026-10-20T10:34:50Z",
+          "completedAt": "2026-10-20T10:55:06Z",
+          "failedSteps": []
+        },
+        {
+          "id": 118582352760,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118582489439,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118589429808,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "failedSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계"
+            }
+          ]
+        },
+        {
+          "id": 118589464493,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "failedSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)"
+            }
+          ]
+        },
+        {
+          "id": 118589466133,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "skipped",
+          "failedSteps": []
+        }
+      ]
+    },
+    {
+      "runId": 39418238483,
+      "attempt": 1,
+      "head": "ee3ec3a4bc0e9a31f7c933e73febac6ed6b6a60e",
+      "base": "05f1e560eee456e6fba5535255c9ede30a357c16",
+      "testMerge": "58406f47670f18781cc70894df9077179a4cba15",
+      "jobs": [
+        {
+          "id": 118612418104,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118612418760,
+          "name": "변경 경로 판정",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118612513022,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118612514733,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 118612620731,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118612620795,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118612620898,
+          "name": "ESLint",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118612620969,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118612622275,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 118612622563,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-20T11:54:22Z",
+          "completedAt": "2026-10-20T11:54:21Z",
+          "failedSteps": []
+        },
+        {
+          "id": 118612622670,
+          "name": "Next.js production build",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 118613316007,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118613386030,
+          "name": "PR Next.js production build",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118613386082,
+          "name": "Docker smoke 구현",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118613386177,
+          "name": "Chromium E2E shard 3/6 · PR",
+          "conclusion": "cancelled",
+          "startedAt": "2026-10-20T11:56:19Z",
+          "completedAt": "2026-10-20T12:21:02Z",
+          "failedSteps": []
+        },
+        {
+          "id": 118613386190,
+          "name": "Chromium E2E shard 2/6 · PR",
+          "conclusion": "success",
+          "startedAt": "2026-10-20T11:56:18Z",
+          "completedAt": "2026-10-20T12:19:57Z",
+          "failedSteps": []
+        },
+        {
+          "id": 118613386205,
+          "name": "Chromium E2E shard 4/6 · PR",
+          "conclusion": "success",
+          "startedAt": "2026-10-20T11:56:18Z",
+          "completedAt": "2026-10-20T12:19:31Z",
+          "failedSteps": []
+        },
+        {
+          "id": 118613386214,
+          "name": "Chromium E2E shard 6/6 · PR",
+          "conclusion": "failure",
+          "startedAt": "2026-10-20T11:56:17Z",
+          "completedAt": "2026-10-20T12:20:57Z",
+          "failedSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행"
+            }
+          ]
+        },
+        {
+          "id": 118613386220,
+          "name": "Chromium E2E shard 5/6 · PR",
+          "conclusion": "cancelled",
+          "startedAt": "2026-10-20T11:56:18Z",
+          "completedAt": "2026-10-20T12:21:35Z",
+          "failedSteps": []
+        },
+        {
+          "id": 118613386315,
+          "name": "Chromium E2E shard 1/6 · PR",
+          "conclusion": "cancelled",
+          "startedAt": "2026-10-20T11:56:18Z",
+          "completedAt": "2026-10-20T12:21:40Z",
+          "failedSteps": []
+        },
+        {
+          "id": 118613777916,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118614410211,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 118623821909,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "failedSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계"
+            }
+          ]
+        },
+        {
+          "id": 118623855217,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "failedSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)"
+            }
+          ]
+        },
+        {
+          "id": 118623857662,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "skipped",
+          "failedSteps": []
+        }
+      ]
+    }
+  ],
+  "failureUnion": [
+    {
+      "id": "F735-001",
+      "runId": 39408703783,
+      "jobId": 118581617889,
+      "file": "tests/e2e/project-task-context-menu.spec.ts",
+      "caseLine": 385,
+      "helperLine": 8,
+      "callLine": 413,
+      "error": "apiRequestContext.get: read ECONNRESET",
+      "failureTimestamp": "2026-10-20T10:54:28.1709251Z",
+      "passed": 90,
+      "failed": 1,
+      "didNotRun": 43,
+      "testSummaryMinutes": 18.6
+    },
+    {
+      "id": "F735-002",
+      "runId": 39418238483,
+      "jobId": 118613386214,
+      "file": "tests/e2e/project-task-context-menu.spec.ts",
+      "caseLine": 518,
+      "helperLine": 8,
+      "callLine": 556,
+      "error": "apiRequestContext.get: read ECONNRESET",
+      "failureTimestamp": "2026-10-20T12:20:52.0490293Z",
+      "passed": 95,
+      "failed": 1,
+      "didNotRun": 41,
+      "testSummaryMinutes": 23.8
+    }
+  ],
+  "failureMeaning": "GET transport failure before HTTP200/JSON assertion; no expected/actual business data mismatch established",
+  "cancelledShardLogIntake": {
+    "allAccessible": true,
+    "missingLogIds": [],
+    "additionalActualTestFailures": [],
+    "notes": [
+      "Cancelled jobs remain CANCELLED even when their test summary contains passes.",
+      "Latest Shard2 SUCCESS133PASS1skip; Shard4 SUCCESS159PASS1skip; cancelled Shard3 summary107PASS1skip.",
+      "Old F735-001 CopyID test passed25.3s and fallback passed7.0s in #3054.1."
+    ]
+  },
+  "artifacts": [
+    {
+      "runId": 39418238483,
+      "id": 12264615069,
+      "name": "e2e-timing-ci-shard-6",
+      "size": 1093,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12264615069"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12264280488,
+      "name": "ci-setup-metrics-e2e-shard-6",
+      "size": 555,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12264280488"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12264015775,
+      "name": "ci-setup-metrics-e2e-shard-3",
+      "size": 556,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12264015775"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12263975171,
+      "name": "ci-setup-metrics-e2e-shard-4",
+      "size": 558,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12263975171"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12263609782,
+      "name": "playwright-report-shard-6",
+      "size": 4578299,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12263609782"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12263434795,
+      "name": "ci-setup-metrics-e2e-shard-1",
+      "size": 559,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12263434795"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12263415929,
+      "name": "planner77~masterGantt~ZTMP0C.dockerbuild",
+      "size": 46164,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12263415929"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12263335664,
+      "name": "ci-setup-metrics-build",
+      "size": 511,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12263335664"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12263180915,
+      "name": "ci-setup-metrics-docker",
+      "size": 488,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12263180915"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12263149882,
+      "name": "e2e-timing-ci-shard-3",
+      "size": 1227,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12263149882"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12262884697,
+      "name": "qa-final-automated-39418238483-1",
+      "size": 431,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12262884697"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12262680483,
+      "name": "ci-pr-source-39418238483-1",
+      "size": 415,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12262680483"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12262624795,
+      "name": "ci-setup-metrics-e2e-shard-5",
+      "size": 557,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12262624795"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12262544685,
+      "name": "ci-setup-metrics-e2e-shard-2",
+      "size": 557,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12262544685"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12262409883,
+      "name": "e2e-timing-ci-shard-2",
+      "size": 1363,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12262409883"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12262359952,
+      "name": "e2e-timing-ci-shard-4",
+      "size": 1491,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12262359952"
+    },
+    {
+      "runId": 39418238483,
+      "id": 12261824893,
+      "name": "qa-preflight-39418238483-1",
+      "size": 1232,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483/artifacts/12261824893"
+    }
+  ],
+  "classification": {
+    "direct": "TRANSPORT",
+    "rootCause": "UNKNOWN",
+    "capacityFailure": "NOT_PROVEN",
+    "assertionFailure": "NOT_OBSERVED",
+    "redistributionRecommendation": "NO_EVIDENCE_FOR_SHARD_MOVE; elapsed time does not establish memory/process capacity failure"
+  },
+  "failureDiagnostics": [
+    {
+      "runNumber": 3051,
+      "reason": "test_failure",
+      "health": {
+        "status": 200,
+        "durationMs": 19,
+        "failure": null
+      },
+      "beforeProbe": {
+        "elapsedMs": 24383,
+        "processes": [
+          {
+            "generation": 1,
+            "exitCode": null,
+            "signal": null,
+            "expectedShutdown": false,
+            "alive": true
+          }
+        ],
+        "lifecycle": [
+          {
+            "event": "spawn",
+            "generation": 1,
+            "expectedShutdown": false,
+            "elapsedMs": 353
+          }
+        ],
+        "requestCount": 0,
+        "stdout": {
+          "eventCounts": {
+            "http_request_completed": 25
+          },
+          "nextDevMessageCount": 0,
+          "classificationCodes": []
+        },
+        "stderr": {
+          "eventCounts": {
+            "http_request_rejected": 2,
+            "http_request_completed": 2
+          },
+          "nextDevMessageCount": 0,
+          "classificationCodes": []
+        }
+      },
+      "afterProbe": {
+        "elapsedMs": 24403,
+        "processes": [
+          {
+            "generation": 1,
+            "exitCode": null,
+            "signal": null,
+            "expectedShutdown": false,
+            "alive": true
+          }
+        ],
+        "lifecycle": [
+          {
+            "event": "spawn",
+            "generation": 1,
+            "expectedShutdown": false,
+            "elapsedMs": 353
+          }
+        ],
+        "requestCount": 0,
+        "stdout": {
+          "eventCounts": {
+            "http_request_completed": 25
+          },
+          "nextDevMessageCount": 0,
+          "classificationCodes": []
+        },
+        "stderr": {
+          "eventCounts": {
+            "http_request_rejected": 2,
+            "http_request_completed": 2
+          },
+          "nextDevMessageCount": 0,
+          "classificationCodes": []
+        }
+      },
+      "baselineResources": {
+        "hostFreeBytes": 12308516864,
+        "hostTotalBytes": 16760344576,
+        "workerRssBytes": 314187776,
+        "workerHeapUsedBytes": 101965088,
+        "processTreeTruncated": false,
+        "cgroup": {
+          "currentBytes": 6916947968,
+          "maxBytes": null,
+          "oom": 0,
+          "oomKill": 0
+        },
+        "processRssKbSum": 1899352
+      },
+      "resources": {
+        "hostFreeBytes": 11523710976,
+        "hostTotalBytes": 16760344576,
+        "workerRssBytes": 315195392,
+        "workerHeapUsedBytes": 89102608,
+        "processTreeTruncated": false,
+        "cgroup": {
+          "currentBytes": 7632392192,
+          "maxBytes": null,
+          "oom": 0,
+          "oomKill": 0
+        },
+        "processRssKbSum": 2439696
+      }
+    },
+    {
+      "runNumber": 3054,
+      "reason": "test_failure",
+      "health": {
+        "status": 200,
+        "durationMs": 16,
+        "failure": null
+      },
+      "beforeProbe": {
+        "elapsedMs": 25817,
+        "processes": [
+          {
+            "generation": 1,
+            "exitCode": null,
+            "signal": null,
+            "expectedShutdown": false,
+            "alive": true
+          }
+        ],
+        "lifecycle": [
+          {
+            "event": "spawn",
+            "generation": 1,
+            "expectedShutdown": false,
+            "elapsedMs": 391
+          }
+        ],
+        "requestCount": 0,
+        "stdout": {
+          "eventCounts": {
+            "http_request_completed": 25
+          },
+          "nextDevMessageCount": 0,
+          "classificationCodes": []
+        },
+        "stderr": {
+          "eventCounts": {
+            "http_request_rejected": 2,
+            "http_request_completed": 2
+          },
+          "nextDevMessageCount": 0,
+          "classificationCodes": []
+        }
+      },
+      "afterProbe": {
+        "elapsedMs": 25833,
+        "processes": [
+          {
+            "generation": 1,
+            "exitCode": null,
+            "signal": null,
+            "expectedShutdown": false,
+            "alive": true
+          }
+        ],
+        "lifecycle": [
+          {
+            "event": "spawn",
+            "generation": 1,
+            "expectedShutdown": false,
+            "elapsedMs": 391
+          }
+        ],
+        "requestCount": 0,
+        "stdout": {
+          "eventCounts": {
+            "http_request_completed": 25
+          },
+          "nextDevMessageCount": 0,
+          "classificationCodes": []
+        },
+        "stderr": {
+          "eventCounts": {
+            "http_request_rejected": 2,
+            "http_request_completed": 2
+          },
+          "nextDevMessageCount": 0,
+          "classificationCodes": []
+        }
+      },
+      "baselineResources": {
+        "hostFreeBytes": 12246949888,
+        "hostTotalBytes": 16760340480,
+        "workerRssBytes": 298262528,
+        "workerHeapUsedBytes": 103537136,
+        "processTreeTruncated": false,
+        "cgroup": {
+          "currentBytes": 7008858112,
+          "maxBytes": null,
+          "oom": 0,
+          "oomKill": 0
+        },
+        "processRssKbSum": 1886412
+      },
+      "resources": {
+        "hostFreeBytes": 11542183936,
+        "hostTotalBytes": 16760340480,
+        "workerRssBytes": 296714240,
+        "workerHeapUsedBytes": 89401512,
+        "processTreeTruncated": false,
+        "cgroup": {
+          "currentBytes": 7670308864,
+          "maxBytes": null,
+          "oom": 0,
+          "oomKill": 0
+        },
+        "processRssKbSum": 2426640
+      }
+    }
+  ],
+  "timingArtifacts": [
+    {
+      "artifactId": 12264615069,
+      "runId": "39418238483",
+      "runAttempt": 1,
+      "headSha": "58406f47670f18781cc70894df9077179a4cba15",
+      "eventName": "pull_request",
+      "shard": 6,
+      "shardCount": 6,
+      "status": "failed",
+      "runnerReadyMs": 12284,
+      "observedSummedCaseDurationMs": 1041320,
+      "observedUniqueFiles": 16,
+      "fileAggregates": [
+        {
+          "file": "tests/e2e/gantt-adapter-poc.spec.ts",
+          "entries": 11,
+          "durationMs": 110930
+        },
+        {
+          "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+          "entries": 16,
+          "durationMs": 74873
+        },
+        {
+          "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+          "entries": 3,
+          "durationMs": 169609
+        },
+        {
+          "file": "tests/e2e/issue-730-view-composer.spec.ts",
+          "entries": 6,
+          "durationMs": 243693
+        },
+        {
+          "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+          "entries": 28,
+          "durationMs": 92605
+        },
+        {
+          "file": "tests/e2e/milestone-exchange-state.spec.ts",
+          "entries": 9,
+          "durationMs": 38029
+        },
+        {
+          "file": "tests/e2e/milestone-management-persistence.spec.ts",
+          "entries": 3,
+          "durationMs": 90759
+        },
+        {
+          "file": "tests/e2e/milestone-stage-grid-mock.spec.ts",
+          "entries": 4,
+          "durationMs": 18215
+        },
+        {
+          "file": "tests/e2e/project-browser-title-favicon.spec.ts",
+          "entries": 1,
+          "durationMs": 34850
+        },
+        {
+          "file": "tests/e2e/project-context-toolbar-responsive.spec.ts",
+          "entries": 4,
+          "durationMs": 37084
+        },
+        {
+          "file": "tests/e2e/project-create-and-read.spec.ts",
+          "entries": 2,
+          "durationMs": 22761
+        },
+        {
+          "file": "tests/e2e/project-gantt-density.spec.ts",
+          "entries": 1,
+          "durationMs": 5278
+        },
+        {
+          "file": "tests/e2e/project-links-persistence.spec.ts",
+          "entries": 1,
+          "durationMs": 23978
+        },
+        {
+          "file": "tests/e2e/project-modal-feedback.spec.ts",
+          "entries": 1,
+          "durationMs": 3450
+        },
+        {
+          "file": "tests/e2e/project-summary-bar-visual.spec.ts",
+          "entries": 1,
+          "durationMs": 6263
+        },
+        {
+          "file": "tests/e2e/project-task-context-menu.spec.ts",
+          "entries": 4,
+          "durationMs": 68943
+        }
+      ]
+    },
+    {
+      "artifactId": 12263149882,
+      "runId": "39418238483",
+      "runAttempt": 1,
+      "headSha": "58406f47670f18781cc70894df9077179a4cba15",
+      "eventName": "pull_request",
+      "shard": 3,
+      "shardCount": 6,
+      "status": "passed",
+      "runnerReadyMs": 11973,
+      "observedSummedCaseDurationMs": 934781,
+      "observedUniqueFiles": 23,
+      "fileAggregates": [
+        {
+          "file": "tests/e2e/core-action-trace.spec.ts",
+          "entries": 2,
+          "durationMs": 4648
+        },
+        {
+          "file": "tests/e2e/cross-screen-regression.spec.ts",
+          "entries": 3,
+          "durationMs": 11053
+        },
+        {
+          "file": "tests/e2e/derived-dialog-recovery.spec.ts",
+          "entries": 31,
+          "durationMs": 90263
+        },
+        {
+          "file": "tests/e2e/inline-name-persistence.spec.ts",
+          "entries": 2,
+          "durationMs": 40564
+        },
+        {
+          "file": "tests/e2e/issue-621-resource-target.spec.ts",
+          "entries": 5,
+          "durationMs": 164669
+        },
+        {
+          "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+          "entries": 7,
+          "durationMs": 193963
+        },
+        {
+          "file": "tests/e2e/issue-717-identity-persistence.spec.ts",
+          "entries": 1,
+          "durationMs": 20672
+        },
+        {
+          "file": "tests/e2e/issue-717-name-first.spec.ts",
+          "entries": 6,
+          "durationMs": 25609
+        },
+        {
+          "file": "tests/e2e/issue-725-process-workareas.spec.ts",
+          "entries": 2,
+          "durationMs": 68626
+        },
+        {
+          "file": "tests/e2e/issue-726-logistics-master.spec.ts",
+          "entries": 1,
+          "durationMs": 22595
+        },
+        {
+          "file": "tests/e2e/logistics-type-catalog-admin.spec.ts",
+          "entries": 2,
+          "durationMs": 2062
+        },
+        {
+          "file": "tests/e2e/master-controls-density.spec.ts",
+          "entries": 12,
+          "durationMs": 15877
+        },
+        {
+          "file": "tests/e2e/milestone-stage-grid.spec.ts",
+          "entries": 1,
+          "durationMs": 26395
+        },
+        {
+          "file": "tests/e2e/project-edit-permission-recheck.spec.ts",
+          "entries": 2,
+          "durationMs": 10736
+        },
+        {
+          "file": "tests/e2e/project-gantt-inline-start-date.spec.ts",
+          "entries": 4,
+          "durationMs": 17513
+        },
+        {
+          "file": "tests/e2e/project-master-admin.spec.ts",
+          "entries": 7,
+          "durationMs": 5523
+        },
+        {
+          "file": "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+          "entries": 1,
+          "durationMs": 8986
+        },
+        {
+          "file": "tests/e2e/project-status.spec.ts",
+          "entries": 5,
+          "durationMs": 30553
+        },
+        {
+          "file": "tests/e2e/resource-drill-api.spec.ts",
+          "entries": 1,
+          "durationMs": 24853
+        },
+        {
+          "file": "tests/e2e/resource-excel-export-ui.spec.ts",
+          "entries": 3,
+          "durationMs": 34386
+        },
+        {
+          "file": "tests/e2e/resource-global-roles.spec.ts",
+          "entries": 1,
+          "durationMs": 2619
+        },
+        {
+          "file": "tests/e2e/resource-target-dashboard-api.spec.ts",
+          "entries": 1,
+          "durationMs": 58390
+        },
+        {
+          "file": "tests/e2e/task-editor-form-density.spec.ts",
+          "entries": 7,
+          "durationMs": 54226
+        }
+      ]
+    },
+    {
+      "artifactId": 12262409883,
+      "runId": "39418238483",
+      "runAttempt": 1,
+      "headSha": "58406f47670f18781cc70894df9077179a4cba15",
+      "eventName": "pull_request",
+      "shard": 2,
+      "shardCount": 6,
+      "status": "passed",
+      "runnerReadyMs": 11701,
+      "observedSummedCaseDurationMs": 892215,
+      "observedUniqueFiles": 23,
+      "fileAggregates": [
+        {
+          "file": "tests/e2e/admin-auth-layout.spec.ts",
+          "entries": 3,
+          "durationMs": 10452
+        },
+        {
+          "file": "tests/e2e/canonical-projection.spec.ts",
+          "entries": 21,
+          "durationMs": 85157
+        },
+        {
+          "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+          "entries": 9,
+          "durationMs": 77018
+        },
+        {
+          "file": "tests/e2e/issue-624-logistics-unified.spec.ts",
+          "entries": 1,
+          "durationMs": 35137
+        },
+        {
+          "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+          "entries": 12,
+          "durationMs": 50881
+        },
+        {
+          "file": "tests/e2e/logistics-table-density.spec.ts",
+          "entries": 12,
+          "durationMs": 15684
+        },
+        {
+          "file": "tests/e2e/milestone-stage-editor.spec.ts",
+          "entries": 1,
+          "durationMs": 45366
+        },
+        {
+          "file": "tests/e2e/milestone-wbs-mode.spec.ts",
+          "entries": 1,
+          "durationMs": 3826
+        },
+        {
+          "file": "tests/e2e/project-create-isolation.spec.ts",
+          "entries": 2,
+          "durationMs": 2904
+        },
+        {
+          "file": "tests/e2e/project-create-layout.spec.ts",
+          "entries": 7,
+          "durationMs": 8824
+        },
+        {
+          "file": "tests/e2e/project-gantt-inline-name.spec.ts",
+          "entries": 13,
+          "durationMs": 65889
+        },
+        {
+          "file": "tests/e2e/project-json-import.spec.ts",
+          "entries": 1,
+          "durationMs": 2222
+        },
+        {
+          "file": "tests/e2e/project-master-relations.spec.ts",
+          "entries": 4,
+          "durationMs": 2982
+        },
+        {
+          "file": "tests/e2e/project-notifications.spec.ts",
+          "entries": 14,
+          "durationMs": 50070
+        },
+        {
+          "file": "tests/e2e/project-resource-workload-status.spec.ts",
+          "entries": 9,
+          "durationMs": 58016
+        },
+        {
+          "file": "tests/e2e/project-task-persistence.spec.ts",
+          "entries": 1,
+          "durationMs": 24609
+        },
+        {
+          "file": "tests/e2e/project-transfer-layout-491.spec.ts",
+          "entries": 8,
+          "durationMs": 158762
+        },
+        {
+          "file": "tests/e2e/project-workspace-layout.spec.ts",
+          "entries": 2,
+          "durationMs": 11561
+        },
+        {
+          "file": "tests/e2e/resource-drill-dashboard.spec.ts",
+          "entries": 2,
+          "durationMs": 8160
+        },
+        {
+          "file": "tests/e2e/resource-kpi-integration-api.spec.ts",
+          "entries": 1,
+          "durationMs": 28882
+        },
+        {
+          "file": "tests/e2e/resource-plan-api.spec.ts",
+          "entries": 1,
+          "durationMs": 26436
+        },
+        {
+          "file": "tests/e2e/resource-plan-ui.spec.ts",
+          "entries": 1,
+          "durationMs": 18201
+        },
+        {
+          "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+          "entries": 7,
+          "durationMs": 101176
+        }
+      ]
+    },
+    {
+      "artifactId": 12262359952,
+      "runId": "39418238483",
+      "runAttempt": 1,
+      "headSha": "58406f47670f18781cc70894df9077179a4cba15",
+      "eventName": "pull_request",
+      "shard": 4,
+      "shardCount": 6,
+      "status": "passed",
+      "runnerReadyMs": 9106,
+      "observedSummedCaseDurationMs": 791400,
+      "observedUniqueFiles": 22,
+      "fileAggregates": [
+        {
+          "file": "tests/e2e/gantt-demo.spec.ts",
+          "entries": 4,
+          "durationMs": 3382
+        },
+        {
+          "file": "tests/e2e/logistics-target-authoring.spec.ts",
+          "entries": 7,
+          "durationMs": 163973
+        },
+        {
+          "file": "tests/e2e/milestone-stage-gates.spec.ts",
+          "entries": 1,
+          "durationMs": 20082
+        },
+        {
+          "file": "tests/e2e/milestone-visibility-persistence.spec.ts",
+          "entries": 3,
+          "durationMs": 35827
+        },
+        {
+          "file": "tests/e2e/milestone-visibility.spec.ts",
+          "entries": 16,
+          "durationMs": 62784
+        },
+        {
+          "file": "tests/e2e/project-list-search-filter.spec.ts",
+          "entries": 9,
+          "durationMs": 13096
+        },
+        {
+          "file": "tests/e2e/project-logistics-management.spec.ts",
+          "entries": 12,
+          "durationMs": 37060
+        },
+        {
+          "file": "tests/e2e/project-resource-memberships-ui.spec.ts",
+          "entries": 10,
+          "durationMs": 31020
+        },
+        {
+          "file": "tests/e2e/project-settings-dialog-layout.spec.ts",
+          "entries": 1,
+          "durationMs": 5579
+        },
+        {
+          "file": "tests/e2e/project-settings-layout-490.spec.ts",
+          "entries": 6,
+          "durationMs": 71776
+        },
+        {
+          "file": "tests/e2e/project-task-delete-context.spec.ts",
+          "entries": 7,
+          "durationMs": 79536
+        },
+        {
+          "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "entries": 3,
+          "durationMs": 60660
+        },
+        {
+          "file": "tests/e2e/project-work-calendar-preview.spec.ts",
+          "entries": 3,
+          "durationMs": 23647
+        },
+        {
+          "file": "tests/e2e/resource-admin-layout.spec.ts",
+          "entries": 1,
+          "durationMs": 2317
+        },
+        {
+          "file": "tests/e2e/resource-catalog-delete.spec.ts",
+          "entries": 2,
+          "durationMs": 2666
+        },
+        {
+          "file": "tests/e2e/resource-dashboard-ui.spec.ts",
+          "entries": 1,
+          "durationMs": 16486
+        },
+        {
+          "file": "tests/e2e/resource-error-recovery.spec.ts",
+          "entries": 27,
+          "durationMs": 28684
+        },
+        {
+          "file": "tests/e2e/resource-excel-export-dashboard.spec.ts",
+          "entries": 3,
+          "durationMs": 8429
+        },
+        {
+          "file": "tests/e2e/resource-tabs.spec.ts",
+          "entries": 11,
+          "durationMs": 17612
+        },
+        {
+          "file": "tests/e2e/task-context-menu-scroll.spec.ts",
+          "entries": 2,
+          "durationMs": 5626
+        },
+        {
+          "file": "tests/e2e/task-link-load-safety.spec.ts",
+          "entries": 22,
+          "durationMs": 65099
+        },
+        {
+          "file": "tests/e2e/viewport-coordinator.spec.ts",
+          "entries": 8,
+          "durationMs": 36059
+        }
+      ]
+    }
+  ],
+  "setupArtifacts": [
+    {
+      "artifactId": 12262624795,
+      "durationMsSum": 42093,
+      "metrics": [
+        {
+          "metric": "checkout",
+          "durationMs": 5967,
+          "cache": "n/a"
+        },
+        {
+          "metric": "setup-node",
+          "durationMs": 1004,
+          "cache": "n/a"
+        },
+        {
+          "metric": "npm-cache",
+          "durationMs": 2176,
+          "cache": "exact-hit=true"
+        },
+        {
+          "metric": "npm-ci",
+          "durationMs": 15660,
+          "cache": "n/a"
+        },
+        {
+          "metric": "playwright-os-deps",
+          "durationMs": 13069,
+          "cache": "not-enabled"
+        },
+        {
+          "metric": "playwright-headless-shell",
+          "durationMs": 4217,
+          "cache": "not-enabled"
+        }
+      ]
+    },
+    {
+      "artifactId": 12264015775,
+      "durationMsSum": 50113,
+      "metrics": [
+        {
+          "metric": "checkout",
+          "durationMs": 7122,
+          "cache": "n/a"
+        },
+        {
+          "metric": "setup-node",
+          "durationMs": 683,
+          "cache": "n/a"
+        },
+        {
+          "metric": "npm-cache",
+          "durationMs": 4198,
+          "cache": "exact-hit=true"
+        },
+        {
+          "metric": "npm-ci",
+          "durationMs": 16218,
+          "cache": "n/a"
+        },
+        {
+          "metric": "playwright-os-deps",
+          "durationMs": 17014,
+          "cache": "not-enabled"
+        },
+        {
+          "metric": "playwright-headless-shell",
+          "durationMs": 4878,
+          "cache": "not-enabled"
+        }
+      ]
+    },
+    {
+      "artifactId": 12264280488,
+      "durationMsSum": 43890,
+      "metrics": [
+        {
+          "metric": "checkout",
+          "durationMs": 6147,
+          "cache": "n/a"
+        },
+        {
+          "metric": "setup-node",
+          "durationMs": 643,
+          "cache": "n/a"
+        },
+        {
+          "metric": "npm-cache",
+          "durationMs": 1865,
+          "cache": "exact-hit=true"
+        },
+        {
+          "metric": "npm-ci",
+          "durationMs": 15476,
+          "cache": "n/a"
+        },
+        {
+          "metric": "playwright-os-deps",
+          "durationMs": 15461,
+          "cache": "not-enabled"
+        },
+        {
+          "metric": "playwright-headless-shell",
+          "durationMs": 4298,
+          "cache": "not-enabled"
+        }
+      ]
+    },
+    {
+      "artifactId": 12262544685,
+      "durationMsSum": 43163,
+      "metrics": [
+        {
+          "metric": "checkout",
+          "durationMs": 6543,
+          "cache": "n/a"
+        },
+        {
+          "metric": "setup-node",
+          "durationMs": 555,
+          "cache": "n/a"
+        },
+        {
+          "metric": "npm-cache",
+          "durationMs": 2247,
+          "cache": "exact-hit=true"
+        },
+        {
+          "metric": "npm-ci",
+          "durationMs": 13744,
+          "cache": "n/a"
+        },
+        {
+          "metric": "playwright-os-deps",
+          "durationMs": 15695,
+          "cache": "not-enabled"
+        },
+        {
+          "metric": "playwright-headless-shell",
+          "durationMs": 4379,
+          "cache": "not-enabled"
+        }
+      ]
+    },
+    {
+      "artifactId": 12263975171,
+      "durationMsSum": 61146,
+      "metrics": [
+        {
+          "metric": "checkout",
+          "durationMs": 10553,
+          "cache": "n/a"
+        },
+        {
+          "metric": "setup-node",
+          "durationMs": 550,
+          "cache": "n/a"
+        },
+        {
+          "metric": "npm-cache",
+          "durationMs": 2844,
+          "cache": "exact-hit=true"
+        },
+        {
+          "metric": "npm-ci",
+          "durationMs": 12492,
+          "cache": "n/a"
+        },
+        {
+          "metric": "playwright-os-deps",
+          "durationMs": 31556,
+          "cache": "not-enabled"
+        },
+        {
+          "metric": "playwright-headless-shell",
+          "durationMs": 3151,
+          "cache": "not-enabled"
+        }
+      ]
+    },
+    {
+      "artifactId": 12263434795,
+      "durationMsSum": 59023,
+      "metrics": [
+        {
+          "metric": "checkout",
+          "durationMs": 7115,
+          "cache": "n/a"
+        },
+        {
+          "metric": "setup-node",
+          "durationMs": 683,
+          "cache": "n/a"
+        },
+        {
+          "metric": "npm-cache",
+          "durationMs": 3704,
+          "cache": "exact-hit=true"
+        },
+        {
+          "metric": "npm-ci",
+          "durationMs": 17024,
+          "cache": "n/a"
+        },
+        {
+          "metric": "playwright-os-deps",
+          "durationMs": 25965,
+          "cache": "not-enabled"
+        },
+        {
+          "metric": "playwright-headless-shell",
+          "durationMs": 4532,
+          "cache": "not-enabled"
+        }
+      ]
+    }
+  ],
+  "evidenceBoundary": "Historical observations only. Cancelled/partial timing is not a successful-run performance baseline. No raw log, trace, auth headers, cookies, response body or operational DB retained."
+}

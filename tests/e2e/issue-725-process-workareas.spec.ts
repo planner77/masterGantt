@@ -5,7 +5,16 @@ import { openWorkspaceView } from "./helpers/workspace-navigation";
 import type { LogisticsMutationResponse, ProjectLogisticsResponse } from "../../src/contracts/logistics";
 import type { ProcessCatalogResponse } from "../../src/contracts/process-catalog";
 
-test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword, viewport: { width: 1440, height: 1000 } });
+// #733 F733-007: #3047.1 captured Next 16 Webpack dev manifest JSON
+// parse failure (HTML500) in the real canonical Project GET, after 4 HTTP200.
+// Default Turbopack avoids the documented Webpack manifest race; retain
+// #733 F733-005 fresh dist per restart and serial, read-only route precompile
+// for this suite to address prior Turbopack restart HTML404 (#3043).
+// Exact GET405 / PATCH200 / Task GET200 and all original assertions remain.
+test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword,
+  isolatedDevBundler: "turbopack", isolatedRouteWarmup: "process-workareas",
+  isolatedFreshDistOnRestart: true,
+  viewport: { width: 1440, height: 1000 } });
 
 test.afterEach(async ({ page }, info) => {
   if (info.status === info.expectedStatus || page.isClosed()) return;
@@ -267,7 +276,10 @@ test("#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연�
   // route after the isolated restart. This warms route registration before
   // real UI writes without retrying or faking any equipment PATCH response.
   const equipmentPatchPath = `/api/projects/${f.publicId}/logistics/equipment/${equipmentId}`;
-  await restartIsolatedApplication(equipmentPatchPath);
+  const taskContextPath = `/api/projects/${f.publicId}/tasks/${f.task.taskId}/process-context`;
+  // #730 F730-014: warm both independent dynamic handlers using read-only
+  // GET contracts before real post-restart UI PATCH and Task context GET/PUT.
+  await restartIsolatedApplication(equipmentPatchPath, taskContextPath);
   const submitVerifiedPostRestartEdit = async (editDialog: Locator) => {
     const responsePromise = page.waitForResponse(response =>
       response.request().method() === "PATCH" &&
@@ -308,10 +320,12 @@ test("#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연�
   await targets();
   // #726 owns the editor controls. #725 supplies this persisted direct API contract:
   // null (legacy not introduced) is distinct from an explicit empty collection.
-  const taskContextUrl = `${f.api}/tasks/${f.task.taskId}/process-context`;
+  const taskContextUrl = `${origin}${taskContextPath}`;
   const readTaskContext = async () => {
     const response = await page.request.get(taskContextUrl);
-    expect(response.status()).toBe(200);
+    const contentType = response.headers()["content-type"] ?? "";
+    expect(response.status(), `Task context GET 응답 MIME: ${contentType}`).toBe(200);
+    expect(contentType).toContain("application/json");
     return (await response.json()).data.context;
   };
   expect((await readTaskContext()).processLinks).toBeNull();

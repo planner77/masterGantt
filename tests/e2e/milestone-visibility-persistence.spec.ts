@@ -1,3 +1,4 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import type { APIResponse, Page, TestInfo } from "@playwright/test";
 import { writeFile } from "node:fs/promises";
@@ -123,7 +124,7 @@ test("#552 실제 UI Summary Copy는 숨은 Milestone·내부 관계·소속 전
   const observe = (request: import("@playwright/test").Request) => {
     const path = new URL(request.url()).pathname;
     if (path === f.api && request.method() === "GET") toggleProjectGets++;
-    if (path.startsWith(f.api) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method())) toggleMutations++;
+    if (path.startsWith(f.api) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !isWbsViewReadQuery(request)) toggleMutations++;
   };
   page.on("request", observe);
   await expect(page.getByRole("button", { name: "◆ Milestone 표시", exact: true })).toHaveCount(0);

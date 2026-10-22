@@ -1,0 +1,109 @@
+# Issue #770 — trusted impact classifier & Shadow full-CI observation
+
+## Issue #770 — main #767 동기화/8-way Shadow 설계 교정 (2026-10-22)
+
+- 직전 Full PR CI [#3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)는 원본 Head `b53a15de9aaee3ce96887b3ec24446bc482e2c81`의 Quality/Chromium 6/6/Docker/QA Final **성공**, Trusted QA [#747.1](https://github.com/planner77/masterGantt/actions/runs/39700558664) **성공**. 사용자가 보고한 이후 상태는 실패한 실제 Full Run이 아닌 **main 10커밋 진전 및 PR mergeable=false**다. 이전 실패 기록 F770-001/002는 별도 보존한다.
+- 새 기준 main: `81c28fa5502caee27e98d4d293b0b1b28e6340dd`, app `0.129.1`, [#767](https://github.com/planner77/masterGantt/issues/767)의 공식 E2E 8-shard 및 Build/QA/Main/Release 보호 경로. 원 브랜치의 문서/분류기 원본은 6-shard/0.129.0 baseline이므로 **이 섹션의 8-shard 기준이 현재 운영 설계에 우선**한다. 표의 과거 10회 6/6 기록은 역사 자료이고 현재 8/8 실측이 아니다.
+- 기존 `.github/workflows/ci.yml`의 main 8-way 행렬/35m/Full Required3를 보존하고 #770 비차단 `impact_shadow`/정책 회귀만 통합. `scripts/ci_impact_plan.py`은 authenticated base `tests/config/e2e-shard-plan.json`의 schemaVersion/shardCount/1..N unique group 검증 후 current N=8의 Job 이름, 완료/누락, ZIP 8개/shardCount 값을 대조한다. outdated 6/6 evidence와 missing/forged plan → UNKNOWN. Shadow는 Required PASS/릴리스 권한 증명이 아니다.
+- `tests/python/test_ci_impact_plan.py`: 8-way successful/missing, 6-way legacy input 거부, trusted plan 변경·누락 및 기존 stdin/skip/forged source negative 회귀. 실 Unit/Python/Chromium Runner의 새 Head 결과는 **NOT TESTED**, Full PR CI 시작 후 Run ID/Attempt 수집하여 별도 확인할 것.
+- 변경 파일 정렬: workflow 8-way main을 우선, AGENTS/CI_CD/REMOTE_VALIDATION/TEST_PLAN/PLAN은 신규 #770 업데이트 prefix + latest main 전체 문서를 병합. #767 앱/UI/리소스·테스트 sharding/정식 릴리스 보존, Issue #770 앱 버전 업 금지.
+- [이슈별 실패 및 main drift 원장](../../ISSUE_770_FAILURE_ANALYSIS.md) R770-MAIN-001 참고. Risk HIGH, OWNER_MANAGED, qa_required=true, manager_decision=NOT TESTED, release_required=false, release_authorized=false. 최신 main strict 및 full Quality/Chromium 8/8/Docker/Trusted/Owner HIGH 승인 이전 MERGE_READY=BLOCKED. 이번 작업 요청은 새 PR CI 시작까지이며 모니터링·병합·GHCR·Issue 종료 미진행.
+
+
+- Primary Issue: [#770](https://github.com/planner77/masterGantt/issues/770), Epic [#769](https://github.com/planner77/masterGantt/issues/769).
+- 2026-10-22 baseline: main `71f9b9ddb61be7f6e076accc027188f362e18bb1`, branch `ci/issue-770-trusted-impact-shadow`; application version `0.129.0` stays unchanged.
+- Approval scope: Owner's subsequent instruction requests implementation and PR CI, **not** merge/production, GHCR or Release authorization. The old Issue description's registration-only boundary is superseded only for implementation and PR CI.
+- `risk_level: HIGH`; `qa_method: OWNER_MANAGED`; `qa_required: true`; `independent_qa: N/A(OWNER_MANAGED)`; `manager_decision: NOT TESTED`.
+- `release_required: false`; `release_authorized: false` (CI/QA infrastructure-only, no application behavior or SemVer change).
+- Main/Ruleset/Release/QA/Finalizer/Rollback authority: **UNCHANGED**. No self-approved risk reduction.
+- Owners: Manager (scope and acceptance), infra (CI read-only classifier), QA (trusted validation after new exact-head full PR CI).
+
+## PR #774 F770-001/F770-002 교정 — 2026-10-22
+
+- 원본 [Full #3101.1](https://github.com/planner77/masterGantt/actions/runs/39688555697): trusted QA Preflight/Bootstrap가 PR risk/QA 필드 선언과 Issue A1~A7을 거절해 PR Fast Gate 차단, 실제 Unit/E2E6/Docker 미실행. 제품·Chromium 결함으로 단정 불가.
+- [Metadata #3103.1](https://github.com/planner77/masterGantt/actions/runs/39691582062): 같은 Head의 실패한 Full #3101.1을 확인해 metadata-only FAIL. 별도의 Full PASS로 위장하거나 원본 결과를 소급 교체 금지.
+- PR body standalone `risk_level: HIGH` / `qa_method: OWNER_MANAGED` / `qa_required: true`와 Issue의 AC1~AC7 식별자를 교정했고 실제 수용 의미/정식 릴리스 권한은 보존함.
+- 리뷰 P1: Python이 Node 단일 argv로 약 277 KB graph 전달→Linux E2BIG; trusted Node 정책은 그대로 두고 JSON을 stdin으로 전달하며 실제 200KB 이상 인벤토리 회귀 테스트 추가.
+- 리뷰 P2: 기존 E2E reporter의 passed-only `entries` 구조를 유지하고 별도 `skippedFiles` / `skippedCaseCount` 기록. `resource-tabs.spec.ts`의 정상 skip을 실행 누락과 구분, skipped≠PASS·time saved 0, 누락/구형/오염된 원본은 UNKNOWN.
+- 정규 누적 실패 문서: [Issue #770 failure ledger](../../ISSUE_770_FAILURE_ANALYSIS.md). CI/QA/Ruleset/Full six shards unchanged. `release_required=false` / `release_authorized=false`, 신규 exact Head Full PR CI 및 Trusted QA/Owner HIGH 수용 전 `MERGE_READY=BLOCKED`.
+
+---
+## Design & trust boundary
+
+1. `.github/workflows/ci.yml` appends `impact_shadow`, a separately named **nonblocking** advisory job after Quality/E2E/Docker results; it does not feed those aggregate `needs` or any QA/Release consumer. Existing PR 6-shard, Main 6-shard, fast gate, path filter and Docker smoke are untouched.
+2. At PR time checkout the **event's exact base SHA**, never execute PR test-merge supplied Python. On the introducing PR, base lacks `scripts/ci_impact_plan.py`: output `NOT_TESTED` bootstrap. Later PRs use a trusted base policy blob. Main push uses its exact trusted commit. Event/run/attempt/PR, Head/Base/test-merge identity and synthetic merge parents are checked; ambiguous/refetch failure is `UNKNOWN`. Source JSON, tests and imports are read as **data** using Git; no PR code execution in Shadow.
+3. Combine the base's existing #699 `scripts/prepr-core.mjs` producer→consumer map (which incorporates #697) with high-risk shared-core/server/security/calendar, direct Unit imports, explicit known independent UI/CSS, cross-consumer and historical failure evidence. Statuses include rename, add and delete. New/removed/undiscovered files, missing mapped test, test.skip/only, dynamic imports, unregistered asset or ambiguous consumer cause `FULL_REQUIRED`; path count and PR-declared LOW never downgrade it.
+4. Output `mastergantt-impact-plan-v1`: trusted policy blob SHA, input diff binary SHA256, Head/Base/test-merge, PR/Issue candidate attribution, Run ID/attempt, risk, mode, selected/excluded discovered test IDs, basis, immutable plan SHA256, Python and #699 tool info, observation/evidence status. No trace/raw DB/secrets.
+5. `ci-impact-shadow-<run>-<attempt>` retains 30-day sanitized JSON and Job Summary. Read-only GitHub API verifies actual same-attempt aggregate and six shard Job identities; if available, cross-check exact source in six E2E timing ZIPs, full test spec coverage, counted case entries and elapsed shard job timestamps. Reporter artifacts are *untrusted observations*, not PASS or permission. Actual failed, cancelled, partial, expired, missing or API-unknown results never turn into PASS.
+6. Recommendation `FAST_TARGETED` and counterfactual `excluded_test_body_minutes_upper_bound` are **not** the actual CI reduction. Job elapsed runner-minutes, wall time and untrusted test-body theoretical upper bound are separated. No new full test suite executes in Shadow.
+7. Rollback: remove only the new `impact_shadow` and Policy regression step (or temporarily disable the advisory job). Existing Full PR/Main CI and three Required checks remain the fallback; no Ruleset change.
+
+## Change-impact/ledger replay source
+
+- #697 and [#667 failure analysis](../../ISSUE_667_FAILURE_ANALYSIS.md): canonical peer-return, Delete, Gantt axis, grid reveal and Copy/Paste must include the adjacent six known browser families when Gantt files change.
+- #730/#731/#736: edit authorization/assignment/resource response/real E2E timeout and fixture consumer guard.
+- #732: Milestone/Calendar/full Gate UI cross-consumers.
+- #767: newest primary issue and former #736 correction. Baseline had **no authenticated #767-dedicated failure ledger**, so do not invent one; representative security/revision path falls back to Full, source linkage remains to Issue/PR.
+- The `tests/python/test_ci_impact_plan.py` fixed regression matrix covers representative file classes and source spoofing, **not exact historical commit replay**. Actual prior failed CI still needs its original source Head, run/attempt, failing spec/trace and test inventory to measure missed regressions. Missing history is `INSUFFICIENT_DATA`.
+
+## Ten authenticated-looking historical Full CI candidates (snapshot)
+
+Read on 2026-10-22 from GitHub Actions: event `pull_request`, workflow path `.github/workflows/ci.yml`, overall `success` and name `[전체 검증]`. For each row, an independent returned Job list contained **Quality=success, Chromium aggregate=success, Docker aggregate=success, and all six distinct PR E2E shard Jobs=success**. Each also had a not-expired `ci-pr-source-<run>-1` artifact and all six E2E timing artifact *metadata*. **The ZIP contents, exact historical Base/Test-Merge/diff and duration timestamps were not downloaded/cross-authenticated in this snapshot**. Thus none is a validated counterfactual replay, and no false-negative or elapsed-time figure is asserted.
+
+| Run ID | Run #.attempt | PR (run title only) | Head SHA | observed 3 gates / 6 shards | exact diff, tests & timings |
+|---|---|---|---|---|---|
+| [39602089760](https://github.com/planner77/masterGantt/actions/runs/39602089760) | 3092.1 | 764 | `5abc65880879647a563c0469bf53c4cd4f654b6b` | 3/3 + 6/6 success | INSUFFICIENT_DATA |
+| [39576210249](https://github.com/planner77/masterGantt/actions/runs/39576210249) | 3086.1 | 766 | `2c8cad503a98d145d29e833442db47097744a286` | 3/3 + 6/6 success | INSUFFICIENT_DATA |
+| [39519738008](https://github.com/planner77/masterGantt/actions/runs/39519738008) | 3080.1 | 759 | `50fa26ce6c2a49652b13135ad59a9d9b8668dc0f` | 3/3 + 6/6 success | INSUFFICIENT_DATA |
+| [39510527726](https://github.com/planner77/masterGantt/actions/runs/39510527726) | 3075.1 | 763 | `16165f695fd2edbabbd52b0bdf8ba8ac182ded97` | 3/3 + 6/6 success | INSUFFICIENT_DATA |
+| [39501650409](https://github.com/planner77/masterGantt/actions/runs/39501650409) | 3072.1 | 763 | `1a776b0769d1d0f4bf5d1915059e96a2c3104aae` | 3/3 + 6/6 success | INSUFFICIENT_DATA |
+| [39493898903](https://github.com/planner77/masterGantt/actions/runs/39493898903) | 3069.1 | 760 | `e7560fa9a117c3e72113901242d450f1021c2d8b` | 3/3 + 6/6 success | INSUFFICIENT_DATA |
+| [39485797851](https://github.com/planner77/masterGantt/actions/runs/39485797851) | 3063.1 | 761 | `4995648542c0b16af5b5b5722985b6bacb7b4414` | 3/3 + 6/6 success | INSUFFICIENT_DATA |
+| [39431198772](https://github.com/planner77/masterGantt/actions/runs/39431198772) | 3056.1 | 757 | `72849251df4dc6e57325ed91c6d2dd02aadeb015` | 3/3 + 6/6 success | INSUFFICIENT_DATA |
+| [39411202743](https://github.com/planner77/masterGantt/actions/runs/39411202743) | 3052.1 | 758 | `f1ddf6bfeeddcbef98f75724a526aa521bdb55a3` | 3/3 + 6/6 success | INSUFFICIENT_DATA |
+| [39396314489](https://github.com/planner77/masterGantt/actions/runs/39396314489) | 3049.1 | 755 | `a64f861547846a5eb9577c2aa9cc5bd85d2f860f` | 3/3 + 6/6 success | INSUFFICIENT_DATA |
+
+The Epic #769 separately reports historical run-level E2E body/runner measurements (85.1→162.5 Runner-minutes for two specific runs) and PR medians; they are **not** measurements produced by this PR or these ten complete retro-replays.
+
+### Shadow analysis acceptance boundaries
+
+- Actual `false_negative` denominator = authenticated known failed regression source with corresponding intended full test, exact source and compatible test inventory. The current six issue families' source *representative paths* cannot serve as proof, thus actual FN / FP / precision / claimed cost savings = **INSUFFICIENT_DATA / NOT TESTED**.
+- When enough new Shadow observations exist, compare same-attempt full E2E passed test IDs and selected/excluded IDs; compute upper bound on eliminated *test-body* work, not proposed true CI wall improvement. For real gain perform controlled before/after A/B with matched risk, runner, env and test inventory. Do not use metadata-only edited runs as Full samples.
+- If any reporting job fails, required CI remains unchanged. No retroactive PASS, no release evidence reuse.
+
+## DOCUMENTATION_SYNC
+
+- `AGENTS.md`: UPDATED
+- `docs/CI_CD.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(existing OWNER_MANAGED, Trusted QA/independent reviewer policy and Owner acceptance rules unchanged; new result explicitly lacks QA authority)
+- `docs/GITHUB_OPERATIONS.md`: N/A(existing PR creation/approval, branch Ruleset, Run and GHCR procedures unchanged; Shadow read-only observation needs no new manual publication command)
+- `docs/ISSUE_LIFECYCLE.md`: N/A(unchanged full Required3/QA/Owner/Finalizer gate, Issue phase and failure-ledger contract; references from AGENTS and TEST_PLAN)
+- `docs/exec-plans/active/ISSUE_770.md`: UPDATED
+- `docs/ISSUE_770_FAILURE_ANALYSIS.md`: UPDATED
+- `DESIGN.md`: N/A(no customer-facing layout/style, Gantt behavior, resource or domain design change; issue scope is CI analysis only)
+- `docs/API.md`: N/A(no application API endpoints or data contracts changed; GitHub Actions read-only API only)
+- `docs/DB_SCHEMA.md`: N/A(no SQLite schema, data files or migration changes)
+- `CHANGELOG.md`: N/A(no application feature, binary or SemVer change; protected CI instrumentation documented here and in CI_CD)
+- `package.json`: N/A(no dependency/npm script/version changes)
+- `package-lock.json`: N/A(no dependency or version changes)
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+
+## AC_TEST_COVERAGE
+
+- AC1: `tests/python/test_ci_impact_plan.py` docs-only, protected docs, local CSS, exact screen, one-test change, shared Gantt, SQLite, security, package/workflow, rename/delete, added, unknown cases. Real run remote still NOT TESTED.
+- AC2: base-only #699 map + seeded #667/#730/#731/#732/#736/#767 representative adversarial cross-consumer scenarios, missing test and malicious LOW self-declaration; **actual historical run repro INSUFFICIENT_DATA**.
+- AC3: `scripts/ci_impact_plan.py` exact source/run/attempt/merge parent, sanitized plan SHA, actual six-shard Job observations and reporter ZIP checks; cancelling/missing/source-spoof negative tests; trust boundary in CI bootstrap. First introducing PR Shadow expected NOT TESTED by design.
+- AC4: ten run metadata/Job/available artifacts sampled above; exact diff, test-level replay, per-run timings, FN/FP and claimed savings **INSUFFICIENT_DATA** until authenticated artifact/full replay and A/B.
+- AC5: `.github/workflows/ci.yml` diff, no changes to required `quality`/`e2e`/`docker` job names/dependencies or six shards; no Ruleset, main release or QA gate changes. Verify remotely on new Head.
+- AC6: AGENTS, TEST_PLAN, CI_CD, REMOTE_VALIDATION and this Work Packet; DESIGN, API, DB_SCHEMA each explicitly N/A(reason).
+- AC7: `tests/python/test_ci_impact_plan.py` added to existing full policy Job. New PR requires actual full same-Head Quality/E2E6/Docker, Trusted QA and Owner HIGH acceptance; until remote results `NOT TESTED`, no release authority.
+
+## Test & handoff record
+
+- Static tests authored: Python unit tests for deterministic classification, source spoofing, partial/missing shards and source-risk negative cases.
+- Local Node/Python/Playwright: **NOT TESTED** here (repository execution on attached GitHub connection; no working local checkout). Tests run in remote Policy Job after creating new PR.
+- Initial introducing PR `impact_shadow`: intentionally `TRUSTED_BASE_POLICY_NOT_INSTALLED` / NOT_TESTED; cannot self-certify its own source. Once merged after Owner acceptance, later runs execute the base-trusted classifier.
+- Exact new PR Head/Run/Attempt and full CI test results: **NOT TESTED** until PR opened/run begins; CI monitor intentionally omitted by Owner direction.
+- Release `0.129.0` unchanged; no version/tag/GHCR formal publish, merge or Issue closure authorized.

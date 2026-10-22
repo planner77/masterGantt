@@ -1,3 +1,4 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
 import { mkdir, writeFile } from "node:fs/promises";
 import type { Locator, Page } from "@playwright/test";
@@ -98,7 +99,7 @@ test("#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱�
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
   const writes: { method: string; path: string }[] = [];
-  page.on("request", request => { const path = new URL(request.url()).pathname; if (path.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !path.endsWith("/resource-dashboard/query")) writes.push({ method: request.method(), path }); });
+  page.on("request", request => { const path = new URL(request.url()).pathname; if (path.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !path.endsWith("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes.push({ method: request.method(), path }); });
   const root = await openResource(page);
   await openShared(root);
   const editor = await taskEditor(page);
@@ -159,7 +160,7 @@ test("#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native key
   page.on("request", request => { if (new URL(request.url()).pathname.includes("/resource-dashboard")) navigationNetwork.push({ at: Date.now(), phase: "request", path: new URL(request.url()).pathname, method: request.method() }); });
   page.on("response", response => { if (new URL(response.url()).pathname.includes("/resource-dashboard")) navigationNetwork.push({ at: Date.now(), phase: "response", path: new URL(response.url()).pathname, status: response.status() }); });
   page.on("request", request => { if (request.method() === "POST" && new URL(request.url()).pathname.endsWith("/resource-dashboard/query")) { const body = request.postDataJSON(); boundQueries.push({ scope: body.scope, filters: body.filters, projection: body.projection }); } });
-  page.on("request", request => { if (/\/api\/projects\//.test(request.url()) && ["POST", "PATCH", "PUT", "DELETE"].includes(request.method()) && !new URL(request.url()).pathname.endsWith("/resource-dashboard/query")) writes.push(request.method() + " " + new URL(request.url()).pathname); });
+  page.on("request", request => { if (/\/api\/projects\//.test(request.url()) && ["POST", "PATCH", "PUT", "DELETE"].includes(request.method()) && !new URL(request.url()).pathname.endsWith("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes.push(request.method() + " " + new URL(request.url()).pathname); });
   page.on("response", async response => { if (new URL(response.url()).pathname === `/api/projects/${f.publicId}/resource-dashboard` && response.ok()) { const body = await response.json().catch(() => null); if (body) reports.push(body.data); } });
   const root = await openResource(page);
   await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");
@@ -191,13 +192,19 @@ test("#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native key
   await mkdir("output/playwright/issue-621", { recursive: true });
   for (const mode of ["resource", "group"]) {
     await root.getByLabel("Target 비교 행", { exact: true }).selectOption(mode);
+    // #730 Release #182: two old rows can remain while the new projection is stale.
+    await expect(root).toHaveAttribute("data-ready", "true");
     const region = root.getByRole("region", { name: "Resource Target 비교표", exact: true });
     await expect(region.locator("tbody tr")).toHaveCount(2);
     for (const width of [390, 768, 1024, 1440, 1920]) {
       await page.setViewportSize({ width, height: 900 });
       await region.scrollIntoViewIfNeeded();
       const first = region.locator("tbody td button").first();
-      await first.focus(); await page.keyboard.press("Tab");
+      await expect(root).toHaveAttribute("data-ready", "true");
+      await expect(first).toBeEnabled();
+      await first.focus();
+      await expect(first).toBeFocused();
+      await page.keyboard.press("Tab");
       const observation = await region.evaluate(owner => {
         const active = document.activeElement as HTMLElement, box = active.getBoundingClientRect(), bounds = owner.getBoundingClientRect(), style = getComputedStyle(active);
         const ring = parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
@@ -356,11 +363,26 @@ test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 �
   const row = detail.locator(`[data-canonical-task-id="${f.task.taskId}"][data-canonical-assignment-id="${alice.id}"]`);
   await expect(row).toBeVisible();
   const edit = row.getByRole("button", { name: `배정 편집: ${f.resources[0].name}`, exact: true });
+  // Exact edits must not scan the full candidate catalog, but must reauthenticate.
+  let candidateLookups = 0, sessionLookups = 0;
+  await page.route(`**/api/projects/${f.publicId}/assignment-targets`, route => {
+    candidateLookups++;
+    return route.continue();
+  });
+  await page.route(`**/api/projects/${f.publicId}/edit-sessions/current`, route => {
+    sessionLookups++;
+    return route.continue();
+  });
   await edit.focus(); await page.keyboard.press("Enter");
   const editor = await taskEditor(page);
   await expect(editor.getByRole("tab", { name: /^리소스/ })).toHaveAttribute("aria-selected", "true");
+  // Wait for the real assignment snapshot (two reads and revision checks),
+  // not merely the modal opening. Keep the exact 100%/co-assignee/401/412 checks.
+  await expect(editor.getByRole("button", { name: /^할당 저장 \(/ })).toBeEnabled({ timeout: 30_000 });
   const allocation = editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입률 (%)`, { exact: true });
   await expect(allocation).toHaveValue("100");
+  expect(candidateLookups).toBe(0);
+  expect(sessionLookups).toBeGreaterThanOrEqual(1);
   await expect(editor.getByLabel(`리소스 2 ${f.resources[1].name} 투입률 (%)`, { exact: true })).toHaveCount(0);
   await allocation.fill("80");
   await editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입 시작`, { exact: true }).fill("2026-10-14");
@@ -390,6 +412,8 @@ test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 �
   await expect(editor).toHaveCount(0);
   await expect(edit).toBeFocused();
   await edit.click();
+  await expect(editor.getByRole("tab", { name: /^리소스/ })).toHaveAttribute("aria-selected", "true");
+  await expect(editor.getByRole("button", { name: /^할당 저장 \(/ })).toBeEnabled({ timeout: 30_000 });
   await expect(allocation).toHaveValue("80");
   await allocation.fill("70");
   failure = 401;
@@ -400,6 +424,38 @@ test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 �
   expect((await (await page.request.get(`${f.api}/assigned-targets`)).json()).data.assignments.find((entry: { id: string }) => entry.id === alice.id).allocation.percent).toBe(80);
   expect(requests).toBe(3);
   await info.attach("issue621-exact-assignment", { contentType: "application/json", body: JSON.stringify({ assignmentId: alice.id, resourceId: f.resources[0].id, unchangedAssignmentId: bob.id, requests, successfulWrites: 1, taskId: f.task.taskId }) });
+});
+
+
+test("#736 exact Assignment 편집은 만료된 Project edit session에서 초안을 열지 않는다", async ({ page, isolatedApplication: origin, observeIsolatedApi }) => {
+  test.setTimeout(180_000);
+  const f = await seedIssue621(page, origin, observeIsolatedApi);
+  const root = await openResource(page);
+  await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");
+  await root.getByLabel("Target 표시", { exact: true }).selectOption("matrix");
+  const canonical = await f.snapshot();
+  const assigned = (await (await page.request.get(`${f.api}/assigned-targets`)).json()).data;
+  const exact = assigned.assignments.find((item: { taskId: string; target: { id: string } }) =>
+    item.taskId === f.task.taskId && item.target.id === f.resources[0].id);
+  expect(exact?.id).toBeTruthy();
+  await root.getByRole("region", { name: "Resource Target 비교표", exact: true })
+    .locator("tbody tr").filter({ hasText: f.resources[0].name }).locator("td button").first().click();
+  const row = root.locator(".resource-dashboard-detail")
+    .locator(`[data-canonical-task-id="${f.task.taskId}"][data-canonical-assignment-id="${exact.id}"]`);
+  await expect(row).toBeVisible();
+  let checked = 0;
+  // The workspace was editable when loaded, but its authoritative edit session
+  // is now revoked. A public assigned-targets read alone must not authorize drafts.
+  await page.route(`**/api/projects/${f.publicId}/edit-sessions/current`, route => {
+    checked++;
+    return route.fulfill({ status: 200, json: { data: { permission: "readonly" } } });
+  });
+  await row.getByRole("button", { name: `배정 편집: ${f.resources[0].name}`, exact: true }).click();
+  const editor = await taskEditor(page);
+  await expect(editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입률 (%)`, { exact: true })).toBeDisabled({ timeout: 30_000 });
+  await expect(editor.getByRole("button", { name: /^할당 저장 \(/ })).toHaveCount(0);
+  expect(checked).toBeGreaterThanOrEqual(1);
+  expect(await f.snapshot()).toEqual(canonical);
 });
 
 test("#621 Target 응답역전·실제409 stale·필터탈락 fallback·취소 scope/focus", async ({ page, isolatedApplication: origin, observeIsolatedApi }) => {

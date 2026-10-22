@@ -1,0 +1,1179 @@
+{
+  "schema": "mastergantt-issue735-sanitized-intake-v2",
+  "scope": "READ_ONLY_HISTORICAL_FAILURE_ANALYSIS_NO_MONITORING",
+  "repository": "planner77/masterGantt",
+  "issue": 735,
+  "pr": 757,
+  "historyQuery": {
+    "totalCount": 3,
+    "scope": "branch=feat/issue-735-system-dashboard,event=pull_request,per_page=100",
+    "runs": [
+      {
+        "id": 39424501289,
+        "runNumber": 3055,
+        "attempt": 1,
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "failure",
+        "head": "c7159c7fc253a6d9ea154ba915a2ce11a2a75cf1",
+        "path": ".github/workflows/ci.yml",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289"
+      },
+      {
+        "id": 39418238483,
+        "runNumber": 3054,
+        "attempt": 1,
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "failure",
+        "head": "ee3ec3a4bc0e9a31f7c933e73febac6ed6b6a60e",
+        "path": ".github/workflows/ci.yml",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39418238483"
+      },
+      {
+        "id": 39408703783,
+        "runNumber": 3051,
+        "attempt": 1,
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "failure",
+        "head": "abd410fc4fa1f87be3c7975d2fa960b36f8d8877",
+        "path": ".github/workflows/ci.yml",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39408703783"
+      }
+    ]
+  },
+  "current": {
+    "head": "c7159c7fc253a6d9ea154ba915a2ce11a2a75cf1",
+    "base": "05f1e560eee456e6fba5535255c9ede30a357c16",
+    "testMerge": "934ba5c140b142de7cb97f47d38cfdfe46a4c3d5",
+    "mergeable": true,
+    "mergeableState": "blocked",
+    "main": "05f1e560eee456e6fba5535255c9ede30a357c16",
+    "mainTree": "09ffb59a35b616297e7ed2ec2f6c86743eaf3a93",
+    "reviews": {
+      "reviews": []
+    },
+    "reviewThreads": {
+      "review_threads": []
+    }
+  },
+  "failureUnion": [
+    {
+      "id": "F735-001",
+      "runId": 39408703783,
+      "jobId": 118581617889,
+      "file": "tests/e2e/project-task-context-menu.spec.ts",
+      "caseLine": 385,
+      "helperLine": 8,
+      "callLine": 413,
+      "error": "apiRequestContext.get: read ECONNRESET",
+      "failureTimestamp": "2026-10-20T10:54:28.1709251Z",
+      "passed": 90,
+      "failed": 1,
+      "didNotRun": 43,
+      "testSummaryMinutes": 18.6
+    },
+    {
+      "id": "F735-002",
+      "runId": 39418238483,
+      "jobId": 118613386214,
+      "file": "tests/e2e/project-task-context-menu.spec.ts",
+      "caseLine": 518,
+      "helperLine": 8,
+      "callLine": 556,
+      "error": "apiRequestContext.get: read ECONNRESET",
+      "failureTimestamp": "2026-10-20T12:20:52.0490293Z",
+      "passed": 95,
+      "failed": 1,
+      "didNotRun": 41,
+      "testSummaryMinutes": 23.8
+    },
+    {
+      "id": "F735-003",
+      "runId": 39424501289,
+      "jobId": 118634553699,
+      "file": "tests/e2e/project-task-context-menu.spec.ts",
+      "caseLine": 135,
+      "error": "Test timeout of 30000ms exceeded.",
+      "failureTimestamp": "2026-10-20T13:08:04.9564293Z",
+      "passed": 92,
+      "failed": 1,
+      "didNotRun": 45,
+      "testSummaryMinutes": 21.4,
+      "reportedDurationMs": 30999,
+      "lastAssertionLine": 375,
+      "businessExpectedActualMismatchObserved": false,
+      "canonicalBrowserGetHttpJsonPassed": true,
+      "job35MinCapacityFailure": false
+    }
+  ],
+  "classification": {
+    "F001_F002": "INIT_TRANSPORT_TCP_ROOT_UNKNOWN_PRESERVED",
+    "F003": "PER_TEST_30S_BUDGET_COUPLING_WITH_MULTI_STATE_MATRIX",
+    "actual35MinJobCapacityFailure": false,
+    "mismatchObserved": false,
+    "nextActionCandidate": "Minimal two logical test cases retaining all state assertions; one additional test-scoped fixture. Shard move requires separate current workload evidence, not this failure alone."
+  },
+  "latestFailureWall": {
+    "startTime": "2026-10-20T13:07:16.834Z",
+    "reportedDurationMs": 30999,
+    "beforeHooksMs": 15792,
+    "bodyStart": "2026-10-20T13:07:32.629Z",
+    "afterHooksStart": "2026-10-20T13:08:02.591Z",
+    "observedBodyWallMs": 29962,
+    "lastActionLine": 381,
+    "lastActionAt": "2026-10-20T13:08:02.726Z",
+    "lastActionDurationMs": 28,
+    "allObservedStepErrors": 0
+  },
+  "latestFailurePhases": [
+    {
+      "phase": "initial_setup",
+      "lines": [
+        137,
+        147
+      ],
+      "directSteps": 6,
+      "spanMs": 6461,
+      "firstAt": "2026-10-20T13:07:32.629Z",
+      "lastAt": "2026-10-20T13:07:37.237Z",
+      "lastDuration": 1853,
+      "stepErrors": 0
+    },
+    {
+      "phase": "matrix16corners",
+      "lines": [
+        152,
+        233
+      ],
+      "directSteps": 596,
+      "spanMs": 15013,
+      "firstAt": "2026-10-20T13:07:39.562Z",
+      "lastAt": "2026-10-20T13:07:54.561Z",
+      "lastDuration": 14,
+      "stepErrors": 0
+    },
+    {
+      "phase": "mobile_convert_move",
+      "lines": [
+        235,
+        257
+      ],
+      "directSteps": 24,
+      "spanMs": 421,
+      "firstAt": "2026-10-20T13:07:54.752Z",
+      "lastAt": "2026-10-20T13:07:55.155Z",
+      "lastDuration": 18,
+      "stepErrors": 0
+    },
+    {
+      "phase": "short_height_creation",
+      "lines": [
+        259,
+        314
+      ],
+      "directSteps": 45,
+      "spanMs": 2602,
+      "firstAt": "2026-10-20T13:07:55.311Z",
+      "lastAt": "2026-10-20T13:07:57.897Z",
+      "lastDuration": 16,
+      "stepErrors": 0
+    },
+    {
+      "phase": "clipboard_desktop",
+      "lines": [
+        316,
+        359
+      ],
+      "directSteps": 121,
+      "spanMs": 3503,
+      "firstAt": "2026-10-20T13:07:58.034Z",
+      "lastAt": "2026-10-20T13:08:01.504Z",
+      "lastDuration": 33,
+      "stepErrors": 0
+    },
+    {
+      "phase": "summary",
+      "lines": [
+        360,
+        382
+      ],
+      "directSteps": 13,
+      "spanMs": 1033,
+      "firstAt": "2026-10-20T13:08:01.721Z",
+      "lastAt": "2026-10-20T13:08:02.726Z",
+      "lastDuration": 28,
+      "stepErrors": 0
+    }
+  ],
+  "latestFailurePhaseMethod": {
+    "source": "actual c715 report step locations and start/end timestamps",
+    "matrixRange": [
+      152,
+      233
+    ],
+    "initialSetupRange": [
+      137,
+      147
+    ],
+    "warning": "Direct matching step min/max spans exclude helper-location gaps and are not an additive full wall-clock forecast; phase ranges differ from earlier guessed group boundaries. Partial timing is not a successful-run baseline."
+  },
+  "crossRunLatestCoverage": {
+    "runId": 39424501289,
+    "F735-001CopyIdCase": "NOT_RUN_AFTER_FAIL_FAST",
+    "F735-002HierarchyCase": "NOT_RUN_AFTER_FAIL_FAST",
+    "F735-003ViewportCase": "TIMED_OUT_30000MS",
+    "canonicalBrowserReadWithinF003": "HTTP200_JSON_PASS_170MS",
+    "warning": "Passing browser read inside F003 does not establish remote PASS for previous F001/F002 cases."
+  },
+  "logIntakeLatest": {
+    "allShardJobIds": [
+      118634553618,
+      118634553624,
+      118634553683,
+      118634553699,
+      118634553773,
+      118634553840
+    ],
+    "queriedEachOnce": true,
+    "missingOrInaccessibleLogs": [],
+    "cancelledAdditionalActualTestFailures": []
+  },
+  "historicalMainComparison": {
+    "runId": 39402320673,
+    "runNumber": 3050,
+    "attempt": 1,
+    "event": "push",
+    "head": "8a0fc9773d33326b40f8d97f6307c17ae0cb6933",
+    "comparisonOnly": true,
+    "jobs": [
+      {
+        "id": 118559902330,
+        "name": "Chromium E2E shard 2/6",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-10-20T09:40:06Z",
+        "completedAt": "2026-10-20T10:05:56Z",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39402320673/job/118559902330",
+        "failedSteps": []
+      },
+      {
+        "id": 118559902408,
+        "name": "Chromium E2E shard 5/6",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-10-20T09:40:07Z",
+        "completedAt": "2026-10-20T09:59:20Z",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39402320673/job/118559902408",
+        "failedSteps": []
+      },
+      {
+        "id": 118559902414,
+        "name": "Chromium E2E shard 1/6",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-10-20T09:40:07Z",
+        "completedAt": "2026-10-20T10:03:36Z",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39402320673/job/118559902414",
+        "failedSteps": []
+      },
+      {
+        "id": 118559902418,
+        "name": "Chromium E2E shard 4/6",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "startedAt": "2026-10-20T09:40:07Z",
+        "completedAt": "2026-10-20T10:15:29Z",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39402320673/job/118559902418",
+        "failedSteps": []
+      },
+      {
+        "id": 118559902564,
+        "name": "Chromium E2E shard 3/6",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-10-20T09:40:07Z",
+        "completedAt": "2026-10-20T10:04:42Z",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39402320673/job/118559902564",
+        "failedSteps": []
+      },
+      {
+        "id": 118559903136,
+        "name": "Chromium E2E shard 6/6",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-10-20T09:40:07Z",
+        "completedAt": "2026-10-20T10:00:31Z",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39402320673/job/118559903136",
+        "failedSteps": []
+      }
+    ]
+  },
+  "previous_evidence": "ci-39418238483-attempt-1.json; previous raw Run/Attempt conclusions and diagnostics remain immutable",
+  "latestRun": {
+    "runId": 39424501289,
+    "attempt": 1,
+    "head": "c7159c7fc253a6d9ea154ba915a2ce11a2a75cf1",
+    "base": "05f1e560eee456e6fba5535255c9ede30a357c16",
+    "testMerge": "934ba5c140b142de7cb97f47d38cfdfe46a4c3d5",
+    "jobs": [
+      {
+        "id": 118633502815,
+        "name": "QA Final 신뢰 경계 확인",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 118633503034,
+        "name": "변경 경로 판정",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 118633640121,
+        "name": "QA Preflight — 정책·문서 사전 검사",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 118633641939,
+        "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+        "conclusion": "skipped",
+        "failedSteps": []
+      },
+      {
+        "id": 118633736454,
+        "name": "ESLint",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 118633736463,
+        "name": "TypeScript 타입 검사",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 118633736475,
+        "name": "정책·저장소 계약 검사",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 118633736646,
+        "name": "Vitest 단위·통합 테스트",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 118633738519,
+        "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+        "conclusion": "skipped",
+        "startedAt": "2026-10-20T12:44:04Z",
+        "completedAt": "2026-10-20T12:44:03Z",
+        "failedSteps": []
+      },
+      {
+        "id": 118633738552,
+        "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+        "conclusion": "skipped",
+        "failedSteps": []
+      },
+      {
+        "id": 118633739608,
+        "name": "Next.js production build",
+        "conclusion": "skipped",
+        "failedSteps": []
+      },
+      {
+        "id": 118634439148,
+        "name": "PR 빠른 검사 판정",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 118634553483,
+        "name": "PR Next.js production build",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 118634553618,
+        "name": "Chromium E2E shard 2/6 · PR",
+        "conclusion": "cancelled",
+        "startedAt": "2026-10-20T12:45:53Z",
+        "completedAt": "2026-10-20T13:08:43Z",
+        "failedSteps": []
+      },
+      {
+        "id": 118634553624,
+        "name": "Chromium E2E shard 5/6 · PR",
+        "conclusion": "cancelled",
+        "startedAt": "2026-10-20T12:45:52Z",
+        "completedAt": "2026-10-20T13:08:41Z",
+        "failedSteps": []
+      },
+      {
+        "id": 118634553683,
+        "name": "Chromium E2E shard 3/6 · PR",
+        "conclusion": "success",
+        "startedAt": "2026-10-20T12:45:52Z",
+        "completedAt": "2026-10-20T13:02:25Z",
+        "failedSteps": []
+      },
+      {
+        "id": 118634553699,
+        "name": "Chromium E2E shard 6/6 · PR",
+        "conclusion": "failure",
+        "startedAt": "2026-10-20T12:45:52Z",
+        "completedAt": "2026-10-20T13:08:10Z",
+        "failedSteps": [
+          {
+            "number": 7,
+            "name": "E2E shard 실행"
+          }
+        ]
+      },
+      {
+        "id": 118634553714,
+        "name": "Docker smoke 구현",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 118634553773,
+        "name": "Chromium E2E shard 1/6 · PR",
+        "conclusion": "cancelled",
+        "startedAt": "2026-10-20T12:45:53Z",
+        "completedAt": "2026-10-20T13:08:43Z",
+        "failedSteps": []
+      },
+      {
+        "id": 118634553840,
+        "name": "Chromium E2E shard 4/6 · PR",
+        "conclusion": "cancelled",
+        "startedAt": "2026-10-20T12:45:53Z",
+        "completedAt": "2026-10-20T13:08:41Z",
+        "failedSteps": []
+      },
+      {
+        "id": 118635107448,
+        "name": "Build, static checks, and unit tests",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 118635561449,
+        "name": "Docker build and runtime smoke test",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 118645032226,
+        "name": "Chromium end-to-end tests",
+        "conclusion": "failure",
+        "failedSteps": [
+          {
+            "number": 2,
+            "name": "E2E shard 결과 집계"
+          }
+        ]
+      },
+      {
+        "id": 118645079778,
+        "name": "QA Final — Automated",
+        "conclusion": "failure",
+        "failedSteps": [
+          {
+            "number": 3,
+            "name": "최신 PR 증거·문서·리뷰 확인 (read-only)"
+          }
+        ]
+      },
+      {
+        "id": 118645082550,
+        "name": "Main 임시 commit 이미지 게시·검증·정리",
+        "conclusion": "skipped",
+        "failedSteps": []
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "runId": 39424501289,
+      "id": 12267005692,
+      "name": "ci-setup-metrics-e2e-shard-3",
+      "size": 552,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12267005692"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12266861845,
+      "name": "qa-final-automated-39424501289-1",
+      "size": 431,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12266861845"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12266841787,
+      "name": "e2e-timing-ci-shard-6",
+      "size": 1090,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12266841787"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12266826985,
+      "name": "ci-setup-metrics-e2e-shard-1",
+      "size": 556,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12266826985"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12266821928,
+      "name": "ci-setup-metrics-e2e-shard-2",
+      "size": 555,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12266821928"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12266746897,
+      "name": "playwright-report-shard-6",
+      "size": 15469500,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12266746897"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12266418474,
+      "name": "ci-setup-metrics-e2e-shard-4",
+      "size": 554,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12266418474"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12266343583,
+      "name": "ci-setup-metrics-e2e-shard-5",
+      "size": 555,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12266343583"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12265947860,
+      "name": "ci-setup-metrics-e2e-shard-6",
+      "size": 551,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12265947860"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12265404320,
+      "name": "e2e-timing-ci-shard-3",
+      "size": 1226,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12265404320"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12265038130,
+      "name": "qa-preflight-39424501289-1",
+      "size": 1234,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12265038130"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12264988662,
+      "name": "ci-setup-metrics-docker",
+      "size": 491,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12264988662"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12264748293,
+      "name": "ci-pr-source-39424501289-1",
+      "size": 414,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12264748293"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12264563825,
+      "name": "ci-setup-metrics-build",
+      "size": 507,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12264563825"
+    },
+    {
+      "runId": 39424501289,
+      "id": 12264514166,
+      "name": "planner77~masterGantt~OH88DR.dockerbuild",
+      "size": 46422,
+      "expired": false,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39424501289/artifacts/12264514166"
+    }
+  ],
+  "latestDiagnostic": {
+    "runNumber": 3055,
+    "reason": "test_failure",
+    "health": {
+      "status": 200,
+      "durationMs": 15,
+      "failure": null
+    },
+    "beforeProbe": {
+      "elapsedMs": 46739,
+      "processes": [
+        {
+          "generation": 1,
+          "exitCode": null,
+          "signal": null,
+          "expectedShutdown": false,
+          "alive": true
+        }
+      ],
+      "lifecycle": [
+        {
+          "event": "spawn",
+          "generation": 1,
+          "expectedShutdown": false,
+          "elapsedMs": 406
+        }
+      ],
+      "requestCount": 4,
+      "stdout": {
+        "eventCounts": {
+          "http_request_completed": 29
+        },
+        "nextDevMessageCount": 0,
+        "classificationCodes": []
+      },
+      "stderr": {
+        "eventCounts": {
+          "http_request_rejected": 2,
+          "http_request_completed": 2
+        },
+        "nextDevMessageCount": 0,
+        "classificationCodes": []
+      }
+    },
+    "afterProbe": {
+      "elapsedMs": 46754,
+      "processes": [
+        {
+          "generation": 1,
+          "exitCode": null,
+          "signal": null,
+          "expectedShutdown": false,
+          "alive": true
+        }
+      ],
+      "lifecycle": [
+        {
+          "event": "spawn",
+          "generation": 1,
+          "expectedShutdown": false,
+          "elapsedMs": 406
+        }
+      ],
+      "requestCount": 4,
+      "stdout": {
+        "eventCounts": {
+          "http_request_completed": 29
+        },
+        "nextDevMessageCount": 0,
+        "classificationCodes": []
+      },
+      "stderr": {
+        "eventCounts": {
+          "http_request_rejected": 2,
+          "http_request_completed": 2
+        },
+        "nextDevMessageCount": 0,
+        "classificationCodes": []
+      }
+    },
+    "baselineResources": {
+      "hostFreeBytes": 12205322240,
+      "hostTotalBytes": 16760340480,
+      "workerRssBytes": 307273728,
+      "workerHeapUsedBytes": 107754680,
+      "processTreeTruncated": false,
+      "cgroup": {
+        "currentBytes": 7069188096,
+        "maxBytes": null,
+        "oom": 0,
+        "oomKill": 0
+      },
+      "processRssKbSum": 1897420
+    },
+    "resources": {
+      "hostFreeBytes": 12991410176,
+      "hostTotalBytes": 16760340480,
+      "workerRssBytes": 316502016,
+      "workerHeapUsedBytes": 107797568,
+      "processTreeTruncated": false,
+      "cgroup": {
+        "currentBytes": 6536675328,
+        "maxBytes": null,
+        "oom": 0,
+        "oomKill": 0
+      },
+      "processRssKbSum": 1074988
+    }
+  },
+  "latestTimingArtifacts": [
+    {
+      "artifactId": 12265404320,
+      "runId": "39424501289",
+      "runAttempt": 1,
+      "headSha": "934ba5c140b142de7cb97f47d38cfdfe46a4c3d5",
+      "eventName": "pull_request",
+      "shard": 3,
+      "shardCount": 6,
+      "status": "passed",
+      "runnerReadyMs": 8082,
+      "observedUniqueFiles": 23,
+      "observedSummedCaseDurationMs": 618571,
+      "fileAggregates": [
+        {
+          "file": "tests/e2e/core-action-trace.spec.ts",
+          "entries": 2,
+          "durationMs": 3304
+        },
+        {
+          "file": "tests/e2e/cross-screen-regression.spec.ts",
+          "entries": 3,
+          "durationMs": 7426
+        },
+        {
+          "file": "tests/e2e/derived-dialog-recovery.spec.ts",
+          "entries": 31,
+          "durationMs": 60418
+        },
+        {
+          "file": "tests/e2e/inline-name-persistence.spec.ts",
+          "entries": 2,
+          "durationMs": 25505
+        },
+        {
+          "file": "tests/e2e/issue-621-resource-target.spec.ts",
+          "entries": 5,
+          "durationMs": 106344
+        },
+        {
+          "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+          "entries": 7,
+          "durationMs": 130121
+        },
+        {
+          "file": "tests/e2e/issue-717-identity-persistence.spec.ts",
+          "entries": 1,
+          "durationMs": 13113
+        },
+        {
+          "file": "tests/e2e/issue-717-name-first.spec.ts",
+          "entries": 6,
+          "durationMs": 16649
+        },
+        {
+          "file": "tests/e2e/issue-725-process-workareas.spec.ts",
+          "entries": 2,
+          "durationMs": 45822
+        },
+        {
+          "file": "tests/e2e/issue-726-logistics-master.spec.ts",
+          "entries": 1,
+          "durationMs": 15613
+        },
+        {
+          "file": "tests/e2e/logistics-type-catalog-admin.spec.ts",
+          "entries": 2,
+          "durationMs": 1631
+        },
+        {
+          "file": "tests/e2e/master-controls-density.spec.ts",
+          "entries": 12,
+          "durationMs": 11240
+        },
+        {
+          "file": "tests/e2e/milestone-stage-grid.spec.ts",
+          "entries": 1,
+          "durationMs": 17084
+        },
+        {
+          "file": "tests/e2e/project-edit-permission-recheck.spec.ts",
+          "entries": 2,
+          "durationMs": 6515
+        },
+        {
+          "file": "tests/e2e/project-gantt-inline-start-date.spec.ts",
+          "entries": 4,
+          "durationMs": 10656
+        },
+        {
+          "file": "tests/e2e/project-master-admin.spec.ts",
+          "entries": 7,
+          "durationMs": 3673
+        },
+        {
+          "file": "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+          "entries": 1,
+          "durationMs": 5117
+        },
+        {
+          "file": "tests/e2e/project-status.spec.ts",
+          "entries": 5,
+          "durationMs": 19998
+        },
+        {
+          "file": "tests/e2e/resource-drill-api.spec.ts",
+          "entries": 1,
+          "durationMs": 17244
+        },
+        {
+          "file": "tests/e2e/resource-excel-export-ui.spec.ts",
+          "entries": 3,
+          "durationMs": 23226
+        },
+        {
+          "file": "tests/e2e/resource-global-roles.spec.ts",
+          "entries": 1,
+          "durationMs": 1867
+        },
+        {
+          "file": "tests/e2e/resource-target-dashboard-api.spec.ts",
+          "entries": 1,
+          "durationMs": 39532
+        },
+        {
+          "file": "tests/e2e/task-editor-form-density.spec.ts",
+          "entries": 7,
+          "durationMs": 36473
+        }
+      ]
+    },
+    {
+      "artifactId": 12266841787,
+      "runId": "39424501289",
+      "runAttempt": 1,
+      "headSha": "934ba5c140b142de7cb97f47d38cfdfe46a4c3d5",
+      "eventName": "pull_request",
+      "shard": 6,
+      "shardCount": 6,
+      "status": "failed",
+      "runnerReadyMs": 11071,
+      "observedUniqueFiles": 16,
+      "observedSummedCaseDurationMs": 940351,
+      "fileAggregates": [
+        {
+          "file": "tests/e2e/gantt-adapter-poc.spec.ts",
+          "entries": 11,
+          "durationMs": 109159
+        },
+        {
+          "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+          "entries": 16,
+          "durationMs": 72575
+        },
+        {
+          "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+          "entries": 3,
+          "durationMs": 160778
+        },
+        {
+          "file": "tests/e2e/issue-730-view-composer.spec.ts",
+          "entries": 6,
+          "durationMs": 233532
+        },
+        {
+          "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+          "entries": 28,
+          "durationMs": 86289
+        },
+        {
+          "file": "tests/e2e/milestone-exchange-state.spec.ts",
+          "entries": 9,
+          "durationMs": 36470
+        },
+        {
+          "file": "tests/e2e/milestone-management-persistence.spec.ts",
+          "entries": 3,
+          "durationMs": 87846
+        },
+        {
+          "file": "tests/e2e/milestone-stage-grid-mock.spec.ts",
+          "entries": 4,
+          "durationMs": 17657
+        },
+        {
+          "file": "tests/e2e/project-browser-title-favicon.spec.ts",
+          "entries": 1,
+          "durationMs": 32337
+        },
+        {
+          "file": "tests/e2e/project-context-toolbar-responsive.spec.ts",
+          "entries": 4,
+          "durationMs": 35348
+        },
+        {
+          "file": "tests/e2e/project-create-and-read.spec.ts",
+          "entries": 2,
+          "durationMs": 22572
+        },
+        {
+          "file": "tests/e2e/project-gantt-density.spec.ts",
+          "entries": 1,
+          "durationMs": 5069
+        },
+        {
+          "file": "tests/e2e/project-links-persistence.spec.ts",
+          "entries": 1,
+          "durationMs": 23096
+        },
+        {
+          "file": "tests/e2e/project-modal-feedback.spec.ts",
+          "entries": 1,
+          "durationMs": 3385
+        },
+        {
+          "file": "tests/e2e/project-summary-bar-visual.spec.ts",
+          "entries": 1,
+          "durationMs": 6138
+        },
+        {
+          "file": "tests/e2e/project-task-context-menu.spec.ts",
+          "entries": 1,
+          "durationMs": 8100
+        }
+      ]
+    }
+  ],
+  "latestSetupArtifacts": [
+    {
+      "artifactId": 12265947860,
+      "durationMsSum": 42883,
+      "metrics": [
+        {
+          "metric": "checkout",
+          "durationMs": 6063,
+          "cache": "n/a"
+        },
+        {
+          "metric": "setup-node",
+          "durationMs": 679,
+          "cache": "n/a"
+        },
+        {
+          "metric": "npm-cache",
+          "durationMs": 2330,
+          "cache": "exact-hit=true"
+        },
+        {
+          "metric": "npm-ci",
+          "durationMs": 14711,
+          "cache": "n/a"
+        },
+        {
+          "metric": "playwright-os-deps",
+          "durationMs": 14824,
+          "cache": "not-enabled"
+        },
+        {
+          "metric": "playwright-headless-shell",
+          "durationMs": 4276,
+          "cache": "not-enabled"
+        }
+      ]
+    },
+    {
+      "artifactId": 12266826985,
+      "durationMsSum": 54878,
+      "metrics": [
+        {
+          "metric": "checkout",
+          "durationMs": 6064,
+          "cache": "n/a"
+        },
+        {
+          "metric": "setup-node",
+          "durationMs": 3919,
+          "cache": "n/a"
+        },
+        {
+          "metric": "npm-cache",
+          "durationMs": 3535,
+          "cache": "exact-hit=true"
+        },
+        {
+          "metric": "npm-ci",
+          "durationMs": 14265,
+          "cache": "n/a"
+        },
+        {
+          "metric": "playwright-os-deps",
+          "durationMs": 23077,
+          "cache": "not-enabled"
+        },
+        {
+          "metric": "playwright-headless-shell",
+          "durationMs": 4018,
+          "cache": "not-enabled"
+        }
+      ]
+    },
+    {
+      "artifactId": 12266821928,
+      "durationMsSum": 44563,
+      "metrics": [
+        {
+          "metric": "checkout",
+          "durationMs": 5949,
+          "cache": "n/a"
+        },
+        {
+          "metric": "setup-node",
+          "durationMs": 674,
+          "cache": "n/a"
+        },
+        {
+          "metric": "npm-cache",
+          "durationMs": 3775,
+          "cache": "exact-hit=true"
+        },
+        {
+          "metric": "npm-ci",
+          "durationMs": 15533,
+          "cache": "n/a"
+        },
+        {
+          "metric": "playwright-os-deps",
+          "durationMs": 14295,
+          "cache": "not-enabled"
+        },
+        {
+          "metric": "playwright-headless-shell",
+          "durationMs": 4337,
+          "cache": "not-enabled"
+        }
+      ]
+    },
+    {
+      "artifactId": 12266418474,
+      "durationMsSum": 47856,
+      "metrics": [
+        {
+          "metric": "checkout",
+          "durationMs": 7392,
+          "cache": "n/a"
+        },
+        {
+          "metric": "setup-node",
+          "durationMs": 688,
+          "cache": "n/a"
+        },
+        {
+          "metric": "npm-cache",
+          "durationMs": 3008,
+          "cache": "exact-hit=true"
+        },
+        {
+          "metric": "npm-ci",
+          "durationMs": 17131,
+          "cache": "n/a"
+        },
+        {
+          "metric": "playwright-os-deps",
+          "durationMs": 15073,
+          "cache": "not-enabled"
+        },
+        {
+          "metric": "playwright-headless-shell",
+          "durationMs": 4564,
+          "cache": "not-enabled"
+        }
+      ]
+    },
+    {
+      "artifactId": 12266343583,
+      "durationMsSum": 39625,
+      "metrics": [
+        {
+          "metric": "checkout",
+          "durationMs": 6276,
+          "cache": "n/a"
+        },
+        {
+          "metric": "setup-node",
+          "durationMs": 619,
+          "cache": "n/a"
+        },
+        {
+          "metric": "npm-cache",
+          "durationMs": 2955,
+          "cache": "exact-hit=true"
+        },
+        {
+          "metric": "npm-ci",
+          "durationMs": 12455,
+          "cache": "n/a"
+        },
+        {
+          "metric": "playwright-os-deps",
+          "durationMs": 13444,
+          "cache": "not-enabled"
+        },
+        {
+          "metric": "playwright-headless-shell",
+          "durationMs": 3876,
+          "cache": "not-enabled"
+        }
+      ]
+    },
+    {
+      "artifactId": 12267005692,
+      "durationMsSum": 40792,
+      "metrics": [
+        {
+          "metric": "checkout",
+          "durationMs": 5994,
+          "cache": "n/a"
+        },
+        {
+          "metric": "setup-node",
+          "durationMs": 400,
+          "cache": "n/a"
+        },
+        {
+          "metric": "npm-cache",
+          "durationMs": 2856,
+          "cache": "exact-hit=true"
+        },
+        {
+          "metric": "npm-ci",
+          "durationMs": 9114,
+          "cache": "n/a"
+        },
+        {
+          "metric": "playwright-os-deps",
+          "durationMs": 19366,
+          "cache": "not-enabled"
+        },
+        {
+          "metric": "playwright-headless-shell",
+          "durationMs": 3062,
+          "cache": "not-enabled"
+        }
+      ]
+    }
+  ],
+  "evidenceBoundary": "Sanitized historical observations. Per-test deadline coupling is distinct from job capacity; partial timing and historical Main are not current successful-run baselines. No raw log/trace/auth/cookie/body retained."
+}

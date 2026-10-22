@@ -1,8 +1,26 @@
+## Issue #734 — 설비 최상위 동적 조회
+
+Target0에서도 설비 root·작업0/미배정/비활성·유형 선택과 단독 요약을 제공하고 사용자가 하위 축을 추가·삭제·정렬해 두 요구 경로를 구성/복원한다. 설비 원본 정보와 모든 WorkArea0..N·Owner·실제 controls, 고유 Task/공수·등록 수량·전체 Milestone Gate의 범위를 구분한다. 다중 구역/Target/Milestone의 원장 합집합 및 같은 Task 교집합을 유지하고 원본을 복제하지 않는다. 정확 원본 편집·일정 이동/복귀·snapshot stale·readonly/dirty/권한과 5폭 keyboard/overflow는 [#734 Work Packet](exec-plans/active/ISSUE_734.md)의 AC1~AC5로 검증한다.
+
+## Issue #736 — 리소스 중심 분석과 기존 Plan 보존
+
+Target0에서 Resource 단독 및 사용자 선택 공정/WorkArea/설비·System 형제/Milestone 계층을 제공한다. 명시 등록·역할-only·개인 Assignment·비활성 참조를 구별하며 등록이나 역할로 Task/공수/Capacity를 생성하지 않는다. 개인 필터는 같은 Assignment에 적용하고 공유5M/D 중복0·공동담당자 분리·선택80%/Project140%·기존 Calendar/R/M/M null을 보존한다.
+
+기존 기본 현황·Group/Role/등급·Milestone/Target 비교·주월 Plan·일별 상세·개인 Peak/과투입·견적·Excel은 계속 접근한다. 새 문맥의 지원 Excel은 화면과 같은 source/snapshot/selector·원시 Task/Assignment ID·current/project·미산정을 보존하며 행 반복을 재합산하지 않는다. 미지원 조합은 필터를 버리지 않고 명시적으로 거부한다. 정확 원본 편집·선택 밖 원인 수정·기존 상태 복귀 및 readonly/dirty/stale/권한 오류/응답 역전·5폭 keyboard/focus는 [실행 계획](exec-plans/active/ISSUE_736.md)의 실제 검증을 따른다.
+
+## Issue #735 — 물류 시스템 최상위 대시보드
+
+System 인스턴스를 root로 하여 Target0에서 단독 및 사용자 선택 공정/WorkArea/설비/리소스·Milestone 교차 조회를 제공한다. 직접 연결만/조율 범위 포함을 명시하고 유형·계층·프로젝트 공통/공정 범위·PI/개발자 속성으로 시스템을 선택한다. 고유 구성 System/제어 설비량, 일반 Task/진척/계획공수와 미배정·미설정·full Milestone Gate를 구별하며 공유 경로의 원시 ID/공수를 중복 합산하지 않는다. 작업0·공정0·역할 미설정은 정상 현황/진단으로 남긴다. 실제 관계 없는 Task 공통 연관을 제어관계로 바꾸거나 실적/가동률을 추정하지 않는다. 원본 상세/편집·정확 일정·같은 조회 복귀와 readonly/dirty/stale/error·5폭 접근성은 기존 gateway를 재사용한다. [수용 기준과 증거](exec-plans/active/ISSUE_735.md)를 따른다.
+
+## Issue #733 — 공정&WorkArea 관점
+
+Target0에서 등록 공정/선택 WorkArea를 최상위로 조회하고 단독 요약·설비/System 동급 분기·사용자 Milestone/리소스 교차를 제공한다. 공통 원장·API·renderer를 재사용하며 등록-only/미배정·legacy 출처를 보존한다. 고유 구성 수량과 Task/Assignment·coverage/full Gate의 모집단을 분리하고 다중 경로를 합산하지 않는다. 정확 원본 편집·snapshot stale·원래 보기 복귀·readonly/dirty/error·5폭·keyboard·조회 mutation0/Gantt remount0은 [Work Packet](exec-plans/active/ISSUE_733.md)의 AC1~AC5와 [화면 UX](PROJECT_UX.md#issue-733--공정workarea-대시보드)를 따른다.
+
 ## Issue #729 — WBS 다관점 조회·정확 범위
 
 Task/Assignment 원장을 공정·WorkArea·설비·물류 시스템·Resource·Milestone·Group·Role 관점으로 조회하는 versioned opt-in API를 제공한다. root-only 및 순차 단계와 설비/System 형제 분기를 지원하고 등록-only root와 미배정 Task를 보존한다. Task 직접 공정0..N·명시0은 구성/Target/조상에서 채우지 않으며 legacy API의 자동 공정 유도 의미와 구분한다.
 
-고유 원시 합집합 총계·경로별 행 식별·실제 관계 provenance, 한 read snapshot의 문맥/이름/등록/Calendar fingerprint와 bounded 정확 상세/drill을 제공한다. 공유 Milestone/설비/System을 거쳐 다른 Task로 범위를 넓히지 않는다. 미지원 새 spec Excel은 조건을 조용히 버리지 않고 전체 거부한다. 기존 public-read/edit 권한과 source/rows/cells/JSON 한도를 유지한다. [공개 계약](API.md#issue-729--versioned-wbs-다관점-조회), [실행 계획](exec-plans/active/ISSUE_729.md)을 따른다. 화면은 #730~#736의 별도 범위다.
+고유 원시 합집합 총계·경로별 행 식별·실제 관계 provenance, 한 read snapshot의 문맥/이름/등록/Calendar fingerprint와 bounded 정확 상세/drill을 제공한다. 공유 Milestone/설비/System을 거쳐 다른 Task로 범위를 넓히지 않는다. 미지원 새 spec Excel은 조건을 조용히 버리지 않고 전체 거부한다. 기존 public-read/edit 권한과 source/rows/cells/JSON 한도를 유지한다. [공개 계약](API.md#issue-729--versioned-wbs-다관점-조회), [실행 계획](exec-plans/active/ISSUE_729.md)을 따른다. 공통 구성기/표는 #730에서 이 계약을 소비하며 관점별 추가 기능은 #731~#736의 별도 범위다.
 
 ## Issue #726 — Task 직접 물류 연결 우선
 
@@ -622,3 +640,7 @@ Project Template은 공정 occurrence/선택 WorkArea와 Target/typed members를
 ## Issue #618 — Logistics Target F4 기본 구성·연결 UX
 
 기존 물류 Workspace에서 공정/선택 WorkArea 또는 명시 프로젝트 공통 Target을 구성하고 기존 Equipment/System 인스턴스를 생성/재사용한다. Task/Summary는 복수 Target·whole/subset·self/subtree·optional 작업수량을 편집하며 직접/상속/legacy 출처를 구분한다. Target 상세↔WBS는 canonical 동일 Task Editor와 동일 Target composer를 사용하고 조회 때문에 Task를 복제하거나 원본 WBS를 재구성하지 않는다. 공유/whole/subset 영향·삭제 보호·revision·권한·초안·접근성·반응형 계약은 [Target 계약](LOGISTICS_TARGETS.md)과 [F4 실행 원장](exec-plans/active/ISSUE_618.md)을 따른다. Resource 집계와 고급 Dashboard/전용 Timeline은 후속이다.
+
+## Issue #732 — Milestone 전용 관점과 기존 관리 보존
+
+대시보드의 Milestone root 단독·사용자 동적 하위 축을 공통 versioned 조회로 제공하고 기존 추가·편집·소속·관계·전체 Gate·필터·삭제 보호를 보존한다. Target0 직접 연결, selected Task/Assignment와 full Gate 분리, 조건 밖 생성 성공 안내·동일 원본 Editor/복귀, 날짜미정/member0/selected0·미배정·미연결 구분과 marker OFF·조회 mutation0이 요구된다. 기존 단일 effective 소속·Gate/공수 계산 authority는 그대로다. [Work Packet](exec-plans/active/ISSUE_732.md)의 보존표·AC별 실제 증거로 판정한다.

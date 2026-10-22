@@ -1,3 +1,4 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { installMilestoneDashboardFixture } from "./helpers/milestone-ui";
@@ -18,7 +19,7 @@ test.describe("Issue #83 Project Task / Resource 검색·필터", () => {
     const mutations: string[] = [];
     page.on("request", (request) => {
       if (request.resourceType() === "document") documents.push(request.url());
-      if (!["GET", "HEAD"].includes(request.method())) mutations.push(request.method());
+      if (!["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) mutations.push(request.method());
     });
 
     await page.goto(`/projects/${publicId}`);

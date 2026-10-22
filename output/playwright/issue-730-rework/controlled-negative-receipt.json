@@ -1,0 +1,19 @@
+{
+  "description": "통제된 cancelOriginal 무효 변형으로 실제 설비 수정 모달 금지 오라클의 감도를 검증한다. 제품 결함 재현 또는 정상 소스 PASS가 아니다.",
+  "originalSha256": "bf7ccfc2da3629970a153d684429aab9bfc75b28f414eb9eb812656f2e7036ce",
+  "temporarySha256": "95c61822f0912799d24450b2f7f6dd59548c1b7138d93f157b0ccd06c7b9ac02",
+  "startedAt": "2026-10-19T08:27:42.308190+00:00",
+  "exitCode": 1,
+  "restoredSha256": "bf7ccfc2da3629970a153d684429aab9bfc75b28f414eb9eb812656f2e7036ce",
+  "exactRestoration": true,
+  "observedFailure": {
+    "destination": "설비 수정",
+    "expectedDialogCount": 0,
+    "receivedDialogCount": 1,
+    "oracle": "tests/e2e/issue-730-view-composer.spec.ts:111",
+    "status": "FAIL",
+    "sensitivityConfirmed": true
+  },
+  "sourceStage": "before-host-handoff",
+  "boundary": "이 감도 검증 뒤 host 두 번째 scope로 취소 의도를 전달하는 제품 보완과 해당 회귀 단언이 추가됐다. 최종 소스의 정상 회귀 결과와 구분한다."
+}

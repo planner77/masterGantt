@@ -92,3 +92,11 @@ Status: IMPLEMENTED / NEW-HEAD REMOTE ACCEPTANCE NOT TESTED; before-after measur
 - AC2: `tests/e2e/issue-751-performance-telemetry.spec.ts`는 각 scripted browser synthetic GET의 `requestfinished` 또는 `requestfailed` waiter를 fetch 실행 전에 등록하고 HTTP 응답 body(`arrayBuffer`)를 소비한다. Route 제거 전에 terminal 수신을 확인하며 2 complete200(90ms delayed 포함)·1 http_error503·1 network·1 abort를 **정확히** 검증하고 `incomplete`/`other`를 허용하지 않는다. 5s/60s/120s timeout, Retry/Skip, 신규 90ms 제어, #622 strict 데이터·Focus·Excel·5폭 E2E 단언 변경 없음.
 - AC3: 브라우저 정상 완료 시점과 실패 원인 분류가 수정되어 원본 `e2e-timing-ci-shard-*` artifact 신뢰도가 개선될 것으로 예상하되, 아직 새 Run에서 실증되지 않아 `NOT TESTED`. 과거 SQL/Next compile 근인 및 전후 P50/P95 개선 효과는 기존과 같이 `UNKNOWN/INSUFFICIENT_DATA`. #3031.1의 #622 strict E2E PASS는 이전 F-006/F-008 근인 조치 경로의 성공 관측이며 전체 6-shard 성공은 아니다.
 - `DOCUMENTATION_SYNC`: DESIGN.md N/A(화면·동작 원칙 변화 없음), AGENTS.md N/A(기존 실패 대응 규칙 그대로), docs/API.md·docs/DB_SCHEMA.md N/A(공개 계약/DB 저장 변화 없음), CI/CD N/A(Workflow Gate/Shard/Timeout 동일), `docs/TEST_PLAN.md` 및 `docs/REMOTE_VALIDATION.md` UPDATED. 새 exact Head Full CI 및 HIGH OWNER 승인 없이는 병합 불가.
+
+## 2026-10-22 — 최신 main 동기화·8-Shard 계약 충돌 정렬
+
+- 이전 #751 원장의 Full #3014~#3031 검증은 6/6 당시의 불변 이력이며 최신 main에서 PASS로 승계되지 않는다.
+- PR #754 branch를 2026-10-22 main `b7cf247530ca17a61b3a934a6ebb4c2b6d3b2701` (Issue #767의 E2E 8/8 및 #770 Shadow 포함)에 병합 정렬한다. main의 .github/workflows/ci.yml Required Quality/E2E/Docker, 8 shard 수·timeout/QA 보호는 보존하며 #751 계측, 브라우저 terminal/Resource 포커스 검증도 보존한다.
+- src/features/projects/project-readonly-view.tsx에서는 main의 Resource WBS 내비게이션을 보존하고 #751의 report/detail readiness 기반 Focus MutationObserver를 통합한다. tests/e2e/fixtures/isolated-application.ts에서는 #733 process-workareas serial GET/prewarm·Webpack opt-in·fresh dist/restart·task process-context 경로 검증과 #751 stage/SQL/HTTP 수집을 동시에 적용한다. tests/config/e2e-timing-reporter.cjs의 main skip evidence와 #751 receipt를 모두 유지한다.
+- `scripts/issue-751-performance-compare.py`와 trend 수집기는 과거 6/6 또는 새 8/8 **각 실행별 완전한 동일 토폴로지**만 수용한다. 개별 실행에서 6/8·일부 취소·다른 환경/Head/Attempt 혼합은 `INSUFFICIENT_DATA`; baseline 6 vs candidate 8을 동질 cohort로 간주하지 않는다. 해당 8-way 회귀 테스트 추가.
+- 본 소스의 로컬 타입·Lint·Unit·실제 Chromium 8/8 검증은 아직 `NOT TESTED`. 새로운 exact-Head PR CI의 Required Quality/E2E8/Docker와 Trusted QA는 별도 판정. HIGH/OWNER_MANAGED 및 release_authorized=false 유지, 병합·GHCR·Issue 종료 권한 없음.

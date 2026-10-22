@@ -1,3 +1,260 @@
+## Issue #770 — 현재 E2E 8-shard 영향 관측 계약 정렬 (2026-10-22)
+
+기존 [#3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)은 6-shard Full/Required3 PASS로서 역사적 증거다. 그러나 #767의 최신 main에는 **E2E 8샤드**/136 spec/앱 0.129.1이 적용됐다. 구 6개 성공 샤드/기존 10회 정상 이력을 새 8-way Shadow Full 증명에 대입해서는 안 된다.
+
+- 신뢰된 **base Git tree**의 `tests/config/e2e-shard-plan.json` schemaVersion·shardCount·1..N 유일 그룹을 확인한다. N=8이면 동일 run/attempt의 `Chromium E2E shard n/8`과 해당 timing artifact N개를 대조한다. 6개뿐이거나 schema unknown, cancelled, partial, TTL 만료 등은 UNKNOWN/NOT_TESTED. 판정 범위를 PR의 변경된 plan 파일이나 본문 self-risk로 낮출 수 없다.
+- 회귀 `tests/python/test_ci_impact_plan.py`: 인증된 8-shard·누락된 plan·옛 6-shard Job 위조/미완성 부정, 기존 메타데이터·skip·stdin negative 조합. Unit/Chromium/HTTP/DB/Required 본문은 여전히 전체 원격 CI에서 검증한다.
+- [#770 Work Packet](exec-plans/active/ISSUE_770.md) / [실패 원장](ISSUE_770_FAILURE_ANALYSIS.md). 실측/예측 분리, 이전 6-shard SAMPLE 성과 소급 확정 금지.
+
+## Issue #770 — PR #774 F770-001/F770-002 코드 리뷰 보완 (2026-10-22)
+
+[#770 누적 실패 원장](ISSUE_770_FAILURE_ANALYSIS.md) 기록: Full #3101.1은 PR 메타데이터/Issue AC 식별자의 trusted Preflight 실패였고, metadata-only #3103.1은 이전 Full 실패 출처로 차단된 정상 fail-closed 결과다. E2E6/Unit/Docker 테스트 본문은 원본 Run에서 SKIPPED였다.
+
+- P1 Node impact map: base-trusted JS 정책 코드는 변경하지 않고 PR source의 테스트/소비자 JSON을 **stdin**으로 전달한다. 실제 Unit/E2E 파일 목록과 200KB를 넘는 graph를 이용하는 Python→Node 통합 회귀로 OS argv 한계 회피를 검사한다.
+- P2 E2E timing: 기존 optimizer가 읽는 passed-only `entries`는 유지한다. 별도 `skippedFiles`와 `skippedCaseCount`를 기록하여 `resource-tabs.spec.ts`의 정상 skip 등을 passed 테스트·실행 누락과 구별한다. Shadow는 passed ∪ skipped의 원본 파일 커버리지를 확인하고 미보고/미등록/구형 ZIP은 UNKNOWN. Skipped≠PASS, skipped test body를 시간 절감 추정에 가산하지 않는다.
+- 새 정책 테스트 `python3 -m unittest discover -s tests/python -p 'test_ci_impact_plan.py' -v`; 실제 새 Head Quality/E2E6/Docker와 Trusted QA, Owner HIGH 승인 이전 MERGE_READY=BLOCKED.
+
+
+---
+
+## Issue #770 — trusted CI 영향 분류·선택 계획/Shadow 수용 (2026-10-22)
+
+[#770 Work Packet](exec-plans/active/ISSUE_770.md)과 #697/#699 로컬 선정표를 **원격 공식 정책에 자동 대체하지 않는다**. 새 `scripts/ci_impact_plan.py`는 인증된 base에서 read-only 실행하고, 변경된 test-merge의 Git tree/diff, #699 static consumer map, 파일별 추가 직접·인접·실패 원장 회귀 후보를 선정하며 기존 Full Required CI는 Phase A에서 변경하지 않는다.
+
+| 변경 유형 | 위험 floor | Shadow 추천 | 검증 대상/보수적 이유 |
+|---|---|---|---|
+| 비보호 문서만 변경 | LOW | DOCS_VERIFIED | 코드·테스트 미변경, docs-only 출처 확인. 공식 기존 CI skip만 별도 검증 |
+| 제한된 프로젝트 목록 UI/문구 및 명시적 화면 독립 CSS | MEDIUM | FAST_TARGETED 가능 | 실제 있는 해당 화면 Unit/Chromium 소비자; #699 미매핑은 trust-base 명시 매핑으로만 보완 |
+| 기존 단일 테스트 파일의 본문 수정 | MEDIUM 이상 | FAST_TARGETED 후보 | 해당 테스트 필수 포함; skip/only/비정적 import는 즉시 FULL |
+| 일반 미등록 화면/스타일/간접 소비자 | HIGH/UNKNOWN | FULL_REQUIRED | 불완전한 소비자 지도는 테스트 제외 근거가 아님 |
+| Gantt shared state/Core/viewport, Calendar, Milestone, Resource, SQL/Server, HTTP/API, auth/revision | HIGH | FULL_REQUIRED | 직접+간접+교차 회귀·보안·계약 검사 집합 |
+| migration, package/lock, Next/tsconfig/CI/QA/workflow/fixtures/helpers | HIGH | FULL_REQUIRED | 신뢰 경로/환경/테스트 인벤토리 자체가 변경됨 |
+| 파일 추가/삭제/이름 변경, 신규/누락/잘못된 테스트 ID, dynamic import, 알 수 없는 확장자 | HIGH/UNKNOWN | FULL_REQUIRED | 기존 베이스/변경 tree 불변성 미확인·커버리지 제거 위조 차단 |
+
+- 6개 대표 실패 계열 #667/#730/#731/#732/#736/#767의 Gantt/Resource/Milestone/security 소비자를 **원장 근거와 함께 선정**한다. 이 매핑은 과거 실패가 동일 변경에서 **재발하는지를 증명하는 실험이 아님**. 고유 실패 Head/Run/Attempt/원본 테스트를 회수해 정확 회귀 누락을 검증하기 전 false-negative=INSUFFICIENT_DATA.
+- 산출물 `mastergantt-impact-plan-v1`: `risk`, `mode_recommendation`, `source`, `input_diff_fingerprint`, `trusted_policy_blob_sha`, `selected_test_ids`, `excluded_test_ids`, `selection_basis`, `failure_ledger_basis`, `test_plan_sha256`, `observed_ci`, `evidence_status`. 정렬/해시 결정적, 변경 PR이 policy floor를 직접 하향할 수 없음.
+- Job API의 3 Required aggregate와 six shard actual success 관측, exact run/attempt test timing artifact ZIP의 test spec 단위 full inventory coverage를 대조한다. ZIP 자체는 비신뢰 자료이고 원본 Required PASS 증명 자료가 아니다. 미실행/부분 수행/취소/만료는 미확인.
+- E2E `timed_test_body_minutes`와 `excluded_test_body_minutes_upper_bound`는 실제 벽시계·비용 절감과 다르며, Runner-minutes는 실제 Job start/end 자료가 있을 때만 기록. #770 Work Packet 10 Run의 baseline은 gate/job 성공은 확인했지만 test-merge/원본 diff/ZIP·시간의 소급 인증이 없어 정량적 효과는 **INSUFFICIENT_DATA**.
+- 관련 Python 수용 테스트: `tests/python/test_ci_impact_plan.py`. 이 신규 보호 검사 자체는 HEAD의 기존 Full Quality/E2E6/Docker, 기본 브랜치 Trusted QA와 Owner HIGH 승인을 필수로 유지.
+
+---
+
+## Issue #767 — Owner 8-Shard 전환 / E2E 전체 커버리지 및 Final Full CI (2026-10-22)
+
+[원본 #3099.1](https://github.com/planner77/masterGantt/actions/runs/39676585856)에서 Shard5 109 중94 PASS/15미완료, 35.35분 Job Timeout CANCELLED; 나머지 5개 Shard+Quality/Docker PASS, E2E aggregate/QA 파생 FAIL. F767-001~006 누적과 구분한 새 [F767-007](ISSUE_767_FAILURE_ANALYSIS.md)에서 #3098 Shard5 동형87개 테스트보다 약58% 느려진 사실·Runner 환경 차이와 원인 미확정을 남긴다. 단일 6-way 배치를 옮길 때마다 Shard6→1→6→5의 한계가 재발해 Owner는 기존 Issue/PR 범위에서 6→**8**을 승인했다.
+
+테스트 본문/fixture/assertions 변경 없이 **136 E2E spec(원래791 cases) 전체 유일 배치**. #3097~3099 완료 file/case durations 및 adjacent completion timestamp gap의 최대 관측 경과시간 기반 deterministic LPT: 8샤드 각각17개 spec, 사전 MAX 시간합≈21.1분/샤드. 과거와 다른 Runner region·test setup·취소 미실행 건의 미관측분 때문에 확정 실행시간/CI 통과 보증은 아니다. `tests/scripts/e2e-shard-planner.test.ts`의 15개 pin, `tests/scripts/test-config-layout.test.ts`의 CI·Release 8-way·35분 고정, Python PR fast gate 및 release lifecycle 검증 일치, exact Git Tree/selector 136개 유일함을 검증한다. `scripts/main_ci_recovery.py` 옛 #639 SHA의 원본 6샤드 Job assertion은 역사적 출처 계약으로 보존한다.
+
+검증하는 기존 계약: #621 exact Assignment(권한 만료/401·412/100→80→70/other assignment), #530 Milestone M1 Resource→일정→복귀 정확 UUID focus, Task Editor/권한, Resource/물류/설비/공정/관점 Dashboard, 기존 오류 회귀. `.github/workflows/ci.yml` PR/Main 및 `release-image.yml` Release Matrix 1..8, native fallback 8 및 원본 Timing ShardCount8, optimizer 8. `workers=1`, per-job Timeout35분, fail-fast/retry/skip/Required Quality+E2E8+Docker3, default-main Trusted QA/Owner HIGH·정식 Release 승인 모두 불변. 새 PR Head Full 8/8 PASS는 실행 전 **NOT TESTED**이며 `MERGE_READY=BLOCKED`/`release_authorized=false`.
+
+---
+
+## Issue #767 — 원본 E2E 영향 기반 실검증 + F767-006 비용 보정 + 최종 Full CI (2026-10-22)
+
+[원본 Full #3098.1](https://github.com/planner77/masterGantt/actions/runs/39665459118) / Head `26364cce865189122318a49e68f86bcb0f468270`에서 35분 Job cap으로 Shard6 153/159 PASS·6 NOT TESTED 후 CANCELLED. 다른 5Shard 및 Quality/Docker/QA Preflight PASS, 원본 E2E required/QA FAIL. `F767-001~005` 실패 전체의 인과 비교는 [단일 원장 F767-006](ISSUE_767_FAILURE_ANALYSIS.md)에 귀속. 문제는 제품 Assertion 실패가 아니라 증가한 E2E test-body + 독립 Next/SQLite Fixture 준비/정리·타임스탬프 간격과 정확하지 않은 shard wall 예측 결합이다(각 간격의 인과적 상세 분류는 #751에 보류).
+
+**위험 기반 영향 증거 매핑(실제 PASS·별도 Run 미수행)**: ① #621 정확 Assignment 편집·401/412·세션 취소 `tests/e2e/issue-621-resource-target.spec.ts` **6/6 PASS**(Job119450474592), ② #530 Milestone→Resource→일정→M1 focus 및 Resource KPI `resource-kpi-integration-ui.spec.ts` **7/7 PASS**(Job119450474750), ③ 일반 Task Editor 및 권한 경계 `project-task-editor.spec.ts` **33/33 PASS**·`project-edit-permission-recheck.spec.ts` **2/2 PASS**(Job119450474637). 합계 **직접·간접 48 PASS**. 음성 #734 설비8, 공정 물류 authoring7, #623 Resource MVP7 PASS. 원본 Run `39665459118.1`/HEAD `26364cce865189122318a49e68f86bcb0f468270`의 테스트 본문/코드 출처이며 **새 Head Full PASS를 대체하지 않음**.
+
+**작은 계획 보완**: 136개 spec은 전부 유지하면서 `issue-734-equipment-dashboard` 6→1, `issue-621-resource-target` 6→3, `logistics-target-authoring` 6→5, `issue-623-resource-mvp` 2→1 네 개 전체 파일만 이동한다. 본문 시간만이 아니라 종료 테스트 시각의 파일별 관측 간격을 포함한 #3098 실측값으로 새 예상 Job wall `[26.49,23.16,25.89,25.05,26.99,20.32]`분을 표시하되 전혀 보증하지 않는다. 기존 #767/F003/F005 및 #765 계획 정보 삭제 금지; 변경한 `tests/scripts/e2e-shard-planner.test.ts` 고정 배치 기대값 동시 확인, Git Tree 실제 136/136 unique. 기존 `--max-failures=1`/6Shard/worker1/35m·timeout/retry/skip·QA 보호 불변.
+
+**완료 정책**: 영향 기반 분석·정적 파일 배분 검증 후 가능한 한 **한 번의 synchronize Full CI**로 새 exact Head Required3 Quality/E2E6/Docker와 default-main Trusted QA를 검증한다. 이 연결에서 새로운 로컬 Browser subset 실제 실행은 수행되지 않았으며, 새 Head 원격 실행은 **NOT TESTED**. 성능 개선은 새 CI의 여섯 개 Job PASS 및 wall 측정 전까지 미확인. #697/#699 정책과 #751 Fixture 단계 계측·#752 별도 bounded 진단 구현을 별도로 추진하며 기존 릴리스/Owner 게이트 우회 없음. `MERGE_READY=BLOCKED`/`release_authorized=false`.
+
+---
+
+## Issue #767 — PR #768 CI #3097.1 Shard1 35분 취소 및 6-way 부하 균형 검증 (2026-10-22)
+
+[Full PR CI #3097.1](https://github.com/planner77/masterGantt/actions/runs/39658647821), HEAD `aaf9ddaab3b1092b6b8cd3f33251928f9bab0e5a`: QA Preflight/Quality/Docker 및 E2E Shards2~6 SUCCESS. Shard1 Job119426748348 `Running 121 tests` 중 119 PASS, 35.28분 cap에서 CANCELLED, 2건 미완료; 전체 Run CANCELLED, E2E aggregate/QA Final 실패. 정책·DOC_SYNC와 Shard6 Artifact 전송 오류(F767-004)는 재발하지 않았다. Shard2/3/4도 31.62/31.35/30.60분으로 임계치 접근하였으므로 1번만이 아니라 6개 전체를 비교하여 수정한다.
+
+[단일 누적 원장 F767-005](ISSUE_767_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_767.md)을 출처로 `tests/config/e2e-shard-plan.json`의 136개 고유 spec 전체 파일을 6번 이동: `issue-734-equipment-dashboard` 1→6 (8,3.94분), `project-transfer-layout-491` 1→6 (8,2.81분), `logistics-target-authoring` 1→6 (7,2.78분), `issue-730-view-composer` 2→5 (6,3.27분), `issue-621-resource-target` 3→6 (6,3.05분), `issue-735-system-dashboard` 4→5 (6,4.04분). `tests/scripts/e2e-shard-planner.test.ts`에서도 **동일 6개의 고정 배치(Unit 5개 변경/1개 신규) 동기화**, `selectShardFiles`의 유일성·전체 Tree 136파일 검증 유지.
+
+현재 배치 파일수 [20,23,25,22,23,23]=136, 원본 Run observed job wall [35.28,31.62,31.35,30.60,18.90,14.13]분. 원본 완료된 Case의 Test body 시간만 이관한 조건부 정적 추정은 [25.75,28.35,28.30,26.56,26.21,26.71]분이다. Runner/Setup/Jitter 및 Shard1 2개 미완료 Case의 미관측 시간을 포함하지 않은 추정으로 CI 성능 PASS를 주장하지 않는다. Historical baseline `metrics.projectedMs`와 #732/#733/#765/#767 F767-003 이동은 불변 기록.
+
+같은 새 PR SHA에서 Policy/TypeScript/ESLint/Vitest, E2E6(원래 미완료 2건 포함), Docker, 기본 브랜치 Trusted QA를 검증하고 #621 exact assignment 권한/투입률100→80→70/401·412, #530 정확 Milestone UUID/LIFO focus, 설비/물류 Dashboard·원본 Task 복귀·Excel의 직접/간접/음성 사례와 과거 F767-001~004 재발 여부를 구분한다. 테스트 body·assertion·fixture/skip/Retry·worker1·Shard6/35m 및 fail-fast, Required3/QA/Release는 수정하지 않는다. 공식 릴리스 `release_authorized=false`, 새 CI 결과 `NOT TESTED` / `MERGE_READY=BLOCKED`.
+
+---
+
+## Issue #767 — PR #768 CI #3096.1 Artifact Create `ECONNRESET` 및 E2E6 전체 재검증 (2026-10-22)
+
+[원본 Full #3096.1](https://github.com/planner77/masterGantt/actions/runs/39619154900) / Head `305a6897d56b40e89da639726401b77458e4475d`에서 QA Preflight/Quality/Docker는 성공, **Shard6의 130개 E2E는 실제 모두 PASS (14.8m)**하였다. 그러나 `E2E timing artifact` 업로드 요청 중 `CreateArtifact ECONNRESET`이 발생해 Shard6 Job이 실패하고 다른 5개 Shard는 PR matrix fail-fast에 따라 취소되었다. 뒤따른 Shard6 setup-metrics/report artifact 업로드는 성공했으므로 타이밍 파일 누락이나 테스트 Assertion 결함으로 추정하지 않는다. E2E Required/QA Full PASS는 **없음**; QA Final은 별도 source snapshot 불일치로 BLOCKED(확정 근인 UNKNOWN)였다.
+
+[누적 F767-004](ISSUE_767_FAILURE_ANALYSIS.md)와 [Work Packet](exec-plans/active/ISSUE_767.md)에 F767-001~003 전체 원인·교정 및 현재 source 귀속을 유지한다. 이전 #3095 Shard6 35m 문제의 보완으로 136개 고유 spec 중 3개 파일을 이동한 후 이번 Shard6 개별 PASS가 나왔지만, 1~5개 Shard는 미완료이므로 **수정 배치 전체는 NOT TESTED**. 부정/교차 범위: #621 정확 Assignment 권한·Revision/401/412, #530 Milestone→Resource→일정 포커스, #734 설비 관점 및 기본 Editor/Role/Search, 취소된 5개 Shard 전체와 각 Timing Artifact 업로드. PR Quality/E2E6/Docker + 기본 브랜치 Trusted QA를 같은 새 Head에서 검증한다.
+
+**이번 교정 선택:** 단 한 번 관측된 GitHub-hosted Runner ↔ Actions artifact service의 순간적인 전송 리셋에 소스 제품·테스트·6-shard·timeout 35m·Retry0·fail-fast·QA/Required 조건을 수정하지 않는다. 실패 원장을 기록하고 소스 변경 없는 문서-only commit으로 신규 `synchronize` Full PR CI를 시작한다. 재발 시 범위 지정된 Artifact 전송 재시도(최대 한 번, 최종 실패 시 fail-closed, digest/중복 검사)를 별도 검증 대상으로 논의하며 허가 없이 CI 검증 정책을 완화하지 않는다. 새 실행 전 결과는 `NOT TESTED`이고 `MERGE_READY=BLOCKED`, 정식 `v0.129.1` 게시 승인 없음.
+
+---
+
+## Issue #767 — PR #768 Full #3095.1 E2E Shard6 Job Timeout 재분배 (2026-10-21)
+
+[원본 Run #3095.1](https://github.com/planner77/masterGantt/actions/runs/39611062916)에서 Quality/Docker와 5개 E2E Shard는 PASS, Shard6은 `Running 174 tests` 중 173 PASS 뒤 35분 Job limit CANCELLED(원본 전체 Run CANCELLED); E2E Required/QA 파생 FAIL. 이번 Run의 QA Preflight `ISSUE_AC`/`DOCUMENTATION_SYNC`는 PASS되어 [F767-001/002](ISSUE_767_FAILURE_ANALYSIS.md)와 구분한다. 독립 제품 Assert 실패나 리소스 데이터 소실 증거는 확인되지 않았다.
+
+[단일 실패 원장 F767-003](ISSUE_767_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_767.md)대로, 원본 **136개 E2E spec 모두 유지**하면서 세 파일을 완전 이동한다: `issue-734-equipment-dashboard.spec.ts` 6→1 (8 cases, body≈5.31m), `project-task-editor.spec.ts` 6→3 (33, ≈3.58m), `issue-726-task-logistics.spec.ts` 6→4 (3, ≈2.81m). 인접 소비자인 `tests/scripts/e2e-shard-planner.test.ts`의 3개 정확 배치 기대값을 함께 수정한다. 파일 수 23/24/26/23/21/19(합계136), 유일 소속·빠짐 없는 실제 Git Tree 일치 확인. 예상 Job wall 24.36/29.87/25.85/28.08/25.37/23.67분은 직전 Run의 시험 본문 소요시간을 분배한 거친 정적 추정이며 원격 시간 보증이 아니다.
+
+`tests/config/e2e-shard-plan.json`의 `manualRebalance767`에 정확 Run/Attempt/증거/이전·새 배치·추정 한계를 기록하고 원래 historical `generatedAt/metrics/projectedMs` 및 #733/#732/#765 rebalances는 불변. `workers=1`, 각 Shard 35min, E2E6/PR fail-fast/MaxFailures1/Main 전수/Required3/QA/Retry·Skip 모두 불변이며 테스트 본문이나 제품 로직은 수정하지 않는다. 새 exact Head Full PR CI(Preflight/Unit/Chromium6/Docker/QA)와 기본 main Trusted QA가 실제 SUCCESS할 때까지 `NOT TESTED`, `MERGE_READY=BLOCKED`; 정식 v0.129.1 GHCR 승인 별도.
+
+---
+
+## Issue #767 — v0.129.1 #764 교정 승계 및 회귀 검증 (2026-10-21)
+
+[원본 PR #764](https://github.com/planner77/masterGantt/pull/764) 정확 Git Tree 변경을 신규 issue-767 branch에 승계한다. 원본 Head `5abc65880879647a563c0469bf53c4cd4f654b6b`, Full PR CI [#3092.1](https://github.com/planner77/masterGantt/actions/runs/39602089760) Quality/E2E6/Docker SUCCESS, Trusted QA [#734.1](https://github.com/planner77/masterGantt/actions/runs/39607021968) SUCCESS는 새 VERSION/HEAD의 PASS로 소급 사용하지 않는다.
+
+- **직접 E2E**: `tests/e2e/issue-621-resource-target.spec.ts`: exact assignment 후보 GET=0, `edit-sessions/current`>=1/권한 정상, revoked/expired=readonly·PUT 없음, 투입률100→80→70/동료 Assignment 불변, 401/412 draft 및 focus/Revision 보존.
+- **복귀/인접 E2E**: `tests/e2e/resource-kpi-integration-ui.spec.ts`에서 원본 Milestone canonical UUID·data-ready·활성 Resource trigger LIFO focus와 기존 KPI/기간/Report·과투입/Task snapshot 불변 검증. 일반 Editor 후보 조회, Project readonly/stale, #621/#622/#623/#530/#736과 기존 dashboard tests 간 간섭 금지.
+- **전체 검증**: 신규 #767 exact PR Head+strict main의 Policy/TypeScript/ESLint/Unit/Build + Chromium 6/6 Shards + Docker smoke, default-main Trusted QA. 편집 대상이 버전/문서뿐이어도 기존 #764 성공 Run을 새 HEAD의 검증으로 재사용 금지. `35m` shard, global timeout/Retry/Skip·Required3·Finalizer 규칙 불변.
+- **릴리스**: `package.json` 1곳 및 lockfile 2곳 `0.129.1`; 기존 `v0.129.0` tag/GHCR digest 불변, `v0.129.1` 신규 고유 tag·Main exact verified candidate 및 별도 authorized release 전에는 GHCR 정식 게시/Issue Close 금지. 외부 운영 배포 검증은 Actions의 테스트 범위 밖.
+- **증거/관리**: [#767 Work Packet](exec-plans/active/ISSUE_767.md), [#767 실패 원장](ISSUE_767_FAILURE_ANALYSIS.md), [#736 기존 실패 원장](ISSUE_736_FAILURE_ANALYSIS.md). `DESIGN.md`/API/DB/schema 영향 N/A(기존 교정 동작·테스트 그대로), DOC_SYNC 필수 완료 전 CI 성과 주장 금지.
+
+---
+
+## Issue #765 — #3085.1 E2E 계획·Vitest 고정 기대값 동기화 (2026-10-21)
+
+PR #766 [Full #3085.1](https://github.com/planner77/masterGantt/actions/runs/39574608432)의 직접 실패는 tests/scripts/e2e-shard-planner.test.ts:126의 Shard 배치 기대값 stale이다. F765-003에서 issue-735-system-dashboard.spec.ts를 5→4, issue-730-view-composer.spec.ts를 5→2로 옮겼으나 해당 Test는 구 위치를 기대했다(3159 PASS/1 FAIL/3 SKIP). project-task-editor(1→6), issue-623-resource-mvp(3→2)의 고정 기대값도 신규 추가한다.
+
+기존 136개 current E2E spec 단일/유일 Shard 배치·6 Shards/35분·workers1·skip/retry/required Quality/E2E/Docker 등은 불변. 이전 Shard5 Timeout은 이번 Run에서 Chromium이 Fast Gate 실패로 미실행되어 아직 재검증하지 않았다. 최신 exact Head의 Unit/E2E6/Docker/Trusted QA 검증 전 Merge 불가. [#765 F765-004 원장](ISSUE_765_FAILURE_ANALYSIS.md) 참조.
+
+---
+
+## Issue #765 — PR Full #3084.1 Shard5 Job Timeout 및 E2E 완전 커버리지 리밸런싱 (2026-10-21)
+
+PR #766 Full [#3084.1](https://github.com/planner77/masterGantt/actions/runs/39563793357) Quality/Docker 및 E2E Shard1/2/3/4/6 성공, Shard5는 91건 PASS 뒤 35분 Job timeout에서 취소. 원본 테스트 FAIL이 확인된 것이 아니라 4개 남은 스펙을 완료하지 못한 것이며 새 CI에 다시 포함해야 한다. 전체 증거는 [#765 실패 원장 F765-003](ISSUE_765_FAILURE_ANALYSIS.md).
+
+`tests/config/e2e-shard-plan.json`의 테스트 파일만 4건 이전한다: project-task-editor(1→6), issue-623-resource-mvp(3→2), issue-730-view-composer(5→2), issue-735-system-dashboard(5→4). 136 unique test specs 모두 포함(샤드 파일수 22/24/25/22/21/22). 각 스펙/expect·workers=1, Chromium 6-shard, PR fail-fast, 35분 Job Timeout 및 Required Quality/E2E/Docker는 유지한다. 역사적 projectedMs는 이전 baseline이고 바뀐 배치의 실측 예측으로 주장하지 않는다. 실제 새 exact Head 전체 PR CI 및 QA를 통과해야 최종 완료.
+
+---
+
+## Issue #765 — 미발행 v0.127/v0.128 부채 RETIRED 계약·회귀 (2026-10-21)
+
+정책 필수 실험: python3 scripts/test-release-debt-recovery-765.py (Synthetic fixture, 실 GHCR/GitHub mutation 0).
+
+Positive: exact first-parent #732 PR761 → #736 PR760 → #732 PR763 → #734 PR759 → 새 #765 PR, old cancelled/failure Main Run 불변, #734 Release #186/digest 인증, #765 신규 Main candidate PASS, 전체 브랜치 preflight 후 bot RETIRED·Close 및 #734/#765 정상 Generic FINAL.
+
+Negative: Owner foreign/malformed/revoked/duplicate, 다른 SHA·PR·중간 Issue·태그/버전·Release run, old Main success 위조, GHCR UNKNOWN/PRESENT·old ci-SHA candidate, digest 불일치, forged bot RETIRED, expired/stale main, preflight 실패 전 writes 0. Repeated trigger·부분 처리 후 중복 marker 0.
+
+Remote acceptance: #765 정확 PR Head/base의 세 Required Quality/E2E6/Docker·Trusted QA·Owner HIGH 수용·Main validated SHA. GHCR real audit는 인증된 GitHub runner에서 수행하며 로컬 fixture PASS를 실제 발행/retirement 증거로 대체하지 않는다.
+
+상세: [#765 Work Packet](exec-plans/active/ISSUE_765.md).
+
+---
+
+## Issue #734 — 설비 consumer·유형·원본 snapshot 수용
+
+전용 `tests/features/resources/equipment-dashboard.test.ts`와 `tests/server/resources/issue-734-equipment-configuration.test.ts`는 기존 SQLite oracle/공통 원장을 사용한다. Target0·AMR10+5/고유15·등록-only·비활성·미배정, 직접/조상/Target whole·subset·혼합의 중복 제거, E10 다중 WorkArea 각10/상위10·Task5 M/D 상위5, shared MCS와 Milestone no-leak·full Gate, 명시 controls와 같은 Task 업무 연관, 유형 OR 필터/등록-only/잘못된 입력·이름 변경 stale를 확인한다.
+
+전용 `tests/e2e/issue-734-equipment-dashboard.spec.ts`는 실제 Chromium/격리 HTTP·SQLite에서 사용자 축 추가/제거/정렬·두 요구 경로/단독/복원·유형, 정확 원본 editor/dirty/저장·Task/Assignment·일정 복귀·stale/401/412/readonly, 5폭390/768/1024/1440/1920px의 긴 이름·Tab/Escape/focus·열 정렬·문서 overflow0/표 내부 scroll·Gantt instance/marker-OFF와 조회 mutation0을 수용한다. 준비/오류/후행 조회는 기존 response observer를 재사용하며 query POST를 업무 mutation과 구별한다.
+
+교차 회귀는 기존 #729 HTTP/view·#728 Domain·#733 process consumer, #730 composer/원본/일정·#624 legacy 설비 통합 조회·#731 KPI와 source/drill transport다. 새 renderer/DB writer·계산 알고리즘/CI policy는 추가하지 않는다. 실제 명령·케이스 수·실패 원인·source 불변·PrePR UNKNOWN 및 미검증은 [Work Packet](exec-plans/active/ISSUE_734.md)에 기록한다. 로컬 선정은 공식 원격 Full6-shard/quality/docker·Trusted QA·Owner 수용을 대신하지 않는다.
+
+**#734 PR CI 연속 실패 회귀 보완(2026-10-21).** [단일 #734 실패 원장](ISSUE_734_FAILURE_ANALYSIS.md)에 F734-001(#3058.1 272자 설비명 HTTP400 → #3061.1 200자 5폭 case PASS)과 F734-002(#3061.1 공유 사용처 승인 누락→PATCH 응답 대기120s)를 각각 원본 Head/Run으로 보존한다. 설비 원본 editor의 공유 인스턴스 변경 확인은 저장 전 필수 read-only 사용처 preview이므로 `원본 변경 취소`/dirty 유지·mutation0, 재확인 후에만 PATCH200/새 report·revision·2개 WorkArea·focus 복귀를 확인한다. #735 시스템 원본 승인 flow/기존 #730 Task drill, 원장/유형 조회 음성/200자·5폭·Gantt 상태를 함께 보존하며 제품 확인 gate를 우회하거나 120s/Shard6/CI fail-fast를 완화하지 않는다. 수정 새 Head Chromium/Trusted QA는 별도 원격 실행 전 NOT TESTED.
+
+**#734 F734-003 회귀(2026-10-21):** [원본 #3064.1](https://github.com/planner77/masterGantt/actions/runs/39485897399)의 Chromium shard6에서 인접 #730의 원본 Task/Assignment/일정 복귀 테스트가 이전 공통 '고유 총계' 접근성 이름을 사용하여 180초 Timeout. #734 설비 뷰는 실제 '설비 작업 고유 총계'와 '고유 Task 1건'이므로 선택자를 그 계약으로 교정하고 표 이름 검색 전후 총계 동일·응답 역전/오류·원본/복귀/focus 검증을 유지한다. 기존 #734 전용8 E2E는 해당 Run 취소 Shard1에서 개별 PASS였으나 Shard 전체는 CANCELLED. 3회 Run의 실제 실패 파일2개·case3개와 미실행 내역은 [단일 누적 원장](ISSUE_734_FAILURE_ANALYSIS.md) §5를 참조한다. 제품 변경·timeout/retries/skip/Shard 재배분 없음. 신규 Head 결과는 NOT TESTED.
+
+**#734 F734-004 (#3066.1 / 2026-10-21):** 설비 저장 E2E는 PATCH/Report 이벤트 뒤 화면 전환으로 Playwright Page.Response body가 소실돼 `refreshed.json()`에서 CDP `Network.getResponseBody` 오류(12PASS/1FAIL/137NOT RUN, 5 Shard CANCELLED). Browser PATCH200/조회200과 UI data-ready/confirmation 증가를 확인하고 동일 입력으로 별도 읽기 전용 APIRequestContext의 WBS POST JSON을 확보해 revision+1/snapshot 변화/spec 불변을 검증한다. WorkArea2·focus·원본명·mutation0→1 및 F734-001/002/003, #730/#732/#735 교차를 유지. 120s/6Shard/Required3/Fail-Fast/Retry/Skip 불변. main #732 v0.127.0 및 #736 v0.128.0을 보존하며 #734 후보 v0.129.0; 새 source의 Local/Remote QA는 NOT TESTED.
+
+**#734 F734-005 (#3070.1, 2026-10-21):** Assignment PUT200 직후 작업 Editor `할당 저장 (1)` 버튼이 관측5초 내 비활성이라 FAIL(Shard1 14PASS/1FAIL/139NOT RUN). `onApplied → canonical reload → revision/assignment/catalog 재조회 → ready`는 PUT response와 별도 단계다. 테스트는 PUT 전후 실제 Project revision 정확히+1, 해당 Assignment ID/투입률50을 확인한 뒤, Editor Revision/투입률50 및 버튼 enabled를 통해 완료를 검증한다. 정확한 미완료 내부 단계는 아직 UNKNOWN이다. 원래5초 버튼 단언/120초 Test budget/6Shard/Required3/Retry/Skip 불변. 이전 F734-001~004와 신규 case의 누적 실제 실패 합집합 2files·4cases/5runs는 [#734 단일 원장](ISSUE_734_FAILURE_ANALYSIS.md) §7을 따른다. #736 Resource root/Plan/Excel 회귀는 보존, 신규 Candidate 0.129.0의 실제 Chromium은 NOT TESTED.
+
+## Issue #736 — F736-004 PR #764 Shard5 M1 focus 및 정확 개인 edit-session 권한 음성 (2026-10-21)
+
+[Original Full PR #3076.1](https://github.com/planner77/masterGantt/actions/runs/39510892786): shard5 `resource-kpi-integration-ui.spec.ts:705` #530 M1 Resource trigger LIFO focus missing, 83PASS/1FAIL/11 not run; 1/4/6 cancelled; Quality/Docker and shard2/3 PASS. Test 20s, not 180s Test/35min Shard timeout. Review thread P2 found exact Assignment path removed active authorization by skipping full candidates GET.
+
+- Milestone legacy `project-readonly-view.tsx` focus restore: original source row identified by canonical Milestone Task UUID; on returning, await active dashboard `data-ready=true`, `aria-busy!=true`, `data-stale=false`, stable origin resource button, cancellation on newer input and open modal. `tests/e2e/resource-kpi-integration-ui.spec.ts` original LIFO focus/data/range/task/Assignment/report/viewport assertions remain; exact row/button identity added. General Resource/WBS navigation/heading fallback unchanged.
+- Exact Task Assignment edit must perform no full catalog query but **must** reauthorize via existing `/edit-sessions/current` before enabling input. Unit-level parser existing session envelope and valid/revoked E2E `tests/e2e/issue-621-resource-target.spec.ts`: session lookup≥1 and candidate catalog0, revoked session -> readonly no edit, valid edit percent100→80→70, other personal Assignment unchanged, 412/401 drafts, original focus/PUT count preserved. Nonexact general Editor remains candidates-backed. Shared #621/#622/#623/#736 plans/excel/Task editor/readonly and #530 report are indirect regression.
+- Main #732 PR #763 updated shard plan and original #621 ready30s assertion retained in merge; #736 is a separate failed PR and must not revert #732 plan/test coverage. Full new exact Head PR Quality/E2E6/Docker + Trusted QA/Owner required. No global timeout/retry/skip/Required3 changes. New browser/unit/build actual result NOT TESTED in this connector environment; CI start is not PASS. [Cumulative ledger](ISSUE_736_FAILURE_ANALYSIS.md#f736-004--pr-764-full-pr-ci-30761-m1-lifo-포커스-실패-및-p2-권한-검토-2026-10-21-kst) retains source evidence.
+
+## Issue #736 — M736-001 Main E2E #621 exact 편집 로딩/후보 조회 경계 (2026-10-21)
+
+원본 [Main CI #3071.1](https://github.com/planner77/masterGantt/actions/runs/39499988360) Shard3의 `tests/e2e/issue-621-resource-target.spec.ts:370`에서 exact Assignment Alice 100% 입력이 5초 내 렌더되지 않았다. Trace는 정확 assigned-targets HTTP200/328ms 뒤 전체 후보 assignment-targets GET200/4014ms 및 UI loading을 확인했다. 기존 #717 name-first label mismatch와 달리 렌더 준비 지연이다.
+
+`src/features/gantt/task-assignment-editor.tsx` exact mode는 요청/응답·canonical Assignment ID·catalogRevision/다른 개인 불변을 유지하면서 비관련 전체 후보 요청을 생략한다. 비정확 일반 편집의 후보 조회/역할/그룹/검색을 유지한다. 기존 #621 E2E는 `assignment-targets` 요청수0·'할당 저장' 활성 준비(15s bounded)와 정확 Alice percent100→80→70, BOB 불변·412/401 초안 보존·POST/PUT·원본 focus를 전부 검증한다. 이때 테스트 본문 180초·Shard6/35분/worker1·retry/skip/Required3 기본 정책은 불변이며 matcher 5초 제한을 전역 확대하지 않는다.
+
+직접 #621 이외 #622/623 Resource Plan/Excel, #736 조회/정확 원본 편집/return 및 일반 Task Editor/role/group candidates를 인접·음성에 포함하고, Fail-fast 없는 제한적 로컬 후 GitHub Full PR CI6 및 Trusted QA로 교정한다. 현재 새 Head 실제 로컬/원격 검증 NOT TESTED, [#736 단일 실패 원장 M736-001](ISSUE_736_FAILURE_ANALYSIS.md)을 원본 증거로 참조한다.
+
+## Issue #736 — 리소스 관점과 Plan/Excel 인수
+
+F736-003 재실패는 exact Project/spec/filter/scope/projection을 결속한 report body receipt와 단계별 필터 완료로 교정한다. 새 결정적 observer 회귀는 이전 조건/다른 spec·scope 응답을 제외하며 기존 broad matcher 통제 RED와 개선 GREEN을 구별한다. 새 #736 전체5case와 #622 Plan/Excel·#730 지연/원본2case를 직접·인접·음성으로 검증하고 TypeScript guard/기존 Excel Unit도 보존한다. 세 원격 실패/취소10Shard·시간 비교와 실제 결과는 [단일 원장 F736-003](ISSUE_736_FAILURE_ANALYSIS.md#f736-003--full-pr-ci-30651-이전-필터-응답의-body-관측-경합-2026-10-21-kst)을 따른다. 26.9초 assertion/body 실패를35분 shard Timeout으로 취급하거나 timeout/retry/skip을 확대하지 않는다.
+
+[Work Packet](exec-plans/active/ISSUE_736.md)의 AC1~AC5와 기능 보존 인벤토리를 같은 source에서 검증한다. 새 `tests/features/resources/resource-wbs-dashboard-model.test.ts`는 Resource root/preset·참여 상태/미산정·고유 서버 총계·WBS Excel strict payload를 확인한다. `tests/server/resources/issue-736-resource-adapter.test.ts`는 Target0/direct+Target 원장·개인/역할 동일 Assignment·shared5/공동담당7.5·선택80/Project140/기존 Capacity R·M/M null·같은 snapshot current/project OOXML·Project 격리·위조/stale 및 기존 보안/크기 오류를 확인한다. 지원과 실제 실행 결과는 구별한다.
+
+`tests/e2e/issue-736-resource-dashboard.spec.ts`는 실제 SQLite/HTTP consumer의 개인/두 계층·등록-only/역할-only/미설정·Plan/Excel·정확 Assignment 편집 복귀 및 390/768/1024/1440/1920px keyboard/focus/표 내부 overflow·stale/오류 복구를 검증한다. 기존 #621/#622/#623/Resource Excel·Milestone·#730 composer 소비자도 변경 영향에 포함한다. 새 browser test/Unit 결과는 Work Packet에 명령·개수·최초 실패를 기록하고 remote 전체6Shard/Required3와 혼동하지 않는다.
+
+전체 공식 회귀는 새 exact Head의 Quality/E2E/Docker 및 default-main Trusted QA·Owner 승인으로 별도 확인한다. 이번 요청은 PR Full CI 시작에서 종료하므로 이후 완료 결과는 NOT TESTED다. 실제 Windows Excel/VBA/DRM·수동 touch/스크린리더·운영 환경은 별도 미검증이다. CI gate/timeout/retry/skip을 완화해 성공시키지 않는다.
+
+## Issue #735 — 시스템 root 직접/조율 및 정확 교차 조회
+
+전용 `tests/server/resources/issue-735-system-dashboard.test.ts`, `tests/features/resources/system-dashboard.test.ts`, `tests/e2e/issue-735-system-dashboard.spec.ts`로 Target0 MCS1+ACS A/B의 단독/공정·WorkArea/설비·리소스/Milestone 경로, direct/coordination exact Task·Assignment·공수 합집합, 공유 controller/복수 경로 중복0과 다른 Task 누출0을 확인한다. Project 공통·복수 공정·WorkArea 미사용·작업0/PI 미설정·Target-only/혼합·빈 시스템 선택·잘못된 spec/foreign ID·snapshot stale를 포함한다.
+
+지표는 기존 원장/Calendar/공수/full Gate oracle과 대조하고 System1식/고유 제어 설비량/Task/개인배정·Resource 부하를 분리한다. 실제 UI는 System/Task/Assignment 원본·정확 일정과 복귀·dirty/readonly/stale/error, 390/768/1024/1440/1920px keyboard/focus·내부 overflow/header-body 정렬·긴 이름·조회 mutation0/Gantt remount0을 확인한다. 공통 WBS model/transport/SQLite HTTP·#730/#733 consumer·기존 물류 direct/coordination KPI·#624/Resource 회귀를 영향 범위에 선정한다. 최초 실패·보완·재실행 및 실제 명령/개수는 [Work Packet](exec-plans/active/ISSUE_735.md)에 누적한다. 로컬 실행은 공식 Full PR Quality/E2E6/Docker·Trusted QA·Owner 승인 증거를 대체하지 않는다.
+
+## Issue #733 — F733-005 Full #3044.1 post-restart Project GET500 (2026-10-20)
+
+- [Run #3044.1](https://github.com/planner77/masterGantt/actions/runs/39374553530) Shard3 failed one #725 actual browser case at target-project.ts:57, Project GET expected200 actual500 following successful restart equipment GET405, PATCH200 JSON and Task Context GET/PUT200. Quality/Build/Docker success, five other E2E shards cancelled, E2E/QA downstream fail. Source/Job/artifact, previous F733-001~004 and #3039 historical PASS are in [single #733 ledger §10](ISSUE_733_FAILURE_ANALYSIS.md).
+- Cause UNKNOWN: the old GET404 readiness is not reproduced, but postrestart Webpack dev GET500 response MIME/API code is missing. Minimum test-only remediation is fresh compiler dist per opt-in #725 restart after child stop (same port/SQLite/auth/data, no extra migration) plus safe non200 GET status/MIME/errorCode telemetry. Do not mask/retry actual HTTP500 or relax expected200, GET405/real PATCH200, 90-second readiness/CI global retries/timeouts/skip or six required shard policy.
+- Regression: #725 two real HTTP/SQLite E2E; adjacent #730/#731/#726 and F733-001~004 #622 focus, valid ACS/#733 SQLite, #514/#529 clock, #621/#623, #624 readonly, GSC-07/08/09, original writer/permissions/revision/error MIME. New Head actual local/remote QA NOT TESTED; full CI and Owner acceptance required before merge/release.
+
+## Issue #733 — F733-004 Full PR CI #3043.1 isolated restart GET404 (2026-10-20)
+
+- [원본 Run #3043.1](https://github.com/planner77/masterGantt/actions/runs/39370750961) Shard3의 tests/e2e/issue-725-process-workareas.spec.ts:88 real restart case에서 equipment PATCH-only route ready GET HTTP404 vs expected405 (fixtures/isolated-application.ts:216). Quality+Next build+Docker PASS, Shard3 57PASS/1FAIL/50NOT RUN, Shard6 134PASS, 다른 4 Shard 취소. QA Final 파생 실패, #733 단일 [누적 실패 원장 §9](ISSUE_733_FAILURE_ANALYSIS.md)에 이전 F733-001~003/3039.1 PASS와 함께 별도 Run·Head/base/test-merge 고정.
+- 분류 INIT_TRANSPORT: restart child alive/health200/oomKill0이나 동적 PATCH handler가 90s 내 GET405가 되지 않았으며 실제 재시작 후 PATCH는 전혀 호출되지 않았다. 정확 Next internals와 기존 HTTP404 MIME은 UNKNOWN. 기존 #730 F730-014·#731 M-002 근거와 공식 Next dev --webpack opt-in을 비교한다.
+- 테스트/fixture 최소 수정: typed isolatedDevBundler 옵션 기본 turbopack(공유 fixture 사용자 영향 없음); #725 두 실제 E2E 케이스만 webpack opt-in. read-only equipment GET405 준비, Task Context GET200 JSON 및 실제 business PATCH200 JSON 2회/PUT·원본 화면/WorkArea E10/Target0/focus/revision/5폭/readonly/mutation count 단언 유지. Equipment readiness에서 HTML404만 제한적 대기, 실제 JSON404/401/403/500/잘못된 MIME 즉시 실패, sanitized source/bundler/attempts/mutation retry0 첨부. 새 test skip/retry/global timeout/CI shard/임의 완료 체크 금지.
+- 직접/교차/음성: #725 two-case same source real Chromium/SQLite/HTTP; #730/#731 restart equipment+Task, #621/#623 dynamic routes, #726 process-context, 누적 #733 E2E/Unit·#622 editor focus·#514/#529 clock peer, #624 legacy readonly, GSC-07/08/09 및 정확 Req Quality/E2E6/Docker/Trusted QA. 현재 로컬 runnable source 부재로 new source actual tests NOT TESTED; 새 PR Run 결과를 별도로 확인해야 하며 메인/릴리스/Owner 승인 전용 아님.
+
+## Issue #733 — F733-003 Full #3042.1 Playwright clock pause 역행 (2026-10-20)
+
+- [#733 단일 누적 실패 원장 §8](ISSUE_733_FAILURE_ANALYSIS.md)의 [PR CI #3042.1](https://github.com/planner77/masterGantt/actions/runs/39368321617)은 Quality/Build/Docker 성공, Shard6의 #514 `grid-task-start-reveal.spec.ts:126`에서 `clock.pauseAt: Cannot fast-forward to the past` 발생(19PASS/1FAIL/114NOT RUN, 다른5 Shard 취소), E2E/QA Final 파생 FAIL. 이전 #3039.1는 구 Head/base에서 Required3/QA Final 및 E2E6 PASS했으며 현 Head 검증을 대신하지 않는다.
+- **원인/보완:** browser clock `install()` 뒤에도 시간이 진행하는데 새 `new Date()`로 지정한 `pauseAt()` 목표가 원래 가상 시계보다 과거가 될 수 있는 TEST_CONTRACT 경합이다. 기존 #569 교정 방식처럼 `pauseTime`을 한 번 샘플링하고 `install({time:pauseTime-60_000})` → `pauseAt(pauseTime)`의 엄격한 전진 관계를 만든다. 직접 #514 3곳 및 동일 미교정 #529 1곳만 변경한다.
+- **단언 유지:** #514 pending peer wheel/빠른 다중 선택·필터 전환·Task start reveal, #529 native wheel/Resource↔Gantt 복귀·source/filter 우선권, #569 인접 보존, GSC-07/08/09, 날짜/scroll Core+DOM·동일 Gantt 인스턴스·조회 mutation0. 기존 Clock `runFor`, `resume`, 원래 E2E timeout/retries/skip/fail-fast 및 CI Required Quality/E2E6/Docker 불변.
+- 누적 실제 원격 FAIL 집합은 #3035.1 `issue-622-resource-plan-target.spec.ts`, #3038.1 `issue-733-process-configuration.test.ts`, #3042.1 `grid-task-start-reveal.spec.ts`. #3042 취소5 Shard는 PASS 아님. 전체 이력과 artifact/원인/가설/미검증은 [단일 원장](ISSUE_733_FAILURE_ANALYSIS.md) §1/§8에서 추적한다. 새 source의 TypeScript/Vitest/Chromium/SQLite/Build/Docker 실제 재검증은 GitHub Git Data 경로에서 NOT TESTED, 새로운 exact-HEAD PR Full CI로 확인한다.
+
+## Issue #733 — 공정&WorkArea 전용 관점과 구성-only 회귀
+
+[Work Packet](exec-plans/active/ISSUE_733.md)의 AC1~AC5는 공정 descriptor/consumer의 직접 Unit·실제 Chromium, #728 고유 원장 oracle와 #729 SQLite/HTTP의 등록-only 하위·원본 상세/snapshot 음성으로 검증한다. 공정 단독·WorkArea→typed 형제→리소스·Milestone 교차, E10 두 구역 상위10/Task5M/D 중복0·shared System 다른 Task 누출0·작업0 구성·미배정/미설정·full Gate를 포함한다.
+
+원본 수정 후 stale/새 snapshot·동일 경로/필터·focus 복귀·dirty/readonly/error, 390/768/1024/1440/1920px·긴 이름·표 내부 overflow·keyboard/Escape·조회 mutation0/Gantt remount0/marker-OFF를 실제 브라우저와 원본 ID로 확인한다. #730 실패원장의 POST 조회 예외는 정확 method/endpoint에 한정하고 업무 mutation은 계속 감지한다. shared seam의 인접/음성 #730, 기존 #624/KPI·물류/Resource 소비자를 선정한다.
+
+#730의 이전 실제 실패7파일과 각 원인은 역사로 보존하며 이번 결과로 소급 PASS하지 않는다. Local PrePR fast/targeted의 sourceStable·UNKNOWN과 실제 실행을 구분하고 원격 Full Quality/E2E6/Docker·Trusted QA·Owner 승인은 별도다. 실행 수·최초 실패·수정 후 동결 증거·미실행은 Work Packet의 누적 원장에 기록한다.
+
+## Issue #730 — PR #756 Full #3037.1 재시작 후 Task 공정 연결 GET HTML404 (F730-014 / 2026-10-20)
+
+[같은 #730 실패 원장 §23](ISSUE_730_FAILURE_ANALYSIS.md)의 새 PR Full [#3037.1](https://github.com/planner77/masterGantt/actions/runs/39352213429) Chromium Shard3은 `issue-725-process-workareas.spec.ts:314`의 재시작 뒤 Task process-context GET에서 200 기대 / **Next `text/html` 404 실제**(57PASS/1FAIL/50NOT RUN). Code/TS/Lint/Vitest/Build/Docker SUCCESS, 다른 5 Shard CANCELLED, E2E/QA Final/Trusted QA 실패는 파생. 최초 #3036의 HEAD는 뒤 문서 교정 후 CANCELLED이므로 Full 성공으로 승격하지 않는다. #731 M-002 재시작 뒤 equipment PATCH HTML404와 같은 동적 라우트 준비 누락 계열이지만 기존 equipment GET405는 **다른 Task route의 준비를 보장하지 않았다**.
+
+**교정 및 필수 수용:** fixture `restartIsolatedApplication(equipmentPath, taskContextPath)`의 두 번째 인자를 선택적으로 도입해 재시작 동일 deadline 안의 읽기 전용 GET/no-store로 task route를 사전 확인한다. 오직 Next HTML404만 준비 중 bounded polling; 실제 HTTP200/JSON/context.processLinks 구조가 나와야 PASS, 의미상 JSON404/401/403/500·HTML200·bad JSON/shape/다른 origin/project/path/기간 초과/child 종료는 즉시 실패. 원래 후속 GET은 단 1회 HTTP200 + MIME JSON·`processLinks null→[A,B]→[B]→[]`와 PUT/실제 UI PATCH·WorkArea/수량·Task UUID·Gantt·readonly/5폭 단언을 보존한다. #725 실제 restart·#731 이전 cross-run·선택 옵션 없는 fixture 사용, #726/727 Task 연결 및 전체 #730 누적 직접 E2E **9파일** + #621/#623 Release 회귀, CI Required3/Trusted QA를 동일 new Head에서 검증한다. GitHub-only 보완 소스의 TypeScript/Vitest/real Browser/SQLite/Docker 및 CI 결론은 실행 전 NOT TESTED이다. 0.124.1 PATCH 후보 승인·tag/GHCR/Main/Issue close는 별도 gate.
+
+## Issue #730 — GHCR Release #182.1/#182.2 실패 후 same-Issue 교정 (2026-10-20)
+
+[단일 #730 누적 실패 원장 §21–22](ISSUE_730_FAILURE_ANALYSIS.md)의 원본 Release Run `39336847318`은 0.124.0 immutable tag의 attempt1(Shard3 #621 focus 1FAIL)·attempt2(Shard3 #621 focus + #623 폭별390/768/1024 timeout 4FAIL) 모두 실패. Prepare/static·5개 shard 성공, quality gate FAIL→verified candidate/promotion/resume SKIPPED. Main #3034.1/Finalizer #724.1 PASS를 정식 GHCR PASS라고 주장하지 않는다.
+
+**교정 검증:** #621 Resource Target 비교표 `data-ready=true`·실제 셀 버튼 `toBeEnabled`/ `toBeFocused` 후 네이티브 Tab·paint·5폭·header/body 및 조회 mutation0/remount0 원래 단언을 보존한다. #623 fresh real SQLite/HTTP seed + tree/matrix/5폭 독립 testcase만 명시적인 45초 bounded budget; 여섯 연속 mutation 90초 및 기존 retry/skip/assertions/global CI 변경 없음. 누적 #730 직접 E2E 8파일 합집합과 #719/#726/#727/#731/#730 인접·stale/read-only·Query0/fixture negative를 Full PR CI Quality/E2E6/Docker/Trusted QA에서 검사한다. 새 정확 Head의 로컬 npm·Browser·HTTP·Docker는 NOT TESTED.
+
+**릴리스:** 기존 v0.124.0 tag/승인/실패 Run 불변; 같은 Issue #730 교정 후보 0.124.1은 manifest/lock 일치 후 별도 PR CI/Owner HIGH 위험 수용 및 **expected_version=0.124.1 별도 승인**이 있어야 한다. release_required=true/release_authorized=false; 새 Main/GHCR/Issue close는 아직 금지.
+
+## Issue #730 — F730-011 Full #3029.1 Task Editor 3시간대 30초 예산 실패 (2026-10-20)
+
+[Issue #730 전용 원장 §20](ISSUE_730_FAILURE_ANALYSIS.md#20-f730-011--pr-747-full-30291-task-editor-3시간대-재확인-test-budget-실패-2026-10-20), [PR Full #3029.1](https://github.com/planner77/masterGantt/actions/runs/39320381909) 원본 Trace에 따르면 TypeScript/Unit/ESLint/Build/Docker와 E2E 5개 Shard가 PASS했으나 Shard4의 `project-task-editor-persistence.spec.ts:8`가 기본30초 제한에 도달했다. 같은 실 Task Editor 저장/원본 revision·Task 정보·Gantt/URL 팝업 검증 완료 후 UTC, Asia/Seoul 새 Context와 America/New_York 최종 Editor 진입까지 실행하였다. fixture startup 약15.53초는 test body 시간과 별도로, body 앞부분14.93초 + 시간대 재조회 약4.01/5.44/5.62초에서 deadline. 실제 값 불일치/제품 실패는 관측되지 않았다. Shard4 79PASS/1FAIL/83NOT RUN·다른5 Shard SUCCESS·E2E/QA 파생 FAIL을 구분한다.
+
+**보완:** 처음 한 개 E2E case에만 실측 기반 `test.setTimeout(45_000)` 적용. 세 새 BrowserContext·세 시간대/같은 Task 원본·요청 시작일·기간·이름·원본 PATCH1회·revision/Description/URL·팝업·Gantt 인스턴스/재진입/메뉴 검증을 모두 유지하며 다른 case/global Playwright/CI timeout/retry/skip/Required Gate 변경 없음. 테스트별 단일 원본 연속성 보존을 위해 별도 Project fixture로 분리하지 않는다. 해당 실제 Chromium 첫 case와 같은 파일 나머지 case, 누적 #730 E2E 실패7파일, #623/726/727/731 인접·진단 음성, Required Quality/E2E6/Docker를 exact-Head에서 교차 검증한다. 새 소스의 로컬 전체 typecheck/실 Browser·HTTP·SQLite/Build/Docker는 NOT TESTED이며 원격 최초 Run의 다른 Shard PASS를 새 Source의 PASS로 전용하지 않는다.
+
+## Issue #730 — F730-010 PR #747 Full #3027.1 #623 여섯 mutation 제한시간 재발 (2026-10-20)
+
+[단일 실패 원장 F730-010](ISSUE_730_FAILURE_ANALYSIS.md#19-f730-010--pr-full-30271의-623-여섯-mutation-테스트-예산-재발-2026-10-20)에 따르면 Shard3 [#3027.1](https://github.com/planner77/masterGantt/actions/runs/39314765099)에서 #623 독립 Golden/OOXML는32.4초 PASS, 여섯 연속 UI 저장 테스트는 body61,586ms로 기존60초 제한을 소진했다. phase fixture20,790ms, 원본4,948ms, WBS명5,015ms/시작일8,587ms/화면전환2,778ms/상태6,379ms/진척5,920ms/배정7,170ms(중단), 여섯 번째 Target 작업은 NOT RUN이다. 마지막 GET이 60초 전체를 소비했다는 잘못된 해석을 금지한다. Quality/Docker/Build 및 Shard3 다른44 PASS와 Fail-fast 취소5Shard를 구분한다.
+
+## 보완·교차 회귀
+
+`tests/e2e/issue-623-resource-mvp.spec.ts`의 **여섯 UI mutation 한 case에만** 60→90초의 유한하고 근거가 명시된 budget을 적용한다. 동일 Project 안 4 PATCH+2 PUT·canonical raw ID·revision+6/6회 저장·Target subset/개인80%·원래 WBS/Resource·Gantt DOM 동일성·조회-only mutation0 및 오류/권한/readonly 단언을 모두 유지한다. 여섯 mutation을 각각 별도 Project로 분리하면 동일 프로젝트의 종단간 원본 연쇄 증거를 상실하므로 이번에는 분리하지 않는다. 새 소스에서는 #623 Golden1/6mutation1/폭별5개, 누적 #730 과거 E2E 실패6파일과 #726/#727/#731/Task Editor 인접, diagnostic/GET helper 음성, 실제 Full Required3를 검증한다. 일괄 timeout·retry·skip·기타 assertion/CI 정책 변경0. 새 HEAD 원격 실제 실행 이전에는 NOT TESTED, TypeScript parser만 확인한 상태이다.
+
+## Issue #730 — F730-009 #3025.1 TypeScript strict-null TypeCheck 보완 (2026-10-20)
+
+[Issue #730 전용 누적 실패 원장 §18](ISSUE_730_FAILURE_ANALYSIS.md)을 기준으로 원격 Full #3025.1 `TS2532` 실패를 직접 교정한다. `project-resource-memberships-persistence.spec.ts`의 `memberships.resources.find(...).registered`에서 `Array.find()`의 `undefined` 가능성이 TypeScript strict null 오류를 유발했다. 같은 원본 ID로 찾은 `registeredMember` 객체에 `toMatchObject({ registered:true })`를 적용하여 **엔터티 부재와 등록=false 모두 실패**를 유지하고 `!`/`any`/타입 게이트 완화는 하지 않는다. 원본 Run의 TypeCheck FAILURE와 PR Fast Gate FAILURE, PR Build/E2E6/Docker 실행 Job SKIPPED를 구분한다.
+
+보완 HEAD에서 `npm run typecheck`(필수)·lint·단위 검증 및 `project-resource-memberships-persistence.spec.ts` 실제 Chromium, 새 동일 출처 GET helper의 error/no-retry·redirect 음성, #726/#731 Task Editor/#730 조회·원본 회귀, 누적 실제 E2E 실패6파일을 원격 Full PR CI Quality/E2E6/Docker로 판정한다. F730-008의 원본 읽기/권한·등록·Task·Assignment/dirty guard/원본 ID/재시작을 완화하지 않는다. 이번 GitHub 편집 작업의 로컬 전체 TypeScript·Unit/Browser/Docker 결과는 NOT TESTED이며 새 원격 Run 이전 PASS 주장은 금지한다.
+
+## Issue #730 — F730-008 PR #747 Full #3023.1 멤버십 후행 canonical GET 회귀 (2026-10-20)
+
+[Issue #730 단일 실패 원장 §17](ISSUE_730_FAILURE_ANALYSIS.md)의 직접 #727 멤버십 저장 이후 `apiRequestContext.get: read ECONNRESET`를 참조한다. Shard1 82PASS/1FAIL, Shard3 SUCCESS, 다른 4개 Shard CANCELLED, Required Quality/Docker SUCCESS·E2E/QA Final FAILURE를 별도 판정한다. 프로젝트 신규 등록·Task/Assignment setup API 클라이언트는 유지하고 **실제 UI 리소스 등록 이후** canonical Project2회/assigned-targets2회/resource-memberships1회 조회만 동일 origin browser fetch/no-store 및 observer로 분리한다. 상태200·유효 JSON·해당 배열, 저장 Task/Links·동일 Assignment·등록 상태·재시작·dirty guard·Gantt instance/scroll 확인을 완화하지 않는다.
+
+회귀: `project-resource-memberships-persistence.spec.ts`, 신규 `browser-project-resource-data.spec.ts`(두 endpoint 정상·abort/401/500/bad JSON/bad shape/동일·다른 origin redirect/path 음성·요청 횟수1), `tests/server/e2e/isolated-application-diagnostics.test.ts`(정확 route template·민감 경로 차단), 인접 `project-task-editor-persistence.spec.ts`, `issue-726-task-logistics.spec.ts`, #730 원본/일정, 누적 직접 실패6파일(#463/#550/#719/#623/#726/#727). 원격 Full E2E6/Quality/Docker/Trusted QA로 전체를 재평가하고 새 source 결과 이전까지 NOT TESTED로 둔다. global retry/timeout/skip·workflow 정책/제품 동작·schema 변경 없음.
+
+## Issue #730 — Full #3022 누적 전송·도움말 fixture 회귀
+
+[동일 실패 원장 §14–16](ISSUE_730_FAILURE_ANALYSIS.md)에서 누락된 #3012 #62360초 실패와 #3022 Task 물류 연결 GET reset을 누적한다. 과거 실제 실패5파일(#463/#550/#719/#623/#726) 전체·직접 #730·전송/관측 정상·음성을 최종 source에 귀속한다. GET reset의 소켓 내부 근인은 UNKNOWN이며 후행 browser/no-store·observer 교정은 업무 HTTP 오류·잘못된 JSON·권한/readonly·정확 원시 ID/revision 단언을 유지한다. #719는 WBS 조회 응답 준비와 도움말 열림을 분리해 async404 영역 높이를 도움말 flow 변경으로 오인하지 않으며 기존 primaryDataTop/documentWidth 정확 동일값·5폭/키보드/터치 단언을 보존한다. 원본·통제 RED·최종 실행 수/소스 지문·미검증·새 PR CI 시작을 구분한다. Required3/6-shard·retry/timeout/skip·Trusted/Owner 승인 규정 불변.
+
 ## Issue #751 — F-009 HTTP terminal event 및 Playwright failure 분류 검증 (2026-10-20)
 
 - PR #754 Full #3031.1 [Run 39324488213](https://github.com/planner77/masterGantt/actions/runs/39324488213): Shard5 #622 Resource Plan 36.0초 strict PASS, 신규 #751 통제 E2E `issue-751-performance-telemetry.spec.ts:64`는 Expected 2/Actual 1 `complete`로 FAIL, 나머지 5 shard CANCELLED. [원본 Timing #12221842831](https://github.com/planner77/masterGantt/actions/runs/39324488213/artifacts/12221842831)에는 `assignment-targets` 다섯 browser sample 중 complete200 1, incomplete200/503 2, other 2 기록. `E2E Aggregator FAIL`을 병목/제품 변경의 인과로 오인하지 않는다.
@@ -44,6 +301,10 @@
 - 과거 경계: #725 SQLite 재시작/read-only GET405 이후 실제 PATCH200/JSON·정확 WorkAreaIDs, #726 process-context null/명시0·권한/stale·5폭, KPI master focus/외부 사용자 focus 우선2case와 F-001 WorkArea full canonical Task/Assignment 구성을 회귀한다. 과거 PASS는 새 source 검증으로 이월하지 않는다.
 - 최종 source hash·명령/횟수/시간·처음 로컬 FAIL 및 보완·Pre-PR 실제 결과·한계는 원장과 Work Packet에 연결한다. 전체5파일 1회와 별도 반복은 고유 case 수로 합산하지 않는다. 동일 host의 로컬 PASS는 독립 Runner 안정성·새 PR/Main CI·Trusted/Owner ACCEPT가 아니다.
 
+## Issue #730 — F730-001/002 누적 CI 재작업
+
+원본 [전용 실패 원장 §7](ISSUE_730_FAILURE_ANALYSIS.md)에 두 Full Run의 서로 다른 원인과 source artifact·취소 로그를 누적한다. 첫 #463 readonly POST 관찰기 결함과 최신 Hook deps 누락을 함께 회귀하고 b4의 P2 취소 보완·#731 main 통합을 유지한다. 실제 query를 소비하는 인접 관찰기만 exact method/path helper로 보완하며 업무 mutation0을 약화하지 않는다. parent/Details 원본 명령의 양방향 응답 역전·실제 설비 modal 목적지 음성을 검증하고 후보 source/test를 동결한 뒤 과거 실패 파일·직접/인접/음성 소비자를 실행한다. 실행 명령·고유 케이스·지문/미검증은 같은 원장과 Work Packet에 추가한다. Required3/Trusted/Owner 및 CI 시작 이후 완료 모니터링 경계는 그대로다. 최종 source195Unit PASS, Chromium 원본26PASS/1FAIL 및 #623전체 단발 진단1PASS/1FAIL을 보존한다. #623전체30초 제한의 원인은 UNKNOWN이고 LOCAL_VALIDATED=FAIL이며 실제 PrePR fast/targeted의 UNKNOWN5/BLOCKED를 수동 검증으로 PASS로 바꾸지 않는다.
+
 ## Issue #751 — 자동 회귀 계측 테스트·수동 추세 비교 보강 (2026-10-19)
 
 - tests/scripts/issue-751-performance-receipt.test.ts: 개인정보 마스킹, 성공/503, timeout 원문 유지, abort 분류, fixture/seed 분리 단조 측정 synthetic Unit.
@@ -80,6 +341,17 @@
 | 간접 소비자 | 기존 logistics request-state·Milestone stage/시간축·#719 도움말·Task Editor 밀도 fixture의 KPI API mock 계약 동기화; 구 API 직접 회귀는 유지 |
 
 전용 서버 `tests/server/logistics/issue-731*.test.ts`, UI `tests/e2e/logistics-dashboard-request-state.spec.ts`의 #731 추가 케이스와 기존 조회 상태 케이스 및 관련 Domain/Resource/full Gate/route inventory를 영향 기반으로 실행한다. 최초 실패를 삭제하지 않고 원인·수정·새 실행 결과와 미실행을 Work Packet에 누적한다. 실제 screen reader/운영 데이터·Windows/최종 수동 UX는 브라우저 자동 검증으로 대체하지 않는다.
+
+## Issue #730 — 동적 조회 구성·상태·정확 원본 회귀
+
+- 순수 model의 schema/property/pairwise 검증은 다섯 고정 root·모든 하위 차원·root-only·형제 양방향·두 설비-root 예시와 root 반복/중복/순환·잘못된 형제·depth 초과를 서버 parser oracle과 비교한다. 모든 순열 E2E를 생성하지 않는다.
+- browser storage는 Project/root 격리·schema/손상/구버전·허용하지 않은 필드·접근 거부 복구를 검증한다. 설정에 원본 응답·인증값·업무 mutation을 저장하지 않는다. 다른 사용자의 공유 설정이라고 가정하지 않는다.
+- 기존 #728/#729 SQLite/HTTP golden과 함께 E10 다중 WorkArea 상위10·같은 Task5 M/D 여러 경로 상위5·공정0/등록-only·미배정·E1→Milestone 경로 t2 누출0을 확인한다. UI 숫자는 server totals를 그대로 표시하고 raw Task/Assignment 범위를 인계한다.
+- 대표 실제 Chromium 흐름에서 고정 root·하위 구성/순서/삭제/초기화·두 사용자 계층 저장/복원·typed 형제·필터·접힘/정렬·내부 scroll·페이지·정확 editor/일정/복귀를 검증한다. 실제 backend/합성 mock 응답·오류 주입은 증거에서 구별한다.
+- revision/snapshot stale409·네트워크 실패·늦은 응답·조건 탈락/삭제·empty/readonly에서 과거 상세/원본 명령 차단과 재조회·focus 복구를 확인한다. 조회/정렬/계층 변경에 업무 API mutation0·Gantt remount0·기존 marker-OFF/선택/viewport 보존을 검증한다.
+- 390/768/1024/1440/1920px의 긴 이름·수치에서 header/body 경계·열 budget·표 owner overflow/document overflow0·hit area·Tab/Enter/Space/Escape/focus·touch 접근을 실제 DOM으로 확인한다. 화면 캡처는 keyboard/권한/상태 검증을 대신하지 않는다.
+
+실제 명령·고유 케이스·최초 실패·동결 source와 미검증은 [Work Packet](exec-plans/active/ISSUE_730.md) 및 그 증거 링크를 따른다. Local PASS는 PR Required3/Trusted QA·Owner 승인이 아니며 사용자 요청은 PR CI 시작까지만이다.
 
 ## Issue #729 — Main CI F-001·교정 PR #745 문서/테스트 동기화 (2026-10-19)
 
@@ -4798,3 +5070,117 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 - **검증 계약:** `src/app/api/projects/[publicId]/logistics/equipment/[equipmentId]/route.ts`는 PATCH/DELETE-only. [공식 Next Route Handler 405](https://nextjs.org/docs/app/getting-started/route-handlers)에 근거하여 격리 fixture가 선택적으로 같은 origin 정확 설비 route를 읽기 전용 `GET→405`로 재시작 **준비 단계**에서 검증한다. GET404/transport transient는 기존 90초 setup budget 이내의 bounded poll로만 취급하고 그 외 status/비정상 URL/프로세스 종료·초과는 FAIL. 실패한 실제 PATCH를 재시도하거나 성공 mock을 사용하지 않는다.
 - **추가 후행 E2E:** `tests/e2e/issue-725-process-workareas.spec.ts`의 재시작 후 원본 `PATCH` 2회(A 소속 해제, 전체 해제)는 각각 실제 browser network `method+exact URL`의 status200·`application/json`을 엄격 검증하고 raw body/쿠키 없이 status·mime·x-request-id 존재 여부만 첨부. `expect(dialog).toHaveCount(0)`, WorkAreaIds B만→명시`[]`, quantity10·Task/Target0·Copy/Template 및 정확 수정 횟수/권한/390px 기준 불변. 기존 의도적 failure/dirty/409/412·readonly는 완화하지 않음.
 - **영향 회귀:** 직접 #725 persisted E10/isolated restart API, #726 process-context 후행 canonical HTTP, #731 KPI original focus, 간접 #724/#717 master tab navigation, #728/#729 source/snapshot·Resource·Milestone Gate 및 다른 restart fixture 사용자(옵션 생략 호환), 실제 SQLite/Next16 development route readiness. 새 Full PR CI Quality/E2E 6 Shard/Docker를 동일 교정 HEAD로 실행; Git Data 정적 대조 외 로컬 Node/Vitest/Chromium 실실행 NOT TESTED. 원래 #3006 PR PASS와 #3007 Main FAIL은 불변; GHCR/Formal Release/Owner 승인 별도.
+
+## Issue #730 — PR #747 Full #3001.1 원인 교차 검증 (2026-10-19)
+
+- 원격 E2E 직접 실패는 `tests/e2e/milestone-dashboard-state.spec.ts` #463의 mutation0 assertion (expected 0, observed 1). 새 WBS read-only POST query `/api/projects/{UUID}/resource-dashboard/views`는 예외로 분류하되 **메서드 POST + 정확한 경로**만 제외한다. PUT/PATCH/DELETE 및 다른 POST 변경 요청은 여전히 감시한다.
+- 영향 소비자: `milestone-dashboard-state.spec.ts`, `milestone-visibility.spec.ts`, `project-workspace-tabs-518.spec.ts`, `issue-730-view-composer.spec.ts`. 비동기 원본 scope 확인 중 후속 상세·행 검색이 늦은 이동을 차단하는 실제 HTTP E2E를 추가한다. 기존 #624 기능/원시 ID/Gantt 불변 및 E2E6 게이트를 보존한다.
+- Shard1 7 PASS/1 FAIL/127 NOT RUN 및 다른 Shard5 CANCELLED, Quality/Docker PASS, QA Final 파생 FAIL은 구분한다. 새 source의 로컬/Full·Trusted QA는 실행 이전 **NOT TESTED**. [누적 원장](ISSUE_730_FAILURE_ANALYSIS.md).
+
+## Issue #730 — F730-004 PR #747 Full #3008.1 #550 canonical GET 전송 보호 (2026-10-19)
+
+- 누적 원격 직접 실패 합집합: 기존 #463 `tests/e2e/milestone-dashboard-state.spec.ts` 읽기 전용 POST 집계오류 및 신규 `tests/e2e/milestone-management-persistence.spec.ts`의 #550 (past) 원시 `GET /api/projects/{id}` ECONNRESET. #3003 ESLint/Hook, #3005 npm 헤더 다운로드 ECONNRESET과 원인이 다르며 #3008의 Quality/Docker 성공·E2E Shard6 실패와 나머지5 취소를 구별한다.
+- #550 실 SQLite/HTTP 케이스(빈 Milestone-only past/future 및 원래 실제 restart/readonly): 기존 GET 200/Project revision·Task ID·Milestone Gate/관계·변경 API 보호 단언은 유지. 처음 canonical GET에는 `Connection: close`, 기존 Observer로 실제 ECONNRESET을 기록한 뒤 같은 조회만 최대 두 번(최초+1회) 사용한다. 전체 global Playwright/CI retry·timeout·skip을 변경하지 않는다.
+- 기존 `tests/scripts/isolated-readonly-get.test.ts` 여섯 유한 양성/음성 계약(정상 GET 1회, 첫 ECONNRESET → 1회 한정, 두 번째 재실패 차단, HTTP404/409/503와 ETIMEDOUT/ECONNREFUSED/invalid JSON/비Error 재시도 금지, 정규화 route 기록)을 후속 Unit 영향으로 선택한다. 새 `tests/e2e/milestone-management-persistence.spec.ts`가 정확한 observer를 획득하는지 TypeScript/Full E2E6로 확인한다. 어떤 업무 POST/PUT/PATCH/DELETE도 다시 보내지 않는다.
+- 기존 #730 WBS 조회/원본/일정 경합, #703/#624 격리 canonical GET, #731 KPI·Resource/Milestone 원본 및 기존 #550 실제 SQLite restart 케이스를 전체 원격6 Shard 교차로 검증한다. 이 GitHub 편집 환경에서 로컬 Test/Next/Playwright/Docker 실행은 NOT TESTED. Source of Truth: [#730 동일 Issue 누적 실패 원장](ISSUE_730_FAILURE_ANALYSIS.md).
+
+## Issue #733 / PR #755 — CI #3035.1 누적 회귀 선정 (2026-10-20)
+
+- 최초 원격 실제 FAIL: tests/e2e/issue-622-resource-plan-target.spec.ts, Task Editor 자원 배정 60%→40% 저장·상세 row/Assignment 보존 PASS, 원본 버튼 toBeFocused 5초 FAIL. 제품이 최신 같은 detail/Task/Assignment readiness 확인 뒤 포커스를 복귀하도록 하고, E2E 기존 단언 그대로 + 2 requestAnimationFrame 뒤 포커스 유지 추가. Timeout·skip·retry 완화 금지.
+- Codex P2: tests/server/resources/issue-733-process-configuration.test.ts에서 같은 occurrence를 공유하는 프로젝트 공정 A/C와 C-only WorkArea, 동일 설비/제어 System을 만들어 A 아래 거짓 후보 비노출·C 아래 실제 후보 노출, 등록-only Task/Assignment0를 검증. 다른 occurrence에서 정상 후보와 공정 미소속 system-null 영역 보존.
+- 직접·간접·음성 검증 후보: #622 resource dashboard Target80/Project140, Excel export/5폭, #733 등록 구성·W1·조회 snapshot/Task0, #730 WBS original/detail async, #731 KPI focus, #624 logistics readonly. 최초 #3035.1 E2E 다른 5 Shard CANCELLED는 PASS가 아니므로 신규 Full required 검증 필요. 이슈 누적 [#733 실패 원장](ISSUE_733_FAILURE_ANALYSIS.md)에 원본·가설·반례·교정·NOT TESTED를 기록하며 타 이슈 FAIL 집합을 혼합하지 않는다.
+
+## Issue #733 PR #755 — CI #3038.1 신규 잘못된 fixture와 누적 교차 검증 (2026-10-20)
+
+- [Run #3038.1](https://github.com/planner77/masterGantt/actions/runs/39353259152)의 직접 Unit FAIL은 `tests/server/resources/issue-733-process-configuration.test.ts`에서 `MCS/coordinator`를 직접 설비 `controlSystems`로 넣은 신규 fixture와 도메인의 `INVALID_CONTROL_RELATION` 보호 계약 불일치. 잘못된 fixture를 통과시키려고 production validator/Assertion을 완화하지 않는다.
+- `ACS/controller`와 명시적인 A/C project-process scope에 교정하되 E0의 WorkArea는 C만 유지. 같은 occurrence의 공정 A→equipment/system→C-only WA 비노출, C→동일 원본→C-only WA 노출, Task0·Assignment0·구성량 정확값을 기존 단언 그대로 검증한다. 기존 #733/Target/Legacy/정확 원본/조회 mutation0 계약 유지.
+- 누적 실제 실패 파일 집합은 #3035.1 `tests/e2e/issue-622-resource-plan-target.spec.ts`와 #3038.1 `tests/server/resources/issue-733-process-configuration.test.ts`. 해당 신규 #3038.1은 Vitest 게이트에서 중단되었으므로 최초 focus E2E 또는 PR Build/Docker 제품 결과가 PASS/FAIL한 것으로 판단하지 않는다. 정식 이력/잔여 가설은 [#733 누적 실패 원장](ISSUE_733_FAILURE_ANALYSIS.md) §7에서 추적한다.
+- 직접 소스 동결 이후 typecheck/전체 Unit·관련5+인접 E2E, 6-shard full CI 및 Docker/Trusted QA의 실제 결과가 있어야 최종 PASS. Git Data를 통한 source 교정만 완료한 단계의 로컬/신규 원격 결과는 NOT TESTED; 최신 Head의 Required/Owner 별도 게이트 유지.
+
+
+## Issue #733 F733-007 — Full #3047 Next dev manifest 원인 확정·격리 회귀 (2026-10-20)
+
+- Source: [#3047.1 Job118495139623](https://github.com/planner77/masterGantt/actions/runs/39380724604/job/118495139623), exact Head c50f35c/target main80a4251, Chromium #725 first test canonical GET project expected200 actual500 after four200. Report/Trace artifact12245694524 confirms Next Webpack dev `loadManifest` JSON SyntaxError, HTML500/no app request ID, health200/oomKill0. Detailed historical cross-run matrix: [#733 single cumulative ledger](ISSUE_733_FAILURE_ANALYSIS.md#12-f733-007--30471-next-webpack-개발-서버-manifest-json-파싱-오류-2026-10-20).
+- Scope & producer/consumers: `isolated-application.ts` opt-in GET-only serial cold-route precompile and fresh restart build directory; `issue-725-process-workareas.spec.ts` switch to default Turbopack with strict PATCH/GET contracts; `target-project.ts` allowlisted error class diagnostics on failed HTTP only. Direct 2 #725 tests (real SQLite/restart/GUI, Task/A+B, E10/WorkArea, five widths), indirect process KPI #733/Task #726/#730/#731, historical #622 focus/#514+#529 time race/#624 readonly, negative JSON404/HTML404/auth/mutation 0 and GSC-07/08/09.
+- GitHub-only source review is not a local test PASS. Exact new source Quality/E2E six shards/Docker/Trusted QA + Owner signoff remain NOT TESTED. Do not expand global CI timeouts/retries or skip assertions; no product/DB/permission/CI workflow changes. Link the next immutable Run when created, no completion monitoring.
+
+## Issue #733 / F733-008 — #373 E2E 본문 30초 초과의 A/B/C 독립 검증 (2026-10-20)
+
+- 원본 #3048.1 [Shard2 Job118515445990](https://github.com/planner77/masterGantt/actions/runs/39388666014/job/118515445990), `tests/e2e/task-context-menu-hierarchy.spec.ts:419`: Before Hooks 15.203s ≠ test body 31.4s. 기존 하나의 테스트 30s 초과. Shard3/5/6 성공, Shard1/4 취소, 전체 E2E/QA 실패. 정규 [#733 누적 실패 원장 §13](ISSUE_733_FAILURE_ANALYSIS.md) 참조.
+
+| 원본 #373 통합 수용 조건 | 독립 테스트 및 실제 단언 |
+| --- | --- |
+| Summary/일반 Task 메뉴 구분, canonical rootTask deep link 재진입, edit session·scope 선택, child 표시/형제 숨김, row/header Add 권한 | **A**: real Project setup, sibling menu negative, Summary root action positive, `rootTask` ID, selected scope, edit mode, header/root action enabled, above/below disabled, sibling hidden |
+| Scoped Task 두 번 수정한 최신 revision이 원래 탭에 반영되고 형제 Task가 유지 | **B**: real scoped PATCH200 ×2, PATCH revision monotonic, initial old GET held until second commit, original tab shows second name + sibling unaffected |
+| 로딩 중인 새 탭의 stale initial GET이 최신 편집 결과를 덮지 않음; scoped root 재진입 복원 | **C**: independent fresh Project, receiver GET held at revision N, actual scoped PATCH200 N+1, stale release, receiver shows latest name, scoped reload/rootTab/sibling negative and canonical revision/name equality |
+
+- 세 테스트는 동일 파일 `tests/e2e/task-context-menu-hierarchy.spec.ts`에 각각 독립된 `test()`로 정의. **각 test 호출 시** 공통 setup Helper로 서로 다른 Project/SQLite fixture/BrowserContext를 준비하고, 해당 test 안의 탭만 공유. Test 간 serial/state reuse 금지. Playwright historical file shard plan으로 Shard2에서 `workers=1`이므로 테스트가 순차 실행되나 PR Fast Gate의 첫 실패 중단 정책은 유지. `test.step()`만 나눠 30s 타임아웃을 회피하지 않는다.
+- 테스트 후 파일/AC 정적 대조, 로컬 `npm run typecheck`, `npm run test:e2e -- tests/e2e/task-context-menu-hierarchy.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0` 및 원장 전체 실패 파일 합집합 교차, HTTP/DB/readonly/Gantt 영향 회귀를 지정한다. 실행환경 부재로 현재 source 로컬 명령 결과 **NOT TESTED**; 원격 exact HEAD Required Quality/E2E6/Docker와 Trusted QA가 필수.
+- 분할 후 Before Hooks 재실행으로 Shard2 총 wall-clock/runner-minute 증가 가능: 이전 본문31.4s+fixture15.2s, 새 A/B/C 본문 각각 및 fixture 합계·샤드 전체 소요시간을 artifact 기반 실제 측정. 성능 개선이라고 선제 주장하지 않는다. CI timeout/skip/retries/6 shard/fail-fast 불변.
+
+## Issue #733 M733-001 — Main #3050 Shard4 35min Timeout 대응: 최소 샤드 재배정 (2026-10-20)
+
+- Original: [Main CI Run39402320673/attempt1](https://github.com/planner77/masterGantt/actions/runs/39402320673) event=push/mergeSHA `8a0fc9773d33326b40f8d97f6307c17ae0cb6933`. Aggregate Quality/Docker SUCCESS, E2E FAILURE (upstream Shard4 CANCELLED), others five shard SUCCESS. [actual Shard4 Job118559902418](https://github.com/planner77/masterGantt/actions/runs/39402320673/job/118559902418) ran 168 tests, 162PASS/1SKIPPED, remaining5 NOT COMPLETED, no assertion FAIL, `The operation was canceled` at 10:15:23Z after job's 35min limit; `e2e-timing-ci-shard-4` artifact absent because reporter was interrupted. MAIN candidate GHCR job SKIPPED. This is shard capacity, not a proved product failure. Previous PR [#3049.1](https://github.com/planner77/masterGantt/actions/runs/39396314489) same 168 shard tests SUCCESS; that success cannot replace Main.
+- Existing historical plan [`tests/config/e2e-shard-plan.json`](../tests/config/e2e-shard-plan.json), generated 2026-10-15 from 14 older successful runs: 114 explicit spec paths (19 per shard); 2026-10-20 actual 132 source specs, 18 fallback-hashed new files. Old Shard4 24 files (19 historic +5 fallback), unlike advertised historical `projectedMs≈563336` body-time baseline. A single-run post-change P50/P95 claim is disallowed until sufficient new successful samples.
+- Scoped moves: `tests/e2e/issue-733-process-workarea-dashboard.spec.ts` Shard4→5, observed actual PR body151.2s/Main173.0s; `tests/e2e/issue-726-task-logistics.spec.ts` Shard4→6, PR142.0s/Main98.4s. **Only two assignments** move; observed body time shifted from critical Shard4 is 293.2s(PR)/271.4s(Main), *not* a guarantee of equal reduction in complete shard wall time. Six shard spec counts `[22,23,23,24,20,20]` → `[22,23,23,22,21,21]`. Manual change is an exception to #437 seven-day planned cooldown solely to recover actually cancelled Main, with Owner request and exact GitHub Run evidence.
+- Static/selection AC: run `node scripts/e2e-shard-planner.mjs select --plan tests/config/e2e-shard-plan.json --shard <1..6> --total 6` for each shard on the same commit; all 132 .spec/.test files must appear **exactly once**, none dropped/duplicated. Check both moved files appear only in destination5/6, other 130 unchanged, unchanged `schemaVersion=1`/shardCount6/worker1/35min/PR+Main shared plan and fallback deterministic behavior. Verify `JSON.parse`/plan uniqueness and errors for duplicate/wrong/missing; do not change test selection/skip/timeout/retries/required checks. Runtime CLI on connected GitHub source-only path **NOT TESTED**; equivalent literal selector/hash static coverage counted separately.
+- Exact-HEAD requirements: corrective PR Full CI original source Run/attempt/Head/base/test-merge, Quality + complete E2E 6/6 + Docker, Trusted QA/Owner HIGH, zero unresolved review threads, strict latest main. If all pass, non-force protected merge using `scripts/main_ci_run_name.py` canonical Korean title and empty body; **new Main push CI must run on the new merge SHA**. New Main Shard4 and recipient 5/6 wall-clock/memory/setup and per-file timing must meet existing 35min and complete with no cancellation; verified `ci-<new merge SHA>` candidate/digest/SBOM/provenance is prerequisite to formal `v0.125.0` release workflow, GHCR same digest promotion, Finalizer safe branch cleanup and Issue closure. Previous Main run remains CANCELLED historical evidence.
+- Product/API/DB/DESIGN/MANUAL N/A: no feature or runtime source changed. Documentation/test infra only, HIGH due protected `tests/config/**` and release lifecycle. Existing v0.125.0 Owner marker scope remains, new PR Owner Manager ACCEPT is independent. If new PR CI runs only, subsequent gates are NOT TESTED/BLOCKED, no CI completion monitoring as Owner requested.
+
+## Issue #732 — Milestone 전용 consumer 회귀
+
+[Work Packet](exec-plans/active/ISSUE_732.md)의 AC1~AC5를 검증한다. 전용 feature test는 root 단독/두 editable 예시·선택 지표/전체 Gate·빈 상태를, 실제 SQLite service test는 Target0/E1-t1-M/E2-t2-M 경로 교집합·외부 미완료 소속/선행·명시 Completed·WorkArea Task/Assignment dedup·read mutation0을 검증한다. 기존 membership0..1·상속/override와 원장/Gate authority는 변경하지 않는다.
+
+전용 Chromium spec은 실제 Dashboard 생성/필터 밖 안내·동일 원본/복귀와 390/768/1024/1440/1920px의 표 내부 overflow·keyboard/focus·readonly·marker OFF/Gantt instance·조회 mutation0을 확인한다. 기존 Milestone management/Task Editor·공통 WBS stale/역전·401/412·Resource/Gantt spec은 간접 영향 회귀다. 합성 mock, 실제 SQLite/HTTP, 실제 browser, 원격 Required aggregate 결과는 구별한다. 로컬 빠른 검증은 공식 전체 CI PASS가 아니며 새 Head Required Quality/E2E/Docker·Trusted QA·최종 승인과 환경별 수동 UX는 실제 증거 전 NOT TESTED다.
+
+직접 실행 파일은 `tests/features/milestones/milestone-wbs-dashboard.test.ts`, `tests/server/resources/issue-732-milestone-views.test.ts`, `tests/e2e/issue-732-milestone-dashboard.spec.ts`다. 생성 pending/dirty·401/412/network·초안 취소·외부 revision stale는 기존 `tests/e2e/milestone-management.spec.ts`에서 영향 case를 선별한다. 원장/Gate의 간접 unit 회귀는 `tests/domain/milestone-stage-gates.test.ts`, `tests/domain/wbs-task-ledger.test.ts`, `tests/domain/wbs-task-ledger-acceptance.test.ts`다. null 날짜 snapshot의 화면 방어는 정적 코드 검토 범위이며 실제 생성 API/SQLite의 날짜 필수 계약을 우회한 테스트를 만들지 않는다.
+
+
+## Issue #735 — main 정렬 후 Copy ID 실패 교차 확인 (2026-10-20)
+
+기존 PR #757 CI #3051.1의 canonical GET `ECONNRESET`과 취소된5개 샤드는 [누적 실패 원장](ISSUE_735_FAILURE_ANALYSIS.md)에 보존한다. 제품·원형 테스트·fixture·timeout·retry 변경 없이 Copy ID 정상/clipboard 거부 fallback2case를 격리 실제 Chromium에서 재실행해2/2 PASS(54.7초)했다. 로컬 미재현은 원격 원인 해결 증거가 아니며 UNKNOWN을 유지한다. 최신 main shard plan에서 #735를 포함한133개 spec을 실제 selector6회로 정확1회 배정(누락/중복0)했고 기존 전용 source manifest는 동일하다. 새 Full PR CI의 Required3·Trusted QA·Owner 승인은 NOT TESTED다.
+
+
+## Issue #735 — 반복 canonical GET 전송 실패의 경계 교정 (2026-10-20)
+
+[누적 원장 F735-001/002](ISSUE_735_FAILURE_ANALYSIS.md)의 두 원본 CI 실패는 같은 Context Menu snapshot helper의 독립 API GET에서 발생했으며 TCP 내부 근인은 UNKNOWN이다. 두 진단에서 서버 생존·Health200·OOM0, 35분 용량 취소 없음이 확인되어 샤드 재배분은 하지 않는다. `project-task-context-menu.spec.ts`의 UI 후 canonical 검증24곳을 기존 `readBrowserCanonicalSnapshot`+필수 observer로 통일한다. browser GET은 같은 출처에서1회, retry0이며 seed/mutation API 및 기존 원본ID/revision/계층/Clipboard/Gantt 단언은 보존한다.
+
+실제 Project/Task를 둔 independent API GET 차단 controlled red/green 회귀1개와 기존 전체7case를 한 번의 fail-fast 없는8case에 포함한다. 기존 `tests/server/e2e/browser-canonical-snapshot.test.ts`의 HTTP500·invalidJSON·transport·foreign path/no retry 음성과 진단기/GET helper Unit, 인접 Task Editor 저장/reload·Milestone persistence를 선택한다. 원격 전체6Shard/Docker·Trusted/Owner는 새 exact Head에서 별도 검증하며 로컬 비재현·통제 오류와 원격 실제 실패를 구분한다.
+
+
+## Issue #735 F735-003 — 반응형 메뉴 단일 본문 부담 재배분 (2026-10-20)
+
+[누적 원장 §9](ISSUE_735_FAILURE_ANALYSIS.md)의 #3055.1은 #116 반응형 메뉴 단일 Test30초 초과다. fixture Before Hooks와 본문을 구분한 실제 trace/원형 RED31초로 결합 부담을 확인했고, Job35분 capacity 실패와 이전 GET 전송 오류와 구분했다. timeout/retry/단언을 유지하며4폭×4corner 행렬과 모바일/짧은 화면/Clipboard/desktop/Summary 흐름을 새 Project·SQLite·Context의 독립2Test로 나눈다. 각30초, 전체8→9case, 기존93matcher와 전체 명령 순서·나머지7case 내용 보존을 검산한다. 기존 실제 실패3case가 속한 같은 파일 전체9case를 동결 소스에서 fail-fast 없이 실행한다. fixture1회 추가의 비용은 별도로 기록하며 전역 Shard 이동·성능 절감은 주장하지 않는다. 전체6Shard/Docker·Trusted/Owner는 새 원격 exact Head에서 별도 검증한다.
+
+## Issue #732 M732-001 — Main #3067 E2E 35분 취소 교정과 Plan 누락 검출 (2026-10-21)
+
+- Main [#3067.1](https://github.com/planner77/masterGantt/actions/runs/39492209464) Shard1 `118868154867` 146 중145 PASS/1 미완료, 35분 Timeout CANCELLED. Quality/Docker·다른 Shard5개 PASS, E2E aggregate `118885430507` FAIL, GHCR SKIPPED. 구 PR [#3063.1](https://github.com/planner77/masterGantt/actions/runs/39485797851) 성공은 Main 성공 아님. [Issue #732 단일 실패 원장 F732-005](ISSUE_732_FAILURE_ANALYSIS.md)에 원본 Job/Attempt·교차 이력 보존.
+- #437 historical plan explicit116/실제 최신135(19 hash fallback): 4개 고부하 배정 수정(#735 System1→2, #732 Milestone1→3, Gantt recovery1→4, #736 Resource5→2). 신규 Issue #736의 Shard5는 PR #3069에서 이미28.7분이므로 초안의 #732→5는 재발 위험으로 철회. 다른131개 unchanged, 목표 파일수[21,25,24,23,21,21]. 오래된 projectedMs/14-run baseline은 수정하지 않음.
+- Planner Unit: `listSpecFiles()` 전체135 vs plan explicit 135(중복·누락0), `selectShardFiles` 6-way 집합 동일, 배정4개와 #733 이전2개 검증. 새 테스트 파일이 미등록이면 Unit 단계에서 조기 FAIL, 안전한 runtime hash fallback은 계속 활성. PR/Main/Release 공유 계획이므로 정확 HEAD 6 shard/Quality/Docker 및 Trusted QA 원격 검증 필수. 변경 영향 E2E: #732 Milestone4, #735 System6, #736 Resource5, Gantt/Resource/Excel(#529 마지막 NOT RUN), 기타 전체 테스트 모두 유지.
+- 테스트 시간 최적화는 실제 Runner/Setup/Fixture 변동성을 포함한 새 PR 및 Main 결과 없이는 PASS 아님. CI Workflow/35분 timeout·worker1·6 shards·required check/skip·retry·assertion/제품/API/DB·버전0.128.0 변경 없음. #732 0.127.0 릴리스 권한·#736 0.128.0 후속 병합의 별도 수명주기 감사를 생략하지 않는다.
+
+### M732-001 검증 보완 — PR #3072.1의 35분 임계치 접근 (2026-10-21)
+
+- 정확한 HEAD `1a776b0769d1d0f4bf5d1915059e96a2c3104aae`의 [Full PR CI #3072.1](https://github.com/planner77/masterGantt/actions/runs/39501650409) Required3+Automated QA SUCCESS/Trusted #713.1 SUCCESS. Job 실행시간 분 [16.6,33.2,22.0,30.2,18.0,27.4]. Shard2 35분 상한까지 1.8분만 남아 기존 Main #3067.1 취소 재발 위험을 판단.
+- 테스트 본문 duration 기반 선택한 여섯 이동: `issue-735-system-dashboard.spec.ts`2→5, `project-transfer-layout-491.spec.ts`2→1, `canonical-projection.spec.ts`2→3, `logistics-target-authoring.spec.ts`4→1, `project-task-delete-context.spec.ts`4→3, `issue-730-view-composer.spec.ts`6→5. 기존 #732/#736/#733 및 Gantt 이전 이동과 다른 spec 분배는 불변.
+- 현행 `listSpecFiles()`135개 === explicit 계획135개·중복0, 6-way selector 전체 일치 및 샤드 지정 11개 위치 Unit guard 갱신. 예상 Job 분 [22.5,25.5,25.1,25.2,24.9,24.2]은 단순 추정, 실제 GitHub Runner 35분 미만 PASS로 간주하지 않음. 새 commit Full CI·Trusted QA·Owner final approval 후에만 Merge 가능, 테스트 skip/retry/worker1/35분/Required3/제품 코드·버전 변경 없음. #736 이전 Main #3071.1은 Shard3 `issue-621-resource-target.spec.ts` 제품/테스트 assertion FAIL로 별도 실패하며 이 #732 변경의 완료 증거가 아님.
+
+### M732-002 — PR #3073.1 exact Assignment modal readiness 회귀 (2026-10-21)
+
+- 원본 [Full PR #3073.1](https://github.com/planner77/masterGantt/actions/runs/39508411997), exact SHA `d4b78a4fb9085ba58ccc967528a210c0889c4f04`, Shard5 #622 정확 할당 60% label `getByLabel` 5000ms `element(s) not found` (2PASS/1FAIL/99NOT RUN), 타 Shard5개 fail-fast 취소. Quality/Unit/Build/Docker PASS, E2E aggregate 및 QA Final FAIL. 원인은 35분 Job limit이 아니라 현재 canonical 할당 데이터 준비 전 필드 탐색 가능성; 실제 network/trace 정밀 RCA는 미완료이므로 제품 원인을 단정하지 않음.
+- 같은 편집기를 쓰는 #621의 #736 Main 실패를 인접 재발 경계로 선정. 소비자 test `issue-622-resource-plan-target.spec.ts`: canonical allocation.percent=60/Resource exact ID→modal visible→resource tab active→할당 저장 버튼 enabled(할당/후보 두 fetch·Revision 검증 완료 시점; 최대30초)→정확한 60→40/Target80/전체140→120/Excel 선택·전체/키보드/5폭/원본/Focus 회귀 유지. `issue-621-resource-target.spec.ts`에도 최초·재열기 Ready Gate를 추가하고 동료 할당 미변경, 401/412 negative assertion과 100→80→70 보존.
+- 새 source PR Full 6 Shard에는 두 변경 파일·인접 #623/#736/Resource/KPI가 모두 포함되어야 하며 모든 테스트 assertion 및 fail-fast/worker1/35분 timeout/Required gate는 불변. 준비 실패·API/revision 오류는 재시도/무시하지 않고 strict FAIL로 남긴다. 새 Head 테스트실행 완료 전 NOT TESTED, 기존 #3072 PASS를 새 Head 통과로 간주하지 않는다.
+
+
+## Issue #734 F734-006 — #717 canonical GET ECONNRESET 및 #732 최신 Shard 교차 회귀 (2026-10-21)
+
+- 실패 원본 [PR #759 / Full #3074.1](https://github.com/planner77/masterGantt/actions/runs/39509862644), exact HEAD `1dd588c8850df026561e1ad03236ccaf7d0837dd`, E2E Shard3 50PASS/1FAIL/57NOT RUN: `tests/e2e/issue-717-identity-persistence.spec.ts` 동명 Milestone PATCH200 뒤 snapshot GET `read ECONNRESET`(9.4초); 다른5Shard 취소. 서버 프로세스 생존·health200·OOM0, TCP reset 근인 UNKNOWN. 이전 5회와 신규 실패 분리는 [#734 단일 실패 원장](ISSUE_734_FAILURE_ANALYSIS.md#8-f734-006--full-30741-인접-717-정확-원본-get-전송-초기화-2026-10-21-kst)에 추적.
+- 읽기 전용 `getSnapshot`에만 Playwright `maxRetries:1`(ECONNRESET 전송에 한함, HTTP500/401/412·잘못된 JSON 및 revision 차이는 원래대로 실패); 생성/PATCH/DELETE retry0. #717 identity·동명·readonly copy/쓰기0·Milestone/공정 정확 source 테스트를 온전히 유지하고 #734 8case, #730 viewer 총계·원본, #735 System, #732 Milestone, #736 Resource+Excel, #621/#622 Assignment ready, #623 Resource, 401/412·GSC focus 부정 흐름을 정확 새 Head Full 6 Shard에 포함한다.
+- 최신 main #732의 135개 명시 샤드·#621/#622 준비 데이터/버튼 gate·Shard 부담 개선을 보존하나, 이 실패는 시간 120초/35분 초과가 아니므로 추가 샤드 분할·전역 timeout/retry/skip/CI policy 수정 없음. 동결 Source 로컬 npm/Chromium/Docker **NOT TESTED**, 원격 새 Required Quality/E2E/Docker·Trusted/Owner는 완료 전 **NOT TESTED**. Review 미해결0/strict main/충돌0 확인 후 CI 시작, 이후 모니터링/병합·릴리스 없음.
+
+
+## Issue #734 · F734-007 누적 실패 교차 검증 (2026-10-21)
+
+[PR #759 Full #3078.1](https://github.com/planner77/masterGantt/actions/runs/39517277420)의 Vitest strict inventory 검사가 신규 `issue-734-equipment-dashboard.spec.ts`의 명시 shard 누락(135 vs136)을 검출했다. 실제 E2E/build/Docker는 Fast Gate 차단으로 SKIPPED이며 세 Required/QA 실패는 파생 결과다. 전체 이전 여섯 실패·이번 provenance/원인/보완 및 검증은 [#734 단일 누적 원장](ISSUE_734_FAILURE_ANALYSIS.md#9-f734-007--full-30781-main-통합-후-신규-e2e-명시-배치-누락-2026-10-21)을 따른다.
+
+신규 파일만 shard6에 명시하고 기존135개 배치 및 역사적 시간/수동 배치 기록은 보존한다. 현재136개 발견파일 전체의 유일배치와 #734→6 고정 회귀를 검사한다. 신규 case setup/runtime 비용은 기존 projectedMs에 반영됐다고 주장하지 않는다. 기존6-shard·worker1·35분/Required3·단언·retry/skip·fail-fast는 불변이다. 로컬 동일 실패 재현 후 planner/config/읽기 전용 음성·resources server/consumer의31파일354검사가 PASS했다. 과거 실패 E2E 합집합3파일15case를 fail-fast없이 실행해 로컬 PASS했고 실제 명령/source fingerprint·잘못된 harness 시도 및 캡처 보존 예외를 원장에 남겼다. 타입/scoped lint/문서 링크·발견 검사도 PASS했으며 자동 PrePR UNKNOWN5는 BLOCKED를 유지한다. 새 정확 Head Full PR CI 시작 후 결과 모니터링은 수행하지 않으며 quality/e2e/docker·Trusted QA/Owner 최종 결과는 NOT TESTED다.

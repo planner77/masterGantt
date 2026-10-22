@@ -1,4 +1,5 @@
 import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { expect, test } from "@playwright/test";
 import { dashboardFixture } from "../fixtures/milestone-dashboard";
 import { installStatefulProjectFixture, projectPath, publicId } from "../fixtures/stateful-project";
@@ -9,7 +10,7 @@ test("#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5
   state.sessionEditable = false;
   let writes = 0;
   page.on("request", (request) => {
-    if (request.url().includes(projectPath) && !["GET", "HEAD"].includes(request.method())) writes++;
+    if (request.url().includes(projectPath) && !["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) writes++;
   });
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) =>
     route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
@@ -132,7 +133,7 @@ test("#724 exact screen·legacy URL·저장된 보기와 Resource 관리자 경�
   const state = await installStatefulProjectFixture(page);
   state.sessionEditable = true;
   let writes = 0;
-  page.on("request", request => { if (!['GET', 'HEAD'].includes(request.method())) writes++; });
+  page.on("request", request => { if (!['GET', 'HEAD'].includes(request.method()) && !isWbsViewReadQuery(request)) writes++; });
   await page.route(`**${projectPath}/milestone-dashboard?*`, route => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await page.route(`**${projectPath}/resource-memberships?*`, route => route.fulfill({ json: { data: { projectRevision: state.project.revision, catalogRevision: 1, total: 0, offset: 0, limit: 50, groups: [], counts: { registered: 0, assigned: 0, roleOnly: 0, inactive: 0 }, resources: [] } } }));
   await page.goto(`/projects/${publicId}?screen=master.resources&view=milestones`);

@@ -1,0 +1,112 @@
+{
+  "description": "최종 동결 소스의 선정 브라우저 검증이다. 공식 원격 전체 회귀 결과를 대신하지 않는다.",
+  "batch": "final-milestone-failure-union",
+  "startedAt": "2026-10-19T08:51:28.387877+00:00",
+  "finishedAt": "2026-10-19T08:52:00.787434+00:00",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--config",
+    "tests/config/playwright.config.ts",
+    "tests/e2e/milestone-dashboard-state.spec.ts",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=0",
+    "--reporter=list,json",
+    "--output=/home/planner/Dev/masterGantt-issue-730-rework/.prepr-reports/issue-730-rework/final-milestone-failure-union"
+  ],
+  "exitCode": 0,
+  "sourceStable": true,
+  "sourceFiles": 656,
+  "changedSourceFiles": [],
+  "stats": {
+    "duration": 32094.133,
+    "expected": 7,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 7013
+        }
+      ]
+    },
+    {
+      "title": "#463 request reversal, stale error and explicit retry preserve filters",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2519
+        }
+      ]
+    },
+    {
+      "title": "#463 server date authority, bounded day refresh and same-day catalog catch-up",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2975
+        }
+      ]
+    },
+    {
+      "title": "#463 shared multi-selection, null conversion and canonical/catalog invalidation",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3589
+        }
+      ]
+    },
+    {
+      "title": "#463 aborted request to cached query still permits focus catch-up",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 2922
+        }
+      ]
+    },
+    {
+      "title": "#463 public viewport and native scroll survive peer/layout, stale restore is consumed",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5335
+        }
+      ]
+    },
+    {
+      "title": "#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다",
+      "file": "milestone-dashboard-state.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4297
+        }
+      ]
+    }
+  ],
+  "sourceSha256Before": "c743f9103205eab7cae3f5550f0097bcf0c3621a0d64054ea13379bc7f09cbda",
+  "sourceSha256After": "c743f9103205eab7cae3f5550f0097bcf0c3621a0d64054ea13379bc7f09cbda",
+  "sourceManifest": "final-source-freeze.json"
+}

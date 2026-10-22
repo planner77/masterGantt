@@ -1,3 +1,42 @@
+## Issue #734 — 설비 조회 metadata와 유형 필터
+
+기존 `POST /api/projects/{publicId}/resource-dashboard/views`의 versioned opt-in WBS 조회에 `filters.equipmentTypeCodes: string[]`를 추가한다. 빈 배열/생략은 기존 전체, 복수 코드는 OR이다. 등록된 Project 설비 유형 코드만 허용하고 잘못된 shape/빈 코드/알 수 없는 코드는400 `INVALID_REQUEST` 또는 `INVALID_SELECTION`이다. 기존 본문 크기·조회 depth/fanout/cells/sourceRows/JSON 한도와 public-read Origin/no-store 계약을 유지한다.
+
+유형 조건은 기존 공통 원장의 equipmentType selector를 사용하여 Task·Assignment 원시 합집합과 구성 참고·등록-only root를 같은 조건으로 제한한다. Legacy Target-only 경로 필터로 직접 연결을 지우지 않는다. 상세/범위는 같은 조건·경로·snapshot을 재검증하고 제외된 경로는 `INVALID_SELECTION`, 원본/조건 fingerprint가 달라진 이전 snapshot은409 `REPORT_STALE`이다. 배열 OR에서 여러 유형에 같은 Task/Assignment가 있어도 고유 공수·진척을 다시 계산하며 하위 소계를 더하지 않는다.
+
+`projection=report`의 `configurationCatalog.equipment`는 같은 SQLite read transaction의 전체 등록 설비 표시 metadata다. 유형 후보·전체 원본 정보는 현재 필터의 root/KPI 범위와 구별한다. 각 항목은 `id`, `name`, `equipmentType`, `equipmentTypeName`, `managementUnit`(unit/fleet), `quantity`, `active`, `primaryProcessId`, `workAreaLinks[{processId,occurrenceId,workAreaId}]`, `resourceRoles[{resourceId,resourceName,role,isPrimary,active}]`, `controlSystems[{systemId,controlRole,systemName}]`를 제공한다. WorkArea0..N 전체를 유지하고 명시 controls에 같은 Task 연관 시스템을 추가하지 않는다. 기존 `configurationCatalog.processes/workAreas/instances/milestones`와 참조하며 이름을 원본 ID 대신 저장키로 쓰지 않는다.
+
+참조된 유형 이름도 snapshot fingerprint에 포함한다. Project revision이 같아도 유형/이름·구성 관계가 바뀌면 예전 상세/원본 명령을 최신으로 재사용하지 않는다. 기존 mutation endpoint·인증/session/If-Match·저장 revision·DB schema와 Excel 미지원 경계는 불변이다. [수치 정의](LOGISTICS_DASHBOARD.md#issue-734--설비-최상위-관점), [실행·AC](exec-plans/active/ISSUE_734.md)를 따른다.
+
+## Issue #736 — 리소스 Plan/Excel의 동적 출처
+
+기존 `POST /api/projects/{publicId}/resource-dashboard/views`의 Resource root report는 주/월 Plan(`granularity`) 요청 시 optional `resourceAdapter`를 제공한다. `{report:ResourceDashboardDto,binding:{sourceContext:ResourceDrillSourceContext,scope:ResourceDrillScope}}`는 현재 원시 개인 Assignment ID의 `exactAssignments` 교집합으로 기존 Plan·상세·drill API를 사용하기 위한 adapter다. 다른 개인의 공동담당 Assignment나 책임 역할에서 공수를 생성하지 않는다. WBS의 `wbs-view-source/1`과 기존 Resource source/snapshot은 다른 identity이며 동일하다고 cast하지 않는다.
+
+기존 Project Excel Export의 `resourceDashboard`는 기존 Resource 입력과 함께 Resource-root WBS 입력을 지원한다. 기존 body/Origin·strong If-Match·원자 snapshot 및 예산 검증(public-read, 편집 session 불필요)을 재사용하며 opt-in 없는 기존 출력은 유지한다.
+
+| 선택 | `resourceDashboard`의 필드와 의미 |
+| --- | --- |
+| `basis:"current"` | `expectedReport:{context:WbsViewSourceContext,snapshotId,filters}`·`granularities:["week","month"]`(필요한 주/월). context의 spec·path·scope·기간/환산·snapshot 및 filters를 서버에서 재검증하고 같은 Task/Assignment 원시 교집합을 사용 |
+| `basis:"project"` | `expectedReport:{context:WbsViewSourceContext,filters}`·주/월 목록. 원 출처의 context/spec/path/filter/snapshot을 먼저 재검증한 뒤 기간·기준일·M/M 정책을 유지하고 개인/분류·Task/검색/상태·동적 path/scope 필터를 해제. 원 출처는 근거로 보존 |
+
+WBS source는 새 전체 범위를 얻기 위한 client 승인 토큰이 아니다. 다른 Project·잘못된 spec/path/scope·위조/낡은 context는 기존 fail-closed 검증으로 거부한다. Resource 외 root는 `WBS_VIEW_EXPORT_UNSUPPORTED`를 유지하며 새 spec을 구 `projectionOrder`로 변환하여 필터를 조용히 버리지 않는다. 지원 여부는 report의 `metadata.excel`로 안내한다. Excel의 동적 근거행은 중첩 비가산이며 Project 합계로 재합산하지 않는다. [Excel 세부사항](EXCEL_EXPORT.md#issue-736--리소스-동적-조회와-excel), [AC/실제 증거](exec-plans/active/ISSUE_736.md).
+
+## Issue #735 — 시스템 root의 직접·조율 선택
+
+기존 `POST /api/projects/{publicId}/resource-dashboard/views`의 `spec.root=system`에서만 additive `systemView?: "direct"|"coordination"`, `systemIds?: string[]`를 허용한다. 생략은 기존 요청 의미를 보존한다. 시스템 ID 생략은 전체, 명시 `[]`는 빈 선택이며 필터 결과0개를 전체로 바꾸지 않는다. 중복 ID는 정규화하고 같은 Project의 등록 시스템·canonical UUID·최대1000개 한도를 서버에서 검증한다. 다른 root의 해당 필드·잘못된 모드/ID·foreign 참조는 거부한다.
+
+`direct`는 기존 유효 System Task 연관, `coordination`은 기존 Domain의 coordinates 도달 System 및 실제 controller controls 설비 Task를 포함한다. report와 정확 details/scope는 같은 mode/시스템 선택/Task·Assignment 교집합을 사용한다. spec이 snapshotId/sourceContext에 포함되어 모드·선택 변경 시 이전 snapshot의 상세를 재사용할 수 없다. Task 공정은 명시0..N 기준이며 System 담당 공정으로 유도하지 않는다. 명시 opt-in 응답의 `metadata.systemSelection={systemView,systemIds}`는 실제 선택을 기록한다. 기존 spec에서 두 필드를 모두 생략하면 미연결 Task를 포함한 종전 조회이며, 명시 opt-in은 선택 시스템의 Task 합집합이다. 신규 opt-in의 반복 selector/configuration 읽기는 cache와 누적 원시행 작업량50000 한도를 적용하고 초과 시422 `REPORT_LIMIT_EXCEEDED`로 전체 실패한다. 구성 참고와 작업 범위·full Gate는 별도이고 기존 bounded/no-store/Origin/read-only·Excel 미지원 계약을 유지한다. [실행 가능한 원장](WBS_TASK_LEDGER.md), [AC 검증](exec-plans/active/ISSUE_735.md)을 따른다.
+
+## Issue #733 — 공정 consumer용 동일 snapshot 구성 목록·하위 구성 보존
+
+기존 `POST /api/projects/{publicId}/resource-dashboard/views`의 report 응답에 `configurationCatalog`를 추가한다. 동일 SQLite read snapshot의 `processes[{id,name,occurrenceId}]`, `workAreas[{id,name,occurrenceId,processIds}]`, `instances[{kind,id,name}]`, `milestones[{id,name}]`를 제공하며 공정 단독/다른 축에서도 등록 고유 수·원본 이름을 사용할 수 있다. 별도 global catalog 응답이나 다른 revision의 이름/수치를 합치지 않는다. Project 공정 ID와 occurrence ID, WorkArea 소유 mapping은 구별한다. details/scope의 exact Task·Assignment·snapshot 재검증 및 기존 strict 한도는 유지한다.
+
+공정/occurrence 아래 구성의 구역 없음은 해당 공정 범위에 연결 구역이 없다는 조회 상태이며 타 공정 구역 소속은 유지한다. root WorkArea 없음은 전체 구역 소속0이고, Task의 명시 WorkArea selector 의미는 변경하지 않는다.
+
+공통 projection은 root뿐 아니라 실제 구성관계가 있는 하위의 등록-only 후보를 보존한다. Task0의 공정→WorkArea→설비/System 행도 원본 scope로 조회할 수 있지만 Task/Assignment를 생성하지 않는다. 후보가 공유 Milestone/System을 통해 다른 Task를 다시 가져오지 않으며 Task 경로는 기존 교집합을 유지한다. 공통 System의 Project scope를 모든 공정으로 배치하거나 없는 WorkArea 소속을 만들지 않는다.
+
+구성 참고의 공정 관련 설비는 주관리 공정과 명시 다중 WorkArea 소유 공정의 원본 ID 합집합이다. exact WorkArea가 선택되면 그 소속과 공정의 교집합을 사용한다. 따라서 주관리 A의 E10이 B공정 구역에 명시 소속되면 A/B 각각 관련 수량10, Project 고유 수량10이다. 이는 주관리 공정 재지정이나 실제 구역별 배치 대수 분배가 아니다. `configurationReference`와 명시 Task 공정에 따른 작업·개인공수는 별도 모집단이다. 구 logistics default/Target API·DB 저장·권한·Excel 미지원 계약은 불변이다. [수치 정의](LOGISTICS_DASHBOARD.md#issue-733--공정workarea-전용-관점), [검증과 남은 한계](exec-plans/active/ISSUE_733.md)를 따른다.
+
 ## Issue #731 — 보존된 KPI의 명시 통합 source
 
 `GET /api/projects/{publicId}/logistics/kpi?source=integrated`는 기존 KPI 화면 전용 public-read다. 기존 `/logistics/dashboard`의 default 및 Resource/Target API는 유지한다. 같은 SQLite read transaction에서 #728 공통 resolver·#729 snapshot과 기존 Logistics KPI 산식을 재사용한다. 기존 `{data:LogisticsDashboardDto}`의 카드/표/품질/full Gate를 보존하고 additive `integrated` metadata·진단을 제공한다. Project session/쿠키 발급·mutation은 없으며 UUID Project404, `Cache-Control: private, no-store`·`X-Content-Type-Options: nosniff`를 사용한다.
@@ -20,6 +59,10 @@
 출발 목록/편집/일정 이동 직전 같은 조건과 `snapshotId`로 재검증한다. mismatch는409 `STALE_KPI_SOURCE`이며 최신 결과를 다시 조회한다. Task/Assignment ID·source·조건이 다른 응답을 같은 숫자의 drill로 사용하지 않는다. full Milestone Gate는 선택 공정/Task 범위 밖의 전체 canonical membership·선행을 보존한다.
 
 원본 조회는 기존 Task/Assignment·관계 한도를 적용하고 응답2MiB·요청 URL16384자 초과는422 `REPORT_LIMIT_EXCEEDED`로 전체 실패하며 절삭 결과를 반환하지 않는다. 원본 계약 불충분은422 `KPI_SOURCE_INVALID`다. 새로운 일정·실적·원가 계산/Export authority는 없으며 자세한 분모는 [KPI 계약](LOGISTICS_DASHBOARD.md#issue-731--기존-kpi와-통합-출처), 실제 검증과 최초 실패는 [Work Packet](exec-plans/active/ISSUE_731.md)을 따른다.
+
+## Issue #730 — versioned view의 UI 소비
+
+대시보드 공통 구성기/표는 아래 #729의 POST `/resource-dashboard/views`를 사용한다. 새 endpoint·공개 DTO·서버 계산·기존 API default 변경은 없다. 고정 root는 화면이 선택하고 사용자는 levels를 편집한다. root-only는 빈 levels, 설비/System 동급은 siblings 한 단계이며 `projectionOrder`나 Target 필터로 변환하지 않는다. report/details/scope의 spec·filters·scope·snapshotId·path를 동일하게 유지하고 stale409에서는 재조회한다. 이 #730 단계의 새 view spec Excel은 미지원이었다. 현재 Resource root는 위 #736의 동일 출처 출력을 지원하고 다른 root는 기존 미지원 오류를 유지한다. 화면별 개인 설정 저장은 browser storage이며 이 read API나 Project revision mutation이 아니다. [화면 계약](PROJECT_UX.md), [Work Packet](exec-plans/active/ISSUE_730.md)을 따른다.
 
 ## Issue #729 — versioned WBS 다관점 조회
 

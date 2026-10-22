@@ -38,7 +38,8 @@ import { ProjectLogisticsTargets } from "./project-logistics-targets";
 import type { KpiMasterKind } from "./logistics-kpi-configuration";
 import { ProjectLogisticsDashboard } from "./project-logistics-dashboard";
 import { ProjectLogisticsUnified } from "./project-logistics-unified";
-import type { ResourceScheduleRequest } from "@/features/resources/resource-drill-context";
+import type { WbsViewDimension } from "@/contracts/wbs-dashboard-views";
+import type { WbsViewScheduleRequest, ResourceScheduleRequest } from "@/features/resources/resource-drill-context";
 import styles from "./project-logistics-management.module.css";
 import { useLogisticsViewState } from "./use-logistics-view-state";
 import { isVisibleFocusTarget } from "@/features/milestones/milestone-management-model";
@@ -81,6 +82,10 @@ export interface ProjectLogisticsManagementProps {
   onTargetTaskOpen?: (taskId: string, trigger?: HTMLElement) => void;
   onKpiResourceOpen?: (resourceId: string, trigger: HTMLElement, resource?: { name: string; code: string | null }) => void;
   onStageSchedule?: (taskIds: string[]) => void;
+  onWbsSchedule?: (request: WbsViewScheduleRequest) => void;
+  onWbsOpenEntity?: (dimension: WbsViewDimension, id: string, trigger: HTMLElement) => void;
+  wbsEntityOpenRequest?: { dimension: WbsViewDimension; id: string; sequence: number; trigger: HTMLElement } | null;
+  onWbsEntityRequestHandled?: () => void;
   onResourceSchedule?: (request: ResourceScheduleRequest) => void;
   onOpenAssignment?: (taskId: string, assignmentId: string, resourceId: string, trigger: HTMLElement) => void;
   projectContext?: Pick<ProjectDto, "businessUnit" | "product" | "siteEntity">;
@@ -104,6 +109,7 @@ type FocusableMasterKind = "process" | "equipment" | "system";
 
 export function ProjectLogisticsManagement({
   kpiSourceRefreshKey = 0, subview, onSubviewChange, onSubviewFocusUnavailable, hideSubviewNavigation = false, perspective, onPerspectiveChange,
+  wbsEntityOpenRequest, onWbsEntityRequestHandled, onWbsSchedule, onWbsOpenEntity,
   targetOpenRequest, tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onTargetTaskOpen, onResourceSchedule, onOpenAssignment, onKpiResourceOpen,
   publicId,
   projectContext,
@@ -349,7 +355,7 @@ export function ProjectLogisticsManagement({
       if (processFilter !== "all" && e.processId !== processFilter) return false;
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
-      return (
+  return (
         e.name.toLowerCase().includes(q) ||
         e.code.toLowerCase().includes(q) ||
         e.id.toLowerCase().includes(q) ||
@@ -554,6 +560,31 @@ export function ProjectLogisticsManagement({
     }
   };
 
+      const wbsEntityTrigger = useRef<HTMLElement | null>(null);
+  const handledWbsRequest = useRef<number | null>(null);
+  const wbsCrossRequest = useRef(false);
+  const wbsModalObservedOpen = useRef(false);
+  const openWbsEntity = useCallback((dimension: WbsViewDimension, id: string, trigger: HTMLElement) => {
+    if (!editable || busy || isSubmitting) return;
+    wbsEntityTrigger.current = trigger;
+    if (dimension === "equipment") { const target = logistics.equipment.find(row => row.id === id); if (target) setEquipmentModal({open:true,mode:"edit",target}); }
+    if (dimension === "system") { const target = logistics.systems.find(row => row.id === id); if (target) setSystemModal({open:true,mode:"edit",target}); }
+    if (dimension === "process") { const target = logistics.processes.find(row => row.id === id); if (target) setProcessModal({open:true,mode:"edit",target}); }
+  }, [editable,busy,isSubmitting,logistics,setEquipmentModal,setSystemModal,setProcessModal]);
+  useEffect(() => {
+    if (!wbsEntityOpenRequest || handledWbsRequest.current === wbsEntityOpenRequest.sequence || busy || !editable || isSubmitting) return;
+    handledWbsRequest.current = wbsEntityOpenRequest.sequence;
+    wbsCrossRequest.current = true;
+    openWbsEntity(wbsEntityOpenRequest.dimension,wbsEntityOpenRequest.id,wbsEntityOpenRequest.trigger);
+  }, [wbsEntityOpenRequest,busy,editable,isSubmitting,openWbsEntity]);
+  useEffect(() => {
+    if (processModal.open || equipmentModal.open || systemModal.open) {if(wbsEntityTrigger.current)wbsModalObservedOpen.current=true; return;}
+    if (!wbsEntityTrigger.current || !wbsModalObservedOpen.current) return;
+    wbsModalObservedOpen.current=false;
+    const trigger=wbsEntityTrigger.current; wbsEntityTrigger.current=null;
+    if (wbsCrossRequest.current) {wbsCrossRequest.current=false;onWbsEntityRequestHandled?.();}
+    else requestAnimationFrame(() => {if (isVisibleFocusTarget(trigger)) trigger.focus({preventScroll:true});});
+  }, [processModal.open,equipmentModal.open,systemModal.open,onWbsEntityRequestHandled]);
   return (
     <div className={styles.logisticsContainer}>
       {/* Header */}
@@ -778,7 +809,7 @@ export function ProjectLogisticsManagement({
       <div id="panel-unified" role="tabpanel" aria-labelledby={hideSubviewNavigation ? undefined : "subtab-unified"} hidden={activeSubTab !== "unified"}>
         <ProjectLogisticsUnified perspective={perspective} onPerspectiveChange={onPerspectiveChange} publicId={publicId} revision={revision}
           active={active && activeSubTab === "unified"} busy={busy || isSubmitting} editable={editable}
-          logistics={logistics} onOpenTask={onTargetTaskOpen} onOpenAssignment={onOpenAssignment}
+          logistics={logistics} onWbsSchedule={onWbsSchedule} onWbsOpenEntity={onWbsOpenEntity ?? ((dimension,id,trigger) => { if (["equipment","system","process"].includes(dimension)) openWbsEntity(dimension,id,trigger); })} onOpenTask={onTargetTaskOpen} onOpenAssignment={onOpenAssignment}
           onOpenMilestone={taskId => onStageOpen?.(taskId)} onResourceSchedule={onResourceSchedule}
           onOpenTarget={(id, trigger, code) => {
             if (!editable || busy || isSubmitting) return;

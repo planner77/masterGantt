@@ -1,3 +1,4 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { randomUUID } from "node:crypto";
 import type { Locator } from "@playwright/test";
@@ -141,7 +142,7 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
   const filterRequests: string[] = [];
   page.on("request", (request) => {
     const path = new URL(request.url()).pathname;
-    if (!["GET", "HEAD"].includes(request.method()) || path.endsWith("/resource-workload") || path.endsWith("/assigned-targets")) filterRequests.push(request.url());
+    if ((!["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) || path.endsWith("/resource-workload") || path.endsWith("/assigned-targets")) filterRequests.push(request.url());
   });
 
   for (const width of [390, 768, 1024, 1440, 1600]) {

@@ -254,7 +254,7 @@ require("docker/build-push-action@" not in auto_workflow and "docker buildx imag
 require("release-image.yml" in auto_impl and "dispatch_release(" in impl, "formal release publication must remain delegated to release-image")
 require("queue: max" in release_workflow, "release image workflow must queue concurrent releases")
 require("release_e2e_shard:" in release_workflow, "release E2E must be sharded")
-require("Release Chromium E2E shard ${{ matrix.shard }}/6" in release_workflow, "release E2E must keep six shards")
+require("Release Chromium E2E shard ${{ matrix.shard }}/8" in release_workflow, "release E2E must keep eight shards")
 require('CI_E2E_FULLY_PARALLEL: "true"' in release_workflow, "release E2E must use balanced test-level distribution")
 require("needs: [prepare, quality_static, release_e2e_shard]" in release_workflow, "release aggregate must wait for static and E2E gates")
 require("Main verified candidate exact digest 확인" in release_workflow, "release must consume the verified main candidate")

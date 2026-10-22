@@ -1,0 +1,648 @@
+{
+  "schema": "issue-730-ci-failure-triage/1",
+  "issue": 730,
+  "pr": 747,
+  "latestFullRun": 39221287023,
+  "latestHead": "b4ba9994ee77a8dbc4a3bb36c8ee6e00beab7a51",
+  "currentBase": "fbe7db83a4baa2877a75db0769a59077bbe308c4",
+  "remoteMutationPerformed": false,
+  "notes": [
+    "원본 run.pull_requests 메타데이터는 현재 PR head/base로 바뀔 수 있어 원본 ci-pr-source artifact와 checkout test merge를 사용했다.",
+    "원본 artifact ZIP의 SHA256을 GitHub artifact digest와 비교하고 ci-pr-source.json 한 개만 제한 크기로 읽었다. 실행·PR checkout 없음.",
+    "각 commit의 callable workflow 조회 결과 Full run 한 개씩, 각 run_attempt=1. 별도 metadata run은 발견하지 않았다.",
+    "cancelled shard에서 보이는 부분 성공은 전체 테스트 PASS가 아니다."
+  ],
+  "runs": [
+    {
+      "runId": 39215173057,
+      "runNumber": 3001,
+      "attempt": 1,
+      "event": "pull_request",
+      "conclusion": "failure",
+      "status": "completed",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057",
+      "createdAt": "2026-10-19T07:18:46Z",
+      "source": {
+        "schema": "mastergantt-ci-pr-source-v1",
+        "repository": "planner77/masterGantt",
+        "run_id": 39215173057,
+        "run_attempt": 1,
+        "pr_number": 747,
+        "head_sha": "3962299f07e90108990f75b5dbdd811815057e02",
+        "head_ref": "feat/issue-730-view-composer",
+        "head_repository": "planner77/masterGantt",
+        "base_sha": "01fdc08bf4b2f69f9797a8bd411d6712e7478c09",
+        "base_ref": "main",
+        "base_repository": "planner77/masterGantt",
+        "test_merge_sha": "aed0793999f7642d5daf154d36ced58069a97fc4"
+      },
+      "sourceArtifact": {
+        "id": 12169166787,
+        "name": "ci-pr-source-39215173057-1",
+        "digest": "sha256:10ea707d8c7169c8f21d6e7f1fc616a69b265eb4007fdcbbc283a9a1e2c2f5ef",
+        "expired": false,
+        "digestValidated": true,
+        "jsonReadOnlyValidated": true
+      },
+      "jobs": [
+        {
+          "id": 117937225757,
+          "name": "변경 경로 판정",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937225757",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937226183,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937226183",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937329943,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937329943",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937331610,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "skipped",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937331610"
+        },
+        {
+          "id": 117937404626,
+          "name": "ESLint",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937404626",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937404661,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937404661",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937404710,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937404710",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937404895,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937404895",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937406098,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "skipped",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937406098"
+        },
+        {
+          "id": 117937406486,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "conclusion": "skipped",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937406486"
+        },
+        {
+          "id": 117937406718,
+          "name": "Next.js production build",
+          "conclusion": "skipped",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937406718"
+        },
+        {
+          "id": 117937872616,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937872616",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937947299,
+          "name": "Chromium E2E shard 3/6 · PR",
+          "conclusion": "cancelled",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937947299",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 117937947331,
+          "name": "Chromium E2E shard 5/6 · PR",
+          "conclusion": "cancelled",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937947331",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 117937947399,
+          "name": "Docker smoke 구현",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937947399",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937947414,
+          "name": "Chromium E2E shard 6/6 · PR",
+          "conclusion": "cancelled",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937947414",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 117937947430,
+          "name": "Chromium E2E shard 4/6 · PR",
+          "conclusion": "cancelled",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937947430",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 117937947454,
+          "name": "Chromium E2E shard 1/6 · PR",
+          "conclusion": "failure",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937947454",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117937947529,
+          "name": "PR Next.js production build",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937947529",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117937947644,
+          "name": "Chromium E2E shard 2/6 · PR",
+          "conclusion": "cancelled",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117937947644",
+          "failedOrCancelledSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 117938574494,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117938574494",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117938744232,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117938744232",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117939346560,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117939346560",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117939373635,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117939373635",
+          "failedOrCancelledSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117939375659,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "skipped",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39215173057/job/117939375659"
+        }
+      ],
+      "failure": {
+        "classification": "E2E_TEST_ASSERTION",
+        "jobId": 117937947454,
+        "step": 7,
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "case": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+        "line": 85,
+        "column": 423,
+        "error": "expect(writes).toBe(0): Expected 0, Received 1",
+        "caseStatus": "FAIL",
+        "shard1": {
+          "passed": 7,
+          "failed": 1,
+          "didNotRun": 127
+        },
+        "cancelledShards": [
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "cancelledLogsAdditionalAssertionFailureFound": false,
+        "quality": "PASS",
+        "e2e": "FAIL",
+        "docker": "PASS",
+        "automatedQa": "FAIL: required e2e 미성공"
+      },
+      "cancelledShardObservations": [
+        {
+          "jobId": 117937947299,
+          "shard": 3,
+          "conclusion": "cancelled",
+          "observedPassedCaseCount": 38,
+          "lastObservedPassedCase": "✓   38 [chromium] › tests/e2e/inline-name-persistence.spec.ts:111:5 › #572 실제 SQLite inline 이름 저장은 프로세스 재시작 후 유지된다 (20.6s)",
+          "additionalAssertionFailuresObserved": 0,
+          "logCancellationObserved": true,
+          "statusBoundary": "일부 케이스 성공 관측이다. shard 전체 PASS나 미실행 케이스 성공을 뜻하지 않는다."
+        },
+        {
+          "jobId": 117937947331,
+          "shard": 5,
+          "conclusion": "cancelled",
+          "observedPassedCaseCount": 21,
+          "lastObservedPassedCase": "✓  21 [chromium] › tests/e2e/milestone-management.spec.ts:335:56 › #550 삭제 확인 disconnected trigger · escape visible fallback (3.5s)",
+          "additionalAssertionFailuresObserved": 0,
+          "logCancellationObserved": true,
+          "statusBoundary": "일부 케이스 성공 관측이다. shard 전체 PASS나 미실행 케이스 성공을 뜻하지 않는다."
+        },
+        {
+          "jobId": 117937947414,
+          "shard": 6,
+          "conclusion": "cancelled",
+          "observedPassedCaseCount": 28,
+          "lastObservedPassedCase": "✓   28 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:85:5 › #730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 복원·Gantt 보존 (23.0s)",
+          "additionalAssertionFailuresObserved": 0,
+          "logCancellationObserved": true,
+          "statusBoundary": "일부 케이스 성공 관측이다. shard 전체 PASS나 미실행 케이스 성공을 뜻하지 않는다."
+        },
+        {
+          "jobId": 117937947430,
+          "shard": 4,
+          "conclusion": "cancelled",
+          "observedPassedCaseCount": 7,
+          "lastObservedPassedCase": "✓    7 [chromium] › tests/e2e/issue-726-task-logistics.spec.ts:236:5 › #726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류 보존과 상위 출처 구별 (50.9s)",
+          "additionalAssertionFailuresObserved": 0,
+          "logCancellationObserved": true,
+          "statusBoundary": "일부 케이스 성공 관측이다. shard 전체 PASS나 미실행 케이스 성공을 뜻하지 않는다."
+        },
+        {
+          "jobId": 117937947644,
+          "shard": 2,
+          "conclusion": "cancelled",
+          "observedPassedCaseCount": 27,
+          "lastObservedPassedCase": "✓   27 [chromium] › tests/e2e/gantt-state-product-integration.spec.ts:16:7 › SC-05 서버 commit 뒤 연결 단절: 최신 서버 확인·재전송 0·같은 Core 인스턴스 (6.4s)",
+          "additionalAssertionFailuresObserved": 0,
+          "logCancellationObserved": true,
+          "statusBoundary": "일부 케이스 성공 관측이다. shard 전체 PASS나 미실행 케이스 성공을 뜻하지 않는다."
+        }
+      ],
+      "originalSourceAttribution": {
+        "head": "3962299f07e90108990f75b5dbdd811815057e02",
+        "base": "01fdc08bf4b2f69f9797a8bd411d6712e7478c09",
+        "testMerge": "aed0793999f7642d5daf154d36ced58069a97fc4",
+        "commitParentsValidated": true,
+        "runApiPullRequestsObservedCurrentHead": "b4ba9994ee77a8dbc4a3bb36c8ee6e00beab7a51",
+        "runApiPullRequestsObservedCurrentBase": "fbe7db83a4baa2877a75db0769a59077bbe308c4",
+        "note": "원본 run.head_sha는 초기 SHA이나 run.pull_requests의 nested head/base가 현재 PR 값으로 변했다. source artifact와 test merge 두 부모를 원본 귀속에 사용했다."
+      }
+    },
+    {
+      "runId": 39221287023,
+      "runNumber": 3003,
+      "attempt": 1,
+      "event": "pull_request",
+      "conclusion": "failure",
+      "status": "completed",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023",
+      "createdAt": "2026-10-19T08:13:51Z",
+      "source": {
+        "schema": "mastergantt-ci-pr-source-v1",
+        "repository": "planner77/masterGantt",
+        "run_id": 39221287023,
+        "run_attempt": 1,
+        "pr_number": 747,
+        "head_sha": "b4ba9994ee77a8dbc4a3bb36c8ee6e00beab7a51",
+        "head_ref": "feat/issue-730-view-composer",
+        "head_repository": "planner77/masterGantt",
+        "base_sha": "fbe7db83a4baa2877a75db0769a59077bbe308c4",
+        "base_ref": "main",
+        "base_repository": "planner77/masterGantt",
+        "test_merge_sha": "91d7cd32c4a00339f4e401294cadc267ab7be35e"
+      },
+      "sourceArtifact": {
+        "id": 12172285386,
+        "name": "ci-pr-source-39221287023-1",
+        "digest": "sha256:6d4245feb0a28c4cd1f761a8172878c9c17c775d468d99ea111f0d2ed7fd3119",
+        "expired": false,
+        "digestValidated": true,
+        "jsonReadOnlyValidated": true
+      },
+      "jobs": [
+        {
+          "id": 117956933754,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117956933754",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117956934229,
+          "name": "변경 경로 판정",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117956934229",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957050745,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957050745",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957053226,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "skipped",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957053226"
+        },
+        {
+          "id": 117957148373,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957148373",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957148492,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957148492",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957148634,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "success",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957148634",
+          "failedOrCancelledSteps": []
+        },
+        {
+          "id": 117957148731,
+          "name": "ESLint",
+          "conclusion": "failure",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957148731",
+          "failedOrCancelledSteps": [
+            {
+              "number": 6,
+              "name": "Run npm run lint",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117957149885,
+          "name": "Next.js production build",
+          "conclusion": "skipped",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957149885"
+        },
+        {
+          "id": 117957150119,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "skipped",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957150119"
+        },
+        {
+          "id": 117957150545,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "conclusion": "skipped",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957150545"
+        },
+        {
+          "id": 117957800228,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "failure",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957800228",
+          "failedOrCancelledSteps": [
+            {
+              "number": 3,
+              "name": "PR 필수 빠른 검사 결과 검증",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117957869921,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957869921",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117957870200,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957870200",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "Docker smoke 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117957870277,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957870277",
+          "failedOrCancelledSteps": [
+            {
+              "number": 2,
+              "name": "병렬 quality 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117957871753,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6 · PR",
+          "conclusion": "skipped",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957871753"
+        },
+        {
+          "id": 117957871973,
+          "name": "PR Next.js production build",
+          "conclusion": "skipped",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957871973"
+        },
+        {
+          "id": 117957872271,
+          "name": "Docker smoke 구현",
+          "conclusion": "skipped",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957872271"
+        },
+        {
+          "id": 117957906105,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957906105",
+          "failedOrCancelledSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 117957908518,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "skipped",
+          "status": "completed",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39221287023/job/117957908518"
+        }
+      ],
+      "failure": {
+        "classification": "ESLINT_REACT_COMPILER",
+        "jobId": 117957148731,
+        "step": 6,
+        "command": "npm run lint",
+        "file": "src/features/logistics/project-logistics-management.tsx",
+        "line": 526,
+        "column": 37,
+        "rule": "react-hooks/preserve-manual-memoization",
+        "errors": 3,
+        "warnings": 13,
+        "message": "Compilation Skipped: Existing memoization could not be preserved",
+        "function": "openWbsEntity",
+        "sourceDependencies": [
+          "editable",
+          "busy",
+          "isSubmitting",
+          "logistics"
+        ],
+        "missingInferredDependencies": [
+          "setEquipmentModal",
+          "setSystemModal",
+          "setProcessModal"
+        ],
+        "fastGate": "FAIL",
+        "buildImplementation": "SKIPPED",
+        "e2eImplementation": "SKIPPED",
+        "dockerImplementation": "SKIPPED",
+        "quality": "FAIL",
+        "e2e": "FAIL",
+        "docker": "FAIL",
+        "automatedQa": "FAIL: required quality 미성공"
+      },
+      "testMergeParentsValidated": true,
+      "testMergeParentShas": [
+        "fbe7db83a4baa2877a75db0769a59077bbe308c4",
+        "b4ba9994ee77a8dbc4a3bb36c8ee6e00beab7a51"
+      ]
+    }
+  ],
+  "requiredFollowup": [
+    "최신 Head/base의 전체 품질·E2E6·Docker는 새 source게시 후 Required3에서 다시 확인해야 한다.",
+    "새 CI 시작까지만 수행하고 완료 모니터링·무조건 retry·gate변경 없음.",
+    "원시 로그·artifact ZIP·인증 download URL을 Git에 포함하지 않는다."
+  ]
+}

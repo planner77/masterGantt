@@ -1,4 +1,4 @@
-import type { ResourceExcelExportOptions } from "./resource-excel-export";
+import type { ResourceExcelExportInput } from "./resource-excel-export";
 export type ProjectExcelGridColumnId =
   | "text"
   | "externalId"
@@ -7,7 +7,7 @@ export type ProjectExcelGridColumnId =
 
 export interface ProjectExcelExportRequest {
   /** Adds report sheets; all existing schedule sheets keep their Project-wide basis. */
-  resourceDashboard?: ResourceExcelExportOptions;
+  resourceDashboard?: ResourceExcelExportInput;
   includeDependencies: boolean;
   includeLogistics?: boolean;
   /** Issue #415. Adds role/developer planned-effort estimate sheets when true. */

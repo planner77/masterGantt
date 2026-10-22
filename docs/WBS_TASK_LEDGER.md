@@ -1,3 +1,13 @@
+## Issue #735 — 시스템 직접·조율 selector의 공개 소비
+
+시스템 전용 consumer의 `systemView`는 기존 `system` 또는 `systemCoordination` 선택을 공통 WBS report/details/scope에 일관되게 적용한다. mode와 시스템 ID 선택은 spec/snapshot에 결속하며 하위 경로는 동일 Task/Assignment를 계속 교차한다. 조회 모드가 Task 공정·controls·coordinates·개인배정을 생성하지 않는다. 기존 명시 coordinates/controls 검증과 cyclic/foreign 거부를 재사용하며 화면별 계산기를 추가하지 않는다. [API](API.md#issue-735--시스템-root의-직접조율-선택) 및 [검증 원장](exec-plans/active/ISSUE_735.md)을 따른다.
+
+## Issue #733 — 공정 관점의 구성-only 경로
+
+공정 관점은 기존 원장의 고유 Task/Assignment 교집합과 구성 참고를 재사용한다. 등록 공정/구역·설비/System의 작업0 하위 후보는 실제 소속에 근거해 표시하며 개인 Assignment·Task·제어관계를 만들지 않는다. 공정 단독의 catalog 수와 작업 필터의 일반 Task 수는 다른 모집단이다. 공정 관련 설비는 주관리 공정과 명시 WorkArea 소유 공정의 합집합이며 exact WorkArea 경로는 그 소속을 교차한다. 주관리 A의 E10이 B구역에 연결되면 A/B 관련 소계는 각각10, Project 고유 수량은10이다. 구역의 관련 설비 수량은 명시 다중 소속을 반영하되 상위는 원본 ID 합집합이다. 같은 System/Milestone의 다음 단계에서 다른 Task를 다시 가져오지 않는다. [API](API.md), [수치·출처](LOGISTICS_DASHBOARD.md#issue-733--공정workarea-전용-관점), [검증](exec-plans/active/ISSUE_733.md)을 따른다.
+
+공정/occurrence 아래 구성의 구역 없음은 해당 공정 범위에 연결 구역이 없다는 조회 상태이며 타 공정 구역 소속은 유지한다. root WorkArea 없음은 전체 구역 소속0이고, Task의 명시 WorkArea selector 의미는 변경하지 않는다.
+
 ## Issue #731 — KPI consumer의 지표 인계
 
 전용 KPI API는 공통 resolver와 #729 snapshot 읽기를 재사용하고 기존 Logistics KPI의 기간가중 진척·지연·임박·계획 공수 계산 authority를 유지한다. 공통 원장/계산기 자체는 변경하지 않는다. 화면은 `source=integrated`를 명시하며 구 API default는 그대로다. 명시 공정 축의 원시 Task/Assignment 범위와 구 구성 유도 공정의 범위가 다르면 수치 동일성을 주장하지 않는다.
@@ -76,7 +86,7 @@ selector를 순차 적용할 때 매 단계의 선택 Task ID와 Assignment ID �
 
 MCS1의 공통 T0=2 M/D, 조립 T1=3, 검사 T2=4, 양쪽 T3=5에서 전체는4 Task·14 M/D다. 조립은 T1/T3·8, 검사는 T2/T3·9, 공정 미연결은 T0·2다. 공정 소계17을 전체로 사용하거나 T3를50:50으로 나누지 않는다. 같은5일100% Assignment가 여러 경로에 보이면 전체5 M/D이며 다른 개인의50% Assignment가 추가되면7.5다.
 
-검증은 [Work Packet](exec-plans/active/ISSUE_728.md)의 AC별 테스트와 실행 원장에 기록한다. 새 공정 기준으로 포함 Task가 바뀌는 경우 이전 자동 공정 분류와 숫자까지 같다고 주장하지 않는다. 같은 원시 Task/Assignment 집합의 기존 계산 oracle 일치가 호환 조건이다. #729는 이 source/version과 exact ID 범위를 공개 API/snapshot/detail에 결속해야 하며 구 `projectionOrder`의 의미를 조용히 바꾸지 않는다. #730은 동급 설비/System 분기와 표시용 row key를 구현하며 Task/WBS/Assignment 원본에는 쓰지 않는다.
+검증은 [Work Packet](exec-plans/active/ISSUE_728.md)의 AC별 테스트와 실행 원장에 기록한다. 새 공정 기준으로 포함 Task가 바뀌는 경우 이전 자동 공정 분류와 숫자까지 같다고 주장하지 않는다. 같은 원시 Task/Assignment 집합의 기존 계산 oracle 일치가 호환 조건이다. #729는 이 source/version과 exact ID 범위를 공개 API/snapshot/detail에 결속해야 하며 구 `projectionOrder`의 의미를 조용히 바꾸지 않는다. #730의 공통 구성기/표는 동급 설비/System 분기와 표시용 row key를 소비하며 Task/WBS/Assignment 원본에는 쓰지 않는다. Project+관점의 개인 조회 설정·정확 상세·원본 복귀의 현재 화면은 [Project UX](PROJECT_UX.md), 실제 검증 범위는 [#730 Work Packet](exec-plans/active/ISSUE_730.md)을 따른다.
 
 ## Issue #729 — HTTP 소비와 snapshot 결속
 

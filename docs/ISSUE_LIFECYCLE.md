@@ -1,3 +1,15 @@
+## Issue #765 — 검증된 v0.129.0은 유지하고 과거 미발행 부채만 RETIRED (2026-10-21)
+
+이미 발행한 #734 Release #186 / v0.129.0에는 #732·#736·#734의 병합 기능이 포함되어 있다. 하지만 First-parent 앞의 #732 Main CANCELLED, #736 Main FAILURE, #732 교정 Main CANCELLED가 Generic Finalizer를 DEFERRED시키므로 기존 이슈들은 아직 FINAL이 아니다.
+
+#765 정책 전용 복구 PR은 새 app version/정식 GHCR 릴리스 없이 HIGH Owner-managed 검증을 받는다. 신규 #765의 PR/Main CI·verified temporary image 성공, Owner의 정확 Merge SHA 복구 승인, 구버전 Git/Release/OCI 미발행 인증 감사 후 옛 브랜치 정리 → #732/#736 bot RETIRED·Closed → #734 기존 v0.129.0 Release에 대한 정상 FINAL → #765 no-release FINAL 순으로 처리한다.
+
+old CI를 소급 PASS하거나 v0.127.0/v0.128.0/0.129.0 이미지를 재게시하지 않는다. 재승인 대상과 종료된 이슈의 잘못된 FINAL을 구분하고 unknown GHCR 증거는 BLOCKED한다. 미병합 #764의 작업 및 브랜치 보존.
+
+상세: [#765 Work Packet](exec-plans/active/ISSUE_765.md).
+
+---
+
 ## Issue #712 — 병합 후 Full PR CI / metadata Check Run 별도 판정 (2026-10-18)
 
 Issue #552의 [Full #2892.1](https://github.com/planner77/masterGantt/actions/runs/39021332528)와 후속 [post-merge metadata #2898.1](https://github.com/planner77/masterGantt/actions/runs/39027102063)는 같은 Head와 Required Check 이름을 공유하지만 서로 **다른 검증 권한/범위**다. Lifecycle의 `required_checks_ok`는 가장 큰 Check Run ID로 세 Required PASS를 고르지 않는다. 최신 신뢰 가능한 **Full** Workflow Run/Attempt 및 `ci-pr-source-<run>-<attempt>` artifact와 PR·Head·Base·Test-Merge·repository 증거, rerun attempts의 실제 aggregate 결과를 일치시킨다. metadata-only edited 결과는 별도 audit로 보존하며 실제 최신 Full 실패/진행 중을 과거 PASS로 치환할 수 없다.

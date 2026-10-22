@@ -1,3 +1,26 @@
+## Issue #770 — 최신 main 8-shard 동기화 (2026-10-22)
+
+- #770/PR #774의 직전 Full PR CI [#3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)는 기존 base에서 Quality/Chromium **6/6**/Docker/QA Final 성공이었다. 그러나 이후 #767에 따라 **현재 활성 main은 8-shard** 및 앱 0.129.1로 변경되었다. 역사적 6/6 증거를 최신 8/8 PASS나 실패로 소급 변경하지 않는다.
+- #770 Shadow 판정은 **인증된 base의 `tests/config/e2e-shard-plan.json` shardCount와 1..N 전체 그룹**을 검증한 뒤 8개 실제 Job/동일 Run·Attempt·Artifact만 관측한다. 누락·과거 6-shard·불명확한 count는 UNKNOWN이며 Required 3종/QA/Owner 승인에 영향을 주지 않는다.
+- #770 브랜치를 최신 main `81c28fa5502caee27e98d4d293b0b1b28e6340dd`에 합류할 때 main의 #767 E2E8·v0.129.1/CI/Release/QA 변경을 보존하고 #770 advisory Job 및 Policy 회귀만 추가한다. 변경 Head의 Full E2E8/8/Trusted는 새로운 원격 Run에서 별도 증명. [작업 원장](docs/exec-plans/active/ISSUE_770.md)·[실패 원장](docs/ISSUE_770_FAILURE_ANALYSIS.md) 참조.
+
+## Issue #770 — 인증된 영향 분류·Shadow(OBSERVE) 정책 (2026-10-22)
+
+- CI 영향 분류는 기존 [#697 로컬 영향 검증](docs/TEST_PLAN.md) 및 [#699 Pre-PR](docs/LOCAL_PREPR.md) 규칙을 재사용하고 [#770 작업 원장](docs/exec-plans/active/ISSUE_770.md)·[CI/CD](docs/CI_CD.md)·[원격 검증](docs/REMOTE_VALIDATION.md)의 단일 계약을 따른다.
+- Phase A는 **관찰 전용**이다. `FAST_TARGETED`/`DOCS_VERIFIED`는 추천이며 Required Quality/Chromium 6-shard/Docker, 신뢰된 QA·Owner, Main/Release/Finalizer/Ruleset의 PASS 영수증이 아니다. 이 신규 보호 변경 자체는 HIGH/OWNER_MANAGED, 정식 Release 미승인.
+- PR 시 HEAD 코드·PR 본문 선언을 신뢰된 정책으로 사용하지 않는다. 이벤트의 정확한 base SHA에서만 판정기를 실행하고 PR Head/test-merge는 Git 객체와 출처 증거를 통해 **데이터로만 읽는다**. 최초 도입 PR의 base에 정책이 없으면 `NOT_TESTED` Shadow bootstrap이며 기존 전체 CI는 그대로 수행한다.
+- rename/delete/new test, 정적/동적 소비자 미등록, 공통 Core/상태·SQLite/보안/권한·Next 구성/fixture/workflow/package 변경, 실패 원장 교차 영향 모호성은 `FULL_REQUIRED/UNKNOWN`으로 보수적으로 상향한다. 작은 diff/자가 선언 LOW로 하향 금지. 기존 테스트 검증/누적 실패 원장을 약화시키지 않는다.
+- Shadow artifact는 정확 Run ID·Attempt/Head/Base/test-merge, policy blob SHA/변경 binary diff SHA256, 선정·제외된 실제 테스트 ID와 이유, 실패 원장 근거, test plan hash, 실측 Job/Reporter 출처 및 상태를 기록한다. 취소/누락/만료/잘못된 귀속은 `UNKNOWN/NOT_TESTED`. 절감 추정과 실제 E2E Job elapsed Runner-minutes 분리, per-test artifact 단독 PASS 금지.
+- 해당 신뢰된 정책과 CI가 변경된 PR의 구현 담당자는 `tests/python/test_ci_impact_plan.py` 및 기존 전체 exact-head PR CI를 실행한다. 지속 CI 감시/병합/정식 게시/이슈 종료는 사용자 지시 범위와 별도 승인에 따른다.
+
+---
+
+## Issue #767 — 활성 PR/Main/Release 8-Shard E2E 품질 지침 (2026-10-22)
+
+- Owner는 기존 #767/PR #768에서 새 Issue 없이 CI E2E 실행만 **6→8 shards**로 조정하도록 승인하였다. 현재 PR/Main/Release 활성 E2E는 `shard n/8`, 동일한 136 E2E spec/791선택 test, `workers=1`, `timeout-minutes:35`이다. 아래 문서의 `six shards` 기록은 당시 정책·불변 원본으로서 존중하고, 구 #639/#616 6-Shard Main recovery 증거 검증 코드는 별도 역사 범위로 보존한다.
+- 근거: #767 Full CI #3095/#3097/#3098/#3099에서 35분 Job Timeout이 Shards6/1/6/5로 반복되어 마지막 [#3099.1](https://github.com/planner77/masterGantt/actions/runs/39676585856)에서 94/109 E2E PASS 뒤 15 미완료. 8-way 계획은 실제 #3097~3099 file별 완료 case duration+결과 출력 간격 최대치 LPT를 활용(8x17 unique specs, 약21.1m/샤드 **예상 가중치**, 성공/속도 보증 아님). 직접 확인 전 새 Head E2E8/8 `NOT TESTED`.
+- 현행 CI/Release/Optimizer/selector, Vitest·Python 정책 검사 정합성과 기존 Required3 Quality/E2E/Docker 이름, default-main Trusted QA/Owner HIGH 승인·branch strict, retry·skip·fail-fast/35m·제품 원본, GHCR/Finalizer exact-version 승인을 보존한다. 임의 Job 재실행 성공이 Full source 검증이나 정식 릴리스 승인으로 승격되지 않는다. [#767 원장](docs/ISSUE_767_FAILURE_ANALYSIS.md) 및 [Work Packet](docs/exec-plans/active/ISSUE_767.md) 참조.
+
 ## Issue #712 — post-merge Full CI 출처와 Lifecycle Check Run 보호 (2026-10-18)
 
 - 동일 PR Head에 Full PR CI와 병합 후 `edited` metadata-only CI가 세 Required Check Run의 **동일 이름**으로 기록될 수 있다. 마지막 Check Run ID가 아니라 인증된 Full `Run ID + Attempt + event=pull_request + source artifact + PR/head/base/test-merge/repository`를 선택한다. 실제 최신 Full 실패·진행 중은 이전 PASS로 덮지 않는다.

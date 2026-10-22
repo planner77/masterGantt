@@ -1,3 +1,4 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, type Frame, type Request } from "@playwright/test";
 import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
@@ -12,7 +13,7 @@ test.describe("Issue #76 Project Workspace UX", () => {
     const mutations: string[] = [];
     const recordRequest = (request: Request) => {
       if (request.resourceType() === "document") documentRequests.push(request.url());
-      if (!["GET", "HEAD"].includes(request.method())) mutations.push(request.url());
+      if (!["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) mutations.push(request.url());
     };
     const recordNavigation = (frame: Frame) => {
       if (frame === page.mainFrame()) navigations.push(frame.url());

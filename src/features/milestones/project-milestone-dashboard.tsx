@@ -268,7 +268,7 @@ export function ProjectMilestoneDashboard({
       <div className={styles.sectionHeading}>
         <div>
           <h2 tabIndex={-1} data-milestone-focus="heading">Milestone 대시보드</h2>
-          <p>프로젝트 전체 기준 · Gantt WBS 범위 미적용</p>
+          <p>전체 상태·관리 · 프로젝트 전체 기준 · Gantt WBS 범위 미적용</p>
         </div>
         <div className={styles.actions}>
         <ContextHelp label="Milestone 집계·전체 상태"><p>Ready·선행 차단·지연·임박·위험은 중첩 가능한 축입니다. 건수를 합쳐 전체 Milestone 수로 해석하지 않습니다.</p><p>프로젝트 전체의 평면 목록이며 적용 예정일·외부 ID·작업 ID 순입니다. 소속 작업과 직접 선행 단계 전체 기준입니다. 계획 공수의 범위와 분모가 다릅니다.</p></ContextHelp>
@@ -692,7 +692,7 @@ export function ProjectMilestoneDashboard({
                 </thead>
                 <tbody>
                   {data.effort.buckets.map((bucket) => (
-                    <tr key={bucket.milestoneTaskId ?? "unassigned"}>
+                    <tr key={bucket.milestoneTaskId ?? "unassigned"} data-milestone-effort-bucket={bucket.milestoneTaskId ?? "unassigned"}>
                       <td>
                         <span className={styles.identity}>
                           {bucket.milestoneTaskId === null
@@ -720,6 +720,7 @@ export function ProjectMilestoneDashboard({
                           </button>
                           <button
                             type="button"
+                            data-milestone-resource-trigger="true"
                             disabled={
                               !resourceAvailable || !bucket.assignmentIds.length
                             }

@@ -1,3 +1,7 @@
+## Issue #736 — 리소스 동적 조회 보고서
+
+Resource root Excel은 동일 WBS source/snapshot/spec/path·개인 Assignment selector를 재검증해 기존 보고 writer를 재사용한다. `current`와 명시 Project 전체의 조건 해제, 중첩 비가산 근거행·raw ID/null·Plan/견적 보존은 [Excel 계약](EXCEL_EXPORT.md#issue-736--리소스-동적-조회와-excel)을 따른다. 개인 browser 조회 설정은 Import 원본이나 공유 업무 데이터가 아니며 일정 JSON/Template·Project Copy·VBA 입력 schema는 변경하지 않는다. 보고용 Excel을 무손실 운영 백업이나 재Import 형식으로 간주하지 않는다. 미지원 root/형식을 지원 범위로 조용히 변환하지 않는다.
+
 ## Issue #725 — 공정·WorkArea 문맥과 교환 경계
 
 일정 JSON1.0/1.1과 Excel은 설비의 다중 WorkArea 또는 Task 직접 공정/WorkArea·명시0개 marker를 보존하는 전체 backup 포맷이 아니다. 해당 관계 또는 marker가 존재하면 일정 JSON/Excel Export는409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`로 전체 거부한다. 명시 공정0개도 legacy와 의미가 다르므로 관계 행0개라는 이유로 내보내지 않는다. 기존 Target/binding 손실 방지는 유지한다. 명시 Resource 보고서 opt-in Excel은 기존 보고서 범위로 허용하며 신규 직접 관계의 전체 backup·왕복 포맷으로 부르지 않는다.

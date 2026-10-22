@@ -11,9 +11,13 @@ function object(value: unknown, keys: readonly string[]): Record<string, unknown
 const dimension = (value: unknown): WbsViewDimension => typeof value === "string" && WBS_VIEW_DIMENSIONS.includes(value as WbsViewDimension) ? value as WbsViewDimension : invalid();
 const scalarInteger = (value: unknown, fallback: number, min: number, max: number): number => value === undefined ? fallback : typeof value === "number" && Number.isSafeInteger(value) && value >= min && value <= max ? value : invalid();
 export function parseWbsViewQuery(value: unknown): WbsViewQueryInput {
-  const input = object(value, ["spec", "filters", "projection", "scope"]), spec = object(input.spec, ["version", "contextSourceVersion", "root", "levels"]);
+  const input = object(value, ["spec", "filters", "projection", "scope"]), spec = object(input.spec, ["version", "contextSourceVersion", "root", "levels", "systemView", "systemIds"]);
   if (spec.version !== "wbs-view:v1" || spec.contextSourceVersion !== "explicit-task-context:v1") invalid();
   const root = dimension(spec.root), levels: WbsViewLevel[] = [];
+  if ((spec.systemView !== undefined || spec.systemIds !== undefined) && root !== "system") invalid();
+  if (spec.systemView !== undefined && spec.systemView !== "direct" && spec.systemView !== "coordination") invalid();
+  if (spec.systemIds !== undefined && (!Array.isArray(spec.systemIds) || spec.systemIds.length > WBS_VIEW_LIMITS.fanout || spec.systemIds.some(id => typeof id !== "string" || !isCanonicalUuidV4(id)))) invalid();
+  const systemIds = spec.systemIds === undefined ? undefined : [...new Set(spec.systemIds as string[])].sort();
   if (spec.levels !== undefined) {
     if (!Array.isArray(spec.levels) || spec.levels.length >= WBS_VIEW_LIMITS.depth) invalid();
     for (const level of spec.levels as unknown[]) {
@@ -27,7 +31,8 @@ export function parseWbsViewQuery(value: unknown): WbsViewQueryInput {
   }
   const dimensions = [root, ...levels.flatMap(level => typeof level === "string" ? [level] : level.dimensions)];
   if (new Set(dimensions).size !== dimensions.length) invalid();
-  const filters = input.filters === undefined ? {} : object(input.filters, ["from", "to", "asOfDate", "search", "taskSearch", "mode", "granularity", "resourceActivity", "groupActivity", "resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses", "mdPerMm"]);
+  const filters = input.filters === undefined ? {} : object(input.filters, ["from", "to", "asOfDate", "search", "taskSearch", "mode", "granularity", "resourceActivity", "groupActivity", "resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses", "mdPerMm", "equipmentTypeCodes"]);
+  if (filters.equipmentTypeCodes !== undefined && !Array.isArray(filters.equipmentTypeCodes)) invalid();
   const params = new URLSearchParams();
   for (const [key, field] of Object.entries(filters)) {
     if (Array.isArray(field)) { if (field.length > 8000 || field.some(value => typeof value !== "string")) invalid(); if (field.length) params.set(key, field.join(",")); }
@@ -69,5 +74,5 @@ export function parseWbsViewQuery(value: unknown): WbsViewQueryInput {
       }
     }
   }
-  return { spec: { version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root, levels }, filters: checked, ...(scope ? { scope } : {}), projection };
+  return { spec: { version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root, levels, ...(spec.systemView === undefined ? {} : { systemView: spec.systemView as "direct" | "coordination" }), ...(systemIds === undefined ? {} : { systemIds }) }, filters: checked, ...(scope ? { scope } : {}), projection };
 }

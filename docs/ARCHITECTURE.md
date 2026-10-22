@@ -1,6 +1,36 @@
+## Issue #734 — 설비 consumer와 snapshot 표시 metadata
+
+설비 전용 descriptor/consumer는 기존 `WbsViewDashboard`의 composer·table·details·storage/transport·host editor/drill을 재사용한다. optional consumer filter/supplement seam으로 유형 조건과 표 뒤 원본 정보를 제공하며 기존 consumer 미지정 동작을 유지한다. 계산 authority와 단일 Gantt/Viewport writer는 추가하지 않는다.
+
+기존 WBS read transaction에서 설비 원본 표시 DTO와 참조된 유형 이름을 catalog로 제공하고 fingerprint에 결속한다. 구성/작업·직접 제어/업무 연관을 서로 대체하지 않으며 유형 필터는 서버의 기존 원장/selector를 사용한다. Repository 저장 경계·DB schema·mutation 권한은 불변이다. [공개 계약](API.md#issue-734--설비-조회-metadata와-유형-필터), [실행·AC](exec-plans/active/ISSUE_734.md).
+
+## Issue #736 — 리소스 consumer와 기존 Plan/Excel adapter
+
+Resource 관점은 #728 WBS 원장→#729 versioned report→#730 renderer를 사용하는 전용 consumer다. 기존 Resource KPI/Calendar/Plan 계산 경계를 유지하며 별도 개인 공수 엔진을 만들지 않는다. 주/월 Plan 요청 시 resource-root report의 optional `resourceAdapter`는 같은 raw Assignment ID의 기존 Resource report와 exact-scope binding을 제공한다. 서로 다른 WBS/legacy source schema와 snapshot identity를 cast하지 않고 서버가 각각 검증한다.
+
+Resource Excel은 새 WBS source context를 opt-in으로 인수하고 동일 read snapshot에서 source/spec/filter/path·Task/Assignment 교집합을 다시 검증한 뒤 기존 Resource workbook writer를 사용한다. 근거행은 동적 조회 구조이며 원본 WBS/배정/Target writer가 아니다. 기존 Plan의 개인 모집단 R·Project 전체 참고·Calendar와 공통 source/response/workbook 예산을 유지한다. 새로운 schema/migration·서버 권한·CI/Release authority는 없으며 [API](API.md#issue-736--리소스-planexcel의-동적-출처), [Excel](EXCEL_EXPORT.md#issue-736--리소스-동적-조회와-excel), [실행 계획](exec-plans/active/ISSUE_736.md)을 따른다.
+
+## Issue #735 — 시스템 전용 consumer와 공통 조회 seam
+
+Embedded 물류 통합 조회의 원본 열기는 제공된 canonical 부모 handler를 우선 사용한다. 독립 사용에서는 기존 지원 설비/시스템/공정 editor fallback만 유지한다. 공유 System 저장 후의 focus는 새 report 영수증을 기다리는 기존 gateway가 소유하며, 대기 중 새 사용자 focus에 양보한다. 별도 focus/viewport 복원기를 추가하지 않는다.
+
+시스템 dashboard descriptor/consumer는 기존 WBS view renderer/composer·정확 source gateway를 재사용한다. 시스템 root의 선택적 mode/IDs만 공통 spec에 확장하고 서버는 기존 `selectWbsTaskLedger`의 system/systemCoordination selector와 원시 합집합을 사용한다. 표·요약에서 Task/공수를 재계산하거나 새 DB·writer·제어 엔진·Gantt를 만들지 않는다. 속성 표시는 canonical logistics와 같은 Project revision을 사용하고 실제 report/detail/scope는 서버 snapshot이 authority다. [API](API.md#issue-735--시스템-root의-직접조율-선택), [작업 범위](exec-plans/active/ISSUE_735.md)를 따른다.
+
+## Issue #733 — 공정 관점 consumer와 공통 조회 보완
+
+공정&WorkArea는 전용 descriptor/consumer에서 기존 `WbsViewDashboard`의 조회 상태·표·상세·editor/drill host를 재사용한다. optional consumer 연결이 없는 다른 root는 기존 동작을 유지한다. client에 별도 계산기나 구성 writer를 추가하지 않는다.
+
+#729 공유 projection은 작업이 없는 하위 구성 후보도 실제 소속에 근거해 보존하고 동일 read snapshot의 공정/구역 catalog를 응답한다. Task 경로는 기존 원장 교집합, 구성 관계는 명시 원본을 사용하며 서로 대체하지 않는다. 기존 DB/Repository 쓰기·권한·단일 Gantt Coordinator/marker-OFF는 유지한다. [API](API.md), [수치 정의](LOGISTICS_DASHBOARD.md#issue-733--공정workarea-전용-관점), [실행·제한](exec-plans/active/ISSUE_733.md)을 따른다.
+
 ## Issue #731 — KPI 전용 통합 read consumer
 
 기존 Logistics KPI 컴포넌트를 보존하고 전용 `/logistics/kpi?source=integrated` read adapter를 둔다. 한 SQLite read transaction에서 #729의 bounded Project snapshot과 #728의 공통 원장을 읽고 기존 Logistics KPI 계산 authority를 재사용한다. 유효 Task/개인 Assignment 합집합·진단 ID·구성 참고·source/snapshot을 전달하며 기존 `/logistics/dashboard`·Resource/Target default는 바꾸지 않는다. 저장 writer/DB migration·공통 resolver/계산기·Gantt Core/viewport writer는 추가하지 않는다. [계약](LOGISTICS_DASHBOARD.md#issue-731--기존-kpi와-통합-출처).
+
+## Issue #730 — app-owned 다관점 조회 UI
+
+클라이언트의 공통 composer/table/detail는 #729의 versioned 공개 read API를 소비한다. pure client model의 spec 검증과 Project+root별 versioned browser 설정은 server-only parser를 번들에 가져오지 않는다. 계산 authority·Repository·DB writer는 그대로이며 숫자는 서버 응답에서 읽는다. 원본 ID와 경로 viewRowKey를 분리하고 typed sibling은 조회 행으로만 표현한다.
+
+조회·상세 요청은 조건과 snapshot·generation/AbortController를 결속하고 원본 편집/일정 복귀는 기존 host/provider의 권한·canonical gateway·탐색 상태를 재사용한다. WBS source는 legacy Resource source와 구별하여 검증하며 안전하지 않은 source cast로 두 API를 혼용하지 않는다. 조회 설정은 개인 브라우저 상태이며 Project 업무 revision·다른 사용자의 설정을 갱신하지 않는다. 부모 조회·상세·host 일정 이동은 현재 사용자 의도의 일시적 AbortSignal을 공유하여 후속 명령이 이전 원본 조회, 추가 범위 조회와 충돌 승인을 취소한다. 자체 로딩은 새 의도로 취급하지 않으며 이 신호를 저장된 탐색 이력이나 공개 DTO에 포함하지 않는다. [Project UX](PROJECT_UX.md), [실행 계약](exec-plans/active/ISSUE_730.md)을 따른다.
 
 ## Issue #729 — versioned WBS 다관점 read adapter
 

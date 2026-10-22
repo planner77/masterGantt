@@ -7,6 +7,9 @@ class E2ETimingReporter {
     this.outputFile = options.outputFile || process.env.E2E_TIMING_OUTPUT || "";
     this.entries = [];
     this.receipts = [];
+    // Keep the 8-shard selector's skipped-case accounting distinct from passed-only timing.
+    this.skippedFiles = new Set();
+    this.skippedCaseCount = 0;
     this.runnerReadyMs = 0;
   }
 
@@ -35,8 +38,13 @@ class E2ETimingReporter {
         });
       } catch { /* Diagnostic errors never change test outcomes. */ }
     }
-    if (result.status !== "passed") return;
+    if (result.status !== "passed" && result.status !== "skipped") return;
     const relativeFile = path.relative(process.cwd(), test.location.file).split(path.sep).join("/");
+    if (result.status === "skipped") {
+      this.skippedFiles.add(relativeFile);
+      this.skippedCaseCount += 1;
+      return;
+    }
     this.entries.push({
       file: relativeFile,
       durationMs: Math.max(0, Number(result.duration) || 0),
@@ -56,6 +64,8 @@ class E2ETimingReporter {
       status: result.status,
       runnerReadyMs: this.runnerReadyMs,
       entries: this.entries,
+      skippedFiles: [...this.skippedFiles].sort(),
+      skippedCaseCount: this.skippedCaseCount,
       environment: {os:process.platform, node:process.versions.node, fullyParallel:process.env.CI_E2E_FULLY_PARALLEL==="true"},
       receipts: this.receipts,
     };

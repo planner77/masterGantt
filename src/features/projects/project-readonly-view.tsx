@@ -8,6 +8,7 @@ import type {
 import { adaptMilestoneTimelineTypeFilter, buildMilestoneTimelineModel } from "../milestones/milestone-timeline-model";
 import type { ResourceDashboardDto, ResourceDashboardFilterInput } from "@/contracts/resource-dashboard";
 import {
+  wbsScheduleDisplayScope,
   clearResourceDrill,
   resourceDrillLiveVisits,
   pushResourceDrillFrame,
@@ -28,7 +29,11 @@ import {
   resourceSourceContextSchema,
   sameResourceDataContext,
 } from "@/features/resources/resource-drill-scope-model";
-import type { ResourceScheduleRequest } from "@/features/resources/resource-drill-context";
+import { fetchWbsView, stableWbsValue } from "@/features/resources/wbs-view-transport";
+import { ResourceWbsDashboard } from "@/features/resources/resource-wbs-dashboard";
+import { WbsViewDashboard } from "@/features/resources/wbs-view-dashboard";
+import type { WbsViewDimension, WbsViewScopeDto } from "@/contracts/wbs-dashboard-views";
+import type { WbsViewScheduleRequest, ResourceScheduleRequest } from "@/features/resources/resource-drill-context";
 import {
   dashboardQuery,
   detailsQuery,
@@ -37,12 +42,14 @@ import {
 import { planDetailQuery } from "@/features/resources/resource-plan-model";
 import { dashboardError } from "@/features/resources/use-resource-dashboard";
 import { canCreateSchedulingLink, linkStructureLocked, MIXED_LINK_EXPLANATION, COMPLETED_LINK_EXPLANATION } from "@/features/gantt/relation-editor-model";
-import { resourceEditorFocusDecision } from "./resource-editor-focus-return";
 import { StageFilterPicker } from "./stage-filter-picker";
+import milestoneWbsStyles from "@/features/milestones/milestone-wbs-dashboard.module.css";
+import { MilestoneWbsDashboard } from "@/features/milestones/milestone-wbs-dashboard";
 import { ProjectMilestoneDashboard } from "@/features/milestones/project-milestone-dashboard";
 import { MilestoneCreateDialog } from "@/features/milestones/milestone-create-dialog";
 import { milestoneRootPayload, resolveCreatedMilestone, isVisibleFocusTarget, type MilestoneManagementCommand } from "@/features/milestones/milestone-management-model";
 import { copyTextWithLegacyCommand, writeTextWithCompatibility } from "@/components/clipboard-write";
+import { resourceEditorFocusDecision } from "./resource-editor-focus-return";
 import type { MilestoneResourceDrill } from "@/features/resources/milestone-resource-drill";
 
 import dynamic from "next/dynamic";
@@ -114,7 +121,10 @@ type ResourceNavigationState = {
   initialFilters?: ResourceDashboardFilterInput;
   selection: readonly string[];
   trigger: HTMLElement | null;
+  wbsSource?: string;
+  wbsDetailIdentity?: string;
   resourceFocusSelector?: string;
+  milestoneFocusSelector?: string;
   resourceDetailKey?: string;
   resourceDetailConfirmationId?: string;
   resourceReportConfirmationId?: string;
@@ -123,6 +133,7 @@ type ResourceNavigationState = {
 };
 type ResourceNavigationFrame = ResourceDrillFrame<ResourceNavigationState> & {
   scope: ResourceDrillScopeDto;
+  wbsRequest?: WbsViewScheduleRequest;
   label: string;
 };
 const INITIAL_COLUMN_VISIBILITY: ProjectGridColumnVisibility = { text: true, externalId: false, projectStart: true, projectDuration: true, baselineStart: false, baselineEnd: false, milestoneStage: false };
@@ -404,15 +415,21 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [resourceTargetRequest, setResourceTargetRequest] = useState<{id:string; sequence:number;code?:string | null} | null>(null);
   const [kpiResourceOrigin, setKpiResourceOrigin] = useState<{ id: string; name: string; code: string | null; source: ResourceNavigationState; revision: number } | null>(null);
   const [kpiSourceRefreshKey, setKpiSourceRefreshKey] = useState(0);
+  const [wbsEntityRequest, setWbsEntityRequest] = useState<{ dimension: WbsViewDimension; id: string; sequence: number; trigger: HTMLElement } | null>(null);
+  const wbsEntityOrigin = useRef<ResourceNavigationState | null>(null);
   const resourceTargetTrigger = useRef<HTMLElement | null>(null);
   const projectTaskEditorReference = useRef<ProjectTaskEditorHandle>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
+  const editorWbsOriginReference = useRef<{navigation:ResourceNavigationState;revision:number} | null>(null);
+  const wbsFocusControllerReference = useRef<AbortController | null>(null);
+  useEffect(() => () => {wbsFocusControllerReference.current?.abort();}, [publicId]);
   const editorResourceDetailKey = useRef<string | null>(null);
   const editorLaneOriginReference = useRef(false);
   const editorOriginViewReference = useRef<WorkspaceView>("schedule");
   const editorOriginScreenReference = useRef<WorkspaceScreen>("schedule");
   const editorOpeningReference = useRef(false);
+  const [createdMilestoneNotice, setCreatedMilestoneNotice] = useState<{ publicId: string; taskId: string; name: string } | null>(null);
   const [milestoneCreate, setMilestoneCreate] = useState<{ revision: number; publicId: string } | null>(null);
   const milestoneCreateReference = useRef<typeof milestoneCreate>(null);
   const milestoneCreateTriggerReference = useRef<HTMLElement | null>(null);
@@ -516,8 +533,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const navigationConfirmation = useRef<{
     source: ResourceNavigationState;
     scope: ResourceDrillScopeDto;
+    wbsRequest?: WbsViewScheduleRequest;
     destination: ResourceNavigationState;
     label: string;
+    releaseIntent?: () => void;
   } | null>(null);
   useLayoutEffect(() => {
     navigationGuards.current = {
@@ -1204,6 +1223,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === taskId);
     if (!task) return;
     const trigger = actualTrigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    editorWbsOriginReference.current = trigger?.closest("[data-wbs-view]")
+      ? {navigation:captureNavigation(trigger),revision:state.snapshot.data.project.revision} : null;
     setEditorInitialTab(initialTab);
     setEditorAssignment(assignment);
     editorOriginViewReference.current = activeView;
@@ -1286,6 +1307,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       milestoneCreateReference.current = null; setMilestoneCreate(null);
       const created = resolveCreatedMilestone(previous, response);
       if (!created) { notify("info", "생성 결과의 작업 ID를 유일하게 확인하지 못했습니다. 목록에서 단계를 확인해 주세요.", "Milestone 추가"); focusMilestoneDashboard(); return; }
+      setCreatedMilestoneNotice({ publicId: request.publicId, taskId: created.taskId, name: created.name });
       editorOriginViewReference.current = "milestones";
       editorOriginScreenReference.current = "dashboard.milestones";
       editorTriggerReference.current = milestoneCreateTriggerReference.current;
@@ -1329,10 +1351,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   function finishTaskEditor(restoreFocus: boolean) {
     const taskId = editorSession?.task.taskId;
     const trigger = editorTriggerReference.current;
+    const wbsOrigin = editorWbsOriginReference.current;
+    editorWbsOriginReference.current = null;
     setEditorSession(null);
     setActiveScreen(editorOriginScreenReference.current);
     editorOpeningReference.current = false;
     if (!restoreFocus) return;
+    if (wbsOrigin) {
+      focusNavigation(wbsOrigin.navigation, true, wbsOrigin.revision !== confirmedSnapshotReference.current?.data.project.revision);
+      return;
+    }
     if (editorOriginViewReference.current === "milestones") { focusMilestoneDashboard(trigger); return; }
     if (editorOriginViewReference.current === "logistics") {
       // A canonical reload can replace the original Target task button while
@@ -1762,10 +1790,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const trigger = explicitTrigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     const detail = trigger?.closest<HTMLElement>("[data-projection-detail-key]");
     const detailKey = detail?.dataset.projectionDetailKey;
+    const wbsDetailIdentity = detail?.dataset.wbsDetailIdentity;
     const row = trigger?.closest<HTMLElement>("[data-canonical-task-id]");
     let resourceFocusSelector: string | undefined;
-    if (activeView === "resources" && detailKey && trigger) {
-      resourceFocusSelector = `[data-projection-detail-key="${CSS.escape(detailKey)}"]`;
+    if ((activeView === "resources" || trigger?.closest("[data-wbs-view]")) && detailKey && trigger) {
+      resourceFocusSelector = wbsDetailIdentity
+        ? `[data-wbs-detail-identity="${CSS.escape(wbsDetailIdentity)}"]`
+        : `[data-projection-detail-key="${CSS.escape(detailKey)}"]`;
       if (row?.dataset.canonicalTaskId) {
         resourceFocusSelector += ` [data-canonical-task-id="${CSS.escape(row.dataset.canonicalTaskId)}"]`;
         if (row.dataset.canonicalAssignmentId) resourceFocusSelector += `[data-canonical-assignment-id="${CSS.escape(row.dataset.canonicalAssignmentId)}"]`;
@@ -1774,6 +1805,18 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       else if (trigger.dataset.resourceAction) resourceFocusSelector += ` button[data-resource-action="${CSS.escape(trigger.dataset.resourceAction)}"]`;
       else resourceFocusSelector = undefined;
     }
+    const wbsRoot = trigger?.closest<HTMLElement>("[data-wbs-view]");
+    const wbsRow = trigger?.closest<HTMLElement>("[data-wbs-view] [data-view-row-key]");
+    if (wbsRow?.dataset.viewRowKey && trigger?.dataset.resourceAction)
+      resourceFocusSelector = `[data-view-row-key="${CSS.escape(wbsRow.dataset.viewRowKey)}"] button[data-resource-action="${CSS.escape(trigger.dataset.resourceAction)}"]`;
+    // A Milestone effort bucket has an immutable Task ID. Re-find that exact
+    // button if an async report replaces its original DOM node during return.
+    const milestoneRow = trigger?.closest<HTMLElement>("[data-milestone-effort-bucket]");
+    const milestoneBucket = milestoneRow?.dataset.milestoneEffortBucket;
+    const milestoneFocusSelector = activeView === "milestones" &&
+      trigger?.hasAttribute("data-milestone-resource-trigger") && milestoneBucket
+      ? `[data-milestone-effort-bucket="${CSS.escape(milestoneBucket)}"] button[data-milestone-resource-trigger]`
+      : undefined;
     return {
       viewport: navigationViewport.current,
       view: activeView,
@@ -1785,13 +1828,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       initialFilters: resourceInitialFilters,
       selection: [...ganttSelection.current],
       trigger,
+      wbsSource: trigger?.closest<HTMLElement>("[data-wbs-view]")?.dataset.wbsView,
+      wbsDetailIdentity,
       resourceFocusSelector,
+      milestoneFocusSelector,
       resourceDetailKey: detailKey,
       resourceDetailConfirmationId: detail?.dataset.detailConfirmationId,
-      resourceReportConfirmationId: document.querySelector<HTMLElement>(`[data-resource-context-id="${resourceViewId}"] [data-resource-dashboard]`)?.dataset.reportConfirmationId,
+      resourceReportConfirmationId: wbsRoot?.dataset.reportConfirmationId ?? document.querySelector<HTMLElement>(`[data-resource-context-id="${resourceViewId}"] [data-resource-dashboard]`)?.dataset.reportConfirmationId,
       positions: Array.from(
         document.querySelectorAll<HTMLElement>(
-          ".project-workspace-panel:not([hidden]) .project-gantt-scroll,.project-workspace-panel:not([hidden]) .wx-gantt,.project-workspace-panel:not([hidden]) .wx-chart,.project-workspace-panel:not([hidden]) .resource-dashboard-table-scroll,.project-workspace-panel:not([hidden]) [data-resource-scroll-owner]",
+          ".project-workspace-panel:not([hidden]) [data-wbs-scroll],.project-workspace-panel:not([hidden]) .project-gantt-scroll,.project-workspace-panel:not([hidden]) .wx-gantt,.project-workspace-panel:not([hidden]) .wx-chart,.project-workspace-panel:not([hidden]) .resource-dashboard-table-scroll,.project-workspace-panel:not([hidden]) [data-resource-scroll-owner]",
         ),
       )
         .filter((el) => !el.closest("[hidden],[inert]"))
@@ -1800,6 +1846,103 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   }
   function focusNavigation(state: ResourceNavigationState, origin: boolean, awaitActivation = false) {
     const focusGeneration = ++taskFocusGeneration.current;
+    wbsFocusControllerReference.current?.abort();
+    if (origin && state.wbsSource) {
+      const controller = new AbortController();
+      wbsFocusControllerReference.current = controller;
+      const startingFocus = document.activeElement;
+      let cancelled = false;
+      const cancel = () => { cancelled = true; controller.abort(); };
+      for (const event of ["pointerdown", "keydown", "wheel"] as const)
+        window.addEventListener(event, cancel, {capture:true, passive:true, signal:controller.signal});
+      let observedRoot = false;
+      let activated = false;
+      const restore = () => {
+        if (cancelled || controller.signal.aborted || focusGeneration !== taskFocusGeneration.current) { controller.abort(); return; }
+        const root = Array.from(document.querySelectorAll<HTMLElement>(`[data-wbs-view="${CSS.escape(state.wbsSource!)}"]`)).find(element =>
+          element.dataset.projectPublicId === publicId && (state.view !== "resources" ||
+            element.closest<HTMLElement>("[data-wbs-visit]")?.dataset.wbsVisit === String(state.resourceViewId)));
+        if (!root) { if (observedRoot) controller.abort(); return; }
+        observedRoot = true;
+        if (root.closest("[hidden],[inert]")) { if (activated) controller.abort(); return; }
+        activated = true;
+        if (document.querySelector("dialog:modal")) return;
+        const panel = root.closest(".project-workspace-panel");
+        const focused = document.activeElement;
+        // Dialog cleanup can focus a peer fallback. Later actual input cancels
+        // the lease; an external focus handoff also supersedes this request.
+        if (focused instanceof HTMLElement && focused !== document.body && focused !== startingFocus && focused !== state.trigger && !panel?.contains(focused) && !focused.closest("[hidden],[inert]")) { controller.abort(); return; }
+        const failed = root.dataset.wbsState === "error" || root.dataset.wbsState === "stale" || root.dataset.wbsState === "invalid";
+        if (failed) { root.querySelector<HTMLElement>("h3")?.focus({preventScroll:true}); controller.abort(); return; }
+        const awaitingReport = awaitActivation && state.resourceReportConfirmationId !== undefined && root.dataset.reportConfirmationId === state.resourceReportConfirmationId;
+        if (root.dataset.ready !== "true" || awaitingReport) return;
+        const detail = state.wbsDetailIdentity ? root.querySelector<HTMLElement>(`[data-wbs-detail-identity="${CSS.escape(state.wbsDetailIdentity)}"]`)
+          : state.resourceDetailKey ? root.querySelector<HTMLElement>(`[data-projection-detail-key="${CSS.escape(state.resourceDetailKey)}"]`) : null;
+        if (state.resourceDetailKey && detail && (detail.dataset.detailState !== "ready" || awaitActivation && state.resourceDetailConfirmationId !== undefined && detail.dataset.detailConfirmationId === state.resourceDetailConfirmationId)) return;
+        for (const position of state.positions) if (position.element.isConnected && root.contains(position.element)) {
+          position.element.scrollLeft = position.left; position.element.scrollTop = position.top;
+        }
+        const logical = state.resourceFocusSelector ? root.querySelector<HTMLElement>(state.resourceFocusSelector) : null;
+        if (state.trigger && root.contains(state.trigger) && state.trigger.matches(":disabled") || logical?.matches(":disabled")) return;
+        const target = isVisibleFocusTarget(state.trigger) ? state.trigger : isVisibleFocusTarget(logical) ? logical : root.querySelector<HTMLElement>("h3");
+        target?.focus({preventScroll:true}); controller.abort();
+      };
+      // Report/detail receipts, visibility and modal cleanup are DOM events.
+      // A legitimate slow response consumes no animation-frame polling budget.
+      const observer = new MutationObserver(restore);
+      observer.observe(document.body, {subtree:true, childList:true, attributes:true,
+        attributeFilter:["hidden","inert","open","disabled","data-ready","data-wbs-state","data-report-confirmation-id","data-detail-state","data-detail-confirmation-id","data-projection-detail-key","data-wbs-detail-identity"]});
+      controller.signal.addEventListener("abort", () => observer.disconnect(), {once:true});
+      restore();
+      return;
+    }
+    if (origin && state.view === "milestones" && state.milestoneFocusSelector) {
+      const controller = new AbortController();
+      wbsFocusControllerReference.current = controller;
+      const startingFocus = document.activeElement;
+      const cancel = () => controller.abort();
+      for (const event of ["pointerdown", "keydown", "wheel"] as const)
+        window.addEventListener(event, cancel, { capture: true, passive: true, signal: controller.signal });
+      const restore = () => {
+        if (controller.signal.aborted || focusGeneration !== taskFocusGeneration.current) { controller.abort(); return; }
+        const panel = document.getElementById("project-panel-milestones");
+        if (!panel || panel.hidden || !panel.isConnected || panel.closest("[hidden],[inert]")) return;
+        const dashboard = panel.querySelector<HTMLElement>('[data-testid="milestone-dashboard"]');
+        if (!dashboard || dashboard.dataset.projectPublicId !== publicId ||
+            dashboard.dataset.ready !== "true" || dashboard.getAttribute("aria-busy") === "true" ||
+            document.querySelector("dialog:modal")) return;
+        // Prior cached data may still be displayed while the return report loads.
+        if (dashboard.querySelector<HTMLElement>("[data-stale]")?.dataset.stale !== "false") return;
+        const focused = document.activeElement;
+        if (focused instanceof HTMLElement && focused !== document.body && focused !== startingFocus &&
+            focused !== state.trigger && focused !== milestoneTabReference.current &&
+            !focused.matches('[role="tab"]') && !panel.contains(focused) &&
+            !focused.closest("[hidden],[inert]")) {
+          controller.abort();
+          return;
+        }
+        for (const position of state.positions)
+          if (position.element.isConnected && panel.contains(position.element)) {
+            position.element.scrollLeft = position.left;
+            position.element.scrollTop = position.top;
+          }
+        const target = dashboard.querySelector<HTMLElement>(state.milestoneFocusSelector!);
+        if (isVisibleFocusTarget(target) && !target?.matches(":disabled")) {
+          target?.focus({ preventScroll: true });
+        } else {
+          workspaceFocusFallback(state.screenKey ?? "dashboard.milestones")?.focus({ preventScroll: true });
+        }
+        controller.abort();
+      };
+      // A successful reactivation/report receipt is a DOM transition, not a
+      // guaranteed two-rAF window. Never poll indefinitely or steal newer focus.
+      const observer = new MutationObserver(restore);
+      observer.observe(document.body, { subtree: true, childList: true, attributes: true,
+        attributeFilter: ["hidden", "inert", "aria-busy", "data-ready", "data-stale", "disabled"] });
+      controller.signal.addEventListener("abort", () => observer.disconnect(), { once: true });
+      requestAnimationFrame(restore);
+      return;
+    }
     if (origin && state.view === "resources") {
       const generation = focusGeneration;
       const startingFocus = document.activeElement;
@@ -1898,7 +2041,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     source: ResourceNavigationState,
     scope: ResourceDrillScopeDto,
     label: string,
+    wbsRequest?: WbsViewScheduleRequest,
   ) {
+    if (wbsRequest?.intentSignal?.aborted) return;
     if (!scope.taskCount && !destination.filter.taskIds?.length) {
       notify(
         "info",
@@ -1927,11 +2072,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       capturePeerViewport();
       source = { ...source, viewport: navigationViewport.current };
     }
+    const savedWbsRequest = wbsRequest ? { ...wbsRequest } : undefined;
+    if (savedWbsRequest) delete savedWbsRequest.intentSignal;
     const frame: ResourceNavigationFrame = {
       source: { ...source, viewport: cloneResourceNavigationViewport(source.viewport) },
       destinationBefore: { ...before, viewport: cloneResourceNavigationViewport(source.viewport) },
       destination: nextDestination,
       scope,
+      wbsRequest: savedWbsRequest,
       label,
     };
     const pushed = pushResourceDrillFrame(navigationFrames, frame);
@@ -1980,13 +2128,15 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function performResourceNavigation(
     resolve: (signal: AbortSignal) => Promise<{
       scope: ResourceDrillScopeDto;
+      wbsRequest?: WbsViewScheduleRequest;
       destination: ResourceNavigationState;
       label: string;
     }>,
     sourceTrigger?: HTMLElement,
     kpiSource?: KpiNavigationSource,
+    intentSignal?: AbortSignal,
   ) {
-    if (!navigationAllowed()) return;
+    if (intentSignal?.aborted || !navigationAllowed()) return;
     if (navigationFrames.length >= 8) {
       notify(
         "info",
@@ -1995,14 +2145,35 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       );
       return;
     }
+    if (navigationConfirmation.current?.releaseIntent) {
+      navigationConfirmation.current.releaseIntent();
+      navigationConfirmation.current = null;
+      setNavigationConflict(null);
+    }
     const source = { ...captureNavigation(sourceTrigger), ...(kpiSource ? { kpiSource } : {}) },
       revision = confirmedSnapshotReference.current!.data.project.revision,
       current = ++navigationGeneration.current,
       controller = new AbortController();
+    const releaseIntent = () => {
+      intentSignal?.removeEventListener("abort", abortIntent);
+      controller.signal.removeEventListener("abort", releaseIntent);
+    };
+    const abortIntent = () => {
+      controller.abort();
+      const pending = navigationConfirmation.current;
+      if (pending?.releaseIntent === releaseIntent) {
+        releaseIntent();
+        navigationConfirmation.current = null;
+        setNavigationConflict(null);
+      }
+    };
+    intentSignal?.addEventListener("abort", abortIntent, { once: true });
+    controller.signal.addEventListener("abort", releaseIntent, { once: true });
     navigationAbort.current = controller;
     navigationPending.current = true;
     setNavigationLoading(true);
     try {
+      for (const frame of navigationFrames) if (frame.wbsRequest) await validateWbsNavigationSource(frame.wbsRequest, controller.signal);
       const result = await resolve(controller.signal);
       if (
         controller.signal.aborted ||
@@ -2080,7 +2251,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         result.scope.ancestorSummaryIds,
       );
       if (conflict.hiddenTaskCount) {
-        navigationConfirmation.current = { source, ...result };
+        navigationConfirmation.current?.releaseIntent?.();
+        navigationConfirmation.current = { source, ...result, ...(intentSignal ? { releaseIntent } : {}) };
         setNavigationConflict({
           hidden: conflict.hiddenTaskCount,
           total: conflict.taskCount,
@@ -2091,6 +2263,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           source,
           result.scope,
           result.label,
+          result.wbsRequest,
         );
     } catch (error) {
       if (
@@ -2107,11 +2280,54 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         focusNavigation(source, true);
       }
     } finally {
+      if (navigationConfirmation.current?.releaseIntent !== releaseIntent) releaseIntent();
       if (current === navigationGeneration.current) {
         navigationPending.current = false;
         setNavigationLoading(false);
       }
     }
+  }
+  function openWbsEntity(dimension: WbsViewDimension, id: string, trigger: HTMLElement) {
+    if (!navigationAllowed()) return;
+    if (dimension === "milestone") { openTaskEditor(id, "task", trigger); return; }
+    if (dimension === "resource" || dimension === "workArea") {
+      wbsEntityOrigin.current = captureNavigation(trigger);
+      setWbsEntityRequest({ dimension, id, sequence: ++navigationSequence.current, trigger });
+      setActiveScreen(dimension === "resource" ? "master.resources" : "master.processes");
+      return;
+    }
+    if (dimension === "equipment" || dimension === "system" || dimension === "process") {
+      if (!editing) { notify("info", "기준정보를 편집하려면 먼저 편집 잠금을 해제해 주세요.", "기준정보 원본"); return; }
+      wbsEntityOrigin.current = captureNavigation(trigger);
+      setWbsEntityRequest({ dimension, id, sequence: ++navigationSequence.current, trigger });
+      setActiveScreen("dashboard.process");
+    }
+  }
+  function finishWbsEntityRequest() {
+    const origin = wbsEntityOrigin.current;
+    setWbsEntityRequest(null);
+    wbsEntityOrigin.current = null;
+    if (origin) applyNavigation(origin, true, true);
+  }
+  async function validateWbsNavigationSource(request: WbsViewScheduleRequest, signal: AbortSignal): Promise<WbsViewScopeDto> {
+    if (request.data.projectPublicId !== publicId || request.data.projectRevision !== confirmedSnapshotReference.current?.data.project.revision) throw Error("REPORT_STALE");
+    const result = await fetchWbsView({ projectPublicId: publicId, projectRevision: request.data.projectRevision,
+      input: { spec: request.data.spec, filters: request.data.filters, scope: request.data.sourceContext.scope,
+        projection: { kind: "scope", snapshotId: request.data.snapshotId, path: request.path } }, signal });
+    if (result.projection !== "scope" || !sameResourceDataContext(result.sourceContext, request.data.sourceContext) ||
+      stableWbsValue(result.range) !== stableWbsValue(request.data.range) || result.asOfDate !== request.data.asOfDate || result.mdPerMm !== request.data.mdPerMm) throw Error("REPORT_STALE");
+    wbsScheduleDisplayScope(result, request, confirmedSnapshotReference.current?.data.assignments ?? []);
+    return result;
+  }
+  function scheduleWbsRequest(request: WbsViewScheduleRequest) {
+    void performResourceNavigation(async signal => {
+      const exact = await validateWbsNavigationSource(request, signal);
+      const scope = wbsScheduleDisplayScope(exact, request, confirmedSnapshotReference.current?.data.assignments ?? []);
+      const source = captureNavigation(request.trigger);
+      return { scope, wbsRequest: request, label: request.label, destination: { ...source,
+        view: "schedule", rootTaskId: null, filter: { ...EMPTY_TASK_FILTER, taskIds: scope.taskIds },
+        selection: request.taskId ? [request.taskId] : [], trigger: null, positions: [] } };
+    }, request.trigger, undefined, request.intentSignal);
   }
   function scheduleResourceRequest(request: ResourceScheduleRequest) {
     void performResourceNavigation(async (signal) => {
@@ -2447,6 +2663,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   }
   function cancelNavigationConfirmation() {
     const pending = navigationConfirmation.current;
+    pending?.releaseIntent?.();
     navigationAbort.current?.abort();
     navigationGeneration.current++;
     navigationPending.current = false;
@@ -2457,20 +2674,25 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   }
   async function approveNavigationConfirmation() {
     const pending = navigationConfirmation.current;
-    if (!pending || !navigationAllowed()) return;
+    if (!pending) return;
+    const intentSignal = pending.wbsRequest?.intentSignal;
+    if (intentSignal?.aborted) { cancelNavigationConfirmation(); return; }
+    if (!navigationAllowed()) return;
     const generation = ++navigationGeneration.current;
     const controller = new AbortController();
+    const abortIntent = () => controller.abort();
+    intentSignal?.addEventListener("abort", abortIntent, { once: true });
     navigationAbort.current = controller;
     navigationPending.current = true;
     setNavigationLoading(true);
     try {
       if (pending.source.kpiSource) await validateKpiNavigationSource(pending.source.kpiSource, controller.signal);
-      await validateNavigationSource(
-        pending.scope.sourceContext,
-        controller.signal,
-      );
+      for (const frame of navigationFrames) if (frame.wbsRequest) await validateWbsNavigationSource(frame.wbsRequest, controller.signal);
+      if (pending.wbsRequest) await validateWbsNavigationSource(pending.wbsRequest, controller.signal);
+      else await validateNavigationSource(pending.scope.sourceContext, controller.signal);
       if (
         controller.signal.aborted ||
+        intentSignal?.aborted ||
         generation !== navigationGeneration.current
       )
         return;
@@ -2481,7 +2703,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         pending.source,
         pending.scope,
         pending.label,
+        pending.wbsRequest,
       );
+      pending.releaseIntent?.();
       setNavigationConflict(null);
       navigationConfirmation.current = null;
     } catch (error) {
@@ -2494,6 +2718,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           "범위 이동",
         );
     } finally {
+      intentSignal?.removeEventListener("abort", abortIntent);
       if (generation === navigationGeneration.current) {
         navigationPending.current = false;
         setNavigationLoading(false);
@@ -2507,24 +2732,25 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       : returnFromResourceDrill(navigationFrames);
     if (result.kind !== "restore") return;
     const frame = navigationFrames.at(-1)!;
+    const generation = ++navigationGeneration.current;
+    const revision = confirmedSnapshotReference.current?.data.project.revision;
     navigationPending.current = true;
     setNavigationLoading(true);
     const controller = new AbortController();
     navigationAbort.current = controller;
     try {
       if (frame.source.kpiSource) await validateKpiNavigationSource(frame.source.kpiSource, controller.signal);
-      const current = await readNavigationContext(controller.signal);
-      if (
-        controller.signal.aborted ||
-        resourceDrillGuardReason(navigationGuards.current, "ready", "ready")
-      )
-        return;
-      if (!sameResourceDataContext(current, frame.scope.sourceContext))
-        throw Error("REPORT_STALE");
-      if (frame.scope.sourceContext.sourceProjection.kind === "milestoneReport") {
-        await validateNavigationSource(frame.scope.sourceContext, controller.signal);
-        if (controller.signal.aborted || resourceDrillGuardReason(navigationGuards.current, "ready", "ready")) return;
+      for (const entry of navigationFrames) if (entry.wbsRequest) await validateWbsNavigationSource(entry.wbsRequest, controller.signal);
+      // WBS snapshots include explicit task context in their identity. Their
+      // display adapter must never be revalidated through the legacy fingerprint.
+      if (!frame.wbsRequest) {
+        const current = await readNavigationContext(controller.signal);
+        if (!sameResourceDataContext(current, frame.scope.sourceContext)) throw Error("REPORT_STALE");
+        if (frame.scope.sourceContext.sourceProjection.kind === "milestoneReport")
+          await validateNavigationSource(frame.scope.sourceContext, controller.signal);
       }
+      if (controller.signal.aborted || generation !== navigationGeneration.current || resourceDrillGuardReason(navigationGuards.current, "ready", "ready")) return;
+      if (revision !== confirmedSnapshotReference.current?.data.project.revision) throw Error("REPORT_STALE");
       setNavigationFrames(result.frames as ResourceNavigationFrame[]);
       if (clear) setResourceCacheGeneration((v) => v + 1);
       applyNavigation(result.state, !clear, true);
@@ -2538,8 +2764,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           "원래 보기",
         );
     } finally {
-      navigationPending.current = false;
-      setNavigationLoading(false);
+      if (generation === navigationGeneration.current) {
+        navigationPending.current = false;
+        setNavigationLoading(false);
+      }
     }
   }
   function drillDashboardSchedule(taskIds: string[],
@@ -3193,6 +3421,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       </section>
       <section id="project-panel-milestones" role="tabpanel" aria-labelledby="project-tab-milestones"
         hidden={activeView !== "milestones"} className="project-workspace-panel project-milestone-panel">
+        {createdMilestoneNotice?.publicId === publicId ? <div role="status" className={milestoneWbsStyles.notice}>
+          <p>{createdMilestoneNotice.name} Milestone을 추가했습니다. 조회 조건에 따라 목록에 보이지 않을 수 있습니다. 상세에서 확인하거나 아래 전체 상태·관리의 검색·표시 조건을 변경해 주세요.</p>
+          <button type="button" className="secondary-button" disabled={busy || navigationLoading || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null || !tasks.some(task => task.taskId === createdMilestoneNotice.taskId)} onClick={event => openTaskEditor(createdMilestoneNotice.taskId, "task", event.currentTarget)}>추가한 Milestone 상세</button>
+          <button type="button" className="secondary-button" onClick={() => { setCreatedMilestoneNotice(null); focusMilestoneDashboard(); }}>추가 안내 닫기</button>
+        </div> : null}
+        <MilestoneWbsDashboard tasks={tasks} publicId={publicId} revision={project.revision} active={activeView === "milestones"}
+          busy={busy || navigationLoading || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
+          onOpenTask={(taskId, trigger) => openTaskEditor(taskId, "task", trigger)}
+          onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })}
+          onOpenEntity={openWbsEntity} onSchedule={scheduleWbsRequest} />
           <ProjectMilestoneDashboard publicId={publicId} revision={project.revision} tasks={tasks} active={activeView === "milestones"} busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} editable={editing} onAddMilestone={requestMilestoneCreate} onManageMilestone={manageMilestone} canConvertToTask={taskId => tasks.find(task => task.taskId === taskId)?.status !== "completed" && taskContextCapabilities(tasks, taskId, editing, busy, links, null).canConvertToTask} onManagementFocusUnavailable={() => focusMilestoneDashboard()} onOpenTask={openTaskEditor} onSourceContext={context => { milestoneSourceReference.current = context; }}
                 onSchedule={drillDashboardSchedule} onResources={milestoneToResources} onRefreshProject={() => { void reloadCanonicalSnapshot(); }} />
       </section>
@@ -3203,6 +3441,18 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         hidden={activeView !== "resources"}
         className="project-workspace-panel project-resource-panel"
       >
+        {resourceDrillLiveVisits(navigationFrames, {resourceViewId} as ResourceNavigationState, entry => entry.resourceViewId).map(visitId => {
+          const visit = visitId === resourceViewId ? null : navigationFrames.flatMap(frame => [frame.source, frame.destinationBefore, frame.destination]).find(entry => entry.resourceViewId === visitId && entry.view === "resources");
+          return <div key={visitId} hidden={visitId !== resourceViewId} data-wbs-visit={visitId}>
+            <ResourceWbsDashboard onResourceSchedule={scheduleResourceRequest} publicId={publicId} revision={project.revision} active={activeView === "resources" && visitId === resourceViewId}
+              busy={busy || navigationLoading || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
+              binding={visit ? visit.binding : resourceBinding}
+              onOpenTask={(taskId, trigger) => openTaskEditor(taskId, "task", trigger)}
+              onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })}
+              onOpenEntity={openWbsEntity} onSchedule={scheduleWbsRequest} />
+          </div>;
+        })}
+        <details open data-resource-compatibility><summary>기존 분석·Plan·견적·Excel (별도 조회 조건)</summary><p className="field-help">위 리소스 동적 계층과 독립된 기존 분석입니다. 아래 조건·Milestone/Target 비교·개발 견적·Excel은 아래 보고서 범위를 사용합니다.</p>
         <ProjectResourceWorkload publicId={publicId} revision={project.revision} active={activeView === "resources"} refreshDisabled={navigationLoading ||
               navigationConflict !== null ||
               busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} onRefreshProject={() => { if (!busy && editorSession === null && relationEditorRequest === null && pendingTaskDelete === null) void reloadCanonicalSnapshot(); }} viewId={resourceViewId} binding={resourceBinding}
@@ -3225,6 +3475,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             onOpenTask={openTaskEditor}
             onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, {assignmentId, resourceId})}
             onOpenTarget={(id, trigger, code) => { if(busy || editorSession || navigationLoading || relationEditorRequest || pendingTaskDelete) return; resourceTargetTrigger.current = trigger; setResourceTargetRequest({id, code, sequence: Date.now()}); setActiveScreen("master.targets"); }} />
+        </details>
       </section>
       <section
         id="project-panel-logistics"
@@ -3236,6 +3487,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       >
         {resourceTargetRequest ? <button type="button" className="secondary-button" disabled={busy || editorSession !== null} onClick={() => {setActiveView("resources"); setResourceTargetRequest(null); requestAnimationFrame(() => { const trigger=resourceTargetTrigger.current; if(isVisibleFocusTarget(trigger)) trigger.focus({preventScroll:true}); else document.querySelector<HTMLElement>("#project-panel-resources input[type=search]")?.focus({preventScroll:true}); });}}>Resource 보기로 돌아가기</button> : null}
         <ProjectProcessManagement active={activeScreen === "master.processes"}
+          wbsWorkAreaOpenRequest={wbsEntityRequest?.dimension === "workArea" ? wbsEntityRequest : null}
+          onWbsWorkAreaRequestHandled={finishWbsEntityRequest}
           onNotice={message => notify("success", message, "공정 기준정보")}
           publicId={publicId} revision={project.revision} editable={editing}
           busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
@@ -3260,6 +3513,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           perspective={lastUnifiedScreen === "dashboard.equipment" ? "equipment" : lastUnifiedScreen === "dashboard.system" ? "system" : lastUnifiedScreen === "dashboard.target" ? "target" : "process"}
           onPerspectiveChange={view => { selectScreen(`dashboard.${view}`, false); }}
           targetOpenRequest={resourceTargetRequest}
+          wbsEntityOpenRequest={wbsEntityRequest && ["equipment", "system", "process"].includes(wbsEntityRequest.dimension) ? wbsEntityRequest : null}
+          onWbsEntityRequestHandled={finishWbsEntityRequest}
           projectContext={project}
           busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
           publicId={publicId}
@@ -3269,6 +3524,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           active={activeView === "logistics"}
           onStageSchedule={drillDashboardSchedule}
           onResourceSchedule={scheduleResourceRequest}
+          onWbsSchedule={scheduleWbsRequest}
+          onWbsOpenEntity={openWbsEntity}
           onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })}
           onStageOpen={(taskId, tab) => openTaskEditor(taskId, tab)}
           onTargetTaskOpen={(taskId, trigger) => openTaskEditor(taskId, "task", trigger)}
@@ -3304,7 +3561,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             applyNavigation(origin.source, true, true);
           }}>KPI로 돌아가기</button>
         </aside> : null}
-        <ProjectResourceMemberships recoveryRequired={canonicalRecoveryBlocked} publicId={publicId} revision={project.revision} active={activeView === "resource-master"} editable={editing} disabled={busy || editorSession !== null} onChanged={reloadCanonicalSnapshot} onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }} taskNames={new Map(tasks.map(task => [task.taskId, task.name]))} onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })} />
+        <ProjectResourceMemberships openResourceRequest={wbsEntityRequest?.dimension === "resource" ? wbsEntityRequest : null} onResourceRequestHandled={finishWbsEntityRequest} recoveryRequired={canonicalRecoveryBlocked} publicId={publicId} revision={project.revision} active={activeView === "resource-master"} editable={editing} disabled={busy || editorSession !== null} onChanged={reloadCanonicalSnapshot} onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }} taskNames={new Map(tasks.map(task => [task.taskId, task.name]))} onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })} />
         <button type="button" className="secondary-button" onClick={() => selectScreen("schedule")}>작업 일정에서 배정 관리</button>
       </section>
     </div>

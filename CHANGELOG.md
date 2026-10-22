@@ -1,3 +1,83 @@
+## [0.129.1] — 교정 PATCH / Issue #767 (2026-10-21)
+
+- 과거 #736 Main #3071.1 실패에서 드러난 개인 exact Assignment 로딩 및 #530 Milestone→Resource→일정 LIFO focus 복귀를 원본 [PR #764](https://github.com/planner77/masterGantt/pull/764)의 교정 코드/회귀 테스트 그대로 새 Primary Issue #767에 승계한다. 기존 Main #765 및 #736 종료/퇴역 원장은 불변.
+- exact edit에서는 후보 전체 GET을 생략하면서 `/edit-sessions/current`를 통해 권한/세션 만료를 fail-closed 확인한다. 일반 Editor 후보, 개인 투입률 100→80→70, 동료 Assignment 불변 및 401/412 초안 보존. Milestone UUID 기반 current·ready 화면 복귀 포커스 및 신규/기존 E2E 부정 회귀 유지.
+- `package.json`과 `package-lock.json` 3곳을 `0.129.1`로 동기화한다. 선행 #764 Full [#3092.1](https://github.com/planner77/masterGantt/actions/runs/39602089760) 및 Trusted [#734.1](https://github.com/planner77/masterGantt/actions/runs/39607021968)은 **이전 Head**의 PASS로 보존; 신규 #767 Head의 Full PR CI + Trusted QA를 별도로 요구한다.
+- Risk HIGH, OWNER_MANAGED, Required Quality/E2E6/Docker/Trusted 및 reviewer thread0, Owner 병합 승인/새 Main CI 불변. `release_required=true`, 정식 게시 사전 승인이 따로 확인되기 전 `release_authorized=false`; 기존 `v0.129.0` annotated tag/GHCR digest와 #765 FINAL은 절대 재발행·이동하지 않는다.
+
+## [0.129.0] — Unreleased / Issue #734
+
+- Issue #765 (Release-only cleanup): 정식 GHCR v0.129.0 Release #186의 기존 검증 SHA/Digest를 그대로 유지한다. 새 이미지/버전 태그나 재빌드는 없다.
+- 과거 #732 0.127.0, #736 0.128.0은 인증된 GHCR/Git/GitHub Release 부재·Owner의 별도 폐기 승인·정확 PR/Main/버전 이력·branch lease가 충족될 때에만 RETIRED 기록으로 종료한다. 과거 실패 Main CI를 PASS 또는 역사적 FINAL로 전환하지 않는다.
+- #765 코드는 동일 버전(0.129.0) 내부 trusted lifecycle 변경이다. #633 B2/CI Required3/Trusted QA 불변, 별도 PR/Main CI 검증 필수.
+- PR #766 Full #3084.1의 Shard5 35분 실행 제한 취소(91 PASS, 잔여 미실행)로 E2E 파일 4개를 다른 Shard로 분산한다. 136개 파일 전체 단일 소속, 6 Shard/테스트·Timeout/Required/기존 0.129.0 Release 및 OCI Digest 불변. 신규 Head PR CI 검증 전 PASS 아님.
+- PR #766 Full #3085.1 Vitest에서 Shard 재분배 후 고정 기대값이 이전 배치를 참조해 1개 실패(3159 PASS). 변경한 4개 스펙 배치를 Unit 기대값에 동기화하고 136개 E2E 유일 배치·6 Shards·Required CI·기존 v0.129.0 릴리스 Digest를 유지한다. 새 exact Head Full PR CI에서만 통합 PASS를 인정한다.
+
+- 설비를 최상위로 두는 전용 대시보드에서 단독 요약·사용자 동적 축·유형 필터, 전체 WorkArea/Owner/명시 제어 원본 정보와 고유 Task/공수·Milestone full Gate를 제공한다.
+- 기존 공통 원장·조회/정확 editor·일정 복귀를 재사용하고 같은 read snapshot의 설비 metadata·유형 이름과 서버 필터를 연결한다. 다중 경로를 합산하거나 Task 업무 연관을 실제 제어관계로 만들지 않는다.
+- 지표/UX/API·매뉴얼/테스트·Work Packet을 동기화한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false; 새 PR CI 시작은 원격 PASS·Owner 승인·병합/정식 릴리스가 아니다.
+
+## [0.128.0] — Unreleased / Issue #736
+
+- 교정 PR #764 Full CI #3076.1의 기존 #530 Milestone M1→Resource→일정→M1 LIFO focus 미복귀를 F736-004에 누적하였다. Milestone 원본 UUID/리소스 버튼을 다시 식별하고 현재 조회가 활성·준비되었을 때 취소 가능한 복귀 focus를 수행하며 기존 KPI·범위·원본·Gantt 검증을 유지한다. Codex P2의 정확 개인 Assignment 수정에 대한 편집 권한 재검증 누락은 기존 edit-sessions/current API로 fail-closed 보완한다. 신규 revoked-session 음성 검증을 추가하고 일반 Editor 후보 탐색·인증/Revision/401·412 유지, E2E6/timeout/Retry/Skip/Required 정책 및 version0.128.0은 변경하지 않는다. 원본 Full PR/코드 수정 Main 실패는 불변 이력으로 보존한다.
+
+- 병합 Main CI #3071.1에서 기존 #621 정확 개인 Assignment 편집의 초기 투입률 입력을 5초 내 찾지 못한 실패를 M736-001에 기록했다. 실제 canonical 배정 조회가 성공해도 전체 후보 Resource 조회(Trace 약4초)를 추가로 기다리는 불필요한 의존을 exact edit에서만 제거하고, 기존 이름-first/공동담당 불변/401·412/초안보존/정확 수정 계약과 일반 편집 후보 검색을 유지한다. 원격 교정 PR CI/새 Main 검증 전 과거 Main 성공·GHCR 게시·Issue 종료로 승격하지 않는다.
+
+- Full PR CI #3065.1의 Resource Plan report body 관측 경합을 F736-003에 누적하고, 테스트의 정확 Project/spec/filters/scope·즉시 body receipt·단계별 조건 완료로 보완한다. 과거 TS guard/M/M matcher와 원본 source·취소 shard·남은 미검증을 보존하며 기존 공수/Plan/Excel·권한·CI timeout/6Shard 정책은 변경하지 않는다.
+
+- Target0에서도 개인 Resource 단독·공정/WorkArea/설비·System 형제 및 Milestone/공정 하위 구성을 조회한다. 등록/역할/개인 배정·비활성과 필터된 고유 작업/계획공수를 구분하고 같은 Assignment 범위·M/M null·비가산 원장을 보존한다.
+- 기존 Resource 현황·Group/Role/등급·Milestone/Target 비교·Plan·일별 과투입·개발 견적·Excel은 범위가 명시된 기본 펼침 보조 영역으로 유지한다. 동적 선택은 정확 Assignment adapter로 기존 Plan의 같은 R·Calendar·Project 전체 부하 참고를 재사용한다.
+- Resource root current/project Excel은 같은 WBS source/snapshot/spec/path·필터를 검증하고 기존 writer에 raw Task/Assignment 및 반복 비가산 경로 근거를 전달한다. 다른 root 미지원은 명시 거부하며 기존 개인 Plan/견적 출력을 차단하지 않는다.
+- 관련 API/KPI·UX·교환·사용자 가이드/#720·테스트·실행 계획을 동기화한다. HIGH/OWNER_MANAGED, release_authorized=false. PR CI 시작은 전체 CI PASS·Trusted/Owner 승인·병합·정식 릴리스 완료가 아니다.
+
+## [0.127.0] — Unreleased / Issue #732
+
+- Milestone 전용 동적 관점에 root 단독과 수정 가능한 두 하위 축 예시, 선택 일반 Task/개인 Assignment 지표와 전체 Milestone Gate의 별도 요약을 추가한다. 기존 Milestone 추가·편집·소속·관계·검색/기간/상태·삭제 보호와 동일 원본/복귀를 보존한다.
+- 생성 성공 후 정확 원본 Editor와 조건 밖 목록 접근 안내를 제공한다. 공통 read projection·기존 Gate/공수 계산기·marker OFF·Task당 단일 effective 소속 및 Gantt 상태 계약은 유지한다. Target/새 writer·DB migration을 만들지 않는다.
+- 화면·지표·사용 절차·테스트·Work Packet을 동기화한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false. PR CI 시작은 공식 회귀 PASS·Owner 승인·정식 릴리스 완료가 아니다.
+
+## [0.126.0] — Unreleased / Issue #735
+
+- PR CI #3055.1의 반응형 메뉴 단일 Test30초 초과를 실제 trace와 원형 재현으로 확인하고, 기존4폭16corner 및 모바일·짧은 화면·Clipboard·Summary 검증을 독립2Test로 재배분한다. 원래93개 단언·명령 순서·30초/retry·제품·CI gate를 보존하며 fixture1회 추가 비용을 기록한다.
+
+- PR CI #3051.1/#3054.1의 Context Menu 원본 조회 연결 종료를 누적 기록하고, 테스트의 UI 후 canonical GET을 기존 브라우저 같은 출처 단일 조회·필수 관측 경로로 통일한다. 실제 TCP 근인은 UNKNOWN이며 제품·mutation·단언·retry·timeout·6-shard·버전은 유지한다.
+
+- 물류 시스템 전용 대시보드에 시스템 단독·공정/WorkArea/설비/리소스 및 Milestone 교차 조회 예시와 속성 선택·구성/작업 KPI·진단을 추가한다. Target 생성 없이 단일 원본·고유 Task/Assignment 합집합을 사용한다.
+- 공통 WBS spec의 system root에 직접/조율 모드와 정확 시스템 선택을 추가하고 report/detail/scope/snapshot에 결속한다. 명시 coordinates/controls와 같은 Task 업무 연관을 구별하며 기존 요청·KPI/Resource/Gate·저장 계약은 유지한다.
+- 원본 editor·정확 일정/조회 복귀·readonly/dirty/stale/error·5폭 접근성과 관련 문서/사용 가이드·전용 및 인접 테스트를 보강한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false; PR CI 시작은 공식 검증 성공·Owner 승인·병합·정식 릴리스 완료가 아니다.
+
+## [0.125.0] — Unreleased / Issue #733
+
+- Issue #733의 최초 병합 Main CI [#3050.1](https://github.com/planner77/masterGantt/actions/runs/39402320673)은 Chromium Shard4(168테스트) 35분 Job 제한으로 CANCELLED(162PASS/1SKIPPED/5미완료), E2E 집계 FAIL, Quality/Docker PASS, GHCR 후보 SKIPPED였다. 해당 불변 Run을 #733 원장 M733-001로 기록하고, 과거 #437 timing plan 누락 신규 파일 2개(#733 전용 공정 대시보드, #726 Task 물류)를 hash-assigned Shard4에서 Shard5/6으로 명시 이동한다. 예상 이동 테스트 본문 실행시간은 PR293.2초/Main271.4초로 실제 새 샤드 wall-clock은 미검증이다. 132개 전체 테스트 할당, 6-shard·worker1·timeout35min·기존 CI/GHCR 게이트, 제품/DB/API·버전 0.125.0 불변. 같은 이슈 corrective PR의 신규 Required3/Trusted/Owner 승인을 거쳐 정식 GHCR/Finalizer로 진행하며 이전 Main 결과를 PASS로 간주하지 않는다.
+
+- PR #755 Full PR CI #3048.1의 Chromium Shard2에서 #373 하위 트리 딥링크/탭 간 최신화 통합 테스트 본문이 30초를 소진(약31.4초, Before Hooks 약15.2초는 별도)하였다. #733 F733-008 누적 실패 원장에 기록하고 원래 단일 Test를 A(딥링크·범위/권한), B(2회 편집·탭 간 최신 Revision), C(stale 초기 GET·newer revision·reload) 독립 3개로 분리하였다. 각 테스트 별도 Project·SQLite/BrowserContext, 기존 단언과 실제 PATCH/GET/권한·revision 유지. Fixture 3회 비용 비교 필요, 전역 Timeout/CI 정책/제품·0.125.0·승인 상태 불변. 새 Head 실실행 NOT TESTED.
+
+- PR #755 Full #3047.1에서는 #725 실SQLite/HTTP setup의 Project GET이 이전200 네 번 후 Next Webpack 개발서버 `loadManifest`의 `Unexpected end of JSON input`으로 HTML500 반환하였다. #733 F733-007에 Trace/Run을 누적했고 Next16 upstream manifest race #97594와 분리 검토했다. #725 격리 두 테스트만 Turbopack+재시작 별도 NEXT_DIST_DIR·GET-only 공정 API 순차 prewarm으로 교정하며, 실패 HTML의 framework error class만 기록한다. 원본 HTTP200/PATCH/GET/SQLite/UI 단언과 CI gates, 제품/버전0.125.0/릴리스 승인 상태는 유지; 새 Head remote NOT TESTED.
+
+- PR #755 Full CI #3044.1에서 장비 route GET405/PATCH200 JSON·Task GET/PUT200 통과 후 Project 원본 GET500(기대200)으로 E2E Shard3 실패하였다. 내부 500 MIME·code는 원본에 없어 근인은 UNKNOWN. #725 테스트만 서버 재시작 시 fresh NEXT_DIST_DIR를 opt-in하여 개발 컴파일 캐시 재사용을 배제해 보고, 실패 GET에는 status·MIME·safe errorCode만 기록한다(HTTP500 재시도/단언 완화 없음). 이력은 #733 F733-005 원장에 추가하며 코드/DB·CI 정책·버전0.125.0·정식 릴리스 권한 불변.
+
+- PR #755 Full CI #3043.1에서 #725 실제 SQLite/HTTP 재시작 시 격리 Next 개발 서버의 설비 PATCH-only 동적 경로 준비 GET이 90초 동안 404(예상405)여서 E2E Shard3 실패(57PASS/1FAIL/50NOT RUN; Shard6 134PASS, 다른4 취소)했다. Next 내부 원인은 UNKNOWN; #725 격리 테스트만 공식 지원 Webpack dev opt-in하고 공통 fixture의 기본 Turbopack은 유지한다. 기존 GET405/Task GET200 JSON/PATCH200 JSON과 음성 오류 단언을 유지하며 준비 중 HTML404만 재검사하고 JSON404/기타 응답은 fail-closed, sanitized 진단 근거 추가. #733 단일 누적 실패 원장 F733-004에 #3035/#3038/#3042와 #3039 이전 PASS를 보존하며 CI/제품/버전0.125.0/정식 릴리스 승인 정책 변경 없음.
+
+- PR #755의 main 정렬 후 Full PR CI #3042.1에서 #514 Gantt peer restore의 가상 시계 `clock.pauseAt(new Date())`가 이미 흐른 browser 시간보다 과거를 지정하여 E2E Shard6에 실패했다. 기존 #569 검증 패턴(샘플된 단일 시각보다 60초 전 설치 후 해당 시각 정지)을 #514 세 곳·인접 #529 한 곳에 적용하고 본래 native wheel·선택·RAF·원본 복귀 단언을 유지한다. 이전 #3039 성공과 #3042 실패는 #733 누적 원장에 서로 다른 Head/base로 보존하며 제품 로직/CI 게이트/버전/릴리스 승인 상태는 불변.
+
+- 공정&WorkArea 전용 consumer로 공정 단독·선택 구역·설비/System 동급 분기·Milestone/리소스 교차 예시와 구성/작업 KPI를 제공한다. Target 생성 없이 기존 원장·정확 상세/editor·원래 보기 복귀를 재사용한다.
+- 등록-only 하위 구성과 같은 snapshot의 공정/구역 catalog를 공통 API 소유자와 보완하고 다중 WorkArea 수량·Task/Assignment는 원본 합집합으로 유지한다. 새 계산기/DB/renderer·구성/WBS writer는 추가하지 않는다.
+- 화면별 KPI·UX·테스트·매뉴얼을 동기화한다. HIGH/OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false. PR CI 시작은 공식 검증 PASS·Owner 승인·병합·정식 릴리스가 아니다.
+
+## [0.124.1] — Unreleased / Issue #730 GHCR Release #182 후속 교정
+
+- 후속 PR #756의 Full CI #3037.1에서 재시작 이후 Task 공정 연결 `GET`이 Next.js HTML404를 반환한 현상을 #730 누적 실패 원장에 추가했다. 과거 #731 M-002의 장비 `PATCH` HTML404와 같은 동적 경로 준비 결함이나, 설비 경로 준비와 Task 경로 준비가 독립적임을 구분한다.
+- 격리 E2E 재시작 시 선택적인 두 번째 Task 경로 read-only readiness(기존 90초 한도 내 실제 200/JSON/context)와 엄격한 HTTP/MIME 응답 확인을 추가한다. 초기 Next HTML404만 제한적으로 재조회하고 JSON404/401/403/500, malformed response, 다른 origin은 차단한다. 원본 WorkArea/Target0·Task 공정 링크 저장·UI 설비 PATCH와 Gantt/readonly·키보드·5폭 검증 및 모든 기존 CI 게이트는 유지한다.
+
+
+- `v0.124.0` Main #3034.1·Generic Finalizer #724.1 성공 후 Release #182 attempts 1·2의 Chromium Shard3 실패(#621 stale 비활성 focus, #623 5폭 30초 budget)를 단일 실패 원장에 보존한다. GHCR promotion·Resume·Issue 종료는 미완료.
+- #621은 실제 조회 ready·button enabled/focused를 확인한 뒤 기존 native Tab/5폭/scroll/geometry를 판정하고, #623는 신규 SQLite/HTTP+tree/matrix 5폭 테스트만 45초 유한 timeout으로 보완. 실제 업무 writer·API·Gantt/Task·CI gate/Retry/Skip/Assertions 변경 없음.
+- 버전 0.124.1은 새 Owner 고위험 수용·`expected_version=0.124.1` 승인 전 정식 릴리스 불가. 기존 v0.124.0 annotated tag/SHA와 실패 원본은 변경하지 않는다.
+
+## [0.124.0] — Issue #730 / GHCR 공식 게시 미완료
+
+- 동적 WBS 관점 composer와 공통 tree table·정확 drill 구현 PR #747 병합 성공. Main CI/Finalizer 성공에도 Release #182 E2E 2회 실패로 정식 GHCR 및 Issue FINAL은 미완료.
+
 ## [0.123.0] — Unreleased / Issue #731
 
 - Main #3011.1의 두 E2E 실패를 보완한다. #623 golden/Excel·여섯 mutation 및 폭별 화면 검증을 독립 시나리오로 구성하고 workbook bytes1회·단계별 시간을 기록한다. Task Editor 저장 후 canonical 조회는 기존 실제 browser/no-store·오류 관측 경로로 일치시킨다. 정확 UUID·수치·원본/권한·revision 단언, 기존 timeout/retry/Required gate를 유지하며 소켓 내부 근인은 UNKNOWN으로 남긴다. 과거10 source CI와 새 로컬 최초 실패·재검증은 같은 #731 실패 원장에 누적한다.
@@ -486,6 +566,19 @@
 - 승인 없는 보호 변경과 자동 처리 경로는 기존대로 차단한다. 검증기 자체 변경의 신뢰성·독립 QA 및 Manager ACCEPT는 PR CI와 별개이며, 기존 Required Quality/E2E/Docker·GHCR 승인 경계를 유지한다.
 
 # Changelog
+
+## [0.124.0] - 2026-10-19
+
+- PR #747 Full #3029.1 F730-011: 실제 Task Editor 저장·원본/URL 팝업 다음 3개 독립 시간대 Context를 검증하다 기본30초 Test Budget을 소진(Shard4)하였다. 원본 Trace를 근거로 해당 E2E 한 건만 유한45초를 적용하고 동일 Task/3시간대·Task revision/URL·Gantt·Context 종료 단언 및 전역 CI/Retry/Skip을 그대로 유지한다. 정확 원인과 시점·실제 미검증은 [#730 전용 실패 원장 §20](docs/ISSUE_730_FAILURE_ANALYSIS.md)에 보존하며 새 Full CI 이전에는 NOT TESTED다.
+- PR #747 Full #3027.1의 #623 여섯 UI mutation 단일60초 Test budget 재발(F730-010): 실제 단계계측 body61.586초(준비20.790초)가 예산을 초과해 Shard3가 FAIL한 원인을 #730 누적 원장에 기록한다. 동일 Project·Task/Assignment의 4PATCH+2PUT, 원본 ID/revision+6·Gantt/조회0/양방향 복귀 단언을 모두 보존하고 **해당 E2E 한 건의 유한 제한만 실측 근거로90초 조정**한다. Global timeout/retry/skip/Assertions/CI workflow·제품 코드 불변이며 정확 새 Head Full CI 전 NOT TESTED.
+- PR #747 Full #3025.1의 TypeScript TS2532(F730-009): #727 리소스 재시작 등록 검증에서 `find(...)`가 `undefined`일 수 있는 반환을 직접 역참조한 테스트 코드를 동일 원본 ID의 `toMatchObject({ registered: true })`로 보완한다. 원본 ID 미존재/등록 false를 계속 실패로 검증하며 TypeCheck·Fast Gate·Required 집계 파생 실패를 #730 전용 원장에 보존한다. F730-008 원본 조회와 CI 설정 불변, 새 Full CI 이전 원격 성과 NOT TESTED.
+- PR #747 Full #3023.1의 리소스 멤버십 등록 후 canonical Project GET `ECONNRESET`을 #730 실패 원장 F730-008에 기록한다. 초기 seed/권한 API와 저장/원본 단언을 유지하면서 UI 저장 이후 동일 출처 browser GET·비식별 관측 및 리소스 조회 정상/오류·리다이렉트·형식 음성을 보강한다. 정확 TCP 근인 UNKNOWN, 새 Full CI/Trusted·Owner 판정 전 NOT TESTED, retry/timeout/제품 API 변경 없음.
+- PR #747 Full #3022 후행 Task 물류 연결의 실제 browser 조회/오류 관측 누락과 #719 도움말 합성 fixture의 WBS 응답 경합을 보완한다. 원시 ID·revision·권한·geometry 단언과 기존 CI Gate를 유지하며 원격 최초 실패·소켓 근인 UNKNOWN·누적 로컬 결과를 같은 #730 실패 원장에 기록한다.
+
+- PR #747 누적 보완: 원본 편집 callback의 Hook 의존성·최신 탐색 의도와 조회 POST 회귀 관찰기를 교정하고 Issue #730 단일 실패 원장에 원격 원인·재검증을 보존한다.
+
+- Issue #730: 다섯 고정 관점의 동적 하위 축 구성기와 공통 조회 표·정확 상세, 개인 조회 상태 저장/복원 및 기존 원본/일정 복귀를 추가한다. 서버 고유 합계·typed 설비/System 형제·WBS 원본과 기존 KPI/Milestone/Resource 기능을 보존한다.
+- DESIGN·UI/UX·화면/사용자 가이드·API 소비·테스트 계획을 동기화한다. 정식 게시 승인은 별도이며 PR CI 시작은 원격 검증 완료를 뜻하지 않는다.
 
 ## [Unreleased] — Issue #551 Milestone Timeline main 통합 (2026-10-12)
 

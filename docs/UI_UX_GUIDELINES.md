@@ -1,3 +1,29 @@
+## Issue #734 — 설비 원본과 업무 연관 표시
+
+설비 root는 개인 하위 축 구성과 분리해 고정한다. 기본 단독 요약과 두 동적 예시는 기존 composer를 사용하고 유형 필터를 상위 Target으로 바꾸지 않는다. 원본 이름/유형·단품/Fleet/수량/모든 WorkArea/Owner/실제 controls는 접힌 원본 영역으로 제공하며 기존6열 표의 폭을 늘리지 않는다. 전체 등록 진단과 필터된 작업 지표·구성 수량의 모집단을 인접 라벨로 구별한다.
+
+작업0·미배정·구역 미사용·비활성은 각각의 상태로 읽을 수 있어야 하며 정상0을 실패색으로만 표현하지 않는다. controls와 같은 Task 업무 연관의 차이·중첩 소계 비가산·full Gate 범위는 숨기면 오해하는 필수 맥락이다. 390/768/1024/1440/1920px에서 긴 이름/원본 목록의 줄바꿈, 문서 overflow0, 표 내부 scroll·열 정렬, keyboard Tab/Shift+Tab/Escape와 focus 가시성을 실제 Chromium으로 확인한다. 기존 공통 focus reveal과 editor 복귀를 재사용하며 새로운 Gantt writer는 추가하지 않는다. [화면 UX](PROJECT_UX.md#issue-734--설비-대시보드), [실행·미검증](exec-plans/active/ISSUE_734.md).
+
+## Issue #736 — 리소스 관점과 Plan/Excel의 범위 표시
+
+Resource 단독이 기본이며 기존 browser 하위 축 설정은 존중한다. 공정/WorkArea/설비·System 형제와 Milestone/공정 예시는 native 조회 구성에서 선택하고 원본을 쓰지 않는다. 등록/역할/개인 배정 구성 참고와 현재 필터의 작업/계획공수를 다른 구획으로 표시한다. 이름 우선·접힌 ID·기존 semantic token과 공통 표 열 budget을 사용하며 새 지표는 고정 열을 늘리는 대신 summary에 배치한다.
+
+기존 분석·Plan·견적은 범위를 명시한 보조 경로로 접근한다. 새 동적 조회의 필터와 기존 분석의 독립 필터를 자동 동기화했다고 주장하지 않는다. 같은 source로 Plan/Excel에 이동할 때만 정확 selector를 전달하고 current/project의 조건 해제와 전체 개인 부하 참고를 직접 표시한다. 지원하지 않는 출력은 이유/복구 경로를 제공하며 기존 개인 Plan/견적 Export를 전역 차단하지 않는다.
+
+조회·편집 대기 중 이전 명령은 잠그고 상세/원본 저장 후 최신 raw Task/Assignment ID·snapshot을 확인한다. 이전 방문의 늦은 응답이 현재 방문의 계층/필터/상세/포커스를 덮지 않는다. 기존 연결·가시 trigger 또는 현재 control로 focus를 인계하며 표만 가로 scroll을 소유한다. 390/768/1024/1440/1920px에서 keyboard·focus 가시성·내부 overflow와 readonly/dirty/stale/error를 실제 확인한다. Design Delta B로 기존 [DESIGN](../DESIGN.md)을 구체화한다. [실행 증거](exec-plans/active/ISSUE_736.md).
+
+## Issue #735 — 시스템 관점의 조회와 속성
+
+DESIGN.md의 기존 Light UI/이름 우선/compact control·상황형 도움말을 적용한다. System은 고정 root이며 단독 및 변경 가능한 하위 preset을 제공한다. 실제 제어/조율 관계와 Task 공통 연관, 구성 System1식/제어 설비량과 작업/개인 계획공수를 시각·문구로 구분한다. 속성 필터는 서버 전체 선택을 바꾸고 이름 찾기는 표시만 바꾼다. 긴 이름·공정·담당자는 줄바꿈하고 코드/ID는 요청 시 표시한다. 설명·역할·진단은 접기 영역에 두며 핵심 mode/상태/새로고침은 즉시 접근 가능해야 한다.
+
+기존 공통 계층 표의 열 예산·내부 가로 scroll을 재사용하고 새 요약/필터는 가용 폭에 wrap한다. 390/768/1024/1440/1920px에서 문서 overflow0, header/body 정렬·긴 이름과 keyboard Tab/Enter/Escape·focus 가시성/원본 복귀를 실제 Chromium으로 검증한다. readonly/dirty/stale/error·snapshot 보존은 기존 renderer/editor 규칙을 적용한다. [설계 Delta B와 실행 경계](exec-plans/active/ISSUE_735.md)를 따른다.
+
+## Issue #733 — 공정 전용 consumer와 KPI 구획
+
+기존 공통 계층 표의 열 budget·내부 scroll·44px 조작 영역을 유지한다. 공정 관점 추가 KPI는 표 열을 늘리지 않고 구성/작업 구획으로 표시한다. 공정 단독·WorkArea/typed 형제·Milestone 예시는 기존 조회 구성 disclosure에서 선택하고 개인 저장 설정을 덮지 않는다. 이름 우선·접힌 식별 정보·상황형 도움말을 적용하며 정상 구역없음/작업0을 오류 색으로 평가하지 않는다.
+
+구성 관계와 Task 교차 연관, 구성 총량과 필터된 작업/공수·coverage/full Gate의 범위를 명확히 표시한다. 펼침·keyboard·원본 저장/취소 복귀·stale/오류는 기존 #730 및 host/editor 계약을 사용한다. 키보드 focus-visible 버튼이 표 안에서 가려지면 그 표의 가로 scroll만 조정하고 문서/Gantt 스크롤이나 포인터 focus는 변경하지 않는다. 390/768/1024/1440/1920px의 긴 이름·숫자/단위·표 header/body 정렬·document overflow·focus 가시성을 실제 Chromium으로 검증하고 수동 touch/스크린리더 미검증을 구별한다. [화면 UX](PROJECT_UX.md#issue-733--공정workarea-대시보드), [검증](exec-plans/active/ISSUE_733.md)을 따른다.
+
 ## Issue #751 / #622 — 비동기 Resource 상세 편집기 포커스 복원 (2026-10-20)
 
 - Resource Plan에서 Task/Assignment를 편집하는 native Dialog를 닫으면 **기존 Task/Assignment 행의 동일한 활성 제어로 포커스를 복귀**시킨다. 저장 직후 canonical Projection 상세가 `stale → loading → ready`로 교체되는 경우 이전 DOM의 버튼이 남아 있거나 다시 그려져도 데이터 준비 완료와 동일하지 않다.
@@ -10,6 +36,14 @@
 기존 KPI 네 카드·품질 패널·세부 탭/표는 그대로 두고 추가 구성/연결 진단만 native disclosure로 펼친다. 기존 표에 고정 열을 추가하지 않는다. 이름·단위·현재 선택과 전체 구성 참고의 분모·full Gate 경고를 직접 표시하고 긴 계산 설명은 상황형 도움말로 제공한다. 정상 미연결/WorkArea 미사용을 오류 색상만으로 평가하지 않는다.
 
 정확 Task/Assignment/master 목록은 원시 ID와 현재 source/snapshot으로 연결하고 기존 editor·단일 host를 재사용한다. 이전 결과가 숨겨진 동안 명령을 잠그며 복귀는 연결된 실제 trigger, 삭제/필터 탈락/새 revision이면 유효 fallback으로 이동한다. 표 내부 scroll·이름 최소 폭·긴 이름 줄바꿈·숫자 단위 nowrap·가려지지 않는 keyboard focus를 5폭에서 확인한다. Design Delta B로 기존 시각/interaction 원칙을 구체화하며 DESIGN.md N/A다. 실제 측정과 미검증은 [Work Packet](exec-plans/active/ISSUE_731.md)을 따른다.
+
+## Issue #730 — 고정 root와 동적 조회 구성
+
+Milestone·공정&WorkArea·설비·물류 시스템·리소스의 root는 현재 관점에 고정한다. 접힌 보기 구성에서 하위 축을 추가·삭제·위/아래로 이동하고, 적용 전 초안과 현재 표의 경로를 구별한다. 하위 없음은 root-only 요약이며 설비/System 형제는 한 단계다. root 재등장·중복 축·잘못된 형제·깊이 초과는 서버와 같은 계약으로 거부하고 이유와 삭제/초기화 복구를 제공한다. readonly에서도 조회 설정을 바꿀 수 있지만 원본 수정은 기존 권한을 따른다.
+
+단일 native table과 펼친 행을 사용한다. 이름 열의 native 펼침 버튼은 행 이름과 펼침 상태를 보조기술에 전달하고, Task/Assignment 상세는 종류와 선택 경로를 구별한다. 공수·작업·완료·지연·명령의 fixed/minimum budget과 유연한 이름 열을 사용하고 표 container만 가로 scroll을 소유한다. 깊이 들여쓰기로 이름이 사라지지 않도록 상한을 둔다. 390/768/1024/1440/1920px에서 긴 이름/수치·열 경계·document overflow·44px 조작 영역을 실제 DOM으로 확인한다.
+
+상세 제목에 focus하고 Escape/닫기로 호출 지점 또는 현재 보이는 조회 control에 복귀한다. root/spec/filter/revision/snapshot이 달라지거나 응답이 역전되면 과거 상세와 원본 이동을 무효화한다. 손상·구버전 개인 browser 설정에는 복구 안내를 제공하고 storage 실패가 public read 자체를 막지 않게 한다. 저장 설정을 다른 사용자의 공유 업무 상태로 표시하지 않는다. 총계와 정확 ID는 서버 응답을 사용하고 표 행의 소계를 합산하지 않는다. [설계 원칙](../DESIGN.md), [실행/AC 증거](exec-plans/active/ISSUE_730.md)를 따른다.
 
 ## Issue #717 — 이름 우선과 식별 정보 요청 조회
 

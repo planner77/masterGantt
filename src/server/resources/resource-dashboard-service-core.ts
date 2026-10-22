@@ -1,11 +1,11 @@
 import { resolveWbsTaskLedger, WbsTaskLedgerInputError } from "../../domain/resources/wbs-task-ledger";
-import { WBS_VIEW_LIMITS, type WbsViewResponseDto, type WbsViewResponseContext } from "../../contracts/wbs-dashboard-views";
+import { WBS_VIEW_LIMITS, type WbsViewResponseDto, type WbsViewResponseContext, type WbsViewReportDto, type WbsViewScopeDto } from "../../contracts/wbs-dashboard-views";
 import { parseWbsViewQuery } from "./wbs-dashboard-views-query-core";
 import { createWbsViewProjection, wbsViewSelectedSources } from "./wbs-dashboard-views-core";
 import { RESOURCE_TARGET_LIMITS, RESOURCE_TARGET_FILTER_KEYS, type ResourceDashboardTargetFilters, type ResourceDashboardTargetProjection, type ResourceDashboardTargetNode, type ResourceTargetPathEntry } from "../../contracts/resource-dashboard";
 import { projectResourceKpiTargets } from "../../domain/resources/resource-target-kpi";
 import { ResourceKpiTargetInputError, ResourceKpiTargetLimitError, hasResourceKpiTargetPathFilters, selectResourceKpiTargetPaths, summarizeResourceKpiTargetMembers, type ResourceKpiTargetFilters } from "../../domain/resources/resource-kpi-targets";
-import type { ResourceExcelExportOptions, ResourceExcelReportBundle, ResourceExcelAssignmentRow } from "../../contracts/resource-excel-export";
+import { isWbsResourceExcelOptions, type ResourceExcelExportInput, type WbsResourceExcelExportOptions, type ResourceExcelExportOptions, type ResourceExcelReportBundle, type ResourceExcelAssignmentRow } from "../../contracts/resource-excel-export";
 import { parseResourceExcelOptions } from "../exports/project-excel-export-contract";
 import { resourceFingerprint as fingerprint, readResourceDataSnapshot } from "./resource-data-context-core";
 import type { ResourceDrillQueryInput, ResourceDrillQueryResponse, ResourceDrillScope, ResourceDrillScopeDto, ResourceDrillScopeRequest, ResourceDrillSourceContext, ResourceDrillSourceProjection } from "../../contracts/resource-drill";
@@ -125,12 +125,12 @@ export class ResourceDashboardService {
         const sourceContext = { ...snapshot.dataContext, range: { from: snapshot.from, to: snapshot.to }, asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, mdPerMmSource: snapshot.mdPerMmSource, mdPerMmProvided: snapshot.filters.mdPerMmProvided,
           schema: "wbs-view-source/1" as const, contextSourceVersion: input.spec.contextSourceVersion, snapshotId, spec: input.spec, path: projection.kind === "report" ? [] : projection.path, ...(input.scope ? { scope: input.scope } : {}) };
         const context: WbsViewResponseContext = { schema: "wbs-view-report/1" as const, snapshotId, projectPublicId: publicId, projectRevision: snapshot.project.revision, sourceContext, spec: input.spec, filters: input.filters ?? {},
-          range: sourceContext.range, asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, metadata: { ...ledger.metadata, limits: WBS_VIEW_LIMITS, excel: { supported: false, code: "WBS_VIEW_EXPORT_UNSUPPORTED", reason: "새 WBS 조회 명세의 Excel 내보내기는 아직 지원하지 않습니다." } } };
+          range: sourceContext.range, asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, metadata: { ...ledger.metadata, ...(input.spec.systemView !== undefined || input.spec.systemIds !== undefined ? { systemSelection: { systemView: input.spec.systemView ?? "direct", systemIds: input.spec.systemIds ?? ledger.configuration.systems.map(row => row.id) } } : {}), limits: WBS_VIEW_LIMITS, excel: input.spec.root === "resource" ? { supported: true, reason: "동일 출처의 리소스 Excel 및 비가산 계층 근거를 제공합니다." } : { supported: false, code: "WBS_VIEW_EXPORT_UNSUPPORTED", reason: "이 관점의 동적 Excel은 아직 지원하지 않습니다. 기존 호환 보고서를 이용해 주세요." } } };
         const selectedAssignmentIds = new Set(selected.assignmentIds);
-        const selectedSources = selected.rows.map(row => ({ taskId: row.taskId, sources: wbsViewSelectedSources(row, selectedAssignmentIds, projection.kind === "report" ? [] : projection.path) }));
+        const selectedSources = selected.rows.map(row => ({ taskId: row.taskId, sources: wbsViewSelectedSources(row, selectedAssignmentIds, projection.kind === "report" ? [] : projection.path, input.spec.systemView) }));
         if (selectedSources.reduce((sum, row) => sum + row.sources.length, 0) > WBS_VIEW_LIMITS.sourceRows) resourceDashboardLimit("projection.wbs.sourceRows");
         const instancePaths = selected.rows.flatMap(row => (["equipment", "system"] as const).flatMap(kind => (kind === "equipment" ? row.equipmentIds : row.systemIds).map(instanceId => ({ taskId: row.taskId, kind, instanceId,
-          sources: wbsViewSelectedSources(row, selectedAssignmentIds, projection.kind === "report" ? [] : projection.path).filter(source => source.entityKind === kind && source.entityId === instanceId),
+          sources: wbsViewSelectedSources(row, selectedAssignmentIds, projection.kind === "report" ? [] : projection.path, input.spec.systemView).filter(source => source.entityKind === kind && source.entityId === instanceId),
           targetMembers: row.targetSources.effectiveMembers.filter(member => member.kind === kind && member.entityId === instanceId),
           legacySources: row.targetSources.legacySources.filter(member => member.kind === kind && member.entityId === instanceId) }))));
         if (instancePaths.length > WBS_VIEW_LIMITS.sourceRows) resourceDashboardLimit("projection.wbs.instancePaths");
@@ -146,7 +146,27 @@ export class ResourceDashboardService {
           data = { ...context, projection: "details", path: projection.path, view: projection.view, offset: projection.offset, limit: projection.limit, totalCount, nextOffset: projection.offset + rows.length < totalCount ? projection.offset + rows.length : null, rows };
         } else {
           const calculated = { snapshot, selection: selected.selection, referenceRows: selected.assignments, excludedRows: [], diagnosticSelection: selected.selection, diagnosticDomain: snapshot.domain };
-          data = { ...context, projection: "report", ...scope, totals: view.totals, children: view.children, taskSources: selected.rows, configuration: ledger.configuration, diagnostics: ledger.diagnostics,
+          const equipmentTypeNames = new Map(source.equipmentTypes.map(row => [row.code, row.name]));
+          const equipmentAreas = new Map<string, typeof source.equipmentWorkAreas>();
+          for (const link of source.equipmentWorkAreas) {
+            const links = equipmentAreas.get(link.equipmentId) ?? [];
+            links.push(link); equipmentAreas.set(link.equipmentId, links);
+          }
+          const resourceScope: ResourceDrillScope = { kind: "exactAssignments", assignmentIds: selected.assignmentIds };
+          const resourceReport = input.spec.root === "resource" && snapshot.filters.granularity ? this.getDashboard(publicId, input.filters, resourceScope) : undefined;
+          data = { ...context, ...(resourceReport ? { resourceAdapter: { report: resourceReport, binding: { sourceContext: resourceReport.resourceScopeContext!, scope: resourceScope } } } : {}), projection: "report", ...scope, totals: view.totals, children: view.children, taskSources: selected.rows, configuration: ledger.configuration, configurationCatalog: {
+              processes: snapshot.targetSnapshot.identity.processes.map(({ id, name, occurrenceId }) => ({ id, name, occurrenceId })),
+              workAreas: snapshot.targetSnapshot.identity.workAreas.map(({ id, name, occurrenceId }) => ({ id, name, occurrenceId, processIds: snapshot.targetSnapshot.identity.processes.filter(process => process.occurrenceId === occurrenceId).map(process => process.id) })),
+              instances: snapshot.targetSnapshot.logistics.instances.map(instance => ({ kind: instance.kind, id: instance.entityId, name: labels.get(JSON.stringify([instance.kind, instance.entityId]))! })),
+              equipment: source.equipment.map(row => ({ id: row.id, name: row.name, equipmentType: row.equipmentType,
+                equipmentTypeName: equipmentTypeNames.get(row.equipmentType) ?? row.equipmentType,
+                managementUnit: row.managementUnit, quantity: row.quantity, active: row.active, primaryProcessId: row.processId,
+                workAreaLinks: (equipmentAreas.get(row.id) ?? []).map(({ processId, occurrenceId, workAreaId }) => ({ processId, occurrenceId, workAreaId })),
+                resourceRoles: row.resourceRoles.map(({ resourceId, resourceName, role, isPrimary, active }) => ({ resourceId, resourceName, role, isPrimary, active })),
+                controlSystems: row.controlSystems.map(control => ({ ...control, systemName: labels.get(JSON.stringify(["system", control.systemId]))! })),
+              })),
+              milestones: snapshot.milestones.map(row => ({ id: row.publicId, name: row.name })),
+            }, diagnostics: ledger.diagnostics,
             fullMilestones: [...ledger.prepared.projection.gates].map(([milestoneTaskId, stageGate]) => ({ milestoneTaskId, stageGate })),
             ...(snapshot.filters.granularity ? { plan: this.renderPlan(calculated) } : {}) };
         }
@@ -333,8 +353,9 @@ export class ResourceDashboardService {
       assertResourcePlanResponseBytes(response, projection.kind === "report" ? "plan.bytes" : "detail.bytes"); return response;
     })();
   }
-  getExcelReport(publicId: string, rawOptions: ResourceExcelExportOptions): ResourceExcelReportBundle | undefined {
+  getExcelReport(publicId: string, rawOptions: ResourceExcelExportInput): ResourceExcelReportBundle | undefined {
     const options = parseResourceExcelOptions(rawOptions);
+    if (isWbsResourceExcelOptions(options)) return this.getWbsExcelReport(publicId, options);
     return this.database.transaction(() => {
       const data = readResourceDataSnapshot(this.database, publicId);
       if (!data) return undefined;
@@ -396,6 +417,41 @@ export class ResourceDashboardService {
         for (const row of assignments) row.targetSources = snapshot.domain.logistics!.resolved.get(row.taskId)!;
       }
       return { basis: options.basis, sourceContext: actual, ...(options.originalSourceContext ?? (options.basis === "current" ? options.binding?.sourceContext : undefined) ? { originalSourceContext: options.originalSourceContext ?? (options.basis === "current" ? options.binding?.sourceContext : undefined) } : {}), ...(scope ? { scope } : {}), report, plans, assignments, ...(targetData ? { targetData } : {}), quality: { scope: "T0-before-personal-filters", tasks, unsetAssignments } } as ResourceExcelReportBundle;
+    })();
+  }
+  private getWbsExcelReport(publicId: string, options: WbsResourceExcelExportOptions): ResourceExcelReportBundle | undefined {
+    return this.database.transaction(() => {
+      const expected = options.expectedReport.context;
+      const data = readResourceDataSnapshot(this.database, publicId, true);
+      if (!data) return undefined;
+      this.validateSourceContext(data, { ...expected, sourceProjection: { kind: "report" } });
+      const origin = this.queryWbsView(publicId, { spec: expected.spec, filters: options.expectedReport.filters, ...(expected.scope ? { scope: expected.scope } : {}), projection: { kind: "scope", snapshotId: expected.snapshotId, path: expected.path } }) as WbsViewScopeDto;
+      if (fingerprint(origin.sourceContext) !== fingerprint(expected)) stale();
+      const filters: ResourceDashboardFilterInput = options.basis === "current" ? options.expectedReport.filters : {
+        from: expected.range.from, to: expected.range.to, asOfDate: expected.asOfDate,
+        ...(expected.mdPerMmProvided ? { mdPerMm: expected.mdPerMm } : {}),
+      };
+      const scope = options.basis === "current" ? expected.scope : undefined;
+      const report = this.queryWbsView(publicId, { spec: expected.spec, filters, ...(scope ? { scope } : {}) }) as WbsViewReportDto | undefined;
+      if (!report) return undefined;
+      const path = options.basis === "current" ? expected.path : [];
+      const selection = this.queryWbsView(publicId, { spec: report.spec, filters, ...(scope ? { scope } : {}), projection: { kind: "scope", snapshotId: report.snapshotId, path } }) as WbsViewScopeDto;
+      if (options.basis === "current" && (report.snapshotId !== options.expectedReport.snapshotId || fingerprint(selection.sourceContext) !== fingerprint(expected))) stale();
+      if (fingerprint(report.range) !== fingerprint(expected.range) || report.asOfDate !== expected.asOfDate || report.mdPerMm !== expected.mdPerMm || report.sourceContext.mdPerMmSource !== expected.mdPerMmSource || report.sourceContext.mdPerMmProvided !== expected.mdPerMmProvided) stale();
+      const exactScope: ResourceDrillScope = { kind: "exactAssignments", assignmentIds: selection.assignmentIds };
+      const adapter = options.basis === "current" ? this.getDashboard(publicId, filters, exactScope)! : this.getDashboard(publicId, filters)!;
+      const legacyOptions: ResourceExcelExportOptions = options.basis === "current" ? {
+        basis: "current", expectedReport: { context: adapter.resourceScopeContext!, snapshotId: adapter.snapshotId, filters },
+        binding: { sourceContext: adapter.resourceScopeContext!, scope: exactScope }, granularities: options.granularities,
+      } : { basis: "project", expectedReport: { context: adapter.resourceScopeContext! }, granularities: options.granularities };
+      const bundle = this.getExcelReport(publicId, legacyOptions)!;
+      if (fingerprint([...bundle.assignments.map(row => row.assignment.assignmentId)].sort()) !== fingerprint([...selection.assignmentIds].sort())) stale();
+      const calculated = this.prepareAndSelect(publicId, filters, undefined, options.basis === "current" ? exactScope : undefined)!;
+      const projectAssignments = this.planInput(calculated).fullProjectAssignments.map((row): ResourceExcelAssignmentRow => {
+        const detail = this.detailRow(calculated.snapshot, row.taskId, row), task = calculated.snapshot.taskById.get(row.taskId)!;
+        return { ...detail, assignment: detail.assignment!, delayed: task.progress! < 100 && task.endDate! < calculated.snapshot.asOfDate };
+      });
+      return { ...bundle, wbsView: { request: options, legacyOptions, report, selection, projectAssignments } };
     })();
   }
   private planTargetContext(snapshot: NonNullable<ReturnType<ResourceDashboardService["prepareSnapshot"]>>) {
@@ -652,7 +708,7 @@ export class ResourceDashboardService {
       resources: resources.map((row) => ({ resourceId: row.publicId, name: row.name, code: row.code, groupSearchText: groups.filter((group) => group.memberResourceIds.includes(row.publicId)).map((group) => `${group.name} ${group.code ?? ""}`).join(" "), groupIds: groupIdsByResource.get(row.publicId) ?? [], roles: row.roles, developerGrade: row.developerGrade })),
       assignments: assignments.map((row) => ({ assignmentId: row.publicId, taskId: row.taskPublicId, kind: row.kind, targetId: row.targetPublicId, start: row.assignmentStart, end: row.assignmentEnd, allocationPercent: row.allocationPercent })),
       projectCalendar, calendarExceptions, maxProjectionCells: LIMITS.cells, mdPerMm: filters.mdPerMmProvided ? filters.mdPerMm : undefined, mdPerMmEnvironment: this.options.mdPerMmEnvironment,
-      filters: { ...targetFilters(filters), eligibleResourceIds, taskIds: filters.taskIds, wbsRootIds: filters.wbsRootIds, milestoneIds: filters.milestoneIds.map((id) => id === "unassigned" ? null : id),
+      filters: { ...targetFilters(filters), ...(includeParticipation ? { equipmentTypeCodes: undefined } : {}), eligibleResourceIds, taskIds: filters.taskIds, wbsRootIds: filters.wbsRootIds, milestoneIds: filters.milestoneIds.map((id) => id === "unassigned" ? null : id),
         resourceIds: filters.resourceIds, groupIds: filters.groupIds.filter((id) => id !== "ungrouped"), includeUngrouped: filters.groupIds.includes("ungrouped"),
         roles: filters.roles, developerGrades: filters.developerGrades, statuses: filters.statuses, search: filters.search, taskSearch: filters.taskSearch } }));
     const snapshotId = fingerprint({ dataSnapshotId: rawData.context.dataSnapshotId, filters: { ...filters, mode: undefined, granularity: undefined, projectionOrder: undefined }, from, to, asOfDate, mdPerMm: domain.mdPerMm });

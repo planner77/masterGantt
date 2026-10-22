@@ -1,3 +1,41 @@
+## Issue #770 — 최신 main 동기화 및 8샤드 Full PR CI 재검증 (2026-10-22)
+
+#770/PR #774의 [Full #3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)은 과거 base·6개 Chromium shard에서 PASS했으나 이후 main이 #767 8-shard로 전환해 branch가 10 commits stale / mergeable false이다. 최신 main `81c28fa5502caee27e98d4d293b0b1b28e6340dd`을 병합해 충돌을 해소하고 #770 Shadow가 **trusted shard plan 8개**를 관측하도록 동기화한다.
+
+- 새 PR Head에서 `policy` Job의 `tests/python/test_ci_impact_plan.py`(8-shard 성공/6-shard 거부/불명확 계획 UNKNOWN), Chromium **실제 8/8** Job 및 Quality/Docker required와 Trusted QA가 새 source SHA/base/test-merge에 귀속되는지 검증한다.
+- 리뷰 thread=0, GitHub mergeable=true, 최신 main strict 및 Owner HIGH 허가 이전 병합 금지. 실패 원장에는 #3105 성공과 이번 main drift를 **서로 다른 사건**으로 보존한다. 사용자가 요청하지 않은 PR 이후 CI 결과 모니터링·Main/GHCR/Release는 실행하지 않는다.
+- [실패/동기화 원장](ISSUE_770_FAILURE_ANALYSIS.md), [Work Packet](exec-plans/active/ISSUE_770.md).
+
+## Issue #770 — PR #774 REWORK 원격 검증 (2026-10-22)
+
+- #3101.1 원본 QA Preflight가 메타데이터/AC 식별자에서 실패하여 Full E2E/Unit/Docker는 SKIPPED, #3103.1 metadata-only는 이전 Full FAIL을 검증하여 의도대로 실패했다.
+- PR body와 Issue AC를 정규화하고 P1 large Node argv→stdin, P2 정상 skipped-spec timing 별도 증거를 교정하여 새 커밋에 합친다. Python smoke는 >200KB actual test inventory, reporter skipped/pass/invalid 증거를 포함한다.
+- push 이후 정확 새 PR Head/base/test-merge Full Quality/E2E6/Docker + default-main Trusted QA, no unresolved review, 최신 main/충돌 여부 확인과 Owner HIGH 수용 필수. 과거 metadata-only PASS 또는 Shadow 추천으로 우회 금지.
+- CI 실행 후 지속 모니터링은 요청에 따라 하지 않는다. 상세 Run/Job/원인/미검증은 [#770 원장](ISSUE_770_FAILURE_ANALYSIS.md).
+
+
+---
+
+## Issue #770 — 신뢰된 Shadow 출처와 원격 full-check 수용 (2026-10-22)
+
+[#770](exec-plans/active/ISSUE_770.md) 구현 PR은 정책 파일·`.github/workflows/ci.yml` 자체를 수정하므로 HIGH/OWNER_MANAGED이며, 변경 헤드의 기존 Quality/Chromium six shards/Docker **전체** PR CI를 통과한 뒤 default-main Trusted QA, 0 review threads와 명시적 Owner 위험 수용을 추가로 충족해야 한다. **Shadow `FAST_TARGETED`/`DOCS_VERIFIED`는 Required PASS가 아니며 병합 권한이 아니다.**
+
+- Introducing PR: 신뢰된 base에 새 스크립트가 없으므로 Shadow Job은 `TRUSTED_BASE_POLICY_NOT_INSTALLED`/`NOT_TESTED`을 artifact/summary에 기록한다. 이 부재는 차단 Job의 실패가 아닌 안전한 미실행 상태이며, 새로운 판정기로 같은 PR을 스스로 승인하지 않는다.
+- 후속 PR/Main: `ci-impact-shadow-<run>-<attempt>`가 PR/head/base/actual test-merge·trusted SHA/diff fingerprint, test plan hash/selected/excluded file IDs, 소스/Job 상태를 정확히 보존하는지 확인한다. 동등 경로에서 변경된 HEAD/Base, PR edited, 실패/취소된 six-shard, artifact 누락/만료, 권한/zip 오류는 `UNKNOWN/NOT_TESTED`, 과거 PASS로 덮지 않는다.
+- Shadow에서 actual six-shard의 Unit/Chromium test file inventory와 skipped/unknown 범위, E2E timing ZIP의 실제 passed test entry를 대조하지만 ZIP이 PR 코드의 산출물임을 인정한다. 비용은 공인 job timestamps의 여섯 shard elapsed Runner-minutes, wall-clock span, reporter test-body 상한을 구분한다. 효과는 동일 모집단·인프라와 충분한 표본을 확보한 뒤 별도로 검증.
+- 현재 #770 Work Packet의 과거 10개 성공 Full metadata는 Job 이름/결론·artifact 목록까지 검사했으나 ZIP 내 exact source/test-merge/파일 변경/시간까지 인증하지 못했으므로 false-negative·절감률/분류 정밀도 **INSUFFICIENT_DATA**. 과거 실패 재생은 동일 출처·테스트 집합을 확보하기 전 유의미한 수치로 주장하지 않는다.
+- Python `tests/python/test_ci_impact_plan.py` negative tests는 PR Policy Job의 필수 단계이며 Unit/Playwright/QA·Release를 대신하지 않는다. 이 PR에서는 병합, Main, 정식 GHCR, 태그, 최종 이슈 종료를 수행하지 않는다.
+
+---
+
+## Issue #767 — 최신 8-Shard PR/Main/Release 확인 기준 (2026-10-22)
+
+- Owner 승인으로 현행 E2E **8 shards**, worker1/35m, 기존 136 spec·791 test 전수 유지. 이전 문서의 `6/6` 표시·당시 CI는 역사적 source이며 신규 Head의 성능/Quality PASS로 간주하지 않는다.
+- 원격 확인: PR Full `Chromium E2E shard 1/8 · PR`~`8/8 · PR` + Required `Chromium end-to-end tests`, `Build, static checks, and unit tests`, `Docker build and runtime smoke test` 3종, default-main Trusted QA, 정확 `PR/Head/Base/Test-Merge/Run ID/Attempt`. Main/Release도 `1/8`~`8/8` 및 `--total 8`/timing ShardCount8/fallback8 동기화. `tests/config/e2e-shard-plan.json` Source Git Tree 136개와 8×17의 단일 배치가 필수.
+- Timeout이 또 발생하면 `F767-001~007` 누적 원장 전체 및 `#751` fixture 단계 계측 근거와 `#752` 안전한 반복 진단을 대조하고, fail-fast/retry/skip/timeout 상향·임의 assertion 삭제/미완료 자동 PASS 금지. `release_authorized=false`로 공식 GHCR 발행은 별도 승인 필요.
+
+---
+
 ## Issue #751 — F-009 Playwright browser terminal E2E 증거 계약 (2026-10-20)
 
 - 원본 [#3031.1](https://github.com/planner77/masterGantt/actions/runs/39324488213) Run39324488213 attempt1 Head `4aa0619b39e0bfd9c876a84e74e9e0f4c7d00757` Shard5 `118307697128`: #622 Focus/투입률/Excel 성공 후 신규 #751 HTTP receipt Expected>=2 complete, Actual1 FAIL. 원본 E2E Timing `12221842831`, Playwright Report `12221287851` 보존. 어떤 Raw HAR/Trace도 Git에 커밋하지 않는다.
@@ -978,3 +1016,10 @@ CI #2820.1의 Required quality/Docker는 PASS, E2E는 FAIL이었다. 실제 음�
 같은 최종 PR에서 Head/base/test-merge, Full CI Run ID/Attempt/event 및 Quality/E2E/Docker 실행 경로를 확인한다. default-main Trusted QA, metadata/docs-only/fork의 원격 동작과 최종 Owner 판단은 해당 실제 증거가 있어야 판정한다. 이전 Head의 PASS·새 도구의 로컬 PASS·Run 생성만으로 MERGE_READY를 인정하지 않는다.
 
 사용자 범위가 PR CI 시작까지이면 queue/in_progress 생성 snapshot을 확인하고 모니터링을 종료한다. 완료 결과·실제 Runner 분/큐·최종 wall-clock·전후 비용 비교는 NOT TESTED로 인계한다. 권한 만료/도구 차단/partial write/경합 fixture와 실제 원격 실패를 분리하고 응답 불명확 시 재시도보다 read-back을 우선한다.
+
+
+## Issue #734 · Full #3078.1 배치 계약 실패와 재검증 (2026-10-21)
+
+[PR #759 Full #3078.1](https://github.com/planner77/masterGantt/actions/runs/39517277420)의 Vitest strict inventory 검사가 신규 `issue-734-equipment-dashboard.spec.ts`의 명시 shard 누락(135 vs136)을 검출했다. 실제 E2E/build/Docker는 Fast Gate 차단으로 SKIPPED이며 세 Required/QA 실패는 파생 결과다. 전체 이전 여섯 실패·이번 provenance/원인/보완 및 검증은 [#734 단일 누적 원장](ISSUE_734_FAILURE_ANALYSIS.md#9-f734-007--full-30781-main-통합-후-신규-e2e-명시-배치-누락-2026-10-21)을 따른다.
+
+신규 파일만 shard6에 명시하고 기존135개 배치 및 역사적 시간/수동 배치 기록은 보존한다. 현재136개 발견파일 전체의 유일배치와 #734→6 고정 회귀를 검사한다. 신규 case setup/runtime 비용은 기존 projectedMs에 반영됐다고 주장하지 않는다. 기존6-shard·worker1·35분/Required3·단언·retry/skip·fail-fast는 불변이다. 로컬 동일 실패 재현 후 planner/config/읽기 전용 음성·resources server/consumer의31파일354검사가 PASS했다. 과거 실패 E2E 합집합3파일15case를 fail-fast없이 실행해 로컬 PASS했고 실제 명령/source fingerprint·잘못된 harness 시도 및 캡처 보존 예외를 원장에 남겼다. 타입/scoped lint/문서 링크·발견 검사도 PASS했으며 자동 PrePR UNKNOWN5는 BLOCKED를 유지한다. 새 정확 Head Full PR CI 시작 후 결과 모니터링은 수행하지 않으며 quality/e2e/docker·Trusted QA/Owner 최종 결과는 NOT TESTED다.

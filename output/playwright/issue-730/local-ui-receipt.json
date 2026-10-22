@@ -1,0 +1,329 @@
+{
+  "schema": "issue-730-local-ui/1",
+  "issue": 730,
+  "generatedAtUtc": "2026-10-19T07:12:47.911237+00:00",
+  "scope": "로컬 브라우저 검증 영수증이다. 원격 CI·독립 업무 QA·Manager ACCEPT를 대신하지 않는다.",
+  "uniqueCases": 11,
+  "repeatedRunsDoNotIncreaseUniqueCount": true,
+  "environment": {
+    "project": "chromium",
+    "playwright": "1.63.0",
+    "node": "22.14.0",
+    "platform": "linux",
+    "fixture": "각 실제 HTTP 케이스마다 별도 Next 개발서버와 임시 SQLite를 사용한다. 기존 작업공간 모형 케이스는 모형 UI 검증으로 구분한다.",
+    "touch": "Chromium hasTouch 에뮬레이션이며 실물 기기 검증이 아니다."
+  },
+  "broadValidation": {
+    "status": "PASS",
+    "sourceStable": true,
+    "checkedProductFiles": 85,
+    "sourceFingerprintSha256": "1a9b4c977609564a40c12063196d846a248966977d4574f1b83d4126a9520356",
+    "runs": [
+      {
+        "caseStatus": "PASS",
+        "passed": 5,
+        "failed": 0,
+        "processExitCode": 0,
+        "sourceStable": true,
+        "explanation": "신규 공통 조회 5개 케이스. 5폭 표 화면·44×44 조작 영역·실제 원본 저장을 포함한다.",
+        "cases": [
+          {
+            "file": "tests/e2e/issue-730-view-composer.spec.ts",
+            "title": "#730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 복원·Gantt 보존",
+            "status": "PASS",
+            "durationMs": 37765
+          },
+          {
+            "file": "tests/e2e/issue-730-view-composer.spec.ts",
+            "title": "#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차단·구버전 설정 복구",
+            "status": "PASS",
+            "durationMs": 33131
+          },
+          {
+            "file": "tests/e2e/issue-730-view-composer.spec.ts",
+            "title": "#730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키보드·읽기 전용 가상 그룹",
+            "status": "PASS",
+            "durationMs": 39595
+          },
+          {
+            "file": "tests/e2e/issue-730-view-composer.spec.ts",
+            "title": "#730 실제 HTTP Milestone·리소스·WorkArea 원본 ID와 취소 후 정확한 조회 복귀",
+            "status": "PASS",
+            "durationMs": 31211
+          },
+          {
+            "file": "tests/e2e/issue-730-view-composer.spec.ts",
+            "title": "#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관점 보존",
+            "status": "PASS",
+            "durationMs": 25481
+          }
+        ],
+        "reportedSummary": "5 passed (4.4m)"
+      },
+      {
+        "caseStatus": "PASS",
+        "passed": 6,
+        "failed": 0,
+        "processExitCode": 0,
+        "sourceStable": true,
+        "explanation": "기존 물류 통합·Milestone·작업공간·Resource 기능 6개 케이스. 기존 검증을 유지하고 정확한 POST 조회만 업무 쓰기 집계에서 제외했다.",
+        "cases": [
+          {
+            "file": "tests/e2e/issue-624-logistics-unified.spec.ts",
+            "title": "#624 same canonical Project across four logistics perspectives, full Milestone gate, exact drill and five widths",
+            "status": "PASS",
+            "durationMs": 36971
+          },
+          {
+            "file": "tests/e2e/milestone-wbs-mode.spec.ts",
+            "title": "#552 explicit WBS mode rollback preserves canonical data with marker effects OFF",
+            "status": "PASS",
+            "durationMs": 5701
+          },
+          {
+            "file": "tests/e2e/project-workspace-tabs-518.spec.ts",
+            "title": "#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5폭 tab geometry",
+            "status": "PASS",
+            "durationMs": 13969
+          },
+          {
+            "file": "tests/e2e/project-workspace-tabs-518.spec.ts",
+            "title": "#724 exact screen·legacy URL·저장된 보기와 Resource 관리자 경계",
+            "status": "PASS",
+            "durationMs": 7781
+          },
+          {
+            "file": "tests/e2e/project-workspace-tabs-518.spec.ts",
+            "title": "#724 auxiliary screen selection has one accessible secondary tab",
+            "status": "PASS",
+            "durationMs": 6445
+          },
+          {
+            "file": "tests/e2e/resource-dashboard-ui.spec.ts",
+            "title": "#525 실제 비빈 SQLite/HTTP 공동 Task·중첩 분류·미설정·진단·snapshot 복구",
+            "status": "PASS",
+            "durationMs": 17139
+          }
+        ],
+        "reportedSummary": "6 passed (2.1m)"
+      }
+    ]
+  },
+  "broadSourceVsFinalDelta": {
+    "changedFiles": [
+      "src/features/logistics/project-logistics-management.tsx",
+      "src/features/logistics/project-logistics-unified.tsx",
+      "src/features/projects/project-readonly-view.tsx",
+      "src/features/resources/wbs-view-dashboard.tsx",
+      "src/features/resources/wbs-view-details.tsx"
+    ],
+    "finalSourceFingerprintSha256": "9767a2adf95337a2939565b560a74231b73a00719847f7237ad8e1b097f35c5b",
+    "explanation": "실제 Task 저장 후 느린 응답에서 focus 복귀 실패를 수정했다. 실제 trigger 전달, 안정적인 상세 식별, 현재 report/detail 영수증 관측 대기, 정확한 Resource 방문 소유자 선택을 보완했다. 앞선 11개 전체가 최종 변경 뒤 동일 소스로 다시 실행됐다고 주장하지 않는다."
+  },
+  "saveFocusRegression": {
+    "before": {
+      "status": "FAIL",
+      "processExitCode": 1,
+      "delayedReportFrames": 32,
+      "explanation": "구현 이전 실제 원본 저장 뒤 새 Task 원본 버튼은 존재하고 활성 상태였지만 focus가 돌아오지 않았다."
+    },
+    "after": {
+      "status": "PASS",
+      "delayedReportFrames": 160,
+      "explanation": "고정 24/120 RAF 창을 넘는 실제 응답 지연 후 새 snapshot·원본 이름·선택 관점과 정확한 Task 원본 focus를 확인했다.",
+      "case": {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "title": "#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관점 보존",
+        "status": "PASS",
+        "durationMs": 30586
+      },
+      "isolatedServerStartedAtKst": "2026-10-19T16:07:35+09:00",
+      "lastOwnerSourceModifiedAtKst": "2026-10-19T16:06:12.225752993+09:00",
+      "intermediateFingerprintMatchesEnd": true,
+      "boundary": "이 케이스 시작 직전 전체 지문은 별도 수집하지 않았다. 최종 변경 이후 새 서버 시작 관측과 중간·종료 지문 일치를 구분하여 기록한다."
+    }
+  },
+  "followupThree": {
+    "caseStatus": "PASS",
+    "passed": 3,
+    "failed": 0,
+    "processExitCode": 0,
+    "sourceStable": false,
+    "explanation": "실행 중 Resource 방문 소유자 선택 코드가 변경되었으므로 이 실행 전체를 동일 소스 PASS로 판정하지 않는다. 저장 케이스는 최종 변경 이후 새 격리 서버에서 실행했다.",
+    "cases": [
+      {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "title": "#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차단·구버전 설정 복구",
+        "status": "PASS",
+        "durationMs": 31947
+      },
+      {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "title": "#730 실제 HTTP Milestone·리소스·WorkArea 원본 ID와 취소 후 정확한 조회 복귀",
+        "status": "PASS",
+        "durationMs": 29429
+      },
+      {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "title": "#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관점 보존",
+        "status": "PASS",
+        "durationMs": 30586
+      }
+    ],
+    "reportedSummary": "3 passed (2.5m)"
+  },
+  "finalFrozenFocusTwo": {
+    "caseStatus": "PASS",
+    "passed": 2,
+    "failed": 0,
+    "processExitCode": 0,
+    "sourceStable": true,
+    "explanation": "최종 동결 소스에서 취소·일정 복귀 및 Milestone/Resource/WorkArea 원본 복귀를 재검증했다.",
+    "cases": [
+      {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "title": "#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차단·구버전 설정 복구",
+        "status": "PASS",
+        "durationMs": 30430
+      },
+      {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "title": "#730 실제 HTTP Milestone·리소스·WorkArea 원본 ID와 취소 후 정확한 조회 복귀",
+        "status": "PASS",
+        "durationMs": 27710
+      }
+    ],
+    "reportedSummary": "2 passed (1.6m)"
+  },
+  "earlierCombinedProcessLimitation": {
+    "cases": "PASS",
+    "passed": 10,
+    "reportedDuration": "5.2m",
+    "processExitCode": 143,
+    "processStatus": "FAIL",
+    "cause": "확인되지 않음",
+    "explanation": "모든 케이스 PASS와 last-run passed 이후 명령 프로세스가 143으로 끝났다. 이를 정상 종료 PASS로 표시하지 않는다. 이후 5개·6개 묶음은 각각 종료 코드 0을 확인했다."
+  },
+  "geometry": [
+    {
+      "width": 390,
+      "documentOverflowPx": 0,
+      "minimumButtonWidthPx": 44,
+      "minimumButtonHeightPx": 44,
+      "tableScroll": {
+        "width": 364,
+        "content": 772,
+        "overflow": "auto"
+      },
+      "headerCellWidthBudget": [
+        220,
+        144,
+        88,
+        88,
+        88,
+        144
+      ],
+      "screenshot": "composer-390.png",
+      "measurement": "geometry-390.json"
+    },
+    {
+      "width": 768,
+      "documentOverflowPx": 0,
+      "minimumButtonWidthPx": 44,
+      "minimumButtonHeightPx": 44,
+      "tableScroll": {
+        "width": 718,
+        "content": 832,
+        "overflow": "auto"
+      },
+      "headerCellWidthBudget": [
+        280,
+        144,
+        88,
+        88,
+        88,
+        144
+      ],
+      "screenshot": "composer-768.png",
+      "measurement": "geometry-768.json"
+    },
+    {
+      "width": 1024,
+      "documentOverflowPx": 0,
+      "minimumButtonWidthPx": 44,
+      "minimumButtonHeightPx": 44,
+      "tableScroll": {
+        "width": 974,
+        "content": 974,
+        "overflow": "auto"
+      },
+      "headerCellWidthBudget": [
+        422,
+        144,
+        88,
+        88,
+        88,
+        144
+      ],
+      "screenshot": "composer-1024.png",
+      "measurement": "geometry-1024.json"
+    },
+    {
+      "width": 1440,
+      "documentOverflowPx": 0,
+      "minimumButtonWidthPx": 44,
+      "minimumButtonHeightPx": 44,
+      "tableScroll": {
+        "width": 1390,
+        "content": 1390,
+        "overflow": "auto"
+      },
+      "headerCellWidthBudget": [
+        838,
+        144,
+        88,
+        88,
+        88,
+        144
+      ],
+      "screenshot": "composer-1440.png",
+      "measurement": "geometry-1440.json"
+    },
+    {
+      "width": 1920,
+      "documentOverflowPx": 0,
+      "minimumButtonWidthPx": 44,
+      "minimumButtonHeightPx": 44,
+      "tableScroll": {
+        "width": 1438,
+        "content": 1438,
+        "overflow": "auto"
+      },
+      "headerCellWidthBudget": [
+        886,
+        144,
+        88,
+        88,
+        88,
+        144
+      ],
+      "screenshot": "composer-1920.png",
+      "measurement": "geometry-1920.json"
+    }
+  ],
+  "negativeScenarioBoundary": "성공한 report/details/scope 및 업무 저장은 실제 HTTP/SQLite 응답이다. 409·503·변조 revision은 명시적인 오류 주입이며, 응답 역전·저장 갱신 지연은 실제 응답을 보류해 검증했다.",
+  "notTested": [
+    "상세 50개 초과의 실제 페이지 이동 클릭",
+    "실물 터치 기기",
+    "독립 의미·업무 QA와 Manager 최종 승인",
+    "검토 대상 Head의 원격 quality/e2e/docker 완료 결과"
+  ],
+  "cleanup": {
+    "ownedNextProcessesRemaining": 0,
+    "isolatedOutputDirectoriesRemaining": 0,
+    "isolatedDatabaseDirectoriesRemaining": 0,
+    "explanation": "중단된 진단 서버의 정확한 PID/PGID와 경로를 확인해 종료했고 해당 임시 출력과 DB만 정리했다. 정상 케이스 서버도 종료를 확인했다."
+  },
+  "rawDiagnostics": "원시 trace·실행 로그·오류 문맥은 Git에서 제외되는 .prepr-reports/issue-730/browser-diagnostics/에 보존한다.",
+  "sourceManifestMeaning": "제품 작업 트리 파일 SHA256 지문이다. GitHub 실행 출처나 Commit SHA 인증으로 사용하지 않는다."
+}

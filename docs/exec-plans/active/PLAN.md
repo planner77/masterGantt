@@ -1,6 +1,153 @@
+## Issue #770 — #767 8-shard 최신 main 정렬 (2026-10-22)
+
+기존 #770 PR #774 [Full #3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)은 6/6/Required3 PASS. 최신 main `81c28fa5502caee27e98d4d293b0b1b28e6340dd`은 #767 8-shard·앱0.129.1 포함 10커밋 진전, PR stale/mergeable=false. 기존 FAIL/성공 기록을 불변으로 유지한 채 main을 병합하고 #770 Shadow가 trusted plan의 8 shards를 감시하도록 코드/회귀를 동기화. 그 외 #767 제품·QA·Release·Shard 변경 전부 보존. [#770 실패·정렬 원장](../../ISSUE_770_FAILURE_ANALYSIS.md) 및 [Work Packet](ISSUE_770.md) 참조. 새 exact Head Full E2E8/8/Quality/Docker·Trusted QA는 NOT TESTED, Owner HIGH 별도 승인 전 병합·GHCR·Issue 종료 금지.
+
+## Issue #770 — #3101.1 Full 및 #3103.1 Metadata 실패 REWORK (2026-10-22)
+
+원인: PR 독립 QA 선언 및 Primary Issue AC1..AC7 표기 불일치로 기존 trusted Preflight/QA bootstrap 실패 → E2E6/Unit/Docker SKIPPED. PR metadata 교정 후 metadata-only CI는 이전 Full FAIL로 정상 차단. 동일 Issue 누적 원장 `docs/ISSUE_770_FAILURE_ANALYSIS.md` 기록. Review P1 large Node argv를 stdin으로, P2 기존 passed-only timing에서 빠진 legitimate skip은 skippedFiles/skippedCaseCount로 분리. 기존 CI/QA/Full/Owner/Release 계약 불변이며 새 Head Full PR CI 시작까지만 진행, 모니터링·병합·GHCR 금지.
+
+
+---
+
+## Issue #770 — P0-A trusted CI 영향 판정과 Shadow 준비 (2026-10-22)
+
+Baseline main `71f9b9ddb61be7f6e076accc027188f362e18bb1`, branch `ci/issue-770-trusted-impact-shadow`. #769 Phase A 선행 #697/#699/#437 재사용. 신규 코드 `scripts/ci_impact_plan.py`, `tests/python/test_ci_impact_plan.py` 및 기존 Full PR/Main/Required3 보호를 유지한 비차단 `.github/workflows/ci.yml impact_shadow` 추가. 첫 도입 PR base 정책 없음 → Shadow `NOT_TESTED` bootstrap(자가 승인 방지). [정식 Work Packet](ISSUE_770.md)에 10건 historical full run의 Job 통과 표본, 원본 artifact 미교차검증·시간/false-negative `INSUFFICIENT_DATA`, AC1~7/DOCUMENTATION_SYNC 및 정확 출처/QA/위험 기록 유지. application `0.129.0` 유지, HIGH/OWNER_MANAGED/qa_required=true/manager_decision=NOT TESTED, release_required=false/release_authorized=false. 현재 PR CI 시작까지만 승인, 모니터링·병합·GHCR·정식 릴리스·이슈 종료 금지.
+
+---
+
+## Issue #767 — F767-007 Shard5 35분 취소·Owner 승인 8-Shard Full PR CI (2026-10-22)
+
+[원본 #3099.1 / Run39676585856](https://github.com/planner77/masterGantt/actions/runs/39676585856) Head `60d69b88aa990cb03fd827090e90ed365c86bb11`: Shard5 94/109 PASS 뒤 35.35m Job Timeout 취소, 15 미완료. 다른 5Shards/Quality/Docker SUCCESS; E2E aggregate/QA FAIL. 과거 F767-001~006의 사전 정책/Artifact/Shard6→1→6 문제와 분류하고 [F767-007](../../ISSUE_767_FAILURE_ANALYSIS.md)에 Job·Case/원인·회귀 비교를 누적. 동일 테스트 87건의 body≈12.35→19.48m(+58%) 환경편차도 전파하되 지역 단독 원인 확정 금지.
+
+기존 Issue #767 Owner 후속 명령으로 **PR/Main/Release 8Shards**, Source 실제 136spec·원본 791 test 계속 실행. #3097~3099 파일별 MAX 완료 body+인접 결과 간격 추정 LPT 8×17 spec, 샤드당 관측 최대치≈21.1m(비보증). Workflow PR/Main/Release/Optimizer/selector 및 Unit/PR Python/Release lifecycle 정적 계약·AGENTS/TEST_PLAN/CI_CD/REMOTE_VALIDATION 동기화. #639 역사 Main 6샤드 복구 검증은 당시 원본을 보존. Worker1/35m/Retry0/FailFast/Required3/Trusted/Owner High/릴리스 승인 불변.
+
+새 PR #768 Head의 Full 8/8·Required3 및 default-main QA 성공 전 `NOT TESTED`, `MERGE_READY=BLOCKED`, `release_required=true/release_authorized=false`. PR CI 시작까지만, 병합/Main/GHCR 게시 및 이슈 종료 미실시.
+
+---
+
+## Issue #767 — #3098.1 Timeout F767-006 · 영향 기반 검증 후 1회 Full PR 검증 (2026-10-22)
+
+[원본 #3098.1 Run39665459118](https://github.com/planner77/masterGantt/actions/runs/39665459118): exact Head `26364cce865189122318a49e68f86bcb0f468270`, E2E Shard6 159 중153 PASS 후 35.30분 취소(6 미완료), 다른5 Shard/Quality/Docker SUCCESS, E2E aggregate/QA Final 미성공. 과거 F767-001/002 문서 원인 PASS, F767-003 Shard6 job35m 및 F767-005 Shard1 job35m 이동 오류의 전체 흐름을 [F767-006 원장](../../ISSUE_767_FAILURE_ANALYSIS.md)과 Work Packet/TEST_PLAN에 누적. 예상26.71m 대비 실제35.30m였던 이유는 test-body만 이전하고 파일별 호출·Fixture·서버 시작/정리 전후 비시험 약10.3m를 충분히 고려하지 않은 데 있다(하위 단계의 exact 원인은 #751에서 계측). #3098 기존 소스의 #621(6), #530(7), Editor(33), 권한(2) **48개 영향 선택 E2E 모두 PASS**; 이러한 이력은 새 Head 공식 PASS가 아님.
+
+**최소 재분배**: 실측 파일 전체 관측 간격으로 E2E 파일4개 이동: #734 6→1, #621 6→3, 물류 Target authoring 6→5, #623 Resource MVP 2→1. `tests/config/e2e-shard-plan.json` + `tests/scripts/e2e-shard-planner.test.ts`의 기대값 동시 수정, 136 유일 spec/6Shard/worker1/35min/Required3/Trusted/Owner HIGH 보호 불변. 정적 예상 wall [26.49,23.16,25.89,25.05,26.99,20.32]m, 러너 상황·미실행 6cases 편차로 검증되지 않은 가설. 영향 기반 진단을 마친 뒤 한 PR commit push로 최종 Full PR CI 시작, 병합/Main·GHCR·Finalizer/Issue 종료는 별도 승인·원격 증거 이후. 단발 실행 실패 시 무조건 PR CI 재시작하지 않고 #752 경로 및 기존 원장 기반 근본 분석.
+
+---
+
+## Issue #767 — F767-005 Full #3097.1 Shard1 35분 취소 및 전체 재분배 (2026-10-22)
+
+[CI Run39658647821, attempt1](https://github.com/planner77/masterGantt/actions/runs/39658647821), HEAD `aaf9ddaab3b1092b6b8cd3f33251928f9bab0e5a`: Preflight/Quality/Docker/Shards2~6 성공, Shard1 121 중 119 PASS 후 35.28m CANCELLED(남은 2case NOT TESTED). E2E required/QA Final FAIL 및 원본 Run CANCELLED. F767-001/002 정책 및 F767-004 artifact 전송은 이번에 재발하지 않음. Shard2/3/4 실행이 각각31.62/31.35/30.60m로 35m에 근접하여 Shard1 단독 조정만으로는 리스크 감소가 충분하지 않음.
+
+[단일 원장 F767-005](../../ISSUE_767_FAILURE_ANALYSIS.md), [Work Packet](ISSUE_767.md), TEST_PLAN에 따라 완전 E2E spec 6개 재배치: 1→6(issue-734-equipment-dashboard,project-transfer-layout-491,logistics-target-authoring), 2→5(issue-730-view-composer), 3→6(issue-621-resource-target), 4→5(issue-735-system-dashboard). Unit 고정 expected 배치 동시 수정, 원본 136 E2E spec 유일 배치 보존. 기존 `manualRebalance767`과 과거 source metrics는 history로 유지하고 새 `manualRebalance767F005` 별도 추가. 정적 test-body 이동으로 예측한 [25.75,28.35,28.30,26.56,26.21,26.71]m는 미완료 2 case/Fixture·시스템 오버헤드 불명, 실제 원격 CI로 증명 필요.
+
+제품 Source/테스트 단언/6샤드/worker1/35m/PR fail-fast/Required3/default-main Trusted QA/Timeout·Retry·Skip·QA·Release 정책 불변. 새 exact PR Head Full CI 시작 후 결과 NOT TESTED, Owner HIGH 수용·`MERGE_READY=BLOCKED`, formal v0.129.1 `release_authorized=false`. Main 병합·GHCR 태그/이미지·Issue 종료 진행하지 않음.
+
+---
+
+## Issue #767 — PR #768 Full #3096.1 Artifact 업로드 오류 및 F767-004 재검증 (2026-10-22)
+
+[Run 39619154900 / attempt1](https://github.com/planner77/masterGantt/actions/runs/39619154900), Head `305a6897d56b40e89da639726401b77458e4475d`: F767-001 AC/F767-002 DOC_SYNC 문제는 Preflight PASS; F767-003 Shard6 Job Timeout은 재분배 후 Shard6 130/130 E2E 14.8분 PASS로 개별 재발 없음. 그러나 timing artifact `CreateArtifact ECONNRESET`으로 Shard6 Job FAILURE, 나머지5 Shard CANCELLED, E2E required FAIL/QA Final BLOCKED. 동일 Shard의 다른 Artifact 2개는 정상 업로드되어 네트워크 전송 경로의 간헐적인 문제로 분류하지만 정확한 하위 원인은 UNKNOWN. [F767-004](../../ISSUE_767_FAILURE_ANALYSIS.md) 원장에 Run/Job/Artifact/QA snapshot·미검증을 누적한다.
+
+제품·단언·CI·6-shard/35m/Retry/Skip·Shard plan 136 spec 및 Package PATCH 0.129.1은 그대로 보존한다. 문서 4개만 갱신하고 새 exact Head Full PR CI를 시작하여 취소된 다섯 Shard까지 완주시키는 것이 현 단계의 안전한 복구 경로. Artifact error 반복 시 API·Artifact identity/immutable 여부를 조사하여 보호된 CI의 bounded fail-closed upload retry는 별도 검토한다. 현재 Trusted QA/Owner HIGH 승인/정식 GHCR `v0.129.1` 권한 미확정, `release_authorized=false`, `MERGE_READY=BLOCKED` 유지.
+
+---
+
+## Issue #767 — PR #768 Full #3095.1 E2E6 35분 취소 및 F767-003 단일 원장 보완 (2026-10-21)
+
+[Run #3095.1](https://github.com/planner77/masterGantt/actions/runs/39611062916), Head `d762cecbe00d60d26ce301f4d59b36f05a1d76f2`: QA Preflight/Quality/Docker/E2E Shard1~5 성공, Shard6 173/174 테스트 통과 뒤 35분 Job Timeout에서 CANCELLED, 전체 원본 CANCELLED·E2E/QA aggregate FAIL. `F767-001`/`F767-002`는 이번 Preflight PASS. [원장 F767-003](../../ISSUE_767_FAILURE_ANALYSIS.md)과 [Work Packet](ISSUE_767.md)에서 source/Jobs/시간/미완료 Case를 보존하고 테스트 배치만 6→1 설비 Dashboard(8,≈5.31m), 6→3 Task Editor(33,≈3.58m), 6→4 Task Logistics(3,≈2.81m)로 수정한다. #765 때 고정 기대값 불일치로 Unit 실패한 전례를 참조하여 `tests/scripts/e2e-shard-planner.test.ts` 기대값도 동시에 갱신.
+
+명시된 136개 E2E spec은 하나도 제거/중복 배치하지 않고 6 Shard/worker1/35m/PR fail-fast/Required3/QA/Trusted 유지. 추정 Job wall은 24.36/29.87/25.85/28.08/25.37/23.67분이며 원격 PASS 보증이 아니다. Test/제품/CI·Finalizer/Owner 정식 게시 권한 불변. 새 PR Head Full CI 시작만 요청 범위이며 병합/정식 GHCR/Issue 종료는 `release_authorized=false` 및 새 증거 부재로 BLOCKED.
+
+---
+
+## Issue #767 — #764 후속 교정 코드 승계 및 v0.129.1 PATCH 준비 (2026-10-21)
+
+Owner가 “권고안에 따라 교정 릴리스로 정리 후 병합” 지시. Issue #736과 #765는 이미 CLOSED/FINAL이므로 PR 제목·본문의 canonical `Refs` 및 브랜치 `issue-<n>` 일치 규칙에 따라 신규 #767을 Primary로 사용한다. 원본 PR #764(Head `5abc658...`, Full [#3092.1](https://github.com/planner77/masterGantt/actions/runs/39602089760), Trusted [#734.1](https://github.com/planner77/masterGantt/actions/runs/39607021968)) 수정 코드/7파일 및 원장·계획 3파일의 3-way 합성 기록을 복사하되 기존 #765 본문과 실패/복구 증거는 보존. `package/lock 0.129.1` 3곳, CHANGELOG/TEST_PLAN/[ISSUE_767](ISSUE_767.md)/[원장](../../ISSUE_767_FAILURE_ANALYSIS.md)을 동기화한다.
+
+구 버전 `v0.127.0/v0.128.0` 미발행 퇴역과 `v0.129.0` immutable GHCR/태그/Finalizer 완료 결과 불변. HIGH/OWNER_MANAGED, `qa_required=true`, `release_required=true`, `release_authorized=false` (정식 게시 별도 명시 승인 필요). 새 exact PR Head Full Required Quality/Chromium6/Docker, Trusted QA 및 review thread0, strict main 검증 후에만 Owner HIGH 잔여 위험 수용 기록/병합. Merge commit canonical 한글 제목 및 빈 body, 두 부모와 test merge tree 검증 필수. 게시·이슈 종료는 새 Main/릴리스 증거 확보 전 NOT TESTED. 기존 PR #764는 새 PR이 원본 변경을 전부 보존한 뒤 사유 기록하여 미병합 종료, 원본 SHA/Run/기존 실패 원장 불변.
+
+---
+
+## Issue #765 — PR #766 CI #3085.1 Unit 테스트 Shard 명시 배치 교정 (2026-10-21)
+
+F765-001(DOC_SYNC), F765-002(Python source marker), F765-003(Shard5 35분 취소)에 이어 [F765-004](../../ISSUE_765_FAILURE_ANALYSIS.md): PR Full #3085.1에서 Vitest 3159 PASS/1 FAIL; #3084의 4파일 E2E 배치 변경을 인접 소비자 tests/scripts/e2e-shard-planner.test.ts의 고정 매핑 테스트에 일부 미반영. issue-735→4, issue-730→2를 수정하고 project-task-editor→6, issue-623→2의 명시 검사도 추가한다. 136개 current spec 전체 동적/정적 커버리지, CI 3 Required 및 GHCR/Owner 규칙 불변. 새 exact Head Full PR CI PASS 전 MERGE_READY=BLOCKED.
+
+---
+
+## Issue #765 — PR #766 Full #3084.1 E2E Shard5 35분 취소 최적화 (2026-10-21)
+
+이슈별 [누적 실패 원장 F765-003](../../ISSUE_765_FAILURE_ANALYSIS.md) 확인: PR CI #3084.1 Shard5는 91 PASS 후 35분 제한에 취소, 나머지 5 Shard 및 Quality/Docker 성공. 기존 F765-001 문서 사전검사와 F765-002 Python 정책 실패는 이 Run에서 PASS. 새 제품 수정 없이 역사적 테스트 분포 136개 고유 spec을 6개 Shard로 유일 재배치(1→6 / 3→2 / 5→2 / 5→4 각각 1 spec), PR/Main timeout·workers·fail-fast·QA/Required 유지. 새 exact Head 전체 PR CI/Trusted/Owner 승인 전 병합 금지, #734 v0.129.0 GHCR 기존 Digest 불변.
+
+---
+
+## Issue #765 — 단일 v0.129.0 이후 실패 Main 릴리스 부채 복구 (2026-10-21)
+
+현재 main e20e4a72e59b46bde34c7ae5befd5e0f46ed335b; 기존 정식 v0.129.0 Release #186/Digest 유지. 동일 버전 정책 복구 PR 하나에 Owner 인증, GHCR 실감사, old #732/#736 RETIRED, #734/#765 일반 FINAL을 구현하고 테스트한다. HIGH/OWNER_MANAGED, qa_required=true, release_required=false, release_authorized=false, protected path 수정. PR CI/Trusted/Owner ACCEPT 및 신규 Main 성공 이전에 복구 실행 권한 없음. [Work Packet](ISSUE_765.md) 참조.
+
+---
+
+## Issue #734 — 설비 최상위 동적 대시보드
+
+main `05f1e560eee456e6fba5535255c9ede30a357c16` /0.125.0에서 `feat/issue-734-equipment-dashboard`로 구현한다. 기존 공통 원장/API·조회 구성기/표·정확 원본 editor/drill을 재사용하여 설비 단독·두 사용자 동적 계층·원본 다중 WorkArea/Owner/명시 제어·유형 필터를 제공한다. [Work Packet](ISSUE_734.md)의 AC/문서/실제 분리 Agent/변경 영향 검증을 따른다. 후보0.129.0, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. 구현·문서·리뷰/충돌 정리 후 새 PR Full CI 시작까지만 수행하며 완료 모니터링·병합·Main/GHCR·Release·Issue 종료는 하지 않는다. 원격 Required3·Trusted·Owner ACCEPT는 NOT TESTED다. #734 최종 로컬13파일140 Unit·통합, 실제 Chromium 주요3개, typecheck/전체 lint/문서·version·discovery PASS. 런타임 중단으로 나머지5 Chromium/5폭 캡처는 NOT TESTED, 자동 PrePR UNKNOWN4는 BLOCKED이며 공식 원격 전체 회귀를 대신하지 않는다.
+
+#734의 최신 main 정렬(2026-10-21): #732 Milestone 동적 관점 병합 SHA `5ffe02a334d2279fabb63943c90614a7acfaf6ad`/0.127.0을 보존하고 설비 관점을 v0.128.0 MINOR 후보로 재정렬한다. F734-004 Response body 소실은 browser HTTP200·UI 완료 증거 뒤 동일 read-only API JSON으로 검증한다. 기존 F734-001~003 및 #730/#732/#735 회귀·6 Shard 유지. 새 source Local/원격 NOT TESTED, `release_authorized=false`.
+
+#734 최신 main 정렬(2026-10-21): #736 Resource root/Plan·Excel consumer(병합 `1c1938851aa8234febcba404f4007d6c94fb2233` /0.128.0)을 보존하고 설비 관점 후보를 v0.129.0 MINOR로 상향한다. F734-005(#3070.1)의 PUT200 직후 버튼 disabled는 editor reload/최신 revision·할당 대상 로딩 후 기존 활성화와 정확 Focus/복귀를 검증한다. F734-001~005 전체 실패와 #730/#732/#735/#736 회귀·6 Shard/Required3를 보존. 신규 Head Local/Remote NOT TESTED, 출시 권한 BLOCKED.
+
+## Issue #736 — F736-004 PR #764 직접 E2E focus 및 인증 누락 REWORK (2026-10-21)
+
+[Full #3076.1](https://github.com/planner77/masterGantt/actions/runs/39510892786) Shard5 existing #530 M1→Resource→Schedule→M1 LIFO returned with Resource trigger unfocused (20s case), Quality/Docker PASS, shards2/3 PASS, others cancelled; no Timeout. Reviewer P2 exact Assignment skip of full candidates API also skipped Project edit-session validation. [#736 누적 단일 원장](../../ISSUE_736_FAILURE_ANALYSIS.md) F736-004 and [Work Packet](ISSUE_736.md) record source, direct/indirect/negative tests and authorization. Fix with identity-bound Milestone ready focus lease and lightweight edit-sessions/current check, original #621 exact candidates0/percent/401/412/BOB and #530 focus assertions retained. Main #732 PR #763 shard plan/TEST_PLAN/#621 ready30s merged rather than reverted; latest main `62e715adbc3f497e319918306bf26cbdd73353b7`. Exact new Head Full Required3/Trusted and Owner HIGH approval pending; GHCR v0.128.0/Issue closure blocked without successful Main and Finalizer; CI completion monitoring not requested.
+
+## Issue #736 — M736-001 Main CI #3071.1 정확 개인 Assignment 편집 로딩 교정 (2026-10-21)
+
+[Main CI #3071.1](https://github.com/planner77/masterGantt/actions/runs/39499988360) Shard3의 기존 #621 exact Assignment 편집 시 allocation input 미렌더/5s 실패. 실제 Trace에서 assigned-targets200 이후 불필요한 전체 후보 GET200/4014ms를 확인. [단일 누적 원장](../../ISSUE_736_FAILURE_ANALYSIS.md)과 [Work Packet](ISSUE_736.md)에 M736-001을 분리 기록하며 #736 PR #760 과거 Full SUCCESS와 Main FAILURE를 섞지 않는다. 정상 exact 편집은 후보 조회를 생략하고 배정 원본 identity/percent/Revision을 보존, 일반 Task Editor 후보 조회는 유지한다. 기존 #621/#622/#623/#736/Task Editor 회귀를 새 교정 PR Required Quality/E2E6/Docker·Trusted QA에 인계. main v0.128.0 유지, release0.128.0 Owner marker 기존 승인, HIGH/OWNER_MANAGED·새 Head Owner 수용 전 병합금지. [#732 별도 PR #763](https://github.com/planner77/masterGantt/pull/763)의 선행 Main Timeout/릴리스 부채는 독립 장애로 남는다. 사용자 요청대로 Full PR CI 시작 후 모니터링은 하지 않는다.
+
+## Issue #736 — Full #3065.1 응답 관측 경합 보완
+
+PR #760 Head3c335ba1/main08a1d9ff에서 이전 #3059 TypeScript·#3062 M/M matcher와 이번 #3065 report body의 전체 이력을 대조했다. 정확 query/즉시 body receipt·직렬 필터·이전 조건/다른 spec·scope 음성으로 테스트 관측 경합을 고치고 제품 산식·권한·CI를 유지한다. [실패 원장 F736-003](../../ISSUE_736_FAILURE_ANALYSIS.md)과 [Work Packet](ISSUE_736.md)에 세 Run·취소10Shard·source/merge·실제 선정 검증을 누적한다. 실패test26.9초/Job7분48초라35분Timeout을 위한 shard재분배 근거는 없다. 게시 전 main5ffe02a3(#732)를 통합해 충돌3개를 해소했고 통합 후 Chromium3case·전체 Unit3,136PASS 및 typecheck/lint/build 단계PASS를 확인했다. PrePR CLI는 Next 생성 설정 fingerprint로BLOCKED임을 별도 기록했다. 후보0.128.0/HIGH/OWNER_MANAGED/release_authorized=false, 새 exact Head Full CI 시작 후 모니터링·병합·Release·종료는 수행하지 않는다.
+
+## Issue #736 — 리소스 중심 동적 조회·Plan/견적/Excel 보존
+
+main `05f1e560eee456e6fba5535255c9ede30a357c16` /0.125.0에서 `feat/issue-736-resource-dashboard`로 구현한다. Resource root 전용 consumer와 기존 분석의 명시 보조 영역을 제공하고 Target0·개인 Assignment 교집합·기존 Plan/일별 과투입/견적/Excel을 보존한다. 새 source/snapshot/spec/path를 검증해 기존 Plan/Excel writer에 인계하고 중첩 경로 소계를 재합산하지 않는다. [Work Packet](ISSUE_736.md)의 기능 인벤토리·AC/문서/실제 검증을 따른다.
+
+후보0.128.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. frontend/backend 구현과 읽기 전용 ui_ux/qa_docs 사전 검토를 분리한다. 문서 동기화·관련 Local Fast Feedback·최신 main/미해결 리뷰·충돌 확인 후 새 PR Full CI 시작까지만 수행한다. CI 결과 모니터링·병합·main/GHCR·Release·Issue 종료는 범위 밖이며 최신 Head Required3/Trusted·Owner 승인 전 MERGE_READY=BLOCKED다.
+
+## Issue #735 — 물류 시스템 root·직접/조율·동적 교차 조회
+
+main `8a0fc9773d33326b40f8d97f6307c17ae0cb6933` /0.125.0에서 별도 `feat/issue-735-system-dashboard`로 구현한다. 후보0.126.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false다. 기존 #729/#730 원장을 소비하는 시스템 전용 consumer와 직접/조율·정확 시스템 선택의 공통 spec 보완만 수행하고 구성/Task/공수·full Gate를 구분한다. [Work Packet](ISSUE_735.md)의 AC·소유권·문서/매뉴얼·누적 실행 원장을 따른다. 종료점은 구현·리뷰 thread/충돌 해결·최신 Head Full PR CI 시작이며 CI 모니터링·병합·main/GHCR·Release·Issue 종료는 수행하지 않는다. 공식 원격 Required3/Trusted QA·Owner ACCEPT는 NOT TESTED다.
+
+## Issue #733 — 공정&WorkArea 전용 대시보드
+
+main `71b870b75da73f413da54e22e55bb03dc0f5abe7` /0.124.0에서 별도 `feat/issue-733-process-dashboard`로 구현한다. 후보0.125.0, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false다. 공정 descriptor/consumer·기존 표 재사용, #729 등록-only 하위 후보 및 같은 snapshot catalog의 공통 결함을 backend 소유자와 조정하고 새 계산기/DB/renderer는 추가하지 않는다. [Work Packet](ISSUE_733.md)의 공정 단독·동적 교차·고유 합계/출처·원본 복귀·5폭 AC와 #730 누적 실패원장 회귀를 적용한다. 문서/매뉴얼/테스트·미해결 리뷰/충돌 확인 후 PR Full CI 시작까지만 수행하며 CI 완료 모니터링·병합·Main/GHCR·Release·Issue 종료는 하지 않는다. 원격 Required3·Trusted QA·Owner 승인/Manager ACCEPT는 NOT TESTED다.
+
+#733 최종 로컬 검증은 12파일 116개 Unit·고유14개 Chromium(직접5+인접9)·typecheck/전체 lint/production build·문서 검증 PASS다. 자동 PrePR는 UNKNOWN3/missing0/steps0/sourceStable=true로 BLOCKED이며 수동 계약 매핑과 실제 직접 검증을 Work Packet에 보존한다. 별도 사전 검토의 미해결 P1/P2는0건이다. Git Data API의 전체 tree/부모·Ref1회 게시를 대조한 뒤 PR Full CI를 시작한다. 원격 성공/Owner 승인·병합·릴리스는 미완료다.
+
+## Issue #730 — PR #747 Full #3029.1 Editor timezone 시간 예산 REWORK (2026-10-20)
+
+원본 Full #3029.1 Run `39320381909`, HEAD `0e229ca683bf6fc14fcc81013b6e809e61d5dade`, base `5df178868139c4a307701e4807896691971b3376`: Quality/Build/Docker 및 Chromium 5Shard SUCCESS, Shard4 `project-task-editor-persistence.spec.ts:8` 기본30초 Test deadline 후 E2E/QA 파생 실패. [#730 단일 실패 원장 F730-011 §20](../../ISSUE_730_FAILURE_ANALYSIS.md)에서 원시 Trace의 fixture와 body 경계 및 3시간대 별도 Context 실행, 과거 F730-001~010/#731 M-003 연관성을 대조한다. 첫 Task Editor E2E만 유한45초로 변경하고 저장 PATCH/revision·Task/URL·Gantt 인스턴스 및 UTC/Seoul/New York의 동일 원본 확인·각 Context 종료를 보존한다. 단순 분리는 원본 저장→3시간대 연속 증거 약화 위험으로 보류. Local 실제 Node/SQLite/Chromium/PrePR/Build/Docker는 NOT TESTED이며 source 텍스트 정적 비교만 완료. 기존7파일 직접 실패 합집합 및 간접/음성 consumer는 새 Full PR CI에 남긴다. main/review/충돌 확인 후 단일 비강제 commit 및 PR CI 등록까지만 진행하고 모니터링·병합·GHCR·정식 릴리스·Issue 종료 금지.
+
+## Issue #730 — Full #3027.1 여섯 mutation 시간 예산 직접 보완 (2026-10-20)
+
+PR Head `6005dfcf00bbe006e5345938d944cce9ee3c7014`/main `5df178868139c4a307701e4807896691971b3376`의 [CI #3027.1](https://github.com/planner77/masterGantt/actions/runs/39314765099)는 Quality/Build/Docker SUCCESS, Chromium Shard3의 `issue-623-resource-mvp.spec.ts` 여섯 연속 mutation test가 body61.586초로60초 test budget을 넘어 직접 FAIL했다. 시점별 Trace와 기존 F730-006·#731 M-003-A를 [단일 #730 누적 실패 원장 §19](../../ISSUE_730_FAILURE_ANALYSIS.md)에서 대조한다. 단일 Project/Task/Assignment에 여섯 저장·원래 보기/원본 ID/revision+6 검증을 보존하도록 테스트1건에만90초 유한 budget 적용하며, 다른 timeout·skip·retry·전역 CI 규정은 불변. 3개 독립 Project로 분리하는 안은 cross-6 단일 ID 통합 증거 손실로 채택하지 않는다. source 수정 문법 검증은 완료, 로컬 실제 Next/SQLite/Chromium/TypeScript 전체/Unit/Docker/PrePR는 NOT TESTED. 이전 E2E FAIL6파일과 직접·간접 회귀는 새 Head Full CI에 남기며 main/리뷰/충돌 확인 후 PR CI 시작까지만 진행, 완료 모니터링·병합/GHCR/Release·Issue 종료 없음.
+
+## Issue #730 — PR #747 Full #3025.1 TS2532 Fast Gate 차단 보완 (2026-10-20)
+
+PR HEAD `827db790ab567b80ff3a53374f00842ad1ed89b4`/main `5df178868139c4a307701e4807896691971b3376`의 [Run #3025.1](https://github.com/planner77/masterGantt/actions/runs/39313371409)은 TypeScript `project-resource-memberships-persistence.spec.ts:91`의 nullable `find()` 반환 역참조로 직접 실패했다. [#730 단일 실패 원장 F730-009](../../ISSUE_730_FAILURE_ANALYSIS.md)에서 TypeCheck→Fast Gate→Required Aggregate 파생을 분리하고 앞선 F730-001~008과 직접 E2E 실패6파일 이력을 보존한다. 동일 ID를 찾아 `toMatchObject({ registered:true })`로 존재/등록 참값을 함께 검증한다. 현재 연결 Github 환경에서 전체 Node/Vitest/Chromium/Docker 미실행=NOT TESTED; 타입 검사/런타임 게이트 변경 없음. MAIN 정렬·리뷰/충돌 0 확인 및 원장/문서와 함께 새 HEAD 단일 커밋 PR Full CI 시작까지만 수행하며 모니터링·병합·GHCR·릴리스·종료하지 않는다.
+
+## Issue #730 — PR #747 Full #3023.1 멤버십 canonical 조회 교정 (2026-10-20)
+
+PR Head `ec1a18e67b7d1a12b040e8298bde98ba93d93256`/main `5df178868139c4a307701e4807896691971b3376`의 [#3023.1](https://github.com/planner77/masterGantt/actions/runs/39274370437) Shard1 `project-resource-memberships-persistence.spec.ts` 조회 ECONNRESET을 #730 전용 [§17 실패 원장](../../ISSUE_730_FAILURE_ANALYSIS.md)에 추가한다. 기존 setup/권한 API 클라이언트는 유지하고 UI 등록 후 browser canonical/Resource source 조회에 동일 origin·observer·HTTP/JSON/원본 단언을 적용한다. 전송/redirect/shape 음성·진단 라우트 비식별 회귀를 추가하며 기존 직접 실패6파일과 #730 기능이 새 Full CI의 영향 범위다. 실제 TCP 원인은 UNKNOWN. 이번 연결 GitHub 세션의 로컬 Node/SQLite/Chromium/Build/Docker는 NOT TESTED이며 이전42 Chromium/219 Unit PASS는 과거 source만의 증거다. HIGH/OWNER_MANAGED/version0.124.0/release_authorized=false, 미해결 리뷰/충돌·main 확인 후 한 묶음 PR CI 시작까지만 진행하고 완료 모니터링·병합·GHCR·릴리스·Issue 종료는 제외한다.
+
+## Issue #730 — PR #747 Full #3022 누적 실패 보완
+
+Head2a97043f/main5df17886에서 누락 #3012와 최신 #3022를 [단일 실패 원장](../../ISSUE_730_FAILURE_ANALYSIS.md)에 추가한다. #726 후행 조회 전송/관측 누락과 #719 synthetic WBS 응답 경합을 분리 보완하고 누적 실제 실패5파일·직접/음성 경로를 같은 최종 source에서 검증한다. [Work Packet](ISSUE_730.md)대로 HIGH/OWNER_MANAGED/0.124.0/release_authorized=false를 유지하며 리뷰·main 충돌 확인 후 새 PR Full CI 시작까지만 진행한다. 최종 로컬 고유42 Chromium/16파일219Unit·정적 검사 PASS, source963 mismatch0. PrePR targeted는 dry-run NOT TESTED/UNKNOWN7/steps0이며 exact-Head 원격 전체 검증을 대신하지 않는다. CI 완료 모니터링·main 병합·릴리스·Issue 종료는 범위 밖이다.
+
 ## Issue #731 — Main #3011.1 후속 누적 교정 (2026-10-19)
 
 최신 main `0aa1d3d71f13df6976539ef4ebaaadb9037121c4` /0.123.0에서 `fix/issue-731-main-ci-cumulative`로 재개한다. #62360초 통합 예산과 Task Editor 저장 후 GET reset을 보완하고 과거 실패 파일5개 합집합·음성/인접 회귀를 동일 source에서 검증한다. [단일 실패 원장](../../ISSUE_731_FAILURE_ANALYSIS.md)과 [현재 Work Packet](ISSUE_731.md)을 갱신한다. 제품/버전/CI 정책 변경0, HIGH/OWNER_MANAGED/release_required=true/release_authorized=false. 리뷰/충돌 확인 후 새 PR Full CI 시작까지만 수행하며 완료 모니터링·병합·릴리스는 범위 밖이다. 아래 최초 구현/과거 재개 상태는 당시 기록이다.
+
+## Issue #730 — PR #747 F730-002 누적 보완 재개 (2026-10-19)
+
+최신 main fbe7db83을 이미 통합한 Head b4ba9994에서 두 Full Run/원장·취소 Shard를 대조한다. setter Hook deps 누락3개·readonly POST 인접 관찰기·P2 parent/상세 최신 intent를 [동일 실패 원장](../../ISSUE_730_FAILURE_ANALYSIS.md)에 누적하고 같은 동결 소스의 직접·과거 실패·인접·음성 검증 후 단일 Head를 게시한다. 버전0.124.0/HIGH/OWNER_MANAGED/release_authorized=false. 최종195Unit PASS, Chromium26PASS/1FAIL·#623단발1PASS/1FAIL/원인UNKNOWN, PrePR UNKNOWN5/BLOCKED를 보존해 LOCAL_VALIDATED=FAIL로 인계한다. 미해결 리뷰·충돌을 재확인하고 이 위험을 명시한 새 Full CI 시작까지만 수행하며 완료 모니터링·병합·Release는 하지 않는다.
 
 ## Issue #751 — isolated fixture performance telemetry (2026-10-19)
 
@@ -12,6 +159,12 @@
 ## Issue #731 — 기존 KPI 보존·통합 source와 구성 진단 (2026-10-19)
 
 main `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` /0.122.0에서 별도 `feat/issue-731-kpi-integration`으로 진행한다. 기존 네 카드·세 표·필터·공수/품질/full Gate를 유지하고 #728/#729 공통 원장을 전용 KPI consumer에 연결한다. 추가 구성/연결 진단과 정확 원본 drill·snapshot/focus, 기능 보존표/지표/매뉴얼을 동기화한다. [Work Packet](ISSUE_731.md) 참조. HIGH/OWNER_MANAGED/qa_required=true, candidate0.123.0, release_required=true/release_authorized=false. 요청 종료점은 구현·로컬 검증·문서·PR Full CI 시작이며 CI 모니터링·병합·Main/GHCR·Release·Issue 종료는 범위 밖이다.
+
+## Issue #730 — 고정 root·동적 하위 축 공통 UI (2026-10-19)
+
+main `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` / #729 versioned API를 기준으로 [Work Packet](ISSUE_730.md)의 다섯 root·사용자 하위 구성·typed 형제·공통 표/정확 상세·개인 browser 상태·기존 editor/drill 복귀를 구현한다. 기존 KPI/Milestone/Resource 기능과 WBS 원본·서버 합계를 보존한다. DESIGN·화면/사용자 가이드·API 소비/테스트를 함께 갱신한다.
+
+frontend UI/상태/탐색·E2E, read-only ui_ux/qa_docs와 Manager 문서/통합을 분리한다. 후보0.124.0(열린 #731의0.123.0과 구분), HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. PR Full CI 시작까지만 수행하고 완료 모니터링·병합·Main/GHCR·Release·Issue 종료는 하지 않는다. 원격 Required3/Trusted·Owner ACCEPT는 NOT TESTED다.
 
 ## Issue #729 — versioned WBS 다관점·snapshot·정확 상세 (2026-10-19)
 
@@ -1228,3 +1381,7 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 #715 문서 PR #716이 통합된 main d2768676/application0.116.0에서 `feat/issue-719-contextual-help`로 제품 구현을 진행한다. PATCH0.116.1, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false다. [Work Packet](ISSUE_719.md)의 화면별 inventory·공통 도움말·핵심 경고 보존·동일 fixture5폭 측정·기존 상태 교차 회귀와 DOCUMENTATION_SYNC를 따른다.
 
 사용자 요청 종료점은 구현·리뷰 thread/충돌 정리·최신 Head Full PR CI 시작이다. CI 모니터링·병합·Main/GHCR·Finalizer·정식 게시·Issue 종료는 수행하지 않으며 원격 Required3/Trusted QA/Owner ACCEPT는 NOT TESTED다. 기존 #717 이름/ID 표시는 별도 범위로 유지한다.
+
+## Issue #732 — Milestone 최상위 동적 대시보드
+
+최신 main `05f1e560eee456e6fba5535255c9ede30a357c16`의 공통 #729/#730 조회와 기존 Milestone 관리에 전용 consumer를 연결한다. root 단독·두 사용자 계층·선택 지표/전체 Gate 분리와 생성/소속/관계/필터·marker OFF를 보존한다. 실제 역할·파일 소유권·AC/테스트·문서 영향은 [Work Packet](ISSUE_732.md)을 따른다. 후보0.127.0 / HIGH / qa_required=true / OWNER_MANAGED / release_required=true / release_authorized=false. 요청 범위는 구현·문서·리뷰/충돌 정리·새 PR CI 시작까지이며 CI 모니터링·병합·main/GHCR·Issue 종료를 포함하지 않는다. 원격 Required3/Trusted/Owner 최종 승인 NOT TESTED.

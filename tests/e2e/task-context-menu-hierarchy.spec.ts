@@ -416,7 +416,10 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
   }
 });
 
-test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab freshness", async ({ page }) => {
+// #733 F733-008: split #373's 31s E2E body into independent scope,
+// cross-tab, and stale-response cases. Each receives its own isolated SQLite
+// project and browser context; no mutable state leaks between tests.
+async function prepareIssue373Subtree(page: import("@playwright/test").Page) {
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Subtree scope ${suffix}`);
@@ -435,10 +438,6 @@ test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab fre
   await expect(row(page, "Scope Alpha")).toBeVisible();
   await expect(row(page, "Keep sibling")).toBeVisible();
 
-  const leafMenu = await openMenu(page, "Keep sibling");
-  await expect(leafMenu.getByText("최상위로 열기", { exact: true })).toHaveCount(0);
-  await page.keyboard.press("Escape");
-
   await openMenu(page, "Scope Alpha");
   const childAdded = await chooseSubmenu(page, "Add", "Child task");
   const alpha = childAdded.data.tasks.find((task) => task.name === "Scope Alpha");
@@ -447,13 +446,37 @@ test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab fre
   expect(child).toBeTruthy();
   await expect(row(page, child!.name)).toBeVisible();
 
+  return { path, api, origin, alpha: alpha!, child: child!, keepCreated };
+}
+
+async function openIssue373Subtree(page: import("@playwright/test").Page, origin: string, path: string, alpha: ProjectTaskDto) {
+  const scopedPage = await page.context().newPage();
+  try {
+    await scopedPage.goto(`${origin}${path}?rootTask=${encodeURIComponent(alpha.taskId)}`);
+    await scopedPage.waitForURL((url) => url.pathname === path && url.searchParams.get("rootTask") === alpha.taskId);
+    const tabs = scopedPage.getByRole("tablist", { name: "WBS 범위 탭" });
+    await expect(tabs.getByRole("tab", { name: "Scope Alpha", exact: true })).toHaveAttribute("aria-selected", "true");
+    await expect(scopedPage.getByText("편집 중", { exact: true })).toBeVisible();
+    await expect(row(scopedPage, "Scope Alpha")).toBeVisible();
+    await expect(row(scopedPage, "Keep sibling")).toHaveCount(0);
+    return scopedPage;
+  } catch (error) {
+    await scopedPage.close().catch(() => undefined);
+    throw error;
+  }
+}
+
+test("Issue #373 A direct subtree deep link preserves scope and edit permissions", async ({ page }) => {
+  const { origin, path, alpha, child, keepCreated } = await prepareIssue373Subtree(page);
+  const leafMenu = await openMenu(page, "Keep sibling");
+  await expect(leafMenu.getByText("최상위로 열기", { exact: true })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+
   const scopeMenu = await openMenu(page, "Scope Alpha");
   await expect(scopeMenu.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
-  const scopedPage = await page.context().newPage();
-  await scopedPage.goto(`${origin}${path}?rootTask=${encodeURIComponent(alpha!.taskId)}`);
+  const scopedPage = await openIssue373Subtree(page, origin, path, alpha);
   try {
-    await scopedPage.waitForURL((url) => url.pathname === path && url.searchParams.get("rootTask") === alpha!.taskId);
     const scopeTabs = scopedPage.getByRole("tablist", { name: "WBS 범위 탭" });
     await expect(scopedPage.getByRole("button", { name: "전체 일정 보기", exact: true }).first()).toBeVisible();
     await expect(scopeTabs.getByRole("tab", { name: "Scope Alpha", exact: true })).toHaveAttribute("aria-selected", "true");
@@ -473,9 +496,20 @@ test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab fre
     await expect(addSubmenu.getByRole("menuitem", { name: "Task below", exact: true })).toBeDisabled();
     await scopedPage.keyboard.press("Escape");
 
+  } finally {
+    await scopedPage.close();
+  }
+  expect(keepCreated.data.tasks.some((task) => task.name === "Keep sibling")).toBe(true);
+});
+
+test("Issue #373 B scoped edits reconcile a delayed cross-tab revision", async ({ page }) => {
+  const { api, origin, path, alpha, child } = await prepareIssue373Subtree(page);
+  const scopedPage = await openIssue373Subtree(page, origin, path, alpha);
+  // A failed assertion must release any pending cross-tab read before teardown.
+  let releaseFirstRefresh: () => void = () => undefined;
+  let markFirstMutationReady: () => void = () => undefined;
+  try {
     let firstMutationSnapshot: unknown = null;
-    let releaseFirstRefresh!: () => void;
-    let markFirstMutationReady!: () => void;
     const firstRefreshGate = new Promise<void>((resolve) => { releaseFirstRefresh = resolve; });
     const firstMutationReady = new Promise<void>((resolve) => { markFirstMutationReady = resolve; });
     let holdFirstCrossTabRead = true;
@@ -520,6 +554,8 @@ test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab fre
       editor.getByRole("button", { name: "저장", exact: true }).click(),
     ]);
     expect(secondSaved.ok(), `second scoped task edit: HTTP ${secondSaved.status()}`).toBe(true);
+    const secondRevision = (await secondSaved.json() as TaskMutationResponse).data.project.revision;
+    expect(secondRevision).toBeGreaterThan((firstMutationSnapshot as TaskMutationResponse).data.project.revision);
     await expect(row(scopedPage, "Scoped child renamed twice")).toBeVisible();
 
     releaseFirstRefresh();
@@ -527,18 +563,31 @@ test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab fre
     await expect(row(page, "Scoped child renamed twice")).toBeVisible();
     await expect(row(page, "Keep sibling")).toBeVisible();
 
+  } finally {
+    markFirstMutationReady();
+    releaseFirstRefresh();
+    await scopedPage.close();
+  }
+});
+
+test("Issue #373 C stale initial GET yields to the latest scoped edit", async ({ page }) => {
+  const { api, origin, path, alpha, child } = await prepareIssue373Subtree(page);
+  const scopedPage = await openIssue373Subtree(page, origin, path, alpha);
+  const editor = scopedPage.getByRole("dialog", { name: "작업 정보", exact: true });
+  let receiver: import("@playwright/test").Page | undefined;
+  let releaseLoadingRead: () => void = () => undefined;
+  try {
     // A second receiver can still be loading when a newer revision arrives.
     // Hold its initial canonical GET at revision N, save revision N+1 from the
     // scoped tab, then release the stale response. The queued revision must
     // trigger a follow-up GET after the receiver becomes ready.
-    const staleBeforeThird = await (await scopedPage.request.get(api)).json() as ProjectSnapshotResponse;
-    const loadingPage = await page.context().newPage();
-    let releaseLoadingRead!: () => void;
+    const staleBeforeLatest = await (await scopedPage.request.get(api)).json() as ProjectSnapshotResponse;
+    receiver = await page.context().newPage();
     let markLoadingReadStarted!: () => void;
     const loadingReadGate = new Promise<void>((resolve) => { releaseLoadingRead = resolve; });
     const loadingReadStarted = new Promise<void>((resolve) => { markLoadingReadStarted = resolve; });
     let holdInitialLoadingRead = true;
-    await loadingPage.route((url) => url.pathname === api, async (route) => {
+    await receiver.route((url) => url.pathname === api, async (route) => {
       if (route.request().method() !== "GET" || !holdInitialLoadingRead) {
         await route.continue();
         return;
@@ -546,38 +595,43 @@ test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab fre
       holdInitialLoadingRead = false;
       markLoadingReadStarted();
       await loadingReadGate;
-      await route.fulfill({ json: staleBeforeThird });
+      await route.fulfill({ json: staleBeforeLatest });
     });
-    const loadingNavigation = loadingPage.goto(`${origin}${path}`);
+    const loadingNavigation = receiver.goto(`${origin}${path}`);
     await loadingReadStarted;
 
     await scopedPage.bringToFront();
-    await openMenu(scopedPage, "Scoped child renamed twice");
+    await openMenu(scopedPage, child.name);
     await menu(scopedPage).getByRole("menuitem", { name: "Edit", exact: true }).click();
     await expect(editor).toBeVisible();
     await editor.getByLabel("작업명", { exact: true }).fill("Scoped child final");
-    const [thirdSaved] = await Promise.all([
+    const [latestSaved] = await Promise.all([
       scopedPage.waitForResponse((response) =>
         response.request().method() === "PATCH" &&
         new URL(response.url()).pathname === `${api}/tasks/${child!.taskId}`,
       ),
       editor.getByRole("button", { name: "저장", exact: true }).click(),
     ]);
-    expect(thirdSaved.ok(), `third scoped task edit: HTTP ${thirdSaved.status()}`).toBe(true);
+    expect(latestSaved.ok(), `latest scoped task edit: HTTP ${latestSaved.status()}`).toBe(true);
+    const latestRevision = (await latestSaved.json() as TaskMutationResponse).data.project.revision;
+    expect(latestRevision).toBeGreaterThan(staleBeforeLatest.data.project.revision);
     releaseLoadingRead();
     await loadingNavigation;
-    await expect(row(loadingPage, "Scoped child final")).toBeVisible();
-    await loadingPage.close();
+    await expect(row(receiver, "Scoped child final")).toBeVisible();
+    await receiver.close();
 
     await scopedPage.reload();
     await expect(scopedPage.getByRole("tablist", { name: "WBS 범위 탭" }).getByRole("tab", { name: "Scope Alpha", exact: true })).toHaveAttribute("aria-selected", "true");
     await expect(row(scopedPage, "Scoped child final")).toBeVisible();
     await expect(row(scopedPage, "Keep sibling")).toHaveCount(0);
+    const finalSnapshot = await (await scopedPage.request.get(api)).json() as ProjectSnapshotResponse;
+    expect(finalSnapshot.data.project.revision).toBe(latestRevision);
+    expect(finalSnapshot.data.tasks.find(task => task.taskId === child.taskId)?.name).toBe("Scoped child final");
   } finally {
+    releaseLoadingRead();
+    if (receiver && !receiver.isClosed()) await receiver.close().catch(() => undefined);
     await scopedPage.close();
   }
-
-  expect(keepCreated.data.tasks.some((task) => task.name === "Keep sibling")).toBe(true);
 });
 
 test("Issue #72 hierarchy commands persist across reload without remounting the Gantt", async ({ page }) => {

@@ -6,11 +6,12 @@ import { resolve } from "node:path";
 import type { APIResponse } from "@playwright/test";
 import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../src/contracts/projects";
 import { createWorkingCalendar, nextWorkingDay } from "../../src/domain/scheduling/calendar";
+import { observedReadOnlyGet } from "./fixtures/isolated-application-diagnostics";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 
 test.use(isolatedApplicationOptions);
 
-test("#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 거절·프로세스 재시작", async ({ page, baseURL, restartIsolatedApplication }, testInfo) => {
+test("#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 거절·프로세스 재시작", async ({ page, baseURL, restartIsolatedApplication, observeIsolatedApi }, testInfo) => {
   test.setTimeout(180_000);
   const origin = baseURL!;
   const created = await page.request.post("/api/projects", {
@@ -21,7 +22,8 @@ test("#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 
   const publicId = (await created.json()).data.project.publicId as string;
   const api = `/api/projects/${publicId}`;
   const get = async (): Promise<ProjectSnapshotResponse> => {
-    const response = await page.request.get(api);
+    const response = await observedReadOnlyGet(observeIsolatedApi, api, () =>
+      page.request.get(api, { headers: { Connection: "close" } }));
     expect(response.status()).toBe(200);
     return await response.json() as ProjectSnapshotResponse;
   };
@@ -187,7 +189,7 @@ test("#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 
   await testInfo.attach("issue-550-sqlite-http-restart", { body: JSON.stringify({ environment: "Next development isolatedApplication + real SQLite", restarted: true, publicId, revision: durableSnapshot.data.project.revision, taskIds: durableSnapshot.data.tasks.map((row) => row.taskId), milestoneTaskId: milestone.taskId, parentExternalId: null, siblingOrder: lastRootOrder + 1, fullMemberTaskIds: task(milestone.taskId).stageGate?.memberTaskIds, directPredecessorTaskIds: task(milestone.taskId).stageGate?.predecessorMilestoneTaskIds, completedManualCopy: { sourceTaskId: manual.taskId, copiedTaskId: manualCopy.taskId, manualEvent: true, ready: null }, rejectedPartialCompletedCopy: "COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED", rejectedHttpStatuses: [401, 403, 428, 412, 409, 400], legacyExistingMixed: "Separate real SQLite service regression; this browser fixture does not scan or write its database", sourceHashes }, null, 2), contentType: "application/json" });
 });
 
-for (const firstDate of ["past", "future"] as const) test(`#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (${firstDate})`, async ({ page, baseURL }, testInfo) => {
+for (const firstDate of ["past", "future"] as const) test(`#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (${firstDate})`, async ({ page, baseURL, observeIsolatedApi }, testInfo) => {
   test.setTimeout(120_000);
   const origin = baseURL!;
   const created = await page.request.post("/api/projects", { headers: { Origin: origin }, data: {
@@ -197,7 +199,8 @@ for (const firstDate of ["past", "future"] as const) test(`#550 실제 빈 프�
   const publicId = (await created.json()).data.project.publicId as string;
   const api = `/api/projects/${publicId}`;
   const get = async (): Promise<ProjectSnapshotResponse> => {
-    const response = await page.request.get(api);
+    const response = await observedReadOnlyGet(observeIsolatedApi, api, () =>
+      page.request.get(api, { headers: { Connection: "close" } }));
     expect(response.status()).toBe(200);
     return await response.json() as ProjectSnapshotResponse;
   };

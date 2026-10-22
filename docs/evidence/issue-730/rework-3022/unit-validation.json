@@ -1,0 +1,119 @@
+{
+  "command": [
+    "npx",
+    "--no-install",
+    "vitest",
+    "run",
+    "--config",
+    "tests/config/vitest.config.ts",
+    "tests/domain/wbs-task-ledger-acceptance.test.ts",
+    "tests/domain/wbs-task-ledger.test.ts",
+    "tests/features/project-workspace-navigation.test.ts",
+    "tests/scripts/e2e-read-only-requests.test.ts",
+    "tests/features/logistics/logistics-unified-model.test.ts",
+    "tests/features/resources/resource-drill-navigation-model.test.ts",
+    "tests/features/resources/resource-drill-transport.test.ts",
+    "tests/features/resources/resource-navigation-viewport.test.ts",
+    "tests/features/resources/wbs-view-model.test.ts",
+    "tests/features/resources/wbs-view-transport.test.ts",
+    "tests/server/logistics/issue-731-kpi.test.ts",
+    "tests/server/resources/resource-drill.test.ts",
+    "tests/server/resources/wbs-dashboard-views-http.test.ts",
+    "tests/server/e2e/isolated-application-diagnostics.test.ts",
+    "tests/server/e2e/browser-canonical-snapshot.test.ts",
+    "tests/scripts/isolated-readonly-get.test.ts",
+    "--reporter=json",
+    "--outputFile=.prepr-reports/issue-730-3022/unit-raw.json"
+  ],
+  "exitCode": 0,
+  "durationMs": 9023,
+  "stats": {
+    "numPassedTestSuites": 35,
+    "numFailedTestSuites": 0,
+    "numPassedTests": 219,
+    "numFailedTests": 0,
+    "numPendingTests": 0
+  },
+  "files": [
+    {
+      "file": "domain/wbs-task-ledger-acceptance.test.ts",
+      "status": "passed",
+      "tests": 13
+    },
+    {
+      "file": "domain/wbs-task-ledger.test.ts",
+      "status": "passed",
+      "tests": 17
+    },
+    {
+      "file": "features/project-workspace-navigation.test.ts",
+      "status": "passed",
+      "tests": 36
+    },
+    {
+      "file": "scripts/e2e-read-only-requests.test.ts",
+      "status": "passed",
+      "tests": 23
+    },
+    {
+      "file": "scripts/isolated-readonly-get.test.ts",
+      "status": "passed",
+      "tests": 6
+    },
+    {
+      "file": "features/logistics/logistics-unified-model.test.ts",
+      "status": "passed",
+      "tests": 6
+    },
+    {
+      "file": "features/resources/resource-drill-navigation-model.test.ts",
+      "status": "passed",
+      "tests": 11
+    },
+    {
+      "file": "features/resources/resource-drill-transport.test.ts",
+      "status": "passed",
+      "tests": 7
+    },
+    {
+      "file": "features/resources/resource-navigation-viewport.test.ts",
+      "status": "passed",
+      "tests": 12
+    },
+    {
+      "file": "features/resources/wbs-view-model.test.ts",
+      "status": "passed",
+      "tests": 6
+    },
+    {
+      "file": "features/resources/wbs-view-transport.test.ts",
+      "status": "passed",
+      "tests": 3
+    },
+    {
+      "file": "server/e2e/browser-canonical-snapshot.test.ts",
+      "status": "passed",
+      "tests": 7
+    },
+    {
+      "file": "server/e2e/isolated-application-diagnostics.test.ts",
+      "status": "passed",
+      "tests": 11
+    },
+    {
+      "file": "server/logistics/issue-731-kpi.test.ts",
+      "status": "passed",
+      "tests": 17
+    },
+    {
+      "file": "server/resources/resource-drill.test.ts",
+      "status": "passed",
+      "tests": 19
+    },
+    {
+      "file": "server/resources/wbs-dashboard-views-http.test.ts",
+      "status": "passed",
+      "tests": 25
+    }
+  ]
+}

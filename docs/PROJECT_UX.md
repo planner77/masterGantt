@@ -1,3 +1,37 @@
+## Issue #734 — 설비 대시보드
+
+`대시보드 → 설비`는 고정 설비 root·기본 단독 요약과 기존 공통 조회 구성/표/정확 상세를 사용한다. 접힌 조회 구성의 축 추가/삭제/위아래 이동과 두 예시는 개인 보기이며 저장된 설정을 자동 덮어쓰거나 WBS/Target를 수정하지 않는다. 설비 유형과 작업 검색/상태/기간 필터를 구별하고 원본 정보·연결 진단·관련 전체 Gate는 표 뒤에서 펼친다. 주관리 공정과 모든 WorkArea0..N, 실제 controls와 같은 Task 업무 연관을 따로 읽을 수 있다.
+
+Task/Assignment/설비 원본은 기존 editor로 연다. 편집 취소/dirty 확인, 저장 후 같은 경로·필터·선택 복귀, 정확 일정 이동과 복귀는 기존 source 검증·단일 host·Gantt Coordinator를 사용한다. readonly는 조회만 제공하고 pending/stale/401/412·원본 변경에서는 이전 명령을 잠근다. 최신 snapshot 재조회가 성공하면 다시 선택한다. 조회 설정을 바꾸거나 이전 요청이 늦게 끝나도 최신 사용자 의도를 덮지 않는다. 기준정보 명칭/수량/유형 이름 변경은 snapshot fingerprint를 바꾸며 구 source는 stale 처리한다.
+
+이름 우선·상황형 도움말·기존6열 예산/표 내부 overflow·keyboard/Escape/focus 복원을 유지한다. 5폭의 실제 수용 및 환경별 미검증은 [Work Packet](exec-plans/active/ISSUE_734.md), 사용자 단계는 [설비 현황](TARGET_RESOURCE_USER_GUIDE.md#설비-현황)에 기록한다.
+
+## Issue #736 — 리소스 중심 분석
+
+`대시보드 → 리소스`는 개인 Resource를 고정 root로 하는 전용 consumer를 제공한다. Target0·하위 없음에서 시작하며 사용자가 저장한 개인 보기 구성을 보존한다. 공정→WorkArea→설비/System 형제 및 Milestone→공정 예시는 적용 전 초안이며 추가/삭제/재정렬은 원본을 변경하지 않는다. 등록/역할/실제 개인 배정/비활성과 현재 선택 작업·공수의 모집단을 구분한다.
+
+기존 기본 현황·Group/Role/등급·Milestone/Target 비교·Plan·일별 상세·과투입·견적·Excel을 보조 분석으로 유지한다. 기존 분석의 필터와 새 동적 조회는 독립 상태이며 하나의 필터가 양쪽에 적용됐다고 안내하지 않는다. 같은 출처로 Plan을 열 때는 선택 Task의 공동담당자가 아닌 정확 Assignment ID 교집합을 전달한다. 선택80%/Project 전체140%와 Calendar/기존 Capacity R은 별도로 표시한다.
+
+새 리소스 Excel은 현재 또는 명시 Project 전체 범위를 선택하고 동일 snapshot·source/spec/path·원시ID 검증을 거친다. 다른 root/미지원 출력은 조건 생략 성공 대신 오류와 기존 지원 출력 복구 경로를 제공한다. 기존 Plan/견적 출력은 계속 사용할 수 있다. 정확 원본 편집·일별 상세·선택 밖 과투입 원인 수정 후 이전 방문의 필터·계층·선택·스크롤·포커스로 복귀하며 원본 revision이 바뀌면 최신 조회를 재검증한다. readonly/dirty/pending/stale·401/412와 이전 응답 무효화는 기존 host/editor 계약을 따른다. [계산](RESOURCE_KPI_DASHBOARD.md#issue-736--리소스-고정-관점과-기존-분석의-보존), [실행/한계](exec-plans/active/ISSUE_736.md).
+
+## Issue #735 — 물류 시스템 대시보드
+
+Embedded 물류 통합 조회의 원본 열기는 제공된 canonical 부모 handler를 우선 사용한다. 독립 사용에서는 기존 지원 설비/시스템/공정 editor fallback만 유지한다. 공유 System 저장 후의 focus는 새 report 영수증을 기다리는 기존 gateway가 소유하며, 대기 중 새 사용자 focus에 양보한다. 별도 focus/viewport 복원기를 추가하지 않는다.
+
+새 조회는 직접 모드로 시작한다. 이전 저장 조회에 시스템 모드/선택 필드가 없으면 **기존 전체 작업 (호환)**으로 명시 유지하며 미연결 작업을 포함한 종전 Project 총계·원본 구성 참고와 접힘/선택/focus를 보존한다. 직접/조율 전환은 사용자 명령이며 새 모드의 Task 모집단 차이를 같은 수치라고 주장하지 않는다.
+
+`dashboard.system`은 시스템 전용 consumer를 사용한다. 기본 단독 요약에서 조회 구성을 열어 시스템→공정→WorkArea→설비→리소스 또는 시스템→Milestone→공정 예시를 적용하고 하위 축을 변경한다. 직접 연결만/조율 범위 포함과 시스템 속성 선택은 서버 조회 범위를 변경하며 개인 Project/root 설정으로 보존한다. 기존 이름 찾기는 표시 행만 제한하므로 구별한다. 유형·계층·공정 범위·PI/개발자·실제 관계/진단은 접기 영역에서 확인한다.
+
+동일 원본 System·Task·Assignment와 정확 일정은 기존 gateway를 이용한다. dirty 취소/저장·readonly·오류/stale 잠금, 새 snapshot 이후 같은 경로/필터/선택/focus 복귀를 유지하며 조회에 따른 mutation/Gantt remount를 만들지 않는다. Milestone는 현재 작업의 진척과 전체 Gate를 구별한다. #720 매뉴얼의 `dashboard.system`은 [물류 시스템 현황](TARGET_RESOURCE_USER_GUIDE.md#물류-시스템-현황)에 인계하고 앱 내 매뉴얼 route/버튼은 별도 후속이다. [실제 검증 및 미검증](exec-plans/active/ISSUE_735.md)을 따른다.
+
+## Issue #733 — 공정&WorkArea 대시보드
+
+`dashboard.process`는 공정 전용 consumer를 통해 공정 단독 요약과 교차 조회 예시를 제공한다. 공정→선택 WorkArea→[설비 | 물류 시스템]→리소스 및 공정→Milestone→리소스는 같은 Task의 다른 조회 경로이며 실제 지배/제어관계나 WBS parent를 생성하지 않는다. 처음에는 기존처럼 공정 단독 요약을 보여 주고 교차 예시는 조회 구성에서 명시 적용한다. 기존 Project/root 개인 조회 설정은 우선 보존한다.
+
+구성·작업 KPI의 분모를 분리하고 작업0 구성, 구역없음·미매핑·프로젝트 공통을 실제 공정 이름으로 저장하지 않는다. 상세/원본은 현재 snapshot/path의 정확 ID를 재검증하며 dirty/readonly/오류·stale 시 기존 host/editor 규칙을 유지한다. 원본 저장 후 새 report/detail 영수증을 확인한 뒤 같은 경로·필터·선택·focus로 복귀한다. 조회·펼침·구성 변경에 업무 mutation0/Gantt remount0, marker-OFF를 유지한다.
+
+#720 인계는 `dashboard.process` → [공정과 WorkArea 현황](TARGET_RESOURCE_USER_GUIDE.md#공정과-workarea-현황)이며 실제 검증 범위는 [Work Packet](exec-plans/active/ISSUE_733.md)에 기록한다. 기존 #624 Target 호환 화면과 #731 KPI는 별도 유지한다.
+
 ## Issue #731 — KPI 보존과 정확 원본 이동
 
 `dashboard.kpi`는 #724의 **대시보드 → KPI**에서 기존 네 카드·세 세부표·조건/필터·계획 공수·품질·Milestone 전체 Gate를 계속 제공한다. 새 범용 트리로 교체하지 않는다. 통합 출처와 snapshot은 현재 조회의 근거이며 등록 구성/진단의 전체 Project 참고를 현재 선택 공수·진척과 혼합하지 않는다.
@@ -9,6 +43,22 @@ Task/Assignment·기준정보는 기존 편집/관리 경로를 재사용한다.
 일정 임시 이동 frame은 출발 KPI의 정확 snapshot·필터를 Resource 이동 검증 context와 별도로 보존한다. 이동/확인/복귀는 전용 KPI source를 다시 검증하며 stale/조회 실패 시 이동을 차단하고 기존 KPI 숫자를 무효화해 같은 조건으로 재조회한다. 다른 Resource 검증 기간을 출발 KPI의 공수 기간으로 표시하지 않는다.
 
 `screenKey=dashboard.kpi`의 #720 매뉴얼 인계는 [KPI 가이드](TARGET_RESOURCE_USER_GUIDE.md#kpi와-구성연결-진단)다. 앱 내 `/manual` route/버튼 신설은 이 작업 범위가 아니다. [기능 보존표·Design Delta B·검증 상태](exec-plans/active/ISSUE_731.md)를 따른다.
+
+## Issue #730 — 다관점 공통 조회와 원본 복귀
+
+대시보드의 다섯 관점은 같은 WBS 작업 원장을 조회하는 공통 구성기/표를 사용한다. 현재 탭의 root를 고정하고 하위 없음·하위 축 추가/삭제/순서 변경·적용/초기화를 제공한다. 공정 아래 설비/System은 같은 깊이 typed 형제이며 설비 root의 공정→System→Resource 및 Milestone→공정 경로를 허용한다. 기존 KPI·Milestone 생성/편집/소속과 full Gate·Resource Plan/기존 상세 기능을 유지한다.
+
+표의 이름 찾기는 표시 행만 좁히는 개인 설정이며 서버 고유 총계의 모집단을 바꾸지 않는다. 작업 검색·기간·상태 조건은 서버 조회 범위다. 실제 적용 기간과 기준일·명시 Task 문맥 출처를 표시하여 두 의미를 구별한다.
+
+Project+관점의 개인 browser 설정은 업무 revision과 분리한다. 다른 Project/root의 조건·펼침·선택·스크롤·focus를 섞지 않고 잘못된 schema/spec은 안내와 명시 복구를 제공한다. 현재 적용 경로와 미적용 구성 초안을 구별한다. 새 명시 공정0..N은 기존 Target/설비/System 유도 공정과 다른 source이며 구 API 기본값을 바꾸지 않는다. 구성 소속과 같은 Task의 업무 연관을 구별하고 등록-only·미배정·미연결도 정상 행으로 남긴다.
+
+표의 viewRowKey는 경로 식별이며 원본 ID가 아니다. 정확 상세와 원본 편집/일정은 동일 spec/filter/path/source snapshot과 서버 Task/Assignment 교집합을 사용한다. E1-t1-M/E2-t2-M에서 E1 상세로 t2를 확장하지 않고 full Milestone Gate만 전체 canonical membership을 유지한다. 조건·source·revision이 달라지면 이전 상세/이동을 무효화하고 재조회한다. 원본 저장 뒤 같은 viewRowKey/path가 새 보고서에도 존재하면 새 snapshot의 상세 완료 영수증을 확인한 후 선택을 복원한다. 경로가 삭제되거나 조건에서 제외되면 이전 상세를 다시 열지 않는다. 기존 editor/탐색 stack·focus 복귀와 같은 Gantt 인스턴스를 사용하며 조회 설정으로 Task/Assignment/Target mutation을 만들지 않는다.
+
+원본 창 열기나 일정 전환의 범위 확인이 대기 중일 때 새 행·상세 명령, 검색·정렬·구성 적용은 이전 이동을 대체한다. 표와 상세 내부의 명령 사이에도 같은 최신 의도를 적용하며, 일정 이동의 추가 범위 확인과 충돌 승인까지 과거 응답이 새 선택을 덮지 않아야 한다. 화면 자체의 로딩 상태는 새 사용자 의도가 아니므로 현재 유효한 이동을 취소하지 않는다.
+
+리소스 원본은 기존 Project 참여/프로필·배정 상세를 정확 ID로 연다. 전역 리소스 프로필 수정은 별도 관리자 영역이며 Project 편집권으로 승격하지 않는다. WorkArea 원본은 기존 공정 카탈로그의 정확 ID를 대상으로 하며 별도 관리자 로그인 전에는 대상을 보존하고 복귀할 수 있다. 인증·취소·초안 닫기 후 출발 관점과 focus를 복원한다.
+
+#720 매뉴얼 인계: `dashboard.milestones`, `dashboard.process`, `dashboard.equipment`, `dashboard.system`, `dashboard.resources` → [동적 조회 구성과 정확 상세](TARGET_RESOURCE_USER_GUIDE.md#동적-조회-구성과-정확-상세). 앱 내 매뉴얼 진입 자체는 #720 후속 범위다. 실제 keyboard/5폭/서버/브라우저 증거와 미검증은 [Work Packet](exec-plans/active/ISSUE_730.md)에 기록한다.
 
 ## Issue #726 — 기준정보 관리와 Target 없는 Task 물류 연결
 
@@ -1552,3 +1602,13 @@ WorkArea는 등록된 owner 공정 행으로 이동한다. 가려진/비활성/�
 KPI 진단에서 공정·WorkArea→owner 공정·설비·물류 시스템 원본을 열 때, React commit 뒤 제한된 프레임 안에 정확한 연결/가시 master 행으로 키보드 포커스를 인계한다. 다만 해당 행이 아직 표시되지 않거나 비활성이라 **대기 중**일 때 사용자가 검색창, ‘KPI로 돌아가기’, workspace 탭 등 어느 화면 영역의 **새로 연결되고 가시이며 enabled인 초점 대상**으로 이동하면 이전 자동 인계는 즉시 폐기된다. `#panel-processes` 내부 컨트롤만 사용자 입력이라고 해석해서는 안 된다. 유효한 원본 트리거/정확 row와 일시적으로 body로 이동한 경우는 기존 포커스 시도·복구 계약을 유지한다.
 
 공정 원본은 정확 id/revision/view/row의 접근성·이름을 검증하고 검색/돌아가기/새 선택을 늦은 rAF가 덮지 않는다. 단순 `toBeFocused`와 별개로 검색과 복귀 버튼에 포커스를 명시 이동시키는 E2E 음성 사례를 유지한다. 테스트 단언·시간초과·기존 업무 원본/권한/조회 조건을 완화하지 않으며, 신규 전역 시각 디자인 규칙 없이 기존 interaction/focus 원칙의 Delta B를 확장한다. 증거는 [#731 원장 F-004](ISSUE_731_FAILURE_ANALYSIS.md#9-f-004--pr-748-full-ci-30041-qa-final-p1-review-및-패널-바깥-포커스-가로채기-2026-10-19).
+
+## Issue #732 — Milestone 전용 동적 관점
+
+`대시보드 → Milestone`은 전용 계층 요약과 기존 Milestone 관리 Dashboard를 함께 제공한다. 기존 `Milestone 추가`, 검색·기간·상태/임박 조건, KPI/전체 상태 표, 삭제 보호·소속·관계·Ready/Blocked/명시 Completed와 정확 Task 일정/리소스 이동을 유지한다. 계층 기본은 Milestone 단독이며 예시나 구성기로 하위 축을 추가·삭제·순서 변경한다. 공정→WorkArea→설비/물류 시스템 형제→리소스 및 리소스→공정은 시작 예시이며 고정 보고서가 아니다.
+
+계층의 선택 작업 범위와 전체 Gate는 다른 분모다. 같은 Milestone의 선택 E1 작업만 완료돼도 외부 E2 작업/직접 선행이 미완료면 전체 Gate가 막혀 있다. Completed는 기존 Editor에서 명시 저장한다. 날짜 미정, 전체 소속0, 조건 밖 작업0, 개인 미배정과 물류 미연결을 구별한다. 조회 행/소계의 Task·공수는 중첩 가능하고 Project 총계는 서버 고유 합집합을 사용한다.
+
+생성 성공 후 같은 새 Milestone ID의 기존 Editor를 연다. 현재 조건으로 목록에서 제외될 수 있다는 안내를 제공하고 목록 조건을 자동 초기화하지 않는다. 저장·취소 후 원래 Dashboard/유효 trigger로 초점을 복원하며 trigger가 사라지면 현재 관리 검색·추가 버튼·제목 순으로 유효한 대상을 찾아 복원한다. 원본/Task/Assignment 명령은 동일 snapshot의 정확 경로를 검증한 뒤 기존 editor host로 연결한다. readonly/dirty/pending·401/412/stale·필터 탈락을 새 우회 흐름으로 해결하지 않는다. marker OFF와 native Grid/Chart Milestone 행 분리, Gantt 인스턴스/viewport writer는 그대로다.
+
+세부 보존표·검증 상태·문서 영향은 [#732 Work Packet](exec-plans/active/ISSUE_732.md)을 따른다.

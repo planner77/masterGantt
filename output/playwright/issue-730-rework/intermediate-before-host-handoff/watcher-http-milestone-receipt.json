@@ -1,0 +1,72 @@
+{
+  "description": "host 두 번째 scope로 공유 취소 의도를 넘기는 후속 보완 전의 중간 소스 검증이다. 최종 소스 검증으로 재사용하지 않는다.",
+  "batch": "watcher-http-milestone",
+  "startedAt": "2026-10-19T08:36:04.716969+00:00",
+  "finishedAt": "2026-10-19T08:37:53.771712+00:00",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--config",
+    "tests/config/playwright.config.ts",
+    "tests/e2e/milestone-stage-grid.spec.ts",
+    "tests/e2e/milestone-visibility-persistence.spec.ts",
+    "tests/e2e/issue-717-identity-persistence.spec.ts",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=0",
+    "--reporter=list,json",
+    "--output=/home/planner/Dev/masterGantt-issue-730-rework/.prepr-reports/issue-730-rework/watcher-http-milestone",
+    "--grep",
+    "#462 actual|#552 실제 UI Summary Copy|#717 실제"
+  ],
+  "exitCode": 0,
+  "sourceStable": true,
+  "sourceFiles": 656,
+  "changedSourceFiles": [],
+  "stats": {
+    "duration": 109639.21399999999,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "title": "#717 실제 HTTP·SQLite에서 동명 Milestone·공정의 정확한 식별자 편집·삭제·readonly 복사",
+      "file": "issue-717-identity-persistence.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 18288
+        }
+      ]
+    },
+    {
+      "title": "#462 actual SQLite stage filter·Grid·common Editor·canonical and geometry",
+      "file": "milestone-stage-grid.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 25373
+        }
+      ]
+    },
+    {
+      "title": "#552 실제 UI Summary Copy는 숨은 Milestone·내부 관계·소속 전체를 보존하고 표시 전환은 저장하지 않는다",
+      "file": "milestone-visibility-persistence.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 13011
+        }
+      ]
+    }
+  ],
+  "sourceSha256Before": "ed9aa41ae4b7a5b606edf6a29ee7924c7cf0439be2275f702b156602fbc80937",
+  "sourceSha256After": "ed9aa41ae4b7a5b606edf6a29ee7924c7cf0439be2275f702b156602fbc80937",
+  "sourceManifest": "source-freeze.json"
+}

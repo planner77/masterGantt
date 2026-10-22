@@ -1,0 +1,123 @@
+{
+  "issue": 730,
+  "failure_id": "F730-005",
+  "scope": "legacy synthetic help fixture; WBS ancillary terminal404, not WBS success validation",
+  "original_source_sha256": "d810755e28cbb89b704c06a291d7c372eae2a4634bd74a18f904ec2635d80f1d",
+  "controlled_repro_source_sha256": "1febbc367acef716d40b667b148409696a5eec7f5010d084ca48d18ba7f595ce",
+  "controlled_repro": {
+    "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-719-contextual-help.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --grep '#719 milestone 동일'",
+    "status": "FAIL",
+    "exit_code": 1,
+    "mechanism": "Original help equality retained; exact sibling POST404 held pending until between closed/opened samples. Product source untouched.",
+    "width": 390,
+    "closed_primaryDataTop": 1099,
+    "opened_primaryDataTop": 1119,
+    "closed_panel_scrollTop": 383,
+    "opened_panel_scrollTop": 383,
+    "writes": [],
+    "browserErrors": []
+  },
+  "final": {
+    "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-719-contextual-help.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0",
+    "status": "PASS",
+    "exit_code": 0,
+    "passed": 12,
+    "failed": 0,
+    "elapsed": "1.1m",
+    "owned_source_pre_run_sha256": "aa80e01d426bb34bfb040432d0e639274a31257f7d62f9aab1d570e088bb1a7e",
+    "owned_source_post_run_sha256": "aa80e01d426bb34bfb040432d0e639274a31257f7d62f9aab1d570e088bb1a7e",
+    "global_manifest": {
+      "file_count": 963,
+      "capture_boundary": "during run just after first case; not pre-run",
+      "aggregate_sha256": "9f2bf75183e66fef4ecc65e658b98cfff8a64817aa46201eebe37038ccaade70",
+      "after_run_changed_files": [],
+      "no_source_edits_during_run": true
+    },
+    "cases": [
+      {
+        "name": "#719 milestone 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "duration": "12.4s",
+        "status": "PASS"
+      },
+      {
+        "name": "#719 resource 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "duration": "8.9s",
+        "status": "PASS"
+      },
+      {
+        "name": "#719 resource-admin 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "duration": "5.9s",
+        "status": "PASS"
+      },
+      {
+        "name": "#719 logistics 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "duration": "9.8s",
+        "status": "PASS"
+      },
+      {
+        "name": "#719 logistics-admin 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "duration": "5.2s",
+        "status": "PASS"
+      },
+      {
+        "name": "#719 master 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "duration": "5.3s",
+        "status": "PASS"
+      },
+      {
+        "name": "#719 touch 도움말 tap 열림·바깥 tap 닫힘 및 최소 hit area",
+        "duration": "940ms",
+        "status": "PASS"
+      },
+      {
+        "name": "#719 공정 없는 설비 추가는 지속 경고를 표시하고 도움말로 숨기지 않는다",
+        "duration": "2.9s",
+        "status": "PASS"
+      },
+      {
+        "name": "#719 focus 유지 pointer leave와 profile modal 도움말 Escape는 초안을 보존한다",
+        "duration": "1.5s",
+        "status": "PASS"
+      },
+      {
+        "name": "#719 긴 도움말을 키보드로 스크롤하고 Escape 시 초점을 복원한다",
+        "duration": "1.0s",
+        "status": "PASS"
+      },
+      {
+        "name": "#719 milestone 도움말 fixture는 지연 WBS 오류와 기존 데이터가 모두 준비될 때까지 기다린다",
+        "duration": "3.1s",
+        "status": "PASS"
+      },
+      {
+        "name": "#719 resource 도움말 fixture는 지연 WBS 오류와 기존 데이터가 모두 준비될 때까지 기다린다",
+        "duration": "2.9s",
+        "status": "PASS"
+      }
+    ],
+    "assertions": [
+      "Six surfaces at390/768/1024/1440/1920: documentWidth<=width, original opened.primaryDataTop===closed.primaryDataTop and documentWidth equality, added unchanged panel scrollTop, tooltip keyboard/pointer geometry/focus/Escape; writes0/browserErrors0",
+      "Two delayed404 cases: legacy data-ready true and WBS pending do not complete openSurface; release response then explicit WBS error terminal readiness, exact primaryDataTop/documentWidth/scrollTop equality, writes0/pageerrors0",
+      "Original touch hit area, persistent warning, modal draft preservation, long-help keyboard scroll cases retained"
+    ]
+  },
+  "local_static": [
+    {
+      "command": "npx eslint tests/e2e/issue-719-contextual-help.spec.ts",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "status": "PASS",
+      "exit_code": 0
+    }
+  ],
+  "remote_ci": "NOT TESTED",
+  "independent_qa": "not performed by implementation agent",
+  "documentation_handoff": [
+    "docs/ISSUE_730_FAILURE_ANALYSIS.md cumulative F730-005 diagnosis and exact RED+12PASS evidence",
+    "docs/TEST_PLAN.md terminal sibling fixture readiness; WBS404 is not successful WBS report evidence",
+    "docs/exec-plans/active/ISSUE_730.md implementation and remaining remote gate boundary"
+  ]
+}

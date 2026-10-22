@@ -1,4 +1,4 @@
-import type { ResourceExcelExportOptions } from "../../contracts/resource-excel-export";
+import type { ResourceExcelExportInput } from "../../contracts/resource-excel-export";
 import { randomUUID } from "node:crypto";
 
 import type { ProjectSnapshotResponse } from "@/contracts/projects";
@@ -35,7 +35,7 @@ export interface ProjectExcelExportHandlerDependencies {
   requestId?: () => string;
   buildWorkbook?: typeof buildProjectExcelWorkbook;
   getResourceWorkload?: (publicId: string) => ResourceWorkloadResponse | undefined;
-  getExportBundle?: (publicId: string, includeResourceEffort: boolean, resourceOptions?: ResourceExcelExportOptions, expectedRevision?: number) => ProjectExportSnapshotBundle | undefined;
+  getExportBundle?: (publicId: string, includeResourceEffort: boolean, resourceOptions?: ResourceExcelExportInput, expectedRevision?: number) => ProjectExportSnapshotBundle | undefined;
 }
 
 function resolveDependency<T>(dependency: T | (() => T)): T {

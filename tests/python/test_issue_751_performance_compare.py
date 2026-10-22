@@ -9,11 +9,11 @@ module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
 
-def shard(run, number, value, sha="a" * 40, os="linux", status="passed"):
+def shard(run, number, value, sha="a" * 40, os="linux", status="passed", shard_count=6):
     return {
         "schemaVersion": 1, "runId": str(run), "runAttempt": 1,
         "headSha": sha, "eventName": "push", "status": status,
-        "shard": number, "shardCount": 6,
+        "shard": number, "shardCount": shard_count,
         "environment": {"os": os, "node": "22.16.0", "fullyParallel": True},
         "receipts": [{
             "schemaVersion": 2, "resultStatus": status, "status": "ok",
@@ -30,9 +30,9 @@ def shard(run, number, value, sha="a" * 40, os="linux", status="passed"):
     }
 
 
-def cohort(first, value, count=10, os="linux"):
-    return [shard(run, shard_number, value, os=os)
-            for run in range(first, first + count) for shard_number in range(1, 7)]
+def cohort(first, value, count=10, os="linux", shard_count=6):
+    return [shard(run, shard_number, value, os=os, shard_count=shard_count)
+            for run in range(first, first + count) for shard_number in range(1, shard_count + 1)]
 
 
 class Issue751ComparisonTests(unittest.TestCase):
@@ -67,6 +67,18 @@ class Issue751ComparisonTests(unittest.TestCase):
         sql = next(row for row in result["rows"]
                    if row["kind"] == "sql" and row["metric"].endswith("sqlStatementCount"))
         self.assertEqual(sql["candidateP95"], 3)
+
+    def test_current_eight_shards_and_historical_six_shards_never_mix(self):
+        eight = cohort(4000, 100, 1, shard_count=8)
+        self.assertEqual(len(module.complete_runs(eight)[0]), 8)
+        self.assertEqual(module.complete_runs(eight[:-1])[0], [])
+        mixed = eight.copy()
+        mixed[7] = shard(4000, 8, 100, shard_count=6)
+        self.assertEqual(module.complete_runs(mixed)[0], [])
+        old = cohort(5000, 100, 10, shard_count=6)
+        new = cohort(6000, 80, 10, shard_count=8)
+        report = module.compare(old, new)
+        self.assertTrue(all(row["status"] == "INSUFFICIENT_DATA" for row in report["rows"]))
 
     def test_non_matching_environment_and_failed_tests_do_not_pass(self):
         base = cohort(1000, 100)

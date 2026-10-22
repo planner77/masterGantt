@@ -446,6 +446,8 @@ jobs:
         run: python3 scripts/test-release-debt-audit.py
       - name: Issue #633 B2 Owner 원장·GHCR·cleanup 보호 회귀
         run: python3 scripts/test-release-debt-recovery.py
+      - name: "#765 exact 미발행 Owner·Release·GHCR 퇴역 보호 회귀"
+        run: python3 scripts/test-release-debt-recovery-765.py
       - name: "#622 과거 Lifecycle Owner 권한·SHA·브랜치 삭제 회귀 검사"
         run: python3 scripts/test-closed-622-recovery.py
       - name: Issue #639 정확 SHA 회복 단위/보안 회귀
@@ -463,6 +465,8 @@ jobs:
         run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_preflight.py
       - name: PR Fast Gate 검증 (#659)
         run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_pr_fast_gate.py
+      - name: Issue #770 Shadow 영향 계획·출처 보호 단위 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_impact_plan.py' -v
       - name: Issue #703 Preview 배포 권한·워크플로 단위 회귀
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_preview_publish.py' -v
       - name: Issue #751 source-matched P50/P95 comparison and missing-artifact regression
@@ -723,7 +727,7 @@ jobs:
 
   # workers=1 안정성 계약은 유지하고 runner 6개로 test-level sharding
   e2e_shard:
-    name: Chromium E2E shard ${{ matrix.shard }}/6
+    name: Chromium E2E shard ${{ matrix.shard }}/8
     if: >-
       always() && github.event_name != 'pull_request' &&
       needs.changes.result == 'success' &&
@@ -732,12 +736,12 @@ jobs:
     runs-on: ubuntu-latest
     # Playwright OS dependency install can stall on runner mirrors.
     # #487: allow healthy tests to finish after bounded setup/retry.
-    # Six shards, workers=1 and fail-closed aggregate checks stay unchanged.
+    # Eight shards, workers=1 and fail-closed aggregate checks stay unchanged.
     timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     steps: &e2e_shard_steps
       - name: checkout 계측 시작
         id: checkout-start
@@ -764,7 +768,7 @@ jobs:
           PR_E2E_STOP_ON_FAILURE: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && 'true' || 'false' }}
           E2E_TIMING_OUTPUT: test-results/e2e-timing-shard-${{ matrix.shard }}.json
           E2E_TIMING_SHARD: ${{ matrix.shard }}
-          E2E_TIMING_SHARD_COUNT: "6"
+          E2E_TIMING_SHARD_COUNT: "8"
           E2E_SOURCE_HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         shell: bash
         run: |
@@ -776,7 +780,7 @@ jobs:
             echo "PR 첫 E2E 실패 시 shard 내 미실행 테스트를 중단합니다."
           fi
           set +e
-          selection="$(node scripts/e2e-shard-planner.mjs select --plan tests/config/e2e-shard-plan.json --shard "${{ matrix.shard }}" --total 6)"
+          selection="$(node scripts/e2e-shard-planner.mjs select --plan tests/config/e2e-shard-plan.json --shard "${{ matrix.shard }}" --total 8)"
           selection_status=$?
           set -e
           if [[ "$selection_status" -eq 0 ]]; then
@@ -788,8 +792,8 @@ jobs:
             echo "Historical timing shard plan 사용: ${#shard_files[@]} files"
             npm run test:e2e -- "${fail_fast_args[@]}" "${shard_files[@]}"
           else
-            echo "Historical timing plan 없음/불일치 — Playwright native 6-way sharding fallback"
-            npm run test:e2e -- "${fail_fast_args[@]}" --shard=${{ matrix.shard }}/6
+            echo "Historical timing plan 없음/불일치 — Playwright native 8-way sharding fallback"
+            npm run test:e2e -- "${fail_fast_args[@]}" --shard=${{ matrix.shard }}/8
           fi
       - name: E2E timing artifact 업로드
         if: always()
@@ -823,7 +827,7 @@ jobs:
 
   # PR E2E: 하나의 Shard 실패 시 나머지 Shard 취소 요청
   pr_e2e_shard:
-    name: Chromium E2E shard ${{ matrix.shard }}/6 · PR
+    name: Chromium E2E shard ${{ matrix.shard }}/8 · PR
     if: >-
       always() && github.event_name == 'pull_request' &&
       github.event.action != 'edited' &&
@@ -836,7 +840,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        shard: [1, 2, 3, 4, 5, 6]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     steps: *e2e_shard_steps
   e2e:
     name: Chromium end-to-end tests
@@ -1142,6 +1146,78 @@ jobs:
             echo "Docker smoke 구현 job이 실패하거나 취소되었습니다: $RESULT" >&2
             exit 1
           }
+
+  # #770: nonblocking OBSERVE-ONLY. Does not feed Required3, QA, GHCR, or
+  # merge decisions. Base trusted code only; introducing PR reports NOT_TESTED.
+  impact_shadow:
+    name: 변경 영향 Shadow 계획 · advisory only (#770)
+    if: >-
+      always() &&
+      ((github.event_name == 'pull_request' && github.event.action != 'edited') ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+    needs: [changes, quality, e2e, docker]
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    continue-on-error: true
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    steps:
+      - name: PR Head가 아닌 인증된 base 정책 checkout (main은 정확 main)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 신규 Shadow 정책 bootstrap — 미설치 시 NOT TESTED
+        if: hashFiles('scripts/ci_impact_plan.py') == ''
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = {
+              "schema": "mastergantt-impact-plan-v1",
+              "evidence_status": "NOT_TESTED",
+              "mode_recommendation": "FULL_REQUIRED",
+              "risk": "UNKNOWN",
+              "reason": "TRUSTED_BASE_POLICY_NOT_INSTALLED",
+              "source": {"repository": os.environ.get("GITHUB_REPOSITORY"),
+                         "run_id": os.environ.get("GITHUB_RUN_ID"),
+                         "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+                         "head_sha": os.environ.get("PR_HEAD_SHA"),
+                         "base_sha": os.environ.get("PR_BASE_SHA"),
+                         "test_merge_sha": os.environ.get("GITHUB_SHA")},
+              "authority": "ADVISORY_NOT_REQUIRED_NOT_QA_NOT_RELEASE",
+          }
+          Path("ci-impact-shadow.json").write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write("## Issue #770 — Shadow bootstrap: NOT TESTED\n")
+              stream.write("인증된 base에 새 판정기가 없어 실행하지 않았습니다. 기존 전체 CI와 QA 결과는 별개입니다.\n")
+          PY
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+      - name: 인증된 base/정확 main 정책으로 영향 계획·실제 CI 관측
+        if: hashFiles('scripts/ci_impact_plan.py') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEED_QUALITY: ${{ needs.quality.result }}
+          NEED_E2E: ${{ needs.e2e.result }}
+          NEED_DOCKER: ${{ needs.docker.result }}
+          E2E_REQUIRED: ${{ needs.changes.outputs.e2e }}
+          SHADOW_MODE: ${{ github.event_name == 'pull_request' && 'pr' || 'main' }}
+        run: python3 scripts/ci_impact_plan.py --mode "$SHADOW_MODE" --output ci-impact-shadow.json
+      - name: Shadow 계획 및 미검증 출처 정제 Artifact
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-impact-shadow-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci-impact-shadow.json
+          retention-days: 30
+          if-no-files-found: warn
 
   # First introduction: main lacks a trusted QA validator. Record NOT TESTED.
   # Never report success of an unexecuted QA check, and never weaken existing required CI.

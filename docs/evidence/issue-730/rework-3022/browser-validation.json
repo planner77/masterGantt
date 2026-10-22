@@ -1,0 +1,436 @@
+{
+  "schema": "issue730-final-local-browser-v1",
+  "baselineHead": "2a97043f40f3437778e2936b9413ff3269d197af",
+  "command": [
+    "npm",
+    "run",
+    "test:e2e",
+    "--",
+    "tests/e2e/milestone-dashboard-state.spec.ts",
+    "tests/e2e/milestone-management-persistence.spec.ts",
+    "tests/e2e/issue-623-resource-mvp.spec.ts",
+    "tests/e2e/issue-726-task-logistics.spec.ts",
+    "tests/e2e/issue-730-view-composer.spec.ts",
+    "tests/e2e/project-task-editor-persistence.spec.ts",
+    "tests/e2e/browser-task-logistics-links.spec.ts",
+    "--project=chromium",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=0",
+    "--reporter=list,json"
+  ],
+  "environment": {
+    "node": "v22.14.0",
+    "npm": "11.10.0"
+  },
+  "exitCode": 0,
+  "durationMs": 966945,
+  "sourceStable": true,
+  "sourceFileCount": 963,
+  "sourceMismatch": [],
+  "stats": {
+    "startTime": "2026-10-19T14:38:52.932Z",
+    "duration": 965849.458,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "file": "browser-task-logistics-links.spec.ts",
+      "title": "Task logistics browser read preserves HTTP/JSON/transport failures without retry",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 810,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "title": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 25701,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "title": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 49922,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "title": "#623 실제 Target 다열·중첩Group 390px geometry·keyboard·query0·렌더관측",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 27767,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "title": "#623 실제 Target 다열·중첩Group 768px geometry·keyboard·query0·렌더관측",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 23870,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "title": "#623 실제 Target 다열·중첩Group 1024px geometry·keyboard·query0·렌더관측",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 20814,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "title": "#623 실제 Target 다열·중첩Group 1440px geometry·keyboard·query0·렌더관측",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 18930,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "title": "#623 실제 Target 다열·중첩Group 1920px geometry·keyboard·query0·렌더관측",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 19236,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-726-task-logistics.spec.ts",
+      "title": "#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중복 제출 방지, reload·Summary 상속",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 25908,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-726-task-logistics.spec.ts",
+      "title": "#726 직접 연결 5폭·긴 이름·키보드·초안 폐기와 HTTP 403/409/412 후 보존",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 39408,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-726-task-logistics.spec.ts",
+      "title": "#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류 보존과 상위 출처 구별",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 54337,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-730-view-composer.spec.ts",
+      "title": "#730 지연 원본은 새 상세·상세 Task 명령·이름 검색에 양보한다",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 29842,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-730-view-composer.spec.ts",
+      "title": "#730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 복원·Gantt 보존",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 31765,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-730-view-composer.spec.ts",
+      "title": "#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차단·구버전 설정 복구",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 25123,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-730-view-composer.spec.ts",
+      "title": "#730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키보드·읽기 전용 가상 그룹",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 24776,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-730-view-composer.spec.ts",
+      "title": "#730 실제 HTTP Milestone·리소스·WorkArea 원본 ID와 취소 후 정확한 조회 복귀",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 28998,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "issue-730-view-composer.spec.ts",
+      "title": "#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관점 보존",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 28545,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "milestone-dashboard-state.spec.ts",
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 13390,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "milestone-dashboard-state.spec.ts",
+      "title": "#463 request reversal, stale error and explicit retry preserve filters",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 3649,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "milestone-dashboard-state.spec.ts",
+      "title": "#463 server date authority, bounded day refresh and same-day catalog catch-up",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4219,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "milestone-dashboard-state.spec.ts",
+      "title": "#463 shared multi-selection, null conversion and canonical/catalog invalidation",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4957,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "milestone-dashboard-state.spec.ts",
+      "title": "#463 aborted request to cached query still permits focus catch-up",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 4061,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "milestone-dashboard-state.spec.ts",
+      "title": "#463 public viewport and native scroll survive peer/layout, stale restore is consumed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 7521,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "milestone-dashboard-state.spec.ts",
+      "title": "#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 5255,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "milestone-management-persistence.spec.ts",
+      "title": "#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 거절·프로세스 재시작",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 30853,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "milestone-management-persistence.spec.ts",
+      "title": "#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (past)",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 12907,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "milestone-management-persistence.spec.ts",
+      "title": "#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (future)",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 13584,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "project-task-editor-persistence.spec.ts",
+      "title": "persists explicit editor changes, task details and safe URL click without remount",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 17375,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "project-task-editor-persistence.spec.ts",
+      "title": "Summary Description and URL persist while derived schedule stays readonly",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 9634,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    },
+    {
+      "file": "project-task-editor-persistence.spec.ts",
+      "title": "linked requested dates, metadata, baseline and successor schedules persist canonically",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 18959,
+          "retry": 0,
+          "errorTypes": []
+        }
+      ]
+    }
+  ],
+  "rawReportsTracked": false,
+  "scope": "local actual Chromium and SQLite, not remote Required CI",
+  "isolatedFailureDiagnostics": [],
+  "generatedTrackedFilesRestored": 26,
+  "untrackedCapturesMoved": 12
+}

@@ -1,0 +1,209 @@
+{
+  "schema": "issue-730-rework-local-validation/1",
+  "issue": 730,
+  "pr": 747,
+  "recordedAtUtc": "2026-10-19T09:05:24.149527+00:00",
+  "baselineHead": "b4ba9994ee77a8dbc4a3bb36c8ee6e00beab7a51",
+  "baseSha": "fbe7db83a4baa2877a75db0769a59077bbe308c4",
+  "candidateVersion": "0.124.0",
+  "localValidated": "FAIL",
+  "scope": "로컬 검증이며 최초 E2E FAIL과 단발 진단 FAIL을 보존한다. 원격 Required3/Trusted/Owner/Manager 승인을 대체하지 않는다.",
+  "environment": {
+    "node": "22.14.0",
+    "npm": "11.10.0",
+    "playwright": "1.63.0",
+    "chromium": "Google Chrome for Testing 153.0.8010.12",
+    "platform": "WSL2 Linux x64"
+  },
+  "source": {
+    "changedSourceFiles": 35,
+    "changedSourceManifest": "source-freeze.json",
+    "changedSourceAggregate": "23bdf4d64b17273755fd17fb3d1b97d12e823c60e824f1c43193ebd20f01a133",
+    "browserSourceFiles": 656,
+    "browserSourceManifest": "../../../../output/playwright/issue-730-rework/final-source-freeze.json",
+    "browserSourceAggregate": "c743f9103205eab7cae3f5550f0097bcf0c3621a0d64054ea13379bc7f09cbda",
+    "mismatch": 0
+  },
+  "manualChecks": [
+    {
+      "command": "npm run typecheck",
+      "status": "PASS",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run lint",
+      "status": "PASS",
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 13
+    },
+    {
+      "command": "node scripts/verify-release-version.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "version": "0.124.0"
+    },
+    {
+      "command": "node scripts/verify-test-discovery.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "unitFilesDiscovered": 248,
+      "browserCasesDiscovered": 747,
+      "note": "발견 수이며 전체 실행 수가 아니다."
+    },
+    {
+      "command": "node scripts/check-markdown-links.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "files": 275
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS",
+      "exitCode": 0
+    }
+  ],
+  "unit": {
+    "status": "PASS",
+    "exitCode": 0,
+    "files": 13,
+    "passed": 195,
+    "failed": 0,
+    "evidence": "unit-results.json",
+    "scope": "직접 WBS/model/transport/navigation/domain/실제 SQLite HTTP155 + 통합 #731 KPI17 + exact helper 음성23; 중복 합산 없음"
+  },
+  "browser": {
+    "status": "FAIL",
+    "uniqueCases": 27,
+    "passed": 26,
+    "failed": 1,
+    "skipped": 0,
+    "sourceStable": true,
+    "evidence": "../../../../output/playwright/issue-730-rework/local-ui-receipt.json",
+    "firstFailure": {
+      "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+      "line": 223,
+      "error": "Test timeout of 30000ms exceeded",
+      "completedScreenshots": 9,
+      "totalLayoutWidthCombinations": 10,
+      "interruptedWidth": 1920,
+      "interruptedLayout": "matrix",
+      "pollElapsedMs": 0.4,
+      "classification": "UNKNOWN",
+      "causeConfirmed": false,
+      "hypothesis": "ENV_CANDIDATE"
+    },
+    "boundedDiagnostic": {
+      "caseCount": 2,
+      "passed": 1,
+      "failed": 1,
+      "exitCode": 1,
+      "sourceStable": true,
+      "automaticRetry": false,
+      "additionalRunCount": 1,
+      "classification": "UNKNOWN",
+      "causeConfirmed": false,
+      "hypothesis": "ENV_CANDIDATE"
+    },
+    "note": "단발 진단은 같은 파일 전체2case 1PASS/1FAIL, 추가 재실행 없음. 최초26/1을 덮어쓰지 않는다.",
+    "controlledNegative": "중간 소스에서 의도적으로 취소를 무효화한1회 FAIL, 최종 소스 실패와 분리"
+  },
+  "prepr": {
+    "fast": {
+      "status": "BLOCKED",
+      "exitCode": 1,
+      "sourceStable": true,
+      "fingerprint": "a8a5c562d1b68b7f1b1620af7bff020e4bce912d08b433fb329920795b53509e",
+      "unknown": [
+        {
+          "path": "src/features/logistics/project-logistics-management.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "src/features/logistics/project-logistics-unified.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "src/features/logistics/project-process-management.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "tests/e2e/fixtures/wbs-view-composer.ts",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "tests/e2e/helpers/read-only-requests.ts",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        }
+      ],
+      "missing": 0,
+      "selectedFiles": 36,
+      "executedSteps": 0,
+      "evidence": "prepr-fast.json"
+    },
+    "targeted": {
+      "status": "BLOCKED",
+      "exitCode": 1,
+      "sourceStable": true,
+      "fingerprint": "a8a5c562d1b68b7f1b1620af7bff020e4bce912d08b433fb329920795b53509e",
+      "unknown": [
+        {
+          "path": "src/features/logistics/project-logistics-management.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "src/features/logistics/project-logistics-unified.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "src/features/logistics/project-process-management.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "tests/e2e/fixtures/wbs-view-composer.ts",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "tests/e2e/helpers/read-only-requests.ts",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        }
+      ],
+      "missing": 0,
+      "selectedFiles": 38,
+      "executedSteps": 0,
+      "evidence": "prepr-targeted.json"
+    }
+  },
+  "documentationSync": {
+    "structural": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING",
+    "mapping": "MAPPING_PASS_SEMANTIC_REVIEW_PENDING",
+    "semanticReview": "별도 qa_docs view_review의 최종 코드·문서·증거 사전 검토 PASS, 미해결 source P1/P2 0. 원격 Trusted QA/Owner/Manager 최종 승인 아님.",
+    "structuralExitCode": 0
+  },
+  "review": {
+    "riskLevel": "HIGH",
+    "qaRequired": true,
+    "qaMethod": "OWNER_MANAGED",
+    "reviewer": "별도 qa_docs agent view_review (read-only)",
+    "sourceUnresolvedP1P2": 0,
+    "independentHumanQa": "N/A (Owner-managed; 자동 Agent 검토를 인간 QA로 사용하지 않음)",
+    "managerDecision": "NOT TESTED",
+    "knownRisk": "#623 geometry 전체30초 제한이 두 번 재현됨, 원인 UNKNOWN; LOCAL_VALIDATED FAIL",
+    "evidenceReview": "PASS (local source/docs/evidence only)",
+    "remainingUntested": "WBS 상세50행 초과 실제 페이지 클릭, 실기기/수동 최종 UX 및 운영 환경 NOT TESTED"
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "mainGhcr": "NOT TESTED",
+    "releaseAuthorized": false,
+    "scope": "기존 PR747 단일 게시와 Full CI 시작까지, 완료 모니터링/병합/Release/Issue 종료 없음"
+  },
+  "generatedArtifacts": "테스트가 수정한 Next설정과 이전 tracked출력은 HEAD bytes로복원, 새730rework 정제증거만포함. raw trace/log/DB/auth 제외.",
+  "ownedProcessCleanup": {
+    "status": "PASS",
+    "remainingProcesses": []
+  }
+}
