@@ -1,3 +1,11 @@
+## Issue #762 — Next.js 16.4.2 보안 패치의 역사적 Gantt 캡처 검증 계약 (2026-10-22)
+
+[Full #3160.1](https://github.com/planner77/masterGantt/actions/runs/39843514111)에서 Next.js 16.4.2의 production audit는 통과했지만, 구 Gantt Core 브라우저 capture fixture의 Next.js 16.3.8 잠금 파일과 현재 `package.json`/`package-lock.json`의 비교가 Vitest 네 사례에서 실패했다. 역사적 기록과 해시를 바꾸어 현재 설치의 PASS라고 주장하지 않는다. `tests/fixtures/gantt-state-consistency/capture-install.ts`는 `approved-next-16.4.2-lock.json`의 **Next.js/`@next/env` 및 8개 플랫폼 `@next/swc-*` 전체 lock package object**를 SRI·registry URL/architecture/optional/dependencies까지 일치시킨 후에만 구 캡처 비교용 메모리 객체에서 16.3.8로 정규화한다. 그 외 manifest metadata·scripts·모든 563개 lock entry 및 Core 원본 캡처 해시는 기존 strict equality 유지.
+
+공식 안전성은 PR Head의 `npm audit --omit=dev`, `npm ci`, Vitest 역사 캡처·변조 음성 회귀, Next build/Docker standalone 및 전체 Chromium8 실제 실행과 default-main Trusted/Owner 승인으로 검증하며 static fixture 테스트는 패치 버전의 실제 HTTP/운영/Chromium 검증을 대체하지 않는다. 수정 사유/검증/미실행: [#762 단일 실패 원장 F-006](ISSUE_762_FAILURE_ANALYSIS.md). Runtime token/auth/SQLite, 원래 캡처와 공개 SVAR 2.7.3 버전, CI 보안 gate는 불변.
+
+---
+
 ## Issue #762 — Next.js 16.4.2 production dependency 긴급 보안 패치 (2026-10-22)
 
 [Full PR CI #3155.3](https://github.com/planner77/masterGantt/actions/runs/39793693125)에서 기존 `next@16.3.8`의 `npm audit --omit=dev`가 1 critical을 검출했다. 외부 보안 권고 [GHSA-2464-fhr4-w9xw](https://github.com/advisories/GHSA-2464-fhr4-w9xw)(SVG RCE), [GHSA-673q-mjm6-r5xr](https://github.com/advisories/GHSA-673q-mjm6-r5xr)(use cache Typed Array RCE), [GHSA-p3m5-59mp-jv5r](https://github.com/advisories/GHSA-p3m5-59mp-jv5r)(App Router Server Actions DoS)는 Next 16.0.0~16.4.0 영향·16.4.1 최초 패치를 공표했다. 실제 npm audit는 `next@16.4.2`를 제공하는 수정안으로 표시했다. 정확한 `next` + `@next/env` 및 8개 플랫폼 SWC optional dependency의 manifest/lock을 16.4.2로 고정한다. 기존 `sharp@0.35.5`는 권고의 SVG workaround 최소치를 이미 충족하며 별도로 변경하지 않는다.

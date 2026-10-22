@@ -274,5 +274,45 @@ describe("Issue #699 — historical capture provenance remains strict", () => {
     lock.packages[""].dependencies.next = "0.0.0";
     write();
     expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
+    lock.packages[""].dependencies.next = JSON.parse(readFileSync(resolve(root, "package-lock.json"), "utf8")).packages[""].dependencies.next;
+
+    // A security exception must require the EXACT reviewed npm package
+    // metadata, not merely a version string or a matched root manifest.
+    const installedNext = lock.packages["node_modules/next"];
+    const savedNextIntegrity = installedNext.integrity;
+    installedNext.integrity = "sha512-unverified-security-payload";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Next.js security patch exact locked package metadata mismatch/);
+    installedNext.integrity = savedNextIntegrity;
+
+    const installedSwc = lock.packages["node_modules/@next/swc-linux-x64-gnu"];
+    const savedSwcResolved = installedSwc.resolved;
+    installedSwc.resolved = "https://untrusted.example.invalid/swc.tgz";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Next.js security patch exact locked package metadata mismatch/);
+    installedSwc.resolved = savedSwcResolved;
+
+    manifest.dependencies["@next/env"] = "16.3.8";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Historical capture requires unchanged package metadata/);
+    manifest.dependencies["@next/env"] = "16.4.2";
+
+    lock.packages[""].dependencies["@next/env"] = "16.3.8";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
+    lock.packages[""].dependencies["@next/env"] = "16.4.2";
+
+    const originalReact = lock.packages["node_modules/react"].version;
+    lock.packages["node_modules/react"].version = "0.0.0";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
+    lock.packages["node_modules/react"].version = originalReact;
+
+    // No changes to the frozen original browser capture are permitted.
+    write();
+    expect(() => assertCapturedInstall(dir)).not.toThrow();
+    for (const file of ["package-original.snapshot.txt", "package-lock-original.snapshot.txt"]) {
+      expect(readFileSync(resolve(dir, snapshots, file))).toEqual(readFileSync(resolve(root, snapshots, file)));
+    }
   });
 });
