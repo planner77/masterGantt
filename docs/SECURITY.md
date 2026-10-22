@@ -1,3 +1,13 @@
+## Issue #762 — Next.js 16.4.2 production dependency 긴급 보안 패치 (2026-10-22)
+
+[Full PR CI #3155.3](https://github.com/planner77/masterGantt/actions/runs/39793693125)에서 기존 `next@16.3.8`의 `npm audit --omit=dev`가 1 critical을 검출했다. 외부 보안 권고 [GHSA-2464-fhr4-w9xw](https://github.com/advisories/GHSA-2464-fhr4-w9xw)(SVG RCE), [GHSA-673q-mjm6-r5xr](https://github.com/advisories/GHSA-673q-mjm6-r5xr)(use cache Typed Array RCE), [GHSA-p3m5-59mp-jv5r](https://github.com/advisories/GHSA-p3m5-59mp-jv5r)(App Router Server Actions DoS)는 Next 16.0.0~16.4.0 영향·16.4.1 최초 패치를 공표했다. 실제 npm audit는 `next@16.4.2`를 제공하는 수정안으로 표시했다. 정확한 `next` + `@next/env` 및 8개 플랫폼 SWC optional dependency의 manifest/lock을 16.4.2로 고정한다. 기존 `sharp@0.35.5`는 권고의 SVG workaround 최소치를 이미 충족하며 별도로 변경하지 않는다.
+
+운영보안 게이트 `npm audit --omit=dev`를 예외처리·skip·allowlist하지 않는다. `npm ci`는 exact SRI/lock version 확인을, CI Quality와 Production Build/Docker smoke는 새 Next 런타임 호환을, Chromium8은 기존 UI·Task·설비/공정/WorkArea 직접·legacy 경로를 검증해야 한다. 로컬 네트워크가 npm registry DNS에 접근하지 못해 새로운 후보의 실제 의존성 설치/감사/실행은 PR Full 원격 재검증 전 **NOT TESTED**다. 이전 Head #3155.1의 Full8 PASS는 수정된 보안 버전의 PASS로 소급하지 않는다.
+
+단일 실패 원장: [#762 F-004/F-005](ISSUE_762_FAILURE_ANALYSIS.md#8-f-004--f-005--full-3155-attempt별-원격-비교-및-nextjs-production-audit-보완-2026-10-22). 정식 게시와 Owner HIGH 위험 수용은 별도.
+
+---
+
 ## Issue #762 — Project WorkArea mutation 권한
 
 신규 Project 직접 구역의 POST/PATCH/DELETE는 기존 Project-scoped edit session·정확 Origin·strong If-Match를 적용하고 transaction 안에서 권한과 revision을 다시 확인한다. Project/공정/구역 UUID의 실제 owner와 활성·사용량을 서버에서 검증한다. 다른 Project/공정 구역 연결·owner 변경·중복·사용 중 삭제는 전체 거부하고 관계/Project revision의 부분 저장을 남기지 않는다.
