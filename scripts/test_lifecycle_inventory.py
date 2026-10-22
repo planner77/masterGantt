@@ -22,7 +22,6 @@ import unicodedata
 ROOT = Path(__file__).resolve().parent.parent
 E2E_LINE = re.compile(r"^\s*\[(?P<project>[^\]]+)\]\s*›\s*(?P<file>.+?\.spec\.ts):\d+:\d+\s*›\s*(?P<title>.+?)\s*$")
 E2E_TOTAL = re.compile(r"Total:\s*(\d+)\s+tests?\s+in\s+(\d+)\s+files?")
-POLICY_RUN = re.compile(r"^\s+run:\s*(.+?)\s*$", re.MULTILINE)
 POLICY_JOB = re.compile(r"(?ms)^  policy:\s*\n(.*?)(?=^  [a-zA-Z_][\w-]*:\s*(?:\n|$)|\Z)")
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
 
@@ -156,6 +155,72 @@ def parse_vitest_listing(output: str, root: Path, files: list[str]) -> list[dict
     return cases
 
 
+def _policy_run_steps(job_body: str) -> list[dict[str, str]]:
+    """Read complete Policy run-step declarations, not just known command names.
+
+    This intentionally recognizes only the repository's standard YAML step shape.
+    Unknown/empty run commands are errors, never a silently incomplete inventory.
+    Block scalars are preserved as source text, not executed or evaluated.
+    """
+    lines = job_body.splitlines()
+    starts = [i for i, line in enumerate(lines)
+              if re.match(r"^      - (?:name|uses|id|run|if):(?:\s|$)", line)]
+    if not starts:
+        raise InventoryError("CI policy job steps missing or indentation unknown")
+    runs: list[dict[str, str]] = []
+    for index, first in enumerate(starts):
+        step = lines[first:(starts[index + 1] if index + 1 < len(starts) else len(lines))]
+        title = "unnamed step"
+        condition = "none (job-level condition still applies)"
+        run_text: str | None = None
+        for pos, line in enumerate(step):
+            name_match = re.match(r"^      - name:\s*(.*)$|^        name:\s*(.*)$", line)
+            if name_match:
+                title = (name_match.group(1) or name_match.group(2) or "").strip().strip("'\"")
+            if_match = re.match(r"^        if:\s*(.+?)\s*$", line)
+            if if_match:
+                condition = if_match.group(1)
+            run_match = re.match(r"^(?:      - |        )run:\s*(.*?)\s*$", line)
+            if run_match is None:
+                continue
+            if run_text is not None:
+                raise InventoryError(f"Multiple run entries in Policy step {title}")
+            scalar = run_match.group(1).strip()
+            if scalar in ("|", "|-", "|+", ">", ">-", ">+"):
+                # YAML literal/folded scalar content must be more indented than
+                # its run mapping key. Include every shell command line.
+                parent_indent = 6 if line.startswith("      - ") else 8
+                nested: list[str] = []
+                for child in step[pos + 1:]:
+                    if not child.strip():
+                        nested.append("")
+                        continue
+                    indentation = len(child) - len(child.lstrip(" "))
+                    if indentation <= parent_indent:
+                        break
+                    nested.append(child)
+                nonblank = [x for x in nested if x.strip()]
+                if not nonblank:
+                    raise InventoryError(f"Empty Policy run block in step {title}")
+                block_indent = min(len(x) - len(x.lstrip(" ")) for x in nonblank)
+                run_text = "\n".join(x[block_indent:] if x.strip() else "" for x in nested).strip()
+            elif scalar and not scalar.startswith(("|", ">")):
+                run_text = scalar
+            else:
+                raise InventoryError(f"Empty or unsupported Policy run declaration in step {title}")
+        if run_text is not None:
+            runs.append({
+                "layer": "POLICY",
+                "path": ".github/workflows/ci.yml",
+                "scenario": run_text,
+                "environment": f"CI policy job (job-level if; step={title}; step_if={condition})",
+                "count_basis": "complete YAML run-step command source (not executed test cases)",
+            })
+    if not runs:
+        raise InventoryError("No Policy run steps discovered; cannot report zero")
+    return runs
+
+
 def policy_inventory(root: Path) -> tuple[list[dict[str, str]], int]:
     workflow = root / ".github/workflows/ci.yml"
     if not workflow.is_file():
@@ -163,19 +228,7 @@ def policy_inventory(root: Path) -> tuple[list[dict[str, str]], int]:
     match = POLICY_JOB.search(workflow.read_text(encoding="utf-8"))
     if not match:
         raise InventoryError("CI policy job is missing or unrecognizable")
-    runs = []
-    for cmd in POLICY_RUN.findall(match.group(1)):
-        if cmd in ("|", ">") or not any(s in cmd for s in ("python3", "verify-test-discovery", "audit", "version:check", "check-markdown")):
-            continue
-        runs.append({
-            "layer": "POLICY",
-            "path": ".github/workflows/ci.yml",
-            "scenario": cmd,
-            "environment": "CI policy job (conditional inputs and failure gating apply)",
-            "count_basis": "workflow command declaration (not executed test cases)",
-        })
-    if not runs:
-        raise InventoryError("No policy commands identified; do not report zero")
+    runs = _policy_run_steps(match.group(1))
     declared_methods = 0
     for name in sorted(set(collect_files(root, "tests/python/test_*.py") + collect_files(root, "scripts/test_*.py")) - {"scripts/test_lifecycle_inventory.py"}):
         try:
@@ -187,6 +240,7 @@ def policy_inventory(root: Path) -> tuple[list[dict[str, str]], int]:
             for node in ast.walk(tree)
         )
     return runs, declared_methods
+
 
 
 def candidate_groups(cases: list[dict[str, str]]) -> list[dict[str, object]]:
