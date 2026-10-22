@@ -263,6 +263,18 @@ class GitHub:
     def artifact_zip(self, row):
         return self.request(f"/repos/{self.repo}/actions/artifacts/{row['id']}/zip", binary=True)
 
+def verify_primary_issue_trace(pr, issue_number, repository):
+    """Require a canonical, uniquely attributable Issue #N + standalone Refs #N.
+
+    A raw-regex double escape here would reject even valid metadata (#657).
+    """
+    title_issues = re.findall(r"(?i)\bIssue\s*#([0-9]+)\b", str(pr.get("title", "")))
+    body_refs = re.findall(r"(?im)^\s*Refs\s+#([0-9]+)\s*$", str(pr.get("body", "")))
+    require(title_issues == [str(issue_number)] and body_refs == [str(issue_number)]
+            and (pr.get("base", {}).get("repo") or {}).get("full_name") == repository,
+            "PR_PRIMARY_ISSUE_TRACE_MISMATCH")
+
+
 def authenticated_source(api, args, target, trusted):
     require(VERSION.fullmatch(args.version) and args.tag == "v" + args.version
             and SHA.fullmatch(args.target_sha), "RELEASE_TARGET_INVALID")
@@ -291,11 +303,7 @@ def authenticated_source(api, args, target, trusted):
             "PR_MAIN_MERGE_PROVENANCE_MISMATCH")
     # Post-merge PR base.sha may advance, so use immutable Git parents for
     # tree/lineage. Do NOT accept merely mentioning the Issue in arbitrary prose.
-    title_issues = re.findall(r"(?i)\\bIssue\\s*#([0-9]+)\\b", str(pr.get("title", "")))
-    body_refs = re.findall(r"(?im)^\\s*Refs\\s+#([0-9]+)\\s*$", str(pr.get("body", "")))
-    require(title_issues == [args.issue] and body_refs == [args.issue] and
-            (pr.get("base", {}).get("repo") or {}).get("full_name") == api.repo,
-            "PR_PRIMARY_ISSUE_TRACE_MISMATCH")
+    verify_primary_issue_trace(pr, args.issue, api.repo)
     issue = api.one("/issues/" + args.issue)
     require(issue.get("number") == int(args.issue) and issue.get("pull_request") is None,
             "ISSUE_PR_ATTRIBUTION_MISMATCH")
