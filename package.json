@@ -19,10 +19,10 @@
     "verify:prepr": "node scripts/verify-prepr.mjs"
   },
   "dependencies": {
-    "@next/env": "16.3.8",
+    "@next/env": "16.4.2",
     "@svar-ui/react-gantt": "2.7.3",
     "better-sqlite3": "13.0.3",
-    "next": "16.3.8",
+    "next": "16.4.2",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "^0.0.1",

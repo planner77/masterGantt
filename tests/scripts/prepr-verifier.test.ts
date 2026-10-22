@@ -237,8 +237,8 @@ describe("Issue #699 — process and existing-data safety", () => {
   });
 });
 
-describe("Issue #699 — historical capture provenance remains strict", () => {
-  it("allows only the exact local CLI alias while preserving all captured dependencies and scripts", () => {
+describe("Issue #699/#752 — immutable historical capture with bounded Next security repair", () => {
+  it("rejects all changes beyond exact CLI alias, version and pinned Next.js security patch", () => {
     const dir = mkdtempSync(resolve(tmpdir(), "mastergantt-capture-test-"));
     created.push(dir);
     const snapshots = "tests/fixtures/gantt-state-consistency/capture-sources";
@@ -274,5 +274,36 @@ describe("Issue #699 — historical capture provenance remains strict", () => {
     lock.packages[""].dependencies.next = "0.0.0";
     write();
     expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
+    // Fail closed if a patch has mismatched Next/ENV, SWC package identity,
+    // native sharp compatibility or unrelated installed Core package metadata.
+    lock.packages[""].dependencies.next = "16.4.2";
+    manifest.dependencies["@next/env"] = "16.3.8";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Historical capture requires unchanged package metadata/);
+    manifest.dependencies["@next/env"] = "16.4.2";
+    manifest.dependencies.next = "16.4.3";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Historical capture requires unchanged package metadata/);
+    manifest.dependencies.next = "16.4.2";
+    const swc = lock.packages["node_modules/@next/swc-linux-x64-gnu"];
+    const originalSwcUrl = swc.resolved;
+    swc.resolved = "https://registry.npmjs.org/@next%2fswc-linux-x64-gnu/-/unsafe.tgz";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
+    swc.resolved = originalSwcUrl;
+    const originalSharpRange = lock.packages["node_modules/next"].optionalDependencies.sharp;
+    lock.packages["node_modules/next"].optionalDependencies.sharp = "^0.35.4";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
+    lock.packages["node_modules/next"].optionalDependencies.sharp = originalSharpRange;
+    const ganttCore = lock.packages["node_modules/@svar-ui/react-gantt"];
+    const actualVersion = ganttCore.version;
+    ganttCore.version = "0.0.0";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
+    ganttCore.version = actualVersion;
+    // Restore everything to the exact approved security-corrected HEAD.
+    write();
+    expect(() => assertCapturedInstall(dir)).not.toThrow();
   });
 });

@@ -1,3 +1,13 @@
+## Issue #752 — 별도 읽기 전용 진단·알림의 역할 (2026-10-22)
+
+기본 REWORK A→G 순서와 Issue별 영속 원장은 유지한다. `.github/workflows/issue-752-diagnostics.yml`은 인증된 original `ci-pr-source-<run>-<attempt>`/Job/현재 PR의 2회 이상 실제 Full 실패만 감지해 **별도 비차단** 댓글·Job Summary로 `DIAGNOSIS_RECOMMENDED`를 권고한다. 취소·metadata-only·집계/QA 파생 실패·미실행은 독립 실패로 합산하지 않는다.
+
+Owner/writer가 수동 `workflow_dispatch` 실행해 exact Head/Base/test-merge/Issue 원장 및 변경 E2E를 인증한 뒤 이전 실패 파일 합집합∪직접 변경 테스트를 최대24 spec·4 parts·`retries=0,max-failures=0,fail-fast=false`로 실행한다. 추가 간접/음성 소비자 누락은 Owner의 원장 보완이 필요하고 상한을 넘으면 자동 범위 축소/Full 재실행 없이 BLOCKED. 테스트 출처·부분 미실행·인증 누락·Artifact 만료를 `NOT RUN/INCOMPLETE_EVIDENCE/BLOCKED`로 명시한다.
+
+Actions > 진단 Run의 **Job Summary** 및 14일 보존된 정제 JSON/Markdown Artifact를 보고 원장에 확정 원인/보완/동결 소스 검증 결과를 사람이 기록한다. Run 댓글은 결정적 PR/Head/실패집합 키로 갱신하고 Artifact 없는 READY를 금지한다. 원시 Trace/민감 로그와 전체 요청 URL을 Git/댓글에 넣지 않는다. 진단 `RESOLVED_CANDIDATE`/READY는 원본 3 Required PASS, Trusted QA, Owner 승인, Main/Release/Finalizer가 아니며 과거 실패를 PASS로 바꾸지 않는다. 자세한 권한/상태/테스트 계약은 [#752 Work Packet](exec-plans/active/ISSUE_752.md).
+
+---
+
 # PR CI 실패 — Issue별 누적 원장과 전체 이력 기반 REWORK
 
 > **공통 운영 지침 / Source of Truth** — PR CI 실패를 **직전 Run만 기준으로 고치는 방식은 허용하지 않는다.** 첫 실패부터 Primary Issue별로 별도 문서에 기록하고, 재실패 시 해당 Issue의 **전체 실패 이력**과 과거 보완·회귀 결과를 종합해 진단한다.

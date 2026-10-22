@@ -1,3 +1,37 @@
+## Issue #752 — #3158.1 Vitest 공통 역사적 캡처 검사 보완 (2026-10-23)
+
+- [PR #780 Full #3158.1](https://github.com/planner77/masterGantt/actions/runs/39841972369)에서 npm audit 보안 패치는 0 취약점으로 성공했지만 Vitest 4개가 `assertCapturedInstall`의 과거 `16.3.8` 패키지 동일성 검사에서 FAIL. 이 하나의 직접 원인 때문에 Fast Gate가 E2E8·Docker를 실행하지 않고 Required3 및 QA가 파생 실패. 정확 Run/HEAD/Job/소비자·검증 범위는 [누적 실패 원장 F752-005](ISSUE_752_FAILURE_ANALYSIS.md)에 기록.
+- 과거 패키지/Lock 캡처 `tests/fixtures/gantt-state-consistency/capture-sources/*-original.snapshot.txt`와 원본 SHA는 **절대 수정하거나 최신 보안 패치 실행 증거로 둔갑시키지 않는다**. `capture-install.ts`는 현재 `next`와 `@next/env`, 8개 SWC, `sharp`의 명시적으로 승인된 `16.3.8→16.4.2` 보안 차이만 정밀 검사한 뒤 비교용 메모리 복사본을 원본 버전으로 정규화한다. 나머지 dependency tree·스크립트·SVAR Core·tarball URL·fingerprint는 기존 strict `assert.deepEqual`로 계속 거부한다.
+- `tests/scripts/prepr-verifier.test.ts`의 음성 보호에 임의 Next 버전, ENV mismatch, 위조 SWC URL, Sharp 구버전 범위, 관련 없는 Core 버전과 스크립트 추가를 포함한다. 동일 helper 사용 Gantt Runtime fixture 3개 모두 직접 재검증 대상. npm-ci/audit/전체 Vitest/Next Build/Chromium8/Docker/QA/Owner 검증은 새 HEAD에서 진행하며, 본 작업의 사전 검증을 Full PASS로 표시하지 않는다.
+
+---
+
+## Issue #752 — Full #3157.1 Next.js Critical 보안 감사 차단 교정 (2026-10-23)
+
+- [원본 Full #3157.1](https://github.com/planner77/masterGantt/actions/runs/39837796723)의 최초 실패는 Policy Job `production dependency audit`의 `npm audit --omit=dev`. 고정된 Next.js 16.3.8의 Critical 권고 1건(관련 GHSA 3개)으로 인한 **독립 보안 실패**이고, Fast Gate가 거부한 뒤 E2E8·Docker 구현은 **SKIPPED**이며 집계/QA는 파생 실패다. 기존 Full #3152에서는 동일 감사 0건이었으며 본 원인과 과거 QA 리뷰/테스트 문자열 실패를 혼동하지 않는다.
+- 공식 [Next.js 보안 공지](https://nextjs.org/blog/nextjs-security-update-october-14-2026)와 `vercel/next.js@v16.4.2` 패키지 manifest에 따라 `next`/`@next/env`/8 SWC 버전·Lock을 16.4.2로 정렬하고 `sharp` 0.35.5 이상을 유지한다. **`npm audit --omit=dev`·`npm ci`·Required3·Fast Gate·E2E8·Docker·Trusted QA/Owner·Main/GHCR/Finalizer를 완화하지 않는다.**
+- 새 동결 HEAD에서 `npm ci` / `npm audit --omit=dev` / `python3 -m unittest discover -s tests/python -p 'test_issue_752_*.py' -v` / build/TypeScript/ESLint/Vitest/E2E8/Docker를 원격 검증한다. 로컬 npm registry 접근이 불가능해 사전 실제 실행 **NOT TESTED**이고, 새 Head Required3·QA PASS는 CI 결과를 관측하기 전까지 **NOT TESTED**. 정규 증거·출처·잔여 위험은 [Issue #752 누적 실패 원장](ISSUE_752_FAILURE_ANALYSIS.md)에 기록한다.
+
+---
+
+## Issue #752 — PR #780 미해결 리뷰 차단 이후 교정 (2026-10-22)
+
+[Full #3152.1](https://github.com/planner77/masterGantt/actions/runs/39782641377)은 Quality/E2E8/8/Docker 및 정책·빌드 SUCCESS이고 `QA Final — Automated`은 미해결 Review 5건으로 BLOCKED되었다. 이 QA 파생 FAIL은 반복 **직접** 테스트 오류로 계수하지 않는다. 직전 [#3151.1](https://github.com/planner77/masterGantt/actions/runs/39782427411)은 새 Head에 대한 `PR latest Head stale`/CANCELLED이며 두 Run을 같은 E2E 오류로 합산하지 않는다.
+
+#752 보완은 Playwright testDir 상대 경로 정규화·선정 파일 미관측 INCOMPLETE, 대상 브랜치 사전 필터를 적용한 300 Run 조회, 정확 Head의 최신 누적 원장, 사용자 표시/Job Summary 한글과 관련 음성 정책 회귀에 한정한다. `docs/ISSUE_752_FAILURE_ANALYSIS.md` 단일 원장과 [Work Packet](exec-plans/active/ISSUE_752.md)에서 출처·잔여 위험을 추적한다. 3 Required, E2E8, 기존 PR fail-fast, Trusted/Owner·Main/GHCR/Release/Finalizer 정책은 불변. 새 HEAD 원격 CI/진단 실증은 이전 PASS로 소급하지 않으며 이번 사용자 요청의 모니터링/병합은 제외한다.
+
+---
+
+## Issue #752 — 반복 PR 실패 감지/수동 진단의 비차단 CI 보조 경로 (2026-10-22)
+
+- 새 [Issue #752 Work Packet](exec-plans/active/ISSUE_752.md)와 `.github/workflows/issue-752-diagnostics.yml`, `scripts/issue_752_diagnostics.py`를 참조한다. 기본 `CI` `pull_request`(Ready Full) 완료 이벤트의 인증된 `ci-pr-source-<run>-<attempt>`/head·base·test-merge, 실제 Job 결론을 신뢰된 main 워크플로가 조회한다. canonical PR의 서로 다른 **직접 Full 실패2회**에서만 `DIAGNOSIS_RECOMMENDED`을 산출하며 첫 실패·edited metadata·취소/미실행/파생 aggregate/QA만 실패한 경우 권고하지 않는다. 봇 댓글 작성은 분리된 `issues:write` Job의 결정적 키 upsert이다.
+- 진단은 **Owner/writer 수동 승인 `workflow_dispatch`** 만 수행. exact PR/Issue/HEAD/기준 main/test merge, 원본 출처·영속 실패 원장·현재 E2E changed spec을 인증한 뒤 24 spec 상한을 4개의 독립 Matrix part로 나눈다. `--project=chromium --workers=1 --retries=0 --max-failures=0 --reporter=json`/matrix fail-fast=false; PR 코드 실행 Job `contents:read`, 권한 있는 댓글 Job은 기본 브랜치 스크립트만 실행.
+- 결과는 Run Job Summary와 14일간 정제 `issue-752-diagnosis-<run>-<attempt>` JSON/Markdown, PR 댓글에 링크. Worker 누락/만료/권한·source 불일치·upload 미확인은 `INCOMPLETE/BLOCKED`이며 `READY` 표시 불가. 과거 Full source Artifact=30일을 변경하지 않는다. `RECURRING/NEW/RESOLVED_CANDIDATE/UNKNOWN`은 통계/진단 후보이며 Required PASS/원인 입증 아님. P50/P95/취소율은 Shard/환경·원본 시간 예산 문맥에서 warning-only; 관측 성공 표본이 충분하지 않으면 성능 개선 주장 금지.
+- 보호 불변: Quality/Chromium E2E **8/8**/Docker 3 Required, PR Full fail-fast=true·첫 실패 조기 중단, Main/Release 8Shards, Draft Fast/LOW정책, strict latest main, Trusted QA/Owner, main GHCR digest/Finalizer. #767의 과거 6샤드 원본은 역사적 출처로 보존. 시험 `tests/python/test_issue_752_diagnostics.py`는 Policy job 필수.
+- 본 보호 Workflow 변경 자체 `HIGH/OWNER_MANAGED`·정식 release 미승인·Owner exact Head Full8/Trusted 전 병합 금지. 도입 PR은 새 수동 진단 경로가 main에 없으므로 실제 workflow_dispatch 성능·정확성 `NOT TESTED`. 이슈 #767 35분 근접 취소는 인증된 취소 사유 없이 실패2회로 합산하지 않는다.
+
+---
+
 ## Issue #772 — 정책 허용형 LOW Chromium 선택 실행과 Required3 (2026-10-22)
 
 - 현재 정책 보호 PR 자체 **HIGH/OWNER_MANAGED, Full8/8 의무**, `LOW_TARGETED_POLICY_ENABLED` 초기 OFF. 기본 Ready PR은 #771대로 기존 Quality/Chromium8/Docker Full, Draft는 advisory Fast만, `pull_request.edited`는 metadata-only. 세 Required Check 이름·strict Ruleset #24043042·main Full8/Quality/Docker/GHCR·Trusted QA/Owner/Release 보호 불변.
