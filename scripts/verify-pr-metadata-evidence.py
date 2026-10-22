@@ -110,6 +110,9 @@ def classify_full_evidence(
         if run_status != "completed":
             return "DEFERRED", run_id, f"전체 CI 진행 중: {run_status or 'unknown'}"
         if conclusion == "success" and complete and all(state == "success" for state in gate_states.values()) and metadata_conclusion == "skipped":
+            if jobs.get("Low E2E targeted execution") == "success":
+                return "TARGETED_SOURCE_REQUIRED", run_id, (
+                    f"CI {run_id}.{attempt}: 실제 선정 E2E 출처·base policy 재검증 필요")
             return "VERIFIED", run_id, f"Full CI {run_id}.{attempt}의 3개 필수 Gate SUCCESS"
         # Completed but missing/failed/neutral/skipped required checks is not evidence.
         return "FULL_FAILED", run_id, f"전체 CI 또는 필수 Gate 증거 불일치: {gate_states!r}"
@@ -176,6 +179,15 @@ def validate_full_source(repo: str, token: str, run_id: int, number: int,
         raise RuntimeError("병합 전 full CI source base/test merge 불일치")
     if live.get("merged") and (base or merge):
         raise RuntimeError("병합 후 mutable base/test merge를 원본으로 오인")
+    selected_jobs = qa.effective_run_jobs(gh, run_id, expected_attempt)
+    conclusions = {name: job.get("conclusion") for name, job in selected_jobs.items()}
+    if conclusions.get("Low E2E targeted execution") == "success":
+        from ci_low_source import verified_targeted_source
+        verified_targeted_source(
+            gh, run, {"repository": repo, "pr_number": observed_n,
+                      "head_sha": observed_h, "base_sha": observed_b,
+                      "test_merge_sha": observed_m},
+            conclusions, enabled=os.environ.get("LOW_TARGETED_POLICY_ENABLED") == "true")
     return int(run["run_attempt"])
 
 
@@ -263,7 +275,7 @@ def evaluate(
     latest_sha = str((latest.get("head") or {}).get("sha") or "")
     if latest_state != "TRACE_OK":
         return latest_state, full_run_id, latest_reason, event_sha, latest_sha
-    if state == "VERIFIED":
+    if state in ("VERIFIED", "TARGETED_SOURCE_REQUIRED"):
         if not source_check:
             # Classifier-only callers may inspect status, never publish evidence
             # without a source validator in the actual Actions entrypoint.
@@ -286,8 +298,13 @@ def evaluate(
         except Exception as exc:
             return "SOURCE_UNVERIFIED", full_run_id, "FULL_CI_SOURCE_UNVERIFIED: " + str(exc), event_sha, latest_sha
         if post_merge:
+            text = "Targeted policy" if state == "TARGETED_SOURCE_REQUIRED" else "Full"
             return ("POST_MERGE_METADATA_NON_AUTHORITATIVE", full_run_id,
-                    f"인증된 원본 Full {full_run_id}.{attempt}의 parents/Tree PASS; edited CI는 audit 전용",
+                    f"인증된 원본 {text} {full_run_id}.{attempt}의 parents/Tree PASS; edited CI는 audit 전용",
+                    event_sha, latest_sha)
+        if state == "TARGETED_SOURCE_REQUIRED":
+            return ("TARGETED_POLICY_VERIFIED", full_run_id,
+                    f"인증된 선택 LOW E2E {full_run_id}.{attempt}, Full E2E 미실행",
                     event_sha, latest_sha)
     return state, full_run_id, reason, event_sha, latest_sha
 
@@ -337,7 +354,7 @@ def main() -> int:
         _report(state, run_id, reason, event_sha, current_sha)
         # SUPERSEDED affects only an old SHA and cannot approve the latest head.
         # DEFERRED/MISSING/FAILED/INVALID stay red until a valid re-evaluation.
-        return 0 if state in ("TRACE_OK", "VERIFIED", "SUPERSEDED",
+        return 0 if state in ("TRACE_OK", "VERIFIED", "TARGETED_POLICY_VERIFIED", "SUPERSEDED",
                               "POST_MERGE_METADATA_NON_AUTHORITATIVE") else 1
     except (KeyError, ValueError, RuntimeError, OSError, urllib.error.URLError) as exc:
         print(f"PR metadata evidence FAIL (API/환경 불확실성): {exc}", file=sys.stderr)
