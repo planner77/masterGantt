@@ -116,8 +116,11 @@ def verified_targeted_source(gh, run: dict, source: dict, jobs: dict,
     need(len(source_changes) == 1 and
          source_changes[0].get("filename") == low.ALLOW_COPY and
          source_changes[0].get("status") == "modified" and
-         all(x.get("status") == "modified" and
-             not x.get("previous_filename") for x in files),
+         all(not x.get("previous_filename") and (
+             x.get("status") == "modified" if not
+             low.WORK_PACKET.fullmatch(x.get("filename", "")) else
+             x.get("status") in ("added", "modified")
+         ) for x in files),
          "PROTECTED_OR_UNKNOWN_CHANGE_IN_TARGETED_SOURCE")
     old_text, _ = blob(gh, base, low.ALLOW_COPY)
     new_text, _ = blob(gh, merged, low.ALLOW_COPY)
@@ -142,7 +145,7 @@ def verified_targeted_source(gh, run: dict, source: dict, jobs: dict,
                 candidate.get("head_sha") != source["head_sha"] or
                 "[전체 검증]" not in str(candidate.get("display_title") or "")):
             continue
-        if (candidate.get("conclusion") not in (None, "success") or
+        if (candidate.get("conclusion") != "success" or
                 candidate.get("status") != "completed"):
             raise low.Refused("PREVIOUS_FULL_FAILED_INCOMPLETE_OR_CANCELLED")
     return {
