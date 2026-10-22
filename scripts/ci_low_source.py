@@ -125,7 +125,8 @@ def verified_targeted_source(gh, run: dict, source: dict, jobs: dict,
     old_text, _ = blob(gh, base, low.ALLOW_COPY)
     new_text, _ = blob(gh, merged, low.ALLOW_COPY)
     need(low.pure_paragraph_edit(old_text, new_text), "NOT_PURE_NONINTERACTIVE_DIFF")
-    need(plan.get("shadow_mode") == "FAST_TARGETED" and
+    need(plan.get("effective_risk") == "LOW" and
+         plan.get("shadow_mode") == "FAST_TARGETED" and
          plan.get("shadow_risk") in ("LOW", "MEDIUM") and
          plan.get("trusted_test_inventory", 0) >= len(plan["selected_test_ids"]),
          "SHADOW_SELECTION_POLICY_UNVERIFIED")
