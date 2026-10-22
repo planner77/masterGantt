@@ -188,6 +188,33 @@ class IdentityAndHistory(unittest.TestCase):
         self.assertNotIn("$GITHUB_WORKSPACE/part-$PART/playwright.json",workflow)
 
 
+    def test_patched_next_runtime_manifest_matches_immutable_npm_lock(self):
+        root=Path(__file__).resolve().parents[2]
+        pkg=json.loads((root/"package.json").read_text(encoding="utf-8"))
+        lock=json.loads((root/"package-lock.json").read_text(encoding="utf-8"))
+        pinned=pkg["dependencies"]["next"]
+        major,minor,patch_version=map(int,pinned.split("."))
+        self.assertGreaterEqual((major,minor,patch_version),(16,4,1),
+                                "Next.js must include October 2026 security patches")
+        self.assertEqual(pkg["dependencies"]["@next/env"],pinned)
+        self.assertEqual(lock["packages"][""]["dependencies"]["next"],pinned)
+        self.assertEqual(lock["packages"][""]["dependencies"]["@next/env"],pinned)
+        self.assertEqual(lock["packages"]["node_modules/next"]["version"],pinned)
+        self.assertEqual(lock["packages"]["node_modules/@next/env"]["version"],pinned)
+        self.assertEqual(lock["packages"]["node_modules/next"]["dependencies"]["@next/env"],pinned)
+        swc={name:v for name,v in lock["packages"].items()
+             if name.startswith("node_modules/@next/swc-")}
+        self.assertGreaterEqual(len(swc),6)
+        for name,meta in swc.items():
+            self.assertEqual(meta["version"],pinned,name)
+            key=name.removeprefix("node_modules/")
+            self.assertEqual(lock["packages"]["node_modules/next"]["optionalDependencies"][key],pinned)
+        self.assertEqual(lock["packages"]["node_modules/next"]["optionalDependencies"]["sharp"],
+                         "^0.35.5")
+        sharp=tuple(map(int,lock["packages"]["node_modules/sharp"]["version"].split(".")))
+        self.assertGreaterEqual(sharp,(0,35,5))
+
+
 class BoundReports(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory()

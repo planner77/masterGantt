@@ -76,3 +76,12 @@
 - [누적 실패 원장 F752-003](../../ISSUE_752_FAILURE_ANALYSIS.md#5-f752-003--full-pr-ci-31561-재실패-2026-10-22-utc--2026-10-23-kst): [Run 39794786478.1](https://github.com/planner77/masterGantt/actions/runs/39794786478) Policy Python 19개 중 1 FAIL(`test_workflow_displays_korean_without_changing_machine_identifiers`). 원인은 YAML 표시명 `name: "Issue #752 — 반복 PR 실패 진단"`과 테스트에서 인용부호가 없는 문자열의 불일치(`TEST_CONTRACT`). E2E8·Docker는 미실행/Skipped이고 집계·QA는 파생 실패다.
 - 교정: Python 기대 문자열 **한 줄만** 원본 YAML 표기에 맞춰 수정하고 기존 실패 원장을 누적 갱신. 워크플로/기능/기존 필수 Gate/Retry/Timeout·Release 정책은 변경 없음. 리뷰 미해결 0건, main 대비 충돌/Behind 0.
 - 검증: 원본 CI 로그와 현재 소스의 차이는 확인함. 로컬 Python 실행은 `NOT TESTED`; 새 동결 HEAD PR CI는 커밋 반영 후 자동 시작, 결과는 요청에 따라 **모니터링하지 않음**. 수정된 HEAD의 Required3·QA·Owner는 검증 전 `NOT TESTED`이며 병합/Main/GHCR/Finalizer/이슈 종료를 수행하지 않는다.
+
+## 2026-10-23 — Full #3157.1 보안 취약점 직접 FAIL 보완 및 재검증 계획
+
+- [누적 원장 F752-004](../../ISSUE_752_FAILURE_ANALYSIS.md#6-f752-004--full-pr-ci-31571-보안-의존성-감사-실패-2026-10-23-kst)에 정확한 Run `39837796723.1`, SHA/Job/Step, 보안 권고, Fast Gate·Required3/QA 파생 실패, 미실행 E2E8·Docker와 #3151/#3152/#3156 비교를 기록했다.
+- 공식 Next.js 2026-10-14 보안 패치(v16.4.1 이상) 및 16.4.2 공개 manifest를 근거로 `next`/`@next/env`/8 SWC를 **16.4.2**로 일치, `sharp` 기존 0.35.5와 런타임 요구 `^0.35.5` 확인. `package-lock.json`의 573개 노드 중 허용된 런타임 관계만 정밀 수정. 기존 dev `eslint-config-next@16.3.4`는 프로덕션 취약점의 원인이 아니므로 변경 제외. npm 보안 검사 비활성화 및 `--force` 자동 패치 금지.
+- **영향·선정**: runtime Next App Router/SVG/Image Optimization/API·Next Production Build/Standalone Docker, 재료 DB persistence, Chromium E2E 8/8, TypeScript/ESLint/Vitest, npm 의존성 감사 및 `test_patched_next_runtime_manifest_matches_immutable_npm_lock` 정책 회귀. 단순 docs-only 또는 QA-only 경로로 변경 인식을 축소하지 않는다.
+- **AC_TEST_COVERAGE**: 기존 19개 Issue #752 회귀 + 새 Next/ENV/SWC/sharp 잠금 계약 테스트, 기존 CI 내 `npm ci` 및 `npm audit --omit=dev` 유지. 실패 이전 Full의 PASS 재사용 금지. 고정 `NEXT@16.3.8` → `16.4.2`의 실제 런타임 부작용은 새 HEAD Full CI가 유일한 원격 증거.
+- **DOCUMENTATION_SYNC**: `docs/ISSUE_752_FAILURE_ANALYSIS.md` / 본 Work Packet / `docs/CI_CD.md` / `docs/REMOTE_VALIDATION.md` UPDATED. `AGENTS.md` 기존 지침 유지, `docs/TEST_PLAN.md` N/A(직접·간접 영향 범위를 Work Packet에 한정 기록하고 기존 전체 Test 정책은 변경 없음), `docs/QA_REVIEW_POLICY.md` N/A(기존 HIGH/Owner·Required 권한 불변), `docs/GITHUB_OPERATIONS.md` N/A(동일 GitHub PR/단일 변경 묶음 운영).
+- 사전 증거: 상위 공개 릴리스 명세와 이전 npm-lock 스키마/Next·SWC·sharp 버전의 **정적 비교**; 컨테이너 외부 npm registry DNS 차단으로 실제 `npm ci`, `npm audit`, 빌드·브라우저·Docker는 **NOT TESTED**. 새 PR CI를 시작하고 **모니터링하지 않음**, 병합/Main/GHCR/Finalizer/Issue 종료 별도 승인 필요.

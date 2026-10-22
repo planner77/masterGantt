@@ -1,3 +1,11 @@
+## Issue #752 — Full #3157.1 Next.js Critical 보안 감사 차단 교정 (2026-10-23)
+
+- [원본 Full #3157.1](https://github.com/planner77/masterGantt/actions/runs/39837796723)의 최초 실패는 Policy Job `production dependency audit`의 `npm audit --omit=dev`. 고정된 Next.js 16.3.8의 Critical 권고 1건(관련 GHSA 3개)으로 인한 **독립 보안 실패**이고, Fast Gate가 거부한 뒤 E2E8·Docker 구현은 **SKIPPED**이며 집계/QA는 파생 실패다. 기존 Full #3152에서는 동일 감사 0건이었으며 본 원인과 과거 QA 리뷰/테스트 문자열 실패를 혼동하지 않는다.
+- 공식 [Next.js 보안 공지](https://nextjs.org/blog/nextjs-security-update-october-14-2026)와 `vercel/next.js@v16.4.2` 패키지 manifest에 따라 `next`/`@next/env`/8 SWC 버전·Lock을 16.4.2로 정렬하고 `sharp` 0.35.5 이상을 유지한다. **`npm audit --omit=dev`·`npm ci`·Required3·Fast Gate·E2E8·Docker·Trusted QA/Owner·Main/GHCR/Finalizer를 완화하지 않는다.**
+- 새 동결 HEAD에서 `npm ci` / `npm audit --omit=dev` / `python3 -m unittest discover -s tests/python -p 'test_issue_752_*.py' -v` / build/TypeScript/ESLint/Vitest/E2E8/Docker를 원격 검증한다. 로컬 npm registry 접근이 불가능해 사전 실제 실행 **NOT TESTED**이고, 새 Head Required3·QA PASS는 CI 결과를 관측하기 전까지 **NOT TESTED**. 정규 증거·출처·잔여 위험은 [Issue #752 누적 실패 원장](ISSUE_752_FAILURE_ANALYSIS.md)에 기록한다.
+
+---
+
 ## Issue #752 — PR #780 미해결 리뷰 차단 이후 교정 (2026-10-22)
 
 [Full #3152.1](https://github.com/planner77/masterGantt/actions/runs/39782641377)은 Quality/E2E8/8/Docker 및 정책·빌드 SUCCESS이고 `QA Final — Automated`은 미해결 Review 5건으로 BLOCKED되었다. 이 QA 파생 FAIL은 반복 **직접** 테스트 오류로 계수하지 않는다. 직전 [#3151.1](https://github.com/planner77/masterGantt/actions/runs/39782427411)은 새 Head에 대한 `PR latest Head stale`/CANCELLED이며 두 Run을 같은 E2E 오류로 합산하지 않는다.

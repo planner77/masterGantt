@@ -1,3 +1,12 @@
+## Issue #752 — Full #3157.1 Next.js 보안 감사 회귀 검증 (2026-10-23)
+
+- 출처: [PR #780 Full #3157.1](https://github.com/planner77/masterGantt/actions/runs/39837796723), Policy Job `120030795349`, Step `production dependency audit`. `npm audit --omit=dev`에서 Next.js 16.3.8의 `GHSA-2464-fhr4-w9xw`, `GHSA-p3m5-59mp-jv5r`, `GHSA-673q-mjm6-r5xr`을 Critical 1건으로 보고하고 exit 1. 이후 E2E Shard8·Docker 구현은 SKIPPED로 집계 FAIL/QA FAIL만 발생하므로 실제 E2E 실패 재발로 해석하지 않는다.
+- 수정 범위: 공식 16.4.2 Next manifest와 `package.json`/`package-lock.json`의 `next`/`@next/env`/8 SWC/기존 `sharp@0.35.5` 일치, dev ESLint/모든 테스트·CI Required 강도 불변. 새 일반 Python 계약 검사(`test_patched_next_runtime_manifest_matches_immutable_npm_lock`)가 고정 런타임 SHA/버전 정합을 확인한다.
+- 검증 순서: `npm ci` → `npm audit --omit=dev` → `python3 -m unittest discover -s tests/python -p 'test_issue_752_*.py' -v` → Next build/TypeScript/ESLint/Vitest/Chromium8/Docker/QA Final. 기존 Main/Release Finalizer 필요 여부와 별개. **이번 GitHub 변경 환경에서는 npm registry 접근·실제 실행 불가로 로컬 NOT TESTED**. 이전 Head의 성공/Skipped 결과는 새 Head PASS로 승격하지 않는다.
+- 출처 및 조치: [단일 이슈 실패 원장 F752-004](ISSUE_752_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_752.md). 전체 PR CI를 시작하면 사용자 요청대로 모니터링하지 않고, merge/Main/GHCR/Issue 종료는 수행하지 않는다.
+
+---
+
 ## Issue #752 — #3152 리뷰 차단·경로/수집 계약 교정 검증 (2026-10-22)
 
 - [Full #3152.1](https://github.com/planner77/masterGantt/actions/runs/39782641377) Required3/Chromium8 SUCCESS + QA Final `미해결 review thread` BLOCKED, 이전 [#3151.1](https://github.com/planner77/masterGantt/actions/runs/39782427411) `PR latest Head stale`/CANCELLED를 [단일 실패 원장](ISSUE_752_FAILURE_ANALYSIS.md)에 **서로 다른 사건**으로 유지한다.
