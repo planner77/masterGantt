@@ -8,6 +8,8 @@ Source of Truth: [PR CI 실패 누적 분석 지침](PR_CI_FAILURE_TRIAGE.md). �
 | 원장 ID | Run 및 event | Head / Base / Test merge | Required aggregates | 최초 오류·증거 |
 | --- | --- | --- | --- | --- |
 | F-001 | [#3150.1](https://github.com/planner77/masterGantt/actions/runs/39779367052), ID 39779367052, attempt 1, `pull_request.opened`, CI/FINAL_FULL, 2026-10-22 12:33 UTC | Head `752d1c464f8f2e7cf61b330e2bbb15c18a8dafbb` / Base `72c2c9d0a912dc906d4101ea41a7a57e0c686597` / Test-merge `9d295d4d56d58ea755e46f0780e5f1cc103bdbf9` | Quality PASS (119828278605), E2E FAIL (119832376573), Docker PASS (119829075135); QA Final FAIL 파생 (119832418392) | Shard 6, [Job 119827457118](https://github.com/planner77/masterGantt/actions/runs/39779367052/job/119827457118), [report/trace artifact](https://github.com/planner77/masterGantt/actions/runs/39779367052/artifacts/12426786845) |
+| F-002 | [#3153.1](https://github.com/planner77/masterGantt/actions/runs/39783686345), ID 39783686345, attempt 1, `pull_request.synchronize`, CI/FINAL_FULL, 2026-10-22 13:04 UTC | Head `294a5a7136f2c56dff4796e089f6b9627e3fb381` / Base `72c2c9d0a912dc906d4101ea41a7a57e0c686597` / Test-merge `e0dcf68c779b15f9c617f2b97b7612ea1ec6962d` | Quality PASS (119843381857), E2E FAIL (119848286078), Docker PASS (119845391902); QA Final FAIL 파생 (119848334445) | Shard 7 [Job 119842472249](https://github.com/planner77/masterGantt/actions/runs/39783686345/job/119842472249), [report/trace](https://github.com/planner77/masterGantt/actions/runs/39783686345/artifacts/12428298303) · #186 strict locator collision |
+
 
 - 같은 HEAD의 [FAST_DEVELOPMENT #15.1](https://github.com/planner77/masterGantt/actions/runs/39779366938)은 `skipped`이며 Full/Required의 대체 증거가 아니다.
 - 이 문서 최초 작성 시 #762를 귀속시킨 열린 PR은 #779 한 개이고, 조회 가능한 Full CI는 F-001 한 번이다. 이슈 #726의 별도 역사적 실패는 본 이슈 Run 수에 포함하지 않는다.
@@ -41,3 +43,25 @@ Source of Truth: [PR CI 실패 누적 분석 지침](PR_CI_FAILURE_TRIAGE.md). �
 ## 5. 다음 Run 기록 규칙
 
 - 새 한정 수정/원장/Work Packet 단일 HEAD SHA와 PR `synchronize` 이벤트의 새 Run ID/Attempt는 검증 확인 뒤 아래에 추가한다. 검증 시작과 성공은 구별한다. 추가 실패 시 F-002부터 동일 문서에 누적하며 원래 F-001을 수정·삭제하지 않는다.
+## 6. F-002 — PR #779 Full #3153.1, 첫 교정 후 새 Strict Locator 실패 (2026-10-22)
+
+### F-002 원격 출처 및 직접/파생 판정
+
+- Full CI [#3153.1](https://github.com/planner77/masterGantt/actions/runs/39783686345) / run ID `39783686345` / attempt `1` / `pull_request.synchronize`; HEAD `294a5a7136f2c56dff4796e089f6b9627e3fb381` / base `72c2c9d0a912dc906d4101ea41a7a57e0c686597` / PR #779 test-merge `e0dcf68c779b15f9c617f2b97b7612ea1ec6962d` (조회 시 PR metadata 관측).
+- **첫 실제 실패:** Chromium **Shard 7/8**, [Job 119842472249](https://github.com/planner77/masterGantt/actions/runs/39783686345/job/119842472249), `tests/e2e/project-logistics-management.spec.ts:298`의 `Issue #186 물류 구성 탭 전환·Gantt instance 유지` 케이스. 공용 `expectIdentifier()`의 기존 13행 `row.getByText("입고 공정",{exact:true})`가 기대 `visible` 대신 Playwright `strict mode violation`을 발생시켰다. 실제 매칭은 **2개**: `<strong>입고 공정</strong>` (표시 공정 원본명)과 WorkArea 버튼 안의 `<span class="...srOnly"> 입고 공정</span>` (접근성 설명). 오류 시각 2026-10-22 13:18:05 UTC. [Playwright report/Trace artifact](https://github.com/planner77/masterGantt/actions/runs/39783686345/artifacts/12428298303).
+- **실행 수:** Shard7 **39 PASS / 1 FAIL / 37 NOT RUN** (`--max-failures=1`, 원래 77개). Shard **1,2,3,4,5,6,8은 CANCELLED**; job ID는 각각 `119842472444`, `119842472271`, `119842472499`, `119842472498`, `119842472226`, `119842472266`, `119842472297`. 모두 실제 로그 대조에서 별도 Playwright `✘`는 발견되지 않았지만 개별 성공 및 전체 PASS는 아니다.
+- **Aggregate/파생:** Required Quality `119843381857` SUCCESS, Docker `119845391902` SUCCESS, Chromium E2E `119848286078` FAILURE, QA Final `119848334445` FAILURE (필수 E2E 미성공 파생). Policy·Preflight·TypeScript·ESLint·Vitest·Build·Docker 구현·Fast Gate 성공. `FAST_DEVELOPMENT #18.1`은 SKIPPED로 전체 Full 증거가 아니다. 모든 Shard의 `git fetch origin` 3000ms 경고는 테스트가 실행·진행되므로 Strict Locator 오류의 직접 원인 아님.
+- **F-001 교차 원격 회귀 확인:** F-001 실패 파일 `tests/e2e/issue-726-task-logistics.spec.ts`의 이전 234행 단일 케이스는 #3153.1 Shard6의 **개별 case #37 PASS (1.0m)**를 직접 관측했다. 그러나 Shard6 Job 전체는 **CANCELLED**이므로 해당 샤드 Required PASS로 승격하지 않는다. 두 실제 실패 파일의 누적 합집합은 이 파일과 `project-logistics-management.spec.ts` **2개**다. #3150 F-001 원본은 변하지 않고, 이번 F-002는 같은 UI 의미 변화의 **다른 기존 소비자 테스트 계약 누락**, DB/API 결함이라는 증거는 없다.
+
+### F-002 원인, 인접 경로 일괄 교정
+
+- **판정 = TEST_CONTRACT (신규/교차 영향)**. #762의 `src/features/logistics/project-logistics-management.tsx`는 `<strong>{p.name...}</strong>`로 공정명을 표시하면서 작업 구역 선택 버튼의 이름 구별/접근성을 위해 `srOnly {p.name}`을 추가하였다. Playwright `getByText()`는 동일 row 내 두 text node에 매치한다. 보조 레이블은 정상 UI 계약이며 삭제하지 않는다. `getByText().first()`로 우연히 한 쪽만 선택하거나 assertion 제거·timeout·skip·retry로 우회하지 않는다.
+- **재작업 대상**: `tests/e2e/project-logistics-management.spec.ts` 내 공통 `expectIdentifier`의 화면명 검증을 공정/설비/시스템 행의 정확한 `strong` 본문 `toHaveText(name)` 및 visible 검증으로 교정하고, 기존 `IdentifierDetails`의 코드 값·클릭 및 뒤따르는 코드 확인은 유지한다. 공정 3건(`입고/보관/출고`)과 신규 자동 코드 공정의 별도 검증 4곳도 canonical row-ID+`strong` 및 정확 name 검사로 전환한다. `입고 공정` 해당 row의 WorkArea 버튼 `getByRole("button",{name:/작업 구역.*입고 공정/})` 가시성 검사 **추가**로 접근성 이름 회귀를 보호한다.
+- **동일 패턴 점검:** 해당 E2E 파일의 `getByText` 사용처를 전수 확인했다. 설비·시스템 행의 별도 visible-text 검사는 UI에 이번 `srOnly`가 추가되지 않아 그대로 둔다. 타 프로세스 WorkArea UI의 #725/#762 direct/legacy·Task/설비/Target/연계/공정/readonly 및 정확 drill은 원본 테스트를 약화하지 않으며 새 Full8에서 실제 PASS 확인 전 `NOT TESTED`.
+- **한정 정적 소스 검사:** 기존 공용 1곳+공정 가시성 3곳+신규 생성 공정1곳, 정확 **5개 선택자 대체/보완** 확인; 교체된 위험 `getByText` 5곳 0잔존, `strong` 정확한 문자열/가시성 검증 및 WorkArea 버튼 접근성 단언 포함. 본 검사는 **GitHub 소스 본문 비교**이지 브라우저/HTTP/SQLite/TypeScript/ESLint 실행이 아니다. 현재 세션 로컬 Git checkout·npm deps 없음, 네트워크 DNS 연결 불가로 동일 소스 로컬 Playwright/Pre-PR은 **NOT TESTED**.
+- 원본 #3150/#3153과 새 HEAD를 혼합하지 않는다. 변경 scope=1 E2E 파일, 이 누적 원장, [Work Packet](exec-plans/active/ISSUE_762.md); 제품·API·schema·workflow·8-shard/Required3·QA·Owner·정식 버전/출시 승인 정책 불변. [TEST_PLAN](TEST_PLAN.md)의 existing #762·#697 선정/제외 근거 활용, 일반 설계·운영 원칙 변경 없음으로 `AGENTS.md`/`DESIGN.md`/`CI_CD.md`/`TEST_PLAN.md` N/A.
+
+### 재작업 인계 및 검증 미완료
+
+- Source commit/PR head는 아래 갱신 후 정확 SHA로 확정; PR #779 동일 브랜치 사용. 수정 전 main baseline HEAD와 merge base `72c2c9d0a912dc906d4101ea41a7a57e0c686597`, `behind=0`, `mergeable=true`, unresolved review threads **0** (확인 시각 기준); 수정 후 재조회 필수. 별도 Code Review Summary가 과거 commit에서 running이라도 실제 inline thread가 생겼다는 뜻은 아니다.
+- 신규 `pull_request.synchronize` Full8 PR CI는 **시작만 확인**. 새 HEAD의 Quality/E2E/Docker, 특히 Shard7 나머지37건 및 나머지 취소된 샤드, Trusted QA, Owner HIGH 수용은 수행/확인되기 전 `NOT TESTED`, `MERGE_READY=BLOCKED`. CI 모니터링·병합·GHCR·Finalizer·Issue 종료 미실행. 후속 실패면 F-003으로 이 문서에 덧붙임.

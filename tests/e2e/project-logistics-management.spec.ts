@@ -10,7 +10,11 @@ import {
 
 async function expectIdentifier(panel: Locator, name: string, label: string, value: string) {
   const row = panel.getByRole("row").filter({ has: panel.page().locator("strong").filter({ hasText: name }) }).first();
-  await expect(row.getByText(name, { exact: true })).toBeVisible();
+  // #762: the WorkArea button repeats the process name for screen readers.
+  // Match the visible identity cell, not the entire row’s text descendants.
+  const displayedName = row.locator("strong").first();
+  await expect(displayedName).toHaveText(name);
+  await expect(displayedName).toBeVisible();
   const identifiers = row.locator("details").first();
   await identifiers.locator("summary").click();
   await expect(identifiers.getByLabel(label, { exact: true })).toBeVisible();
@@ -335,11 +339,12 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await openWorkspaceView(page, "processes");
     const processPanel = page.locator("#panel-processes");
     await expectIdentifier(processPanel, "입고 공정", "공정 코드", "PROC-01");
-    await expect(processPanel.locator("strong").filter({ hasText: "입고 공정" })).toBeVisible();
+    await expect(processPanel.locator("#logistics-master-process-proc-1 strong")).toHaveText("입고 공정");
+    await expect(processPanel.locator("#logistics-master-process-proc-1").getByRole("button", { name: /작업 구역.*입고 공정/ })).toBeVisible();
     await expectIdentifier(processPanel, "보관 공정", "공정 코드", "PROC-02");
-    await expect(processPanel.getByText("보관 공정")).toBeVisible();
+    await expect(processPanel.locator("#logistics-master-process-proc-2 strong")).toHaveText("보관 공정");
     await expectIdentifier(processPanel, "출고 공정", "공정 코드", "PROC-03");
-    await expect(processPanel.getByText("출고 공정", { exact: true })).toBeVisible();
+    await expect(processPanel.locator("#logistics-master-process-proc-3 strong")).toHaveText("출고 공정");
 
     // Switch to Sub-tab 2: Equipment
     await openWorkspaceView(page, "equipment");
@@ -530,7 +535,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     expect(requestBody).not.toHaveProperty("code");
     await expect(dialog).toHaveCount(0);
     await expectIdentifier(page.locator("#panel-processes"), "자동 생성 코드 공정", "공정 코드", "PROC-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
-    await expect(page.locator("#panel-processes").getByText("자동 생성 코드 공정", { exact: true })).toBeVisible();
+    await expect(page.locator("#logistics-master-process-proc-generated strong")).toHaveText("자동 생성 코드 공정");
 
     const processPanel = page.locator("#panel-processes");
     const legacyRow = processPanel.getByRole("row").filter({ has: page.locator("strong").filter({ hasText: "입고 공정" }) });
