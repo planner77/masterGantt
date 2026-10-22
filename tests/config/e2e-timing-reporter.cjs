@@ -6,6 +6,9 @@ class E2ETimingReporter {
   constructor(options = {}) {
     this.outputFile = options.outputFile || process.env.E2E_TIMING_OUTPUT || "";
     this.entries = [];
+    // Preserve passed-only entries for existing E2E shard timing consumers.
+    this.skippedFiles = new Set();
+    this.skippedCaseCount = 0;
     this.runnerReadyMs = 0;
   }
 
@@ -17,8 +20,14 @@ class E2ETimingReporter {
   }
 
   onTestEnd(test, result) {
-    if (!this.outputFile || result.status !== "passed") return;
+    if (!this.outputFile) return;
+    if (result.status !== "passed" && result.status !== "skipped") return;
     const relativeFile = path.relative(process.cwd(), test.location.file).split(path.sep).join("/");
+    if (result.status === "skipped") {
+      this.skippedFiles.add(relativeFile);
+      this.skippedCaseCount += 1;
+      return;
+    }
     this.entries.push({
       file: relativeFile,
       durationMs: Math.max(0, Number(result.duration) || 0),
@@ -38,6 +47,8 @@ class E2ETimingReporter {
       status: result.status,
       runnerReadyMs: this.runnerReadyMs,
       entries: this.entries,
+      skippedFiles: [...this.skippedFiles].sort(),
+      skippedCaseCount: this.skippedCaseCount,
     };
     fs.mkdirSync(path.dirname(this.outputFile), { recursive: true });
     fs.writeFileSync(this.outputFile, JSON.stringify(payload, null, 2) + "\n", "utf8");

@@ -1,3 +1,20 @@
+## Issue #770 — #767 8-shard 최신 main 정렬 (2026-10-22)
+
+기존 #770 PR #774 [Full #3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)은 6/6/Required3 PASS. 최신 main `81c28fa5502caee27e98d4d293b0b1b28e6340dd`은 #767 8-shard·앱0.129.1 포함 10커밋 진전, PR stale/mergeable=false. 기존 FAIL/성공 기록을 불변으로 유지한 채 main을 병합하고 #770 Shadow가 trusted plan의 8 shards를 감시하도록 코드/회귀를 동기화. 그 외 #767 제품·QA·Release·Shard 변경 전부 보존. [#770 실패·정렬 원장](../../ISSUE_770_FAILURE_ANALYSIS.md) 및 [Work Packet](ISSUE_770.md) 참조. 새 exact Head Full E2E8/8/Quality/Docker·Trusted QA는 NOT TESTED, Owner HIGH 별도 승인 전 병합·GHCR·Issue 종료 금지.
+
+## Issue #770 — #3101.1 Full 및 #3103.1 Metadata 실패 REWORK (2026-10-22)
+
+원인: PR 독립 QA 선언 및 Primary Issue AC1..AC7 표기 불일치로 기존 trusted Preflight/QA bootstrap 실패 → E2E6/Unit/Docker SKIPPED. PR metadata 교정 후 metadata-only CI는 이전 Full FAIL로 정상 차단. 동일 Issue 누적 원장 `docs/ISSUE_770_FAILURE_ANALYSIS.md` 기록. Review P1 large Node argv를 stdin으로, P2 기존 passed-only timing에서 빠진 legitimate skip은 skippedFiles/skippedCaseCount로 분리. 기존 CI/QA/Full/Owner/Release 계약 불변이며 새 Head Full PR CI 시작까지만 진행, 모니터링·병합·GHCR 금지.
+
+
+---
+
+## Issue #770 — P0-A trusted CI 영향 판정과 Shadow 준비 (2026-10-22)
+
+Baseline main `71f9b9ddb61be7f6e076accc027188f362e18bb1`, branch `ci/issue-770-trusted-impact-shadow`. #769 Phase A 선행 #697/#699/#437 재사용. 신규 코드 `scripts/ci_impact_plan.py`, `tests/python/test_ci_impact_plan.py` 및 기존 Full PR/Main/Required3 보호를 유지한 비차단 `.github/workflows/ci.yml impact_shadow` 추가. 첫 도입 PR base 정책 없음 → Shadow `NOT_TESTED` bootstrap(자가 승인 방지). [정식 Work Packet](ISSUE_770.md)에 10건 historical full run의 Job 통과 표본, 원본 artifact 미교차검증·시간/false-negative `INSUFFICIENT_DATA`, AC1~7/DOCUMENTATION_SYNC 및 정확 출처/QA/위험 기록 유지. application `0.129.0` 유지, HIGH/OWNER_MANAGED/qa_required=true/manager_decision=NOT TESTED, release_required=false/release_authorized=false. 현재 PR CI 시작까지만 승인, 모니터링·병합·GHCR·정식 릴리스·이슈 종료 금지.
+
+---
+
 ## Issue #767 — F767-007 Shard5 35분 취소·Owner 승인 8-Shard Full PR CI (2026-10-22)
 
 [원본 #3099.1 / Run39676585856](https://github.com/planner77/masterGantt/actions/runs/39676585856) Head `60d69b88aa990cb03fd827090e90ed365c86bb11`: Shard5 94/109 PASS 뒤 35.35m Job Timeout 취소, 15 미완료. 다른 5Shards/Quality/Docker SUCCESS; E2E aggregate/QA FAIL. 과거 F767-001~006의 사전 정책/Artifact/Shard6→1→6 문제와 분류하고 [F767-007](../../ISSUE_767_FAILURE_ANALYSIS.md)에 Job·Case/원인·회귀 비교를 누적. 동일 테스트 87건의 body≈12.35→19.48m(+58%) 환경편차도 전파하되 지역 단독 원인 확정 금지.

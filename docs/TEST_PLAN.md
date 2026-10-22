@@ -1,3 +1,44 @@
+## Issue #770 — 현재 E2E 8-shard 영향 관측 계약 정렬 (2026-10-22)
+
+기존 [#3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)은 6-shard Full/Required3 PASS로서 역사적 증거다. 그러나 #767의 최신 main에는 **E2E 8샤드**/136 spec/앱 0.129.1이 적용됐다. 구 6개 성공 샤드/기존 10회 정상 이력을 새 8-way Shadow Full 증명에 대입해서는 안 된다.
+
+- 신뢰된 **base Git tree**의 `tests/config/e2e-shard-plan.json` schemaVersion·shardCount·1..N 유일 그룹을 확인한다. N=8이면 동일 run/attempt의 `Chromium E2E shard n/8`과 해당 timing artifact N개를 대조한다. 6개뿐이거나 schema unknown, cancelled, partial, TTL 만료 등은 UNKNOWN/NOT_TESTED. 판정 범위를 PR의 변경된 plan 파일이나 본문 self-risk로 낮출 수 없다.
+- 회귀 `tests/python/test_ci_impact_plan.py`: 인증된 8-shard·누락된 plan·옛 6-shard Job 위조/미완성 부정, 기존 메타데이터·skip·stdin negative 조합. Unit/Chromium/HTTP/DB/Required 본문은 여전히 전체 원격 CI에서 검증한다.
+- [#770 Work Packet](exec-plans/active/ISSUE_770.md) / [실패 원장](ISSUE_770_FAILURE_ANALYSIS.md). 실측/예측 분리, 이전 6-shard SAMPLE 성과 소급 확정 금지.
+
+## Issue #770 — PR #774 F770-001/F770-002 코드 리뷰 보완 (2026-10-22)
+
+[#770 누적 실패 원장](ISSUE_770_FAILURE_ANALYSIS.md) 기록: Full #3101.1은 PR 메타데이터/Issue AC 식별자의 trusted Preflight 실패였고, metadata-only #3103.1은 이전 Full 실패 출처로 차단된 정상 fail-closed 결과다. E2E6/Unit/Docker 테스트 본문은 원본 Run에서 SKIPPED였다.
+
+- P1 Node impact map: base-trusted JS 정책 코드는 변경하지 않고 PR source의 테스트/소비자 JSON을 **stdin**으로 전달한다. 실제 Unit/E2E 파일 목록과 200KB를 넘는 graph를 이용하는 Python→Node 통합 회귀로 OS argv 한계 회피를 검사한다.
+- P2 E2E timing: 기존 optimizer가 읽는 passed-only `entries`는 유지한다. 별도 `skippedFiles`와 `skippedCaseCount`를 기록하여 `resource-tabs.spec.ts`의 정상 skip 등을 passed 테스트·실행 누락과 구별한다. Shadow는 passed ∪ skipped의 원본 파일 커버리지를 확인하고 미보고/미등록/구형 ZIP은 UNKNOWN. Skipped≠PASS, skipped test body를 시간 절감 추정에 가산하지 않는다.
+- 새 정책 테스트 `python3 -m unittest discover -s tests/python -p 'test_ci_impact_plan.py' -v`; 실제 새 Head Quality/E2E6/Docker와 Trusted QA, Owner HIGH 승인 이전 MERGE_READY=BLOCKED.
+
+
+---
+
+## Issue #770 — trusted CI 영향 분류·선택 계획/Shadow 수용 (2026-10-22)
+
+[#770 Work Packet](exec-plans/active/ISSUE_770.md)과 #697/#699 로컬 선정표를 **원격 공식 정책에 자동 대체하지 않는다**. 새 `scripts/ci_impact_plan.py`는 인증된 base에서 read-only 실행하고, 변경된 test-merge의 Git tree/diff, #699 static consumer map, 파일별 추가 직접·인접·실패 원장 회귀 후보를 선정하며 기존 Full Required CI는 Phase A에서 변경하지 않는다.
+
+| 변경 유형 | 위험 floor | Shadow 추천 | 검증 대상/보수적 이유 |
+|---|---|---|---|
+| 비보호 문서만 변경 | LOW | DOCS_VERIFIED | 코드·테스트 미변경, docs-only 출처 확인. 공식 기존 CI skip만 별도 검증 |
+| 제한된 프로젝트 목록 UI/문구 및 명시적 화면 독립 CSS | MEDIUM | FAST_TARGETED 가능 | 실제 있는 해당 화면 Unit/Chromium 소비자; #699 미매핑은 trust-base 명시 매핑으로만 보완 |
+| 기존 단일 테스트 파일의 본문 수정 | MEDIUM 이상 | FAST_TARGETED 후보 | 해당 테스트 필수 포함; skip/only/비정적 import는 즉시 FULL |
+| 일반 미등록 화면/스타일/간접 소비자 | HIGH/UNKNOWN | FULL_REQUIRED | 불완전한 소비자 지도는 테스트 제외 근거가 아님 |
+| Gantt shared state/Core/viewport, Calendar, Milestone, Resource, SQL/Server, HTTP/API, auth/revision | HIGH | FULL_REQUIRED | 직접+간접+교차 회귀·보안·계약 검사 집합 |
+| migration, package/lock, Next/tsconfig/CI/QA/workflow/fixtures/helpers | HIGH | FULL_REQUIRED | 신뢰 경로/환경/테스트 인벤토리 자체가 변경됨 |
+| 파일 추가/삭제/이름 변경, 신규/누락/잘못된 테스트 ID, dynamic import, 알 수 없는 확장자 | HIGH/UNKNOWN | FULL_REQUIRED | 기존 베이스/변경 tree 불변성 미확인·커버리지 제거 위조 차단 |
+
+- 6개 대표 실패 계열 #667/#730/#731/#732/#736/#767의 Gantt/Resource/Milestone/security 소비자를 **원장 근거와 함께 선정**한다. 이 매핑은 과거 실패가 동일 변경에서 **재발하는지를 증명하는 실험이 아님**. 고유 실패 Head/Run/Attempt/원본 테스트를 회수해 정확 회귀 누락을 검증하기 전 false-negative=INSUFFICIENT_DATA.
+- 산출물 `mastergantt-impact-plan-v1`: `risk`, `mode_recommendation`, `source`, `input_diff_fingerprint`, `trusted_policy_blob_sha`, `selected_test_ids`, `excluded_test_ids`, `selection_basis`, `failure_ledger_basis`, `test_plan_sha256`, `observed_ci`, `evidence_status`. 정렬/해시 결정적, 변경 PR이 policy floor를 직접 하향할 수 없음.
+- Job API의 3 Required aggregate와 six shard actual success 관측, exact run/attempt test timing artifact ZIP의 test spec 단위 full inventory coverage를 대조한다. ZIP 자체는 비신뢰 자료이고 원본 Required PASS 증명 자료가 아니다. 미실행/부분 수행/취소/만료는 미확인.
+- E2E `timed_test_body_minutes`와 `excluded_test_body_minutes_upper_bound`는 실제 벽시계·비용 절감과 다르며, Runner-minutes는 실제 Job start/end 자료가 있을 때만 기록. #770 Work Packet 10 Run의 baseline은 gate/job 성공은 확인했지만 test-merge/원본 diff/ZIP·시간의 소급 인증이 없어 정량적 효과는 **INSUFFICIENT_DATA**.
+- 관련 Python 수용 테스트: `tests/python/test_ci_impact_plan.py`. 이 신규 보호 검사 자체는 HEAD의 기존 Full Quality/E2E6/Docker, 기본 브랜치 Trusted QA와 Owner HIGH 승인을 필수로 유지.
+
+---
+
 ## Issue #767 — Owner 8-Shard 전환 / E2E 전체 커버리지 및 Final Full CI (2026-10-22)
 
 [원본 #3099.1](https://github.com/planner77/masterGantt/actions/runs/39676585856)에서 Shard5 109 중94 PASS/15미완료, 35.35분 Job Timeout CANCELLED; 나머지 5개 Shard+Quality/Docker PASS, E2E aggregate/QA 파생 FAIL. F767-001~006 누적과 구분한 새 [F767-007](ISSUE_767_FAILURE_ANALYSIS.md)에서 #3098 Shard5 동형87개 테스트보다 약58% 느려진 사실·Runner 환경 차이와 원인 미확정을 남긴다. 단일 6-way 배치를 옮길 때마다 Shard6→1→6→5의 한계가 재발해 Owner는 기존 Issue/PR 범위에서 6→**8**을 승인했다.
