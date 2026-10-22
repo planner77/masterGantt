@@ -11,7 +11,6 @@ import argparse
 import ast
 from collections import Counter, defaultdict
 import csv
-import io
 import json
 import os
 from pathlib import Path
@@ -280,6 +279,12 @@ def main() -> int:
         summary, rows = build(ROOT, args.mode)
         if args.output_dir:
             directory = Path(args.output_dir).resolve()
+            try:
+                directory.relative_to(ROOT.resolve())
+            except ValueError:
+                pass  # External report path cannot change tracked source/tests.
+            else:
+                raise InventoryError("Report directory must be outside repository checkout")
             directory.mkdir(parents=True, exist_ok=True)
             fields = ("layer", "path", "scenario", "environment", "count_basis")
             with (directory / "inventory.csv").open("w", encoding="utf-8", newline="") as fp:
