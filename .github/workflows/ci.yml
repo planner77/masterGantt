@@ -846,6 +846,152 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+
+  # #772: Owner opt-in only. A missing flag or policy job ALWAYS means Full8.
+  # This introducing HIGH policy PR cannot approve itself (base has no policy).
+  low_e2e_plan:
+    name: Low E2E policy plan (trusted base)
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action != 'edited' &&
+      github.event.pull_request.draft != true &&
+      vars.LOW_TARGETED_POLICY_ENABLED == 'true' &&
+      needs.changes.result == 'success'
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      mode: ${{ steps.decide.outputs.mode }}
+    steps:
+      - name: Trust only immutable base policy; no PR code execution
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Classify exact event Head/Base/Test-Merge, fallback Full
+        id: decide
+        shell: bash
+        env:
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
+        run: |
+          set -euo pipefail
+          if [[ ! -f scripts/ci_low_policy.py ]]; then
+            echo "mode=FULL_REQUIRED" >> "$GITHUB_OUTPUT"
+            printf '{"schema":"mastergantt-low-e2e-policy-v1","mode":"FULL_REQUIRED","reason":"TRUSTED_BASE_BOOTSTRAP","verification":"NOT_RUN"}\n' > ci-low-plan.json
+          else
+            python3 scripts/ci_low_policy.py --stage plan
+          fi
+      - name: Retain source-bound policy selection (never a PASS receipt)
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-low-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci-low-plan.json
+          retention-days: 30
+          if-no-files-found: error
+
+  # A targeted success requires running EVERY base-picked direct, adjacent and
+  # negative spec and then a trusted-base verification of actual Playwright JSON.
+  low_e2e_targeted:
+    name: Low E2E targeted execution
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.action != 'edited' &&
+      github.event.pull_request.draft != true &&
+      needs.changes.result == 'success' &&
+      needs.pr_fast_gate.result == 'success' &&
+      needs.low_e2e_plan.result == 'success' &&
+      needs.low_e2e_plan.outputs.mode == 'TARGETED_POLICY_CANDIDATE'
+    needs: [changes, preflight, pr_fast_gate, low_e2e_plan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Check out exact synthetic test-merge to execute tests
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install pinned Node and npm dependencies
+        uses: ./.github/actions/node-setup
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          use-local-node-headers: "true"
+      - name: Install Playwright Chromium setup
+        uses: ./.github/actions/playwright-setup
+      - name: Download immutable base plan for this run and attempt
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: ci-low-plan-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Run exact planned Chromium specs with JSON reporter (no skip/retry)
+        shell: bash
+        env:
+          CI_E2E_FULLY_PARALLEL: "true"
+        run: |
+          set -euo pipefail
+          mapfile -t specs < <(python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          plan=json.loads(Path('ci-low-plan.json').read_text())
+          items=plan.get('selected_test_ids',[])
+          if (plan.get('mode')!='TARGETED_POLICY_CANDIDATE' or
+              not isinstance(items,list) or not 3<=len(items)<=12 or
+              len(set(items))!=len(items) or
+              not all(isinstance(x,str) and re.fullmatch(r'tests/e2e/[a-z0-9][a-z0-9-]+\.spec\.ts',x) for x in items)):
+              raise SystemExit('Unsafe or missing trusted test selection')
+          for item in items:
+              print(item)
+          PY
+          )
+          if (( ${#specs[@]} < 3 )); then
+            echo "::error::No trusted targeted tests, cannot pass" >&2
+            exit 1
+          fi
+          ./node_modules/.bin/playwright test --config tests/config/playwright.config.ts \
+            --reporter=json --workers=1 --retries=0 "${specs[@]}" > ci-low-playwright.json
+      - name: Restore exact base policy separately and attest actually executed cases
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          path: trusted-low-policy
+          persist-credentials: false
+      - name: Base-policy attestation; skip/none/retry/failure/source drift blocked
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd trusted-low-policy
+          python3 scripts/ci_low_policy.py --stage attest \
+            --plan ../ci-low-plan.json \
+            --reporter ../ci-low-playwright.json \
+            --receipt ../ci-low-receipt.json
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          receipt=json.loads(Path('../ci-low-receipt.json').read_text())
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as out:
+              out.write('## #772 E2E execution policy PASS — TARGETED_POLICY_VERIFIED\n')
+              out.write(f"- Actual cases: {receipt['execution']['actual_test_case_count']}; "+
+                        f"files: {receipt['execution']['actual_test_file_count']}; skipped: 0\n")
+              out.write('- This is NOT FULL_E2E_PASS; Owner/Trusted QA required.\n')
+          PY
+      - name: Upload exact-Run successful targeted execution receipt
+        if: success()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-low-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci-low-receipt.json
+          retention-days: 30
+          if-no-files-found: error
+
   # PR E2E: 하나의 Shard 실패 시 나머지 Shard 취소 요청
   pr_e2e_shard:
     name: Chromium E2E shard ${{ matrix.shard }}/8 · PR
@@ -855,8 +1001,9 @@ jobs:
       github.event.pull_request.draft != true &&
       needs.changes.result == 'success' &&
       needs.changes.outputs.e2e == 'true' &&
-      needs.pr_fast_gate.result == 'success'
-    needs: [changes, preflight, pr_fast_gate]
+      needs.pr_fast_gate.result == 'success' &&
+       needs.low_e2e_plan.outputs.mode != 'TARGETED_POLICY_CANDIDATE'
+    needs: [changes, preflight, pr_fast_gate, low_e2e_plan]
     runs-on: ubuntu-latest
     timeout-minutes: 35
     strategy:
@@ -867,7 +1014,7 @@ jobs:
   e2e:
     name: Chromium end-to-end tests
     if: always()
-    needs: [changes, preflight, metadata_evidence, e2e_shard, pr_e2e_shard, pr_fast_gate]
+    needs: [changes, preflight, metadata_evidence, e2e_shard, pr_e2e_shard, pr_fast_gate, low_e2e_plan, low_e2e_targeted]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -908,6 +1055,14 @@ jobs:
           if [[ "$IS_FULL_PR" == "true" && "$PR_FAST_GATE" != "success" ]]; then
              echo "PR Fast Gate 미성공이므로 E2E 차단: $PR_FAST_GATE" >&2
              exit 1
+           fi
+           if [[ "$IS_FULL_PR" == "true" && "$LOW_MODE" == "TARGETED_POLICY_CANDIDATE" ]]; then
+             if [[ "$LOW_PLAN" != "success" || "$LOW_TARGETED" != "success" || "$RESULT" != "skipped" ]]; then
+               echo "::error title=TARGETED_E2E_BLOCKED::Policy plan/actual selected cases unverified: $LOW_PLAN/$LOW_TARGETED/$RESULT" >&2
+               exit 1
+             fi
+             echo "E2E execution policy PASS: TARGETED_POLICY_VERIFIED (not FULL_E2E_PASS)."
+             exit 0
            fi
            if [[ "$REQUIRED" != "true" ]]; then
             echo "E2E 관련 변경이 없어 Chromium E2E를 생략했습니다."
