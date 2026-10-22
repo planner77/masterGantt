@@ -1415,3 +1415,6 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 ## Issue #732 — Milestone 최상위 동적 대시보드
 
 최신 main `05f1e560eee456e6fba5535255c9ede30a357c16`의 공통 #729/#730 조회와 기존 Milestone 관리에 전용 consumer를 연결한다. root 단독·두 사용자 계층·선택 지표/전체 Gate 분리와 생성/소속/관계/필터·marker OFF를 보존한다. 실제 역할·파일 소유권·AC/테스트·문서 영향은 [Work Packet](ISSUE_732.md)을 따른다. 후보0.127.0 / HIGH / qa_required=true / OWNER_MANAGED / release_required=true / release_authorized=false. 요청 범위는 구현·문서·리뷰/충돌 정리·새 PR CI 시작까지이며 CI 모니터링·병합·main/GHCR·Issue 종료를 포함하지 않는다. 원격 Required3/Trusted/Owner 최종 승인 NOT TESTED.
+## Issue #737 — Target0 종단·다관점 정합·보존 수용
+
+[Work Packet](ISSUE_737.md) / [통합 수용표](../../WBS_CROSS_FEATURE_ACCEPTANCE.md). 최신 main `56c7cfb96dbb97095e51606e9639cf4dc3fced36` / `0.130.0`의 #724~#736 및 #762 직접 WorkArea·Template v5를 재사용한다. W1/W2 최종 결정·#736 퇴역/#767 승계를 구분하여 raw SQLite→KPI/5root/Excel·backup/restart·실제 Chromium 왕복·기존 기능 보존/사용자/운영 문서를 결속한다. tests/docs only, version 유지·release_required=false/release_authorized=false, HIGH/OWNER_MANAGED. 신규 spec을 기존138개 배치를 보존한8shard Shard6에 등록한다. 종료점은 Ready PR Full CI 시작이며 모니터링·병합/main/GHCR·Issue/Epic 종료는 비범위다. Required3/Trusted/Owner·Manager ACCEPT 전 MERGE_READY=BLOCKED.
