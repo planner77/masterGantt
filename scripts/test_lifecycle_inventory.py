@@ -45,6 +45,21 @@ def collect_files(root: Path, pattern: str) -> list[str]:
     return sorted(p.relative_to(root).as_posix() for p in root.glob(pattern) if p.is_file())
 
 
+def listed_test_path(value: str, root: Path, expected: list[str]) -> str:
+    """Normalize absolute/repo-relative/testDir-relative collector paths.
+
+    Never guess when two distinct test files share the same basename.
+    """
+    direct = repo_path(value, root)
+    candidates = {direct}
+    if not Path(value).is_absolute():
+        candidates.add(repo_path(Path("tests/e2e") / value, root))
+    matches = sorted(path for path in expected if path in candidates)
+    if len(matches) != 1:
+        raise InventoryError(f"Ambiguous or unexpected listed test path: {value}")
+    return matches[0]
+
+
 def run_list(root: Path, args: list[str]) -> str:
     result = subprocess.run(
         ["node", *args],
@@ -71,7 +86,7 @@ def parse_playwright_listing(output: str, root: Path, files: list[str]) -> list[
         if match:
             cases.append({
                 "layer": "E2E",
-                "path": repo_path(match.group("file"), root),
+                "path": listed_test_path(match.group("file"), root, files),
                 "scenario": match.group("title").strip(),
                 "environment": match.group("project"),
                 "count_basis": "playwright --list (collected cases)",
@@ -127,7 +142,7 @@ def parse_vitest_listing(output: str, root: Path, files: list[str]) -> list[dict
             raise InventoryError("Vitest test entry has no test title")
         cases.append({
             "layer": "VITEST",
-            "path": repo_path(file_name, root),
+            "path": listed_test_path(file_name, root, files),
             "scenario": title if node.get("fullName") or node.get("full_name") else " > ".join(filter(None, (prefix, title))),
             "environment": "node/vitest config",
             "count_basis": "vitest list --json (collected declarations)",
