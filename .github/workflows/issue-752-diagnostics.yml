@@ -195,6 +195,52 @@ jobs:
           npm run test:e2e -- "${files[@]}" --project=chromium --workers=1 --retries=0 --max-failures=0 --reporter=json
           code=$?
           set -e
+          # Worker artifacts are public to Actions readers: rewrite the JSON to a
+          # strict allowlist BEFORE upload (no errors, network details, traces).
+          python3 - <<'PY'
+          import json,os,re
+          from pathlib import Path
+          part=int(os.environ["PART"])
+          path=Path(f"part-{part}/playwright.json")
+          if path.exists() and path.stat().st_size <= 6_000_000:
+              try:
+                  source=json.loads(path.read_text(encoding="utf-8"))
+                  suites=[]
+                  def walk(node):
+                      p=node.get("file") or ""
+                      if isinstance(p,str):
+                          p=p.replace("\\","/")
+                          p=p[p.find("tests/e2e/"):] if "tests/e2e/" in p else ""
+                      entries=[]
+                      for case in node.get("specs",[]):
+                          tests=[]
+                          if not isinstance(case,dict):
+                              continue
+                          for test in case.get("tests",[]):
+                              if not isinstance(test,dict):
+                                  continue
+                              results=[]
+                              for item in test.get("results",[]):
+                                  if isinstance(item,dict):
+                                      duration=item.get("duration")
+                                      duration=duration if type(duration) in (int,float) and 0<=duration<=7200000 else None
+                                      results.append({"status":str(item.get("status") or "UNKNOWN")[:20],"duration":duration})
+                              tests.append({"id":str(test.get("id") or "")[:90],"results":results})
+                          entries.append({"tests":tests})
+                      if re.fullmatch(r"tests/e2e/[A-Za-z0-9_./-]+\\.spec\\.ts",p):
+                          suites.append({"file":p,"specs":entries})
+                      for child in node.get("suites",[]):
+                          if isinstance(child,dict):
+                              walk(child)
+                  for node in source.get("suites",[]):
+                      if isinstance(node,dict):
+                          walk(node)
+                  path.write_text(json.dumps({"suites":suites},ensure_ascii=False),encoding="utf-8")
+              except (ValueError,TypeError,KeyError,OSError):
+                  path.unlink(missing_ok=True)
+          elif path.exists():
+              path.unlink()
+          PY
           python3 - "$code" <<'PY'
           import json,os,sys
           n=int(os.environ["PART"])
