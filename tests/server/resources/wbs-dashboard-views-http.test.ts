@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { WbsViewDimension, WbsViewLevel, WbsViewQueryInput } from "../../../src/contracts/wbs-dashboard-views";
 import { handleWbsViewQuery } from "../../../src/server/resources/wbs-dashboard-views-handlers-core";
 import { handleProjectExcelExport } from "../../../src/server/exports/project-excel-export-handler-core";
@@ -209,18 +209,38 @@ describe("#729 migrated SQLite → production handler → actual HTTP acceptance
     expect(f.projects.findById(f.project.id)!.revision).toBe(1);
   });
 
-  it("AC1/4 persisted explicit process0 and multiWorkAreas retain snapshot/exact HTTP details after reopen", async () => {
-    const directory = mkdtempSync(join(tmpdir(), "wbs729-")); cleanups.push(async () => rmSync(directory, { force: true, recursive: true }));
-    const f = await fixture("direct", join(directory, "data.sqlite3")), view = spec("system", ["process"]);
-    const before = (await f.report(view)).data, unlinked = node(node(before, "system", f.systems[2].publicId), "process", null);
-    const areasBefore = (await f.report(spec("workArea", ["equipment"]))).data;
-    f.reopen();
-    const after = (await f.report(view)).data; expect(after).toEqual(before);
-    expect((await f.report(spec("workArea", ["equipment"]))).data).toEqual(areasBefore);
-    const response = await f.query({ spec: view, filters, projection: { kind: "details", snapshotId: before.snapshotId, path: unlinked.path, view: "assignments", offset: 0, limit: 100 } });
-    expect(response.status).toBe(200); const page = (await response.json()).data;
-    expect(page.rows.map((row: { taskId: string }) => row.taskId)).toEqual([f.tasks.get("T0")!.publicId]);
-    expect(page.rows[0].assignment.plannedMd).toBe(2);
+  // File-backed migration/seed and initial HTTP snapshot can exceed the Vitest
+  // 5s *test body* budget under concurrent CI jobs. Keep the real on-disk
+  // migration and every before/after assertion; prepare once in beforeAll
+  // (separate hook budget) rather than increasing global/per-test timeouts.
+  describe("AC1/4 persisted SQLite restart (isolated setup phase)", () => {
+    let f: Awaited<ReturnType<typeof fixture>>;
+    let view: WbsViewQueryInput["spec"];
+    let before: Report;
+    let areasBefore: Report;
+    let unlinkedPath: Row["path"];
+
+    beforeAll(async () => {
+      const directory = mkdtempSync(join(tmpdir(), "wbs729-"));
+      cleanups.push(async () => rmSync(directory, { force: true, recursive: true }));
+      f = await fixture("direct", join(directory, "data.sqlite3"));
+      view = spec("system", ["process"]);
+      before = (await f.report(view)).data;
+      unlinkedPath = node(node(before, "system", f.systems[2].publicId), "process", null).path;
+      areasBefore = (await f.report(spec("workArea", ["equipment"]))).data;
+    });
+
+    it("AC1/4 persisted explicit process0 and multiWorkAreas retain snapshot/exact HTTP details after reopen", async () => {
+      f.reopen();
+      const after = (await f.report(view)).data;
+      expect(after).toEqual(before);
+      expect((await f.report(spec("workArea", ["equipment"]))).data).toEqual(areasBefore);
+      const response = await f.query({ spec: view, filters, projection: { kind: "details", snapshotId: before.snapshotId, path: unlinkedPath, view: "assignments", offset: 0, limit: 100 } });
+      expect(response.status).toBe(200);
+      const page = (await response.json()).data;
+      expect(page.rows.map((row: { taskId: string }) => row.taskId)).toEqual([f.tasks.get("T0")!.publicId]);
+      expect(page.rows[0].assignment.plannedMd).toBe(2);
+    });
   });
 
   it("AC3 W1 cross-process WorkAreas are complete and quantity is a distinct union", async () => {
