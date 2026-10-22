@@ -6,7 +6,7 @@ import { PublicApiError } from "../http/api-error-core";
 
 /** Complete Project population, in bulk and inside the caller's read transaction. */
 export function readWbsViewContext(db: Database.Database, projectId: number, resources: DashboardResourceRecord[], groups: DashboardGroupRecord[]) {
-  const tables = ["task_process_contexts", "task_process_links", "task_work_area_links", "equipment_work_areas", "project_resource_memberships", "project_equipment_systems", "project_system_processes", "project_system_links", "project_equipment_resource_roles", "project_system_resource_roles"];
+  const tables = ["project_work_areas", "equipment_project_work_areas", "task_project_work_area_links", "task_process_contexts", "task_process_links", "task_work_area_links", "equipment_work_areas", "project_resource_memberships", "project_equipment_systems", "project_system_processes", "project_system_links", "project_equipment_resource_roles", "project_system_resource_roles"];
   let count = resources.length + groups.reduce((sum, row) => sum + row.memberResourceIds.length, 0);
   // Count before loading the additional graph; never truncate a partial snapshot.
   for (const table of tables) {

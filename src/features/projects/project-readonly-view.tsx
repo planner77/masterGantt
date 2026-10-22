@@ -415,6 +415,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [resourceTargetRequest, setResourceTargetRequest] = useState<{id:string; sequence:number;code?:string | null} | null>(null);
   const [kpiResourceOrigin, setKpiResourceOrigin] = useState<{ id: string; name: string; code: string | null; source: ResourceNavigationState; revision: number } | null>(null);
   const [kpiSourceRefreshKey, setKpiSourceRefreshKey] = useState(0);
+  const [legacyWorkAreaSequence,setLegacyWorkAreaSequence] = useState<number|null>(null);
   const [wbsEntityRequest, setWbsEntityRequest] = useState<{ dimension: WbsViewDimension; id: string; sequence: number; trigger: HTMLElement } | null>(null);
   const wbsEntityOrigin = useRef<ResourceNavigationState | null>(null);
   const resourceTargetTrigger = useRef<HTMLElement | null>(null);
@@ -3487,7 +3488,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       >
         {resourceTargetRequest ? <button type="button" className="secondary-button" disabled={busy || editorSession !== null} onClick={() => {setActiveView("resources"); setResourceTargetRequest(null); requestAnimationFrame(() => { const trigger=resourceTargetTrigger.current; if(isVisibleFocusTarget(trigger)) trigger.focus({preventScroll:true}); else document.querySelector<HTMLElement>("#project-panel-resources input[type=search]")?.focus({preventScroll:true}); });}}>Resource 보기로 돌아가기</button> : null}
         <ProjectProcessManagement active={activeScreen === "master.processes"}
-          wbsWorkAreaOpenRequest={wbsEntityRequest?.dimension === "workArea" ? wbsEntityRequest : null}
+          wbsWorkAreaOpenRequest={wbsEntityRequest?.dimension === "workArea" && legacyWorkAreaSequence === wbsEntityRequest.sequence ? wbsEntityRequest : null}
           onWbsWorkAreaRequestHandled={finishWbsEntityRequest}
           onNotice={message => notify("success", message, "공정 기준정보")}
           publicId={publicId} revision={project.revision} editable={editing}
@@ -3513,6 +3514,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           perspective={lastUnifiedScreen === "dashboard.equipment" ? "equipment" : lastUnifiedScreen === "dashboard.system" ? "system" : lastUnifiedScreen === "dashboard.target" ? "target" : "process"}
           onPerspectiveChange={view => { selectScreen(`dashboard.${view}`, false); }}
           targetOpenRequest={resourceTargetRequest}
+          workAreaOpenRequest={wbsEntityRequest?.dimension === "workArea" && legacyWorkAreaSequence !== wbsEntityRequest.sequence ? wbsEntityRequest : null}
+          onLegacyWorkAreaRequest={setLegacyWorkAreaSequence}
           wbsEntityOpenRequest={wbsEntityRequest && ["equipment", "system", "process"].includes(wbsEntityRequest.dimension) ? wbsEntityRequest : null}
           onWbsEntityRequestHandled={finishWbsEntityRequest}
           projectContext={project}

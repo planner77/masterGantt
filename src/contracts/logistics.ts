@@ -224,6 +224,12 @@ export interface UpdateProcessRequest {
   active?: boolean;
 }
 
+export interface CreateWorkAreaRequest {
+  name: string; code?: string; active?: boolean; sortOrder?: number;
+}
+export interface UpdateWorkAreaRequest {
+  name?: string; code?: string; active?: boolean; sortOrder?: number;
+}
 export interface CreateEquipmentRequest {
   workAreaLinks?: EquipmentWorkAreaInput[];
   workAreaIds?: string[];
@@ -341,6 +347,7 @@ export interface LogisticsMutationResponse {
       kind: "logisticsMutation";
       entity:
         | "process"
+        | "workArea"
         | "equipment"
         | "system"
         | "equipmentSystems"

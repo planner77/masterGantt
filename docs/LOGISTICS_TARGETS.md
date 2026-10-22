@@ -1,3 +1,7 @@
+## Issue #762 — 직접 WorkArea와 기존 Target 경계
+
+Project 공정·직접 WorkArea 등록은 Target/member/coverage를 생성하거나 기존 Target을 변경하지 않는다. 신규 Task/설비 직접 구역은 Project 공정 owner로 검증하며 기존 Target의 occurrence/global 구역 참조는 그대로 보존한다. Target은 기존 global catalog 호환 경로이고 신규 직접 구역을 이름으로 global 구역에 치환하지 않는다. direct+Target 혼합의 Task/Assignment·Fleet 수량 총계는 raw ID 합집합이며 구역별 소계를 더해 원본 수량을 늘리지 않는다. 상세 [이관·참조 계약](exec-plans/active/ISSUE_762.md) 참조.
+
 ## Issue #728 — Target0과 통합 원장 호환
 
 직접 Task 문맥과 기존 Target whole/subset/coverage·Summary self/subtree는 같은 Task/typed instance에서 합치되 모든 출처를 보존한다. ACS-only를 AMR까지 확장하거나 공유 MCS에서 다른 Target을 역조회하지 않는다. 새 공정 축은 Task 자신의 명시 선택만 사용하며 Target/조상/설비/System으로 명시0을 채우지 않는다. 구형 Target 공정 해석은 별도 source/version의 opt-in 호환 범위다.

@@ -1,3 +1,27 @@
+## Issue #762 — Next.js 16.4.2 보안 패치의 역사적 Gantt 캡처 검증 계약 (2026-10-22)
+
+[Full #3160.1](https://github.com/planner77/masterGantt/actions/runs/39843514111)에서 Next.js 16.4.2의 production audit는 통과했지만, 구 Gantt Core 브라우저 capture fixture의 Next.js 16.3.8 잠금 파일과 현재 `package.json`/`package-lock.json`의 비교가 Vitest 네 사례에서 실패했다. 역사적 기록과 해시를 바꾸어 현재 설치의 PASS라고 주장하지 않는다. `tests/fixtures/gantt-state-consistency/capture-install.ts`는 `approved-next-16.4.2-lock.json`의 **Next.js/`@next/env` 및 8개 플랫폼 `@next/swc-*` 전체 lock package object**를 SRI·registry URL/architecture/optional/dependencies까지 일치시킨 후에만 구 캡처 비교용 메모리 객체에서 16.3.8로 정규화한다. 그 외 manifest metadata·scripts·모든 563개 lock entry 및 Core 원본 캡처 해시는 기존 strict equality 유지.
+
+공식 안전성은 PR Head의 `npm audit --omit=dev`, `npm ci`, Vitest 역사 캡처·변조 음성 회귀, Next build/Docker standalone 및 전체 Chromium8 실제 실행과 default-main Trusted/Owner 승인으로 검증하며 static fixture 테스트는 패치 버전의 실제 HTTP/운영/Chromium 검증을 대체하지 않는다. 수정 사유/검증/미실행: [#762 단일 실패 원장 F-006](ISSUE_762_FAILURE_ANALYSIS.md). Runtime token/auth/SQLite, 원래 캡처와 공개 SVAR 2.7.3 버전, CI 보안 gate는 불변.
+
+---
+
+## Issue #762 — Next.js 16.4.2 production dependency 긴급 보안 패치 (2026-10-22)
+
+[Full PR CI #3155.3](https://github.com/planner77/masterGantt/actions/runs/39793693125)에서 기존 `next@16.3.8`의 `npm audit --omit=dev`가 1 critical을 검출했다. 외부 보안 권고 [GHSA-2464-fhr4-w9xw](https://github.com/advisories/GHSA-2464-fhr4-w9xw)(SVG RCE), [GHSA-673q-mjm6-r5xr](https://github.com/advisories/GHSA-673q-mjm6-r5xr)(use cache Typed Array RCE), [GHSA-p3m5-59mp-jv5r](https://github.com/advisories/GHSA-p3m5-59mp-jv5r)(App Router Server Actions DoS)는 Next 16.0.0~16.4.0 영향·16.4.1 최초 패치를 공표했다. 실제 npm audit는 `next@16.4.2`를 제공하는 수정안으로 표시했다. 정확한 `next` + `@next/env` 및 8개 플랫폼 SWC optional dependency의 manifest/lock을 16.4.2로 고정한다. 기존 `sharp@0.35.5`는 권고의 SVG workaround 최소치를 이미 충족하며 별도로 변경하지 않는다.
+
+운영보안 게이트 `npm audit --omit=dev`를 예외처리·skip·allowlist하지 않는다. `npm ci`는 exact SRI/lock version 확인을, CI Quality와 Production Build/Docker smoke는 새 Next 런타임 호환을, Chromium8은 기존 UI·Task·설비/공정/WorkArea 직접·legacy 경로를 검증해야 한다. 로컬 네트워크가 npm registry DNS에 접근하지 못해 새로운 후보의 실제 의존성 설치/감사/실행은 PR Full 원격 재검증 전 **NOT TESTED**다. 이전 Head #3155.1의 Full8 PASS는 수정된 보안 버전의 PASS로 소급하지 않는다.
+
+단일 실패 원장: [#762 F-004/F-005](ISSUE_762_FAILURE_ANALYSIS.md#8-f-004--f-005--full-3155-attempt별-원격-비교-및-nextjs-production-audit-보완-2026-10-22). 정식 게시와 Owner HIGH 위험 수용은 별도.
+
+---
+
+## Issue #762 — Project WorkArea mutation 권한
+
+신규 Project 직접 구역의 POST/PATCH/DELETE는 기존 Project-scoped edit session·정확 Origin·strong If-Match를 적용하고 transaction 안에서 권한과 revision을 다시 확인한다. Project/공정/구역 UUID의 실제 owner와 활성·사용량을 서버에서 검증한다. 다른 Project/공정 구역 연결·owner 변경·중복·사용 중 삭제는 전체 거부하고 관계/Project revision의 부분 저장을 남기지 않는다.
+
+Project edit는 global catalog admin 권한을 부여하지 않는다. legacy shared 구역은 Project 경로에서 읽기 전용이고 기존 catalog 관리자 mutation을 사용한다. 신규 공정/직접 구역은 분류 triple 미지정으로 차단하지 않으며 분류 권한 검증을 제거하는 의미가 아니다. DTO/정제 증거에는 public ID만 제공하고 실제 SQLite·backup·session·secret은 게시하지 않는다. 기존 public-read/no-store/nosniff와 readonly UI를 유지한다.
+
 ## Issue #731 — KPI 전용 읽기 경로
 
 `GET /api/projects/{publicId}/logistics/kpi?source=integrated`는 기존 Project direct readonly와 같은 public-read이며 route security inventory에 mutation0으로 등록한다. 편집 session을 만들거나 Owner/PI/등록 참여를 편집 ACL로 사용하지 않는다. Project UUID·strict source/filter 및 snapshot 조건을 검증하고 `private, no-store`·`nosniff` 응답을 사용한다. 공개 응답은 같은 Project 원본의 최소 이름/ID·관계/진단 범위이며 password/session·내부 DB ID를 추가하지 않는다. Task/Assignment/master 편집은 기존 Origin/session/If-Match 경계를 계속 적용한다. 실제 수용·오류 검증 상태는 [Work Packet](exec-plans/active/ISSUE_731.md)을 따른다.

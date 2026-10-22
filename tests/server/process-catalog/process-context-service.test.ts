@@ -217,7 +217,7 @@ describe('Issue #725 typed process/WorkArea SQLite and HTTP',()=>{
   const legacyTaskId=randomUUID();prior.prepare("INSERT INTO tasks(project_id,external_id,public_id,name,type,schedule_mode,requested_start,start_date,end_date,duration,progress,status,sort_order,created_at,updated_at) VALUES(?,?,?,'legacy','task','auto','2026-10-19','2026-10-19','2026-10-19',1,0,'not_started',0,?,?)").run(legacyProject.id,legacyTaskId,legacyTaskId,now.toISOString(),now.toISOString());
   const legacyRows=prior.prepare('SELECT * FROM tasks').all();
   runMigrations(prior,join(process.cwd(),'db/migrations'));
-   expect(prior.prepare('SELECT version,name FROM schema_migrations ORDER BY version DESC LIMIT 1').get()).toEqual({version:29,name:'0029_project_resource_memberships.sql'});
+   expect(prior.prepare('SELECT version,name FROM schema_migrations ORDER BY version DESC LIMIT 1').get()).toEqual({version:30,name:'0030_project_work_areas.sql'});
    expect(prior.prepare('SELECT name FROM schema_migrations WHERE version=28').pluck().get()).toBe('0028_process_context.sql');
   expect(prior.prepare('SELECT * FROM tasks').all()).toEqual(legacyRows);expect(new ProcessContextRepository(prior).taskContexts(legacyProject.id)[0]).toMatchObject({taskId:legacyTaskId,processLinks:null,workAreaLinks:null});prior.close();
   const f=setup(filename),task=f.task(),e=f.createEquipment();f.catalog.replaceTaskContext(f.auth,f.revision(),task.publicId,{processCatalogRevision:f.contexts.revision(),processLinks:[],workAreaLinks:[]});f.db.close();

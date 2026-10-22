@@ -505,34 +505,14 @@
 }
 
 /* Preserve readable entity names while narrow viewports scroll within the table. */
-.processTable {
-  min-width: 728px;
-}
-
-.processTable th:nth-child(1),
-.processTable td:nth-child(1) {
-  min-width: 220px;
-}
-
-.processTable th:nth-child(2),
-.processTable td:nth-child(2) {
-  min-width: 180px;
-}
-
-.processTable th:nth-child(3),
-.processTable td:nth-child(3) {
-  min-width: 80px;
-}
-
-.processTable th:nth-child(4),
-.processTable td:nth-child(4) {
-  min-width: 88px;
-}
-
-.processTable th:nth-child(5),
-.processTable td:nth-child(5) {
-  min-width: 160px;
-}
+.processTable { min-width: 852px; }
+.processTable th:nth-child(1), .processTable td:nth-child(1) { min-width: 220px; }
+.processTable th:nth-child(2), .processTable td:nth-child(2) { width: 120px; }
+.processTable th:nth-child(3), .processTable td:nth-child(3) { min-width: 140px; }
+.processTable th:nth-child(4), .processTable td:nth-child(4) { width: 88px; }
+.processTable th:nth-child(5), .processTable td:nth-child(5) { width: 96px; }
+.processTable th:nth-child(6), .processTable td:nth-child(6) { width: 176px; }
+.processTable button[aria-pressed="true"] { border-color: var(--border-control); background: var(--action-selected-subtle); font-weight: 600; }
 
 .equipmentTable th:nth-child(2),
 .equipmentTable td:nth-child(2),
@@ -552,3 +532,6 @@
   margin: 0;
   overflow-wrap: anywhere;
 }
+
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.processTable button[aria-pressed] { white-space: nowrap; }

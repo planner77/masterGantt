@@ -1,3 +1,17 @@
+## Issue #762 — migration 0030의 Project WorkArea
+
+`0030_project_work_areas.sql`은 기존 catalog/occurrence/mapping/Target과 migration0025~0029를 재작성하지 않는 additive 확장이다.
+
+| 테이블 | owner·참조 | 무결성 |
+| --- | --- | --- |
+| project_work_areas | public UUID, project_id/process_id, code/name/active/sort_order·timestamps | Project+공정+code UNIQUE; Project/공정/id 복합UNIQUE·FK; owner 변경 trigger 거부 |
+| equipment_project_work_areas | Project/설비/공정/직접 구역 | 설비 cascade, 정확 owner 복합FK RESTRICT, 같은 설비/구역 중복 금지 |
+| task_project_work_area_links | Project/Task/공정/직접 구역, self/subtree | task_process_links 복합FK cascade, 정확 구역 owner FK RESTRICT, subtree 공정 scope 검증 |
+
+기존 `work_areas.occurrence_id`와 Task/설비 legacy 테이블은 global 참조용으로 유지한다. 직접 구역의 public UUID는 global 구역 UUID로 바꾸지 않는다. Project 삭제는 직접 관계→구역 순서로 정리하고 사용 중 개별 구역/공정 삭제는 차단한다. 신규 구역 mutation은 Project revision을 사용하며 전역 catalog revision을 증가시키지 않는다. Copy는 신규 local UUID를 발급하고 legacy shared UUID는 유지한다. 조회/복원은 직접 원본200개와 기존 공유 mapping alias40000개를 별도 검증하며 기존의 정상 공유 관계를 합산200개 한도로 차단하지 않는다.
+
+운영 전 대응 DB backup이 필요하다. 신규 직접 데이터를 기록한 뒤 구 image만 실행하는 것은 안전한 rollback이 아니다. 대응 backup+image 복원 또는 forward correction을 사용하며 합성 migration/restart 테스트를 운영 데이터 이관 PASS로 확대하지 않는다. [설계·fixture·검증 경계](exec-plans/active/ISSUE_762.md)를 따른다.
+
 ## Issue #725 — 선택적 다중 WorkArea·Task 직접 문맥 (migration 0028)
 
 `db/migrations/0028_process_context.sql`은 기존 공정/설비/Task/Target ID·quantity·revision을 추정 backfill하지 않고 다음 STRICT 관계를 추가한다. 공정의 기존 자유 계층과 occurrence mapping은 유지한다.

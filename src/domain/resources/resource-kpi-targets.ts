@@ -25,7 +25,7 @@ export interface ResourceKpiLogisticsInput {
   targets: readonly ResourceKpiTarget[];
   instances: readonly ResourceKpiLogisticsInstance[];
   processes: readonly { id: string; occurrenceId: string | null; processTypeId?: string | null }[];
-  workAreas: readonly { id: string; occurrenceId: string }[];
+  workAreas: readonly { id: string; occurrenceId: string | null; projectProcessId?: string | null }[];
   bindings: readonly TaskTargetBindingDto[];
   legacy: readonly TaskTargetLegacyLink[];
   limits?: Partial<Record<"inputRows" | "lineageEdges" | "provenancePaths" | "projectionCells", number>>;
@@ -96,7 +96,11 @@ export function prepareResourceKpiTargets(tasks: readonly TaskTargetTask[], inpu
     if (row.kind === "equipment" && (!row.projectProcessId || !byProcess.has(row.projectProcessId))) fail("INSTANCE_PROCESS_UNAVAILABLE");
   }
   for (const process of processes) if (!process.id || process.occurrenceId === "") fail("INVALID_PROCESS_ID");
-  for (const area of workAreas) if (!area.id || !area.occurrenceId) fail("INVALID_WORK_AREA_ID");
+  for (const area of workAreas) {
+    const local = area.occurrenceId === null && !!area.projectProcessId && byProcess.has(area.projectProcessId);
+    const legacy = typeof area.occurrenceId === "string" && area.occurrenceId.length > 0 && !area.projectProcessId;
+    if (!area.id || !local && !legacy) fail("INVALID_WORK_AREA_ID");
+  }
   const targets = distinct(input.targets.map(target => ({ ...target,
     members: distinct(target.members, row => row.id),
   })), target => target.id);
@@ -284,4 +288,9 @@ export function summarizeResourceKpiTargetMembers(prepared: PreparedResourceKpiT
     systemCount: members.filter(row => row.kind === "system").length,
     equipmentIds: members.filter(row => row.kind === "equipment").map(row => row.entityId), systemIds: members.filter(row => row.kind === "system").map(row => row.entityId),
     types: [...types].sort(([a], [b]) => compare(a, b)).map(([, row]) => row), members };
+}
+
+/** Local areas have an explicit owner; legacy areas retain occurrence-based aliases. */
+export function workAreaBelongsToProcess(area: ResourceKpiLogisticsInput["workAreas"][number], process: ResourceKpiLogisticsInput["processes"][number]): boolean {
+  return area.projectProcessId ? area.projectProcessId === process.id : area.occurrenceId !== null && area.occurrenceId === process.occurrenceId;
 }

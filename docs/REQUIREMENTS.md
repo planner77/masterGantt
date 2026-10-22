@@ -1,3 +1,9 @@
+## Issue #762 — 신규 공정·WorkArea 2종 등록
+
+신규 기준정보는 Project 공정과 해당 공정에 직접 소속되는 WorkArea로 구성한다. 분류(BU/Product/Site)·공정 유형·제품 표준·site occurrence·매핑을 필수 선행 단계로 요구하지 않는다. 공정별 구역0개는 정상이며 공정/구역 등록으로 Task·WBS·Target을 만들지 않는다. 공정 ID/parent·Task/Summary 공정0..N·설비의 cross-process 구역0..N·공통/복수 공정 System은 유지한다.
+
+기존 global occurrence/WorkArea와 공유 mapping은 원본 UUID/참조로 보존하고 직접 소속과 구분한다. 이름에 의한 연결·자동 복제·합치기·재귀속은 없다. 직접 구역의 단일 Project/공정 owner, 비활성 신규 연결·사용 중 삭제 차단, project edit/global admin 분리와 원자성을 검증한다. 상세 영향·배포·AC1~AC9/미검증은 [Work Packet](exec-plans/active/ISSUE_762.md)을 따른다.
+
 ## Issue #734 — 설비 최상위 동적 조회
 
 Target0에서도 설비 root·작업0/미배정/비활성·유형 선택과 단독 요약을 제공하고 사용자가 하위 축을 추가·삭제·정렬해 두 요구 경로를 구성/복원한다. 설비 원본 정보와 모든 WorkArea0..N·Owner·실제 controls, 고유 Task/공수·등록 수량·전체 Milestone Gate의 범위를 구분한다. 다중 구역/Target/Milestone의 원장 합집합 및 같은 Task 교집합을 유지하고 원본을 복제하지 않는다. 정확 원본 편집·일정 이동/복귀·snapshot stale·readonly/dirty/권한과 5폭 keyboard/overflow는 [#734 Work Packet](exec-plans/active/ISSUE_734.md)의 AC1~AC5로 검증한다.

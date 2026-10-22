@@ -305,7 +305,7 @@ describe("Issue727 persisted Project participation", () => {
     const fs = await import("node:fs");
     fs.mkdirSync(old);
     for (const name of readdirSync(migrationsDirectory))
-      if (name.endsWith(".sql") && !name.startsWith("0029_"))
+      if (name.endsWith(".sql") && Number(name.slice(0,4))<29)
         copyFileSync(join(migrationsDirectory, name), join(old, name));
     const filename = join(dir, "app.sqlite3"), initial = openDatabase({ filename, migrationsDirectory: old }).database;
     expect(initial.prepare("SELECT name FROM sqlite_schema WHERE name='project_resource_memberships'").get()).toBeUndefined();
@@ -318,7 +318,7 @@ describe("Issue727 persisted Project participation", () => {
     logistics.replaceSystemResourceRoles(legacyProject.id, legacySystem.id, [{ resourceId: legacyResource.id, role: "developer", isPrimary: 0 }], now);
     const tables = ["projects", "tasks", "task_assignments", "resources", "project_system_resource_roles"];
     const legacyRows = tables.map(table => ({ table, rows: initial.prepare(`SELECT * FROM ${table} ORDER BY id`).all() }));
-    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0029_project_resource_memberships.sql"]);
+    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0029_project_resource_memberships.sql", "0030_project_work_areas.sql"]);
     expect(tables.map(table => ({ table, rows: initial.prepare(`SELECT * FROM ${table} ORDER BY id`).all() }))).toEqual(legacyRows);
     expect(new ProjectResourceMembershipService(initial, { clock }).get(legacyProject.publicId).data.resources).toMatchObject([{ id: legacyResource.publicId, registered: false, usage: { taskAssignments: 1, systemRoles: 1 } }]);
     expect(runMigrations(initial, migrationsDirectory).applied).toEqual([]);

@@ -1,3 +1,4 @@
+import { workAreaBelongsToProcess } from "../../domain/resources/resource-kpi-targets";
 import { resolveWbsTaskLedger, WbsTaskLedgerInputError } from "../../domain/resources/wbs-task-ledger";
 import { WBS_VIEW_LIMITS, type WbsViewResponseDto, type WbsViewResponseContext, type WbsViewReportDto, type WbsViewScopeDto } from "../../contracts/wbs-dashboard-views";
 import { parseWbsViewQuery } from "./wbs-dashboard-views-query-core";
@@ -156,7 +157,7 @@ export class ResourceDashboardService {
           const resourceReport = input.spec.root === "resource" && snapshot.filters.granularity ? this.getDashboard(publicId, input.filters, resourceScope) : undefined;
           data = { ...context, ...(resourceReport ? { resourceAdapter: { report: resourceReport, binding: { sourceContext: resourceReport.resourceScopeContext!, scope: resourceScope } } } : {}), projection: "report", ...scope, totals: view.totals, children: view.children, taskSources: selected.rows, configuration: ledger.configuration, configurationCatalog: {
               processes: snapshot.targetSnapshot.identity.processes.map(({ id, name, occurrenceId }) => ({ id, name, occurrenceId })),
-              workAreas: snapshot.targetSnapshot.identity.workAreas.map(({ id, name, occurrenceId }) => ({ id, name, occurrenceId, processIds: snapshot.targetSnapshot.identity.processes.filter(process => process.occurrenceId === occurrenceId).map(process => process.id) })),
+              workAreas: snapshot.targetSnapshot.identity.workAreas.map(area => ({ id:area.id, name:area.name, occurrenceId:area.occurrenceId, processIds: snapshot.targetSnapshot.identity.processes.filter(process => workAreaBelongsToProcess(area,process)).map(process => process.id) })),
               instances: snapshot.targetSnapshot.logistics.instances.map(instance => ({ kind: instance.kind, id: instance.entityId, name: labels.get(JSON.stringify([instance.kind, instance.entityId]))! })),
               equipment: source.equipment.map(row => ({ id: row.id, name: row.name, equipmentType: row.equipmentType,
                 equipmentTypeName: equipmentTypeNames.get(row.equipmentType) ?? row.equipmentType,

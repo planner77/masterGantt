@@ -1,3 +1,4 @@
+import { workAreaBelongsToProcess } from "../../domain/resources/resource-kpi-targets";
 import { selectWbsTaskLedger, summarizeWbsTaskLedger, summarizeWbsTaskLedgerConfiguration, type WbsTaskLedgerSnapshot, type WbsTaskLedgerSelection, type WbsTaskLedgerRow, type WbsTaskLedgerSelector } from "../../domain/resources/wbs-task-ledger";
 import { WBS_VIEW_LIMITS, type WbsViewQueryInput, type WbsViewPathEntry, type WbsViewDimension } from "../../contracts/wbs-dashboard-views";
 import { getResourceKpiDiagnostics } from "../../domain/resources/resource-kpi";
@@ -116,12 +117,12 @@ export function createWbsViewProjection(ledger: WbsTaskLedgerSnapshot, input: Wb
           .filter(row => equipmentIds.has(row.equipmentId) &&
             (!process || process.id !== null && row.processId === process.id))
           .map(row => row.workAreaId));
-        const areas = logistics.workAreas.filter(area => (!process || process.id !== null && logistics.byProcess.get(process.id)!.occurrenceId === area.occurrenceId) && (!instancePath || membershipAreas.has(area.id)));
+        const areas = logistics.workAreas.filter(area => (!process || process.id !== null && workAreaBelongsToProcess(area,logistics.byProcess.get(process.id)!)) && (!instancePath || membershipAreas.has(area.id)));
         add(areas.map(row => row.id));
         if (configuration([...path, { dimension: "workArea", id: null }]).members.length) add([]);
       } else if (dimension === "process") {
         const area = path.find(entry => entry.dimension === "workArea");
-        if (area?.id) add(logistics.processes.filter(process => process.occurrenceId === logistics.byWorkArea.get(area.id!)!.occurrenceId).map(process => process.id));
+        if (area?.id) add(logistics.processes.filter(process => workAreaBelongsToProcess(logistics.byWorkArea.get(area.id!)!,process)).map(process => process.id));
         else {
           for (const member of configured.members) add(member.kind === "equipment" ? [...new Set([...(member.projectProcessId ? [member.projectProcessId] : []), ...ledger.configuration.equipmentWorkAreas.filter(row => row.equipmentId === member.entityId).map(row => row.processId)])] : ledger.configuration.systems.find(row => row.id === member.entityId)!.processIds);
         }

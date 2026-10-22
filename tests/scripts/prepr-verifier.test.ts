@@ -237,8 +237,8 @@ describe("Issue #699 — process and existing-data safety", () => {
   });
 });
 
-describe("Issue #699/#752 — immutable historical capture with bounded Next security repair", () => {
-  it("rejects all changes beyond exact CLI alias, version and pinned Next.js security patch", () => {
+describe("Issue #699/#752/#762 — immutable historical capture with approved Next security patch", () => {
+  it("allows only the exact local CLI alias while preserving all captured dependencies and scripts", () => {
     const dir = mkdtempSync(resolve(tmpdir(), "mastergantt-capture-test-"));
     created.push(dir);
     const snapshots = "tests/fixtures/gantt-state-consistency/capture-sources";
@@ -274,36 +274,74 @@ describe("Issue #699/#752 — immutable historical capture with bounded Next sec
     lock.packages[""].dependencies.next = "0.0.0";
     write();
     expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
-    // Fail closed if a patch has mismatched Next/ENV, SWC package identity,
-    // native sharp compatibility or unrelated installed Core package metadata.
-    lock.packages[""].dependencies.next = "16.4.2";
+    lock.packages[""].dependencies.next = JSON.parse(readFileSync(resolve(root, "package-lock.json"), "utf8")).packages[""].dependencies.next;
+
+    // A security exception must require the EXACT reviewed npm package
+    // metadata, not merely a version string or a matched root manifest.
+    const installedNext = lock.packages["node_modules/next"];
+    const savedNextIntegrity = installedNext.integrity;
+    installedNext.integrity = "sha512-unverified-security-payload";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Next.js security patch exact locked package metadata mismatch/);
+    installedNext.integrity = savedNextIntegrity;
+
+    const installedSwc = lock.packages["node_modules/@next/swc-linux-x64-gnu"];
+    const savedSwcResolved = installedSwc.resolved;
+    installedSwc.resolved = "https://untrusted.example.invalid/swc.tgz";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Next.js security patch exact locked package metadata mismatch/);
+    installedSwc.resolved = savedSwcResolved;
+
     manifest.dependencies["@next/env"] = "16.3.8";
     write();
     expect(() => assertCapturedInstall(dir)).toThrow(/Historical capture requires unchanged package metadata/);
     manifest.dependencies["@next/env"] = "16.4.2";
+
+    lock.packages[""].dependencies["@next/env"] = "16.3.8";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
+    lock.packages[""].dependencies["@next/env"] = "16.4.2";
+
+    const originalReact = lock.packages["node_modules/react"].version;
+    lock.packages["node_modules/react"].version = "0.0.0";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
+    lock.packages["node_modules/react"].version = originalReact;
+
+    // Preserve Issue #752's extra negative contracts while retaining #762's
+    // stricter, reviewed Next.js lock/SRI/SWC metadata allowlist.
+    const savedNextVersion = manifest.dependencies.next;
     manifest.dependencies.next = "16.4.3";
     write();
-    expect(() => assertCapturedInstall(dir)).toThrow(/Historical capture requires unchanged package metadata/);
-    manifest.dependencies.next = "16.4.2";
-    const swc = lock.packages["node_modules/@next/swc-linux-x64-gnu"];
-    const originalSwcUrl = swc.resolved;
-    swc.resolved = "https://registry.npmjs.org/@next%2fswc-linux-x64-gnu/-/unsafe.tgz";
+    expect(() => assertCapturedInstall(dir)).toThrow(/unchanged package metadata/);
+    manifest.dependencies.next = savedNextVersion;
+
+    const nextOptional = lock.packages["node_modules/next"].optionalDependencies;
+    const savedSharpRange = nextOptional.sharp;
+    nextOptional.sharp = "^0.35.4";
     write();
-    expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
-    swc.resolved = originalSwcUrl;
-    const originalSharpRange = lock.packages["node_modules/next"].optionalDependencies.sharp;
-    lock.packages["node_modules/next"].optionalDependencies.sharp = "^0.35.4";
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Next.js security patch exact locked package metadata mismatch/);
+    nextOptional.sharp = savedSharpRange;
+
+    const swcLibc = lock.packages["node_modules/@next/swc-linux-x64-gnu"];
+    const savedLibc = swcLibc.libc;
+    swcLibc.libc = ["unsafe"];
     write();
-    expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
-    lock.packages["node_modules/next"].optionalDependencies.sharp = originalSharpRange;
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Next.js security patch exact locked package metadata mismatch/);
+    swcLibc.libc = savedLibc;
+
     const ganttCore = lock.packages["node_modules/@svar-ui/react-gantt"];
-    const actualVersion = ganttCore.version;
+    const savedGanttVersion = ganttCore.version;
     ganttCore.version = "0.0.0";
     write();
     expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
-    ganttCore.version = actualVersion;
-    // Restore everything to the exact approved security-corrected HEAD.
+    ganttCore.version = savedGanttVersion;
+
+    // No changes to the frozen original browser capture are permitted.
     write();
     expect(() => assertCapturedInstall(dir)).not.toThrow();
+    for (const file of ["package-original.snapshot.txt", "package-lock-original.snapshot.txt"]) {
+      expect(readFileSync(resolve(dir, snapshots, file))).toEqual(readFileSync(resolve(root, snapshots, file)));
+    }
   });
 });

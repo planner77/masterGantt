@@ -1,3 +1,9 @@
+## Issue #762 — 직접 소속 WorkArea 선택
+
+Task/Summary의 공정 선택은 공정0..N이며 WorkArea0개인 공정도 선택할 수 있다. 구역 선택은 직접 소속의 `(processId, workAreaId)` 또는 명시 legacy mapping 관계로 해석한다. occurrence가 없는 직접 구역에 현장 공정 연결을 요구하지 않는다. 서버가 같은 Project의 실제 owner·활성·공정 선택·self/subtree를 검증하며 UI 필터로 이를 대체하지 않는다.
+
+공정/구역 등록만으로 Task·WBS·Target을 만들지 않고 기존 공정 미설정(null)과 명시0개를 구별한다. 설비의 주 관리 공정이나 연결 WorkArea/System/Target에서 Task 공정을 자동 지정하지 않는다. 동일 legacy 구역 ID의 복수 관계는 owner processId로 구별하며 기존 Summary 상속·다중 공정·원본 ID를 보존한다. dirty/stale/session/revision 오류 시 비민감 초안을 유지한다.
+
 ## Issue #726 — 직접 공정·구역·설비·시스템과 Target 호환
 
 물류 연결 탭의 기본 흐름은 `직접 공정·작업 구역 → 직접 설비·물류 시스템 연결`이다. 기존 Target는 `Target 연결 (기존 호환)`을 펼쳐 동일한 whole/subset·coverage 편집기를 사용한다. Target0개여도 기존 Task에 설비/System을 직접 연결하며 Target나 구성 원본을 자동 생성·복제하지 않는다. 개인 배정은 기존 리소스 탭에서 관리한다.

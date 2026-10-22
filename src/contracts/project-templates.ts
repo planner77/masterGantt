@@ -143,7 +143,17 @@ export interface TemplateMembershipSnapshotItem {
   milestoneExternalId: string;
 }
 
-/** Global WorkArea IDs stay stable; Equipment and Process codes are snapshot-local keys. */
+/** Project-owned WorkAreas use source UUIDs as snapshot-local keys, then receive new IDs. */
+export interface TemplateProjectWorkAreaSnapshotItem {
+  workAreaId: string;
+  processCode: string;
+  code: string;
+  name: string;
+  active: boolean;
+  sortOrder: number;
+}
+
+/** Global WorkArea IDs stay stable; local WorkArea IDs are remapped in version 5. */
 export interface TemplateEquipmentWorkAreasSnapshotItem {
   equipmentCode: string;
   workAreaLinks: Array<{ processCode: string; workAreaId: string }>;
@@ -182,7 +192,9 @@ export interface ProjectTemplateSnapshot {
     taskEquipmentLinks: TemplateTaskEquipmentLinkSnapshotItem[];
     taskSystemLinks: TemplateTaskSystemLinkSnapshotItem[];
     /** Omitted for historical (pre-F2) snapshots. F2 snapshots must use version 2. */
-    schemaVersion?: 2 | 3 | 4;
+    schemaVersion?: 2 | 3 | 4 | 5;
+    /** Version 5 preserves all project-owned areas, including unused areas. */
+    projectWorkAreas?: TemplateProjectWorkAreaSnapshotItem[];
     /** Version 4 preserves explicit Equipment locations and Task contexts, including empty selections. */
     equipmentWorkAreas?: TemplateEquipmentWorkAreasSnapshotItem[];
     taskContexts?: TemplateTaskContextSnapshotItem[];
