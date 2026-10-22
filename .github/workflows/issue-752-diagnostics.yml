@@ -1,0 +1,313 @@
+name: Issue 752 authenticated PR failure diagnosis
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch' && format('Manual bounded PR diagnosis #{0} · Issue #{1}', inputs.pr_number, inputs.issue_number) || format('PR Full failure triage · CI #{0}.{1}', github.event.workflow_run.run_number, github.event.workflow_run.run_attempt) }}
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Exact PR number (latest open PR)"
+        type: string
+        required: true
+      issue_number:
+        description: "Canonical Primary Issue number"
+        type: string
+        required: true
+      expected_head_sha:
+        description: "Latest PR Head SHA (40 lowercase hex characters)"
+        type: string
+        required: true
+
+# Controller runs from default main; no untrusted PR code gets a write token.
+permissions:
+  contents: read
+concurrency:
+  group: issue-752-${{ github.event_name }}-${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    name: Authenticate recurring Full failure (advisory)
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      (github.event.workflow_run.conclusion == 'failure' || github.event.workflow_run.conclusion == 'cancelled')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      recommended: ${{ steps.check.outputs.recommended }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Verify source artifact, Full jobs and historical Run+Attempt
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/issue_752_diagnostics.py observe --source-run "$SOURCE_RUN_ID" --report-dir issue-752-output
+          python3 - <<'PY'
+          import json,os
+          r=json.load(open("issue-752-output/diagnosis.json",encoding="utf-8"))
+          with open(os.environ["GITHUB_OUTPUT"],"a",encoding="utf-8") as f:
+              f.write("recommended="+str(r.get("status")=="DIAGNOSIS_RECOMMENDED").lower()+"\n")
+          PY
+      - name: Retain advisory evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: issue-752-observation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: issue-752-output/diagnosis.*
+          retention-days: 14
+          if-no-files-found: warn
+
+  observe_notify:
+    name: Upsert non-blocking diagnosis recommendation
+    needs: [observe]
+    if: needs.observe.outputs.recommended == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: issue-752-observation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: issue-752-output
+      - name: Controlled PR Conversation upsert, no gate mutation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/issue_752_diagnostics.py notify --report issue-752-output/diagnosis.json
+
+  prepare:
+    name: Authorize manual diagnosis and freeze exact PR source
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      approved: ${{ steps.allow.outputs.approved }}
+      head_sha: ${{ steps.allow.outputs.head_sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Authenticate actor, Issue, Head/Base/test-merge and history
+        id: allow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_PR: ${{ inputs.pr_number }}
+          TARGET_ISSUE: ${{ inputs.issue_number }}
+          EXPECTED_HEAD: ${{ inputs.expected_head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/issue_752_diagnostics.py prepare --pr "$TARGET_PR" --issue "$TARGET_ISSUE" --expected-head "$EXPECTED_HEAD" --report-dir issue-752-output
+      - name: Preserve even blocked preparation
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: issue-752-plan-${{ github.run_id }}
+          path: issue-752-output/plan.json
+          retention-days: 14
+          if-no-files-found: warn
+
+  bounded_e2e:
+    name: Bounded E2E part ${{ matrix.part }} (non-authoritative)
+    needs: [prepare]
+    if: needs.prepare.outputs.approved == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [0, 1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: issue-752-plan-${{ github.run_id }}
+          path: control
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.prepare.outputs.head_sha }}
+          path: untrusted-pr
+          persist-credentials: false
+      - name: Verify immutable Head matches approved source
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ needs.prepare.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git -C untrusted-pr rev-parse HEAD)" = "$EXPECTED_HEAD"
+      - name: Node/npm setup (untrusted runner, read token only)
+        uses: ./untrusted-pr/.github/actions/node-setup
+        with:
+          node-version: "22"
+          use-local-node-headers: "true"
+      - name: Playwright Chromium setup
+        uses: ./untrusted-pr/.github/actions/playwright-setup
+      - name: Execute failure union without retries or fail-fast
+        shell: bash
+        env:
+          PART: ${{ matrix.part }}
+          SOURCE_HEAD: ${{ needs.prepare.outputs.head_sha }}
+          RUN_ID: ${{ github.run_id }}
+          CI_E2E_FULLY_PARALLEL: "true"
+        run: |
+          set -euo pipefail
+          mkdir -p "part-$PART"
+          mapfile -t files < <(python3 - <<'PY'
+          import json,os
+          p=json.load(open("control/plan.json",encoding="utf-8"))
+          for path in p["parts"][int(os.environ["PART"])]:
+              print(path)
+          PY
+          )
+          if (( ${#files[@]} == 0 )); then
+            echo "Empty assigned part: NOT RUN."
+            exit 0
+          fi
+          export PLAYWRIGHT_JSON_OUTPUT_FILE="$GITHUB_WORKSPACE/part-$PART/playwright.json"
+          cd untrusted-pr
+          set +e
+          npm run test:e2e -- "${files[@]}" --project=chromium --workers=1 --retries=0 --max-failures=0 --reporter=json
+          code=$?
+          set -e
+          cd ..
+          python3 - "$code" <<'PY'
+          import json,os,sys
+          n=int(os.environ["PART"])
+          p=json.load(open("control/plan.json",encoding="utf-8"))
+          data={"schemaVersion":1,"part":n,"files":sorted(p["parts"][n]),
+                "headSha":os.environ["SOURCE_HEAD"],
+                "diagnosisRunId":int(os.environ["RUN_ID"]),"exitCode":int(sys.argv[1])}
+          with open(f"part-{n}/execution.json","w",encoding="utf-8") as f:
+              json.dump(data,f)
+          PY
+          if (( code != 0 && code != 1 )); then
+            echo "Playwright runner/setup error => INCOMPLETE."
+            exit 1
+          fi
+      - name: Preserve diagnosis runner outputs (not Git)
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: issue-752-part-${{ matrix.part }}
+          path: part-${{ matrix.part }}/
+          retention-days: 14
+          if-no-files-found: warn
+
+  finish:
+    name: Sanitize cross-run diagnosis into JSON/Markdown
+    if: always() && github.event_name == 'workflow_dispatch'
+    needs: [prepare, bounded_e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Download frozen plan (if present)
+        continue-on-error: true
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: issue-752-plan-${{ github.run_id }}
+          path: control
+      - name: Download bounded worker artifacts (if present)
+        continue-on-error: true
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: issue-752-part-*
+          path: issue-752-output
+          merge-multiple: false
+      - name: Treat missing/invalid worker output as INCOMPLETE
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p issue-752-output
+          for n in 0 1 2 3; do
+            if [[ -d "issue-752-output/issue-752-part-$n" ]]; then
+              mv "issue-752-output/issue-752-part-$n" "issue-752-output/part-$n"
+            fi
+          done
+          if [[ -s control/plan.json ]]; then
+            python3 scripts/issue_752_diagnostics.py finalize --plan control/plan.json --report-dir issue-752-output
+          else
+            echo '{"schemaVersion":1,"status":"BLOCKED","missing":["PLAN_NOT_AVAILABLE"]}' > issue-752-output/diagnosis.json
+            echo 'BLOCKED: source plan missing; no approval or diagnostic.' > issue-752-output/diagnosis.md
+            exit 1
+          fi
+      - name: Retain redacted report for 14 days (even incomplete)
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: issue-752-diagnosis-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            issue-752-output/diagnosis.json
+            issue-752-output/diagnosis.md
+          retention-days: 14
+          if-no-files-found: warn
+
+  finish_notify:
+    name: Update PR diagnostic state without modifying required checks
+    if: always() && github.event_name == 'workflow_dispatch'
+    needs: [prepare, finish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Fetch redacted report if present
+        continue-on-error: true
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: issue-752-diagnosis-${{ github.run_id }}-${{ github.run_attempt }}
+          path: issue-752-output
+      - name: Comment only if trusted report exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if [[ -s issue-752-output/diagnosis.json ]]; then
+            python3 scripts/issue_752_diagnostics.py notify --report issue-752-output/diagnosis.json
+          else
+            echo "REPORT_MISSING; DIAGNOSIS_READY prohibited." >> "$GITHUB_STEP_SUMMARY"
+          fi
