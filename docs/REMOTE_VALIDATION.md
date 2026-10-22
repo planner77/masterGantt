@@ -1,3 +1,14 @@
+## Issue #752 — 진단 워크플로 원격 증거·보존/실패 전파 경계 (2026-10-22)
+
+1. 최초 도입 보호 변경은 `HIGH/OWNER_MANAGED`; PR exact Head Ready Full8/8 + 3 Required + Trusted QA/Owner는 기존대로 각각 성공 증명해야 한다. 별도 진단 경로·PR 알림 PASS를 재사용하지 않는다.
+2. 활성화 이후 동일 PR의 첫 Full 실패1회는 권고 없어야 하며, **서로 다른 인증된 원본 Run/Attempt 2회 직접 실패**에서만 nonblocking 댓글·Run Job Summary `DIAGNOSIS_RECOMMENDED`가 나타나야 한다. edited metadata, Draft, 취소, skipped, 파생 QA/Required 실패, stale Head, 재전달 이벤트는 0건 또는 기존 키 upsert다.
+3. Owner/writer는 Actions > `Issue 752 authenticated PR failure diagnosis` > Run workflow에서 최신 PR/Primary Issue/40자리 exact HEAD 입력. 미권한·stale base/Head/test-merge, original `ci-pr-source-<id>-<attempt>`·누적 원장·source ZIP 손실/만료는 `BLOCKED/INCOMPLETE`; 과거 Run evidence를 임의 재해석하지 않는다. 진단 수행은 자동으로 시작되지 않으며 max24 unique spec/4개 독립 part만 실행한다.
+4. 실행 후 **Job Summary** 및 14일 JSON/Markdown Artifact `issue-752-diagnosis-<run>-<attempt>`, PR 댓글의 `DIAGNOSIS_READY/DIAGNOSIS_INCOMPLETE`와 링크를 비교한다. 댓글/Artifact 실패는 Summary에 남으며 업로드 증거가 없으면 READY 불가. worker `PASS/FAIL/CANCELLED/NOT RUN`, 원본 Job/Run/Attempt/HEAD와 과거 원장, P50/P95·cancelled rate, 이전 실패 `RECURRING/NEW/RESOLVED_CANDIDATE/UNKNOWN`을 분리한다.
+5. `docs/ISSUE_<N>_FAILURE_ANALYSIS.md`에 통제 실행 후 새 결과와 테스트 범위 부족·결손 Artifact/남은 위험을 영속적으로 반영한다. `--retries=0 --max-failures=0`의 성공/실패는 원본 PR Full CI를 승인하지 않는다. 성능 비교의 환경·표본 동등성/비용은 원격 실증 전 `INSUFFICIENT_DATA`.
+6. #730 역사적 #3001/3003/3005/3008/3009/3012 직접 실패/취소와 #767 35분 인근 취소를 모두 개별 출처로 검증해야 할 후속 표본으로 남긴다. 확인 전 `NOT TESTED`, 취소를 PASS/직접 실패로 중복 계수 금지. 새 실행 직후 사용자의 요청대로 자동 모니터링/병합/재실행 없음.
+
+---
+
 ## Issue #772 — 공식 LOW 선택 E2E 원격 검증 (2026-10-22)
 
 - **기본 OFF 검사:** 정책 변경 PR 자체는 기존 exact Head Full8/8 + Required3 + default-main Trusted QA + Owner HIGH 검토. PR 소스 정책은 자기 인증 불가. 원격 결과/병합/효과 아직 **NOT TESTED**.
