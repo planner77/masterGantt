@@ -154,7 +154,7 @@ def attempt_status(jobs):
         if name.startswith("Chromium E2E shard ") and "· PR" in name:
             shards.append({"name": name, "conclusion": outcome or "UNKNOWN",
                            "minutes": iso_minutes(job), "jobId": job.get("id")})
-        if outcome == "failure" and name not in AGGREGATES and name != META:
+        if outcome == "failure" and name not in AGGREGATES and name not in (META, FAST_GATE):
             roots.append({"job": name, "jobId": job.get("id"),
                           "class": "UNKNOWN", "source": "direct-job"})
     if roots:
@@ -321,6 +321,7 @@ def prepare(gh, pr_number, issue, expected_head, actor, ref):
         "headSha": head, "baseSha": base, "testMergeSha": latest["testMergeSha"],
         "sourceRunId": latest["runId"], "sourceAttempt": latest["attempt"],
         "history": history, "files": all_files, "parts": batches,
+        "historicalFiles": specs, "failedAttempts": len(failures),
         "runKey": stable_key(pr_number, head, failures),
         "historyCompleteWithinLimit": True, "workflowDispatchActor": actor,
         "protection": "ADVISORY_ONLY_NOT_REQUIRED_CI",
@@ -417,6 +418,7 @@ def finalize(gh, plan, root, run_id):
     result = {"schemaVersion": 1, "repo": gh.repo,
               "issue": plan.get("issue"), "pr": plan.get("pr"),
               "headSha": plan.get("headSha"), "diagnosisRunId": run_id,
+              "diagnosisRunAttempt": int(os.environ.get("GITHUB_RUN_ATTEMPT", "1")),
               "sourceRunId": plan.get("sourceRunId"),
               "sourceAttempt": plan.get("sourceAttempt"),
               "runKey": plan.get("runKey"),
@@ -439,10 +441,11 @@ def finalize(gh, plan, root, run_id):
     for n in range(PARTS):
         part = root/f"part-{n}"
         expected = set(plan["parts"][n])
+        if not expected:
+            continue
         manifest_file = part/"execution.json"
         if not manifest_file.is_file():
             result["missing"].append(f"PART_{n}_MISSING")
-            result["counts"]["NOT RUN"] += len(expected)
             continue
         try:
             m = json.loads(manifest_file.read_text(encoding="utf-8"))
@@ -460,7 +463,6 @@ def finalize(gh, plan, root, run_id):
                 raise EvidenceError("Playwright runner setup/timeout failed")
         except (ValueError, OSError, EvidenceError, KeyError, TypeError):
             result["missing"].append(f"PART_{n}_INVALID")
-            result["counts"]["NOT RUN"] += len(expected)
     by_file = {}
     for file in files:
         items = [r for r in observations if r["file"] == file]
@@ -469,8 +471,9 @@ def finalize(gh, plan, root, run_id):
             by_file[file] = "UNKNOWN"
             continue
         statuses = {r["status"] for r in items}
-        state = "RECURRING" if {"failed","timedOut"} & statuses else (
-            "RESOLVED_CANDIDATE" if statuses == {"passed"} else "UNKNOWN")
+        state = (("RECURRING" if file in set(plan.get("historicalFiles", [])) else "NEW")
+                 if {"failed","timedOut"} & statuses else
+                 ("RESOLVED_CANDIDATE" if statuses == {"passed"} else "UNKNOWN"))
         by_file[file] = state
         for status in statuses:
             key = {"passed":"PASS", "failed":"FAIL", "timedOut":"FAIL",
@@ -498,6 +501,21 @@ def notify(gh, report):
         return "NO_ALERT"
     if not report.get("runKey") or not valid_sha(report.get("headSha")):
         return "NO_VERIFIED_KEY"
+    # A READY notification must be backed by a successfully uploaded report.
+    # The finish job emits sanitized output first, then uploads it. Never claim
+    # READY solely because the worker produced a local JSON.
+    if report["status"] == "DIAGNOSIS_READY":
+        try:
+            run_id = report.get("diagnosisRunId")
+            ensure(type(run_id) is int and run_id > 0, "diagnostic Run ID absent")
+            artifacts = gh.collection(f"{gh.prefix}/actions/runs/{run_id}/artifacts", "artifacts")
+            name = f"issue-752-diagnosis-{run_id}-{report.get('diagnosisRunAttempt', 1)}"
+            matches = [a for a in artifacts if a.get("name") == name
+                       and not a.get("expired") and int(a.get("size_in_bytes") or 0) > 0]
+            ensure(len(matches) == 1, "sanitized report artifact unverified")
+        except (qa.Blocked, EvidenceError):
+            report["status"] = "DIAGNOSIS_INCOMPLETE"
+            report.setdefault("missing", []).append("REPORT_ARTIFACT_NOT_VERIFIED")
     prn = report["pr"]
     live = gh.get(f"{gh.prefix}/pulls/{prn}")
     if live.get("state") != "open" or (live.get("head") or {}).get("sha") != report["headSha"]:
