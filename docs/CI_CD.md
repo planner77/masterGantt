@@ -1,3 +1,11 @@
+## Issue #752 — PR #780 미해결 리뷰 차단 이후 교정 (2026-10-22)
+
+[Full #3152.1](https://github.com/planner77/masterGantt/actions/runs/39782641377)은 Quality/E2E8/8/Docker 및 정책·빌드 SUCCESS이고 `QA Final — Automated`은 미해결 Review 5건으로 BLOCKED되었다. 이 QA 파생 FAIL은 반복 **직접** 테스트 오류로 계수하지 않는다. 직전 [#3151.1](https://github.com/planner77/masterGantt/actions/runs/39782427411)은 새 Head에 대한 `PR latest Head stale`/CANCELLED이며 두 Run을 같은 E2E 오류로 합산하지 않는다.
+
+#752 보완은 Playwright testDir 상대 경로 정규화·선정 파일 미관측 INCOMPLETE, 대상 브랜치 사전 필터를 적용한 300 Run 조회, 정확 Head의 최신 누적 원장, 사용자 표시/Job Summary 한글과 관련 음성 정책 회귀에 한정한다. `docs/ISSUE_752_FAILURE_ANALYSIS.md` 단일 원장과 [Work Packet](exec-plans/active/ISSUE_752.md)에서 출처·잔여 위험을 추적한다. 3 Required, E2E8, 기존 PR fail-fast, Trusted/Owner·Main/GHCR/Release/Finalizer 정책은 불변. 새 HEAD 원격 CI/진단 실증은 이전 PASS로 소급하지 않으며 이번 사용자 요청의 모니터링/병합은 제외한다.
+
+---
+
 ## Issue #752 — 반복 PR 실패 감지/수동 진단의 비차단 CI 보조 경로 (2026-10-22)
 
 - 새 [Issue #752 Work Packet](exec-plans/active/ISSUE_752.md)와 `.github/workflows/issue-752-diagnostics.yml`, `scripts/issue_752_diagnostics.py`를 참조한다. 기본 `CI` `pull_request`(Ready Full) 완료 이벤트의 인증된 `ci-pr-source-<run>-<attempt>`/head·base·test-merge, 실제 Job 결론을 신뢰된 main 워크플로가 조회한다. canonical PR의 서로 다른 **직접 Full 실패2회**에서만 `DIAGNOSIS_RECOMMENDED`을 산출하며 첫 실패·edited metadata·취소/미실행/파생 aggregate/QA만 실패한 경우 권고하지 않는다. 봇 댓글 작성은 분리된 `issues:write` Job의 결정적 키 upsert이다.

@@ -1,6 +1,6 @@
-name: Issue 752 authenticated PR failure diagnosis
+name: "Issue #752 — 반복 PR 실패 진단"
 run-name: >-
-  ${{ github.event_name == 'workflow_dispatch' && format('Manual bounded PR diagnosis #{0} · Issue #{1}', inputs.pr_number, inputs.issue_number) || format('PR Full failure triage · CI #{0}.{1}', github.event.workflow_run.run_number, github.event.workflow_run.run_attempt) }}
+  ${{ github.event_name == 'workflow_dispatch' && format('수동 제한 진단 · PR #{0} · Issue #{1}', inputs.pr_number, inputs.issue_number) || format('PR Full 실패 확인 · CI #{0}.{1}', github.event.workflow_run.run_number, github.event.workflow_run.run_attempt) }}
 
 on:
   workflow_run:
@@ -9,15 +9,15 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "Exact PR number (latest open PR)"
+        description: "현재 열린 PR 번호"
         type: string
         required: true
       issue_number:
-        description: "Canonical Primary Issue number"
+        description: "정규 Primary Issue 번호"
         type: string
         required: true
       expected_head_sha:
-        description: "Latest PR Head SHA (40 lowercase hex characters)"
+        description: "최신 PR Head SHA (소문자 40자리)"
         type: string
         required: true
 
@@ -30,7 +30,7 @@ concurrency:
 
 jobs:
   observe:
-    name: Authenticate recurring Full failure (advisory)
+    name: 반복 Full CI 실패 출처 인증 (권고 전용)
     if: >-
       github.event_name == 'workflow_run' &&
       github.event.workflow_run.event == 'pull_request' &&
@@ -48,7 +48,7 @@ jobs:
         with:
           ref: ${{ github.workflow_sha }}
           persist-credentials: false
-      - name: Verify source artifact, Full jobs and historical Run+Attempt
+      - name: 원본 Artifact·Full Job·과거 Run/Attempt 검증
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
@@ -63,7 +63,7 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"],"a",encoding="utf-8") as f:
               f.write("recommended="+str(r.get("status")=="DIAGNOSIS_RECOMMENDED").lower()+"\n")
           PY
-      - name: Retain advisory evidence
+      - name: 권고 진단 증거 보존
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -73,7 +73,7 @@ jobs:
           if-no-files-found: warn
 
   observe_notify:
-    name: Upsert non-blocking diagnosis recommendation
+    name: 비차단 진단 권고 댓글 갱신
     needs: [observe]
     if: needs.observe.outputs.recommended == 'true'
     runs-on: ubuntu-latest
@@ -92,13 +92,13 @@ jobs:
         with:
           name: issue-752-observation-${{ github.run_id }}-${{ github.run_attempt }}
           path: issue-752-output
-      - name: Controlled PR Conversation upsert, no gate mutation
+      - name: PR 댓글 중복 방지 갱신 (필수 Gate 변경 없음)
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 scripts/issue_752_diagnostics.py notify --report issue-752-output/diagnosis.json
 
   prepare:
-    name: Authorize manual diagnosis and freeze exact PR source
+    name: 수동 진단 권한·정확한 PR 소스 동결
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -114,7 +114,7 @@ jobs:
         with:
           ref: ${{ github.workflow_sha }}
           persist-credentials: false
-      - name: Authenticate actor, Issue, Head/Base/test-merge and history
+      - name: 실행자·Issue·Head/Base/Test-merge·이력 인증
         id: allow
         env:
           GH_TOKEN: ${{ github.token }}
@@ -125,7 +125,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/issue_752_diagnostics.py prepare --pr "$TARGET_PR" --issue "$TARGET_ISSUE" --expected-head "$EXPECTED_HEAD" --report-dir issue-752-output
-      - name: Preserve even blocked preparation
+      - name: 차단된 준비 단계도 증거 보존
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -135,7 +135,7 @@ jobs:
           if-no-files-found: warn
 
   bounded_e2e:
-    name: Bounded E2E part ${{ matrix.part }} (non-authoritative)
+    name: 제한 E2E 진단 ${{ matrix.part }} (승인 증거 아님)
     needs: [prepare]
     if: needs.prepare.outputs.approved == 'true'
     strategy:
@@ -155,21 +155,21 @@ jobs:
         with:
           name: issue-752-plan-${{ github.run_id }}
           path: control
-      - name: Verify immutable Head matches approved source
+      - name: 동결된 HEAD와 승인된 SHA 일치 확인
         shell: bash
         env:
           EXPECTED_HEAD: ${{ needs.prepare.outputs.head_sha }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
-      - name: Node/npm setup (untrusted runner, read token only)
+      - name: Node/npm 준비 (비신뢰 코드·읽기 전용)
         uses: ./.github/actions/node-setup
         with:
           node-version: "22"
           use-local-node-headers: "true"
-      - name: Playwright Chromium setup
+      - name: Playwright Chromium 준비
         uses: ./.github/actions/playwright-setup
-      - name: Execute failure union without retries or fail-fast
+      - name: 누적 실패 집합 실행 (재시도·조기 중단 없음)
         shell: bash
         env:
           PART: ${{ matrix.part }}
@@ -187,59 +187,82 @@ jobs:
           PY
           )
           if (( ${#files[@]} == 0 )); then
-            echo "Empty assigned part: NOT RUN."
+            echo "할당된 테스트가 없는 파트: NOT RUN."
             exit 0
           fi
-          export PLAYWRIGHT_JSON_OUTPUT_FILE="$GITHUB_WORKSPACE/part-$PART/playwright.json"
+          export PLAYWRIGHT_JSON_OUTPUT_FILE="$RUNNER_TEMP/issue-752-raw-$PART.json"
           set +e
           npm run test:e2e -- "${files[@]}" --project=chromium --workers=1 --retries=0 --max-failures=0 --reporter=json
           code=$?
           set -e
           # Worker artifacts are public to Actions readers: rewrite the JSON to a
           # strict allowlist BEFORE upload (no errors, network details, traces).
+          # Playwright JSON reporter may use testDir-relative spec paths.
+          # Sanitize errors/traces/URLs before any public Actions artifact upload.
           python3 - <<'PY'
           import json,os,re
           from pathlib import Path
-          part=int(os.environ["PART"])
-          path=Path(f"part-{part}/playwright.json")
-          if path.exists() and path.stat().st_size <= 6_000_000:
+          n=int(os.environ["PART"])
+          allowed=set(json.load(open("control/plan.json",encoding="utf-8"))["parts"][n])
+          path=Path(f"part-{n}/playwright.json")
+          raw=Path(os.environ["PLAYWRIGHT_JSON_OUTPUT_FILE"])
+          def normalize(value):
+              if not isinstance(value,str) or not value or len(value)>1000:
+                  return None
+              file=value.replace("\\","/")
+              if file.startswith("./"):
+                  file=file[2:]
+              if "/tests/e2e/" in file:
+                  file="tests/e2e/"+file.rsplit("/tests/e2e/",1)[1]
+              elif not file.startswith("tests/e2e/"):
+                  if file.startswith("/") or (len(file)>1 and file[1]==":"):
+                      return None
+                  file="tests/e2e/"+file
+              if (not re.fullmatch(r"tests/e2e/[A-Za-z0-9_./-]+\.spec\.ts",file)
+                  or "//" in file or "/../" in file or "/./" in file):
+                  return None
+              return file if file in allowed else None
+          if raw.exists() and raw.stat().st_size<=6_000_000:
               try:
-                  source=json.loads(path.read_text(encoding="utf-8"))
+                  source=json.loads(raw.read_text(encoding="utf-8"))
                   suites=[]
-                  def walk(node):
-                      p=node.get("file") or ""
-                      if isinstance(p,str):
-                          p=p.replace("\\","/")
-                          p=p[p.find("tests/e2e/"):] if "tests/e2e/" in p else ""
-                      entries=[]
-                      for case in node.get("specs",[]):
-                          tests=[]
-                          if not isinstance(case,dict):
+                  def walk(node,inherited=None):
+                      file=normalize(node.get("file")) or inherited
+                      for spec in node.get("specs",[]):
+                          if not isinstance(spec,dict):
                               continue
-                          for test in case.get("tests",[]):
+                          spec_file=normalize(spec.get("file")) or file
+                          if spec_file not in allowed:
+                              continue
+                          tests=[]
+                          for test in spec.get("tests",[]):
                               if not isinstance(test,dict):
                                   continue
                               results=[]
                               for item in test.get("results",[]):
-                                  if isinstance(item,dict):
-                                      duration=item.get("duration")
-                                      duration=duration if type(duration) in (int,float) and 0<=duration<=7200000 else None
-                                      results.append({"status":str(item.get("status") or "UNKNOWN")[:20],"duration":duration})
-                              tests.append({"id":str(test.get("id") or "")[:90],"results":results})
-                          entries.append({"tests":tests})
-                      if re.fullmatch(r"tests/e2e/[A-Za-z0-9_./-]+\.spec\.ts",p):
-                          suites.append({"file":p,"specs":entries})
+                                  if not isinstance(item,dict):
+                                      continue
+                                  duration=item.get("duration")
+                                  duration=duration if type(duration) in (int,float) and 0<=duration<=7200000 else None
+                                  status=item.get("status")
+                                  status=status if status in ("passed","failed","skipped","timedOut","interrupted") else "UNKNOWN"
+                                  results.append({"status":status,"duration":duration})
+                              tid=re.sub(r"[^A-Za-z0-9._:-]","_",str(test.get("id") or ""))[:90]
+                              tests.append({"id":tid,"results":results})
+                          if tests:
+                              suites.append({"file":spec_file,"specs":[{"tests":tests}]})
                       for child in node.get("suites",[]):
                           if isinstance(child,dict):
-                              walk(child)
-                  for node in source.get("suites",[]):
-                      if isinstance(node,dict):
-                          walk(node)
+                              walk(child,file)
+                  for suite in source.get("suites",[]):
+                      if isinstance(suite,dict):
+                          walk(suite)
                   path.write_text(json.dumps({"suites":suites},ensure_ascii=False),encoding="utf-8")
-              except (ValueError,TypeError,KeyError,OSError):
+              except (ValueError,TypeError,KeyError,OSError,AttributeError,IndexError):
                   path.unlink(missing_ok=True)
           elif path.exists():
               path.unlink()
+          raw.unlink(missing_ok=True)
           PY
           python3 - "$code" <<'PY'
           import json,os,sys
@@ -252,10 +275,10 @@ jobs:
               json.dump(data,f)
           PY
           if (( code != 0 && code != 1 )); then
-            echo "Playwright runner/setup error => INCOMPLETE."
+            echo "Playwright Runner/준비 오류: INCOMPLETE."
             exit 1
           fi
-      - name: Preserve diagnosis runner outputs (not Git)
+      - name: 진단 Runner 산출물 보존 (Git 기록 금지)
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -265,7 +288,7 @@ jobs:
           if-no-files-found: warn
 
   finish:
-    name: Sanitize cross-run diagnosis into JSON/Markdown
+    name: 실행 간 진단 결과 정제 및 JSON/Markdown 작성
     if: always() && github.event_name == 'workflow_dispatch'
     needs: [prepare, bounded_e2e]
     runs-on: ubuntu-latest
@@ -279,20 +302,20 @@ jobs:
         with:
           ref: ${{ github.workflow_sha }}
           persist-credentials: false
-      - name: Download frozen plan (if present)
+      - name: 원본 동결 계획 다운로드 (존재 시)
         continue-on-error: true
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: issue-752-plan-${{ github.run_id }}
           path: control
-      - name: Download bounded worker artifacts (if present)
+      - name: 제한 진단 Worker 산출물 다운로드 (존재 시)
         continue-on-error: true
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           pattern: issue-752-part-*
           path: issue-752-output
           merge-multiple: false
-      - name: Treat missing/invalid worker output as INCOMPLETE
+      - name: Worker 누락·불일치 결과를 INCOMPLETE 처리
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -308,10 +331,10 @@ jobs:
             python3 scripts/issue_752_diagnostics.py finalize --plan control/plan.json --report-dir issue-752-output
           else
             echo '{"schemaVersion":1,"status":"BLOCKED","missing":["PLAN_NOT_AVAILABLE"]}' > issue-752-output/diagnosis.json
-            echo 'BLOCKED: source plan missing; no approval or diagnostic.' > issue-752-output/diagnosis.md
+            echo 'BLOCKED: 원본 계획 누락, 승인 또는 진단 실행 근거 없음.' > issue-752-output/diagnosis.md
             exit 1
           fi
-      - name: Retain redacted report for 14 days (even incomplete)
+      - name: 정제 보고서 14일 보존 (불완전 포함)
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -323,7 +346,7 @@ jobs:
           if-no-files-found: warn
 
   finish_notify:
-    name: Update PR diagnostic state without modifying required checks
+    name: 필수 검사 변경 없이 PR 진단 상태 갱신
     if: always() && github.event_name == 'workflow_dispatch'
     needs: [prepare, finish]
     runs-on: ubuntu-latest
@@ -338,13 +361,13 @@ jobs:
         with:
           ref: ${{ github.workflow_sha }}
           persist-credentials: false
-      - name: Fetch redacted report if present
+      - name: 정제 보고서 조회 (존재 시)
         continue-on-error: true
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: issue-752-diagnosis-${{ github.run_id }}-${{ github.run_attempt }}
           path: issue-752-output
-      - name: Comment only if trusted report exists
+      - name: 신뢰된 보고서 확인 시에만 댓글 작성
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -352,5 +375,5 @@ jobs:
           if [[ -s issue-752-output/diagnosis.json ]]; then
             python3 scripts/issue_752_diagnostics.py notify --report issue-752-output/diagnosis.json
           else
-            echo "REPORT_MISSING; DIAGNOSIS_READY prohibited." >> "$GITHUB_STEP_SUMMARY"
+            echo "REPORT_MISSING: DIAGNOSIS_READY 판정 금지." >> "$GITHUB_STEP_SUMMARY"
           fi

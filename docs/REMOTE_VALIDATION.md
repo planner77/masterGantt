@@ -1,3 +1,11 @@
+## Issue #752 — #3152 리뷰 차단·경로/수집 계약 교정 검증 (2026-10-22)
+
+- [Full #3152.1](https://github.com/planner77/masterGantt/actions/runs/39782641377) Required3/Chromium8 SUCCESS + QA Final `미해결 review thread` BLOCKED, 이전 [#3151.1](https://github.com/planner77/masterGantt/actions/runs/39782427411) `PR latest Head stale`/CANCELLED를 [단일 실패 원장](ISSUE_752_FAILURE_ANALYSIS.md)에 **서로 다른 사건**으로 유지한다.
+- 신규 단위 음성: testDir 상대/절대/하위 spec canonical 정규화·traversal 배제, 브랜치 필터가 다른 브랜치의 300+ Run과 혼재하지 않음, 정확 Head 원장 수집, 2개 선정 spec 중 1개 미보고/skip-only는 `INCOMPLETE`, QA 리뷰 파생 실패는 Full 직접 실패2회에 포함하지 않음, 한글 Workflow 표시와 상태값·ID 보존.
+- 신규 동결 Head의 Python 회귀 및 Full8/8/Required3, Trusted QA/Owner 승인은 새 원격 Run이 필요하다. 수동 `workflow_dispatch`는 main 도입 후 별도 승인·실제 Artifact/댓글/Job Summary 확인 전 `NOT TESTED`. 이번 요청에서 모니터링·병합/GHCR/이슈 종료를 진행하지 않는다.
+
+---
+
 ## Issue #752 — 진단 워크플로 원격 증거·보존/실패 전파 경계 (2026-10-22)
 
 1. 최초 도입 보호 변경은 `HIGH/OWNER_MANAGED`; PR exact Head Ready Full8/8 + 3 Required + Trusted QA/Owner는 기존대로 각각 성공 증명해야 한다. 별도 진단 경로·PR 알림 PASS를 재사용하지 않는다.

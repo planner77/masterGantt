@@ -35,6 +35,8 @@ AGGREGATES = {
 META = "PR metadata가 기존 전체 CI 증거를 보존하는지 검증"
 PREFLIGHT = "QA Preflight — 정책·문서 사전 검사"
 FAST_GATE = "PR 빠른 검사 판정"
+DERIVED_JOBS = {"QA Final — Automated", "QA Final 신뢰 경계 확인",
+                "변경 영향 Shadow 계획 · advisory only (#770)"}
 ROOT_CAUSES = ("PRODUCT", "TEST_CONTRACT", "FIXTURE_OBSERVABILITY",
                "INIT_TRANSPORT", "ENVIRONMENT", "POLICY_CI", "UNKNOWN")
 MAX_RUNS = 300
@@ -59,6 +61,24 @@ def validate_spec(path):
             and not path.startswith("/") and len(path) < 220)
 
 
+def normalize_report_spec(value, allowed=None):
+    """Canonicalize Playwright testDir-relative paths as data, not executable paths."""
+    if not isinstance(value, str) or not value or len(value) > 1000:
+        return None
+    path = value.replace("\\", "/")
+    if path.startswith("./"):
+        path = path[2:]
+    if "/tests/e2e/" in path:
+        path = "tests/e2e/" + path.rsplit("/tests/e2e/", 1)[1]
+    elif not path.startswith("tests/e2e/"):
+        if path.startswith("/") or (len(path) > 1 and path[1] == ":"):
+            return None
+        path = "tests/e2e/" + path
+    if not validate_spec(path):
+        return None
+    return path if allowed is None or path in allowed else None
+
+
 def valid_sha(value):
     return isinstance(value, str) and SHA.fullmatch(value) is not None
 
@@ -68,7 +88,7 @@ def issue_from_pr(pr):
     match = re.findall(r"(?i)Issue\s*#([1-9]\d*)", title)
     refs = re.findall(r"(?im)^\s*Refs\s+#([1-9]\d*)\s*$", body)
     ensure(len(match) == len(refs) == 1 and match[0] == refs[0],
-           "canonical Issue #N / single Refs #N mismatch")
+           "정규 Issue #N과 PR 본문의 단일 Refs #N이 일치하지 않습니다")
     return int(match[0])
 
 
@@ -79,7 +99,7 @@ def valid_pr(pr, repo):
            ((pr.get("head") or {}).get("repo") or {}).get("full_name") == repo and
            valid_sha((pr.get("head") or {}).get("sha")) and
            valid_sha((pr.get("base") or {}).get("sha")),
-           "open same-repository PR on main required")
+           "열린 동일 저장소 PR 및 main 기준 브랜치가 필요합니다")
     issue = issue_from_pr(pr)
     return issue
 
@@ -96,11 +116,11 @@ def authentic_source(gh, run, attempt, *, pr_number=None):
            run.get("event") == "pull_request" and
            str(run.get("path") or "").split("@")[0] == ".github/workflows/ci.yml" and
            (run.get("repository") or {}).get("full_name") == gh.repo,
-           "not authenticated repository Full PR CI run")
+           "저장소의 원본 Full PR CI 실행 출처를 인증할 수 없습니다")
     try:
         p = qa.source_artifact(gh, run_id, attempt)
     except qa.Blocked as exc:
-        raise EvidenceError("source artifact absent/expired/denied", "INCOMPLETE_EVIDENCE") from exc
+        raise EvidenceError("원본 Source Artifact가 누락·만료되었거나 권한이 없습니다", "INCOMPLETE_EVIDENCE") from exc
     ensure(p.get("schema") == "mastergantt-ci-pr-source-v1" and
            p.get("repository") == gh.repo and p.get("run_id") == run_id and
            p.get("run_attempt") == attempt and
@@ -111,23 +131,23 @@ def authentic_source(gh, run, attempt, *, pr_number=None):
            p.get("head_repository") == gh.repo and
            p.get("head_ref") == run.get("head_branch") and
            run.get("head_sha") in (p["head_sha"], p["test_merge_sha"]),
-           "run/source-artifact provenance mismatch")
+           "CI Run과 Source Artifact의 출처가 일치하지 않습니다")
     # Merge commit belongs to this frozen historic head/base, not today's PR.
     commit = gh.get(f"{gh.prefix}/git/commits/{p['test_merge_sha']}")
     parents = [x.get("sha") for x in (commit.get("parents") or [])]
     ensure(parents == [p["base_sha"], p["head_sha"]],
-           "historical test-merge two-parent mismatch")
+           "과거 test-merge의 두 부모 SHA가 원본 HEAD/Base와 다릅니다")
     return p
 
 
 def attempt_jobs(gh, run_id, attempt):
     jobs = gh.collection(f"{gh.prefix}/actions/runs/{run_id}/attempts/{attempt}/jobs", "jobs")
-    ensure(bool(jobs), "missing original attempt jobs")
+    ensure(bool(jobs), "원본 Run/Attempt의 Job이 누락되었습니다")
     by_name = {}
     for job in jobs:
         name = job.get("name")
         ensure(isinstance(name, str) and name and name not in by_name,
-               "ambiguous duplicate original job")
+               "원본 Attempt에서 중복된 Job 이름이 발견되었습니다")
         by_name[name] = job
     return by_name
 
@@ -154,7 +174,9 @@ def attempt_status(jobs):
         if name.startswith("Chromium E2E shard ") and "· PR" in name:
             shards.append({"name": name, "conclusion": outcome or "UNKNOWN",
                            "minutes": iso_minutes(job), "jobId": job.get("id")})
-        if outcome == "failure" and name not in AGGREGATES and name not in (META, FAST_GATE):
+        if (outcome == "failure" and name not in AGGREGATES
+                and name not in (META, FAST_GATE) and name not in DERIVED_JOBS
+                and not name.startswith("QA Final")):
             roots.append({"job": name, "jobId": job.get("id"),
                           "class": "UNKNOWN", "source": "direct-job"})
     if roots:
@@ -170,6 +192,9 @@ def collect_history(gh, pr, *, limit=MAX_RUNS):
     """Bounded read; never count metadata-only or aggregate/QA derivative as failures."""
     repo = gh.repo
     branch = (pr.get("head") or {}).get("ref")
+    ensure(isinstance(branch, str) and 0 < len(branch) <= 255
+           and "\\x00" not in branch, "PR Head 브랜치 형식이 올바르지 않습니다")
+    encoded_branch = urllib.parse.quote(branch, safe="")
     prn = pr["number"]
     matched = []
     defects = []
@@ -177,9 +202,14 @@ def collect_history(gh, pr, *, limit=MAX_RUNS):
     incomplete = False
     page_limit = math.ceil(limit/100)
     for page in range(1, page_limit+1):
-        response = gh.get(f"{gh.prefix}/actions/workflows/ci.yml/runs?event=pull_request&per_page=100&page={page}")
+        # Filter by exact PR head branch BEFORE pagination (GitHub REST API).
+        route = (f"{gh.prefix}/actions/workflows/ci.yml/runs"
+                 f"?event=pull_request&branch={encoded_branch}&per_page=100&page={page}")
+        response = gh.get(route)
         items = response.get("workflow_runs")
-        ensure(isinstance(items, list), "CI workflow run listing unavailable")
+        if page == 1 and type(response.get("total_count")) is int:
+            incomplete = response["total_count"] > limit
+        ensure(isinstance(items, list), "CI Workflow 실행 목록을 조회할 수 없습니다")
         for run in items:
             if run.get("head_branch") != branch or run.get("status") != "completed":
                 continue
@@ -240,11 +270,11 @@ def select_files(ledger_files, changed_files, extras=()):
     files = set(ledger_files)
     for path in list(changed_files) + list(extras):
         if path.startswith("tests/e2e/") and path.endswith(".spec.ts"):
-            ensure(validate_spec(path), "unsafe changed/explicit E2E spec path")
+            ensure(validate_spec(path), "변경·명시된 E2E spec 경로가 안전하지 않습니다")
             files.add(path)
-    ensure(files, "missing historical failed/impact E2E spec paths")
+    ensure(files, "과거 실패·영향 E2E spec 선정 목록이 없습니다")
     ensure(len(files) <= MAX_FILES,
-           "bounded set exceeds 24 specs; manually partition and retain full union")
+           "진단 24개 파일 상한을 초과했습니다. 전체 합집합을 보존한 분할 계획 승인 필요")
     ordered = sorted(files)
     batches = [[] for _ in range(PARTS)]
     for i, path in enumerate(ordered):
@@ -257,15 +287,15 @@ def ledger_text(gh, issue, base_sha):
     try:
         row = gh.get(route)
         ensure(row.get("encoding") == "base64" and
-               int(row.get("size") or 0) <= 300_000, "ledger size/encoding unsupported")
+               int(row.get("size") or 0) <= 300_000, "누적 실패 원장 크기 또는 인코딩이 허용 범위를 벗어났습니다")
         return base64.b64decode(row["content"], validate=False).decode("utf-8")
     except (qa.Blocked, ValueError, UnicodeDecodeError) as exc:
-        raise EvidenceError("Issue cumulative failure ledger absent/invalid", "INCOMPLETE_EVIDENCE") from exc
+        raise EvidenceError("이슈 누적 실패 원장이 없거나 형식이 올바르지 않습니다", "INCOMPLETE_EVIDENCE") from exc
 
 
 def changed_files(gh, number):
     files = gh.pages(f"{gh.prefix}/pulls/{number}/files")
-    ensure(len(files) <= 300, "large changed-file set requires separate impact review")
+    ensure(len(files) <= 300, "변경 파일 수가 커 별도 영향 검토가 필요합니다")
     return [row.get("filename") or "" for row in files]
 
 
@@ -280,32 +310,32 @@ def ensure_current(pr, source):
            (pr.get("head") or {}).get("sha") == source.get("headSha") and
            (pr.get("base") or {}).get("sha") == source.get("baseSha") and
            (pr.get("merge_commit_sha") or "") == source.get("testMergeSha"),
-           "stale PR Head/Base/test-merge; rerun diagnostic preparation")
+           "PR Head/Base/test-merge가 오래되었습니다. 진단 준비를 재인증하세요")
 
 
 def authorized_actor(gh, actor):
     ensure(re.fullmatch(r"[A-Za-z0-9-]{1,39}", actor or "") is not None,
-           "invalid dispatch actor")
+           "수동 진단 실행자 식별자가 올바르지 않습니다")
     row = gh.get(f"{gh.prefix}/collaborators/{actor}/permission")
     ensure(row.get("permission") in ("admin", "maintain", "write"),
-           "actor not authorized for manual workflow_dispatch")
+           "수동 workflow_dispatch 실행 권한이 없습니다")
 
 
 def prepare(gh, pr_number, issue, expected_head, actor, ref):
-    ensure(ref == "refs/heads/main", "trusted main workflow_dispatch ref required")
+    ensure(ref == "refs/heads/main", "신뢰된 main 브랜치의 수동 실행만 허용합니다")
     authorized_actor(gh, actor)
     pr = gh.get(f"{gh.prefix}/pulls/{pr_number}")
-    ensure(valid_pr(pr, gh.repo) == issue, "canonical issue mismatch")
+    ensure(valid_pr(pr, gh.repo) == issue, "정규 Primary Issue와 대상 PR이 일치하지 않습니다")
     head = (pr["head"])["sha"]
     base = (pr["base"])["sha"]
-    ensure(head == expected_head, "explicit expected exact Head differs from live PR")
+    ensure(head == expected_head, "입력한 정확 HEAD가 현재 PR HEAD와 다릅니다")
     history, defects, truncated = collect_history(gh, pr)
     failures = [r for r in history if r["status"] == "FAILED"]
-    ensure(len(failures) >= 2, "fewer than two authenticated independent Full failures")
+    ensure(len(failures) >= 2, "인증된 독립 Full 실패가 두 번 미만입니다")
     ensure(not defects and not truncated,
-           "history sources expired/denied/truncated; cannot certify complete union")
+           "원본 이력이 만료·권한 거부·조회 상한 초과로 완전한 실패 합집합을 인증할 수 없습니다")
     latest = history[-1]
-    ensure(latest["headSha"] == head, "last Full source is stale for current PR")
+    ensure(latest["headSha"] == head, "최신 Full Run 출처가 현재 PR HEAD와 다릅니다")
     # Compare live GitHub synthetic test-merge with immutable source.
     ensure_current(pr, {"headSha": head, "baseSha": base, "testMergeSha": latest["testMergeSha"]})
     # The cumulative ledger is normally updated on the still-unmerged PR HEAD.
@@ -316,7 +346,7 @@ def prepare(gh, pr_number, issue, expected_head, actor, ref):
     all_files, batches = select_files(specs, changed)
     ensure(not any(p.startswith(".github/workflows/") for p in changed if p !=
                    ".github/workflows/issue-752-diagnostics.yml"),
-           "protected workflow changed; require separate risk/impact review")
+           "보호된 Workflow 변경으로 별도 위험·영향 검토가 필요합니다")
     return {
         "schemaVersion": 1, "status": "APPROVED_BOUNDED_DIAGNOSIS",
         "issue": issue, "pr": pr_number, "repo": gh.repo,
@@ -327,7 +357,7 @@ def prepare(gh, pr_number, issue, expected_head, actor, ref):
         "runKey": stable_key(pr_number, head, failures),
         "historyCompleteWithinLimit": True, "workflowDispatchActor": actor,
         "protection": "ADVISORY_ONLY_NOT_REQUIRED_CI",
-        "impactLimitations": "Ledger paths and changed E2E specs; transitive consumers need Owner review",
+        "impactLimitations": "실패 원장과 변경 E2E spec 기반 선정. 간접 소비자는 Owner 별도 검토 필요",
     }
 
 
@@ -359,47 +389,44 @@ def report_output(report, root):
     root.mkdir(parents=True, exist_ok=True)
     (root/"diagnosis.json").write_text(json.dumps(report, indent=2, ensure_ascii=False)+"\n",encoding="utf-8")
     url = f"https://github.com/{report.get('repo','')}/actions/runs/{report.get('diagnosisRunId','')}"
-    lines = ["# Issue #752 PR Failure Diagnosis", "",
-             f"- Status: **{report.get('status','UNKNOWN')}**",
-             f"- Issue #{report.get('issue','?')} / PR #{report.get('pr','?')}",
-             f"- Diagnosis run: {url}", f"- Head: {report.get('headSha','UNKNOWN')}",
-             f"- Historical authenticated failures: {report.get('failedAttempts',0)}",
-             f"- PASS/FAIL/CANCELLED/NOT RUN: {report.get('counts',{})}",
-             "- Warning only; never replaces Full Required3/Trusted QA/Owner approval.",
-             "- Expired/missing/denied source or missing worker artifact is NOT PASS."]
+    lines = ["# Issue #752 — PR 반복 실패 진단", "",
+             f"- 판정: **{report.get('status','UNKNOWN')}**",
+             f"- 관련 이슈 #{report.get('issue','?')} / PR #{report.get('pr','?')}",
+             f"- 진단 실행: {url}", f"- 원본 HEAD: {report.get('headSha','UNKNOWN')}",
+             f"- 인증된 과거 실제 실패 시도: {report.get('failedAttempts',0)}건",
+             f"- PASS/FAIL/CANCELLED/NOT RUN 집계: {report.get('counts',{})}",
+             "- 별도 진단은 권고 전용입니다. Full Required 3종·Trusted QA·Owner 승인을 대체하지 않습니다.",
+             "- 출처 누락·만료·취소·Worker 미실행을 PASS로 간주하지 않습니다."]
     for item in report.get("failureRunAttempts", [])[:16]:
-        lines.append(f"- Failed source: {item['runId']}.{item['attempt']} @ {item['headSha']}")
+        lines.append(f"- 과거 실제 실패: Run {item['runId']}.{item['attempt']} · HEAD {item['headSha']}")
     for row in report.get("crossRun", [])[:24]:
-        lines.append(f"- {row.get('file')}: {row.get('status')} ({row.get('cause','UNKNOWN')})")
+        lines.append(f"- {row.get('file')}: {row.get('status')} (원인 {row.get('cause','UNKNOWN')})")
     if report.get("missing"):
-        lines.append("- Incomplete: " + ", ".join(report["missing"][:16]))
-    lines += ["", "Source: docs/PR_CI_FAILURE_TRIAGE.md",
-              f"Ledger: docs/ISSUE_{report.get('issue','N')}_FAILURE_ANALYSIS.md",
-              "Diagnostic artifacts expire after 14 days (original CI source after 30 days)."]
+        lines.append("- 추가 확인 필요: " + ", ".join(report["missing"][:16]))
+    lines += ["", "기준: docs/PR_CI_FAILURE_TRIAGE.md",
+              f"실패 원장: docs/ISSUE_{report.get('issue','N')}_FAILURE_ANALYSIS.md",
+              "정제 진단 Artifact 보존기간 14일, 원본 PR CI 출처 Artifact 30일."]
     (root/"diagnosis.md").write_text("\n".join(lines)+"\n",encoding="utf-8")
     with open(os.environ.get("GITHUB_STEP_SUMMARY", os.devnull), "a", encoding="utf-8") as out:
         out.write("\n".join(lines)+"\n")
 
-
 def parse_worker_report(path, allowed):
-    """Allowlist only test status/file/duration; raw Playwright/trace stays outside Git."""
+    """Allowlisted file/status/duration only; ignore raw trace, URL and error payload."""
     if path.stat().st_size > 3_000_000:
-        raise EvidenceError("worker report size limit", "INCOMPLETE_EVIDENCE")
+        raise EvidenceError("Worker 보고서가 최대 크기를 초과했습니다", "INCOMPLETE_EVIDENCE")
     raw = json.loads(path.read_text(encoding="utf-8"))
     records = []
-    def walk(suite):
-        for child in suite.get("suites", []):
-            if isinstance(child, dict):
-                walk(child)
-        file = suite.get("file", "")
-        if isinstance(file, str):
-            file = file.replace("\\","/")
-            i = file.find("tests/e2e/")
-            file = file[i:] if i >= 0 else file
+    def walk(suite, inherited=None):
+        file = normalize_report_spec(suite.get("file"), allowed) or inherited
         for spec in suite.get("specs", []):
-            if file not in allowed or not isinstance(spec,dict):
+            if not isinstance(spec, dict):
+                continue
+            spec_file = normalize_report_spec(spec.get("file"), allowed) or file
+            if spec_file not in allowed:
                 continue
             for test in spec.get("tests", []):
+                if not isinstance(test, dict):
+                    continue
                 for result in test.get("results", []):
                     if not isinstance(result, dict):
                         continue
@@ -408,13 +435,16 @@ def parse_worker_report(path, allowed):
                         status = "UNKNOWN"
                     duration = result.get("duration")
                     duration = duration if type(duration) in (int,float) and math.isfinite(duration) and 0 <= duration <= 7200000 else None
-                    records.append({"file": file, "testId": str(test.get("id") or "")[:90],
-                                    "status": status, "durationMs": duration})
+                    records.append({"file": spec_file, "testId": re.sub(
+                        r"[^A-Za-z0-9._:-]", "_", str(test.get("id") or ""))[:90],
+                        "status": status, "durationMs": duration})
+        for child in suite.get("suites", []):
+            if isinstance(child, dict):
+                walk(child, file)
     for suite in raw.get("suites", []):
         if isinstance(suite, dict):
             walk(suite)
     return records
-
 
 def finalize(gh, plan, root, run_id):
     result = {"schemaVersion": 1, "repo": gh.repo,
@@ -454,15 +484,15 @@ def finalize(gh, plan, root, run_id):
             if (m.get("headSha") != plan["headSha"] or
                 m.get("part") != n or m.get("files") != sorted(expected) or
                 m.get("diagnosisRunId") != run_id):
-                raise EvidenceError("worker provenance mismatch")
+                raise EvidenceError("Worker 실행 출처 정보가 승인된 계획과 일치하지 않습니다")
             if not expected:
                 continue
             report = part/"playwright.json"
             if not report.is_file():
-                raise EvidenceError("Playwright JSON absent")
+                raise EvidenceError("Playwright JSON 보고서가 누락되었습니다")
             observations.extend(parse_worker_report(report, expected))
             if m.get("exitCode") not in (0,1):
-                raise EvidenceError("Playwright runner setup/timeout failed")
+                raise EvidenceError("Playwright Runner 준비·실행 또는 제한시간 오류")
         except (ValueError, OSError, EvidenceError, KeyError, TypeError):
             result["missing"].append(f"PART_{n}_INVALID")
     by_file = {}
@@ -470,9 +500,12 @@ def finalize(gh, plan, root, run_id):
         items = [r for r in observations if r["file"] == file]
         if not items:
             result["counts"]["NOT RUN"] += 1
+            result["missing"].append(f"SPEC_NOT_OBSERVED:{file}")
             by_file[file] = "UNKNOWN"
             continue
         statuses = {r["status"] for r in items}
+        if statuses & {"skipped", "interrupted", "UNKNOWN"}:
+            result["missing"].append(f"SPEC_NOT_FULLY_EXECUTED:{file}")
         state = (("RECURRING" if file in set(plan.get("historicalFiles", [])) else "NEW")
                  if {"failed","timedOut"} & statuses else
                  ("RESOLVED_CANDIDATE" if statuses == {"passed"} else "UNKNOWN"))
@@ -509,12 +542,12 @@ def notify(gh, report):
     if report["status"] == "DIAGNOSIS_READY":
         try:
             run_id = report.get("diagnosisRunId")
-            ensure(type(run_id) is int and run_id > 0, "diagnostic Run ID absent")
+            ensure(type(run_id) is int and run_id > 0, "진단 Run ID가 없습니다")
             artifacts = gh.collection(f"{gh.prefix}/actions/runs/{run_id}/artifacts", "artifacts")
             name = f"issue-752-diagnosis-{run_id}-{report.get('diagnosisRunAttempt', 1)}"
             matches = [a for a in artifacts if a.get("name") == name
                        and not a.get("expired") and int(a.get("size_in_bytes") or 0) > 0]
-            ensure(len(matches) == 1, "sanitized report artifact unverified")
+            ensure(len(matches) == 1, "정제된 보고서 Artifact가 인증되지 않았습니다")
         except (qa.Blocked, EvidenceError):
             report["status"] = "DIAGNOSIS_INCOMPLETE"
             report.setdefault("missing", []).append("REPORT_ARTIFACT_NOT_VERIFIED")
@@ -532,18 +565,18 @@ def notify(gh, report):
     ledger = f"{base}/blob/main/docs/ISSUE_{issue}_FAILURE_ANALYSIS.md"
     body = ("\n".join([
         tag, "### Issue #752 — " + report["status"],
-        f"Primary Issue #{issue}, PR #{prn}, exact HEAD {report['headSha']}",
-        f"Source: [Run/diagnosis]({run_url}) · [failure ledger]({ledger})",
-        f"Verified failed Full run/attempts: {report.get('failedAttempts','UNKNOWN')}",
-        f"Actions > [manual diagnostics]({diag_url}): enter PR, Issue, exact Head; a permitted repository writer must approve workflow_dispatch.",
-        "Results: [diagnosis run Job Summary + JSON/Markdown Artifact](" + run_url + "); retention 14 days.",
-        "All diagnostics are advisory: Required Quality/E2E/Docker, Trusted QA and Owner approval remain separate.",
-        "Not executed automatically. Missing/expired artifact means INCOMPLETE, not PASS.",
+        f"Primary Issue #{issue} / PR #{prn} / 정확한 HEAD {report['headSha']}",
+        f"원본 증거: [실행·진단]({run_url}) · [이슈별 실패 원장]({ledger})",
+        f"인증된 Full CI 실패 Run/Attempt: {report.get('failedAttempts','UNKNOWN')}건",
+        f"Actions > [수동 제한 진단]({diag_url})에서 PR·Issue·정확한 HEAD를 입력합니다. 권한 담당자의 명시적 승인이 필요합니다.",
+        "보고서: [진단 Job Summary 및 JSON/Markdown Artifact](" + run_url + ") · 보존기간 14일.",
+        "이 진단은 권고용입니다. 기존 Required Quality/E2E/Docker, Trusted QA와 Owner 승인을 대체하지 않습니다.",
+        "진단 자동 재실행은 없습니다. 누락·만료된 Artifact는 INCOMPLETE이며 PASS가 아닙니다.",
     ]))
     existing = gh.pages(f"{gh.prefix}/issues/{prn}/comments")
     matching = [r for r in existing if tag in str(r.get("body") or "") and
                 (r.get("user") or {}).get("type") == "Bot"]
-    ensure(len(matching) <= 1, "duplicate trusted diagnosis comments")
+    ensure(len(matching) <= 1, "신뢰된 진단 댓글이 중복되었습니다")
     if matching:
         qa.api("PATCH", f"https://api.github.com{gh.prefix}/issues/comments/{matching[0]['id']}",
                gh.token, {"body":body})
@@ -573,7 +606,7 @@ def main():
     arg.add_argument("--source-run", type=int, default=0)
     opts = arg.parse_args()
     repo = os.environ.get("GITHUB_REPOSITORY", "")
-    ensure(re.fullmatch(r"[\w.-]+/[\w.-]+", repo) is not None, "invalid repository")
+    ensure(re.fullmatch(r"[\w.-]+/[\w.-]+", repo) is not None, "저장소 식별자가 올바르지 않습니다")
     gh = qa.GitHub(repo, os.environ.get("GH_TOKEN",""))
     diag_id = int(os.environ.get("GITHUB_RUN_ID","0"))
     if opts.command == "observe":
@@ -627,7 +660,7 @@ def main():
         if report["status"] == "BLOCKED":
             sys.exit(1)
     elif opts.command == "finalize":
-        ensure(opts.plan is not None, "plan required")
+        ensure(opts.plan is not None, "승인된 진단 계획이 필요합니다")
         try:
             plan = json.loads(opts.plan.read_text(encoding="utf-8"))
             report = finalize(gh,plan,opts.report_dir,diag_id)
@@ -638,15 +671,15 @@ def main():
         if report["status"] != "DIAGNOSIS_READY":
             sys.exit(1)
     else:
-        ensure(opts.report is not None, "report required")
+        ensure(opts.report is not None, "진단 보고서가 필요합니다")
         report = json.loads(opts.report.read_text(encoding="utf-8"))
         try:
             status = notify(gh,report)
             with open(os.environ.get("GITHUB_STEP_SUMMARY", os.devnull),"a",encoding="utf-8") as f:
-                f.write(f"\nIssue #752 PR notification: {status}\n")
+                f.write(f"\nIssue #752 PR 알림 처리: {status}\n")
         except (qa.Blocked,EvidenceError) as exc:
             with open(os.environ.get("GITHUB_STEP_SUMMARY", os.devnull),"a",encoding="utf-8") as f:
-                f.write(f"\nIssue #752 PR notification ERROR (advisory only): {type(exc).__name__}\n")
+                f.write(f"\nIssue #752 PR 알림 오류 (권고 전용): {type(exc).__name__}\n")
             # Never turn independent Required checks red or green on notifier errors.
 
 

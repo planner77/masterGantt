@@ -14,7 +14,7 @@
 1. `.github/workflows/issue-752-diagnostics.yml`는 **신뢰된 기본 브랜치** `workflow_run` 완료 이벤트의 별도 advisory Job으로만 과거 Run을 탐색한다. 기존 PR CI의 3 Required Check, 8-Shard, Preflight·Fast Gate, Trusted QA/Owner 결정을 수정하지 않는다.
 2. 원본 `ci-pr-source-<run_id>-<attempt>` pre-checkout Artifact, Git two-parent test merge, repository, PR canonical Issue, 워크플로 ID/path, 실제 원본 Job 결론을 교차 확인한다. 단순 CI Title, 과거 Head 성공, edited metadata-only, cancelled/skip 및 파생 aggregate/QA 실패는 직접 독립 실패로 계수하지 않는다. History 조회 누락·보존 만료는 `INCOMPLETE_EVIDENCE`이자 진단 승인 거부다.
 3. **동일 canonical PR에 서로 다른 2회 이상 완료된 직접 Full CI 실패**가 있고 마지막 원본이 현재 HEAD에 귀속할 때만 `DIAGNOSIS_RECOMMENDED`. `observe_notify`는 별도 최소 write 권한과 결정적 PR/head/failure-key 댓글 upsert. 실패/댓글 미전달은 Required3 비변경. 최초 bootstrap/새 브랜치 외 과거 History 조회 한계는 보수적인 미인증 상태로 남긴다.
-4. 권한 있는 Writer/Owner가 Actions > `Issue 752 authenticated PR failure diagnosis` > Run workflow에서 `PR number`, `Primary Issue number`, `expected exact HEAD SHA`를 제공해 수동 실행. 실행 직전 최신 PR Head/Base/test merge, canonical Refs, 누적 Issue 원장, source artifact, actor 권한, 변경 테스트 인벤토리를 재인증한다. stale/누락/권한 거부는 `BLOCKED`.
+4. 권한 있는 Writer/Owner가 Actions > `Issue #752 — 반복 PR 실패 진단` > Run workflow에서 `PR number`, `Primary Issue number`, `expected exact HEAD SHA`를 제공해 수동 실행. 실행 직전 최신 PR Head/Base/test merge, canonical Refs, 누적 Issue 원장, source artifact, actor 권한, 변경 테스트 인벤토리를 재인증한다. stale/누락/권한 거부는 `BLOCKED`.
 5. 선정 집합은 단일 원장에 기록된 역사적 실제 실패 E2E spec ∪ PR 변경 E2E spec이며 최대 24개, 4개 독립 bounded 파트로 나눈다. 추가 간접/음성 소비자는 Owner가 원장에 확정해 보강해야 한다. **한계 초과 시 FULL 자동 재실행이 아닌 분할 계획 재승인**. 같은 Issue 원장 전 실패 합집합을 지우지 않는다.
 6. 진단에서는 승인된 exact HEAD 테스트 코드를 **읽기 전용** runner에서 실행하며 `--retries=0 --max-failures=0 --workers=1 --project=chromium --reporter=json`, 4파트 `strategy.fail-fast=false`를 적용한다. 격리된 worker에는 댓글 쓰기 토큰이 없고, 댓글 Job은 PR Head 코드를 실행하지 않는다. 진단 결과는 애초에 **Required PASS가 아니며** 과거 PASS로 승격 금지.
 7. `finish`는 정확 worker Run ID/Head/선정 path 및 raw reporter를 **데이터로만** 교차 검증한다. 정제된 파일/케이스 상태와 P50/P95/취소율, 원장 링크, Run 목록을 Job Summary와 14일 보존 JSON·Markdown Artifact로 노출. 원시 Trace/URL/헤더/토큰/SQL/DB/스택 전체는 repository에 커밋하거나 PR 댓글에 복사하지 않는다. 원본 CI source artifact 30일, worker 진단 artifact 14일; 만료 시 자동 PASS 금지.
@@ -44,6 +44,7 @@
 - `docs/CI_CD.md`: UPDATED
 - `docs/PR_CI_FAILURE_TRIAGE.md`: UPDATED
 - `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/ISSUE_752_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/QA_REVIEW_POLICY.md`: N/A(기존 HIGH/OWNER_MANAGED·원본 QA·Owner 승인 규칙 불변)
 - `docs/GITHUB_OPERATIONS.md`: N/A(기존 GitHub 최소 권한·PR/운영 승인 경계를 재사용하고 별도 권한 상승 없음)
 - `docs/TEST_PLAN.md`: N/A(시험·음성 상세 계약을 전용 Work Packet과 신규 정책 단위 테스트로 별도 기록하며 기존 선정 표준 불변)
@@ -51,6 +52,19 @@
 - `DESIGN.md`: N/A(제품 UI 및 공통 시각 디자인 원칙 변경 없음)
 - `docs/API.md`: N/A(제품 HTTP API 경로·입출력 변경 없음)
 - `docs/DB_SCHEMA.md`: N/A(제품 데이터베이스 스키마·마이그레이션 변경 없음)
+
+## 2026-10-22 — PR #780 반복 QA 차단·미해결 리뷰 5건 종합 교정
+
+- [전용 실패 원장](../../ISSUE_752_FAILURE_ANALYSIS.md) F752-001: [Full #3151.1](https://github.com/planner77/masterGantt/actions/runs/39782427411)은 이전 HEAD의 QA `PR latest Head stale`/Workflow CANCELLED. F752-002: [Full #3152.1](https://github.com/planner77/masterGantt/actions/runs/39782641377)은 **Quality/E2E8/8/Docker 모두 성공** 후 QA Final의 미해결 리뷰 5건으로 FAILURE. 테스트 직접 FAIL 관측0이며 QA 파생 실패를 누적 실제 E2E 실패로 계수하지 않는다.
+- P1 Reporter 경로: Playwright JSON의 testDir-relative `example.spec.ts`와 repo-relative/absolute 경로를 승인된 `tests/e2e/...spec.ts`로 정규화하고, 중첩 Suite의 file inheritance·spec 자체 file, 악성 `..` 및 미선정 경로를 별도 음성 테스트로 차단한다. 원시 오류·URL·Trace는 worker JSON Artifact 업로드 전에 정제하고 `finalize`에서 두 번째 allowlist 검사.
+- P1 Run History: repository-wide 300개 실행 조회 대신 REST `branch=`를 **API pagination 전** 적용하여 해당 head branch만 조회. 검색 결과 각 Run/Attempt·event/source artifact/PR/Test-Merge는 여전히 인증한다. 브랜치 자체 이력 초과, 보존 기간/권한 누락은 INCOMPLETE/BLOCKED.
+- P1 Head 원장: 기존 `ledger_text(gh, issue, head)` 코드의 불변 PR HEAD 데이터 조회를 유지하며 `head`가 아닌 base 최신 원장 오독을 방지하는 Unit 추가. HEAD Markdown을 실행할 수 있는 정책이나 코드로 사용하지 않는다.
+- P2 부분 미관측: 선정 파일이 최종 reporter에 0건이면 `SPEC_NOT_OBSERVED` + NOT RUN; 해당 파일이 skipped/interrupted/UNKNOWN 상태이면 `SPEC_NOT_FULLY_EXECUTED`. 다른 파일 한 개 PASS로 전체 `DIAGNOSIS_READY`가 되는 오탐을 없앤다.
+- P1 한국어: 신규 workflow `name/run-name`·Job/Step 표시명·수동 입력 `description`·Job Summary/PR 댓글/오류 안내를 한글화한다. `jobs.<id>`·GitHub expression·기존 Required 명칭·상태값·워크플로 ID 및 자동 소비 경로는 변경하지 않는다.
+- 인접 발견: `QA Final — Automated` 및 Shadow 같은 파생 결과만 실패인 Run은 "독립 Full 오류 2회" 권고의 계수에서 제외한다. 권고/수동 진단이 원래 QA Final과 Required3 PASS로 잘못 승격되는 경로는 허용하지 않는다.
+- **AC_TEST_COVERAGE 보강**: `test_report_spec_paths_are_restricted_and_relative_paths_are_preserved`, `test_branch_filter_prevents_repository_wide_false_truncation`, `test_latest_ledger_is_read_from_frozen_pr_head`, `test_one_missing_selected_spec_blocks_ready`, `test_skipped_only_spec_is_incomplete`, `test_qa_final_review_block_is_not_independent_full_test_failure`, `test_workflow_displays_korean_without_changing_machine_identifiers`. 변경된 Head의 실제 원격 Full8/8·Trusted 및 수동 workflow_dispatch 실증은 별도이고 검증 전 `NOT TESTED`.
+- **DOCUMENTATION_SYNC**: 본 Work Packet, `docs/ISSUE_752_FAILURE_ANALYSIS.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md` 업데이트. `AGENTS.md`/`docs/QA_REVIEW_POLICY.md` 정책 의미·원격 제품 API/DB·릴리스 권한 자체는 변경 없음.
+- **사전 검증/인계**: GitHub Code/CI Job/Review API 확인, 로컬 Python/Chromium/Docker 실 실행은 환경상 `NOT TESTED`. 개선한 Tree를 단일 Head로 반영해 발생하는 새 PR CI는 모니터링하지 않으며, Owner 승인 전 병합/Main/GHCR/Finalizer/이슈 종료 금지.
 
 ## 검증·인계
 

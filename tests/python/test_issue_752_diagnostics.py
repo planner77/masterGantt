@@ -113,6 +113,81 @@ class IdentityAndHistory(unittest.TestCase):
             d.ensure_current(pr,old)
 
 
+
+    def test_report_spec_paths_are_restricted_and_relative_paths_are_preserved(self):
+        allow={"tests/e2e/example.spec.ts","tests/e2e/sub/nested.spec.ts"}
+        for source in ("example.spec.ts", "tests/e2e/example.spec.ts",
+                       "/home/runner/work/masterGantt/tests/e2e/example.spec.ts",
+                       "./tests/e2e/example.spec.ts"):
+            with self.subTest(source=source):
+                self.assertEqual(d.normalize_report_spec(source,allow),
+                                 "tests/e2e/example.spec.ts")
+        self.assertEqual(d.normalize_report_spec("sub/nested.spec.ts",allow),
+                         "tests/e2e/sub/nested.spec.ts")
+        for unsafe in ("../evil.spec.ts","tests/e2e/../evil.spec.ts",
+                       "/etc/evil.spec.ts","tests/e2e/not-selected.spec.ts"):
+            with self.subTest(unsafe=unsafe):
+                self.assertIsNone(d.normalize_report_spec(unsafe,allow))
+
+    def test_branch_filter_prevents_repository_wide_false_truncation(self):
+        branch="feat/issue-752-ci-diagnostics"
+        class GH:
+            repo="planner77/masterGantt"
+            prefix="/repos/planner77/masterGantt"
+            def __init__(self):
+                self.calls=[]
+            def get(self,route):
+                self.calls.append(route)
+                return {"total_count":2,"workflow_runs":[
+                    {"id":100,"run_attempt":1,"head_branch":branch,"status":"completed"},
+                    {"id":101,"run_attempt":1,"head_branch":branch,"status":"completed"}]}
+        source={"head_sha":HEAD,"base_sha":BASE,"test_merge_sha":MERGE}
+        jobs={d.META:{"conclusion":"skipped"},d.PREFLIGHT:{"conclusion":"failure"}}
+        gh=GH()
+        with patch.object(d,"authentic_source",return_value=source), patch.object(d,"attempt_jobs",return_value=jobs):
+            history,unverified,truncated=d.collect_history(gh,{"head":{"ref":branch},"number":780})
+        self.assertEqual((len(history),unverified,truncated),(2,[],False))
+        self.assertEqual(len(gh.calls),1)
+        self.assertIn("branch=feat%2Fissue-752-ci-diagnostics",gh.calls[0])
+
+    def test_qa_final_review_block_is_not_independent_full_test_failure(self):
+        jobs={d.META:{"conclusion":"skipped"},
+              d.PREFLIGHT:{"conclusion":"success"},
+              "QA Final — Automated":{"conclusion":"failure"},
+              **{key:{"conclusion":"success"} for key in d.AGGREGATES}}
+        self.assertEqual(d.attempt_status(jobs)[0:2],("NOT_FAILED",[]))
+
+    def test_latest_ledger_is_read_from_frozen_pr_head(self):
+        repo="planner77/masterGantt"
+        pr={"number":780,"state":"open","title":"Issue #752 — 진단",
+            "body":"Refs #752","head":{"sha":HEAD,"ref":"feat/issue-752","repo":{"full_name":repo}},
+            "base":{"sha":BASE,"ref":"main","repo":{"full_name":repo}},
+            "merge_commit_sha":MERGE}
+        class GH:
+            repo="planner77/masterGantt"
+            prefix="/repos/planner77/masterGantt"
+            def get(self,route):
+                return pr
+        history=[row(100,1),row(101,1)]
+        with patch.object(d,"authorized_actor"), patch.object(d,"collect_history",return_value=(history,[],False)), \
+             patch.object(d,"ledger_text",return_value="tests/e2e/example.spec.ts") as ledger, \
+             patch.object(d,"changed_files",return_value=[]):
+            plan=d.prepare(GH(),780,752,HEAD,"planner77","refs/heads/main")
+        self.assertEqual(ledger.call_args.args[1:],(752,HEAD))
+        self.assertEqual(plan["files"],["tests/e2e/example.spec.ts"])
+
+    def test_workflow_displays_korean_without_changing_machine_identifiers(self):
+        workflow=(Path(__file__).resolve().parents[2]/".github/workflows/issue-752-diagnostics.yml").read_text(encoding="utf-8")
+        self.assertIn("name: Issue #752 — 반복 PR 실패 진단",workflow)
+        self.assertIn("name: 누적 실패 집합 실행",workflow)
+        self.assertIn("  bounded_e2e:",workflow)
+        self.assertIn("fail-fast: false",workflow)
+        self.assertIn("--retries=0 --max-failures=0",workflow)
+        self.assertIn('file="tests/e2e/"+file',workflow)
+        self.assertIn("$RUNNER_TEMP/issue-752-raw-$PART.json",workflow)
+        self.assertNotIn("$GITHUB_WORKSPACE/part-$PART/playwright.json",workflow)
+
+
 class BoundReports(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory()
@@ -154,6 +229,50 @@ class BoundReports(unittest.TestCase):
         self.assertEqual(r["counts"]["FAIL"],1)
         self.assertNotIn("secret",json.dumps(r))
         self.assertTrue(r["notAnApproval"])
+
+
+    def test_one_missing_selected_spec_blocks_ready(self):
+        a,b="tests/e2e/a.spec.ts","tests/e2e/b.spec.ts"
+        self.plan["files"]=[a,b]
+        self.plan["parts"]=[[a,b],[],[],[]]
+        target=self.root/"part-0"
+        target.mkdir()
+        (target/"execution.json").write_text(json.dumps({
+            "part":0,"headSha":HEAD,"diagnosisRunId":44,"files":[a,b],"exitCode":0}))
+        (target/"playwright.json").write_text(json.dumps({"suites":[{
+            "file":"a.spec.ts","specs":[{"tests":[{"id":"case-1","results":[
+                {"status":"passed","duration":10}]}]}]}]}))
+        result=d.finalize(self.gh,self.plan,self.root,44)
+        self.assertEqual(result["status"],"DIAGNOSIS_INCOMPLETE")
+        self.assertEqual(result["counts"]["NOT RUN"],1)
+        self.assertIn(f"SPEC_NOT_OBSERVED:{b}",result["missing"])
+
+    def test_skipped_only_spec_is_incomplete(self):
+        a="tests/e2e/a.spec.ts"
+        target=self.root/"part-0"
+        target.mkdir()
+        (target/"execution.json").write_text(json.dumps({
+            "part":0,"headSha":HEAD,"diagnosisRunId":44,"files":[a],"exitCode":0}))
+        (target/"playwright.json").write_text(json.dumps({"suites":[{
+            "file":"a.spec.ts","specs":[{"tests":[{"id":"skipped","results":[
+                {"status":"skipped","duration":0}]}]}]}]}))
+        result=d.finalize(self.gh,self.plan,self.root,44)
+        self.assertEqual(result["status"],"DIAGNOSIS_INCOMPLETE")
+        self.assertIn(f"SPEC_NOT_FULLY_EXECUTED:{a}",result["missing"])
+
+    def test_nested_relative_spec_report_keeps_file_and_discards_error_details(self):
+        path=self.root/"nested-playwright.json"
+        path.write_text(json.dumps({"suites":[{"suites":[{
+            "file":"a.spec.ts","specs":[{"tests":[{"id":"suite:case-1",
+                "results":[{"status":"failed","duration":25,
+                            "error":{"message":"secret-token-value"},
+                            "attachments":[{"name":"trace","path":"/tmp/sensitive.zip"}]}]}]}]}]}]}))
+        rows=d.parse_worker_report(path,{"tests/e2e/a.spec.ts"})
+        self.assertEqual(len(rows),1)
+        self.assertEqual(rows[0]["file"],"tests/e2e/a.spec.ts")
+        self.assertEqual(rows[0]["status"],"failed")
+        self.assertNotIn("secret",json.dumps(rows))
+        self.assertNotIn("sensitive",json.dumps(rows))
 
     def test_invalid_worker_provenance_is_not_green(self):
         t=self.root/"part-0"
