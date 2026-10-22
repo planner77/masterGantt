@@ -98,8 +98,10 @@ jobs:
           assert items and len(items) == len(set(items))
           for name in items:
               assert re.fullmatch(r"tests/e2e/(?:[A-Za-z0-9._-]+/)*[A-Za-z0-9._-]+\.spec\.ts", name)
+              assert all(part not in (".", "..") for part in name.split("/"))
               file = Path(name)
               assert file.is_file() and not file.is_symlink()
+              assert file.resolve(strict=True).is_relative_to(Path.cwd().resolve() / "tests/e2e")
               print(name)
           PY
           )

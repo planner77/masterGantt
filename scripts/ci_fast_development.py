@@ -20,6 +20,16 @@ EXTRA_PLAN_KEYS = {"test_plan_sha256", "trusted_e2e_shard_count", "observed_ci",
                    "evidence_status", "tool_versions", "authority", "error_code"}
 
 
+def safe_test_id(value: object) -> bool:
+    """Only repository-relative test paths; never accept '.' or '..' segments.
+
+    A regex character class containing dots also matches the parent segment '..'.
+    Validate each component after verifying the expected test-file syntax.
+    """
+    return (isinstance(value, str) and TEST.fullmatch(value) is not None
+            and all(component not in (".", "..") for component in value.split("/")))
+
+
 def pr_mode(action: str, draft: object) -> str:
     if draft is True and action in ACTIONS_DRAFT | {"edited"}:
         return "DRAFT_BLOCKED"
@@ -99,16 +109,14 @@ def prepared(plan: dict, event: dict, env: dict) -> dict:
     for item in selected:
         if (not isinstance(item, dict) or
                 item.get("kind") not in ("UNIT", "CHROMIUM") or
-                not isinstance(item.get("id"), str) or
-                not TEST.fullmatch(item["id"]) or
+                not safe_test_id(item.get("id")) or
                 (item["kind"] == "CHROMIUM") != item["id"].startswith("tests/e2e/")):
             result["selection_status"] = "SELECTED_TEST_PATH_INVALID"
             return result
         identities.append(item["id"])
     for item in excluded:
         if (not isinstance(item, dict) or
-                not isinstance(item.get("id"), str) or
-                not TEST.fullmatch(item["id"])):
+                not safe_test_id(item.get("id"))):
             result["selection_status"] = "EXCLUDED_TEST_PATH_INVALID"
             return result
         identities.append(item["id"])

@@ -1,3 +1,11 @@
+## Issue #771 — F771-001/F771-002 · PR #776 Full #3124.1 REWORK (2026-10-22)
+
+- [원본 CI Run 39730387486.1](https://github.com/planner77/masterGantt/actions/runs/39730387486) · Head `88ac413d2c3f389b8ea4018efed386375ccfcd53`, Base `f550a657c2fd04d49b7dee08783fab3b348e1497`, Test-Merge `c00cf1307439f5cccc338c036f406d4fa4198ac7`: Preflight, TypeScript, ESLint, Vitest PASS. `scripts/verify-issue-lifecycle.py`가 과거 `pull_request.types` 전체 문자열만 검증하여 Policy FAIL, Fast Gate/Required3/QA 파생 실패. Chromium 8샤드, PR Docker, PR Build **미실행**.
+- 초기 PR P1 리뷰 2건: [이벤트 계약](https://github.com/planner77/masterGantt/pull/776#discussion_r4344996110)(실제 첫 실패 원인)과 [test ID `..` escape](https://github.com/planner77/masterGantt/pull/776#discussion_r4344996116)(원본 CI Policy 이전 중단으로 아직 미실행된 음성 오류). `scripts/verify-issue-lifecycle.py`를 이벤트 정확 집합 parser로, `ci_fast_development.py`의 선택·제외 경로와 Fast 브라우저 실행의 `.`/`..`·repo root 검증을 보완한다.
+- 기존 `edited` metadata-only/Head·Base·Test Merge 출처 및 8-shard/Required3 이름, default-main Trusted, Owner HIGH, strict/latest main, review-thread 0, GHCR/Finalizer는 변경하지 않는다. 이슈별 단일 실패 원장 [ISSUE_771_FAILURE_ANALYSIS.md](../../ISSUE_771_FAILURE_ANALYSIS.md)에서 직접/파생·미실행/수정/QA 잔여 위험 구분.
+- 사용자 요청: 수정·문서/실패 원장·미해결 리뷰/충돌 해결 후 새 Full PR CI **시작까지만** 진행하고 모니터링하지 않음. 새 원격 Quality/E2E8/Docker/Trusted 및 Draft→Ready POC/AC5 A/B 효과 **NOT TESTED**. Owner 승인 전 MERGE_READY=BLOCKED.
+
+---
 # Issue #771 — FAST_DEVELOPMENT / FINAL_FULL PR CI 안전 분리
 
 ## Scope, baseline and manager decisions

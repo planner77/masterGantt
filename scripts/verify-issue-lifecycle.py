@@ -107,7 +107,20 @@ require("기존 병합/직접 Push" in ci_workflow and "github.sha" in ci_workfl
 require("inputs.issue_number" in ci_workflow, "manual CI run-name must support an optional Primary Issue")
 require("github.run_number" in ci_workflow and "github.run_attempt" in ci_workflow, "CI run-name must distinguish run and re-run attempt")
 require("scripts/verify-ci-run-trace.py" in ci_workflow, "CI must validate Primary Issue trace metadata before heavy jobs")
-require("types: [opened, reopened, synchronize, edited]" in ci_workflow, "pull_request edited event must rerun trace validation")
+# #771: validate PR event identity, not serialized YAML event order.
+# Edited metadata-only and Draft->Ready are independent required behaviors.
+pr_event_match = re.search(
+    r"(?m)^  pull_request:\s*\n    types:\s*\[([^\n\]]+)\]",
+    ci_workflow,
+)
+require(pr_event_match is not None, "CI pull_request event declaration missing")
+pr_events = [item.strip() for item in pr_event_match.group(1).split(",")]
+expected_pr_events = {
+    "opened", "reopened", "synchronize", "edited",
+    "ready_for_review", "converted_to_draft",
+}
+require(len(pr_events) == len(set(pr_events)) and set(pr_events) == expected_pr_events,
+        "PR event contract: edited, Ready, Draft triggers missing/duplicated/unknown")
 require("github.event.action != \'edited\'" in ci_workflow, "PR metadata edits must not route heavy CI jobs")
 require("format('ci-pr-{0}-{1}'" in ci_workflow and "'metadata' || 'full'" in ci_workflow, "metadata edits must use a separate concurrency group from full PR CI")
 require("metadata_evidence:" in ci_workflow, "metadata-only CI must verify prior full-run evidence")

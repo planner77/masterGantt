@@ -1,3 +1,9 @@
+## Issue #771 — PR Full #3124.1 Policy 실패 교정 (2026-10-22)
+
+- #771 PR #776 [Full Run 39730387486.1](https://github.com/planner77/masterGantt/actions/runs/39730387486)은 신규 `ready_for_review`, `converted_to_draft` 이벤트 때문에 구형 `types: [opened, reopened, synchronize, edited]` **완전 문자열 일치 검증**이 실패하여 Policy FAIL. 새 `scripts/verify-issue-lifecycle.py`는 `pull_request.types`의 6개 허용 이벤트를 순서 무관·중복/모호/이탈 이벤트 금지 집합으로 검증한다. 기존 `edited` metadata-only 계약 불변.
+- [P1](https://github.com/planner77/masterGantt/pull/776#discussion_r4344996116) Fast test ID traversal 문제는 신뢰 base의 선택/제외 경로와 브라우저 실행 바로 전에 이중 거부한다. 기존 원본 Full Quality/E2E8/Docker, fail-fast, QA/Ruleset/Owner/Main/Release/Finalizer 변동 없음. 과거 E2E/Docker 실행은 원인 Policy로 SKIPPED, 새 CI PASS는 아직 **NOT TESTED**. [원장](ISSUE_771_FAILURE_ANALYSIS.md).
+
+---
 ## Issue #771 — Draft 개발 Fast / Ready 최종 Full PR 검증 분리 (2026-10-22)
 
 | PR 이벤트·현재 Draft | 실행 의미 | 필수 CI Required3 결과 | 실제 무거운 구현 검사 |

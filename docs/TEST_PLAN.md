@@ -1,3 +1,11 @@
+## Issue #771 — F771-001/F771-002 정책 회귀 교정 (2026-10-22)
+
+- [원본 PR CI #3124.1](https://github.com/planner77/masterGantt/actions/runs/39730387486): `verify-issue-lifecycle.py`의 과거 `types: [opened, reopened, synchronize, edited]` 전체 문자열 일치 요구가 신규 Ready/Draft 이벤트와 충돌 → Policy FAIL. PR Fast Gate·Required3/QA 결과는 파생 FAIL, Chromium 8/8·Docker·PR Build는 **NOT RUN**.
+- 신규 `tests/python/test_ci_fast_development.py::test_lifecycle_event_set_accepts_ready_and_preserves_edited`: 이벤트 전체 집합/중복·기존 metadata `edited` 유지. `scripts/verify-issue-lifecycle.py`는 이벤트 순서에 의존하지 않고 요구 6종(`opened`, `reopened`, `synchronize`, `edited`, `ready_for_review`, `converted_to_draft`)을 정확히 검사.
+- 기존 `test_path_traversal_duplicate_and_missing_selection` 보강: 선택·제외 test IDs `tests/e2e/../evil.spec.ts`, `tests/e2e/./same.spec.ts` 음성, 실제 안전한 browser spec 양성. Fast browser 실행 직전 동일 세그먼트 거부 + `Path.resolve`가 `tests/e2e` 루트 안에 있는지 검사. 원격 새 Head 결과 아직 **NOT TESTED**.
+- 직접/교차: `scripts/verify-issue-lifecycle.py`, `tests/python/test_ci_fast_development.py`, `scripts/test_qa_preflight.py`, `tests/python/test_ci_impact_plan.py`, `scripts/test-pr-metadata-evidence.py`, 기존 Policy Job/Ready Full 8-shard. CI 성공, metadata vs Full provenance, Draft→Ready 실증, A/B 시간 절감은 완료 전 PASS로 기록 금지. [원장](ISSUE_771_FAILURE_ANALYSIS.md).
+
+---
 ## Issue #771 — Draft Fast/Ready Full 실행·출처·회귀 계획 (2026-10-22)
 
 - **자동 synthetic** `tests/python/test_ci_fast_development.py`: Draft/Ready/edited/converted_to_draft 전환, 동일 Head Ready Full, Run/Attempt/Head/Base/Test-Merge/repository 위조, plan SHA/테스트 누락·중복·경로 삽입, unknown/Full fallback, 실제 8-shard·Required3 guard·보조 workflow read-only 분리. `scripts/test_qa_preflight.py`에 동일 SHA Ready 정상과 Draft/live Draft 거부 회귀 추가. #770 기존 음성/8샤드 검증 유지.

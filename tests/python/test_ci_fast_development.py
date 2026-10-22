@@ -1,6 +1,7 @@
 """Issue #771 Draft/Ready source, selection and Required3 negative regressions."""
 import copy
 import importlib.util
+import re
 from pathlib import Path
 import unittest
 
@@ -123,6 +124,13 @@ class Selection(unittest.TestCase):
             p = copy.deepcopy(plan)
             p["selected_test_ids"][0]["id"] = path
             self.assertEqual(fast.prepared(recalc(p), event, env)["browser_selection"], [])
+        for path in ("tests/e2e/../evil.spec.ts", "tests/e2e/./same.spec.ts"):
+            p = copy.deepcopy(plan)
+            p["excluded_test_ids"][0]["id"] = path
+            self.assertEqual(fast.prepared(recalc(p), event, env)["browser_selection"], [])
+        self.assertTrue(fast.safe_test_id("tests/e2e/project-search-filter.spec.ts"))
+        self.assertFalse(fast.safe_test_id("tests/e2e/../evil.spec.ts"))
+        self.assertFalse(fast.safe_test_id("tests/e2e/./same.spec.ts"))
         p = copy.deepcopy(plan)
         p["excluded_test_ids"][0]["id"] = p["selected_test_ids"][0]["id"]
         self.assertEqual(fast.prepared(recalc(p), event, env)["browser_selection"], [])
@@ -145,6 +153,20 @@ class WorkflowGuard(unittest.TestCase):
         self.assertIn("FINAL_FULL", ci)
         self.assertIn("matrix:\n        shard: [1, 2, 3, 4, 5, 6, 7, 8]", ci)
         self.assertEqual(ci.count("name: Build, static checks, and unit tests"), 1)
+
+    def test_lifecycle_event_set_accepts_ready_and_preserves_edited(self):
+        verify = (ROOT / "scripts/verify-issue-lifecycle.py").read_text(encoding="utf-8")
+        ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        self.assertIn("expected_pr_events", verify)
+        event_match = re.search(
+            r"(?m)^  pull_request:\s*\n    types:\s*\[([^\n\]]+)\]", ci)
+        self.assertIsNotNone(event_match)
+        actions = [item.strip() for item in event_match.group(1).split(",")]
+        self.assertEqual(set(actions), {
+            "opened", "reopened", "synchronize", "edited",
+            "ready_for_review", "converted_to_draft",
+        })
+        self.assertEqual(len(actions), len(set(actions)))
 
     def test_fast_separate_read_only_no_required_check_impersonation(self):
         fast_yml = (ROOT / ".github/workflows/pr-fast-development.yml").read_text()

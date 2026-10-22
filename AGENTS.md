@@ -1,3 +1,9 @@
+## Issue #771 — 첫 Full #3124.1 정책 실패·P1 반영 (2026-10-22)
+
+- [Run 39730387486.1](https://github.com/planner77/masterGantt/actions/runs/39730387486)은 구형 `pull_request.types` 전체 문자열 검사로 Policy FAIL. 기존 `edited`와 신규 Ready/Draft를 **순서 독립·중복/미지 이벤트 거부 집합**으로 검증한다. P1 `tests/e2e/../evil.spec.ts`도 Fast 선택/제외/실행 직전 거부하도록 계약 보완.
+- [Issue #771 단일 실패 원장](docs/ISSUE_771_FAILURE_ANALYSIS.md)에 직접 Policy 실패/파생 Required3·QA FAIL/Chromium8·Docker 미실행, 두 리뷰 P1과 교정 회귀를 구분한다. 코드·테스트·문서/실패 원장을 **단일 PR branch 업데이트**로 게시하고 새 PR Full CI 시작. 사용자 요청에 따라 이후 모니터링·병합·Main/GHCR·Issue 종료는 하지 않는다. Owner HIGH 승인 전 Merge BLOCKED.
+
+---
 ## Issue #771 — Draft Fast와 Ready Final Full 신뢰 분리 (2026-10-22)
 
 - Draft `opened`/`synchronize`/`reopened`/`converted_to_draft`는 `.github/workflows/pr-fast-development.yml`의 `FAST_DEVELOPMENT` (advisory)만 선택 E2E/정적 피드백을 수행한다. 기본 브랜치 #770 분류기의 정확 Head/Base/Test-Merge·Run/Attempt 및 Test Plan SHA를 검증하며 `FULL_REQUIRED`/UNKNOWN은 선택 E2E 미실행·NOT TESTED로 남긴다. Fast PASS를 QA/Required/병합 승인 증거로 사용하지 않는다.
