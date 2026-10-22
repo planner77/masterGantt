@@ -1,3 +1,8 @@
+## Issue #772 — 승인형 LOW E2E 전환과 Ruleset 원복 (2026-10-22)
+
+Owner 전용: `LOW_TARGETED_POLICY_ENABLED`는 최초 미설정/false → 기존 Ready PR Full8. 인증된 10개 이상의 서로 다른 LOW Full8 성공 Shadow Run/Attempt/Head/Base/test-merge와 negative regression, 보호 전용 시험 PR OFF/ON 실측, QA·Lifecycle·metadata source 정합성과 rollback 리허설을 기록한 후 **별도 Owner 명시 승인**으로 true 전환한다. 이를 Agent/PR 변수나 PR body가 자체 승인하지 못한다. 이상 징후(Main-only regression, 선택 누락, 허위 PASS) 즉시 false → 원래 Full8. Full 검증이 정정되기 전의 기존 성공 Run 소급 재지정 금지.
+Ruleset #24043042의 `Build, static checks, and unit tests`/`Chromium end-to-end tests`/`Docker build and runtime smoke test`, strict latest main 및 review thread 0 유지. Required 이름 변경이 꼭 필요한 경우 Owner가 관리 권한으로 변경 전 세 context·integration/strict/review 및 원본 HEAD 확인, 새 context의 실제 성공/테스트 후 수동 변경·원복; Agent 무권한 우회/Pending 유발 금지. Release/Finalizer GHCR Main Full8 유지. [#772 Work Packet](exec-plans/active/ISSUE_772.md).
+
 ## Issue #773 — Release Main 증거 Shadow / 별도 승인 전환 Runbook
 
 - **사전 조건:** `main`에 #773 HIGH/OWNER_MANAGED 정책 PR이 기존 Full PR Quality/E2E8/8/Docker·Trusted QA·Owner 위험 승인으로 병합되고, 다음 exact merge SHA Main Full CI/임시 `ci-<sha>` GHCR 증명까지 완료. 현 이슈 자체는 release_required=false/release_authorized=false, 정식 tag/이미지 생성 금지.

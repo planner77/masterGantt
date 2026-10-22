@@ -440,6 +440,12 @@ def verify_same_base_full_run(gh, number, head, base, current_run_id, merge=None
         require(all(jobs.get(name) == "success" for name in required) and
                 jobs.get("PR metadata가 기존 전체 CI 증거를 보존하는지 검증") == "skipped",
                 "동일 base의 full-run quality/e2e/docker 증거 불충분", "FAIL")
+        if jobs.get("Low E2E targeted execution") == "success":
+            from ci_low_source import verified_targeted_source
+            verified_targeted_source(
+                gh, run, {"repository": gh.repo, "pr_number": prior_number,
+                          "head_sha": h, "base_sha": b, "test_merge_sha": m},
+                jobs, enabled=os.environ.get("LOW_TARGETED_POLICY_ENABLED") == "true")
         return int(run["id"])
     raise Blocked("BLOCKED", "동일 PR/head/base의 전체 PR CI run 없음")
 
@@ -602,6 +608,37 @@ def check(env, event, gh):
         "e2e": env.get("NEED_E2E"), "docker": env.get("NEED_DOCKER"),
         "metadata": env.get("NEED_METADATA"), "metadata_only": env.get("METADATA_ONLY"),
         "e2e_required": env.get("E2E_REQUIRED"), "docker_required": env.get("DOCKER_REQUIRED")})
+    # #772: an aggregate PASS never claims Full when the verified execution
+    # mode is TARGETED. Only base-trusted source+actual results may attest it.
+    low_source = None
+    low_requested = env.get("LOW_POLICY_MODE", "")
+    require(low_requested in ("", "FULL_REQUIRED", "TARGETED_POLICY_CANDIDATE",
+                              "DOCS_ONLY_VERIFIED"), "LOW_E2E_MODE_UNKNOWN")
+    if low_requested == "TARGETED_POLICY_CANDIDATE":
+        from ci_low_source import verified_targeted_source
+        run_id, attempt = int(run["id"]), int(run["run_attempt"])
+        original = source_artifact(gh, run_id, attempt)
+        orig_number, orig_head, orig_base, orig_merge, _ = verified_source(gh, run, original)
+        require((orig_number, orig_head, orig_base, orig_merge) ==
+                (n, env["EVENT_HEAD_SHA"], env["EVENT_BASE_SHA"], env["TEST_MERGE_SHA"]),
+                "TARGETED_SOURCE_PR_HEAD_BASE_MERGE_MISMATCH")
+        actual_jobs = effective_run_jobs(gh, run_id, attempt)
+        topology = {name: job.get("conclusion") for name, job in actual_jobs.items()}
+        low_source = verified_targeted_source(
+            gh, run,
+            {"repository": gh.repo, "pr_number": n, "head_sha": orig_head,
+             "base_sha": orig_base, "test_merge_sha": orig_merge},
+            topology, enabled=env.get("LOW_TARGETED_POLICY_ENABLED") == "true",
+            allow_in_progress=True)
+        job_evidence["e2e_evidence"] = "TARGETED_POLICY_VERIFIED"
+        job_evidence["e2e_execution_policy"] = "TARGETED_POLICY_VERIFIED_NOT_FULL"
+    else:
+        job_evidence["e2e_execution_policy"] = (
+            "DOCS_ONLY_VERIFIED" if low_requested == "DOCS_ONLY_VERIFIED" and
+            env.get("E2E_REQUIRED") == "false" and
+            env.get("DOCKER_REQUIRED") == "false" else
+            "PREVIOUS_REQUIRED_VERIFIED" if env.get("METADATA_ONLY") == "true" else
+            "FULL_REQUIRED_EXISTING_CONTRACT")
     issue = primary_issue(pr.get("title") or "", pr.get("body") or "")
     risk = pr_field(pr.get("body") or "", "risk_level", {"LOW", "MEDIUM", "HIGH"})
     method = pr_field(pr.get("body") or "", "qa_method", {"AGENT", "OWNER_MANAGED", "AUTOMATED_MANAGER"})
@@ -647,7 +684,8 @@ def check(env, event, gh):
             "unresolved_review": 0,
             "protected_paths": sorted(protected),
             "residual_risks": "실제 의미/UX/HIGH 수동 검토 및 Manager ACCEPT 대기",
-            **job_evidence, **result, **protected_receipt}
+            **job_evidence, **result, **protected_receipt,
+            **({"targeted_ci_receipt": low_source} if low_source is not None else {})}
 
 
 
@@ -759,7 +797,8 @@ def trusted_source(env, event, gh):
         "metadata_only": "true" if metadata_only else "false",
         "e2e_required": "true" if any(
             k.startswith("Chromium E2E shard ") and v == "success"
-            for k, v in results.items()) else "false",
+            for k, v in results.items()) or
+            results.get("Low E2E targeted execution") == "success" else "false",
         "docker_required": "true" if results.get("Docker smoke 구현") == "success" else "false",
     }
     # Never promote a spoofed required-check name outside the approved full CI.
@@ -778,6 +817,10 @@ def trusted_source(env, event, gh):
         "NEED_METADATA": vals["metadata"],
         "METADATA_ONLY": vals["metadata_only"],
         "E2E_REQUIRED": vals["e2e_required"], "DOCKER_REQUIRED": vals["docker_required"],
+        "LOW_POLICY_MODE": ("TARGETED_POLICY_CANDIDATE"
+                            if results.get("Low E2E targeted execution") == "success"
+                            else ""),
+        "LOW_TARGETED_POLICY_ENABLED": env.get("LOW_TARGETED_POLICY_ENABLED", ""),
     })
     synthetic = {"pull_request": {"head": {"sha": head}, "base": {"sha": base}}}
     report = check(ctx, synthetic, gh)

@@ -383,6 +383,23 @@ def required_checks_ok(
                 return False, bad, (
                     f"FULL_REQUIRED_FAILURE: run={run_id}.{attempt} url={url} "
                     f"base={base} test_merge={test_merge} failed={bad}")
+            # #772: a targeted E2E aggregate is a policy execution PASS, not
+            # a FULL_E2E_PASS. The exact default-main source verifier MUST
+            # re-read and bind both artifacts and immutable Git source.
+            if jobs.get("Low E2E targeted execution", {}).get("conclusion") == "success":
+                from ci_low_source import verified_targeted_source
+                targeted = verified_targeted_source(
+                    client, item,
+                    {"repository": repo, "pr_number": number, "head_sha": head,
+                     "base_sha": base, "test_merge_sha": test_merge},
+                    {name: job.get("conclusion") for name, job in jobs.items()},
+                    enabled=os.environ.get("LOW_TARGETED_POLICY_ENABLED") == "true")
+                return True, [], (
+                    f"TARGETED_POLICY_VERIFIED_NOT_FULL: run={run_id}.{attempt} url={url} "
+                    f"PR={number} head={head} base={base} test_merge={test_merge} "
+                    f"merge={merge_sha or 'OPEN'} selected="
+                    f"{len(targeted['selected_test_ids'])} actual="
+                    f"{targeted['actual_test_case_count']} policy={targeted['policy_blob_sha']}")
             return True, [], (
                 f"FULL_VERIFIED: run={run_id}.{attempt} url={url} "
                 f"PR={number} head={head} base={base} test_merge={test_merge} "

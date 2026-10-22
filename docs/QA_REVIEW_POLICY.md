@@ -1,3 +1,7 @@
+## Issue #772 — Targeted는 Full QA 영수증이 아니다 (2026-10-22)
+
+신규 검증 모드 `FULL_REQUIRED` / `TARGETED_POLICY_VERIFIED` / `DOCS_ONLY_VERIFIED` / `NOT_RUN` / `UNKNOWN` / `BLOCKED`를 구분한다. LOW 후보는 PR body/Work Packet의 자가 주장으로 결정되지 않고 인증된 base 정책·diff·소비자·실제 직접+인접+음성 Playwright 보고서·Run/Attempt/Head/Base/Test-Merge·정책 Blob/원본 artifact 검증 뒤에만 승인할 수 있다. 선택 E2E가 실행되지 않거나 skipped/cancelled/changed/old failure/unknown이면 허위 Green 불가. 기존 Required3 이름과 Strict, QA Automated/Trusted, exact HEAD Owner HIGH 위험 수용은 유지한다. #772 정책 보호 변경 자체는 기존 Full8+Trusted/Owner 승인 필요. 기본 flag OFF, 10 distinct LOW Full Shadow 성공+전용 PR 실증 전 활성화 금지. [Work Packet](exec-plans/active/ISSUE_772.md).
+
 ## Issue #771 — Fast 성공과 Full/Trusted/Owner 승인 권한 구분 (2026-10-22)
 
 - `FAST_DEVELOPMENT`는 작업 중 참고용으로만 표시한다. 기본 브랜치 인증 #770 선정 계획, 작업 branch에서 실행한 typecheck/lint/unit/build/선택 E2E가 성공해도 `required Quality/E2E/Docker`·Trusted QA·Merge Ready·Release/Finalizer PASS를 만들 수 없다.

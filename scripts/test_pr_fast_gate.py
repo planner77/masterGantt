@@ -87,12 +87,37 @@ class WorkflowContract(unittest.TestCase):
         self.assertIn("shard: [1, 2, 3, 4, 5, 6, 7, 8]", job(self.yaml, "pr_e2e_shard"))
 
     def test_pr_lane_blocks_on_fast_gate(self):
-        for name in ("pr_build", "pr_e2e_shard", "pr_docker_smoke"):
-            lane = job(self.yaml, name)
-            self.assertIn("github.event_name == 'pull_request'", lane)
-            self.assertIn("github.event.action != 'edited'", lane)
-            self.assertIn("needs.pr_fast_gate.result == 'success'", lane)
-            self.assertIn("needs: [changes, preflight, pr_fast_gate]", lane)
+        # Issue #772: PR E2E also needs the trusted LOW plan; PR Build/Docker
+        # keep their original fast-gate dependencies. Check the actual job-
+        # scoped, exact dependency set, never an old substring.
+        expected_needs = {
+            "pr_build": ["changes", "preflight", "pr_fast_gate"],
+            "pr_e2e_shard": ["changes", "preflight", "pr_fast_gate",
+                             "low_e2e_plan"],
+            "pr_docker_smoke": ["changes", "preflight", "pr_fast_gate"],
+        }
+        for name, required in expected_needs.items():
+            with self.subTest(job=name):
+                lane = job(self.yaml, name)
+                self.assertIn("github.event_name == 'pull_request'", lane)
+                self.assertIn("github.event.action != 'edited'", lane)
+                self.assertIn("needs.pr_fast_gate.result == 'success'", lane)
+                found = [line.strip() for line in lane.splitlines()
+                         if line.startswith("    needs: [") and
+                         line.rstrip().endswith("]")]
+                self.assertEqual(len(found), 1, f"{name}: needs 누락/중복")
+                actual = [item.strip() for item in
+                          found[0].removeprefix("needs: [").removesuffix("]").split(",")]
+                self.assertEqual(len(actual), len(set(actual)),
+                                 f"{name}: 중복 needs")
+                self.assertEqual(actual, required,
+                                 f"{name}: 신뢰된 Fast/LOW source 의존성 훼손")
+        targeted = job(self.yaml, "pr_e2e_shard")
+        self.assertIn(
+            "needs.low_e2e_plan.outputs.mode != 'TARGETED_POLICY_CANDIDATE'",
+            targeted,
+        )
+        self.assertIn("shard: [1, 2, 3, 4, 5, 6, 7, 8]", targeted)
         gate = job(self.yaml, "pr_fast_gate")
         self.assertIn("needs: [changes, preflight, policy, typecheck, lint, unit]", gate)
         self.assertIn("run: python3 scripts/pr_fast_gate.py", gate)

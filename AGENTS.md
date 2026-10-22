@@ -1,3 +1,36 @@
+## Issue #772 — 세 번째 Policy 실패, Fast Gate 계약 소비자 누락 교정 (2026-10-22)
+
+- [PR #778 Full #3143.1](https://github.com/planner77/masterGantt/actions/runs/39771025331): 앞선 `test_qa_preflight.py`는 PASS, 다음 `scripts/test_pr_fast_gate.py::WorkflowContract.test_pr_lane_blocks_on_fast_gate` line 95에서 과거 PR E2E `needs: [changes, preflight, pr_fast_gate]` 문자열만 허용해 최신 `low_e2e_plan`을 거부. Policy 직접 FAIL, Fast Gate/Required3/QA는 파생, Chromium8·Docker·LOW 정책 회귀는 NOT RUN. 기존 3개 실패 원본 Run/Attempt는 [#772 단일 실패 원장](docs/ISSUE_772_FAILURE_ANALYSIS.md)과 [Work Packet](docs/exec-plans/active/ISSUE_772.md)에 보존.
+- Build/Docker는 종전 3종, PR E2E는 4종 정확 `needs`를 유지하면서 모든 경로에서 PR Fast Gate 성공 필수, Owner LOW 활성화 플래그 미설정 시 기존 Full8 복귀를 테스트한다. `scripts/test_pr_fast_gate.py` 및 `tests/python/test_ci_low_workflow.py`의 직접·인접·negative 계약을 일괄 교정하며 임의 skip/Retry/timeout 확대/Ruleset 완화는 금지.
+- 이 정책 자체 HIGH / OWNER_MANAGED. 새 Head의 Full8+Trusted/Owner 검증 전 MERGE BLOCKED, `LOW_TARGETED_POLICY_ENABLED` OFF. 이번 지시는 새 PR CI 시작까지만, 모니터링/병합/Main/GHCR/Finalizer/이슈 종료 금지.
+
+---
+
+## Issue #772 — 두 번째 Policy 실패·E2E Job 경계 교정 (2026-10-22)
+
+- [두 번째 PR #778 Full CI #3142.1](https://github.com/planner77/masterGantt/actions/runs/39764955472) 직접 Policy FAIL: `test_workflow_aggregate_guard_contract`의 `split("  e2e:\\n")`가 dorny `changes` path filter 내부 `e2e:`와 조기 매칭해 E2E Job의 실제 `needs`를 읽지 못함. Fast Gate/Required3/QA FAIL은 파생, Chromium8·Docker·LOW 회귀는 미실행. 이전 [#3141.1](https://github.com/planner77/masterGantt/actions/runs/39759380633)과 같은 파일이지만 직접 원인은 별개이며 두 Run/Attempt를 [#772 누적 원장](docs/ISSUE_772_FAILURE_ANALYSIS.md)에 기록.
+- 이전 두 P1 리뷰는 해결 상태였으나, 코드 감사에서 LOW 3개 `env`가 E2E가 아닌 `quality` Job에 삽입된 불완전한 수정 발견. 정확 E2E 집계 env로 이관, Quality 바인딩 제거, `\n  e2e:\n` anchored job 인식과 `test_ci_low_workflow.py`의 잘못된 동일 split 교정. OFF Full8·선택 실제 PASS가 없는 green 금지·Owner flag 동일 출처를 가드한다.
+- 본 보호 변경은 HIGH / OWNER_MANAGED, `LOW_TARGETED_POLICY_ENABLED` 초기 OFF·기존 Required3/Chromium8/Main/Release/Ruleset strict·Owner 위험 수용 불변. 새 Head PR CI 시작까지 수행하고 이후 모니터링·병합/Main/GHCR/Finalizer/Issue 종료 제외. [Work Packet](docs/exec-plans/active/ISSUE_772.md).
+
+---
+
+## Issue #772 — PR #778 첫 Full CI 실패 및 P1 회귀 보호 (2026-10-22)
+
+- [#772 단일 실패 원장](docs/ISSUE_772_FAILURE_ANALYSIS.md), [Work Packet](docs/exec-plans/active/ISSUE_772.md). [Run 39759380633.1](https://github.com/planner77/masterGantt/actions/runs/39759380633)의 Policy 직접 실패는 `scripts/test_qa_preflight.py` 기존 E2E `needs` 문자열 단언의 낡은 계약. Fast Gate/Required3/QA FAIL은 파생, Chromium8/Docker 구현은 NOT RUN.
+- 리뷰 [P1 #4346971684](https://github.com/planner77/masterGantt/pull/778#discussion_r4346971684): E2E aggregate의 `LOW_MODE/LOW_PLAN/LOW_TARGETED` env 누락; [P1 #4346971692](https://github.com/planner77/masterGantt/pull/778#discussion_r4346971692): 선택 attestation의 Owner flag 누락. 두 경로 모두 같은 변경으로 교정, 새 정적 회귀에서 OFF Full8/ON 실제 증거 차단 판정 검증.
+- 이번 보호 CI/QA 정책 변경 자체는 HIGH/OWNER_MANAGED, `LOW_TARGETED_POLICY_ENABLED` **OFF 유지**. 이전 실패를 PASS로 갱신하지 않고 새 exact Head Full8/Trusted QA·Owner 별도 승인 필수. 사용자 지시 범위는 PR CI 시작까지만, 모니터링/병합/Main/GHCR/Finalizer/이슈 종료 불포함.
+
+---
+
+## Issue #772 — 선택 LOW E2E의 인증·Owner 전환 원칙 (2026-10-22)
+
+- [#772 Work Packet](docs/exec-plans/active/ISSUE_772.md) 기준: #770 신뢰된 Shadow 분류, #771 Ready Full/Draft advisory를 전제로 LOW **비대화형 문구** 단 한 곳만 선택 E2E 후보로 허용한다. global tokens/버튼 접근성·focus/공용 state/API/auth/DB/CI/QA/fixture/test rename·불명확한 의존성은 반드시 Full8.
+- 공식 모드: `FULL_REQUIRED`(기존 Full8), `TARGETED_POLICY_VERIFIED`(실제 선정 direct+adjacent+negative tests 통과, 절대 Full PASS 아님), `DOCS_ONLY_VERIFIED`, NOT_RUN/UNKNOWN/BLOCKED. 신뢰된 base 정책 Blob SHA와 Head/Base/Test-Merge/Run·Attempt, 실제 Playwright reporter·선정/배제/사유를 cross-check한다. PR 자기 선언/skip/취소/기존 실패 Full 소급 인정 금지.
+- 플래그 `LOW_TARGETED_POLICY_ENABLED` 초기 **OFF**. 최소 10개의 서로 다른 LOW Shadow/Full8 성공 출처와 음성 회귀·보호 시험 PR ON/OFF·Owner 명시 승인 후에만 ON. 원치 않는 Main-only 회귀 시 OFF→기존 Full8, 기존 Required3/Ruleset #24043042 strict/review 및 Main Full8/Docker/GHCR/Release/Finalizer 불변.
+- 이 고위험 정책 변경 자체는 **기존 base Full8 + Trusted QA + Owner HIGH 수용**으로 검증; 이번 요청은 코드·문서·새 PR CI 시작까지만, 원격 결과 NOT TESTED, 병합/게시/종료/모니터링 제외. `docs/CI_CD.md`, `docs/TEST_PLAN.md`, `docs/QA_REVIEW_POLICY.md`, `docs/ISSUE_LIFECYCLE.md` 참조.
+
+---
+
 ## Issue #773 — Release Main Full 증거 재사용과 SHADOW 안전 경계 (2026-10-22)
 
 - [#773 작업 원장](docs/exec-plans/active/ISSUE_773.md), [CI/CD](docs/CI_CD.md), [Remote](docs/REMOTE_VALIDATION.md), [이슈별 실패 원장](docs/ISSUE_773_FAILURE_ANALYSIS.md) 기준. #438 Main verified GHCR digest를 재사용하면서 Release의 정적/E2E 8샤드 중복 수행을 제거할 수 있는지 **인증된 exact Main push Full** 출처로 검증한다. Issue 생성 당시 여섯 샤드는 현재 공식 여덟 샤드(#767)로 대체됐다.
