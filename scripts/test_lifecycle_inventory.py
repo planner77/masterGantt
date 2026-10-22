@@ -163,8 +163,8 @@ def _policy_run_steps(job_body: str) -> list[dict[str, str]]:
     Block scalars are preserved as source text, not executed or evaluated.
     """
     lines = job_body.splitlines()
-    job_header = job_body.split("    steps:\\n", 1)[0]
-    job_if = re.search(r"(?ms)^    if:\\s*(.*?)(?=^    [a-zA-Z_][\\w-]*:\\s*|\\Z)", job_header)
+    job_header = job_body.split("    steps:\n", 1)[0]
+    job_if = re.search(r"(?ms)^    if:\s*(.*?)(?=^    [a-zA-Z_][\w-]*:\s*|\Z)", job_header)
     job_condition = " ".join(job_if.group(1).split()) if job_if else "UNKNOWN (no policy job if recorded)"
     starts = [i for i, line in enumerate(lines)
               if re.match(r"^      - (?:name|uses|id|run|if):(?:\s|$)", line)]
