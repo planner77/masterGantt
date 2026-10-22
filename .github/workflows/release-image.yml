@@ -237,6 +237,8 @@ jobs:
         uses: ./.github/actions/node-setup
         with:
           node-version: "22"
+          # Match exact Main E2E native dependency headers for reuse policy.
+          use-local-node-headers: "true"
       - name: Playwright setup 계측
         uses: ./.github/actions/playwright-setup
       - name: Release E2E shard 실행
