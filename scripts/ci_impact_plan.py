@@ -631,7 +631,8 @@ def source_context(event: dict, mode: str) -> dict:
         raise ValueError("GITHUB_EVENT_SOURCE_INVALID")
     if mode == "pr":
         pr = event["pull_request"]
-        if event.get("action") not in ("opened", "reopened", "synchronize"):
+        if event.get("action") not in ("opened", "reopened", "synchronize",
+                                       "ready_for_review", "converted_to_draft"):
             raise ValueError("NOT_FULL_PR_EVENT")
         base, head, merge = pr["base"]["sha"], pr["head"]["sha"], os.environ["GITHUB_SHA"]
         if not all(valid_sha(s) for s in (base, head, merge)):
@@ -691,12 +692,20 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=("pr", "main"), required=True)
     parser.add_argument("--output", default="ci-impact-shadow.json")
+    parser.add_argument("--plan-only", action="store_true",
+                        help="Draft FAST_DEVELOPMENT advisory plan only; no Full evidence")
     args = parser.parse_args()
     report: dict = {"schema": SCHEMA, "evidence_status": "UNKNOWN",
                     "mode_recommendation": "FULL_REQUIRED", "risk": "UNKNOWN"}
     try:
         event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
         ctx = source_context(event, args.mode)
+        if args.plan_only:
+            if (args.mode != "pr" or event.get("action") == "ready_for_review" or
+                    event["pull_request"].get("draft") is not True):
+                raise ValueError("FAST_PLAN_REQUIRES_DRAFT_PR")
+        elif args.mode == "pr" and event["pull_request"].get("draft") is True:
+            raise ValueError("SHADOW_FULL_REQUIRES_READY_PR")
         base, head, merge = ctx["base"], ctx["head"], ctx["merge"]
         policy_blob = git("rev-parse", f"{base}:scripts/ci_impact_plan.py") \
             if args.mode == "pr" else git("rev-parse", f"{head}:scripts/ci_impact_plan.py")
@@ -717,15 +726,22 @@ def main() -> int:
         required = os.environ.get("E2E_REQUIRED", "").lower() == "true"
         shard_count = trusted_shard_count(base if args.mode == "pr" else ctx["target"])
         report["trusted_e2e_shard_count"] = shard_count
-        results = {"quality": os.environ.get("NEED_QUALITY", ""),
-                   "e2e": os.environ.get("NEED_E2E", ""),
-                   "docker": os.environ.get("NEED_DOCKER", "")}
-        report["observed_ci"] = observed_ci(
-            ctx["repo"], ctx["run_id"], ctx["attempt"], run["event"], required, results,
-            source_sha=ctx["target"], inventory=current["e2e"],
-            selected_e2e={x["id"] for x in report["selected_test_ids"] if x["kind"] == "CHROMIUM"},
-            shard_count=shard_count)
-        report["evidence_status"] = "OBSERVE_ONLY" if report["observed_ci"]["status"] != "UNKNOWN" else "UNKNOWN"
+        if args.plan_only:
+            # Draft advisory mode; do not query/claim authoritative Required3.
+            report["observed_ci"] = {"status": "NOT_TESTED",
+                                     "reason": "FAST_DEVELOPMENT_NON_AUTHORITATIVE"}
+            report["evidence_status"] = "PLAN_VERIFIED_NON_AUTHORITATIVE"
+        else:
+            results = {"quality": os.environ.get("NEED_QUALITY", ""),
+                       "e2e": os.environ.get("NEED_E2E", ""),
+                       "docker": os.environ.get("NEED_DOCKER", "")}
+            report["observed_ci"] = observed_ci(
+                ctx["repo"], ctx["run_id"], ctx["attempt"], run["event"], required, results,
+                source_sha=ctx["target"], inventory=current["e2e"],
+                selected_e2e={x["id"] for x in report["selected_test_ids"] if x["kind"] == "CHROMIUM"},
+                shard_count=shard_count)
+            report["evidence_status"] = ("OBSERVE_ONLY"
+                if report["observed_ci"]["status"] != "UNKNOWN" else "UNKNOWN")
         report["tool_versions"] = {"python": sys.version.split()[0],
                                    "policy_blob": policy_blob,
                                    "local_prepr": "scripts/prepr-core.mjs"}

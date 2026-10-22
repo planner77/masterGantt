@@ -49,10 +49,12 @@ def check(event, env, gh):
     the CI without claiming deterministic failure or readiness.
     """
     qa.require(env.get("GITHUB_EVENT_NAME") == "pull_request" and
-               event.get("action") in ("opened", "reopened", "synchronize"),
+               event.get("action") in ("opened", "reopened", "synchronize", "ready_for_review"),
                "full PR 이벤트만 preflight 대상으로 허용")
     n = int(env["PR_NUMBER"])
     observed = event.get("pull_request") or {}
+    qa.require(observed.get("draft") is False,
+               "FINAL_FULL 이벤트는 명시적인 non-draft PR에서만 허용")
     head = (observed.get("head") or {}).get("sha")
     base = (observed.get("base") or {}).get("sha")
     qa.require(event.get("number") == n and observed.get("number") == n and
@@ -63,6 +65,7 @@ def check(event, env, gh):
                "원본 이벤트의 PR/Head/base 출처 불일치")
     live = gh.get(f"{gh.prefix}/pulls/{n}")
     qa.require(live.get("number") == n and live.get("state") == "open" and
+               live.get("draft") is False and
                (live.get("head") or {}).get("sha") == head and
                (live.get("base") or {}).get("sha") == base and
                (live.get("base") or {}).get("ref") == "main" and

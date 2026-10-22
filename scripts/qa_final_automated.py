@@ -246,6 +246,8 @@ def verified_source(gh, run, payload):
                 payload["base_repository"],
             "현재 PR head/branch/repository가 원본 검증과 다릅니다")
     if live.get("state") == "open" and not live.get("merged"):
+        require(live.get("draft") is not True,
+                "Draft PR has no authoritative FINAL_FULL QA", "FAIL")
         require((live.get("base") or {}).get("sha") == base and
                 live.get("merge_commit_sha") == merge,
                 "병합 전 PR base/test-merge가 원본 검증과 다릅니다")
@@ -328,6 +330,8 @@ def snapshot(event, live, run, env):
     h = (p.get("head") or {}).get("sha")
     b = (p.get("base") or {}).get("sha")
     require(live.get("state") == "open", "PR 상태가 open이 아님")
+    require(live.get("draft") is not True,
+            "Draft PR cannot receive automated full QA", "FAIL")
     require(h == env.get("EVENT_HEAD_SHA") == live.get("head", {}).get("sha"),
             "PR latest Head stale")
     require(b == env.get("EVENT_BASE_SHA") == live.get("base", {}).get("sha"),
