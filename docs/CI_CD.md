@@ -1,3 +1,17 @@
+## Issue #773 — Release의 인증된 Main Full 증거 Shadow/재사용 (2026-10-22)
+
+`main` push CI의 현재 Full Quality/Policy/Typecheck/Lint/Unit/Build + **Chromium8/8 workers1** + Docker + 임시 `ci-<40SHA>` published exact image/digest smoke는 **일절 축소하지 않는다**. Main의 `main_image` job은 기존 GHCR 검증 뒤 명시적 `--list --reporter=json` 테스트 인벤토리 및 버전/파일/testplan/runtime/OCI digest를 `main-reuse-manifest-<run_id>-<attempt>`(30일) read-only receipt로 보존한다. 이는 standalone PASS가 아니라 인증 전 **UNTRUSTED DATA**다. 새 E2E timing artifact에는 runner image OS/version/arch 필드를 추가하며 오래된 artifact는 소급 보완하지 않는다.
+
+Release `.github/workflows/release-image.yml`의 `prepare`에서 기본 브랜치 별도 checkout의 `scripts/release-reuse-evidence.py`를 읽기 권한으로 실행한다. exact annotated `v<SemVer>` tag→peeled merge SHA, first-parent+PR two parents/Issue/Owner exact-version authorization marker, complete Main push run ID/attempt/workflow path/id, 실제 각 Job 및 Mandatory Step SUCCESS, 출처/해시·Playwright case 수·skip=0·8개 timing ZIP·tool/fixture/runner/DB profile 검증에 실패하면 `REUSE_INELIGIBLE`. runner/REST/registry source가 불명확하면 성공으로 위장하지 않는다. 최소 유효기간은 자동 추정하지 않으며 `RELEASE_REUSE_MAX_AGE_HOURS`가 별도 정책으로 승인되어 1..720 범위 값일 때만 eligibility 평가 가능하다.
+
+최초 운영은 `RELEASE_REUSE_ENABLED` OFF/unset의 **SHADOW**: 판정 artifact `release-reuse-verdict-<run>-<attempt>`를 생성하되 기존 Release static 전체 검사와 E2E8/8을 그대로 실행. Owner의 별도 전환 승인 뒤에만 flag ON + 유효 age 정책 설정: 독립 판정 `REUSE_ELIGIBLE`이면 Release aggregate에서 `REUSED_VERIFIED`를 명시하고 실행 Job `quality_static`/`release_e2e_shard`는 실제 `skipped`; `FULL_PASS`/`EXECUTED`로 기록 금지. eligibility 오류는 Full 경로, 이미 reuse 선택 후 live registry digest/OCI 불일치는 **BLOCKED** (무인 동일 tag 재시도·source 대체 금지). 이전 원본 Main 실패/취소/skip의 결과는 불변.
+
+`container`의 GHCR candidate exact digest·OCI labels 검산, HTTP/HTTPS/browser/DB migration·readiness·SQLite restart/persistence·Project/Task API, image policy 및 `publish`의 optional attestation·non-moving exact SemVer tag/digest promotion·`resume_finalizer` 연계는 양쪽 경로에서 동일하게 필수. #438 Build-once·#712/#713 source/metadata·#633/#765 release debt·#770 Shadow·#771 Fast/Ready·#772 LOW 승인·Ruleset Required3 정책을 혼합하거나 약화시키지 않는다. 보호 Policy HIGH/OWNER_MANAGED이며 기존 전체 PR CI/Trusted QA/Owner HIGH 및 병합 후 Main 전체 성공이 선행. `RELEASE_REUSE_ENABLED=false`로 Full 롤백.
+
+**측정:** 동일 source/버전의 완료된 성공 Full Release baseline 최소 3회 + Main exact SHA success + 실제 SHADOW 판정과 음성 fixture를 수집하고, Stage2 승인 뒤 Full 대비 reuse wall-clock(각 run start/completed), Job elapsed Runner-minutes, live candidate smoke/publish/Finalizer, fallback/BLOCKED/미발행 부채별 출처를 비교한다. 구 6-shard Release #186.1의 약35분은 8-way의 동등 표본이 아니므로 단독 절감률 증거 금지. 표본 부족 `INSUFFICIENT_DATA`; 지금 원격 실증 `NOT TESTED`. [Work Packet](exec-plans/active/ISSUE_773.md)·[RUNBOOK](GITHUB_OPERATIONS.md)·[TEST_PLAN](TEST_PLAN.md) 참조.
+
+---
+
 ## Issue #771 — PR Full #3124.1 Policy 실패 교정 (2026-10-22)
 
 - #771 PR #776 [Full Run 39730387486.1](https://github.com/planner77/masterGantt/actions/runs/39730387486)은 신규 `ready_for_review`, `converted_to_draft` 이벤트 때문에 구형 `types: [opened, reopened, synchronize, edited]` **완전 문자열 일치 검증**이 실패하여 Policy FAIL. 새 `scripts/verify-issue-lifecycle.py`는 `pull_request.types`의 6개 허용 이벤트를 순서 무관·중복/모호/이탈 이벤트 금지 집합으로 검증한다. 기존 `edited` metadata-only 계약 불변.
