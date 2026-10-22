@@ -237,7 +237,7 @@ describe("Issue #699 — process and existing-data safety", () => {
   });
 });
 
-describe("Issue #699 — historical capture provenance remains strict", () => {
+describe("Issue #699/#752/#762 — immutable historical capture with approved Next security patch", () => {
   it("allows only the exact local CLI alias while preserving all captured dependencies and scripts", () => {
     const dir = mkdtempSync(resolve(tmpdir(), "mastergantt-capture-test-"));
     created.push(dir);
@@ -307,6 +307,35 @@ describe("Issue #699 — historical capture provenance remains strict", () => {
     write();
     expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
     lock.packages["node_modules/react"].version = originalReact;
+
+    // Preserve Issue #752's extra negative contracts while retaining #762's
+    // stricter, reviewed Next.js lock/SRI/SWC metadata allowlist.
+    const savedNextVersion = manifest.dependencies.next;
+    manifest.dependencies.next = "16.4.3";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/unchanged package metadata/);
+    manifest.dependencies.next = savedNextVersion;
+
+    const nextOptional = lock.packages["node_modules/next"].optionalDependencies;
+    const savedSharpRange = nextOptional.sharp;
+    nextOptional.sharp = "^0.35.4";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Next.js security patch exact locked package metadata mismatch/);
+    nextOptional.sharp = savedSharpRange;
+
+    const swcLibc = lock.packages["node_modules/@next/swc-linux-x64-gnu"];
+    const savedLibc = swcLibc.libc;
+    swcLibc.libc = ["unsafe"];
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Next.js security patch exact locked package metadata mismatch/);
+    swcLibc.libc = savedLibc;
+
+    const ganttCore = lock.packages["node_modules/@svar-ui/react-gantt"];
+    const savedGanttVersion = ganttCore.version;
+    ganttCore.version = "0.0.0";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
+    ganttCore.version = savedGanttVersion;
 
     // No changes to the frozen original browser capture are permitted.
     write();

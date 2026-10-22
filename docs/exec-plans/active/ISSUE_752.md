@@ -1,0 +1,97 @@
+# Issue #752 — 반복 PR Full 실패 읽기 전용 진단과 수동 bounded E2E
+
+## Issue Work Packet
+
+- Issue: [#752](https://github.com/planner77/masterGantt/issues/752).
+- Baseline: main `72c2c9d0a912dc906d4101ea41a7a57e0c686597` (2026-10-22); Branch: `feat/issue-752-ci-diagnostics`.
+- 위험도: `HIGH`; QA: `qa_required=true`, `qa_method=OWNER_MANAGED`, `manager_decision=NOT TESTED`.
+- `release_required=false`, `release_authorized=false`. 앱 버전 0.129.1, API/UI/DB/schema, exact-version GHCR/Finalizer, Ruleset 불변.
+- 구현 지시 범위: 설계·코드·정책 회귀·관련 문서 동기화·PR 생성/Full CI 시작. CI 모니터링·병합/Main CI/GHCR/Issue 종료 제외.
+- Source of truth: [AGENTS.md](../../../AGENTS.md), [PR 실패 종합 지침](../../PR_CI_FAILURE_TRIAGE.md), [CI/CD](../../CI_CD.md), [원격 검증](../../REMOTE_VALIDATION.md), [#730 원장](../../ISSUE_730_FAILURE_ANALYSIS.md), [#751 원장](../../ISSUE_751_FAILURE_ANALYSIS.md).
+
+## 설계 — 기본 신뢰 경계
+
+1. `.github/workflows/issue-752-diagnostics.yml`는 **신뢰된 기본 브랜치** `workflow_run` 완료 이벤트의 별도 advisory Job으로만 과거 Run을 탐색한다. 기존 PR CI의 3 Required Check, 8-Shard, Preflight·Fast Gate, Trusted QA/Owner 결정을 수정하지 않는다.
+2. 원본 `ci-pr-source-<run_id>-<attempt>` pre-checkout Artifact, Git two-parent test merge, repository, PR canonical Issue, 워크플로 ID/path, 실제 원본 Job 결론을 교차 확인한다. 단순 CI Title, 과거 Head 성공, edited metadata-only, cancelled/skip 및 파생 aggregate/QA 실패는 직접 독립 실패로 계수하지 않는다. History 조회 누락·보존 만료는 `INCOMPLETE_EVIDENCE`이자 진단 승인 거부다.
+3. **동일 canonical PR에 서로 다른 2회 이상 완료된 직접 Full CI 실패**가 있고 마지막 원본이 현재 HEAD에 귀속할 때만 `DIAGNOSIS_RECOMMENDED`. `observe_notify`는 별도 최소 write 권한과 결정적 PR/head/failure-key 댓글 upsert. 실패/댓글 미전달은 Required3 비변경. 최초 bootstrap/새 브랜치 외 과거 History 조회 한계는 보수적인 미인증 상태로 남긴다.
+4. 권한 있는 Writer/Owner가 Actions > `Issue #752 — 반복 PR 실패 진단` > Run workflow에서 `PR number`, `Primary Issue number`, `expected exact HEAD SHA`를 제공해 수동 실행. 실행 직전 최신 PR Head/Base/test merge, canonical Refs, 누적 Issue 원장, source artifact, actor 권한, 변경 테스트 인벤토리를 재인증한다. stale/누락/권한 거부는 `BLOCKED`.
+5. 선정 집합은 단일 원장에 기록된 역사적 실제 실패 E2E spec ∪ PR 변경 E2E spec이며 최대 24개, 4개 독립 bounded 파트로 나눈다. 추가 간접/음성 소비자는 Owner가 원장에 확정해 보강해야 한다. **한계 초과 시 FULL 자동 재실행이 아닌 분할 계획 재승인**. 같은 Issue 원장 전 실패 합집합을 지우지 않는다.
+6. 진단에서는 승인된 exact HEAD 테스트 코드를 **읽기 전용** runner에서 실행하며 `--retries=0 --max-failures=0 --workers=1 --project=chromium --reporter=json`, 4파트 `strategy.fail-fast=false`를 적용한다. 격리된 worker에는 댓글 쓰기 토큰이 없고, 댓글 Job은 PR Head 코드를 실행하지 않는다. 진단 결과는 애초에 **Required PASS가 아니며** 과거 PASS로 승격 금지.
+7. `finish`는 정확 worker Run ID/Head/선정 path 및 raw reporter를 **데이터로만** 교차 검증한다. 정제된 파일/케이스 상태와 P50/P95/취소율, 원장 링크, Run 목록을 Job Summary와 14일 보존 JSON·Markdown Artifact로 노출. 원시 Trace/URL/헤더/토큰/SQL/DB/스택 전체는 repository에 커밋하거나 PR 댓글에 복사하지 않는다. 원본 CI source artifact 30일, worker 진단 artifact 14일; 만료 시 자동 PASS 금지.
+8. 종결 댓글은 **진단 보고서 Artifact 업로드가 실제 조회되는 경우에만 READY**로 표기한다. 누락·업로드 실패·출처 미확인·Part 미실행은 `DIAGNOSIS_INCOMPLETE` 또는 `BLOCKED`. 보고서의 `RESOLVED_CANDIDATE`는 원래 Full 회귀 검증 전 확정 RESOLVED가 아니다.
+9. Issue #767의 35분 근접 취소는 단순 취소로 실패 2회 규칙에 포함하지 않는다. `RECURRING_JOB_TIMEOUT_REVIEW`는 신뢰된 Runner 취소 사유와 로그까지 검증한 **별도 warning-only 후속 후보**로 남기며 코드 변경 없이 취소→독립 실패 간주 금지. 현재 PR/Main/Release 활성 E2E=8개; #730 6개는 당시 기록만 유지.
+
+## 운영·예외
+
+- 알림은 GitHub Conversation/Watch 설정에 따라 전달되므로 사용자가 Run Job Summary와 댓글에서 직접 확인 가능해야 한다.
+- `workflow_dispatch`는 기본 main에 병합된 뒤에만 실제로 제공된다. 이번 PR의 부트스트랩 상태를 실제 운영 진단이 이미 설치되었다고 해석하지 않는다.
+- 안전 롤백: 신규 advisory workflow만 비활성화/제거. 기존 CI 3 Required, QA/Trusted, Main/Release/Ruleset/Owner 정책은 건드리지 않는다.
+- Running metrics: 과거 SHA/OS/Node/Shard 달라질 때 P50/P95는 관찰 지표만 가능, 환경 동등성과 10개 독립 표본 없이는 성능 개선 판정 `INSUFFICIENT_DATA`.
+- Source baseline 보호 파일 변경이며 Owner HIGH 범위 수용/정확 HEAD Full8·Trusted QA 전 Merge BLOCKED. `#752` 스스로 QA/릴리스 승인 안 됨.
+
+## AC_TEST_COVERAGE
+
+- AC1: `tests/python/test_issue_752_diagnostics.py`에서 1회/2회 독립 실패, stale Head/Attempt, metadata-only, cancelled, aggregate/Preflight 파생 상태, 원본 Artifact/test-merge 불일치와 교차 검증.
+- AC2: 수동 선택 파일 합집합·경로 탐색 금지·24개 상한, 4개 파트 fail-fast false / retries0 / maxFailures0 계약 및 원본 Required3과 분리; 기존 `scripts/test_pr_fast_gate.py` 및 QA 정책 교차 회귀.
+- AC3: 인증 현재 PR/head/base/test-merge, 권한/원장/Artifact 누락 → BLOCKED 또는 INCOMPLETE, 정제된 Worker 실패와 PART 미실행 반례, READY에 보고서 업로드 확인.
+- AC4: P50/P95/취소율 정제·원시 개인정보 비노출, 누적 `RECURRING/NEW/RESOLVED_CANDIDATE/UNKNOWN`, Job Summary/PR 댓글 idempotent 링크·영수증. 실제 원격 Run은 새 HEAD CI 전 `NOT TESTED`.
+- AC5: 역사적 `#730` #3001/#3003/#3005/#3008/#3009/#3012 각각 실제 Job/Artifact 보존 여부, 원본 에러 상세/환경 분류, #767 반복 35분 취소 원인: **새 진단 도입 PR에서는 원본 Run 추가 다운로드/실행하지 않았으므로 NOT TESTED**, 후속 수동 진단/Owner 판단이 필요. 과거 원장을 실제 진단 성공으로 바꾸지 않는다.
+- AC6: `tests/python/test_issue_752_diagnostics.py` + 기본 정책 회귀; 재실패 시 본 Work Packet 갱신과 이슈별 `docs/ISSUE_752_FAILURE_ANALYSIS.md` 단일 누적 원장 생성.
+
+## DOCUMENTATION_SYNC
+
+- `AGENTS.md`: UPDATED
+- `docs/CI_CD.md`: UPDATED
+- `docs/PR_CI_FAILURE_TRIAGE.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/ISSUE_752_FAILURE_ANALYSIS.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(기존 HIGH/OWNER_MANAGED·원본 QA·Owner 승인 규칙 불변)
+- `docs/GITHUB_OPERATIONS.md`: N/A(기존 GitHub 최소 권한·PR/운영 승인 경계를 재사용하고 별도 권한 상승 없음)
+- `docs/TEST_PLAN.md`: N/A(시험·음성 상세 계약을 전용 Work Packet과 신규 정책 단위 테스트로 별도 기록하며 기존 선정 표준 불변)
+- `docs/ISSUE_LIFECYCLE.md`: N/A(Required PR·Main/GHCR/Finalizer·종료 단계/승인 불변)
+- `DESIGN.md`: N/A(제품 UI 및 공통 시각 디자인 원칙 변경 없음)
+- `docs/API.md`: N/A(제품 HTTP API 경로·입출력 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(제품 데이터베이스 스키마·마이그레이션 변경 없음)
+
+## 2026-10-22 — PR #780 반복 QA 차단·미해결 리뷰 5건 종합 교정
+
+- [전용 실패 원장](../../ISSUE_752_FAILURE_ANALYSIS.md) F752-001: [Full #3151.1](https://github.com/planner77/masterGantt/actions/runs/39782427411)은 이전 HEAD의 QA `PR latest Head stale`/Workflow CANCELLED. F752-002: [Full #3152.1](https://github.com/planner77/masterGantt/actions/runs/39782641377)은 **Quality/E2E8/8/Docker 모두 성공** 후 QA Final의 미해결 리뷰 5건으로 FAILURE. 테스트 직접 FAIL 관측0이며 QA 파생 실패를 누적 실제 E2E 실패로 계수하지 않는다.
+- P1 Reporter 경로: Playwright JSON의 testDir-relative `example.spec.ts`와 repo-relative/absolute 경로를 승인된 `tests/e2e/...spec.ts`로 정규화하고, 중첩 Suite의 file inheritance·spec 자체 file, 악성 `..` 및 미선정 경로를 별도 음성 테스트로 차단한다. 원시 오류·URL·Trace는 worker JSON Artifact 업로드 전에 정제하고 `finalize`에서 두 번째 allowlist 검사.
+- P1 Run History: repository-wide 300개 실행 조회 대신 REST `branch=`를 **API pagination 전** 적용하여 해당 head branch만 조회. 검색 결과 각 Run/Attempt·event/source artifact/PR/Test-Merge는 여전히 인증한다. 브랜치 자체 이력 초과, 보존 기간/권한 누락은 INCOMPLETE/BLOCKED.
+- P1 Head 원장: 기존 `ledger_text(gh, issue, head)` 코드의 불변 PR HEAD 데이터 조회를 유지하며 `head`가 아닌 base 최신 원장 오독을 방지하는 Unit 추가. HEAD Markdown을 실행할 수 있는 정책이나 코드로 사용하지 않는다.
+- P2 부분 미관측: 선정 파일이 최종 reporter에 0건이면 `SPEC_NOT_OBSERVED` + NOT RUN; 해당 파일이 skipped/interrupted/UNKNOWN 상태이면 `SPEC_NOT_FULLY_EXECUTED`. 다른 파일 한 개 PASS로 전체 `DIAGNOSIS_READY`가 되는 오탐을 없앤다.
+- P1 한국어: 신규 workflow `name/run-name`·Job/Step 표시명·수동 입력 `description`·Job Summary/PR 댓글/오류 안내를 한글화한다. `jobs.<id>`·GitHub expression·기존 Required 명칭·상태값·워크플로 ID 및 자동 소비 경로는 변경하지 않는다.
+- 인접 발견: `QA Final — Automated` 및 Shadow 같은 파생 결과만 실패인 Run은 "독립 Full 오류 2회" 권고의 계수에서 제외한다. 권고/수동 진단이 원래 QA Final과 Required3 PASS로 잘못 승격되는 경로는 허용하지 않는다.
+- **AC_TEST_COVERAGE 보강**: `test_report_spec_paths_are_restricted_and_relative_paths_are_preserved`, `test_branch_filter_prevents_repository_wide_false_truncation`, `test_latest_ledger_is_read_from_frozen_pr_head`, `test_one_missing_selected_spec_blocks_ready`, `test_skipped_only_spec_is_incomplete`, `test_qa_final_review_block_is_not_independent_full_test_failure`, `test_workflow_displays_korean_without_changing_machine_identifiers`. 변경된 Head의 실제 원격 Full8/8·Trusted 및 수동 workflow_dispatch 실증은 별도이고 검증 전 `NOT TESTED`.
+- **DOCUMENTATION_SYNC**: 본 Work Packet, `docs/ISSUE_752_FAILURE_ANALYSIS.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md` 업데이트. `AGENTS.md`/`docs/QA_REVIEW_POLICY.md` 정책 의미·원격 제품 API/DB·릴리스 권한 자체는 변경 없음.
+- **사전 검증/인계**: GitHub Code/CI Job/Review API 확인, 로컬 Python/Chromium/Docker 실 실행은 환경상 `NOT TESTED`. 개선한 Tree를 단일 Head로 반영해 발생하는 새 PR CI는 모니터링하지 않으며, Owner 승인 전 병합/Main/GHCR/Finalizer/이슈 종료 금지.
+
+## 검증·인계
+
+- 본 브랜치 구현은 GitHub 연결 편집으로 반영. 이 작업 환경은 원격 repository checkout/npm/python/Playwright/Docker를 실행할 수 없으므로 **로컬 실제 실행 NOT TESTED**. 정책 회귀를 `.github/workflows/ci.yml`의 기존 Policy 필수 Job에 추가했고, 새 non-draft PR 생성으로 원격 Full8/8 실행을 시작한다.
+- 원격 새 Head PR CI, Trusted QA, Owner 승인, 재실패 분석, Main/Release 및 실제 `workflow_dispatch` 진단: 현재 `NOT TESTED`; 병합·GHCR·Issue 종료는 이번 요청 범위 밖.
+
+## 2026-10-23 — Full PR CI #3156.1 재실패 후 최소 교정
+
+- [누적 실패 원장 F752-003](../../ISSUE_752_FAILURE_ANALYSIS.md#5-f752-003--full-pr-ci-31561-재실패-2026-10-22-utc--2026-10-23-kst): [Run 39794786478.1](https://github.com/planner77/masterGantt/actions/runs/39794786478) Policy Python 19개 중 1 FAIL(`test_workflow_displays_korean_without_changing_machine_identifiers`). 원인은 YAML 표시명 `name: "Issue #752 — 반복 PR 실패 진단"`과 테스트에서 인용부호가 없는 문자열의 불일치(`TEST_CONTRACT`). E2E8·Docker는 미실행/Skipped이고 집계·QA는 파생 실패다.
+- 교정: Python 기대 문자열 **한 줄만** 원본 YAML 표기에 맞춰 수정하고 기존 실패 원장을 누적 갱신. 워크플로/기능/기존 필수 Gate/Retry/Timeout·Release 정책은 변경 없음. 리뷰 미해결 0건, main 대비 충돌/Behind 0.
+- 검증: 원본 CI 로그와 현재 소스의 차이는 확인함. 로컬 Python 실행은 `NOT TESTED`; 새 동결 HEAD PR CI는 커밋 반영 후 자동 시작, 결과는 요청에 따라 **모니터링하지 않음**. 수정된 HEAD의 Required3·QA·Owner는 검증 전 `NOT TESTED`이며 병합/Main/GHCR/Finalizer/이슈 종료를 수행하지 않는다.
+
+## 2026-10-23 — Full #3157.1 보안 취약점 직접 FAIL 보완 및 재검증 계획
+
+- [누적 원장 F752-004](../../ISSUE_752_FAILURE_ANALYSIS.md#6-f752-004--full-pr-ci-31571-보안-의존성-감사-실패-2026-10-23-kst)에 정확한 Run `39837796723.1`, SHA/Job/Step, 보안 권고, Fast Gate·Required3/QA 파생 실패, 미실행 E2E8·Docker와 #3151/#3152/#3156 비교를 기록했다.
+- 공식 Next.js 2026-10-14 보안 패치(v16.4.1 이상) 및 16.4.2 공개 manifest를 근거로 `next`/`@next/env`/8 SWC를 **16.4.2**로 일치, `sharp` 기존 0.35.5와 런타임 요구 `^0.35.5` 확인. `package-lock.json`의 573개 노드 중 허용된 런타임 관계만 정밀 수정. 기존 dev `eslint-config-next@16.3.4`는 프로덕션 취약점의 원인이 아니므로 변경 제외. npm 보안 검사 비활성화 및 `--force` 자동 패치 금지.
+- **영향·선정**: runtime Next App Router/SVG/Image Optimization/API·Next Production Build/Standalone Docker, 재료 DB persistence, Chromium E2E 8/8, TypeScript/ESLint/Vitest, npm 의존성 감사 및 `test_patched_next_runtime_manifest_matches_immutable_npm_lock` 정책 회귀. 단순 docs-only 또는 QA-only 경로로 변경 인식을 축소하지 않는다.
+- **AC_TEST_COVERAGE**: 기존 19개 Issue #752 회귀 + 새 Next/ENV/SWC/sharp 잠금 계약 테스트, 기존 CI 내 `npm ci` 및 `npm audit --omit=dev` 유지. 실패 이전 Full의 PASS 재사용 금지. 고정 `NEXT@16.3.8` → `16.4.2`의 실제 런타임 부작용은 새 HEAD Full CI가 유일한 원격 증거.
+- **DOCUMENTATION_SYNC**: `docs/ISSUE_752_FAILURE_ANALYSIS.md` / 본 Work Packet / `docs/CI_CD.md` / `docs/REMOTE_VALIDATION.md` UPDATED. `AGENTS.md` 기존 지침 유지, `docs/TEST_PLAN.md` N/A(직접·간접 영향 범위를 Work Packet에 한정 기록하고 기존 전체 Test 정책은 변경 없음), `docs/QA_REVIEW_POLICY.md` N/A(기존 HIGH/Owner·Required 권한 불변), `docs/GITHUB_OPERATIONS.md` N/A(동일 GitHub PR/단일 변경 묶음 운영).
+- 사전 증거: 상위 공개 릴리스 명세와 이전 npm-lock 스키마/Next·SWC·sharp 버전의 **정적 비교**; 컨테이너 외부 npm registry DNS 차단으로 실제 `npm ci`, `npm audit`, 빌드·브라우저·Docker는 **NOT TESTED**. 새 PR CI를 시작하고 **모니터링하지 않음**, 병합/Main/GHCR/Finalizer/Issue 종료 별도 승인 필요.
+
+
+## 2026-10-23 — Full #3158.1 역사적 캡처 검증 4건 일괄 교정
+
+- [원장 F752-005](../../ISSUE_752_FAILURE_ANALYSIS.md#7-f752-005--full-pr-ci-31581-역사적-캡처-메타데이터-직접-실패-2026-10-23-kst): [Run 39841972369.1](https://github.com/planner77/masterGantt/actions/runs/39841972369), 정확한 Head `ea794ed134f9ec7c9720747d1977a9025de67bfe`, Vitest 최초 직접 FAIL **4건 / 3,175 PASS**, 정책·Python20개·TS/Lint·npm audit 0건 성공. Fast Gate 하위 E2E8·Docker·Build 미실행 및 Required3/QA 실패는 파생, Chromium 직접 오류는 관측0.
+- **공통 결함**: `tests/fixtures/gantt-state-consistency/capture-install.ts`가 현재 런타임 `package.json`과 *역사적 16.3.8 원본*의 dependency metadata 변경을 전부 거부했다. 원본 캡처를 수정할 수 없기 때문에 4개 소비자 각각의 assertion을 삭제/skip하지 않고 단일 보안 출처 경계에서 교정.
+- **변경 방법**: `assertCapturedInstall`은 원본 스냅샷을 불변으로 읽고 역사적 버전 `16.3.8`, 현재 보안 패치 `16.4.2`가 정확히 일치할 때만 manifest `next`/`@next/env`, package-lock root 두 항목, 런타임 package 2개 및 8개의 OS SWC 플랫폼 버전·공식 tarball URL, `sharp ^0.35.5` 경계를 허용한다. 승인된 차이를 메모리상의 비교 사본에만 정규화하고 모든 기타 script/dependency/devDependency/573개 lock 노드/캡처 해시를 엄격한 deepEqual로 유지한다. **과거 16.3.8 원본을 16.4.2에서 실행해 새로 측정했다고 주장하지 않는다.**
+- **AC_TEST_COVERAGE/직접 영향**: `tests/scripts/prepr-verifier.test.ts`의 isolate fixture 양성 + 임의 Next/ENV/SWC tarball/Sharp/SVAR Core/추가 script 위조 음성; 동일 helper를 호출하는 세 Gantt Vitest 소비자; 정책 Python20/ npm-ci/npm-audit/TypeScript/ESLint, Next Production Build/Chromium8/Docker/QA. 원본 캡처 JSON·metadata·Core code·SVAR 버전/DB/API 변경 없음.
+- **DOCUMENTATION_SYNC**: `docs/ISSUE_752_FAILURE_ANALYSIS.md`, 본 Work Packet, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md` UPDATED. `AGENTS.md` 원장/CI 신뢰 지침은 변경하지 않으며 `docs/TEST_PLAN.md` N/A(기존 테스트 선별·위험 분류 기준 불변, 재현과 4개 소비자 목록·실행 계획을 본문에 보존), `docs/QA_REVIEW_POLICY.md` N/A(Owner/Trusted QA 규칙 불변).
+- **검증·잔여위험**: 공개 저장소 current/capture 두 JSON을 비교해 허용 필드 정규화 이후 metadata diff 0임을 코드 외에서 확인. Node/Vitest 직접 실 실행은 현재 연결 환경에서 `NOT TESTED`. **새 HEAD의 전체 Vitest·Build/Chromium8/Docker/QA**는 신규 PR CI 시작 이후에만 공식 검증되며 과거 성공을 재사용하지 않는다. HIGH/OWNER_MANAGED, 정확 HEAD Required3/Trusted QA/Owner 및 리뷰/충돌 완료 전 병합/정식 GHCR/Finalizer/종료 금지.

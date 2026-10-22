@@ -16,6 +16,8 @@ Source of Truth: [PR CI 실패 누적 분석 지침](PR_CI_FAILURE_TRIAGE.md). �
 
 | F-006 | [#3160.1](https://github.com/planner77/masterGantt/actions/runs/39843514111) · Run 39843514111/attempt1 · 2026-10-22 19:49 UTC | HEAD `3d0e45ae11b43fb9973ea4858bbfb1877cd85300` / Base `72c2c9d0a912dc906d4101ea41a7a57e0c686597` / test-merge `79f16609613d282c68478417b66bb9f4f1e85808` (PR 조회) | Vitest FAIL Job 120051588521 (4 FAIL, 3204 PASS, 3 SKIP), Policy SUCCESS 120051508619 → Fast FAIL 120052480428 → Required Quality/E2E/Docker FAIL 120052593808/120052593856/120052593670 · QA Final FAIL 120052655687 (파생). Build/Chromium8/Docker 구현 **SKIPPED** | [Vitest Job](https://github.com/planner77/masterGantt/actions/runs/39843514111/job/120051588521): `assertCapturedInstall()` 의 오래된 Next 16.3.8 의존성 메타데이터 비교 vs 안전 패치 16.4.2 |
 
+| F-007 | [#3162.1](https://github.com/planner77/masterGantt/actions/runs/39845897965), Run 39845897965/attempt1, `pull_request.synchronize`, 2026-10-22 20:06–20:32 UTC | Head `b7b9fc8fe0dbc58712e8754dbd937fef0975caf4` / event Base `72c2c9d0a912dc906d4101ea41a7a57e0c686597` / event Test-Merge `c09442ed5afd3d8c1f6f37612732552df59176b2`; 20:29 UTC latest main `6f9936f353ad6c735af6ca1c33af1a6a4b8ecf7e` | Quality **PASS** 120061049633 / E2E **8/8 PASS** aggregate 120072478946 / Docker **PASS** 120061698391, Preflight/Policy/Build PASS; **QA Final FAIL** 120072519249, the only direct failing job | [QA Final Job](https://github.com/planner77/masterGantt/actions/runs/39845897965/job/120072519249) step 3: `mergeability 또는 test merge 불일치`; live PR `mergeable=false`, `dirty`, `merge_commit_sha=null` after main #752 merged; test/production failures **0 observed** |
+
 - 같은 HEAD의 [FAST_DEVELOPMENT #15.1](https://github.com/planner77/masterGantt/actions/runs/39779366938)은 `skipped`이며 Full/Required의 대체 증거가 아니다.
 - 이 문서 최초 작성 시 #762를 귀속시킨 열린 PR은 #779 한 개이고, 조회 가능한 Full CI는 F-001 한 번이다. 이슈 #726의 별도 역사적 실패는 본 이슈 Run 수에 포함하지 않는다.
 
@@ -190,3 +192,37 @@ Pre-PR fast는 실제 재실행하여 sourceStable=true, selection66/UNKNOWN19/m
 - **인접·음성**: `tests/features/gantt/{axis-transaction-runtime-fixture,canonical-recovery-runtime,state-consistency-runtime-fixture}.test.ts`, #699 source/dirty protection, #663/#666 browser capture hash, #762 direct/legacy/Task·설비·프로젝트 copy/template 및 F-001/2/3 누적 2 E2E file. 의존성 보안 업데이트의 플랫폼 영향 때문에 공식 **전체 Chromium8**, Docker smoke/standalone 및 Required3는 보존한다.
 - **문서**: Issue 전용 같은 실패 원장과 [Work Packet](exec-plans/active/ISSUE_762.md), [Security](SECURITY.md) 갱신. 기존 `docs/TEST_PLAN.md`의 #762/#699 범위는 그대로 적용하며 이 원장/Work Packet의 F-006 특정 fixture 계약과 신규 음성 사례를 별도 추가. `AGENTS.md`/`DESIGN.md`/`docs/CI_CD.md`/`docs/QA_REVIEW_POLICY.md`/`docs/REMOTE_VALIDATION.md`/`docs/API.md`/`docs/DB_SCHEMA.md`는 일반 계약·UI/스키마/API 불변으로 N/A.
 - **상태**: 기존 PR #779 `feat/issue-762-process-workarea`, main `72c2c9d0a912dc906d4101ea41a7a57e0c686597`, 정렬 `behind0`, `mergeable=true`, 원본 unresolved threads0/reviews0, 수정 후 재조회. HIGH/OWNER_MANAGED/QA_REQUIRED, `release_required=true`/`release_authorized=false`, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`. 새 Head 공식 검증 시작 시 세 Required, Trusted QA, Owner 위험 수용은 **NOT TESTED**. 사용자 지시 범위는 새 PR CI 시작까지, 병합/Main/GHCR/Finalizer/이슈 종료·완료 모니터링 불포함.
+
+
+## 10. F-007 — Full #3162.1의 QA Final 병합 기준 변경·충돌 및 #752 main 통합 (2026-10-23 KST)
+
+### 원본 직접 오류와 시간·귀속
+
+- Canonical Issue [#762](https://github.com/planner77/masterGantt/issues/762), PR [#779](https://github.com/planner77/masterGantt/pull/779), `feat/issue-762-process-workarea`; [Full PR CI Run #3162.1](https://github.com/planner77/masterGantt/actions/runs/39845897965) / ID `39845897965` / attempt1 / `pull_request.synchronize`, 시작 2026-10-22 **20:06:10 UTC**, 종료 **20:32:59 UTC**. HEAD `b7b9fc8fe0dbc58712e8754dbd937fef0975caf4`, 원본 event Base `72c2c9d0a912dc906d4101ea41a7a57e0c686597`, 원본 Test-Merge `c09442ed5afd3d8c1f6f37612732552df59176b2` (git 부모 Base/HEAD 확인), artifact `ci-pr-source-39845897965-1` [ID12454677855](https://github.com/planner77/masterGantt/actions/runs/39845897965/artifacts/12454677855).
+- **원본 원인**은 [QA Final Automated Job 120072519249](https://github.com/planner77/masterGantt/actions/runs/39845897965/job/120072519249) / step 3 `최신 PR 증거·문서·리뷰 확인 (read-only)`의 **BLOCKED** `mergeability 또는 test merge 불일치` / exit1. Runner가 관측한 `NEED_CHANGES=success`, `NEED_QUALITY=success`, `NEED_E2E=success`, `NEED_DOCKER=success`; 이에 따라 code/test 오류나 aggregate 파생 실패와 구별한다.
+- **실제 PASS**: Required Quality [120061049633](https://github.com/planner77/masterGantt/actions/runs/39845897965/job/120061049633), Chromium E2E [120072478946](https://github.com/planner77/masterGantt/actions/runs/39845897965/job/120072478946) 및 원래 **8개 개별 shard 1/8–8/8 모두 SUCCESS**, Docker [120061698391](https://github.com/planner77/masterGantt/actions/runs/39845897965/job/120061698391); 정책/보안 npm audit·Vitest·lint/typecheck/Next Build·Docker Smoke PASS. QA Final 제외 모든 필수 검사는 현재 Run에서 완료 성공. 재시도·취소·건너뜀을 PASS로 합산하지 않는다. FAST_DEVELOPMENT(non-authoritative)는 SKIPPED.
+- **중간의 최신 main 변경**: CI start 당시 원본 Base `72c2c9d...`; PR #780 / Issue #752의 merge commit `6f9936f353ad6c735af6ca1c33af1a6a4b8ecf7e`가 **20:29 UTC**에 main으로 들어왔다. 해당 시점 이후 API는 PR #779 `mergeable=false`, `mergeable_state=dirty`, `merge_commit_sha=null`; `main...HEAD` 20 commits behind, 7 ahead를 보고한다. 보호된 기본 브랜치 `scripts/qa_final_automated.py`의 `snapshot()` 조건은 live PR `mergeable is True`와 정확 Test-Merge SHA를 동시에 요구한다. 따라서 **이전 main의 Full8은 실제 PASS이지만 변경된 main의 병합 증거를 만족하지 못함**. `#762` 기능 회귀나 F-004 run/attempt provenance와는 **다른 POLICY_CI / 병합 기준·동시 변경 문제**다.
+
+### F-001~F-007 비교와 충돌 해결
+
+| 기존 원인 | 이번 #3162.1 증거 | 현재 본선 |
+| --- | --- | --- |
+| F-001 legacy WorkArea E2E 선택기 | Shard 6/8 포함 E2E8 전부 성공 | 기존 label/UUID 보호 유지 |
+| F-002 공정명 srOnly 중복 선택기 | Shard 7/8 포함 E2E8 전부 성공 | strict visible-name 선택기 유지 |
+| F-003 dirty Escape/초안 폐기 계약 | Shard 7/8 포함 E2E8 전부 성공 | 실제 요청 대기·더티 보호 테스트 유지 |
+| F-004 QA Attempt/provenance | #3155.2 별도 성공, 당시 Trusted artifact 누락 잔여; #3162는 **mergeability**라는 다른 이유로 BLOCKED | 과거 Trusted를 이번 Head PASS로 승격 금지 |
+| F-005 Next Critical audit | #3162 Policy PASS, Next 16.4.2 및 Docker/Next Build PASS | 보안 gate/의존성 강제 무시 금지 |
+| F-006 Gantt 역사적 npm capture fixture | #3162 Vitest PASS, 기존 네 테스트 교정 효력 확인 | 보안 패치 유효성과 원본 capture 불변 보존 |
+| **F-007** 최신 main 변경으로 PR dirty | QA Final만 FAIL, Required3 + E2E8 모두 PASS | 최신 main에 새 merge commit으로 정렬한 뒤 정확 새 HEAD 전체 재검증 필수 |
+
+- **병합 충돌 조사**: main의 #752 통합과 #762의 공통 변경 4개 파일은 `package.json`, `package-lock.json`, `tests/fixtures/gantt-state-consistency/capture-install.ts`, `tests/scripts/prepr-verifier.test.ts`. main에서 그 외 변경한 `AGENTS.md`, `docs/CI_CD.md`, `docs/PR_CI_FAILURE_TRIAGE.md`, `docs/REMOTE_VALIDATION.md`, `scripts/issue_752_diagnostics.py`, workflow 및 Python tests 등의 **main blob을 그대로 보존**한다. #762의 97개 PR diff 파일도 삭제/원복하지 않는다.
+- **정합 방식**: App 버전 `0.130.0`, 양측 정확 Next/`@next/env` `16.4.2`를 유지한다. 두 lock의 573 package entry는 공통이고 #752 main이 Next10개 SRI 일부/플랫폼 `libc` 필드를 생략한 데 비해, #762은 npm 출처의 10개 승인 메타데이터(SRI, CPU/OS/libc)와 `approved-next-16.4.2-lock.json`을 가진다. **더 엄격하게 검증된 #762 lock + pinned allowlist를 보존**하고 다른 모든 runtime/dependency를 바꾸지 않는다.
+- **보호 fixture**: `capture-install.ts`의 #762 strict exact 10개 package allowlist·SRI+resolved+sharp+SWC metadata `deepEqual`, 역사적 capture 파일 불변/기타 573개 lock node strict compare를 유지한다. #752 main이 추가한 **Next 버전 drift, sharp 보안 floor, SVAR Gantt Core drift, Linux SWC libc 변조** 음성 검사를 #762 `prepr-verifier.test.ts`에 합산한다. 기존 #762의 SRI 변조·SWC URL 위변조·Next env/root lock mismatch·React 변조·임의 scripts 음성 검사도 모두 유지. 정책 무력화·skip/timeout/retry 증가는 없다.
+- **검증 계약**: 이 문서/Work Packet 갱신, 정확 main을 **두 번째 부모로 포함**한 PR branch merge commit 생성. 기존 E2E/UI/API/DB product 변경 없음. 로컬 npm·Playwright 완전 검증은 checkout 및 npm deps 부재로 **NOT TESTED**. GitHub connector로 PR/승인 lock metadata·변경 파일 blob SHA 및 두 브랜치의 3-way 변동을 비교하는 정적 source/계약 검증은 분리 기록하며 실제 Unit/E2E PASS를 사칭하지 않는다. 새 Head의 Required3, Chromium8, Trusted QA, Owner ACCEPT는 **새 PR CI 전에 NOT TESTED**.
+- **리뷰 및 승인**: 원본 PR unresolved review thread0, Review submission0, 본선과의 충돌 해소 후 `behind=0`/GitHub `mergeable` 재조회. HIGH/OWNER_MANAGED, `qa_required=true`, `release_required=true`, `release_authorized=false`, `manager_decision=NOT TESTED`. **PR CI 시작까지만**; CI 모니터링·PR 병합·Main CI·GHCR·Finalizer·Issue 종료 미실행.
+
+### DOCUMENTATION_SYNC 및 교차 검증 범위
+
+- UPDATED: Issue별 이 누적 F-001~F-007 원장, [Work Packet](exec-plans/active/ISSUE_762.md), `tests/scripts/prepr-verifier.test.ts`의 #752/#762 교차 음성 검사.
+- MAIN RETAINED: `AGENTS.md`, `docs/PR_CI_FAILURE_TRIAGE.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md`, `.github/workflows/ci.yml`, `docs/ISSUE_752_FAILURE_ANALYSIS.md`, `scripts/issue_752_diagnostics.py` 및 모든 #752 신규/수정 보호 경로. APP RETAINED: #762 원본 공정/WorkArea/API/DB/교환·기존 legacy 테스트/샤드 정의.
+- N/A: `DESIGN.md`(제품 UI 불변), `docs/API.md`·`docs/DB_SCHEMA.md`(#762 기존 계약 유지), `docs/TEST_PLAN.md`(기존 전체 Chromium8 및 고위험 교차 검증 그대로 적용). Cross-run F-001~F-006 원인·실패 원장을 삭제하거나 업데이트된 GitHub green으로 소급 변경하지 않는다.

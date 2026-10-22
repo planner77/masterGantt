@@ -484,6 +484,8 @@ jobs:
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_preview_publish.py' -v
       - name: Issue #751 source-matched P50/P95 comparison and missing-artifact regression
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_issue_751_*.py' -v
+      - name: Issue #752 CI provenance, recurring failure and bounded diagnostic regression
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_issue_752_*.py' -v
       - name: 배포 shell 구문 검증
         run: |
           sh -n deploy/docker/container-entrypoint.sh

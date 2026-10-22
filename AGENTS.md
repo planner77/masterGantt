@@ -1,3 +1,12 @@
+## Issue #752 — 인증된 반복 PR 실패 알림과 수동 bounded 전체 오류 진단 (2026-10-22)
+
+- [#752 Work Packet](docs/exec-plans/active/ISSUE_752.md), [원장 지침](docs/PR_CI_FAILURE_TRIAGE.md), [CI/CD](docs/CI_CD.md), [원격 검증](docs/REMOTE_VALIDATION.md)를 따른다. 이 경로는 기존 PR Full CI를 대체하거나 QA/Owner/Ruleset/GHCR를 우회하지 않는 **advisory**이다.
+- 신뢰된 main의 `issue-752-diagnostics.yml`은 동일 canonical PR의 인증된 Full PR `Run ID+Attempt` 서로 다른 직접 실패가 두 번 이상일 때 `DIAGNOSIS_RECOMMENDED`를 별도 댓글/Job Summary로 권고한다. edited/초기 Draft/취소/미실행/QA·Required 집계 파생 실패·원본 출처 누락은 실패로 중복 계수하지 않는다. 새 Head나 metadata의 과거 PASS를 재사용하지 않는다.
+- 권한 있는 담당자는 `workflow_dispatch`에서 PR/Issue/exact HEAD를 지정하고 최신 Head/Base/test-merge/source artifact/원장을 검증한 후 최대24 E2E spec을 4개 독립 part로 제한해 `retries=0, max-failures=0, matrix fail-fast=false` 진단한다. Runner read-only, comment Job은 PR HEAD 코드 실행 금지. 결과는 민감정보를 제거한 14일 JSON/Markdown Artifact/Job Summary, PR 댓글로만 제공하며 직접 실패·취소·미실행을 PASS로 승격하지 않는다.
+- 현재 활성 E2E는 #767의 8-Shard/35분이며 역사적 6-Shard 원장을 다시 쓰지 않는다. 반복 35분 취소의 `RECURRING_JOB_TIMEOUT_REVIEW` 후보는 로그/귀속 독립 인증 전까지 일반 직접 실패에 섞지 않는다. 이 변경은 `HIGH/OWNER_MANAGED`, `qa_required=true`, `release_required=false` 및 `release_authorized=false`. 정확 Head 새 Full CI/Trusted/Owner 승인 전 병합 금지. 이번 사용자 요청은 PR CI **시작**까지만, 모니터링·병합·Main/GHCR/종료 없음.
+
+---
+
 ## Issue #772 — 세 번째 Policy 실패, Fast Gate 계약 소비자 누락 교정 (2026-10-22)
 
 - [PR #778 Full #3143.1](https://github.com/planner77/masterGantt/actions/runs/39771025331): 앞선 `test_qa_preflight.py`는 PASS, 다음 `scripts/test_pr_fast_gate.py::WorkflowContract.test_pr_lane_blocks_on_fast_gate` line 95에서 과거 PR E2E `needs: [changes, preflight, pr_fast_gate]` 문자열만 허용해 최신 `low_e2e_plan`을 거부. Policy 직접 FAIL, Fast Gate/Required3/QA는 파생, Chromium8·Docker·LOW 정책 회귀는 NOT RUN. 기존 3개 실패 원본 Run/Attempt는 [#772 단일 실패 원장](docs/ISSUE_772_FAILURE_ANALYSIS.md)과 [Work Packet](docs/exec-plans/active/ISSUE_772.md)에 보존.
