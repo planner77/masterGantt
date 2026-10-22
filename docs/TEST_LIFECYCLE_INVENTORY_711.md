@@ -4,6 +4,13 @@
 - 원칙: [Test Lifecycle 단일 정책](TEST_PLAN.md#issue-711--test-suite-lifecycle-추가--검토--유지통합--조건부-폐기). 테스트 코드·CI 설정을 이 이슈에서 삭제하거나 완화하지 않는다.
 - 인벤토리 생성기: [`scripts/test_lifecycle_inventory.py`](../scripts/test_lifecycle_inventory.py). 이 파일은 읽기 전용 분석 CLI이고 테스트 본문을 실행하지 않는다.
 
+## 2026-10-23 REWORK 보정 — Source/Policy 단계와 실측의 분리
+
+- 최초 이 문서의 **265 Vitest / 137 E2E 파일**은 원본 `6f9936f353ad6c735af6ca1c33af1a6a4b8ecf7e` 기준선이다. 이후 #762 병합에 따른 **Vitest 5파일, E2E 1파일** 순증으로 새 main 정렬 원본에서는 **270 Vitest / 138 E2E 파일**(테스트 케이스 수 아님). 새로운 변경에 대한 실제 `vitest list`/`playwright --list` 출처가 없으면 **수집 케이스 수 UNKNOWN** 유지.
+- [PR #781 Full Run #3169.1](https://github.com/planner77/masterGantt/actions/runs/39857347455) Vitest 실제 실행 총계는 기존 Head 한정 **3,182 cases: 3,178 PASS / 1 FAIL / 3 SKIP**; 이 수치는 추가 #762 반영 후 새 PR Head의 수집/실행 케이스 수로 소급되지 않는다.
+- 기존 `Policy` 수집기에서 `- run:`, `run: |` 또는 알려지지 않은 검증기를 제외한 것이 [Reviewer P2](https://github.com/planner77/masterGantt/pull/781#discussion_r4353727564)로 밝혀졌다. 신규 수집기는 **조건부 포함 모든 Policy run step 30개**(현재 #711 보완 Workflow 선언 기준, Node setup 계측과 shell 구문 명령 포함)를 필터 없이 수집한다. 이는 **step 선언 수**이며 실제 unittest case/Job 실행 여부 수가 아니다. 미지원/빈 항목 발견 시 0으로 보고하지 않고 fail-closed.
+- 관련 Python Parser 테스트는 기존 Policy Job의 신규 명시적 한 단계로 실행하게 구성했다. 전체 CI 결과·코드 리뷰·SQLite 재오픈 실행 PASS는 새 Head PR 검증 전 **NOT TESTED**. 오진·리뷰 내용 및 실증 차이는 [F711-001 누적 실패 원장](ISSUE_711_FAILURE_ANALYSIS.md) 및 [Work Packet](exec-plans/active/ISSUE_711.md)에 남긴다.
+
 ## 1. 최초 기준선: 파일과 실행 가능한 케이스를 구별
 
 | 계층 | 기준/발견 방법 | 실제 파일 수(2026-10-23 main) | 수집된 테스트 케이스 수 | 실제 실행 결과 |
