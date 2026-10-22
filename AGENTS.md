@@ -1,3 +1,12 @@
+## Issue #773 — Release Main Full 증거 재사용과 SHADOW 안전 경계 (2026-10-22)
+
+- [#773 작업 원장](docs/exec-plans/active/ISSUE_773.md), [CI/CD](docs/CI_CD.md), [Remote](docs/REMOTE_VALIDATION.md), [이슈별 실패 원장](docs/ISSUE_773_FAILURE_ANALYSIS.md) 기준. #438 Main verified GHCR digest를 재사용하면서 Release의 정적/E2E 8샤드 중복 수행을 제거할 수 있는지 **인증된 exact Main push Full** 출처로 검증한다. Issue 생성 당시 여섯 샤드는 현재 공식 여덟 샤드(#767)로 대체됐다.
+- 기본 운영 **SHADOW(기존 Release Full 유지)**. `RELEASE_REUSE_ENABLED`와 유한 만료 정책(`RELEASE_REUSE_MAX_AGE_HOURS`)은 별도 Owner 승인 후에만 설정. 신뢰된 default-main 검증기가 annotated peeled tag·first-parent two-parent merge/PR/Issue·Owner exact-version marker·Main CI workflow path/id, Run ID+Attempt, Quality/Policy/Typecheck/Lint/Unit/Build/Docker/Main GHCR 및 E2E 8개 구현 Job/Step 모두 성공, run-scoped artifact와 testplan/lock/tool/OS/Chromium/worker/fixture 환경/skip=0·spec/case 수·digest를 교차 검사한다. 증거 불일치·미존재·만료·권한/환경 UNKNOWN은 FULL 또는 게시 전 BLOCKED. 과거 PASS 소급/aggregate green·PR Fast·Targeted 대체 금지.
+- 정확히 검증된 경우 **REUSED_VERIFIED** (Release static/E2E `NOT EXECUTED`, Full PASS 아님)으로 분리 기록한다. 기존 Release candidate의 OCI/GHCR live digest·HTTP/HTTPS/DB migration·SQLite restart·API persistence, image policy, SBOM/provenance, attestation/immutable SemVer promotion, version-scoped Owner approval, Generic Finalizer는 삭제/자동 승인 불가. 해당 CI 보호 변경 자체는 HIGH/OWNER_MANAGED, qa_required=true, 기존 PR **Full8/8**/Trusted/Owner 및 Main Full 통과 전 채택 금지. 정식 release_required=false/release_authorized=false, 앱0.129.1/Ruleset/UI/API/DB 불변. 롤백은 flag OFF→원래 Full Release.
+- 원격 실제 Full Run/전환·성능 최소 성공 baseline 3건 전에는 `NOT TESTED / INSUFFICIENT_DATA`. 이번 Owner 지시는 구현·문서 갱신·새 PR Full CI **시작까지만** 승인하며, 모니터링/병합/태그·GHCR/Finalizer/종료 금지.
+
+---
+
 ## Issue #771 — 첫 Full #3124.1 정책 실패·P1 반영 (2026-10-22)
 
 - [Run 39730387486.1](https://github.com/planner77/masterGantt/actions/runs/39730387486)은 구형 `pull_request.types` 전체 문자열 검사로 Policy FAIL. 기존 `edited`와 신규 Ready/Draft를 **순서 독립·중복/미지 이벤트 거부 집합**으로 검증한다. P1 `tests/e2e/../evil.spec.ts`도 Fast 선택/제외/실행 직전 거부하도록 계약 보완.
