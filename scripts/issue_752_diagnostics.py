@@ -308,7 +308,9 @@ def prepare(gh, pr_number, issue, expected_head, actor, ref):
     ensure(latest["headSha"] == head, "last Full source is stale for current PR")
     # Compare live GitHub synthetic test-merge with immutable source.
     ensure_current(pr, {"headSha": head, "baseSha": base, "testMergeSha": latest["testMergeSha"]})
-    raw_ledger = ledger_text(gh, issue, base)
+    # The cumulative ledger is normally updated on the still-unmerged PR HEAD.
+    # Treat HEAD Markdown only as untrusted path candidates, never as CI authority.
+    raw_ledger = ledger_text(gh, issue, head)
     specs = parse_ledger(raw_ledger)
     changed = changed_files(gh, pr_number)
     all_files, batches = select_files(specs, changed)
