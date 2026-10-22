@@ -476,6 +476,8 @@ jobs:
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_fast_development.py' -v
       - name: Issue #770 Shadow 영향 계획·출처 보호 단위 회귀
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_impact_plan.py' -v
+      - name: Issue #772 LOW E2E 분류·실행 영수증 차단 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_low_*.py' -v
       - name: Issue #773 Release reuse fail-closed 출처·샤드·Owner 회귀
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_release_reuse_evidence.py' -v
       - name: Issue #703 Preview 배포 권한·워크플로 단위 회귀
@@ -1519,7 +1521,7 @@ jobs:
       needs.qa_bootstrap.outputs.trusted_validator == 'true' &&
       needs.qa_bootstrap.outputs.qa_mode == 'AUTO' &&
       !(github.event.action == 'edited' && github.event.pull_request.merged)
-    needs: [qa_bootstrap, changes, metadata_evidence, quality, e2e, docker]
+    needs: [qa_bootstrap, changes, metadata_evidence, quality, e2e, docker, low_e2e_plan]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -1548,6 +1550,8 @@ jobs:
           METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
           E2E_REQUIRED: ${{ needs.changes.outputs.e2e }}
           DOCKER_REQUIRED: ${{ needs.changes.outputs.docker }}
+          LOW_POLICY_MODE: ${{ needs.low_e2e_plan.outputs.mode }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
         run: python3 scripts/qa_final_automated.py
       - name: QA 증거 보존
         if: always()
