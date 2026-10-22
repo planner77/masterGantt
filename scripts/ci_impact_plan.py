@@ -426,8 +426,9 @@ def verified_timing_coverage(inventory: list[str], passed: set[str],
 
 
 def github_e2e_timing(repo: str, run_id: int, attempt: int, source_sha: str,
-                      inventory: list[str], selected: set[str], event: str) -> dict:
-    """Untrusted reporter artifact, independently anchored to six successful jobs.
+                      inventory: list[str], selected: set[str], event: str,
+                      shard_count: int) -> dict:
+    """Untrusted reporter artifact, independently anchored to all required shard jobs.
 
     Never grants CI authority. Any missing, expired, corrupt or partial ZIP
     becomes UNKNOWN. No raw traces, request URLs, cookies or DBs are exported.
@@ -458,7 +459,7 @@ def github_e2e_timing(repo: str, run_id: int, attempt: int, source_sha: str,
     skipped: set[str] = set()
     skipped_case_count = 0
     durations: dict[str, float] = {}
-    for shard in range(1, 7):
+    for shard in range(1, shard_count + 1):
         name = f"e2e-timing-ci-shard-{shard}"
         rows = [a for a in artifacts if a.get("name") == name and not a.get("expired")]
         if len(rows) != 1 or not isinstance(rows[0].get("id"), int):
@@ -476,7 +477,7 @@ def github_e2e_timing(repo: str, run_id: int, attempt: int, source_sha: str,
                 record.get("runAttempt") != attempt or
                 record.get("headSha") != source_sha or
                 record.get("eventName") != event or
-                record.get("shard") != shard or record.get("shardCount") != 6 or
+                record.get("shard") != shard or record.get("shardCount") != shard_count or
                 record.get("status") != "passed" or
                 not isinstance(record.get("entries"), list)):
             raise ValueError("TIMING_ARTIFACT_SOURCE_MISMATCH")
@@ -518,7 +519,7 @@ def github_e2e_timing(repo: str, run_id: int, attempt: int, source_sha: str,
     }
 
 
-def job_elapsed_minutes(shards: list[dict]) -> dict:
+def job_elapsed_minutes(shards: list[dict], shard_count: int) -> dict:
     times = []
     for job in shards:
         try:
@@ -530,12 +531,12 @@ def job_elapsed_minutes(shards: list[dict]) -> dict:
         if duration < 0:
             return {"status": "UNKNOWN", "reason": "JOB_TIMESTAMP_INVERSION"}
         times.append((begin, end, duration))
-    if len(times) != 6:
-        return {"status": "UNKNOWN", "reason": "SHARD_COUNT_NOT_SIX"}
+    if len(times) != shard_count:
+        return {"status": "UNKNOWN", "reason": "SHARD_COUNT_MISMATCH"}
     return {
         "status": "JOB_WALL_CLOCK_MEASURED",
         "e2e_shard_job_runner_minutes": round(sum(x[2] for x in times) / 60, 3),
-        "e2e_six_shards_wall_minutes": round(
+        "e2e_shards_wall_minutes": round(
             (max(x[1] for x in times) - min(x[0] for x in times)).total_seconds() / 60, 3),
         "measurement_limit": "Job elapsed wall time, not invoice/billing minutes",
     }
@@ -544,11 +545,15 @@ def job_elapsed_minutes(shards: list[dict]) -> dict:
 def observed_ci(repo: str, run_id: int, attempt: int, event: str,
                 e2e_required: bool, results: dict, source_sha: str = "",
                 inventory: list[str] | None = None,
-                selected_e2e: set[str] | None = None) -> dict:
+                selected_e2e: set[str] | None = None,
+                shard_count: int | None = None) -> dict:
     """Aggregate identities/attempts, not fictional test-by-test PASS values."""
     observation = {"status": "UNKNOWN", "gate_results": results,
                    "executed_test_ids": "NOT_VERIFIED",
                    "reason": "INCOMPLETE_CI_EVIDENCE", "shard_jobs": []}
+    if type(shard_count) is not int or not 2 <= shard_count <= 16:
+        observation["reason"] = "TRUSTED_SHARD_PLAN_UNVERIFIED"
+        return observation
     if not all(x in {"success", "failure", "cancelled", "skipped"} for x in results.values()):
         return observation
     try:
@@ -568,7 +573,8 @@ def observed_ci(repo: str, run_id: int, attempt: int, event: str,
             observation["reason"] = "REQUIRED_GATE_RESULT_MISMATCH"
             return observation
     suffix = " · PR" if event == "pull_request" else ""
-    expected = [f"Chromium E2E shard {n}/6{suffix}" for n in range(1, 7)]
+    expected = [f"Chromium E2E shard {n}/{shard_count}{suffix}"
+                for n in range(1, shard_count + 1)]
     for name in expected:
         rows = by_name.get(name, [])
         if len(rows) != 1 or rows[0].get("status") != "completed":
@@ -580,15 +586,15 @@ def observed_ci(repo: str, run_id: int, attempt: int, event: str,
         observation["shard_jobs"].append({
             "id": row["id"], "name": name, "conclusion": row.get("conclusion"),
             "started_at": row.get("started_at"), "completed_at": row.get("completed_at")})
-    if e2e_required and (len(observation["shard_jobs"]) != 6 or
+    if e2e_required and (len(observation["shard_jobs"]) != shard_count or
                          any(j["conclusion"] != "success" for j in observation["shard_jobs"])):
-        observation["reason"] = "E2E_NOT_SIX_SUCCEEDED_SHARDS"
+        observation["reason"] = "E2E_NOT_ALL_SUCCEEDED_SHARDS"
         return observation
     if e2e_required and source_sha and inventory is not None and selected_e2e is not None:
-        observation["job_runtime"] = job_elapsed_minutes(observation["shard_jobs"])
+        observation["job_runtime"] = job_elapsed_minutes(observation["shard_jobs"], shard_count)
         try:
             observation["timing"] = github_e2e_timing(repo, run_id, attempt, source_sha,
-                                                      inventory, selected_e2e, event)
+                                                      inventory, selected_e2e, event, shard_count)
         except (ValueError, urllib.error.URLError, TimeoutError, OSError,
                 json.JSONDecodeError, zipfile.BadZipFile):
             observation["timing"] = {"status": "UNKNOWN", "reason": "TIMING_EVIDENCE_UNAVAILABLE"}
@@ -599,6 +605,22 @@ def observed_ci(repo: str, run_id: int, attempt: int, event: str,
         observation["status"] = "FULL_GATES_OBSERVED" if e2e_required else "SKIPPED_GATES_OBSERVED"
         observation["reason"] = "PER_TEST_EXECUTION_NOT_IN_JOB_METADATA"
     return observation
+
+
+def trusted_shard_count(commit_sha: str) -> int:
+    """Take shard count only from the authenticated base Git tree, not PR data."""
+    if not valid_sha(commit_sha):
+        raise ValueError("TRUSTED_SHARD_PLAN_SOURCE_INVALID")
+    plan = json.loads(git_file(commit_sha, "tests/config/e2e-shard-plan.json"))
+    count = plan.get("shardCount")
+    groups = plan.get("shards")
+    if (plan.get("schemaVersion") != 1 or type(count) is not int or
+            not 2 <= count <= 16 or not isinstance(groups, list) or
+            len(groups) != count or
+            {item.get("shard") for item in groups if isinstance(item, dict)}
+            != set(range(1, count + 1))):
+        raise ValueError("TRUSTED_SHARD_PLAN_UNVERIFIED")
+    return count
 
 
 def source_context(event: dict, mode: str) -> dict:
@@ -693,13 +715,16 @@ def main() -> int:
         report = impact_plan(entries, old, current, prepr, base, head, merge, policy_blob, run,
                              hazards=hazards, diff_fingerprint=hashlib.sha256(diff_bytes).hexdigest())
         required = os.environ.get("E2E_REQUIRED", "").lower() == "true"
+        shard_count = trusted_shard_count(base if args.mode == "pr" else ctx["target"])
+        report["trusted_e2e_shard_count"] = shard_count
         results = {"quality": os.environ.get("NEED_QUALITY", ""),
                    "e2e": os.environ.get("NEED_E2E", ""),
                    "docker": os.environ.get("NEED_DOCKER", "")}
         report["observed_ci"] = observed_ci(
             ctx["repo"], ctx["run_id"], ctx["attempt"], run["event"], required, results,
             source_sha=ctx["target"], inventory=current["e2e"],
-            selected_e2e={x["id"] for x in report["selected_test_ids"] if x["kind"] == "CHROMIUM"})
+            selected_e2e={x["id"] for x in report["selected_test_ids"] if x["kind"] == "CHROMIUM"},
+            shard_count=shard_count)
         report["evidence_status"] = "OBSERVE_ONLY" if report["observed_ci"]["status"] != "UNKNOWN" else "UNKNOWN"
         report["tool_versions"] = {"python": sys.version.split()[0],
                                    "policy_blob": policy_blob,

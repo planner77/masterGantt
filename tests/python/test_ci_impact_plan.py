@@ -222,33 +222,63 @@ class SourceAndObservationTests(unittest.TestCase):
         sample = [{"name": name, "run_attempt": 2, "status": "completed",
                    "conclusion": "success", "id": 100 + index}
                   for index, name in enumerate(impact.GATES)]
-        sample += [{"name": f"Chromium E2E shard {i}/6 · PR", "run_attempt": 2,
+        sample += [{"name": f"Chromium E2E shard {i}/8 · PR", "run_attempt": 2,
                     "status": "completed", "conclusion": "success", "id": i}
-                   for i in range(1, 7)]
+                   for i in range(1, 9)]
         with patch.object(impact, "github_jobs", return_value=sample):
             result = impact.observed_ci("planner77/masterGantt", 123, 2, "pull_request", True,
-                                        {"quality": "success", "e2e": "success", "docker": "success"})
+                                        {"quality": "success", "e2e": "success", "docker": "success"}, shard_count=8)
         self.assertEqual(result["status"], "FULL_GATES_OBSERVED")
         self.assertEqual(result["executed_test_ids"], "NOT_VERIFIED")
-        self.assertEqual(len(result["shard_jobs"]), 6)
+        self.assertEqual(len(result["shard_jobs"]), 8)
 
     def test_cancelled_or_missing_shard_is_not_pass(self):
         sample = [{"name": name, "run_attempt": 1, "status": "completed",
                    "conclusion": "success", "id": 100 + index}
                   for index, name in enumerate(impact.GATES)]
-        sample += [{"name": f"Chromium E2E shard {i}/6 · PR", "run_attempt": 1,
+        sample += [{"name": f"Chromium E2E shard {i}/8 · PR", "run_attempt": 1,
                     "status": "completed", "conclusion": "success", "id": i}
-                   for i in range(1, 6)]
+                   for i in range(1, 8)]
         with patch.object(impact, "github_jobs", return_value=sample):
             result = impact.observed_ci("planner77/masterGantt", 123, 1, "pull_request", True,
-                                        {"quality": "success", "e2e": "success", "docker": "success"})
+                                        {"quality": "success", "e2e": "success", "docker": "success"}, shard_count=8)
         self.assertEqual(result["status"], "UNKNOWN")
         self.assertEqual(result["reason"], "E2E_SHARD_MISSING_OR_PENDING")
+
+    def test_trusted_eight_shard_plan_and_unknown_missing_plan(self):
+        plan = {"schemaVersion": 1, "shardCount": 8,
+                "shards": [{"shard": i, "files": []} for i in range(1, 9)]}
+        with patch.object(impact, "git_file", return_value=impact.canonical(plan)):
+            self.assertEqual(impact.trusted_shard_count("a" * 40), 8)
+        plan["shards"].pop()
+        with patch.object(impact, "git_file", return_value=impact.canonical(plan)):
+            with self.assertRaisesRegex(ValueError, "TRUSTED_SHARD_PLAN_UNVERIFIED"):
+                impact.trusted_shard_count("a" * 40)
+        observation = impact.observed_ci(
+            "planner77/masterGantt", 42, 1, "pull_request", True,
+            {"quality": "success", "e2e": "success", "docker": "success"})
+        self.assertEqual(observation["status"], "UNKNOWN")
+        self.assertEqual(observation["reason"], "TRUSTED_SHARD_PLAN_UNVERIFIED")
+
+    def test_six_shard_historical_jobs_cannot_pass_eight_shard_current(self):
+        jobs = [{"name": name, "run_attempt": 1, "status": "completed",
+                 "conclusion": "success", "id": 90 + index}
+                for index, name in enumerate(impact.GATES)]
+        jobs += [{"name": f"Chromium E2E shard {i}/6 · PR", "run_attempt": 1,
+                  "status": "completed", "conclusion": "success", "id": i}
+                 for i in range(1, 7)]
+        with patch.object(impact, "github_jobs", return_value=jobs):
+            observed = impact.observed_ci(
+                "planner77/masterGantt", 42, 1, "pull_request", True,
+                {"quality": "success", "e2e": "success", "docker": "success"},
+                shard_count=8)
+        self.assertEqual(observed["status"], "UNKNOWN")
+        self.assertEqual(observed["reason"], "E2E_SHARD_MISSING_OR_PENDING")
 
     def test_api_unavailable_never_success(self):
         with patch.object(impact, "github_jobs", side_effect=ValueError("FORBIDDEN")):
             result = impact.observed_ci("planner77/masterGantt", 1, 1, "push", True,
-                                        {"quality": "success", "e2e": "success", "docker": "success"})
+                                        {"quality": "success", "e2e": "success", "docker": "success"}, shard_count=8)
         self.assertEqual(result["status"], "UNKNOWN")
 
 

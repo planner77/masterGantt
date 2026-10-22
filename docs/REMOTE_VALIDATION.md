@@ -1,3 +1,11 @@
+## Issue #770 — 최신 main 동기화 및 8샤드 Full PR CI 재검증 (2026-10-22)
+
+#770/PR #774의 [Full #3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)은 과거 base·6개 Chromium shard에서 PASS했으나 이후 main이 #767 8-shard로 전환해 branch가 10 commits stale / mergeable false이다. 최신 main `81c28fa5502caee27e98d4d293b0b1b28e6340dd`을 병합해 충돌을 해소하고 #770 Shadow가 **trusted shard plan 8개**를 관측하도록 동기화한다.
+
+- 새 PR Head에서 `policy` Job의 `tests/python/test_ci_impact_plan.py`(8-shard 성공/6-shard 거부/불명확 계획 UNKNOWN), Chromium **실제 8/8** Job 및 Quality/Docker required와 Trusted QA가 새 source SHA/base/test-merge에 귀속되는지 검증한다.
+- 리뷰 thread=0, GitHub mergeable=true, 최신 main strict 및 Owner HIGH 허가 이전 병합 금지. 실패 원장에는 #3105 성공과 이번 main drift를 **서로 다른 사건**으로 보존한다. 사용자가 요청하지 않은 PR 이후 CI 결과 모니터링·Main/GHCR/Release는 실행하지 않는다.
+- [실패/동기화 원장](ISSUE_770_FAILURE_ANALYSIS.md), [Work Packet](exec-plans/active/ISSUE_770.md).
+
 ## Issue #770 — PR #774 REWORK 원격 검증 (2026-10-22)
 
 - #3101.1 원본 QA Preflight가 메타데이터/AC 식별자에서 실패하여 Full E2E/Unit/Docker는 SKIPPED, #3103.1 metadata-only는 이전 Full FAIL을 검증하여 의도대로 실패했다.
@@ -17,6 +25,14 @@
 - Shadow에서 actual six-shard의 Unit/Chromium test file inventory와 skipped/unknown 범위, E2E timing ZIP의 실제 passed test entry를 대조하지만 ZIP이 PR 코드의 산출물임을 인정한다. 비용은 공인 job timestamps의 여섯 shard elapsed Runner-minutes, wall-clock span, reporter test-body 상한을 구분한다. 효과는 동일 모집단·인프라와 충분한 표본을 확보한 뒤 별도로 검증.
 - 현재 #770 Work Packet의 과거 10개 성공 Full metadata는 Job 이름/결론·artifact 목록까지 검사했으나 ZIP 내 exact source/test-merge/파일 변경/시간까지 인증하지 못했으므로 false-negative·절감률/분류 정밀도 **INSUFFICIENT_DATA**. 과거 실패 재생은 동일 출처·테스트 집합을 확보하기 전 유의미한 수치로 주장하지 않는다.
 - Python `tests/python/test_ci_impact_plan.py` negative tests는 PR Policy Job의 필수 단계이며 Unit/Playwright/QA·Release를 대신하지 않는다. 이 PR에서는 병합, Main, 정식 GHCR, 태그, 최종 이슈 종료를 수행하지 않는다.
+
+---
+
+## Issue #767 — 최신 8-Shard PR/Main/Release 확인 기준 (2026-10-22)
+
+- Owner 승인으로 현행 E2E **8 shards**, worker1/35m, 기존 136 spec·791 test 전수 유지. 이전 문서의 `6/6` 표시·당시 CI는 역사적 source이며 신규 Head의 성능/Quality PASS로 간주하지 않는다.
+- 원격 확인: PR Full `Chromium E2E shard 1/8 · PR`~`8/8 · PR` + Required `Chromium end-to-end tests`, `Build, static checks, and unit tests`, `Docker build and runtime smoke test` 3종, default-main Trusted QA, 정확 `PR/Head/Base/Test-Merge/Run ID/Attempt`. Main/Release도 `1/8`~`8/8` 및 `--total 8`/timing ShardCount8/fallback8 동기화. `tests/config/e2e-shard-plan.json` Source Git Tree 136개와 8×17의 단일 배치가 필수.
+- Timeout이 또 발생하면 `F767-001~007` 누적 원장 전체 및 `#751` fixture 단계 계측 근거와 `#752` 안전한 반복 진단을 대조하고, fail-fast/retry/skip/timeout 상향·임의 assertion 삭제/미완료 자동 PASS 금지. `release_authorized=false`로 공식 GHCR 발행은 별도 승인 필요.
 
 ---
 

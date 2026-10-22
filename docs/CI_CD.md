@@ -1,3 +1,11 @@
+## Issue #770 — #767 main E2E8 전환 동기화와 Trusted Shadow (2026-10-22)
+
+기존 #770 Full PR CI [#3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959) 6/6은 과거 Head/Base의 성공 근거이며, 현재 main `81c28fa5502caee27e98d4d293b0b1b28e6340dd`의 E2E 8-way와 호환되는 최신 Required PASS가 아니다. PR #774의 기존 HEAD는 새 main에서 **mergeable=false / behind=10**이므로 Main 정렬을 수행한다. 이 상황을 테스트 실패로 오판하지 않는다.
+
+- 최신 `.github/workflows/ci.yml`의 8샤드/Shard별 35m/PR fail-fast 및 #767 변경/Release 8-way를 보존하고 #770의 read-only `impact_shadow` Job과 필수 정책 회귀 단계만 병합한다.
+- `scripts/ci_impact_plan.py`는 trusted base의 `tests/config/e2e-shard-plan.json` 스키마/샤드 그룹을 검증해 N=8로 판정한다. 보고서 `trusted_e2e_shard_count` 및 동일 Run/Attempt의 N/8 Job/timing ZIP을 교차 확인한다. 누락/구 6-shard/미확인 schema → UNKNOWN, Full Required/QA 자기 승인 불가.
+- 새 sync commit은 최신 main의 앱 버전 **0.129.1** 및 테스트 계획을 그대로 유지하며, 별도 앱 버전/릴리스 생성이나 Git/GHCR tag 변경을 하지 않는다. 전체 Quality/Chromium 8/8/Docker와 Trusted QA·Owner HIGH 승인은 새 HEAD 원격 Run에서 재검증한다.
+
 ## Issue #770 — F770-001/F770-002 및 Shadow P1/P2 교정 (2026-10-22)
 
 [Full #3101.1](https://github.com/planner77/masterGantt/actions/runs/39688555697)의 선행 QA 선언/Issue AC 실패는 Fast Gate가 실제 테스트 실행을 차단한 정책 실패다. [Metadata-only #3103.1](https://github.com/planner77/masterGantt/actions/runs/39691582062)은 Full이 실패한 동일 Head의 근거를 재활용할 수 없어 실패했다. 두 원본은 불변; [#770 누적 원장](ISSUE_770_FAILURE_ANALYSIS.md).
@@ -19,6 +27,17 @@
 - 신뢰된 base 실행이 실패해도 **관찰 Job만 비차단**이며 기존 Required3/QA/Owner 판정은 독립적으로 fail-closed. Shadow 출처를 QA check 식별자로 재사용하거나 required 검사로 추가하지 않는다. 불안정 시 비차단 Job 제거만으로 기존 전체 CI 경로로 복귀.
 - 최초 10개 성공 Run의 API 메타데이터/모든 6 샤드·3 gate 통과만 독립 확인했다. 원본 ZIP/Head/Base/Test-Merge·diff와 per-run Job 날짜 상관분석까지 검증하기 전 실제 false negative, 시간·비용 절감, 분류 정확도는 `INSUFFICIENT_DATA`. [작업 원장](exec-plans/active/ISSUE_770.md)과 [TEST_PLAN](TEST_PLAN.md) 참조.
 - #771 Fast/Full, #773 release reuse, #772 LOW 공식 합격은 **이 Phase A 결과만으로 자동 승인되지 않음**. 각각 별도 엄격한 검증·Owner 전환 승인 필요.
+
+---
+
+## Issue #767 — 활성 PR/Main/Release E2E 8-Shard 계약 (2026-10-22)
+
+2026-10-22 Owner의 기존 [Issue #767](https://github.com/planner77/masterGantt/issues/767) 후속 지시로 **현재 실행 구성은 8 shards / worker1 / Job timeout 35분**이다. 아래 #765/#659 등의 `E2E6`·6-Shard 문구는 당시 immutable Run/정책의 역사적 기록이며, 지금부터 활성 `CI` + `release-image` E2E는 8/8을 요구한다. [원본 Full #3099.1](https://github.com/planner77/masterGantt/actions/runs/39676585856)는 Shard5 94/109 PASS 뒤 35분 취소·나머지5Shard와 Quality/Docker PASS, E2E aggregate/QA 파생 FAIL. 근인·이전 F767-001~006 대조는 [F767-007 단일 실패 원장](ISSUE_767_FAILURE_ANALYSIS.md) 참조.
+
+- **동작**: `e2e_shard`(Main/manual) Matrix [1..8], `pr_e2e_shard`(PR) [1..8], Release `release_e2e_shard` [1..8]. 동일 `tests/config/e2e-shard-plan.json`의 136개 E2E specs를 8×17로 한 번씩, `--total 8` selector/`--shard=n/8` native fallback, `E2E_TIMING_SHARD_COUNT=8` timing, optimizer `--shards 8`. 완료 3개 Run(#3097/3098/3099)의 파일별 보고 시험시간+출력간격 MAX 기준 deterministic LPT. 샤드별≈21.1분의 관측 가중치 합은 **실제 35분 이내 완료 보장 아님**; #751에서 각 Fixture 구간 계측, #752에서 반복 취소/진단을 후속한다.
+- **보호**: PR `fail-fast=true`/내부 `--max-failures=1`, Main/manual fail-fast=false, Retry/Skip·test assertions/Fixture/DB/앱 코드·Worker1·`timeout-minutes:35`, 세 Required aggregate 정확 이름, default-main Trusted/Owner HIGH/strict main 및 immutable GHCR Main 후보/SBOM/provenance/Release/Finalizer 권한 **불변**. 신규 8-Shard 설정 전환은 보호 정책 HIGH이며 기존 `v0.129.0` tag/digest와 완료된 #736/#765를 수정하지 않는다.
+- **호환성/롤백**: 기존 `scripts/main_ci_recovery.py` (#639/#616 구 exact Run)의 원본 `Chromium E2E shard n/6` 인증 규칙은 역사적 6-Shard Run 전용이라 수정하지 않는다. 활성 Release E2E 검증기와 정책 테스트는 8-Shard로 갱신한다. 리셋 필요 시 workflow·selector·plan·Unit·정책을 **함께** 이전 6으로 돌려 새 Head Full CI 재검증하며, 과거 원본 판정을 소급 변경하지 않는다.
+- **현 시점**: 새로운 Head Full Quality/E2E 8/8/Docker + Trusted 결과는 실행 전 **NOT TESTED**, `MERGE_READY=BLOCKED`/`release_authorized=false`. 임의로 job timeout/skip/retry/QA 신뢰를 완화해 녹색화 금지.
 
 ---
 

@@ -1,3 +1,10 @@
+## [0.129.1] — 교정 PATCH / Issue #767 (2026-10-21)
+
+- 과거 #736 Main #3071.1 실패에서 드러난 개인 exact Assignment 로딩 및 #530 Milestone→Resource→일정 LIFO focus 복귀를 원본 [PR #764](https://github.com/planner77/masterGantt/pull/764)의 교정 코드/회귀 테스트 그대로 새 Primary Issue #767에 승계한다. 기존 Main #765 및 #736 종료/퇴역 원장은 불변.
+- exact edit에서는 후보 전체 GET을 생략하면서 `/edit-sessions/current`를 통해 권한/세션 만료를 fail-closed 확인한다. 일반 Editor 후보, 개인 투입률 100→80→70, 동료 Assignment 불변 및 401/412 초안 보존. Milestone UUID 기반 current·ready 화면 복귀 포커스 및 신규/기존 E2E 부정 회귀 유지.
+- `package.json`과 `package-lock.json` 3곳을 `0.129.1`로 동기화한다. 선행 #764 Full [#3092.1](https://github.com/planner77/masterGantt/actions/runs/39602089760) 및 Trusted [#734.1](https://github.com/planner77/masterGantt/actions/runs/39607021968)은 **이전 Head**의 PASS로 보존; 신규 #767 Head의 Full PR CI + Trusted QA를 별도로 요구한다.
+- Risk HIGH, OWNER_MANAGED, Required Quality/E2E6/Docker/Trusted 및 reviewer thread0, Owner 병합 승인/새 Main CI 불변. `release_required=true`, 정식 게시 사전 승인이 따로 확인되기 전 `release_authorized=false`; 기존 `v0.129.0` annotated tag/GHCR digest와 #765 FINAL은 절대 재발행·이동하지 않는다.
+
 ## [0.129.0] — Unreleased / Issue #734
 
 - Issue #765 (Release-only cleanup): 정식 GHCR v0.129.0 Release #186의 기존 검증 SHA/Digest를 그대로 유지한다. 새 이미지/버전 태그나 재빌드는 없다.
@@ -11,6 +18,10 @@
 - 지표/UX/API·매뉴얼/테스트·Work Packet을 동기화한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false; 새 PR CI 시작은 원격 PASS·Owner 승인·병합/정식 릴리스가 아니다.
 
 ## [0.128.0] — Unreleased / Issue #736
+
+- 교정 PR #764 Full CI #3076.1의 기존 #530 Milestone M1→Resource→일정→M1 LIFO focus 미복귀를 F736-004에 누적하였다. Milestone 원본 UUID/리소스 버튼을 다시 식별하고 현재 조회가 활성·준비되었을 때 취소 가능한 복귀 focus를 수행하며 기존 KPI·범위·원본·Gantt 검증을 유지한다. Codex P2의 정확 개인 Assignment 수정에 대한 편집 권한 재검증 누락은 기존 edit-sessions/current API로 fail-closed 보완한다. 신규 revoked-session 음성 검증을 추가하고 일반 Editor 후보 탐색·인증/Revision/401·412 유지, E2E6/timeout/Retry/Skip/Required 정책 및 version0.128.0은 변경하지 않는다. 원본 Full PR/코드 수정 Main 실패는 불변 이력으로 보존한다.
+
+- 병합 Main CI #3071.1에서 기존 #621 정확 개인 Assignment 편집의 초기 투입률 입력을 5초 내 찾지 못한 실패를 M736-001에 기록했다. 실제 canonical 배정 조회가 성공해도 전체 후보 Resource 조회(Trace 약4초)를 추가로 기다리는 불필요한 의존을 exact edit에서만 제거하고, 기존 이름-first/공동담당 불변/401·412/초안보존/정확 수정 계약과 일반 편집 후보 검색을 유지한다. 원격 교정 PR CI/새 Main 검증 전 과거 Main 성공·GHCR 게시·Issue 종료로 승격하지 않는다.
 
 - Full PR CI #3065.1의 Resource Plan report body 관측 경합을 F736-003에 누적하고, 테스트의 정확 Project/spec/filters/scope·즉시 body receipt·단계별 조건 완료로 보완한다. 과거 TS guard/M/M matcher와 원본 source·취소 shard·남은 미검증을 보존하며 기존 공수/Plan/Excel·권한·CI timeout/6Shard 정책은 변경하지 않는다.
 

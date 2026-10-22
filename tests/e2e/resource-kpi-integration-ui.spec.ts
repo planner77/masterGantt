@@ -668,6 +668,8 @@ test("#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource�
   const causeHeading=milestone.getByRole("heading",{name:"M1 · 전체 Milestone 원인",exact:true});await expect(causeHeading).toBeFocused();
   const causeRegion=causeHeading.locator("xpath=../..");await expect(causeRegion).toContainText("T1");
   const crossTrigger=milestone.getByRole("region",{name:"범위 내 Milestone 공수 표 가로 스크롤",exact:true}).locator("tbody tr").filter({hasText:"M1"}).getByRole("button",{name:"리소스",exact:true});
+  await expect(crossTrigger).toHaveAttribute("data-milestone-resource-trigger","true");
+  await expect(crossTrigger.locator("xpath=ancestor::tr")).toHaveAttribute("data-milestone-effort-bucket",seed.tasks.M1.taskId);
   await crossTrigger.focus();await page.keyboard.press("Enter");
   await expect(resourceTab).toHaveAttribute("aria-selected","true");
   const resource=page.locator('[data-resource-dashboard="true"]:visible');await expect(resource).toHaveAttribute("data-ready","true");

@@ -1,5 +1,15 @@
 # Issue #770 — trusted impact classifier & Shadow full-CI observation
 
+## Issue #770 — main #767 동기화/8-way Shadow 설계 교정 (2026-10-22)
+
+- 직전 Full PR CI [#3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)는 원본 Head `b53a15de9aaee3ce96887b3ec24446bc482e2c81`의 Quality/Chromium 6/6/Docker/QA Final **성공**, Trusted QA [#747.1](https://github.com/planner77/masterGantt/actions/runs/39700558664) **성공**. 사용자가 보고한 이후 상태는 실패한 실제 Full Run이 아닌 **main 10커밋 진전 및 PR mergeable=false**다. 이전 실패 기록 F770-001/002는 별도 보존한다.
+- 새 기준 main: `81c28fa5502caee27e98d4d293b0b1b28e6340dd`, app `0.129.1`, [#767](https://github.com/planner77/masterGantt/issues/767)의 공식 E2E 8-shard 및 Build/QA/Main/Release 보호 경로. 원 브랜치의 문서/분류기 원본은 6-shard/0.129.0 baseline이므로 **이 섹션의 8-shard 기준이 현재 운영 설계에 우선**한다. 표의 과거 10회 6/6 기록은 역사 자료이고 현재 8/8 실측이 아니다.
+- 기존 `.github/workflows/ci.yml`의 main 8-way 행렬/35m/Full Required3를 보존하고 #770 비차단 `impact_shadow`/정책 회귀만 통합. `scripts/ci_impact_plan.py`은 authenticated base `tests/config/e2e-shard-plan.json`의 schemaVersion/shardCount/1..N unique group 검증 후 current N=8의 Job 이름, 완료/누락, ZIP 8개/shardCount 값을 대조한다. outdated 6/6 evidence와 missing/forged plan → UNKNOWN. Shadow는 Required PASS/릴리스 권한 증명이 아니다.
+- `tests/python/test_ci_impact_plan.py`: 8-way successful/missing, 6-way legacy input 거부, trusted plan 변경·누락 및 기존 stdin/skip/forged source negative 회귀. 실 Unit/Python/Chromium Runner의 새 Head 결과는 **NOT TESTED**, Full PR CI 시작 후 Run ID/Attempt 수집하여 별도 확인할 것.
+- 변경 파일 정렬: workflow 8-way main을 우선, AGENTS/CI_CD/REMOTE_VALIDATION/TEST_PLAN/PLAN은 신규 #770 업데이트 prefix + latest main 전체 문서를 병합. #767 앱/UI/리소스·테스트 sharding/정식 릴리스 보존, Issue #770 앱 버전 업 금지.
+- [이슈별 실패 및 main drift 원장](../../ISSUE_770_FAILURE_ANALYSIS.md) R770-MAIN-001 참고. Risk HIGH, OWNER_MANAGED, qa_required=true, manager_decision=NOT TESTED, release_required=false, release_authorized=false. 최신 main strict 및 full Quality/Chromium 8/8/Docker/Trusted/Owner HIGH 승인 이전 MERGE_READY=BLOCKED. 이번 작업 요청은 새 PR CI 시작까지이며 모니터링·병합·GHCR·Issue 종료 미진행.
+
+
 - Primary Issue: [#770](https://github.com/planner77/masterGantt/issues/770), Epic [#769](https://github.com/planner77/masterGantt/issues/769).
 - 2026-10-22 baseline: main `71f9b9ddb61be7f6e076accc027188f362e18bb1`, branch `ci/issue-770-trusted-impact-shadow`; application version `0.129.0` stays unchanged.
 - Approval scope: Owner's subsequent instruction requests implementation and PR CI, **not** merge/production, GHCR or Release authorization. The old Issue description's registration-only boundary is superseded only for implementation and PR CI.

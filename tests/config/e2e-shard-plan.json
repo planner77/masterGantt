@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "issue": 437,
-  "shardCount": 6,
+  "shardCount": 8,
   "generatedAt": "2026-10-20T10:40:49.027Z",
   "estimator": "median",
   "sourceRunIds": [
@@ -40,174 +40,186 @@
   "shards": [
     {
       "shard": 1,
-      "projectedMs": 563349,
+      "projectedMs": 1265283,
       "files": [
-        "tests/e2e/browser-project-resource-data.spec.ts",
-        "tests/e2e/error-boundary-regression.spec.ts",
-        "tests/e2e/logistics-target-authoring.spec.ts",
-        "tests/e2e/milestone-dashboard-state.spec.ts",
-        "tests/e2e/milestone-timeline-core.spec.ts",
+        "tests/e2e/admin-auth-layout.spec.ts",
+        "tests/e2e/derived-dialog-recovery.spec.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "tests/e2e/issue-717-identity-persistence.spec.ts",
+        "tests/e2e/milestone-stage-gates.spec.ts",
+        "tests/e2e/milestone-stage-grid.spec.ts",
         "tests/e2e/milestone-timeline-lane.spec.ts",
-        "tests/e2e/new-project-draft-preservation.spec.ts",
-        "tests/e2e/project-chart-vertical-dnd.spec.ts",
-        "tests/e2e/project-edit-authorization.spec.ts",
         "tests/e2e/project-empty-summary.spec.ts",
-        "tests/e2e/project-filter-toolbar-consistency.spec.ts",
-        "tests/e2e/project-gantt-image-export.spec.ts",
+        "tests/e2e/project-gantt-inline-start-date.spec.ts",
         "tests/e2e/project-grid-reorder-persistence.spec.ts",
-        "tests/e2e/project-repeated-input-accessibility.spec.ts",
-        "tests/e2e/project-resource-calendar-persistence.spec.ts",
         "tests/e2e/project-resource-memberships-persistence.spec.ts",
-        "tests/e2e/project-transfer-layout-491.spec.ts",
-        "tests/e2e/relation-dialog-ux.spec.ts",
-        "tests/e2e/resource-dashboard-api.spec.ts",
-        "tests/e2e/resource-developer-grade.spec.ts",
+        "tests/e2e/project-resource-workload-status.spec.ts",
+        "tests/e2e/project-summary-bar-visual.spec.ts",
+        "tests/e2e/resource-admin-layout.spec.ts",
         "tests/e2e/resource-drill-ui.spec.ts",
-        "tests/e2e/resource-excel-export-api.spec.ts"
+        "tests/e2e/resource-kpi-integration-ui.spec.ts",
+        "tests/e2e/resource-milestone-ui.spec.ts"
       ]
     },
     {
       "shard": 2,
-      "projectedMs": 563274,
+      "projectedMs": 1265824,
       "files": [
-        "tests/e2e/admin-auth-layout.spec.ts",
-        "tests/e2e/gantt-state-product-integration.spec.ts",
-        "tests/e2e/issue-623-resource-mvp.spec.ts",
-        "tests/e2e/issue-624-logistics-unified.spec.ts",
-        "tests/e2e/issue-719-contextual-help.spec.ts",
-        "tests/e2e/issue-730-view-composer.spec.ts",
-        "tests/e2e/issue-736-resource-dashboard.spec.ts",
-        "tests/e2e/logistics-table-density.spec.ts",
+        "tests/e2e/issue-622-resource-plan-target.spec.ts",
+        "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+        "tests/e2e/logistics-type-catalog-admin.spec.ts",
+        "tests/e2e/milestone-management-persistence.spec.ts",
         "tests/e2e/milestone-stage-editor.spec.ts",
-        "tests/e2e/milestone-wbs-mode.spec.ts",
-        "tests/e2e/project-create-isolation.spec.ts",
-        "tests/e2e/project-create-layout.spec.ts",
-        "tests/e2e/project-gantt-inline-name.spec.ts",
-        "tests/e2e/project-json-import.spec.ts",
+        "tests/e2e/project-gantt-fullscreen.spec.ts",
+        "tests/e2e/project-gantt-scale.spec.ts",
+        "tests/e2e/project-gantt-stability.spec.ts",
+        "tests/e2e/project-links-persistence.spec.ts",
         "tests/e2e/project-master-relations.spec.ts",
-        "tests/e2e/project-notifications.spec.ts",
-        "tests/e2e/project-resource-workload-status.spec.ts",
-        "tests/e2e/project-task-persistence.spec.ts",
-        "tests/e2e/project-workspace-layout.spec.ts",
-        "tests/e2e/resource-drill-dashboard.spec.ts",
+        "tests/e2e/project-resource-calendar-persistence.spec.ts",
+        "tests/e2e/project-search-filter.spec.ts",
+        "tests/e2e/project-task-editor-persistence.spec.ts",
+        "tests/e2e/project-task-editor.spec.ts",
+        "tests/e2e/resource-drill-api.spec.ts",
         "tests/e2e/resource-kpi-integration-api.spec.ts",
-        "tests/e2e/resource-plan-api.spec.ts",
-        "tests/e2e/resource-plan-ui.spec.ts",
-        "tests/e2e/task-context-menu-hierarchy.spec.ts"
+        "tests/e2e/task-link-load-safety.spec.ts"
       ]
     },
     {
       "shard": 3,
-      "projectedMs": 563440,
+      "projectedMs": 1265366,
       "files": [
-        "tests/e2e/canonical-projection.spec.ts",
         "tests/e2e/core-action-trace.spec.ts",
-        "tests/e2e/cross-screen-regression.spec.ts",
-        "tests/e2e/derived-dialog-recovery.spec.ts",
-        "tests/e2e/inline-name-persistence.spec.ts",
-        "tests/e2e/issue-621-resource-target.spec.ts",
-        "tests/e2e/issue-717-identity-persistence.spec.ts",
-        "tests/e2e/issue-717-name-first.spec.ts",
-        "tests/e2e/issue-725-process-workareas.spec.ts",
-        "tests/e2e/issue-726-logistics-master.spec.ts",
-        "tests/e2e/issue-732-milestone-dashboard.spec.ts",
-        "tests/e2e/logistics-type-catalog-admin.spec.ts",
-        "tests/e2e/master-controls-density.spec.ts",
-        "tests/e2e/milestone-stage-grid.spec.ts",
-        "tests/e2e/project-edit-permission-recheck.spec.ts",
-        "tests/e2e/project-gantt-inline-start-date.spec.ts",
+        "tests/e2e/grid-task-start-reveal.spec.ts",
+        "tests/e2e/logistics-table-density.spec.ts",
+        "tests/e2e/milestone-stage-exchange.spec.ts",
+        "tests/e2e/milestone-timeline-core.spec.ts",
+        "tests/e2e/project-filter-toolbar-consistency.spec.ts",
+        "tests/e2e/project-json-import.spec.ts",
+        "tests/e2e/project-list-search-filter.spec.ts",
         "tests/e2e/project-master-admin.spec.ts",
-        "tests/e2e/project-resource-calendar-exceptions.spec.ts",
-        "tests/e2e/project-status.spec.ts",
-        "tests/e2e/project-task-delete-context.spec.ts",
-        "tests/e2e/resource-drill-api.spec.ts",
-        "tests/e2e/resource-excel-export-ui.spec.ts",
-        "tests/e2e/resource-global-roles.spec.ts",
-        "tests/e2e/resource-target-dashboard-api.spec.ts",
-        "tests/e2e/task-editor-form-density.spec.ts"
+        "tests/e2e/project-repeated-input-accessibility.spec.ts",
+        "tests/e2e/project-task-quick-view.spec.ts",
+        "tests/e2e/project-work-calendar-preview.spec.ts",
+        "tests/e2e/project-workspace-tabs-518.spec.ts",
+        "tests/e2e/projection-row-alignment.spec.ts",
+        "tests/e2e/resource-error-recovery.spec.ts",
+        "tests/e2e/resource-milestone-views.spec.ts",
+        "tests/e2e/task-context-menu-hierarchy.spec.ts"
       ]
     },
     {
       "shard": 4,
-      "projectedMs": 563336,
+      "projectedMs": 1265740,
       "files": [
-        "tests/e2e/gantt-demo.spec.ts",
         "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "tests/e2e/issue-725-process-workareas.spec.ts",
+        "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
         "tests/e2e/issue-735-system-dashboard.spec.ts",
-        "tests/e2e/milestone-stage-gates.spec.ts",
-        "tests/e2e/milestone-visibility-persistence.spec.ts",
-        "tests/e2e/milestone-visibility.spec.ts",
-        "tests/e2e/project-list-search-filter.spec.ts",
-        "tests/e2e/project-logistics-management.spec.ts",
-        "tests/e2e/project-resource-memberships-ui.spec.ts",
-        "tests/e2e/project-settings-dialog-layout.spec.ts",
-        "tests/e2e/project-settings-layout-490.spec.ts",
-        "tests/e2e/project-task-editor-persistence.spec.ts",
-        "tests/e2e/project-work-calendar-preview.spec.ts",
-        "tests/e2e/resource-admin-layout.spec.ts",
+        "tests/e2e/milestone-exchange-state.spec.ts",
+        "tests/e2e/project-edit-authorization.spec.ts",
+        "tests/e2e/project-empty-summary-persistence.spec.ts",
+        "tests/e2e/project-workspace-layout.spec.ts",
+        "tests/e2e/relation-dialog-ux.spec.ts",
         "tests/e2e/resource-catalog-delete.spec.ts",
-        "tests/e2e/resource-dashboard-ui.spec.ts",
-        "tests/e2e/resource-error-recovery.spec.ts",
-        "tests/e2e/resource-excel-export-dashboard.spec.ts",
+        "tests/e2e/resource-excel-export-api.spec.ts",
         "tests/e2e/resource-tabs.spec.ts",
-        "tests/e2e/task-context-menu-scroll.spec.ts",
-        "tests/e2e/task-link-load-safety.spec.ts",
+        "tests/e2e/resource-target-dashboard-api.spec.ts",
+        "tests/e2e/task-editor-form-density.spec.ts",
+        "tests/e2e/template-picker-ux.spec.ts",
+        "tests/e2e/ui-semantic-tokens.spec.ts",
         "tests/e2e/viewport-coordinator.spec.ts"
       ]
     },
     {
       "shard": 5,
-      "projectedMs": 563243,
+      "projectedMs": 1265505,
       "files": [
-        "tests/e2e/admin-legacy-button-spacing.spec.ts",
-        "tests/e2e/browser-task-logistics-links.spec.ts",
-        "tests/e2e/issue-622-resource-plan-target.spec.ts",
-        "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+        "tests/e2e/browser-project-resource-data.spec.ts",
+        "tests/e2e/issue-624-logistics-unified.spec.ts",
+        "tests/e2e/issue-717-name-first.spec.ts",
+        "tests/e2e/issue-719-contextual-help.spec.ts",
+        "tests/e2e/issue-730-view-composer.spec.ts",
+        "tests/e2e/issue-736-resource-dashboard.spec.ts",
+        "tests/e2e/logistics-dashboard-request-state.spec.ts",
         "tests/e2e/milestone-management.spec.ts",
-        "tests/e2e/milestone-stage-dashboard.spec.ts",
-        "tests/e2e/milestone-stage-exchange.spec.ts",
-        "tests/e2e/project-empty-summary-persistence.spec.ts",
-        "tests/e2e/project-gantt-fullscreen.spec.ts",
-        "tests/e2e/project-gantt-scale.spec.ts",
-        "tests/e2e/project-gantt-stability.spec.ts",
-        "tests/e2e/project-multi-task-copy-paste.spec.ts",
-        "tests/e2e/project-search-filter.spec.ts",
-        "tests/e2e/project-task-quick-view.spec.ts",
-        "tests/e2e/project-workspace-tabs-518.spec.ts",
-        "tests/e2e/projection-row-alignment.spec.ts",
-        "tests/e2e/resource-kpi-integration-ui.spec.ts",
-        "tests/e2e/resource-milestone-ui.spec.ts",
+        "tests/e2e/milestone-wbs-mode.spec.ts",
+        "tests/e2e/project-chart-vertical-dnd.spec.ts",
+        "tests/e2e/project-edit-permission-recheck.spec.ts",
+        "tests/e2e/project-task-delete-context.spec.ts",
+        "tests/e2e/resource-dashboard-ui.spec.ts",
+        "tests/e2e/resource-drill-dashboard.spec.ts",
+        "tests/e2e/resource-excel-export-dashboard.spec.ts",
         "tests/e2e/resource-plan-dashboard.spec.ts",
-        "tests/e2e/skip-link.spec.ts",
-        "tests/e2e/ui-semantic-tokens.spec.ts"
+        "tests/e2e/workspace-header-version.spec.ts"
       ]
     },
     {
       "shard": 6,
-      "projectedMs": 563338,
+      "projectedMs": 1265710,
       "files": [
-        "tests/e2e/gantt-adapter-poc.spec.ts",
-        "tests/e2e/grid-task-start-reveal.spec.ts",
+        "tests/e2e/browser-task-logistics-links.spec.ts",
+        "tests/e2e/canonical-projection.spec.ts",
+        "tests/e2e/error-boundary-regression.spec.ts",
+        "tests/e2e/gantt-state-product-integration.spec.ts",
+        "tests/e2e/issue-726-logistics-master.spec.ts",
         "tests/e2e/issue-726-task-logistics.spec.ts",
-        "tests/e2e/issue-734-equipment-dashboard.spec.ts",
-        "tests/e2e/logistics-dashboard-request-state.spec.ts",
-        "tests/e2e/milestone-exchange-state.spec.ts",
-        "tests/e2e/milestone-management-persistence.spec.ts",
-        "tests/e2e/milestone-stage-grid-mock.spec.ts",
+        "tests/e2e/master-controls-density.spec.ts",
+        "tests/e2e/milestone-stage-dashboard.spec.ts",
+        "tests/e2e/milestone-visibility-persistence.spec.ts",
         "tests/e2e/project-browser-title-favicon.spec.ts",
+        "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+        "tests/e2e/project-task-hover-tooltip.spec.ts",
+        "tests/e2e/project-transfer-layout-491.spec.ts",
+        "tests/e2e/project-workspace-ux.spec.ts",
+        "tests/e2e/resource-dashboard-api.spec.ts",
+        "tests/e2e/resource-global-roles.spec.ts",
+        "tests/e2e/skip-link.spec.ts"
+      ]
+    },
+    {
+      "shard": 7,
+      "projectedMs": 1265702,
+      "files": [
+        "tests/e2e/cross-screen-regression.spec.ts",
+        "tests/e2e/gantt-adapter-poc.spec.ts",
+        "tests/e2e/gantt-demo.spec.ts",
+        "tests/e2e/inline-name-persistence.spec.ts",
+        "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+        "tests/e2e/logistics-target-authoring.spec.ts",
         "tests/e2e/project-context-toolbar-responsive.spec.ts",
         "tests/e2e/project-create-and-read.spec.ts",
         "tests/e2e/project-gantt-density.spec.ts",
-        "tests/e2e/project-links-persistence.spec.ts",
-        "tests/e2e/project-modal-feedback.spec.ts",
-        "tests/e2e/project-summary-bar-visual.spec.ts",
+        "tests/e2e/project-logistics-management.spec.ts",
+        "tests/e2e/project-resource-memberships-ui.spec.ts",
+        "tests/e2e/project-settings-dialog-layout.spec.ts",
         "tests/e2e/project-task-context-menu.spec.ts",
-        "tests/e2e/project-task-editor.spec.ts",
-        "tests/e2e/project-task-hover-tooltip.spec.ts",
-        "tests/e2e/project-workspace-ux.spec.ts",
-        "tests/e2e/resource-milestone-views.spec.ts",
-        "tests/e2e/template-picker-ux.spec.ts",
-        "tests/e2e/workspace-header-version.spec.ts"
+        "tests/e2e/project-task-persistence.spec.ts",
+        "tests/e2e/resource-developer-grade.spec.ts",
+        "tests/e2e/resource-excel-export-ui.spec.ts",
+        "tests/e2e/task-context-menu-scroll.spec.ts"
+      ]
+    },
+    {
+      "shard": 8,
+      "projectedMs": 1265700,
+      "files": [
+        "tests/e2e/admin-legacy-button-spacing.spec.ts",
+        "tests/e2e/issue-621-resource-target.spec.ts",
+        "tests/e2e/milestone-dashboard-state.spec.ts",
+        "tests/e2e/milestone-stage-grid-mock.spec.ts",
+        "tests/e2e/milestone-visibility.spec.ts",
+        "tests/e2e/new-project-draft-preservation.spec.ts",
+        "tests/e2e/project-create-isolation.spec.ts",
+        "tests/e2e/project-create-layout.spec.ts",
+        "tests/e2e/project-gantt-image-export.spec.ts",
+        "tests/e2e/project-gantt-inline-name.spec.ts",
+        "tests/e2e/project-modal-feedback.spec.ts",
+        "tests/e2e/project-multi-task-copy-paste.spec.ts",
+        "tests/e2e/project-notifications.spec.ts",
+        "tests/e2e/project-settings-layout-490.spec.ts",
+        "tests/e2e/project-status.spec.ts",
+        "tests/e2e/resource-plan-api.spec.ts",
+        "tests/e2e/resource-plan-ui.spec.ts"
       ]
     }
   ],
@@ -506,5 +518,1046 @@
     "estimationCaveat": "Rough shift-only estimate of successful test-body duration; shard5's last 4 files NOT RUN. Runner startup, test latency, fixture stalls and historical projectedMs are not updated or claimed as validated. New exact PR Head required.",
     "testFileCoverage": "136 explicit unique specs preserved; 6 shards workers=1, PR fail-fast & --max-failures=1, Main fail-fast=false, required 3 aggregates, shard timeout=35min unchanged",
     "validation": "STATIC_PLAN_COVERAGE_ONLY; NEW_PR_FULL_CI_NOT_TESTED"
+  },
+  "manualRebalance767": {
+    "issue": 767,
+    "sourcePR": 768,
+    "sourceRunId": 39611062916,
+    "attempt": 1,
+    "sourceHeadSha": "d762cecbe00d60d26ce301f4d59b36f05a1d76f2",
+    "sourceBaseSha": "71f9b9ddb61be7f6e076accc027188f362e18bb1",
+    "failedShard": 6,
+    "failedShardJobId": 119260956062,
+    "e2eAggregateJobId": 119279386588,
+    "sourceRunConclusion": "CANCELLED",
+    "actualFailure": "Chromium E2E shard6 hit 35min GitHub Actions job limit; 173 of 174 test cases passed then job cancelled with no assertion failure observed; one incomplete, NOT PASS",
+    "observedJobWallMinutes": [
+      19.05,
+      29.87,
+      22.27,
+      25.27,
+      25.37,
+      35.37
+    ],
+    "observedCaseCompletions": [
+      113,
+      122,
+      133,
+      156,
+      90,
+      173
+    ],
+    "observedTotalCases": [
+      113,
+      123,
+      134,
+      157,
+      90,
+      174
+    ],
+    "movedFiles": [
+      {
+        "file": "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+        "from": 6,
+        "to": 1,
+        "observedBodyMinutes": 5.31,
+        "passedCases": 8
+      },
+      {
+        "file": "tests/e2e/project-task-editor.spec.ts",
+        "from": 6,
+        "to": 3,
+        "observedBodyMinutes": 3.58,
+        "passedCases": 33
+      },
+      {
+        "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+        "from": 6,
+        "to": 4,
+        "observedBodyMinutes": 2.81,
+        "passedCases": 3
+      }
+    ],
+    "estimatedJobWallMinutes": [
+      24.36,
+      29.87,
+      25.85,
+      28.08,
+      25.37,
+      23.67
+    ],
+    "estimationMethod": "Source #3095.1 job wall +/- last green test-body duration by whole spec; approximate only; no setup/runtime variability modelled, cancelled final test unmeasured.",
+    "historicalBaseline": "metrics.projectedMs and manualRebalance733/732/765, issue734 placement remain historical evidence, not recalibrated predictions.",
+    "protection": "All 136 unique specs remain in 6 shards. No skip, worker, 35min timeout, retries, --max-failures, fail-fast, Required3, default-main QA or release policy change.",
+    "validation": "STATIC_PLAN_COVERAGE_ONLY; NEW_FULL_PR_CI_AND_TRUSTED_QA_NOT_TESTED"
+  },
+  "manualRebalance767F005": {
+    "issue": 767,
+    "incident": "F767-005",
+    "pr": 768,
+    "failedFullRun": 39658647821,
+    "attempt": 1,
+    "headSha": "aaf9ddaab3b1092b6b8cd3f33251928f9bab0e5a",
+    "baseSha": "71f9b9ddb61be7f6e076accc027188f362e18bb1",
+    "testMergeSha": "UNKNOWN_REQUIRES_VERIFIED_SOURCE",
+    "originalRunConclusion": "CANCELLED",
+    "classification": "CI_SHARD_JOB_TIMEOUT",
+    "evidence": {
+      "shard1Job": 119426748348,
+      "failedE2EAggregateJob": 119444659091,
+      "sourceJobWallMinutes": [
+        35.28,
+        31.62,
+        31.35,
+        30.6,
+        18.9,
+        14.13
+      ],
+      "shard1CaseResult": "119 passed / 121 selected; two incomplete NOT TESTED",
+      "otherShards": "2 through 6 success (122,166,159,90,130 passed; one skip each in shards 2,3,4)",
+      "originalPriorFailure": "F767-003 #3095 Shard6 at35m; F767-004 #3096 artifact CreateArtifact ECONNRESET; #3097 all artifact upload steps for completed shards succeeded",
+      "noObservedAssertionFailure": true
+    },
+    "rebalanceBasis": "Six-way source Run #3097.1 measured job wall and per-file completed-test body durations, including earlier #3095/3096 incident corrections. Whole spec files moved; no test assertion or selection removed.",
+    "previousExplicitCounts": [
+      23,
+      24,
+      26,
+      23,
+      21,
+      19
+    ],
+    "newExplicitCounts": [
+      20,
+      23,
+      25,
+      22,
+      23,
+      23
+    ],
+    "movedFiles": [
+      {
+        "file": "issue-734-equipment-dashboard.spec.ts",
+        "from": 1,
+        "to": 6,
+        "bodyMin": 3.94,
+        "cases": 8
+      },
+      {
+        "file": "project-transfer-layout-491.spec.ts",
+        "from": 1,
+        "to": 6,
+        "bodyMin": 2.81,
+        "cases": 8
+      },
+      {
+        "file": "logistics-target-authoring.spec.ts",
+        "from": 1,
+        "to": 6,
+        "bodyMin": 2.78,
+        "cases": 7
+      },
+      {
+        "file": "issue-730-view-composer.spec.ts",
+        "from": 2,
+        "to": 5,
+        "bodyMin": 3.27,
+        "cases": 6
+      },
+      {
+        "file": "issue-621-resource-target.spec.ts",
+        "from": 3,
+        "to": 6,
+        "bodyMin": 3.05,
+        "cases": 6
+      },
+      {
+        "file": "issue-735-system-dashboard.spec.ts",
+        "from": 4,
+        "to": 5,
+        "bodyMin": 4.04,
+        "cases": 6
+      }
+    ],
+    "estimatedWallMinutes": [
+      25.75,
+      28.35,
+      28.3,
+      26.56,
+      26.21,
+      26.71
+    ],
+    "estimateCaveat": "Wall ± source completed test-body time only, not a prediction; shard1 missing two tests are unmeasured and setup variability unknown. Treat past metrics/projectedMs and earlier manualRebalance records as historical snapshots, not new forecasts.",
+    "scope": "136 unique current E2E spec files exactly once, 6 shards, workers1, PR fail-fast and max-failures=1, 35-minute job cap, Required3 and Trusted QA, historical verification preserved",
+    "validation": "SOURCE_TREE_AND_UNIT_PIN_STATIC_ONLY; LOCAL_BROWSER_AND_NEW_HEAD_FULL_PR_CI_NOT_TESTED"
+  },
+  "manualRebalance767F006": {
+    "issue": 767,
+    "incident": "F767-006",
+    "pr": 768,
+    "run": 39665459118,
+    "attempt": 1,
+    "headSha": "26364cce865189122318a49e68f86bcb0f468270",
+    "baseSha": "71f9b9ddb61be7f6e076accc027188f362e18bb1",
+    "testMergeSha": "d8b23512a03c6eaac16735a8ac89eb97e869fc56",
+    "originalRunConclusion": "CANCELLED",
+    "directCause": "E2E PR shard6 35-min job cap; 153 of 159 test cases PASS; 6 not completed; zero observed assertion failures",
+    "crossRunContext": "F767-001/002 preflight corrected, F767-003 shard6 timeout, F767-004 timing artifact CreateArtifact ECONNRESET (not repeated), F767-005 shard1 35-min timeout, F767-006 shard6 35-min timeout",
+    "sourceJobWallMinutes": [
+      14.48,
+      29.17,
+      21.4,
+      25.05,
+      22.5,
+      35.3
+    ],
+    "sourceTestsSelected": [
+      98,
+      117,
+      161,
+      154,
+      102,
+      159
+    ],
+    "sourcePassed": [
+      98,
+      116,
+      160,
+      153,
+      102,
+      153
+    ],
+    "sourceSkipped": [
+      0,
+      1,
+      1,
+      1,
+      0,
+      0
+    ],
+    "sourceLastShardMissing": 6,
+    "sourceArtifact": "e2e-timing-ci-shard-6 unavailable because cancellation; ci-setup-metrics-e2e-shard-6 was uploaded",
+    "evidence": {
+      "jobs": [
+        119450474872,
+        119450474752,
+        119450474637,
+        119450474840,
+        119450474750,
+        119450474592
+      ],
+      "qualityJob": 119451127655,
+      "dockerJob": 119451667093,
+      "aggregateE2EJob": 119468321195,
+      "selectedRegressionPasses": {
+        "issue621ExactAndSession6": 119450474592,
+        "resourceKpiMilestone7": 119450474750,
+        "taskEditor33": 119450474637,
+        "editPermission2": 119450474637
+      }
+    },
+    "previousFileCounts": [
+      20,
+      23,
+      25,
+      22,
+      23,
+      23
+    ],
+    "newFileCounts": [
+      22,
+      22,
+      26,
+      22,
+      24,
+      20
+    ],
+    "moves": [
+      {
+        "file": "issue-734-equipment-dashboard.spec.ts",
+        "from": 6,
+        "to": 1,
+        "passed": 8,
+        "body": 4.21,
+        "gap": 1.79,
+        "cost": 6,
+        "firstJob": 119450474592
+      },
+      {
+        "file": "issue-621-resource-target.spec.ts",
+        "from": 6,
+        "to": 3,
+        "passed": 6,
+        "body": 3.16,
+        "gap": 1.33,
+        "cost": 4.49,
+        "firstJob": 119450474592
+      },
+      {
+        "file": "logistics-target-authoring.spec.ts",
+        "from": 6,
+        "to": 5,
+        "passed": 7,
+        "body": 2.9,
+        "gap": 1.59,
+        "cost": 4.49,
+        "firstJob": 119450474592
+      },
+      {
+        "file": "issue-623-resource-mvp.spec.ts",
+        "from": 2,
+        "to": 1,
+        "passed": 7,
+        "body": 4.13,
+        "gap": 1.88,
+        "cost": 6.01,
+        "firstJob": 119450474752
+      }
+    ],
+    "predictedWallMinutesByObservedFileSpan": [
+      26.49,
+      23.16,
+      25.89,
+      25.05,
+      26.99,
+      20.32
+    ],
+    "predictionLimit": "Simple redistribution of file-level elapsed wall including intervals; unmeasured shard6 last 6 cases, startup variation and contention mean these are not guaranteed timings; rerun exact Head Full PR CI required.",
+    "testsAndSourceUnchanged": "Only E2E shard file assignment, accompanying strict unit-map assertions and CI failure/validation docs change. Product code, E2E test bodies, fixture, worker 1, six shards, 35-minute timeout, fail-fast, Required Quality/E2E/Docker, default-main Trusted QA and release protection unchanged.",
+    "validation": "Historical #3098.1 exact-source impact cases PASS. New distribution static 136/136 spec + pins checked. New GitHub Full run and default-main Trusted NOT TESTED."
+  },
+  "manualRebalance767F007": {
+    "issue": 767,
+    "pr": 768,
+    "incident": "F767-007",
+    "ownerDecision": "2026-10-22 6→8",
+    "oldHead": "60d69b88aa990cb03fd827090e90ed365c86bb11",
+    "sourceRuns": [
+      {
+        "run": 3097,
+        "id": 39658647821,
+        "attempt": 1
+      },
+      {
+        "run": 3098,
+        "id": 39665459118,
+        "attempt": 1
+      },
+      {
+        "run": 3099,
+        "id": 39676585856,
+        "attempt": 1
+      }
+    ],
+    "oldShardCount": 6,
+    "newShardCount": 8,
+    "planMethod": "Deterministic LPT on max per-file case duration + adjacent test-result timestamp gap across Runs3097/3098/3099. Gap includes unassigned fixture/setup; not proven fixture cost. Canceled unexecuted tests remain NOT TESTED and were NOT inferred PASS.",
+    "shardWeightsMs": [
+      1265283,
+      1265824,
+      1265366,
+      1265740,
+      1265505,
+      1265710,
+      1265702,
+      1265700
+    ],
+    "shardSpecCounts": [
+      17,
+      17,
+      17,
+      17,
+      17,
+      17,
+      17,
+      17
+    ],
+    "sourceSpecs": 136,
+    "sourceSelectedCases": 791,
+    "fileWeights": {
+      "tests/e2e/issue-623-resource-mvp.spec.ts": {
+        "maxObservedMs": 360817,
+        "samples": 3,
+        "maxObservedCases": 7
+      },
+      "tests/e2e/issue-734-equipment-dashboard.spec.ts": {
+        "maxObservedMs": 360214,
+        "samples": 3,
+        "maxObservedCases": 8
+      },
+      "tests/e2e/project-repeated-input-accessibility.spec.ts": {
+        "maxObservedMs": 338484,
+        "samples": 3,
+        "maxObservedCases": 17
+      },
+      "tests/e2e/issue-735-system-dashboard.spec.ts": {
+        "maxObservedMs": 335470,
+        "samples": 3,
+        "maxObservedCases": 6
+      },
+      "tests/e2e/issue-730-view-composer.spec.ts": {
+        "maxObservedMs": 301148,
+        "samples": 3,
+        "maxObservedCases": 6
+      },
+      "tests/e2e/project-transfer-layout-491.spec.ts": {
+        "maxObservedMs": 295255,
+        "samples": 3,
+        "maxObservedCases": 8
+      },
+      "tests/e2e/logistics-target-authoring.spec.ts": {
+        "maxObservedMs": 281639,
+        "samples": 3,
+        "maxObservedCases": 7
+      },
+      "tests/e2e/issue-621-resource-target.spec.ts": {
+        "maxObservedMs": 273414,
+        "samples": 3,
+        "maxObservedCases": 6
+      },
+      "tests/e2e/project-multi-task-copy-paste.spec.ts": {
+        "maxObservedMs": 273284,
+        "samples": 3,
+        "maxObservedCases": 10
+      },
+      "tests/e2e/project-task-context-menu.spec.ts": {
+        "maxObservedMs": 272531,
+        "samples": 3,
+        "maxObservedCases": 9
+      },
+      "tests/e2e/gantt-state-product-integration.spec.ts": {
+        "maxObservedMs": 228957,
+        "samples": 3,
+        "maxObservedCases": 9
+      },
+      "tests/e2e/issue-736-resource-dashboard.spec.ts": {
+        "maxObservedMs": 228750,
+        "samples": 3,
+        "maxObservedCases": 5
+      },
+      "tests/e2e/issue-733-process-workarea-dashboard.spec.ts": {
+        "maxObservedMs": 227241,
+        "samples": 3,
+        "maxObservedCases": 5
+      },
+      "tests/e2e/task-context-menu-hierarchy.spec.ts": {
+        "maxObservedMs": 224069,
+        "samples": 3,
+        "maxObservedCases": 7
+      },
+      "tests/e2e/project-task-editor.spec.ts": {
+        "maxObservedMs": 209505,
+        "samples": 3,
+        "maxObservedCases": 33
+      },
+      "tests/e2e/resource-kpi-integration-ui.spec.ts": {
+        "maxObservedMs": 208023,
+        "samples": 3,
+        "maxObservedCases": 7
+      },
+      "tests/e2e/issue-726-task-logistics.spec.ts": {
+        "maxObservedMs": 204300,
+        "samples": 3,
+        "maxObservedCases": 3
+      },
+      "tests/e2e/project-task-delete-context.spec.ts": {
+        "maxObservedMs": 201835,
+        "samples": 3,
+        "maxObservedCases": 7
+      },
+      "tests/e2e/project-settings-layout-490.spec.ts": {
+        "maxObservedMs": 180264,
+        "samples": 3,
+        "maxObservedCases": 6
+      },
+      "tests/e2e/issue-732-milestone-dashboard.spec.ts": {
+        "maxObservedMs": 161491,
+        "samples": 3,
+        "maxObservedCases": 4
+      },
+      "tests/e2e/project-list-search-filter.spec.ts": {
+        "maxObservedMs": 152632,
+        "samples": 3,
+        "maxObservedCases": 9
+      },
+      "tests/e2e/gantt-state-recovery-editor.spec.ts": {
+        "maxObservedMs": 151386,
+        "samples": 3,
+        "maxObservedCases": 5
+      },
+      "tests/e2e/project-grid-reorder-persistence.spec.ts": {
+        "maxObservedMs": 147316,
+        "samples": 3,
+        "maxObservedCases": 5
+      },
+      "tests/e2e/milestone-management-persistence.spec.ts": {
+        "maxObservedMs": 133949,
+        "samples": 3,
+        "maxObservedCases": 3
+      },
+      "tests/e2e/project-task-editor-persistence.spec.ts": {
+        "maxObservedMs": 122251,
+        "samples": 3,
+        "maxObservedCases": 3
+      },
+      "tests/e2e/issue-725-process-workareas.spec.ts": {
+        "maxObservedMs": 116691,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/milestone-stage-exchange.spec.ts": {
+        "maxObservedMs": 112127,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/gantt-adapter-poc.spec.ts": {
+        "maxObservedMs": 110301,
+        "samples": 3,
+        "maxObservedCases": 11
+      },
+      "tests/e2e/milestone-timeline-lane.spec.ts": {
+        "maxObservedMs": 107507,
+        "samples": 3,
+        "maxObservedCases": 21
+      },
+      "tests/e2e/project-status.spec.ts": {
+        "maxObservedMs": 105331,
+        "samples": 3,
+        "maxObservedCases": 5
+      },
+      "tests/e2e/milestone-visibility-persistence.spec.ts": {
+        "maxObservedMs": 90003,
+        "samples": 3,
+        "maxObservedCases": 3
+      },
+      "tests/e2e/logistics-dashboard-request-state.spec.ts": {
+        "maxObservedMs": 89143,
+        "samples": 3,
+        "maxObservedCases": 28
+      },
+      "tests/e2e/canonical-projection.spec.ts": {
+        "maxObservedMs": 88895,
+        "samples": 3,
+        "maxObservedCases": 21
+      },
+      "tests/e2e/milestone-management.spec.ts": {
+        "maxObservedMs": 88322,
+        "samples": 3,
+        "maxObservedCases": 19
+      },
+      "tests/e2e/derived-dialog-recovery.spec.ts": {
+        "maxObservedMs": 87783,
+        "samples": 3,
+        "maxObservedCases": 31
+      },
+      "tests/e2e/task-link-load-safety.spec.ts": {
+        "maxObservedMs": 82998,
+        "samples": 3,
+        "maxObservedCases": 22
+      },
+      "tests/e2e/resource-excel-export-ui.spec.ts": {
+        "maxObservedMs": 79195,
+        "samples": 3,
+        "maxObservedCases": 3
+      },
+      "tests/e2e/grid-task-start-reveal.spec.ts": {
+        "maxObservedMs": 75603,
+        "samples": 3,
+        "maxObservedCases": 16
+      },
+      "tests/e2e/resource-target-dashboard-api.spec.ts": {
+        "maxObservedMs": 75238,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/milestone-visibility.spec.ts": {
+        "maxObservedMs": 75040,
+        "samples": 3,
+        "maxObservedCases": 16
+      },
+      "tests/e2e/project-work-calendar-preview.spec.ts": {
+        "maxObservedMs": 74267,
+        "samples": 3,
+        "maxObservedCases": 3
+      },
+      "tests/e2e/inline-name-persistence.spec.ts": {
+        "maxObservedMs": 73384,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/relation-dialog-ux.spec.ts": {
+        "maxObservedMs": 72404,
+        "samples": 3,
+        "maxObservedCases": 15
+      },
+      "tests/e2e/project-gantt-inline-name.spec.ts": {
+        "maxObservedMs": 71357,
+        "samples": 3,
+        "maxObservedCases": 13
+      },
+      "tests/e2e/project-workspace-ux.spec.ts": {
+        "maxObservedMs": 68394,
+        "samples": 3,
+        "maxObservedCases": 17
+      },
+      "tests/e2e/milestone-stage-editor.spec.ts": {
+        "maxObservedMs": 65591,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/issue-624-logistics-unified.spec.ts": {
+        "maxObservedMs": 62172,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-resource-workload-status.spec.ts": {
+        "maxObservedMs": 61298,
+        "samples": 3,
+        "maxObservedCases": 9
+      },
+      "tests/e2e/issue-719-contextual-help.spec.ts": {
+        "maxObservedMs": 60520,
+        "samples": 3,
+        "maxObservedCases": 12
+      },
+      "tests/e2e/resource-drill-ui.spec.ts": {
+        "maxObservedMs": 58138,
+        "samples": 2,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/issue-622-resource-plan-target.spec.ts": {
+        "maxObservedMs": 56360,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/milestone-stage-dashboard.spec.ts": {
+        "maxObservedMs": 56279,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-filter-toolbar-consistency.spec.ts": {
+        "maxObservedMs": 55645,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/task-editor-form-density.spec.ts": {
+        "maxObservedMs": 54849,
+        "samples": 3,
+        "maxObservedCases": 7
+      },
+      "tests/e2e/project-create-and-read.spec.ts": {
+        "maxObservedMs": 54389,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/project-notifications.spec.ts": {
+        "maxObservedMs": 53752,
+        "samples": 3,
+        "maxObservedCases": 14
+      },
+      "tests/e2e/resource-kpi-integration-api.spec.ts": {
+        "maxObservedMs": 50656,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-resource-memberships-persistence.spec.ts": {
+        "maxObservedMs": 49434,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-chart-vertical-dnd.spec.ts": {
+        "maxObservedMs": 49309,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/project-browser-title-favicon.spec.ts": {
+        "maxObservedMs": 48518,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/resource-plan-api.spec.ts": {
+        "maxObservedMs": 47629,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/resource-milestone-views.spec.ts": {
+        "maxObservedMs": 46762,
+        "samples": 3,
+        "maxObservedCases": 5
+      },
+      "tests/e2e/project-logistics-management.spec.ts": {
+        "maxObservedMs": 46477,
+        "samples": 3,
+        "maxObservedCases": 12
+      },
+      "tests/e2e/project-edit-authorization.spec.ts": {
+        "maxObservedMs": 45471,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/viewport-coordinator.spec.ts": {
+        "maxObservedMs": 44189,
+        "samples": 3,
+        "maxObservedCases": 8
+      },
+      "tests/e2e/project-task-persistence.spec.ts": {
+        "maxObservedMs": 44077,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/projection-row-alignment.spec.ts": {
+        "maxObservedMs": 42659,
+        "samples": 3,
+        "maxObservedCases": 13
+      },
+      "tests/e2e/milestone-dashboard-state.spec.ts": {
+        "maxObservedMs": 42615,
+        "samples": 3,
+        "maxObservedCases": 7
+      },
+      "tests/e2e/milestone-stage-grid.spec.ts": {
+        "maxObservedMs": 42435,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/resource-dashboard-api.spec.ts": {
+        "maxObservedMs": 42276,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-edit-permission-recheck.spec.ts": {
+        "maxObservedMs": 41212,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/resource-drill-api.spec.ts": {
+        "maxObservedMs": 40954,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/milestone-timeline-core.spec.ts": {
+        "maxObservedMs": 40513,
+        "samples": 3,
+        "maxObservedCases": 9
+      },
+      "tests/e2e/resource-plan-dashboard.spec.ts": {
+        "maxObservedMs": 39962,
+        "samples": 2,
+        "maxObservedCases": 5
+      },
+      "tests/e2e/project-links-persistence.spec.ts": {
+        "maxObservedMs": 39164,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/resource-plan-ui.spec.ts": {
+        "maxObservedMs": 38961,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/milestone-stage-gates.spec.ts": {
+        "maxObservedMs": 38411,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/issue-726-logistics-master.spec.ts": {
+        "maxObservedMs": 37786,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-empty-summary-persistence.spec.ts": {
+        "maxObservedMs": 37643,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-resource-memberships-ui.spec.ts": {
+        "maxObservedMs": 37370,
+        "samples": 3,
+        "maxObservedCases": 10
+      },
+      "tests/e2e/milestone-exchange-state.spec.ts": {
+        "maxObservedMs": 37130,
+        "samples": 3,
+        "maxObservedCases": 9
+      },
+      "tests/e2e/skip-link.spec.ts": {
+        "maxObservedMs": 36990,
+        "samples": 2,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/project-context-toolbar-responsive.spec.ts": {
+        "maxObservedMs": 36804,
+        "samples": 3,
+        "maxObservedCases": 4
+      },
+      "tests/e2e/issue-717-identity-persistence.spec.ts": {
+        "maxObservedMs": 35939,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-gantt-fullscreen.spec.ts": {
+        "maxObservedMs": 35621,
+        "samples": 3,
+        "maxObservedCases": 6
+      },
+      "tests/e2e/project-create-isolation.spec.ts": {
+        "maxObservedMs": 35092,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/resource-dashboard-ui.spec.ts": {
+        "maxObservedMs": 34735,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/resource-error-recovery.spec.ts": {
+        "maxObservedMs": 33388,
+        "samples": 3,
+        "maxObservedCases": 27
+      },
+      "tests/e2e/project-workspace-tabs-518.spec.ts": {
+        "maxObservedMs": 31036,
+        "samples": 3,
+        "maxObservedCases": 3
+      },
+      "tests/e2e/project-gantt-image-export.spec.ts": {
+        "maxObservedMs": 27903,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/resource-milestone-ui.spec.ts": {
+        "maxObservedMs": 27578,
+        "samples": 2,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/issue-717-name-first.spec.ts": {
+        "maxObservedMs": 26826,
+        "samples": 3,
+        "maxObservedCases": 6
+      },
+      "tests/e2e/project-resource-calendar-persistence.spec.ts": {
+        "maxObservedMs": 26626,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-resource-calendar-exceptions.spec.ts": {
+        "maxObservedMs": 23998,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-settings-dialog-layout.spec.ts": {
+        "maxObservedMs": 22690,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/resource-excel-export-api.spec.ts": {
+        "maxObservedMs": 21360,
+        "samples": 2,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/resource-tabs.spec.ts": {
+        "maxObservedMs": 21247,
+        "samples": 3,
+        "maxObservedCases": 11
+      },
+      "tests/e2e/project-gantt-density.spec.ts": {
+        "maxObservedMs": 20916,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-task-hover-tooltip.spec.ts": {
+        "maxObservedMs": 18339,
+        "samples": 3,
+        "maxObservedCases": 6
+      },
+      "tests/e2e/project-gantt-stability.spec.ts": {
+        "maxObservedMs": 18147,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/workspace-header-version.spec.ts": {
+        "maxObservedMs": 17690,
+        "samples": 2,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/milestone-stage-grid-mock.spec.ts": {
+        "maxObservedMs": 17659,
+        "samples": 3,
+        "maxObservedCases": 4
+      },
+      "tests/e2e/project-gantt-inline-start-date.spec.ts": {
+        "maxObservedMs": 17602,
+        "samples": 3,
+        "maxObservedCases": 4
+      },
+      "tests/e2e/logistics-table-density.spec.ts": {
+        "maxObservedMs": 16809,
+        "samples": 3,
+        "maxObservedCases": 12
+      },
+      "tests/e2e/master-controls-density.spec.ts": {
+        "maxObservedMs": 16804,
+        "samples": 3,
+        "maxObservedCases": 12
+      },
+      "tests/e2e/project-workspace-layout.spec.ts": {
+        "maxObservedMs": 11703,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/cross-screen-regression.spec.ts": {
+        "maxObservedMs": 11306,
+        "samples": 3,
+        "maxObservedCases": 3
+      },
+      "tests/e2e/resource-excel-export-dashboard.spec.ts": {
+        "maxObservedMs": 10436,
+        "samples": 3,
+        "maxObservedCases": 3
+      },
+      "tests/e2e/project-search-filter.spec.ts": {
+        "maxObservedMs": 10351,
+        "samples": 3,
+        "maxObservedCases": 3
+      },
+      "tests/e2e/admin-auth-layout.spec.ts": {
+        "maxObservedMs": 10343,
+        "samples": 3,
+        "maxObservedCases": 3
+      },
+      "tests/e2e/project-create-layout.spec.ts": {
+        "maxObservedMs": 9754,
+        "samples": 3,
+        "maxObservedCases": 7
+      },
+      "tests/e2e/project-task-quick-view.spec.ts": {
+        "maxObservedMs": 8697,
+        "samples": 3,
+        "maxObservedCases": 3
+      },
+      "tests/e2e/template-picker-ux.spec.ts": {
+        "maxObservedMs": 8587,
+        "samples": 3,
+        "maxObservedCases": 10
+      },
+      "tests/e2e/new-project-draft-preservation.spec.ts": {
+        "maxObservedMs": 8475,
+        "samples": 3,
+        "maxObservedCases": 7
+      },
+      "tests/e2e/resource-drill-dashboard.spec.ts": {
+        "maxObservedMs": 8434,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/project-gantt-scale.spec.ts": {
+        "maxObservedMs": 8152,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/task-context-menu-scroll.spec.ts": {
+        "maxObservedMs": 7124,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/project-summary-bar-visual.spec.ts": {
+        "maxObservedMs": 5922,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-master-admin.spec.ts": {
+        "maxObservedMs": 5712,
+        "samples": 3,
+        "maxObservedCases": 7
+      },
+      "tests/e2e/error-boundary-regression.spec.ts": {
+        "maxObservedMs": 4913,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/core-action-trace.spec.ts": {
+        "maxObservedMs": 4600,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/project-empty-summary.spec.ts": {
+        "maxObservedMs": 4510,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/gantt-demo.spec.ts": {
+        "maxObservedMs": 4208,
+        "samples": 3,
+        "maxObservedCases": 4
+      },
+      "tests/e2e/milestone-wbs-mode.spec.ts": {
+        "maxObservedMs": 4011,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-modal-feedback.spec.ts": {
+        "maxObservedMs": 3370,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-master-relations.spec.ts": {
+        "maxObservedMs": 3148,
+        "samples": 3,
+        "maxObservedCases": 4
+      },
+      "tests/e2e/resource-catalog-delete.spec.ts": {
+        "maxObservedMs": 3119,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/resource-global-roles.spec.ts": {
+        "maxObservedMs": 2772,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/project-json-import.spec.ts": {
+        "maxObservedMs": 2363,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/resource-admin-layout.spec.ts": {
+        "maxObservedMs": 2227,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/logistics-type-catalog-admin.spec.ts": {
+        "maxObservedMs": 2137,
+        "samples": 3,
+        "maxObservedCases": 2
+      },
+      "tests/e2e/ui-semantic-tokens.spec.ts": {
+        "maxObservedMs": 2012,
+        "samples": 2,
+        "maxObservedCases": 3
+      },
+      "tests/e2e/admin-legacy-button-spacing.spec.ts": {
+        "maxObservedMs": 1800,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/resource-developer-grade.spec.ts": {
+        "maxObservedMs": 1800,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/browser-task-logistics-links.spec.ts": {
+        "maxObservedMs": 1231,
+        "samples": 3,
+        "maxObservedCases": 1
+      },
+      "tests/e2e/browser-project-resource-data.spec.ts": {
+        "maxObservedMs": 1000,
+        "samples": 3,
+        "maxObservedCases": 1
+      }
+    },
+    "historyPreserved": "Existing F767-001..006 and previous 6-way manualRebalance records untouched; original metrics and createdAt remain historic baseline, not current estimate.",
+    "scope": "PR/Main/Release E2E 8-way; 35-minute timeout; one worker; fail-fast/retry/skip unchanged; Quality/E2E/Docker required3 and Trusted QA/Owner release gates unchanged.",
+    "verification": "Static plan built; new Head full 8/8 and Trusted QA NOT TESTED."
   }
 }

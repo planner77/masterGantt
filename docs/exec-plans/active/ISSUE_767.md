@@ -1,0 +1,115 @@
+## 11. F767-008 — Full #3102.1 QA Preflight DOCUMENTATION_SYNC 교정 (2026-10-22)
+
+- **원본 실패**: [PR #768 Full #3102.1 / Run 39689006077.1](https://github.com/planner77/masterGantt/actions/runs/39689006077), exact HEAD `0911e467133a3e2a33432166e9c6c6302d2df0d6`, base `71f9b9ddb61be7f6e076accc027188f362e18bb1`. Preflight Job [119530296199](https://github.com/planner77/masterGantt/actions/runs/39689006077/job/119530296199)에서 `FAIL / DOCUMENTATION_SYNC: 문서 영향 기록 없음: docs/CI_CD.md`. 나머지 Primary Issue/QA/risk/release/AC 항목 PASS. Fast Gate/세 Required/QA Final 실패는 이 사전차단의 파생이며 E2E8/Quality/Docker 구현 Job은 **SKIPPED**, Timeout/Assertion 증거가 아니다.
+- **직접 원인**: top `## 10`에는 CI_CD UPDATED가 있으나 원본 base `scripts/qa_final_automated.py::docs_gate()`는 **첫 번째 독립 `## DOCUMENTATION_SYNC` 섹션**에서만 정확 `- \`path\`: UPDATED|N/A(reason)` 항목을 읽는다. 그 섹션에 `docs/CI_CD.md`를 포함한 활성 QA 문서 union의 엔트리가 누락되었으며 구 #764 시점의 N/A 설명이 남아 있었다.
+- **최소 보완**: 아래 독립 `## DOCUMENTATION_SYNC`를 실제 diff에 맞춰 6개 `QA_DOCS` 전체(AGENTS, QA_REVIEW_POLICY, CI_CD, TEST_PLAN, GITHUB_OPERATIONS, REMOTE_VALIDATION)와 UI/SCHEDULING/API/DB 영향을 전부 명시한다. 변경된 문서는 `UPDATED`, 변경되지 않은 문서는 근거 있는 `N/A`; 기존 AC1~AC7 매핑과 F767-001~007·Release 승인 불변. 새 실패는 [F767-008](../../ISSUE_767_FAILURE_ANALYSIS.md)에 누적한다.
+- **검증 경계**: Repo trusted-base 검증기의 구조 정규식으로 정적 경로/상태 매핑을 사전 확인하되 새 Head 실제 CI 결과는 **NOT TESTED**. PR review threads 0, reviews 0, branch behind main 0, GitHub mergeable=true는 교정 직전 읽기 전용 관측이다. 새 Full CI의 Quality/E2E8/Docker/Trusted·Owner HIGH 수용 전 `MERGE_READY=BLOCKED`, `release_required=true/release_authorized=false`; 공식 GHCR/tag/Finalizer/Issue close/merge는 하지 않는다.
+
+## 10. Owner 승인 8-Shard 분산 및 F767-007 최종 Full CI (2026-10-22)
+
+- **후속 Issue #767 Scope 변경**: Owner가 명시한 `8 shard로 변경`에 따라 신규 Issue/PR 없이 기존 6→8 분산. 기존 AC1~AC7의 제품·정확 Assignment/Milestone/권한/0.129.1 버전·Immutable v0.129.0 보호 및 Owner HIGH 수용은 그대로이고 **AC4 검증 샤드만 8/8**.
+- [원본 Full #3099.1 Run39676585856](https://github.com/planner77/masterGantt/actions/runs/39676585856) Head `60d69b88aa990cb03fd827090e90ed365c86bb11`, Shard5 94/109 PASS 후 35.35분 취소·15건 NOT TESTED, 다른 5샤드 및 Required Quality/Docker 성공. Cross-run F001~F006 근인 구분·Runner region·같은 87 case 58% 실행시간 증가 분석은 [F767-007](../../ISSUE_767_FAILURE_ANALYSIS.md)에 누적.
+- **8-way 근거/선정**: 원본 #3097~3099 Run의 6-way Job 로그에서 파일별 완료 case duration+인접 완료 timestamp 간격 최대치로 LPT. `tests/config/e2e-shard-plan.json`에 `manualRebalance767F007` 저장 및 **136 spec / 샤드별17개 / 8샤드 누락0·중복0**. 각 샤드 관측최대시간 합≈21.1분은 진단용 추정치로 Runner/fixture 변동·미완료 케이스 때문에 PASS 예측 불가.
+- 변경: `.github/workflows/ci.yml`의 PR/Main, `.github/workflows/release-image.yml`의 Release, `.github/workflows/e2e-shard-optimizer.yml`, `scripts/e2e-shard-planner.mjs`, `tests/config/e2e-shard-plan.json`, `tests/scripts/e2e-shard-planner.test.ts`, `tests/scripts/test-config-layout.test.ts`, `scripts/test_pr_fast_gate.py`, `scripts/verify-issue-lifecycle.py`의 E2E 활성 `8` 계약 동기화. 옛 #639/#616 Main 정확 SHA 복구 스크립트는 **당시 6개 샤드 검증만 위한 역사적 증거**로 수정하지 않음.
+- **DOCUMENTATION_SYNC**: 이 Work Packet, `docs/TEST_PLAN.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md`, `AGENTS.md`, `docs/exec-plans/active/PLAN.md`, `docs/ISSUE_767_FAILURE_ANALYSIS.md` UPDATED. `DESIGN.md` N/A(UI 설계 불변), `docs/SCHEDULING_ENGINE.md` N/A(캘린더/기간계산 불변), `docs/API.md`/`docs/DB_SCHEMA.md` N/A(HTTP/DB 무변경).
+- **AC_TEST_COVERAGE**: PR/Main/Release matrix 1..8, plan 136 unique 및 select union136/8x17, per-source 15 Unit pin과 정책/Release trusted Static CI 테스트, 기존 #621/#530/Task Editor 등 791선택 E2E case 보존. 새로운 Head Quality/E2E8/Docker·QA/Trusted 결과는 실제 실행 전 **NOT TESTED**이며 실패 시 기존 단일 누적 원장에 교차 원인 추가.
+- **불변 보호**: worker1/Job timeout35m/Retry0/PR fail-fast/Main full, Required3 names·Trusted source/Owner HIGH·release authorization·GHCR/Finalizer 불변. `MERGE_READY=BLOCKED`, `release_required=true`, `release_authorized=false`, v0.129.0 tag/digest 및 #736/#765 FINAL 불변. 새 PR CI 시작만 승인됐으며 병합·정식 GHCR/이슈 종료는 별도 증거/승인.
+# Issue #767 — PR #764 교정 승계 및 v0.129.1 PATCH 릴리스
+
+> 상태: IMPLEMENTATION — 신규 이슈/PR 기준 검증 전. Source: [Issue #767](https://github.com/planner77/masterGantt/issues/767). 원본 [PR #764](https://github.com/planner77/masterGantt/pull/764), SHA `5abc65880879647a563c0469bf53c4cd4f654b6b`.
+
+## 1. 목적 및 근거
+
+원본 Issue #736은 2026-10-21 #765 미발행 부채 정리로 RETIRED/Closed되었고, `v0.128.0` 게시 권한이 철회되었다. 교정 PR #764는 이미 `0.129.0` formal image 출처에 **미포함**이므로 새로운 Primary Issue/PR에서 `0.129.1` PATCH로 정식 릴리스 대상 범위를 분리한다. 기존 `v0.129.0` immutable GHCR 이미지·Tag/Finalizer/F765 원장은 변경·재게시하지 않는다.
+
+## 2. 불변 소스/수행 순서
+
+- 원본 `main=71f9b9ddb61be7f6e076accc027188f362e18bb1`, 원본 #764 Head `5abc65880879647a563c0469bf53c4cd4f654b6b` (first parent `cb1e9372...`, second parent `71f9b9d...`). 초기 Full [#3092.1](https://github.com/planner77/masterGantt/actions/runs/39602089760)와 trusted [#734.1](https://github.com/planner77/masterGantt/actions/runs/39607021968) SUCCESS는 *원본* 이력이다.
+- 새 branch `fix/issue-767-v0.129.1-assignment-focus`를 원본 main에서 생성. PR #764 diff 10개 파일 전부 cherry-pick equivalent Git blob tree로 계승; 예외적으로 3개 공유 문서 맨 위에 이 Issue의 출처·릴리스 계획을 추가한다. 기능 코드/테스트 4개 + 간접 UI 1개 등 PR 파일의 SHA를 대조한다.
+- Manifest `package.json` 0.129.1, lock top-level/root 모두 0.129.1; 의존성·node modules·lock resolution은 변경하지 않는다.
+- 버전/문서 변경 후 새 exact Head PR Full CI(3 Required Quality/Chromium6/Docker, QA Final Automated) + default-main Trusted QA; review thread0 및 strict main. 새 Head로 검증될 때까지 `NOT TESTED` 및 `MERGE_READY=BLOCKED`.
+- Owner 명시적 병합 지시: “권고안에 따라 교정 릴리스로 정리 후 병합하세요.” 이는 HIGH 잔여 위험 수용·후속 #767 PR/Head/CI 검토와 함께 정확하게 기록하며 **정식 GHCR 게시 승인으로 자동 확대하지 않는다**.
+- 성공 시 새로운 PR을 **merge commit** 방식으로 병합한다. Canonical `Issue #767 · PR #<N> · 교정 릴리스` 한글 제목(30자 이내)/빈 커밋 body/expected-head lease 및 test merge tree 동일성 확인 필수. Old #764는 새 PR 대체를 알리고 미병합 close; branch 삭제는 임의 수동 수행하지 않는다.
+
+## 3. 기능/회귀 계약
+
+1. `src/features/gantt/task-assignment-editor.tsx`: exact assignment edit은 canonical assigned-targets를 사용하여 full candidate 목록 GET=0; edit-session permission/expiry authenticated GET로 fail-closed, 일반 Editor full 후보 조회 유지.
+2. `src/features/milestones/project-milestone-dashboard.tsx`, `src/features/projects/project-readonly-view.tsx`: M1→리소스→일정→M1 이동/복귀에서 원본 Milestone Task UUID 및 현재 로딩 완료를 확인하고 Resource trigger focus 복구. 다른 이동/모달과 경합 시 취소.
+3. `tests/e2e/issue-621-resource-target.spec.ts`: 100→80→70, 다른 Assignment 불변, revoked edit-session readonly/미저장, 401·412 draft 보존, request count 및 원본 focus 검증.
+4. `tests/e2e/resource-kpi-integration-ui.spec.ts`: M1 조건/Resource trigger 및 통합 KPI 수치/구간 불변 확인.
+5. 변경 밖: API/DB/schema/접근권한 계약, DESIGN/UI_UX_GUIDELINES(기존 형태 유지), CI policy/worker/shard/timeout/retry, GHCR/Finalizer 운영 코드. 변경 필요 없는 문서는 N/A를 기록한다.
+
+## 4. AC / 증거
+
+- [ ] AC1 원본 #764 10 파일 코드는 증거로 동등성 검증, #765 변경·출처 보존.
+- [ ] AC2 새 버전 0.129.1 manifest/lock 3곳 및 CHANGELOG/TEST_PLAN/PLAN/new Work Packet 동기화.
+- [ ] AC3 새 Primary Issue #767, branch issue-767, PR title `Issue #767`, body **단독** `Refs #767` 계약 충족.
+- [ ] AC4 새로운 Head Full PR CI Quality/Chromium6/Docker 및 Trusted QA PASS, 미해결 리뷰 thread0, strict main.
+- [ ] AC5 Issue #767 Owner HIGH 위험 수용·새 SHA/run 근거, 정식 merge commit, 새 main CI 시작 확인.
+- [ ] AC6 공식 `v0.129.1` 게시 시에만 별도 scoped Owner 승인/verified Main candidate/SBOM/provenance/tag/digest; 최종 FINAL+Close도 실제 증거 후에 수행. 운영 배포 비범위.
+
+## 5. 역할/실행 제한
+
+- frontend: 기존 수정 소스·회귀 보존, qa_docs: source/docs read-only 검토, infra: branch/PR/CI, Manager: 버전/문서/위험/병합. 연결된 API에서는 단일 에이전트 순차 처리하며 독립 인간 QA를 수행했다고 주장하지 않는다.
+- Risk HIGH / qa_required=true / qa_method=OWNER_MANAGED / independent_qa=N/A(Owner-managed) / manager_decision=NOT TESTED / MERGE_READY=BLOCKED / release_required=true / release_authorized=false (정식 이미지 게시 별도 승인).
+- 실패 발생 시 [단일 실패 원장](../../ISSUE_767_FAILURE_ANALYSIS.md)에 정확한 Run/attempt/Job 및 대응 추가. 기존 #736 실패 원장과 이슈 종료는 변경하지 않음.
+
+## DOCUMENTATION_SYNC
+
+- `AGENTS.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(Owner-managed QA 및 정식 승인 규칙은 변경하지 않음)
+- `docs/CI_CD.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: N/A(기존 GitHub 운영 권한과 리뷰 및 병합 절차의 변경 없음)
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `DESIGN.md`: N/A(기존 제품의 시각 설계나 키보드 포커스 계약을 추가 변경하지 않음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(스케줄·기간·의존성 계산 및 데이터 관계 변경 없음)
+- `docs/API.md`: N/A(서버 API나 DTO 계약 수정 없음)
+- `docs/DB_SCHEMA.md`: N/A(데이터베이스 및 마이그레이션 계약 수정 없음)
+
+- 위 UPDATED 문서는 PR #768의 현행 diff에서 실제 변경됨. 원본 제품·테스트/Shard8 정합성은 그대로 두고, `docs/CI_CD.md`의 활성 8-way 운영 계약 및 나머지 변경 정책 문서를 이 **QA Preflight가 실제 파싱하는 섹션**에 누락 없이 명시함. 이 문서의 과거 F767-003~006 항목에서 6-way/CI_CD N/A는 당시 실행의 역사적 사실이며 현재 8-way 정책과 구분한다.
+- 함께 갱신/유지한 자료: `CHANGELOG.md`, `docs/exec-plans/active/PLAN.md`, `docs/exec-plans/active/ISSUE_736.md`(퇴역 이력), `docs/ISSUE_736_FAILURE_ANALYSIS.md`(과거 원장), `docs/ISSUE_767_FAILURE_ANALYSIS.md`(F767-001~008 누적 원장), root package/lockfile PATCH 0.129.1. 문서의 UPDATED 여부와 실제 PR 변경 경로를 교차 비교한다.
+
+## AC_TEST_COVERAGE
+
+- AC1: #764 Source/Head의 변경 code/test 원시 blob SHA를 #767 PR과 대조하고 #765 main 변경 내용·실패 원장을 보존한다.
+- AC2: root manifest version 1곳과 lockfile 2곳을 정확한 0.129.1로 확인하고 CHANGELOG/old OCI/Tag 변경 부재를 비교한다.
+- AC3: Work Packet/document sync 문서별 UPDATED 또는 N/A 근거, TEST_PLAN 및 PLAN/원장 업데이트와 AC↔테스트를 검증한다.
+- AC4: 새 #767 exact Head Full Quality/E2E6/Docker/Trusted QA source/attempt, 미해결 리뷰0, 최신 main strict를 원격 검증한다.
+- AC5: Owner HIGH 위험 수용 후 정상 two-parent merge commit 표준 한글 제목/빈 본문/expected head/원격 Main CI 시작을 확인한다.
+- AC6: Main CI exact candidate digest/SBOM/provenance와 별도 scoped v0.129.1 release 승인 전 tag/OCI mutation 금지를 검증한다.
+- AC7: 원본 PR #764 미병합 close 및 새 PR #768 링크/이력 보존, #736/#765 Closed 불변을 확인한다.
+
+
+## 6. F767-003 — PR #768 Full #3095.1 Shard6 35분 취소 보완 (2026-10-21)
+
+- 실제 QA Preflight/Quality/Docker 및 E2E Shard1~5 SUCCESS, Shard6 [Job 119260956062](https://github.com/planner77/masterGantt/actions/runs/39611062916/job/119260956062) 173/174 PASS 뒤 Job 35분 제한에서 CANCELLED; E2E aggregate/QA는 파생 FAIL, 제품 Assertion 실패 관측 없음. 원인/추세/소스 귀속은 [F767-003](../../ISSUE_767_FAILURE_ANALYSIS.md#f767-003--pr-768-full-30951-shard-66-35분-job-timeout-취소-및-재배치-2026-10-21-kst)에 누적.
+- `tests/config/e2e-shard-plan.json`의 136 E2E specs에서 세 **완전 파일**만 이동: `issue-734-equipment-dashboard` 6→1 (8 Case≈5.31m), `project-task-editor` 6→3 (33 Case≈3.58m), `issue-726-task-logistics` 6→4 (3 Case≈2.81m). 기존 #765 배치/원장·원래 14 Run projectedMs는 역사적 기준으로 보존하며 이번 실행 기반 추정 [24.36,29.87,25.85,28.08,25.37,23.67] Job minutes는 검증된 원격 결과가 아니다.
+- #765 F765-004와 동일한 고정 인덱스 기대값 회귀를 피하기 위해 `tests/scripts/e2e-shard-planner.test.ts`의 정확 세 배치 assertion을 함께 갱신한다. 전 spec 단일/유일 배치·6개 Shard/Worker1/35m/QA·Required3 및 테스트 본문·Skip/Retry/시큐리티 계약은 유지한다.
+- **DOCUMENTATION_SYNC 부연**: `tests/config/e2e-shard-plan.json` UPDATED, `tests/scripts/e2e-shard-planner.test.ts` UPDATED, `docs/TEST_PLAN.md` UPDATED, `docs/exec-plans/active/PLAN.md` UPDATED, `docs/ISSUE_767_FAILURE_ANALYSIS.md` UPDATED, 이 Work Packet UPDATED. `DESIGN.md` N/A(새 UI 원칙 없음), `docs/SCHEDULING_ENGINE.md` N/A(스케줄링 계산 무변경), `docs/CI_CD.md` N/A(게이트·35m·6-way·환경 정책 수정 없음), `docs/API.md`/`docs/DB_SCHEMA.md` N/A(서버/DB 변경 없음).
+- 새 Head 실제 Unit/6 E2E/QA/Docker와 Trusted QA는 **NOT TESTED**; Original #3095.1 CANCELLED 판정 유지. CI 시작은 성공/Owner 수용/병합/공식 GHCR 게시 허가가 아니며 `release_authorized=false` 유지.
+
+## 7. F767-004 — Full #3096.1 Artifact 전송 실패와 완전 재검증 계약 (2026-10-22)
+
+- [PR Full #3096.1](https://github.com/planner77/masterGantt/actions/runs/39619154900), Head `305a6897d56b40e89da639726401b77458e4475d`, base `71f9b9ddb61be7f6e076accc027188f362e18bb1`: QA Preflight/Quality/Docker PASS. E2E Shard6 **130/130 테스트 PASS (14.8분)** 이후 `e2e-timing-ci-shard-6` artifact `CreateArtifact ECONNRESET`으로 Job FAIL. 이어 setup/report artifact는 성공. Shard1~5 matrix fail-fast 취소, E2E aggregate FAIL, QA Final BLOCKED(별도 source snapshot 불일치 사유: 정확 근인 UNKNOWN). 상세 Run/Job/Attempt/재발 비교는 [단일 실패 원장 F767-004](../../ISSUE_767_FAILURE_ANALYSIS.md)를 따른다.
+- #3095.1의 Shard6 35m 취소에 대한 이전 **3-spec 이동**은 #3096.1 Shard6 개별 통과로만 확인, 전체 6/6 PASS는 취소로 미검증. 이전 `F767-001~003` 원본 기록과 Git Tree 136 unique specs/1 worker/35m/6 shards 및 테스트 본문 모두 보존한다.
+- 인프라 Artifact Create 요청의 **일회성 전송 리셋**은 제품 로직 수정 근거가 아니므로 사용자 요구 범위에서 문서/증거만 보완하고 새 **PR synchronize Full CI**를 실행하여 5개 취소 Shard의 완주와 Artifact 업로드를 확인한다. Global Retry/Job timeout, `continue-on-error`, skip, fail-fast/필수 QA/Release 정책 변경 없음. 전송 장애 반복 시 별도 범위로 원본 API/Artifact identity를 분석해 bounded fail-closed retry를 제안하되 여기서는 즉시 도입하지 않는다.
+- **DOCUMENTATION_SYNC**: `docs/ISSUE_767_FAILURE_ANALYSIS.md`, 이 Work Packet, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md` UPDATED. `DESIGN.md`: N/A(새 UI 원칙 없음), `docs/SCHEDULING_ENGINE.md`: N/A(일정 계산 불변), `docs/CI_CD.md`: N/A(기존 업로드/원격 CI 계약 그대로), `docs/API.md`/`docs/DB_SCHEMA.md`: N/A(서버/DB 변경 없음).
+- 신규 Head의 Quality/E2E6/Docker/Trusted, 최종 Head/base/test merge 및 Owner HIGH 위험 수용 `NOT TESTED`/`BLOCKED`. `release_required=true`/`release_authorized=false` 유지; 기존 `v0.129.0` 역사적 이미지/태그 및 #736/#765 Final 상태 불변.
+
+## 8. F767-005 — #3097.1 Shard1 35분 취소 및 6-way 균형 재배치 (2026-10-22)
+
+- [원본 PR CI #3097.1 / Run39658647821](https://github.com/planner77/masterGantt/actions/runs/39658647821) (`pull_request`, HEAD `aaf9ddaab3b1092b6b8cd3f33251928f9bab0e5a`): Preflight/Quality/Docker 및 Shards2~6 SUCCESS; Shard1은 119/121 PASS 뒤 **35.28분 Job cap에서 CANCELLED**, 남은 두 테스트 미검증, E2E aggregate/QA Final 파생 FAIL. F767-001/002 preflight 및 F767-004 timing artifact 전송 재발 없음. 당시 Shard2/3/4도 각각31.62/31.35/30.60분으로 임계치 근접. [원장 F767-005](../../ISSUE_767_FAILURE_ANALYSIS.md)는 원본 Job ID·반례 및 미완료를 보존.
+- **배치만 수정**: `issue-734-equipment-dashboard` 1→6(8 test, body3.94m), `project-transfer-layout-491` 1→6(8,2.81m), `logistics-target-authoring` 1→6(7,2.78m), `issue-730-view-composer` 2→5(6,3.27m), `issue-621-resource-target` 3→6(6,3.05m), `issue-735-system-dashboard` 4→5(6,4.04m). 원본 136개 E2E 파일을 빠짐·중복 없이 단일 샤드에 유지하고 `tests/scripts/e2e-shard-planner.test.ts` Unit 고정 expected placement까지 동시에 교정해 #765 재발 방지. 최신 샤드당 명시 파일수 [20,23,25,22,23,23].
+- 과거 `manualRebalance767`/#765/F767-003와 과거 `metrics.projectedMs` 수정 금지. 신규 `manualRebalance767F005`는 #3097 Run/Attempt·측정 Job wall·Test body와 **정적 거친 추정** [25.75,28.35,28.30,26.56,26.21,26.71]분을 구분한다(Shard1 미완료 2case·fixture/runner 오버헤드 불명). 이 추정은 원격 성공·성능 목표 달성 증거가 아니다.
+- **DOCUMENTATION_SYNC**: `tests/config/e2e-shard-plan.json`, `tests/scripts/e2e-shard-planner.test.ts`, `docs/ISSUE_767_FAILURE_ANALYSIS.md`, 이 Work Packet, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md` UPDATED. `DESIGN.md`: N/A(제품 화면 변경 없음), `docs/SCHEDULING_ENGINE.md`: N/A(캘린더/기존 관계 계산 변경 없음), `docs/CI_CD.md`: N/A(6 Shard/35m/QA Gate 기존 규칙 유지), `docs/API.md`/`docs/DB_SCHEMA.md`: N/A(서버/DB 변경 없음).
+- **검증**: 실제 source/Unit/Browser/Next/Docker 새 Full CI 전까지 `NOT TESTED`. 새 exact PR Head + default-main Trusted QA가 세 Required 및 E2E6/6 성공하고 0 review/strict 최신 main과 Owner HIGH 수용을 확보해야만 병합. `release_required=true`, `release_authorized=false`; 기존 v0.129.0 GHCR/tag 및 #736/#765 FINAL 변경·GHCR v0.129.1 formal 게시·최종 병합 미실시.
+
+
+## 9. F767-006 — 영향 기반 교정 안정화 후 마지막 Full PR CI 1회 시도 (2026-10-22 KST)
+
+- **Read-only 원본**: [Run #3098.1 /39665459118](https://github.com/planner77/masterGantt/actions/runs/39665459118) Head `26364cce865189122318a49e68f86bcb0f468270`/base `71f9b9ddb61be7f6e076accc027188f362e18bb1`: 6번째 E2E Shard Job119450474592에서 153/159 PASS→35.30m CANCELLED, 6개 미완료. Shards1~5/Preflight/Quality/Unit3160/Build/Docker PASS, E2E aggregate·Automated QA 파생 FAIL. 이슈 원장 [F767-006](../../ISSUE_767_FAILURE_ANALYSIS.md)에 F001~F005 종합 이력 및 제품 vs Fixture/CI 실행시간 귀속 기록.
+- **영향 기반 검증의 frozen source 영수증**: 같은 Head 실제 E2E에서 `issue-621-resource-target.spec.ts` 6 PASS(#736 세션 만료 및 #621 정확 수정/401·412), `resource-kpi-integration-ui.spec.ts` 7 PASS(#530 M1/Resource/일정 복귀), `project-task-editor.spec.ts` 33 PASS, `project-edit-permission-recheck.spec.ts` 2 PASS = **48 cases PASS**. 음성/이웃 관계 #734 설비8, 물류 authoring7, #623 7도 PASS. 이들은 `Run39665459118 attempt1 HEAD=26364cce865189122318a49e68f86bcb0f468270`에서 관찰된 성공이며 **후속 Head의 신규 CI PASS 아님**. 새 커밋에 제품 코드·E2E source 본문 변화 없이 테스트 *배치*만 수정한다.
+- **병목 원인과 방어**: 35분 Job wall 안의 24분 testcase 출력 시간과 10.3분 출력 간격(원인은 아직 개별 미귀속), #3097 Shard1 timeout→파일 이동 후 #3098 Shard6 timeout까지의 이동 경로를 설명. #3098 실측 완료 파일별 전체 span 근사값에 따라 6→1 #734(≈6.00m), 6→3 #621(≈4.49m), 6→5 물류 authoring(≈4.49m), 2→1 #623(≈6.01m). **136 E2E spec 정확히 1개 샤드**; 새 counts [22,22,26,22,24,20], 엄격 Unit 배치 assertion 4개 동시 수정. 역사적 `metrics.projectedMs`, `manualRebalance767`, `manualRebalance767F005` 원본은 불변.
+- **전략**: 원격 진단 `workflow_dispatch`는 현재 이 연결에서 실행 불가/#752 미구현. 따라서 별도 원격 targeted run을 성공했다고 주장하지 않고, 이미 실제 성공한 영향 케이스 로그·정적 Source Tree/배치 Unit pin 검증을 local prep 근거로 삼는다. E2E 공식 required는 **단일 최종 synchronize에서 새 Head Full PR CI 6/6**; 실패 시 정식 재진단 없이 반복 Runner 소모 금지. QA Preflight→Quality/6Shard/Docker→default-main Trusted QA→Owner HIGH 승인 확인 전 병합 금지.
+- **DOCUMENTATION_SYNC**: `tests/config/e2e-shard-plan.json`, `tests/scripts/e2e-shard-planner.test.ts`, `docs/ISSUE_767_FAILURE_ANALYSIS.md`, 이 Work Packet, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md` UPDATED. `DESIGN.md` N/A(화면 설계 불변), `docs/SCHEDULING_ENGINE.md` N/A(일정 계산 불변), `docs/CI_CD.md` N/A(동작 및 Required 정책 불변), `docs/API.md`/`docs/DB_SCHEMA.md` N/A(계약/DB 불변). `qa_method=OWNER_MANAGED/risk=HIGH`, `release_authorized=false` 유지.

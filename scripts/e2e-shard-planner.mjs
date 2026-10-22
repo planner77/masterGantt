@@ -138,7 +138,7 @@ export function selectShardFiles({ plan, currentFiles, shard, total }) {
 
 export function analyzeHistory({
   historyDir,
-  shardCount = 6,
+  shardCount = 8,
   minRuns = 10,
   recentWindow = 5,
   imbalanceThreshold = 1.35,
@@ -323,7 +323,7 @@ if (args.command === "select") {
 } else if (args.command === "analyze") {
   const result = analyzeHistory({
     historyDir: args.history || ".e2e-history",
-    shardCount: Number(args.shards || 6),
+    shardCount: Number(args.shards || 8),
     minRuns: Number(args["min-runs"] || 10),
     currentPlanPath: args["current-plan"] || "tests/config/e2e-shard-plan.json",
   });

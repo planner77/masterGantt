@@ -1,5 +1,16 @@
 # Issue #770 — 누적 PR CI 실패 원장
 
+## 2026-10-22 — R770-MAIN-001: 최신 main 병합 및 8-shard 호환 (실패 아님)
+
+- 최신 성공 원본: [Full PR CI #3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959), Run ID `39696698959` / Attempt 1 / Head `b53a15de9aaee3ce96887b3ec24446bc482e2c81` / Base `71f9b9ddb61be7f6e076accc027188f362e18bb1`. GitHub의 실제 Quality/Chromium E2E 6/6/Docker/QA Final 결과 모두 **SUCCESS**. [Trusted QA #747.1](https://github.com/planner77/masterGantt/actions/runs/39700558664)도 SUCCESS. 과거 F770-001/F770-002 실패와 별도 사건이며 성공을 실패로 재표기하지 않는다.
+- 사용자 요청 시점 PR #774는 **새 main `81c28fa5502caee27e98d4d293b0b1b28e6340dd`보다 behind 10 / ahead 15 / mergeable=false**. 변경 파일 충돌은 `.github/workflows/ci.yml`, `AGENTS.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md`의 중첩 수정이며 PR #770 기능 테스트의 신규 실패로 추정하지 않는다.
+- #767 current main은 app **0.129.1**, Chromium E2E **8-shard(1..8, 각17 specs, 총136)** 및 관련 CI/Release/optimizer/QA 정책을 포함. PR #770의 **과거 6-shard Shadow 기대값은 최신 main과 비호환**이므로 인증된 base의 `tests/config/e2e-shard-plan.json` schema/group/shardCount를 정확히 검증해 현재8(미등록·불일치 UNKNOWN), 기존 6-shard 이력은 역사 증거로 분리한다. 6/6=현재 8/8 PASS 주장 금지.
+- 병합 전략: 신규 PR Head는 구 Issue branch Head + 새 main의 **two-parent merge commit**으로 만든다. resulting Tree는 **최신 main 전체 Tree 기준**이며 원 branch에만 있는 분류기·Python 테스트·timing reporter·실패 원장은 무손실로 유지한다. workflow는 새 main의 8-shard 변경을 우선하고 정책 회귀 + 비차단 Shadow Job만 삽입. 중첩 문서들은 기존 Issue #770 additive section + 최신 main 문서 전체를 보존한다.
+- 리뷰 조회 시 기존 P1/P2 스레드는 **2건 모두 resolved**(아웃데이트 표시, 별도 신규 thread 없음). 새 Head 병합 가능·리뷰 상태는 push 뒤 다시 확인한다.
+- 변경 결과 검증: 신뢰된 8-shard 정책/정확 1..N/기존 6개 샤드 위장 실패 단위 테스트 추가; 새 Head 원격 Full Quality/E2E8/Docker 및 Trusted QA는 실행 전 **NOT TESTED**. README/UI/API/DB/버전/Release 설정에 별도 수정/태그 이동 금지. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `release_required=false`, `release_authorized=false`.
+- **이번 사건은 원본 PR CI 자체의 실패가 아니라 최신 main 진전으로 인한 병합 불가/Shadow 계약 드리프트**이므로 F770-003 등 가공 실패 ID를 생성하지 않는다. 새 CI 결과는 후속 Run에 독립 귀속한다.
+
+
 Primary Issue: [#770](https://github.com/planner77/masterGantt/issues/770) · [PR #774](https://github.com/planner77/masterGantt/pull/774) · 2026-10-22
 정책: [PR_CI_FAILURE_TRIAGE](PR_CI_FAILURE_TRIAGE.md), [Work Packet](exec-plans/active/ISSUE_770.md). Branch: `ci/issue-770-trusted-impact-shadow`. 원본 Head `903dfc5591b43befaafe4aa55bce56049b0dff85`, Base/Main `71f9b9ddb61be7f6e076accc027188f362e18bb1`.
 

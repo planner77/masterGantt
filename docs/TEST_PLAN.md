@@ -1,3 +1,11 @@
+## Issue #770 — 현재 E2E 8-shard 영향 관측 계약 정렬 (2026-10-22)
+
+기존 [#3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)은 6-shard Full/Required3 PASS로서 역사적 증거다. 그러나 #767의 최신 main에는 **E2E 8샤드**/136 spec/앱 0.129.1이 적용됐다. 구 6개 성공 샤드/기존 10회 정상 이력을 새 8-way Shadow Full 증명에 대입해서는 안 된다.
+
+- 신뢰된 **base Git tree**의 `tests/config/e2e-shard-plan.json` schemaVersion·shardCount·1..N 유일 그룹을 확인한다. N=8이면 동일 run/attempt의 `Chromium E2E shard n/8`과 해당 timing artifact N개를 대조한다. 6개뿐이거나 schema unknown, cancelled, partial, TTL 만료 등은 UNKNOWN/NOT_TESTED. 판정 범위를 PR의 변경된 plan 파일이나 본문 self-risk로 낮출 수 없다.
+- 회귀 `tests/python/test_ci_impact_plan.py`: 인증된 8-shard·누락된 plan·옛 6-shard Job 위조/미완성 부정, 기존 메타데이터·skip·stdin negative 조합. Unit/Chromium/HTTP/DB/Required 본문은 여전히 전체 원격 CI에서 검증한다.
+- [#770 Work Packet](exec-plans/active/ISSUE_770.md) / [실패 원장](ISSUE_770_FAILURE_ANALYSIS.md). 실측/예측 분리, 이전 6-shard SAMPLE 성과 소급 확정 금지.
+
 ## Issue #770 — PR #774 F770-001/F770-002 코드 리뷰 보완 (2026-10-22)
 
 [#770 누적 실패 원장](ISSUE_770_FAILURE_ANALYSIS.md) 기록: Full #3101.1은 PR 메타데이터/Issue AC 식별자의 trusted Preflight 실패였고, metadata-only #3103.1은 이전 Full 실패 출처로 차단된 정상 fail-closed 결과다. E2E6/Unit/Docker 테스트 본문은 원본 Run에서 SKIPPED였다.
@@ -28,6 +36,72 @@
 - Job API의 3 Required aggregate와 six shard actual success 관측, exact run/attempt test timing artifact ZIP의 test spec 단위 full inventory coverage를 대조한다. ZIP 자체는 비신뢰 자료이고 원본 Required PASS 증명 자료가 아니다. 미실행/부분 수행/취소/만료는 미확인.
 - E2E `timed_test_body_minutes`와 `excluded_test_body_minutes_upper_bound`는 실제 벽시계·비용 절감과 다르며, Runner-minutes는 실제 Job start/end 자료가 있을 때만 기록. #770 Work Packet 10 Run의 baseline은 gate/job 성공은 확인했지만 test-merge/원본 diff/ZIP·시간의 소급 인증이 없어 정량적 효과는 **INSUFFICIENT_DATA**.
 - 관련 Python 수용 테스트: `tests/python/test_ci_impact_plan.py`. 이 신규 보호 검사 자체는 HEAD의 기존 Full Quality/E2E6/Docker, 기본 브랜치 Trusted QA와 Owner HIGH 승인을 필수로 유지.
+
+---
+
+## Issue #767 — Owner 8-Shard 전환 / E2E 전체 커버리지 및 Final Full CI (2026-10-22)
+
+[원본 #3099.1](https://github.com/planner77/masterGantt/actions/runs/39676585856)에서 Shard5 109 중94 PASS/15미완료, 35.35분 Job Timeout CANCELLED; 나머지 5개 Shard+Quality/Docker PASS, E2E aggregate/QA 파생 FAIL. F767-001~006 누적과 구분한 새 [F767-007](ISSUE_767_FAILURE_ANALYSIS.md)에서 #3098 Shard5 동형87개 테스트보다 약58% 느려진 사실·Runner 환경 차이와 원인 미확정을 남긴다. 단일 6-way 배치를 옮길 때마다 Shard6→1→6→5의 한계가 재발해 Owner는 기존 Issue/PR 범위에서 6→**8**을 승인했다.
+
+테스트 본문/fixture/assertions 변경 없이 **136 E2E spec(원래791 cases) 전체 유일 배치**. #3097~3099 완료 file/case durations 및 adjacent completion timestamp gap의 최대 관측 경과시간 기반 deterministic LPT: 8샤드 각각17개 spec, 사전 MAX 시간합≈21.1분/샤드. 과거와 다른 Runner region·test setup·취소 미실행 건의 미관측분 때문에 확정 실행시간/CI 통과 보증은 아니다. `tests/scripts/e2e-shard-planner.test.ts`의 15개 pin, `tests/scripts/test-config-layout.test.ts`의 CI·Release 8-way·35분 고정, Python PR fast gate 및 release lifecycle 검증 일치, exact Git Tree/selector 136개 유일함을 검증한다. `scripts/main_ci_recovery.py` 옛 #639 SHA의 원본 6샤드 Job assertion은 역사적 출처 계약으로 보존한다.
+
+검증하는 기존 계약: #621 exact Assignment(권한 만료/401·412/100→80→70/other assignment), #530 Milestone M1 Resource→일정→복귀 정확 UUID focus, Task Editor/권한, Resource/물류/설비/공정/관점 Dashboard, 기존 오류 회귀. `.github/workflows/ci.yml` PR/Main 및 `release-image.yml` Release Matrix 1..8, native fallback 8 및 원본 Timing ShardCount8, optimizer 8. `workers=1`, per-job Timeout35분, fail-fast/retry/skip/Required Quality+E2E8+Docker3, default-main Trusted QA/Owner HIGH·정식 Release 승인 모두 불변. 새 PR Head Full 8/8 PASS는 실행 전 **NOT TESTED**이며 `MERGE_READY=BLOCKED`/`release_authorized=false`.
+
+---
+
+## Issue #767 — 원본 E2E 영향 기반 실검증 + F767-006 비용 보정 + 최종 Full CI (2026-10-22)
+
+[원본 Full #3098.1](https://github.com/planner77/masterGantt/actions/runs/39665459118) / Head `26364cce865189122318a49e68f86bcb0f468270`에서 35분 Job cap으로 Shard6 153/159 PASS·6 NOT TESTED 후 CANCELLED. 다른 5Shard 및 Quality/Docker/QA Preflight PASS, 원본 E2E required/QA FAIL. `F767-001~005` 실패 전체의 인과 비교는 [단일 원장 F767-006](ISSUE_767_FAILURE_ANALYSIS.md)에 귀속. 문제는 제품 Assertion 실패가 아니라 증가한 E2E test-body + 독립 Next/SQLite Fixture 준비/정리·타임스탬프 간격과 정확하지 않은 shard wall 예측 결합이다(각 간격의 인과적 상세 분류는 #751에 보류).
+
+**위험 기반 영향 증거 매핑(실제 PASS·별도 Run 미수행)**: ① #621 정확 Assignment 편집·401/412·세션 취소 `tests/e2e/issue-621-resource-target.spec.ts` **6/6 PASS**(Job119450474592), ② #530 Milestone→Resource→일정→M1 focus 및 Resource KPI `resource-kpi-integration-ui.spec.ts` **7/7 PASS**(Job119450474750), ③ 일반 Task Editor 및 권한 경계 `project-task-editor.spec.ts` **33/33 PASS**·`project-edit-permission-recheck.spec.ts` **2/2 PASS**(Job119450474637). 합계 **직접·간접 48 PASS**. 음성 #734 설비8, 공정 물류 authoring7, #623 Resource MVP7 PASS. 원본 Run `39665459118.1`/HEAD `26364cce865189122318a49e68f86bcb0f468270`의 테스트 본문/코드 출처이며 **새 Head Full PASS를 대체하지 않음**.
+
+**작은 계획 보완**: 136개 spec은 전부 유지하면서 `issue-734-equipment-dashboard` 6→1, `issue-621-resource-target` 6→3, `logistics-target-authoring` 6→5, `issue-623-resource-mvp` 2→1 네 개 전체 파일만 이동한다. 본문 시간만이 아니라 종료 테스트 시각의 파일별 관측 간격을 포함한 #3098 실측값으로 새 예상 Job wall `[26.49,23.16,25.89,25.05,26.99,20.32]`분을 표시하되 전혀 보증하지 않는다. 기존 #767/F003/F005 및 #765 계획 정보 삭제 금지; 변경한 `tests/scripts/e2e-shard-planner.test.ts` 고정 배치 기대값 동시 확인, Git Tree 실제 136/136 unique. 기존 `--max-failures=1`/6Shard/worker1/35m·timeout/retry/skip·QA 보호 불변.
+
+**완료 정책**: 영향 기반 분석·정적 파일 배분 검증 후 가능한 한 **한 번의 synchronize Full CI**로 새 exact Head Required3 Quality/E2E6/Docker와 default-main Trusted QA를 검증한다. 이 연결에서 새로운 로컬 Browser subset 실제 실행은 수행되지 않았으며, 새 Head 원격 실행은 **NOT TESTED**. 성능 개선은 새 CI의 여섯 개 Job PASS 및 wall 측정 전까지 미확인. #697/#699 정책과 #751 Fixture 단계 계측·#752 별도 bounded 진단 구현을 별도로 추진하며 기존 릴리스/Owner 게이트 우회 없음. `MERGE_READY=BLOCKED`/`release_authorized=false`.
+
+---
+
+## Issue #767 — PR #768 CI #3097.1 Shard1 35분 취소 및 6-way 부하 균형 검증 (2026-10-22)
+
+[Full PR CI #3097.1](https://github.com/planner77/masterGantt/actions/runs/39658647821), HEAD `aaf9ddaab3b1092b6b8cd3f33251928f9bab0e5a`: QA Preflight/Quality/Docker 및 E2E Shards2~6 SUCCESS. Shard1 Job119426748348 `Running 121 tests` 중 119 PASS, 35.28분 cap에서 CANCELLED, 2건 미완료; 전체 Run CANCELLED, E2E aggregate/QA Final 실패. 정책·DOC_SYNC와 Shard6 Artifact 전송 오류(F767-004)는 재발하지 않았다. Shard2/3/4도 31.62/31.35/30.60분으로 임계치 접근하였으므로 1번만이 아니라 6개 전체를 비교하여 수정한다.
+
+[단일 누적 원장 F767-005](ISSUE_767_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_767.md)을 출처로 `tests/config/e2e-shard-plan.json`의 136개 고유 spec 전체 파일을 6번 이동: `issue-734-equipment-dashboard` 1→6 (8,3.94분), `project-transfer-layout-491` 1→6 (8,2.81분), `logistics-target-authoring` 1→6 (7,2.78분), `issue-730-view-composer` 2→5 (6,3.27분), `issue-621-resource-target` 3→6 (6,3.05분), `issue-735-system-dashboard` 4→5 (6,4.04분). `tests/scripts/e2e-shard-planner.test.ts`에서도 **동일 6개의 고정 배치(Unit 5개 변경/1개 신규) 동기화**, `selectShardFiles`의 유일성·전체 Tree 136파일 검증 유지.
+
+현재 배치 파일수 [20,23,25,22,23,23]=136, 원본 Run observed job wall [35.28,31.62,31.35,30.60,18.90,14.13]분. 원본 완료된 Case의 Test body 시간만 이관한 조건부 정적 추정은 [25.75,28.35,28.30,26.56,26.21,26.71]분이다. Runner/Setup/Jitter 및 Shard1 2개 미완료 Case의 미관측 시간을 포함하지 않은 추정으로 CI 성능 PASS를 주장하지 않는다. Historical baseline `metrics.projectedMs`와 #732/#733/#765/#767 F767-003 이동은 불변 기록.
+
+같은 새 PR SHA에서 Policy/TypeScript/ESLint/Vitest, E2E6(원래 미완료 2건 포함), Docker, 기본 브랜치 Trusted QA를 검증하고 #621 exact assignment 권한/투입률100→80→70/401·412, #530 정확 Milestone UUID/LIFO focus, 설비/물류 Dashboard·원본 Task 복귀·Excel의 직접/간접/음성 사례와 과거 F767-001~004 재발 여부를 구분한다. 테스트 body·assertion·fixture/skip/Retry·worker1·Shard6/35m 및 fail-fast, Required3/QA/Release는 수정하지 않는다. 공식 릴리스 `release_authorized=false`, 새 CI 결과 `NOT TESTED` / `MERGE_READY=BLOCKED`.
+
+---
+
+## Issue #767 — PR #768 CI #3096.1 Artifact Create `ECONNRESET` 및 E2E6 전체 재검증 (2026-10-22)
+
+[원본 Full #3096.1](https://github.com/planner77/masterGantt/actions/runs/39619154900) / Head `305a6897d56b40e89da639726401b77458e4475d`에서 QA Preflight/Quality/Docker는 성공, **Shard6의 130개 E2E는 실제 모두 PASS (14.8m)**하였다. 그러나 `E2E timing artifact` 업로드 요청 중 `CreateArtifact ECONNRESET`이 발생해 Shard6 Job이 실패하고 다른 5개 Shard는 PR matrix fail-fast에 따라 취소되었다. 뒤따른 Shard6 setup-metrics/report artifact 업로드는 성공했으므로 타이밍 파일 누락이나 테스트 Assertion 결함으로 추정하지 않는다. E2E Required/QA Full PASS는 **없음**; QA Final은 별도 source snapshot 불일치로 BLOCKED(확정 근인 UNKNOWN)였다.
+
+[누적 F767-004](ISSUE_767_FAILURE_ANALYSIS.md)와 [Work Packet](exec-plans/active/ISSUE_767.md)에 F767-001~003 전체 원인·교정 및 현재 source 귀속을 유지한다. 이전 #3095 Shard6 35m 문제의 보완으로 136개 고유 spec 중 3개 파일을 이동한 후 이번 Shard6 개별 PASS가 나왔지만, 1~5개 Shard는 미완료이므로 **수정 배치 전체는 NOT TESTED**. 부정/교차 범위: #621 정확 Assignment 권한·Revision/401/412, #530 Milestone→Resource→일정 포커스, #734 설비 관점 및 기본 Editor/Role/Search, 취소된 5개 Shard 전체와 각 Timing Artifact 업로드. PR Quality/E2E6/Docker + 기본 브랜치 Trusted QA를 같은 새 Head에서 검증한다.
+
+**이번 교정 선택:** 단 한 번 관측된 GitHub-hosted Runner ↔ Actions artifact service의 순간적인 전송 리셋에 소스 제품·테스트·6-shard·timeout 35m·Retry0·fail-fast·QA/Required 조건을 수정하지 않는다. 실패 원장을 기록하고 소스 변경 없는 문서-only commit으로 신규 `synchronize` Full PR CI를 시작한다. 재발 시 범위 지정된 Artifact 전송 재시도(최대 한 번, 최종 실패 시 fail-closed, digest/중복 검사)를 별도 검증 대상으로 논의하며 허가 없이 CI 검증 정책을 완화하지 않는다. 새 실행 전 결과는 `NOT TESTED`이고 `MERGE_READY=BLOCKED`, 정식 `v0.129.1` 게시 승인 없음.
+
+---
+
+## Issue #767 — PR #768 Full #3095.1 E2E Shard6 Job Timeout 재분배 (2026-10-21)
+
+[원본 Run #3095.1](https://github.com/planner77/masterGantt/actions/runs/39611062916)에서 Quality/Docker와 5개 E2E Shard는 PASS, Shard6은 `Running 174 tests` 중 173 PASS 뒤 35분 Job limit CANCELLED(원본 전체 Run CANCELLED); E2E Required/QA 파생 FAIL. 이번 Run의 QA Preflight `ISSUE_AC`/`DOCUMENTATION_SYNC`는 PASS되어 [F767-001/002](ISSUE_767_FAILURE_ANALYSIS.md)와 구분한다. 독립 제품 Assert 실패나 리소스 데이터 소실 증거는 확인되지 않았다.
+
+[단일 실패 원장 F767-003](ISSUE_767_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_767.md)대로, 원본 **136개 E2E spec 모두 유지**하면서 세 파일을 완전 이동한다: `issue-734-equipment-dashboard.spec.ts` 6→1 (8 cases, body≈5.31m), `project-task-editor.spec.ts` 6→3 (33, ≈3.58m), `issue-726-task-logistics.spec.ts` 6→4 (3, ≈2.81m). 인접 소비자인 `tests/scripts/e2e-shard-planner.test.ts`의 3개 정확 배치 기대값을 함께 수정한다. 파일 수 23/24/26/23/21/19(합계136), 유일 소속·빠짐 없는 실제 Git Tree 일치 확인. 예상 Job wall 24.36/29.87/25.85/28.08/25.37/23.67분은 직전 Run의 시험 본문 소요시간을 분배한 거친 정적 추정이며 원격 시간 보증이 아니다.
+
+`tests/config/e2e-shard-plan.json`의 `manualRebalance767`에 정확 Run/Attempt/증거/이전·새 배치·추정 한계를 기록하고 원래 historical `generatedAt/metrics/projectedMs` 및 #733/#732/#765 rebalances는 불변. `workers=1`, 각 Shard 35min, E2E6/PR fail-fast/MaxFailures1/Main 전수/Required3/QA/Retry·Skip 모두 불변이며 테스트 본문이나 제품 로직은 수정하지 않는다. 새 exact Head Full PR CI(Preflight/Unit/Chromium6/Docker/QA)와 기본 main Trusted QA가 실제 SUCCESS할 때까지 `NOT TESTED`, `MERGE_READY=BLOCKED`; 정식 v0.129.1 GHCR 승인 별도.
+
+---
+
+## Issue #767 — v0.129.1 #764 교정 승계 및 회귀 검증 (2026-10-21)
+
+[원본 PR #764](https://github.com/planner77/masterGantt/pull/764) 정확 Git Tree 변경을 신규 issue-767 branch에 승계한다. 원본 Head `5abc65880879647a563c0469bf53c4cd4f654b6b`, Full PR CI [#3092.1](https://github.com/planner77/masterGantt/actions/runs/39602089760) Quality/E2E6/Docker SUCCESS, Trusted QA [#734.1](https://github.com/planner77/masterGantt/actions/runs/39607021968) SUCCESS는 새 VERSION/HEAD의 PASS로 소급 사용하지 않는다.
+
+- **직접 E2E**: `tests/e2e/issue-621-resource-target.spec.ts`: exact assignment 후보 GET=0, `edit-sessions/current`>=1/권한 정상, revoked/expired=readonly·PUT 없음, 투입률100→80→70/동료 Assignment 불변, 401/412 draft 및 focus/Revision 보존.
+- **복귀/인접 E2E**: `tests/e2e/resource-kpi-integration-ui.spec.ts`에서 원본 Milestone canonical UUID·data-ready·활성 Resource trigger LIFO focus와 기존 KPI/기간/Report·과투입/Task snapshot 불변 검증. 일반 Editor 후보 조회, Project readonly/stale, #621/#622/#623/#530/#736과 기존 dashboard tests 간 간섭 금지.
+- **전체 검증**: 신규 #767 exact PR Head+strict main의 Policy/TypeScript/ESLint/Unit/Build + Chromium 6/6 Shards + Docker smoke, default-main Trusted QA. 편집 대상이 버전/문서뿐이어도 기존 #764 성공 Run을 새 HEAD의 검증으로 재사용 금지. `35m` shard, global timeout/Retry/Skip·Required3·Finalizer 규칙 불변.
+- **릴리스**: `package.json` 1곳 및 lockfile 2곳 `0.129.1`; 기존 `v0.129.0` tag/GHCR digest 불변, `v0.129.1` 신규 고유 tag·Main exact verified candidate 및 별도 authorized release 전에는 GHCR 정식 게시/Issue Close 금지. 외부 운영 배포 검증은 Actions의 테스트 범위 밖.
+- **증거/관리**: [#767 Work Packet](exec-plans/active/ISSUE_767.md), [#767 실패 원장](ISSUE_767_FAILURE_ANALYSIS.md), [#736 기존 실패 원장](ISSUE_736_FAILURE_ANALYSIS.md). `DESIGN.md`/API/DB/schema 영향 N/A(기존 교정 동작·테스트 그대로), DOC_SYNC 필수 완료 전 CI 성과 주장 금지.
 
 ---
 
@@ -76,6 +150,22 @@ Remote acceptance: #765 정확 PR Head/base의 세 Required Quality/E2E6/Docker�
 **#734 F734-004 (#3066.1 / 2026-10-21):** 설비 저장 E2E는 PATCH/Report 이벤트 뒤 화면 전환으로 Playwright Page.Response body가 소실돼 `refreshed.json()`에서 CDP `Network.getResponseBody` 오류(12PASS/1FAIL/137NOT RUN, 5 Shard CANCELLED). Browser PATCH200/조회200과 UI data-ready/confirmation 증가를 확인하고 동일 입력으로 별도 읽기 전용 APIRequestContext의 WBS POST JSON을 확보해 revision+1/snapshot 변화/spec 불변을 검증한다. WorkArea2·focus·원본명·mutation0→1 및 F734-001/002/003, #730/#732/#735 교차를 유지. 120s/6Shard/Required3/Fail-Fast/Retry/Skip 불변. main #732 v0.127.0 및 #736 v0.128.0을 보존하며 #734 후보 v0.129.0; 새 source의 Local/Remote QA는 NOT TESTED.
 
 **#734 F734-005 (#3070.1, 2026-10-21):** Assignment PUT200 직후 작업 Editor `할당 저장 (1)` 버튼이 관측5초 내 비활성이라 FAIL(Shard1 14PASS/1FAIL/139NOT RUN). `onApplied → canonical reload → revision/assignment/catalog 재조회 → ready`는 PUT response와 별도 단계다. 테스트는 PUT 전후 실제 Project revision 정확히+1, 해당 Assignment ID/투입률50을 확인한 뒤, Editor Revision/투입률50 및 버튼 enabled를 통해 완료를 검증한다. 정확한 미완료 내부 단계는 아직 UNKNOWN이다. 원래5초 버튼 단언/120초 Test budget/6Shard/Required3/Retry/Skip 불변. 이전 F734-001~004와 신규 case의 누적 실제 실패 합집합 2files·4cases/5runs는 [#734 단일 원장](ISSUE_734_FAILURE_ANALYSIS.md) §7을 따른다. #736 Resource root/Plan/Excel 회귀는 보존, 신규 Candidate 0.129.0의 실제 Chromium은 NOT TESTED.
+
+## Issue #736 — F736-004 PR #764 Shard5 M1 focus 및 정확 개인 edit-session 권한 음성 (2026-10-21)
+
+[Original Full PR #3076.1](https://github.com/planner77/masterGantt/actions/runs/39510892786): shard5 `resource-kpi-integration-ui.spec.ts:705` #530 M1 Resource trigger LIFO focus missing, 83PASS/1FAIL/11 not run; 1/4/6 cancelled; Quality/Docker and shard2/3 PASS. Test 20s, not 180s Test/35min Shard timeout. Review thread P2 found exact Assignment path removed active authorization by skipping full candidates GET.
+
+- Milestone legacy `project-readonly-view.tsx` focus restore: original source row identified by canonical Milestone Task UUID; on returning, await active dashboard `data-ready=true`, `aria-busy!=true`, `data-stale=false`, stable origin resource button, cancellation on newer input and open modal. `tests/e2e/resource-kpi-integration-ui.spec.ts` original LIFO focus/data/range/task/Assignment/report/viewport assertions remain; exact row/button identity added. General Resource/WBS navigation/heading fallback unchanged.
+- Exact Task Assignment edit must perform no full catalog query but **must** reauthorize via existing `/edit-sessions/current` before enabling input. Unit-level parser existing session envelope and valid/revoked E2E `tests/e2e/issue-621-resource-target.spec.ts`: session lookup≥1 and candidate catalog0, revoked session -> readonly no edit, valid edit percent100→80→70, other personal Assignment unchanged, 412/401 drafts, original focus/PUT count preserved. Nonexact general Editor remains candidates-backed. Shared #621/#622/#623/#736 plans/excel/Task editor/readonly and #530 report are indirect regression.
+- Main #732 PR #763 updated shard plan and original #621 ready30s assertion retained in merge; #736 is a separate failed PR and must not revert #732 plan/test coverage. Full new exact Head PR Quality/E2E6/Docker + Trusted QA/Owner required. No global timeout/retry/skip/Required3 changes. New browser/unit/build actual result NOT TESTED in this connector environment; CI start is not PASS. [Cumulative ledger](ISSUE_736_FAILURE_ANALYSIS.md#f736-004--pr-764-full-pr-ci-30761-m1-lifo-포커스-실패-및-p2-권한-검토-2026-10-21-kst) retains source evidence.
+
+## Issue #736 — M736-001 Main E2E #621 exact 편집 로딩/후보 조회 경계 (2026-10-21)
+
+원본 [Main CI #3071.1](https://github.com/planner77/masterGantt/actions/runs/39499988360) Shard3의 `tests/e2e/issue-621-resource-target.spec.ts:370`에서 exact Assignment Alice 100% 입력이 5초 내 렌더되지 않았다. Trace는 정확 assigned-targets HTTP200/328ms 뒤 전체 후보 assignment-targets GET200/4014ms 및 UI loading을 확인했다. 기존 #717 name-first label mismatch와 달리 렌더 준비 지연이다.
+
+`src/features/gantt/task-assignment-editor.tsx` exact mode는 요청/응답·canonical Assignment ID·catalogRevision/다른 개인 불변을 유지하면서 비관련 전체 후보 요청을 생략한다. 비정확 일반 편집의 후보 조회/역할/그룹/검색을 유지한다. 기존 #621 E2E는 `assignment-targets` 요청수0·'할당 저장' 활성 준비(15s bounded)와 정확 Alice percent100→80→70, BOB 불변·412/401 초안 보존·POST/PUT·원본 focus를 전부 검증한다. 이때 테스트 본문 180초·Shard6/35분/worker1·retry/skip/Required3 기본 정책은 불변이며 matcher 5초 제한을 전역 확대하지 않는다.
+
+직접 #621 이외 #622/623 Resource Plan/Excel, #736 조회/정확 원본 편집/return 및 일반 Task Editor/role/group candidates를 인접·음성에 포함하고, Fail-fast 없는 제한적 로컬 후 GitHub Full PR CI6 및 Trusted QA로 교정한다. 현재 새 Head 실제 로컬/원격 검증 NOT TESTED, [#736 단일 실패 원장 M736-001](ISSUE_736_FAILURE_ANALYSIS.md)을 원본 증거로 참조한다.
 
 ## Issue #736 — 리소스 관점과 Plan/Excel 인수
 
