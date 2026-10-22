@@ -1,5 +1,12 @@
 # Issue #772 — LOW 선택 E2E의 정식 증거 계약 (2026-10-22)
 
+## 2026-10-22 — F772-001~003 PR #778 CI 실패·리뷰 P1 일괄 보완
+
+- 원본 Full PR CI [Run #3141.1 / 39759380633](https://github.com/planner77/masterGantt/actions/runs/39759380633): Head `3c989d0aee004ac1e7ab525974a7d517748896a5`, Base `53aee48eba52860d6abf17149cc72292c4187dae`, Test-Merge `487ae32cb63a695e378a52be1f3cf30e7782fad0`. 직접 Policy FAIL은 `scripts/test_qa_preflight.py`의 오래된 E2E `needs` 완전 문자열 단언; Fast Gate/Required3/QA 파생 FAIL, Chromium8/Docker/PR Build는 NOT RUN.
+- [P1 #4346971684](https://github.com/planner77/masterGantt/pull/778#discussion_r4346971684)는 `set -u` E2E 집계의 `LOW_MODE`, `LOW_PLAN`, `LOW_TARGETED` env 누락, [P1 #4346971692](https://github.com/planner77/masterGantt/pull/778#discussion_r4346971692)는 `low_e2e_targeted` attestation의 Owner `LOW_TARGETED_POLICY_ENABLED` 누락. 모두 실행 전 코딩 문제이며 최초 직접 Run 원인과 구별.
+- 같은 Full Required3를 유지하고 정확 `needs`/env/mode guard 집합과 ON/OFF 양성·음성 테스트를 강화한다. `scripts/test_qa_preflight.py`와 신규 `tests/python/test_ci_low_workflow.py`의 Source/Required E2E, `tests/python/test_ci_low_{policy,source}.py` 직접·교차 회귀에 반영. 오래된 진단 원장과 새 Run의 증거를 혼용하지 않는다.
+- [단일 실패 원장](../../ISSUE_772_FAILURE_ANALYSIS.md) 기록. 로컬 Python/E2E 원격 저장소 checkout은 DNS 불가로 NOT TESTED; 새 원격 PR CI는 시작 전에 NOT TESTED, Owner HIGH 수용/메인/이미지/종료는 제외. PR 리뷰 P1 답변/해결 및 최신 main 충돌 재확인을 보존.
+
 ## Scope, baseline & hard gates
 
 - 기준: #770 신뢰된 base Shadow, #771 Draft advisory/Ready Full, #712 post-merge source 보호. 열린 #713/#711/#752는 감사·진단 참조이며 결과를 소급 성공으로 만들지 않는다. 현재 공식 E2E **8 shards**, 제품 버전 0.129.1, Ruleset #24043042 Strict + Required3 고정.
@@ -40,8 +47,8 @@
 ## AC_TEST_COVERAGE
 
 - AC1: `tests/python/test_ci_low_policy.py::LowWhitelistTest`에서 정확 비대화형 `<p>`·button label/aria/focus·global/style/shared/DB/auth/CI/QA/Test/unknown FULL 검증; LOW 자기 선언 무권한.
-- AC2: `tests/python/test_ci_low_policy.py::TargetedEvidenceTest`에서 실제 reporter success/skip/fail/cancel/retry/coverage 누락·출처 hash 검증; 원격 exact test-merge Chromium/결과는 NOT TESTED.
-- AC3: `scripts/qa_final_automated.py`, `scripts/ci_low_source.py`, `scripts/verify-pr-metadata-evidence.py`, `scripts/issue_lifecycle.py`, `.github/workflows/{ci,qa-final-trusted,pr-metadata-reconcile,issue-lifecycle}.yml` 계약; #712/#713 음성 및 Ruleset #24043042 실증 원격 NOT TESTED.
+- AC2: `tests/python/test_ci_low_workflow.py::WorkflowGuardTest`에서 OFF Full8·ON flag 전달·실행 후 Required3 판정과 \`set -u\` 안전성을 검사; `tests/python/test_ci_low_policy.py::TargetedEvidenceTest`에서 실제 reporter success/skip/fail/cancel/retry/coverage 누락·출처 hash 검증; 원격 exact test-merge Chromium/결과는 NOT TESTED.
+- AC3: `scripts/test_qa_preflight.py::Contract.test_workflow_aggregate_guard_contract` 및 신규 LOW workflow 회귀에서 확장된 E2E needs·env·권한 경계를 검증; `scripts/qa_final_automated.py`, `scripts/ci_low_source.py`, `scripts/verify-pr-metadata-evidence.py`, `scripts/issue_lifecycle.py`, `.github/workflows/{ci,qa-final-trusted,pr-metadata-reconcile,issue-lifecycle}.yml` 계약; #712/#713 음성 및 Ruleset #24043042 실증 원격 NOT TESTED.
 - AC4: flag OFF Full8, Owner flag ON strict targeted mode, 나머지 Full8/Main/Release 불변; `tests/python/test_ci_low_policy.py` 부정 검증과 CI 가드; 실제 시험 NOT TESTED.
 - AC5: 정책 변경 PR 자체 신규 exact-Head Full8/Trusted/Owner와 Shadow 서로 다른 10 Runs/ON-OFF 비용 보고 및 rollback Run 대기, INSUFFICIENT_DATA.
 - AC6: `AGENTS.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/QA_REVIEW_POLICY.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/GITHUB_OPERATIONS.md` 모드/출처/선정·배제 사유/운영 및 Work Packet 매핑.

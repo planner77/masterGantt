@@ -1,3 +1,11 @@
+## Issue #772 — PR #778 첫 Full CI 실패 및 P1 회귀 보호 (2026-10-22)
+
+- [#772 단일 실패 원장](docs/ISSUE_772_FAILURE_ANALYSIS.md), [Work Packet](docs/exec-plans/active/ISSUE_772.md). [Run 39759380633.1](https://github.com/planner77/masterGantt/actions/runs/39759380633)의 Policy 직접 실패는 `scripts/test_qa_preflight.py` 기존 E2E `needs` 문자열 단언의 낡은 계약. Fast Gate/Required3/QA FAIL은 파생, Chromium8/Docker 구현은 NOT RUN.
+- 리뷰 [P1 #4346971684](https://github.com/planner77/masterGantt/pull/778#discussion_r4346971684): E2E aggregate의 `LOW_MODE/LOW_PLAN/LOW_TARGETED` env 누락; [P1 #4346971692](https://github.com/planner77/masterGantt/pull/778#discussion_r4346971692): 선택 attestation의 Owner flag 누락. 두 경로 모두 같은 변경으로 교정, 새 정적 회귀에서 OFF Full8/ON 실제 증거 차단 판정 검증.
+- 이번 보호 CI/QA 정책 변경 자체는 HIGH/OWNER_MANAGED, `LOW_TARGETED_POLICY_ENABLED` **OFF 유지**. 이전 실패를 PASS로 갱신하지 않고 새 exact Head Full8/Trusted QA·Owner 별도 승인 필수. 사용자 지시 범위는 PR CI 시작까지만, 모니터링/병합/Main/GHCR/Finalizer/이슈 종료 불포함.
+
+---
+
 ## Issue #772 — 선택 LOW E2E의 인증·Owner 전환 원칙 (2026-10-22)
 
 - [#772 Work Packet](docs/exec-plans/active/ISSUE_772.md) 기준: #770 신뢰된 Shadow 분류, #771 Ready Full/Draft advisory를 전제로 LOW **비대화형 문구** 단 한 곳만 선택 E2E 후보로 허용한다. global tokens/버튼 접근성·focus/공용 state/API/auth/DB/CI/QA/fixture/test rename·불명확한 의존성은 반드시 Full8.

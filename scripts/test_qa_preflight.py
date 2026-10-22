@@ -205,7 +205,33 @@ class Contract(unittest.TestCase):
             encoding="utf-8")
         self.assertIn("  preflight:\n", ci)
         self.assertIn("needs: [changes, preflight, metadata_evidence, policy,", ci)
-        self.assertIn("needs: [changes, preflight, metadata_evidence, e2e_shard, pr_e2e_shard, pr_fast_gate]", ci)
+        # The #772 extension adds base-trusted policy and actual execution
+        # evidence. Inspect the exact required dependency set and guards rather
+        # than an obsolete string that rejects safe additions.
+        e2e = ci.split("  e2e:\n", 1)[1].split("  docker_smoke:\n", 1)[0]
+        needs_line = next((line.strip() for line in e2e.splitlines()
+                           if line.strip().startswith("needs: [")), None)
+        self.assertIsNotNone(needs_line)
+        names = [x.strip() for x in
+                 needs_line.removeprefix("needs: [").removesuffix("]").split(",")]
+        self.assertEqual(len(names), len(set(names)))
+        self.assertEqual(set(names), {
+            "changes", "preflight", "metadata_evidence", "e2e_shard",
+            "pr_e2e_shard", "pr_fast_gate", "low_e2e_plan",
+            "low_e2e_targeted"})
+        for binding in (
+            "LOW_MODE: ${{ needs.low_e2e_plan.outputs.mode || '' }}",
+            "LOW_PLAN: ${{ needs.low_e2e_plan.result }}",
+            "LOW_TARGETED: ${{ needs.low_e2e_targeted.result }}",
+        ):
+            self.assertIn(binding, e2e)
+        for actual_check in (
+            '"$LOW_MODE" == "TARGETED_POLICY_CANDIDATE"',
+            '"$LOW_PLAN" != "success"',
+            '"$LOW_TARGETED" != "success"',
+            '"$RESULT" != "skipped"',
+        ):
+            self.assertIn(actual_check, e2e)
         self.assertIn("needs: [changes, preflight, metadata_evidence, docker_smoke, pr_docker_smoke, pr_fast_gate]", ci)
         self.assertGreaterEqual(ci.count('"$PREFLIGHT" != "success"'), 3)
         self.assertIn("scripts/test_qa_preflight.py", ci)

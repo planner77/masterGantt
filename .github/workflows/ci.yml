@@ -707,6 +707,9 @@ jobs:
           UNIT: ${{ needs.unit.result }}
           BUILD: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && needs.pr_build.result || needs.build.result }}
           PR_FAST_GATE: ${{ needs.pr_fast_gate.result }}
+          LOW_MODE: ${{ needs.low_e2e_plan.outputs.mode || '' }}
+          LOW_PLAN: ${{ needs.low_e2e_plan.result }}
+          LOW_TARGETED: ${{ needs.low_e2e_targeted.result }}
         run: |
           set -euo pipefail
           if [[ "$PR_IS_DRAFT" == "true" ]]; then
@@ -968,6 +971,8 @@ jobs:
           persist-credentials: false
       - name: Base-policy attestation; skip/none/retry/failure/source drift blocked
         shell: bash
+        env:
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
         run: |
           set -euo pipefail
           cd trusted-low-policy
