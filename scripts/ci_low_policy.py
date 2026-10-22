@@ -127,7 +127,12 @@ def build_plan(event: dict, env: dict) -> dict:
     base, merge = ctx["base"], ctx["merge"]
     entries = impact.diff_entries(base, merge)
     old, current = impact.test_inventory(base), impact.test_inventory(merge)
-    paths = sorted({x for row in entries for x in (row["path"], row.get("previous_path")) if x})
+    # The required per-Issue Work Packet is provenance documentation, not a
+    # runtime/selection dependency. Authenticate its path then exclude it only
+    # from the #770 technical dependency classifier (not the full diff hash).
+    dependency_entries = [row for row in entries if not WORK_PACKET.fullmatch(row["path"])]
+    paths = sorted({x for row in dependency_entries for x in
+                    (row["path"], row.get("previous_path")) if x})
     direct = impact.actual_unit_imports(merge, current["unit"])
     prepr = impact.local_prepr(paths, current, direct)
     hazards = impact.detect_hazards(merge, entries)
@@ -136,7 +141,7 @@ def build_plan(event: dict, env: dict) -> dict:
     full_patch = impact.git("diff", "--no-ext-diff", "--binary", base, merge,
                             "--", binary=True)
     selection = impact.impact_plan(
-        entries, old, current, prepr, base, ctx["head"], merge, selector_sha,
+        dependency_entries, old, current, prepr, base, ctx["head"], merge, selector_sha,
         run={"repository": ctx["repo"], "event": "pull_request",
              "run_id": ctx["run_id"], "run_attempt": ctx["attempt"],
              "pr_number": ctx["pr"]}, hazards=hazards,
@@ -193,10 +198,12 @@ def assert_plan(current: dict, uploaded: dict):
 
 
 def normalize_spec(name: str) -> str:
-    parts = name.replace("\\", "/").split("tests/e2e/", 1)
-    require(len(parts) == 2 and parts[1] and not parts[1].startswith("/"),
+    safe = name.replace("\\", "/")
+    require(safe and not safe.startswith("/") and ".." not in safe.split("/"),
             "REPORT_FILE_OUTSIDE_E2E")
-    result = "tests/e2e/" + parts[1]
+    # Playwright JSON uses testDir-relative paths; other versions use repo-
+    # relative paths. Both are matched to an authenticated base selection.
+    result = safe if safe.startswith("tests/e2e/") else "tests/e2e/" + safe
     require(".." not in result.split("/"), "UNSAFE_REPORT_PATH")
     return result
 
