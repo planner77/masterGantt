@@ -121,7 +121,7 @@ Milestone 추가·소속 관리·Ready/Completed는 `대시보드 → Milestone`
 
 Project direct link는 기본 읽기 전용이다. 조회·Resource 상세·허용된 Excel 보고서는 편집 로그인과 구별한다. Task/Assignment/Target를 바꾸려면 해당 Project의 편집 권한을 열고, 공통 기준정보 변경에는 별도 관리자 권한을 사용한다. 비밀번호·세션은 URL에 넣지 않는다.
 
-제품 표준 공정을 만들고 유효한 사업부–제품–사업장 관계에서 사업장별 공정 occurrence를 적용한다. 같은 제품의 두 사업장은 표준 공정을 공유하며 특정 사업장 추가 공정은 별도로 둔다. WorkArea는 선택 사항이고 하나의 사업장·제품·공정 occurrence 전용이다. WorkArea를 쓰지 않는 업무에 가짜 기본 구역을 만들거나 다른 공정의 구역을 공유하지 않는다.
+신규 프로젝트의 공정과 WorkArea는 [직접 등록 절차](#공정workarea-관리)에서 Project 공정 소유로 등록하며 사업부/제품/사업장 분류가 선행 조건이 아니다. 기존 공유 카탈로그를 사용하는 호환 경로에서는 제품 표준 공정과 유효한 사업부–제품–사업장별 occurrence를 적용하고 occurrence 소유 WorkArea를 재사용한다. 두 종류의 원본을 이름으로 합치거나 새 직접 구역을 occurrence 전용이라고 해석하지 않는다. 어느 경로든 구역0개는 정상이며 가짜 기본 구역은 만들지 않는다.
 
 프로젝트의 `기준정보 → 공정&WorkArea / 설비 / 물류 시스템`에서 기존 원본을 관리한다. 기존 Target를 사용할 때는 관련 기준정보의 보조 `Target 관리`에서 구성한다. Target는 별도 주메뉴나 새 업무의 필수 생성 단계가 아니며 자동 생성하지 않는다.  Target A에는 AMR10·ACS A, Target B에는 AMR5·ACS B를 놓고 공통 MCS는 기존 System 인스턴스 하나를 두 Target에서 재사용할 수 있다. 실제 같은 인스턴스를 이름만 바꿔 중복 등록하지 않는다. 시스템 종류 이름과 개별 인스턴스 label은 구별한다. 프로젝트 공통 Target은 명시적 `project_common`이며 임의 공정/WorkArea를 강제하지 않는다.
 
@@ -169,7 +169,7 @@ Plan에서 선택 기여와 같은 개인의 Project 전체 참고를 구별한�
 
 기본7개 Resource 시트와 조건부4개 Target 근거 시트는 raw Assignment ID·M/D·M/M·null·기준 revision을 보존한다. 같은 Assignment가 여러 근거 행에 나와도 총계를 다시 더하지 않는다. stale export는 실패하므로 새 snapshot을 조회해 다시 요청한다. [Excel 형식](EXCEL_EXPORT.md)을 따른다.
 
-Excel은 보고서이며 운영 백업/Target 무손실 재가져오기 형식이 아니다. Target-bearing plain 일정 Excel/일정 JSON은 현행 loss guard로 거부한다. Project Copy는 새 local ID를 만들고 global 참조는 재사용한다. Task binding 포함 Template는 logistics schemaVersion3, binding 없는 v2 및 legacy는 호환한다. 개인 Assignment가 있는 Task 복사는 현재 `TASK_COPY_ASSIGNMENTS_UNSUPPORTED`로 거부하며, 전체 Project Copy/Template와 지원 범위가 다르다. 다른 사업장으로 자동 이름 매핑/재배치된다고 가정하지 않는다. #379 전체 참조 JSON 미완료 및 [이관·복구 절차](TARGET_RESOURCE_OPERATIONS.md)를 확인한다.
+Excel은 보고서이며 운영 백업/Target 무손실 재가져오기 형식이 아니다. Target-bearing plain 일정 Excel/일정 JSON은 현행 loss guard로 거부한다. Project Copy는 새 local ID를 만들고 global 참조는 재사용한다. 현재 지원 Template v5는 직접 WorkArea·문맥·프로젝트 참여 관계를 보존한다. 과거 Task binding 포함 v3와 binding 없는 v2/legacy는 각 구형 형식의 입력 호환 경계이며 최신 관계를 구형 형식에 버려서 저장하지 않는다. 개인 Assignment가 있는 Task 복사는 현재 `TASK_COPY_ASSIGNMENTS_UNSUPPORTED`로 거부하며, 전체 Project Copy/Template와 지원 범위가 다르다. 다른 사업장으로 자동 이름 매핑/재배치된다고 가정하지 않는다. #379 전체 참조 JSON 미완료 및 [이관·복구 절차](TARGET_RESOURCE_OPERATIONS.md)를 확인한다.
 
 ## 프로젝트 리소스 등록과 해제
 
@@ -206,7 +206,7 @@ Excel은 보고서이며 운영 백업/Target 무손실 재가져오기 형식�
 
 원본 창 열기나 일정 전환을 기다리는 동안 다른 행·상세를 선택하거나 이름 검색·정렬을 바꾸거나 새 구성을 적용하면 새 선택을 우선합니다. 이전 응답이 늦게 도착해도 옛 편집기나 일정 범위로 이동하지 않습니다.
 
-리소스 원본은 Project 참여/프로필과 관련 배정 상세를 엽니다. 전역 리소스 프로필 수정은 별도 관리자 권한입니다. WorkArea 원본은 공정 카탈로그의 같은 구역을 대상으로 하며 관리자 로그인이 필요할 수 있습니다. 로그인하거나 명시적으로 돌아가기 전까지 선택 대상을 유지합니다. 원본 창을 취소하면 출발 관점으로 복귀합니다.
+리소스 원본은 Project 참여/프로필과 관련 배정 상세를 엽니다. 전역 리소스 프로필 수정은 별도 관리자 권한입니다. Project 직접 WorkArea 원본은 같은 Project 공정 소유 구역을 프로젝트 편집 권한으로 관리합니다. 기존 공유 카탈로그 WorkArea의 호환 원본은 별도 관리자 권한이 필요할 수 있습니다. 원본의 source와 owner를 확인하며 이름으로 다른 구역에 재연결하지 않습니다. 로그인하거나 명시적으로 돌아가기 전까지 선택 대상을 유지합니다. 원본 창을 취소하면 출발 관점으로 복귀합니다.
 
 ## Milestone 추가와 동적 관점
 
@@ -218,3 +218,18 @@ Excel은 보고서이며 운영 백업/Target 무손실 재가져오기 형식�
 6. 행의 원본이나 상세의 Task/Assignment 원본을 열어 같은 데이터를 편집한다. 저장·취소 후 원래 보기로 돌아온다. 조회 조건/원본 변경 안내가 있으면 새로고침 후 다시 선택한다. 저장 실패·권한 만료·revision 충돌 시 기존 안내에 따라 최신 정보를 확인하며 자동 재저장하지 않는다. Milestone 날짜 확인은 상세를 사용하고 숨은 Gantt 행이나 임시 marker를 켜지 않는다.
 
 `screenKey=dashboard.milestones`의 #720 매뉴얼 연결 대상 절차다. `/manual` 웹 페이지·전역 매뉴얼 버튼은 #720의 별도 미구현 범위이며 이 문서 갱신으로 제공됐다고 간주하지 않는다. [화면 계약](PROJECT_UX.md#issue-732--milestone-전용-동적-관점)과 [검증 상태](exec-plans/active/ISSUE_732.md)를 참조한다.
+## Target0 종단 사용 흐름
+
+새 프로젝트는 Target를 만들지 않고 사용할 수 있습니다. `기준정보 → 공정&WorkArea`에서 공정과 필요한 구역을 등록하고, `설비 / 물류 시스템 / 리소스`에서 같은 프로젝트의 원본을 등록합니다. 구역0개도 정상이며 설비는 서로 다른 공정의 여러 구역에 연결할 수 있습니다. 리소스 등록은 참여 목록에 올리는 것이고 Task 개인 배정이나 실제 수행을 뜻하지 않습니다.
+
+`일정`에서 같은 Task/Summary의 작업 정보를 열어 관련 공정0..N·선택 WorkArea·설비/System과 개인 Assignment를 연결합니다. 설비/System의 담당 공정만으로 Task의 공정이 자동 채워지지 않습니다. 공정이 없는 공통 작업은 전체/System/설비/개인/Milestone 관점에서 확인할 수 있습니다.
+
+`대시보드 → KPI / Milestone / 공정&WorkArea / 설비 / 물류 시스템 / 리소스`에서 같은 작업을 봅니다. 조회 구성에서 축을 추가·제거·순서 변경하거나 하위 축을 없애 단독 요약으로 돌아갑니다. 다른 부모 아래 `설비 / 물류 시스템`은 같은 단계의 분기이며 실제 제어관계나 WBS parent를 바꾸지 않습니다. 여러 구역·Milestone·공정의 소계는 겹칠 수 있으므로 상위 고유 합계를 사용합니다.
+
+화면 간 숫자를 비교할 때 기간·기준일·작업/개인 선택·연결 범위를 맞춥니다. 물류 시스템의 기본 `직접 연결만`은 시스템 미연결 작업을 제외하므로 KPI 전체 작업 수와 다를 수 있습니다. 미연결 작업이 삭제된 것이 아니며 전체 작업 조회에서 확인합니다.
+
+`상세`의 정확 Task/Assignment·`원본`에서 편집하고 출발 보기나 일정으로 돌아갑니다. 저장은 프로젝트 편집 권한이 필요합니다. 미저장 초안·권한 만료·저장 충돌은 안내에 따라 초안을 확인하고 편집 권한 또는 최신 보고서를 복구한 뒤 다시 선택합니다. stale 결과의 상세·내보내기를 계속 사용하지 않습니다. 전체 일정을 보려면 일정의 전체 복귀 명령을 사용합니다. 중복 하위 `전체 프로젝트` 탭이 없어도 전체 일정은 유지됩니다.
+
+리소스 동적 조회의 `계층 Excel 보고서`는 같은 조건의 보고서입니다. 현재 다른 root의 동적 Excel은 지원하지 않으며 조건을 버린 파일을 같은 보고서로 대신하지 않습니다. Copy/지원 Template와 Excel 보고서는 전체 운영 DB backup과 다릅니다. [통합 수용·지원 경계](WBS_CROSS_FEATURE_ACCEPTANCE.md), [복구 절차](TARGET_RESOURCE_OPERATIONS.md)를 확인하세요.
+
+이 절은 기존 `dashboard.*`/`master.*`/일정 screenKey와 아래 화면별 anchor를 연결하는 #720 인계 자료입니다. 현재 제공되는 것은 저장소 Markdown 안내이며 앱 `/manual`·전역 매뉴얼 아이콘의 구현 완료를 뜻하지 않습니다.

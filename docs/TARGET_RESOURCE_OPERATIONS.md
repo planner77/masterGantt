@@ -1,5 +1,15 @@
 # Target·Resource 이관·복구 절차
 
+## Issue #737 — WBS 다관점·직접 WorkArea 복원 범위
+
+아래 #623의0027/schemaVersion3 설명은 당시 이력이다. 현재 코드는 [DB_SCHEMA](DB_SCHEMA.md)와 실제 `db/migrations` ledger/checksum을 기준으로 하며, #725 Task 명시 문맥·설비 다중 구역, #727 프로젝트 리소스 참여, #762 Project 공정 직접 WorkArea와 지원 Template v5를 함께 확인한다. 기존 occurrence/WorkArea alias·Target/member/whole/subset·직접/상속 출처를 이름으로 다시 연결하거나 평탄화하지 않는다.
+
+복원 검증은 direct-only/Target-only/mixed를 구분하여 원본 Task/Assignment/설비/System/Resource ID와 관계·revision·migration ledger, Task 공정 null/empty, 구역0..N·직접 owner/legacy alias·전체 Gate·다관점 raw union을 비교한다. Copy/Template의 새 Project 로컬 ID remap은 같은 DB backup의 ID 보존과 다른 계약이다. v5를 지원하지 않는 경로는 전체 거부해야 하며 구 형식으로 강제 저장하여 새 관계를 버리지 않는다.
+
+신규 #737 합성 테스트는 이미 이관된 파일 DB의 backup→새 파일 열기→두 번 재시작에서 전체 table/ID와5root report를 비교한다. 과거 schema의 upgrade/transaction rollback/Copy·Template는 별도 기존 테스트로 확인한다. 이 증거는 실제 운영/off-host restore PASS가 아니다. [수용표](WBS_CROSS_FEATURE_ACCEPTANCE.md)와 [실행 원장](exec-plans/active/ISSUE_737.md)을 따른다.
+
+동적 view spec이 지원되지 않거나 저장 설정이 오래됐으면 화면의 기본/단독 보기 복구 경로를 사용한다. 이는 UI 조회 설정 fallback이며 DB downmigration이 아니다. DB rollback은 편집 중지 후 검증한 backup과 대응하는 승인된 exact version/digest를 새 격리 volume에 복원·검증한 뒤 결정한다. 기존 volume/backup·Compose project를 보존하며 새 데이터 손실 범위를 운영자가 확인한다. 임시 `ci-*`를 정식 rollback 이미지로 추정하거나 구 binary를 새 schema에 바로 연결하지 않는다. 운영 실행·배포/릴리스 권한은 이번 테스트 PR 범위 밖이다.
+
 Issue #623의 운영 인계 문서다. [DEPLOYMENT](DEPLOYMENT.md#8-backup-restore-rollback), [DB_SCHEMA](DB_SCHEMA.md), [수용표](TARGET_RESOURCE_ACCEPTANCE.md)가 기준이다. 아래 운영 절차의 작성과 격리 합성 SQLite 검증은 실제 운영/off-host 복원 PASS가 아니다.
 
 ## 1. 적용 전 확인

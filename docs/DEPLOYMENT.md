@@ -1,5 +1,9 @@
 # Deployment
 
+## Issue #737 — 직접 문맥·다관점 운영 인계
+
+현재 #762의 Project 소유 공정/WorkArea·다중 관계·Template v5까지 포함한 복원 확인 항목은 [WBS 통합 수용표](WBS_CROSS_FEATURE_ACCEPTANCE.md)와 [운영 절차](TARGET_RESOURCE_OPERATIONS.md#issue-737--wbs-다관점직접-workarea-복원-범위)에 있다. 합성 파일 SQLite backup/restore/restart와 운영/off-host 검증을 구분한다. UI view fallback은 DB schema rollback이 아니며, 새 schema에 구 image를 연결하는 대신 검증된 backup+대응 exact release digest의 격리 복원 절차를 따른다. 배포 파일·Compose project/volume·운영 DB·UID/GID·entrypoint·릴리스 권한은 변경하지 않는다.
+
 ## Issue #623 — Target 이관·복구 인계
 
 Target 관련0025→0026→0027의 실제 형태 legacy 이관·checksum/order·pending batch rollback·합성 backup/restore/restart를 [운영 절차](TARGET_RESOURCE_OPERATIONS.md)에 정리했다. 기존 app single instance·Compose project/volume·UID:GID1001:1001·absolute /data·readiness/entrypoint 계약은 불변이다.

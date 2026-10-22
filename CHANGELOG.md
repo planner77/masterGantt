@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #737 통합 수용 (version 유지)
+
+- Target0 실제 API/SQLite·KPI/5개 동적 관점·같은 개인 Excel·legacy3종 backup/restore/restart와 Chromium 기준정보/관점/일정 왕복을 잇는 수용 테스트를 추가한다. 제품 산식·UI·DB·권한·교환 형식은 변경하지 않고 `0.130.0`을 유지한다.
+- 기존138개 E2E 배치를 보존해 신규 spec을8shard Shard6에 등록하고 기능 보존표·사용자/운영/검증 문서를 동기화한다. 로컬·원격·Owner·운영 환경 증거를 구분하며 이번 범위는 PR Full CI 시작까지다. release_required=false/release_authorized=false.
+
 ## [0.129.1] — 교정 PATCH / Issue #767 (2026-10-21)
 
 - 과거 #736 Main #3071.1 실패에서 드러난 개인 exact Assignment 로딩 및 #530 Milestone→Resource→일정 LIFO focus 복귀를 원본 [PR #764](https://github.com/planner77/masterGantt/pull/764)의 교정 코드/회귀 테스트 그대로 새 Primary Issue #767에 승계한다. 기존 Main #765 및 #736 종료/퇴역 원장은 불변.
