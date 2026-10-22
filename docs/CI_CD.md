@@ -1,3 +1,13 @@
+## Issue #711 — #3169.1 Vitest Timeout·Policy 인벤토리 리뷰 교정 (2026-10-23)
+
+- [PR #781 Run #3169.1](https://github.com/planner77/masterGantt/actions/runs/39857347455)에서 Vitest `tests/server/resources/wbs-dashboard-views-http.test.ts:212`의 **5,000ms 테스트 본문 Timeout 1건**이 직접 실패(3,178 PASS/1 FAIL/3 SKIP). TypeScript·ESLint·Policy·QA Preflight는 PASS; PR Fast Gate 차단으로 실제 Chromium8/Docker/Build는 SKIPPED, Required3/Automated QA는 파생 실패다. 기존 #729 독립 SQLite/HTTP 검증을 삭제하거나 E2E 실패로 오인하지 않는다.
+- 동일 실제 파일-backed SQLite 마이그레이션/재오픈 검증에서 준비·초기 HTTP snapshot을 `beforeAll`로 분리하고 **5초 test callback, 모든 assert/DB/HTTP/revision 경계, retry=기존**을 유지했다. 이 조치의 setup 비용 절감·상세 시간은 아직 측정되지 않았고 실제 통과는 새 Head CI 전 `NOT TESTED`.
+- [P2 리뷰](https://github.com/planner77/masterGantt/pull/781#discussion_r4353727564): 새 `scripts/test_lifecycle_inventory.py`가 `- run:`과 `run: |` 및 whitelist 밖 검증 명령을 빼먹어 완전한 Policy 목록을 보고하지 못함. **모든** YAML run step을 원문·조건과 함께 정적 기록하고 Unknown·빈 블록을 fail-closed, Python 양성·음성 회귀를 추가했다.
+- 기존 `.github/workflows/ci.yml` Policy Job에 `python3 -m unittest discover -s tests/python -p 'test_test_lifecycle_inventory.py' -v` **한 단계만 추가**한다. 실행 결과가 아닌 command 선언 count임을 기록하며 경로 분류·Fast/Full/Targeted·기존 3 Required/8 Chromium shard·QA/Owner·Main/GHCR/Finalizer/정식 Release 판정은 그대로 유지한다.
+- 최초 실패·수정·원본 immutable Run/Head/base·교차검증·잔여 위험은 [Issue #711 단일 누적 원장](ISSUE_711_FAILURE_ANALYSIS.md) 및 [Work Packet](exec-plans/active/ISSUE_711.md)에 기록. 새 PR Head에 대한 실제 Full/Trusted/Owner는 실행·증거 확인 전 **NOT TESTED**이며 이번 요청은 PR CI 시작 이후 모니터링하지 않는다.
+
+---
+
 ## Issue #752 — #3158.1 Vitest 공통 역사적 캡처 검사 보완 (2026-10-23)
 
 - [PR #780 Full #3158.1](https://github.com/planner77/masterGantt/actions/runs/39841972369)에서 npm audit 보안 패치는 0 취약점으로 성공했지만 Vitest 4개가 `assertCapturedInstall`의 과거 `16.3.8` 패키지 동일성 검사에서 FAIL. 이 하나의 직접 원인 때문에 Fast Gate가 E2E8·Docker를 실행하지 않고 Required3 및 QA가 파생 실패. 정확 Run/HEAD/Job/소비자·검증 범위는 [누적 실패 원장 F752-005](ISSUE_752_FAILURE_ANALYSIS.md)에 기록.

@@ -438,6 +438,8 @@ jobs:
       - run: node scripts/verify-release-version.mjs
       - name: 루트·외부 cwd 테스트 탐색 계약 검증
         run: node scripts/verify-test-discovery.mjs
+      - name: Issue #711 read-only Test Lifecycle 인벤토리 회귀 검증
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_test_lifecycle_inventory.py' -v
       - name: production dependency audit
         run: npm audit --omit=dev
       - name: CI cache invalidation·fallback 계약 검증
