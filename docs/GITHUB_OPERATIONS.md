@@ -1,3 +1,16 @@
+## Issue #773 — Release Main 증거 Shadow / 별도 승인 전환 Runbook
+
+- **사전 조건:** `main`에 #773 HIGH/OWNER_MANAGED 정책 PR이 기존 Full PR Quality/E2E8/8/Docker·Trusted QA·Owner 위험 승인으로 병합되고, 다음 exact merge SHA Main Full CI/임시 `ci-<sha>` GHCR 증명까지 완료. 현 이슈 자체는 release_required=false/release_authorized=false, 정식 tag/이미지 생성 금지.
+- **관찰 Stage1:** Repository variables `RELEASE_REUSE_ENABLED`은 **unset 또는 false**. `RELEASE_REUSE_MAX_AGE_HOURS`는 Owner가 실측 freshness 정책을 승인한 경우에만 1..720 범위(최대30일)로 지정. 기존 승인된 다른 Version Release를 절대 신규 요청을 생성하지 않은 상태에서 SHADOW로 관찰할 수 있음. 정상 Full Release static + E2E8/8을 수행한 run의 `release-reuse-verdict-<runId>-<attempt>`와 `main-reuse-manifest-<mainRunId>-<attempt>`를 대응시키고 실제 Run ID/Attempt/Head SHA/tag/version/OCI Digest/Owner marker, 누락 reason, Runner-minutes/wall-clock 집계. 현 시점 실측 NOT TESTED.
+- **전환 Gate:** 동일 source/version에 대한 성공 baseline 최소3건, 모든 Source/Plan/OCI/Skip 음성 재현, GitHub REST page/Run+Attempt/Artifact uniqueness/Runner OS hash, Owner의 **별도** Stage2 명시 승인. `RELEASE_REUSE_ENABLED=true` 설정 후에도 exact-version Owner marker 없이 정식 publish 불가. Flag true/age 설정은 Issue 생성/PR CI 시작/병합만으로 자동 승인되지 않는다. Rollout 계획/decision/flag 변경 담당·시각·이유·old/new 동일 버전 비교를 work packet에 기록.
+- **결과:** `REUSE_ELIGIBLE` + mode `REUSED_VERIFIED`이면 Release quality summary에 실행하지 않은 static/E2E를 `REUSED_VERIFIED / NOT EXECUTED`로 기록. 원본 Main actual Job/steps와 일치하는 출처만 가능; Released candidate container의 migration/HTTP·HTTPS/API·SQLite/label/live digest 검증, 선택 attestation·GHCR exact tag promotion·Finalizer는 그대로. `FULL`은 실제 Release 정적/E2E를 실행했는지 확인. 기록만 보고 main이나 old Run PASS를 소급하지 않는다.
+- **오류 및 롤백:** `REUSE_INELIGIBLE`/SHADOW artifact 무효·만료·권한 거부는 FULL Release. verified selection 이후 registry digest drift/OCI/Owner authorization/semver tag conflict/actual smoke 실패는 **BLOCKED** — 새 binary build 또는 immutable tag 이동 금지. 즉시 `RELEASE_REUSE_ENABLED=false`로 새 미래 실행에서 원래 Full 경로 사용. 기존 실패/취소 Run에 green 덧씌우거나 동일 immutable tag 재발행 금지. 필요한 경우 기존 release debt/Generic Finalizer 정책대로 **별도** 승인·교정.
+- **권한/보안:** Main artifact는 `ci.yml` run·attempt가 인증되기 전 비신뢰 JSON; Release verifier는 default-main checkout의 코드, read-only GITHUB_TOKEN(actions/issues/pull-requests/packages read)로 실행. GHCR write/attestation/Finalizer action은 기존 별도 job에만 존재. 검사기가 PR Head나 tag의 새 코드를 자기 인증으로 사용하면 안 된다.
+
+[설계/AC/메트릭](exec-plans/active/ISSUE_773.md), [기존 Lifecycle 불변식](GENERIC_RELEASE_FINALIZER.md), [이슈별 원장](ISSUE_773_FAILURE_ANALYSIS.md).
+
+---
+
 ## Issue #771 — Draft 개발 선택 검사와 Ready 전체 PR CI 절차 (2026-10-22)
 
 - 개발 중에는 Draft PR로 등록해 파일 변경을 모아 synchronize한다. `PR Fast Development (advisory)`가 실행될 수 있지만 이는 **참고용**. 별도로 `CI`의 기존 Quality/E2E/Docker Required3는 Draft 상태에서 실패(BLOCKED)여야 정상이다. Draft에서 Merge Ready/PASS로 해석하거나 Checks를 건너뛰어 병합하지 않는다.
