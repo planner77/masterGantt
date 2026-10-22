@@ -87,7 +87,12 @@ def classify(entries: list[dict], before: dict, after: dict,
         return FULL, [], ["TEST_RENAME_REMOVAL_OR_INVENTORY_DRIFT"]
     changes = [item for item in entries if not WORK_PACKET.fullmatch(item["path"])]
     if not changes:
-        if recommendation.get("mode_recommendation") == "DOCS_VERIFIED":
+        if entries and all(
+            impact.DOCUMENT.match(row["path"]) and
+            not impact.DOC_PROTECTED.match(row["path"]) and
+            row["status"] in ("A", "M") and not row.get("previous_path")
+            for row in entries
+        ):
             return DOCS, [], ["DOCS_ONLY_NON_PROTECTED"]
         return FULL, [], ["DOCS_ONLY_UNTRUSTED"]
     # Explicit scope: ONE screen and accompanying Work Packet only.
@@ -203,7 +208,10 @@ def normalize_spec(name: str) -> str:
             "REPORT_FILE_OUTSIDE_E2E")
     # Playwright JSON uses testDir-relative paths; other versions use repo-
     # relative paths. Both are matched to an authenticated base selection.
-    result = safe if safe.startswith("tests/e2e/") else "tests/e2e/" + safe
+    if "/tests/e2e/" in safe:
+        result = "tests/e2e/" + safe.rsplit("/tests/e2e/", 1)[1]
+    else:
+        result = safe if safe.startswith("tests/e2e/") else "tests/e2e/" + safe
     require(".." not in result.split("/"), "UNSAFE_REPORT_PATH")
     return result
 
