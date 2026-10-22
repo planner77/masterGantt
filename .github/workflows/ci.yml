@@ -1599,6 +1599,33 @@ jobs:
           path: ${{ runner.temp }}/ci-setup-metrics-${{ github.job }}.jsonl
           if-no-files-found: error
           retention-days: 30
+      # #773: advisory receipt. A receipt is not a CI check, approval or a
+      # trusted signature. The Release verifier rechecks the exact GHA source,
+      # attempt, required implementation jobs, E2E artifacts and registry digest.
+      - name: Main reuse Playwright inventory 및 manifest (advisory)
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        env:
+          CANDIDATE_DIGEST: ${{ steps.push.outputs.digest }}
+          EXPECTED_VERSION: ${{ needs.changes.outputs.current_version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          CI_E2E_FULLY_PARALLEL=true npm run test:e2e -- --list --reporter=json > "$RUNNER_TEMP/release-reuse-playwright-list.json"
+          python3 scripts/release-reuse-main-manifest.py \
+            --source-sha "$SOURCE_SHA" --version "$EXPECTED_VERSION" \
+            --digest "$CANDIDATE_DIGEST" \
+            --playwright-list "$RUNNER_TEMP/release-reuse-playwright-list.json" \
+            --out "$RUNNER_TEMP/release-reuse-main-manifest.json"
+      - name: Main reuse candidate receipt 업로드
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: main-reuse-manifest-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/release-reuse-main-manifest.json
+          if-no-files-found: ignore
+          retention-days: 30
       - name: GHCR main commit image lifecycle handoff
         if: always() && steps.push.outcome == 'success'
         env:
