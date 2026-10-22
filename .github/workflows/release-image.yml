@@ -36,12 +36,21 @@ jobs:
   prepare:
     name: Validate SemVer and calculate immutable tags
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      issues: read
+      pull-requests: read
+      packages: read
     outputs:
       image_name: ${{ steps.tags.outputs.image_name }}
       exact_image: ${{ steps.tags.outputs.exact_image }}
       rolling_tags: ${{ steps.tags.outputs.rolling_tags }}
       version: ${{ steps.tags.outputs.version }}
       target_sha: ${{ steps.tags.outputs.target_sha }}
+      reuse_mode: ${{ steps.reuse.outcome == 'success' && steps.reuse.outputs.verdict == 'REUSE_ELIGIBLE' && steps.reuse.outputs.mode == 'REUSED_VERIFIED' && 'REUSED_VERIFIED' || 'FULL' }}
+      reuse_digest: ${{ steps.reuse.outcome == 'success' && steps.reuse.outputs.candidate_digest || '' }}
+      reuse_run_id: ${{ steps.reuse.outcome == 'success' && steps.reuse.outputs.main_run_id || '' }}
     steps:
       # actions/checkout v7.0.1
       - name: checkout 계측 시작
@@ -98,10 +107,68 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
+      # #773: Always use the trusted default-main verifier, never PR/tag code
+      # as an eligibility oracle. The new path is SHADOW unless Owner enables
+      # RELEASE_REUSE_ENABLED and has separately set an approved age policy.
+      # Unavailable policy/API/runner setup must preserve the original FULL run.
+      - name: Checkout trusted main Release policy (read-only)
+        id: trusted-checkout
+        continue-on-error: true
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          path: .trusted-release
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Release reuse runtime profile setup (advisory)
+        id: reuse-runtime
+        if: steps.trusted-checkout.outcome == 'success'
+        continue-on-error: true
+        uses: ./.github/actions/node-setup
+        with:
+          node-version: "22"
+      - name: Trusted Main Full evidence reuse decision (SHADOW default)
+        id: reuse
+        if: steps.trusted-checkout.outcome == 'success' && steps.reuse-runtime.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_SHA: ${{ steps.tags.outputs.target_sha }}
+          SOURCE_VERSION: ${{ steps.tags.outputs.version }}
+          SOURCE_TAG: ${{ github.ref_name }}
+          ISSUE_NUMBER: ${{ inputs.issue_number || '' }}
+          PR_NUMBER: ${{ inputs.pr_number || '' }}
+          REUSE_FLAG: ${{ vars.RELEASE_REUSE_ENABLED || 'false' }}
+          REUSE_MAX_AGE_HOURS: ${{ vars.RELEASE_REUSE_MAX_AGE_HOURS || '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          flags=()
+          if [[ "$REUSE_FLAG" == "true" ]]; then
+            flags=(--allow-reuse)
+          fi
+          python3 .trusted-release/scripts/release-reuse-evidence.py \
+            --repository "$GITHUB_REPOSITORY" \
+            --tag "$SOURCE_TAG" --target-sha "$SOURCE_SHA" \
+            --version "$SOURCE_VERSION" --issue "$ISSUE_NUMBER" --pr "$PR_NUMBER" \
+            --target-root . --trusted-root .trusted-release \
+            --max-age-hours "$REUSE_MAX_AGE_HOURS" \
+            --out "$RUNNER_TEMP/release-reuse-verdict.json" "${flags[@]}"
+      - name: Release reuse verdict artifact (never a self-approval)
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: release-reuse-verdict-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/release-reuse-verdict.json
+          if-no-files-found: ignore
+          retention-days: 30
+
   quality_static:
     name: Release static quality
     runs-on: ubuntu-latest
     needs: prepare
+    if: ${{ needs.prepare.outputs.reuse_mode != 'REUSED_VERIFIED' }}
     timeout-minutes: 20
     steps:
       - name: checkout 계측 시작
@@ -149,6 +216,7 @@ jobs:
     name: Release Chromium E2E shard ${{ matrix.shard }}/8
     runs-on: ubuntu-latest
     needs: prepare
+    if: ${{ needs.prepare.outputs.reuse_mode != 'REUSED_VERIFIED' }}
     timeout-minutes: 35
     strategy:
       fail-fast: false
@@ -169,6 +237,8 @@ jobs:
         uses: ./.github/actions/node-setup
         with:
           node-version: "22"
+          # Match exact Main E2E native dependency headers for reuse policy.
+          use-local-node-headers: "true"
       - name: Playwright setup 계측
         uses: ./.github/actions/playwright-setup
       - name: Release E2E shard 실행
@@ -235,12 +305,28 @@ jobs:
           PREPARE: ${{ needs.prepare.result }}
           STATIC: ${{ needs.quality_static.result }}
           E2E: ${{ needs.release_e2e_shard.result }}
+          REUSE_MODE: ${{ needs.prepare.outputs.reuse_mode }}
+          REUSE_RUN: ${{ needs.prepare.outputs.reuse_run_id }}
         run: |
           set -euo pipefail
           [[ "$PREPARE" == "success" ]] || {
             echo "Release prepare가 실패하거나 취소되었습니다: $PREPARE" >&2
             exit 1
           }
+          if [[ "$REUSE_MODE" == "REUSED_VERIFIED" ]]; then
+            [[ "$STATIC" == "skipped" && "$E2E" == "skipped" && -n "$REUSE_RUN" ]] || {
+              echo "Reuse mode requires both non-executed jobs and exact Main evidence" >&2
+              exit 1
+            }
+            {
+              echo "## Release quality mode"
+              echo
+              echo "- Status: REUSED_VERIFIED (not EXECUTED or FULL_PASS)"
+              echo "- Main source run: $REUSE_RUN"
+              echo "- Release static/E2E: NOT EXECUTED, independently verified Main Full evidence"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           [[ "$STATIC" == "success" ]] || {
             echo "Release static quality가 실패하거나 취소되었습니다: $STATIC" >&2
             exit 1
@@ -290,6 +376,8 @@ jobs:
           IMAGE_NAME: ${{ needs.prepare.outputs.image_name }}
           EXPECTED_SHA: ${{ needs.prepare.outputs.target_sha }}
           EXPECTED_VERSION: ${{ needs.prepare.outputs.version }}
+          REUSE_MODE: ${{ needs.prepare.outputs.reuse_mode }}
+          REUSE_VERIFIED_DIGEST: ${{ needs.prepare.outputs.reuse_digest }}
         shell: bash
         run: |
           set -euo pipefail
@@ -304,6 +392,12 @@ jobs:
             echo "Candidate digest 형식이 올바르지 않습니다: $digest" >&2
             exit 1
           }
+          if [[ "$REUSE_MODE" == "REUSED_VERIFIED" ]]; then
+            [[ "$digest" == "$REUSE_VERIFIED_DIGEST" && "$REUSE_VERIFIED_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]] || {
+              echo "Reuse evidence digest differs from live GHCR candidate; BLOCKED" >&2
+              exit 1
+            }
+          fi
           exact="${IMAGE_NAME}@${digest}"
           docker pull "$exact"
           revision="$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$exact")"

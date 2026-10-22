@@ -1,3 +1,19 @@
+## Issue #773 — Main Full evidence 재사용 Release Shadow 및 승인형 안전 전환 (2026-10-22)
+
+**테스트 대상:** `scripts/release-reuse-main-manifest.py`, `scripts/release-reuse-evidence.py`, `tests/python/test_release_reuse_evidence.py`; `.github/workflows/{ci,release-image}.yml`, `tests/config/e2e-timing-reporter.cjs`. 메인 버전 0.129.1, 공식 E2E **8-way workers1**를 기준으로 진행. 현 CI/Chromium/Release 실제 결과는 `NOT TESTED`.
+
+1. **로컬 방어 회귀(실행 예정)**: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_release_reuse_evidence.py' -v`; 기존 `python3 scripts/verify-issue-lifecycle.py`, `python3 scripts/test_qa_preflight.py`, QA/metadata/#770/#771 테스트를 영향 범위에서 그대로 실행. Test names/shardCount exact uniqueness, `--list` case_count/manifest hash, ZIP path validation, owner exact-version marker/revocation, job+step success, duplicate/missing/skipped/cancelled/wrong run attempt, reporter skipped case, runtime image/version/Node drift를 음성/양성으로 점검.
+2. **Full PR CI 필수:** 정책 PR은 non-draft exact HEAD 전체 Quality/Policy/TypeCheck/Lint/Unit/Build/E2E8/Docker, Required3, QA Preflight/Trusted, Owner HIGH 리뷰, current strict main. 원격 Actual Run/Attempt/URL/실패원장 기록 전 PASS로 표기하지 않음.
+3. **Main receipt 통합:** merge 후 Main 실제 `ci.yml` push의 SHA와 `main-reuse-manifest-<run>-<attempt>` 유일 artifact, status `COLLECTED`/version lock/testplan and Playwright count, E2E8 timing report 8ZIP/skipped=0/unique full spec coverage, runner profile, policy/static/build/docker jobs exact attempt; SHA/version lock/env/partial/duplicate/cancelled/expired/outdated/fork self certification은 INELIGIBLE.
+4. **Release Stage1 Shadow:** `RELEASE_REUSE_ENABLED=false`. 기존 Release `quality_static`와 `release_e2e_shard` 8 jobs **실행** 확인, canonical `quality` PASS와 candidate/live digest/OCI source/version, image policy/HTTP·HTTPS/DB migration/SQLite restart+API, attestation/publish/finalizer 불변. `release-reuse-verdict`는 별도 비권위 artifact. 최근 Owner marker/annotated tag/PR first-parent/version 조건 미충족은 BLOCKED/INELIGIBLE; Main 성공 소급 불가.
+5. **Stage2 승인형 긍정/부정:** 최소 성공 baseline3개 + 교차 음성 PASS + 별도 Owner 승인이 있어야 `RELEASE_REUSE_ENABLED=true`/유한 `RELEASE_REUSE_MAX_AGE_HOURS=1..720` 정책 적용. 정확 match이면 static/E2E **skipped**과 `REUSED_VERIFIED`이 동시에 기재되고, container/smoke→verified digest publish→finalizer 필수. Main shard1~8 중 하나라도 skipped/FAILED/CANCELLED/timeout, 전체 run success 모호, source/workflow path/attempt mismatch, duplicate name artifact, 30일 expired, OS/arch/Node/npm/lock/Playwright/Chromium/fixture/shard plan/test ID drift, owner revoke, exact tag mismatch, registry digest mismatch를 각각 replay하며 적어도 FULL 또는 BLOCKED이고 false green 0개.
+6. **비용/회귀:** 동일 source/version에서 8-shard Full Release 성공 >=3개를 기준으로 Stage1 예상/Stage2 실측 end-to-end wall-clock, 각 job elapsed runner-minutes 합계, skipped 경로와 재시도/취소/실패/Issue release debt/rollback 여부를 따로 기재. 6→8 샤드 실행계획 차이의 Release #186.1 약35분은 대표 참고치일 뿐 신규 비교군으로 사용하지 않음. 표본 부족 `INSUFFICIENT_DATA`, 새 Run 미실행은 `NOT TESTED`.
+7. **Rollback/일관성:** flag off/unset은 Full Release 원복, 기존 Ruleset #24043042/QA/Owner/metadata #712/#713, Build-once #438, Generic Finalizer 및 immutable v0.129.0 과거 tag/OCI 불변. 새 정책 Issue #773는 release_required=false/release_authorized=false, 정식 publish 금지.
+
+[Issue #773 Work Packet](exec-plans/active/ISSUE_773.md) · [Issue #773 failure ledger](ISSUE_773_FAILURE_ANALYSIS.md). PRODUCT UI/DESIGN/API/DB_SCHEMA: N/A(Release CI 경로만 변경).
+
+---
+
 ## Issue #771 — F771-001/F771-002 정책 회귀 교정 (2026-10-22)
 
 - [원본 PR CI #3124.1](https://github.com/planner77/masterGantt/actions/runs/39730387486): `verify-issue-lifecycle.py`의 과거 `types: [opened, reopened, synchronize, edited]` 전체 문자열 일치 요구가 신규 Ready/Draft 이벤트와 충돌 → Policy FAIL. PR Fast Gate·Required3/QA 결과는 파생 FAIL, Chromium 8/8·Docker·PR Build는 **NOT RUN**.
