@@ -30,3 +30,6 @@
 .section[hidden] { display: none; }
 
 .section > * { min-width: 0; }
+.tableScroll .areaTable { min-width: 580px; table-layout: fixed; }
+.areaTable th:first-child, .areaTable td:first-child { min-width: 220px; }
+@media (max-width: 600px) { .toolbar { display: grid; grid-template-columns: minmax(0,1fr); } }

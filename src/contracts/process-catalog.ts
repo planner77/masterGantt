@@ -32,6 +32,14 @@ export interface ProcessOccurrenceDto extends ProcessCatalogItemDto, ProcessCata
 export interface WorkAreaDto extends ProcessCatalogItemDto {
   occurrenceId: string;
 }
+export interface ProjectWorkAreaDto extends ProcessCatalogItemDto {
+  processId: string;
+  occurrenceId: string | null;
+  source: "project" | "legacy";
+  editable: boolean;
+  /** Shared aliases never imply a new single Project owner. */
+  diagnostics?: Array<"shared" | "inactive" | "classification_mismatch">;
+}
 export interface ProjectProcessMappingDto {
   processId: string;
   occurrenceId: string;
@@ -61,6 +69,8 @@ export interface ProcessCatalogResponse {
 }
 export interface ProcessContextResponse extends ProcessCatalogResponse {
   data: ProcessCatalogResponse["data"] & {
+    /** Project-owned areas plus explicit read-only legacy mapping aliases. */
+    projectWorkAreas?: ProjectWorkAreaDto[];
     permission: "readonly" | "edit";
     projectRevision: number;
     projectMasterRevision: number;

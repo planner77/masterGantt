@@ -1,3 +1,9 @@
+## Issue #762 — 직접 소속 WorkArea의 Copy·Template v5
+
+Project Copy는 사용량0을 포함한 모든 직접 WorkArea를 새 local UUID로 복제하고 대상의 remapped 공정 owner와 Task/설비 링크를 함께 복원한다. 기존 hierarchy·code/name/상태/정렬을 보존하고 legacy global occurrence/WorkArea UUID는 그대로 재사용한다. 같은 Project의 Task subtree copy는 직접 구역의 같은 UUID를 사용하며 구역을 복제하지 않는다.
+
+지원 Template logistics schemaVersion5는 `projectWorkAreas`에 원본 `workAreaId`와 snapshot-local `processCode`·code/name/active/sortOrder를 기록한다. 적용 시 공정과 직접 구역의 새 UUID를 발급하고 링크를 remap한다. 기존 v2/v3/v4의 global 참조·explicit Task context marker·self/subtree는 계속 검증한다. 같은 이름으로 참조를 복원하지 않는다. 손상된 owner/중복/미지원 version/참조는 원자 rollback이며 누락 구역을 빈 목록으로 간주하지 않는다. 일정 JSON은 이 그래프의 backup 포맷이 아니다.
+
 ## Issue #725 — 직접 문맥의 Copy·Template v4
 
 전체 Project Copy는 설비–WorkArea0..N의 새 Equipment/Project-local 공정을 치환하고 global occurrence/WorkArea ID를 유지한다. Task 직접 공정/WorkArea self/subtree와 명시0개 marker를 새 Task에 치환한다. legacy-null을 명시 빈 배열로 바꾸거나 inherited/effective 결과를 직접 row로 저장하지 않는다. 설비 원본1개·quantity와 타 공정 구역 연결을 보존하며 원본 Project는 변경하지 않는다. 같은 Project의 Task/Subtree Copy는 복사 집합의 직접 문맥과 명시0개 marker를 새 Task로 옮기고 Project-local 공정/구역 원본을 재사용한다. 원본 조상에서 파생된 문맥을 leaf 직접 row로 저장하지 않는다. 비활성 기존 동일 참조도 보존한다.

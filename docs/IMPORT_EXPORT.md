@@ -1,3 +1,9 @@
+## Issue #762 — 직접 WorkArea 원본의 손실 방지
+
+직접 구역이 사용되지 않았더라도 `project_work_areas` 원본이 있으면 일정 JSON/일반 일정 Excel은409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`로 전체 거부한다. 해당 형식은 직접 구역/owner/연결을 보존하는 전체 backup이 아니다. JSON Import는 projectWorkAreas 등 직접 소속 필드를 명시적으로 거부하며 조용히 무시하지 않는다. 기존 context/Target/membership loss guard와 Resource 보고서 opt-in의 조회 범위는 유지한다.
+
+전체 관계 이동은 지원 Project Copy/Template logistics v5 또는 대응 DB backup 경로를 사용한다. Copy/Template는 직접 UUID/owner/link를 remap하고 legacy 공유 UUID는 보존한다. [보존 계약](ISSUE_27_PROJECT_COPY.md#issue-762--직접-소속-workarea의-copytemplate-v5)과 [미검증 경계](exec-plans/active/ISSUE_762.md)를 따른다.
+
 ## Issue #736 — 리소스 동적 조회 보고서
 
 Resource root Excel은 동일 WBS source/snapshot/spec/path·개인 Assignment selector를 재검증해 기존 보고 writer를 재사용한다. `current`와 명시 Project 전체의 조건 해제, 중첩 비가산 근거행·raw ID/null·Plan/견적 보존은 [Excel 계약](EXCEL_EXPORT.md#issue-736--리소스-동적-조회와-excel)을 따른다. 개인 browser 조회 설정은 Import 원본이나 공유 업무 데이터가 아니며 일정 JSON/Template·Project Copy·VBA 입력 schema는 변경하지 않는다. 보고용 Excel을 무손실 운영 백업이나 재Import 형식으로 간주하지 않는다. 미지원 root/형식을 지원 범위로 조용히 변환하지 않는다.

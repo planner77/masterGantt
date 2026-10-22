@@ -567,6 +567,12 @@
 
 # Changelog
 
+## 0.130.0 (후보) — 프로젝트 공정·WorkArea 관리 단순화 (#762)
+
+- 분류/전역 공정 카탈로그 등록 없이 Project 공정과 직접 소속 WorkArea를 관리하는 경로를 추가한다. 공정별 WorkArea 0개도 정상이며 기본 구역/Target을 만들지 않는다.
+- 기존 공유 occurrence/WorkArea/매핑과 Task·설비·Target 참조는 원본 ID로 보존하고 직접 소속과 구분한다. Copy/Template·손실 방지·다관점 소비자와 사용자 안내를 동기화한다.
+- PR CI 시작까지만 수행하며 원격 Full Required3/Trusted·Owner 승인·Main/GHCR/Release는 실행 증거 확보 전 NOT TESTED다. 정식 릴리스 승인은 없다.
+
 ## [0.124.0] - 2026-10-19
 
 - PR #747 Full #3029.1 F730-011: 실제 Task Editor 저장·원본/URL 팝업 다음 3개 독립 시간대 Context를 검증하다 기본30초 Test Budget을 소진(Shard4)하였다. 원본 Trace를 근거로 해당 E2E 한 건만 유한45초를 적용하고 동일 Task/3시간대·Task revision/URL·Gantt·Context 종료 단언 및 전역 CI/Retry/Skip을 그대로 유지한다. 정확 원인과 시점·실제 미검증은 [#730 전용 실패 원장 §20](docs/ISSUE_730_FAILURE_ANALYSIS.md)에 보존하며 새 Full CI 이전에는 NOT TESTED다.

@@ -61,6 +61,10 @@ describe("WBS transport production contract",()=>{
    const equipment=data.configurationCatalog.equipment[0];
    expect(readWbsViewResponse({data},options)).toBe(data);
    expect(readWbsViewResponse({data},options).projection).toBe("report");
+   const direct={...data,configurationCatalog:{...data.configurationCatalog,workAreas:[{id:"direct-area",name:"프로젝트 구역",occurrenceId:null,processIds:[equipment.primaryProcessId]}],equipment:[{...equipment,workAreaLinks:[{processId:equipment.primaryProcessId,workAreaId:"direct-area",occurrenceId:null}]}]}};
+   expect(readWbsViewResponse({data:direct},options)).toBe(direct);
+   const malformed={...direct,configurationCatalog:{...direct.configurationCatalog,workAreas:[{...direct.configurationCatalog.workAreas[0],occurrenceId:42}]}};
+   expect(()=>readWbsViewResponse({data:malformed},options)).toThrow();
    for(const invalid of [undefined,null,{},[null],[{...equipment,name:undefined}],[{...equipment,active:"true"}],[{...equipment,managementUnit:"batch"}],[{...equipment,quantity:-1}],[{...equipment,quantity:1.5}],[{...equipment,equipmentTypeName:undefined}],[{...equipment,primaryProcessId:null}],[{...equipment,workAreaLinks:undefined}],[{...equipment,workAreaLinks:[null]}],[{...equipment,workAreaLinks:[{processId:"p",occurrenceId:"o",workAreaId:null}]}],[{...equipment,resourceRoles:null}],[{...equipment,resourceRoles:[{resourceId:"r",resourceName:"담당",role:"owner",isPrimary:true,active:"true"}]}],[{...equipment,controlSystems:"system"}],[{...equipment,controlSystems:[{systemId:"s",systemName:"제어",controlRole:"coordinator"}]}]]){
     expect(()=>readWbsViewResponse({data:{...data,configurationCatalog:{...data.configurationCatalog,equipment:invalid}}},options)).toThrow("조회 응답의 출처가 일치하지 않습니다");
    }

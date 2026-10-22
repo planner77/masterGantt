@@ -376,3 +376,191 @@ describe("Issue #725 Copy/Template process context preservation",()=>{
     }finally{f.db.close();}
   });
 });
+
+describe("Issue #762 project-owned WorkArea exchange",()=>{
+  function directArea(f:Awaited<ReturnType<typeof fixture>>,processId:number,code:string,active=true) {
+    const publicId=randomUUID();
+    f.db.prepare("INSERT INTO project_work_areas(public_id,project_id,process_id,code,name,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)")
+      .run(publicId,f.project,processId,code,"Same area name",active?1:0,7,stamp,stamp);
+    return publicId;
+  }
+  async function directFixture(filename=":memory:") {
+    const f=await fixture(filename);
+    const areaA=directArea(f,f.pA.id,"DUPLICATE"),areaB=directArea(f,f.pB.id,"DUPLICATE");
+    const unused=directArea(f,f.pA.id,"UNUSED",false);
+    const add=(name:string,type:"task"|"summary"="task",parentTaskId?:string)=>f.projectService.createTask(f.authorization,f.projectRevision(),
+      type==="summary"?{name,externalId:name,type}:{name,externalId:name,type,parentTaskId,start:"2026-10-12",duration:1,progress:0}).data.tasks.find(t=>t.externalId===name)!;
+    const root=add("Direct-root","summary"),child=add("Inherited","task",root.taskId),empty=add("Empty"),legacy=add("Unset");
+    const repository=new ProcessContextRepository(f.db);
+    const taskId=(publicId:string)=>(f.db.prepare("SELECT id FROM tasks WHERE public_id=?").get(publicId) as {id:number}).id;
+    repository.replaceEquipment(f.project,f.eqA.id,repository.validateEquipmentWorkAreas(f.project,[
+      {processId:f.pB.publicId,workAreaId:areaB},{processId:f.pA.publicId,workAreaId:f.areaPublicId},
+    ]));
+    repository.replaceTask(f.project,taskId(root.taskId),repository.validateTaskContext(f.project,taskId(root.taskId),{
+      processLinks:[{processId:f.pA.publicId,scope:"subtree"},{processId:f.pB.publicId,scope:"self"}],
+      workAreaLinks:[{processId:f.pA.publicId,workAreaId:areaA,scope:"subtree"},{processId:f.pA.publicId,workAreaId:f.areaPublicId,scope:"self"}],
+    }));
+    repository.replaceTask(f.project,taskId(empty.taskId),{processLinks:[],workAreaLinks:[]});
+    return {...f,areaA,areaB,unused,root,child,empty,legacy,repository};
+  }
+  it.each(["copy","template"])("remaps local owners and links, preserves shared IDs/null/empty/scope and survives reopen via %s",async(method)=>{
+    const directory=mkdtempSync(join(tmpdir(),"mastergantt-762-exchange-")),filename=join(directory,"exchange.sqlite3");
+    const f=await directFixture(filename);
+    try {
+      const before=snapshotProjectContexts(f.db,f.project);
+      const revision=f.projectRevision();
+      // Existing inactive references are retained by a transfer, never offered as new choices.
+      f.db.prepare("UPDATE project_work_areas SET active=0 WHERE public_id IN(?,?)").run(f.areaA,f.areaB);
+      let target:string;
+      if(method==="copy") target=(await new ProjectCopyService(f.db,{hashPassword:password,clock:()=>now}).copy(f.authorization,revision,{name:"Direct copy",description:"",editPassword:"password123",resetProgress:false})).response.data.project.publicId;
+      else {
+        const saved=f.templates.createTemplateFromProject(f.authorization,revision,{name:"Direct v5"});
+        const payload=JSON.parse((f.db.prepare("SELECT content_json FROM project_templates WHERE public_id=?").get(saved.id) as {content_json:string}).content_json);
+        expect(payload.logistics.schemaVersion).toBe(5);
+        expect(payload.logistics.projectWorkAreas).toHaveLength(3);
+        expect(payload.logistics.projectWorkAreas.map((row:{workAreaId:string})=>row.workAreaId).sort()).toEqual([f.areaA,f.areaB,f.unused].sort());
+        target=(await f.templates.instantiateProject(saved.id,{name:"Direct installed",ownerName:"Owner",editPassword:"password123",projectStartDate:"2026-10-12"})).response.data.project.publicId;
+      }
+      const targetId=f.db.prepare("SELECT id FROM projects WHERE public_id=?").pluck().get(target) as number;
+      const check=(db:typeof f.db)=>{
+        const areas=db.prepare("SELECT w.public_id,w.project_id,p.project_id owner_project_id,p.code process_code,w.code,w.name,w.active,w.sort_order FROM project_work_areas w JOIN project_processes p ON p.id=w.process_id WHERE w.project_id=? ORDER BY p.code,w.code").all(targetId) as {public_id:string;project_id:number;owner_project_id:number;process_code:string;code:string;name:string;active:number;sort_order:number}[];
+        expect(areas).toHaveLength(3);
+        expect(new Set(areas.map(w=>w.public_id)).size).toBe(3);
+        expect(areas.every(w=>w.project_id===targetId&&w.owner_project_id===targetId&&w.name==="Same area name"&&w.active===0&&w.sort_order===7)).toBe(true);
+        expect(areas.every(w=>!new Set<string>([f.areaA,f.areaB,f.unused]).has(w.public_id))).toBe(true);
+        const sourceToTarget=new Map<string,string>([[f.areaA,areas.find(w=>w.process_code==="PROC-A"&&w.code==="DUPLICATE")!.public_id],[f.areaB,areas.find(w=>w.process_code==="PROC-B")!.public_id]]);
+        const expected=structuredClone(before);
+        for(const item of [...expected.equipmentWorkAreas,...expected.taskContexts]) {
+          for(const link of item.workAreaLinks??[]) link.workAreaId=sourceToTarget.get(link.workAreaId)??link.workAreaId;
+          item.workAreaLinks?.sort((a,b)=>a.processCode.localeCompare(b.processCode)||a.workAreaId.localeCompare(b.workAreaId));
+        }
+        expect(snapshotProjectContexts(db,targetId)).toEqual(expected);
+        const contexts=new ProcessContextRepository(db).taskContexts(targetId);
+        const byExternal=new Map((db.prepare("SELECT public_id,external_id FROM tasks WHERE project_id=?").all(targetId) as {public_id:string;external_id:string}[]).map(t=>[t.external_id,t.public_id]));
+        for(const name of ["Unset","Inherited"]) expect(contexts.find(c=>c.taskId===byExternal.get(name))).toMatchObject({processLinks:null,workAreaLinks:null});
+        expect(contexts.find(c=>c.taskId===byExternal.get("Empty"))).toMatchObject({processLinks:[],workAreaLinks:[]});
+        expect(db.prepare("SELECT quantity FROM project_equipment WHERE project_id=? AND code='AMR-A'").pluck().get(targetId)).toBe(10);
+        expect(snapshotProjectContexts(db,f.project)).toEqual(before);
+        expect(new ProjectRepository(db).findByPublicId(f.sourceId)!.revision).toBe(revision);
+        expect(db.pragma("foreign_key_check")).toEqual([]);
+      };
+      check(f.db);f.db.close();
+      const reopened=openDatabase({filename,migrationsDirectory}).database;
+      try{check(reopened);}finally{reopened.close();}
+    } finally {if(f.db.open)f.db.close();rmSync(directory,{recursive:true,force:true});}
+  });
+  it("keeps local WorkArea IDs during subtree copy without flattening inherited children",async()=>{
+    const f=await directFixture();
+    try {
+      const destination=f.projectService.createTask(f.authorization,f.projectRevision(),{name:"Destination",externalId:"Destination",type:"summary"}).data.tasks.find(t=>t.externalId==="Destination")!;
+      const before=f.repository.taskContexts(f.project),oldIds=new Set(before.map(t=>t.taskId));
+      const result=new TaskHierarchyService(f.db,{clock:()=>now}).execute(f.authorization,f.projectRevision(),{kind:"copy",taskIds:[f.root.taskId,f.empty.taskId,f.legacy.taskId],anchorTaskId:destination.taskId,placement:"child"});
+      const copied=result.data.tasks.filter(t=>!oldIds.has(t.taskId)),contexts=f.repository.taskContexts(f.project);
+      const context=(name:string)=>contexts.find(c=>c.taskId===copied.find(t=>t.name===name)!.taskId)!;
+      expect(context("Direct-root").workAreaLinks).toEqual(before.find(c=>c.taskId===f.root.taskId)!.workAreaLinks);
+      expect(context("Empty")).toMatchObject({processLinks:[],workAreaLinks:[]});
+      for(const name of ["Unset","Inherited"]) expect(context(name)).toMatchObject({processLinks:null,workAreaLinks:null});
+      expect(f.db.prepare("SELECT COUNT(*) FROM project_work_areas WHERE project_id=?").pluck().get(f.project)).toBe(3);
+      expect(f.db.pragma("foreign_key_check")).toEqual([]);
+    }finally{f.db.close();}
+  });
+  it("rejects damaged v5 owners/IDs/schema and rolls back the entire new Project",async()=>{
+    const f=await directFixture();
+    try {
+      const saved=f.templates.createTemplateFromProject(f.authorization,f.projectRevision(),{name:"Strict v5"});
+      const original=JSON.parse((f.db.prepare("SELECT content_json FROM project_templates WHERE public_id=?").get(saved.id) as {content_json:string}).content_json);
+      const before=f.db.prepare("SELECT COUNT(*) FROM projects").pluck().get(),areasBefore=f.db.prepare("SELECT COUNT(*) FROM project_work_areas").pluck().get();
+      const cases=[
+        (p:typeof original)=>{delete p.logistics.projectWorkAreas;},
+        (p:typeof original)=>{p.logistics.schemaVersion=4;},
+        (p:typeof original)=>{p.logistics.projectWorkAreas[0].processCode="MISSING";},
+        (p:typeof original)=>{p.logistics.projectWorkAreas.push(p.logistics.projectWorkAreas[0]);},
+        (p:typeof original)=>{p.logistics.projectWorkAreas[0].sortOrder=-1;},
+        (p:typeof original)=>{p.logistics.projectWorkAreas[0].active=1;},
+        (p:typeof original)=>{p.logistics.projectWorkAreas[0].unexpected="data";},
+        (p:typeof original)=>{p.logistics.projectWorkAreas=p.logistics.projectWorkAreas.filter((w:{workAreaId:string})=>w.workAreaId!==f.areaB);},
+        (p:typeof original)=>{p.logistics.projectWorkAreas.find((w:{workAreaId:string})=>w.workAreaId===f.areaB).processCode="PROC-A";},
+      ];
+      for(const mutate of cases){
+        const payload=structuredClone(original);mutate(payload);
+        f.db.prepare("UPDATE project_templates SET content_json=? WHERE public_id=?").run(JSON.stringify(payload),saved.id);
+        await expect(f.templates.instantiateProject(saved.id,{name:"Rejected",ownerName:"Owner",editPassword:"password123",projectStartDate:"2026-10-12"})).rejects.toThrow();
+        expect(f.db.prepare("SELECT COUNT(*) FROM projects").pluck().get()).toBe(before);
+        expect(f.db.prepare("SELECT COUNT(*) FROM project_work_areas").pluck().get()).toBe(areasBefore);
+        expect(f.db.pragma("foreign_key_check")).toEqual([]);
+      }
+    }finally{f.db.close();}
+  });
+  it("restores 200 direct areas alongside legacy aliases but rejects a 201st Template area atomically",async()=>{
+    const f=await directFixture();
+    try {
+      for(let i=0;i<197;i++) directArea(f,f.pA.id,`EXTRA-${i}`);
+      const saved=f.templates.createTemplateFromProject(f.authorization,f.projectRevision(),{name:"Direct limit"});
+      const original=JSON.parse((f.db.prepare("SELECT content_json FROM project_templates WHERE public_id=?").get(saved.id) as {content_json:string}).content_json);
+      expect(original.logistics.projectWorkAreas).toHaveLength(200);
+      // A legacy alias does not consume the independent project-owned area budget.
+      const installed=await f.templates.instantiateProject(saved.id,{name:"Exactly 200",ownerName:"Owner",editPassword:"password123",projectStartDate:"2026-10-12"});
+      expect(f.db.prepare("SELECT COUNT(*) FROM project_work_areas w JOIN projects p ON p.id=w.project_id WHERE p.public_id=?").pluck().get(installed.response.data.project.publicId)).toBe(200);
+      const projects=f.db.prepare("SELECT COUNT(*) FROM projects").pluck().get(),areas=f.db.prepare("SELECT COUNT(*) FROM project_work_areas").pluck().get();
+      original.logistics.projectWorkAreas.push({...original.logistics.projectWorkAreas[0],workAreaId:randomUUID(),code:"OVERFLOW"});
+      f.db.prepare("UPDATE project_templates SET content_json=? WHERE public_id=?").run(JSON.stringify(original),saved.id);
+      await expect(f.templates.instantiateProject(saved.id,{name:"Rejected 201",ownerName:"Owner",editPassword:"password123",projectStartDate:"2026-10-12"})).rejects.toThrow(expect.objectContaining({status:422,code:"PROCESS_CATALOG_LIMIT_EXCEEDED"}));
+      expect(f.db.prepare("SELECT COUNT(*) FROM projects").pluck().get()).toBe(projects);
+      expect(f.db.prepare("SELECT COUNT(*) FROM project_work_areas").pluck().get()).toBe(areas);
+      expect(f.db.pragma("foreign_key_check")).toEqual([]);
+    }finally{f.db.close();}
+  });
+  it("rejects copying more than 200 direct areas without a partial destination",async()=>{
+    const f=await directFixture();
+    try {
+      for(let i=0;i<198;i++) directArea(f,f.pA.id,`OVERFLOW-${i}`);
+      const before=snapshotProjectContexts(f.db,f.project);
+      const projects=f.db.prepare("SELECT COUNT(*) FROM projects").pluck().get(),areas=f.db.prepare("SELECT COUNT(*) FROM project_work_areas").pluck().get();
+      await expect(new ProjectCopyService(f.db,{hashPassword:password,clock:()=>now}).copy(f.authorization,f.projectRevision(),{name:"Rejected copy",description:"",editPassword:"password123",resetProgress:false})).rejects.toThrow(expect.objectContaining({status:422,code:"PROCESS_CATALOG_LIMIT_EXCEEDED"}));
+      expect(f.db.prepare("SELECT COUNT(*) FROM projects").pluck().get()).toBe(projects);
+      expect(f.db.prepare("SELECT COUNT(*) FROM project_work_areas").pluck().get()).toBe(areas);
+      expect(snapshotProjectContexts(f.db,f.project)).toEqual(before);
+      expect(f.db.pragma("foreign_key_check")).toEqual([]);
+    }finally{f.db.close();}
+  });
+  it("rolls back Project Copy when restoring a local area link fails",async()=>{
+    const f=await directFixture();
+    try {
+      const before=snapshotProjectContexts(f.db,f.project);
+      const projects=f.db.prepare("SELECT COUNT(*) FROM projects").pluck().get();
+      const areas=f.db.prepare("SELECT COUNT(*) FROM project_work_areas").pluck().get();
+      f.db.exec(`CREATE TRIGGER fail_direct_area_copy BEFORE INSERT ON equipment_project_work_areas WHEN NEW.project_id<>${f.project} BEGIN SELECT RAISE(ABORT,'forced copy write failure'); END`);
+      await expect(new ProjectCopyService(f.db,{hashPassword:password,clock:()=>now}).copy(f.authorization,f.projectRevision(),{name:"Must rollback",description:"",editPassword:"password123",resetProgress:false})).rejects.toThrow("forced copy write failure");
+      expect(f.db.prepare("SELECT COUNT(*) FROM projects").pluck().get()).toBe(projects);
+      expect(f.db.prepare("SELECT COUNT(*) FROM project_work_areas").pluck().get()).toBe(areas);
+      expect(snapshotProjectContexts(f.db,f.project)).toEqual(before);
+      expect(f.db.pragma("foreign_key_check")).toEqual([]);
+    }finally{f.db.close();}
+  });
+  it("preserves unused direct-only areas with v5 and blocks lossy schedule exports while allowing reports",async()=>{
+    const base=await fixture();
+    const projectService=new ProjectService(base.db,{clock:()=>now,hashPassword:password,generateSessionToken:()=>({rawToken:"fresh-token",tokenHash:hashSessionToken("fresh-token")})});
+    const created=await projectService.create({name:"Unclassified",description:"",editPassword:"password123"});
+    const sourceId=created.response.data.project.publicId;
+    const project=base.db.prepare("SELECT id FROM projects WHERE public_id=?").pluck().get(sourceId) as number;
+    const authorization=projectService.authorize(sourceId,"fresh-token");
+    if(authorization.kind!=="authorized") throw Error("Source authorization failed");
+    const pA=new LogisticsRepository(base.db).insertProcess({publicId:randomUUID(),projectId:project,code:"PROC-A",name:"Assembly",parentId:null,active:1,now:stamp});
+    const f={...base,project,sourceId,pA,authorization:authorization.authorization,projectRevision:()=>new ProjectRepository(base.db).findByPublicId(sourceId)!.revision};
+    try {
+      expect(f.db.prepare("SELECT business_unit_id,product_id,site_entity_id FROM projects WHERE id=?").get(project)).toEqual({business_unit_id:null,product_id:null,site_entity_id:null});
+      expect(f.db.prepare("SELECT COUNT(*) FROM project_equipment WHERE project_id=?").pluck().get(project)).toBe(0);
+      const direct=directArea(f,f.pA.id,"ONLY",false);
+      expect(snapshotProjectContexts(f.db,f.project)).toEqual({equipmentWorkAreas:[],taskContexts:[]});
+      const saved=f.templates.createTemplateFromProject(f.authorization,f.projectRevision(),{name:"Unused direct"});
+      const payload=JSON.parse((f.db.prepare("SELECT content_json FROM project_templates WHERE public_id=?").get(saved.id) as {content_json:string}).content_json);
+      expect(payload.logistics).toMatchObject({schemaVersion:5,equipmentWorkAreas:[],taskContexts:[],taskTargetBindings:[],projectWorkAreas:[{workAreaId:direct,processCode:"PROC-A",active:false}]});
+      const installed=(await f.templates.instantiateProject(saved.id,{name:"Only areas",ownerName:"Owner",editPassword:"password123",projectStartDate:"2026-10-12"})).response.data.project.publicId;
+      expect(f.db.prepare("SELECT COUNT(*) FROM project_work_areas w JOIN projects p ON p.id=w.project_id WHERE p.public_id=?").pluck().get(installed)).toBe(1);
+      expect(()=>new ProjectJsonExportService(f.db).get(f.sourceId,f.projectRevision())).toThrow(expect.objectContaining({code:"PROCESS_CONTEXT_EXPORT_UNSUPPORTED"}));
+      expect(()=>new ProjectExportSnapshotService(f.db).get(f.sourceId)).toThrow(expect.objectContaining({code:"PROCESS_CONTEXT_EXPORT_UNSUPPORTED"}));
+      const report=new ResourceDashboardService(f.db,{clock:()=>now}).getDashboard(f.sourceId,{})!;
+      expect(()=>new ProjectExportSnapshotService(f.db,{clock:()=>now}).get(f.sourceId,false,{basis:"current",expectedReport:{context:report.resourceScopeContext!,snapshotId:report.snapshotId,filters:{}},granularities:["month"]})).not.toThrow();
+    }finally{f.db.close();}
+  });
+});

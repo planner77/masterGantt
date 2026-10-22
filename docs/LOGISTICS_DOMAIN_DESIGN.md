@@ -1,3 +1,9 @@
+## Issue #762 — Project 공정과 WorkArea 직접 소속
+
+신규 정상 등록은 Project 공정→선택 WorkArea0..N의 두 종류로 완결한다. 사업부/제품/사업장은 Project 분류이고 신규 공정/구역 CRUD 전제조건이 아니다. 구역의 owner 공정과 설비의 주 관리 공정은 서로 다르며 설비는 서로 다른 공정의 구역에 연결할 수 있다. Task/Summary는 공정0..N과 선택 구역을 명시하고 WBS 계층을 공정 계층으로 치환하지 않는다.
+
+직접 구역은 `project_work_areas`의 한 Project/공정에 속한다. 기존 유형/제품 표준/site occurrence/global WorkArea/mapping은 호환 원본으로 유지한다. legacy shared 구역은 explicit mapping별 alias이며 복수 processId에 같은 원본 UUID가 나타날 수 있다. 이를 단일 owner로 자동 전환하지 않으며 project edit는 global 구역 수정 권한이 아니다. 참조 해소·승인된 전환 전까지 호환 경로를 유지한다. [Work Packet](exec-plans/active/ISSUE_762.md)의 before→after inventory·배포/검증을 따른다.
+
 ## Issue #735 — 시스템 원본을 중심으로 한 조회
 
 시스템 관점의 관리 대상은 유형이 아닌 System 인스턴스다. 공유 MCS는 프로젝트 공통 또는 복수 공정 속성을 가진 단일 원본이며 조회 경로별 복제·숨은 Target·공수 배분 입력을 요구하지 않는다. 실제 coordinates/controls와 같은 Task의 공정/설비/리소스 연관을 구별한다. 직접/조율 모드는 기존 공통 원장을 선택할 뿐 구성·WBS·Task 명시 공정0..N을 변경하지 않는다. 책임 역할 PI/개발자는 개인 투입·개발 실적·가동률의 증거가 아니다. [시스템 관점](LOGISTICS_DASHBOARD.md#issue-735--물류-시스템-전용-관점), [구현/검증 경계](exec-plans/active/ISSUE_735.md)를 따른다.

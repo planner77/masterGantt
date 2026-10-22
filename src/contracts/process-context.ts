@@ -2,7 +2,7 @@ import type { ProjectDto, ProjectPermission } from "./projects";
 import type { ProjectLogisticsDto } from "./logistics";
 import type { TaskLogisticsLinkScope } from './logistics';
 export interface EquipmentWorkAreaInput { processId: string; workAreaId: string }
-export interface EquipmentWorkAreaDto extends EquipmentWorkAreaInput { equipmentId: string; occurrenceId: string }
+export interface EquipmentWorkAreaDto extends EquipmentWorkAreaInput { equipmentId: string; occurrenceId: string | null }
 export interface TaskProcessLink { processId: string; scope: TaskLogisticsLinkScope }
 export interface TaskWorkAreaLink extends TaskProcessLink { workAreaId: string }
 /** null means the pre-context legacy state; [] is an explicit selection of zero. */

@@ -61,13 +61,13 @@ export interface WbsViewResponseContext {
 export interface WbsViewEquipmentCatalogItem extends Pick<EquipmentDto, "id" | "name" | "equipmentType" | "managementUnit" | "quantity" | "active"> {
   equipmentTypeName: string;
   primaryProcessId: string;
-  workAreaLinks: Array<{ processId: string; occurrenceId: string; workAreaId: string }>;
+  workAreaLinks: Array<{ processId: string; occurrenceId: string | null; workAreaId: string }>;
   resourceRoles: Array<Pick<EquipmentDto["resourceRoles"][number], "resourceId" | "resourceName" | "role" | "isPrimary" | "active">>;
   controlSystems: Array<EquipmentDto["controlSystems"][number] & { systemName: string }>;
 }
 export interface WbsViewConfigurationCatalog {
   processes: Array<{ id: string; name: string; occurrenceId: string | null }>;
-  workAreas: Array<{ id: string; name: string; occurrenceId: string; processIds: string[] }>;
+  workAreas: Array<{ id: string; name: string; occurrenceId: string | null; processIds: string[] }>;
   instances: Array<{ kind: "equipment" | "system"; id: string; name: string }>;
   equipment: WbsViewEquipmentCatalogItem[];
   milestones: Array<{ id: string; name: string }>;

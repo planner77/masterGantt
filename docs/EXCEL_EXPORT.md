@@ -1,3 +1,7 @@
+## Issue #762 — 직접 구역과 일정 Excel의 범위
+
+일반 일정 Excel은 직접 WorkArea/owner/Task·설비 typed 연결을 보존하는 backup이 아니다. 사용0개 직접 구역 원본만 있어도409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`로 전체 거부하며 일부 관계를 누락한 성공 파일을 만들지 않는다. 기존 명시 Resource 보고서 opt-in은 read snapshot과 필터의 분석 출력으로 유지하고 전체 관계 왕복 포맷으로 부르지 않는다. Project Copy/Template v5 또는 대응 DB backup을 사용한다.
+
 ## Issue #736 — 리소스 동적 조회와 Excel
 
 Resource root의 새 direct/Target 혼합 조회를 기존 Resource Excel writer에 인계한다. 같은 `wbs-view-source/1` context의 spec·path·scope·snapshot·filters를 서버가 재검증하고, 원시 Task/개인 Assignment 교집합을 기존 Resource/Plan bundle로 변환한다. 새 개인 공수 계산기나 row 소계 재합산은 추가하지 않는다. 기존 Resource source 입력 및 개인별 Plan/견적 Export는 계속 지원한다.

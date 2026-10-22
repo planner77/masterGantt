@@ -814,3 +814,17 @@ export async function handleGetLogisticsDashboard(
     return mapError(error, requestId);
   }
 }
+
+/** Direct WorkArea writes use the existing Project session/Origin/revision boundary. */
+export async function handleMutateWorkArea(request: Request, publicId: string, identifier: string,
+  action: "create" | "update" | "delete", dependencies: LogisticsHandlerDependencies): Promise<Response> {
+  const requestId=(dependencies.requestId??randomUUID)();
+  try {
+    if(!isCanonicalUuidV4(publicId)||!isCanonicalUuidV4(identifier)) throw new PublicApiError(404,"LOGISTICS_NOT_FOUND","WorkArea 또는 공정을 찾을 수 없습니다.");
+    const url=appUrl(dependencies);requireOrigin(request,url);
+    const auth=requireAuthorizedSession(request,publicId,dependencies,url), expected=parseRequiredIfMatch(request);
+    const input=action==="delete"?{}:await readBoundedJson(request);
+    const result=resolve(dependencies.logisticsService).mutateWorkArea(auth,expected,action,identifier,input);
+    return action==="delete"?deleteMutationResponse(result):mutationResponse(result,action==="create"?201:200);
+  } catch(error) {return mapError(error,requestId);}
+}

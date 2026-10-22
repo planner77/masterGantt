@@ -5,7 +5,7 @@ import type { ProjectResourceMembershipDto } from "../../contracts/project-resou
 import { createWorkingCalendar } from "../scheduling/calendar";
 import { prepareResourceKpiSnapshot, selectResourceKpiAssignments, summarizeResourceKpiAssignments, getResourceKpiDiagnostics,
   isResourceKpiTaskDelayed, type ResourceKpiInput, type ResourceKpiSelection, type ResourceKpiAssignmentRow } from "./resource-kpi";
-import { summarizeResourceKpiTargetMembers, hasResourceKpiTargetPathFilters } from "./resource-kpi-targets";
+import { summarizeResourceKpiTargetMembers, hasResourceKpiTargetPathFilters, workAreaBelongsToProcess } from "./resource-kpi-targets";
 import { selectResourceKpiTargetPaths } from "./resource-kpi-targets";
 import { selectResourceTargetPlanScope } from "./resource-target-kpi";
 
@@ -125,10 +125,10 @@ export function resolveWbsTaskLedger(source: WbsTaskLedgerInput) {
   for (const row of systems) assertInstance("system", row.id);
   for (const instance of logistics.instances) if (!(instance.kind === "equipment" ? byEquipment : bySystem).has(instance.entityId)) fail("INSTANCE_METADATA_INCOMPLETE");
   const assertProcess = (id: string) => { if (!logistics.byProcess.has(id)) fail("PROCESS_REFERENCE_UNAVAILABLE"); };
-  const assertArea = (processId: string, workAreaId: string, occurrenceId?: string) => {
+  const assertArea = (processId: string, workAreaId: string, occurrenceId?: string | null) => {
     assertProcess(processId);
     const process = logistics.byProcess.get(processId)!, area = logistics.byWorkArea.get(workAreaId);
-    if (!area || area.occurrenceId !== process.occurrenceId || occurrenceId !== undefined && occurrenceId !== area.occurrenceId) fail("WORK_AREA_OWNERSHIP_MISMATCH");
+    if (!area || !workAreaBelongsToProcess(area,process) || occurrenceId !== undefined && occurrenceId !== area.occurrenceId) fail("WORK_AREA_OWNERSHIP_MISMATCH");
   };
   const configSources: WbsTaskLedgerSource[] = [];
   const addConfigSource = (source: WbsTaskLedgerSource) => { logistics.assertBudget("provenancePaths", configSources.length + 1); configSources.push(source); };

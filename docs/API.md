@@ -1,3 +1,17 @@
+## Issue #762 — Project 직접 WorkArea CRUD
+
+기존 Project 공정 CRUD와 `GET /api/projects/{publicId}/logistics/process-context`를 재사용한다. 신규 공정/직접 구역은 BU/Product/Site 미지정이어도 등록할 수 있다. GET 응답의 `data.projectWorkAreas`는 `{id,processId,occurrenceId,source,editable,code,name,active,sortOrder,usageCount}` 목록이다. direct는 source=project/occurrenceId=null, legacy는 source=legacy/원본 occurrenceId이며 명시 mapping별 같은 WorkArea UUID가 복수 processId에 나타날 수 있다. optional `diagnostics`는 shared(여러 Project/공정 mapping 참조), inactive(관련 원본 비활성), classification_mismatch(현재 Project 분류 밖)를 제공한다. 진단은 원본을 삭제·자동 전환하거나 새 owner로 간주하는 근거가 아니다. 기존 types/standards/occurrences/workAreas/mappings 응답은 유지한다. 직접 owner는 processId로 해석하고 이름/null occurrence를 조인 key로 사용하지 않는다.
+
+| Method / 경로 | 입력·결과 |
+| --- | --- |
+| POST `/api/projects/{publicId}/logistics/processes/{processId}/work-areas` | name 필수; code 생략 시 자동 생성, active=true/sortOrder=0 기본값. 201 기존 LogisticsMutationResponse |
+| PATCH `/api/projects/{publicId}/logistics/work-areas/{workAreaId}` | name/code/active/sortOrder 중 명시 필드; owner/processId 변경 불가. 200 기존 mutation 응답 |
+| DELETE `/api/projects/{publicId}/logistics/work-areas/{workAreaId}` | 사용 중이면 거부; 기존 삭제 mutation 응답과 최신 Project ETag |
+
+각 mutation은 정확 Origin·Project edit session·strong `If-Match`를 요구하고 transaction 내 권한·revision·owner를 재검증한다. name은 trim 후1..200자, code1..64자/같은 공정 내 고유, sortOrder는0..1000000 정수, active는 boolean이다. 다른 공정의 같은 이름은 허용한다. unknown field·잘못된 owner/선택은400, 없는 원본404, 사용 중/중복 code/비활성 신규 연결/legacy 공유 구역 Project 수정은409, stale revision412, 권한/Origin은 기존401/403 계약을 따른다. 실패는 전체 rollback이며 직접 구역 변경은 Project revision을 사용하고 global catalog revision은 변경하지 않는다.
+
+Task의 기존 processLinks/workAreaLinks body와 설비의 workAreaLinks를 direct+legacy로 검증한다. direct 링크는 정확 Project/공정 owner를 요구하며 legacy alias는 명시 공정 관계를 사용한다. 공정/구역만 등록하여 Task·Target·설비 수량 원본을 추가하지 않는다. 신규 직접 구역은 Project당200개, legacy mapping alias는 별도40000개 한도다. 기존 unique WorkArea200개×공정 mapping200개의 공유 관계를 합산200개로 잘라 거부하지 않는다. 한도 초과는 명시422 오류이며 조용히 잘라 성공하지 않는다. Copy/Template 복원도 같은 한도를 검증한다. 같은 값의 PATCH도 기존 logistics CRUD와 동일하게 Project revision을 증가시킨다. [DB](DB_SCHEMA.md#issue-762--migration-0030의-project-workarea), [교환](ISSUE_27_PROJECT_COPY.md#issue-762--직접-소속-workarea의-copytemplate-v5), [검증 원장](exec-plans/active/ISSUE_762.md)을 따른다.
+
 ## Issue #734 — 설비 조회 metadata와 유형 필터
 
 기존 `POST /api/projects/{publicId}/resource-dashboard/views`의 versioned opt-in WBS 조회에 `filters.equipmentTypeCodes: string[]`를 추가한다. 빈 배열/생략은 기존 전체, 복수 코드는 OR이다. 등록된 Project 설비 유형 코드만 허용하고 잘못된 shape/빈 코드/알 수 없는 코드는400 `INVALID_REQUEST` 또는 `INVALID_SELECTION`이다. 기존 본문 크기·조회 depth/fanout/cells/sourceRows/JSON 한도와 public-read Origin/no-store 계약을 유지한다.

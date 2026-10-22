@@ -1,3 +1,9 @@
+## Issue #762 — Project WorkArea mutation 권한
+
+신규 Project 직접 구역의 POST/PATCH/DELETE는 기존 Project-scoped edit session·정확 Origin·strong If-Match를 적용하고 transaction 안에서 권한과 revision을 다시 확인한다. Project/공정/구역 UUID의 실제 owner와 활성·사용량을 서버에서 검증한다. 다른 Project/공정 구역 연결·owner 변경·중복·사용 중 삭제는 전체 거부하고 관계/Project revision의 부분 저장을 남기지 않는다.
+
+Project edit는 global catalog admin 권한을 부여하지 않는다. legacy shared 구역은 Project 경로에서 읽기 전용이고 기존 catalog 관리자 mutation을 사용한다. 신규 공정/직접 구역은 분류 triple 미지정으로 차단하지 않으며 분류 권한 검증을 제거하는 의미가 아니다. DTO/정제 증거에는 public ID만 제공하고 실제 SQLite·backup·session·secret은 게시하지 않는다. 기존 public-read/no-store/nosniff와 readonly UI를 유지한다.
+
 ## Issue #731 — KPI 전용 읽기 경로
 
 `GET /api/projects/{publicId}/logistics/kpi?source=integrated`는 기존 Project direct readonly와 같은 public-read이며 route security inventory에 mutation0으로 등록한다. 편집 session을 만들거나 Owner/PI/등록 참여를 편집 ACL로 사용하지 않는다. Project UUID·strict source/filter 및 snapshot 조건을 검증하고 `private, no-store`·`nosniff` 응답을 사용한다. 공개 응답은 같은 Project 원본의 최소 이름/ID·관계/진단 범위이며 password/session·내부 DB ID를 추가하지 않는다. Task/Assignment/master 편집은 기존 Origin/session/If-Match 경계를 계속 적용한다. 실제 수용·오류 검증 상태는 [Work Packet](exec-plans/active/ISSUE_731.md)을 따른다.

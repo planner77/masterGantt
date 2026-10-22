@@ -1,3 +1,9 @@
+## Issue #762 — 직접 소속과 legacy 호환 read adapter
+
+`project_work_areas`와 Task/Equipment typed 관계를 기존 global catalog와 병렬로 둔다. 신규 owner는 Project 공정이며 occurrence가 없다. `process-context`의 projectWorkAreas projection은 직접 구역과 명시 mapping별 읽기 전용 legacy alias를 제공한다. source와 processId로 의미를 구분하고 legacy UUID는 원본 그대로다. 공유 원본을 프로젝트별로 복제하거나 하나의 owner로 추정하지 않는다.
+
+Route Handler→Service→Repository→SQLite 경계를 유지한다. canonical snapshot은 직접/legacy 연결을 함께 읽고 direct owner는 명시 Project 공정 ID로 검증한다. null occurrence끼리 같은 owner라고 판단하지 않는다. WBS/Task/Assignment/설비는 같은 원본 ID를 재사용하며 구역별 중복 소계를 전체 합계로 더하지 않는다. 공정 기준정보는 app-owned UI로 관리하고 SVAR grouping/PRO·WBS 재구성은 사용하지 않는다.
+
 ## Issue #734 — 설비 consumer와 snapshot 표시 metadata
 
 설비 전용 descriptor/consumer는 기존 `WbsViewDashboard`의 composer·table·details·storage/transport·host editor/drill을 재사용한다. optional consumer filter/supplement seam으로 유형 조건과 표 뒤 원본 정보를 제공하며 기존 consumer 미지정 동작을 유지한다. 계산 authority와 단일 Gantt/Viewport writer는 추가하지 않는다.

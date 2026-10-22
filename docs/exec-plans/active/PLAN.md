@@ -1,3 +1,13 @@
+## Issue #762 — 프로젝트 공정·WorkArea 직접 소속 단순화 (2026-10-22)
+
+게시 전 #772/PR778 병합 main `72c2c9d0a912dc906d4101ea41a7a57e0c686597` 위로 단일 commit 정렬. runtime/테스트/8shard plan 내용 불변, TEST_PLAN 양쪽 섹션 보존. 최신정책 Python33검사·Lifecycle 구조 PASS, Pre-PR 자동선택은UNKNOWN19 BLOCKED 유지. 아래53aee48e는 착수 기준이다.
+
+최신 main `53aee48eba52860d6abf17149cc72292c4187dae`/0.129.1에서 branch `feat/issue-762-process-workarea`로 구현한다. 신규 `project_work_areas`와 typed 연결을 additive로 도입하고 global catalog/occurrence/mapping·공유 구역 ID/참조는 호환 경로로 보존한다. 기본 UI는 단일 Project 공정 목록+선택 공정 WorkArea 0..N, BU/Product/Site 필수 선행 없이 등록한다. backend·frontend·읽기 전용 ui_ux·교환 보존 담당·infra·사전 검토 역할을 분리한다. [Work Packet](ISSUE_762.md)에 source/소유권/이관·배포/AC1~AC9·문서·검증을 기록한다.
+
+MINOR 후보0.130.0, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 승인 범위는 구현·문서 동기화와 PR Full CI 시작까지다. 최신 main의 Required3/Chromium8샤드/Trusted QA·Owner gate를 유지하며 모니터링·병합·Main/GHCR·Release·Issue 종료는 수행하지 않는다. 원격/Manager ACCEPT는 NOT TESTED.
+
+---
+
 ## Issue #771 — PR #776 Policy #3124.1 실패 및 P1 교정 (2026-10-22)
 
 - 최초 실패 [Run 39730387486.1](https://github.com/planner77/masterGantt/actions/runs/39730387486): `scripts/verify-issue-lifecycle.py`의 이벤트 전체 문자열 비교가 신규 Ready/Draft 이벤트 추가와 충돌하여 Policy FAIL. QA Preflight/TS/ESLint/Vitest PASS였고 8 Chromium 샤드·Docker/PR Build는 **NOT RUN**, Required3/QA 실패는 파생.

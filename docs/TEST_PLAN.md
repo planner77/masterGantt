@@ -7,6 +7,22 @@
 - AC4~AC7: 현재 정책 자체 PR은 기존 **Full Chromium8/8**·Quality·Docker·Trusted/Owner. 기본 OFF. 이후 10 distinct LOW Shadow Full 성공 + 음성 사례, 분리 보호 시험 PR OFF/ON, 원격 개별 Job 실제 테스트/Runner-minutes/wall-clock/false PASS/누락/병합 지연 비교 후 Owner 서명 승인 및 필요시 Ruleset 수동 전환. Main Full8/Release 불변, 실제 원격 검증·효과 **NOT TESTED / INSUFFICIENT_DATA**.
 - 기록 위치: [#772 실행 계획](exec-plans/active/ISSUE_772.md), `ci-low-plan-<Run>-<Attempt>`/`ci-low-receipt-<Run>-<Attempt>`, GitHub Run Summary, #770 `ci-impact-shadow` 및 자체 실패 원장.
 
+## Issue #762 — 직접 WorkArea와 공유 원본 호환 회귀
+
+기준 main `53aee48eba52860d6abf17149cc72292c4187dae`의 #697 영향 기반 원칙으로 직접·간접·음성 소비자를 선정한다. 신규 direct owner와 legacy alias를 같은 이름/다른 ID·공유 occurrence·불완전 분류·비활성·default 구역·Target 혼합으로 구별하며 이름 연결·자동 복제·Task/Assignment/설비 이중 집계0을 확인한다.
+
+| 변경 경계 | 직접 검증 | 간접·음성 회귀 |
+| --- | --- | --- |
+| migration0030 / direct CRUD | project-work-areas.test.ts의 fresh/실제 Request handler+SQLite/restart·owner/FK·권한·원자성 | 기존 DB ledger/CLI/실패 migration rollback, legacy 원본·참조수 불변, used 삭제·foreign/재귀속·비활성·stale |
+| context typed 관계 / reader | Task Summary self/subtree·명시0개·설비 cross-process 구역·Fleet quantity1원본 | process-context 서비스, WBS ledger·KPI·6관점의 exact ID·Project 전체 합집합 |
+| Copy / Template / JSON | logistics-template-graph.test.ts·project-import-parser.test.ts의 v5·신규UUID/owner·구버전호환·직접원본만존재 | local subtree 동일ID, null/empty marker, 손상owner/중복/version·강제저장실패rollback·일정Export409/Import400 |
+| UI 작업면 / selector | issue-762-process-workareas.spec.ts의 실제 HTTP/SQLite·2공정/2+0구역·5폭·Task/설비 소비자 | 기존#725 호환·Taskprocess model·WBStransport nullable owner·readonly/dirty/pending/412/복귀 |
+| 새 browser spec 등록 | e2e-shard-planner.test.ts 및 root/external cwd discovery | 기존137 spec배치불변, 신규Shard3·8shard/workers1/job35m 불변 |
+
+신규 spec을 Shard3에 추가하여 총138개(18/17/18/17/17/17/17/17)이며 기존 spec의 배치와 historical 메타데이터는 유지한다. 신규 실행 시간은 UNMEASURED로 기록하고 기존 투영 시간을 새 실측으로 위장하지 않는다. 공식 PR 검증은 현재 main의 Quality/8-shard Chromium/Docker Required3 및 default-branch Trusted QA다. Issue 등록 당시의6-shard 표현으로 최신 정책을 되돌리지 않는다.
+
+Local Pre-PR selector는 신규 경로의 UNKNOWN/BLOCKED를 그대로 기록하고 수동 선정한 실제 테스트 결과와 구분한다. 변경 없는 일정 알고리즘·native Gantt 전체 E2E·clean Docker/운영 proxy/실제 Windows Excel/DRM·전체 backup 복원은 로컬 반복 대상에서 제외하고 원격 Full 또는 해당 환경 검증으로 남긴다. 실제 실행 수·최초 실패/교정·정적검사·5폭 증거·최종 source 범위는 [Work Packet](exec-plans/active/ISSUE_762.md)의 검증 원장을 따른다. 로컬 성공은 원격 전체 회귀·Owner ACCEPT·Main/GHCR/Release PASS가 아니다.
+
 ## Issue #773 — Main Full evidence 재사용 Release Shadow 및 승인형 안전 전환 (2026-10-22)
 
 **테스트 대상:** `scripts/release-reuse-main-manifest.py`, `scripts/release-reuse-evidence.py`, `tests/python/test_release_reuse_evidence.py`; `.github/workflows/{ci,release-image}.yml`, `tests/config/e2e-timing-reporter.cjs`. 메인 버전 0.129.1, 공식 E2E **8-way workers1**를 기준으로 진행. 현 CI/Chromium/Release 실제 결과는 `NOT TESTED`.

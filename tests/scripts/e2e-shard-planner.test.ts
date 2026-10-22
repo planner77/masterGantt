@@ -102,10 +102,9 @@ describe("historical E2E shard planner", () => {
     expect(plan.schemaVersion).toBe(1);
     expect(plan.shardCount).toBe(8);
     expect(plan.shards.map(group => group.shard).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
-    // #751 F-010: 136 historical specs + 1 new isolated telemetry spec.
-    // Keep all earlier 8x17 assignments, explicitly slot #751 on shard 1.
-    // Missing or duplicate specs must still fail; no hash fallback here.
-    expect(plan.shards.map(group => group.files.length)).toEqual([18, 17, 17, 17, 17, 17, 17, 17]);
+    // #751 기존 137개 spec 배치를 유지하고 #762 신규 회귀를 Shard3에 명시 배치한다.
+    // 누락·중복은 계속 실패해야 하며 hash fallback으로 대체하지 않는다.
+    expect(plan.shards.map(group => group.files.length)).toEqual([18, 17, 18, 17, 17, 17, 17, 17]);
     expect(new Set(entries).size).toBe(entries.length);
     expect([...entries].sort()).toEqual(discovered); // New specs require deliberate plan slots.
     const selected = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(shard =>
@@ -115,10 +114,11 @@ describe("historical E2E shard planner", () => {
     expect(new Set(selected).size).toBe(discovered.length);
     for (const [file, assignedShard] of [
       // Current eight-shard placement supersedes historical six-shard corrections;
-      // validate each current destination and preserve unique 136 specs.
+      // validate each current destination and preserve every unique current spec.
       ["project-task-editor.spec.ts", 2],
       ["issue-623-resource-mvp.spec.ts", 1],
       ["issue-751-performance-telemetry.spec.ts", 1],
+      ["issue-762-process-workareas.spec.ts", 3],
       ["issue-735-system-dashboard.spec.ts", 4],
       ["issue-734-equipment-dashboard.spec.ts", 2],
       ["issue-732-milestone-dashboard.spec.ts", 7],

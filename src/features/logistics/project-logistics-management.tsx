@@ -27,6 +27,8 @@ import type {
 import type { ProcessContextResponse } from "@/contracts/process-catalog";
 import type { TaskTargetBindingsResponse } from "@/contracts/task-target-bindings";
 import type { LogisticsTargetListResponse, LogisticsTargetUsageDto } from "@/contracts/logistics-targets";
+import { ProjectWorkareaManagement } from "./project-workarea-management";
+import { projectWorkareaOptions, validProjectWorkareas } from "./project-workarea-options";
 import { LogisticsTypeField } from "./logistics-type-field";
 import { taskContextLabels } from "./task-context-label";
 import type { ProjectDto } from "@/contracts/projects";
@@ -84,6 +86,8 @@ export interface ProjectLogisticsManagementProps {
   onStageSchedule?: (taskIds: string[]) => void;
   onWbsSchedule?: (request: WbsViewScheduleRequest) => void;
   onWbsOpenEntity?: (dimension: WbsViewDimension, id: string, trigger: HTMLElement) => void;
+  onLegacyWorkAreaRequest?: (sequence:number)=>void;
+  workAreaOpenRequest?: {id:string;sequence:number;trigger:HTMLElement}|null;
   wbsEntityOpenRequest?: { dimension: WbsViewDimension; id: string; sequence: number; trigger: HTMLElement } | null;
   onWbsEntityRequestHandled?: () => void;
   onResourceSchedule?: (request: ResourceScheduleRequest) => void;
@@ -109,7 +113,7 @@ type FocusableMasterKind = "process" | "equipment" | "system";
 
 export function ProjectLogisticsManagement({
   kpiSourceRefreshKey = 0, subview, onSubviewChange, onSubviewFocusUnavailable, hideSubviewNavigation = false, perspective, onPerspectiveChange,
-  wbsEntityOpenRequest, onWbsEntityRequestHandled, onWbsSchedule, onWbsOpenEntity,
+  onLegacyWorkAreaRequest, workAreaOpenRequest, wbsEntityOpenRequest, onWbsEntityRequestHandled, onWbsSchedule, onWbsOpenEntity,
   targetOpenRequest, tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onTargetTaskOpen, onResourceSchedule, onOpenAssignment, onKpiResourceOpen,
   publicId,
   projectContext,
@@ -121,6 +125,9 @@ export function ProjectLogisticsManagement({
   onNavigateToSchedule,
   onUnauthorized,
 }: ProjectLogisticsManagementProps) {
+  const [workareaContext,setWorkareaContext] = useState<ProcessContextResponse["data"]|null>(null);
+  const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
+  const [workareaLocked,setWorkareaLocked] = useState(false);
   const [localSubTab, setLocalSubTab] = useState<SubTab>("dashboard");
   const activeSubTab = subview ?? localSubTab;
   function setActiveSubTab(view: SubTab) { setLocalSubTab(view); onSubviewChange?.(view); }
@@ -148,9 +155,10 @@ export function ProjectLogisticsManagement({
     if (busy || isSubmitting) return;
     if (kind === "resource") { onKpiResourceOpen?.(id, trigger, resource); return; }
     if (kind === "workArea") {
-      // WorkArea is configured through its existing process occurrence mapping.
+      // Keep the exact Project process selected when opening its WorkArea pane.
       const processId = trigger.dataset.processId;
       if (!processId || !logistics.processes.some(row => row.id === processId)) return;
+      setSelectedProcessId(processId);
       pendingMasterFocus.current = { kind: "process", id: processId, revision };
       setKpiOrigin({ trigger, revision, kind: "process", id: processId });
       setActiveSubTab("processes");
@@ -420,6 +428,7 @@ export function ProjectLogisticsManagement({
     endpoint: string,
     method: "POST" | "PATCH" | "PUT" | "DELETE",
     body?: unknown,
+    onUncertain?: () => void,
   ): Promise<boolean> => {
     setIsSubmitting(true);
     setErrorMessage(null);
@@ -448,6 +457,7 @@ export function ProjectLogisticsManagement({
           onLogisticsMutated(mutation.data.logistics, mutation.data.project);
         } else {
           onRequireRefresh();
+          if(onUncertain){onUncertain();return false;}
         }
         return true;
       }
@@ -488,11 +498,13 @@ export function ProjectLogisticsManagement({
           setErrorMessage(err?.error?.message ?? "요청을 처리할 수 없습니다 (충돌 발생).");
         }
       } else {
+        if(res.status>=500)onUncertain?.();
         const err = json as { error?: { message?: string } };
         setErrorMessage(err?.error?.message ?? "서버 처리 중 오류가 발생했습니다.");
       }
       return false;
     } catch {
+      onUncertain?.();
       setErrorMessage("네트워크 연결을 확인한 뒤 다시 시도해 주세요.");
       return false;
     } finally {
@@ -687,6 +699,7 @@ export function ProjectLogisticsManagement({
         {unifiedTargetRequest && !kpiOrigin ? <button type="button" className={styles.subTabButton} onClick={returnToUnified}>통합 조회로 돌아가기</button> : null}
         <ProjectLogisticsTargets openRequest={unifiedTargetRequest ?? targetOpenRequest} projectContext={projectContext} publicId={publicId} revision={revision} active={active && activeSubTab === "targets"} editable={editable} busy={busy} logistics={logistics} types={typeCatalog} onTypesChanged={()=>void retryTypeCatalog()} tasks={tasks} onMutated={onRequireRefresh} onUnauthorized={onUnauthorized} onOpenTask={onTargetTaskOpen} onOpenInstance={(kind,id)=>{if(!editable||busy||isSubmitting)return;if(kind==="equipment"){const target=logistics.equipment.find(e=>e.id===id);if(target)setEquipmentModal({open:true,mode:"edit",target});}else{const target=logistics.systems.find(e=>e.id===id);if(target)setSystemModal({open:true,mode:"edit",target});}}}/>
       </div>
+      {activeSubTab === "processes" ? <h2>공정 &amp; 작업 구역 관리</h2> : null}
       {/* Toolbar (Filters & Actions) - Only for management subtabs */}
       {activeSubTab !== "dashboard" && activeSubTab !== "unified" && activeSubTab !== "targets" ? (
         <div className={styles.toolbar} role="toolbar" aria-label="물류 필터 및 도구">
@@ -725,6 +738,7 @@ export function ProjectLogisticsManagement({
           </div>
 
           <div className={styles.actionsGroup}>
+            {activeSubTab === "processes" ? <button type="button" className="secondary-button" disabled={busy || isSubmitting || workareaLocked} onClick={onRequireRefresh}>공정 새로고침</button> : null}
             {editable && activeSubTab === "processes" ? (
               <button
                 className="primary-button"
@@ -831,6 +845,7 @@ export function ProjectLogisticsManagement({
             <thead>
               <tr>
                 <th>공정명</th>
+                <th>작업 구역</th>
                 <th>상위 공정</th>
                 <th>정렬 순서</th>
                 <th>상태</th>
@@ -840,8 +855,8 @@ export function ProjectLogisticsManagement({
             <tbody>
               {filteredProcesses.length === 0 ? (
                 <tr>
-                  <td colSpan={editable ? 5 : 4} className={styles.emptyState}>
-                    <div className={styles.emptyStateTitle}>등록된 공정이 없습니다.<ContextHelp label="공정 등록 도움말">공정을 등록하여 물류 설비 및 시스템을 체계적으로 분류하세요.</ContextHelp></div>
+                  <td colSpan={editable ? 6 : 5} className={styles.emptyState}>
+                    <div className={styles.emptyStateTitle}>{logistics.processes.length ? "조건에 맞는 공정이 없습니다." : "등록된 공정이 없습니다."}<ContextHelp label="공정 등록 도움말">공정을 등록하여 물류 설비 및 시스템을 체계적으로 분류하세요.</ContextHelp></div>
                   </td>
                 </tr>
               ) : (
@@ -856,6 +871,7 @@ export function ProjectLogisticsManagement({
                         </span>
                         <IdentifierDetails identifiers={[{ label: "공정 코드", value: p.code }, { label: "공정 ID", value: p.id }]} />
                       </td>
+                      <td><button type="button" className="secondary-button" aria-pressed={selectedProcessId === p.id} disabled={busy || isSubmitting || workareaLocked} onClick={()=>setSelectedProcessId(p.id)}>작업 구역 {workareaContext?.projectRevision === revision ? workareaContext.projectWorkAreas?.filter(a=>a.processId===p.id).length ?? "—" : "—"}<span className={styles.srOnly}> {p.name}</span></button></td>
                       <td>{parent ? logisticsName(parent, logistics.processes) : "-"}</td>
                       <td>{p.sortOrder}</td>
                       <td>
@@ -905,6 +921,9 @@ export function ProjectLogisticsManagement({
             </tbody>
           </table>
         </div>
+        {selectedProcessId && !logistics.processes.some(p=>p.id===selectedProcessId)?<p role="status">선택한 공정이 최신 목록에 없습니다. 다른 공정을 선택해 주세요.</p>:null}
+        <ProjectWorkareaManagement publicId={publicId} revision={revision} editable={editable} active={active && activeSubTab === "processes"} busy={busy || isSubmitting}
+          process={logistics.processes.find(p=>p.id===selectedProcessId)} onMutated={onLogisticsMutated} onUnauthorized={onUnauthorized} onRequireRefresh={onRequireRefresh} onInteractionLocked={setWorkareaLocked} onContextLoaded={setWorkareaContext} onSelectProcess={setSelectedProcessId} onLegacyRequest={onLegacyWorkAreaRequest} openRequest={workAreaOpenRequest} onRequestHandled={onWbsEntityRequestHandled}/>
       </div>
 
       {/* Sub-panel 2: Equipment */}
@@ -1359,18 +1378,19 @@ export function ProjectLogisticsManagement({
           mode={processModal.mode}
           process={processModal.target}
           allProcesses={logistics.processes}
-          busy={isSubmitting}
+          busy={isSubmitting || busy}
+          revision={revision} editable={editable} errorMessage={errorMessage}
           onClose={() => setProcessModal({ open: false, mode: "create" })}
-          onSubmit={async (data) => {
+          onSubmit={async (data, markUncertain) => {
             const ok =
               processModal.mode === "create"
-                ? await executeMutation(`/api/projects/${encodeURIComponent(publicId)}/logistics/processes`, "POST", data)
+                ? await executeMutation(`/api/projects/${encodeURIComponent(publicId)}/logistics/processes`, "POST", data, markUncertain)
                 : await executeMutation(
                     `/api/projects/${encodeURIComponent(publicId)}/logistics/processes/${encodeURIComponent(
                       processModal.target!.id,
                     )}`,
                     "PATCH",
-                    data,
+                    data, markUncertain,
                   );
             if (ok) setProcessModal({ open: false, mode: "create" });
           }}
@@ -1614,7 +1634,8 @@ function ProcessDialog({
   mode,
   process,
   allProcesses,
-  busy,
+  busy: pending,
+  revision, editable, errorMessage,
   onClose,
   onSubmit,
 }: {
@@ -1622,14 +1643,21 @@ function ProcessDialog({
   process?: ProcessDto;
   allProcesses: ProcessDto[];
   busy: boolean;
+  revision: number; editable:boolean; errorMessage:string|null;
   onClose: () => void;
-  onSubmit: (data: CreateProcessRequest | UpdateProcessRequest) => Promise<void>;
+  onSubmit: (data: CreateProcessRequest | UpdateProcessRequest, markUncertain:()=>void) => Promise<void>;
 }) {
   const [code, setCode] = useState(process?.code ?? "");
   const [name, setName] = useState(process?.name ?? "");
   const [parentProcessId, setParentProcessId] = useState<string>(process?.parentProcessId ?? "");
   const [sortOrder, setSortOrder] = useState<number>(process?.sortOrder ?? 0);
   const [active, setActive] = useState<boolean>(process ? process.active : true);
+  const [uncertain,setUncertain] = useState(false);
+  const [draftRevision] = useState(revision);
+  const [discardPrompt,setDiscardPrompt] = useState(false);
+  const [initialDraft] = useState(()=>JSON.stringify([code,name,parentProcessId,sortOrder,active]));
+  const busy = pending || uncertain || !editable || revision!==draftRevision;
+  function requestClose(){if(pending)return;if(JSON.stringify([code,name,parentProcessId,sortOrder,active])!==initialDraft)setDiscardPrompt(true);else onClose();}
   const codeInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -1640,7 +1668,7 @@ function ProcessDialog({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || (mode === "edit" && !code.trim())) return;
+    if (busy || !name.trim() || (mode === "edit" && !code.trim())) return;
 
     const common = {
       name: name.trim(),
@@ -1648,16 +1676,17 @@ function ProcessDialog({
       sortOrder,
       active,
     };
-    void onSubmit(mode === "create" ? common : { code: code.trim(), ...common });
+    void onSubmit(mode === "create" ? common : { code: code.trim(), ...common },()=>setUncertain(true));
   };
 
   const eligibleParents = allProcesses.filter((p) => p.id !== process?.id);
 
   return (
+    <>
     <WorkspaceDialog
       title={mode === "create" ? "공정 추가" : "공정 수정"}
-      busy={busy}
-      onClose={onClose}
+      busy={pending}
+      onClose={requestClose}
     >
       <form className={styles.dialogForm} onSubmit={handleSubmit}>
         <div className={styles.formGrid}>
@@ -1725,8 +1754,10 @@ function ProcessDialog({
             </span>
           </label>
         </div>
+        {errorMessage ? <p role="alert">{errorMessage}</p>:null}
+        {revision!==draftRevision || !editable || uncertain ? <p role="alert">최신 정보 또는 편집 권한을 확인해야 합니다. 초안을 보존했으며 저장을 잠갔습니다. 취소한 뒤 다시 열어 주세요.</p>:null}
         <div className={styles.dialogActions}>
-          <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
+          <button className="secondary-button" type="button" disabled={pending} onClick={requestClose}>
             취소
           </button>
           <button
@@ -1739,6 +1770,8 @@ function ProcessDialog({
         </div>
       </form>
     </WorkspaceDialog>
+    {discardPrompt?<WorkspaceDialog title="공정 변경 내용 버리기" onClose={()=>setDiscardPrompt(false)}><p>저장하지 않은 변경 내용이 있습니다.</p><div className={styles.dialogActions}><button type="button" className="secondary-button" onClick={()=>setDiscardPrompt(false)}>계속 편집</button><button type="button" className="danger-button" onClick={onClose}>변경 내용 버리기</button></div></WorkspaceDialog>:null}
+    </>
   );
 }
 
@@ -1800,7 +1833,7 @@ function EquipmentDialog({
         if (response.status === 401 || response.status === 403) onUnauthorized();
         if (!response.ok) throw new Error();
         const result = await response.json() as ProcessContextResponse;
-        if (result.data.projectRevision !== draftRevision || !Array.isArray(result.data.workAreas) || !Array.isArray(result.data.occurrences) || !Array.isArray(result.data.mappings)) throw new Error();
+        if (result.data.projectRevision !== draftRevision || (result.data.projectWorkAreas !== undefined && !validProjectWorkareas(result.data.projectWorkAreas)) || !Array.isArray(result.data.workAreas) || !Array.isArray(result.data.occurrences) || !Array.isArray(result.data.mappings)) throw new Error();
         if (!controller.signal.aborted) { setContext(result.data); setContextState("ready"); }
       } catch { if (!controller.signal.aborted) setContextState("error"); }
     })();
@@ -1811,18 +1844,7 @@ function EquipmentDialog({
     if (dirty) setDiscardPrompt(true);
     else onClose();
   }
-  const workAreaOptions = context?.mappings.flatMap(mapping => {
-    const process = allProcesses.find(item => item.id === mapping.processId);
-    if (!process) return [];
-    return context.workAreas.filter(area => area.occurrenceId === mapping.occurrenceId).map(area => ({
-      processId: mapping.processId,
-      workAreaId: area.id,
-      name: area.name,
-      owner: process.name,
-      code: area.code,
-      active: area.active && (mapping.workAreaSelectionActive ?? mapping.active) && process.active && !!context.occurrences.find(item => item.id === area.occurrenceId && item.active),
-    }));
-  }) ?? [];
+  const workAreaOptions = context ? projectWorkareaOptions(context, allProcesses) : [];
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
