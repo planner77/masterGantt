@@ -174,7 +174,7 @@ class ReleaseReuseTests(unittest.TestCase):
         self.assertIn("vars.RELEASE_REUSE_ENABLED || 'false'", release)
         self.assertIn("vars.RELEASE_REUSE_MAX_AGE_HOURS || ''", release)
         self.assertEqual(release.count("needs.prepare.outputs.reuse_mode != 'REUSED_VERIFIED'"), 2)
-        self.assertIn("REUSE_MODE == \"REUSED_VERIFIED\"", release.replace("$REUSE_MODE", "REUSE_MODE"))
+        self.assertIn('if [[ "$REUSE_MODE" == "REUSED_VERIFIED" ]]', release)
         self.assertIn("REUSE_VERIFIED_DIGEST", release)
         self.assertIn("source_sha", (ROOT / "scripts/release-reuse-evidence.py").read_text())
         self.assertIn("Main reuse candidate receipt 업로드", main)
