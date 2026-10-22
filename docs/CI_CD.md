@@ -1,3 +1,13 @@
+## Issue #752 — 반복 PR 실패 감지/수동 진단의 비차단 CI 보조 경로 (2026-10-22)
+
+- 새 [Issue #752 Work Packet](exec-plans/active/ISSUE_752.md)와 `.github/workflows/issue-752-diagnostics.yml`, `scripts/issue_752_diagnostics.py`를 참조한다. 기본 `CI` `pull_request`(Ready Full) 완료 이벤트의 인증된 `ci-pr-source-<run>-<attempt>`/head·base·test-merge, 실제 Job 결론을 신뢰된 main 워크플로가 조회한다. canonical PR의 서로 다른 **직접 Full 실패2회**에서만 `DIAGNOSIS_RECOMMENDED`을 산출하며 첫 실패·edited metadata·취소/미실행/파생 aggregate/QA만 실패한 경우 권고하지 않는다. 봇 댓글 작성은 분리된 `issues:write` Job의 결정적 키 upsert이다.
+- 진단은 **Owner/writer 수동 승인 `workflow_dispatch`** 만 수행. exact PR/Issue/HEAD/기준 main/test merge, 원본 출처·영속 실패 원장·현재 E2E changed spec을 인증한 뒤 24 spec 상한을 4개의 독립 Matrix part로 나눈다. `--project=chromium --workers=1 --retries=0 --max-failures=0 --reporter=json`/matrix fail-fast=false; PR 코드 실행 Job `contents:read`, 권한 있는 댓글 Job은 기본 브랜치 스크립트만 실행.
+- 결과는 Run Job Summary와 14일간 정제 `issue-752-diagnosis-<run>-<attempt>` JSON/Markdown, PR 댓글에 링크. Worker 누락/만료/권한·source 불일치·upload 미확인은 `INCOMPLETE/BLOCKED`이며 `READY` 표시 불가. 과거 Full source Artifact=30일을 변경하지 않는다. `RECURRING/NEW/RESOLVED_CANDIDATE/UNKNOWN`은 통계/진단 후보이며 Required PASS/원인 입증 아님. P50/P95/취소율은 Shard/환경·원본 시간 예산 문맥에서 warning-only; 관측 성공 표본이 충분하지 않으면 성능 개선 주장 금지.
+- 보호 불변: Quality/Chromium E2E **8/8**/Docker 3 Required, PR Full fail-fast=true·첫 실패 조기 중단, Main/Release 8Shards, Draft Fast/LOW정책, strict latest main, Trusted QA/Owner, main GHCR digest/Finalizer. #767의 과거 6샤드 원본은 역사적 출처로 보존. 시험 `tests/python/test_issue_752_diagnostics.py`는 Policy job 필수.
+- 본 보호 Workflow 변경 자체 `HIGH/OWNER_MANAGED`·정식 release 미승인·Owner exact Head Full8/Trusted 전 병합 금지. 도입 PR은 새 수동 진단 경로가 main에 없으므로 실제 workflow_dispatch 성능·정확성 `NOT TESTED`. 이슈 #767 35분 근접 취소는 인증된 취소 사유 없이 실패2회로 합산하지 않는다.
+
+---
+
 ## Issue #772 — 정책 허용형 LOW Chromium 선택 실행과 Required3 (2026-10-22)
 
 - 현재 정책 보호 PR 자체 **HIGH/OWNER_MANAGED, Full8/8 의무**, `LOW_TARGETED_POLICY_ENABLED` 초기 OFF. 기본 Ready PR은 #771대로 기존 Quality/Chromium8/Docker Full, Draft는 advisory Fast만, `pull_request.edited`는 metadata-only. 세 Required Check 이름·strict Ruleset #24043042·main Full8/Quality/Docker/GHCR·Trusted QA/Owner/Release 보호 불변.
