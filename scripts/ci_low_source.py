@@ -78,11 +78,14 @@ def blob(gh, sha: str, path: str) -> tuple[str, str]:
 
 
 def verified_targeted_source(gh, run: dict, source: dict, jobs: dict,
-                             *, enabled: bool) -> dict:
+                             *, enabled: bool, allow_in_progress: bool = False) -> dict:
     """Call only after original source_artifact + verified_source is successful."""
     need(enabled, "OWNER_FLAG_OFF_POLICY_ROLLBACK")
-    need(run.get("status") == "completed" and run.get("conclusion") == "success" and
-         run.get("event") == "pull_request", "NOT_SUCCESSFUL_PR_CI")
+    completed = run.get("status") == "completed" and run.get("conclusion") == "success"
+    running = (allow_in_progress and run.get("status") == "in_progress" and
+               run.get("conclusion") is None)
+    need((completed or running) and run.get("event") == "pull_request",
+         "NOT_SUCCESSFUL_OR_AUTHENTICATED_PR_CI")
     run_id, attempt = run.get("id"), run.get("run_attempt")
     need(type(run_id) is int and type(attempt) is int, "RUN_ATTEMPT_MISSING")
     source = {**source, "run_id": run_id, "run_attempt": attempt}
