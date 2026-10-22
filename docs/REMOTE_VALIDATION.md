@@ -1,3 +1,13 @@
+## Issue #773 — Release reuse evidence Remote validation boundary (2026-10-22)
+
+- 신규 보호 CI PR에는 기존 non-draft exact Head Full Quality/Policy/E2E **8/8**/Docker Required3, default-main Trusted QA와 명시 Owner HIGH 위험 수용이 필요. 로컬 Python/Node 단위 PASS나 SHADOW 추천으로 Full·QA/Owner/Release PASS를 주장하지 않는다. 이 요청은 PR CI **시작만** 하며 모니터링·병합·정식 게시 미허용.
+- Main push 원본 확인: `ci.yml`, `event=push`, `head_branch=main`, exact first-parent two-parent merged SHA, immutable Run ID/Attempt, 실제 completed SUCCESS(quality policy/types/lint/unit/build, Docker, main_image digest+runtime, E2E8 implementation jobs 성공 및 8개 timing ZIP `passed`, **no skipped cases**); 유일·미만료 `main-reuse-manifest-<run>-<attempt>`, count/spec/plan/lock/Node/npm/Playwright/Chromium+OS/arch/ImageVersion/fixture hash 확인. PR Fast/metadata-only aggregate나 Main skipped/docs-only을 Main Full로 간주하지 않는다.
+- Release 출처: annotated tag peeled SHA, package+lock SemVer, PR/Issue+first-parent merge 및 최근 owner exact-version approval, workflow ID/path/event Run+Attempt까지 대조. Default-main trusted verifier report `release-reuse-verdict-<run>-<attempt>`의 verdict/mode/reason/sha/run/version/hash 비교. 배포 candidate는 registry live digest/OCI label과 runtime HTTP·HTTPS/SQLite/Project·Task API, attestation/immutable tag promotion으로 별도 검증. Artifact/API/permission/runner mismatch는 `FULL` 또는 `BLOCKED`.
+- **표본/성과:** 이전 6-shard 약35분을 신규 8-shard 절감의 직접 baseline으로 재사용하지 말 것. 현재 8/8 기준 각 3개 이상 successful Full Release/Main paired receipts와 다양한 negative cases 확보 후 동일 source/version·workflow/runner 세대/테스트 모집단을 명시해 wall-clock/Runner-minutes, fail/backoff/fallback/OCI/Finalizer를 비교. 원격 미실행 `NOT TESTED`, 표본 부족 `INSUFFICIENT_DATA`.
+- Rollback: Repo var `RELEASE_REUSE_ENABLED` off/unset → 원래 Release Full static/E2E8/8; Ruleset/QA/Owner/Finalizer 동작 불변. [#773 Packet](exec-plans/active/ISSUE_773.md)·[Tests](TEST_PLAN.md).
+
+---
+
 ## Issue #771 — #3124.1 FAIL 후 원격 재검증 지침 (2026-10-22)
 
 - [원본 Run](https://github.com/planner77/masterGantt/actions/runs/39730387486)은 Policy Job `119663965780`의 `pull_request edited event must rerun trace validation` exit 1이 첫 오류. PR Fast Gate/Required3/QA FAIL은 전파, 원본 E2E8/Docker/PR Build SKIPPED. 실제 Chromium Assertion/Timeout·Docker runtime 실패라는 증거는 없다.
