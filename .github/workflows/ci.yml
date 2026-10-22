@@ -723,7 +723,7 @@ jobs:
 
   # workers=1 안정성 계약은 유지하고 runner 6개로 test-level sharding
   e2e_shard:
-    name: Chromium E2E shard ${{ matrix.shard }}/6
+    name: Chromium E2E shard ${{ matrix.shard }}/8
     if: >-
       always() && github.event_name != 'pull_request' &&
       needs.changes.result == 'success' &&
@@ -732,12 +732,12 @@ jobs:
     runs-on: ubuntu-latest
     # Playwright OS dependency install can stall on runner mirrors.
     # #487: allow healthy tests to finish after bounded setup/retry.
-    # Six shards, workers=1 and fail-closed aggregate checks stay unchanged.
+    # Eight shards, workers=1 and fail-closed aggregate checks stay unchanged.
     timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     steps: &e2e_shard_steps
       - name: checkout 계측 시작
         id: checkout-start
@@ -763,7 +763,7 @@ jobs:
           PR_E2E_STOP_ON_FAILURE: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && 'true' || 'false' }}
           E2E_TIMING_OUTPUT: test-results/e2e-timing-shard-${{ matrix.shard }}.json
           E2E_TIMING_SHARD: ${{ matrix.shard }}
-          E2E_TIMING_SHARD_COUNT: "6"
+          E2E_TIMING_SHARD_COUNT: "8"
         shell: bash
         run: |
           set -euo pipefail
@@ -774,7 +774,7 @@ jobs:
             echo "PR 첫 E2E 실패 시 shard 내 미실행 테스트를 중단합니다."
           fi
           set +e
-          selection="$(node scripts/e2e-shard-planner.mjs select --plan tests/config/e2e-shard-plan.json --shard "${{ matrix.shard }}" --total 6)"
+          selection="$(node scripts/e2e-shard-planner.mjs select --plan tests/config/e2e-shard-plan.json --shard "${{ matrix.shard }}" --total 8)"
           selection_status=$?
           set -e
           if [[ "$selection_status" -eq 0 ]]; then
@@ -786,8 +786,8 @@ jobs:
             echo "Historical timing shard plan 사용: ${#shard_files[@]} files"
             npm run test:e2e -- "${fail_fast_args[@]}" "${shard_files[@]}"
           else
-            echo "Historical timing plan 없음/불일치 — Playwright native 6-way sharding fallback"
-            npm run test:e2e -- "${fail_fast_args[@]}" --shard=${{ matrix.shard }}/6
+            echo "Historical timing plan 없음/불일치 — Playwright native 8-way sharding fallback"
+            npm run test:e2e -- "${fail_fast_args[@]}" --shard=${{ matrix.shard }}/8
           fi
       - name: E2E timing artifact 업로드
         if: always()
@@ -817,7 +817,7 @@ jobs:
 
   # PR E2E: 하나의 Shard 실패 시 나머지 Shard 취소 요청
   pr_e2e_shard:
-    name: Chromium E2E shard ${{ matrix.shard }}/6 · PR
+    name: Chromium E2E shard ${{ matrix.shard }}/8 · PR
     if: >-
       always() && github.event_name == 'pull_request' &&
       github.event.action != 'edited' &&
@@ -830,7 +830,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        shard: [1, 2, 3, 4, 5, 6]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     steps: *e2e_shard_steps
   e2e:
     name: Chromium end-to-end tests
