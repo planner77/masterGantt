@@ -1,3 +1,11 @@
+## Issue #762 — PR #779 F-003 누적 실패 재작업 (2026-10-22)
+
+최신Full3154.1/run39787884834/attempt1은 Shard7 `project-logistics-management.spec.ts:550`에서 dirty공정 Escape의 구 즉시닫기 기대0/실제1로FAIL(46PASS1FAIL30NOT RUN); 다른7ShardCANCELLED,Quality/DockerSUCCESS,E2E/QA파생FAIL. 이전3150/3153과 전체24Shard·90Jobs를 대조하고2실패파일·3case 합집합을 유지한다. 로컬원본red9.0s→제품source불변으로초안확인계약을검증하는green3.0s를 확보하고, 두실패파일전체와직접/인접/음성 소비자를 fail-fast 없이 검증한다. [누적 원장](../../ISSUE_762_FAILURE_ANALYSIS.md), [Work Packet](ISSUE_762.md) 참조.
+
+동일 PR/branch·version0.130.0/HIGH/OWNER_MANAGED/qa_required=true 및8shard/Required3/Trusted/Owner gate를 유지한다. release_authorized=false,Manager ACCEPT/새Head공식회귀는NOT TESTED. 리뷰스레드/충돌최종재점검후 새FullCI 시작까지만 진행하며 모니터링·병합/Main/GHCR·Release/Issue종료는 수행하지 않는다.
+
+---
+
 ## Issue #762 — 프로젝트 공정·WorkArea 직접 소속 단순화 (2026-10-22)
 
 게시 전 #772/PR778 병합 main `72c2c9d0a912dc906d4101ea41a7a57e0c686597` 위로 단일 commit 정렬. runtime/테스트/8shard plan 내용 불변, TEST_PLAN 양쪽 섹션 보존. 최신정책 Python33검사·Lifecycle 구조 PASS, Pre-PR 자동선택은UNKNOWN19 BLOCKED 유지. 아래53aee48e는 착수 기준이다.

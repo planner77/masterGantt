@@ -1,0 +1,692 @@
+{
+  "schema": "mastergantt-issue-762-remote-triage-v1",
+  "repository": "planner77/masterGantt",
+  "issue": 762,
+  "pr": 779,
+  "observed_at_utc": "2026-10-22T13:59:47.823235+00:00",
+  "scope": "세 실패 Full CI의 고정 Run/Attempt 및 모든 실제 Chromium shard 로그 재검증. 새 후보 원격 PASS나 Trusted QA 영수증이 아님.",
+  "provenance_note": "과거 Run API pull_requests.head는 현재 PR Head로 drift했다. 원본 Run.head_sha와 run-scoped ci-pr-source artifact JSON 및 Git test-merge 두 부모를 사용한다.",
+  "current_pr": {
+    "head": "c8d1a5d1738e6ae3d40f9d310d0bcc0cc716cb04",
+    "base": "72c2c9d0a912dc906d4101ea41a7a57e0c686597",
+    "test_merge": "e2f75f49b797ab037aa0c6571590b5c9a281be43",
+    "mergeable": true,
+    "unresolved_review_threads": 0
+  },
+  "runs": [
+    {
+      "id": 39779367052,
+      "run_number": 3150,
+      "run_attempt": 1,
+      "event": "pull_request",
+      "workflow_path": ".github/workflows/ci.yml",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39779367052",
+      "attempts_checked": [
+        1
+      ],
+      "total_jobs": 30,
+      "attempt_jobs": 30,
+      "source_artifact": {
+        "id": 12426840358,
+        "name": "ci-pr-source-39779367052-1",
+        "expired": false,
+        "digest": "sha256:16ffe2420f26d47908141eb871e4e33715c61ea0f919fcde49d36c263d473ddc",
+        "downloaded_digest_verified": true,
+        "payload": {
+          "schema": "mastergantt-ci-pr-source-v1",
+          "repository": "planner77/masterGantt",
+          "run_id": 39779367052,
+          "run_attempt": 1,
+          "pr_number": 779,
+          "head_sha": "752d1c464f8f2e7cf61b330e2bbb15c18a8dafbb",
+          "head_ref": "feat/issue-762-process-workarea",
+          "head_repository": "planner77/masterGantt",
+          "base_sha": "72c2c9d0a912dc906d4101ea41a7a57e0c686597",
+          "base_ref": "main",
+          "base_repository": "planner77/masterGantt",
+          "test_merge_sha": "9d295d4d56d58ea755e46f0780e5f1cc103bdbf9"
+        }
+      },
+      "git_test_merge_parents_verified": [
+        "72c2c9d0a912dc906d4101ea41a7a57e0c686597",
+        "752d1c464f8f2e7cf61b330e2bbb15c18a8dafbb"
+      ],
+      "aggregate_results": [
+        {
+          "job_id": 119828278605,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success"
+        },
+        {
+          "job_id": 119829075135,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        },
+        {
+          "job_id": 119832376573,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 119832418392,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "reason": "required e2e 미성공"
+        }
+      ],
+      "shards": [
+        {
+          "shard": 1,
+          "job_id": 119827457075,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 44,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 2,
+          "job_id": 119827457138,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 14,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 3,
+          "job_id": 119827457000,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 49,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 4,
+          "job_id": 119827457196,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 27,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 5,
+          "job_id": 119827457113,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 80,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 6,
+          "job_id": 119827457118,
+          "status": "completed",
+          "conclusion": "failure",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 36,
+          "actual_failure_markers": [
+            {
+              "timestamp_utc": "2026-10-22T12:45:53.9429055Z",
+              "case_index": 37,
+              "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+              "line": 234,
+              "column": 5,
+              "name": "#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류 보존과 상위 출처 구별 (29.8s)"
+            }
+          ],
+          "additional_assertion_errors": 1,
+          "non_test_error_summary": [
+            "1 error was not a part of any test, see above for details"
+          ],
+          "summary": {
+            "passed": 36,
+            "failed": 1,
+            "did_not_run": 54
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 7,
+          "job_id": 119827457156,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 27,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 8,
+          "job_id": 119827457202,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 42,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        }
+      ]
+    },
+    {
+      "id": 39783686345,
+      "run_number": 3153,
+      "run_attempt": 1,
+      "event": "pull_request",
+      "workflow_path": ".github/workflows/ci.yml",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39783686345",
+      "attempts_checked": [
+        1
+      ],
+      "total_jobs": 30,
+      "attempt_jobs": 30,
+      "source_artifact": {
+        "id": 12428435521,
+        "name": "ci-pr-source-39783686345-1",
+        "expired": false,
+        "digest": "sha256:f3c52a5eae4636bc7b3b16a2d7267d52a240b81d0d40ad9f73b4e8adf38e315d",
+        "downloaded_digest_verified": true,
+        "payload": {
+          "schema": "mastergantt-ci-pr-source-v1",
+          "repository": "planner77/masterGantt",
+          "run_id": 39783686345,
+          "run_attempt": 1,
+          "pr_number": 779,
+          "head_sha": "294a5a7136f2c56dff4796e089f6b9627e3fb381",
+          "head_ref": "feat/issue-762-process-workarea",
+          "head_repository": "planner77/masterGantt",
+          "base_sha": "72c2c9d0a912dc906d4101ea41a7a57e0c686597",
+          "base_ref": "main",
+          "base_repository": "planner77/masterGantt",
+          "test_merge_sha": "e0dcf68c779b15f9c617f2b97b7612ea1ec6962d"
+        }
+      },
+      "git_test_merge_parents_verified": [
+        "72c2c9d0a912dc906d4101ea41a7a57e0c686597",
+        "294a5a7136f2c56dff4796e089f6b9627e3fb381"
+      ],
+      "aggregate_results": [
+        {
+          "job_id": 119843381857,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success"
+        },
+        {
+          "job_id": 119845391902,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        },
+        {
+          "job_id": 119848286078,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 119848334445,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "reason": "required e2e 미성공"
+        }
+      ],
+      "shards": [
+        {
+          "shard": 1,
+          "job_id": 119842472444,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 44,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 2,
+          "job_id": 119842472271,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 16,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 3,
+          "job_id": 119842472499,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 67,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 4,
+          "job_id": 119842472498,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 9,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 5,
+          "job_id": 119842472226,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 28,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 6,
+          "job_id": 119842472266,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 47,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 7,
+          "job_id": 119842472249,
+          "status": "completed",
+          "conclusion": "failure",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 39,
+          "actual_failure_markers": [
+            {
+              "timestamp_utc": "2026-10-22T13:18:05.3301445Z",
+              "case_index": 40,
+              "file": "tests/e2e/project-logistics-management.spec.ts",
+              "line": 298,
+              "column": 7,
+              "name": "Issue #186 물류 구성 탭 및 관리 화면 (LG-03) › 물류 구성 탭 전환 시 Gantt 인스턴스가 유지되고 공정/설비/시스템/연계 화면이 표시된다 (2.1s)"
+            }
+          ],
+          "additional_assertion_errors": 1,
+          "non_test_error_summary": [
+            "1 error was not a part of any test, see above for details"
+          ],
+          "summary": {
+            "passed": 39,
+            "failed": 1,
+            "did_not_run": 37
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 8,
+          "job_id": 119842472297,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 60,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        }
+      ]
+    },
+    {
+      "id": 39787884834,
+      "run_number": 3154,
+      "run_attempt": 1,
+      "event": "pull_request",
+      "workflow_path": ".github/workflows/ci.yml",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39787884834",
+      "attempts_checked": [
+        1
+      ],
+      "total_jobs": 30,
+      "attempt_jobs": 30,
+      "source_artifact": {
+        "id": 12430135729,
+        "name": "ci-pr-source-39787884834-1",
+        "expired": false,
+        "digest": "sha256:8b6716cf9cd69ca664a06f2263d7903591966ce98abf03e533fe27720f66131a",
+        "downloaded_digest_verified": true,
+        "payload": {
+          "schema": "mastergantt-ci-pr-source-v1",
+          "repository": "planner77/masterGantt",
+          "run_id": 39787884834,
+          "run_attempt": 1,
+          "pr_number": 779,
+          "head_sha": "c8d1a5d1738e6ae3d40f9d310d0bcc0cc716cb04",
+          "head_ref": "feat/issue-762-process-workarea",
+          "head_repository": "planner77/masterGantt",
+          "base_sha": "72c2c9d0a912dc906d4101ea41a7a57e0c686597",
+          "base_ref": "main",
+          "base_repository": "planner77/masterGantt",
+          "test_merge_sha": "e2f75f49b797ab037aa0c6571590b5c9a281be43"
+        }
+      },
+      "git_test_merge_parents_verified": [
+        "72c2c9d0a912dc906d4101ea41a7a57e0c686597",
+        "c8d1a5d1738e6ae3d40f9d310d0bcc0cc716cb04"
+      ],
+      "aggregate_results": [
+        {
+          "job_id": 119857669681,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success"
+        },
+        {
+          "job_id": 119858968207,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        },
+        {
+          "job_id": 119865301964,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 119865346548,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "reason": "required e2e 미성공"
+        }
+      ],
+      "shards": [
+        {
+          "shard": 1,
+          "job_id": 119857156709,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 73,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 2,
+          "job_id": 119857156969,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 29,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 3,
+          "job_id": 119857156663,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 137,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 4,
+          "job_id": 119857156757,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 17,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 5,
+          "job_id": 119857156691,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 65,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 6,
+          "job_id": 119857156572,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 62,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 7,
+          "job_id": 119857156672,
+          "status": "completed",
+          "conclusion": "failure",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 46,
+          "actual_failure_markers": [
+            {
+              "timestamp_utc": "2026-10-22T13:50:12.8803863Z",
+              "case_index": 47,
+              "file": "tests/e2e/project-logistics-management.spec.ts",
+              "line": 550,
+              "column": 7,
+              "name": "Issue #186 물류 구성 탭 및 관리 화면 (LG-03) › Dialog 취소 시 Escape 키로 닫히고 mutation이 발생하지 않는다 (8.0s)"
+            }
+          ],
+          "additional_assertion_errors": 1,
+          "non_test_error_summary": [
+            "1 error was not a part of any test, see above for details"
+          ],
+          "summary": {
+            "passed": 46,
+            "failed": 1,
+            "did_not_run": 30
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        },
+        {
+          "shard": 8,
+          "job_id": 119857156563,
+          "status": "completed",
+          "conclusion": "cancelled",
+          "all_shard_logs_checked": true,
+          "observed_pass_markers": 101,
+          "actual_failure_markers": [],
+          "additional_assertion_errors": 0,
+          "non_test_error_summary": [],
+          "summary": {
+            "passed": null,
+            "failed": null,
+            "did_not_run": null
+          },
+          "warning": "개별 case pass marker는 cancelled/failed Job 전체 PASS를 의미하지 않는다."
+        }
+      ]
+    }
+  ],
+  "failure_union": {
+    "actual_failure_markers": 3,
+    "unique_failed_files": [
+      "tests/e2e/issue-726-task-logistics.spec.ts",
+      "tests/e2e/project-logistics-management.spec.ts"
+    ],
+    "unique_failed_cases": 3,
+    "checked_shard_logs": 24,
+    "cancelled_shards": 21,
+    "cancelled_shards_additional_failure_markers": 0,
+    "coverage": "전체 3run×8shard 확인. NOT RUN/cancelled를 PASS로 승격하지 않는다."
+  },
+  "cross_run_observations": [
+    {
+      "case": "F-001",
+      "run": 39783686345,
+      "job": 119842472266,
+      "case_result": "passed",
+      "duration": "1.0m",
+      "job_conclusion": "cancelled"
+    },
+    {
+      "case": "F-001",
+      "run": 39787884834,
+      "job": 119857156572,
+      "case_result": "passed",
+      "duration": "54.0s",
+      "job_conclusion": "cancelled"
+    },
+    {
+      "case": "F-002",
+      "run": 39787884834,
+      "job": 119857156672,
+      "case_result": "passed",
+      "duration": "6.3s",
+      "job_conclusion": "failure"
+    }
+  ]
+}

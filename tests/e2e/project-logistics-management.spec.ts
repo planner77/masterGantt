@@ -547,7 +547,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await editDialog.getByRole("button", { name: "취소", exact: true }).click();
   });
 
-  test("Dialog 취소 시 Escape 키로 닫히고 mutation이 발생하지 않는다", async ({ page }) => {
+  test("Dialog 취소 시 Escape는 변경 없는 창만 닫고 초안은 명시 폐기 전까지 보존한다", async ({ page }) => {
     const fixture = await installStatefulProjectFixture(page);
     fixture.sessionEditable = true;
     fixture.logistics = sampleLogisticsData();
@@ -574,15 +574,154 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await expect(dialog.getByPlaceholder("예: PROC-01")).toHaveCount(0);
     const nameInput = dialog.getByPlaceholder("예: 입고 공정");
     await expect(nameInput).toBeFocused();
-    await nameInput.fill("임시 초안 공정");
-
-    // Press Escape to cancel
+    // A pristine dialog closes immediately and returns to its exact trigger.
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
+    await expect(addButton).toBeFocused();
+    expect(mutationCount).toBe(0);
 
-    // Verify 0 mutations sent and focus returns to the trigger.
+    await addButton.click();
+    await nameInput.fill("임시 초안 공정");
+    const discard = page.getByRole("dialog", { name: "공정 변경 내용 버리기", exact: true });
+
+    // Dirty Escape requests confirmation; it must not silently lose the draft.
+    await page.keyboard.press("Escape");
+    await expect(discard).toBeVisible();
+    await expect(nameInput).toHaveValue("임시 초안 공정");
+    expect(mutationCount).toBe(0);
+    await discard.getByRole("button", { name: "계속 편집", exact: true }).click();
+    await expect(discard).toHaveCount(0);
+    await expect(dialog).toBeVisible();
+    await expect(nameInput).toHaveValue("임시 초안 공정");
+
+    // The header close command must also preserve the same dirty draft.
+    await dialog.getByRole("button", { name: "공정 추가 닫기", exact: true }).click();
+    await expect(discard).toBeVisible();
+    await discard.getByRole("button", { name: "계속 편집", exact: true }).click();
+    await expect(nameInput).toHaveValue("임시 초안 공정");
+    expect(mutationCount).toBe(0);
+
+    // Cancel uses the same guard. Escape from the nested confirmation cancels
+    // only that decision and keeps the original dialog and its draft intact.
+    await dialog.getByRole("button", { name: "취소", exact: true }).click();
+    await expect(discard).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(discard).toHaveCount(0);
+    await expect(dialog).toBeVisible();
+    await expect(nameInput).toHaveValue("임시 초안 공정");
+    expect(mutationCount).toBe(0);
+
+    await page.keyboard.press("Escape");
+    await expect(discard).toBeVisible();
+    await discard.getByRole("button", { name: "변경 내용 버리기", exact: true }).click();
+    await expect(discard).toHaveCount(0);
+    await expect(dialog).toHaveCount(0);
     expect(mutationCount).toBe(0);
     await expect(addButton).toBeFocused();
+
+    // Editing an existing process has the same draft-preservation contract.
+    const editButton = page.locator("#logistics-master-process-proc-1").getByRole("button", { name: "수정", exact: true });
+    await editButton.click();
+    const editDialog = page.getByRole("dialog", { name: "공정 수정", exact: true });
+    const editName = editDialog.getByPlaceholder("예: 입고 공정");
+    await editName.fill("기존 공정의 미저장 초안");
+    await editDialog.getByRole("button", { name: "취소", exact: true }).click();
+    await expect(discard).toBeVisible();
+    await discard.getByRole("button", { name: "계속 편집", exact: true }).click();
+    await expect(editName).toHaveValue("기존 공정의 미저장 초안");
+    await page.keyboard.press("Escape");
+    await expect(discard).toBeVisible();
+    await discard.getByRole("button", { name: "변경 내용 버리기", exact: true }).click();
+    await expect(editDialog).toHaveCount(0);
+    await expect(discard).toHaveCount(0);
+    await expect(editButton).toBeFocused();
+    await expect(page.locator("#logistics-master-process-proc-1 strong")).toHaveText("입고 공정");
+    expect(mutationCount).toBe(0);
+  });
+
+  test("공정 초안은 pending 중복 제출·Escape와 network/412/401 이후에도 보존된다", async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.sessionEditable = true;
+    fixture.logistics = sampleLogisticsData();
+    const originalLogistics = JSON.stringify(fixture.logistics);
+    const requests: Array<{ name: string; revision: string | undefined }> = [];
+    let mode: "network" | "stale" | "unauthorized" = "network";
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    await page.route(`**/api/projects/${publicId}/logistics/processes`, async route => {
+      if (route.request().method() !== "POST") return route.fallback();
+      requests.push({ name: route.request().postDataJSON().name, revision: route.request().headers()["if-match"] });
+      if (mode === "network") { await gate; await route.abort("failed"); return; }
+      if (mode === "stale") {
+        fixture.project.revision += 1;
+        await route.fulfill({ status: 412, json: { error: { code: "REVISION_MISMATCH", message: "stale" } } });
+        return;
+      }
+      fixture.sessionEditable = false;
+      await route.fulfill({ status: 401, json: { error: { code: "UNAUTHORIZED", message: "expired" } } });
+    });
+    await page.goto(`/projects/${publicId}`);
+    await openWorkspaceView(page, "processes");
+    const add = page.getByRole("button", { name: "+ 공정 추가", exact: true });
+    const dialog = page.getByRole("dialog", { name: "공정 추가", exact: true });
+    const name = dialog.getByPlaceholder("예: 입고 공정");
+    const save = dialog.locator('button[type="submit"]');
+    const discard = page.getByRole("dialog", { name: "공정 변경 내용 버리기", exact: true });
+    async function discardDraft() {
+      await dialog.getByRole("button", { name: "취소", exact: true }).click();
+      await expect(discard).toBeVisible();
+      await discard.getByRole("button", { name: "변경 내용 버리기", exact: true }).click();
+      await expect(dialog).toHaveCount(0);
+      await expect(discard).toHaveCount(0);
+    }
+    await add.click();
+    await expect(save).toHaveText("저장");
+    await name.fill("네트워크 오류 보존 초안");
+    await save.click();
+    await expect.poll(() => requests.length).toBe(1);
+    await expect(save).toHaveText("저장 중…");
+    await expect(save).toBeDisabled();
+    await expect(name).toBeDisabled();
+    await expect(dialog.getByRole("button", { name: "취소", exact: true })).toBeDisabled();
+    await expect(dialog.getByRole("button", { name: "공정 추가 닫기", exact: true })).toBeDisabled();
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Enter");
+    await expect(dialog).toBeVisible();
+    await expect(discard).toHaveCount(0);
+    expect(requests).toHaveLength(1);
+    release();
+    await expect(dialog).toContainText("네트워크 연결");
+    await expect(dialog).toContainText("저장을 잠갔습니다.");
+    await expect(name).toHaveValue("네트워크 오류 보존 초안");
+    await expect(save).toBeDisabled();
+    await discardDraft();
+    await expect(add).toBeFocused();
+
+    mode = "stale";
+    await add.click();
+    await name.fill("412 보존 초안");
+    await save.click();
+    await expect(dialog).toContainText("저장을 잠갔습니다.");
+    await expect(name).toHaveValue("412 보존 초안");
+    await expect(save).toBeDisabled();
+    expect(requests).toHaveLength(2);
+    await discardDraft();
+    await expect(add).toBeFocused();
+
+    mode = "unauthorized";
+    await add.click();
+    await name.fill("401 보존 초안");
+    await save.click();
+    await expect(dialog).toContainText("편집 권한이 만료되었습니다.");
+    await expect(name).toHaveValue("401 보존 초안");
+    await expect(save).toBeDisabled();
+    await expect(dialog).toContainText("저장을 잠갔습니다.");
+    expect(requests.map(request => request.name)).toEqual(["네트워크 오류 보존 초안", "412 보존 초안", "401 보존 초안"]);
+    expect(requests.map(request => request.revision)).toEqual(['"40"', '"40"', '"41"']);
+    expect(JSON.stringify(fixture.logistics)).toBe(originalLogistics);
+    await discardDraft();
+    await expect(add).toHaveCount(0);
   });
 
   test("하위 조율 저장은 childSystemIds 계약을 사용하고 401이면 즉시 읽기 전용으로 전환한다", async ({ page }) => {

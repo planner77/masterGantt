@@ -234,3 +234,25 @@ infra가 게시 직전 #772/PR778의 새 main `72c2c9d0a912dc906d4101ea41a7a57e0
 - 변경 범위: `tests/e2e/project-logistics-management.spec.ts`, 단일 실패 원장 **UPDATED**, Work Packet **UPDATED**. 기존 `TEST_PLAN`, `AGENTS.md`, `DESIGN.md`, `CI_CD.md` **N/A** (기존 규칙 재사용). 원본 F001 보존, 전체 실패 합집합 2파일(#726/신규#186), 후속 AC8/AC9 E2E 보호 범위 동일.
 - 정적 내용 검증: UI `strong`/`srOnly`와 기존 duplicate locator 교차 대조, 공통1+프로세스3+신규 공정1의 5 검사 교정, 재발 위험 selector 0잔존 및 접근성 버튼 regex 보존 **PASS**. 로컬 동일 후보 source Playwright/HTTP·SQLite/TypeScript/ESLint/Pre-PR **NOT TESTED** (checkout·deps/외부 DNS 불가). 새 Head 원격 PR FULL 8-shard와 CI 정책/QA/Owner는 시작 전 **NOT TESTED**.
 - 기존 PR #779 branch, 원격 main behind0/mergeable=true, unresolved review 0. 변경 후 재조회; Owner HIGH 위험 수용 및 release authorization은 별도, `MERGE_READY=BLOCKED`. CI 시작까지만 요청받았으며 모니터링/병합/Main/GHCR/Finalizer/Issue 종료 미실행.
+
+
+## PR CI F-003 재개 · #3154.1 (2026-10-22)
+
+사용자 요청은 실패 원장·관련 문서/Issue를 참조한 원인 파악·보완·미해결 리뷰/충돌 해결·실패 원장 갱신 후 새 PR CI 시작이다. 동일 branch/PR779와 원격Head `c8d1a5d1738e6ae3d40f9d310d0bcc0cc716cb04`를 fast-forward로 재개하고 앞선 F001/F002 교정을 보존했다. 현재 main/base72c2c9d0, behind0/mergeable=true/미해결thread0이며 새Head에서 재점검한다.
+
+원본 Full3154.1/run39787884834/attempt1, Head c8d1a5d1/base72c2c9d0/testmergee2f75f49(전체SHA는 [누적 실패 원장](../../ISSUE_762_FAILURE_ANALYSIS.md)과 [원격 증거](../../evidence/issue762/rework-f003-remote.json)). Shard7의 project-logistics-management.spec.ts:550/581에서 공정추가 초안 입력 후 Escape의 dialog expected0/actual1,46PASS1FAIL30NOT RUN. 나머지7Shard 취소, Quality/Docker SUCCESS, E2E/QA 파생FAIL이다. 앞선3150/3153을 포함해 실제24Shard·90jobs의3실패/21취소를 대조했고 고유실패합집합은2파일3case다.
+
+frontend가 수정 전 실제Chromium으로9.0s red/exit1을 재현했고, rawDOM의 초안/폐기확인dialog 및 저장요청0으로 TEST_CONTRACT를 확정했다. 제품의 dirty 보호를 없애지 않고 동일case를 clean 즉시닫기와 dirty 확인·계속편집·확인Escape·명시폐기·헤더/취소·정확focus·기존공정edit/mutation0 검증으로 보완했다. 원본단일case는3.0s green(전체5.7s)이다. `diagnosing-bugs`의 feedback loop→원본red→3가설반증→제품source불변 test보완 순서를 적용했다.
+
+파일 소유권: frontend는 E2E source·관련 Chromium, infra는 read-only 원격3Run 전체증거/정제JSON과 최종게시, qa_docs는 read-only 소비자·diff/문서 사전 검토, Manager는 누적실패원장/WorkPacket/TEST_PLAN/PLAN을 담당한다. Sub-Agent의 Issue 댓글 쓰기는 없고 Manager가 RESUME/STATUS를 기록한다. version0.130.0/HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false 유지, 독립 인간QA N/A·Manager ACCEPT NOT TESTED다.
+
+DOCUMENTATION_SYNC: 실패 원장/WorkPacket/TEST_PLAN/PLAN 및 정제 증거 UPDATED. API/DB_SCHEMA/SECURITY/PROJECT_UX/TASK_EDITOR/사용자매뉴얼/CHANGELOG는 N/A(제품 source·권한·소속·화면의 기존 동작 불변, 기존 초안 보호 계약을 테스트로 고정). AGENTS/DESIGN/UI_UX_GUIDELINES/CI_CD/REMOTE_VALIDATION N/A(기존 지침·8shard/Required3·QA/Owner·CI권한/실행정책 불변). 최종실행/지문은 아래에 기록하며 이전 source의309검사·6case와 새 후보를 혼합하지 않는다.
+
+### F-003 최종 검증·문서 Gate
+
+- [원격3Run·90Jobs·24Shards 정제 증거](../../evidence/issue762/rework-f003-remote.json): source artifact3개의digest/Head/base/testmerge/Git부모 교차 확인, 실제3FAIL/21CANCELLED, 실패합집합2파일3case. 이전F001/F002 개별case의 원격PASS와 샤드전체취소/실패를 분리한다.
+- [로컬정제증거](../../evidence/issue762/rework-f003-local.json): 원본red9.0s→계약green3.0s, 첫누적19/19 PASS5.6분, 마지막 변경spec13/13 PASS43.2s. 고유20case=최종13+다른3파일불변7, 재실행/기존309Unit은합산하지 않는다. 신규 Process pending·network/412/401 보호case도 포함한다.
+- 신규faulttest첫실행12PASS/1FAIL은 저장중동적버튼명의harness locator 결함이었다. 실제disabled DOM을 확인하고submit요소+정확초기/저장중문구를 검증해 교정했다. 원격최초3실패와 별도 유지한다.
+- Next임시config2개를복원한후 typecheck·소유E2E ESLint·version0.130.0·Markdown303·diff PASS. discovery268unit files/795browser tests(root/external cwd) PASS. runtime/공유dialog/API/DB 변경0, CI timeout/retry/skip/Required3/8shard 변경0이다.
+- Pre-PR fast 실제실행 BLOCKED/sourceStabletrue/selection66 UNKNOWN19 missing0/내부검사0, targeted dry-run NOT TESTED. 수동선정실행20PASS와혼합하지 않는다. evidence추가전 지문과 runtime source변경0 범위를 구별한다.
+- #717/#730/#733 및다른모든Shard의이번local전수는 NOT TESTED. 제품/직접소비자source불변과실패합집합우선으로선정했으며 새Head Full8공식CI로인계한다. DOC_SYNC는원장·Packet·TEST_PLAN·PLAN·정제증거와소스/계약을대조해 PASS, exactHead 원격/Trusted/Owner ACCEPT는 NOT TESTED다.

@@ -1,3 +1,9 @@
+## Issue #762 F-003 — 누적 두 실패 파일의 계약 회귀
+
+[실패 원장](ISSUE_762_FAILURE_ANALYSIS.md)의 F001/3150 legacy label, F002/3153 공정명·srOnly strict selector, F003/3154 dirty Escape를 고유2파일3case로 관리한다. `issue-726-task-logistics.spec.ts` 전체3case와 `project-logistics-management.spec.ts` 전체(4폭clean Escape 포함)를 fail-fast 없이 실제 Chromium으로 검증하고, #7252/#7622의 실제 직접/legacy WorkArea·HTTP/SQLite·초안·권한 회귀를 함께 선정한다. 최초 red를 재현한 뒤 clean 즉시닫기·dirty 계속편집/명시폐기·확인창Escape·헤더/취소·정확trigger focus/mutation0을 구분한다. 저장 pending/중복제출/401·412·network의 공정 초안 잠금도 동일 제품계약에서 보호한다.
+
+기존 #186의 route mock/비UUID fixture는 UI 상태/요청 개수 근거이며 실제 HTTP·SQLite·서버 원자성 근거가 아니다. #762/#725의 실제 backend fixture와 별도 기록한다. 제품 source·공유 dialog·일정/DB/API·CI·timeout/retry/skip/gate는 변경하지 않는다. 변경 없는 #717의 공정명 실제PATCH/#733의 정확drill 등은 변경 생산자와 소비자에 따라 재사용/제외 근거를 적고 전체 원격8Shard를 local subset으로 대체하지 않는다. 동결 source·정확 명령/결과·로컬 최초오류와 새Head 원격NOT TESTED는 [Work Packet](exec-plans/active/ISSUE_762.md)에 분리한다.
+
 ## Issue #772 — LOW 선택 E2E 정책의 검사 및 실증 계획 (2026-10-22)
 
 - 구조 회귀: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_low_*.py' -v`; 기존 #770 `test_ci_impact_plan.py`, #771 `test_ci_fast_development.py`, `scripts/test_qa_final_automated.py`, `scripts/test-pr-metadata-evidence.py`, `scripts/verify-issue-lifecycle.py` 교차 회귀를 유지한다.
