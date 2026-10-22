@@ -1,0 +1,191 @@
+{
+  "schema": "mastergantt-issue737-local-validation-v1",
+  "issue": 737,
+  "baselineSha": "56c7cfb96dbb97095e51606e9639cf4dc3fced36",
+  "version": "0.130.0",
+  "environment": {
+    "node": "22.14.0",
+    "npm": "11.10.0",
+    "playwright": "1.63.0",
+    "chromiumExpectedRevision": "1243",
+    "os": "Linux WSL2",
+    "installation": "npm ci --no-audit --no-fund; npx --no-install playwright install --only-shell chromium"
+  },
+  "source": {
+    "schema": "issue737-test-fixture-source-v1",
+    "capturedAt": "2026-10-22T22:19:32.515Z",
+    "baseSha": "56c7cfb96dbb97095e51606e9639cf4dc3fced36",
+    "scope": "new tests, shard inventory, reused fixtures and pinned dependency manifests; excludes docs and generated Next declarations/config",
+    "fingerprint": "8acccd808ba3216c9240b58e5d68cc06749d9684854057e123d26f6dd2633709",
+    "files": [
+      {
+        "path": "package-lock.json",
+        "sha256": "a6a11a76ec0abbbd1e31addd9cccf32e1b429ea5c1f2c73823c9b2657dbf8f9b"
+      },
+      {
+        "path": "package.json",
+        "sha256": "40df3b0ca5b0a29f7b4c47a72613c137482a5ad5f2b02feb6b1acd775eb616d7"
+      },
+      {
+        "path": "tests/config/e2e-shard-plan.json",
+        "sha256": "fd90da2ce92662d80cf2adfe13d7da70c86aba10eaae17b085ac54f8d84d1edf"
+      },
+      {
+        "path": "tests/e2e/fixtures/isolated-application.ts",
+        "sha256": "4aea36effc26dd55c2f37590424b5bed6e86bee1c5f25f9c3d61ae7fbda1a984"
+      },
+      {
+        "path": "tests/e2e/fixtures/target-project.ts",
+        "sha256": "d77b6e88933a067d8195c626d7bb8d72c1a17e25e138137c1f4b01f111dd183b"
+      },
+      {
+        "path": "tests/e2e/fixtures/wbs-view-composer.ts",
+        "sha256": "6f096b3b00a0af79396a9f2ead3e8d85267f942632c17bc33bad6d16a713fc33"
+      },
+      {
+        "path": "tests/e2e/issue-737-target0-acceptance.spec.ts",
+        "sha256": "af4fc66deaf7bfe57466d74bba844485e969c2dc36364febcf55384ef75d22a2"
+      },
+      {
+        "path": "tests/fixtures/issue-623-backend-fixture.ts",
+        "sha256": "4d48e0f3e203455296690526e8d3a5ad084bcbee174728a0ae1ca567d1b39d74"
+      },
+      {
+        "path": "tests/fixtures/resource-dashboard-targets.ts",
+        "sha256": "1d3ade705a5c422fe4282032e9d989e7f173c10aa973d0f9e0dbdb7af3b93bee"
+      },
+      {
+        "path": "tests/fixtures/resource-dashboard.ts",
+        "sha256": "f416afd1f39cec72dcfef4cbe4b59e4849d9acc163281def64923ba3770091eb"
+      },
+      {
+        "path": "tests/fixtures/wbs-dashboard-views.ts",
+        "sha256": "d1edb91aa8dad0828230ebf0df4adec53740fb01e5e0e5aa34174a47306177c6"
+      },
+      {
+        "path": "tests/scripts/e2e-shard-planner.test.ts",
+        "sha256": "f5c7b537b8bc4c9d9e903dbed47b5718248f067de9acfdab02d13ce59eb90e07"
+      },
+      {
+        "path": "tests/server/projects/issue-737-preservation.test.ts",
+        "sha256": "456defdaef038983fa34db08ea13c3643f1a0da2676d93d9f54ca31f64aa3674"
+      },
+      {
+        "path": "tests/server/resources/issue-737-cross-feature-acceptance.test.ts",
+        "sha256": "13d2bb92db934cdbcd2b5c07294543fd7722fc5029fcca9c89ee04c508ff4648"
+      }
+    ]
+  },
+  "sourceMatchesAfterFinalRuns": true,
+  "sourceScopeCaveat": "14 named test/fixture/dependency/inventory files only. Runtime source is unchanged from baseline. Next dev generated tracked AGENTS.md/next-env.d.ts/tsconfig.json changes during browser runs; original bytes restored afterward. Whole-worktree sourceStable PASS is not claimed.",
+  "focusedVitest": {
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "--config",
+      "tests/config/vitest.config.ts",
+      "tests/server/projects/issue-737-preservation.test.ts",
+      "tests/server/templates/logistics-template-graph.test.ts",
+      "tests/domain/wbs-task-ledger-acceptance.test.ts",
+      "tests/server/logistics/issue-731-kpi.test.ts",
+      "tests/scripts/e2e-shard-planner.test.ts",
+      "tests/server/projects/project-copy-logistics.test.ts",
+      "tests/server/projects/issue-623-target-transfer-acceptance.test.ts",
+      "tests/server/resources/wbs-dashboard-views-http.test.ts",
+      "tests/server/resources/issue-736-resource-adapter.test.ts",
+      "tests/server/db/issue-623-target-migration.test.ts",
+      "tests/server/process-catalog/process-context-service.test.ts",
+      "tests/server/process-catalog/project-work-areas.test.ts",
+      "tests/server/resources/project-resource-memberships.test.ts",
+      "tests/domain/wbs-task-ledger.test.ts",
+      "tests/server/resources/issue-737-cross-feature-acceptance.test.ts"
+    ],
+    "status": "PASS",
+    "files": 15,
+    "cases": 168,
+    "newServerCases": 9,
+    "durationSeconds": 6.36,
+    "startAtAsiaSeoul": "2026-10-23 07:19:45"
+  },
+  "chromium": {
+    "command": [
+      "npx",
+      "playwright",
+      "test",
+      "--config",
+      "tests/config/playwright.config.ts",
+      "tests/e2e/issue-737-target0-acceptance.spec.ts",
+      "--workers=1",
+      "--retries=0"
+    ],
+    "status": "PASS",
+    "uniqueCases": 6,
+    "workers": 1,
+    "retries": 0,
+    "durationApproxMinutes": 2.5,
+    "caseDurationsSeconds": [
+      20.8,
+      12.0,
+      12.1,
+      12.0,
+      12.0,
+      12.0
+    ],
+    "widths": [
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ],
+    "specSha256": "af4fc66deaf7bfe57466d74bba844485e969c2dc36364febcf55384ef75d22a2",
+    "artifacts": ".prepr-reports/issue737-final-browser/",
+    "scope": "Actual HTTP/SQLite, exact raw IDs, same-scope KPI/UI/OOXML, Task edit/reentry, global Resource no-copy, keyboard/geometry/native identity/marker OFF. System direct scope compared with raw Task-System links and matching KPI breakdown, not all-project Task population."
+  },
+  "preprFast": {
+    "status": "BLOCKED",
+    "executedChecks": 0,
+    "unknownPaths": [
+      "tests/config/e2e-shard-plan.json"
+    ],
+    "report": ".prepr-reports/issue737-fast-attempt/SUMMARY.md",
+    "manualMapping": "Work Packet impact table + six planner tests, discovered139/assigned139/unique139; existing138 placements preserved"
+  },
+  "review": {
+    "readOnlyAgent": "/root/acceptance_review",
+    "sourceDocumentationReview": "PASS",
+    "unresolvedP1P2": 0,
+    "independentlyExecutedVitest": {
+      "files": 3,
+      "cases": 15,
+      "status": "PASS"
+    },
+    "independentHumanQa": "N/A(OWNER_MANAGED, no independent human receipt)",
+    "managerAcceptance": "NOT TESTED"
+  },
+  "history": "docs/ISSUE_737_FAILURE_ANALYSIS.md; prior runs are not added to final unique case counts",
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "mergeReady": "BLOCKED",
+    "monitoring": "not requested"
+  },
+  "environmentSpecific": "NOT TESTED: production/off-host restore, TLS/proxy/storage, Windows Excel/VBA/DRM, native zoom/screen reader/final manual UX",
+  "release": {
+    "required": false,
+    "authorized": false
+  },
+  "staticChecks": {
+    "typecheck": "PASS (npm run typecheck, after generated files restored)",
+    "scopedEslint": "PASS (four changed TypeScript test files)",
+    "version": "PASS (v0.130.0 stable)",
+    "testDiscovery": "PASS (270 unit files,801 browser cases,root/external cwd)",
+    "markdownLinks": "PASS (308 Markdown files)",
+    "diffCheck": "PASS",
+    "docsGate": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING",
+    "acMapping": "MAPPING_PASS_SEMANTIC_REVIEW_PENDING"
+  }
+}

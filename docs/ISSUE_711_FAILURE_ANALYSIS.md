@@ -41,3 +41,11 @@
 - 정렬은 소스 새 커밋에서 원본 main과 우리 Issue 파일을 모두 보존하며 `docs/TEST_PLAN.md`는 이전 전체 정책과 최신 main 추가문 모두 유지해야 함. 원본 작업 및 실패 원장 SHA/Runs 불변.
 - 리뷰 [P2 thread](https://github.com/planner77/masterGantt/pull/781#discussion_r4353727564)은 수정 검증과 해당 thread 회신 후 resolved 처리. 미해결 0/충돌 0 확인 전 Merge 금지.
 - 정적/로컬 파서 음성·문서 경로 검사와 remote Full PR CI 결과는 서로 분리한다. **새 PR CI 시작까지만**; 모니터링, 재재실행, 병합, Main/GHCR/Finalizer/Issue close는 별도 지시 전 금지.
+
+## 5. 2026-10-23 · #737 main 정렬 / 신규 Full PR CI 재진입 (신규 실패 아님)
+
+- **이전 Run 불변 기록**: [PR #781 Full #3171.1](https://github.com/planner77/masterGantt/actions/runs/39862589326), run `39862589326`, attempt `1`, pull_request, PR Head `116375357c19263d41c3d0102c05ebea9c41c8ce`, 당시 base `56c7cfb96dbb97095e51606e9639cf4dc3fced36`는 **SUCCESS**. 해당 source의 `Build, static checks, and unit tests`, `Chromium end-to-end tests` (8/8), `Docker build and runtime smoke test`, `QA Final — Automated` 모두 SUCCESS. [기본 브랜치 QA Final — Trusted #815.1](https://github.com/planner77/masterGantt/actions/runs/39865838088), run `39865838088`도 **SUCCESS**. 이 사실은 실패 F711-001의 결과를 변경하지 않는다.
+- **새 base**: 이후 #737 [PR #782](https://github.com/planner77/masterGantt/pull/782)의 병합으로 `main=744f64fa8d79c3b18896a6aab0dfbe28174814f4` (이전 branch 대비 2 commit behind). #737은 `docs/TEST_PLAN.md`, `docs/CI_CD.md` 두 문서를 함께 수정하고 새로운 `tests/e2e/issue-737-target0-acceptance.spec.ts`, `tests/server/projects/issue-737-preservation.test.ts`, `tests/server/resources/issue-737-cross-feature-acceptance.test.ts`를 추가한다.
+- **정렬·보존 정책**: #711 변경 12개 파일을 현재 main Git Tree에 적용하되, 겹치는 문서 두 건은 #711 고유 신규 절과 #737의 전체 최신 본문을 조합한다. 최신 `main` 제품/DB/API/로그/테스트/Shard/기존 문서 내용을 버리지 않는다. `AGENTS.md` 및 실패 원장·Work Packet·현재 QA 정책에 따라 테스트 삭제/timeout·retry·assertion/Required3 완화, 자동 release 권한 확대 없음.
+- **리뷰·충돌 사전 확인**: [PR #781 P2](https://github.com/planner77/masterGantt/pull/781#discussion_r4353727564) 회신 후 `resolved=true`; 신규 미해결 스레드 **0건**. `main`과의 차이는 두 문서 내용 보존으로 해결. 새 Git Head에서 ancestry/compare 및 PR `mergeable`을 다시 확인한다.
+- **정확 새 Head 증거**: 최신 main 정렬로 PR test-merge source가 변경되므로 #3171.1 및 Trusted #815.1은 **새 Head의 승인 증거가 아님**. 새로운 `pull_request synchronize` Full CI를 **시작만** 하고, Required 3종/Trusted QA 및 최종 Owner HIGH 위험 수용은 모두 새 Run 관측 전 **NOT TESTED**. 병합/Main CI/GHCR/Finalizer/Issue 종료 진행 안 함.

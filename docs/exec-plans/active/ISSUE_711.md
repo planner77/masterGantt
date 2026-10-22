@@ -76,3 +76,11 @@
 - GitHub 원본 `main`·Issue·AGENTS·QA/CI/Lifecycle·Policy/Playwright/Vitest 설정을 조회해 역할과 위험도를 확인했고 기존 제품 test·workflow/버전 변경은 계획하지 않았다.
 - GitHub-only 연결에서 Node/Python/browser/Docker 직접 실행, 문서 상대 링크 검증 CLI, Vitest/Playwright 동적 case 수집은 **NOT TESTED**(원격 PR Policy/Quality의 실제 출처가 나오기 전 PASS 주장 금지).
 - PR에서 현재 main과 변경된 파일 수·리뷰 스레드/충돌 확인 및 Head/Base/Test-Merge·Required3/Trusted QA 증거를 후속 평가한다. 이 요청은 **PR CI 시작 후 모니터링 중단**이며 병합·Main CI·GHCR·Finalizer·이슈 종료는 금지한다.
+
+## 2026-10-23 · #737 main 정렬 (PR CI 재시작 인계)
+
+- 새로운 main SHA: `744f64fa8d79c3b18896a6aab0dfbe28174814f4` (#737, PR #782). 기존 PR Head `116375357c19263d41c3d0102c05ebea9c41c8ce`와의 2커밋 차이 확인. 이전 #762 기준 `0.130.0` 제품 version 유지, #737 추가 2개 Vitest 파일 및 Chromium E2E 1개 파일과 전체 신규 코드/문서를 보존.
+- 공유 수정 문서 `docs/CI_CD.md`와 `docs/TEST_PLAN.md`는 *#711 앞부분+최신 main 본문* 방식으로 손실 없는 정렬; 기타 #711 전용 파일은 동일 내용 유지. 코드 리뷰 P2 해결, 미해결 스레드=0 (동기화 전 조회).
+- 이전 정확 HEAD의 [Full #3171.1](https://github.com/planner77/masterGantt/actions/runs/39862589326) Quality/E2E8/Docker 및 [Trusted #815.1](https://github.com/planner77/masterGantt/actions/runs/39865838088) 성공은 immutable 과거 기록. 새 Head와 최신 base의 Required3/Trusted/Manager ACCEPT는 **NOT TESTED**.
+- REWORK 판단: 새로운 기능을 추가하지 않고 Main 동기화/문서 원장 갱신만 수행. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `release_required=false`, `release_authorized=false`. 실제 PR CI synchronize 트리거 확인까지만 하고 모니터링/병합/Main/GHCR/Finalizer/Issue 종료 금지.
+- 실패·교정 누적 증거: [단일 #711 실패 원장](../../ISSUE_711_FAILURE_ANALYSIS.md). 초도 Inventory와 현재 수치의 시간·source 경계를 [인벤토리](../../TEST_LIFECYCLE_INVENTORY_711.md)에 유지.

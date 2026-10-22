@@ -67,3 +67,9 @@ node scripts/check-markdown-links.mjs
 - 문서/스크립트 정적 검토: 수행(원격 파일/명령/경로 확인). 실제 검사/본문 수행: **NOT TESTED**.
 - CI Required3, Chromium 8/8, 정확 Head/Base의 Trusted QA, 독립 UX·DB 제품 경로, Owner 위험 수용: **NOT TESTED**(PR 생성 후 원격 실증 대상).
 - 기존 GitHub Actions 경로 판정/PR Full/Targeted·Main, GHCR/Finalizer, 사전 승인·릴리스: **전혀 변경하지 않음**.
+
+## 2026-10-23 · #737 main 정렬 이후 정적 발견 범위
+
+- 원본 최초 265 Vitest files / 137 E2E spec files는 `6f9936f...`의 **역사적 기준선**이며 삭제·재라벨하지 않는다.
+- #762 반영 후 270/138, #737의 변경 파일 목록에서 `tests/server/projects/issue-737-preservation.test.ts` 및 `tests/server/resources/issue-737-cross-feature-acceptance.test.ts` **2 Vitest 파일**, `tests/e2e/issue-737-target0-acceptance.spec.ts` **1 Chromium spec** 추가 확인. 최신 `main 744f64fa...`의 정적 파일 구성은 **272 Vitest / 139 E2E**로 추적한다. 이는 git diff 기반 파일 수이고, 새로운 HEAD의 동적 case/실행/통과 수가 **아님**.
+- #711 인벤토리 Python 수집기는 새 source에서 다시 실행해 case 수와 Policy Job 실행 조건을 관측해야 한다. 동일 조건의 p50/p90·runner-min/Flaky 효과는 기존대로 **UNKNOWN/NOT TESTED**. 신규 PR CI 트리거 이후의 실제 성공 여부는 추후 별도 인증.
