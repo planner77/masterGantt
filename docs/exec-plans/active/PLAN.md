@@ -1,3 +1,15 @@
+## Issue #771 — PR #776 Policy #3124.1 실패 및 P1 교정 (2026-10-22)
+
+- 최초 실패 [Run 39730387486.1](https://github.com/planner77/masterGantt/actions/runs/39730387486): `scripts/verify-issue-lifecycle.py`의 이벤트 전체 문자열 비교가 신규 Ready/Draft 이벤트 추가와 충돌하여 Policy FAIL. QA Preflight/TS/ESLint/Vitest PASS였고 8 Chromium 샤드·Docker/PR Build는 **NOT RUN**, Required3/QA 실패는 파생.
+- 함께 발견된 P1 선택 test ID `..` traversal를 신뢰 base·실제 Fast 실행 양쪽에서 거부. `scripts/verify-issue-lifecycle.py`는 이벤트 집합으로 검증하되 기존 `edited` 보존. 전체 누적 원장 [Issue #771 실패 원장](../../ISSUE_771_FAILURE_ANALYSIS.md)과 [Work Packet](ISSUE_771.md)에 원인·증거·회귀·미검증·Owner 범위를 기록. 신규 Full CI 시작 후 결과 NOT TESTED, 병합/Main/GHCR/이슈 종료 미승인.
+
+---
+## Issue #771 — 개발 중 Draft Fast / Ready Final Full PR CI (2026-10-22)
+
+Baseline main `f550a657c2fd04d49b7dee08783fab3b348e1497`, 브랜치 `ci/issue-771-fast-full-separation`, 앱 0.129.1 유지. #770 base trusted classifier와 Shadow를 사용해 Draft의 선택 Fast (비권위), 공식 Required3 FAIL(BLOCKED), non-draft Ready의 정확 Head Full 8-shard + Quality/Docker/Trusted 경계 분리. `edited` metadata, main/수동 Full, Ruleset 24043042와 Release/Finalizer 불변. 구현·회귀·문서 갱신 후 PR CI 시작까지만 승인, 모니터링·병합·Main/GHCR/Issue 종료 미승인. 원격 실증/B5 A/B 성과는 NOT TESTED. [Work Packet](ISSUE_771.md), [Epic #769](https://github.com/planner77/masterGantt/issues/769).
+
+---
+
 ## Issue #770 — #767 8-shard 최신 main 정렬 (2026-10-22)
 
 기존 #770 PR #774 [Full #3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)은 6/6/Required3 PASS. 최신 main `81c28fa5502caee27e98d4d293b0b1b28e6340dd`은 #767 8-shard·앱0.129.1 포함 10커밋 진전, PR stale/mergeable=false. 기존 FAIL/성공 기록을 불변으로 유지한 채 main을 병합하고 #770 Shadow가 trusted plan의 8 shards를 감시하도록 코드/회귀를 동기화. 그 외 #767 제품·QA·Release·Shard 변경 전부 보존. [#770 실패·정렬 원장](../../ISSUE_770_FAILURE_ANALYSIS.md) 및 [Work Packet](ISSUE_770.md) 참조. 새 exact Head Full E2E8/8/Quality/Docker·Trusted QA는 NOT TESTED, Owner HIGH 별도 승인 전 병합·GHCR·Issue 종료 금지.

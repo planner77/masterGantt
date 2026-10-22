@@ -1,10 +1,10 @@
 name: CI
 run-name: >-
-  ${{ github.event_name == 'pull_request' && format('PR CI {0} · {1} · PR #{2} · Run #{3}.{4}', github.event.action == 'edited' && '[메타데이터 검증]' || '[전체 검증]', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt) || github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Issue #') && contains(github.event.head_commit.message, ' · PR #') && !contains(toJSON(github.event.head_commit.message), '\n') && !contains(toJSON(github.event.head_commit.message), '\r') && format('Main CI · {0} · Run #{1}.{2}', github.event.head_commit.message, github.run_number, github.run_attempt) || github.event_name == 'push' && format('Main CI · 기존 병합/직접 Push · {0} · Run #{1}.{2}', github.sha, github.run_number, github.run_attempt) || inputs.target_sha != '' && format('정확 Main SHA 복구 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.target_issue, inputs.target_sha, github.run_number, github.run_attempt) || inputs.issue_number != '' && format('수동 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.issue_number, github.ref_name, github.run_number, github.run_attempt) || format('수동 CI · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
+  ${{ github.event_name == 'pull_request' && format('PR CI {0} · {1} · PR #{2} · Run #{3}.{4} · {5}', github.event.action == 'edited' && '[메타데이터 검증]' || '[전체 검증]', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt, github.event.pull_request.draft && 'DRAFT_BLOCKED' || github.event.action == 'edited' && 'METADATA_ONLY' || 'FINAL_FULL') || github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Issue #') && contains(github.event.head_commit.message, ' · PR #') && !contains(toJSON(github.event.head_commit.message), '\n') && !contains(toJSON(github.event.head_commit.message), '\r') && format('Main CI · {0} · Run #{1}.{2}', github.event.head_commit.message, github.run_number, github.run_attempt) || github.event_name == 'push' && format('Main CI · 기존 병합/직접 Push · {0} · Run #{1}.{2}', github.sha, github.run_number, github.run_attempt) || inputs.target_sha != '' && format('정확 Main SHA 복구 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.target_issue, inputs.target_sha, github.run_number, github.run_attempt) || inputs.issue_number != '' && format('수동 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.issue_number, github.ref_name, github.run_number, github.run_attempt) || format('수동 CI · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, edited]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, edited]
   push:
     branches: [main]
   workflow_dispatch:
@@ -295,6 +295,10 @@ jobs:
           DOCS_ONLY: ${{ steps.classify.outputs.docs_only || 'N/A' }}
           VERSION_CHANGED: ${{ steps.release_candidate.outputs.changed || 'N/A' }}
           CURRENT_VERSION: ${{ steps.release_candidate.outputs.current_version || 'N/A' }}
+          CI_MODE: ${{ github.event_name != 'pull_request' && 'MAIN_OR_MANUAL_FULL' || github.event.pull_request.draft && 'DRAFT_BLOCKED' || github.event.action == 'edited' && 'METADATA_ONLY' || 'FINAL_FULL' }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha || 'N/A' }}
+          PR_BASE: ${{ github.event.pull_request.base.sha || 'N/A' }}
+          PR_TEST_MERGE: ${{ github.event_name == 'pull_request' && github.sha || 'N/A' }}
         run: |
           {
             echo "## CI change routing"
@@ -308,6 +312,7 @@ jobs:
             printf -- '- docs_only(main): `%s`\n' "$DOCS_ONLY"
             printf -- '- version_changed(main): `%s`\n' "$VERSION_CHANGED"
             printf -- '- current_version(main): `%s`\n' "$CURRENT_VERSION"
+            printf -- '- mode: `%s`; PR Head/Base/Test-Merge: `%s` / `%s` / `%s`\n' "$CI_MODE" "$PR_HEAD" "$PR_BASE" "$PR_TEST_MERGE"
           } >> "$GITHUB_STEP_SUMMARY"
 
 
@@ -319,6 +324,7 @@ jobs:
     if: >-
       github.event_name == 'pull_request' &&
       github.event.action != 'edited' &&
+      github.event.pull_request.draft != true &&
       needs.changes.result == 'success'
     needs: changes
     runs-on: ubuntu-latest
@@ -385,7 +391,7 @@ jobs:
 
   metadata_evidence:
     name: PR metadata가 기존 전체 CI 증거를 보존하는지 검증
-    if: github.event_name == 'pull_request' && github.event.action == 'edited'
+    if: github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.pull_request.draft != true
     needs: changes
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -406,6 +412,7 @@ jobs:
     if: >-
       always() && needs.changes.result == 'success' &&
       needs.changes.outputs.policy == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
       (github.event_name != 'pull_request' || github.event.action == 'edited' ||
        needs.preflight.result == 'success')
     needs: [changes, preflight]
@@ -465,6 +472,8 @@ jobs:
         run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_preflight.py
       - name: PR Fast Gate 검증 (#659)
         run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_pr_fast_gate.py
+      - name: Issue #771 FAST_DEVELOPMENT/FINAL_FULL 신뢰 및 Required3 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_fast_development.py' -v
       - name: Issue #770 Shadow 영향 계획·출처 보호 단위 회귀
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_impact_plan.py' -v
       - name: Issue #703 Preview 배포 권한·워크플로 단위 회귀
@@ -482,6 +491,7 @@ jobs:
     if: >-
       always() && needs.changes.result == 'success' &&
       needs.changes.outputs.node == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
       (github.event_name != 'pull_request' || github.event.action == 'edited' ||
        needs.preflight.result == 'success')
     needs: [changes, preflight]
@@ -517,6 +527,7 @@ jobs:
     if: >-
       always() && needs.changes.result == 'success' &&
       needs.changes.outputs.node == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
       (github.event_name != 'pull_request' || github.event.action == 'edited' ||
        needs.preflight.result == 'success')
     needs: [changes, preflight]
@@ -545,6 +556,7 @@ jobs:
     if: >-
       always() && needs.changes.result == 'success' &&
       needs.changes.outputs.node == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
       (github.event_name != 'pull_request' || github.event.action == 'edited' ||
        needs.preflight.result == 'success')
     needs: [changes, preflight]
@@ -632,6 +644,7 @@ jobs:
     if: >-
       always() && github.event_name == 'pull_request' &&
       github.event.action != 'edited' &&
+      github.event.pull_request.draft != true &&
       needs.pr_fast_gate.result == 'success' &&
       needs.changes.result == 'success' &&
       needs.changes.outputs.node == 'true'
@@ -645,7 +658,8 @@ jobs:
     name: PR 빠른 검사 판정
     if: >-
       always() && github.event_name == 'pull_request' &&
-      github.event.action != 'edited'
+      github.event.action != 'edited' &&
+      github.event.pull_request.draft != true
     needs: [changes, preflight, policy, typecheck, lint, unit]
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -675,8 +689,9 @@ jobs:
       - name: 병렬 quality 결과 집계
         shell: bash
         env:
+          PR_IS_DRAFT: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft }}
           CHANGES_RESULT: ${{ needs.changes.result }}
-          IS_FULL_PR: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' }}
+          IS_FULL_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft != true && github.event.action != 'edited' }}
           PREFLIGHT: ${{ needs.preflight.result }}
           NODE_REQUIRED: ${{ needs.changes.outputs.node }}
           POLICY_REQUIRED: ${{ needs.changes.outputs.policy }}
@@ -690,6 +705,10 @@ jobs:
           PR_FAST_GATE: ${{ needs.pr_fast_gate.result }}
         run: |
           set -euo pipefail
+          if [[ "$PR_IS_DRAFT" == "true" ]]; then
+            echo "::error title=FINAL_FULL_REQUIRED::Draft PR: Quality Required Check BLOCKED. FAST_DEVELOPMENT is non-authoritative; switch to Ready for Full." >&2
+            exit 1
+          fi
           if [[ "$IS_FULL_PR" == "true" && "$PREFLIGHT" != "success" ]]; then
             echo "QA Preflight가 미성공이므로 필수 집계를 실패 처리합니다: $PREFLIGHT" >&2
             exit 1
@@ -831,6 +850,7 @@ jobs:
     if: >-
       always() && github.event_name == 'pull_request' &&
       github.event.action != 'edited' &&
+      github.event.pull_request.draft != true &&
       needs.changes.result == 'success' &&
       needs.changes.outputs.e2e == 'true' &&
       needs.pr_fast_gate.result == 'success'
@@ -852,8 +872,9 @@ jobs:
       - name: E2E shard 결과 집계
         shell: bash
         env:
+          PR_IS_DRAFT: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft }}
           CHANGES_RESULT: ${{ needs.changes.result }}
-          IS_FULL_PR: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' }}
+          IS_FULL_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft != true && github.event.action != 'edited' }}
           PREFLIGHT: ${{ needs.preflight.result }}
           REQUIRED: ${{ needs.changes.outputs.e2e }}
           METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
@@ -862,6 +883,10 @@ jobs:
           PR_FAST_GATE: ${{ needs.pr_fast_gate.result }}
         run: |
           set -euo pipefail
+          if [[ "$PR_IS_DRAFT" == "true" ]]; then
+            echo "::error title=FINAL_FULL_REQUIRED::Draft PR: Chromium E2E Required Check BLOCKED. FAST_DEVELOPMENT is non-authoritative; switch to Ready for Full." >&2
+            exit 1
+          fi
           if [[ "$IS_FULL_PR" == "true" && "$PREFLIGHT" != "success" ]]; then
             echo "QA Preflight가 미성공이므로 필수 집계를 실패 처리합니다: $PREFLIGHT" >&2
             exit 1
@@ -1091,6 +1116,7 @@ jobs:
     if: >-
       always() && github.event_name == 'pull_request' &&
       github.event.action != 'edited' &&
+      github.event.pull_request.draft != true &&
       needs.changes.result == 'success' &&
       needs.changes.outputs.docker == 'true' &&
       needs.pr_fast_gate.result == 'success'
@@ -1108,8 +1134,9 @@ jobs:
       - name: Docker smoke 결과 집계
         shell: bash
         env:
+          PR_IS_DRAFT: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft }}
           CHANGES_RESULT: ${{ needs.changes.result }}
-          IS_FULL_PR: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' }}
+          IS_FULL_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft != true && github.event.action != 'edited' }}
           PREFLIGHT: ${{ needs.preflight.result }}
           REQUIRED: ${{ needs.changes.outputs.docker }}
           METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
@@ -1118,6 +1145,10 @@ jobs:
           PR_FAST_GATE: ${{ needs.pr_fast_gate.result }}
         run: |
           set -euo pipefail
+          if [[ "$PR_IS_DRAFT" == "true" ]]; then
+            echo "::error title=FINAL_FULL_REQUIRED::Draft PR: Docker smoke Required Check BLOCKED. FAST_DEVELOPMENT is non-authoritative; switch to Ready for Full." >&2
+            exit 1
+          fi
           if [[ "$IS_FULL_PR" == "true" && "$PREFLIGHT" != "success" ]]; then
             echo "QA Preflight가 미성공이므로 필수 집계를 실패 처리합니다: $PREFLIGHT" >&2
             exit 1
@@ -1153,7 +1184,7 @@ jobs:
     name: 변경 영향 Shadow 계획 · advisory only (#770)
     if: >-
       always() &&
-      ((github.event_name == 'pull_request' && github.event.action != 'edited') ||
+      ((github.event_name == 'pull_request' && github.event.pull_request.draft != true && github.event.action != 'edited') ||
        (github.event_name == 'push' && github.ref == 'refs/heads/main'))
     needs: [changes, quality, e2e, docker]
     runs-on: ubuntu-latest
@@ -1223,7 +1254,7 @@ jobs:
   # Never report success of an unexecuted QA check, and never weaken existing required CI.
   qa_bootstrap:
     name: QA Final 신뢰 경계 확인
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -1326,7 +1357,7 @@ jobs:
     name: QA Final — Automated
     if: >-
       always() &&
-      github.event_name == 'pull_request' &&
+      github.event_name == 'pull_request' && github.event.pull_request.draft != true &&
       needs.qa_bootstrap.result == 'success' &&
       needs.qa_bootstrap.outputs.trusted_validator == 'true' &&
       needs.qa_bootstrap.outputs.qa_mode == 'AUTO' &&

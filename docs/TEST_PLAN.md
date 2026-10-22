@@ -1,3 +1,21 @@
+## Issue #771 — F771-001/F771-002 정책 회귀 교정 (2026-10-22)
+
+- [원본 PR CI #3124.1](https://github.com/planner77/masterGantt/actions/runs/39730387486): `verify-issue-lifecycle.py`의 과거 `types: [opened, reopened, synchronize, edited]` 전체 문자열 일치 요구가 신규 Ready/Draft 이벤트와 충돌 → Policy FAIL. PR Fast Gate·Required3/QA 결과는 파생 FAIL, Chromium 8/8·Docker·PR Build는 **NOT RUN**.
+- 신규 `tests/python/test_ci_fast_development.py::test_lifecycle_event_set_accepts_ready_and_preserves_edited`: 이벤트 전체 집합/중복·기존 metadata `edited` 유지. `scripts/verify-issue-lifecycle.py`는 이벤트 순서에 의존하지 않고 요구 6종(`opened`, `reopened`, `synchronize`, `edited`, `ready_for_review`, `converted_to_draft`)을 정확히 검사.
+- 기존 `test_path_traversal_duplicate_and_missing_selection` 보강: 선택·제외 test IDs `tests/e2e/../evil.spec.ts`, `tests/e2e/./same.spec.ts` 음성, 실제 안전한 browser spec 양성. Fast browser 실행 직전 동일 세그먼트 거부 + `Path.resolve`가 `tests/e2e` 루트 안에 있는지 검사. 원격 새 Head 결과 아직 **NOT TESTED**.
+- 직접/교차: `scripts/verify-issue-lifecycle.py`, `tests/python/test_ci_fast_development.py`, `scripts/test_qa_preflight.py`, `tests/python/test_ci_impact_plan.py`, `scripts/test-pr-metadata-evidence.py`, 기존 Policy Job/Ready Full 8-shard. CI 성공, metadata vs Full provenance, Draft→Ready 실증, A/B 시간 절감은 완료 전 PASS로 기록 금지. [원장](ISSUE_771_FAILURE_ANALYSIS.md).
+
+---
+## Issue #771 — Draft Fast/Ready Full 실행·출처·회귀 계획 (2026-10-22)
+
+- **자동 synthetic** `tests/python/test_ci_fast_development.py`: Draft/Ready/edited/converted_to_draft 전환, 동일 Head Ready Full, Run/Attempt/Head/Base/Test-Merge/repository 위조, plan SHA/테스트 누락·중복·경로 삽입, unknown/Full fallback, 실제 8-shard·Required3 guard·보조 workflow read-only 분리. `scripts/test_qa_preflight.py`에 동일 SHA Ready 정상과 Draft/live Draft 거부 회귀 추가. #770 기존 음성/8샤드 검증 유지.
+- **원격 POC** Draft PR 생성 → 반복 synchronize: Fast의 실제 선정 spec·step outcomes와 Run/Attempt artifact를 확인한다. 동시에 Full의 3 Required Check가 BLOCKED/FAIL이고 Full E2E shard 1~8 및 Docker heavy implementation은 `SKIPPED`인지 확인한다. `SKIPPED` 집계가 PASS로 변환되면 FAIL.
+- 같은 SHA로 Draft→Ready: `ready_for_review` 사건만으로 새로운 원본 `[전체 검증] · FINAL_FULL` Run이 생기는지 검증. Preflight/Quality/Chromium 8/8/Docker/Trusted의 exact Head/Base/Test-Merge, main drift 및 이전 Full 실패·취소 우선 판정을 검증. Ready `synchronize`·`opened/reopened`, 다시 Draft 전환, `edited` metadata-only, fork read-only, timeout/cancel/rerun, 빠른 검증 실패와 fail-fast를 양/음성으로 시험한다.
+- **성과 AC5** before/after 동기간·동일 PR 위험군에서 Full Run 수/Runner-minutes(P50/P90)/최초 검증→병합 소요시간/취소·재실행 및 missed regression을 비교. 초기 사용자 요청은 PR CI 시작까지만: 별도 Draft→Ready Actions 및 A/B 표본 수집 전 `NOT TESTED / INSUFFICIENT_DATA`, 시뮬레이션 기대 절감과 실제 실측을 혼동하지 않는다.
+- 본 보호 정책 PR 자체는 non-draft opened Full CI의 실제 Quality + E2E8/8 + Docker + base Trusted 및 Owner HIGH 승인이 필요하다. 이번 코드 작성/PR 시작만으로 어떤 CI PASS도 주장하지 않는다. 릴리스·Ruleset 변경 범위 없음.
+
+---
+
 ## Issue #751 F-010 — PR #754 8-shard inventory and optional Timing Reporter fields (2026-10-22)
 
 - [Original Full #3117.1](https://github.com/planner77/masterGantt/actions/runs/39718978497): QA Preflight/TypeScript/ESLint PASS; `tests/python/test_ci_impact_plan.py::test_real_reporter_emits_passed_and_skipped_separately` policy ERROR, `tests/scripts/e2e-shard-planner.test.ts:107` Vitest FAIL. Fast Gate rejects, full Chromium8/Docker/Build implementation SKIPPED. These skips must never be counted as success or performance samples.

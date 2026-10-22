@@ -1,3 +1,20 @@
+## Issue #771 — #3124.1 FAIL 후 원격 재검증 지침 (2026-10-22)
+
+- [원본 Run](https://github.com/planner77/masterGantt/actions/runs/39730387486)은 Policy Job `119663965780`의 `pull_request edited event must rerun trace validation` exit 1이 첫 오류. PR Fast Gate/Required3/QA FAIL은 전파, 원본 E2E8/Docker/PR Build SKIPPED. 실제 Chromium Assertion/Timeout·Docker runtime 실패라는 증거는 없다.
+- 새 Head에서는 `python3 scripts/verify-issue-lifecycle.py`, `python3 -m unittest discover -s tests/python -p test_ci_fast_development.py -v` (기존 path traversal + 새 이벤트 계약), `scripts/test_qa_preflight.py`와 #770 영향 분석 회귀를 정책 Job에서 먼저 확인. 그 후 정확 Head/Base/Test-Merge의 Full Quality/E2E 8/8/Docker·Trusted QA가 *별도로* 필요. 미실행=NOT TESTED, 완료 전 SUCCESS 주장 불가.
+- 리뷰 P1 해결 근거/strict 최신 main·리뷰스레드 0도 확인한 뒤 CI는 단일 `synchronize`로 시작한다. 사용자 요청대로 새 CI 실행 후 별도 모니터링 불필요. 실제 Draft→Ready POC와 B5 Runner-minutes/시간 절감 A/B는 계속 **NOT TESTED / INSUFFICIENT_DATA**. [원장](ISSUE_771_FAILURE_ANALYSIS.md).
+
+---
+## Issue #771 — FAST_DEVELOPMENT와 FINAL_FULL 원격 증거 (2026-10-22)
+
+1. 정책 PR을 non-draft 상태로 만들어 `.github/workflows/ci.yml`의 `[전체 검증] · FINAL_FULL` 시작을 확인한다. 새 `ci-pr-source-<run_id>-<run_attempt>`의 정확 PR Head/Base/Test-Merge와 Quality/Chromium **8/8**/Docker 및 기본 브랜치 `QA Final — Trusted`를 대조한다. CI 시작 != PASS.
+2. 별도 Draft 시나리오에서 반복 synchronize를 Push 묶음 단위로 발생시킨다. `PR Fast Development (advisory)`의 Run/Attempt별 `ci-fast-development-<run>-<attempt>`와 선정 근거·실제 step outcomes, 선택 browser spec을 확인한다. 동시에 공식 `CI` Required3가 **명시 실패**이고 Chromium 8-shard·Docker heavy 구현 Job은 실행하지 않았는지 확인한다.
+3. Head가 동일한 상태에서 Draft→Ready만 전환하여 새로운 `[전체 검증] · FINAL_FULL` Run/Attempt를 확인하고 이전 Fast 성공이 Full 미실행/FAIL/PENDING를 덮지 못함을 확인한다. main base 갱신, 최신 Head mismatch, Draft 복귀, 메타데이터 title/body edited, fork read-only, cancel/rerun/test timeout의 BLOCKED 동작을 기록한다.
+4. 증거가 없거나 만료/불명확한 경우 `NOT TESTED`/`UNKNOWN`이다. `workflow_dispatch`, 로컬 통과, `FAST_TARGETED` 추천/Runner time savings 추정은 Required Check나 릴리스 영수증이 아니다. Ruleset #24043042의 세 Required 이름/strict 최신 main/리뷰 thread 0은 변경하지 않는다.
+5. 실패/Ready 이벤트 누락 시 Full synchronize 경로 복원 및 새 Fast workflow 비활성화로 롤백한다. 정확 새 Head의 원본 Full/Trusted/Owner HIGH 수용과 엄격한 문서 AC 검증 없이 병합·Main·GHCR·Finalizer를 진행하지 않는다. 이 PR의 모니터링은 사용자 지시상 생략한다.
+
+---
+
 ## Issue #770 — 최신 main 동기화 및 8샤드 Full PR CI 재검증 (2026-10-22)
 
 #770/PR #774의 [Full #3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)은 과거 base·6개 Chromium shard에서 PASS했으나 이후 main이 #767 8-shard로 전환해 branch가 10 commits stale / mergeable false이다. 최신 main `81c28fa5502caee27e98d4d293b0b1b28e6340dd`을 병합해 충돌을 해소하고 #770 Shadow가 **trusted shard plan 8개**를 관측하도록 동기화한다.

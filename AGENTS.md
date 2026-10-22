@@ -1,3 +1,18 @@
+## Issue #771 — 첫 Full #3124.1 정책 실패·P1 반영 (2026-10-22)
+
+- [Run 39730387486.1](https://github.com/planner77/masterGantt/actions/runs/39730387486)은 구형 `pull_request.types` 전체 문자열 검사로 Policy FAIL. 기존 `edited`와 신규 Ready/Draft를 **순서 독립·중복/미지 이벤트 거부 집합**으로 검증한다. P1 `tests/e2e/../evil.spec.ts`도 Fast 선택/제외/실행 직전 거부하도록 계약 보완.
+- [Issue #771 단일 실패 원장](docs/ISSUE_771_FAILURE_ANALYSIS.md)에 직접 Policy 실패/파생 Required3·QA FAIL/Chromium8·Docker 미실행, 두 리뷰 P1과 교정 회귀를 구분한다. 코드·테스트·문서/실패 원장을 **단일 PR branch 업데이트**로 게시하고 새 PR Full CI 시작. 사용자 요청에 따라 이후 모니터링·병합·Main/GHCR·Issue 종료는 하지 않는다. Owner HIGH 승인 전 Merge BLOCKED.
+
+---
+## Issue #771 — Draft Fast와 Ready Final Full 신뢰 분리 (2026-10-22)
+
+- Draft `opened`/`synchronize`/`reopened`/`converted_to_draft`는 `.github/workflows/pr-fast-development.yml`의 `FAST_DEVELOPMENT` (advisory)만 선택 E2E/정적 피드백을 수행한다. 기본 브랜치 #770 분류기의 정확 Head/Base/Test-Merge·Run/Attempt 및 Test Plan SHA를 검증하며 `FULL_REQUIRED`/UNKNOWN은 선택 E2E 미실행·NOT TESTED로 남긴다. Fast PASS를 QA/Required/병합 승인 증거로 사용하지 않는다.
+- 보호된 `.github/workflows/ci.yml`의 기존 세 aggregate Required Check (Build/static/unit, Chromium E2E, Docker)는 Draft에서 `always()`로 실행해 **실패(BLOCKED)** 시킨다. `skipped`나 성공 상태로 교체하거나 Ruleset #24043042/strict latest main/리뷰 thread 0을 변경하지 않는다. Draft에는 공식 8-shard/Docker 구현 Runner를 시작하지 않는다.
+- `ready_for_review`는 동일 Head SHA라도 `FINAL_FULL` 신규 실행, non-draft `opened`/`reopened`/`synchronize`도 FULL. 현재 8/8 E2E, Quality, Docker, 원본 PR source artifact, Preflight, fast gate, Trusted QA, Main/수동 Full 경로와 `edited` metadata-only 출처 검증을 보존한다. Draft 복귀/새 Head/main base drift는 기존 Full을 승인으로 간주하지 않는다.
+- 이번 정책 자체는 HIGH/OWNER_MANAGED/qa_required=true, Owner exact Head Full CI·Trusted QA·위험 승인 전 Merge BLOCKED. CI 오류나 Ready event 누락 시 별도 Fast를 끄고 기존 synchronize Full로 롤백한다. `docs/exec-plans/active/ISSUE_771.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md` 참조. 앱 버전/정식 GHCR/Finalizer 정책 변경 없음.
+
+---
+
 ## Issue #770 — 최신 main 8-shard 동기화 (2026-10-22)
 
 - #770/PR #774의 직전 Full PR CI [#3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)는 기존 base에서 Quality/Chromium **6/6**/Docker/QA Final 성공이었다. 그러나 이후 #767에 따라 **현재 활성 main은 8-shard** 및 앱 0.129.1로 변경되었다. 역사적 6/6 증거를 최신 8/8 PASS나 실패로 소급 변경하지 않는다.

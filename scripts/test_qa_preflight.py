@@ -27,7 +27,7 @@ class GH:
 
     def __init__(self):
         self.pr = {
-            "number": N, "state": "open",
+            "number": N, "state": "open", "draft": False,
             "title": "[Issue #629] QA Preflight",
             "body": ("Refs #629\nrisk_level: HIGH\nqa_method: OWNER_MANAGED\n"
                      "qa_required: true\nrelease_required: false\nrelease_authorized: false\n"),
@@ -63,7 +63,7 @@ class GH:
 
 def event():
     return {"action": "opened", "number": N,
-            "pull_request": {"number": N, "head": {"sha": H},
+            "pull_request": {"number": N, "draft": False, "head": {"sha": H},
                              "base": {"sha": B}}}
 
 
@@ -174,6 +174,19 @@ class Contract(unittest.TestCase):
             qa.Blocked("BLOCKED", "API outage"))
         with self.assertRaises(qa.Blocked):
             preflight.check(event(), env(), gh)
+
+    def test_ready_for_review_same_sha_and_draft_fail_closed(self):
+        gh = GH()
+        ready = event()
+        ready["action"] = "ready_for_review"
+        self.assertEqual(preflight.check(ready, env(), gh)["status"], "PASS")
+        ready["pull_request"]["draft"] = True
+        with self.assertRaises(qa.Blocked):
+            preflight.check(ready, env(), gh)
+        ready["pull_request"]["draft"] = False
+        gh.pr["draft"] = True
+        with self.assertRaises(qa.Blocked):
+            preflight.check(ready, env(), gh)
 
     def test_event_boundary(self):
         gh = GH()

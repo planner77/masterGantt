@@ -1,0 +1,156 @@
+name: PR Fast Development (advisory)
+run-name: >-
+  ${{ format('FAST_DEVELOPMENT (non-authoritative) · {0} · PR #{1} · Run #{2}.{3}', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt) }}
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, converted_to_draft, ready_for_review]
+
+# PR code is untrusted. This is NOT a Required Check / trusted QA / release.
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: fast-development-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  feedback:
+    name: FAST_DEVELOPMENT — selected feedback (non-authoritative)
+    if: github.event.pull_request.draft == true && github.event.action != 'ready_for_review'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout exact trusted base policy
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Generate base-authenticated #770 impact plan
+        shell: bash
+        run: |
+          python3 scripts/ci_impact_plan.py --mode pr --plan-only --output "$RUNNER_TEMP/ci-fast-plan.json"
+      - name: Source/test-inventory verification (unknown -> no selected E2E)
+        id: prepare
+        shell: bash
+        run: |
+          python3 scripts/ci_fast_development.py prepare --plan "$RUNNER_TEMP/ci-fast-plan.json" --output "$RUNNER_TEMP/ci-fast-selection.json"
+
+      # PR test-merge code executes only after trusted base policy produced its
+      # plan. No write token, GHCR credentials, deployment or QA authority.
+      - name: Checkout exact PR test merge for feedback only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Node/npm setup
+        if: steps.prepare.outputs.node == 'true'
+        uses: ./.github/actions/node-setup
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Policy smoke (advisory)
+        id: policy
+        if: steps.prepare.outputs.node == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/verify-release-version.mjs
+          python3 scripts/test_qa_preflight.py
+          python3 scripts/test_pr_fast_gate.py
+          python3 -m unittest discover -s tests/python -p 'test_ci_fast_development.py' -v
+      - name: TypeScript typecheck (advisory)
+        id: typecheck
+        if: steps.prepare.outputs.node == 'true'
+        run: npm run typecheck
+      - name: ESLint (advisory)
+        id: lint
+        if: steps.prepare.outputs.node == 'true'
+        run: npm run lint
+      - name: Vitest unit (advisory)
+        id: unit
+        if: steps.prepare.outputs.node == 'true'
+        run: npm test
+      - name: Next.js build (advisory)
+        id: build
+        if: steps.prepare.outputs.node == 'true'
+        run: npm run build
+      - name: Playwright setup for selected browser E2E
+        if: steps.prepare.outputs.browser == 'true'
+        uses: ./.github/actions/playwright-setup
+      - name: Run only selected existing Chromium specs (non-authoritative)
+        id: browser
+        if: steps.prepare.outputs.browser == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t selected < <(python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          report = json.loads((Path(os.environ["RUNNER_TEMP"]) / "ci-fast-selection.json").read_text())
+          assert report["plan_status"] == "VERIFIED_BASE_POLICY_ADVISORY"
+          assert report["selection_status"] == "TARGETED_E2E_PLANNED_NON_AUTHORITATIVE"
+          items = report["browser_selection"]
+          assert items and len(items) == len(set(items))
+          for name in items:
+              assert re.fullmatch(r"tests/e2e/(?:[A-Za-z0-9._-]+/)*[A-Za-z0-9._-]+\.spec\.ts", name)
+              assert all(part not in (".", "..") for part in name.split("/"))
+              file = Path(name)
+              assert file.is_file() and not file.is_symlink()
+              assert file.resolve(strict=True).is_relative_to(Path.cwd().resolve() / "tests/e2e")
+              print(name)
+          PY
+          )
+          if (( ${#selected[@]} == 0 )); then
+            echo "Selected browser specs missing; never silently execute full suite" >&2
+            exit 1
+          fi
+          echo "FAST_DEVELOPMENT browser selected: ${#selected[@]} spec files; NOT Full"
+          npm run test:e2e -- --max-failures=1 "${selected[@]}"
+      - name: Actual Fast step outcomes (no inferred per-spec PASS)
+        if: always()
+        env:
+          POLICY: ${{ steps.policy.outcome }}
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          LINT: ${{ steps.lint.outcome }}
+          UNIT: ${{ steps.unit.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+          BROWSER: ${{ steps.browser.outcome }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          base = Path(os.environ["RUNNER_TEMP"])
+          source = base / "ci-fast-selection.json"
+          report = json.loads(source.read_text()) if source.is_file() else {
+              "schema": "mastergantt-fast-development-v1",
+              "authority": "ADVISORY_NOT_REQUIRED_NOT_QA_NOT_RELEASE",
+              "selection_status": "PLAN_UNAVAILABLE"}
+          report["executed_steps"] = {
+              key: os.environ.get(key, "UNKNOWN") for key in
+              ("POLICY", "TYPECHECK", "LINT", "UNIT", "BUILD", "BROWSER")}
+          report["actual_test_result"] = "STEP_OUTCOMES_ONLY_NOT_PER_SPEC_PASS"
+          (base / "ci-fast-evidence.json").write_text(
+              json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2) + "\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
+              out.write("## FAST_DEVELOPMENT actual steps (not QA/Required3)\n")
+              for name, state in report["executed_steps"].items():
+                  out.write("- {}: {}\n".format(name, state))
+              out.write("- Full 8-shard, Docker, QA, merge/release authority: NOT TESTED\n")
+          PY
+      - name: Preserve run/attempt advisory evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-fast-development-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/ci-fast-plan.json
+            ${{ runner.temp }}/ci-fast-selection.json
+            ${{ runner.temp }}/ci-fast-evidence.json
+          if-no-files-found: warn
+          retention-days: 30
