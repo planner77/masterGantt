@@ -1,3 +1,12 @@
+## Issue #771 — Fast 성공과 Full/Trusted/Owner 승인 권한 구분 (2026-10-22)
+
+- `FAST_DEVELOPMENT`는 작업 중 참고용으로만 표시한다. 기본 브랜치 인증 #770 선정 계획, 작업 branch에서 실행한 typecheck/lint/unit/build/선택 E2E가 성공해도 `required Quality/E2E/Docker`·Trusted QA·Merge Ready·Release/Finalizer PASS를 만들 수 없다.
+- Draft의 기존 세 Required aggregate는 green/skip이 아니라 명시 실패(BLOCKED)여야 하고, draft 상태의 QA Final은 차단한다. `ready_for_review` 및 non-draft opened/reopened/synchronize Full에서 동일 Head/Base/Test-Merge·최신 main 기준 8-shard와 Docker/Quality 및 원본 artifact·run_attempt를 재검증한다.
+- 메타데이터 edited는 동일 current Head/Base/Test-Merge의 최신 authoritative Full 증거만 재사용한다. 최신 Full 실패/취소/진행중, source mismatch, draft 복귀, 정책 버전/근거 UNKNOWN 또는 fork 쓰기 권한은 보수적으로 BLOCKED; 수동 dispatch·Fast/PASS 보고를 원본 Full로 오인하지 않는다.
+- 이번 CI/QA 정책 변경은 HIGH/OWNER_MANAGED/qa_required=true 및 기존 Ruleset 3 Check·strict 최신 main·review thread 0, QA Preflight·기본 브랜치 Trusted·Owner의 명시적 위험 수용을 모두 유지한다. CI 자체 PASS는 Owner 승인이나 릴리스 권한이 아니다.
+
+---
+
 ## Issue #712 — 병합 후 PR QA 신뢰 경계 / 동일 이름 Required Check (2026-10-18)
 
 - 기본 브랜치 Trusted Validator는 `ci-pr-source-<run>-<attempt>` 원본 출처를 읽기 전용으로 조회하고 PR 번호·Head/Base/Test-Merge·workflow·repository와 commit→PR 단일 귀속을 인증한다. 병합 후 원본 test-merge SHA는 실제 merge SHA와 **달라도** 부모(base/head)와 Git Tree가 같아야 한다. open PR은 기존 strict exact SHA 비교 유지. 다른 Tree, squash/rebase, 여러 귀속·출처 미확인은 자동 PASS 불가.

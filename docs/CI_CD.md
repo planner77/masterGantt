@@ -1,3 +1,20 @@
+## Issue #771 — Draft 개발 Fast / Ready 최종 Full PR 검증 분리 (2026-10-22)
+
+| PR 이벤트·현재 Draft | 실행 의미 | 필수 CI Required3 결과 | 실제 무거운 구현 검사 |
+| --- | --- | --- | --- |
+| Draft `opened/reopened/synchronize/converted_to_draft` | 별도 `FAST_DEVELOPMENT` advisory | 기존 3 aggregate **실패(BLOCKED)** | 공식 Full E2E8/Docker는 실행하지 않음; 신뢰된 #770 선정 가능 시 선택 E2E 및 정적 피드백 |
+| non-draft `ready_for_review` | `FINAL_FULL` authoritative | 기존 3 aggregate 정확 결과 | 동일 SHA라도 새 Head/Base/Test-Merge 원본 기준 8/8 Chromium+Docker+Quality (변경 filter 계약 유지) |
+| non-draft `opened/reopened/synchronize` | `FINAL_FULL` authoritative | 기존 3 aggregate 정확 결과 | 현행 모든 필수 Full 검증 |
+| non-draft `edited` | 기존 `METADATA_ONLY` | 동일 Head/Base/Test-Merge Full 증거 검증이 성공할 때만 | 무거운 새 Full은 수행하지 않음 |
+| Draft `edited` | Draft 차단 유지 | 성공/생략 녹색 금지 | 공식 Full 미실행, Fast 선택 새 실행 미발생 |
+
+- Fast workflow `.github/workflows/pr-fast-development.yml`은 필수 Check 3종과 이름·워크플로 출처가 다르며 read-only(`contents`, `pull-requests`)·PR별 cancel-in-progress. 메타데이터/로컬 `workflow_dispatch`/과거 Full은 Fast나 Required 증거로 승격할 수 없다.
+- `scripts/ci_impact_plan.py --plan-only`는 정확 base SHA 코드에서 #770 계약을 생성하고 결과에 `PLAN_VERIFIED_NON_AUTHORITATIVE`/실제 Full `NOT_TESTED`를 기록. `scripts/ci_fast_development.py`에서 source Run ID·Attempt, PR Head/Base/Test-Merge, 계획 Hash, 테스트 인벤토리 유일성/경로를 검사한다. UNKNOWN/FULL_REQUIRED→선택 E2E 미실행. 선정/제외 및 실제 static/browser step 결과를 별도 Artifact/Job Summary에 남기되 실제 실행되지 않은 테스트에 PASS를 쓰지 않는다.
+- 기존 세 Required Job 이름과 `if: always()`/QA Preflight/fail-fast/Full shard 8개, concurrency full과 metadata 구분, PR 원본 artifact, main push/workflow_dispatch Full, default-main Trusted QA, Owner/Ruleset/Release/Finalizer 경로를 유지한다. Draft→Ready 전환은 `ready_for_review` 이벤트로 새 **Full Run ID/Attempt**를 만들며 edited만 전환하는 것은 Full이 아니다.
+- 정책 롤백: 해당 변경 전 `.github/workflows/ci.yml`의 `opened/reopened/synchronize/edited` + synchronize Full 경로를 복구하고 Fast workflow를 비활성화한다. Fast를 Required로 채택하거나 Ruleset 이름/strict를 바꾸는 롤백 금지. 승인·측정 전 실제 성능 절감률 및 A/B 효과 `NOT TESTED`.
+
+---
+
 ## Issue #770 — #767 main E2E8 전환 동기화와 Trusted Shadow (2026-10-22)
 
 기존 #770 Full PR CI [#3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959) 6/6은 과거 Head/Base의 성공 근거이며, 현재 main `81c28fa5502caee27e98d4d293b0b1b28e6340dd`의 E2E 8-way와 호환되는 최신 Required PASS가 아니다. PR #774의 기존 HEAD는 새 main에서 **mergeable=false / behind=10**이므로 Main 정렬을 수행한다. 이 상황을 테스트 실패로 오판하지 않는다.

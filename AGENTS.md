@@ -1,3 +1,12 @@
+## Issue #771 — Draft Fast와 Ready Final Full 신뢰 분리 (2026-10-22)
+
+- Draft `opened`/`synchronize`/`reopened`/`converted_to_draft`는 `.github/workflows/pr-fast-development.yml`의 `FAST_DEVELOPMENT` (advisory)만 선택 E2E/정적 피드백을 수행한다. 기본 브랜치 #770 분류기의 정확 Head/Base/Test-Merge·Run/Attempt 및 Test Plan SHA를 검증하며 `FULL_REQUIRED`/UNKNOWN은 선택 E2E 미실행·NOT TESTED로 남긴다. Fast PASS를 QA/Required/병합 승인 증거로 사용하지 않는다.
+- 보호된 `.github/workflows/ci.yml`의 기존 세 aggregate Required Check (Build/static/unit, Chromium E2E, Docker)는 Draft에서 `always()`로 실행해 **실패(BLOCKED)** 시킨다. `skipped`나 성공 상태로 교체하거나 Ruleset #24043042/strict latest main/리뷰 thread 0을 변경하지 않는다. Draft에는 공식 8-shard/Docker 구현 Runner를 시작하지 않는다.
+- `ready_for_review`는 동일 Head SHA라도 `FINAL_FULL` 신규 실행, non-draft `opened`/`reopened`/`synchronize`도 FULL. 현재 8/8 E2E, Quality, Docker, 원본 PR source artifact, Preflight, fast gate, Trusted QA, Main/수동 Full 경로와 `edited` metadata-only 출처 검증을 보존한다. Draft 복귀/새 Head/main base drift는 기존 Full을 승인으로 간주하지 않는다.
+- 이번 정책 자체는 HIGH/OWNER_MANAGED/qa_required=true, Owner exact Head Full CI·Trusted QA·위험 승인 전 Merge BLOCKED. CI 오류나 Ready event 누락 시 별도 Fast를 끄고 기존 synchronize Full로 롤백한다. `docs/exec-plans/active/ISSUE_771.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md` 참조. 앱 버전/정식 GHCR/Finalizer 정책 변경 없음.
+
+---
+
 ## Issue #770 — 최신 main 8-shard 동기화 (2026-10-22)
 
 - #770/PR #774의 직전 Full PR CI [#3105.1](https://github.com/planner77/masterGantt/actions/runs/39696698959)는 기존 base에서 Quality/Chromium **6/6**/Docker/QA Final 성공이었다. 그러나 이후 #767에 따라 **현재 활성 main은 8-shard** 및 앱 0.129.1로 변경되었다. 역사적 6/6 증거를 최신 8/8 PASS나 실패로 소급 변경하지 않는다.

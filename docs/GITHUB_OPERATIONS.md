@@ -1,3 +1,12 @@
+## Issue #771 — Draft 개발 선택 검사와 Ready 전체 PR CI 절차 (2026-10-22)
+
+- 개발 중에는 Draft PR로 등록해 파일 변경을 모아 synchronize한다. `PR Fast Development (advisory)`가 실행될 수 있지만 이는 **참고용**. 별도로 `CI`의 기존 Quality/E2E/Docker Required3는 Draft 상태에서 실패(BLOCKED)여야 정상이다. Draft에서 Merge Ready/PASS로 해석하거나 Checks를 건너뛰어 병합하지 않는다.
+- 최종 검토를 요청할 때 GitHub PR의 **Ready for review**로 전환한다. 변경 커밋이 없어도 `ready_for_review`를 받은 Full CI가 실행되어야 한다. Full Run/Attempt·Head/Base/Test-Merge·8개 E2E shard/required 3종·QA Trusted·리뷰 thread를 확인하고 Owner의 별도 exact-head 승인 전에 병합하지 않는다.
+- Ready 이후 수정 Push는 계속 `FINAL_FULL`; 제목·본문 `edited`는 기존 metadata-only 출처 검증이며 신규 Full의 대체가 아니다. 다시 Draft로 바뀌면 기존 Full 영수증의 Merge 권위는 중단되어야 한다. fork PR 권한은 read-only로 유지하고 Ruleset/Secrets/리포지터리 권한을 확대하지 않는다.
+- 장애·차단 경계는 [Issue #771 Work Packet](exec-plans/active/ISSUE_771.md)·[CI/CD](CI_CD.md)·[원격 검증](REMOTE_VALIDATION.md)을 따른다. Ready 이벤트 손실 시 Draft Fast를 Required로 승격하지 말고 `synchronize` Full 정책으로 되돌린다.
+
+---
+
 ## Issue #622 — 인증된 과거 CLOSED 완료 복구 (2026-10-15)
 
 Generic Finalizer #374.2는 #665/#666의 FINAL을 완료했지만, Owner가 먼저 CLOSED한 #622는 FINAL/branch cleanup이 빠졌다. 일반 자동 Finalizer는 CLOSED/FINAL 누락 이력을 `non-actionable` barrier로 처리하므로 반복 실행·Issue 수동 재개만으로 소급 수행하지 않는다. #622 운영자는 **해당 복구 PR이 원격 CI 및 Trusted QA, Main CI까지 성공한 다음**, 정확한 새 main merge SHA와 새 PR 번호, `release_sha=1449190af8d4f97d4737d17ae67e9dcb044549a7`, `version=0.114.0` 및 설명을 가진 `mastergantt-closed-622-recovery:v1` Owner 댓글을 #622에 작성해야 한다. 이 댓글은 일반 release authorization을 변경하지 않는다.
