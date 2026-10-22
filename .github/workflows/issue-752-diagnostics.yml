@@ -227,7 +227,7 @@ jobs:
                                       results.append({"status":str(item.get("status") or "UNKNOWN")[:20],"duration":duration})
                               tests.append({"id":str(test.get("id") or "")[:90],"results":results})
                           entries.append({"tests":tests})
-                      if re.fullmatch(r"tests/e2e/[A-Za-z0-9_./-]+\\.spec\\.ts",p):
+                      if re.fullmatch(r"tests/e2e/[A-Za-z0-9_./-]+\.spec\.ts",p):
                           suites.append({"file":p,"specs":entries})
                       for child in node.get("suites",[]):
                           if isinstance(child,dict):
