@@ -1,3 +1,11 @@
+## Issue #772 — 두 번째 Policy 실패·E2E Job 경계 교정 (2026-10-22)
+
+- [두 번째 PR #778 Full CI #3142.1](https://github.com/planner77/masterGantt/actions/runs/39764955472) 직접 Policy FAIL: `test_workflow_aggregate_guard_contract`의 `split("  e2e:\\n")`가 dorny `changes` path filter 내부 `e2e:`와 조기 매칭해 E2E Job의 실제 `needs`를 읽지 못함. Fast Gate/Required3/QA FAIL은 파생, Chromium8·Docker·LOW 회귀는 미실행. 이전 [#3141.1](https://github.com/planner77/masterGantt/actions/runs/39759380633)과 같은 파일이지만 직접 원인은 별개이며 두 Run/Attempt를 [#772 누적 원장](docs/ISSUE_772_FAILURE_ANALYSIS.md)에 기록.
+- 이전 두 P1 리뷰는 해결 상태였으나, 코드 감사에서 LOW 3개 `env`가 E2E가 아닌 `quality` Job에 삽입된 불완전한 수정 발견. 정확 E2E 집계 env로 이관, Quality 바인딩 제거, `\n  e2e:\n` anchored job 인식과 `test_ci_low_workflow.py`의 잘못된 동일 split 교정. OFF Full8·선택 실제 PASS가 없는 green 금지·Owner flag 동일 출처를 가드한다.
+- 본 보호 변경은 HIGH / OWNER_MANAGED, `LOW_TARGETED_POLICY_ENABLED` 초기 OFF·기존 Required3/Chromium8/Main/Release/Ruleset strict·Owner 위험 수용 불변. 새 Head PR CI 시작까지 수행하고 이후 모니터링·병합/Main/GHCR/Finalizer/Issue 종료 제외. [Work Packet](docs/exec-plans/active/ISSUE_772.md).
+
+---
+
 ## Issue #772 — PR #778 첫 Full CI 실패 및 P1 회귀 보호 (2026-10-22)
 
 - [#772 단일 실패 원장](docs/ISSUE_772_FAILURE_ANALYSIS.md), [Work Packet](docs/exec-plans/active/ISSUE_772.md). [Run 39759380633.1](https://github.com/planner77/masterGantt/actions/runs/39759380633)의 Policy 직접 실패는 `scripts/test_qa_preflight.py` 기존 E2E `needs` 문자열 단언의 낡은 계약. Fast Gate/Required3/QA FAIL은 파생, Chromium8/Docker 구현은 NOT RUN.

@@ -208,7 +208,13 @@ class Contract(unittest.TestCase):
         # The #772 extension adds base-trusted policy and actual execution
         # evidence. Inspect the exact required dependency set and guards rather
         # than an obsolete string that rejects safe additions.
-        e2e = ci.split("  e2e:\n", 1)[1].split("  docker_smoke:\n", 1)[0]
+        # Anchored YAML job headers only. A source-path filter also defines an
+        # indented "e2e:" label and must never shadow the actual required job.
+        self.assertEqual(ci.count("\n  e2e:\n"), 1)
+        self.assertEqual(ci.count("\n  docker_smoke:\n"), 1)
+        e2e = ci.split("\n  e2e:\n", 1)[1].split("\n  docker_smoke:\n", 1)[0]
+        self.assertTrue(e2e.startswith("    name: Chromium end-to-end tests\n"))
+        quality = ci.split("\n  quality:\n", 1)[1].split("\n  e2e_shard:\n", 1)[0]
         needs_line = next((line.strip() for line in e2e.splitlines()
                            if line.strip().startswith("needs: [")), None)
         self.assertIsNotNone(needs_line)
@@ -225,6 +231,7 @@ class Contract(unittest.TestCase):
             "LOW_TARGETED: ${{ needs.low_e2e_targeted.result }}",
         ):
             self.assertIn(binding, e2e)
+            self.assertNotIn(binding, quality)
         for actual_check in (
             '"$LOW_MODE" == "TARGETED_POLICY_CANDIDATE"',
             '"$LOW_PLAN" != "success"',

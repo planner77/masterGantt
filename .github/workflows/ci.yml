@@ -707,9 +707,6 @@ jobs:
           UNIT: ${{ needs.unit.result }}
           BUILD: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && needs.pr_build.result || needs.build.result }}
           PR_FAST_GATE: ${{ needs.pr_fast_gate.result }}
-          LOW_MODE: ${{ needs.low_e2e_plan.outputs.mode || '' }}
-          LOW_PLAN: ${{ needs.low_e2e_plan.result }}
-          LOW_TARGETED: ${{ needs.low_e2e_targeted.result }}
         run: |
           set -euo pipefail
           if [[ "$PR_IS_DRAFT" == "true" ]]; then
@@ -1037,6 +1034,9 @@ jobs:
           METADATA_EVIDENCE: ${{ needs.metadata_evidence.result }}
           RESULT: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && needs.pr_e2e_shard.result || needs.e2e_shard.result }}
           PR_FAST_GATE: ${{ needs.pr_fast_gate.result }}
+          LOW_MODE: ${{ needs.low_e2e_plan.outputs.mode || '' }}
+          LOW_PLAN: ${{ needs.low_e2e_plan.result }}
+          LOW_TARGETED: ${{ needs.low_e2e_targeted.result }}
         run: |
           set -euo pipefail
           if [[ "$PR_IS_DRAFT" == "true" ]]; then

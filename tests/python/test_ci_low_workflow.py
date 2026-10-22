@@ -8,7 +8,9 @@ CI = (Path(__file__).resolve().parents[2] / ".github/workflows/ci.yml").read_tex
 
 
 def section(name: str, next_name: str) -> str:
-    begin, end = f"  {name}:\n", f"  {next_name}:\n"
+    # Anchoring to the line start prevents "            e2e:" in the
+    # dorny paths-filter from being misread as the 2-space E2E job header.
+    begin, end = f"\n  {name}:\n", f"\n  {next_name}:\n"
     assert CI.count(begin) == 1 and CI.count(end) == 1
     return CI.split(begin, 1)[1].split(end, 1)[0]
 
@@ -31,6 +33,14 @@ class WorkflowGuardTest(unittest.TestCase):
         ):
             with self.subTest(binding=binding):
                 self.assertIn(binding, aggregate)
+        quality = section("quality", "e2e_shard")
+        self.assertTrue(aggregate.startswith("    name: Chromium end-to-end tests\n"))
+        for binding in (
+            "LOW_MODE: ${{ needs.low_e2e_plan.outputs.mode || '' }}",
+            "LOW_PLAN: ${{ needs.low_e2e_plan.result }}",
+            "LOW_TARGETED: ${{ needs.low_e2e_targeted.result }}",
+        ):
+            self.assertNotIn(binding, quality)
         self.assertIn('"$LOW_MODE" == "TARGETED_POLICY_CANDIDATE"', aggregate)
         self.assertIn('"$LOW_PLAN" != "success"', aggregate)
         self.assertIn('"$LOW_TARGETED" != "success"', aggregate)
@@ -48,6 +58,15 @@ class WorkflowGuardTest(unittest.TestCase):
         self.assertIn("        env:\n          " + binding, step)
         self.assertIn("python3 scripts/ci_low_policy.py --stage attest", step)
         self.assertIn("ref: ${{ github.event.pull_request.base.sha }}", targeted)
+
+    def test_path_filter_e2e_does_not_shadow_real_job(self):
+        self.assertIn("            e2e:\n", CI)
+        self.assertEqual(CI.count("\n  e2e:\n"), 1)
+        self.assertEqual(CI.count("\n  docker_smoke:\n"), 1)
+        actual = section("e2e", "docker_smoke")
+        self.assertTrue(actual.startswith("    name: Chromium end-to-end tests\n"))
+        self.assertIn("low_e2e_targeted", actual)
+        self.assertNotIn("needs: [changes, preflight]", actual)
 
     def test_required_three_and_main_full8_unchanged(self):
         for title in (

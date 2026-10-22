@@ -1,5 +1,12 @@
 # Issue #772 — LOW 선택 E2E의 정식 증거 계약 (2026-10-22)
 
+## 2026-10-22 — F772-004/005 · 두 번째 Full CI 실패와 불완전한 P1 이관 교정
+
+- 원본 [PR CI #3142.1 / Run 39764955472](https://github.com/planner77/masterGantt/actions/runs/39764955472), Head `106a57e9afea9b766821a3aac9b72e2bf9efabc3`, Base `53aee48eba52860d6abf17149cc72292c4187dae`, Test-Merge `65842f937a9bb35c51809deebc2a39bc2c7a7681`. Policy Job `119778232263`의 `scripts/test_qa_preflight.py::test_workflow_aggregate_guard_contract`에서 정확 needs 집합이 아니라 path filter의 두 요소만 추출한 assertion FAIL. 같은 코드의 불완전한 이전 수정으로 인한 회귀. 다른 Required3·QA의 FAIL은 파생, Chromium8/Docker/PR Build는 NOT RUN.
+- 2차 정적 교차 확인: 이전 P1 #4346971684 대응으로 추가한 LOW 3개 env는 실제 E2E Job이 아닌 Quality 집계에 들어가 있었다. 이를 Quality에서 삭제하고 실제 E2E 집계로 이동하며 (미실행된) `set -u` 잠재 결함을 함께 제거. Owner `LOW_TARGETED_POLICY_ENABLED` attestation 경로는 보존.
+- 정확한 Job 헤더/전후 Job 경계를 newline + YAML 2-space indentation으로 고정하고, 신규 `tests/python/test_ci_low_workflow.py`의 동일 취약 helper와 `scripts/test_qa_preflight.py`를 일치시킨다. `e2e` filter-key decoy, 실제 E2E needs 8종, Quality 비포함, OFF Full8/ON Targeted fail-closed를 함께 검증한다. `AGENTS.md` 및 [단일 실패 원장](../../ISSUE_772_FAILURE_ANALYSIS.md) 증거 보존.
+- 검사 대상: Policy/Preflight/LOW 3개 Python 테스트와 #770/#771/#712·QA·metadata·Lifecycle 회귀. 원격 #3142에서는 기존 LOW Python 정책 자체 NOT RUN; 교정 Head/Run에서 재증명이 필요. 실제 새 원격 결과는 시작 당시 NOT TESTED, Owner HIGH·Full8·리뷰0·strict 유지. GHCR/Main/Finalizer/이슈 종료 및 이후 CI 모니터링 미수행.
+
 ## 2026-10-22 — F772-001~003 PR #778 CI 실패·리뷰 P1 일괄 보완
 
 - 원본 Full PR CI [Run #3141.1 / 39759380633](https://github.com/planner77/masterGantt/actions/runs/39759380633): Head `3c989d0aee004ac1e7ab525974a7d517748896a5`, Base `53aee48eba52860d6abf17149cc72292c4187dae`, Test-Merge `487ae32cb63a695e378a52be1f3cf30e7782fad0`. 직접 Policy FAIL은 `scripts/test_qa_preflight.py`의 오래된 E2E `needs` 완전 문자열 단언; Fast Gate/Required3/QA 파생 FAIL, Chromium8/Docker/PR Build는 NOT RUN.
