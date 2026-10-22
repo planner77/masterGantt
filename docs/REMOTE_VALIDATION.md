@@ -1,3 +1,12 @@
+## Issue #752 — #3158.1 역사적 Gantt 캡처·보안 런타임 경계 재검증 (2026-10-23)
+
+- [Full #3158.1](https://github.com/planner77/masterGantt/actions/runs/39841972369)에서 Policy의 `npm audit --omit=dev`는 `found 0 vulnerabilities`, Python Issue #752 **20/20 PASS**, Type/Lint 성공. Vitest **4 FAIL / 3,175 PASS**는 모두 `tests/fixtures/gantt-state-consistency/capture-install.ts:24`의 `Historical capture requires unchanged package metadata except version`. 4개 영향 파일: `tests/scripts/prepr-verifier.test.ts`, `axis-transaction-runtime-fixture.test.ts`, `canonical-recovery-runtime.test.ts`, `state-consistency-runtime-fixture.test.ts`. 이후 E2E8/Docker/PR Build는 미실행, aggregate+QA는 파생 FAIL.
+- 역사적 16.3.8 `package-original.snapshot.txt` 및 `package-lock-original.snapshot.txt`는 수정하지 않는다. 최신 Next.js 16.4.2는 원본이 아닌 현재 운영·CI 환경의 보안 패치이므로, 비교 시 **승인된 exact Next/Env/8 SWC/Sharp 버전 및 공식 tarball URL만** 메모리에서 정규화하고 나머지 패키지 메타데이터의 deepEqual·기존 역사적 Source SHA 검사 유지. 캡처의 환경과 현대 재실행을 혼동하지 않는다.
+- 검증 입력: npm `ci`/`audit`, `npm test`(위 4 파일+전체 unit), TypeScript, ESLint, Next Production Build, 8 Chromium Shards, Docker persistence smoke, QA Final. 음성: 임의 Next Patch/ENV 불일치/SWC URL 위조/Sharp 회귀/무관한 SVAR Core 버전 변경/CLI alias 위조는 반드시 FAIL. Python Issue #752 회귀 및 영향 Shadow에도 동일 HEAD 귀속.
+- [원장 F752-005](ISSUE_752_FAILURE_ANALYSIS.md)에 해당 Run/Attempt/Head/Test-Merge·첫 FAIL·파생·잔여위험을 보존. 현재 GitHub 연결에서는 Node/Chromium/Docker 직접 실행 `NOT TESTED`; 새 PR CI를 시작하고 사용자 요청 범위 이상의 CI 모니터링, 병합/Main/GHCR/Finalizer/Issue 종료는 하지 않는다.
+
+---
+
 ## Issue #752 — Full #3157.1 Next.js 보안 감사 회귀 검증 (2026-10-23)
 
 - 출처: [PR #780 Full #3157.1](https://github.com/planner77/masterGantt/actions/runs/39837796723), Policy Job `120030795349`, Step `production dependency audit`. `npm audit --omit=dev`에서 Next.js 16.3.8의 `GHSA-2464-fhr4-w9xw`, `GHSA-p3m5-59mp-jv5r`, `GHSA-673q-mjm6-r5xr`을 Critical 1건으로 보고하고 exit 1. 이후 E2E Shard8·Docker 구현은 SKIPPED로 집계 FAIL/QA FAIL만 발생하므로 실제 E2E 실패 재발로 해석하지 않는다.

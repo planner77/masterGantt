@@ -1,3 +1,11 @@
+## Issue #752 — #3158.1 Vitest 공통 역사적 캡처 검사 보완 (2026-10-23)
+
+- [PR #780 Full #3158.1](https://github.com/planner77/masterGantt/actions/runs/39841972369)에서 npm audit 보안 패치는 0 취약점으로 성공했지만 Vitest 4개가 `assertCapturedInstall`의 과거 `16.3.8` 패키지 동일성 검사에서 FAIL. 이 하나의 직접 원인 때문에 Fast Gate가 E2E8·Docker를 실행하지 않고 Required3 및 QA가 파생 실패. 정확 Run/HEAD/Job/소비자·검증 범위는 [누적 실패 원장 F752-005](ISSUE_752_FAILURE_ANALYSIS.md)에 기록.
+- 과거 패키지/Lock 캡처 `tests/fixtures/gantt-state-consistency/capture-sources/*-original.snapshot.txt`와 원본 SHA는 **절대 수정하거나 최신 보안 패치 실행 증거로 둔갑시키지 않는다**. `capture-install.ts`는 현재 `next`와 `@next/env`, 8개 SWC, `sharp`의 명시적으로 승인된 `16.3.8→16.4.2` 보안 차이만 정밀 검사한 뒤 비교용 메모리 복사본을 원본 버전으로 정규화한다. 나머지 dependency tree·스크립트·SVAR Core·tarball URL·fingerprint는 기존 strict `assert.deepEqual`로 계속 거부한다.
+- `tests/scripts/prepr-verifier.test.ts`의 음성 보호에 임의 Next 버전, ENV mismatch, 위조 SWC URL, Sharp 구버전 범위, 관련 없는 Core 버전과 스크립트 추가를 포함한다. 동일 helper 사용 Gantt Runtime fixture 3개 모두 직접 재검증 대상. npm-ci/audit/전체 Vitest/Next Build/Chromium8/Docker/QA/Owner 검증은 새 HEAD에서 진행하며, 본 작업의 사전 검증을 Full PASS로 표시하지 않는다.
+
+---
+
 ## Issue #752 — Full #3157.1 Next.js Critical 보안 감사 차단 교정 (2026-10-23)
 
 - [원본 Full #3157.1](https://github.com/planner77/masterGantt/actions/runs/39837796723)의 최초 실패는 Policy Job `production dependency audit`의 `npm audit --omit=dev`. 고정된 Next.js 16.3.8의 Critical 권고 1건(관련 GHSA 3개)으로 인한 **독립 보안 실패**이고, Fast Gate가 거부한 뒤 E2E8·Docker 구현은 **SKIPPED**이며 집계/QA는 파생 실패다. 기존 Full #3152에서는 동일 감사 0건이었으며 본 원인과 과거 QA 리뷰/테스트 문자열 실패를 혼동하지 않는다.
