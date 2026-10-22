@@ -194,6 +194,13 @@ def verify_static_contract(target):
         require(token in release, "RELEASE_WORKFLOW_PROFILE_DRIFT")
     for token in ("workers: 1", "CI_E2E_FULLY_PARALLEL", "trace: \"retain-on-failure\""):
         require(token in playwright, "PLAYWRIGHT_PROFILE_DRIFT")
+    main_e2e = ci.split("\n  e2e_shard:", 1)[1].split("\n  pr_e2e_shard:", 1)[0]
+    release_e2e = release.split("\n  release_e2e_shard:", 1)[1].split("\n  quality:", 1)[0]
+    # Same native dependency build and Chromium runner setup; weaker
+    # release setup would silently violate the reused execution profile.
+    require('use-local-node-headers: "true"' in main_e2e
+            and 'use-local-node-headers: "true"' in release_e2e,
+            "E2E_NODE_HEADERS_PROFILE_DRIFT")
     require("--max-failures=1" in ci and "PR_E2E_STOP_ON_FAILURE" in ci
             and "--max-failures=1" not in release, "MAIN_RELEASE_E2E_MODE_DRIFT")
 
