@@ -36,14 +36,14 @@ const preservedTables = ["tasks", "task_assignments", "project_processes", "proj
 function evidence(db: Database.Database) { return preservedTables.map(table => ({ table, rows: db.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all() })); }
 function assertLedger(db: Database.Database) {
   const rows = db.prepare("SELECT version,name,checksum FROM schema_migrations ORDER BY version").all() as {version:number;name:string;checksum:string}[];
-  expect(rows.map(row => row.version)).toEqual(Array.from({ length: 29 }, (_, i) => i + 1));
+  expect(rows.map(row => row.version)).toEqual(Array.from({ length: 30 }, (_, i) => i + 1));
   for (const row of rows) expect(row.checksum).toBe(createHash("sha256").update(readFileSync(join(migrationDir, row.name))).digest("hex"));
   expect(db.pragma("foreign_key_check")).toEqual([]); expect(db.pragma("foreign_keys", { simple: true })).toBe(1);
 }
 describe("#623 actual schema migration and non-destructive recovery acceptance", () => {
-  it("creates a fresh 29-version DB with exact checksums and stable restart", () => {
+  it("creates a fresh 30-version DB with exact checksums and stable restart", () => {
     const filename = join(directory(), "fresh.sqlite3"), first = open(filename);
-    expect(first.migrations.applied).toHaveLength(29); assertLedger(first.database); first.database.close();
+    expect(first.migrations.applied).toHaveLength(30); assertLedger(first.database); first.database.close();
     const next = open(filename); expect(next.migrations.applied).toEqual([]); assertLedger(next.database);
     for (const table of ["process_types", "site_product_processes", "work_areas", "logistics_targets", "task_target_bindings"]) expect(next.database.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name=?").get(table)).toEqual({ name: table });
   });
@@ -52,7 +52,7 @@ describe("#623 actual schema migration and non-destructive recovery acceptance",
     const f = seedLegacy(old), before = evidence(old), backup = join(dir, "before-target.sqlite3");
     expect(old.prepare("SELECT 1 FROM sqlite_schema WHERE name='process_types'").get()).toBeUndefined();
     await old.backup(backup); old.close();
-    const upgraded = open(filename); expect(upgraded.migrations.applied).toEqual(["0025_process_catalog.sql", "0026_logistics_targets.sql", "0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql"]);
+    const upgraded = open(filename); expect(upgraded.migrations.applied).toEqual(["0025_process_catalog.sql", "0026_logistics_targets.sql", "0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql"]);
     const db = upgraded.database; assertLedger(db); expect(evidence(db)).toEqual(before);
     expect(db.prepare("SELECT COUNT(*) FROM project_process_occurrence_mappings").pluck().get()).toBe(0);
     expect(db.prepare("SELECT COUNT(*) FROM process_types").pluck().get()).toBe(0);
@@ -86,6 +86,6 @@ describe("#623 actual schema migration and non-destructive recovery acceptance",
     expect(() => runMigrations(db, corrupt)).toThrow("Checksum mismatch");
     const gap = migrations(join(dir, "gap"), 27); rmSync(join(gap, "0025_process_catalog.sql"));
     expect(() => runMigrations(db, gap)).toThrow("expected version 25"); expect(evidence(db)).toEqual(before);
-    expect(runMigrations(db, migrationDir).applied).toHaveLength(5); assertLedger(db); expect(evidence(db)).toEqual(before);
+    expect(runMigrations(db, migrationDir).applied).toHaveLength(6); assertLedger(db); expect(evidence(db)).toEqual(before);
   });
 });

@@ -1,3 +1,7 @@
+## Issue #762 — 직접 WorkArea 필드 지원 경계
+
+일정 JSON1.0/1.1 입력 schema는 Project 공정·직접 WorkArea의 전체 참조 교환을 지원하지 않는다. `projectWorkAreas` 등 직접 소속 그래프 key는 `PROCESS_CONTEXT_IMPORT_UNSUPPORTED`로 명시 거부하고 일부만 무시하거나 빈 관계로 저장하지 않는다. 일정용 형식을 임의 확장하지 않으며 전체 관계의 Copy/Template logistics v5는 별도 계약이다. 직접 구역만 존재해도 일정 JSON/Excel 출력의409 손실 방지를 적용한다. [교환 정책](IMPORT_EXPORT.md#issue-762--직접-workarea-원본의-손실-방지) 참조.
+
 ## Issue #725 — 직접 문맥은 schedule-stage 입력에서 미지원
 
 schema1.0/1.1은 Equipment–WorkArea/Task 직접 공정·WorkArea 컬렉션과 명시0개 marker를 받지 않는다. `equipmentWorkAreas`, `workAreaIds`, `taskContexts`, `taskProcessContexts`, `processLinks`, `workAreaLinks` 및 해당 snake_case 필드가 어느 깊이에 있어도400 `PROCESS_CONTEXT_IMPORT_UNSUPPORTED`로 전체 거부한다. unknown field를 무시하거나 legacy-null/명시0을 서로 변환하지 않는다.

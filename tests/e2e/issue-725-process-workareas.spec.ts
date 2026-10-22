@@ -116,8 +116,9 @@ test("#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연�
   await targets();
   await openWorkspaceView(page, "processes");
   await expect(page.getByRole("heading", { name: "공정 & 작업 구역 관리", exact: true })).toBeVisible();
+  await page.getByText("기존 공용 기준정보 및 연결 (고급)", { exact: true }).click();
   await page.getByText("공용 공정 기준정보 관리 (관리자)", { exact: true }).click();
-  const admin = page.locator("details").filter({ has: page.getByText("공용 공정 기준정보 관리 (관리자)", { exact: true }) });
+  const admin = page.locator("details").filter({ has: page.getByText("공용 공정 기준정보 관리 (관리자)", { exact: true }) }).last();
   await expect(admin).toHaveAttribute("open", "");
   await expect(admin.getByRole("combobox", { name: "관리 범주", exact: true })).toBeVisible();
   await admin.getByRole("combobox", { name: "관리 범주", exact: true }).selectOption("workAreas");
@@ -344,6 +345,7 @@ test("#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연�
   try {
     await readonly.goto(`${origin}/projects/${f.publicId}`);
     await openWorkspaceView(readonly, "processes");
+    await readonly.getByText("기존 공용 기준정보 및 연결 (고급)", { exact: true }).click();
     await expect(readonly.getByRole("button", { name: "연결 설정 A 공정", exact: true })).toBeDisabled();
     await openWorkspaceView(readonly, "equipment");
     const readonlyEquipment = readonly.locator("#panel-equipment").getByRole("row").filter({ hasText: "다공정 AMR Fleet" });

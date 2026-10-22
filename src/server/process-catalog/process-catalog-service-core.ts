@@ -1,3 +1,4 @@
+import { ProjectWorkAreaRepository } from "../repositories/project-work-area-repository-core";
 import { ProcessContextRepository, ProcessContextError } from "../repositories/process-context-repository-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
@@ -397,6 +398,7 @@ export class ProcessCatalogService {
       const selected = this.master.getProjectSelection(project.id), options = this.query(query);
       const mappings = this.bounded(this.repository.mappings(project.id, options.limit), options.limit);
       const identity = {
+        projectWorkAreas: new ProjectWorkAreaRepository(this.database).list(project.id),
         projectRevision: project.revision, projectMasterRevision: this.master.getRevision(), selection: {
           businessUnitId: selected.businessUnit?.publicId ?? null, productId: selected.product?.publicId ?? null, siteEntityId: selected.siteEntity?.publicId ?? null
         }

@@ -1,0 +1,136 @@
+{
+  "schema": "mastergantt-issue762-f003-local-v1",
+  "issue": 762,
+  "pr": 779,
+  "baseSha": "72c2c9d0a912dc906d4101ea41a7a57e0c686597",
+  "sourceHeadBeforeChanges": "c8d1a5d1738e6ae3d40f9d310d0bcc0cc716cb04",
+  "versions": {
+    "os": "linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "cpuCount": 16,
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "packageVersion": "0.130.0",
+    "lockVersion": "0.130.0",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "ciNode": "22",
+    "ciPlaywright": "1.63.0",
+    "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+    "e2e": {
+      "fullyParallel": true,
+      "workers": 1,
+      "shardsLocal": 1,
+      "shardsGitHub": 6,
+      "config": "tests/config/playwright.config.ts"
+    }
+  },
+  "sourceFilesSha256": {
+    "tests/e2e/project-logistics-management.spec.ts": "3fe19b0d7a119ce2917cbb701de48e93d66b925babc18ac1a1cdf9bb8cbba615",
+    "tests/e2e/issue-726-task-logistics.spec.ts": "c72471c0bd21ba9de603c91c279bbda097e5ebee22aa9c04000fe8f08cdd97ac",
+    "tests/e2e/issue-725-process-workareas.spec.ts": "ee74a969b097b9178b0307dcf773fc263694d67085020e5e8ab4c485f3057b23",
+    "tests/e2e/issue-762-process-workareas.spec.ts": "c6373d806ab8a6507adc27e565c4f1c711d14dc567f2dd78b26b54831b468d6d"
+  },
+  "productionSourceChanged": false,
+  "runs": [
+    {
+      "kind": "original-red",
+      "result": "FAIL",
+      "uniqueCases": 1,
+      "caseSeconds": 9.0,
+      "exit": 1,
+      "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-logistics-management.spec.ts --project chromium --grep 'Dialog 취소 시 Escape' --max-failures=0",
+      "assertion": "dialog expected0/actual1 at :581; draft and discard confirmation present"
+    },
+    {
+      "kind": "single-green",
+      "result": "PASS",
+      "uniqueCases": 1,
+      "caseSeconds": 3.0,
+      "scope": "clean/dirty contract; not whole regression"
+    },
+    {
+      "kind": "cumulative",
+      "result": "PASS",
+      "cases": 19,
+      "durationMinutes": 5.6,
+      "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-726-task-logistics.spec.ts tests/e2e/project-logistics-management.spec.ts tests/e2e/issue-762-process-workareas.spec.ts tests/e2e/issue-725-process-workareas.spec.ts --project chromium --max-failures=0",
+      "scope": "before new Process guard test was discovered"
+    },
+    {
+      "kind": "guard-harness-first",
+      "result": "FAIL",
+      "passedCases": 12,
+      "failedCases": 1,
+      "durationSeconds": 46.6,
+      "reason": "new test searched static save accessible name after pending label changed; actual disabled submit present; corrected by submit element plus explicit initial/pending text assertions"
+    },
+    {
+      "kind": "guard-single-green",
+      "result": "PASS",
+      "cases": 1,
+      "caseSeconds": 3.3
+    },
+    {
+      "kind": "final-changed-spec",
+      "result": "PASS",
+      "cases": 13,
+      "durationSeconds": 43.2,
+      "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-logistics-management.spec.ts --project chromium --max-failures=0"
+    }
+  ],
+  "logicalUniqueChromiumCases": 20,
+  "reuseScope": "final changed spec13 + unchanged other three files7; repeated same cases not summed",
+  "fixtureBoundary": "project-logistics-management uses route mock/nonUUID logistics identities; #725/#762 actual HTTP/SQLite fixtures reported separately",
+  "static": {
+    "typecheckAfterGeneratedConfigRestore": "PASS",
+    "changedEslint": "PASS",
+    "markdownFiles": 303,
+    "markdown": "PASS",
+    "version": "0.130.0 PASS",
+    "diff": "PASS",
+    "discovery": {
+      "status": "PASS",
+      "unitFiles": 268,
+      "browserTests": 795,
+      "cwd": "root and external"
+    }
+  },
+  "prepr": {
+    "fast": {
+      "status": "BLOCKED",
+      "sourceStable": true,
+      "fingerprint": "61ae55fff6c9c084e5203b98c9d139145d7365888cec5956d8022dde9da769cc",
+      "selected": 66,
+      "unknown": 19,
+      "missing": 0,
+      "executedSteps": [],
+      "exit": 1
+    },
+    "targetedDryRun": {
+      "status": "NOT TESTED",
+      "sourceStable": true,
+      "fingerprint": "61ae55fff6c9c084e5203b98c9d139145d7365888cec5956d8022dde9da769cc",
+      "selected": 66,
+      "unknown": 19,
+      "missing": 0,
+      "executedSteps": [],
+      "exit": 0
+    }
+  },
+  "remoteNewHead": "NOT TESTED",
+  "trustedQA": "NOT TESTED",
+  "ownerAcceptance": "NOT TESTED",
+  "executionDefaults": {
+    "workers": {
+      "value": 1,
+      "source": "Playwright config"
+    },
+    "retries": {
+      "value": 0,
+      "source": "Playwright default"
+    },
+    "environmentOverrides": [],
+    "capture": "set -o pipefail; command 2>&1 | tee .prepr-reports/<log>; no extra CLI workers/retries flags"
+  }
+}

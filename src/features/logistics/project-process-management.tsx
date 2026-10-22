@@ -22,7 +22,12 @@ function errorText(status: number): string {
   return "저장하지 못했습니다. 필수 항목과 활성 상태를 확인한 뒤 다시 시도해 주세요.";
 }
 
-export function ProjectProcessManagement({ publicId, revision, editable, active, busy: externalBusy, logistics, onMutated, onRequireRefresh, onUnauthorized, onNotice, wbsWorkAreaOpenRequest, onWbsWorkAreaRequestHandled }: {
+export function ProjectProcessManagement(props: Parameters<typeof LegacyProjectProcessManagement>[0]) {
+  const [expanded,setExpanded]=useState(false);
+  return <details hidden={!props.active} className={styles.admin} open={props.wbsWorkAreaOpenRequest ? true : undefined} onToggle={event=>setExpanded(event.currentTarget.open)}><summary>기존 공용 기준정보 및 연결 (고급)</summary>{expanded || props.wbsWorkAreaOpenRequest?<LegacyProjectProcessManagement {...props}/>:null}</details>;
+}
+
+export function LegacyProjectProcessManagement({ publicId, revision, editable, active, busy: externalBusy, logistics, onMutated, onRequireRefresh, onUnauthorized, onNotice, wbsWorkAreaOpenRequest, onWbsWorkAreaRequestHandled }: {
   wbsWorkAreaOpenRequest?: {id:string;sequence:number;trigger:HTMLElement} | null; onWbsWorkAreaRequestHandled?: () => void;
   publicId: string; revision: number; editable: boolean; active: boolean; busy: boolean; logistics: ProjectLogisticsDto;
   onMutated: (logistics: ProjectLogisticsDto, project: ProjectDto) => void;

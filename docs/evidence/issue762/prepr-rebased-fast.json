@@ -1,0 +1,313 @@
+{
+  "tool": "mastergantt-prepr",
+  "schemaVersion": 1,
+  "issue": 762,
+  "mode": "fast",
+  "status": "BLOCKED",
+  "startedAt": "2026-10-22T12:29:41.599Z",
+  "completedAt": "2026-10-22T12:29:41.745Z",
+  "sourceStable": true,
+  "versions": {
+    "os": "linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "cpuCount": 16,
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "packageVersion": "0.130.0",
+    "lockVersion": "0.130.0",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "ciNode": "22",
+    "ciPlaywright": "1.63.0",
+    "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+    "e2e": {
+      "fullyParallel": true,
+      "workers": 1,
+      "shardsLocal": 1,
+      "shardsGitHub": 6,
+      "config": "tests/config/playwright.config.ts"
+    }
+  },
+  "risk": "HIGH",
+  "errors": [
+    "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+  ],
+  "baselineSha": "72c2c9d0a912dc906d4101ea41a7a57e0c686597",
+  "workingFingerprint": "da5531ffb87348df0bba9d10e341f920a5e7825cfdfabd655e5f4ec46fb10735",
+  "selection": {
+    "risk": "HIGH",
+    "inferredRisk": "HIGH",
+    "matched": [
+      {
+        "path": "db/migrations/0030_project_work_areas.sql",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "package-lock.json",
+        "rule": "issue-552-locked-dependencies",
+        "reason": "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+      },
+      {
+        "path": "package.json",
+        "rule": "prepr-tooling",
+        "reason": "Pre-PR tool parser, source provenance, failure and safety regression"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/processes/[processId]/work-areas/route.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/work-areas/[workAreaId]/route.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/domain/resources/resource-kpi-targets.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/domain/resources/wbs-task-ledger.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/projects/project-readonly-view.tsx",
+        "rule": "issue-552-project-workspace",
+        "reason": "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+      },
+      {
+        "path": "src/features/resources/wbs-view-transport.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/server/exports/project-context-export-guard-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/imports/project-import-parser-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/imports/project-import-parser-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/logistics/logistics-handlers-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/logistics/logistics-handlers-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/logistics/logistics-kpi-service-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/logistics/logistics-kpi-service-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/logistics/logistics-service-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/logistics/logistics-service-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/logistics/project-context-transfer-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/logistics/project-context-transfer-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/process-catalog/process-catalog-service-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/process-catalog/process-catalog-service-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/repositories/process-context-repository-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/repositories/process-context-repository-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/repositories/project-work-area-repository-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/repositories/project-work-area-repository-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/repositories/resource-target-snapshot-repository-core.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/server/repositories/resource-target-snapshot-repository-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/repositories/wbs-view-snapshot-repository-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/resources/resource-dashboard-service-core.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/server/resources/resource-dashboard-service-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/resources/resource-dashboard-service-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/resources/wbs-dashboard-views-core.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/server/resources/wbs-dashboard-views-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/security/route-security-inventory.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/security/route-security-inventory.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/templates/logistics-template-graph-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      }
+    ],
+    "unknown": [
+      {
+        "path": "src/contracts/logistics.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/contracts/process-catalog.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/contracts/process-context.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/contracts/project-templates.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/contracts/wbs-dashboard-views.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/gantt/task-process-context-editor.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-logistics-management.module.css",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-logistics-management.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-process-management.module.css",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-process-management.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-workarea-management.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-workarea-options.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/server/exports/project-context-export-guard-core.ts",
+        "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+      },
+      {
+        "path": "src/server/repositories/resource-target-snapshot-repository-core.ts",
+        "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+      },
+      {
+        "path": "src/server/repositories/wbs-view-snapshot-repository-core.ts",
+        "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+      },
+      {
+        "path": "src/server/resources/wbs-dashboard-views-core.ts",
+        "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+      },
+      {
+        "path": "src/server/templates/logistics-template-graph-core.ts",
+        "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+      },
+      {
+        "path": "tests/config/e2e-shard-plan.json",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "tests/fixtures/issue-623-backend-fixture.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      }
+    ],
+    "missing": [],
+    "excluded": [],
+    "state": "BLOCKED",
+    "notSelectedReason": "Not a mapped direct/adjacent consumer for this change; remote Required coverage unchanged"
+  },
+  "selectedCount": 64,
+  "steps": [],
+  "interpretation": "게시 전 최신main 정렬 이후 실행. 자동 producer-consumer mapping UNKNOWN은 BLOCKED 유지. fast 내부검사0 NOT TESTED; selection dry-run은 실행증거 아님."
+}

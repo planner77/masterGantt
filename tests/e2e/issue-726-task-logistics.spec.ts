@@ -284,6 +284,10 @@ test("#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류
   await unmapped.uncheck();
   const processA = () => context.getByRole("checkbox", { name: /^A 공정 / });
   const processB = () => context.getByRole("checkbox", { name: /^B 공정 / });
+  // #762: legacy aliases remain canonical WorkAreas but now advertise their
+  // shared read-only provenance. Assert that distinct accessible name,
+  // including its stable code, instead of matching the obsolete label.
+  const legacyArea = () => context.getByRole("checkbox", { name: /^A 작업구역 · 기존 공유 구역 WA-A$/ });
   // Capture a genuine old canonical GET, then start a new reload generation.
   // Its late response must not clear a selection made against the newer read.
   let releaseOld!: () => void;
@@ -324,7 +328,7 @@ test("#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류
     await processA().focus();
     await page.keyboard.press("Space");
     await expect(processA()).toBeChecked();
-    await expect(context.getByRole("checkbox", { name: /A 작업구역 WA-A/ })).toBeEnabled();
+    await expect(legacyArea()).toBeEnabled();
     await assertEditorGeometry(page, editor, width);
     await page.keyboard.press("Escape");
     await expect(editor.getByRole("button", { name: "계속 편집", exact: true })).toBeFocused();
@@ -353,12 +357,12 @@ test("#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류
   await processA().check();
   await processB().check();
   await expect(context).toContainText("등록된 작업 구역이 없습니다.");
-  await context.getByRole("checkbox", { name: /A 작업구역 WA-A/ }).check();
+  await legacyArea().check();
   // Removing its owning process must not silently erase the area draft.
   await processA().click();
   await expect(context.getByRole("alert")).toBeVisible();
   await expect(processA()).toBeChecked();
-  await expect(context.getByRole("checkbox", { name: /A 작업구역 WA-A/ })).toBeChecked();
+  await expect(legacyArea()).toBeChecked();
   await save().click();
   await expect.poll(async () => (await readContext()).processLinks?.length).toBe(2);
   const childContext = await readContext();
@@ -374,7 +378,7 @@ test("#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류
   editor = await openEditor(page, f.parentTask.name);
   context = editor.getByRole("region", { name: "직접 공정·작업 구역", exact: true });
   await context.getByRole("checkbox", { name: /^A 공정 / }).check();
-  await context.getByRole("checkbox", { name: /A 작업구역 WA-A/ }).check();
+  await legacyArea().check();
   const areaScope = context.getByRole("checkbox", { name: "A 공정 A 작업구역 작업 구역 하위 작업 포함", exact: true });
   await expect(areaScope).toBeDisabled();
   await context.getByRole("checkbox", { name: "A 공정 공정 하위 작업 포함", exact: true }).check();
@@ -390,7 +394,7 @@ test("#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류
   await expect(context).toContainText(f.parentTask.name);
   await expect(context.getByRole("checkbox", { name: /^A 공정 / })).toBeChecked();
   // Explicit zero removes only direct context; the ancestor stays independent.
-  await context.getByRole("checkbox", { name: /A 작업구역 WA-A/ }).uncheck();
+  await legacyArea().uncheck();
   await context.getByRole("checkbox", { name: /^A 공정 / }).uncheck();
   await context.getByRole("checkbox", { name: /^B 공정 / }).uncheck();
   await context.getByRole("button", { name: "직접 공정·작업 구역 저장", exact: true }).click();
