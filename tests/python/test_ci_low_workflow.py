@@ -24,6 +24,32 @@ class WorkflowGuardTest(unittest.TestCase):
         self.assertIn("needs.low_e2e_plan.outputs.mode != 'TARGETED_POLICY_CANDIDATE'", full)
         self.assertIn("shard: [1, 2, 3, 4, 5, 6, 7, 8]", full)
 
+    def test_pr_lane_fast_gate_with_low_plan_dependency(self):
+        # Protect both the pre-existing Fast gate and the new trusted LOW
+        # selection dependency without allowing the planned tests to bypass
+        # Full8 when the Owner flag is OFF.
+        for name, next_name, expected in (
+            ("pr_build", "pr_fast_gate",
+             "needs: [changes, preflight, pr_fast_gate]"),
+            ("pr_e2e_shard", "e2e",
+             "needs: [changes, preflight, pr_fast_gate, low_e2e_plan]"),
+            ("pr_docker_smoke", "docker",
+             "needs: [changes, preflight, pr_fast_gate]"),
+        ):
+            with self.subTest(job=name):
+                if name == "pr_build":
+                    # PR build is before Fast gate in the workflow.
+                    body = section("pr_build", "pr_fast_gate")
+                else:
+                    body = section(name, next_name)
+                self.assertIn(expected, body)
+                self.assertIn("needs.pr_fast_gate.result == 'success'", body)
+        pr_e2e = section("pr_e2e_shard", "e2e")
+        self.assertIn(
+            "needs.low_e2e_plan.outputs.mode != 'TARGETED_POLICY_CANDIDATE'",
+            pr_e2e)
+        self.assertIn("shard: [1, 2, 3, 4, 5, 6, 7, 8]", pr_e2e)
+
     def test_no_unbound_variable_or_skipped_false_green(self):
         aggregate = section("e2e", "docker_smoke")
         for binding in (

@@ -1,5 +1,11 @@
 # Issue #772 — LOW 선택 E2E의 정식 증거 계약 (2026-10-22)
 
+## 2026-10-22 — F772-006 · 세 번째 Full CI 실패, 인접 Policy 계약 교정
+
+- [PR Full CI #3143.1](https://github.com/planner77/masterGantt/actions/runs/39771025331) Head `c5e0035b405effda54cb60d5d1620bffecb50b05`, Base `53aee48eba52860d6abf17149cc72292c4187dae`, Test-Merge `d9d2a6752442c0fe08ea407b1919a17b1fed322f`. 이전 QA Preflight 정책 검사는 PASS, 다음 `scripts/test_pr_fast_gate.py::WorkflowContract.test_pr_lane_blocks_on_fast_gate`만 FAIL. 같은 #772 신규 `low_e2e_plan` 의존성을 종전 모든 PR lane의 3종 `needs` 문자열로 검증해 오탐 실패. Fast Gate/Required3/QA는 파생 실패이며 Full8/Docker/PR Build와 #772 LOW 정책 테스트 자체는 미실행.
+- `scripts/test_pr_fast_gate.py`의 과도한 동일 문자열 검사 대신 정확 실제 Job별 `needs`를 비교 (PR Build/Docker 기존 3종, PR E2E 4종). Fast Gate 판정 강제·LOW 플래그 OFF Full8 fallback/ON 후보 차단·8-way 구성은 계속 보존. `tests/python/test_ci_low_workflow.py`에 동일 회귀 방어, 기존 `scripts/test_qa_preflight.py`의 검사도 유지. Test/CI/문서/실패 원장 동기화 후 동일 PR 브랜치에서 한 번의 `synchronize`로 새 Full PR CI 시작.
+- 확인된 직접·파생 출처를 [단일 실패 원장](../../ISSUE_772_FAILURE_ANALYSIS.md)에 **#3141.1/#3142.1/#3143.1** 모두 보존. 원격 새 정확 Head Quality/Chromium8/Docker·QA 및 이전에 미실행한 #771/#770/#772 테스트: **NOT TESTED**. CI 모니터링·병합·Main/릴리스/GHCR/Finalizer/종료 없음.
+
 ## 2026-10-22 — F772-004/005 · 두 번째 Full CI 실패와 불완전한 P1 이관 교정
 
 - 원본 [PR CI #3142.1 / Run 39764955472](https://github.com/planner77/masterGantt/actions/runs/39764955472), Head `106a57e9afea9b766821a3aac9b72e2bf9efabc3`, Base `53aee48eba52860d6abf17149cc72292c4187dae`, Test-Merge `65842f937a9bb35c51809deebc2a39bc2c7a7681`. Policy Job `119778232263`의 `scripts/test_qa_preflight.py::test_workflow_aggregate_guard_contract`에서 정확 needs 집합이 아니라 path filter의 두 요소만 추출한 assertion FAIL. 같은 코드의 불완전한 이전 수정으로 인한 회귀. 다른 Required3·QA의 FAIL은 파생, Chromium8/Docker/PR Build는 NOT RUN.

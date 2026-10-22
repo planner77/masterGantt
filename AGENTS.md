@@ -1,3 +1,11 @@
+## Issue #772 — 세 번째 Policy 실패, Fast Gate 계약 소비자 누락 교정 (2026-10-22)
+
+- [PR #778 Full #3143.1](https://github.com/planner77/masterGantt/actions/runs/39771025331): 앞선 `test_qa_preflight.py`는 PASS, 다음 `scripts/test_pr_fast_gate.py::WorkflowContract.test_pr_lane_blocks_on_fast_gate` line 95에서 과거 PR E2E `needs: [changes, preflight, pr_fast_gate]` 문자열만 허용해 최신 `low_e2e_plan`을 거부. Policy 직접 FAIL, Fast Gate/Required3/QA는 파생, Chromium8·Docker·LOW 정책 회귀는 NOT RUN. 기존 3개 실패 원본 Run/Attempt는 [#772 단일 실패 원장](docs/ISSUE_772_FAILURE_ANALYSIS.md)과 [Work Packet](docs/exec-plans/active/ISSUE_772.md)에 보존.
+- Build/Docker는 종전 3종, PR E2E는 4종 정확 `needs`를 유지하면서 모든 경로에서 PR Fast Gate 성공 필수, Owner LOW 활성화 플래그 미설정 시 기존 Full8 복귀를 테스트한다. `scripts/test_pr_fast_gate.py` 및 `tests/python/test_ci_low_workflow.py`의 직접·인접·negative 계약을 일괄 교정하며 임의 skip/Retry/timeout 확대/Ruleset 완화는 금지.
+- 이 정책 자체 HIGH / OWNER_MANAGED. 새 Head의 Full8+Trusted/Owner 검증 전 MERGE BLOCKED, `LOW_TARGETED_POLICY_ENABLED` OFF. 이번 지시는 새 PR CI 시작까지만, 모니터링/병합/Main/GHCR/Finalizer/이슈 종료 금지.
+
+---
+
 ## Issue #772 — 두 번째 Policy 실패·E2E Job 경계 교정 (2026-10-22)
 
 - [두 번째 PR #778 Full CI #3142.1](https://github.com/planner77/masterGantt/actions/runs/39764955472) 직접 Policy FAIL: `test_workflow_aggregate_guard_contract`의 `split("  e2e:\\n")`가 dorny `changes` path filter 내부 `e2e:`와 조기 매칭해 E2E Job의 실제 `needs`를 읽지 못함. Fast Gate/Required3/QA FAIL은 파생, Chromium8·Docker·LOW 회귀는 미실행. 이전 [#3141.1](https://github.com/planner77/masterGantt/actions/runs/39759380633)과 같은 파일이지만 직접 원인은 별개이며 두 Run/Attempt를 [#772 누적 원장](docs/ISSUE_772_FAILURE_ANALYSIS.md)에 기록.
