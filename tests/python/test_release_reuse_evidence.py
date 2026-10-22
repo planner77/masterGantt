@@ -80,13 +80,15 @@ class ReleaseReuseTests(unittest.TestCase):
 
     def sample(self):
         names = [
-            "병렬 quality 결과 집계", "TypeScript 타입 검사", "ESLint",
+            "병렬 quality 결과 집계", "정책·저장소 계약 검사", "TypeScript 타입 검사", "ESLint",
             "Vitest 단위·통합 테스트", "Next.js production build",
             "Docker smoke 구현", "Docker build and runtime smoke test",
             "Main 임시 commit 이미지 게시·검증·정리", "Chromium end-to-end tests",
             "Chromium E2E shard 1/2", "Chromium E2E shard 2/2",
         ]
         mandatory = {
+            "정책·저장소 계약 검사": ["범용 Issue Lifecycle 계약·시나리오 검증",
+                                  "Issue #773 Release reuse fail-closed 출처·샤드·Owner 회귀"],
             "TypeScript 타입 검사": ["Run npm run typecheck"],
             "ESLint": ["Run npm run lint"],
             "Vitest 단위·통합 테스트": ["Run npm test"],
@@ -135,7 +137,7 @@ class ReleaseReuseTests(unittest.TestCase):
                    "environment": {
                        "fullyParallel": True, "os": "linux",
                        "imageVersion": "20261022", "imageOS": "ubuntu24",
-                       "runnerArch": "X64", "node": "22.1.0",
+                       "runnerArch": "X64", "runnerOS": "Linux", "node": "22.1.0",
                    },
                    "entries": [{"file": f"tests/e2e/{shard}.spec.ts", "durationMs": 100}]}
             if bad and shard == 2:
@@ -147,6 +149,7 @@ class ReleaseReuseTests(unittest.TestCase):
     def test_main_e2e_reporter_fails_closed(self):
         manifest = {"profile": {
             "image_version": "20261022", "image_os": "ubuntu24",
+            "runner_os": "Linux",
             "runner_arch": "X64", "node": "v22.1.0"},
             "test_inventory": {"case_count": 2},
             "_specs": ["tests/e2e/1.spec.ts", "tests/e2e/2.spec.ts"]}
