@@ -44,6 +44,7 @@ jobs:
       - name: trusted default-main checkout SHA 검증
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
         shell: bash
         run: |
           set -euo pipefail
@@ -62,6 +63,7 @@ jobs:
         if: github.event.workflow_run.event == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
           SOURCE_RUN: ${{ github.event.workflow_run.id }}
           SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
         shell: bash
@@ -84,6 +86,7 @@ jobs:
       - name: 정확한 merge lifecycle 해석 및 실행
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
         run: python3 scripts/auto_release_finalizer.py --target-sha "$TARGET_SHA"
@@ -120,6 +123,7 @@ jobs:
       - name: B2 승인 범위와 first-parent 증거 재검증 후 범용 Finalizer 실행
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 scripts/auto_release_finalizer.py --target-sha "$GITHUB_SHA"
 
@@ -144,6 +148,7 @@ jobs:
       - name: trusted main snapshot 인증
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
@@ -158,6 +163,7 @@ jobs:
       - name: "#765 정확 Owner 원장·old CI·Release 186/Digest 검증 후 Generic Finalizer 재개"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 scripts/auto_release_finalizer.py --target-sha "$GITHUB_SHA"
 
@@ -181,6 +187,7 @@ jobs:
       - name: Owner 복구 실행의 trusted main HEAD 검증
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
         shell: bash
         run: |
           set -euo pipefail
@@ -196,6 +203,7 @@ jobs:
       - name: "#622 Owner·Main·릴리스 검증 후 SHA-leased cleanup·FINAL"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OWNER_COMMENT_ID: ${{ github.event.comment.id }}
         shell: bash
