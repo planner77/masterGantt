@@ -177,7 +177,10 @@ def build_plan(event: dict, env: dict) -> dict:
             if row["kind"] == "CHROMIUM" and row["id"] not in specs
         ],
         "selection_reasons": reasons,
+        # #770 classifies entire screen paths as MEDIUM. The stricter #772
+        # byte-for-byte paragraph whitelist alone can resolve semantic LOW.
         "shadow_risk": selection["risk"],
+        "effective_risk": "LOW" if mode == CANDIDATE else selection["risk"],
         "shadow_mode": selection["mode_recommendation"],
         "trusted_test_inventory": len(current["e2e"]),
         "activation": "OWNER_OPT_IN" if enabled else "OFF",
