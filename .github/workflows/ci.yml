@@ -476,6 +476,8 @@ jobs:
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_fast_development.py' -v
       - name: Issue #770 Shadow 영향 계획·출처 보호 단위 회귀
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_impact_plan.py' -v
+      - name: Issue #773 Release reuse fail-closed 출처·샤드·Owner 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_release_reuse_evidence.py' -v
       - name: Issue #703 Preview 배포 권한·워크플로 단위 회귀
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_preview_publish.py' -v
       - name: Issue #751 source-matched P50/P95 comparison and missing-artifact regression
