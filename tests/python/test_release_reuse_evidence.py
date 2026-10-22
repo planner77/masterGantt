@@ -168,6 +168,35 @@ class ReleaseReuseTests(unittest.TestCase):
                 with self.assertRaises(V.Ineligible):
                     V.verify_timing(self.timing_rows(bad), 1234, 1, "a" * 40, 2, manifest)
 
+    def test_release_rollout_is_shadow_by_default(self):
+        release = (ROOT / ".github/workflows/release-image.yml").read_text()
+        main = (ROOT / ".github/workflows/ci.yml").read_text()
+        self.assertIn("vars.RELEASE_REUSE_ENABLED || 'false'", release)
+        self.assertIn("vars.RELEASE_REUSE_MAX_AGE_HOURS || ''", release)
+        self.assertEqual(release.count("needs.prepare.outputs.reuse_mode != 'REUSED_VERIFIED'"), 2)
+        self.assertIn("REUSE_MODE == \"REUSED_VERIFIED\"", release.replace("$REUSE_MODE", "REUSE_MODE"))
+        self.assertIn("REUSE_VERIFIED_DIGEST", release)
+        self.assertIn("source_sha", (ROOT / "scripts/release-reuse-evidence.py").read_text())
+        self.assertIn("Main reuse candidate receipt 업로드", main)
+        self.assertIn("Main reuse Playwright inventory 및 manifest (advisory)", main)
+        self.assertIn("CI_E2E_FULLY_PARALLEL=true npm run --silent test:e2e -- --list --reporter=json", main)
+        self.assertIn("Main verified candidate exact digest 확인", release)
+        self.assertIn("최종 exact·rolling tag를 verified digest로 promotion", release)
+        self.assertIn("Release 완료 lifecycle handoff", release)
+
+    def test_absolute_or_relative_playwright_spec_normalization(self):
+        payload = {"suites": [{"specs": [
+            {"file": "a.spec.ts", "tests": [{}, {}]},
+            {"file": "tests/e2e/b.spec.ts", "tests": [{}]},
+            {"file": str(ROOT / "tests/e2e/c.spec.ts"), "tests": [{}]},
+        ]}]}
+        self.assertEqual(M.list_cases(payload), (
+            {"tests/e2e/a.spec.ts", "tests/e2e/b.spec.ts", "tests/e2e/c.spec.ts"}, 4
+        ))
+        for bad in ("../outside.spec.ts", "/outside/e2e/a.spec.ts"):
+            with self.subTest(file=bad), self.assertRaises(ValueError):
+                M.list_cases({"suites": [{"specs": [{"file": bad, "tests": [{}]}]}]})
+
     def test_missing_artifact_and_expired(self):
         rows = self.timing_rows()
         with self.assertRaises(V.Ineligible):
