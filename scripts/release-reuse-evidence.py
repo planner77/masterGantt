@@ -69,6 +69,7 @@ def select_jobs(jobs, shard_count, attempt):
     """Real implementation jobs AND their mandatory steps, not aggregate green."""
     base = {
         "병렬 quality 결과 집계": "Build, static checks, and unit tests",
+        "정책·저장소 계약 검사": "Main policy",
         "TypeScript 타입 검사": "npm run typecheck",
         "ESLint": "npm run lint",
         "Vitest 단위·통합 테스트": "npm test",
@@ -91,6 +92,8 @@ def select_jobs(jobs, shard_count, attempt):
         found[name] = job
     require(set(found) == expected, "MAIN_FULL_JOB_MISSING_OR_SKIPPED")
     mandatory = {
+        "정책·저장소 계약 검사": ["범용 Issue Lifecycle 계약·시나리오 검증",
+                           "Issue #773 Release reuse fail-closed 출처·샤드·Owner 회귀"],
         "TypeScript 타입 검사": ["npm run typecheck"],
         "ESLint": ["npm run lint"],
         "Vitest 단위·통합 테스트": ["npm test"],
@@ -140,6 +143,7 @@ def verify_timing(rows, run_id, attempt, sha, n, manifest):
         require(isinstance(env, dict) and env.get("fullyParallel") is True
                 and env.get("os") == "linux"
                 and env.get("imageVersion") == expected_environment["image_version"]
+                and env.get("runnerOS") == expected_environment["runner_os"]
                 and env.get("imageOS") == expected_environment["image_os"]
                 and env.get("runnerArch") == expected_environment["runner_arch"]
                 and "v" + env.get("node", "") == expected_environment["node"],
@@ -339,7 +343,9 @@ def verify_main(api, args, target):
         filename: fingerprint(target / filename) for filename in FILES
     }, "SOURCE_OR_LOCKFILE_FINGERPRINT_DRIFT")
     env = manifest.get("profile", {})
-    require(isinstance(env, dict) and env.get("runner_os") == os.environ.get("RUNNER_OS")
+    require(isinstance(env, dict) and bool(env.get("runner_os")) and bool(env.get("runner_arch"))
+            and bool(env.get("image_os")) and bool(env.get("image_version"))
+            and env.get("runner_os") == os.environ.get("RUNNER_OS")
             and env.get("runner_arch") == os.environ.get("RUNNER_ARCH")
             and env.get("image_os") == os.environ.get("ImageOS")
             and env.get("image_version") == os.environ.get("ImageVersion")
