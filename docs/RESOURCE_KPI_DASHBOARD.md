@@ -1,3 +1,7 @@
+## Issue #556 — 일정에서 담당자·공수 조회
+
+일정의 검색·필터 인접 `담당자·공수 조회`는 선택 일반 Task 및 선택 Summary 자손의 모든 개인 Assignment를 기존 `scheduleToResources()`로 전달한다. 현재 Summary 전체는 별도 `Summary 전체 담당자·공수` 명령이며 선택 집합과 합치지 않는다. 단순 readonly는 조회를 막지 않는다. 선택 없음·일반 Task 없음·편집/저장/탐색 대기는 원인별 안내하며 개인 배정0은 기존 빈 결과 안내를 사용한다. 기존 exact Task/Assignment ID, 전원 포함 정책, M/D·M/M/환산·source conflict/복귀를 변경하지 않는다. [P1 범위/증거](exec-plans/active/ISSUE_556.md).
+
 ## Issue #734 — 설비 관점의 작업·공수 경계
 
 설비 전용 consumer는 #728/#729의 서버 고유 합집합과 기존 Calendar/allocation/환산 정책을 그대로 표시한다. 개인 미배정 Task도 일반 업무 KPI에 남으며 Owner 책임 역할만으로 Assignment/공수/Capacity를 만들지 않는다. 원본 수량·작업 진척·계획 M/D/MM·미설정·전체 Milestone Gate는 다른 지표다. 다중 WorkArea/Milestone의 소계를 더하지 않고 같은 Assignment는 상위에서 한 번 계산한다.

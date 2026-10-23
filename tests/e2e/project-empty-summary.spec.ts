@@ -24,4 +24,13 @@ test("renders a tree of only empty Summary containers without bars or fake Grid 
   await expect(page.locator('.wx-table-container .wx-row [data-col-id=":projectStart"]')).toHaveText(["—", "—", "—", "—"]);
   await expect(page.getByText("일정이 있는 하위 작업이 없습니다.", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "요약 작업 추가", exact: true })).toHaveCount(0);
+  const lookup = page.getByRole("button", { name: "담당자·공수 조회", exact: true });
+  await page.locator(`input[data-copy-selection="${fixture.tasks[0].taskId}"]`).check();
+  await expect(lookup).toBeDisabled();
+  await expect(lookup).toHaveAccessibleDescription(/선택 범위에 일반 Task가 없습니다/);
+  await page.goto(`/projects/${publicId}?rootTask=${fixture.tasks[0].taskId}`);
+  const summaryLookup = page.getByRole("button", { name: "Summary 전체 담당자·공수", exact: true });
+  await expect(summaryLookup).toBeDisabled();
+  await expect(summaryLookup).toHaveAccessibleDescription(/Summary 범위에 일반 Task가 없습니다/);
+  await expect(page.getByText("일정이 있는 하위 작업이 없습니다.", { exact: true })).toBeVisible();
 });

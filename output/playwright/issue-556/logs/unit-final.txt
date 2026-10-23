@@ -1,0 +1,17 @@
+테스트·정적검사 실행 출력 발췌(줄 끝 공백 정규화). 앱 런타임 WebServer 로그는 제외했으며 전체 원본은 로컬 /tmp에 별도 보존합니다.
+
+
+> mastergantt@0.130.2 test
+> vitest run --config tests/config/vitest.config.ts tests/features/resources/resource-drill-navigation-model.test.ts tests/features/gantt/task-subtree-scope.test.ts tests/features/projects/project-search-filter.test.ts
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (tests/config/vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.0 /home/planner/Dev/masterGantt-worktrees/issue-556
+
+
+ Test Files  3 passed (3)
+      Tests  30 passed (30)
+   Start at  22:31:42
+   Duration  574ms (transform 72%, import 13%, tests 12%, worker 3%)

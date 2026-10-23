@@ -1,0 +1,5 @@
+테스트·정적검사 실행 출력 발췌(줄 끝 공백 정규화). 앱 런타임 WebServer 로그는 제외했으며 전체 원본은 로컬 /tmp에 별도 보존합니다.
+
+
+> mastergantt@0.130.2 typecheck
+> tsc --noEmit

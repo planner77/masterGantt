@@ -26,7 +26,7 @@ async function expectDirectChildrenDoNotOverlap(container: Locator) {
       .filter((element) => {
         const style = window.getComputedStyle(element);
         const rect = element.getBoundingClientRect();
-        return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+        return element.checkVisibility() && style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
       })
       .map((element) => ({
         label: element.getAttribute("aria-label") ?? element.textContent?.trim().slice(0, 40) ?? element.tagName,
@@ -54,7 +54,7 @@ async function expectAdvancedControlsWithinBounds(panel: Locator) {
       .filter((element) => {
         const style = window.getComputedStyle(element);
         const rect = element.getBoundingClientRect();
-        return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+        return element.checkVisibility() && style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
       })
       .map((element, index) => ({
         index,
@@ -126,6 +126,8 @@ test("Issue #130 Phase 4 Project List 검색·필터 상태와 Reset focus를 �
 
 test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API 불변 경계를 유지한다", async ({ page }, testInfo) => {
   const fixture = await installStatefulProjectFixture(page);
+  fixture.tasks[3].name = "긴 Milestone 소속 이름 ".repeat(12).trim();
+  fixture.tasks[0].membership = { explicitMilestoneTaskId: fixture.tasks[3].taskId, effectiveMilestoneTaskId: fixture.tasks[3].taskId, inheritedFromTaskId: null };
   const timestamp = "2026-09-28T00:00:00.000Z";
   fixture.logistics = {
     processes: [{ id: "process-long-1", code: "PROC-LONG-001", name: "조립 공정 매우 긴 표시 이름", parentProcessId: null, sortOrder: 0, active: true, createdAt: timestamp, updatedAt: timestamp }],
@@ -145,7 +147,7 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
     if ((!["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) || path.endsWith("/resource-workload") || path.endsWith("/assigned-targets")) filterRequests.push(request.url());
   });
 
-  for (const width of [390, 768, 1024, 1440, 1600]) {
+  for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
     const taskToolbar = page.getByRole("toolbar", { name: "작업 검색과 필터" });
     const taskSearch = taskToolbar.getByRole("searchbox");
@@ -153,7 +155,33 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
     await taskSearch.fill("Stable leaf");
     await expect(taskFilter).toHaveText("필터 1");
     await expect(taskToolbar.getByRole("status")).toContainText("1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 0개 /  전체  3개 WBS 작업");
-    await expect(page.locator(".schedule-heading-row p")).toHaveText("작업 일정을 확인하고 관리합니다.");
+    await expect(page.locator(".schedule-heading-row")).toHaveCount(0);
+    await expect(page.getByText("작업 일정을 확인하고 관리합니다.", { exact: true })).toHaveCount(0);
+    await expect(page.locator(".project-scope-navigation")).toHaveCount(0);
+    await expect(page.locator("#project-scope-panel")).toHaveAccessibleName("일정");
+    const headingGeometry = await page.locator("#schedule-heading").evaluate(heading => ({
+      position: getComputedStyle(heading).position,
+      width: heading.getBoundingClientRect().width,
+      height: heading.getBoundingClientRect().height,
+    }));
+    expect(headingGeometry.position).toBe("absolute");
+    expect(headingGeometry.width).toBeLessThanOrEqual(1);
+    expect(headingGeometry.height).toBeLessThanOrEqual(1);
+    const lookup = taskToolbar.getByRole("button", { name: "담당자·공수 조회", exact: true });
+    await expect(lookup).toBeDisabled();
+    await expect(lookup).toHaveAccessibleDescription(/선택한 Task[\s\S]*모든 개인[\s\S]*작업을 선택해 주세요/);
+    await expect(taskToolbar.getByText("작업을 선택해 주세요.", { exact: true })).toBeVisible();
+    const lookupGeometry = await lookup.evaluate(button => ({
+      height: button.getBoundingClientRect().height,
+      left: button.getBoundingClientRect().left,
+      right: button.getBoundingClientRect().right,
+      borderStyle: getComputedStyle(button).borderStyle,
+    }));
+    expect(lookupGeometry.height).toBeGreaterThanOrEqual(44);
+    expect(lookupGeometry.left).toBeGreaterThanOrEqual(0);
+    expect(lookupGeometry.right).toBeLessThanOrEqual(width);
+    expect(lookupGeometry.borderStyle).toBe("solid");
+    await expectDirectChildrenDoNotOverlap(taskToolbar.getByRole("group", { name: "담당자·공수 조회 명령" }));
     const taskReset = taskToolbar.getByRole("button", { name: "초기화" });
     await expect(taskReset).toBeVisible();
     if (width <= 768) await expectTwoToolbarRows(taskSearch, taskFilter, taskToolbar.getByRole("status"), taskReset, width);
@@ -239,5 +267,33 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
     await expectSameGanttRoot(page, ganttIdentity);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
   }
+  // 1440px at 200% has 720 effective CSS px: a long selected Milestone must
+  // not force max-content result text to stretch the filter or collapse search.
+  await page.setViewportSize({ width: 720, height: 900 });
+  await page.locator(`.wx-table-container .wx-row[data-id=":${fixture.tasks[0].taskId}"]`).click({ button: "right" });
+  await page.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click();
+  const stressToolbar = page.getByRole("toolbar", { name: "작업 검색과 필터" });
+  await page.locator(`input[data-copy-selection="${fixture.tasks[1].taskId}"]`).check();
+  await stressToolbar.locator(".project-stage-filter-trigger").click();
+  await page.getByRole("option").filter({ hasText: fixture.tasks[3].name }).click();
+  const stressSearch = stressToolbar.getByRole("searchbox");
+  await stressSearch.fill("Existing summary child");
+  await expect(stressToolbar.locator(".project-stage-filter-trigger")).toHaveAccessibleName(`Milestone: ${fixture.tasks[3].name}`);
+  await expectAdvancedControlsWithinBounds(stressToolbar);
+  expect((await stressSearch.boundingBox())!.width).toBeGreaterThanOrEqual(120);
+  const stressReset = stressToolbar.getByRole("button", { name: "초기화", exact: true });
+  const selectedLookup = stressToolbar.getByRole("button", { name: "담당자·공수 조회", exact: true });
+  const summaryLookup = stressToolbar.getByRole("button", { name: "Summary 전체 담당자·공수", exact: true });
+  await stressReset.focus();
+  await page.keyboard.press("Tab");
+  await expect(selectedLookup).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(summaryLookup).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(selectedLookup).toBeFocused();
+  await page.screenshot({ path: testInfo.outputPath("issue-556-long-milestone-effective-720.png") });
+  await stressReset.click();
+  await expect(stressSearch).toBeFocused();
+  await expectSameGanttRoot(page, ganttIdentity);
   expect(filterRequests).toEqual([]);
 });

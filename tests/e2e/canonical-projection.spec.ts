@@ -45,14 +45,32 @@ for (const width of [390, 768, 1024, 1440, 1920]) for (const scale of ["Day", "W
     const trace = await frame.evaluate(element => Reflect.get(element, "__issue568Trace").snapshot());
     await testInfo.attach("projection-receipt", { body: JSON.stringify(receipt), contentType: "application/json" });
     await testInfo.attach("projection-actions", { body: JSON.stringify(trace), contentType: "application/json" });
-    const entries = (trace as { entries: { event: string; action: string }[] }).entries;
+    const entries = (trace as { entries: {
+      event: string; action: string;
+      sample?: { geometry?: { width: number; height: number; chartWidth: number; chartHeight: number } };
+    }[] }).entries;
     expect(entries.filter(entry => entry.event === "core-after" && ["filter-tasks", "set-columns"].includes(entry.action))).toEqual([]);
     expect(patches).toBe(1); expect(fixture.posts).toHaveLength(0);
     expect(receipt.outcome).toBe("SETTLED");
     expect(receipt.columns).toBe(columnsBefore);
     expect(receipt.selectedIds).toContain(fixture.tasks[2].taskId);
     expect(receipt.queryConditionsChanged).toBe(false);
-    expect(receipt.reasons).toEqual(["data"]);
+    // #556 CI #3186.1: a real editor/status reflow can produce a ResizeObserver
+    // layout request alongside the canonical metadata update. Keep the strict
+    // data contract, accepting layout only with same-scenario geometry evidence.
+    const reasons = receipt.reasons as string[];
+    expect(reasons.filter(reason => reason !== "layout")).toEqual(["data"]);
+    if (reasons.includes("layout")) {
+      expect(reasons).toEqual(["data", "layout"]);
+      const observedSizes = new Set(entries.flatMap(entry => {
+        const geometry = entry.sample?.geometry;
+        return geometry ? [JSON.stringify([geometry.width, geometry.height, geometry.chartWidth, geometry.chartHeight])] : [];
+      }));
+      expect(observedSizes.size).toBeGreaterThan(1);
+      expect(entries.some(entry => entry.event === "resize-observer")).toBe(true);
+    } else {
+      expect(reasons).toEqual(["data"]);
+    }
     if (scale === "Day" && [390, 1440].includes(width)) await testInfo.attach(`projection-${width}`, { body: await frame.screenshot(), contentType: "image/png" });
   });
 }

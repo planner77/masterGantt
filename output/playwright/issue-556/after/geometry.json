@@ -1,0 +1,521 @@
+{
+  "phase": "after",
+  "sources": {
+    "src/features/projects/project-readonly-view.tsx": "10fc7658ce1bd38ea62e2e9ed119e62b06ed63ec142704a2305401f38ebb7da9",
+    "src/app/globals.css": "6f6673e45f75ecde8da89a9d90bffd2a4961c03a8ab9cb79645f974aa6b768ea",
+    "src/features/gantt/project-gantt.tsx": "f6c3d83e9d204c5666452a88d3d760a4a324d82770cd95c17db12ebcea233c6f",
+    "tests/fixtures/stateful-project.ts": "ae7cc0e656b566d51944d1022cbbf328b5fdac3c9704054eded2254c0e1fe06e"
+  },
+  "measurements": [
+    {
+      "scope": "full",
+      "width": 390,
+      "height": 900,
+      "nav": null,
+      "headingRow": null,
+      "panel": {
+        "x": 12,
+        "y": 225,
+        "width": 366,
+        "height": 664,
+        "bottom": 889
+      },
+      "filter": {
+        "x": 12,
+        "y": 225,
+        "width": 366,
+        "height": 187,
+        "bottom": 412
+      },
+      "gantt": {
+        "x": 12,
+        "y": 420,
+        "width": 366,
+        "height": 469,
+        "bottom": 889
+      },
+      "chart": {
+        "x": 498,
+        "y": 617,
+        "width": 235,
+        "height": 480,
+        "bottom": 1097
+      },
+      "grid": {
+        "x": 13,
+        "y": 617,
+        "width": 480,
+        "height": 480,
+        "bottom": 1097
+      },
+      "topArea": 195,
+      "documentWidth": 390,
+      "sourceRevision": 40,
+      "mode": "readonly",
+      "selection": [],
+      "filterQuery": ""
+    },
+    {
+      "scope": "full",
+      "width": 768,
+      "height": 900,
+      "nav": null,
+      "headingRow": null,
+      "panel": {
+        "x": 24,
+        "y": 226,
+        "width": 720,
+        "height": 663,
+        "bottom": 889
+      },
+      "filter": {
+        "x": 24,
+        "y": 226,
+        "width": 720,
+        "height": 167.5,
+        "bottom": 393.5
+      },
+      "gantt": {
+        "x": 24,
+        "y": 401.5,
+        "width": 720,
+        "height": 487.5,
+        "bottom": 889
+      },
+      "chart": {
+        "x": 510,
+        "y": 500.5,
+        "width": 235,
+        "height": 387.5,
+        "bottom": 888
+      },
+      "grid": {
+        "x": 25,
+        "y": 500.5,
+        "width": 480,
+        "height": 387.5,
+        "bottom": 888
+      },
+      "topArea": 175.5,
+      "documentWidth": 768,
+      "sourceRevision": 40,
+      "mode": "readonly",
+      "selection": [],
+      "filterQuery": ""
+    },
+    {
+      "scope": "full",
+      "width": 1024,
+      "height": 900,
+      "nav": null,
+      "headingRow": null,
+      "panel": {
+        "x": 24,
+        "y": 178,
+        "width": 976,
+        "height": 711,
+        "bottom": 889
+      },
+      "filter": {
+        "x": 24,
+        "y": 178,
+        "width": 976,
+        "height": 167.5,
+        "bottom": 345.5
+      },
+      "gantt": {
+        "x": 24,
+        "y": 353.5,
+        "width": 976,
+        "height": 535.5,
+        "bottom": 889
+      },
+      "chart": {
+        "x": 510,
+        "y": 404.5,
+        "width": 489,
+        "height": 483.5,
+        "bottom": 888
+      },
+      "grid": {
+        "x": 25,
+        "y": 404.5,
+        "width": 480,
+        "height": 483.5,
+        "bottom": 888
+      },
+      "topArea": 175.5,
+      "documentWidth": 1024,
+      "sourceRevision": 40,
+      "mode": "readonly",
+      "selection": [],
+      "filterQuery": ""
+    },
+    {
+      "scope": "full",
+      "width": 1440,
+      "height": 900,
+      "nav": null,
+      "headingRow": null,
+      "panel": {
+        "x": 24,
+        "y": 178,
+        "width": 1392,
+        "height": 711,
+        "bottom": 889
+      },
+      "filter": {
+        "x": 24,
+        "y": 178,
+        "width": 1392,
+        "height": 44,
+        "bottom": 222
+      },
+      "gantt": {
+        "x": 24,
+        "y": 230,
+        "width": 1392,
+        "height": 659,
+        "bottom": 889
+      },
+      "chart": {
+        "x": 510,
+        "y": 281,
+        "width": 905,
+        "height": 607,
+        "bottom": 888
+      },
+      "grid": {
+        "x": 25,
+        "y": 281,
+        "width": 480,
+        "height": 607,
+        "bottom": 888
+      },
+      "topArea": 52,
+      "documentWidth": 1440,
+      "sourceRevision": 40,
+      "mode": "readonly",
+      "selection": [],
+      "filterQuery": ""
+    },
+    {
+      "scope": "full",
+      "width": 1920,
+      "height": 900,
+      "nav": null,
+      "headingRow": null,
+      "panel": {
+        "x": 24,
+        "y": 178,
+        "width": 1872,
+        "height": 711,
+        "bottom": 889
+      },
+      "filter": {
+        "x": 24,
+        "y": 178,
+        "width": 1872,
+        "height": 44,
+        "bottom": 222
+      },
+      "gantt": {
+        "x": 24,
+        "y": 230,
+        "width": 1872,
+        "height": 659,
+        "bottom": 889
+      },
+      "chart": {
+        "x": 510,
+        "y": 281,
+        "width": 1385,
+        "height": 607,
+        "bottom": 888
+      },
+      "grid": {
+        "x": 25,
+        "y": 281,
+        "width": 480,
+        "height": 607,
+        "bottom": 888
+      },
+      "topArea": 52,
+      "documentWidth": 1920,
+      "sourceRevision": 40,
+      "mode": "readonly",
+      "selection": [],
+      "filterQuery": ""
+    },
+    {
+      "scope": "summary",
+      "width": 390,
+      "height": 900,
+      "nav": {
+        "x": 12,
+        "y": 225,
+        "width": 366,
+        "height": 40,
+        "bottom": 265
+      },
+      "headingRow": null,
+      "panel": {
+        "x": 12,
+        "y": 225,
+        "width": 366,
+        "height": 664,
+        "bottom": 889
+      },
+      "filter": {
+        "x": 12,
+        "y": 273,
+        "width": 366,
+        "height": 239,
+        "bottom": 512
+      },
+      "gantt": {
+        "x": 12,
+        "y": 520,
+        "width": 366,
+        "height": 369,
+        "bottom": 889
+      },
+      "chart": {
+        "x": 498,
+        "y": 717,
+        "width": 235,
+        "height": 480,
+        "bottom": 1197
+      },
+      "grid": {
+        "x": 13,
+        "y": 717,
+        "width": 480,
+        "height": 480,
+        "bottom": 1197
+      },
+      "topArea": 295,
+      "documentWidth": 390,
+      "sourceRevision": 40,
+      "mode": "readonly",
+      "selection": [],
+      "filterQuery": ""
+    },
+    {
+      "scope": "summary",
+      "width": 768,
+      "height": 900,
+      "nav": {
+        "x": 24,
+        "y": 226,
+        "width": 720,
+        "height": 40,
+        "bottom": 266
+      },
+      "headingRow": null,
+      "panel": {
+        "x": 24,
+        "y": 226,
+        "width": 720,
+        "height": 663,
+        "bottom": 889
+      },
+      "filter": {
+        "x": 24,
+        "y": 274,
+        "width": 720,
+        "height": 167.5,
+        "bottom": 441.5
+      },
+      "gantt": {
+        "x": 24,
+        "y": 449.5,
+        "width": 720,
+        "height": 439.5,
+        "bottom": 889
+      },
+      "chart": {
+        "x": 510,
+        "y": 548.5,
+        "width": 235,
+        "height": 352,
+        "bottom": 900.5
+      },
+      "grid": {
+        "x": 25,
+        "y": 548.5,
+        "width": 480,
+        "height": 352,
+        "bottom": 900.5
+      },
+      "topArea": 223.5,
+      "documentWidth": 768,
+      "sourceRevision": 40,
+      "mode": "readonly",
+      "selection": [],
+      "filterQuery": ""
+    },
+    {
+      "scope": "summary",
+      "width": 1024,
+      "height": 900,
+      "nav": {
+        "x": 24,
+        "y": 178,
+        "width": 976,
+        "height": 40,
+        "bottom": 218
+      },
+      "headingRow": null,
+      "panel": {
+        "x": 24,
+        "y": 178,
+        "width": 976,
+        "height": 711,
+        "bottom": 889
+      },
+      "filter": {
+        "x": 24,
+        "y": 226,
+        "width": 976,
+        "height": 167.5,
+        "bottom": 393.5
+      },
+      "gantt": {
+        "x": 24,
+        "y": 401.5,
+        "width": 976,
+        "height": 487.5,
+        "bottom": 889
+      },
+      "chart": {
+        "x": 510,
+        "y": 452.5,
+        "width": 489,
+        "height": 435.5,
+        "bottom": 888
+      },
+      "grid": {
+        "x": 25,
+        "y": 452.5,
+        "width": 480,
+        "height": 435.5,
+        "bottom": 888
+      },
+      "topArea": 223.5,
+      "documentWidth": 1024,
+      "sourceRevision": 40,
+      "mode": "readonly",
+      "selection": [],
+      "filterQuery": ""
+    },
+    {
+      "scope": "summary",
+      "width": 1440,
+      "height": 900,
+      "nav": {
+        "x": 24,
+        "y": 178,
+        "width": 1392,
+        "height": 40,
+        "bottom": 218
+      },
+      "headingRow": null,
+      "panel": {
+        "x": 24,
+        "y": 178,
+        "width": 1392,
+        "height": 711,
+        "bottom": 889
+      },
+      "filter": {
+        "x": 24,
+        "y": 226,
+        "width": 1392,
+        "height": 71.5,
+        "bottom": 297.5
+      },
+      "gantt": {
+        "x": 24,
+        "y": 305.5,
+        "width": 1392,
+        "height": 583.5,
+        "bottom": 889
+      },
+      "chart": {
+        "x": 510,
+        "y": 356.5,
+        "width": 905,
+        "height": 531.5,
+        "bottom": 888
+      },
+      "grid": {
+        "x": 25,
+        "y": 356.5,
+        "width": 480,
+        "height": 531.5,
+        "bottom": 888
+      },
+      "topArea": 127.5,
+      "documentWidth": 1440,
+      "sourceRevision": 40,
+      "mode": "readonly",
+      "selection": [],
+      "filterQuery": ""
+    },
+    {
+      "scope": "summary",
+      "width": 1920,
+      "height": 900,
+      "nav": {
+        "x": 24,
+        "y": 178,
+        "width": 1872,
+        "height": 40,
+        "bottom": 218
+      },
+      "headingRow": null,
+      "panel": {
+        "x": 24,
+        "y": 178,
+        "width": 1872,
+        "height": 711,
+        "bottom": 889
+      },
+      "filter": {
+        "x": 24,
+        "y": 226,
+        "width": 1872,
+        "height": 44,
+        "bottom": 270
+      },
+      "gantt": {
+        "x": 24,
+        "y": 278,
+        "width": 1872,
+        "height": 611,
+        "bottom": 889
+      },
+      "chart": {
+        "x": 510,
+        "y": 329,
+        "width": 1385,
+        "height": 559,
+        "bottom": 888
+      },
+      "grid": {
+        "x": 25,
+        "y": 329,
+        "width": 480,
+        "height": 559,
+        "bottom": 888
+      },
+      "topArea": 100,
+      "documentWidth": 1920,
+      "sourceRevision": 40,
+      "mode": "readonly",
+      "selection": [],
+      "filterQuery": ""
+    }
+  ]
+}

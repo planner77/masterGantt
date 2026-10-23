@@ -1,0 +1,94 @@
+{
+  "selectedResult": {
+    "schema": "resource-dashboard/1",
+    "snapshotId": "d53042858991fd943fc2c604890aebb3e76d15476725fc70086ae98f1a7e19d1",
+    "sourceContext": {
+      "projectPublicId": "7265f523-5b4c-4d0f-8c7f-e6edaf9e8a71",
+      "projectRevision": 11,
+      "catalogRevision": 4,
+      "calendarRevision": "3eb4e2d134eba14a4a1d008f8eb6c1c85c711a55adfac12e59df4a3e162f82bf",
+      "dataSnapshotId": "4cd5a7e9b201c61899fff9286fa11f47a301fb0d5cbccdd507636582393c1f7c",
+      "range": {
+        "from": "2026-10-06",
+        "to": "2026-10-06"
+      },
+      "asOfDate": "2026-10-23",
+      "mdPerMm": null,
+      "mdPerMmSource": "unset",
+      "mdPerMmProvided": false,
+      "sourceProjection": {
+        "kind": "details",
+        "selector": {
+          "dimension": "all",
+          "id": null,
+          "assignmentScope": "selected",
+          "metric": "all"
+        },
+        "view": "assignments"
+      }
+    },
+    "taskIds": [
+      "0ab831f2-7c03-46fd-aaef-1d7283d6c504",
+      "9f2526ad-9536-482f-b96d-cbf19f0be3c7"
+    ],
+    "assignmentIds": [
+      "11ac25b8-a02c-4997-a174-a21cc8e3cd9c",
+      "1aa399b8-210a-421e-a592-795adc4ef758",
+      "896b653d-c006-4147-9c1d-ee9b9ee56813"
+    ],
+    "taskCount": 2,
+    "assignmentCount": 3,
+    "ancestorSummaryIds": [
+      "94b98c25-c6d8-4ba4-950c-d157f575f86d",
+      "c1afd4c3-ffcd-4374-83e4-e503e06ac42c"
+    ]
+  },
+  "fullResult": {
+    "schema": "resource-dashboard/1",
+    "snapshotId": "e4ef26ad4a3dbf39aa42844ae82566eea8144a47d8b7f47ad18caddaf545b060",
+    "sourceContext": {
+      "projectPublicId": "7265f523-5b4c-4d0f-8c7f-e6edaf9e8a71",
+      "projectRevision": 11,
+      "catalogRevision": 4,
+      "calendarRevision": "3eb4e2d134eba14a4a1d008f8eb6c1c85c711a55adfac12e59df4a3e162f82bf",
+      "dataSnapshotId": "4cd5a7e9b201c61899fff9286fa11f47a301fb0d5cbccdd507636582393c1f7c",
+      "range": {
+        "from": "2026-10-06",
+        "to": "2026-10-06"
+      },
+      "asOfDate": "2026-10-23",
+      "mdPerMm": null,
+      "mdPerMmSource": "unset",
+      "mdPerMmProvided": false,
+      "sourceProjection": {
+        "kind": "details",
+        "selector": {
+          "dimension": "all",
+          "id": null,
+          "assignmentScope": "selected",
+          "metric": "all"
+        },
+        "view": "assignments"
+      }
+    },
+    "taskIds": [
+      "0ab831f2-7c03-46fd-aaef-1d7283d6c504",
+      "72c09305-adeb-43c8-bc6d-d9f58f727b4a",
+      "9f2526ad-9536-482f-b96d-cbf19f0be3c7"
+    ],
+    "assignmentIds": [
+      "11ac25b8-a02c-4997-a174-a21cc8e3cd9c",
+      "1aa399b8-210a-421e-a592-795adc4ef758",
+      "523025fa-d537-48da-89a7-4b8dbe829685",
+      "896b653d-c006-4147-9c1d-ee9b9ee56813"
+    ],
+    "taskCount": 3,
+    "assignmentCount": 4,
+    "ancestorSummaryIds": [
+      "94b98c25-c6d8-4ba4-950c-d157f575f86d",
+      "c1afd4c3-ffcd-4374-83e4-e503e06ac42c"
+    ]
+  },
+  "excludedTaskId": "01a86731-9bce-4cae-b3a3-2fdb48ecea0f",
+  "writes": 0
+}
