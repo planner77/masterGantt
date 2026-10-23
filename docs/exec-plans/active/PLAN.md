@@ -1,3 +1,11 @@
+## Issue #556 — 일정 상단 P1 경량 정돈
+
+P1 구현·문서·실측 및 최종 선택 회귀를 정리해 Ready PR Full CI 시작으로 인계한다. 기본1440×900 Gantt/Grid/Chart+80px, Summary+4.5px를 실측했으며 실제 선택 긴Milestone의720px clipping을 Project2열/wrap과 기존 회귀 확장으로 보완했다. 검증·최초 실패·승인/미검증 경계는 Work Packet이 기준이다.
+
+최신 main `427d22245fb8e11254b2424ea5147ccbd5766979` / 0.130.1에서 `feat/issue-556-schedule-header-density`로 P1만 구현한다. 정상 전체/열린 Summary0 범위 행과 중복 visible heading·정상 설명을 줄이고, 기존 선택/현재 Summary 담당자·공수 조회를 검색·필터 인접 직접 명령으로 제공한다. Gantt 내부 toolbar·canonical/API/DB/공수 계산과 #552 marker OFF는 유지한다. 전체 Toolbar 통합 P2는 DEFERRED이며 #556 수용 선행조건이 아니다.
+
+후보 PATCH0.130.2, release_required=true/release_authorized=false. Manager 측정/문서·frontend 단일 source/test writer·ui_ux 읽기 전용 설계·qa_docs 사전 검토로 진행한다. HIGH/OWNER_MANAGED/qa_required=true(version-only 보호 경로 포함); 원격 Required3/Trusted·Owner ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED. 범위는 구현/문서/PR Full CI 시작까지이며 모니터링·병합·Main/GHCR/Release·종료는 하지 않는다. [Work Packet](ISSUE_556.md)에 AC·TEST_LIFECYCLE_REVIEW·실측·실행 결과를 기록한다.
+
 ## Issue #762 — PR #779 F-003 누적 실패 재작업 (2026-10-22)
 
 최신Full3154.1/run39787884834/attempt1은 Shard7 `project-logistics-management.spec.ts:550`에서 dirty공정 Escape의 구 즉시닫기 기대0/실제1로FAIL(46PASS1FAIL30NOT RUN); 다른7ShardCANCELLED,Quality/DockerSUCCESS,E2E/QA파생FAIL. 이전3150/3153과 전체24Shard·90Jobs를 대조하고2실패파일·3case 합집합을 유지한다. 로컬원본red9.0s→제품source불변으로초안확인계약을검증하는green3.0s를 확보하고, 두실패파일전체와직접/인접/음성 소비자를 fail-fast 없이 검증한다. [누적 원장](../../ISSUE_762_FAILURE_ANALYSIS.md), [Work Packet](ISSUE_762.md) 참조.

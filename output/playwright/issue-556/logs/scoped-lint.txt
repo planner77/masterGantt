@@ -1,0 +1,7 @@
+테스트·정적검사 실행 출력 발췌(줄 끝 공백 정규화). 앱 런타임 WebServer 로그는 제외했으며 전체 원본은 로컬 /tmp에 별도 보존합니다.
+
+
+/home/planner/Dev/masterGantt-worktrees/issue-556/src/features/projects/project-readonly-view.tsx
+  34:10  warning  'WbsViewDashboard' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 1 problem (0 errors, 1 warning)

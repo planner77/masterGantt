@@ -165,12 +165,18 @@ test("Issue #399 opens Summary scopes in Workspace tabs without creating a brows
   const beta = betaSnapshot.data.tasks.find((task) => task.name === "Scope Beta"); expect(beta?.type).toBe("summary");
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance"), apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
+  await expect(page.locator(".project-scope-navigation")).toHaveCount(0);
+  await expect(page.locator("#schedule-heading")).toHaveText("일정");
+  await expect(page.locator("#project-scope-panel")).toHaveAccessibleName("일정");
   const browserPageCount = page.context().pages().length;
   const alphaMenu = await openMenu(page, "Scope Alpha");
   await alphaMenu.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click();
   expect(page.context().pages()).toHaveLength(browserPageCount);
   const tabs = page.getByRole("tablist", { name: "WBS 범위 탭" }), allTab = page.getByRole("button", { name: "전체 일정 보기", exact: true }).first(), alphaTab = tabs.getByRole("tab", { name: "Scope Alpha", exact: true });
   await expect(alphaTab).toHaveAttribute("aria-selected", "true"); expect(new URL(page.url()).searchParams.get("rootTask")).toBe(alpha!.taskId);
+  await expect(page.getByRole("button", { name: "Summary 전체 담당자·공수", exact: true })).toBeEnabled();
+  // Opening the context menu selects this Summary, whose ordinary descendants are valid.
+  await expect(page.getByRole("button", { name: "담당자·공수 조회", exact: true })).toBeEnabled();
   await expect(row(page, "Scope Beta")).toHaveCount(0);
 
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
@@ -185,6 +191,8 @@ test("Issue #399 opens Summary scopes in Workspace tabs without creating a brows
   expect(new URL(page.url()).searchParams.get("rootTask")).toBe(alpha!.taskId);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
   await allTab.click(); await expect(search).toHaveValue(""); await expect(row(page, "Scope Beta")).toBeVisible();
+  await expect(page.locator(".project-scope-navigation")).toBeVisible();
+  await expect(allTab).toHaveAttribute("aria-pressed", "true");
   const betaMenu = await openMenu(page, "Scope Beta"); await betaMenu.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click();
   const betaTab = tabs.getByRole("tab", { name: "Scope Beta", exact: true }); await expect(tabs.getByRole("tab")).toHaveCount(2);
   await alphaTab.click(); await expect(search).toHaveValue("Scope Alpha"); await allTab.click();
@@ -194,7 +202,18 @@ test("Issue #399 opens Summary scopes in Workspace tabs without creating a brows
   await alphaTab.focus(); await page.keyboard.press("End"); await expect(betaTab).toHaveAttribute("aria-selected","true"); await page.keyboard.press("ArrowLeft"); await expect(alphaTab).toHaveAttribute("aria-selected","true");
   await page.getByRole("button",{name:"Scope Alpha 범위 탭 닫기",exact:true}).click(); await expect(betaTab).toHaveAttribute("aria-selected","true"); expect(new URL(page.url()).searchParams.get("rootTask")).toBe(beta!.taskId);
   await page.reload(); const rtabs=page.getByRole("tablist",{name:"WBS 범위 탭"}); await expect(rtabs.getByRole("tab",{name:"Scope Beta",exact:true})).toHaveAttribute("aria-selected","true"); await expect(rtabs.getByRole("tab",{name:"Scope Alpha",exact:true})).toHaveCount(0);
-  await page.getByRole("button",{name:"Scope Beta 범위 탭 닫기",exact:true}).click(); await expect(page.getByRole("button",{name:"전체 일정 보기",exact:true}).first()).toHaveAttribute("aria-pressed","true"); expect(new URL(page.url()).searchParams.get("rootTask")).toBeNull();
+  await page.getByRole("button",{name:"Scope Beta 범위 탭 닫기",exact:true}).click();
+  await expect(page.locator(".project-scope-navigation")).toHaveCount(0);
+  await expect(search).toBeFocused();
+  await expect(page.locator("#project-scope-panel")).toHaveAccessibleName("일정");
+  expect(new URL(page.url()).searchParams.get("rootTask")).toBeNull();
+  // The last inactive Summary tab also removes the full-schedule button.
+  const reopenBeta = await openMenu(page, "Scope Beta");
+  await reopenBeta.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click();
+  await allTab.click();
+  await page.getByRole("button", { name: "Scope Beta 범위 탭 닫기", exact: true }).click();
+  await expect(page.locator(".project-scope-navigation")).toHaveCount(0);
+  await expect(search).toBeFocused();
 });
 
 test("Issue #407/#418 keeps scoped Header and Row additions canonical and continuous", async ({ page }) => {

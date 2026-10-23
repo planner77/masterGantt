@@ -1,0 +1,45 @@
+테스트·정적검사 실행 출력 발췌(줄 끝 공백 정규화). 앱 런타임 WebServer 로그는 제외했으며 전체 원본은 로컬 /tmp에 별도 보존합니다.
+
+
+Running 34 tests using 1 worker
+
+(node:190340) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:190340) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/e2e/issue-621-resource-target.spec.ts:146:5 › #621 Target 계층/비교표 server 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0 (29.7s)
+  ✓   2 [chromium] › tests/e2e/milestone-visibility.spec.ts:36:5 › #552 marker OFF membership/reset/peer preserve canonical data and instance (5.1s)
+  ✓   3 [chromium] › tests/e2e/milestone-visibility.spec.ts:70:5 › #552 legacy marker preference and denied storage cannot enable production presentation (2.9s)
+  ✓   4 [chromium] › tests/e2e/milestone-visibility.spec.ts:78:55 › #552 marker OFF Day/Week column geometry 390px (5.4s)
+  ✓   5 [chromium] › tests/e2e/milestone-visibility.spec.ts:78:55 › #552 marker OFF Day/Week column geometry 768px (5.5s)
+  ✓   6 [chromium] › tests/e2e/milestone-visibility.spec.ts:78:55 › #552 marker OFF Day/Week column geometry 1024px (5.4s)
+  ✓   7 [chromium] › tests/e2e/milestone-visibility.spec.ts:78:55 › #552 marker OFF Day/Week column geometry 1440px (5.3s)
+  ✓   8 [chromium] › tests/e2e/milestone-visibility.spec.ts:78:55 › #552 marker OFF Day/Week column geometry 1920px (5.5s)
+  ✓   9 [chromium] › tests/e2e/milestone-visibility.spec.ts:102:44 › #552 OFF date request 390px opens canonical detail without hidden selection or axis commands (2.4s)
+  ✓  10 [chromium] › tests/e2e/milestone-visibility.spec.ts:102:44 › #552 OFF date request 1024px opens canonical detail without hidden selection or axis commands (2.7s)
+  ✓  11 [chromium] › tests/e2e/milestone-visibility.spec.ts:102:44 › #552 OFF date request 1440px opens canonical detail without hidden selection or axis commands (2.7s)
+  ✓  12 [chromium] › tests/e2e/milestone-visibility.spec.ts:121:5 › #552 legacy native M selection is removed by public toggle while the ordinary Task selection remains (2.2s)
+  ✓  13 [chromium] › tests/e2e/milestone-visibility.spec.ts:136:5 › #552 scoped Summary becoming M keeps the native instance and requires explicit full-project recovery (1.9s)
+  ✓  14 [chromium] › tests/e2e/milestone-visibility.spec.ts:158:5 › #552 Grid-only and metadata canonical queue retain ordinary WBS rows and full canonical links (2.3s)
+  ✓  15 [chromium] › tests/e2e/milestone-visibility.spec.ts:177:5 › #552 legacy M-only filter has explicit dashboard and clear actions (2.1s)
+  ✓  16 [chromium] › tests/e2e/milestone-visibility.spec.ts:187:5 › #552 Milestone cause and multi-ID KPI stay in exact Dashboard identities with Task drills separate (3.9s)
+  ✓  17 [chromium] › tests/e2e/milestone-visibility.spec.ts:218:5 › #552 undated Milestone date/details action remains available in readonly without axis navigation (3.7s)
+  ✓  18 [chromium] › tests/e2e/project-empty-summary.spec.ts:4:5 › Core probe keeps an unscheduled Summary row without inventing a scheduled bar (1.6s)
+  ✓  19 [chromium] › tests/e2e/project-empty-summary.spec.ts:17:5 › renders a tree of only empty Summary containers without bars or fake Grid dates (3.2s)
+  ✓  20 [chromium] › tests/e2e/project-filter-toolbar-consistency.spec.ts:127:5 › Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API 불변 경계를 유지한다 (19.1s)
+  ✓  21 [chromium] › tests/e2e/project-gantt-fullscreen.spec.ts:45:7 › Issue #155 Gantt Grid+Chart native 전체화면 › 버튼·Ctrl/Cmd+Shift+F·Escape와 네 폭 layout은 같은 Gantt를 유지한다 (6.0s)
+  ✓  22 [chromium] › tests/e2e/project-gantt-fullscreen.spec.ts:119:7 › Issue #155 Gantt Grid+Chart native 전체화면 › split/열/주 단위/scroll/선택/summary 상태와 메뉴는 전환 전후 유지된다 (5.1s)
+  ✓  23 [chromium] › tests/e2e/project-gantt-fullscreen.spec.ts:219:7 › Issue #155 Gantt Grid+Chart native 전체화면 › 입력·inline edit·dialog에서는 shortcut을 무시하고 Task Editor가 fullscreen을 유지한다 (2.6s)
+  ✓  24 [chromium] › tests/e2e/project-gantt-fullscreen.spec.ts:263:7 › Issue #155 Gantt Grid+Chart native 전체화면 › readonly도 fullscreen 진입 실패를 정확히 표시하고 Task Editor는 exitFullscreen 없이 연다 (3.0s)
+  ✓  25 [chromium] › tests/e2e/project-gantt-fullscreen.spec.ts:301:7 › Issue #155 Gantt Grid+Chart native 전체화면 › Grid·Chart의 double click과 Context Menu Edit이 모두 fullscreen Task Editor를 유지한다 (4.0s)
+  ✓  26 [chromium] › tests/e2e/project-gantt-fullscreen.spec.ts:333:7 › Issue #155 Gantt Grid+Chart native 전체화면 › Relation Editor도 공통 dialog 경로에서 fullscreen을 유지한다 (3.4s)
+  ✓  27 [chromium] › tests/e2e/project-search-filter.spec.ts:14:7 › Issue #83 Project Task / Resource 검색·필터 › Task 통합 검색과 초기화는 canonical Gantt 인스턴스를 유지한다 (2.7s)
+  ✓  28 [chromium] › tests/e2e/project-search-filter.spec.ts:52:7 › Issue #83 Project Task / Resource 검색·필터 › readonly에서도 Task 고급 필터를 사용할 수 있고 ancestor context는 match count에서 제외한다 (2.0s)
+  ✓  29 [chromium] › tests/e2e/project-search-filter.spec.ts:69:7 › Issue #83 Project Task / Resource 검색·필터 › Resource 검색·기간 필터는 서버 선택 범위 KPI와 행을 함께 갱신하고 초기화를 복원한다 (2.9s)
+  ✓  30 [chromium] › tests/e2e/project-workspace-tabs-518.spec.ts:7:5 › #518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5폭 tab geometry (10.5s)
+  ✓  31 [chromium] › tests/e2e/resource-drill-ui.spec.ts:22:5 › #528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor (30.9s)
+  ✓  32 [chromium] › tests/e2e/resource-drill-ui.spec.ts:494:5 › #556 선택 Summary 자손과 현재 Summary 전체 담당자·공수를 별도 readonly 명령으로 조회한다 (8.4s)
+  ✓  33 [chromium] › tests/e2e/task-context-menu-hierarchy.spec.ts:150:5 › Issue #399 opens Summary scopes in Workspace tabs without creating a browser tab (11.5s)
+  ✓  34 [chromium] › tests/e2e/task-context-menu-hierarchy.spec.ts:488:5 › Issue #373 A direct subtree deep link preserves scope and edit permissions (7.7s)
+
+  34 passed (5.3m)

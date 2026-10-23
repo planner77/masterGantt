@@ -1,3 +1,9 @@
+## [0.130.2] - 2026-10-23
+
+### Changed
+
+- 일정의 기본 전체 범위에서 불필요한 탐색 행과 중복 제목·정상 안내를 줄이고, 선택 작업과 현재 Summary의 담당자·공수 조회를 검색·필터에 인접한 별도 명령으로 제공합니다. 기존 범위·포커스·readonly 조회와 Gantt toolbar/marker OFF를 유지합니다. (#556)
+
 ## [0.130.1] — Unreleased / Issue #750 E2E 안정화
 
 - 첫 병합 [Main #3183.1](https://github.com/planner77/masterGantt/actions/runs/39910342165)의 #490 기존 Gantt 세로 스크롤 설정 38px→실제0 회귀를 확인했다. X 용량 19→903의 후행 레이아웃 변화를 진단하고 테스트 준비에서 native X 안정·두 RAF·Y scroll capacity를 검증한 다음 원래 Y=38·Settings 상태 보존 단언을 유지한다. 새 PATCH 버전 추가 없이 같은 #750 교정 PR에서 검증; 실패 Main 원본/Release 대기/정식 게시 미완료를 보존한다.

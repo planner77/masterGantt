@@ -1,0 +1,1017 @@
+{
+  "sources": {
+    "src/features/projects/project-readonly-view.tsx": "22b568cc7ff62679f5cf81727f8dd1ce97167aa74b9259063e6f66904f209c06",
+    "src/app/globals.css": "be96a3ab5298dbdbf1a9919335d8c44f1284360a2051bb6606a6bceaaf10c288"
+  },
+  "fixture": "stateful-project; long Summary/Milestone; selected child; query+reset",
+  "result": [
+    {
+      "mode": "readonly",
+      "width": 390,
+      "height": 900,
+      "effectiveZoom": null,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 390,
+        "viewport": 390,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 12,
+            "y": 275,
+            "width": 300,
+            "height": 36,
+            "right": 312,
+            "bottom": 311
+          },
+          {
+            "name": "필터",
+            "x": 320,
+            "y": 273,
+            "width": 58,
+            "height": 40,
+            "right": 378,
+            "bottom": 313
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 12,
+            "y": 329,
+            "width": 366,
+            "height": 40,
+            "right": 378,
+            "bottom": 369
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 12,
+            "y": 424,
+            "width": 135,
+            "height": 44,
+            "right": 147,
+            "bottom": 468
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 155,
+            "y": 424,
+            "width": 198,
+            "height": 44,
+            "right": 353,
+            "bottom": 468
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "readonly",
+      "width": 768,
+      "height": 900,
+      "effectiveZoom": null,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 768,
+        "viewport": 768,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 276,
+            "width": 233,
+            "height": 36,
+            "right": 257,
+            "bottom": 312
+          },
+          {
+            "name": "필터",
+            "x": 265,
+            "y": 274,
+            "width": 479,
+            "height": 40,
+            "right": 744,
+            "bottom": 314
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 24,
+            "y": 349.5,
+            "width": 144,
+            "height": 40,
+            "right": 168,
+            "bottom": 389.5
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 24,
+            "y": 397.5,
+            "width": 135,
+            "height": 44,
+            "right": 159,
+            "bottom": 441.5
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 167,
+            "y": 397.5,
+            "width": 198,
+            "height": 44,
+            "right": 365,
+            "bottom": 441.5
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "readonly",
+      "width": 1024,
+      "height": 900,
+      "effectiveZoom": null,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 1024,
+        "viewport": 1024,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 228,
+            "width": 902,
+            "height": 36,
+            "right": 926,
+            "bottom": 264
+          },
+          {
+            "name": "필터",
+            "x": 934,
+            "y": 226,
+            "width": 58,
+            "height": 40,
+            "right": 992,
+            "bottom": 266
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 24,
+            "y": 301.5,
+            "width": 144,
+            "height": 40,
+            "right": 168,
+            "bottom": 341.5
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 24,
+            "y": 349.5,
+            "width": 135,
+            "height": 44,
+            "right": 159,
+            "bottom": 393.5
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 167,
+            "y": 349.5,
+            "width": 198,
+            "height": 44,
+            "right": 365,
+            "bottom": 393.5
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "readonly",
+      "width": 1440,
+      "height": 900,
+      "effectiveZoom": null,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 234,
+            "width": 338,
+            "height": 36,
+            "right": 362,
+            "bottom": 270
+          },
+          {
+            "name": "필터",
+            "x": 370,
+            "y": 230,
+            "width": 58,
+            "height": 40,
+            "right": 428,
+            "bottom": 270
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 436,
+            "y": 230,
+            "width": 144,
+            "height": 40,
+            "right": 580,
+            "bottom": 270
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 588,
+            "y": 226,
+            "width": 135,
+            "height": 44,
+            "right": 723,
+            "bottom": 270
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 731,
+            "y": 226,
+            "width": 198,
+            "height": 44,
+            "right": 929,
+            "bottom": 270
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "readonly",
+      "width": 1920,
+      "height": 900,
+      "effectiveZoom": null,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 1920,
+        "viewport": 1920,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 234,
+            "width": 448,
+            "height": 36,
+            "right": 472,
+            "bottom": 270
+          },
+          {
+            "name": "필터",
+            "x": 850,
+            "y": 230,
+            "width": 58,
+            "height": 40,
+            "right": 908,
+            "bottom": 270
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 916,
+            "y": 230,
+            "width": 144,
+            "height": 40,
+            "right": 1060,
+            "bottom": 270
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 1068,
+            "y": 226,
+            "width": 135,
+            "height": 44,
+            "right": 1203,
+            "bottom": 270
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 1211,
+            "y": 226,
+            "width": 198,
+            "height": 44,
+            "right": 1409,
+            "bottom": 270
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "readonly",
+      "width": 1152,
+      "height": 900,
+      "effectiveZoom": 125,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 1152,
+        "viewport": 1152,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 234,
+            "width": 448,
+            "height": 36,
+            "right": 472,
+            "bottom": 270
+          },
+          {
+            "name": "필터",
+            "x": 569,
+            "y": 230,
+            "width": 58,
+            "height": 40,
+            "right": 627,
+            "bottom": 270
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 635,
+            "y": 230,
+            "width": 144,
+            "height": 40,
+            "right": 779,
+            "bottom": 270
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 787,
+            "y": 226,
+            "width": 135,
+            "height": 44,
+            "right": 922,
+            "bottom": 270
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 930,
+            "y": 226,
+            "width": 198,
+            "height": 44,
+            "right": 1128,
+            "bottom": 270
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "readonly",
+      "width": 960,
+      "height": 900,
+      "effectiveZoom": 150,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 960,
+        "viewport": 960,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 228,
+            "width": 838,
+            "height": 36,
+            "right": 862,
+            "bottom": 264
+          },
+          {
+            "name": "필터",
+            "x": 870,
+            "y": 226,
+            "width": 58,
+            "height": 40,
+            "right": 928,
+            "bottom": 266
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 24,
+            "y": 301.5,
+            "width": 144,
+            "height": 40,
+            "right": 168,
+            "bottom": 341.5
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 24,
+            "y": 349.5,
+            "width": 135,
+            "height": 44,
+            "right": 159,
+            "bottom": 393.5
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 167,
+            "y": 349.5,
+            "width": 198,
+            "height": 44,
+            "right": 365,
+            "bottom": 393.5
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "readonly",
+      "width": 720,
+      "height": 900,
+      "effectiveZoom": 200,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 720,
+        "viewport": 720,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 276,
+            "width": 185,
+            "height": 36,
+            "right": 209,
+            "bottom": 312
+          },
+          {
+            "name": "필터",
+            "x": 217,
+            "y": 274,
+            "width": 479,
+            "height": 40,
+            "right": 696,
+            "bottom": 314
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 24,
+            "y": 349.5,
+            "width": 144,
+            "height": 40,
+            "right": 168,
+            "bottom": 389.5
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 24,
+            "y": 397.5,
+            "width": 135,
+            "height": 44,
+            "right": 159,
+            "bottom": 441.5
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 167,
+            "y": 397.5,
+            "width": 198,
+            "height": 44,
+            "right": 365,
+            "bottom": 441.5
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "edit",
+      "width": 390,
+      "height": 900,
+      "effectiveZoom": null,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 390,
+        "viewport": 390,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 12,
+            "y": 275,
+            "width": 300,
+            "height": 36,
+            "right": 312,
+            "bottom": 311
+          },
+          {
+            "name": "필터",
+            "x": 320,
+            "y": 273,
+            "width": 58,
+            "height": 40,
+            "right": 378,
+            "bottom": 313
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 12,
+            "y": 329,
+            "width": 366,
+            "height": 40,
+            "right": 378,
+            "bottom": 369
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 12,
+            "y": 424,
+            "width": 135,
+            "height": 44,
+            "right": 147,
+            "bottom": 468
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 155,
+            "y": 424,
+            "width": 198,
+            "height": 44,
+            "right": 353,
+            "bottom": 468
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "edit",
+      "width": 768,
+      "height": 900,
+      "effectiveZoom": null,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 768,
+        "viewport": 768,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 276,
+            "width": 233,
+            "height": 36,
+            "right": 257,
+            "bottom": 312
+          },
+          {
+            "name": "필터",
+            "x": 265,
+            "y": 274,
+            "width": 479,
+            "height": 40,
+            "right": 744,
+            "bottom": 314
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 24,
+            "y": 349.5,
+            "width": 144,
+            "height": 40,
+            "right": 168,
+            "bottom": 389.5
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 24,
+            "y": 397.5,
+            "width": 135,
+            "height": 44,
+            "right": 159,
+            "bottom": 441.5
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 167,
+            "y": 397.5,
+            "width": 198,
+            "height": 44,
+            "right": 365,
+            "bottom": 441.5
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "edit",
+      "width": 1024,
+      "height": 900,
+      "effectiveZoom": null,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 1024,
+        "viewport": 1024,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 228,
+            "width": 902,
+            "height": 36,
+            "right": 926,
+            "bottom": 264
+          },
+          {
+            "name": "필터",
+            "x": 934,
+            "y": 226,
+            "width": 58,
+            "height": 40,
+            "right": 992,
+            "bottom": 266
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 24,
+            "y": 301.5,
+            "width": 144,
+            "height": 40,
+            "right": 168,
+            "bottom": 341.5
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 24,
+            "y": 349.5,
+            "width": 135,
+            "height": 44,
+            "right": 159,
+            "bottom": 393.5
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 167,
+            "y": 349.5,
+            "width": 198,
+            "height": 44,
+            "right": 365,
+            "bottom": 393.5
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "edit",
+      "width": 1440,
+      "height": 900,
+      "effectiveZoom": null,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 234,
+            "width": 338,
+            "height": 36,
+            "right": 362,
+            "bottom": 270
+          },
+          {
+            "name": "필터",
+            "x": 370,
+            "y": 230,
+            "width": 58,
+            "height": 40,
+            "right": 428,
+            "bottom": 270
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 436,
+            "y": 230,
+            "width": 144,
+            "height": 40,
+            "right": 580,
+            "bottom": 270
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 588,
+            "y": 226,
+            "width": 135,
+            "height": 44,
+            "right": 723,
+            "bottom": 270
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 731,
+            "y": 226,
+            "width": 198,
+            "height": 44,
+            "right": 929,
+            "bottom": 270
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "edit",
+      "width": 1920,
+      "height": 900,
+      "effectiveZoom": null,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 1920,
+        "viewport": 1920,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 234,
+            "width": 448,
+            "height": 36,
+            "right": 472,
+            "bottom": 270
+          },
+          {
+            "name": "필터",
+            "x": 850,
+            "y": 230,
+            "width": 58,
+            "height": 40,
+            "right": 908,
+            "bottom": 270
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 916,
+            "y": 230,
+            "width": 144,
+            "height": 40,
+            "right": 1060,
+            "bottom": 270
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 1068,
+            "y": 226,
+            "width": 135,
+            "height": 44,
+            "right": 1203,
+            "bottom": 270
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 1211,
+            "y": 226,
+            "width": 198,
+            "height": 44,
+            "right": 1409,
+            "bottom": 270
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "edit",
+      "width": 1152,
+      "height": 900,
+      "effectiveZoom": 125,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 1152,
+        "viewport": 1152,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 234,
+            "width": 448,
+            "height": 36,
+            "right": 472,
+            "bottom": 270
+          },
+          {
+            "name": "필터",
+            "x": 569,
+            "y": 230,
+            "width": 58,
+            "height": 40,
+            "right": 627,
+            "bottom": 270
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 635,
+            "y": 230,
+            "width": 144,
+            "height": 40,
+            "right": 779,
+            "bottom": 270
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 787,
+            "y": 226,
+            "width": 135,
+            "height": 44,
+            "right": 922,
+            "bottom": 270
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 930,
+            "y": 226,
+            "width": 198,
+            "height": 44,
+            "right": 1128,
+            "bottom": 270
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "edit",
+      "width": 960,
+      "height": 900,
+      "effectiveZoom": 150,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 960,
+        "viewport": 960,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 228,
+            "width": 838,
+            "height": 36,
+            "right": 862,
+            "bottom": 264
+          },
+          {
+            "name": "필터",
+            "x": 870,
+            "y": 226,
+            "width": 58,
+            "height": 40,
+            "right": 928,
+            "bottom": 266
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 24,
+            "y": 301.5,
+            "width": 144,
+            "height": 40,
+            "right": 168,
+            "bottom": 341.5
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 24,
+            "y": 349.5,
+            "width": 135,
+            "height": 44,
+            "right": 159,
+            "bottom": 393.5
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 167,
+            "y": 349.5,
+            "width": 198,
+            "height": 44,
+            "right": 365,
+            "bottom": 393.5
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    },
+    {
+      "mode": "edit",
+      "width": 720,
+      "height": 900,
+      "effectiveZoom": 200,
+      "nativeZoom": false,
+      "geometry": {
+        "documentWidth": 720,
+        "viewport": 720,
+        "outside": [],
+        "overlaps": [],
+        "controls": [
+          {
+            "name": "작업명, 설명, External ID 검색",
+            "x": 24,
+            "y": 276,
+            "width": 185,
+            "height": 36,
+            "right": 209,
+            "bottom": 312
+          },
+          {
+            "name": "필터",
+            "x": 217,
+            "y": 274,
+            "width": 479,
+            "height": 40,
+            "right": 696,
+            "bottom": 314
+          },
+          {
+            "name": "Milestone: 전체",
+            "x": 24,
+            "y": 349.5,
+            "width": 144,
+            "height": 40,
+            "right": 168,
+            "bottom": 389.5
+          },
+          {
+            "name": "담당자·공수 조회",
+            "x": 24,
+            "y": 397.5,
+            "width": 135,
+            "height": 44,
+            "right": 159,
+            "bottom": 441.5
+          },
+          {
+            "name": "Summary 전체 담당자·공수",
+            "x": 167,
+            "y": 397.5,
+            "width": 198,
+            "height": 44,
+            "right": 365,
+            "bottom": 441.5
+          }
+        ]
+      },
+      "sameInstance": true,
+      "revision": 40,
+      "writes": 0
+    }
+  ]
+}

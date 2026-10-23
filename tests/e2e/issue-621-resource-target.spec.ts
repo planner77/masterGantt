@@ -243,7 +243,7 @@ test("#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native key
   const source = page.getByRole("region", { name: "임시 조회 범위", exact: true });
   await expect(source).toContainText("Assignment");
   await frame.locator(`input[data-copy-selection="${f.task.taskId}"]`).check();
-  await page.getByRole("button", { name: "선택 Task의 모든 개인 담당 조회", exact: true }).click();
+  await page.getByRole("button", { name: "담당자·공수 조회", exact: true }).click();
   await expect(root).toHaveAttribute("data-ready", "true");
   await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");
   await root.getByRole("button", { name: /^필터(?: \d+)?$/ }).click();
