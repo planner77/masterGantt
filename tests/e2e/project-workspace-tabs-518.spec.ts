@@ -32,7 +32,7 @@ test("#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5
   await expect(schedule).toHaveAttribute("aria-controls", "project-panel-schedule");
   await expect(page.getByRole("tab", { name: "Gantt", exact: true })).toHaveCount(0);
   await expect(page.locator(".project-schedule-peer-tabs")).toHaveCount(0);
-  await expect(allSchedule).toBeVisible();
+  await expect(allSchedule).toHaveCount(0);
 
   await openWorkspaceView(page, "milestones");
   await expect(milestone).toHaveAttribute("aria-controls", "project-panel-milestones");
@@ -56,7 +56,7 @@ test("#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     await schedule.click();
-    await expect(allSchedule).toBeVisible();
+    await expect(allSchedule).toHaveCount(0);
     await openWorkspaceView(page, "milestones");
     await expect(dashboard).toHaveAttribute("data-ready", "true");
     const subviews = page.getByRole("tablist", { name: "대시보드 보기" });
@@ -125,7 +125,7 @@ test("#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5
 
   await schedule.click();
   await expect(gantt).toHaveAttribute("data-project-gantt-api-instance", instance!);
-  await expect(allSchedule).toBeVisible();
+  await expect(allSchedule).toHaveCount(0);
   expect(writes).toBe(0);
 });
 

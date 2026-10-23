@@ -1,0 +1,156 @@
+테스트·정적검사 실행 출력 발췌(줄 끝 공백 정규화). 앱 런타임 WebServer 로그는 제외했으며 전체 원본은 로컬 /tmp에 별도 보존합니다.
+
+
+> mastergantt@0.130.2 test:e2e
+> playwright test --config tests/config/playwright.config.ts --project=chromium --workers=1 --retries=0 --max-failures=0 tests/e2e/resource-drill-ui.spec.ts tests/e2e/project-workspace-tabs-518.spec.ts tests/e2e/project-gantt-fullscreen.spec.ts tests/e2e/milestone-visibility.spec.ts tests/e2e/project-search-filter.spec.ts tests/e2e/task-context-menu-hierarchy.spec.ts tests/e2e/issue-621-resource-target.spec.ts --grep #528|#518|#552|Issue #399|Issue #373 A|#621 Target 계층|fullscreen|전체 화면|검색
+
+
+Running 30 tests using 1 worker
+
+(node:137379) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:137379) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   1 [chromium] › tests/e2e/issue-621-resource-target.spec.ts:146:5 › #621 Target 계층/비교표 server 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0 (360ms)
+(node:137500) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:137500) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 [chromium] › tests/e2e/milestone-visibility.spec.ts:36:5 › #552 marker OFF membership/reset/peer preserve canonical data and instance (3.6s)
+  ✓   3 [chromium] › tests/e2e/milestone-visibility.spec.ts:70:5 › #552 legacy marker preference and denied storage cannot enable production presentation (3.1s)
+  ✓   4 [chromium] › tests/e2e/milestone-visibility.spec.ts:78:55 › #552 marker OFF Day/Week column geometry 390px (5.6s)
+  ✓   5 [chromium] › tests/e2e/milestone-visibility.spec.ts:78:55 › #552 marker OFF Day/Week column geometry 768px (5.3s)
+  ✓   6 [chromium] › tests/e2e/milestone-visibility.spec.ts:78:55 › #552 marker OFF Day/Week column geometry 1024px (5.2s)
+  ✓   7 [chromium] › tests/e2e/milestone-visibility.spec.ts:78:55 › #552 marker OFF Day/Week column geometry 1440px (5.1s)
+  ✓   8 [chromium] › tests/e2e/milestone-visibility.spec.ts:78:55 › #552 marker OFF Day/Week column geometry 1920px (5.9s)
+  ✓   9 [chromium] › tests/e2e/milestone-visibility.spec.ts:102:44 › #552 OFF date request 390px opens canonical detail without hidden selection or axis commands (2.8s)
+  ✓  10 [chromium] › tests/e2e/milestone-visibility.spec.ts:102:44 › #552 OFF date request 1024px opens canonical detail without hidden selection or axis commands (2.7s)
+  ✓  11 [chromium] › tests/e2e/milestone-visibility.spec.ts:102:44 › #552 OFF date request 1440px opens canonical detail without hidden selection or axis commands (2.5s)
+  ✓  12 [chromium] › tests/e2e/milestone-visibility.spec.ts:121:5 › #552 legacy native M selection is removed by public toggle while the ordinary Task selection remains (2.1s)
+  ✓  13 [chromium] › tests/e2e/milestone-visibility.spec.ts:136:5 › #552 scoped Summary becoming M keeps the native instance and requires explicit full-project recovery (1.9s)
+  ✓  14 [chromium] › tests/e2e/milestone-visibility.spec.ts:158:5 › #552 Grid-only and metadata canonical queue retain ordinary WBS rows and full canonical links (1.9s)
+  ✓  15 [chromium] › tests/e2e/milestone-visibility.spec.ts:177:5 › #552 legacy M-only filter has explicit dashboard and clear actions (1.8s)
+  ✓  16 [chromium] › tests/e2e/milestone-visibility.spec.ts:187:5 › #552 Milestone cause and multi-ID KPI stay in exact Dashboard identities with Task drills separate (3.8s)
+  ✓  17 [chromium] › tests/e2e/milestone-visibility.spec.ts:218:5 › #552 undated Milestone date/details action remains available in readonly without axis navigation (3.7s)
+  ✓  18 [chromium] › tests/e2e/project-gantt-fullscreen.spec.ts:45:7 › Issue #155 Gantt Grid+Chart native 전체화면 › 버튼·Ctrl/Cmd+Shift+F·Escape와 네 폭 layout은 같은 Gantt를 유지한다 (6.2s)
+  ✓  19 [chromium] › tests/e2e/project-gantt-fullscreen.spec.ts:119:7 › Issue #155 Gantt Grid+Chart native 전체화면 › split/열/주 단위/scroll/선택/summary 상태와 메뉴는 전환 전후 유지된다 (4.8s)
+  ✓  20 [chromium] › tests/e2e/project-gantt-fullscreen.spec.ts:219:7 › Issue #155 Gantt Grid+Chart native 전체화면 › 입력·inline edit·dialog에서는 shortcut을 무시하고 Task Editor가 fullscreen을 유지한다 (2.6s)
+  ✓  21 [chromium] › tests/e2e/project-gantt-fullscreen.spec.ts:263:7 › Issue #155 Gantt Grid+Chart native 전체화면 › readonly도 fullscreen 진입 실패를 정확히 표시하고 Task Editor는 exitFullscreen 없이 연다 (3.0s)
+  ✓  22 [chromium] › tests/e2e/project-gantt-fullscreen.spec.ts:301:7 › Issue #155 Gantt Grid+Chart native 전체화면 › Grid·Chart의 double click과 Context Menu Edit이 모두 fullscreen Task Editor를 유지한다 (4.6s)
+  ✓  23 [chromium] › tests/e2e/project-gantt-fullscreen.spec.ts:333:7 › Issue #155 Gantt Grid+Chart native 전체화면 › Relation Editor도 공통 dialog 경로에서 fullscreen을 유지한다 (3.7s)
+  ✓  24 [chromium] › tests/e2e/project-search-filter.spec.ts:14:7 › Issue #83 Project Task / Resource 검색·필터 › Task 통합 검색과 초기화는 canonical Gantt 인스턴스를 유지한다 (3.0s)
+  ✓  25 [chromium] › tests/e2e/project-search-filter.spec.ts:52:7 › Issue #83 Project Task / Resource 검색·필터 › readonly에서도 Task 고급 필터를 사용할 수 있고 ancestor context는 match count에서 제외한다 (2.5s)
+  ✓  26 [chromium] › tests/e2e/project-search-filter.spec.ts:69:7 › Issue #83 Project Task / Resource 검색·필터 › Resource 검색·기간 필터는 서버 선택 범위 KPI와 행을 함께 갱신하고 초기화를 복원한다 (3.2s)
+  ✓  27 [chromium] › tests/e2e/project-workspace-tabs-518.spec.ts:7:5 › #518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5폭 tab geometry (9.5s)
+  ✘  28 [chromium] › tests/e2e/resource-drill-ui.spec.ts:18:5 › #528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor (3.2s)
+(node:143139) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:143139) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  29 [chromium] › tests/e2e/task-context-menu-hierarchy.spec.ts:150:5 › Issue #399 opens Summary scopes in Workspace tabs without creating a browser tab (10.5s)
+(node:143688) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:143688) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  30 [chromium] › tests/e2e/task-context-menu-hierarchy.spec.ts:487:5 › Issue #373 A direct subtree deep link preserves scope and edit permissions (5.4s)
+
+
+  1) [chromium] › tests/e2e/issue-621-resource-target.spec.ts:146:5 › #621 Target 계층/비교표 server 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0
+
+    Error: 401 {"error":{"code":"PROJECT_MASTER_ADMIN_AUTH_FAILED","message":"Project master administrator authentication failed.","details":[],"requestId":"bc0ea74f-ef10-4594-8ca3-9ed0d57bd844"}}
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+       at fixtures/target-project.ts:11
+
+       9 |
+      10 | async function successful(response: APIResponse) {
+    > 11 |   expect(response.ok(), `${response.status()} ${await response.text()}`).toBe(true);
+         |                                                                          ^
+      12 |   return response;
+      13 | }
+      14 |
+        at successful (/home/planner/Dev/masterGantt-worktrees/issue-556/tests/e2e/fixtures/target-project.ts:11:74)
+        at createTargetProject (/home/planner/Dev/masterGantt-worktrees/issue-556/tests/e2e/fixtures/target-project.ts:18:3)
+        at seedIssue621 (/home/planner/Dev/masterGantt-worktrees/issue-556/tests/e2e/fixtures/issue-621-target-project.ts:11:13)
+        at /home/planner/Dev/masterGantt-worktrees/issue-556/tests/e2e/issue-621-resource-target.spec.ts:149:13
+
+    Error Context: test-results/issue-621-resource-target--d5904-board·조회-mutation0·remount0-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/issue-621-resource-target--d5904-board·조회-mutation0·remount0-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/issue-621-resource-target--d5904-board·조회-mutation0·remount0-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › tests/e2e/resource-drill-ui.spec.ts:18:5 › #528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 401
+
+      88 |       })
+      89 |     ).status(),
+    > 90 |   ).toBe(201);
+         |     ^
+      91 |   let catalog = (await (await page.request.get("/api/resources")).json()).data;
+      92 |   const catalogMutate = async (
+      93 |     path: string,
+        at /home/planner/Dev/masterGantt-worktrees/issue-556/tests/e2e/resource-drill-ui.spec.ts:90:5
+
+    Error Context: test-results/resource-drill-ui--528-실제-SQLite-일정·리소스-왕복과-정확한-배정·Editor-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/resource-drill-ui--528-실제-SQLite-일정·리소스-왕복과-정확한-배정·Editor-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/resource-drill-ui--528-실제-SQLite-일정·리소스-왕복과-정확한-배정·Editor-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium] › tests/e2e/task-context-menu-hierarchy.spec.ts:150:5 › Issue #399 opens Summary scopes in Workspace tabs without creating a browser tab
+
+    Error: expect(locator).toBeDisabled() failed
+
+    Locator:  getByRole('button', { name: '담당자·공수 조회', exact: true })
+    Expected: disabled
+    Received: enabled
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeDisabled" getByRole('button', { name: '담당자·공수 조회', exact: true }) with timeout 5000ms
+      - waiting for getByRole('button', { name: '담당자·공수 조회', exact: true })
+        14 × locator resolved to <button type="button" class="secondary-button" title="선택한 Task 및 선택 Summary의 일반 Task 자손에 배정된 모든 개인을 Resource 대시보드에서 조회" aria-describedby="schedule-selected-resources-description schedule-selected-resources-state">담당자·공수 조회</button>
+           - unexpected value "enabled"
+
+
+      176 |   await expect(alphaTab).toHaveAttribute("aria-selected", "true"); expect(new URL(page.url()).searchParams.get("rootTask")).toBe(alpha!.taskId);
+      177 |   await expect(page.getByRole("button", { name: "Summary 전체 담당자·공수", exact: true })).toBeEnabled();
+    > 178 |   await expect(page.getByRole("button", { name: "담당자·공수 조회", exact: true })).toBeDisabled();
+          |                                                                              ^
+      179 |   await expect(row(page, "Scope Beta")).toHaveCount(0);
+      180 |
+      181 |   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+        at /home/planner/Dev/masterGantt-worktrees/issue-556/tests/e2e/task-context-menu-hierarchy.spec.ts:178:78
+
+    Error Context: test-results/task-context-menu-hierarch-805b3-hout-creating-a-browser-tab-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/task-context-menu-hierarch-805b3-hout-creating-a-browser-tab-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/task-context-menu-hierarch-805b3-hout-creating-a-browser-tab-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [chromium] › tests/e2e/issue-621-resource-target.spec.ts:146:5 › #621 Target 계층/비교표 server 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0
+    [chromium] › tests/e2e/resource-drill-ui.spec.ts:18:5 › #528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor
+    [chromium] › tests/e2e/task-context-menu-hierarchy.spec.ts:150:5 › Issue #399 opens Summary scopes in Workspace tabs without creating a browser tab
+  27 passed (2.1m)

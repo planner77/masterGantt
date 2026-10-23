@@ -4,6 +4,12 @@
 
 동적 whole/subset과 coverage는 기존 직접 관계만으로 완전 표현할 수 없어 원본 그래프를 내부 읽기 호환으로 보존한다. 공개 전용 경로는 퇴역하고 새 resource/WBS 계약은 실물 v2다. 지원 Copy/Template는 내부 원본을 원자 보존하고 JSON1.1 미지원은 명시 거부한다. 안전한 레거시 출처 자체 편집·운영 소비자/DB 실측·파괴적 정리는 별도 미완료 경계이며 전체 수용 완료를 주장하지 않는다. 구현/검증 상태·AC1~AC10은 [#785 Work Packet](exec-plans/active/ISSUE_785.md)을 따른다. 아래 이슈별 최초 UI 설명은 역사이며 이 절과 충돌하면 이 절이 우선한다.
 
+## Issue #556 — 일정 상단 P1 경량 정돈
+
+정상 전체 일정에서 열린 Summary 범위가 없으면 범위 탐색 행은 공간을 차지하지 않는다. 열린 Summary가 있거나 invalid 범위이면 명시적인 `전체 일정 보기`와 탭/복구를 유지한다. 중복 visible 일정 제목·정상 교육성 설명을 제거하되 접근 가능한 heading과 마지막 탭 닫기 후 유효 focus, 빈/무일정·저장/오류·복구 상태는 보존한다.
+
+검색·필터에 인접한 `담당자·공수 조회`는 선택 Task 및 선택 Summary의 일반 Task 자손에 배정된 모든 개인을 조회한다. `Summary 전체 담당자·공수`는 현재 Summary 범위 전체의 별도 명령이다. readonly 조회, 정확 Task/Assignment·개인 집합·공수 기준과 원래 조회 복귀를 유지한다. Gantt 내부 일/주·선택·복사/해제·요약 추가·전체 화면은 이동하지 않으며 #552 marker OFF·native Milestone 행0을 유지한다. 전체 툴바 통합 P2는 별도 승인 후속이다. [AC·실측·미검증](exec-plans/active/ISSUE_556.md)을 따른다.
+
 ## Issue #762 — 신규 공정·WorkArea 2종 등록
 
 신규 기준정보는 Project 공정과 해당 공정에 직접 소속되는 WorkArea로 구성한다. 분류(BU/Product/Site)·공정 유형·제품 표준·site occurrence·매핑을 필수 선행 단계로 요구하지 않는다. 공정별 구역0개는 정상이며 공정/구역 등록으로 Task·WBS·Target을 만들지 않는다. 공정 ID/parent·Task/Summary 공정0..N·설비의 cross-process 구역0..N·공통/복수 공정 System은 유지한다.

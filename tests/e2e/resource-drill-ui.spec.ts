@@ -1,4 +1,8 @@
 import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
+import type { Locator } from "@playwright/test";
+import type { ResourceCatalogResponse } from "../../src/contracts/resources";
+import type { ResourceDrillQueryInput, ResourceDrillScope, ResourceDrillScopeDto } from "../../src/contracts/resource-drill";
 import {
   expect,
   test,
@@ -222,15 +226,18 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
     await p.goto(`/projects/${publicId}`);
     const frame = p.locator(".project-gantt-frame");
     await expect(frame.locator(".wx-gantt")).toBeVisible();
+    const selectedLookup = p.getByRole("button", { name: "담당자·공수 조회", exact: true });
+    await expect(selectedLookup).toBeDisabled();
+    await expect(selectedLookup).toHaveAccessibleDescription(/작업을 선택해 주세요/);
     await frame
       .locator(`input[data-copy-selection="${shared.taskId}"]`)
       .check();
-    await p
-      .getByRole("button", {
-        name: "선택 Task의 모든 개인 담당 조회",
-        exact: true,
-      })
-      .click();
+    // A readonly visitor can discover and invoke the direct lookup by keyboard.
+    await expect(selectedLookup).toBeEnabled();
+    await expect(selectedLookup).toHaveClass(/secondary-button/);
+    await expect(selectedLookup).toHaveAccessibleDescription(/선택한 Task[\s\S]*모든 개인/);
+    await selectedLookup.focus();
+    await selectedLookup.press("Enter");
     const root = p.locator('[data-resource-dashboard="true"]:visible');
     await expect(root).toHaveAttribute("data-ready", "true");
     await expect(root.getByRole("heading", {name:"리소스 공수", exact:true})).toBeFocused();
@@ -372,7 +379,7 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
           .check();
         await p
           .getByRole("button", {
-            name: "선택 Task의 모든 개인 담당 조회",
+            name: "담당자·공수 조회",
             exact: true,
           })
           .click();
@@ -409,7 +416,7 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
       .check();
     await p
       .getByRole("button", {
-        name: "선택 Task의 모든 개인 담당 조회",
+        name: "담당자·공수 조회",
         exact: true,
       })
       .click();
@@ -439,7 +446,7 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
       ),
     ).toBe(true);
     await frame.locator(`input[data-copy-selection="${shared.taskId}"]`).check();
-    await p.getByRole('button',{name:'선택 Task의 모든 개인 담당 조회',exact:true}).click();
+    await p.getByRole('button',{name:'담당자·공수 조회',exact:true}).click();
     const latest = p.locator('[data-resource-dashboard="true"]:visible');
     await expect(latest).toHaveAttribute('data-ready','true');
     await latest.locator('.resource-dashboard-kpis > div').filter({hasText:/^할당 Task/}).getByRole('button').click();
@@ -480,5 +487,129 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
     void editor;
   } finally {
     await readonly.close().catch(() => undefined);
+  }
+});
+
+
+test("#556 선택 Summary 자손과 현재 Summary 전체 담당자·공수를 별도 readonly 명령으로 조회한다", async ({ page, baseURL, browser }, testInfo) => {
+  const origin = baseURL!;
+  const created = await page.request.post("/api/projects", {
+    headers: { Origin: origin },
+    data: { name: "Summary resource scope #556", description: "Summary 조회 경계 fixture", ownerName: "E2E 자동화", editPassword: "Summary556!" },
+  });
+  expect(created.status(), await created.text()).toBe(201);
+  const publicId = (await created.json()).data.project.publicId as string;
+  const api = `/api/projects/${publicId}`;
+  const get = async () => (await (await page.request.get(api)).json()) as ProjectSnapshotResponse;
+  let snapshot = await get();
+  const add = async (name: string, type: "summary" | "task", parentTaskId?: string) => {
+    const response = await page.request.post(`${api}/tasks`, {
+      headers: { Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` },
+      data: { name, type, ...(parentTaskId ? { parentTaskId } : {}), ...(type === "task" ? { start: "2026-10-06", duration: 1, progress: 0 } : {}) },
+    });
+    expect(response.status(), await response.text()).toBe(201);
+    snapshot = await get();
+    return snapshot.data.tasks.find(task => task.name === name)!;
+  };
+  const root = await add("현재 전체 Summary", "summary");
+  const selected = await add("선택한 내부 Summary", "summary", root.taskId);
+  const first = await add("선택 자손 공동담당", "task", selected.taskId);
+  const second = await add("선택 자손 다른담당", "task", selected.taskId);
+  const sibling = await add("현재 Summary의 나머지 Task", "task", root.taskId);
+  const outside = await add("동일 담당자의 범위 밖 Task", "task");
+  expect((await page.request.post("/api/resource-catalog/admin-sessions", {
+    headers: { Origin: origin }, data: { password },
+  })).status()).toBe(201);
+  let catalog = (await (await page.request.get("/api/resources")).json()) as ResourceCatalogResponse;
+  const people: string[] = [];
+  for (const [code, name] of [["A556", "Alice556"], ["B556", "Bob556"], ["C556", "Carol556"]]) {
+    const response = await page.request.post("/api/resources", {
+      headers: { Origin: origin, "If-Match": `"${catalog.data.revision}"` }, data: { code, name },
+    });
+    expect(response.status(), await response.text()).toBe(201);
+    catalog = await response.json();
+    people.push(catalog.data.resources.find(resource => resource.code === code)!.id);
+  }
+  for (const [taskId, resourceIds] of [
+    [first.taskId, [people[0], people[1]]],
+    [second.taskId, [people[2]]],
+    [sibling.taskId, [people[1]]],
+    [outside.taskId, [people[0]]],
+  ] as const) {
+    const response = await page.request.put(`${api}/tasks/${taskId}/assignments`, {
+      headers: { Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` },
+      data: { catalogRevision: catalog.data.revision, targets: resourceIds.map(id => ({ kind: "resource", id, allocation: { start: null, end: null, percent: 50 } })) },
+    });
+    expect(response.status(), await response.text()).toBe(200);
+    snapshot = await get();
+  }
+  const before = snapshot;
+  const readonly = await browser.newContext({ baseURL: origin });
+  try {
+    const p = await readonly.newPage();
+    let writes = 0;
+    p.on("request", request => {
+      const path = new URL(request.url()).pathname;
+      if (path.startsWith(api) && !["GET", "HEAD"].includes(request.method()) && !path.endsWith("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes++;
+    });
+    await p.goto(`/projects/${publicId}?rootTask=${root.taskId}`);
+    const frame = p.locator(".project-gantt-frame");
+    await expect(frame.locator(".wx-gantt")).toBeVisible();
+    const instance = await frame.getAttribute("data-project-gantt-api-instance");
+    const selectedCheckbox = frame.locator(`input[data-copy-selection="${selected.taskId}"]`);
+    await selectedCheckbox.check();
+    const strip = p.getByRole("region", { name: "임시 조회 범위", exact: true });
+    const observeLookup = async (button: Locator, scope: ResourceDrillScope, taskIds: string[]) => {
+      await expect(button).toBeVisible();
+      await expect(button).toBeEnabled();
+      const received = p.waitForResponse(response => {
+        if (new URL(response.url()).pathname !== `${api}/resource-dashboard/query` || response.request().method() !== "POST") return false;
+        const input = response.request().postDataJSON() as ResourceDrillQueryInput;
+        return input.scope.kind === scope.kind && input.projection.kind === "scope" && input.projection.target === "dashboard";
+      });
+      await button.focus();
+      await button.press("Enter");
+      const response = await received;
+      expect(response.status()).toBe(200);
+      const body = await response.json() as { data: ResourceDrillScopeDto; drill: { scope: ResourceDrillScope } };
+      expect(body.drill.scope).toEqual(scope);
+      expect([...body.data.taskIds].sort()).toEqual([...taskIds].sort());
+      const assignments = before.data.assignments!.filter(assignment => taskIds.includes(assignment.taskId));
+      expect([...body.data.assignmentIds].sort()).toEqual(assignments.map(assignment => assignment.id).sort());
+      expect(body.data.taskIds).not.toContain(outside.taskId);
+      expect(body.data.assignmentIds).not.toContain(before.data.assignments!.find(assignment => assignment.taskId === outside.taskId)!.id);
+      expect([...new Set(assignments.map(assignment => assignment.target.id))].sort()).toEqual([...people].sort());
+      const dashboard = p.locator('[data-resource-dashboard="true"]:visible');
+      await expect(dashboard).toHaveAttribute("data-ready", "true");
+      await expect(strip).toContainText(`고유 Task ${taskIds.length}`);
+      await expect(strip).toContainText(`Assignment ${assignments.length}`);
+      await dashboard.getByRole("button", { name: "개인", exact: true }).click();
+      for (const name of ["Alice556", "Bob556", "Carol556"]) {
+        await expect(dashboard.locator('[data-resource-row="resource"]').filter({ hasText: name })).toBeVisible();
+      }
+      await strip.getByRole("button", { name: /원래 보기/ }).click();
+      await expect(p.getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "true");
+      await expect(button).toBeFocused();
+      await expect(selectedCheckbox).toBeChecked();
+      expect(new URL(p.url()).searchParams.get("rootTask")).toBe(root.taskId);
+      await expect(frame).toHaveAttribute("data-project-gantt-api-instance", instance!);
+      return body.data;
+    };
+    const selectedResult = await observeLookup(
+      p.getByRole("button", { name: "담당자·공수 조회", exact: true }),
+      { kind: "scheduleSelection", nodeIds: [selected.taskId] }, [first.taskId, second.taskId],
+    );
+    const fullResult = await observeLookup(
+      p.getByRole("button", { name: "Summary 전체 담당자·공수", exact: true }),
+      { kind: "summarySubtree", rootId: root.taskId }, [first.taskId, second.taskId, sibling.taskId],
+    );
+    expect(selectedResult.assignmentCount).toBe(3);
+    expect(fullResult.assignmentCount).toBe(4);
+    expect(writes).toBe(0);
+    expect((await get()).data).toEqual(before.data);
+    expect(await readonly.cookies()).toEqual([]);
+    await testInfo.attach("issue-556-summary-scope-exact-ids", { contentType: "application/json", body: JSON.stringify({ selectedResult, fullResult, excludedTaskId: outside.taskId, writes }) });
+  } finally {
+    await readonly.close();
   }
 });

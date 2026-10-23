@@ -3,10 +3,11 @@
 ## 실행 계약
 
 - Primary Issue: https://github.com/planner77/masterGantt/issues/785
-- baseline main: `427d22245fb8e11254b2424ea5147ccbd5766979`, version `0.130.1`.
+- initial baseline main: `427d22245fb8e11254b2424ea5147ccbd5766979`, version `0.130.1`.
+- current validation base: `dd7f4d86db06e8a10b8c86b5412ed319154011e0`, version `0.130.2` (#556/PR #786 통합). 이전 base 검증과 구분한다.
 - branch: `feat/issue-785-retire-logistics-target`; 작업 경로 `/home/planner/Dev/masterGantt-785`.
 - 승인: 2026-10-23 사용자 요청의 분석·설계·구현·문서 동기화·미해결 리뷰/충돌 처리·실패 원장·PR CI 시작까지. Issue의 최초 등록 한정 문구는 이번 명시 요청으로 이 범위에서 대체된다. CI 완료 모니터링·병합·main/GHCR·tag/release·Issue 종료·branch 정리는 제외한다.
-- phase: PR_READY (비파괴 P1/P2 후보). ANALYSIS → DESIGN → IMPLEMENTATION → LOCAL_VALIDATED → DOCUMENTATION_SYNC를 수행했으며 PR CI 시작을 인계한다. 전체 Issue 수용 완료는 아니다.
+- phase: PR_READY(GIT-BASE-002). 새 main 통합·충돌15개 해소·동결 browser50/Unit40·정적검사·문서·별도 PRE_QA PASS를 완료했다. 기존 PR #787 반영 후 새 Full CI 시작까지만 확인한다. 전체 Issue 수용/병합 승인은 아니다.
 - risk_level: HIGH; qa_required: true; qa_method: OWNER_MANAGED. 레거시 관계·공유 집계·외부 API/교환·전 화면 영향. 실제 별도 전문 Agent 구현과 읽기 전용 사전 설계를 사용한다. 독립 인간 QA/Owner 승인은 NOT TESTED이며 Agent 검토와 구별한다.
 - manager_decision: NOT TESTED; MERGE_READY: BLOCKED. 정확 Head Required Quality/E2E8/Docker·Trusted QA·리뷰 스레드 0·Owner HIGH 위험 수용은 후속이다.
 - version_decision: MINOR `0.131.0` (공개 기능·버전 경계 전환); release_required: true; release_authorized: false. 정식 게시 승인이 아니다.
@@ -149,6 +150,8 @@ ADD는 중립v2 계약/실물출처·필터·손상FK/교환 통합 Unit/Integra
 
 ## 최종 Local Fast Feedback·인계
 
+이 절은 최초 게시 Head `0a33b6ab`의 역사적 결과다. 현행 REWORK 후보의 결과는 마지막 F785-004 절과 단일 실패 원장을 따르며, 이 숫자를 새 후보 PASS로 재사용하지 않는다.
+
 제품/테스트1187파일 보완 동결 digest는 `b3bbe49b69a460507610310f4cc8fcae42c4d234bb30efaab068e3e5bcea45a6`다. 마지막 관찰/fixture 수정3개E2E만 달라진 최종1187파일 digest는 `23438f2d7a5622a4682de10e2686a9229ea53edee74ad93a773c6a399dfa5dca`, 제품 전용 digest는 `4577a92488bf6420dd108616270a8752d2189046fd8ddd4a066520a07c3c3b82`다. 원격 commitSHA는 PR/Issue STATUS의 등록 영수증으로 인계한다. 실제 파일별 대조·명령/판정은 [정제 영수증](../../evidence/issue-785/local-validation-receipt.json)을 따른다.
 
 | 검증 | 실제 결과 | 경계 |
@@ -205,3 +208,78 @@ Source 용어 allowlist에는 사용자 입력 이름/설명의 원문도 포함
 - **Change:** 공유 설비/System `previewInstanceEdit` 검증된 kind/ID를 일시적 확인 state에 전달하여 `변경 대상 식별 정보`에서 타입별 원본 ID를 조회·복사. #734/#735 기존 E2E 시나리오를 `EXTEND`해 실물명·실제 Task 사용처 숫자(전체1/직접1/기존0), 폐기 Target 문구0, 정확 UUID on-demand, 취소/dirty·실제 PATCH·snapshot·focus를 보존. 추가 중복 spec/skip/timeout/CI 수정0.
 - **AC_TEST_COVERAGE:** AC2(UI Target0 및 원본 확인), AC4(legacy 출처 Count 보존), AC6(usage API kind/entityId/권한·revision/PATCH), AC8(이름·접힘/키보드/focus/5폭), AC9(TEST_LIFECYCLE_REVIEW: #734/#735 EXTEND, 기존 #717/#725/#726·보안/SQLite KEEP_UNIQUE), AC10(이슈별 failure 원장·Packet). UI 외 서비스·DB·Gantt Core·SVAR·Zod 패치 변경 없음.
 - **Validation/gates:** 변경 source의 로컬 Node/Playwright/Docker 실행 NOT TESTED(현재 GitHub 연결 환경). 다음 exact Head Full Quality + Chromium8/8 + Docker/Trusted QA를 새 `synchronize` CI에서 인증. 미해결 리뷰0/main 병합 가능은 변경 전 확인이며 새 Head에서 재확인. Owner HIGH 수용, AC4 legacy 안전 편집·운영 DB/외부 consumer 미검증, release_authorized=false/MERGE_READY=BLOCKED 유지. 병합/Main/GHCR/Finalizer/Issue 종료 및 CI 모니터링 범위 밖.
+
+## 2026-10-24 REWORK F785-004 — 전체 실패 이력 기반 재개
+
+- 시작 remote/local Head=`14a2be51c421eaab0f7f1f4004f4fe222dea21d7`, baseline/main/base=`427d22245fb8e11254b2424ea5147ccbd5766979`, 현재 test merge=`322734a1ea8bbaffc89ed876f337d76cbab748f4`. 기존 로컬0a33에서 원격4후속commit을 fast-forward한 뒤 작업한다.
+- infra `/root/publish_pr`가 Full5회/각attempt1 및 CANCELLED28shard 로그·실제 실패·immutableHead/base/merge·리뷰0/mergeabletrue를 독립 수집했다. #3194는 Run CANCELLED이나 취소 전 #734 UUID 실제FAIL이 있어 누락하지 않는다. [정제 영수증](../../evidence/issue-785/ci-cumulative-rework-20261024.json), [단일 실패원장](../../ISSUE_785_FAILURE_ANALYSIS.md)의 전체 Run/Attempt·Cross-run 매트릭스가 현행이다.
+- 과거 bot no-findings는 초기0a33 code_review에 한정하고 security_review=null·현재Head승인이 아니다. 새후보 PRE_QA와 공식Owner/Trusted/Required를 구분한다.
+- 최신3197.1의 shard2 Job120685901338 step7은 #734 dirty/PATCH case line231의 expected초기설비명 대 actual긴설비명 불일치다. frontend `/root/frontend_impl` 단일writer는 **원본 전체spec 순서**를 먼저 실행하며 red/상태조건을 확인하기 전 제품/테스트를 고치지 않는다. 원래 이름·정확canonicalID·pending/dirty·취소·PATCH/revision/snapshot/focus 보호를 낮추지 않는다.
+- Manager는 원장/Packet·영향분석/실행영수증·PR본문/Issue STATUS를 소유한다. qa_docs `/root/qa_review`는 실제 별도 read-only 누적/후보 사전검토, infra는 원격출처와 최종 명시GO후 branch 게시를 소유한다. 파일동시쓰기/독자댓글·무승인rerun 없음.
+- 누적 browser 실패8spec와 인접 #735/identifier/density 소비자를 검색한 뒤 bounded case집합으로 검증한다. exact원본실패case와 causal순서를 누락하지 않고 1~2batch로 분리하며 같은최종source를 유지한다. 전체Suite 무조건 반복이나 단독case PASS만으로 순서회귀 해소를 주장하지 않는다. Zod audit 및 historical capture/prepr Unit음성도 별도로 확인한다.
+- TEST_LIFECYCLE_REVIEW: 기존 #734/#735 actual 시나리오는 EXTEND·KEEP_UNIQUE(오라클/fixture의 실제상태 의미 확인 후 변경), 이전KPIv2/보안/HTTP·SQLite/OOXML·historical snapshot은 KEEP_UNIQUE. 신규상시spec·skip·timeout/retry·Required/8shard·신뢰정책 변경 없음.
+- DOCUMENTATION_SYNC 추가범위: 원장/Packet/실제정제증거와 PR본문 최신Head·한계/검증; 제품/API/DB/사용자가이드 변경 여부는 실제교정 영향 후 판단한다. TEST_PLAN#697/#711·현행QA정책은 재사용하며 과거1MB문서 본문을 파일조회결과 일부로 덮지 않는다.
+- version0.131.0/HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false와 AC4 legacy관계 자체편집 NOTIMPLEMENTED·Owner예외없음을 유지한다. 새 quality/e2e8/docker·Trusted/QA_FINAL·Owner ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED. 종료점은 새PR CI 시작이며 모니터링·병합/Main/GHCR/Release/Issue종료 제외.
+
+### F785-004 확정 교정과 동결 검증 선정
+
+원본full#7348은7PASS/1FAIL4.8분, 단독dirty도동일이름으로1FAIL하여원격증상을재현했다. canonical PATCH name와dialog name·exactID는일치하고seed반환f.name만초기값이라TEST_CONTRACT로확정했다. usage에는name필드가없다. 기존#734seed의최종canonicalGET sameID DTO반환·editor초기name엄격확인만교정하고제품/공용fixture/735변경0이다. 첫단독green1/1뒤의추가guard를포함한최종source에서32case를검증한다.
+
+TEST_LIFECYCLE_REVIEW는#734기존actual8 EXTEND·원래이름/ID·dirty/PATCH/revision/focus보존, #735기존F003교정6 KEEP_UNIQUE, 이전실패13·identifier/density/v2음성5 KEEP_UNIQUE다. 신규spec/skip/timeout/Required/8shard변경0. 정확A/B선정/discovery·제외근거와코드/테스트·생성config차이·최종결과는단일실패원장과영수증에연결한다. 전체checkout sourceStable/자동Pre-PR PASS를주장하지않으며자체Next생성config는복원후정적검사를다시실행한다.
+
+문서영향: 원장/Packet·실제정제evidence/PR본문만갱신한다. 이번교정에제품계약변화가없어DESIGN/PROJECT_UX/API/DB/SECURITY/TEST_PLAN 정책내용은추가수정N/A(기존PR의이전갱신이력과현행기준은유지)다. 1MB TEST_PLAN 원본/과거섹션을부분조회결과로덮어쓰지않는다.
+
+### 최종 검증 후보 출처(로컬 회귀 완료)
+
+최종 #734 spec SHA256은 `fcfa8253a808096cca79f73faa7ab262874974acda5d374f2b9cac7b8e40db16`, 제품 관리 컴포넌트는 변경 없는 `91731b0b3dc37fe1a05d193b3e198a9423082a0e3357ac914c0595b4811a529e`. tracked src/tests/scripts와 package/lock·static runtime-tool config(문서 제외)1128파일 내용 지문은 `0e413386703ac3ae1a143e31340fcf141b842b3ad6d4e1db55fffe1bb4976aef`. Next 생성2config는 별도 전후hash로 보고하며 전체checkout 불변으로 주장하지 않는다.
+
+역사capture Unit4파일40PASS와 운영dependency audit0은 독립로그/sourcehash를qa_docs가 대조했다. browser A21/21(9.3분)+B11/11(4.2분), 고유32/32 PASS·중복/skip/flaky/retry0이다. [최종 영수증](../../evidence/issue-785/rework-browser-final.json)에 원래 #7348·#7356 및 직접/인접/음성 소비자와 source 지문을 보존한다. 생성config·과거 screenshot/evidence는 브라우저 종료 후 HEAD로 복원했다. [정적검사](../../evidence/issue-785/rework-static.json)는 typecheck PASS·전체 lint PASS(error0/warning10)다. 새 [자동fast](../../evidence/issue-785/rework-prepr-fast.json)는 BLOCKED/exit1·selection109/UNKNOWN30/missing0/step0이며 자동 실행 내부 sourceStable=true다. 이는 browser 전체checkout sourceStable=false와 다른 실행이며 수동32PASS로 BLOCKED를 대체하지 않는다. 기존28수동map에 증가한density fixture는 browser density2/KPI wire로, Zod허용fixture는 역사capture/prepr Unit4로 추가 매핑했다. #490/#491/viewport·나머지전체E2E와 AC4 안전편집/운영 검증은 NOT TESTED로 남긴다. 새Head Required/Trusted·Owner 수용은 NOT TESTED다.
+
+
+### F785-004 독립 사전 검토와 인계
+
+실제 별도 `/root/qa_review`는 구현 파일을 수정하지 않는 read-only 검토로 원본 red·same-case staleDTO 원인·엄격한 교정·누적 실패 이력·동결 browser32/Unit40/audit0·정적검사·문서/출처를 대조해 **PRE_QA=PASS, 미해결 지적0**을 반환했다. 이는 이번 보완의 PR 게시 준비 범위이며 정식 인간 APPROVED·Trusted QA·Owner HIGH 위험 수용 또는 전체 Issue ACCEPT가 아니다. 새 Head Required3/Trusted/QA_FINAL·Owner ACCEPT는 NOT TESTED, AC4 미구현/예외 승인 없음·release_authorized=false·MERGE_READY=BLOCKED를 유지한다. 마지막 원격 lease/리뷰/충돌 확인 후 기존 PR #787의 단일 새 Head synchronize Full CI 등록까지 인계하고 완료 결과는 모니터링하지 않는다.
+
+
+## GIT-BASE-002 — 게시 직전 main 이동과 실제 충돌 통합 (2026-10-24 KST)
+
+원격 쓰기 전 최종 lease에서 main이 기존 `427d22245fb8e11254b2424ea5147ccbd5766979`에서 #556/PR #786 merge `dd7f4d86db06e8a10b8c86b5412ed319154011e0`으로 이동했음을 발견했다. PR Head는 `14a2be51c421eaab0f7f1f4004f4fe222dea21d7` 그대로였고 PR API base 갱신이 지연되어 실제 main ref와 교차 확인했다. candidate object·본문·ref 원격 쓰기는 모두0인 상태에서 게시를 중단했다. 로컬 사전 후보 `e49e397b8be9eff483ec1906256b579c3b7f63d1`의 PRE_QA/32browser/40Unit/audit0은 **기존 base에 한정**하며 새 merge source의 PASS로 전용하지 않는다.
+
+새 main의59파일에는 일정 상단·조회 버튼/모달 배경 geometry·관련 UI 회귀와 동일 Zod4.6.7·historical capture 보호가 포함됐다. `git merge --no-commit --no-ff origin/main`으로 실제15개 충돌을 확인했다. 문서9개는 두 Issue의 독립 요구사항·검증·보안 경계를 함께 보존하고 README의 동일 Zod 설명만 통합했다. package/lock 및 capture/allowlist/prepr5개는 infra, #621 E2E1개와 자동 merge된 shared UI 검토는 frontend가 소유하며 Manager가 문서를 담당한다. 이전 source의 테스트/증거를 삭제하지 않는다.
+
+TEST_PLAN은 이전 원본 blob `1d2b679dda6730306d8f6586ba3921a9458d4e9f`를 유지했던 단계 이후, 새 main의 #556 섹션을 **전체 파일 기반으로 추가 통합**한다. 이는 다시 발생한 대용량 부분조회 덮어쓰기 손상이 아니다. 전체 기존 본문과 #785 영향표·#556 density/조회 회귀를 모두 유지하며 새 최종 blob은 통합 영수증으로 판정한다.
+
+새 동결 source에서 충돌 해소·정적/역사Unit·#734/#735·공유 UI·#621 교차 회귀 및 별도 PRE_QA를 다시 판정한다. 원격 Required/Trusted/Owner·AC4 안전편집·release 권한과 CI 시작까지만이라는 범위는 불변이다.
+
+
+### 새 main 통합의 영향·회귀 계획
+
+문서9충돌은 양쪽 Issue 섹션을 합쳐 해결했다. package/lock은 새 main과 앱 version0.131.0만 다르고 기존 #785 HEAD 내용과 동일하다. [infra 충돌 영수증](../../evidence/issue-785/rework-main-infra-resolution.json)은 allowlist의 신뢰 moduleURL·Zod exact5metadata와 양쪽 negative 합집합·불변 snapshot 보존 및 통합된 역사Unit4파일40PASS를 기록한다. 보안 패치/앱 minor 결정을 서로 덮어쓰지 않는다.
+
+새 main이 변경한 shared workspace/CSS·#621 이름/조회·Gantt geometry 소비자 때문에 기존32를 새 source에서 반복하고 #556 직접영향18을 더해 고유50case/두 bounded batch로 검증한다. 추가18은 canonical-projection metadata의5폭×Day/Week10(기존원격768Day 실패 포함), modal-feedback1(엄격 box equality), filter-toolbar1, empty-summary2, resource-drill-ui2, workspace5181, hierarchy3991이다. 최초 원격 실패·인접 readonly/empty/selection/범위·focus·peer/geometry 보호를 포함하며 skip/timeout/retry/shard를 바꾸지 않는다. 새 UI 설계·px개선 실측을 주장하지 않고 main 과거실측과 새 합병 교차회귀를 분리한다. 의미있는 UI 교정이나 actual geometry FAIL이 추가되면 그때 capture/영향 확대를 판단한다.
+
+통합 중 이전 HEAD 대비 staged diff검사에서 새 main에 이미 있는 #556 원장/Packet의 EOF 빈줄2건을 관측했다. 이는 base 유입 문서로 보존하며 현재 PR 기준 `git diff --check origin/main`은 충돌 union의 SECURITY 끝 빈줄 정리 후 PASS다. Markdown317파일 링크·version0.131.0 검사도 PASS다.
+
+새 main 통합 후 실제 discovery는 A27/9files+B23/10files, 고유50case/18spec·중복0이다. 초기 source manifest는 HEAD `e49e397b8be9eff483ec1906256b579c3b7f63d1` + MERGE_HEAD `dd7f4d86db06e8a10b8c86b5412ed319154011e0` 상태에서1128파일 digest `45e587eb3b73f4fe3aefed0a1cd2c918b14346d1fb8a935605bcf1ca6d7964f3`를 고정했다. 배치·명령·case별 결과·생성config의 전후차이는 /tmp/issue785-post-main-*에 이전32와 분리해 보존한다. 실행 중에는 전체PASS를 주장하지 않는다.
+
+### 새 main 통합 Batch A 결과
+
+[통합 A 영수증](../../evidence/issue-785/rework-post-main-browser-a.json)은 **27/27 PASS(12.5분), skip/flaky/retry0·exit0**이다. 기존 누적 실패/설비 전체8/System 전체6·실제HTTP/SQLite 재시작까지 검증했다.1128파일 scoped digest45e587eb3b73f4fe3aefed0a1cd2c918b14346d1fb8a935605bcf1ca6d7964f3은 전후 동일하고 Next 생성config2개의 차이는 별도 fullCheckoutSourceStable=false로 보존했다. B23은 동일 frozen source로 이어 실행하며 전체50 최종 판정은 실행 종료 후 기록한다.
+
+### 새 main 통합 최종 browser 결과와 정적 검사 인계
+
+[통합 최종 영수증](../../evidence/issue-785/rework-post-main-browser-final.json)은 **A27/27(12.5분)+B23/23(3.0분), 고유50case/18spec·중복/skip/flaky/retry0·exit0**다. [B 영수증](../../evidence/issue-785/rework-post-main-browser-b.json)의 #570 metadata5폭×Day/Week10(768Day 포함)·modal 엄격 box equality·toolbar/empty/readonly/peer·범위/계층·공용density 음성까지 통과했다. 이전32를 재사용한 결과가 아니다.
+
+네 A/B 시작/종료의1128파일 digest는 `45e587eb3b73f4fe3aefed0a1cd2c918b14346d1fb8a935605bcf1ca6d7964f3`로 동일하며 실행 후 현재파일도 전부 일치한다. 새 UI 수정은 없었으므로 별도 px개선/capture 주장을 추가하지 않는다. fullCheckoutSourceStable=false인 Next 생성config2개의 변경은 그대로 기록했다. 종료 후 자동생성 AGENTS/config·과거 추적이미지/측정자료는 **merge index 기준**으로 복원했고 새로운 raw output은 /tmp에 보존했다. main에서 유입된 #556 역사증거를 HEAD 기준으로 지우거나 새785증거로 덮지 않았다. 복원 후 최종 정적검사·현재base 자동fast·별도 PRE_QA는 아래 최종 영수증으로 인계한다.
+
+### 새 main 통합 최종 정적·자동선정 영수증
+
+[복원 후 최종 정적검사](../../evidence/issue-785/rework-post-main-static.json)는 typecheck PASS/exit0·전체 ESLint PASS/exit0(error0/기존 warning10), Markdown317파일·version0.131.0·현재main대비 diff PASS다. TEST_PLAN 최종 blob은 `5edc20685005d8877d160059e5fff9ba46c3bac0`(1,083,528bytes)이며 main대비 #785 섹션21줄 추가/삭제0로 기존 전체본문과 #556 섹션을 보존한다. 역사capture Unit4파일40/40PASS(1.47초)의source5개도 최종bytes와 일치한다. 운영audit0은 package/lock bytes가 이전 실행과 완전히 같은 입력에만 재사용하며 새 통합browser50은 별도 실제 실행이다.
+
+통합 main을 실제 부모로 가진 로컬 merge commit `66c49810bee4cd794231057351556273d3ee9b73`에서 [새 자동fast](../../evidence/issue-785/rework-post-main-prepr-fast.json)를 실행했다. base는 `dd7f4d86db06e8a10b8c86b5412ed319154011e0`, **BLOCKED/exit1·selection109/UNKNOWN30/missing0/내부step0·sourceStable=true**다. 증가2경로 density fixture/Zod allowlist와 기존28 수동영향표를 유지하고 CLI미등록 상태를 수정하지 않았다. 이후 문서/정제영수증만 보완하며 runtime/test/lock/tools1128 지문은 그대로다. 정식 새Head Required3/Trusted/QA_FINAL·Owner ACCEPT/AC4 안전편집은 미충족이며 MERGE_READY=BLOCKED다.
+
+### 새 main 통합 PRE_QA 및 게시 판정
+
+구현자와 분리된 실제 read-only `/root/qa_review`는 새 통합 source·원문/정제50case 전수·18spec 합집합·1128파일 네 지문·역사Unit40·정적검사·docs_gate 구조 및 의미·문서/PR초안을 대조해 **PRE_QA=PASS, 미해결 지적0**을 반환했다. 검토한 로컬 merge66c49810의 코드/테스트/lock/tools는 이후 문서·판정 stamp만 보완하는 최종 tree와 동일하다. 초기 e49의 이전32/PRE_QA를 새 source에 재사용하지 않았다.
+
+이는 PR 게시 준비의 사전 검토이며 정식 새Head Required Quality/E2E8/Docker·default-branch Trusted/QA_FINAL·Owner HIGH 위험 수용·전체 Issue ACCEPT를 대체하지 않는다. AC4 안전편집 NOT IMPLEMENTED/READONLY·Owner예외없음, release_required=true/release_authorized=false·MERGE_READY=BLOCKED를 유지한다. 마지막 원격 main/head lease·review thread·test-merge 출처를 확인해 기존 PR787 본문1회·Head1회 반영 후 새Full CI 시작만 확인하고 모니터링하지 않는다. 새Run/Attempt·Head/base/testmerge는 Issue STATUS에 기록한다.

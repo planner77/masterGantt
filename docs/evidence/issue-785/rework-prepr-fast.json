@@ -1,0 +1,135 @@
+{
+  "schema": "mastergantt-785-rework-prepr-v1",
+  "command": "npm run verify:prepr -- --mode=fast --base=origin/main --issue=785 --pr=787 --risk=HIGH",
+  "status": "BLOCKED",
+  "exitCode": 1,
+  "startedAt": "2026-10-23T23:01:18.883Z",
+  "completedAt": "2026-10-23T23:01:19.098Z",
+  "sourceStable": true,
+  "selected": 109,
+  "unknown": [
+    {
+      "path": "src/contracts/logistics-dashboard.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/contracts/logistics.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/contracts/project-templates.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/contracts/wbs-dashboard-views.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/gantt/task-logistics-link-editor.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/gantt/task-process-context-editor.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/gantt/task-target-binding-editor.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/logistics-kpi-configuration.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/logistics-kpi-validation.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/logistics-unified-model.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/project-logistics-dashboard.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/project-logistics-management.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/project-logistics-targets.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/project-logistics-unified.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/target-detail.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/target-master-registration.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/projects/project-excel-export-button.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/projects/project-workspace-navigation.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/server/logistics/task-logistics-compatibility-core.ts",
+      "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+    },
+    {
+      "path": "src/server/repositories/resource-target-snapshot-repository-core.ts",
+      "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+    },
+    {
+      "path": "src/server/resources/resource-drill-query-core.ts",
+      "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+    },
+    {
+      "path": "src/server/templates/logistics-template-graph-core.ts",
+      "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+    },
+    {
+      "path": "tests/e2e/fixtures/isolated-application.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/e2e/fixtures/issue-621-target-project.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/e2e/fixtures/issue-623-target-resource.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/e2e/fixtures/legacy-logistics-seed.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/e2e/fixtures/target-project.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/e2e/fixtures/task-editor-density.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/fixtures/gantt-state-consistency/approved-zod-4.6.7-lock.json",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/fixtures/stateful-project.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    }
+  ],
+  "missing": [],
+  "steps": [],
+  "interpretation": "자동선정 BLOCKED를 수동 실행 PASS로 변경하지 않는다. 별도 영향 기반 32 Chromium/40 Unit/audit 결과와 원격 Required를 구분한다."
+}

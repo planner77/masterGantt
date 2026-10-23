@@ -1,0 +1,63 @@
+{
+  "schema": "mastergantt-785-post-main-static-v1",
+  "typecheck": {
+    "command": "npm run typecheck",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 4.43
+  },
+  "lint": {
+    "command": "npm run lint",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 37.37
+  },
+  "markdownLinks": {
+    "command": "node scripts/check-markdown-links.mjs",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 0.09
+  },
+  "version": {
+    "command": "npm run version:check",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 0.11
+  },
+  "prDiff": {
+    "command": "git diff --check origin/main",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 0.05
+  },
+  "lintWarnings": 10,
+  "markdownFileCount": 317,
+  "testPlanBlob": "5edc20685005d8877d160059e5fff9ba46c3bac0",
+  "generatedFilesRestoredAgainst": "merge index",
+  "historicalCaptureUnit": {
+    "files": 4,
+    "passed": 40,
+    "durationSeconds": 1.47,
+    "receipt": "rework-main-infra-resolution.json"
+  },
+  "audit": {
+    "state": "PASS",
+    "vulnerabilities": 0,
+    "receipt": "rework-security-audit.json",
+    "reuseScope": "package.json/package-lock.json 내용이 통합 전 감사와 동일하므로 동일 입력 결과만 재사용; 새 통합 browser50은 별도 실제 실행"
+  },
+  "newHeadRequired": "NOT TESTED",
+  "ownerAccept": "NOT TESTED",
+  "preQa": {
+    "reviewer": "/root/qa_review",
+    "state": "PASS",
+    "scope": "새 main 통합 source의 PR 게시 준비",
+    "readOnly": true,
+    "reviewedLocalCommit": "66c49810bee4cd794231057351556273d3ee9b73",
+    "runtimeSourceAfterReview": "UNCHANGED",
+    "unresolvedFindings": 0,
+    "newHeadRequired": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "mergeReady": "BLOCKED"
+  }
+}

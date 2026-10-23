@@ -49,13 +49,18 @@ async function seed(page: Page, origin: string, observer: Parameters<typeof seed
   const catalog = (await response.json() as ProcessCatalogResponse).data;
   const area2 = catalog.workAreas.find(area => area.code === "WA-A2")!;
   await f.mutate(`/tasks/${f.task.taskId}/logistics-links`, { equipmentLinks: [], systemLinks: [{ systemId: f.system.id, scope: "self" }] }, "put");
-  await f.mutate(`/logistics/equipment/${f.equipment.id}`, { processCatalogRevision: catalog.processCatalogRevision, quantity: 10, name: "설비LongEquipmentNameWithoutWhitespace".repeat(5), workAreaLinks: [f.workArea, area2].map(area => ({ processId: f.processIds[0], workAreaId: area.id })) }, "patch");
+  const equipmentName = "설비LongEquipmentNameWithoutWhitespace".repeat(5);
+  await f.mutate(`/logistics/equipment/${f.equipment.id}`, { processCatalogRevision: catalog.processCatalogRevision, quantity: 10, name: equipmentName, workAreaLinks: [f.workArea, area2].map(area => ({ processId: f.processIds[0], workAreaId: area.id })) }, "patch");
   const idle = (await f.snapshot()).data.logistics!.equipment.find(equipment => equipment.code === "IDLE")!;
   await f.mutate(`/logistics/equipment/${idle.id}`, { quantity: 5, active: false }, "patch");
   await f.mutate(`/tasks/${f.task.taskId}/process-context`, { processCatalogRevision: catalog.processCatalogRevision, processLinks: f.processIds.map(processId => ({ processId, scope: "self" })), workAreaLinks: [f.workArea, area2].map(area => ({ processId: f.processIds[0], workAreaId: area.id, scope: "self" })) }, "put");
   await f.mutate(`/tasks/${f.task.taskId}/logistics-links`, { equipmentLinks: [{ equipmentId: f.equipment.id, scope: "self" }], systemLinks: [{ systemId: f.system.id, scope: "self" }] }, "put");
+  // This seed renames the shared fixture's equipment; consumers need its current canonical DTO.
+  const equipment = (await f.snapshot()).data.logistics?.equipment.find(row => row.id === f.equipment.id);
+  if (!equipment) throw new Error("테스트 설비가 canonical snapshot에 없습니다.");
+  expect(equipment.name).toBe(equipmentName);
   await page.reload();
-  return { ...f, idle, area2 };
+  return { ...f, equipment, idle, area2 };
 }
 function observeWrites(page: Page, publicId: string) {
   const writes: string[] = [];
@@ -218,6 +223,7 @@ test("#734 설비 원본 dirty 유지·정확 PATCH 저장·새 snapshot과 focu
   const first = nextReport(page); await openEquipment(page); const before = (await (await first).json()).data as WbsViewReportDto;
   const row = root(page).locator(`tr[data-dimension="equipment"][data-entity-id="${f.equipment.id}"]`), trigger = row.getByRole("button", { name: "원본", exact: true });
   await trigger.click(); const editor = page.getByRole("dialog", { name: "설비 수정", exact: true });
+  await expect(editor.getByLabel("설비명", { exact: false })).toHaveValue(f.equipment.name);
   await expect(editor.getByRole("checkbox", { name: /A 작업구역/ })).toBeChecked();
   await expect(editor.getByRole("checkbox", { name: /두 번째 설비 구역/ })).toBeChecked();
   const name = "설비 원본 저장 검증"; await editor.getByLabel("설비명", { exact: false }).fill(name);

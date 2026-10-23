@@ -1,0 +1,27 @@
+{
+  "head": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+  "sourceSha256": {
+    "tests/e2e/issue-734-equipment-dashboard.spec.ts": "f8df05ec1bac8d4ed936d67311efac8213da16616ddb9fa60fb287c3ea69b495",
+    "tests/e2e/issue-735-system-dashboard.spec.ts": "d3964c124490f92de56036a030ce68bd54f5919b54cc4180ad84959afad7ede1",
+    "src/features/logistics/project-logistics-management.tsx": "91731b0b3dc37fe1a05d193b3e198a9423082a0e3357ac914c0595b4811a529e"
+  },
+  "backup": "/tmp/issue785-734-red-original-backup",
+  "existingArtifactPaths": [
+    "docs/evidence/issue-734",
+    "playwright-report"
+  ],
+  "startedAt": "2026-10-23T22:34:07.440393+00:00",
+  "finishedSourceSha256": {
+    "tests/e2e/issue-734-equipment-dashboard.spec.ts": "f8df05ec1bac8d4ed936d67311efac8213da16616ddb9fa60fb287c3ea69b495",
+    "tests/e2e/issue-735-system-dashboard.spec.ts": "d3964c124490f92de56036a030ce68bd54f5919b54cc4180ad84959afad7ede1",
+    "src/features/logistics/project-logistics-management.tsx": "91731b0b3dc37fe1a05d193b3e198a9423082a0e3357ac914c0595b4811a529e"
+  },
+  "ownedSourcesUnchanged": true,
+  "result": {
+    "pass": 7,
+    "fail": 1,
+    "duration": "4.8m",
+    "exitCode": 1,
+    "failureLine": 231
+  }
+}

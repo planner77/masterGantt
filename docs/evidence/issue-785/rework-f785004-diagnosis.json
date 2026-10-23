@@ -1,0 +1,77 @@
+{
+  "schema": "mastergantt-785-f004-diagnosis-v1",
+  "baselineHead": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+  "remoteRunId": 40032862265,
+  "remoteAttempt": 1,
+  "originalSpecRed": {
+    "total": 8,
+    "passed": 7,
+    "failed": 1,
+    "reporterDuration": "4.8m",
+    "assertionLine": 231,
+    "ownedSourceBytesUnchanged": true,
+    "receipt": "rework-red-original.json"
+  },
+  "isolatedOriginalRed": {
+    "total": 1,
+    "failed": 1,
+    "sameAssertionAndNameMismatch": true,
+    "originalSourceUnmodified": true
+  },
+  "probe": {
+    "testDataOnly": true,
+    "fixtureReturnedName": "다공정 장거리 통합 반송 설비 Long operational equipment name",
+    "canonicalPatchedName": "설비LongEquipmentNameWithoutWhitespace설비LongEquipmentNameWithoutWhitespace설비LongEquipmentNameWithoutWhitespace설비LongEquipmentNameWithoutWhitespace설비LongEquipmentNameWithoutWhitespace",
+    "dialogNameEqualsCanonical": true,
+    "requestedCanonicalUsageAndDialogId": "e67242ce-234f-4063-8e45-0ea46179df1b",
+    "kind": "equipment",
+    "directTaskCount": 1,
+    "compatibilityTaskCount": 0,
+    "usageHasNameField": false
+  },
+  "hypotheses": {
+    "sameCaseStaleSeedReturn": "SUPPORTED",
+    "priorCaseContamination": "REJECTED_BY_ISOLATED_RED",
+    "serverOrCacheNameMismatch": "REJECTED_BY_CANONICAL_DIALOG_NAME_MATCH",
+    "wrongPhysicalEntity": "REJECTED_BY_EXACT_ID_MATCH"
+  },
+  "intermediateMinimalGreen": {
+    "passed": 1,
+    "bodySeconds": 22.6,
+    "elapsedSeconds": 38.5,
+    "notFinalSourceEvidence": true
+  },
+  "fix": {
+    "changedSpec": "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+    "scope": "Return current canonical DTO for the same equipment ID after all setup mutations; assert setup PATCH name and editor initial name",
+    "finalSpecSha256": "fcfa8253a808096cca79f73faa7ab262874974acda5d374f2b9cac7b8e40db16",
+    "productSourceChanged": false,
+    "sharedFixtureChanged": false,
+    "systemSpecChanged": false,
+    "identityDirtyRevisionFocusAssertionsPreserved": true,
+    "skipRetryTimeoutChanges": false
+  },
+  "finalBrowserSelection": {
+    "batches": [
+      21,
+      11
+    ],
+    "uniqueCases": 32,
+    "uniqueSpecs": 11,
+    "state": "PASS",
+    "passed": 32,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "retry": 0,
+    "receipt": "rework-browser-final.json"
+  },
+  "finalOwnerAcceptance": "NOT TESTED",
+  "postMainIntegration": {
+    "base": "dd7f4d86db06e8a10b8c86b5412ed319154011e0",
+    "state": "PASS",
+    "browserUniqueCases": 50,
+    "receipt": "rework-post-main-browser-final.json",
+    "prior32ReusedAsPostMergePass": false
+  }
+}

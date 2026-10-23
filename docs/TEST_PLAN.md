@@ -19,6 +19,12 @@ Risk HIGH, qa_required=true, OWNER_MANAGED. 변경은 전 화면 탐색/Task 출
 
 브라우저 영향 집합은 logistics-target-authoring, issue-621-resource-target, issue-622-resource-plan-target, issue-623-resource-mvp, issue-624-logistics-unified, issue-725-process-workareas, issue-726-logistics-master, issue-726-task-logistics, resource-target-dashboard-api, resource-dashboard-api 및 변경 공유 fixture를 소비하는 인접 관점이다. 실제 실행·제외·동결 source 지문·명령/exit/고유 케이스는 Work Packet 반환 원장에 기록한다. 모든 UI 상태×5폭·실물 기기/보조기술·운영 DB/off-host restore/외부 소비자·Windows Excel은 별도 NOT TESTED다.
 
+## Issue #556 — P1 상단 밀도·조회 가시성 회귀
+
+기존 테스트 시나리오/assertion을 먼저 대조한 [TEST_LIFECYCLE_REVIEW와 AC_TEST_COVERAGE](exec-plans/active/ISSUE_556.md)에 따라 scope/filter/drill 회귀를 확장한다. 정상 전체/열린 Summary0 탐색 DOM0·숨김 heading·마지막 닫기 focus, 선택/현재 Summary 조회 분리와 readonly/empty/pending·exact ID·복귀를 확인한다. 기존 fullscreen·검색/고급/Milestone 소속 필터·marker OFF·peer/Gantt 보존의 고유 위험은 유지한다. 신규 상시 spec/skip/timeout/Required 완화로 대체하지 않는다.
+
+1440×900 동일 fixture before/after의 범위+제목·Gantt/Grid/Chart 높이, 390/768/1024/1440/1920px 및 줌 대응 유효 CSS 폭의 containment·hit area·keyboard를 실제 Chromium으로 기록한다. 화면 캡처/fixture API mock과 실제 HTTP/SQLite 회귀, 로컬 결과와 exact-Head 원격 Quality/E2E8/Docker·Trusted/Owner를 구분한다. 원격 결과는 CI 시작 시점 NOT TESTED이며 요청에 따라 모니터링하지 않는다. 실제 운영 배포·native zoom·실기기/보조기기 검증은 별도다.
+
 # masterGantt Test Plan
 
 
