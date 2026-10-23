@@ -179,3 +179,15 @@ UI 검토가 기본16관측은 긴 이름을 보유했지만 Milestone 선택값
 최종 제품2+실행spec9의 정렬된 path/NUL/SHA256/newline 집합 지문은 `19823fbc7c00987c2b1092557f4a63dc49a2fdbf49ed620790960b79a0bd58a3`이다. [검증 영수증](../../../output/playwright/issue-556/validation.json)에 파일별hash·실제 실행/환경·사전검토/승인 경계를 연결했다. Next 자동 생성AGENTS/next-env/tsconfig와 역사적 #528/#724/#621 capture 변경은 /tmp에 보존한 뒤 원본으로 복원했다. 이번 #556 증거만 게시한다.
 
 앱 런타임 WebServer 출력은 Git에 저장하지 않는다. 위 연결한 TXT는 테스트/정적검사 출력 발췌이며 전체 로컬 원본은 /tmp에 보존한다.
+
+## 2026-10-24 — PR #786 첫 Full PR CI 실패 교정 (F-001)
+
+- 원본: [PR #786](https://github.com/planner77/masterGantt/pull/786), [Full PR CI #3186.1, Run 39963612115](https://github.com/planner77/masterGantt/actions/runs/39963612115). Event pull_request / FINAL_FULL. Head 440513cc3612228d4575823bfe2c37e8cdfc5971; base 427d22245fb8e11254b2424ea5147ccbd5766979; test merge 74ee98958f0a0641d6802c85c1a715ad8ab4a2ea.
+- 직접 FAIL: [Chromium shard6 Job 120448846041](https://github.com/planner77/masterGantt/actions/runs/39963612115/job/120448846041), tests/e2e/canonical-projection.spec.ts:55, #570 metadata projection 768px Day, expected reasons ["data"], received ["data","layout"]. Shard6 3 PASS/1 FAIL/93 NOT RUN, 타 7개 shard CANCELLED; Quality/Docker PASS, E2E Required/자동 QA FAIL 파생. 별도 FAST_DEVELOPMENT #39963612277 SKIPPED.
+- [Playwright artifact 12505462979](https://github.com/planner77/masterGantt/actions/runs/39963612115/artifacts/12505462979) receipt 및 trace 직접 대조: revision40→41, SETTLED, 동일 Gantt API/작업 선택·Core/DOM 집합, filter/column 변동 없음. 편집 중 root 높이 587.5→560→587.5, chart 높이 487.5→460→487.5의 실제 reflow 및 resize-observer 존재. 정확히 어떤 DOM 행이 27.5px 변화시켰는지는 UNKNOWN이다.
+- 원인 TEST_CONTRACT: #570 테스트의 reasons exact-only 예상이 실제 layout 관측을 허용하지 않음. 제품 ResizeObserver를 억제하거나 필수 E2E/timeout/skip/retry/assertion을 완화하지 않는다.
+- 기존 canonical-projection.spec.ts 5폭×Day/Week test를 EXTEND. data를 반드시 정확히 보존하고, layout이 있으면 같은 트레이스 내 크기 변화 2종 이상 + resize-observer의 실제 관측을 요구한다. 다른 구조/필터/컬럼·선택/서버 write 계약은 유지한다. 테스트 신규 spec 추가/샤드 변경 없음.
+- 원본 artifact의 strict oracle offline replay 5/5 (data-only, real-resize PASS; no-resize layout/structure contamination/wrong-order 3 negative blocked)는 완료했으나 새 제품 HEAD의 실제 Chromium/전체 CI·Trusted QA·Owner 승인과 구분한다. 로컬 기존 34/34 PASS는 교정 전 source 증거다.
+- [정규 실패 원장](../../ISSUE_556_FAILURE_ANALYSIS.md) 신설; 관련 테스트/본 Work Packet 외 DESIGN/ARCHITECTURE/AGENTS/API/DB/CI/QA 요구 문서는 의미 변경 없음으로 N/A. 기존 verify:prepr CSS map BLOCKED는 계속 BLOCKED. 리뷰 스레드 0, 기존 PR mergeable 및 main behind0 (수정 전 재조회). 새 commit 이후 상태 재검증 필요.
+- 인계: 새 exact Head의 공식 Required Quality/Chromium8/Docker·Trusted QA·Owner 수용 NOT TESTED. risk_level=HIGH, qa_method=OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false, MERGE_READY=BLOCKED 유지. 병합·Main·GHCR·Finalizer·Issue 종료는 이번 범위 밖.
+
