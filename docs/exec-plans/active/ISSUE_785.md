@@ -181,3 +181,9 @@ Source 용어 allowlist에는 사용자 입력 이름/설명의 원문도 포함
 ## 게시 직전 자동선정·문서 최종 영수증
 
 [최종fast](../../evidence/issue-785/prepr-publish-fast.json)는BLOCKED/exit1·sourceStable=true·selection108/UNKNOWN28/missing0/내부step0다. [최종targeted계획](../../evidence/issue-785/prepr-publish-targeted.json)은dry-run NOT TESTED/exit0·자동선정BLOCKED다. [28producer 수동영향매핑](../../evidence/issue-785/manual-impact-mapping.json)은관련Unit/실제HTTP·SQLite/브라우저·음성소비자와선택근거를기록하며자동상태를바꾸지않는다. 최종Markdown315파일링크·version0.131.0·unstaged/staged diff검사는PASS다. artifact추가후docs지문은달라져도기록된제품/테스트1187파일bytes는불변이다. 공개v2/보존legacy·safe편집미구현·Owner gate의의미검토는자동문서구조검사와구분한다.
+
+## PR #787 REWORK — Full #3187.1 (2026-10-24 KST)
+
+- **Evidence:** [Run 39975107608.1](https://github.com/planner77/masterGantt/actions/runs/39975107608) / shard5 Job 120488909192. #719 KPI Mock이 공개 `logistics-kpi/2` 직렬화 누락으로 버튼 readiness 검증에서 직접 실패. 나머지 7개 Chromium shard 취소/Required E2E·Automated QA 파생 FAIL이며 Quality·Build·Docker 성공. 정확 분류와 원본 보존: [이슈별 실패 원장](../../ISSUE_785_FAILURE_ANALYSIS.md#pr-787--최초-원격-full-pr-ci-실패-f785-001-2026-10-24-kst).
+- **Change scope:** 테스트 Fixture 2개(`issue-719-contextual-help.spec.ts`, `fixtures/task-editor-density.ts`)의 공개 KPI Mock을 `toResourcePublicV2`로 통일; Task Editor Fixture의 요청 시점 필터 echo도 맞춘다. #785의 제품/API/DB/데이터 이관·집계·UX 변경0. `TEST_LIFECYCLE_REVIEW`: #719 geometry/help/accessibility `EXTEND`, 공통 Editor Fixture `EXTEND`, 기존 v2 negative/request-state `KEEP_UNIQUE`; `AC_TEST_COVERAGE`의 AC2/8/9/10을 동일 수용표로 유지.
+- **검증 계획:** 이 환경의 로컬 npm/Chromium/Docker `NOT TESTED`. 새 exact Head에서 Policy·TypeScript·ESLint·Vitest·PR Build·Chromium E2E8/8·Docker·QA 필수. 앞선 11PASS/다른 7 shard 취소를 전체 성공으로 소급하지 않음. 미해결 리뷰0·main 충돌 없음은 수정 전 조사, 커밋 후 재확인. Owner HIGH 수용·Trusted QA·레거시 안전 편집 AC4·외부소비자/운영 DB 미검증과 release_required=true/release_authorized=false, MERGE_READY=BLOCKED 유지. CI 시작 후 모니터링/병합/GHCR/Finalizer/Issue 종료 제외.
