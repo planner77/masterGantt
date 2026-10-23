@@ -70,7 +70,7 @@ function assertWorkbookParity(a: ReturnType<typeof archive>) {
     expect(row).toBeDefined();
     for (const key of metrics) expect(row[key.includes("Percent") ? `${key} (0-100)` : key], `${granularity}/${cell.periodKey}/${scope}/${key}`).toBe(typeof cell[scope][key] === "boolean" ? String(cell[scope][key]) : cell[scope][key]);
   }
-  const sourceRows = table(a.sheet("Resource Target Sources"));
+  const sourceRows = table(a.sheet("Resource Entity Sources"));
   for (const row of sourceRows.filter(row => row.relation === "AssignmentScope")) {
     expect(row.sourceTaskId).toBeNull();
     const assignment = [...a.bundle.assignments, ...a.bundle.targetData!.projectAssignments].find(source => source.assignment.assignmentId === row.assignmentId)!;
@@ -106,7 +106,7 @@ describe("#622 SQLite Target Plan and Resource workbook", () => {
       expect("assignmentIds" in scope && [...scope.assignmentIds].sort()).toEqual(data.rows.map(row => row.assignmentId).sort());
     }
     const p = new URLSearchParams({ from: "2026-10-05", to: "2026-10-05", granularity: "week", targetIds: f.targets[0].id, snapshotId: report.snapshotId, periodId: "all", row: "resource", resourceId: r1, demandScope: "project", date: "2026-10-05" });
-    const response = await handleGetResourcePlan(new Request(`https://gantt.example/test?${p}`), f.project.publicId, { service: f.service }, "day-assignments");
+    const response = await handleGetResourcePlan(new Request(`https://gantt.example/test?${p}`, { headers: { "X-MasterGantt-Resource-Version": "1" } }), f.project.publicId, { service: f.service }, "day-assignments");
     expect(response.status).toBe(200); expect(response.headers.get("cache-control")).toBe("private, no-store"); expect(response.headers.get("set-cookie")).toBeNull(); expect(f.state()).toEqual(before);
   });
   it("keeps exact-source selection separate from same-R Project evidence and exports raw API parity", () => {
@@ -121,22 +121,22 @@ describe("#622 SQLite Target Plan and Resource workbook", () => {
     expect(bundle.targetData!.projectAssignments).toHaveLength(2);
     for (const plan of Object.values(bundle.plans)) { expect(plan!.totals.summary.selected.knownMd).toBe(.8); expect(plan!.totals.summary.project.knownMd).toBeCloseTo(1.4); expect(plan!.totals.cells.reduce((n, c) => n + c.selected.knownMd, 0)).toBe(.8); }
     assertWorkbookParity(a);
-    expect(a.names).toContain("Resource Target Sources"); expect(a.names).toContain("Resource Project Assignments");
+    expect(a.names).toContain("Resource Entity Sources"); expect(a.names).toContain("Resource Project Assignments");
     expect(a.sheet("Resource Assignments")).toContain(`<v>0.8</v>`);
     expect(a.sheet("Resource Project Assignments")).toContain(f.tasks.get("T2")!.publicId);
-    expect(a.sheet("Resource Target Sources")).toContain(f.targets[0].memberIds[0]);
-    expect(a.sheet("Resource Targets")).toContain("수량을 공수에 곱하지 않음");
+    expect(a.sheet("Resource Entity Sources")).toContain(f.targets[0].memberIds[0]);
+    expect(a.sheet("Resource Logistics")).toContain("수량을 공수에 곱하지 않음");
     const all = archive(f, { basis: "project", expectedReport: { context: report.resourceScopeContext! }, originalSourceContext: unscoped.resourceScopeContext, granularities: ["week", "month"] }).bundle;
     expect(all.report.filters.targetIds).toBeUndefined(); expect(all.assignments).toHaveLength(2); expect(all.report.summary.effort.knownMd).toBeCloseTo(1.4); expect(all.targetData!.taskSources).toHaveLength(4);
   });
-  it("retains plain schedule Target rejection and export security while explicit Resource workbook accepts literal Target labels", async () => {
+  it("retains plain schedule Target rejection and export security while explicit Resource workbook accepts literal physical instance labels", async () => {
     const f = fixture(), service = new ProjectExportSnapshotService(f.database, { clock: () => new Date(now), mdPerMmEnvironment: "21" });
     expect(() => service.get(f.project.publicId)).toThrow(expect.objectContaining({ code: "TASK_TARGET_EXPORT_UNSUPPORTED" }));
-    f.database.prepare("UPDATE logistics_targets SET name=? WHERE public_id=?").run("=SUM(1,2)<&", f.targets[0].id);
+    f.database.prepare("UPDATE project_equipment SET name=? WHERE project_id=? AND public_id=(SELECT e.public_id FROM project_equipment e WHERE e.project_id=? LIMIT 1)").run("=SUM(1,2)<&", f.project.id, f.project.id);
     const opts = options(f), a = archive(f, opts);
-    expect(a.sheet("Resource Target Catalog")).toContain("=SUM(1,2)&lt;&amp;");
-    expect(a.sheet("Resource Target Catalog")).not.toContain("<f>");
-    const http = (origin: string) => handleProjectExcelExport(new Request(`https://gantt.example/api/projects/${f.project.publicId}/exports/excel`, { method: "POST", headers: { "Content-Type": "application/json", Origin: origin, "If-Match": '"1"' }, body: JSON.stringify({ ...legacy, resourceDashboard: opts }) }), f.project.publicId, { service: { getReadonlySnapshot: () => undefined }, applicationBaseUrl: "https://gantt.example", environment: "production", getExportBundle: (...args) => service.get(...args) });
+    expect(a.sheet("Resource Entity Catalog")).toContain("=SUM(1,2)&lt;&amp;");
+    expect(a.sheet("Resource Entity Catalog")).not.toContain("<f>");
+    const http = (origin: string) => handleProjectExcelExport(new Request(`https://gantt.example/api/projects/${f.project.publicId}/exports/excel`, { method: "POST", headers: { "X-MasterGantt-Resource-Version": "1", "Content-Type": "application/json", Origin: origin, "If-Match": '"1"' }, body: JSON.stringify({ ...legacy, resourceDashboard: opts }) }), f.project.publicId, { service: { getReadonlySnapshot: () => undefined }, applicationBaseUrl: "https://gantt.example", environment: "production", getExportBundle: (...args) => service.get(...args) });
     expect((await http("https://hostile.example")).status).toBe(403);
     const response = await http("https://gantt.example"); expect(response.status).toBe(200); expect(response.headers.get("set-cookie")).toBeNull();
     for (const filters of [{ targetIds: ["bad"] }, { targetIds: [f.targets[0].id], extra: "bad" }, { projectionOrder: ["target", "target"] }]) expect(() => parseResourceExcelOptions({ ...opts, expectedReport: { ...(opts.basis === "current" ? opts.expectedReport : {}), filters } })).toThrow();
@@ -180,7 +180,7 @@ describe("#622 SQLite Target Plan and Resource workbook", () => {
       }
     })();
     const sql = vi.spyOn(f.database, "prepare"), start = performance.now();
-    const response = await handleGetResourceDashboard(f.request(new URLSearchParams({ from: "2026-10-05", to: "2026-10-05", granularity: "week", targetIds: f.targets[0].id }).toString()), f.project.publicId, { service: f.service });
+    const response = await handleGetResourceDashboard(new Request(f.request(new URLSearchParams({ from: "2026-10-05", to: "2026-10-05", granularity: "week", targetIds: f.targets[0].id }).toString()), { headers: { "X-MasterGantt-Resource-Version": "1" } }), f.project.publicId, { service: f.service });
     const body = await response.text(), reportMs = performance.now() - start, queryCount = sql.mock.calls.length;
     sql.mockRestore(); expect(response.status).toBe(200);
     const report: ResourceDashboardDto = JSON.parse(body).data;
@@ -220,7 +220,7 @@ describe("#622 SQLite Target Plan and Resource workbook", () => {
       expect.objectContaining({ status: 422, details: [expect.objectContaining({ path: "projection.target.projectionCells" })] }),
     );
     const request = f.request(new URLSearchParams({ from: filters.from!, to: filters.to!, granularity: "week" }).toString());
-    const response = await handleGetResourceDashboard(request, f.project.publicId, { service: f.service });
+    const response = await handleGetResourceDashboard(new Request(request, { headers: { "X-MasterGantt-Resource-Version": "1" } }), f.project.publicId, { service: f.service });
     expect(response.status).toBe(200);
     const report = ((await response.json()) as { data: ResourceDashboardDto }).data;
     expect(report.targetProjection).toBeUndefined();

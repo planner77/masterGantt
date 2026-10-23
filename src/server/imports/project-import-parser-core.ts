@@ -84,7 +84,7 @@ function assertNoUnsupportedTargetBindings(value: unknown): void {
       throw new PublicApiError(400, "RESOURCE_MEMBERSHIP_IMPORT_UNSUPPORTED", "프로젝트 리소스 등록은 이 교환 형식에서 지원하지 않습니다. 프로젝트 복사 또는 템플릿을 이용해 주세요.");
     }
     if (key === "taskTargetBindings" || key === "targetBindings" || key === "task_target_bindings") {
-      throw new PublicApiError(400, "TARGET_BINDING_IMPORT_UNSUPPORTED", "Task Target bindings require a supported versioned format. Use Project Copy or Template.");
+      throw new PublicApiError(400, "TARGET_BINDING_IMPORT_UNSUPPORTED", "기존 설비·물류 연결에는 지원되는 버전 형식이 필요합니다. 프로젝트 복사 또는 템플릿을 이용해 주세요.");
     }
     assertNoUnsupportedTargetBindings(child);
   }

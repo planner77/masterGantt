@@ -64,7 +64,8 @@ describe("#729 migrated SQLite → production handler → actual HTTP acceptance
   it.each(["direct", "target", "mixed"] as const)("AC1 W2 %s source is distinct14/A8/B9/unlinked2 without implicit process fallback", async mode => {
     const f = await fixture(mode), before = f.state();
     const { data } = await f.report(spec("system", ["process"]));
-    expect(data.schema).toBe("wbs-view-report/1");
+    expect(data.schema).toBe("wbs-view-report/2");
+    expect(JSON.stringify(data)).not.toMatch(/"(?:targetId|targetIds|targetSources|targetMembers|inactiveTargetIds)"/);
     const mcs = node(data, "system", f.systems[2].publicId);
     assertScope(mcs, f, ["T0", "T1", "T2", "T3"], ["A0", "A1", "A2", "A3"], 14);
     assertScope(node(mcs, "process", f.processA.publicId), f, ["T1", "T3"], ["A1", "A3"], 8);

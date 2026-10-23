@@ -4,7 +4,7 @@ import { z } from "zod";
 import { parseResourceDrillQuery, parseResourceDrillSourceContext } from "../resources/resource-drill-query-core";
 import { parseWbsViewQuery } from "../resources/wbs-dashboard-views-query-core";
 import type { WbsViewSourceContext } from "../../contracts/wbs-dashboard-views";
-import { RESOURCE_TARGET_FILTER_KEYS } from "../../contracts/resource-dashboard";
+import { RESOURCE_PHYSICAL_FILTER_KEYS, RESOURCE_TARGET_FILTER_KEYS } from "../../contracts/resource-dashboard";
 import { parseResourceDashboardQuery } from "../resources/resource-dashboard-query-core";
 import type { ResourceExcelExportInput, ResourceExcelSourceBinding, WbsResourceExcelExportOptions } from "../../contracts/resource-excel-export";
 import type { ApiErrorDetail } from "@/contracts/projects";
@@ -118,7 +118,7 @@ export function parseResourceExcelOptions(value: unknown): ResourceExcelExportIn
     const checked = parseResourceDrillQuery({ sourceContext: original.sourceContext, scope: original.scope, filters: expected.filters, projection: { kind: "report" } });
     binding = { sourceContext: checked.sourceContext, scope: checked.scope }; filters = checked.filters;
   } else {
-    const filter = strictObject(expected.filters, ["from", "to", "asOfDate", "search", "taskSearch", "mode", "granularity", "resourceActivity", "groupActivity", "resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses", "mdPerMm", ...RESOURCE_TARGET_FILTER_KEYS, "projectionOrder"]);
+    const filter = strictObject(expected.filters, ["from", "to", "asOfDate", "search", "taskSearch", "mode", "granularity", "resourceActivity", "groupActivity", "resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses", "mdPerMm", ...RESOURCE_TARGET_FILTER_KEYS, ...RESOURCE_PHYSICAL_FILTER_KEYS, "projectionOrder"]);
     const params = new URLSearchParams();
     for (const [key, field] of Object.entries(filter)) {
       if (Array.isArray(field)) { if (field.some(item => typeof item !== "string")) throw new Error("Invalid filters"); if (field.length) params.set(key, field.join(",")); }

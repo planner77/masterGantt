@@ -1,3 +1,9 @@
+## Issue #785 — 무변환 읽기 호환과 원본 보존
+
+이번 변경은 새 DDL/backfill/downmigration을 도입하지 않는다. `0026_logistics_targets.sql`·`0027_task_target_bindings.sql` 및 배포 migration ledger/checksum을 그대로 보존한다. logistics_targets/members와 task_target_bindings/members는 동적 whole·subset coverage·Summary 상속·지원 Copy/Template를 위한 내부 archive 원본이다. 공개 writer 퇴역은 DB 자료 폐기나 복구 성공이 아니다.
+
+fresh/직접 모델은 기존 공정/WorkArea/Equipment/System 및 Task 직접 테이블을 사용하며 archive 원본을 자동 생성하지 않는다. legacy-only/mixed는 같은 canonical 실물 ID로 읽되 source 관계를 직접 행으로 평탄화하지 않는다. 잘못된 FK/프로젝트 참조·전송 JOIN 누락은 원본 보존과 전체 실패로 처리한다. 운영 DB 건수/backup/restore는 NOT TESTED다. 파괴적 구조 정리는 소비자0·참조 비교·backup/restart·Owner 승인 후 별도 수행한다. [이관 설계](exec-plans/active/ISSUE_785.md), [운영 절차](TARGET_RESOURCE_OPERATIONS.md).
+
 ## Issue #762 — migration 0030의 Project WorkArea
 
 `0030_project_work_areas.sql`은 기존 catalog/occurrence/mapping/Target과 migration0025~0029를 재작성하지 않는 additive 확장이다.

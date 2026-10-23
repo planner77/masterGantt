@@ -1,3 +1,4 @@
+import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import type { Locator, Page } from "@playwright/test";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 import { createTargetProject, targetMasterPassword } from "./fixtures/target-project";
@@ -119,8 +120,8 @@ test("#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중
   expectOriginals(snapshot.data.logistics!, originals);
   expect(snapshot.data.tasks).toEqual(initialTasks);
   const targets = await page.request.get(`${f.api}/logistics/targets`);
-  expect(targets.status()).toBe(200);
-  expect((await targets.json()).data.targets).toEqual([]);
+  expect(targets.status()).toBe(410);expect((await targets.json()).error.code).toBe("LOGISTICS_API_RETIRED");
+  expect(readLegacyFixtureCounts(isolatedApplication,f.publicId)).toEqual({targets:0,members:0,bindings:0,selectedMembers:0});
   // These are actual server rejections over HTTP, separate from the injected
   // errors used to exercise UI draft handling in the next scenario.
   const beforeRejectedWrites = await f.snapshot();
@@ -405,7 +406,8 @@ test("#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류
   const final = await f.snapshot();
   expectOriginals(final.data.logistics!, originals);
   expect(final.data.tasks).toEqual(initialTasks);
-  expect((await (await page.request.get(`${f.api}/logistics/targets`)).json()).data.targets).toEqual([]);
+  expect((await page.request.get(`${f.api}/logistics/targets`)).status()).toBe(410);
+  expect(readLegacyFixtureCounts(isolatedApplication,f.publicId)).toEqual({targets:0,members:0,bindings:0,selectedMembers:0});
   await context.getByRole("checkbox", { name: /^A 공정 / }).check();
   await page.route(contextUrl, route => route.request().method() === "PUT"
     ? route.fulfill({ status: 401, json: { error: { code: "EDIT_SESSION_REQUIRED" } } })

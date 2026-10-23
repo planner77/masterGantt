@@ -3,7 +3,7 @@ import { resolveWbsTaskLedger, WbsTaskLedgerInputError } from "../../domain/reso
 import { WBS_VIEW_LIMITS, type WbsViewResponseDto, type WbsViewResponseContext, type WbsViewReportDto, type WbsViewScopeDto } from "../../contracts/wbs-dashboard-views";
 import { parseWbsViewQuery } from "./wbs-dashboard-views-query-core";
 import { createWbsViewProjection, wbsViewSelectedSources } from "./wbs-dashboard-views-core";
-import { RESOURCE_TARGET_LIMITS, RESOURCE_TARGET_FILTER_KEYS, type ResourceDashboardTargetFilters, type ResourceDashboardTargetProjection, type ResourceDashboardTargetNode, type ResourceTargetPathEntry } from "../../contracts/resource-dashboard";
+import { RESOURCE_PHYSICAL_FILTER_KEYS, RESOURCE_TARGET_LIMITS, RESOURCE_TARGET_FILTER_KEYS, type ResourceDashboardTargetFilters, type ResourceDashboardTargetProjection, type ResourceDashboardTargetNode, type ResourceTargetPathEntry } from "../../contracts/resource-dashboard";
 import { projectResourceKpiTargets } from "../../domain/resources/resource-target-kpi";
 import { ResourceKpiTargetInputError, ResourceKpiTargetLimitError, hasResourceKpiTargetPathFilters, selectResourceKpiTargetPaths, summarizeResourceKpiTargetMembers, type ResourceKpiTargetFilters } from "../../domain/resources/resource-kpi-targets";
 import { isWbsResourceExcelOptions, type ResourceExcelExportInput, type WbsResourceExcelExportOptions, type ResourceExcelExportOptions, type ResourceExcelReportBundle, type ResourceExcelAssignmentRow } from "../../contracts/resource-excel-export";
@@ -69,12 +69,15 @@ function targetCall<T>(call: () => T): T {
   }
 }
 function targetFilters(filters: ResourceDashboardTargetFilters): ResourceKpiTargetFilters {
-  const output: ResourceKpiTargetFilters = Object.fromEntries(RESOURCE_TARGET_FILTER_KEYS.filter(key => filters[key] !== undefined).map(key => [key, filters[key]]));
+  const output: ResourceKpiTargetFilters = Object.fromEntries([...RESOURCE_TARGET_FILTER_KEYS,...RESOURCE_PHYSICAL_FILTER_KEYS].filter(key => filters[key] !== undefined).map(key => [key, filters[key]]));
   if (filters.targetIds) output.targetIds = filters.targetIds.map(id => id === "unassigned" ? null : id);
   if (filters.workAreaIds) output.workAreaIds = filters.workAreaIds.map(id => id === "unassigned" ? null : id);
   return output;
 }
 function wantsTargets(filters: ResourceDashboardTargetFilters) { return filters.projectionOrder !== undefined || RESOURCE_TARGET_FILTER_KEYS.some(key => filters[key] !== undefined); }
+// Physical source evidence belongs to every canonical detail, independently of
+// retired projection/filter requests. Source fan-out keeps the same page budget.
+function wantsPhysicalSources(snapshot: { domain: { logistics?: unknown } }) { return snapshot.domain.logistics !== undefined; }
 function compact(value: ResourceKpiTotals, selector: ResourceDashboardSelector): ResourceDashboardSummary {
   return { taskCount: value.taskCount, resourceCount: value.resourceCount, assignmentCount: value.assignmentCount,
     notStarted: value.notStarted.count, inProgress: value.inProgress.count, completed: value.completed.count, delayed: value.delayed.count,
@@ -222,10 +225,10 @@ export class ResourceDashboardService {
         result = { ...context, view: kind, ...data, rows: data.rows.map((row) => ({ ...row, ...this.planPerson(snapshot, row.resourceId) })) };
       } else {
         const data = planCall(() => getResourcePlanDayAssignments(plan, { row: detail.selector, date: detail.date!, demandScope: detail.demandScope }, page));
-        if (wantsTargets(snapshot.filters)) this.assertTargetSourceBudget(snapshot, data.rows.map(row => row.taskId));
+        if (wantsPhysicalSources(snapshot)) this.assertTargetSourceBudget(snapshot, data.rows.map(row => row.taskId));
         result = { ...context, view: kind, ...data, rows: data.rows.map((row) => {
           const task = snapshot.taskById.get(row.taskId)!, assignment = snapshot.assignmentById.get(row.assignmentId)!;
-          return { ...row, resourceActive: snapshot.resourceById.get(row.resourceId)!.active, ...(wantsTargets(snapshot.filters) ? { targetSources: snapshot.domain.logistics!.resolved.get(row.taskId)! } : {}), taskName: task.name, externalId: task.externalId, taskStart: task.startDate, taskEnd: task.endDate,
+          return { ...row, resourceActive: snapshot.resourceById.get(row.resourceId)!.active, ...(wantsPhysicalSources(snapshot) ? { targetSources: snapshot.domain.logistics!.resolved.get(row.taskId)! } : {}), taskName: task.name, externalId: task.externalId, taskStart: task.startDate, taskEnd: task.endDate,
             assignmentStart: assignment.assignmentStart, assignmentEnd: assignment.assignmentEnd, milestoneName: row.milestoneTaskId === null ? "Milestone 미지정" : snapshot.taskById.get(row.milestoneTaskId)!.name, wbsPath: snapshot.paths.get(row.taskId)! };
         }) };
       }
@@ -542,7 +545,7 @@ export class ResourceDashboardService {
         : rows.map((row) => ({ taskId: row.taskId, row }));
       details.sort((a, b) => a.taskId.localeCompare(b.taskId) || (a.row?.assignmentId ?? "").localeCompare(b.row?.assignmentId ?? ""));
       const selectedPage = details.slice(checked.offset, checked.offset + checked.limit);
-      if (wantsTargets(snapshot.filters)) {
+      if (wantsPhysicalSources(snapshot)) {
         // Bound repeated Assignment provenance before allocating page DTOs.
         let sourceRows = 0;
         for (const { taskId } of selectedPage) {
@@ -565,7 +568,7 @@ export class ResourceDashboardService {
     const task = taskById.get(taskId)!, membership = projection.membership.get(taskId)!;
     const resource = row ? resourceById.get(row.resourceId)! : null;
     const assignment = row ? assignmentById.get(row.assignmentId)! : null;
-    return { ...(wantsTargets(snapshot.filters) ? { targetSources: domain.logistics!.resolved.get(taskId)! } : {}), taskId, taskName: task.name, externalId: task.externalId, status: task.status, progress: task.progress,
+    return { ...(wantsPhysicalSources(snapshot) ? { targetSources: domain.logistics!.resolved.get(taskId)! } : {}), taskId, taskName: task.name, externalId: task.externalId, status: task.status, progress: task.progress,
       taskStart: task.startDate, taskEnd: task.endDate, duration: task.duration, wbsPath: paths.get(taskId)!, ...membership,
       assignment: row && resource && assignment ? { assignmentId: row.assignmentId, resourceId: row.resourceId, resourceName: resource.name, resourceCode: resource.code, active: resource.active,
         roles: resource.roles.length ? resource.roles : ["UNSPECIFIED"], developerGrade: resource.developerGrade, groupIds: row.groupIds,
@@ -829,7 +832,7 @@ export class ResourceDashboardService {
       catalog: { resources: resources.map((row) => ({ id: row.publicId, name: row.name, code: row.code, active: row.active, roles: row.roles, developerGrade: row.developerGrade, groupIds: groupIdsByResource.get(row.publicId) ?? [] })),
         groups: groups.map((row) => ({ id: row.publicId, name: row.name, code: row.code, active: row.active })), milestones: milestones.map((row) => ({ id: row.publicId, name: row.name })),
         wbsRoots: storedTasks.map((row) => ({ id: row.publicId, name: row.name, type: row.type })),
-        ...(filters.granularity ? { targetOptions: snapshot.targetSnapshot.catalog } : {}) },
+        targetOptions: snapshot.targetSnapshot.catalog },
       metadata: { groupRoleSubtotalsAdditive: false, precision: "raw", diagnosticsScope: "T0: Task/WBS/Milestone/status/taskSearch/canonical task dates; no personal/activity filters or search",
         searchScope: "A: Resource name/code OR its connected Group name/code OR assigned Task name/externalId/WBS path; taskSearch applies to T0 and A", historicalStateRestoration: false, totalFrom: "full selected assignment set", limits: LIMITS },
     };

@@ -31,7 +31,6 @@ import {
 } from "@/features/resources/resource-drill-scope-model";
 import { fetchWbsView, stableWbsValue } from "@/features/resources/wbs-view-transport";
 import { ResourceWbsDashboard } from "@/features/resources/resource-wbs-dashboard";
-import { WbsViewDashboard } from "@/features/resources/wbs-view-dashboard";
 import type { WbsViewDimension, WbsViewScopeDto } from "@/contracts/wbs-dashboard-views";
 import type { WbsViewScheduleRequest, ResourceScheduleRequest } from "@/features/resources/resource-drill-context";
 import {
@@ -290,13 +289,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [infoPopoverOpen, setInfoPopoverOpen] = useState(false);
   const [activeScreen, setActiveScreen] = useState<WorkspaceScreen>("schedule");
+  const [workspaceMigrationNotice, setWorkspaceMigrationNotice] = useState(false);
   const activeView = workspaceView(activeScreen);
   const activeSection = workspaceSection(activeScreen);
   const [lastLogisticsScreen, setLastLogisticsScreen] = useState<WorkspaceScreen>("dashboard.kpi");
   if (activeView === "logistics" && lastLogisticsScreen !== activeScreen) setLastLogisticsScreen(activeScreen);
   const logisticsScreen = activeView === "logistics" ? activeScreen : lastLogisticsScreen;
   const [lastUnifiedScreen, setLastUnifiedScreen] = useState<WorkspaceScreen>("dashboard.process");
-  if (["dashboard.process", "dashboard.equipment", "dashboard.system", "dashboard.target"].includes(activeScreen) && lastUnifiedScreen !== activeScreen) setLastUnifiedScreen(activeScreen);
+  if (["dashboard.process", "dashboard.equipment", "dashboard.system"].includes(activeScreen) && lastUnifiedScreen !== activeScreen) setLastUnifiedScreen(activeScreen);
   const lastSectionScreens = useRef<Record<"dashboard" | "master", WorkspaceScreen>>({ dashboard: "dashboard.kpi", master: "master.processes" });
   // Direct drill/view navigation also changes the active screen; preserve that screen for parent-tab return.
   useEffect(() => {
@@ -412,13 +412,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [relationEditorRequest, setRelationEditorRequest] = useState<TaskRelationEditorRequest | null>(null);
   const [editorInitialTab, setEditorInitialTab] = useState<"task" | "memberships" | "relations" | "resources">("task");
   const [editorAssignment, setEditorAssignment] = useState<{assignmentId:string; resourceId:string} | undefined>();
-  const [resourceTargetRequest, setResourceTargetRequest] = useState<{id:string; sequence:number;code?:string | null} | null>(null);
   const [kpiResourceOrigin, setKpiResourceOrigin] = useState<{ id: string; name: string; code: string | null; source: ResourceNavigationState; revision: number } | null>(null);
   const [kpiSourceRefreshKey, setKpiSourceRefreshKey] = useState(0);
   const [legacyWorkAreaSequence,setLegacyWorkAreaSequence] = useState<number|null>(null);
   const [wbsEntityRequest, setWbsEntityRequest] = useState<{ dimension: WbsViewDimension; id: string; sequence: number; trigger: HTMLElement } | null>(null);
   const wbsEntityOrigin = useRef<ResourceNavigationState | null>(null);
-  const resourceTargetTrigger = useRef<HTMLElement | null>(null);
   const projectTaskEditorReference = useRef<ProjectTaskEditorHandle>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
@@ -506,7 +504,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     };
     let disposed = false;
     const restoredScreen = screenFromUrl() ?? normalizeWorkspaceScreen(saved.activeScreen) ?? "schedule";
-    queueMicrotask(() => { if (!disposed) { setActiveScreen(restoredScreen); setWorkspaceStorageProject(publicId); } });
+    queueMicrotask(() => { if (!disposed) { setActiveScreen(restoredScreen); setWorkspaceStorageProject(publicId); setWorkspaceMigrationNotice([new URL(window.location.href).searchParams.get("screen"),saved.activeScreen,saved.dashboard,saved.master].some(value => value === "dashboard.target" || value === "master.targets")); } });
     const onPopState = () => {
       setActiveScreen(screenFromUrl() ?? "schedule");
       const rootTask = new URL(window.location.href).searchParams.get("rootTask")?.trim() || null;
@@ -1364,39 +1362,30 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     }
     if (editorOriginViewReference.current === "milestones") { focusMilestoneDashboard(trigger); return; }
     if (editorOriginViewReference.current === "logistics") {
-      // A canonical reload can replace the original Target task button while
+      // A canonical reload can replace the original Task button while
       // the Task Editor's native modal is closing. Settle focus only after that
       // dialog closes, without stealing focus from a newer user interaction.
       const generation = ++taskFocusGeneration.current;
       const closingDialog = document.querySelector<HTMLDialogElement>('dialog[aria-labelledby="task-editor-title"]');
-      const fromTargetDetail = trigger?.hasAttribute("data-target-task-id") === true;
       const maxFrames = 24;
       const restore = (frame: number) => {
         if (generation !== taskFocusGeneration.current) return;
         const panel = document.querySelector<HTMLElement>(".project-logistics-panel");
         if (!panel || panel.closest("[hidden], [inert]") || !panel.isConnected) return;
-        const detailDialog = [...panel.querySelectorAll<HTMLDialogElement>("dialog[open]")]
-          .find(dialog => dialog.querySelector("h2")?.textContent?.startsWith("Target 상세 ·"));
-        const foreignModal = [...document.querySelectorAll<HTMLDialogElement>("dialog:modal")]
-          .some(dialog => dialog !== closingDialog && dialog !== detailDialog);
+        const foreignModal = [...document.querySelectorAll<HTMLDialogElement>("dialog:modal")].some(dialog => dialog !== closingDialog);
         if (foreignModal) return;
-        if (closingDialog?.open || (fromTargetDetail && (!detailDialog || !detailDialog.matches(":modal")))) {
+        if (closingDialog?.open) {
           if (frame < maxFrames) requestAnimationFrame(() => restore(frame + 1));
           return;
         }
         const focused = document.activeElement;
-        if (detailDialog?.contains(focused)) return;
         if (focused instanceof HTMLElement && focused !== document.body &&
             focused !== closingDialog && !closingDialog?.contains(focused) &&
             !panel.contains(focused)) return;
         const logicalSelector = taskId ? `[data-canonical-task-id="${CSS.escape(taskId)}"]${editorAssignment ? `[data-canonical-assignment-id="${CSS.escape(editorAssignment.assignmentId)}"] button[data-resource-assignment-edit]` : " button"}` : null;
-        const logicalTrigger = fromTargetDetail && taskId
-          ? detailDialog?.querySelector<HTMLElement>(`[data-target-task-id="${CSS.escape(taskId)}"]`)
-          : logicalSelector ? Array.from(panel.querySelectorAll<HTMLElement>(logicalSelector)).find(isVisibleFocusTarget) : null;
-        const detailClose = detailDialog?.querySelector<HTMLElement>('button[aria-label$="닫기"]');
-        const fallback = isVisibleFocusTarget(detailClose) ? detailClose : workspaceFocusFallback(editorOriginScreenReference.current);
-        const target = isVisibleFocusTarget(trigger) && panel.contains(trigger) && (!fromTargetDetail || detailDialog?.contains(trigger)) ? trigger :
-          isVisibleFocusTarget(logicalTrigger) ? logicalTrigger : fallback;
+        const logicalTrigger = logicalSelector ? Array.from(panel.querySelectorAll<HTMLElement>(logicalSelector)).find(isVisibleFocusTarget) : null;
+        const fallback = workspaceFocusFallback(editorOriginScreenReference.current);
+        const target = isVisibleFocusTarget(trigger) && panel.contains(trigger) ? trigger : isVisibleFocusTarget(logicalTrigger) ? logicalTrigger : fallback;
         if (isVisibleFocusTarget(target)) {
           target.focus({ preventScroll: true });
           if (document.activeElement === target) return;
@@ -3018,6 +3007,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       </div>
     </header>
 
+    {workspaceMigrationNotice ? <p role="status" className="field-help">이전 조회 구성을 현재 보기로 전환했습니다. 기존 작업과 배정은 유지됩니다.</p> : null}
     <div className="project-workspace-tabs project-primary-tabs" role="tablist" aria-label="프로젝트 작업공간">
       {([{ key: "schedule", label: "일정" }, { key: "dashboard", label: "대시보드" }, { key: "master", label: "기준정보" }] as const).map(({ key, label }) => <button
         key={key} ref={node => { if (node) screenTabReferences.current.set(key, node); else screenTabReferences.current.delete(key); if (key === "schedule") scheduleTabReference.current = node; }}
@@ -3031,11 +3021,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           ref={node => { if (node) screenTabReferences.current.set(key, node); else screenTabReferences.current.delete(key); if (key === "dashboard.milestones") milestoneTabReference.current = node; if (key === "dashboard.resources") resourceTabReference.current = node; if (key === "master.processes") logisticsTabReference.current = node; }}
           id={key === "dashboard.milestones" ? "project-tab-milestones" : key === "dashboard.resources" ? "project-tab-resources" : key === "master.processes" ? "project-tab-logistics" : `project-tab-${key}`}
           role="tab" type="button" aria-controls={workspaceView(key) === "milestones" ? "project-panel-milestones" : workspaceView(key) === "resources" ? "project-panel-resources" : workspaceView(key) === "resource-master" ? "project-panel-resource-master" : "project-panel-logistics"}
-          aria-selected={activeScreen === key || (activeScreen === "dashboard.target" && key === "dashboard.process") || (section === "master" && (activeScreen === "master.targets" || activeScreen === "master.relations") && key === "master.processes")} tabIndex={activeScreen === key || (activeScreen === "dashboard.target" && key === "dashboard.process") || (section === "master" && (activeScreen === "master.targets" || activeScreen === "master.relations") && key === "master.processes") ? 0 : -1}
+          aria-selected={activeScreen === key || (section === "master" && activeScreen === "master.relations" && key === "master.processes")} tabIndex={activeScreen === key || (section === "master" && activeScreen === "master.relations" && key === "master.processes") ? 0 : -1}
           onClick={() => selectScreen(key)} onKeyDown={event => handleNavigationKey(event, key, (section === "dashboard" ? DASHBOARD_SCREENS : MASTER_SCREENS).map(item => item.key), value => selectScreen(value as WorkspaceScreen))}>{label}</button>)}
       </div>
       {section === "master" ? <div className="project-workspace-auxiliary" aria-label="기준정보 보조 도구">
-        <button type="button" className="secondary-button" aria-pressed={activeScreen === "master.targets"} onClick={() => selectScreen("master.targets", false)}>Target 관리</button>
         <button type="button" className="secondary-button" aria-pressed={activeScreen === "master.relations"} onClick={() => selectScreen("master.relations", false)}>제어·조율 관계</button>
       </div> : null}
     </div>)}
@@ -3453,7 +3442,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               onOpenEntity={openWbsEntity} onSchedule={scheduleWbsRequest} />
           </div>;
         })}
-        <details open data-resource-compatibility><summary>기존 분석·Plan·견적·Excel (별도 조회 조건)</summary><p className="field-help">위 리소스 동적 계층과 독립된 기존 분석입니다. 아래 조건·Milestone/Target 비교·개발 견적·Excel은 아래 보고서 범위를 사용합니다.</p>
+        <details open data-resource-compatibility><summary>기존 분석·Plan·견적·Excel (별도 조회 조건)</summary><p className="field-help">위 리소스 동적 계층과 독립된 기존 분석입니다. 아래 조건·Milestone 비교·개발 견적·Excel은 아래 보고서 범위를 사용합니다.</p>
         <ProjectResourceWorkload publicId={publicId} revision={project.revision} active={activeView === "resources"} refreshDisabled={navigationLoading ||
               navigationConflict !== null ||
               busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} onRefreshProject={() => { if (!busy && editorSession === null && relationEditorRequest === null && pendingTaskDelete === null) void reloadCanonicalSnapshot(); }} viewId={resourceViewId} binding={resourceBinding}
@@ -3474,19 +3463,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             }}
             onSchedule={scheduleResourceRequest}
             onOpenTask={openTaskEditor}
-            onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, {assignmentId, resourceId})}
-            onOpenTarget={(id, trigger, code) => { if(busy || editorSession || navigationLoading || relationEditorRequest || pendingTaskDelete) return; resourceTargetTrigger.current = trigger; setResourceTargetRequest({id, code, sequence: Date.now()}); setActiveScreen("master.targets"); }} />
+            onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, {assignmentId, resourceId})} />
         </details>
       </section>
       <section
         id="project-panel-logistics"
         role="tabpanel"
-        aria-label={activeScreen === "master.targets" ? "Target 관리" : activeScreen === "master.relations" ? "제어·조율 관계" : activeScreen === "dashboard.target" ? "Target·Resource 분석" : undefined}
-        aria-labelledby={activeScreen === "master.targets" || activeScreen === "master.relations" || activeScreen === "dashboard.target" ? undefined : activeScreen === "master.processes" ? "project-tab-logistics" : `project-tab-${activeScreen}`}
+        aria-label={activeScreen === "master.relations" ? "제어·조율 관계" : undefined}
+        aria-labelledby={activeScreen === "master.relations" ? undefined : activeScreen === "master.processes" ? "project-tab-logistics" : `project-tab-${activeScreen}`}
         hidden={activeView !== "logistics"}
         className="project-workspace-panel project-logistics-panel"
       >
-        {resourceTargetRequest ? <button type="button" className="secondary-button" disabled={busy || editorSession !== null} onClick={() => {setActiveView("resources"); setResourceTargetRequest(null); requestAnimationFrame(() => { const trigger=resourceTargetTrigger.current; if(isVisibleFocusTarget(trigger)) trigger.focus({preventScroll:true}); else document.querySelector<HTMLElement>("#project-panel-resources input[type=search]")?.focus({preventScroll:true}); });}}>Resource 보기로 돌아가기</button> : null}
         <ProjectProcessManagement active={activeScreen === "master.processes"}
           wbsWorkAreaOpenRequest={wbsEntityRequest?.dimension === "workArea" && legacyWorkAreaSequence === wbsEntityRequest.sequence ? wbsEntityRequest : null}
           onWbsWorkAreaRequestHandled={finishWbsEntityRequest}
@@ -3508,12 +3495,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           onSubviewFocusUnavailable={() => workspaceFocusFallback(lastUnifiedScreen)?.focus({ preventScroll: true })}
           onSubviewChange={view => {
             if (view === "dashboard") selectScreen("dashboard.kpi", false);
-            else if (view === "processes" || view === "equipment" || view === "systems" || view === "targets" || view === "relations") selectScreen(`master.${view}`, false);
+            else if (view === "processes" || view === "equipment" || view === "systems" || view === "relations") selectScreen(`master.${view}`, false);
             else if (view === "unified") selectScreen(lastUnifiedScreen, false);
           }}
-          perspective={lastUnifiedScreen === "dashboard.equipment" ? "equipment" : lastUnifiedScreen === "dashboard.system" ? "system" : lastUnifiedScreen === "dashboard.target" ? "target" : "process"}
+          perspective={lastUnifiedScreen === "dashboard.equipment" ? "equipment" : lastUnifiedScreen === "dashboard.system" ? "system" : "process"}
           onPerspectiveChange={view => { selectScreen(`dashboard.${view}`, false); }}
-          targetOpenRequest={resourceTargetRequest}
           workAreaOpenRequest={wbsEntityRequest?.dimension === "workArea" && legacyWorkAreaSequence !== wbsEntityRequest.sequence ? wbsEntityRequest : null}
           onLegacyWorkAreaRequest={setLegacyWorkAreaSequence}
           wbsEntityOpenRequest={wbsEntityRequest && ["equipment", "system", "process"].includes(wbsEntityRequest.dimension) ? wbsEntityRequest : null}
@@ -3531,7 +3517,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           onWbsOpenEntity={openWbsEntity}
           onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })}
           onStageOpen={(taskId, tab) => openTaskEditor(taskId, tab)}
-          onTargetTaskOpen={(taskId, trigger) => openTaskEditor(taskId, "task", trigger)}
+          onLogisticsTaskOpen={(taskId, trigger) => openTaskEditor(taskId, "task", trigger)}
           onKpiResourceOpen={(resourceId, trigger, resource) => {
             if (!navigationAllowed()) return;
             setKpiResourceOrigin({ id: resourceId, name: resource?.name || "선택한 리소스", code: resource?.code ?? null, source: captureNavigation(trigger), revision: project.revision });

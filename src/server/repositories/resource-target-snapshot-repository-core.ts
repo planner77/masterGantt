@@ -1,3 +1,4 @@
+import { assertLogisticsCompatibilityIntegrity, LogisticsCompatibilityError } from "../logistics/task-logistics-compatibility-core";
 import type Database from "better-sqlite3";
 import type { ResourceKpiLogisticsInput } from "../../domain/resources/resource-kpi-targets";
 import { RESOURCE_TARGET_LIMITS } from "../../contracts/resource-dashboard";
@@ -14,6 +15,12 @@ export function readResourceTargetSnapshot(db: Database.Database, projectId: num
   const occurrenceScope = "SELECT occurrence_id FROM project_process_occurrence_mappings WHERE project_id=?";
   counts.push((db.prepare(`SELECT COUNT(*) count FROM work_areas WHERE occurrence_id IN (${occurrenceScope})`).get(projectId) as { count: number }).count);
   if (counts.reduce((a, b) => a + b, 0) > RESOURCE_TARGET_SNAPSHOT_LIMITS.rows) throw new PublicApiError(422, "REPORT_LIMIT_EXCEEDED", "Target 원본 관계 조회 한도를 초과했습니다.", [{ path: "snapshot.targetRows", code: "REPORT_LIMIT_EXCEEDED", message: "Target 원본 관계 수를 줄여 주세요." }]);
+  // Validate raw references before inner joins can omit an invalid source row.
+  try { assertLogisticsCompatibilityIntegrity(db,projectId); }
+  catch(error) {
+    if(error instanceof LogisticsCompatibilityError) throw new PublicApiError(409,"LOGISTICS_SOURCE_INVALID",error.message);
+    throw error;
+  }
   const processes = db.prepare(`SELECT p.public_id id,p.code,p.name,p.active,o.public_id occurrenceId,t.public_id processTypeId,w.public_id mappingWorkAreaId FROM project_processes p LEFT JOIN project_process_occurrence_mappings m ON m.project_id=p.project_id AND m.project_process_id=p.id LEFT JOIN site_product_processes o ON o.id=m.occurrence_id LEFT JOIN process_types t ON t.id=o.process_type_id LEFT JOIN work_areas w ON w.id=m.work_area_id WHERE p.project_id=? ORDER BY p.public_id`).all(projectId) as Array<{ id: string; code: string; name: string; active: number; occurrenceId: string | null; processTypeId: string | null; mappingWorkAreaId: string | null }>;
   const occurrences = db.prepare(`SELECT o.public_id id,o.name,o.code,o.active,t.public_id processTypeId FROM site_product_processes o JOIN process_types t ON t.id=o.process_type_id WHERE o.id IN (${occurrenceScope}) ORDER BY o.public_id`).all(projectId) as Array<{ id: string; name: string; code: string; active: number; processTypeId: string }>;
   const processTypes = db.prepare(`SELECT public_id id,name,code,active FROM process_types WHERE id IN (SELECT process_type_id FROM site_product_processes WHERE id IN (${occurrenceScope})) ORDER BY public_id`).all(projectId) as Array<{ id: string; name: string; code: string; active: number }>;

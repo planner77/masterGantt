@@ -1,3 +1,4 @@
+import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { Locator, Page } from "@playwright/test";
@@ -67,7 +68,8 @@ test("#734 Target0 AMR10+5·비활성·Task0·미배정·구역별10/고유15·M
   const f = await seed(page, origin, observeIsolatedApi);
   const baseline = await f.snapshot();
   const targets = await observedReadOnlyGet(observeIsolatedApi, `/api/projects/${f.publicId}/logistics/targets`, () => page.request.get(`${f.api}/logistics/targets`));
-  expect(targets.status()).toBe(200); expect((await targets.json()).data.targets).toEqual([]);
+  expect(targets.status()).toBe(410); expect((await targets.json()).error.code).toBe("LOGISTICS_API_RETIRED");
+  expect(readLegacyFixtureCounts(origin,f.publicId)).toEqual({targets:0,members:0,bindings:0,selectedMembers:0});
   const writes = observeWrites(page, f.publicId);
   const received = nextReport(page); await openEquipment(page);
   const report = (await (await received).json()).data as WbsViewReportDto;

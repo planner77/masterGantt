@@ -1,3 +1,4 @@
+import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { Locator, Page } from "@playwright/test";
@@ -41,7 +42,8 @@ async function seedSystem(page: Page, origin: string, observeApi: Parameters<typ
   await f.mutate(`/logistics/systems/${acsA.id}/resource-roles`, { roles: [{ resourceId: f.resource.id, role: "pi", isPrimary: true }, { resourceId: f.resource.id, role: "developer" }] }, "put");
   await f.mutate(`/logistics/systems/${mcs.id}/children`, { childSystemIds: [acsA.id, acsB.id] }, "put");
   const targets = await page.request.get(`${f.api}/logistics/targets`);
-  expect(targets.status()).toBe(200); expect((await targets.json()).data.targets).toHaveLength(0);
+  expect(targets.status()).toBe(410); expect((await targets.json()).error.code).toBe("LOGISTICS_API_RETIRED");
+  expect(readLegacyFixtureCounts(origin,f.publicId)).toEqual({targets:0,members:0,bindings:0,selectedMembers:0});
   await page.reload();
   const query = async (extra: Partial<WbsViewSpec> = {}, filters: ResourceDashboardFilterInput = {}) => {
     const response = await page.request.post(`${f.api}/resource-dashboard/views`, { headers: { Origin: origin }, data: { spec: { version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root: "system", levels: [], systemView: "direct", ...extra }, filters, projection: { kind: "report" } } });

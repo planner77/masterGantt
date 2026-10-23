@@ -11,9 +11,9 @@ function inventory(equipment: Array<{id:string;quantity:number}>, systems: strin
 }
 describe("Issue #624 Logistics read-only perspectives", () => {
   it("uses only existing supported dimensions without authoring a synthetic hierarchy", () => {
-    expect(LOGISTICS_PERSPECTIVES.process.order).toEqual(["processType", "process", "workArea", "target"]);
-    expect(LOGISTICS_PERSPECTIVES.equipment.order).toEqual(["equipmentType", "equipment", "target"]);
-    expect(LOGISTICS_PERSPECTIVES.system.order).toEqual(["systemType", "system", "target"]);
+    expect(LOGISTICS_PERSPECTIVES.process.order).toEqual(["processType", "process", "workArea"]);
+    expect(LOGISTICS_PERSPECTIVES.equipment.order).toEqual(["equipmentType", "equipment"]);
+    expect(LOGISTICS_PERSPECTIVES.system.order).toEqual(["systemType", "system"]);
     for (const view of Object.values(LOGISTICS_PERSPECTIVES)) {
       expect(new Set(view.order).size).toBe(view.order.length);
     }

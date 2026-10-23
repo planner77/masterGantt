@@ -1,3 +1,5 @@
+import { fromResourcePublicV2 } from "../../../src/contracts/resource-public-v2";
+import { integratedKpiValid } from "../../../src/features/logistics/logistics-kpi-validation";
 import { TaskTargetBindingRepository } from "../../../src/server/repositories/task-target-binding-repository-core";
 import { createServer } from "node:http";
 import { readLogisticsKpiSnapshot } from "../../../src/server/logistics/logistics-kpi-snapshot-core";
@@ -218,7 +220,16 @@ describe("#731 explicit integrated logistics KPI consumer", () => {
       expect(response.status).toBe(200);
       const data = (await response.json()).data;
       expect(data.effort.plannedMd).toBe(14);
-      expect(data.integrated.source).toBe("direct+target:v1");
+      expect(data.schema).toBe("logistics-kpi/2");
+      expect(data.integrated.source).toBe("physical-connections:v2");
+      const decoded=fromResourcePublicV2({data}) as {data:LogisticsDashboardDto};
+      expect(integratedKpiValid(decoded.data.integrated)).toBe(true);
+      expect(decoded.data.integrated!.snapshotId).toBe(data.integrated.snapshotId);
+      expect(decoded.data.integrated!.source).toBe("physical-connections:v2");
+      const serialized=JSON.stringify(data);
+      expect(serialized).not.toMatch(/"(?:targetIds|targets|targetWithoutTaskIds)"/);
+      for(const row of f.targets)expect(serialized).not.toContain(row.id);
+      expect(data.integrated.assignmentRows.every((row:{targetKind:string;targetId:string;targetName:string})=>["resource","group"].includes(row.targetKind)&&typeof row.targetId === "string"&&typeof row.targetName === "string")).toBe(true);
       expect(response.headers.get("set-cookie")).toBeNull();
       expect(f.state()).toEqual(before);
     } finally { await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())); }

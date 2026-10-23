@@ -1,3 +1,9 @@
+## Issue #785 — 직접 연결과 기존 출처 읽기
+
+물류 연결은 직접 공정/WorkArea와 Equipment/System을 사용한다. Target 펼침·선택·생성/구성 편집은 폐기한다. 기존 연결은 실물별로 원본 Task·self/subtree·전체/선택 구성·coverage를 표시하는 읽기 전용 출처로 제공한다. 직접 체크박스와 구분하여 기존 자료를 자동 직접 저장하거나 없어진 것으로 표시하지 않는다. 직접 관계 추가/편집은 기존 canonical writer를 사용한다.
+
+같은 read snapshot의 revision과 물류 자료가 맞지 않으면 stale로 재조회하며 실패를 빈 연결로 저장하지 않는다. 레거시 출처 자체의 안전 편집은 후속 gate이며 현재 읽기 전용 한계를 명시한다. 기존 dirty/pending/401/403/409/412·서버 권한·정확 Task ID·Summary 범위·편집/취소/복귀는 유지한다. 아래 #726/#724의 Target 호환 펼침/관리 안내는 역사이며 현재 UI가 아니다. [#785 계약](exec-plans/active/ISSUE_785.md), [사용 방법](TARGET_RESOURCE_USER_GUIDE.md#같은-task에-직접-연결).
+
 ## Issue #762 — 직접 소속 WorkArea 선택
 
 Task/Summary의 공정 선택은 공정0..N이며 WorkArea0개인 공정도 선택할 수 있다. 구역 선택은 직접 소속의 `(processId, workAreaId)` 또는 명시 legacy mapping 관계로 해석한다. occurrence가 없는 직접 구역에 현장 공정 연결을 요구하지 않는다. 서버가 같은 Project의 실제 owner·활성·공정 선택·self/subtree를 검증하며 UI 필터로 이를 대체하지 않는다.
@@ -6,7 +12,7 @@ Task/Summary의 공정 선택은 공정0..N이며 WorkArea0개인 공정도 선�
 
 ## Issue #726 — 직접 공정·구역·설비·시스템과 Target 호환
 
-물류 연결 탭의 기본 흐름은 `직접 공정·작업 구역 → 직접 설비·물류 시스템 연결`이다. 기존 Target는 `Target 연결 (기존 호환)`을 펼쳐 동일한 whole/subset·coverage 편집기를 사용한다. Target0개여도 기존 Task에 설비/System을 직접 연결하며 Target나 구성 원본을 자동 생성·복제하지 않는다. 개인 배정은 기존 리소스 탭에서 관리한다.
+물류 연결 탭의 기본 흐름은 `직접 공정·작업 구역 → 직접 설비·물류 시스템 연결`이다. 기존 whole/subset·coverage 원본은 #785의 실물 출처 읽기로 유지하며 구 펼침 편집기는 폐기한다. Target0개여도 기존 Task에 설비/System을 직접 연결하며 Target나 구성 원본을 자동 생성·복제하지 않는다. 개인 배정은 기존 리소스 탭에서 관리한다.
 
 직접 공정·WorkArea는 #725의 `GET/PUT .../process-context`와 catalog 조회를 재사용한다. Task 공정은 명시0..N이며 미설정 legacy null과 명시0개를 구분한다. 최초 조회/열기만으로 legacy를 명시0으로 전환하지 않고 `공정 0개로 명시 설정` 또는 실제 선택 후 별도 저장한다. WorkArea의 실제 소유 공정을 같은 요청에 선택하며 상위 공정 없이 구역을 저장하지 않는다. Summary의 각 공정·구역은 self/subtree를 명시하고 구역 subtree에는 소유 공정 subtree가 필요하다. 설비/System/Target 연결이 Task 공정을 자동 추가하지 않는다.
 
@@ -77,7 +83,7 @@ Edit/Delete/Cut/Move는 메뉴 또는 실제 focus target 하나다. 여러 선�
 
 ## 사용 방법과 범위
 
-#724의 상위 `일정 / 대시보드 / 기준정보` 재배치 후에도 Task/Assignment/Relation Editor는 Workspace 공통 host에서 열린다. `대시보드 → Milestone`의 추가/소속 관리, `대시보드 → 리소스` 및 물류 관점의 정확 Task/Assignment 진입이 비활성 일정 panel의 `hidden`/`inert` 아래에 갇혀서는 안 된다. 종료 시 실제 출발 screenKey와 보이는 trigger/fallback으로 복귀하며 메뉴 전환 자체는 canonical write나 배정 복제를 만들지 않는다. Target 편집은 관련 기준정보의 보조 `Target 관리`와 기존 composer를 재사용한다. readonly/dirty/pending/stale/401/412·정확 ID·revision 계약은 아래 기존 규칙을 유지한다. [현재 메뉴 이관표](PROJECT_UX.md#기존-기능-이관표와-후속-통합-소유권)를 함께 따른다.
+#724의 상위 `일정 / 대시보드 / 기준정보` 재배치 후에도 Task/Assignment/Relation Editor는 Workspace 공통 host에서 열린다. `대시보드 → Milestone`의 추가/소속 관리, `대시보드 → 리소스` 및 물류 관점의 정확 Task/Assignment 진입이 비활성 일정 panel의 `hidden`/`inert` 아래에 갇혀서는 안 된다. 종료 시 실제 출발 screenKey와 보이는 trigger/fallback으로 복귀하며 메뉴 전환 자체는 canonical write나 배정 복제를 만들지 않는다. 기존 보조 편집 경로는 #785로 폐기하며 실물 출처 읽기를 제공한다. readonly/dirty/pending/stale/401/412·정확 ID·revision 계약은 아래 기존 규칙을 유지한다. [현재 메뉴 이관표](PROJECT_UX.md#기존-기능-이관표와-후속-통합-소유권)를 함께 따른다.
 
 프로젝트 Grid의 작업 행 또는 Chart의 작업 막대를 우클릭하면 해당 작업의 **작업 메뉴**를 먼저 연다. 메뉴의 **작업 정보**를 선택해야 기존 작업 정보 대화상자가 열린다. 메뉴를 여는 것만으로 대화상자·저장·삭제가 실행되지 않는다. 선택된 행이나 작업명이 아니라 실제 taskId로 찾는다. Tab으로 작업 행/막대에 포커스를 옮긴 뒤 Shift+F10 또는 ContextMenu 키로 메뉴를 열고, 작업 정보 항목에서 Enter로 진입할 수 있다. Escape는 메뉴를 닫는다. Grid 헤더의 우클릭/Shift+F10은 기존 표시 열 메뉴를 유지하며 두 메뉴는 동시에 표시하지 않는다. 빈 Chart, 링크, 시간축과 입력 상자에는 작업 우클릭 처리를 적용하지 않는다.
 

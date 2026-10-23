@@ -1,3 +1,9 @@
+## Issue #785 — 공개 경로 퇴역과 호환 읽기 방어
+
+전용 Logistics Target 경로의 410은 기존 Project 검증·Origin·edit-session·strong If-Match 방어를 보존한 종료 응답이다. UI 제거만으로 외부 쓰기를 남겨 두지 않으며 retired method는 실제 데이터/revision을 변경하지 않는다. 내부 legacy service는 지원 Copy/Template·격리 테스트 fixture·읽기 해석에 한정하고 runtime 테스트 seed API를 추가하지 않는다.
+
+새 실물 영향 조회와 resource/WBS v2는 기존 Project read·bounded input·same snapshot·private no-store/nosniff를 따른다. 외부 source ID/표시 ID를 권한 근거로 신뢰하지 않는다. 비정상 FK/교차 Project·부분 snapshot은 명시 실패하고 기존 원본과 transaction rollback을 보존한다. v1 명시 호환은 새 작성 권한이 아니다. Owner HIGH/Required3/Trusted·release 권한 정책은 변경하지 않는다. [API](API.md), [실행 경계](exec-plans/active/ISSUE_785.md).
+
 ## Issue #762 — Next.js 16.4.2 보안 패치의 역사적 Gantt 캡처 검증 계약 (2026-10-22)
 
 [Full #3160.1](https://github.com/planner77/masterGantt/actions/runs/39843514111)에서 Next.js 16.4.2의 production audit는 통과했지만, 구 Gantt Core 브라우저 capture fixture의 Next.js 16.3.8 잠금 파일과 현재 `package.json`/`package-lock.json`의 비교가 Vitest 네 사례에서 실패했다. 역사적 기록과 해시를 바꾸어 현재 설치의 PASS라고 주장하지 않는다. `tests/fixtures/gantt-state-consistency/capture-install.ts`는 `approved-next-16.4.2-lock.json`의 **Next.js/`@next/env` 및 8개 플랫폼 `@next/swc-*` 전체 lock package object**를 SRI·registry URL/architecture/optional/dependencies까지 일치시킨 후에만 구 캡처 비교용 메모리 객체에서 16.3.8로 정규화한다. 그 외 manifest metadata·scripts·모든 563개 lock entry 및 Core 원본 캡처 해시는 기존 strict equality 유지.

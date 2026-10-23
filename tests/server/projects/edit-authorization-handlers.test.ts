@@ -515,6 +515,8 @@ describe("route security inventory", () => {
       "PUT /api/projects/{publicId}/logistics/process-mappings/{processId}",
       "GET /api/projects/{publicId}/tasks/{taskId}/process-context",
       "PUT /api/projects/{publicId}/tasks/{taskId}/process-context",
+      "GET /api/projects/{publicId}/logistics/equipment/{equipmentId}/usage",
+      "GET /api/projects/{publicId}/logistics/systems/{systemId}/usage",
       "GET /api/projects/{publicId}/logistics/targets",
       "POST /api/projects/{publicId}/logistics/targets",
       "GET /api/projects/{publicId}/logistics/targets/{targetId}",

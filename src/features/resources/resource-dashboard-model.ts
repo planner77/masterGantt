@@ -1,3 +1,4 @@
+import { fromResourcePublicV2 } from "../../contracts/resource-public-v2";
 import {
   resourceSourceContextSchema,
   resourceDataContextSchema,
@@ -91,6 +92,7 @@ const roles = z.array(
 const grade = z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]);
 const targetFilters = Object.fromEntries(RESOURCE_TARGET_FILTER_KEYS.map(key => [key, z.array(z.string()).optional()]));
 const filters = z.object({
+  equipmentIds:z.array(z.string()).optional(),systemIds:z.array(z.string()).optional(),physicalEquipmentTypeCodes:z.array(z.string()).optional(),physicalSystemTypeCodes:z.array(z.string()).optional(),
   ...targetFilters,
   projectionOrder: z.array(z.enum(RESOURCE_TARGET_DIMENSIONS)).optional(),
   from: date.nullable(),
@@ -114,7 +116,7 @@ const filters = z.object({
   granularity: z.enum(["week", "month"]).optional(),
 });
 const revisions = {
-  schema: z.literal("resource-dashboard/1"),
+  schema: z.enum(["resource-dashboard/1","resource-dashboard/2"]),
   projectPublicId: z.string(),
   projectRevision: count,
   catalogRevision: count,
@@ -289,7 +291,7 @@ export function dashboardQuery(
   for (const [key, value] of Object.entries(input)) {
     if (value === undefined || value === "") continue;
     if (Array.isArray(value)) {
-      if (value.length) result.set(key, (key === "projectionOrder" ? value : [...new Set(value)].sort()).join(","));
+      if (value.length) result.set(key === "physicalEquipmentTypeCodes" ? "equipmentTypeCodes" : key === "physicalSystemTypeCodes" ? "systemTypeCodes" : key, (key === "projectionOrder" ? value : [...new Set(value)].sort()).join(","));
     } else result.set(key, value === null ? "null" : String(value).trim());
   }
   return result;
@@ -299,6 +301,8 @@ export function readDashboard(
   publicId: string,
   query: URLSearchParams,
 ): ResourceDashboardDto | null {
+  body = fromResourcePublicV2(body);
+  if (body && typeof body === "object" && "data" in body && body.data && typeof body.data === "object" && "schema" in body.data && body.data.schema === "resource-dashboard/2") query = internalPhysicalQuery(query);
   const parsed = z.object({ data: report }).safeParse(body);
   if (!parsed.success || parsed.data.data.projectPublicId !== publicId)
     return null;
@@ -474,6 +478,7 @@ export function readDetails(
   view: "tasks" | "assignments",
   offset: number,
 ): ResourceDashboardDetailsDto | null {
+  body = fromResourcePublicV2(body);
   const parsed = z.object({ data: detail }).safeParse(body);
   if (!parsed.success) return null;
   const value = parsed.data.data;
@@ -565,6 +570,7 @@ export function readGroupChildren(
   milestoneTaskId: string | null | undefined,
   offset: number,
 ): ResourceDashboardGroupChildrenDto | null {
+  body = fromResourcePublicV2(body);
   const parsed = z.object({ data: children }).safeParse(body);
   if (!parsed.success) return null;
   const v = parsed.data.data;
@@ -645,4 +651,10 @@ export function orderTargetMatrixColumns(
   if (sort === "name") ordered.sort((a, b) => label(a.node).localeCompare(label(b.node), "ko"));
   if (sort === "effort") ordered.sort((a, b) => b.knownMd - a.knownMd || label(a.node).localeCompare(label(b.node), "ko"));
   return ordered.map(item => item.node);
+}
+
+function internalPhysicalQuery(query: URLSearchParams): URLSearchParams {
+  const result = new URLSearchParams();
+  for (const [key,value] of query) result.append(key === "equipmentTypeCodes" ? "physicalEquipmentTypeCodes" : key === "systemTypeCodes" ? "physicalSystemTypeCodes" : key,value);
+  return result;
 }

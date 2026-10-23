@@ -1,3 +1,4 @@
+import { fromResourcePublicV2 } from "../../contracts/resource-public-v2";
 import { z } from "zod";
 import type {
   ResourceDashboardDto,
@@ -281,6 +282,7 @@ export function readPlanDetails(
   input: ResourcePlanDetailInput,
   kind: ResourcePlanDetailKind,
 ): ResourcePlanDetailsDto | null {
+  body = fromResourcePublicV2(body);
   const selector = z.discriminatedUnion("kind", [
     z.object({ kind: z.literal("total") }),
     z.object({ kind: z.literal("group"), groupId: id.nullable() }),
@@ -315,7 +317,7 @@ export function readPlanDetails(
   const parsed = z
     .object({
       data: z.object({
-        schema: z.literal("resource-dashboard/1"),
+        schema: z.enum(["resource-dashboard/1","resource-dashboard/2"]),
         projectPublicId: id,
         projectRevision: n,
         catalogRevision: n,

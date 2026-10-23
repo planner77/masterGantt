@@ -1,3 +1,4 @@
+import { fromResourcePublicV2 } from "../../contracts/resource-public-v2";
 import { z } from "zod";
 import type { WbsViewResponseDto, WbsViewQueryInput, WbsViewSpec } from "../../contracts/wbs-dashboard-views";
 import { resourceDataContextSchema } from "./resource-drill-scope-model";
@@ -16,7 +17,7 @@ const counted = z.object({count,taskIds:ids});
 const totals = z.object({tasks:z.object({taskIds:ids,taskCount:count,notStarted:counted,inProgress:counted,completed:counted,delayed:counted,completion:fraction,progress:fraction}),assignments:z.object({taskIds:ids,resourceIds:ids,assignmentIds:ids,taskCount:count,resourceCount:count,assignmentCount:count,notStarted:counted,inProgress:counted,completed:counted,delayed:counted,completion:fraction,assignedTaskProgress:fraction,effort:z.object({knownMd:z.number().finite(),plannedMd:z.number().finite().nullable(),plannedMm:z.number().finite().nullable(),state:z.enum(["empty","configured","partial","unset"]),partial:z.boolean(),unsetCount:count})}).passthrough(),relatedMembers:record,configurationReference:z.object({scope:z.literal("registered configuration; independent from related Task/Assignment population"),equipmentQuantity:z.number().finite().nonnegative(),systemCount:count,equipmentIds:ids,systemIds:ids,selectors:z.array(record),ignoredTaskAndPersonalSelectors:z.array(record),members:z.array(record)}).passthrough(),diagnostics:record,participation:record}).passthrough();
 interface CheckedNode { selector: {dimension:string;id:string|null}; path: Array<{dimension:string;id:string|null}>; viewRowKey:string;name:string|null;taskIds:string[];assignmentIds:string[];totals:unknown;provenance:unknown[];children:CheckedNode[] }
 const node: z.ZodType<CheckedNode> = z.lazy(() => z.object({selector:z.object({dimension:z.string(),id:z.string().nullable()}),path:wbsViewPathSchema,viewRowKey:hash,name:z.string().nullable(),taskIds:ids,assignmentIds:ids,totals,provenance:z.array(z.object({taskId:z.string(),sources:z.array(source)})),children:z.array(node).max(5000)}));
-const base = z.object({schema:z.literal("wbs-view-report/1"),snapshotId:hash,projectPublicId:z.string(),projectRevision:count,spec,filters:record,range:z.object({from:date,to:date}),asOfDate:date,mdPerMm:z.number().finite().positive().nullable(),metadata:record,sourceContext:resourceDataContextSchema.extend({schema:z.literal("wbs-view-source/1"),contextSourceVersion:z.literal("explicit-task-context:v1"),snapshotId:hash,spec,path:wbsViewPathSchema,scope:scope.optional(),range:z.object({from:date,to:date}),asOfDate:date,mdPerMm:z.number().finite().positive().nullable(),mdPerMmSource:z.enum(["query","environment","unset"]),mdPerMmProvided:z.boolean()})}).passthrough();
+const base = z.object({schema:z.enum(["wbs-view-report/1","wbs-view-report/2"]),snapshotId:hash,projectPublicId:z.string(),projectRevision:count,spec,filters:record,range:z.object({from:date,to:date}),asOfDate:date,mdPerMm:z.number().finite().positive().nullable(),metadata:record,sourceContext:resourceDataContextSchema.extend({schema:z.literal("wbs-view-source/1"),contextSourceVersion:z.literal("explicit-task-context:v1"),snapshotId:hash,spec,path:wbsViewPathSchema,scope:scope.optional(),range:z.object({from:date,to:date}),asOfDate:date,mdPerMm:z.number().finite().positive().nullable(),mdPerMmSource:z.enum(["query","environment","unset"]),mdPerMmProvided:z.boolean()})}).passthrough();
 const equipmentCatalogItem = z.object({
   id:z.string().min(1),name:z.string(),equipmentType:z.string().min(1).max(64),equipmentTypeName:z.string(),
   managementUnit:z.enum(["unit","fleet"]),quantity:z.number().int().nonnegative(),active:z.boolean(),primaryProcessId:z.string().min(1),
@@ -37,6 +38,7 @@ export class WbsViewTransportError extends Error {
 export interface WbsViewFetchOptions {projectPublicId:string;projectRevision:number;input:WbsViewQueryInput;signal?:AbortSignal}
 /** The runtime boundary validates the WBS contract directly; legacy dashboard DTOs are never cast into it. */
 export function readWbsViewResponse(body:unknown, expected:WbsViewFetchOptions):WbsViewResponseDto {
+  body = fromResourcePublicV2(body);
   const envelope = z.object({data:responseSchema}).safeParse(body);
   const invalid = ():never => {throw new WbsViewTransportError("INVALID_RESPONSE","조회 응답의 출처가 일치하지 않습니다. 다시 조회해 주세요.");};
   if(!envelope.success) return invalid();
@@ -70,5 +72,6 @@ export async function fetchWbsView(options:WbsViewFetchOptions):Promise<WbsViewR
   const response=await fetch(`/api/projects/${encodeURIComponent(options.projectPublicId)}/resource-dashboard/views`,{method:"POST",credentials:"same-origin",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify(options.input),signal:options.signal});
   const body:unknown=await response.json();
   if(!response.ok) { const error=z.object({error:z.object({code:z.string(),message:z.string()})}).safeParse(body);throw new WbsViewTransportError(error.success?error.data.error.code:"REQUEST_FAILED",error.success?error.data.error.message:"조회 요청에 실패했습니다. 다시 시도해 주세요.",response.status); }
+  if (!(body && typeof body === "object" && "data" in body && body.data && typeof body.data === "object" && "schema" in body.data && body.data.schema === "wbs-view-report/2")) throw new WbsViewTransportError("INVALID_RESPONSE","조회 응답 버전이 일치하지 않습니다.");
   return readWbsViewResponse(body,options);
 }

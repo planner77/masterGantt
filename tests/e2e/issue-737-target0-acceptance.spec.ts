@@ -1,3 +1,4 @@
+import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import type { Locator, Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { test, expect, isolatedApplicationOptions } from "./fixtures/isolated-application";
@@ -64,8 +65,9 @@ test("#737 Target0 동일 원본으로 기준정보·일정·6관점 왕복, 사
   });
   const assertTarget0 = async () => {
     const targets = await page.request.get(`${f.api}/logistics/targets`);
-    expect(targets.status()).toBe(200);
-    expect((await targets.json()).data.targets).toEqual([]);
+    expect(targets.status()).toBe(410);
+    expect((await targets.json()).error.code).toBe("LOGISTICS_API_RETIRED");
+    expect(readLegacyFixtureCounts(origin,f.publicId)).toEqual({targets:0,members:0,bindings:0,selectedMembers:0});
   };
   await assertTarget0();
   for (const view of ["processes", "equipment", "systems", "resource-master"] as const) {

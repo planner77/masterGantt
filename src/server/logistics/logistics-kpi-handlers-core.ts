@@ -1,3 +1,4 @@
+import { resourceReadVersion, resourceReadOutput, resourceReadHeaders, resourceReadError } from "../resources/resource-public-v2-core";
 import { randomUUID } from "node:crypto";
 import type { LogisticsDashboardService } from "./logistics-dashboard-service";
 import { handleGetLogisticsDashboard } from "./logistics-handlers-core";
@@ -9,6 +10,7 @@ export async function handleGetLogisticsKpi(request: Request, publicId: string, 
   const allowed = new Set(["source", "snapshotId", "asOfDate", "horizonDays", "systemView", "activeOnly", "includeDescendantProcesses", "mdPerMm", "processIds", "equipmentIds", "systemIds", "taskAssigneeResourceIds", "roleResourceIds"]);
   const requestId = (dependencies.requestId ?? randomUUID)();
   try {
+    const version=resourceReadVersion(request);
     if (url.searchParams.getAll("source").length !== 1 || url.searchParams.get("source") !== "integrated" || [...url.searchParams.keys()].some(key => !allowed.has(key))) {
       throw new PublicApiError(400, "INVALID_REQUEST", "물류 KPI의 source=integrated 조건을 명시해 주세요.");
     }
@@ -32,12 +34,12 @@ export async function handleGetLogisticsKpi(request: Request, publicId: string, 
     if (expected !== null && !/^[a-f0-9]{64}$/.test(expected)) throw new PublicApiError(400, "INVALID_REQUEST", "KPI snapshotId를 확인해 주세요.");
     const response = await handleGetLogisticsDashboard(new Request(url, request), publicId, { ...dependencies, requestId: () => requestId });
     response.headers.set("X-Content-Type-Options", "nosniff");
-    if (!response.ok || expected === null) return response;
+    if (!response.ok) return response;
     const body = await response.clone().json();
-    if (body.data?.integrated?.snapshotId !== expected) throw new PublicApiError(409, "STALE_KPI_SOURCE", "물류 KPI 원본이 변경됐습니다. 최신 결과를 조회해 주세요.");
-    return response;
+    if (expected !== null && body.data?.integrated?.snapshotId !== expected) throw new PublicApiError(409, "STALE_KPI_SOURCE", "물류 KPI 원본이 변경됐습니다. 최신 결과를 조회해 주세요.");
+    return Response.json(resourceReadOutput(body,version),{status:response.status,headers:{...Object.fromEntries(response.headers),...resourceReadHeaders(version)}});
   } catch (error) {
-    const response = apiErrorResponse(error, requestId);
+    const response = apiErrorResponse(resourceReadError(error,request), requestId);
     response.headers.set("Cache-Control", "no-store");
     response.headers.set("X-Content-Type-Options", "nosniff");
     return response;

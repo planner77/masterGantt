@@ -15,7 +15,7 @@ afterEach(() => { vi.restoreAllMocks(); fixtures.splice(0).forEach(f => f.db.clo
 const legacy = { includeDependencies: false, scope: "project" as const, scale: "day" as const, hierarchyDisplay: "expanded" as const, layout: { columns: [{ id: "text" as const, widthPx: 224 }] } };
 function params(filter: ResourceDashboardFilterInput) { const p = new URLSearchParams(); for (const [key, value] of Object.entries(filter)) if (value !== undefined) p.set(key, Array.isArray(value) ? value.join(",") : value === null ? "null" : String(value)); return p; }
 async function report(f: ReturnType<typeof fixture>, filters: ResourceDashboardFilterInput) {
-  const response = await handleGetResourceDashboard(new Request(`https://gantt.example/api/projects/${f.project.publicId}/resource-dashboard?${params(filters)}`), f.project.publicId, { service: f.service });
+  const response = await handleGetResourceDashboard(new Request(`https://gantt.example/api/projects/${f.project.publicId}/resource-dashboard?${params(filters)}`, { headers: { "X-MasterGantt-Resource-Version": "1" } }), f.project.publicId, { service: f.service });
   expect(response.status).toBe(200); expect(response.headers.get("cache-control")).toBe("private, no-store"); expect(response.headers.get("set-cookie")).toBeNull();
   const body = await response.text(); return { data: JSON.parse(body).data as ResourceDashboardDto, bytes: Buffer.byteLength(body) };
 }
@@ -23,7 +23,7 @@ async function workbook(f: ReturnType<typeof fixture>, data: ResourceDashboardDt
   const started = performance.now();
   const options: ResourceExcelExportOptions = { basis: "current", expectedReport: { context: data.resourceScopeContext!, snapshotId: data.snapshotId, filters }, granularities: ["week", "month"] };
   const service = new ProjectExportSnapshotService(f.db, { clock: () => ISSUE_623_NOW });
-  const response = await handleProjectExcelExport(new Request(`https://gantt.example/api/projects/${f.project.publicId}/exports/excel`, { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://gantt.example", "If-Match": `"${data.projectRevision}"` }, body: JSON.stringify({ ...legacy, resourceDashboard: options }) }), f.project.publicId, { service: { getReadonlySnapshot: () => undefined }, applicationBaseUrl: "https://gantt.example", environment: "production", getExportBundle: (...args) => service.get(...args) });
+  const response = await handleProjectExcelExport(new Request(`https://gantt.example/api/projects/${f.project.publicId}/exports/excel`, { method: "POST", headers: { "X-MasterGantt-Resource-Version": "1", "Content-Type": "application/json", Origin: "https://gantt.example", "If-Match": `"${data.projectRevision}"` }, body: JSON.stringify({ ...legacy, resourceDashboard: options }) }), f.project.publicId, { service: { getReadonlySnapshot: () => undefined }, applicationBaseUrl: "https://gantt.example", environment: "production", getExportBundle: (...args) => service.get(...args) });
   expect(response.status, await (response.status === 200 ? Promise.resolve("") : response.text())).toBe(200);
   const bytes = new Uint8Array(await response.arrayBuffer()), httpMs = performance.now() - started; return { ...issue623WorkbookEntries(bytes), httpMs, bytes: bytes.length, bundle: f.service.getExcelReport(f.project.publicId, options)! };
 }
@@ -49,16 +49,16 @@ describe("#623 shared canonical oracle through SQLite/public HTTP/details/Plan/O
     expect(data.targetProjection!.relatedMembers).toMatchObject({ equipmentQuantity: 15, systemCount: 3 });
     expect(data.plan!.totals.summary.selected).toMatchObject({ knownMd: 5, plannedMm: .25, capacityMd: 20 });
     const p = params(filters); for (const [key, value] of Object.entries({ snapshotId: data.snapshotId, dimension: "all", metric: "all", view: "assignments" })) p.set(key, value);
-    const response = await handleGetResourceDashboard(new Request(`https://gantt.example/details?${p}`), f.project.publicId, { service: f.service }, true); expect(response.status).toBe(200);
+    const response = await handleGetResourceDashboard(new Request(`https://gantt.example/details?${p}`, { headers: { "X-MasterGantt-Resource-Version": "1" } }), f.project.publicId, { service: f.service }, true); expect(response.status).toBe(200);
     const page = (await response.json()).data as ResourceDashboardDetailsDto, row = page.rows[0];
     expect(page.snapshotId).toBe(data.snapshotId); expect(row.assignment).toMatchObject({ assignmentId: f.id(oracle.sharedAssignmentId), resourceId: f.id(oracle.sharedResourceId), plannedMd: 5, plannedMm: .25 });
     const mcs = row.targetSources!.effectiveMembers.find(member => member.entityId === f.id("MCS-1"))!;
     expect(new Set(mcs.provenance.map(path => path.bindingId))).toEqual(new Set(oracle.expected.shared.mcsBindingIds.map(f.id)));
     const a = await workbook(f, data, filters); parity(a);
-    const sourceRows = issue623Table(a.sheet("Resource Target Sources"));
+    const sourceRows = issue623Table(a.sheet("Resource Entity Sources"));
     const mcsRows = sourceRows.filter(row => row.relation === "MemberProvenance" && row.taskId === f.id("SHARED") && row.entityId === f.id("MCS-1"));
     expect(new Set(mcsRows.map(row => row.bindingId))).toEqual(new Set(oracle.expected.shared.mcsBindingIds.map(f.id)));
-    const memberRows = sourceRows.filter(row => row.relation === "TargetMember");
+    const memberRows = sourceRows.filter(row => row.relation === "ArchivedMember");
     expect(memberRows.filter(row => row.kind === "equipment").reduce((n, row) => n + Number(row["quantity (not effort multiplier)"]), 0)).toBe(15);
     expect(new Set(memberRows.filter(row => row.kind === "system").map(row => row.entityId)).size).toBe(3);
     expect(f.db.prepare("SELECT COUNT(*) FROM project_logistics_systems WHERE code='MCS-1'").pluck().get()).toBe(1);

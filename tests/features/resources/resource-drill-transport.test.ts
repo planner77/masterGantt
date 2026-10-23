@@ -1,3 +1,4 @@
+import { toResourcePublicV2 } from "../../../src/contracts/resource-public-v2";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   normalizedDrillFilters,
@@ -80,8 +81,7 @@ type Body = { data: typeof scopeData; drill: Echo };
 function install(transform: (body: Body) => Body = (body) => body) {
   const fetcher = vi.fn(async (_path: unknown, options: RequestInit) => {
     const request = JSON.parse(String(options.body));
-    return Response.json(
-      transform({
+    const body = transform({
         data: scopeData,
         drill: {
           sourceContext: request.sourceContext,
@@ -92,8 +92,8 @@ function install(transform: (body: Body) => Body = (body) => body) {
           projectReferenceScope: "same-resource-population-and-period",
           ...(request.filters.projectionOrder ? {targetProjectReferenceScope:"full-canonical-project-same-period"} : {}),
         },
-      }),
-    );
+      });
+    return Response.json(new Headers(options.headers).get("X-MasterGantt-Resource-Version") === "1" ? body : toResourcePublicV2(body));
   });
   vi.stubGlobal("fetch", fetcher);
   return fetcher;
@@ -277,7 +277,7 @@ describe("#621 bound Target transport", () => {
     expect((normalizedDrillFilters(filters) as Record<string, unknown>).targetIds).toEqual([targetId]);
     expect(dashboardSelector(q).targetPath).toEqual(targetPath);
     const fetcher=install();
-    await resourceProjectionFetch(input, `/api/projects/project/resource-dashboard/details?${q}`);
+    await resourceProjectionFetch(input, `/api/projects/project/resource-dashboard/details?${q}`, {headers:{"X-MasterGantt-Resource-Version":"1"}});
     const request=JSON.parse(String(fetcher.mock.calls[0][1].body));
     expect(request.scope.assignmentIds).toEqual(["assignment-A","assignment-B"]);
     expect(request.filters.targetIds).toEqual([targetId]);
@@ -286,8 +286,22 @@ describe("#621 bound Target transport", () => {
   it("rejects dropped Target echo and wrong full Project reference semantics", async () => {
     const targetInput={...input,filters:{...input.filters,targetIds:[targetId],projectionOrder:["resource","target"] as ("resource"|"target")[]}};
     install(body=>{ const drill={...body.drill}; delete drill.targetProjectReferenceScope; return {...body,drill}; });
-    await expect(queryResourceDrill("project",targetInput)).rejects.toThrow("INVALID_RESPONSE");
+    await expect(queryResourceDrill("project",targetInput,{headers:{"X-MasterGantt-Resource-Version":"1"}})).rejects.toThrow("INVALID_RESPONSE");
     install(body=>({...body,drill:{...body.drill,targetFilters:{...body.drill.targetFilters,targetIds:[]}}}));
-    await expect(queryResourceDrill("project",targetInput)).rejects.toThrow("INVALID_RESPONSE");
+    await expect(queryResourceDrill("project",targetInput,{headers:{"X-MasterGantt-Resource-Version":"1"}})).rejects.toThrow("INVALID_RESPONSE");
+  });
+});
+
+
+describe("#785 v2 transport source evidence",()=>{
+  it("rejects a legacy v1 success on a default v2 request",async()=>{
+    vi.stubGlobal("fetch",vi.fn().mockResolvedValue(Response.json({data:scopeData})));
+    await expect(queryResourceDrill("project",input)).rejects.toThrow("INVALID_RESPONSE");
+  });
+  it("maps a bound public type filter to the same internal physical predicate as direct requests",async()=>{
+    expect(drillFilters(new URLSearchParams("equipmentTypeCodes=amr&systemTypeCodes=mcs"))).toEqual({physicalEquipmentTypeCodes:["amr"],physicalSystemTypeCodes:["mcs"]});
+    expect(drillFilters(new URLSearchParams("equipmentTypeCodes=amr"),true)).toEqual({equipmentTypeCodes:["amr"]});
+    install();
+    await queryResourceDrill("project",{...input,filters:{physicalSystemTypeCodes:["mcs"]}});
   });
 });

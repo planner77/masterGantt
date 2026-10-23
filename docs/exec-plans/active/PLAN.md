@@ -1,3 +1,7 @@
+## Issue #785 — 실물 직접 모델·공개 경계 전환 (진행)
+
+2026-10-23 main `427d22245fb8e11254b2424ea5147ccbd5766979` 기준 별도 구현을 진행한다. MINOR0.131.0·HIGH/OWNER_MANAGED·qa_required=true. P0 소비자 지도와 원본 보존 설계 후 UI/실물v2 API·호환 읽기·교환·문서를 전환한다. 전체 AC 완료/Owner ACCEPT가 아니며 레거시 출처 자체 편집·운영 DB/외부 consumer·파괴적 P3는 별도 gate다. 사용자 범위는 PR CI 시작까지, 모니터링/merge/main/GHCR/Issue 종료 없음. [Work Packet](ISSUE_785.md), [누적 원장](../../ISSUE_785_FAILURE_ANALYSIS.md).
+
 ## Issue #762 — PR #779 F-003 누적 실패 재작업 (2026-10-22)
 
 최신Full3154.1/run39787884834/attempt1은 Shard7 `project-logistics-management.spec.ts:550`에서 dirty공정 Escape의 구 즉시닫기 기대0/실제1로FAIL(46PASS1FAIL30NOT RUN); 다른7ShardCANCELLED,Quality/DockerSUCCESS,E2E/QA파생FAIL. 이전3150/3153과 전체24Shard·90Jobs를 대조하고2실패파일·3case 합집합을 유지한다. 로컬원본red9.0s→제품source불변으로초안확인계약을검증하는green3.0s를 확보하고, 두실패파일전체와직접/인접/음성 소비자를 fail-fast 없이 검증한다. [누적 원장](../../ISSUE_762_FAILURE_ANALYSIS.md), [Work Packet](ISSUE_762.md) 참조.

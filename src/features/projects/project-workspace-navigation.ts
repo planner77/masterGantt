@@ -13,7 +13,7 @@ export const MASTER_SCREENS = [
   { key: "master.systems", label: "물류 시스템" },
   { key: "master.resources", label: "리소스" },
 ] as const;
-export type WorkspaceScreen = "schedule" | "dashboard.target" | typeof DASHBOARD_SCREENS[number]["key"] | typeof MASTER_SCREENS[number]["key"] | "master.targets" | "master.relations";
+export type WorkspaceScreen = "schedule" | typeof DASHBOARD_SCREENS[number]["key"] | typeof MASTER_SCREENS[number]["key"] | "master.relations";
 export type WorkspaceView = "schedule" | "milestones" | "resources" | "logistics" | "resource-master";
 export type WorkspaceSection = "schedule" | "dashboard" | "master";
 export function workspaceSection(screen: WorkspaceScreen): WorkspaceSection {
@@ -34,14 +34,15 @@ export function logisticsSubview(screen: WorkspaceScreen) {
   if (screen.startsWith("dashboard.")) return "unified" as const;
   if (screen === "master.equipment") return "equipment" as const;
   if (screen === "master.systems") return "systems" as const;
-  if (screen === "master.targets") return "targets" as const;
   if (screen === "master.relations") return "relations" as const;
   return "processes" as const;
 }
 
 export function normalizeWorkspaceScreen(value: unknown): WorkspaceScreen | null {
   if (typeof value !== "string") return null;
-  if (value === "schedule" || value === "dashboard.target" || value === "master.targets" || value === "master.relations" || [...DASHBOARD_SCREENS, ...MASTER_SCREENS].some(screen => screen.key === value)) return value as WorkspaceScreen;
+  if (value === "schedule" || value === "master.relations" || [...DASHBOARD_SCREENS, ...MASTER_SCREENS].some(screen => screen.key === value)) return value as WorkspaceScreen;
+  if (value === "dashboard.target") return "dashboard.process";
+  if (value === "master.targets") return "master.processes";
   if (value === "dashboard") return "dashboard.kpi";
   if (value === "master") return "master.processes";
   if (["milestones", "resources", "logistics", "resource-master"].includes(value)) return legacyWorkspaceScreen(value as WorkspaceView);

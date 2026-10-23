@@ -1,3 +1,7 @@
+## Issue #785 — 공개 폐기와 일정 교환 범위 불변
+
+Logistics Target 사용자 도메인 폐기로 일정 JSON1.0/1.1 schema를 확장하지 않는다. 기존 보존 그래프/직접 실물 문맥을 표현하지 못하는 파일은 명시 오류·전체 rollback이며 호환 key를 조용히 버리지 않는다. 내부 Template snapshot의 legacy graph는 지원 원본 보존용이고 신규 public 작성 계약이 아니다. 일반 dependency source/target 및 AssignmentTarget는 다른 의미로 유지한다. [교환 정책](IMPORT_EXPORT.md), [실행·미검증](exec-plans/active/ISSUE_785.md).
+
 ## Issue #762 — 직접 WorkArea 필드 지원 경계
 
 일정 JSON1.0/1.1 입력 schema는 Project 공정·직접 WorkArea의 전체 참조 교환을 지원하지 않는다. `projectWorkAreas` 등 직접 소속 그래프 key는 `PROCESS_CONTEXT_IMPORT_UNSUPPORTED`로 명시 거부하고 일부만 무시하거나 빈 관계로 저장하지 않는다. 일정용 형식을 임의 확장하지 않으며 전체 관계의 Copy/Template logistics v5는 별도 계약이다. 직접 구역만 존재해도 일정 JSON/Excel 출력의409 손실 방지를 적용한다. [교환 정책](IMPORT_EXPORT.md#issue-762--직접-workarea-원본의-손실-방지) 참조.

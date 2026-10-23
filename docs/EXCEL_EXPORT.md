@@ -1,3 +1,9 @@
+## Issue #785 — 실물 보고서와 opaque 관계 근거
+
+사용자용 Target 축/필터/시트·진단은 폐기하고 기존 물류 자료를 실제 실물·Task/Assignment 근거로 제공한다. `Resource Logistics`, `Resource Entity Catalog`, `Resource Entity Sources` 시트를 사용한다. 실물 canonical ID·이름·수량·관련 Task/선택 Assignment, source Task·scope/whole/subset·coverage·opaque 관계 참조를 보존한다. 폐기 엔터티 이름·별도 카탈로그/집계 축을 제공하지 않는다. OOXML Relationship의 일반 `Target` 속성은 파일 규격이며 이 도메인과 무관하다.
+
+현재 선택/Project 참고·same-R·raw M/D/M/M·null/0·고유 Task/Assignment·수량 비배율·비가산 소계·formula/크기/권한/revision/snapshot 방어는 유지한다. 시트의 반복 출처·공유 실물을 재합산하지 않는다. Resource 요청 기본v2는 실물 필터를 사용하고 구형 descriptor는410 `LOGISTICS_SELECTION_RETIRED`; 명시 `X-MasterGantt-Resource-Version:1` audit 읽기는 deprecated다. 일반 일정 Excel/JSON1.1의 미지원 물류 연결은 기존 전체 실패를 유지하며 전체 backup으로 안내하지 않는다. 아래 과거 시트 설명은 이전 산출물 이력이다. [API](API.md), [검증/미완료](exec-plans/active/ISSUE_785.md).
+
 ## Issue #762 — 직접 구역과 일정 Excel의 범위
 
 일반 일정 Excel은 직접 WorkArea/owner/Task·설비 typed 연결을 보존하는 backup이 아니다. 사용0개 직접 구역 원본만 있어도409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`로 전체 거부하며 일부 관계를 누락한 성공 파일을 만들지 않는다. 기존 명시 Resource 보고서 opt-in은 read snapshot과 필터의 분석 출력으로 유지하고 전체 관계 왕복 포맷으로 부르지 않는다. Project Copy/Template v5 또는 대응 DB backup을 사용한다.
@@ -40,9 +46,9 @@ Target/member/master/Calendar/Resource 변경 뒤 구 export descriptor는 실�
 
 | Sheet | 범위·내용 |
 | --- | --- |
-| Resource Targets | 서버 Target projection의 관련 계획공수·소계/고유총계·diagnostics, 선택/Project 참고·Capacity·M/M·partial/null·revision 설명 |
-| Resource Target Catalog | 전체 normalized Target/공정 occurrence/Process Type/WorkArea/Equipment/System 분류의 안정 ID·이름·code·active |
-| Resource Target Sources | 전체 Target/member 구성과 선택 T0 및 same-R Project 배정 Task 합집합의 binding/member provenance·legacy 직접 출처; `AssignmentScope` 관계의 별도 `assignmentId`·`demandScope=selected|same-R-project` 열 |
+| Resource Logistics | 서버 Target projection의 관련 계획공수·소계/고유총계·diagnostics, 선택/Project 참고·Capacity·M/M·partial/null·revision 설명 |
+| Resource Entity Catalog | 전체 normalized Target/공정 occurrence/Process Type/WorkArea/Equipment/System 분류의 안정 ID·이름·code·active |
+| Resource Entity Sources | 전체 Target/member 구성과 선택 T0 및 same-R Project 배정 Task 합집합의 binding/member provenance·legacy 직접 출처; `AssignmentScope` 관계의 별도 `assignmentId`·`demandScope=selected|same-R-project` 열 |
 | Resource Project Assignments | 같은 R·기간의 Project 전체 원시 Assignment ID당1행, 선택 밖 원인 포함, raw M/D·M/M·null·Target ID |
 
 `Resource Assignments`는 선택 A의 고유 Assignment당1행이다. 여러 Target/member/provenance 근거 행에 같은 Assignment가 나타나도 원시 공수를 다시 합산하지 않는다. 총계는 서버 Assignment union과 programmatic parity를 확인하며 표시 반올림 전에 raw 숫자를 기록한다. Resource Plan의 주/월 summary/cell selected/project는 동일 API raw 값이다. 관련 계획공수는 원가 배분이 아니며 수량/coverage/진척을 공수에 곱하지 않는다. Group/Target/Milestone Capacity 및 중첩 소계는 비가산, 고유 Capacity는 resource-day다. Target 미연결·WorkArea 미사용·project_common·legacy, M/M 기준 없음·부분합/미설정과 기준 revision을 숨기지 않는다.

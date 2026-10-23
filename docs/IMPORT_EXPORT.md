@@ -1,3 +1,7 @@
+## Issue #785 — 원본 보존과 사용자 산출물 전환
+
+지원 Copy/Template의 내부 legacy graph는 whole/subset·coverage·상속·공유 실물의 원형을 보존한다. 공개 Target writer/사용자 축은 폐기하지만 자료를 버린 성공 파일로 대체하지 않는다. JSON1.0/1.1·일반 일정 Excel의 손실 방지 한계는 유지한다. Resource Excel은 실물·Task·Assignment·opaque provenance로 조회 근거를 출력하며 전체 DB backup/roundtrip 형식은 아니다. [Excel](EXCEL_EXPORT.md), [운영 복구](TARGET_RESOURCE_OPERATIONS.md), [Work Packet](exec-plans/active/ISSUE_785.md).
+
 ## Issue #762 — 직접 WorkArea 원본의 손실 방지
 
 직접 구역이 사용되지 않았더라도 `project_work_areas` 원본이 있으면 일정 JSON/일반 일정 Excel은409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`로 전체 거부한다. 해당 형식은 직접 구역/owner/연결을 보존하는 전체 backup이 아니다. JSON Import는 projectWorkAreas 등 직접 소속 필드를 명시적으로 거부하며 조용히 무시하지 않는다. 기존 context/Target/membership loss guard와 Resource 보고서 opt-in의 조회 범위는 유지한다.

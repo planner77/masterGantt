@@ -16,16 +16,16 @@ describe("Issue #724 workspace destinations", () => {
     expect(workspaceView(screen)).toBe(host);
   });
   it.each([
-    ["dashboard.kpi", "dashboard"], ["dashboard.process", "unified"], ["dashboard.equipment", "unified"], ["dashboard.system", "unified"], ["dashboard.target", "unified"],
+    ["dashboard.kpi", "dashboard"], ["dashboard.process", "unified"], ["dashboard.equipment", "unified"], ["dashboard.system", "unified"],
     ["master.processes", "processes"], ["master.equipment", "equipment"], ["master.systems", "systems"],
-    ["master.targets", "targets"], ["master.relations", "relations"],
+    ["master.relations", "relations"],
   ] as const)("keeps %s on its public existing logistics subview", (screen, subview) => {
     expect(logisticsSubview(screen)).toBe(subview);
   });
   it.each(["schedule", "milestones", "resources", "resource-master", "logistics"] as const)("retains legacy drill host %s", view => {
     expect(workspaceView(legacyWorkspaceScreen(view))).toBe(view);
   });
-  it.each([["dashboard", "dashboard.kpi"], ["master", "master.processes"], ["logistics", "dashboard.kpi"], ["milestones", "dashboard.milestones"], ["resources", "dashboard.resources"], ["master.equipment", "master.equipment"]])("normalizes compatible %s", (input, expected) => {
+  it.each([["dashboard", "dashboard.kpi"], ["master", "master.processes"], ["logistics", "dashboard.kpi"], ["milestones", "dashboard.milestones"], ["resources", "dashboard.resources"], ["master.equipment", "master.equipment"], ["dashboard.target", "dashboard.process"], ["master.targets", "master.processes"]])("normalizes compatible %s", (input, expected) => {
     expect(normalizeWorkspaceScreen(input)).toBe(expected);
   });
   it.each([null, undefined, {}, 0, "", "dashboard.unknown", "master.unknown", "https://evil.example"]) ("rejects unknown destination %s", input => {

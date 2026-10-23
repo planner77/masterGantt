@@ -1,3 +1,4 @@
+import { loadTaskLogisticsCompatibility, LogisticsCompatibilityError } from "./task-logistics-compatibility-core";
 import { ProjectWorkAreaRepository } from "../repositories/project-work-area-repository-core";
 import { ProcessContextRepository, ProcessContextError } from "../repositories/process-context-repository-core";
 import { randomUUID } from "node:crypto";
@@ -803,7 +804,7 @@ export class LogisticsService {
         ).get(projectId,current.id) as {count:number}).count;
         if (targetMemberships>0) {
           throw new LogisticsConflictError("EQUIPMENT_IN_USE",
-            "Cannot delete equipment referenced by "+targetMemberships+" Target(s).");
+            "기존 물류 연결 "+targetMemberships+"곳에서 사용 중인 설비를 삭제할 수 없습니다.");
         }
         const systemMappings = this.logisticsRepo.listEquipmentSystems(projectId, current.id).length;
         const resourceRoles = this.logisticsRepo.listEquipmentResourceRoles(projectId, current.id).length;
@@ -1111,7 +1112,7 @@ export class LogisticsService {
         ).get(projectId,current.id) as {count:number}).count;
         if (targetMemberships>0) {
           throw new LogisticsConflictError("SYSTEM_IN_USE",
-            "Cannot delete System referenced by "+targetMemberships+" Target(s).");
+            "기존 물류 연결 "+targetMemberships+"곳에서 사용 중인 물류 시스템을 삭제할 수 없습니다.");
         }
         const controllingCount = this.logisticsRepo.countControllingEquipment(projectId, current.id);
         if (controllingCount > 0) {
@@ -1538,11 +1539,21 @@ export class LogisticsService {
   }
 
   getTaskLogisticsLinks(projectId: number, taskPublicId: string): TaskLogisticsLinksDto {
+    try {
+      return this.database.transaction(() => this.readTaskLogisticsLinks(projectId, taskPublicId)).deferred();
+    } catch (error) {
+      if (error instanceof LogisticsCompatibilityError) throw new LogisticsConflictError("LOGISTICS_SOURCE_INVALID",error.message);
+      throw error;
+    }
+  }
+
+  private readTaskLogisticsLinks(projectId: number, taskPublicId: string): TaskLogisticsLinksDto {
     const task = this.scheduleRepo.findTaskByPublicId(projectId, taskPublicId);
     if (!task) {
       throw new LogisticsEntityNotFoundError("Task", taskPublicId);
     }
 
+    const compatibility = loadTaskLogisticsCompatibility(this.database, projectId, taskPublicId);
     const directEqRecords = this.logisticsRepo.findTaskEquipmentLinks(projectId, task.id);
     const directSysRecords = this.logisticsRepo.findTaskSystemLinks(projectId, task.id);
 
@@ -1651,14 +1662,17 @@ export class LogisticsService {
       ]),
     );
 
+    const projectRevision = this.projectRepo.findById(projectId)!.revision;
     return {
       taskId: taskPublicId,
+      projectRevision,
+      compatibilityLinks: compatibility.links,
       directEquipmentLinks,
       inheritedEquipmentLinks,
-      effectiveEquipmentIds,
+      effectiveEquipmentIds: [...new Set([...effectiveEquipmentIds,...compatibility.effectiveEquipmentIds])].sort(),
       directSystemLinks,
       inheritedSystemLinks,
-      effectiveSystemIds,
+      effectiveSystemIds: [...new Set([...effectiveSystemIds,...compatibility.effectiveSystemIds])].sort(),
     };
   }
 

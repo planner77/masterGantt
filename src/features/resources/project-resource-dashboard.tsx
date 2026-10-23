@@ -27,7 +27,9 @@ import {
 } from "./resource-milestone-views";
 import { ResourcePlanView } from "./resource-plan-view";
 import styles from "./resource-dashboard.module.css";
-import { ResourceTargetFilters, ResourceTargetViews } from "./resource-target-views";
+import { ResourceEntityFilters } from "./resource-target-views";
+import { migrateResourcePhysicalFilters } from "./resource-physical-filters";
+import { resourceSummaryRowIdentity } from "./resource-summary-row-identity";
 
 const ROLE_OPTIONS = [
   ["PI", "PI"],
@@ -66,17 +68,14 @@ export function ProjectResourceDashboard({
   onRefreshProject: () => void;
   initialFilters?: ResourceDashboardFilterInput;
 }) {
-  const [filters, setFilters] = useState<ResourceDashboardFilterInput>(
-    initialFilters ?? DEFAULTS,
-  );
+  const [initialState] = useState(() => migrateResourcePhysicalFilters(initialFilters ?? DEFAULTS));
+  const [filters, setFilters] = useState<ResourceDashboardFilterInput>(initialState.filters);
+  const [migrationNotice, setMigrationNotice] = useState(initialState.changed);
   const [mode, setMode] = useState<"group" | "resource">("group");
   const [unit, setUnit] = useState<"md" | "mm">("md");
-  const [view, setView] = useState<"summary" | "tree" | "matrix" | "plan" | "targets">(
+  const [view, setView] = useState<"summary" | "tree" | "matrix" | "plan">(
     "summary",
   );
-  const [targetLayout, setTargetLayout] = useState<"tree" | "matrix">("tree");
-  const [targetOrder, setTargetOrder] = useState<"resource" | "target">("resource");
-  const [targetMatrixAxis, setTargetMatrixAxis] = useState<"resource" | "group">("resource");
   const [granularity, setGranularity] = useState<"week" | "month">("week");
   const [treeOrder, setTreeOrder] = useState<"milestone" | "resource">(
     "milestone",
@@ -95,8 +94,8 @@ export function ProjectResourceDashboard({
   const filterTrigger = useRef<HTMLButtonElement>(null);
   const search = useRef<HTMLInputElement>(null);
   const normalized = useMemo(
-    () => ({ ...filters, ...(view === "plan" ? { granularity } : {}), projectionOrder: view === "targets" ? (targetLayout === "matrix" ? [targetMatrixAxis, "target"] : targetOrder === "target" ? ["target", "group", "resource"] : ["group", "resource", "target"]) as import("@/contracts/resource-dashboard").ResourceTargetDimension[] : undefined }),
-    [filters, view, granularity, targetLayout, targetOrder, targetMatrixAxis],
+    () => ({ ...filters, ...(view === "plan" ? { granularity } : {}) }),
+    [filters, view, granularity],
   );
   const validDates = !(filters.from && filters.to && filters.from > filters.to);
   const detailHeading = useRef<HTMLHeadingElement>(null);
@@ -117,30 +116,10 @@ export function ProjectResourceDashboard({
     setSelectionScopeKey(scopeKey);
     setSelection(null);
   } else if (selection && data && !report.stale && selection.snapshotId !== data.snapshotId) {
-    // #525: a fresh server snapshot invalidates ordinary KPI/Milestone/diagnostic
-    // details. Their exact source and focused trigger must not silently survive
-    // a catalog/project change. Only a canonical Target path can be rebound.
-    if (selection.selector.dimension !== "targetProjection") {
-      setSelection(null);
-    } else {
-      let nodes = data.targetProjection?.children ?? [];
-      let currentSummary: ResourceDashboardSummary | null = null;
-      for (const part of selection.selector.targetPath ?? []) {
-        const node = nodes.find(item => item.dimension === part.dimension && item.id === part.id);
-        if (!node) { currentSummary = null; break; }
-        currentSummary = node.summary;
-        nodes = node.children;
-      }
-      if (!currentSummary) {
-        setSelection(null);
-        setSelectionNotice("저장되어 현재 조건에서 제외되었습니다. Target 필터 또는 집계 범위를 확인하세요.");
-      } else {
-        // #621: rebind to the *current* server selector, never retain the prior
-        // snapshot's virtual row identity after a report refresh.
-        setSelection({ ...selection, selector: currentSummary.selector, snapshotId: data.snapshotId });
-      }
-    }
+    // A refreshed snapshot invalidates the old exact detail and its trigger.
+    setSelection(null);
   }
+
   useLayoutEffect(() => { if (selectionNotice && active && !refreshDisabled) search.current?.focus({preventScroll:true}); }, [selectionNotice, active, refreshDisabled]);
   const refreshReport = report.refresh;
   const refresh = useCallback(() => {
@@ -253,7 +232,7 @@ export function ProjectResourceDashboard({
     kind: "group" | "resource",
     parent = "",
   ) => {
-    const key = `${data!.snapshotId}:${queryKey}:${parent}:${kind}:${row.id ?? "ungrouped"}`;
+    const key = resourceSummaryRowIdentity(data!, queryKey, parent, kind, row.id);
     const open = expanded.has(key);
     const s = row.summary;
     return (
@@ -348,7 +327,7 @@ export function ProjectResourceDashboard({
                 <p className="resource-dashboard-hint">Group 직접 담당 Task는 보조 진단에 표시합니다.</p>
               ) : (
                 <FocusRestoreBoundary
-                  key={`${data!.snapshotId}:${key}`}
+                  key={key}
                   onRestore={() =>
                     search.current?.focus({ preventScroll: true })
                   }
@@ -377,6 +356,7 @@ export function ProjectResourceDashboard({
       data-report-confirmation-id={report.confirmationId}
       data-ready={!stale}
     >
+      {migrationNotice ? <p role="status">이전 조회 조건을 현재 관점으로 전환했습니다. 설비·물류 시스템을 다시 선택해 주세요. <button type="button" className="secondary-button" onClick={() => setMigrationNotice(false)}>확인</button></p> : null}
       {selectionNotice ? <p role="status">{selectionNotice}</p> : null}
       <div className="resource-dashboard-toolbar">
         <h2 id="resource-dashboard-heading">리소스 공수</h2>
@@ -455,16 +435,11 @@ export function ProjectResourceDashboard({
             onChange={(e) => setView(e.target.value as typeof view)}
           >
             <option value="summary">기본 현황</option>
-            <option value="targets">Target 보기</option>
             <option value="tree">Milestone 계층</option>
             <option value="matrix">Milestone 비교표</option>
             <option value="plan">Resource Plan</option>
           </select>
         </label>
-        {view === "targets" ? <>
-          <label>표시<select aria-label="Target 표시" value={targetLayout} onChange={event => setTargetLayout(event.target.value as typeof targetLayout)}><option value="tree">계층</option><option value="matrix">비교표</option></select></label>
-          {targetLayout === "tree" ? <label>집계 순서<select aria-label="Target 집계 순서" value={targetOrder} onChange={event => setTargetOrder(event.target.value as typeof targetOrder)}><option value="resource">Resource 우선</option><option value="target">Target 우선</option></select></label> : <label>비교 행<select aria-label="Target 비교 행" value={targetMatrixAxis} onChange={event => setTargetMatrixAxis(event.target.value as typeof targetMatrixAxis)}><option value="resource">개인</option><option value="group">Group</option></select></label>}
-        </> : null}
         {view === "plan" ? (
           <label>
             기간 단위
@@ -536,7 +511,7 @@ export function ProjectResourceDashboard({
             ))}
           </select>
         </label>
-        <ResourceTargetFilters quick data={data} filters={filters} onChange={patch => setFilters(previous => ({...previous, ...patch}))}/>
+        <ResourceEntityFilters quick data={data} filters={filters} onChange={patch => setFilters(previous => ({...previous, ...patch}))}/>
         <label className="resource-dashboard-search">
           검색
           <input
@@ -586,7 +561,7 @@ export function ProjectResourceDashboard({
           }
         }}
       >
-        <ResourceTargetFilters data={data} filters={filters} onChange={patch => setFilters(previous => ({...previous, ...patch}))}/>
+        <ResourceEntityFilters data={data} filters={filters} onChange={patch => setFilters(previous => ({...previous, ...patch}))}/>
         <label>
           Global Role
           <select
@@ -925,7 +900,6 @@ export function ProjectResourceDashboard({
               </FocusRestoreBoundary>
             </div>
           ) : null}
-          {view === "targets" ? <ResourceTargetViews data={data} unit={displayUnit} stale={stale} onStale={markStale} expanded={expanded} onToggle={toggleRow} matrix={targetLayout === "matrix"} onOpen={(summary, label, trigger) => openDetail(summary.selector, label, "assignments", trigger)}/> : null}
           <MilestoneScopeSummaries
             data={data}
             unit={displayUnit}

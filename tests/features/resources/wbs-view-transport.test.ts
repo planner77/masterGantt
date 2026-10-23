@@ -1,3 +1,4 @@
+import { toResourcePublicV2 } from "../../../src/contracts/resource-public-v2";
 import {describe,it,expect,vi,afterEach} from "vitest";
 import {wbsDashboardViewsFixture} from "../../fixtures/wbs-dashboard-views";
 import {defaultWbsViewSpec} from "../../../src/features/resources/wbs-view-model";
@@ -80,7 +81,7 @@ describe("WBS transport production contract",()=>{
   const f=wbsDashboardViewsFixture();
   try{
    const input={spec:defaultWbsViewSpec("process")},data=f.service.queryWbsView(f.project.publicId,input)!;
-   const fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify({data}),{status:200}));vi.stubGlobal("fetch",fetcher);
+   const fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify(toResourcePublicV2({data})),{status:200}));vi.stubGlobal("fetch",fetcher);
    await fetchWbsView({projectPublicId:f.project.publicId,projectRevision:data.projectRevision,input});
    expect(fetcher).toHaveBeenCalledWith(`/api/projects/${f.project.publicId}/resource-dashboard/views`,expect.objectContaining({method:"POST",credentials:"same-origin",cache:"no-store",body:JSON.stringify(input)}));
   }finally{f.database.close();}

@@ -39,7 +39,7 @@ export interface ResourceDrillEcho {
   targetProjectReferenceScope?: "full-canonical-project-same-period";
 }
 export interface ResourceDrillScopeDto {
-  schema: "resource-dashboard/1"; snapshotId: string; sourceContext: ResourceDrillSourceContext;
+  schema: "resource-dashboard/1" | "resource-dashboard/2"; snapshotId: string; sourceContext: ResourceDrillSourceContext;
   taskIds: string[]; assignmentIds: string[]; taskCount: number; assignmentCount: number;
   /** Ancestor summaries are context only, never part of taskCount. */
   ancestorSummaryIds: string[];

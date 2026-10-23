@@ -1,4 +1,4 @@
-import { snapshotTaskTargetBindings, restoreTaskTargetBindings } from "../logistics/task-target-transfer-core";
+import { snapshotTaskTargetBindings, restoreTaskTargetBindings, assertLegacyTransferIntegrity } from "../logistics/task-target-transfer-core";
 import { snapshotProjectContexts, restoreProjectContexts, snapshotProjectWorkAreas, restoreProjectWorkAreas } from "../logistics/project-context-transfer-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
@@ -39,6 +39,7 @@ export function snapshotLogisticsTemplateGraph(
   db: Database.Database, sourceProjectId: number,
 ): { schemaVersion: 2 | 3 | 4 | 5; projectWorkAreas?: NonNullable<ProjectTemplateSnapshot["logistics"]>["projectWorkAreas"]; equipmentWorkAreas?: NonNullable<ProjectTemplateSnapshot["logistics"]>["equipmentWorkAreas"]; taskContexts?: NonNullable<ProjectTemplateSnapshot["logistics"]>["taskContexts"]; taskTargetBindings?: NonNullable<NonNullable<ProjectTemplateSnapshot["logistics"]>["taskTargetBindings"]>; processMappings: TemplateProcessMappingSnapshotItem[];
      targets: TemplateTargetSnapshotItem[] } {
+  assertLegacyTransferIntegrity(db, sourceProjectId);
   const mappings = db.prepare(
     "SELECT p.code process_code, o.public_id occurrence_public_id, " +
     "w.public_id area_public_id FROM project_process_occurrence_mappings m " +
@@ -65,14 +66,14 @@ export function snapshotLogisticsTemplateGraph(
   ).all(sourceProjectId) as RawMember[];
   const byTarget = new Map<number, RawMember[]>();
   for (const item of members) {
-    if (!item.instance_code) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "An existing Target member is missing its instance.");
+    if (!item.instance_code) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "An existing archived logistics relation member is missing its instance.");
     byTarget.set(item.target_id, [...(byTarget.get(item.target_id) ?? []), item]);
   }
   const resultTargets = targets.map((target): TemplateTargetSnapshotItem => {
     const rows = byTarget.get(target.id) ?? [];
-    if (!rows.length) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "An existing Target has no members.");
+    if (!rows.length) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "An existing archived logistics relation has no members.");
     if (target.scope === "process" && (!target.process_code || !target.occurrence_public_id))
-      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "An existing process Target has no mapping.");
+      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "An existing process archived logistics relation has no mapping.");
     return {
       code: target.code,
       name: target.name,
@@ -139,7 +140,7 @@ export function restoreLogisticsTemplateGraph(
     reject("TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "공정·WorkArea 관계는 Template version 4/5에서만 지원합니다.");
   if (graph.schemaVersion === undefined) {
     if (graph.processMappings !== undefined || graph.targets !== undefined || graph.taskTargetBindings !== undefined)
-      reject("TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "Unversioned template graph must not contain Target references.");
+      reject("TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "Unversioned template graph must not contain archived logistics relation references.");
     return { processMappings: 0, targets: 0, warnings: [] };
   }
   if ((graph.schemaVersion !== 2 && graph.schemaVersion !== 3 && graph.schemaVersion !== 4 && graph.schemaVersion !== 5) || !Array.isArray(graph.processMappings) || !Array.isArray(graph.targets) ||
@@ -152,7 +153,7 @@ export function restoreLogisticsTemplateGraph(
   const triple = db.prepare(
     "SELECT business_unit_id,product_id,site_entity_id FROM projects WHERE id=?",
   ).get(projectId) as Triple | undefined;
-  if (!triple) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Target Project not found.");
+  if (!triple) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Destination Project not found.");
   const savedMappings = graph.processMappings;
   const savedTargets = graph.targets;
   const seenProcesses = new Set<string>();
@@ -180,55 +181,55 @@ export function restoreLogisticsTemplateGraph(
 
   const seenTargets = new Set<string>();
   for (const raw of savedTargets) {
-    if (!raw || typeof raw !== "object") reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Invalid Target.");
+    if (!raw || typeof raw !== "object") reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Invalid archived logistics relation.");
     const targetCode = requiredText(raw.code);
-    if (seenTargets.has(targetCode)) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Duplicate Target code.");
+    if (seenTargets.has(targetCode)) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Duplicate archived logistics relation code.");
     seenTargets.add(targetCode);
     const isProcess = raw.scope === "process";
     if (!isProcess && raw.scope !== "project_common")
-      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Invalid Target scope.");
+      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Invalid archived logistics relation scope.");
     const processCode = nullableText(raw.processCode);
     const occurrenceId = nullableText(raw.occurrenceId);
     const workAreaId = nullableText(raw.workAreaId);
     if ((isProcess && (!processCode || !occurrenceId)) ||
         (!isProcess && (processCode !== null || occurrenceId !== null || workAreaId !== null)))
-      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Invalid Target process/common scope.");
+      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Invalid archived logistics relation process/common scope.");
     const process = processCode ? local.processes.get(processCode) : undefined;
     const mapping = process ? catalog.mapping(projectId, process.id) : undefined;
     const mappedOccurrence = occurrenceId === null ? null : catalog.find("occurrences", occurrenceId);
     if (isProcess && (!process || !mapping || !mappedOccurrence ||
       mapping.occurrence_id !== mappedOccurrence.id))
-      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Target process occurrence no longer matches the Template.");
+      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "archived logistics relation process occurrence no longer matches the Template.");
     const area = workAreaId ? catalog.find("workAreas", workAreaId) : undefined;
     if (workAreaId && (!area || !mapping || area.occurrence_id !== mapping.occurrence_id))
-      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Target WorkArea is outside its process.");
+      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "archived logistics relation WorkArea is outside its process.");
     if (typeof raw.name !== "string" || typeof raw.description !== "string" || typeof raw.active !== "boolean")
-      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Invalid Target fields.");
+      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Invalid archived logistics relation fields.");
     if (!Array.isArray(raw.members) || !raw.members.length || raw.members.length > 100)
-      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Target must contain at least one member.");
+      reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "archived logistics relation must contain at least one member.");
 
     const resolvedMembers: Array<{kind: "equipment"|"system"; id: number}> = [];
     const seenMembers = new Set<string>();
     for (const m of raw.members) {
       if (!m || (m.kind !== "equipment" && m.kind !== "system"))
-        reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Invalid typed Target member.");
+        reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Invalid typed archived logistics relation member.");
       const code = requiredText(m.instanceCode);
       const key = m.kind + ":" + code;
-      if (seenMembers.has(key)) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Duplicated Target member.");
+      if (seenMembers.has(key)) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Duplicated archived logistics relation member.");
       seenMembers.add(key);
       const localInstance = m.kind === "equipment" ? local.equipment.get(code) : local.systems.get(code);
-      if (!localInstance) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Target member instance is missing: " + key);
+      if (!localInstance) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "archived logistics relation member instance is missing: " + key);
       if (m.kind === "equipment") {
-        if (!process) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Equipment is not allowed in a common Target.");
+        if (!process) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Equipment is not allowed in a common archived logistics relation.");
         const e = db.prepare("SELECT process_id FROM project_equipment WHERE project_id=? AND id=?")
           .get(projectId,localInstance.id) as {process_id:number}|undefined;
         if (!e || e.process_id !== process.id)
-          reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Equipment process is inconsistent with Target.");
+          reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Equipment process is inconsistent with archived logistics relation.");
       } else if (!isProcess) {
         const s = db.prepare("SELECT scope FROM project_logistics_systems WHERE project_id=? AND id=?")
           .get(projectId,localInstance.id) as {scope:string}|undefined;
         if (!s || s.scope !== "project")
-          reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Common Target requires project-scoped System.");
+          reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Common archived logistics relation requires project-scoped System.");
       }
       resolvedMembers.push({kind:m.kind,id:localInstance.id});
     }
@@ -247,7 +248,7 @@ export function restoreLogisticsTemplateGraph(
     const member = db.prepare(
       "SELECT id FROM logistics_target_members WHERE project_id=? AND target_id=? ORDER BY id LIMIT 1",
     ).get(projectId,targetId) as {id:number}|undefined;
-    if (!member) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Target has no persisted members.");
+    if (!member) reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "archived logistics relation has no persisted members.");
     db.prepare("UPDATE logistics_targets SET anchor_member_id=? WHERE project_id=? AND id=?")
       .run(member.id,projectId,targetId);
   }

@@ -1,0 +1,320 @@
+{
+  "issue": 785,
+  "automatedMapState": "BLOCKED",
+  "unknownCount": 28,
+  "manualMapping": "Manager source/consumer review plus actual local execution; no global selector changes",
+  "receipt": "local-validation-receipt.json",
+  "mappings": [
+    {
+      "producer": "src/contracts/logistics-dashboard.ts",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/server/logistics/issue-731-kpi.test.ts",
+        "tests/e2e/logistics-dashboard-request-state.spec.ts"
+      ],
+      "coverageReason": "KPI 실제 HTTP/v2 출처·공유 mock 상태·5폭 검증과 폐기 엔터티 필드 제거",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/contracts/logistics.ts",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/server/logistics/task-target-bindings.test.ts",
+        "tests/e2e/logistics-target-authoring.spec.ts",
+        "tests/e2e/issue-726-task-logistics.spec.ts"
+      ],
+      "coverageReason": "실제 기존 출처·coverage/상속/손상 FK 및 직접/읽기 전용 출처 분리; 간접 호출 경로 명시",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/contracts/project-templates.ts",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/server/templates/logistics-template-graph.test.ts",
+        "tests/server/projects/issue-785-exchange.test.ts"
+      ],
+      "coverageReason": "실제 SQLite의 private graph 보존·공개 DTO·손상 원본 전체 rollback",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/contracts/wbs-dashboard-views.ts",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/server/resources/wbs-dashboard-views-http.test.ts",
+        "tests/e2e/issue-624-logistics-unified.spec.ts"
+      ],
+      "coverageReason": "실제 HTTP 버전/출처와 3개 실물 관점의 정확 drill",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/gantt/task-logistics-link-editor.tsx",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/server/logistics/task-target-bindings.test.ts",
+        "tests/e2e/logistics-target-authoring.spec.ts",
+        "tests/e2e/issue-726-task-logistics.spec.ts"
+      ],
+      "coverageReason": "실제 기존 출처·coverage/상속/손상 FK 및 직접/읽기 전용 출처 분리; 간접 호출 경로 명시",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/gantt/task-process-context-editor.tsx",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/server/logistics/task-target-bindings.test.ts",
+        "tests/e2e/logistics-target-authoring.spec.ts",
+        "tests/e2e/issue-726-task-logistics.spec.ts"
+      ],
+      "coverageReason": "실제 기존 출처·coverage/상속/손상 FK 및 직접/읽기 전용 출처 분리; 간접 호출 경로 명시",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/gantt/task-target-binding-editor.tsx",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/e2e/logistics-target-authoring.spec.ts",
+        "tests/e2e/issue-624-logistics-unified.spec.ts",
+        "tests/features/logistics/logistics-unified-model.test.ts"
+      ],
+      "coverageReason": "폐기 UI/대체 관점의 실제 DOM/aria/network·원본 ID·화면 상태 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/logistics/logistics-kpi-configuration.tsx",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/server/logistics/issue-731-kpi.test.ts",
+        "tests/e2e/logistics-dashboard-request-state.spec.ts"
+      ],
+      "coverageReason": "KPI 실제 HTTP/v2 출처·공유 mock 상태·5폭 검증과 폐기 엔터티 필드 제거",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/logistics/logistics-kpi-validation.ts",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/server/logistics/issue-731-kpi.test.ts",
+        "tests/e2e/logistics-dashboard-request-state.spec.ts"
+      ],
+      "coverageReason": "KPI 실제 HTTP/v2 출처·공유 mock 상태·5폭 검증과 폐기 엔터티 필드 제거",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/logistics/logistics-unified-model.ts",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/e2e/logistics-target-authoring.spec.ts",
+        "tests/e2e/issue-624-logistics-unified.spec.ts",
+        "tests/features/logistics/logistics-unified-model.test.ts"
+      ],
+      "coverageReason": "폐기 UI/대체 관점의 실제 DOM/aria/network·원본 ID·화면 상태 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/logistics/project-logistics-dashboard.tsx",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/server/logistics/issue-731-kpi.test.ts",
+        "tests/e2e/logistics-dashboard-request-state.spec.ts"
+      ],
+      "coverageReason": "KPI 실제 HTTP/v2 출처·공유 mock 상태·5폭 검증과 폐기 엔터티 필드 제거",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/logistics/project-logistics-management.tsx",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/e2e/logistics-target-authoring.spec.ts",
+        "tests/e2e/issue-624-logistics-unified.spec.ts",
+        "tests/features/logistics/logistics-unified-model.test.ts"
+      ],
+      "coverageReason": "폐기 UI/대체 관점의 실제 DOM/aria/network·원본 ID·화면 상태 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/logistics/project-logistics-targets.tsx",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/e2e/logistics-target-authoring.spec.ts",
+        "tests/e2e/issue-624-logistics-unified.spec.ts",
+        "tests/features/logistics/logistics-unified-model.test.ts"
+      ],
+      "coverageReason": "폐기 UI/대체 관점의 실제 DOM/aria/network·원본 ID·화면 상태 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/logistics/project-logistics-unified.tsx",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/e2e/logistics-target-authoring.spec.ts",
+        "tests/e2e/issue-624-logistics-unified.spec.ts",
+        "tests/features/logistics/logistics-unified-model.test.ts"
+      ],
+      "coverageReason": "폐기 UI/대체 관점의 실제 DOM/aria/network·원본 ID·화면 상태 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/logistics/target-detail.tsx",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/e2e/logistics-target-authoring.spec.ts",
+        "tests/e2e/issue-624-logistics-unified.spec.ts",
+        "tests/features/logistics/logistics-unified-model.test.ts"
+      ],
+      "coverageReason": "폐기 UI/대체 관점의 실제 DOM/aria/network·원본 ID·화면 상태 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/logistics/target-master-registration.tsx",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/e2e/logistics-target-authoring.spec.ts",
+        "tests/e2e/issue-624-logistics-unified.spec.ts",
+        "tests/features/logistics/logistics-unified-model.test.ts"
+      ],
+      "coverageReason": "폐기 UI/대체 관점의 실제 DOM/aria/network·원본 ID·화면 상태 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/projects/project-excel-export-button.tsx",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/server/projects/issue-785-exchange.test.ts",
+        "tests/e2e/resource-excel-export-dashboard.spec.ts",
+        "tests/e2e/issue-622-resource-plan-target.spec.ts"
+      ],
+      "coverageReason": "실제 OOXML·원시 공수·scope/snapshot·같은 범위 내보내기",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/features/projects/project-workspace-navigation.ts",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/features/project-workspace-navigation.test.ts",
+        "tests/e2e/logistics-target-authoring.spec.ts"
+      ],
+      "coverageReason": "구형 screen/localStorage 정규화·DOM/aria·퇴역 요청0",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/server/logistics/task-logistics-compatibility-core.ts",
+      "automatedReason": "No actual direct server-module test import found; generic smoke tests are insufficient",
+      "humanMappedTests": [
+        "tests/server/logistics/task-target-bindings.test.ts",
+        "tests/e2e/logistics-target-authoring.spec.ts",
+        "tests/e2e/issue-726-task-logistics.spec.ts"
+      ],
+      "coverageReason": "실제 기존 출처·coverage/상속/손상 FK 및 직접/읽기 전용 출처 분리; 간접 호출 경로 명시",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/server/repositories/resource-target-snapshot-repository-core.ts",
+      "automatedReason": "No actual direct server-module test import found; generic smoke tests are insufficient",
+      "humanMappedTests": [
+        "tests/server/resources/resource-public-v2.test.ts",
+        "tests/server/resources/resource-physical-source-evidence.test.ts"
+      ],
+      "coverageReason": "실제 SQLite의 비정상 FK/무결성409·출처 존재/예산; Service를 통한 Repository 호출",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/server/resources/resource-drill-query-core.ts",
+      "automatedReason": "No actual direct server-module test import found; generic smoke tests are insufficient",
+      "humanMappedTests": [
+        "tests/server/resources/resource-drill.test.ts",
+        "tests/features/resources/resource-drill-transport.test.ts",
+        "tests/e2e/resource-target-dashboard-api.spec.ts"
+      ],
+      "coverageReason": "실제 parser·정확 출처 교집합·v1 audit/공개 v2 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "src/server/templates/logistics-template-graph-core.ts",
+      "automatedReason": "No actual direct server-module test import found; generic smoke tests are insufficient",
+      "humanMappedTests": [
+        "tests/server/templates/logistics-template-graph.test.ts",
+        "tests/server/projects/issue-785-exchange.test.ts"
+      ],
+      "coverageReason": "실제 SQLite의 private graph 보존·공개 DTO·손상 원본 전체 rollback",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "tests/e2e/fixtures/isolated-application.ts",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/e2e/issue-621-resource-target.spec.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "tests/e2e/resource-target-dashboard-api.spec.ts",
+        "tests/e2e/project-resource-workload-status.spec.ts",
+        "tests/e2e/issue-737-target0-acceptance.spec.ts"
+      ],
+      "coverageReason": "격리 SQLite 명시 seed/건수와 실제 HTTP·공유 fixture/v2 오류·상태 음성 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "tests/e2e/fixtures/issue-621-target-project.ts",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/e2e/issue-621-resource-target.spec.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "tests/e2e/resource-target-dashboard-api.spec.ts",
+        "tests/e2e/project-resource-workload-status.spec.ts",
+        "tests/e2e/issue-737-target0-acceptance.spec.ts"
+      ],
+      "coverageReason": "격리 SQLite 명시 seed/건수와 실제 HTTP·공유 fixture/v2 오류·상태 음성 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "tests/e2e/fixtures/issue-623-target-resource.ts",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/e2e/issue-621-resource-target.spec.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "tests/e2e/resource-target-dashboard-api.spec.ts",
+        "tests/e2e/project-resource-workload-status.spec.ts",
+        "tests/e2e/issue-737-target0-acceptance.spec.ts"
+      ],
+      "coverageReason": "격리 SQLite 명시 seed/건수와 실제 HTTP·공유 fixture/v2 오류·상태 음성 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "tests/e2e/fixtures/legacy-logistics-seed.ts",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/e2e/issue-621-resource-target.spec.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "tests/e2e/resource-target-dashboard-api.spec.ts",
+        "tests/e2e/project-resource-workload-status.spec.ts",
+        "tests/e2e/issue-737-target0-acceptance.spec.ts"
+      ],
+      "coverageReason": "격리 SQLite 명시 seed/건수와 실제 HTTP·공유 fixture/v2 오류·상태 음성 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "tests/e2e/fixtures/target-project.ts",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/e2e/issue-621-resource-target.spec.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "tests/e2e/resource-target-dashboard-api.spec.ts",
+        "tests/e2e/project-resource-workload-status.spec.ts",
+        "tests/e2e/issue-737-target0-acceptance.spec.ts"
+      ],
+      "coverageReason": "격리 SQLite 명시 seed/건수와 실제 HTTP·공유 fixture/v2 오류·상태 음성 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    },
+    {
+      "producer": "tests/fixtures/stateful-project.ts",
+      "automatedReason": "No verified producer→consumer test map. Manager must map/verify.",
+      "humanMappedTests": [
+        "tests/e2e/issue-621-resource-target.spec.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "tests/e2e/resource-target-dashboard-api.spec.ts",
+        "tests/e2e/project-resource-workload-status.spec.ts",
+        "tests/e2e/issue-737-target0-acceptance.spec.ts"
+      ],
+      "coverageReason": "격리 SQLite 명시 seed/건수와 실제 HTTP·공유 fixture/v2 오류·상태 음성 검증",
+      "note": "수동 영향 매핑이며 CLI UNKNOWN/BLOCKED를 변경하지 않음"
+    }
+  ]
+}

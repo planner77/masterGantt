@@ -1,3 +1,9 @@
+## Issue #785 — 공개 실물 DTO와 내부 archive 해석의 분리
+
+Route Handler → Service → Repository → SQLite와 기존 WBS/F3 해석기를 유지한다. 원본 그래프를 새 직접 행으로 물질화하지 않고 동일 read snapshot에서 실제 Equipment/System ID·원본 Task·scope/selection/coverage를 제공한다. Task 직접 연결의 기존 writer와 읽기 전용 compatibilityLinks는 분리하며 수정 전 영향도 실제 실물→정확 Task로 조회한다. 불완전한 참조는 빈 연결로 치환하지 않는다.
+
+resource/WBS 공개 v2 직렬화는 내부 legacy 계약과 분리한다. 명시 v1 읽기 호환과 내부 resolver는 감사·지원 교환을 위해 유지하지만 신규 화면은 물리 관점과 중립 출처만 소비한다. Task T0·Assignment A·Capacity R·Milestone full Gate·exact drill의 계산 authority와 단일 Gantt/Viewport writer는 추가하지 않는다. DB DDL·과거 migration/checksum은 불변이다. 상세 공개 버전 경계는 [API](API.md), 남은 전환 gate는 [Work Packet](exec-plans/active/ISSUE_785.md)을 따른다.
+
 ## Issue #762 — 직접 소속과 legacy 호환 read adapter
 
 `project_work_areas`와 Task/Equipment typed 관계를 기존 global catalog와 병렬로 둔다. 신규 owner는 Project 공정이며 occurrence가 없다. `process-context`의 projectWorkAreas projection은 직접 구역과 명시 mapping별 읽기 전용 legacy alias를 제공한다. source와 processId로 의미를 구분하고 legacy UUID는 원본 그대로다. 공유 원본을 프로젝트별로 복제하거나 하나의 owner로 추정하지 않는다.

@@ -53,4 +53,4 @@ Project Copy와 지원 Template v5는 로컬 엔터티의 새 ID와 Global Resou
 
 ## 사용자 안내와 #720 인계
 
-현재 제공 문서는 [기준정보·동적 조회 사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md)다. 새 상위 메뉴와 업무 순서는 [Target0 종단 사용 흐름](TARGET_RESOURCE_USER_GUIDE.md#target0-종단-사용-흐름)에서 설명한다. `screenKey`는 가이드의 기존 표와 anchor를 재사용한다. #720의 전역 매뉴얼 버튼·앱 `/manual` 페이지·registry를 새로 구현했다고 보고하지 않는다. 화면 제품·문서 계약의 최종 판정은 새 Head Required3와 Owner 승인 이후다.
+현재 제공 문서는 [기준정보·동적 조회 사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md)다. 새 상위 메뉴와 업무 순서는 [실물 연결 종단 사용 흐름](TARGET_RESOURCE_USER_GUIDE.md#종단-사용-흐름)에서 설명한다. `screenKey`는 가이드의 기존 표와 anchor를 재사용한다. #720의 전역 매뉴얼 버튼·앱 `/manual` 페이지·registry를 새로 구현했다고 보고하지 않는다. 화면 제품·문서 계약의 최종 판정은 새 Head Required3와 Owner 승인 이후다.

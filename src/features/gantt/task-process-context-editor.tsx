@@ -96,7 +96,7 @@ export function TaskProcessContextEditor(props: Props) {
   const sources = ancestorProcessSources(taskId, tasks, snapshot?.logistics.taskProcessContexts ?? []);
   return <section className={styles.contextEditor} aria-label="직접 공정·작업 구역">
     <h3>직접 공정·작업 구역</h3>
-    <p className={styles.note}>공정은 0개 이상 직접 선택합니다. 설비·시스템·Target에서 자동 지정하지 않습니다. 각 영역은 별도로 저장합니다.</p>
+    <p className={styles.note}>공정은 0개 이상 직접 선택합니다. 설비·시스템에서 자동 지정하지 않습니다. 각 영역은 별도로 저장합니다.</p>
     {error ? <p className={styles.error} role="alert">{error}</p> : null}
     {!ready && !error ? <p role="status">공정·작업 구역을 불러오는 중…</p> : null}
     {!ready && error && !isDirty ? <button type="button" className="secondary-button" onClick={() => setRetry(value => value + 1)}>공정 문맥 다시 시도</button> : null}

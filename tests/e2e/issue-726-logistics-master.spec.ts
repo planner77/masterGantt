@@ -1,3 +1,4 @@
+import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 import { createTargetProject, targetMasterPassword } from "./fixtures/target-project";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
@@ -88,8 +89,8 @@ test("#726 Target0 master 설비·시스템 생성, 유형 실패 복구, Fleet�
   expect(saved.systems.find(system => system.code === "MCS")).toMatchObject({ layer: "coordinator", scope: "project" });
   expect((await f.snapshot()).data.tasks).toEqual(baseline.data.tasks);
   const targets = await page.request.get(`${f.api}/logistics/targets`);
-  expect(targets.ok()).toBe(true);
-  expect((await targets.json()).data.total).toBe(0);
+  expect(targets.status()).toBe(410);expect((await targets.json()).error.code).toBe("LOGISTICS_API_RETIRED");
+  expect(readLegacyFixtureCounts(origin,f.publicId)).toEqual({targets:0,members:0,bindings:0,selectedMembers:0});
   await page.reload();
   await openWorkspaceView(page, "equipment");
   const equipmentCell = page.locator("#panel-equipment").getByRole("cell")

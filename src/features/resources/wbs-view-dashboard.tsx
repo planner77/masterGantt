@@ -124,7 +124,7 @@ function WbsViewDashboardRoot({consumer,publicId,revision,root,active,busy,bindi
   }
   const ConsumerFilters = consumer?.renderFilters;
   return <section className={styles.root} data-testid="wbs-view-dashboard" data-root={root} data-wbs-view={root} data-project-public-id={publicId} data-wbs-state={error ? "error" : !validRange ? "invalid" : data&&staleSnapshot===data.snapshotId ? "stale" : locked ? "pending" : "ready"} data-ready={!!data&&!locked} data-wbs-ready={!!data&&!locked} data-report-confirmation-id={currentReport ? report?.confirmationId : 0} aria-label="공통 계층 조회">
-    <div className={styles.controls}><h3 ref={fallback} tabIndex={-1}>{consumer?.title ?? `${WBS_VIEW_LABELS[root]} 계층 조회`}</h3><ContextHelp label="공통 계층 조회">하위 축은 개인 조회 설정입니다. 원본 WBS·배정·Target을 변경하지 않습니다. 중복 경로의 소계를 더하지 않고 서버의 고유 총계를 표시합니다. 등록 구성 수량과 Task·Assignment·계획공수 및 전체 Gate는 각각 다른 범위입니다.</ContextHelp></div>
+    <div className={styles.controls}><h3 ref={fallback} tabIndex={-1}>{consumer?.title ?? `${WBS_VIEW_LABELS[root]} 계층 조회`}</h3><ContextHelp label="공통 계층 조회">하위 축은 개인 조회 설정입니다. 원본 WBS·배정·실물 연결을 변경하지 않습니다. 중복 경로의 소계를 더하지 않고 서버의 고유 총계를 표시합니다. 등록 구성 수량과 Task·Assignment·계획공수 및 전체 Gate는 각각 다른 범위입니다.</ContextHelp></div>
     <p className={styles.subtle}>현재 경로: {[root,...(state.spec.levels??[]).map(level=>typeof level==="string" ? level : level.dimensions)].map(level=>Array.isArray(level)?level.map(d=>WBS_VIEW_LABELS[d]).join(" / "):WBS_VIEW_LABELS[level]).join(" → ")}</p>
     <WbsViewComposer spec={state.spec} onApply={apply} onReset={reset} presets={consumer?.presets}/>
     {ConsumerControls ? <ConsumerControls spec={state.spec} onApply={apply} disabled={busy || !!drill.locked}/> : null}

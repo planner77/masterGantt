@@ -1,3 +1,4 @@
+import { toResourcePublicV2 } from "../../src/contracts/resource-public-v2";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -23,7 +24,7 @@ test("#525 첫 실패·atomic catalog 오류는 입력을 보존하며 개별 �
 
 test("#525 네트워크 실패·malformed200·조건 echo mismatch를 성공으로 표시하지 않는다", async ({ page }) => {
   const state = await installStatefulProjectFixture(page); let failure: "network" | "malformed" | "echo" | "pass" = "network";
-  await page.route(path, (route) => { if (failure === "network") return route.abort("failed"); const data = resourceDashboardUiFixture(state, new URL(route.request().url()).searchParams); if (failure === "malformed") Reflect.deleteProperty(data.resources[0].summary, "taskCount"); if (failure === "echo") data.filters.search = "wrong"; return route.fulfill({ json: { data } }); });
+  await page.route(path, (route) => { if (failure === "network") return route.abort("failed"); const data = resourceDashboardUiFixture(state, new URL(route.request().url()).searchParams); if (failure === "malformed") Reflect.deleteProperty(data.resources[0].summary, "taskCount"); if (failure === "echo") data.filters.search = "wrong"; return route.fulfill({ json: toResourcePublicV2({ data }) }); });
   await open(page); await expect(panel(page).getByRole("alert")).toBeVisible(); failure = "pass"; await panel(page).getByRole("button", { name: "공수 다시 시도" }).click(); await ready(page);
   for (const mode of ["malformed", "echo"] as const) { failure = mode; await panel(page).getByRole("button", { name: "새로고침", exact: true }).click(); await expect(panel(page)).toHaveAttribute("data-ready", "false"); await expect(panel(page).getByRole("alert")).toContainText("이전 성공 결과"); await expect(panel(page).getByText("5.00 M/D", { exact: true }).first()).toBeVisible(); await expect(panel(page).getByRole("button", { name: "개발팀", exact: true })).toBeDisabled(); }
   failure = "pass"; await panel(page).getByRole("button", { name: "공수 다시 시도" }).click(); await ready(page);
@@ -31,7 +32,7 @@ test("#525 네트워크 실패·malformed200·조건 echo mismatch를 성공으�
 
 test("#525 stale 결과·검색·기간·활성·단위·열린 행을 보존하고 역전 응답은 버린다", async ({ page }) => {
   const state = await installStatefulProjectFixture(page); const gate = deferred(), started = deferred(); let fail = false;
-  await page.route(path, async (route) => { const query = new URL(route.request().url()).searchParams; if (query.get("search") === "older") { started.resolve(); await gate.promise; } if (fail) return route.fulfill({ status: 500, json: { error: { code: "FAIL" } } }); return route.fulfill({ json: { data: resourceDashboardUiFixture(state, query) } }); });
+  await page.route(path, async (route) => { const query = new URL(route.request().url()).searchParams; if (query.get("search") === "older") { started.resolve(); await gate.promise; } if (fail) return route.fulfill({ status: 500, json: { error: { code: "FAIL" } } }); return route.fulfill({ json: toResourcePublicV2({ data: resourceDashboardUiFixture(state, query) }) }); });
   await open(page); await ready(page); const root = panel(page), search = root.getByRole("searchbox", { name: "리소스·그룹·Task 이름과 코드 검색" });
   await root.getByRole("button", { name: "M/M", exact: true }).click(); await root.getByRole("button", { name: "개발팀", exact: true }).click();
   const filter = root.getByRole("button", { name: /^필터/ }); await filter.click(); await root.getByLabel("개인 활성 상태", { exact: true }).selectOption("active"); await ready(page); await root.getByLabel("기간 시작", { exact: true }).fill("2026-09-16"); await ready(page); await root.getByLabel("기간 종료", { exact: true }).fill("2026-09-18"); await ready(page);
@@ -42,7 +43,7 @@ test("#525 stale 결과·검색·기간·활성·단위·열린 행을 보존하
 
 test("#525 중복 새로고침·hidden polling 방지와 focus catch-up 및 revision 복구", async ({ page }) => {
   const state = await installStatefulProjectFixture(page); const gate = deferred(), started = deferred(); let hold = false, calls = 0, ahead = false;
-  await page.route(path, async (route) => { calls++; if (hold) { started.resolve(); await gate.promise; } const data = resourceDashboardUiFixture(state, new URL(route.request().url()).searchParams); if (ahead) data.projectRevision++; return route.fulfill({ json: { data } }); });
+  await page.route(path, async (route) => { calls++; if (hold) { started.resolve(); await gate.promise; } const data = resourceDashboardUiFixture(state, new URL(route.request().url()).searchParams); if (ahead) data.projectRevision++; return route.fulfill({ json: toResourcePublicV2({ data }) }); });
   await page.goto(`/projects/${publicId}`); expect(calls).toBe(0); await openWorkspaceView(page, "resources"); await ready(page); hold = true; await panel(page).getByRole("button", { name: "새로고침", exact: true }).click(); await started.promise; await expect(panel(page).getByRole("button", { name: "조회 중…" })).toBeDisabled(); hold = false; gate.resolve(); await ready(page);
   await page.getByRole("tab", { name: "일정", exact: true }).click(); const hiddenCalls = calls; await page.evaluate(() => window.dispatchEvent(new Event("focus"))); expect(calls).toBe(hiddenCalls); await openWorkspaceView(page, "resources"); await ready(page); const before = calls; await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await expect.poll(() => calls).toBe(before + 1); await ready(page);
   ahead = true; await panel(page).getByRole("button", { name: "새로고침", exact: true }).click(); await expect(panel(page)).toHaveAttribute("data-ready", "false"); await expect(panel(page).getByRole("alert")).toContainText("데이터가 변경"); state.project.revision++; ahead = false; await panel(page).getByRole("button", { name: "최신 일정 조회" }).click(); await ready(page);
@@ -172,8 +173,8 @@ test("#525 기존 stage assignment drill은 legacy API와 기본 Dashboard 조�
 test("#525 외부 snapshot 교체는 사라지는 상세 focus만 복원하고 필터 focus를 보존한다", async ({ page }) => {
   const fixture = await installStatefulProjectFixture(page); let catalog = 1;
   const mutate = <T extends { catalogRevision: number; snapshotId: string }>(data: T) => ({ ...data, catalogRevision: catalog, snapshotId: (catalog === 1 ? "a" : "b").repeat(64) });
-  await page.route(path, (route) => { const data = mutate(resourceDashboardUiFixture(fixture, new URL(route.request().url()).searchParams)); data.scope.identity = data.snapshotId; return route.fulfill({ json: { data } }); });
-  await page.route(`**${projectPath}/resource-dashboard/details?*`, (route) => route.fulfill({ json: { data: mutate(resourceDashboardDetailUiFixture(fixture, new URL(route.request().url()).searchParams)) } }));
+  await page.route(path, (route) => { const data = mutate(resourceDashboardUiFixture(fixture, new URL(route.request().url()).searchParams)); data.scope.identity = data.snapshotId; return route.fulfill({ json: toResourcePublicV2({ data }) }); });
+  await page.route(`**${projectPath}/resource-dashboard/details?*`, (route) => route.fulfill({ json: toResourcePublicV2({ data: mutate(resourceDashboardDetailUiFixture(fixture, new URL(route.request().url()).searchParams)) }) }));
   await open(page); await ready(page); const root = panel(page), kpi = root.getByLabel("선택 범위 KPI").getByRole("button", { name: "1건", exact: true }); await kpi.click(); await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toBeFocused();
   const priorReportReceipt = await root.getAttribute("data-report-confirmation-id");
   expect(priorReportReceipt).not.toBe("0");
@@ -200,8 +201,8 @@ test("#525 외부 snapshot 교체는 사라지는 상세 focus만 복원하고 �
 test("#525 긴 한국어·영문·ID와 많은 Dashboard 그룹·개인·Task의 5폭 geometry", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   const fixture = await installStatefulProjectFixture(page);
-  await page.route(path, (route) => route.fulfill({ json: { data: longResourceDashboardUiFixture(fixture, new URL(route.request().url()).searchParams) } }));
-  await page.route(`**${projectPath}/resource-dashboard/details?*`, (route) => route.fulfill({ json: { data: longResourceDashboardDetailUiFixture(fixture, new URL(route.request().url()).searchParams) } }));
+  await page.route(path, (route) => route.fulfill({ json: toResourcePublicV2({ data: longResourceDashboardUiFixture(fixture, new URL(route.request().url()).searchParams) }) }));
+  await page.route(`**${projectPath}/resource-dashboard/details?*`, (route) => route.fulfill({ json: toResourcePublicV2({ data: longResourceDashboardDetailUiFixture(fixture, new URL(route.request().url()).searchParams) }) }));
   await open(page); await ready(page);
   const root = panel(page), evidence = [];
   mkdirSync("output/playwright/issue-525/long-many", { recursive: true });

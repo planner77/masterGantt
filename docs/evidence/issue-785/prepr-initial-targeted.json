@@ -1,0 +1,1614 @@
+{
+  "mode": "targeted",
+  "status": "NOT TESTED",
+  "risk": "HIGH",
+  "issue": 785,
+  "sourceStart": {
+    "baseRef": "origin/main",
+    "baseSha": "427d22245fb8e11254b2424ea5147ccbd5766979",
+    "headSha": "427d22245fb8e11254b2424ea5147ccbd5766979",
+    "workingDiffSha256": "70c78d705df21da40fdd8965eb3f8e7483f5f06506b40c3e3ba2728481b2c2bb",
+    "fingerprint": "f4ec6cc482cf30e4634f376de5e90bac0c339eed533741643af025ae47e0345b",
+    "dirty": true,
+    "changed": [
+      "CHANGELOG.md",
+      "DESIGN.md",
+      "docs/API.md",
+      "docs/ARCHITECTURE.md",
+      "docs/DB_SCHEMA.md",
+      "docs/EXCEL_EXPORT.md",
+      "docs/IMPORT_EXPORT.md",
+      "docs/IMPORT_SCHEMA.md",
+      "docs/ISSUE_27_PROJECT_COPY.md",
+      "docs/ISSUE_785_FAILURE_ANALYSIS.md",
+      "docs/JSON_IMPORT.md",
+      "docs/LOGISTICS_DASHBOARD.md",
+      "docs/LOGISTICS_DOMAIN_DESIGN.md",
+      "docs/LOGISTICS_TARGETS.md",
+      "docs/PROJECT_UX.md",
+      "docs/REQUIREMENTS.md",
+      "docs/RESOURCE_KPI_DASHBOARD.md",
+      "docs/SECURITY.md",
+      "docs/TARGET_RESOURCE_OPERATIONS.md",
+      "docs/TARGET_RESOURCE_USER_GUIDE.md",
+      "docs/TASK_EDITOR.md",
+      "docs/TEST_PLAN.md",
+      "docs/UI_UX_GUIDELINES.md",
+      "docs/WBS_CROSS_FEATURE_ACCEPTANCE.md",
+      "docs/WBS_TASK_LEDGER.md",
+      "docs/evidence/issue-785/producer-consumer-baseline.json",
+      "docs/exec-plans/active/ISSUE_785.md",
+      "docs/exec-plans/active/PLAN.md",
+      "package-lock.json",
+      "package.json",
+      "src/app/api/projects/[publicId]/logistics/equipment/[equipmentId]/usage/route.ts",
+      "src/app/api/projects/[publicId]/logistics/systems/[systemId]/usage/route.ts",
+      "src/app/api/projects/[publicId]/logistics/targets/[targetId]/impact/route.ts",
+      "src/app/api/projects/[publicId]/logistics/targets/[targetId]/route.ts",
+      "src/app/api/projects/[publicId]/logistics/targets/[targetId]/usage/route.ts",
+      "src/app/api/projects/[publicId]/logistics/targets/route.ts",
+      "src/app/api/projects/[publicId]/tasks/[taskId]/target-bindings/route.ts",
+      "src/contracts/logistics-dashboard.ts",
+      "src/contracts/logistics.ts",
+      "src/contracts/project-templates.ts",
+      "src/contracts/resource-dashboard.ts",
+      "src/contracts/resource-drill.ts",
+      "src/contracts/resource-public-v2.ts",
+      "src/contracts/wbs-dashboard-views.ts",
+      "src/domain/resources/resource-kpi-targets.ts",
+      "src/features/gantt/project-task-editor.tsx",
+      "src/features/gantt/task-logistics-link-editor.tsx",
+      "src/features/gantt/task-process-context-editor.tsx",
+      "src/features/gantt/task-target-binding-editor.tsx",
+      "src/features/logistics/logistics-kpi-configuration.tsx",
+      "src/features/logistics/logistics-kpi-validation.ts",
+      "src/features/logistics/logistics-unified-model.ts",
+      "src/features/logistics/project-logistics-dashboard.tsx",
+      "src/features/logistics/project-logistics-management.tsx",
+      "src/features/logistics/project-logistics-targets.tsx",
+      "src/features/logistics/project-logistics-unified.tsx",
+      "src/features/logistics/target-detail.tsx",
+      "src/features/logistics/target-master-registration.tsx",
+      "src/features/projects/project-excel-export-button.tsx",
+      "src/features/projects/project-readonly-view.tsx",
+      "src/features/projects/project-workspace-navigation.ts",
+      "src/features/resources/physical-connection-sources.tsx",
+      "src/features/resources/process-workarea-dashboard.tsx",
+      "src/features/resources/project-resource-dashboard.tsx",
+      "src/features/resources/project-resource-workload.tsx",
+      "src/features/resources/resource-dashboard-details.tsx",
+      "src/features/resources/resource-dashboard-model.ts",
+      "src/features/resources/resource-drill-context.tsx",
+      "src/features/resources/resource-drill-scope-model.ts",
+      "src/features/resources/resource-drill-transport.ts",
+      "src/features/resources/resource-physical-filters.ts",
+      "src/features/resources/resource-plan-details.tsx",
+      "src/features/resources/resource-plan-model.ts",
+      "src/features/resources/resource-plan-view.tsx",
+      "src/features/resources/resource-target-views.tsx",
+      "src/features/resources/wbs-view-dashboard.tsx",
+      "src/features/resources/wbs-view-details.tsx",
+      "src/features/resources/wbs-view-transport.ts",
+      "src/server/exports/project-excel-export-contract.ts",
+      "src/server/exports/project-excel-export-handler-core.ts",
+      "src/server/exports/project-export-snapshot-service-core.ts",
+      "src/server/exports/project-json-export-core.ts",
+      "src/server/exports/resource-excel-export-core.ts",
+      "src/server/imports/project-import-parser-core.ts",
+      "src/server/logistics/logistics-kpi-handlers-core.ts",
+      "src/server/logistics/logistics-physical-usage-core.ts",
+      "src/server/logistics/logistics-retirement-handlers-core.ts",
+      "src/server/logistics/logistics-service-core.ts",
+      "src/server/logistics/task-logistics-compatibility-core.ts",
+      "src/server/logistics/task-target-transfer-core.ts",
+      "src/server/repositories/resource-target-snapshot-repository-core.ts",
+      "src/server/resources/resource-dashboard-handlers-core.ts",
+      "src/server/resources/resource-dashboard-query-core.ts",
+      "src/server/resources/resource-dashboard-service-core.ts",
+      "src/server/resources/resource-drill-query-core.ts",
+      "src/server/resources/resource-public-v2-core.ts",
+      "src/server/resources/wbs-dashboard-views-handlers-core.ts",
+      "src/server/security/route-security-inventory.ts",
+      "src/server/templates/logistics-template-graph-core.ts",
+      "src/server/templates/project-template-service-core.ts",
+      "tests/domain/resource-public-v2.test.ts",
+      "tests/e2e/fixtures/isolated-application.ts",
+      "tests/e2e/fixtures/issue-621-target-project.ts",
+      "tests/e2e/fixtures/issue-623-target-resource.ts",
+      "tests/e2e/fixtures/legacy-logistics-seed.ts",
+      "tests/e2e/fixtures/target-project.ts",
+      "tests/e2e/issue-621-resource-target.spec.ts",
+      "tests/e2e/issue-622-resource-plan-target.spec.ts",
+      "tests/e2e/issue-623-resource-mvp.spec.ts",
+      "tests/e2e/issue-624-logistics-unified.spec.ts",
+      "tests/e2e/issue-725-process-workareas.spec.ts",
+      "tests/e2e/issue-726-logistics-master.spec.ts",
+      "tests/e2e/issue-726-task-logistics.spec.ts",
+      "tests/e2e/logistics-dashboard-request-state.spec.ts",
+      "tests/e2e/logistics-target-authoring.spec.ts",
+      "tests/e2e/project-resource-workload-status.spec.ts",
+      "tests/e2e/resource-dashboard-api.spec.ts",
+      "tests/e2e/resource-drill-dashboard.spec.ts",
+      "tests/e2e/resource-excel-export-dashboard.spec.ts",
+      "tests/e2e/resource-milestone-views.spec.ts",
+      "tests/e2e/resource-plan-dashboard.spec.ts",
+      "tests/e2e/resource-target-dashboard-api.spec.ts",
+      "tests/features/logistics/logistics-unified-model.test.ts",
+      "tests/features/project-workspace-navigation.test.ts",
+      "tests/features/resources/physical-connection-sources.test.ts",
+      "tests/features/resources/resource-drill-transport.test.ts",
+      "tests/features/resources/resource-physical-filters.test.ts",
+      "tests/features/resources/wbs-view-transport.test.ts",
+      "tests/fixtures/stateful-project.ts",
+      "tests/server/logistics/issue-731-kpi.test.ts",
+      "tests/server/logistics/task-target-bindings.test.ts",
+      "tests/server/projects/edit-authorization-handlers.test.ts",
+      "tests/server/projects/issue-785-exchange.test.ts",
+      "tests/server/projects/resource-excel-export.test.ts",
+      "tests/server/resources/issue-622-target-plan-excel.test.ts",
+      "tests/server/resources/issue-623-canonical-acceptance.test.ts",
+      "tests/server/resources/resource-dashboard.test.ts",
+      "tests/server/resources/resource-public-v2.test.ts",
+      "tests/server/resources/resource-target-dashboard.test.ts",
+      "tests/server/resources/wbs-dashboard-views-http.test.ts",
+      "tests/server/templates/logistics-template-graph.test.ts"
+    ]
+  },
+  "sourceEnd": {
+    "baseRef": "origin/main",
+    "baseSha": "427d22245fb8e11254b2424ea5147ccbd5766979",
+    "headSha": "427d22245fb8e11254b2424ea5147ccbd5766979",
+    "workingDiffSha256": "70c78d705df21da40fdd8965eb3f8e7483f5f06506b40c3e3ba2728481b2c2bb",
+    "fingerprint": "f4ec6cc482cf30e4634f376de5e90bac0c339eed533741643af025ae47e0345b",
+    "dirty": true,
+    "changed": [
+      "CHANGELOG.md",
+      "DESIGN.md",
+      "docs/API.md",
+      "docs/ARCHITECTURE.md",
+      "docs/DB_SCHEMA.md",
+      "docs/EXCEL_EXPORT.md",
+      "docs/IMPORT_EXPORT.md",
+      "docs/IMPORT_SCHEMA.md",
+      "docs/ISSUE_27_PROJECT_COPY.md",
+      "docs/ISSUE_785_FAILURE_ANALYSIS.md",
+      "docs/JSON_IMPORT.md",
+      "docs/LOGISTICS_DASHBOARD.md",
+      "docs/LOGISTICS_DOMAIN_DESIGN.md",
+      "docs/LOGISTICS_TARGETS.md",
+      "docs/PROJECT_UX.md",
+      "docs/REQUIREMENTS.md",
+      "docs/RESOURCE_KPI_DASHBOARD.md",
+      "docs/SECURITY.md",
+      "docs/TARGET_RESOURCE_OPERATIONS.md",
+      "docs/TARGET_RESOURCE_USER_GUIDE.md",
+      "docs/TASK_EDITOR.md",
+      "docs/TEST_PLAN.md",
+      "docs/UI_UX_GUIDELINES.md",
+      "docs/WBS_CROSS_FEATURE_ACCEPTANCE.md",
+      "docs/WBS_TASK_LEDGER.md",
+      "docs/evidence/issue-785/producer-consumer-baseline.json",
+      "docs/exec-plans/active/ISSUE_785.md",
+      "docs/exec-plans/active/PLAN.md",
+      "package-lock.json",
+      "package.json",
+      "src/app/api/projects/[publicId]/logistics/equipment/[equipmentId]/usage/route.ts",
+      "src/app/api/projects/[publicId]/logistics/systems/[systemId]/usage/route.ts",
+      "src/app/api/projects/[publicId]/logistics/targets/[targetId]/impact/route.ts",
+      "src/app/api/projects/[publicId]/logistics/targets/[targetId]/route.ts",
+      "src/app/api/projects/[publicId]/logistics/targets/[targetId]/usage/route.ts",
+      "src/app/api/projects/[publicId]/logistics/targets/route.ts",
+      "src/app/api/projects/[publicId]/tasks/[taskId]/target-bindings/route.ts",
+      "src/contracts/logistics-dashboard.ts",
+      "src/contracts/logistics.ts",
+      "src/contracts/project-templates.ts",
+      "src/contracts/resource-dashboard.ts",
+      "src/contracts/resource-drill.ts",
+      "src/contracts/resource-public-v2.ts",
+      "src/contracts/wbs-dashboard-views.ts",
+      "src/domain/resources/resource-kpi-targets.ts",
+      "src/features/gantt/project-task-editor.tsx",
+      "src/features/gantt/task-logistics-link-editor.tsx",
+      "src/features/gantt/task-process-context-editor.tsx",
+      "src/features/gantt/task-target-binding-editor.tsx",
+      "src/features/logistics/logistics-kpi-configuration.tsx",
+      "src/features/logistics/logistics-kpi-validation.ts",
+      "src/features/logistics/logistics-unified-model.ts",
+      "src/features/logistics/project-logistics-dashboard.tsx",
+      "src/features/logistics/project-logistics-management.tsx",
+      "src/features/logistics/project-logistics-targets.tsx",
+      "src/features/logistics/project-logistics-unified.tsx",
+      "src/features/logistics/target-detail.tsx",
+      "src/features/logistics/target-master-registration.tsx",
+      "src/features/projects/project-excel-export-button.tsx",
+      "src/features/projects/project-readonly-view.tsx",
+      "src/features/projects/project-workspace-navigation.ts",
+      "src/features/resources/physical-connection-sources.tsx",
+      "src/features/resources/process-workarea-dashboard.tsx",
+      "src/features/resources/project-resource-dashboard.tsx",
+      "src/features/resources/project-resource-workload.tsx",
+      "src/features/resources/resource-dashboard-details.tsx",
+      "src/features/resources/resource-dashboard-model.ts",
+      "src/features/resources/resource-drill-context.tsx",
+      "src/features/resources/resource-drill-scope-model.ts",
+      "src/features/resources/resource-drill-transport.ts",
+      "src/features/resources/resource-physical-filters.ts",
+      "src/features/resources/resource-plan-details.tsx",
+      "src/features/resources/resource-plan-model.ts",
+      "src/features/resources/resource-plan-view.tsx",
+      "src/features/resources/resource-target-views.tsx",
+      "src/features/resources/wbs-view-dashboard.tsx",
+      "src/features/resources/wbs-view-details.tsx",
+      "src/features/resources/wbs-view-transport.ts",
+      "src/server/exports/project-excel-export-contract.ts",
+      "src/server/exports/project-excel-export-handler-core.ts",
+      "src/server/exports/project-export-snapshot-service-core.ts",
+      "src/server/exports/project-json-export-core.ts",
+      "src/server/exports/resource-excel-export-core.ts",
+      "src/server/imports/project-import-parser-core.ts",
+      "src/server/logistics/logistics-kpi-handlers-core.ts",
+      "src/server/logistics/logistics-physical-usage-core.ts",
+      "src/server/logistics/logistics-retirement-handlers-core.ts",
+      "src/server/logistics/logistics-service-core.ts",
+      "src/server/logistics/task-logistics-compatibility-core.ts",
+      "src/server/logistics/task-target-transfer-core.ts",
+      "src/server/repositories/resource-target-snapshot-repository-core.ts",
+      "src/server/resources/resource-dashboard-handlers-core.ts",
+      "src/server/resources/resource-dashboard-query-core.ts",
+      "src/server/resources/resource-dashboard-service-core.ts",
+      "src/server/resources/resource-drill-query-core.ts",
+      "src/server/resources/resource-public-v2-core.ts",
+      "src/server/resources/wbs-dashboard-views-handlers-core.ts",
+      "src/server/security/route-security-inventory.ts",
+      "src/server/templates/logistics-template-graph-core.ts",
+      "src/server/templates/project-template-service-core.ts",
+      "tests/domain/resource-public-v2.test.ts",
+      "tests/e2e/fixtures/isolated-application.ts",
+      "tests/e2e/fixtures/issue-621-target-project.ts",
+      "tests/e2e/fixtures/issue-623-target-resource.ts",
+      "tests/e2e/fixtures/legacy-logistics-seed.ts",
+      "tests/e2e/fixtures/target-project.ts",
+      "tests/e2e/issue-621-resource-target.spec.ts",
+      "tests/e2e/issue-622-resource-plan-target.spec.ts",
+      "tests/e2e/issue-623-resource-mvp.spec.ts",
+      "tests/e2e/issue-624-logistics-unified.spec.ts",
+      "tests/e2e/issue-725-process-workareas.spec.ts",
+      "tests/e2e/issue-726-logistics-master.spec.ts",
+      "tests/e2e/issue-726-task-logistics.spec.ts",
+      "tests/e2e/logistics-dashboard-request-state.spec.ts",
+      "tests/e2e/logistics-target-authoring.spec.ts",
+      "tests/e2e/project-resource-workload-status.spec.ts",
+      "tests/e2e/resource-dashboard-api.spec.ts",
+      "tests/e2e/resource-drill-dashboard.spec.ts",
+      "tests/e2e/resource-excel-export-dashboard.spec.ts",
+      "tests/e2e/resource-milestone-views.spec.ts",
+      "tests/e2e/resource-plan-dashboard.spec.ts",
+      "tests/e2e/resource-target-dashboard-api.spec.ts",
+      "tests/features/logistics/logistics-unified-model.test.ts",
+      "tests/features/project-workspace-navigation.test.ts",
+      "tests/features/resources/physical-connection-sources.test.ts",
+      "tests/features/resources/resource-drill-transport.test.ts",
+      "tests/features/resources/resource-physical-filters.test.ts",
+      "tests/features/resources/wbs-view-transport.test.ts",
+      "tests/fixtures/stateful-project.ts",
+      "tests/server/logistics/issue-731-kpi.test.ts",
+      "tests/server/logistics/task-target-bindings.test.ts",
+      "tests/server/projects/edit-authorization-handlers.test.ts",
+      "tests/server/projects/issue-785-exchange.test.ts",
+      "tests/server/projects/resource-excel-export.test.ts",
+      "tests/server/resources/issue-622-target-plan-excel.test.ts",
+      "tests/server/resources/issue-623-canonical-acceptance.test.ts",
+      "tests/server/resources/resource-dashboard.test.ts",
+      "tests/server/resources/resource-public-v2.test.ts",
+      "tests/server/resources/resource-target-dashboard.test.ts",
+      "tests/server/resources/wbs-dashboard-views-http.test.ts",
+      "tests/server/templates/logistics-template-graph.test.ts"
+    ]
+  },
+  "sourceStable": true,
+  "selection": {
+    "risk": "HIGH",
+    "inferredRisk": "HIGH",
+    "matched": [
+      {
+        "path": "package-lock.json",
+        "rule": "issue-552-locked-dependencies",
+        "reason": "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+      },
+      {
+        "path": "package.json",
+        "rule": "prepr-tooling",
+        "reason": "Pre-PR tool parser, source provenance, failure and safety regression"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/equipment/[equipmentId]/usage/route.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/systems/[systemId]/usage/route.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/targets/[targetId]/impact/route.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/targets/[targetId]/route.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/targets/[targetId]/usage/route.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/targets/route.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/tasks/[taskId]/target-bindings/route.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/contracts/resource-dashboard.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/contracts/resource-drill.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/contracts/resource-public-v2.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/domain/resources/resource-kpi-targets.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/gantt/project-task-editor.tsx",
+        "rule": "gantt-editor",
+        "reason": "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+      },
+      {
+        "path": "src/features/projects/project-readonly-view.tsx",
+        "rule": "issue-552-project-workspace",
+        "reason": "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+      },
+      {
+        "path": "src/features/resources/physical-connection-sources.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/process-workarea-dashboard.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/project-resource-dashboard.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/project-resource-workload.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/resource-dashboard-details.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/resource-dashboard-model.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/resource-drill-context.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/resource-drill-scope-model.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/resource-drill-transport.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/resource-physical-filters.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/resource-plan-details.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/resource-plan-model.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/resource-plan-view.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/resource-target-views.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/wbs-view-dashboard.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/wbs-view-details.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/wbs-view-transport.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/server/exports/project-excel-export-contract.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/exports/project-excel-export-contract.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/exports/project-excel-export-handler-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/exports/project-excel-export-handler-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/exports/project-export-snapshot-service-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/exports/project-export-snapshot-service-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/exports/project-json-export-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/exports/project-json-export-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/exports/resource-excel-export-core.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/server/exports/resource-excel-export-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/exports/resource-excel-export-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/imports/project-import-parser-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/imports/project-import-parser-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/logistics/logistics-kpi-handlers-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/logistics/logistics-kpi-handlers-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/logistics/logistics-physical-usage-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/logistics/logistics-physical-usage-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/logistics/logistics-retirement-handlers-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/logistics/logistics-retirement-handlers-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/logistics/logistics-service-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/logistics/logistics-service-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/logistics/task-logistics-compatibility-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/logistics/task-target-transfer-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/logistics/task-target-transfer-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/repositories/resource-target-snapshot-repository-core.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/server/repositories/resource-target-snapshot-repository-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/resources/resource-dashboard-handlers-core.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/server/resources/resource-dashboard-handlers-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/resources/resource-dashboard-handlers-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/resources/resource-dashboard-query-core.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/server/resources/resource-dashboard-query-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/resources/resource-dashboard-query-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/resources/resource-dashboard-service-core.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/server/resources/resource-dashboard-service-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/resources/resource-dashboard-service-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/resources/resource-drill-query-core.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/server/resources/resource-drill-query-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/resources/resource-public-v2-core.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/server/resources/resource-public-v2-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/resources/resource-public-v2-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/resources/wbs-dashboard-views-handlers-core.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/server/resources/wbs-dashboard-views-handlers-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/resources/wbs-dashboard-views-handlers-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/security/route-security-inventory.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/security/route-security-inventory.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/templates/logistics-template-graph-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/templates/project-template-service-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/templates/project-template-service-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      }
+    ],
+    "unknown": [
+      {
+        "path": "src/contracts/logistics-dashboard.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/contracts/logistics.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/contracts/project-templates.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/contracts/wbs-dashboard-views.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/gantt/task-logistics-link-editor.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/gantt/task-process-context-editor.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/gantt/task-target-binding-editor.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/logistics-kpi-configuration.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/logistics-kpi-validation.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/logistics-unified-model.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-logistics-dashboard.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-logistics-management.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-logistics-targets.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-logistics-unified.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/target-detail.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/target-master-registration.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/projects/project-excel-export-button.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/projects/project-workspace-navigation.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/server/logistics/task-logistics-compatibility-core.ts",
+        "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+      },
+      {
+        "path": "src/server/repositories/resource-target-snapshot-repository-core.ts",
+        "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+      },
+      {
+        "path": "src/server/resources/resource-drill-query-core.ts",
+        "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+      },
+      {
+        "path": "src/server/templates/logistics-template-graph-core.ts",
+        "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+      },
+      {
+        "path": "tests/e2e/fixtures/isolated-application.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "tests/e2e/fixtures/issue-621-target-project.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "tests/e2e/fixtures/issue-623-target-resource.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "tests/e2e/fixtures/legacy-logistics-seed.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "tests/e2e/fixtures/target-project.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "tests/fixtures/stateful-project.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      }
+    ],
+    "missing": [],
+    "excluded": [],
+    "selected": [
+      {
+        "path": "tests/domain/resource-public-v2.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-621-resource-target.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-622-resource-plan-target.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-624-logistics-unified.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-725-process-workareas.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-726-logistics-master.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-726-task-logistics.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/logistics-target-authoring.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-stage-editor.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-visibility.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-create-isolation.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-edit-authorization.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually",
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-json-import.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-links-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-multi-task-copy-paste.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-notifications.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-resource-calendar-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-resource-workload-status.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-delete-context.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions",
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-editor.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually",
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-quick-view.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-work-calendar-preview.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/resource-dashboard-api.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/resource-drill-api.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+        ]
+      },
+      {
+        "path": "tests/e2e/resource-drill-dashboard.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/resource-drill-ui.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/resource-excel-export-dashboard.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/resource-milestone-views.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/resource-plan-dashboard.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/resource-target-dashboard-api.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/axis-transaction.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/canonical-recovery-runtime.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/date-adapter.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/milestone-timeline-adapter.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/task-delete-model.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/task-editor-model.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/task-link-scope.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/task-selection-model.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/features/logistics/logistics-unified-model.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/features/project-workspace-navigation.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/features/resources/physical-connection-sources.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/features/resources/resource-dashboard-model.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/features/resources/resource-drill-transport.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/features/resources/resource-physical-filters.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/features/resources/resource-wbs-dashboard-model.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/features/resources/system-dashboard.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/features/resources/wbs-view-transport.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/scripts/prepr-verifier.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility",
+          "Pre-PR tool parser, source provenance, failure and safety regression"
+        ]
+      },
+      {
+        "path": "tests/server/db/database.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+        ]
+      },
+      {
+        "path": "tests/server/imports/project-import-parser.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/imports/project-import-service.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/logistics/issue-731-kpi.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/logistics/logistics-copy-guard.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/logistics/logistics-handlers.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/logistics/logistics-resource-roles.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/logistics/logistics-service.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/logistics/task-logistics-links.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/logistics/task-target-bindings.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/process-catalog/process-catalog-compatibility.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/process-catalog/process-catalog-handlers.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/process-catalog/process-context-service.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/process-catalog/project-work-areas.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/projects/edit-authorization-handlers.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually",
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/projects/empty-summary.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/projects/issue-623-target-transfer-acceptance.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/projects/issue-737-preservation.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/projects/issue-785-exchange.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/projects/milestone-dashboard-http.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/projects/milestone-stage-service.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/projects/project-copy-logistics.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/projects/project-excel-stage.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/projects/resource-excel-export.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/projects/task-handler-integration.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+        ]
+      },
+      {
+        "path": "tests/server/projects/task-target-transfer.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/resources/issue-622-target-plan-excel.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/resources/issue-623-canonical-acceptance.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/resources/issue-734-equipment-configuration.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/resources/issue-735-system-dashboard.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/resources/issue-736-resource-adapter.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/resources/issue-737-cross-feature-acceptance.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/resources/project-resource-memberships.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/resources/resource-dashboard-rollup.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/resources/resource-dashboard.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/resources/resource-drill.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/resources/resource-kpi-integration.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/resources/resource-plan.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/resources/resource-public-v2.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/resources/resource-target-dashboard.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/resources/wbs-dashboard-views-http.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/templates/logistics-template-graph.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/templates/milestone-membership-template.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/templates/project-template-handlers.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/templates/project-template-service.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      }
+    ],
+    "state": "BLOCKED",
+    "notSelectedReason": "Not a mapped direct/adjacent consumer for this change; remote Required coverage unchanged"
+  },
+  "steps": [],
+  "errors": [
+    "Dry run only; no tests executed"
+  ],
+  "deferred": [
+    {
+      "check": "GitHub QA Preflight / Trusted QA / Owner",
+      "state": "DEFERRED",
+      "reason": "GitHub PR metadata, protected base validator and signed approval required"
+    },
+    {
+      "check": "PR Required Quality/E2E/Docker aggregates",
+      "state": "DEFERRED",
+      "reason": "Exact PR head/base/test-merge/run/attempt must be verified by GitHub Actions"
+    },
+    {
+      "check": "6 independent Chromium runners and fail-fast",
+      "state": "DEFERRED",
+      "reason": "Local worker=1 cannot reproduce six GitHub runners"
+    },
+    {
+      "check": "npm audit --omit=dev",
+      "state": "DEFERRED",
+      "reason": "Requires npm registry and CI environment; run explicitly if available"
+    },
+    {
+      "check": "remote Compose/transport/GHCR",
+      "state": "DEFERRED",
+      "reason": "Local test never accesses production runtime or registry"
+    }
+  ],
+  "versions": {
+    "os": "linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "cpuCount": 16,
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "packageVersion": "0.131.0",
+    "lockVersion": "0.131.0",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "ciNode": "22",
+    "ciPlaywright": "1.63.0",
+    "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+    "e2e": {
+      "fullyParallel": true,
+      "workers": 1,
+      "shardsLocal": 1,
+      "shardsGitHub": 6,
+      "config": "tests/config/playwright.config.ts"
+    }
+  },
+  "startedAt": "2026-10-23T13:54:04.205Z",
+  "completedAt": "2026-10-23T13:54:04.441Z"
+}

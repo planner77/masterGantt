@@ -1,10 +1,8 @@
 import { isWbsViewReadQuery } from "./helpers/read-only-requests";
-import { expectRawIdentifier } from "./helpers/identifier-details";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { ISSUE_623_TARGET_RESOURCE as oracle } from "../fixtures/issue-623-target-resource";
 import { inflateRawSync } from "node:zlib";
 import type { AssignedTargetsResponse } from "../../src/contracts/resources";
-import type { TaskTargetBindingsResponse } from "../../src/contracts/task-target-bindings";
 import type { ObserveIsolatedApi } from "./fixtures/isolated-application-diagnostics";
 import type { ResourceDashboardDto } from "../../src/contracts/resource-dashboard";
 import { resourceExportFilterInput } from "../../src/features/resources/resource-export-model";
@@ -76,8 +74,8 @@ function archive(bytes: Buffer) {
 // Keep setup/authorization clients unchanged, and never retry a failed read.
 async function readMutationSource<T>(page: Page, path: string, observeApi: ObserveIsolatedApi): Promise<T> {
   const uuid = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
-  if (!new RegExp(`^/api/projects/${uuid}/(?:assigned-targets|tasks/${uuid}/target-bindings)$`, "i").test(path))
-    throw new Error("저장 후 조회에는 같은 origin의 배정/Target 원본 경로가 필요합니다.");
+  if (!new RegExp(`^/api/projects/${uuid}/(?:assigned-targets|tasks/${uuid}/logistics-links)$`, "i").test(path))
+    throw new Error("저장 후 조회에는 같은 origin의 배정/실물 연결 원본 경로가 필요합니다.");
   const response = await observeApi(path, "GET", async () => {
     const result = await page.evaluate(async api => {
       const response = await fetch(api, { credentials: "same-origin", cache: "no-store" });
@@ -100,12 +98,13 @@ async function resource(page: Page) {
   await expect(root).toHaveAttribute("data-ready", "true");
   await root.getByLabel("기간 시작", { exact: true }).fill("2026-10-05");
   await root.getByLabel("기간 종료", { exact: true }).fill("2026-10-12");
-  await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");
-  await root.getByLabel("Target 표시", { exact: true }).selectOption("matrix");
+  await root.getByLabel("리소스 보기", { exact: true }).selectOption("summary");
   await expect(root).toHaveAttribute("data-ready", "true"); return root;
 }
 async function sharedDetail(root: Locator, taskId: string) {
-  await root.getByRole("region", { name: "Resource Target 비교표", exact: true }).locator("tbody td button").first().click();
+  await root.getByRole("button", { name: "개인", exact: true }).click();
+  const person = root.getByRole("region", { name: "개인 현황", exact: true }).locator("tbody tr > th > button").first();
+  if(await person.getAttribute("aria-expanded") === "false") await person.click();
   const detail = root.locator(".resource-dashboard-detail");
   await expect(detail).toHaveAttribute("data-detail-state", "ready");
   return detail.locator(`[data-canonical-task-id="${taskId}"]`).first();
@@ -130,7 +129,7 @@ test("#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot", as
   const assignmentId = source.assignment!.assignmentId;
   expect(source.targetSources!.inheritedBindings).toHaveLength(1);
   expect(source.targetSources!.bindings).toHaveLength(2);
-  const acs = (await (await page.request.get(`${f.api}/tasks/${f.acsTask.taskId}/target-bindings`)).json()).data.effective;
+  const acs = (await (await page.request.get(`${f.api}/tasks/${f.acsTask.taskId}/logistics-links`)).json()).data.links;
   expect(acs.effectiveEquipmentIds).toEqual([]);
   expect(acs.effectiveSystemIds).toEqual([f.targets[0].members.find(member => member.code === "ACS-A")!.entityId]);
   expect(f.targets[0].members.find(member => member.code === "MCS-1")!.entityId).toBe(f.targets[1].members.find(member => member.code === "MCS-1")!.entityId);
@@ -147,12 +146,9 @@ test("#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot", as
   await goldenRoot.getByRole("button", { name: /^필터(?: \d+)?$/ }).click();
   await goldenRoot.getByLabel("작업 검색", { exact: true }).fill("SHARED");
   await expect(goldenRoot).toHaveAttribute("data-ready", "true");
-  await expect(goldenRoot.getByTestId("resource-target-view")).toContainText("선택 전체: 5.00 M/D");
-  const goldenCells = goldenRoot.getByRole("region", { name: "Resource Target 비교표", exact: true }).locator("tbody td button");
-  await expect(goldenCells).toHaveCount(2);
-  for (const cell of await goldenCells.all()) await expect(cell).toContainText("5.00 M/D");
+  await expect(goldenRoot.getByLabel("선택 범위 KPI", { exact: true })).toContainText("5.00 M/D");
   await goldenRoot.getByRole("button", { name: "M/M", exact: true }).click();
-  await expect(goldenRoot.getByTestId("resource-target-view")).toContainText("선택 전체: 0.25 M/M");
+  await expect(goldenRoot.getByLabel("선택 범위 KPI", { exact: true })).toContainText("0.25 M/M");
   await goldenRoot.getByRole("button", { name: "M/D", exact: true }).click();
   await expect.poll(() => uiReport?.filters.taskSearch).toBe("SHARED");
   const confirmedUiReport = uiReport! as ResourceDashboardDto;
@@ -171,9 +167,10 @@ test("#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot", as
   expect(assignmentXml).toContain(assignmentId); expect(assignmentXml).toContain(f.task.taskId); expect(assignmentXml).toContain(f.person.id);
   expect([...assignmentXml.matchAll(/<c r="Y\d+"[^>]*><v>([^<]+)<\/v><\/c>/g)].map(match => Number(match[1]))).toEqual([oracle.expected.shared.knownMd]);
   expect([...assignmentXml.matchAll(/<c r="Z\d+"[^>]*><v>([^<]+)<\/v><\/c>/g)].map(match => Number(match[1]))).toEqual([oracle.expected.shared.plannedMm]);
-  expect(workbook.sheet("Resource Target Sources")).toContain(assignmentId);
-  for (const target of f.targets) expect(workbook.sheet("Resource Target Catalog")).toContain(target.id);
-  expect(workbook.sheet("Resource Target Sources")).toContain(f.targets[0].members.find(member => member.code === "MCS-1")!.entityId);
+  expect(workbook.sheet("Resource Entity Sources")).toContain(assignmentId);
+  for (const target of f.targets) for (const member of target.members) expect(workbook.sheet("Resource Entity Catalog")).toContain(member.entityId);
+  expect(workbook.names.some(name=>/Target/.test(name))).toBe(false);
+  expect(workbook.sheet("Resource Entity Sources")).toContain(f.targets[0].members.find(member => member.code === "MCS-1")!.entityId);
   expect(await f.snapshot()).toEqual(initial);
   const evidence = { projectId: f.publicId, taskId: f.task.taskId, assignmentId, targetIds: f.targets.map(target => target.id), standardId: f.standardId, siteIds: [f.siteA, f.siteB], rawGolden: union.summary, workbook: { names: workbook.names, snapshotId: confirmedUiReport.snapshotId, filters: confirmedUiReport.filters, bytes: workbookBytes.length }, members: union.targetProjection!.relatedMembers, instance };
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
@@ -223,18 +220,12 @@ async function renameFromWbs(page: Page, f: Issue623Fixture, session: MutationSe
   expect((await assertSaved(offset + 1)).name).toBe("SHARED · WBS 동일 원본");
 }
 async function changeStartFromTarget(page: Page, f: Issue623Fixture, session: MutationSession, taskName: string, offset = 0) {
-  const { assertSaved } = session;
-  await openWorkspaceView(page, "logistics");
-  await openWorkspaceView(page, "targets");
-  await page.getByRole("button", { name: `Target 상세: ${f.targets[0].name}`, exact: true }).click();
-  const targetDetail = page.getByRole("dialog", { name: `Target 상세 · ${f.targets[0].name}`, exact: true });
-  await expectRawIdentifier(targetDetail, "작업 ID", f.task.taskId);
-  await targetDetail.getByRole("button", { name: new RegExp(`원본 작업 편집:.*${taskName}`) }).click();
+  const root=await resource(page), row=await sharedDetail(root,f.task.taskId);
+  await row.getByRole("button",{name:taskName,exact:true}).click();
   await editor(page).getByLabel("요청 시작일", { exact: true }).fill("2026-10-06");
   await editor(page).getByRole("button", { name: "저장", exact: true }).click();
   await expect(editor(page)).toHaveCount(0);
-  expect((await assertSaved(offset + 1)).start).toBe("2026-10-06");
-  await expect(targetDetail).toBeVisible(); await page.keyboard.press("Escape");
+  expect((await session.assertSaved(offset + 1)).start).toBe("2026-10-06");
 }
 async function changeResourceStatusProgress(page: Page, f: Issue623Fixture, session: MutationSession, root: Locator, taskName: string, phaseTiming: PhaseTiming, offset = 0, canonicalRow?: Locator) {
   const { assertSaved } = session;
@@ -281,29 +272,47 @@ async function changeResourceAndAssignment(page: Page, f: Issue623Fixture, sessi
 }
 
 async function changeTargetBinding(page: Page, f: Issue623Fixture, session: MutationSession, root: Locator, taskName: string, observeIsolatedApi: ObserveIsolatedApi, phaseTiming: PhaseTiming, offset = 0, canonicalRow?: Locator) {
-  phaseTiming.mark("ui/target-bindings-save");
-  const { assertSaved } = session;
-  const row = await mutationDetail(root, f.task.taskId, canonicalRow);
-  await row.getByRole("button", { name: taskName, exact: true }).click();
-  await editor(page).getByRole("tab", { name: /물류 연결/ }).click();
-  // #726: Target bindings are an explicit compatibility disclosure.
-  if (!(await editor(page).locator("details").filter({ has: page.getByText("Target 연결 (기존 호환)", { exact: true }) }).evaluate(element => (element as HTMLDetailsElement).open))) {
-    await editor(page).getByText("Target 연결 (기존 호환)", { exact: true }).click();
+  phaseTiming.mark("ui/direct-logistics-save");
+  const original=(await (await page.request.get(`${f.api}/tasks/${f.task.taskId}/logistics-links`)).json()).data.links;
+  const row=await mutationDetail(root,f.task.taskId,canonicalRow);
+  await row.getByRole("button",{name:taskName,exact:true}).click();
+  await editor(page).getByRole("tab",{name:/물류 연결/}).click();
+  const physical=editor(page).getByRole("region",{name:"기존 연결 출처",exact:true});
+  await expect(physical).toBeVisible();await expect(physical).not.toContainText(f.targets[1].name);
+  await editor(page).getByRole("checkbox",{name:/^AMR B/}).check();
+  const savePath = new URL(`${f.api}/tasks/${f.task.taskId}/logistics-links`).pathname;
+  const savePattern = `**${savePath}`;
+  let releaseSave!: () => void, markStarted!: () => void;
+  const saveGate = new Promise<void>(resolve => { releaseSave = resolve; });
+  const requestStarted = new Promise<void>(resolve => { markStarted = resolve; });
+  const holdSave = async (route: import("@playwright/test").Route) => {
+    if (route.request().method() !== "PUT") return route.continue();
+    markStarted();
+    await saveGate;
+    await route.continue();
+  };
+  await page.route(savePattern, holdSave);
+  const savedResponse = page.waitForResponse(response => response.request().method() === "PUT" && new URL(response.url()).pathname === savePath)
+    .then(response => ({ response }), error => ({ error }));
+  try {
+    await editor(page).getByRole("button", { name: "물류 연결 저장", exact: true }).click();
+    await requestStarted;
+    await expect(editor(page).getByRole("button", { name: /^물류 연결 저장/ })).toBeDisabled();
+    releaseSave();
+    const result = await savedResponse;
+    if ("error" in result) throw result.error;
+    expect(result.response.status(), await result.response.text()).toBe(200);
+    await expect(editor(page).getByRole("button", { name: "물류 연결 저장", exact: true })).toBeEnabled();
+  } finally {
+    releaseSave();
+    await page.unroute(savePattern, holdSave);
   }
-  const binding = editor(page).getByRole("region", { name: "작업 Target 연결", exact: true });
-  await binding.getByRole("combobox", { name: `${f.targets[1].name} 구성원 선택`, exact: true }).selectOption("subset");
-  await binding.getByRole("group", { name: `${f.targets[1].name} 선택 구성원`, exact: true }).getByRole("checkbox", { name: /^ACS B · 원본 / }).check();
-  await binding.getByRole("button", { name: "Target 연결 저장", exact: true }).click();
-  await expect(binding.getByRole("button", { name: "Target 연결 저장", exact: true })).toBeDisabled();
-  await editor(page).getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
-  await assertSaved(offset + 1);
-  phaseTiming.mark("api/target-bindings-source");
-  const newSources = (await readMutationSource<TaskTargetBindingsResponse>(page, `/api/projects/${f.publicId}/tasks/${f.task.taskId}/target-bindings`, observeIsolatedApi)).data;
-  const savedBinding = newSources.bindings.find(item => item.targetId === f.targets[1].id);
-  expect(savedBinding, "저장한 Target B 연결이 원본에 남아 있어야 합니다.").toBeDefined();
-  if (!savedBinding) throw new Error("저장한 Target B 연결이 원본에 없습니다.");
-  expect(savedBinding.memberIds).toEqual([f.targets[1].members.find(member => member.code === "ACS-B")!.id]);
-  expect(newSources.effective.effectiveEquipmentIds).toEqual([f.targets[0].members.find(member => member.code === "AMR-A")!.entityId]);
+  await editor(page).getByRole("button",{name:"작업 편집기 닫기",exact:true}).click();
+  await session.assertSaved(offset+1);
+  const source=(await readMutationSource<{data:{links:typeof original}}>(page,`/api/projects/${f.publicId}/tasks/${f.task.taskId}/logistics-links`,observeIsolatedApi)).data.links;
+  expect(source.compatibilityLinks).toEqual(original.compatibilityLinks);
+  expect(source.directEquipmentLinks.map((link:{equipmentId:string})=>link.equipmentId)).toContain(f.targets[1].members.find(member=>member.code==="AMR-B")!.entityId);
+  expect(source.effectiveEquipmentIds).toEqual(original.effectiveEquipmentIds);
 }
 async function returnToSchedule(page: Page, f: Issue623Fixture, session: MutationSession, taskName: string, count: number) {
   const { frame, assertSaved } = session;
@@ -324,7 +333,7 @@ const focusedTest = test.extend<{ focusedAcceptance: { f: Issue623Fixture; sessi
 });
 
 // 공통 조작 함수와 원본 Assertion을 그대로 사용하며 기존 종단 Smoke를 유지한다.
-for (const boundary of ["WBS 변경", "Resource status/progress", "Assignment allocation", "Target binding", "화면 복귀"] as const) {
+for (const boundary of ["WBS 변경", "Resource status/progress", "Assignment allocation", "실물 직접 연결", "화면 복귀"] as const) {
   focusedTest(`#623 독립 ${boundary}·원시 ID·mutation 경계`, async ({ page, observeIsolatedApi, phaseTiming, focusedAcceptance }, info) => {
     phaseTiming.beginBody("focused/initial-identity");
     const { f, session } = focusedAcceptance;
@@ -346,17 +355,13 @@ for (const boundary of ["WBS 변경", "Resource status/progress", "Assignment al
       await changeAssignmentAllocation(page, f, session, await resource(page), observeIsolatedApi, phaseTiming);
       count = 1;
       await returnToSchedule(page, f, session, originalName, count);
-    } else if (boundary === "Target binding") {
+    } else if (boundary === "실물 직접 연결") {
       await changeTargetBinding(page, f, session, await resource(page), originalName, observeIsolatedApi, phaseTiming);
       count = 1;
       await returnToSchedule(page, f, session, originalName, count);
     } else {
-      await openWorkspaceView(page, "logistics");
-      await openWorkspaceView(page, "targets");
-      await page.getByRole("button", { name: `Target 상세: ${f.targets[0].name}`, exact: true }).click();
-      const detail = page.getByRole("dialog", { name: `Target 상세 · ${f.targets[0].name}`, exact: true });
-      await expectRawIdentifier(detail, "작업 ID", f.task.taskId);
-      await page.keyboard.press("Escape");
+      await openWorkspaceView(page, "unified");
+      await expect(page.getByTestId("process-workarea-summary")).toBeVisible();
       const row = await sharedDetail(await resource(page), f.task.taskId);
       await expect(row).toHaveAttribute("data-canonical-assignment-id", session.assignmentId);
       await returnToSchedule(page, f, session, originalName, count);
@@ -399,7 +404,7 @@ test("#623 여섯 별도 mutation·양방향 동일원본 복귀", async ({ page
   expect(writes[2].body).toMatchObject({ status: "in_progress" });
   expect(writes[3].body).toMatchObject({ progress: 35 });
   expect(writes[4]).toMatchObject({ method: "PUT", path: `${taskPath}/assignments`, body: { editAssignmentId: assignmentId } });
-  expect(writes[5]).toMatchObject({ method: "PUT", path: `${taskPath}/target-bindings` });
+  expect(writes[5]).toMatchObject({ method: "PUT", path: `${taskPath}/logistics-links` });
   const evidence = { projectId: f.publicId, taskId: f.task.taskId, assignmentId, targetIds: f.targets.map(target => target.id), standardId: f.standardId, siteIds: [f.siteA, f.siteB], rawGolden: union.summary, members: union.targetProjection!.relatedMembers, writes, instance };
   await mkdir("output/playwright/issue-750", { recursive: true });
   await writeFile("output/playwright/issue-750/cumulative.json", JSON.stringify(evidence, null, 2));
@@ -410,7 +415,7 @@ test("#623 여섯 별도 mutation·양방향 동일원본 복귀", async ({ page
 // 각 폭은 새 canonical fixture와 기존 실측 45초 예산에서 두 레이아웃을 확인하며,
 // tree→matrix 전환과 모든 읽기 전용 단언을 유지한다.
 for (const width of [390, 768, 1024, 1440, 1920]) {
-  test(`#623 실제 Target 다열·중첩Group ${width}px geometry·keyboard·query0·렌더관측`, async ({ page, isolatedApplication: origin, observeIsolatedApi, phaseTiming, timeIsolatedStage }, info) => {
+  test(`#623 실제 실물 연결·중첩Group ${width}px geometry·keyboard·query0·렌더관측`, async ({ page, isolatedApplication: origin, observeIsolatedApi, phaseTiming, timeIsolatedStage }, info) => {
     // #730 Release #182.2: fresh SQLite/HTTP setup plus tree/matrix nearly exhausted 30s in all five widths.
     // Bounded per-case budget; no changes to assertions, global timeout, retries, or fail-fast.
     test.setTimeout(45_000);
@@ -423,13 +428,12 @@ for (const width of [390, 768, 1024, 1440, 1920]) {
     const writes: string[] = []; page.on("request", request => { if (new URL(request.url()).pathname.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !request.url().includes("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes.push(request.url()); });
     const start = performance.now(); const root = await resource(page); const renderMilliseconds = performance.now() - start;
     const measurements = []; await mkdir("output/playwright/issue-750", { recursive: true });
-    for (const layout of ["tree", "matrix"]) {
+    for (const layout of ["group", "resource"]) {
       phaseTiming.mark(`ui/${width}px-${layout}-geometry-keyboard`);
-      await page.setViewportSize({ width, height: 1000 }); await root.getByLabel("Target 표시", { exact: true }).selectOption(layout);
-      if (layout === "tree") await root.getByLabel("Target 집계 순서", { exact: true }).selectOption("target");
-      else await root.getByLabel("Target 비교 행", { exact: true }).selectOption("group");
+      await page.setViewportSize({ width, height: 1000 });
+      await root.getByRole("button", { name: layout === "group" ? "그룹" : "개인", exact: true }).click();
       await expect(root).toHaveAttribute("data-ready", "true");
-      const region = root.getByRole("region", { name: layout === "tree" ? "Resource Target 계층" : "Resource Target 비교표", exact: true });
+      const region = root.getByRole("region", { name: layout === "group" ? "그룹 현황" : "개인 현황", exact: true });
       await region.evaluate(element => { element.scrollLeft = 0; });
       await expect.poll(() => region.evaluate(element => element.scrollLeft)).toBe(0);
       await region.focus();
@@ -441,7 +445,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) {
       }
       await expect(region).toBeFocused();
       const keyboardMovement = { scrollLeftBefore, scrollLeftAfter: await region.evaluate(element => element.scrollLeft) };
-      if (layout === "tree") {
+      if (layout === "group") {
         const hiddenIdentityActions = region.locator('tbody details:not([open]) button');
         expect(await hiddenIdentityActions.count()).toBeGreaterThan(0);
         await expect(hiddenIdentityActions.first()).toBeHidden();

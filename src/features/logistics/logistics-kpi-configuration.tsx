@@ -8,7 +8,7 @@ import { IdentifierDetails } from "@/components/identifier-details";
 import { ContextHelp } from "@/components/ui/context-help";
 import styles from "./project-logistics-dashboard.module.css";
 
-export type KpiMasterKind = "process" | "equipment" | "system" | "target" | "workArea" | "resource";
+export type KpiMasterKind = "process" | "equipment" | "system" | "workArea" | "resource";
 type Kind = KpiMasterKind | "task" | "assignment";
 interface Selection { label: string; kind: Kind; ids: string[]; snapshotId: string }
 interface Props {
@@ -48,7 +48,6 @@ export function LogisticsKpiConfiguration({ data, dashboard, tasks, logistics, e
     if (kind === "process") return logistics?.processes.find(row => row.id === id) ?? dashboard.breakdowns.processes.find(row => row.id === id);
     if (kind === "equipment") return logistics?.equipment.find(row => row.id === id) ?? dashboard.breakdowns.equipment.find(row => row.id === id);
     if (kind === "system") return logistics?.systems.find(row => row.id === id) ?? dashboard.breakdowns.systems.find(row => row.id === id);
-    if (kind === "target") return configuration.targets.find(row => row.id === id);
     if (kind === "workArea") return configuration.workAreas.find(row => row.id === id);
     if (kind === "resource") return data.resourceRows.find(row => row.id === id);
     return undefined;
@@ -58,7 +57,6 @@ export function LogisticsKpiConfiguration({ data, dashboard, tasks, logistics, e
     if (kind === "assignment") return [...new Set(data.assignmentRows.filter(row => ids.includes(row.id)).map(row => row.taskId))];
     if (kind === "resource") return [...new Set(data.assignmentRows.filter(row => row.targetKind === "resource" && ids.includes(row.targetId)).map(row => row.taskId))];
     if (kind === "workArea") return [...new Set(configuration.workAreas.filter(row => ids.includes(row.id)).flatMap(row => row.taskIds))];
-    if (kind === "target") return [...new Set(configuration.targets.filter(row => ids.includes(row.id)).flatMap(row => row.taskIds))];
     const rows = kind === "process" ? dashboard.breakdowns.processes : kind === "equipment" ? dashboard.breakdowns.equipment : dashboard.breakdowns.systems;
     return [...new Set(rows.filter(row => ids.includes(row.id)).flatMap(row => row.taskIds))];
   };
@@ -73,7 +71,6 @@ export function LogisticsKpiConfiguration({ data, dashboard, tasks, logistics, e
       {entry("등록 설비", "equipment", configuration.equipmentIds)}
       <div className={styles.configurationValue}><span>등록 설비 총 수량</span><strong>{configuration.equipmentQuantity}대</strong></div>
       {entry("등록 시스템", "system", configuration.systemIds)}
-      {entry("등록 Target", "target", configuration.targets.map(row => row.id))}
       {entry("등록 리소스", "resource", configuration.registeredResourceIds)}
       {entry("참여 리소스", "resource", configuration.participatingResourceIds)}
       {entry("개인 배정 리소스", "resource", configuration.assignedResourceIds)}
@@ -93,7 +90,6 @@ export function LogisticsKpiConfiguration({ data, dashboard, tasks, logistics, e
       {entry("일반 Task 없는 WorkArea", "workArea", diagnostics.workAreaWithoutTaskIds)}
       {entry("일반 Task 없는 설비", "equipment", diagnostics.equipmentWithoutTaskIds)}
       {entry("일반 Task 없는 시스템", "system", diagnostics.systemsWithoutTaskIds)}
-      {entry("일반 Task 없는 Target", "target", diagnostics.targetWithoutTaskIds)}
       {entry("legacy 공정 문맥 Task", "task", diagnostics.legacyContextTaskIds)}
       {entry("공정 명시 미선택 Task", "task", diagnostics.explicitEmptyProcessTaskIds)}
     </div>

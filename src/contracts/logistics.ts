@@ -162,7 +162,32 @@ export interface InheritedSystemLinkItem extends TaskSystemLinkItem {
   sourceTaskName: string;
 }
 
+export interface TaskLogisticsCompatibilityLink {
+  sourceId: string;
+  kind: "equipment" | "system";
+  entityId: string;
+  code: string;
+  name: string;
+  active: boolean;
+  sourceTaskId: string;
+  sourceTaskName: string;
+  scope: TaskLogisticsLinkScope;
+  inherited: boolean;
+  selection: "whole" | "subset";
+  coverage: number | null;
+  coverageMode: "whole" | "partial" | "unspecified";
+  readonly: true;
+  /** Original archived context; never a direct Task process selection. */
+  context?: {
+    scope: "process" | "project_common";
+    process: { id: string; name: string } | null;
+    occurrenceId: string | null;
+    workArea: { id: string; name: string } | null;
+  };
+}
+
 export interface TaskLogisticsLinksDto {
+  projectRevision?: number;
   taskId: string;
   directEquipmentLinks: TaskEquipmentLinkItem[];
   inheritedEquipmentLinks: InheritedEquipmentLinkItem[];
@@ -170,6 +195,8 @@ export interface TaskLogisticsLinksDto {
   directSystemLinks: TaskSystemLinkItem[];
   inheritedSystemLinks: InheritedSystemLinkItem[];
   effectiveSystemIds: string[];
+  /** Original archived relations remain separate from editable direct links. */
+  compatibilityLinks?: TaskLogisticsCompatibilityLink[];
 }
 
 export interface TaskEquipmentLinkSummaryDto {

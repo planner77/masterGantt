@@ -13,11 +13,27 @@ export interface TemplateTaskTargetBinding {
 type BindingRow = { id: number; task_external_id: string; target_code: string; scope: "self"|"subtree"; selection: "whole"|"subset" };
 type MemberRow = { binding_id: number; kind: "equipment"|"system"; instance_code: string; coverage: number|null };
 function invalid(): never {
-  throw new PublicApiError(409, "TASK_TARGET_TRANSFER_INVALID", "Task Target binding references cannot be transferred safely.");
+  throw new PublicApiError(409, "TASK_TARGET_TRANSFER_INVALID", "기존 설비·물류 연결의 참조를 안전하게 이전할 수 없습니다.");
+}
+/** Audit only the source project's archive; destination deferred writes may be incomplete. */
+export function assertLegacyTransferIntegrity(db: Database.Database, projectId: number): void {
+  for (const table of ["logistics_targets", "logistics_target_members", "task_target_bindings", "task_target_binding_members"] as const) {
+    const violations = db.pragma(`foreign_key_check(${table})`) as { rowid: number }[];
+    const project = db.prepare(`SELECT project_id FROM ${table} WHERE rowid=?`);
+    for (const violation of violations) {
+      const row = project.get(violation.rowid) as { project_id: number } | undefined;
+      if (row?.project_id === projectId) invalid();
+    }
+  }
 }
 export function snapshotTaskTargetBindings(db: Database.Database, projectId: number): TemplateTaskTargetBinding[] {
+  assertLegacyTransferIntegrity(db, projectId);
   const rows = db.prepare("SELECT b.id,t.external_id task_external_id,g.code target_code,b.scope,b.selection FROM task_target_bindings b JOIN tasks t ON t.project_id=b.project_id AND t.id=b.task_id JOIN logistics_targets g ON g.project_id=b.project_id AND g.id=b.target_id WHERE b.project_id=? ORDER BY t.external_id,g.code").all(projectId) as BindingRow[];
   const members = db.prepare("SELECT s.binding_id,m.kind,COALESCE(e.code,y.code) instance_code,s.coverage FROM task_target_binding_members s JOIN logistics_target_members m ON m.project_id=s.project_id AND m.target_id=s.target_id AND m.id=s.member_id LEFT JOIN project_equipment e ON e.project_id=m.project_id AND e.id=m.equipment_id LEFT JOIN project_logistics_systems y ON y.project_id=m.project_id AND y.id=m.system_id WHERE s.project_id=? ORDER BY s.binding_id,m.kind,instance_code").all(projectId) as MemberRow[];
+  const bindingCount = db.prepare("SELECT COUNT(*) FROM task_target_bindings WHERE project_id=?").pluck().get(projectId);
+  const memberCount = db.prepare("SELECT COUNT(*) FROM task_target_binding_members WHERE project_id=?").pluck().get(projectId);
+  const bindingIds = new Set(rows.map(row => row.id));
+  if (rows.length !== bindingCount || members.length !== memberCount || members.some(row => !bindingIds.has(row.binding_id) || !row.instance_code)) invalid();
   return rows.map(row=>({taskExternalId:row.task_external_id,targetCode:row.target_code,scope:row.scope,selection:row.selection,
     members:members.filter(m=>m.binding_id===row.id).map(m=>({kind:m.kind,instanceCode:m.instance_code,coverage:m.coverage}))}));
 }

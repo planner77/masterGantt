@@ -1,3 +1,7 @@
+## Issue #785 — 실물 연결과 구형 파일의 명시적 한계
+
+일정 JSON1.0/1.1의 표현 범위는 확대하지 않는다. 직접 공정/구역/실물 관계와 내부 보존 연결을 표현하지 못하는 입력·출력은 기존 손실 방지 오류로 전체 거부한다. 사용자 메시지는 설비·물류 연결과 지원 Copy/Template를 안내하며 폐기된 엔터티의 생성/편집을 안내하지 않는다. unknown field 무시·빈 관계 저장·부분 성공으로 전환하지 않는다. 전체 관계 교환은 지원 versioned Template·Copy, 전체 DB 복구는 대응 backup 계약을 따른다. [Import schema](IMPORT_SCHEMA.md), [#785 실행](exec-plans/active/ISSUE_785.md).
+
 ## Issue #725 — 공정·WorkArea 문맥 손실 차단
 
 일정 JSON1.0/1.1은 설비 다중 WorkArea 및 Task 직접 공정/WorkArea·명시0개를 지원하지 않는다. 신규 문맥 필드는 중첩 위치와 무관하게400 `PROCESS_CONTEXT_IMPORT_UNSUPPORTED`로 전체 거부한다. 해당 관계/marker가 있는 Project의 JSON Export도409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`이며 빈 관계처럼 버리지 않는다. Copy/지원 Templatev4의 별도 참조 remap을 사용한다. [정확한 형식 경계](IMPORT_SCHEMA.md#issue-725--직접-문맥은-schedule-stage-입력에서-미지원)를 따른다. #379 full graph 교환은 별도다.

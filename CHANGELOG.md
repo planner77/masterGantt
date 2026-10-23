@@ -1,3 +1,10 @@
+## [0.131.0] — Unreleased / Issue #785
+
+- 물류 실물·Task 직접 연결 중심으로 전환하고 Logistics Target의 보조 관리/편집·조회 축·KPI 진단·사용자 Excel 용어를 폐기한다. 구형 화면 링크/저장 설정은 공정/WorkArea로 정규화한다.
+- 전용 공개 API는 기존 보안 검증을 유지한410으로 종료한다. resource/WBS는 기본v2 실물 DTO·직접+보존 관계 합집합 필터를 제공하고 명시v1 읽기는 deprecated다. Task 읽기 전용 기존 연결 출처와 실물 변경 영향 확인을 추가한다.
+- DB graph/과거 migration·whole/subset coverage/상속은 원본 보존하며 자동 flatten/DROP하지 않는다. 지원 Copy/Template의 archive 원자 보존·잘못된 참조 전체 실패, JSON1.1 범위 불변, 실물/Task/Assignment 근거 Excel을 유지한다.
+- 레거시 출처 자체의 안전 편집·운영 DB/외부 소비자 실측·파괴적 P3 정리는 미완료다. 이번 범위는 구현/문서 및 PR CI 시작까지이며 원격 Required3/Trusted/Owner HIGH 승인·main/GHCR/Release 완료가 아니다. release_required=true/release_authorized=false.
+
 ## [0.130.1] — Unreleased / Issue #750 E2E 안정화
 
 - 첫 병합 [Main #3183.1](https://github.com/planner77/masterGantt/actions/runs/39910342165)의 #490 기존 Gantt 세로 스크롤 설정 38px→실제0 회귀를 확인했다. X 용량 19→903의 후행 레이아웃 변화를 진단하고 테스트 준비에서 native X 안정·두 RAF·Y scroll capacity를 검증한 다음 원래 Y=38·Settings 상태 보존 단언을 유지한다. 새 PATCH 버전 추가 없이 같은 #750 교정 PR에서 검증; 실패 Main 원본/Release 대기/정식 게시 미완료를 보존한다.

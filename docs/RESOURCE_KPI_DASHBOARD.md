@@ -1,3 +1,9 @@
+## Issue #785 — 실물 필터와 기존 공수·Plan 보존
+
+공개 resource/WBS v2는 실물 중심 필터/출처를 제공하며 Target 계층·교차표·선택·카탈로그·진단을 사용자에게 제공하지 않는다. 명시 v1 읽기는 deprecated 호환이며 새 UI에서 사용하지 않는다. 내부 resolver/수치 golden은 유지한다. 새 Equipment/System 조건은 직접+보존 관계의 실제 유효 인스턴스 합집합을 조회하며 기존 member-only 조건으로 대체하지 않는다. 공정/WorkArea는 WBS 명시 문맥을 사용한다.
+
+일반 Task T0, 선택 Assignment A, 기존 Capacity R·Calendar·선택80%/Project140%, full Milestone Gate, M/D/M/M의 null/0/미산출·등록 quantity·비가산 총계는 유지한다. 정확 상세·일별 Plan·과투입 원인은 원본 Task/Assignment ID로 연결하며 출처를 중립 실물 관계로 표시한다. 아래 Target 보기/필터/진단 설명은 이전 API/UI 이력이다. [API](API.md), [현행 안내](TARGET_RESOURCE_USER_GUIDE.md), [실행 원장](exec-plans/active/ISSUE_785.md).
+
 ## Issue #734 — 설비 관점의 작업·공수 경계
 
 설비 전용 consumer는 #728/#729의 서버 고유 합집합과 기존 Calendar/allocation/환산 정책을 그대로 표시한다. 개인 미배정 Task도 일반 업무 KPI에 남으며 Owner 책임 역할만으로 Assignment/공수/Capacity를 만들지 않는다. 원본 수량·작업 진척·계획 M/D/MM·미설정·전체 Milestone Gate는 다른 지표다. 다중 WorkArea/Milestone의 소계를 더하지 않고 같은 Assignment는 상위에서 한 번 계산한다.

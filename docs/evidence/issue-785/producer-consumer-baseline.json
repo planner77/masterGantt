@@ -1,0 +1,2203 @@
+{
+  "issue": 785,
+  "baseline": "427d22245fb8e11254b2424ea5147ccbd5766979",
+  "phase": "P0",
+  "method": "git grep -n -P of exact immutable baseline tree; symbol/contract static inventory, not runtime consumer proof",
+  "pattern": "LogisticsTarget|TaskTargetBinding|logistics[-_]targets|task[-_]target[-_]binding|targetProjection|targetSources|ResourceTarget|targetIds|targetScopes|Target (?:연결|관리|보기|Catalog|Sources)",
+  "fileCount": 155,
+  "files": [
+    {
+      "path": "db/migrations/0026_logistics_targets.sql",
+      "lineNumbers": [
+        2,
+        35,
+        36,
+        37,
+        49,
+        63,
+        70,
+        77,
+        80,
+        87,
+        93
+      ],
+      "classification": "KEEP_ARCHIVE_SCHEMA",
+      "owner": "backend"
+    },
+    {
+      "path": "db/migrations/0027_task_target_bindings.sql",
+      "lineNumbers": [
+        2,
+        16,
+        18,
+        23,
+        24,
+        34,
+        38,
+        39,
+        42,
+        46,
+        48,
+        49,
+        51,
+        53,
+        59,
+        66,
+        69,
+        70
+      ],
+      "classification": "KEEP_ARCHIVE_SCHEMA",
+      "owner": "backend"
+    },
+    {
+      "path": "docs/API.md",
+      "lineNumbers": [
+        157,
+        169,
+        173,
+        185,
+        187,
+        189,
+        193,
+        1732,
+        1752
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "lineNumbers": [
+        145,
+        529
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/DB_SCHEMA.md",
+      "lineNumbers": [
+        44,
+        754,
+        758,
+        762,
+        766,
+        767
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/EXCEL_EXPORT.md",
+      "lineNumbers": [
+        44,
+        45
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/ISSUE_624_CI_FAILURE_ANALYSIS.md",
+      "lineNumbers": [
+        107,
+        118
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/ISSUE_717_FAILURE_ANALYSIS.md",
+      "lineNumbers": [
+        171
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/ISSUE_717_IDENTITY_INVENTORY.md",
+      "lineNumbers": [
+        12,
+        17,
+        51,
+        54
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/ISSUE_726_FAILURE_ANALYSIS.md",
+      "lineNumbers": [
+        96
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/ISSUE_727_FAILURE_ANALYSIS.md",
+      "lineNumbers": [
+        14,
+        78
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/LOGISTICS_DASHBOARD.md",
+      "lineNumbers": [
+        68
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/LOGISTICS_DOMAIN_DESIGN.md",
+      "lineNumbers": [
+        259
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/LOGISTICS_IMPLEMENTATION_GUIDELINES.md",
+      "lineNumbers": [
+        13
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/LOGISTICS_TARGETS.md",
+      "lineNumbers": [
+        121,
+        123,
+        124,
+        158,
+        170,
+        267,
+        302,
+        313,
+        334,
+        354
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/PROJECT_UX.md",
+      "lineNumbers": [
+        143
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/REMOTE_VALIDATION.md",
+      "lineNumbers": [
+        319,
+        353
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/REQUIREMENTS.md",
+      "lineNumbers": [
+        93,
+        620,
+        635
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/RESOURCE_KPI_DASHBOARD.md",
+      "lineNumbers": [
+        76,
+        78,
+        90,
+        92,
+        96,
+        102,
+        108,
+        110,
+        126,
+        128,
+        141,
+        142,
+        143,
+        151,
+        176
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/SCHEDULING_ENGINE.md",
+      "lineNumbers": [
+        5
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/TARGET_RESOURCE_OPERATIONS.md",
+      "lineNumbers": [
+        19
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/TARGET_RESOURCE_USER_GUIDE.md",
+      "lineNumbers": [
+        69,
+        100,
+        126,
+        130,
+        149,
+        154,
+        187
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/TASK_EDITOR.md",
+      "lineNumbers": [
+        9,
+        11,
+        80,
+        382,
+        389,
+        391
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/TEST_PLAN.md",
+      "lineNumbers": [
+        568,
+        665,
+        1192,
+        4734,
+        4758,
+        4760,
+        4853,
+        4858,
+        4859,
+        4865
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_614.md",
+      "lineNumbers": [
+        15,
+        70,
+        86,
+        87
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_616.md",
+      "lineNumbers": [
+        12,
+        52,
+        61,
+        62,
+        65
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_617.md",
+      "lineNumbers": [
+        1,
+        6
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_618.md",
+      "lineNumbers": [
+        105
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_619.md",
+      "lineNumbers": [
+        24,
+        26,
+        60
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_620.md",
+      "lineNumbers": [
+        101
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_621.md",
+      "lineNumbers": [
+        137
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_622.md",
+      "lineNumbers": [
+        205,
+        239
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_624.md",
+      "lineNumbers": [
+        19,
+        21,
+        92
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_670.md",
+      "lineNumbers": [
+        16
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_672.md",
+      "lineNumbers": [
+        10,
+        12,
+        32,
+        39,
+        40,
+        41,
+        42,
+        49
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_726.md",
+      "lineNumbers": [
+        81,
+        130
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_727.md",
+      "lineNumbers": [
+        108,
+        109
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_728.md",
+      "lineNumbers": [
+        31
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/ISSUE_762.md",
+      "lineNumbers": [
+        164,
+        165
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/PLAN.md",
+      "lineNumbers": [
+        713
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "docs/exec-plans/active/TARGET_RESOURCE_ROLLOUT.md",
+      "lineNumbers": [
+        54,
+        60
+      ],
+      "classification": "UPDATE_CURRENT_OR_KEEP_AUDIT_HISTORY",
+      "owner": "manager"
+    },
+    {
+      "path": "src/app/api/projects/[publicId]/logistics/targets/[targetId]/impact/route.ts",
+      "lineNumbers": [
+        5,
+        6,
+        17
+      ],
+      "classification": "RETIRE_DEDICATED_OR_ADAPT_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/app/api/projects/[publicId]/logistics/targets/[targetId]/route.ts",
+      "lineNumbers": [
+        5,
+        6,
+        9
+      ],
+      "classification": "RETIRE_DEDICATED_OR_ADAPT_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/app/api/projects/[publicId]/logistics/targets/[targetId]/usage/route.ts",
+      "lineNumbers": [
+        5,
+        6,
+        9
+      ],
+      "classification": "RETIRE_DEDICATED_OR_ADAPT_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/app/api/projects/[publicId]/logistics/targets/route.ts",
+      "lineNumbers": [
+        5,
+        6,
+        9
+      ],
+      "classification": "RETIRE_DEDICATED_OR_ADAPT_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/app/api/projects/[publicId]/tasks/[taskId]/target-bindings/route.ts",
+      "lineNumbers": [
+        5,
+        6,
+        13,
+        22,
+        28
+      ],
+      "classification": "RETIRE_DEDICATED_OR_ADAPT_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/contracts/logistics-dashboard.ts",
+      "lineNumbers": [
+        143
+      ],
+      "classification": "SPLIT_V2_PUBLIC_AND_INTERNAL_COMPAT",
+      "owner": "backend/domain/exchange"
+    },
+    {
+      "path": "src/contracts/logistics-targets.ts",
+      "lineNumbers": [
+        2,
+        3,
+        5,
+        7,
+        16,
+        20,
+        26,
+        32,
+        33,
+        40,
+        49,
+        58,
+        59,
+        60,
+        61,
+        63,
+        64,
+        67,
+        69,
+        70,
+        74,
+        79,
+        89,
+        91,
+        94,
+        101,
+        104
+      ],
+      "classification": "SPLIT_V2_PUBLIC_AND_INTERNAL_COMPAT",
+      "owner": "backend/domain/exchange"
+    },
+    {
+      "path": "src/contracts/resource-dashboard.ts",
+      "lineNumbers": [
+        13,
+        15,
+        17,
+        18,
+        21,
+        23,
+        25,
+        30,
+        35,
+        58,
+        59,
+        94,
+        122,
+        183
+      ],
+      "classification": "SPLIT_V2_PUBLIC_AND_INTERNAL_COMPAT",
+      "owner": "backend/domain/exchange"
+    },
+    {
+      "path": "src/contracts/resource-excel-export.ts",
+      "lineNumbers": [
+        36,
+        38
+      ],
+      "classification": "SPLIT_V2_PUBLIC_AND_INTERNAL_COMPAT",
+      "owner": "backend/domain/exchange"
+    },
+    {
+      "path": "src/contracts/task-target-bindings.ts",
+      "lineNumbers": [
+        1,
+        3,
+        4,
+        12,
+        15,
+        16,
+        22,
+        27,
+        28,
+        31,
+        36,
+        37,
+        46,
+        48,
+        53,
+        56,
+        60,
+        62,
+        63,
+        71,
+        75,
+        76
+      ],
+      "classification": "SPLIT_V2_PUBLIC_AND_INTERNAL_COMPAT",
+      "owner": "backend/domain/exchange"
+    },
+    {
+      "path": "src/contracts/wbs-dashboard-views.ts",
+      "lineNumbers": [
+        45,
+        46
+      ],
+      "classification": "SPLIT_V2_PUBLIC_AND_INTERNAL_COMPAT",
+      "owner": "backend/domain/exchange"
+    },
+    {
+      "path": "src/domain/logistics/task-target-bindings.ts",
+      "lineNumbers": [
+        2,
+        4,
+        5,
+        14,
+        21,
+        28,
+        37,
+        59,
+        85,
+        105,
+        116,
+        124,
+        128,
+        166,
+        170,
+        183,
+        195
+      ],
+      "classification": "KEEP_RESOLVER_ADAPT_PHYSICAL",
+      "owner": "domain"
+    },
+    {
+      "path": "src/domain/resources/resource-kpi-targets.ts",
+      "lineNumbers": [
+        1,
+        2,
+        3,
+        7,
+        17,
+        22,
+        29,
+        34,
+        39,
+        59,
+        178,
+        191,
+        199,
+        203,
+        208,
+        218,
+        223,
+        230,
+        231,
+        249,
+        258,
+        260,
+        262,
+        263,
+        282
+      ],
+      "classification": "KEEP_RESOLVER_ADAPT_PHYSICAL",
+      "owner": "domain"
+    },
+    {
+      "path": "src/domain/resources/resource-target-kpi.ts",
+      "lineNumbers": [
+        96,
+        138,
+        149
+      ],
+      "classification": "KEEP_RESOLVER_ADAPT_PHYSICAL",
+      "owner": "domain"
+    },
+    {
+      "path": "src/domain/resources/wbs-task-ledger.ts",
+      "lineNumbers": [
+        3,
+        10,
+        33,
+        243,
+        246,
+        271,
+        289,
+        295,
+        296,
+        297,
+        310,
+        435,
+        494
+      ],
+      "classification": "KEEP_RESOLVER_ADAPT_PHYSICAL",
+      "owner": "domain"
+    },
+    {
+      "path": "src/features/gantt/project-task-editor.tsx",
+      "lineNumbers": [
+        10,
+        754,
+        757
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/gantt/task-target-binding-editor.tsx",
+      "lineNumbers": [
+        5,
+        6,
+        13,
+        18,
+        19,
+        20,
+        27,
+        29,
+        47,
+        48,
+        51,
+        58,
+        63,
+        64,
+        71,
+        73,
+        84,
+        87,
+        95,
+        96,
+        98,
+        99
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/logistics/logistics-kpi-validation.ts",
+      "lineNumbers": [
+        18
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/logistics/logistics-unified-model.ts",
+      "lineNumbers": [
+        2,
+        10
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/logistics/project-logistics-dashboard.tsx",
+      "lineNumbers": [
+        283
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/logistics/project-logistics-management.tsx",
+      "lineNumbers": [
+        28,
+        29,
+        39,
+        527,
+        535,
+        544,
+        700
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/logistics/project-logistics-targets.tsx",
+      "lineNumbers": [
+        5,
+        16,
+        18,
+        25,
+        26,
+        40,
+        42,
+        89,
+        109,
+        130,
+        149,
+        165,
+        214
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/logistics/project-logistics-unified.tsx",
+      "lineNumbers": [
+        13,
+        89,
+        167,
+        170,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        215,
+        216
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/logistics/target-detail.tsx",
+      "lineNumbers": [
+        4,
+        7,
+        8
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/projects/project-excel-export-button.tsx",
+      "lineNumbers": [
+        107,
+        116,
+        121
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/projects/project-readonly-view.tsx",
+      "lineNumbers": [
+        415,
+        3038,
+        3309,
+        3478,
+        3484,
+        3489
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/projects/project-search-filter.ts",
+      "lineNumbers": [
+        30,
+        57,
+        126,
+        128,
+        129,
+        305
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/resources/project-resource-dashboard.tsx",
+      "lineNumbers": [
+        30,
+        98,
+        123,
+        126,
+        458,
+        539,
+        589,
+        928
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/resources/resource-dashboard-details.tsx",
+      "lineNumbers": [
+        230,
+        232
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/resources/resource-dashboard-model.ts",
+      "lineNumbers": [
+        27,
+        130,
+        138,
+        225,
+        248,
+        309
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/resources/resource-plan-details.tsx",
+      "lineNumbers": [
+        164,
+        165,
+        168,
+        285,
+        286
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/resources/resource-plan-model.ts",
+      "lineNumbers": [
+        222,
+        225,
+        228,
+        299
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/resources/resource-target-views.tsx",
+      "lineNumbers": [
+        6,
+        13,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        30,
+        32,
+        42
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/features/resources/wbs-view-transport.ts",
+      "lineNumbers": [
+        12
+      ],
+      "classification": "MIGRATE_PUBLIC_CONSUMER",
+      "owner": "frontend/domain"
+    },
+    {
+      "path": "src/server/exports/project-export-snapshot-service-core.ts",
+      "lineNumbers": [
+        41
+      ],
+      "classification": "PRESERVE_ARCHIVE_ADAPT_EXCHANGE",
+      "owner": "exchange"
+    },
+    {
+      "path": "src/server/exports/project-json-export-core.ts",
+      "lineNumbers": [
+        84,
+        87
+      ],
+      "classification": "PRESERVE_ARCHIVE_ADAPT_EXCHANGE",
+      "owner": "exchange"
+    },
+    {
+      "path": "src/server/exports/resource-excel-export-core.ts",
+      "lineNumbers": [
+        285,
+        289,
+        315
+      ],
+      "classification": "PRESERVE_ARCHIVE_ADAPT_EXCHANGE",
+      "owner": "exchange"
+    },
+    {
+      "path": "src/server/imports/project-import-parser-core.ts",
+      "lineNumbers": [
+        86
+      ],
+      "classification": "KEEP_INTERNAL_COMPAT_OR_RETIRE_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/server/logistics/logistics-kpi-service-core.ts",
+      "lineNumbers": [
+        112,
+        119
+      ],
+      "classification": "KEEP_INTERNAL_COMPAT_OR_RETIRE_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/server/logistics/logistics-service-core.ts",
+      "lineNumbers": [
+        738,
+        1237,
+        1252,
+        1255,
+        1256,
+        1265
+      ],
+      "classification": "KEEP_INTERNAL_COMPAT_OR_RETIRE_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/server/logistics/logistics-targets-handlers-core.ts",
+      "lineNumbers": [
+        8,
+        11,
+        34
+      ],
+      "classification": "KEEP_INTERNAL_COMPAT_OR_RETIRE_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/server/logistics/logistics-targets-service-core.ts",
+      "lineNumbers": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        16,
+        19,
+        22,
+        23,
+        43,
+        44,
+        82,
+        83,
+        84,
+        97,
+        113,
+        119,
+        133,
+        145,
+        153,
+        157,
+        173,
+        183,
+        184,
+        189,
+        199,
+        201,
+        202,
+        204,
+        208,
+        230,
+        239,
+        246,
+        260,
+        261,
+        270,
+        307,
+        308,
+        320,
+        321,
+        359,
+        360,
+        369,
+        376,
+        382,
+        388,
+        391,
+        397,
+        405,
+        410,
+        418,
+        420,
+        453,
+        458,
+        493,
+        512,
+        526,
+        532,
+        535,
+        537,
+        544,
+        547,
+        548,
+        555,
+        570
+      ],
+      "classification": "KEEP_INTERNAL_COMPAT_OR_RETIRE_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/server/logistics/task-target-bindings-handlers-core.ts",
+      "lineNumbers": [
+        8,
+        9,
+        13,
+        21,
+        43,
+        50,
+        59
+      ],
+      "classification": "KEEP_INTERNAL_COMPAT_OR_RETIRE_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/server/logistics/task-target-bindings-service-core.ts",
+      "lineNumbers": [
+        3,
+        4,
+        8,
+        9,
+        12,
+        13,
+        15,
+        25,
+        35,
+        59,
+        65,
+        67,
+        70,
+        72,
+        76,
+        77,
+        82,
+        83,
+        84,
+        90,
+        94,
+        96,
+        98,
+        109,
+        111,
+        115
+      ],
+      "classification": "KEEP_INTERNAL_COMPAT_OR_RETIRE_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/server/logistics/task-target-transfer-core.ts",
+      "lineNumbers": [
+        6,
+        18,
+        19,
+        20,
+        25,
+        26,
+        31,
+        46,
+        47,
+        52,
+        60,
+        61
+      ],
+      "classification": "PRESERVE_ARCHIVE_ADAPT_EXCHANGE",
+      "owner": "exchange"
+    },
+    {
+      "path": "src/server/projects/project-copy-service-core.ts",
+      "lineNumbers": [
+        2,
+        4,
+        598,
+        606
+      ],
+      "classification": "PRESERVE_ARCHIVE_ADAPT_EXCHANGE",
+      "owner": "exchange"
+    },
+    {
+      "path": "src/server/projects/task-hierarchy-service-core.ts",
+      "lineNumbers": [
+        3,
+        4,
+        7,
+        430,
+        490,
+        657,
+        708,
+        712
+      ],
+      "classification": "KEEP_INTERNAL_COMPAT_OR_RETIRE_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/server/repositories/process-catalog-repository-core.ts",
+      "lineNumbers": [
+        51
+      ],
+      "classification": "KEEP_INTERNAL_COMPAT_OR_RETIRE_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/server/repositories/project-work-area-repository-core.ts",
+      "lineNumbers": [
+        21
+      ],
+      "classification": "KEEP_INTERNAL_COMPAT_OR_RETIRE_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/server/repositories/resource-target-snapshot-repository-core.ts",
+      "lineNumbers": [
+        6,
+        10,
+        12,
+        23,
+        24
+      ],
+      "classification": "ADAPT_PUBLIC_KEEP_MATH",
+      "owner": "domain"
+    },
+    {
+      "path": "src/server/repositories/task-target-binding-repository-core.ts",
+      "lineNumbers": [
+        2,
+        3,
+        6,
+        8,
+        9,
+        10,
+        11,
+        22,
+        28,
+        30,
+        31,
+        40,
+        42
+      ],
+      "classification": "KEEP_INTERNAL_COMPAT_OR_RETIRE_PUBLIC",
+      "owner": "backend/domain"
+    },
+    {
+      "path": "src/server/resources/resource-dashboard-query-core.ts",
+      "lineNumbers": [
+        29,
+        30,
+        34,
+        72,
+        76,
+        86,
+        109
+      ],
+      "classification": "ADAPT_PUBLIC_KEEP_MATH",
+      "owner": "domain"
+    },
+    {
+      "path": "src/server/resources/resource-dashboard-service-core.ts",
+      "lineNumbers": [
+        6,
+        73,
+        135,
+        136,
+        228,
+        299,
+        340,
+        341,
+        414,
+        416,
+        418,
+        568,
+        585,
+        590,
+        750,
+        766,
+        773,
+        776,
+        839
+      ],
+      "classification": "ADAPT_PUBLIC_KEEP_MATH",
+      "owner": "domain"
+    },
+    {
+      "path": "src/server/resources/resource-data-context-core.ts",
+      "lineNumbers": [
+        2,
+        34
+      ],
+      "classification": "ADAPT_PUBLIC_KEEP_MATH",
+      "owner": "domain"
+    },
+    {
+      "path": "src/server/templates/logistics-template-graph-core.ts",
+      "lineNumbers": [
+        1,
+        53,
+        90,
+        236,
+        251,
+        256
+      ],
+      "classification": "PRESERVE_ARCHIVE_ADAPT_EXCHANGE",
+      "owner": "exchange"
+    },
+    {
+      "path": "src/server/templates/project-template-service-core.ts",
+      "lineNumbers": [
+        871,
+        874,
+        875
+      ],
+      "classification": "PRESERVE_ARCHIVE_ADAPT_EXCHANGE",
+      "owner": "exchange"
+    },
+    {
+      "path": "tests/domain/issue-623-target-resource-acceptance.test.ts",
+      "lineNumbers": [
+        3,
+        13,
+        20,
+        56,
+        66,
+        77,
+        80,
+        83,
+        131,
+        132,
+        136,
+        141,
+        171
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/domain/logistics-targets-contract.test.ts",
+      "lineNumbers": [
+        11,
+        175,
+        185
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/domain/milestone-timeline-model.test.ts",
+      "lineNumbers": [
+        142,
+        146
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/domain/resource-target-kpi.test.ts",
+      "lineNumbers": [
+        3,
+        9,
+        24,
+        36,
+        37,
+        57,
+        70,
+        82,
+        87,
+        93,
+        94,
+        98,
+        99,
+        104,
+        105,
+        106,
+        116,
+        123,
+        127,
+        131,
+        132,
+        135,
+        136,
+        146,
+        150,
+        154,
+        155,
+        156,
+        157,
+        160,
+        170,
+        173,
+        174,
+        182,
+        183,
+        184,
+        191,
+        192,
+        203,
+        204,
+        212,
+        218,
+        232,
+        233,
+        237,
+        246,
+        262,
+        263,
+        267,
+        268,
+        274,
+        276,
+        285,
+        296,
+        298,
+        301
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/domain/resource-target-plan.test.ts",
+      "lineNumbers": [
+        3,
+        10,
+        20,
+        40,
+        54,
+        62,
+        63,
+        64,
+        80,
+        105,
+        126,
+        127,
+        130,
+        131
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/domain/task-target-bindings.test.ts",
+      "lineNumbers": [
+        3,
+        4,
+        5,
+        9,
+        23,
+        48,
+        49,
+        51,
+        61,
+        70,
+        84,
+        96,
+        100,
+        115,
+        122,
+        128,
+        130,
+        136,
+        138,
+        143,
+        144,
+        146,
+        156,
+        164,
+        165
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/domain/wbs-task-ledger-acceptance.test.ts",
+      "lineNumbers": [
+        13,
+        44
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/domain/wbs-task-ledger.test.ts",
+      "lineNumbers": [
+        6,
+        54,
+        87,
+        88,
+        90
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/e2e/fixtures/issue-621-target-project.ts",
+      "lineNumbers": [
+        2,
+        19
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/e2e/fixtures/issue-623-target-resource.ts",
+      "lineNumbers": [
+        7,
+        40,
+        48
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/e2e/helpers/workspace-navigation.ts",
+      "lineNumbers": [
+        16
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/e2e/issue-621-resource-target.spec.ts",
+      "lineNumbers": [
+        42,
+        44,
+        45,
+        47,
+        57,
+        62,
+        65,
+        126,
+        127,
+        475,
+        513,
+        514,
+        516,
+        518
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/e2e/issue-622-resource-plan-target.spec.ts",
+      "lineNumbers": [
+        142
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/e2e/issue-623-resource-mvp.spec.ts",
+      "lineNumbers": [
+        7,
+        127,
+        128,
+        131,
+        132,
+        174,
+        175,
+        176,
+        178,
+        290,
+        291,
+        293,
+        296,
+        297,
+        301,
+        403
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/e2e/issue-624-logistics-unified.spec.ts",
+      "lineNumbers": [
+        136,
+        137,
+        143,
+        269
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/e2e/logistics-target-authoring.spec.ts",
+      "lineNumbers": [
+        8,
+        51,
+        69,
+        70,
+        72,
+        79,
+        82,
+        85,
+        146,
+        268,
+        269,
+        271,
+        278,
+        280,
+        281,
+        286,
+        291,
+        298,
+        299,
+        317,
+        319,
+        321,
+        327,
+        438,
+        439,
+        441
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+      "lineNumbers": [
+        567,
+        568,
+        570,
+        608,
+        609,
+        611
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/e2e/resource-target-dashboard-api.spec.ts",
+      "lineNumbers": [
+        2,
+        30,
+        85,
+        91,
+        95,
+        96,
+        97,
+        98,
+        102,
+        106,
+        108,
+        110,
+        111,
+        115,
+        117,
+        121,
+        122,
+        123,
+        124,
+        127,
+        133,
+        134,
+        135,
+        141,
+        155,
+        157,
+        161,
+        167,
+        175,
+        176,
+        182,
+        186,
+        191,
+        200,
+        205,
+        211
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/features/logistics/logistics-unified-model.test.ts",
+      "lineNumbers": [
+        37,
+        44
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/features/projects/project-search-filter.test.ts",
+      "lineNumbers": [
+        132,
+        133,
+        134
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/features/resources/process-workarea-dashboard.test.ts",
+      "lineNumbers": [
+        29
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/features/resources/resource-dashboard-model.test.ts",
+      "lineNumbers": [
+        58
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/features/resources/resource-drill-transport.test.ts",
+      "lineNumbers": [
+        273,
+        277,
+        283,
+        287,
+        290
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/features/resources/resource-export-model.test.ts",
+      "lineNumbers": [
+        93,
+        96
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/features/resources/resource-plan-model.test.ts",
+      "lineNumbers": [
+        226,
+        227
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/features/resources/resource-target-client.test.ts",
+      "lineNumbers": [
+        8,
+        10,
+        12,
+        13,
+        20,
+        25,
+        26,
+        27,
+        28,
+        29,
+        33,
+        34,
+        39
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/fixtures/issue-623-backend-fixture.ts",
+      "lineNumbers": [
+        10,
+        65,
+        68,
+        70
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/fixtures/issue-623-target-resource.ts",
+      "lineNumbers": [
+        13,
+        15,
+        63
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/fixtures/logistics-integrated-kpi.ts",
+      "lineNumbers": [
+        11
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/fixtures/logistics-targets.ts",
+      "lineNumbers": [
+        158,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        183,
+        184,
+        185,
+        186
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/fixtures/resource-dashboard-targets.ts",
+      "lineNumbers": [
+        6,
+        26,
+        31,
+        35
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/fixtures/resource-plan-ui.ts",
+      "lineNumbers": [
+        184
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/fixtures/resource-target-kpi.ts",
+      "lineNumbers": [
+        3
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/fixtures/wbs-dashboard-views.ts",
+      "lineNumbers": [
+        6,
+        53,
+        56
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/db/database.test.ts",
+      "lineNumbers": [
+        139,
+        181,
+        182,
+        208,
+        246,
+        247,
+        277,
+        278,
+        279,
+        324,
+        325
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/db/issue-623-target-migration.test.ts",
+      "lineNumbers": [
+        13,
+        14,
+        48,
+        55,
+        61,
+        63,
+        64,
+        66,
+        74,
+        79,
+        82
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/logistics/issue-731-kpi.test.ts",
+      "lineNumbers": [
+        1,
+        112
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/logistics/logistics-targets-acceptance.test.ts",
+      "lineNumbers": [
+        8,
+        9,
+        52,
+        165,
+        204,
+        233,
+        320,
+        331,
+        377,
+        393,
+        455,
+        456,
+        466
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/logistics/logistics-targets.test.ts",
+      "lineNumbers": [
+        6,
+        26,
+        108,
+        111
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/logistics/task-target-bindings-handlers.test.ts",
+      "lineNumbers": [
+        6,
+        7,
+        8,
+        9,
+        40,
+        49,
+        64,
+        65,
+        84,
+        95,
+        102,
+        112,
+        116,
+        128,
+        133,
+        134,
+        135,
+        136,
+        152,
+        153,
+        155,
+        167,
+        180
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/logistics/task-target-bindings.test.ts",
+      "lineNumbers": [
+        7,
+        8,
+        28,
+        175,
+        176,
+        177,
+        178,
+        180,
+        189,
+        190,
+        193
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/migration-cli.test.ts",
+      "lineNumbers": [
+        76,
+        77
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/process-catalog/process-catalog-service.test.ts",
+      "lineNumbers": [
+        277
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/process-catalog/process-context-service.test.ts",
+      "lineNumbers": [
+        16,
+        64,
+        109,
+        161
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/process-catalog/project-work-areas.test.ts",
+      "lineNumbers": [
+        57,
+        120,
+        148,
+        184
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/projects/issue-623-target-transfer-acceptance.test.ts",
+      "lineNumbers": [
+        9,
+        10,
+        22,
+        25,
+        28,
+        35,
+        40,
+        49,
+        61,
+        68,
+        91,
+        93,
+        95,
+        99,
+        101,
+        103,
+        106,
+        117
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/projects/issue-737-preservation.test.ts",
+      "lineNumbers": [
+        58
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/projects/task-target-transfer.test.ts",
+      "lineNumbers": [
+        13,
+        14,
+        15,
+        44,
+        47,
+        61,
+        70,
+        74,
+        76,
+        85,
+        96,
+        103,
+        110,
+        119,
+        124,
+        129,
+        148,
+        154
+      ],
+      "classification": "PRESERVE_ARCHIVE_ADAPT_EXCHANGE",
+      "owner": "exchange"
+    },
+    {
+      "path": "tests/server/resources/issue-622-target-plan-excel.test.ts",
+      "lineNumbers": [
+        12,
+        20,
+        33,
+        73,
+        94,
+        102,
+        104,
+        108,
+        124,
+        127,
+        130,
+        135,
+        137,
+        138,
+        142,
+        168,
+        174,
+        183,
+        226,
+        230,
+        231,
+        233
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/resources/issue-623-canonical-acceptance.test.ts",
+      "lineNumbers": [
+        9,
+        48,
+        49,
+        55,
+        58,
+        74,
+        76,
+        82,
+        90,
+        98,
+        101,
+        102,
+        103,
+        121,
+        125
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/resources/issue-732-milestone-views.test.ts",
+      "lineNumbers": [
+        60
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/resources/issue-734-equipment-configuration.test.ts",
+      "lineNumbers": [
+        5,
+        80
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/resources/issue-735-system-dashboard.test.ts",
+      "lineNumbers": [
+        74
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/resources/issue-736-resource-adapter.test.ts",
+      "lineNumbers": [
+        41
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/resources/issue-737-cross-feature-acceptance.test.ts",
+      "lineNumbers": [
+        144,
+        195
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/resources/resource-target-dashboard.test.ts",
+      "lineNumbers": [
+        15,
+        27,
+        29,
+        36,
+        38,
+        40,
+        55,
+        72,
+        73,
+        75,
+        81,
+        86,
+        89,
+        90,
+        91,
+        99,
+        100,
+        104,
+        110,
+        113,
+        121,
+        127,
+        136,
+        164,
+        181,
+        187,
+        192,
+        202,
+        203,
+        206
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/resources/wbs-dashboard-views-http.test.ts",
+      "lineNumbers": [
+        75,
+        202,
+        259,
+        261
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    },
+    {
+      "path": "tests/server/templates/logistics-template-graph.test.ts",
+      "lineNumbers": [
+        16,
+        95,
+        137,
+        214
+      ],
+      "classification": "REVIEW_EXTEND_OR_KEEP_UNIQUE",
+      "owner": "implementation-owner"
+    }
+  ]
+}

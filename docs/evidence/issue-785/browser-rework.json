@@ -1,0 +1,595 @@
+{
+  "issue": 785,
+  "scope": "72 selected cases/19 files: prior failure union, physical sources/focus, nativeSQLiteTarget0,Resource/KPI mocks",
+  "environment": "Local WSL2 Node22/realChromium/Next; actualHTTPSQLite and mock boundaries separately in testcase",
+  "sourceDigest": "b3bbe49b69a460507610310f4cc8fcae42c4d234bb30efaab068e3e5bcea45a6",
+  "stats": {
+    "startTime": "2026-10-23T14:27:49.865Z",
+    "duration": 787366.545,
+    "expected": 64,
+    "skipped": 0,
+    "unexpected": 8,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "line": 39,
+      "title": "#621 실제 HTTP union 총계·두 Target 공유 identity·페이지·권한/412·조회 mutation0",
+      "status": "passed",
+      "durationMs": 11595,
+      "retry": 0
+    },
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "line": 98,
+      "title": "#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱신·dirty/pending",
+      "status": "failed",
+      "durationMs": 12160,
+      "retry": 0
+    },
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "line": 150,
+      "title": "#621 실물 필터·고유 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0",
+      "status": "passed",
+      "durationMs": 10973,
+      "retry": 0
+    },
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "line": 193,
+      "title": "#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 초안 보존",
+      "status": "passed",
+      "durationMs": 12369,
+      "retry": 0
+    },
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "line": 278,
+      "title": "#736 exact Assignment 편집은 만료된 Project edit session에서 초안을 열지 않는다",
+      "status": "passed",
+      "durationMs": 10207,
+      "retry": 0
+    },
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "line": 306,
+      "title": "#621 실물 필터 응답역전·실제409 stale·취소 scope/focus",
+      "status": "passed",
+      "durationMs": 11288,
+      "retry": 0
+    },
+    {
+      "file": "issue-622-resource-plan-target.spec.ts",
+      "line": 9,
+      "title": "#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Excel·다섯 화면폭",
+      "status": "passed",
+      "durationMs": 17281,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 113,
+      "title": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+      "status": "passed",
+      "durationMs": 13491,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 351,
+      "title": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+      "status": "failed",
+      "durationMs": 25931,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 393,
+      "title": "#623 실제 실물 연결·중첩Group 390px geometry·keyboard·query0·렌더관측",
+      "status": "passed",
+      "durationMs": 12435,
+      "retry": 0
+    },
+    {
+      "file": "issue-624-logistics-unified.spec.ts",
+      "line": 12,
+      "title": "#624/#785 같은 canonical 원본을 실물 3관점·정확 drill·full Gate·5폭으로 조회",
+      "status": "passed",
+      "durationMs": 16809,
+      "retry": 0
+    },
+    {
+      "file": "issue-725-process-workareas.spec.ts",
+      "line": 98,
+      "title": "#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연결·재조회·해제·재시작",
+      "status": "passed",
+      "durationMs": 43172,
+      "retry": 0
+    },
+    {
+      "file": "issue-726-logistics-master.spec.ts",
+      "line": 9,
+      "title": "#726 Target0 master 설비·시스템 생성, 유형 실패 복구, Fleet·WorkArea와 초안 보존",
+      "status": "passed",
+      "durationMs": 13971,
+      "retry": 0
+    },
+    {
+      "file": "issue-726-task-logistics.spec.ts",
+      "line": 62,
+      "title": "#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중복 제출 방지, reload·Summary 상속",
+      "status": "failed",
+      "durationMs": 14494,
+      "retry": 0
+    },
+    {
+      "file": "issue-734-equipment-dashboard.spec.ts",
+      "line": 66,
+      "title": "#734 Target0 AMR10+5·비활성·Task0·미배정·구역별10/고유15·M/D5·전체 Gate",
+      "status": "passed",
+      "durationMs": 15498,
+      "retry": 0
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "line": 57,
+      "title": "#735 실제 System 직접·조정 Task 집합과 고유 Assignment·선택·공정 필터",
+      "status": "passed",
+      "durationMs": 16747,
+      "retry": 0
+    },
+    {
+      "file": "issue-736-resource-dashboard.spec.ts",
+      "line": 46,
+      "title": "#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot Excel·정확 Assignment 복귀",
+      "status": "passed",
+      "durationMs": 17401,
+      "retry": 0
+    },
+    {
+      "file": "issue-737-target0-acceptance.spec.ts",
+      "line": 47,
+      "title": "#737 Target0 동일 원본으로 기준정보·일정·6관점 왕복, 사용자 축 구성과 편집 1회",
+      "status": "passed",
+      "durationMs": 21372,
+      "retry": 0
+    },
+    {
+      "file": "issue-762-process-workareas.spec.ts",
+      "line": 10,
+      "title": "#762 분류·catalog·Target 없이 공정과 0..N 구역 CRUD·소비자·권한·5폭",
+      "status": "passed",
+      "durationMs": 24910,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 53,
+      "title": "조회 500는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "status": "passed",
+      "durationMs": 4419,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 53,
+      "title": "조회 network는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "status": "passed",
+      "durationMs": 2384,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 53,
+      "title": "조회 malformed는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "status": "passed",
+      "durationMs": 2209,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 53,
+      "title": "조회 invalid-date는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "status": "passed",
+      "durationMs": 2257,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 53,
+      "title": "조회 wrong-revision는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "status": "passed",
+      "durationMs": 2291,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 53,
+      "title": "조회 wrong-filter는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "status": "passed",
+      "durationMs": 2278,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 53,
+      "title": "조회 missing-integrated는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "status": "passed",
+      "durationMs": 2377,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 53,
+      "title": "조회 malformed-integrated는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "status": "passed",
+      "durationMs": 2213,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 75,
+      "title": "기준일 기본 응답은 추가 조회를 만들지 않고 조건 변경 즉시 오래된 drilldown을 숨긴다",
+      "status": "passed",
+      "durationMs": 1754,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 109,
+      "title": "빠른 기간 변경의 응답 역전은 최신 결과를 유지한다",
+      "status": "passed",
+      "durationMs": 1577,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 128,
+      "title": "기간 빈 값·0·91·소수는 field 오류와 GET 차단 후 정상 범위로 복구한다",
+      "status": "passed",
+      "durationMs": 1831,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 151,
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 390px",
+      "status": "failed",
+      "durationMs": 2536,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 151,
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 768px",
+      "status": "failed",
+      "durationMs": 2721,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 151,
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1024px",
+      "status": "failed",
+      "durationMs": 2620,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 151,
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1440px",
+      "status": "failed",
+      "durationMs": 2607,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 151,
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1920px",
+      "status": "failed",
+      "durationMs": 2587,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 211,
+      "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 390px",
+      "status": "passed",
+      "durationMs": 2947,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 211,
+      "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 768px",
+      "status": "passed",
+      "durationMs": 2956,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 211,
+      "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 1024px",
+      "status": "passed",
+      "durationMs": 2834,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 211,
+      "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 1440px",
+      "status": "passed",
+      "durationMs": 3026,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 211,
+      "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 1920px",
+      "status": "passed",
+      "durationMs": 3003,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 306,
+      "title": "#731 등록 구성과 연결 작업이 모두 없는 KPI는 0과 빈 진단을 유지한다",
+      "status": "passed",
+      "durationMs": 1747,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 329,
+      "title": "#731 원본 이동 직전 snapshot 변경은 진단과 Task·Assignment 이동을 차단한다",
+      "status": "passed",
+      "durationMs": 1708,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 353,
+      "title": "#731 편집 가능 Task·Assignment 원본 열기와 취소는 정확 ID·조건·진단·초점을 보존한다",
+      "status": "passed",
+      "durationMs": 2337,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 386,
+      "title": "#731 등록 리소스 원본은 정확한 이름·ID를 유지하고 KPI 진단으로 복귀한다",
+      "status": "passed",
+      "durationMs": 1889,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 412,
+      "title": "#731 공정·WorkArea 원본 이동은 정확한 공정 행과 KPI 출발 초점을 복원한다",
+      "status": "passed",
+      "durationMs": 2286,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 446,
+      "title": "#731 패널 외부에 새 초점이 생기면 원본 포커스 재시도를 취소한다 — KPI로 돌아가기",
+      "status": "passed",
+      "durationMs": 1842,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 446,
+      "title": "#731 패널 외부에 새 초점이 생기면 원본 포커스 재시도를 취소한다 — 물류 항목 검색",
+      "status": "passed",
+      "durationMs": 1843,
+      "retry": 0
+    },
+    {
+      "file": "project-resource-workload-status.spec.ts",
+      "line": 13,
+      "title": "#525 첫 실패·atomic catalog 오류는 입력을 보존하며 개별 상세 실패도 재시도한다",
+      "status": "passed",
+      "durationMs": 1909,
+      "retry": 0
+    },
+    {
+      "file": "project-resource-workload-status.spec.ts",
+      "line": 25,
+      "title": "#525 네트워크 실패·malformed200·조건 echo mismatch를 성공으로 표시하지 않는다",
+      "status": "passed",
+      "durationMs": 1883,
+      "retry": 0
+    },
+    {
+      "file": "project-resource-workload-status.spec.ts",
+      "line": 33,
+      "title": "#525 stale 결과·검색·기간·활성·단위·열린 행을 보존하고 역전 응답은 버린다",
+      "status": "passed",
+      "durationMs": 2347,
+      "retry": 0
+    },
+    {
+      "file": "project-resource-workload-status.spec.ts",
+      "line": 44,
+      "title": "#525 중복 새로고침·hidden polling 방지와 focus catch-up 및 revision 복구",
+      "status": "passed",
+      "durationMs": 2018,
+      "retry": 0
+    },
+    {
+      "file": "project-resource-workload-status.spec.ts",
+      "line": 52,
+      "title": "#525 snapshot409·선택삭제400·한도422는 잠금과 명시 복구·focus를 제공한다",
+      "status": "passed",
+      "durationMs": 2392,
+      "retry": 0
+    },
+    {
+      "file": "project-resource-workload-status.spec.ts",
+      "line": 61,
+      "title": "#525 개발 견적·단위·필터 keyboard 및 5폭 geometry와 Gantt 실제 상태를 보존한다",
+      "status": "passed",
+      "durationMs": 6212,
+      "retry": 0
+    },
+    {
+      "file": "project-resource-workload-status.spec.ts",
+      "line": 148,
+      "title": "#525 기존 stage assignment drill은 legacy API와 기본 Dashboard 조회상태를 보존한다",
+      "status": "passed",
+      "durationMs": 2491,
+      "retry": 0
+    },
+    {
+      "file": "project-resource-workload-status.spec.ts",
+      "line": 173,
+      "title": "#525 외부 snapshot 교체는 사라지는 상세 focus만 복원하고 필터 focus를 보존한다",
+      "status": "passed",
+      "durationMs": 1927,
+      "retry": 0
+    },
+    {
+      "file": "project-resource-workload-status.spec.ts",
+      "line": 201,
+      "title": "#525 긴 한국어·영문·ID와 많은 Dashboard 그룹·개인·Task의 5폭 geometry",
+      "status": "passed",
+      "durationMs": 14166,
+      "retry": 0
+    },
+    {
+      "file": "resource-drill-dashboard.spec.ts",
+      "line": 51,
+      "title": "#528 전체60 Task는 page50과 구분하고 조상·조건 확인·Escape focus를 보존",
+      "status": "passed",
+      "durationMs": 2939,
+      "retry": 0
+    },
+    {
+      "file": "resource-drill-dashboard.spec.ts",
+      "line": 63,
+      "title": "#528 legacy M context null은 cross 명령만 잠그고 기존 원인과 Editor 조회를 유지",
+      "status": "passed",
+      "durationMs": 1829,
+      "retry": 0
+    },
+    {
+      "file": "resource-excel-export-dashboard.spec.ts",
+      "line": 29,
+      "title": "#529 보고서 범위·기간 옵션은 stale 재조회와 재진입에서 보존",
+      "status": "passed",
+      "durationMs": 2205,
+      "retry": 0
+    },
+    {
+      "file": "resource-excel-export-dashboard.spec.ts",
+      "line": 73,
+      "title": "#529 dialog 5폭 geometry·native focus와 늦은 파일 폐기",
+      "status": "passed",
+      "durationMs": 2174,
+      "retry": 0
+    },
+    {
+      "file": "resource-excel-export-dashboard.spec.ts",
+      "line": 141,
+      "title": "#529 상세 stale는 일반 opt-in 생성을 차단하고 숨은 Resource trigger는 visible tab으로 복원",
+      "status": "passed",
+      "durationMs": 2173,
+      "retry": 0
+    },
+    {
+      "file": "resource-milestone-views.spec.ts",
+      "line": 38,
+      "title": "#526 populated Group/Resource matrix 5폭·bounded cells·순서·단위·focus·Gantt",
+      "status": "passed",
+      "durationMs": 7788,
+      "retry": 0
+    },
+    {
+      "file": "resource-milestone-views.spec.ts",
+      "line": 96,
+      "title": "#526 three tree paths use server group intersection and retain stage page across collapse",
+      "status": "passed",
+      "durationMs": 5832,
+      "retry": 0
+    },
+    {
+      "file": "resource-milestone-views.spec.ts",
+      "line": 104,
+      "title": "#526 retained expansions remain bounded after ancestor reopen and mode return",
+      "status": "passed",
+      "durationMs": 5282,
+      "retry": 0
+    },
+    {
+      "file": "resource-milestone-views.spec.ts",
+      "line": 114,
+      "title": "#526 canceled child409 does not stale the current report and hidden detail trigger falls back",
+      "status": "passed",
+      "durationMs": 3760,
+      "retry": 0
+    },
+    {
+      "file": "resource-milestone-views.spec.ts",
+      "line": 140,
+      "title": "#526 matrix metric grain, missing versus configured zero and unknown completion remain explicit",
+      "status": "passed",
+      "durationMs": 3536,
+      "retry": 0
+    },
+    {
+      "file": "resource-plan-dashboard.spec.ts",
+      "line": 120,
+      "title": "#527 week/month two hierarchies 20geometry, bound50rows, sticky lastwindow and nativeGantt",
+      "status": "passed",
+      "durationMs": 16424,
+      "retry": 0
+    },
+    {
+      "file": "resource-plan-dashboard.spec.ts",
+      "line": 321,
+      "title": "#527 selected80/project140 parent warning, detail stack and paging focus",
+      "status": "passed",
+      "durationMs": 3576,
+      "retry": 0
+    },
+    {
+      "file": "resource-plan-dashboard.spec.ts",
+      "line": 372,
+      "title": "#527 50visible hierarchy page context and daily pager focus survive view return",
+      "status": "passed",
+      "durationMs": 7688,
+      "retry": 0
+    },
+    {
+      "file": "resource-plan-dashboard.spec.ts",
+      "line": 445,
+      "title": "#527 canceled detail409 is ignored after leaving Plan and stale blocks all drill",
+      "status": "passed",
+      "durationMs": 2889,
+      "retry": 0
+    },
+    {
+      "file": "resource-plan-dashboard.spec.ts",
+      "line": 486,
+      "title": "#527 unknown and nonworking do not become available, R0 is target absence",
+      "status": "passed",
+      "durationMs": 3168,
+      "retry": 0
+    },
+    {
+      "file": "resource-target-dashboard-api.spec.ts",
+      "line": 18,
+      "title": "#620 실제 HTTP Target 교집합·공동담당 exact drill·readonly·변경 stale·재시작",
+      "status": "passed",
+      "durationMs": 37360,
+      "retry": 0
+    }
+  ],
+  "rawLog": "/tmp/issue-785-browser-rework.log",
+  "rawReport": "/tmp/issue-785-browser-rework.json",
+  "remoteCI": "NOT TESTED"
+}

@@ -1,3 +1,9 @@
+## Issue #785 — 현행 실물 모델과 내부 호환 원본
+
+Logistics Target의 사용자 엔터티/보조 편집 UI 정책은 폐기한다. 신규 업무의 원본은 Project 공정·WorkArea·Equipment/System·Task/Summary 직접 관계다. 공정0..N·구역0..N·공통/공유 System·설비 다중 구역·T0/A/R·같은 WBS 원시 ID를 유지한다. 조회용 그룹을 영속 엔터티나 WBS로 만들지 않는다.
+
+기존 whole/subset·coverage·self/subtree·동명/공유/비활성 원본은 내부 호환 해석으로 유지하고 실제 실물 ID·출처를 제공한다. 새 직접 관계만으로 동적 whole을 표현할 수 없어 평탄화하지 않는다. 외부 전용 경로 퇴역·v2 공개 DTO와 지원 Copy/Template archive 보존은 [API](API.md), [실행 설계](exec-plans/active/ISSUE_785.md)를 따른다. 아래 최초 설계의 Target 보조 화면/작성 설명은 역사이며 현재 정책이 아니다.
+
 ## Issue #762 — Project 공정과 WorkArea 직접 소속
 
 신규 정상 등록은 Project 공정→선택 WorkArea0..N의 두 종류로 완결한다. 사업부/제품/사업장은 Project 분류이고 신규 공정/구역 CRUD 전제조건이 아니다. 구역의 owner 공정과 설비의 주 관리 공정은 서로 다르며 설비는 서로 다른 공정의 구역에 연결할 수 있다. Task/Summary는 공정0..N과 선택 구역을 명시하고 WBS 계층을 공정 계층으로 치환하지 않는다.
@@ -12,7 +18,7 @@
 
 기준정보 설비/물류 시스템은 기존 단일 CRUD·공유 인스턴스 editor를 재사용한다. 같은 설비/MCS를 공정·Target·표시 경로별로 복제하지 않으며 공유 원본 수정, Target 구성원 해제, 실물 삭제를 구별한다. 수량·역할·controls/coordinates 변경은 기존 공유 사용처 확인과 서버 방어를 통한다.
 
-Task 물류 연결은 직접 Equipment/System 및 #725의 명시 공정/WorkArea 편집이 기본이며 Target whole/subset/coverage는 보조 호환 영역에서 유지한다. 각 경로는 독립 저장이고 UI 재배치로 관계를 자동 복사·변환하지 않는다. 명시 공정0..N·legacy null·self/subtree와 직접/조상 출처를 보존한다. Task에 함께 연결된 설비와 MCS는 작업 연관이며 자동 제어관계·공수 배분·Task 복제의 근거가 아니다. 기준정보 다중 WorkArea는 주 관리 공정과 별도다.
+Task 물류 연결은 직접 Equipment/System 및 #725의 명시 공정/WorkArea 편집이 기본이며 기존 whole/subset/coverage는 내부 호환 원본으로 보존하며 공개 보조 편집은 폐기한다. 각 경로는 독립 저장이고 UI 재배치로 관계를 자동 복사·변환하지 않는다. 명시 공정0..N·legacy null·self/subtree와 직접/조상 출처를 보존한다. Task에 함께 연결된 설비와 MCS는 작업 연관이며 자동 제어관계·공수 배분·Task 복제의 근거가 아니다. 기준정보 다중 WorkArea는 주 관리 공정과 별도다.
 
 새 schema/서버 writer는 없고 #725 API의 Project/catalog revision 및 기존 canonical gateway를 사용한다. 조회 실패는 빈 연결로 처리하지 않으며 독립 저장 간 dirty/pending 잠금을 유지한다. 출처 안내는 명시 ancestor subtree이며 전체 #728 해석/후속 #729 공개 조회와 구별한다. [Task UX](TASK_EDITOR.md), [검증](exec-plans/active/ISSUE_726.md).
 
