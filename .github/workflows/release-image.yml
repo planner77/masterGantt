@@ -157,7 +157,7 @@ jobs:
       - name: Release reuse verdict artifact (never a self-approval)
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: release-reuse-verdict-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/release-reuse-verdict.json
@@ -205,7 +205,7 @@ jobs:
         run: node scripts/record-ci-setup-metric.mjs --metric release-production-build --started-ms "${{ steps.release-build-start.outputs.started_ms }}"
       - name: Release static setup 계측 artifact 업로드
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: release-setup-metrics-static
           path: ${{ runner.temp }}/ci-setup-metrics-${{ github.job }}.jsonl
@@ -269,7 +269,7 @@ jobs:
           fi
       - name: Release E2E timing artifact 업로드
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: e2e-timing-release-shard-${{ matrix.shard }}
           path: test-results/e2e-timing-shard-${{ matrix.shard }}.json
@@ -277,7 +277,7 @@ jobs:
           retention-days: 30
       - name: Release E2E setup 계측 artifact 업로드
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: release-setup-metrics-e2e-shard-${{ matrix.shard }}
           path: ${{ runner.temp }}/ci-setup-metrics-${{ github.job }}.jsonl
@@ -285,7 +285,7 @@ jobs:
           retention-days: 30
       - name: 실패 shard Playwright report 업로드
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: release-playwright-report-shard-${{ matrix.shard }}
           path: playwright-report/
@@ -474,7 +474,7 @@ jobs:
         run: docker logs mastergantt-release-candidate || true
       - name: Release candidate setup 계측 artifact 업로드
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: release-setup-metrics-candidate
           path: ${{ runner.temp }}/ci-setup-metrics-${{ github.job }}.jsonl
