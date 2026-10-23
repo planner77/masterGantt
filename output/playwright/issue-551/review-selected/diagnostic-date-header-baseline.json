@@ -1,0 +1,3858 @@
+{
+  "capturedAt": "2026-10-08T16:24:30.321Z",
+  "baseline": "31345da9346dfbdc1ac02e4e7ca567edafec775f",
+  "environment": "Chromium/Next dev actual Core2.7.3/store2.7.2, synthetic canonical API, America/New_York",
+  "observations": [
+    {
+      "scale": "day",
+      "date": "2024-02-29",
+      "nativeContentX": 0,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 0
+      },
+      "rows": [
+        [
+          {
+            "text": "February 2024",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          },
+          {
+            "text": "March 2024",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 546,
+            "right": 1662,
+            "width": 1116,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "29",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240229 ",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          },
+          {
+            "text": "1",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240301 ",
+            "x": 546,
+            "right": 582,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "2",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240302 wx-weekend",
+            "x": 582,
+            "right": 618,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "3",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240303 wx-weekend",
+            "x": 618,
+            "right": 654,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "4",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240304 ",
+            "x": 654,
+            "right": 690,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "5",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240305 ",
+            "x": 690,
+            "right": 726,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "6",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240306 ",
+            "x": 726,
+            "right": 762,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "7",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240307 ",
+            "x": 762,
+            "right": 798,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "8",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240308 ",
+            "x": 798,
+            "right": 834,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "9",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240309 wx-weekend",
+            "x": 834,
+            "right": 870,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "10",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240310 wx-weekend",
+            "x": 870,
+            "right": 906,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "11",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240311 ",
+            "x": 906,
+            "right": 942,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "12",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240312 ",
+            "x": 942,
+            "right": 978,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "13",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240313 ",
+            "x": 978,
+            "right": 1014,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "14",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240314 ",
+            "x": 1014,
+            "right": 1050,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "15",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240315 ",
+            "x": 1050,
+            "right": 1086,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "16",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240316 wx-weekend",
+            "x": 1086,
+            "right": 1122,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "17",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240317 wx-weekend",
+            "x": 1122,
+            "right": 1158,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "18",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240318 ",
+            "x": 1158,
+            "right": 1194,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "19",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240319 ",
+            "x": 1194,
+            "right": 1230,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "20",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240320 ",
+            "x": 1230,
+            "right": 1266,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "21",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240321 ",
+            "x": 1266,
+            "right": 1302,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "22",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240322 ",
+            "x": 1302,
+            "right": 1338,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "23",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240323 wx-weekend",
+            "x": 1338,
+            "right": 1374,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "24",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240324 wx-weekend",
+            "x": 1374,
+            "right": 1410,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "25",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240325 ",
+            "x": 1410,
+            "right": 1446,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "26",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240326 ",
+            "x": 1446,
+            "right": 1482,
+            "width": 36,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "February 2024",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "29",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240229 ",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 0,
+        "viewportX": 0,
+        "insideRange": true,
+        "visible": true,
+        "unit": "day",
+        "cellWidth": 36
+      },
+      "expectedMonth": "February 2024",
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 0,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-29T05:00:00.000Z",
+        "end": "2027-01-03T05:00:00.000Z",
+        "width": 37404,
+        "chartWidth": 906,
+        "weekStart": 0,
+        "scaleRows": [
+          {
+            "count": 36,
+            "width": 37404,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "February 2024"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "March 2024"
+              },
+              {
+                "date": "2024-04-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "April 2024"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-11-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "November 2026"
+              },
+              {
+                "date": "2026-12-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "December 2026"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 72,
+                "value": "January 2027"
+              }
+            ]
+          },
+          {
+            "count": 1039,
+            "width": 37404,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "29"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2024-03-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-12-31T05:00:00.000Z",
+                "width": 36,
+                "value": "31"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2027-01-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": -15.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 25272,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 37332,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 26624.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 37316.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 0,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "day",
+      "date": "2026-01-31",
+      "nativeContentX": 25272,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 25272
+      },
+      "rows": [
+        [
+          {
+            "text": "January 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": -570,
+            "right": 546,
+            "width": 1116,
+            "containsAnchor": true
+          },
+          {
+            "text": "February 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 546,
+            "right": 1554,
+            "width": 1008,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "30",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260130 ",
+            "x": 474,
+            "right": 510,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "31",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260131 wx-weekend",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          },
+          {
+            "text": "1",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260201 wx-weekend",
+            "x": 546,
+            "right": 582,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "2",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260202 ",
+            "x": 582,
+            "right": 618,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "3",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260203 ",
+            "x": 618,
+            "right": 654,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "4",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260204 ",
+            "x": 654,
+            "right": 690,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "5",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260205 ",
+            "x": 690,
+            "right": 726,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "6",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260206 ",
+            "x": 726,
+            "right": 762,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "7",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260207 wx-weekend",
+            "x": 762,
+            "right": 798,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "8",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260208 wx-weekend",
+            "x": 798,
+            "right": 834,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "9",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260209 ",
+            "x": 834,
+            "right": 870,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "10",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260210 ",
+            "x": 870,
+            "right": 906,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "11",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260211 ",
+            "x": 906,
+            "right": 942,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "12",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260212 ",
+            "x": 942,
+            "right": 978,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "13",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260213 ",
+            "x": 978,
+            "right": 1014,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "14",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260214 wx-weekend",
+            "x": 1014,
+            "right": 1050,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "15",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260215 wx-weekend",
+            "x": 1050,
+            "right": 1086,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "16",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260216 ",
+            "x": 1086,
+            "right": 1122,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "17",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260217 ",
+            "x": 1122,
+            "right": 1158,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "18",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260218 ",
+            "x": 1158,
+            "right": 1194,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "19",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260219 ",
+            "x": 1194,
+            "right": 1230,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "20",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260220 ",
+            "x": 1230,
+            "right": 1266,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "21",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260221 wx-weekend",
+            "x": 1266,
+            "right": 1302,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "22",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260222 wx-weekend",
+            "x": 1302,
+            "right": 1338,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "23",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260223 ",
+            "x": 1338,
+            "right": 1374,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "24",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260224 ",
+            "x": 1374,
+            "right": 1410,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "25",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260225 ",
+            "x": 1410,
+            "right": 1446,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "26",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260226 ",
+            "x": 1446,
+            "right": 1482,
+            "width": 36,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "January 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": -570,
+            "right": 546,
+            "width": 1116,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "31",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260131 wx-weekend",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 25272,
+        "viewportX": 0,
+        "insideRange": true,
+        "visible": true,
+        "unit": "day",
+        "cellWidth": 36
+      },
+      "expectedMonth": "January 2026",
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 25272,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-29T05:00:00.000Z",
+        "end": "2027-01-03T05:00:00.000Z",
+        "width": 37404,
+        "chartWidth": 906,
+        "weekStart": 0,
+        "scaleRows": [
+          {
+            "count": 36,
+            "width": 37404,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "February 2024"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "March 2024"
+              },
+              {
+                "date": "2024-04-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "April 2024"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-11-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "November 2026"
+              },
+              {
+                "date": "2026-12-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "December 2026"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 72,
+                "value": "January 2027"
+              }
+            ]
+          },
+          {
+            "count": 1039,
+            "width": 37404,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "29"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2024-03-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-12-31T05:00:00.000Z",
+                "width": 36,
+                "value": "31"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2027-01-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": -15.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 25272,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 37332,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 26624.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 37316.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 0,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "day",
+      "date": "2026-03-10",
+      "nativeContentX": 26640,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 26640
+      },
+      "rows": [
+        [
+          {
+            "text": "March 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 186,
+            "right": 1302,
+            "width": 1116,
+            "containsAnchor": true
+          },
+          {
+            "text": "April 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 1302,
+            "right": 2382,
+            "width": 1080,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "9",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260309 ",
+            "x": 474,
+            "right": 510,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "10",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260310 ",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          },
+          {
+            "text": "11",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260311 ",
+            "x": 546,
+            "right": 582,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "12",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260312 ",
+            "x": 582,
+            "right": 618,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "13",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260313 ",
+            "x": 618,
+            "right": 654,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "14",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260314 wx-weekend",
+            "x": 654,
+            "right": 690,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "15",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260315 wx-weekend",
+            "x": 690,
+            "right": 726,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "16",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260316 ",
+            "x": 726,
+            "right": 762,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "17",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260317 ",
+            "x": 762,
+            "right": 798,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "18",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260318 ",
+            "x": 798,
+            "right": 834,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "19",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260319 ",
+            "x": 834,
+            "right": 870,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "20",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260320 ",
+            "x": 870,
+            "right": 906,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "21",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260321 wx-weekend",
+            "x": 906,
+            "right": 942,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "22",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260322 wx-weekend",
+            "x": 942,
+            "right": 978,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "23",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260323 ",
+            "x": 978,
+            "right": 1014,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "24",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260324 ",
+            "x": 1014,
+            "right": 1050,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "25",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260325 ",
+            "x": 1050,
+            "right": 1086,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "26",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260326 ",
+            "x": 1086,
+            "right": 1122,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "27",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260327 ",
+            "x": 1122,
+            "right": 1158,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "28",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260328 wx-weekend",
+            "x": 1158,
+            "right": 1194,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "29",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260329 wx-weekend",
+            "x": 1194,
+            "right": 1230,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "30",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260330 ",
+            "x": 1230,
+            "right": 1266,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "31",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260331 ",
+            "x": 1266,
+            "right": 1302,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "1",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260401 ",
+            "x": 1302,
+            "right": 1338,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "2",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260402 ",
+            "x": 1338,
+            "right": 1374,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "3",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260403 ",
+            "x": 1374,
+            "right": 1410,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "4",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260404 wx-weekend",
+            "x": 1410,
+            "right": 1446,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "5",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260405 wx-weekend",
+            "x": 1446,
+            "right": 1482,
+            "width": 36,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "March 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 186,
+            "right": 1302,
+            "width": 1116,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "10",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260310 ",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 26640,
+        "viewportX": 0,
+        "insideRange": true,
+        "visible": true,
+        "unit": "day",
+        "cellWidth": 36
+      },
+      "expectedMonth": "March 2026",
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 26640,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-29T05:00:00.000Z",
+        "end": "2027-01-03T05:00:00.000Z",
+        "width": 37404,
+        "chartWidth": 906,
+        "weekStart": 0,
+        "scaleRows": [
+          {
+            "count": 36,
+            "width": 37404,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "February 2024"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "March 2024"
+              },
+              {
+                "date": "2024-04-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "April 2024"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-11-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "November 2026"
+              },
+              {
+                "date": "2026-12-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "December 2026"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 72,
+                "value": "January 2027"
+              }
+            ]
+          },
+          {
+            "count": 1039,
+            "width": 37404,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "29"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2024-03-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-12-31T05:00:00.000Z",
+                "width": 36,
+                "value": "31"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2027-01-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": -15.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 25272,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 37332,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 26624.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 37316.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 0,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 26640,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "day",
+      "date": "2027-01-01",
+      "nativeContentX": 37332,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 36498
+      },
+      "rows": [
+        [
+          {
+            "text": "December 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 228,
+            "right": 1344,
+            "width": 1116,
+            "containsAnchor": false
+          },
+          {
+            "text": "January 2027",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 1344,
+            "right": 2352,
+            "width": 1008,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "7",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261207 ",
+            "x": 444,
+            "right": 480,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "8",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261208 ",
+            "x": 480,
+            "right": 516,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "9",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261209 ",
+            "x": 516,
+            "right": 552,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "10",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261210 ",
+            "x": 552,
+            "right": 588,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "11",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261211 ",
+            "x": 588,
+            "right": 624,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "12",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261212 wx-weekend",
+            "x": 624,
+            "right": 660,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "13",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261213 wx-weekend",
+            "x": 660,
+            "right": 696,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "14",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261214 ",
+            "x": 696,
+            "right": 732,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "15",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261215 ",
+            "x": 732,
+            "right": 768,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "16",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261216 ",
+            "x": 768,
+            "right": 804,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "17",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261217 ",
+            "x": 804,
+            "right": 840,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "18",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261218 ",
+            "x": 840,
+            "right": 876,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "19",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261219 wx-weekend",
+            "x": 876,
+            "right": 912,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "20",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261220 wx-weekend",
+            "x": 912,
+            "right": 948,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "21",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261221 ",
+            "x": 948,
+            "right": 984,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "22",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261222 ",
+            "x": 984,
+            "right": 1020,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "23",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261223 ",
+            "x": 1020,
+            "right": 1056,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "24",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261224 ",
+            "x": 1056,
+            "right": 1092,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "25",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261225 ",
+            "x": 1092,
+            "right": 1128,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "26",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261226 wx-weekend",
+            "x": 1128,
+            "right": 1164,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "27",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261227 wx-weekend",
+            "x": 1164,
+            "right": 1200,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "28",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261228 ",
+            "x": 1200,
+            "right": 1236,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "29",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261229 ",
+            "x": 1236,
+            "right": 1272,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "30",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261230 ",
+            "x": 1272,
+            "right": 1308,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "31",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261231 ",
+            "x": 1308,
+            "right": 1344,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "1",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20270101 ",
+            "x": 1344,
+            "right": 1380,
+            "width": 36,
+            "containsAnchor": true
+          },
+          {
+            "text": "2",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20270102 wx-weekend",
+            "x": 1380,
+            "right": 1416,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "3",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20270103 wx-weekend",
+            "x": 1416,
+            "right": 1452,
+            "width": 36,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "January 2027",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 1344,
+            "right": 2352,
+            "width": 1008,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "1",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20270101 ",
+            "x": 1344,
+            "right": 1380,
+            "width": 36,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 37332,
+        "viewportX": 834,
+        "insideRange": true,
+        "visible": true,
+        "unit": "day",
+        "cellWidth": 36
+      },
+      "expectedMonth": "January 2027",
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 36498,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-29T05:00:00.000Z",
+        "end": "2027-01-29T05:00:00.000Z",
+        "width": 38340,
+        "chartWidth": 906,
+        "weekStart": 0,
+        "scaleRows": [
+          {
+            "count": 36,
+            "width": 38340,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "February 2024"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "March 2024"
+              },
+              {
+                "date": "2024-04-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "April 2024"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-11-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "November 2026"
+              },
+              {
+                "date": "2026-12-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "December 2026"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 1008,
+                "value": "January 2027"
+              }
+            ]
+          },
+          {
+            "count": 1065,
+            "width": 38340,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "29"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2024-03-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-01-26T05:00:00.000Z",
+                "width": 36,
+                "value": "26"
+              },
+              {
+                "date": "2027-01-27T05:00:00.000Z",
+                "width": 36,
+                "value": "27"
+              },
+              {
+                "date": "2027-01-28T05:00:00.000Z",
+                "width": 36,
+                "value": "28"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": -15.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 25272,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 37332,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 26624.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 37316.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 0,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 26640,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "week",
+      "date": "2024-02-29",
+      "nativeContentX": 39,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 39
+      },
+      "rows": [
+        [
+          {
+            "text": "February 2024",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 471,
+            "right": 539,
+            "width": 68,
+            "containsAnchor": true
+          },
+          {
+            "text": "March 2024",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 539,
+            "right": 947,
+            "width": 408,
+            "containsAnchor": false
+          },
+          {
+            "text": "April 2024",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 947,
+            "right": 1287,
+            "width": 340,
+            "containsAnchor": false
+          },
+          {
+            "text": "May 2024",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 1287,
+            "right": 1627,
+            "width": 340,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "W085일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240219 ",
+            "x": 471,
+            "right": 539,
+            "width": 68,
+            "containsAnchor": true
+          },
+          {
+            "text": "W095일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240226 ",
+            "x": 539,
+            "right": 607,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W105일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240304 ",
+            "x": 607,
+            "right": 675,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W115일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240311 ",
+            "x": 675,
+            "right": 743,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W125일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240318 ",
+            "x": 743,
+            "right": 811,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W135일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240325 ",
+            "x": 811,
+            "right": 879,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W145일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240401 ",
+            "x": 879,
+            "right": 947,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W155일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240408 ",
+            "x": 947,
+            "right": 1015,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W165일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240415 ",
+            "x": 1015,
+            "right": 1083,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W175일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240422 ",
+            "x": 1083,
+            "right": 1151,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W185일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240429 ",
+            "x": 1151,
+            "right": 1219,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W195일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240506 ",
+            "x": 1219,
+            "right": 1287,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W205일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240513 ",
+            "x": 1287,
+            "right": 1355,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W215일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240520 ",
+            "x": 1355,
+            "right": 1423,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W225일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240527 ",
+            "x": 1423,
+            "right": 1491,
+            "width": 68,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "February 2024",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 471,
+            "right": 539,
+            "width": 68,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "W085일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240219 ",
+            "x": 471,
+            "right": 539,
+            "width": 68,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 39,
+        "viewportX": 0,
+        "insideRange": true,
+        "visible": true,
+        "unit": "week",
+        "cellWidth": 68
+      },
+      "expectedMonth": "February 2024",
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 39,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-25T05:00:00.000Z",
+        "end": "2027-05-16T04:00:00.000Z",
+        "width": 11424,
+        "chartWidth": 906,
+        "weekStart": 0,
+        "scaleRows": [
+          {
+            "count": 40,
+            "width": 13668,
+            "first": [
+              {
+                "date": "2024-02-25T05:00:00.000Z",
+                "width": 68,
+                "value": "February 2024"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 408,
+                "value": "March 2024"
+              },
+              {
+                "date": "2024-04-01T04:00:00.000Z",
+                "width": 340,
+                "value": "April 2024"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-03-01T05:00:00.000Z",
+                "width": 340,
+                "value": "March 2027"
+              },
+              {
+                "date": "2027-04-01T04:00:00.000Z",
+                "width": 340,
+                "value": "April 2027"
+              },
+              {
+                "date": "2027-05-01T04:00:00.000Z",
+                "width": 204,
+                "value": "May 2027"
+              }
+            ]
+          },
+          {
+            "count": 168,
+            "width": 11424,
+            "first": [
+              {
+                "date": "2024-02-25T05:00:00.000Z",
+                "width": 68,
+                "value": "W08"
+              },
+              {
+                "date": "2024-03-03T05:00:00.000Z",
+                "width": 68,
+                "value": "W09"
+              },
+              {
+                "date": "2024-03-10T05:00:00.000Z",
+                "width": 68,
+                "value": "W10"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-04-25T04:00:00.000Z",
+                "width": 68,
+                "value": "W16"
+              },
+              {
+                "date": "2027-05-02T04:00:00.000Z",
+                "width": 68,
+                "value": "W17"
+              },
+              {
+                "date": "2027-05-09T04:00:00.000Z",
+                "width": 68,
+                "value": "W18"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 39,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 39,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": 23.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 6858,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 7227,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 7227,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 10113,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 7211.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 10097.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 39,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 26640,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 9566,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9527,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9527,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 39,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "week",
+      "date": "2026-01-31",
+      "nativeContentX": 6858,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 6858
+      },
+      "rows": [
+        [
+          {
+            "text": "September 2025",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 112,
+            "right": 452,
+            "width": 340,
+            "containsAnchor": false
+          },
+          {
+            "text": "October 2025",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 452,
+            "right": 792,
+            "width": 340,
+            "containsAnchor": true
+          },
+          {
+            "text": "November 2025",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 792,
+            "right": 1200,
+            "width": 408,
+            "containsAnchor": false
+          },
+          {
+            "text": "December 2025",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 1200,
+            "right": 1540,
+            "width": 340,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "W035일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260112 ",
+            "x": 384,
+            "right": 452,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W045일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260119 ",
+            "x": 452,
+            "right": 520,
+            "width": 68,
+            "containsAnchor": true
+          },
+          {
+            "text": "W055일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260126 ",
+            "x": 520,
+            "right": 588,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W065일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260202 ",
+            "x": 588,
+            "right": 656,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W075일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260209 ",
+            "x": 656,
+            "right": 724,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W085일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260216 ",
+            "x": 724,
+            "right": 792,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W095일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260223 ",
+            "x": 792,
+            "right": 860,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W105일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260302 ",
+            "x": 860,
+            "right": 928,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W115일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260309 ",
+            "x": 928,
+            "right": 996,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W125일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260316 ",
+            "x": 996,
+            "right": 1064,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W135일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260323 ",
+            "x": 1064,
+            "right": 1132,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W145일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260330 ",
+            "x": 1132,
+            "right": 1200,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W155일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260406 ",
+            "x": 1200,
+            "right": 1268,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W165일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260413 ",
+            "x": 1268,
+            "right": 1336,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W175일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260420 ",
+            "x": 1336,
+            "right": 1404,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W185일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260427 ",
+            "x": 1404,
+            "right": 1472,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W195일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260504 ",
+            "x": 1472,
+            "right": 1540,
+            "width": 68,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "October 2025",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 452,
+            "right": 792,
+            "width": 340,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "W045일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260119 ",
+            "x": 452,
+            "right": 520,
+            "width": 68,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 6858,
+        "viewportX": 0,
+        "insideRange": true,
+        "visible": true,
+        "unit": "week",
+        "cellWidth": 68
+      },
+      "expectedMonth": "January 2026",
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 6858,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-25T05:00:00.000Z",
+        "end": "2027-05-16T04:00:00.000Z",
+        "width": 11424,
+        "chartWidth": 906,
+        "weekStart": 0,
+        "scaleRows": [
+          {
+            "count": 40,
+            "width": 13668,
+            "first": [
+              {
+                "date": "2024-02-25T05:00:00.000Z",
+                "width": 68,
+                "value": "February 2024"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 408,
+                "value": "March 2024"
+              },
+              {
+                "date": "2024-04-01T04:00:00.000Z",
+                "width": 340,
+                "value": "April 2024"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-03-01T05:00:00.000Z",
+                "width": 340,
+                "value": "March 2027"
+              },
+              {
+                "date": "2027-04-01T04:00:00.000Z",
+                "width": 340,
+                "value": "April 2027"
+              },
+              {
+                "date": "2027-05-01T04:00:00.000Z",
+                "width": 204,
+                "value": "May 2027"
+              }
+            ]
+          },
+          {
+            "count": 168,
+            "width": 11424,
+            "first": [
+              {
+                "date": "2024-02-25T05:00:00.000Z",
+                "width": 68,
+                "value": "W08"
+              },
+              {
+                "date": "2024-03-03T05:00:00.000Z",
+                "width": 68,
+                "value": "W09"
+              },
+              {
+                "date": "2024-03-10T05:00:00.000Z",
+                "width": 68,
+                "value": "W10"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-04-25T04:00:00.000Z",
+                "width": 68,
+                "value": "W16"
+              },
+              {
+                "date": "2027-05-02T04:00:00.000Z",
+                "width": 68,
+                "value": "W17"
+              },
+              {
+                "date": "2027-05-09T04:00:00.000Z",
+                "width": 68,
+                "value": "W18"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 39,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 39,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": 23.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 6858,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 7227,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 7227,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 10113,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 7211.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 10097.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 39,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 26640,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 9566,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9527,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9527,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 39,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 6858,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "week",
+      "date": "2026-03-10",
+      "nativeContentX": 7227,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 6858
+      },
+      "rows": [
+        [
+          {
+            "text": "September 2025",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 112,
+            "right": 452,
+            "width": 340,
+            "containsAnchor": false
+          },
+          {
+            "text": "October 2025",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 452,
+            "right": 792,
+            "width": 340,
+            "containsAnchor": false
+          },
+          {
+            "text": "November 2025",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 792,
+            "right": 1200,
+            "width": 408,
+            "containsAnchor": true
+          },
+          {
+            "text": "December 2025",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 1200,
+            "right": 1540,
+            "width": 340,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "W035일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260112 ",
+            "x": 384,
+            "right": 452,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W045일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260119 ",
+            "x": 452,
+            "right": 520,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W055일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260126 ",
+            "x": 520,
+            "right": 588,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W065일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260202 ",
+            "x": 588,
+            "right": 656,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W075일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260209 ",
+            "x": 656,
+            "right": 724,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W085일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260216 ",
+            "x": 724,
+            "right": 792,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W095일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260223 ",
+            "x": 792,
+            "right": 860,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W105일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260302 ",
+            "x": 860,
+            "right": 928,
+            "width": 68,
+            "containsAnchor": true
+          },
+          {
+            "text": "W115일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260309 ",
+            "x": 928,
+            "right": 996,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W125일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260316 ",
+            "x": 996,
+            "right": 1064,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W135일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260323 ",
+            "x": 1064,
+            "right": 1132,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W145일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260330 ",
+            "x": 1132,
+            "right": 1200,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W155일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260406 ",
+            "x": 1200,
+            "right": 1268,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W165일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260413 ",
+            "x": 1268,
+            "right": 1336,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W175일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260420 ",
+            "x": 1336,
+            "right": 1404,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W185일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260427 ",
+            "x": 1404,
+            "right": 1472,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W195일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260504 ",
+            "x": 1472,
+            "right": 1540,
+            "width": 68,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "November 2025",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 792,
+            "right": 1200,
+            "width": 408,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "W105일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260302 ",
+            "x": 860,
+            "right": 928,
+            "width": 68,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 7227,
+        "viewportX": 369,
+        "insideRange": true,
+        "visible": true,
+        "unit": "week",
+        "cellWidth": 68
+      },
+      "expectedMonth": "March 2026",
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 6858,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-25T05:00:00.000Z",
+        "end": "2027-05-16T04:00:00.000Z",
+        "width": 11424,
+        "chartWidth": 906,
+        "weekStart": 0,
+        "scaleRows": [
+          {
+            "count": 40,
+            "width": 13668,
+            "first": [
+              {
+                "date": "2024-02-25T05:00:00.000Z",
+                "width": 68,
+                "value": "February 2024"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 408,
+                "value": "March 2024"
+              },
+              {
+                "date": "2024-04-01T04:00:00.000Z",
+                "width": 340,
+                "value": "April 2024"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-03-01T05:00:00.000Z",
+                "width": 340,
+                "value": "March 2027"
+              },
+              {
+                "date": "2027-04-01T04:00:00.000Z",
+                "width": 340,
+                "value": "April 2027"
+              },
+              {
+                "date": "2027-05-01T04:00:00.000Z",
+                "width": 204,
+                "value": "May 2027"
+              }
+            ]
+          },
+          {
+            "count": 168,
+            "width": 11424,
+            "first": [
+              {
+                "date": "2024-02-25T05:00:00.000Z",
+                "width": 68,
+                "value": "W08"
+              },
+              {
+                "date": "2024-03-03T05:00:00.000Z",
+                "width": 68,
+                "value": "W09"
+              },
+              {
+                "date": "2024-03-10T05:00:00.000Z",
+                "width": 68,
+                "value": "W10"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-04-25T04:00:00.000Z",
+                "width": 68,
+                "value": "W16"
+              },
+              {
+                "date": "2027-05-02T04:00:00.000Z",
+                "width": 68,
+                "value": "W17"
+              },
+              {
+                "date": "2027-05-09T04:00:00.000Z",
+                "width": 68,
+                "value": "W18"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 39,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 39,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": 23.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 6858,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 7227,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 7227,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 10113,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 7211.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 10097.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 39,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 26640,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 9566,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9527,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9527,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 39,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 6858,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "week",
+      "date": "2027-01-01",
+      "nativeContentX": 10113,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 10113
+      },
+      "rows": [
+        [
+          {
+            "text": "July 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 325,
+            "right": 665,
+            "width": 340,
+            "containsAnchor": true
+          },
+          {
+            "text": "August 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 665,
+            "right": 1073,
+            "width": 408,
+            "containsAnchor": false
+          },
+          {
+            "text": "September 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 1073,
+            "right": 1413,
+            "width": 340,
+            "containsAnchor": false
+          },
+          {
+            "text": "October 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 1413,
+            "right": 1753,
+            "width": 340,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "W515일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20261214 ",
+            "x": 393,
+            "right": 461,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W525일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20261221 ",
+            "x": 461,
+            "right": 529,
+            "width": 68,
+            "containsAnchor": true
+          },
+          {
+            "text": "W535일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20261228 ",
+            "x": 529,
+            "right": 597,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W015일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270104 ",
+            "x": 597,
+            "right": 665,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W025일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270111 ",
+            "x": 665,
+            "right": 733,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W035일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270118 ",
+            "x": 733,
+            "right": 801,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W045일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270125 ",
+            "x": 801,
+            "right": 869,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W055일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270201 ",
+            "x": 869,
+            "right": 937,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W065일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270208 ",
+            "x": 937,
+            "right": 1005,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W075일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270215 ",
+            "x": 1005,
+            "right": 1073,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W085일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270222 ",
+            "x": 1073,
+            "right": 1141,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W095일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270301 ",
+            "x": 1141,
+            "right": 1209,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W105일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270308 ",
+            "x": 1209,
+            "right": 1277,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W115일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270315 ",
+            "x": 1277,
+            "right": 1345,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W125일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270322 ",
+            "x": 1345,
+            "right": 1413,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W135일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270329 ",
+            "x": 1413,
+            "right": 1481,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W145일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270405 ",
+            "x": 1481,
+            "right": 1549,
+            "width": 68,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "July 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "x": 325,
+            "right": 665,
+            "width": 340,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "W525일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20261221 ",
+            "x": 461,
+            "right": 529,
+            "width": 68,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 10113,
+        "viewportX": 0,
+        "insideRange": true,
+        "visible": true,
+        "unit": "week",
+        "cellWidth": 68
+      },
+      "expectedMonth": "January 2027",
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 10113,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-25T05:00:00.000Z",
+        "end": "2027-05-16T04:00:00.000Z",
+        "width": 11424,
+        "chartWidth": 906,
+        "weekStart": 0,
+        "scaleRows": [
+          {
+            "count": 40,
+            "width": 13668,
+            "first": [
+              {
+                "date": "2024-02-25T05:00:00.000Z",
+                "width": 68,
+                "value": "February 2024"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 408,
+                "value": "March 2024"
+              },
+              {
+                "date": "2024-04-01T04:00:00.000Z",
+                "width": 340,
+                "value": "April 2024"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-03-01T05:00:00.000Z",
+                "width": 340,
+                "value": "March 2027"
+              },
+              {
+                "date": "2027-04-01T04:00:00.000Z",
+                "width": 340,
+                "value": "April 2027"
+              },
+              {
+                "date": "2027-05-01T04:00:00.000Z",
+                "width": 204,
+                "value": "May 2027"
+              }
+            ]
+          },
+          {
+            "count": 168,
+            "width": 11424,
+            "first": [
+              {
+                "date": "2024-02-25T05:00:00.000Z",
+                "width": 68,
+                "value": "W08"
+              },
+              {
+                "date": "2024-03-03T05:00:00.000Z",
+                "width": 68,
+                "value": "W09"
+              },
+              {
+                "date": "2024-03-10T05:00:00.000Z",
+                "width": 68,
+                "value": "W10"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-04-25T04:00:00.000Z",
+                "width": 68,
+                "value": "W16"
+              },
+              {
+                "date": "2027-05-02T04:00:00.000Z",
+                "width": 68,
+                "value": "W17"
+              },
+              {
+                "date": "2027-05-09T04:00:00.000Z",
+                "width": 68,
+                "value": "W18"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 39,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 39,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": 23.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 6858,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 7227,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 7227,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 10113,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 7211.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 10097.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 39,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 26640,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 9566,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9527,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9527,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 39,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 6858,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 10113,
+            "top": 0
+          }
+        ]
+      }
+    }
+  ],
+  "failures": [
+    {
+      "scale": "week",
+      "date": "2026-01-31",
+      "expectedMonth": "January 2026",
+      "actualMonth": "October 2025"
+    },
+    {
+      "scale": "week",
+      "date": "2026-03-10",
+      "expectedMonth": "March 2026",
+      "actualMonth": "November 2025"
+    },
+    {
+      "scale": "week",
+      "date": "2027-01-01",
+      "expectedMonth": "January 2027",
+      "actualMonth": "July 2026"
+    }
+  ],
+  "mutationCount": 0,
+  "sourceHashes": {
+    "src/features/gantt/project-gantt.tsx": "991ea00dd8dce1246bd3e8349c80e34fa853b1173b9ea0e2ece475cbab8d7547",
+    "src/features/gantt/milestone-timeline-adapter.ts": "8f3dc6a6587def3f8fac6e5c585f0f2f944df04732dc13b9d4b4f5886f641798",
+    "src/features/gantt/week-header-tooltip.ts": "164cd434ef364021f020c46796ee72c06dc6121a6eb80b653d7a843c8c5cb170",
+    "tests/e2e/milestone-timeline-lane.spec.ts": "11dd99df8b6f2bbfbc5db91eea73707594e41d73092a4e550ae9ff28b7cade75"
+  }
+}

@@ -1,0 +1,1715 @@
+{
+  "schema": "mastergantt-issue731-m003-local-v1",
+  "baseline": "0aa1d3d71f13df6976539ef4ebaaadb9037121c4",
+  "version": "0.123.0",
+  "scope": "LOCAL_FAST_FEEDBACK_ONLY",
+  "remoteRequired": "NOT TESTED",
+  "independentRunnerStability": "NOT TESTED",
+  "socketInternalCause": "UNKNOWN",
+  "initialSourceSha256": {
+    "tests/e2e/issue-623-resource-mvp.spec.ts": "ed35d0de552a07c768afdd6b2348e19c3acf12e549e3b02ddbe45780d91f2a36",
+    "tests/e2e/project-task-editor-persistence.spec.ts": "3e266129bf0652a1ac9a191581d01398fbecf180148e058bd58a9a05141db510",
+    "tests/e2e/issue-725-process-workareas.spec.ts": "69e1afc94713f65d97c961b5cb52252abde35c246fd9fa2d746eb0c2ef6e2e5d",
+    "tests/e2e/issue-726-task-logistics.spec.ts": "913701fdd0cfc6879c088066102db48f6970c115fc50f0522a75f3f89b328945",
+    "tests/e2e/logistics-dashboard-request-state.spec.ts": "6902a9cbe3df5d4a2fe367d829cd9a0ce2faf8e7844a5b1164228e74d11af3b3",
+    "tests/e2e/helpers/browser-canonical-snapshot.ts": "57c5c151745b48abcc3b15f2c93d2bd8e26ac87bee530b9218e0c54ce90c5b99",
+    "tests/e2e/fixtures/isolated-application.ts": "1ec5aacdfc9055c530bbeeb16b514c8c1c87bbc8c4643f9a2ea48ccfa034f949",
+    "src/features/logistics/project-logistics-management.tsx": "c554c4c42cb1dca643dda0d5ca35d14300367d85e18f5537fc0b4a29a88e0281",
+    "src/server/logistics/logistics-kpi-service-core.ts": "ef9aff004bbc7db7bd6ffcaa0f7359b007828e2fa597e5f5343ec0b79e3ce92a"
+  },
+  "finalSourceSha256": {
+    "tests/e2e/issue-623-resource-mvp.spec.ts": "157f489ebd31cd9e115eefdfa042985a6f40e7f2c9685f9b54e30d25cdc564d1",
+    "tests/e2e/project-task-editor-persistence.spec.ts": "3e266129bf0652a1ac9a191581d01398fbecf180148e058bd58a9a05141db510",
+    "tests/e2e/issue-725-process-workareas.spec.ts": "69e1afc94713f65d97c961b5cb52252abde35c246fd9fa2d746eb0c2ef6e2e5d",
+    "tests/e2e/issue-726-task-logistics.spec.ts": "913701fdd0cfc6879c088066102db48f6970c115fc50f0522a75f3f89b328945",
+    "tests/e2e/logistics-dashboard-request-state.spec.ts": "6902a9cbe3df5d4a2fe367d829cd9a0ce2faf8e7844a5b1164228e74d11af3b3",
+    "tests/e2e/helpers/browser-canonical-snapshot.ts": "57c5c151745b48abcc3b15f2c93d2bd8e26ac87bee530b9218e0c54ce90c5b99",
+    "tests/e2e/fixtures/isolated-application.ts": "1ec5aacdfc9055c530bbeeb16b514c8c1c87bbc8c4643f9a2ea48ccfa034f949",
+    "src/features/logistics/project-logistics-management.tsx": "c554c4c42cb1dca643dda0d5ca35d14300367d85e18f5537fc0b4a29a88e0281",
+    "src/server/logistics/logistics-kpi-service-core.ts": "ef9aff004bbc7db7bd6ffcaa0f7359b007828e2fa597e5f5343ec0b79e3ce92a"
+  },
+  "initialTypecheck": {
+    "status": "FAIL",
+    "code": "TS2532",
+    "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+    "line": 269,
+    "remedy": "누락된 Target 연결을 명시 runtime guard로 검사"
+  },
+  "units": [
+    {
+      "tests": 42,
+      "passed": 42,
+      "failed": 0,
+      "files": [
+        {
+          "path": "tests/server/e2e/browser-canonical-snapshot.test.ts",
+          "tests": 7,
+          "status": "passed"
+        },
+        {
+          "path": "tests/server/e2e/isolated-application-diagnostics.test.ts",
+          "tests": 10,
+          "status": "passed"
+        },
+        {
+          "path": "tests/server/logistics/issue-731-kpi.test.ts",
+          "tests": 17,
+          "status": "passed"
+        },
+        {
+          "path": "tests/server/logistics/logistics-dashboard.test.ts",
+          "tests": 8,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "tests": 30,
+      "passed": 30,
+      "failed": 0,
+      "files": [
+        {
+          "path": "tests/domain/wbs-task-ledger-acceptance.test.ts",
+          "tests": 13,
+          "status": "passed"
+        },
+        {
+          "path": "tests/domain/wbs-task-ledger.test.ts",
+          "tests": 17,
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "union": {
+    "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-623-resource-mvp.spec.ts tests/e2e/project-task-editor-persistence.spec.ts tests/e2e/issue-725-process-workareas.spec.ts tests/e2e/issue-726-task-logistics.spec.ts tests/e2e/logistics-dashboard-request-state.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --reporter=list,json",
+    "stats": {
+      "startTime": "2026-10-19T12:00:58.515Z",
+      "duration": 586621.235,
+      "expected": 38,
+      "skipped": 0,
+      "unexpected": 1,
+      "flaky": 0
+    },
+    "maxFailures": 0,
+    "cases": [
+      {
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "title": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+        "status": "passed",
+        "milliseconds": 27230,
+        "retry": 0,
+        "phaseTiming": {
+          "test": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+          "status": "passed",
+          "timeoutMilliseconds": 60000,
+          "bodyMilliseconds": 27012,
+          "budgetWarning": false,
+          "wallMilliseconds": 27444,
+          "phases": [
+            {
+              "name": "fixture/setup",
+              "milliseconds": 412
+            },
+            {
+              "name": "fixture/seed-http",
+              "milliseconds": 20617
+            },
+            {
+              "name": "api/golden-target-oracle",
+              "milliseconds": 2636
+            },
+            {
+              "name": "ui/golden-target-and-units",
+              "milliseconds": 2190
+            },
+            {
+              "name": "excel/export-and-ooxml",
+              "milliseconds": 1570
+            },
+            {
+              "name": "fixture/teardown",
+              "milliseconds": 20
+            }
+          ]
+        }
+      },
+      {
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "title": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+        "status": "passed",
+        "milliseconds": 44600,
+        "retry": 0,
+        "phaseTiming": {
+          "test": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+          "status": "passed",
+          "timeoutMilliseconds": 60000,
+          "bodyMilliseconds": 44530,
+          "budgetWarning": false,
+          "wallMilliseconds": 44598,
+          "phases": [
+            {
+              "name": "fixture/setup",
+              "milliseconds": 45
+            },
+            {
+              "name": "fixture/seed-http",
+              "milliseconds": 15994
+            },
+            {
+              "name": "api/mutation-source-identity",
+              "milliseconds": 3223
+            },
+            {
+              "name": "mutation/1-wbs-name",
+              "milliseconds": 2998
+            },
+            {
+              "name": "mutation/2-target-start-date",
+              "milliseconds": 7824
+            },
+            {
+              "name": "ui/resource-transition",
+              "milliseconds": 2088
+            },
+            {
+              "name": "mutation/3-status",
+              "milliseconds": 2380
+            },
+            {
+              "name": "mutation/4-progress",
+              "milliseconds": 2537
+            },
+            {
+              "name": "mutation/5-assignment-allocation",
+              "milliseconds": 3205
+            },
+            {
+              "name": "mutation/6-target-membership",
+              "milliseconds": 3764
+            },
+            {
+              "name": "ui/schedule-return-and-write-contract",
+              "milliseconds": 516
+            },
+            {
+              "name": "fixture/teardown",
+              "milliseconds": 23
+            }
+          ]
+        }
+      },
+      {
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "title": "#623 실제 Target 다열·중첩Group 다섯화면폭 geometry·keyboard·query0·렌더관측",
+        "status": "failed",
+        "milliseconds": 30972,
+        "retry": 0,
+        "phaseTiming": {
+          "test": "#623 실제 Target 다열·중첩Group 다섯화면폭 geometry·keyboard·query0·렌더관측",
+          "status": "failed",
+          "timeoutMilliseconds": 30000,
+          "bodyMilliseconds": 30902,
+          "budgetWarning": true,
+          "wallMilliseconds": 30972,
+          "phases": [
+            {
+              "name": "fixture/setup",
+              "milliseconds": 70
+            },
+            {
+              "name": "fixture/seed-http",
+              "milliseconds": 17595
+            },
+            {
+              "name": "ui/five-width-geometry-keyboard",
+              "milliseconds": 13307
+            }
+          ]
+        }
+      },
+      {
+        "file": "tests/e2e/issue-725-process-workareas.spec.ts",
+        "title": "#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연결·재조회·해제·재시작",
+        "status": "passed",
+        "milliseconds": 48359,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/issue-725-process-workareas.spec.ts",
+        "title": "#725 비활성 기본 구역과 중복 occurrence 매핑에서도 활성 구역 단일 owner 선택·저장",
+        "status": "passed",
+        "milliseconds": 17120,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+        "title": "#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중복 제출 방지, reload·Summary 상속",
+        "status": "passed",
+        "milliseconds": 29635,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+        "title": "#726 직접 연결 5폭·긴 이름·키보드·초안 폐기와 HTTP 403/409/412 후 보존",
+        "status": "passed",
+        "milliseconds": 39987,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+        "title": "#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류 보존과 상위 출처 구별",
+        "status": "passed",
+        "milliseconds": 35705,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 500는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 5762,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 network는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2801,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 malformed는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2563,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 invalid-date는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2658,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 wrong-revision는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2434,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 wrong-filter는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2633,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 missing-integrated는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2673,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 malformed-integrated는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2875,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "기준일 기본 응답은 추가 조회를 만들지 않고 조건 변경 즉시 오래된 drilldown을 숨긴다",
+        "status": "passed",
+        "milliseconds": 2196,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "빠른 기간 변경의 응답 역전은 최신 결과를 유지한다",
+        "status": "passed",
+        "milliseconds": 1862,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "기간 빈 값·0·91·소수는 field 오류와 GET 차단 후 정상 범위로 복구한다",
+        "status": "passed",
+        "milliseconds": 2052,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 390px",
+        "status": "passed",
+        "milliseconds": 3059,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 768px",
+        "status": "passed",
+        "milliseconds": 2970,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1024px",
+        "status": "passed",
+        "milliseconds": 3101,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1440px",
+        "status": "passed",
+        "milliseconds": 3225,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1920px",
+        "status": "passed",
+        "milliseconds": 3325,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 390px",
+        "status": "passed",
+        "milliseconds": 3370,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 768px",
+        "status": "passed",
+        "milliseconds": 3291,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 1024px",
+        "status": "passed",
+        "milliseconds": 3137,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 1440px",
+        "status": "passed",
+        "milliseconds": 3960,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 1920px",
+        "status": "passed",
+        "milliseconds": 3584,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 등록 구성과 연결 작업이 모두 없는 KPI는 0과 빈 진단을 유지한다",
+        "status": "passed",
+        "milliseconds": 1848,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 원본 이동 직전 snapshot 변경은 진단과 Task·Assignment 이동을 차단한다",
+        "status": "passed",
+        "milliseconds": 2020,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 편집 가능 Task·Assignment 원본 열기와 취소는 정확 ID·조건·진단·초점을 보존한다",
+        "status": "passed",
+        "milliseconds": 2915,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 등록 리소스 원본은 정확한 이름·ID를 유지하고 KPI 진단으로 복귀한다",
+        "status": "passed",
+        "milliseconds": 2298,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 공정·WorkArea 원본 이동은 정확한 공정 행과 KPI 출발 초점을 복원한다",
+        "status": "passed",
+        "milliseconds": 3200,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 패널 외부에 새 초점이 생기면 원본 포커스 재시도를 취소한다 — KPI로 돌아가기",
+        "status": "passed",
+        "milliseconds": 2545,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 패널 외부에 새 초점이 생기면 원본 포커스 재시도를 취소한다 — 물류 항목 검색",
+        "status": "passed",
+        "milliseconds": 2729,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "title": "persists explicit editor changes, task details and safe URL click without remount",
+        "status": "passed",
+        "milliseconds": 20102,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "title": "Summary Description and URL persist while derived schedule stays readonly",
+        "status": "passed",
+        "milliseconds": 8615,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "title": "linked requested dates, metadata, baseline and successor schedules persist canonically",
+        "status": "passed",
+        "milliseconds": 18599,
+        "retry": 0
+      }
+    ]
+  },
+  "union-final": {
+    "command": "PW_TEST_REPORTER=json PLAYWRIGHT_JSON_OUTPUT_FILE=.prepr-reports/issue731-m003/union-final/results.json npm run verify:prepr -- --mode=targeted --base=origin/main --issue=731 --risk=HIGH --include=tests/e2e/issue-623-resource-mvp.spec.ts --include=tests/e2e/project-task-editor-persistence.spec.ts --include=tests/e2e/issue-725-process-workareas.spec.ts --include=tests/e2e/issue-726-task-logistics.spec.ts --include=tests/e2e/logistics-dashboard-request-state.spec.ts --report-dir=.prepr-reports/issue731-m003/prepr-targeted-final",
+    "stats": {
+      "startTime": "2026-10-19T12:15:34.218Z",
+      "duration": 751450.72,
+      "expected": 43,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "maxFailures": 0,
+    "cases": [
+      {
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "title": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+        "status": "passed",
+        "milliseconds": 25320,
+        "retry": 0,
+        "phaseTiming": {
+          "test": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+          "status": "passed",
+          "timeoutMilliseconds": 60000,
+          "bodyMilliseconds": 25212,
+          "budgetWarning": false,
+          "wallMilliseconds": 25392,
+          "phases": [
+            {
+              "name": "fixture/setup",
+              "milliseconds": 162
+            },
+            {
+              "name": "fixture/seed-http",
+              "milliseconds": 18342
+            },
+            {
+              "name": "api/golden-target-oracle",
+              "milliseconds": 2702
+            },
+            {
+              "name": "ui/golden-target-and-units",
+              "milliseconds": 2597
+            },
+            {
+              "name": "excel/export-and-ooxml",
+              "milliseconds": 1570
+            },
+            {
+              "name": "fixture/teardown",
+              "milliseconds": 19
+            }
+          ]
+        }
+      },
+      {
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "title": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+        "status": "passed",
+        "milliseconds": 48941,
+        "retry": 0,
+        "phaseTiming": {
+          "test": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+          "status": "passed",
+          "timeoutMilliseconds": 60000,
+          "bodyMilliseconds": 48851,
+          "budgetWarning": true,
+          "wallMilliseconds": 48942,
+          "phases": [
+            {
+              "name": "fixture/setup",
+              "milliseconds": 54
+            },
+            {
+              "name": "fixture/seed-http",
+              "milliseconds": 17348
+            },
+            {
+              "name": "api/mutation-source-identity",
+              "milliseconds": 4165
+            },
+            {
+              "name": "mutation/1-wbs-name",
+              "milliseconds": 3600
+            },
+            {
+              "name": "mutation/2-target-start-date",
+              "milliseconds": 8381
+            },
+            {
+              "name": "ui/resource-transition",
+              "milliseconds": 1934
+            },
+            {
+              "name": "mutation/3-status",
+              "milliseconds": 3172
+            },
+            {
+              "name": "mutation/4-progress",
+              "milliseconds": 3110
+            },
+            {
+              "name": "mutation/5-assignment-allocation",
+              "milliseconds": 3584
+            },
+            {
+              "name": "mutation/6-target-membership",
+              "milliseconds": 2948
+            },
+            {
+              "name": "ui/schedule-return-and-write-contract",
+              "milliseconds": 608
+            },
+            {
+              "name": "fixture/teardown",
+              "milliseconds": 37
+            }
+          ]
+        }
+      },
+      {
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "title": "#623 실제 Target 다열·중첩Group 390px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "milliseconds": 24397,
+        "retry": 0,
+        "phaseTiming": {
+          "test": "#623 실제 Target 다열·중첩Group 390px geometry·keyboard·query0·렌더관측",
+          "status": "passed",
+          "timeoutMilliseconds": 30000,
+          "bodyMilliseconds": 24321,
+          "budgetWarning": true,
+          "wallMilliseconds": 24397,
+          "phases": [
+            {
+              "name": "fixture/setup",
+              "milliseconds": 64
+            },
+            {
+              "name": "fixture/seed-http",
+              "milliseconds": 18955
+            },
+            {
+              "name": "ui/390px-resource-transition",
+              "milliseconds": 3652
+            },
+            {
+              "name": "ui/390px-tree-geometry-keyboard",
+              "milliseconds": 864
+            },
+            {
+              "name": "ui/390px-matrix-geometry-keyboard",
+              "milliseconds": 850
+            },
+            {
+              "name": "fixture/teardown",
+              "milliseconds": 13
+            }
+          ]
+        }
+      },
+      {
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "title": "#623 실제 Target 다열·중첩Group 768px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "milliseconds": 23698,
+        "retry": 0,
+        "phaseTiming": {
+          "test": "#623 실제 Target 다열·중첩Group 768px geometry·keyboard·query0·렌더관측",
+          "status": "passed",
+          "timeoutMilliseconds": 30000,
+          "bodyMilliseconds": 23641,
+          "budgetWarning": false,
+          "wallMilliseconds": 23698,
+          "phases": [
+            {
+              "name": "fixture/setup",
+              "milliseconds": 43
+            },
+            {
+              "name": "fixture/seed-http",
+              "milliseconds": 18208
+            },
+            {
+              "name": "ui/768px-resource-transition",
+              "milliseconds": 3612
+            },
+            {
+              "name": "ui/768px-tree-geometry-keyboard",
+              "milliseconds": 816
+            },
+            {
+              "name": "ui/768px-matrix-geometry-keyboard",
+              "milliseconds": 1005
+            },
+            {
+              "name": "fixture/teardown",
+              "milliseconds": 15
+            }
+          ]
+        }
+      },
+      {
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "title": "#623 실제 Target 다열·중첩Group 1024px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "milliseconds": 26340,
+        "retry": 0,
+        "phaseTiming": {
+          "test": "#623 실제 Target 다열·중첩Group 1024px geometry·keyboard·query0·렌더관측",
+          "status": "passed",
+          "timeoutMilliseconds": 30000,
+          "bodyMilliseconds": 26255,
+          "budgetWarning": true,
+          "wallMilliseconds": 26342,
+          "phases": [
+            {
+              "name": "fixture/setup",
+              "milliseconds": 65
+            },
+            {
+              "name": "fixture/seed-http",
+              "milliseconds": 20398
+            },
+            {
+              "name": "ui/1024px-resource-transition",
+              "milliseconds": 3873
+            },
+            {
+              "name": "ui/1024px-tree-geometry-keyboard",
+              "milliseconds": 971
+            },
+            {
+              "name": "ui/1024px-matrix-geometry-keyboard",
+              "milliseconds": 1013
+            },
+            {
+              "name": "fixture/teardown",
+              "milliseconds": 21
+            }
+          ]
+        }
+      },
+      {
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "title": "#623 실제 Target 다열·중첩Group 1440px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "milliseconds": 26848,
+        "retry": 0,
+        "phaseTiming": {
+          "test": "#623 실제 Target 다열·중첩Group 1440px geometry·keyboard·query0·렌더관측",
+          "status": "passed",
+          "timeoutMilliseconds": 30000,
+          "bodyMilliseconds": 26762,
+          "budgetWarning": true,
+          "wallMilliseconds": 26849,
+          "phases": [
+            {
+              "name": "fixture/setup",
+              "milliseconds": 57
+            },
+            {
+              "name": "fixture/seed-http",
+              "milliseconds": 19919
+            },
+            {
+              "name": "ui/1440px-resource-transition",
+              "milliseconds": 4441
+            },
+            {
+              "name": "ui/1440px-tree-geometry-keyboard",
+              "milliseconds": 1274
+            },
+            {
+              "name": "ui/1440px-matrix-geometry-keyboard",
+              "milliseconds": 1129
+            },
+            {
+              "name": "fixture/teardown",
+              "milliseconds": 29
+            }
+          ]
+        }
+      },
+      {
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "title": "#623 실제 Target 다열·중첩Group 1920px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "milliseconds": 26312,
+        "retry": 0,
+        "phaseTiming": {
+          "test": "#623 실제 Target 다열·중첩Group 1920px geometry·keyboard·query0·렌더관측",
+          "status": "passed",
+          "timeoutMilliseconds": 30000,
+          "bodyMilliseconds": 26232,
+          "budgetWarning": true,
+          "wallMilliseconds": 26314,
+          "phases": [
+            {
+              "name": "fixture/setup",
+              "milliseconds": 68
+            },
+            {
+              "name": "fixture/seed-http",
+              "milliseconds": 19784
+            },
+            {
+              "name": "ui/1920px-resource-transition",
+              "milliseconds": 4165
+            },
+            {
+              "name": "ui/1920px-tree-geometry-keyboard",
+              "milliseconds": 1153
+            },
+            {
+              "name": "ui/1920px-matrix-geometry-keyboard",
+              "milliseconds": 1130
+            },
+            {
+              "name": "fixture/teardown",
+              "milliseconds": 14
+            }
+          ]
+        }
+      },
+      {
+        "file": "tests/e2e/issue-725-process-workareas.spec.ts",
+        "title": "#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연결·재조회·해제·재시작",
+        "status": "passed",
+        "milliseconds": 51306,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/issue-725-process-workareas.spec.ts",
+        "title": "#725 비활성 기본 구역과 중복 occurrence 매핑에서도 활성 구역 단일 owner 선택·저장",
+        "status": "passed",
+        "milliseconds": 18337,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+        "title": "#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중복 제출 방지, reload·Summary 상속",
+        "status": "passed",
+        "milliseconds": 28477,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+        "title": "#726 직접 연결 5폭·긴 이름·키보드·초안 폐기와 HTTP 403/409/412 후 보존",
+        "status": "passed",
+        "milliseconds": 37084,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+        "title": "#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류 보존과 상위 출처 구별",
+        "status": "passed",
+        "milliseconds": 34425,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 500는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 5978,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 network는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2642,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 malformed는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2470,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 invalid-date는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2491,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 wrong-revision는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2718,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 wrong-filter는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2591,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 missing-integrated는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2722,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "조회 malformed-integrated는 이전 결과를 숨기고 다시 시도로 복구한다",
+        "status": "passed",
+        "milliseconds": 2790,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "기준일 기본 응답은 추가 조회를 만들지 않고 조건 변경 즉시 오래된 drilldown을 숨긴다",
+        "status": "passed",
+        "milliseconds": 2449,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "빠른 기간 변경의 응답 역전은 최신 결과를 유지한다",
+        "status": "passed",
+        "milliseconds": 1871,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "기간 빈 값·0·91·소수는 field 오류와 GET 차단 후 정상 범위로 복구한다",
+        "status": "passed",
+        "milliseconds": 2050,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 390px",
+        "status": "passed",
+        "milliseconds": 3043,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 768px",
+        "status": "passed",
+        "milliseconds": 3133,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1024px",
+        "status": "passed",
+        "milliseconds": 3229,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1440px",
+        "status": "passed",
+        "milliseconds": 3458,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1920px",
+        "status": "passed",
+        "milliseconds": 3737,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 390px",
+        "status": "passed",
+        "milliseconds": 3724,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 768px",
+        "status": "passed",
+        "milliseconds": 3329,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 1024px",
+        "status": "passed",
+        "milliseconds": 3303,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 1440px",
+        "status": "passed",
+        "milliseconds": 4299,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 1920px",
+        "status": "passed",
+        "milliseconds": 3261,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 등록 구성과 연결 작업이 모두 없는 KPI는 0과 빈 진단을 유지한다",
+        "status": "passed",
+        "milliseconds": 1818,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 원본 이동 직전 snapshot 변경은 진단과 Task·Assignment 이동을 차단한다",
+        "status": "passed",
+        "milliseconds": 2023,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 편집 가능 Task·Assignment 원본 열기와 취소는 정확 ID·조건·진단·초점을 보존한다",
+        "status": "passed",
+        "milliseconds": 3044,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 등록 리소스 원본은 정확한 이름·ID를 유지하고 KPI 진단으로 복귀한다",
+        "status": "passed",
+        "milliseconds": 2304,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 공정·WorkArea 원본 이동은 정확한 공정 행과 KPI 출발 초점을 복원한다",
+        "status": "passed",
+        "milliseconds": 3084,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 패널 외부에 새 초점이 생기면 원본 포커스 재시도를 취소한다 — KPI로 돌아가기",
+        "status": "passed",
+        "milliseconds": 2309,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 패널 외부에 새 초점이 생기면 원본 포커스 재시도를 취소한다 — 물류 항목 검색",
+        "status": "passed",
+        "milliseconds": 2318,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "title": "persists explicit editor changes, task details and safe URL click without remount",
+        "status": "passed",
+        "milliseconds": 17541,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "title": "Summary Description and URL persist while derived schedule stays readonly",
+        "status": "passed",
+        "milliseconds": 8738,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "title": "linked requested dates, metadata, baseline and successor schedules persist canonically",
+        "status": "passed",
+        "milliseconds": 16654,
+        "retry": 0
+      }
+    ]
+  },
+  "focused": {
+    "command": [
+      "npx",
+      "playwright",
+      "test",
+      "--config",
+      "tests/config/playwright.config.ts",
+      "tests/e2e/issue-623-resource-mvp.spec.ts",
+      "tests/e2e/issue-725-process-workareas.spec.ts",
+      "tests/e2e/logistics-dashboard-request-state.spec.ts",
+      "tests/e2e/project-task-editor-persistence.spec.ts",
+      "tests/e2e/project-task-editor.spec.ts",
+      "--project=chromium",
+      "--workers=1",
+      "--retries=0",
+      "--max-failures=0",
+      "--grep=실제 통합 구성|여섯 별도 mutation|Target0 독립 공정|Summary Description|공정·WorkArea 원본 이동|패널 외부에 새 초점|preserves the draft through|preserves an expired-session|blocks stale writes after 412|opens information without save access",
+      "--reporter=list,json"
+    ],
+    "stats": {
+      "startTime": "2026-10-19T12:28:52.434Z",
+      "duration": 240152.22100000002,
+      "expected": 13,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "maxFailures": 0,
+    "cases": [
+      {
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "title": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+        "status": "passed",
+        "milliseconds": 23934,
+        "retry": 0,
+        "phaseTiming": {
+          "test": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+          "status": "passed",
+          "timeoutMilliseconds": 60000,
+          "bodyMilliseconds": 23813,
+          "budgetWarning": false,
+          "wallMilliseconds": 24054,
+          "phases": [
+            {
+              "name": "fixture/setup",
+              "milliseconds": 226
+            },
+            {
+              "name": "fixture/seed-http",
+              "milliseconds": 17469
+            },
+            {
+              "name": "api/golden-target-oracle",
+              "milliseconds": 2618
+            },
+            {
+              "name": "ui/golden-target-and-units",
+              "milliseconds": 2335
+            },
+            {
+              "name": "excel/export-and-ooxml",
+              "milliseconds": 1391
+            },
+            {
+              "name": "fixture/teardown",
+              "milliseconds": 14
+            }
+          ]
+        }
+      },
+      {
+        "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "title": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+        "status": "passed",
+        "milliseconds": 43492,
+        "retry": 0,
+        "phaseTiming": {
+          "test": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+          "status": "passed",
+          "timeoutMilliseconds": 60000,
+          "bodyMilliseconds": 43405,
+          "budgetWarning": false,
+          "wallMilliseconds": 43493,
+          "phases": [
+            {
+              "name": "fixture/setup",
+              "milliseconds": 56
+            },
+            {
+              "name": "fixture/seed-http",
+              "milliseconds": 15913
+            },
+            {
+              "name": "api/mutation-source-identity",
+              "milliseconds": 3437
+            },
+            {
+              "name": "mutation/1-wbs-name",
+              "milliseconds": 3785
+            },
+            {
+              "name": "mutation/2-target-start-date",
+              "milliseconds": 7397
+            },
+            {
+              "name": "ui/resource-transition",
+              "milliseconds": 1591
+            },
+            {
+              "name": "mutation/3-status",
+              "milliseconds": 2198
+            },
+            {
+              "name": "mutation/4-progress",
+              "milliseconds": 2200
+            },
+            {
+              "name": "mutation/5-assignment-allocation",
+              "milliseconds": 3347
+            },
+            {
+              "name": "mutation/6-target-membership",
+              "milliseconds": 2966
+            },
+            {
+              "name": "ui/schedule-return-and-write-contract",
+              "milliseconds": 571
+            },
+            {
+              "name": "fixture/teardown",
+              "milliseconds": 32
+            }
+          ]
+        }
+      },
+      {
+        "file": "tests/e2e/issue-725-process-workareas.spec.ts",
+        "title": "#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연결·재조회·해제·재시작",
+        "status": "passed",
+        "milliseconds": 51247,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 공정·WorkArea 원본 이동은 정확한 공정 행과 KPI 출발 초점을 복원한다",
+        "status": "passed",
+        "milliseconds": 7343,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 패널 외부에 새 초점이 생기면 원본 포커스 재시도를 취소한다 — KPI로 돌아가기",
+        "status": "passed",
+        "milliseconds": 2906,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "title": "#731 패널 외부에 새 초점이 생기면 원본 포커스 재시도를 취소한다 — 물류 항목 검색",
+        "status": "passed",
+        "milliseconds": 2980,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "title": "Summary Description and URL persist while derived schedule stays readonly",
+        "status": "passed",
+        "milliseconds": 12324,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/project-task-editor.spec.ts",
+        "title": "preserves the draft through 422 and permits an explicit retry",
+        "status": "passed",
+        "milliseconds": 5024,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/project-task-editor.spec.ts",
+        "title": "preserves the draft through 500 and permits an explicit retry",
+        "status": "passed",
+        "milliseconds": 4690,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/project-task-editor.spec.ts",
+        "title": "preserves the draft through network and permits an explicit retry",
+        "status": "passed",
+        "milliseconds": 4420,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/project-task-editor.spec.ts",
+        "title": "preserves an expired-session draft while removing save access",
+        "status": "passed",
+        "milliseconds": 3506,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/project-task-editor.spec.ts",
+        "title": "blocks stale writes after 412 until explicit reload and review, keeping drafts on failed reload",
+        "status": "passed",
+        "milliseconds": 4670,
+        "retry": 0
+      },
+      {
+        "file": "tests/e2e/project-task-editor.spec.ts",
+        "title": "opens information without save access for readonly projects",
+        "status": "passed",
+        "milliseconds": 4003,
+        "retry": 0
+      }
+    ]
+  },
+  "prepr-fast": {
+    "status": "BLOCKED",
+    "startedAt": "2026-10-19T12:11:02.935Z",
+    "completedAt": "2026-10-19T12:11:48.321Z",
+    "sourceStable": false,
+    "errors": [
+      "FAILED: Typecheck",
+      "STALE: working source/base/head changed during local verification",
+      "Interrupted: unfinished checks are NOT TESTED"
+    ],
+    "steps": [
+      {
+        "label": "Version contract",
+        "command": [
+          "node",
+          "scripts/verify-release-version.mjs"
+        ],
+        "startedAt": "2026-10-19T12:11:03.178Z",
+        "durationMs": 43,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Test discovery",
+        "command": [
+          "node",
+          "scripts/verify-test-discovery.mjs"
+        ],
+        "startedAt": "2026-10-19T12:11:03.221Z",
+        "durationMs": 12379,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Markdown links",
+        "command": [
+          "node",
+          "scripts/check-markdown-links.mjs"
+        ],
+        "startedAt": "2026-10-19T12:11:15.601Z",
+        "durationMs": 123,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "CI cache contract",
+        "command": [
+          "node",
+          "scripts/verify-ci-cache-contract.mjs"
+        ],
+        "startedAt": "2026-10-19T12:11:15.725Z",
+        "durationMs": 42,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Local QA fixture policy",
+        "command": [
+          "python3",
+          "scripts/test_qa_preflight.py"
+        ],
+        "startedAt": "2026-10-19T12:11:15.767Z",
+        "durationMs": 167,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Dependencies",
+        "command": [
+          "npm",
+          "ls",
+          "--depth=0",
+          "--offline"
+        ],
+        "startedAt": "2026-10-19T12:11:15.934Z",
+        "durationMs": 721,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Typecheck",
+        "command": [
+          "npm",
+          "run",
+          "typecheck"
+        ],
+        "startedAt": "2026-10-19T12:11:16.655Z",
+        "durationMs": 31596,
+        "exitCode": null,
+        "signal": "SIGINT",
+        "status": "FAIL",
+        "caseCount": null
+      }
+    ],
+    "fingerprints": {
+      "sourceStart": "8751b1fc035dd1e64672edc3a547656c2b07aa0a87835eb440b3488a74ad2e8c",
+      "sourceEnd": "b248210e04ef2cd54364c80779e12f939ef84b79012189a075b8a083751054aa"
+    },
+    "generatedDiffPaths": [],
+    "selection": {
+      "state": "READY",
+      "unknown": [],
+      "missing": [],
+      "selected": [
+        {
+          "path": "tests/e2e/issue-623-resource-mvp.spec.ts",
+          "kind": "chromium",
+          "reasons": [
+            "Changed test itself"
+          ]
+        },
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "kind": "chromium",
+          "reasons": [
+            "Changed test itself"
+          ]
+        }
+      ]
+    }
+  },
+  "prepr-fast-final": {
+    "status": "BLOCKED",
+    "startedAt": "2026-10-19T12:12:18.222Z",
+    "completedAt": "2026-10-19T12:15:12.199Z",
+    "sourceStable": false,
+    "errors": [
+      "STALE: working source/base/head changed during local verification"
+    ],
+    "steps": [
+      {
+        "label": "Version contract",
+        "command": [
+          "node",
+          "scripts/verify-release-version.mjs"
+        ],
+        "startedAt": "2026-10-19T12:12:18.428Z",
+        "durationMs": 47,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Test discovery",
+        "command": [
+          "node",
+          "scripts/verify-test-discovery.mjs"
+        ],
+        "startedAt": "2026-10-19T12:12:18.476Z",
+        "durationMs": 5000,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Markdown links",
+        "command": [
+          "node",
+          "scripts/check-markdown-links.mjs"
+        ],
+        "startedAt": "2026-10-19T12:12:23.476Z",
+        "durationMs": 120,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "CI cache contract",
+        "command": [
+          "node",
+          "scripts/verify-ci-cache-contract.mjs"
+        ],
+        "startedAt": "2026-10-19T12:12:23.596Z",
+        "durationMs": 39,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Local QA fixture policy",
+        "command": [
+          "python3",
+          "scripts/test_qa_preflight.py"
+        ],
+        "startedAt": "2026-10-19T12:12:23.635Z",
+        "durationMs": 106,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Dependencies",
+        "command": [
+          "npm",
+          "ls",
+          "--depth=0",
+          "--offline"
+        ],
+        "startedAt": "2026-10-19T12:12:23.741Z",
+        "durationMs": 764,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Typecheck",
+        "command": [
+          "npm",
+          "run",
+          "typecheck"
+        ],
+        "startedAt": "2026-10-19T12:12:24.506Z",
+        "durationMs": 4449,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Lint",
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "startedAt": "2026-10-19T12:12:28.955Z",
+        "durationMs": 50635,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      },
+      {
+        "label": "Unit",
+        "command": [
+          "npm",
+          "test"
+        ],
+        "startedAt": "2026-10-19T12:13:19.591Z",
+        "durationMs": 32096,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": 3048
+      },
+      {
+        "label": "Production build",
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "startedAt": "2026-10-19T12:13:51.687Z",
+        "durationMs": 80222,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": null
+      }
+    ],
+    "fingerprints": {
+      "sourceStart": "004a4991db0788923fcc721026b1f6095137d767e2c75d016bf3d766e11d991d",
+      "sourceEnd": "53b388469203bf8f66de1524856c5225b7efba0aa4446dd56e66f7767664fba1"
+    },
+    "generatedDiffPaths": [
+      "next-env.d.ts",
+      "tsconfig.json"
+    ],
+    "selection": {
+      "state": "READY",
+      "unknown": [],
+      "missing": [],
+      "selected": [
+        {
+          "path": "tests/e2e/issue-623-resource-mvp.spec.ts",
+          "kind": "chromium",
+          "reasons": [
+            "Changed test itself"
+          ]
+        },
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "kind": "chromium",
+          "reasons": [
+            "Changed test itself"
+          ]
+        }
+      ]
+    }
+  },
+  "prepr-targeted-final": {
+    "status": "BLOCKED",
+    "startedAt": "2026-10-19T12:15:33.244Z",
+    "completedAt": "2026-10-19T12:27:51.639Z",
+    "sourceStable": false,
+    "errors": [
+      "STALE: working source/base/head changed during local verification"
+    ],
+    "steps": [
+      {
+        "label": "Chromium E2E",
+        "command": [
+          "npm",
+          "run",
+          "test:e2e",
+          "--",
+          "--project=chromium",
+          "--workers=1",
+          "--retries=0",
+          "tests/e2e/issue-623-resource-mvp.spec.ts",
+          "tests/e2e/issue-725-process-workareas.spec.ts",
+          "tests/e2e/issue-726-task-logistics.spec.ts",
+          "tests/e2e/logistics-dashboard-request-state.spec.ts",
+          "tests/e2e/project-task-editor-persistence.spec.ts"
+        ],
+        "startedAt": "2026-10-19T12:15:33.458Z",
+        "durationMs": 737866,
+        "exitCode": 0,
+        "signal": null,
+        "status": "PASS",
+        "caseCount": 43
+      }
+    ],
+    "fingerprints": {
+      "sourceStart": "004a4991db0788923fcc721026b1f6095137d767e2c75d016bf3d766e11d991d",
+      "sourceEnd": "0fc0c7a6f039e89e6baec469f9d297438455b7a972278a7e06430f5d3080a9b9"
+    },
+    "generatedDiffPaths": [
+      "next-env.d.ts",
+      "output/playwright/issue-267/error-500.png",
+      "output/playwright/issue-267/error-invalid-date.png",
+      "output/playwright/issue-267/error-malformed-integrated.png",
+      "output/playwright/issue-267/error-malformed.png",
+      "output/playwright/issue-267/error-missing-integrated.png",
+      "output/playwright/issue-267/error-network.png",
+      "output/playwright/issue-267/error-wrong-filter.png",
+      "output/playwright/issue-267/error-wrong-revision.png",
+      "output/playwright/issue-267/long-data-1024.png",
+      "output/playwright/issue-267/long-data-1440.png",
+      "output/playwright/issue-267/long-data-1920.png",
+      "output/playwright/issue-267/long-data-390.png",
+      "output/playwright/issue-267/long-data-768.png",
+      "output/playwright/issue-623/cumulative.json",
+      "output/playwright/issue-623/geometry-1024.json",
+      "output/playwright/issue-623/geometry-1440.json",
+      "output/playwright/issue-623/geometry-1920.json",
+      "output/playwright/issue-623/geometry-390.json",
+      "output/playwright/issue-623/geometry-768.json",
+      "output/playwright/issue-623/matrix-1024.png",
+      "output/playwright/issue-623/matrix-1440.png",
+      "output/playwright/issue-623/matrix-1920.png",
+      "output/playwright/issue-623/matrix-390.png",
+      "output/playwright/issue-623/matrix-768.png",
+      "output/playwright/issue-623/tree-1024.png",
+      "output/playwright/issue-623/tree-1440.png",
+      "output/playwright/issue-623/tree-1920.png",
+      "output/playwright/issue-623/tree-390.png",
+      "output/playwright/issue-623/tree-768.png",
+      "output/playwright/issue-731/diagnostic-1440.png",
+      "output/playwright/issue258-after-1024.png",
+      "output/playwright/issue258-after-1440.png",
+      "output/playwright/issue258-after-390.png",
+      "output/playwright/issue258-after-768.png",
+      "tsconfig.json"
+    ],
+    "selection": {
+      "state": "READY",
+      "unknown": [],
+      "missing": [],
+      "selected": [
+        {
+          "path": "tests/e2e/issue-623-resource-mvp.spec.ts",
+          "kind": "chromium",
+          "reasons": [
+            "Changed test itself",
+            "Manager manual include"
+          ]
+        },
+        {
+          "path": "tests/e2e/issue-725-process-workareas.spec.ts",
+          "kind": "chromium",
+          "reasons": [
+            "Manager manual include"
+          ]
+        },
+        {
+          "path": "tests/e2e/issue-726-task-logistics.spec.ts",
+          "kind": "chromium",
+          "reasons": [
+            "Manager manual include"
+          ]
+        },
+        {
+          "path": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+          "kind": "chromium",
+          "reasons": [
+            "Manager manual include"
+          ]
+        },
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "kind": "chromium",
+          "reasons": [
+            "Changed test itself",
+            "Manager manual include"
+          ]
+        }
+      ]
+    }
+  },
+  "functionalSourceHashesStillMatch": true,
+  "fullUnitSummary": {
+    "passed": 3048,
+    "skipped": 3,
+    "filesPassed": 244,
+    "filesSkipped": 1,
+    "overlapNote": "별도 실행72case는 전체 Unit에 포함되므로 합산하지 않는다."
+  },
+  "generatedOutputsRestored": true,
+  "markdownFilesVerified": 269,
+  "docsGate": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING"
+}

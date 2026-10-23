@@ -46,6 +46,10 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   browser,
   page,
 }) => {
+  // #659: 실제 PR CI #2690은 22.6s PASS, #2691은 기본 30s 초과.
+  // 여러 프로젝트/브라우저 문맥·실제 권한 경로를 끝까지 검증하는 본 1개 테스트에만
+  // 유한한 60초 한도를 지정한다. 단언·쓰기 재시도·브라우저 종료 예외는 완화하지 않는다.
+  test.setTimeout(60_000);
   const suffix = uniqueSuffix();
   const firstName = `W05 Project ${suffix}`;
   const savedName = `W05 Saved ${suffix}`;

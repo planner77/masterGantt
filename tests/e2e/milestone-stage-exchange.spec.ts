@@ -1,29 +1,35 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { inflateRawSync } from "node:zlib";
 import type { Page, Download } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
+import { observedReadOnlyGet, type ObserveIsolatedApi } from "./fixtures/isolated-application-diagnostics";
 import type { ImportPayload11 } from "../../src/contracts/import";
 import type { ProjectImportPreviewResponse } from "../../src/contracts/project-import";
 import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse, CopyProjectResponse } from "../../src/contracts/projects";
 import type { MilestoneDashboardResponse } from "../../src/contracts/milestone-dashboard";
 import type { InstantiateProjectTemplateResponse, ProjectTemplateDetailResponse } from "../../src/contracts/project-templates";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
+import { openMilestoneEditor } from "./helpers/milestone-ui";
 
 const editPassword = "Stage464!";
 const adminPassword = "Stage464SyntheticAdmin!";
 test.use({ ...isolatedApplicationOptions, isolatedResourceAdminPassword: adminPassword, viewport: { width: 1440, height: 900 } });
 
-async function createProject(page: Page, origin: string, name: string) {
-  const created = await page.request.post("/api/projects", { headers: { Origin: origin }, data: { name, description: "합성 일정 교환 fixture", ownerName: "E2E 자동화", editPassword } });
+async function createProject(page: Page, origin: string, name: string, observeApi: ObserveIsolatedApi) {
+  const created = await observeApi("/api/projects", "POST", () => page.request.post("/api/projects", { headers: { Origin: origin }, data: { name, description: "합성 일정 교환 fixture", ownerName: "E2E 자동화", editPassword } }));
   expect(created.status()).toBe(201);
   const publicId = (await created.json()).data.project.publicId as string, api = `/api/projects/${publicId}`;
   const get = async () => {
-    const response = await page.request.get(api); expect(response.status()).toBe(200);
+    // Capture the first ECONNRESET before a bounded read-only GET retry.
+    // HTTP failures, JSON errors and all writes remain non-retryable.
+    const response = await observedReadOnlyGet(observeApi, api, () => page.request.get(api));
+    expect(response.status()).toBe(200);
     return await response.json() as ProjectSnapshotResponse;
   };
   let snapshot = await get();
   const headers = () => ({ Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` });
   const mutate = async (path: string, data: unknown, method: "post" | "put" | "patch" = "post", status = 200) => {
-    const response = await page.request[method](`${api}${path}`, { headers: headers(), data });
+    const response = await observeApi(`${api}${path}`, method.toUpperCase(), () => page.request[method](`${api}${path}`, { headers: headers(), data }));
     expect(response.status(), `${method} ${path}: ${await response.text()}`).toBe(status);
     snapshot = await get(); return response;
   };
@@ -33,7 +39,7 @@ async function createProject(page: Page, origin: string, name: string) {
   };
   const refresh = async () => { snapshot = await get(); return snapshot; };
   const unlock = async () => {
-    expect((await page.request.post(`${api}/edit-sessions`, { headers: { Origin: origin }, data: { editPassword } })).status()).toBe(204);
+    expect((await observeApi(`${api}/edit-sessions`, "POST", () => page.request.post(`${api}/edit-sessions`, { headers: { Origin: origin }, data: { editPassword } }))).status()).toBe(204);
     return refresh();
   };
   return { publicId, api, get, refresh, headers, mutate, add, unlock, get snapshot() { return snapshot; } };
@@ -59,9 +65,22 @@ function taskMeaning(snapshot: ProjectSnapshotResponse) {
 }
 const linkMeaning = (snapshot: ProjectSnapshotResponse) => snapshot.data.links.map((link) => ({ predecessorExternalId: link.predecessorExternalId, successorExternalId: link.successorExternalId, type: link.type, lag: link.lag, legacyMixed: link.legacyMixed })).sort((a, b) => a.predecessorExternalId.localeCompare(b.predecessorExternalId) || a.successorExternalId.localeCompare(b.successorExternalId));
 const row = (page: Page, taskId: string) => page.locator(`#project-panel-schedule .wx-table-container .wx-row[data-id=":${taskId}"]`).first();
-async function openTask(page: Page, taskId: string) {
-  await row(page, taskId).click({ button: "right" }); await chooseTaskInformation(page);
-  const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true }); await expect(dialog).toBeVisible(); return dialog;
+async function openTask(page: Page, task: Pick<ProjectTaskDto, "taskId" | "type">) {
+  // An absent native row is not proof of Milestone type: during the initial
+  // actual-HTTP/SVAR mount even an ordinary Task may briefly have zero DOM rows.
+  // The canonical task type, not virtualized/pending DOM, owns the navigation.
+  if (task.type === "milestone") {
+    return openMilestoneEditor(page, task.taskId);
+  }
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  const nativeRow = row(page, task.taskId);
+  await expect(nativeRow).toBeVisible();
+  // An ordinary Task/Summary must not fall back to a Milestone-only search;
+  // preserve its real Grid context-menu path and Editor assertions.
+  await nativeRow.click({ button: "right" }); await chooseTaskInformation(page);
+  const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await expect(dialog).toBeVisible();
+  return dialog;
 }
 async function downloadBytes(download: Download) {
   const stream = await download.createReadStream(); expect(stream).not.toBeNull();
@@ -92,8 +111,8 @@ function namedSheets(entries: Map<string, string>) {
   return new Map(Array.from(entries.get("xl/workbook.xml")!.matchAll(/<sheet\b[^>]*name="([^"]+)"[^>]*sheetId="(\d+)"/g), ([, name, id]) => [xmlText(name), sheetRows(entries.get(`xl/worksheets/sheet${id}.xml`)!) ]));
 }
 
-async function seed(page: Page, origin: string) {
-  const project = await createProject(page, origin, "Stage exchange #464"), { add, mutate } = project;
+async function seed(page: Page, origin: string, observeApi: ObserveIsolatedApi) {
+  const project = await createProject(page, origin, "Stage exchange #464", observeApi), { add, mutate } = project;
   const a = await add("동명 병렬 단계", "milestone", "M-A"), b = await add("동명 병렬 단계", "milestone", "M-B"), join = await add("합류 단계", "milestone", "M-JOIN"), manual = await add("수동 이벤트", "milestone", "M-MANUAL"), completed = await add("완료 기록 단계", "milestone", "M-CLOSED");
   const summary = await add("Summary 기본 단계", "summary", "S"), nested = await add("중첩 Summary override", "summary", "NESTED", summary.taskId), child = await add("상속 일반 작업", "task", "CHILD", summary.taskId, 5), nestedChild = await add("중첩 상속 완료 작업", "task", "NESTED-T", nested.taskId), override = await add("직접 override 작업", "task", "OVERRIDE", summary.taskId);
   const empty = await add("빈 Summary", "summary", "EMPTY"), direct = await add("직접 지정 DAG 시작", "task", "DAG-P", undefined, 1), successor = await add("DAG 후행 작업", "task", "DAG-Q"), free = await add("미지정 개인 공수", "task", "FREE"), closedChild = await add("Milestone 구성 작업", "task", "CLOSED-T");
@@ -127,17 +146,20 @@ async function dashboard(page: Page, project: ProjectHarness, query = "") {
   const response = await page.request.get(`${project.api}/milestone-dashboard${query}`); expect(response.status()).toBe(200); return (await response.json() as MilestoneDashboardResponse).data;
 }
 
-test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import·Copy/Template·소속 확인 통합", async ({ page, baseURL, browser }, testInfo) => {
+test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import·Copy/Template·소속 확인 통합", async ({ page, baseURL, browser, observeIsolatedApi }, testInfo) => {
   test.setTimeout(360_000); page.setDefaultTimeout(20_000);
-  const origin = baseURL!, fixture = await seed(page, origin), { project, child, summary, join, b, free, warningSource, destination } = fixture;
-  for (const path of ["/milestone-dashboard", "/assigned-targets", "/resource-workload", "/logistics/dashboard", `/tasks/${child.taskId}/assignments`, `/tasks/${child.taskId}/logistics-links`, "/exports/json", "/exports/excel", "/imports/preview", "/imports"]) await (await page.request.get(`${project.api}${path}`)).body();
+  const origin = baseURL!, fixture = await seed(page, origin, observeIsolatedApi), { project, child, summary, join, b, free, warningSource, destination } = fixture;
+  for (const path of ["/milestone-dashboard", "/assigned-targets", "/resource-workload", "/logistics/dashboard", "/logistics/kpi?source=integrated", `/tasks/${child.taskId}/assignments`, `/tasks/${child.taskId}/logistics-links`, "/exports/json", "/exports/excel", "/imports/preview", "/imports"]) await (await page.request.get(`${project.api}${path}`)).body();
   await page.goto(`/projects/${project.publicId}`); await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
-  const editor = await openTask(page, child.taskId); await expect(editor).toContainText("Summary 기본 단계에서 상속");
+  expect(child.type).toBe("task");
+  const editor = await openTask(page, child); await expect(editor).toContainText("Summary 기본 단계에서 상속");
   const picker = editor.getByRole("combobox", { name: "Milestone", exact: true }); await picker.fill(join.taskId); await picker.press("Enter");
   const beforeEdit = project.snapshot.data.project.revision;
   await editor.getByRole("button", { name: "저장", exact: true }).click(); await expect(editor).toHaveCount(0); await project.refresh();
   expect(project.snapshot.data.project.revision).toBe(beforeEdit + 1);
-  const milestoneEditor = await openTask(page, join.taskId); await milestoneEditor.getByRole("tab", { name: /소속 작업/ }).click(); await expect(milestoneEditor).toContainText("유효 일반 작업 3개"); await expect(milestoneEditor).toContainText(child.name); await milestoneEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  expect(join.type).toBe("milestone");
+  const milestoneEditor = await openTask(page, join); await milestoneEditor.getByRole("tab", { name: /소속 작업/ }).click(); await expect(milestoneEditor).toContainText("유효 일반 작업 3개"); await expect(milestoneEditor).toContainText(child.name); await milestoneEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
   const header = page.locator("#project-panel-schedule .wx-table-container .wx-header").first(); await header.click({ button: "right" }); await page.locator(".project-column-menu").getByRole("checkbox", { name: "Milestone", exact: true }).check(); await page.keyboard.press("Escape");
   await expect(row(page, child.taskId).getByRole("button", { name: /Milestone:/ })).toContainText(join.name);
   const stageTrigger = page.locator("#project-panel-schedule .project-stage-filter-trigger"); await stageTrigger.click(); const stageSearch = page.getByRole("combobox", { name: "Milestone 이름·외부 ID·작업 ID 검색" }); await stageSearch.fill(join.taskId); await stageSearch.press("End"); await stageSearch.press("Enter"); await expect(row(page, child.taskId)).toBeVisible(); await expect(row(page, free.taskId)).toHaveCount(0);
@@ -148,7 +170,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   expect(full.rows.find((stage) => stage.milestoneTaskId === join.taskId)?.stageGate.incompletePredecessorMilestoneTaskIds).toHaveLength(2); expect(full.rows.find((stage) => stage.milestoneTaskId === join.taskId)?.stageGate.ready).toBe(false); expect(full.kpi.ready.milestoneTaskIds).toContain(b.taskId);
   const logistics = (await (await page.request.get(`${project.api}/logistics/dashboard?equipmentIds=${fixture.equipmentId}`)).json()).data;
   expect(logistics.milestoneStages.milestoneTaskIds).toEqual([join.taskId]); expect(logistics.milestoneStages.rows[0].stageGate).toEqual(partial.rows[0].stageGate);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); const stagePanel = page.getByTestId("milestone-dashboard"); await expect(stagePanel).toHaveAttribute("data-ready", "true");
+  await openWorkspaceView(page, "milestones"); const stagePanel = page.getByTestId("milestone-dashboard"); await expect(stagePanel).toHaveAttribute("data-ready", "true");
   await stagePanel.getByText("Milestone 표시·공수 범위 조건", { exact: true }).click(); await stagePanel.getByLabel("공수 시작일", { exact: true }).fill("2026-10-06"); await stagePanel.getByLabel("공수 종료일", { exact: true }).fill("2026-10-07"); await stagePanel.getByRole("combobox", { name: "M/M 환산 기준", exact: true }).selectOption("unset"); await expect(stagePanel).toHaveAttribute("data-ready", "true"); await expect(stagePanel).toContainText("4 M/D");
   // Exact assignment scope is POSTed and validated against the canonical fingerprint.
   const drillRequest = page.waitForRequest((request) => request.method() === "POST" && request.url().includes(`${project.api}/resource-dashboard/query`) && request.postData()?.includes('"exactAssignments"') === true);
@@ -157,7 +179,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   expect([...requestPayload.scope.assignmentIds].sort()).toEqual([...partial.effort.assignmentIds].sort());
   expect(requestPayload.filters).toMatchObject({ from: "2026-10-06", to: "2026-10-07" });
   await expect(page.getByRole("region", { name: "임시 조회 범위", exact: true })).toContainText("Milestone 원본의 정확한 배정 범위");
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click(); await page.getByRole("tab", { name: "KPI 대시보드", exact: true }).click(); await expect(page.getByRole("tabpanel", { name: "물류 구성", exact: true }).getByRole("row", { name: /M-JOIN/ })).toContainText("3");
+  await openWorkspaceView(page, "logistics"); await openWorkspaceView(page, "kpi"); await expect(page.locator("#project-panel-logistics").locator(`tr[data-milestone-task-id="${join.taskId}"]`)).toContainText("3");
   await page.getByRole("tab", { name: "일정", exact: true }).click();
 
   // Download both formats through the actual UI, then inspect their bytes.
@@ -188,7 +210,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   expect(defaultWorkload.projectRevision).toBe(full.projectRevision); expect(defaultWorkload.grandTotalMd).toBe(full.effort.plannedMd); expect(sheets.get("Resource Effort Summary")!.find((cells) => cells.get("A") === "전체 계획 M/D")!.get("B")).toBe(defaultWorkload.grandTotalMd);
 
   const original = await project.refresh();
-  const target = await createProject(page, origin, "JSON 동일 Calendar 대상"); expect(target.snapshot.data.project.calendar).toEqual(original.data.project.calendar); await page.goto(`/projects/${target.publicId}`); await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
+  const target = await createProject(page, origin, "JSON 동일 Calendar 대상", observeIsolatedApi); expect(target.snapshot.data.project.calendar).toEqual(original.data.project.calendar); await page.goto(`/projects/${target.publicId}`); await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   let previews = 0, commits = 0; page.on("request", (request) => { if (request.method() === "POST" && new URL(request.url()).pathname === `${target.api}/imports/preview`) previews++; if (request.method() === "POST" && new URL(request.url()).pathname === `${target.api}/imports`) commits++; });
   await page.locator('summary[aria-label="프로젝트 작업 더보기"]').click(); const previewRead = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === `${target.api}/imports/preview`); await page.locator('input[type="file"][accept=".json,application/json"]').setInputFiles({ name: "stage-roundtrip.json", mimeType: "application/json", buffer: jsonBytes });
   const importDialog = page.getByRole("dialog", { name: "JSON 파일 가져오기", exact: true }); const preview = (await (await previewRead).json() as ProjectImportPreviewResponse).data;
@@ -246,21 +268,30 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
     const checkpoints = [await checkpoint("baseline")];
     await peer.getByRole("button", { name: "Gantt 전체 화면", exact: true }).click(); await expect.poll(() => peer.evaluate(() => Boolean(document.fullscreenElement))).toBe(true); checkpoints.push(await checkpoint("fullscreen"));
     await peer.getByRole("button", { name: "Gantt 전체 화면 종료", exact: true }).click(); await expect.poll(() => peer.evaluate(() => Boolean(document.fullscreenElement))).toBe(false); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("fullscreen-exit"));
-    await peer.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); await expect(peer.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true"); await peer.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("peer-return"));
+    await openWorkspaceView(peer, "milestones"); await expect(peer.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true"); await peer.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("peer-return"));
     expect(checkpoints.at(-1)!.gridWidth).toBe(checkpoints[0].gridWidth); expect(checkpoints.at(-1)!.chartWidth).toBe(checkpoints[0].chartWidth);
     await peer.setViewportSize({ width: 1456, height: 900 }); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); await peer.setViewportSize({ width: 1440, height: 900 }); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("subsequent-layout"));
     await expect(peerHeader.getByText("Milestone", { exact: true })).toBeVisible();
     await testInfo.attach("actual-464-viewport-checkpoints", { body: JSON.stringify(checkpoints), contentType: "application/json" });
-    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!); await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week"); await expect(toggle).toHaveClass(/wxi-menu-right/); await expect(selected).toHaveClass(/wx-selected/);
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+    await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
+    // The Core virtual row can be absent after scrolling 96px, although its
+    // Summary collapsed state is still retained. Verify it at the top of the
+    // same native scroll owner, then restore the exact measured viewport.
+    await vertical.evaluate(element => { element.scrollTop = 0; });
+    await expect(toggle).toHaveClass(/wxi-menu-right/);
+    await vertical.evaluate(element => { element.scrollTop = 96; });
+    await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 });
+    await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().selected)).toContain(free.taskId);
     await peer.screenshot({ path: "output/playwright/issue-464-actual/after-readonly-peer.png" });
     await testInfo.attach("actual-464-viewport", { body: JSON.stringify(await live()), contentType: "application/json" });
   } finally { await readonly.close(); }
   await testInfo.attach("actual-464-contract-evidence", { body: JSON.stringify({ projectRevision: full.projectRevision, catalogRevision: full.catalogRevision, sourceStageIds: full.rows.map((stage) => stage.milestoneTaskId), assignmentIds: full.effort.assignmentIds, defaultGrandMd: full.effort.plannedMd, scopedGrandMd: partial.effort.plannedMd, importedProjectRevision: imported.data.project.revision, copiedProjectId: copied.data.project.publicId, instantiatedProjectId: instantiated.data.project.publicId, copyReviewPostCount: commands.length, finalRevision: project.snapshot.data.project.revision, legacyMixedBrowser: "NOT TESTED: native SQLite server fixtures cover legacy cases; browser does not scan or write test DBs" }), contentType: "application/json" });
 });
 
-test("#464 실제 Import 검토 이후 변경은 412·파일 보존·자동 재전송 0과 readonly 권한으로 보호한다", async ({ page, baseURL, browser }) => {
+test("#464 실제 Import 검토 이후 변경은 412·파일 보존·자동 재전송 0과 readonly 권한으로 보호한다", async ({ page, baseURL, browser, observeIsolatedApi }) => {
   test.setTimeout(120_000); page.setDefaultTimeout(20_000);
-  const project = await createProject(page, baseURL!, "Import stale #464");
+  const project = await createProject(page, baseURL!, "Import stale #464", observeIsolatedApi);
   const file = Buffer.from(JSON.stringify({ schemaVersion: "1.1", project: { name: "외부 일정", description: "Create-only" }, tasks: [{ externalId: "M", name: "새 Milestone", type: "milestone", requestedStart: "2026-10-06", duration: 0, progress: 0, status: "not_started", parentExternalId: null, predecessors: [] }, { externalId: "T", name: "외부 작업", type: "task", requestedStart: "2026-10-06", duration: 2, progress: 0, status: "not_started", parentExternalId: null, predecessors: [] }], memberships: [{ taskExternalId: "T", milestoneExternalId: "M" }] }));
   await (await page.request.get(`${project.api}/imports/preview`)).body(); await (await page.request.get(`${project.api}/imports`)).body();
   await page.goto(`/projects/${project.publicId}`); await expect(page.getByText("편집 중", { exact: true })).toBeVisible();

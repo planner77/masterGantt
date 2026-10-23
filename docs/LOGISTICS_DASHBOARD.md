@@ -1,3 +1,74 @@
+## Issue #734 — 설비 최상위 관점
+
+`대시보드 → 설비`는 설비 인스턴스를 root로 고정한 전용 consumer다. 기본은 하위 없는 단독 조회이며 사용자가 하위 축을 추가·제거·정렬하여 `설비 → 공정 → 물류 시스템 → 리소스`, `설비 → Milestone → 공정`을 구성한다. 유형은 root의 필터이고 상위 Target 등록은 필요 없다. 등록-only·작업0·미배정·비활성 기존 원본을 보존한다.
+
+같은 snapshot의 원본 정보는 이름/유형·단품 또는 Fleet·원본 수량·주관리 공정·모든 WorkArea0..N·Owner·명시 제어 관계를 제공한다. 유형 조건의 고유 구성 수량과 현재 작업 검색/상태/기간 조건의 고유 일반 Task·완료/지연·기간가중 진척·Assignment 계획 M/D/MM·공수 미설정을 구분한다. 정상 구역 미사용과 Owner/주제어 미연결은 별도 진단이며 설치완료 대수/가동률을 추정하지 않는다. 원본 정보 전체 목록과 현재 선택 범위의 숫자는 같은 모집단이라고 주장하지 않는다.
+
+구성 수량의 grain은 distinct equipment ID의 quantity, 작업은 distinct 일반 Task, 공수는 distinct 개인 Assignment다. 직접·조상·Target whole/subset은 기존 공통 원장으로 통합하고 Coverage를 수량/공수 배율로 쓰지 않는다. E10이 두 구역에 표시되어도 상위10, AMR10+AMR5는15, Task5 M/D가 여러 Milestone/구역에 반복돼도 고유5 M/D다. 하위 시스템은 같은 Task 업무 연관이며 실제 controls와 별개다. E1→공유 Milestone→공정은 앞서 E1에서 선택한 Task/Assignment 교집합을 유지하고 E2의 다른 Task를 끌어오지 않는다. 관련 Milestone 전체 Gate는 선택 밖 멤버·선행을 포함한다.
+
+기존 KPI와 #624 Target/Resource 통합 조회는 계속 제공한다. 정확한 source 편집·일정 복귀 및 stale/readonly/dirty는 공통 host를 재사용한다. [사용 안내](TARGET_RESOURCE_USER_GUIDE.md#설비-현황), [API](API.md#issue-734--설비-조회-metadata와-유형-필터), [실행 증거와 미검증](exec-plans/active/ISSUE_734.md)을 따른다.
+## Issue #735 — 물류 시스템 전용 관점
+
+새 조회는 직접 모드로 시작한다. 이전 저장 조회에 시스템 모드/선택 필드가 없으면 **기존 전체 작업 (호환)**으로 명시 유지하며 미연결 작업을 포함한 종전 Project 총계·원본 구성 참고와 접힘/선택/focus를 보존한다. 직접/조율 전환은 사용자 명령이며 새 모드의 Task 모집단 차이를 같은 수치라고 주장하지 않는다.
+
+`대시보드 → 물류 시스템`은 System 인스턴스를 고정 root로 사용하는 전용 consumer다. Target 생성 없이 시스템 단독, 시스템→공정→WorkArea→설비→리소스, 시스템→Milestone→공정의 조회 구성을 제공하며 하위 축은 사용자가 변경한다. 다른 root의 설비/System 동급 형제 규칙과 기존 #624 호환 조회·KPI는 유지한다.
+
+`직접 연결만`은 직접·상속·Target 유효 System 연관이고 `조율 범위 포함`은 기존 원장의 명시 coordinates 도달 시스템과 해당 controller의 실제 controls 설비까지 포함한다. 같은 Task에 연결된 공정/설비/리소스 교차는 제어관계 없이도 유효하지만 controls/coordinates를 생성하지 않는다. 하위 단계는 앞서 선택한 Task/Assignment 교집합을 유지한다. 공정은 Task 명시0..N만 사용하며 프로젝트 공통 MCS의 담당 공정으로 작업을 자동 펼치지 않는다.
+
+시스템 속성 필터는 현재 canonical 원본의 시스템 ID를 서버에 전달하여 KPI·표·상세·일정 범위를 함께 좁힌다. 프로젝트 공통·복수 공정·PI/개발자 역할·유형·Controller/Coordinator는 같은 원본의 속성이다. 구성 System은 고유1개=1식, 제어 설비는 고유 관리단위 수와 원본 quantity이며 관련 Task/공수와 별도다. 작업0·PI/개발자 미설정·공정 범위 누락/불일치는 진단으로 남긴다. 원본 없는 개발 실적·운영 가동률·역할에서 개인 공수를 추정하지 않는다.
+
+작업·진척·공수·미배정/미설정·full Gate는 공통 서버 원시 합집합을 사용한다. 공유 MCS의 t1(A)3+t2(B)4+t3(A/B)5와 공통 t0=2는 MCS14, A8, B9, 미연결2 M/D이며 소계를 더하지 않는다. [사용 안내](TARGET_RESOURCE_USER_GUIDE.md#물류-시스템-현황), [API](API.md#issue-735--시스템-root의-직접조율-선택), [실행 및 미검증](exec-plans/active/ISSUE_735.md)을 따른다.
+
+## Issue #733 — 공정&WorkArea 전용 관점
+
+`대시보드 → 공정&WorkArea`는 Project 공정을 고정 root로 사용하는 전용 consumer이며 기존 #729 snapshot API·#730 표/상세를 재사용한다. 공통 Process Type, 사업장 occurrence, Project 공정 ID와 기존 자유 공정 트리는 서로 다른 원본이다. 단독 공정 요약, 선택 WorkArea 아래 설비/System 동급 형제 및 Resource, Milestone 교차 예시를 제공하며 개인 설정은 업무 구성이나 WBS를 변경하지 않는다.
+
+Legacy 문맥·명시 공정 없음의 원본 문맥 진단은 전체 canonical Task 객체(일반 Task/Summary/Milestone) 기준이며, 필터된 일반 작업 실적 KPI와 모집단이 다르다.
+
+공정/occurrence 아래 구성의 구역 없음은 해당 공정 범위에 연결 구역이 없다는 조회 상태이며 타 공정 구역 소속은 유지한다. root WorkArea 없음은 전체 구역 소속0이고, Task의 명시 WorkArea selector 의미는 변경하지 않는다.
+
+구성 KPI는 snapshot에 결속된 고유 공정/구역·설비관리단위/원본 수량·System을, 작업 KPI는 현재 필터의 고유 일반 Task·완료/지연·기간가중 진척·개인 Assignment 계획 M/D/M/M·미배정/미설정을 표시한다. `configurationReference`와 `relatedMembers`의 구성/관련 작업 범위·coverage는 다른 분모이며 작업0 구성도 남는다. WorkArea별 E10의 관련 수량10/10은 실제 구역 배치20대가 아니고 공정 상위 고유 합계는10이다. 같은 Task5 M/D가 여러 경로에 있어도 상위5 M/D다. 하위 소계 합산·물리 설치완료/실적 추정은 금지한다.
+
+공정 관련 설비 구성은 주관리 공정과 명시 WorkArea 소유 공정의 합집합이며 주관리 공정별 실물 배분과 다르다. 주관리 A의 E10이 B구역에 연결되면 A/B 각각 관련 수량10, Project 고유 수량10이다. 공통 System은 공정/구역마다 자동 복제하지 않는다. 원본의 명시 공정·다중 WorkArea 소속과 같은 Task 업무 연관을 구별한다. 공유 System/Milestone의 다음 단계는 앞서 선택한 Task/Assignment 교집합을 유지하고 Milestone 전체 Gate는 별도로 보존한다. 정확 Task·Assignment·공정/구역/설비/System editor와 원래 보기 복귀는 기존 source 재검증을 사용한다. [사용 안내](TARGET_RESOURCE_USER_GUIDE.md#공정과-workarea-현황), [검증·미검증](exec-plans/active/ISSUE_733.md)을 따른다.
+
+## Issue #731 — 기존 KPI와 통합 출처
+
+`대시보드 → KPI`는 기존 `ProjectLogisticsDashboard`의 네 카드·공정/설비/System 표·기준일/임박 기간·활성/direct-coordination 조건·품질 패널·full Milestone Gate를 유지한다. [기능 보존표와 실행 원장](exec-plans/active/ISSUE_731.md)을 기준으로 검증한다. 일반 조회는 미연결 Task도 포함하며 등록만으로 진척·개인 공수·실적을 만들지 않는다.
+
+이 화면은 전용 `GET /api/projects/{publicId}/logistics/kpi?source=integrated`를 명시 요청한다. source `direct+target:v1`와 `explicit-task-context:v1`는 #728 공통 해석기의 직접·상속·Target 유효 대상 및 Task 명시 공정 원장이다. 한 SQLite read snapshot에서 기존 KPI 산식을 재사용하며 원시 Task/Assignment는 한 번만 계산한다. 구 `/logistics/dashboard`의 default·구 Target/Resource API의 의미는 바뀌지 않는다. 동일 direct-only 원시 집합의 수치는 보존하지만 Target-only의 종전 누락 보완과 신규 명시 공정 선택에 따른 모집단 변화는 source 근거와 구별한다. 구 공정은 설비/System 구성에서 유도하고 신규 공정은 Task 명시0..N이므로 양쪽 공정별 수치가 항상 같다는 보장은 없다.
+
+계획 공수의 기존 numeric envelope는 유지하되 통합 consumer는 공통 `effortState`를 함께 사용한다. 모든 개인 투입률이 미설정이면 legacy `plannedMd=0`을 설정된0으로 해석하지 않고 UI에 미산정으로 표시한다. 일부 미설정은 알려진 합계+미설정 수, 배정 없음은 대상 없음, 명시 설정/비근무일의0은 설정0이다. 동일 원시 집합의 기존 공정별 최종 반올림도 재사용하며 새로운 explicit 공정 집합에서는 기존 headline 계산 authority를 사용한다.
+
+등록 공정·WorkArea·설비관리단위·고유 수량·System·Project 참여 구성과 일반 Task0·미연결·개인 미배정·공수 미설정·Owner/PI/주제어 목록은 별도 펼침 진단으로 제공한다. 구성 전체 참고와 현재 선택 KPI는 다른 분모다. 특히 WorkArea 상세 taskIds/assignmentIds는 필터링 전 전체 canonical 일반 Task·개인 Assignment 관계에서 계산한다. 공정·설비·시스템·담당자·역할 KPI 선택을 바꿔도 구역 구성 drill의 원본 ID는 누락되지 않는다(activeOnly의 표시 master 범위는 기존대로 적용). 기존 품질 패널의 미연결 leaf(Task+Milestone)와 추가 일반 Task 미연결 목록도 구별한다. WorkArea 미사용·정상 미연결은 오류 판정을 강제하지 않는다. 등록 인원·참여 인원·배정 인원과 개인 Assignment 수는 동일하지 않다.
+
+각 표/진단의 일정 이동은 정확한 서버 Task ID를 사용하며 구성 ID를 legacy 필터로 재해석하지 않는다. Task/Assignment 원본 편집과 기준정보 진입은 기존 editor/host를 재사용한다. 출발 조건·source·snapshot·탭·펼침과 focus를 유지하고 revision/source가 바뀌면 이전 숫자와 명령을 폐기하여 최신 조회를 요구한다. Milestone 표는 현재 선택과 독립된 전체 membership·선행 Gate를 표시한다. 원본 ID는 #717의 이름 우선·접힌 식별 정보에서 확인한다.
+
+## Issue #730 — 공정·설비·System 공통 조회 구성
+
+대시보드의 공정&WorkArea·설비·물류 시스템은 #729 versioned 원장을 소비하는 공통 하위 축 구성기/표를 사용한다. 고정 root·하위 없는 요약·사용자 축 추가/삭제/순서 변경·typed 설비/System 형제와 정확 상세를 제공한다. 기존 Target 호환 source·프로젝트 KPI의 기능/산식은 별도 보존하며 새 명시 Task 공정 기준을 구 API default로 강제하지 않는다. 표의 상위 총계는 서버 고유 합집합이며 다중 WorkArea 소계를 합산하지 않는다. [Project UX](PROJECT_UX.md), [사용 안내](TARGET_RESOURCE_USER_GUIDE.md#동적-조회-구성과-정확-상세), [실행 증거](exec-plans/active/ISSUE_730.md)를 따른다.
+
+## Issue #729 — 신규 WBS source와 설비/System 형제 조회
+
+신규 opt-in view API는 #728 명시 Task 공정/WorkArea 원장을 사용하며 기존 공정 KPI/Target API의 자동 유도 의미를 바꾸지 않는다. `process`는 Project-local 공정 ID이고 `processOccurrence` 및 legacy projection의 공정과 구별한다. 공정0 Task는 미연결 분기에 남고 Project/System/Resource/Milestone 전체에서 유실되지 않는다. 설비의 교차 공정 WorkArea0..N은 구성 관계이며 Task 공정 선택을 생성하지 않는다.
+
+다른 root 아래 설비와 System을 함께 선택하면 같은 깊이의 typed 형제다. 같은 Task의 설비/System 연관은 조회할 수 있으나 실제 controls/coordinates/membership을 추론하지 않는다. E1→공유 Milestone→공정은 E1의 원시 Task/Assignment만 유지한다. 상위 총계는 원시 합집합이며 Fleet10이 여러 구역에 보여도 Project 고유 수량10이다. 등록-only 항목/작업0과 개인공수 미설정/null/설정0을 분리한다. 공개 계약은 [API](API.md#issue-729--versioned-wbs-다관점-조회), 검증은 [Work Packet](exec-plans/active/ISSUE_729.md), 동적 UI는 #730~#736 후속이다.
+
+## Issue #728 — 새 WBS source와 기존 공정 필터의 경계
+
+기존 서비스의 공정 필터는 아래 §3.2처럼 유효 설비/System 구성 범위를 사용한다. 이번 pure Domain은 이를 수정하지 않는다. 새 WBS 해석 기준에서는 Task의 명시 공정0..N만 작업 모집단에 사용하며, 명시0/구형null·Target 호환 기준을 구분한다. 동일 원시 집합이면 기존 산식을 재사용하지만 새 명시 공정 선택으로 집합이 달라지면 공정별 숫자까지 동일하다고 보장하지 않는다.
+
+무배정 일반 Task도 작업 진척·완료·지연에 포함하고 개인 공수는 고유 Assignment에서만 산출한다. 설비/구역/Milestone/Group 중첩 소계를 합산하지 않으며 조회 단계의 Task/Assignment 범위를 유지한다. Milestone full Gate와 구성 수량은 별도다. 실제 source/version·provenance·golden 수치는 [WBS 공통 계약](WBS_TASK_LEDGER.md), 공개 API/snapshot 통합은 #729다. 현재 화면이 새 source를 사용한다고 주장하지 않는다.
+
+## Issue #724 — 현재 탐색 경로
+
+기존 KPI는 `대시보드 → KPI`, 통합 조회의 세 관점은 `대시보드 → 공정&WorkArea / 설비 / 물류 시스템`, 원본 관리는 `기준정보`의 같은 엔터티 메뉴로 이동한다. 기존 산식·서버 snapshot·정확 Task/Assignment/Target 편집·일정 drill은 그대로 재사용한다. Target 구성/제어·조율 관계는 관련 기준정보의 보조 호환 진입이며 별도 상위/하위 Target 주메뉴를 만들지 않는다. 아래 #624의 이전 `물류 구성 → 통합 조회` 표기는 당시 경로이며 현재 이관표·공개 subview 계약은 [Project UX](PROJECT_UX.md#기존-기능-이관표와-후속-통합-소유권)를 따른다. Target0 공통 Domain은 #728이며 현재 화면/API로의 연결과 동적 계층은 #729~#736 후속이다.
+
+## Issue #624 — 물류 통합 관점 V1 (기존 Dashboard의 읽기 전용 확장)
+
+물류 구성의 새 **통합 조회** 탭은 기존 KPI 화면과 Task 직접연결·조율 범위 산식을 바꾸지 않는다. #619/#620 Resource Dashboard의 동일 `targetProjection`·`summary`·`stages`를 `projectionOrder`로 재배열하여 공정 종류→site/product 공정→선택 WorkArea→Target, 설비 종류→인스턴스→Target, 시스템 종류→인스턴스→Target, Target→Resource 관점을 제공한다.
+
+고유 equipmentId 기반 구성 수량과 현재 T0 작업 대상 coverage를 분리한다. 공유 MCS/AMR fleet의 수량·공수는 중첩 Target 소계로 합산할 수 없고 Assignment union 총계만 공인한다. 기간가중 일반 Task 진척과 Milestone 전체 effective membership/Stage Gate Ready/Blocked를 구분하고 선택 Assignment의 Task 수로 full Gate를 바꾸지 않는다. #621 정확 editor/#528 drill과 query/snapshot/stale/focus 복귀 경로를 재사용한다. [#624 Work Packet](exec-plans/active/ISSUE_624.md) 참조.
+
 # 물류 구축 대시보드 계산·조회 계약
 
 ## 1. 상태와 목적
@@ -204,3 +275,7 @@ Unit은 집합/중복/진척/날짜경계/분모0/미설정/Scope를 검증한�
 기존 `includedTaskIds`, progressPercent, plannedMd, 기간 범위 및 Milestone 경보의 계산 범위는 유지한다. `milestoneStages={milestoneTaskIds,rows}`는 M 직접 물류 일치 또는 effective member의 물류 일치를 통해 관련 고유 M을 추가 표시한다. 해당 row는 전체 E/P의 Ready/Blocked/memberProgress와 전체 위험 원인을 제공하므로 필터 밖 미완료 Task/predecessor도 숨기지 않는다. 관련 M의 전체 E를 기존 물류 수치의 포함 Task 집합에 추가하지 않는다. 상세 [Stage Dashboard 계약](MILESTONE_STAGE_GATES.md#issue-463-단계-대시보드-읽기-모델)을 따른다.
 
 기존 구현의 `filter.mdPerMm ?? 20`은 제거했다. 명시 유한 양수 query, 생략 시 유효 RESOURCE_MD_PER_MM, 그 외 null을 사용한다. `mdPerMm=null`은 ENV를 무시하며 empty/invalid/반복 mdPerMm은400이다. 이는 기존 기본20일 환산 및 invalid 무시의 의미 변경이다. M/D는 유지하고 M/M 미설정과 `mdPerMmSource=query|environment|unset`/실제 기준을 UI에 표시한다. 기존 Resource workload의 ENV 기준은 그대로다. horizon 날짜 상한은 ordinal 비교로 처리하여 지원 날짜 말일에서도 기존 inclusive 경계 의미를 유지한다.
+
+## Issue #617 — Target resolver 재사용 경계
+
+F3의 직접+모든 Summary 조상 subtree Target 합집합·typed subset·legacy 출처는 [LOGISTICS_TARGETS](LOGISTICS_TARGETS.md)의 단일 pure resolver가 담당한다. 후속 Target/Resource 보기에서 독자 상속 해석기를 만들거나 legacy MCS로 Target을 추론하지 않는다. 이번 변경은 기존 Dashboard의 직접설비/시스템 필터·Task/KPI 분모·Milestone full Gate를 새 Target 축으로 자동 확대하지 않으며 UI와 Resource 축 연결은 #618/#619 이후다. usage의 실제 일반 Task 수와 별도 Summary 수는 legacy directTaskCount 또는 물리 quantity가 아니다.

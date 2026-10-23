@@ -68,7 +68,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/e2e-shard-planner.mjs analyze             --history .e2e-history             --shards 6             --min-runs "$MIN_RUNS"             --current-plan tests/config/e2e-shard-plan.json             --output e2e-shard-proposal.json             --summary "$GITHUB_STEP_SUMMARY"
+          node scripts/e2e-shard-planner.mjs analyze             --history .e2e-history             --shards 8             --min-runs "$MIN_RUNS"             --current-plan tests/config/e2e-shard-plan.json             --output e2e-shard-proposal.json             --summary "$GITHUB_STEP_SUMMARY"
           should_update="$(jq -r '.shouldUpdate' e2e-shard-proposal.json)"
           echo "should_update=$should_update" >> "$GITHUB_OUTPUT"
 

@@ -54,6 +54,23 @@ def parse_merge_title(message: str) -> tuple[int, int, str] | None:
     return (issue_number, pr_number, summary) if message == expected else None
 
 
+def validate_merge_title(subject: str, issue_number: int, pr_number: int) -> str:
+    """Preflight the *actual* connector merge subject, not a guessed summary.
+
+    A canonical-looking title may still fail Main CI when the Korean summary
+    exceeds MAX_SUMMARY_LENGTH (as with #639 / PR #641's immutable #2606 run).
+    This validator shares the exact parser used by the push trace gate; never
+    truncate or silently normalize an invalid merge commit subject.
+    """
+    parsed = parse_merge_title(subject)
+    if parsed is None or parsed[:2] != (issue_number, pr_number):
+        raise ValueError(
+            "병합 제목은 Issue/PR 번호가 일치하는 한 줄 한글 표준 형식이어야 하며 "
+            f"요약은 최대 {MAX_SUMMARY_LENGTH}자입니다"
+        )
+    return subject
+
+
 def merge_api_payload(
     issue_number: int, pr_number: int, summary: str, expected_head_sha: str, *,
     api_target: str = "connector",
@@ -87,21 +104,35 @@ def main() -> int:
     )
     parser.add_argument("--issue", type=int, required=True, help="Primary Issue 번호")
     parser.add_argument("--pr", type=int, required=True, help="PR 번호")
-    parser.add_argument("--summary", required=True, help="이슈를 설명하는 짧은 한글 제목(최대 30자)")
+    choices = parser.add_mutually_exclusive_group(required=True)
+    choices.add_argument("--summary", help="이슈를 설명하는 짧은 한글 제목(최대 30자)")
+    choices.add_argument(
+        "--validate-title", help="실제 병합할 완성 제목 전체를 그대로 검증 (위반 시 실행 중단)"
+    )
     parser.add_argument("--as-merge-payload", action="store_true", help="병합 API 입력의 제목·빈 본문·Head SHA를 함께 JSON 출력")
     parser.add_argument("--expected-head-sha", default="", help="--as-merge-payload에서 사용할 검증된 PR Head SHA")
     parser.add_argument("--merge-api", choices=("connector", "rest"), default="connector", help="connector: expected_head_sha / REST: sha")
     args = parser.parse_args()
     try:
+        if args.validate_title is not None:
+            validated = validate_merge_title(args.validate_title, args.issue, args.pr)
+            parsed = parse_merge_title(validated)
+            assert parsed is not None  # validate_merge_title guarantees this.
+            summary = parsed[2]
+        else:
+            summary = args.summary
         if args.as_merge_payload:
-            print(json.dumps(merge_api_payload(
-                args.issue, args.pr, args.summary, args.expected_head_sha,
+            payload = merge_api_payload(
+                args.issue, args.pr, summary, args.expected_head_sha,
                 api_target=args.merge_api,
-            ), ensure_ascii=False))
+            )
+            if args.validate_title is not None and payload["commit_title"] != validated:
+                raise ValueError("병합 Payload 제목이 사전 검증과 불일치합니다")
+            print(json.dumps(payload, ensure_ascii=False))
         else:
             if args.expected_head_sha or args.merge_api != "connector":
                 raise ValueError("--expected-head-sha 및 --merge-api는 --as-merge-payload와 함께 사용하세요")
-            print(format_merge_title(args.issue, args.pr, args.summary))
+            print(format_merge_title(args.issue, args.pr, summary))
     except ValueError as error:
         parser.error(str(error))
     return 0

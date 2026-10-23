@@ -1,3 +1,5 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, type Frame, type Request } from "@playwright/test";
 import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
 
@@ -11,7 +13,7 @@ test.describe("Issue #76 Project Workspace UX", () => {
     const mutations: string[] = [];
     const recordRequest = (request: Request) => {
       if (request.resourceType() === "document") documentRequests.push(request.url());
-      if (!["GET", "HEAD"].includes(request.method())) mutations.push(request.url());
+      if (!["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) mutations.push(request.url());
     };
     const recordNavigation = (frame: Frame) => {
       if (frame === page.mainFrame()) navigations.push(frame.url());
@@ -33,12 +35,11 @@ test.describe("Issue #76 Project Workspace UX", () => {
 
     const tabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
     const scheduleTab = tabs.getByRole("tab", { name: "일정", exact: true });
-    const milestoneTab = tabs.getByRole("tab", { name: "Milestone 대시보드", exact: true });
-    const resourcesTab = tabs.getByRole("tab", { name: "리소스", exact: true });
-    const logisticsTab = tabs.getByRole("tab", { name: "물류 구성", exact: true });
+    const dashboardTab = tabs.getByRole("tab", { name: "대시보드", exact: true });
+
+    const logisticsTab = tabs.getByRole("tab", { name: "기준정보", exact: true });
     await expect(scheduleTab).toHaveAttribute("aria-selected", "true");
-    await expect(milestoneTab).toHaveAttribute("aria-selected", "false");
-    await expect(resourcesTab).toHaveAttribute("aria-selected", "false");
+    await expect(dashboardTab).toHaveAttribute("aria-selected", "false");
     await expect(logisticsTab).toHaveAttribute("aria-selected", "false");
 
     const identity = await rememberGanttRoot(page);
@@ -48,22 +49,21 @@ test.describe("Issue #76 Project Workspace UX", () => {
 
     await scheduleTab.focus();
     await page.keyboard.press("ArrowRight");
-    await expect(milestoneTab).toBeFocused();
-    await expect(milestoneTab).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByRole("tabpanel", { name: "Milestone 대시보드", exact: true })).toBeVisible();
-    await page.keyboard.press("ArrowRight");
-    await expect(resourcesTab).toBeFocused();
-    await expect(resourcesTab).toHaveAttribute("aria-selected", "true");
+    await expect(dashboardTab).toBeFocused();
+    await expect(dashboardTab).toHaveAttribute("aria-selected", "true");
+    await openWorkspaceView(page, "milestones");
+    await expect(page.locator("#project-panel-milestones")).toBeVisible();
+    await openWorkspaceView(page, "resources");
     await expect(page.getByRole("heading", { level: 2, name: "리소스 공수" })).toBeVisible();
     const resourceDashboard = page.getByRole("tabpanel", { name: "리소스" }).locator('[data-resource-dashboard="true"]');
     await expect(resourceDashboard).toHaveAttribute("data-ready", "true");
-    const group = resourceDashboard.getByRole("region", { name: "그룹 현황" }).getByRole("button", { name: /개발팀 \(G-01\)/ });
+    const group = resourceDashboard.getByRole("region", { name: "그룹 현황", exact: true }).getByRole("button", { name: "개발팀", exact: true });
     await expect(group).toBeVisible();
     await group.click();
-    await expect(resourceDashboard.getByRole("region", { name: "개발팀 개인 현황" }).getByRole("button", { name: /테스트 리소스 \(R-01\)/ })).toBeVisible();
+    await expect(resourceDashboard.getByRole("region", { name: "개발팀 개인 현황", exact: true }).getByRole("button", { name: "테스트 리소스", exact: true })).toBeVisible();
     await expect(resourceDashboard.locator('dl[aria-label="선택 범위 KPI"]')).toContainText("5.00 M/D");
 
-    await resourcesTab.focus();
+    await dashboardTab.focus();
     await page.keyboard.press("Home");
     await expect(scheduleTab).toBeFocused();
     await expect(scheduleTab).toHaveAttribute("aria-selected", "true");
@@ -73,15 +73,17 @@ test.describe("Issue #76 Project Workspace UX", () => {
     await page.keyboard.press("End");
     await expect(logisticsTab).toBeFocused();
     await page.keyboard.press("ArrowLeft");
-    await expect(resourcesTab).toBeFocused();
-    await page.keyboard.press("ArrowLeft");
-    await expect(milestoneTab).toBeFocused();
+    await expect(dashboardTab).toBeFocused();
     await page.keyboard.press("ArrowLeft");
     await expect(scheduleTab).toBeFocused();
     await expectSameGanttRoot(page, identity);
 
     expect(documentRequests.filter((url) => url.includes(`/projects/${publicId}`))).toHaveLength(1);
-    expect(new Set(navigations.filter((url) => url.includes(`/projects/${publicId}`))).size).toBe(1);
+    expect(new Set(navigations.filter((url) => url.includes(`/projects/${publicId}`)).map(value => {
+      const url = new URL(value);
+      url.searchParams.delete("screen");
+      return url.toString();
+    })).size).toBe(1);
     expect(mutations).toEqual([]);
 
     page.off("request", recordRequest);
@@ -277,29 +279,27 @@ for (const [width, height] of [[390, 844], [768, 900], [1024, 900], [1440, 900],
 
       const tabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
       const schedule = tabs.getByRole("tab", { name: "일정" });
-      const milestones = tabs.getByRole("tab", { name: "Milestone 대시보드" });
-      const resources = tabs.getByRole("tab", { name: "리소스" });
-      const logistics = tabs.getByRole("tab", { name: "물류 구성" });
+      const dashboard = tabs.getByRole("tab", { name: "대시보드", exact: true });
+      const master = tabs.getByRole("tab", { name: "기준정보", exact: true });
       await expect(schedule).toHaveAttribute("aria-controls", "project-panel-schedule");
-      await expect(milestones).toHaveAttribute("aria-controls", "project-panel-milestones");
-      await expect(resources).toHaveAttribute("aria-controls", "project-panel-resources");
-      await expect(logistics).toHaveAttribute("aria-controls", "project-panel-logistics");
-      await expect(tabs.getByRole("tab")).toHaveText(["일정", "Milestone 대시보드", "리소스", "물류 구성"]);
+      await expect(dashboard).toHaveAttribute("aria-controls", "project-navigation-dashboard");
+      await expect(master).toHaveAttribute("aria-controls", "project-navigation-master");
+      await expect(tabs.getByRole("tab")).toHaveText(["일정", "대시보드", "기준정보"]);
       await expect(page.getByRole("tab", { name: "Gantt", exact: true })).toHaveCount(0);
       await schedule.focus();
       await page.keyboard.press("ArrowRight");
-      await expect(milestones).toBeFocused();
+      await expect(dashboard).toBeFocused();
+      await expect(page.getByRole("tablist", { name: "대시보드 보기" })).toBeVisible();
       await page.keyboard.press("Home");
       await expect(schedule).toBeFocused();
       await page.keyboard.press("End");
-      await expect(logistics).toBeFocused();
-      await expect(page.getByRole("tabpanel", { name: "물류 구성" })).toBeVisible();
+      await expect(master).toBeFocused();
+      await expect(page.getByRole("tablist", { name: "기준정보 보기" })).toBeVisible();
       await page.keyboard.press("ArrowLeft");
-      await expect(resources).toBeFocused();
-      await expect(page.getByRole("tabpanel", { name: "리소스" })).toBeVisible();
+      await expect(dashboard).toBeFocused();
       await page.keyboard.press("Home");
       await expect(schedule).toBeFocused();
-      await expect(page.getByRole("tabpanel", { name: "일정" })).toBeVisible();
+      await expect(page.getByRole("tabpanel", { name: "일정", exact: true })).toBeVisible();
       await expectSameGanttRoot(page, identity);
       if (chartScrollLeft !== null) {
         await expect(gantt).toHaveAttribute("data-gantt-scale-mode", "week");

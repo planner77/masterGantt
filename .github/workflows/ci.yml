@@ -1,16 +1,36 @@
 name: CI
 run-name: >-
-  ${{ github.event_name == 'pull_request' && format('PR CI {0} · {1} · PR #{2} · Run #{3}.{4}', github.event.action == 'edited' && '[메타데이터 검증]' || '[전체 검증]', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt) || github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Issue #') && contains(github.event.head_commit.message, ' · PR #') && !contains(toJSON(github.event.head_commit.message), '\n') && !contains(toJSON(github.event.head_commit.message), '\r') && format('Main CI · {0} · Run #{1}.{2}', github.event.head_commit.message, github.run_number, github.run_attempt) || github.event_name == 'push' && format('Main CI · 기존 병합/직접 Push · {0} · Run #{1}.{2}', github.sha, github.run_number, github.run_attempt) || inputs.issue_number != '' && format('수동 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.issue_number, github.ref_name, github.run_number, github.run_attempt) || format('수동 CI · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
+  ${{ github.event_name == 'pull_request' && format('PR CI {0} · {1} · PR #{2} · Run #{3}.{4} · {5}', github.event.action == 'edited' && '[메타데이터 검증]' || '[전체 검증]', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt, github.event.pull_request.draft && 'DRAFT_BLOCKED' || github.event.action == 'edited' && 'METADATA_ONLY' || 'FINAL_FULL') || github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Issue #') && contains(github.event.head_commit.message, ' · PR #') && !contains(toJSON(github.event.head_commit.message), '\n') && !contains(toJSON(github.event.head_commit.message), '\r') && format('Main CI · {0} · Run #{1}.{2}', github.event.head_commit.message, github.run_number, github.run_attempt) || github.event_name == 'push' && format('Main CI · 기존 병합/직접 Push · {0} · Run #{1}.{2}', github.sha, github.run_number, github.run_attempt) || inputs.target_sha != '' && format('정확 Main SHA 복구 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.target_issue, inputs.target_sha, github.run_number, github.run_attempt) || inputs.issue_number != '' && format('수동 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.issue_number, github.ref_name, github.run_number, github.run_attempt) || format('수동 CI · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, edited]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, edited]
   push:
     branches: [main]
   workflow_dispatch:
     inputs:
       issue_number:
         description: "관련 Primary Issue 번호(선택; 진단 실행은 비워 둘 수 있음)"
+        required: false
+        type: string
+      target_sha:
+        description: "과거 Main merge SHA (40자리, 비우면 수동 진단)"
+        required: false
+        type: string
+      target_issue:
+        description: "복구 대상 Issue"
+        required: false
+        type: string
+      target_pr:
+        description: "복구 대상 PR"
+        required: false
+        type: string
+      expected_version:
+        description: "정확한 SemVer"
+        required: false
+        type: string
+      owner_comment_id:
+        description: "최신 Owner recovery 승인 comment ID"
         required: false
         type: string
 
@@ -21,7 +41,7 @@ permissions:
 
 concurrency:
   # 새 PR head가 올라오면 이전 실행을 즉시 취소해 runner 낭비를 줄인다.
-  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}-{1}', github.event.pull_request.number, github.event.action == 'edited' && 'metadata' || 'full') || format('ci-main-{0}', github.sha) }}
+  group: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && format('ci-exact-recovery-{0}', inputs.target_sha) || github.event_name == 'pull_request' && format('ci-pr-{0}-{1}', github.event.pull_request.number, github.event.action == 'edited' && 'metadata' || 'full') || format('ci-main-{0}', github.sha) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
@@ -41,7 +61,9 @@ jobs:
       transport: ${{ github.event_name != 'pull_request' || steps.filter.outputs.transport == 'true' }}
       docs_only: ${{ steps.classify.outputs.docs_only }}
       version_changed: ${{ steps.release_candidate.outputs.changed || 'false' }}
-      current_version: ${{ steps.release_candidate.outputs.current_version }}
+      current_version: ${{ steps.recovery.outputs.version || steps.release_candidate.outputs.current_version }}
+      checkout_sha: ${{ steps.recovery.outputs.target_sha || github.sha }}
+      recovery_authorized: ${{ steps.recovery.outputs.authorized || 'false' }}
       metadata_only: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' }}
     steps:
       # Source-of-truth for PR attribution is the GitHub event captured before
@@ -90,7 +112,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-          fetch-depth: ${{ github.event_name == 'push' && '0' || '1' }}
+          fetch-depth: ${{ (github.event_name == 'push' || inputs.target_sha != '') && '0' || '1' }}
       - name: checkout 시간 기록
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
@@ -98,6 +120,21 @@ jobs:
       - name: CI 실행 추적 메타데이터 검증
         run: python3 scripts/verify-ci-run-trace.py
 
+      # Owner may authorize only the trusted default-branch controller.
+      - name: 인증된 Owner exact-main-recovery 검증 (#639)
+        id: recovery
+        if: github.event_name == 'workflow_dispatch' && inputs.target_sha != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/main_ci_recovery.py authorize
+      - name: 원본 복구 Run·Attempt·SHA 감사 artifact
+        if: steps.recovery.outcome == 'success'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-main-recovery-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci-main-recovery.json
+          if-no-files-found: error
+          retention-days: 30
       # dorny/paths-filter v4.0.3
       # workflow-level paths는 required check를 Pending으로 남길 수 있어 사용하지 않는다.
       - name: 무거운 CI 대상 경로 판정
@@ -258,6 +295,10 @@ jobs:
           DOCS_ONLY: ${{ steps.classify.outputs.docs_only || 'N/A' }}
           VERSION_CHANGED: ${{ steps.release_candidate.outputs.changed || 'N/A' }}
           CURRENT_VERSION: ${{ steps.release_candidate.outputs.current_version || 'N/A' }}
+          CI_MODE: ${{ github.event_name != 'pull_request' && 'MAIN_OR_MANUAL_FULL' || github.event.pull_request.draft && 'DRAFT_BLOCKED' || github.event.action == 'edited' && 'METADATA_ONLY' || 'FINAL_FULL' }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha || 'N/A' }}
+          PR_BASE: ${{ github.event.pull_request.base.sha || 'N/A' }}
+          PR_TEST_MERGE: ${{ github.event_name == 'pull_request' && github.sha || 'N/A' }}
         run: |
           {
             echo "## CI change routing"
@@ -271,12 +312,86 @@ jobs:
             printf -- '- docs_only(main): `%s`\n' "$DOCS_ONLY"
             printf -- '- version_changed(main): `%s`\n' "$VERSION_CHANGED"
             printf -- '- current_version(main): `%s`\n' "$CURRENT_VERSION"
+            printf -- '- mode: `%s`; PR Head/Base/Test-Merge: `%s` / `%s` / `%s`\n' "$CI_MODE" "$PR_HEAD" "$PR_BASE" "$PR_TEST_MERGE"
           } >> "$GITHUB_STEP_SUMMARY"
 
 
+  # Base SHA only: PR metadata and Work Packet are untrusted data, never code.
+  # On the introducing PR the validator is absent in main: NOT TESTED,
+  # all existing full CI and final QA gates still run.
+  preflight:
+    name: QA Preflight — 정책·문서 사전 검사
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action != 'edited' &&
+      github.event.pull_request.draft != true &&
+      needs.changes.result == 'success'
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    outputs:
+      enforced: ${{ steps.availability.outputs.enforced }}
+    steps:
+      - name: PR 코드가 아닌 원본 base SHA 검증기 checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - name: 신뢰된 Preflight 검증기 존재 확인 (도입 PR Bootstrap)
+        id: availability
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if [[ -f scripts/qa_preflight.py ]]; then
+            echo "enforced=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enforced=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## QA Preflight: NOT TESTED (기본 브랜치 도입 전 Bootstrap)"
+              echo "- 신뢰된 base SHA에 사전 검증기가 없으므로 기존 전체 CI를 수행합니다."
+              echo "- PR Head 코드를 실행하지 않으며 QA Final/Trusted/Owner 승인을 우회하지 않습니다."
+            } >> "$GITHUB_STEP_SUMMARY"
+            python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = {
+              "status": "NOT TESTED", "reason": "TRUSTED_BASE_VALIDATOR_NOT_INSTALLED",
+              "pr": os.environ.get("PR_NUMBER"), "head_sha": os.environ.get("EVENT_HEAD_SHA"),
+              "base_sha": os.environ.get("EVENT_BASE_SHA"),
+              "run_id": os.environ.get("GITHUB_RUN_ID"), "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+              "decision": "Full CI and Final QA remain mandatory"}
+          Path("qa-preflight-report.json").write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          PY
+          fi
+      - name: 원본 base SHA의 QA Preflight 실행 (read-only)
+        if: steps.availability.outputs.enforced == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python3 scripts/qa_preflight.py
+      - name: Preflight Run·Attempt 진단 artifact 보존
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qa-preflight-${{ github.run_id }}-${{ github.run_attempt }}
+          path: qa-preflight-report.json
+          if-no-files-found: warn
+          retention-days: 30
+
   metadata_evidence:
     name: PR metadata가 기존 전체 CI 증거를 보존하는지 검증
-    if: github.event_name == 'pull_request' && github.event.action == 'edited'
+    if: github.event_name == 'pull_request' && github.event.action == 'edited' && github.event.pull_request.draft != true
     needs: changes
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -294,8 +409,13 @@ jobs:
 
   policy:
     name: 정책·저장소 계약 검사
-    if: needs.changes.outputs.policy == 'true'
-    needs: changes
+    if: >-
+      always() && needs.changes.result == 'success' &&
+      needs.changes.outputs.policy == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
+      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
+       needs.preflight.result == 'success')
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -305,6 +425,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -317,6 +438,8 @@ jobs:
       - run: node scripts/verify-release-version.mjs
       - name: 루트·외부 cwd 테스트 탐색 계약 검증
         run: node scripts/verify-test-discovery.mjs
+      - name: Issue #711 read-only Test Lifecycle 인벤토리 회귀 검증
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_test_lifecycle_inventory.py' -v
       - name: production dependency audit
         run: npm audit --omit=dev
       - name: CI cache invalidation·fallback 계약 검증
@@ -326,12 +449,45 @@ jobs:
         run: python3 scripts/verify-safe-branch-cleanup.py
       - name: 범용 Issue Lifecycle 계약·시나리오 검증
         run: python3 scripts/verify-issue-lifecycle.py
+      - name: "Issue #657 승계 감사 Python3 전체 회귀 (#653/#655)"
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_release_succession_*.py' -v
+      - name: Issue #633 릴리스 부채 negative/positive fixture
+        run: python3 scripts/test-release-debt-audit.py
+      - name: Issue #633 B2 Owner 원장·GHCR·cleanup 보호 회귀
+        run: python3 scripts/test-release-debt-recovery.py
+      - name: "#765 exact 미발행 Owner·Release·GHCR 퇴역 보호 회귀"
+        run: python3 scripts/test-release-debt-recovery-765.py
+      - name: "#622 과거 Lifecycle Owner 권한·SHA·브랜치 삭제 회귀 검사"
+        run: python3 scripts/test-closed-622-recovery.py
+      - name: Issue #639 정확 SHA 회복 단위/보안 회귀
+        if: github.event_name != 'workflow_dispatch' || inputs.target_sha == ''
+        run: python3 scripts/test_main_ci_recovery.py
       - name: PR metadata 증거 판정 M1~M8 회귀
         run: python3 scripts/test-pr-metadata-evidence.py
+      - name: Issue #712 post-merge Full CI 원본/attempt/Tree 보안 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test-issue-712.py
       - name: PR metadata full CI 완료 자동 복구 시나리오 (#600)
         run: python3 scripts/test-pr-metadata-reconcile.py
       - name: QA Final LOW/MEDIUM/HIGH·보안 경계 Python 회귀 (#580)
         run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_final_automated.py
+      - name: QA Preflight 사전 정책·신뢰 경계 replay (#629)
+        run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_preflight.py
+      - name: PR Fast Gate 검증 (#659)
+        run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_pr_fast_gate.py
+      - name: Issue #771 FAST_DEVELOPMENT/FINAL_FULL 신뢰 및 Required3 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_fast_development.py' -v
+      - name: Issue #770 Shadow 영향 계획·출처 보호 단위 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_impact_plan.py' -v
+      - name: Issue #772 LOW E2E 분류·실행 영수증 차단 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_low_*.py' -v
+      - name: Issue #773 Release reuse fail-closed 출처·샤드·Owner 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_release_reuse_evidence.py' -v
+      - name: Issue #703 Preview 배포 권한·워크플로 단위 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_preview_publish.py' -v
+      - name: Issue #751 source-matched P50/P95 comparison and missing-artifact regression
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_issue_751_*.py' -v
+      - name: Issue #752 CI provenance, recurring failure and bounded diagnostic regression
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_issue_752_*.py' -v
       - name: 배포 shell 구문 검증
         run: |
           sh -n deploy/docker/container-entrypoint.sh
@@ -340,8 +496,13 @@ jobs:
 
   typecheck:
     name: TypeScript 타입 검사
-    if: needs.changes.outputs.node == 'true'
-    needs: changes
+    if: >-
+      always() && needs.changes.result == 'success' &&
+      needs.changes.outputs.node == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
+      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
+       needs.preflight.result == 'success')
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -351,6 +512,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -370,8 +532,13 @@ jobs:
 
   lint:
     name: ESLint
-    if: needs.changes.outputs.node == 'true'
-    needs: changes
+    if: >-
+      always() && needs.changes.result == 'success' &&
+      needs.changes.outputs.node == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
+      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
+       needs.preflight.result == 'success')
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -381,6 +548,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -393,8 +561,13 @@ jobs:
 
   unit:
     name: Vitest 단위·통합 테스트
-    if: needs.changes.outputs.node == 'true'
-    needs: changes
+    if: >-
+      always() && needs.changes.result == 'success' &&
+      needs.changes.outputs.node == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
+      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
+       needs.preflight.result == 'success')
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -404,6 +577,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -416,17 +590,21 @@ jobs:
 
   build:
     name: Next.js production build
-    if: needs.changes.outputs.node == 'true'
-    needs: changes
+    if: >-
+      always() && github.event_name != 'pull_request' &&
+      needs.changes.result == 'success' &&
+      needs.changes.outputs.node == 'true'
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    steps:
+    steps: &build_steps
       - name: checkout 계측 시작
         id: checkout-start
         shell: bash
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -468,17 +646,61 @@ jobs:
           retention-days: 30
 
   # Ruleset의 기존 required check 이름을 유지하는 aggregate gate
+  # PR full에서 가벼운 검증 성공 후 실행하는 Next.js build
+  pr_build:
+    name: PR Next.js production build
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.action != 'edited' &&
+      github.event.pull_request.draft != true &&
+      needs.pr_fast_gate.result == 'success' &&
+      needs.changes.result == 'success' &&
+      needs.changes.outputs.node == 'true'
+    needs: [changes, preflight, pr_fast_gate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps: *build_steps
+
+  # PR full 전용: Main/수동/metadata CI는 기존 병렬 경로 그대로 유지
+  pr_fast_gate:
+    name: PR 빠른 검사 판정
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.action != 'edited' &&
+      github.event.pull_request.draft != true
+    needs: [changes, preflight, policy, typecheck, lint, unit]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
+          persist-credentials: false
+      - name: PR 필수 빠른 검사 결과 검증
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          PREFLIGHT_RESULT: ${{ needs.preflight.result }}
+          POLICY_REQUIRED: ${{ needs.changes.outputs.policy }}
+          POLICY_RESULT: ${{ needs.policy.result }}
+          NODE_REQUIRED: ${{ needs.changes.outputs.node }}
+          TYPECHECK_RESULT: ${{ needs.typecheck.result }}
+          LINT_RESULT: ${{ needs.lint.result }}
+          UNIT_RESULT: ${{ needs.unit.result }}
+        run: python3 scripts/pr_fast_gate.py
   quality:
     name: Build, static checks, and unit tests
     if: always()
-    needs: [changes, metadata_evidence, policy, typecheck, lint, unit, build]
+    needs: [changes, preflight, metadata_evidence, policy, typecheck, lint, unit, build, pr_build, pr_fast_gate]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: 병렬 quality 결과 집계
         shell: bash
         env:
+          PR_IS_DRAFT: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft }}
           CHANGES_RESULT: ${{ needs.changes.result }}
+          IS_FULL_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft != true && github.event.action != 'edited' }}
+          PREFLIGHT: ${{ needs.preflight.result }}
           NODE_REQUIRED: ${{ needs.changes.outputs.node }}
           POLICY_REQUIRED: ${{ needs.changes.outputs.policy }}
           METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
@@ -487,9 +709,18 @@ jobs:
           TYPECHECK: ${{ needs.typecheck.result }}
           LINT: ${{ needs.lint.result }}
           UNIT: ${{ needs.unit.result }}
-          BUILD: ${{ needs.build.result }}
+          BUILD: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && needs.pr_build.result || needs.build.result }}
+          PR_FAST_GATE: ${{ needs.pr_fast_gate.result }}
         run: |
           set -euo pipefail
+          if [[ "$PR_IS_DRAFT" == "true" ]]; then
+            echo "::error title=FINAL_FULL_REQUIRED::Draft PR: Quality Required Check BLOCKED. FAST_DEVELOPMENT is non-authoritative; switch to Ready for Full." >&2
+            exit 1
+          fi
+          if [[ "$IS_FULL_PR" == "true" && "$PREFLIGHT" != "success" ]]; then
+            echo "QA Preflight가 미성공이므로 필수 집계를 실패 처리합니다: $PREFLIGHT" >&2
+            exit 1
+          fi
           if [[ "$CHANGES_RESULT" != "success" ]]; then
             echo "변경 경로 판정 job이 실패하거나 취소되어 quality 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
             exit 1
@@ -506,7 +737,11 @@ jobs:
             echo "정책·저장소 계약 검사가 실패하거나 취소되었습니다: $POLICY" >&2
             exit 1
           fi
-          if [[ "$NODE_REQUIRED" != "true" ]]; then
+          if [[ "$IS_FULL_PR" == "true" && "$PR_FAST_GATE" != "success" ]]; then
+             echo "PR Fast Gate 미성공: $PR_FAST_GATE" >&2
+             exit 1
+           fi
+           if [[ "$NODE_REQUIRED" != "true" ]]; then
             echo "관련 코드 변경이 없어 typecheck/lint/unit/build 검사를 생략했습니다."
             exit 0
           fi
@@ -519,25 +754,29 @@ jobs:
 
   # workers=1 안정성 계약은 유지하고 runner 6개로 test-level sharding
   e2e_shard:
-    name: Chromium E2E shard ${{ matrix.shard }}/6
-    if: needs.changes.outputs.e2e == 'true'
-    needs: changes
+    name: Chromium E2E shard ${{ matrix.shard }}/8
+    if: >-
+      always() && github.event_name != 'pull_request' &&
+      needs.changes.result == 'success' &&
+      needs.changes.outputs.e2e == 'true'
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     # Playwright OS dependency install can stall on runner mirrors.
     # #487: allow healthy tests to finish after bounded setup/retry.
-    # Six shards, workers=1 and fail-closed aggregate checks stay unchanged.
+    # Eight shards, workers=1 and fail-closed aggregate checks stay unchanged.
     timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6]
-    steps:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps: &e2e_shard_steps
       - name: checkout 계측 시작
         id: checkout-start
         shell: bash
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -546,20 +785,29 @@ jobs:
         uses: ./.github/actions/node-setup
         with:
           node-version: ${{ env.NODE_VERSION }}
+          use-local-node-headers: "true"
       - name: Playwright setup 계측
         uses: ./.github/actions/playwright-setup
       - name: E2E shard 실행
         env:
           CI_E2E_FULLY_PARALLEL: "true"
+          # #659: PR 전용 첫 실패 중단. Main/수동은 전체 케이스 유지.
+          PR_E2E_STOP_ON_FAILURE: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && 'true' || 'false' }}
           E2E_TIMING_OUTPUT: test-results/e2e-timing-shard-${{ matrix.shard }}.json
           E2E_TIMING_SHARD: ${{ matrix.shard }}
-          E2E_TIMING_SHARD_COUNT: "6"
+          E2E_TIMING_SHARD_COUNT: "8"
+          E2E_SOURCE_HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         shell: bash
         run: |
           set -euo pipefail
           export E2E_RUN_STARTED_MS="$(date +%s%3N)"
+          fail_fast_args=()
+          if [[ "$PR_E2E_STOP_ON_FAILURE" == "true" ]]; then
+            fail_fast_args=(--max-failures=1)
+            echo "PR 첫 E2E 실패 시 shard 내 미실행 테스트를 중단합니다."
+          fi
           set +e
-          selection="$(node scripts/e2e-shard-planner.mjs select --plan tests/config/e2e-shard-plan.json --shard "${{ matrix.shard }}" --total 6)"
+          selection="$(node scripts/e2e-shard-planner.mjs select --plan tests/config/e2e-shard-plan.json --shard "${{ matrix.shard }}" --total 8)"
           selection_status=$?
           set -e
           if [[ "$selection_status" -eq 0 ]]; then
@@ -569,10 +817,10 @@ jobs:
               exit 1
             fi
             echo "Historical timing shard plan 사용: ${#shard_files[@]} files"
-            npm run test:e2e -- "${shard_files[@]}"
+            npm run test:e2e -- "${fail_fast_args[@]}" "${shard_files[@]}"
           else
-            echo "Historical timing plan 없음/불일치 — Playwright native 6-way sharding fallback"
-            npm run test:e2e -- --shard=${{ matrix.shard }}/6
+            echo "Historical timing plan 없음/불일치 — Playwright native 8-way sharding fallback"
+            npm run test:e2e -- "${fail_fast_args[@]}" --shard=${{ matrix.shard }}/8
           fi
       - name: E2E timing artifact 업로드
         if: always()
@@ -582,6 +830,10 @@ jobs:
           path: test-results/e2e-timing-shard-${{ matrix.shard }}.json
           if-no-files-found: ignore
           retention-days: 30
+      - name: Issue #751 성능 계측 요약 (경고 전용)
+        if: always()
+        shell: bash
+        run: node scripts/issue-751-performance-summary.mjs "test-results/e2e-timing-shard-${{ matrix.shard }}.json" >> "$GITHUB_STEP_SUMMARY"
       - name: E2E setup 계측 artifact 업로드
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -600,23 +852,205 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+
+  # #772: Owner opt-in only. A missing flag or policy job ALWAYS means Full8.
+  # This introducing HIGH policy PR cannot approve itself (base has no policy).
+  low_e2e_plan:
+    name: Low E2E policy plan (trusted base)
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action != 'edited' &&
+      github.event.pull_request.draft != true &&
+      vars.LOW_TARGETED_POLICY_ENABLED == 'true' &&
+      needs.changes.result == 'success'
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      mode: ${{ steps.decide.outputs.mode }}
+    steps:
+      - name: Trust only immutable base policy; no PR code execution
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Classify exact event Head/Base/Test-Merge, fallback Full
+        id: decide
+        shell: bash
+        env:
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
+        run: |
+          set -euo pipefail
+          if [[ ! -f scripts/ci_low_policy.py ]]; then
+            echo "mode=FULL_REQUIRED" >> "$GITHUB_OUTPUT"
+            printf '{"schema":"mastergantt-low-e2e-policy-v1","mode":"FULL_REQUIRED","reason":"TRUSTED_BASE_BOOTSTRAP","verification":"NOT_RUN"}\n' > ci-low-plan.json
+          else
+            python3 scripts/ci_low_policy.py --stage plan
+          fi
+      - name: Retain source-bound policy selection (never a PASS receipt)
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-low-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci-low-plan.json
+          retention-days: 30
+          if-no-files-found: error
+
+  # A targeted success requires running EVERY base-picked direct, adjacent and
+  # negative spec and then a trusted-base verification of actual Playwright JSON.
+  low_e2e_targeted:
+    name: Low E2E targeted execution
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.action != 'edited' &&
+      github.event.pull_request.draft != true &&
+      needs.changes.result == 'success' &&
+      needs.pr_fast_gate.result == 'success' &&
+      needs.low_e2e_plan.result == 'success' &&
+      needs.low_e2e_plan.outputs.mode == 'TARGETED_POLICY_CANDIDATE'
+    needs: [changes, preflight, pr_fast_gate, low_e2e_plan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Check out exact synthetic test-merge to execute tests
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install pinned Node and npm dependencies
+        uses: ./.github/actions/node-setup
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          use-local-node-headers: "true"
+      - name: Install Playwright Chromium setup
+        uses: ./.github/actions/playwright-setup
+      - name: Download immutable base plan for this run and attempt
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: ci-low-plan-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Run exact planned Chromium specs with JSON reporter (no skip/retry)
+        shell: bash
+        env:
+          CI_E2E_FULLY_PARALLEL: "true"
+        run: |
+          set -euo pipefail
+          mapfile -t specs < <(python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          plan=json.loads(Path('ci-low-plan.json').read_text())
+          items=plan.get('selected_test_ids',[])
+          if (plan.get('mode')!='TARGETED_POLICY_CANDIDATE' or
+              not isinstance(items,list) or not 3<=len(items)<=12 or
+              len(set(items))!=len(items) or
+              not all(isinstance(x,str) and re.fullmatch(r'tests/e2e/[a-z0-9][a-z0-9-]+\.spec\.ts',x) for x in items)):
+              raise SystemExit('Unsafe or missing trusted test selection')
+          for item in items:
+              print(item)
+          PY
+          )
+          if (( ${#specs[@]} < 3 )); then
+            echo "::error::No trusted targeted tests, cannot pass" >&2
+            exit 1
+          fi
+          ./node_modules/.bin/playwright test --config tests/config/playwright.config.ts \
+            --reporter=json --workers=1 --retries=0 "${specs[@]}" > ci-low-playwright.json
+      - name: Restore exact base policy separately and attest actually executed cases
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          path: trusted-low-policy
+          persist-credentials: false
+      - name: Base-policy attestation; skip/none/retry/failure/source drift blocked
+        shell: bash
+        env:
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
+        run: |
+          set -euo pipefail
+          cd trusted-low-policy
+          python3 scripts/ci_low_policy.py --stage attest \
+            --plan ../ci-low-plan.json \
+            --reporter ../ci-low-playwright.json \
+            --receipt ../ci-low-receipt.json
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          receipt=json.loads(Path('../ci-low-receipt.json').read_text())
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as out:
+              out.write('## #772 E2E execution policy PASS — TARGETED_POLICY_VERIFIED\n')
+              out.write(f"- Actual cases: {receipt['execution']['actual_test_case_count']}; "+
+                        f"files: {receipt['execution']['actual_test_file_count']}; skipped: 0\n")
+              out.write('- This is NOT FULL_E2E_PASS; Owner/Trusted QA required.\n')
+          PY
+      - name: Upload exact-Run successful targeted execution receipt
+        if: success()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-low-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci-low-receipt.json
+          retention-days: 30
+          if-no-files-found: error
+
+  # PR E2E: 하나의 Shard 실패 시 나머지 Shard 취소 요청
+  pr_e2e_shard:
+    name: Chromium E2E shard ${{ matrix.shard }}/8 · PR
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.action != 'edited' &&
+      github.event.pull_request.draft != true &&
+      needs.changes.result == 'success' &&
+      needs.changes.outputs.e2e == 'true' &&
+      needs.pr_fast_gate.result == 'success' &&
+       needs.low_e2e_plan.outputs.mode != 'TARGETED_POLICY_CANDIDATE'
+    needs: [changes, preflight, pr_fast_gate, low_e2e_plan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: true
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps: *e2e_shard_steps
   e2e:
     name: Chromium end-to-end tests
     if: always()
-    needs: [changes, metadata_evidence, e2e_shard]
+    needs: [changes, preflight, metadata_evidence, e2e_shard, pr_e2e_shard, pr_fast_gate, low_e2e_plan, low_e2e_targeted]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: E2E shard 결과 집계
         shell: bash
         env:
+          PR_IS_DRAFT: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft }}
           CHANGES_RESULT: ${{ needs.changes.result }}
+          IS_FULL_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft != true && github.event.action != 'edited' }}
+          PREFLIGHT: ${{ needs.preflight.result }}
           REQUIRED: ${{ needs.changes.outputs.e2e }}
           METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
           METADATA_EVIDENCE: ${{ needs.metadata_evidence.result }}
-          RESULT: ${{ needs.e2e_shard.result }}
+          RESULT: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && needs.pr_e2e_shard.result || needs.e2e_shard.result }}
+          PR_FAST_GATE: ${{ needs.pr_fast_gate.result }}
+          LOW_MODE: ${{ needs.low_e2e_plan.outputs.mode || '' }}
+          LOW_PLAN: ${{ needs.low_e2e_plan.result }}
+          LOW_TARGETED: ${{ needs.low_e2e_targeted.result }}
         run: |
           set -euo pipefail
+          if [[ "$PR_IS_DRAFT" == "true" ]]; then
+            echo "::error title=FINAL_FULL_REQUIRED::Draft PR: Chromium E2E Required Check BLOCKED. FAST_DEVELOPMENT is non-authoritative; switch to Ready for Full." >&2
+            exit 1
+          fi
+          if [[ "$IS_FULL_PR" == "true" && "$PREFLIGHT" != "success" ]]; then
+            echo "QA Preflight가 미성공이므로 필수 집계를 실패 처리합니다: $PREFLIGHT" >&2
+            exit 1
+          fi
           if [[ "$CHANGES_RESULT" != "success" ]]; then
             echo "변경 경로 판정 job이 실패하거나 취소되어 E2E 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
             exit 1
@@ -629,7 +1063,19 @@ jobs:
             echo "PR metadata trace와 기존 전체 E2E 증거를 함께 확인했습니다."
             exit 0
           fi
-          if [[ "$REQUIRED" != "true" ]]; then
+          if [[ "$IS_FULL_PR" == "true" && "$PR_FAST_GATE" != "success" ]]; then
+             echo "PR Fast Gate 미성공이므로 E2E 차단: $PR_FAST_GATE" >&2
+             exit 1
+           fi
+           if [[ "$IS_FULL_PR" == "true" && "$LOW_MODE" == "TARGETED_POLICY_CANDIDATE" ]]; then
+             if [[ "$LOW_PLAN" != "success" || "$LOW_TARGETED" != "success" || "$RESULT" != "skipped" ]]; then
+               echo "::error title=TARGETED_E2E_BLOCKED::Policy plan/actual selected cases unverified: $LOW_PLAN/$LOW_TARGETED/$RESULT" >&2
+               exit 1
+             fi
+             echo "E2E execution policy PASS: TARGETED_POLICY_VERIFIED (not FULL_E2E_PASS)."
+             exit 0
+           fi
+           if [[ "$REQUIRED" != "true" ]]; then
             echo "E2E 관련 변경이 없어 Chromium E2E를 생략했습니다."
             exit 0
           fi
@@ -640,19 +1086,25 @@ jobs:
 
   # Docker smoke도 quality를 기다리지 않고 변경 판정 직후 병렬 시작
   docker_smoke:
-    name: Docker smoke 구현
-    if: needs.changes.outputs.docker == 'true'
-    needs: changes
+    # #659 P1: PR에서는 legacy Job이 skipped여도 원장에 기록된다.
+    # Main/manual 복구기의 정확한 표시 이름 및 PR Trusted QA의 Docker 원본 이름을 모두 보존한다.
+    name: ${{ github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현' }}
+    if: >-
+      always() && github.event_name != 'pull_request' &&
+      needs.changes.result == 'success' &&
+      needs.changes.outputs.docker == 'true'
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     # Bounded Playwright OS dependency retries plus full transport/Compose smoke.
     timeout-minutes: 40
-    steps:
+    steps: &docker_smoke_steps
       - name: checkout 계측 시작
         id: checkout-start
         shell: bash
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
           fetch-depth: 0
       - name: checkout 시간 기록
@@ -678,7 +1130,7 @@ jobs:
           file: deploy/docker/Dockerfile
           load: true
           tags: mastergantt:ci
-          build-args: VERSION=ci-${{ github.sha }}
+          build-args: VERSION=ci-${{ needs.changes.outputs.checkout_sha }}
           platforms: linux/amd64
           cache-from: type=gha,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
           cache-to: ${{ github.event_name == 'push' && format('type=gha,mode=max,scope=mastergantt-docker-{0}-{1}', runner.os, runner.arch) || '' }}
@@ -826,23 +1278,49 @@ jobs:
         if: always()
         run: docker rm --force --volumes mastergantt-ci || true
 
+  # PR Docker: Fast Gate 성공 이후에만 시작
+  pr_docker_smoke:
+    name: Docker smoke 구현
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.action != 'edited' &&
+      github.event.pull_request.draft != true &&
+      needs.changes.result == 'success' &&
+      needs.changes.outputs.docker == 'true' &&
+      needs.pr_fast_gate.result == 'success'
+    needs: [changes, preflight, pr_fast_gate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps: *docker_smoke_steps
   docker:
     name: Docker build and runtime smoke test
     if: always()
-    needs: [changes, metadata_evidence, docker_smoke]
+    needs: [changes, preflight, metadata_evidence, docker_smoke, pr_docker_smoke, pr_fast_gate]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Docker smoke 결과 집계
         shell: bash
         env:
+          PR_IS_DRAFT: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft }}
           CHANGES_RESULT: ${{ needs.changes.result }}
+          IS_FULL_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft != true && github.event.action != 'edited' }}
+          PREFLIGHT: ${{ needs.preflight.result }}
           REQUIRED: ${{ needs.changes.outputs.docker }}
           METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
           METADATA_EVIDENCE: ${{ needs.metadata_evidence.result }}
-          RESULT: ${{ needs.docker_smoke.result }}
+          RESULT: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && needs.pr_docker_smoke.result || needs.docker_smoke.result }}
+          PR_FAST_GATE: ${{ needs.pr_fast_gate.result }}
         run: |
           set -euo pipefail
+          if [[ "$PR_IS_DRAFT" == "true" ]]; then
+            echo "::error title=FINAL_FULL_REQUIRED::Draft PR: Docker smoke Required Check BLOCKED. FAST_DEVELOPMENT is non-authoritative; switch to Ready for Full." >&2
+            exit 1
+          fi
+          if [[ "$IS_FULL_PR" == "true" && "$PREFLIGHT" != "success" ]]; then
+            echo "QA Preflight가 미성공이므로 필수 집계를 실패 처리합니다: $PREFLIGHT" >&2
+            exit 1
+          fi
           if [[ "$CHANGES_RESULT" != "success" ]]; then
             echo "변경 경로 판정 job이 실패하거나 취소되어 Docker smoke 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
             exit 1
@@ -855,7 +1333,11 @@ jobs:
             echo "PR metadata trace와 기존 전체 Docker 증거를 함께 확인했습니다."
             exit 0
           fi
-          if [[ "$REQUIRED" != "true" ]]; then
+          if [[ "$IS_FULL_PR" == "true" && "$PR_FAST_GATE" != "success" ]]; then
+             echo "PR Fast Gate 미성공이므로 Docker 차단: $PR_FAST_GATE" >&2
+             exit 1
+           fi
+           if [[ "$REQUIRED" != "true" ]]; then
             echo "Docker/runtime 관련 변경이 없어 smoke test를 생략했습니다."
             exit 0
           fi
@@ -864,11 +1346,83 @@ jobs:
             exit 1
           }
 
+  # #770: nonblocking OBSERVE-ONLY. Does not feed Required3, QA, GHCR, or
+  # merge decisions. Base trusted code only; introducing PR reports NOT_TESTED.
+  impact_shadow:
+    name: 변경 영향 Shadow 계획 · advisory only (#770)
+    if: >-
+      always() &&
+      ((github.event_name == 'pull_request' && github.event.pull_request.draft != true && github.event.action != 'edited') ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+    needs: [changes, quality, e2e, docker]
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    continue-on-error: true
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    steps:
+      - name: PR Head가 아닌 인증된 base 정책 checkout (main은 정확 main)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 신규 Shadow 정책 bootstrap — 미설치 시 NOT TESTED
+        if: hashFiles('scripts/ci_impact_plan.py') == ''
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = {
+              "schema": "mastergantt-impact-plan-v1",
+              "evidence_status": "NOT_TESTED",
+              "mode_recommendation": "FULL_REQUIRED",
+              "risk": "UNKNOWN",
+              "reason": "TRUSTED_BASE_POLICY_NOT_INSTALLED",
+              "source": {"repository": os.environ.get("GITHUB_REPOSITORY"),
+                         "run_id": os.environ.get("GITHUB_RUN_ID"),
+                         "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+                         "head_sha": os.environ.get("PR_HEAD_SHA"),
+                         "base_sha": os.environ.get("PR_BASE_SHA"),
+                         "test_merge_sha": os.environ.get("GITHUB_SHA")},
+              "authority": "ADVISORY_NOT_REQUIRED_NOT_QA_NOT_RELEASE",
+          }
+          Path("ci-impact-shadow.json").write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write("## Issue #770 — Shadow bootstrap: NOT TESTED\n")
+              stream.write("인증된 base에 새 판정기가 없어 실행하지 않았습니다. 기존 전체 CI와 QA 결과는 별개입니다.\n")
+          PY
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+      - name: 인증된 base/정확 main 정책으로 영향 계획·실제 CI 관측
+        if: hashFiles('scripts/ci_impact_plan.py') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEED_QUALITY: ${{ needs.quality.result }}
+          NEED_E2E: ${{ needs.e2e.result }}
+          NEED_DOCKER: ${{ needs.docker.result }}
+          E2E_REQUIRED: ${{ needs.changes.outputs.e2e }}
+          SHADOW_MODE: ${{ github.event_name == 'pull_request' && 'pr' || 'main' }}
+        run: python3 scripts/ci_impact_plan.py --mode "$SHADOW_MODE" --output ci-impact-shadow.json
+      - name: Shadow 계획 및 미검증 출처 정제 Artifact
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-impact-shadow-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci-impact-shadow.json
+          retention-days: 30
+          if-no-files-found: warn
+
   # First introduction: main lacks a trusted QA validator. Record NOT TESTED.
   # Never report success of an unexecuted QA check, and never weaken existing required CI.
   qa_bootstrap:
     name: QA Final 신뢰 경계 확인
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -971,11 +1525,12 @@ jobs:
     name: QA Final — Automated
     if: >-
       always() &&
-      github.event_name == 'pull_request' &&
+      github.event_name == 'pull_request' && github.event.pull_request.draft != true &&
       needs.qa_bootstrap.result == 'success' &&
       needs.qa_bootstrap.outputs.trusted_validator == 'true' &&
-      needs.qa_bootstrap.outputs.qa_mode == 'AUTO'
-    needs: [qa_bootstrap, changes, metadata_evidence, quality, e2e, docker]
+      needs.qa_bootstrap.outputs.qa_mode == 'AUTO' &&
+      !(github.event.action == 'edited' && github.event.pull_request.merged)
+    needs: [qa_bootstrap, changes, metadata_evidence, quality, e2e, docker, low_e2e_plan]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -1004,6 +1559,8 @@ jobs:
           METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
           E2E_REQUIRED: ${{ needs.changes.outputs.e2e }}
           DOCKER_REQUIRED: ${{ needs.changes.outputs.docker }}
+          LOW_POLICY_MODE: ${{ needs.low_e2e_plan.outputs.mode }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
         run: python3 scripts/qa_final_automated.py
       - name: QA 증거 보존
         if: always()
@@ -1021,8 +1578,10 @@ jobs:
     # explicit direct-result checks keep this registry mutation fail-closed.
     if: >-
       always() &&
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/main' &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+       (github.event_name == 'workflow_dispatch' &&
+        github.ref == 'refs/heads/main' &&
+        needs.changes.outputs.recovery_authorized == 'true')) &&
       needs.changes.result == 'success' &&
       needs.quality.result == 'success' &&
       needs.e2e.result == 'success' &&
@@ -1035,7 +1594,12 @@ jobs:
     needs: [changes, quality, e2e, docker]
     permissions:
       contents: read
+      actions: read
+      issues: read
+      pull-requests: read
       packages: write
+    env:
+      SOURCE_SHA: ${{ needs.changes.outputs.checkout_sha }}
     steps:
       - name: checkout 계측 시작
         id: checkout-start
@@ -1043,6 +1607,8 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.sha }}
+          fetch-depth: ${{ needs.changes.outputs.recovery_authorized == 'true' && '0' || '1' }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -1055,9 +1621,27 @@ jobs:
           image_name="ghcr.io/${GITHUB_REPOSITORY,,}"
           {
             echo "name=$image_name"
-            echo "tag=ci-$GITHUB_SHA"
-            echo "reference=$image_name:ci-$GITHUB_SHA"
+            echo "tag=ci-$SOURCE_SHA"
+            echo "reference=$image_name:ci-$SOURCE_SHA"
           } >> "$GITHUB_OUTPUT"
+      - name: 정확 SHA 복구·Owner 승인·Private GHCR 재검증
+        if: needs.changes.outputs.recovery_authorized == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/main_ci_recovery.py prepublish
+      - name: 승인된 immutable merge SHA checkout
+        if: needs.changes.outputs.recovery_authorized == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 배포 원본 SHA 강제 검산
+        run: test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+      - name: 복구할 과거 Main SHA와 원본 버전 확인
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(node -p 'require("./package.json").version')" = '${{ needs.changes.outputs.current_version }}'
       - name: Main image Buildx setup 계측 시작
         id: main-buildx-start
         shell: bash
@@ -1071,6 +1655,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # Owner/repository checks run on trusted main before historical checkout.
       - name: 기존 임시 commit 이미지 덮어쓰기 거부
         shell: bash
         run: |
@@ -1093,7 +1678,7 @@ jobs:
           tags: ${{ steps.image.outputs.reference }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.revision=${{ needs.changes.outputs.checkout_sha }}
             org.opencontainers.image.version=${{ needs.changes.outputs.current_version }}
           build-args: VERSION=${{ needs.changes.outputs.current_version }}
           platforms: linux/amd64
@@ -1182,18 +1767,50 @@ jobs:
           path: ${{ runner.temp }}/ci-setup-metrics-${{ github.job }}.jsonl
           if-no-files-found: error
           retention-days: 30
+      # #773: advisory receipt. A receipt is not a CI check, approval or a
+      # trusted signature. The Release verifier rechecks the exact GHA source,
+      # attempt, required implementation jobs, E2E artifacts and registry digest.
+      - name: Main reuse Playwright inventory 및 manifest (advisory)
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        env:
+          CANDIDATE_DIGEST: ${{ steps.push.outputs.digest }}
+          EXPECTED_VERSION: ${{ needs.changes.outputs.current_version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          CI_E2E_FULLY_PARALLEL=true npm run --silent test:e2e -- --list --reporter=json > "$RUNNER_TEMP/release-reuse-playwright-list.json"
+          python3 scripts/release-reuse-main-manifest.py \
+            --source-sha "$SOURCE_SHA" --version "$EXPECTED_VERSION" \
+            --digest "$CANDIDATE_DIGEST" \
+            --playwright-list "$RUNNER_TEMP/release-reuse-playwright-list.json" \
+            --out "$RUNNER_TEMP/release-reuse-main-manifest.json"
+      - name: Main reuse candidate receipt 업로드
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: main-reuse-manifest-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/release-reuse-main-manifest.json
+          if-no-files-found: ignore
+          retention-days: 30
       - name: GHCR main commit image lifecycle handoff
         if: always() && steps.push.outcome == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}
+          RECOVERY: ${{ needs.changes.outputs.recovery_authorized }}
         shell: bash
         run: |
           set -euo pipefail
           if [[ "${{ job.status }}" != "success" ]]; then
-            node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${GITHUB_SHA}"
-            echo "- GHCR cleanup: failed validation candidate ci-${GITHUB_SHA} deleted." >> "$GITHUB_STEP_SUMMARY"
-            echo "Main artifact 검증이 성공하지 않아 ci-${GITHUB_SHA}를 lifecycle candidate로 보존하지 않습니다." >&2
+            if [[ "$RECOVERY" == "true" ]]; then
+              echo "BLOCKED: recovery candidate retained for explicit audit; no automatic GHCR deletion" >&2
+              exit 1
+            fi
+            node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${SOURCE_SHA}"
+            echo "- GHCR cleanup: failed validation candidate ci-${SOURCE_SHA} deleted." >> "$GITHUB_STEP_SUMMARY"
+            echo "Main artifact 검증이 성공하지 않아 ci-${SOURCE_SHA}를 lifecycle candidate로 보존하지 않습니다." >&2
             exit 1
           fi
-          echo "- GHCR retention: verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup." >> "$GITHUB_STEP_SUMMARY"
+          echo "- GHCR retention: verified ci-${SOURCE_SHA} retained until Generic Release Finalizer resolves release or cleanup." >> "$GITHUB_STEP_SUMMARY"

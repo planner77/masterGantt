@@ -1,0 +1,144 @@
+{
+  "queries": [
+    {
+      "started": "2026-10-20T20:10:30.909Z",
+      "status": 200,
+      "query": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "resource",
+          "levels": []
+        },
+        "filters": {},
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "failure": null
+    },
+    {
+      "started": "2026-10-20T20:10:32.887Z",
+      "status": -1,
+      "query": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "resource",
+          "levels": []
+        },
+        "filters": {
+          "taskSearch": "통합 시운전"
+        },
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "started": "2026-10-20T20:10:32.947Z",
+      "status": -1,
+      "query": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "resource",
+          "levels": []
+        },
+        "filters": {
+          "taskSearch": "통합 시운전",
+          "from": "2026-10-14"
+        },
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "started": "2026-10-20T20:10:33.032Z",
+      "status": -1,
+      "query": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "resource",
+          "levels": []
+        },
+        "filters": {
+          "taskSearch": "통합 시운전",
+          "from": "2026-10-14",
+          "to": "2026-10-14"
+        },
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "started": "2026-10-20T20:10:33.084Z",
+      "status": 200,
+      "query": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "resource",
+          "levels": []
+        },
+        "filters": {
+          "taskSearch": "통합 시운전",
+          "from": "2026-10-14",
+          "to": "2026-10-14",
+          "resourceIds": [
+            "<fixture-resource-id>"
+          ]
+        },
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "started": "2026-10-20T20:10:33.161Z",
+      "status": 200,
+      "query": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "resource",
+          "levels": []
+        },
+        "filters": {
+          "taskSearch": "통합 시운전",
+          "from": "2026-10-14",
+          "to": "2026-10-14",
+          "resourceIds": [
+            "<fixture-resource-id>"
+          ],
+          "granularity": "week"
+        },
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "failure": null
+    }
+  ],
+  "navigationCalls": [
+    {
+      "time": 395198.165,
+      "method": "goto"
+    },
+    {
+      "time": 409532.76,
+      "method": "reload"
+    },
+    {
+      "time": 412258.473,
+      "method": "reload"
+    }
+  ]
+}

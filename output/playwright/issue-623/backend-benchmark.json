@@ -1,0 +1,12 @@
+{
+  "observation": "Backend final focused run at 2026-10-15 06:35:05 KST; single synthetic local observation, not production guarantee. Later executions may vary.",
+  "tasks": 133,
+  "assignments": 489,
+  "targets": 2,
+  "resourceCount": 4,
+  "queryCount": 48,
+  "elapsedMs": 87.15852400000017,
+  "responseBytes": 345599,
+  "exportMs": 241.1588670000001,
+  "workbookBytes": 622705
+}

@@ -1,10 +1,10 @@
 "use client";
+
+import { IdentifierDetails } from "@/components/identifier-details";
 import { useMemo, useState } from "react";
 import type { ProjectTaskDto, ProjectLinkDto, ProjectCalendarDto } from "../../contracts/projects";
 import type { MilestoneMembershipCommand } from "../../contracts/milestones";
-import { matchesMembershipSearch, membershipDescription, membershipImpact, membershipProjection } from "./milestone-membership-model";
-import { recalculateHierarchy } from "../../domain/scheduling/hierarchy";
-import { workingCalendarFromProjectCalendar } from "./project-task-adapter";
+import { matchesMembershipSearch, membershipDescription, membershipImpact, membershipProjection, membershipWbsLabels } from "./milestone-membership-model";
 import styles from "./project-task-editor.module.css";
 
 export function MilestoneMembershipPanel({ task, tasks, links, calendar, changes, disabled, pending, onChange, onOpen, onLocate }: Readonly<{
@@ -13,7 +13,7 @@ export function MilestoneMembershipPanel({ task, tasks, links, calendar, changes
   onChange: (taskId: string, target: string | null) => void; onOpen: (taskId: string) => void; onLocate: (taskId: string) => void;
 }>) {
   const [query, setQuery] = useState(""), [type, setType] = useState("all"), [scope, setScope] = useState("current");
-  const wbs = useMemo(() => new Map(recalculateHierarchy(tasks, workingCalendarFromProjectCalendar(calendar)).map((row) => [row.taskId, row.wbs])), [tasks, calendar]);
+  const wbs = useMemo(() => membershipWbsLabels(tasks, calendar), [tasks, calendar]);
   const canonical = membershipProjection(tasks, links);
   let preview = canonical, issue: string | null = null, impact = 0;
   try { preview = membershipProjection(tasks, links, changes); impact = membershipImpact(tasks, links, changes); }
@@ -45,7 +45,7 @@ export function MilestoneMembershipPanel({ task, tasks, links, calendar, changes
           const oldLock = oldTarget?.status === "completed";
           const inherited = !!before?.inheritedFromTaskId;
           return <tr key={row.taskId} data-changed={!!change}>
-            <td><button type="button" className={styles.membershipTaskLink} disabled={pending} onClick={() => onOpen(row.taskId)}>{row.name}</button><span>WBS {wbs.get(row.taskId)} · 계층: {row.parentExternalId ? tasks.find((entry) => entry.externalId === row.parentExternalId)?.name ?? row.parentExternalId : "프로젝트 최상위"}</span><span>외부 ID: {row.externalId}</span><span>작업 ID: {row.taskId}</span></td>
+            <td><button type="button" className={styles.membershipTaskLink} disabled={pending} onClick={() => onOpen(row.taskId)}>{row.name}</button><span>WBS {wbs.get(row.taskId)} · 계층: {row.parentExternalId ? tasks.find((entry) => entry.externalId === row.parentExternalId)?.name ?? "상위 작업 정보 없음" : "프로젝트 최상위"}</span><IdentifierDetails label={`${row.name} 식별 정보`} identifiers={[{label: "외부 ID", value: row.externalId}, {label: "작업 ID", value: row.taskId}]} /></td>
             <td>{row.type === "summary" ? "요약 작업" : "일반 작업"}</td>
             <td>{oldTarget?.name ?? "미지정"}{change ? <strong> → {tasks.find((entry) => entry.taskId === after?.effectiveMilestoneTaskId)?.name ?? "미지정"}</strong> : null}</td>
             <td>{membershipDescription(row, tasks, before)}{row.type === "summary" ? <span>하위 기본값 · 기존 직접 지정 유지</span> : inherited ? <span>상속 차단은 지원하지 않습니다.</span> : null}{before?.inheritedFromTaskId ? <button type="button" className="secondary-button" disabled={pending} onClick={() => onOpen(before.inheritedFromTaskId!)}>상속 출처 열기</button> : null}</td>

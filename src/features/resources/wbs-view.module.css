@@ -1,0 +1,25 @@
+.root { min-width: 0; max-width: 100%; display: grid; gap: 12px; margin-block: 12px; color: var(--text-default); }
+.root button,.root input,.root select { min-height: 44px; font: inherit; }
+.root button { min-width: 44px; margin: 0; padding: 6px 10px; cursor: pointer; border: 1px solid var(--border-control); border-radius: var(--radius); background: var(--surface-panel); color: var(--text-default); }
+.root input,.root select { padding: 6px 8px; border: 1px solid var(--border-control); border-radius: var(--radius); background: var(--surface-panel); color: var(--text-default); }
+.root button:disabled { cursor: default; opacity: var(--state-disabled-opacity); }
+.root button:not(:disabled):hover { background: var(--surface-subtle); }
+.root button[aria-pressed="true"] { background: var(--action-selected-subtle); color: var(--action-selected-foreground); border-color: var(--action-selected); }
+.root button:focus-visible,.root input:focus-visible,.root select:focus-visible,.root summary:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+.root summary { min-height: 44px; align-content: center; cursor: pointer; }
+.controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.controls label { display: grid; gap: 4px; }
+.controls input,.controls select { max-width: 100%; min-width: 0; }
+.composer { border: 1px solid var(--border-default); padding: 8px 12px; border-radius: var(--radius); }
+.composer summary { cursor: pointer; min-height: 44px; align-content: center; }
+.composer ol { padding-left: 24px; display: grid; gap: 8px; }
+.scroll { min-width: 0; max-width: 100%; overflow: auto; max-height: 620px; border: 1px solid var(--border-default); }
+.table { width: 100%; min-width: 832px; table-layout: fixed; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.table th,.table td { padding: 8px; border-bottom: 1px solid var(--border-default); vertical-align: middle; overflow-wrap: anywhere; text-align: left; }
+.table thead th { position: sticky; top: 0; background: var(--surface-panel); z-index: 1; }
+.table col { width: 88px; }.table .identityCol { width: calc(100% - 552px); }.table .effortCol { width: 144px; }.table .actionsCol { width: 144px; }
+.identity { display: flex; gap: 8px; align-items: center; min-width: 0; }.identity button { flex: 0 0 44px; }.identity span { min-width: 0; overflow-wrap: anywhere; }.identity small { display: block; color: var(--text-muted); font-weight: normal; }
+.summary { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 0; }.summary div { display: grid; gap: 4px; }.summary dd { margin: 0; font-variant-numeric: tabular-nums; }
+.detail { border-top: 1px solid var(--border-default); padding-block: 12px; display: grid; gap: 8px; min-width: 0; }.detail h3 { margin: 0; }.detail ul { padding-left: 20px; }.detail li { margin-block: 8px; overflow-wrap: anywhere; }
+.subtle { color: var(--text-muted); margin: 0; font-size: 0.875rem; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .table { min-width: 772px; }.table .identityCol { width: calc(100% - 552px); }.controls label { max-width: 100%; } }

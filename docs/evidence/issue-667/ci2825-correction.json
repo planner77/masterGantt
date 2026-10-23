@@ -1,0 +1,264 @@
+{
+  "schema": "mastergantt-issue667-ci2825-correction-v1",
+  "parentHead": "6bec3a1098e603b9db9968d2206af95df12ac126",
+  "integration": {
+    "main": "fd219130491c53d054754eac41a58e4a6a3da0c6",
+    "localMerge": "8a88b1fbd62a91d6884b9a949ebce89a4ad59e4e",
+    "unresolvedReviewThreadsBefore": 0,
+    "conflicts": 0
+  },
+  "remoteOriginal": {
+    "identity": {
+      "runId": 38841181071,
+      "runNumber": 2825,
+      "attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/38841181071",
+      "event": "pull_request",
+      "workflowPath": ".github/workflows/ci.yml",
+      "head": "6bec3a1098e603b9db9968d2206af95df12ac126",
+      "eventBase": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+      "testMerge": "464aba6c364bf52eb87ec848537304f910696fd9",
+      "testMergeParents": [
+        "fd219130491c53d054754eac41a58e4a6a3da0c6",
+        "6bec3a1098e603b9db9968d2206af95df12ac126"
+      ]
+    },
+    "sourceArtifact": {
+      "id": 12020974214,
+      "name": "ci-pr-source-38841181071-1",
+      "trusted": false,
+      "crossCheckedAgainst": [
+        "원본 Run API",
+        "실제 test-merge Git 부모",
+        "QA job 환경"
+      ],
+      "eventBaseDiffersFromMergeFirstParent": true
+    },
+    "status": "completed",
+    "conclusion": "failure",
+    "required": {
+      "quality": {
+        "status": "PASS",
+        "job": 116782205772
+      },
+      "e2e": {
+        "status": "FAIL",
+        "job": 116783004794
+      },
+      "docker": {
+        "status": "PASS",
+        "job": 116782574511
+      }
+    },
+    "automatedQa": {
+      "status": "FAIL",
+      "job": 116783036050,
+      "reason": "필수 E2E 미성공"
+    },
+    "failure": {
+      "job": 116781889683,
+      "shard": 3,
+      "step": 7,
+      "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+      "testLine": 117,
+      "assertionLine": 191,
+      "title": "#463 public viewport and native scroll survive peer/layout, stale restore is consumed",
+      "timeoutMs": 5000,
+      "expected": {
+        "public": {
+          "left": 180,
+          "top": 128
+        },
+        "dom": {
+          "left": 180,
+          "top": 128
+        }
+      },
+      "received": {
+        "public": {
+          "left": 120,
+          "top": 128
+        },
+        "dom": {
+          "left": 120,
+          "top": 128
+        }
+      },
+      "passed": 21,
+      "failed": 1,
+      "skipped": 1,
+      "notRun": 106
+    },
+    "otherShards": {
+      "conclusion": "cancelled",
+      "count": 5,
+      "actualAdditionalAssertionFailures": 0,
+      "validationStatus": "NOT TESTED (취소로 미완료)"
+    },
+    "nonTestError": "Testing stopped early after 1 maximum allowed failures.",
+    "traceSummary": {
+      "coordinatorWritesBeforeAndAfter": 6,
+      "intentEpochBeforeAndAfter": 6,
+      "contextEpochBeforeAndAfter": 8,
+      "projectionEpochBeforeAndAfter": 5,
+      "latestCoordinatorOutcome": "FILTER_RETURN SETTLED",
+      "rangeExtensionObserved": false,
+      "horizontalCapacity": 2631,
+      "lastPublicScroll": {
+        "left": 120,
+        "top": 128
+      },
+      "publicLeft180Observed": false
+    }
+  },
+  "analysis": {
+    "classification": "fixture input ordering",
+    "confirmed": "설치 SVAR의 세로 Core commit은 native Chart X를 현재 Core X로 동기화한다. fixture의 독립 native Y가 완료된 뒤 다음 native X를 주입해야 한다.",
+    "remoteCausalLimit": "원본 trace에는 새 Coordinator 쓰기/용량 부족이 없다. 정확한 원격 스케줄은 직접 계측하지 않았으며 로컬 통제 진단에 근거한 인과 추론이다.",
+    "productChanges": 0,
+    "workflowChanges": 0,
+    "dependencyChanges": 0,
+    "unitStatus": "N/A (fixture-only; 제품 알고리즘 변경0)",
+    "timeoutsRetriesSkipsAssertionsWeakened": false,
+    "exclusions": [
+      "실제 동시 양축 wheel의 모든 조합 NOT TESTED",
+      "전체 E2E/SC 인수는 새 exact-Head PR CI 및 후속 소유자 범위",
+      "Core/native owner Y 일치는 React Chart layout commit 전체 완료 영수증이 아님; 새 원격 CI 완료 전 해소를 확정하지 않음"
+    ]
+  },
+  "source": {
+    "parentHead": "6bec3a1098e603b9db9968d2206af95df12ac126",
+    "integrationHead": "8a88b1fbd62a91d6884b9a949ebce89a4ad59e4e",
+    "files": {
+      "tests/e2e/milestone-dashboard-state.spec.ts": "1b853b2dd9be5d181bdd5ff7528d579a022524137798dde7293e23631e776cd0"
+    },
+    "fingerprint": "7293bd3bb337afe91cee22d94ebece3a91afa950f62e66cf91c6e0cf9b47bc90",
+    "fingerprintMethod": "path→SHA256를 key 오름차순·공백 없는 UTF-8 JSON으로 직렬화한 SHA256",
+    "productChanges": 0,
+    "workflowChanges": 0,
+    "dependencyChanges": 0
+  },
+  "local": {
+    "originalExact": {
+      "status": "PASS",
+      "cases": 1,
+      "testSeconds": 3.8,
+      "reportSeconds": 7.4,
+      "meaning": "원격 실패 비재현; 원격 FAIL 대체 아님",
+      "testDurationMs": 3820,
+      "reportDurationMs": 7394.058,
+      "reportStartTime": "2026-10-16T02:51:00.312Z",
+      "htmlProvenance": "최초 실행 PLAYWRIGHT_HTML_OUTPUT_DIR로 직접 생성; 원본142/189/190/191줄 구조 확인. report에 전체sourcehash 첨부는 없음"
+    },
+    "overlapDiagnostic": {
+      "status": "FAIL",
+      "cases": 1,
+      "testSeconds": 8.3,
+      "timeoutMs": 5000,
+      "expected": {
+        "left": 180,
+        "top": 128
+      },
+      "received": {
+        "left": 120,
+        "top": 128
+      },
+      "change": "nativeY128와X180을 같은 tick에 설정하고 세로 scroll 이벤트를 먼저 전달",
+      "sourceScope": "원본 제품 코드/단언 불변; 진단 fixture 변형",
+      "reportDurationMs": 11813.473
+    },
+    "causalControl": {
+      "status": "PASS",
+      "cases": 1,
+      "testDurationMs": 3612,
+      "change": "nativeY128+세로 이벤트 전달을 강제하되Core/native120,128 완료 뒤 최초X180을1회 입력",
+      "limitation": "동시양축DOM 주입 복구/재시도 아님; 원격 스케줄 직접 계측 아님",
+      "reportDurationMs": 6786.231
+    },
+    "intermediate": {
+      "status": "PASS",
+      "files": 5,
+      "cases": 35,
+      "meaning": "후속128 barrier만 있는 중간 source. 최종42에 합산하지 않음",
+      "reportDurationMs": 234781.344
+    },
+    "unit": {
+      "status": "PASS",
+      "files": 4,
+      "cases": 206,
+      "durationMs": 366,
+      "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/viewport-coordinator.test.ts tests/features/gantt/svar-viewport-port.test.ts tests/features/gantt/copy-viewport-continuity.test.ts tests/features/gantt/axis-transaction.test.ts",
+      "meaning": "제품 알고리즘 변경0; 기존 불변식 확인용",
+      "evidence": {
+        "kind": "implementation agent tool transcript",
+        "chunkId": "f523c7",
+        "exitCode": 0,
+        "independentlyRerun": false
+      }
+    },
+    "finalChromium": {
+      "status": "PASS",
+      "sourceSha256": "1b853b2dd9be5d181bdd5ff7528d579a022524137798dde7293e23631e776cd0",
+      "environment": {
+        "CI": "true",
+        "TZ": "UTC",
+        "CI_E2E_FULLY_PARALLEL": "true",
+        "workers": 1,
+        "retries": 0,
+        "maxFailures": 0
+      },
+      "files": 6,
+      "cases": 42,
+      "passed": 42,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "globalErrors": 0,
+      "reportDurationMs": 414509.547,
+      "exitCode": 0,
+      "command": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2825-final-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-dashboard-state.spec.ts tests/e2e/viewport-coordinator.spec.ts tests/e2e/project-gantt-scale.spec.ts tests/e2e/project-multi-task-copy-paste.spec.ts tests/e2e/milestone-timeline-core.spec.ts tests/e2e/resource-kpi-integration-ui.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2825-final-results",
+      "actualHttpSqliteCases": 17,
+      "mockApiActualSvarDomCases": 25,
+      "report": "output/playwright/issue-667/ci2825-final-html",
+      "timing": "output/playwright/issue-667/ci2825-final-timing.json"
+    },
+    "artifacts": "원본 report/trace·변형/대조·중간/최종 timing/log는 output/playwright/issue-667/ 및 /tmp/issue667-ci2825/에 Git 밖 보존",
+    "static": {
+      "status": "PASS",
+      "markdown": {
+        "status": "PASS",
+        "files": 229
+      },
+      "version": {
+        "status": "PASS",
+        "version": "0.114.1"
+      },
+      "diffCheck": "PASS",
+      "typecheck": "PASS",
+      "lint": "PASS",
+      "lintErrors": 0,
+      "lintWarnings": 0
+    },
+    "generatedFiles": "next-env/tsconfig·기존463캡처/geometry 및530산출물은 실행 결과를 별도 보존한 뒤HEAD 원본 bytes로 복원. 최종변경은test1·docs7뿐이다."
+  },
+  "review": {
+    "method": "OWNER_MANAGED",
+    "riskLevel": "HIGH",
+    "qaRequired": true,
+    "preQa": "PASS",
+    "qaFinal": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "managerDecision": "NOT TESTED",
+    "mergeReady": "BLOCKED",
+    "documentationSync": "PASS",
+    "reviewer": "/root/pre_review",
+    "scope": "이번 fixture 교정·선택 증거·문서; 최종 QA_FINAL/Owner ACCEPT 아님",
+    "findings": 0
+  },
+  "newRemoteValidation": "NOT TESTED (CI 시작 확인까지만; 게시 후 Issue STATUS에 출처 기록)",
+  "release": {
+    "version": "0.114.1",
+    "releaseRequired": true,
+    "releaseAuthorized": false
+  }
+}

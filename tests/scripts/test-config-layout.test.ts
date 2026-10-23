@@ -68,7 +68,10 @@ describe("test configuration repository layout", () => {
       expect(workflow).toContain("scripts/e2e-shard-planner.mjs select");
       expect(workflow).toContain("tests/config/e2e-shard-plan.json");
       expect(workflow).toContain("E2E_TIMING_OUTPUT");
-      expect(workflow).toContain("native 6-way sharding fallback");
+      expect(workflow).toContain("native 8-way sharding fallback");
+      expect(workflow).toContain('E2E_TIMING_SHARD_COUNT: "8"');
+      expect(workflow).toContain("shard: [1, 2, 3, 4, 5, 6, 7, 8]");
+      expect(workflow).toContain("--total 8");
       // Scope timeout verification to this job, not another workflow job.
       const shard = workflow.split(/\n  (?:release_)?e2e_shard:\n/)[1]?.split(/\n  [a-z_]+:\n/)[0];
       expect(shard).toBeDefined();
@@ -124,6 +127,7 @@ describe("test configuration repository layout", () => {
     expect(release).toContain("e2e-timing-release-shard-");
     expect(optimizer).toContain("event=push&branch=main&status=success");
     expect(optimizer).toContain("scripts/e2e-shard-planner.mjs analyze");
+    expect(optimizer).toContain("--shards 8");
     expect(text("scripts/e2e-shard-planner.mjs")).toContain(
       'args.output || "e2e-shard-proposal.json"',
     );

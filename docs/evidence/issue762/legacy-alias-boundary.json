@@ -1,0 +1,12 @@
+{
+  "synthetic": true,
+  "uniqueAreas": 200,
+  "mappings": 200,
+  "aliases": 40000,
+  "bytes": 11778401,
+  "readMs": 600.3867870000001,
+  "serializeMs": 428.0709650000001,
+  "environment": "Node22.14.0 / better-sqlite3 / in-memory synthetic local single sample",
+  "scope": "ProjectWorkAreaRepository.list + JSON serialization, not HTTP or browser render",
+  "operational_performance": "NOT TESTED"
+}

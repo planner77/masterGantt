@@ -1,3 +1,6 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
+import { workspaceViewTab } from "./helpers/workspace-navigation";
 import { mkdir, writeFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 import { dashboardFixture } from "../fixtures/milestone-dashboard";
@@ -11,15 +14,15 @@ async function fixture(page: Page) {
   for (let i = 5; i < 23; i++) state.tasks.push({ ...original, taskId: `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`, externalId: `M-${i}`, siblingOrder: i, name: `단계 ${i} 긴 한글 English extraordinary identity` });
   return state;
 }
-const tab = (page: Page) => page.getByRole("tab", { name: "Milestone 대시보드", exact: true });
+const tab = (page: Page) => workspaceViewTab(page, "milestones");
 const dashboard = (page: Page) => page.getByTestId("milestone-dashboard");
 
 test("#463 readonly full-state/F separation, keyboard and five-width geometry", async ({ page }) => {
   test.setTimeout(120_000);
   const state = await fixture(page); let writes = 0;
-  page.on("request", (request) => { if (request.url().includes(projectPath) && !["GET", "HEAD"].includes(request.method())) writes++; });
+  page.on("request", (request) => { if (request.url().includes(projectPath) && !["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) writes++; });
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
-  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
+  await page.goto(`/projects/${publicId}`); await openWorkspaceView(page, "milestones"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
   const region = page.getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤" });
   await expect(region.getByRole("row")).toHaveCount(20);
   await dashboard(page).getByLabel("Milestone 검색", { exact: true }).fill("no matching stage");
@@ -27,6 +30,10 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
   await dashboard(page).getByLabel("Milestone 검색", { exact: true }).fill(""); await expect(region).toBeVisible();
   const causes = dashboard(page).getByRole("button", { name: `${state.tasks[3].name} 전체 원인 확인`, exact: true });
   await causes.click(); await expect(dashboard(page).getByText("미완료 직접 선행 Milestone · 1개", { exact: true })).toBeVisible(); await page.keyboard.press("Escape"); await expect(causes).toBeFocused();
+  // Closed raw-ID disclosures have copy buttons in DOM but must remain hidden.
+  const hiddenCopyButtons = region.locator('tbody details:not([open]) button');
+  expect(await hiddenCopyButtons.count()).toBeGreaterThan(0);
+  await expect(hiddenCopyButtons.first()).toBeHidden();
   await mkdir("output/playwright/issue-463", { recursive: true }); const metrics: unknown[] = [];
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
@@ -37,16 +44,35 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
     await page.setViewportSize({ width, height: 900 }); await input.press("End");
     const popup = await page.locator(".project-stage-filter-popup").evaluate((element) => {
       const b = element.getBoundingClientRect(), input = element.querySelector("input")!, i = input.getBoundingClientRect(), owner = element.querySelector("ul")!, o = owner.getBoundingClientRect(), active = document.getElementById(input.getAttribute("aria-activedescendant")!)!, a = active.getBoundingClientRect();
-      return { left: b.left, right: b.right, top: b.top, bottom: b.bottom, inputFocused: document.activeElement === input, inputVisible: i.left >= b.left && i.right <= b.right, activeVisible: a.top >= o.top && a.bottom <= o.bottom, listScrollTop: owner.scrollTop };
-    }); expect(popup.left).toBeGreaterThanOrEqual(0); expect(popup.right).toBeLessThanOrEqual(width); expect(popup.bottom).toBeLessThanOrEqual(900); expect(popup.inputFocused && popup.inputVisible && popup.activeVisible).toBe(true); expect(popup.listScrollTop).toBeGreaterThan(0);
-    await input.press("Escape"); await expect(trigger).toBeFocused(); await dashboard(page).getByRole("heading", { name: "Milestone 대시보드", exact: true }).scrollIntoViewIfNeeded(); await page.screenshot({ path:`output/playwright/issue-463/dashboard-${width}.png`,fullPage:false }); await region.locator("tbody button").first().focus();
+      return { left: b.left, right: b.right, top: b.top, bottom: b.bottom, inputFocused: document.activeElement === input, inputVisible: i.left >= b.left && i.right <= b.right, activeVisible: a.top >= o.top && a.bottom <= o.bottom, listScrollTop: owner.scrollTop, inputLeft: i.left, inputRight: i.right, activeTop: a.top, activeBottom: a.bottom, listTop: o.top, listBottom: o.bottom, activeId: active.id, lastOptionId: owner.lastElementChild?.id ?? null, activeIndex: Array.from(owner.children).indexOf(active), optionsCount: owner.children.length };
+    });
+    // 원래의 즉시 측정값을 단언 전에 보존해 간헐적 경계 실패를 구분한다.
+    await test.info().attach(`issue-750-popup-observation-${width}`, { body: JSON.stringify({ width, popup }, null, 2), contentType: "application/json" });
+    expect(popup.left).toBeGreaterThanOrEqual(0); expect(popup.right).toBeLessThanOrEqual(width); expect(popup.bottom).toBeLessThanOrEqual(900); expect(popup.inputFocused && popup.inputVisible && popup.activeVisible, `${width}px popup: ${JSON.stringify(popup)}`).toBe(true); expect(popup.listScrollTop).toBeGreaterThan(0);
+    for (const [key, expectedIndex] of [["Home", 0], ["ArrowDown", 1], ["ArrowUp", 0]] as const) {
+      await input.press(key);
+      const navigation = await page.locator(".project-stage-filter-popup").evaluate((element) => {
+        const input = element.querySelector("input")!, owner = element.querySelector("ul")!, active = document.getElementById(input.getAttribute("aria-activedescendant")!)!;
+        const optionBounds = active.getBoundingClientRect(), listBounds = owner.getBoundingClientRect();
+        return { inputFocused: document.activeElement === input, activeVisible: optionBounds.top >= listBounds.top && optionBounds.bottom <= listBounds.bottom, activeIndex: Array.from(owner.children).indexOf(active), activeTop: optionBounds.top, activeBottom: optionBounds.bottom, listTop: listBounds.top, listBottom: listBounds.bottom };
+      });
+      await test.info().attach(`issue-750-popup-navigation-${width}-${key}`, { body: JSON.stringify({ width, key, navigation }, null, 2), contentType: "application/json" });
+      expect(navigation, `${width}px ${key}: ${JSON.stringify(navigation)}`).toMatchObject({ inputFocused: true, activeVisible: true, activeIndex: expectedIndex });
+    }
+    await input.press("Escape"); await expect(trigger).toBeFocused(); await dashboard(page).getByRole("heading", { name: "Milestone 대시보드", exact: true }).scrollIntoViewIfNeeded(); await page.screenshot({ path:`output/playwright/issue-463/dashboard-${width}.png`,fullPage:false }); await region.locator("tbody td:first-child > button").first().focus(); await expect(region.locator("tbody td:first-child > button").first()).toBeFocused();
     const geometry = await dashboard(page).evaluate((root) => {
       const bounds = (e: Element) => { const b = e.getBoundingClientRect(); return { left:b.left,right:b.right,top:b.top,bottom:b.bottom,width:b.width,height:b.height }; };
       const contains = (a: ReturnType<typeof bounds>, b: ReturnType<typeof bounds>) => a.left >= b.left - 1 && a.right <= b.right + 1 && a.top >= b.top - 1 && a.bottom <= b.bottom + 1;
       const nonoverlap = (boxes: ReturnType<typeof bounds>[]) => boxes.every((a,i) => boxes.slice(i+1).every((b) => a.right <= b.left + 1 || b.right <= a.left + 1 || a.bottom <= b.top + 1 || b.bottom <= a.top + 1));
+      // Native closed <details> preserves copy buttons in DOM with zero layout bounds.
+      // Only painted controls have meaningful geometry; hidden state is checked above.
+      const rendered = (element: Element) => {
+        const rect = element.getBoundingClientRect();
+        return element.checkVisibility() && rect.width > 0 && rect.height > 0;
+      };
       const tables = Array.from(root.querySelectorAll("table")).map((table) => {
-        const headers = Array.from(table.querySelectorAll("thead th")).map(bounds), row = table.querySelector("tbody tr")!, cells = Array.from(row.children).map(bounds), controls = Array.from(table.querySelectorAll("tbody button")).map((button) => ({ control:bounds(button),cell:bounds(button.closest("td")!) })), owner = table.parentElement!;
-        return { width:table.getBoundingClientRect().width, headerBodyAligned:headers.every((h,i) => Math.abs(h.left-cells[i].left)<=1 && Math.abs(h.width-cells[i].width)<=1), headerBounds:headers,bodyBounds:cells,allControlsContainedInCells:controls.every(({control,cell})=>contains(control,cell)), siblingCellsNonoverlapping:nonoverlap(cells), siblingControlsNonoverlapping:Array.from(table.querySelectorAll("tbody td")).every((cell)=>nonoverlap(Array.from(cell.querySelectorAll("button")).map(bounds))),buttonCount:controls.length,ownerClientWidth:owner.clientWidth,ownerScrollWidth:owner.scrollWidth,ownerOverflowX:getComputedStyle(owner).overflowX };
+        const headers = Array.from(table.querySelectorAll("thead th")).map(bounds), row = table.querySelector("tbody tr")!, cells = Array.from(row.children).map(bounds), controls = Array.from(table.querySelectorAll("tbody button")).filter(rendered).map((button) => ({ control:bounds(button),cell:bounds(button.closest("td")!) })), owner = table.parentElement!;
+        return { width:table.getBoundingClientRect().width, headerBodyAligned:headers.every((h,i) => Math.abs(h.left-cells[i].left)<=1 && Math.abs(h.width-cells[i].width)<=1), headerBounds:headers,bodyBounds:cells,allControlsContainedInCells:controls.every(({control,cell})=>contains(control,cell)), siblingCellsNonoverlapping:nonoverlap(cells), siblingControlsNonoverlapping:Array.from(table.querySelectorAll("tbody td")).every((cell)=>nonoverlap(Array.from(cell.querySelectorAll("button")).filter(rendered).map(bounds))),buttonCount:controls.length,hiddenDisclosureButtons:table.querySelectorAll("tbody details:not([open]) button").length,ownerClientWidth:owner.clientWidth,ownerScrollWidth:owner.scrollWidth,ownerOverflowX:getComputedStyle(owner).overflowX };
       });
       const filters = root.querySelector('[class*="filters"]')!, f = bounds(filters), inputs = Array.from(filters.querySelectorAll("input,button,select")).filter((e)=>e.getBoundingClientRect().width>0).map(bounds), focused = document.activeElement!, focus = bounds(focused), style = getComputedStyle(focused), outset = Math.max(0,parseFloat(style.outlineWidth)+parseFloat(style.outlineOffset)), pane = root.closest(".project-milestone-panel")!, workspaceTabs = document.querySelector(".project-primary-tabs")!;
       const otherControls = Array.from(root.querySelectorAll("button,input,select,summary")).filter((e) => !e.closest("table") && e.checkVisibility() && e.getBoundingClientRect().width > 0).map((e) => { const owner = e.closest("label,article,[class*=sectionHeading],[class*=grandTotal],[class*=multiSummary],[class*=filters],[class*=advanced]") ?? e.parentElement!; return { tag:e.tagName,label:e.getAttribute("aria-label") ?? e.textContent?.trim().slice(0,100),ownerTag:owner.tagName,ownerClass:owner.className,control:bounds(e),owner:bounds(owner) }; });
@@ -54,8 +80,19 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
       return { failedOtherControls:otherControls.filter(({control,owner})=>!contains(control,owner)),documentHeight:document.documentElement.scrollHeight,otherControlCount:otherControls.length,allOtherControlsContained:otherControls.every(({control,owner})=>contains(control,owner)),focusInScrollOwner:focus.left-outset>=focusOwner.left&&focus.right+outset<=focusOwner.right, viewport:innerWidth,documentWidth:document.documentElement.scrollWidth,tables,filterControlsContained:inputs.every((b)=>contains(b,f)),filterControlsNonoverlapping:nonoverlap(inputs),focusVisible:focus.left-outset>=0&&focus.right+outset<=innerWidth&&focus.top-outset>=0&&focus.bottom+outset<=innerHeight,focusOutline:style.outlineStyle,paneOverflowY:getComputedStyle(pane).overflowY,paneClientHeight:pane.clientHeight,paneScrollHeight:pane.scrollHeight,workspaceTabsClientHeight:workspaceTabs.clientHeight,workspaceTabsScrollHeight:workspaceTabs.scrollHeight,inactiveGanttInert:document.querySelector("#project-panel-schedule")!.hasAttribute("inert"),inactiveGanttHidden:getComputedStyle(document.querySelector("#project-panel-schedule")!).visibility,focusedOutsideInactiveGantt:!document.querySelector("#project-panel-schedule")!.contains(document.activeElement) };
     });
     await writeFile(`output/playwright/issue-463/geometry-partial-${width}.json`, JSON.stringify({ width, popup, ...geometry }, null, 2));
+    // Preserve exact geometry in CI report even if a following assertion fails.
+    await test.info().attach(`issue-463-milestone-geometry-${width}`, { body: JSON.stringify({ width, popup, ...geometry }, null, 2), contentType: "application/json" });
     expect(geometry.documentWidth).toBeLessThanOrEqual(width); expect(geometry.filterControlsContained && geometry.filterControlsNonoverlapping && geometry.focusVisible && geometry.focusInScrollOwner && geometry.allOtherControlsContained).toBe(true); expect(geometry.otherControlCount).toBeGreaterThan(0); expect(geometry.focusOutline).not.toBe("none"); expect(geometry.paneOverflowY).toBe("auto"); expect(geometry.workspaceTabsScrollHeight).toBe(geometry.workspaceTabsClientHeight); expect(geometry.inactiveGanttInert && geometry.focusedOutsideInactiveGantt).toBe(true); expect(geometry.inactiveGanttHidden).toBe("hidden");
-    for (const table of geometry.tables) { expect(table.headerBodyAligned && table.allControlsContainedInCells && table.siblingCellsNonoverlapping && table.siblingControlsNonoverlapping).toBe(true); expect(table.buttonCount).toBeGreaterThan(0); expect(table.ownerOverflowX).toBe("auto"); } expect(geometry.tables[0].headerBounds[0].width).toBeGreaterThanOrEqual(260); expect(geometry.tables[0].width).toBeGreaterThanOrEqual(1052);
+    for (const [index, table] of geometry.tables.entries()) {
+      for (const key of ["headerBodyAligned", "allControlsContainedInCells", "siblingCellsNonoverlapping", "siblingControlsNonoverlapping"] as const) {
+        expect(table[key], `${width}px table ${index} ${key}: visible layout contract`).toBe(true);
+      }
+      expect(table.buttonCount).toBeGreaterThan(0);
+      expect(table.ownerOverflowX).toBe("auto");
+    }
+    expect(geometry.tables[0].hiddenDisclosureButtons).toBeGreaterThan(0);
+    expect(geometry.tables[0].headerBounds[0].width).toBeGreaterThanOrEqual(260);
+    expect(geometry.tables[0].width).toBeGreaterThanOrEqual(1052);
     metrics.push({ width,popup,...geometry }); await page.screenshot({ path:`output/playwright/issue-463/dashboard-stage-table-${width}.png`,fullPage:false });
   }
   await writeFile("output/playwright/issue-463/geometry.json",JSON.stringify(metrics,null,2));
@@ -65,14 +102,14 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
 test("#463 request reversal, stale error and explicit retry preserve filters", async ({ page }) => {
   const state = await fixture(page), gate = deferred(), started = deferred(); let fail = false;
   await page.route(`**${projectPath}/milestone-dashboard?*`,async(route)=>{const params=new URL(route.request().url()).searchParams;if(params.get("search")==="older"){started.resolve();await gate.promise;}if(fail){await route.fulfill({status:500,json:{error:{code:"FIXTURE_ERROR"}}});return;}await route.fulfill({json:{data:dashboardFixture(state,params)}});});
-  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); const search=dashboard(page).getByLabel("Milestone 검색",{exact:true}); await search.fill("older"); await started.promise; await expect(dashboard(page).getByRole("button",{name:"해당 범위 리소스 보기"})).toBeDisabled(); await search.fill("단계 5"); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); gate.resolve(); await expect(dashboard(page).getByRole("heading",{name:"Milestone 전체 상태 · 표시 1개"})).toBeVisible(); fail=true; await search.fill("failed"); await expect(dashboard(page).getByRole("alert")).toContainText("HTTP 500"); await expect(search).toHaveValue("failed"); await expect(dashboard(page).getByRole("button",{name:"해당 범위 리소스 보기"})).toBeDisabled(); fail=false; await dashboard(page).getByRole("button",{name:"다시 시도",exact:true}).click(); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); await expect(search).toHaveValue("failed");
+  await page.goto(`/projects/${publicId}`); await openWorkspaceView(page, "milestones"); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); const search=dashboard(page).getByLabel("Milestone 검색",{exact:true}); await search.fill("older"); await started.promise; await expect(dashboard(page).getByRole("button",{name:"해당 범위 리소스 보기"})).toBeDisabled(); await search.fill("단계 5"); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); gate.resolve(); await expect(dashboard(page).getByRole("heading",{name:"Milestone 전체 상태 · 표시 1개"})).toBeVisible(); fail=true; await search.fill("failed"); await expect(dashboard(page).getByRole("alert")).toContainText("HTTP 500"); await expect(search).toHaveValue("failed"); await expect(dashboard(page).getByRole("button",{name:"해당 범위 리소스 보기"})).toBeDisabled(); fail=false; await dashboard(page).getByRole("button",{name:"다시 시도",exact:true}).click(); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); await expect(search).toHaveValue("failed");
 });
 
 test("#463 server date authority, bounded day refresh and same-day catalog catch-up",async({page})=>{
   const state=await fixture(page);let calls=0,serverDay="2026-10-06",catalog=1;
   await page.clock.install({time:new Date("2026-10-06T14:59:00Z")});
   await page.route(`**${projectPath}/milestone-dashboard?*`,(route)=>{calls++;return route.fulfill({json:{data:dashboardFixture(state,new URL(route.request().url()).searchParams,serverDay,catalog)}});});
-  await page.goto(`/projects/${publicId}`);await tab(page).click();await expect(dashboard(page)).toHaveAttribute("data-ready","true");await expect(dashboard(page).getByLabel("기준일",{exact:true})).toHaveValue("2026-10-06");const initial=calls;
+  await page.goto(`/projects/${publicId}`);await openWorkspaceView(page, "milestones");await expect(dashboard(page)).toHaveAttribute("data-ready","true");await expect(dashboard(page).getByLabel("기준일",{exact:true})).toHaveValue("2026-10-06");const initial=calls;
   await page.clock.runFor(65_000);await expect.poll(()=>calls).toBe(initial+1);await expect(dashboard(page)).toHaveAttribute("data-ready","true");await page.clock.runFor(180_000);expect(calls).toBe(initial+1);
   serverDay="2026-10-07";catalog=2;await page.evaluate(()=>window.dispatchEvent(new Event("focus")));await expect.poll(()=>calls).toBe(initial+2);await expect(dashboard(page).getByLabel("기준일",{exact:true})).toHaveValue(serverDay);await expect(dashboard(page).getByText(/Project 40 \/ Catalog 2/)).toBeVisible();
   await dashboard(page).getByLabel("수동 기준일",{exact:true}).check();await expect(dashboard(page)).toHaveAttribute("data-ready","true");await dashboard(page).getByLabel("기준일",{exact:true}).fill("2026-01-02");await expect(dashboard(page)).toHaveAttribute("data-ready","true");const manual=calls;await page.clock.runFor(120_000);expect(calls).toBe(manual);catalog=3;await page.evaluate(()=>window.dispatchEvent(new Event("focus")));await expect.poll(()=>calls).toBe(manual+1);await expect(dashboard(page).getByLabel("기준일",{exact:true})).toHaveValue("2026-01-02");await expect(dashboard(page).getByText(/Project 40 \/ Catalog 3/)).toBeVisible();await page.getByRole("tab",{name:"일정",exact:true}).click();const hidden=calls;await page.clock.setSystemTime(new Date("2026-10-08T00:00:00Z"));await page.clock.runFor(120_000);expect(calls).toBe(hidden);
@@ -81,7 +118,7 @@ test("#463 server date authority, bounded day refresh and same-day catalog catch
 test("#463 shared multi-selection, null conversion and canonical/catalog invalidation", async ({ page }) => {
   const state = await fixture(page); let catalog = 2, staleRevision = false;
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) => { const data = dashboardFixture(state, new URL(route.request().url()).searchParams, "2026-10-06", catalog); if (staleRevision) data.projectRevision--; return route.fulfill({ json: { data } }); });
-  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
+  await page.goto(`/projects/${publicId}`); await openWorkspaceView(page, "milestones"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
   await dashboard(page).getByText("Milestone 표시·공수 범위 조건", { exact: true }).click(); const choices = dashboard(page).getByRole("group", { name: "표시 Milestone", exact: true }); await choices.getByRole("checkbox").nth(0).check(); await choices.getByRole("checkbox").nth(1).check(); await expect(dashboard(page).getByText("여러 Milestone 2개 선택", { exact: true })).toBeVisible(); await expect(dashboard(page).locator(".project-stage-filter-trigger")).toHaveCount(0); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
   await dashboard(page).getByRole("combobox", { name: "M/M 환산 기준", exact: true }).selectOption("unset"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await expect(dashboard(page).getByText("5 M/D / — M/M", { exact: true })).toBeVisible(); await dashboard(page).getByRole("button", { name: "모든 Milestone 선택 해제", exact: true }).click(); await expect(dashboard(page).locator(".project-stage-filter-trigger")).toBeVisible();
   catalog = 1; await dashboard(page).getByRole("button", { name: "새로고침", exact: true }).click(); await expect(dashboard(page).getByRole("alert")).toContainText("Revision·조회 조건"); await expect(dashboard(page).getByRole("button", { name: "해당 범위 리소스 보기" })).toBeDisabled();
@@ -92,7 +129,7 @@ test("#463 aborted request to cached query still permits focus catch-up", async 
   const state = await fixture(page), gate = deferred(), started = deferred(); let calls = 0;
   await page.clock.install({ time: new Date("2026-10-06T00:00:00Z") });
   await page.route(`**${projectPath}/milestone-dashboard?*`, async (route) => { calls++; const params = new URL(route.request().url()).searchParams; if (params.get("search") === "slow") { started.resolve(); await gate.promise; } await route.fulfill({ json: { data: dashboardFixture(state, params) } }); });
-  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); const search = dashboard(page).getByLabel("Milestone 검색", { exact: true }); await search.fill("slow"); await started.promise; await search.fill("");
+  await page.goto(`/projects/${publicId}`); await openWorkspaceView(page, "milestones"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); const search = dashboard(page).getByLabel("Milestone 검색", { exact: true }); await search.fill("slow"); await started.promise; await search.fill("");
   // Playwright's installed clock also owns React's timer/animation scheduling.
   // Settle one bounded frame without releasing the stale server response: the
   // confirmed cached query must be ready with zero additional network calls.
@@ -111,11 +148,16 @@ test("#463 aborted request to cached query still permits focus catch-up", async 
   expect(readyFromCache, "cached Milestone query should recover within eight animation frames").toBe(true);
   expect(calls, "cache re-entry must not issue a third HTTP request").toBe(2);
   gate.resolve();
-  await page.getByRole("tab", { name: "일정", exact: true }).click(); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); expect(calls).toBe(2); await page.clock.runFor(31_000); await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await expect.poll(() => calls).toBe(3); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
+  await page.getByRole("tab", { name: "일정", exact: true }).click(); await openWorkspaceView(page, "milestones"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); expect(calls).toBe(2); await page.clock.runFor(31_000); await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await expect.poll(() => calls).toBe(3); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
 });
 
 test("#463 public viewport and native scroll survive peer/layout, stale restore is consumed", async ({ page }, testInfo) => {
   const state = await fixture(page); await page.setViewportSize({ width: 1440, height: 900 });
+  const ordinary = state.tasks.find(task => task.type === "task")!;
+  for (let index = 100; index < 124; index++) state.tasks.push({
+    ...ordinary, taskId: `00000000-0000-4000-8000-${String(index).padStart(12,"0")}`,
+    externalId: `SCROLL-${index}`, name: `Viewport task ${index}`, siblingOrder:index, parentExternalId:null,
+  });
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await page.goto(`/projects/${publicId}`); await page.getByRole("button", { name: "주", exact: true }).click();
   const frame = page.locator(".project-gantt-frame"), chart = frame.locator(".wx-chart"), identity = await frame.getAttribute("data-project-gantt-api-instance");
@@ -139,8 +181,11 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
       timeout: 10_000,
     }).toBeGreaterThanOrEqual(120);
     const vertical = frame.locator(".wx-gantt"); expect(await vertical.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
-    await vertical.evaluate((element) => { element.scrollTop = 96; }); await chart.evaluate((element) => { element.scrollLeft = 120; }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
-    await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await page.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
+    await vertical.evaluate((element) => { element.scrollTop = 96; });
+    // 이전 축의 Core/native 반영이 끝난 뒤 다음 독립 native 입력을 시작한다.
+    await expect.poll(viewport).toEqual({ public: { left: 0, top: 96 }, dom: { left: 0, top: 96 } });
+    await chart.evaluate((element) => { element.scrollLeft = 120; }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
+    await openWorkspaceView(page, "milestones"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await page.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
     // 좌표 도달과 3-frame 완료 영수증은 별개다. 정상 복귀가 완료된 뒤 검색 기준을 캡처한다.
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).not.toBeNull();
     const completed = JSON.parse((await frame.getAttribute("data-gantt-peer-restore"))!);
@@ -157,7 +202,7 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색", exact: true });
     await observe("before-filter");
     await search.fill("Stable leaf");
-    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => frame.locator(".wx-gantt").evaluate(element => element.scrollHeight - element.clientHeight)).toBe(0);
     await expect.poll(viewport).toEqual({ public: { left: 120, top: 0 }, dom: { left: 120, top: 0 } });
     await expect(frame.getByRole("row")).toHaveCount(2);
@@ -167,29 +212,45 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     // 진행 중 복원의 입력 취소는 별도 RAF barrier 회귀에서 검증한다.
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
     await search.fill("");
-    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.filter(task => task.type === "task").length}개 일반 Task 일치 · 직접 Summary ${state.tasks.filter(task => task.type === "summary").length}개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => frame.locator(".wx-gantt").evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
     await observe("filter-cleared");
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
+    // Main CI #2543.1: (120, 0) 좌표만 같아도 FILTER_RETURN은 WAIT_GEOMETRY일 수 있다.
+    // 이전 복원이 실제 SETTLED한 뒤 별도의 새 viewport 입력을 검증한다.
+    await expect.poll(() => frame.evaluate((element) => {
+      const history = JSON.parse(element.dataset.ganttViewportCoordinatorHistory ?? "[]") as Array<{
+        kind?: string; phase?: string; outcome?: string;
+      }>;
+      const latest = history.filter((event) => event.kind === "FILTER_RETURN").at(-1);
+      return latest ? { phase: latest.phase, outcome: latest.outcome } : null;
+    }), { message: "FILTER_RETURN must settle before independent viewport input" })
+      .toEqual({ phase: "SETTLED", outcome: "SETTLED" });
     // 필터가 한 행으로 줄면서 발생한 합법적 clamp를 과거 peer 좌표로 복원하지 않는다.
     await expect.poll(viewport).toEqual({ public: { left: 120, top: 0 }, dom: { left: 120, top: 0 } });
     await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
     const userViewport = { public: { left: 180, top: 128 }, dom: { left: 180, top: 128 } };
     await expect.poll(() => chart.evaluate(element => element.scrollWidth - element.clientWidth)).toBeGreaterThanOrEqual(180);
     await vertical.evaluate(element => { element.scrollTop = 128; });
+    // SVAR는 native Y 반영 시 Chart X를 Core 값과 동기화한다.
+    // 앞선 Y 입력을 완료한 뒤 별도의 native X 입력을 시작한다.
+    await expect.poll(viewport).toEqual({ public: { left: 120, top: 128 }, dom: { left: 120, top: 128 } });
     await chart.evaluate(element => { element.scrollLeft = 180; });
     await expect.poll(viewport).toEqual(userViewport);
     await observe("new-user-viewport");
-    // 18행이 남아 128px capacity를 유지하는 필터로 오래된 120/96 재실행을 구분한다.
-    await search.fill("단계");
-    await expect(page.locator(".project-filter-result")).toHaveText(`18개 일치 / 전체 ${state.tasks.length}개 작업`);
+    // #552: hidden Milestone names cannot provide native WBS row capacity.
+    // Keep 24 ordinary fixture rows to distinguish a late 120/96 restore from
+    // the new user-owned 180/128 viewport without relaxing scroll assertions.
+    const visibleViewportTasks = state.tasks.filter(task => task.type === "task" && task.name.startsWith("Viewport task")).length;
+    await search.fill("Viewport task");
+    await expect(page.locator(".project-filter-result")).toHaveText(`${visibleViewportTasks}개 일반 Task 일치 · 직접 Summary 0개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(128);
     await expect.poll(viewport).toEqual(userViewport);
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
     await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
     await observe("capacity-preserving-filter");
     await search.fill("");
-    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.filter(task => task.type === "task").length}개 일반 Task 일치 · 직접 Summary ${state.tasks.filter(task => task.type === "summary").length}개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(128);
     await expect.poll(viewport).toEqual(userViewport);
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
@@ -221,20 +282,75 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
 });
 
 test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다", async ({ page }, testInfo) => {
+  // Observe the trusted input before React installs its cancellation listener.
+  // Native event dispatch can run Promise callbacks between capture listeners.
+  await page.addInitScript(() => {
+    const input = (event: Event) => Reflect.get(window, "__issue530ObserveInput")?.(event);
+    document.addEventListener("input", input, true);
+    Reflect.set(window, "__issue530DisposeInput", () => document.removeEventListener("input", input, true));
+  });
   const state = await fixture(page);
+  // Preserve a real scrollable ordinary WBS after #552 removes native Milestone rows.
+  const ordinary = state.tasks.find(task => task.type === "task")!;
+  for (let i = 125; i < 149; i++) state.tasks.push({
+    ...ordinary, taskId: `00000000-0000-4000-8000-${String(i).padStart(12,"0")}`,
+    externalId: `INPUT-SCROLL-${i}`, name: `Scroll input task ${i}`,
+    siblingOrder: i, parentExternalId: null,
+  });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.route(`**${projectPath}/milestone-dashboard?*`, route => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await page.goto(`/projects/${publicId}?__coreTrace=1`);
   await page.getByRole("button", { name: "주", exact: true }).click();
   const frame = page.locator(".project-gantt-frame"), chart = frame.locator(".wx-chart"), vertical = frame.locator(".wx-gantt");
   const viewport = () => frame.evaluate(element => ({ public: Reflect.get(element, "__masterganttPublicViewport"), native: { left: element.querySelector(".wx-chart")!.scrollLeft, top: element.querySelector(".wx-gantt")!.scrollTop } }));
+  // CI #2758.1: capacity can be sufficient before the Week scale finishes
+  // updating native layout. Preserve strict 120/96, but observe stable Week
+  // geometry before the first deliberate scroll (not a retry of a failed scroll).
+  await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
+  await expect.poll(() => frame.evaluate(async element => {
+    const chart = element.querySelector<HTMLElement>(".wx-chart");
+    if (!chart) return false;
+    const scrollWidth = chart.scrollWidth, clientWidth = chart.clientWidth;
+    if (scrollWidth - clientWidth < 120) return false;
+    for (let index = 0; index < 3; index++) {
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      if (element.dataset.ganttScaleMode !== "week" || chart.scrollWidth !== scrollWidth ||
+          chart.clientWidth !== clientWidth || chart.scrollWidth - chart.clientWidth < 120) return false;
+    }
+    return true;
+  }), { message: "Week timeline native layout must settle before the first scroll", timeout: 10_000 }).toBe(true);
   await expect.poll(() => chart.evaluate(element => element.scrollWidth - element.clientWidth)).toBeGreaterThanOrEqual(120);
   await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
   const identity = await frame.getAttribute("data-project-gantt-api-instance");
   await vertical.evaluate(element => { element.scrollTop = 96; });
-  await chart.evaluate(element => { element.scrollLeft = 120; });
+  await expect.poll(() => frame.evaluate(element => ({
+    coreTop: (Reflect.get(element, "__masterganttPublicViewport") as { top: number }).top,
+    nativeTop: element.querySelector(".wx-gantt")!.scrollTop,
+  }))).toEqual({ coreTop: 96, nativeTop: 96 });
+  // CI #2758.1/#2764.1: a manually assigned native chart scrollLeft can be
+  // overwritten by a delayed Week scale/Core command even after 3 stable RAF
+  // geometry samples. This test owns the pending PEER_RETURN/trusted input
+  // cancellation, not the initial *native* scroll ingress (tested in the
+  // preceding #463 public/native viewport test). Seed the exact 120/96
+  // baseline through the existing dev-only #571 public scroll-chart gateway.
+  // Its SETTLED receipt requires three consecutive actual Core/native frames;
+  // a stale/unsupported/zero-capacity outcome remains a failure, never a retry.
+  const initialScroll = await frame.evaluate(async element => {
+    const probe = Reflect.get(element, "__masterganttMilestoneTimeline") as {
+      scroll: (left: number) => Promise<string | undefined>;
+    } | undefined;
+    if (!probe) throw new Error("Development Core viewport probe unavailable");
+    return await probe.scroll(120);
+  });
+  expect(initialScroll).toBe("SETTLED");
   await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, native: { left: 120, top: 96 } });
-  await tab(page).click();
+  await testInfo.attach("pending-peer-initial-viewport", {
+    body: JSON.stringify({ initialScroll, viewport: await viewport(),
+      publicEvents: await frame.getAttribute("data-gantt-public-scroll-events"),
+      coordinator: await frame.getAttribute("data-gantt-viewport-coordinator") }),
+    contentType: "application/json",
+  });
+  await openWorkspaceView(page, "milestones");
   await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
   await expect.poll(() => frame.evaluate(element => !!Reflect.get(element, "__issue568Trace"))).toBe(true);
   // 실제 RAF callback만 유한하게 보류한다. 해제 후에도 원래 RAF에서 실행하며 Core는 그대로 사용한다.
@@ -267,13 +383,13 @@ test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소
       inputEvents.push({ at: performance.now(), trusted: event.isTrusted, targetIsSearch: event.target.type === "search", expectedValue: event.target.value === "Stable leaf",
         holding, autoReleased, heldFrames: held.size, ...peerState(), marker: element.getAttribute("data-gantt-peer-restore") });
     };
-    document.addEventListener("input", input, true);
+    Reflect.set(window, "__issue530ObserveInput", input);
     const safety = setTimeout(() => release(true), 1500);
     Object.defineProperty(element, "__issue530PendingBarrier", { configurable: true, value: {
       release: () => release(),
       sample: () => ({ holding, autoReleased, rafRestored: window.requestAnimationFrame === originalRaf && window.cancelAnimationFrame === originalCancel, heldFrames: held.size, marker: element.getAttribute("data-gantt-peer-restore"), inputEvents,
         ...peerState() }),
-      dispose() { if (disposed) return; disposed = true; release(); clearTimeout(safety); window.requestAnimationFrame = originalRaf; window.cancelAnimationFrame = originalCancel; document.removeEventListener("input", input, true); },
+      dispose() { if (disposed) return; disposed = true; release(); clearTimeout(safety); window.requestAnimationFrame = originalRaf; window.cancelAnimationFrame = originalCancel; Reflect.deleteProperty(window, "__issue530ObserveInput"); Reflect.get(window, "__issue530DisposeInput")(); },
     } });
   });
   const barrier = () => frame.evaluate(element => Reflect.get(element, "__issue530PendingBarrier").sample());
@@ -292,13 +408,13 @@ test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소
     expect(atInput.heldFrames).toBeGreaterThan(0);
     expect(atInput.inputEvents[0].heldFrames).toBeGreaterThan(0);
     await frame.evaluate(element => Reflect.get(element, "__issue530PendingBarrier").release());
-    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect(frame.getByRole("row")).toHaveCount(2);
     await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBe(0);
     await expect.poll(viewport).toEqual({ public: { left: 120, top: 0 }, native: { left: 120, top: 0 } });
     expect(await frame.getAttribute("data-gantt-peer-restore")).toBeNull();
     await search.fill("");
-    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.filter(task => task.type === "task").length}개 일반 Task 일치 · 직접 Summary ${state.tasks.filter(task => task.type === "summary").length}개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
     for (let index = 0; index < 3; index++) {
       await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));

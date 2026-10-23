@@ -1,0 +1,177 @@
+import { workAreaBelongsToProcess } from "../../domain/resources/resource-kpi-targets";
+import { selectWbsTaskLedger, summarizeWbsTaskLedger, summarizeWbsTaskLedgerConfiguration, type WbsTaskLedgerSnapshot, type WbsTaskLedgerSelection, type WbsTaskLedgerRow, type WbsTaskLedgerSelector } from "../../domain/resources/wbs-task-ledger";
+import { WBS_VIEW_LIMITS, type WbsViewQueryInput, type WbsViewPathEntry, type WbsViewDimension } from "../../contracts/wbs-dashboard-views";
+import { getResourceKpiDiagnostics } from "../../domain/resources/resource-kpi";
+import { PublicApiError } from "../http/api-error-core";
+import { resourceFingerprint } from "./resource-data-context-core";
+const limit = (): never => { throw new PublicApiError(422, "REPORT_LIMIT_EXCEEDED", "WBS 조회 계층·출처 한도를 초과했습니다. 조회 단계 또는 범위를 줄여 주세요."); };
+const unavailable = (): never => { throw new PublicApiError(400, "INVALID_SELECTION", "현재 WBS 조회의 정확한 경로를 다시 선택해 주세요."); };
+import type { WbsViewNode } from "../../contracts/wbs-dashboard-views";
+export function wbsViewSelectedSources(row: WbsTaskLedgerRow, assignmentIds: ReadonlySet<string>, path: readonly WbsViewPathEntry[] = [], systemView?: "direct" | "coordination") {
+  return row.sources.filter(source => {
+    if (source.effective === false) return false;
+    if (source.assignmentId) return assignmentIds.has(source.assignmentId);
+    if (source.entityKind === "equipment" && !row.equipmentIds.includes(source.entityId) || source.entityKind === "system" && !row.systemIds.includes(source.entityId)) return false;
+    if (["process", "workArea", "equipment", "system"].includes(source.dimension)) return path.filter(entry => entry.dimension === source.dimension && !(systemView === "coordination" && entry.dimension === "system")).every(entry => entry.id === source.entityId);
+    return true;
+  });
+}
+/** View stages never create parent-child relations between sibling instance kinds. */
+export function createWbsViewProjection(ledger: WbsTaskLedgerSnapshot, input: WbsViewQueryInput, labels: ReadonlyMap<string, string>, restriction?: { tasks: ReadonlySet<string>; assignments?: ReadonlySet<string> }) {
+  const stages: WbsViewDimension[][] = [[input.spec.root], ...(input.spec.levels ?? []).map(level => typeof level === "string" ? [level] : level.dimensions)];
+  const equipmentTypes = input.filters?.equipmentTypeCodes ?? [];
+  const systemSelection = input.spec.systemView !== undefined || input.spec.systemIds !== undefined;
+  const systemIds = input.spec.systemIds ?? ledger.configuration.systems.map(row => row.id);
+  if (systemIds.some(id => !ledger.configuration.systems.some(row => row.id === id))) unavailable();
+  // Validate type codes before expanding a possibly empty systemIds cross-product.
+  const availableEquipmentTypes = new Set(ledger.prepared.logistics!.instances
+    .filter(row => row.kind === "equipment").map(row => row.typeCode));
+  if (equipmentTypes.some(code => !availableEquipmentTypes.has(code))) unavailable();
+  const selectors = (path: readonly WbsViewPathEntry[]) => path.map(entry => ({ ...entry, dimension: entry.dimension === "system" && input.spec.systemView === "coordination" ? "systemCoordination" as const : entry.dimension }));
+  const branches = (path: WbsViewPathEntry[]) => path.length || !systemSelection ? [selectors(path)] : systemIds.map(id => selectors([{ dimension: "system", id }]));
+  const variants = (path: WbsViewPathEntry[]) => branches(path).flatMap(branch => equipmentTypes.length
+    ? equipmentTypes.map(id => [{ dimension: "equipmentType" as const, id }, ...branch]) : [branch]);
+  // A root union reuses the domain's exact selectors. Bound and cache its scans,
+  // including configuration-only roots, before allocating projected cells.
+  let selectionWork = 0;
+  const scan = (rows: number) => { if ((systemSelection || equipmentTypes.length) && (selectionWork += Math.max(1, rows)) > WBS_VIEW_LIMITS.sourceRows) limit(); };
+  const selections = new Map<string, WbsTaskLedgerSelection>();
+  const ledgerSelection = (path: readonly WbsTaskLedgerSelector[]) => {
+    const key = JSON.stringify(path), previous = selections.get(key);
+    if (previous) return previous;
+    scan(ledger.rows.length + ledger.prepared.assignments.length);
+    const value = selectWbsTaskLedger(ledger, path); selections.set(key, value); return value;
+  };
+  const configurations = new Map<string, ReturnType<typeof summarizeWbsTaskLedgerConfiguration>>();
+  const configuredSelection = (path: readonly WbsTaskLedgerSelector[]) => {
+    const key = JSON.stringify(path), previous = configurations.get(key);
+    if (previous) return previous;
+    scan(ledger.configuration.equipment.length + ledger.configuration.systems.length);
+    const value = summarizeWbsTaskLedgerConfiguration(ledger, path); configurations.set(key, value); return value;
+  };
+  const configuration = (path: WbsViewPathEntry[]) => {
+    if (!equipmentTypes.length && (path.length || !systemSelection)) return configuredSelection(selectors(path));
+    const base = configuredSelection([]);
+    const members = [...new Map(variants(path).flatMap(branch => configuredSelection(branch).members).map(row => [JSON.stringify([row.kind, row.entityId]), row])).values()];
+    return { ...base, members, equipmentQuantity: members.filter(row => row.kind === "equipment").reduce((sum, row) => sum + row.quantity, 0), systemCount: members.filter(row => row.kind === "system").length,
+      equipmentIds: members.filter(row => row.kind === "equipment").map(row => row.entityId), systemIds: members.filter(row => row.kind === "system").map(row => row.entityId) };
+  };
+  let cells = 0, sourceRows = 0, candidateWork = 0;
+  const select = (path: WbsViewPathEntry[]): WbsTaskLedgerSelection => {
+    let value = ledgerSelection(selectors(path));
+    if (equipmentTypes.length || !path.length && systemSelection) {
+      const values = variants(path).map(branch => ledgerSelection(branch));
+      const byTask = new Map<string, WbsTaskLedgerRow>();
+      for (const branch of values) for (const row of branch.rows) {
+        const previous = byTask.get(row.taskId);
+        byTask.set(row.taskId, previous ? { ...row, equipmentIds: [...new Set([...previous.equipmentIds, ...row.equipmentIds])].sort(), systemIds: [...new Set([...previous.systemIds, ...row.systemIds])].sort() } : row);
+      }
+      const rows = [...byTask.values()], assignments = [...new Map(values.flatMap(branch => branch.assignments).map(row => [row.assignmentId, row])).values()];
+      const t0 = [...new Map(values.flatMap(branch => branch.selection.t0).map(row => [row.taskId, row])).values()];
+      value = { ...value, rows, taskIds: rows.map(row => row.taskId), assignments, assignmentIds: assignments.map(row => row.assignmentId), selection: { ...value.selection, assignments, t0, t0Ids: new Set(t0.map(row => row.taskId)) } };
+    }
+    if (!restriction) return value;
+    let rows = value.rows.filter(row => restriction.tasks.has(row.taskId));
+    const selectedIds = new Set(rows.map(row => row.taskId));
+    const assignments = value.assignments.filter(row => selectedIds.has(row.taskId) && (!restriction.assignments || restriction.assignments.has(row.assignmentId)));
+    const personalPath = path.filter(row => row.dimension === "resource" || row.dimension === "group" || row.dimension === "role");
+    if (personalPath.length) {
+      const assignedTaskIds = new Set(assignments.map(row => row.taskId));
+      const rawAssignedTaskIds = new Set(ledger.prepared.assignments.filter(row => row.kind === "resource").map(row => row.taskId));
+      rows = rows.filter(row => assignedTaskIds.has(row.taskId) || personalPath.every(entry => entry.id === null) && !rawAssignedTaskIds.has(row.taskId));
+    }
+    const taskIds = rows.map(row => row.taskId);
+    const t0 = value.selection.t0.filter(row => restriction.tasks.has(row.taskId));
+    return { ...value, rows, taskIds, assignments, assignmentIds: assignments.map(row => row.assignmentId), selection: { ...value.selection, assignments, t0, t0Ids: new Set(t0.map(row => row.taskId)) } };
+  };
+  const candidates = (path: WbsViewPathEntry[], dimension: WbsViewDimension) => {
+    const current = select(path), projected: Array<string | null> = [];
+    const add = (values: readonly string[]) => {
+      candidateWork += Math.max(1, values.length);
+      if (candidateWork > WBS_VIEW_LIMITS.sourceRows) limit();
+      projected.push(...(values.length ? values : [null]));
+    };
+    if (dimension === "resource" || dimension === "group" || dimension === "role") {
+      for (const row of current.assignments) add(dimension === "resource" ? [row.resourceId] : dimension === "group" ? row.groupIds : row.roles);
+      const rawAssigned = new Set(ledger.prepared.assignments.filter(row => row.kind === "resource").map(row => row.taskId));
+      if (current.rows.some(row => !rawAssigned.has(row.taskId))) add([]);
+    } else for (const row of current.rows) add(dimension === "process" ? row.processIds : dimension === "workArea" ? row.workAreaIds : dimension === "equipment" ? row.equipmentIds : dimension === "system" ? row.systemIds : row.milestoneTaskId === null ? [] : [row.milestoneTaskId]);
+    // Task candidates and registered configuration are independent populations.
+    // Only real configuration axes may extend an empty Task branch.
+    const logistics = ledger.prepared.logistics!;
+    if (path.length && path.every(entry => ["process", "workArea", "equipment", "system"].includes(entry.dimension))) {
+      const configured = configuration(path);
+      if (dimension === "equipment" || dimension === "system") {
+        const ids = dimension === "equipment" ? configured.equipmentIds : configured.systemIds;
+        if (ids.length) add(ids);
+      }
+      else if (dimension === "workArea") {
+        const process = path.find(entry => entry.dimension === "process");
+        const instancePath = path.some(entry => entry.dimension === "equipment" || entry.dimension === "system");
+        const equipmentIds = new Set(configured.equipmentIds);
+        // A System reaches an area only through its actual controls relation.
+        for (const systemId of configured.systemIds) for (const equipment of ledger.configuration.equipment) {
+          if (equipment.controlSystems.some(control => control.systemId === systemId) && (!equipmentTypes.length || equipmentTypes.includes(logistics.byInstance.get(JSON.stringify(["equipment", equipment.id]))!.typeCode))) equipmentIds.add(equipment.id);
+        }
+        const membershipAreas = new Set(ledger.configuration.equipmentWorkAreas
+          .filter(row => equipmentIds.has(row.equipmentId) &&
+            (!process || process.id !== null && row.processId === process.id))
+          .map(row => row.workAreaId));
+        const areas = logistics.workAreas.filter(area => (!process || process.id !== null && workAreaBelongsToProcess(area,logistics.byProcess.get(process.id)!)) && (!instancePath || membershipAreas.has(area.id)));
+        add(areas.map(row => row.id));
+        if (configuration([...path, { dimension: "workArea", id: null }]).members.length) add([]);
+      } else if (dimension === "process") {
+        const area = path.find(entry => entry.dimension === "workArea");
+        if (area?.id) add(logistics.processes.filter(process => workAreaBelongsToProcess(logistics.byWorkArea.get(area.id!)!,process)).map(process => process.id));
+        else {
+          for (const member of configured.members) add(member.kind === "equipment" ? [...new Set([...(member.projectProcessId ? [member.projectProcessId] : []), ...ledger.configuration.equipmentWorkAreas.filter(row => row.equipmentId === member.entityId).map(row => row.processId)])] : ledger.configuration.systems.find(row => row.id === member.entityId)!.processIds);
+        }
+      }
+    }
+    if (!path.length) {
+      const registered = equipmentTypes.length ? configuration([]) : undefined;
+      if (registered && dimension === "process") {
+        for (const member of registered.members) add(member.kind === "equipment" ? [...new Set([...(member.projectProcessId ? [member.projectProcessId] : []), ...ledger.configuration.equipmentWorkAreas.filter(row => row.equipmentId === member.entityId).map(row => row.processId)])] : ledger.configuration.systems.find(row => row.id === member.entityId)!.processIds);
+      } else if (dimension === "process") {
+        projected.push(...logistics.processes.map(row => row.id));
+        if (ledger.configuration.systems.some(row => row.scope === "project")) projected.push(null);
+      }
+      if (dimension === "workArea") projected.push(...(registered ? ledger.configuration.equipmentWorkAreas.filter(row => registered.equipmentIds.includes(row.equipmentId)).map(row => row.workAreaId) : logistics.workAreas.map(row => row.id)));
+      if (dimension === "equipment" || dimension === "system") projected.push(...(registered ? dimension === "equipment" ? registered.equipmentIds : registered.systemIds : logistics.instances.filter(row => row.kind === dimension && (!systemSelection || dimension !== "system" || systemIds.includes(row.entityId))).map(row => row.entityId)));
+      if (dimension === "resource") projected.push(...ledger.configuration.resourceMemberships.map(row => row.id));
+      if (dimension === "group") projected.push(...ledger.groupIds);
+      if (dimension === "milestone") projected.push(...ledger.prepared.tasks.filter(row => row.type === "milestone").map(row => row.taskId));
+      if (dimension === "role") projected.push(...ledger.prepared.resources.flatMap(row => row.roles));
+    }
+    const result = [...new Set(projected)].filter(id => path.length || dimension !== "system" || !systemSelection || id !== null && systemIds.includes(id)).sort((a, b) => a === null ? 1 : b === null ? -1 : a.localeCompare(b));
+    if (result.length > WBS_VIEW_LIMITS.fanout) limit();
+    return result;
+  };
+  const selectedPath = input.projection && input.projection.kind !== "report" ? input.projection.path : [];
+  for (let depth = 0; depth < selectedPath.length; depth++) {
+    const entry = selectedPath[depth];
+    if (!stages[depth]?.includes(entry.dimension) || !candidates(selectedPath.slice(0, depth), entry.dimension).includes(entry.id)) unavailable();
+  }
+  const selected = select(selectedPath);
+  const summary = (selection: WbsTaskLedgerSelection, path: WbsViewPathEntry[]) => {
+    const totals = summarizeWbsTaskLedger(ledger, selection);
+    if (restriction?.assignments) totals.diagnostics = getResourceKpiDiagnostics({ ...ledger.prepared, assignments: ledger.prepared.assignments.filter(row => restriction.assignments!.has(row.assignmentId)) }, selection.selection);
+    const { tasks, assignments, relatedMembers, configurationReference, diagnostics, participation } = totals;
+    return { tasks, assignments, relatedMembers, configurationReference: systemSelection || equipmentTypes.length ? configuration(path) : configurationReference, diagnostics, participation };
+  };
+  const build = (path: WbsViewPathEntry[], depth: number): WbsViewNode[] => {
+    if (depth === stages.length) return [];
+    const entries = stages[depth].flatMap(dimension => candidates(path, dimension).map(id => ({ dimension, id })));
+    if (entries.length > WBS_VIEW_LIMITS.fanout || cells + entries.length > WBS_VIEW_LIMITS.cells) limit();
+    cells += entries.length;
+    return entries.map(selector => {
+      const childPath = [...path, selector], selection = select(childPath);
+      const assignments = new Set(selection.assignmentIds);
+      const provenance = selection.rows.map(row => ({ taskId: row.taskId, sources: wbsViewSelectedSources(row, assignments, childPath, input.spec.systemView) }));
+      for (const row of provenance) { sourceRows += row.sources.length; if (sourceRows > WBS_VIEW_LIMITS.sourceRows) limit(); }
+      return { selector, path: childPath, viewRowKey: resourceFingerprint({ projectPublicId: ledger.input.snapshotProjectPublicId, spec: input.spec, path: childPath }), name: selector.id === null ? null : labels.get(JSON.stringify([selector.dimension, selector.id])) ?? selector.id,
+        taskIds: selection.taskIds, assignmentIds: selection.assignmentIds, totals: summary(selection, childPath), provenance, children: build(childPath, depth + 1) };
+    });
+  };
+  return { selected, totals: summary(selected, selectedPath), children: input.projection?.kind === "details" || input.projection?.kind === "scope" ? [] : build([], 0) };
+}

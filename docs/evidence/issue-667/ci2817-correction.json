@@ -1,0 +1,942 @@
+{
+  "schema": "mastergantt-issue667-ci2817-correction-v1",
+  "parentHead": "06d34e77006ef6edcef53a6341bfbf5b4e916e69",
+  "remoteOriginal": {
+    "schema": "mastergantt-issue667-ci2817-safe-analysis-v1",
+    "verdict": "FAIL",
+    "scope": "원본 CI #2817.1의 읽기 분석. 제품 수정·재실행·게시·승인 근거가 아님.",
+    "identity": {
+      "repository": "planner77/masterGantt",
+      "issue": 667,
+      "pr": 695,
+      "runId": 38824812168,
+      "runNumber": 2817,
+      "runAttempt": 1,
+      "event": "pull_request",
+      "conclusion": "failure",
+      "headSha": "06d34e77006ef6edcef53a6341bfbf5b4e916e69",
+      "baseSha": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+      "testMergeSha": "8b4bb4c75988559cc5f938e8f023e4d18b8d41bc",
+      "testMergeTree": "c40fcfbcfc12ce2e76b94da9fc7f40bc380a14c5",
+      "testMergeParents": [
+        "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+        "06d34e77006ef6edcef53a6341bfbf5b4e916e69"
+      ],
+      "mainReadSha": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+      "mainUnchanged": true,
+      "runUrl": "https://github.com/planner77/masterGantt/actions/runs/38824812168",
+      "createdAt": "2026-10-15T23:38:44Z",
+      "updatedAt": "2026-10-15T23:43:48Z"
+    },
+    "provenance": {
+      "sourceArtifact": {
+        "id": 12015021153,
+        "name": "ci-pr-source-38824812168-1",
+        "sha256": "1a8f32f1dbe1ee4f87e0860cf137d7597df3d42f1b15cee6e8242aafc1384e60",
+        "digestVerified": true,
+        "schema": "mastergantt-ci-pr-source-v1",
+        "crossCheckedWithRunPrMetadataAndTestMergeParents": true,
+        "authority": "PR artifact는 비신뢰 입력이며 단독 귀속/승인 근거가 아님."
+      },
+      "reportArtifact": {
+        "id": 12014506859,
+        "name": "playwright-report-shard-1",
+        "sha256": "63de0cfe1fdb8ee26d6caf812e105bb4305e74b41da05393954848c600a86c66",
+        "digestVerified": true,
+        "archiveBytes": 3390099
+      },
+      "archiveExecuted": false,
+      "archiveExtractedToFilesystem": false,
+      "rawHeadersCookiesBodiesLogsPersisted": false
+    },
+    "jobs": {
+      "quality": {
+        "id": 116730713030,
+        "conclusion": "success"
+      },
+      "docker": {
+        "id": 116730953213,
+        "conclusion": "success"
+      },
+      "e2e": {
+        "id": 116731165862,
+        "conclusion": "failure"
+      },
+      "automatedQa": {
+        "id": 116731187259,
+        "conclusion": "failure"
+      },
+      "failedShard": {
+        "id": 116730267339,
+        "name": "Chromium E2E shard 1/6 · PR",
+        "step": 7,
+        "stepName": "E2E shard 실행",
+        "startedAt": "2026-10-15T23:40:42Z",
+        "completedAt": "2026-10-15T23:42:27Z",
+        "stepStartedAt": "2026-10-15T23:41:32Z",
+        "stepCompletedAt": "2026-10-15T23:42:21Z"
+      },
+      "cancelledShardIds": [
+        116730267163,
+        116730267272,
+        116730267178,
+        116730267134,
+        116730267205
+      ],
+      "mainImage": "skipped"
+    },
+    "failure": {
+      "test": "SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic receipt만 만든다",
+      "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+      "declarationLine": 15,
+      "failedLine": 36,
+      "failedColumn": 69,
+      "assertion": "receipt.observation must differ from initialObservation",
+      "initialObservation": 3,
+      "observedObservation": 3,
+      "testReportedSeconds": 10.6,
+      "summary": {
+        "passed": 1,
+        "failed": 1,
+        "skipped": 0,
+        "notRun": 110
+      },
+      "transportErrorAtFailedAssertion": false,
+      "testBudgetIncreased": false,
+      "retryAdded": false,
+      "skipAdded": false
+    },
+    "antecedent": {
+      "file": "tests/e2e/admin-legacy-button-spacing.spec.ts",
+      "line": 6,
+      "title": "Issue #452: empty project CTA and manual-copy dialog keep parent-owned spacing",
+      "reportedSeconds": 1.6,
+      "completedAt": "2026-10-15T23:41:56.6795421Z",
+      "fixture": "테스트마다 별도 격리 process/SQLite/browser context",
+      "viewportChanges": [
+        390,
+        1440
+      ],
+      "sharedApplicationInstanceWithFailingTest": false,
+      "causalLink": "UNKNOWN"
+    },
+    "observations": {
+      "clock": "Playwright trace의 단조 시계 밀리초 값이며 UTC 네트워크 시각과는 별도다.",
+      "clicks": [
+        {
+          "method": "click",
+          "label": "context-menu",
+          "startTime": 42249.631,
+          "callId": "call@115"
+        },
+        {
+          "method": "click",
+          "label": "other",
+          "startTime": 42813.391,
+          "callId": "call@125"
+        },
+        {
+          "method": "click",
+          "label": "reload",
+          "startTime": 43193.518,
+          "callId": "call@144"
+        }
+      ],
+      "receiptReads": [
+        {
+          "attribute": "data-gantt-semantic-projection-receipt",
+          "startTime": 43145.476,
+          "endTime": 43163.697,
+          "value": {
+            "semanticId": 2,
+            "observation": 3,
+            "reused": false
+          }
+        },
+        {
+          "attribute": "data-gantt-semantic-projection-receipt",
+          "startTime": 43171.883,
+          "endTime": 43181.367,
+          "value": {
+            "semanticId": 2,
+            "observation": 3,
+            "reused": false
+          }
+        },
+        {
+          "attribute": "data-gantt-semantic-projection-receipt",
+          "startTime": 43582.503,
+          "endTime": 43611.598,
+          "value": {
+            "semanticId": 2,
+            "observation": 3,
+            "reused": false
+          }
+        },
+        {
+          "attribute": "data-gantt-semantic-projection-receipt",
+          "startTime": 43730.909,
+          "endTime": 43761.266,
+          "value": {
+            "semanticId": 2,
+            "observation": 3,
+            "reused": false
+          }
+        },
+        {
+          "attribute": "data-gantt-semantic-projection-receipt",
+          "startTime": 44030.603,
+          "endTime": 44068.445,
+          "value": {
+            "semanticId": 2,
+            "observation": 3,
+            "reused": false
+          }
+        },
+        {
+          "attribute": "data-gantt-semantic-projection-receipt",
+          "startTime": 44595.71,
+          "endTime": 44655.124,
+          "value": {
+            "semanticId": 2,
+            "observation": 3,
+            "reused": false
+          }
+        },
+        {
+          "attribute": "data-gantt-semantic-projection-receipt",
+          "startTime": 45693.65,
+          "endTime": 45715.996,
+          "value": {
+            "semanticId": 2,
+            "observation": 3,
+            "reused": false
+          }
+        },
+        {
+          "attribute": "data-gantt-semantic-projection-receipt",
+          "startTime": 46729.023,
+          "endTime": 46736.54,
+          "value": {
+            "semanticId": 2,
+            "observation": 3,
+            "reused": false
+          }
+        },
+        {
+          "attribute": "data-gantt-semantic-projection-receipt",
+          "startTime": 47746.196,
+          "endTime": 47753.296,
+          "value": {
+            "semanticId": 2,
+            "observation": 3,
+            "reused": false
+          }
+        }
+      ],
+      "canonicalTransitions": [
+        {
+          "timestamp": 43201.177,
+          "name": null,
+          "values": [
+            {
+              "attribute": "data-gantt-canonical-sync-generation",
+              "value": 3
+            },
+            {
+              "attribute": "data-gantt-canonical-sync-depth",
+              "value": 0
+            },
+            {
+              "attribute": "data-gantt-canonical-recovery",
+              "value": {
+                "outcome": "SETTLED",
+                "changed": false
+              }
+            },
+            {
+              "attribute": "data-gantt-canonical-sync-settled-generation",
+              "value": 3
+            },
+            {
+              "attribute": "data-gantt-projection-receipt",
+              "value": {
+                "generation": 2,
+                "taskSelectionChanged": true,
+                "queryConditionsChanged": false,
+                "revision": 4,
+                "outcome": "SETTLED"
+              }
+            },
+            {
+              "attribute": "data-gantt-semantic-projection-receipt",
+              "value": {
+                "semanticId": 2,
+                "observation": 3,
+                "reused": false
+              }
+            },
+            {
+              "attribute": "data-task-mutation-locked",
+              "value": true
+            }
+          ]
+        },
+        {
+          "timestamp": 43580.492,
+          "name": null,
+          "values": [
+            {
+              "attribute": "data-gantt-canonical-sync-generation",
+              "value": 4
+            },
+            {
+              "attribute": "data-gantt-canonical-sync-depth",
+              "value": 0
+            },
+            {
+              "attribute": "data-gantt-canonical-recovery",
+              "value": {
+                "outcome": "SETTLED",
+                "changed": false
+              }
+            },
+            {
+              "attribute": "data-gantt-canonical-sync-settled-generation",
+              "value": 4
+            },
+            {
+              "attribute": "data-gantt-projection-receipt",
+              "value": {
+                "generation": 2,
+                "taskSelectionChanged": true,
+                "queryConditionsChanged": false,
+                "revision": 4,
+                "outcome": "SETTLED"
+              }
+            },
+            {
+              "attribute": "data-gantt-semantic-projection-receipt",
+              "value": {
+                "semanticId": 2,
+                "observation": 3,
+                "reused": false
+              }
+            },
+            {
+              "attribute": "data-task-mutation-locked",
+              "value": true
+            }
+          ]
+        },
+        {
+          "timestamp": 47759.966,
+          "name": null,
+          "values": [
+            {
+              "attribute": "data-gantt-canonical-sync-generation",
+              "value": 4
+            },
+            {
+              "attribute": "data-gantt-canonical-sync-depth",
+              "value": 0
+            },
+            {
+              "attribute": "data-gantt-canonical-recovery",
+              "value": {
+                "outcome": "SETTLED",
+                "changed": false
+              }
+            },
+            {
+              "attribute": "data-gantt-canonical-sync-settled-generation",
+              "value": 4
+            },
+            {
+              "attribute": "data-gantt-projection-receipt",
+              "value": {
+                "generation": 2,
+                "taskSelectionChanged": true,
+                "queryConditionsChanged": false,
+                "revision": 4,
+                "outcome": "SETTLED"
+              }
+            },
+            {
+              "attribute": "data-gantt-semantic-projection-receipt",
+              "value": {
+                "semanticId": 2,
+                "observation": 3,
+                "reused": false
+              }
+            },
+            {
+              "attribute": "data-task-mutation-locked",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "canonicalGet": {
+        "method": "GET",
+        "route": "/api/projects/[publicId]",
+        "status": 200,
+        "startedDateTime": "2026-10-15T23:42:15.579Z",
+        "durationMs": 96.375
+      },
+      "seed": {
+        "projectPost": 201,
+        "taskPosts": [
+          201,
+          201,
+          201
+        ],
+        "canonicalGet": 200
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "snapshotFirstMs": 40715.817,
+        "snapshotLastMs": 47759.966,
+        "changedInRecordedSnapshots": false
+      },
+      "recordedFrameAndAncestors": {
+        "hiddenAttribute": false,
+        "inertAttribute": false,
+        "ancestorCount": 10,
+        "computedVisibilityAndPhysicalGeometry": "NOT OBSERVED"
+      },
+      "directLateCoreSelectOrLayoutEvents": "NOT OBSERVED",
+      "newDeliveredSemanticReceiptAfterCanonicalNoopCompletion": false
+    },
+    "conclusion": {
+      "known": "HTTP200와 U2 canonical sync generation3→4/settled3→4/depth0/SETTLED changed=false 뒤에도 U3 receipt generation2/revision4, semanticId2/observation3이 유지되어 SC-01이 FAIL.",
+      "unknown": [
+        "새 U3 관측이 예약되지 않았는지, 예약 후 취소·timeout·전달 guard에서 폐기됐는지는 원본 trace만으로 구분 불가.",
+        "ResizeObserver/Core 이벤트·actual geometry·worker heap/CPU는 해당 전이에 직접 계측되지 않음.",
+        "계산된 CSS visibility와 DOM 물리 geometry는 hidden/inert 속성 부재로 증명할 수 없음.",
+        "선행 테스트 또는 runner CPU와의 인과관계는 미확정."
+      ],
+      "previousFailures": {
+        "ci2811": "receipt/bridge 계층은 관련되지만 visibility PEER_RETURN의 STALE_PROJECTION 원인이 재발했다는 증거 없음.",
+        "ci2812": "첫 Milestone 축 역전/UNKNOWN 삭제 복구와 실패 trigger가 다름.",
+        "ci2813": "DEV start-null 날짜 계산 예외가 아님.",
+        "ci2814": "ECONNRESET 재발이 아님. 이번 reload GET은 HTTP200."
+      },
+      "seedOrProbeFatalCause": "원본 seed/확인 HTTP는 성공했으며 실패 지점에 치명적 전송·startup 예외 증거 없음. 전체 환경 정상 또는 원인 배제로 확대하지 않음."
+    },
+    "actions": {
+      "sourceEdits": false,
+      "documentationEdits": false,
+      "githubWrites": false,
+      "newCiRuns": false,
+      "comments": false,
+      "publish": false,
+      "merge": false,
+      "release": false,
+      "localOutputOnly": "output/playwright/issue-667/ci2817-remote-analysis.json"
+    },
+    "issueLogType": "EXCEPTION",
+    "issueLogSummary": "CI #2817.1의 SC-01 same-Revision Editor reload에서 U2 no-op 완료 뒤 U3 새 semantic observation이 전달되지 않아 E2E FAIL. 기존 전송/축/삭제 실패와 구분하고 원인 guard·관측 취소 경계는 추가 분석 중.",
+    "decisionRequired": false
+  },
+  "diagnosis": {
+    "remoteRootCause": "UNKNOWN",
+    "confirmed": "GET200/U2 SETTLED changed=false 이후 새 U3 관측 완료/영수증 재전달 미확인",
+    "codeBoundary": "선택/open/layout 관측의 직접 실행 및 canonical sync 중 layout 요청 유실; 최신 data queue 대기/요청 합산으로 보완",
+    "causalReproduction": "NOT REPRODUCED: 원격 직접 원인과 code boundary의 인과관계는 미확정",
+    "unchanged": [
+      "SC-01 새 observation/semantic reuse/Core 쓰기0 단언",
+      "관측/test timeout",
+      "runner retries/skip",
+      "CI 6-shard/required gates",
+      "API/DB/authorization/UNKNOWN/viewport writer"
+    ],
+    "independentFinding": {
+      "severity": "P2",
+      "scope": "새 helper 오류경계; 원격 실패 원인 아님",
+      "before": "current reader 예외 후 old queue waiter가 fresh queue를 따라가 [[fresh],[]] 두 관측 실행",
+      "correction": "실패/cleanup에서 drain token 폐기, 이전 waiter callback은 무시",
+      "regression": "오류 뒤 후속 명시 요청1회/빈 관측0의 결정적 Unit"
+    }
+  },
+  "local": {
+    "status": "PASS",
+    "originalSc01": {
+      "standalonePassed": 1,
+      "separateRepeatedPassed": 3,
+      "remoteFailureReproduced": false
+    },
+    "final": {
+      "scope": "FINAL_FROZEN_LOCAL_FAST_FEEDBACK",
+      "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/canonical-projection.spec.ts tests/e2e/gantt-state-recovery-editor.spec.ts tests/e2e/viewport-coordinator.spec.ts tests/e2e/milestone-dashboard-state.spec.ts --workers=1 --retries=0 --max-failures=0",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "6cb61c802cfe6a4f5d485e44feb2698b86b6eedd6f62427cc55d2c0eee02c53a",
+        "src/features/gantt/projection-observation-scheduler.ts": "98982eea18a08eaea52a40684e7b902da4eda0c33998d3b18349e869614ab0f0",
+        "tests/features/gantt/projection-observation-scheduler.test.ts": "ab9515ea7179f5a3c2f6e344f8ac0a014d65bc3a4ca060e16e77e0f36b05312a"
+      },
+      "exitCode": 0,
+      "durationMs": 141619.053,
+      "stats": {
+        "total": 40,
+        "expected": 40,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "globalErrors": 0,
+      "cases": [
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 metadata projection 390px Day",
+          "status": "expected",
+          "durationMs": 2600,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 metadata projection 390px Week",
+          "status": "expected",
+          "durationMs": 1725,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 metadata projection 768px Day",
+          "status": "expected",
+          "durationMs": 1811,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 metadata projection 768px Week",
+          "status": "expected",
+          "durationMs": 1814,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 metadata projection 1024px Day",
+          "status": "expected",
+          "durationMs": 1800,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 metadata projection 1024px Week",
+          "status": "expected",
+          "durationMs": 1838,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 metadata projection 1440px Day",
+          "status": "expected",
+          "durationMs": 1939,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 metadata projection 1440px Week",
+          "status": "expected",
+          "durationMs": 1869,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 metadata projection 1920px Day",
+          "status": "expected",
+          "durationMs": 1844,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 metadata projection 1920px Week",
+          "status": "expected",
+          "durationMs": 1836,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 actual Core structure insert-before",
+          "status": "expected",
+          "durationMs": 2090,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 actual Core structure surviving-child-root",
+          "status": "expected",
+          "durationMs": 2219,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 actual Core structure surviving-child-new-parent",
+          "status": "expected",
+          "durationMs": 2195,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 actual Core structure new-parent-mixed-children",
+          "status": "expected",
+          "durationMs": 2175,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 readonly projection empty",
+          "status": "expected",
+          "durationMs": 1131,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 readonly projection milestone-only",
+          "status": "expected",
+          "durationMs": 1138,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 nested Summary filter, empty results and Day/Week retain native membership",
+          "status": "expected",
+          "durationMs": 1697,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 scale-only restores resized columns once without resetting definitions",
+          "status": "expected",
+          "durationMs": 1657,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 passive reparent keeps its existing target Summary collapsed",
+          "status": "expected",
+          "durationMs": 2409,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 query receipt is consumed before later tree and selection observations",
+          "status": "expected",
+          "durationMs": 1893,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "canonical-projection.spec.ts",
+          "title": "#570 filters and scale retain empty Summary containers without opening leaves",
+          "status": "expected",
+          "durationMs": 2766,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "gantt-state-recovery-editor.spec.ts",
+          "title": "SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic receipt만 만든다",
+          "status": "expected",
+          "durationMs": 3313,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "gantt-state-recovery-editor.spec.ts",
+          "title": "SC-05 Editor commit 뒤 500·GET 실패는 초안을 보존하고 명시 재조회로만 복구한다",
+          "status": "expected",
+          "durationMs": 4389,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "gantt-state-recovery-editor.spec.ts",
+          "title": "SC-09 실제 edit 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다",
+          "status": "expected",
+          "durationMs": 4396,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "gantt-state-recovery-editor.spec.ts",
+          "title": "SC-09 실제 add 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다",
+          "status": "expected",
+          "durationMs": 4177,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "milestone-dashboard-state.spec.ts",
+          "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+          "status": "expected",
+          "durationMs": 4063,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "milestone-dashboard-state.spec.ts",
+          "title": "#463 request reversal, stale error and explicit retry preserve filters",
+          "status": "expected",
+          "durationMs": 1443,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "milestone-dashboard-state.spec.ts",
+          "title": "#463 server date authority, bounded day refresh and same-day catalog catch-up",
+          "status": "expected",
+          "durationMs": 1812,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "milestone-dashboard-state.spec.ts",
+          "title": "#463 shared multi-selection, null conversion and canonical/catalog invalidation",
+          "status": "expected",
+          "durationMs": 1888,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "milestone-dashboard-state.spec.ts",
+          "title": "#463 aborted request to cached query still permits focus catch-up",
+          "status": "expected",
+          "durationMs": 1550,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "milestone-dashboard-state.spec.ts",
+          "title": "#463 public viewport and native scroll survive peer/layout, stale restore is consumed",
+          "status": "expected",
+          "durationMs": 2992,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "milestone-dashboard-state.spec.ts",
+          "title": "#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다",
+          "status": "expected",
+          "durationMs": 2154,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "viewport-coordinator.spec.ts",
+          "title": "#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다",
+          "status": "expected",
+          "durationMs": 3595,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "viewport-coordinator.spec.ts",
+          "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 wheel 의도 뒤 재개하지 않는다",
+          "status": "expected",
+          "durationMs": 3074,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "viewport-coordinator.spec.ts",
+          "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 keyboard 의도 뒤 재개하지 않는다",
+          "status": "expected",
+          "durationMs": 2858,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "viewport-coordinator.spec.ts",
+          "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 transient-modal 의도 뒤 재개하지 않는다",
+          "status": "expected",
+          "durationMs": 3150,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "viewport-coordinator.spec.ts",
+          "title": "#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다",
+          "status": "expected",
+          "durationMs": 2688,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "viewport-coordinator.spec.ts",
+          "title": "#571 delayed native add preserves unmodified viewport",
+          "status": "expected",
+          "durationMs": 4318,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "viewport-coordinator.spec.ts",
+          "title": "#571 delayed native add actual wheel cancels captured restore",
+          "status": "expected",
+          "durationMs": 4413,
+          "retries": [
+            0
+          ]
+        },
+        {
+          "file": "viewport-coordinator.spec.ts",
+          "title": "SC-09 실제 축 확장 관측 중 wheel은 이전 위치 복원과 후속 쓰기를 취소한다",
+          "status": "expected",
+          "durationMs": 1703,
+          "retries": [
+            0
+          ]
+        }
+      ],
+      "rawHtml": "output/playwright/issue-667/ci2817-final-selected-40-frozen/playwright-report/index.html",
+      "unit": {
+        "files": 3,
+        "passed": 71,
+        "failed": 0,
+        "pending": 0,
+        "exitCode": 0,
+        "report": "output/playwright/issue-667/ci2817-final-unit.json"
+      },
+      "otherRuns": [
+        {
+          "archive": "ci2817-editor-original",
+          "scope": "BASELINE_1_PASS"
+        },
+        {
+          "archive": "ci2817-editor-repeat-original",
+          "scope": "BASELINE_3_PASS"
+        },
+        {
+          "archive": "ci2817-editor-diagnostics",
+          "scope": "INTERMEDIATE_NOT_FINAL"
+        },
+        {
+          "archive": "ci2817-editor-scheduled",
+          "scope": "INTERMEDIATE_NOT_FINAL"
+        },
+        {
+          "archive": "ci2817-editor-final",
+          "scope": "INTERMEDIATE_NOT_FINAL"
+        },
+        {
+          "archive": "ci2817-final-selected-40",
+          "scope": "INTERRUPTED_NOT_TESTED"
+        }
+      ],
+      "remoteCause": "UNKNOWN",
+      "originalRemoteFailurePreserved": true,
+      "remoteNewHead": "NOT TESTED"
+    },
+    "scope": "최종 동결 source의 선택 Local Fast Feedback; 원격 전체 회귀가 아님",
+    "static": {
+      "typecheck": "PASS",
+      "scopedLintErrors": 0,
+      "existingHookWarnings": 3,
+      "unitCommand": "npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/projection-observation-scheduler.test.ts tests/features/gantt/projection-observation.test.ts tests/features/gantt/product-consistency.test.ts --reporter=json",
+      "unitReport": "output/playwright/issue-667/ci2817-final-unit.json"
+    }
+  },
+  "independentReview": {
+    "reviewer": "/root/integration_tests",
+    "preQa": "PASS",
+    "documentationSync": "PASS",
+    "qaFinal": "NOT TESTED",
+    "scope": "12게시파일/3source 및 선택 Local Fast Feedback의 독립 의미 검토",
+    "findingsOpen": 0,
+    "htmlPerCaseMatches": 40,
+    "sourceFingerprintMatch": true,
+    "independentHelperTests": 11,
+    "independentTestsAddedToImplementerCount": false
+  },
+  "nextHeadGates": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "mergeReady": "BLOCKED"
+  },
+  "scope": {
+    "newPrCiStart": true,
+    "ciCompletionMonitoring": false,
+    "merge": false,
+    "releaseAuthorized": false
+  },
+  "source": {
+    "parentHead": "06d34e77006ef6edcef53a6341bfbf5b4e916e69",
+    "files": {
+      "src/features/gantt/project-gantt.tsx": "6cb61c802cfe6a4f5d485e44feb2698b86b6eedd6f62427cc55d2c0eee02c53a",
+      "src/features/gantt/projection-observation-scheduler.ts": "98982eea18a08eaea52a40684e7b902da4eda0c33998d3b18349e869614ab0f0",
+      "tests/features/gantt/projection-observation-scheduler.test.ts": "ab9515ea7179f5a3c2f6e344f8ac0a014d65bc3a4ca060e16e77e0f36b05312a"
+    },
+    "fingerprint": "677f27b6e682eb7214d463aba603c14c82ca35bf8c57334c5f25c128281c6a71"
+  },
+  "documentationChecks": {
+    "markdownFiles": 228,
+    "markdown": "PASS",
+    "version": "0.114.1",
+    "versionConsistency": "PASS",
+    "whitespace": "PASS",
+    "historicalEvidenceFilesUnchanged": 5
+  }
+}

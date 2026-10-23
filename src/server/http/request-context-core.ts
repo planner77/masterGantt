@@ -12,6 +12,13 @@ export interface RequestContext {
   route: string;
   startedAt: number;
   logger: StructuredLogger;
+  sqlMetrics?: SqlRequestMetrics;
+}
+
+export interface SqlRequestMetrics {
+  calls: number;
+  executionMs: number;
+  errors: number;
 }
 
 export interface ApiRequestLoggingOptions {
@@ -20,6 +27,8 @@ export interface ApiRequestLoggingOptions {
   logger?: StructuredLogger;
   now?: () => number;
   requestId?: () => string;
+  /** Isolated test use only; never enabled for normal production requests. */
+  observeSqlMetrics?: boolean;
 }
 
 const requestContext = new AsyncLocalStorage<RequestContext>();
@@ -73,7 +82,16 @@ export async function withApiRequestLogging(
     route: options.route,
     startedAt: now(),
     logger,
+    ...((options.observeSqlMetrics === true ||
+      (process.env.NODE_ENV === "development" && process.env.ISSUE_751_SQL_METRICS === "true"))
+      ? { sqlMetrics: { calls: 0, executionMs: 0, errors: 0 } } : {}),
   };
+
+  const sqlFields = () => context.sqlMetrics ? {
+    sqlStatementCount: context.sqlMetrics.calls,
+    sqlExecutionMs: Math.round(context.sqlMetrics.executionMs * 100) / 100,
+    sqlErrorCount: context.sqlMetrics.errors,
+  } : {};
 
   return requestContext.run(context, async () => {
     try {
@@ -87,6 +105,7 @@ export async function withApiRequestLogging(
           route: options.route,
           status: response.status,
           durationMs: Math.max(0, now() - context.startedAt),
+          ...sqlFields(),
         });
       }
       return response;
@@ -96,6 +115,7 @@ export async function withApiRequestLogging(
         method: request.method,
         route: options.route,
         durationMs: Math.max(0, now() - context.startedAt),
+        ...sqlFields(),
         errorType: error instanceof Error ? error.name : typeof error,
       });
       throw error;

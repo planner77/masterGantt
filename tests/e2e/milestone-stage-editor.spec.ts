@@ -2,35 +2,58 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
+import { openMilestoneEditor } from "./helpers/milestone-ui";
 
 test.use(isolatedApplicationOptions);
 
-test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개·geometry", async ({ page, baseURL }) => {
+test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개·geometry", async ({ page, baseURL, observeIsolatedApi }) => {
   test.setTimeout(180_000);
   const origin = baseURL!;
-  const created = await page.request.post("/api/projects", { headers: { Origin: origin }, data: { name: "Stage Editor #461", description: "실제 SQLite Editor", ownerName: "E2E 자동화", editPassword: "Stage461!" } });
+  const apiRequest = {
+    get: (path: string, options?: Parameters<typeof page.request.get>[1]) => observeIsolatedApi(path, "GET", () => page.request.get(path, options)),
+    post: (path: string, options?: Parameters<typeof page.request.post>[1]) => observeIsolatedApi(path, "POST", () => page.request.post(path, options)),
+    patch: (path: string, options?: Parameters<typeof page.request.patch>[1]) => observeIsolatedApi(path, "PATCH", () => page.request.patch(path, options)),
+  };
+  const created = await apiRequest.post("/api/projects", { headers: { Origin: origin }, data: { name: "Stage Editor #461", description: "실제 SQLite Editor", ownerName: "E2E 자동화", editPassword: "Stage461!" } });
   expect(created.status()).toBe(201);
   const publicId = (await created.json()).data.project.publicId as string;
   const api = `/api/projects/${publicId}`;
-  const get = async () => (await (await page.request.get(api)).json()) as ProjectSnapshotResponse;
+  // #680: preserve the observer's transport diagnostic for the first
+  // ECONNRESET before retrying this read-only GET once. Never retry writes,
+  // HTTP error responses, or non-transport failures.
+  const get = async (): Promise<ProjectSnapshotResponse> => {
+    let response: Awaited<ReturnType<typeof page.request.get>>;
+    try {
+      response = await apiRequest.get(api);
+    } catch (error) {
+      if (!(error instanceof Error) || !/\bECONNRESET\b/.test(error.message)) throw error;
+      // observeIsolatedApi already recorded the failed read and captured its
+      // health/process/cgroup evidence before propagating the error.
+      response = await apiRequest.get(api);
+    }
+    expect(response.status()).toBe(200);
+    return (await response.json()) as ProjectSnapshotResponse;
+  };
   let snapshot = await get();
   const headers = () => ({ Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` });
   const add = async (name: string, type: ProjectTaskDto["type"], parentTaskId?: string) => {
-    const response = await page.request.post(`${api}/tasks`, { headers: headers(), data: type === "summary" ? { name, type, parentTaskId } : { name, type, start: "2026-10-05", duration: type === "milestone" ? 0 : 2, progress: 0, parentTaskId } });
+    const response = await apiRequest.post(`${api}/tasks`, { headers: headers(), data: type === "summary" ? { name, type, parentTaskId } : { name, type, start: "2026-10-05", duration: type === "milestone" ? 0 : 2, progress: 0, parentTaskId } });
     expect(response.status()).toBe(201); const value = await response.json() as TaskMutationResponse; snapshot = { data: { ...value.data, permission: "edit" } }; return value.data.tasks.filter((task) => task.name === name).at(-1)!;
   };
   const m1 = await add("설계 Milestone 긴 한글 English milestone alpha", "milestone"), m2 = await add("설계 Milestone 긴 한글 English milestone alpha", "milestone");
   const summary = await add("Summary 기본 단계", "summary"), child = await add("Inherited child", "task", summary.taskId), override = await add("Override child", "task", summary.taskId);
   for (let index = 0; index < 18; index++) await add(`미지정 후보 ${index} 긴 한글 English extraordinary task identity`, "task");
-  const assign = await page.request.post(`${api}/milestone-memberships`, { headers: headers(), data: { changes: [{ taskId: summary.taskId, milestoneTaskId: m1.taskId }, { taskId: override.taskId, milestoneTaskId: m2.taskId }] } });
+  const assign = await apiRequest.post(`${api}/milestone-memberships`, { headers: headers(), data: { changes: [{ taskId: summary.taskId, milestoneTaskId: m1.taskId }, { taskId: override.taskId, milestoneTaskId: m2.taskId }] } });
   expect(assign.status()).toBe(200); snapshot = await get();
-  const dependency = await page.request.post(`${api}/links`, { headers: headers(), data: { predecessorExternalId: m1.externalId, successorExternalId: m2.externalId, type: "FS", lag: 0 } }); expect(dependency.status()).toBe(201); snapshot = await get();
+  const dependency = await apiRequest.post(`${api}/links`, { headers: headers(), data: { predecessorExternalId: m1.externalId, successorExternalId: m2.externalId, type: "FS", lag: 0 } }); expect(dependency.status()).toBe(201); snapshot = await get();
   await page.setViewportSize({ width: 1440, height: 844 });
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const frame = page.locator(".project-gantt-frame"), instance = await frame.getAttribute("data-project-gantt-instance");
   const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true });
   const open = async (taskId: string) => {
+    if ([m1.taskId, m2.taskId].includes(taskId)) { await openMilestoneEditor(page, taskId); return; }
+    await page.getByRole("tab", { name: "일정", exact: true }).click();
     const row = page.locator(`.project-gantt-widget .wx-table-container .wx-row[data-id=":${taskId}"]`).first();
     await row.click({ button: "right" }); await chooseTaskInformation(page); await expect(dialog).toBeVisible();
   };
@@ -74,11 +97,11 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
   await dialog.getByRole("button", { name: "저장", exact: true }).click();
   await expect(dialog).toContainText("완료 조건");
   snapshot = await get(); const rollback = snapshot;
-  const refused = await page.request.post(`${api}/milestone-memberships`, { headers: headers(), data: { changes: [{ taskId: summary.taskId, milestoneTaskId: m1.taskId }, { taskId: m1.taskId, milestoneTaskId: m2.taskId }] } });
+  const refused = await apiRequest.post(`${api}/milestone-memberships`, { headers: headers(), data: { changes: [{ taskId: summary.taskId, milestoneTaskId: m1.taskId }, { taskId: m1.taskId, milestoneTaskId: m2.taskId }] } });
   expect(refused.status()).toBe(409); expect(await get()).toEqual(rollback);
   await dialog.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   await dialog.getByRole("button", { name: "변경사항 버리고 닫기", exact: true }).click();
-  for (const member of [child, override]) { const response = await page.request.patch(`${api}/tasks/${member.taskId}`, { headers: headers(), data: { status: "completed" } }); expect(response.status()).toBe(200); snapshot = await get(); }
+  for (const member of [child, override]) { const response = await apiRequest.patch(`${api}/tasks/${member.taskId}`, { headers: headers(), data: { status: "completed" } }); expect(response.status()).toBe(200); snapshot = await get(); }
   await page.reload(); await open(m2.taskId);
   const currentInstance = await frame.getAttribute("data-project-gantt-instance");
   await expect(dialog).toContainText("소속 작업 진척 100%");
@@ -100,13 +123,22 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
   await dialog.getByRole("tab", { name: /소속 작업/ }).click();
   await dialog.getByRole("combobox", { name: "소속 상태", exact: true }).selectOption("all");
   const metrics = [];
+  // Copy actions in the collapsed raw-ID disclosures must be present in the DOM
+  // but invisible until intentionally expanded, even in edit mode.
+  const hiddenIdentityActions = dialog.locator('#task-editor-panel-memberships tbody details:not([open]) button');
+  expect(await hiddenIdentityActions.count()).toBeGreaterThan(0);
+  await expect(hiddenIdentityActions.first()).toBeHidden();
   await mkdir("output/playwright/issue-461", { recursive: true });
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 844 });
     const tab = dialog.getByRole("tab", { name: /소속 작업/ }); await tab.focus(); await tab.press("End"); await expect(dialog.getByRole("tab", { name: /물류 연결/ })).toBeFocused();
     await dialog.getByRole("tab", { name: /물류 연결/ }).press("Home"); await expect(dialog.getByRole("tab", { name: "작업 정보", exact: true })).toBeFocused();
     await dialog.getByRole("tab", { name: "작업 정보", exact: true }).press("ArrowRight"); await expect(tab).toBeFocused();
-    const measure = await dialog.evaluate((element) => { const bounds = element.getBoundingClientRect(); const table = element.querySelector("table")!; const scroll = table.parentElement!; const tabs = element.querySelector<HTMLElement>('[role="tablist"]')!, selectedTab = element.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')!, tabBounds = selectedTab.getBoundingClientRect(), ownerBounds = tabs.getBoundingClientRect(), tabStyle = getComputedStyle(selectedTab), outset = Math.max(0, parseFloat(tabStyle.outlineWidth) + parseFloat(tabStyle.outlineOffset)); const headers = Array.from(table.querySelectorAll("thead th"), (cell) => cell.getBoundingClientRect()); const cells = Array.from(table.querySelectorAll("tbody tr:first-child td"), (cell) => cell.getBoundingClientRect()); const control = table.querySelector<HTMLElement>("tbody tr:first-child td button")!.getBoundingClientRect(); const allControls = Array.from(table.querySelectorAll<HTMLButtonElement>("tbody td button"), (button) => { const control = button.getBoundingClientRect(), cell = button.closest("td")!.getBoundingClientRect(); return { control: { left: control.left, right: control.right, top: control.top, bottom: control.bottom }, cell: { left: cell.left, right: cell.right, top: cell.top, bottom: cell.bottom }, column: button.closest("td")!.cellIndex }; }); const filterControls = Array.from(element.querySelectorAll<HTMLInputElement | HTMLSelectElement>('#task-editor-panel-memberships input, #task-editor-panel-memberships select'), (control) => control.getBoundingClientRect()); return { documentWidth: document.documentElement.scrollWidth, viewport: innerWidth, dialogWidth: bounds.width, tableWidth: table.getBoundingClientRect().width, tableScrollWidth: scroll.scrollWidth, tableClientWidth: scroll.clientWidth, tableColumnsAligned: headers.every((header, index) => Math.abs(header.left - cells[index].left) <= 1 && Math.abs(header.width - cells[index].width) <= 1), siblingCellsNonOverlapping: cells.every((cell, index) => index === 0 || cells[index - 1].right <= cell.left + 1), firstControlContainedInCell: control.left >= cells[0].left && control.right <= cells[0].right, allControlsContainedInCells: allControls.every(({ control, cell }) => control.left >= cell.left && control.right <= cell.right && control.top >= cell.top && control.bottom <= cell.bottom), allSiblingControlsNonOverlapping: allControls.every(({ control }, index) => allControls.slice(index + 1).every(({ control: other }) => control.right <= other.left || other.right <= control.left || control.bottom <= other.top || other.bottom <= control.top)), commandControlCount: allControls.filter(({ column }) => column === 5).length, allControlBounds: allControls, filterControlsNonOverlapping: filterControls.every((control, index) => index === 0 || control.top >= filterControls[index - 1].bottom || control.left >= filterControls[index - 1].right), tabsScrollHeight: tabs.scrollHeight, tabsClientHeight: tabs.clientHeight, focusedTabOutlineVisible: tabBounds.left - outset >= ownerBounds.left && tabBounds.right + outset <= ownerBounds.right && tabBounds.top - outset >= ownerBounds.top && tabBounds.bottom + outset <= ownerBounds.bottom, tabVisible: (() => { const selected = element.querySelector('[role="tab"][aria-selected="true"]')!.getBoundingClientRect(); return selected.left >= bounds.left && selected.right <= bounds.right; })() }; });
+    const measure = await dialog.evaluate((element) => { const bounds = element.getBoundingClientRect(); const table = element.querySelector("table")!; const scroll = table.parentElement!; const tabs = element.querySelector<HTMLElement>('[role="tablist"]')!, selectedTab = element.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')!, tabBounds = selectedTab.getBoundingClientRect(), ownerBounds = tabs.getBoundingClientRect(), tabStyle = getComputedStyle(selectedTab), outset = Math.max(0, parseFloat(tabStyle.outlineWidth) + parseFloat(tabStyle.outlineOffset)); const headers = Array.from(table.querySelectorAll("thead th"), (cell) => cell.getBoundingClientRect()); const cells = Array.from(table.querySelectorAll("tbody tr:first-child td"), (cell) => cell.getBoundingClientRect()); const rendered = (node: HTMLElement) => { const box = node.getBoundingClientRect(); return node.checkVisibility() && box.width > 0 && box.height > 0; }; const firstVisible = Array.from(table.querySelectorAll<HTMLButtonElement>("tbody tr:first-child td button")).find(rendered); if (!firstVisible) throw Error("첫 소속 작업에 표시된 버튼이 없습니다."); const control = firstVisible.getBoundingClientRect(); const allControls = Array.from(table.querySelectorAll<HTMLButtonElement>("tbody td button")).filter(rendered).map((button) => { const control = button.getBoundingClientRect(), cell = button.closest("td")!.getBoundingClientRect(); return { control: { left: control.left, right: control.right, top: control.top, bottom: control.bottom }, cell: { left: cell.left, right: cell.right, top: cell.top, bottom: cell.bottom }, column: button.closest("td")!.cellIndex }; }); const filterControls = Array.from(element.querySelectorAll<HTMLInputElement | HTMLSelectElement>('#task-editor-panel-memberships input, #task-editor-panel-memberships select'), (control) => control.getBoundingClientRect()); return { hiddenDisclosureButtons: table.querySelectorAll("tbody details:not([open]) button").length, documentWidth: document.documentElement.scrollWidth, viewport: innerWidth, dialogWidth: bounds.width, tableWidth: table.getBoundingClientRect().width, tableScrollWidth: scroll.scrollWidth, tableClientWidth: scroll.clientWidth, tableColumnsAligned: headers.every((header, index) => Math.abs(header.left - cells[index].left) <= 1 && Math.abs(header.width - cells[index].width) <= 1), siblingCellsNonOverlapping: cells.every((cell, index) => index === 0 || cells[index - 1].right <= cell.left + 1), firstControlContainedInCell: control.left >= cells[0].left && control.right <= cells[0].right, allControlsContainedInCells: allControls.every(({ control, cell }) => control.left >= cell.left && control.right <= cell.right && control.top >= cell.top && control.bottom <= cell.bottom), allSiblingControlsNonOverlapping: allControls.every(({ control }, index) => allControls.slice(index + 1).every(({ control: other }) => control.right <= other.left || other.right <= control.left || control.bottom <= other.top || other.bottom <= control.top)), commandControlCount: allControls.filter(({ column }) => column === 5).length, allControlBounds: allControls, filterControlsNonOverlapping: filterControls.every((control, index) => index === 0 || control.top >= filterControls[index - 1].bottom || control.left >= filterControls[index - 1].right), tabsScrollHeight: tabs.scrollHeight, tabsClientHeight: tabs.clientHeight, focusedTabOutlineVisible: tabBounds.left - outset >= ownerBounds.left && tabBounds.right + outset <= ownerBounds.right && tabBounds.top - outset >= ownerBounds.top && tabBounds.bottom + outset <= ownerBounds.bottom, tabVisible: (() => { const selected = element.querySelector('[role="tab"][aria-selected="true"]')!.getBoundingClientRect(); return selected.left >= bounds.left && selected.right <= bounds.right; })() }; });
+    // Save the actual failed width's measurements in the Playwright artifact
+    // before asserting, instead of losing this diagnostic on first failure.
+    await test.info().attach(`issue-461-membership-geometry-${width}`, { body: JSON.stringify({ width, ...measure }, null, 2), contentType: "application/json" });
+    expect(measure.hiddenDisclosureButtons).toBeGreaterThan(0);
     expect(measure.documentWidth).toBeLessThanOrEqual(width); expect(measure.tableWidth).toBeGreaterThanOrEqual(960); expect(measure.tabVisible).toBe(true); expect(measure.tableColumnsAligned).toBe(true); expect(measure.siblingCellsNonOverlapping).toBe(true); expect(measure.firstControlContainedInCell).toBe(true); expect(measure.allControlsContainedInCells).toBe(true); expect(measure.allSiblingControlsNonOverlapping).toBe(true); expect(measure.commandControlCount).toBeGreaterThan(0); expect(measure.filterControlsNonOverlapping).toBe(true); expect(measure.tabsScrollHeight).toBeLessThanOrEqual(measure.tabsClientHeight + 1); expect(measure.focusedTabOutlineVisible).toBe(true); metrics.push({ width, ...measure });
     await page.screenshot({ path: `output/playwright/issue-461/memberships-${width}.png` });
   }

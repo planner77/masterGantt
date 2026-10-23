@@ -1,4 +1,7 @@
 "use client";
+import { ContextHelp } from "@/components/ui/context-help";
+
+import { IdentifierDetails } from "@/components/identifier-details";
 import { useResourceDrill } from "./resource-drill-context";
 import { resourceProjectionFetch } from "./resource-drill-transport";
 import {
@@ -258,16 +261,13 @@ export function ResourceMilestoneMatrix(props: Props) {
             {rows.slice(rowOffset, rowOffset + 50).map((row) => (
               <tr key={row.id ?? "ungrouped"}>
                 <th scope="row">
-                  <span
-                    className="resource-milestone-identity"
-                    title={row.name}
-                  >
-                    {row.name}
-                  </span>
-                  <small>
-                    {row.code}
-                    {!row.active ? " · 비활성" : ""}
-                  </small>
+                  <div className="resource-milestone-matrix-identity">
+                    <span className="resource-milestone-identity" title={row.name}>
+                      {row.name}
+                    </span>
+                    {row.id ? <IdentifierDetails label="식별 정보" identifiers={[{label: "ID", value: row.id}, ...(row.code ? [{label: "코드", value: row.code}] : [])]} /> : null}
+                  </div>
+                  {!row.active ? <small>비활성</small> : null}
                 </th>
                 {visible.map((m) => (
                   <td key={m.id ?? "unassigned"}>
@@ -335,10 +335,6 @@ export function ResourceMilestoneTree(
       }}
     >
       <section aria-label="Milestone 계층 현황">
-        <p className="resource-dashboard-hint">
-          현재 표시에서 최대 12개 계층을 펼칩니다. 페이지 밖 펼침과 페이지
-          위치는 보존되며 집계 범위는 바뀌지 않습니다.
-        </p>
         <button
           type="button"
           className="secondary-button"
@@ -346,6 +342,7 @@ export function ResourceMilestoneTree(
         >
           계층 모두 접기
         </button>
+        <ContextHelp label="Milestone 계층 도움말"><p>현재 표시에서 최대 12개 계층을 펼칩니다. 페이지 밖 펼침과 페이지 위치는 보존되며 집계 범위는 바뀌지 않습니다.</p></ContextHelp>
         <Pager
           label="상위 행"
           offset={offset}

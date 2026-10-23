@@ -1,0 +1,24 @@
+{
+  "widths": [
+    390,
+    768,
+    1024,
+    1440,
+    1920
+  ],
+  "targetCount": 0,
+  "equipmentCount": 1,
+  "quantity": 10,
+  "selectedWorkAreaCounts": [
+    0,
+    2,
+    1,
+    0
+  ],
+  "workAreaOwners": [
+    "a64ec79e-9db7-4ca2-8a9c-85158dcc0d4c",
+    "55056568-62d6-4102-b4bc-b1e571788bf2"
+  ],
+  "mutationCount": 1,
+  "restart": true
+}

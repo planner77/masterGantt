@@ -42,7 +42,7 @@ test("#453 탭별 조건·스크롤·구성원 초안과 키보드 폐기 확인
   await page.keyboard.press("Tab"); await expect(page.getByLabel("리소스 그룹 검색", { exact: true })).toBeFocused();
   await page.getByRole("button", { name: "구성원", exact: true }).first().click();
   const members = page.getByRole("region", { name: /관리 0 구성원/ });
-  const extra = members.getByRole("checkbox", { name: `${state.catalog.data.resources[1].name} (${state.catalog.data.resources[1].code})`, exact: true }); await extra.check();
+  const extra = members.getByRole("checkbox", { name: state.catalog.data.resources[1].name, exact: true }); await extra.check();
   await members.getByRole("textbox").fill("RESOURCE-1-");
   await groupTab.press("Home"); await expect(resourceTab).toBeFocused();
   await expect(page.getByLabel("리소스 검색", { exact: true })).toHaveValue("RESOURCE");

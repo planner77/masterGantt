@@ -6,6 +6,13 @@ export interface ResourceExcelSourceBinding { sourceContext: ResourceDrillSource
 export type ResourceExcelExportOptions =
   | { basis: "current"; expectedReport: { context: ResourceDrillSourceContext; snapshotId: string; filters: ResourceDashboardFilterInput }; binding?: ResourceExcelSourceBinding; originalSourceContext?: ResourceDrillSourceContext; granularities: ResourcePlanGranularity[] }
   | { basis: "project"; expectedReport: { context: ResourceDrillSourceContext }; originalSourceContext?: ResourceDrillSourceContext; granularities: ResourcePlanGranularity[] };
+export type WbsResourceExcelExportOptions =
+  | { basis: "current"; expectedReport: { context: import("./wbs-dashboard-views").WbsViewSourceContext; snapshotId: string; filters: ResourceDashboardFilterInput }; granularities: ResourcePlanGranularity[] }
+  | { basis: "project"; expectedReport: { context: import("./wbs-dashboard-views").WbsViewSourceContext; filters: ResourceDashboardFilterInput }; granularities: ResourcePlanGranularity[] };
+export type ResourceExcelExportInput = ResourceExcelExportOptions | WbsResourceExcelExportOptions;
+export function isWbsResourceExcelOptions(value: ResourceExcelExportInput): value is WbsResourceExcelExportOptions {
+  return "schema" in value.expectedReport.context && value.expectedReport.context.schema === "wbs-view-source/1";
+}
 export interface ResourceExcelAssignmentRow extends Omit<ResourceDashboardDetailRow, "assignment"> {
   assignment: NonNullable<ResourceDashboardDetailRow["assignment"]>; delayed: boolean;
 }
@@ -24,6 +31,22 @@ export interface ResourceExcelReportBundle {
   canonicalProjectUrl?: string;
   basis: "current" | "project"; sourceContext: ResourceDrillSourceContext; originalSourceContext?: ResourceDrillSourceContext;
   scope?: ResourceDrillScope; report: ResourceDashboardDto; plans: Partial<Record<ResourcePlanGranularity, ResourceDashboardPlanDto>>;
+  /** Canonical normalized evidence; projection subtotals and member quantities never multiply effort. */
+  targetData?: {
+    projection: NonNullable<ResourceDashboardDto["targetProjection"]>;
+    graph: import("../domain/resources/resource-kpi-targets").ResourceKpiLogisticsInput;
+    taskSources: import("./task-target-bindings").TaskTargetBindingsDto[];
+    /** Same Capacity R/period, independent of selected Target/Task/Milestone/source restrictions. */
+    projectAssignments: ResourceExcelAssignmentRow[];
+  };
+  /** Validated Resource-root view evidence. Repeated view rows are non-additive. */
+  wbsView?: {
+    request: WbsResourceExcelExportOptions;
+    legacyOptions: ResourceExcelExportOptions;
+    report: import("./wbs-dashboard-views").WbsViewReportDto;
+    selection: import("./wbs-dashboard-views").WbsViewScopeDto;
+    projectAssignments: ResourceExcelAssignmentRow[];
+  };
   assignments: ResourceExcelAssignmentRow[];
   quality: { scope: "T0-before-personal-filters"; tasks: ResourceExcelQualityTask[]; unsetAssignments: ResourceExcelUnsetAssignment[] };
 }

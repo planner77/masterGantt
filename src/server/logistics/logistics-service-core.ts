@@ -1,3 +1,5 @@
+import { ProjectWorkAreaRepository } from "../repositories/project-work-area-repository-core";
+import { ProcessContextRepository, ProcessContextError } from "../repositories/process-context-repository-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 
@@ -6,6 +8,8 @@ import type {
   CreateEquipmentRequest,
   CreateLogisticsSystemRequest,
   CreateProcessRequest,
+  CreateWorkAreaRequest,
+  UpdateWorkAreaRequest,
   EquipmentDto,
   EquipmentResourceRoleDto,
   EquipmentRole,
@@ -47,6 +51,7 @@ import {
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
 import { LogisticsTypeCatalogRepository } from "../repositories/logistics-type-catalog-repository-core";
 import { ScheduleRepository } from "../repositories/schedule-repository-core";
+import { ProcessCatalogRepository } from "../repositories/process-catalog-repository-core";
 import {
   EditSessionInvalidError,
   RevisionMismatchError,
@@ -214,10 +219,12 @@ export class LogisticsService {
       sysRolesBySysId.set(row.systemId, list);
     }
 
+    const contextProcessUsage = new Map((this.database.prepare("SELECT process_id processId,COUNT(*) count FROM (SELECT process_id FROM task_process_links WHERE project_id=? UNION ALL SELECT process_id FROM equipment_work_areas WHERE project_id=? UNION ALL SELECT process_id FROM equipment_project_work_areas WHERE project_id=? UNION ALL SELECT process_id FROM project_work_areas WHERE project_id=?) GROUP BY process_id").all(projectId,projectId,projectId,projectId) as Array<{processId:number;count:number}>).map(row=>[row.processId,row.count]));
     const processDtos: ProcessDto[] = processes.map((p) => ({
       id: p.publicId,
       code: p.code,
       name: p.name,
+      usageCount: (contextProcessUsage.get(p.id) ?? 0) + equipment.filter(e=>e.processId===p.id).length + allSysProcesses.filter(link=>link.processId===p.id).length,
       parentProcessId: p.parentId !== null ? (processPublicIdById.get(p.parentId) ?? null) : null,
       sortOrder: p.sortOrder,
       active: p.active === 1,
@@ -225,6 +232,8 @@ export class LogisticsService {
       updatedAt: p.updatedAt,
     }));
 
+    const equipmentWorkAreas = new ProcessContextRepository(this.database).equipmentLinks(projectId);
+    const taskProcessContexts = new ProcessContextRepository(this.database).taskContexts(projectId);
     const equipmentDtos: EquipmentDto[] = equipment.map((e) => ({
       id: e.publicId,
       processId: processPublicIdById.get(e.processId) ?? "",
@@ -237,6 +246,8 @@ export class LogisticsService {
       model: e.model,
       description: e.description,
       active: e.active === 1,
+      workAreaIds: equipmentWorkAreas.filter(link => link.equipmentId === e.publicId).map(link => link.workAreaId),
+      workAreaLinks: equipmentWorkAreas.filter(link => link.equipmentId === e.publicId).map(({ processId, workAreaId }) => ({ processId, workAreaId })),
       controlSystems: eqSystemsByEqId.get(e.id) ?? [],
       resourceRoles: eqRolesByEqId.get(e.id) ?? [],
       createdAt: e.createdAt,
@@ -270,6 +281,8 @@ export class LogisticsService {
     const allTaskSystemLinks = this.logisticsRepo.listAllTaskSystemLinks(projectId);
 
     return {
+      equipmentWorkAreas,
+      taskProcessContexts,
       processes: processDtos,
       equipment: equipmentDtos,
       systems: systemDtos,
@@ -333,6 +346,56 @@ export class LogisticsService {
         operation,
       },
     };
+  }
+
+  // Project ownership never mutates the legacy shared catalog.
+  mutateWorkArea(authorization: AuthorizedEditSession, expectedRevision: number,
+    action: "create" | "update" | "delete", identifier: string, input: unknown = {}): LogisticsMutationResponse {
+    const now = this.clock(), nowText = now.toISOString();
+    return this.database.transaction(() => {
+      this.verifyEditAccess(authorization, expectedRevision, now);
+      const projectId = authorization.projectId, repo = new ProjectWorkAreaRepository(this.database);
+      if (!input || typeof input !== "object" || Array.isArray(input)) throw new ProcessContextError(400,"INVALID_WORK_AREA");
+      const raw = input as Record<string, unknown>;
+      if (Object.keys(raw).some(key=>!["name","code","active","sortOrder"].includes(key))) throw new ProcessContextError(400,"INVALID_WORK_AREA");
+      const fields: UpdateWorkAreaRequest = {};
+      for (const field of ["name","code"] as const) if (field in raw) {
+        const value=raw[field];
+        if (typeof value!=="string" || !value.trim() || value.trim().length>(field==="code"?64:200)) throw new ProcessContextError(400,"INVALID_WORK_AREA");
+        fields[field]=value.trim();
+      }
+      if ("active" in raw) {if(typeof raw.active!=="boolean") throw new ProcessContextError(400,"INVALID_WORK_AREA");fields.active=raw.active;}
+      if ("sortOrder" in raw) {if(!Number.isSafeInteger(raw.sortOrder)||(raw.sortOrder as number)<0||(raw.sortOrder as number)>1000000) throw new ProcessContextError(400,"INVALID_WORK_AREA");fields.sortOrder=raw.sortOrder as number;}
+      let targetPublicId=identifier;
+      if (action==="create") {
+        if (!fields.name) throw new ProcessContextError(400,"INVALID_WORK_AREA");
+        const owner=this.logisticsRepo.findProcessByPublicId(projectId,identifier);
+        if(!owner) throw new LogisticsEntityNotFoundError("Process",identifier);
+        if(!owner.active) throw new ProcessContextError(409,"PROCESS_INACTIVE");
+        targetPublicId=this.generatePublicId();
+        const row:CreateWorkAreaRequest={...fields,name:fields.name};
+        const code=row.code??`AREA-${targetPublicId}`;
+        if(this.database.prepare("SELECT 1 FROM project_work_areas WHERE project_id=? AND process_id=? AND code=?").get(projectId,owner.id,code)) throw new ProcessContextError(409,"WORK_AREA_CODE_ALREADY_EXISTS");
+        repo.insert({publicId:targetPublicId,projectId,processId:owner.id,code,name:row.name,active:row.active??true,sortOrder:row.sortOrder??0,now:nowText});
+      } else {
+        const current=repo.find(projectId,identifier);
+        if(!current) {
+          if(repo.list(projectId).some(row=>row.id===identifier&&row.source==="legacy")) throw new ProcessContextError(409,"LEGACY_WORK_AREA_READONLY");
+          throw new LogisticsEntityNotFoundError("WorkArea",identifier);
+        }
+        if(action==="delete") {
+          if(repo.usage(projectId,current.id)>0) throw new ProcessContextError(409,"WORK_AREA_IN_USE");
+          repo.remove(projectId,current.id);
+        } else {
+          if(!Object.keys(fields).length) throw new ProcessContextError(400,"INVALID_WORK_AREA");
+          if(fields.code&&this.database.prepare("SELECT 1 FROM project_work_areas WHERE project_id=? AND process_id=? AND code=? AND id<>?").get(projectId,current.process_id,fields.code,current.id)) throw new ProcessContextError(409,"WORK_AREA_CODE_ALREADY_EXISTS");
+          repo.update(projectId,current.id,fields,nowText);
+        }
+      }
+      repo.list(projectId); // overflow rolls back the mutation, never returns a truncated graph
+      if(!this.projectRepo.advanceRevision(projectId,expectedRevision,nowText)) throw new RevisionMismatchError();
+      return this.buildMutationResponse(projectId,{kind:"logisticsMutation",entity:"workArea",action,targetPublicId});
+    }).immediate();
   }
 
   // --- Process Mutations ---
@@ -488,7 +551,12 @@ export class LogisticsService {
       }
 
       if (hardDelete) {
+        if (this.database.prepare("SELECT 1 FROM project_work_areas WHERE project_id=? AND process_id=? LIMIT 1").get(projectId,current.id)) throw new LogisticsConflictError("PROCESS_IN_USE","공정의 WorkArea를 먼저 삭제해야 합니다.");
         // Check if in use
+        if (new ProcessCatalogRepository(this.database).mapping(projectId, current.id)) {
+          throw new LogisticsConflictError("PROCESS_IN_USE", "공정 occurrence 매핑을 먼저 해제해야 영구 삭제할 수 있습니다.");
+        }
+        if (this.database.prepare("SELECT 1 FROM task_process_links WHERE project_id=? AND process_id=? LIMIT 1").get(projectId,current.id)) throw new LogisticsConflictError("PROCESS_IN_USE","공정의 Task 직접 연결을 먼저 해제해야 합니다.");
         const childCount = this.logisticsRepo.countChildProcesses(projectId, current.id);
         if (childCount > 0) {
           throw new LogisticsConflictError("PROCESS_IN_USE", `Cannot permanently delete process with ${childCount} child processes.`);
@@ -594,6 +662,12 @@ export class LogisticsService {
         now: nowText,
       });
 
+      if (input.workAreaLinks !== undefined || input.workAreaIds !== undefined) {
+        const contexts = new ProcessContextRepository(this.database);
+        if (input.workAreaLinks !== undefined && input.workAreaIds !== undefined) throw new ProcessContextError(400, "INVALID_PROCESS_CONTEXT");
+        contexts.requireRevision(input.processCatalogRevision);
+        contexts.replaceEquipment(projectId, inserted.id, contexts.validateEquipmentWorkAreas(projectId, input.workAreaLinks ?? input.workAreaIds));
+      }
       const updatedProject = this.projectRepo.advanceRevision(projectId, expectedRevision, nowText);
       if (!updatedProject) {
         throw new RevisionMismatchError();
@@ -660,6 +734,10 @@ export class LogisticsService {
         throw new LogisticsValidationError(["Quantity must be 1 for unit management type."]);
       }
 
+      const exceedingCoverage=this.database.prepare(
+        "SELECT 1 FROM task_target_binding_members bm JOIN logistics_target_members m ON m.project_id=bm.project_id AND m.target_id=bm.target_id AND m.id=bm.member_id WHERE m.project_id=? AND m.equipment_id=? AND bm.coverage>? LIMIT 1",
+      ).get(projectId,current.id,qty);
+      if (exceedingCoverage) throw new LogisticsConflictError("TARGET_COVERAGE_EXCEEDS_QUANTITY", "Equipment quantity is below an existing Task coverage.");
       this.logisticsRepo.updateEquipment(projectId, current.id, {
         processId,
         code: input.code,
@@ -674,6 +752,17 @@ export class LogisticsService {
         now: nowText,
       });
 
+      if (input.workAreaLinks !== undefined || input.workAreaIds !== undefined) {
+        const contexts = new ProcessContextRepository(this.database);
+        if (input.workAreaLinks !== undefined && input.workAreaIds !== undefined) throw new ProcessContextError(400, "INVALID_PROCESS_CONTEXT");
+        contexts.requireRevision(input.processCatalogRevision);
+        const retained = contexts.equipmentLinks(projectId).filter(link => link.equipmentId === current.publicId);
+        const resolved = contexts.validateEquipmentWorkAreas(projectId, input.workAreaLinks ?? input.workAreaIds, retained);
+        const previous = contexts.validateEquipmentWorkAreas(projectId, retained.map(({processId,workAreaId})=>({processId,workAreaId})), retained);
+        const changed = JSON.stringify([...previous].sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))) !== JSON.stringify([...resolved].sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))));
+        if (changed && (this.logisticsRepo.countTaskEquipmentLinks(projectId,current.id) > 0 || this.database.prepare("SELECT 1 FROM logistics_target_members WHERE project_id=? AND equipment_id=? LIMIT 1").get(projectId,current.id))) throw new ProcessContextError(409,"EQUIPMENT_WORK_AREA_IN_USE");
+        contexts.replaceEquipment(projectId, current.id, resolved);
+      }
       const updatedProject = this.projectRepo.advanceRevision(projectId, expectedRevision, nowText);
       if (!updatedProject) {
         throw new RevisionMismatchError();
@@ -709,6 +798,13 @@ export class LogisticsService {
       }
 
       if (hardDelete) {
+        const targetMemberships = (this.database.prepare(
+          "SELECT COUNT(*) count FROM logistics_target_members WHERE project_id=? AND equipment_id=?",
+        ).get(projectId,current.id) as {count:number}).count;
+        if (targetMemberships>0) {
+          throw new LogisticsConflictError("EQUIPMENT_IN_USE",
+            "Cannot delete equipment referenced by "+targetMemberships+" Target(s).");
+        }
         const systemMappings = this.logisticsRepo.listEquipmentSystems(projectId, current.id).length;
         const resourceRoles = this.logisticsRepo.listEquipmentResourceRoles(projectId, current.id).length;
         if (systemMappings > 0 || resourceRoles > 0) {
@@ -723,7 +819,7 @@ export class LogisticsService {
         }
         this.logisticsRepo.deleteEquipment(projectId, current.id);
       } else {
-        this.logisticsRepo.updateEquipment(projectId, current.id, {
+      this.logisticsRepo.updateEquipment(projectId, current.id, {
           active: 0,
           now: nowText,
         });
@@ -1010,6 +1106,13 @@ export class LogisticsService {
       }
 
       if (hardDelete) {
+        const targetMemberships = (this.database.prepare(
+          "SELECT COUNT(*) count FROM logistics_target_members WHERE project_id=? AND system_id=?",
+        ).get(projectId,current.id) as {count:number}).count;
+        if (targetMemberships>0) {
+          throw new LogisticsConflictError("SYSTEM_IN_USE",
+            "Cannot delete System referenced by "+targetMemberships+" Target(s).");
+        }
         const controllingCount = this.logisticsRepo.countControllingEquipment(projectId, current.id);
         if (controllingCount > 0) {
           throw new LogisticsConflictError("SYSTEM_IN_USE", `Cannot permanently delete system controlling ${controllingCount} equipment.`);

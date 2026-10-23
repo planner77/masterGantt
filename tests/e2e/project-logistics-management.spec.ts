@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
+import { expect, test, type Locator } from "@playwright/test";
 import type { ProjectLogisticsDto } from "../../src/contracts/logistics";
 import {
   expectSameGanttRoot,
@@ -6,6 +7,20 @@ import {
   publicId,
   rememberGanttRoot,
 } from "../fixtures/stateful-project";
+
+async function expectIdentifier(panel: Locator, name: string, label: string, value: string) {
+  const row = panel.getByRole("row").filter({ has: panel.page().locator("strong").filter({ hasText: name }) }).first();
+  // #762: the WorkArea button repeats the process name for screen readers.
+  // Match the visible identity cell, not the entire row’s text descendants.
+  const displayedName = row.locator("strong").first();
+  await expect(displayedName).toHaveText(name);
+  await expect(displayedName).toBeVisible();
+  const identifiers = row.locator("details").first();
+  await identifiers.locator("summary").click();
+  await expect(identifiers.getByLabel(label, { exact: true })).toBeVisible();
+  await expect(identifiers.getByLabel(label, { exact: true })).toHaveValue(value);
+  await identifiers.locator("summary").click();
+}
 
 function sampleLogisticsData(): ProjectLogisticsDto {
   return {
@@ -204,6 +219,86 @@ function sampleLogisticsData(): ProjectLogisticsDto {
 }
 
 test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
+  test("#726 설비 유형 조회 중·실패·빈 목록은 이유와 초안을 유지하고 readonly는 추가를 숨긴다", async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.logistics = sampleLogisticsData();
+    const writes: string[] = [];
+    page.on("request", request => {
+      if (request.url().includes("/api/") && !["GET", "HEAD"].includes(request.method())) {
+        writes.push(`${request.method()} ${new URL(request.url()).pathname}`);
+      }
+    });
+    let catalogMode: "loading" | "empty" | "ready" = "loading";
+    let releaseLoading!: () => void;
+    const loadingResponse = new Promise<void>(resolve => { releaseLoading = resolve; });
+    await page.route("**/api/logistics-catalog/types", async route => {
+      if (catalogMode === "loading") {
+        await loadingResponse;
+        await route.fulfill({ status: 503, json: { error: { code: "TEST_UNAVAILABLE" } } });
+        return;
+      }
+      await route.fulfill({ json: { data: {
+        equipmentTypes: catalogMode === "ready" ? [{ code: "agv", name: "무인운반차" }] : [],
+        systemTypes: [],
+      } } });
+    });
+    await page.route(`**/api/projects/${publicId}/logistics/process-context`, route => route.fulfill({ json: { data: {
+      projectRevision: fixture.project.revision,
+      processCatalogRevision: 1,
+      workAreas: [], occurrences: [], mappings: [],
+    } } }));
+    try {
+      await page.goto(`/projects/${publicId}`);
+      await openWorkspaceView(page, "equipment");
+      await page.getByRole("button", { name: "+ 설비 추가", exact: true }).click();
+      const dialog = page.getByRole("dialog", { name: "설비 추가", exact: true });
+      const code = dialog.getByRole("textbox", { name: "설비 코드", exact: false });
+      const name = dialog.getByRole("textbox", { name: "설비명", exact: false });
+      const type = dialog.getByRole("combobox", { name: "설비 유형", exact: false });
+      await code.fill("DRAFT-726");
+      await name.fill("유형 조회 중 보존할 설비 초안");
+      await expect(dialog.getByRole("status").filter({ hasText: "설비 유형 목록을 불러오는 중" })).toBeVisible();
+      await expect(type).toBeDisabled();
+      await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
+
+      releaseLoading();
+      await expect(dialog.getByRole("alert").filter({ hasText: "설비 유형 조회에 실패해 저장할 수 없습니다" })).toBeVisible();
+      await expect(type).toBeDisabled();
+      await expect(dialog.getByRole("button", { name: "유형 조회 실패", exact: true })).toBeDisabled();
+      await expect(code).toHaveValue("DRAFT-726");
+      await expect(name).toHaveValue("유형 조회 중 보존할 설비 초안");
+
+      catalogMode = "empty";
+      await dialog.getByRole("button", { name: "유형 목록 다시 시도", exact: true }).click();
+      await expect(dialog.getByRole("status").filter({ hasText: "활성 설비 유형이 없습니다" })).toBeVisible();
+      await expect(dialog).toContainText("공통 기준정보 관리자가 유형을 등록·활성화한 뒤 다시 조회해 주세요.");
+      await expect(type).toBeEnabled();
+      await expect(type.getByRole("option")).toHaveCount(1);
+      await expect(type).toHaveValue("");
+      await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
+
+      catalogMode = "ready";
+      await dialog.getByRole("button", { name: "유형 목록 다시 시도", exact: true }).click();
+      await expect(type.getByRole("option", { name: "무인운반차", exact: true })).toHaveCount(1);
+      await type.selectOption("agv");
+      await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeEnabled();
+      await expect(code).toHaveValue("DRAFT-726");
+      await expect(name).toHaveValue("유형 조회 중 보존할 설비 초안");
+      await dialog.getByRole("button", { name: "취소", exact: true }).click();
+      await dialog.getByRole("button", { name: "변경 폐기", exact: true }).click();
+      await expect(dialog).toHaveCount(0);
+
+      fixture.sessionEditable = false;
+      await page.reload();
+      await openWorkspaceView(page, "equipment");
+      await expect(page.getByText("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 활성화'를 진행해 주세요.")).toBeVisible();
+      await expect(page.getByRole("button", { name: "+ 설비 추가", exact: true })).toHaveCount(0);
+      expect(writes).toEqual([]);
+    } finally {
+      releaseLoading();
+    }
+  });
+
   test("물류 구성 탭 전환 시 Gantt 인스턴스가 유지되고 공정/설비/시스템/연계 화면이 표시된다", async ({
     page,
   }) => {
@@ -217,7 +312,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
 
     // Verify workspace tabs
     const tabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
-    const logisticsTab = tabs.getByRole("tab", { name: "물류 구성", exact: true });
+    const logisticsTab = tabs.getByRole("tab", { name: "기준정보", exact: true });
     const scheduleTab = tabs.getByRole("tab", { name: "일정", exact: true });
 
     await expect(logisticsTab).toBeVisible();
@@ -233,51 +328,54 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await expectSameGanttRoot(page, identity);
 
     // Verify Header notice & WBS distinction
+    await page.getByRole("button", { name: "물류 구성 도움말", exact: true }).click();
     await expect(
       page.getByText("물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다."),
     ).toBeVisible();
+    await page.keyboard.press("Escape");
 
     // LG-05 dashboard is the default sub-tab. Move explicitly to process management.
-    await expect(page.getByRole("tab", { name: "KPI 대시보드" })).toHaveAttribute("aria-selected", "true");
-    await page.getByRole("tab", { name: "공정 관리" }).click();
+    await expect(page.getByRole("tablist", { name: "기준정보 보기" }).getByRole("tab", { name: "공정&WorkArea", exact: true })).toHaveAttribute("aria-selected", "true");
+    await openWorkspaceView(page, "processes");
     const processPanel = page.locator("#panel-processes");
-    await expect(processPanel.getByText("PROC-01", { exact: true })).toBeVisible();
-    await expect(processPanel.getByText("입고 공정", { exact: true })).toBeVisible();
-    await expect(processPanel.getByText("PROC-02", { exact: true })).toBeVisible();
-    await expect(processPanel.getByText("보관 공정")).toBeVisible();
-    await expect(processPanel.getByText("PROC-03", { exact: true })).toBeVisible();
-    await expect(processPanel.getByText("출고 공정", { exact: true })).toBeVisible();
+    await expectIdentifier(processPanel, "입고 공정", "공정 코드", "PROC-01");
+    await expect(processPanel.locator("#logistics-master-process-proc-1 strong")).toHaveText("입고 공정");
+    await expect(processPanel.locator("#logistics-master-process-proc-1").getByRole("button", { name: /작업 구역.*입고 공정/ })).toBeVisible();
+    await expectIdentifier(processPanel, "보관 공정", "공정 코드", "PROC-02");
+    await expect(processPanel.locator("#logistics-master-process-proc-2 strong")).toHaveText("보관 공정");
+    await expectIdentifier(processPanel, "출고 공정", "공정 코드", "PROC-03");
+    await expect(processPanel.locator("#logistics-master-process-proc-3 strong")).toHaveText("출고 공정");
 
     // Switch to Sub-tab 2: Equipment
-    await page.getByRole("tab", { name: "설비 관리" }).click();
+    await openWorkspaceView(page, "equipment");
     const equipmentPanel = page.locator("#panel-equipment");
-    await expect(equipmentPanel.getByText("STK-01", { exact: true })).toBeVisible();
+    await expectIdentifier(equipmentPanel, "1번 자동창고 스토커", "설비 코드", "STK-01");
     await expect(equipmentPanel.getByText("1번 자동창고 스토커", { exact: true })).toBeVisible();
-    await expect(equipmentPanel.getByText("AGV-F1", { exact: true })).toBeVisible();
+    await expectIdentifier(equipmentPanel, "입고 무인운반차 편대", "설비 코드", "AGV-F1");
     await expect(equipmentPanel.getByText("입고 무인운반차 편대", { exact: true })).toBeVisible();
-    await expect(equipmentPanel.getByText("AMR-F1", { exact: true })).toBeVisible();
+    await expectIdentifier(equipmentPanel, "출고 자율이동로봇 편대", "설비 코드", "AMR-F1");
     // Check primary owner tag
     await expect(equipmentPanel.getByText("★ 홍길동 (owner)", { exact: true }).first()).toBeVisible();
 
     // Switch to Sub-tab 3: Systems
-    await page.getByRole("tab", { name: "물류 시스템" }).click();
+    await openWorkspaceView(page, "systems");
     const systemsPanel = page.locator("#panel-systems");
-    await expect(systemsPanel.getByText("MCS-01", { exact: true })).toBeVisible();
+    await expectIdentifier(systemsPanel, "통합 반송 조율 시스템", "시스템 코드", "MCS-01");
     await expect(systemsPanel.getByText("통합 반송 조율 시스템", { exact: true })).toBeVisible();
-    await expect(systemsPanel.getByText("ACS-01", { exact: true })).toBeVisible();
-    await expect(systemsPanel.getByText("SCS-01", { exact: true })).toBeVisible();
+    await expectIdentifier(systemsPanel, "AGV 관제 제어 시스템", "시스템 코드", "ACS-01");
+    await expectIdentifier(systemsPanel, "스토커 제어 시스템", "시스템 코드", "SCS-01");
     // Check project-common scope badge
     await expect(systemsPanel.getByText("프로젝트 공통", { exact: true })).toBeVisible();
     // Check primary PI tag
     await expect(systemsPanel.getByText("★ 이영희 (pi)", { exact: true })).toBeVisible();
 
     // Switch to Sub-tab 4: Relations
-    await page.getByRole("tab", { name: "제어·조율 관계" }).click();
+    await openWorkspaceView(page, "relations");
     const relationsPanel = page.locator("#panel-relations");
     const relationRows = relationsPanel.getByRole("row");
     await expect(relationRows.filter({ hasText: "통합 반송 조율 시스템" }).first()).toBeVisible();
-    await expect(relationRows.filter({ hasText: "AGV 관제 제어 시스템 (ACS-01)" }).first()).toBeVisible();
-    await expect(relationRows.filter({ hasText: "스토커 제어 시스템 (SCS-01)" }).first()).toBeVisible();
+    await expect(relationRows.filter({ hasText: "AGV 관제 제어 시스템" }).first()).toBeVisible();
+    await expect(relationRows.filter({ hasText: "스토커 제어 시스템" }).first()).toBeVisible();
 
     // Switch back to schedule tab and verify Gantt intact
     await scheduleTab.click();
@@ -296,11 +394,11 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
       fixture.logistics = sampleLogisticsData();
 
       await page.goto(`/projects/${publicId}`);
-      await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
+      await openWorkspaceView(page, "logistics");
 
-      const tablist = page.getByRole("tablist", { name: "물류 구성 세부 영역" });
-      const dashboardTab = tablist.getByRole("tab", { name: "KPI 대시보드", exact: true });
-      const relationsTab = tablist.getByRole("tab", { name: "제어·조율 관계", exact: true });
+      const tablist = page.getByRole("tablist", { name: "기준정보 보기" });
+      const dashboardTab = tablist.getByRole("tab", { name: "공정&WorkArea", exact: true });
+      const relationsTab = tablist.getByRole("tab", { name: "리소스", exact: true });
 
       const metrics = await tablist.evaluate((element) => {
         const style = getComputedStyle(element);
@@ -355,7 +453,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     fixture.logistics = sampleLogisticsData();
 
     await page.goto(`/projects/${publicId}`);
-    await page.getByRole("tab", { name: "물류 구성" }).click();
+    await openWorkspaceView(page, "logistics");
 
     // Verify readonly notice
     await expect(
@@ -411,8 +509,8 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     });
 
     await page.goto(`/projects/${publicId}`);
-    await page.getByRole("tab", { name: "물류 구성" }).click();
-    await page.getByRole("tab", { name: "공정 관리" }).click();
+    await openWorkspaceView(page, "logistics");
+    await openWorkspaceView(page, "processes");
 
     await page.getByRole("button", { name: "+ 공정 추가" }).click();
     const dialog = page.getByRole("dialog", { name: "공정 추가" });
@@ -436,11 +534,11 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     });
     expect(requestBody).not.toHaveProperty("code");
     await expect(dialog).toHaveCount(0);
-    await expect(page.getByText("PROC-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", { exact: true })).toBeVisible();
-    await expect(page.getByText("자동 생성 코드 공정", { exact: true })).toBeVisible();
+    await expectIdentifier(page.locator("#panel-processes"), "자동 생성 코드 공정", "공정 코드", "PROC-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    await expect(page.locator("#logistics-master-process-proc-generated strong")).toHaveText("자동 생성 코드 공정");
 
     const processPanel = page.locator("#panel-processes");
-    const legacyRow = processPanel.getByRole("row").filter({ hasText: /^PROC-01/ });
+    const legacyRow = processPanel.getByRole("row").filter({ has: page.locator("strong").filter({ hasText: "입고 공정" }) });
     await expect(legacyRow).toHaveCount(1);
     await legacyRow.getByRole("button", { name: "수정", exact: true }).click();
     const editDialog = page.getByRole("dialog", { name: "공정 수정" });
@@ -449,7 +547,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await editDialog.getByRole("button", { name: "취소", exact: true }).click();
   });
 
-  test("Dialog 취소 시 Escape 키로 닫히고 mutation이 발생하지 않는다", async ({ page }) => {
+  test("Dialog 취소 시 Escape는 변경 없는 창만 닫고 초안은 명시 폐기 전까지 보존한다", async ({ page }) => {
     const fixture = await installStatefulProjectFixture(page);
     fixture.sessionEditable = true;
     fixture.logistics = sampleLogisticsData();
@@ -462,8 +560,8 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     });
 
     await page.goto(`/projects/${publicId}`);
-    await page.getByRole("tab", { name: "물류 구성" }).click();
-    await page.getByRole("tab", { name: "공정 관리" }).click();
+    await openWorkspaceView(page, "logistics");
+    await openWorkspaceView(page, "processes");
 
     // Open add process dialog
     const addButton = page.getByRole("button", { name: "+ 공정 추가" });
@@ -476,15 +574,154 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await expect(dialog.getByPlaceholder("예: PROC-01")).toHaveCount(0);
     const nameInput = dialog.getByPlaceholder("예: 입고 공정");
     await expect(nameInput).toBeFocused();
-    await nameInput.fill("임시 초안 공정");
-
-    // Press Escape to cancel
+    // A pristine dialog closes immediately and returns to its exact trigger.
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
+    await expect(addButton).toBeFocused();
+    expect(mutationCount).toBe(0);
 
-    // Verify 0 mutations sent and focus returns to the trigger.
+    await addButton.click();
+    await nameInput.fill("임시 초안 공정");
+    const discard = page.getByRole("dialog", { name: "공정 변경 내용 버리기", exact: true });
+
+    // Dirty Escape requests confirmation; it must not silently lose the draft.
+    await page.keyboard.press("Escape");
+    await expect(discard).toBeVisible();
+    await expect(nameInput).toHaveValue("임시 초안 공정");
+    expect(mutationCount).toBe(0);
+    await discard.getByRole("button", { name: "계속 편집", exact: true }).click();
+    await expect(discard).toHaveCount(0);
+    await expect(dialog).toBeVisible();
+    await expect(nameInput).toHaveValue("임시 초안 공정");
+
+    // The header close command must also preserve the same dirty draft.
+    await dialog.getByRole("button", { name: "공정 추가 닫기", exact: true }).click();
+    await expect(discard).toBeVisible();
+    await discard.getByRole("button", { name: "계속 편집", exact: true }).click();
+    await expect(nameInput).toHaveValue("임시 초안 공정");
+    expect(mutationCount).toBe(0);
+
+    // Cancel uses the same guard. Escape from the nested confirmation cancels
+    // only that decision and keeps the original dialog and its draft intact.
+    await dialog.getByRole("button", { name: "취소", exact: true }).click();
+    await expect(discard).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(discard).toHaveCount(0);
+    await expect(dialog).toBeVisible();
+    await expect(nameInput).toHaveValue("임시 초안 공정");
+    expect(mutationCount).toBe(0);
+
+    await page.keyboard.press("Escape");
+    await expect(discard).toBeVisible();
+    await discard.getByRole("button", { name: "변경 내용 버리기", exact: true }).click();
+    await expect(discard).toHaveCount(0);
+    await expect(dialog).toHaveCount(0);
     expect(mutationCount).toBe(0);
     await expect(addButton).toBeFocused();
+
+    // Editing an existing process has the same draft-preservation contract.
+    const editButton = page.locator("#logistics-master-process-proc-1").getByRole("button", { name: "수정", exact: true });
+    await editButton.click();
+    const editDialog = page.getByRole("dialog", { name: "공정 수정", exact: true });
+    const editName = editDialog.getByPlaceholder("예: 입고 공정");
+    await editName.fill("기존 공정의 미저장 초안");
+    await editDialog.getByRole("button", { name: "취소", exact: true }).click();
+    await expect(discard).toBeVisible();
+    await discard.getByRole("button", { name: "계속 편집", exact: true }).click();
+    await expect(editName).toHaveValue("기존 공정의 미저장 초안");
+    await page.keyboard.press("Escape");
+    await expect(discard).toBeVisible();
+    await discard.getByRole("button", { name: "변경 내용 버리기", exact: true }).click();
+    await expect(editDialog).toHaveCount(0);
+    await expect(discard).toHaveCount(0);
+    await expect(editButton).toBeFocused();
+    await expect(page.locator("#logistics-master-process-proc-1 strong")).toHaveText("입고 공정");
+    expect(mutationCount).toBe(0);
+  });
+
+  test("공정 초안은 pending 중복 제출·Escape와 network/412/401 이후에도 보존된다", async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.sessionEditable = true;
+    fixture.logistics = sampleLogisticsData();
+    const originalLogistics = JSON.stringify(fixture.logistics);
+    const requests: Array<{ name: string; revision: string | undefined }> = [];
+    let mode: "network" | "stale" | "unauthorized" = "network";
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    await page.route(`**/api/projects/${publicId}/logistics/processes`, async route => {
+      if (route.request().method() !== "POST") return route.fallback();
+      requests.push({ name: route.request().postDataJSON().name, revision: route.request().headers()["if-match"] });
+      if (mode === "network") { await gate; await route.abort("failed"); return; }
+      if (mode === "stale") {
+        fixture.project.revision += 1;
+        await route.fulfill({ status: 412, json: { error: { code: "REVISION_MISMATCH", message: "stale" } } });
+        return;
+      }
+      fixture.sessionEditable = false;
+      await route.fulfill({ status: 401, json: { error: { code: "UNAUTHORIZED", message: "expired" } } });
+    });
+    await page.goto(`/projects/${publicId}`);
+    await openWorkspaceView(page, "processes");
+    const add = page.getByRole("button", { name: "+ 공정 추가", exact: true });
+    const dialog = page.getByRole("dialog", { name: "공정 추가", exact: true });
+    const name = dialog.getByPlaceholder("예: 입고 공정");
+    const save = dialog.locator('button[type="submit"]');
+    const discard = page.getByRole("dialog", { name: "공정 변경 내용 버리기", exact: true });
+    async function discardDraft() {
+      await dialog.getByRole("button", { name: "취소", exact: true }).click();
+      await expect(discard).toBeVisible();
+      await discard.getByRole("button", { name: "변경 내용 버리기", exact: true }).click();
+      await expect(dialog).toHaveCount(0);
+      await expect(discard).toHaveCount(0);
+    }
+    await add.click();
+    await expect(save).toHaveText("저장");
+    await name.fill("네트워크 오류 보존 초안");
+    await save.click();
+    await expect.poll(() => requests.length).toBe(1);
+    await expect(save).toHaveText("저장 중…");
+    await expect(save).toBeDisabled();
+    await expect(name).toBeDisabled();
+    await expect(dialog.getByRole("button", { name: "취소", exact: true })).toBeDisabled();
+    await expect(dialog.getByRole("button", { name: "공정 추가 닫기", exact: true })).toBeDisabled();
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Enter");
+    await expect(dialog).toBeVisible();
+    await expect(discard).toHaveCount(0);
+    expect(requests).toHaveLength(1);
+    release();
+    await expect(dialog).toContainText("네트워크 연결");
+    await expect(dialog).toContainText("저장을 잠갔습니다.");
+    await expect(name).toHaveValue("네트워크 오류 보존 초안");
+    await expect(save).toBeDisabled();
+    await discardDraft();
+    await expect(add).toBeFocused();
+
+    mode = "stale";
+    await add.click();
+    await name.fill("412 보존 초안");
+    await save.click();
+    await expect(dialog).toContainText("저장을 잠갔습니다.");
+    await expect(name).toHaveValue("412 보존 초안");
+    await expect(save).toBeDisabled();
+    expect(requests).toHaveLength(2);
+    await discardDraft();
+    await expect(add).toBeFocused();
+
+    mode = "unauthorized";
+    await add.click();
+    await name.fill("401 보존 초안");
+    await save.click();
+    await expect(dialog).toContainText("편집 권한이 만료되었습니다.");
+    await expect(name).toHaveValue("401 보존 초안");
+    await expect(save).toBeDisabled();
+    await expect(dialog).toContainText("저장을 잠갔습니다.");
+    expect(requests.map(request => request.name)).toEqual(["네트워크 오류 보존 초안", "412 보존 초안", "401 보존 초안"]);
+    expect(requests.map(request => request.revision)).toEqual(['"40"', '"40"', '"41"']);
+    expect(JSON.stringify(fixture.logistics)).toBe(originalLogistics);
+    await discardDraft();
+    await expect(add).toHaveCount(0);
   });
 
   test("하위 조율 저장은 childSystemIds 계약을 사용하고 401이면 즉시 읽기 전용으로 전환한다", async ({ page }) => {
@@ -502,10 +739,10 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     });
 
     await page.goto(`/projects/${publicId}`);
-    await page.getByRole("tab", { name: "물류 구성" }).click();
-    await page.getByRole("tab", { name: "물류 시스템" }).click();
+    await openWorkspaceView(page, "logistics");
+    await openWorkspaceView(page, "systems");
 
-    const mcsRow = page.locator("tr", { hasText: "MCS-01" });
+    const mcsRow = page.locator("#panel-systems").getByRole("row").filter({ has: page.getByText("통합 반송 조율 시스템", { exact: true }) });
     await mcsRow.getByRole("button", { name: "하위연계" }).click();
     const dialog = page.getByRole("dialog", { name: /하위 조율 시스템 연계/ });
     await dialog.getByRole("button", { name: "저장" }).click();
@@ -531,11 +768,11 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     });
 
     await page.goto(`/projects/${publicId}`);
-    await page.getByRole("tab", { name: "물류 구성" }).click();
-    await page.getByRole("tab", { name: "공정 관리" }).click();
+    await openWorkspaceView(page, "logistics");
+    await openWorkspaceView(page, "processes");
 
     const processPanel = page.locator("#panel-processes");
-    const processRow = processPanel.getByRole("row").filter({ hasText: /^PROC-01/ });
+    const processRow = processPanel.getByRole("row").filter({ has: page.locator("strong").filter({ hasText: "입고 공정" }) });
     await expect(processRow).toHaveCount(1);
     await processRow.getByRole("button", { name: "삭제", exact: true }).click();
     const confirm = page.getByRole("dialog", { name: "삭제 확인" });
@@ -553,8 +790,8 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     for (const width of [390, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/projects/${publicId}`);
-      await page.getByRole("tab", { name: "물류 구성" }).click();
-      await page.getByRole("tab", { name: "공정 관리" }).click();
+      await openWorkspaceView(page, "logistics");
+      await openWorkspaceView(page, "processes");
       await expect(page.getByRole("heading", { level: 2, name: "물류 구성" })).toBeVisible();
 
       const addButton = page.getByRole("button", { name: "+ 공정 추가" });

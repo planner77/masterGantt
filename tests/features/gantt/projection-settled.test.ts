@@ -25,6 +25,16 @@ describe("projection receipt observation", () => {
     expect((await observation.promise).outcome).toBe("SETTLED");
     expect(vi.getTimerCount()).toBe(0);
   });
+  it("settles canonical projection while horizontal Core/native offsets await #571 peer restoration", async () => {
+    const { api, root, chart, state } = fixture();
+    state.scrollLeft = 120; chart.scrollLeft = 108;
+    const observation = observeProjectionSettled(api, root, projection, context, () => true);
+    await vi.advanceTimersByTimeAsync(80);
+    expect((await observation.promise).outcome).toBe("SETTLED");
+    expect(chart.scrollLeft).toBe(108); // projection never writes/forges viewport
+    expect(state.scrollLeft).toBe(120);
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it("does not approve zero-size native Chart", async () => {
     const { api, root, chart } = fixture(); chart.clientWidth = 0;
     const observation = observeProjectionSettled(api, root, projection, context, () => true);
@@ -52,12 +62,12 @@ describe("projection receipt observation", () => {
 
 
 describe("nonempty hostile projection observations", () => {
-  for (const fault of ["missing-row", "missing-bar", "stale-grid-label", "stale-chart-label", "wrong-task", "wrong-link", "duplicate-order", "wrong-column"] as const) {
+  for (const fault of ["missing-row", "missing-bar", "stale-grid-label", "stale-chart-label", "wrong-task", "wrong-link", "duplicate-order", "wrong-column", "grid-y-offset"] as const) {
     it(`rejects ${fault} without accepting matching IDs alone`, async () => {
       const base = fixture();
       const task: ITask = { id: "task-1", parent: 0, text: "Short", type: "task", projectDisplayKey: "latest", $x: 0, $y: 10, $w: 60, $h: 20 };
       const nonempty = buildProjection({ revision: 9, tasks: [task], links: [], displayTasks: [] }, { scope: null, filter: null, displayMode: "compatibility", columnPrefs: [], scale: "day" });
-      const row = { dataset: { id: ":task-1" }, getClientRects: () => [{}], textContent: "Short", getBoundingClientRect: () => ({ y: 10, height: 20 }),
+      const row = { dataset: { id: ":task-1" }, getClientRects: () => [{}], textContent: "Short", getBoundingClientRect: () => ({ y: fault === "grid-y-offset" ? -18 : 10, height: 20 }),
         querySelector: () => ({ textContent: fault === "stale-grid-label" ? "Short extended" : "Short" }) };
       const bar = { dataset: { taskId: ":task-1" }, getBoundingClientRect: () => ({ y: 10, height: 20 }),
         querySelector: () => ({ textContent: fault === "stale-chart-label" ? "Short extended" : "Short" }) };

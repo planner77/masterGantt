@@ -1,7 +1,8 @@
 import type { ProjectSnapshotResponse } from "@/contracts/projects";
-import { RESOURCE_EXCEL_EXPORT_LIMITS as LIMITS, type ResourceExcelExportOptions, type ResourceExcelReportBundle } from "../../contracts/resource-excel-export";
+import { RESOURCE_EXCEL_EXPORT_LIMITS as LIMITS, isWbsResourceExcelOptions, type ResourceExcelExportInput, type ResourceExcelExportOptions, type ResourceExcelReportBundle } from "../../contracts/resource-excel-export";
 import type { ResourceDashboardSummary } from "@/contracts/resource-dashboard";
 import type { ResourcePlanMetrics, ResourcePlanSeries } from "@/domain/resources/resource-plan";
+import { resourceFingerprint } from "../resources/resource-data-context-core";
 import { normalizeResourceDashboardFilters } from "../resources/resource-dashboard-query-core";
 import { ProjectExcelExportError } from "./project-excel-export-core";
 
@@ -31,7 +32,44 @@ function validateSeries(series: ResourcePlanSeries) {
     if (!equalNumber(series.cells.reduce((n, cell) => n + cell[scope][key], 0), series.summary[scope][key])) unsupported(`Resource Plan ${scope}/${key} period parity mismatch.`);
   }
 }
-export function validateResourceExcelReport(snapshot: ProjectSnapshotResponse, options: ResourceExcelExportOptions, bundle: ResourceExcelReportBundle): void {
+function selectedWbsNode(bundle: ResourceExcelReportBundle) {
+  const evidence = bundle.wbsView!;
+  let current: Pick<typeof evidence.report, "totals" | "children" | "taskIds" | "assignmentIds"> = evidence.report;
+  for (const entry of evidence.selection.path) {
+    const child = current.children.find(row => row.selector.dimension === entry.dimension && row.selector.id === entry.id);
+    if (!child) return unsupported("Missing WBS selected path evidence.");
+    current = child;
+  }
+  return current;
+}
+export function validateResourceExcelReport(snapshot: ProjectSnapshotResponse, input: ResourceExcelExportInput, bundle: ResourceExcelReportBundle): void {
+  let options: ResourceExcelExportOptions;
+  if (isWbsResourceExcelOptions(input)) {
+    const evidence = bundle.wbsView;
+    if (!evidence) return unsupported("Missing exact WBS Resource evidence.");
+    if (resourceFingerprint(evidence.request) !== resourceFingerprint(input) || evidence.report.spec.root !== "resource") unsupported("Missing exact WBS Resource evidence.");
+    if (input.basis === "current" && resourceFingerprint(evidence.selection.sourceContext) !== resourceFingerprint(input.expectedReport.context)) unsupported("WBS current source mismatch.");
+    if (input.basis === "project" && (evidence.selection.path.length || evidence.selection.sourceContext.scope)) unsupported("WBS Project scope was not cleared.");
+    const canonicalTasks = new Set(snapshot.data.tasks.filter(row => row.type === "task").map(row => row.taskId));
+    if (evidence.selection.taskIds.some(id => !canonicalTasks.has(id)) || resourceFingerprint([...evidence.selection.assignmentIds].sort()) !== resourceFingerprint(bundle.assignments.map(row => row.assignment.assignmentId).sort())) unsupported("WBS canonical Task/Assignment identity mismatch.");
+    const projectIds = new Set<string>();
+    const canonicalAssignments = new Map(snapshot.data.assignments?.map(row => [row.id, row]) ?? []);
+    for (const row of evidence.projectAssignments) {
+      const assignment = canonicalAssignments.get(row.assignment.assignmentId);
+      if (!assignment || assignment.taskId !== row.taskId || assignment.target.kind !== "resource" || assignment.target.id !== row.assignment.resourceId || projectIds.has(assignment.id)) {
+        return unsupported("WBS Project Assignment identity mismatch.");
+      }
+      projectIds.add(assignment.id);
+    }
+    if (bundle.assignments.some(row => !projectIds.has(row.assignment.assignmentId))) unsupported("WBS selected Assignment absent from Project reference.");
+    for (const plan of Object.values(bundle.plans)) if (plan && (plan.totals.summary.project.assignmentCount !== projectIds.size || !equalNumber(evidence.projectAssignments.reduce((n, row) => n + (row.assignment.plannedMd ?? 0), 0), plan.totals.summary.project.knownMd))) unsupported("WBS Project Assignment effort mismatch.");
+    const selected = selectedWbsNode(bundle);
+    if (resourceFingerprint([...selected.taskIds].sort()) !== resourceFingerprint([...evidence.selection.taskIds].sort()) || resourceFingerprint([...selected.assignmentIds].sort()) !== resourceFingerprint([...evidence.selection.assignmentIds].sort()) || !equalNumber(selected.totals.assignments.effort.knownMd, bundle.report.summary.effort.knownMd)) unsupported("WBS selected totals mismatch.");
+    options = evidence.legacyOptions;
+  } else {
+    if (bundle.wbsView) unsupported("Unexpected WBS Resource evidence.");
+    options = input;
+  }
   if (!bundle || !bundle.report || !bundle.sourceContext || !bundle.quality || !bundle.assignments || !bundle.plans) unsupported("Missing Resource export DTO.");
   validateResourceExcelValues(bundle);
   let link: URL;
@@ -57,6 +95,30 @@ export function validateResourceExcelReport(snapshot: ProjectSnapshotResponse, o
   if (bundle.quality.scope !== "T0-before-personal-filters" || bundle.quality.unsetAssignments.length !== report.diagnostics.unsetAssignmentCount) unsupported("Resource diagnostic grain mismatch.");
   const qualityIds = new Set<string>();
   for (const row of bundle.quality.unsetAssignments) { if (!canonicalAssignments.has(row.assignmentId) || !taskIds.has(row.taskId) || qualityIds.has(row.assignmentId) || row.allocationPercent !== null) unsupported("Invalid raw quality Assignment."); qualityIds.add(row.assignmentId); }
+  if (bundle.targetData) {
+    const evidence = bundle.targetData, sourceIds = new Set<string>(), projectIds = new Set<string>();
+    const targets = new Map(evidence.graph.targets.map(target => [target.id, target]));
+    for (const source of evidence.taskSources) {
+      if (!taskIds.has(source.taskId) || sourceIds.has(source.taskId)) unsupported("Invalid Target Task evidence identity.");
+      sourceIds.add(source.taskId);
+      for (const binding of [...source.bindings, ...source.inheritedBindings]) if (!targets.has(binding.targetId)) unsupported("Missing canonical Target binding.");
+      for (const member of source.effectiveMembers) for (const path of member.provenance) {
+        const target = targets.get(path.targetId);
+        if (!target?.members.some(row => row.id === path.memberId && row.kind === member.kind && row.entityId === member.entityId)) unsupported("Target member provenance mismatch.");
+      }
+    }
+    for (const row of evidence.projectAssignments) {
+      const canonical = canonicalAssignments.get(row.assignment.assignmentId);
+      if (!canonical || canonical.taskId !== row.taskId || canonical.target.kind !== "resource" || canonical.target.id !== row.assignment.resourceId || projectIds.has(canonical.id) || !sourceIds.has(row.taskId)) unsupported("Invalid Project reference Assignment evidence.");
+      projectIds.add(row.assignment.assignmentId);
+      if (row.assignment.allocationPercent === null && (row.assignment.plannedMd !== null || row.assignment.plannedMm !== null)) unsupported("Project unset Assignment must preserve null effort.");
+    }
+    if (bundle.assignments.some(row => !projectIds.has(row.assignment.assignmentId) || !sourceIds.has(row.taskId))) unsupported("Selected Assignment is absent from Project reference evidence.");
+    for (const granularity of options.granularities) {
+      const plan = bundle.plans[granularity];
+      if (!plan || evidence.projectAssignments.length !== plan.totals.summary.project.assignmentCount || !equalNumber(evidence.projectAssignments.reduce((n, row) => n + (row.assignment.plannedMd ?? 0), 0), plan.totals.summary.project.knownMd)) unsupported("Project reference Assignment count/effort parity mismatch.");
+    }
+  }
   for (const granularity of options.granularities) {
     const plan = bundle.plans[granularity];
     if (!plan) return unsupported("Missing Resource Plan DTO.");
@@ -70,7 +132,7 @@ export function validateResourceExcelReport(snapshot: ProjectSnapshotResponse, o
   }
 }
 /** Receives server DTOs only; no calendar, allocation or state recalculation occurs here. */
-export function buildResourceExcelSheets(snapshot: ProjectSnapshotResponse, options: ResourceExcelExportOptions, bundle: ResourceExcelReportBundle, render: ResourceExcelRowRenderer): { name: string; xml: string; relationship?: string }[] {
+export function buildResourceExcelSheets(snapshot: ProjectSnapshotResponse, options: ResourceExcelExportInput, bundle: ResourceExcelReportBundle, render: ResourceExcelRowRenderer): { name: string; xml: string; relationship?: string }[] {
   validateResourceExcelReport(snapshot, options, bundle);
   let totalRows = 0, totalCells = 0, renderedBytes = 0;
   const sheets: { name: string; xml: string; relationship?: string }[] = [];
@@ -100,6 +162,19 @@ export function buildResourceExcelSheets(snapshot: ProjectSnapshotResponse, opti
     append(["Project name", snapshot.data.project.name]);
     for (const [key, value] of Object.entries({ projectPublicId: report.projectPublicId, projectRevision: report.projectRevision, catalogRevision: report.catalogRevision, calendarRevision: report.calendarRevision, snapshotId: report.snapshotId, dataSnapshotId: bundle.sourceContext.dataSnapshotId, from: report.range.from, to: report.range.to, asOfDate: report.asOfDate, mdPerMm: report.mdPerMm, mdPerMmSource: report.mdPerMmSource, mdPerMmProvided: bundle.sourceContext.mdPerMmProvided, calculatedAt: report.calculatedAt, timezone: report.timezone, precision: "raw", groupRoleSubtotalsAdditive: false, taskSubtotalsAdditive: false, milestoneCapacityAdditive: false, diagnosticsScope: bundle.quality.scope })) append([key, value]);
     append(["Actual target context", JSON.stringify(bundle.sourceContext)]);
+    if (bundle.wbsView) {
+      const evidence = bundle.wbsView, selected = selectedWbsNode(bundle);
+      append(["WBS view basis", bundle.basis, "동적 경로 반복은 근거이며 합산하지 않음"], true);
+      append(["WBS source context", JSON.stringify(evidence.selection.sourceContext)]);
+      append(["WBS original source context", JSON.stringify(evidence.request.expectedReport.context)]);
+      append(["WBS view spec", JSON.stringify(evidence.report.spec)]);
+      append(["WBS source snapshot", evidence.selection.snapshotId]);
+      append(["WBS selected path", JSON.stringify(evidence.selection.path)]);
+      append(["WBS ordinary Task count", selected.totals.tasks.taskCount]);
+      append(["WBS Task completion numerator/denominator/percent", selected.totals.tasks.completion.numerator, selected.totals.tasks.completion.denominator, selected.totals.tasks.completion.percent]);
+      append(["WBS Task duration-weighted progress numerator/denominator/percent", selected.totals.tasks.progress.numerator, selected.totals.tasks.progress.denominator, selected.totals.tasks.progress.percent]);
+      append(["WBS original filters", JSON.stringify(evidence.request.basis === "current" ? evidence.request.expectedReport.filters : {})]);
+    }
     if (bundle.originalSourceContext) append(["Original source provenance (not current totals)", JSON.stringify(bundle.originalSourceContext)]);
     append(["Normalized filters", JSON.stringify(report.filters)]);
     append(["dimension", "id", "name", ...summaryKeys], true);
@@ -157,6 +232,88 @@ export function buildResourceExcelSheets(snapshot: ProjectSnapshotResponse, opti
     for (const task of bundle.quality.tasks) task.wbsPath.forEach((part, index) => append(["QualityTaskWbs", task.taskId, part.taskId, part.name, index]));
     for (const [key, values] of Object.entries(report.filters)) if (Array.isArray(values)) for (const value of values) append([`Filter:${key}`, "report", value]);
     if (bundle.scope) append(["Original exact scope", "report", JSON.stringify(bundle.scope)]);
+    if (bundle.wbsView) {
+      const evidence = bundle.wbsView, selected = selectedWbsNode(bundle);
+      append(["WBS evidence", "동적 계층 행은 중첩 비가산; raw Task/Assignment 합집합을 사용"], true);
+      for (const id of evidence.selection.taskIds) append(["WbsSelectedTask", id]);
+      for (const id of evidence.selection.assignmentIds) append(["WbsSelectedAssignment", id]);
+      for (const row of evidence.selection.selectedSources) for (const source of row.sources) append(["WbsSource", row.taskId, source.sourceKind, source.dimension, source.entityId, source.assignmentId, JSON.stringify(source)]);
+      const walk = (rows: typeof evidence.report.children) => {
+        for (const row of rows) {
+          append(["WbsViewRow (non-additive)", row.viewRowKey, JSON.stringify(row.path), row.name, row.totals.tasks.taskCount, row.totals.assignments.assignmentCount, row.totals.assignments.effort.knownMd, row.totals.assignments.effort.plannedMd, row.totals.assignments.effort.plannedMm, row.totals.assignments.effort.state]);
+          for (const id of row.taskIds) append(["WbsViewTask", row.viewRowKey, id]);
+          for (const id of row.assignmentIds) append(["WbsViewAssignment", row.viewRowKey, id]);
+          walk(row.children);
+        }
+      };
+      walk(selected.children);
+    }
   });
+  if (bundle.wbsView && !bundle.targetData) sheet("Resource Project Assignments", append => {
+    append(["assignmentId", "taskId", "externalId", "task", "resourceId", "resource", "overlapFrom", "overlapTo", "allocationPercent (0-100)", "effectiveWorkingDays", "plannedMd", "plannedMm", "state", "referenceScope"], true);
+    for (const row of bundle.wbsView!.projectAssignments) {
+      const assignment = row.assignment;
+      append([assignment.assignmentId, row.taskId, row.externalId, row.taskName, assignment.resourceId, assignment.resourceName, assignment.from, assignment.to, assignment.allocationPercent, assignment.effectiveWorkingDays, assignment.plannedMd, assignment.plannedMm, assignment.allocationPercent === null ? "unset" : "configured", "same Capacity R/period; Task/Milestone/source restrictions removed"]);
+    }
+  });
+  if (bundle.targetData) {
+    const evidence = bundle.targetData, projection = evidence.projection;
+    const name = (dimension: string, id: string | null) => projection.catalog.find(row => row.dimension === dimension && row.id === id)?.name ?? id;
+    sheet("Resource Targets", append => {
+      append(["관련 계획 공수", "원가 배분 아님; 수량을 공수에 곱하지 않음"], true);
+      append(["총계", "고유 Assignment 합집합; Target/Group 소계 중첩 비가산"]);
+      append(["Capacity", "고유 resource-day; Target/Group/Milestone 반복 참고값 합산 금지"]);
+      append(["선택 기여", bundle.basis, "현재 Target/Task/Milestone/source 조건의 A"]);
+      append(["Target 근거", "Task canonical 전체 출처; 선택 조건은 Normalized filters를 참조하고 출처 행을 공수로 합산하지 않음"]);
+      append(["Plan Project 참고", "같은 Capacity R·기간; Target/Task/Milestone/source 제한 제거; 전사 부하 아님"]);
+      append(["Target Project 참고", projection.metadata.projectReferenceScope]);
+      append(["스냅샷", report.snapshotId, report.projectRevision, report.catalogRevision, report.calendarRevision]);
+      append(["M/M 기준", report.mdPerMm, report.mdPerMmSource]);
+      append(["미설정", "null 유지; partial은 알려진 부분합이며 확정 전체 아님"]);
+      append(["일정 원본", "Gantt/Tasks는 Project 전체 일정; Target 근거는 별도 보고서이며 JSON Import round-trip 형식 아님"]);
+      for (const [key, value] of Object.entries(projection.diagnostics)) append([key, Array.isArray(value) ? JSON.stringify(value) : value]);
+      append(["path", "dimension", "id", "name", "active", "sourceKinds", "equipmentQuantity (not effort multiplier)", "systemCount", ...summaryKeys], true);
+      const walk = (nodes: typeof projection.children, path: { dimension: string; id: string | null }[]) => {
+        for (const node of nodes) {
+          const current = [...path, { dimension: node.dimension, id: node.id }];
+          append([JSON.stringify(current), node.dimension, node.id, node.name, node.active, node.sourceKinds.join(","), node.equipmentQuantity, node.systemCount, ...summary(node.summary)]);
+          walk(node.children, current);
+        }
+      };
+      walk(projection.children, []);
+    });
+    sheet("Resource Target Catalog", append => {
+      append(["dimension", "id", "name", "code", "active"], true);
+      for (const row of projection.catalog) append([row.dimension, row.id, row.name, row.code, row.active]);
+    });
+    sheet("Resource Target Sources", append => {
+      append(["relation", "taskId", "sourceTaskId", "bindingId", "targetId", "Target", "scope", "selection", "inherited", "memberId", "kind", "entityId", "name", "typeCode", "quantity (not effort multiplier)", "projectProcessId", "processOccurrenceId", "processTypeId", "workAreaId", "coverage", "coverageMode", "assignmentId", "demandScope"], true);
+      for (const process of evidence.graph.processes) append(["ProjectProcess", null, null, null, null, null, null, null, null, null, null, null, name("projectProcess", process.id), null, null, process.id, process.occurrenceId, process.processTypeId]);
+      for (const area of evidence.graph.workAreas) append(["WorkArea", null, null, null, null, null, null, null, null, null, null, null, name("workArea", area.id), null, null, null, area.occurrenceId, null, area.id]);
+      for (const target of evidence.graph.targets) {
+        const process = evidence.graph.processes.find(row => row.id === target.projectProcessId);
+        append(["Target", null, null, null, target.id, name("target", target.id), target.scope, null, null, null, null, null, null, null, null, target.projectProcessId, target.occurrenceId, process?.processTypeId, target.workAreaId]);
+        for (const member of target.members) {
+          const instance = evidence.graph.instances.find(row => row.entityId === member.entityId && row.kind === member.kind)!;
+          append(["TargetMember", null, null, null, target.id, name("target", target.id), target.scope, null, null, member.id, member.kind, member.entityId, name(member.kind, member.entityId), instance.typeCode, instance.quantity, target.projectProcessId, target.occurrenceId, process?.processTypeId, target.workAreaId]);
+        }
+      }
+      for (const source of evidence.taskSources) {
+        if (!source.effectiveTargetIds.length) append(["TargetUnlinked", source.taskId]);
+        for (const binding of [...source.bindings, ...source.inheritedBindings]) append(["Binding", source.taskId, binding.taskId, binding.id, binding.targetId, name("target", binding.targetId), binding.scope, binding.selection, binding.taskId !== source.taskId]);
+        for (const member of source.effectiveMembers) for (const path of member.provenance) append(["MemberProvenance", source.taskId, path.sourceTaskId, path.bindingId, path.targetId, name("target", path.targetId), path.scope, path.selection, path.inherited, path.memberId, member.kind, member.entityId, name(member.kind, member.entityId), null, null, null, null, null, null, path.coverage, path.coverageMode]);
+        for (const legacy of source.legacySources) append(["LegacyDirect", source.taskId, legacy.sourceTaskId, null, null, null, legacy.scope, null, legacy.inherited, null, legacy.kind, legacy.entityId, name(legacy.kind, legacy.entityId)]);
+      }
+      for (const [scope, rows] of [["selected", bundle.assignments], ["same-R-project", evidence.projectAssignments]] as const) for (const row of rows) {
+        const values: ResourceExcelValue[] = Array(21).fill(null);
+        values[0] = "AssignmentScope"; values[1] = row.taskId;
+        append([...values, row.assignment.assignmentId, scope]);
+      }
+    });
+    sheet("Resource Project Assignments", append => {
+      append(["assignmentId", "taskId", "externalId", "task", "resourceId", "resource", "overlapFrom", "overlapTo", "allocationPercent (0-100)", "effectiveWorkingDays", "plannedMd", "plannedMm", "state", "effectiveTargetIds", "referenceScope"], true);
+      for (const row of evidence.projectAssignments) { const a = row.assignment; append([a.assignmentId, row.taskId, row.externalId, row.taskName, a.resourceId, a.resourceName, a.from, a.to, a.allocationPercent, a.effectiveWorkingDays, a.plannedMd, a.plannedMm, a.allocationPercent === null ? "unset" : "configured", JSON.stringify(row.targetSources?.effectiveTargetIds ?? []), "same Capacity R/period; Target/Task/Milestone/source restrictions removed"]); }
+    });
+  }
   return sheets;
 }

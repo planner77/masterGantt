@@ -1,0 +1,93 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "documentWidth": 1440,
+  "noteOnlyHeight": 108,
+  "notes": [
+    {
+      "text": "추가 조건 0개 · 공수 기간 서버 기본 ~ 서버 기본 · 환경 환산 기준",
+      "top": 356.5,
+      "bottom": 374.5,
+      "left": 30,
+      "right": 1410,
+      "width": 1380,
+      "height": 18
+    },
+    {
+      "text": "자동 기준일 · 서버 Project timezone Asia/Seoul · 평가일 2026-10-06. 현재 snapshot 평가 · 과거 상태 복원 아님.",
+      "top": 386.5,
+      "bottom": 404.5,
+      "left": 30,
+      "right": 1410,
+      "width": 1380,
+      "height": 18
+    },
+    {
+      "text": "현재 조회 조건 확인 완료 · 계산 2026-10-06T00:00:00.000Z · Project 40 / Catalog 1",
+      "top": 466,
+      "bottom": 484,
+      "left": 30,
+      "right": 1410,
+      "width": 1380,
+      "height": 18
+    },
+    {
+      "text": "지표 중복 집계 · 건수 합산 불가",
+      "top": 831,
+      "bottom": 849,
+      "left": 30,
+      "right": 1410,
+      "width": 1380,
+      "height": 18
+    },
+    {
+      "text": "전체 소속·직접 선행 기준 · 계획 공수와 분모 다름",
+      "top": 891.5,
+      "bottom": 909.5,
+      "left": 30,
+      "right": 1410,
+      "width": 1380,
+      "height": 18
+    },
+    {
+      "text": "2026-09-01 ~ 2026-09-30 · 1 M/M = 20 M/D · 환경 설정 기준. 숨긴 Milestone bucket도 전체 합계에 포함하며 위 표시 행의 합계가 아닙니다. 투입률 미설정 0건.",
+      "top": 1432,
+      "bottom": 1450,
+      "left": 30,
+      "right": 1410,
+      "width": 1380,
+      "height": 18
+    }
+  ],
+  "primaryDataTop": 496,
+  "rowCount": 21,
+  "visibleRowCount": 0,
+  "tables": [
+    {
+      "top": 918.5,
+      "bottom": 4472.5,
+      "left": 31,
+      "right": 1409,
+      "width": 1378,
+      "height": 3554,
+      "ownerWidth": 1378,
+      "scrollWidth": 1378
+    },
+    {
+      "top": 1507,
+      "bottom": 1676,
+      "left": 31,
+      "right": 1409,
+      "width": 1378,
+      "height": 169,
+      "ownerWidth": 1378,
+      "scrollWidth": 1378
+    }
+  ],
+  "helpTriggerCount": 6,
+  "browserVersion": "153.0.8010.12",
+  "fixture": "issue-719 shared synthetic fixtures",
+  "zoom": "100% browser default"
+}

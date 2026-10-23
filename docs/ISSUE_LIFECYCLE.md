@@ -1,3 +1,43 @@
+## Issue #711 — Test Suite Lifecycle 사전 검토 및 폐기 승인 (2026-10-23)
+
+Manager/구현 Agent는 Issue PLAN·REWORK와 PR 준비 시 AC와 #697 변경 영향·positive/negative/보안·DB/경합·실제 브라우저 경계를 확인한 후, **기존 테스트의 파일·시나리오·assertion을 탐색하여** `TEST_LIFECYCLE_REVIEW`(ADD/EXTEND/KEEP_UNIQUE/PARTIAL_OVERLAP/CONSOLIDATE_CANDIDATE/RETIRE_CANDIDATE, 이전 테스트 검색, 실행 근거, 잔여 위험)을 Work Packet/PR에 기록한다. 이 필드는 기존 `AC_TEST_COVERAGE`를 가리키며 별도 중복 AC 표를 강제하지 않는다. 상세 판정/의미 중복·폐기 안전성의 **단일 원본**은 [TEST_PLAN Test Lifecycle](TEST_PLAN.md), 실제 첫 인벤토리는 [Issue #711 Inventory](TEST_LIFECYCLE_INVENTORY_711.md)와 [Work Packet](exec-plans/active/ISSUE_711.md)를 따른다.
+
+서로 다른 권한·보안/SQLite migration/revision·실제 브라우저 경계의 독립 테스트를 단순 제목 유사성이나 느린 실행만으로 통합/폐기하지 않는다. 정확 동일 소스의 대체 PASS, old→new AC/음성 커버리지, QA·Owner 승인과 롤백을 확인하기 전 삭제·무단 skip·assertion 축소 금지. #699(로컬 Pre-PR), #704(실패 원장), #437(샤드), #659(Full/Fast CI)는 역할이 다르며 **현행 8 Chromium shards, Quality/E2E/Docker Required3, Trusted/Owner·Main/Release/Finalizer Gate는 유지**된다. 새 Head 원격 결과 전 상태는 NOT TESTED이며 이 정책 이슈는 HIGH/OWNER_MANAGED/qa_required=true/release_required=false다.
+
+---
+
+## Issue #772 — Targeted PR 근거와 Main/Release Full의 분리 (2026-10-22)
+
+정확 PR Run/Attempt·이벤트·Head/Base/Test-Merge·base 정책 Blob/전체 diff·Playwright spec/case/Artifact를 재검증한 `TARGETED_POLICY_VERIFIED`에 한해 Owner 플래그 전환 이후 LOW PR 병합 근거로 인정한다. 이 근거는 `FULL_E2E_PASS`가 아니며 `required_checks_ok`의 보고서도 `TARGETED_POLICY_VERIFIED_NOT_FULL`로 표기한다. 병합 후 `edited` metadata-only Check Run이 최신 Full/Targeted 출처를 덮거나 실패 Full을 소급 승인하지 않는다. `FULL_REQUIRED`는 기존 Full8/3 Required, `DOCS_ONLY_VERIFIED`는 기존 문서 경로만 유지, 불명확/누락/취소·fork·정책 downgrade는 BLOCKED.
+본 정책 PR 자체 HIGH·기존 Full8·Owner 승인, 초기 플래그 OFF. Main push E2E8/8·Quality/Docker/GHCR candidate, strict latest main, version 승인, Release/Finalizer 독립 source 필수. [Work Packet](exec-plans/active/ISSUE_772.md).
+
+## Issue #765 — 검증된 v0.129.0은 유지하고 과거 미발행 부채만 RETIRED (2026-10-21)
+
+이미 발행한 #734 Release #186 / v0.129.0에는 #732·#736·#734의 병합 기능이 포함되어 있다. 하지만 First-parent 앞의 #732 Main CANCELLED, #736 Main FAILURE, #732 교정 Main CANCELLED가 Generic Finalizer를 DEFERRED시키므로 기존 이슈들은 아직 FINAL이 아니다.
+
+#765 정책 전용 복구 PR은 새 app version/정식 GHCR 릴리스 없이 HIGH Owner-managed 검증을 받는다. 신규 #765의 PR/Main CI·verified temporary image 성공, Owner의 정확 Merge SHA 복구 승인, 구버전 Git/Release/OCI 미발행 인증 감사 후 옛 브랜치 정리 → #732/#736 bot RETIRED·Closed → #734 기존 v0.129.0 Release에 대한 정상 FINAL → #765 no-release FINAL 순으로 처리한다.
+
+old CI를 소급 PASS하거나 v0.127.0/v0.128.0/0.129.0 이미지를 재게시하지 않는다. 재승인 대상과 종료된 이슈의 잘못된 FINAL을 구분하고 unknown GHCR 증거는 BLOCKED한다. 미병합 #764의 작업 및 브랜치 보존.
+
+상세: [#765 Work Packet](exec-plans/active/ISSUE_765.md).
+
+---
+
+## Issue #712 — 병합 후 Full PR CI / metadata Check Run 별도 판정 (2026-10-18)
+
+Issue #552의 [Full #2892.1](https://github.com/planner77/masterGantt/actions/runs/39021332528)와 후속 [post-merge metadata #2898.1](https://github.com/planner77/masterGantt/actions/runs/39027102063)는 같은 Head와 Required Check 이름을 공유하지만 서로 **다른 검증 권한/범위**다. Lifecycle의 `required_checks_ok`는 가장 큰 Check Run ID로 세 Required PASS를 고르지 않는다. 최신 신뢰 가능한 **Full** Workflow Run/Attempt 및 `ci-pr-source-<run>-<attempt>` artifact와 PR·Head·Base·Test-Merge·repository 증거, rerun attempts의 실제 aggregate 결과를 일치시킨다. metadata-only edited 결과는 별도 audit로 보존하며 실제 최신 Full 실패/진행 중을 과거 PASS로 치환할 수 없다.
+
+병합 전 open PR provenance는 strict Head/Base/Test-Merge; 병합 후에는 실제 merge SHA와 원본 test-merge Git commit의 정확한 두 부모(base/head)와 동일 Tree, PR 귀속, 원본 artifact를 요구한다. squash/rebase·다른 Tree·출처 불명은 BLOCKED. `POST_MERGE_METADATA_NON_AUTHORITATIVE`는 Full test PASS를 대신하는 판정이 아니며 병합 후 QA Final의 중복 FAIL은 보안 게이트 증거로 승격하지 않는다. Lifecycle verify/release/finalize의 Main exact SHA·GHCR·Owner 승인 보호는 불변이고 위반 시 `FULL_CI_SOURCE_UNVERIFIED`, `FULL_REQUIRED_FAILURE`, `MAIN_REQUIRED_FAILURE`, `ARTIFACT_FAILURE`, `RELEASE_AUTH_MISSING` 등 원인을 기록한다.
+
+이 Issue의 작업 계획·AC 테스트: [ISSUE_712.md](exec-plans/active/ISSUE_712.md). PR 전체 Quality/E2E6/Docker/Trusted QA 및 Owner HIGH 수용 전에 merge/finalize/릴리스/이슈 종료 금지. #552 과거 원본 CI·태그·승인 원장은 변경하지 않는다.
+
+## Issue #703 — Preview 시험 이미지와 Issue 완료 구분 (2026-10-17)
+
+Issue branch에서 Preview 수동 이미지가 게시되더라도 Phase는 PREVIEW_TRIAL(시험 전용)이고 MERGE_READY/RELEASE_AUTHORIZED/ISSUE_CLOSED를 자동 부여하지 않는다. Preview tag/digest는 기존 PR CI Required Quality/E2E/Docker 및 Trusted QA·Owner 수용을 대체하지 않는다. Preview Run은 main CI의 정식 ci-SHA/Release tag/Finalizer 전파·Issue close를 시작해서는 안 된다. 최초 사용은 PR 생성 전 branch에 권장하며 PR Push로 발생하는 자동 CI는 그대로 유지한다. 절차/증거/롤백은 [PREVIEW_PUBLISH.md](PREVIEW_PUBLISH.md)와 [ISSUE_703 Work Packet](exec-plans/active/ISSUE_703.md)을 따른다.
+
+## Issue #629 — 사전 검증은 최종 승인과 별개 (2026-10-12)
+Full PR CI에서 변경 경로 판정 후 신뢰된 기본 브랜치 QA Preflight를 실행한다. 결정적 구조·정책 실패는 무거운 회귀 이전 차단하되 세 required aggregate는 FAILURE로 마감한다. `DEFERRED` 리뷰/mergeability/Trusted QA/Owner ACCEPT를 사전 PASS로 오해하지 않는다. Preflight 도입 PR의 Bootstrap `NOT TESTED`는 기존 Full CI와 Owner 최종 승인 절차를 유지한다.
+
 ## Issue #598 — Owner 중심 QA 운영 (2026-10-10)
 
 기본 `qa_method=OWNER_MANAGED` (`AUTOMATED_MANAGER`는 호환 alias), `AGENT`는 선택적 독립 검토이다. 보호된 CI/workflow/scripts/package/QA·보안 정책과 HIGH를 포함하여 별도 인간 Reviewer GitHub APPROVED는 필수가 아니다. 대신 최신 PR Head/base에 관한 원본 Quality/E2E/Docker 세 required aggregate PASS, strict main, unresolved review thread 0, docs/AC, 기본 브랜치 trusted read-only validator 및 고위험 수동 점검을 모두 유지한다. `automated_qa=PASS`와 `independent_qa=N/A(Owner-managed, 독립 검토 없음)`은 `manager_decision=ACCEPT`가 아니다. Owner의 명시적 병합 지시는 GitHub 인증 신원·대상 PR/HEAD/base/run/attempt/잔여위험을 확인한 뒤 감사 기록으로 남기며 수동 JSON 영수증은 요구하지 않는다. 변경 검증기 자기 승인, PR 내용/봇 댓글을 이용한 위조 승인, stale run 및 CI 우회는 차단한다. 이 정책 자체의 bootstrap PR은 기존 main validator가 protected를 BLOCKED하는 원장을 유지하며 세 필수 CI 성공·일회성 Owner 전환 승인 전 병합하지 않는다. 메인 임시 GHCR candidate와 finalizer는 동일, 정식 release는 `release_required && release_authorized`만 허용한다. [QA 정책](QA_REVIEW_POLICY.md)을 최신 기준으로 삼으며 아래 #565/#580/#595 이전 필수 인간 reviewer 지침보다 우선한다.
@@ -14,6 +54,13 @@
 - `automated_qa=PASS`는 정확한 구조·provenance 검사 결과이지 독립 의미/업무 QA·Manager ACCEPT가 아니다. `manager_decision=NOT TESTED`인 동안 `MERGE_READY=BLOCKED`. `AGENT`/protected 변경에는 실제 별도 독립 Reviewer가 필요하며 HIGH는 Manager의 범위별 위험 수용이 필요하다.
 - **실증 경계:** #593 자체가 검증기/CI 정책을 변경하므로 `HIGH/AGENT`; 이번 PR은 자기 Trusted PASS로 병합하지 않는다. 별도 독립 QA·Manager 결정 및 main 병합 이후 새로운 비보호 검증 PR을 통해 T1 정상 Trusted PASS/run URL·run_attempt·Head/base/merge·validator SHA 실증을 완료한다. 실증 전 T1/T2는 `NOT TESTED`. 이전 #580 Main CI/Finalizer 성공은 유지한다. #396 canonical 오류/빈 PR 귀속과 #591 원본 CI FAIL을 구별한다.
 - 운영: [ISSUE_593 Work Packet](exec-plans/active/ISSUE_593.md)과 [원격 검증](REMOTE_VALIDATION.md) T1~T9를 참조. 원본 run 결론 FAIL은 `FAIL`, 불충분한 출처는 `BLOCKED`, 낡은 PR event는 `SUPERSEDED/N/A`; skipped를 필요한 검증의 PASS로 사용하지 않는다. 실패한 metadata-only는 유효한 full CI 이후 해당 job 재실행으로 복구하며, run/attempt/총 실행 수·runner 비용 비교는 실제 Actions에서 측정한다.
+
+
+### 9.2.3 Pre-PR 검증 실행 및 증거 인계 (#699)
+
+`PLAN/REWORK → LOCAL_VALIDATED → DOCUMENTATION_SYNC → PR_READY` 구간에서 Manager가 [#697 위험/영향 판정](TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16)을 기록하면 구현 Agent는 [Local Pre-PR](LOCAL_PREPR.md) CLI `npm run verify:prepr -- --mode=fast` 및 변경 규모에 맞는 `--mode=targeted` (필요 시 `ci-like/diagnose/docker`)를 실행한다. `--dry-run`은 계획만이며 테스트 완료가 아니다. WSL2와 동일하지 않은 Ubuntu hosted runner·6분산 Shard·GitHub metadata/QA·Docker smoke는 원격에서 별도로 판정한다.
+
+Agent는 `report.json`/`SUMMARY.md` 경로, base/head/working fingerprint와 시작/끝 불변 여부, 명령/exit·고유 케이스/환경, 대상과 제외 사유, 실제 Chromium/HTTP·SQLite 여부, 실패·BLOCKED·NOT TESTED/DEFERRED, 잔여 위험을 Work Packet 및 PR 결과 계약에 기록한다. 테스트 발견/선정 누락/공유 계약 UNKNOWN은 임의 PASS 불가. 로컬 자동 검증은 QA 신뢰 검증기를 재구현하거나 원격 full PR CI/Owner 승인 기준을 바꾸지 않는다.
 
 
 ### Issue #580 · Review P1/P2 후속: protected main QA 신뢰 경계
@@ -167,6 +214,8 @@ Agent 역할 / 실행 ID(실제 생성 시) / 요청 모델·effort:
 
 CI 실패 시 infra는 run/job/step/attempt/최초 오류를 확보한다. application 원인은 frontend/backend/scheduler/excel_vba, UX 설계 원인은 ui_ux+frontend, workflow/runner/registry 원인은 infra에 재배정한다. gate 삭제, continue-on-error, 무조건 retry로 통과시키지 않는다. transient retry도 원인과 이전 실패를 기록한다. 동일 원인의 수정이 두 차례 실패하면 Manager가 가설/계획을 재검토한다.
 
+**PR CI 실패 공통 REWORK 계약 (#704):** infra의 직전 Run 조사만으로는 REWORK 분석이 완료되지 않는다. **최초 실패부터 Primary Issue별 `docs/ISSUE_<N>_FAILURE_ANALYSIS.md` 1개**를 생성하여 관련 모든 PR/Run/Attempt, 최초 실제 Job/Shard 실패·취소·미실행, 각 보완/재현·미검증을 누적한다. 재실패 시 해당 원장 **전체**를 먼저 읽고 GitHub 전체 이력과 대조한 후 이전 실패 파일 **합집합**·직접/간접·음성 소비자에 대한 제한적 확대 진단·원인별 일괄 보완·동결 source 재검증을 거쳐야 다음 CI를 시작한다. 상세 필드, 역할과 완료 기준은 [PR_CI_FAILURE_TRIAGE.md](PR_CI_FAILURE_TRIAGE.md)를 따른다. 과거 실패를 덮어쓰거나 다른 Head의 PASS를 합산하지 않으며, 원장 누락은 `INCOMPLETE/BLOCKED`로 남긴다.
+
 세션 중단/사용자 추가 요청 시 Manager는 Issue/PR에 현재 단계, 요청 범위 변경, branch/head, 버전/tag, 완료·미완료 gate, Agent 결과와 잠금 파일, 다음 조치를 기록한다. 재개할 때 실제 원격 상태를 다시 읽고 기존 branch/PR/run을 재사용한다. 과거 PASS는 해당 SHA/환경에서만 유효하다. 이미 게시된 version을 다시 게시하지 않는다. 실행 중인 척하거나 승인되지 않은 백그라운드 작업을 약속하지 않는다.
 
 ## 7. 완료 판정과 보고
@@ -269,6 +318,9 @@ Manager는 각 위임 전에 최소 다음을 고정한다.
 - release_required / release_authorized / 승인 근거
 - primary Agent / collaborators / writable files / read-only files / shared interface
 - Local Fast Feedback / required tests / docs / remote CI / 환경별 검증
+- 변경 영향 분석: base/head/test-merge/source fingerprint, 수정 함수·공개 계약, 직접/간접 소비자, 기존/신규 음성 테스트 파일과 실행·제외 근거, LOW/MEDIUM/HIGH 위험도·진단 확대, 고유 테스트 수·미실행·잔여 위험. 상세 위험도 결정표는 TEST_PLAN 단일 원본
+- PR CI 실패/REWORK일 경우 이슈별 **누적 원장 경로**(`docs/ISSUE_<N>_FAILURE_ANALYSIS.md`), 이전 **모든** Run/Attempt/실제 실패 집합의 대조 여부, 최신 실패 추가·원인 매트릭스, source 동결 진단/남은 미검증. [공통 원장 지침](PR_CI_FAILURE_TRIAGE.md)
+
 - predecessor result / expected output / next owner / stop conditions
 - Issue Progress Log 후보와 댓글 작성 권한: `issue_log_type`, `issue_comment_writer`, `issue_comment_allowed_types`
 
@@ -278,9 +330,13 @@ Agent는 packet과 실제 저장소 상태가 다르면 조용히 보정하지 �
 
 ### 9.2.1 위험도 기반 QA_FINAL 분기 (#565)
 
-PLAN/Work Packet·PR·REWORK·병합 전 `risk_level`(LOW/MEDIUM/HIGH)과 `risk_reason`/`qa_required`/Reviewer/최신 Head를 기록한다. HIGH는 실제 `qa_docs` 또는 별도 인간 Reviewer 필수이고 없으면 BLOCKED, LOW/일부 MEDIUM만 `QA_FINAL=N/A(reason)` 가능하다. MEDIUM의 복수 ownership 경계/회귀 등 트리거는 독립 검토 의무이며 기존 코드/문서/CI 검사 생략 근거가 아니다. [판정 순서·예외 및 테스트 시나리오](QA_REVIEW_POLICY.md)를 따른다.
+PLAN/Work Packet·PR·REWORK·병합 전 risk_level(LOW/MEDIUM/HIGH), risk_reason, qa_method, qa_required, Reviewer와 정확 Head를 기록한다. #598의 기본 OWNER_MANAGED는 HIGH/보호 경로라는 이유만으로 별도 인간 Reviewer APPROVED를 자동 요구하지 않는다. 단, 세 Required aggregate·Trusted QA·리뷰 스레드 0·Owner의 명시적 병합 허가 및 HIGH 잔여 위험 수용은 유지한다. AGENT 방식을 명시 선택하면 독립성/보호 경로 신뢰 조건을 따른다. 독립 검토 부재는 independent_qa=N/A(Owner-managed, 독립 검토 없음)로 기록하며 자동 성공을 사람의 QA PASS로 전용하지 않는다. [현행 QA 단일 원본](QA_REVIEW_POLICY.md)을 따른다. #697 영향 분석은 로컬 범위 결정이며 QA/Required 정책의 변경이 아니다.
 
-이슈 #580의 GitHub Actions 자동 QA 대체 경로는 **#580 bootstrap PR 병합 및 신뢰된 main 실행 검증 전까지 미적용**이다. Ruleset의 승인 리뷰 수 0명을 독립 QA PASS로 간주하지 않으며, 모든 경우 Manager의 Head 연결 ACCEPT가 필요하다.
+### 9.2.2 변경 영향과 테스트 증거 기록 (#697)
+
+Manager는 PLAN/REWORK 및 공통 상태·계약 변경 시 [TEST_PLAN.md](TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16)를 근거로 수동 영향 매핑을 기록한다. 표의 필수 열은 **수정 지점/변경 전후 → 직접·간접 소비자/음성 사례 → 위험도 → 실제 기존·추가 테스트 파일·환경 → 실행 여부·선정/제외 이유 → 고유 케이스 수·결과·동일 source SHA/run/trace → 미검증·잔여 위험/담당**이다. 분류·교차 회귀·진단 확대의 세부 원칙은 TEST_PLAN 단일 원본을 따르고 이 문서에는 중복 정의하지 않는다.
+
+구현 Agent는 실제 명령/환경과 Unit/mock/actual Chromium/HTTP·SQLite/Remote Required 증거를 구분한다. CI FAIL 뒤 REWORK는 실패 원본·로컬 재현·제품 또는 fixture 보완·최종 동일 source 재검증을 분리하고, 확대 진단의 시작/종료와 비용을 기록한다. Manager는 source 변경으로 stale이 된 테스트·DOC_SYNC를 갱신하고, qa_docs/Reviewer는 선택된 경우 증거·미실행·문서 정합을 read-only로 검토한다. [#697/#667 시범 Work Packet](exec-plans/active/ISSUE_697.md)은 **참고 예시**이지 자동 검증 구현이나 #667 PASS 증명이 아니다.
 
 ### 9.3 Phase Gate
 
@@ -295,7 +351,7 @@ PLAN/Work Packet·PR·REWORK·병합 전 `risk_level`(LOW/MEDIUM/HIGH)과 `risk_
 | DOCUMENTATION_SYNC | 문서 영향 분석 완료, required docs 갱신 또는 항목별 N/A 근거 기록, 코드·계약·문서 정합성 확인 | Manager가 지정한 문서 작성자; 기본은 Work Packet 지정 구현 Agent |
 | QA_READY | DOCUMENTATION_SYNC PASS + 위험도별 qa_required 결정(독립 Reviewer 지정 또는 N/A 근거) + 구현 결과/증거 전달 | Manager/조건부 Reviewer |
 | PR_OPEN/PR_CI | 단일 PR, 최신 head의 quality/e2e/docker | infra |
-| QA_FINAL/MERGE_READY | HEAD별 `qa_method=AGENT`은 실제 독립 Reviewer PASS, `AUTOMATED_MANAGER`는 main Trusted QA PASS·Manager HIGH 위험 수용, 보호된 정책/Workflow는 무조건 독립 Reviewer PASS; 비의무 검토는 N/A(reason). 모든 경로에 최신 세 CI·DOC_SYNC·리뷰 해결·Manager ACCEPT 필수 | qa_docs 또는 인간 Reviewer(필요 시) + Manager |
+| QA_FINAL/MERGE_READY | OWNER_MANAGED(구 AUTOMATED_MANAGER)는 Trusted 자동 QA·정확 Head/원본 CI와 Owner의 명시 승인·HIGH 위험 수용, AGENT 선택 시 독립 Reviewer의 신뢰 조건 적용. 독립 리뷰 N/A는 자동 인간 QA PASS가 아님. 모든 경로에 최신 세 Required CI·DOC_SYNC·리뷰 스레드 0·Owner 허가 필수 | Manager/Owner + qa_docs 또는 인간 Reviewer(AGENT 선택 시) |
 | MERGED | 승인 head의 실제 merge SHA | infra |
 | MAIN_VALIDATION | merge SHA의 main CI 완료 | infra |
 | MAIN_ARTIFACT_VALIDATED | 정책상 ci-<SHA> exact digest smoke/SBOM/provenance/cleanup | infra + 위험도별 Reviewer/Manager |
@@ -368,6 +424,7 @@ GitHub Issue는 요구사항 Source이자 작업 진행 기록의 기준점이�
 - 기존 Issue/branch/PR이 있으면 재사용한다.
 - PR head가 바뀌면 이전 head에 연결된 모든 required PR CI(`quality/e2e/docker`)와 QA_FINAL(독립 PASS 또는 N/A) 판정은 변경 영향도와 무관하게 stale이다. 새 head에서 전체 required PR gate 및 위험도/QA 필요성을 재평가하고 해당 QA 절차를 다시 수행한다. Local Fast Feedback만 영향도 기준 재사용을 허용한다.
 - 구현·계약 변경이 문서에 영향을 주면 이전 DOCUMENTATION_SYNC PASS도 stale이며 QA 전 문서 Gate를 다시 통과한다.
+- **PR CI가 한 번이라도 실패한 Issue**는 모든 후속 REWORK에서 [이슈별 누적 분석 원장](PR_CI_FAILURE_TRIAGE.md)을 확인·갱신하고 전체 관련 실패의 원인·재발·새 소비자 영향을 종합해 같은 후보 source로 재검증한다. 직전 실패만 수정하거나 재실행하면서 과거 원장을 건너뛰지 않는다.
 - 같은 원인 실패를 두 차례 반복하면 Manager가 가설/계획을 재검토한다.
 - 중단 후에는 Issue/PR/CI/main을 다시 읽고 현재 상태에서 남은 단계만 실행한다.
 - 이미 게시된 immutable version/tag는 재사용/덮어쓰기하지 않는다.

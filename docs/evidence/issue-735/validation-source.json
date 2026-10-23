@@ -1,0 +1,31 @@
+{
+  "issue": 735,
+  "baseline_sha": "8a0fc9773d33326b40f8d97f6307c17ae0cb6933",
+  "application_version": "0.126.0",
+  "scope": "13 product and dedicated Unit/API files; sorted path+NUL+bytes SHA256",
+  "combined_sha256": "87455823a3fd01d42bc5f5512c38b01e49659cc9f1e717b123cf19dd4a699b04",
+  "files": {
+    "src/contracts/wbs-dashboard-views.ts": "f60b96ce133931541f103e420b69ab05e192668044ce8c90ec9a9db956044f33",
+    "src/features/logistics/project-logistics-management.tsx": "3cf82ef8e0dac327b35615e6237ad8f44821bb26751d7f79c679ef1a3541eda2",
+    "src/features/logistics/project-logistics-unified.tsx": "ded7987560b1840b4723b0313ca4db5ee9e4d6016673f6a526c549ea730a9c36",
+    "src/features/resources/system-dashboard-model.ts": "f080320480e25c5765290046a60f305ee4c634f0b0cf672a7cf8ac9aff864143",
+    "src/features/resources/system-dashboard.module.css": "d65cd9c8a9b52b2fc837f1bd3729e75b5a7ad9ec856c979ee0b11e7f09b5cd7c",
+    "src/features/resources/system-dashboard.tsx": "ee882f8de380a2b4090de15a9a9ad4a2ba625b583ab99dbc56c65093e709b8e6",
+    "src/features/resources/wbs-view-dashboard.tsx": "b67fd9fe5d2653a75648948520c39cf5111a873a4c91e93e05fd1affd9d51248",
+    "src/features/resources/wbs-view-model.ts": "9acfc8fbe5ecfbb0dc672c350b2330f3a36032bfc3a61f763a224defd9084e52",
+    "src/server/resources/resource-dashboard-service-core.ts": "badbc8df993726369df2957ff9c3b7f3f677993e20a513db666ae34db3085525",
+    "src/server/resources/wbs-dashboard-views-core.ts": "83df95f130321e14f1e4722228edcffbbbba3543acd226b07dd5d730c796d78d",
+    "src/server/resources/wbs-dashboard-views-query-core.ts": "436841d55b9844e83691527aadb05d8999f1a0f9a006ba66fd622c0eed3f07f2",
+    "tests/features/resources/system-dashboard.test.ts": "7ce1e8ad4c10460edeebe5709e66ea680426a058e0eae958c2155d28eef4e8b7",
+    "tests/server/resources/issue-735-system-dashboard.test.ts": "97376c1477bfcbbc9e882c26d4fe96b434a9089c2e17dd2996121a3216333ef6"
+  },
+  "e2e_spec_sha256": "272e1963913ecc457a8ca6b84a66e915019358c152f9d7bbc7ca814f8d6cf95d",
+  "parent_gateway_final_diff": "src/features/projects/project-readonly-view.tsx unchanged; temporary diagnostics removed",
+  "node": "22.14.0",
+  "npm": "11.10.0",
+  "next": "16.3.8",
+  "playwright": "1.63.0",
+  "managed_chromium_actual_launch_version": "153.0.8010.12",
+  "remote_required_quality_e2e_docker": "NOT TESTED",
+  "owner_accept": "NOT TESTED"
+}

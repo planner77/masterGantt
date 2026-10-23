@@ -1,3 +1,17 @@
+## Issue #762 — 직접 WorkArea 필드 지원 경계
+
+일정 JSON1.0/1.1 입력 schema는 Project 공정·직접 WorkArea의 전체 참조 교환을 지원하지 않는다. `projectWorkAreas` 등 직접 소속 그래프 key는 `PROCESS_CONTEXT_IMPORT_UNSUPPORTED`로 명시 거부하고 일부만 무시하거나 빈 관계로 저장하지 않는다. 일정용 형식을 임의 확장하지 않으며 전체 관계의 Copy/Template logistics v5는 별도 계약이다. 직접 구역만 존재해도 일정 JSON/Excel 출력의409 손실 방지를 적용한다. [교환 정책](IMPORT_EXPORT.md#issue-762--직접-workarea-원본의-손실-방지) 참조.
+
+## Issue #725 — 직접 문맥은 schedule-stage 입력에서 미지원
+
+schema1.0/1.1은 Equipment–WorkArea/Task 직접 공정·WorkArea 컬렉션과 명시0개 marker를 받지 않는다. `equipmentWorkAreas`, `workAreaIds`, `taskContexts`, `taskProcessContexts`, `processLinks`, `workAreaLinks` 및 해당 snake_case 필드가 어느 깊이에 있어도400 `PROCESS_CONTEXT_IMPORT_UNSUPPORTED`로 전체 거부한다. unknown field를 무시하거나 legacy-null/명시0을 서로 변환하지 않는다.
+
+이 그래프는 Project Copy/별도 Template의 `logistics.schemaVersion=4`에서 remap한다. Templatev4 지원이 schedule JSON1.1의 전체 backup 지원을 뜻하지 않는다. marker/관계가 존재하는 일정 JSON/plain 일정 Excel Export는409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`로 거부한다. [교환 경계](IMPORT_EXPORT.md#issue-725--공정workarea-문맥과-교환-경계), [Copy·Template](ISSUE_27_PROJECT_COPY.md#issue-725--직접-문맥의-copytemplate-v4)를 따른다.
+
+## Issue #727 — Resource 참여 관계 미지원 경계
+
+기존 일정 JSON/CSV contract에 `resourceMemberships` 또는 프로젝트 참여 필드를 추가하지 않는다. 미지원 membership 필드는 조용히 무시하지 않고 Import400으로 거부한다. Project에 명시 등록이 있으면 이를 표현하지 못하는 일정 JSON/일반 Excel Export를 명시 오류로 차단한다. 지원 Project Template의 optional `resourceMemberships`는 별도 서버 snapshot contract이며 외부 일정 JSON schema와 혼용하지 않는다. 등록은 Task Assignment/투입률/실제공수의 다른 표현이 아니다. [교환 경계](IMPORT_EXPORT.md), [API](API.md).
+
 # Import contract 1.0 / 1.1
 
 ## Issue #464 — JSON 1.1과 보호된 Import/Export
@@ -158,3 +172,7 @@ Preview 응답과 오류 envelope, HTTP status, auth, revision은 [API.md](API.m
 검증기 결과의 taskId는 순수 계산용 임시 externalId이며 저장용 public UUID가 아니다. 후속 commit 구현은 server-generated UUID를 발급하고 대상 DB 충돌·authorization/revision을 별도로 검증해야 한다.
 
 1.0 pure validator 자체는 HTTP/byte/DB 검증을 수행하지 않는다. Issue #464의 별도 parser/service/handler가 JSON preview/commit의 byte/encoding/duplicate key·target collision·원자 transaction을 구현한다. CSV parsing은 미구현이다. 테스트는 `tests/contracts/import.test.ts`의 새/기존 입력, 중첩/혼합 Summary, invalid Leaf/null/날짜/관계/version fixture다. Windows Excel/VBA/DRM 실제 실행 및 원격 Import commit은 NOT TESTED다.
+
+## Issue #617 — 외부 Target binding 입력 경계
+
+JSON schema1.0/1.1의 schedule-stage payload에는 Target/binding/member/coverage 원장이 없다. 신규 binding 필드를 지원으로 오인해 무시하지 않고 `TARGET_BINDING_IMPORT_UNSUPPORTED` 등 validation 오류로 거부한다. 현행 payload의 strict Task/Link/Milestone membership·Calendar·create-only transaction 계약은 유지한다. Template의 별도 `logistics.schemaVersion=3` 및 #725 v4 지원이 JSON schema1.1의 Target 왕복 지원을 뜻하지 않는다. full graph 외부 참조 포맷은 #379에서 별도 version/capability를 설계한다.

@@ -236,22 +236,60 @@ def verified_source(gh, run, payload):
                 (pr.get("base") or {}).get("sha") == base,
                 "API pull_requests와 원본 artifact 불일치")
     live = gh.get(f"{gh.prefix}/pulls/{n}")
-    require(live.get("state") == "open" and live.get("number") == n and
-            live.get("head", {}).get("sha") == head and
-            live.get("head", {}).get("ref") == payload["head_ref"] and
-            (live.get("head", {}).get("repo") or {}).get("full_name") ==
+    require(live.get("number") == n and
+            (live.get("head") or {}).get("sha") == head and
+            (live.get("head") or {}).get("ref") == payload["head_ref"] and
+            ((live.get("head") or {}).get("repo") or {}).get("full_name") ==
                 payload["head_repository"] and
-            live.get("base", {}).get("sha") == base and
-            live.get("base", {}).get("ref") == "main" and
-            (live.get("base", {}).get("repo") or {}).get("full_name") ==
-                payload["base_repository"] and
-            live.get("merge_commit_sha") == merge,
-            "현재 PR head/base/test-merge/repository가 원본 검증과 다릅니다")
+            (live.get("base") or {}).get("ref") == "main" and
+            ((live.get("base") or {}).get("repo") or {}).get("full_name") ==
+                payload["base_repository"],
+            "현재 PR head/branch/repository가 원본 검증과 다릅니다")
+    if live.get("state") == "open" and not live.get("merged"):
+        require(live.get("draft") is not True,
+                "Draft PR has no authoritative FINAL_FULL QA", "FAIL")
+        require((live.get("base") or {}).get("sha") == base and
+                live.get("merge_commit_sha") == merge,
+                "병합 전 PR base/test-merge가 원본 검증과 다릅니다")
+    else:
+        verify_merged_tree(gh, live, head=head, base=base, test_merge=merge)
     # The repository's commit→PR association is an independent read-only witness.
     linked = gh.pages(f"{gh.prefix}/commits/{head}/pulls")
     require(len(linked) == 1 and linked[0].get("number") == n,
             "Commit→PR 귀속 API 단일 증거 부족/다중 후보")
     return n, head, base, merge, live
+
+
+
+def verify_merged_tree(gh, live, *, head, base, test_merge):
+    """Authenticate a two-parent GitHub merge, never reuse the PR's mutable base.
+
+    The test merge SHA need not equal the final merge SHA: GitHub creates a
+    different commit object on merge, but both immutable parent pairs and trees
+    must be identical. Squash/rebase/nonidentical-tree are NOT an exception.
+    """
+    sha = live.get("merge_commit_sha")
+    require(live.get("state") == "closed" and live.get("merged") is True and
+            bool(live.get("merged_at")) and
+            isinstance(sha, str) and re.fullmatch(r"[0-9a-f]{40}", sha),
+            "병합 여부/정확한 실제 merge SHA 증거 불충분")
+    expected = [base, head]
+    commits = []
+    for ref in (test_merge, sha):
+        commit = gh.get(f"{gh.prefix}/git/commits/{ref}")
+        require(isinstance(commit, dict) and commit.get("sha") == ref,
+                "원본/실제 merge Git commit object 불일치")
+        parents = commit.get("parents") or []
+        require(len(parents) == 2 and
+                [p.get("sha") for p in parents] == expected,
+                "원본/실제 merge의 first-parent base/second-parent head 불일치")
+        tree = (commit.get("tree") or {}).get("sha")
+        require(isinstance(tree, str) and re.fullmatch(r"[0-9a-f]{40}", tree),
+                "merge Git Tree SHA 누락")
+        commits.append(tree)
+    require(commits[0] == commits[1],
+            "원본 test-merge와 실제 merge의 Git Tree 불일치")
+    return sha
 
 
 def primary_issue(title, body):
@@ -292,6 +330,8 @@ def snapshot(event, live, run, env):
     h = (p.get("head") or {}).get("sha")
     b = (p.get("base") or {}).get("sha")
     require(live.get("state") == "open", "PR 상태가 open이 아님")
+    require(live.get("draft") is not True,
+            "Draft PR cannot receive automated full QA", "FAIL")
     require(h == env.get("EVENT_HEAD_SHA") == live.get("head", {}).get("sha"),
             "PR latest Head stale")
     require(b == env.get("EVENT_BASE_SHA") == live.get("base", {}).get("sha"),
@@ -400,6 +440,12 @@ def verify_same_base_full_run(gh, number, head, base, current_run_id, merge=None
         require(all(jobs.get(name) == "success" for name in required) and
                 jobs.get("PR metadata가 기존 전체 CI 증거를 보존하는지 검증") == "skipped",
                 "동일 base의 full-run quality/e2e/docker 증거 불충분", "FAIL")
+        if jobs.get("Low E2E targeted execution") == "success":
+            from ci_low_source import verified_targeted_source
+            verified_targeted_source(
+                gh, run, {"repository": gh.repo, "pr_number": prior_number,
+                          "head_sha": h, "base_sha": b, "test_merge_sha": m},
+                jobs, enabled=os.environ.get("LOW_TARGETED_POLICY_ENABLED") == "true")
         return int(run["id"])
     raise Blocked("BLOCKED", "동일 PR/head/base의 전체 PR CI run 없음")
 
@@ -562,6 +608,37 @@ def check(env, event, gh):
         "e2e": env.get("NEED_E2E"), "docker": env.get("NEED_DOCKER"),
         "metadata": env.get("NEED_METADATA"), "metadata_only": env.get("METADATA_ONLY"),
         "e2e_required": env.get("E2E_REQUIRED"), "docker_required": env.get("DOCKER_REQUIRED")})
+    # #772: an aggregate PASS never claims Full when the verified execution
+    # mode is TARGETED. Only base-trusted source+actual results may attest it.
+    low_source = None
+    low_requested = env.get("LOW_POLICY_MODE", "")
+    require(low_requested in ("", "FULL_REQUIRED", "TARGETED_POLICY_CANDIDATE",
+                              "DOCS_ONLY_VERIFIED"), "LOW_E2E_MODE_UNKNOWN")
+    if low_requested == "TARGETED_POLICY_CANDIDATE":
+        from ci_low_source import verified_targeted_source
+        run_id, attempt = int(run["id"]), int(run["run_attempt"])
+        original = source_artifact(gh, run_id, attempt)
+        orig_number, orig_head, orig_base, orig_merge, _ = verified_source(gh, run, original)
+        require((orig_number, orig_head, orig_base, orig_merge) ==
+                (n, env["EVENT_HEAD_SHA"], env["EVENT_BASE_SHA"], env["TEST_MERGE_SHA"]),
+                "TARGETED_SOURCE_PR_HEAD_BASE_MERGE_MISMATCH")
+        actual_jobs = effective_run_jobs(gh, run_id, attempt)
+        topology = {name: job.get("conclusion") for name, job in actual_jobs.items()}
+        low_source = verified_targeted_source(
+            gh, run,
+            {"repository": gh.repo, "pr_number": n, "head_sha": orig_head,
+             "base_sha": orig_base, "test_merge_sha": orig_merge},
+            topology, enabled=env.get("LOW_TARGETED_POLICY_ENABLED") == "true",
+            allow_in_progress=True)
+        job_evidence["e2e_evidence"] = "TARGETED_POLICY_VERIFIED"
+        job_evidence["e2e_execution_policy"] = "TARGETED_POLICY_VERIFIED_NOT_FULL"
+    else:
+        job_evidence["e2e_execution_policy"] = (
+            "DOCS_ONLY_VERIFIED" if low_requested == "DOCS_ONLY_VERIFIED" and
+            env.get("E2E_REQUIRED") == "false" and
+            env.get("DOCKER_REQUIRED") == "false" else
+            "PREVIOUS_REQUIRED_VERIFIED" if env.get("METADATA_ONLY") == "true" else
+            "FULL_REQUIRED_EXISTING_CONTRACT")
     issue = primary_issue(pr.get("title") or "", pr.get("body") or "")
     risk = pr_field(pr.get("body") or "", "risk_level", {"LOW", "MEDIUM", "HIGH"})
     method = pr_field(pr.get("body") or "", "qa_method", {"AGENT", "OWNER_MANAGED", "AUTOMATED_MANAGER"})
@@ -607,7 +684,8 @@ def check(env, event, gh):
             "unresolved_review": 0,
             "protected_paths": sorted(protected),
             "residual_risks": "실제 의미/UX/HIGH 수동 검토 및 Manager ACCEPT 대기",
-            **job_evidence, **result, **protected_receipt}
+            **job_evidence, **result, **protected_receipt,
+            **({"targeted_ci_receipt": low_source} if low_source is not None else {})}
 
 
 
@@ -679,12 +757,31 @@ def trusted_source(env, event, gh):
     require(run.get("id") == run_id and run.get("event") == "pull_request" and
             str(run.get("path") or "").split("@")[0] == ".github/workflows/ci.yml",
             "trusted QA 입력이 CI pull_request run이 아닙니다")
-    require(run.get("status") == "completed" and run.get("conclusion") == "success",
-            "원본 PR CI run 자체가 성공하지 않았습니다", "FAIL")
     require((run.get("repository") or {}).get("full_name") == gh.repo,
             "CI 검증 원본 repository 불일치")
     payload = source_artifact(gh, run_id, int(run.get("run_attempt") or 0))
     number, head, base, merge, live = verified_source(gh, run, payload)
+    if live.get("merged") is True:
+        # A completed merge is immutable history, not a new merge approval.
+        # PR edited CI may fail and still must not supersede the older Full QA.
+        issue = primary_issue(live.get("title") or "", live.get("body") or "")
+        require(re.search(r"(?:^|/)issue-" + str(issue) + r"(?:[-/]|$)",
+                          (live.get("head") or {}).get("ref") or "") is not None,
+                "병합된 PR의 Primary Issue/branch trace 불일치")
+        metadata = "[메타데이터 검증]" in str(run.get("display_title") or "")
+        return {
+            "automated_qa": "N/A",
+            "independent_qa": "N/A(병합 후 비권위 감사)",
+            "manager_decision": "NOT TESTED",
+            "decision_reason": ("POST_MERGE_METADATA_NON_AUTHORITATIVE" if metadata
+                                else "POST_MERGE_FULL_AUDIT_ONLY"),
+            "pr": number, "issue": issue, "pr_head_sha": head,
+            "base_sha": base, "source_ci_test_merge_sha": merge,
+            "source_ci_run_id": run_id, "source_ci_run_attempt": run["run_attempt"],
+            "trusted_source": "PROTECTED_DEFAULT_BRANCH_WORKFLOW_RUN",
+        }
+    require(run.get("status") == "completed" and run.get("conclusion") == "success",
+            "원본 PR CI run 자체가 성공하지 않았습니다", "FAIL")
     source_jobs = effective_run_jobs(gh, run_id, int(run["run_attempt"]))
     results = {name: job.get("conclusion") for name, job in source_jobs.items()}
     metadata_only = "[메타데이터 검증]" in str(run.get("display_title") or "")
@@ -700,7 +797,8 @@ def trusted_source(env, event, gh):
         "metadata_only": "true" if metadata_only else "false",
         "e2e_required": "true" if any(
             k.startswith("Chromium E2E shard ") and v == "success"
-            for k, v in results.items()) else "false",
+            for k, v in results.items()) or
+            results.get("Low E2E targeted execution") == "success" else "false",
         "docker_required": "true" if results.get("Docker smoke 구현") == "success" else "false",
     }
     # Never promote a spoofed required-check name outside the approved full CI.
@@ -719,6 +817,10 @@ def trusted_source(env, event, gh):
         "NEED_METADATA": vals["metadata"],
         "METADATA_ONLY": vals["metadata_only"],
         "E2E_REQUIRED": vals["e2e_required"], "DOCKER_REQUIRED": vals["docker_required"],
+        "LOW_POLICY_MODE": ("TARGETED_POLICY_CANDIDATE"
+                            if results.get("Low E2E targeted execution") == "success"
+                            else ""),
+        "LOW_TARGETED_POLICY_ENABLED": env.get("LOW_TARGETED_POLICY_ENABLED", ""),
     })
     synthetic = {"pull_request": {"head": {"sha": head}, "base": {"sha": base}}}
     report = check(ctx, synthetic, gh)

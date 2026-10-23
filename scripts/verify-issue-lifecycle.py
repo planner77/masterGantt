@@ -45,6 +45,52 @@ require("github.event.pull_request.title" in ci_workflow, "PR CI 실행 제목�
 require("github.event.head_commit.message" in ci_workflow and "github.ref_name" in ci_workflow, "main·수동 CI 실행 제목의 대체값이 필요합니다")
 
 require("run-name:" in ci_workflow, "CI workflow run-name is required")
+# Issue #643: Actions `run.name` is the user-facing run-name, not the
+# definition name. The identity gate must use metadata id/path/state instead.
+recovery_impl = (ROOT / "scripts" / "main_ci_recovery.py").read_text(encoding="utf-8")
+require("def verified_workflow_identity(" in recovery_impl
+        and "verified_workflow_identity(repo, run)" in recovery_impl,
+        "manual recovery must authenticate the workflow identity before evidence")
+require('TRUSTED_CI_WORKFLOW_FILE = "ci.yml"' in recovery_impl
+        and 'TRUSTED_CI_WORKFLOW_PATH = ".github/workflows/ci.yml"' in recovery_impl,
+        "the trusted CI source must be selected by its exact workflow path")
+require('run.get("workflow_id")' in recovery_impl
+        and 'gh(f"/repos/{repo}/actions/workflows/{TRUSTED_CI_WORKFLOW_FILE}")' in recovery_impl
+        and 'workflow.get("state") == "active"' in recovery_impl,
+        "recovery must cross-check source workflow id with read-only GitHub metadata")
+require('(run.get("repository") or {}).get("full_name") == repo' in recovery_impl
+        and '(run.get("head_repository") or {}).get("full_name") == repo' in recovery_impl,
+        "cross-repository or foreign-head recovery runs must be rejected")
+require('run.get("name") == "CI"' not in recovery_impl,
+        "dynamic Actions run name must never be used as a trusted workflow ID")
+require("run.get(\"event\") == \"workflow_dispatch\"" in recovery_impl
+        and 'run.get("run_attempt")' in recovery_impl
+        and "checked_jobs(all_jobs(repo, run_id))" in recovery_impl,
+        "manual recovery must retain exact dispatch/event/attempt/aggregate trust checks")
+
+# Issue #645: GitHub's /commits/{merge}/pulls index can be empty for a
+# verified two-parent merge; a zero-association answer is NOT authorization.
+# Require an independent exhaustive closed PR ledger and unique exact SHA.
+require("def verified_merge_pr_association(" in recovery_impl
+        and "verified_merge_pr_association(" in recovery_impl.split("def validate(", 1)[1],
+        "#2617 recovery must invoke exact unique merged PR association verifier")
+require('f"/repos/{repo}/commits/{merge_sha}/pulls"' in recovery_impl
+        and 'f"/repos/{repo}/pulls?state=closed&sort=updated&direction=desc"' in recovery_impl,
+        "zero-entry commit index must use read-only paginated closed PR history")
+require('if indexed:' in recovery_impl
+        and 'len(candidates) == 1' in recovery_impl
+        and 'only.get("merged_at")' in recovery_impl
+        and 'only.get("merge_commit_sha") == merge_sha' in recovery_impl
+        and 'only.get("state") == "closed"' in recovery_impl,
+        "missing, duplicate, wrong-SHA, or unmerged PR identity may never pass")
+require('parents[1]["sha"] == (pr.get("head") or {}).get("sha")' in recovery_impl
+        and '(pr.get("base") or {}).get("sha")' in recovery_impl,
+        "source merged PR must match both immutable commit parent SHAs")
+require('raise Blocked("pagination truncated")' in recovery_impl,
+        "PR ledger enumeration must fail closed when history cannot be exhausted")
+require('commit-to-PR identity not uniquely verified' not in recovery_impl,
+        "recovery must distinguish GitHub empty commit index from validated merge")
+
 ops_doc = (ROOT / "docs" / "GITHUB_OPERATIONS.md").read_text(encoding="utf-8")
 require('gh pr merge "$pr" --repo "$repo" --merge --subject "$title" --body "" --match-head-commit "$head"' in ops_doc, "Issue #582 merge CLI must include method/subject/empty body/exact Head")
 require("github.event.pull_request.title" in ci_workflow, "PR CI run-name must carry the PR title/Primary Issue trace")
@@ -61,7 +107,20 @@ require("기존 병합/직접 Push" in ci_workflow and "github.sha" in ci_workfl
 require("inputs.issue_number" in ci_workflow, "manual CI run-name must support an optional Primary Issue")
 require("github.run_number" in ci_workflow and "github.run_attempt" in ci_workflow, "CI run-name must distinguish run and re-run attempt")
 require("scripts/verify-ci-run-trace.py" in ci_workflow, "CI must validate Primary Issue trace metadata before heavy jobs")
-require("types: [opened, reopened, synchronize, edited]" in ci_workflow, "pull_request edited event must rerun trace validation")
+# #771: validate PR event identity, not serialized YAML event order.
+# Edited metadata-only and Draft->Ready are independent required behaviors.
+pr_event_match = re.search(
+    r"(?m)^  pull_request:\s*\n    types:\s*\[([^\n\]]+)\]",
+    ci_workflow,
+)
+require(pr_event_match is not None, "CI pull_request event declaration missing")
+pr_events = [item.strip() for item in pr_event_match.group(1).split(",")]
+expected_pr_events = {
+    "opened", "reopened", "synchronize", "edited",
+    "ready_for_review", "converted_to_draft",
+}
+require(len(pr_events) == len(set(pr_events)) and set(pr_events) == expected_pr_events,
+        "PR event contract: edited, Ready, Draft triggers missing/duplicated/unknown")
 require("github.event.action != \'edited\'" in ci_workflow, "PR metadata edits must not route heavy CI jobs")
 require("format('ci-pr-{0}-{1}'" in ci_workflow and "'metadata' || 'full'" in ci_workflow, "metadata edits must use a separate concurrency group from full PR CI")
 require("metadata_evidence:" in ci_workflow, "metadata-only CI must verify prior full-run evidence")
@@ -170,6 +229,37 @@ require("group: mastergantt-release-finalizer" in resume_workflow, "release resu
 require("queue: max" in resume_workflow, "release resume must preserve queued completion events")
 require("github.event.workflow_run.event == 'push'" in auto_workflow, "manual CI must not auto-finalize")
 require("github.event.workflow_run.conclusion == 'success'" in auto_workflow, "failed CI must not mutate lifecycle")
+# #639 P1 review: the trusted root checkout uses a Python namespace package,
+# and private GHCR must be logged in before any recovered digest inspection.
+recovery_finalizer = auto_workflow.split("  finalize:", 1)[1].split("\n  owner_recovery:", 1)[0]
+require("ref: main" in recovery_finalizer and "persist-credentials: false" in recovery_finalizer,
+        "write-capable Generic Finalizer must always checkout trusted default main without stored credentials")
+require("from scripts import main_ci_recovery as recovery" in recovery_finalizer,
+        "inline Python in repository root must import the verifier from scripts/")
+require("if: github.event.workflow_run.event == 'workflow_dispatch'" in recovery_finalizer,
+        "only explicit manual_recovery should run private-source attestation")
+require("identity.source_sha == os.environ[\"SOURCE_SHA\"]" in recovery_finalizer,
+        "manual recovery must cross-check source workflow run SHA")
+for name in ("trusted default-main checkout SHA 검증",
+             "GHCR 버전 원장 조회 도구 준비",
+             "비공개 GHCR 인증 (감사 + 신규 릴리스 확인)",
+             "인증된 수동 Main 복구 Run·Attempt·digest 증거 확인",
+             "정확한 merge lifecycle 해석 및 실행"):
+    require(name in recovery_finalizer, f"#639 trusted Finalizer step missing: {name}")
+recovery_step_order = [
+    recovery_finalizer.index(label)
+    for label in ("trusted default-main checkout SHA 검증",
+                  "GHCR 버전 원장 조회 도구 준비",
+                  "비공개 GHCR 인증 (감사 + 신규 릴리스 확인)",
+                  "인증된 수동 Main 복구 Run·Attempt·digest 증거 확인",
+                  "정확한 merge lifecycle 해석 및 실행")
+]
+require(recovery_step_order == sorted(recovery_step_order),
+        "authenticated private GHCR login must precede recovered digest inspection and mutation")
+require("recovery.completed_evidence(" in recovery_finalizer,
+        "manual_recovery may not skip the exact Run/Attempt/source validation")
+require("github.event.workflow_run.event == 'push'" in recovery_finalizer,
+        "normal automatic Main push lifecycle must remain supported")
 require("scripts/auto_release_finalizer.py" in auto_workflow, "automatic resolver must be invoked")
 require("queue: max" in auto_workflow, "automatic finalizer must retain burst events")
 require("packages: write" in auto_workflow, "automatic finalizer needs scoped package write for temporary candidate cleanup")
@@ -177,7 +267,7 @@ require("docker/build-push-action@" not in auto_workflow and "docker buildx imag
 require("release-image.yml" in auto_impl and "dispatch_release(" in impl, "formal release publication must remain delegated to release-image")
 require("queue: max" in release_workflow, "release image workflow must queue concurrent releases")
 require("release_e2e_shard:" in release_workflow, "release E2E must be sharded")
-require("Release Chromium E2E shard ${{ matrix.shard }}/6" in release_workflow, "release E2E must keep six shards")
+require("Release Chromium E2E shard ${{ matrix.shard }}/8" in release_workflow, "release E2E must keep eight shards")
 require('CI_E2E_FULLY_PARALLEL: "true"' in release_workflow, "release E2E must use balanced test-level distribution")
 require("needs: [prepare, quality_static, release_e2e_shard]" in release_workflow, "release aggregate must wait for static and E2E gates")
 require("Main verified candidate exact digest 확인" in release_workflow, "release must consume the verified main candidate")
@@ -199,11 +289,29 @@ require(release_workflow.index("verified candidate digest GitHub Attestation") <
 require(release_workflow.index("최종 exact·rolling tag를 verified digest로 promotion") < release_workflow.index("release-finalizer-resume.yml/dispatches"), "lifecycle handoff must occur only after publication")
 require("docker/build-push-action@" not in release_workflow, "release workflow must not rebuild the container")
 require("version_changed:" in ci_workflow and "current_version:" in ci_workflow, "main CI must classify release candidate version changes")
-require("verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup" in ci_workflow, "successful non-docs main CI must hand the verified candidate to Generic Finalizer")
+# #639: exact target SHA comes from trusted verifier, ordinary main push from github.sha.
+require("SOURCE_SHA: ${{ needs.changes.outputs.checkout_sha }}" in ci_workflow,
+        "candidate image must bind to independently resolved checkout SHA")
+require("checkout_sha: ${{ steps.recovery.outputs.target_sha || github.sha }}" in ci_workflow,
+        "push/PR SHA fallback is required")
+require("tag=ci-$SOURCE_SHA" in ci_workflow and
+        "org.opencontainers.image.revision=${{ needs.changes.outputs.checkout_sha }}" in ci_workflow,
+        "candidate tag and OCI revision must use verified immutable source")
+require("verified ci-${SOURCE_SHA} retained until Generic Release Finalizer resolves release or cleanup" in ci_workflow,
+        "successful main/recovery CI must hand exact candidate to Generic Finalizer")
 handoff_index = ci_workflow.index("GHCR main commit image lifecycle handoff")
-failed_cleanup_index = ci_workflow.index('node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${GITHUB_SHA}"')
-retention_index = ci_workflow.index("verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup")
-require(handoff_index < failed_cleanup_index < retention_index, "main CI must clean failed pushed candidates before successful lifecycle handoff")
+failed_cleanup_index = ci_workflow.index('node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${SOURCE_SHA}"')
+retention_index = ci_workflow.index("verified ci-${SOURCE_SHA} retained until Generic Release Finalizer resolves release or cleanup")
+require(handoff_index < failed_cleanup_index < retention_index,
+        "original main push must clean failed candidates before lifecycle handoff")
+require('if [[ "$RECOVERY" == "true" ]]' in ci_workflow,
+        "failed recovery candidates require audit, not automatic deletion")
+require("python3 scripts/main_ci_recovery.py authorize" in ci_workflow and
+        "python3 scripts/main_ci_recovery.py prepublish" in ci_workflow and
+        "needs.changes.outputs.recovery_authorized == 'true'" in ci_workflow,
+        "manual diagnostic may never acquire GHCR publish authority")
+require("github.event_name == 'push' && github.ref == 'refs/heads/main'" in ci_workflow,
+        "existing main push publish gate must remain")
 require('if [[ "${{ job.status }}" != "success" ]]' in ci_workflow, "main CI candidate cleanup must be restricted to failed validation")
 require("GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}" in ci_workflow, "main failed-candidate cleanup must bind repository owner type")
 require("publish-commit-image:" in ci_workflow, "main temporary GHCR publish job is required")
@@ -420,6 +528,92 @@ require(
 )
 
 
+# Issue #639: PR #641 generated a genuinely immutable main merge with a
+# 31-character summary and no body. Its push CI #2606.1 failed in the trace
+# gate. A mere rerun of that SHA cannot fix its immutable commit metadata.
+failed_639_summary = "Main SHA 복구 및 GHCR 출처 검증 경로 안정화"
+failed_639_title = f"Issue #639 · PR #641 · {failed_639_summary}"
+require(
+    len(failed_639_summary) == main_run_name.MAX_SUMMARY_LENGTH + 1,
+    "#2606 forensic fixture must preserve the original 31-character summary",
+)
+require(
+    main_run_name.parse_merge_title(failed_639_title) is None,
+    "#2606 invalid merge title must never be interpreted as a valid push",
+)
+try:
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": failed_639_title},
+    })
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("#2606 immutable failed Main CI may not be retroactively green")
+
+for factory in (
+    lambda: main_run_name.format_merge_title(639, 641, failed_639_summary),
+    lambda: main_run_name.validate_merge_title(failed_639_title, 639, 641),
+):
+    try:
+        factory()
+    except ValueError:
+        pass
+    else:
+        raise SystemExit("31-character unverified merge subject must be BLOCKED")
+
+corrected_639_title = main_run_name.format_merge_title(
+    639, 642, "Main CI 제목 계약 교정"
+)
+require(
+    main_run_name.validate_merge_title(corrected_639_title, 639, 642)
+    == corrected_639_title,
+    "exact preflight must preserve the valid title, without rewriting it",
+)
+require(
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": corrected_639_title},
+    }) == (639, 642),
+    "corrective canonical merge must be recognized by the existing push gate",
+)
+for forged in (
+    corrected_639_title + "\n\nRefs #639",
+    corrected_639_title.replace("PR #642", "PR #641"),
+    corrected_639_title.replace("Issue #639", "Issue #640"),
+):
+    try:
+        main_run_name.validate_merge_title(forged, 639, 642)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit("wrong Issue/PR or multiline merge preflight must reject")
+
+preflight_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "639", "--pr", "642",
+     "--validate-title", corrected_639_title,
+     "--as-merge-payload", "--expected-head-sha", "a" * 40],
+    capture_output=True, text=True, check=True,
+)
+require(
+    json.loads(preflight_cli.stdout) == main_run_name.merge_api_payload(
+        639, 642, "Main CI 제목 계약 교정", "a" * 40
+    ),
+    "preflight CLI must emit an exact connector merge payload bound to Head SHA",
+)
+failed_preflight_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "639", "--pr", "641", "--validate-title", failed_639_title,
+     "--as-merge-payload", "--expected-head-sha", "a" * 40],
+    capture_output=True, text=True, check=False,
+)
+require(
+    failed_preflight_cli.returncode != 0 and not failed_preflight_cli.stdout.strip(),
+    "#2606 invalid title must produce no merge payload or positive result",
+)
+
+
 # The merge tool's source payload requires one canonical title and *empty*
 # body.  A matching head lease prevents accidental merge of a newer PR head.
 correction_summary = "Main CI 실패 복구 및 Finalizer 재개"
@@ -608,24 +802,14 @@ def fake_required_checks(path: str, *, method: str = "GET", fields=None):
     return {}
 module.gh = fake_required_checks
 try:
-    checks_ok, missing = module.required_checks_ok("owner/repo", "a" * 40)
-    require(checks_ok and not missing, "latest successful duplicate required checks must pass")
-    required_check_payloads.append(
-        {
-            "id": 301,
-            "name": "Chromium end-to-end tests",
-            "status": "completed",
-            "conclusion": "failure",
-            "app": {"slug": "github-actions"},
-        }
-    )
-    checks_ok, missing = module.required_checks_ok("owner/repo", "a" * 40)
-    require(
-        not checks_ok and missing == ["Chromium end-to-end tests"],
-        "newer failed required check must override older success",
-    )
+    checks_ok, missing, explanation = module.required_checks_ok("owner/repo", "a" * 40)
+    require(not checks_ok and "FULL_CI_SOURCE_UNVERIFIED" in missing,
+            "same-name GitHub Check Runs must never pass without authentic Full Run/Attempt")
 finally:
     module.gh = saved_lifecycle_gh
+
+# #712 positive/negative GitHub API fixture and pagination live in
+# scripts/test-issue-712.py; no legacy Check Run ID selection remains.
 
 artifact_missing = dict(
     merged=True,
@@ -1264,9 +1448,11 @@ planned, superseded = auto.supersede_failed_issue_retries(
     [failed_344, middle_356, fixed_344],
     {failed_344.target_sha: False, middle_356.target_sha: True, fixed_344.target_sha: True},
 )
-require([item.issue_number for item in planned] == [356, 344], "intervening Issue order must be preserved")
-require(len(superseded) == 1 and superseded[0] == (failed_344, fixed_344), "failed attempt must map to later corrective target")
-require(planned[-1].cleanup_pr_numbers == (20,), "superseded PR must become corrective cleanup obligation")
+require([item.issue_number for item in planned] == [344, 356, 344],
+        "a heterogeneous version correction must not inherit a failed version bump")
+require(superseded == [], "failed main version bump must remain blocked without safe SemVer inheritance")
+require(planned[0] == failed_344,
+        "the original unissued release cannot disappear from the first-parent backlog")
 
 docs_repair = auto.WorkItem("b" * 40, "9" * 40, 23, 344, "0.58.5", "0.58.5", True)
 not_planned, not_superseded = auto.supersede_failed_issue_retries(
@@ -1366,6 +1552,84 @@ require(
     failed_candidate_planned[0] == release_failed_331,
     "older release failure must remain blocker without a healthy corrective target",
 )
+
+# Issue #615: failed Main CI after a version bump must not lose its
+# approved formal release when an adjacent same-Issue non-docs correction
+# merges with the same physical package.json version.
+failed_615 = auto.WorkItem(
+    "1" * 40, "0" * 40, 627, 615, "0.105.0", "0.106.0", False,
+)
+corrected_615 = auto.WorkItem(
+    "2" * 40, failed_615.target_sha, 628, 615, "0.106.0", "0.106.0", False,
+)
+recovery_615, replaced_615 = auto.supersede_failed_issue_retries(
+    [failed_615, corrected_615],
+    {failed_615.target_sha: False, corrected_615.target_sha: True},
+)
+require(replaced_615 == [(failed_615, corrected_615)], "only the failed #615 SHA is superseded")
+require(len(recovery_615) == 1, "the corrected #615 target must remain")
+require(recovery_615[0].previous_version == "0.106.0", "physical first-parent version must remain immutable")
+require(recovery_615[0].release_base_version == "0.105.0" and recovery_615[0].release_required,
+        "the missed 0.106.0 release must remain required on the corrective target")
+require(recovery_615[0].cleanup_pr_numbers == (627,), "original PR branch cleanup must be preserved")
+require(auto.exact_release_state.__name__ == "exact_release_state", "exact release tag verification must remain enabled")
+
+# A different Issue between the two targets or a docs-only correction cannot
+# inherit release authority. A previously attempted immutable tag must not be
+# reused for the same SemVer on another merge SHA.
+intervening_615 = auto.WorkItem(
+    "3" * 40, failed_615.target_sha, 629, 999, "0.106.0", "0.106.0", False,
+)
+blocked_615, blocked_ev_615 = auto.supersede_failed_issue_retries(
+    [failed_615, intervening_615, corrected_615],
+    {failed_615.target_sha: False, intervening_615.target_sha: True, corrected_615.target_sha: True},
+)
+require(blocked_ev_615 == [] and blocked_615[0] == failed_615,
+        "intervening Issues must not silently transfer the original release")
+docs_615 = replace(corrected_615, validation_docs_only=True)
+blocked_docs_615, blocked_docs_ev_615 = auto.supersede_failed_issue_retries(
+    [failed_615, docs_615], {failed_615.target_sha: False, docs_615.target_sha: True},
+)
+require(blocked_docs_ev_615 == [] and blocked_docs_615[0] == failed_615,
+        "docs-only fixes may not inherit a failed non-docs release")
+blocked_tag_615, blocked_tag_ev_615 = auto.supersede_failed_issue_retries(
+    [failed_615, corrected_615],
+    {failed_615.target_sha: True, corrected_615.target_sha: True},
+    {failed_615.target_sha: True},
+)
+require(blocked_tag_ev_615 == [] and blocked_tag_615[0] == failed_615,
+        "an existing failed immutable release cannot be retargeted")
+failed_mid_615 = replace(corrected_615, pr_number=629, target_sha="4" * 40)
+final_615 = replace(corrected_615, pr_number=630, target_sha="5" * 40)
+chain_615, replaced_chain_615 = auto.supersede_failed_issue_retries(
+    [failed_615, failed_mid_615, final_615],
+    {failed_615.target_sha: False, failed_mid_615.target_sha: False, final_615.target_sha: True},
+)
+require(len(replaced_chain_615) == 2 and len(chain_615) == 1
+        and chain_615[0].release_base_version == "0.105.0"
+        and set(chain_615[0].cleanup_pr_numbers) == {627, 629},
+        "consecutive same-Issue failed attempts must preserve release and cleanup debt")
+
+# P1 regressions: version-different successor and closed ordering barriers
+# cannot inherit an unissued release from the original failed main commit.
+version_jump_615 = replace(corrected_615, current_version="0.107.0")
+blocked_jump, blocked_jump_ev = auto.supersede_failed_issue_retries(
+    [failed_615, version_jump_615],
+    {failed_615.target_sha: False, version_jump_615.target_sha: True},
+)
+require(blocked_jump_ev == [] and blocked_jump[0] == failed_615,
+        "a heterogeneous version may not supersede a failed unissued release")
+closed_barrier_615 = auto.WorkItem(
+    "6" * 40, failed_615.target_sha, 631, 999, "0.106.0", "0.106.0", False,
+    actionable=False,
+)
+barrier_blocked, barrier_ev = auto.supersede_failed_issue_retries(
+    [failed_615, corrected_615],
+    {failed_615.target_sha: False, corrected_615.target_sha: True},
+    first_parent_items=[failed_615, closed_barrier_615, corrected_615],
+)
+require(barrier_ev == [] and barrier_blocked[0] == failed_615,
+        "a closed/non-actionable intervening Issue must block release inheritance")
 
 for expected_error, values in [
     (True, ("1", "2", True, False, "", "")),
@@ -1476,5 +1740,53 @@ finally:
         __import__("os").environ.pop("GITHUB_TOKEN", None)
     else:
         __import__("os").environ["GITHUB_TOKEN"] = saved_auto_token
+
+# Issue #633: release-debt policy is audit-only, with no automatic cross-Issue bypass.
+from pathlib import Path as _Path633
+_audit633 = _Path633("scripts/release_debt_audit.py").read_text(encoding="utf-8")
+_workflow633 = _Path633(".github/workflows/release-debt-audit.yml").read_text(encoding="utf-8")
+require("supersede_failed_issue_retries(" in _audit633, "cross-Issue audit must reuse fail-closed generic policy")
+require("READY_FOR_SEPARATE_TRUSTED_RECOVERY" in _audit633, "audit result must not mean release publication")
+require("release-debt-authorization:v1" in _audit633, "new owner-scoped retirement decision must be separate from release approval")
+require("ref: main" in _workflow633 and "persist-credentials: false" in _workflow633, "audit must use trusted main")
+require("workflow_dispatch:" in _workflow633 and "packages: read" in _workflow633, "audit must be read-only manual workflow")
+require("packages: write" not in _workflow633 and "actions: write" not in _workflow633 and "issues: write" not in _workflow633, "audit must not grant mutation authority")
+require("docker/login-action@dbcb813823bdd20940b903addbd779551569679f" in _workflow633, "private GHCR audit must use pinned Docker Registry login")
+require("registry: ghcr.io" in _workflow633 and "username: ${{ github.actor }}" in _workflow633 and "password: ${{ secrets.GITHUB_TOKEN }}" in _workflow633, "private GHCR login must use existing GITHUB_TOKEN")
+require(_workflow633.index("docker/login-action@") < _workflow633.index("name: exact first-parent"), "GHCR authentication must precede registry read")
+require('ghcr_digest(f"ghcr.io/{repo.lower()}:{version}")' in _audit633, "GHCR exact image tag must be bare SemVer, not annotated Git vSemVer")
+require("return \"UNKNOWN\", None" in _audit633 and 'if "manifest unknown" in error' in _audit633, "ambiguous registry inspection must fail closed")
+
+# Issue #633 B2: explicit Owner SHA/version authority, read-only inventory,
+# and release-after cleanup in the same generic/Resume concurrency group.
+_recovery633 = _Path633("scripts/release_debt_recovery.py").read_text(encoding="utf-8")
+_generic633 = _Path633(".github/workflows/release-finalizer.yml").read_text(encoding="utf-8")
+_resume633 = _Path633(".github/workflows/release-finalizer-resume.yml").read_text(encoding="utf-8")
+require("plan_b2(sys.modules[__name__], repo, latest_main, pending_raw)" in auto_impl, "B2 recovery must remain inside trusted main generic resolver")
+require("finalize_b2(sys.modules[__name__], repo, latest_main, recovery_plan)" in auto_impl, "B2 release success must precede historical cleanup")
+require("mastergantt-release-debt-authorization:v2" in _recovery633 and "B2_RETIRE_BOTH" in _recovery633, "separate exact Owner B2 decision required")
+require('last["authorized"] is False' in _recovery633, "old SemVer Owner publication grants must be revoked")
+require('state=="success"' in _recovery633 and "replacement_digest" in _recovery633, "new release/digest must be proved before retirement")
+require("mastergantt-release-debt-retired:v1" in _recovery633, "unissued releases need immutable retirement evidence distinct from FINAL")
+require("def source_history(" in _recovery633 and '"--first-parent"' in _recovery633 and "core.resolve_work_item(repo,sha)" in _recovery633, "B2 release Resume must recover immutable old SHA history across prior FINAL boundary")
+require("authenticated_retirement(" in _recovery633, "partial closed Issue replay must require authenticated bot retirement evidence")
+require("def authenticated_packages_tag_state(" in _audit633
+        and "packages/container/mastergantt/versions?per_page=100&page=" in _audit633,
+        "ambiguous registry 404 must be cross-checked against authenticated paginated Packages API")
+require("main_sha=latest_main" in _recovery633 and "latest_main==plan.main_sha" in _recovery633,
+        "B2 recovery must pin original release SHA independently of latest approved main")
+require("len(after_target) <= 1" in _recovery633 and "item.issue_number == ISSUE" in _recovery633,
+        "B2 audit correction may not authorize other Issues or version jumps")
+require('lifecycle.gh(f"/repos/{repo}/issues/{issue}/comments",method="POST"' in _recovery633, "retirement marker must use write-capable trusted GitHub API")
+require('lifecycle.gh(f"/repos/{repo}/issues/{issue}",method="PATCH"' in _recovery633, "post-release Issue close must use write-capable trusted GitHub API")
+
+require('github.event_name == \'issue_comment\'' in _generic633 and "github.repository_owner" in _generic633, "Owner Issue-trigger must be authenticated")
+require("ref: ${{ github.sha }}" in _generic633, "Owner trigger may not checkout user-controlled code")
+require("packages: write" in _generic633 and "mastergantt-release-finalizer" in _generic633, "default Finalizer permissions/concurrency must be retained")
+for _w633 in (_generic633,_resume633):
+    require("docker/login-action@dbcb813823bdd20940b903addbd779551569679f" in _w633, "B2 registry inspection requires authenticated read before mutation")
+    require("docker/setup-buildx-action@" in _w633, "B2 registry inspection needs verified buildx")
+require("--inventory-only" in _audit633 and "INVENTORY_ONLY_NOT_RELEASE_AUTHORIZED" in _audit633, "registry inventory must not be publication authority")
+require("workflow_run:" in _workflow633 and "packages: write" not in _workflow633, "default trusted audit must be read-only")
 
 print("issue-lifecycle generic/automatic contract scenarios: PASS")

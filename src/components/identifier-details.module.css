@@ -1,0 +1,8 @@
+.root { min-width: 0; max-width: 100%; font-size: .8125rem; color: var(--text-muted); }
+.root > summary { cursor: pointer; min-height: 44px; align-content: center; overflow-wrap: anywhere; }
+.root > summary:focus-visible { outline: 2px solid var(--action-primary); outline-offset: 2px; }
+.content { display: grid; gap: 8px; min-width: 0; padding-block: 4px 8px; overflow-wrap: anywhere; }
+.entry { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; align-items: end; }
+.entry label { display: grid; gap: 4px; flex: 1 1 180px; min-width: 0; }
+.entry textarea { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; resize: vertical; overflow-wrap: anywhere; font: inherit; color: inherit; }
+.root .entry button { min-height: 44px; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }

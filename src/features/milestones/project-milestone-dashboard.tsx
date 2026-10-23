@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { ContextHelp } from "@/components/ui/context-help";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type {
   MilestoneDashboardFilterInput,
   MilestoneDashboardFiltersDto,
 } from "../../contracts/milestone-dashboard";
+import { IdentifierDetails } from "../../components/identifier-details";
 import type { ResourceDrillSourceContext } from "../../contracts/resource-drill";
 import type { ProjectTaskDto } from "../../contracts/projects";
 import type { MilestoneResourceDrill } from "../resources/milestone-resource-drill";
@@ -15,6 +17,7 @@ import {
   displayEffort,
   displayPercent,
 } from "./milestone-dashboard-model";
+import { isVisibleFocusTarget, sortMilestoneManagementRows, type MilestoneManagementHandler } from "./milestone-management-model";
 import { useMilestoneDashboard } from "./use-milestone-dashboard";
 import styles from "./project-milestone-dashboard.module.css";
 
@@ -32,6 +35,11 @@ export interface ProjectMilestoneDashboardProps {
   onSourceContext?: (context: ResourceDrillSourceContext | null) => void;
   onResources: (scope: MilestoneResourceDrill) => void;
   onRefreshProject: () => void;
+  editable?: boolean;
+  onAddMilestone?: (trigger: HTMLElement) => void;
+  onManageMilestone?: MilestoneManagementHandler;
+  canConvertToTask?: (taskId: string) => boolean;
+  onManagementFocusUnavailable?: () => void;
 }
 
 export function ProjectMilestoneDashboard({
@@ -45,6 +53,11 @@ export function ProjectMilestoneDashboard({
   onResources,
   onSourceContext,
   onRefreshProject,
+  editable = false,
+  onAddMilestone,
+  onManageMilestone,
+  canConvertToTask,
+  onManagementFocusUnavailable,
 }: ProjectMilestoneDashboardProps) {
   const id = useId();
   const [search, setSearch] = useState(""),
@@ -92,6 +105,27 @@ export function ProjectMilestoneDashboard({
     if (enabled && ids.length && data?.resourceScopeContext)
       onSchedule([...new Set(ids)], data.resourceScopeContext);
   };
+  const [metricMilestoneIds, setMetricMilestoneIds] = useState<readonly string[] | null>(null);
+  const managementHeading = useRef<HTMLHeadingElement>(null);
+  const metricTrigger = useRef<HTMLElement | null>(null);
+  function clearMetricMilestones() {
+    const clearingTrigger = document.activeElement;
+    setMetricMilestoneIds(null);
+    queueMicrotask(() => {
+      if (document.querySelector("dialog:modal") || (document.activeElement !== clearingTrigger && document.activeElement !== document.body)) return;
+      const target = isVisibleFocusTarget(metricTrigger.current) ? metricTrigger.current : managementHeading.current;
+      target?.focus({ preventScroll: true });
+    });
+  }
+  function showMetricMilestones(ids: readonly string[], trigger: HTMLElement) {
+    if (!enabled || !ids.length) return;
+    metricTrigger.current = trigger;
+    setMetricMilestoneIds([...new Set(ids)]);
+    // The current query remains intact; this is a local identity selection in
+    // the existing management list, never a hidden native-row navigation.
+    managementHeading.current?.focus();
+  }
+  const managementRows = useMemo(() => sortMilestoneManagementRows(data?.rows ?? [], tasks), [data?.rows, tasks]);
   const resourceAvailable = enabled && Boolean(data?.resourceScopeContext);
   const resourceScope = (
     assignmentIds: string[],
@@ -142,33 +176,39 @@ export function ProjectMilestoneDashboard({
       <legend>{label}</legend>
       <div className={styles.choiceOwner}>
         {options.length ? (
-          options.map((option) => (
-            <label key={option.id} title={`${option.name} · ${option.id}`}>
-              <input
-                type="checkbox"
-                checked={
-                  (filters[key] as string[] | undefined)?.includes(option.id) ??
-                  false
-                }
-                onChange={(event) =>
-                  setFilters((current) => ({
-                    ...current,
-                    [key]: event.target.checked
-                      ? [...(current[key] ?? []), option.id]
-                      : (current[key] ?? []).filter(
-                          (value) => value !== option.id,
-                        ),
-                  }))
-                }
-              />
-              <span>
-                {option.name}
-                {option.externalId || option.code ? (
-                  <small>{option.externalId || option.code}</small>
-                ) : null}
-              </span>
-            </label>
-          ))
+          options.map((option) => {
+            const task = key === "milestoneIds" ? tasks.find((entry) => entry.taskId === option.id) : undefined;
+            return <div key={option.id}>
+              <label title={option.name}>
+                <input
+                  type="checkbox"
+                  checked={
+                    (filters[key] as string[] | undefined)?.includes(option.id) ??
+                    false
+                  }
+                  onChange={(event) =>
+                    setFilters((current) => ({
+                      ...current,
+                      [key]: event.target.checked
+                        ? [...(current[key] ?? []), option.id]
+                        : (current[key] ?? []).filter(
+                            (value) => value !== option.id,
+                          ),
+                    }))
+                  }
+                />
+                <span>
+                  {option.name}
+                  {task ? <small>{task.status === "completed" ? "완료 기록" : task.status === "in_progress" ? "진행 중" : "시작 전"} · {task.start ?? "날짜 미설정"}</small> : null}
+                </span>
+              </label>
+              {key !== "assignmentRoles" && key !== "developerGrades" ? <IdentifierDetails identifiers={[
+                ...(option.externalId ? [{ label: "외부 ID", value: option.externalId }] : []),
+                ...(option.code ? [{ label: "코드", value: option.code }] : []),
+                { label: "ID", value: option.id },
+              ]} /> : null}
+            </div>;
+          })
         ) : (
           <p>선택 대상 없음</p>
         )}
@@ -213,6 +253,7 @@ export function ProjectMilestoneDashboard({
     <div
       className={styles.dashboard}
       data-testid="milestone-dashboard"
+      data-project-public-id={publicId}
       data-ready={enabled}
       aria-busy={query.loading || undefined}
     >
@@ -226,9 +267,12 @@ export function ProjectMilestoneDashboard({
       ) : null}
       <div className={styles.sectionHeading}>
         <div>
-          <h2>Milestone 대시보드</h2>
-          <p>프로젝트 전체 기준 · Gantt WBS 범위 미적용</p>
+          <h2 tabIndex={-1} data-milestone-focus="heading">Milestone 대시보드</h2>
+          <p>전체 상태·관리 · 프로젝트 전체 기준 · Gantt WBS 범위 미적용</p>
         </div>
+        <div className={styles.actions}>
+        <ContextHelp label="Milestone 집계·전체 상태"><p>Ready·선행 차단·지연·임박·위험은 중첩 가능한 축입니다. 건수를 합쳐 전체 Milestone 수로 해석하지 않습니다.</p><p>프로젝트 전체의 평면 목록이며 적용 예정일·외부 ID·작업 ID 순입니다. 소속 작업과 직접 선행 단계 전체 기준입니다. 계획 공수의 범위와 분모가 다릅니다.</p></ContextHelp>
+        <button type="button" disabled={!editable || !enabled || !onAddMilestone} onClick={event => onAddMilestone?.(event.currentTarget)} data-milestone-focus="add" title={editable ? "프로젝트 최상위에 추가" : "편집 활성화 후 추가할 수 있습니다"}>Milestone 추가</button>
         <button
           type="button"
           className="secondary-button"
@@ -237,6 +281,7 @@ export function ProjectMilestoneDashboard({
         >
           {query.loading ? "조회 중…" : query.error ? "다시 시도" : "새로고침"}
         </button>
+        </div>
       </div>
       <div className={styles.filters}>
         {(filters.milestoneIds?.length ?? 0) > 1 ? (
@@ -270,8 +315,8 @@ export function ProjectMilestoneDashboard({
           <input
             type="search"
             value={search}
-            placeholder="이름·외부 ID·작업 ID"
-            onChange={(event) => setSearch(event.target.value)}
+            placeholder="이름·외부 ID·작업 ID" data-milestone-focus="search"
+            onChange={(event) => { setMetricMilestoneIds(null); setSearch(event.target.value); }}
           />
         </label>
         <label>
@@ -328,7 +373,7 @@ export function ProjectMilestoneDashboard({
       <p id={`${id}-date-note`} className={styles.note}>
         {manualDate ? "수동 기준일" : "자동 기준일 · 서버 Project timezone"}
         {data ? ` ${data.timezone} · 평가일 ${data.asOfDate}` : ""}. 현재
-        snapshot을 평가하며 과거 실제 상태를 복원하지 않습니다.
+        snapshot 평가 · 과거 상태 복원 아님.
       </p>
       <details className={styles.advanced}>
         <summary>Milestone 표시·공수 범위 조건</summary>
@@ -519,29 +564,28 @@ export function ProjectMilestoneDashboard({
               <button
                 type="button"
                 disabled={
-                  !resourceAvailable ||
+                  !enabled ||
                   !data.kpi.completion.completedMilestoneTaskIds.length
                 }
-                onClick={() =>
-                  schedule(data.kpi.completion.completedMilestoneTaskIds)
+                onClick={(event) =>
+                  showMetricMilestones(data.kpi.completion.completedMilestoneTaskIds, event.currentTarget)
                 }
               >
-                전체 일정에서 Milestone 보기
+                완료 Milestone 목록에서 확인
               </button>
             </article>
             {countCards.map((card) => (
               <article key={card.key}>
-                <h3>{card.title}</h3>
+                <div className={styles.metricHeading}><h3>{card.title}</h3><ContextHelp label={`${card.title} 지표`}>{card.note}</ContextHelp></div>
                 <strong>{card.metric.count}개</strong>
-                <p>{card.note}</p>
                 <button
                   type="button"
                   disabled={
-                    !resourceAvailable || !card.metric.milestoneTaskIds.length
+                    !enabled || !card.metric.milestoneTaskIds.length
                   }
-                  onClick={() => schedule(card.metric.milestoneTaskIds)}
+                  onClick={(event) => showMetricMilestones(card.metric.milestoneTaskIds, event.currentTarget)}
                 >
-                  전체 일정에서 {card.title} 보기
+                  {card.title} Milestone 목록에서 확인
                 </button>
               </article>
             ))}
@@ -564,27 +608,30 @@ export function ProjectMilestoneDashboard({
             </article>
           </div>
           <p className={styles.note}>
-            Ready·선행 차단·지연·임박·위험은 중첩 가능한 축입니다. 건수를 합쳐
-            전체 Milestone 수로 해석하지 않습니다.
+            지표 중복 집계 · 건수 합산 불가
           </p>
           <section className={styles.stageSection}>
-            <h3>Milestone 전체 상태 · 표시 {data.rows.length}개</h3>
+            <h3 ref={managementHeading} tabIndex={-1}>Milestone 전체 상태 · 표시 {metricMilestoneIds ? managementRows.filter(row => metricMilestoneIds.includes(row.milestoneTaskId)).length : data.rows.length}개{metricMilestoneIds ? ` · 조회 전체 ${data.rows.length}개` : ""}</h3>
+            {metricMilestoneIds ? <div role="status"><p>선택 지표의 Milestone {metricMilestoneIds.length}개 중 현재 목록 조건에 {managementRows.filter(row => metricMilestoneIds.includes(row.milestoneTaskId)).length}개가 있습니다. 조건 밖이거나 삭제된 ID는 일정으로 확대하지 않습니다. 일정 행으로 이동하지 않습니다.</p><button type="button" onClick={clearMetricMilestones}>지표 선택 해제</button></div> : null}
             <p className={styles.note}>
-              소속 작업과 직접 선행 Milestone 전체 기준입니다. 계획 공수의 범위와
-              분모가 다릅니다.
+              전체 소속·직접 선행 기준 · 계획 공수와 분모 다름
             </p>
             {data.rows.length ? (
               <ProjectMilestoneStageTable
-                rows={data.rows}
+                rows={metricMilestoneIds ? managementRows.filter(row => metricMilestoneIds.includes(row.milestoneTaskId)) : managementRows}
                 tasks={tasks}
                 enabled={enabled}
                 scheduleEnabled={resourceAvailable}
+                editable={editable}
+                onManage={onManageMilestone}
+                canConvertToTask={canConvertToTask}
+                onFocusUnavailable={onManagementFocusUnavailable}
                 onOpenTask={onOpenTask}
                 onSchedule={schedule}
               />
             ) : (
               <p>
-                조건에 일치하는 Milestone이 없습니다. 전체 공수 bucket은
+                {tasks.some(task => task.type === "milestone") ? "조건에 일치하는 Milestone이 없습니다." : "프로젝트에 Milestone이 없습니다."} 전체 공수 bucket은
                 아래에서 별도로 확인합니다.
               </p>
             )}
@@ -645,7 +692,7 @@ export function ProjectMilestoneDashboard({
                 </thead>
                 <tbody>
                   {data.effort.buckets.map((bucket) => (
-                    <tr key={bucket.milestoneTaskId ?? "unassigned"}>
+                    <tr key={bucket.milestoneTaskId ?? "unassigned"} data-milestone-effort-bucket={bucket.milestoneTaskId ?? "unassigned"}>
                       <td>
                         <span className={styles.identity}>
                           {bucket.milestoneTaskId === null
@@ -653,13 +700,9 @@ export function ProjectMilestoneDashboard({
                             : (data.catalog.milestones.find(
                                 (milestone) =>
                                   milestone.id === bucket.milestoneTaskId,
-                              )?.name ?? bucket.milestoneTaskId)}
+                              )?.name ?? "현재 정보에 없는 Milestone")}
                         </span>
-                        <small>
-                          {bucket.milestoneTaskId === null
-                            ? "effective 소속 없음"
-                            : bucket.milestoneTaskId}
-                        </small>
+                        {bucket.milestoneTaskId === null ? <small>effective 소속 없음</small> : <IdentifierDetails identifiers={[{ label: "작업 ID", value: bucket.milestoneTaskId }]} />}
                       </td>
                       <td>{displayEffort(bucket.plannedMd)}</td>
                       <td>{displayEffort(bucket.plannedMm)}</td>
@@ -677,6 +720,7 @@ export function ProjectMilestoneDashboard({
                           </button>
                           <button
                             type="button"
+                            data-milestone-resource-trigger="true"
                             disabled={
                               !resourceAvailable || !bucket.assignmentIds.length
                             }

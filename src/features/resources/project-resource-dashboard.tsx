@@ -1,4 +1,7 @@
 "use client";
+import { ContextHelp } from "@/components/ui/context-help";
+
+import { IdentifierDetails } from "@/components/identifier-details";
 import { useResourceDrill } from "./resource-drill-context";
 import {
   useCallback,
@@ -24,6 +27,7 @@ import {
 } from "./resource-milestone-views";
 import { ResourcePlanView } from "./resource-plan-view";
 import styles from "./resource-dashboard.module.css";
+import { ResourceTargetFilters, ResourceTargetViews } from "./resource-target-views";
 
 const ROLE_OPTIONS = [
   ["PI", "PI"],
@@ -67,9 +71,12 @@ export function ProjectResourceDashboard({
   );
   const [mode, setMode] = useState<"group" | "resource">("group");
   const [unit, setUnit] = useState<"md" | "mm">("md");
-  const [view, setView] = useState<"summary" | "tree" | "matrix" | "plan">(
+  const [view, setView] = useState<"summary" | "tree" | "matrix" | "plan" | "targets">(
     "summary",
   );
+  const [targetLayout, setTargetLayout] = useState<"tree" | "matrix">("tree");
+  const [targetOrder, setTargetOrder] = useState<"resource" | "target">("resource");
+  const [targetMatrixAxis, setTargetMatrixAxis] = useState<"resource" | "group">("resource");
   const [granularity, setGranularity] = useState<"week" | "month">("week");
   const [treeOrder, setTreeOrder] = useState<"milestone" | "resource">(
     "milestone",
@@ -83,12 +90,13 @@ export function ProjectResourceDashboard({
     snapshotId: string;
     queryKey: string;
   } | null>(null);
+  const [selectionNotice, setSelectionNotice] = useState<string | null>(null);
   const [detailStale, setDetailStale] = useState<string | null>(null);
   const filterTrigger = useRef<HTMLButtonElement>(null);
   const search = useRef<HTMLInputElement>(null);
   const normalized = useMemo(
-    () => ({ ...filters, ...(view === "plan" ? { granularity } : {}) }),
-    [filters, view, granularity],
+    () => ({ ...filters, ...(view === "plan" ? { granularity } : {}), projectionOrder: view === "targets" ? (targetLayout === "matrix" ? [targetMatrixAxis, "target"] : targetOrder === "target" ? ["target", "group", "resource"] : ["group", "resource", "target"]) as import("@/contracts/resource-dashboard").ResourceTargetDimension[] : undefined }),
+    [filters, view, granularity, targetLayout, targetOrder, targetMatrixAxis],
   );
   const validDates = !(filters.from && filters.to && filters.from > filters.to);
   const detailHeading = useRef<HTMLHeadingElement>(null);
@@ -103,13 +111,37 @@ export function ProjectResourceDashboard({
   );
   const data = report.data;
   // A changed query/snapshot invalidates interactive selections without resetting the cached report.
-  const scopeKey = JSON.stringify([publicId, revision, queryKey, data?.snapshotId ?? null]);
+  const scopeKey = JSON.stringify([publicId, queryKey]);
   const [selectionScopeKey, setSelectionScopeKey] = useState(scopeKey);
   if (selectionScopeKey !== scopeKey) {
     setSelectionScopeKey(scopeKey);
     setSelection(null);
-    setExpanded(new Set());
+  } else if (selection && data && !report.stale && selection.snapshotId !== data.snapshotId) {
+    // #525: a fresh server snapshot invalidates ordinary KPI/Milestone/diagnostic
+    // details. Their exact source and focused trigger must not silently survive
+    // a catalog/project change. Only a canonical Target path can be rebound.
+    if (selection.selector.dimension !== "targetProjection") {
+      setSelection(null);
+    } else {
+      let nodes = data.targetProjection?.children ?? [];
+      let currentSummary: ResourceDashboardSummary | null = null;
+      for (const part of selection.selector.targetPath ?? []) {
+        const node = nodes.find(item => item.dimension === part.dimension && item.id === part.id);
+        if (!node) { currentSummary = null; break; }
+        currentSummary = node.summary;
+        nodes = node.children;
+      }
+      if (!currentSummary) {
+        setSelection(null);
+        setSelectionNotice("저장되어 현재 조건에서 제외되었습니다. Target 필터 또는 집계 범위를 확인하세요.");
+      } else {
+        // #621: rebind to the *current* server selector, never retain the prior
+        // snapshot's virtual row identity after a report refresh.
+        setSelection({ ...selection, selector: currentSummary.selector, snapshotId: data.snapshotId });
+      }
+    }
   }
+  useLayoutEffect(() => { if (selectionNotice && active && !refreshDisabled) search.current?.focus({preventScroll:true}); }, [selectionNotice, active, refreshDisabled]);
   const refreshReport = report.refresh;
   const refresh = useCallback(() => {
     if (detailStale) { setSelection(null); setExpanded(new Set()); }
@@ -178,6 +210,7 @@ export function ProjectResourceDashboard({
   ) => {
     if (stale || !data) return;
     detailTrigger.current = trigger;
+    setSelectionNotice(null);
     setSelection({
       selector,
       label,
@@ -245,9 +278,10 @@ export function ProjectResourceDashboard({
               <span aria-hidden="true">{open ? "▾" : "▸"}</span>
               <span>
                 {row.name}
-                {row.code ? ` (${row.code})` : ""}
+
               </span>
             </button>
+            {row.id ? <IdentifierDetails label={`${row.name} 식별 정보`} identifiers={[{label: "ID", value: row.id}, ...(row.code ? [{label: "코드", value: row.code}] : [])]} /> : null}
             {!row.active && row.id ? <small>비활성 · 기존 할당</small> : null}
             {kind === "resource" ? (
               <small>
@@ -311,10 +345,7 @@ export function ProjectResourceDashboard({
                 </div>
               ) : null}
               {kind === "group" ? (
-                <p className="resource-dashboard-hint">
-                  그룹은 현재 개인 소속 분류입니다. Group 직접 담당만 있는
-                  Task는 아래 보조 진단에서 조회합니다.
-                </p>
+                <p className="resource-dashboard-hint">Group 직접 담당 Task는 보조 진단에 표시합니다.</p>
               ) : (
                 <FocusRestoreBoundary
                   key={`${data!.snapshotId}:${key}`}
@@ -342,10 +373,18 @@ export function ProjectResourceDashboard({
       className={`${styles.dashboard} project-resource-workload`}
       aria-labelledby="resource-dashboard-heading"
       data-resource-dashboard="true"
+      data-project-public-id={publicId}
+      data-report-confirmation-id={report.confirmationId}
       data-ready={!stale}
     >
+      {selectionNotice ? <p role="status">{selectionNotice}</p> : null}
       <div className="resource-dashboard-toolbar">
         <h2 id="resource-dashboard-heading">리소스 공수</h2>
+        <ContextHelp label="리소스 공수 도움말">
+          <p>투입 시작/종료는 선택 기간으로 자른 Assignment 구간입니다. Grand Total은 선택 Assignment를 한 번만 합산합니다.</p>
+          <p>할당 작업 진척은 계획기간 가중값이며 개인의 실제 기여도·소진 공수가 아닙니다.</p>
+          <p>그룹은 현재 개인 소속 분류입니다. Group 직접 담당만 있는 Task는 보조 진단에서 조회합니다.</p>
+        </ContextHelp>
         <button type="button" className="secondary-button" disabled={refreshDisabled}
           onClick={event => exportContext.onExport?.(event.currentTarget)}>Excel 보고서</button>
         <div
@@ -416,11 +455,16 @@ export function ProjectResourceDashboard({
             onChange={(e) => setView(e.target.value as typeof view)}
           >
             <option value="summary">기본 현황</option>
+            <option value="targets">Target 보기</option>
             <option value="tree">Milestone 계층</option>
             <option value="matrix">Milestone 비교표</option>
             <option value="plan">Resource Plan</option>
           </select>
         </label>
+        {view === "targets" ? <>
+          <label>표시<select aria-label="Target 표시" value={targetLayout} onChange={event => setTargetLayout(event.target.value as typeof targetLayout)}><option value="tree">계층</option><option value="matrix">비교표</option></select></label>
+          {targetLayout === "tree" ? <label>집계 순서<select aria-label="Target 집계 순서" value={targetOrder} onChange={event => setTargetOrder(event.target.value as typeof targetOrder)}><option value="resource">Resource 우선</option><option value="target">Target 우선</option></select></label> : <label>비교 행<select aria-label="Target 비교 행" value={targetMatrixAxis} onChange={event => setTargetMatrixAxis(event.target.value as typeof targetMatrixAxis)}><option value="resource">개인</option><option value="group">Group</option></select></label>}
+        </> : null}
         {view === "plan" ? (
           <label>
             기간 단위
@@ -492,6 +536,7 @@ export function ProjectResourceDashboard({
             ))}
           </select>
         </label>
+        <ResourceTargetFilters quick data={data} filters={filters} onChange={patch => setFilters(previous => ({...previous, ...patch}))}/>
         <label className="resource-dashboard-search">
           검색
           <input
@@ -541,6 +586,7 @@ export function ProjectResourceDashboard({
           }
         }}
       >
+        <ResourceTargetFilters data={data} filters={filters} onChange={patch => setFilters(previous => ({...previous, ...patch}))}/>
         <label>
           Global Role
           <select
@@ -664,7 +710,7 @@ export function ProjectResourceDashboard({
             <option value="ungrouped">미분류 Resource</option>
             {data?.catalog.groups.map((group) => (
               <option key={group.id} value={group.id}>
-                {group.name}
+                {group.name}{data.catalog.groups.some(other=>other.id!==group.id&&other.name===group.name)?` (${group.code||group.id})`:""}
               </option>
             ))}
           </select>
@@ -681,7 +727,7 @@ export function ProjectResourceDashboard({
             <option value="">전체</option>
             {data?.catalog.resources.map((resource) => (
               <option key={resource.id} value={resource.id}>
-                {resource.name}
+                {resource.name}{data.catalog.resources.some(other=>other.id!==resource.id&&other.name===resource.name)?` (${resource.code||resource.id})`:""}
                 {!resource.active ? " (비활성)" : ""}
               </option>
             ))}
@@ -855,16 +901,13 @@ export function ProjectResourceDashboard({
             })}
           </dl>
           <p className="resource-dashboard-hint">
-            ¹ 투입 시작/종료는 선택 기간으로 자른 Assignment 구간입니다. Grand
-            Total은 선택 Assignment를 한 번만 합산합니다. 복수 그룹·Global
-            Role에 같은 Task/개인이 반복될 수 있어 소계는 서로 더하지 않습니다.
-            할당 작업 진척은 계획기간 가중값이며 개인의 실제 기여도·소진 공수가
-            아닙니다.
+            선택 Assignment 중복 제외 · 그룹·Global Role 소계 합산 불가 · 진척은 실제 기여·소진 공수 아님
+            {data.summary.effort.unsetCount ? " · 공수 미설정 포함: 알려진 공수만 표시" : ""}
           </p>
           {report.planData ? (
             <div hidden={view !== "plan"} inert={view !== "plan"}>
               <FocusRestoreBoundary
-                key={`${report.planData.snapshotId}:plan`}
+                key="plan"
                 onRestore={() => search.current?.focus({ preventScroll: true })}
               >
                 <ResourcePlanView
@@ -882,6 +925,7 @@ export function ProjectResourceDashboard({
               </FocusRestoreBoundary>
             </div>
           ) : null}
+          {view === "targets" ? <ResourceTargetViews data={data} unit={displayUnit} stale={stale} onStale={markStale} expanded={expanded} onToggle={toggleRow} matrix={targetLayout === "matrix"} onOpen={(summary, label, trigger) => openDetail(summary.selector, label, "assignments", trigger)}/> : null}
           <MilestoneScopeSummaries
             data={data}
             unit={displayUnit}
@@ -1017,10 +1061,9 @@ export function ProjectResourceDashboard({
             </p>
           </details>
           {selection &&
-          selection.snapshotId === data.snapshotId &&
           selection.queryKey === queryKey ? (
             <FocusRestoreBoundary
-              key={`${selection.snapshotId}:${selection.queryKey}`}
+              key={selection.queryKey}
               onRestore={() => {
                 if (
                   detailTrigger.current?.isConnected &&
@@ -1053,7 +1096,7 @@ export function ProjectResourceDashboard({
                   상세 닫기
                 </button>
                 <ResourceDashboardDetails
-                  key={`${data.snapshotId}:${JSON.stringify(selection.selector)}`}
+                  key={JSON.stringify(selection.selector)}
                   data={data}
                   selector={selection.selector}
                   view={selection.view}
@@ -1079,8 +1122,8 @@ function DashboardHeaders() {
         <th>진행</th>
         <th>지연</th>
         <th>할당 작업 진척</th>
-        <th>투입 시작¹</th>
-        <th>투입 종료¹</th>
+        <th>투입 시작</th>
+        <th>투입 종료</th>
         <th>계획 공수</th>
         <th>공수 설정</th>
       </tr>

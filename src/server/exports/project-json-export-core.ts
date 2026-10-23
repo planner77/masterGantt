@@ -1,4 +1,5 @@
 import type Database from "better-sqlite3";
+import { assertScheduleContextExportSupported } from "./project-context-export-guard-core";
 import type { ImportPayload11 } from "../../contracts/import";
 import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../contracts/projects";
 import { taskStatusFromProgress, taskStatusProgressConsistent } from "../../domain/task-status";
@@ -72,6 +73,21 @@ export class ProjectJsonExportService {
       const snapshot = new TaskFieldProjectService(this.database, { clock: () => now }).getReadonlySnapshot(publicId);
       if (!snapshot) return undefined;
       if (snapshot.data.project.revision !== expectedRevision) throw new PublicApiError(412, "REVISION_MISMATCH", "Project changed. Reload and retry.");
+      // schema 1.1 deliberately exports schedule-stage only; never silently discard
+      // persisted Target references as if this were a complete project backup.
+      const projectId = this.database.prepare("SELECT id FROM projects WHERE public_id=?")
+        .get(publicId) as {id:number}|undefined;
+      if (projectId) assertScheduleContextExportSupported(this.database,projectId.id);
+      if (projectId && this.database.prepare("SELECT 1 FROM project_resource_memberships WHERE project_id=? LIMIT 1").get(projectId.id)) {
+        throw new PublicApiError(409, "RESOURCE_MEMBERSHIP_EXPORT_UNSUPPORTED", "프로젝트 리소스 등록은 JSON 일정 형식으로 보존할 수 없습니다. 프로젝트 복사 또는 템플릿을 이용해 주세요.");
+      }
+      if (projectId && this.database.prepare("SELECT 1 FROM task_target_bindings WHERE project_id=? LIMIT 1").get(projectId.id)) {
+        throw new PublicApiError(409, "TASK_TARGET_EXPORT_UNSUPPORTED", "Task Target bindings cannot be represented by JSON schema 1.1. Use Project Copy or Template.");
+      }
+      if (projectId && this.database.prepare("SELECT 1 FROM logistics_targets WHERE project_id=? LIMIT 1").get(projectId.id)) {
+        throw new PublicApiError(409,"TARGET_JSON_EXPORT_UNSUPPORTED",
+          "Target/member graph is not supported by the schedule-stage JSON schema. Use Project Copy.");
+      }
       const bytes = new TextEncoder().encode(JSON.stringify(buildProjectJsonExport(snapshot, now.toISOString()), null, 2));
       if (bytes.length > IMPORT_FILE_LIMIT_BYTES) throw new PublicApiError(422, "EXPORT_LIMIT_EXCEEDED", "The JSON file exceeds the 5 MiB import limit.");
       return bytes;

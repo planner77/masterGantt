@@ -6,7 +6,7 @@ export function filterResources(resources: readonly ResourceDto[], query: string
   return resources.filter((resource) => {
     const nameMatch = resource.name.toLowerCase().includes(term);
     const codeMatch = typeof resource.code === "string" && resource.code.toLowerCase().includes(term);
-    return nameMatch || codeMatch;
+    return nameMatch || codeMatch || resource.id.toLowerCase().includes(term);
   });
 }
 
@@ -16,6 +16,6 @@ export function filterGroups(groups: readonly ResourceGroupDto[], query: string)
   return groups.filter((group) => {
     const nameMatch = group.name.toLowerCase().includes(term);
     const codeMatch = typeof group.code === "string" && group.code.toLowerCase().includes(term);
-    return nameMatch || codeMatch;
+    return nameMatch || codeMatch || group.id.toLowerCase().includes(term);
   });
 }

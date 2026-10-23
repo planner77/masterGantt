@@ -41,14 +41,17 @@ const commandSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("indent"),
     taskId: uuid,
+    targetImpactDigest: z.string().regex(/^[a-f0-9]{64}$/).optional(),
   }).strict(),
   z.object({
     kind: z.literal("outdent"),
     taskId: uuid,
+    targetImpactDigest: z.string().regex(/^[a-f0-9]{64}$/).optional(),
   }).strict(),
   z.object({
     kind: z.literal("reparent"),
     taskId: uuid,
+    targetImpactDigest: z.string().regex(/^[a-f0-9]{64}$/).optional(),
     anchorTaskId: uuid,
     placement,
   }).strict(),

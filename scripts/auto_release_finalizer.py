@@ -55,6 +55,17 @@ class WorkItem:
     validation_docs_only: bool = False
     cleanup_pr_numbers: tuple[int, ...] = ()
     actionable: bool = True
+    # Physical first-parent version stays unchanged. This field records an
+    # unissued release inherited from a failed, same-Issue main attempt.
+    inherited_release_base_version: str | None = None
+
+    @property
+    def release_base_version(self) -> str:
+        return self.inherited_release_base_version or self.previous_version
+
+    @property
+    def release_required(self) -> bool:
+        return self.release_base_version != self.current_version
 
 
 def run(
@@ -374,6 +385,7 @@ def supersede_failed_issue_retries(
     items: list[WorkItem],
     ci_success: dict[str, bool],
     release_failed: dict[str, bool] | None = None,
+    first_parent_items: list[WorkItem] | None = None,
 ) -> tuple[list[WorkItem], list[tuple[WorkItem, WorkItem]]]:
     """Defer a failed attempt to a later Green merge for the same Issue.
 
@@ -386,8 +398,13 @@ def supersede_failed_issue_retries(
     """
     superseded_indices: set[int] = set()
     cleanup_by_index: dict[int, list[int]] = {}
+    inherited_release_by_index: dict[int, str] = {}
     superseded: list[tuple[WorkItem, WorkItem]] = []
     release_failed = release_failed or {}
+    # Include even closed/non-actionable merges when checking adjacency for
+    # previously unissued SemVer authority. They are ordering barriers.
+    first_parent_items = first_parent_items if first_parent_items is not None else items
+    positions = {work.target_sha: n for n, work in enumerate(first_parent_items)}
 
     for index, item in enumerate(items):
         item_failed = (
@@ -407,6 +424,41 @@ def supersede_failed_issue_retries(
                 continue
             if not validation_scope_covers(item, candidate):
                 continue
+            if (item.release_required and release_failed.get(item.target_sha, False)
+                    and candidate.current_version == item.current_version):
+                # An existing immutable failed release tag is bound to the old
+                # SHA; never transfer the same tag to a different merge SHA.
+                continue
+            if item.release_required and not ci_success.get(item.target_sha, False):
+                if candidate.current_version != item.current_version:
+                    # No silent supersession across version differences for
+                    # a failed main target that never published its release.
+                    continue
+                # Main CI failed before the original version's tag was created.
+                # A later same-version corrective merge has a zero physical
+                # version delta; do not silently discard its approved release.
+                # Only an uninterrupted same-Issue, non-docs, unchanged-version
+                # chain may inherit that obligation. A tag/release failure must
+                # instead use a new immutable SemVer corrective release.
+                if ci_success.get(item.target_sha, False) or release_failed.get(item.target_sha, False):
+                    continue
+                start = positions.get(item.target_sha)
+                finish = positions.get(candidate.target_sha)
+                if start is None or finish is None or finish <= start:
+                    continue
+                chain = first_parent_items[start + 1 : finish + 1]
+                if any(
+                    step.issue_number != item.issue_number
+                    or step.validation_docs_only
+                    or step.previous_version != item.current_version
+                    or step.current_version != item.current_version
+                    for step in chain
+                ):
+                    continue
+                inherited = inherited_release_by_index.get(candidate_index)
+                if inherited is not None and inherited != item.release_base_version:
+                    continue
+                inherited_release_by_index[candidate_index] = item.release_base_version
             replacement_index = candidate_index
             break
         if replacement_index is None:
@@ -424,22 +476,55 @@ def supersede_failed_issue_retries(
         if index in superseded_indices:
             continue
         extra_cleanup = cleanup_by_index.get(index, [])
-        if extra_cleanup:
+        inherited = inherited_release_by_index.get(index)
+        if extra_cleanup or inherited is not None:
             cleanup = tuple(
                 dict.fromkeys((*item.cleanup_pr_numbers, *extra_cleanup))
             )
-            item = WorkItem(
-                target_sha=item.target_sha,
-                first_parent_sha=item.first_parent_sha,
-                pr_number=item.pr_number,
-                issue_number=item.issue_number,
-                previous_version=item.previous_version,
-                current_version=item.current_version,
-                validation_docs_only=item.validation_docs_only,
-                cleanup_pr_numbers=cleanup,
+            item = replace(
+                item, cleanup_pr_numbers=cleanup,
+                inherited_release_base_version=inherited or item.inherited_release_base_version,
             )
         planned.append(item)
     return planned, superseded
+
+
+def release_evidence_after_ci_supersession(
+    repo: str,
+    items: list[WorkItem],
+    ci_success: dict[str, bool],
+    first_parent_items: list[WorkItem],
+) -> dict[str, tuple[str, str | None]]:
+    """Read release tags after validating the strictly limited failed-CI lineage.
+
+    A previously failed Main CI may have been superseded by the next same-Issue,
+    same-version, non-docs successful merge. The official immutable tag then
+    belongs to the corrective commit, not to the failed ancestor. Only that
+    exact correction may be recognized while reading the failed ancestor's
+    release evidence. No permission to move tags or to skip the correction's
+    own release/CI validation is implied.
+    """
+    _, tentative = supersede_failed_issue_retries(
+        items, ci_success, first_parent_items=first_parent_items,
+    )
+    # Never accept a different tag source on a CI-successful ancestor or a
+    # merely same-version, non-adjacent, unrelated or docs-only correction.
+    permitted: dict[str, str] = {
+        failed.target_sha: correction.target_sha
+        for failed, correction in tentative
+        if not ci_success.get(failed.target_sha, False)
+        and failed.release_required
+        and correction.issue_number == failed.issue_number
+        and correction.current_version == failed.current_version
+        and not correction.validation_docs_only
+        and ci_success.get(correction.target_sha, False)
+    }
+    return {
+        item.target_sha: exact_release_state(
+            repo, item, corrective_sha=permitted.get(item.target_sha),
+        )
+        for item in items
+    }
 
 
 def current_main_sha(repo: str) -> str:
@@ -463,7 +548,12 @@ def exact_main_ci_success(repo: str, sha: str) -> tuple[bool, str | None]:
         if run_data.get("head_sha") == sha
     ]
     if not runs:
-        return False, None
+        # A wrong-SHA API response is not evidence of a missing push run.
+        if data.get("workflow_runs"):
+            return False, None
+        from main_ci_recovery import discover_completed_recovery
+        evidence = discover_completed_recovery(repo, sha)
+        return (True, evidence[0]) if evidence else (False, None)
 
     def run_order(run_data: dict[str, Any]) -> tuple[str, int, int]:
         return (
@@ -486,7 +576,9 @@ def exact_main_ci_success(repo: str, sha: str) -> tuple[bool, str | None]:
     return False, latest.get("html_url")
 
 
-def exact_release_state(repo: str, item: WorkItem) -> tuple[str, str | None]:
+def exact_release_state(
+    repo: str, item: WorkItem, *, corrective_sha: str | None = None,
+) -> tuple[str, str | None]:
     """Return formal release evidence without mutating tags or workflows.
 
     States:
@@ -497,7 +589,7 @@ def exact_release_state(repo: str, item: WorkItem) -> tuple[str, str | None]:
     - success: exact release-image evidence completed successfully.
     - failed: tag exists and exact release-image attempts completed without success.
     """
-    if item.previous_version == item.current_version:
+    if not item.release_required:
         return "not-required", None
 
     tag = f"v{item.current_version}"
@@ -519,6 +611,12 @@ def exact_release_state(repo: str, item: WorkItem) -> tuple[str, str | None]:
         )
     actual = run("git", "rev-parse", f"{tag}^{{commit}}").stdout.strip()
     if actual != item.target_sha:
+        if corrective_sha is not None and actual == corrective_sha:
+            # Reached only from a verified failed-CI same-Issue corrective chain.
+            # The failed SHA remains FAIL and does not own the release; the
+            # corrective WorkItem must still validate its own immutable tag,
+            # release-image success, Owner authority and digest before mutation.
+            return "superseded-by-corrective", None
         raise AutoFinalizerError(
             f"{tag}: existing release tag points to {actual}, expected {item.target_sha}"
         )
@@ -615,7 +713,7 @@ def lifecycle_command(
 
 
 def process_item(repo: str, item: WorkItem, release_state: str, *, main_snapshot_sha: str, defer_close: bool = False) -> str:
-    release_required = item.previous_version != item.current_version
+    release_required = item.release_required
     operation = "finalize"
     release_authorized = False
     authorization_note = ""
@@ -655,6 +753,8 @@ def process_item(repo: str, item: WorkItem, release_state: str, *, main_snapshot
             f"- PR: #{item.pr_number}",
             f"- Issue: #{item.issue_number}",
             f"- application version: `{item.previous_version}` → `{item.current_version}`",
+            f"- release obligation baseline: `{item.release_base_version}`"
+            f" (inherited={str(item.inherited_release_base_version is not None).lower()})",
             f"- validation scope docs-only: `{str(item.validation_docs_only).lower()}`",
             f"- additional cleanup PRs: {', '.join(f'#{number}' for number in item.cleanup_pr_numbers) or 'none'}",
             f"- release_required: `{str(release_required).lower()}`",
@@ -739,10 +839,12 @@ def execute(trigger_sha: str) -> int:
         item.target_sha: exact_main_ci_success(repo, item.target_sha)
         for item in pending_coalesced
     }
-    release_evidence = {
-        item.target_sha: exact_release_state(repo, item)
-        for item in pending_coalesced
-    }
+    release_evidence = release_evidence_after_ci_supersession(
+        repo,
+        pending_coalesced,
+        {sha: evidence[0] for sha, evidence in ci_evidence.items()},
+        pending_with_barriers,
+    )
     pending, superseded = supersede_failed_issue_retries(
         pending_coalesced,
         {sha: evidence[0] for sha, evidence in ci_evidence.items()},
@@ -750,7 +852,69 @@ def execute(trigger_sha: str) -> int:
             sha: state == "failed"
             for sha, (state, _url) in release_evidence.items()
         },
+        first_parent_items=pending_with_barriers,
     )
+
+    # B2 retirement is a separate, narrow Owner-authorized exception. Without
+    # the exact current main SHA and the two original revocations, it remains
+    # a NO-OP and the historical failed CI is the oldest ordering blocker.
+    from release_debt_recovery import plan_b2, finalize_b2
+    # Once the B2 target has its authenticated FINAL marker, the old Owner
+    # decision must not affect later unrelated first-parent lifecycles.
+    recovery_plan = (
+        plan_b2(sys.modules[__name__], repo, latest_main, pending_raw)
+        if any(item.target_sha == latest_main and item.issue_number == 633
+               and item.current_version == "0.106.1" for item in pending_raw)
+        else None
+    )
+    if recovery_plan is not None:
+        pending = [
+            item for item in pending if item.target_sha not in recovery_plan.retired_shas
+        ]
+        write_summary([
+            "### Owner B2 승인된 미발행 릴리스 예외",
+            f"- Owner audit evidence: {recovery_plan.marker_url}",
+            "- v0.105.0/v0.106.0 old Main CI: FAIL unchanged; release not authorized",
+            f"- new release: v{recovery_plan.target.current_version} / {recovery_plan.sha}",
+            "- old PR cleanup/Issue close: ONLY after new exact release succeeded",
+        ])
+
+    # Issue #765 is an independent, exact Owner-scoped unissued-release
+    # retirement. No permission or effect without its newest trusted marker.
+    # The regular first-parent rule and Issue #633 B2 remain unchanged.
+    from release_debt_recovery_765 import plan_765, finalize_765
+    recovery765_plan = (
+        plan_765(sys.modules[__name__], repo, latest_main)
+        if any(item.issue_number == 765 for item in pending_with_barriers)
+        else None
+    )
+    if recovery765_plan is not None:
+        pending = [
+            item for item in pending
+            if item.target_sha not in recovery765_plan.retired_shas
+        ]
+        # GitHub may automatically close the recovery Issue at PR merge time
+        # before its CI/FINAL exists. Only the exact Owner-authenticated plan
+        # may re-activate this single non-actionable ordering barrier.
+        if not any(item.target_sha == recovery765_plan.recovery_sha for item in pending):
+            recovery_merge = next(
+                (item for item in pending_with_barriers
+                 if item.target_sha == recovery765_plan.recovery_sha),
+                None,
+            )
+            if recovery_merge is None:
+                raise AutoFinalizerBlocked("Issue #765 exact recovery merge absent")
+            pending.append(replace(recovery_merge, actionable=True))
+        write_summary([
+            "### Issue #765 authorized single-release debt retirement",
+            f"- Owner: {recovery765_plan.owner_url}",
+            "- previous Main CI CANCELLED/FAILURE remains immutable",
+            f"- replacement: v0.129.0 / {recovery765_plan.release_item.target_sha}",
+            "- only three historical merge SHAs excluded from lifecycle targets",
+        ])
+        # Finish/replay old branch cleanup and authenticated RETIRED evidence
+        # BEFORE Issue #734 can receive its legitimate existing-release FINAL.
+        finalize_765(sys.modules[__name__], repo, latest_main, recovery765_plan)
 
     if finalized_boundary:
         recovered = resume_unclosed_final(
@@ -825,10 +989,11 @@ def execute(trigger_sha: str) -> int:
             item.target_sha,
             exact_main_ci_success(repo, item.target_sha),
         )
-        release_state, release_url = release_evidence.get(
-            item.target_sha,
-            exact_release_state(repo, item),
-        )
+        release_state, release_url = release_evidence.get(item.target_sha, (None, None))
+        if release_state is None or (release_state == "not-required" and item.release_required):
+            # A same-version corrective SHA may have inherited a previous
+            # failed main target's release; recheck its *own* immutable tag.
+            release_state, release_url = exact_release_state(repo, item)
         if not ci_ok:
             write_summary(
                 [
@@ -864,6 +1029,11 @@ def execute(trigger_sha: str) -> int:
             candidate.issue_number == item.issue_number and candidate.target_sha != item.target_sha
             for candidate in pending[pending.index(item) + 1:]
         )
+        if (recovery_plan is not None and item.target_sha == recovery_plan.sha
+                and release_state == "success"):
+            # Verified immutable release and digest promotion BEFORE retiring
+            # historical versions. Partial cleanup fails closed and is replayable.
+            finalize_b2(sys.modules[__name__], repo, latest_main, recovery_plan)
         operation = process_item(repo, item, release_state, main_snapshot_sha=latest_main, defer_close=newer_same_issue)
         if operation == "release_start":
             write_summary(

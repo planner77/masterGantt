@@ -8,6 +8,14 @@
   padding: 0 0 0.5rem;
 }
 
+/* SVAR's four-row Grid overscan must not create a second vertical scroll
+   range. Clip it at the table viewport while its parent keeps native X scroll. */
+.project-gantt-widget .wx-table-container > .wx-table {
+  min-height: 100% !important;
+  max-height: 100%;
+  overflow: clip;
+}
+
 .project-gantt-widget [data-summary-state]::after {
   content: " · " attr(data-summary-state);
   color: var(--text-muted, var(--muted-foreground));
@@ -404,4 +412,23 @@
 
 .project-task-hover-tooltip-dates {
   color: var(--text-muted, var(--muted-foreground));
+}
+
+/* Week mode describes Gregorian months per ISO week, not native month spans. */
+.project-gantt-week-calendar-scale > span {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Keep the native flex chain when invalid scope recovery temporarily hides it. */
+.project-scope-panel > div.project-gantt-scope-owner:not([hidden]) {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
 }

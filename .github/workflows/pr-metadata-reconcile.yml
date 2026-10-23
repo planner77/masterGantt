@@ -37,4 +37,5 @@ jobs:
       - name: 최신 PR Head/base·Full three-gate·metadata attempt 검증
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
         run: python3 scripts/reconcile-pr-metadata.py

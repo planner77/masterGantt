@@ -1,3 +1,51 @@
+## Issue #772 — Targeted는 Full QA 영수증이 아니다 (2026-10-22)
+
+신규 검증 모드 `FULL_REQUIRED` / `TARGETED_POLICY_VERIFIED` / `DOCS_ONLY_VERIFIED` / `NOT_RUN` / `UNKNOWN` / `BLOCKED`를 구분한다. LOW 후보는 PR body/Work Packet의 자가 주장으로 결정되지 않고 인증된 base 정책·diff·소비자·실제 직접+인접+음성 Playwright 보고서·Run/Attempt/Head/Base/Test-Merge·정책 Blob/원본 artifact 검증 뒤에만 승인할 수 있다. 선택 E2E가 실행되지 않거나 skipped/cancelled/changed/old failure/unknown이면 허위 Green 불가. 기존 Required3 이름과 Strict, QA Automated/Trusted, exact HEAD Owner HIGH 위험 수용은 유지한다. #772 정책 보호 변경 자체는 기존 Full8+Trusted/Owner 승인 필요. 기본 flag OFF, 10 distinct LOW Full Shadow 성공+전용 PR 실증 전 활성화 금지. [Work Packet](exec-plans/active/ISSUE_772.md).
+
+## Issue #771 — Fast 성공과 Full/Trusted/Owner 승인 권한 구분 (2026-10-22)
+
+- `FAST_DEVELOPMENT`는 작업 중 참고용으로만 표시한다. 기본 브랜치 인증 #770 선정 계획, 작업 branch에서 실행한 typecheck/lint/unit/build/선택 E2E가 성공해도 `required Quality/E2E/Docker`·Trusted QA·Merge Ready·Release/Finalizer PASS를 만들 수 없다.
+- Draft의 기존 세 Required aggregate는 green/skip이 아니라 명시 실패(BLOCKED)여야 하고, draft 상태의 QA Final은 차단한다. `ready_for_review` 및 non-draft opened/reopened/synchronize Full에서 동일 Head/Base/Test-Merge·최신 main 기준 8-shard와 Docker/Quality 및 원본 artifact·run_attempt를 재검증한다.
+- 메타데이터 edited는 동일 current Head/Base/Test-Merge의 최신 authoritative Full 증거만 재사용한다. 최신 Full 실패/취소/진행중, source mismatch, draft 복귀, 정책 버전/근거 UNKNOWN 또는 fork 쓰기 권한은 보수적으로 BLOCKED; 수동 dispatch·Fast/PASS 보고를 원본 Full로 오인하지 않는다.
+- 이번 CI/QA 정책 변경은 HIGH/OWNER_MANAGED/qa_required=true 및 기존 Ruleset 3 Check·strict 최신 main·review thread 0, QA Preflight·기본 브랜치 Trusted·Owner의 명시적 위험 수용을 모두 유지한다. CI 자체 PASS는 Owner 승인이나 릴리스 권한이 아니다.
+
+---
+
+## Issue #712 — 병합 후 PR QA 신뢰 경계 / 동일 이름 Required Check (2026-10-18)
+
+- 기본 브랜치 Trusted Validator는 `ci-pr-source-<run>-<attempt>` 원본 출처를 읽기 전용으로 조회하고 PR 번호·Head/Base/Test-Merge·workflow·repository와 commit→PR 단일 귀속을 인증한다. 병합 후 원본 test-merge SHA는 실제 merge SHA와 **달라도** 부모(base/head)와 Git Tree가 같아야 한다. open PR은 기존 strict exact SHA 비교 유지. 다른 Tree, squash/rebase, 여러 귀속·출처 미확인은 자동 PASS 불가.
+- 병합 후 `edited` metadata-only CI의 세 Required Check와 뒤따르는 신뢰된 QA 재실행은 이미 입증된 Full PR CI를 소급 실패로 바꿀 권위가 없다. `POST_MERGE_METADATA_NON_AUTHORITATIVE`/자동 QA `N/A(비권위 감사)`로 기록하며 새 Full 실패·미완료를 가리거나 신규 QA/Owner/릴리스 승인으로 격상하지 않는다.
+- Lifecycle은 Full Run ID+Attempt의 원본 세 Required aggregate와 최신 Full 실패·재실행을 재조회한다. self-approval 위험이 큰 이 변경은 `HIGH`, `qa_required=true`, `OWNER_MANAGED`; 기본 브랜치 Trusted 검사, 독립적 고위험 source/provenance 검토, 정확 PR Head/Base/run·문서·AC·리뷰 0·Owner 위험 수용·명시 병합 승인 필수. Full CI 통과만으로 Manager ACCEPT 또는 릴리스 승인이 아니다.
+- [Work Packet](exec-plans/active/ISSUE_712.md), [CI/CD](CI_CD.md), [Lifecycle](ISSUE_LIFECYCLE.md)와 [Finalizer](GENERIC_RELEASE_FINALIZER.md) 참조. #712의 정식 릴리스 권한 없음(`release_required=false`, `release_authorized=false`), #552 기존 exact-version 승인 원장만 후속 정상 Finalizer에서 참조.
+
+## Issue #598 후속 — 현재 Agent 실행 정책 (2026-10-17)
+
+기본 `qa_method=OWNER_MANAGED`(기존 `AUTOMATED_MANAGER` 호환)에서는 `qa_required=true`/HIGH/보호 경로가 독립 인간 Reviewer 의무로 전환되지 않는다. 신뢰된 default-branch QA, Quality/E2E/Docker, strict 최신 main, HEAD/base/run, 문서·AC, 리뷰 thread 0 및 HIGH 잔여 위험을 포함한 Owner의 별도 최종 병합 승인은 모두 필요하다. `qa_method=AGENT` 선택 시에만 실제 독립 인간 QA를 요구한다. 과거 #565·#580의 초기 규정은 역사적 기록이고 현재 활성 TOML 지침을 덮어쓰지 않는다.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** HIGH/OWNER_MANAGED recovery policy. No automatic Manager ACCEPT, no independent Agent approval required unless Owner elects AGENT. Trusted QA plus three Required checks remain mandatory for #639 PR. Owner recovery comment is distinct from Version Owner release permission and merger authorization.
+
+## Issue #633 — HIGH 릴리스 부채 B2 독립 판정 경계 (2026-10-12)
+
+- Owner-managed라 해도 PR 자체의 수정된 B2 검증기는 trusted QA 자기 승인이 아니다. 정확한 Head/base Required 세 종·default-branch Trusted QA·리뷰 스레드0·Owner HIGH 위험 수용과 **별도 버전별 두 기존 승인 철회 + 신규 v0.106.1 및 exact B2 승인**을 분리한다.
+- 원본 #550/#615 실패 CI는 불변 FAIL, GHCR exact tag 미발행은 인증된 read-only GitHub Actions 실감사 없이는 UNKNOWN. `INVENTORY_ONLY_NOT_RELEASE_AUTHORIZED`/일반 CI SUCCESS는 발행 승인·폐기 승인이 아니다. Issue #633 B2 정책은 사용자 승인 범위 외 다른 Issue/버전 자동 슈퍼시전 확장 금지.
+
+## Issue #633 — 교차 Issue 미발행 Release 부채 감사 (2026-10-12)
+
+- #550 v0.105.0 실패 Main CI와 #615 v0.106.0 중간 병합은 같은 Issue/동일 버전 자동 승계가 아니다. 과거 실패를 PASS로 재해석하거나 release-required=false로 숨기지 않는다.
+- `scripts/release_debt_audit.py` 및 `.github/workflows/release-debt-audit.yml`은 **trusted main read-only** 감사 전용이며, Owner의 별도 exact SHA·버전별 복구 결정과 GHCR digest·tag 상태를 판정한다. 결과 `READY_FOR_SEPARATE_TRUSTED_RECOVERY`도 정식 tag·GHCR 게시·Issue close 권한이 아니다.
+- 독립 QA/Owner HIGH 승인, PR Required 세 종, Main candidate digest/SBOM/provenance, immutable SemVer/Release/Resume/cleanup 순서는 유지한다. 자세한 결정·실패 감사 원장·rollback은 [Issue #633 복구 계획](ISSUE_633_RELEASE_DEBT.md)을 참조한다.
+
+## Issue #629 — 자동 QA 사전/최종 판정 경계 (2026-10-12)
+Preflight는 #598 OWNER_MANAGED 기본 경로와 선택 AGENT·LOW/MEDIUM/HIGH 위험도·보호 경로 감지를 기존 `qa_final_automated.py`의 공통 함수로 검증한다. 구조적 FAIL만 E2E/Docker 이전 차단하고, 리뷰/Owner ACCEPT/최신 Trusted QA/정확한 test merge/aggregate 3종 완료 여부는 DEFERRED(최종 QA 담당)이다. 사전 PASS는 `QA_FINAL PASS`나 `MERGE_READY`가 아니다. AGENT 독립 QA나 Owner 승인을 자동 생성하지 않는다. PR Head 검증기 코드는 신뢰·실행하지 않는다.
+
 ## Issue #600 — PR metadata 완료 이벤트 자동 복구 (2026-10-11)
 
 - 방식 A: 기존 `ci.yml`의 전체/metadata 분리와 Ruleset required 세 집계 이름을 그대로 유지한다. metadata edited의 `DEFERRED`는 실제 FAIL(녹색 아님), Full CI 완료 이후 별도 **기본 브랜치** `workflow_run(CI completed)`가 최신 실패 metadata run의 `rerun-failed-jobs`만 자동 요청한다. 편집 이벤트 자체의 Run 생성 비용은 제거하지 못하며 재실행까지의 결과는 `NOT TESTED`.

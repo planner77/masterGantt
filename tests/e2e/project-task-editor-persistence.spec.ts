@@ -1,10 +1,16 @@
 import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/contracts/projects";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
+import { readBrowserCanonicalSnapshot } from "./helpers/browser-canonical-snapshot";
 
 test.use(isolatedApplicationOptions);
 
-test("persists explicit editor changes, task details and safe URL click without remount", async ({ page, browser }) => {
+test("persists explicit editor changes, task details and safe URL click without remount", async ({ page, browser, observeIsolatedApi }) => {
+  // #730 F730-011: 30s CI trace completed editor persistence + UTC/Seoul and
+  // reached the third fresh browser context before the test-level deadline.
+  // Keep all three timezone checks on the same stored Task with a measured
+  // finite per-test budget; do not extend other tests or global CI timeouts.
+  test.setTimeout(45_000);
   await page.setViewportSize({ width: 1440, height: 1000 });
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await page.goto("/projects/new");
@@ -63,7 +69,7 @@ test("persists explicit editor changes, task details and safe URL click without 
   expect(patches).toBe(1);
   expect(navigations).toBe(0);
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
-  const stored = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  const stored = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi);
   expect(stored.data.project.revision).toBe(childBody.data.project.revision + 1);
   expect(stored.data.tasks.find((entry) => entry.taskId === child.taskId)).toMatchObject({
     name: "Saved via editor", requestedStart: "2026-09-18", start: "2026-09-18", end: "2026-09-21", duration: 2, progress: 75,
@@ -107,7 +113,7 @@ test("persists explicit editor changes, task details and safe URL click without 
 });
 
 
-test("Summary Description and URL persist while derived schedule stays readonly", async ({ page }) => {
+test("Summary Description and URL persist while derived schedule stays readonly", async ({ page, observeIsolatedApi }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill("Summary details " + Date.now());
@@ -159,7 +165,8 @@ test("Summary Description and URL persist while derived schedule stays readonly"
   await expect(editor).toHaveCount(0);
   expect(summaryPatches).toEqual([{ description: "요약 설명\n상세", url: summaryUrl }]);
 
-  const stored = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  const stored = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi);
+  expect(stored.data.project.revision).toBe(snapshot.data.project.revision + 1);
   expect(stored.data.tasks.find((entry) => entry.taskId === summary.taskId)).toMatchObject({
     description: "요약 설명\n상세",
     url: summaryUrl,
@@ -175,7 +182,8 @@ test("Summary Description and URL persist while derived schedule stays readonly"
   await childRow.getByText("Summary child", { exact: true }).click({ button: "right" });
   await page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "Delete", exact: true }).click();
   await expect(childRow).toHaveCount(0);
-  const emptied = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  const emptied = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi);
+  expect(emptied.data.project.revision).toBe(snapshot.data.project.revision + 2);
   expect(emptied.data.tasks.find((entry) => entry.taskId === summary.taskId)).toMatchObject({
     description: "요약 설명\n상세",
     url: summaryUrl,
@@ -198,7 +206,7 @@ test("Summary Description and URL persist while derived schedule stays readonly"
   await reopened.getByRole("button", { name: "취소", exact: true }).click();
 });
 
-test("linked requested dates, metadata, baseline and successor schedules persist canonically", async ({ page }) => {
+test("linked requested dates, metadata, baseline and successor schedules persist canonically", async ({ page, observeIsolatedApi }) => {
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/projects/new");
@@ -249,7 +257,7 @@ test("linked requested dates, metadata, baseline and successor schedules persist
   await expect(editor).toHaveCount(0);
   expect(patches).toHaveLength(1);
   expect(patches[0]).not.toHaveProperty("start");
-  snapshot = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  snapshot = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi);
   expect(snapshot.data.tasks.find((task) => task.taskId === b.taskId)).toMatchObject({ requestedStart: "2026-09-14", start: "2026-09-17", end: "2026-09-18", progress: 40, description: "Linked metadata", baselineStart: "2026-09-17", baselineEnd: "2026-09-18" });
   await page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" }).fill("Chain A");
   await expect(page.locator(`.wx-row[data-id=":${c.taskId}"]`)).toHaveCount(0);
@@ -261,7 +269,7 @@ test("linked requested dates, metadata, baseline and successor schedules persist
   await expect(editor).toHaveCount(0);
   await expect(page.getByTestId("workspace-toast")).toContainText("후행 작업 2건");
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
-  snapshot = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  snapshot = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi);
   expect(snapshot.data.tasks.find((task) => task.taskId === b.taskId)).toMatchObject({ requestedStart: "2026-09-14", start: "2026-09-21", end: "2026-09-22", baselineStart: "2026-09-17", baselineEnd: "2026-09-18" });
   expect(snapshot.data.tasks.find((task) => task.taskId === c.taskId)).toMatchObject({ start: "2026-09-23" });
   await page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" }).fill("");
@@ -271,7 +279,7 @@ test("linked requested dates, metadata, baseline and successor schedules persist
   await expect(editor).toHaveCount(0);
   expect(patches[2]).toEqual({ start: "2026-09-21" });
   await page.reload();
-  snapshot = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  snapshot = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi);
   expect(snapshot.data.tasks.find((task) => task.taskId === b.taskId)).toMatchObject({ requestedStart: "2026-09-21", start: "2026-09-21" });
   editor = await open(b.taskId);
   await editor.getByLabel("작업명", { exact: true }).fill("Discard me");

@@ -11,10 +11,10 @@
 ## DOCUMENTATION_SYNC
 - `AGENTS.md`: UPDATED
 - `docs/QA_REVIEW_POLICY.md`: UPDATED
-- `docs/CI_CD.md`: UPDATED
+- `docs/CI_CD.md`: N/A(현행 QA 실행 경로만 명확화하고 CI Workflow 및 Required 체크 계약 변경 없음)
 - `docs/TEST_PLAN.md`: UPDATED
-- `docs/GITHUB_OPERATIONS.md`: UPDATED
-- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: N/A(기존 인증 Owner 승인 및 병합 게이트·운영 절차는 그대로 유지)
+- `docs/REMOTE_VALIDATION.md`: N/A(원격 검증·증거 수집 경로와 Required CI/Trusted QA 절차는 그대로 유지)
 - `docs/ISSUE_LIFECYCLE.md`: UPDATED
 - `docs/ISSUE_LIFECYCLE_AUTOMATION.md`: UPDATED
 - `docs/AGENT_PROMPTS.md`: UPDATED
@@ -59,3 +59,12 @@
 - Node TypeScript/Lint/Unit/Build 및 Docker/E2E Required aggregate는 구 Run에서 성공했지만 최신 Head를 증명하지 않는다. 정책 Python 테스트는 Markdown 단계에서 실행되지 않았으므로 과거 PASS로 기록하지 않으며 새 exact-Head PR CI에서 재검증한다. 원격 실행 전 결과 NOT TESTED.
 - 문서 영향: `docs/TEST_PLAN.md` 수정, Work Packet에 원인/검증 mapping 추적 추가. `DESIGN.md`: N/A(제품 UI 변경 없음). 다른 보호 QA·Ruleset·Main/GHCR Gate는 수정 없음.
 - 병합/정식 Release/정책 bootstrap Owner 승인 및 GHCR는 이번 실행 요청 범위 밖이다.
+
+
+## 2026-10-17 후속 재개 — Agent 실제 지침 정합화
+
+- Owner가 #598 재개와 새 변경 병합을 지시하였다. 이전 구현·실패·완료의 역사적 증거는 불변. 이번 기준 main: `c063101ed7b1d08803c3dac15a41e67842071187`; risk_level=HIGH; qa_method=OWNER_MANAGED; qa_required=true; release_required=false; release_authorized=false.
+- `.codex/agents/{infra,frontend,ui-ux,qa-docs}.toml`의 활성 developer_instructions에서 #565/#580 구 독립 QA 강제 문구를 #598 정책에 맞게 갱신한다. 선택 AGENT의 실제 독립 리뷰만 의무로 남긴다.
+- 이번 문서 동기화: `AGENTS.md`, `docs/AGENT_CONFIGURATION.md`, `docs/QA_REVIEW_POLICY.md`, `docs/TEST_PLAN.md`, 본 Work Packet `UPDATED`; `DESIGN.md`, `docs/API.md`, `docs/DB_SCHEMA.md`는 UI/API/DB 계약 불변으로 `N/A`. 기존 ## DOCUMENTATION_SYNC 및 AC1~AC11 대응 원장은 유지한다.
+- AC1~AC11 후속 정합성 검증: 신규 `tests/scripts/agent-qa-contract.test.ts` 실제 지침/회귀 테스트와 기존 `scripts/test_qa_final_automated.py` 정책 검사를 조합한다. `AGENT` 독립 QA, OWNER_MANAGED Trusted QA, Required quality/e2e/docker, strict main, review thread 0, 문서/AC, Owner HIGH 수용은 약화하지 않는다.
+- 로컬 파일/정적 계약 외 실제 CI/Trusted QA 및 Main CI는 HEAD별 원격 완료 전 NOT TESTED, 병합과 정식 Release 허가는 서로 별도다.

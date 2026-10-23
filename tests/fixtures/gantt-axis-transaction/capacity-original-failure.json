@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-15T02:24:18.155Z",
+  "sourceBase": "d445ec58bf9106414c99a150ee8f52599834baf9",
+  "sha256": {
+    "package.json": "bb96dec5fc300bbda12971314218c3549c89cb0c7a5d434d301d2f1c9af4b834",
+    "package-lock.json": "543d430271a655815689f9bed1494c1d3d5ab245917c82251f9a9b03d09c860c",
+    "tests/fixtures/gantt-axis-transaction/browser.tsx": "bc9ef6abf7b23547e1bd617cd2faf3ea854ff60aad9c42c1899c6c1798e303a0",
+    "tests/fixtures/gantt-axis-transaction/prepare-browser.mjs": "08dceb8bc2ce1003168ea968529baaa561056f374b652b08d56e06f5b1b09ff6",
+    "tests/fixtures/gantt-axis-transaction/record-browser.mjs": "b4d92da454964229611aa28cc52da80bf432870413414fe35f769a6a99f55867",
+    "src/features/gantt/viewport/axis-transaction.ts": "e747196c95b95235fb8b3be0b25cf7fa88043742b95403eabcad14971995368a",
+    "src/features/gantt/diagnostics/gantt-adapter-fixture.tsx": "49889aef5bbb370ffdbe8274b79cc847bfedc42fa40c3367bb0ff8c6911562d6",
+    "src/features/gantt/adapter/gantt-adapter.ts": "396aa60ec36f22e7fbe2aad55225e88173675189e6bd0b15f4ffd2d5837d4490"
+  },
+  "installed": {
+    "wrapper": "2.7.3",
+    "store": "2.7.2"
+  },
+  "originalResult": "FAIL",
+  "reason": "Explicit horizontal clamp expected physical capacity5293 but Core applies5292; expected exact target does not settle. Unit33PASS/1FAIL. No tolerance or timeout change.",
+  "cases": [
+    {
+      "mode": "U1",
+      "stage": "CAPACITY_POLICY",
+      "width": 1440,
+      "scale": "day",
+      "allowClamp": false,
+      "requested": {
+        "left": 5393,
+        "top": 80
+      },
+      "physicalCapacity": 5293,
+      "result": {
+        "outcome": "NO_SCROLL_CAPACITY",
+        "reason": "PRESERVATION_UNAVAILABLE",
+        "viewport": "UNAVAILABLE",
+        "requestedPosition": {
+          "left": 5393,
+          "top": 80
+        },
+        "capacity": {
+          "left": 5293,
+          "top": 1816
+        },
+        "axis": {
+          "startMs": 1767452400000,
+          "endMs": 1783263600000,
+          "scaleWidth": 6588
+        }
+      },
+      "before": {
+        "core": {
+          "left": 100,
+          "top": 80,
+          "originMs": 1767452400000,
+          "endMs": 1783263600000,
+          "scaleWidth": 6588,
+          "selected": []
+        },
+        "physical": {
+          "left": 100,
+          "top": 80,
+          "chartWidth": 1295,
+          "scrollWidth": 6588,
+          "chartHeight": 463,
+          "scrollHeight": 2316,
+          "verticalClientHeight": 500
+        },
+        "apiInstance": 1,
+        "writes": 0
+      },
+      "after": {
+        "core": {
+          "left": 100,
+          "top": 80,
+          "originMs": 1767452400000,
+          "endMs": 1783263600000,
+          "scaleWidth": 6588,
+          "selected": []
+        },
+        "physical": {
+          "left": 100,
+          "top": 80,
+          "chartWidth": 1295,
+          "scrollWidth": 6588,
+          "chartHeight": 463,
+          "scrollHeight": 2316,
+          "verticalClientHeight": 500
+        },
+        "apiInstance": 1,
+        "writes": 0
+      }
+    },
+    {
+      "mode": "U1",
+      "stage": "CAPACITY_POLICY",
+      "width": 1440,
+      "scale": "day",
+      "allowClamp": true,
+      "requested": {
+        "left": 5393,
+        "top": 80
+      },
+      "physicalCapacity": 5293,
+      "result": {
+        "outcome": "TIMED_OUT",
+        "reason": "TIMED_OUT",
+        "viewport": "UNAVAILABLE"
+      },
+      "before": {
+        "core": {
+          "left": 100,
+          "top": 80,
+          "originMs": 1767452400000,
+          "endMs": 1783263600000,
+          "scaleWidth": 6588,
+          "selected": []
+        },
+        "physical": {
+          "left": 100,
+          "top": 80,
+          "chartWidth": 1295,
+          "scrollWidth": 6588,
+          "chartHeight": 463,
+          "scrollHeight": 2316,
+          "verticalClientHeight": 500
+        },
+        "apiInstance": 1,
+        "writes": 0
+      },
+      "after": {
+        "core": {
+          "left": 5292,
+          "top": 80,
+          "originMs": 1767452400000,
+          "endMs": 1783263600000,
+          "scaleWidth": 6588,
+          "selected": []
+        },
+        "physical": {
+          "left": 5292,
+          "top": 80,
+          "chartWidth": 1295,
+          "scrollWidth": 6588,
+          "chartHeight": 463,
+          "scrollHeight": 2316,
+          "verticalClientHeight": 500
+        },
+        "apiInstance": 1,
+        "writes": 1
+      }
+    }
+  ]
+}

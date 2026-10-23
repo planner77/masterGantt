@@ -147,7 +147,7 @@ export function flattenPlanRows(
       series: r,
       level,
       context,
-      description: `${r.code ?? "코드 미지정"} · ${r.active ? "활성" : "비활성"} · ${r.roles.join(", ") || "Role 미지정"} · ${r.developerGrade ?? "등급 미지정"}`,
+      description: `${r.active ? "활성" : "비활성"} · ${r.roles.join(", ") || "Role 미지정"} · ${r.developerGrade ?? "등급 미지정"}`,
       expandable: r.milestones.length > 0,
     });
     if (expanded.has(key))
@@ -186,7 +186,7 @@ export function flattenPlanRows(
         selector: { kind: "group", groupId: g.groupId },
         series: g,
         level: 0,
-        description: `${g.code ?? "코드 미지정"} · ${g.active ? "활성" : "비활성"}`,
+        description: `${g.active ? "활성" : "비활성"}`,
         expandable: g.resourceIds.length > 0,
       });
       if (expanded.has(key))
@@ -216,6 +216,20 @@ export function planMetric(
       : `${value.toFixed(2)} ${metric === "load" ? "%" : metric === "excess" || unit === "md" ? "M/D" : "M/M"}`;
   return `${text}${m.partial ? " · 미설정 포함" : ""}${m.capacityMd === 0 ? " · 비근무기간" : m.state === "empty" ? " · 기간 배정 없음(0부하)" : ""}`;
 }
+/** #622: a Plan without a Target projection still needs canonical names for
+ * selected and Project-reference Assignments, including Targets outside the filter. */
+export function planTargetLabel(
+  data: Pick<ResourceDashboardDto, "catalog" | "targetProjection">,
+  targetId: string,
+): string {
+  const target = data.targetProjection?.catalog.find((row) => row.dimension === "target" && row.id === targetId)
+    ?? data.catalog.targetOptions?.find((row) => row.dimension === "target" && row.id === targetId);
+  if (!target) return targetId === "unassigned" ? "Target 미연결" : "Target 정보 없음";
+  const catalog = data.targetProjection?.catalog ?? data.catalog.targetOptions ?? [];
+  const duplicate = catalog.some(row => row.dimension === "target" && row.id !== targetId && row.name === target.name);
+  return duplicate ? `${target.name} (${target.code || targetId})` : target.name;
+}
+
 export function planDetailQuery(
   data: ResourceDashboardDto,
   input: ResourcePlanDetailInput,
@@ -281,6 +295,8 @@ export function readPlanDetails(
     assignmentId: id,
     taskId: id,
     resourceId: id,
+    resourceActive: z.boolean().optional(),
+    targetSources: z.object({ taskId: id, bindings: z.array(z.unknown()), inheritedBindings: z.array(z.unknown()), effectiveMembers: z.array(z.unknown()), legacySources: z.array(z.unknown()), effectiveEquipmentIds: z.array(id), effectiveSystemIds: z.array(id), effectiveTargetIds: z.array(id) }).passthrough().optional(),
     milestoneTaskId: id.nullable(),
     date,
     allocationPercent: nullable,

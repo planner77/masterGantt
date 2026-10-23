@@ -1,3 +1,5 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { randomUUID } from "node:crypto";
 import type { Locator } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
@@ -133,14 +135,14 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
   };
   await page.goto(`/projects/${publicId}`);
   const ganttIdentity = await rememberGanttRoot(page);
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   await expect(page.locator('[data-resource-dashboard="true"]')).toHaveAttribute("data-ready", "true");
   await expect(page.locator('[data-resource-dashboard="true"]')).toHaveAttribute("data-ready", "true");
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   const filterRequests: string[] = [];
   page.on("request", (request) => {
     const path = new URL(request.url()).pathname;
-    if (!["GET", "HEAD"].includes(request.method()) || path.endsWith("/resource-workload") || path.endsWith("/assigned-targets")) filterRequests.push(request.url());
+    if ((!["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) || path.endsWith("/resource-workload") || path.endsWith("/assigned-targets")) filterRequests.push(request.url());
   });
 
   for (const width of [390, 768, 1024, 1440, 1600]) {
@@ -150,7 +152,7 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
     const taskFilter = taskToolbar.locator('button[aria-controls="project-task-filter-panel"]');
     await taskSearch.fill("Stable leaf");
     await expect(taskFilter).toHaveText("필터 1");
-    await expect(taskToolbar.getByRole("status")).toContainText("1개 일치 / 전체 4개 작업");
+    await expect(taskToolbar.getByRole("status")).toContainText("1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 0개 /  전체  3개 WBS 작업");
     await expect(page.locator(".schedule-heading-row p")).toHaveText("작업 일정을 확인하고 관리합니다.");
     const taskReset = taskToolbar.getByRole("button", { name: "초기화" });
     await expect(taskReset).toBeVisible();
@@ -173,7 +175,7 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
     await expect(taskSearch).toBeFocused();
     await expect(taskReset).toHaveCount(0);
 
-    await page.getByRole("tab", { name: "리소스", exact: true }).click();
+    await openWorkspaceView(page, "resources");
     const dashboard = page.locator('[data-resource-dashboard="true"]');
     const resourceToolbar = dashboard.getByRole("search", { name: "리소스 검색과 필터" });
     const resourceSearch = resourceToolbar.getByRole("searchbox");
@@ -187,7 +189,15 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
     await resourceSearch.fill("R-01");
     await expect(resourceFilter).toHaveText("필터 1");
     await expect(dashboard).toHaveAttribute("data-ready", "true");
-    await expect(dashboard.getByRole("region", { name: "그룹 현황" }).getByRole("button", { name: /개발팀 \(G-01\)/ })).toBeVisible();
+    const groupStatus = dashboard.getByRole("region", { name: "그룹 현황", exact: true });
+    const groupDisclosure = groupStatus.getByRole("button", { name: "개발팀", exact: true });
+    await expect(groupDisclosure).toBeVisible();
+    // #717: group identity is name-first; its original code is still available on demand.
+    const groupIdentifiers = groupDisclosure.locator("..").locator("details");
+    await expect(groupIdentifiers).not.toHaveAttribute("open", "");
+    await groupIdentifiers.locator("summary").click();
+    await expect(groupIdentifiers.getByLabel("코드", { exact: true })).toHaveValue("G-01");
+    await groupIdentifiers.locator("summary").click();
     await resourceFilter.click();
     const advanced = dashboard.getByLabel("리소스 고급 필터");
     await advanced.getByLabel("Global Role", { exact: true }).selectOption("DEVELOPER");

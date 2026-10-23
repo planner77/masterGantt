@@ -1,0 +1,38 @@
+{
+  "viewport": {
+    "width": 1920,
+    "height": 900
+  },
+  "documentWidth": 1920,
+  "noteOnlyHeight": 24,
+  "notes": [
+    {
+      "text": "3 / 3개",
+      "top": 360.90625,
+      "bottom": 384.90625,
+      "left": 1712.84375,
+      "right": 1760,
+      "width": 47.15625,
+      "height": 24
+    }
+  ],
+  "primaryDataTop": 417.40625,
+  "rowCount": 3,
+  "visibleRowCount": 3,
+  "tables": [
+    {
+      "top": 417.40625,
+      "bottom": 713.59375,
+      "left": 173,
+      "right": 1747,
+      "width": 1574,
+      "height": 296.1875,
+      "ownerWidth": 1598,
+      "scrollWidth": 1598
+    }
+  ],
+  "helpTriggerCount": 1,
+  "browserVersion": "153.0.8010.12",
+  "fixture": "issue-719 shared synthetic fixtures",
+  "zoom": "100% browser default"
+}

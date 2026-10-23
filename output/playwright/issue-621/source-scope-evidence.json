@@ -1,0 +1,276 @@
+[
+  {
+    "scope": {
+      "kind": "exactAssignments",
+      "assignmentIds": [
+        "a1871b6e-c140-40c2-88ad-1869697c0a53"
+      ]
+    },
+    "filters": {
+      "targetIds": [
+        "9b00a1e9-fe28-4877-b1ff-b252d18b933a"
+      ],
+      "projectionOrder": [
+        "group",
+        "target"
+      ],
+      "from": "2026-10-14",
+      "to": "2026-10-15",
+      "mode": "group",
+      "resourceActivity": "all",
+      "groupActivity": "all",
+      "taskIds": [
+        "82501ec7-fdeb-48c7-a867-88fb1992fa77"
+      ]
+    },
+    "projection": {
+      "kind": "report"
+    }
+  },
+  {
+    "scope": {
+      "kind": "exactAssignments",
+      "assignmentIds": [
+        "a1871b6e-c140-40c2-88ad-1869697c0a53"
+      ]
+    },
+    "filters": {
+      "targetIds": [
+        "9b00a1e9-fe28-4877-b1ff-b252d18b933a"
+      ],
+      "projectionOrder": [
+        "group",
+        "target"
+      ],
+      "from": "2026-10-14",
+      "to": "2026-10-15",
+      "mode": "group",
+      "resourceActivity": "all",
+      "groupActivity": "all",
+      "taskIds": [
+        "82501ec7-fdeb-48c7-a867-88fb1992fa77"
+      ]
+    },
+    "projection": {
+      "kind": "scope",
+      "target": "dashboard",
+      "snapshotId": "3ed588451271c13df429e6b890c1cd0431c828ead1c1518c1e17a912107c6e54",
+      "selector": {
+        "dimension": "all",
+        "id": null,
+        "metric": "all",
+        "assignmentScope": "selected"
+      }
+    }
+  },
+  {
+    "scope": {
+      "kind": "scheduleSelection",
+      "nodeIds": [
+        "82501ec7-fdeb-48c7-a867-88fb1992fa77"
+      ]
+    },
+    "filters": {
+      "mode": "group",
+      "from": "2026-10-14",
+      "to": "2026-10-15",
+      "asOfDate": "2026-10-14"
+    },
+    "projection": {
+      "kind": "report"
+    }
+  },
+  {
+    "scope": {
+      "kind": "scheduleSelection",
+      "nodeIds": [
+        "82501ec7-fdeb-48c7-a867-88fb1992fa77"
+      ]
+    },
+    "filters": {
+      "mode": "group",
+      "from": "2026-10-14",
+      "to": "2026-10-15",
+      "asOfDate": "2026-10-14"
+    },
+    "projection": {
+      "kind": "scope",
+      "target": "dashboard",
+      "snapshotId": "a877fe46145ea63aeffc210f03cb5683356bc0894f9ef6737f9075d704be0905",
+      "selector": {
+        "dimension": "all",
+        "id": null,
+        "metric": "all",
+        "assignmentScope": "selected"
+      }
+    }
+  },
+  {
+    "scope": {
+      "kind": "scheduleSelection",
+      "nodeIds": [
+        "82501ec7-fdeb-48c7-a867-88fb1992fa77"
+      ]
+    },
+    "filters": {
+      "from": "2026-10-14",
+      "to": "2026-10-15",
+      "asOfDate": "2026-10-14",
+      "mode": "group"
+    },
+    "projection": {
+      "kind": "report"
+    }
+  },
+  {
+    "scope": {
+      "kind": "scheduleSelection",
+      "nodeIds": [
+        "82501ec7-fdeb-48c7-a867-88fb1992fa77"
+      ]
+    },
+    "filters": {
+      "projectionOrder": [
+        "group",
+        "resource",
+        "target"
+      ],
+      "from": "2026-10-14",
+      "to": "2026-10-15",
+      "asOfDate": "2026-10-14",
+      "mode": "group"
+    },
+    "projection": {
+      "kind": "report"
+    }
+  },
+  {
+    "scope": {
+      "kind": "scheduleSelection",
+      "nodeIds": [
+        "82501ec7-fdeb-48c7-a867-88fb1992fa77"
+      ]
+    },
+    "filters": {
+      "resourceIds": [
+        "12aced16-8abd-4020-9467-45616dd1c9fb"
+      ],
+      "projectionOrder": [
+        "group",
+        "resource",
+        "target"
+      ],
+      "from": "2026-10-14",
+      "to": "2026-10-15",
+      "asOfDate": "2026-10-14",
+      "mode": "group"
+    },
+    "projection": {
+      "kind": "report"
+    }
+  },
+  {
+    "scope": {
+      "kind": "scheduleSelection",
+      "nodeIds": [
+        "82501ec7-fdeb-48c7-a867-88fb1992fa77"
+      ]
+    },
+    "filters": {
+      "resourceIds": [
+        "12aced16-8abd-4020-9467-45616dd1c9fb"
+      ],
+      "targetIds": [
+        "9b00a1e9-fe28-4877-b1ff-b252d18b933a"
+      ],
+      "projectionOrder": [
+        "group",
+        "resource",
+        "target"
+      ],
+      "from": "2026-10-14",
+      "to": "2026-10-15",
+      "asOfDate": "2026-10-14",
+      "mode": "group"
+    },
+    "projection": {
+      "kind": "report"
+    }
+  },
+  {
+    "scope": {
+      "kind": "scheduleSelection",
+      "nodeIds": [
+        "82501ec7-fdeb-48c7-a867-88fb1992fa77"
+      ]
+    },
+    "filters": {
+      "resourceIds": [
+        "12aced16-8abd-4020-9467-45616dd1c9fb"
+      ],
+      "targetIds": [
+        "9b00a1e9-fe28-4877-b1ff-b252d18b933a"
+      ],
+      "projectionOrder": [
+        "resource",
+        "target"
+      ],
+      "from": "2026-10-14",
+      "to": "2026-10-15",
+      "asOfDate": "2026-10-14",
+      "mode": "group"
+    },
+    "projection": {
+      "kind": "report"
+    }
+  },
+  {
+    "scope": {
+      "kind": "scheduleSelection",
+      "nodeIds": [
+        "82501ec7-fdeb-48c7-a867-88fb1992fa77"
+      ]
+    },
+    "filters": {
+      "resourceIds": [
+        "12aced16-8abd-4020-9467-45616dd1c9fb"
+      ],
+      "targetIds": [
+        "9b00a1e9-fe28-4877-b1ff-b252d18b933a"
+      ],
+      "projectionOrder": [
+        "resource",
+        "target"
+      ],
+      "from": "2026-10-14",
+      "to": "2026-10-15",
+      "asOfDate": "2026-10-14",
+      "mode": "group",
+      "resourceActivity": "all",
+      "groupActivity": "all"
+    },
+    "projection": {
+      "kind": "details",
+      "snapshotId": "052f3b6a0ce70e1fd616fc13348f85f1e76c366479c54650887af170b4e0c742",
+      "selector": {
+        "targetPath": [
+          {
+            "dimension": "resource",
+            "id": "12aced16-8abd-4020-9467-45616dd1c9fb"
+          },
+          {
+            "dimension": "target",
+            "id": "9b00a1e9-fe28-4877-b1ff-b252d18b933a"
+          }
+        ],
+        "dimension": "targetProjection",
+        "id": null,
+        "metric": "all",
+        "assignmentScope": "selected"
+      },
+      "view": "assignments",
+      "offset": 0,
+      "limit": 50
+    }
+  }
+]

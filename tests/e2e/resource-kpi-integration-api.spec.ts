@@ -9,9 +9,9 @@ import { RESOURCE_KPI_INTEGRATION as c, resourceKpiIntegrationFixture } from "..
 test.use({ ...isolatedApplicationOptions, isolatedResourceAdminPassword: integrationAdminPassword });
 function unzip(bytes: Buffer) { const entries = new Map<string, string>(); let at = 0; while (at + 30 <= bytes.length && bytes.readUInt32LE(at) === 0x04034b50) { const size = bytes.readUInt32LE(at + 18), length = bytes.readUInt16LE(at + 26), start = at + 30 + length + bytes.readUInt16LE(at + 28); entries.set(bytes.toString("utf8", at + 30, at + 30 + length), inflateRawSync(bytes.subarray(start, start + size)).toString()); at = start + size; } return entries; }
 
-test("#530 같은 실제 HTTP 원장: Domain·SQLite API·XLSX·exact drill·읽기 권한·stale", async ({ page, browser, baseURL, restartIsolatedApplication }, info) => {
+test("#530 같은 실제 HTTP 원장: Domain·SQLite API·XLSX·exact drill·읽기 권한·stale", async ({ page, browser, baseURL, restartIsolatedApplication, observeIsolatedApi }, info) => {
   test.setTimeout(180000);
-  const origin = baseURL!, seed = await seedResourceKpiIntegration(page.request, origin), canonical = await seed.getSnapshot();
+  const origin = baseURL!, seed = await seedResourceKpiIntegration(page.request, origin, observeIsolatedApi), canonical = await seed.getSnapshot();
   const readonly = await browser.newContext({ baseURL: origin });
   try {
     const input = resourceKpiIntegrationFixture(), filters = { from: c.from, to: c.to, asOfDate: c.asOfDate, mdPerMm: c.mdPerMm };

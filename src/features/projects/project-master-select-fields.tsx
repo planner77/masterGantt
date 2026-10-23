@@ -161,7 +161,7 @@ export function ProjectMasterSelectFields({
           <option value="">미지정</option>
           {field.items.map((item) => (
             <option key={item.id} value={item.id}>
-              {item.name} ({item.code}){item.active ? "" : " · 비활성"}
+              {item.name || "이름 확인 필요"}{field.items.some(peer => peer.id !== item.id && peer.name === item.name) ? ` (${item.code})` : ""}{item.active ? "" : " · 비활성"}
             </option>
           ))}
         </select>

@@ -1,5 +1,6 @@
 "use client";
 
+import { IdentifierDetails } from "../../components/identifier-details";
 import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent } from "react";
 import { useWorkspaceNotifications } from "@/components/workspace-notifications";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
@@ -77,7 +78,7 @@ export function ProjectImportButton({ publicId, expectedRevision, onImportSucces
   }
   return <><input type="file" accept=".json,application/json" ref={fileInput} hidden onChange={changeFile}/><button ref={trigger} type="button" className="secondary-button" disabled={disabled||!editable} onClick={()=>fileInput.current?.click()}>가져오기 (JSON)</button>
     {open?<WorkspaceDialog title="JSON 파일 가져오기" size="wide" busy={status==="commit"} restoreFocusRef={trigger} onClose={close}><div className={styles.content}><div className={styles.body}>
-      <p>파일: {file?.name} · 대상 Project ID: {publicId} · 현재 revision {expectedRevision}</p>
+      <p>파일: {file?.name} · 현재 revision {expectedRevision}</p><IdentifierDetails label="가져오기 대상 식별 정보" identifiers={[{ label: "Project ID", value: publicId }]} />
       {status==="preview"?<p role="status">파일을 검증하는 중… 취소하면 이 조회를 중단합니다.</p>:null}
       {status==="refresh"?<p role="status">최신 일정을 조회하는 중… 파일을 유지하고 미리보기는 별도로 실행합니다.</p>:null}
       {stale?<p role="alert">프로젝트 revision이 변경되어 미리보기가 만료되었습니다. 파일을 유지한 채 다시 미리봐 주세요.</p>:null}

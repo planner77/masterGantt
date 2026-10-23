@@ -1,5 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
 import { expect, test, type Locator } from "@playwright/test";
+import { evaluateGanttReadiness, waitForGanttReadiness } from "./helpers/gantt-readiness";
+import type { GanttReadinessExpectation } from "./helpers/gantt-readiness";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
 import { editor, openRow, publicId, relationEditor, setup } from "./fixtures/task-editor-density";
 
@@ -92,9 +95,10 @@ test("#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 �
   test.setTimeout(90_000);
   await mkdir(output, { recursive: true });
   const fixture = await setup(page);
+  await installMilestoneDashboardFixture(page, fixture);
   for (const width of widths) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
-    await openRow(page, "Milestone");
+    await openMilestoneEditor(page, "00000000-0000-4000-8000-000000000005");
     const dialog = editor(page);
     await expect(dialog.getByRole("tab")).toHaveCount(5);
     for (const [label, key] of [["소속 작업", "membership"], ["물류 연결", "logistics"]]) {
@@ -147,7 +151,8 @@ test("#456 실제 keyboard 100%·날짜 오류·pending action 폭과 닫기 잠
 
 test("#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor와 metadata 저장 후 유지된다", async ({ page }) => {
   await mkdir(output, { recursive: true });
-  const fixture = await setup(page, { longList: true });
+  // Exact 120px preservation must start with real scoped Task date extent.
+  const fixture = await setup(page, { longList: true, scrollCapacityWitness: true });
   await page.setViewportSize({ width: 1440, height: 900 });
   const frame = page.locator(".project-gantt-frame"), target = page.locator('.project-gantt-widget .wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000004"]');
   await page.locator('.project-gantt-widget .wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000001"]').click({ button: "right", position: { x: 12, y: 19 } });
@@ -161,6 +166,43 @@ test("#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor
   await expect.poll(() => page.evaluate(() => document.fullscreenElement === document.querySelector(".project-gantt-frame"))).toBe(true);
   await target.click({ button: "right", position: { x: 12, y: 19 } }); await page.keyboard.press("Escape");
   const chart = frame.locator(".wx-chart").first(), vertical = frame.locator(".wx-gantt").first();
+  // CI #2893.1 (#456): native scoped Week capacity was 62px, so an immediate
+  // scrollLeft=120 assignment was browser-clamped. Preserve the exact 120px
+  // post-Editor contract, but first establish a current, stable axis that can
+  // actually accept that coordinate in both Core and native DOM.
+  const axisContext: GanttReadinessExpectation = {
+    operation: "observe",
+    // #2897.1: admit only a terminal SUPERSEDED prior RANGE operation.
+    // Current U2/U3, exact source scope, Core/native geometry and 120px admission
+    // remain mandatory; running/failed/unknown viewport work is still blocked.
+    allowCancelledPriorWork: true,
+    api: await frame.getAttribute("data-project-gantt-api-instance"),
+    revision: fixture.project.revision,
+    scale: "week",
+    scope: await page.evaluate(() => new URL(location.href).searchParams.get("rootTask")),
+    query: "",
+    queryWitness: { kind: "unchanged" },
+  };
+  const axisBefore = await waitForGanttReadiness(frame, { ...axisContext, requireRenderedRows: true });
+  const witness = fixture.tasks.find(task => task.externalId === "EDITOR-76");
+  expect(witness?.requestedStart).toBe("2027-04-05");
+  expect(axisBefore.core?.canonicalIds, "real Core must include the scoped date horizon witness").toContain(witness!.taskId);
+  const beforeAdmission = evaluateGanttReadiness(axisBefore, { ...axisContext, operation: "scroll", targetLeft: 120 }).admission;
+  if (!beforeAdmission.accepted) {
+    expect(beforeAdmission.coreCapacity, "scoped Week fixture must have positive Core capacity").toBeGreaterThan(0);
+    expect(beforeAdmission.nativeCapacity, "scoped Week fixture must have positive native capacity").toBeGreaterThan(0);
+    await chart.hover();
+    await page.mouse.wheel(120, 0);
+  }
+  const axisReady = await waitForGanttReadiness(frame, { ...axisContext, operation: "scroll", targetLeft: 120, requireRenderedRows: true });
+  const readyAdmission = evaluateGanttReadiness(axisReady, { ...axisContext, operation: "scroll", targetLeft: 120 }).admission;
+  expect(readyAdmission.accepted, "same current Core/native axis must admit exact 120px").toBe(true);
+  await test.info().attach("issue456-scoped-week-axis-capacity", {
+    contentType: "application/json",
+    body: JSON.stringify({ beforeAdmission, readyAdmission, currentWork: axisReady.currentWork,
+      witness: { id: witness!.taskId, date: witness!.requestedStart },
+      setup: beforeAdmission.accepted ? "scoped date horizon" : "scoped horizon plus bounded wheel" }),
+  });
   await chart.evaluate((element) => { element.scrollLeft = 120; }); await vertical.evaluate((element) => { element.scrollTop = 38; });
   const state = async () => ({ ...(await frame.evaluate((element) => ({ api: element.getAttribute("data-project-gantt-api-instance"), instance: element.getAttribute("data-project-gantt-instance"), publicViewport: Reflect.get(element, "__masterganttPublicViewport") as { left: number; top: number }, fullscreen: document.fullscreenElement === element, scale: element.getAttribute("data-gantt-scale-mode"), chartScroll: element.querySelector(".wx-chart")!.scrollLeft, verticalScroll: element.querySelector(".wx-gantt")!.scrollTop, selected: Array.from(element.querySelectorAll('.wx-row[data-copy-selected="true"]')).map((node) => node.getAttribute("data-id")), tree: Array.from(element.querySelectorAll('[data-action="open-task"]')).map((node) => ({ id: node.closest("[data-id]")?.getAttribute("data-id"), closed: node.classList.contains("wxi-menu-right") })), scope: document.querySelector('.project-scope-tabs [aria-selected="true"]')?.textContent, rootTask: new URL(location.href).searchParams.get("rootTask") }))), columnGeometry: { task: (await header.getByText("작업", { exact: true }).locator("..").boundingBox())!.width, externalId: (await header.getByText("외부 ID", { exact: true }).locator("..").boundingBox())!.width } });
   await expect.poll(async () => (await state()).chartScroll).toBe(120);
@@ -220,10 +262,41 @@ test("#456 active name filter의 metadata 저장으로 실제 ID 집합이 바�
   const fixture = await setup(page, { longList: true });
   await page.setViewportSize({ width: 1440, height: 900 });
   const frame = page.locator(".project-gantt-frame"), target = page.locator('.project-gantt-widget .wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000004"]');
+  const chart = frame.locator(".wx-chart").first();
+  const initialApi = await frame.getAttribute("data-project-gantt-api-instance");
+  // #552/#2888: canonical contains the Milestone, but marker-OFF WBS
+  // must not render its native row. Never use all canonical IDs as visibleIds.
+  const canonicalIds = fixture.tasks.map(task => task.taskId);
+  const visibleWbsIds = fixture.tasks.filter(task => task.type !== "milestone").map(task => task.taskId);
+  const milestoneIds = fixture.tasks.filter(task => task.type === "milestone").map(task => task.taskId);
+  expect(canonicalIds.length - visibleWbsIds.length).toBe(milestoneIds.length);
+  const axisContext: GanttReadinessExpectation = { operation: "observe", api: initialApi, revision: fixture.project.revision,
+    scale: "week", scope: null, query: "", queryWitness: { kind: "unchanged" }, canonicalIds, visibleIds: visibleWbsIds };
   await frame.getByRole("button", { name: "주", exact: true }).click();
+  const beforeAxis = await waitForGanttReadiness(frame, { ...axisContext, requireRenderedRows: true });
+  expect(beforeAxis.core?.coreVisibleIds?.slice().sort()).toEqual(visibleWbsIds.slice().sort());
+  for (const milestoneId of milestoneIds) {
+    expect(beforeAxis.domIds).not.toContain(milestoneId);
+    expect(beforeAxis.lastSuccess?.logicalVisibleIds).not.toContain(milestoneId);
+  }
+  const admission = evaluateGanttReadiness(beforeAxis, { ...axisContext, operation: "scroll", targetLeft: 120 }).admission;
+  // 준비 완료와 용량 확보는 별개다. 필요한 경우 명시적 실제 wheel을 딱 한 번 입력한다.
+  if (!admission.accepted) {
+    expect(admission.coreCapacity, "명시적 wheel setup에 유효한 양수 Core 용량이 필요합니다").toBeGreaterThan(0);
+    expect(admission.nativeCapacity, "명시적 wheel setup에 실제 스크롤 여유가 필요합니다").toBeGreaterThan(0);
+    await chart.hover();
+    await page.mouse.wheel(120, 0);
+    await expect.poll(() => chart.evaluate(node => node.scrollLeft)).toBeGreaterThan(beforeAxis.native.left);
+    const afterAxis = await waitForGanttReadiness(frame, { ...axisContext, operation: "scroll", targetLeft: 120, requireRenderedRows: true });
+    expect(afterAxis.currentWork?.kind).toBe("RANGE_EXTENSION");
+    expect(afterAxis.currentWork?.phase).toBe("SETTLED");
+    await test.info().attach("metadata-explicit-axis-setup", { body: JSON.stringify({ beforeAxis, admission, afterAxis, input: "wheel-once" }), contentType: "application/json" });
+  }
   const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
   await search.fill("긴 작업명"); await expect(target).toBeVisible();
-  const chart = frame.locator(".wx-chart").first();
+  await waitForGanttReadiness(frame, { ...axisContext, operation: "scroll", query: "긴 작업명",
+    queryWitness: { kind: "changed", previousFilterKey: beforeAxis.lastSuccess!.filterKey },
+    visibleIds: [fixture.tasks[0], fixture.tasks[3]].map(task => task.taskId), exactDom: true, targetLeft: 120 });
   await chart.evaluate((element) => { element.scrollLeft = 120; });
   const viewport = () => frame.evaluate((element) => ({ api: element.getAttribute("data-project-gantt-api-instance"), instance: element.getAttribute("data-project-gantt-instance"), public: Reflect.get(element, "__masterganttPublicViewport") as { left: number; top: number }, domLeft: element.querySelector(".wx-chart")!.scrollLeft }));
   await expect.poll(async () => (await viewport()).public.left).toBe(120);
@@ -248,9 +321,40 @@ test("#570 metadata 복원 뒤 늦은 native zero는 차단하고 실제 wheel�
   const target = frame.locator('.wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000004"]');
   const chart = frame.locator(".wx-chart").first();
   const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
+  const initialApi = await frame.getAttribute("data-project-gantt-api-instance");
+  // #552/#2888: canonical contains the Milestone, but marker-OFF WBS
+  // must not render its native row. Never use all canonical IDs as visibleIds.
+  const canonicalIds = fixture.tasks.map(task => task.taskId);
+  const visibleWbsIds = fixture.tasks.filter(task => task.type !== "milestone").map(task => task.taskId);
+  const milestoneIds = fixture.tasks.filter(task => task.type === "milestone").map(task => task.taskId);
+  expect(canonicalIds.length - visibleWbsIds.length).toBe(milestoneIds.length);
+  const axisContext: GanttReadinessExpectation = { operation: "observe", api: initialApi, revision: fixture.project.revision,
+    scale: "week", scope: null, query: "", queryWitness: { kind: "unchanged" }, canonicalIds, visibleIds: visibleWbsIds };
   await frame.getByRole("button", { name: "주", exact: true }).click();
+  const beforeAxis = await waitForGanttReadiness(frame, { ...axisContext, requireRenderedRows: true });
+  expect(beforeAxis.core?.coreVisibleIds?.slice().sort()).toEqual(visibleWbsIds.slice().sort());
+  for (const milestoneId of milestoneIds) {
+    expect(beforeAxis.domIds).not.toContain(milestoneId);
+    expect(beforeAxis.lastSuccess?.logicalVisibleIds).not.toContain(milestoneId);
+  }
+  const admission = evaluateGanttReadiness(beforeAxis, { ...axisContext, operation: "scroll", targetLeft: 120 }).admission;
+  // 준비 완료와 용량 확보는 별개다. 필요한 경우 명시적 실제 wheel을 딱 한 번 입력한다.
+  if (!admission.accepted) {
+    expect(admission.coreCapacity, "명시적 wheel setup에 유효한 양수 Core 용량이 필요합니다").toBeGreaterThan(0);
+    expect(admission.nativeCapacity, "명시적 wheel setup에 실제 스크롤 여유가 필요합니다").toBeGreaterThan(0);
+    await chart.hover();
+    await page.mouse.wheel(120, 0);
+    await expect.poll(() => chart.evaluate(node => node.scrollLeft)).toBeGreaterThan(beforeAxis.native.left);
+    const afterAxis = await waitForGanttReadiness(frame, { ...axisContext, operation: "scroll", targetLeft: 120, requireRenderedRows: true });
+    expect(afterAxis.currentWork?.kind).toBe("RANGE_EXTENSION");
+    expect(afterAxis.currentWork?.phase).toBe("SETTLED");
+    await test.info().attach("metadata-explicit-axis-setup", { body: JSON.stringify({ beforeAxis, admission, afterAxis, input: "wheel-once" }), contentType: "application/json" });
+  }
   await search.fill("긴 작업명");
   await expect(target).toBeVisible();
+  await waitForGanttReadiness(frame, { ...axisContext, operation: "scroll", query: "긴 작업명",
+    queryWitness: { kind: "changed", previousFilterKey: beforeAxis.lastSuccess!.filterKey },
+    visibleIds: [fixture.tasks[0], fixture.tasks[3]].map(task => task.taskId), exactDom: true, targetLeft: 120 });
   await chart.evaluate(element => { element.scrollLeft = 120; });
   const viewport = () => frame.evaluate(element => ({
     api: element.getAttribute("data-project-gantt-api-instance"),
@@ -272,8 +376,16 @@ test("#570 metadata 복원 뒤 늦은 native zero는 차단하고 실제 wheel�
   };
   await saveName(`${fixture.tasks[3].name} metadata`);
   await expect.poll(async () => (await viewport()).publicLeft).toBe(120);
-  // Native scroll notification arrives after the metadata owner's queued restore.
-  // No pointer/wheel input precedes it, so it carries no new navigation intent.
+  // 초기 용량 준비 입력은 metadata 저장 전에만 수행한다.
+  // 복원 완료 뒤 비사용자 native zero 전에는 추가 pointer/wheel을 주입하지 않는다.
+  // Core/native 좌표 일치만으로 stale guard 설치 완료를 추정하지 않는다.
+  await expect.poll(async () => {
+    const raw = await frame.getAttribute("data-gantt-viewport-coordinator");
+    const trace = raw ? JSON.parse(raw) as { kind?: string; phase?: string; outcome?: string } : null;
+    return trace?.kind === "PASSIVE_RESTORE" ? { phase: trace.phase, outcome: trace.outcome } : null;
+  }).toEqual({ phase: "SETTLED", outcome: "SETTLED" });
+  await expect.poll(async () => (await viewport()).publicLeft).toBe(120);
+  await expect.poll(async () => (await viewport()).nativeLeft).toBe(120);
   const blocks = (await viewport()).blocks;
   await chart.evaluate(element => { element.scrollLeft = 0; });
   await expect.poll(async () => (await viewport()).blocks).toBeGreaterThan(blocks);

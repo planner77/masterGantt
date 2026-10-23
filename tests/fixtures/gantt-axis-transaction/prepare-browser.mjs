@@ -1,0 +1,16 @@
+import { build } from "esbuild";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
+import { createHash } from "node:crypto";
+import { chromium } from "@playwright/test";
+const root = fileURLToPath(new URL("../../../", import.meta.url));
+const directory = resolve(root,"output/playwright/issue-666");
+await mkdir(directory,{recursive:true});
+await build({absWorkingDir:root,entryPoints:["tests/fixtures/gantt-axis-transaction/browser.tsx"],bundle:true,outfile:resolve(directory,"axis.js"),format:"iife",jsx:"automatic",define:{"process.env.NODE_ENV":'"production"'},loader:{".svg":"dataurl",".woff2":"dataurl",".woff":"dataurl"}});
+await writeFile(resolve(directory,"axis.html"),'<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Synthetic axis transaction</title><link rel="stylesheet" href="axis.css"><style>html,body{margin:0}#fixture{height:600px;width:100%}</style><div id="fixture"></div><script src="axis.js"></script></html>');
+await writeFile(resolve(directory,"cli-config.json"),JSON.stringify({allowUnrestrictedFileAccess:true,browser:{browserName:"chromium",launchOptions:{headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE??chromium.executablePath()},contextOptions:{viewport:{width:1440,height:900},timezoneId:"Asia/Seoul"}}},null,2));
+const sourceFiles=["package.json","package-lock.json","tests/fixtures/gantt-axis-transaction/browser.tsx","tests/fixtures/gantt-axis-transaction/prepare-browser.mjs","tests/fixtures/gantt-axis-transaction/record-browser.mjs","src/features/gantt/viewport/axis-transaction.ts","src/features/gantt/diagnostics/gantt-adapter-fixture.tsx","src/features/gantt/adapter/gantt-adapter.ts"];
+const sha256=Object.fromEntries(await Promise.all(sourceFiles.map(async p=>[p,createHash("sha256").update(await readFile(resolve(root,p))).digest("hex")])));
+await writeFile(resolve(directory,"build-fingerprint.json"),JSON.stringify({sha256},null,2));
+console.log(resolve(directory,"axis.html"));

@@ -1,3 +1,4 @@
+import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import { integrationAdminPassword, seedResourceKpiIntegration, ganttIntegrationState } from "./fixtures/resource-kpi-integration-ui";
@@ -5,15 +6,16 @@ import { RESOURCE_KPI_INTEGRATION, resourceKpiIntegrationFixture } from "../fixt
 import { calculateResourcePlan } from "../../src/domain/resources/resource-plan";
 import { prepareResourceKpiSnapshot, selectResourceKpiAssignments, calculateResourceKpi } from "../../src/domain/resources/resource-kpi";
 import { detailsQuery } from "../../src/features/resources/resource-dashboard-model";
+import { waitForGanttReadiness } from "./helpers/gantt-readiness";
 import { inflateRawSync } from "node:zlib";
 import type { ProjectExcelExportRequest } from "../../src/contracts/project-excel-export";
 import type { ResourceDashboardDto, ResourceDashboardDetailsDto } from "../../src/contracts/resource-dashboard";
 
 test.use({ ...isolatedApplicationOptions, isolatedResourceAdminPassword: integrationAdminPassword, viewport: { width: 1440, height: 900 } });
 
-test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt 왕복", async ({ page, baseURL }, info) => {
+test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt 왕복", async ({ page, baseURL, observeIsolatedApi }, info) => {
   test.setTimeout(240_000);
-  const seeded = await seedResourceKpiIntegration(page.request, baseURL!);
+  const seeded = await seedResourceKpiIntegration(page.request, baseURL!, observeIsolatedApi);
   const canonical = await seeded.getSnapshot();
   const reports: ResourceDashboardDto[] = [];
   const exportRequests: ProjectExcelExportRequest[] = [];
@@ -42,7 +44,7 @@ test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt
   expect(before.left).toBeGreaterThan(0);
   expect(before.columns.length).toBeGreaterThan(0);
   expect(before.selection.length).toBe(1);
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   const root = page.locator('[data-resource-dashboard="true"]:visible');
   await expect(root).toHaveAttribute("data-ready", "true");
   await root.getByLabel("기간 시작", { exact: true }).fill(RESOURCE_KPI_INTEGRATION.from);
@@ -207,28 +209,73 @@ test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt
     else expect(Number(raw![1])).toBe(detail.assignment!.plannedMd);
   }
   expect([...assignmentsXml.matchAll(/<c r="Y\d+"[^>]*><v>([^<]+)<\/v><\/c>/g)].reduce((sum, match) => sum + Number(match[1]), 0)).toBe(currentReport.summary.effort.knownMd);
-  // Responsive layout changes invalidate historical viewport restoration.
-  // Compare navigation independently after returning to fixed geometry.
+  // Responsive matrix widths invalidate the previous viewport lease. The
+  // tab being visible and canonical depth=0 alone do not prove that its latest
+  // semantic projection, scale or viewport transaction has settled.
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   await expect.poll(() => frame.getAttribute("data-gantt-canonical-sync-depth")).toBe("0");
+  const resumeReady = await waitForGanttReadiness(frame, {
+    operation: "observe",
+    api: await frame.getAttribute("data-project-gantt-api-instance"),
+    revision: canonical.data.project.revision,
+    scale: "day",
+    scope: null,
+    query: "",
+    queryWitness: { kind: "unchanged" },
+    canonicalIds: canonical.data.tasks.map(task => task.taskId),
+    requireRenderedRows: true,
+    allowCancelledPriorWork: true,
+  });
+  expect(resumeReady.api).toBe(before.apiInstance);
+  // #2886: even after a Resource panel physically hid/resized the Gantt,
+  // Milestones remain canonical but must not reappear in native WBS Core/DOM.
+  const expectedWbsIds = canonical.data.tasks.filter(task => task.type !== "milestone").map(task => task.taskId);
+  const displayed = await frame.evaluate(node => ({
+    core: Reflect.get(node, "__masterganttMilestoneTimeline").read().rows.map((task: { id: string }) => String(task.id)),
+    dom: [...node.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]")].map(row => row.dataset.id!.replace(/^:/, "")),
+  }));
+  expect(displayed.core).toEqual(expectedWbsIds);
+  expect(displayed.dom).toEqual(expectedWbsIds);
+  // This is a new user wheel intent after U2/U3 and the native geometry
+  // settle; never treat an in-flight restore as proof of the next action.
   await chart.hover(); await page.mouse.wheel(120, 0);
   await expect.poll(async () => (await ganttIntegrationState(page)).left).toBeGreaterThan(0);
-  await frame.evaluate(async element => {
-    let previous = "", stable = 0;
+  const settlement = await frame.evaluate(async element => {
+    let previous = "", stable = 0, frames = 0;
+    const samples: Array<{ frame: number; nativeLeft: number; publicLeft: number | null;
+      nativeTop: number; publicTop: number | null; depth: string | null; phase: string | null }> = [];
     for (let tick = 0; tick < 90 && stable < 8; tick++) {
       await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
       const native = element.querySelector(".wx-chart")!.scrollLeft;
-      const publicValue = Reflect.get(element, "__masterganttPublicViewport")?.left;
-      const current = `${native}:${publicValue}:${element.getAttribute("data-gantt-canonical-sync-depth")}`;
-      stable = current === previous && native === publicValue && element.getAttribute("data-gantt-canonical-sync-depth") === "0" ? stable + 1 : 0;
+      const vertical = element.querySelector(".wx-gantt")!.scrollTop;
+      const publicState = Reflect.get(element, "__masterganttPublicViewport") as { left?: number; top?: number } | undefined;
+      const publicValue = publicState?.left ?? null;
+      const depth = element.getAttribute("data-gantt-canonical-sync-depth");
+      const current = `${native}:${publicValue}:${depth}`;
+      stable = current === previous && native === publicValue && depth === "0" ? stable + 1 : 0;
       previous = current;
+      frames = tick + 1;
+      const work = JSON.parse(element.getAttribute("data-gantt-viewport-coordinator") ?? "null") as { phase?: string } | null;
+      samples.push({ frame: frames, nativeLeft: native, publicLeft: publicValue,
+        nativeTop: vertical, publicTop: publicState?.top ?? null, depth, phase: work?.phase ?? null });
+      if (samples.length > 12) samples.shift();
     }
-    if (stable < 8) throw new Error("Fixed-geometry Gantt did not settle before navigation comparison");
+    return { stable, frames, samples,
+      projection: element.getAttribute("data-gantt-projection-receipt"),
+      observation: element.getAttribute("data-gantt-projection-observation"),
+      viewport: element.getAttribute("data-gantt-viewport-coordinator"),
+      restore: element.getAttribute("data-gantt-peer-restore") };
   });
+  await info.attach("resource-kpi-fixed-geometry-settlement", {
+    body: JSON.stringify({ resumeReady, settlement }, null, 2), contentType: "application/json",
+  });
+  // Keep the original 90 RAF / 8 consecutive RAF / exact native-Core
+  // coordinates, rather than increasing timeouts or tolerating a stale value.
+  expect(settlement.stable, `Fixed-geometry Gantt did not settle before navigation comparison: ${JSON.stringify(settlement.samples)}`).toBeGreaterThanOrEqual(8);
   const fixedBefore = await ganttIntegrationState(page);
   expect(fixedBefore.instance).toBe(before.instance);
   expect(fixedBefore.left).toBeGreaterThan(0);
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   await root.getByLabel("선택 범위 KPI", { exact: true }).locator("div").filter({ hasText: /^할당 Task/ }).getByRole("button").click();
   const detail = root.locator(".resource-dashboard-detail");
   await expect(detail.locator("tbody tr")).toHaveCount(4);
@@ -240,9 +287,9 @@ test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt
   for (const name of ["T4", "T5"]) await expect(frame.locator(`.wx-row[data-id=":${seeded.tasks[name].taskId}"]`)).toHaveCount(0);
   await strip.getByRole("button", { name: /원래 보기/ }).click();
   await expect(detail.locator("tbody tr")).toHaveCount(4);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
-  await expect(page.getByRole("tab", { name: "Milestone 대시보드", exact: true })).toHaveAttribute("aria-selected", "true");
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
+  await expect(workspaceViewTab(page, "milestones")).toHaveAttribute("aria-selected", "true");
+  await openWorkspaceView(page, "resources");
   await expect(root.getByLabel("기간 시작", { exact: true })).toHaveValue(RESOURCE_KPI_INTEGRATION.from);
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   await expect.poll(() => ganttIntegrationState(page)).toEqual(fixedBefore);
@@ -251,14 +298,14 @@ test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt
   if (process.env.CAPTURE_ISSUE_530 === "1") await writeFile("output/playwright/issue530/geometry.json", JSON.stringify({ environment: "actual SQLite HTTP Chromium", browserVersion: page.context().browser()?.version(), devicePixelRatio: await page.evaluate(() => devicePixelRatio), observations }, null, 2));
 });
 
-test("#530 실제 readonly 원장의 외부 변경은 상세와 Excel을 stale로 잠근다", async ({ page, browser, baseURL }) => {
+test("#530 실제 readonly 원장의 외부 변경은 상세와 Excel을 stale로 잠근다", async ({ page, browser, baseURL, observeIsolatedApi }) => {
   test.setTimeout(180_000);
-  const seed = await seedResourceKpiIntegration(page.request, baseURL!);
+  const seed = await seedResourceKpiIntegration(page.request, baseURL!, observeIsolatedApi);
   const readonly = await browser.newContext({ baseURL });
   try {
     const publicPage = await readonly.newPage();
     await publicPage.goto(`/projects/${seed.publicId}`);
-    await publicPage.getByRole("tab", { name: "리소스", exact: true }).click();
+    await openWorkspaceView(publicPage, "resources");
     const root = publicPage.locator('[data-resource-dashboard="true"]:visible');
     await expect(root).toHaveAttribute("data-ready", "true");
     expect(await readonly.cookies()).toEqual([]);
@@ -283,9 +330,9 @@ test("#530 실제 readonly 원장의 외부 변경은 상세와 Excel을 stale�
   } finally { await readonly.close(); }
 });
 
-test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport를 보존", async ({ page, baseURL }, info) => {
+test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport를 보존", async ({ page, baseURL, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
-  const seed = await seedResourceKpiIntegration(page.request, baseURL!);
+  const seed = await seedResourceKpiIntegration(page.request, baseURL!, observeIsolatedApi);
   await page.goto(`/projects/${seed.publicId}`);
   const frame = page.locator(".project-gantt-frame");
   await expect(frame).toBeVisible();
@@ -295,7 +342,7 @@ test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport�
   await expect.poll(async () => (await ganttIntegrationState(page)).left).toBeGreaterThan(0);
   await frame.evaluate(async () => { for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); });
   const before = await ganttIntegrationState(page), canonical = await seed.getSnapshot();
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   const root = page.locator('[data-resource-dashboard="true"]:visible');
   await expect(root).toHaveAttribute("data-ready", "true");
   const initialCapture = await frame.getAttribute("data-gantt-peer-capture");
@@ -356,17 +403,17 @@ test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport�
   }
 });
 
-test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치를 보존", async ({ page, baseURL }, info) => {
+test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치를 보존", async ({ page, baseURL, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
-  const seed = await seedResourceKpiIntegration(page.request, baseURL!);
+  const seed = await seedResourceKpiIntegration(page.request, baseURL!, observeIsolatedApi);
   await page.goto(`/projects/${seed.publicId}?__coreTrace=1`);
   const frame = page.locator(".project-gantt-frame");
   const schedule = page.getByRole("tab", {name: "일정", exact: true});
-  const resource = page.getByRole("tab", {name: "리소스", exact: true});
+  const resource = workspaceViewTab(page, "resources");
   const strip = page.getByRole("region", {name: "임시 조회 범위", exact: true});
   async function settle() { await expect.poll(() => frame.getAttribute("data-gantt-canonical-sync-depth")).toBe("0"); await frame.evaluate(async () => {for(let n=0;n<12;n++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));}); }
   async function drill() {
-    await resource.click();
+    await openWorkspaceView(page, "resources");
     const root = page.locator('[data-resource-dashboard="true"]:visible');
     await expect(root).toHaveAttribute("data-ready", "true");
     await root.getByLabel("선택 범위 KPI", {exact:true}).locator("div").filter({hasText:/^할당 Task/}).getByRole("button").click();
@@ -420,7 +467,7 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
     trace.configure(run, head, "nested-second-pop");
   }, { run: `ci530-repeat-${info.retry}`, head: traceHead });
   try {
-  await resource.click(); await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(strip).toHaveCount(0); await schedule.click();
+  await openWorkspaceView(page, "resources"); await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(strip).toHaveCount(0); await schedule.click();
   await expect.poll(() => ganttIntegrationState(page)).toEqual(origin);
   // Admission cannot rely on Core alone: physical chart scroll capacity
   // must accept the original 120px before an explicit peer restore is sent.
@@ -478,14 +525,14 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
   }
 });
 
-test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/native 사용자 위치를 유지", async ({page,baseURL},info) => {
-  const seed = await seedResourceKpiIntegration(page.request,baseURL!);
+test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/native 사용자 위치를 유지", async ({page,baseURL,observeIsolatedApi},info) => {
+  const seed = await seedResourceKpiIntegration(page.request,baseURL!,observeIsolatedApi);
   await page.goto(`/projects/${seed.publicId}`);
   const frame=page.locator(".project-gantt-frame"), chart=frame.locator(".wx-chart");
-  const schedule=page.getByRole("tab",{name:"일정",exact:true}), resource=page.getByRole("tab",{name:"리소스",exact:true});
+  const schedule=page.getByRole("tab",{name:"일정",exact:true}), resource=workspaceViewTab(page, "resources");
   await expect(frame).toBeVisible(); await chart.hover(); await page.mouse.wheel(120,0);
   await expect.poll(async()=> (await ganttIntegrationState(page)).left).toBe(120);
-  await resource.click();
+  await openWorkspaceView(page, "resources");
   const root=page.locator('[data-resource-dashboard="true"]:visible'); await expect(root).toHaveAttribute("data-ready","true");
   await root.getByLabel("선택 범위 KPI",{exact:true}).locator("div").filter({hasText:/^할당 Task/}).getByRole("button").click();
   await root.locator(".resource-dashboard-detail").getByRole("button",{name:"전체 범위 일정 보기",exact:true}).click();
@@ -497,6 +544,12 @@ test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/nativ
   await page.clock.install({ time: new Date(pauseTime.getTime() - 60_000) });
   await page.clock.pauseAt(pauseTime);
   await schedule.evaluate(node=>(node as HTMLElement).click()); await expect(frame).toBeVisible();
+  // Commit the native show layout before wheel input, while the app restore
+  // still awaits its projection/geometry proof. Frozen pre-paint DOM can report
+  // a scrollbar that Core has not yet committed for the visible Chart.
+  await page.clock.runFor(32);
+  const pendingRestore = JSON.parse((await frame.getAttribute("data-gantt-viewport-coordinator-history")) ?? "[]").findLast((event: { kind: string }) => event.kind === "PEER_RETURN");
+  expect(["WAIT_PROJECTION", "PREPARING_GEOMETRY", "WAIT_GEOMETRY"]).toContain(pendingRestore?.phase);
   const bounds=await chart.boundingBox(); if(!bounds) throw Error("visible chart required");
   await page.mouse.move(bounds.x+bounds.width/2,bounds.y+bounds.height/2); await page.mouse.wheel(40,0);
   await expect.poll(async()=> (await ganttIntegrationState(page)).publicViewport.left).toBeGreaterThan(0);
@@ -509,20 +562,25 @@ test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/nativ
   await expect.poll(viewport).toEqual(expected);
   await page.clock.runFor(500);
   await expect.poll(viewport).toEqual(expected);
+  // #552 separates canonical Milestones from native WBS rows, while retaining
+  // ordinary Task presence and the exact scrollbar/instance checks above.
   const targetIds = Object.values(seed.tasks);
-  for (const task of targetIds) await expect(frame.locator(`.wx-row[data-id=":${task.taskId}"]`).first()).toBeVisible();
+  for (const task of targetIds.filter(task => task.type !== "milestone"))
+    await expect(frame.locator(`.wx-row[data-id=":${task.taskId}"]`).first()).toBeVisible();
+  for (const milestone of targetIds.filter(task => task.type === "milestone"))
+    await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${milestone.taskId}"]`)).toHaveCount(0);
   await info.attach("explicit-return-native-input-cancel",{body:JSON.stringify({user,settled:await ganttIntegrationState(page)}),contentType:"application/json"});
   await page.clock.resume();
 });
 
-test("#530 explicit frame pending queue는 실제 viewport resize 후 이전 위치를 복원하지 않는다", async ({page,baseURL},info) => {
-  const seed = await seedResourceKpiIntegration(page.request,baseURL!);
+test("#530 explicit frame pending queue는 실제 viewport resize 후 이전 위치를 복원하지 않는다", async ({page,baseURL,observeIsolatedApi},info) => {
+  const seed = await seedResourceKpiIntegration(page.request,baseURL!,observeIsolatedApi);
   await page.goto(`/projects/${seed.publicId}`);
   const frame=page.locator(".project-gantt-frame"), chart=frame.locator(".wx-chart");
-  const schedule=page.getByRole("tab",{name:"일정",exact:true}), resource=page.getByRole("tab",{name:"리소스",exact:true});
+  const schedule=page.getByRole("tab",{name:"일정",exact:true}), resource=workspaceViewTab(page, "resources");
   await expect(frame).toBeVisible(); await chart.hover(); await page.mouse.wheel(120,0);
   await expect.poll(async()=> (await ganttIntegrationState(page)).left).toBe(120);
-  await resource.click();
+  await openWorkspaceView(page, "resources");
   const root=page.locator('[data-resource-dashboard="true"]:visible'); await expect(root).toHaveAttribute("data-ready","true");
   await root.getByLabel("선택 범위 KPI",{exact:true}).locator("div").filter({hasText:/^할당 Task/}).getByRole("button").click();
   await root.locator(".resource-dashboard-detail").getByRole("button",{name:"전체 범위 일정 보기",exact:true}).click();
@@ -545,15 +603,20 @@ test("#530 explicit frame pending queue는 실제 viewport resize 후 이전 위
   await expect.poll(viewport).toEqual(expected);
   await page.clock.runFor(500);
   await expect.poll(viewport).toEqual(expected);
+  // #552 separates canonical Milestones from native WBS rows, while retaining
+  // ordinary Task presence and the exact scrollbar/instance checks above.
   const targetIds = Object.values(seed.tasks);
-  for (const task of targetIds) await expect(frame.locator(`.wx-row[data-id=":${task.taskId}"]`).first()).toBeVisible();
+  for (const task of targetIds.filter(task => task.type !== "milestone"))
+    await expect(frame.locator(`.wx-row[data-id=":${task.taskId}"]`).first()).toBeVisible();
+  for (const milestone of targetIds.filter(task => task.type === "milestone"))
+    await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${milestone.taskId}"]`)).toHaveCount(0);
   await info.attach("explicit-return-viewport-geometry-cancel",{body:JSON.stringify({user,settled:await ganttIntegrationState(page)}),contentType:"application/json"});
   await page.clock.resume();
 });
 
-test("#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource→M1 LIFO", async ({page,baseURL},info) => {
+test("#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource→M1 LIFO", async ({page,baseURL,observeIsolatedApi},info) => {
   test.setTimeout(180_000);
-  const seed = await seedResourceKpiIntegration(page.request,baseURL!);
+  const seed = await seedResourceKpiIntegration(page.request,baseURL!,observeIsolatedApi);
   // Explicit derived ledger: only T1 and its two personal allocation windows
   // move to a completed five-workday period. The shared oracle stays immutable.
   const range = {from:"2026-09-28",to:"2026-10-02"};
@@ -586,10 +649,10 @@ test("#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource�
   await page.goto(`/projects/${seed.publicId}`);
   const frame=page.locator(".project-gantt-frame");await expect(frame).toBeVisible();
   const instance=(await ganttIntegrationState(page)).instance;
-  const milestoneTab=page.getByRole("tab",{name:"Milestone 대시보드",exact:true});
-  const resourceTab=page.getByRole("tab",{name:"리소스",exact:true});
+  const milestoneTab=workspaceViewTab(page, "milestones");
+  const resourceTab=workspaceViewTab(page, "resources");
   const scheduleTab=page.getByRole("tab",{name:"일정",exact:true});
-  await milestoneTab.click();
+  await openWorkspaceView(page, "milestones");
   const milestone=page.getByTestId("milestone-dashboard");await expect(milestone).toHaveAttribute("data-ready","true");
   await milestone.getByLabel("Milestone 검색",{exact:true}).fill("M1");
   await milestone.getByText("Milestone 표시·공수 범위 조건",{exact:true}).click();
@@ -605,6 +668,8 @@ test("#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource�
   const causeHeading=milestone.getByRole("heading",{name:"M1 · 전체 Milestone 원인",exact:true});await expect(causeHeading).toBeFocused();
   const causeRegion=causeHeading.locator("xpath=../..");await expect(causeRegion).toContainText("T1");
   const crossTrigger=milestone.getByRole("region",{name:"범위 내 Milestone 공수 표 가로 스크롤",exact:true}).locator("tbody tr").filter({hasText:"M1"}).getByRole("button",{name:"리소스",exact:true});
+  await expect(crossTrigger).toHaveAttribute("data-milestone-resource-trigger","true");
+  await expect(crossTrigger.locator("xpath=ancestor::tr")).toHaveAttribute("data-milestone-effort-bucket",seed.tasks.M1.taskId);
   await crossTrigger.focus();await page.keyboard.press("Enter");
   await expect(resourceTab).toHaveAttribute("aria-selected","true");
   const resource=page.locator('[data-resource-dashboard="true"]:visible');await expect(resource).toHaveAttribute("data-ready","true");

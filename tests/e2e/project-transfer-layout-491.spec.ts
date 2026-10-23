@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { readFile } from "node:fs/promises";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import { capture491, createSource491, description491, fixturePassword491, importFile491, name491, openMore491, writeSafe491 } from "./helpers/issue491-transfer-fixture";
@@ -16,7 +17,7 @@ test("Issue #491: readonly Excel·JSON·SVG·PNG 옵션·날짜 validation·pend
 
 test("Issue #491: Resource Dashboard 실제 공수·큰 서버 표시값·필터·포커스 호환",async({page,baseURL},info)=>{
   const source=await createSource491(page,baseURL!);
-  await page.getByRole("tab",{name:"리소스",exact:true}).click();
+  await openWorkspaceView(page, "resources");
   const panel=page.locator('.project-resource-workload[data-resource-dashboard="true"]');
   await expect(panel).toHaveAttribute("data-ready","true");
   await expect(panel.getByRole("button",{name:"M/M",exact:true})).toBeDisabled();

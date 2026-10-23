@@ -1,0 +1,64 @@
+{
+  "issue": 623,
+  "baseline": "bd54205741da65a0211cf77f9cb086d3cdb1ab2a",
+  "applicationVersion": "0.114.0",
+  "productSourceChanged": false,
+  "packageOrDependencyChanged": false,
+  "localFastFeedback": {
+    "domain": {
+      "newTests": 8,
+      "focusedTests": 64,
+      "status": "PASS"
+    },
+    "backend": {
+      "newTests": 20,
+      "focusedTests": 37,
+      "status": "PASS"
+    },
+    "frontend": {
+      "newChromiumTests": 2,
+      "focusedChromiumTests": 9,
+      "status": "PASS"
+    },
+    "readOnlyReviewer": {
+      "newVitestFiles": 4,
+      "newVitestTests": 28,
+      "newChromiumTests": 2,
+      "status": "PASS"
+    },
+    "manager": {
+      "typecheck": "PASS",
+      "versionTests": 7,
+      "markdownFiles": 220,
+      "documentationSyncStructural": "PASS",
+      "acMapping": "PASS"
+    }
+  },
+  "browserObservation": {
+    "tasks": 3,
+    "resources": 1,
+    "groups": 2,
+    "targets": 5,
+    "measurements": 10,
+    "navigationToReportMilliseconds": 1289.041652999993,
+    "workbookBytes": 30447,
+    "rawMd": 5,
+    "rawMm": 0.25,
+    "mutationCount": 6
+  },
+  "reviewedTestsSha256": "0defd061a40ec282e0be9b8ca48e8bff57c52d95c537e7994b80582a51a911db",
+  "riskLevel": "HIGH",
+  "qaMethod": "OWNER_MANAGED",
+  "qaRequired": true,
+  "independentQa": "N/A(Owner-managed, 독립 검토 없음)",
+  "managerDecision": "NOT TESTED",
+  "quality": "NOT TESTED",
+  "e2e": "NOT TESTED",
+  "docker": "NOT TESTED",
+  "trustedQa": "NOT TESTED",
+  "mergeReady": "BLOCKED",
+  "resourceMvpFinalAcceptance": "BLOCKED",
+  "releaseRequired": false,
+  "releaseAuthorized": false,
+  "scopeNote": "Overlapping executions are not summed. CI start only, no monitoring or merge. Synthetic restore is separate from production/off-host restore; V1/Epic completion remains unapproved."
+}

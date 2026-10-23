@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
@@ -120,9 +121,14 @@ test("#514 pending peer wheel and rapid selections preserve latest actual user i
   const chart = frame.locator(".wx-chart"), task = state.tasks[1];
   await chart.hover(); await page.mouse.wheel(120, 0);
   await expect.poll(async () => (await observe(page, task.start!)).public.left).toBe(120);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   await expect(page.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
-  await page.clock.install(); await page.clock.pauseAt(new Date());
+  // #733 F733-003 / #569: install() keeps time running until pauseAt().
+  // Fix one wall-clock target 60s ahead of the installed virtual baseline,
+  // so CI runner latency cannot turn the intended pause into a backward jump.
+  const pauseTime = new Date();
+  await page.clock.install({ time: new Date(pauseTime.getTime() - 60_000) });
+  await page.clock.pauseAt(pauseTime);
   await page.getByRole("tab", { name: "일정", exact: true }).evaluate(node => (node as HTMLElement).click());
   await chart.hover({ force: true }); await page.mouse.wheel(31, 0);
   // The browser can commit a native wheel after the first non-zero observation.
@@ -155,9 +161,14 @@ test("#514 pending peer restore expires when the Task filter source changes", as
   const task = state.tasks[1];
   await frame.locator(".wx-chart").hover(); await page.mouse.wheel(120, 0);
   await expect.poll(async () => (await observe(page, task.start!)).public.left).toBe(120);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   await expect(page.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
-  await page.clock.install(); await page.clock.pauseAt(new Date());
+  // #733 F733-003 / #569: install() keeps time running until pauseAt().
+  // Fix one wall-clock target 60s ahead of the installed virtual baseline,
+  // so CI runner latency cannot turn the intended pause into a backward jump.
+  const pauseTime = new Date();
+  await page.clock.install({ time: new Date(pauseTime.getTime() - 60_000) });
+  await page.clock.pauseAt(pauseTime);
   await page.getByRole("tab", { name: "일정", exact: true }).evaluate(node => (node as HTMLElement).click());
   await page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색", exact: true }).fill(task.name);
   await frame.locator(`.wx-table-container .wx-row[data-id=":${task.taskId}"] [data-col-id=":projectDuration"]`).click({ force: true });
@@ -404,9 +415,14 @@ test("#514 before pending peer restore must not overwrite native Grid Task start
   await chart.hover(); await page.mouse.wheel(120, 0);
   await expect.poll(async () => (await observe(page, task.start!)).public.left).toBe(120);
   const beforePeer = await observe(page, task.start!);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   await expect(page.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
-  await page.clock.install(); await page.clock.pauseAt(new Date());
+  // #733 F733-003 / #569: install() keeps time running until pauseAt().
+  // Fix one wall-clock target 60s ahead of the installed virtual baseline,
+  // so CI runner latency cannot turn the intended pause into a backward jump.
+  const pauseTime = new Date();
+  await page.clock.install({ time: new Date(pauseTime.getTime() - 60_000) });
+  await page.clock.pauseAt(pauseTime);
   await page.getByRole("tab", { name: "일정", exact: true }).evaluate(node => (node as HTMLElement).click());
   await expect(frame).toBeVisible();
   await frame.locator(`.wx-table-container .wx-row[data-id=":${task.taskId}"] [data-col-id=":projectDuration"]`).click({ force: true });

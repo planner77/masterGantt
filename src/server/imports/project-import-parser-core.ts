@@ -68,8 +68,26 @@ export function parseProjectImportBytes(bytes: Uint8Array): unknown {
   catch { throw new PublicApiError(400, "INVALID_UTF8", "The import file must use valid UTF-8."); }
   if (text.startsWith("\uFEFF")) text = text.slice(1);
   checkJsonSyntax(text);
-  try { return JSON.parse(text) as unknown; }
-  catch { throw new PublicApiError(400, "INVALID_JSON", "The import file is not valid JSON."); }
+  const payload: unknown = JSON.parse(text);
+  assertNoUnsupportedTargetBindings(payload);
+  return payload;
+}
+
+/** Schema 1.0/1.1 has no binding field. Never accept lossy forward data. */
+function assertNoUnsupportedTargetBindings(value: unknown): void {
+  if (value === null || typeof value !== "object") return;
+  for (const [key, child] of Object.entries(value)) {
+    if (["projectWorkAreas", "project_work_areas", "equipmentProjectWorkAreas", "equipment_project_work_areas", "taskProjectWorkAreaLinks", "task_project_work_area_links", "equipmentWorkAreas", "equipment_work_areas", "workAreaIds", "work_area_ids", "taskProcessContexts", "taskContexts", "task_contexts", "task_process_contexts", "taskProcessLinks", "task_process_links", "taskWorkAreaLinks", "task_work_area_links", "processLinks", "process_links", "workAreaLinks", "work_area_links"].includes(key)) {
+      throw new PublicApiError(400, "PROCESS_CONTEXT_IMPORT_UNSUPPORTED", "일정 JSON은 프로젝트 소속 WorkArea·설비 WorkArea와 Task 공정·WorkArea 문맥을 지원하지 않습니다. Project Copy 또는 지원 Template를 사용하세요.");
+    }
+    if (key === "resourceMemberships" || key === "resource_memberships" || key === "projectResourceMemberships" || key === "project_resource_memberships") {
+      throw new PublicApiError(400, "RESOURCE_MEMBERSHIP_IMPORT_UNSUPPORTED", "프로젝트 리소스 등록은 이 교환 형식에서 지원하지 않습니다. 프로젝트 복사 또는 템플릿을 이용해 주세요.");
+    }
+    if (key === "taskTargetBindings" || key === "targetBindings" || key === "task_target_bindings") {
+      throw new PublicApiError(400, "TARGET_BINDING_IMPORT_UNSUPPORTED", "Task Target bindings require a supported versioned format. Use Project Copy or Template.");
+    }
+    assertNoUnsupportedTargetBindings(child);
+  }
 }
 
 export function projectImportPreviewDigest(bytes: Uint8Array, publicId: string, revision: number): string {

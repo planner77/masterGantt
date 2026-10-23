@@ -36,6 +36,9 @@ describe("Project task SVAR adapter", () => {
     const input = structuredClone(empty);
     const rendered = projectTasksToSvarTasks([empty])[0];
     expect(rendered.type).toBe("summary-container");
+    expect(rendered.progress).toBe(0);
+    expect(JSON.parse(rendered.projectDisplayKey as string)).toEqual(input);
+    expect(projectTasksToSvarTasks([structuredClone(empty)])[0]).toEqual(rendered);
     expect(rendered.start?.getTime()).toBe(rendered.end?.getTime());
     expect(rendered.start?.getTime()).not.toBeNaN();
     expect(rendered.open).toBe(false);

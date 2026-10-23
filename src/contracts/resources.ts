@@ -133,6 +133,8 @@ export interface ReplaceTaskAssignmentTargetRequest extends AssignmentTargetRefD
 }
 
 export interface ReplaceTaskAssignmentsRequest {
+  /** Opt in to editing one existing Resource assignment without replacing coassignments. */
+  editAssignmentId?: string;
   catalogRevision: number;
   targets: ReplaceTaskAssignmentTargetRequest[];
 }
