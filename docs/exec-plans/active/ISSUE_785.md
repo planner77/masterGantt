@@ -191,6 +191,9 @@ Source 용어 allowlist에는 사용자 입력 이름/설명의 원문도 포함
 ## PR #787 REWORK F785-002 — Full #3192.1 (2026-10-24 KST)
 
 - 직접 Policy Audit 취약 `zod@4.6.2` / `GHSA-mrhx-c7xc-m3w5`; Run 40028478592 Job120670771956. Fast Gate에 의해 E2E8·Docker·PR Build 미실행, Required3/QA 파생 FAIL. F785-001 E2E와 독립 기록.
-- `package.json`/lock의 정확 Zod4.6.7 단일 패치+SRI metadata, immutable Gantt capture의 `approved-zod-4.6.7-lock.json` 메모리 정규화, 기존 prepr-verifier 테스트 6개 negative cases 보완. README/SECURITY/TEST_PLAN과 단일 실패 원장 동기화. 다른 도메인·정식 DB·API·Next/SVAR/CI Gate 변경0.
+- `package.json`/lock의 정확 Zod4.6.7 단일 패치+SRI metadata, immutable Gantt capture의 `approved-zod-4.6.7-lock.json` 메모리 정규화, 기존 prepr-verifier 테스트 6개 negative cases 보완. README/SECURITY와 단일 실패 원장 동기화; 기존 TEST_PLAN 정책은 수정 없이 적용. 다른 도메인·정식 DB·API·Next/SVAR/CI Gate 변경0.
 - AC6/9/10 보호: 보안 경계, 기존 test lifecycle EXTEND/KEEP_UNIQUE, 명시 문서 영수증. 실제 `npm ci`/`npm audit`/전체 Vitest/Chromium8/Docker는 네트워크·의존성 부재로 로컬 NOT TESTED; 새 exact HEAD PR CI/Trusted/Owner에서 판정. HIGH/OWNER_MANAGED, AC4/운영 DB·외부 소비자·Owner HIGH 승인 미충족, release_authorized=false/MERGE_READY=BLOCKED. 병합/Main/GHCR/Finalizer/Issue 종료 및 새 CI 모니터링 제외.
 
+### 게시 무결성 보완 — docs/TEST_PLAN.md
+
+대용량 `docs/TEST_PLAN.md` fetch 결과 내용이 0으로 제한되어 보충 섹션만 기록된 중간 커밋 `f7235d5`의 문서 누락을 원본 Git blob `1d2b679dda6730306d8f6586ba3921a9458d4e9f` 복원으로 바로 교정한다. 기존 Test Lifecycle 정책은 수정 없이 준수하며 #785별 AC9/TEST_LIFECYCLE_REVIEW 추가 분석은 본 Packet/누적 실패 원장에서 추적한다. 손상 HEAD CI 결과는 최종 source 증거로 이용하지 않는다.
