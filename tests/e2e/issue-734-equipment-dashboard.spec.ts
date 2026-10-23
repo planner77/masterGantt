@@ -228,7 +228,13 @@ test("#734 설비 원본 dirty 유지·정확 PATCH 저장·새 snapshot과 focu
   // The existing shared-instance edit policy requires explicit impact confirmation before PATCH.
   const confirmation = page.getByRole("dialog", { name: "공유 인스턴스 변경 확인", exact: true });
   await expect(confirmation).toBeVisible();
-  await expect(confirmation).toContainText(f.equipment.id);
+  await expect(confirmation).toContainText(f.equipment.name);
+  await expect(confirmation).toContainText("관련 작업 1개 · 직접 연결 작업 1개 · 기존 연결 작업 0개");
+  await expect(confirmation).not.toContainText("공유 Target");
+  const equipmentIdentity = confirmation.getByText("변경 대상 식별 정보", { exact: true });
+  await equipmentIdentity.click();
+  await expect(confirmation.getByRole("textbox", { name: "설비 원본 ID", exact: true })).toHaveValue(f.equipment.id);
+  await equipmentIdentity.click();
   await expect(confirmation.getByRole("button", { name: "공유 사용처 확인 후 원본 저장", exact: true })).toBeEnabled();
   expect(writes).toEqual([]);
   await confirmation.getByRole("button", { name: "원본 변경 취소", exact: true }).click();

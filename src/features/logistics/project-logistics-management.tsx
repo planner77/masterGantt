@@ -268,7 +268,7 @@ export function ProjectLogisticsManagement({
     name: string;
   }>({ open: false, entityKind: "process", id: "", name: "" });
 
-  const [sourceImpact, setSourceImpact] = useState<{ revision:number; name:string; taskIds:string[]; directTaskCount:number; compatibilityTaskCount:number; apply:()=>Promise<void> }|null>(null);
+  const [sourceImpact, setSourceImpact] = useState<{ revision:number; kind:"equipment"|"system"; id:string; name:string; taskIds:string[]; directTaskCount:number; compatibilityTaskCount:number; apply:()=>Promise<void> }|null>(null);
   const sourcePreviewRequest = useRef<AbortController|null>(null);
   useEffect(() => () => { sourcePreviewRequest.current?.abort(); }, [publicId,revision]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -491,7 +491,7 @@ export function ProjectLogisticsManagement({
       const body = await response.json();
       const data = body?.data;
       if (!response.ok || data?.projectRevision !== revision || data.kind !== kind || data.entityId !== id || !Array.isArray(data.relatedTasks) || !data.relatedTasks.every((row: {taskId?:unknown}) => typeof row.taskId === "string") || !Number.isSafeInteger(data.directTaskCount) || !Number.isSafeInteger(data.compatibilityTaskCount)) throw new Error();
-      if (!controller.signal.aborted) setSourceImpact({revision,name,taskIds:data.relatedTasks.map((row:{taskId:string})=>row.taskId),directTaskCount:data.directTaskCount,compatibilityTaskCount:data.compatibilityTaskCount,apply});
+      if (!controller.signal.aborted) setSourceImpact({revision,kind,id,name,taskIds:data.relatedTasks.map((row:{taskId:string})=>row.taskId),directTaskCount:data.directTaskCount,compatibilityTaskCount:data.compatibilityTaskCount,apply});
     } catch { if (!controller.signal.aborted) {setErrorMessage("원본의 관련 작업을 확인하지 못해 저장을 차단했습니다. 초안은 유지됩니다. 최신 정보를 다시 조회해 주세요.");setSourceImpact(null);} }
 
     finally{if(sourcePreviewRequest.current===controller)setIsSubmitting(false);}
@@ -1496,6 +1496,7 @@ export function ProjectLogisticsManagement({
 
       {sourceImpact?<WorkspaceDialog title="공유 인스턴스 변경 확인" onClose={()=>{if(!isSubmitting)setSourceImpact(null);}} busy={isSubmitting}>
         <div className={styles.dialogForm}><p>{sourceImpact.name} · 원본 인스턴스를 변경하면 아래 관련 작업에서 같은 변경을 읽습니다. 작업 연결 해제와 원본 수정은 별개입니다.</p>
+        <IdentifierDetails label="변경 대상 식별 정보" identifiers={[{label:sourceImpact.kind==="equipment"?"설비 원본 ID":"물류 시스템 원본 ID",value:sourceImpact.id}]}/>
         <p>관련 작업 {sourceImpact.taskIds.length}개 · 직접 연결 작업 {sourceImpact.directTaskCount}개 · 기존 연결 작업 {sourceImpact.compatibilityTaskCount}개</p>
         <ul>{sourceImpact.taskIds.map(id=><li key={id}>{taskContextLabels(tasks)[id]??"작업 이름 확인 필요"}<IdentifierDetails identifiers={[{label:"작업 ID",value:id}]}/></li>)}</ul>
         {sourceImpact.revision!==revision?<p role="alert">기준 정보가 변경되었습니다. 취소 후 사용처를 다시 확인하세요.</p>:null}

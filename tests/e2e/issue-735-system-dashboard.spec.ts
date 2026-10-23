@@ -114,7 +114,14 @@ test("#735 System 정확 원본 dirty·취소·저장 후 새 snapshot과 같은
   await expect(name).toHaveValue("시스템 원본 저장 복귀");
   await editor.getByRole("button", { name: "저장", exact: true }).click();
   const confirmation = page.getByRole("dialog", { name: "공유 인스턴스 변경 확인", exact: true });
-  await expect(confirmation).toBeVisible(); await expect(confirmation).toContainText("공유 Target 0개"); await expect(confirmation).toContainText(f.acsA.id);
+  await expect(confirmation).toBeVisible();
+  await expect(confirmation).toContainText(f.acsA.name);
+  await expect(confirmation).toContainText("관련 작업 1개 · 직접 연결 작업 1개 · 기존 연결 작업 0개");
+  await expect(confirmation).not.toContainText("공유 Target");
+  const systemIdentity = confirmation.getByText("변경 대상 식별 정보", { exact: true });
+  await systemIdentity.click();
+  await expect(confirmation.getByRole("textbox", { name: "물류 시스템 원본 ID", exact: true })).toHaveValue(f.acsA.id);
+  await systemIdentity.click();
   const [saved, refreshed] = await Promise.all([
     page.waitForResponse(response => response.request().method() === "PATCH" && new URL(response.url()).pathname === `/api/projects/${f.publicId}/logistics/systems/${f.acsA.id}`, { timeout: 30_000 }),
     reportResponse(page), confirmation.getByRole("button", { name: "공유 사용처 확인 후 원본 저장", exact: true }).click(),

@@ -197,3 +197,11 @@ Source 용어 allowlist에는 사용자 입력 이름/설명의 원문도 포함
 ### 게시 무결성 보완 — docs/TEST_PLAN.md
 
 대용량 `docs/TEST_PLAN.md` fetch 결과 내용이 0으로 제한되어 보충 섹션만 기록된 중간 커밋 `f7235d5`의 문서 누락을 원본 Git blob `1d2b679dda6730306d8f6586ba3921a9458d4e9f` 복원으로 바로 교정한다. 기존 Test Lifecycle 정책은 수정 없이 준수하며 #785별 AC9/TEST_LIFECYCLE_REVIEW 추가 분석은 본 Packet/누적 실패 원장에서 추적한다. 손상 HEAD CI 결과는 최종 source 증거로 이용하지 않는다.
+
+## PR #787 REWORK F785-003 — Full #3195.1 Chromium 원본 ID 확인 회귀 (2026-10-24 KST)
+
+- **Evidence:** [Run 40030302113.1](https://github.com/planner77/masterGantt/actions/runs/40030302113) / Shard2 Job120680499345, `issue-734-equipment-dashboard.spec.ts:231` UUID 표시 단언 실패. Policy/Typecheck/ESLint/Vitest/Build/Docker SUCCESS; shard 7개 취소, E2E/QA 파생 FAIL. 이전 F785-001/002는 불변 별도 기록.
+- **Contract conflict:** #785의 공개 Logistics Target 폐기와 #717의 공유 인스턴스 정확 원본 ID를 이름 다음 **안전한 확인 단계**에서 조회할 수 있어야 한다는 기준을 동시에 만족해야 한다. `DESIGN.md` 1.3 및 `docs/ISSUE_717_IDENTITY_INVENTORY.md` 적용. ID를 상시 1차 제목으로 다시 보이게 하지 않고 기존 `IdentifierDetails` disclosure 재사용.
+- **Change:** 공유 설비/System `previewInstanceEdit` 검증된 kind/ID를 일시적 확인 state에 전달하여 `변경 대상 식별 정보`에서 타입별 원본 ID를 조회·복사. #734/#735 기존 E2E 시나리오를 `EXTEND`해 실물명·실제 Task 사용처 숫자(전체1/직접1/기존0), 폐기 Target 문구0, 정확 UUID on-demand, 취소/dirty·실제 PATCH·snapshot·focus를 보존. 추가 중복 spec/skip/timeout/CI 수정0.
+- **AC_TEST_COVERAGE:** AC2(UI Target0 및 원본 확인), AC4(legacy 출처 Count 보존), AC6(usage API kind/entityId/권한·revision/PATCH), AC8(이름·접힘/키보드/focus/5폭), AC9(TEST_LIFECYCLE_REVIEW: #734/#735 EXTEND, 기존 #717/#725/#726·보안/SQLite KEEP_UNIQUE), AC10(이슈별 failure 원장·Packet). UI 외 서비스·DB·Gantt Core·SVAR·Zod 패치 변경 없음.
+- **Validation/gates:** 변경 source의 로컬 Node/Playwright/Docker 실행 NOT TESTED(현재 GitHub 연결 환경). 다음 exact Head Full Quality + Chromium8/8 + Docker/Trusted QA를 새 `synchronize` CI에서 인증. 미해결 리뷰0/main 병합 가능은 변경 전 확인이며 새 Head에서 재확인. Owner HIGH 수용, AC4 legacy 안전 편집·운영 DB/외부 consumer 미검증, release_authorized=false/MERGE_READY=BLOCKED 유지. 병합/Main/GHCR/Finalizer/Issue 종료 및 CI 모니터링 범위 밖.
