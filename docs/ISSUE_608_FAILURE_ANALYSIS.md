@@ -1,0 +1,54 @@
+# Issue #608 / PR #609 — 누적 PR CI 실패 분석 원장
+
+Primary Issue: [#608](https://github.com/planner77/masterGantt/issues/608) · 격리 시험 [PR #609](https://github.com/planner77/masterGantt/pull/609) · 2026-10-24 KST
+
+운영 기준: [AGENTS.md #704](../AGENTS.md), [PR_CI_FAILURE_TRIAGE](PR_CI_FAILURE_TRIAGE.md), [#608 Work Packet](exec-plans/active/ISSUE_608.md) 및 원격 GitHub Run/Job/Issue 댓글. 기존 실패는 새 성공으로 소급 변경하지 않는다. PR #609는 T3 **미병합** 검증용이므로 본 원장 파일은 main에 병합하지 않고 추후 Issue #608 댓글에도 결과를 영구 기록한다.
+
+## 1. 전체 Run·Attempt 누적 원장
+
+| ID | 원본 Run/Attempt 및 출처 | Head/base/test merge | 처음 실제 실패·파생/미실행 |
+| --- | --- | --- | --- |
+| F608-001 | [#2493.1 / 38122085275.1](https://github.com/planner77/masterGantt/actions/runs/38122085275), CI pull_request, 2026-10-11 | Head `210973f70544c100c22979b882458e0230de3074`, base `c81285741610ad28dc5d6b50f9bb97264970a79d`, merge `7c2728b03c156ee53be90f851e92a76a01088266` | Quality/E2E6/6/Docker Required3 **SUCCESS**, QA Final Automated Job `114421622386` **FAIL/BLOCKED** (main 이동 → mergeability/test-merge stale). 앱 회귀 아님. [역사 기록](https://github.com/planner77/masterGantt/issues/608#issuecomment-6107075364). |
+| F608-002a | [#2497.1 / 38124453502.1](https://github.com/planner77/masterGantt/actions/runs/38124453502), CI pull_request, 2026-10-11 | Head `6c27d64be4903147fa36283d3c32ab8fe6f175c6`, base `ac2a3f69d09da1cbc7e4f833da0fa0515434f895`, original test merge **NOT VERIFIED** | E2E shard4/6 Job `114425821437`, `tests/e2e/project-gantt-fullscreen.spec.ts:188` chart scrollLeft **expected120, actual110** (100 PASS/1 FAIL/1 SKIPPED). Quality/Docker + 다른5 shard PASS, E2E required/QA Final FAIL. Report artifact `11696732128`. [근거](https://github.com/planner77/masterGantt/issues/608#issuecomment-6107237661). |
+| F608-002b | [#2497.2 / 38124453502.2](https://github.com/planner77/masterGantt/actions/runs/38124453502), rerun failed jobs | 동일 Head/base, merge 원본 **NOT VERIFIED** | 같은 E2E shard4/6 Job `114431519168` **120→110 실제 재현**, E2E aggregate `114434401828` 실패, QA Final `114434415614` 실패; [Trusted #133.1](https://github.com/planner77/masterGantt/actions/runs/38125441885)는 원본 #2497.1 실패를 FAIL로 차단. 실패 이력 유지. [근거](https://github.com/planner77/masterGantt/issues/608#issuecomment-6107520169). |
+| D608-DRAFT | [#3199.1 / 40035345798.1](https://github.com/planner77/masterGantt/actions/runs/40035345798), 2026-10-24 Draft synchronize | Head `b29eb44d44d7db98336b2cf6816d6a977ebc539a`, base `427d22245fb8e11254b2424ea5147ccbd5766979`, original merge **NOT VERIFIED** | #771 `DRAFT_BLOCKED` 의도적 aggregate Quality/E2E/Docker FAIL, 구현 Jobs SKIPPED. 새 제품/테스트 실패로 별도 계상 금지. |
+| F608-003 | [#3200.1 / 40035409513.1](https://github.com/planner77/masterGantt/actions/runs/40035409513), CI pull_request.ready_for_review, 2026-10-24 | Head `b29eb44d44d7db98336b2cf6816d6a977ebc539a`, base `427d22245fb8e11254b2424ea5147ccbd5766979`, merge `e0bd16b7329a047b9a4ecd04092e5700e8d3f8c7` (원본 checkout 로그) | QA Preflight Job `120693604760` **FAIL: Work Packet `## DOCUMENTATION_SYNC` 누락**; Fast Gate `120693702521` FAIL, Required Quality `120693762928`/E2E `120693762810`/Docker `120693763169` 모두 집계 FAIL, 구현 Job/8-shard/Docker smoke **SKIPPED/NOT RUN**. QA Final `120693793338`: required quality 미성공. |
+
+#2497.1/.2는 단일 Run의 서로 다른 Attempts. 원본 #2493/2497은 당시 6-shard CI, #3200은 8-shard 모드지만 실제 shard 미실행이다. 다른 Head의 기존 PASS를 새 Head의 회귀 PASS로 합산하지 않는다.
+
+## 2. 누적 실제 실패 합집합과 원인 분류
+
+| 분류/ID | 최초 직접 오류와 이전 보완·반례 | 현행 후보에 필요한 검증 |
+| --- | --- | --- |
+| `POLICY_CI / STALE` F608-001 | 새 main과 PR test-merge 불일치; Required3 PASS여도 QA fail-closed 정상. #593/#600/#712 출처·동시성 계약, 기존 새 base 정렬로 당시 복구 시도. | 최종 Ready source Head/base/test-merge/run/attempt를 엄밀히 확인; 진행 중 main 이동하면 이전 PASS 사용 금지. |
+| `PRODUCT/TEST_CONTRACT / 당시 원인 불명확` F608-002a/b | 기존 fullscreen 실제 E2E assertion X120→110이 같은 Run의 2 Attempts에서 반복됨. [#571](https://github.com/planner77/masterGantt/issues/571)의 corrective [PR #611](https://github.com/planner77/masterGantt/pull/611)과 Main/Finalizer 후 기존 이슈 종료됨. | 현재 #609 새 HEAD에서 `tests/e2e/project-gantt-fullscreen.spec.ts` 직접 8-shard 실증 필요. 신규 E2E **NOT TESTED**. |
+| `POLICY_CI / EXPECTED_DRAFT_BLOCK` D608-DRAFT | #771 Draft aggregate 불합격은 의도된 차단이고 8-shard 원본 실패가 아님. | Ready 유지 + 새 Head synchronize `FINAL_FULL`; Draft 결과를 PASS와 합산하지 않음. |
+| `POLICY_CI / DOCUMENTATION_SYNC` F608-003 | [QA Preflight 로그](https://github.com/planner77/masterGantt/actions/runs/40035409513/job/120693604760): `FAIL / DOCUMENTATION_SYNC: ... Work Packet ## DOCUMENTATION_SYNC 누락`. 기존 `## 6. AC_TEST_COVERAGE, 문서 동기화, 완료 경계`와 `**DOCUMENTATION_SYNC**`가 엄격 H2 parser에 불일치. | Work Packet `## DOCUMENTATION_SYNC` + `- \`path\`: UPDATED|N/A(reason)`와 `## AC_TEST_COVERAGE` + AC1~AC7 정형화. `scripts/qa_final_automated.py::docs_gate`·Preflight 코드 **변경 없음**. |
+
+**누적 실패 테스트 경로**: (1) 실제 E2E `tests/e2e/project-gantt-fullscreen.spec.ts:188`, (2) 정책 문서 `docs/exec-plans/active/ISSUE_608.md` ↔ `scripts/qa_final_automated.py::docs_gate`. #3200에서 제품 assertion/8-shard 실행 자체는 없었다.
+
+## 3. F608-003 직접 Job/Artifact 출처
+
+- [원본 #3200.1](https://github.com/planner77/masterGantt/actions/runs/40035409513), event pull_request.ready_for_review, Job `120693532649` 변경 경로 판정 SUCCESS, source artifact `ci-pr-source-40035409513-1` ID `12537230715`; checkout 로그의 merge SHA `e0bd16b...` 확인.
+- QA Preflight Job `120693604760`: `FAIL=1`, `DEFERRED=5`, `DOCUMENTATION_SYNC / AC_TEST_COVERAGE — Work Packet ## DOCUMENTATION_SYNC 누락`; artifact `qa-preflight-40035409513-1`, ID `12536777784`.
+- PR 빠른 검사 `120693702521`: `PREFLIGHT_RESULT=failure`, 정책/TypeScript/Lint/Unit Job SKIPPED에 따른 파생 실패. Chromium 구현 shard 및 Docker smoke 미실행. 세 Required aggregate FAIL은 자체 근본 원인 아님.
+- QA Final Automated Job `120693793338` FAIL: `required quality 미성공`, artifact `qa-final-automated-40035409513-1` ID `12536558233`. 신뢰된 default-main QA 원본 JSON 전수 대조/실행은 별도이며 T3 title mismatch **NOT TESTED**.
+- 이전 source `#2497` E2E assertion FAIL은 #3200 정책 문서 실패와 인과관계가 다름. 기존 실패를 flaky, 현재 PASS 또는 테스트 실행으로 과장하지 않는다.
+
+## 4. Codex P1 / TEST_LIFECYCLE_REVIEW 및 교정 범위
+
+[원본 P1 review #4364846864](https://github.com/planner77/masterGantt/pull/609#discussion_r4364846864): `TEST_LIFECYCLE_REVIEW` 누락으로 기존 정책 회귀 테스트의 시나리오/assertion 탐색·유지/확장 판단 부족. 이는 **원본 Preflight의 실제 직접 실패가 아닌 별도 리뷰 지적**이다.
+
+- Work Packet에 `## TEST_LIFECYCLE_REVIEW` 추가. 근거: `scripts/test_qa_final_automated.py`의 `test_primary_issue_and_injection`, `test_documents_and_ac`, `test_source_artifact_association_rejects_ambiguous_prs`, `test_metadata_reuses_exact_full_run_after_qa_only_retry`, `test_trusted_workflow_definition_never_checks_out_pr_code`; `scripts/test_qa_preflight.py`의 `test_replay_550_2373_primary_title_refs_before_heavy`, `test_replay_626_2522_missing_required_docs_before_heavy`, `test_ready_for_review_same_sha_and_draft_fail_closed`; `scripts/test-pr-metadata-evidence.py`의 `M7-stale-head`, `M8-metadata-only`; fullscreen E2E 실제 scrollLeft 좌표 assertion.
+- #711 Test Lifecycle 분류 `KEEP_UNIQUE` 및 `PARTIAL_OVERLAP`: Python mock의 문서/원본 귀속·negative fixture는 원격 `edited`/workflow_run 검증과 부분 중첩만 있고, Chromium 브라우저/정확한 source는 대체하지 않음. 새 제품/Policy 동작이 없으므로 ADD/EXTEND/CONSOLIDATE/RETIRE 0, 기존 테스트·timeout/skip/assertion 변경 0.
+- 기존 `AC_TEST_COVERAGE` AC1~7에 연결, 직접 문서 스키마 정적 확인과 원격 현행 FAIL/NOT TESTED 구분. 리뷰 수정 확인·답변 후 Resolve하며 근거 없이 해결 처리하지 않는다.
+
+## 5. 검증/영향 범위 및 인계
+
+- 직접: 정확 Work Packet H2, `UPDATED/N/A(reason)` 파일별 기록, AC1~AC7 정형 매핑, 이슈별 실패 원장 영속성(브랜치 및 Issue 댓글).
+- 간접: `scripts/qa_preflight.py`의 `DOCUMENTATION_SYNC`, `qa_final_automated.py::docs_gate`, #629 Preflight, #593 default-branch Trusted, #600 edited metadata, #711 Test Lifecycle 정책.
+- 음성/교차: 잘못된 Title vs `Refs #608`, base/head/merge stale, 출처 `pull_requests=[]`/복수, 원본 CI failure/cancelled, #571 fullscreen 브라우저 회귀. Mock/유닛과 실제 GitHub workflow/브라우저 결과 구별. 새 원격 실행의 성공 전 `NOT TESTED`.
+- 가용 실행: 연결된 GitHub 소스/검증기 파일 **정적 구조 확인**. 현재 환경의 체크아웃/Node+Python/Vitest/Playwright/Docker 로컬 실행은 **NOT TESTED**; 실제 새 Head 원격 CI가 해당 내용을 수행한 뒤에만 결과 확정.
+- QA/보안: 파일 위험 LOW / 실험 HIGH, `qa_method=OWNER_MANAGED`, `qa_required=true`, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`, `release_required=false`, `release_authorized=false`. PR을 병합하지 않으며 Main/GHCR/Ruleset/Secret/제품/validator 변경 없음.
+- 원격 제출: Git Data API blob/tree/commit 일괄 준비→최신 main/branch 재확인→expected Head fast-forward **한 번** 갱신. 이후 새 `synchronize FINAL_FULL` CI Run/Attempt/Head/base/test-merge 시작만 확인. 완료 결과/Trusted PASS는 별도 실증.
+- 후속: #608 T3 정상 Full+Trusted PASS 확보 후에만 제목 변경 실패 차단→제목 원복. T4~T9 API 장애 mock/경합/승인 분리 실증 필요. 최종 증거는 Issue 댓글에 보존하며 실험 PR close/branch 정리는 별도 판단.

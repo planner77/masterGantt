@@ -7,7 +7,7 @@
 - Primary Issue [#608](https://github.com/planner77/masterGantt/issues/608); #593 개선 및 #606/T1·T2 원격 긍정 경로 PASS가 선행이다.
 - 최신 정렬 기준 main `427d22245fb8e11254b2424ea5147ccbd5766979` (2026-10-24 재조회 후 작업). 이전 T3 PR Head `6c27d64be4903147fa36283d3c32ab8fe6f175c6`, 옛 base `ac2a3f69d09da1cbc7e4f833da0fa0515434f895`는 **과거 실행 출처**로만 사용한다. Ready 실행 직전 live base·head·test-merge를 다시 검증한다.
 - 기존 [#571](https://github.com/planner77/masterGantt/issues/571)은 corrective PR #611 및 Main CI/Finalizer 성공으로 종료. T3 #2497 실패를 과거의 정상 PASS로 소급 변경하지 않는다. 전체화면 회귀 수정 뒤의 #609 새 Head CI는 별도로 증명한다.
-- 변경 파일은 `docs/exec-plans/active/ISSUE_608.md` (검증 계획/원장)와 `public/qa-trusted-t3-issue-608.txt` (읽히지 않는 정적 표식) **두 개만**. 앱, QA validator, workflow, 보안·권한·Ruleset, DB/API/버전, GHCR, main에 변경 없음.
+- 변경 파일은 `docs/exec-plans/active/ISSUE_608.md` (검증 계획), `docs/ISSUE_608_FAILURE_ANALYSIS.md` (누적 실패 원장), `public/qa-trusted-t3-issue-608.txt` (기존 무해한 정적 표식) **세 개만**. 앱, QA validator, workflow, 보안·권한·Ruleset, DB/API/버전, GHCR, main에 변경 없음.
 - 변경 파일 위험 LOW; 오류 유도·경합을 포함한 **운영 실험 위험 HIGH**. `qa_method=OWNER_MANAGED`, `qa_required=true`, `manager_decision=NOT TESTED`, `release_required=false`, `release_authorized=false`. Owner 최종 ACCEPT/병합·릴리스 권한을 기계 PASS로 승격하지 않는다.
 - `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`, `docs/TEST_PLAN.md` 및 #593/#595/#598/#600/#712/#770/#771/#772 지침을 우선한다. 역사적 문서의 six-shard 수치를 현재 계약으로 오용하지 않는다.
 
@@ -15,8 +15,8 @@
 
 2026-10-22 #771 이후 **Draft** `opened/synchronize`는 Fast Development 보조 경로이며 세 Required aggregate는 `DRAFT_BLOCKED`; 이를 Full PASS로 인정할 수 없다. 현행 **Ready** `ready_for_review`는 `FINAL_FULL`을 시작한다. #767 이후 기본 Full E2E는 **8 shards**이며 #772의 LOW targeted 선택이 실제 적용되면 Full E2E8/8 자체의 실증 여부를 별도 구분한다.
 
-1. 이 검증 PR의 Head를 최신 main에 안전하게 정렬(기존 PR T3 두 파일 유지, merge/lease로 갱신), diff가 정확히 두 파일임을 재확인한다. 정상 제목에 `Issue #608`, 본문에 정확히 하나의 독립행 `Refs #608` 유지. 리뷰 스레드·mergeability·검증 run 귀속을 점검한다.
-2. Draft에서 **Ready for review 전환 후** GitHub `pull_request.ready_for_review`를 통한 원본 PR CI `FINAL_FULL` 시작. 이 전환은 **CI 시동**이지 PASS가 아니다. 자동 진단과 검사 결과를 관측하기 전 T3 live=NOT TESTED.
+1. 이 검증 PR의 Head를 최신 main에 안전하게 정렬(기존 T3 표식/Work Packet과 누적 실패 원장을 함께 보존, merge/lease로 갱신), diff가 정확히 두 파일임을 재확인한다. 정상 제목에 `Issue #608`, 본문에 정확히 하나의 독립행 `Refs #608` 유지. 리뷰 스레드·mergeability·검증 run 귀속을 점검한다.
+2. Draft→Ready는 이미 `#3200.1 FINAL_FULL`을 실행했으나 QA Preflight 문서 오류로 FAIL. 이번 Ready 유지 상태에서 문서·실패 원장 묶음의 단일 `synchronize`가 새로운 `FINAL_FULL`을 실행한다. 이 전환은 **CI 시동**이지 PASS가 아니다. 자동 진단과 검사 결과를 관측하기 전 T3 live=NOT TESTED.
 3. T3 초기 **정상 canonical Full CI**의 source run ID/attempt, 변경 파일/증거 artifact, PR number, Head/base/test-merge/validator SHA, Quality/E2E/Docker 세 Required 결과, 선택된 E2E 실제 shard·Docker Job, Trusted default-main run/attempt/JSON verdict를 모두 확보한다. 원본 실패/취소 또는 main drift는 BLOCKED/FAIL로 남기고 다음 단계로 넘어가지 않는다.
 4. 정상 Trusted PASS를 확보한 **후에만**, 다른 PR·main·workflow를 건드리지 않고 같은 PR #609의 제목만 `[Issue #999999] test: T3 invalid canonical trace`로 변경한다. 본문 `Refs #608`, Head 및 변경 파일 불변. metadata-only `edited` 원본과 Trusted가 잘못된 trace를 `FAIL/BLOCKED` 처리하고 잘못된 PASS가 없음을 실제 run/log/artifact로 입증한다.
 5. 제목을 `[Issue #608] test: Trusted QA T3 canonical trace negative/recovery`로 원복. 정확한 기존 Full CI 증거가 같은 PR/Head/base/test-merge/attempt에서만 재사용되고 metadata-only가 E2E·Docker heavy Job을 새로 실행하지 않았는지 확인하며 Trusted 복구를 별도 입증한다.
@@ -55,15 +55,44 @@
 
 각 테스트/attempt에 대해 `test_id | verdict(PASS/FAIL/BLOCKED/NOT TESTED/N/A(reason)) | historical/current | PR | source_run_id.attempt | source_job IDs | trusted_run_id.attempt | PR_head | base | test_merge | trusted_validator_SHA | artifact_id | policy/result reason | event time | actual runner-minutes | elapsed time | URL | AC`를 Issue #608 및 이 원장에 추가한다. URL만으로 runner 비용/JSON 필드 내부 값을 확인한 것으로 표기하지 않는다.
 
-### T3 live 증거 대장 (CI 시동 전 상태)
+### T3 live 증거 대장 (Ready #3200.1 문서 Preflight FAIL 이후)
 
 | Phase | Head/base/test merge | Source CI (attempt) | Trusted (attempt) | 평가 |
 | --- | --- | --- | --- | --- |
-| Ready 정상 기준 | **NOT TESTED** | **NOT TESTED** | **NOT TESTED** | 정상 Full/Trusted PASS 여부 미실측 |
+| Ready 정상 기준 | Head `b29eb44d44d7db98336b2cf6816d6a977ebc539a` / base `427d22245fb8e11254b2424ea5147ccbd5766979` / merge `e0bd16b7329a047b9a4ecd04092e5700e8d3f8c7` | [#3200.1](https://github.com/planner77/masterGantt/actions/runs/40035409513) DOCUMENTATION_SYNC Preflight FAIL | **NOT TESTED** | 정확 Head Full/Trusted PASS 미확보; 문서 구조 교정 후 새 `synchronize` Full 필요 |
 | Edited 제목 오류 | **NOT TESTED** | **NOT TESTED** | **NOT TESTED** | 정상 기준 확보 후에만 실행 |
 | Edited 원복 | **NOT TESTED** | **NOT TESTED** | **NOT TESTED** | 오류 차단 입증 후에만 실행 |
 
-## 6. AC_TEST_COVERAGE, 문서 동기화, 완료 경계
+## TEST_LIFECYCLE_REVIEW
+
+**사전 검색 범위(#711):** 최신 main `427d22245fb8e11254b2424ea5147ccbd5766979`의 기존 Policy Python, Playwright E2E 및 #593/#595/#629/#712 관련 테스트를 소스 파일/메서드/단언별로 읽기 전용 확인. 파일명만으로 중복을 확정하지 않고 기존 `AC_TEST_COVERAGE`의 AC1~AC7을 재사용한다.
+
+- **Policy canonical/Docs (AC1/AC2/AC7, KEEP_UNIQUE):** `scripts/test_qa_final_automated.py::test_primary_issue_and_injection`은 정확 `[Issue #580]`+독립행 `Refs #580` 반환과 `Refs #565` 불일치 BLOCKED를 단언하며, `::test_documents_and_ac`는 `docs_gate` 문서 매핑의 긍정과 AC/required-doc 누락 BLOCKED를 확인한다. `scripts/test_qa_preflight.py::test_replay_550_2373_primary_title_refs_before_heavy`, `::test_replay_626_2522_missing_required_docs_before_heavy` 및 `::test_ready_for_review_same_sha_and_draft_fail_closed`가 제목·문서·Draft/Ready 부정/긍정 사례를 구분한다. 이번 #3200.1의 `## DOCUMENTATION_SYNC` 누락은 **이 검사기가 정상 차단한 실제 문서 실수**이며 테스트 삭제·Assertion 완화 대상이 아니다.
+- **source·metadata/stale (AC3/AC4/AC5, KEEP_UNIQUE/PARTIAL_OVERLAP):** `scripts/test_qa_final_automated.py::test_source_artifact_association_rejects_ambiguous_prs`는 source `pull_requests=[]`에서도 단일 artifact+API 귀속만 허용하고 2 PR/불일치 base/head/attempt/fork를 차단한다. `::test_metadata_full_ci_requires_matching_base`, `::test_metadata_reuses_exact_full_run_after_qa_only_retry`, `::test_trusted_workflow_definition_never_checks_out_pr_code`는 attempt·base·default-branch 실행을 개별 검증한다. `scripts/test-pr-metadata-evidence.py`의 `M7-stale-head`, `M8-metadata-only`, `T6-multiple-associated-PRs`는 이전 Full 증거 잘못 재사용을 거부한다. Mock은 **실제 default-main Trusted workflow_run과 GitHub Actions retry/edited 경합 실행을 증명하지 못하므로** 원격 T3~T7 검증과 부분 중첩만 있다.
+- **브라우저 회귀 (AC4/AC5/AC6, KEEP_UNIQUE):** `tests/e2e/project-gantt-fullscreen.spec.ts`(기존 실패 지점 약 188행)는 Fullscreen 진입·종료 각각 native chart `scrollLeft`를 기존 `chartScroll`과 `toBeCloseTo(..., 0)`으로 비교하고 native vertical, Grid/Bar 정렬/선택도 보존한다. #2497.1/.2의 120→110은 진짜 원격 assertion 실패, #571 corrective #611 이전 기록. 이번 문서 수정은 해당 실제 브라우저 시험의 대체가 될 수 없어 **KEEP_UNIQUE**, 새 Head에서 재검증 필요.
+- **추가·확장·통합·폐기 판단:** 신규 제품/Policy validator 동작이나 assertion 변경 **0**이므로 `ADD=0`, `EXTEND=0`, `CONSOLIDATE_CANDIDATE=0`, `RETIRE_CANDIDATE=0`. 기존 Policy/브라우저 테스트는 환경·입출력·source provenance가 달라 의미적으로 중복이 아니다. 유사 실패 원장/검증 문서만 보완, 기존 테스트 삭제·Skip/Retry/Timeout 확대 금지.
+- **검색 및 검증 상태:** 위 소스 원문 메서드/단언 **정적 확인 완료**, 새 Work Packet의 H2/AC 문서 계약을 정적 대조한다. 실제 로컬 Python/Vitest/Playwright/Docker 실행은 `NOT TESTED`, 원격 새 `FINAL_FULL` 및 default-main Trusted도 완료 전 `NOT TESTED`. 기존 `#3200.1`은 Preflight 오류로 원격 E2E **NOT RUN**, 과거 #2497 실패를 PASS로 소급하지 않는다.
+- **잔여 위험/rollback:** 실제 GitHub `edited` 트리거·원본 run+attempt/test-merge/validator, API 응답 지연·권한 403/429, 8-shard E2E 안정성은 Unit/mock으로 입증할 수 없다. T3 정상 Full+Trusted PASS 전 malformed title 실험 금지. 오류 교정은 문서 2개만 revert 가능하며 비보호 marker/제품/Policy/QA/Ruleset·Owner 인수 불변. 안전한 close/branch deletion은 T3~T9 증거가 Issue #608에 기록된 뒤 별도 진행한다.
+
+## DOCUMENTATION_SYNC
+
+- `docs/exec-plans/active/ISSUE_608.md`: UPDATED
+- `docs/ISSUE_608_FAILURE_ANALYSIS.md`: UPDATED
+- `AGENTS.md`: N/A(#704 누적 실패 및 #711 Test Lifecycle 기존 규정만 적용하고 정책 자체는 변경하지 않음)
+- `docs/QA_REVIEW_POLICY.md`: N/A(Trusted QA 위험 승인 및 기본 브랜치 보안 경계 불변)
+- `docs/CI_CD.md`: N/A(기존 Required3와 Draft Ready Full CI 정책·Workflow 변경 없음)
+- `docs/TEST_PLAN.md`: N/A(기존 Test Lifecycle 및 회귀 테스트의 실행 의미를 변경하지 않음)
+- `docs/GITHUB_OPERATIONS.md`: N/A(운영 설정 및 Ruleset 권한 불변)
+- `docs/REMOTE_VALIDATION.md`: N/A(현재 원격 T3 검증 계획의 인수 기준만 본 Work Packet에 기록)
+- `docs/ISSUE_LIFECYCLE.md`: N/A(검증 PR은 미병합이고 Issue 종료 및 Owner 승인 진행하지 않음)
+- `DESIGN.md`: N/A(제품 UI와 UX 계약 변경 없음)
+- `docs/API.md`: N/A(서버 API 및 요청 응답 불변)
+- `docs/DB_SCHEMA.md`: N/A(SQLite 스키마 및 데이터 변경 없음)
+- `docs/ARCHITECTURE.md`: N/A(제품 구조와 코드 변경 없음)
+
+변경하지 않은 기존 `public/qa-trusted-t3-issue-608.txt` 정적 표식은 시험 범위에서 유지한다. `UPDATED` 두 문서는 이번 보완의 실제 수정 파일이며, 승인/QA 검증기를 변경하지 않는다.
+
+## AC_TEST_COVERAGE
 
 - AC1: T3~T9 각각 역사적/현재 verdict 분리 — 이 원장에서 **현 시점 상태를 기록**, 최종 판정은 후속 원격 실행.
 - AC2: 현재 T3 3단계 Full/Trusted 원격 실증 — **NOT TESTED**, Ready Full 시작만 이 단계에서 수행.
@@ -73,12 +102,8 @@
 - AC6: T1/T2 역사 보존, 예외와 진짜 회귀 분리, #609 미병합/branch cleanup — 미병합, **cleanup NOT TESTED**.
 - AC7: 실제 운영 결함 확인 시 재현·원인·기대값·출처와 함께 **별도 구현 Issue**. #571은 이미 종료됐으며 기존 실패는 역사적 원장으로 보존. 아직 새 결함 **NOT TESTED**.
 
-**DOCUMENTATION_SYNC**
-- `docs/exec-plans/active/ISSUE_608.md`: **UPDATED** (T3~T9 검증 매트릭스·이력·최신 Draft/Ready/E2E8 계약·원격 runbook).
-- `public/qa-trusted-t3-issue-608.txt`: **UNCHANGED** (T3용 무해 표식).
-- `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`, `docs/TEST_PLAN.md`: **N/A (정책·검증기·운영 절차 변경 없음; 본 문서가 현재 계약을 참조)**.
-- `DESIGN.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/ARCHITECTURE.md`: **N/A (제품 UI/API/DB/아키텍처 변경 없음)**.
-- **원격 영구 기록:** 이 Work Packet은 미병합 실험 PR의 문서로서 main에 남지 않는다. 완료 후 최종 원장·AC 결과는 Issue #608 댓글에 독립적으로 기록하고 시험 PR은 삭제/close해야 한다.
+- **Review P1 연결:** `TEST_LIFECYCLE_REVIEW`에서 기존 Policy canonical/Docs↔AC1/2/7, source·stale↔AC3/4/5, 실제 브라우저 회귀↔AC4/5/6의 기존 assertion 및 mock/remote 미커버 영역을 근거로 `KEEP_UNIQUE/PARTIAL_OVERLAP` 판정하였다. Test 추가/삭제 없으며 원격 Required3와 T3 부정 실험은 독립 증거로 계속 요구한다.
+- **누적 F608-003:** [PR CI #3200.1](https://github.com/planner77/masterGantt/actions/runs/40035409513)의 `## DOCUMENTATION_SYNC` 구조 누락으로 QA Preflight FAIL; Unit/8-shard/Docker 실제 Job은 SKIPPED/NOT TESTED. 역사적 #2493/#2497 및 신규 #3199 Draft 기대 FAIL을 별도 [#608 실패 원장](../../ISSUE_608_FAILURE_ANALYSIS.md)에 보존한다.
 
 ## 7. 금지 작업
 
