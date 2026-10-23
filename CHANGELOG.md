@@ -2,6 +2,7 @@
 
 ### Changed
 
+- 두 번째 PR CI #3193.1의 `npm audit --omit=dev`가 탐지한 Zod4.6.2 High 취약점(GHSA-mrhx-c7xc-m3w5)에 대응해 운영 Zod4.6.7 및 exact lock SRI를 갱신합니다. 역사적 Gantt Core 캡처는 불변으로 두고 검증용 비교 복사본에만 승인된 차이를 적용합니다. #556 단일 실패 원장 F-002 및 새 Full PR 검증을 참조하며 앱 버전 0.130.2는 유지합니다.
 - 일정의 기본 전체 범위에서 불필요한 탐색 행과 중복 제목·정상 안내를 줄이고, 선택 작업과 현재 Summary의 담당자·공수 조회를 검색·필터에 인접한 별도 명령으로 제공합니다. 기존 범위·포커스·readonly 조회와 Gantt toolbar/marker OFF를 유지합니다. (#556)
 
 ## [0.130.1] — Unreleased / Issue #750 E2E 안정화

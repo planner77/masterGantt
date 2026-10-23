@@ -191,3 +191,12 @@ UI 검토가 기본16관측은 긴 이름을 보유했지만 Milestone 선택값
 - [정규 실패 원장](../../ISSUE_556_FAILURE_ANALYSIS.md) 신설; 관련 테스트/본 Work Packet 외 DESIGN/ARCHITECTURE/AGENTS/API/DB/CI/QA 요구 문서는 의미 변경 없음으로 N/A. 기존 verify:prepr CSS map BLOCKED는 계속 BLOCKED. 리뷰 스레드 0, 기존 PR mergeable 및 main behind0 (수정 전 재조회). 새 commit 이후 상태 재검증 필요.
 - 인계: 새 exact Head의 공식 Required Quality/Chromium8/Docker·Trusted QA·Owner 수용 NOT TESTED. risk_level=HIGH, qa_method=OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false, MERGE_READY=BLOCKED 유지. 병합·Main·GHCR·Finalizer·Issue 종료는 이번 범위 밖.
 
+## 2026-10-24 — PR #786 두 번째 Full CI #3193.1 F-002 보안 감사 대응
+
+- [원본 Run 40028881375.1](https://github.com/planner77/masterGantt/actions/runs/40028881375)·Head 411fd5990da7958191661eed2e4f0b5fcff3a619·base 427d22245fb8e11254b2424ea5147ccbd5766979·test merge 951e5aaa1829f47dee10a426ba52db6c89949c56. 실행 event=pull_request FINAL_FULL. 독립 Fast 40028881372 SKIPPED.
+- **직접 FAIL**: Policy 120672045024 `npm audit --omit=dev`, Zod 4.6.2에 대한 High GHSA-mrhx-c7xc-m3w5, exit1. Vitest·TS·lint·npm ci·Preflight PASS, Fast Gate FAIL, 실제 E2E8·Docker smoke·PR Build 미실행, Required3·QA 파생 FAIL. F-001 #570 E2E 교정은 여전히 원격 NOT TESTED.
+- **보완**: exact Zod 4.6.7 manifest/lock/SRI(패키지 외 변화0), 역사적 Gantt Core Zod4.6.2 원본 캡처는 불변으로 두고 별도 reviewed Zod exact SRI·registry/metadata 승인 후 메모리 정규화. 기존 Next security allowlist 불변, release app0.130.2 유지.
+- **TEST_LIFECYCLE_REVIEW**: `prepr-verifier.test.ts` 기존 test EXTEND, manifest/root mismatch, altered version/SRI/URL/extra metadata 총 6개 음성 검증 강화. 다른 Core 캡처 실소비 테스트3개, 기존 #556 UX E2E 및 #570 case, 실제 HTTP/SQLite security schema KEEP_UNIQUE. 신규 spec/샤드/timeout/retry/skip/Required 변경0.
+- **DOC_SYNC**: README, RESEARCH, SECURITY, CHANGELOG, Work Packet 및 [누적 원장 F-002](../../ISSUE_556_FAILURE_ANALYSIS.md) 업데이트. TEST_PLAN 기존 지침은 변경 없이 참조; DESIGN/API/DB_SCHEMA/SCHEDULING_ENGINE/AGENTS/CI_CD/QA_REVIEW_POLICY N/A(권한·런타임·CI 게이트 변경 없음).
+- **검증 한계**: npm registry DNS 불가로 로컬 신규 Zod 설치·감사·Vitest/TS/Browser 실증 NOT TESTED. 정확 JSON 버전·locked package2 entry, SRI와 음성 fixture source 검증만 수행, 원격 CI에서 npm ci/audit·전체 Vitest/Build/Chromium8/Docker 재검증. Unbounded 입력 배열/집합/맵의 메모리 위험 전수조사까지 완료했다는 의미는 아니다.
+- **상태**: HIGH/OWNER_MANAGED, release_required=true/release_authorized=false, QA/Owner/Required new Head=NOT TESTED, MERGE_READY=BLOCKED. 미해결 리뷰/mergeability와 main strict는 push 전후 확인. 새 Full CI 시작 이후 지속 감시, 병합/Main/GHCR/Finalizer/Issue 종료는 범위 밖.

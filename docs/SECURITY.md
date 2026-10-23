@@ -1,3 +1,13 @@
+## Issue #556 — Zod 운영 의존성 High 감사 차단과 잔여 입력 크기 보호 (2026-10-24)
+
+[PR #786 Full CI #3193.1](https://github.com/planner77/masterGantt/actions/runs/40028881375)에서 Zod4.6.2에 대해 [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)(collection validation의 비정상 메모리 소비, High)가 `npm audit --omit=dev`를 차단했다. 정확 `zod@4.6.7` [업스트림 릴리스](https://github.com/colinhacks/zod/releases/tag/v4.6.7) 및 manifest/lock/SRI로 운영 패키지를 교정하지만, 권고 severity/CI policy/Required/Trusted QA/Owner Gate를 우회하지 않는다. 새 Head 원격 `npm ci`·audit PASS 및 실제 Next/Chromium/Docker 호환은 아직 검증되지 않았다.
+
+**잔여 보안 경계:** Zod를 최신 패치로 올렸다는 사실만으로 크기 상한 없는 배열·집합·맵의 모든 메모리 고갈 위험까지 해결되었다고 보장하지 않는다. JSON 전송 byte/depth, route 입력 건수, 중첩 컨테이너 최대 길이 및 처리 예산을 서버에서 계속 검증한다. 이번 PR은 기존 input schema/API/auth/DB 계약을 바꾸지 않고 취약 dependency 패치 및 승인된 역사적 테스트 캡처 비교만 한정 수정한다. 역사적 캡처의 Zod4.6.2와 Next16.3.8 원본은 삭제·덮어쓰지 않으며 `approved-zod-4.6.7-lock.json`의 실제 registry/SRI/metadata를 정확히 검증한 비교용 메모리 사본만 정규화한다. 전수 unbounded schema 감사나 운영 공격 내성 검증은 **NOT TESTED**이며, 추가 검토 시 별도 범위로 진행한다.
+
+[Issue #556 누적 실패 원장](ISSUE_556_FAILURE_ANALYSIS.md)의 F-001 E2E와 F-002 dependency audit, [Work Packet](exec-plans/active/ISSUE_556.md)의 TEST_LIFECYCLE_REVIEW를 구분한다. 새 exact-Head Full CI·Owner/Trusted 검증과 승인 전 MERGE_READY=BLOCKED, release_authorized=false.
+
+---
+
 ## Issue #762 — Next.js 16.4.2 보안 패치의 역사적 Gantt 캡처 검증 계약 (2026-10-22)
 
 [Full #3160.1](https://github.com/planner77/masterGantt/actions/runs/39843514111)에서 Next.js 16.4.2의 production audit는 통과했지만, 구 Gantt Core 브라우저 capture fixture의 Next.js 16.3.8 잠금 파일과 현재 `package.json`/`package-lock.json`의 비교가 Vitest 네 사례에서 실패했다. 역사적 기록과 해시를 바꾸어 현재 설치의 PASS라고 주장하지 않는다. `tests/fixtures/gantt-state-consistency/capture-install.ts`는 `approved-next-16.4.2-lock.json`의 **Next.js/`@next/env` 및 8개 플랫폼 `@next/swc-*` 전체 lock package object**를 SRI·registry URL/architecture/optional/dependencies까지 일치시킨 후에만 구 캡처 비교용 메모리 객체에서 16.3.8로 정규화한다. 그 외 manifest metadata·scripts·모든 563개 lock entry 및 Core 원본 캡처 해시는 기존 strict equality 유지.

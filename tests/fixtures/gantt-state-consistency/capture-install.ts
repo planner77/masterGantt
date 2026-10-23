@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 // Historic Core/browser captures are immutable evidence for the original install.
-// The exact Next.js security update is separately pinned; it never rewrites the
-// old capture or treats an unverified dependency upgrade as equivalent evidence.
+// Next.js and Zod security updates are separately pinned; neither changes old
+// captures or treats an unverified dependency upgrade as equivalent evidence.
 const nextSecurityPackagePaths = [
   "node_modules/next",
   "node_modules/@next/env",
@@ -18,10 +18,11 @@ const nextSecurityPackagePaths = [
   "node_modules/@next/swc-win32-x64-msvc",
 ] as const;
 const approvedPatchUrl = new URL("./approved-next-16.4.2-lock.json", import.meta.url);
+const approvedZodUrl = new URL("./approved-zod-4.6.7-lock.json", import.meta.url);
 
-/** Verify the original Core capture's dependency provenance, allowing only the
- * separately reviewed exact Next.js 16.4.2 security patch. Every other package,
- * script, metadata field, package name, and capture byte remains strict. */
+/** Verify immutable Core capture provenance with exact reviewed Next.js 16.4.2
+ * and Zod 4.6.7 security patches. All other packages/scripts/metadata and the
+ * original captured files remain subject to strict equality. */
 export function assertCapturedInstall(root: string): void {
   const captured = (name: string) => JSON.parse(readFileSync(resolve(root,
     `tests/fixtures/gantt-state-consistency/capture-sources/${name}-original.snapshot.txt`), "utf8"));
@@ -65,6 +66,33 @@ export function assertCapturedInstall(root: string): void {
       `Approved Next.js security patch exact locked package metadata mismatch: ${path}`);
     lock.packages[path] = oldLock.packages[path];
   }
+
+  // #556 F-002: the original capture used Zod 4.6.2. Do not rewrite
+  // historical source snapshots to hide the current production security fix.
+  // Trusted approval metadata is imported from this module's own location,
+  // not from a directory supplied by a caller or test fixture.
+  const approvedZod = JSON.parse(readFileSync(approvedZodUrl, "utf8"));
+  assert.equal(approvedZod.schema, "mastergantt-zod-security-patch-v1");
+  assert.equal(approvedZod.capturedVersion, "4.6.2");
+  assert.equal(approvedZod.patchedVersion, "4.6.7");
+  assert.deepEqual(Object.keys(approvedZod.package).sort(),
+    ["version", "resolved", "integrity", "license", "funding"].sort(),
+    "Approved Zod package must not gain new metadata fields");
+  assert.equal(oldManifest.dependencies.zod, approvedZod.capturedVersion,
+    "Historic Zod captured manifest unexpectedly changed");
+  assert.equal(oldLock.packages[""].dependencies.zod, approvedZod.capturedVersion,
+    "Historic Zod captured lock root unexpectedly changed");
+  assert.equal(oldLock.packages["node_modules/zod"]?.version, approvedZod.capturedVersion,
+    "Historic Zod captured package unexpectedly changed");
+  assert.equal(manifest.dependencies.zod, approvedZod.patchedVersion,
+    "Only reviewed Zod 4.6.7 security patch is accepted in current manifest");
+  assert.equal(lock.packages[""].dependencies.zod, approvedZod.patchedVersion,
+    "Only reviewed Zod 4.6.7 security patch is accepted in current lock root");
+  assert.deepEqual(lock.packages["node_modules/zod"], approvedZod.package,
+    "Approved Zod security patch exact locked package metadata mismatch");
+  manifest.dependencies.zod = oldManifest.dependencies.zod;
+  lock.packages[""].dependencies.zod = oldLock.packages[""].dependencies.zod;
+  lock.packages["node_modules/zod"] = oldLock.packages["node_modules/zod"];
 
   // Versions of the app itself changed independently of the browser capture.
   manifest.version = oldManifest.version;

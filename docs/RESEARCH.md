@@ -20,7 +20,7 @@ Node 22 내장 `crypto.randomUUID()`, `randomBytes()`, async `scrypt()`와 SHA-2
 
 Next.js 16 App Router의 동적 route `params`는 Promise이므로 page와 Route Handler에서 `await params`를 사용했다. `better-sqlite3`와 Node crypto를 쓰는 Project API는 `runtime = "nodejs"`, DB 조회 route는 `dynamic = "force-dynamic"`으로 선언했다. [Route Handler](https://nextjs.org/docs/app/api-reference/file-conventions/route), [Dynamic segments](https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes)
 
-Project request schema에는 설치 시 npm metadata와 artifact를 확인한 Zod **4.6.2**, MIT를 exact direct dependency로 고정했다. `strict()` object와 refinement/transform으로 unknown field, malformed Unicode, Unicode code-point 길이와 password UTF-8 byte 상한을 server에서 검증한다. Client 검증은 UX일 뿐 이 경계를 대체하지 않는다. [Zod 공식 문서](https://zod.dev/), [npm package](https://www.npmjs.com/package/zod)
+Project request schema의 최초 W04 시점 설치 근거는 Zod **4.6.2**(MIT)였다. #556 F-002(2026-10-24)에서 production `npm audit --omit=dev`의 High 권고 GHSA-mrhx-c7xc-m3w5가 새로 차단되어 운영 의존성을 정확히 **4.6.7**(MIT) manifest/lock으로 교정했다. W04의 선택·캡처 원본은 역사적 사실로 보존한다. `strict()` object와 refinement/transform으로 unknown field, malformed Unicode, Unicode code-point 길이와 password UTF-8 byte 상한을 server에서 검증한다. Client 검증은 UX일 뿐 이 경계를 대체하지 않는다. [Zod 공식 문서](https://zod.dev/), [npm package](https://www.npmjs.com/package/zod)
 
 W04 구현 선택과 실행 결과는 [W04_REVIEW.md](W04_REVIEW.md)에 분리했다. Production hardware의 scrypt latency/memory와 trusted proxy 기반 limiter는 실제 D03 환경에서 다시 측정하며, 공개 direct read 모델이 조직 기밀성 요구를 충족하는지는 코드로 추정하지 않는다.
 
