@@ -1,0 +1,8 @@
+테스트·정적검사 실행 출력 발췌(줄 끝 공백 정규화). 앱 런타임 WebServer 로그는 제외했으며 전체 원본은 로컬 /tmp에 별도 보존합니다.
+
+
+> mastergantt@0.130.2 verify:prepr
+> node scripts/verify-prepr.mjs --mode=fast --base=427d22245fb8e11254b2424ea5147ccbd5766979 --issue=556 --risk=HIGH
+
+
+[prepr] BLOCKED. Report: /home/planner/Dev/masterGantt-worktrees/issue-556/.prepr-reports/2026-10-23T13-17-57.663Z-145961-10ab42e9/SUMMARY.md

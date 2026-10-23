@@ -773,32 +773,17 @@ h2 {
   flex: 0 0 auto;
 }
 
-.schedule-heading-row {
+.project-schedule-status {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.schedule-heading-row > div {
-  display: flex;
-  align-items: baseline;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.schedule-heading-row h2 {
-  font-size: 1rem;
-}
-
-.schedule-heading-row h2 {
-  margin: 0 0 0.25rem;
-}
-
-.schedule-heading-row p,
+.project-schedule-status p,
 .schedule-scope-note {
   margin: 0;
-  color: var(--muted-foreground);
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 
@@ -2615,3 +2600,89 @@ h2 {
 .project-scope-navigation > button { flex: 0 0 auto; font-size: .8125rem; }
 .project-scope-navigation > .project-scope-tabs { flex: 1 1 auto; }
 .project-logistics-panel { overflow-x: hidden; overflow-y: auto; }
+
+/* #556: Project-owned lookup commands remain beside filters, outside the Core toolbar. */
+.project-schedule-resource-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  max-width: 100%;
+}
+.project-schedule-resource-actions > .secondary-button {
+  min-height: 44px;
+  max-width: 100%;
+  border-color: var(--border-control);
+  background: var(--surface-panel);
+  color: var(--action-secondary-foreground);
+  overflow-wrap: anywhere;
+}
+.project-schedule-resource-actions > .secondary-button:hover:not(:disabled) {
+  background: var(--action-secondary);
+}
+.project-schedule-resource-state {
+  max-width: 100%;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.project-schedule-filter-toolbar .project-filter-result {
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 64rem) {
+  .project-schedule-filter-toolbar > .project-schedule-resource-actions {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+}
+@media (max-width: 50rem) {
+  .project-schedule .project-schedule-filter-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .project-schedule .project-schedule-filter-toolbar .project-filter-search {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .project-schedule .project-schedule-filter-toolbar .project-filter-trigger {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .project-schedule .project-schedule-filter-toolbar .project-stage-filter {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .project-schedule .project-stage-filter-trigger {
+    min-width: 0;
+    max-width: min(20rem, 100%);
+    flex: 1 1 18rem;
+  }
+  .project-schedule .project-stage-filter > details {
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 12rem;
+  }
+  .project-schedule .project-stage-clear {
+    align-self: center;
+    max-width: 100%;
+  }
+  .project-schedule .project-schedule-filter-toolbar .project-filter-result {
+    grid-column: 1;
+    grid-row: 3;
+    justify-self: start;
+  }
+  .project-schedule .project-schedule-filter-toolbar .project-filter-reset {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  .project-schedule .project-schedule-filter-toolbar > .project-schedule-resource-actions {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+}

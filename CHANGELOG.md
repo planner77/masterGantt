@@ -1,3 +1,11 @@
+## [0.130.2] - 2026-10-23
+
+### Changed
+
+- 세 번째 PR CI #3196.1의 설정 모달 열기에서 조회 버튼의 긴 disabled 안내가 배경 툴바를 재배치해 Gantt가 27.5px 이동하는 UI 회귀를 교정합니다. 원래 짧은 inline 선택/범위 힌트는 고정하고 모달의 정확한 차단 사유는 title/ARIA로 유지하여 모달 오류·알림함·Gantt 기하/인스턴스 검증을 강화합니다. #556 F-003 원장에 이전 실패를 보존하며 추가 버전 상향 없이 0.130.2를 유지합니다.
+- 두 번째 PR CI #3193.1의 `npm audit --omit=dev`가 탐지한 Zod4.6.2 High 취약점(GHSA-mrhx-c7xc-m3w5)에 대응해 운영 Zod4.6.7 및 exact lock SRI를 갱신합니다. 역사적 Gantt Core 캡처는 불변으로 두고 검증용 비교 복사본에만 승인된 차이를 적용합니다. #556 단일 실패 원장 F-002 및 새 Full PR 검증을 참조하며 앱 버전 0.130.2는 유지합니다.
+- 일정의 기본 전체 범위에서 불필요한 탐색 행과 중복 제목·정상 안내를 줄이고, 선택 작업과 현재 Summary의 담당자·공수 조회를 검색·필터에 인접한 별도 명령으로 제공합니다. 기존 범위·포커스·readonly 조회와 Gantt toolbar/marker OFF를 유지합니다. (#556)
+
 ## [0.130.1] — Unreleased / Issue #750 E2E 안정화
 
 - 첫 병합 [Main #3183.1](https://github.com/planner77/masterGantt/actions/runs/39910342165)의 #490 기존 Gantt 세로 스크롤 설정 38px→실제0 회귀를 확인했다. X 용량 19→903의 후행 레이아웃 변화를 진단하고 테스트 준비에서 native X 안정·두 RAF·Y scroll capacity를 검증한 다음 원래 Y=38·Settings 상태 보존 단언을 유지한다. 새 PATCH 버전 추가 없이 같은 #750 교정 PR에서 검증; 실패 Main 원본/Release 대기/정식 게시 미완료를 보존한다.

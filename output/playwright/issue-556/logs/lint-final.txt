@@ -1,0 +1,43 @@
+테스트·정적검사 실행 출력 발췌(줄 끝 공백 정규화). 앱 런타임 WebServer 로그는 제외했으며 전체 원본은 로컬 /tmp에 별도 보존합니다.
+
+
+> mastergantt@0.130.2 lint
+> eslint .
+
+
+/home/planner/Dev/masterGantt-worktrees/issue-556/src/app/api/projects/[publicId]/logistics/targets/[targetId]/route.ts
+  6:10  warning  'handleListTargets' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/planner/Dev/masterGantt-worktrees/issue-556/src/app/api/projects/[publicId]/logistics/targets/[targetId]/usage/route.ts
+  6:10  warning  'handleListTargets' is defined but never used   @typescript-eslint/no-unused-vars
+  6:46  warning  'handleMutateTarget' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/planner/Dev/masterGantt-worktrees/issue-556/src/app/api/projects/[publicId]/logistics/targets/route.ts
+  6:29  warning  'handleGetTarget' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/planner/Dev/masterGantt-worktrees/issue-556/src/features/gantt/project-gantt.tsx
+  1308:6  warning  React Hook useEffect has a missing dependency: 'restoreFullscreenUiState'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  3216:6  warning  React Hook useMemo has a missing dependency: 'interceptNativeTaskAdd'. Either include it or remove the dependency array      react-hooks/exhaustive-deps
+  3993:6  warning  React Hook useEffect has a missing dependency: 'closeStartDatePicker'. Either include it or remove the dependency array      react-hooks/exhaustive-deps
+
+/home/planner/Dev/masterGantt-worktrees/issue-556/src/features/gantt/task-assignment-editor.tsx
+  182:6  warning  React Hook useEffect has a missing dependency: 'onUnauthorized'. Either include it or remove the dependency array. If 'onUnauthorized' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+/home/planner/Dev/masterGantt-worktrees/issue-556/src/features/milestones/use-milestone-dashboard.ts
+  67:55  warning  The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/home/planner/Dev/masterGantt-worktrees/issue-556/src/features/projects/project-copy-button.tsx
+  190:6  warning  React Hook useEffect has a missing dependency: 'show'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/planner/Dev/masterGantt-worktrees/issue-556/src/features/projects/project-readonly-view.tsx
+  34:10  warning  'WbsViewDashboard' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/planner/Dev/masterGantt-worktrees/issue-556/src/features/resources/legacy-project-resource-workload.tsx
+  214:21  warning  The ref value 'requestId.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'requestId.current' to a variable inside the effect, and use that variable in the cleanup function                    react-hooks/exhaustive-deps
+  216:28  warning  The ref value 'requestControllers.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'requestControllers.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  224:9   warning  The 'targets' logical expression could make the dependencies of useMemo Hook (at line 225) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'targets' in its own useMemo() Hook                                                react-hooks/exhaustive-deps
+
+/home/planner/Dev/masterGantt-worktrees/issue-556/tests/server/logistics/logistics-copy-guard.test.ts
+  9:30  warning  'LogisticsCopyNotSupportedYetError' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 15 problems (0 errors, 15 warnings)

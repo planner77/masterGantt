@@ -853,8 +853,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   function focusScopeTab(taskId: string | null): void {
     requestAnimationFrame(() => {
       const tab = scopeTabReferences.current.get(scopeStateKey(taskId));
-      tab?.focus({ preventScroll: true });
-      tab?.scrollIntoView({ block: "nearest", inline: "nearest" });
+      if (tab) {
+        tab.focus({ preventScroll: true });
+        tab.scrollIntoView({ block: "nearest", inline: "nearest" });
+      } else {
+        // The normal full schedule has no scope navigation row.
+        taskSearchReference.current?.focus({ preventScroll: true });
+      }
     });
   }
 
@@ -2895,6 +2900,44 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   );
   const editing = permission === "edit" && permissionCheckState === "complete";
   const busy = canonicalRecoveryBlocked || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask || importPending || copyReview !== null || milestoneCreate !== null;
+  // #556 F-003: a modal must not resize the background Gantt merely by
+  // replacing an inline selection hint with a much longer dialog-blocked hint.
+  // Keep the underlying selection/scope hint in flow while the top-layer
+  // dialog is open; expose the actual disabled reason via title/ARIA instead.
+  const resourceOverlayOpen = editorSession !== null || relationEditorRequest !== null ||
+    settingsOpen || pendingTaskDelete !== null || copyReview !== null || milestoneCreate !== null;
+  const resourceNavigationBlockedReason = canonicalRecoveryBlocked
+    ? "최신 저장 결과를 확인한 뒤 조회할 수 있습니다."
+    : navigationLoading
+      ? "담당자·공수 조회로 이동 중입니다."
+      : editorSession !== null
+        ? "작업 편집기를 닫은 뒤 조회할 수 있습니다."
+        : resourceOverlayOpen
+          ? "열린 편집·확인 창을 닫은 뒤 조회할 수 있습니다."
+          : busy
+            ? "저장·처리가 끝난 뒤 조회할 수 있습니다."
+            : null;
+  const ordinaryTaskIds = new Set(tasks.filter(task => task.type === "task").map(task => task.taskId));
+  const selectionHasOrdinaryTasks = workspaceSelection.some(taskId => {
+    if (ordinaryTaskIds.has(taskId)) return true;
+    const scope = resolveTaskSubtreeScope(tasks, taskId);
+    return scope.kind === "valid" && scope.taskIds.some(id => ordinaryTaskIds.has(id));
+  });
+  const selectedScopeBlockedReason = !workspaceSelection.length
+    ? "작업을 선택해 주세요."
+    : !selectionHasOrdinaryTasks ? "선택 범위에 일반 Task가 없습니다." : null;
+  const summaryScopeBlockedReason = subtreeScopeInvalid
+    ? "유효한 Summary 범위로 이동해 주세요."
+    : !scopedTasks.some(task => task.type === "task") ? "Summary 범위에 일반 Task가 없습니다." : null;
+  const selectedResourceBlockedReason = resourceNavigationBlockedReason ?? selectedScopeBlockedReason;
+  const summaryResourceBlockedReason = resourceNavigationBlockedReason ?? summaryScopeBlockedReason;
+  const selectedResourceInlineReason = resourceOverlayOpen ? selectedScopeBlockedReason : selectedResourceBlockedReason;
+  const summaryResourceInlineReason = resourceOverlayOpen ? summaryScopeBlockedReason : summaryResourceBlockedReason;
+  const scheduleStatus = scopedTasks.length === 0
+    ? "표시할 작업이 없습니다."
+    : scopedTasks.every(task => task.start === null)
+      ? "일정이 있는 하위 작업이 없습니다."
+      : null;
   const scopeTabLabel = (taskId: string): string => {
     const task = tasks.find((candidate) => candidate.taskId === taskId);
     if (!task) return "선택한 Summary";
@@ -3179,7 +3222,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         aria-busy={isSavingTask || undefined}
         className="project-schedule project-workspace-panel"
       >
-        <div className="project-scope-navigation"><button ref={node => { if (node) scopeTabReferences.current.set(scopeStateKey(null), node); else scopeTabReferences.current.delete(scopeStateKey(null)); }} className="secondary-button" type="button" onClick={showFullSchedule} aria-pressed={activeRootTaskId === null}>전체 일정 보기</button>
+        {openScopeTaskIds.length > 0 || activeRootTaskId !== null ? <div className="project-scope-navigation"><button ref={node => { if (node) scopeTabReferences.current.set(scopeStateKey(null), node); else scopeTabReferences.current.delete(scopeStateKey(null)); }} className="secondary-button" type="button" onClick={showFullSchedule} aria-pressed={activeRootTaskId === null}>전체 일정 보기</button>
         <div className="project-scope-tabs" role="tablist" aria-label="WBS 범위 탭">
           {openScopeTaskIds.map((taskId) => {
             const label = scopeTabLabel(taskId);
@@ -3191,38 +3234,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             </div>;
           })}
         </div>
-        </div>
+        </div> : null}
         <div className="project-scope-panel" id="project-scope-panel" role={activeRootTaskId ? "tabpanel" : "region"} aria-labelledby={activeRootTaskId ? scopeTabId(activeRootTaskId) : "schedule-heading"}>
-        <div className="schedule-heading-row"><div><h2 id="schedule-heading">일정</h2><button
-                      type="button"
-                      disabled={
-                        busy ||
-                        navigationLoading ||
-                        editorSession !== null ||
-                        !workspaceSelection.length
-                      }
-                      onClick={() =>
-                        scheduleToResources(ganttSelection.current)
-                      }
-                    >
-                      선택 Task의 모든 개인 담당 조회
-                    </button>
-                    {activeRootTaskId ? (
-                      <button
-                        type="button"
-                        disabled={
-                          busy || navigationLoading || editorSession !== null
-                        }
-                        onClick={() =>
-                          scheduleToResources([], activeRootTaskId)
-                        }
-                      >
-                        Summary 하위 모든 개인 담당 조회
-                      </button>
-                    ) : null}
-                    <p>{scopedTasks.length === 0 ? "표시할 작업이 없습니다." : scopedTasks.every((task) => task.start === null) ? "일정이 있는 하위 작업이 없습니다." : "작업 일정을 확인하고 관리합니다."}</p></div>
-          {isSavingTask ? (
-                    <span className="schedule-saving" role="status">일정 저장 중…</span> ) : null}</div>
+        <h2 id="schedule-heading" className="sr-only" tabIndex={-1}>일정</h2>
+        {scheduleStatus || isSavingTask ? <div className="project-schedule-status">
+          {scheduleStatus ? <p role="status">{scheduleStatus}</p> : null}
+          {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}
+        </div> : null}
         <div className="project-filter-toolbar project-schedule-filter-toolbar" role="toolbar" aria-label="작업 검색과 필터" onKeyDown={closeTaskFilterOnEscape}>
           <label className="project-filter-search">
             <span className="sr-only">작업 검색</span>
@@ -3241,6 +3259,32 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           <StageFilterPicker tasks={tasks} value={taskFilter.milestoneTaskId} onChange={(milestoneTaskId) => setTaskFilter((current) => ({ ...current, milestoneTaskId }))} />
           {activeFilters > 0 ? (
                     <button className="secondary-button project-filter-reset" type="button" onClick={resetTaskFilter}>초기화</button> ) : null}
+          <div className="project-schedule-resource-actions" role="group" aria-label="담당자·공수 조회 명령">
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={selectedResourceBlockedReason !== null}
+              aria-describedby={`schedule-selected-resources-description ${resourceOverlayOpen ? "schedule-selected-resources-overlay-state" : "schedule-selected-resources-state"}`}
+              title={selectedResourceBlockedReason ?? "선택한 Task 및 선택 Summary의 일반 Task 자손에 배정된 모든 개인을 Resource 대시보드에서 조회"}
+              onClick={() => scheduleToResources(ganttSelection.current)}
+            >담당자·공수 조회</button>
+            <span id="schedule-selected-resources-description" className="sr-only">선택한 Task 및 선택 Summary의 일반 Task 자손에 배정된 모든 개인을 Resource 대시보드에서 조회합니다. 개인 배정이 없으면 안내합니다.</span>
+            <span id="schedule-selected-resources-state" className={selectedResourceInlineReason ? "project-schedule-resource-state" : "sr-only"}>{selectedResourceInlineReason}</span>
+            {resourceOverlayOpen ? <span id="schedule-selected-resources-overlay-state" className="sr-only">{selectedResourceBlockedReason}</span> : null}
+            {activeRootTaskId ? <>
+              <button
+                className="secondary-button"
+                type="button"
+                disabled={summaryResourceBlockedReason !== null}
+                aria-describedby={`schedule-summary-resources-description ${resourceOverlayOpen ? "schedule-summary-resources-overlay-state" : "schedule-summary-resources-state"}`}
+                title={summaryResourceBlockedReason ?? "현재 Summary 범위의 일반 Task 자손 전체에 배정된 개인과 공수를 조회"}
+                onClick={() => scheduleToResources([], activeRootTaskId)}
+              >Summary 전체 담당자·공수</button>
+              <span id="schedule-summary-resources-description" className="sr-only">현재 Summary 범위의 일반 Task 자손 전체를 조회합니다. 선택 Task 집합과 다른 범위입니다.</span>
+              <span id="schedule-summary-resources-state" className={summaryResourceInlineReason ? "project-schedule-resource-state" : "sr-only"}>{summaryResourceInlineReason}</span>
+              {resourceOverlayOpen ? <span id="schedule-summary-resources-overlay-state" className="sr-only">{summaryResourceBlockedReason}</span> : null}
+            </> : null}
+          </div>
           <span className="project-filter-result" role="status">{taskFilter.milestoneTaskId !== "all" ? `유효 소속 일반 작업 ${filteredTasks.ordinaryMatchCount}개 · ` : ""}{wbsLegacy ? `${filteredTasks.matchCount}개 일치` : `${filteredTasks.ordinaryMatchCount}개 일반 Task 일치 · 직접 Summary ${directSummaryCount}개 · context Summary ${contextSummaryCount}개`} / {" "}
                     {subtreeScope.kind === "valid" ? "범위" : "전체"}{" "} {wbsTasks.length}개 {wbsLegacy ? "작업" : "WBS 작업"}</span>
         </div>

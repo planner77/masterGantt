@@ -237,7 +237,7 @@ describe("Issue #699 — process and existing-data safety", () => {
   });
 });
 
-describe("Issue #699/#752/#762 — immutable historical capture with approved Next security patch", () => {
+describe("Issue #699/#752/#762/#556 — immutable historical capture with reviewed Next/Zod security patches", () => {
   it("allows only the exact local CLI alias while preserving all captured dependencies and scripts", () => {
     const dir = mkdtempSync(resolve(tmpdir(), "mastergantt-capture-test-"));
     created.push(dir);
@@ -336,6 +336,44 @@ describe("Issue #699/#752/#762 — immutable historical capture with approved Ne
     write();
     expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
     ganttCore.version = savedGanttVersion;
+
+    // #556 F-002 — actual current manifest/lock may differ only by the
+    // reviewed Zod security update. Keep the historic snapshots unchanged.
+    const installedZod = lock.packages["node_modules/zod"];
+    const savedManifestZod = manifest.dependencies.zod;
+    manifest.dependencies.zod = "4.6.6";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Only reviewed Zod 4\.6\.7 security patch/);
+    manifest.dependencies.zod = savedManifestZod;
+
+    const savedLockZod = lock.packages[""].dependencies.zod;
+    lock.packages[""].dependencies.zod = "4.6.2";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Only reviewed Zod 4\.6\.7 security patch/);
+    lock.packages[""].dependencies.zod = savedLockZod;
+
+    const savedZodIntegrity = installedZod.integrity;
+    installedZod.integrity = "sha512-unreviewed-zod";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Zod security patch exact locked package metadata mismatch/);
+    installedZod.integrity = savedZodIntegrity;
+
+    const savedZodResolved = installedZod.resolved;
+    installedZod.resolved = "https://untrusted.example.invalid/zod.tgz";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Zod security patch exact locked package metadata mismatch/);
+    installedZod.resolved = savedZodResolved;
+
+    const savedZodPackageVersion = installedZod.version;
+    installedZod.version = "4.6.8";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Zod security patch exact locked package metadata mismatch/);
+    installedZod.version = savedZodPackageVersion;
+
+    installedZod.optionalDependencies = { rogue: "1.0.0" };
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Zod security patch exact locked package metadata mismatch/);
+    delete installedZod.optionalDependencies;
 
     // No changes to the frozen original browser capture are permitted.
     write();

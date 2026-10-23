@@ -1,6 +1,6 @@
 {
   "name": "mastergantt",
-  "version": "0.130.1",
+  "version": "0.130.2",
   "private": true,
   "engines": {
     "node": ">=22"
@@ -26,7 +26,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "^0.0.1",
-    "zod": "4.6.2"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

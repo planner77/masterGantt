@@ -1,0 +1,15 @@
+{
+  "schema": "mastergantt-zod-security-patch-v1",
+  "capturedVersion": "4.6.2",
+  "patchedVersion": "4.6.7",
+  "reason": "Issue #556 F-002, PR #786 Full CI #3193.1: exact production Zod 4.6.7 security advisory remediation, while retaining immutable historical Gantt Core captures",
+  "package": {
+    "version": "4.6.7",
+    "resolved": "https://registry.npmjs.org/zod/-/zod-4.6.7.tgz",
+    "integrity": "sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==",
+    "license": "MIT",
+    "funding": {
+      "url": "https://github.com/sponsors/colinhacks"
+    }
+  }
+}

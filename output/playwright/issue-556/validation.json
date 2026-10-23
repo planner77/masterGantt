@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "issue": 556,
+  "base": "427d22245fb8e11254b2424ea5147ccbd5766979",
+  "applicationVersion": "0.130.2",
+  "sourceSha256": {
+    "src/app/globals.css": "6f6673e45f75ecde8da89a9d90bffd2a4961c03a8ab9cb79645f974aa6b768ea",
+    "src/features/projects/project-readonly-view.tsx": "10fc7658ce1bd38ea62e2e9ed119e62b06ed63ec142704a2305401f38ebb7da9",
+    "tests/e2e/issue-621-resource-target.spec.ts": "3f5f0ccd36728a7de220978803c5c80ee6792a3b46c897ec0a3ddd9b1c264825",
+    "tests/e2e/milestone-visibility.spec.ts": "541711154fcef11e1e43e5f2a9aaaafbd58907c44c106411e5f654f2733efc70",
+    "tests/e2e/project-empty-summary.spec.ts": "b5c2b3be5753c3a936d8b35e1f7f103d239ec0f00a787bf7d132221b4612dc36",
+    "tests/e2e/project-filter-toolbar-consistency.spec.ts": "47158d996f792212a59627073e93bb61948dd41fe4592fba975b1cee84cc925c",
+    "tests/e2e/project-gantt-fullscreen.spec.ts": "7d6bb42ee6f5ed6846af333b9b340f352084911ce2a44506bf451d1b0291bbe9",
+    "tests/e2e/project-search-filter.spec.ts": "af056064e31eb0f771e41ac9e09677cfcbe9e482c3582b85c5bbeda908f86878",
+    "tests/e2e/project-workspace-tabs-518.spec.ts": "7c988525a7b0cb1438de9adf7c7d669703cdf9824fa16d4e31fcdc86c607c4a3",
+    "tests/e2e/resource-drill-ui.spec.ts": "4f3d9a5d265622a8d0292790bcf3d6dd7970b6194c2292d17a4f51a73365dd89",
+    "tests/e2e/task-context-menu-hierarchy.spec.ts": "4e026c050e47c3290a8fabc58aec48e80a87d23a8edf497b2d0763ba16955c97"
+  },
+  "sourceBundleSha256": "19823fbc7c00987c2b1092557f4a63dc49a2fdbf49ed620790960b79a0bd58a3",
+  "chromium": {
+    "status": "PASS",
+    "cases": 34,
+    "actualHttpSqliteCases": 5,
+    "mockDataActualCoreCases": 29,
+    "elapsedReporter": "5.3m",
+    "log": "logs/chromium-final.txt",
+    "specs": [
+      "resource-drill-ui",
+      "project-workspace-tabs-518",
+      "project-gantt-fullscreen",
+      "milestone-visibility",
+      "project-search-filter",
+      "task-context-menu-hierarchy",
+      "issue-621-resource-target",
+      "project-filter-toolbar-consistency",
+      "project-empty-summary"
+    ]
+  },
+  "unit": {
+    "status": "PASS",
+    "files": 3,
+    "cases": 30,
+    "log": "logs/unit-final.txt"
+  },
+  "typecheck": {
+    "status": "PASS",
+    "log": "logs/typecheck-final.txt"
+  },
+  "lint": {
+    "status": "PASS",
+    "errors": 0,
+    "warnings": 15,
+    "log": "logs/lint-final.txt"
+  },
+  "layout": {
+    "baselineGeometry": "before/geometry.json",
+    "finalGeometry": "after/geometry.json",
+    "expandedResponsive": "responsive.json",
+    "observations": 16,
+    "nativeZoom": "NOT TESTED"
+  },
+  "preprFast": {
+    "status": "BLOCKED",
+    "reason": "No registered globals.css producer-consumer map; test steps not run",
+    "report": "prepr-fast.json"
+  },
+  "preQa": {
+    "status": "PASS",
+    "reviewer": "/root/qa_review",
+    "mode": "read-only independent agent preliminary review"
+  },
+  "uiReview": {
+    "status": "PASS",
+    "reviewer": "/root/ui_design"
+  },
+  "qaMethod": "OWNER_MANAGED",
+  "qaRequired": true,
+  "riskLevel": "HIGH",
+  "formalIndependentQa": "N/A (Owner-managed)",
+  "managerDecision": "NOT TESTED",
+  "remoteQualityE2eDockerTrusted": "NOT TESTED",
+  "releaseRequired": true,
+  "releaseAuthorized": false
+}
