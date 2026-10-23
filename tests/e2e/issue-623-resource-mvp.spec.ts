@@ -236,8 +236,8 @@ async function changeStartFromTarget(page: Page, f: Issue623Fixture, session: Mu
   expect((await assertSaved(offset + 1)).start).toBe("2026-10-06");
   await expect(targetDetail).toBeVisible(); await page.keyboard.press("Escape");
 }
-async function changeResourceAndAssignment(page: Page, f: Issue623Fixture, session: MutationSession, root: Locator, taskName: string, observeIsolatedApi: ObserveIsolatedApi, phaseTiming: PhaseTiming, offset = 0, canonicalRow?: Locator) {
-  const { assertSaved, assignmentId } = session;
+async function changeResourceStatusProgress(page: Page, f: Issue623Fixture, session: MutationSession, root: Locator, taskName: string, phaseTiming: PhaseTiming, offset = 0, canonicalRow?: Locator) {
+  const { assertSaved } = session;
   for (const [kind, value] of [["status", "in_progress"], ["progress", "35"]] as const) {
     phaseTiming.mark(`mutation/${kind === "status" ? 3 : 4}-${kind}`);
     const row = await mutationDetail(root, f.task.taskId, canonicalRow);
@@ -250,20 +250,36 @@ async function changeResourceAndAssignment(page: Page, f: Issue623Fixture, sessi
     expect(kind === "status" ? task.status : task.progress).toBe(kind === "status" ? "in_progress" : 35);
     await expect(root).toHaveAttribute("data-ready", "true");
   }
-  phaseTiming.mark("mutation/5-assignment-allocation");
+}
+
+async function changeAssignmentAllocation(page: Page, f: Issue623Fixture, session: MutationSession, root: Locator, observeIsolatedApi: ObserveIsolatedApi, phaseTiming: PhaseTiming, offset = 0, canonicalRow?: Locator) {
+  const { assertSaved, assignmentId } = session;
+  phaseTiming.mark("mutation/assignment-edit-ready");
   const row = await mutationDetail(root, f.task.taskId, canonicalRow);
   await row.getByRole("button", { name: `배정 편집: ${f.person.name}`, exact: true }).click();
-  const allocation = editor(page).getByLabel(`리소스 1 ${f.person.name} 투입률 (%)`, { exact: true });
+  const taskEditor = editor(page);
+  await expect(taskEditor).toBeVisible();
+  await expect(taskEditor.getByRole("tab", { name: /^리소스/ })).toHaveAttribute("aria-selected", "true");
+  // 원본 배정과 후보 조회를 마친 준비 상태를 검사하며 기본 테스트 예산은 늘리지 않는다.
+  await expect(taskEditor.getByRole("button", { name: /^할당 저장 \(/ })).toBeEnabled({ timeout: 30_000 });
+  phaseTiming.mark("mutation/assignment-input-and-save");
+  const allocation = taskEditor.getByLabel(`리소스 1 ${f.person.name} 투입률 (%)`, { exact: true });
   await allocation.fill("80");
   await editor(page).getByRole("button", { name: /^할당 저장 \(/ }).click();
   await expect(allocation).toHaveValue("80");
   await editor(page).getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
-  await assertSaved(offset + 3);
+  await assertSaved(offset + 1);
   phaseTiming.mark("api/assigned-targets-source");
   const assigned = (await readMutationSource<AssignedTargetsResponse>(page, `/api/projects/${f.publicId}/assigned-targets`, observeIsolatedApi)).data.assignments;
   expect(assigned).toHaveLength(1); expect(assigned[0]).toMatchObject({ id: assignmentId, taskId: f.task.taskId, allocation: { percent: 80 } });
   await expect(root).toHaveAttribute("data-ready", "true");
 }
+
+async function changeResourceAndAssignment(page: Page, f: Issue623Fixture, session: MutationSession, root: Locator, taskName: string, observeIsolatedApi: ObserveIsolatedApi, phaseTiming: PhaseTiming, offset = 0, canonicalRow?: Locator) {
+  await changeResourceStatusProgress(page, f, session, root, taskName, phaseTiming, offset, canonicalRow);
+  await changeAssignmentAllocation(page, f, session, root, observeIsolatedApi, phaseTiming, offset + 2, canonicalRow);
+}
+
 async function changeTargetBinding(page: Page, f: Issue623Fixture, session: MutationSession, root: Locator, taskName: string, observeIsolatedApi: ObserveIsolatedApi, phaseTiming: PhaseTiming, offset = 0, canonicalRow?: Locator) {
   phaseTiming.mark("ui/target-bindings-save");
   const { assertSaved } = session;
@@ -298,7 +314,7 @@ async function returnToSchedule(page: Page, f: Issue623Fixture, session: Mutatio
 
 // 집중 케이스마다 독립 SQLite/HTTP 원본, 단계 계측과 쓰기 관측을 사용한다.
 // 공통 조작 함수로 통합 smoke와 같은 단언을 유지한다.
-for (const boundary of ["WBS 변경", "Resource/Assignment", "Target binding", "화면 복귀"] as const) {
+for (const boundary of ["WBS 변경", "Resource status/progress", "Assignment allocation", "Target binding", "화면 복귀"] as const) {
   test(`#623 독립 ${boundary}·원시 ID·mutation 경계`, async ({ page, isolatedApplication: origin, observeIsolatedApi, phaseTiming, timeIsolatedStage }, info) => {
     page.setDefaultTimeout(15_000);
     phaseTiming.beginBody();
@@ -314,9 +330,13 @@ for (const boundary of ["WBS 변경", "Resource/Assignment", "Target binding", "
       await changeStartFromTarget(page, f, session, "SHARED · WBS 동일 원본", 1);
       count = 2;
       await returnToSchedule(page, f, session, "SHARED · WBS 동일 원본", count);
-    } else if (boundary === "Resource/Assignment") {
-      await changeResourceAndAssignment(page, f, session, await resource(page), originalName, observeIsolatedApi, phaseTiming);
-      count = 3;
+    } else if (boundary === "Resource status/progress") {
+      await changeResourceStatusProgress(page, f, session, await resource(page), originalName, phaseTiming);
+      count = 2;
+      await returnToSchedule(page, f, session, originalName, count);
+    } else if (boundary === "Assignment allocation") {
+      await changeAssignmentAllocation(page, f, session, await resource(page), observeIsolatedApi, phaseTiming);
+      count = 1;
       await returnToSchedule(page, f, session, originalName, count);
     } else if (boundary === "Target binding") {
       await changeTargetBinding(page, f, session, await resource(page), originalName, observeIsolatedApi, phaseTiming);

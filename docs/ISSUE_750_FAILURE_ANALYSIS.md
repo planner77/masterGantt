@@ -1,6 +1,17 @@
 # Issue #750 — #623 테스트 분할 누적 실패·검증 원장
 
-Primary Issue [#750](https://github.com/planner77/masterGantt/issues/750). [Work Packet](exec-plans/active/ISSUE_750.md), [실패 원장 정책](PR_CI_FAILURE_TRIAGE.md). #750 원격 PR CI는 아직 NOT TESTED이며 타 Issue의 실패를 #750 실패 횟수로 합산하지 않는다.
+Primary Issue [#750](https://github.com/planner77/masterGantt/issues/750). [Work Packet](exec-plans/active/ISSUE_750.md), [실패 원장 정책](PR_CI_FAILURE_TRIAGE.md). #750 최초 원격 Full PR CI #3180.1의 직접 실패를 F750-001에 기록한다. 다른 Issue의 실패를 #750 실패로 합산하지 않으며 새 HEAD Required3/Trusted 결과는 NOT TESTED다.
+
+
+## F750-001 — PR #783 첫 Full #3180.1 Resource/Assignment 독립 E2E 본문 Timeout (2026-10-23 KST)
+
+- **원본/출처**: [PR #783](https://github.com/planner77/masterGantt/pull/783), [원본 Full #3180.1 (Run 39891124883.1)](https://github.com/planner77/masterGantt/actions/runs/39891124883), event=`pull_request`, Head=`3576c2c177060d14b1e08bf071ef262b0d60cd5d`, base main=`d2a82b666836b28bf392215993240c0fae2d4fdc`, 기존 이슈 CI 시작 영수증 test merge=`5eb1c7226e91e1d40c8bb733f914d0024723c3ff`. 최초 [Shard1 Job 120211500414](https://github.com/planner77/masterGantt/actions/runs/39891124883/job/120211500414), [Playwright report Artifact 12475147116](https://github.com/planner77/masterGantt/actions/runs/39891124883/artifacts/12475147116), 원본 trace/error-context. QA Final 로그는 `run:39891124883.1` 표시, GitHub workflow run 도구의 독립 run_attempt 원시 필드 확인은 별도 미실시.
+- **직접 실패**: E2E Shard1 계획 102건 중 **36 PASS / 1 FAIL / 65 NOT RUN**. `tests/e2e/issue-623-resource-mvp.spec.ts:302` 의 `#623 독립 Resource/Assignment·원시 ID·mutation 경계`, `changeResourceAndAssignment` `allocation.fill("80")` line257에서 30,000ms test deadline 소진, locator 대기. 원본 스냅샷에 작업 정보 dialog / Resources 탭과 정확한 레이블의 기존 투입률 입력 100이 마지막 시점에는 존재하므로 레이블 삭제나 DB 쓰기 실패를 근인이라고 단정하지 않는다. 원본 trace에 앞선 상태·진척 2회 저장 이후 allocation 편집에 본문 시간 예산 약 1.4초만 남아 있음을 관측. Fixture timeout 120초 및 E2E test 본문30초는 별개다.
+- **파생/미실행**: 나머지 **7 Shards CANCELLED**(PASS/직접 FAIL 아님). TypeScript/Policy/Vitest/ESLint/Next Build 및 Quality aggregate **PASS**, Docker build/smoke/aggregate **PASS**. E2E aggregate Job120213417345와 QA Final Job120213439907 **FAIL은 위 직접 실패와 취소에 따른 파생**. 다른 mock 스펙의 기존 `PROJECT_NOT_FOUND` 404, `git fetch` warning은 직접 실패원인으로 확정하지 않음. 35분 Job timeout 아님.
+- **관련 이력**: #732 F732-006과 #751 F-008에 Task Assignment 편집기의 비동기 `assigned-targets` 및 `assignment-targets` 원본 조회 완료 전 입력 locator 검증이 경합했던 이력이 있다. 여기서는 **3 Mutation을 한 집중 테스트에 직렬로 묶은 30초 body budget 소진**이 직접 재현된 실패 분류이며, 정확한 개별 Next 컴파일/CPU/API 지연 인과는 UNKNOWN으로 유지한다.
+- **교정**: 하나의 Resource/Assignment 집중 테스트를 독립 fixture의 **`Resource status/progress` 2 PATCH** 및 **`Assignment allocation` 1 PUT** 두 케이스로 분리해 테스트 기본30초 예산 보존. 배정 편집 시 리소스 탭 선택·기존 `할당 저장` 버튼 enabled 상태를 확인하여 두 원본 조회/Revision이 준비되기 전 원래의 정확 레이블 검사를 시작하지 않게 한다. 기존 `mutationSession.assertSaved`의 Task ID 집합, 각 저장 revision delta/쓰기 수, Gantt instance/Core 연결과 Assignment 원본 UUID·투입률80·조회 mutation0을 보존한다. 공통 `changeResourceAndAssignment` 래퍼와 원래 **6 UI 저장/revision+6 통합 Smoke**는 변경하지 않는다. 원래의 개별/전역 timeout·retries/skip/assertions·8-Shard Required3·Trusted QA를 완화하지 않는다.
+- **상태·비용**: #623 시나리오 기존 7 → 초기 PR 11 → 교정 HEAD **12 case**(Golden1/Focused5/Smoke1/Geometry5). 독립 Fixture 1회 증가로 CI/runner 비용은 추가 실측 필요. 기존 HEAD 로컬 11 case 349.736872s PASS·36고유 PASS는 **과거 사실**이며 새 소스의 동일-source Chromium PASS/Required3/Trusted QA/Owner ACCEPT는 **NOT TESTED**. 이전 FAIL을 PASS로 소급하지 않는다.
+- **리뷰/충돌·승인**: 최초 PR #783 review thread 0·mergeable=true, 최초 base와 main `d2a82b66...` 정렬. 새 HEAD 게시 이후 재확인 예정. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false, Owner 병합/정식 릴리스 승인 없음. PR CI 시작 후 별도 요청 없이 모니터링·병합·Main/GHCR·이슈 종료 금지.
 
 ## 출처와 설계 교정
 

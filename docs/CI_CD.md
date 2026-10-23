@@ -1145,6 +1145,11 @@ Required PR aggregate quality/e2e/docker must now cover Template v2 graph persis
 
 ## Issue #750 — 분할 E2E 비용과 공식 CI 경계
 
-#623 spec은 [#750 Work Packet](exec-plans/active/ISSUE_750.md)에 따라 독립경계4개와 기존6-write smoke·집계Excel·5폭 geometry를 함께 실행한다. workflow/Required3·8-shard file plan·workers1·retry/timeout·Fast/Trusted/Main/GHCR/Finalizer는 변경하지 않는다. file plan에서 같은 spec의11case가 같은 runner에 배치되므로 case 분할을 자동샤드 분산/비용절감으로 주장하지 않는다. 기존 reporter의 fixture/seed/body/teardown attachment와 실패 trace/error context를 보존하며 전후 로컬비용 및 미측정 Actions runner/shard 비용은 [원장](ISSUE_750_FAILURE_ANALYSIS.md)에 분리 기록한다. 요청 범위는 Ready PR Full CI 시작까지이며 모니터링·병합·정식게시 승인 없음.
+#623 spec은 [#750 Work Packet](exec-plans/active/ISSUE_750.md)에 따라 독립경계5개(상태/진행률과 배정 투입률의 별도 fixture)와 기존6-write smoke·집계Excel·5폭 geometry를 함께 실행한다. workflow/Required3·8-shard file plan·workers1·retry/timeout·Fast/Trusted/Main/GHCR/Finalizer는 변경하지 않는다. file plan에서 같은 spec의12case가 같은 runner에 배치되므로 case 분할을 자동샤드 분산/비용절감으로 주장하지 않는다. 기존 reporter의 fixture/seed/body/teardown attachment와 실패 trace/error context를 보존하며 전후 로컬비용 및 미측정 Actions runner/shard 비용은 [원장](ISSUE_750_FAILURE_ANALYSIS.md)에 분리 기록한다. 요청 범위는 Ready PR Full CI 시작까지이며 모니터링·병합·정식게시 승인 없음.
 
 #750 교차검증의 기존 공용 picker0.5px 결함을 제품에서 교정하여 후보PATCH0.130.1/package·lock 동기화가 추가됐다. 따라서 release_required=true/release_authorized=false이며 향후 병합·release/tag/GHCR는 별도Owner 승인 전 BLOCKED다. 기존tests-only0.130.0/비릴리스 착수 계획과 그때의 비용 표본은 원장에 이력으로 보존한다. 이번 종료점은 새Head Full PR CI 시작이며 모니터링·병합·게시를 수행하지 않는다.
+
+
+## Issue #750 — Full #3180.1 집중 Resource/Assignment 30초 본문 예산 초과 교정 (2026-10-23)
+
+[Run 39891124883.1](https://github.com/planner77/masterGantt/actions/runs/39891124883) Shard1의 #623 집중 Resource/Assignment가 상태·진척 2 PATCH 후 배정 편집을 준비하는 도중 원래 30초 Test Budget을 소진했다. 36PASS/1FAIL/65NOT RUN, 다른7 Shard CANCELLED, Quality·Docker PASS, E2E/QA 파생 FAIL. 원본 trace/직접·파생 분류 및 이전 이력은 [#750 F750-001](ISSUE_750_FAILURE_ANALYSIS.md)에 보존한다. focused 경계를 상태·진척(2)과 배정 투입률(1)로 분리하여 새 독립 Fixture와 Resource tab/Save enabled 준비 단언을 적용한다. 기존 6-write smoke의 원본 ID/revision+6/조회0·Gantt 보존을 유지하고 전체·개별 timeout, retries/skip, 8-Shard/35분, Required3, Trusted QA와 Owner 승인을 변경하지 않는다. 이전11case PASS를 새12case PASS로 소급하지 않으며 새 원격 HEAD 결과는 CI 실행 전 NOT TESTED다.

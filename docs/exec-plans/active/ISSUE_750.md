@@ -7,9 +7,9 @@
 
 ## 설계
 
-기존 집계/Excel 및 6-write 종단 시나리오 사이의 분리를 유지하고 WBS/Target(2), Resource/Assignment(3), Target binding(1), 조회-only 화면 복귀(0)를 각각 독립 실행한다. 매 테스트는 기존 test-scoped 실제 SQLite/HTTP/브라우저 fixture를 새로 생성하며 mutable 상태를 공유하지 않는다. 종단 smoke는 6회 UI 저장과 revision +6을 유지하되 Resource 상세를 한 번 연 뒤 같은 canonical row에서 편집하여 반복 진입을 줄인다. 단계/실패 계측은 기존 attachment와 trace/error context를 보존한다.
+기존 집계/Excel 및 6-write 종단 시나리오 사이의 분리를 유지하고 WBS/Target(2), Resource 상태·진행률(2), Assignment(1), Target binding(1), 조회-only 화면 복귀(0)를 각각 독립 실행한다. 매 테스트는 기존 test-scoped 실제 SQLite/HTTP/브라우저 fixture를 새로 생성하며 mutable 상태를 공유하지 않는다. 종단 smoke는 6회 UI 저장과 revision +6을 유지하되 Resource 상세를 한 번 연 뒤 같은 canonical row에서 편집하여 반복 진입을 줄인다. 단계/실패 계측은 기존 attachment와 trace/error context를 보존한다.
 
-기존 7개 → 11개: 집계/Excel 1, 독립 경계 4, 결합 smoke 1, 5폭 geometry 5. 60s 집계·90s smoke·45s geometry 및 focused 기본30s, retry0를 확대하지 않는다. fixture120s와 본문 예산은 별개다. fixture 준비 횟수가 증가하므로 안정성 개선과 비용 절감을 동일시하지 않는다. 현재 CI는 file 기반 8-shard 계획이므로 이 spec 내부 분할을 원격 샤드 분산 개선으로 보고하지 않는다.
+기존 7개 → 12개(첫 원격 교정): 집계/Excel 1, 독립 경계 5, 결합 smoke 1, 5폭 geometry 5. 60s 집계·90s smoke·45s geometry 및 focused 기본30s, retry0를 확대하지 않는다. fixture120s와 본문 예산은 별개다. fixture 준비 횟수가 증가하므로 안정성 개선과 비용 절감을 동일시하지 않는다. 현재 CI는 file 기반 8-shard 계획이므로 이 spec 내부 분할을 원격 샤드 분산 개선으로 보고하지 않는다.
 
 ## 추가 교정 범위 — 기존 #463 실제 결함
 
@@ -29,7 +29,7 @@
 | --- | --- | --- |
 | F0 집계·Excel | `실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot` | A5/B5/union5 M/D·0.25 M/M, Task1/Assignment1, 설비15/System3, 상속1/직접2·ACS subset·공유MCS, UI2cells·단위전환, exact UI filters/snapshot→XLSX, 원시Task/Assignment/Resource/Target ID·Y/Z 값·snapshot 불변 |
 | WBS 작업명·Target 시작일 PATCH2 | `독립 WBS 변경` + `renameFromWbs`/`changeStartFromTarget` + smoke | 정확 Task·각 저장1·revision+1, Target rawID·Editor 복귀, 변경 name/date |
-| Resource 상태·진행률 PATCH2/Assignment PUT1 | `독립 Resource/Assignment` + `changeResourceAndAssignment` + smoke | 상태/35%·allocation80%, Assignment1·exact ID/Task, 각 revision+1 |
+| Resource 상태·진행률 PATCH2/Assignment PUT1 | `독립 Resource status/progress` + `독립 Assignment allocation` + 분리 helper 및 6-write smoke | 상태/35%·allocation80%, Assignment1·exact ID/Task, 각 revision+1 |
 | Target binding PUT1 | `독립 Target binding` + `changeTargetBinding` + smoke | ACS-B memberIds exact subset·상속 AMR-A 유지·revision+1 |
 | 결합 six-write | `여섯 별도 mutation·양방향 동일원본 복귀` | PATCH4/PUT2의 exact method/path/body·revision+6·일정 이름, Task ID 집합 불변·중복0 |
 | 조회-only 왕복 | `독립 화면 복귀` + Golden/geometry | Target Task rawID·Resource Assignment rawID, 쓰기0·snapshot equality·일정 복귀 |
@@ -87,3 +87,11 @@
 최종 동일-source 로컬 검증은 Unit37·Chromium 고유36(실제 HTTP/SQLite24+mock12) PASS다. 역순4/로컬2part4/교정반복10/화면증거1은 추가19실행이며 cleanup2회는 의도적exit1 뒤 프로세스·DB/dist0/trace보존 PASS다. scoped ESLint/tsc/version/markdown/diff와1110파일 소스 일치를 확인했다. 최종 #623 wall189.006251→349.736872s(+160.730621s/+85.040%, source당1표본)로 비용이 증가했으며 Actions8-shard 비용은 NOT TESTED다. [실행 증거](../../evidence/issue-750/local-validation.json), [최종 비용](../../evidence/issue-750/cost-comparison-final.json), [원시 ID](../../evidence/issue-750/canonical-identity.json), [popup 측정](../../evidence/issue-750/popup-bounds-verification.json), [교정 전](../../evidence/issue-750/popup-before.jpeg)/[후](../../evidence/issue-750/popup-after.jpeg)를 실패 원장과 함께 참조한다. Required3/Trusted/Manager는 원격 완료 전 NOT TESTED를 유지한다.
 
 qa_docs `/root/review_scope` 최종 read-only 사전검토 PASS/미해결P1·P2 0건, ui_ux `/root/popup_bounds_design` 코드/JSON 비교 PASS/지적0이다. 이 사전검토는 Owner 최종 QA·Manager ACCEPT가 아니다. PR 생성 후 최신 review thread/mergeability·CI 시작 Run/Attempt/Head/base/test merge는 Issue STATUS에 기록한다.
+
+## F750-001 첫 원격 실패·독립 Assignment 재분할 (2026-10-23)
+
+[PR #783 Full #3180.1](https://github.com/planner77/masterGantt/actions/runs/39891124883)은 Shard1 #623 `Resource/Assignment` focused case의 30초 본문 Deadline(36PASS/1FAIL/65NOT RUN)으로 실패했다. 나머지 7 Shard 취소는 FAIL/PASS로 대체 불가하며 Quality·Docker PASS, Required E2E/QA는 파생 FAIL이다. [F750-001 누적 원장](../../ISSUE_750_FAILURE_ANALYSIS.md)에 원본 Run/Attempt/Head/Jobs/trace·기존 이력 대조를 기록한다.
+
+**AC_TEST_COVERAGE 조정**: 기존 상태/진척 PATCH2와 Assignment PUT1을 서로 다른 test-scoped SQLite/HTTP/Chromium 집중 케이스로 분리한다. 공유 `mutationSession.assertSaved`가 저장 수+revision delta+Task ID/Gantt instance를 개별 검증하고, `changeAssignmentAllocation`은 원본 Assignment UUID/80%·조회-only·준비된 Resource tab+Save button을 검증한다. 기존 six-write smoke는 공통 래퍼로 상태·진척·배정 전체를 계속 실행해 정확 6 writes, revision+6과 원본 출처를 유지한다. `AC1` 요구/단언 삭제 없음, `AC2` 새 12 case/독립 Fixture 시간·Shard/Actions 비용 및 새 정확 HEAD Full8 검증 필요, `AC3` 배정 ready/저장 phase와 원본 trace 분리.
+
+이 변경은 과거 Head의 로컬 Chromium36고유PASS·11case비용(+85.040%)을 새 HEAD PASS로 이월하지 않는다. 새 코드의 로컬/원격 결과와 Runner 실측은 **NOT TESTED**. retries/skip/timeout/CI policy/승인/릴리스 계약은 그대로이며 Owner 승인 없는 병합·Main/GHCR·정식 태그·Issue 종료 금지.
