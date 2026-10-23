@@ -1142,3 +1142,9 @@ Required PR aggregate quality/e2e/docker must now cover Template v2 graph persis
 ## Issue #737 — 통합 수용 spec 등록
 
 8-shard E2E plan에 `issue-737-target0-acceptance.spec.ts`를 Shard6으로 명시 추가한다. 기존138개 spec의 배치·Required Quality/E2E/Docker·35분/worker1·fail-fast/retry·Trusted QA/Owner·main/GHCR/Finalizer·Release 권한은 변경하지 않는다. 총139개 spec의 신규 실행 시간은 원격 측정 전이며 기존 역사적 `projectedMs`/표본에 임의 비용을 더하지 않는다. [수용 범위](WBS_CROSS_FEATURE_ACCEPTANCE.md)와 [실제 검증](exec-plans/active/ISSUE_737.md)을 구분한다. 이번 요청은 Ready PR Full CI 시작까지이며 결과 모니터링·병합·게시 승인은 포함하지 않는다.
+
+## Issue #750 — 분할 E2E 비용과 공식 CI 경계
+
+#623 spec은 [#750 Work Packet](exec-plans/active/ISSUE_750.md)에 따라 독립경계4개와 기존6-write smoke·집계Excel·5폭 geometry를 함께 실행한다. workflow/Required3·8-shard file plan·workers1·retry/timeout·Fast/Trusted/Main/GHCR/Finalizer는 변경하지 않는다. file plan에서 같은 spec의11case가 같은 runner에 배치되므로 case 분할을 자동샤드 분산/비용절감으로 주장하지 않는다. 기존 reporter의 fixture/seed/body/teardown attachment와 실패 trace/error context를 보존하며 전후 로컬비용 및 미측정 Actions runner/shard 비용은 [원장](ISSUE_750_FAILURE_ANALYSIS.md)에 분리 기록한다. 요청 범위는 Ready PR Full CI 시작까지이며 모니터링·병합·정식게시 승인 없음.
+
+#750 교차검증의 기존 공용 picker0.5px 결함을 제품에서 교정하여 후보PATCH0.130.1/package·lock 동기화가 추가됐다. 따라서 release_required=true/release_authorized=false이며 향후 병합·release/tag/GHCR는 별도Owner 승인 전 BLOCKED다. 기존tests-only0.130.0/비릴리스 착수 계획과 그때의 비용 표본은 원장에 이력으로 보존한다. 이번 종료점은 새Head Full PR CI 시작이며 모니터링·병합·게시를 수행하지 않는다.

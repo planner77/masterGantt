@@ -1100,3 +1100,9 @@ CI #2820.1의 Required quality/Docker는 PASS, E2E는 FAIL이었다. 실제 음�
 Target0 교차 기능·legacy3종·raw IDs/KPI/Resource Excel·합성 restore/restart의 [수용표](WBS_CROSS_FEATURE_ACCEPTANCE.md)를 신규 exact Head Full CI에 인계한다. 신규 E2E1spec(종합/폭별 사례)은 기존138개 배치를 보존한8shard Shard6에 추가하여139개 spec 전체 발견·단일 배치를 확인한다. 모든 Required aggregate·Trusted QA·Owner 위험 수용과 명시 병합 허가는 유지하며 skipped/다른Head/로컬PASS로 대체하지 않는다.
 
 PR 생성 후 Full run의 URL·run_attempt·Head/base/test merge를 단일 조회하여 시작 증거만 기록한다. CI 완료 모니터링은 이번 범위 밖이므로 Quality/E2E8/Docker·Trusted QA·Manager ACCEPT는 NOT TESTED다. 이미 이관된 합성DB backup/restart는 old-schema upgrade·운영/off-host restore·실제TLS/proxy/storage·WindowsExcel/DRM·최종수동UX의 PASS가 아니다. 실제 [명령·출처](exec-plans/active/ISSUE_737.md)를 따르며 main/GHCR/릴리스·Issue/Epic 종료는 별도 gate다.
+
+## Issue #750 — 원본 timeout·분할검증 출처
+
+[#730 CI #3012.1](https://github.com/planner77/masterGantt/actions/runs/39245366403)의 BeforeHooks14.6797s는 별도fixture120s이며 본문약59.97s/60s와 합산하지 않는다. 마지막 Target binding GET 취소를 API 단독60s 장애로 확정하지 않는다. #623 분할 후보는 [AC/테스트매핑](exec-plans/active/ISSUE_750.md)과 [실패·비용원장](ISSUE_750_FAILURE_ANALYSIS.md)을 따르고 실제 HTTP/SQLite·Chromium의 same-source 실행을 원격 exact Head/Base/TestMerge/RunID/attempt Required3와 구별한다. 현재8-shard file plan에서 원격 실제 wall/runner비용은 새 Actions 측정 전 NOT TESTED다. 이번 요청에서는 Full PR CI 시작 근거까지만 확인하며 결과 모니터링·Main/GHCR/release·Manager ACCEPT는 수행하지 않는다.
+
+#750 최초 cross14의13PASS/1FAIL(#463 390px last option0.5px clip)은 유지한다. 공용 picker의 동기 목록scroll 교정·PATCH0.130.1 이후 소스를 다시 동결하여 모든 선정 검사를 재실행하고 정확 새Head PR CI를 시작한다. 로컬 반복/음성 대조·수정 후PASS를 원본FAIL의 소급변경이나 원격8샤드/Owner 승인으로 처리하지 않는다.

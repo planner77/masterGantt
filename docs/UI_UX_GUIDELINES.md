@@ -317,7 +317,7 @@ Milestone 전체 상태 표의 최소 예산은 1052px이다. identity는 최소
 
 변경 전 재현 근거는 baseline `603cd029d279ddc5b70309786abf8876b6bd1692`의 `src/features/projects/project-readonly-view.tsx`다. 해당 source의 일정 영역에는 Gantt만 있고 Milestone Dashboard peer가 없다. baseline에서 Project 직접 링크를 열어 일정 탭을 선택하는 절차와 변경 후 peer 선택 절차를 비교한다. 변경 전 실제 캡처는 수행하지 않았으며 source 비교를 실제 browser PASS로 표시하지 않는다. geometry는 실제 표시되는 control만 집계하고 닫힌 details 자식의 캐시 bounding rect는 `checkVisibility()`로 제외한다.
 
-공용 단계 popup은 anchor와 현재 viewport의 실제 여유를 계산한다. 검색·border·padding·list margin을 포함한 chrome 높이를 실측해 list max-height를 제한하고 아래 공간이 부족하면 위로 배치한다. 가로 경계는 viewport 안으로 clamp하며 열린 상태의 viewport resize와 외부 scroll에서 다시 배치한다. 내부 list scroll은 owner 안에서 유지하고 End active option과 Escape trigger focus 복원을 검증한다.
+공용 단계 popup은 anchor와 현재 viewport의 실제 여유를 계산한다. 검색·border·padding·list margin을 포함한 chrome 높이를 실측해 list max-height를 제한하고 아래 공간이 부족하면 위로 배치한다. 가로 경계는 viewport 안으로 clamp하며 열린 상태의 viewport resize와 외부 scroll에서 다시 배치한다. 내부 list scroll은 owner 안에서 유지하고 End active option과 Escape trigger focus 복원을 검증한다. #750의 390px 실측에서 native scrollIntoView 뒤 active bottom이 list bottom을0.5px 넘었다. keyboard 이동은 현재 option/list rect로 남은 상단 또는 하단 넘침을 Math.ceil하여 목록 scrollTop만 한 방향으로 동기 보정한다. 입력 focus·선택·popup 배치와 상위 viewport/Gantt는 추가로 이동시키지 않는다. End/Home/Arrow의 active option 전체 가시성을 기존0허용오차로 검사하며, 원래 목록보다 큰 항목의 완전 containment까지 보장한 것으로 확대하지 않는다.
 
 ## Issue #464 교환·Copy 확인 interaction
 

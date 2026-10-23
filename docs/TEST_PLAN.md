@@ -5367,3 +5367,11 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 신규 `tests/e2e/issue-737-target0-acceptance.spec.ts`는 실제 HTTP fixture에서 기준정보4탭→KPI+5root→동적 축 직접 조작→Task 원본 편집→일정/출발 복귀 및 복제/조회 mutation0·Gantt identity/markerOFF를 확인한다. 390/768/1024/1440/1920px는 독립 testcase로 keyboard/focus·내부 overflow/열정렬을 검증한다. 기존 폼/권한/dirty/pending/error/stale/역전·viewport 전체 SC는 수용표의 기존 E2E에 매핑하며 새 테스트의 부분 결과로 전체 PASS를 주장하지 않는다.
 
 현재 CI는8shard이며 기존138개 spec의 배치를 유지하고 신규 spec을 Shard6에 등록한다(총139). `tests/scripts/e2e-shard-planner.test.ts`가 누락/중복0과 기존 위치를 검증한다. historical `projectedMs`/원본 run 표본은 신규139spec 실측으로 재해석하지 않는다. assertions·timeout·workers·retry·fail-fast·Required3/Trusted QA는 그대로다. 실제 로컬 source/명령/케이스 수·실패와 새 exact Head 원격 NOT TESTED는 [Work Packet](exec-plans/active/ISSUE_737.md)에 분리한다.
+
+## Issue #750 — #623 경계 분할과 동일원본 회귀
+
+[#750 Work Packet](exec-plans/active/ISSUE_750.md)의 AC_TEST_COVERAGE가 기존→신규 단언 매핑 원본이다. 기존 #623 집계/Excel1·6-write smoke1·geometry5를 보존하고 WBS2/Resource3/binding1/화면복귀0 mutation의 독립4case를 추가한다. smoke의 반복 Resource 상세진입을 줄이며 exact methods/paths/payloads·각 revision+1/최종+6·Task/Assignment ID·중복0·조회0·Gantt instance/Core 연결을 그대로 검증한다. 기본30s 및 기존60/90/45s·retry0·fixture120s 불변.
+
+실제 fixture 생성은7→11이므로 test 수 증가를 비용절감으로 보고하지 않는다. 같은 source의 전후 fixture/seed/body/teardown·wall-clock, 독립/역순/분리실행·의도적 실패cleanup을 [누적 원장](ISSUE_750_FAILURE_ANALYSIS.md)에 남긴다. 현재8-shard file plan은 그대로이며 로컬 분리실행을 원격샤드 성능으로 환산하지 않는다. #730 과거 실패9파일 합집합과 추가 직접소비자 #624, #623 Domain/SQLite/OOXML을 교차선정하고 정확 실행/미실행을 구별한다. 원격 Required3·Trusted·Owner/Manager는 별도 NOT TESTED다.
+
+추가 교차 실패 #463는 마지막 option bottom879.5/list879의 실제0.5px 잘림이었다. 단언을 완화하지 않고 공용 StageFilterPicker의 목록scroll만ceil 보정하며 기존 #463 case에5폭 Home/ArrowDown/Up와 실패 전 좌표 attachment를 추가한다. source 변경 뒤 #623전체·cross14·#463나머지6case·#462mock4/actual1을 같은 동결로 재검증한다. package/lock은PATCH0.130.1이며 기존version 검사7case와 stage-filter-context도 선정한다. 진단 반복은 고유case 수에 합산하지 않는다.

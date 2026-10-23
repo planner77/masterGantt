@@ -1,3 +1,8 @@
+## [0.130.1] — Unreleased / Issue #750 E2E 안정화
+
+- #623 테스트를 WBS·Resource/Assignment·Target binding·조회 복귀 경계로 독립 실행하고, 기존 집계/Excel·6회 저장의 원시 ID/revision+6·5폭 geometry 검증을 보존한다. Resource 상세의 중복 진입을 줄이며 fixture/본문/정리 비용과 실패 단계를 기록한다.
+- 공용 Milestone picker의 native scroll 반올림으로 마지막 항목이0.5px 잘리는 결함을 목록 내부의 동기ceil 보정으로 교정하고 package/lock을0.130.1로 동기화한다. fixture·CI/8-shard·timeout/retry·기존 가시성 허용오차는 유지한다. 테스트 분할 비용·누적 실패·AC 매핑과 미검증 원격 gate는 #750 Work Packet/실패 원장에서 구분한다. release_required=true/release_authorized=false이며 병합·태그·GHCR 승인은 별도다.
+
 ## [Unreleased] — Issue #737 통합 수용 (version 유지)
 
 - Target0 실제 API/SQLite·KPI/5개 동적 관점·같은 개인 Excel·legacy3종 backup/restore/restart와 Chromium 기준정보/관점/일정 왕복을 잇는 수용 테스트를 추가한다. 제품 산식·UI·DB·권한·교환 형식은 변경하지 않고 `0.130.0`을 유지한다.

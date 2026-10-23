@@ -1,0 +1,798 @@
+{
+  "issue": 750,
+  "baselineSha": "d2a82b666836b28bf392215993240c0fae2d4fdc",
+  "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+  "specSha256": "bd65af47b59069d9094a6e02d8b6650dc83557fd639a0b89de3a91678f1eab45",
+  "beforeVersion": "0.130.0",
+  "afterVersion": "0.130.1",
+  "environment": {
+    "node": "22.14.0",
+    "npm": "11.10.0",
+    "playwright": "1.63.0",
+    "browser": "Chromium",
+    "platform": "Linux",
+    "workers": 1,
+    "retries": 0,
+    "maxFailures": 0
+  },
+  "before": {
+    "sampleCount": 1,
+    "caseCount": 7,
+    "fixtureCount": 7,
+    "playwrightWallMs": 189006.251,
+    "stats": {
+      "startTime": "2026-10-23T01:38:23.410Z",
+      "duration": 189006.251,
+      "expected": 7,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "totals": {
+      "fixtureSetupMs": 75608.22,
+      "seedInsideBodyMs": 64678.62,
+      "bodyIncludingSeedMs": 97432,
+      "fixtureTeardownMs": 799.02
+    },
+    "cases": [
+      {
+        "title": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 10616.55,
+        "seedInsideBodyMs": 9193.77,
+        "bodyIncludingSeedMs": 13270,
+        "fixtureTeardownMs": 94.05,
+        "bodyBudgetMs": 60000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 1
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 9654
+          },
+          {
+            "name": "api/golden-target-oracle",
+            "milliseconds": 1526
+          },
+          {
+            "name": "ui/golden-target-and-units",
+            "milliseconds": 1275
+          },
+          {
+            "name": "excel/export-and-ooxml",
+            "milliseconds": 816
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 10471.07,
+        "seedInsideBodyMs": 9263.53,
+        "bodyIncludingSeedMs": 21784,
+        "fixtureTeardownMs": 155.48,
+        "bodyBudgetMs": 90000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 1
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 9264
+          },
+          {
+            "name": "api/mutation-source-identity",
+            "milliseconds": 1928
+          },
+          {
+            "name": "mutation/1-wbs-name",
+            "milliseconds": 1168
+          },
+          {
+            "name": "mutation/2-target-start-date",
+            "milliseconds": 2625
+          },
+          {
+            "name": "ui/resource-transition",
+            "milliseconds": 642
+          },
+          {
+            "name": "mutation/3-status",
+            "milliseconds": 1115
+          },
+          {
+            "name": "mutation/4-progress",
+            "milliseconds": 1026
+          },
+          {
+            "name": "mutation/5-assignment-allocation",
+            "milliseconds": 1975
+          },
+          {
+            "name": "mutation/6-target-membership",
+            "milliseconds": 1643
+          },
+          {
+            "name": "ui/schedule-return-and-write-contract",
+            "milliseconds": 399
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 실제 Target 다열·중첩Group 390px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 10671.66,
+        "seedInsideBodyMs": 9229.89,
+        "bodyIncludingSeedMs": 12349,
+        "fixtureTeardownMs": 115.68,
+        "bodyBudgetMs": 45000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 0
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 9230
+          },
+          {
+            "name": "ui/390px-resource-transition",
+            "milliseconds": 2064
+          },
+          {
+            "name": "ui/390px-tree-geometry-keyboard",
+            "milliseconds": 518
+          },
+          {
+            "name": "ui/390px-matrix-geometry-keyboard",
+            "milliseconds": 537
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 실제 Target 다열·중첩Group 768px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 10966.23,
+        "seedInsideBodyMs": 9083.86,
+        "bodyIncludingSeedMs": 12212,
+        "fixtureTeardownMs": 107.96,
+        "bodyBudgetMs": 45000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 0
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 9084
+          },
+          {
+            "name": "ui/768px-resource-transition",
+            "milliseconds": 2075
+          },
+          {
+            "name": "ui/768px-tree-geometry-keyboard",
+            "milliseconds": 527
+          },
+          {
+            "name": "ui/768px-matrix-geometry-keyboard",
+            "milliseconds": 527
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 실제 Target 다열·중첩Group 1024px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 11016.64,
+        "seedInsideBodyMs": 9325.83,
+        "bodyIncludingSeedMs": 12947,
+        "fixtureTeardownMs": 114.15,
+        "bodyBudgetMs": 45000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 0
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 9326
+          },
+          {
+            "name": "ui/1024px-resource-transition",
+            "milliseconds": 2533
+          },
+          {
+            "name": "ui/1024px-tree-geometry-keyboard",
+            "milliseconds": 549
+          },
+          {
+            "name": "ui/1024px-matrix-geometry-keyboard",
+            "milliseconds": 539
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 0
+          }
+        ]
+      },
+      {
+        "title": "#623 실제 Target 다열·중첩Group 1440px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 10678.99,
+        "seedInsideBodyMs": 9203.01,
+        "bodyIncludingSeedMs": 12103,
+        "fixtureTeardownMs": 99.52,
+        "bodyBudgetMs": 45000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 0
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 9203
+          },
+          {
+            "name": "ui/1440px-resource-transition",
+            "milliseconds": 2010
+          },
+          {
+            "name": "ui/1440px-tree-geometry-keyboard",
+            "milliseconds": 452
+          },
+          {
+            "name": "ui/1440px-matrix-geometry-keyboard",
+            "milliseconds": 438
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 0
+          }
+        ]
+      },
+      {
+        "title": "#623 실제 Target 다열·중첩Group 1920px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 11187.08,
+        "seedInsideBodyMs": 9378.73,
+        "bodyIncludingSeedMs": 12767,
+        "fixtureTeardownMs": 112.18,
+        "bodyBudgetMs": 45000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 0
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 9379
+          },
+          {
+            "name": "ui/1920px-resource-transition",
+            "milliseconds": 2255
+          },
+          {
+            "name": "ui/1920px-tree-geometry-keyboard",
+            "milliseconds": 544
+          },
+          {
+            "name": "ui/1920px-matrix-geometry-keyboard",
+            "milliseconds": 589
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      }
+    ]
+  },
+  "after": {
+    "sampleCount": 1,
+    "caseCount": 11,
+    "fixtureCount": 11,
+    "playwrightWallMs": 349736.87200000003,
+    "stats": {
+      "startTime": "2026-10-23T02:12:00.322Z",
+      "duration": 349736.87200000003,
+      "expected": 11,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "totals": {
+      "fixtureSetupMs": 140624.27,
+      "seedInsideBodyMs": 126375.61,
+      "bodyIncludingSeedMs": 199684,
+      "fixtureTeardownMs": 1534.01
+    },
+    "cases": [
+      {
+        "title": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 10663.13,
+        "seedInsideBodyMs": 10471.57,
+        "bodyIncludingSeedMs": 16274,
+        "fixtureTeardownMs": 113.48,
+        "bodyBudgetMs": 60000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 1
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 11261
+          },
+          {
+            "name": "api/golden-target-oracle",
+            "milliseconds": 2073
+          },
+          {
+            "name": "ui/golden-target-and-units",
+            "milliseconds": 1858
+          },
+          {
+            "name": "excel/export-and-ooxml",
+            "milliseconds": 1082
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 독립 WBS 변경·원시 ID·mutation 경계",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 13052.07,
+        "seedInsideBodyMs": 11613.66,
+        "bodyIncludingSeedMs": 18623,
+        "fixtureTeardownMs": 126.76,
+        "bodyBudgetMs": 30000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 0
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 14235
+          },
+          {
+            "name": "focused/WBS 변경",
+            "milliseconds": 0
+          },
+          {
+            "name": "mutation/1-wbs-name",
+            "milliseconds": 1236
+          },
+          {
+            "name": "mutation/2-target-start-date",
+            "milliseconds": 3152
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 독립 Resource/Assignment·원시 ID·mutation 경계",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 12182.1,
+        "seedInsideBodyMs": 10624.43,
+        "bodyIncludingSeedMs": 19397,
+        "fixtureTeardownMs": 136.43,
+        "bodyBudgetMs": 30000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 0
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 13212
+          },
+          {
+            "name": "focused/Resource/Assignment",
+            "milliseconds": 705
+          },
+          {
+            "name": "mutation/3-status",
+            "milliseconds": 1776
+          },
+          {
+            "name": "mutation/4-progress",
+            "milliseconds": 1558
+          },
+          {
+            "name": "mutation/5-assignment-allocation",
+            "milliseconds": 1723
+          },
+          {
+            "name": "api/assigned-targets-source",
+            "milliseconds": 423
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 독립 Target binding·원시 ID·mutation 경계",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 12418.01,
+        "seedInsideBodyMs": 10545.81,
+        "bodyIncludingSeedMs": 16687,
+        "fixtureTeardownMs": 147.49,
+        "bodyBudgetMs": 30000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 0
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 12927
+          },
+          {
+            "name": "focused/Target binding",
+            "milliseconds": 696
+          },
+          {
+            "name": "ui/target-bindings-save",
+            "milliseconds": 2520
+          },
+          {
+            "name": "api/target-bindings-source",
+            "milliseconds": 544
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 독립 화면 복귀·원시 ID·mutation 경계",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 12579.18,
+        "seedInsideBodyMs": 10802.7,
+        "bodyIncludingSeedMs": 17106,
+        "fixtureTeardownMs": 133.06,
+        "bodyBudgetMs": 30000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 0
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 13490
+          },
+          {
+            "name": "focused/화면 복귀",
+            "milliseconds": 3617
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 12667.67,
+        "seedInsideBodyMs": 11065.26,
+        "bodyIncludingSeedMs": 28599,
+        "fixtureTeardownMs": 202.44,
+        "bodyBudgetMs": 90000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 1
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 11065
+          },
+          {
+            "name": "api/mutation-source-identity",
+            "milliseconds": 2431
+          },
+          {
+            "name": "mutation/1-wbs-name",
+            "milliseconds": 1811
+          },
+          {
+            "name": "mutation/2-target-start-date",
+            "milliseconds": 3018
+          },
+          {
+            "name": "ui/resource-transition",
+            "milliseconds": 1521
+          },
+          {
+            "name": "mutation/3-status",
+            "milliseconds": 1279
+          },
+          {
+            "name": "mutation/4-progress",
+            "milliseconds": 1594
+          },
+          {
+            "name": "mutation/5-assignment-allocation",
+            "milliseconds": 2669
+          },
+          {
+            "name": "api/assigned-targets-source",
+            "milliseconds": 93
+          },
+          {
+            "name": "mutation/6-target-membership",
+            "milliseconds": 0
+          },
+          {
+            "name": "ui/target-bindings-save",
+            "milliseconds": 2393
+          },
+          {
+            "name": "api/target-bindings-source",
+            "milliseconds": 104
+          },
+          {
+            "name": "ui/schedule-return-and-write-contract",
+            "milliseconds": 620
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 실제 Target 다열·중첩Group 390px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 13250.11,
+        "seedInsideBodyMs": 12563.47,
+        "bodyIncludingSeedMs": 17015,
+        "fixtureTeardownMs": 123.41,
+        "bodyBudgetMs": 45000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 1
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 12564
+          },
+          {
+            "name": "ui/390px-resource-transition",
+            "milliseconds": 3036
+          },
+          {
+            "name": "ui/390px-tree-geometry-keyboard",
+            "milliseconds": 727
+          },
+          {
+            "name": "ui/390px-matrix-geometry-keyboard",
+            "milliseconds": 689
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 실제 Target 다열·중첩Group 768px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 13429.63,
+        "seedInsideBodyMs": 12882.88,
+        "bodyIncludingSeedMs": 17718,
+        "fixtureTeardownMs": 125.64,
+        "bodyBudgetMs": 45000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 0
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 12883
+          },
+          {
+            "name": "ui/768px-resource-transition",
+            "milliseconds": 3257
+          },
+          {
+            "name": "ui/768px-tree-geometry-keyboard",
+            "milliseconds": 816
+          },
+          {
+            "name": "ui/768px-matrix-geometry-keyboard",
+            "milliseconds": 762
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 실제 Target 다열·중첩Group 1024px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 14266.51,
+        "seedInsideBodyMs": 12656.27,
+        "bodyIncludingSeedMs": 17199,
+        "fixtureTeardownMs": 119.23,
+        "bodyBudgetMs": 45000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 0
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 12656
+          },
+          {
+            "name": "ui/1024px-resource-transition",
+            "milliseconds": 3077
+          },
+          {
+            "name": "ui/1024px-tree-geometry-keyboard",
+            "milliseconds": 675
+          },
+          {
+            "name": "ui/1024px-matrix-geometry-keyboard",
+            "milliseconds": 791
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 실제 Target 다열·중첩Group 1440px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 13145.87,
+        "seedInsideBodyMs": 11824.33,
+        "bodyIncludingSeedMs": 16043,
+        "fixtureTeardownMs": 115.26,
+        "bodyBudgetMs": 45000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 0
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 11824
+          },
+          {
+            "name": "ui/1440px-resource-transition",
+            "milliseconds": 2899
+          },
+          {
+            "name": "ui/1440px-tree-geometry-keyboard",
+            "milliseconds": 629
+          },
+          {
+            "name": "ui/1440px-matrix-geometry-keyboard",
+            "milliseconds": 690
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      },
+      {
+        "title": "#623 실제 Target 다열·중첩Group 1920px geometry·keyboard·query0·렌더관측",
+        "status": "passed",
+        "retry": 0,
+        "fixtureSetupMs": 12969.99,
+        "seedInsideBodyMs": 11325.23,
+        "bodyIncludingSeedMs": 15023,
+        "fixtureTeardownMs": 190.81,
+        "bodyBudgetMs": 45000,
+        "budgetWarning": false,
+        "phases": [
+          {
+            "name": "fixture/setup",
+            "milliseconds": 0
+          },
+          {
+            "name": "fixture/seed-http",
+            "milliseconds": 11325
+          },
+          {
+            "name": "ui/1920px-resource-transition",
+            "milliseconds": 2432
+          },
+          {
+            "name": "ui/1920px-tree-geometry-keyboard",
+            "milliseconds": 590
+          },
+          {
+            "name": "ui/1920px-matrix-geometry-keyboard",
+            "milliseconds": 676
+          },
+          {
+            "name": "fixture/teardown",
+            "milliseconds": 1
+          }
+        ]
+      }
+    ]
+  },
+  "wallIncreaseMs": 160730.621,
+  "wallIncreasePercent": 85.04,
+  "interpretation": [
+    "격리 실제fixture7→11과six-write 결합 보존 비용이며 속도개선으로 보고하지 않는다.",
+    "seed는body에포함된다.별도fixture120s와본문예산을합산하거나seed+body를중복가산하지않는다.",
+    "각source1회순차로컬표본이며통계적효과/운영성능/실제Actions비용보장은아니다.",
+    "교정전2a8eae… source의312.194110s는cost-comparison.json에별도보존하며이최종소스측정과합산하지않는다."
+  ],
+  "remoteShardWall": "NOT TESTED",
+  "remoteRunnerCost": "NOT TESTED"
+}
