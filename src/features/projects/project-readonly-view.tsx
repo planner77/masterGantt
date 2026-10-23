@@ -2900,13 +2900,19 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   );
   const editing = permission === "edit" && permissionCheckState === "complete";
   const busy = canonicalRecoveryBlocked || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask || importPending || copyReview !== null || milestoneCreate !== null;
+  // #556 F-003: a modal must not resize the background Gantt merely by
+  // replacing an inline selection hint with a much longer dialog-blocked hint.
+  // Keep the underlying selection/scope hint in flow while the top-layer
+  // dialog is open; expose the actual disabled reason via title/ARIA instead.
+  const resourceOverlayOpen = editorSession !== null || relationEditorRequest !== null ||
+    settingsOpen || pendingTaskDelete !== null || copyReview !== null || milestoneCreate !== null;
   const resourceNavigationBlockedReason = canonicalRecoveryBlocked
     ? "최신 저장 결과를 확인한 뒤 조회할 수 있습니다."
     : navigationLoading
       ? "담당자·공수 조회로 이동 중입니다."
       : editorSession !== null
         ? "작업 편집기를 닫은 뒤 조회할 수 있습니다."
-        : relationEditorRequest !== null || settingsOpen || pendingTaskDelete !== null || copyReview !== null || milestoneCreate !== null
+        : resourceOverlayOpen
           ? "열린 편집·확인 창을 닫은 뒤 조회할 수 있습니다."
           : busy
             ? "저장·처리가 끝난 뒤 조회할 수 있습니다."
@@ -2917,10 +2923,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const scope = resolveTaskSubtreeScope(tasks, taskId);
     return scope.kind === "valid" && scope.taskIds.some(id => ordinaryTaskIds.has(id));
   });
-  const selectedResourceBlockedReason = resourceNavigationBlockedReason
-    ?? (!workspaceSelection.length ? "작업을 선택해 주세요." : !selectionHasOrdinaryTasks ? "선택 범위에 일반 Task가 없습니다." : null);
-  const summaryResourceBlockedReason = resourceNavigationBlockedReason
-    ?? (subtreeScopeInvalid ? "유효한 Summary 범위로 이동해 주세요." : !scopedTasks.some(task => task.type === "task") ? "Summary 범위에 일반 Task가 없습니다." : null);
+  const selectedScopeBlockedReason = !workspaceSelection.length
+    ? "작업을 선택해 주세요."
+    : !selectionHasOrdinaryTasks ? "선택 범위에 일반 Task가 없습니다." : null;
+  const summaryScopeBlockedReason = subtreeScopeInvalid
+    ? "유효한 Summary 범위로 이동해 주세요."
+    : !scopedTasks.some(task => task.type === "task") ? "Summary 범위에 일반 Task가 없습니다." : null;
+  const selectedResourceBlockedReason = resourceNavigationBlockedReason ?? selectedScopeBlockedReason;
+  const summaryResourceBlockedReason = resourceNavigationBlockedReason ?? summaryScopeBlockedReason;
+  const selectedResourceInlineReason = resourceOverlayOpen ? selectedScopeBlockedReason : selectedResourceBlockedReason;
+  const summaryResourceInlineReason = resourceOverlayOpen ? summaryScopeBlockedReason : summaryResourceBlockedReason;
   const scheduleStatus = scopedTasks.length === 0
     ? "표시할 작업이 없습니다."
     : scopedTasks.every(task => task.start === null)
@@ -3252,23 +3264,25 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               className="secondary-button"
               type="button"
               disabled={selectedResourceBlockedReason !== null}
-              aria-describedby="schedule-selected-resources-description schedule-selected-resources-state"
+              aria-describedby={`schedule-selected-resources-description ${resourceOverlayOpen ? "schedule-selected-resources-overlay-state" : "schedule-selected-resources-state"}`}
               title={selectedResourceBlockedReason ?? "선택한 Task 및 선택 Summary의 일반 Task 자손에 배정된 모든 개인을 Resource 대시보드에서 조회"}
               onClick={() => scheduleToResources(ganttSelection.current)}
             >담당자·공수 조회</button>
             <span id="schedule-selected-resources-description" className="sr-only">선택한 Task 및 선택 Summary의 일반 Task 자손에 배정된 모든 개인을 Resource 대시보드에서 조회합니다. 개인 배정이 없으면 안내합니다.</span>
-            <span id="schedule-selected-resources-state" className={selectedResourceBlockedReason ? "project-schedule-resource-state" : "sr-only"}>{selectedResourceBlockedReason}</span>
+            <span id="schedule-selected-resources-state" className={selectedResourceInlineReason ? "project-schedule-resource-state" : "sr-only"}>{selectedResourceInlineReason}</span>
+            {resourceOverlayOpen ? <span id="schedule-selected-resources-overlay-state" className="sr-only">{selectedResourceBlockedReason}</span> : null}
             {activeRootTaskId ? <>
               <button
                 className="secondary-button"
                 type="button"
                 disabled={summaryResourceBlockedReason !== null}
-                aria-describedby="schedule-summary-resources-description schedule-summary-resources-state"
+                aria-describedby={`schedule-summary-resources-description ${resourceOverlayOpen ? "schedule-summary-resources-overlay-state" : "schedule-summary-resources-state"}`}
                 title={summaryResourceBlockedReason ?? "현재 Summary 범위의 일반 Task 자손 전체에 배정된 개인과 공수를 조회"}
                 onClick={() => scheduleToResources([], activeRootTaskId)}
               >Summary 전체 담당자·공수</button>
               <span id="schedule-summary-resources-description" className="sr-only">현재 Summary 범위의 일반 Task 자손 전체를 조회합니다. 선택 Task 집합과 다른 범위입니다.</span>
-              <span id="schedule-summary-resources-state" className={summaryResourceBlockedReason ? "project-schedule-resource-state" : "sr-only"}>{summaryResourceBlockedReason}</span>
+              <span id="schedule-summary-resources-state" className={summaryResourceInlineReason ? "project-schedule-resource-state" : "sr-only"}>{summaryResourceInlineReason}</span>
+              {resourceOverlayOpen ? <span id="schedule-summary-resources-overlay-state" className="sr-only">{summaryResourceBlockedReason}</span> : null}
             </> : null}
           </div>
           <span className="project-filter-result" role="status">{taskFilter.milestoneTaskId !== "all" ? `유효 소속 일반 작업 ${filteredTasks.ordinaryMatchCount}개 · ` : ""}{wbsLegacy ? `${filteredTasks.matchCount}개 일치` : `${filteredTasks.ordinaryMatchCount}개 일반 Task 일치 · 직접 Summary ${directSummaryCount}개 · context Summary ${contextSummaryCount}개`} / {" "}

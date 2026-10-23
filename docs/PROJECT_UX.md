@@ -8,6 +8,8 @@
 
 좁은 화면에서는 검색·필터와 조회 그룹을 의미 있게 줄바꿈한다. Gantt 내부 toolbar/fullscreen 소유권은 바꾸지 않는다. 실제 px/5폭·키보드·상태 보존 검증 및 별도 환경 미검증은 [Work Packet](exec-plans/active/ISSUE_556.md)에 기록한다.
 
+**#556 F-003 (2026-10-24):** 설정·작업 편집·확인 등의 top-layer dialog를 열었다는 이유만으로 배경 일정의 조회 그룹에 긴 비활성화 사유를 *visible inline*으로 치환해 Gantt/Grid/Chart 위치나 높이를 이동시키지 않는다. 대화상자가 떠 있는 동안 배경의 inline 문구는 현재 선택/범위의 기존 짧은 힌트를 그대로 유지하고, 실질적인 잠금 사유(예: `열린 편집·확인 창을 닫은 뒤 조회할 수 있습니다.`)는 해당 disabled 버튼의 `title` 및 연결된 `aria-describedby`(비가시적 텍스트)로 정확히 제공한다. 대화상자를 닫으면 이유 연결과 기존 선택/범위 힌트를 원상 복구한다. 정상 화면에서는 상황에 맞는 가시 안내와 44px 조회 버튼을 유지하며 readonly 조회/정확한 Task·Assignment scope는 변경하지 않는다. 모달 검증 오류·오류 알림함 기록과 background Gantt 인스턴스·기하 안정성은 [`project-modal-feedback.spec.ts`](../tests/e2e/project-modal-feedback.spec.ts)의 독립 회귀로 보존한다. 이번 원격 F-003의 사전·사후 크기 증거 및 새 Head 미검증은 [단일 실패 원장](ISSUE_556_FAILURE_ANALYSIS.md)에 누적한다.
+
 ## Issue #762 — 공정&WorkArea 단일 관리 작업면
 
 `기준정보 → 공정&WorkArea`의 공정 목록에서 검색·비활성 포함·추가/수정/정렬/안전 삭제와 작업 구역 선택을 제공한다. 선택 공정의 WorkArea0..N을 같은 화면 아래에서 관리하며 구역0개는 정상이다. 신규 입력은 이름을 우선하고 기술 code/ID는 자동 생성 또는 식별 정보에서 확인한다. 분류 triple·유형·제품 표준·현장 공정·매핑을 먼저 입력하지 않는다.

@@ -4,6 +4,8 @@
 
 선택 조회 `담당자·공수 조회`와 현재 범위 조회 `Summary 전체 담당자·공수`는 구분된 native button과 공통 secondary/focus/disabled token을 사용한다. 별도 명령 그룹은 `role=group`이며 Gantt toolbar를 옮기거나 새로운 Arrow/roving 계약을 도입하지 않는다. 대상 설명과 원인별 disabled 이유는 `aria-describedby`로 연결하고 필터 결과 status의 집계 의미를 보존한다. 긴 텍스트는 Project 영역 안에서 wrap하며 44px hit target을 확인한다. [실측·검증 경계](exec-plans/active/ISSUE_556.md)를 따른다.
 
+**#556 F-003 top-layer overlay guard:** native dialog가 열린 순간 하위 Project Toolbar의 visible 상태 설명 문구가 길어지며 배경 Gantt 높이가 달라지는 reflow를 금지한다. 열린 대화상자와 무관한 underlying selection/scope inline hint를 기존 위치·길이로 유지하고, 실제 `disabled` 이유는 버튼 `title`과 `aria-describedby`로 참조되는 `sr-only` 상태에 별도로 제공한다. 모달이 닫히면 원래 설명 연결을 복구한다. 단순히 테스트의 frame equality를 완화하거나 모달 오류의 표시·알림함 기록을 제거하지 않으며 Gantt 인스턴스·Grid/Chart geometry·캐노니컬 쓰기0을 보존한다.
+
 ## Issue #734 — 설비 원본과 업무 연관 표시
 
 설비 root는 개인 하위 축 구성과 분리해 고정한다. 기본 단독 요약과 두 동적 예시는 기존 composer를 사용하고 유형 필터를 상위 Target으로 바꾸지 않는다. 원본 이름/유형·단품/Fleet/수량/모든 WorkArea/Owner/실제 controls는 접힌 원본 영역으로 제공하며 기존6열 표의 폭을 늘리지 않는다. 전체 등록 진단과 필터된 작업 지표·구성 수량의 모집단을 인접 라벨로 구별한다.
