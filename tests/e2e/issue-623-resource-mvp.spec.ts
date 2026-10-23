@@ -19,7 +19,7 @@ import { readBrowserCanonicalSnapshot } from "./helpers/browser-canonical-snapsh
 
 // The runtime already depends on this password option. Its dependency keeps the
 // conversion environment scoped to the server lifetime without hook-only servers.
-type PhaseTiming = { beginBody: () => void; mark: (name: string) => void; finishBody: () => void };
+type PhaseTiming = { beginBody: (phase?: string) => void; mark: (name: string) => void; finishBody: () => void };
 const test = isolatedTest.extend<{ resourceMdPerMmEnvironment: void; phaseTiming: PhaseTiming }>({
   phaseTiming: [async ({}, provide, info) => {
     const started = performance.now();
@@ -32,7 +32,7 @@ const test = isolatedTest.extend<{ resourceMdPerMmEnvironment: void; phaseTiming
     };
     try {
       await provide({
-        beginBody: () => { bodyStarted = performance.now(); mark("fixture/seed-http"); },
+        beginBody: (initialPhase = "fixture/seed-http") => { bodyStarted = performance.now(); mark(initialPhase); },
         mark,
         finishBody: () => { bodyFinished = performance.now(); mark("fixture/teardown"); },
       });
@@ -312,14 +312,22 @@ async function returnToSchedule(page: Page, f: Issue623Fixture, session: Mutatio
   await assertSaved(count);
 }
 
-// 집중 케이스마다 독립 SQLite/HTTP 원본, 단계 계측과 쓰기 관측을 사용한다.
-// 공통 조작 함수로 통합 smoke와 같은 단언을 유지한다.
-for (const boundary of ["WBS 변경", "Resource status/progress", "Assignment allocation", "Target binding", "화면 복귀"] as const) {
-  test(`#623 독립 ${boundary}·원시 ID·mutation 경계`, async ({ page, isolatedApplication: origin, observeIsolatedApi, phaseTiming, timeIsolatedStage }, info) => {
+// focused 케이스마다 새로운 SQLite/HTTP 원본과 쓰기 관찰기를 먼저 준비한다.
+// 실패하는 Seed도 별도 Fixture에서 FAIL 처리한다. Mutation 본문은 기존 30초 제한이다.
+const focusedTest = test.extend<{ focusedAcceptance: { f: Issue623Fixture; session: MutationSession } }>({
+  focusedAcceptance: [async ({ page, isolatedApplication: origin, observeIsolatedApi, timeIsolatedStage }, provide) => {
     page.setDefaultTimeout(15_000);
-    phaseTiming.beginBody();
     const f = await timeIsolatedStage("seed_issue_623", () => seedIssue623(page, origin, observeIsolatedApi));
     const session = await mutationSession(page, f, observeIsolatedApi);
+    await provide({ f, session });
+  }, { scope: "test", timeout: 120_000 }],
+});
+
+// 공통 조작 함수와 원본 Assertion을 그대로 사용하며 기존 종단 Smoke를 유지한다.
+for (const boundary of ["WBS 변경", "Resource status/progress", "Assignment allocation", "Target binding", "화면 복귀"] as const) {
+  focusedTest(`#623 독립 ${boundary}·원시 ID·mutation 경계`, async ({ page, observeIsolatedApi, phaseTiming, focusedAcceptance }, info) => {
+    phaseTiming.beginBody("focused/initial-identity");
+    const { f, session } = focusedAcceptance;
     phaseTiming.mark(`focused/${boundary}`);
     const originalName = "SHARED · 통합 시운전";
     let count = 0;

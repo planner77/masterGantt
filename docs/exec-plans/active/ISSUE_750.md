@@ -95,3 +95,12 @@ qa_docs `/root/review_scope` 최종 read-only 사전검토 PASS/미해결P1·P2 
 **AC_TEST_COVERAGE 조정**: 기존 상태/진척 PATCH2와 Assignment PUT1을 서로 다른 test-scoped SQLite/HTTP/Chromium 집중 케이스로 분리한다. 공유 `mutationSession.assertSaved`가 저장 수+revision delta+Task ID/Gantt instance를 개별 검증하고, `changeAssignmentAllocation`은 원본 Assignment UUID/80%·조회-only·준비된 Resource tab+Save button을 검증한다. 기존 six-write smoke는 공통 래퍼로 상태·진척·배정 전체를 계속 실행해 정확 6 writes, revision+6과 원본 출처를 유지한다. `AC1` 요구/단언 삭제 없음, `AC2` 새 12 case/독립 Fixture 시간·Shard/Actions 비용 및 새 정확 HEAD Full8 검증 필요, `AC3` 배정 ready/저장 phase와 원본 trace 분리.
 
 이 변경은 과거 Head의 로컬 Chromium36고유PASS·11case비용(+85.040%)을 새 HEAD PASS로 이월하지 않는다. 새 코드의 로컬/원격 결과와 Runner 실측은 **NOT TESTED**. retries/skip/timeout/CI policy/승인/릴리스 계약은 그대로이며 Owner 승인 없는 병합·Main/GHCR·정식 태그·Issue 종료 금지.
+
+
+## F750-002 — 초기 SQLite/HTTP Seed·원본 확인의 Test-Scoped Fixture 분리 (2026-10-23)
+
+[Full #3181.1](https://github.com/planner77/masterGantt/actions/runs/39895278155) Shard1에서 `Resource status/progress` focused 검증은 실제 두 PATCH와 원본 정합·일정 복귀·Evidence 첨부 후 `29,964/30,000ms` Test Deadline으로 FAIL(36PASS/1FAIL/66NOT RUN; 7 Shard CANCELLED, Quality·Docker PASS). Playwright 원본 단계 `fixture/seed-http` 19,347ms에는 seed와 MutationSession 초기 조회가 포함되고, 실제 seed의 별도 단계는 15,644.93ms이다. [F750-002 누적 실패 원장](../../ISSUE_750_FAILURE_ANALYSIS.md)에 원본 run/attempt/HEAD/trace와 직접·파생·미실행 구분을 보존한다.
+
+**설계/AC**: 기존 focused 5개는 본문 내 `seedIssue623`·`mutationSession` 준비를 새 `focusedAcceptance` test-scoped Fixture(원래 isolatedApplicationRuntime와 별도 `timeout120s`)로 옮기며, Fixture FAIL은 본 테스트 FAIL로 유지한다. 실제 UI Mutation 본문 기본30초/15초 locator 설정·원래 12 case·각 원시 Task/Assignment ID/revision+N/writes0·조회 readonly·Gantt/Core 및 6-write/revision+6 smoke/GoldenExcel/5폭 geometry 단언 불변. `phaseTiming` Fixture와 `timeIsolatedStage("seed_issue_623")` 출처를 유지하고 Body `focused/initial-identity` 뒤에 원본 Mutation 단계만 측정한다. 이는 전체 Job wall/러너 비용 절감으로 주장하지 않는다.
+
+AC1 완전 보존, AC2 새 HEAD의 실제 Full Required3·본 변화에 따른 fixture/body/Shard 시간 및 독립·역순/cleanup 재검증 필요, AC3 실패 단계 계측 유지. 새 Head 로컬/원격 검증은 **NOT TESTED**. Owner 승인 없는 병합·GHCR·Release·이슈 종료 및 timeout/retry/skip 완화 금지.

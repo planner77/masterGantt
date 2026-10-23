@@ -1153,3 +1153,8 @@ Required PR aggregate quality/e2e/docker must now cover Template v2 graph persis
 ## Issue #750 — Full #3180.1 집중 Resource/Assignment 30초 본문 예산 초과 교정 (2026-10-23)
 
 [Run 39891124883.1](https://github.com/planner77/masterGantt/actions/runs/39891124883) Shard1의 #623 집중 Resource/Assignment가 상태·진척 2 PATCH 후 배정 편집을 준비하는 도중 원래 30초 Test Budget을 소진했다. 36PASS/1FAIL/65NOT RUN, 다른7 Shard CANCELLED, Quality·Docker PASS, E2E/QA 파생 FAIL. 원본 trace/직접·파생 분류 및 이전 이력은 [#750 F750-001](ISSUE_750_FAILURE_ANALYSIS.md)에 보존한다. focused 경계를 상태·진척(2)과 배정 투입률(1)로 분리하여 새 독립 Fixture와 Resource tab/Save enabled 준비 단언을 적용한다. 기존 6-write smoke의 원본 ID/revision+6/조회0·Gantt 보존을 유지하고 전체·개별 timeout, retries/skip, 8-Shard/35분, Required3, Trusted QA와 Owner 승인을 변경하지 않는다. 이전11case PASS를 새12case PASS로 소급하지 않으며 새 원격 HEAD 결과는 CI 실행 전 NOT TESTED다.
+
+
+## Issue #750 — Full #3181.1 F750-002 Seed/body 분리 (2026-10-23)
+
+[Full #3181.1](https://github.com/planner77/masterGantt/actions/runs/39895278155)는 focused status/progress가 입력값 및 revision 검증을 완료한 뒤 body 29,964/30,000ms로 실패(Shard1 36PASS/1FAIL/66NOT RUN, 다른7 CANCELLED). [#750 실패 원장 F750-002](ISSUE_750_FAILURE_ANALYSIS.md)의 phase는 seed+원본 준비19,347ms와 UI 단계1,399/4,484/4,734ms를 구분한다. focused 5case의 Seed+MutationSession을 동일 격리 앱의 별도 test-scoped Fixture120s(실패 시 테스트 FAIL)로 옮겨 실제 UI 본문30s를 유지한다. 12case·6-write smoke/revision/ID, 재시도/Skip, Quality/E2E8/Docker Required, Trusted/Owner 및 CI Job/정식 Release 정책은 그대로. 새 Head 원격 PASS 및 shard 비용은 CI 시작 전 NOT TESTED.
