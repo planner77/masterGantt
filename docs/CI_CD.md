@@ -1158,3 +1158,10 @@ Required PR aggregate quality/e2e/docker must now cover Template v2 graph persis
 ## Issue #750 — Full #3181.1 F750-002 Seed/body 분리 (2026-10-23)
 
 [Full #3181.1](https://github.com/planner77/masterGantt/actions/runs/39895278155)는 focused status/progress가 입력값 및 revision 검증을 완료한 뒤 body 29,964/30,000ms로 실패(Shard1 36PASS/1FAIL/66NOT RUN, 다른7 CANCELLED). [#750 실패 원장 F750-002](ISSUE_750_FAILURE_ANALYSIS.md)의 phase는 seed+원본 준비19,347ms와 UI 단계1,399/4,484/4,734ms를 구분한다. focused 5case의 Seed+MutationSession을 동일 격리 앱의 별도 test-scoped Fixture120s(실패 시 테스트 FAIL)로 옮겨 실제 UI 본문30s를 유지한다. 12case·6-write smoke/revision/ID, 재시도/Skip, Quality/E2E8/Docker Required, Trusted/Owner 및 CI Job/정식 Release 정책은 그대로. 새 Head 원격 PASS 및 shard 비용은 CI 시작 전 NOT TESTED.
+
+
+## Issue #750 — 최초 Main #3183.1 Shard8 #490 scroll state setup 교정 (2026-10-23)
+
+[Main Run 39910342165.1](https://github.com/planner77/masterGantt/actions/runs/39910342165)의 **유일한 직접 실패**는 기존 `project-settings-layout-490.spec.ts` 초기 세로 native scroll 38px 검사에서 0px 지속이다. Shard8 101PASS/1FAIL·다른7 Shard SUCCESS, Quality/Docker SUCCESS. E2E aggregate FAIL에 따른 Main `ci-<SHA>` 임시 GHCR SKIPPED와 Finalizer SKIPPED를 정상 통과/발행으로 오해하지 않는다. 원본은 [#750 F750-003 원장](ISSUE_750_FAILURE_ANALYSIS.md)으로 보존.
+
+동일 Run의 Playwright attachment에서 X capacity 19→903으로 변화해 X Y 연속 초기화 때 레이아웃 정착을 확인할 필요가 있다. #490 테스트는 X 내부 좌표를 먼저 확인한 뒤 두 native animation frames/정확 X·Y 용량 검사 및 Y=38 설정/사후 영수증을 추가한다. Y=38 정확 일치 및 원래 Settings 전후 상태 전체 equality, E2E8/8·35m·retries0·Quality/Docker/Trusted·Owner 승인·GHCR/Finalizer 불변. 같은 버전 0.130.1을 유지하는 #750 교정 PR로 검증하며 #783 최초 Main FAIL을 PASS로 소급하지 않고 새로운 exact merge Main push에서만 성공을 확인한다.

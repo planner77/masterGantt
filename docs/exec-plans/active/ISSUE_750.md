@@ -104,3 +104,11 @@ qa_docs `/root/review_scope` 최종 read-only 사전검토 PASS/미해결P1·P2 
 **설계/AC**: 기존 focused 5개는 본문 내 `seedIssue623`·`mutationSession` 준비를 새 `focusedAcceptance` test-scoped Fixture(원래 isolatedApplicationRuntime와 별도 `timeout120s`)로 옮기며, Fixture FAIL은 본 테스트 FAIL로 유지한다. 실제 UI Mutation 본문 기본30초/15초 locator 설정·원래 12 case·각 원시 Task/Assignment ID/revision+N/writes0·조회 readonly·Gantt/Core 및 6-write/revision+6 smoke/GoldenExcel/5폭 geometry 단언 불변. `phaseTiming` Fixture와 `timeIsolatedStage("seed_issue_623")` 출처를 유지하고 Body `focused/initial-identity` 뒤에 원본 Mutation 단계만 측정한다. 이는 전체 Job wall/러너 비용 절감으로 주장하지 않는다.
 
 AC1 완전 보존, AC2 새 HEAD의 실제 Full Required3·본 변화에 따른 fixture/body/Shard 시간 및 독립·역순/cleanup 재검증 필요, AC3 실패 단계 계측 유지. 새 Head 로컬/원격 검증은 **NOT TESTED**. Owner 승인 없는 병합·GHCR·Release·이슈 종료 및 timeout/retry/skip 완화 금지.
+
+## F750-003 — #490 native Y 스크롤 초기화 보완 (2026-10-23)
+
+- 원본 [Main CI #3183.1](https://github.com/planner77/masterGantt/actions/runs/39910342165) 정확 SHA `fb43e70a41229d71026f5ffeb9e05424a124d43c`: E2E Shard8 #490 Y=38 기대 vs native0(101PASS/1FAIL), Shard1~7와 Quality/Docker PASS, GHCR/Finalizer SKIPPED. 원본 [F750-003 원장](../../ISSUE_750_FAILURE_ANALYSIS.md)에 Run/Attempt/Trace·첫 실패와 파생을 분리 기록.
+- 영향 검증: #490 Settings WBS·Gantt 상태 보존 E2E는 유지(단언 삭제/Timeout 완화/Retry/Skip 금지). 기존 가로 내부 좌표9 검증 후 레이아웃 2 RAF, Y scrollHeight/clientHeight·실제 set/after snapshot을 검증해 Y=38의 실질적 준비 조건을 확보한다. 기존 메타데이터 편집·Calendar·Auth·스크롤·선택·Column·Fullscreen의 전후 불변 계약을 보존한다.
+- 동일 테스트에서 원시 X capacity는 19→903으로 후행 변화를 기록하였으나 Y가 0이 된 단독 인과는 UNKNOWN(원본에 Y capacity 없음). 수정은 테스트의 준비/진단이고 제품 버그 은폐·임의 스크롤 실패 무시는 아니다.
+- Work Packet `AC_TEST_COVERAGE`: AC1 #623 동일 원본 6-write/ID/Excel/Gantt 및 #490 인접 Settings 보존, AC2 새 정확 HEAD PR Required3 + 독립 Main 검증, AC3 native 스크롤 용량/원본 Trace diagnostic. 과거 #3182 PR PASS가 새로운 Head·Main PASS는 아니다.
+- #783 기존 병합 SHA 최초 Main FAIL은 보존하고 0.130.1 유지. 보호 main direct push 금지; 신규 same-Issue 교정 PR `Refs #750`를 통해 별도 Full PR/Trusted/Owner 병합 gate 이후 Main CI 시작. 이전 정식 release는 아직 미발행이며 승인·통과 전 GHCR·Issue close 금지.

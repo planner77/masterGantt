@@ -1,5 +1,12 @@
 # masterGantt Test Plan
 
+
+## Issue #750 — Main #3183.1 기존 #490 스크롤 준비 회귀와 교정 (2026-10-23)
+
+- [원본 Main CI 39910342165.1](https://github.com/planner77/masterGantt/actions/runs/39910342165) Chromium Shard8 `project-settings-layout-490.spec.ts`의 초기 `verticalScroll===38` 엄격 단언에서 실제0, 101PASS/1FAIL. 나머지7 Shard·Quality/Docker PASS, Main GHCR/Finalizer SKIPPED. 같은 제품/테스트 source의 선행 [PR Full #3182.1](https://github.com/planner77/masterGantt/actions/runs/39899821855) PASS는 이 실패를 소급 PASS로 덮지 않는다.
+- 기존 Test Lifecycle 분류: #490 native Settings/Gantt 상태 보존 단언 **KEEP_UNIQUE + FLAKY_OR_EXPENSIVE → EXTEND(초기화 단계)**, 새 E2E case 중복 생성/skip 불필요. 기존 #703/#624의 가로 X native clamp를 피하는 양수 내부 위치와 `Y=38`·설정 탭/저장/전체화면/일정·선택/열 상태는 원형 유지. 원본 Trace의 X capacity 19→903 후행 변동에 근거해 X 정착 후 2 RAF, Y native scrollHeight-clientHeight>38, Y 설정 즉시/후행 2 RAF 실제 값 첨부를 추가해 **실제 Y 불가/리셋이면 FAIL**. 새 source의 PR Full8/Trusted/Main/GHCR는 실행 완료 전 NOT TESTED.
+- [F750-003 실패 원장](ISSUE_750_FAILURE_ANALYSIS.md), [#750 Work Packet](exec-plans/active/ISSUE_750.md). 제품/권한/DB/API·version `0.130.1`/CI timeout/retries/8-shard/Required3 변경 없음. Main protected 정책에 따라 교정 PR 검증 후 새 Main CI.
+
 제품 기능·보안·스키마·사용자 경로 검증은 기존 Vitest/Playwright/Policy를 유지한다. 이 문서의 **Test Lifecycle** 절은 Issue [#711](https://github.com/planner77/masterGantt/issues/711)의 회귀 테스트 자산 추가·유지·통합·폐기 판단을 위한 **단일 원본(Source of Truth)**이다. 이 지침은 자동 Skip/테스트 삭제/CI Required 완화를 허가하지 않는다.
 
 ## Issue #697 — 변경 영향 기반 로컬 검증과 교차 회귀 선정

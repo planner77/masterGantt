@@ -1106,3 +1106,9 @@ PR 생성 후 Full run의 URL·run_attempt·Head/base/test merge를 단일 조�
 [#730 CI #3012.1](https://github.com/planner77/masterGantt/actions/runs/39245366403)의 BeforeHooks14.6797s는 별도fixture120s이며 본문약59.97s/60s와 합산하지 않는다. 마지막 Target binding GET 취소를 API 단독60s 장애로 확정하지 않는다. #623 분할 후보는 [AC/테스트매핑](exec-plans/active/ISSUE_750.md)과 [실패·비용원장](ISSUE_750_FAILURE_ANALYSIS.md)을 따르고 실제 HTTP/SQLite·Chromium의 same-source 실행을 원격 exact Head/Base/TestMerge/RunID/attempt Required3와 구별한다. 현재8-shard file plan에서 원격 실제 wall/runner비용은 새 Actions 측정 전 NOT TESTED다. 이번 요청에서는 Full PR CI 시작 근거까지만 확인하며 결과 모니터링·Main/GHCR/release·Manager ACCEPT는 수행하지 않는다.
 
 #750 최초 cross14의13PASS/1FAIL(#463 390px last option0.5px clip)은 유지한다. 공용 picker의 동기 목록scroll 교정·PATCH0.130.1 이후 소스를 다시 동결하여 모든 선정 검사를 재실행하고 정확 새Head PR CI를 시작한다. 로컬 반복/음성 대조·수정 후PASS를 원본FAIL의 소급변경이나 원격8샤드/Owner 승인으로 처리하지 않는다.
+
+
+## Issue #750 — 첫 Main #3183.1 / #490 native scroll 초기화 증거 (2026-10-23)
+
+- [Main Run #3183.1](https://github.com/planner77/masterGantt/actions/runs/39910342165): event push, merge HEAD `fb43e70a41229d71026f5ffeb9e05424a124d43c`, Shard8 Job120271708367의 #490 Settings mock-native Chromium scroll expectedY38/actual0(101PASS/1FAIL), 나머지7 E2E Shard·Quality/Docker PASS. Required E2E FAIL, GHCR 후보 SKIPPED, 자동 Finalizer 미진입. [Original trace artifact12483641531](https://github.com/planner77/masterGantt/actions/runs/39910342165/artifacts/12483641531), [Issue 전용 F750-003](ISSUE_750_FAILURE_ANALYSIS.md) 참고.
+- 검증할 교정: X=9 내부 스크롤과 실제 용량이 19→903으로 변하는 시점에서 native scroll 초기화가 앞서지 않도록 X 확인→프레임 정착→Y capacity>38 확인→Y=38 직접 할당→2 RAF 후 Y=38 엄격 일치 및 기존 전체 상태 snapshot equality. 부족 용량/후행 reset/프로젝트 변경이면 FAIL이며 테스트 skip/timeout/retry 추가 금지. 새 PR exact HEAD PR Full 8-shard + Trusted QA 및 별도 merge/Main CI가 요구됨. 기존 실패를 이전 성공 PR CI로 소급 PASS하지 않는다.
