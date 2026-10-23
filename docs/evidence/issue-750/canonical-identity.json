@@ -1,0 +1,800 @@
+{
+  "issue": 750,
+  "synthetic": true,
+  "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+  "sixWriteSmoke": {
+    "projectId": "3ef21f35-49b5-4c91-bf4c-67f20a6effbc",
+    "taskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff",
+    "assignmentId": "0dcefdb8-5847-4413-a3b7-91fd4ec4953b",
+    "targetIds": [
+      "54bebd5b-2af1-46ab-bc20-82e20d6dfc2a",
+      "60fad5a9-e558-4cd5-aa1e-ec450b5c1035"
+    ],
+    "standardId": "a466f977-8be5-45d2-acfa-557fa3957bcb",
+    "siteIds": [
+      "ab88b39a-17bd-40b0-ae26-ad50b73775a2",
+      "444e380d-a24e-40b5-890b-6bbf0bfb28a9"
+    ],
+    "rawGolden": {
+      "taskCount": 1,
+      "resourceCount": 1,
+      "assignmentCount": 1,
+      "notStarted": 1,
+      "inProgress": 0,
+      "completed": 0,
+      "delayed": 1,
+      "completion": {
+        "numerator": 0,
+        "denominator": 1,
+        "percent": 0
+      },
+      "assignedTaskProgress": {
+        "numerator": 0,
+        "denominator": 5,
+        "percent": 0
+      },
+      "effort": {
+        "knownMd": 5,
+        "plannedMd": 5,
+        "plannedMm": 0.25,
+        "state": "configured",
+        "partial": false,
+        "unsetCount": 0
+      },
+      "selector": {
+        "assignmentScope": "selected",
+        "dimension": "all",
+        "id": null,
+        "metric": "all"
+      }
+    },
+    "members": {
+      "equipmentQuantity": 15,
+      "systemCount": 3,
+      "equipmentIds": [
+        "490b9971-5c51-4249-b1db-57798484d8aa",
+        "e5bfc2c7-5377-40c5-a836-3930ffd8adc7"
+      ],
+      "systemIds": [
+        "575d32f7-0642-476f-bd02-6b99394e640d",
+        "828f46f1-77a5-4548-892f-9ec6b0724c01",
+        "b4554d08-1fdc-4b92-88de-233c099734bc"
+      ],
+      "types": [
+        {
+          "kind": "equipment",
+          "typeCode": "amr",
+          "instanceIds": [
+            "490b9971-5c51-4249-b1db-57798484d8aa",
+            "e5bfc2c7-5377-40c5-a836-3930ffd8adc7"
+          ],
+          "quantity": 15
+        },
+        {
+          "kind": "system",
+          "typeCode": "acs",
+          "instanceIds": [
+            "828f46f1-77a5-4548-892f-9ec6b0724c01",
+            "b4554d08-1fdc-4b92-88de-233c099734bc"
+          ],
+          "quantity": 2
+        },
+        {
+          "kind": "system",
+          "typeCode": "mcs",
+          "instanceIds": [
+            "575d32f7-0642-476f-bd02-6b99394e640d"
+          ],
+          "quantity": 1
+        }
+      ],
+      "members": [
+        {
+          "kind": "equipment",
+          "entityId": "490b9971-5c51-4249-b1db-57798484d8aa",
+          "name": "AMR A",
+          "code": "AMR-A",
+          "active": true,
+          "typeCode": "amr",
+          "quantity": 10,
+          "projectProcessId": "d3b3a222-bfec-48b5-9c11-c5a3672612d8",
+          "provenance": [
+            {
+              "bindingId": "5c8cb97d-bd0b-49f0-955f-c101e3f9b1a0",
+              "sourceTaskId": "f5ca5990-b6ae-4522-a6ee-5e97c04975d7",
+              "targetId": "54bebd5b-2af1-46ab-bc20-82e20d6dfc2a",
+              "memberId": "11385e3e-a6d8-4b6e-9e40-ecdbcf2f45fa",
+              "selection": "whole",
+              "scope": "subtree",
+              "inherited": true,
+              "coverage": null,
+              "coverageMode": "whole",
+              "taskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff"
+            },
+            {
+              "bindingId": "bd2ae764-da55-407c-9a4b-2fe59f89037f",
+              "sourceTaskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff",
+              "targetId": "54bebd5b-2af1-46ab-bc20-82e20d6dfc2a",
+              "memberId": "11385e3e-a6d8-4b6e-9e40-ecdbcf2f45fa",
+              "selection": "whole",
+              "scope": "self",
+              "inherited": false,
+              "coverage": null,
+              "coverageMode": "whole",
+              "taskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff"
+            }
+          ],
+          "coverageState": "single"
+        },
+        {
+          "kind": "equipment",
+          "entityId": "e5bfc2c7-5377-40c5-a836-3930ffd8adc7",
+          "name": "AMR B",
+          "code": "AMR-B",
+          "active": true,
+          "typeCode": "amr",
+          "quantity": 5,
+          "projectProcessId": "cdc9842c-556a-4f8c-baa7-962dd8ee458e",
+          "provenance": [
+            {
+              "bindingId": "208c7fb5-7f50-4876-afb0-b2deda4b04eb",
+              "sourceTaskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff",
+              "targetId": "60fad5a9-e558-4cd5-aa1e-ec450b5c1035",
+              "memberId": "71c22a1d-8439-435d-8f1f-8217570f7fe2",
+              "selection": "whole",
+              "scope": "self",
+              "inherited": false,
+              "coverage": null,
+              "coverageMode": "whole",
+              "taskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff"
+            }
+          ],
+          "coverageState": "single"
+        },
+        {
+          "kind": "system",
+          "entityId": "575d32f7-0642-476f-bd02-6b99394e640d",
+          "name": "공유 MCS",
+          "code": "MCS-1",
+          "active": true,
+          "typeCode": "mcs",
+          "quantity": 1,
+          "projectProcessId": null,
+          "provenance": [
+            {
+              "bindingId": "208c7fb5-7f50-4876-afb0-b2deda4b04eb",
+              "sourceTaskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff",
+              "targetId": "60fad5a9-e558-4cd5-aa1e-ec450b5c1035",
+              "memberId": "31762144-8199-4bfb-a47c-200a924d3e1f",
+              "selection": "whole",
+              "scope": "self",
+              "inherited": false,
+              "coverage": null,
+              "coverageMode": "whole",
+              "taskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff"
+            },
+            {
+              "bindingId": "5c8cb97d-bd0b-49f0-955f-c101e3f9b1a0",
+              "sourceTaskId": "f5ca5990-b6ae-4522-a6ee-5e97c04975d7",
+              "targetId": "54bebd5b-2af1-46ab-bc20-82e20d6dfc2a",
+              "memberId": "ec072ff1-d510-4f06-ab23-566cd034c8b5",
+              "selection": "whole",
+              "scope": "subtree",
+              "inherited": true,
+              "coverage": null,
+              "coverageMode": "whole",
+              "taskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff"
+            },
+            {
+              "bindingId": "bd2ae764-da55-407c-9a4b-2fe59f89037f",
+              "sourceTaskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff",
+              "targetId": "54bebd5b-2af1-46ab-bc20-82e20d6dfc2a",
+              "memberId": "ec072ff1-d510-4f06-ab23-566cd034c8b5",
+              "selection": "whole",
+              "scope": "self",
+              "inherited": false,
+              "coverage": null,
+              "coverageMode": "whole",
+              "taskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff"
+            }
+          ],
+          "coverageState": "single"
+        },
+        {
+          "kind": "system",
+          "entityId": "828f46f1-77a5-4548-892f-9ec6b0724c01",
+          "name": "ACS A",
+          "code": "ACS-A",
+          "active": true,
+          "typeCode": "acs",
+          "quantity": 1,
+          "projectProcessId": null,
+          "provenance": [
+            {
+              "bindingId": "5c8cb97d-bd0b-49f0-955f-c101e3f9b1a0",
+              "sourceTaskId": "f5ca5990-b6ae-4522-a6ee-5e97c04975d7",
+              "targetId": "54bebd5b-2af1-46ab-bc20-82e20d6dfc2a",
+              "memberId": "fa2c97c4-cb8c-4dfc-82a6-4135a22b724f",
+              "selection": "whole",
+              "scope": "subtree",
+              "inherited": true,
+              "coverage": null,
+              "coverageMode": "whole",
+              "taskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff"
+            },
+            {
+              "bindingId": "bd2ae764-da55-407c-9a4b-2fe59f89037f",
+              "sourceTaskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff",
+              "targetId": "54bebd5b-2af1-46ab-bc20-82e20d6dfc2a",
+              "memberId": "fa2c97c4-cb8c-4dfc-82a6-4135a22b724f",
+              "selection": "whole",
+              "scope": "self",
+              "inherited": false,
+              "coverage": null,
+              "coverageMode": "whole",
+              "taskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff"
+            }
+          ],
+          "coverageState": "single"
+        },
+        {
+          "kind": "system",
+          "entityId": "b4554d08-1fdc-4b92-88de-233c099734bc",
+          "name": "ACS B",
+          "code": "ACS-B",
+          "active": true,
+          "typeCode": "acs",
+          "quantity": 1,
+          "projectProcessId": null,
+          "provenance": [
+            {
+              "bindingId": "208c7fb5-7f50-4876-afb0-b2deda4b04eb",
+              "sourceTaskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff",
+              "targetId": "60fad5a9-e558-4cd5-aa1e-ec450b5c1035",
+              "memberId": "9b9097fc-6d02-45b0-9e6c-9837b6e73d84",
+              "selection": "whole",
+              "scope": "self",
+              "inherited": false,
+              "coverage": null,
+              "coverageMode": "whole",
+              "taskId": "96e763e5-7f99-4cc8-a73a-825f1bb364ff"
+            }
+          ],
+          "coverageState": "single"
+        }
+      ]
+    },
+    "writes": [
+      {
+        "method": "PATCH",
+        "path": "/api/projects/3ef21f35-49b5-4c91-bf4c-67f20a6effbc/tasks/96e763e5-7f99-4cc8-a73a-825f1bb364ff",
+        "body": {
+          "name": "SHARED · WBS 동일 원본"
+        }
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/projects/3ef21f35-49b5-4c91-bf4c-67f20a6effbc/tasks/96e763e5-7f99-4cc8-a73a-825f1bb364ff",
+        "body": {
+          "start": "2026-10-06"
+        }
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/projects/3ef21f35-49b5-4c91-bf4c-67f20a6effbc/tasks/96e763e5-7f99-4cc8-a73a-825f1bb364ff",
+        "body": {
+          "status": "in_progress"
+        }
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/projects/3ef21f35-49b5-4c91-bf4c-67f20a6effbc/tasks/96e763e5-7f99-4cc8-a73a-825f1bb364ff",
+        "body": {
+          "progress": 35
+        }
+      },
+      {
+        "method": "PUT",
+        "path": "/api/projects/3ef21f35-49b5-4c91-bf4c-67f20a6effbc/tasks/96e763e5-7f99-4cc8-a73a-825f1bb364ff/assignments",
+        "body": {
+          "catalogRevision": 6,
+          "targets": [
+            {
+              "kind": "resource",
+              "id": "c84f77fa-2ab6-4a56-9f1d-9e17b6a424ea",
+              "allocation": {
+                "start": null,
+                "end": null,
+                "percent": 80
+              }
+            }
+          ],
+          "editAssignmentId": "0dcefdb8-5847-4413-a3b7-91fd4ec4953b"
+        }
+      },
+      {
+        "method": "PUT",
+        "path": "/api/projects/3ef21f35-49b5-4c91-bf4c-67f20a6effbc/tasks/96e763e5-7f99-4cc8-a73a-825f1bb364ff/target-bindings",
+        "body": {
+          "bindings": [
+            {
+              "id": "208c7fb5-7f50-4876-afb0-b2deda4b04eb",
+              "targetId": "60fad5a9-e558-4cd5-aa1e-ec450b5c1035",
+              "scope": "self",
+              "selection": "subset",
+              "memberIds": [
+                "9b9097fc-6d02-45b0-9e6c-9837b6e73d84"
+              ],
+              "coverageByMember": []
+            },
+            {
+              "id": "bd2ae764-da55-407c-9a4b-2fe59f89037f",
+              "targetId": "54bebd5b-2af1-46ab-bc20-82e20d6dfc2a",
+              "scope": "self",
+              "selection": "whole",
+              "memberIds": [],
+              "coverageByMember": []
+            }
+          ]
+        }
+      }
+    ],
+    "instance": "project-gantt-jhzzfpo56yn"
+  },
+  "focused": [
+    {
+      "title": "#623 독립 WBS 변경·원시 ID·mutation 경계",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "boundary": "WBS 변경",
+        "taskId": "8a2620db-3265-4d10-a813-b5c9c282ca66",
+        "assignmentId": "3f94dc1d-148d-4f0d-9189-978bd80df6fa",
+        "initialRevision": 17,
+        "revisionDelta": 2,
+        "writes": [
+          {
+            "method": "PATCH",
+            "path": "/api/projects/0e695f98-ccc7-45fa-a9c8-540825a8b817/tasks/8a2620db-3265-4d10-a813-b5c9c282ca66",
+            "body": {
+              "name": "SHARED · WBS 동일 원본"
+            }
+          },
+          {
+            "method": "PATCH",
+            "path": "/api/projects/0e695f98-ccc7-45fa-a9c8-540825a8b817/tasks/8a2620db-3265-4d10-a813-b5c9c282ca66",
+            "body": {
+              "start": "2026-10-06"
+            }
+          }
+        ],
+        "instance": "project-gantt-j2m1qh3que"
+      }
+    },
+    {
+      "title": "#623 독립 Resource/Assignment·원시 ID·mutation 경계",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "boundary": "Resource/Assignment",
+        "taskId": "8a18461c-3568-4b85-a94a-e049f3db840d",
+        "assignmentId": "e445ea7e-1e0c-469b-be20-605bfec4142d",
+        "initialRevision": 17,
+        "revisionDelta": 3,
+        "writes": [
+          {
+            "method": "PATCH",
+            "path": "/api/projects/d1077395-dbab-4641-b0fe-7d80c78c33db/tasks/8a18461c-3568-4b85-a94a-e049f3db840d",
+            "body": {
+              "status": "in_progress"
+            }
+          },
+          {
+            "method": "PATCH",
+            "path": "/api/projects/d1077395-dbab-4641-b0fe-7d80c78c33db/tasks/8a18461c-3568-4b85-a94a-e049f3db840d",
+            "body": {
+              "progress": 35
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/api/projects/d1077395-dbab-4641-b0fe-7d80c78c33db/tasks/8a18461c-3568-4b85-a94a-e049f3db840d/assignments",
+            "body": {
+              "catalogRevision": 6,
+              "targets": [
+                {
+                  "kind": "resource",
+                  "id": "4e3b5baa-625e-4c55-a3f4-3f8f51708473",
+                  "allocation": {
+                    "start": null,
+                    "end": null,
+                    "percent": 80
+                  }
+                }
+              ],
+              "editAssignmentId": "e445ea7e-1e0c-469b-be20-605bfec4142d"
+            }
+          }
+        ],
+        "instance": "project-gantt-ima8220pctd"
+      }
+    },
+    {
+      "title": "#623 독립 Target binding·원시 ID·mutation 경계",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "boundary": "Target binding",
+        "taskId": "5d7f5eab-9026-4822-bb4f-b3cfad663928",
+        "assignmentId": "c6370a50-91c1-40e5-840a-1e1ff99ea2ba",
+        "initialRevision": 17,
+        "revisionDelta": 1,
+        "writes": [
+          {
+            "method": "PUT",
+            "path": "/api/projects/474701d1-0227-466f-ab82-38a7f38db2ce/tasks/5d7f5eab-9026-4822-bb4f-b3cfad663928/target-bindings",
+            "body": {
+              "bindings": [
+                {
+                  "id": "6911a202-fa6a-4847-9226-4f1d460b3dd0",
+                  "targetId": "fba4522f-1a82-4970-9b60-585c626a2a55",
+                  "scope": "self",
+                  "selection": "subset",
+                  "memberIds": [
+                    "89c02455-6067-41ea-bd4a-b81b07d5feea"
+                  ],
+                  "coverageByMember": []
+                },
+                {
+                  "id": "b30cd764-f465-4787-a4f0-6df1f2f1e4dc",
+                  "targetId": "8a784b8c-1bce-4b07-8e6b-25e78a0449e0",
+                  "scope": "self",
+                  "selection": "whole",
+                  "memberIds": [],
+                  "coverageByMember": []
+                }
+              ]
+            }
+          }
+        ],
+        "instance": "project-gantt-q5c3xy41se"
+      }
+    },
+    {
+      "title": "#623 독립 화면 복귀·원시 ID·mutation 경계",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "boundary": "화면 복귀",
+        "taskId": "b9ec6af7-459a-44ac-9a87-4bfb397ec97a",
+        "assignmentId": "9c8303be-14c6-43b5-8f9b-77500ae5aa6c",
+        "initialRevision": 17,
+        "revisionDelta": 0,
+        "writes": [],
+        "instance": "project-gantt-lltfrexx39h"
+      }
+    }
+  ],
+  "goldenExcel": [
+    {
+      "title": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "projectId": "5c66b717-7830-40c2-8db3-745dc8e11296",
+        "taskId": "e1930e38-6302-4b34-8944-165c52c602e1",
+        "assignmentId": "d2003201-0e30-4c99-9c59-ede9c5c27f26",
+        "targetIds": [
+          "3602b71c-7c7c-4db4-9837-a82cffc584e2",
+          "cbff370a-4f00-4b09-9a30-83250bb032d9"
+        ],
+        "standardId": "35c34f66-4221-48c2-97f9-3ffa29504d41",
+        "siteIds": [
+          "590dc9ae-a805-4b1a-a668-e55b6bead765",
+          "9c72d342-2416-4a9d-91ea-6fcfca1e8e6b"
+        ],
+        "rawGolden": {
+          "taskCount": 1,
+          "resourceCount": 1,
+          "assignmentCount": 1,
+          "notStarted": 1,
+          "inProgress": 0,
+          "completed": 0,
+          "delayed": 1,
+          "completion": {
+            "numerator": 0,
+            "denominator": 1,
+            "percent": 0
+          },
+          "assignedTaskProgress": {
+            "numerator": 0,
+            "denominator": 5,
+            "percent": 0
+          },
+          "effort": {
+            "knownMd": 5,
+            "plannedMd": 5,
+            "plannedMm": 0.25,
+            "state": "configured",
+            "partial": false,
+            "unsetCount": 0
+          },
+          "selector": {
+            "assignmentScope": "selected",
+            "dimension": "all",
+            "id": null,
+            "metric": "all"
+          }
+        },
+        "workbook": {
+          "names": [
+            "Gantt",
+            "Tasks",
+            "Project",
+            "Milestone Stages",
+            "Resource Report",
+            "Resource Milestones",
+            "Group Milestones",
+            "Resource Plan",
+            "Resource Assignments",
+            "Resource Quality",
+            "Resource Relations",
+            "Resource Targets",
+            "Resource Target Catalog",
+            "Resource Target Sources",
+            "Resource Project Assignments"
+          ],
+          "snapshotId": "c940898dc1688ae622d271bcd8980b68ee54c2f461ac612a899371888a3ab773",
+          "filters": {
+            "from": "2026-10-05",
+            "to": "2026-10-11",
+            "asOfDate": null,
+            "resourceActivity": "all",
+            "groupActivity": "all",
+            "search": "",
+            "taskSearch": "SHARED",
+            "mode": "group",
+            "mdPerMm": null,
+            "mdPerMmProvided": false,
+            "projectionOrder": [
+              "resource",
+              "target"
+            ],
+            "resourceIds": [],
+            "groupIds": [],
+            "milestoneIds": [],
+            "taskIds": [],
+            "wbsRootIds": [],
+            "roles": [],
+            "developerGrades": [],
+            "statuses": []
+          },
+          "bytes": 30471
+        },
+        "members": {
+          "equipmentQuantity": 15,
+          "systemCount": 3,
+          "equipmentIds": [
+            "dca5110f-ca15-4e1a-9a3b-aa7105b1bc7e",
+            "f1cbf30a-a026-4ca3-908e-380ab8929826"
+          ],
+          "systemIds": [
+            "69979698-d6de-4e1c-a2e4-89e694cda291",
+            "ac295a13-bcd3-44fc-81c8-a86f253bf86a",
+            "be44cf0e-2ec5-4ebe-b55b-db4e4cf9c673"
+          ],
+          "types": [
+            {
+              "kind": "equipment",
+              "typeCode": "amr",
+              "instanceIds": [
+                "dca5110f-ca15-4e1a-9a3b-aa7105b1bc7e",
+                "f1cbf30a-a026-4ca3-908e-380ab8929826"
+              ],
+              "quantity": 15
+            },
+            {
+              "kind": "system",
+              "typeCode": "acs",
+              "instanceIds": [
+                "69979698-d6de-4e1c-a2e4-89e694cda291",
+                "be44cf0e-2ec5-4ebe-b55b-db4e4cf9c673"
+              ],
+              "quantity": 2
+            },
+            {
+              "kind": "system",
+              "typeCode": "mcs",
+              "instanceIds": [
+                "ac295a13-bcd3-44fc-81c8-a86f253bf86a"
+              ],
+              "quantity": 1
+            }
+          ],
+          "members": [
+            {
+              "kind": "equipment",
+              "entityId": "dca5110f-ca15-4e1a-9a3b-aa7105b1bc7e",
+              "name": "AMR B",
+              "code": "AMR-B",
+              "active": true,
+              "typeCode": "amr",
+              "quantity": 5,
+              "projectProcessId": "82944f48-5eb6-49ad-b6f6-57ee8acc271e",
+              "provenance": [
+                {
+                  "bindingId": "18ac6f3f-9724-4f82-afb7-cf2674e8c725",
+                  "sourceTaskId": "e1930e38-6302-4b34-8944-165c52c602e1",
+                  "targetId": "cbff370a-4f00-4b09-9a30-83250bb032d9",
+                  "memberId": "d37d7444-206a-4428-85bc-96ce4ad2e392",
+                  "selection": "whole",
+                  "scope": "self",
+                  "inherited": false,
+                  "coverage": null,
+                  "coverageMode": "whole",
+                  "taskId": "e1930e38-6302-4b34-8944-165c52c602e1"
+                }
+              ],
+              "coverageState": "single"
+            },
+            {
+              "kind": "equipment",
+              "entityId": "f1cbf30a-a026-4ca3-908e-380ab8929826",
+              "name": "AMR A",
+              "code": "AMR-A",
+              "active": true,
+              "typeCode": "amr",
+              "quantity": 10,
+              "projectProcessId": "e9a2a786-3eda-498a-a3f6-40a6810a2723",
+              "provenance": [
+                {
+                  "bindingId": "2afecdad-f393-45ac-b3d8-8822da85108a",
+                  "sourceTaskId": "c184dbeb-09f6-4ddf-b230-387fa02cd909",
+                  "targetId": "3602b71c-7c7c-4db4-9837-a82cffc584e2",
+                  "memberId": "5315efdb-9068-4ea9-9103-6128bfafdeba",
+                  "selection": "whole",
+                  "scope": "subtree",
+                  "inherited": true,
+                  "coverage": null,
+                  "coverageMode": "whole",
+                  "taskId": "e1930e38-6302-4b34-8944-165c52c602e1"
+                },
+                {
+                  "bindingId": "8f726adb-55dc-4018-8166-b58396268ef6",
+                  "sourceTaskId": "e1930e38-6302-4b34-8944-165c52c602e1",
+                  "targetId": "3602b71c-7c7c-4db4-9837-a82cffc584e2",
+                  "memberId": "5315efdb-9068-4ea9-9103-6128bfafdeba",
+                  "selection": "whole",
+                  "scope": "self",
+                  "inherited": false,
+                  "coverage": null,
+                  "coverageMode": "whole",
+                  "taskId": "e1930e38-6302-4b34-8944-165c52c602e1"
+                }
+              ],
+              "coverageState": "single"
+            },
+            {
+              "kind": "system",
+              "entityId": "69979698-d6de-4e1c-a2e4-89e694cda291",
+              "name": "ACS B",
+              "code": "ACS-B",
+              "active": true,
+              "typeCode": "acs",
+              "quantity": 1,
+              "projectProcessId": null,
+              "provenance": [
+                {
+                  "bindingId": "18ac6f3f-9724-4f82-afb7-cf2674e8c725",
+                  "sourceTaskId": "e1930e38-6302-4b34-8944-165c52c602e1",
+                  "targetId": "cbff370a-4f00-4b09-9a30-83250bb032d9",
+                  "memberId": "35150b14-65f2-44fe-9f47-c1bc917b77b4",
+                  "selection": "whole",
+                  "scope": "self",
+                  "inherited": false,
+                  "coverage": null,
+                  "coverageMode": "whole",
+                  "taskId": "e1930e38-6302-4b34-8944-165c52c602e1"
+                }
+              ],
+              "coverageState": "single"
+            },
+            {
+              "kind": "system",
+              "entityId": "ac295a13-bcd3-44fc-81c8-a86f253bf86a",
+              "name": "공유 MCS",
+              "code": "MCS-1",
+              "active": true,
+              "typeCode": "mcs",
+              "quantity": 1,
+              "projectProcessId": null,
+              "provenance": [
+                {
+                  "bindingId": "18ac6f3f-9724-4f82-afb7-cf2674e8c725",
+                  "sourceTaskId": "e1930e38-6302-4b34-8944-165c52c602e1",
+                  "targetId": "cbff370a-4f00-4b09-9a30-83250bb032d9",
+                  "memberId": "fb844a8c-713f-40b5-b310-b6ff85cb8d65",
+                  "selection": "whole",
+                  "scope": "self",
+                  "inherited": false,
+                  "coverage": null,
+                  "coverageMode": "whole",
+                  "taskId": "e1930e38-6302-4b34-8944-165c52c602e1"
+                },
+                {
+                  "bindingId": "2afecdad-f393-45ac-b3d8-8822da85108a",
+                  "sourceTaskId": "c184dbeb-09f6-4ddf-b230-387fa02cd909",
+                  "targetId": "3602b71c-7c7c-4db4-9837-a82cffc584e2",
+                  "memberId": "bdd39b4c-f319-4eac-8347-2b9b44abf664",
+                  "selection": "whole",
+                  "scope": "subtree",
+                  "inherited": true,
+                  "coverage": null,
+                  "coverageMode": "whole",
+                  "taskId": "e1930e38-6302-4b34-8944-165c52c602e1"
+                },
+                {
+                  "bindingId": "8f726adb-55dc-4018-8166-b58396268ef6",
+                  "sourceTaskId": "e1930e38-6302-4b34-8944-165c52c602e1",
+                  "targetId": "3602b71c-7c7c-4db4-9837-a82cffc584e2",
+                  "memberId": "bdd39b4c-f319-4eac-8347-2b9b44abf664",
+                  "selection": "whole",
+                  "scope": "self",
+                  "inherited": false,
+                  "coverage": null,
+                  "coverageMode": "whole",
+                  "taskId": "e1930e38-6302-4b34-8944-165c52c602e1"
+                }
+              ],
+              "coverageState": "single"
+            },
+            {
+              "kind": "system",
+              "entityId": "be44cf0e-2ec5-4ebe-b55b-db4e4cf9c673",
+              "name": "ACS A",
+              "code": "ACS-A",
+              "active": true,
+              "typeCode": "acs",
+              "quantity": 1,
+              "projectProcessId": null,
+              "provenance": [
+                {
+                  "bindingId": "2afecdad-f393-45ac-b3d8-8822da85108a",
+                  "sourceTaskId": "c184dbeb-09f6-4ddf-b230-387fa02cd909",
+                  "targetId": "3602b71c-7c7c-4db4-9837-a82cffc584e2",
+                  "memberId": "c8a04809-7cab-4637-8a92-e2575c315b38",
+                  "selection": "whole",
+                  "scope": "subtree",
+                  "inherited": true,
+                  "coverage": null,
+                  "coverageMode": "whole",
+                  "taskId": "e1930e38-6302-4b34-8944-165c52c602e1"
+                },
+                {
+                  "bindingId": "8f726adb-55dc-4018-8166-b58396268ef6",
+                  "sourceTaskId": "e1930e38-6302-4b34-8944-165c52c602e1",
+                  "targetId": "3602b71c-7c7c-4db4-9837-a82cffc584e2",
+                  "memberId": "c8a04809-7cab-4637-8a92-e2575c315b38",
+                  "selection": "whole",
+                  "scope": "self",
+                  "inherited": false,
+                  "coverage": null,
+                  "coverageMode": "whole",
+                  "taskId": "e1930e38-6302-4b34-8944-165c52c602e1"
+                }
+              ],
+              "coverageState": "single"
+            }
+          ]
+        },
+        "instance": "project-gantt-xjgurk2ea9h"
+      }
+    }
+  ],
+  "interpretation": "각격리fixture안의원시ID/초기revision과개별저장을검증한다.서로다른독립fixture의UUID를같다고가정하지않는다."
+}

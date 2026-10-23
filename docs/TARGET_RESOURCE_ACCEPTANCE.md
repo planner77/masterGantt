@@ -58,3 +58,9 @@ Issue [#623](https://github.com/planner77/masterGantt/issues/623)의 Q1 수용 �
 - backend합성단일관측:133Task/489Assignment/4Resource/2Target/SQL48,report87.15852400000017ms/345599bytes,ExcelHTTP241.1588670000001ms/622705bytes. browser는별도3Task/R1/2Group/5Target의진입→표준비1289.041652999993ms·10geometry·HTTPXLSX30447bytes다.
 - 최종검토8test/fixture SHA256 `0defd061a40ec282e0be9b8ca48e8bff57c52d95c537e7994b80582a51a911db`;[manifest](../output/playwright/issue-623/source-inventory.json),[실행원장](../output/playwright/issue-623/execution-result.json),[browser원시근거](../output/playwright/issue-623/cumulative.json),[geometry](../output/playwright/issue-623/geometry.json),[backend관측](../output/playwright/issue-623/backend-benchmark.json). hash는source/test범위이며전체tree/Head가아니다.
 - exact-head PR CI·Trusted QA·Owner/Manager ACCEPT와main/GHCR/Finalizer는여전히위표의NOT TESTED/BLOCKED다. AC6의최종PR/Head/Run/attempt표는[Issue623인계STATUS](https://github.com/planner77/masterGantt/issues/623)에서출판후제공한다. #613의Resource MVP상태만로컬수용후보/원격gate대기로갱신하고 #624/V1미완료인Epic전체를종료하지않는다.
+
+## Issue #750 — 기존 수용 단언 보존
+
+#623 브라우저 수용은 [#750 AC_TEST_COVERAGE](exec-plans/active/ISSUE_750.md)에 따라 집계/Excel·WBS·Resource/Assignment·binding·화면복귀와6-write 결합 smoke로 실행된다. 기존5M/D/.25M/M·원시ID·각revision+1/최종+6·조회0·중복0·remount0·5폭 geometry를 유지한다. [#750 원장](ISSUE_750_FAILURE_ANALYSIS.md)의 새 source 실행/비용을 과거 #623/#730 PASS/FAIL과 구분하며 신규 원격Required3/Trusted/Owner는 NOT TESTED다. 공수/API/fixture·이관·권한·Excel 형식과 원래 수용범위는 변경하지 않는다.
+
+#750 교차검증에서 확인한 공용 Milestone picker의0.5px clipping은 기존가시성 계약 안에서 제품교정하여 후보0.130.1로 동기화한다. 공수/ID/revision/Excel·데이터·권한 계약은 그대로다. 제품 보완 전후 로컬source·비용·PASS/FAIL을 원장에서 분리하고 새Head의 공식Required3와 Owner 승인·정식release는 계속 별도다.

@@ -63,7 +63,14 @@ export function StageFilterPicker({ tasks, value, onChange, allowUnassigned = tr
     // Keyboard navigation targets already exist in the open list. Scroll the
     // option synchronously so End/Home/Arrow key completion includes the
     // visibility contract instead of leaving it to a later animation frame.
-    document.getElementById(`${id}-option-${next}`)?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    const option = document.getElementById(`${id}-option-${next}`), owner = list.current;
+    option?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    if (!option || !owner || !owner.contains(option)) return;
+    const optionBounds = option.getBoundingClientRect(), ownerBounds = owner.getBoundingClientRect();
+    // native scroll의 정수 반올림으로 남은 소수점 잘림만 목록 내부에서 보정한다.
+    // 큰 항목은 한 방향만 보정하여 위·아래 경계 사이를 왕복하지 않는다.
+    if (optionBounds.top < ownerBounds.top) owner.scrollTop -= Math.ceil(ownerBounds.top - optionBounds.top);
+    else if (optionBounds.bottom > ownerBounds.bottom) owner.scrollTop += Math.ceil(optionBounds.bottom - ownerBounds.bottom);
   }
   return <div className="project-stage-filter" onKeyDown={(event) => { if (open && event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); } }}>
     <button ref={trigger} type="button" className="secondary-button project-stage-filter-trigger" aria-label={`Milestone: ${label}`} aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? `${id}-list` : undefined} title={label} onClick={() => { if (open) close(); else { setOpen(true); setQuery(""); setActive(0); requestAnimationFrame(() => input.current?.focus()); } }}><span>Milestone: {label}</span><span aria-hidden="true">▾</span></button>

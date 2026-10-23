@@ -1,0 +1,41 @@
+{
+  "issue": 750,
+  "syntheticMockFixture": true,
+  "notes": [
+    "원본 JPEG bytes를 변형 없이 trace에서 추출했다.",
+    "0.5px 잘림 판정은 popup-bounds-verification.json의 즉시 측정값을 따른다.",
+    "프로젝트를 찾을 수 없습니다 배경은 합성 mock Project의 WBS/KPI404이며 실제 WBS 기능 검증 증거가 아니다."
+  ],
+  "images": [
+    {
+      "sourceZipSha256": "335f497759ebb86a7ef2518801b14c3b891faa077a35153b05dff1c8f3a5be5c",
+      "originalResourcePath": "screencast/page@109d3fc594271df117e5a3b27009dd6a-1792720637278.jpeg",
+      "screencastEventTimestamp": 305959.231,
+      "frameSwapWallTime": 1792720637277.236,
+      "width": 390,
+      "height": 900,
+      "imageSha256": "411b579bab46c1e6cb1510312f0af963581c123d0b81c8470c9aebb106d2d8b5",
+      "extraction": "original JPEG bytes, no transformations",
+      "endCallCompletionTimestamp": 305957.554,
+      "note": "0.5px clipping is supported by JSON measurements, not the image alone.",
+      "imageFile": "popup-before.jpeg",
+      "phase": "before"
+    },
+    {
+      "sourceZipSha256": "a8986dd1c9db4d7aa15dfe0678ed3ee76841b433409b3f8e874efb999e0baf73",
+      "originalResourcePath": "screencast/page@cdebe6146cc9c0665c44156674953f72-1792722582315.jpeg",
+      "screencastEventTimestamp": 6341.682,
+      "frameSwapWallTime": 1792722582313.636,
+      "endCallStartTimestamp": 6308.345,
+      "endCallCompletionTimestamp": 6337.05,
+      "nextHomeCallStartTimestamp": 6373.822,
+      "width": 390,
+      "height": 900,
+      "imageSha256": "d57d887eb55e1450de688ab3b8a0fe371bd471713d30d123db2d55a107e18907",
+      "extraction": "original JPEG bytes, no transformations",
+      "caption": "390px End 완료 4.632ms 후, Home 입력 전 원본 프레임. 픽셀 경계 판정은 JSON 측정으로 확인하며 이미지 단독으로 입증하지 않음.",
+      "imageFile": "popup-after.jpeg",
+      "phase": "after"
+    }
+  ]
+}

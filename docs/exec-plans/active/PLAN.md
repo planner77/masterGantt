@@ -1418,3 +1418,7 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 ## Issue #737 — Target0 종단·다관점 정합·보존 수용
 
 [Work Packet](ISSUE_737.md) / [통합 수용표](../../WBS_CROSS_FEATURE_ACCEPTANCE.md). 최신 main `56c7cfb96dbb97095e51606e9639cf4dc3fced36` / `0.130.0`의 #724~#736 및 #762 직접 WorkArea·Template v5를 재사용한다. W1/W2 최종 결정·#736 퇴역/#767 승계를 구분하여 raw SQLite→KPI/5root/Excel·backup/restart·실제 Chromium 왕복·기존 기능 보존/사용자/운영 문서를 결속한다. tests/docs only, version 유지·release_required=false/release_authorized=false, HIGH/OWNER_MANAGED. 신규 spec을 기존138개 배치를 보존한8shard Shard6에 등록한다. 종료점은 Ready PR Full CI 시작이며 모니터링·병합/main/GHCR·Issue/Epic 종료는 비범위다. Required3/Trusted/Owner·Manager ACCEPT 전 MERGE_READY=BLOCKED.
+
+## Issue #750 — #623 독립 경계·결합 smoke 보존
+
+main `d2a82b66`/app0.130.0 기준 #623 분할 및 #463 팝업의0.5px native scroll clipping 교정으로 기존 #623 7→11case,독립4경계와6-write결합·정확ID/revision+6·집계Excel·geometry를 유지한다. [Work Packet](ISSUE_750.md)에서 AC mapping/역순·격리/전후비용 및 #730 실패합집합9파일+#624 교차검증을 추적하고 [실패원장](../../ISSUE_750_FAILURE_ANALYSIS.md)에 리뷰/충돌·실행결과를 기록한다. 후보PATCH0.130.1,HIGH/OWNER_MANAGED,release_required=true/release_authorized=false. 새 PR Full CI 시작까지만 진행하며 Required3/Trusted/Manager ACCEPT·Actions비용은NOT TESTED,병합/Main/GHCR/종료는범위밖이다.

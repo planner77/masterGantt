@@ -44,8 +44,21 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
     await page.setViewportSize({ width, height: 900 }); await input.press("End");
     const popup = await page.locator(".project-stage-filter-popup").evaluate((element) => {
       const b = element.getBoundingClientRect(), input = element.querySelector("input")!, i = input.getBoundingClientRect(), owner = element.querySelector("ul")!, o = owner.getBoundingClientRect(), active = document.getElementById(input.getAttribute("aria-activedescendant")!)!, a = active.getBoundingClientRect();
-      return { left: b.left, right: b.right, top: b.top, bottom: b.bottom, inputFocused: document.activeElement === input, inputVisible: i.left >= b.left && i.right <= b.right, activeVisible: a.top >= o.top && a.bottom <= o.bottom, listScrollTop: owner.scrollTop };
-    }); expect(popup.left).toBeGreaterThanOrEqual(0); expect(popup.right).toBeLessThanOrEqual(width); expect(popup.bottom).toBeLessThanOrEqual(900); expect(popup.inputFocused && popup.inputVisible && popup.activeVisible).toBe(true); expect(popup.listScrollTop).toBeGreaterThan(0);
+      return { left: b.left, right: b.right, top: b.top, bottom: b.bottom, inputFocused: document.activeElement === input, inputVisible: i.left >= b.left && i.right <= b.right, activeVisible: a.top >= o.top && a.bottom <= o.bottom, listScrollTop: owner.scrollTop, inputLeft: i.left, inputRight: i.right, activeTop: a.top, activeBottom: a.bottom, listTop: o.top, listBottom: o.bottom, activeId: active.id, lastOptionId: owner.lastElementChild?.id ?? null, activeIndex: Array.from(owner.children).indexOf(active), optionsCount: owner.children.length };
+    });
+    // 원래의 즉시 측정값을 단언 전에 보존해 간헐적 경계 실패를 구분한다.
+    await test.info().attach(`issue-750-popup-observation-${width}`, { body: JSON.stringify({ width, popup }, null, 2), contentType: "application/json" });
+    expect(popup.left).toBeGreaterThanOrEqual(0); expect(popup.right).toBeLessThanOrEqual(width); expect(popup.bottom).toBeLessThanOrEqual(900); expect(popup.inputFocused && popup.inputVisible && popup.activeVisible, `${width}px popup: ${JSON.stringify(popup)}`).toBe(true); expect(popup.listScrollTop).toBeGreaterThan(0);
+    for (const [key, expectedIndex] of [["Home", 0], ["ArrowDown", 1], ["ArrowUp", 0]] as const) {
+      await input.press(key);
+      const navigation = await page.locator(".project-stage-filter-popup").evaluate((element) => {
+        const input = element.querySelector("input")!, owner = element.querySelector("ul")!, active = document.getElementById(input.getAttribute("aria-activedescendant")!)!;
+        const optionBounds = active.getBoundingClientRect(), listBounds = owner.getBoundingClientRect();
+        return { inputFocused: document.activeElement === input, activeVisible: optionBounds.top >= listBounds.top && optionBounds.bottom <= listBounds.bottom, activeIndex: Array.from(owner.children).indexOf(active), activeTop: optionBounds.top, activeBottom: optionBounds.bottom, listTop: listBounds.top, listBottom: listBounds.bottom };
+      });
+      await test.info().attach(`issue-750-popup-navigation-${width}-${key}`, { body: JSON.stringify({ width, key, navigation }, null, 2), contentType: "application/json" });
+      expect(navigation, `${width}px ${key}: ${JSON.stringify(navigation)}`).toMatchObject({ inputFocused: true, activeVisible: true, activeIndex: expectedIndex });
+    }
     await input.press("Escape"); await expect(trigger).toBeFocused(); await dashboard(page).getByRole("heading", { name: "Milestone 대시보드", exact: true }).scrollIntoViewIfNeeded(); await page.screenshot({ path:`output/playwright/issue-463/dashboard-${width}.png`,fullPage:false }); await region.locator("tbody td:first-child > button").first().focus(); await expect(region.locator("tbody td:first-child > button").first()).toBeFocused();
     const geometry = await dashboard(page).evaluate((root) => {
       const bounds = (e: Element) => { const b = e.getBoundingClientRect(); return { left:b.left,right:b.right,top:b.top,bottom:b.bottom,width:b.width,height:b.height }; };

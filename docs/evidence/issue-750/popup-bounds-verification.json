@@ -1,0 +1,4843 @@
+{
+  "issue": 750,
+  "finalSourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+  "pickerSha256": "521fe751eb90c1ff37411b665bf611a797593e3b9adb90fb4d3c27746510737b",
+  "specSha256": "4244a49793e02fe5e31701d902548353864ce3a49d7cc9ee01caef35c4f5f80b",
+  "initialCrossResult": {
+    "startTime": "2026-10-23T01:52:19.681Z",
+    "duration": 384561.398,
+    "expected": 13,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "observationStats": {
+    "startTime": "2026-10-23T02:03:02.042Z",
+    "duration": 24585.08,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "failedObservation": {
+    "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+    "repeatEachIndex": null,
+    "workerIndex": 2,
+    "status": "failed",
+    "data": {
+      "width": 390,
+      "popup": {
+        "left": 18,
+        "right": 360,
+        "top": 607,
+        "bottom": 892,
+        "inputFocused": true,
+        "inputVisible": true,
+        "activeVisible": false,
+        "listScrollTop": 1756,
+        "inputLeft": 31,
+        "inputRight": 347,
+        "activeTop": 779.5,
+        "activeBottom": 879.5,
+        "listTop": 689.5,
+        "listBottom": 879,
+        "activeId": "_r_4_-option-19",
+        "lastOptionId": "_r_4_-option-19",
+        "activeIndex": 19,
+        "optionsCount": 20
+      }
+    }
+  },
+  "controlledStats": {
+    "startTime": "2026-10-23T02:06:05.842Z",
+    "duration": 48213.361000000004,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "restoredFailingControl": {
+    "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+    "repeatEachIndex": null,
+    "workerIndex": 0,
+    "status": "failed",
+    "data": {
+      "width": 390,
+      "popup": {
+        "left": 18,
+        "right": 360,
+        "top": 627,
+        "bottom": 892,
+        "inputFocused": true,
+        "inputVisible": true,
+        "activeVisible": false,
+        "fractionalScrollProbe": {
+          "preScrollTop": 1776,
+          "requestedDelta": 1,
+          "postScrollTop": 1777,
+          "restoredScrollTop": 1776,
+          "preActiveBottom": 879.5,
+          "postActiveTop": 778.5,
+          "postActiveBottom": 878.5,
+          "listTop": 709.5,
+          "listBottom": 879,
+          "postActiveVisible": true
+        },
+        "listScrollTop": 1776,
+        "inputLeft": 31,
+        "inputRight": 347,
+        "activeTop": 779.5,
+        "activeBottom": 879.5,
+        "listTop": 709.5,
+        "listBottom": 879,
+        "activeId": "_r_4_-option-19",
+        "lastOptionId": "_r_4_-option-19",
+        "activeIndex": 19,
+        "optionsCount": 20
+      }
+    }
+  },
+  "fixedRepeatStats": {
+    "startTime": "2026-10-23T02:09:08.285Z",
+    "duration": 55521.960999999996,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "fixedFiveWidthObservations": [
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "popup": {
+          "left": 18,
+          "right": 360,
+          "top": 627,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 1777,
+          "inputLeft": 31,
+          "inputRight": 347,
+          "activeTop": 778.5,
+          "activeBottom": 878.5,
+          "listTop": 709.5,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 710.5,
+          "activeBottom": 750.5,
+          "listTop": 710.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 750.5,
+          "activeBottom": 850.5,
+          "listTop": 710.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 710.5,
+          "activeBottom": 750.5,
+          "listTop": 710.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 607.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 959,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 690,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 730,
+          "activeBottom": 788,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "popup": {
+          "left": 18,
+          "right": 360,
+          "top": 607,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 1757,
+          "inputLeft": 31,
+          "inputRight": 347,
+          "activeTop": 778.5,
+          "activeBottom": 878.5,
+          "listTop": 689.5,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 729.5,
+          "activeBottom": 829.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 607.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 959,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 690,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 730,
+          "activeBottom": 788,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 1,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "popup": {
+          "left": 18,
+          "right": 360,
+          "top": 607,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 1757,
+          "inputLeft": 31,
+          "inputRight": 347,
+          "activeTop": 778.5,
+          "activeBottom": 878.5,
+          "listTop": 689.5,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 729.5,
+          "activeBottom": 829.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 607.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 959,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 690,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 730,
+          "activeBottom": 788,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 2,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "popup": {
+          "left": 18,
+          "right": 360,
+          "top": 607,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 1757,
+          "inputLeft": 31,
+          "inputRight": 347,
+          "activeTop": 778.5,
+          "activeBottom": 878.5,
+          "listTop": 689.5,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 729.5,
+          "activeBottom": 829.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 607.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 959,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 690,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 730,
+          "activeBottom": 788,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 3,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "popup": {
+          "left": 18,
+          "right": 360,
+          "top": 607,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 1757,
+          "inputLeft": 31,
+          "inputRight": 347,
+          "activeTop": 778.5,
+          "activeBottom": 878.5,
+          "listTop": 689.5,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 729.5,
+          "activeBottom": 829.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 607.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 959,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 690,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 730,
+          "activeBottom": 788,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 4,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "popup": {
+          "left": 18,
+          "right": 360,
+          "top": 607,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 1757,
+          "inputLeft": 31,
+          "inputRight": 347,
+          "activeTop": 778.5,
+          "activeBottom": 878.5,
+          "listTop": 689.5,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 729.5,
+          "activeBottom": 829.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 607.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 959,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 690,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 730,
+          "activeBottom": 788,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 5,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "popup": {
+          "left": 18,
+          "right": 360,
+          "top": 607,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 1757,
+          "inputLeft": 31,
+          "inputRight": 347,
+          "activeTop": 778.5,
+          "activeBottom": 878.5,
+          "listTop": 689.5,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 729.5,
+          "activeBottom": 829.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 607.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 959,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 690,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 730,
+          "activeBottom": 788,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 6,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "popup": {
+          "left": 18,
+          "right": 360,
+          "top": 607,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 1757,
+          "inputLeft": 31,
+          "inputRight": 347,
+          "activeTop": 778.5,
+          "activeBottom": 878.5,
+          "listTop": 689.5,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 729.5,
+          "activeBottom": 829.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 607.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 959,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 690,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 730,
+          "activeBottom": 788,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 7,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "popup": {
+          "left": 18,
+          "right": 360,
+          "top": 607,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 1757,
+          "inputLeft": 31,
+          "inputRight": 347,
+          "activeTop": 778.5,
+          "activeBottom": 878.5,
+          "listTop": 689.5,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 729.5,
+          "activeBottom": 829.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 607.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 959,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 690,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 730,
+          "activeBottom": 788,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 8,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "popup": {
+          "left": 18,
+          "right": 360,
+          "top": 607,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 1757,
+          "inputLeft": 31,
+          "inputRight": 347,
+          "activeTop": 778.5,
+          "activeBottom": 878.5,
+          "listTop": 689.5,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 729.5,
+          "activeBottom": 829.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 607.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 959,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 690,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 730,
+          "activeBottom": 788,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 9,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    }
+  ],
+  "finalCrossPopupObservations": [
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "popup": {
+          "left": 18,
+          "right": 360,
+          "top": 607,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 1757,
+          "inputLeft": 31,
+          "inputRight": 347,
+          "activeTop": 778.5,
+          "activeBottom": 878.5,
+          "listTop": 689.5,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 729.5,
+          "activeBottom": 829.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 390,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 689.5,
+          "activeBottom": 729.5,
+          "listTop": 689.5,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 607.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 959,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 690,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 730,
+          "activeBottom": 788,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 768,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 690,
+          "activeBottom": 730,
+          "listTop": 690,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1024,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1440,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "popup": {
+          "left": 30,
+          "right": 478,
+          "top": 583.5,
+          "bottom": 892,
+          "inputFocused": true,
+          "inputVisible": true,
+          "activeVisible": true,
+          "listScrollTop": 935,
+          "inputLeft": 43,
+          "inputRight": 465,
+          "activeTop": 821,
+          "activeBottom": 879,
+          "listTop": 666,
+          "listBottom": 879,
+          "activeId": "_r_4_-option-19",
+          "lastOptionId": "_r_4_-option-19",
+          "activeIndex": 19,
+          "optionsCount": 20
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "Home",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowDown",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 1,
+          "activeTop": 706,
+          "activeBottom": 764,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    },
+    {
+      "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+      "repeatEachIndex": null,
+      "workerIndex": 0,
+      "status": "passed",
+      "data": {
+        "width": 1920,
+        "key": "ArrowUp",
+        "navigation": {
+          "inputFocused": true,
+          "activeVisible": true,
+          "activeIndex": 0,
+          "activeTop": 666,
+          "activeBottom": 706,
+          "listTop": 666,
+          "listBottom": 879
+        }
+      }
+    }
+  ],
+  "interpretation": "원래0.5px FAIL→목록ceil1 보정에서true→원상복원FAIL 음성대조와 제품교정후10반복/200즉시관측을구분한다. 단언·허용오차·timeout·retry 완화없음."
+}

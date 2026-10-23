@@ -1,0 +1,6183 @@
+{
+  "schemaVersion": 1,
+  "issue": 750,
+  "recordedAt": "2026-10-23T02:37:04.148866+00:00",
+  "baselineSha": "d2a82b666836b28bf392215993240c0fae2d4fdc",
+  "version": "0.130.1",
+  "source": {
+    "scope": "tracked src/tests/scripts/package/lock/next.config.ts의정렬path→SHA256; Next생성AGENTS/next-env/tsconfig는소유서버종료뒤복원",
+    "trackedPathCount": 1110,
+    "fingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+    "specSha256": "bd65af47b59069d9094a6e02d8b6650dc83557fd639a0b89de3a91678f1eab45",
+    "startEndMatch": true
+  },
+  "environment": {
+    "node": "22.14.0",
+    "npm": "11.10.0",
+    "playwright": "1.63.0",
+    "browser": "Chromium",
+    "workers": 1,
+    "retries": 0,
+    "maxFailures": 0
+  },
+  "coverage": {
+    "uniquePositiveBrowserCases": 36,
+    "actualHttpSqliteBrowserCases": 24,
+    "mockBackedBrowserCases": 12,
+    "repeatPositiveBrowserExecutions": 19,
+    "controlledNegativeExecutions": 2,
+    "vitestFiles": 6,
+    "vitestCases": 37,
+    "historicalFailureFiles": [
+      "issue-621-resource-target.spec.ts",
+      "issue-623-resource-mvp.spec.ts",
+      "issue-719-contextual-help.spec.ts",
+      "issue-725-process-workareas.spec.ts",
+      "issue-726-task-logistics.spec.ts",
+      "milestone-dashboard-state.spec.ts",
+      "milestone-management-persistence.spec.ts",
+      "project-resource-memberships-persistence.spec.ts",
+      "project-task-editor-persistence.spec.ts"
+    ],
+    "additionalDirectConsumers": [
+      "issue-624-logistics-unified.spec.ts",
+      "milestone-stage-grid.spec.ts",
+      "milestone-stage-grid-mock.spec.ts"
+    ]
+  },
+  "independence": {
+    "reverseExactOrder": true,
+    "reverseTitles": [
+      "#623 독립 화면 복귀·원시 ID·mutation 경계",
+      "#623 독립 Target binding·원시 ID·mutation 경계",
+      "#623 독립 Resource/Assignment·원시 ID·mutation 경계",
+      "#623 독립 WBS 변경·원시 ID·mutation 경계"
+    ],
+    "localTwoPartsDisjoint": true,
+    "localTwoPartsUnionEqualsFocusedCases": true,
+    "localPart1Titles": [
+      "#623 독립 Resource/Assignment·원시 ID·mutation 경계",
+      "#623 독립 WBS 변경·원시 ID·mutation 경계"
+    ],
+    "localPart2Titles": [
+      "#623 독립 Target binding·원시 ID·mutation 경계",
+      "#623 독립 화면 복귀·원시 ID·mutation 경계"
+    ],
+    "actualActionsEightShardCost": "NOT TESTED"
+  },
+  "controlledCleanup": {
+    "ownedSpawnCount": 1,
+    "ownedProcessesRemaining": 0,
+    "isolatedDatabaseDirectoriesRemaining": 0,
+    "isolatedDistDirectoriesRemaining": 0,
+    "traceRetained": true,
+    "diagnosticsRetained": true,
+    "status": "PASS",
+    "durableRawArtifactManifest": {
+      "isolatedDatabaseDirectoriesRemaining": 0,
+      "isolatedDistDirectoriesRemaining": 0,
+      "traceRetained": true,
+      "diagnosticsRetained": true,
+      "expectedExitCode": 1,
+      "rawStoredOutsideGit": true,
+      "rawArtifacts": [
+        {
+          "name": "error-context",
+          "sha256": "5ceb2e96c482bc0c75ba119a4e51743e1cdd59291c7bc442e798580955c8117e",
+          "bytes": 2713
+        },
+        {
+          "name": "trace",
+          "sha256": "1e968b6f14d87b56fd5cc54c080751a12da6bd528214e0f08bfdd02a67b99f0f",
+          "bytes": 85869
+        }
+      ]
+    }
+  },
+  "runs": [
+    {
+      "name": "unit-final",
+      "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "tests/domain/issue-623-target-resource-acceptance.test.ts",
+        "tests/server/db/issue-623-target-migration.test.ts",
+        "tests/server/resources/issue-623-canonical-acceptance.test.ts",
+        "tests/server/projects/issue-623-target-transfer-acceptance.test.ts",
+        "tests/features/projects/stage-filter-context.test.ts",
+        "tests/scripts/verify-release-version.test.ts"
+      ],
+      "exitCode": 0,
+      "wallMilliseconds": 2318
+    },
+    {
+      "name": "final-normal-rework",
+      "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 0,
+      "wallMilliseconds": 350274,
+      "stats": {
+        "startTime": "2026-10-23T02:12:00.322Z",
+        "duration": 349736.87200000003,
+        "expected": 11,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 16369,
+          "timing": {
+            "test": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+            "status": "passed",
+            "timeoutMilliseconds": 60000,
+            "bodyMilliseconds": 16274,
+            "budgetWarning": false,
+            "wallMilliseconds": 16275,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 1
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 11261
+              },
+              {
+                "name": "api/golden-target-oracle",
+                "milliseconds": 2073
+              },
+              {
+                "name": "ui/golden-target-and-units",
+                "milliseconds": 1858
+              },
+              {
+                "name": "excel/export-and-ooxml",
+                "milliseconds": 1082
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 8.52,
+              "durationMs": 291.8,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 302.18,
+              "durationMs": 1237.57,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 9626.06,
+              "durationMs": 653.88,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10279.95,
+              "durationMs": 683.49,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1539.83,
+              "durationMs": 9423.62,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 300.33,
+              "durationMs": 10663.13,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 11098.35,
+              "durationMs": 10471.57,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 27388.62,
+              "durationMs": 113.48,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-golden-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 독립 WBS 변경·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 18671,
+          "timing": {
+            "test": "#623 독립 WBS 변경·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 18623,
+            "budgetWarning": false,
+            "wallMilliseconds": 18624,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 14235
+              },
+              {
+                "name": "focused/WBS 변경",
+                "milliseconds": 0
+              },
+              {
+                "name": "mutation/1-wbs-name",
+                "milliseconds": 1236
+              },
+              {
+                "name": "mutation/2-target-start-date",
+                "milliseconds": 3152
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.87,
+              "durationMs": 375.35,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 383.03,
+              "durationMs": 1667.4,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 12051.59,
+              "durationMs": 678.54,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12730.13,
+              "durationMs": 700.17,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2050.58,
+              "durationMs": 11379.72,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 378.24,
+              "durationMs": 13052.07,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 13469.62,
+              "durationMs": 11613.66,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 32108.72,
+              "durationMs": 126.76,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 독립 Resource/Assignment·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 19445,
+          "timing": {
+            "test": "#623 독립 Resource/Assignment·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 19397,
+            "budgetWarning": false,
+            "wallMilliseconds": 19398,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 13212
+              },
+              {
+                "name": "focused/Resource/Assignment",
+                "milliseconds": 705
+              },
+              {
+                "name": "mutation/3-status",
+                "milliseconds": 1776
+              },
+              {
+                "name": "mutation/4-progress",
+                "milliseconds": 1558
+              },
+              {
+                "name": "mutation/5-assignment-allocation",
+                "milliseconds": 1723
+              },
+              {
+                "name": "api/assigned-targets-source",
+                "milliseconds": 423
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.17,
+              "durationMs": 345.92,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 351.69,
+              "durationMs": 1630.15,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11217.22,
+              "durationMs": 648.41,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11865.63,
+              "durationMs": 664.56,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1981.94,
+              "durationMs": 10548.25,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 348.1,
+              "durationMs": 12182.1,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 12571.05,
+              "durationMs": 10624.43,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 31983.61,
+              "durationMs": 136.43,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 독립 Target binding·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 16732,
+          "timing": {
+            "test": "#623 독립 Target binding·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 16687,
+            "budgetWarning": false,
+            "wallMilliseconds": 16688,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 12927
+              },
+              {
+                "name": "focused/Target binding",
+                "milliseconds": 696
+              },
+              {
+                "name": "ui/target-bindings-save",
+                "milliseconds": 2520
+              },
+              {
+                "name": "api/target-bindings-source",
+                "milliseconds": 544
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 3.5,
+              "durationMs": 388.5,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 395.48,
+              "durationMs": 1607,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11486.08,
+              "durationMs": 647.48,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12133.56,
+              "durationMs": 676.45,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2002.58,
+              "durationMs": 10807.43,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 392.02,
+              "durationMs": 12418.01,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 12844.31,
+              "durationMs": 10545.81,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 29549.19,
+              "durationMs": 147.49,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 독립 화면 복귀·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 17154,
+          "timing": {
+            "test": "#623 독립 화면 복귀·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 17106,
+            "budgetWarning": false,
+            "wallMilliseconds": 17107,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 13490
+              },
+              {
+                "name": "focused/화면 복귀",
+                "milliseconds": 3617
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.53,
+              "durationMs": 413.64,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 419.43,
+              "durationMs": 1609.98,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11646.46,
+              "durationMs": 661.73,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12308.2,
+              "durationMs": 687.16,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2029.57,
+              "durationMs": 10965.79,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 416.18,
+              "durationMs": 12579.18,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 13038.51,
+              "durationMs": 10802.7,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 30158.98,
+              "durationMs": 133.06,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 28659,
+          "timing": {
+            "test": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+            "status": "passed",
+            "timeoutMilliseconds": 90000,
+            "bodyMilliseconds": 28599,
+            "budgetWarning": false,
+            "wallMilliseconds": 28601,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 1
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 11065
+              },
+              {
+                "name": "api/mutation-source-identity",
+                "milliseconds": 2431
+              },
+              {
+                "name": "mutation/1-wbs-name",
+                "milliseconds": 1811
+              },
+              {
+                "name": "mutation/2-target-start-date",
+                "milliseconds": 3018
+              },
+              {
+                "name": "ui/resource-transition",
+                "milliseconds": 1521
+              },
+              {
+                "name": "mutation/3-status",
+                "milliseconds": 1279
+              },
+              {
+                "name": "mutation/4-progress",
+                "milliseconds": 1594
+              },
+              {
+                "name": "mutation/5-assignment-allocation",
+                "milliseconds": 2669
+              },
+              {
+                "name": "api/assigned-targets-source",
+                "milliseconds": 93
+              },
+              {
+                "name": "mutation/6-target-membership",
+                "milliseconds": 0
+              },
+              {
+                "name": "ui/target-bindings-save",
+                "milliseconds": 2393
+              },
+              {
+                "name": "api/target-bindings-source",
+                "milliseconds": 104
+              },
+              {
+                "name": "ui/schedule-return-and-write-contract",
+                "milliseconds": 620
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 1.86,
+              "durationMs": 335.55,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 340.9,
+              "durationMs": 1519.34,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11645.82,
+              "durationMs": 673.49,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12319.32,
+              "durationMs": 685.77,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1860.37,
+              "durationMs": 11144.72,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 337.43,
+              "durationMs": 12667.67,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 13045.04,
+              "durationMs": 11065.26,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 41672.45,
+              "durationMs": 202.44,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-cumulative-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 실제 Target 다열·중첩Group 390px geometry·keyboard·query0·렌더관측",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 17066,
+          "timing": {
+            "test": "#623 실제 Target 다열·중첩Group 390px geometry·keyboard·query0·렌더관측",
+            "status": "passed",
+            "timeoutMilliseconds": 45000,
+            "bodyMilliseconds": 17015,
+            "budgetWarning": false,
+            "wallMilliseconds": 17017,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 1
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 12564
+              },
+              {
+                "name": "ui/390px-resource-transition",
+                "milliseconds": 3036
+              },
+              {
+                "name": "ui/390px-tree-geometry-keyboard",
+                "milliseconds": 727
+              },
+              {
+                "name": "ui/390px-matrix-geometry-keyboard",
+                "milliseconds": 689
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.96,
+              "durationMs": 452.41,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 459.18,
+              "durationMs": 1551.75,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 12257.01,
+              "durationMs": 687.61,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12944.62,
+              "durationMs": 760.87,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2011.06,
+              "durationMs": 11694.44,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 455.39,
+              "durationMs": 13250.11,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 13751.31,
+              "durationMs": 12563.47,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 30778.84,
+              "durationMs": 123.41,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-ui-observations-390px",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 실제 Target 다열·중첩Group 768px geometry·keyboard·query0·렌더관측",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 17768,
+          "timing": {
+            "test": "#623 실제 Target 다열·중첩Group 768px geometry·keyboard·query0·렌더관측",
+            "status": "passed",
+            "timeoutMilliseconds": 45000,
+            "bodyMilliseconds": 17718,
+            "budgetWarning": false,
+            "wallMilliseconds": 17719,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 12883
+              },
+              {
+                "name": "ui/768px-resource-transition",
+                "milliseconds": 3257
+              },
+              {
+                "name": "ui/768px-tree-geometry-keyboard",
+                "milliseconds": 816
+              },
+              {
+                "name": "ui/768px-matrix-geometry-keyboard",
+                "milliseconds": 762
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.68,
+              "durationMs": 396.87,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 402.84,
+              "durationMs": 1664.28,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 12388.67,
+              "durationMs": 699.55,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 13088.23,
+              "durationMs": 740.96,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2067.25,
+              "durationMs": 11761.94,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 399.57,
+              "durationMs": 13429.63,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 13874.22,
+              "durationMs": 12882.88,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 31605.35,
+              "durationMs": 125.64,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-ui-observations-768px",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 실제 Target 다열·중첩Group 1024px geometry·keyboard·query0·렌더관측",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 17248,
+          "timing": {
+            "test": "#623 실제 Target 다열·중첩Group 1024px geometry·keyboard·query0·렌더관측",
+            "status": "passed",
+            "timeoutMilliseconds": 45000,
+            "bodyMilliseconds": 17199,
+            "budgetWarning": false,
+            "wallMilliseconds": 17200,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 12656
+              },
+              {
+                "name": "ui/1024px-resource-transition",
+                "milliseconds": 3077
+              },
+              {
+                "name": "ui/1024px-tree-geometry-keyboard",
+                "milliseconds": 675
+              },
+              {
+                "name": "ui/1024px-matrix-geometry-keyboard",
+                "milliseconds": 791
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.45,
+              "durationMs": 385.06,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 391.8,
+              "durationMs": 1557.7,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 13053.75,
+              "durationMs": 813.61,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 13867.38,
+              "durationMs": 786.49,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1949.63,
+              "durationMs": 12704.24,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 387.53,
+              "durationMs": 14266.51,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 14696.82,
+              "durationMs": 12656.27,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 31909.75,
+              "durationMs": 119.23,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-ui-observations-1024px",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 실제 Target 다열·중첩Group 1440px geometry·keyboard·query0·렌더관측",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 16089,
+          "timing": {
+            "test": "#623 실제 Target 다열·중첩Group 1440px geometry·keyboard·query0·렌더관측",
+            "status": "passed",
+            "timeoutMilliseconds": 45000,
+            "bodyMilliseconds": 16043,
+            "budgetWarning": false,
+            "wallMilliseconds": 16044,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 11824
+              },
+              {
+                "name": "ui/1440px-resource-transition",
+                "milliseconds": 2899
+              },
+              {
+                "name": "ui/1440px-tree-geometry-keyboard",
+                "milliseconds": 629
+              },
+              {
+                "name": "ui/1440px-matrix-geometry-keyboard",
+                "milliseconds": 690
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.95,
+              "durationMs": 363.26,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 370.38,
+              "durationMs": 1699.49,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 12126.3,
+              "durationMs": 680.44,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12806.75,
+              "durationMs": 705.34,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2069.99,
+              "durationMs": 11442.11,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 366.23,
+              "durationMs": 13145.87,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 13553.02,
+              "durationMs": 11824.33,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 29608.29,
+              "durationMs": 115.26,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-ui-observations-1440px",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 실제 Target 다열·중첩Group 1920px geometry·keyboard·query0·렌더관측",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 15065,
+          "timing": {
+            "test": "#623 실제 Target 다열·중첩Group 1920px geometry·keyboard·query0·렌더관측",
+            "status": "passed",
+            "timeoutMilliseconds": 45000,
+            "bodyMilliseconds": 15023,
+            "budgetWarning": false,
+            "wallMilliseconds": 15023,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 11325
+              },
+              {
+                "name": "ui/1920px-resource-transition",
+                "milliseconds": 2432
+              },
+              {
+                "name": "ui/1920px-tree-geometry-keyboard",
+                "milliseconds": 590
+              },
+              {
+                "name": "ui/1920px-matrix-geometry-keyboard",
+                "milliseconds": 676
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 1.93,
+              "durationMs": 331.44,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 336.62,
+              "durationMs": 1686.65,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11752.98,
+              "durationMs": 771.73,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12524.73,
+              "durationMs": 778.64,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2023.46,
+              "durationMs": 11279.91,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 333.38,
+              "durationMs": 12969.99,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 13342.54,
+              "durationMs": 11325.23,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 28375.1,
+              "durationMs": 190.81,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-ui-observations-1920px",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        }
+      ]
+    },
+    {
+      "name": "cross-rework",
+      "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/milestone-dashboard-state.spec.ts",
+        "tests/e2e/milestone-management-persistence.spec.ts",
+        "tests/e2e/issue-719-contextual-help.spec.ts",
+        "tests/e2e/issue-726-task-logistics.spec.ts",
+        "tests/e2e/project-resource-memberships-persistence.spec.ts",
+        "tests/e2e/project-task-editor-persistence.spec.ts",
+        "tests/e2e/issue-621-resource-target.spec.ts",
+        "tests/e2e/issue-725-process-workareas.spec.ts",
+        "tests/e2e/issue-624-logistics-unified.spec.ts",
+        "--grep",
+        "#621|#736 exact Assignment|#624 same canonical|#463 readonly|#550.*readonly \\(past\\)|#719 milestone 동일 fixture|#726 Target0|membership real SQLite|persists explicit editor changes|#725 Target0",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 0,
+      "wallMilliseconds": 402434,
+      "stats": {
+        "startTime": "2026-10-23T02:17:40.851Z",
+        "duration": 401732.13800000004,
+        "expected": 14,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#621 실제 HTTP union 총계·두 Target 공유 identity·페이지·권한/412·조회 mutation0",
+          "file": "issue-621-resource-target.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 16555,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 4.56,
+              "durationMs": 295.02,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 301.82,
+              "durationMs": 1364.2,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11115.85,
+              "durationMs": 661.26,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11777.12,
+              "durationMs": 675.72,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1666.11,
+              "durationMs": 10786.74,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 299.6,
+              "durationMs": 12153.26,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 29068.11,
+              "durationMs": 169.48,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue621-http-union",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱신·dirty/pending",
+          "file": "issue-621-resource-target.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 17736,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 3.43,
+              "durationMs": 387.62,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 394.62,
+              "durationMs": 1684.45,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11662.18,
+              "durationMs": 709.58,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12371.77,
+              "durationMs": 734.43,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2079.18,
+              "durationMs": 11027.03,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 391.07,
+              "durationMs": 12715.14,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 30849.21,
+              "durationMs": 139.32,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue621-canonical-identity",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0",
+          "file": "issue-621-resource-target.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 26239,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.4,
+              "durationMs": 404.21,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 410.73,
+              "durationMs": 1650.57,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11953.79,
+              "durationMs": 679.58,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12633.37,
+              "durationMs": 700.53,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2061.42,
+              "durationMs": 11272.48,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 406.65,
+              "durationMs": 12927.26,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 39582.03,
+              "durationMs": 145.77,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue621-schedule-origin-dom",
+            "issue621-return-focus-timeline",
+            "issue621-matrix-geometry",
+            "issue621-source-bound-query-scopes",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 초안 보존",
+          "file": "issue-621-resource-target.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 20062,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 1.32,
+              "durationMs": 422.66,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 428.3,
+              "durationMs": 1753.97,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 12816.67,
+              "durationMs": 689.12,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 13505.8,
+              "durationMs": 723.96,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2182.35,
+              "durationMs": 12047.4,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 424,
+              "durationMs": 13805.76,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 34298.85,
+              "durationMs": 179.75,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue621-exact-assignment",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#736 exact Assignment 편집은 만료된 Project edit session에서 초안을 열지 않는다",
+          "file": "issue-621-resource-target.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 16913,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.69,
+              "durationMs": 478.87,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 486.11,
+              "durationMs": 1827.99,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 13240.58,
+              "durationMs": 747.17,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 13987.76,
+              "durationMs": 778.16,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2314.22,
+              "durationMs": 12451.7,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 481.57,
+              "durationMs": 14284.36,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 31687.48,
+              "durationMs": 148.92,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#621 Target 응답역전·실제409 stale·필터탈락 fallback·취소 scope/focus",
+          "file": "issue-621-resource-target.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 15957,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.88,
+              "durationMs": 457.41,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 464.33,
+              "durationMs": 1852.62,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11679.97,
+              "durationMs": 602.22,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12282.2,
+              "durationMs": 631.45,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2317.07,
+              "durationMs": 10596.58,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 460.31,
+              "durationMs": 12453.34,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 28879.13,
+              "durationMs": 163.79,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#624 same canonical Project across four logistics perspectives, full Milestone gate, exact drill and five widths",
+          "file": "issue-624-logistics-unified.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 18825,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.81,
+              "durationMs": 378.64,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 385.37,
+              "durationMs": 1376.85,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10395.01,
+              "durationMs": 601.56,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10996.58,
+              "durationMs": 637.9,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1762.31,
+              "durationMs": 9872.17,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 381.49,
+              "durationMs": 11252.99,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 30466.61,
+              "durationMs": 127.06,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue724-focus-pass-schedule-return",
+            "issue724-focus-pass-task-editor-return",
+            "issue724-focus-pass-target-unified-return",
+            "issue624-cross-view-evidence",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#719 milestone 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+          "file": "issue-719-contextual-help.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 8144,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [],
+          "errorClasses": []
+        },
+        {
+          "title": "#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연결·재조회·해제·재시작",
+          "file": "issue-725-process-workareas.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 34698,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 1.76,
+              "durationMs": 258.01,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 263.35,
+              "durationMs": 1248,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 9850.21,
+              "durationMs": 603.65,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10453.87,
+              "durationMs": 642.24,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1511.44,
+              "durationMs": 15290.3,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 259.78,
+              "durationMs": 16543.15,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 30946.1,
+              "durationMs": 1273.01,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 39651.1,
+              "durationMs": 32.21,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 39683.32,
+              "durationMs": 645.46,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 32219.21,
+              "durationMs": 14019.11,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_dynamic_route_warmup",
+              "startMs": 46238.92,
+              "durationMs": 42.14,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_restart",
+              "startMs": 30942.14,
+              "durationMs": 15378.9,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 51506.99,
+              "durationMs": 159.52,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-733-process-api-serial-prewarm",
+            "issue-725-table-390px",
+            "issue-725-table-390px",
+            "issue-725-viewport-390px",
+            "issue-725-viewport-390px",
+            "issue-725-viewport-390px",
+            "issue-725-viewport-390px",
+            "issue-725-process-390px",
+            "issue-725-table-768px",
+            "issue-725-table-768px",
+            "issue-725-viewport-768px",
+            "issue-725-viewport-768px",
+            "issue-725-viewport-768px",
+            "issue-725-viewport-768px",
+            "issue-725-process-768px",
+            "issue-725-table-1024px",
+            "issue-725-table-1024px",
+            "issue-725-viewport-1024px",
+            "issue-725-viewport-1024px",
+            "issue-725-viewport-1024px",
+            "issue-725-viewport-1024px",
+            "issue-725-process-1024px",
+            "issue-725-table-1440px",
+            "issue-725-table-1440px",
+            "issue-725-viewport-1440px",
+            "issue-725-viewport-1440px",
+            "issue-725-viewport-1440px",
+            "issue-725-viewport-1440px",
+            "issue-725-process-1440px",
+            "issue-725-table-1920px",
+            "issue-725-table-1920px",
+            "issue-725-viewport-1920px",
+            "issue-725-viewport-1920px",
+            "issue-725-viewport-1920px",
+            "issue-725-viewport-1920px",
+            "issue-725-process-1920px",
+            "issue-725-table-390px",
+            "issue-725-viewport-390px",
+            "issue-725-viewport-390px",
+            "issue-725-equipment-390px",
+            "issue-725-table-768px",
+            "issue-725-viewport-768px",
+            "issue-725-viewport-768px",
+            "issue-725-equipment-768px",
+            "issue-725-table-1024px",
+            "issue-725-viewport-1024px",
+            "issue-725-viewport-1024px",
+            "issue-725-equipment-1024px",
+            "issue-725-table-1440px",
+            "issue-725-viewport-1440px",
+            "issue-725-viewport-1440px",
+            "issue-725-equipment-1440px",
+            "issue-725-table-1920px",
+            "issue-725-viewport-1920px",
+            "issue-725-viewport-1920px",
+            "issue-725-equipment-1920px",
+            "issue-725-viewport-390px",
+            "issue-725-equipment-multi-390px",
+            "issue-733-process-api-serial-prewarm",
+            "issue-733-equipment-route-ready",
+            "issue-730-task-route-ready",
+            "issue-731-post-restart-equipment-patch",
+            "issue-731-post-restart-equipment-patch",
+            "issue-725-geometry",
+            "issue-725-acceptance",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중복 제출 방지, reload·Summary 상속",
+          "file": "issue-726-task-logistics.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 15087,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 1.99,
+              "durationMs": 354.55,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 361.15,
+              "durationMs": 1523.53,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11957.24,
+              "durationMs": 663.32,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12620.58,
+              "durationMs": 682.71,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1884.8,
+              "durationMs": 11418.49,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 356.55,
+              "durationMs": 12946.74,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 28399.63,
+              "durationMs": 99.9,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-726-real-http-write-boundaries",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+          "file": "milestone-dashboard-state.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 5266,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [
+            "issue-750-popup-observation-390",
+            "issue-750-popup-navigation-390-Home",
+            "issue-750-popup-navigation-390-ArrowDown",
+            "issue-750-popup-navigation-390-ArrowUp",
+            "issue-463-milestone-geometry-390",
+            "issue-750-popup-observation-768",
+            "issue-750-popup-navigation-768-Home",
+            "issue-750-popup-navigation-768-ArrowDown",
+            "issue-750-popup-navigation-768-ArrowUp",
+            "issue-463-milestone-geometry-768",
+            "issue-750-popup-observation-1024",
+            "issue-750-popup-navigation-1024-Home",
+            "issue-750-popup-navigation-1024-ArrowDown",
+            "issue-750-popup-navigation-1024-ArrowUp",
+            "issue-463-milestone-geometry-1024",
+            "issue-750-popup-observation-1440",
+            "issue-750-popup-navigation-1440-Home",
+            "issue-750-popup-navigation-1440-ArrowDown",
+            "issue-750-popup-navigation-1440-ArrowUp",
+            "issue-463-milestone-geometry-1440",
+            "issue-750-popup-observation-1920",
+            "issue-750-popup-navigation-1920-Home",
+            "issue-750-popup-navigation-1920-ArrowDown",
+            "issue-750-popup-navigation-1920-ArrowUp",
+            "issue-463-milestone-geometry-1920"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (past)",
+          "file": "milestone-management-persistence.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 10021,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 1.87,
+              "durationMs": 280.24,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 286.01,
+              "durationMs": 1261.27,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10399.06,
+              "durationMs": 622.3,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11021.37,
+              "durationMs": 642.08,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1547.43,
+              "durationMs": 10116.01,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 282.13,
+              "durationMs": 11381.32,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 21691.78,
+              "durationMs": 101.78,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-550-empty-milestone-only",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "membership real SQLite registration survives reload/restart and exact assignment editor keeps dirty guard and Gantt",
+          "file": "project-resource-memberships-persistence.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 19803,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.41,
+              "durationMs": 330.31,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 337.3,
+              "durationMs": 1328.21,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10175.76,
+              "durationMs": 627.73,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10803.49,
+              "durationMs": 636.46,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1665.61,
+              "durationMs": 9774.34,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 332.73,
+              "durationMs": 11107.22,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 19936.38,
+              "durationMs": 1315.38,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 29214.73,
+              "durationMs": 32.86,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 29247.61,
+              "durationMs": 721.12,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 21251.86,
+              "durationMs": 8716.9,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_restart",
+              "startMs": 19931.72,
+              "durationMs": 10037.04,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 31249.05,
+              "durationMs": 129.01,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "persists explicit editor changes, task details and safe URL click without remount",
+          "file": "project-task-editor-persistence.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 13771,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 1.91,
+              "durationMs": 340.64,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 348.16,
+              "durationMs": 1610.63,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10756.41,
+              "durationMs": 608.82,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11365.23,
+              "durationMs": 635.64,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1958.93,
+              "durationMs": 10041.94,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 342.57,
+              "durationMs": 11658.3,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 25780.71,
+              "durationMs": 111.04,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        }
+      ]
+    },
+    {
+      "name": "picker-direct",
+      "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/milestone-dashboard-state.spec.ts",
+        "tests/e2e/milestone-stage-grid.spec.ts",
+        "tests/e2e/milestone-stage-grid-mock.spec.ts",
+        "--grep-invert",
+        "#463 readonly",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 0,
+      "wallMilliseconds": 62276,
+      "stats": {
+        "startTime": "2026-10-23T02:24:12.466Z",
+        "duration": 61592.217,
+        "expected": 11,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#463 request reversal, stale error and explicit retry preserve filters",
+          "file": "milestone-dashboard-state.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 2614,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [],
+          "errorClasses": []
+        },
+        {
+          "title": "#463 server date authority, bounded day refresh and same-day catalog catch-up",
+          "file": "milestone-dashboard-state.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 2710,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [],
+          "errorClasses": []
+        },
+        {
+          "title": "#463 shared multi-selection, null conversion and canonical/catalog invalidation",
+          "file": "milestone-dashboard-state.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 2785,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [],
+          "errorClasses": []
+        },
+        {
+          "title": "#463 aborted request to cached query still permits focus catch-up",
+          "file": "milestone-dashboard-state.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 2490,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [],
+          "errorClasses": []
+        },
+        {
+          "title": "#463 public viewport and native scroll survive peer/layout, stale restore is consumed",
+          "file": "milestone-dashboard-state.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 4531,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [
+            "filter-viewport-phases",
+            "public-viewport-events"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다",
+          "file": "milestone-dashboard-state.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 3096,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [
+            "pending-peer-initial-viewport",
+            "pending-peer-input-order"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#462 readonly stage query and keyboard common editor entry preserve instance",
+          "file": "milestone-stage-grid-mock.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 2026,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [],
+          "errorClasses": []
+        },
+        {
+          "title": "#462 native mixed Link port interaction is rejected before API and legacy completed endpoint locks mutation",
+          "file": "milestone-stage-grid-mock.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 2816,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [],
+          "errorClasses": []
+        },
+        {
+          "title": "#462 canonical URL update/delete and tree/scroll/scale survive stage transitions",
+          "file": "milestone-stage-grid-mock.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 2772,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [],
+          "errorClasses": []
+        },
+        {
+          "title": "#462 stage column preserves resized name width and pending disables editor entry",
+          "file": "milestone-stage-grid-mock.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 2730,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [],
+          "errorClasses": []
+        },
+        {
+          "title": "#462 actual SQLite stage filter·Grid·common Editor·canonical and geometry",
+          "file": "milestone-stage-grid.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 17407,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 5.82,
+              "durationMs": 308.88,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 318.62,
+              "durationMs": 1527.18,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11131.13,
+              "durationMs": 613.26,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11744.39,
+              "durationMs": 638.6,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1845.89,
+              "durationMs": 10537.11,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 314.71,
+              "durationMs": 12068.29,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 29797.01,
+              "durationMs": 109.5,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        }
+      ]
+    },
+    {
+      "name": "reverse-1",
+      "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "--grep",
+        "#623 독립 화면 복귀·",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 0,
+      "wallMilliseconds": 34130,
+      "stats": {
+        "startTime": "2026-10-23T02:25:12.991Z",
+        "duration": 33438.37,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#623 독립 화면 복귀·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 17479,
+          "timing": {
+            "test": "#623 독립 화면 복귀·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 17422,
+            "budgetWarning": false,
+            "wallMilliseconds": 17424,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 1
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 13951
+              },
+              {
+                "name": "focused/화면 복귀",
+                "milliseconds": 3471
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 4.96,
+              "durationMs": 303.12,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 310.3,
+              "durationMs": 1310.77,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11631.85,
+              "durationMs": 654.23,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12286.09,
+              "durationMs": 679.69,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1621.16,
+              "durationMs": 11344.63,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 308.09,
+              "durationMs": 12657.7,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 13059.28,
+              "durationMs": 11336.13,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 30495.41,
+              "durationMs": 122.17,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        }
+      ]
+    },
+    {
+      "name": "reverse-2",
+      "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "--grep",
+        "#623 독립 Target binding·",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 0,
+      "wallMilliseconds": 33451,
+      "stats": {
+        "startTime": "2026-10-23T02:25:46.284Z",
+        "duration": 32721.832000000002,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#623 독립 Target binding·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 16518,
+          "timing": {
+            "test": "#623 독립 Target binding·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 16445,
+            "budgetWarning": false,
+            "wallMilliseconds": 16448,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 1
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 13033
+              },
+              {
+                "name": "focused/Target binding",
+                "milliseconds": 665
+              },
+              {
+                "name": "ui/target-bindings-save",
+                "milliseconds": 2302
+              },
+              {
+                "name": "api/target-bindings-source",
+                "milliseconds": 445
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 2
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 5.28,
+              "durationMs": 347.54,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 355.12,
+              "durationMs": 1509.03,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11669.54,
+              "durationMs": 630.06,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12299.62,
+              "durationMs": 675.81,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1864.24,
+              "durationMs": 11111.2,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 352.83,
+              "durationMs": 12622.61,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 13068.72,
+              "durationMs": 10725.61,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 29548.75,
+              "durationMs": 165.12,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        }
+      ]
+    },
+    {
+      "name": "reverse-3",
+      "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "--grep",
+        "#623 독립 Resource/Assignment·",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 0,
+      "wallMilliseconds": 34444,
+      "stats": {
+        "startTime": "2026-10-23T02:26:18.970Z",
+        "duration": 33627.354,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#623 독립 Resource/Assignment·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 18401,
+          "timing": {
+            "test": "#623 독립 Resource/Assignment·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 18342,
+            "budgetWarning": false,
+            "wallMilliseconds": 18344,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 1
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 12120
+              },
+              {
+                "name": "focused/Resource/Assignment",
+                "milliseconds": 661
+              },
+              {
+                "name": "mutation/3-status",
+                "milliseconds": 1711
+              },
+              {
+                "name": "mutation/4-progress",
+                "milliseconds": 1395
+              },
+              {
+                "name": "mutation/5-assignment-allocation",
+                "milliseconds": 1955
+              },
+              {
+                "name": "api/assigned-targets-source",
+                "milliseconds": 499
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 4.88,
+              "durationMs": 317.34,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 324.82,
+              "durationMs": 1515.7,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10929.49,
+              "durationMs": 609.37,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11538.87,
+              "durationMs": 638.23,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1840.63,
+              "durationMs": 10336.48,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 322.24,
+              "durationMs": 11854.87,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 12273.81,
+              "durationMs": 9952.26,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 30633.6,
+              "durationMs": 137.27,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        }
+      ]
+    },
+    {
+      "name": "reverse-4",
+      "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "--grep",
+        "#623 독립 WBS 변경·",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 0,
+      "wallMilliseconds": 30613,
+      "stats": {
+        "startTime": "2026-10-23T02:26:52.431Z",
+        "duration": 29916.448,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#623 독립 WBS 변경·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 15494,
+          "timing": {
+            "test": "#623 독립 WBS 변경·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 15439,
+            "budgetWarning": false,
+            "wallMilliseconds": 15441,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 11285
+              },
+              {
+                "name": "focused/WBS 변경",
+                "milliseconds": 0
+              },
+              {
+                "name": "mutation/1-wbs-name",
+                "milliseconds": 1147
+              },
+              {
+                "name": "mutation/2-target-start-date",
+                "milliseconds": 3007
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 2
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 4.71,
+              "durationMs": 276.71,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 283.49,
+              "durationMs": 1338.31,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10202.03,
+              "durationMs": 624.86,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10826.9,
+              "durationMs": 628.24,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1621.89,
+              "durationMs": 9833.25,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 281.43,
+              "durationMs": 11173.72,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 11540.81,
+              "durationMs": 9241.36,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 26999.13,
+              "durationMs": 132.99,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        }
+      ]
+    },
+    {
+      "name": "local-part-2",
+      "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "--grep",
+        "#623 독립",
+        "--fully-parallel",
+        "--shard=2/2",
+        "--workers=1",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 0,
+      "wallMilliseconds": 57865,
+      "stats": {
+        "startTime": "2026-10-23T02:27:22.203Z",
+        "duration": 57141.671,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#623 독립 Target binding·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 14984,
+          "timing": {
+            "test": "#623 독립 Target binding·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 14922,
+            "budgetWarning": false,
+            "wallMilliseconds": 14924,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 1
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 11559
+              },
+              {
+                "name": "focused/Target binding",
+                "milliseconds": 624
+              },
+              {
+                "name": "ui/target-bindings-save",
+                "milliseconds": 2363
+              },
+              {
+                "name": "api/target-bindings-source",
+                "milliseconds": 375
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 6.17,
+              "durationMs": 398.97,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 407.44,
+              "durationMs": 1457.29,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10865.94,
+              "durationMs": 609.81,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11475.75,
+              "durationMs": 637.22,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1864.82,
+              "durationMs": 10248.16,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 405.15,
+              "durationMs": 11707.84,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 12205.15,
+              "durationMs": 9393.55,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 27149.68,
+              "durationMs": 146.14,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 독립 화면 복귀·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 15165,
+          "timing": {
+            "test": "#623 독립 화면 복귀·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 15125,
+            "budgetWarning": false,
+            "wallMilliseconds": 15126,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 11711
+              },
+              {
+                "name": "focused/화면 복귀",
+                "milliseconds": 3415
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 3.39,
+              "durationMs": 391.17,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 397.43,
+              "durationMs": 1354.58,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10307.78,
+              "durationMs": 608.17,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10915.95,
+              "durationMs": 652.27,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1752.12,
+              "durationMs": 9816.11,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 394.67,
+              "durationMs": 11173.57,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 11607.29,
+              "durationMs": 9489.92,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 26741.99,
+              "durationMs": 99.62,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        }
+      ]
+    },
+    {
+      "name": "local-part-1",
+      "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "--grep",
+        "#623 독립",
+        "--fully-parallel",
+        "--shard=1/2",
+        "--workers=1",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 0,
+      "wallMilliseconds": 64086,
+      "stats": {
+        "startTime": "2026-10-23T02:28:18.173Z",
+        "duration": 63473.539,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#623 독립 WBS 변경·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 16538,
+          "timing": {
+            "test": "#623 독립 WBS 변경·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 16473,
+            "budgetWarning": false,
+            "wallMilliseconds": 16475,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 1
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 12115
+              },
+              {
+                "name": "focused/WBS 변경",
+                "milliseconds": 0
+              },
+              {
+                "name": "mutation/1-wbs-name",
+                "milliseconds": 1245
+              },
+              {
+                "name": "mutation/2-target-start-date",
+                "milliseconds": 3113
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 4.26,
+              "durationMs": 283.68,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 289.85,
+              "durationMs": 1320.22,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10670.44,
+              "durationMs": 607.55,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11278,
+              "durationMs": 629.08,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1610.15,
+              "durationMs": 10296.94,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 287.95,
+              "durationMs": 11619.15,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 12006.18,
+              "durationMs": 9876.82,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 28501.29,
+              "durationMs": 158.39,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 독립 Resource/Assignment·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 19579,
+          "timing": {
+            "test": "#623 독립 Resource/Assignment·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 19529,
+            "budgetWarning": false,
+            "wallMilliseconds": 19530,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 12571
+              },
+              {
+                "name": "focused/Resource/Assignment",
+                "milliseconds": 623
+              },
+              {
+                "name": "mutation/3-status",
+                "milliseconds": 1835
+              },
+              {
+                "name": "mutation/4-progress",
+                "milliseconds": 1745
+              },
+              {
+                "name": "mutation/5-assignment-allocation",
+                "milliseconds": 2135
+              },
+              {
+                "name": "api/assigned-targets-source",
+                "milliseconds": 621
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 3.87,
+              "durationMs": 412.24,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 419.74,
+              "durationMs": 1465.88,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11156.42,
+              "durationMs": 613.48,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11769.91,
+              "durationMs": 657.49,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1885.72,
+              "durationMs": 10541.68,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 416.13,
+              "durationMs": 12011.26,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 12463.49,
+              "durationMs": 10323.07,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 32012.47,
+              "durationMs": 171.03,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        }
+      ]
+    },
+    {
+      "name": "controlled-cleanup-final",
+      "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/issue-750-cleanup-probe.spec.ts",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 1,
+      "wallMilliseconds": 16737,
+      "stats": {
+        "startTime": "2026-10-23T02:29:20.648Z",
+        "duration": 15980.03,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#750 CONTROLLED_NEGATIVE cleanup",
+          "file": "issue-750-cleanup-probe.spec.ts",
+          "status": "failed",
+          "retry": 0,
+          "durationMs": 405,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 4.94,
+              "durationMs": 330.02,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 337.4,
+              "durationMs": 1504.62,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11258.9,
+              "durationMs": 616.95,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11875.86,
+              "durationMs": 656.7,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1842.11,
+              "durationMs": 10690.45,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 334.97,
+              "durationMs": 12197.59,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 13012.25,
+              "durationMs": 70.14,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "error-context",
+            "isolated-application-diagnostics",
+            "issue-751-isolated-performance",
+            "trace"
+          ],
+          "errorClasses": [
+            "Error: ISSUE750_CONTROLLED_FAILURE"
+          ]
+        }
+      ],
+      "cleanup": {
+        "isolatedDatabaseDirectoriesRemaining": 0,
+        "isolatedDistDirectoriesRemaining": 0,
+        "traceRetained": true,
+        "diagnosticsRetained": true,
+        "expectedExitCode": 1
+      }
+    },
+    {
+      "name": "controlled-cleanup-preserved",
+      "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/issue-750-cleanup-probe.spec.ts",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 1,
+      "wallMilliseconds": 14113,
+      "stats": {
+        "startTime": "2026-10-23T02:33:30.479Z",
+        "duration": 13594.125,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#750 CONTROLLED_NEGATIVE cleanup",
+          "file": "issue-750-cleanup-probe.spec.ts",
+          "status": "failed",
+          "retry": 0,
+          "durationMs": 395,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 4.22,
+              "durationMs": 204.12,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 210.39,
+              "durationMs": 1163.64,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 9135.09,
+              "durationMs": 604.27,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 9739.37,
+              "durationMs": 638.89,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1374.12,
+              "durationMs": 9004.15,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 208.35,
+              "durationMs": 10169.93,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 10847.83,
+              "durationMs": 75.77,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "error-context",
+            "isolated-application-diagnostics",
+            "issue-751-isolated-performance",
+            "trace"
+          ],
+          "errorClasses": [
+            "Error: ISSUE750_CONTROLLED_FAILURE"
+          ]
+        }
+      ],
+      "cleanup": {
+        "isolatedDatabaseDirectoriesRemaining": 0,
+        "isolatedDistDirectoriesRemaining": 0,
+        "traceRetained": true,
+        "diagnosticsRetained": true,
+        "expectedExitCode": 1,
+        "rawStoredOutsideGit": true,
+        "rawArtifacts": [
+          {
+            "name": "error-context",
+            "sha256": "5ceb2e96c482bc0c75ba119a4e51743e1cdd59291c7bc442e798580955c8117e",
+            "bytes": 2713
+          },
+          {
+            "name": "trace",
+            "sha256": "1e968b6f14d87b56fd5cc54c080751a12da6bd528214e0f08bfdd02a67b99f0f",
+            "bytes": 85869
+          }
+        ]
+      }
+    },
+    {
+      "name": "popup-screenshot-positive",
+      "sourceFingerprint": "e7a01490ad65655aebd36fa86fe381cf0bd14dfb11f9183c3869269ec1c92891",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/milestone-dashboard-state.spec.ts",
+        "--grep",
+        "#463 readonly",
+        "--trace=on",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 0,
+      "wallMilliseconds": 10353,
+      "stats": {
+        "startTime": "2026-10-23T02:29:36.413Z",
+        "duration": 9700.544,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+          "file": "milestone-dashboard-state.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 6618,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [
+            "issue-750-popup-observation-390",
+            "issue-750-popup-navigation-390-Home",
+            "issue-750-popup-navigation-390-ArrowDown",
+            "issue-750-popup-navigation-390-ArrowUp",
+            "issue-463-milestone-geometry-390",
+            "issue-750-popup-observation-768",
+            "issue-750-popup-navigation-768-Home",
+            "issue-750-popup-navigation-768-ArrowDown",
+            "issue-750-popup-navigation-768-ArrowUp",
+            "issue-463-milestone-geometry-768",
+            "issue-750-popup-observation-1024",
+            "issue-750-popup-navigation-1024-Home",
+            "issue-750-popup-navigation-1024-ArrowDown",
+            "issue-750-popup-navigation-1024-ArrowUp",
+            "issue-463-milestone-geometry-1024",
+            "issue-750-popup-observation-1440",
+            "issue-750-popup-navigation-1440-Home",
+            "issue-750-popup-navigation-1440-ArrowDown",
+            "issue-750-popup-navigation-1440-ArrowUp",
+            "issue-463-milestone-geometry-1440",
+            "issue-750-popup-observation-1920",
+            "issue-750-popup-navigation-1920-Home",
+            "issue-750-popup-navigation-1920-ArrowDown",
+            "issue-750-popup-navigation-1920-ArrowUp",
+            "issue-463-milestone-geometry-1920",
+            "trace"
+          ],
+          "errorClasses": []
+        }
+      ]
+    }
+  ],
+  "historicalSourceFingerprint": "2a8eae19858f6256fccfa5977e246798a87cb47eafead37a6504eb2c72014a37",
+  "historicalRuns": [
+    {
+      "name": "unit",
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "tests/domain/issue-623-target-resource-acceptance.test.ts",
+        "tests/server/db/issue-623-target-migration.test.ts",
+        "tests/server/resources/issue-623-canonical-acceptance.test.ts",
+        "tests/server/projects/issue-623-target-transfer-acceptance.test.ts"
+      ],
+      "exitCode": 0,
+      "wallMilliseconds": 2453
+    },
+    {
+      "name": "controlled-cleanup",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/issue-750-cleanup-probe.spec.ts",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 1,
+      "wallMilliseconds": 14734,
+      "stats": {
+        "startTime": "2026-10-23T01:47:00.889Z",
+        "duration": 14189.337,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#750 CONTROLLED_NEGATIVE cleanup",
+          "file": "issue-750-cleanup-probe.spec.ts",
+          "status": "failed",
+          "retry": 0,
+          "durationMs": 460,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 3.88,
+              "durationMs": 244.42,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 250.39,
+              "durationMs": 1075.12,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 9638.36,
+              "durationMs": 605.14,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10243.51,
+              "durationMs": 634.13,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1325.59,
+              "durationMs": 9552.06,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 248.31,
+              "durationMs": 10629.34,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 11428.84,
+              "durationMs": 68.27,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "error-context",
+            "isolated-application-diagnostics",
+            "issue-751-isolated-performance",
+            "trace"
+          ],
+          "errorClasses": [
+            "Error: ISSUE750_CONTROLLED_FAILURE"
+          ]
+        }
+      ],
+      "cleanup": {
+        "isolatedDatabaseDirectoriesRemaining": 0,
+        "isolatedDistDirectoriesRemaining": 0,
+        "traceRetained": true,
+        "diagnosticsRetained": true,
+        "expectedExitCode": 1
+      }
+    },
+    {
+      "name": "final-normal",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 0,
+      "wallMilliseconds": 312751,
+      "stats": {
+        "startTime": "2026-10-23T01:47:15.653Z",
+        "duration": 312194.11000000004,
+        "expected": 11,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 14251,
+          "timing": {
+            "test": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+            "status": "passed",
+            "timeoutMilliseconds": 60000,
+            "bodyMilliseconds": 14156,
+            "budgetWarning": false,
+            "wallMilliseconds": 14158,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 1
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 10259
+              },
+              {
+                "name": "api/golden-target-oracle",
+                "milliseconds": 1684
+              },
+              {
+                "name": "ui/golden-target-and-units",
+                "milliseconds": 1341
+              },
+              {
+                "name": "excel/export-and-ooxml",
+                "milliseconds": 872
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 4.02,
+              "durationMs": 270.79,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 277.29,
+              "durationMs": 1133.85,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 9839.16,
+              "durationMs": 661.52,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10500.69,
+              "durationMs": 706.81,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1411.21,
+              "durationMs": 9796.3,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 274.82,
+              "durationMs": 10932.69,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 11351.69,
+              "durationMs": 9715.43,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 25520.15,
+              "durationMs": 106.86,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-golden-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 독립 WBS 변경·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 15847,
+          "timing": {
+            "test": "#623 독립 WBS 변경·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 15801,
+            "budgetWarning": false,
+            "wallMilliseconds": 15803,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 11517
+              },
+              {
+                "name": "focused/WBS 변경",
+                "milliseconds": 0
+              },
+              {
+                "name": "mutation/1-wbs-name",
+                "milliseconds": 1189
+              },
+              {
+                "name": "mutation/2-target-start-date",
+                "milliseconds": 3095
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.19,
+              "durationMs": 278.94,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 283.93,
+              "durationMs": 1345.57,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10171.16,
+              "durationMs": 619.47,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10790.64,
+              "durationMs": 639.14,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1629.6,
+              "durationMs": 9800.18,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 281.22,
+              "durationMs": 11148.57,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 11467.62,
+              "durationMs": 9435.75,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 27284.42,
+              "durationMs": 141.8,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 독립 Resource/Assignment·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 18257,
+          "timing": {
+            "test": "#623 독립 Resource/Assignment·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 18200,
+            "budgetWarning": false,
+            "wallMilliseconds": 18201,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 12022
+              },
+              {
+                "name": "focused/Resource/Assignment",
+                "milliseconds": 616
+              },
+              {
+                "name": "mutation/3-status",
+                "milliseconds": 1735
+              },
+              {
+                "name": "mutation/4-progress",
+                "milliseconds": 1249
+              },
+              {
+                "name": "mutation/5-assignment-allocation",
+                "milliseconds": 2034
+              },
+              {
+                "name": "api/assigned-targets-source",
+                "milliseconds": 544
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 4.2,
+              "durationMs": 348.3,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 355.85,
+              "durationMs": 1211.93,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10258.85,
+              "durationMs": 611.55,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10870.4,
+              "durationMs": 662.7,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1567.98,
+              "durationMs": 9965.12,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 352.53,
+              "durationMs": 11180.58,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 11574.89,
+              "durationMs": 9886.95,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 29796.85,
+              "durationMs": 148.72,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 독립 Target binding·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 15593,
+          "timing": {
+            "test": "#623 독립 Target binding·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 15542,
+            "budgetWarning": false,
+            "wallMilliseconds": 15544,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 12066
+              },
+              {
+                "name": "focused/Target binding",
+                "milliseconds": 638
+              },
+              {
+                "name": "ui/target-bindings-save",
+                "milliseconds": 2405
+              },
+              {
+                "name": "api/target-bindings-source",
+                "milliseconds": 434
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 3.04,
+              "durationMs": 398.6,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 404.93,
+              "durationMs": 1482.39,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10793.42,
+              "durationMs": 629.09,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11422.52,
+              "durationMs": 637.37,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1887.41,
+              "durationMs": 10172.48,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 401.65,
+              "durationMs": 11658.24,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 12093.15,
+              "durationMs": 9892.6,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 27659.97,
+              "durationMs": 153.8,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 독립 화면 복귀·원시 ID·mutation 경계",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 16063,
+          "timing": {
+            "test": "#623 독립 화면 복귀·원시 ID·mutation 경계",
+            "status": "passed",
+            "timeoutMilliseconds": 30000,
+            "bodyMilliseconds": 16023,
+            "budgetWarning": false,
+            "wallMilliseconds": 16024,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 12618
+              },
+              {
+                "name": "focused/화면 복귀",
+                "milliseconds": 3405
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.96,
+              "durationMs": 412.51,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 419.18,
+              "durationMs": 1527.57,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11081.82,
+              "durationMs": 608,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11689.83,
+              "durationMs": 633.17,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1946.95,
+              "durationMs": 10376.05,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 415.48,
+              "durationMs": 11907.53,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 12358.01,
+              "durationMs": 10382.16,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 28392.85,
+              "durationMs": 122.44,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-focused-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 28561,
+          "timing": {
+            "test": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+            "status": "passed",
+            "timeoutMilliseconds": 90000,
+            "bodyMilliseconds": 28507,
+            "budgetWarning": false,
+            "wallMilliseconds": 28509,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 10788
+              },
+              {
+                "name": "api/mutation-source-identity",
+                "milliseconds": 2348
+              },
+              {
+                "name": "mutation/1-wbs-name",
+                "milliseconds": 1250
+              },
+              {
+                "name": "mutation/2-target-start-date",
+                "milliseconds": 2979
+              },
+              {
+                "name": "ui/resource-transition",
+                "milliseconds": 1768
+              },
+              {
+                "name": "mutation/3-status",
+                "milliseconds": 1717
+              },
+              {
+                "name": "mutation/4-progress",
+                "milliseconds": 2111
+              },
+              {
+                "name": "mutation/5-assignment-allocation",
+                "milliseconds": 2490
+              },
+              {
+                "name": "api/assigned-targets-source",
+                "milliseconds": 97
+              },
+              {
+                "name": "mutation/6-target-membership",
+                "milliseconds": 0
+              },
+              {
+                "name": "ui/target-bindings-save",
+                "milliseconds": 2259
+              },
+              {
+                "name": "api/target-bindings-source",
+                "milliseconds": 109
+              },
+              {
+                "name": "ui/schedule-return-and-write-contract",
+                "milliseconds": 593
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 2
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.84,
+              "durationMs": 337.95,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 345.59,
+              "durationMs": 1499.98,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10900.05,
+              "durationMs": 617.51,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11517.57,
+              "durationMs": 644.61,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1845.68,
+              "durationMs": 10316.5,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 340.81,
+              "durationMs": 11821.37,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 12196.41,
+              "durationMs": 10787.89,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 40731.2,
+              "durationMs": 204.32,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-cumulative-identity",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 실제 Target 다열·중첩Group 390px geometry·keyboard·query0·렌더관측",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 15461,
+          "timing": {
+            "test": "#623 실제 Target 다열·중첩Group 390px geometry·keyboard·query0·렌더관측",
+            "status": "passed",
+            "timeoutMilliseconds": 45000,
+            "bodyMilliseconds": 15417,
+            "budgetWarning": false,
+            "wallMilliseconds": 15418,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 11343
+              },
+              {
+                "name": "ui/390px-resource-transition",
+                "milliseconds": 2880
+              },
+              {
+                "name": "ui/390px-tree-geometry-keyboard",
+                "milliseconds": 599
+              },
+              {
+                "name": "ui/390px-matrix-geometry-keyboard",
+                "milliseconds": 595
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 5.23,
+              "durationMs": 447.02,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 456.9,
+              "durationMs": 1861.76,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 12043.2,
+              "durationMs": 689.44,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12732.65,
+              "durationMs": 685.29,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2318.79,
+              "durationMs": 11099.15,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 452.26,
+              "durationMs": 12965.68,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 13454.6,
+              "durationMs": 11342.75,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 28884.17,
+              "durationMs": 143,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-ui-observations-390px",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 실제 Target 다열·중첩Group 768px geometry·keyboard·query0·렌더관측",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 14401,
+          "timing": {
+            "test": "#623 실제 Target 다열·중첩Group 768px geometry·keyboard·query0·렌더관측",
+            "status": "passed",
+            "timeoutMilliseconds": 45000,
+            "bodyMilliseconds": 14361,
+            "budgetWarning": false,
+            "wallMilliseconds": 14362,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 10392
+              },
+              {
+                "name": "ui/768px-resource-transition",
+                "milliseconds": 2787
+              },
+              {
+                "name": "ui/768px-tree-geometry-keyboard",
+                "milliseconds": 590
+              },
+              {
+                "name": "ui/768px-matrix-geometry-keyboard",
+                "milliseconds": 592
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.06,
+              "durationMs": 324.79,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 330.11,
+              "durationMs": 1714.91,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11140.46,
+              "durationMs": 608.7,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11749.17,
+              "durationMs": 669.05,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2045.17,
+              "durationMs": 10373.05,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 326.86,
+              "durationMs": 12091.36,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 12451.58,
+              "durationMs": 10392.2,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 26825.4,
+              "durationMs": 103.93,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-ui-observations-768px",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 실제 Target 다열·중첩Group 1024px geometry·keyboard·query0·렌더관측",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 13384,
+          "timing": {
+            "test": "#623 실제 Target 다열·중첩Group 1024px geometry·keyboard·query0·렌더관측",
+            "status": "passed",
+            "timeoutMilliseconds": 45000,
+            "bodyMilliseconds": 13344,
+            "budgetWarning": false,
+            "wallMilliseconds": 13345,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 9949
+              },
+              {
+                "name": "ui/1024px-resource-transition",
+                "milliseconds": 2220
+              },
+              {
+                "name": "ui/1024px-tree-geometry-keyboard",
+                "milliseconds": 549
+              },
+              {
+                "name": "ui/1024px-matrix-geometry-keyboard",
+                "milliseconds": 626
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 1
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 1.75,
+              "durationMs": 321.53,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 326.66,
+              "durationMs": 1302.16,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10337.96,
+              "durationMs": 606.17,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10944.14,
+              "durationMs": 651.97,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1628.93,
+              "durationMs": 9967.18,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 323.29,
+              "durationMs": 11272.97,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 11630.53,
+              "durationMs": 9949.23,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 24987.23,
+              "durationMs": 135.8,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-ui-observations-1024px",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 실제 Target 다열·중첩Group 1440px geometry·keyboard·query0·렌더관측",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 12548,
+          "timing": {
+            "test": "#623 실제 Target 다열·중첩Group 1440px geometry·keyboard·query0·렌더관측",
+            "status": "passed",
+            "timeoutMilliseconds": 45000,
+            "bodyMilliseconds": 12511,
+            "budgetWarning": false,
+            "wallMilliseconds": 12511,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 9397
+              },
+              {
+                "name": "ui/1440px-resource-transition",
+                "milliseconds": 2091
+              },
+              {
+                "name": "ui/1440px-tree-geometry-keyboard",
+                "milliseconds": 510
+              },
+              {
+                "name": "ui/1440px-matrix-geometry-keyboard",
+                "milliseconds": 512
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 0
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.24,
+              "durationMs": 323.75,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 329.64,
+              "durationMs": 1465.75,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10323.86,
+              "durationMs": 607.73,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10931.6,
+              "durationMs": 630.31,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1795.49,
+              "durationMs": 9766.43,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 326.01,
+              "durationMs": 11235.91,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 11596.57,
+              "durationMs": 9397.14,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 24117.4,
+              "durationMs": 98.29,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-ui-observations-1440px",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#623 실제 Target 다열·중첩Group 1920px geometry·keyboard·query0·렌더관측",
+          "file": "issue-623-resource-mvp.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 12338,
+          "timing": {
+            "test": "#623 실제 Target 다열·중첩Group 1920px geometry·keyboard·query0·렌더관측",
+            "status": "passed",
+            "timeoutMilliseconds": 45000,
+            "bodyMilliseconds": 12300,
+            "budgetWarning": false,
+            "wallMilliseconds": 12301,
+            "phases": [
+              {
+                "name": "fixture/setup",
+                "milliseconds": 0
+              },
+              {
+                "name": "fixture/seed-http",
+                "milliseconds": 9186
+              },
+              {
+                "name": "ui/1920px-resource-transition",
+                "milliseconds": 2089
+              },
+              {
+                "name": "ui/1920px-tree-geometry-keyboard",
+                "milliseconds": 522
+              },
+              {
+                "name": "ui/1920px-matrix-geometry-keyboard",
+                "milliseconds": 504
+              },
+              {
+                "name": "fixture/teardown",
+                "milliseconds": 0
+              }
+            ]
+          },
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 1.66,
+              "durationMs": 297.73,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 302.92,
+              "durationMs": 1261.62,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10144.14,
+              "durationMs": 612.11,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10756.25,
+              "durationMs": 666.46,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1564.69,
+              "durationMs": 9858.03,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 299.41,
+              "durationMs": 11123.32,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "seed_issue_623",
+              "startMs": 11455.22,
+              "durationMs": 9185.61,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 23765.56,
+              "durationMs": 114.64,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue623-ui-observations-1920px",
+            "issue623-phase-timing",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        }
+      ]
+    },
+    {
+      "name": "cross",
+      "command": [
+        "npx",
+        "--no-install",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/milestone-dashboard-state.spec.ts",
+        "tests/e2e/milestone-management-persistence.spec.ts",
+        "tests/e2e/issue-719-contextual-help.spec.ts",
+        "tests/e2e/issue-726-task-logistics.spec.ts",
+        "tests/e2e/project-resource-memberships-persistence.spec.ts",
+        "tests/e2e/project-task-editor-persistence.spec.ts",
+        "tests/e2e/issue-621-resource-target.spec.ts",
+        "tests/e2e/issue-725-process-workareas.spec.ts",
+        "tests/e2e/issue-624-logistics-unified.spec.ts",
+        "--grep",
+        "#621|#736 exact Assignment|#624 same canonical|#463 readonly|#550.*readonly \\(past\\)|#719 milestone 동일 fixture|#726 Target0|membership real SQLite|persists explicit editor changes|#725 Target0",
+        "--retries=0",
+        "--max-failures=0",
+        "--reporter=list,json"
+      ],
+      "exitCode": 1,
+      "wallMilliseconds": 385190,
+      "stats": {
+        "startTime": "2026-10-23T01:52:19.681Z",
+        "duration": 384561.398,
+        "expected": 13,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "title": "#621 실제 HTTP union 총계·두 Target 공유 identity·페이지·권한/412·조회 mutation0",
+          "file": "issue-621-resource-target.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 14574,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 5.34,
+              "durationMs": 333.09,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 341.27,
+              "durationMs": 1537.68,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11432.76,
+              "durationMs": 641.15,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12073.92,
+              "durationMs": 674.4,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1879.33,
+              "durationMs": 10869,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 338.44,
+              "durationMs": 12409.9,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 27376.52,
+              "durationMs": 127.52,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue621-http-union",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱신·dirty/pending",
+          "file": "issue-621-resource-target.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 15042,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 3.64,
+              "durationMs": 352.18,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 359.82,
+              "durationMs": 1410.42,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10032.89,
+              "durationMs": 620.06,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10652.96,
+              "durationMs": 647.52,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1770.33,
+              "durationMs": 9530.15,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 355.83,
+              "durationMs": 10944.66,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 26350.3,
+              "durationMs": 132.54,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue621-canonical-identity",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0",
+          "file": "issue-621-resource-target.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 21536,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.46,
+              "durationMs": 353.48,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 359.78,
+              "durationMs": 1130.34,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10209.02,
+              "durationMs": 624.73,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10833.76,
+              "durationMs": 633.24,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1490.27,
+              "durationMs": 9976.74,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 355.95,
+              "durationMs": 11111.06,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 33008.61,
+              "durationMs": 124.57,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue621-schedule-origin-dom",
+            "issue621-return-focus-timeline",
+            "issue621-matrix-geometry",
+            "issue621-source-bound-query-scopes",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 초안 보존",
+          "file": "issue-621-resource-target.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 16261,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.35,
+              "durationMs": 329.19,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 335.02,
+              "durationMs": 1424.09,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10410.99,
+              "durationMs": 623.81,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11034.8,
+              "durationMs": 654.54,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1759.3,
+              "durationMs": 9930.04,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 331.55,
+              "durationMs": 11357.79,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 27955.98,
+              "durationMs": 137.63,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue621-exact-assignment",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#736 exact Assignment 편집은 만료된 Project edit session에서 초안을 열지 않는다",
+          "file": "issue-621-resource-target.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 13517,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.97,
+              "durationMs": 364.72,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 371.17,
+              "durationMs": 1453.85,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10948.74,
+              "durationMs": 635.37,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11584.13,
+              "durationMs": 649.22,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1825.17,
+              "durationMs": 10408.18,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 367.7,
+              "durationMs": 11865.65,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 25755.79,
+              "durationMs": 123.33,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#621 Target 응답역전·실제409 stale·필터탈락 fallback·취소 scope/focus",
+          "file": "issue-621-resource-target.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 16505,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.5,
+              "durationMs": 348.88,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 355.97,
+              "durationMs": 1352.26,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10816.77,
+              "durationMs": 605.52,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11422.3,
+              "durationMs": 637.87,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1708.32,
+              "durationMs": 10351.85,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 351.39,
+              "durationMs": 11708.78,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 28574.56,
+              "durationMs": 181.46,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#624 same canonical Project across four logistics perspectives, full Milestone gate, exact drill and five widths",
+          "file": "issue-624-logistics-unified.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 21575,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.9,
+              "durationMs": 422.96,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 430.46,
+              "durationMs": 1859.64,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11387.32,
+              "durationMs": 636.37,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12023.7,
+              "durationMs": 636.82,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 2290.23,
+              "durationMs": 10370.3,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 425.87,
+              "durationMs": 12234.65,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 34243.18,
+              "durationMs": 161.1,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue724-focus-pass-schedule-return",
+            "issue724-focus-pass-task-editor-return",
+            "issue724-focus-pass-target-unified-return",
+            "issue624-cross-view-evidence",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#719 milestone 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+          "file": "issue-719-contextual-help.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 10681,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [],
+          "errorClasses": []
+        },
+        {
+          "title": "#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연결·재조회·해제·재시작",
+          "file": "issue-725-process-workareas.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 39146,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 1.75,
+              "durationMs": 262.37,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 267.55,
+              "durationMs": 1300.18,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 11626.39,
+              "durationMs": 622.99,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 12249.39,
+              "durationMs": 658.08,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1567.86,
+              "durationMs": 17180.72,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 264.13,
+              "durationMs": 18485.13,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 36251.86,
+              "durationMs": 1412.44,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 45519.07,
+              "durationMs": 31.19,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 45550.28,
+              "durationMs": 650.28,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 37664.47,
+              "durationMs": 14385.82,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_dynamic_route_warmup",
+              "startMs": 52051.03,
+              "durationMs": 47.07,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_restart",
+              "startMs": 36247.49,
+              "durationMs": 15889.58,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 57901.75,
+              "durationMs": 144.69,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-733-process-api-serial-prewarm",
+            "issue-725-table-390px",
+            "issue-725-table-390px",
+            "issue-725-viewport-390px",
+            "issue-725-viewport-390px",
+            "issue-725-viewport-390px",
+            "issue-725-viewport-390px",
+            "issue-725-process-390px",
+            "issue-725-table-768px",
+            "issue-725-table-768px",
+            "issue-725-viewport-768px",
+            "issue-725-viewport-768px",
+            "issue-725-viewport-768px",
+            "issue-725-viewport-768px",
+            "issue-725-process-768px",
+            "issue-725-table-1024px",
+            "issue-725-table-1024px",
+            "issue-725-viewport-1024px",
+            "issue-725-viewport-1024px",
+            "issue-725-viewport-1024px",
+            "issue-725-viewport-1024px",
+            "issue-725-process-1024px",
+            "issue-725-table-1440px",
+            "issue-725-table-1440px",
+            "issue-725-viewport-1440px",
+            "issue-725-viewport-1440px",
+            "issue-725-viewport-1440px",
+            "issue-725-viewport-1440px",
+            "issue-725-process-1440px",
+            "issue-725-table-1920px",
+            "issue-725-table-1920px",
+            "issue-725-viewport-1920px",
+            "issue-725-viewport-1920px",
+            "issue-725-viewport-1920px",
+            "issue-725-viewport-1920px",
+            "issue-725-process-1920px",
+            "issue-725-table-390px",
+            "issue-725-viewport-390px",
+            "issue-725-viewport-390px",
+            "issue-725-equipment-390px",
+            "issue-725-table-768px",
+            "issue-725-viewport-768px",
+            "issue-725-viewport-768px",
+            "issue-725-equipment-768px",
+            "issue-725-table-1024px",
+            "issue-725-viewport-1024px",
+            "issue-725-viewport-1024px",
+            "issue-725-equipment-1024px",
+            "issue-725-table-1440px",
+            "issue-725-viewport-1440px",
+            "issue-725-viewport-1440px",
+            "issue-725-equipment-1440px",
+            "issue-725-table-1920px",
+            "issue-725-viewport-1920px",
+            "issue-725-viewport-1920px",
+            "issue-725-equipment-1920px",
+            "issue-725-viewport-390px",
+            "issue-725-equipment-multi-390px",
+            "issue-733-process-api-serial-prewarm",
+            "issue-733-equipment-route-ready",
+            "issue-730-task-route-ready",
+            "issue-731-post-restart-equipment-patch",
+            "issue-731-post-restart-equipment-patch",
+            "issue-725-geometry",
+            "issue-725-acceptance",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중복 제출 방지, reload·Summary 상속",
+          "file": "issue-726-task-logistics.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 15308,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 1.92,
+              "durationMs": 319.59,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 325.81,
+              "durationMs": 1503.1,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10469.98,
+              "durationMs": 619.61,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11089.6,
+              "durationMs": 675.6,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1829.18,
+              "durationMs": 9936.02,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 321.52,
+              "durationMs": 11443.68,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 27080.14,
+              "durationMs": 103.73,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-726-real-http-write-boundaries",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+          "file": "milestone-dashboard-state.spec.ts",
+          "status": "failed",
+          "retry": 0,
+          "durationMs": 2459,
+          "timing": null,
+          "stages": [],
+          "attachmentNames": [
+            "error-context",
+            "trace"
+          ],
+          "errorClasses": [
+            "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m"
+          ]
+        },
+        {
+          "title": "#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (past)",
+          "file": "milestone-management-persistence.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 10185,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 4.51,
+              "durationMs": 298.88,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 305.74,
+              "durationMs": 1255.04,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10693.02,
+              "durationMs": 655.59,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11348.61,
+              "durationMs": 668.46,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1560.87,
+              "durationMs": 10456.24,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 303.4,
+              "durationMs": 11713.72,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 22261.5,
+              "durationMs": 105.01,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-550-empty-milestone-only",
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "membership real SQLite registration survives reload/restart and exact assignment editor keeps dirty guard and Gantt",
+          "file": "project-resource-memberships-persistence.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 19089,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 4.59,
+              "durationMs": 381.52,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 390.08,
+              "durationMs": 1295.17,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10259.15,
+              "durationMs": 612.46,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 10871.63,
+              "durationMs": 627.13,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1685.39,
+              "durationMs": 9813.37,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 386.14,
+              "durationMs": 11112.63,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 19605.55,
+              "durationMs": 1391.36,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 28693.94,
+              "durationMs": 31.41,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 28725.36,
+              "durationMs": 653.58,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 20997.05,
+              "durationMs": 8381.89,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_restart",
+              "startMs": 19601.4,
+              "durationMs": 9777.54,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 30595.25,
+              "durationMs": 111.93,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        },
+        {
+          "title": "persists explicit editor changes, task details and safe URL click without remount",
+          "file": "project-task-editor-persistence.spec.ts",
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 13028,
+          "timing": null,
+          "stages": [
+            {
+              "stage": "sqlite_migrate",
+              "startMs": 2.09,
+              "durationMs": 349.11,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "server_start_readiness",
+              "startMs": 356.42,
+              "durationMs": 1376.82,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assigned_targets_warmup",
+              "startMs": 10482.72,
+              "durationMs": 623.86,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_assignment_targets_warmup",
+              "startMs": 11106.59,
+              "durationMs": 653.62,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "next_route_warmup",
+              "startMs": 1733.36,
+              "durationMs": 10026.85,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_setup",
+              "startMs": 351.21,
+              "durationMs": 11409,
+              "outcome": "ok",
+              "errorClass": null
+            },
+            {
+              "stage": "fixture_teardown",
+              "startMs": 24798.07,
+              "durationMs": 167.57,
+              "outcome": "ok",
+              "errorClass": null
+            }
+          ],
+          "attachmentNames": [
+            "issue-751-isolated-performance"
+          ],
+          "errorClasses": []
+        }
+      ]
+    }
+  ],
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "managerDecision": "NOT TESTED",
+    "mainGhcrRelease": "N/A(요청범위밖;release_authorized=false)"
+  },
+  "notes": [
+    "정상11+교차14+직접11=고유36case; 역순4+2part4+교정repeat10+화면증거1=반복19실행은고유수에합산하지않는다.",
+    "controlled-negative exit1은의도한cleanup검사이며제품회귀PASS/실패횟수와구별한다.",
+    "이전source의13PASS/1FAIL과중간단독/진단/예비결과를삭제하거나최종PASS로소급하지않는다.",
+    "raw trace/error context/민감로그는Git에저장하지않고정제phase/상태/명령/합성ID만게시한다."
+  ]
+}
