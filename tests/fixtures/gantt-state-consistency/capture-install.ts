@@ -18,6 +18,7 @@ const nextSecurityPackagePaths = [
   "node_modules/@next/swc-win32-x64-msvc",
 ] as const;
 const approvedPatchUrl = new URL("./approved-next-16.4.2-lock.json", import.meta.url);
+const approvedZodUrl = new URL("./approved-zod-4.6.7-lock.json", import.meta.url);
 
 /** Verify the original Core capture's dependency provenance, allowing only the
  * separately reviewed exact Next.js 16.4.2 security patch. Every other package,
@@ -65,6 +66,29 @@ export function assertCapturedInstall(root: string): void {
       `Approved Next.js security patch exact locked package metadata mismatch: ${path}`);
     lock.packages[path] = oldLock.packages[path];
   }
+
+
+  // #785: historical Gantt/Core package snapshots are immutable. Normalize
+  // the exact reviewed Zod security update in memory only, not any other dep.
+  const approvedZod = JSON.parse(readFileSync(approvedZodUrl, "utf8"));
+  assert.equal(approvedZod.schema, "mastergantt-zod-security-patch-v1");
+  assert.equal(approvedZod.capturedVersion, "4.6.2");
+  assert.equal(approvedZod.patchedVersion, "4.6.7");
+  assert.equal(approvedZod.advisory, "GHSA-mrhx-c7xc-m3w5");
+  assert.deepEqual(Object.keys(approvedZod.packages), ["node_modules/zod"],
+    "Only the exact Zod security package may differ from historical capture");
+  assert.equal(oldManifest.dependencies.zod, approvedZod.capturedVersion, "Historical Zod manifest capture mismatch");
+  assert.equal(oldLock.packages[""].dependencies.zod, approvedZod.capturedVersion, "Historical Zod locked root capture mismatch");
+  assert.equal(oldLock.packages["node_modules/zod"]?.version, approvedZod.capturedVersion, "Historical Zod installed capture mismatch");
+  assert.equal(manifest.dependencies.zod, approvedZod.patchedVersion,
+    "Historical capture requires the exact approved Zod security patch");
+  assert.equal(lock.packages[""].dependencies.zod, approvedZod.patchedVersion,
+    "Historical capture requires the same exact approved Zod locked dependency");
+  assert.deepEqual(lock.packages["node_modules/zod"], approvedZod.packages["node_modules/zod"],
+    "Approved Zod security patch exact locked package metadata mismatch");
+  manifest.dependencies.zod = oldManifest.dependencies.zod;
+  lock.packages[""].dependencies.zod = oldLock.packages[""].dependencies.zod;
+  lock.packages["node_modules/zod"] = oldLock.packages["node_modules/zod"];
 
   // Versions of the app itself changed independently of the browser capture.
   manifest.version = oldManifest.version;

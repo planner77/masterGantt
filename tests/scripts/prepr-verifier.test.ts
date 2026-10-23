@@ -337,6 +337,39 @@ describe("Issue #699/#752/#762 — immutable historical capture with approved Ne
     expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
     ganttCore.version = savedGanttVersion;
 
+
+    // #785: reject unreviewed Zod registry/SRI/version and manifest/lock drift.
+    const installedZod = lock.packages["node_modules/zod"];
+    const savedZodIntegrity = installedZod.integrity;
+    installedZod.integrity = "sha512-tampered";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Zod security patch exact locked package metadata mismatch/);
+    installedZod.integrity = savedZodIntegrity;
+    const savedZodRegistry = installedZod.resolved;
+    installedZod.resolved = "https://untrusted.example.invalid/zod.tgz";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Zod security patch exact locked package metadata mismatch/);
+    installedZod.resolved = savedZodRegistry;
+    const savedZodInstalledVersion = installedZod.version;
+    installedZod.version = "4.6.8";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved Zod security patch exact locked package metadata mismatch/);
+    installedZod.version = savedZodInstalledVersion;
+    const savedZodManifestVersion = manifest.dependencies.zod;
+    manifest.dependencies.zod = "4.6.2";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Historical capture requires the exact approved Zod security patch/);
+    manifest.dependencies.zod = savedZodManifestVersion;
+    const savedZodLockVersion = lock.packages[""].dependencies.zod;
+    lock.packages[""].dependencies.zod = "4.6.2";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Historical capture requires the same exact approved Zod locked dependency/);
+    lock.packages[""].dependencies.zod = savedZodLockVersion;
+    manifest.dependencies.zod = "4.6.6";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Historical capture requires the exact approved Zod security patch/);
+    manifest.dependencies.zod = savedZodManifestVersion;
+
     // No changes to the frozen original browser capture are permitted.
     write();
     expect(() => assertCapturedInstall(dir)).not.toThrow();

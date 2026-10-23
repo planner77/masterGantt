@@ -187,3 +187,10 @@ Source 용어 allowlist에는 사용자 입력 이름/설명의 원문도 포함
 - **Evidence:** [Run 39975107608.1](https://github.com/planner77/masterGantt/actions/runs/39975107608) / shard5 Job 120488909192. #719 KPI Mock이 공개 `logistics-kpi/2` 직렬화 누락으로 버튼 readiness 검증에서 직접 실패. 나머지 7개 Chromium shard 취소/Required E2E·Automated QA 파생 FAIL이며 Quality·Build·Docker 성공. 정확 분류와 원본 보존: [이슈별 실패 원장](../../ISSUE_785_FAILURE_ANALYSIS.md#pr-787--최초-원격-full-pr-ci-실패-f785-001-2026-10-24-kst).
 - **Change scope:** 테스트 Fixture 2개(`issue-719-contextual-help.spec.ts`, `fixtures/task-editor-density.ts`)의 공개 KPI Mock을 `toResourcePublicV2`로 통일; Task Editor Fixture의 요청 시점 필터 echo도 맞춘다. #785의 제품/API/DB/데이터 이관·집계·UX 변경0. `TEST_LIFECYCLE_REVIEW`: #719 geometry/help/accessibility `EXTEND`, 공통 Editor Fixture `EXTEND`, 기존 v2 negative/request-state `KEEP_UNIQUE`; `AC_TEST_COVERAGE`의 AC2/8/9/10을 동일 수용표로 유지.
 - **검증 계획:** 이 환경의 로컬 npm/Chromium/Docker `NOT TESTED`. 새 exact Head에서 Policy·TypeScript·ESLint·Vitest·PR Build·Chromium E2E8/8·Docker·QA 필수. 앞선 11PASS/다른 7 shard 취소를 전체 성공으로 소급하지 않음. 미해결 리뷰0·main 충돌 없음은 수정 전 조사, 커밋 후 재확인. Owner HIGH 수용·Trusted QA·레거시 안전 편집 AC4·외부소비자/운영 DB 미검증과 release_required=true/release_authorized=false, MERGE_READY=BLOCKED 유지. CI 시작 후 모니터링/병합/GHCR/Finalizer/Issue 종료 제외.
+
+## PR #787 REWORK F785-002 — Full #3192.1 (2026-10-24 KST)
+
+- 직접 Policy Audit 취약 `zod@4.6.2` / `GHSA-mrhx-c7xc-m3w5`; Run 40028478592 Job120670771956. Fast Gate에 의해 E2E8·Docker·PR Build 미실행, Required3/QA 파생 FAIL. F785-001 E2E와 독립 기록.
+- `package.json`/lock의 정확 Zod4.6.7 단일 패치+SRI metadata, immutable Gantt capture의 `approved-zod-4.6.7-lock.json` 메모리 정규화, 기존 prepr-verifier 테스트 6개 negative cases 보완. README/SECURITY/TEST_PLAN과 단일 실패 원장 동기화. 다른 도메인·정식 DB·API·Next/SVAR/CI Gate 변경0.
+- AC6/9/10 보호: 보안 경계, 기존 test lifecycle EXTEND/KEEP_UNIQUE, 명시 문서 영수증. 실제 `npm ci`/`npm audit`/전체 Vitest/Chromium8/Docker는 네트워크·의존성 부재로 로컬 NOT TESTED; 새 exact HEAD PR CI/Trusted/Owner에서 판정. HIGH/OWNER_MANAGED, AC4/운영 DB·외부 소비자·Owner HIGH 승인 미충족, release_authorized=false/MERGE_READY=BLOCKED. 병합/Main/GHCR/Finalizer/Issue 종료 및 새 CI 모니터링 제외.
+

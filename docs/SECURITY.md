@@ -507,3 +507,10 @@ Target 계층·비교·필터·헤더 상세는 기존 공개 Project read/Resou
 Assignment 수정은 기존 Task assignments PUT의 optional `editAssignmentId`로 요청하며 기존 session·Origin·strong If-Match·catalog revision을 그대로 적용한다. Project/Task/resource에 속한 정확 Assignment를 검증한 뒤 선택 row만 갱신한다. 다른 Task/Project·Group·가상 Target 헤더·잘못된 ID/기간/allocation은 원자적으로 거부한다. 기존 generic 교체의 의미를 우회하거나 권한 없는 보존/수정 경로를 만들지 않는다. 공동담당자의 allocation=null·비활성/legacy 값은 조회상 원본이며 해당 exact 수정의 대상이 아니다.
 
 readonly/401/409/412·pending/dirty·응답역전에서 기존 Editor 초안·취소/재조회 guard를 사용한다. Client 표시 상태는 서버 authorization 근거가 아니며 저장 후 report는 최신 canonical snapshot 또는 명시 stale다. 실제 실행 범위는 [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 기록한다.
+
+## Issue #785 — Zod 운영 의존성 보안 패치 (2026-10-24)
+
+[GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)는 Zod의 과도한 컬렉션 검증 시 메모리 고갈 위험(High, 취약 <4.6.6, 최초 패치4.6.6)을 기술한다. PR #787 [Full #3192.1](https://github.com/planner77/masterGantt/actions/runs/40028478592)에서 기존 정확 `zod@4.6.2`로 `npm audit --omit=dev` 실패. 실행 환경이 제시한 안정 패치 `4.6.7`을 정확 production dependency와 npm lock registry/SRI에만 적용한다. `npm audit fix --force`, 검사 skip/Ruleset 약화 금지.
+
+과거 SVAR/Gantt의 `package-original.snapshot.txt`와 `package-lock-original.snapshot.txt`는 수정하지 않는다. `capture-install.ts`가 기존 정확 Next security 예외 외에 `approved-zod-4.6.7-lock.json`의 정확 Zod metadata만 메모리에서 원본으로 정규화하고 모든 다른 차이를 거부한다. 새 HEAD의 실제 npm ci/audit, 원본 Zod parser/보안·history capture/전체 Vitest, E2E8, Docker/QA/Owner는 별도 검증 대상이며 CI 시작 전 NOT TESTED.
+

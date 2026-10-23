@@ -111,3 +111,14 @@ REWORK-BROWSER-CONTRACT01: #621:98은 보존된 개인 상세와 새 전체Task 
 - **교차 검토/TEST_LIFECYCLE_REVIEW:** #719의 기존 실제 Chromium 시나리오는 `EXTEND`(Fixture wire만 현행 계약으로 갱신), 공통 Task Editor fixture는 `EXTEND`, 기존 `logistics-dashboard-request-state.spec.ts`의 v2/오류/잘못된 snapshot 검증은 `KEEP_UNIQUE`; 신규 삭제·skip·중복 E2E 등록 없음. 다른 생산자 가능성을 기본 브랜치 코드 검색과 변경 파일/fixture 대조로 검토했다.
 - **사전 검증 한계:** GitHub 연결로 정확 소스와 CI 로그/기존 정상 v2 Fixture를 대조했지만 이 환경에서 Node·Playwright·Docker 실행은 `NOT TESTED`이며 원격 새 Run 결과도 실행 전 `NOT TESTED`. 수정 뒤 단일 HEAD `synchronize`에서 기존 Full8·Quality·Docker·Trusted 정책을 재검증한다.
 - **리뷰·충돌:** 수정 전 PR #787 GraphQL 미해결 Review Thread 0건, Codex 코드 리뷰 latest Head no findings, GitHub `mergeable=true`, main 기준 SHA 동일. 수정 HEAD에서 재검증할 항목이며 병합/Owner 승인 증거가 아니다.
+
+## PR #787 — F785-002 두 번째 Full PR CI 실패 (2026-10-24 KST)
+
+- **원본:** [Full #3192.1 / Run 40028478592](https://github.com/planner77/masterGantt/actions/runs/40028478592), PR #787, HEAD `433fa32279be7c9c0f812c40b717f91298741fe3`, base/main `427d22245fb8e11254b2424ea5147ccbd5766979`. F785-001 Chromium 실패와 별도 원본·별도 원인.
+- **직접:** [Policy Job 120670771956](https://github.com/planner77/masterGantt/actions/runs/40028478592/job/120670771956) `npm audit --omit=dev` High `GHSA-mrhx-c7xc-m3w5`, `zod <4.6.6` 취약·직접 운영 의존성 4.6.2. runner 권고는 `npm audit fix --force`, `zod@4.6.7`이나 강제 자동수정은 사용하지 않는다. 공식 GitHub Advisory patched `4.6.6`.
+- **파생:** PR Fast Gate POLICY_RESULT=failure; PR Build·E2E8 shard·Docker 실제 **SKIPPED/NOT TESTED**, Required Quality/E2E/Docker·QA Automated **파생 FAIL**. TypeScript·ESLint·Vitest·QA Preflight SUCCESS. 이전 #3187.1 E2E 수정은 이 Run에서 미실행이다.
+- **원인 보완:** `package.json`/lock에서 Zod 한 패키지만 `4.6.2→4.6.7`, resolved `https://registry.npmjs.org/zod/-/zod-4.6.7.tgz`, SRI `sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==`. 독립 공개 bun.nix 파일 및 Gentoo Manifest SHA512 `83c5b60f...`와 교차 대조했다. 신규 `approved-zod-4.6.7-lock.json`과 `capture-install.ts`은 기존 frozen Gantt browser capture를 재작성하지 않고 정확 Zod 보안 차이만 메모리 정규화. 역사 Vitest #752 당시 4개 failing consumers 재발 위험을 기존 `prepr-verifier.test.ts`의 tampered registry/SRI/version/manifest/lock 음성으로 보호. 테스트 assertion/시간·CI 정책/Next/SVAR/도메인/API/DB 변경0. README/SECURITY/TEST_PLAN/Work Packet 갱신.
+- **TEST_LIFECYCLE_REVIEW:** 기존 history-capture tests EXTEND, Zod·보안·HTTP·SQLite·실물 테스트 KEEP_UNIQUE, test skip/폐기/중복0. AC6 보안, AC9 Test Lifecycle, AC10 문서 연계.
+- **검증 경계:** package·lock JSON 구조 및 Zod 변경 경로, 공개 SRI 교차 확인만 수행. GitHub 연결 환경 registry/npm install 및 실제 Node/Vitest/Chromium/Docker 실행은 `NOT TESTED`. 정확 HEAD 새 PR Full8/Required3/Trusted 검증 필요. 기존 두 실패 원본 PASS 소급 금지.
+- **리뷰/충돌/승인:** 변경 전 미해결 Thread0, `mergeable=true`, 현재 main/base 동일. 변경 후 확인한다. HIGH/OWNER_MANAGED, AC4 legacy 안전 관계 편집·운영 DB/외부 소비자 실측, Trusted QA·Owner HIGH 수용 미충족. `release_authorized=false`, `MERGE_READY=BLOCKED`.
+

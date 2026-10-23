@@ -1,0 +1,22 @@
+{
+  "schema": "mastergantt-zod-security-patch-v1",
+  "capturedVersion": "4.6.2",
+  "patchedVersion": "4.6.7",
+  "advisory": "GHSA-mrhx-c7xc-m3w5",
+  "reason": "#785 F785-002 security patch, immutable historical capture normalized in memory only",
+  "integrityEvidence": [
+    "https://github.com/MrLesk/Backlog.md/blob/6f988de052b8d8ef2eac2828ade7d8690ac7213f/bun.nix",
+    "https://github.com/12101111/overlay/blob/e51fa48edb464dd40fa88c132842749bbd3dbe6f/dev-util/deepseek-harness/Manifest"
+  ],
+  "packages": {
+    "node_modules/zod": {
+      "version": "4.6.7",
+      "resolved": "https://registry.npmjs.org/zod/-/zod-4.6.7.tgz",
+      "integrity": "sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==",
+      "license": "MIT",
+      "funding": {
+        "url": "https://github.com/sponsors/colinhacks"
+      }
+    }
+  }
+}
