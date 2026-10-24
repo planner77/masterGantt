@@ -1,3 +1,7 @@
+## Issue #792 F792-001 — 기존 연결 source 수정 중 Task Editor 탐색 경합 차단
+
+원본 `scope` PATCH는 공통 `ProjectTaskEditor`의 기존 pending lock과 결합해야 한다. 직접 설비·System·공정·리소스·이름 초안 생성/저장과 다른 탭 전환/닫기는 PATCH 응답·canonical reload 완료 때까지 차단한다. 상속 provenance/원본 UUID/동적 whole/coverage 및 일반 조회·Gantt scroll/selection/Task 작성은 이 동작으로 새로 기록하지 않는다. 사용자에게는 editor 내부 native disabled와 `aria-busy`가 적용되며 실제 5폭·키보드/Focus 시험 결과는 원격 Chromium 성공 전 `NOT TESTED`. P1 리뷰/Fail 기록: [#792 원장](ISSUE_792_FAILURE_ANALYSIS.md), [Task 계약](TASK_EDITOR.md).
+
 ## Issue #792 — 보존된 Summary 출처 적용 범위의 opt-in 편집
 
 #785의 구형 Target 메뉴/화면/상세를 복구하지 않고, 기존 Task Editor 연결 출처 아래에 **Summary 직접 원본 한 건의 범위 조정**만 노출한다. 기존 read-only 출처 표기를 모두 editable로 바꾸지 않는다. 동적 whole·subset+coverage 및 inherited source는 원본과 별도이고, 자손 Task에서 inherited source를 복사해 직접 수정하지 않는다.

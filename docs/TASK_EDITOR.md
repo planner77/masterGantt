@@ -1,3 +1,9 @@
+## Issue #792 F792-001 — Legacy scope PATCH 동안 Task Editor 전역 잠금
+
+첫 PR #795의 P1 코드 리뷰는 legacy 직접 source PATCH의 로컬 `busy`가 상위 Task Editor 잠금에 반영되지 않아 사용자 Task 이름·Resource/직접 설비/System 초안과 탭 탐색을 새 `reload(true)`가 무확인 폐기할 수 있다는 위험을 지적했다. `LegacyBindingScopeEditor`가 **PATCH 시작 이전부터 응답 검증과 `onApplied()/canonical reload` 완료까지** `onPendingChange(true)`를 전파하며 finally에서 false로 해제한다. `TaskLogisticsLinkEditor`는 원래 직접 writer `saving`과 새 `legacyScopePending`의 논리합으로 기존 상위 `ProjectTaskEditor.locked`/잠금 상태를 유지한다.
+
+쓰기 중에는 Task Editor의 이름/Resource·공정·직접 체크박스·저장·닫기 및 tab click/Arrow 키 전환을 차단하고, Escape가 pending 중 dialog를 닫지 못하도록 기존 top-layer 이벤트 가드를 그대로 사용한다. 실패·불확실한 응답은 저장 성공이 아니라 재확인 오류이며 다른 초안을 삭제하지 않는다. 잠금 해제는 재조회 완료 뒤 수행한다. 기존 탭/데이터 원본, Resource·WBS·일정/SVAR writer 계약 변화 없음. 기존 `tests/e2e/issue-726-task-logistics.spec.ts`에 실제 PATCH의 응답만 지연하는 시나리오/잠금 전후·DB Source 검증을 EXTEND했으나 최초 Full #3231.1의 Preflight 실패로 **NOT RUN**이다. [Issue 실패 원장](ISSUE_792_FAILURE_ANALYSIS.md), [Work Packet](exec-plans/active/ISSUE_792.md).
+
 ## Issue #792 — Summary의 기존 관계 적용 범위 변경
 
 Task Editor의 `기존 연결 출처`에는 실제 Equipment/System와 원본 Task·상속·`whole/subset`·coverage/공정/WorkArea 문맥을 표시한다. **Summary에 직접 저장된 legacy binding**이 있는 경우만 `기존 관계 적용 범위 수정`을 활성화한다. 원본 관계 → `이 작업만(self)` 또는 `하위 작업 포함(subtree)` → `영향 미리보기` → `영향을 확인하고 적용` 순서이며, 변경되는 실제 Task ID 목록의 건수와 선택된 원본 구성원 수를 확인한다.

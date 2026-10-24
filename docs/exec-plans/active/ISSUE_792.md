@@ -45,7 +45,16 @@
 | AC5 UI·v2·교환·중복/이탈 | Task Editor 기존 compatibilityLinks + 신규 미리보기, #785/#623 Tests, `task-logistics-link-editor.tsx`, resource/WBS/Copy/Template/Excel의 원본불변 근거 | 신규 API 경로는 v2 집계 DTO에 영향 없음. 별도 UI 390/768/1024/1440/1920·focus/E2E/Excel 검증 NOT TESTED |
 | AC6 Quality/E2E8/Docker/Trusted | non-draft PR Full CI; 신뢰된 base QA, Review Threads 0, strict main, Owner HIGH 수용 | 새 exact Head 원격 실행 시작까지만 승인; 결과/승인 NOT TESTED |
 
-**TEST_LIFECYCLE_REVIEW:** 검색: `tests/server/logistics/task-target-bindings*.test.ts`, `tests/server/projects/issue-785-exchange.test.ts`, `tests/e2e/issue-726-task-logistics.spec.ts`, `tests/e2e/logistics-target-authoring.spec.ts`, `tests/server/resources/resource-public-v2.test.ts`, `tests/server/projects/resource-excel-export.test.ts`. `EXTEND`: #617/#785의 동일 SQLite·세션·legacy fixture에 scope PATCH positive/negative를 추가(동일 UUID와 member row). #726 기존 실제 Playwright/격리 SQLite source fixtures에 Summary source-only 범위 조정·5폭·readonly·실제 HTTP source provenance를 확장한다. 기존 8shard 배치 파일을 추가하지 않는다. `KEEP_UNIQUE`: 실제 HTTP, broken FK/transaction, Copy/Template, whole/subset coverage, 리소스 WBS 계산, OOXML, 실제 브라우저5폭·focus; 이 독립 보호는 통합·삭제하지 않는다. `PARTIAL_OVERLAP`: 기존 #785 readonly 출처 조회와 새 writer/확인 경계는 겹치나 독립 책임이다. `ADD`: 신규 endpoint 및 source-aware UI; `CONSOLIDATE_CANDIDATE=없음`, `RETIRE_CANDIDATE=없음`. CI/E2E skip, timeout, Required gate 변경0.
+- AC1: #785 archive/직접 연결 전수 구분, legacy 원본 Task 및 Scope/Origin/Auth/Revision 계약 — legacy-binding-scope-service-core.ts와 docs/API.md; 외부 소비자 실측 NOT TESTED.
+- AC2: 기존 source UUID·whole/subset/coverage·equipment quantity 및 self/subtree 효과·복원, 인플레이스 저장·rollback — task-target-bindings*.test.ts 확장; 실행 NOT TESTED, 운영 대량 이관 미지원.
+- AC3: 401/403/409/412/422/428, stale token·비활성/외부 source·orphan·body race·SQLite restart와 P1 pending 동안 Task Editor 잠금 — 기존 HTTP Unit 및 #726 지연 PATCH E2E, 실행 NOT TESTED.
+- AC4: consumer 전환 사용량과 오프호스트 backup/digest/restore/restart, 운영 승인 — TARGET_RESOURCE_OPERATIONS.md G0-G4 runbook, 운영 자료 접근 없어 NOT TESTED.
+- AC5: 원본 source 및 Task Editor 5폭/readonly·동적 WBS/Resource/Copy/Template/Excel 계약, delayed-PATCH 중 초안 소실 방지 — #726 E2E/관련 단위 시험 및 TEST_PLAN, 브라우저 실행 NOT TESTED.
+- AC6: 정확 새 Head의 Full Quality/Chromium8/Docker, Trusted QA와 Owner HIGH 승인 및 릴리스 판단 — CI 새 Run 시작 후 판정, 완료/수용 NOT TESTED.
+
+## TEST_LIFECYCLE_REVIEW
+
+ 검색: `tests/server/logistics/task-target-bindings*.test.ts`, `tests/server/projects/issue-785-exchange.test.ts`, `tests/e2e/issue-726-task-logistics.spec.ts`, `tests/e2e/logistics-target-authoring.spec.ts`, `tests/server/resources/resource-public-v2.test.ts`, `tests/server/projects/resource-excel-export.test.ts`. `EXTEND`: #617/#785의 동일 SQLite·세션·legacy fixture에 scope PATCH positive/negative를 추가(동일 UUID와 member row). #726 기존 실제 Playwright/격리 SQLite source fixtures에 Summary source-only 범위 조정·5폭·readonly·실제 HTTP source provenance를 확장한다. 기존 8shard 배치 파일을 추가하지 않는다. `KEEP_UNIQUE`: 실제 HTTP, broken FK/transaction, Copy/Template, whole/subset coverage, 리소스 WBS 계산, OOXML, 실제 브라우저5폭·focus; 이 독립 보호는 통합·삭제하지 않는다. `PARTIAL_OVERLAP`: 기존 #785 readonly 출처 조회와 새 writer/확인 경계는 겹치나 독립 책임이다. `ADD`: 신규 endpoint 및 source-aware UI; `CONSOLIDATE_CANDIDATE=없음`, `RETIRE_CANDIDATE=없음`. CI/E2E skip, timeout, Required gate 변경0.
 
 ## 운영 dry-run / 검증 범위
 
@@ -55,10 +64,46 @@
 
 ## DOCUMENTATION_SYNC
 
-UPDATED: 본 Packet, `docs/LOGISTICS_DOMAIN_DESIGN.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SECURITY.md`, `docs/TASK_EDITOR.md`, `docs/UI_UX_GUIDELINES.md`, `docs/PROJECT_UX.md`, `docs/TARGET_RESOURCE_USER_GUIDE.md`, `docs/TARGET_RESOURCE_OPERATIONS.md`, `docs/TEST_PLAN.md`, `CHANGELOG.md`, `docs/exec-plans/active/PLAN.md`, 별도 `docs/ISSUE_792_FAILURE_ANALYSIS.md`.
+- `AGENTS.md`: N/A(기존 Manager와 Agent 역할 및 QA 검증 게이트의 지침을 그대로 적용하며 지침 자체는 바꾸지 않음)
+- `DESIGN.md`: N/A(현행 compact Task Editor와 상태 잠금의 기존 공통 UI 원칙을 구체화할 뿐 디자인 시스템 변경 없음)
+- `docs/QA_REVIEW_POLICY.md`: N/A(기존 Owner-managed 신뢰 QA, 별도 위험 수용 및 리뷰 해결 규칙을 그대로 유지함)
+- `docs/CI_CD.md`: N/A(기존 Full CI Required3 및 Chromium 8샤드, Preflight 정책·워크플로 구조 변경 없음)
+- `docs/GITHUB_OPERATIONS.md`: N/A(기존 PR 브랜치·병합/원격 CI 출처와 검증 권한 운영 계약은 변동 없음)
+- `docs/REMOTE_VALIDATION.md`: N/A(현행 원격 Quality·E2E·Docker·Trusted 증거 취합 계약을 그대로 사용하며 gate 변경 없음)
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/API.md`: UPDATED
+- `docs/DB_SCHEMA.md`: UPDATED
+- `docs/LOGISTICS_DOMAIN_DESIGN.md`: UPDATED
+- `docs/SECURITY.md`: UPDATED
+- `docs/TASK_EDITOR.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/UI_UX_GUIDELINES.md`: UPDATED
+- `docs/TARGET_RESOURCE_USER_GUIDE.md`: UPDATED
+- `docs/TARGET_RESOURCE_OPERATIONS.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_792.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/ISSUE_792_FAILURE_ANALYSIS.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `docs/ISSUE_LIFECYCLE.md`: N/A(현재 이슈 Lifecycle 상태와 병합/Finalizer 권한 계약을 변경하지 않음)
+- `docs/IMPORT_SCHEMA.md`: N/A(지원 JSON Import 필드와 현재 교환 스키마의 의미를 변경하지 않음)
+- `docs/JSON_IMPORT.md`: N/A(레거시 그래프의 지원 JSON Import 범위를 넓히거나 변경하지 않음)
+- `docs/IMPORT_EXPORT.md`: N/A(교환 파일의 원본과 보존 정책 및 writer 출력 포맷에 변경 사항이 없음)
+- `docs/ISSUE_27_PROJECT_COPY.md`: N/A(지원 Project Copy 및 Template의 원본 재매핑 경로에 코드를 추가하거나 수정하지 않음)
+- `docs/EXCEL_EXPORT.md`: N/A(Excel OOXML writer·원본 ID·비가산 집계와 지원 범위를 변경하지 않음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(기존 일정 엔진과 dependency 및 SVAR Gantt writer를 변경하지 않음)
+- `docs/DEPLOYMENT.md`: N/A(신규 migration·DDL·Docker Compose 또는 image 배포 절차 변경 없음)
 
-N/A(reason): `AGENTS.md`, `DESIGN.md` 정책·색/형상 변경 없음(본 파일이 구현 지침). `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/REMOTE_VALIDATION.md`, `.github/workflows/**`은 기존 Full8/Required3/Trusted/Owner/Finalizer 규칙 불변. `docs/IMPORT_SCHEMA.md`, `docs/JSON_IMPORT.md`, `docs/IMPORT_EXPORT.md`, `docs/ISSUE_27_PROJECT_COPY.md`, `docs/EXCEL_EXPORT.md`은 지원 직렬화·프로젝트 Copy/Template·공수 시트 변경 없음; 기존 #785 원본 보존 테스트 유지. `docs/SCHEDULING_ENGINE.md`은 일정·SVAR writer 불변. `docs/DEPLOYMENT.md`는 DDL/Compose/배포 계약 불변; 실제 운영 검증은 이번 운영 절차에 별도 기록.
+- 원격 #3231.1의 실패는 `## DOCUMENTATION_SYNC / N/A` 비정형 제목이었다. 같은 H2의 문서 영향 행뿐 아니라 `## AC_TEST_COVERAGE`의 `- ACn:` 정확 형식을 기본 브랜치 `docs_gate`에 맞게 모두 보완한다. 기존 QA Preflight를 우회하거나 완화하지 않는다.
+- 위 `UPDATED`는 실제 #795 diff에서 변경된 파일만 지정한다. `N/A(reason)`은 현재 계약 불변의 의미적 근거이고, 새 기능/UX의 수동 검토와 remote PASS를 대체하지 않는다.
 
 ## PR·실패 누적 원장 인계
 
 변경 source의 로컬 Node/Chromium/Docker 검증 `NOT TESTED`. Commit별 SHA와 원격 PR 번호/Head/Run/Attempt는 확인된 값만 Issue/PR STATUS·[실패 원장](../../ISSUE_792_FAILURE_ANALYSIS.md)에 갱신한다. `PR CI Started`는 성공·QA 승인·MERGE_READY가 아니다. 추가 실패 시 원인/직접 실패·파생/취소·로그 출처·시도·교정/새 Head를 동일 원장에 누적하고 최초 기록을 지우지 않는다.
+
+
+## F792-001 — PR #795 첫 Full #3231.1 사전 실패 및 P1 재작업
+
+- [첫 Full Run 40067826081.1](https://github.com/planner77/masterGantt/actions/runs/40067826081): original Head `8f1cab235bd9d15845e729641020e936dc42be79`, base `b45885812301d14b9f673841e9944b27b2642323`, `pull_request.opened`. `QA Preflight` Job 120794727284 Step4 `FAIL / DOCUMENTATION_SYNC`은 정확 H2 제목 누락. 뒤따른 Fast Gate/Required3/QA Final 실패는 파생; Policy/TS/Lint/Vitest/Chromium8/Docker 모두 미실행이다. [누적 원장](../../ISSUE_792_FAILURE_ANALYSIS.md) 원본 사건과 후속 시도는 구분한다.
+- [P1 리뷰 thread](https://github.com/planner77/masterGantt/pull/795#discussion_r4366175663) **원본 직접 scope PATCH 중 외부 Task 초안 삭제 위험**: `LegacyBindingScopeEditor` PATCH 시작 전 parent pending true→`onApplied/reload` 종료 후 false, `TaskLogisticsLinkEditor`의 기존 writer pending과 OR 통합→`ProjectTaskEditor.locked` 및 native 탭 클릭/키보드 잠금, direct Checkbox/name/resource/close 차단. 리뷰 답글 4366206416, 스레드 resolved 상태를 별도 GitHub 조회로 확인. 실제 원격 전체 QA·Owner 승인과 다름.
+- 검증 선택 `EXTEND`: `tests/e2e/issue-726-task-logistics.spec.ts`의 기존 격리SQLite/실제 HTTP/browser를 사용, PATCH 응답만 게이트로 지연시켜 `aria-busy`, close/tab/task-name/equipment/save disabled, Escape 억제, DB before·after, canonical refresh 후 unlock을 검증. 기존 직접/상속·5폭/readonly·whole/subset 및 authorization 회귀 `KEEP_UNIQUE`. 새 spec/shard/skip/retry/timeout 변경0.
+- GitHub 연결로 코드·구조 정적 비교만 수행했으며 GitHub CI 최초 실행이 해당 제품 시나리오에 도달하지 못했다. Node/Playwright/Docker/진짜 운영 restore `NOT TESTED`. 신규 CI 시작 이후 정확 HEAD·Run/Attempt의 Trusted 결과와 Owner HIGH 위험 수용은 별도 판단, `MERGE_READY=BLOCKED`.

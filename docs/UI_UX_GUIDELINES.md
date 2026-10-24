@@ -1,3 +1,7 @@
+## Issue #792 F792-001 — 안전 편집 pending의 잠금 및 focus 경계
+
+이전 source 편집에서 비동기 PATCH가 진행되면 Task Editor 전체 `aria-busy`, 인접 직접 연결·Resource/작업명·닫기·탭/키보드 탐색을 같은 잠금으로 제어한다. 별도 source 버튼의 local `busy`만으로 잠갔다고 주장하지 않는다. 확인 저장과 `reload(true)`가 완료되기 전에 다른 초안을 생성·이동시켜 초기화하는 경로를 막고, 성공 후 입력을 다시 허용한다. 오류·outdated Revision·네트워크 불확실성에서 사용자 확인 없는 초안 폐기를 금지한다. 동일 5폭/keyboard/Escape/readonly 실제 Chromium 보호는 [#792 E2E](exec-plans/active/ISSUE_792.md)에 추가했으나 첫 Full Preflight 이후 실제 제품 Runner 미실행 → `NOT TESTED`. 기존 Light UI/semantic token/정보밀도/기간 정책 변경 없음.
+
 ## Issue #792 — Source-aware legacy 미리보기/확인의 최소 UX
 
 구형 Target 별도 화면·보조 작성기는 되살리지 않는다. 기존 Task Editor 원본 출처 문맥 안에서 **Summary에 직접 저장한 소스 한 건**의 적용 범위만 opt-in으로 수정한다. 선택한 source UUID와 현재 `scope`, 수정 후 실제 영향 Task 건수, 구성원 수를 명시하고 Confirm 없는 mutation을 차단한다. 자체 Task 및 자손 상속 출처, 직접 관계·Resource 공수·실물 구성 변경과 다른 작업임을 분명히 한다.
