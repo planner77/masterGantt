@@ -1,3 +1,9 @@
+## Issue #785 — 공개 경로 퇴역과 호환 읽기 방어
+
+전용 Logistics Target 경로의 410은 기존 Project 검증·Origin·edit-session·strong If-Match 방어를 보존한 종료 응답이다. UI 제거만으로 외부 쓰기를 남겨 두지 않으며 retired method는 실제 데이터/revision을 변경하지 않는다. 내부 legacy service는 지원 Copy/Template·격리 테스트 fixture·읽기 해석에 한정하고 runtime 테스트 seed API를 추가하지 않는다.
+
+새 실물 영향 조회와 resource/WBS v2는 기존 Project read·bounded input·same snapshot·private no-store/nosniff를 따른다. 외부 source ID/표시 ID를 권한 근거로 신뢰하지 않는다. 비정상 FK/교차 Project·부분 snapshot은 명시 실패하고 기존 원본과 transaction rollback을 보존한다. v1 명시 호환은 새 작성 권한이 아니다. Owner HIGH/Required3/Trusted·release 권한 정책은 변경하지 않는다. [API](API.md), [실행 경계](exec-plans/active/ISSUE_785.md).
+
 ## Issue #556 — Zod 운영 의존성 High 감사 차단과 잔여 입력 크기 보호 (2026-10-24)
 
 [PR #786 Full CI #3193.1](https://github.com/planner77/masterGantt/actions/runs/40028881375)에서 Zod4.6.2에 대해 [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)(collection validation의 비정상 메모리 소비, High)가 `npm audit --omit=dev`를 차단했다. 정확 `zod@4.6.7` [업스트림 릴리스](https://github.com/colinhacks/zod/releases/tag/v4.6.7) 및 manifest/lock/SRI로 운영 패키지를 교정하지만, 권고 severity/CI policy/Required/Trusted QA/Owner Gate를 우회하지 않는다. 새 Head 원격 `npm ci`·audit PASS 및 실제 Next/Chromium/Docker 호환은 아직 검증되지 않았다.
@@ -511,3 +517,9 @@ Target 계층·비교·필터·헤더 상세는 기존 공개 Project read/Resou
 Assignment 수정은 기존 Task assignments PUT의 optional `editAssignmentId`로 요청하며 기존 session·Origin·strong If-Match·catalog revision을 그대로 적용한다. Project/Task/resource에 속한 정확 Assignment를 검증한 뒤 선택 row만 갱신한다. 다른 Task/Project·Group·가상 Target 헤더·잘못된 ID/기간/allocation은 원자적으로 거부한다. 기존 generic 교체의 의미를 우회하거나 권한 없는 보존/수정 경로를 만들지 않는다. 공동담당자의 allocation=null·비활성/legacy 값은 조회상 원본이며 해당 exact 수정의 대상이 아니다.
 
 readonly/401/409/412·pending/dirty·응답역전에서 기존 Editor 초안·취소/재조회 guard를 사용한다. Client 표시 상태는 서버 authorization 근거가 아니며 저장 후 report는 최신 canonical snapshot 또는 명시 stale다. 실제 실행 범위는 [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 기록한다.
+
+## Issue #785 — Zod 운영 의존성 보안 패치 (2026-10-24)
+
+[GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)는 Zod의 과도한 컬렉션 검증 시 메모리 고갈 위험(High, 취약 <4.6.6, 최초 패치4.6.6)을 기술한다. PR #787 [Full #3192.1](https://github.com/planner77/masterGantt/actions/runs/40028478592)에서 기존 정확 `zod@4.6.2`로 `npm audit --omit=dev` 실패. 실행 환경이 제시한 안정 패치 `4.6.7`을 정확 production dependency와 npm lock registry/SRI에만 적용한다. `npm audit fix --force`, 검사 skip/Ruleset 약화 금지.
+
+과거 SVAR/Gantt의 `package-original.snapshot.txt`와 `package-lock-original.snapshot.txt`는 수정하지 않는다. `capture-install.ts`가 기존 정확 Next security 예외 외에 `approved-zod-4.6.7-lock.json`의 정확 Zod metadata만 메모리에서 원본으로 정규화하고 모든 다른 차이를 거부한다. 새 HEAD의 실제 npm ci/audit, 원본 Zod parser/보안·history capture/전체 Vitest, E2E8, Docker/QA/Owner는 별도 검증 대상이며 CI 시작 전 NOT TESTED.

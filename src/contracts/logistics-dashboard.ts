@@ -125,7 +125,7 @@ export interface LogisticsDashboardResponse {
 
 /** Explicit opt-in consumer. The historical /logistics/dashboard response stays unchanged. */
 export interface LogisticsIntegratedKpiDto {
-  source: "direct+target:v1";
+  source: "direct+target:v1" | "physical-connections:v2";
   contextSourceVersion: "explicit-task-context:v1";
   snapshotId: string;
   dataSnapshotId: string;

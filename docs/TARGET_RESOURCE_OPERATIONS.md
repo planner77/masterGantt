@@ -1,4 +1,14 @@
-# Target·Resource 이관·복구 절차
+# 실물·리소스 원본 이관·복구 절차
+
+## Issue #785 — 공개 도메인 폐기와 단계적 원본 보존
+
+이번 전환은 DB flatten/backfill/DROP을 수행하지 않는다. whole의 동적 구성·subset coverage·Summary 상속은 내부 archive resolver로 유지하며 실제 실물 ID·원본 Task/Assignment·opaque 관계 출처로 조회한다. 전용 공개 Target API의 410과 기본 resource/WBS v2 전환은 배포 소비자 확인 대상이다. 명시 v1 읽기는 deprecated이며 외부 소비자0을 추정하지 않는다. 구형 caller 목록·사용량·호환 종료일은 운영 조사 전 NOT TESTED다.
+
+배포 dry-run은 source table/관계·유효 실물 ID·coverage·T0/A/R·집계/정확 상세의 before/after와 integrity/FK·migration ledger를 격리 backup에서 비교한다. 신규 직접 데이터와 legacy-only/mixed·whole/subset·self/subtree·비활성/공통/공유/동명·비정상 참조를 구분한다. 해석 불가·전송 JOIN 누락은 전체 실패·원본 보존이며 조용한 부분 변환을 허용하지 않는다.
+
+지원 Copy/Template는 기존 private graph의 참조를 원자 재매핑한다. 신규 직접 업무에서 숨은 archive 그룹을 만들지 않는다. JSON1.1/일반 일정 Excel은 기존 미지원 한계를 유지한다. 공개 건수/시트는 실물 용어로 전환하지만 복구 원본을 버리지 않는다. 레거시 출처 자체의 안전 편집과 파괴적 P3는 별도 gate다. 소비자0·실제 backup/restore/restart·source 비교·Owner 승인 전에 archive 원본을 제거하지 않는다.
+
+현재 runtime의 실제 migrations/ledger를 조회하며 아래0027/schemaVersion3 수치는 #623 당시 기록이다. 운영 DB 실제 건수·off-host backup/restore·구버전 binary 조합·최종 수용은 NOT TESTED다. rollback은 대응 backup/image 또는 forward correction이며 기존 volume/원본을 보존한다. [Work Packet](exec-plans/active/ISSUE_785.md), [실패 원장](ISSUE_785_FAILURE_ANALYSIS.md).
 
 ## Issue #737 — WBS 다관점·직접 WorkArea 복원 범위
 

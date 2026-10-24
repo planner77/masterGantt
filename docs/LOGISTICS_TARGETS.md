@@ -1,3 +1,11 @@
+## Issue #785 — 폐기된 사용자 도메인의 호환 감사 계약
+
+이 파일은 기존 저장 원본과 whole/subset·coverage·상속·동일 binding/member 의미를 검토하는 내부 감사 문서로 유지한다. Logistics Target를 사용자 화면·신규 API·필터·진단·Excel 축으로 제공하는 기존 설명은 #785로 대체되었다. 현재 사용자 절차는 [실물·리소스 가이드](TARGET_RESOURCE_USER_GUIDE.md)다.
+
+전용 공개 route는 auth/Origin/revision 검증을 보존한 410으로 종료한다. 기존 내부 service/resolver·DB graph는 무손실 읽기·지원 Copy/Template·역사 golden test에 한정해 유지한다. 새 직접 업무에서 archive 원본을 자동 생성하지 않는다. 동적 whole/coverage를 직접 행으로 변환하거나 원본을 DROP하지 않으며 정확 실물·Task/Assignment와 opaque 출처를 제공한다. 레거시 자체 편집·외부 소비자0·운영 백업/복원·파괴적 P3는 미완료 gate다. [Work Packet](exec-plans/active/ISSUE_785.md), [DB](DB_SCHEMA.md).
+
+아래 #614~#624 및 후속 이슈 설명은 당시 구현/호환 원형이며 현행 사용자 UI 안내가 아니다. 기존 수치·보안·identity 계약은 유지한다.
+
 ## Issue #762 — 직접 WorkArea와 기존 Target 경계
 
 Project 공정·직접 WorkArea 등록은 Target/member/coverage를 생성하거나 기존 Target을 변경하지 않는다. 신규 Task/설비 직접 구역은 Project 공정 owner로 검증하며 기존 Target의 occurrence/global 구역 참조는 그대로 보존한다. Target은 기존 global catalog 호환 경로이고 신규 직접 구역을 이름으로 global 구역에 치환하지 않는다. direct+Target 혼합의 Task/Assignment·Fleet 수량 총계는 raw ID 합집합이며 구역별 소계를 더해 원본 수량을 늘리지 않는다. 상세 [이관·참조 계약](exec-plans/active/ISSUE_762.md) 참조.

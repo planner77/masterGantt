@@ -1,4 +1,6 @@
 "use client";
+import { IdentifierDetails } from "@/components/identifier-details";
+import { PhysicalConnectionSources } from "./physical-connection-sources";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { WbsViewDetailsDto, WbsViewNode, WbsViewReportDto } from "@/contracts/wbs-dashboard-views";
 import type { WbsViewScheduleRequest } from "./resource-drill-context";
@@ -63,7 +65,15 @@ export function WbsViewDetails({ data, node, locked, onStale, onClose, onIntent,
       {row.assignment && onOpenAssignment ? <button data-resource-assignment-edit type="button" disabled={actionLocked || !row.assignment.active} onClick={event => {const trigger=event.currentTarget; const a=row.assignment!; void revalidate(() => onOpenAssignment(row.taskId,a.assignmentId,a.resourceId,trigger));}} aria-label={`${row.assignment.resourceName} Assignment 원본`}>Assignment 원본</button> : null}
       {onSchedule ? <button data-resource-action="task-schedule" type="button" disabled={actionLocked} onClick={event => {const trigger=event.currentTarget; void revalidate(intentSignal => onSchedule({intentSignal,data,path:node.path,label:row.taskName,trigger,taskId:row.taskId,...(row.assignment ? {assignmentId:row.assignment.assignmentId} : {})}));}}>이 작업 일정 보기</button> : null}</div>
       {row.assignment && !row.assignment.active ? <p className={styles.subtle}>비활성 리소스의 기존 배정은 조회 전용입니다.</p> : null}
-      <details><summary>원본 경로·출처</summary><p>{row.wbsPath.map(part => part.name).join(" → ")}</p><pre className={styles.subtle}>{JSON.stringify({taskId:row.taskId,assignmentId:row.assignment?.assignmentId,selectedSources:row.selectedSources,instancePaths:row.instancePaths},null,2)}</pre></details>
+      <details><summary>원본 경로·출처</summary><p>{row.wbsPath.map(part => part.name).join(" → ")}</p>
+        <IdentifierDetails label="작업·배정 원본 식별 정보" identifiers={[{label:"작업 ID",value:row.taskId},...(row.assignment ? [{label:"Assignment ID",value:row.assignment.assignmentId}] : [])]} />
+        <ul>{row.selectedSources.filter(source => source.dimension !== "target").map((source,index) => <li key={`${source.sourceTaskId ?? row.taskId}:${source.entityId}:${index}`}>
+          {source.relationKind === "assignment" ? "개인 배정" : source.relationKind === "controls" ? "제어 관계" : source.relationKind === "coordinates" ? "조율 관계" : source.relationKind === "membership" ? "기준정보 소속" : "작업 연결"} · {source.inherited ? "상속" : "직접"}
+          <IdentifierDetails label="연결 출처 식별 정보" identifiers={[{label:"원본 ID",value:source.entityId},...(source.sourceTaskId ? [{label:"원본 작업 ID",value:source.sourceTaskId}] : []),...(source.relatedEntityId ? [{label:"연결 원본 ID",value:source.relatedEntityId}] : [])]} />
+        </li>)}</ul>
+        <PhysicalConnectionSources sources={row.taskSources.targetSources} />
+      </details>
+
     </li>)}</ul><div className={styles.controls}><button type="button" disabled={offset === 0 || actionLocked} onClick={() => {beginIntent();setOffset(Math.max(0,offset-50));}}>이전 페이지</button><button type="button" disabled={detail.nextOffset === null || actionLocked} onClick={() => {beginIntent();setOffset(detail.nextOffset ?? offset);}}>다음 페이지</button></div></> : null}
   </section>;
 }

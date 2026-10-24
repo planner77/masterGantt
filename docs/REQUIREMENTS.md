@@ -1,3 +1,9 @@
+## Issue #785 — 물류 실물 중심 업무와 내부 호환 경계
+
+이 결정은 이전 “Target 보조 호환 UI 유지” 정책을 대체한다. 사용자 업무는 Project 공정·WorkArea·Equipment/System·Task/Summary 직접 연결과 같은 Task/Assignment의 6개 대시보드다. Logistics Target의 생성·목록·검색·편집·필터·진단·Excel 축을 노출하지 않는다. 별도 이름 숨김으로 원본을 읽지 못하게 만들지 않으며 기존 자료는 실물별 출처·coverage·상속으로 조회한다.
+
+동적 whole/subset과 coverage는 기존 직접 관계만으로 완전 표현할 수 없어 원본 그래프를 내부 읽기 호환으로 보존한다. 공개 전용 경로는 퇴역하고 새 resource/WBS 계약은 실물 v2다. 지원 Copy/Template는 내부 원본을 원자 보존하고 JSON1.1 미지원은 명시 거부한다. 안전한 레거시 출처 자체 편집·운영 소비자/DB 실측·파괴적 정리는 별도 미완료 경계이며 전체 수용 완료를 주장하지 않는다. 구현/검증 상태·AC1~AC10은 [#785 Work Packet](exec-plans/active/ISSUE_785.md)을 따른다. 아래 이슈별 최초 UI 설명은 역사이며 이 절과 충돌하면 이 절이 우선한다.
+
 ## Issue #556 — 일정 상단 P1 경량 정돈
 
 정상 전체 일정에서 열린 Summary 범위가 없으면 범위 탐색 행은 공간을 차지하지 않는다. 열린 Summary가 있거나 invalid 범위이면 명시적인 `전체 일정 보기`와 탭/복구를 유지한다. 중복 visible 일정 제목·정상 교육성 설명을 제거하되 접근 가능한 heading과 마지막 탭 닫기 후 유효 focus, 빈/무일정·저장/오류·복구 상태는 보존한다.
@@ -36,7 +42,7 @@ Task/Assignment 원장을 공정·WorkArea·설비·물류 시스템·Resource·
 
 ## Issue #726 — Task 직접 물류 연결 우선
 
-기존 기준정보 설비/System CRUD를 그대로 사용하고 Target0개에서도 Task 공정/WorkArea0..N 및 설비/System을 직접 연결·재편집한다. 명시0/legacy null·self/subtree·직접/조상 출처, 공유 원본·역할·제어/조율·사용 중 삭제 방어를 보존한다. Target whole/subset/coverage는 보조 호환 영역이며 UI 변경으로 경로를 자동 변환·복제하지 않는다. Project 편집권과 유형 master 관리자 권한을 구분하고 유형 조회·dirty/pending/stale·권한·canonical 갱신을 같은 흐름에서 보호한다. [Task Editor](TASK_EDITOR.md), [실행 원장](exec-plans/active/ISSUE_726.md).
+기존 기준정보 설비/System CRUD를 그대로 사용하고 Target0개에서도 Task 공정/WorkArea0..N 및 설비/System을 직접 연결·재편집한다. 명시0/legacy null·self/subtree·직접/조상 출처, 공유 원본·역할·제어/조율·사용 중 삭제 방어를 보존한다. 기존 whole/subset/coverage는 내부 호환 해석으로 보존하며 공개 보조 편집 영역은 #785로 폐기한다. Project 편집권과 유형 master 관리자 권한을 구분하고 유형 조회·dirty/pending/stale·권한·canonical 갱신을 같은 흐름에서 보호한다. [Task Editor](TASK_EDITOR.md), [실행 원장](exec-plans/active/ISSUE_726.md).
 
 ## Issue #728 — WBS 중심 공통 해석·KPI
 
@@ -70,7 +76,7 @@ Project 편집 세션·Origin·strong If-Match 및 원자 revision으로 등록�
 
 ## Issue #724 — 일정·대시보드·기준정보 탐색
 
-Project Workspace의 상위 탐색은 `일정 / 대시보드 / 기준정보`다. 대시보드 하위는 `KPI / Milestone / 공정&WorkArea / 설비 / 물류 시스템 / 리소스`, 기준정보 하위는 `공정&WorkArea / 설비 / 물류 시스템 / 리소스`를 정확한 순서로 제공한다. 기존 KPI·Milestone 추가/관리·Resource/Plan/Excel·물류 통합 조회와 원본 편집은 같은 ID/API/editor를 재사용한다. Target은 관련 기준정보의 보조 호환 경로이며 새 주메뉴·생성 필수 단계·숨은 자동 생성이 아니다.
+Project Workspace의 상위 탐색은 `일정 / 대시보드 / 기준정보`다. 대시보드 하위는 `KPI / Milestone / 공정&WorkArea / 설비 / 물류 시스템 / 리소스`, 기준정보 하위는 `공정&WorkArea / 설비 / 물류 시스템 / 리소스`를 정확한 순서로 제공한다. 기존 KPI·Milestone 추가/관리·Resource/Plan/Excel·물류 통합 조회와 원본 편집은 같은 ID/API/editor를 재사용한다. 물류 실물과 Task를 직접 연결하며 폐기된 별도 그룹 UI나 숨은 자동 생성을 제공하지 않는다.
 
 일정의 `전체 프로젝트` 중복 하위 탭만 제거한다. 전체 WBS 기본·명시 복귀·여러 열린 Summary 범위·선택/닫기 fallback·`rootTask` 공유 링크·scope별 필터를 유지한다. 일반 일정/조회 복귀는 명시 전체 scope 선택과 구분한다. 한 번에 단일 root인 기존 계약을 복합 root union으로 확대하지 않는다.
 

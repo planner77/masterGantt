@@ -1,5 +1,5 @@
 import { isWbsViewReadQuery } from "./helpers/read-only-requests";
-import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { mkdir, writeFile } from "node:fs/promises";
 import type { Locator, Page } from "@playwright/test";
 import type { ResourceDashboardDto } from "../../src/contracts/resource-dashboard";
@@ -24,10 +24,14 @@ async function taskEditor(page: Page) {
   await expect(editor).toBeVisible();
   return editor;
 }
+async function openAssignments(root: Locator, name?: string, ready = true) {
+  await root.getByRole("button", { name: "개인", exact: true }).click();
+  const region = root.getByRole("region", { name: "개인 현황", exact: true });
+  await region.locator("tbody tr > th > button").filter(name ? { hasText: name } : {}).first().click();
+  if (ready) await expect(root.locator(".resource-dashboard-detail").first()).toHaveAttribute("data-detail-state", "ready");
+}
 async function openShared(root: Locator) {
-  await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");
-  await root.getByLabel("Target 표시", { exact: true }).selectOption("matrix");
-  await root.getByRole("region", { name: "Resource Target 비교표", exact: true }).locator("tbody td button").first().click();
+  await openAssignments(root);
   await expect(root.locator(".resource-dashboard-detail")).toHaveAttribute("data-detail-state", "ready");
   await root.locator(".resource-dashboard-detail").getByRole("button", { name: "통합 시운전", exact: true }).first().click();
 }
@@ -52,7 +56,7 @@ test("#621 실제 HTTP union 총계·두 Target 공유 identity·페이지·권�
   expect((await f.report()).summary).toEqual(report.summary);
   const exactId = (await f.details(report)).rows.find(row => row.taskId === f.task.taskId && row.assignment?.resourceId === f.resources[0].id)!.assignment!.assignmentId;
   for (const target of f.targets) {
-    const exactResponse = await page.request.post(`${f.api}/resource-dashboard/query`, { headers: { Origin: origin }, data: {
+    const exactResponse = await page.request.post(`${f.api}/resource-dashboard/query`, { headers: { Origin: origin, "X-MasterGantt-Resource-Version": "1" }, data: {
       sourceContext: report.resourceScopeContext!, scope: { kind: "exactAssignments", assignmentIds: [exactId] },
       filters: { from: "2026-10-14", to: "2026-10-15", mdPerMm: null, targetIds: [target.id], projectionOrder: ["resource", "target"] }, projection: { kind: "report" },
     } });
@@ -60,7 +64,7 @@ test("#621 실제 HTTP union 총계·두 Target 공유 identity·페이지·권�
     const exactReport = (await exactResponse.json()).data as ResourceDashboardDto;
     expect(exactReport.summary).toMatchObject({ assignmentCount: 1, resourceCount: 1, taskCount: 1, effort: { knownMd: 2 } });
     const exactTarget = exactReport.targetProjection!.children[0].children.find(node => node.id === target.id)!;
-    const exactDetail = await page.request.post(`${f.api}/resource-dashboard/query`, { headers: { Origin: origin }, data: {
+    const exactDetail = await page.request.post(`${f.api}/resource-dashboard/query`, { headers: { Origin: origin, "X-MasterGantt-Resource-Version": "1" }, data: {
       sourceContext: report.resourceScopeContext!, scope: { kind: "exactAssignments", assignmentIds: [exactId] },
       filters: { from: "2026-10-14", to: "2026-10-15", mdPerMm: null, targetIds: [target.id], projectionOrder: ["resource", "target"] },
       projection: { kind: "details", snapshotId: exactReport.snapshotId, selector: exactTarget.summary.selector, view: "assignments", offset: 0, limit: 50 },
@@ -138,206 +142,55 @@ test("#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱�
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   await openResource(page);
   await root.locator(".resource-dashboard-kpis > div").filter({ hasText: /^할당 Task/ }).getByRole("button").click();
-  await expect(root.locator(".resource-dashboard-detail")).toContainText("WBS에서 갱신한 같은 원본");
+  const selectedDetail = root.getByRole("region", { name: "선택 범위 할당 Task", exact: true }).locator(".resource-dashboard-detail");
+  await expect(selectedDetail).toHaveAttribute("data-detail-state", "ready");
+  await expect(selectedDetail).toContainText("WBS에서 갱신한 같은 원본");
+  await expect(selectedDetail.locator(`[data-canonical-task-id="${f.task.taskId}"]`).getByRole("button", { name: "WBS에서 갱신한 같은 원본", exact: true })).toBeVisible();
   expect((await f.snapshot()).data.tasks).toHaveLength(before.data.tasks.length);
   await info.attach("issue621-canonical-identity", { contentType: "application/json", body: JSON.stringify({ taskId: f.task.taskId, resourceUiWrites: writes, taskCount: changed.data.tasks.length, instance }) });
 });
 
-test("#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0", async ({ page, isolatedApplication: origin, observeIsolatedApi }, info) => {
+test("#621 실물 필터·고유 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0", async ({ page, isolatedApplication: origin, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
   page.setDefaultTimeout(15_000);
   const f = await seedIssue621(page, origin, observeIsolatedApi, true);
   const before = await f.snapshot();
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
-  await expect(frame.locator(".wx-gantt")).toBeVisible();
-  const coreNode = await frame.locator(".wx-gantt").elementHandle();
-  const coreApiInstance = await frame.getAttribute("data-project-gantt-api-instance");
-  const writes: string[] = [];
-  const reports: ResourceDashboardDto[] = [];
-  const boundQueries: unknown[] = [];
-  const navigationNetwork: unknown[] = [];
-  page.on("request", request => { if (new URL(request.url()).pathname.includes("/resource-dashboard")) navigationNetwork.push({ at: Date.now(), phase: "request", path: new URL(request.url()).pathname, method: request.method() }); });
-  page.on("response", response => { if (new URL(response.url()).pathname.includes("/resource-dashboard")) navigationNetwork.push({ at: Date.now(), phase: "response", path: new URL(response.url()).pathname, status: response.status() }); });
-  page.on("request", request => { if (request.method() === "POST" && new URL(request.url()).pathname.endsWith("/resource-dashboard/query")) { const body = request.postDataJSON(); boundQueries.push({ scope: body.scope, filters: body.filters, projection: body.projection }); } });
-  page.on("request", request => { if (/\/api\/projects\//.test(request.url()) && ["POST", "PATCH", "PUT", "DELETE"].includes(request.method()) && !new URL(request.url()).pathname.endsWith("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes.push(request.method() + " " + new URL(request.url()).pathname); });
-  page.on("response", async response => { if (new URL(response.url()).pathname === `/api/projects/${f.publicId}/resource-dashboard` && response.ok()) { const body = await response.json().catch(() => null); if (body) reports.push(body.data); } });
+  const core = await frame.locator(".wx-gantt").elementHandle();
+  const writes: string[] = [], retiredRequests: string[] = [];
+  page.on("request", request => {
+    const path = new URL(request.url()).pathname;
+    if (/\/(logistics\/targets|target-bindings)(?:\/|$)/.test(path)) retiredRequests.push(path);
+    if (path.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !path.endsWith("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes.push(path);
+  });
   const root = await openResource(page);
-  await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");
-  await expect(root.getByTestId("resource-target-view")).toBeVisible();
+  expect(await root.getByLabel("리소스 보기", { exact: true }).locator('option[value="targets"]').count()).toBe(0);
+  const systemId = f.targets[0].members[0].entityId;
+  await root.getByLabel("물류 시스템", { exact: true }).selectOption(systemId);
   await expect(root).toHaveAttribute("data-ready", "true");
-  const server = await f.report();
-  for (const order of ["resource", "target"]) {
-    await root.getByLabel("Target 집계 순서", { exact: true }).selectOption(order);
-    await expect(root).toHaveAttribute("data-ready", "true");
-    await expect.poll(() => reports.at(-1)?.summary.effort.knownMd).toBe(server.summary.effort.knownMd);
-    const tree = root.getByRole("region", { name: "Resource Target 계층", exact: true });
-    const disclosure = tree.locator("button[aria-expanded]").first();
-    await disclosure.focus(); await page.keyboard.press("Enter");
-    const expanded = await disclosure.getAttribute("aria-expanded");
-    await page.keyboard.press("Space");
-    await expect(disclosure).toHaveAttribute("aria-expanded", expanded === "true" ? "false" : "true");
-    await expect(root.getByLabel("선택 범위 KPI", { exact: true })).toContainText("3.00");
-  }
-  await root.getByLabel("Target 표시", { exact: true }).selectOption("matrix");
-  await root.getByRole("button", { name: "다음 Target 열", exact: true }).click();
-  await expect(root.getByTestId("resource-target-view")).toContainText("5개 Target 열 중 5–5");
-  await expect(root.getByTestId("resource-target-view")).toContainText("선택 전체: 3.00");
-  await root.getByRole("button", { name: "이전 Target 열", exact: true }).click();
-  await root.getByLabel("Target 정렬", { exact: true }).selectOption("name");
-  await root.getByLabel("Target 지표", { exact: true }).selectOption("tasks");
-  await expect(root.getByTestId("resource-target-view")).toContainText("선택 전체: 3.00");
-  await root.getByLabel("Target 지표", { exact: true }).selectOption("effort");
+  await expect(root.getByLabel("선택 범위 KPI", { exact: true })).toContainText("3.00");
+  await openAssignments(root, f.resources[0].name);
+  const row = root.locator(`[data-canonical-task-id="${f.task.taskId}"]`).first();
+  await expect(row).toBeVisible();
+  await row.getByText(/실물 연결·출처/).click();
+  await expect(row).not.toContainText(f.targets[0].name);
+  await expect(row).toContainText("물류 시스템");
   const geometry = [];
-  await mkdir("output/playwright/issue-621", { recursive: true });
-  for (const mode of ["resource", "group"]) {
-    await root.getByLabel("Target 비교 행", { exact: true }).selectOption(mode);
-    // #730 Release #182: two old rows can remain while the new projection is stale.
-    await expect(root).toHaveAttribute("data-ready", "true");
-    const region = root.getByRole("region", { name: "Resource Target 비교표", exact: true });
-    await expect(region.locator("tbody tr")).toHaveCount(2);
-    for (const width of [390, 768, 1024, 1440, 1920]) {
-      await page.setViewportSize({ width, height: 900 });
-      await region.scrollIntoViewIfNeeded();
-      const first = region.locator("tbody td button").first();
-      await expect(root).toHaveAttribute("data-ready", "true");
-      await expect(first).toBeEnabled();
-      await first.focus();
-      await expect(first).toBeFocused();
-      await page.keyboard.press("Tab");
-      const observation = await region.evaluate(owner => {
-        const active = document.activeElement as HTMLElement, box = active.getBoundingClientRect(), bounds = owner.getBoundingClientRect(), style = getComputedStyle(active);
-        const ring = parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
-        const headers = [...owner.querySelectorAll("thead th")], cells = [...owner.querySelectorAll("tbody tr:first-child > *")];
-        return { width: innerWidth, documentWidth: document.documentElement.scrollWidth, clientWidth: owner.clientWidth, scrollWidth: owner.scrollWidth, overflow: getComputedStyle(owner).overflowX,
-          aligned: headers.every((header, index) => Math.abs(header.getBoundingClientRect().width - cells[index].getBoundingClientRect().width) < 1),
-          contained: [...owner.querySelectorAll("td button")].every(button => { const b = button.getBoundingClientRect(), c = button.closest("td")!.getBoundingClientRect(); return b.left >= c.left - 1 && b.right <= c.right + 1; }),
-          focus: { tag: active.tagName, left: box.left - ring, right: box.right + ring, ownerLeft: bounds.left, ownerRight: bounds.right, stickyRight: owner.querySelector("tbody th")!.getBoundingClientRect().right, painted: active.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)) } };
-      });
-      expect(observation.documentWidth).toBeLessThanOrEqual(width + 1);
-      expect(observation.aligned).toBe(true); expect(observation.contained).toBe(true);
-      expect(observation.focus.tag).toBe("BUTTON"); expect(observation.focus.painted, JSON.stringify(observation)).toBe(true);
-      expect(observation.focus.left, JSON.stringify(observation)).toBeGreaterThanOrEqual(Math.max(observation.focus.ownerLeft, observation.focus.stickyRight));
-      expect(observation.focus.right).toBeLessThanOrEqual(observation.focus.ownerRight + 1);
-      if (width === 390) expect(observation.scrollWidth).toBeGreaterThan(observation.clientWidth);
-      geometry.push({ mode, ...observation });
-      if (mode === "resource" && [390, 1440].includes(width)) await page.screenshot({ path: `output/playwright/issue-621/target-matrix-${width}.png`, fullPage: true });
-    }
+  for (const width of [390,768,1024,1440,1920]) {
+    await page.setViewportSize({width,height:1000});
+    const region = root.getByRole("region", { name: "개인 현황", exact: true });
+    await region.focus(); await page.keyboard.press("ArrowRight");
+    const observation = await region.evaluate(owner=>({width:innerWidth,document:document.documentElement.scrollWidth,client:owner.clientWidth,scroll:owner.scrollWidth,focused:document.activeElement===owner}));
+    expect(observation.document).toBeLessThanOrEqual(width+1); expect(observation.focused).toBe(true);
+    if(width===390) expect(observation.scroll).toBeGreaterThan(observation.client);
+    geometry.push(observation);
   }
-  await writeFile("output/playwright/issue-621/matrix-geometry.json", JSON.stringify(geometry, null, 2));
-  await writeFile("output/playwright/issue-621/environment.json", JSON.stringify({ capturedAt: new Date().toISOString(), browser: page.context().browser()?.version(), widths: [390, 768, 1024, 1440, 1920], zoom: "default100%; native125% NOT TESTED", ...await page.evaluate(() => ({ locale: navigator.language, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })) }, null, 2));
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await root.getByLabel("Target", { exact: true }).selectOption(f.targets[1].id);
-  await expect(root).toHaveAttribute("data-ready", "true");
-  await expect.poll(() => reports.at(-1)?.summary.assignmentCount).toBe(2);
-  expect(writes).toEqual([]); expect(await f.snapshot()).toEqual(before);
-  await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
-  const scheduleSource = root.getByRole("region", { name: "Resource Target 비교표", exact: true }).locator("tbody td button").first();
-  await scheduleSource.focus(); await page.keyboard.press("Enter");
-  const schedule = root.locator(".resource-dashboard-detail").getByRole("button", { name: "이 Task 일정", exact: true }).first();
-  const scheduleOrigin = await schedule.elementHandle();
-  const originDescriptor = await scheduleOrigin!.evaluate(element => ({ detailKey: element.closest<HTMLElement>("[data-projection-detail-key]")?.dataset.projectionDetailKey, taskId: element.closest<HTMLElement>("[data-canonical-task-id]")?.dataset.canonicalTaskId, assignmentId: element.closest<HTMLElement>("[data-canonical-assignment-id]")?.dataset.canonicalAssignmentId, action: element.dataset.resourceAction }));
-  const exactAssignmentId = (await f.details(await f.report())).rows.find(row => row.taskId === f.task.taskId && row.assignment?.resourceId === f.resources[0].id)!.assignment!.assignmentId;
-  await schedule.click();
-  await expect(page.getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "true");
-  const source = page.getByRole("region", { name: "임시 조회 범위", exact: true });
-  await expect(source).toContainText("Assignment");
-  await frame.locator(`input[data-copy-selection="${f.task.taskId}"]`).check();
-  await page.getByRole("button", { name: "담당자·공수 조회", exact: true }).click();
-  await expect(root).toHaveAttribute("data-ready", "true");
-  await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");
-  await root.getByRole("button", { name: /^필터(?: \d+)?$/ }).click();
-  await root.getByLabel("개인 선택", { exact: true }).selectOption(f.resources[0].id);
-  await root.getByLabel("Target", { exact: true }).selectOption(f.targets[1].id);
-  await expect(root).toHaveAttribute("data-ready", "true");
-  await expect(root.getByTestId("resource-target-view")).toContainText("Assignment 1");
-  await root.getByLabel("Target 표시", { exact: true }).selectOption("matrix");
-  await root.getByRole("region", { name: "Resource Target 비교표", exact: true }).locator("tbody td button").first().click();
-  await expect(root.locator(".resource-dashboard-detail tbody tr")).toHaveCount(1);
-  await expect(root.locator(".resource-dashboard-detail tbody tr")).toHaveAttribute("data-canonical-assignment-id", exactAssignmentId!);
-  await page.evaluate(() => {
-    const entries: unknown[] = [];
-    let last = "";
-    const record = (kind: string) => {
-      const active = document.activeElement as HTMLElement;
-      const contexts = [...document.querySelectorAll<HTMLElement>("[data-resource-context-id]")].map(node => ({ id: node.dataset.resourceContextId, hidden: node.hidden, ready: node.querySelector("[data-ready]")?.getAttribute("data-ready"), detail: [...node.querySelectorAll("[data-detail-state]")].map(el => el.getAttribute("data-detail-state")) }));
-      const value = { tag: active?.tagName, text: active?.textContent?.slice(0, 80), action: active?.dataset.resourceAction, taskId: active?.closest<HTMLElement>("[data-canonical-task-id]")?.dataset.canonicalTaskId, assignmentId: active?.closest<HTMLElement>("[data-canonical-assignment-id]")?.dataset.canonicalAssignmentId, contexts };
-      const signature = JSON.stringify(value);
-      if ((signature !== last || kind === "focusin") && entries.length < 200) { entries.push({ at: Date.now(), kind, ...value }); last = signature; }
-    };
-    const focus = () => record("focusin");
-    const observer = new MutationObserver(() => record("mutation"));
-    document.addEventListener("focusin", focus, true);
-    observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["data-ready", "data-detail-state", "hidden", "inert"] });
-    (window as unknown as { issue621FocusProbe: { entries: unknown[]; stop: () => void } }).issue621FocusProbe = { entries, stop: () => { observer.disconnect(); document.removeEventListener("focusin", focus, true); } };
-    record("start");
-  });
-  await source.getByRole("button", { name: /원래 보기/ }).click();
-  await expect(page.getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "true");
-  await source.getByRole("button", { name: /원래 보기/ }).click();
-  await expect(workspaceViewTab(page, "resources")).toHaveAttribute("aria-selected", "true");
-  await expect(root.getByLabel("Target", { exact: true })).toHaveValue(f.targets[1].id);
-  await writeFile("output/playwright/issue-621/source-scope-evidence.json", JSON.stringify(boundQueries, null, 2));
-  const returnFocus = {
-    original: { ...originDescriptor, connected: await scheduleOrigin!.evaluate(element => element.isConnected) },
-    current: await schedule.evaluate(element => ({ detailKey: element.closest<HTMLElement>("[data-projection-detail-key]")?.dataset.projectionDetailKey, taskId: element.closest<HTMLElement>("[data-canonical-task-id]")?.dataset.canonicalTaskId, assignmentId: element.closest<HTMLElement>("[data-canonical-assignment-id]")?.dataset.canonicalAssignmentId, action: element.dataset.resourceAction })),
-    focus: await page.evaluate(() => ({ active: document.activeElement?.outerHTML.slice(0, 500), contexts: [...document.querySelectorAll<HTMLElement>("[data-resource-context-id]")].map(node => ({ id: node.dataset.resourceContextId, hidden: node.hidden, ready: node.querySelector("[data-ready]")?.getAttribute("data-ready") })) })),
-  };
-  await info.attach("issue621-schedule-origin-dom", { contentType: "application/json", body: JSON.stringify(returnFocus) });
-  await writeFile("output/playwright/issue-621/return-focus-diagnostic.json", JSON.stringify(returnFocus, null, 2));
-  try { await expect(schedule).toBeFocused(); }
-  finally {
-    const timeline = await page.evaluate(() => { const probe = (window as unknown as { issue621FocusProbe: { entries: unknown[]; stop: () => void } }).issue621FocusProbe; probe.stop(); return probe.entries; });
-    await writeFile("output/playwright/issue-621/return-focus-timeline.json", JSON.stringify({ timeline, network: navigationNetwork }, null, 2));
-    await info.attach("issue621-return-focus-timeline", { contentType: "application/json", body: JSON.stringify({ timeline, network: navigationNetwork }) });
-  }
-  await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
-  // A new keyboard focus while the return report is pending owns the destination.
-  await schedule.click();
-  await expect(page.getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "true");
-  let releaseReturn!: () => void;
-  let returnStarted!: () => void;
-  const returnGate = new Promise<void>(resolve => { releaseReturn = resolve; });
-  const returnRequest = new Promise<void>(resolve => { returnStarted = resolve; });
-  let intercepted = false;
-  await page.route(`**/api/projects/${f.publicId}/resource-dashboard?**`, async route => {
-    if (intercepted) return route.continue();
-    intercepted = true; returnStarted();
-    await returnGate; await route.continue();
-  });
-  await source.getByRole("button", { name: /원래 보기/ }).click();
-  await returnRequest;
-  const newFocus = root.getByLabel("리소스·그룹·Task 이름과 코드 검색", { exact: true });
-  await newFocus.focus(); await page.keyboard.press("ArrowRight");
-  releaseReturn();
-  await expect(root).toHaveAttribute("data-ready", "true");
-  await expect(root.locator(".resource-dashboard-detail")).toHaveAttribute("data-detail-state", "ready");
-  await expect(newFocus).toBeFocused();
-  await page.unroute(`**/api/projects/${f.publicId}/resource-dashboard?**`);
-  for (const view of ["tree", "matrix", "plan", "summary"]) {
-    await root.getByLabel("리소스 보기", { exact: true }).selectOption(view);
-    await expect(root).toHaveAttribute("data-ready", "true");
-  }
-  expect(await f.snapshot()).toEqual(before);
-  await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");
-  await root.getByLabel("Target", { exact: true }).selectOption("");
-  await root.getByLabel("Target 표시", { exact: true }).selectOption("tree");
-  await root.getByLabel("Target 집계 순서", { exact: true }).selectOption("target");
-  const targetBranch = root.getByRole("region", { name: "Resource Target 계층", exact: true }).locator(`tbody[data-projection-row-key*="${f.targets[0].id}"]`).first();
-  await targetBranch.getByRole("button", { name: "대상 구성 편집", exact: true }).first().click();
-  const composer = page.getByRole("dialog", { name: "Target 수정", exact: true });
-  await expect(composer.getByLabel("Target 이름", { exact: true })).toHaveValue(f.targets[0].name);
-  await expect(composer.getByLabel("Target 코드", { exact: true })).toHaveValue(f.targets[0].code);
-  await page.keyboard.press("Escape");
-  await expect(composer).toHaveCount(0);
-  await page.getByRole("button", { name: "Resource 보기로 돌아가기", exact: true }).click();
-  await expect(workspaceViewTab(page, "resources")).toHaveAttribute("aria-selected", "true");
-  await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
-  expect(writes).toEqual([]); expect(await f.snapshot()).toEqual(before);
-  expect(await coreNode!.evaluate(element => element.isConnected)).toBe(true);
-  if (coreApiInstance) await expect(frame).toHaveAttribute("data-project-gantt-api-instance", coreApiInstance);
-  await info.attach("issue621-matrix-geometry", { contentType: "application/json", body: JSON.stringify(geometry) });
-  await info.attach("issue621-source-bound-query-scopes", { contentType: "application/json", body: JSON.stringify(boundQueries) });
+  expect(retiredRequests).toEqual([]); expect(writes).toEqual([]); expect(await f.snapshot()).toEqual(before);
+  await expect(frame).toHaveAttribute("data-project-gantt-instance",instance!); expect(await core!.evaluate(element=>element.isConnected)).toBe(true);
+  await mkdir("output/playwright/issue-621",{recursive:true});
+  await writeFile("output/playwright/issue-621/physical-geometry.json",JSON.stringify({geometry,writes,retiredRequests}));
+  await info.attach("issue621-physical-observations",{contentType:"application/json",body:JSON.stringify({geometry,systemId,writes,retiredRequests})});
 });
 
 test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 초안 보존", async ({ page, isolatedApplication: origin, observeIsolatedApi }, info) => {
@@ -356,9 +209,7 @@ test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 �
   const alice = before.assignments.find((row: { taskId: string; target: { id: string } }) => row.taskId === f.task.taskId && row.target.id === f.resources[0].id);
   const bob = before.assignments.find((row: { taskId: string; target: { id: string } }) => row.taskId === f.task.taskId && row.target.id === f.resources[1].id);
   const root = await openResource(page);
-  await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");
-  await root.getByLabel("Target 표시", { exact: true }).selectOption("matrix");
-  await root.getByRole("region", { name: "Resource Target 비교표", exact: true }).locator("tbody tr").filter({ hasText: f.resources[0].name }).locator("td button").first().click();
+  await openAssignments(root, f.resources[0].name);
   const detail = root.locator(".resource-dashboard-detail");
   const row = detail.locator(`[data-canonical-task-id="${f.task.taskId}"][data-canonical-assignment-id="${alice.id}"]`);
   await expect(row).toBeVisible();
@@ -431,15 +282,12 @@ test("#736 exact Assignment 편집은 만료된 Project edit session에서 초�
   test.setTimeout(180_000);
   const f = await seedIssue621(page, origin, observeIsolatedApi);
   const root = await openResource(page);
-  await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");
-  await root.getByLabel("Target 표시", { exact: true }).selectOption("matrix");
   const canonical = await f.snapshot();
   const assigned = (await (await page.request.get(`${f.api}/assigned-targets`)).json()).data;
   const exact = assigned.assignments.find((item: { taskId: string; target: { id: string } }) =>
     item.taskId === f.task.taskId && item.target.id === f.resources[0].id);
   expect(exact?.id).toBeTruthy();
-  await root.getByRole("region", { name: "Resource Target 비교표", exact: true })
-    .locator("tbody tr").filter({ hasText: f.resources[0].name }).locator("td button").first().click();
+  await openAssignments(root, f.resources[0].name);
   const row = root.locator(".resource-dashboard-detail")
     .locator(`[data-canonical-task-id="${f.task.taskId}"][data-canonical-assignment-id="${exact.id}"]`);
   await expect(row).toBeVisible();
@@ -458,67 +306,38 @@ test("#736 exact Assignment 편집은 만료된 Project edit session에서 초�
   expect(await f.snapshot()).toEqual(canonical);
 });
 
-test("#621 Target 응답역전·실제409 stale·필터탈락 fallback·취소 scope/focus", async ({ page, isolatedApplication: origin, observeIsolatedApi }) => {
-  test.setTimeout(180_000);
-  page.setDefaultTimeout(15_000);
+test("#621 실물 필터 응답역전·실제409 stale·취소 scope/focus", async ({ page, isolatedApplication: origin, observeIsolatedApi }) => {
+  test.setTimeout(180_000); page.setDefaultTimeout(15_000);
   const f = await seedIssue621(page, origin, observeIsolatedApi);
   const root = await openResource(page);
-  await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");
-  await root.getByLabel("Target 표시", { exact: true }).selectOption("matrix");
-  let release!: () => void;
-  let started!: () => void;
-  let delivered!: () => void;
-  const oldDelivered = new Promise<void>(resolve => { delivered = resolve; });
-  const delayed = new Promise<void>(resolve => { release = resolve; });
-  const requested = new Promise<void>(resolve => { started = resolve; });
-  await page.route(`**/api/projects/${f.publicId}/resource-dashboard?**`, async route => {
-    if (new URL(route.request().url()).searchParams.get("targetIds") !== f.targets[0].id) return route.continue();
-    const response = await route.fetch();
-    started();
-    await delayed;
-    await route.fulfill({ response }).catch(() => undefined);
-    delivered();
+  const a=f.targets[0].members[0].entityId,b=f.targets[1].members[0].entityId;
+  let release!:()=>void, started!:()=>void;
+  const gate=new Promise<void>(resolve=>{release=resolve;}),requested=new Promise<void>(resolve=>{started=resolve;});
+  await page.route(`**/api/projects/${f.publicId}/resource-dashboard?**`,async route=>{
+    if(new URL(route.request().url()).searchParams.get("systemIds")!==a)return route.continue();
+    const response=await route.fetch();started();await gate;await route.fulfill({response}).catch(()=>undefined);
   });
-  await root.getByLabel("Target", { exact: true }).selectOption(f.targets[0].id);
-  await requested;
-  await root.getByLabel("Target", { exact: true }).selectOption(f.targets[1].id);
-  await expect(root).toHaveAttribute("data-ready", "true");
-  await expect(root.getByLabel("Target", { exact: true })).toHaveValue(f.targets[1].id);
-  release();
-  await oldDelivered;
-  await page.unroute(`**/api/projects/${f.publicId}/resource-dashboard?**`);
-  await expect(root.getByTestId("resource-target-view")).toContainText("Assignment 2");
-  await f.mutate(`/tasks/${f.task.taskId}`, { name: "외부 변경으로 보고서 stale" }, "patch");
-  const region = root.getByRole("region", { name: "Resource Target 비교표", exact: true });
-  await region.locator("tbody td button").first().click();
-  await expect(root.locator(".resource-dashboard-detail")).toHaveAttribute("data-detail-state", "stale");
-  await expect(root.locator(".resource-dashboard-detail").getByRole("button", { name: "전체 범위 일정 보기", exact: true })).toBeDisabled();
-  await root.getByRole("button", { name: "새로고침", exact: true }).click();
-  await root.getByRole("button", { name: "최신 일정 조회", exact: true }).click({ timeout: 10_000 });
-  await expect(root).toHaveAttribute("data-ready", "true");
-  await region.locator("tbody td button").first().click();
-  const detail = root.locator(".resource-dashboard-detail");
-  const trigger = detail.getByRole("button", { name: "외부 변경으로 보고서 stale", exact: true });
-  await trigger.click();
-  const editor = await taskEditor(page);
-  await editor.getByLabel("작업명", { exact: true }).fill("버릴 초안");
-  await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: "변경사항 버리고 닫기", exact: true }).click();
-  await expect(editor).toHaveCount(0);
-  await expect(trigger).toBeFocused();
-  expect((await f.snapshot()).data.tasks.find(row => row.taskId === f.task.taskId)!.name).toBe("외부 변경으로 보고서 stale");
-  await trigger.click();
-  await editor.getByRole("tab", { name: /^물류 연결/ }).click();
-  // #726: Target bindings are an explicit compatibility disclosure.
-  if (!(await editor.locator("details").filter({ has: page.getByText("Target 연결 (기존 호환)", { exact: true }) }).evaluate(element => (element as HTMLDetailsElement).open))) {
-    await editor.getByText("Target 연결 (기존 호환)", { exact: true }).click();
-  }
-  const binding = editor.getByRole("region", { name: "작업 Target 연결", exact: true });
-  await binding.getByRole("checkbox", { name: f.targets[1].name, exact: true }).uncheck();
-  await binding.getByRole("button", { name: "Target 연결 저장", exact: true }).click();
-  await expect(binding.getByRole("checkbox", { name: f.targets[1].name, exact: true })).not.toBeChecked();
-  await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
-  await expect(root.getByTestId("resource-target-view")).toContainText("현재 조건에 일치하는 Target 관련 배정이 없습니다");
-  await expect.poll(() => page.evaluate(() => { const active = document.activeElement as HTMLElement; return active !== document.body && active.checkVisibility(); })).toBe(true);
-  await expect(root.getByLabel("Target", { exact: true })).toHaveValue(f.targets[1].id);
+  await root.getByLabel("물류 시스템",{exact:true}).selectOption(a); await requested;
+  await root.getByLabel("물류 시스템",{exact:true}).selectOption(b); await expect(root).toHaveAttribute("data-ready","true");
+  release(); await page.unroute(`**/api/projects/${f.publicId}/resource-dashboard?**`);
+  await expect(root.getByLabel("물류 시스템",{exact:true})).toHaveValue(b);
+  await expect(root.getByLabel("선택 범위 KPI",{exact:true})).toContainText("3.00");
+  await f.mutate(`/tasks/${f.task.taskId}`,{name:"외부 변경으로 보고서 stale"},"patch");
+  await openAssignments(root,f.resources[0].name,false);
+  const detail=root.locator(".resource-dashboard-detail");
+  await expect(detail).toHaveAttribute("data-detail-state","stale");
+  await expect(detail.getByRole("button",{name:"전체 범위 일정 보기",exact:true})).toBeDisabled();
+  await root.getByRole("button",{name:"새로고침",exact:true}).click();
+  await root.getByRole("button",{name:"최신 일정 조회",exact:true}).click();
+  await expect(root).toHaveAttribute("data-ready","true");
+  const person=root.getByRole("region",{name:"개인 현황",exact:true}).locator("tbody tr > th > button").filter({hasText:f.resources[0].name}).first();
+  if(await person.getAttribute("aria-expanded")==="false")await person.click();
+  await expect(detail).toHaveAttribute("data-detail-state","ready");
+  const trigger=detail.getByRole("button",{name:"외부 변경으로 보고서 stale",exact:true});
+  await trigger.click();const editor=await taskEditor(page);
+  await editor.getByLabel("작업명",{exact:true}).fill("버릴 초안");await page.keyboard.press("Escape");
+  await page.getByRole("button",{name:"변경사항 버리고 닫기",exact:true}).click();
+  await expect(editor).toHaveCount(0);await expect(trigger).toBeFocused();
+  expect((await f.snapshot()).data.tasks.find(row=>row.taskId===f.task.taskId)!.name).toBe("외부 변경으로 보고서 stale");
+  await expect(root.getByLabel("물류 시스템",{exact:true})).toHaveValue(b);
 });

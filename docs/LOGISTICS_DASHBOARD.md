@@ -1,3 +1,9 @@
+## Issue #785 — 실물 관점만 제공하는 공개 조회
+
+사용자 조회는 KPI·Milestone·공정&WorkArea·설비·물류 시스템·리소스로 제공한다. Target 빠른 필터·축·미연결/등록 진단·구성 편집은 제거하고 기존 공통 WBS physical renderer/정확 Task·Assignment 원본 편집을 사용한다. 등록-only/작업0·명시 공정0·구역0·미배정은 정상 상태이며 허위 미연결로 기존 자료를 숨기지 않는다.
+
+내부 F3 호환 그래프는 실제 실물·source Task·coverage·상속으로 읽고 공개 v2에서는 중립 출처를 사용한다. T0/A/R·고유 인스턴스/quantity·Milestone full Gate·non-additive 소계와 Project 전체 참고는 기존 산식이다. 아래 이전 Target/Resource 보조 보기의 UI 설명은 역사이며 현재 노출 경로가 아니다. [API](API.md), [UI 계약](PROJECT_UX.md), [검증](exec-plans/active/ISSUE_785.md).
+
 ## Issue #734 — 설비 최상위 관점
 
 `대시보드 → 설비`는 설비 인스턴스를 root로 고정한 전용 consumer다. 기본은 하위 없는 단독 조회이며 사용자가 하위 축을 추가·제거·정렬하여 `설비 → 공정 → 물류 시스템 → 리소스`, `설비 → Milestone → 공정`을 구성한다. 유형은 root의 필터이고 상위 Target 등록은 필요 없다. 등록-only·작업0·미배정·비활성 기존 원본을 보존한다.

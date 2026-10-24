@@ -40,20 +40,20 @@ export async function seedIssue623(page: Page, origin: string, observeApi: Obser
   const targets: LogisticsTargetDto[] = [];
   for (const [index, code] of (wide ? ["A", "B", "C", "D", "E"] : ["A", "B"]).entries()) {
     const sharedMcs = targets[0]?.members.find(member => member.code === "MCS-1");
-    const response = await f.mutate("/logistics/targets", { code: `TARGET-${code}`, name: `Target ${code} · 긴 물류 설비 통합 제어 대상 이름`, scope: "process", projectProcessId: f.processIds[index % 2], ...(index === 0 ? { workAreaId: f.catalog.data.workAreas[0].id } : {}), members: [
+    const response = await f.seedLegacy("/logistics/targets", { code: `TARGET-${code}`, name: `기존 물류 연결 ${code} · 긴 물류 설비 통합 제어 이름`, scope: "process", projectProcessId: f.processIds[index % 2], ...(index === 0 ? { workAreaId: f.catalog.data.workAreas[0].id } : {}), members: [
       { kind: "equipment", create: { code: `AMR-${code}`, name: `AMR ${code}`, equipmentType: "amr", managementUnit: "fleet", quantity: index === 0 ? 10 : 5 } },
       { kind: "system", create: { code: `ACS-${code}`, name: `ACS ${code}`, systemType: "acs", layer: "controller", scope: "project" } },
       sharedMcs ? { kind: "system", entityId: sharedMcs.entityId } : { kind: "system", create: { code: "MCS-1", name: "공유 MCS", systemType: "mcs", layer: "coordinator", scope: "project" } },
     ] });
-    targets.push(((await response.json()) as LogisticsTargetMutationResponse).data.target!);
+    targets.push((response as LogisticsTargetMutationResponse).data.target!);
   }
   await f.mutate(`/tasks/${f.task.taskId}`, { name: "SHARED · 통합 시운전", start: oracle.from, duration: 5 }, "patch");
   const bind = (targetId: string, scope: "self" | "subtree" = "self") => ({ targetId, scope, selection: "whole", memberIds: [] });
-  await f.mutate(`/tasks/${f.parentTask.taskId}/target-bindings`, { bindings: [bind(targets[0].id, "subtree")] }, "put");
-  await f.mutate(`/tasks/${f.task.taskId}/target-bindings`, { bindings: targets.map(target => bind(target.id)) }, "put");
+  await f.seedLegacy(`/tasks/${f.parentTask.taskId}/target-bindings`, { bindings: [bind(targets[0].id, "subtree")] }, "put");
+  await f.seedLegacy(`/tasks/${f.task.taskId}/target-bindings`, { bindings: targets.map(target => bind(target.id)) }, "put");
   const added = await (await f.mutate("/tasks", { name: "ACS_ONLY", type: "task", start: oracle.from, duration: 5, progress: 0 })).json();
   const acsTask = added.data.tasks.find((task: { name: string }) => task.name === "ACS_ONLY");
-  await f.mutate(`/tasks/${acsTask.taskId}/target-bindings`, { bindings: [{ targetId: targets[0].id, scope: "self", selection: "subset", memberIds: [targets[0].members.find(member => member.code === "ACS-A")!.id] }] }, "put");
+  await f.seedLegacy(`/tasks/${acsTask.taskId}/target-bindings`, { bindings: [{ targetId: targets[0].id, scope: "self", selection: "subset", memberIds: [targets[0].members.find(member => member.code === "ACS-A")!.id] }] }, "put");
   expect((await page.request.post(`${origin}/api/resource-catalog/admin-sessions`, { headers: { Origin: origin }, data: { password: issue621ResourcePassword } })).status()).toBe(201);
   let resources = (await (await page.request.get(`${origin}/api/resources`)).json()).data;
   const resourceWrite = async (path: string, data: object, method = "post") => {
@@ -68,13 +68,14 @@ export async function seedIssue623(page: Page, origin: string, observeApi: Obser
     await resourceWrite(`/api/resource-groups/${group.id}/members`, { resourceIds: [person.id] }, "put");
   }
   await f.mutate(`/tasks/${f.task.taskId}/assignments`, { catalogRevision: resources.revision, targets: [{ kind: "resource", id: person.id, allocation: { start: null, end: null, percent: 100 } }] }, "put");
+  const archiveHeaders = { "X-MasterGantt-Resource-Version": "1" };
   const query = { from: oracle.from, to: oracle.to, asOfDate: oracle.asOfDate, mdPerMm: String(oracle.mdPerMm), taskIds: f.task.taskId, projectionOrder: "group,resource,target" };
   const report = async (extra: Record<string, string> = {}) => {
-    const response = await page.request.get(`${f.api}/resource-dashboard?${new URLSearchParams({ ...query, ...extra })}`);
+    const response = await page.request.get(`${f.api}/resource-dashboard?${new URLSearchParams({ ...query, ...extra })}`, { headers: archiveHeaders });
     expect(response.status(), await response.text()).toBe(200); return (await response.json()).data as ResourceDashboardDto;
   };
   const details = async (data: ResourceDashboardDto, extra: Record<string, string> = {}) => {
-    const response = await page.request.get(`${f.api}/resource-dashboard/details?${new URLSearchParams({ ...query, snapshotId: data.snapshotId, dimension: "all", view: "assignments", ...extra })}`);
+    const response = await page.request.get(`${f.api}/resource-dashboard/details?${new URLSearchParams({ ...query, snapshotId: data.snapshotId, dimension: "all", view: "assignments", ...extra })}`, { headers: archiveHeaders });
     expect(response.status(), await response.text()).toBe(200); return (await response.json()).data as ResourceDashboardDetailsDto;
   };
   await page.reload();

@@ -25,8 +25,6 @@ import type {
   UpdateProcessRequest,
 } from "@/contracts/logistics";
 import type { ProcessContextResponse } from "@/contracts/process-catalog";
-import type { TaskTargetBindingsResponse } from "@/contracts/task-target-bindings";
-import type { LogisticsTargetListResponse, LogisticsTargetUsageDto } from "@/contracts/logistics-targets";
 import { ProjectWorkareaManagement } from "./project-workarea-management";
 import { projectWorkareaOptions, validProjectWorkareas } from "./project-workarea-options";
 import { LogisticsTypeField } from "./logistics-type-field";
@@ -36,7 +34,6 @@ import type { ResourceCatalogResponse, ResourceDto } from "@/contracts/resources
 import { IdentifierDetails } from "@/components/identifier-details";
 import { logisticsName } from "./logistics-identity";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
-import { ProjectLogisticsTargets } from "./project-logistics-targets";
 import type { KpiMasterKind } from "./logistics-kpi-configuration";
 import { ProjectLogisticsDashboard } from "./project-logistics-dashboard";
 import { ProjectLogisticsUnified } from "./project-logistics-unified";
@@ -77,11 +74,10 @@ export interface ProjectLogisticsManagementProps {
   perspective?: import("./logistics-unified-model").LogisticsPerspective;
   onPerspectiveChange?: (view: import("./logistics-unified-model").LogisticsPerspective) => void;
   tasks?: readonly ProjectTaskDto[];
-  targetOpenRequest?: {id:string;sequence:number;code?:string | null} | null;
   active?: boolean;
   busy?: boolean;
   onStageOpen?: (taskId: string, tab?: "task" | "memberships") => void;
-  onTargetTaskOpen?: (taskId: string, trigger?: HTMLElement) => void;
+  onLogisticsTaskOpen?: (taskId: string, trigger?: HTMLElement) => void;
   onKpiResourceOpen?: (resourceId: string, trigger: HTMLElement, resource?: { name: string; code: string | null }) => void;
   onStageSchedule?: (taskIds: string[]) => void;
   onWbsSchedule?: (request: WbsViewScheduleRequest) => void;
@@ -108,15 +104,14 @@ export interface ProjectLogisticsManagementProps {
   onUnauthorized: () => void;
 }
 
-export type SubTab = "targets" | "dashboard" | "unified" | "processes" | "equipment" | "systems" | "relations";
+export type SubTab = "dashboard" | "unified" | "processes" | "equipment" | "systems" | "relations";
 type FocusableMasterKind = "process" | "equipment" | "system";
 
 export function ProjectLogisticsManagement({
   kpiSourceRefreshKey = 0, subview, onSubviewChange, onSubviewFocusUnavailable, hideSubviewNavigation = false, perspective, onPerspectiveChange,
   onLegacyWorkAreaRequest, workAreaOpenRequest, wbsEntityOpenRequest, onWbsEntityRequestHandled, onWbsSchedule, onWbsOpenEntity,
-  targetOpenRequest, tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onTargetTaskOpen, onResourceSchedule, onOpenAssignment, onKpiResourceOpen,
+  tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onLogisticsTaskOpen, onResourceSchedule, onOpenAssignment, onKpiResourceOpen,
   publicId,
-  projectContext,
   revision,
   editable,
   logistics = { processes: [], equipment: [], systems: [], systemLinks: [] },
@@ -131,16 +126,12 @@ export function ProjectLogisticsManagement({
   const [localSubTab, setLocalSubTab] = useState<SubTab>("dashboard");
   const activeSubTab = subview ?? localSubTab;
   function setActiveSubTab(view: SubTab) { setLocalSubTab(view); onSubviewChange?.(view); }
-  const [targetRequestSequence, setTargetRequestSequence] = useState<number | null>(null);
-  const [unifiedTargetRequest, setUnifiedTargetRequest] = useState<{ id: string; sequence: number; code?: string | null } | null>(null);
-  const unifiedTargetTrigger = useRef<HTMLElement | null>(null);
   const [kpiOrigin, setKpiOrigin] = useState<{ trigger: HTMLElement; revision: number; kind: KpiMasterKind; id: string } | null>(null);
   const pendingMasterFocus = useRef<{ kind: FocusableMasterKind; id: string; revision: number } | null>(null);
   function returnToKpi() {
     const origin = kpiOrigin;
     pendingMasterFocus.current = null;
     setKpiOrigin(null);
-    setUnifiedTargetRequest(null);
     setActiveSubTab("dashboard");
     requestAnimationFrame(() => {
       if (origin?.revision === revision && isVisibleFocusTarget(origin.trigger)) origin.trigger.focus({ preventScroll: true });
@@ -165,37 +156,13 @@ export function ProjectLogisticsManagement({
       return;
     }
     const candidates = kind === "process" ? logistics.processes : kind === "equipment" ? logistics.equipment : kind === "system" ? logistics.systems : null;
-    if (kind !== "target" && !candidates?.some(row => row.id === id)) return;
+    if (!candidates?.some(row => row.id === id)) return;
     setKpiOrigin({ trigger, revision, kind, id });
-    if (kind === "target") {
-      pendingMasterFocus.current = null;
-      setUnifiedTargetRequest({ id, sequence: Date.now() });
-      setActiveSubTab("targets");
-    } else {
-      const view = kind === "process" ? "processes" : kind === "equipment" ? "equipment" : "systems";
-      pendingMasterFocus.current = { kind, id, revision };
-      setActiveSubTab(view);
-    }
+    const view = kind === "process" ? "processes" : kind === "equipment" ? "equipment" : "systems";
+    pendingMasterFocus.current = { kind: kind as FocusableMasterKind, id, revision };
+    setActiveSubTab(view);
   }
 
-  if (targetOpenRequest && targetRequestSequence !== targetOpenRequest.sequence) {
-    setTargetRequestSequence(targetOpenRequest.sequence);
-    setUnifiedTargetRequest(null);
-    setLocalSubTab("targets");
-  }
-  function returnToUnified() {
-    setUnifiedTargetRequest(null);
-    setActiveSubTab("unified");
-    requestAnimationFrame(() => {
-      const trigger = unifiedTargetTrigger.current;
-      if (isVisibleFocusTarget(trigger)) trigger.focus({ preventScroll: true });
-      else {
-        const tab = document.getElementById("subtab-unified");
-        if (isVisibleFocusTarget(tab)) tab.focus({ preventScroll: true });
-        else onSubviewFocusUnavailable?.();
-      }
-    });
-  }
   const [searchQuery, setSearchQuery] = useLogisticsViewState(activeSubTab, "");
   const [processFilter, setProcessFilter] = useLogisticsViewState<string>(activeSubTab, "all");
   const [includeInactive, setIncludeInactive] = useLogisticsViewState(activeSubTab, false);
@@ -301,7 +268,7 @@ export function ProjectLogisticsManagement({
     name: string;
   }>({ open: false, entityKind: "process", id: "", name: "" });
 
-  const [sourceImpact, setSourceImpact] = useState<{ revision:number; name:string; targetNames:string[]; taskIds:string[]; legacyCount:number|null; apply:()=>Promise<void> }|null>(null);
+  const [sourceImpact, setSourceImpact] = useState<{ revision:number; kind:"equipment"|"system"; id:string; name:string; taskIds:string[]; directTaskCount:number; compatibilityTaskCount:number; apply:()=>Promise<void> }|null>(null);
   const sourcePreviewRequest = useRef<AbortController|null>(null);
   useEffect(() => () => { sourcePreviewRequest.current?.abort(); }, [publicId,revision]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -481,7 +448,7 @@ export function ProjectLogisticsManagement({
         } else if (code === "EQUIPMENT_CODE_ALREADY_EXISTS") {
           setErrorMessage("이미 동일한 설비 코드가 존재합니다. 다른 코드를 사용해 주세요.");
         } else if (code === "EQUIPMENT_WORK_AREA_IN_USE") {
-          setErrorMessage("Task 또는 Target에서 참조 중인 설비의 WorkArea 연결은 변경할 수 없습니다. 기존 연결과 입력한 초안은 유지됩니다.");
+          setErrorMessage("작업 또는 기존 연결에서 참조 중인 설비의 WorkArea 연결은 변경할 수 없습니다. 기존 연결과 입력한 초안은 유지됩니다.");
         } else if (code === "EQUIPMENT_IN_USE") {
           setErrorMessage("제어 시스템에 연결된 설비이므로 삭제할 수 없습니다. 시스템 연결을 먼저 해제하거나 비활성화해 주세요.");
         } else if (code === "SYSTEM_CODE_ALREADY_EXISTS") {
@@ -519,39 +486,19 @@ export function ProjectLogisticsManagement({
     const controller = new AbortController(); sourcePreviewRequest.current=controller;
     setIsSubmitting(true); setErrorMessage(null);
     try {
-      const matching: Array<{id:string;name:string}> = [];
-      let offset=0;
-      while (true) {
-        const res=await fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics/targets?limit=100&offset=${offset}`,{credentials:"same-origin",cache:"no-store",signal:controller.signal});
-        if(!res.ok)throw new Error();
-        const data=(await res.json() as LogisticsTargetListResponse).data;
-        if(data.projectRevision!==revision)throw new Error();
-        matching.push(...data.targets.filter(t=>t.members.some(m=>m.kind===kind&&m.entityId===id)).map(t=>({id:t.id,name:`${t.name} (${t.code})`})));
-        offset+=data.targets.length;if(offset>=data.total)break;if(!data.targets.length||offset>10000)throw new Error();
-      }
-      const candidateTaskIds=new Set<string>();const taskIds=new Set<string>();let legacyCount:number|null=null;
-      for(const target of matching){
-        const res=await fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics/targets/${encodeURIComponent(target.id)}/usage`,{credentials:"same-origin",cache:"no-store",signal:controller.signal});
-        if(!res.ok)throw new Error();const usage=(await res.json() as {data:LogisticsTargetUsageDto}).data;
-        if(usage.projectRevision!==revision||usage.targetId!==target.id)throw new Error();
-        for(const row of usage.relatedTasks)candidateTaskIds.add(row.taskId);
-        legacyCount=Math.max(legacyCount??0,usage.members.find(m=>m.kind===kind&&m.entityId===id)?.directTaskCount??0);
-      }
-      // Target usage is a candidate set: an ACS-only subset must not imply AMR impact.
-      if(candidateTaskIds.size>1000)throw new Error();
-      for(const taskId of candidateTaskIds){
-        const res=await fetch(`/api/projects/${encodeURIComponent(publicId)}/tasks/${encodeURIComponent(taskId)}/target-bindings`,{credentials:"same-origin",cache:"no-store",signal:controller.signal});
-        if(!res.ok)throw new Error();const data=(await res.json() as TaskTargetBindingsResponse).data;
-        if(data.projectRevision!==revision||data.taskId!==taskId)throw new Error();
-        if((kind==="equipment"?data.effective.effectiveEquipmentIds:data.effective.effectiveSystemIds).includes(id))taskIds.add(taskId);
-      }
-      if(!controller.signal.aborted)setSourceImpact({revision,name:`${name} (ID: ${id})`,targetNames:matching.map(t=>t.name),taskIds:[...taskIds],legacyCount,apply});
-    }catch{if(!controller.signal.aborted){setErrorMessage("공유 인스턴스의 Target/작업 사용처를 확인하지 못해 원본 저장을 차단했습니다. 초안은 유지됩니다. 최신 정보를 다시 조회해 주세요.");setSourceImpact({revision:-1,name:`${name} (ID: ${id})`,targetNames:[],taskIds:[],legacyCount:null,apply:async()=>{}});}}
+      const endpoint = kind === "equipment" ? "equipment" : "systems";
+      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics/${endpoint}/${encodeURIComponent(id)}/usage`, {credentials:"same-origin",cache:"no-store",signal:controller.signal});
+      const body = await response.json();
+      const data = body?.data;
+      if (!response.ok || data?.projectRevision !== revision || data.kind !== kind || data.entityId !== id || !Array.isArray(data.relatedTasks) || !data.relatedTasks.every((row: {taskId?:unknown}) => typeof row.taskId === "string") || !Number.isSafeInteger(data.directTaskCount) || !Number.isSafeInteger(data.compatibilityTaskCount)) throw new Error();
+      if (!controller.signal.aborted) setSourceImpact({revision,kind,id,name,taskIds:data.relatedTasks.map((row:{taskId:string})=>row.taskId),directTaskCount:data.directTaskCount,compatibilityTaskCount:data.compatibilityTaskCount,apply});
+    } catch { if (!controller.signal.aborted) {setErrorMessage("원본의 관련 작업을 확인하지 못해 저장을 차단했습니다. 초안은 유지됩니다. 최신 정보를 다시 조회해 주세요.");setSourceImpact(null);} }
+
     finally{if(sourcePreviewRequest.current===controller)setIsSubmitting(false);}
   }
 
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, tab: SubTab) => {
-    const tabs: SubTab[] = ["dashboard", "unified", "targets", "processes", "equipment", "systems", "relations"];
+    const tabs: SubTab[] = ["dashboard", "unified", "processes", "equipment", "systems", "relations"];
     const idx = tabs.indexOf(tab);
     let nextTab: SubTab | null = null;
     if (e.key === "ArrowRight") {
@@ -637,7 +584,6 @@ export function ProjectLogisticsManagement({
           onClick={() => setActiveSubTab("unified")} onKeyDown={e => handleTabKeyDown(e, "unified")}>
           통합 조회
         </button>
-        <button id="subtab-targets" className={styles.subTabButton} role="tab" type="button" aria-selected={activeSubTab === "targets"} aria-controls="panel-targets" tabIndex={activeSubTab === "targets" ? 0 : -1} onClick={() => setActiveSubTab("targets")} onKeyDown={e => handleTabKeyDown(e, "targets")}>물류 대상(Target)</button>
         <button
           id="subtab-processes"
           className={styles.subTabButton}
@@ -695,13 +641,9 @@ export function ProjectLogisticsManagement({
         </button>
       </div>
 
-      <div id="panel-targets" role="tabpanel" aria-labelledby={hideSubviewNavigation ? undefined : "subtab-targets"} hidden={activeSubTab !== "targets"}>
-        {unifiedTargetRequest && !kpiOrigin ? <button type="button" className={styles.subTabButton} onClick={returnToUnified}>통합 조회로 돌아가기</button> : null}
-        <ProjectLogisticsTargets openRequest={unifiedTargetRequest ?? targetOpenRequest} projectContext={projectContext} publicId={publicId} revision={revision} active={active && activeSubTab === "targets"} editable={editable} busy={busy} logistics={logistics} types={typeCatalog} onTypesChanged={()=>void retryTypeCatalog()} tasks={tasks} onMutated={onRequireRefresh} onUnauthorized={onUnauthorized} onOpenTask={onTargetTaskOpen} onOpenInstance={(kind,id)=>{if(!editable||busy||isSubmitting)return;if(kind==="equipment"){const target=logistics.equipment.find(e=>e.id===id);if(target)setEquipmentModal({open:true,mode:"edit",target});}else{const target=logistics.systems.find(e=>e.id===id);if(target)setSystemModal({open:true,mode:"edit",target});}}}/>
-      </div>
       {activeSubTab === "processes" ? <h2>공정 &amp; 작업 구역 관리</h2> : null}
       {/* Toolbar (Filters & Actions) - Only for management subtabs */}
-      {activeSubTab !== "dashboard" && activeSubTab !== "unified" && activeSubTab !== "targets" ? (
+      {activeSubTab !== "dashboard" && activeSubTab !== "unified" ? (
         <div className={styles.toolbar} role="toolbar" aria-label="물류 필터 및 도구">
           <div className={styles.filtersGroup}>
             <input
@@ -782,7 +724,7 @@ export function ProjectLogisticsManagement({
               </button>
             ) : null}
           </div>
-          {editable && activeSubTab === "equipment" && logistics.processes.length === 0 ? <p className={styles.workAreaHint}>설비를 추가하려면 기준정보의 공정&amp;WorkArea에서 주 관리 공정을 먼저 등록해 주세요. Target은 필요하지 않습니다.</p> : null}
+          {editable && activeSubTab === "equipment" && logistics.processes.length === 0 ? <p className={styles.workAreaHint}>설비를 추가하려면 기준정보의 공정&amp;WorkArea에서 주 관리 공정을 먼저 등록해 주세요.</p> : null}
         </div>
       ) : null}
 
@@ -812,7 +754,7 @@ export function ProjectLogisticsManagement({
         <ProjectLogisticsDashboard
           sourceRefreshKey={kpiSourceRefreshKey}
           busy={busy || isSubmitting}
-          logistics={logistics} onOpenTask={onTargetTaskOpen} onOpenAssignment={editable ? onOpenAssignment : undefined} onOpenMaster={openKpiMaster}
+          logistics={logistics} onOpenTask={onLogisticsTaskOpen} onOpenAssignment={editable ? onOpenAssignment : undefined} onOpenMaster={openKpiMaster}
           tasks={tasks} active={active && activeSubTab === "dashboard"} onStageOpen={onStageOpen} onStageSchedule={onStageSchedule}
           publicId={publicId}
           revision={revision}
@@ -823,14 +765,9 @@ export function ProjectLogisticsManagement({
       <div id="panel-unified" role="tabpanel" aria-labelledby={hideSubviewNavigation ? undefined : "subtab-unified"} hidden={activeSubTab !== "unified"}>
         <ProjectLogisticsUnified perspective={perspective} onPerspectiveChange={onPerspectiveChange} publicId={publicId} revision={revision}
           active={active && activeSubTab === "unified"} busy={busy || isSubmitting} editable={editable}
-          logistics={logistics} onWbsSchedule={onWbsSchedule} onWbsOpenEntity={onWbsOpenEntity ?? ((dimension,id,trigger) => { if (["equipment","system","process"].includes(dimension)) openWbsEntity(dimension,id,trigger); })} onOpenTask={onTargetTaskOpen} onOpenAssignment={onOpenAssignment}
+          logistics={logistics} onWbsSchedule={onWbsSchedule} onWbsOpenEntity={onWbsOpenEntity ?? ((dimension,id,trigger) => { if (["equipment","system","process"].includes(dimension)) openWbsEntity(dimension,id,trigger); })} onOpenTask={onLogisticsTaskOpen} onOpenAssignment={onOpenAssignment}
           onOpenMilestone={taskId => onStageOpen?.(taskId)} onResourceSchedule={onResourceSchedule}
-          onOpenTarget={(id, trigger, code) => {
-            if (!editable || busy || isSubmitting) return;
-            unifiedTargetTrigger.current = trigger;
-            setUnifiedTargetRequest({ id, code, sequence: Date.now() });
-            setActiveSubTab("targets");
-          }} />
+ />
       </div>
 
       {/* Sub-panel 1: Processes */}
@@ -1558,9 +1495,10 @@ export function ProjectLogisticsManagement({
       ) : null}
 
       {sourceImpact?<WorkspaceDialog title="공유 인스턴스 변경 확인" onClose={()=>{if(!isSubmitting)setSourceImpact(null);}} busy={isSubmitting}>
-        <div className={styles.dialogForm}><p>{sourceImpact.name} · 원본 인스턴스를 변경하면 아래 Target와 작업에서 같은 변경을 읽습니다. 구성원 연결 해제와 원본 수정은 별개입니다.</p>
-        {sourceImpact.revision>=0?<><p>공유 Target {sourceImpact.targetNames.length}개 · Target 경로의 관련 작업 {sourceImpact.taskIds.length}개 · 기존 직접 작업 연결 {sourceImpact.legacyCount??"미산정"}개</p>
-        <ul>{sourceImpact.targetNames.map((name,i)=><li key={i}>{name}</li>)}</ul><ul>{sourceImpact.taskIds.map(id=><li key={id}>{taskContextLabels(tasks)[id]??id} · 작업 ID {id}</li>)}</ul></>:null}
+        <div className={styles.dialogForm}><p>{sourceImpact.name} · 원본 인스턴스를 변경하면 아래 관련 작업에서 같은 변경을 읽습니다. 작업 연결 해제와 원본 수정은 별개입니다.</p>
+        <IdentifierDetails label="변경 대상 식별 정보" identifiers={[{label:sourceImpact.kind==="equipment"?"설비 원본 ID":"물류 시스템 원본 ID",value:sourceImpact.id}]}/>
+        <p>관련 작업 {sourceImpact.taskIds.length}개 · 직접 연결 작업 {sourceImpact.directTaskCount}개 · 기존 연결 작업 {sourceImpact.compatibilityTaskCount}개</p>
+        <ul>{sourceImpact.taskIds.map(id=><li key={id}>{taskContextLabels(tasks)[id]??"작업 이름 확인 필요"}<IdentifierDetails identifiers={[{label:"작업 ID",value:id}]}/></li>)}</ul>
         {sourceImpact.revision!==revision?<p role="alert">기준 정보가 변경되었습니다. 취소 후 사용처를 다시 확인하세요.</p>:null}
         {errorMessage?<p role="alert">{errorMessage}</p>:null}
         <div className={styles.dialogActions}><button type="button" className="secondary-button" disabled={isSubmitting} onClick={()=>setSourceImpact(null)}>원본 변경 취소</button><button type="button" className="primary-button" disabled={isSubmitting||!editable||busy||sourceImpact.revision!==revision} onClick={()=>void sourceImpact.apply()}>공유 사용처 확인 후 원본 저장</button></div></div>
@@ -1579,7 +1517,7 @@ export function ProjectLogisticsManagement({
               <strong>{deleteConfirmModal.name}</strong>
             </p>
             <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-              이 작업은 원본 항목을 삭제합니다. Target 구성원 연결 해제와는 다릅니다. 다른 항목과 연계되어 있거나 사용 중이면 삭제할 수 없으며, 대신 비활성화를 사용해 주세요.
+              이 작업은 원본 항목을 삭제합니다. 작업 연결 해제와는 다릅니다. 다른 항목과 연계되어 있거나 사용 중이면 삭제할 수 없으며, 대신 비활성화를 사용해 주세요.
             </p>
             <div className={styles.dialogActions}>
               <button

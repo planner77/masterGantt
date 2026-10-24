@@ -1,0 +1,395 @@
+{
+  "batch": "b",
+  "startedAt": "2026-10-23T23:22:57.479559+00:00",
+  "finishedAt": "2026-10-23T23:25:53.171908+00:00",
+  "exitCode": 0,
+  "sourceBefore": "45e587eb3b73f4fe3aefed0a1cd2c918b14346d1fb8a935605bcf1ca6d7964f3",
+  "sourceAfter": "45e587eb3b73f4fe3aefed0a1cd2c918b14346d1fb8a935605bcf1ca6d7964f3",
+  "sourceStable": true,
+  "sourceChangedPaths": [],
+  "generatedConfigChangedPaths": [
+    "next-env.d.ts",
+    "tsconfig.json"
+  ],
+  "fullCheckoutSourceStable": false,
+  "generatedConfigBefore": {
+    "next-env.d.ts": "5f0370bfcfe493c0faf08ed9ef3ac4e5107147ddbdb3e3c612091ae09a950860",
+    "tsconfig.json": "06a269847adde057fec08afdb6ffbf216b796c3ebbf789c4e76bb91e720eceba"
+  },
+  "generatedConfigAfter": {
+    "next-env.d.ts": "f534afb8f5688f70542c75773010264035c63293ce71b4680b640b002542336a",
+    "tsconfig.json": "482755775d1102cf3ac61897c58d48a7746490f2eeb00da817d725f0b74863c9"
+  },
+  "tools": {
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "os": "Linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "next": "16.4.2",
+    "zod": "4.6.7",
+    "@playwright/test": "1.63.0"
+  },
+  "command": {
+    "batch": "b",
+    "expectedCount": 23,
+    "argv": [
+      "npx",
+      "--no-install",
+      "playwright",
+      "test",
+      "--config=tests/config/playwright.config.ts",
+      "--project=chromium",
+      "--workers=1",
+      "--retries=0",
+      "--max-failures=0",
+      "tests/e2e/issue-717-name-first.spec.ts",
+      "tests/e2e/task-editor-form-density.spec.ts",
+      "tests/e2e/logistics-dashboard-request-state.spec.ts",
+      "tests/e2e/canonical-projection.spec.ts",
+      "tests/e2e/project-modal-feedback.spec.ts",
+      "tests/e2e/project-filter-toolbar-consistency.spec.ts",
+      "tests/e2e/project-empty-summary.spec.ts",
+      "tests/e2e/resource-drill-ui.spec.ts",
+      "tests/e2e/project-workspace-tabs-518.spec.ts",
+      "tests/e2e/task-context-menu-hierarchy.spec.ts",
+      "--grep",
+      "#717 이름 우선과 전체 ID 접근 1440px|#456 Milestone 동적 소속과 물류 탭|#456 실제 keyboard 100%|조회 wrong-revision는|조회 malformed-integrated는|#570 metadata projection|설정 모달의 검증 오류|일정·리소스 필터는|Core probe keeps an unscheduled Summary|renders a tree of only empty Summary|#528 실제|#556 선택|#518 일정·Milestone|Issue #399 opens"
+    ],
+    "environmentUnset": [
+      "PLAYWRIGHT_BASE_URL"
+    ]
+  },
+  "stats": {
+    "total": 23,
+    "expected": 23,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "durationMs": 181401.083,
+  "cases": [
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 390px Day",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3817,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 390px Week",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3535,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 768px Day",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3055,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 768px Week",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3427,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 1024px Day",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3169,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 1024px Week",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2984,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 1440px Day",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2943,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 1440px Week",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2952,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 1920px Day",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2921,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 1920px Week",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2790,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-717-name-first.spec.ts",
+      "title": "#717 이름 우선과 전체 ID 접근 1440px",
+      "location": {
+        "file": "issue-717-name-first.spec.ts",
+        "line": 8,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3458,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "title": "조회 wrong-revision는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "location": {
+        "file": "logistics-dashboard-request-state.spec.ts",
+        "line": 53,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2413,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "title": "조회 malformed-integrated는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "location": {
+        "file": "logistics-dashboard-request-state.spec.ts",
+        "line": 53,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2308,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "project-empty-summary.spec.ts",
+      "title": "Core probe keeps an unscheduled Summary row without inventing a scheduled bar",
+      "location": {
+        "file": "project-empty-summary.spec.ts",
+        "line": 4,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 1361,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "project-empty-summary.spec.ts",
+      "title": "renders a tree of only empty Summary containers without bars or fake Grid dates",
+      "location": {
+        "file": "project-empty-summary.spec.ts",
+        "line": 17,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2542,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "project-filter-toolbar-consistency.spec.ts",
+      "title": "Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API 불변 경계를 유지한다",
+      "location": {
+        "file": "project-filter-toolbar-consistency.spec.ts",
+        "line": 127,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 16296,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "project-modal-feedback.spec.ts",
+      "title": "설정 모달의 검증 오류는 top layer 안에서도 보이고 닫은 뒤 알림함에 남는다",
+      "location": {
+        "file": "project-modal-feedback.spec.ts",
+        "line": 4,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2498,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "project-workspace-tabs-518.spec.ts",
+      "title": "#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5폭 tab geometry",
+      "location": {
+        "file": "project-workspace-tabs-518.spec.ts",
+        "line": 7,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 8607,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "resource-drill-ui.spec.ts",
+      "title": "#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor",
+      "location": {
+        "file": "resource-drill-ui.spec.ts",
+        "line": 22,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 25301,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "resource-drill-ui.spec.ts",
+      "title": "#556 선택 Summary 자손과 현재 Summary 전체 담당자·공수를 별도 readonly 명령으로 조회한다",
+      "location": {
+        "file": "resource-drill-ui.spec.ts",
+        "line": 494,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 7758,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-context-menu-hierarchy.spec.ts",
+      "title": "Issue #399 opens Summary scopes in Workspace tabs without creating a browser tab",
+      "location": {
+        "file": "task-context-menu-hierarchy.spec.ts",
+        "line": 150,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 9961,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-editor-form-density.spec.ts",
+      "title": "#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 폭에 기록한다",
+      "location": {
+        "file": "task-editor-form-density.spec.ts",
+        "line": 94,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 6387,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-editor-form-density.spec.ts",
+      "title": "#456 실제 keyboard 100%·날짜 오류·pending action 폭과 닫기 잠금을 보존한다",
+      "location": {
+        "file": "task-editor-form-density.spec.ts",
+        "line": 117,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3258,
+      "retry": 0,
+      "errorFirstLine": null
+    }
+  ]
+}

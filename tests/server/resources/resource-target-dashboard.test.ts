@@ -103,7 +103,7 @@ describe("#620 canonical SQLite Target Resource report", () => {
     }
     for (const assignmentScope of ["milestoneReference", "milestoneExcluded", "projectReference"]) expect(() => parseResourceDashboardDetails(new URLSearchParams({ snapshotId: report.snapshotId, dimension: "targetProjection", targetPath: JSON.stringify([{ dimension: "target", id: f.targets[0].id }]), assignmentScope }))).toThrowError(expect.objectContaining({ status: 400 }));
     const before = f.state();
-    const response = await handleGetResourceDashboard(f.request("projectionOrder=target"), f.project.publicId, { service: f.service });
+    const response = await handleGetResourceDashboard(new Request(f.request("projectionOrder=target"),{headers:{"X-MasterGantt-Resource-Version":"1"}}), f.project.publicId, { service: f.service });
     expect(response.status).toBe(200); expect(response.headers.get("cache-control")).toBe("private, no-store"); expect(response.headers.get("set-cookie")).toBeNull(); expect(response.headers.get("x-content-type-options")).toBe("nosniff");
     expect(f.state()).toEqual(before);
     const foreign = fixture();

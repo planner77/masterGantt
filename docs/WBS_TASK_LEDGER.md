@@ -1,3 +1,7 @@
+## Issue #785 — 공개 실물 출처와 내부 legacy 해석
+
+WBS ledger의 동일 Task/Assignment 원장·F3 whole/subset/coverage·다중 조상 상속·공유 실물 dedup은 그대로다. 기존 내부 graph를 직접 행으로 평탄화하지 않는다. 공개 v2는 실물 ID·source Task·opaque 관계 참조로 제공하고 Target 엔터티 ID/이름·카탈로그·진단을 노출하지 않는다. 내부 golden test와 명시 deprecated v1은 이전 의미를 감사한다. T0/A/R·non-additive 소계·full Gate·same-Task 교집합·W2 명시0/null을 유지한다. [변환 설계/예외](exec-plans/active/ISSUE_785.md), [공개 버전](API.md).
+
 ## Issue #735 — 시스템 직접·조율 selector의 공개 소비
 
 시스템 전용 consumer의 `systemView`는 기존 `system` 또는 `systemCoordination` 선택을 공통 WBS report/details/scope에 일관되게 적용한다. mode와 시스템 ID 선택은 spec/snapshot에 결속하며 하위 경로는 동일 Task/Assignment를 계속 교차한다. 조회 모드가 Task 공정·controls·coordinates·개인배정을 생성하지 않는다. 기존 명시 coordinates/controls 검증과 cyclic/foreign 거부를 재사용하며 화면별 계산기를 추가하지 않는다. [API](API.md#issue-735--시스템-root의-직접조율-선택) 및 [검증 원장](exec-plans/active/ISSUE_735.md)을 따른다.

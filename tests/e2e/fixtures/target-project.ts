@@ -1,3 +1,4 @@
+import { seedLegacyLogistics } from "./legacy-logistics-seed";
 import { expect, test as playwrightTest, type Page, type APIResponse } from "@playwright/test";
 import type { ProjectMasterAdminResponse } from "../../../src/contracts/project-master";
 import type { ProcessCatalogResponse } from "../../../src/contracts/process-catalog";
@@ -12,7 +13,7 @@ async function successful(response: APIResponse) {
   return response;
 }
 
-/** Real HTTP setup: no mocked Target, binding, Task, or persistence responses. */
+/** Current data uses real HTTP; archived relation fixtures use isolated SQLite services. */
 export async function createTargetProject(page: Page, origin: string, observeApi: ObserveIsolatedApi) {
   const headers = { Origin: origin };
   await successful(await page.request.post(`${origin}/api/project-master/admin-sessions`, { headers, data: { password: targetMasterPassword } }));
@@ -42,7 +43,7 @@ export async function createTargetProject(page: Page, origin: string, observeApi
   const occurrenceA = catalog.data.occurrences.find(row => row.code === "A")!;
   await catalogWrite("work-areas", { occurrenceId: occurrenceA.id, code: "WA-A", name: "A 작업구역" });
   const created = await (await successful(await page.request.post(`${origin}/api/projects`, { headers, data: {
-    name: "Target F4 실제 API 검증", description: "", ownerName: "E2E 자동화", editPassword: "EditPwd1234!", businessUnitId, productId, siteEntityId,
+    name: "실물 연결 실제 API 검증", description: "", ownerName: "E2E 자동화", editPassword: "EditPwd1234!", businessUnitId, productId, siteEntityId,
   } }))).json() as CreateProjectResponse;
   const publicId = created.data.project.publicId;
   const api = `${origin}/api/projects/${publicId}`;
@@ -129,5 +130,6 @@ export async function createTargetProject(page: Page, origin: string, observeApi
     }).catch(() => undefined);
     throw error;
   }
-  return { publicId, api, origin, snapshot, mutate, processIds, task, parentTask, catalog };
+  const seedLegacy = (path:string,data:unknown,method="post") => seedLegacyLogistics(page,origin,publicId,path,data,method);
+  return { publicId, api, origin, snapshot, mutate, seedLegacy, processIds, task, parentTask, catalog };
 }

@@ -14,8 +14,6 @@ export interface ProjectTemplateDto {
   processCount: number;
   equipmentCount: number;
   systemCount: number;
-  /** F2 snapshots preserve Target/member graph. Earlier snapshots return zero. */
-  targetCount?: number;
   processMappingCount?: number;
   createdAt: string;
   updatedAt: string;
@@ -266,7 +264,6 @@ export interface InstantiateProjectTemplateResponse {
         processes?: number;
         equipment?: number;
         systems?: number;
-        targets?: number;
         processMappings?: number;
       };
     };

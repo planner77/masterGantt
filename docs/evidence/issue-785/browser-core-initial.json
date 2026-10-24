@@ -1,0 +1,298 @@
+{
+  "issue": 785,
+  "environment": "Local WSL2 Node22; real Chromium/Next HTTP/disposable nativeSQLite; one worker/retries0",
+  "sourceDigest": "f2e38a4d756553d1e3683068e3a65df33ea4d3e60faeaf6a078aa7c9ca932fc9",
+  "stats": {
+    "startTime": "2026-10-23T13:59:14.602Z",
+    "duration": 977192.37,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 5,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "line": 39,
+      "title": "#621 실제 HTTP union 총계·두 Target 공유 identity·페이지·권한/412·조회 mutation0",
+      "status": "passed",
+      "durationMs": 11724,
+      "retry": 0
+    },
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "line": 98,
+      "title": "#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱신·dirty/pending",
+      "status": "passed",
+      "durationMs": 13791,
+      "retry": 0
+    },
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "line": 150,
+      "title": "#621 실물 필터·고유 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0",
+      "status": "failed",
+      "durationMs": 26090,
+      "retry": 0
+    },
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "line": 193,
+      "title": "#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 초안 보존",
+      "status": "failed",
+      "durationMs": 17609,
+      "retry": 0
+    },
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "line": 278,
+      "title": "#736 exact Assignment 편집은 만료된 Project edit session에서 초안을 열지 않는다",
+      "status": "passed",
+      "durationMs": 13761,
+      "retry": 0
+    },
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "line": 306,
+      "title": "#621 실물 필터 응답역전·실제409 stale·취소 scope/focus",
+      "status": "passed",
+      "durationMs": 13081,
+      "retry": 0
+    },
+    {
+      "file": "issue-622-resource-plan-target.spec.ts",
+      "line": 9,
+      "title": "#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Excel·다섯 화면폭",
+      "status": "passed",
+      "durationMs": 20186,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 113,
+      "title": "#623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot",
+      "status": "passed",
+      "durationMs": 16091,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 312,
+      "title": "#623 독립 WBS 변경·원시 ID·mutation 경계",
+      "status": "passed",
+      "durationMs": 4707,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 312,
+      "title": "#623 독립 Resource status/progress·원시 ID·mutation 경계",
+      "status": "passed",
+      "durationMs": 4223,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 312,
+      "title": "#623 독립 Assignment allocation·원시 ID·mutation 경계",
+      "status": "passed",
+      "durationMs": 3239,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 312,
+      "title": "#623 독립 실물 직접 연결·원시 ID·mutation 경계",
+      "status": "passed",
+      "durationMs": 3944,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 312,
+      "title": "#623 독립 화면 복귀·원시 ID·mutation 경계",
+      "status": "passed",
+      "durationMs": 2185,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 351,
+      "title": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+      "status": "failed",
+      "durationMs": 20614,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 393,
+      "title": "#623 실제 실물 연결·중첩Group 390px geometry·keyboard·query0·렌더관측",
+      "status": "passed",
+      "durationMs": 12303,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 393,
+      "title": "#623 실제 실물 연결·중첩Group 768px geometry·keyboard·query0·렌더관측",
+      "status": "passed",
+      "durationMs": 12522,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 393,
+      "title": "#623 실제 실물 연결·중첩Group 1024px geometry·keyboard·query0·렌더관측",
+      "status": "passed",
+      "durationMs": 12987,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 393,
+      "title": "#623 실제 실물 연결·중첩Group 1440px geometry·keyboard·query0·렌더관측",
+      "status": "passed",
+      "durationMs": 13093,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 393,
+      "title": "#623 실제 실물 연결·중첩Group 1920px geometry·keyboard·query0·렌더관측",
+      "status": "passed",
+      "durationMs": 13987,
+      "retry": 0
+    },
+    {
+      "file": "issue-624-logistics-unified.spec.ts",
+      "line": 12,
+      "title": "#624/#785 같은 canonical 원본을 실물 3관점·정확 drill·full Gate·5폭으로 조회",
+      "status": "failed",
+      "durationMs": 11750,
+      "retry": 0
+    },
+    {
+      "file": "issue-725-process-workareas.spec.ts",
+      "line": 97,
+      "title": "#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연결·재조회·해제·재시작",
+      "status": "passed",
+      "durationMs": 39536,
+      "retry": 0
+    },
+    {
+      "file": "issue-725-process-workareas.spec.ts",
+      "line": 372,
+      "title": "#725 비활성 기본 구역과 중복 occurrence 매핑에서도 활성 구역 단일 owner 선택·저장",
+      "status": "passed",
+      "durationMs": 7158,
+      "retry": 0
+    },
+    {
+      "file": "issue-726-logistics-master.spec.ts",
+      "line": 8,
+      "title": "#726 Target0 master 설비·시스템 생성, 유형 실패 복구, Fleet·WorkArea와 초안 보존",
+      "status": "passed",
+      "durationMs": 14460,
+      "retry": 0
+    },
+    {
+      "file": "issue-726-task-logistics.spec.ts",
+      "line": 61,
+      "title": "#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중복 제출 방지, reload·Summary 상속",
+      "status": "passed",
+      "durationMs": 18014,
+      "retry": 0
+    },
+    {
+      "file": "issue-726-task-logistics.spec.ts",
+      "line": 165,
+      "title": "#726 직접 연결 5폭·긴 이름·키보드·초안 폐기와 HTTP 403/409/412 후 보존",
+      "status": "passed",
+      "durationMs": 23691,
+      "retry": 0
+    },
+    {
+      "file": "issue-726-task-logistics.spec.ts",
+      "line": 233,
+      "title": "#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류 보존과 상위 출처 구별",
+      "status": "passed",
+      "durationMs": 27860,
+      "retry": 0
+    },
+    {
+      "file": "logistics-target-authoring.spec.ts",
+      "line": 35,
+      "title": "#785 기존 실물 subset·coverage는 실물 출처로 조회하고 직접 쓰기와 분리",
+      "status": "passed",
+      "durationMs": 8127,
+      "retry": 0
+    },
+    {
+      "file": "logistics-target-authoring.spec.ts",
+      "line": 48,
+      "title": "#785 폐기 API는 readonly·권한·revision 경계를 통과해도 새 원본을 쓰지 않음",
+      "status": "passed",
+      "durationMs": 10027,
+      "retry": 0
+    },
+    {
+      "file": "logistics-target-authoring.spec.ts",
+      "line": 56,
+      "title": "#785 기존 연결 출처 5폭·키보드·실물 긴 이름·내부 overflow",
+      "status": "passed",
+      "durationMs": 13225,
+      "retry": 0
+    },
+    {
+      "file": "logistics-target-authoring.spec.ts",
+      "line": 67,
+      "title": "#785 Summary subtree 출처를 자식의 직접 체크박스로 평탄화하지 않음",
+      "status": "passed",
+      "durationMs": 7246,
+      "retry": 0
+    },
+    {
+      "file": "logistics-target-authoring.spec.ts",
+      "line": 73,
+      "title": "#785 이전 screen·저장 구성 복원은 현재 공정 화면으로 전환하고 요청을 되살리지 않음",
+      "status": "passed",
+      "durationMs": 5671,
+      "retry": 0
+    },
+    {
+      "file": "logistics-target-authoring.spec.ts",
+      "line": 81,
+      "title": "#785 공유 실물 수정은 중립 영향 조회 후 1회 저장하고 기존 출처에 반영",
+      "status": "passed",
+      "durationMs": 9732,
+      "retry": 0
+    },
+    {
+      "file": "logistics-target-authoring.spec.ts",
+      "line": 89,
+      "title": "#785 5폭 탭 왕복은 Target 네트워크·DOM·접근성 제어 0이며 canonical 불변",
+      "status": "passed",
+      "durationMs": 13971,
+      "retry": 0
+    },
+    {
+      "file": "resource-dashboard-api.spec.ts",
+      "line": 6,
+      "title": "Issue #524 실제 브라우저 public readonly report/detail과 재시작 snapshot을 보존한다",
+      "status": "passed",
+      "durationMs": 16353,
+      "retry": 0
+    },
+    {
+      "file": "resource-target-dashboard-api.spec.ts",
+      "line": 17,
+      "title": "#620 실제 HTTP Target 교집합·공동담당 exact drill·readonly·변경 stale·재시작",
+      "status": "failed",
+      "durationMs": 6396,
+      "retry": 0
+    }
+  ],
+  "rawLog": "/tmp/issue-785-browser-core.log",
+  "rawReport": "/tmp/issue-785-browser-core.json",
+  "remoteCI": "NOT TESTED"
+}

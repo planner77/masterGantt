@@ -1,3 +1,4 @@
+import { toResourcePublicV2 } from "../../src/contracts/resource-public-v2";
 import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
 import {test, expect, type Page} from '@playwright/test';
 import {installStatefulProjectFixture, projectPath, publicId, deferred} from '../fixtures/stateful-project';
@@ -29,19 +30,19 @@ async function setup(page:Page) {
   data.rows=tasks.slice(data.offset,data.offset+50).map(t=>({...base,taskId:t.taskId,taskName:t.name,externalId:t.externalId,wbsPath:[{taskId:parent.taskId,name:parent.name}]}));
   return data;
  }
- await page.route(`**${projectPath}/resource-dashboard?*`,route=>route.fulfill({json:{data:report(new URL(route.request().url()).searchParams)}}));
- await page.route(`**${projectPath}/resource-dashboard/details?*`,route=>route.fulfill({json:{data:detail(new URL(route.request().url()).searchParams)}}));
+ await page.route(`**${projectPath}/resource-dashboard?*`,route=>route.fulfill({json:toResourcePublicV2({data:report(new URL(route.request().url()).searchParams)})}));
+ await page.route(`**${projectPath}/resource-dashboard/details?*`,route=>route.fulfill({json:toResourcePublicV2({data:detail(new URL(route.request().url()).searchParams)})}));
  await page.route(`**${projectPath}/resource-dashboard/scope?*`,async route=>{
   const q=new URL(route.request().url()).searchParams;
-  if(q.get('view')==='context') return route.fulfill({json:{data:identity()}});
+  if(q.get('view')==='context') return route.fulfill({json:toResourcePublicV2({data:identity()})});
   if(delayed){await gate.promise;return route.fulfill({status:409,json:{error:{code:'REPORT_STALE'}}}).catch(()=>undefined);}
   const data=report(q),ctx=context(data);ctx.sourceProjection={kind:'details',selector:data.summary.selector,view:'assignments'};
-  return route.fulfill({json:{data:{schema:'resource-dashboard/1',snapshotId:data.snapshotId,sourceContext:ctx,taskIds:tasks.map(t=>t.taskId),assignmentIds:tasks.map((_,i)=>`00005281-0000-4000-8000-${String(i).padStart(12,'0')}`),ancestorSummaryIds:[parent.taskId],taskCount:60,assignmentCount:60}}});
+  return route.fulfill({json:toResourcePublicV2({data:{schema:'resource-dashboard/1',snapshotId:data.snapshotId,sourceContext:ctx,taskIds:tasks.map(t=>t.taskId),assignmentIds:tasks.map((_,i)=>`00005281-0000-4000-8000-${String(i).padStart(12,'0')}`),ancestorSummaryIds:[parent.taskId],taskCount:60,assignmentCount:60}})});
  });
  await page.route(`**${projectPath}/resource-dashboard/query`,route=>{
   const input=route.request().postDataJSON() as ResourceDrillQueryInput;
   const q=new URLSearchParams();for(const [key,value]of Object.entries(input.filters)){if(Array.isArray(value))for(const item of value)q.append(key,String(item));else q.set(key,String(value));}
-  return route.fulfill({json:{data:report(q),drill:{...input,targetFilters:normalizedDrillFilters(input.filters),assignmentScope:'exact-source-intersection',projectReferenceScope:'same-resource-population-and-period'}}});
+  return route.fulfill({json:toResourcePublicV2({data:report(q),drill:{...input,targetFilters:normalizedDrillFilters(input.filters),assignmentScope:'exact-source-intersection',projectReferenceScope:'same-resource-population-and-period'}})});
  });
  await page.goto(`/projects/${publicId}`);await openWorkspaceView(page, "resources");
  const root=page.locator('[data-resource-dashboard="true"]:visible');await expect(root).toHaveAttribute('data-ready','true');
@@ -60,6 +61,6 @@ test('#528 전체60 Task는 page50과 구분하고 조상·조건 확인·Escape
  const bytes=Buffer.byteLength(JSON.stringify({data:f.report(new URLSearchParams())}));expect(bytes).toBeLessThan(2*1024*1024);await info.attach('bounded-whole-scope-fixture',{body:JSON.stringify({taskCount:60,visibleDetailPage:10,assignmentCount:60,bytes}),contentType:'application/json'});
 });
 test('#528 legacy M context null은 cross 명령만 잠그고 기존 원인과 Editor 조회를 유지',async({page})=>{
- const f=await setup(page);await page.route(`**${projectPath}/milestone-dashboard?*`,route=>{const data=dashboardFixture(f.state,new URL(route.request().url()).searchParams);data.resourceScopeContext=null;data.resourceScopeUnavailableReason='limit-exceeded';return route.fulfill({json:{data}});});
+ const f=await setup(page);await page.route(`**${projectPath}/milestone-dashboard?*`,route=>{const data=dashboardFixture(f.state,new URL(route.request().url()).searchParams);data.resourceScopeContext=null;data.resourceScopeUnavailableReason='limit-exceeded';return route.fulfill({json:toResourcePublicV2({data})});});
  await page.getByRole('tab',{name:'일정',exact:true}).click();await openWorkspaceView(page, "milestones");const root=page.getByTestId('milestone-dashboard');await expect(root).toHaveAttribute('data-ready','true');await expect(root.getByText(/원본 문맥 조회 한도 초과/)).toBeVisible();await expect(root.getByRole('button',{name:'전체 일정에서 보고 범위 보기',exact:true})).toBeDisabled();await expect(root.getByRole('button',{name:/전체 원인 확인/}).first()).toBeEnabled();
 });

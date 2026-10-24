@@ -1,3 +1,9 @@
+## Issue #785 — 실물 중심 모델과 archive 무손실 Copy
+
+신규 직접 모델은 기존 공정/WorkArea/설비/System·Task/Assignment를 복사하며 별도 archive 그룹을 추론 생성하지 않는다. 기존 archive graph가 있으면 whole/subset·coverage·self/subtree·동일/공유 실물의 원형을 지원 Copy/Template 내부 snapshot에서 원자 재매핑한다. 이 보존 복사는 사용자 도메인 재도입이나 공개 writer 허용이 아니다.
+
+원본 행과 JOIN snapshot의 참조 완전성을 확인하여 dangling/누락을 부분 성공으로 복사하지 않는다. 실패는 새 Project·관계·session까지 전체 rollback하고 source 불변을 유지한다. 공개 Template 건수 DTO에서 폐기 엔터티를 제거하며 private snapshot은 유지한다. JSON1.1을 전체 원본 backup으로 확대하지 않는다. [API](API.md), [교환/운영](TARGET_RESOURCE_OPERATIONS.md), [검증](exec-plans/active/ISSUE_785.md).
+
 ## Issue #762 — 직접 소속 WorkArea의 Copy·Template v5
 
 Project Copy는 사용량0을 포함한 모든 직접 WorkArea를 새 local UUID로 복제하고 대상의 remapped 공정 owner와 Task/설비 링크를 함께 복원한다. 기존 hierarchy·code/name/상태/정렬을 보존하고 legacy global occurrence/WorkArea UUID는 그대로 재사용한다. 같은 Project의 Task subtree copy는 직접 구역의 같은 UUID를 사용하며 구역을 복제하지 않는다.

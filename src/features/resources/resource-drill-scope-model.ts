@@ -1,3 +1,4 @@
+import { fromResourcePublicV2 } from "../../contracts/resource-public-v2";
 import { z } from "zod";
 import type {
   ResourceDrillScopeDto,
@@ -49,7 +50,7 @@ export function sameResourceDataContext(
   );
 }
 const scope = z.object({
-  schema: z.literal("resource-dashboard/1"),
+  schema: z.enum(["resource-dashboard/1","resource-dashboard/2"]),
   snapshotId: hash,
   sourceContext: resourceSourceContextSchema,
   taskIds: z.array(z.string()).max(5000),
@@ -64,7 +65,7 @@ export function readResourceDrillScope(
   snapshotId?: string,
   projection?: Extract<ResourceDrillProjection, { kind: "scope" }>,
 ): ResourceDrillScopeDto | null {
-  const parsed = z.object({ data: scope }).safeParse(body);
+  const parsed = z.object({ data: scope }).safeParse(fromResourcePublicV2(body));
   if (!parsed.success) return null;
   const value = parsed.data.data;
   if (projection) {

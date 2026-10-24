@@ -10,10 +10,12 @@ export const RESOURCE_DASHBOARD_LIMITS = Object.freeze({ tasks: 5000, assignment
   rangeDays: 366, idsPerField: 200, totalIds: 400, groupsPerResource: 32, groupAssignmentRows: 16000,
   cells: 5000, wbsPathEntries: 50000, wbsPathChars: 20000, reportBytes: 2 * 1024 * 1024, detailPage: 100, detailOffset: 8000 });
 export const RESOURCE_TARGET_LIMITS = Object.freeze({ snapshotRows: 50000, provenancePaths: 50000, lineageEdges: 50000, projectionCells: 5000, responseSourceRows: 5000 });
+export const RESOURCE_PHYSICAL_FILTER_KEYS = ["equipmentIds", "systemIds", "physicalEquipmentTypeCodes", "physicalSystemTypeCodes"] as const;
 export const RESOURCE_TARGET_FILTER_KEYS = ["targetIds", "projectProcessIds", "processOccurrenceIds", "processTypeIds", "workAreaIds", "targetScopes", "memberEquipmentIds", "memberSystemIds", "equipmentTypeCodes", "systemTypeCodes", "directEquipmentIds", "directSystemIds"] as const;
 export const RESOURCE_TARGET_DIMENSIONS = ["target", "process", "processType", "workArea", "scope", "equipmentType", "systemType", "equipment", "system", "group", "resource"] as const;
 export type ResourceTargetDimension = typeof RESOURCE_TARGET_DIMENSIONS[number];
 export interface ResourceDashboardTargetFilters {
+  equipmentIds?: string[]; systemIds?: string[]; physicalEquipmentTypeCodes?: string[]; physicalSystemTypeCodes?: string[];
   targetIds?: string[]; projectProcessIds?: string[]; processOccurrenceIds?: string[]; processTypeIds?: string[]; workAreaIds?: string[];
   targetScopes?: ("process" | "project_common")[];
   memberEquipmentIds?: string[]; memberSystemIds?: string[]; equipmentTypeCodes?: string[]; systemTypeCodes?: string[];
@@ -94,7 +96,7 @@ export interface ResourceDashboardDto {
   targetProjection?: ResourceDashboardTargetProjection;
   resourceScopeContext?: ResourceDrillSourceContext;
   plan?: ResourceDashboardPlanDto;
-  schema: "resource-dashboard/1"; projectPublicId: string; projectRevision: number; catalogRevision: number;
+  schema: "resource-dashboard/1" | "resource-dashboard/2"; projectPublicId: string; projectRevision: number; catalogRevision: number;
   calendarRevision: string; snapshotId: string; calculatedAt: string; asOfDate: string; timezone: "Asia/Seoul";
   filters: ResourceDashboardFilters; range: { from: string; to: string }; rangeFallback: boolean;
   mdPerMm: number | null; mdPerMmSource: "query" | "environment" | "unset";
@@ -132,7 +134,7 @@ export interface ResourceDashboardDetailRow {
 }
 export interface ResourceDashboardDetailsDto {
   resourceDataContext?: ResourceDataContext;
-  schema: "resource-dashboard/1"; snapshotId: string; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
+  schema: "resource-dashboard/1" | "resource-dashboard/2"; snapshotId: string; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
   selector: ResourceDashboardSelector; view: "tasks" | "assignments"; offset: number; limit: number; totalCount: number;
   nextOffset: number | null; rows: ResourceDashboardDetailRow[];
 }
@@ -144,7 +146,7 @@ export interface ResourceDashboardGroupChildrenInput {
 }
 export interface ResourceDashboardGroupChildrenDto {
   resourceDataContext?: ResourceDataContext;
-  schema: "resource-dashboard/1"; snapshotId: string; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
+  schema: "resource-dashboard/1" | "resource-dashboard/2"; snapshotId: string; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
   groupId: string | null; milestoneTaskId?: string | null; filters: ResourceDashboardFilters; range: { from: string; to: string }; asOfDate: string; mdPerMm: number | null; mdPerMmSource: "query" | "environment" | "unset"; summary: ResourceDashboardSummary;
   offset: number; limit: number; totalCount: number; nextOffset: number | null; rows: ResourceDashboardRow[];
 }
@@ -174,7 +176,7 @@ export interface ResourcePlanDetailContext extends ResourcePlanDetailInput {
   resourceScopeContext?: ResourceDrillSourceContext;
   targetContext?: ResourcePlanTargetContext;
   resourceDataContext?: ResourceDataContext;
-  schema: "resource-dashboard/1"; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
+  schema: "resource-dashboard/1" | "resource-dashboard/2"; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
   filters: ResourceDashboardFilters; range: { from: string; to: string }; asOfDate: string; mdPerMm: number | null; mdPerMmSource: "query" | "environment" | "unset";
   totalCount: number; nextOffset: number | null;
 }

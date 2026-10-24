@@ -1,11 +1,11 @@
 import type { ResourceDashboardDetailInput, ResourceDashboardFilterInput, ResourceDashboardFilters, ResourceDashboardMetric, ResourceDashboardSelector, ResourceDashboardGroupChildrenInput } from "../../contracts/resource-dashboard";
-import { RESOURCE_TARGET_FILTER_KEYS, RESOURCE_TARGET_DIMENSIONS, RESOURCE_DASHBOARD_LIMITS as LIMITS } from "../../contracts/resource-dashboard";
+import { RESOURCE_PHYSICAL_FILTER_KEYS, RESOURCE_TARGET_FILTER_KEYS, RESOURCE_TARGET_DIMENSIONS, RESOURCE_DASHBOARD_LIMITS as LIMITS } from "../../contracts/resource-dashboard";
 import { parseDateOnly } from "../../domain/scheduling/date-only";
 import { PublicApiError } from "../http/api-error-core";
 import { isCanonicalUuidV4 } from "../projects/project-contract";
 import type { ResourcePlanDetailInput, ResourcePlanDetailKind, ResourcePlanRowSelector } from "../../contracts/resource-dashboard";
 
-const ARRAYS = ["resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses", ...RESOURCE_TARGET_FILTER_KEYS, "projectionOrder"] as const;
+const ARRAYS = ["resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses", ...RESOURCE_TARGET_FILTER_KEYS, ...RESOURCE_PHYSICAL_FILTER_KEYS, "projectionOrder"] as const;
 const SCALARS = ["from", "to", "asOfDate", "search", "taskSearch", "mode", "granularity", "mdPerMm", "resourceActivity", "groupActivity"] as const;
 const DETAILS = ["snapshotId", "dimension", "id", "milestoneTaskId", "metric", "view", "offset", "limit", "resourceId", "assignmentScope", "targetPath"] as const;
 const CHILDREN = ["snapshotId", "groupId", "milestoneTaskId", "offset", "limit"] as const;
@@ -27,7 +27,7 @@ export function parseResourceDashboardQuery(params: URLSearchParams, details = f
     total += tokens.length;
     if (tokens.length > LIMITS.idsPerField || total > LIMITS.totalIds) invalidDashboardQuery();
     const allowed = key === "roles" ? ROLES : key === "developerGrades" ? GRADES : key === "statuses" ? STATUSES : key === "projectionOrder" ? [...RESOURCE_TARGET_DIMENSIONS] : key === "targetScopes" ? ["process", "project_common"] : null;
-    if (tokens.some((value) => allowed ? !allowed.includes(value) : !(isCanonicalUuidV4(value) || ((key === "equipmentTypeCodes" || key === "systemTypeCodes") && value.length > 0 && value.length <= 64) || (key === "groupIds" && value === "ungrouped") || (["milestoneIds", "targetIds", "workAreaIds"].includes(key) && value === "unassigned")))) invalidDashboardQuery();
+    if (tokens.some((value) => allowed ? !allowed.includes(value) : !(isCanonicalUuidV4(value) || ((key === "equipmentTypeCodes" || key === "systemTypeCodes" || key === "physicalEquipmentTypeCodes" || key === "physicalSystemTypeCodes") && value.length > 0 && value.length <= 64) || (key === "groupIds" && value === "ungrouped") || (["milestoneIds", "targetIds", "workAreaIds"].includes(key) && value === "unassigned")))) invalidDashboardQuery();
     if (key === "projectionOrder" && (tokens.length > RESOURCE_TARGET_DIMENSIONS.length || new Set(tokens).size !== tokens.length)) invalidDashboardQuery();
     Object.assign(output, { [key]: key === "projectionOrder" ? tokens : [...new Set(tokens)].sort() });
   }
@@ -61,7 +61,7 @@ export function normalizeResourceDashboardFilters(input: ResourceDashboardFilter
   return { from: checked.from ?? null, to: checked.to ?? null, asOfDate: checked.asOfDate ?? null,
     resourceActivity: checked.resourceActivity ?? "all", groupActivity: checked.groupActivity ?? "all",
     search: checked.search ?? "", taskSearch: checked.taskSearch ?? "", mode: checked.mode ?? "resource", ...(checked.granularity === undefined ? {} : { granularity: checked.granularity }), mdPerMm: checked.mdPerMm ?? null, mdPerMmProvided: checked.mdPerMm !== undefined,
-    ...Object.fromEntries([...RESOURCE_TARGET_FILTER_KEYS, "projectionOrder"].filter(key => checked[key as keyof typeof checked] !== undefined).map(key => [key, checked[key as keyof typeof checked]])),
+    ...Object.fromEntries([...RESOURCE_TARGET_FILTER_KEYS, ...RESOURCE_PHYSICAL_FILTER_KEYS, "projectionOrder"].filter(key => checked[key as keyof typeof checked] !== undefined).map(key => [key, checked[key as keyof typeof checked]])),
     resourceIds: checked.resourceIds ?? [], groupIds: checked.groupIds ?? [], milestoneIds: checked.milestoneIds ?? [], taskIds: checked.taskIds ?? [], wbsRootIds: checked.wbsRootIds ?? [], roles: checked.roles ?? [], developerGrades: checked.developerGrades ?? [], statuses: checked.statuses ?? [] };
 }
 export function parseResourceDashboardDetails(params: URLSearchParams): ResourceDashboardDetailInput {

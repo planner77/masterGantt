@@ -1,0 +1,12 @@
+{
+  "status": "CANCELLED",
+  "reason": "Manager requested stop after independent QA reproduced shared report helper cache race; not a product/remote CI failure",
+  "sourceBefore": "eddfed861b304dac186f240974bd9a2cdaec54832267491dee89d7643feb0624",
+  "sourceAfter": "eddfed861b304dac186f240974bd9a2cdaec54832267491dee89d7643feb0624",
+  "sourceStable": true,
+  "plannedCases": 97,
+  "completedPassLines": 4,
+  "nextBatches": "B/C/D NOT RUN",
+  "finalPassClaim": false,
+  "sourceFileCount": 1130
+}

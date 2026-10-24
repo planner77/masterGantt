@@ -82,11 +82,11 @@ export class ProjectJsonExportService {
         throw new PublicApiError(409, "RESOURCE_MEMBERSHIP_EXPORT_UNSUPPORTED", "프로젝트 리소스 등록은 JSON 일정 형식으로 보존할 수 없습니다. 프로젝트 복사 또는 템플릿을 이용해 주세요.");
       }
       if (projectId && this.database.prepare("SELECT 1 FROM task_target_bindings WHERE project_id=? LIMIT 1").get(projectId.id)) {
-        throw new PublicApiError(409, "TASK_TARGET_EXPORT_UNSUPPORTED", "Task Target bindings cannot be represented by JSON schema 1.1. Use Project Copy or Template.");
+        throw new PublicApiError(409, "TASK_TARGET_EXPORT_UNSUPPORTED", "기존 설비·물류 연결은 JSON 1.1 일정 형식으로 보존할 수 없습니다. 프로젝트 복사 또는 템플릿을 이용해 주세요.");
       }
       if (projectId && this.database.prepare("SELECT 1 FROM logistics_targets WHERE project_id=? LIMIT 1").get(projectId.id)) {
         throw new PublicApiError(409,"TARGET_JSON_EXPORT_UNSUPPORTED",
-          "Target/member graph is not supported by the schedule-stage JSON schema. Use Project Copy.");
+          "기존 물류 구성은 일정 JSON 형식으로 보존할 수 없습니다. 프로젝트 복사를 이용해 주세요.");
       }
       const bytes = new TextEncoder().encode(JSON.stringify(buildProjectJsonExport(snapshot, now.toISOString()), null, 2));
       if (bytes.length > IMPORT_FILE_LIMIT_BYTES) throw new PublicApiError(422, "EXPORT_LIMIT_EXCEEDED", "The JSON file exceeds the 5 MiB import limit.");

@@ -1,3 +1,4 @@
+import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
@@ -53,7 +54,9 @@ test("#762 분류·catalog·Target 없이 공정과 0..N 구역 CRUD·소비자�
   expect(context.selectionValid).toBe(false);expect(context.mappings).toEqual([]);
   expect(context.projectWorkAreas).toHaveLength(2);expect(context.projectWorkAreas!.every(a=>a.source==="project"&&a.occurrenceId===null&&a.processId===process.id)).toBe(true);
   expect(context.projectWorkAreas!.some(a=>a.processId===second.id)).toBe(false);
-  expect((await(await page.request.get(`${api}/logistics/targets`)).json()).data.targets).toEqual([]);
+  const retired = await page.request.get(`${api}/logistics/targets`);
+  expect(retired.status()).toBe(410);expect((await retired.json()).error.code).toBe("LOGISTICS_API_RETIRED");
+  expect(readLegacyFixtureCounts(origin,project.publicId)).toEqual({targets:0,members:0,bindings:0,selectedMembers:0});
   const first=context.projectWorkAreas![0];
   expect(first.code).not.toBe("");
   for(const width of [390,768,1024,1440,1920]){

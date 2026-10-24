@@ -1,3 +1,7 @@
+## Issue #785 — 실물 직접 모델·공개 경계 전환 (진행)
+
+2026-10-23 main `427d22245fb8e11254b2424ea5147ccbd5766979` 기준 별도 구현을 진행한다. MINOR0.131.0·HIGH/OWNER_MANAGED·qa_required=true. P0 소비자 지도와 원본 보존 설계 후 UI/실물v2 API·호환 읽기·교환·문서를 전환한다. 전체 AC 완료/Owner ACCEPT가 아니며 레거시 출처 자체 편집·운영 DB/외부 consumer·파괴적 P3는 별도 gate다. 사용자 범위는 PR CI 시작까지, 모니터링/merge/main/GHCR/Issue 종료 없음. [Work Packet](ISSUE_785.md), [누적 원장](../../ISSUE_785_FAILURE_ANALYSIS.md).
+
 ## Issue #556 — 일정 상단 P1 경량 정돈
 
 P1 구현·문서·실측 및 최종 선택 회귀를 정리해 Ready PR Full CI 시작으로 인계한다. 기본1440×900 Gantt/Grid/Chart+80px, Summary+4.5px를 실측했으며 실제 선택 긴Milestone의720px clipping을 Project2열/wrap과 기존 회귀 확장으로 보완했다. 검증·최초 실패·승인/미검증 경계는 Work Packet이 기준이다.

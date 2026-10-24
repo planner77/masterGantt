@@ -52,7 +52,7 @@ export interface WbsViewIdentityScope {
   instancePaths: WbsViewInstancePath[];
 }
 export interface WbsViewResponseContext {
-  schema: "wbs-view-report/1"; snapshotId: string; projectPublicId: string; projectRevision: number;
+  schema: "wbs-view-report/1" | "wbs-view-report/2"; snapshotId: string; projectPublicId: string; projectRevision: number;
   sourceContext: WbsViewSourceContext; spec: WbsViewSpec; filters: ResourceDashboardFilterInput;
   range: { from: string; to: string }; asOfDate: string; mdPerMm: number | null;
   metadata: WbsTaskLedgerSnapshot["metadata"] & { systemSelection?: { systemView: "direct" | "coordination"; systemIds: string[] }; limits: typeof WBS_VIEW_LIMITS; excel: { supported: boolean; code?: "WBS_VIEW_EXPORT_UNSUPPORTED"; reason: string } };

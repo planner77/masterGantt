@@ -3,10 +3,9 @@ import type { ResourceDashboardStage, ResourceTargetDimension } from "@/contract
 
 /** App-owned, read-only projections of the same Resource KPI snapshot (#619/#620). */
 export const LOGISTICS_PERSPECTIVES = {
-  process: { label: "공정 · WorkArea", order: ["processType", "process", "workArea", "target"] },
-  equipment: { label: "설비 종류 · 인스턴스", order: ["equipmentType", "equipment", "target"] },
-  system: { label: "시스템 종류 · 인스턴스", order: ["systemType", "system", "target"] },
-  target: { label: "Target · Resource", order: ["target", "resource"] },
+  process: { label: "공정 · WorkArea", order: ["processType", "process", "workArea"] },
+  equipment: { label: "설비 종류 · 인스턴스", order: ["equipmentType", "equipment"] },
+  system: { label: "시스템 종류 · 인스턴스", order: ["systemType", "system"] },
 } as const satisfies Record<string, { label: string; order: readonly ResourceTargetDimension[] }>;
 export type LogisticsPerspective = keyof typeof LOGISTICS_PERSPECTIVES;
 

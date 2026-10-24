@@ -1,3 +1,4 @@
+import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
@@ -47,7 +48,8 @@ test("#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot E
  const f=await seedWbsViewComposer(page,origin,observeIsolatedApi);
  const first=reportResponse(page);await openResource(page);const initial=await first;
  expect(initial.spec.levels).toEqual([]);
- const before=await f.snapshot();const targets=await page.request.get(`${f.api}/logistics/targets`);expect(targets.status()).toBe(200);expect((await targets.json()).data.targets).toHaveLength(0);
+ const before=await f.snapshot();const targets=await page.request.get(`${f.api}/logistics/targets`);expect(targets.status()).toBe(410);expect((await targets.json()).error.code).toBe("LOGISTICS_API_RETIRED");
+ expect(readLegacyFixtureCounts(origin,f.publicId)).toEqual({targets:0,members:0,bindings:0,selectedMembers:0});
  await expect(root(page).getByTestId("resource-wbs-summary")).toContainText("Project Task 개인 배정 인원");
  const p=await preset(page,"리소스 → 공정 → WorkArea → 설비 / 물류 시스템");
  expect(p.assignmentIds).toEqual(initial.assignmentIds);expect(p.totals.assignments.effort).toEqual(initial.totals.assignments.effort);

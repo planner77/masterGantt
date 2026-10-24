@@ -1,0 +1,117 @@
+{
+  "schema": "mastergantt-785-main-integration-v1",
+  "previousBase": "427d22245fb8e11254b2424ea5147ccbd5766979",
+  "newBase": "dd7f4d86db06e8a10b8c86b5412ed319154011e0",
+  "remotePrHeadAtDrift": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+  "preparedLocalCommitBeforeDrift": "e49e397b8be9eff483ec1906256b579c3b7f63d1",
+  "remoteWritesAtDetection": 0,
+  "conflicts": [
+    "CHANGELOG.md",
+    "README.md",
+    "docs/PROJECT_UX.md",
+    "docs/REQUIREMENTS.md",
+    "docs/RESOURCE_KPI_DASHBOARD.md",
+    "docs/SECURITY.md",
+    "docs/TEST_PLAN.md",
+    "docs/UI_UX_GUIDELINES.md",
+    "docs/exec-plans/active/PLAN.md",
+    "package.json",
+    "package-lock.json",
+    "tests/e2e/issue-621-resource-target.spec.ts",
+    "tests/fixtures/gantt-state-consistency/approved-zod-4.6.7-lock.json",
+    "tests/fixtures/gantt-state-consistency/capture-install.ts",
+    "tests/scripts/prepr-verifier.test.ts"
+  ],
+  "resolvedConflicts": 15,
+  "unresolvedConflicts": 0,
+  "resolution": {
+    "docs": "양쪽 Issue 섹션 전체 보존, README 동일 Zod 설명 통합",
+    "package": "#785 version0.131.0/Zod4.6.7; lock HEAD 동일, main과 app version만 다름",
+    "capture": "module trusted URL/exact metadata/양쪽 negative 합집합, immutable snapshots 보존",
+    "equipment734": "F785-004 최신 same-ID DTO 및 엄격한 이름/ID/dirty/revision 보호 유지",
+    "equipment621": "#785 실물/v2/Origin/retired0 시나리오 보존; HEAD byte 동일",
+    "workspace": "main 조건부 탐색/조회/hidden heading/overlay geometry와 #785 Target 폐기 3-way 보존",
+    "globalsCss": "new main byte 동일"
+  },
+  "testPlan": {
+    "bytes": 1083528,
+    "blob": "5edc20685005d8877d160059e5fff9ba46c3bac0",
+    "againstNewMain": {
+      "addedLines": 21,
+      "deletedLines": 0
+    },
+    "previousOriginalRestoredBlob": "1d2b679dda6730306d8f6586ba3921a9458d4e9f",
+    "fullDocumentPreserved": true
+  },
+  "postMergeUnit": {
+    "state": "PASS",
+    "files": 4,
+    "tests": 40,
+    "durationSeconds": 1.47,
+    "receipt": "rework-main-infra-resolution.json"
+  },
+  "browser": {
+    "state": "PASS",
+    "plannedBatches": [
+      27,
+      23
+    ],
+    "uniqueCases": 50,
+    "uniqueSpecs": 18,
+    "prior32ReusedAsPostMergePass": false,
+    "passed": 50,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "retry": 0,
+    "duplicateCases": 0,
+    "receipt": "rework-post-main-browser-final.json",
+    "durationsMinutes": [
+      12.5,
+      3.0
+    ],
+    "scopedSourceStable": true,
+    "fullCheckoutSourceStable": false
+  },
+  "newHeadRemoteRequired": "NOT TESTED",
+  "ownerAcceptance": "NOT TESTED",
+  "mergeReady": "BLOCKED",
+  "postMergeDeclaredSource": {
+    "files": 1128,
+    "sha256": "45e587eb3b73f4fe3aefed0a1cd2c918b14346d1fb8a935605bcf1ca6d7964f3",
+    "scope": "tracked src/tests/scripts and root package/static runtime-tool configs; documentation excluded for Manager parallel updates",
+    "headDuringMerge": "e49e397b8be9eff483ec1906256b579c3b7f63d1",
+    "mergeHead": "dd7f4d86db06e8a10b8c86b5412ed319154011e0"
+  },
+  "exceptionIssueComment": {
+    "id": 6376530335,
+    "url": "https://github.com/planner77/masterGantt/issues/785#issuecomment-6376530335"
+  },
+  "generatedArtifacts": {
+    "restoredAgainst": "merge index",
+    "rawOutputsPreserved": "/tmp/issue785-post-main-generated-preserve",
+    "newRawRuntimeLogsPublished": false
+  },
+  "postMergeStaticReceipt": "rework-post-main-static.json",
+  "postMergePrepr": {
+    "status": "BLOCKED",
+    "selected": 109,
+    "unknown": 30,
+    "missing": 0,
+    "steps": 0,
+    "sourceStable": true,
+    "receipt": "rework-post-main-prepr-fast.json"
+  },
+  "preQa": {
+    "reviewer": "/root/qa_review",
+    "state": "PASS",
+    "scope": "새 main 통합 source의 PR 게시 준비",
+    "readOnly": true,
+    "reviewedLocalCommit": "66c49810bee4cd794231057351556273d3ee9b73",
+    "runtimeSourceAfterReview": "UNCHANGED",
+    "unresolvedFindings": 0,
+    "newHeadRequired": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "mergeReady": "BLOCKED"
+  }
+}

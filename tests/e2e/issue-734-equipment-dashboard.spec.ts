@@ -1,3 +1,5 @@
+import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
+import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { Locator, Page } from "@playwright/test";
@@ -16,7 +18,8 @@ async function timedSeed(page: Page, origin: string, observer: Parameters<typeof
   return result;
 }
 const root = (page: Page) => page.getByTestId("wbs-view-dashboard").filter({ visible: true });
-const nextReport = (page: Page) => page.waitForResponse(response => response.url().endsWith("/resource-dashboard/views") && response.request().postDataJSON().projection?.kind === "report");
+const defaultSpec: WbsViewSpec = { version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root: "equipment", levels: [], };
+const nextReport = (page: Page, condition: Partial<WbsReportCondition> = {}) => waitForWbsReport(page, { spec: defaultSpec, filters: {}, ...condition });
 async function openEquipment(page: Page) {
   await page.getByRole("tablist", { name: "프로젝트 작업공간", exact: true }).getByRole("tab", { name: "대시보드", exact: true }).click();
   await page.getByRole("tablist", { name: "대시보드 보기", exact: true }).getByRole("tab", { name: "설비", exact: true }).click();
@@ -27,8 +30,8 @@ async function composer(page: Page) {
   if (!await panel.evaluate(node => (node as HTMLDetailsElement).open)) await panel.locator(":scope > summary").click();
   return panel;
 }
-async function apply(page: Page, levels: NonNullable<WbsViewSpec["levels"]>) {
-  const received = nextReport(page);
+async function apply(page: Page, levels: NonNullable<WbsViewSpec["levels"]>, filters: WbsReportCondition["filters"] = {}) {
+  const received = nextReport(page, { spec: { ...defaultSpec, levels }, filters });
   await (await composer(page)).getByRole("button", { name: "적용", exact: true }).click();
   const response = await received;
   expect(response.status(), await response.text()).toBe(200);
@@ -48,13 +51,18 @@ async function seed(page: Page, origin: string, observer: Parameters<typeof seed
   const catalog = (await response.json() as ProcessCatalogResponse).data;
   const area2 = catalog.workAreas.find(area => area.code === "WA-A2")!;
   await f.mutate(`/tasks/${f.task.taskId}/logistics-links`, { equipmentLinks: [], systemLinks: [{ systemId: f.system.id, scope: "self" }] }, "put");
-  await f.mutate(`/logistics/equipment/${f.equipment.id}`, { processCatalogRevision: catalog.processCatalogRevision, quantity: 10, name: "설비LongEquipmentNameWithoutWhitespace".repeat(5), workAreaLinks: [f.workArea, area2].map(area => ({ processId: f.processIds[0], workAreaId: area.id })) }, "patch");
+  const equipmentName = "설비LongEquipmentNameWithoutWhitespace".repeat(5);
+  await f.mutate(`/logistics/equipment/${f.equipment.id}`, { processCatalogRevision: catalog.processCatalogRevision, quantity: 10, name: equipmentName, workAreaLinks: [f.workArea, area2].map(area => ({ processId: f.processIds[0], workAreaId: area.id })) }, "patch");
   const idle = (await f.snapshot()).data.logistics!.equipment.find(equipment => equipment.code === "IDLE")!;
   await f.mutate(`/logistics/equipment/${idle.id}`, { quantity: 5, active: false }, "patch");
   await f.mutate(`/tasks/${f.task.taskId}/process-context`, { processCatalogRevision: catalog.processCatalogRevision, processLinks: f.processIds.map(processId => ({ processId, scope: "self" })), workAreaLinks: [f.workArea, area2].map(area => ({ processId: f.processIds[0], workAreaId: area.id, scope: "self" })) }, "put");
   await f.mutate(`/tasks/${f.task.taskId}/logistics-links`, { equipmentLinks: [{ equipmentId: f.equipment.id, scope: "self" }], systemLinks: [{ systemId: f.system.id, scope: "self" }] }, "put");
+  // This seed renames the shared fixture's equipment; consumers need its current canonical DTO.
+  const equipment = (await f.snapshot()).data.logistics?.equipment.find(row => row.id === f.equipment.id);
+  if (!equipment) throw new Error("테스트 설비가 canonical snapshot에 없습니다.");
+  expect(equipment.name).toBe(equipmentName);
   await page.reload();
-  return { ...f, idle, area2 };
+  return { ...f, equipment, idle, area2 };
 }
 function observeWrites(page: Page, publicId: string) {
   const writes: string[] = [];
@@ -67,7 +75,8 @@ test("#734 Target0 AMR10+5·비활성·Task0·미배정·구역별10/고유15·M
   const f = await seed(page, origin, observeIsolatedApi);
   const baseline = await f.snapshot();
   const targets = await observedReadOnlyGet(observeIsolatedApi, `/api/projects/${f.publicId}/logistics/targets`, () => page.request.get(`${f.api}/logistics/targets`));
-  expect(targets.status()).toBe(200); expect((await targets.json()).data.targets).toEqual([]);
+  expect(targets.status()).toBe(410); expect((await targets.json()).error.code).toBe("LOGISTICS_API_RETIRED");
+  expect(readLegacyFixtureCounts(origin,f.publicId)).toEqual({targets:0,members:0,bindings:0,selectedMembers:0});
   const writes = observeWrites(page, f.publicId);
   const received = nextReport(page); await openEquipment(page);
   const report = (await (await received).json()).data as WbsViewReportDto;
@@ -216,6 +225,7 @@ test("#734 설비 원본 dirty 유지·정확 PATCH 저장·새 snapshot과 focu
   const first = nextReport(page); await openEquipment(page); const before = (await (await first).json()).data as WbsViewReportDto;
   const row = root(page).locator(`tr[data-dimension="equipment"][data-entity-id="${f.equipment.id}"]`), trigger = row.getByRole("button", { name: "원본", exact: true });
   await trigger.click(); const editor = page.getByRole("dialog", { name: "설비 수정", exact: true });
+  await expect(editor.getByLabel("설비명", { exact: false })).toHaveValue(f.equipment.name);
   await expect(editor.getByRole("checkbox", { name: /A 작업구역/ })).toBeChecked();
   await expect(editor.getByRole("checkbox", { name: /두 번째 설비 구역/ })).toBeChecked();
   const name = "설비 원본 저장 검증"; await editor.getByLabel("설비명", { exact: false }).fill(name);
@@ -226,7 +236,13 @@ test("#734 설비 원본 dirty 유지·정확 PATCH 저장·새 snapshot과 focu
   // The existing shared-instance edit policy requires explicit impact confirmation before PATCH.
   const confirmation = page.getByRole("dialog", { name: "공유 인스턴스 변경 확인", exact: true });
   await expect(confirmation).toBeVisible();
-  await expect(confirmation).toContainText(f.equipment.id);
+  await expect(confirmation).toContainText(f.equipment.name);
+  await expect(confirmation).toContainText("관련 작업 1개 · 직접 연결 작업 1개 · 기존 연결 작업 0개");
+  await expect(confirmation).not.toContainText("공유 Target");
+  const equipmentIdentity = confirmation.getByText("변경 대상 식별 정보", { exact: true });
+  await equipmentIdentity.click();
+  await expect(confirmation.getByRole("textbox", { name: "설비 원본 ID", exact: true })).toHaveValue(f.equipment.id);
+  await equipmentIdentity.click();
   await expect(confirmation.getByRole("button", { name: "공유 사용처 확인 후 원본 저장", exact: true })).toBeEnabled();
   expect(writes).toEqual([]);
   await confirmation.getByRole("button", { name: "원본 변경 취소", exact: true }).click();
@@ -239,7 +255,7 @@ test("#734 설비 원본 dirty 유지·정확 PATCH 저장·새 snapshot과 focu
   const confirmationBefore = Number(await root(page).getAttribute("data-report-confirmation-id"));
   const [saved, refreshed] = await Promise.all([
     page.waitForResponse(response => response.request().method() === "PATCH" && new URL(response.url()).pathname === `/api/projects/${f.publicId}/logistics/equipment/${f.equipment.id}`, { timeout: 30_000 }),
-    nextReport(page),
+    nextReport(page, { spec: before.spec, filters: before.filters, scope: before.sourceContext.scope }),
     confirmation.getByRole("button", { name: "공유 사용처 확인 후 원본 저장", exact: true }).click(),
   ]);
   // Browser Response bodies can be discarded by the canonical post-save navigation.
@@ -255,7 +271,9 @@ test("#734 설비 원본 dirty 유지·정확 PATCH 저장·새 snapshot과 focu
   });
   expect(verified.status(), await verified.text()).toBe(200);
   const after = (await verified.json()).data as WbsViewReportDto;
-  expect(after.projectRevision).toBe(before.projectRevision + 1); expect(after.snapshotId).not.toBe(before.snapshotId); expect(after.spec).toEqual(before.spec);
+  expect(before.spec.root).toBe("equipment"); expect(after.spec.root).toBe("equipment"); expect(after.projectRevision).toBe(before.projectRevision + 1); expect(after.snapshotId).not.toBe(before.snapshotId); expect(after.spec).toEqual(before.spec);
+  await expect(root(page)).toHaveAttribute("data-wbs-view", "equipment");
+  await expect(root(page)).toHaveAttribute("data-ready", "true");
   await expect(editor).toHaveCount(0); await expect(row).toContainText(name); await expect(trigger).toBeFocused();
   const savedEquipment = (await f.snapshot()).data.logistics!.equipment.find(equipment => equipment.id === f.equipment.id)!;
   expect(savedEquipment.name).toBe(name); expect(savedEquipment.workAreaLinks).toHaveLength(2); expect(savedEquipment.workAreaLinks).toEqual(expect.arrayContaining([f.workArea, f.area2].map(area => ({ processId: f.processIds[0], workAreaId: area.id }))));
@@ -304,17 +322,17 @@ test("#734 유형 OR 필터와 controls·Task association 출처는 서로 추�
   const logistics = (await f.snapshot()).data.logistics!;
   const control = logistics.systems.find(system => system.code === "CTRL")!;
   await f.mutate(`/logistics/equipment/${f.equipment.id}/systems`, { systems: [{ systemId: control.id, controlRole: "primary" }] }, "put");
-  await page.reload(); const first = nextReport(page); await openEquipment(page); const all = (await (await first).json()).data as WbsViewReportDto;
+  const first = nextReport(page); await page.reload(); await openEquipment(page); const all = (await (await first).json()).data as WbsViewReportDto;
   const types = root(page).getByRole("group", { name: "설비 유형", exact: true });
-  const filtered = nextReport(page); await types.getByRole("checkbox", { name: "AGV (무인운반차)", exact: true }).check();
+  const filtered = nextReport(page, { filters: { equipmentTypeCodes: ["agv"] } }); await types.getByRole("checkbox", { name: "AGV (무인운반차)", exact: true }).check();
   const agv = (await (await filtered).json()).data as WbsViewReportDto; await expect(root(page)).toHaveAttribute("data-ready", "true");
   expect(agv.filters.equipmentTypeCodes).toEqual(["agv"]); expect(agv.totals.configurationReference.equipmentQuantity).toBe(3); expect(agv.taskIds).toEqual([]);
   await page.reload(); await openEquipment(page); await expect(types.getByRole("checkbox", { name: "AGV (무인운반차)", exact: true })).toBeChecked(); await expect(types.getByRole("checkbox", { name: "AMR (자율이동로봇)", exact: true })).not.toBeChecked();
-  const union = nextReport(page); await types.getByRole("checkbox", { name: "AMR (자율이동로봇)", exact: true }).check();
+  const union = nextReport(page, { filters: { equipmentTypeCodes: ["agv", "amr"] } }); await types.getByRole("checkbox", { name: "AMR (자율이동로봇)", exact: true }).check();
   const both = (await (await union).json()).data as WbsViewReportDto; await expect(root(page)).toHaveAttribute("data-ready", "true"); expect(both.totals.configurationReference.equipmentQuantity).toBe(all.totals.configurationReference.equipmentQuantity); expect(both.taskIds).toEqual([f.task.taskId]); expect(all.taskIds).toContain(f.task.taskId);
-  const reset = nextReport(page); await types.getByRole("button", { name: "전체 유형", exact: true }).click(); await reset; await expect(root(page)).toHaveAttribute("data-ready", "true");
+  const reset = nextReport(page, { filters: { equipmentTypeCodes: [] } }); await types.getByRole("button", { name: "전체 유형", exact: true }).click(); await reset; await expect(root(page)).toHaveAttribute("data-ready", "true");
   const config = await composer(page); await config.getByRole("button", { name: "하위 축 추가", exact: true }).click(); await config.getByRole("combobox", { name: "하위 축 1", exact: true }).selectOption("system");
-  const report = await apply(page, ["system"]), equipment = report.children.find(row => row.selector.id === f.equipment.id)!;
+  const report = await apply(page, ["system"], { equipmentTypeCodes: [] }), equipment = report.children.find(row => row.selector.id === f.equipment.id)!;
   expect(equipment.children.find(row => row.selector.id === control.id)?.taskIds ?? []).toEqual([]);
   expect(equipment.children.find(row => row.selector.id === f.system.id)!.taskIds).toEqual([f.task.taskId]);
   const metadata = report.configurationCatalog.equipment.find(row => row.id === f.equipment.id)!; expect(metadata.controlSystems).toContainEqual(expect.objectContaining({ systemId: control.id, controlRole: "primary" }));

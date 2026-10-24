@@ -3,7 +3,7 @@ import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, type Page } from "@playwright/test";
 import { deferred, installStatefulProjectFixture, publicId } from "../fixtures/stateful-project";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
-import type { ProjectLogisticsResponse, TaskLogisticsLinksResponse } from "../../src/contracts/logistics";
+import type { ProjectLogisticsResponse, TaskLogisticsLinksDto, TaskLogisticsLinksResponse } from "../../src/contracts/logistics";
 
 const path = `/api/projects/${publicId}`;
 async function openTask(page: Page, name = "Stable leaf") {
@@ -16,8 +16,8 @@ async function openTask(page: Page, name = "Stable leaf") {
 function logistics() {
   return { processes: [], equipment: [{ id: "eq-1", processId: "proc-1", code: "EQ-01", name: "기존 연결 설비", equipmentType: "stocker", managementUnit: "unit", quantity: 1, manufacturer: "", model: "", description: "", active: true, controlSystems: [], resourceRoles: [{ resourceId: "res-1", resourceCode: "ENG-01", resourceName: "기존 담당자", role: "owner", isPrimary: true, active: true }], createdAt: "", updatedAt: "" }], systems: [], systemLinks: [] } as const;
 }
-function links(taskId: string): TaskLogisticsLinksResponse {
-  return { data: { taskId, permission: "edit", links: { taskId, directEquipmentLinks: [{ equipmentId: "eq-1", scope: "self" }], inheritedEquipmentLinks: [], effectiveEquipmentIds: ["eq-1"], directSystemLinks: [], inheritedSystemLinks: [], effectiveSystemIds: [] } } };
+function links(taskId: string, projectRevision: number): TaskLogisticsLinksResponse {
+  return { data: { taskId, permission: "edit", links: { taskId, projectRevision, compatibilityLinks: [], directEquipmentLinks: [{ equipmentId: "eq-1", scope: "self" }], inheritedEquipmentLinks: [], effectiveEquipmentIds: ["eq-1"], directSystemLinks: [], inheritedSystemLinks: [], effectiveSystemIds: [] } satisfies TaskLogisticsLinksDto & Required<Pick<TaskLogisticsLinksDto, "projectRevision" | "compatibilityLinks">> } };
 }
 
 for (const failure of ["500", "network", "malformed", "wrong-task", "wrong-revision", "malformed-role"] as const) {
@@ -36,7 +36,7 @@ for (const failure of ["500", "network", "malformed", "wrong-task", "wrong-revis
       }
       const taskId = new URL(req.url()).pathname.split("/").at(-2)!;
       if (fail && failure === "network") { await route.abort(); return; }
-      await route.fulfill(fail && failure === "500" ? { status: 500, json: {} } : { json: fail && failure === "malformed" ? { data: { links: { directEquipmentLinks: [null] } } } : links(fail && failure === "wrong-task" ? "other-task" : taskId) });
+      await route.fulfill(fail && failure === "500" ? { status: 500, json: {} } : { json: fail && failure === "malformed" ? { data: { links: { directEquipmentLinks: [null] } } } : links(fail && failure === "wrong-task" ? "other-task" : taskId, fixture.project.revision) });
     });
     await page.route(`**${path}/logistics`, (route) => {
       const data: ProjectLogisticsResponse["data"] = {
@@ -85,7 +85,7 @@ for (const source of ["links", "logistics"] as const) {
           return route.fulfill({ status: 500, json: {} });
         }
         const taskId = new URL(route.request().url()).pathname.split("/").at(-2)!;
-        return route.fulfill({ json: { data: { taskId, links: links(taskId).data.links, ...(source === "links" ? denied : edit) } } });
+        return route.fulfill({ json: { data: { taskId, links: links(taskId, fixture.project.revision).data.links, ...(source === "links" ? denied : edit) } } });
       });
       await page.route(`**${path}/logistics`, route => route.fulfill({ json: { data: {
         project: fixture.project, logistics: fixture.logistics, ...(source === "logistics" ? denied : edit),
@@ -117,7 +117,7 @@ test("이전 작업의 지연 응답은 새 작업의 실패 상태와 저장 �
   await page.route(`**${path}/tasks/*/logistics-links`, async (route) => {
     if (route.request().method() === "PUT") { mutations++; await route.fulfill({ json: {} }); return; }
     const taskId = new URL(route.request().url()).pathname.split("/").at(-2)!;
-    if (first) { first = false; started.resolve(); await gate.promise; await route.fulfill({ json: links(taskId) }).catch(() => {}); }
+    if (first) { first = false; started.resolve(); await gate.promise; await route.fulfill({ json: links(taskId, fixture.project.revision) }).catch(() => {}); }
     else await route.fulfill({ status: 500, json: {} });
   });
   await page.goto(`/projects/${publicId}`);
@@ -208,7 +208,7 @@ test("Readonly 연결 조회 성공에서도 선택과 mutation을 허용하지 
   fixture.logistics = JSON.parse(JSON.stringify(logistics()));
   let mutations = 0;
   page.on("request", (request) => { if (request.method() === "PUT") mutations++; });
-  await page.route(`**${path}/tasks/*/logistics-links`, (route) => route.fulfill({ json: links(new URL(route.request().url()).pathname.split("/").at(-2)!) }));
+  await page.route(`**${path}/tasks/*/logistics-links`, (route) => route.fulfill({ json: links(new URL(route.request().url()).pathname.split("/").at(-2)!, fixture.project.revision) }));
   await page.goto(`/projects/${publicId}`);
   const dialog = await openTask(page);
   await expect(dialog.getByRole("checkbox", { name: /기존 연결 설비/ })).toBeChecked();

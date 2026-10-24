@@ -1,0 +1,565 @@
+{
+  "batch": "b",
+  "startedAt": "2026-10-24T01:19:29.996278+00:00",
+  "finishedAt": "2026-10-24T01:23:16.368842+00:00",
+  "exitCode": 0,
+  "sourceBefore": "ca3e45a2e59f0cb9302e508fe2e2ef3cee60d9a2a727efb9208f367836ecc956",
+  "sourceAfter": "ca3e45a2e59f0cb9302e508fe2e2ef3cee60d9a2a727efb9208f367836ecc956",
+  "sourceStable": true,
+  "sourceChangedPaths": [],
+  "generatedConfigChangedPaths": [
+    "next-env.d.ts",
+    "tsconfig.json"
+  ],
+  "fullCheckoutSourceStable": false,
+  "generatedConfigBefore": {
+    "next-env.d.ts": "e37bab3623d87bb0ad2a65c09c2c1ddfbb9799786d590dc2c4486b0524e1fa4e",
+    "tsconfig.json": "add3db037b8bff4e9a9d58c9736647877cb9480c2a64ef6b1150f9f1aa88ea66"
+  },
+  "generatedConfigAfter": {
+    "next-env.d.ts": "79188d659e89eba7a027d37b0c72c4535777cbd586f10b3f1b5d3614f49caf75",
+    "tsconfig.json": "4798706442f5b3d84613139ffa811168c92d98a1098911ba543dbedb7cb36358"
+  },
+  "tools": {
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "os": "Linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "next": "16.4.2",
+    "zod": "4.6.7",
+    "@playwright/test": "1.63.0"
+  },
+  "command": {
+    "batch": "b",
+    "expectedCount": 35,
+    "argv": [
+      "npx",
+      "--no-install",
+      "playwright",
+      "test",
+      "--config=tests/config/playwright.config.ts",
+      "--project=chromium",
+      "--workers=1",
+      "--retries=0",
+      "--max-failures=0",
+      "tests/e2e/issue-717-name-first.spec.ts",
+      "tests/e2e/task-editor-form-density.spec.ts",
+      "tests/e2e/logistics-dashboard-request-state.spec.ts",
+      "tests/e2e/canonical-projection.spec.ts",
+      "tests/e2e/project-modal-feedback.spec.ts",
+      "tests/e2e/project-filter-toolbar-consistency.spec.ts",
+      "tests/e2e/project-empty-summary.spec.ts",
+      "tests/e2e/resource-drill-ui.spec.ts",
+      "tests/e2e/project-workspace-tabs-518.spec.ts",
+      "tests/e2e/task-context-menu-hierarchy.spec.ts",
+      "tests/e2e/task-link-load-safety.spec.ts",
+      "--grep",
+      "#717 이름 우선과 전체 ID 접근 1440px|#456 Milestone 동적 소속과 물류 탭|#456 실제 keyboard 100%|조회 wrong-revision는|조회 malformed-integrated는|#570 metadata projection|설정 모달의 검증 오류|일정·리소스 필터는|Core probe keeps an unscheduled Summary|renders a tree of only empty Summary|#528 실제|#556 선택|#518 일정·Milestone|Issue #399 opens|조회 (500|network|malformed|wrong-task|wrong-revision|malformed-role)에서 빈 PUT|UI 편집 상태라도|이전 작업의 지연 응답|Readonly 연결 조회 성공"
+    ],
+    "environmentUnset": [
+      "PLAYWRIGHT_BASE_URL"
+    ]
+  },
+  "stats": {
+    "total": 35,
+    "expected": 35,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "durationMs": 234860.83599999998,
+  "cases": [
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 390px Day",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3639,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 390px Week",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2973,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 768px Day",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2944,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 768px Week",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2995,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 1024px Day",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3052,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 1024px Week",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2966,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 1440px Day",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3178,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 1440px Week",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3090,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 1920px Day",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3212,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "canonical-projection.spec.ts",
+      "title": "#570 metadata projection 1920px Week",
+      "location": {
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3046,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-717-name-first.spec.ts",
+      "title": "#717 이름 우선과 전체 ID 접근 1440px",
+      "location": {
+        "file": "issue-717-name-first.spec.ts",
+        "line": 8,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3672,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "title": "조회 wrong-revision는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "location": {
+        "file": "logistics-dashboard-request-state.spec.ts",
+        "line": 53,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2528,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "title": "조회 malformed-integrated는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "location": {
+        "file": "logistics-dashboard-request-state.spec.ts",
+        "line": 53,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2412,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "project-empty-summary.spec.ts",
+      "title": "Core probe keeps an unscheduled Summary row without inventing a scheduled bar",
+      "location": {
+        "file": "project-empty-summary.spec.ts",
+        "line": 4,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 1470,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "project-empty-summary.spec.ts",
+      "title": "renders a tree of only empty Summary containers without bars or fake Grid dates",
+      "location": {
+        "file": "project-empty-summary.spec.ts",
+        "line": 17,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2516,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "project-filter-toolbar-consistency.spec.ts",
+      "title": "Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API 불변 경계를 유지한다",
+      "location": {
+        "file": "project-filter-toolbar-consistency.spec.ts",
+        "line": 127,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 20376,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "project-modal-feedback.spec.ts",
+      "title": "설정 모달의 검증 오류는 top layer 안에서도 보이고 닫은 뒤 알림함에 남는다",
+      "location": {
+        "file": "project-modal-feedback.spec.ts",
+        "line": 4,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2915,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "project-workspace-tabs-518.spec.ts",
+      "title": "#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5폭 tab geometry",
+      "location": {
+        "file": "project-workspace-tabs-518.spec.ts",
+        "line": 7,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 11773,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "resource-drill-ui.spec.ts",
+      "title": "#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor",
+      "location": {
+        "file": "resource-drill-ui.spec.ts",
+        "line": 22,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 33520,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "resource-drill-ui.spec.ts",
+      "title": "#556 선택 Summary 자손과 현재 Summary 전체 담당자·공수를 별도 readonly 명령으로 조회한다",
+      "location": {
+        "file": "resource-drill-ui.spec.ts",
+        "line": 494,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 8104,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-context-menu-hierarchy.spec.ts",
+      "title": "Issue #399 opens Summary scopes in Workspace tabs without creating a browser tab",
+      "location": {
+        "file": "task-context-menu-hierarchy.spec.ts",
+        "line": 150,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 10154,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-editor-form-density.spec.ts",
+      "title": "#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 폭에 기록한다",
+      "location": {
+        "file": "task-editor-form-density.spec.ts",
+        "line": 94,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 6679,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-editor-form-density.spec.ts",
+      "title": "#456 실제 keyboard 100%·날짜 오류·pending action 폭과 닫기 잠금을 보존한다",
+      "location": {
+        "file": "task-editor-form-density.spec.ts",
+        "line": 124,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3779,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-link-load-safety.spec.ts",
+      "title": "조회 500에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다",
+      "location": {
+        "file": "task-link-load-safety.spec.ts",
+        "line": 24,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3011,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-link-load-safety.spec.ts",
+      "title": "조회 network에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다",
+      "location": {
+        "file": "task-link-load-safety.spec.ts",
+        "line": 24,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2737,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-link-load-safety.spec.ts",
+      "title": "조회 malformed에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다",
+      "location": {
+        "file": "task-link-load-safety.spec.ts",
+        "line": 24,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2482,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-link-load-safety.spec.ts",
+      "title": "조회 wrong-task에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다",
+      "location": {
+        "file": "task-link-load-safety.spec.ts",
+        "line": 24,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2796,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-link-load-safety.spec.ts",
+      "title": "조회 wrong-revision에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다",
+      "location": {
+        "file": "task-link-load-safety.spec.ts",
+        "line": 24,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2724,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-link-load-safety.spec.ts",
+      "title": "조회 malformed-role에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다",
+      "location": {
+        "file": "task-link-load-safety.spec.ts",
+        "line": 24,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2691,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-link-load-safety.spec.ts",
+      "title": "UI 편집 상태라도 links 응답 권한 readonly이면 기존 연결을 보존하고 PUT을 차단한다",
+      "location": {
+        "file": "task-link-load-safety.spec.ts",
+        "line": 75,
+        "column": 9
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2077,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-link-load-safety.spec.ts",
+      "title": "UI 편집 상태라도 links 응답 권한 missing이면 기존 연결을 보존하고 PUT을 차단한다",
+      "location": {
+        "file": "task-link-load-safety.spec.ts",
+        "line": 75,
+        "column": 9
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2281,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-link-load-safety.spec.ts",
+      "title": "UI 편집 상태라도 logistics 응답 권한 readonly이면 기존 연결을 보존하고 PUT을 차단한다",
+      "location": {
+        "file": "task-link-load-safety.spec.ts",
+        "line": 75,
+        "column": 9
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2497,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-link-load-safety.spec.ts",
+      "title": "UI 편집 상태라도 logistics 응답 권한 missing이면 기존 연결을 보존하고 PUT을 차단한다",
+      "location": {
+        "file": "task-link-load-safety.spec.ts",
+        "line": 75,
+        "column": 9
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2279,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-link-load-safety.spec.ts",
+      "title": "이전 작업의 지연 응답은 새 작업의 실패 상태와 저장 차단을 바꾸지 않는다",
+      "location": {
+        "file": "task-link-load-safety.spec.ts",
+        "line": 110,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2904,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-link-load-safety.spec.ts",
+      "title": "Readonly 연결 조회 성공에서도 선택과 mutation을 허용하지 않는다",
+      "location": {
+        "file": "task-link-load-safety.spec.ts",
+        "line": 205,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2658,
+      "retry": 0,
+      "errorFirstLine": null
+    }
+  ],
+  "rawLogSha256": "c6a4f9f8bc08cd9aa24bf2f63023c615ab260a4366742770c2d6e302e152238a"
+}

@@ -56,7 +56,11 @@ function assertReportWorkbook(entries: Map<string, string>, report: ResourceDash
   expect(metadata.get("catalogRevision")).toBe(report.catalogRevision);
   expect(metadata.get("calendarRevision")).toBe(report.calendarRevision);
   expect(metadata.get("snapshotId")).toBe(report.snapshotId);
-  expect(JSON.parse(metadata.get("Actual target context") as string)).toEqual(report.resourceScopeContext);
+  // #785: validate the physical report metadata without reviving the retired Target axis.
+  const actualContext = metadata.get("Actual report context");
+  expect(actualContext, "Resource Report must contain its canonical report context").toEqual(expect.any(String));
+  expect(metadata.has("Actual target context")).toBe(false);
+  expect(JSON.parse(actualContext as string)).toEqual(report.resourceScopeContext);
   if (options.originalSourceContext) expect(JSON.parse(metadata.get("Original source provenance (not current totals)") as string)).toEqual(options.originalSourceContext);
   const [head, ...rows] = sheets.get("Resource Assignments")!;
   const id = head.indexOf("assignmentId"), md = head.indexOf("plannedMd"), ids = rows.map(row => row[id]);

@@ -1,0 +1,831 @@
+{
+  "schema": "mastergantt-issue-785-rerun3-ci-evidence-v1",
+  "observedAt": "2026-10-24T00:40:17.161Z",
+  "repository": "planner77/masterGantt",
+  "issue": 785,
+  "pr": 787,
+  "head": "473b0fb103d445f64ef6b44be63a9b4d6456cbdc",
+  "base": "dd7f4d86db06e8a10b8c86b5412ed319154011e0",
+  "main": "dd7f4d86db06e8a10b8c86b5412ed319154011e0",
+  "testMerge": "fea4ad9558eec626ecbf56dc996e7d54127d3002",
+  "mergeable": true,
+  "unresolvedReviewThreads": 0,
+  "run": {
+    "id": 40045100122,
+    "url": "https://github.com/planner77/masterGantt/actions/runs/40045100122",
+    "number": 3208,
+    "attempt": 1,
+    "event": "pull_request",
+    "path": ".github/workflows/ci.yml",
+    "status": "completed",
+    "conclusion": "failure",
+    "head": "473b0fb103d445f64ef6b44be63a9b4d6456cbdc",
+    "base": "dd7f4d86db06e8a10b8c86b5412ed319154011e0",
+    "testMerge": "fea4ad9558eec626ecbf56dc996e7d54127d3002",
+    "testMergeParents": [
+      "dd7f4d86db06e8a10b8c86b5412ed319154011e0",
+      "473b0fb103d445f64ef6b44be63a9b4d6456cbdc"
+    ],
+    "tree": "1a2eebda2ee6438e73d48b455167a52d65300e33",
+    "checkoutRef": "fea4ad9558eec626ecbf56dc996e7d54127d3002",
+    "attribution": "Fresh Run.head_sha + exact checkout ref + immutable GitHub commit parents cross-check; mutable run.pull_requests.head not used."
+  },
+  "directFailure": {
+    "jobId": 120725634037,
+    "name": "Chromium E2E shard 2/8 · PR",
+    "step": 7,
+    "stepName": "E2E shard 실행",
+    "spec": "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+    "testLine": 220,
+    "assertionLine": 272,
+    "title": "#734 설비 원본 dirty 유지·정확 PATCH 저장·새 snapshot과 focus 복귀",
+    "assertion": "expect(after.spec).toEqual(before.spec)",
+    "expected": {
+      "root": "equipment",
+      "levels": [],
+      "version": "wbs-view:v1",
+      "contextSourceVersion": "explicit-task-context:v1"
+    },
+    "actual": {
+      "root": "process",
+      "levels": [],
+      "version": "wbs-view:v1",
+      "contextSourceVersion": "explicit-task-context:v1"
+    },
+    "passed": 5,
+    "failed": 1,
+    "notRun": 87,
+    "elapsedPrinted": "4.6m",
+    "rootCauseClassification": "UNKNOWN pending product versus response-observer reproduction; no assertion weakening recommended",
+    "rawLog": "/tmp/issue785-rerun3-run3208-job120725634037.log"
+  },
+  "jobs": [
+    {
+      "id": 120724914374,
+      "name": "QA Final 신뢰 경계 확인",
+      "conclusion": "success",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120724914686,
+      "name": "변경 경로 판정",
+      "conclusion": "success",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120724993348,
+      "name": "QA Preflight — 정책·문서 사전 검사",
+      "conclusion": "success",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120724994546,
+      "name": "Low E2E policy plan (trusted base)",
+      "conclusion": "skipped",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120724994917,
+      "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+      "conclusion": "skipped",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120725064313,
+      "name": "Vitest 단위·통합 테스트",
+      "conclusion": "success",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120725064369,
+      "name": "ESLint",
+      "conclusion": "success",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120725064377,
+      "name": "정책·저장소 계약 검사",
+      "conclusion": "success",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120725064419,
+      "name": "TypeScript 타입 검사",
+      "conclusion": "success",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120725065353,
+      "name": "Next.js production build",
+      "conclusion": "skipped",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120725065658,
+      "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+      "conclusion": "skipped",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120725066304,
+      "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+      "conclusion": "skipped",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120725566481,
+      "name": "PR 빠른 검사 판정",
+      "conclusion": "success",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120725633889,
+      "name": "Docker smoke 구현",
+      "conclusion": "success",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120725633933,
+      "name": "PR Next.js production build",
+      "conclusion": "success",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120725634004,
+      "name": "Chromium E2E shard 4/8 · PR",
+      "conclusion": "cancelled",
+      "failedOrCancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ]
+    },
+    {
+      "id": 120725634037,
+      "name": "Chromium E2E shard 2/8 · PR",
+      "conclusion": "failure",
+      "failedOrCancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "id": 120725634056,
+      "name": "Chromium E2E shard 8/8 · PR",
+      "conclusion": "cancelled",
+      "failedOrCancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ]
+    },
+    {
+      "id": 120725634078,
+      "name": "Chromium E2E shard 7/8 · PR",
+      "conclusion": "cancelled",
+      "failedOrCancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ]
+    },
+    {
+      "id": 120725634082,
+      "name": "Chromium E2E shard 6/8 · PR",
+      "conclusion": "cancelled",
+      "failedOrCancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ]
+    },
+    {
+      "id": 120725634102,
+      "name": "Chromium E2E shard 5/8 · PR",
+      "conclusion": "cancelled",
+      "failedOrCancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ]
+    },
+    {
+      "id": 120725634104,
+      "name": "Chromium E2E shard 1/8 · PR",
+      "conclusion": "cancelled",
+      "failedOrCancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ]
+    },
+    {
+      "id": 120725634116,
+      "name": "Chromium E2E shard 3/8 · PR",
+      "conclusion": "cancelled",
+      "failedOrCancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ]
+    },
+    {
+      "id": 120725635312,
+      "name": "Low E2E targeted execution",
+      "conclusion": "skipped",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120725960364,
+      "name": "Build, static checks, and unit tests",
+      "conclusion": "success",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120726417953,
+      "name": "Docker build and runtime smoke test",
+      "conclusion": "success",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120727158095,
+      "name": "Chromium end-to-end tests",
+      "conclusion": "failure",
+      "failedOrCancelledSteps": [
+        {
+          "number": 2,
+          "name": "E2E shard 결과 집계",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "id": 120727179418,
+      "name": "QA Final — Automated",
+      "conclusion": "failure",
+      "failedOrCancelledSteps": [
+        {
+          "number": 3,
+          "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "id": 120727179452,
+      "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+      "conclusion": "success",
+      "failedOrCancelledSteps": []
+    },
+    {
+      "id": 120727180483,
+      "name": "Main 임시 commit 이미지 게시·검증·정리",
+      "conclusion": "skipped",
+      "failedOrCancelledSteps": []
+    }
+  ],
+  "cancelledShards": [
+    {
+      "jobId": 120725634004,
+      "name": "Chromium E2E shard 4/8 · PR",
+      "conclusion": "cancelled",
+      "logState": "READ",
+      "chars": 71459,
+      "recordedTestFailures": [],
+      "tailProgress": [
+        "2026-10-24T00:33:21.6104931Z   ✓   3 [chromium] › tests/e2e/gantt-state-recovery-editor.spec.ts:93:5 › SC-05 Editor commit 뒤 500·GET 실패는 초안을 보존하고 명시 재조회로만 복구한다 (11.6s)",
+        "2026-10-24T00:33:50.7910201Z   ✓   4 [chromium] › tests/e2e/gantt-state-recovery-editor.spec.ts:194:7 › SC-09 실제 edit 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다 (12.0s)",
+        "2026-10-24T00:34:16.9493756Z   ✓   5 [chromium] › tests/e2e/gantt-state-recovery-editor.spec.ts:194:7 › SC-09 실제 add 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다 (9.0s)",
+        "2026-10-24T00:35:48.3478689Z   ✓   6 [chromium] › tests/e2e/issue-725-process-workareas.spec.ts:98:5 › #725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연결·재조회·해제·재시작 (1.1m)",
+        "2026-10-24T00:36:25.2288971Z   ✓   7 [chromium] › tests/e2e/issue-725-process-workareas.spec.ts:374:5 › #725 비활성 기본 구역과 중복 occurrence 매핑에서도 활성 구역 단일 owner 선택·저장 (12.0s)",
+        "2026-10-24T00:36:26.4923206Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "jobId": 120725634056,
+      "name": "Chromium E2E shard 8/8 · PR",
+      "conclusion": "cancelled",
+      "logState": "READ",
+      "chars": 124810,
+      "recordedTestFailures": [],
+      "tailProgress": [
+        "2026-10-24T00:36:19.5156175Z   ✓   46 [chromium] › tests/e2e/project-create-layout.spec.ts:65:7 › Issue #282: 프로젝트 생성 화면이 768px에서 wide/reflow 계약을 지킨다 (846ms)",
+        "2026-10-24T00:36:20.3180137Z   ✓   47 [chromium] › tests/e2e/project-create-layout.spec.ts:65:7 › Issue #282: 프로젝트 생성 화면이 1024px에서 wide/reflow 계약을 지킨다 (794ms)",
+        "2026-10-24T00:36:21.1732231Z   ✓   48 [chromium] › tests/e2e/project-create-layout.spec.ts:65:7 › Issue #282: 프로젝트 생성 화면이 1440px에서 wide/reflow 계약을 지킨다 (844ms)",
+        "2026-10-24T00:36:22.0100128Z   ✓   49 [chromium] › tests/e2e/project-create-layout.spec.ts:65:7 › Issue #282: 프로젝트 생성 화면이 1600px에서 wide/reflow 계약을 지킨다 (828ms)",
+        "2026-10-24T00:36:22.8642784Z   ✓   50 [chromium] › tests/e2e/project-create-layout.spec.ts:65:7 › Issue #282: 프로젝트 생성 화면이 1920px에서 wide/reflow 계약을 지킨다 (846ms)",
+        "2026-10-24T00:36:26.4710030Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "jobId": 120725634078,
+      "name": "Chromium E2E shard 7/8 · PR",
+      "conclusion": "cancelled",
+      "logState": "READ",
+      "chars": 75490,
+      "recordedTestFailures": [],
+      "tailProgress": [
+        "2026-10-24T00:34:21.7541526Z   ✓  20 [chromium] › tests/e2e/inline-name-persistence.spec.ts:111:5 › #572 실제 SQLite inline 이름 저장은 프로세스 재시작 후 유지된다 (15.0s)",
+        "2026-10-24T00:34:48.4064316Z   ✓  21 [chromium] › tests/e2e/issue-732-milestone-dashboard.spec.ts:33:5 › #732 Target0 Milestone 단독·두 계층·전체 Gate·5폭과 keyboard (15.7s)",
+        "2026-10-24T00:35:14.0354667Z   ✓  22 [chromium] › tests/e2e/issue-732-milestone-dashboard.spec.ts:77:5 › #732 Milestone readonly 조회는 추가를 차단하고 mutation을 만들지 않는다 (14.9s)",
+        "2026-10-24T00:35:42.5217405Z   ✓  23 [chromium] › tests/e2e/issue-732-milestone-dashboard.spec.ts:87:5 › #732 Milestone 소속 Task 원본 저장은 같은 경로·새 snapshot으로 복귀하고 stale/error 명령을 잠근다 (17.0s)",
+        "2026-10-24T00:36:09.6000745Z   ✓  24 [chromium] › tests/e2e/issue-732-milestone-dashboard.spec.ts:126:5 › #732 조건 밖 생성 성공은 필터를 유지하고 정확한 원본 접근을 안내한다 (15.9s)",
+        "2026-10-24T00:36:26.4819201Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "jobId": 120725634082,
+      "name": "Chromium E2E shard 6/8 · PR",
+      "conclusion": "cancelled",
+      "logState": "READ",
+      "chars": 123550,
+      "recordedTestFailures": [],
+      "tailProgress": [
+        "2026-10-24T00:34:43.4476573Z   ✓  31 [chromium] › tests/e2e/gantt-state-product-integration.spec.ts:179:7 › SC-05 cross-tab 최신 확정 뒤 이전 recovery 500는 다시 잠그지 않는다 (7.7s)",
+        "2026-10-24T00:35:04.8144872Z   ✓  32 [chromium] › tests/e2e/gantt-state-product-integration.spec.ts:179:7 › SC-05 cross-tab 조회 pending과 실패 중 UNKNOWN 잠금은 유지된다 (8.0s)",
+        "2026-10-24T00:35:21.4444681Z   ✓  33 [chromium] › tests/e2e/gantt-state-product-integration.spec.ts:285:5 › SC-13 #667/#552 WBS mode keeps the same canonical Milestone and marker OFF (5.2s)",
+        "2026-10-24T00:35:47.1105780Z   ✓  34 [chromium] › tests/e2e/issue-726-logistics-master.spec.ts:9:5 › #726 Target0 master 설비·시스템 생성, 유형 실패 복구, Fleet·WorkArea와 초안 보존 (14.5s)",
+        "2026-10-24T00:36:16.3648669Z   ✓  35 [chromium] › tests/e2e/issue-726-task-logistics.spec.ts:62:5 › #726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중복 제출 방지, reload·Summary 상속 (18.5s)",
+        "2026-10-24T00:36:26.4884565Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "jobId": 120725634102,
+      "name": "Chromium E2E shard 5/8 · PR",
+      "conclusion": "cancelled",
+      "logState": "READ",
+      "chars": 87285,
+      "recordedTestFailures": [],
+      "tailProgress": [
+        "2026-10-24T00:33:25.2222177Z   ✓   20 [chromium] › tests/e2e/issue-719-contextual-help.spec.ts:224:63 › #719 resource 도움말 fixture는 지연 WBS 오류와 기존 데이터가 모두 준비될 때까지 기다린다 (2.2s)",
+        "2026-10-24T00:34:00.6086920Z   ✓   21 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:86:5 › #730 지연 원본은 새 상세·상세 Task 명령·이름 검색에 양보한다 (20.9s)",
+        "2026-10-24T00:34:39.7337705Z   ✓   22 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:201:5 › #730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 복원·Gantt 보존 (25.9s)",
+        "2026-10-24T00:35:16.8727683Z   ✓   23 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:277:5 › #730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차단·구버전 설정 복구 (23.8s)",
+        "2026-10-24T00:35:52.1241349Z   ✓   24 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:405:5 › #730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키보드·읽기 전용 가상 그룹 (22.1s)",
+        "2026-10-24T00:36:26.4203662Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "jobId": 120725634104,
+      "name": "Chromium E2E shard 1/8 · PR",
+      "conclusion": "cancelled",
+      "logState": "READ",
+      "chars": 101163,
+      "recordedTestFailures": [],
+      "tailProgress": [
+        "2026-10-24T00:33:46.4752642Z   ✓   35 [chromium] › tests/e2e/issue-623-resource-mvp.spec.ts:113:1 › #623 실제 통합 구성·F0 원시5M/D·UI와 Excel 동일 snapshot (18.6s)",
+        "2026-10-24T00:34:23.1772764Z   ✓   36 [chromium] › tests/e2e/issue-623-resource-mvp.spec.ts:337:3 › #623 독립 WBS 변경·원시 ID·mutation 경계 (7.8s)",
+        "2026-10-24T00:35:01.1544189Z   ✓   37 [chromium] › tests/e2e/issue-623-resource-mvp.spec.ts:337:3 › #623 독립 Resource status/progress·원시 ID·mutation 경계 (8.3s)",
+        "2026-10-24T00:35:36.3909785Z   ✓   38 [chromium] › tests/e2e/issue-623-resource-mvp.spec.ts:337:3 › #623 독립 Assignment allocation·원시 ID·mutation 경계 (6.0s)",
+        "2026-10-24T00:36:14.5014317Z   ✓   39 [chromium] › tests/e2e/issue-623-resource-mvp.spec.ts:337:3 › #623 독립 실물 직접 연결·원시 ID·mutation 경계 (8.8s)",
+        "2026-10-24T00:36:26.3664306Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "jobId": 120725634116,
+      "name": "Chromium E2E shard 3/8 · PR",
+      "conclusion": "cancelled",
+      "logState": "READ",
+      "chars": 87842,
+      "recordedTestFailures": [],
+      "tailProgress": [
+        "2026-10-24T00:34:51.1190919Z   ✓   30 [chromium] › tests/e2e/logistics-table-density.spec.ts:157:56 › #454 이름 network 실패는 성공·자동 retry 없이 명시 복구 (871ms)",
+        "2026-10-24T00:34:52.0155748Z   ✓   31 [chromium] › tests/e2e/logistics-table-density.spec.ts:157:56 › #454 이름 malformed 실패는 성공·자동 retry 없이 명시 복구 (882ms)",
+        "2026-10-24T00:34:52.8053375Z   ✓   32 [chromium] › tests/e2e/logistics-table-density.spec.ts:157:56 › #454 이름 401 실패는 성공·자동 retry 없이 명시 복구 (779ms)",
+        "2026-10-24T00:34:53.6317869Z   ✓   33 [chromium] › tests/e2e/logistics-table-density.spec.ts:165:5 › #454 loading·GET 오류·catalog0·filter0와 종류 전환은 mutation0 (814ms)",
+        "2026-10-24T00:36:13.7830834Z   ✓   34 [chromium] › tests/e2e/milestone-stage-exchange.spec.ts:149:5 › #464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import·Copy/Template·소속 확인 통합 (1.0m)",
+        "2026-10-24T00:36:26.3959865Z ##[error]The operation was canceled."
+      ]
+    }
+  ],
+  "cancelledShardLogsRead": 7,
+  "additionalRecordedTestFailuresInCancelledLogs": 0,
+  "qaReason": "required e2e 미성공; derived FAIL",
+  "metadataOldHead": {
+    "id": 40045070522,
+    "number": 3207,
+    "attempt": 1,
+    "event": "pull_request",
+    "path": ".github/workflows/ci.yml",
+    "head": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+    "runConclusion": "failure",
+    "metadataJob": {
+      "id": 120724897159,
+      "conclusion": "success",
+      "verdict": "SUPERSEDED",
+      "fullRun": "N/A",
+      "reason": "Event Head differs from current PR Head; non-authoritative N/A"
+    },
+    "requiredAggregatesAtOldHead": "success status only; implementation jobs skipped and no Full run evidence; not runtime PASS",
+    "automatedQA": {
+      "id": 120724973167,
+      "verdict": "BLOCKED",
+      "reason": "PR latest Head stale"
+    },
+    "authority": "Not current Head Full CI or product failure; original status preserved"
+  },
+  "sourceArtifactMetadata": [
+    {
+      "id": 12540783634,
+      "name": "ci-pr-source-40045100122-1",
+      "expired": false,
+      "digest": "sha256:f9c63e92fad729a2443d8fd6d52f266eca49bc8652f7a6983164ece2635e058b",
+      "head": "473b0fb103d445f64ef6b44be63a9b4d6456cbdc"
+    }
+  ],
+  "sourceArtifactPayloadDownloaded": false,
+  "historyRequery": {
+    "branchUrl": "https://api.github.com/repos/planner77/masterGantt/actions/runs?branch=feat%2Fissue-785-retire-logistics-target&per_page=100&page=1",
+    "branchTotal": 15,
+    "branchReturned": 15,
+    "completeFirstPage": true,
+    "fullCount": 7,
+    "metadataCount": 1,
+    "advisoryCount": 7,
+    "allRunLatestAttempts": [
+      {
+        "id": 40045100117,
+        "path": ".github/workflows/pr-fast-development.yml",
+        "number": 54,
+        "attempt": 1,
+        "head": "473b0fb103d445f64ef6b44be63a9b4d6456cbdc",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 40045100122,
+        "path": ".github/workflows/ci.yml",
+        "number": 3208,
+        "attempt": 1,
+        "head": "473b0fb103d445f64ef6b44be63a9b4d6456cbdc",
+        "conclusion": "failure"
+      },
+      {
+        "id": 40045070522,
+        "path": ".github/workflows/ci.yml",
+        "number": 3207,
+        "attempt": 1,
+        "head": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+        "conclusion": "failure"
+      },
+      {
+        "id": 40040333636,
+        "path": ".github/workflows/pr-fast-development.yml",
+        "number": 53,
+        "attempt": 1,
+        "head": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 40040333641,
+        "path": ".github/workflows/ci.yml",
+        "number": 3204,
+        "attempt": 1,
+        "head": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+        "conclusion": "failure"
+      },
+      {
+        "id": 40032862265,
+        "path": ".github/workflows/ci.yml",
+        "number": 3197,
+        "attempt": 1,
+        "head": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+        "conclusion": "failure"
+      },
+      {
+        "id": 40032862037,
+        "path": ".github/workflows/pr-fast-development.yml",
+        "number": 47,
+        "attempt": 1,
+        "head": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 40030302107,
+        "path": ".github/workflows/pr-fast-development.yml",
+        "number": 45,
+        "attempt": 1,
+        "head": "d8180882ea30ff72af83ef4c049e40bd1caea18d",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 40030302113,
+        "path": ".github/workflows/ci.yml",
+        "number": 3195,
+        "attempt": 1,
+        "head": "d8180882ea30ff72af83ef4c049e40bd1caea18d",
+        "conclusion": "failure"
+      },
+      {
+        "id": 40030198045,
+        "path": ".github/workflows/pr-fast-development.yml",
+        "number": 44,
+        "attempt": 1,
+        "head": "f7235d51cb9784f891697555dee52297b705b422",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 40030198022,
+        "path": ".github/workflows/ci.yml",
+        "number": 3194,
+        "attempt": 1,
+        "head": "f7235d51cb9784f891697555dee52297b705b422",
+        "conclusion": "cancelled"
+      },
+      {
+        "id": 40028478605,
+        "path": ".github/workflows/pr-fast-development.yml",
+        "number": 42,
+        "attempt": 1,
+        "head": "433fa32279be7c9c0f812c40b717f91298741fe3",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 40028478592,
+        "path": ".github/workflows/ci.yml",
+        "number": 3192,
+        "attempt": 1,
+        "head": "433fa32279be7c9c0f812c40b717f91298741fe3",
+        "conclusion": "failure"
+      },
+      {
+        "id": 39975107692,
+        "path": ".github/workflows/pr-fast-development.yml",
+        "number": 40,
+        "attempt": 1,
+        "head": "0a33b6ab7017b4d60d75562c1104eaea75747b28",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 39975107608,
+        "path": ".github/workflows/ci.yml",
+        "number": 3187,
+        "attempt": 1,
+        "head": "0a33b6ab7017b4d60d75562c1104eaea75747b28",
+        "conclusion": "failure"
+      }
+    ],
+    "headChecks": [
+      {
+        "head": "473b0fb103d445f64ef6b44be63a9b4d6456cbdc",
+        "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?event=pull_request&head_sha=473b0fb103d445f64ef6b44be63a9b4d6456cbdc&per_page=100&page=1",
+        "total": 2,
+        "returned": 2,
+        "page": 1,
+        "perPage": 100,
+        "complete": true,
+        "runs": [
+          {
+            "id": 40045100117,
+            "number": 54,
+            "attempt": 1,
+            "path": ".github/workflows/pr-fast-development.yml",
+            "title": "FAST_DEVELOPMENT (non-authoritative) · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #54.1",
+            "head": "473b0fb103d445f64ef6b44be63a9b4d6456cbdc",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 40045100122,
+            "number": 3208,
+            "attempt": 1,
+            "path": ".github/workflows/ci.yml",
+            "title": "PR CI [전체 검증] · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #3208.1 · FINAL_FULL",
+            "head": "473b0fb103d445f64ef6b44be63a9b4d6456cbdc",
+            "status": "completed",
+            "conclusion": "failure"
+          }
+        ]
+      },
+      {
+        "head": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+        "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?event=pull_request&head_sha=f03933cb16c6c99a1a35a3095b55b6158d69bab5&per_page=100&page=1",
+        "total": 3,
+        "returned": 3,
+        "page": 1,
+        "perPage": 100,
+        "complete": true,
+        "runs": [
+          {
+            "id": 40045070522,
+            "number": 3207,
+            "attempt": 1,
+            "path": ".github/workflows/ci.yml",
+            "title": "PR CI [메타데이터 검증] · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #3207.1 · METADATA_ONLY",
+            "head": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+            "status": "completed",
+            "conclusion": "failure"
+          },
+          {
+            "id": 40040333636,
+            "number": 53,
+            "attempt": 1,
+            "path": ".github/workflows/pr-fast-development.yml",
+            "title": "FAST_DEVELOPMENT (non-authoritative) · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #53.1",
+            "head": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 40040333641,
+            "number": 3204,
+            "attempt": 1,
+            "path": ".github/workflows/ci.yml",
+            "title": "PR CI [전체 검증] · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #3204.1 · FINAL_FULL",
+            "head": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+            "status": "completed",
+            "conclusion": "failure"
+          }
+        ]
+      },
+      {
+        "head": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+        "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?event=pull_request&head_sha=14a2be51c421eaab0f7f1f4004f4fe222dea21d7&per_page=100&page=1",
+        "total": 2,
+        "returned": 2,
+        "page": 1,
+        "perPage": 100,
+        "complete": true,
+        "runs": [
+          {
+            "id": 40032862265,
+            "number": 3197,
+            "attempt": 1,
+            "path": ".github/workflows/ci.yml",
+            "title": "PR CI [전체 검증] · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #3197.1 · FINAL_FULL",
+            "head": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+            "status": "completed",
+            "conclusion": "failure"
+          },
+          {
+            "id": 40032862037,
+            "number": 47,
+            "attempt": 1,
+            "path": ".github/workflows/pr-fast-development.yml",
+            "title": "FAST_DEVELOPMENT (non-authoritative) · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #47.1",
+            "head": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+            "status": "completed",
+            "conclusion": "skipped"
+          }
+        ]
+      },
+      {
+        "head": "d8180882ea30ff72af83ef4c049e40bd1caea18d",
+        "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?event=pull_request&head_sha=d8180882ea30ff72af83ef4c049e40bd1caea18d&per_page=100&page=1",
+        "total": 2,
+        "returned": 2,
+        "page": 1,
+        "perPage": 100,
+        "complete": true,
+        "runs": [
+          {
+            "id": 40030302107,
+            "number": 45,
+            "attempt": 1,
+            "path": ".github/workflows/pr-fast-development.yml",
+            "title": "FAST_DEVELOPMENT (non-authoritative) · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #45.1",
+            "head": "d8180882ea30ff72af83ef4c049e40bd1caea18d",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 40030302113,
+            "number": 3195,
+            "attempt": 1,
+            "path": ".github/workflows/ci.yml",
+            "title": "PR CI [전체 검증] · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #3195.1 · FINAL_FULL",
+            "head": "d8180882ea30ff72af83ef4c049e40bd1caea18d",
+            "status": "completed",
+            "conclusion": "failure"
+          }
+        ]
+      },
+      {
+        "head": "f7235d51cb9784f891697555dee52297b705b422",
+        "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?event=pull_request&head_sha=f7235d51cb9784f891697555dee52297b705b422&per_page=100&page=1",
+        "total": 2,
+        "returned": 2,
+        "page": 1,
+        "perPage": 100,
+        "complete": true,
+        "runs": [
+          {
+            "id": 40030198045,
+            "number": 44,
+            "attempt": 1,
+            "path": ".github/workflows/pr-fast-development.yml",
+            "title": "FAST_DEVELOPMENT (non-authoritative) · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #44.1",
+            "head": "f7235d51cb9784f891697555dee52297b705b422",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 40030198022,
+            "number": 3194,
+            "attempt": 1,
+            "path": ".github/workflows/ci.yml",
+            "title": "PR CI [전체 검증] · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #3194.1 · FINAL_FULL",
+            "head": "f7235d51cb9784f891697555dee52297b705b422",
+            "status": "completed",
+            "conclusion": "cancelled"
+          }
+        ]
+      },
+      {
+        "head": "433fa32279be7c9c0f812c40b717f91298741fe3",
+        "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?event=pull_request&head_sha=433fa32279be7c9c0f812c40b717f91298741fe3&per_page=100&page=1",
+        "total": 2,
+        "returned": 2,
+        "page": 1,
+        "perPage": 100,
+        "complete": true,
+        "runs": [
+          {
+            "id": 40028478605,
+            "number": 42,
+            "attempt": 1,
+            "path": ".github/workflows/pr-fast-development.yml",
+            "title": "FAST_DEVELOPMENT (non-authoritative) · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #42.1",
+            "head": "433fa32279be7c9c0f812c40b717f91298741fe3",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 40028478592,
+            "number": 3192,
+            "attempt": 1,
+            "path": ".github/workflows/ci.yml",
+            "title": "PR CI [전체 검증] · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #3192.1 · FINAL_FULL",
+            "head": "433fa32279be7c9c0f812c40b717f91298741fe3",
+            "status": "completed",
+            "conclusion": "failure"
+          }
+        ]
+      },
+      {
+        "head": "0a33b6ab7017b4d60d75562c1104eaea75747b28",
+        "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?event=pull_request&head_sha=0a33b6ab7017b4d60d75562c1104eaea75747b28&per_page=100&page=1",
+        "total": 2,
+        "returned": 2,
+        "page": 1,
+        "perPage": 100,
+        "complete": true,
+        "runs": [
+          {
+            "id": 39975107692,
+            "number": 40,
+            "attempt": 1,
+            "path": ".github/workflows/pr-fast-development.yml",
+            "title": "FAST_DEVELOPMENT (non-authoritative) · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #40.1",
+            "head": "0a33b6ab7017b4d60d75562c1104eaea75747b28",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "id": 39975107608,
+            "number": 3187,
+            "attempt": 1,
+            "path": ".github/workflows/ci.yml",
+            "title": "PR CI [전체 검증] · [Issue #785] feat: 물류 실물 조회 전환과 레거시 연결 보존 · PR #787 · Run #3187.1 · FINAL_FULL",
+            "head": "0a33b6ab7017b4d60d75562c1104eaea75747b28",
+            "status": "completed",
+            "conclusion": "failure"
+          }
+        ]
+      }
+    ],
+    "priorSourceReuse": "Previous six immutable source/log receipts reused as historical content. This pass freshly rechecked all branch run rows/latest attempts plus seven exact Head collections. New 3208 direct/cancelled7 and 3207 metadata logs freshly read.",
+    "claimScope": "Branch and seven known PR Heads, not repository-wide/Trusted workflow history"
+  },
+  "failedRemoteSpecUnion": [
+    "tests/e2e/issue-719-contextual-help.spec.ts",
+    "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+    "tests/e2e/project-task-editor.spec.ts"
+  ],
+  "cumulativeCancelledShardLogs": 42,
+  "old71PassScope": "Previous local bounded source only, never Full CI PASS",
+  "writes": {
+    "source": false,
+    "objects": false,
+    "refs": false,
+    "comments": false,
+    "reruns": false
+  },
+  "monitoring": false
+}

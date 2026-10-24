@@ -1,3 +1,4 @@
+import { toResourcePublicV2 } from "../../src/contracts/resource-public-v2";
 import { mkdir } from "node:fs/promises";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, type Page, type Route } from "@playwright/test";
@@ -26,7 +27,7 @@ async function installStatefulProjectFixture(page: Page) {
     report.mdPerMm = report.filters.mdPerMmProvided ? report.filters.mdPerMm : 20;
     report.mdPerMmSource = report.filters.mdPerMmProvided ? "query" : "environment";
     report.resourceScopeContext = { ...identity(), range: report.range, asOfDate: report.asOfDate, mdPerMm: report.mdPerMm, mdPerMmSource: report.mdPerMmSource, mdPerMmProvided: report.filters.mdPerMmProvided, sourceProjection: { kind: "report" } } satisfies ResourceDrillSourceContext;
-    return route.fulfill({ json: { data: report, drill: { ...input, targetFilters: normalizedDrillFilters(input.filters), assignmentScope: "exact-source-intersection", projectReferenceScope: "same-resource-population-and-period" } } });
+    return route.fulfill({ json: toResourcePublicV2({ data: report, drill: { ...input, targetFilters: normalizedDrillFilters(input.filters), assignmentScope: "exact-source-intersection", projectReferenceScope: "same-resource-population-and-period" } }) });
   });
   return state;
 }
@@ -56,7 +57,7 @@ for (const failure of ["500", "network", "malformed", "invalid-date", "wrong-rev
       if (fail && failure === "network") return route.abort();
       if (fail && failure === "500") return route.fulfill({ status: 500, json: {} });
       const value = dashboard(route, fail && failure === "wrong-revision" ? 39 : 40);
-      return route.fulfill({ json: { data: fail && failure === "missing-integrated" ? { ...value, integrated: undefined } : fail && failure === "malformed-integrated" ? { ...value, integrated: { ...value.integrated, diagnostics: { ...value.integrated.diagnostics, unsetAllocationAssignmentIds: [null] } } } : fail && failure === "malformed" ? { ...value, breakdowns: { processes: [null], equipment: [], systems: [] } } : fail && failure === "invalid-date" ? { ...value, asOfDate: "2026-02-30" } : fail && failure === "wrong-filter" ? { ...value, horizonDays: 90 } : value } });
+      return route.fulfill({ json: toResourcePublicV2({ data: fail && failure === "missing-integrated" ? { ...value, integrated: undefined } : fail && failure === "malformed-integrated" ? { ...value, integrated: { ...value.integrated, diagnostics: { ...value.integrated.diagnostics, unsetAllocationAssignmentIds: [null] } } } : fail && failure === "malformed" ? { ...value, breakdowns: { processes: [null], equipment: [], systems: [] } } : fail && failure === "invalid-date" ? { ...value, asOfDate: "2026-02-30" } : fail && failure === "wrong-filter" ? { ...value, horizonDays: 90 } : value }) });
     });
     const view = await openDashboard(page);
     await expect(view.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
@@ -76,7 +77,7 @@ test("기준일 기본 응답은 추가 조회를 만들지 않고 조건 변경
   let gate = deferred();
   let wait = false;
   let reads = 0;
-  await page.route(dashboardPath, async (route) => { reads++; if (wait) await gate.promise; await route.fulfill({ json: { data: dashboard(route) } }); });
+  await page.route(dashboardPath, async (route) => { reads++; if (wait) await gate.promise; await route.fulfill({ json: toResourcePublicV2({ data: dashboard(route) }) }); });
   const view = await openDashboard(page);
   await expect(view.getByLabel("기준일 (As of)")).toHaveValue("2026-09-29");
   await expect(view.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
@@ -111,7 +112,7 @@ test("빠른 기간 변경의 응답 역전은 최신 결과를 유지한다", a
   const started = deferred();
   await page.route(dashboardPath, async (route) => {
     if (new URL(route.request().url()).searchParams.get("horizonDays") === "10") { started.resolve(); await gate.promise; }
-    await route.fulfill({ json: { data: dashboard(route) } }).catch(() => {});
+    await route.fulfill({ json: toResourcePublicV2({ data: dashboard(route) }) }).catch(() => {});
   });
   const view = await openDashboard(page);
   await expect(view.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
@@ -127,7 +128,7 @@ test("빠른 기간 변경의 응답 역전은 최신 결과를 유지한다", a
 test("기간 빈 값·0·91·소수는 field 오류와 GET 차단 후 정상 범위로 복구한다", async ({ page }) => {
   await installStatefulProjectFixture(page);
   let reads = 0;
-  await page.route(dashboardPath, (route) => { reads++; return route.fulfill({ json: { data: dashboard(route) } }); });
+  await page.route(dashboardPath, (route) => { reads++; return route.fulfill({ json: toResourcePublicV2({ data: dashboard(route) }) }); });
   const view = await openDashboard(page);
   await expect(view.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
   const initialReads = reads;
@@ -150,7 +151,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) {
   test(`세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     await installStatefulProjectFixture(page);
-    await page.route(dashboardPath, (route) => route.fulfill({ json: { data: dashboard(route, 40, true) } }));
+    await page.route(dashboardPath, (route) => route.fulfill({ json: toResourcePublicV2({ data: dashboard(route, 40, true) }) }));
     await page.goto(`/projects/${publicId}`);
     const root = await rememberGanttRoot(page);
     await openWorkspaceView(page, "kpi");
@@ -218,7 +219,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) {
       const query = new URL(route.request().url()).searchParams;
       expect(query.get("source")).toBe("integrated");
       if (query.has("snapshotId")) snapshotReads.push(query.get("snapshotId")!);
-      return route.fulfill({ json: { data: diagnosticDashboard(route) } });
+      return route.fulfill({ json: toResourcePublicV2({ data: diagnosticDashboard(route) }) });
     });
     await page.goto(`/projects/${publicId}`);
     const gantt = await rememberGanttRoot(page);
@@ -310,7 +311,7 @@ test("#731 등록 구성과 연결 작업이 모두 없는 KPI는 0과 빈 진�
     Object.assign(value.kpi, { taskCount: 0, totalDuration: 0, progressPercent: null });
     Object.assign(value.effort, { plannedMd: 0 });
     value.integrated.effortState = "empty";
-    return route.fulfill({ json: { data: withIntegratedKpi(value) } });
+    return route.fulfill({ json: toResourcePublicV2({ data: withIntegratedKpi(value) }) });
   });
   const view = await openDashboard(page);
   await expect(view.getByRole("tablist", { name: "물류 세부 현황" })).toBeVisible();
@@ -331,7 +332,7 @@ test("#731 원본 이동 직전 snapshot 변경은 진단과 Task·Assignment �
   await page.route(dashboardPath, route => {
     const value = diagnosticDashboard(route);
     if (stale) value.integrated.snapshotId = "changed-integrated-snapshot";
-    return route.fulfill({ json: { data: value } });
+    return route.fulfill({ json: toResourcePublicV2({ data: value }) });
   });
   const view = await openDashboard(page);
   await expect(view.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
@@ -358,7 +359,7 @@ test("#731 편집 가능 Task·Assignment 원본 열기와 취소는 정확 ID·
   await page.route(`**${projectPath}/assigned-targets`, route => route.fulfill({ json: { data: { projectRevision: 40, catalogRevision: 1, targets,
     assignments: [{ id: "assignment-1", taskId: state.tasks[2].taskId, target: { kind: "resource", id: "resource-1" }, allocation: null }],
   } } }));
-  await page.route(dashboardPath, route => route.fulfill({ json: { data: diagnosticDashboard(route) } }));
+  await page.route(dashboardPath, route => route.fulfill({ json: toResourcePublicV2({ data: diagnosticDashboard(route) }) }));
   const view = await openDashboard(page);
   await expect(view.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
   await view.getByLabel("기준일 (As of)").fill("2026-10-01");
@@ -391,7 +392,7 @@ test("#731 등록 리소스 원본은 정확한 이름·ID를 유지하고 KPI �
       sources: { membership: true, taskAssignments: true, responsibilityAssignments: false, equipmentRoles: false, systemRoles: false },
       usage: { taskAssignments: 1, responsibilityAssignments: 0, equipmentRoles: 0, systemRoles: 0 } }],
   } } }));
-  await page.route(dashboardPath, route => route.fulfill({ json: { data: diagnosticDashboard(route) } }));
+  await page.route(dashboardPath, route => route.fulfill({ json: toResourcePublicV2({ data: diagnosticDashboard(route) }) }));
   const view = await openDashboard(page);
   await expect(view.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
   const configuration = view.getByTestId("logistics-kpi-configuration");
@@ -411,7 +412,7 @@ test("#731 등록 리소스 원본은 정확한 이름·ID를 유지하고 KPI �
 test("#731 공정·WorkArea 원본 이동은 정확한 공정 행과 KPI 출발 초점을 복원한다", async ({ page }) => {
   const state = await installStatefulProjectFixture(page);
   state.logistics = { processes: [{ id: "proc-1", code: "PROC-01", name: "입고 공정", parentProcessId: null, sortOrder: 0, active: true, createdAt: "2026-09-29T00:00:00Z", updatedAt: "2026-09-29T00:00:00Z" }], equipment: [], systems: [], systemLinks: [] };
-  await page.route(dashboardPath, route => route.fulfill({ json: { data: diagnosticDashboard(route) } }));
+  await page.route(dashboardPath, route => route.fulfill({ json: toResourcePublicV2({ data: diagnosticDashboard(route) }) }));
   const view = await openDashboard(page);
   await expect(view.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
   const configuration = view.getByTestId("logistics-kpi-configuration");
@@ -445,7 +446,7 @@ for (const destination of ["KPI로 돌아가기", "물류 항목 검색"] as con
   test(`#731 패널 외부에 새 초점이 생기면 원본 포커스 재시도를 취소한다 — ${destination}`, async ({ page }) => {
     const state = await installStatefulProjectFixture(page);
     state.logistics = { processes: [{ id: "proc-1", code: "PROC-01", name: "입고 공정", parentProcessId: null, sortOrder: 0, active: true, createdAt: "2026-09-29T00:00:00Z", updatedAt: "2026-09-29T00:00:00Z" }], equipment: [], systems: [], systemLinks: [] };
-    await page.route(dashboardPath, route => route.fulfill({ json: { data: diagnosticDashboard(route) } }));
+    await page.route(dashboardPath, route => route.fulfill({ json: toResourcePublicV2({ data: diagnosticDashboard(route) }) }));
     const view = await openDashboard(page);
     await expect(view.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
     const configuration = view.getByTestId("logistics-kpi-configuration");

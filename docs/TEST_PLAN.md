@@ -1,3 +1,24 @@
+## Issue #785 — 실물 공개 전환의 영향 검증
+
+Risk HIGH, qa_required=true, OWNER_MANAGED. 변경은 전 화면 탐색/Task 출처·실물 영향 API/Resource-WBS v2/교환·템플릿이며 Scheduling·SVAR writer·CI8/Required3·릴리스 권한은 불변이다. 공식 원격 gate는 exact Head의 Quality/E2E8/Docker·Trusted/Owner로 별도 판정한다. [Work Packet](exec-plans/active/ISSUE_785.md), [누적 실패 원장](ISSUE_785_FAILURE_ANALYSIS.md), [baseline 소비자 지도](evidence/issue-785/producer-consumer-baseline.json).
+
+| 변경 생산자 → 소비자 | lifecycle 판단 | 직접/인접·음성 보호 |
+| --- | --- | --- |
+| retired route → 외부 caller/legacy fixture | EXTEND + KEEP_UNIQUE | auth/Origin/strong revision401/403/428/412→410·writer0·revision0; 테스트는 내부 격리 seed로 명시 구별 |
+| Task compat/physical usage → Editor/변경 영향 | ADD/EXTEND | whole/subset·coverage125/quantity150·self/subtree·직접+보존 분리·invalid FK409·같은 snapshot·HTTP/SQLite reopen |
+| Resource physical union → KPI/Plan/exact drill | EXTEND + KEEP_UNIQUE | direct/archive 합집합·T0/A/R·선택80/전체140·null/0·고유 Assignment/공동담당자·full Gate |
+| public v2 serializer/transport → 6view/상세 | ADD/EXTEND | schema2·actual snapshot/source echo·폐기 selector410·명시v1 deprecated audit·opaque provenance·일반 Resource/Group target allowlist |
+| common snapshot → resource/WBS/KPI/Excel | ADD | dangling FK/inner JOIN 누락을 정상200으로 반환하지 않음·명시 오류/원본불변 |
+| Excel/Copy/Template → OOXML/구형 graph | EXTEND + KEEP_UNIQUE | 실물 시트/필터·raw5/known0·coverage/source·same-R·opaque 참조·private graph 보존·invalid source 전체 rollback·JSON1.1 지원 확대0 |
+| navigation/폐기 panel → URL/storage/focus | EXTEND | 구 key 정규화·mount/fetch0·DOM/aria/네트워크·5폭·Gantt identity/선택/scroll/dirty/stale |
+| 기존 authoring/tree/matrix UI 사례 | RETIRE_CANDIDATE → 실물 회귀로 대체 | 폐기 기능 기대만 종료; 기존 archived 원본 golden·HTTP/SQLite·보안/6회저장·OOXML·5폭 boundary는 유지, skip 없음 |
+
+추가 ADD: `tests/server/resources/resource-physical-source-evidence.test.ts`는 무필터/물리필터 일반·진단·Plan 출처와5350 materialized source rows의5000예산을 검증한다. `tests/features/resources/resource-summary-row-identity.test.ts`는 snapshot갱신시canonical행 유지와Project/query/parent/kind/id 분리를 검증한다. 8개Target0spec은공개410+실제SQLite4table건수0을함께검사한다. 실제선택73고유case는64재사용+9복구이며단일최종73동시실행과구분한다.
+
+기존 #623/#725/#726/#728~#737/#762 검색 결과 whole/subset/coverage·Copy/Template·migration/restart·Task/Assignment identity·실제 browser·OOXML 테스트는 KEEP_UNIQUE다. 부분 중복 수치 검증은 PARTIAL_OVERLAP로 남겨 보호경계를 삭제하지 않는다. 신규 unit/integration은 기존 패턴을 확장하고 신규 E2E 파일을 만들지 않아8shard139spec 명시 배치는 불변이다.
+
+브라우저 영향 집합은 logistics-target-authoring, issue-621-resource-target, issue-622-resource-plan-target, issue-623-resource-mvp, issue-624-logistics-unified, issue-725-process-workareas, issue-726-logistics-master, issue-726-task-logistics, resource-target-dashboard-api, resource-dashboard-api 및 변경 공유 fixture를 소비하는 인접 관점이다. 실제 실행·제외·동결 source 지문·명령/exit/고유 케이스는 Work Packet 반환 원장에 기록한다. 모든 UI 상태×5폭·실물 기기/보조기술·운영 DB/off-host restore/외부 소비자·Windows Excel은 별도 NOT TESTED다.
+
 ## Issue #556 — P1 상단 밀도·조회 가시성 회귀
 
 기존 테스트 시나리오/assertion을 먼저 대조한 [TEST_LIFECYCLE_REVIEW와 AC_TEST_COVERAGE](exec-plans/active/ISSUE_556.md)에 따라 scope/filter/drill 회귀를 확장한다. 정상 전체/열린 Summary0 탐색 DOM0·숨김 heading·마지막 닫기 focus, 선택/현재 Summary 조회 분리와 readonly/empty/pending·exact ID·복귀를 확인한다. 기존 fullscreen·검색/고급/Milestone 소속 필터·marker OFF·peer/Gantt 보존의 고유 위험은 유지한다. 신규 상시 spec/skip/timeout/Required 완화로 대체하지 않는다.

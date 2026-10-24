@@ -1,0 +1,37 @@
+{
+  "schema": "mastergantt-785-rerun3-main-input-reuse-v1",
+  "timestamp": "2026-10-24T01:37:20.529065+00:00",
+  "oldBase": "dd7f4d86db06e8a10b8c86b5412ed319154011e0",
+  "newBase": "4ce403a1e410ca599a780446f39513e1f1158326",
+  "mainMergePr": 788,
+  "mainMergeIssue": 608,
+  "headAtCheck": "8914d89f760cd18abbf57426488b316a38fbf831",
+  "mainIsAncestor": true,
+  "oldSourceDigest": "ca3e45a2e59f0cb9302e508fe2e2ef3cee60d9a2a727efb9208f367836ecc956",
+  "newSourceDigest": "a98f0ffb6dd0434afe17cab5416fb2417d85c0acdbdaa6328332d374a20b453b",
+  "sourceFileCountBefore": 1130,
+  "sourceFileCountAfter": 1130,
+  "changedPaths": [
+    "scripts/test_qa_final_automated.py"
+  ],
+  "changedHashes": {
+    "scripts/test_qa_final_automated.py": {
+      "before": "80605e56e22152b7f4b0e51b993873c20da1cb0fc40069c3402879d30ea70924",
+      "after": "2d9d904b90eaf0043d53943f08cf2cb99da228aa898faf3e138f0db0315414a7"
+    }
+  },
+  "mainChangedPaths": [
+    "docs/ISSUE_608_FAILURE_ANALYSIS.md",
+    "docs/exec-plans/active/ISSUE_608.md",
+    "scripts/test_qa_final_automated.py"
+  ],
+  "productValidatorWorkflowPackageE2eChanged": false,
+  "browser97InputsUnchanged": true,
+  "helperAndUnit11InputsUnchanged": true,
+  "full1130ManifestUnchanged": false,
+  "fresh97AfterMerge": false,
+  "reusedOnlyLocalFastFeedback": true,
+  "officialCiEvidenceReusedForNewBase": false,
+  "independentImpactReviewer": "/root/qa_review",
+  "interpretation": "Chromium97은 이전 ca3 source의 실제 실행이다. 새 main 통합 후 동일 브라우저 입력에 한정한 Local Fast Feedback 재사용이며 Python 전체/Unit11/정적·자동fast는 별도 fresh 영수증을 참조한다."
+}

@@ -1,0 +1,530 @@
+{
+  "schema": "mastergantt-issue-785-ci-cumulative-v1",
+  "observedAt": "2026-10-23T22:34:43.247Z",
+  "repository": "planner77/masterGantt",
+  "pr": 787,
+  "currentHead": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+  "currentBase": "427d22245fb8e11254b2424ea5147ccbd5766979",
+  "currentTestMerge": "322734a1ea8bbaffc89ed876f337d76cbab748f4",
+  "currentMain": "427d22245fb8e11254b2424ea5147ccbd5766979",
+  "mergeable": true,
+  "reviewThreads": 0,
+  "codeReview": {
+    "head": "0a33b6ab7017b4d60d75562c1104eaea75747b28",
+    "findings": 0,
+    "currentHeadApproval": false
+  },
+  "runs": [
+    {
+      "run": 3197,
+      "merge": "322734a1ea8bbaffc89ed876f337d76cbab748f4",
+      "tree": "632e92676fdd5103ed2e378d58a96d94df44d1f2",
+      "base": "427d22245fb8e11254b2424ea5147ccbd5766979",
+      "head": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+      "id": 40032862265,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40032862265",
+      "event": "pull_request",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "directFailure": {
+        "job": 120685901338,
+        "step": 7,
+        "spec": "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+        "caseLine": 215,
+        "assertionLine": 231,
+        "error": "confirmation name expected stale seed name; actual latest long name after previous mutating case",
+        "expected": "다공정 장거리 통합 반송 설비 Long operational equipment name",
+        "actual": "설비LongEquipmentNameWithoutWhitespace설비LongEquipmentNameWithoutWhitespace설비LongEquipmentNameWithoutWhitespace설비LongEquipmentNameWithoutWhitespace설비LongEquipmentNameWithoutWhitespace",
+        "passed": 5,
+        "failed": 1,
+        "notRun": 87
+      },
+      "aggregates": [
+        {
+          "id": 120686394210,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success"
+        },
+        {
+          "id": 120687111511,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        },
+        {
+          "id": 120688278077,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "id": 120688310024,
+          "name": "QA Final — Automated",
+          "conclusion": "failure"
+        }
+      ],
+      "cancelledShards": [
+        {
+          "id": 120685901314,
+          "name": "Chromium E2E shard 6/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120685901318,
+          "name": "Chromium E2E shard 3/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120685901353,
+          "name": "Chromium E2E shard 4/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120685901438,
+          "name": "Chromium E2E shard 1/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120685901538,
+          "name": "Chromium E2E shard 8/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120685901642,
+          "name": "Chromium E2E shard 5/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120685901701,
+          "name": "Chromium E2E shard 7/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        }
+      ],
+      "sourceArtifact": [
+        {
+          "id": 12536080880,
+          "name": "ci-pr-source-40032862265-1",
+          "expired": false,
+          "digest": "sha256:c06ece83364a2e9a193a099cce313039560bbe1b2d6d2082f3a9bb9606c327a7"
+        }
+      ],
+      "sourceAttribution": "Run head_sha + immutable checkout merge log + GitHub commit parent list. Run.pull_requests[].head is live/current and was not used for historical attribution."
+    },
+    {
+      "run": 3195,
+      "merge": "086262b05c7536f33eb86bfb0e7603c6f00b0cba",
+      "tree": "d03f4c0b35071be781d520ce3802512910e8736b",
+      "base": "427d22245fb8e11254b2424ea5147ccbd5766979",
+      "head": "d8180882ea30ff72af83ef4c049e40bd1caea18d",
+      "id": 40030302113,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40030302113",
+      "event": "pull_request",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "directFailure": {
+        "job": 120680499345,
+        "step": 7,
+        "spec": "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+        "caseLine": 215,
+        "assertionLine": 231,
+        "error": "shared instance confirmation visible but equipment UUID hidden/not present",
+        "passed": 5,
+        "failed": 1,
+        "notRun": 87
+      },
+      "aggregates": [
+        {
+          "id": 120681140999,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success"
+        },
+        {
+          "id": 120681837491,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        },
+        {
+          "id": 120682144363,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "id": 120682183948,
+          "name": "QA Final — Automated",
+          "conclusion": "failure"
+        }
+      ],
+      "cancelledShards": [
+        {
+          "id": 120680499217,
+          "name": "Chromium E2E shard 4/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120680499222,
+          "name": "Chromium E2E shard 3/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120680499284,
+          "name": "Chromium E2E shard 7/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120680499313,
+          "name": "Chromium E2E shard 8/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120680499372,
+          "name": "Chromium E2E shard 1/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120680499401,
+          "name": "Chromium E2E shard 6/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120680499442,
+          "name": "Chromium E2E shard 5/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        }
+      ],
+      "sourceArtifact": [
+        {
+          "id": 12535146661,
+          "name": "ci-pr-source-40030302113-1",
+          "expired": false,
+          "digest": "sha256:fa5a50d941a08419e41aef5eec85b10f66f8261866a1491f7d52614bde5f06ed"
+        }
+      ],
+      "sourceAttribution": "Run head_sha + immutable checkout merge log + GitHub commit parent list. Run.pull_requests[].head is live/current and was not used for historical attribution."
+    },
+    {
+      "run": 3194,
+      "merge": "8c7db96182c4622427186dace66b1fd3940411d9",
+      "tree": "3c214e183f0a244ce85f87a5e81fe0076e91694a",
+      "base": "427d22245fb8e11254b2424ea5147ccbd5766979",
+      "head": "f7235d51cb9784f891697555dee52297b705b422",
+      "id": 40030198022,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40030198022",
+      "event": "pull_request",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "directFailure": {
+        "job": 120677436747,
+        "step": 7,
+        "spec": "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+        "caseLine": 215,
+        "assertionLine": 231,
+        "error": "shared instance confirmation visible but equipment UUID hidden/not present",
+        "passed": 5,
+        "failed": 1,
+        "notRun": 87
+      },
+      "aggregates": [
+        {
+          "id": 120678680527,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success"
+        },
+        {
+          "id": 120679080888,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        },
+        {
+          "id": 120679343603,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "id": 120679378743,
+          "name": "QA Final — Automated",
+          "conclusion": "failure"
+        }
+      ],
+      "cancelledShards": [
+        {
+          "id": 120677436698,
+          "name": "Chromium E2E shard 8/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120677436724,
+          "name": "Chromium E2E shard 4/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120677436798,
+          "name": "Chromium E2E shard 6/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120677436813,
+          "name": "Chromium E2E shard 5/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120677436856,
+          "name": "Chromium E2E shard 1/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120677436913,
+          "name": "Chromium E2E shard 3/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120677437538,
+          "name": "Chromium E2E shard 7/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        }
+      ],
+      "sourceArtifact": [
+        {
+          "id": 12534631756,
+          "name": "ci-pr-source-40030198022-1",
+          "expired": false,
+          "digest": "sha256:14281825ec596903755202cf62a648869fa54e9ee80edfec5f9f5653dc1adcd6"
+        }
+      ],
+      "sourceAttribution": "Run head_sha + immutable checkout merge log + GitHub commit parent list. Run.pull_requests[].head is live/current and was not used for historical attribution."
+    },
+    {
+      "run": 3192,
+      "merge": "cca62818164a129ede7552030e02708ac2ed032a",
+      "tree": "cedea0fe4aa590b1f362dceee40898882885d015",
+      "base": "427d22245fb8e11254b2424ea5147ccbd5766979",
+      "head": "433fa32279be7c9c0f812c40b717f91298741fe3",
+      "id": 40028478592,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40028478592",
+      "event": "pull_request",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "directFailure": {
+        "job": 120670771956,
+        "step": 9,
+        "spec": null,
+        "error": "production dependency audit high: zod GHSA-mrhx-c7xc-m3w5; fix zod4.6.7 outside pinned4.6.2",
+        "chromiumImplementation": "SKIPPED",
+        "dockerImplementation": "SKIPPED",
+        "buildImplementation": "SKIPPED"
+      },
+      "aggregates": [
+        {
+          "id": 120671567047,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure"
+        },
+        {
+          "id": 120671567049,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure"
+        },
+        {
+          "id": 120671567146,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "id": 120671599835,
+          "name": "QA Final — Automated",
+          "conclusion": "failure"
+        }
+      ],
+      "cancelledShards": [],
+      "sourceArtifact": [
+        {
+          "id": 12533084216,
+          "name": "ci-pr-source-40028478592-1",
+          "expired": false,
+          "digest": "sha256:38bc932ba86bdfe92e610a5c100b36aa5caaf20097d24809ef0ee718446b1d11"
+        }
+      ],
+      "sourceAttribution": "Run head_sha + immutable checkout merge log + GitHub commit parent list. Run.pull_requests[].head is live/current and was not used for historical attribution."
+    },
+    {
+      "run": 3187,
+      "merge": "0a65630bdfa8ec54b72a98da142e2c6408e4193c",
+      "tree": "59eb79ee9823ed34c1945b51989ead71e00fdd89",
+      "base": "427d22245fb8e11254b2424ea5147ccbd5766979",
+      "head": "0a33b6ab7017b4d60d75562c1104eaea75747b28",
+      "id": 39975107608,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39975107608",
+      "event": "pull_request",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "directFailure": {
+        "job": 120488909192,
+        "step": 7,
+        "spec": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "caseLine": 74,
+        "assertionLine": 51,
+        "case": "#719 logistics 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "error": "toBeVisible: old logistics button '일정에서 전체 작업 보기' not found",
+        "passed": 11,
+        "failed": 1,
+        "notRun": 90
+      },
+      "aggregates": [
+        {
+          "id": 120489809804,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success"
+        },
+        {
+          "id": 120490764526,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        },
+        {
+          "id": 120490976408,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "id": 120491018212,
+          "name": "QA Final — Automated",
+          "conclusion": "failure"
+        }
+      ],
+      "cancelledShards": [
+        {
+          "id": 120488908833,
+          "name": "Chromium E2E shard 3/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120488909013,
+          "name": "Chromium E2E shard 7/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120488909020,
+          "name": "Chromium E2E shard 2/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120488909063,
+          "name": "Chromium E2E shard 6/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120488909068,
+          "name": "Chromium E2E shard 1/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120488909198,
+          "name": "Chromium E2E shard 8/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        },
+        {
+          "id": 120488909266,
+          "name": "Chromium E2E shard 4/8 · PR",
+          "recordedTestFailures": 0,
+          "logRead": true
+        }
+      ],
+      "sourceArtifact": [
+        {
+          "id": 12510622068,
+          "name": "ci-pr-source-39975107608-1",
+          "expired": false,
+          "digest": "sha256:bdbcf71a6efbe15323d882fd43bce4e5149e43311e4be13805aad21b9f657e11"
+        }
+      ],
+      "sourceAttribution": "Run head_sha + immutable checkout merge log + GitHub commit parent list. Run.pull_requests[].head is live/current and was not used for historical attribution."
+    }
+  ],
+  "advisory": [
+    {
+      "id": 40032862037,
+      "number": 47,
+      "attempt": 1,
+      "head": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 40030302107,
+      "number": 45,
+      "attempt": 1,
+      "head": "d8180882ea30ff72af83ef4c049e40bd1caea18d",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 40030198045,
+      "number": 44,
+      "attempt": 1,
+      "head": "f7235d51cb9784f891697555dee52297b705b422",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 40028478605,
+      "number": 42,
+      "attempt": 1,
+      "head": "433fa32279be7c9c0f812c40b717f91298741fe3",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 39975107692,
+      "number": 40,
+      "attempt": 1,
+      "head": "0a33b6ab7017b4d60d75562c1104eaea75747b28",
+      "conclusion": "skipped"
+    }
+  ],
+  "failedSpecUnion": [
+    "tests/e2e/issue-719-contextual-help.spec.ts",
+    "tests/e2e/issue-734-equipment-dashboard.spec.ts"
+  ],
+  "totalCancelledShardLogsRead": 28,
+  "additionalRecordedTestFailuresInCancelledJobs": 0,
+  "trustedQa": "NOT COLLECTED; workflow-list-by-file endpoint unsupported; no Trusted PASS claimed",
+  "latestAutomatedQaReason": "required e2e 미성공",
+  "safety": {
+    "writes": false,
+    "comments": false,
+    "refs": false,
+    "reruns": false,
+    "ciMonitoring": false
+  },
+  "interpretationCorrection": {
+    "collectionTimeHypothesis": "The field after previous mutating case was an initial hypothesis, not an immutable observed cause.",
+    "currentConclusion": "Same-case seed PATCH renamed the equipment but returned the initial equipment DTO. Original full ordered and isolated single-case both reproduced; prior-case contamination is rejected.",
+    "basis": "Canonical PATCH name equals dialog name; requested/canonical/usage/dialog IDs match; usage has no name field. See F785-004 local repro and fix in ISSUE_785_FAILURE_ANALYSIS.md.",
+    "immutableRunFactsPreserved": true
+  }
+}

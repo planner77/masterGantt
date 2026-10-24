@@ -1,3 +1,4 @@
+import { toResourcePublicV2 } from "../../src/contracts/resource-public-v2";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -46,11 +47,11 @@ async function setup(page: import("@playwright/test").Page) {
   await page.route(`**${projectPath}/resource-dashboard?*`, (route) => {
     const q = new URL(route.request().url()).searchParams;
     return route.fulfill({
-      json: {
+      json: toResourcePublicV2({
         data: q.has("granularity")
           ? planUiFixture(state, q).data
           : resourceDashboardUiFixture(state, q),
-      },
+      }),
     });
   });
   for (const kind of ["daily", "day-resources", "day-assignments"] as const)
@@ -58,13 +59,13 @@ async function setup(page: import("@playwright/test").Page) {
       `**${projectPath}/resource-dashboard/plan/${kind}?*`,
       (route) =>
         route.fulfill({
-          json: {
+          json: toResourcePublicV2({
             data: planDetailsUiFixture(
               state,
               new URL(route.request().url()).searchParams,
               kind,
             ),
-          },
+          }),
         }),
     );
   await page.setViewportSize({ width: 1440, height: 900 });

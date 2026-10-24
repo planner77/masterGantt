@@ -31,6 +31,7 @@ export interface ResourceKpiLogisticsInput {
   limits?: Partial<Record<"inputRows" | "lineageEdges" | "provenancePaths" | "projectionCells", number>>;
 }
 export interface ResourceKpiTargetFilters {
+  equipmentIds?: readonly string[]; systemIds?: readonly string[]; physicalEquipmentTypeCodes?: readonly string[]; physicalSystemTypeCodes?: readonly string[];
   targetIds?: readonly (string | null)[];
   projectProcessIds?: readonly string[];
   processOccurrenceIds?: readonly string[];
@@ -193,7 +194,7 @@ export function hasResourceKpiTargetPathFilters(filters: ResourceKpiTargetFilter
   return targetFilterKeys.some(key => Boolean(filters[key]?.length));
 }
 export function hasResourceKpiTargetFilters(filters: ResourceKpiTargetFilters): boolean {
-  return ([...targetFilterKeys, "directEquipmentIds", "directSystemIds"] as const).some(key => Boolean(filters[key]?.length));
+  return ([...targetFilterKeys, "directEquipmentIds", "directSystemIds", "equipmentIds", "systemIds", "physicalEquipmentTypeCodes", "physicalSystemTypeCodes"] as const).some(key => Boolean(filters[key]?.length));
 }
 export function validateResourceKpiTargetFilters(prepared: PreparedResourceKpiTargets, filters: ResourceKpiTargetFilters) {
   if (filters.targetIds?.includes(null) && memberFilterKeys.some(key => filters[key]?.length)) fail("UNLINKED_TARGET_MEMBER_FILTER_CONFLICT");
@@ -207,6 +208,8 @@ export function validateResourceKpiTargetFilters(prepared: PreparedResourceKpiTa
   check(filters.workAreaIds, id => id === null || prepared.byWorkArea.has(id));
   check(filters.targetScopes, scope => scope === "process" || scope === "project_common");
   for (const kind of ["equipment", "system"] as const) {
+    check(kind === "equipment" ? filters.equipmentIds : filters.systemIds, id => prepared.byInstance.has(instanceKey(kind, id)));
+    check(kind === "equipment" ? filters.physicalEquipmentTypeCodes : filters.physicalSystemTypeCodes, code => prepared.instances.some(row => row.kind === kind && row.typeCode === code));
     check(kind === "equipment" ? filters.memberEquipmentIds : filters.memberSystemIds, id => prepared.byInstance.has(instanceKey(kind, id)));
     check(kind === "equipment" ? filters.directEquipmentIds : filters.directSystemIds, id => prepared.byInstance.has(instanceKey(kind, id)));
     check(kind === "equipment" ? filters.equipmentTypeCodes : filters.systemTypeCodes, code => prepared.instances.some(row => row.kind === kind && row.typeCode === code));
@@ -243,6 +246,13 @@ export function selectResourceKpiTargetPaths(prepared: PreparedResourceKpiTarget
 }
 export function matchesResourceKpiTargetTask(prepared: PreparedResourceKpiTargets, taskId: string, filters: ResourceKpiTargetFilters): boolean {
   const task = prepared.resolved.get(taskId)!;
+  // Public physical selectors match the canonical union, independent of archived grouping.
+  for (const kind of ["equipment", "system"] as const) {
+    const selectedIds = kind === "equipment" ? filters.equipmentIds : filters.systemIds;
+    const selectedTypes = kind === "equipment" ? filters.physicalEquipmentTypeCodes : filters.physicalSystemTypeCodes;
+    const effective = kind === "equipment" ? task.effectiveEquipmentIds : task.effectiveSystemIds;
+    if ((selectedIds?.length || selectedTypes?.length) && !effective.some(id => contains(selectedIds, id) && contains(selectedTypes, prepared.byInstance.get(instanceKey(kind,id))!.typeCode))) return false;
+  }
   if (filters.directEquipmentIds?.length && !task.legacySources.some(source => source.kind === "equipment" && filters.directEquipmentIds!.includes(source.entityId))) return false;
   if (filters.directSystemIds?.length && !task.legacySources.some(source => source.kind === "system" && filters.directSystemIds!.includes(source.entityId))) return false;
   if (!targetFilterKeys.some(key => filters[key]?.length)) return true;

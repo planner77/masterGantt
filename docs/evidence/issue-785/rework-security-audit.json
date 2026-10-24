@@ -1,0 +1,18 @@
+{
+  "schema": "mastergantt-issue-785-security-recheck-v1",
+  "command": "npm audit --omit=dev --json",
+  "exitCode": 0,
+  "installedDirectZod": "4.6.7",
+  "vulnerabilities": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "packageSha256": "c15ad4fc81e944adb77a57d40df1deedeecda706ddaaa38dc7e06ba73c03ab00",
+  "lockSha256": "e168213a62f0379aedd5302b6042a9fadcf6809afc7d531d8fac88113664a6f9",
+  "node": "22.14.0",
+  "npm": "11.10.0"
+}

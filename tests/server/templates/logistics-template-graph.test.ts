@@ -136,7 +136,7 @@ describe("Issue #616 versioned Template Target/member graph",()=>{
         .get(projectId) as {id:number}).id;
       const targets=new LogisticsTargetService(f.db).list(projectId,{limit:20}).targets;
       expect(targets).toHaveLength(3);
-      expect(response.data.operation.counts.targets).toBe(3);
+      expect(response.data.operation.counts).not.toHaveProperty("targets");
       expect(response.data.operation.counts.processMappings).toBe(2);
       const A=targets.find(t=>t.code==="TARGET-A")!;
       const B=targets.find(t=>t.code==="TARGET-B")!;
@@ -213,7 +213,7 @@ describe("Issue #616 versioned Template Target/member graph",()=>{
       });
       const targetRows=new LogisticsTargetService(f.db).list(response.data.project.publicId).targets;
       expect(targetRows).toEqual([]);
-      expect(response.data.operation.counts.targets).toBe(0);
+      expect(response.data.operation.counts).not.toHaveProperty("targets");
     }finally{f.db.close();}
   });
 });

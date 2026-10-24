@@ -1,3 +1,37 @@
+## Issue #785 — 실물 공개 계약 v2와 구형 경로 퇴역
+
+### 버전과 소비자 수명
+
+Resource dashboard·Plan/detail/drill 및 WBS view read의 기본 응답은 `X-MasterGantt-Resource-Version: 2`다. 명시 요청 헤더 `X-MasterGantt-Resource-Version: 1`만 기존 bounded 읽기 의미를 유지하며 `Deprecation: true`를 반환한다. 잘못된 버전은400이다. UI는 v2를 사용하고 v1은 지원 consumer/audit 전용이다. 외부 소비자 사용량·종료일은 아직 확인하지 않았으므로 소비자0 또는 v1 영구 지원을 주장하지 않는다. 파괴적 종료는 Owner 승인·소비자 조사 후 별도다.
+
+v2는 `resource-dashboard/2`·`wbs-view-report/2`·`logistics-kpi/2` schema와 `physicalSources`/`instanceMembers` 등 실물 출처를 사용한다. 폐기 엔터티 ID·카탈로그·진단을 제거하고 canonical Task/Assignment/Equipment/System ID·scope/selection/coverage·opaque 관계 참조와 기존 snapshot identity를 보존한다. 같은 wire를 내부 renderer로 읽는 adapter는 표시용이며 원본 작성 권한이 아니다.
+
+새 `equipmentIds`/`systemIds` 및 실물 type 조건은 직접+보존 연결의 유효 실물 합집합을 조회한다. 기존 member-only/direct-only 조건과 의미가 다르다. 공정/WorkArea의 신규 선택은 WBS 명시 문맥을 사용한다. 기본v2의 legacy `projectionOrder`는410으로 종료하고 다관점은 canonical WBS views를 사용한다. 기본v2의 `targetIds/targetScopes/memberEquipmentIds/memberSystemIds/directEquipmentIds/directSystemIds/projectProcessIds/processOccurrenceIds/processTypeIds/workAreaIds/targetPath` 등 구형 Resource 선택은 `410 RESOURCE_SELECTION_RETIRED`다. WBS 자체 spec/path의 명시 공정/WorkArea는 유효하며 Resource legacy filter와 혼용하지 않는다. 기존 T0/A/R·full Gate·정확 상세·Capacity/예산·private no-store 보안은 유지한다.
+
+`GET .../logistics/kpi?source=integrated`도 기본v2이며 집계 출처는 `physical-connections:v2`다. configuration의 폐기 엔터티와 해당 진단/Task 원본ID는 공개하지 않는다. Resource/Group Assignment의 일반 `targetId/targetName`은 별개 식별 계약이므로 보존한다.
+
+### 전용 경로 종료
+
+| 경로 | method | 결과 |
+| --- | --- | --- |
+| `/api/projects/{publicId}/logistics/targets` | GET/POST | 410 |
+| `/api/projects/{publicId}/logistics/targets/{targetId}` | GET/PATCH/DELETE | 410 |
+| `/api/projects/{publicId}/logistics/targets/{targetId}/usage` | GET | 410 |
+| `/api/projects/{publicId}/logistics/targets/{targetId}/impact` | POST | 410 |
+| `/api/projects/{publicId}/tasks/{taskId}/target-bindings` | GET/PUT | 410 |
+
+오류 코드는 `LOGISTICS_API_RETIRED`이며 실제 데이터/revision 변경0·body writer 호출0이다. Project 존재 검증을 유지하고 mutation method는 기존 exact Origin·edit session·strong If-Match를 먼저 검사한다. 따라서 미인증401/잘못된 Origin403/If-Match 누락428·낡은 revision412는 기존 방어 결과다. 내부 legacy 서비스가 남아 있어도 공개 작성 경로가 아니다.
+
+### Task 물류 연결과 실물 영향
+
+`GET /api/projects/{publicId}/tasks/{taskId}/logistics-links`는 기존 직접/상속 Equipment/System 컬렉션과 함께 같은 read transaction의 `projectRevision`, 실물별 읽기 전용 `compatibilityLinks`를 반환한다. 각 출처는 `{sourceId,kind,entityId,code,name,active,sourceTaskId,sourceTaskName,scope,inherited,selection,coverage,coverageMode,readonly:true,context?}`다. `sourceId`는 불투명 관계 참조이며 폐기 엔터티의 이름/ID를 전달하지 않는다. 유효 ID는 직접+보존 관계 합집합이고 편집 가능한 직접 row와 구분한다. optional context는 실제 출처의 scope·공정{id,name}·occurrenceId·WorkArea{id,name}이며 Task의 직접 W2 공정/구역을 자동 채우지 않는다. coverage는 수량이며 퍼센트100 한도가 아니다. 직접 PUT은 기존 원본을 수정하고 compatibility source를 자동 변환하지 않는다. 레거시 출처 자체 편집은 현재 지원되지 않는다.
+
+`GET /api/projects/{publicId}/logistics/equipment/{equipmentId}/usage` 및 `.../systems/{systemId}/usage`는 `{projectRevision,kind,entityId,relatedTasks:[{taskId,type}],directTaskCount,compatibilityTaskCount}`를 반환한다. 건수는 출처별 고유 Task이며 두 종류는 겹칠 수 있어 합산하지 않는다. 실제 subset/self/subtree의 실물 참조를 사용하고 Target 전용 API를 재조회하지 않는다. Task5,000·원본 행/상속 경로/출처 확장 각각50,000·응답2MiB 한도를 적용하며 초과는 비절삭422 `LOGISTICS_SOURCE_LIMIT_EXCEEDED`다. 잘못된 archive FK/교차 Project·해석 누락은409 `LOGISTICS_SOURCE_INVALID`로 명시 거부하며 빈 연결로 치환하지 않는다.
+
+### 교환 경계
+
+Template 공개 목록/상세의 `targetCount`, instantiate `counts.targets`는 제거한다. private snapshot v2~v5 archive graph와 Copy의 지원 원본 remap·rollback은 유지한다. JSON1.1 표현 범위는 불변이다. Resource Excel도 기본v2이며 구형 descriptor는410 `LOGISTICS_SELECTION_RETIRED`, 명시 header1은 deprecated audit 읽기다. 실물 시트·근거는 [Excel 계약](EXCEL_EXPORT.md), 원본 보존/단계별 미완료는 [#785 Work Packet](exec-plans/active/ISSUE_785.md)을 따른다. 아래 기존 Target API/DTO 설명은 명시v1·내부 archive/감사 이력이며 신규 공개 계약이 아니다.
+
 ## Issue #762 — Project 직접 WorkArea CRUD
 
 기존 Project 공정 CRUD와 `GET /api/projects/{publicId}/logistics/process-context`를 재사용한다. 신규 공정/직접 구역은 BU/Product/Site 미지정이어도 등록할 수 있다. GET 응답의 `data.projectWorkAreas`는 `{id,processId,occurrenceId,source,editable,code,name,active,sortOrder,usageCount}` 목록이다. direct는 source=project/occurrenceId=null, legacy는 source=legacy/원본 occurrenceId이며 명시 mapping별 같은 WorkArea UUID가 복수 processId에 나타날 수 있다. optional `diagnostics`는 shared(여러 Project/공정 mapping 참조), inactive(관련 원본 비활성), classification_mismatch(현재 Project 분류 밖)를 제공한다. 진단은 원본을 삭제·자동 전환하거나 새 owner로 간주하는 근거가 아니다. 기존 types/standards/occurrences/workAreas/mappings 응답은 유지한다. 직접 owner는 processId로 해석하고 이름/null occurrence를 조인 key로 사용하지 않는다.

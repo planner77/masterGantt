@@ -1,0 +1,89 @@
+{
+  "issue": 785,
+  "scope": "8 prior failures plus one adjacent Task-context case; no product changes after rework72",
+  "stats": {
+    "startTime": "2026-10-23T14:44:56.404Z",
+    "duration": 129734.057,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "line": 98,
+      "title": "#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱신·dirty/pending",
+      "status": "passed",
+      "durationMs": 12243,
+      "retry": 0
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "line": 376,
+      "title": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+      "status": "passed",
+      "durationMs": 17934,
+      "retry": 0
+    },
+    {
+      "file": "issue-726-task-logistics.spec.ts",
+      "line": 62,
+      "title": "#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중복 제출 방지, reload·Summary 상속",
+      "status": "passed",
+      "durationMs": 14228,
+      "retry": 0
+    },
+    {
+      "file": "issue-726-task-logistics.spec.ts",
+      "line": 235,
+      "title": "#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류 보존과 상위 출처 구별",
+      "status": "passed",
+      "durationMs": 23331,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 151,
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 390px",
+      "status": "passed",
+      "durationMs": 3302,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 151,
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 768px",
+      "status": "passed",
+      "durationMs": 2524,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 151,
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1024px",
+      "status": "passed",
+      "durationMs": 2579,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 151,
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1440px",
+      "status": "passed",
+      "durationMs": 2583,
+      "retry": 0
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "line": 151,
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1920px",
+      "status": "passed",
+      "durationMs": 2653,
+      "retry": 0
+    }
+  ],
+  "rawLog": "/tmp/issue-785-browser-recovery.log",
+  "rawReport": "/tmp/issue-785-browser-recovery.json",
+  "remoteCI": "NOT TESTED"
+}

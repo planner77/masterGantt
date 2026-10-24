@@ -75,6 +75,7 @@ export function assertCapturedInstall(root: string): void {
   assert.equal(approvedZod.schema, "mastergantt-zod-security-patch-v1");
   assert.equal(approvedZod.capturedVersion, "4.6.2");
   assert.equal(approvedZod.patchedVersion, "4.6.7");
+  assert.equal(approvedZod.advisory, "GHSA-mrhx-c7xc-m3w5");
   assert.deepEqual(Object.keys(approvedZod.package).sort(),
     ["version", "resolved", "integrity", "license", "funding"].sort(),
     "Approved Zod package must not gain new metadata fields");

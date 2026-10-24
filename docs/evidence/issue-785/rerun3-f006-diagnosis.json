@@ -1,0 +1,148 @@
+{
+  "schema": "mastergantt-785-f006-diagnosis-v1",
+  "baselineHead": "473b0fb103d445f64ef6b44be63a9b4d6456cbdc",
+  "originalSpecSha256": "fcfa8253a808096cca79f73faa7ab262874974acda5d374f2b9cac7b8e40db16",
+  "runId": 40045100122,
+  "attempt": 1,
+  "classification": "FIXTURE_OBSERVABILITY",
+  "unmodifiedLocal": {
+    "fullSpec": {
+      "passed": 8,
+      "failed": 0,
+      "minutes": 4.4
+    },
+    "isolatedDirty": {
+      "passed": 1,
+      "failed": 0,
+      "bodySeconds": 22.7,
+      "elapsedSeconds": 40.6
+    },
+    "remoteFailureOverwritten": false
+  },
+  "timingControl": {
+    "passed": 1,
+    "failed": 0,
+    "bodySeconds": 22.6,
+    "elapsedSeconds": 38.7,
+    "equipmentDeliveryDelayMs": 700,
+    "processBrowserRequestAborted": true,
+    "conclusion": "LOCAL_NOT_REPRODUCED; server completion did not prove browser delivery",
+    "receipt": "rerun3-timing-probe.json",
+    "temporarySourceRestoredToOriginal": true
+  },
+  "actualCiTrace": {
+    "receipt": "rerun3-ci-trace-allowed.json",
+    "artifactId": 12541530991,
+    "actionsDigestMatches": true,
+    "readAsDataOnly": true,
+    "patchRevision": 24,
+    "browserProcessRequestResponseRoot": "process",
+    "browserEquipmentRequestResponseRoot": "equipment",
+    "testApiReplayRoot": "process",
+    "beforeReportRoot": "equipment",
+    "beforeRevision": 23,
+    "failureDomSelectedRoot": "equipment",
+    "failureDomSavedRowPresent": true
+  },
+  "deterministicRed": {
+    "command": "node /tmp/issue785-rerun3-original-matcher-replay.cjs",
+    "seam": "Original source matcher evaluated against actual sanitized CI response events",
+    "exitCode": 1,
+    "selectedRoot": "process",
+    "expectedRoot": "equipment",
+    "kind": "MATCHER_REPLAY_NOT_BROWSER_FAILURE"
+  },
+  "hypotheses": {
+    "uncorrelatedWaiter": "CONFIRMED_BY_CI_REPLAY_AND_ORIGINAL_MATCHER_RED",
+    "actualUiChangedToProcess": "NOT_SUPPORTED_FOR_THIS_FAILURE; active Equipment and saved row observed",
+    "serverWrongEcho": "REJECTED_FOR_OBSERVED_RESPONSES; both queries echoed their own root"
+  },
+  "sourceArtifactPayloadDownloaded": false,
+  "correctionPlan": {
+    "changedConsumers": [
+      "#730",
+      "#732",
+      "#733",
+      "#734",
+      "#735",
+      "#737"
+    ],
+    "independentReference": "#736",
+    "newSharedRequestConditionHelper": true,
+    "requestIdentityAfterRegistration": true,
+    "strictResponseEchoRequired": true,
+    "responseBodyUsedToIgnoreWrongEcho": false,
+    "productChangesPlanned": false,
+    "existingAssertionsAndTimeoutsPreserved": true
+  },
+  "finalBrowser": {
+    "state": "PASS",
+    "plannedBatches": [
+      36,
+      35,
+      15,
+      11
+    ],
+    "uniqueCases": 97,
+    "uniqueSpecs": 25,
+    "newUnitSeparate": true,
+    "passed": 97,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "retries": 0,
+    "receipt": "rerun3-browser-final.json",
+    "sourceDigest": "ca3e45a2e59f0cb9302e508fe2e2ef3cee60d9a2a727efb9208f367836ecc956"
+  },
+  "preQa": "PASS",
+  "newHeadRequired": "NOT TESTED",
+  "ownerAccept": "NOT TESTED",
+  "correctionReview": {
+    "prototypeSourceDigest": "eddfed861b304dac186f240974bd9a2cdaec54832267491dee89d7643feb0624",
+    "prototypeBatchA": {
+      "status": "CANCELLED",
+      "completedPassedCases": 4,
+      "batchesBCD": "NOT TESTED",
+      "receipt": "rerun3-prototype-stopped.json",
+      "countedInFinal97": false
+    },
+    "p1CacheRace": {
+      "finding": "FAIL",
+      "seam": "Same-query future responses with overlapping async body reads; later valid response can win and earlier wrong echo can overwrite shared cache",
+      "unitRed": {
+        "passed": 7,
+        "failed": 2
+      },
+      "unitGreen": {
+        "passed": 9,
+        "failed": 0
+      }
+    },
+    "p2PartialFilterEcho": {
+      "finding": "FAIL",
+      "seam": "Empty requested filters accepted unexpected response filters under subset check",
+      "unitRed": {
+        "passed": 9,
+        "failed": 2
+      },
+      "unitGreen": {
+        "passed": 11,
+        "failed": 0
+      }
+    },
+    "reworkStaticReview": {
+      "reviewer": "/root/qa_review",
+      "state": "PASS",
+      "unresolvedFindings": 0,
+      "independentInMemoryHarnessConfirmed": true
+    },
+    "finalSourceFiles": 1130,
+    "finalSourceDigest": "ca3e45a2e59f0cb9302e508fe2e2ef3cee60d9a2a727efb9208f367836ecc956",
+    "helperSha256": "5e5450870bf1b02907de9c5080716c0e72e1f8978ea03b3bafc3a726a990710c",
+    "unitSha256": "361affa14ca9c93b84573dcb945e8434ed06f529e326715058a1dd52e2a748a4",
+    "unitFinalPassed": 11
+  },
+  "preQaScope": "게시준비 read-only, 정식 QA/Owner 대체 아님",
+  "preQaReceipt": "rerun3-preqa.json",
+  "postMergeInputReuseReceipt": "rerun3-main-input-reuse.json"
+}

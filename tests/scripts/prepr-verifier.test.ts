@@ -345,6 +345,11 @@ describe("Issue #699/#752/#762/#556 — immutable historical capture with review
     write();
     expect(() => assertCapturedInstall(dir)).toThrow(/Only reviewed Zod 4\.6\.7 security patch/);
     manifest.dependencies.zod = savedManifestZod;
+    // #785의 과거 취약 버전으로 직접 되돌리는 입력도 별도로 거부한다.
+    manifest.dependencies.zod = "4.6.2";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Only reviewed Zod 4\.6\.7 security patch/);
+    manifest.dependencies.zod = savedManifestZod;
 
     const savedLockZod = lock.packages[""].dependencies.zod;
     lock.packages[""].dependencies.zod = "4.6.2";

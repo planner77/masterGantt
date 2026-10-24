@@ -1,3 +1,9 @@
+## Issue #785 — 실물 필터와 기존 공수·Plan 보존
+
+공개 resource/WBS v2는 실물 중심 필터/출처를 제공하며 Target 계층·교차표·선택·카탈로그·진단을 사용자에게 제공하지 않는다. 명시 v1 읽기는 deprecated 호환이며 새 UI에서 사용하지 않는다. 내부 resolver/수치 golden은 유지한다. 새 Equipment/System 조건은 직접+보존 관계의 실제 유효 인스턴스 합집합을 조회하며 기존 member-only 조건으로 대체하지 않는다. 공정/WorkArea는 WBS 명시 문맥을 사용한다.
+
+일반 Task T0, 선택 Assignment A, 기존 Capacity R·Calendar·선택80%/Project140%, full Milestone Gate, M/D/M/M의 null/0/미산출·등록 quantity·비가산 총계는 유지한다. 정확 상세·일별 Plan·과투입 원인은 원본 Task/Assignment ID로 연결하며 출처를 중립 실물 관계로 표시한다. 아래 Target 보기/필터/진단 설명은 이전 API/UI 이력이다. [API](API.md), [현행 안내](TARGET_RESOURCE_USER_GUIDE.md), [실행 원장](exec-plans/active/ISSUE_785.md).
+
 ## Issue #556 — 일정에서 담당자·공수 조회
 
 일정의 검색·필터 인접 `담당자·공수 조회`는 선택 일반 Task 및 선택 Summary 자손의 모든 개인 Assignment를 기존 `scheduleToResources()`로 전달한다. 현재 Summary 전체는 별도 `Summary 전체 담당자·공수` 명령이며 선택 집합과 합치지 않는다. 단순 readonly는 조회를 막지 않는다. 선택 없음·일반 Task 없음·편집/저장/탐색 대기는 원인별 안내하며 개인 배정0은 기존 빈 결과 안내를 사용한다. 기존 exact Task/Assignment ID, 전원 포함 정책, M/D·M/M/환산·source conflict/복귀를 변경하지 않는다. [P1 범위/증거](exec-plans/active/ISSUE_556.md).

@@ -1,0 +1,221 @@
+{
+  "batch": "b",
+  "startedAt": "2026-10-23T22:55:51.220861+00:00",
+  "finishedAt": "2026-10-23T22:59:52.079731+00:00",
+  "exitCode": 0,
+  "sourceBefore": "0e413386703ac3ae1a143e31340fcf141b842b3ad6d4e1db55fffe1bb4976aef",
+  "sourceAfter": "0e413386703ac3ae1a143e31340fcf141b842b3ad6d4e1db55fffe1bb4976aef",
+  "sourceStable": true,
+  "sourceChangedPaths": [],
+  "generatedConfigChangedPaths": [
+    "next-env.d.ts",
+    "tsconfig.json"
+  ],
+  "fullCheckoutSourceStable": false,
+  "generatedConfigBefore": {
+    "next-env.d.ts": "3dcf5e9a60a41585bc9e4bc322455e96b6363257347580c71da74560aed2fd5a",
+    "tsconfig.json": "bf831bf8bc6373f57734d67b61b215f26f8d769a3d494731d61a86b6ac2479fd"
+  },
+  "generatedConfigAfter": {
+    "next-env.d.ts": "a41b6eac1cd0360bcbe51869eae7720b7b7bf3b76e0f68fdde12eb0165a6febc",
+    "tsconfig.json": "dcd361d55d32bfe070d275e606eb925af1c4de1c6a1228e79823b7032e755aa0"
+  },
+  "tools": {
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "os": "Linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "next": "16.4.2",
+    "zod": "4.6.7",
+    "@playwright/test": "1.63.0"
+  },
+  "command": {
+    "batch": "b",
+    "expectedCount": 11,
+    "argv": [
+      "npx",
+      "--no-install",
+      "playwright",
+      "test",
+      "--config=tests/config/playwright.config.ts",
+      "--project=chromium",
+      "--workers=1",
+      "--retries=0",
+      "--max-failures=0",
+      "tests/e2e/issue-735-system-dashboard.spec.ts",
+      "tests/e2e/issue-717-name-first.spec.ts",
+      "tests/e2e/task-editor-form-density.spec.ts",
+      "tests/e2e/logistics-dashboard-request-state.spec.ts",
+      "--grep",
+      "#735 |#717 이름 우선과 전체 ID 접근 1440px|#456 Milestone 동적 소속과 물류 탭|#456 실제 keyboard 100%|조회 wrong-revision는|조회 malformed-integrated는"
+    ],
+    "environmentUnset": [
+      "PLAYWRIGHT_BASE_URL"
+    ]
+  },
+  "stats": {
+    "total": 11,
+    "expected": 11,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "durationMs": 250486.908,
+  "cases": [
+    {
+      "file": "issue-717-name-first.spec.ts",
+      "title": "#717 이름 우선과 전체 ID 접근 1440px",
+      "location": {
+        "file": "issue-717-name-first.spec.ts",
+        "line": 8,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 4534,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "title": "#735 실제 System 직접·조정 Task 집합과 고유 Assignment·선택·공정 필터",
+      "location": {
+        "file": "issue-735-system-dashboard.spec.ts",
+        "line": 57,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 20825,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "title": "#735 System 정확 원본 dirty·취소·저장 후 새 snapshot과 같은 조회 복귀",
+      "location": {
+        "file": "issue-735-system-dashboard.spec.ts",
+        "line": 104,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 23700,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "title": "#735 System Task·Assignment·일정 왕복과 stale·error 원본 잠금",
+      "location": {
+        "file": "issue-735-system-dashboard.spec.ts",
+        "line": 160,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 23969,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "title": "#735 긴 System 이름 5폭 내부 스크롤·표 정렬·키보드 focus",
+      "location": {
+        "file": "issue-735-system-dashboard.spec.ts",
+        "line": 185,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 25109,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "title": "#735 readonly System 조회는 원본 편집·mutation을 제공하지 않는다",
+      "location": {
+        "file": "issue-735-system-dashboard.spec.ts",
+        "line": 221,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 23290,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "title": "#735 구버전 System 저장 spec·펼침·상세 선택은 직접 범위로 변환하지 않는다",
+      "location": {
+        "file": "issue-735-system-dashboard.spec.ts",
+        "line": 232,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 21029,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "title": "조회 wrong-revision는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "location": {
+        "file": "logistics-dashboard-request-state.spec.ts",
+        "line": 53,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2771,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "title": "조회 malformed-integrated는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "location": {
+        "file": "logistics-dashboard-request-state.spec.ts",
+        "line": 53,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2480,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-editor-form-density.spec.ts",
+      "title": "#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 폭에 기록한다",
+      "location": {
+        "file": "task-editor-form-density.spec.ts",
+        "line": 94,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 7035,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-editor-form-density.spec.ts",
+      "title": "#456 실제 keyboard 100%·날짜 오류·pending action 폭과 닫기 잠금을 보존한다",
+      "location": {
+        "file": "task-editor-form-density.spec.ts",
+        "line": 117,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3367,
+      "retry": 0,
+      "errorFirstLine": null
+    }
+  ]
+}

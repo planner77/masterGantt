@@ -1,4 +1,3 @@
-import { expectRawIdentifier } from "./helpers/identifier-details";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { mkdir, writeFile } from "node:fs/promises";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
@@ -13,7 +12,7 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   const f = await seedIssue621(page, origin, observeIsolatedApi);
   const catalog = (await (await page.request.get(`${origin}/api/resources`)).json()).data;
   for (const [task, target, percent] of [[f.task, f.targets[0], 80], [f.unset, f.targets[1], 60]] as const) {
-    await f.mutate(`/tasks/${task.taskId}/target-bindings`, { bindings: [{ targetId: target.id, scope: "self", selection: "whole", memberIds: [] }] }, "put");
+    await f.seedLegacy(`/tasks/${task.taskId}/target-bindings`, { bindings: [{ targetId: target.id, scope: "self", selection: "whole", memberIds: [] }] }, "put");
     await f.mutate(`/tasks/${task.taskId}/assignments`, { catalogRevision: catalog.revision, targets: [{ kind: "resource", id: f.resources[0].id, allocation: { start: "2026-10-14", end: "2026-10-14", percent } }] }, "put");
   }
   await page.reload();
@@ -24,7 +23,8 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   await root.getByLabel("기간 종료", { exact: true }).fill("2026-10-14");
   await root.getByLabel("리소스 보기", { exact: true }).selectOption("plan");
   await root.getByRole("button", { name: "개인", exact: true }).click();
-  await root.getByLabel("Target", { exact: true }).selectOption(f.targets[0].id);
+  const systemId = f.targets[0].members[0].entityId;
+  await root.getByLabel("물류 시스템", { exact: true }).selectOption(systemId);
   await expect(root).toHaveAttribute("data-ready", "true");
   const plan = root.getByRole("region", { name: "Resource Plan", exact: true });
   await plan.getByLabel("기간 셀 지표", { exact: true }).selectOption("load");
@@ -51,16 +51,15 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   await table.locator("tbody tr").filter({ hasText: f.resources[0].name }).getByRole("button", { name: /Project 전체 · 초과/ }).first().click();
   const detail = root.getByRole("region", { name: "기간 부하 상세", exact: true });
   await expect(detail).toHaveAttribute("data-detail-state", "ready");
-  await expectRawIdentifier(detail, "Target ID", f.targets[0].id);
-  await expect(detail).toContainText(f.targets[0].name);
-  await expect(detail).toContainText("선택 Target 밖 배정 포함");
+  await expect(root.getByLabel("물류 시스템", { exact: true })).toHaveValue(systemId);
+  await expect(detail).toContainText("선택 실물 밖 배정 포함");
   await detail.locator("tbody th button").first().click();
   await expect(detail).toHaveAttribute("data-detail-state", "ready");
   const row = detail.locator(`[data-canonical-task-id="${f.unset.taskId}"]`);
   const hiddenIdentityActions = row.locator("details:not([open]) button");
   expect(await hiddenIdentityActions.count()).toBeGreaterThan(0);
   for (const action of await hiddenIdentityActions.all()) await expect(action).toBeHidden();
-  await expect(row).toContainText(f.targets[1].name);
+  await expect(row).not.toContainText(f.targets[1].name);
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
     const detailTable = detail.getByRole("region", { name: "기간 상세 표", exact: true });
@@ -108,7 +107,7 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   await expect(root).toHaveAttribute("data-ready", "true");
   await expect(detail).toHaveAttribute("data-detail-state", "ready");
   await expect(row).toContainText("40%");
-  await expect(row).toContainText(f.targets[1].name);
+  await expect(row).not.toContainText(f.targets[1].name);
   const assignmentsAfter = (await (await page.request.get(`${f.api}/assigned-targets`)).json()).data.assignments;
   expect(assignmentsAfter.find((assignment: { id: string }) => assignment.id === outsideAssignment.id)).toMatchObject({ taskId: f.unset.taskId, allocation: { percent: 40 } });
   expect(assignmentsAfter.filter((assignment: { id: string }) => assignment.id !== outsideAssignment.id)).toEqual(assignmentsBefore.filter((assignment: { id: string }) => assignment.id !== outsideAssignment.id));
@@ -120,7 +119,7 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   await expect(plan).toContainText("평균 120.00 %");
   await plan.getByLabel("부하 범위", { exact: true }).selectOption("selected");
   await expect(plan).toContainText("평균 80.00 %");
-  await expect(root.getByLabel("Target", { exact: true })).toHaveValue(f.targets[0].id);
+  await expect(root.getByLabel("물류 시스템", { exact: true })).toHaveValue(systemId);
   await page.keyboard.press("Escape");
   await page.keyboard.press("Escape");
   await expect(detail).toHaveCount(0);
@@ -135,11 +134,11 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
     await dialog.getByRole("button", { name: "내보내기", exact: true }).click();
     expect((await download).suggestedFilename()).toMatch(/\.xlsx$/);
     if (await dialog.isVisible()) await page.keyboard.press("Escape");
-    await expect(root.getByLabel("Target", { exact: true })).toHaveValue(f.targets[0].id);
+    await expect(root.getByLabel("물류 시스템", { exact: true })).toHaveValue(systemId);
   }
   expect(exportRequests).toHaveLength(2);
   expect(exportRequests[0]).toHaveProperty("resourceDashboard.basis", "current");
-  expect(exportRequests[0]).toHaveProperty("resourceDashboard.expectedReport.filters.targetIds", [f.targets[0].id]);
+  expect(exportRequests[0]).toHaveProperty("resourceDashboard.expectedReport.filters.systemIds", [systemId]);
   expect(exportRequests[1]).toHaveProperty("resourceDashboard.basis", "project");
   expect(exportRequests[1]).not.toHaveProperty("resourceDashboard.expectedReport.filters");
   await writeFile("output/playwright/issue-622/evidence.json", JSON.stringify({ measurements, exportRequests }, null, 2));

@@ -5,7 +5,7 @@ const ids = (value: unknown): value is string[] => Array.isArray(value) && value
 
 /** Fail closed: the opt-in KPI must never consume a historical dashboard payload. */
 export function integratedKpiValid(value: unknown): value is LogisticsIntegratedKpiDto {
-  if (!record(value) || value.source !== "direct+target:v1" || value.contextSourceVersion !== "explicit-task-context:v1" || typeof value.snapshotId !== "string" || !value.snapshotId || typeof value.dataSnapshotId !== "string" || !value.dataSnapshotId || !record(value.filters) || !ids(value.assignmentIds)) return false;
+  if (!record(value) || !["direct+target:v1","physical-connections:v2"].includes(String(value.source)) || value.contextSourceVersion !== "explicit-task-context:v1" || typeof value.snapshotId !== "string" || !value.snapshotId || typeof value.dataSnapshotId !== "string" || !value.dataSnapshotId || !record(value.filters) || !ids(value.assignmentIds)) return false;
   if (!["empty", "configured", "partial", "unset"].includes(String(value.effortState))) return false;
   for (const key of ["processIds", "equipmentIds", "systemIds", "taskAssigneeResourceIds", "roleResourceIds"]) {
     if (value.filters[key] !== undefined && !ids(value.filters[key])) return false;

@@ -1,3 +1,4 @@
+import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { Locator, Page } from "@playwright/test";
@@ -33,11 +34,14 @@ async function composer(root: Locator) {
   await expect(disclosure).toHaveJSProperty("open", true);
   return disclosure;
 }
-function nextReport(page: Page) {
-  return page.waitForResponse(response => response.url().endsWith("/resource-dashboard/views") && response.request().postDataJSON().projection?.kind !== "details" && response.request().postDataJSON().projection?.kind !== "scope");
+const reportSpec = (root: Root, levels: WbsViewSpec["levels"] = []): WbsViewSpec => ({ version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root, levels, ...(root === "system" ? { systemView: "direct" as const } : {}) });
+function nextReport(page: Page, condition: WbsReportCondition) {
+  return waitForWbsReport(page, condition);
 }
+
 async function apply(page: Page, expected: NonNullable<WbsViewSpec["levels"]>) {
-  const responsePromise = nextReport(page);
+  const activeRoot = await dashboard(page).getAttribute("data-wbs-view") as Root;
+  const responsePromise = nextReport(page, { spec: reportSpec(activeRoot, expected), filters: {} });
   await (await composer(dashboard(page))).getByRole("button", { name: "적용", exact: true }).click();
   const response = await responsePromise;
   expect(response.status(), await response.text()).toBe(200);
@@ -208,7 +212,7 @@ test("#730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 �
   let mutations = 0;
   page.on("request", request => { if (request.url().includes(`/api/projects/${f.publicId}/`) && !["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) mutations++; });
   for (const root of roots) {
-    const response = nextReport(page);
+    const response = nextReport(page, { spec: reportSpec(root), filters: {} });
     await openRoot(page, root);
     const data = (await (await response).json()).data as WbsViewReportDto;
     expect(data.spec).toMatchObject({ root, levels: [] });
@@ -225,8 +229,8 @@ test("#730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 �
   await apply(page, ["milestone", "process"]);
   await config.getByRole("button", { name: "2번째 축 위로", exact: true }).click();
   await apply(page, ["process", "milestone"]);
+  const restored = nextReport(page, { spec: reportSpec("equipment", ["process", "milestone"]), filters: {} });
   await page.reload();
-  const restored = nextReport(page);
   await openRoot(page, "equipment");
   expect(((await (await restored).json()).data as WbsViewReportDto).spec.levels).toEqual(["process", "milestone"]);
   await expect((await composer(dashboard(page))).getByRole("combobox", { name: "하위 축 1", exact: true })).toHaveValue("process");
@@ -511,7 +515,7 @@ test("#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관
   test.setTimeout(180_000);
   const f = await seedWbsViewComposer(page, origin, observeIsolatedApi);
   const baseline = await f.snapshot();
-  const firstReport = nextReport(page);
+  const firstReport = nextReport(page, { spec: reportSpec("equipment"), filters: {} });
   await openRoot(page, "equipment");
   const beforeReport = (await (await firstReport).json()).data as WbsViewReportDto;
   const root = dashboard(page);
@@ -533,7 +537,7 @@ test("#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관
     await route.fulfill({ response });
   });
   const mutation = page.waitForResponse(response => response.request().method() === "PATCH" && new URL(response.url()).pathname === `/api/projects/${f.publicId}/tasks/${f.task.taskId}`);
-  const refreshed = nextReport(page);
+  const refreshed = nextReport(page, { spec: beforeReport.spec, filters: beforeReport.filters, scope: beforeReport.sourceContext.scope });
   await editor.getByRole("button", { name: "저장", exact: true }).click();
   const write = await mutation;
   expect(write.status(), await write.text()).toBe(200);

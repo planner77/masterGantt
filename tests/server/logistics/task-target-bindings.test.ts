@@ -1,3 +1,9 @@
+import { createServer } from "node:http";
+import { handleGetTaskLogisticsLinks } from "../../../src/server/logistics/logistics-handlers-core";
+import { handleRetiredLogisticsRoute } from "../../../src/server/logistics/logistics-retirement-handlers-core";
+import { handleGetLogisticsPhysicalUsage, readLogisticsPhysicalUsage } from "../../../src/server/logistics/logistics-physical-usage-core";
+import { TaskFieldProjectService } from "../../../src/server/projects/task-field-project-service";
+import { editSessionCookieName } from "../../../src/server/security/cookie-core";
 import { randomUUID } from "node:crypto";
 import { copyFileSync, mkdtempSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -28,7 +34,7 @@ function setup(filename=":memory:",migrations=migrationsDirectory) {
   const targets=new LogisticsTargetService(db,{clock:()=>now}), bindings=new TaskTargetBindingService(db,{clock:()=>now});
   const revision=()=>new ProjectRepository(db).findByPublicId(project.publicId)!.revision;
   const target=(code:string)=>targets.create(auth,revision(),{code,name:code,scope:"project_common",members:[{kind:"system",entityId:systems[0].publicId}]}).data.target!;
-  return {db,project,auth,logistics,systems,summary,child,leaf,targets,bindings,revision,target};
+  return {db,project,auth,token,logistics,systems,summary,child,leaf,targets,bindings,revision,target};
 }
 type Fixture=ReturnType<typeof setup>;
 const whole=(targetId:string,scope:"self"|"subtree"="self")=>({targetId,selection:"whole",scope,memberIds:[]});
@@ -192,5 +198,195 @@ describe("Issue #617 binding persistence and membership guards",()=>{
     const reopened=openDatabase({filename,migrationsDirectory});
     try {expect(reopened.migrations.applied).toEqual([]);expect(loadTaskTargetBindingSnapshot(reopened.database,projectId).bindings[0]).toMatchObject({taskId,selection:"subset",memberIds:[memberId],coverageByMember:[{memberId,coverage:4}]});expect(new LogisticsRepository(reopened.database).findEquipmentByPublicId(projectId,equipment.publicId)?.quantity).toBe(10);expect(new LogisticsTargetService(reopened.database).get(f.project.publicId,target.id).members[0].id).toBe(memberId);}
     finally{reopened.database.close();rmSync(directory,{recursive:true,force:true});}
+  });
+});
+
+
+describe("Issue #785 physical links and retired public boundary",()=>{
+  it("serves canonical archived instance IDs over actual HTTP and preserves them after SQLite reopen",async()=>{
+    const directory=mkdtempSync(join(tmpdir(),"issue785-http-")),filename=join(directory,"archive.sqlite3"),f=setup(filename);
+    let active=f.db,origin="";
+    const target=f.target("ARCHIVE");
+    f.bindings.replace(f.auth,f.revision(),f.summary.publicId,{bindings:[whole(target.id,"subtree")]});
+    const server=createServer(async(incoming,outgoing)=>{
+      try {
+        const request=new Request(origin+incoming.url,{method:incoming.method,headers:incoming.headers as Record<string,string>});
+        const deps={projectService:new TaskFieldProjectService(active,{clock:()=>now}),applicationBaseUrl:origin,environment:"test"};
+        const path=new URL(request.url).pathname;
+        const response=path.endsWith("/usage")
+          ?handleGetLogisticsPhysicalUsage(request,f.project.publicId,"system",f.systems[0].publicId,{...deps,database:()=>active})
+          :path.endsWith("/logistics-links")
+            ?await handleGetTaskLogisticsLinks(request,f.project.publicId,f.child.publicId,{...deps,logisticsService:new LogisticsService(active,{clock:()=>now})})
+            :handleRetiredLogisticsRoute(request,f.project.publicId,deps);
+        outgoing.writeHead(response.status,Object.fromEntries(response.headers));outgoing.end(Buffer.from(await response.arrayBuffer()));
+      }catch{outgoing.writeHead(500);outgoing.end();}
+    });
+    try {
+      await new Promise<void>(resolve=>server.listen(0,"127.0.0.1",resolve));
+      origin=`http://127.0.0.1:${(server.address() as {port:number}).port}`;
+      const linksPath=`${origin}/api/projects/${f.project.publicId}/tasks/${f.child.publicId}/logistics-links`;
+      const first=await fetch(linksPath);expect(first.status).toBe(200);const before=await first.json();
+      expect(before.data.links.compatibilityLinks).toMatchObject([{entityId:f.systems[0].publicId,inherited:true,sourceTaskId:f.summary.publicId}]);
+      const usage=await fetch(`${origin}/api/projects/${f.project.publicId}/logistics/systems/${f.systems[0].publicId}/usage`);
+      expect(usage.status).toBe(200);expect(usage.headers.get("x-content-type-options")).toBe("nosniff");expect((await usage.json()).data.relatedTasks).toHaveLength(2);
+      expect((await fetch(`${origin}/api/projects/${f.project.publicId}/logistics/targets`)).status).toBe(410);
+      active.close();active=openDatabase({filename,migrationsDirectory}).database;
+      const second=await fetch(linksPath);expect(second.status).toBe(200);expect(await second.json()).toEqual(before);
+      expect(active.pragma("foreign_key_check")).toEqual([]);
+      expect(active.prepare("SELECT count(*) count FROM task_target_bindings").get()).toEqual({count:1});
+    }finally{
+      await new Promise<void>((resolve,reject)=>server.close(error=>error?reject(error):resolve()));
+      if(active.open)active.close();rmSync(directory,{recursive:true,force:true});
+    }
+  });
+
+  it("reads every archived source and coverage without flattening, including mixed direct paths and restart",()=>{
+    const directory=mkdtempSync(join(tmpdir(),"issue785-")),filename=join(directory,"archive.sqlite3");
+    const f=setup(filename);
+    try {
+      const {equipment,target}=equipmentTarget(f),shared=f.target("SHARED");
+      const memberId=target.members[0].id;
+      f.bindings.replace(f.auth,f.revision(),f.summary.publicId,{bindings:[whole(shared.id,"subtree")]});
+      f.bindings.replace(f.auth,f.revision(),f.child.publicId,{bindings:[whole(shared.id),{targetId:target.id,scope:"self",selection:"subset",memberIds:[memberId],coverageByMember:[{memberId,coverage:8}]}]});
+      f.logistics.replaceTaskSystemLinks(f.project.id,f.child.id,[{systemId:f.systems[0].id,scope:"self"}],stamp);
+      const before=f.db.prepare("SELECT * FROM task_target_bindings ORDER BY id").all();
+      const members=f.db.prepare("SELECT * FROM task_target_binding_members ORDER BY binding_id,member_id").all();
+      const service=new LogisticsService(f.db,{clock:()=>now});
+      const links=service.getTaskLogisticsLinks(f.project.id,f.child.publicId);
+      expect(links.projectRevision).toBe(f.revision());
+      expect(links.effectiveEquipmentIds).toEqual([equipment.publicId]);
+      expect(links.effectiveSystemIds).toEqual([f.systems[0].publicId]);
+      expect(links.directSystemLinks).toHaveLength(1);
+      expect(links.compatibilityLinks).toHaveLength(3);
+      expect(links.compatibilityLinks!.filter(row=>row.entityId===f.systems[0].publicId).map(row=>row.inherited).sort()).toEqual([false,true]);
+      expect(links.compatibilityLinks!.find(row=>row.entityId===equipment.publicId)).toMatchObject({coverage:8,coverageMode:"partial",selection:"subset",readonly:true,sourceTaskId:f.child.publicId});
+      expect(JSON.stringify(links)).not.toMatch(/targetId|targetName|memberId|Target/);
+      service.replaceTaskLogisticsLinks(f.auth,f.revision(),f.child.publicId,{equipmentLinks:[],systemLinks:[]});
+      expect(f.db.prepare("SELECT * FROM task_target_bindings ORDER BY id").all()).toEqual(before);
+      expect(f.db.prepare("SELECT * FROM task_target_binding_members ORDER BY binding_id,member_id").all()).toEqual(members);
+      const after=service.getTaskLogisticsLinks(f.project.id,f.child.publicId);
+      f.db.close();
+      const {database:reopened}=openDatabase({filename,migrationsDirectory});
+      try {
+        expect(new LogisticsService(reopened,{clock:()=>now}).getTaskLogisticsLinks(f.project.id,f.child.publicId)).toEqual(after);
+        expect(reopened.pragma("foreign_key_check")).toEqual([]);
+      } finally {reopened.close();}
+    } finally { if(f.db.open) f.db.close();rmSync(directory,{recursive:true,force:true}); }
+  });
+  it("provides exact physical usage for subset and inherited paths in one unchanged revision",()=>{
+    const f=setup();try {
+      const a=f.target("A");
+      f.targets.update(f.auth,f.revision(),a.id,{members:[{kind:"system",entityId:f.systems[0].publicId},{kind:"system",entityId:f.systems[1].publicId}]});
+      const updated=f.targets.get(f.project.publicId,a.id);
+      const second=updated.members.find(row=>row.entityId===f.systems[1].publicId)!;
+      f.bindings.replace(f.auth,f.revision(),f.summary.publicId,{bindings:[{targetId:a.id,scope:"subtree",selection:"subset",memberIds:[second.id]}]});
+      const revision=f.revision();
+      expect(readLogisticsPhysicalUsage(f.db,f.project.publicId,"system",f.systems[0].publicId).relatedTasks).toEqual([]);
+      expect(readLogisticsPhysicalUsage(f.db,f.project.publicId,"system",f.systems[1].publicId)).toMatchObject({projectRevision:revision,directTaskCount:0,compatibilityTaskCount:2});
+      expect(readLogisticsPhysicalUsage(f.db,f.project.publicId,"system",f.systems[1].publicId).relatedTasks.map(row=>row.taskId).sort()).toEqual([f.summary.publicId,f.child.publicId].sort());
+      expect(f.revision()).toBe(revision);
+    }finally{f.db.close();}
+  });
+  it("retains origin/session/strong revision failures and retires every public method without mutation",async()=>{
+    const f=setup();try {
+      const origin="https://gantt.example.com",cookie=`${editSessionCookieName("test",new URL(origin))}=${f.token.rawToken}`;
+      const deps={projectService:new TaskFieldProjectService(f.db,{clock:()=>now}),applicationBaseUrl:origin,environment:"test"};
+      const request=(method:string,headers:Record<string,string>={})=>new Request(`${origin}/api/projects/${f.project.publicId}/logistics/targets`,{method,headers});
+      const revision=f.revision();
+      for(const method of ["GET","POST","PUT","PATCH","DELETE"]){
+        const response=handleRetiredLogisticsRoute(request(method,{Origin:origin,Cookie:cookie,"If-Match":`"${revision}"`}),f.project.publicId,deps);
+        expect(response.status).toBe(410);expect((await response.json()).error.code).toBe("LOGISTICS_API_RETIRED");expect(response.headers.get("cache-control")).toBe("private, no-store");expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+      }
+      expect(handleRetiredLogisticsRoute(request("POST",{Origin:"https://evil.example",Cookie:cookie,"If-Match":'"1"'}),f.project.publicId,deps).status).toBe(403);
+      expect(handleRetiredLogisticsRoute(request("POST",{Origin:origin,"If-Match":'"1"'}),f.project.publicId,deps).status).toBe(401);
+      expect(handleRetiredLogisticsRoute(request("PUT",{Origin:origin,Cookie:cookie}),f.project.publicId,deps).status).toBe(428);
+      expect(handleRetiredLogisticsRoute(request("PUT",{Origin:origin,Cookie:cookie,"If-Match":'"2"'}),f.project.publicId,deps).status).toBe(412);
+      expect(f.revision()).toBe(revision);expect(f.db.prepare("SELECT * FROM logistics_targets").all()).toEqual([]);
+    }finally{f.db.close();}
+  });
+  it("bounds physical usage before graph materialization and rejects malformed instance IDs without source reads",async()=>{
+    const f=setup();try {
+      const origin="https://gantt.example.com",projectService=new TaskFieldProjectService(f.db,{clock:()=>now});
+      let sourceReads=0;
+      const request=new Request(`${origin}/api/projects/${f.project.publicId}/logistics/systems/invalid/usage`);
+      const malformed=handleGetLogisticsPhysicalUsage(request,f.project.publicId,"system","invalid",{projectService,database:()=>{sourceReads++;return f.db;},applicationBaseUrl:origin,environment:"test"});
+      expect(malformed.status).toBe(404);expect(malformed.headers.get("x-content-type-options")).toBe("nosniff");
+      expect(sourceReads).toBe(1); // the service rejects before loading any graph rows
+      const insert=f.db.prepare("INSERT INTO tasks(project_id,public_id,external_id,name,type,schedule_mode,requested_start,start_date,end_date,duration,progress,status,parent_id,sort_order,created_at,updated_at) VALUES(?,?,?,?,'task','auto',NULL,'2026-10-14','2026-10-14',1,0,'not_started',NULL,0,?,?)");
+      f.db.transaction(()=>{for(let i=0;i<4998;i++)insert.run(f.project.id,randomUUID(),`BOUND-${i}`,`Bound ${i}`,stamp,stamp);})();
+      const revision=f.revision(),count=f.db.prepare("SELECT count(*) n FROM tasks").get();
+      const limited=handleGetLogisticsPhysicalUsage(request,f.project.publicId,"system",f.systems[0].publicId,{projectService,database:()=>f.db,applicationBaseUrl:origin,environment:"test"});
+      expect(limited.status).toBe(422);expect((await limited.json()).error.code).toBe("LOGISTICS_SOURCE_LIMIT_EXCEEDED");expect(limited.headers.get("x-content-type-options")).toBe("nosniff");
+      expect(f.revision()).toBe(revision);expect(f.db.prepare("SELECT count(*) n FROM tasks").get()).toEqual(count);
+    }finally{f.db.close();}
+  });
+  it("bounds inherited member expansion before archive resolution without truncating sources",()=>{
+    const f=setup();try {
+      const systems=Array.from({length:100},(_,i)=>f.logistics.insertSystem({publicId:randomUUID(),projectId:f.project.id,code:`BOUND-S-${i}`,name:`Bound system ${i}`,systemType:"mcs",layer:"coordinator",scope:"project",now:stamp}));
+      const target=f.targets.create(f.auth,f.revision(),{code:"BOUND",name:"Bound",scope:"project_common",members:systems.map(row=>({kind:"system",entityId:row.publicId}))}).data.target!;
+      f.bindings.replace(f.auth,f.revision(),f.summary.publicId,{bindings:[whole(target.id,"subtree")]});
+      const insert=f.db.prepare("INSERT INTO tasks(project_id,public_id,external_id,name,type,schedule_mode,requested_start,start_date,end_date,duration,progress,status,parent_id,sort_order,created_at,updated_at) VALUES(?,?,?,?,'task','auto',NULL,'2026-10-14','2026-10-14',1,0,'not_started',?,0,?,?)");
+      f.db.transaction(()=>{for(let i=0;i<500;i++)insert.run(f.project.id,randomUUID(),`EXPAND-${i}`,`Expansion ${i}`,f.summary.id,stamp,stamp);})();
+      const revision=f.revision();
+      expect(()=>readLogisticsPhysicalUsage(f.db,f.project.publicId,"system",systems[0].publicId)).toThrow("물류 연결 조회 한도를 초과");
+      expect(f.revision()).toBe(revision);expect(f.db.prepare("SELECT count(*) n FROM task_target_bindings").get()).toEqual({n:1});expect(f.db.pragma("foreign_key_check")).toEqual([]);
+    }finally{f.db.close();}
+  });
+  it.each(["missing","unselected"])("rejects a %s subset anchor with exact selected-member ownership and preserves the damaged source",async mode=>{
+    const f=setup();try {
+      const a=f.target("ANCHOR");
+      f.targets.update(f.auth,f.revision(),a.id,{members:[{kind:"system",entityId:f.systems[0].publicId},{kind:"system",entityId:f.systems[1].publicId}]});
+      const target=f.targets.get(f.project.publicId,a.id),selected=target.members[0];
+      f.bindings.replace(f.auth,f.revision(),f.leaf.publicId,{bindings:[{targetId:a.id,scope:"self",selection:"subset",memberIds:[selected.id]}]});
+      const unselected=f.db.prepare("SELECT id FROM logistics_target_members WHERE public_id=?").get(target.members[1].id) as {id:number};
+      f.db.pragma("foreign_keys=OFF");f.db.prepare("UPDATE task_target_bindings SET anchor_member_id=?").run(mode==="missing"?999999:unselected.id);f.db.pragma("foreign_keys=ON");
+      expect(f.db.pragma("foreign_key_check")).toHaveLength(1);
+      const before=f.db.prepare("SELECT * FROM task_target_bindings").all(),revision=f.revision();
+      const response=handleGetLogisticsPhysicalUsage(new Request(`https://gantt.example.com/api/projects/${f.project.publicId}/logistics/systems/${f.systems[0].publicId}/usage`),f.project.publicId,"system",f.systems[0].publicId,{
+        projectService:new TaskFieldProjectService(f.db,{clock:()=>now}),database:()=>f.db,applicationBaseUrl:"https://gantt.example.com",environment:"test",
+      });
+      expect(response.status).toBe(409);expect((await response.json()).error.code).toBe("LOGISTICS_SOURCE_INVALID");
+      expect(()=>new LogisticsService(f.db).getTaskLogisticsLinks(f.project.id,f.leaf.publicId)).toThrow("기존 물류 연결 원본");
+      expect(f.db.prepare("SELECT * FROM task_target_bindings").all()).toEqual(before);expect(f.revision()).toBe(revision);
+    }finally{f.db.close();}
+  });
+  it("retains original process and optional WorkArea context without writing a direct Task selection",()=>{
+    const f=setup();try {
+      const {target}=equipmentTarget(f),areaId=randomUUID();
+      const occurrence=f.db.prepare("SELECT occurrence_id id FROM logistics_targets WHERE public_id=?").get(target.id) as {id:number};
+      const area=f.db.prepare("INSERT INTO work_areas(public_id,occurrence_id,code,name,created_at,updated_at) VALUES(?,?,?,?,?,?)").run(areaId,occurrence.id,"ARCHIVE-AREA","Original area",stamp,stamp);
+      f.db.prepare("UPDATE logistics_targets SET work_area_id=? WHERE public_id=?").run(Number(area.lastInsertRowid),target.id);
+      f.bindings.replace(f.auth,f.revision(),f.summary.publicId,{bindings:[whole(target.id,"subtree")]});
+      const directBefore=f.db.prepare("SELECT * FROM task_process_links").all(),revision=f.revision();
+      const service=new LogisticsService(f.db),link=service.getTaskLogisticsLinks(f.project.id,f.child.publicId).compatibilityLinks![0];
+      expect(link.context).toMatchObject({scope:"process",process:{id:target.projectProcessId,name:"A"},workArea:{id:areaId,name:"Original area"}});
+      expect(link.context!.occurrenceId).toEqual(expect.any(String));expect(link.inherited).toBe(true);
+      expect(f.db.prepare("SELECT * FROM task_process_links").all()).toEqual(directBefore);expect(f.revision()).toBe(revision);
+      f.db.pragma("foreign_keys=OFF");f.db.prepare("UPDATE logistics_targets SET occurrence_id=999999 WHERE public_id=?").run(target.id);f.db.pragma("foreign_keys=ON");
+      expect(()=>service.getTaskLogisticsLinks(f.project.id,f.child.publicId)).toThrow("기존 물류 연결 원본");
+    }finally{f.db.close();}
+  });
+  it("rejects malformed Task ancestry before entering direct-link ancestor traversal",()=>{
+    const f=setup();try {
+      f.db.prepare("UPDATE tasks SET parent_id=? WHERE id=?").run(f.child.id,f.summary.id);
+      expect(()=>new LogisticsService(f.db).getTaskLogisticsLinks(f.project.id,f.child.publicId)).toThrow("기존 물류 연결 원본");
+      f.db.pragma("foreign_keys=OFF");
+      f.db.prepare("UPDATE tasks SET parent_id=999999 WHERE id=?").run(f.summary.id);
+      expect(()=>new LogisticsService(f.db).getTaskLogisticsLinks(f.project.id,f.child.publicId)).toThrow("기존 물류 연결 원본");
+    }finally{f.db.close();}
+  });
+  it("rejects damaged archived references instead of reporting an empty physical relation",()=>{
+    const f=setup();try {
+      const a=f.target("A");
+      f.bindings.replace(f.auth,f.revision(),f.leaf.publicId,{bindings:[whole(a.id)]});
+      f.db.pragma("foreign_keys=OFF");
+      f.db.prepare("DELETE FROM tasks WHERE id=?").run(f.leaf.id);
+      expect(()=>new LogisticsService(f.db).getTaskLogisticsLinks(f.project.id,f.child.publicId)).toThrow("기존 물류 연결 원본");
+      const response=handleGetLogisticsPhysicalUsage(new Request(`https://gantt.example.com/api/projects/${f.project.publicId}/logistics/systems/${f.systems[0].publicId}/usage`),f.project.publicId,"system",f.systems[0].publicId,{
+        projectService:new TaskFieldProjectService(f.db,{clock:()=>now}),database:()=>f.db,applicationBaseUrl:"https://gantt.example.com",environment:"test",
+      });
+      expect(response.status).toBe(409);expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+      expect(f.db.prepare("SELECT task_id FROM task_target_bindings").get()).toEqual({task_id:f.leaf.id});
+    }finally{f.db.close();}
   });
 });

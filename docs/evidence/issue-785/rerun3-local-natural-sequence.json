@@ -1,0 +1,281 @@
+[
+  {
+    "stream": "1-trace.network",
+    "time": 34249.156,
+    "request": {
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "equipment",
+        "levels": []
+      },
+      "filters": {},
+      "projection": {
+        "kind": "report"
+      }
+    },
+    "status": 200,
+    "response": {
+      "projection": "report",
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "equipment",
+        "levels": []
+      },
+      "filters": {},
+      "scope": null,
+      "projectRevision": 23,
+      "snapshotId": "1e9276e382a0cc738bce0e5d8c48687df294ccad10bf5a48584ec8c669c99459"
+    }
+  },
+  {
+    "stream": "1-trace.network",
+    "time": 35669.838,
+    "request": {
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "equipment",
+        "levels": []
+      },
+      "filters": {},
+      "projection": {
+        "kind": "scope",
+        "snapshotId": "1e9276e382a0cc738bce0e5d8c48687df294ccad10bf5a48584ec8c669c99459",
+        "path": [
+          {
+            "dimension": "equipment",
+            "id": "eda95845-66e3-4293-a4bf-b266d14fe6e9"
+          }
+        ]
+      }
+    },
+    "status": 200,
+    "response": {
+      "projection": "scope",
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "equipment",
+        "levels": []
+      },
+      "filters": {},
+      "scope": null,
+      "projectRevision": 23,
+      "snapshotId": "1e9276e382a0cc738bce0e5d8c48687df294ccad10bf5a48584ec8c669c99459"
+    }
+  },
+  {
+    "stream": "1-trace.network",
+    "time": 35845.965,
+    "request": {
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "process",
+        "levels": []
+      },
+      "filters": {},
+      "projection": {
+        "kind": "report"
+      }
+    },
+    "status": 200,
+    "response": {
+      "projection": "report",
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "process",
+        "levels": []
+      },
+      "filters": {},
+      "scope": null,
+      "projectRevision": 23,
+      "snapshotId": "eb81eaae153a2d77a8c898520170591d5ae68702d2e2ce1efb10a2b9949cd106"
+    }
+  },
+  {
+    "stream": "1-trace.network",
+    "time": 38763.241,
+    "request": {
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "process",
+        "levels": []
+      },
+      "filters": {},
+      "projection": {
+        "kind": "report"
+      }
+    },
+    "status": -1,
+    "response": {
+      "projection": null,
+      "spec": null,
+      "filters": null,
+      "scope": null,
+      "projectRevision": null,
+      "snapshotId": null
+    }
+  },
+  {
+    "stream": "1-trace.network",
+    "time": 38791.625,
+    "request": {
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "equipment",
+        "levels": []
+      },
+      "filters": {},
+      "projection": {
+        "kind": "report"
+      }
+    },
+    "status": 200,
+    "response": {
+      "projection": "report",
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "equipment",
+        "levels": []
+      },
+      "filters": {},
+      "scope": null,
+      "projectRevision": 24,
+      "snapshotId": "18587a6c6a99f83b53ae9217e98addcf91aa6a0a10a35f89c77f77ebad374dc3"
+    }
+  },
+  {
+    "stream": "1-trace.network",
+    "time": 39112.209,
+    "request": {
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "equipment",
+        "levels": []
+      },
+      "filters": {},
+      "projection": {
+        "kind": "scope",
+        "snapshotId": "18587a6c6a99f83b53ae9217e98addcf91aa6a0a10a35f89c77f77ebad374dc3",
+        "path": [
+          {
+            "dimension": "equipment",
+            "id": "eda95845-66e3-4293-a4bf-b266d14fe6e9"
+          }
+        ]
+      }
+    },
+    "status": 200,
+    "response": {
+      "projection": "scope",
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "equipment",
+        "levels": []
+      },
+      "filters": {},
+      "scope": null,
+      "projectRevision": 24,
+      "snapshotId": "18587a6c6a99f83b53ae9217e98addcf91aa6a0a10a35f89c77f77ebad374dc3"
+    }
+  },
+  {
+    "stream": "1-trace.network",
+    "time": 39290.566,
+    "request": {
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "process",
+        "levels": []
+      },
+      "filters": {},
+      "projection": {
+        "kind": "report"
+      }
+    },
+    "status": 200,
+    "response": {
+      "projection": "report",
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "process",
+        "levels": []
+      },
+      "filters": {},
+      "scope": null,
+      "projectRevision": 24,
+      "snapshotId": "b50dea6225735ded4b58fba4faeb019a83efb1b9bc261da63ec183bd8f792c22"
+    }
+  },
+  {
+    "stream": "1-trace.network",
+    "time": 39719.546,
+    "request": {
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "equipment",
+        "levels": []
+      },
+      "filters": {},
+      "projection": {
+        "kind": "report"
+      }
+    },
+    "status": 200,
+    "response": {
+      "projection": "report",
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "equipment",
+        "levels": []
+      },
+      "filters": {},
+      "scope": null,
+      "projectRevision": 24,
+      "snapshotId": "18587a6c6a99f83b53ae9217e98addcf91aa6a0a10a35f89c77f77ebad374dc3"
+    }
+  },
+  {
+    "stream": "0-trace.network",
+    "time": 38935.816,
+    "request": {
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "equipment",
+        "levels": []
+      },
+      "filters": {},
+      "projection": {
+        "kind": "report"
+      }
+    },
+    "status": 200,
+    "response": {
+      "projection": "report",
+      "spec": {
+        "version": "wbs-view:v1",
+        "contextSourceVersion": "explicit-task-context:v1",
+        "root": "equipment",
+        "levels": []
+      },
+      "filters": {},
+      "scope": null,
+      "projectRevision": 24,
+      "snapshotId": "18587a6c6a99f83b53ae9217e98addcf91aa6a0a10a35f89c77f77ebad374dc3"
+    }
+  }
+]

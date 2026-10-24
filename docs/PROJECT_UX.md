@@ -1,3 +1,11 @@
+## Issue #785 — 실물 관점과 폐기 화면 복원
+
+상위 `일정 / 대시보드 / 기준정보`, 대시보드 `KPI / Milestone / 공정&WorkArea / 설비 / 물류 시스템 / 리소스`, 기준정보 `공정&WorkArea / 설비 / 물류 시스템 / 리소스`를 유지한다. 별도 Target 보기·관리·연결·카탈로그·진단·숨은 패널은 제공하지 않는다. 구형 `dashboard.target`은 `dashboard.process`, `master.targets`는 `master.processes`로 입구에서 정규화한다. 복원된 URL/저장 설정으로 폐기 UI를 다시 mount/fetch하지 않는다. 제어/조율 관계 기능은 유지한다.
+
+Task Editor는 직접 공정/구역·설비/System 선택과 기존 연결 출처를 구분한다. 기존 자료는 실물 이름·정확 source Task·범위/구성 선택·coverage로 읽고 직접 체크박스로 자동 변환하지 않는다. 안전한 source 자체 편집이 없는 부분은 읽기 전용으로 안내한다. 기준정보 변경 영향은 실물→Task 경로로 확인한다. 조회·탭 왕복의 canonical write0·같은 Task/Assignment·Gantt instance/선택/scroll/열폭·dirty/stale·focus 복귀를 유지한다.
+
+기존 Resource 요약·Milestone·Group/Role/등급·Plan·Capacity/과투입·정확 상세·Excel은 보존하며 폐기 축의 비교 화면은 제거한다. `screenKey`→[사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md)의 실물 화면 절로 연결한다. #720 `/manual` 구현은 별도 미완료다. 아래 과거 Target 보조 UI·복귀·편집 안내는 #785 이전 이력이며 현재 경로가 아니다. [설계/검증](exec-plans/active/ISSUE_785.md).
+
 ## Issue #556 — 일정 상단 P1과 조회 명령
 
 일정의 정상 전체 scope·열린 Summary0 상태는 별도 범위 탐색 행을 렌더하지 않는다. Summary가 하나라도 열려 있으면 전체 활성 여부와 관계없이 `전체 일정 보기`와 열린 범위 탭을 제공한다. invalid scope의 경고·복구 명령, rootTask 직접 링크/새로고침, 범위별 필터는 유지한다. 마지막 탭을 닫으면 존재하는 작업 검색 제어로 focus를 복원한다. 전체 전환 버튼은 탭이 남아 있을 때 기존 초점 대상이다.
@@ -86,7 +94,7 @@ Project+관점의 개인 browser 설정은 업무 revision과 분리한다. 다�
 
 유형 입력은 두 editor가 같은 field를 사용한다. loading/error/활성 유형0개/미선택과 기존 비활성 유형 유지가 구분되며 입력 옆에 이유·재시도 경로를 표시한다. 유형 사용과 인스턴스 생성은 Project 편집권으로 가능하고 유형 master 등록/활성 변경만 별도 관리자 권한이다. System 공정 한정은 같은 창의 담당 공정1..N 선택을 기존 processIds API로 저장하며 공통은 명시 빈 목록을 저장한다. System도 Equipment처럼 dirty 닫기/Escape 폐기 확인과 revision·권한 변경 시 초안 보존/저장 차단을 제공한다. 원본 삭제 안내는 Target 구성원 해제와 다른 작업임을 명시한다.
 
-Task Editor 물류 연결은 직접 공정·WorkArea 및 설비/System을 기본으로 제공한다. Target0개는 정상이고 기존 Target-only/혼합 연결은 펼치는 호환 영역에서 계속 편집한다. 저장·취소·관리 보기 왕복은 공통 canonical/dirty/stale와 같은 Gantt 인스턴스를 유지한다. 관련 화면·키보드·5폭의 실제 증거는 [Work Packet](exec-plans/active/ISSUE_726.md)에서 구분한다.
+Task Editor 물류 연결은 직접 공정·WorkArea 및 설비/System을 기본으로 제공한다. 기존 연결은 실물별 읽기 전용 출처로 제공하며 직접 연결을 자동 작성하지 않는다. 저장·취소·관리 보기 왕복은 공통 canonical/dirty/stale와 같은 Gantt 인스턴스를 유지한다. 관련 화면·키보드·5폭의 실제 증거는 [Work Packet](exec-plans/active/ISSUE_726.md)에서 구분한다.
 
 #720 매뉴얼 인계: `master.equipment` → [설비의 연결 WorkArea](TARGET_RESOURCE_USER_GUIDE.md#설비의-연결-workarea), `master.systems` → [설비와 물류 시스템 원본 관리](TARGET_RESOURCE_USER_GUIDE.md#설비와-물류-시스템-원본-관리), Task Editor 물류 연결 → [같은 Task에 직접 연결](TARGET_RESOURCE_USER_GUIDE.md#같은-task에-직접-연결). 앱 내 `/manual` route·매뉴얼 버튼 구현은 별도다. Design Delta B로 기존 Light/system font·semantic token·이름 우선·progressive disclosure·내부 scroll/focus를 구체화하며 신규 전역 시각 원칙은 없다.
 

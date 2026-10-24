@@ -1,0 +1,36 @@
+{
+  "schema": "issue-785-main-infra-conflict-resolution-v1",
+  "main": "dd7f4d86db06e8a10b8c86b5412ed319154011e0",
+  "version": "0.131.0",
+  "dependencyChecks": {
+    "package.json": "main exact, except application version0.131.0",
+    "package-lock.json": "main exact, except application version0.131.0"
+  },
+  "zod": "4.6.7",
+  "allowlist": "module URL trusted; exact single package metadata version/resolved/SRI/license/funding; approved advisory retained",
+  "negativeUnion": [
+    "manifest4.6.2",
+    "manifest4.6.6",
+    "lock-root4.6.2",
+    "package-version4.6.8",
+    "untrusted-registry",
+    "altered-SRI",
+    "new-optional-dependency",
+    "original Next/React/Core/scripts/capture guards retained"
+  ],
+  "originalSnapshotsUnchanged": true,
+  "unitFiles": 4,
+  "unitTests": 40,
+  "unit": "PASS",
+  "versionCheck": "PASS",
+  "scopedLint": "PASS",
+  "diffCheck": "PASS",
+  "fullSourceStableClaim": false,
+  "sources": {
+    "package.json": "c15ad4fc81e944adb77a57d40df1deedeecda706ddaaa38dc7e06ba73c03ab00",
+    "package-lock.json": "e168213a62f0379aedd5302b6042a9fadcf6809afc7d531d8fac88113664a6f9",
+    "tests/fixtures/gantt-state-consistency/approved-zod-4.6.7-lock.json": "99985335350962226cd14a6f2640547b5e35a9bf1faec8979227749cf48af1c9",
+    "tests/fixtures/gantt-state-consistency/capture-install.ts": "1283989a814a9f120374687258b3c26532553dc6f702090d1fc267afe278b9ed",
+    "tests/scripts/prepr-verifier.test.ts": "74d98230792b5cf883a51597438e7a1f5b913fdc2cbc7ff233abec247cc1b844"
+  }
+}

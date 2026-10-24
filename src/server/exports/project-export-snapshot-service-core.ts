@@ -39,7 +39,7 @@ export class ProjectExportSnapshotService {
         throw new PublicApiError(409, "RESOURCE_MEMBERSHIP_EXPORT_UNSUPPORTED", "프로젝트 리소스 등록은 일정 Excel 형식으로 보존할 수 없습니다. 프로젝트 복사 또는 템플릿을 이용해 주세요.");
       }
       if (!resourceOptions && projectId && this.database.prepare("SELECT 1 FROM task_target_bindings WHERE project_id=? LIMIT 1").get(projectId.id)) {
-        throw new PublicApiError(409, "TASK_TARGET_EXPORT_UNSUPPORTED", "Task Target bindings cannot be represented by the schedule Excel format. Use Project Copy or Template.");
+        throw new PublicApiError(409, "TASK_TARGET_EXPORT_UNSUPPORTED", "기존 설비·물류 연결은 일정 Excel 형식으로 보존할 수 없습니다. 프로젝트 복사 또는 템플릿을 이용해 주세요.");
       }
       const stageDashboard = new MilestoneDashboardService(this.database, {
         clock, mdPerMmEnvironment: this.options.mdPerMmEnvironment,

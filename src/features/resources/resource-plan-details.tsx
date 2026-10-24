@@ -1,5 +1,6 @@
 "use client";
 
+import { PhysicalConnectionSources } from "./physical-connection-sources";
 import { IdentifierDetails } from "@/components/identifier-details";
 import { useResourceDrill } from "./resource-drill-context";
 import {
@@ -16,7 +17,6 @@ import type {
 import {
   planDetailQuery,
   planMetric,
-  planTargetLabel,
   readPlanDetails,
 } from "./resource-plan-model";
 import { dashboardError } from "./use-resource-dashboard";
@@ -112,7 +112,6 @@ export function ResourcePlanDetails({
       abort.abort();
     };
   }, [data, current, query, stale, active, onStale, retry, binding]);
-  const targetLabel = (id: string) => planTargetLabel(data, id);
   const back = () =>
     steps.length > 1 ? setSteps((s) => s.slice(0, -1)) : onClose();
   const next = (date: string, resourceId?: string, name?: string) => {
@@ -158,16 +157,10 @@ export function ResourcePlanDetails({
       <p className="resource-dashboard-hint">
         {current.input.demandScope === "project"
           ? "동일 개인의 현재 Project 전체 참고"
-          : "선택 Target·Milestone·Task 기여"}{" "}
+          : "선택 실물·Milestone·Task 기여"}{" "}
         · {current.input.periodId} · Capacity는 유효 근무일1 M/D
       </p>
-      <p className="resource-dashboard-hint">출발 선택 Target: {data.filters.targetIds?.map(targetLabel).join(" / ") || "전체"} · 현재 근거: {current.input.demandScope === "project" ? "같은 Capacity 개인·기간의 Project 전체 (선택 Target 밖 배정 포함)" : "출발 선택 조건"} · 기준 revision {data.projectRevision}</p>
-      {data.filters.targetIds?.some(id => id !== "unassigned") ? (
-        <IdentifierDetails
-          label="출발 선택 Target 식별 정보"
-          identifiers={data.filters.targetIds.filter(id => id !== "unassigned").map(value => ({ label: "Target ID", value }))}
-        />
-      ) : null}
+      <p className="resource-dashboard-hint">현재 근거: {current.input.demandScope === "project" ? "같은 Capacity 개인·기간의 Project 전체 (선택 실물 밖 배정 포함)" : "출발 선택 조건"} · 기준 revision {data.projectRevision}</p>
       <div className="resource-dashboard-pagination">
         {steps.length > 1 ? (
           <button type="button" onClick={back}>
@@ -282,8 +275,8 @@ export function ResourcePlanDetails({
                             이 Task 일정
                           </button>
                           <button type="button" data-resource-assignment-edit disabled={stale || locked || !onOpenAssignment || row.resourceActive !== true} title={row.resourceActive !== true ? "비활성 또는 상태 미확인 개인 배정은 조회 전용입니다." : undefined} onClick={event => onOpenAssignment?.(row.taskId, row.assignmentId, row.resourceId, event.currentTarget)}>배정 편집: {data.catalog.resources.find(resource => resource.id === row.resourceId)?.name ?? "리소스 정보 없음"}</button>
-                          {row.targetSources ? <small>현재 배정 Target: {row.targetSources.effectiveTargetIds.map(targetLabel).join(" / ") || "Target 미연결"} · 직접 {row.targetSources.bindings.length} · 상속 {row.targetSources.inheritedBindings.length} · Legacy {row.targetSources.legacySources.length}</small> : null}
-                          <IdentifierDetails label={`${row.taskName} 식별 정보`} identifiers={[{label: "외부 ID", value: row.externalId}, {label: "작업 ID", value: row.taskId}, {label: "Assignment ID", value: row.assignmentId}, {label: "Resource ID", value: row.resourceId}, ...(row.targetSources?.effectiveTargetIds.map(value => ({label: "Target ID", value})) ?? [])]} />
+                          <PhysicalConnectionSources sources={row.targetSources} catalog={data.catalog.targetOptions} />
+                          <IdentifierDetails label={`${row.taskName} 식별 정보`} identifiers={[{label: "외부 ID", value: row.externalId}, {label: "작업 ID", value: row.taskId}, {label: "Assignment ID", value: row.assignmentId}, {label: "Resource ID", value: row.resourceId}]} />
                           <small>
                             작업 {row.taskStart ?? "—"}–{row.taskEnd ?? "—"} /
                             배정 {row.assignmentStart ?? "상속"}–

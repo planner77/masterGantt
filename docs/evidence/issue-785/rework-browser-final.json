@@ -1,0 +1,497 @@
+{
+  "schema": "issue785/frontend-rework/1",
+  "sourceScope": "tracked src/tests/scripts and root package/static runtime-tool configs; documentation excluded for Manager parallel updates",
+  "sourceDigest": "0e413386703ac3ae1a143e31340fcf141b842b3ad6d4e1db55fffe1bb4976aef",
+  "declaredSourceScopeStable": true,
+  "fullCheckoutSourceStable": false,
+  "fullCheckoutStabilityReason": "Next rewrote next-env.d.ts and tsconfig.json generated route/type includes; Manager documentation changed in parallel and is outside the declared runtime/test/lock/tool scope. No overall checkout stability PASS is claimed.",
+  "unexpectedSourceChangedPaths": [],
+  "generatedConfigChangedPaths": [
+    "next-env.d.ts",
+    "tsconfig.json"
+  ],
+  "tools": {
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "os": "Linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "next": "16.4.2",
+    "zod": "4.6.7",
+    "@playwright/test": "1.63.0"
+  },
+  "uniqueCases": 32,
+  "duplicates": 0,
+  "passed": 32,
+  "failed": 0,
+  "skipped": 0,
+  "flaky": 0,
+  "batches": [
+    {
+      "id": "a",
+      "cases": 21,
+      "durationMs": 558307.179,
+      "structured": "rework-browser-a.json"
+    },
+    {
+      "id": "b",
+      "cases": 11,
+      "durationMs": 250486.908,
+      "structured": "rework-browser-b.json"
+    }
+  ],
+  "finalOwnedFileSha256": {
+    "tests/e2e/issue-734-equipment-dashboard.spec.ts": "fcfa8253a808096cca79f73faa7ab262874974acda5d374f2b9cac7b8e40db16",
+    "tests/e2e/issue-735-system-dashboard.spec.ts": "d3964c124490f92de56036a030ce68bd54f5919b54cc4180ad84959afad7ede1",
+    "src/features/logistics/project-logistics-management.tsx": "91731b0b3dc37fe1a05d193b3e198a9423082a0e3357ac914c0595b4811a529e"
+  },
+  "caseList": [
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "title": "#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱신·dirty/pending",
+      "location": {
+        "file": "issue-621-resource-target.spec.ts",
+        "line": 98,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 16965,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "title": "#621 실물 필터·고유 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0",
+      "location": {
+        "file": "issue-621-resource-target.spec.ts",
+        "line": 153,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 13988,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-621-resource-target.spec.ts",
+      "title": "#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 초안 보존",
+      "location": {
+        "file": "issue-621-resource-target.spec.ts",
+        "line": 196,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 18490,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-623-resource-mvp.spec.ts",
+      "title": "#623 여섯 별도 mutation·양방향 동일원본 복귀",
+      "location": {
+        "file": "issue-623-resource-mvp.spec.ts",
+        "line": 376,
+        "column": 1
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 28155,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-624-logistics-unified.spec.ts",
+      "title": "#624/#785 같은 canonical 원본을 실물 3관점·정확 drill·full Gate·5폭으로 조회",
+      "location": {
+        "file": "issue-624-logistics-unified.spec.ts",
+        "line": 12,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 18511,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-719-contextual-help.spec.ts",
+      "title": "#719 logistics 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+      "location": {
+        "file": "issue-719-contextual-help.spec.ts",
+        "line": 75,
+        "column": 37
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 8945,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-726-task-logistics.spec.ts",
+      "title": "#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중복 제출 방지, reload·Summary 상속",
+      "location": {
+        "file": "issue-726-task-logistics.spec.ts",
+        "line": 62,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 19808,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-734-equipment-dashboard.spec.ts",
+      "title": "#734 Target0 AMR10+5·비활성·Task0·미배정·구역별10/고유15·M/D5·전체 Gate",
+      "location": {
+        "file": "issue-734-equipment-dashboard.spec.ts",
+        "line": 71,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 21801,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-734-equipment-dashboard.spec.ts",
+      "title": "#734 실제 축 추가·순서변경·삭제·단독·Milestone 경로와 재진입 복원",
+      "location": {
+        "file": "issue-734-equipment-dashboard.spec.ts",
+        "line": 112,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 20503,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-734-equipment-dashboard.spec.ts",
+      "title": "#734 정확 Task·Assignment 원본 취소와 일정 복귀는 경로·focus를 보존한다",
+      "location": {
+        "file": "issue-734-equipment-dashboard.spec.ts",
+        "line": 144,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 20503,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-734-equipment-dashboard.spec.ts",
+      "title": "#734 5폭 긴 이름·내부 overflow·열 정렬·native Tab/Escape",
+      "location": {
+        "file": "issue-734-equipment-dashboard.spec.ts",
+        "line": 179,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 20264,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-734-equipment-dashboard.spec.ts",
+      "title": "#734 설비 원본 dirty 유지·정확 PATCH 저장·새 snapshot과 focus 복귀",
+      "location": {
+        "file": "issue-734-equipment-dashboard.spec.ts",
+        "line": 220,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 22631,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-734-equipment-dashboard.spec.ts",
+      "title": "#734 readonly 조회0 mutation·원본401 및 오래된 revision412 fail-closed",
+      "location": {
+        "file": "issue-734-equipment-dashboard.spec.ts",
+        "line": 279,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 17133,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-734-equipment-dashboard.spec.ts",
+      "title": "#734 stale와 pending 보고서에서 원본 명령 차단·새 Task 저장 후 선택 복귀",
+      "location": {
+        "file": "issue-734-equipment-dashboard.spec.ts",
+        "line": 293,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 17471,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-734-equipment-dashboard.spec.ts",
+      "title": "#734 유형 OR 필터와 controls·Task association 출처는 서로 추론하지 않는다",
+      "location": {
+        "file": "issue-734-equipment-dashboard.spec.ts",
+        "line": 313,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 18625,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 390px",
+      "location": {
+        "file": "logistics-dashboard-request-state.spec.ts",
+        "line": 151,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3260,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 768px",
+      "location": {
+        "file": "logistics-dashboard-request-state.spec.ts",
+        "line": 151,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3248,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1024px",
+      "location": {
+        "file": "logistics-dashboard-request-state.spec.ts",
+        "line": 151,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2882,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1440px",
+      "location": {
+        "file": "logistics-dashboard-request-state.spec.ts",
+        "line": 151,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2948,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1920px",
+      "location": {
+        "file": "logistics-dashboard-request-state.spec.ts",
+        "line": 151,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3097,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "resource-target-dashboard-api.spec.ts",
+      "title": "#620 실제 HTTP Target 교집합·공동담당 exact drill·readonly·변경 stale·재시작",
+      "location": {
+        "file": "resource-target-dashboard-api.spec.ts",
+        "line": 18,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 41675,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-717-name-first.spec.ts",
+      "title": "#717 이름 우선과 전체 ID 접근 1440px",
+      "location": {
+        "file": "issue-717-name-first.spec.ts",
+        "line": 8,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 4534,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "title": "#735 실제 System 직접·조정 Task 집합과 고유 Assignment·선택·공정 필터",
+      "location": {
+        "file": "issue-735-system-dashboard.spec.ts",
+        "line": 57,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 20825,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "title": "#735 System 정확 원본 dirty·취소·저장 후 새 snapshot과 같은 조회 복귀",
+      "location": {
+        "file": "issue-735-system-dashboard.spec.ts",
+        "line": 104,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 23700,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "title": "#735 System Task·Assignment·일정 왕복과 stale·error 원본 잠금",
+      "location": {
+        "file": "issue-735-system-dashboard.spec.ts",
+        "line": 160,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 23969,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "title": "#735 긴 System 이름 5폭 내부 스크롤·표 정렬·키보드 focus",
+      "location": {
+        "file": "issue-735-system-dashboard.spec.ts",
+        "line": 185,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 25109,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "title": "#735 readonly System 조회는 원본 편집·mutation을 제공하지 않는다",
+      "location": {
+        "file": "issue-735-system-dashboard.spec.ts",
+        "line": 221,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 23290,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "title": "#735 구버전 System 저장 spec·펼침·상세 선택은 직접 범위로 변환하지 않는다",
+      "location": {
+        "file": "issue-735-system-dashboard.spec.ts",
+        "line": 232,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 21029,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "title": "조회 wrong-revision는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "location": {
+        "file": "logistics-dashboard-request-state.spec.ts",
+        "line": 53,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2771,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "title": "조회 malformed-integrated는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "location": {
+        "file": "logistics-dashboard-request-state.spec.ts",
+        "line": 53,
+        "column": 7
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 2480,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-editor-form-density.spec.ts",
+      "title": "#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 폭에 기록한다",
+      "location": {
+        "file": "task-editor-form-density.spec.ts",
+        "line": 94,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 7035,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "task-editor-form-density.spec.ts",
+      "title": "#456 실제 keyboard 100%·날짜 오류·pending action 폭과 닫기 잠금을 보존한다",
+      "location": {
+        "file": "task-editor-form-density.spec.ts",
+        "line": 117,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 3367,
+      "retry": 0,
+      "errorFirstLine": null
+    }
+  ]
+}

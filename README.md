@@ -55,7 +55,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | Playwright | 1.63.0 | Gantt와 Project 생성·직접 조회 Chromium E2E; 기본 격리 포트 3100 |
 | SVAR React Gantt Core | 2.7.3, MIT | Gantt 표시와 Core 이벤트; exact direct dependency |
 | SVAR data provider | Core의 transitive 2.7.2, 직접 사용 안 함 | cookie/If-Match/canonical snapshot 계약이 달라 W07 직접 명령 Adapter 유지 |
-| Zod | 4.6.7 | Project·Task request의 strict server schema 검증. #556 F-002 High 보안 감사 교정, 불신 입력의 크기·건수 한도 별도 유지 |
+| Zod | 4.6.7 | Project·Task request의 strict server schema 검증; GHSA-mrhx-c7xc-m3w5 패치 (#556 F-002·#785 F785-002), 불신 입력의 크기·건수 한도 별도 유지 |
 | Scheduling Engine | 자체 pure TypeScript | Gregorian ordinal, Project Calendar, 근무일·Leaf Duration; SVAR/DB/시간대 API 비의존 |
 | Excel/이미지 내보내기 | 내부 OOXML/ZIP writer와 자체 SVG renderer | 서버 SVG를 브라우저 Canvas에서 PNG로 변환; SVAR PRO·외부 변환 서비스 미사용 |
 | Docker / Docker Compose | W20 기반 구현 | non-root 단일 애플리케이션, startup migration/readiness와 영속 SQLite volume |
@@ -573,7 +573,7 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 
 | 목적 | 문서 |
 | --- | --- |
-| Target·Resource 사용·이관·수용 | [사용자 가이드](docs/TARGET_RESOURCE_USER_GUIDE.md), [운영 절차](docs/TARGET_RESOURCE_OPERATIONS.md), [Resource MVP 수용표](docs/TARGET_RESOURCE_ACCEPTANCE.md) |
+| 실물·리소스 사용·이관·수용 | [사용자 가이드](docs/TARGET_RESOURCE_USER_GUIDE.md), [운영 절차](docs/TARGET_RESOURCE_OPERATIONS.md), [Resource MVP 수용표](docs/TARGET_RESOURCE_ACCEPTANCE.md) |
 | 현재 진행과 다음 작업 | [실행 계획](docs/exec-plans/active/PLAN.md), [W01–W22 작업 목록](docs/ISSUE_BREAKDOWN.md) |
 | 요구사항과 구조 | [REQUIREMENTS](docs/REQUIREMENTS.md), [ARCHITECTURE](docs/ARCHITECTURE.md) |
 | DB·API·보안 계약 | [DB_SCHEMA](docs/DB_SCHEMA.md), [API](docs/API.md), [SECURITY](docs/SECURITY.md) |

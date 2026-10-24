@@ -1,3 +1,4 @@
+import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import type { Locator, Page } from "@playwright/test";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 import { createTargetProject, targetMasterPassword } from "./fixtures/target-project";
@@ -87,7 +88,7 @@ async function submitEquipmentEdit(page: Page, dialog: Locator) {
   await dialog.getByRole("button", { name: "저장", exact: true }).click();
   const impact = page.getByRole("dialog", { name: "공유 인스턴스 변경 확인", exact: true });
   await expect(impact).toBeVisible();
-  await expect(impact).toContainText("공유 Target 0개");
+  await expect(impact).toContainText("기존 연결 작업 0개");
   await impact.getByRole("button", { name: "공유 사용처 확인 후 원본 저장", exact: true }).click();
   return impact;
 }
@@ -105,8 +106,8 @@ test("#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연�
   const gantt = await frame.locator(".wx-gantt").elementHandle();
   const targets = async () => {
     const response = await page.request.get(`${f.api}/logistics/targets`);
-    expect(response.status()).toBe(200);
-    expect((await response.json()).data.targets).toEqual([]);
+    expect(response.status()).toBe(410);expect((await response.json()).error.code).toBe("LOGISTICS_API_RETIRED");
+    expect(readLegacyFixtureCounts(origin,f.publicId)).toEqual({targets:0,members:0,bindings:0,selectedMembers:0});
   };
   const logistics = async () => {
     const response = await page.request.get(`${f.api}/logistics`);

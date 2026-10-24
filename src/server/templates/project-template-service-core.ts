@@ -790,7 +790,6 @@ export class ProjectTemplateService {
 
       // 7. 물류 마스터 복제
       const logisticsSnapshot = snapshot.logistics;
-      let restoredTargetCount = 0;
       let restoredMappingCount = 0;
       if (logisticsSnapshot) {
         // 7.1 공정
@@ -960,7 +959,6 @@ export class ProjectTemplateService {
           equipment: equipmentByCode,
           systems: systemByCode,
         }, nowText, newByExternalId);
-        restoredTargetCount = restored.targets;
         restoredMappingCount = restored.processMappings;
         warnings.push(...restored.warnings);
       }
@@ -1045,7 +1043,6 @@ export class ProjectTemplateService {
               processes: logisticsSnapshot?.processes.length ?? 0,
               equipment: logisticsSnapshot?.equipment.length ?? 0,
               systems: logisticsSnapshot?.systems.length ?? 0,
-              targets: restoredTargetCount,
               processMappings: restoredMappingCount,
             },
           },
@@ -1061,7 +1058,6 @@ export class ProjectTemplateService {
     let processCount = 0;
     let equipmentCount = 0;
     let systemCount = 0;
-    let targetCount = 0;
     let processMappingCount = 0;
     try {
       const parsed = JSON.parse(record.contentJson) as ProjectTemplateSnapshot;
@@ -1069,7 +1065,6 @@ export class ProjectTemplateService {
         processCount = parsed.logistics.processes?.length ?? 0;
         equipmentCount = parsed.logistics.equipment?.length ?? 0;
         systemCount = parsed.logistics.systems?.length ?? 0;
-        targetCount = parsed.logistics.targets?.length ?? 0;
         processMappingCount = parsed.logistics.processMappings?.length ?? 0;
       }
     } catch {
@@ -1088,7 +1083,6 @@ export class ProjectTemplateService {
       processCount,
       equipmentCount,
       systemCount,
-      targetCount,
       processMappingCount,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,

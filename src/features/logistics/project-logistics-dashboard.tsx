@@ -1,4 +1,5 @@
 "use client";
+import { fromResourcePublicV2 } from "../../contracts/resource-public-v2";
 import { ContextHelp } from "@/components/ui/context-help";
 
 import { useEffect, useLayoutEffect, useState, useId, useRef, type KeyboardEvent } from "react";
@@ -141,7 +142,9 @@ export function ProjectLogisticsDashboard({
       try {
         const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics/kpi?${params}`, { signal: controller.signal, credentials: "same-origin", cache: "no-store" });
         if (!response.ok) throw new Error(`대시보드 조회 실패 (HTTP ${response.status})`);
-        const json: unknown = await response.json();
+        const wire: unknown = await response.json();
+        if (!isRecord(wire) || !isRecord(wire.data) || wire.data.schema !== "logistics-kpi/2") throw new Error("KPI 조회 응답 버전이 일치하지 않습니다.");
+        const json = fromResourcePublicV2(wire);
         const data = isRecord(json) ? json.data : null;
         if (!isDashboard(data) || data.projectRevision !== revision || data.horizonDays !== horizonNumber || data.systemView !== systemView || data.activeOnly !== activeOnly || (asOfDate && data.asOfDate !== asOfDate)) throw new Error("대시보드 응답이 현재 조회 조건과 일치하지 않습니다. 다시 시도해 주세요.");
         if (controller.signal.aborted) return;
@@ -179,7 +182,9 @@ export function ProjectLogisticsDashboard({
       if (asOfDate) params.set("asOfDate", asOfDate);
       if (activeOnly) params.set("activeOnly", "true");
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics/kpi?${params}`, { credentials: "same-origin", cache: "no-store" });
-      const json: unknown = await response.json();
+      const wire: unknown = await response.json();
+      if (!isRecord(wire) || !isRecord(wire.data) || wire.data.schema !== "logistics-kpi/2") throw new Error("KPI 조회 응답 버전이 일치하지 않습니다.");
+      const json = fromResourcePublicV2(wire);
       const data = isRecord(json) ? json.data : null;
       if (!response.ok || !isDashboard(data) || data.projectRevision !== revision || data.integrated?.snapshotId !== expected) throw new Error("원본 snapshot이 변경되었거나 확인할 수 없습니다. 새로고침 후 다시 선택해 주세요.");
       if (currentRequest.current !== requestKey || !currentInteraction.current.active || currentInteraction.current.busy) return;
@@ -279,8 +284,8 @@ export function ProjectLogisticsDashboard({
         <>
           <p className={styles.scopeNote}>현재 snapshot 평가일 {dashboard.asOfDate} · {dashboard.timezone} · 과거 상태 복원이 아닙니다. {conversionLabel(dashboard.effort.mdPerMm, dashboard.effort.mdPerMmSource)}</p>
           <div className={styles.headingRow}>
-            <span className={styles.scopeNote}>직접·상속·Target 통합 · 공정은 Task 명시 기준</span>
-            <ContextHelp label="통합 집계 기준 도움말">직접 연결, 상속 연결과 Target 연결을 합친 고유 Task·Assignment를 집계합니다. 기존 직접 연결 중심 집계에서 빠지던 Target-only 작업도 포함합니다. 공정별 현황은 Task에 명시한 공정 기준이며, 조상 공정만 연결된 작업이나 legacy 문맥을 같은 공정 실적으로 합치지 않습니다. 시스템 조율 범위는 위 선택에 따릅니다. 등록 구성·전체 프로젝트 진단, 현재 KPI 선택 범위, 관련 Milestone의 전체 상태는 서로 다른 범위입니다.</ContextHelp>
+            <span className={styles.scopeNote}>직접·상속·기존 연결 통합 · 공정은 Task 명시 기준</span>
+            <ContextHelp label="통합 집계 기준 도움말">직접 연결, 상속 연결과 기존 연결 출처를 합친 고유 Task·Assignment를 집계합니다. 기존 연결 출처만 있는 작업도 포함합니다. 공정별 현황은 Task에 명시한 공정 기준이며, 조상 공정만 연결된 작업이나 legacy 문맥을 같은 공정 실적으로 합치지 않습니다. 시스템 조율 범위는 위 선택에 따릅니다. 등록 구성·전체 프로젝트 진단, 현재 KPI 선택 범위, 관련 Milestone의 전체 상태는 서로 다른 범위입니다.</ContextHelp>
             {dashboard.integrated ? <IdentifierDetails label="집계 출처 정보" identifiers={[{ label: "Snapshot ID", value: dashboard.integrated.snapshotId }, { label: "집계 출처", value: dashboard.integrated.source }, { label: "공정 문맥 버전", value: dashboard.integrated.contextSourceVersion }]} /> : null}
           </div>
           {/* 2. 핵심 KPI 카드 그리드 */}

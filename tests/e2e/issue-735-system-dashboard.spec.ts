@@ -1,3 +1,5 @@
+import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
+import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { Locator, Page } from "@playwright/test";
@@ -10,17 +12,19 @@ import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 
 test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword, isolatedResourceAdminPassword: viewResourcePassword, viewport: { width: 1440, height: 1000 } });
 const root = (page: Page) => page.getByTestId("wbs-view-dashboard").filter({ visible: true });
-const reportResponse = (page: Page) => page.waitForResponse(response => response.url().endsWith("/resource-dashboard/views") && response.request().postDataJSON().projection?.kind === "report" && response.request().postDataJSON().spec?.root === "system", { timeout: 30_000 });
+const defaultSpec: WbsViewSpec = { version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root: "system", levels: [], systemView: "direct", };
+const reportResponse = (page: Page, condition: Partial<WbsReportCondition> = {}) => waitForWbsReport(page, { spec: defaultSpec, filters: {}, ...condition });
 async function openSystem(page: Page) {
   await page.getByRole("tablist", { name: "프로젝트 작업공간", exact: true }).getByRole("tab", { name: "대시보드", exact: true }).click();
   await page.getByRole("tablist", { name: "대시보드 보기", exact: true }).getByRole("tab", { name: "물류 시스템", exact: true }).click();
   await expect(root(page)).toHaveAttribute("data-ready", "true");
 }
-async function preset(page: Page, label: string) {
+async function preset(page: Page, label: string, spec: WbsViewSpec = defaultSpec) {
   const composer = root(page).locator("details").filter({ has: page.locator("summary").filter({ hasText: /^조회 구성$/ }) });
   if (!await composer.evaluate(node => (node as HTMLDetailsElement).open)) await composer.locator(":scope > summary").click();
   await composer.getByRole("button", { name: label, exact: true }).click();
-  const received = reportResponse(page);
+  const levels: Record<string, NonNullable<WbsViewSpec["levels"]>> = { "시스템 단독": [], "시스템 → Milestone → 공정": ["milestone", "process"], "시스템 → 공정 → WorkArea → 설비 → 리소스": ["process", "workArea", "equipment", "resource"] };
+  const received = reportResponse(page, { spec: { ...spec, levels: levels[label] } });
   await composer.getByRole("button", { name: "적용", exact: true }).click();
   const response = await received;
   expect(response.status(), await response.text()).toBe(200);
@@ -41,7 +45,8 @@ async function seedSystem(page: Page, origin: string, observeApi: Parameters<typ
   await f.mutate(`/logistics/systems/${acsA.id}/resource-roles`, { roles: [{ resourceId: f.resource.id, role: "pi", isPrimary: true }, { resourceId: f.resource.id, role: "developer" }] }, "put");
   await f.mutate(`/logistics/systems/${mcs.id}/children`, { childSystemIds: [acsA.id, acsB.id] }, "put");
   const targets = await page.request.get(`${f.api}/logistics/targets`);
-  expect(targets.status()).toBe(200); expect((await targets.json()).data.targets).toHaveLength(0);
+  expect(targets.status()).toBe(410); expect((await targets.json()).error.code).toBe("LOGISTICS_API_RETIRED");
+  expect(readLegacyFixtureCounts(origin,f.publicId)).toEqual({targets:0,members:0,bindings:0,selectedMembers:0});
   await page.reload();
   const query = async (extra: Partial<WbsViewSpec> = {}, filters: ResourceDashboardFilterInput = {}) => {
     const response = await page.request.post(`${f.api}/resource-dashboard/views`, { headers: { Origin: origin }, data: { spec: { version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root: "system", levels: [], systemView: "direct", ...extra }, filters, projection: { kind: "report" } } });
@@ -76,26 +81,26 @@ test("#735 실제 System 직접·조정 Task 집합과 고유 Assignment·선택
   const noRole = await f.query({}, { roles: ["PI"] }); expect(noRole.assignmentIds).toEqual([]);
   await openSystem(page);
   await expect(systemRow(page, f.acsA.id)).toBeVisible(); await expect(systemRow(page, f.acsB.id)).toBeVisible();
-  const filteredReport = async (change: () => Promise<unknown>) => {
-    const received = reportResponse(page); await change(); const response = await received;
+  const filteredReport = async (spec: WbsViewSpec, change: () => Promise<unknown>) => {
+    const received = reportResponse(page, { spec }); await change(); const response = await received;
     expect(response.status()).toBe(200); await expect(root(page)).toHaveAttribute("data-ready", "true");
     return (await response.json()).data as WbsViewReportDto;
   };
-  const coordinatedUi = await filteredReport(() => root(page).getByRole("combobox", { name: "시스템 연결 범위", exact: true }).selectOption("coordination"));
+  const coordinatedUi = await filteredReport({ ...defaultSpec, systemView: "coordination" }, () => root(page).getByRole("combobox", { name: "시스템 연결 범위", exact: true }).selectOption("coordination"));
   expect(coordinatedUi.children.find(row => row.selector.id === f.mcs.id)!.taskIds).toEqual([f.task.taskId]);
   await root(page).getByText("시스템 속성 필터", { exact: true }).click();
   await root(page).getByRole("combobox", { name: "시스템 공정 범위", exact: true }).selectOption("project");
-  const common = await filteredReport(() => root(page).getByRole("button", { name: "시스템 속성 필터 적용", exact: true }).click());
+  const common = await filteredReport({ ...coordinatedUi.spec, systemIds: [f.mcs.id] }, () => root(page).getByRole("button", { name: "시스템 속성 필터 적용", exact: true }).click());
   expect(common.children.map(row => row.selector.id)).toEqual([f.mcs.id]);
   await root(page).getByRole("combobox", { name: "시스템 공정 범위", exact: true }).selectOption("");
   await root(page).getByRole("combobox", { name: "시스템 PI", exact: true }).selectOption(f.resource.id);
   await root(page).getByRole("combobox", { name: "시스템 개발자", exact: true }).selectOption(f.resource.id);
   await root(page).getByRole("combobox", { name: "시스템 공정", exact: true }).selectOption(f.processIds[0]);
-  const pi = await filteredReport(() => root(page).getByRole("button", { name: "시스템 속성 필터 적용", exact: true }).click());
+  const pi = await filteredReport({ ...common.spec, systemIds: [f.acsA.id] }, () => root(page).getByRole("button", { name: "시스템 속성 필터 적용", exact: true }).click());
   expect(pi.children.map(row => row.selector.id)).toEqual([f.acsA.id]);
   expect(pi.assignmentIds).toEqual([f.assignment.id]);
-  const standalone = await preset(page, "시스템 단독"); expect(standalone.spec.levels).toEqual([]);
-  const milestoneUi = await preset(page, "시스템 → Milestone → 공정"); expect(milestoneUi.spec.levels).toEqual(["milestone", "process"]);
+  const standalone = await preset(page, "시스템 단독", pi.spec); expect(standalone.spec.levels).toEqual([]);
+  const milestoneUi = await preset(page, "시스템 → Milestone → 공정", standalone.spec); expect(milestoneUi.spec.levels).toEqual(["milestone", "process"]);
   expect((await f.snapshot()).data).toEqual(before.data);
 });
 
@@ -112,10 +117,17 @@ test("#735 System 정확 원본 dirty·취소·저장 후 새 snapshot과 같은
   await expect(name).toHaveValue("시스템 원본 저장 복귀");
   await editor.getByRole("button", { name: "저장", exact: true }).click();
   const confirmation = page.getByRole("dialog", { name: "공유 인스턴스 변경 확인", exact: true });
-  await expect(confirmation).toBeVisible(); await expect(confirmation).toContainText("공유 Target 0개"); await expect(confirmation).toContainText(f.acsA.id);
+  await expect(confirmation).toBeVisible();
+  await expect(confirmation).toContainText(f.acsA.name);
+  await expect(confirmation).toContainText("관련 작업 1개 · 직접 연결 작업 1개 · 기존 연결 작업 0개");
+  await expect(confirmation).not.toContainText("공유 Target");
+  const systemIdentity = confirmation.getByText("변경 대상 식별 정보", { exact: true });
+  await systemIdentity.click();
+  await expect(confirmation.getByRole("textbox", { name: "물류 시스템 원본 ID", exact: true })).toHaveValue(f.acsA.id);
+  await systemIdentity.click();
   const [saved, refreshed] = await Promise.all([
     page.waitForResponse(response => response.request().method() === "PATCH" && new URL(response.url()).pathname === `/api/projects/${f.publicId}/logistics/systems/${f.acsA.id}`, { timeout: 30_000 }),
-    reportResponse(page), confirmation.getByRole("button", { name: "공유 사용처 확인 후 원본 저장", exact: true }).click(),
+    reportResponse(page, { spec: initial.spec, filters: initial.filters, scope: initial.sourceContext.scope }), confirmation.getByRole("button", { name: "공유 사용처 확인 후 원본 저장", exact: true }).click(),
   ]);
   expect(saved.status()).toBe(200);
   const updated = (await refreshed.json()).data as WbsViewReportDto;
@@ -229,7 +241,7 @@ test("#735 구버전 System 저장 spec·펼침·상세 선택은 직접 범위�
   const row = legacy.children.find(node => node.selector.id === f.acsA.id)!;
   const state = { spec: legacy.spec, filters: {}, expanded: [row.viewRowKey], selected: { viewRowKey: row.viewRowKey, path: row.path }, scroll: { top: 0, left: 0 }, focus: row.viewRowKey, sort: "name-asc" };
   await page.evaluate(({ publicId, state }) => localStorage.setItem(`mastergantt:wbs-view:1:${publicId}:system`, JSON.stringify({ schema: "wbs-view-state/1", projectPublicId: publicId, state })), { publicId: f.publicId, state });
-  await page.reload(); const received = reportResponse(page); await openSystem(page);
+  const received = reportResponse(page, { spec: legacy.spec, filters: {} }); await page.reload(); await openSystem(page);
   const restored = (await (await received).json()).data as WbsViewReportDto;
   expect(restored.spec).toEqual(legacy.spec); expect(restored.taskIds.sort()).toEqual(legacy.taskIds.sort());
   await expect(root(page).getByRole("combobox", { name: "시스템 연결 범위", exact: true })).toHaveValue("legacy");

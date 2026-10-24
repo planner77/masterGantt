@@ -1,3 +1,4 @@
+import { registerLegacyFixtureDatabase, unregisterLegacyFixtureDatabase } from "./legacy-logistics-seed";
 import { test as base, expect, type Page } from "@playwright/test";
 import { execFile, spawn, type ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -161,6 +162,7 @@ export const test = base.extend<{
     try {
       const port = await unusedLoopbackPort();
       origin = `http://127.0.0.1:${port}`;
+      registerLegacyFixtureDatabase(origin,resolve(temporary,"database.sqlite3"));
       const applicationEnvironment: NodeJS.ProcessEnv = {
         ...process.env,
         NODE_ENV: "development",
@@ -430,6 +432,7 @@ export const test = base.extend<{
       await captureDiagnostics("setup_failure").catch(() => undefined);
       throw error;
     } finally {
+      if(origin) unregisterLegacyFixtureDatabase(origin);
       if (testInfo.status !== testInfo.expectedStatus) await captureDiagnostics("test_failure").catch(() => undefined);
       try {
         await performanceReceipt.measure("fixture_teardown", async () => {

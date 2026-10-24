@@ -1,3 +1,4 @@
+import type { TaskLogisticsLinksDto } from "../../src/contracts/logistics";
 import { expectRawIdentifier } from "./helpers/identifier-details";
 import { mkdir, writeFile } from "node:fs/promises";
 import { expect, test, type Page, type Request } from "@playwright/test";
@@ -1185,7 +1186,7 @@ test("#461 Logistics 별도 초안·외부 revision·401 유지와 교차 저장
   await page.route(`**${apiPath}/logistics`, async (route) => route.fulfill({ json: { data: { project: fixture.project, permission: "edit", logistics: { equipment: [{ id: id(80), name: "설비 초안", code: "EQ-80", equipmentType: "other", active: true, resourceRoles: [] }], systems: [] } } } }));
   await page.route(`**${apiPath}/tasks/${id(4)}/logistics-links`, async (route) => {
     if (route.request().method() === "PUT") { await route.fulfill({ status: 401, json: { error: { code: "UNAUTHORIZED" } } }); return; }
-    await route.fulfill({ json: { data: { taskId: id(4), permission: "edit", links: { taskId: id(4), directEquipmentLinks: [], directSystemLinks: [], inheritedEquipmentLinks: [], inheritedSystemLinks: [], effectiveEquipmentIds: [], effectiveSystemIds: [] } } } });
+    await route.fulfill({ json: { data: { taskId: id(4), permission: "edit", links: { taskId: id(4), projectRevision: fixture.project.revision, compatibilityLinks: [], directEquipmentLinks: [], directSystemLinks: [], inheritedEquipmentLinks: [], inheritedSystemLinks: [], effectiveEquipmentIds: [], effectiveSystemIds: [] } satisfies TaskLogisticsLinksDto & Required<Pick<TaskLogisticsLinksDto, "projectRevision" | "compatibilityLinks">> } } });
   });
   await openRow(page); const dialog = editor(page); await dialog.getByRole("tab", { name: /물류 연결/ }).click();
   const equipment = dialog.getByRole("checkbox", { name: /설비 초안/ }); await equipment.check();

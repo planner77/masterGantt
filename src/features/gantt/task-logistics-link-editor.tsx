@@ -44,12 +44,14 @@ function isValidLogisticsSnapshot(links: TaskLogisticsLinksResponse, logistics: 
   const value = links?.data?.links;
   const masters = logistics?.data?.logistics;
   const strings = (value: unknown): boolean => Array.isArray(value) && value.every((item) => typeof item === "string");
+  const sourceEntity = (item: unknown): boolean => item === null || !!item && typeof item === "object" && "id" in item && typeof item.id === "string" && "name" in item && typeof item.name === "string";
   const validLinks = (items: unknown, id: string, inherited = false): boolean => Array.isArray(items) && items.every((item) =>
     item && typeof item === "object" && typeof item[id] === "string" &&
     (item.scope === "self" || item.scope === "subtree") &&
     ["equipmentCode", "equipmentName", "systemCode", "systemName"].every((key) => item[key] === undefined || typeof item[key] === "string") &&
     (!inherited || (typeof item.sourceTaskId === "string" && typeof item.sourceTaskName === "string")));
-  return !!value && links.data.taskId === taskId && value.taskId === taskId && logistics?.data?.project?.revision === revision &&
+  return !!value && links.data.taskId === taskId && value.taskId === taskId && value.projectRevision === revision && logistics?.data?.project?.revision === revision &&
+    Array.isArray(value.compatibilityLinks) && value.compatibilityLinks.every(item => item && typeof item.sourceId === "string" && ["equipment","system"].includes(item.kind) && typeof item.entityId === "string" && typeof item.name === "string" && typeof item.code === "string" && typeof item.active === "boolean" && typeof item.sourceTaskId === "string" && typeof item.sourceTaskName === "string" && ["self","subtree"].includes(item.scope) && typeof item.inherited === "boolean" && ["whole","subset"].includes(item.selection) && ["whole","partial","unspecified"].includes(item.coverageMode) && (item.coverage === null || typeof item.coverage === "number" && Number.isSafeInteger(item.coverage) && item.coverage > 0) && item.readonly === true && (item.context === undefined || !!item.context && ["process","project_common"].includes(item.context.scope) && sourceEntity(item.context.process) && sourceEntity(item.context.workArea) && (item.context.occurrenceId === null || typeof item.context.occurrenceId === "string"))) &&
     validLinks(value.directEquipmentLinks, "equipmentId") && validLinks(value.directSystemLinks, "systemId") &&
     validLinks(value.inheritedEquipmentLinks, "equipmentId", true) && validLinks(value.inheritedSystemLinks, "systemId", true) &&
     strings(value.effectiveEquipmentIds) && strings(value.effectiveSystemIds) && !!masters &&
@@ -352,6 +354,16 @@ export function TaskLogisticsLinkEditor({
       </div>
 
       {isSummary ? <p className={styles.note}>하위 작업 포함 선택 시 현재 자손 {descendantTaskCount(taskId, tasks)}개에 파생됩니다. 직접 연결 해제로 상위 출처의 상속 연결을 제거하지 않습니다.</p> : null}
+      {links?.compatibilityLinks?.length ? <section className={styles.relationGroup} aria-label="기존 연결 출처">
+        <h4>기존 연결 출처 · 읽기 전용</h4>
+        <p className={styles.note}>원본 관계의 적용 범위와 coverage를 보존합니다. 직접 연결을 추가하거나 해제해도 이 원본은 변경되지 않습니다. 전체 구성의 연결은 구성 변경을 계속 반영합니다.</p>
+        <ul>{links.compatibilityLinks.map((item,index)=><li key={`${item.sourceId}:${item.kind}:${item.entityId}:${index}`} className={styles.contextRow}>
+          <strong>{item.name.trim() || "이름 확인 필요"}</strong> · {item.kind === "equipment" ? "설비" : "물류 시스템"}{!item.active ? " · 비활성" : ""}
+          <p className={styles.note}>원본 작업: {item.sourceTaskName || "이름 확인 필요"} · {item.inherited ? "상위 작업에서 상속" : "이 작업 연결"} · {item.scope === "subtree" ? "하위 작업 포함" : "작업 자체"} · {item.selection === "whole" ? "전체 구성" : "선택 구성"} · coverage {item.coverageMode === "whole" ? "전체" : item.coverage === null ? "미지정" : `${item.coverage}`}</p>
+          {item.context ? <p className={styles.note}>출처 공정: {item.context.process?.name || (item.context.scope === "project_common" ? "프로젝트 공통" : "이름 확인 필요")} · 출처 WorkArea: {item.context.workArea?.name || "구역 미사용"} · 직접 공정·작업 구역 선택과 별도인 기존 원본 문맥입니다.</p> : null}
+          <IdentifierDetails identifiers={[{label:item.kind === "equipment" ? "설비 ID" : "시스템 ID",value:item.entityId},{label:"코드",value:item.code},{label:"원본 작업 ID",value:item.sourceTaskId},{label:"원본 관계 참조",value:item.sourceId},...(item.context?.process ? [{label:"출처 공정 ID",value:item.context.process.id}] : []),...(item.context?.workArea ? [{label:"출처 WorkArea ID",value:item.context.workArea.id}] : [])]}/>
+        </li>)}</ul>
+      </section> : null}
       {/* 설비 연결 섹션 */}
       <fieldset className={styles.relationGroup} style={{ border: "1px solid var(--border-default)", borderRadius: 6, padding: "0.75rem" }}>
         <legend style={{ fontWeight: 600, padding: "0 0.25rem" }}>

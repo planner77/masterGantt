@@ -11,14 +11,14 @@ export async function seedIssue621(page: Page, origin: string, observeApi: Obser
   const f = await createTargetProject(page, origin, observeApi);
   const targets = [];
   for (const [index, code] of (wide ? ["A", "B", "C", "D", "E"] : ["A", "B"]).entries()) {
-    const response = await f.mutate("/logistics/targets", {
-      code: `TARGET-${code}`, name: `Target ${code} · 긴 물류 설비 통합 제어 대상 이름`, scope: "process", projectProcessId: f.processIds[index % 2],
+    const response = await f.seedLegacy("/logistics/targets", {
+      code: `TARGET-${code}`, name: `기존 물류 연결 ${code} · 긴 물류 설비 통합 제어 이름`, scope: "process", projectProcessId: f.processIds[index % 2],
       ...(index === 0 ? { workAreaId: f.catalog.data.workAreas[0].id } : {}),
       members: [{ kind: "system", create: { code: `ACS-${code}`, name: `제어 시스템 ${code}`, systemType: "acs", layer: "controller", scope: "project" } }],
     });
-    targets.push(((await response.json()) as LogisticsTargetMutationResponse).data.target!);
+    targets.push((response as LogisticsTargetMutationResponse).data.target!);
   }
-  await f.mutate(`/tasks/${f.task.taskId}/target-bindings`, { bindings: targets.map(target => ({ targetId: target.id, scope: "self", selection: "whole", memberIds: [] })) }, "put");
+  await f.seedLegacy(`/tasks/${f.task.taskId}/target-bindings`, { bindings: targets.map(target => ({ targetId: target.id, scope: "self", selection: "whole", memberIds: [] })) }, "put");
   expect((await page.request.post(`${origin}/api/resource-catalog/admin-sessions`, { headers: { Origin: origin }, data: { password: issue621ResourcePassword } })).status()).toBe(201);
   let catalog = (await (await page.request.get(`${origin}/api/resources`)).json()).data;
   const write = async (path: string, data: object, method = "post") => {
@@ -39,16 +39,17 @@ export async function seedIssue621(page: Page, origin: string, observeApi: Obser
   await f.mutate(`/tasks/${f.task.taskId}/assignments`, { catalogRevision: catalog.revision, targets: resources.map((resource, index) => ({ kind: "resource", id: resource.id, allocation: { start: null, end: null, percent: index === 0 ? 100 : 50 } })) }, "put");
   const added = (await (await f.mutate("/tasks", { name: "A 공수 미설정 작업", type: "task", start: "2026-10-14", duration: 2, progress: 0 })).json()) as TaskMutationResponse;
   const unset = added.data.tasks.find(task => task.name === "A 공수 미설정 작업")!;
-  await f.mutate(`/tasks/${unset.taskId}/target-bindings`, { bindings: [{ targetId: targets[0].id, scope: "self", selection: "whole", memberIds: [] }] }, "put");
+  await f.seedLegacy(`/tasks/${unset.taskId}/target-bindings`, { bindings: [{ targetId: targets[0].id, scope: "self", selection: "whole", memberIds: [] }] }, "put");
   await f.mutate(`/tasks/${unset.taskId}/assignments`, { catalogRevision: catalog.revision, targets: [{ kind: "resource", id: resources[0].id }] }, "put");
+  const archiveHeaders = { "X-MasterGantt-Resource-Version": "1" };
   const query = new URLSearchParams({ from: "2026-10-14", to: "2026-10-15", mdPerMm: "null", projectionOrder: "group,resource,target" });
   const report = async (extra: Record<string, string> = {}) => {
-    const response = await page.request.get(`${f.api}/resource-dashboard?${new URLSearchParams({ ...Object.fromEntries(query), ...extra })}`);
+    const response = await page.request.get(`${f.api}/resource-dashboard?${new URLSearchParams({ ...Object.fromEntries(query), ...extra })}`, { headers: archiveHeaders });
     expect(response.status(), await response.text()).toBe(200);
     return (await response.json()).data as ResourceDashboardDto;
   };
   const details = async (data: ResourceDashboardDto, extra: Record<string, string> = {}) => {
-    const response = await page.request.get(`${f.api}/resource-dashboard/details?${new URLSearchParams({ ...Object.fromEntries(query), snapshotId: data.snapshotId, dimension: "all", view: "assignments", ...extra })}`);
+    const response = await page.request.get(`${f.api}/resource-dashboard/details?${new URLSearchParams({ ...Object.fromEntries(query), snapshotId: data.snapshotId, dimension: "all", view: "assignments", ...extra })}`, { headers: archiveHeaders });
     expect(response.status(), await response.text()).toBe(200);
     return (await response.json()).data as ResourceDashboardDetailsDto;
   };

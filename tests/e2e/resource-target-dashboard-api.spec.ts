@@ -1,3 +1,4 @@
+import { seedLegacyLogistics } from "./fixtures/legacy-logistics-seed";
 import type { APIResponse } from "@playwright/test";
 import type { LogisticsTargetDto, LogisticsTargetMutationResponse } from "../../src/contracts/logistics-targets";
 import type { ResourceDashboardDetailsDto, ResourceDashboardDto } from "../../src/contracts/resource-dashboard";
@@ -18,7 +19,7 @@ test("#620 실제 HTTP Target 교집합·공동담당 exact drill·readonly·변
   test.setTimeout(240_000);
   const f = await createTargetProject(page, origin, observeIsolatedApi);
   const target = async (code: string, index: number, shared?: string) => {
-    const response = await f.mutate("/logistics/targets", {
+    const response = await f.seedLegacy("/logistics/targets", {
       code, name: `Target ${code}`, scope: "process", projectProcessId: f.processIds[index],
       ...(index === 0 ? { workAreaId: f.catalog.data.workAreas[0].id } : {}),
       members: [
@@ -27,7 +28,7 @@ test("#620 실제 HTTP Target 교집합·공동담당 exact drill·readonly·변
         shared ? { kind: "system", entityId: shared } : { kind: "system", create: { code: "MCS-SHARED", name: "Shared MCS", systemType: "mcs", layer: "coordinator", scope: "project" } },
       ],
     });
-    return ((await response.json()) as LogisticsTargetMutationResponse).data.target!;
+    return (response as LogisticsTargetMutationResponse).data.target!;
   };
   let a = await target("A", 0);
   const mcs = a.members.find(member => member.code === "MCS-SHARED")!.entityId;
@@ -41,10 +42,10 @@ test("#620 실제 HTTP Target 교집합·공동담당 exact drill·readonly·변
   const unassigned = await addTask("A unassigned", f.parentTask.taskId);
   const subset = await addTask("A ACS subset unset");
   const whole = (targetId: string, scope: "self" | "subtree" = "self") => ({ targetId, scope, selection: "whole", memberIds: [] });
-  await f.mutate(`/tasks/${f.parentTask.taskId}/target-bindings`, { bindings: [whole(a.id, "subtree")] }, "put");
-  await f.mutate(`/tasks/${f.task.taskId}/target-bindings`, { bindings: [whole(a.id), whole(b.id)] }, "put");
-  await f.mutate(`/tasks/${secondary.taskId}/target-bindings`, { bindings: [whole(b.id)] }, "put");
-  await f.mutate(`/tasks/${subset.taskId}/target-bindings`, { bindings: [{ targetId: a.id, scope: "self", selection: "subset", memberIds: [a.members.find(member => member.code === "ACS-A")!.id] }] }, "put");
+  await f.seedLegacy(`/tasks/${f.parentTask.taskId}/target-bindings`, { bindings: [whole(a.id, "subtree")] }, "put");
+  await f.seedLegacy(`/tasks/${f.task.taskId}/target-bindings`, { bindings: [whole(a.id), whole(b.id)] }, "put");
+  await f.seedLegacy(`/tasks/${secondary.taskId}/target-bindings`, { bindings: [whole(b.id)] }, "put");
+  await f.seedLegacy(`/tasks/${subset.taskId}/target-bindings`, { bindings: [{ targetId: a.id, scope: "self", selection: "subset", memberIds: [a.members.find(member => member.code === "ACS-A")!.id] }] }, "put");
   await f.mutate(`/tasks/${legacy.taskId}/logistics-links`, { equipmentLinks: [], systemLinks: [{ systemId: mcs, scope: "self" }] }, "put");
 
   await success(await page.request.post("/api/resource-catalog/admin-sessions", { headers: { Origin: origin }, data: { password: resourcePassword } }), 201);
@@ -63,7 +64,7 @@ test("#620 실제 HTTP Target 교집합·공동담당 exact drill·readonly·변
     [subset.taskId, [allocation(resourceIds[1], null)]],
   ] as const) await f.mutate(`/tasks/${taskId}/assignments`, { catalogRevision: catalog.revision, targets }, "put");
 
-  const readonly = await browser.newContext({ baseURL: origin });
+  const readonly = await browser.newContext({ baseURL: origin, extraHTTPHeaders: {"X-MasterGantt-Resource-Version":"1"} });
   try {
     const publicPage = await readonly.newPage();
     await publicPage.goto("/");
@@ -141,7 +142,7 @@ test("#620 실제 HTTP Target 교집합·공동담당 exact drill·readonly·변
     const body = { sourceContext: selected.resourceScopeContext!, scope: { kind: "exactAssignments", assignmentIds: [exactId] }, filters: { from: "2026-10-14", to: "2026-10-15", mdPerMm: null, targetIds: [a.id] }, projection: { kind: "report" } };
     const query = async (data: object) => readonly.request.post(`${f.api}/resource-dashboard/query`, { headers: { Origin: origin }, data });
     const fetched = await publicPage.evaluate(async ({ path, body }) => {
-      const response = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const response = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", "X-MasterGantt-Resource-Version":"1" }, body: JSON.stringify(body) });
       return { status: response.status, cache: response.headers.get("cache-control"), nosniff: response.headers.get("x-content-type-options"), body: await response.json() };
     }, { path: `${f.api}/resource-dashboard/query`, body });
     expect(fetched).toMatchObject({ status: 200, cache: "private, no-store", nosniff: "nosniff" });
@@ -167,12 +168,12 @@ test("#620 실제 HTTP Target 교집합·공동담당 exact drill·readonly·변
     const oversized = await readonly.request.get(`${f.api}/resource-dashboard?from=2026-01-01&to=2027-01-02&targetIds=${a.id}`);
     expect(oversized.status()).toBe(422);
     expect((await oversized.json()).data).toBeUndefined();
-    const foreign = await browser.newContext({ baseURL: origin });
+    const foreign = await browser.newContext({ baseURL: origin, extraHTTPHeaders: {"X-MasterGantt-Resource-Version":"1"} });
     try {
       const created = await success(await foreign.request.post("/api/projects", { headers: { Origin: origin }, data: { name: "Foreign #620", ownerName: "E2E", description: "", editPassword: "Foreign620!" } }), 201);
       const foreignId = (await created.json()).data.project.publicId;
-      const createdTarget = await success(await foreign.request.post(`/api/projects/${foreignId}/logistics/targets`, { headers: { Origin: origin, "If-Match": '"1"' }, data: { code: "FOREIGN", name: "Foreign", scope: "project_common", members: [{ kind: "system", create: { code: "MCS-FOREIGN", systemType: "mcs", layer: "coordinator", scope: "project" } }] } }), 201);
-      const foreignTarget = ((await createdTarget.json()) as LogisticsTargetMutationResponse).data.target!;
+      const createdTarget = await seedLegacyLogistics(foreign,origin,foreignId,"/logistics/targets", { code: "FOREIGN", name: "Foreign", scope: "project_common", members: [{ kind: "system", create: { code: "MCS-FOREIGN", systemType: "mcs", layer: "coordinator", scope: "project" } }] });
+      const foreignTarget = (createdTarget as LogisticsTargetMutationResponse).data.target!;
       expect((await readonly.request.get(`${f.api}/resource-dashboard?${base}&targetIds=${foreignTarget.id}`)).status()).toBe(400);
       expect((await readonly.request.get(`${f.api}/resource-dashboard?${base}&memberSystemIds=${foreignTarget.members[0].entityId}`)).status()).toBe(400);
     } finally { await foreign.close(); }
@@ -192,17 +193,18 @@ test("#620 실제 HTTP Target 교집합·공동담당 exact drill·readonly·변
       expect(current.snapshotId, label).not.toBe(previous.snapshotId);
       return current;
     };
-    await f.mutate(`/logistics/targets/${a.id}`, { name: "Renamed Target A" }, "patch");
+    await f.seedLegacy(`/logistics/targets/${a.id}`, { name: "Renamed Target A" }, "patch");
     let current = await assertStale(selected, "Target rename");
     expect((await query(body)).status()).toBe(409);
     const spare = await f.mutate("/logistics/systems", { code: "MEMBER-ADDED", name: "New member", systemType: "mcs", layer: "coordinator", scope: "project" });
     const spareId = (await spare.json()).data.logistics.systems.find((system: { code: string }) => system.code === "MEMBER-ADDED").id as string;
     current = await getReport({ targetIds: a.id });
     const members = [...a.members.map(member => ({ kind: member.kind, entityId: member.entityId })), { kind: "system", entityId: spareId }];
-    const preview = await f.mutate(`/logistics/targets/${a.id}/impact`, { members });
-    const impactToken = (await preview.json()).data.impactToken;
-    const updated = await f.mutate(`/logistics/targets/${a.id}`, { members, impactToken, confirmImpact: true }, "patch");
-    a = ((await updated.json()) as LogisticsTargetMutationResponse).data.target as LogisticsTargetDto;
+    const preview = await f.seedLegacy(`/logistics/targets/${a.id}/impact`, { members });
+    if (!("impactToken" in preview.data)) throw new Error("기존 자료 영향 확인 결과에 영수증이 없습니다.");
+    const impactToken = preview.data.impactToken;
+    const updated = await f.seedLegacy(`/logistics/targets/${a.id}`, { members, impactToken, confirmImpact: true }, "patch");
+    a = (updated as LogisticsTargetMutationResponse).data.target as LogisticsTargetDto;
     current = await assertStale(current, "Target member addition");
     const processCatalog = (await (await success(await page.request.get("/api/process-catalog/admin"))).json()) as ProcessCatalogResponse;
     await success(await page.request.patch(`/api/process-catalog/admin/types/${f.catalog.data.types[0].id}`, { headers: { Origin: origin, "If-Match": `"${processCatalog.data.processCatalogRevision}"` }, data: { name: "Renamed process type" } }));

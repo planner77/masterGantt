@@ -1,3 +1,9 @@
+## Issue #785 — 폐기 기능의 탐색·접근성·출처 보존
+
+Logistics Target 비노출은 표시 문자열뿐 아니라 숨은 panel mount/fetch, old screenKey/preset, deep link, aria-label·tooltip·error·empty/readonly/stale, drill/복귀·Excel·사용 안내를 포함한다. 폐기 key는 실제 공정/WorkArea 기본 관점으로 정규화하고 유효한 탭/trigger에 focus를 복원한다. DOM/접근성명/네트워크 검증은 캡처와 별도로 수행한다.
+
+기존 자료는 직접 선택으로 자동 병합하지 않고 실제 실물별 연결 출처로 제공한다. 전체/선택 구성·coverage·상속의 의미와 읽기 전용 한계를 보존하며 허위 미연결을 표시하지 않는다. 390/768/1024/1440/1920px 및 keyboard Tab/Escape/focus·긴 이름·동명·dirty/pending/stale·정확 상세를 변경 영향에 맞게 실제 검증하고 실행하지 않은 조합은 NOT TESTED다. 기존 semantic token·표 내부 scroll·Gantt 단일 writer를 따른다. #720 매뉴얼 인계는 [현행 사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md)이며 미구현 앱 매뉴얼을 주장하지 않는다.
+
 ## Issue #556 — 조건부 탐색과 직접 조회 명령
 
 현재 범위와 열린 Summary가 모두 없는 정상 전체 일정은 빈 탐색 wrapper를 제거한다. 숨김 heading은 layout을 점유하지 않는 기존 `sr-only`를 사용하며 ARIA label과 프로그램 focus를 유지한다. 마지막 탭 제거처럼 trigger가 사라질 때는 실제 존재하는 작업 검색 제어로 복원한다. 오류/무일정/저장·복구 상태를 평상시 설명과 함께 숨기지 않는다.
