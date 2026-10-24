@@ -1090,7 +1090,7 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 
 - `scripts/analyze-ci-setup-metrics.mjs`는 기존 median/p90/cache 분포에 PR/Main/Release lane, runner-minutes/run, exact cache hit rate, lane별 readiness와 비용 후보 순위를 추가한다. matrix shard와 rerun은 record 수에는 포함될 수 있으나 distinct run 표본을 늘리지 않는다.
 - `scripts/compare-ci-setup-metrics.mjs`는 동일 workflow/event/job/metric 키의 before/after만 비교한다. 기본 정책은 median wall-clock 5% 이상 개선, runner-minutes 증가 0% 이하이며 표본 부족 그룹은 `COLLECT_MORE`, 기준 미달은 `DO_NOT_ADOPT`로 판정한다. 실제 채택 기준은 Issue evidence에서 필요 시 더 엄격하게 조정할 수 있다.
-- 현재 #444 착수 시점에는 #439 정식 release 직후라 PR/Main/Release 10-run baseline이 충족되지 않았다. 따라서 Playwright browser cache나 추가 cache 계층은 도입하지 않고 분석/비교/guard만 구현한다.
+- 2026-10-24 최신 readiness Run #40046472198에서 PR/Main/Release 전 그룹 10 distinct 성공 Run 조건 충족. Playwright browser cache는 DO_NOT_ADOPT, Docker PR read-only(#603)는 after 관측 검증 중이다. 자동 cache·node_modules 계층을 추가하지 않는다. [#444 측정 원장](CI_CACHE_PHASE2_EVIDENCE_444.md).
 - Next `.next/cache` key는 OS/arch/Node/Next/package-lock/commit을 포함하고 restore key도 동일 runtime/tool/lockfile 범위 안에서만 공유한다.
 - Docker BuildKit GHA cache namespace는 OS/arch별로 분리한다. BuildKit의 content-addressed layer invalidation을 유지하며 cache miss에서도 동일 Docker build/image policy/runtime smoke가 실행된다.
 - npm cache는 `~/.npm`만 사용하고 OS/arch/Node/package-lock hash를 key에 포함한다. `node_modules` cache는 계속 금지한다.
@@ -1098,7 +1098,7 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 - `scripts/verify-ci-cache-contract.mjs`는 npm/Next/Docker/Playwright cache key·fallback·금지 항목과 setup metric artifact 경계를 정적으로 검사하며 PR CI policy job에서 실행한다.
 - cache hit/miss는 required quality/e2e/docker PASS를 대체하지 않는다. secret/token/`.env`/runtime DB/test PASS evidence는 cache 또는 setup metric artifact에 저장하지 않는다.
 
-#444의 이번 PR은 Phase 2 실행 도구와 Phase 3 guard를 준비하는 변경이며, 실제 최적화 채택은 각 비교 그룹의 10-run baseline과 동일 workload의 before/after evidence가 확보된 뒤 수행한다.
+#444 후속 비교는 script의 기존 전역 metric-key 동일성 모드를 보존하면서, PR Job 분리(#659)로 이름이 바뀐 경우에 한해 `--scope-workflow/--scope-event/--scope-metric/--before-job/--after-job` 전체 지정 및 `--rename-evidence`(GitHub PR/commit)를 요구한다. URL은 workload 동등성을 자동 입증하지 못하므로 rename 항목은 수치만 출력하고 `REVIEW_REQUIRED`, `ADOPT=0`으로 유지한다. Main 동일 Job은 별도 비교한다. 샘플 10 미만/출처 미결합/중복/invalid runner 비용/이벤트 불일치는 ADOPT 불가. #603 전후 PR median 97.482→90.520s(-7.14%), runner min/run 1.533→1.472(-3.98%) 반면 Main median 112.402→144.491s(+28.55%) 증가해 전체 채택 `HOLD`. CI config·앱 변경의 교란 요인이 있어 인과적 회귀 판정이나 cache 원복은 추가 검증 후 결정하며 #444는 OPEN이다. [상세 근거·재현 명령](CI_CACHE_PHASE2_EVIDENCE_444.md).
 
 ### Phase 2 readiness 자동화
 
@@ -1110,9 +1110,14 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 - readiness 자동화는 PR artifact 내부의 `runId/workflow/event/headSha/runAttempt`를 신뢰하지 않는다. GitHub Actions run API가 반환한 successful run metadata로 해당 필드를 overwrite하고 `provenanceBound=true`로 표시한 record만 자동 readiness 표본으로 인정한다.
 - before/after 비교는 양쪽의 workflow/event/job/metric key **전체 집합이 동일할 때만** 채택 판정을 허용한다. metric 추가·삭제·rename이 있으면 retained metric이 빨라졌더라도 전체 결과를 `WORKLOAD_MISMATCH`로 두고 동일 workload로 다시 측정한다.
 
+## Issue #790 — #444 비교 도구 배포와 Parent 종료 경계 (2026-10-24)
+
+- 새 [배포 Work Packet](exec-plans/active/ISSUE_790.md)은 #444의 실측 분석 CLI/한글 오류 및 정·음성 테스트·문서화만 검증하여 **#790을 종료 가능한 lifecycle**로 분리한다. 기존 [PR #789 Full #3214.1](https://github.com/planner77/masterGantt/actions/runs/40049813638) + [Trusted #859.1](https://github.com/planner77/masterGantt/actions/runs/40050520289)은 원본 Head에만 귀속한다. #444 PR을 직접 병합하지 않고, 새 `issue-790` Head PR의 Required3/Trusted/Owner를 **독립 실행**한다.
+- **#444 OPEN**: Docker PR median 97.482→90.520s(-7.14%)는 명시적 Job alias로 `REVIEW_REQUIRED`; Main median 112.402→144.491s(+28.55%) 원인 미귀속, 실제 miss/stale와 최종 ADOPT 미검증. Generic Finalizer는 `Refs #790`만 종료하도록 하며 변경 없는 cache writer/required gate·앱 버전/정식 release 정책은 계속 유지한다. [근거 원장](CI_CACHE_PHASE2_EVIDENCE_444.md).
+
 ## Issue #603 — Docker BuildKit PR cache read-only
 
-PR `docker_smoke`는 shared GHA BuildKit cache를 읽기만 하고 `cache-to`는 `push`에서만 활성화한다. Main `docker_smoke`와 Main publish 경로가 cache writer 책임을 유지한다. PR required Docker build/policy/runtime smoke는 cache miss에서도 동일하게 실행한다. baseline은 #444 readiness Run #32.1이며 after는 동일 `docker_smoke/docker-build-cache` metric의 successful PR run >=10으로 비교한다.
+PR `docker_smoke`(현재 PR 실행 Job ID `pr_docker_smoke`, #659에서 공용 steps 참조)는 shared GHA BuildKit cache를 읽기만 하고 `cache-to`는 `push`에서만 활성화한다. Main `docker_smoke`와 Main publish 경로가 cache writer 책임을 유지한다. PR required Docker build/policy/runtime smoke는 cache miss에서도 동일하게 실행한다. baseline은 #444 readiness Run #32.1이며 PR after는 명시적 Job alias/같은 event/metric/successful run >=10으로 제한해 비교한다. Main regression 및 실제 cache miss 미검증 동안 최종 ADOPT를 하지 않는다.
 
 ## Issue #616 F2 candidate validation
 

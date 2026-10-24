@@ -579,11 +579,11 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 
 - #444는 #439 Phase 1 artifact를 기반으로 동작한다. successful workflow run artifact만 분석하며 PR/Main/Release의 workflow/event/job/metric별 distinct run 10개 미만이면 최적화 PR을 만들거나 cache를 추가하지 않는다.
 - baseline 수집 후 `node scripts/analyze-ci-setup-metrics.mjs --input <dir> --min-samples 10 --output baseline.json`으로 readiness와 비용 후보를 산출한다.
-- 변경 후 동일 workload 표본을 다시 수집하고 `node scripts/compare-ci-setup-metrics.mjs --baseline baseline.json --current after.json --output comparison.json`으로 median/p90/runner-minutes를 비교한다.
-- 기본 채택 기준은 median wall-clock 5% 이상 개선과 runner-minutes 비증가다. security/staleness 복잡도가 증가하거나 개선이 미미하면 `DO_NOT_ADOPT`를 유지한다.
+- 변경 후 동일 workload 표본을 다시 수집하고 `node scripts/compare-ci-setup-metrics.mjs --baseline baseline.json --current after.json --output comparison.json`으로 median/p90/runner-minutes를 비교한다. **#444 2026-10-24 전후 실측**: readiness [before 38109419594](https://github.com/planner77/masterGantt/actions/runs/38109419594)/[after 40046472198](https://github.com/planner77/masterGantt/actions/runs/40046472198)의 각각 `analysis.json`을 `baseline.json`/`after.json`으로 추출한다. 정확한 digest, 수치 및 [CLI 완전한 재현 명령](CI_CACHE_PHASE2_EVIDENCE_444.md)은 원장 참조. PR Docker는 `--scope-workflow .github/workflows/ci.yml --scope-event pull_request --scope-metric docker-build-cache --before-job docker_smoke --after-job pr_docker_smoke --rename-evidence https://github.com/planner77/masterGantt/commit/6a3d61fac54f3fb5584351bd0a1e886afc3781f4`를 명시한다. Job alias 수치가 5%를 넘어도 REVIEW_REQUIRED / no ADOPT이고, Main `--scope-event push --before-job docker_smoke --after-job docker_smoke`는 별도 비교한다.
+- 기본 채택 기준은 median wall-clock 5% 이상 개선과 runner-minutes 비증가다. 단, 전후 Job rename·제품/CI 변경 교란, Main 비용 증가 또는 cache miss 실증 누락 상태에서는 자동 채택·신규 cache 적용을 하지 않는다. security/staleness 복잡도가 증가하거나 개선이 미미하면 `DO_NOT_ADOPT`를 유지한다.
 - npm/Next/Docker cache key 또는 Playwright cache 정책을 변경할 때는 `node scripts/verify-ci-cache-contract.mjs`가 PASS해야 한다. required check, audit, Docker/runtime smoke를 줄여 성능을 만드는 변경은 금지한다.
 - fork/external PR을 이유로 cache write 권한을 확대하지 않는다. cache miss는 정상 경로이며 cache hit은 품질 증거가 아니다.
-- #444 이번 착수에서는 10-run baseline이 아직 충족되지 않았으므로 실제 신규 cache 도입은 DEFER하고 분석·비교·guard 준비만 수행한다.
+- #444 2026-10-24 readiness는 PR/Main/Release 전 그룹에서 최소 10개 distinct successful Run을 이미 충족했다. 실제 신규 cache 추가는 동등 workload 및 Main Docker 비용 증가 귀속·miss/stale 검증 전 여전히 HOLD한다.
 
 ### Readiness 자동 운영
 
@@ -594,6 +594,12 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 - #444가 닫히면 workflow는 no-op으로 종료하므로 완료 이후 불필요한 artifact download/comment mutation을 지속하지 않는다.
 - downloaded artifact의 자체 provenance는 untrusted data다. readiness collector는 run 목록 API의 ID/attempt/head SHA/path/event를 trusted metadata로 사용해 JSONL provenance를 binding한 뒤 analyzer의 `--require-bound-provenance true` 모드로만 자동 판정한다.
 - before/after에서 metric 집합이 다르면 최적화 효과를 부분 metric만으로 채택하지 않는다. 새 setup 단계 추가·metric rename도 workload 변경으로 취급해 동일 metric 집합의 새 baseline/after를 확보한다.
+
+### Issue #790 배포 lifecycle / Generic Finalizer 추적
+
+- #444의 장기 미완료 실증과 이미 구현한 비교기 배포를 분리한 [하위 Issue #790](https://github.com/planner77/masterGantt/issues/790)의 Primary Issue는 **790**. 새 브랜치 `ci/issue-790-cache-compare-deploy`, PR title `[Issue #790]`, 본문 유일한 `Refs #790`를 엄격히 사용한다. 구 [PR #789](https://github.com/planner77/masterGantt/pull/789)는 superseded/closed하고 같은 소스를 신규 Head 기준으로 다시 Full CI/Trusted QA 검증한다.
+- Owner가 High 위험 수용한 후 정확한 Merge commit 제목은 `python3 scripts/main_ci_run_name.py --issue 790 --pr <새 PR 번호> --summary "캐시 비교기 배포"`로 생성, 본문 빈 문자열 및 Head SHA lease 사용. Main CI/GHCR 임시 후보 PASS 이후 **Generic Finalizer의 #790 종료만** 인정하고 #444는 OPEN으로 유지한다. 원본 #789의 Full/Trusted PASS를 새 이슈의 Head 승격 증거로 쓰지 않는다.
+- 비동일 워크로드의 PR Docker 개선·Main Docker 증가 등 성능 인과와 cache miss/stale 실증은 [#444 원장](CI_CACHE_PHASE2_EVIDENCE_444.md)에서 후속 판단하며 자동 채택하지 않는다.
 
 ## Issue #603 Docker BuildKit cache writer 운영
 

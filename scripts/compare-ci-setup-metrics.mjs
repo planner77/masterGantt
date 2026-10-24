@@ -8,11 +8,30 @@ function key(metric) {
   return JSON.stringify([metric.workflow, metric.eventName, metric.job, metric.metric]);
 }
 function pct(before, after) {
-  if (!Number.isFinite(before) || before <= 0) return null;
+  if (!Number.isFinite(before) || before <= 0 || !Number.isFinite(after)) return null;
   return Number((((after - before) / before) * 100).toFixed(2));
 }
 function change(before, after) {
-  return Math.round(after - before);
+  return Number.isFinite(before) && Number.isFinite(after) ? Math.round(after - before) : null;
+}
+function indexMetrics(metrics, label) {
+  if (!Array.isArray(metrics)) throw new Error(`${label}.metrics는 배열이어야 합니다`);
+  const result = new Map();
+  for (const metric of metrics) {
+    if (!metric || [metric.workflow, metric.eventName, metric.job, metric.metric].some((value) => typeof value !== "string" || !value)) {
+      throw new Error(`${label}.metrics에 유효하지 않은 workflow/event/job/metric 키가 있습니다`);
+    }
+    const metricKey = key(metric);
+    if (result.has(metricKey)) throw new Error(`${label}.metrics에 중복된 workload 키가 있습니다: ${metricKey}`);
+    result.set(metricKey, metric);
+  }
+  return result;
+}
+function statisticsValid(metric) {
+  return metric && Number.isInteger(metric.successfulRuns) && metric.successfulRuns >= 0 &&
+    Number.isFinite(metric.medianMs) && metric.medianMs > 0 &&
+    Number.isFinite(metric.p90Ms) && metric.p90Ms >= metric.medianMs &&
+    Number.isFinite(metric.runnerMinutesPerSuccessfulRun) && metric.runnerMinutesPerSuccessfulRun > 0;
 }
 
 const baselinePath = arg("baseline");
@@ -21,24 +40,44 @@ const output = arg("output");
 const summary = arg("summary", process.env.GITHUB_STEP_SUMMARY || "");
 const minImprovementPercent = Number(arg("min-improvement-percent", "5"));
 const maxRunnerIncreasePercent = Number(arg("max-runner-increase-percent", "0"));
+const minSamples = Number(arg("min-samples", "10"));
+const scope = {
+  workflow: arg("scope-workflow"), eventName: arg("scope-event"), metric: arg("scope-metric"),
+  beforeJob: arg("before-job"), afterJob: arg("after-job"),
+};
+const renameEvidence = arg("rename-evidence");
+const scopeValues = Object.values(scope);
+const focused = scopeValues.some(Boolean);
 
 if (!baselinePath || !currentPath) {
-  throw new Error("Usage: node scripts/compare-ci-setup-metrics.mjs --baseline BASE.json --current CURRENT.json [--output result.json]");
+  throw new Error("사용법: node scripts/compare-ci-setup-metrics.mjs --baseline BASE.json --current CURRENT.json [--scope-workflow PATH --scope-event EVENT --scope-metric METRIC --before-job JOB --after-job JOB --rename-evidence URL]");
 }
-if (!Number.isFinite(minImprovementPercent) || minImprovementPercent < 0) throw new Error("--min-improvement-percent must be >= 0");
-if (!Number.isFinite(maxRunnerIncreasePercent)) throw new Error("--max-runner-increase-percent must be a number");
+if (!Number.isFinite(minImprovementPercent) || minImprovementPercent < 0) throw new Error("--min-improvement-percent는 0 이상이어야 합니다");
+if (!Number.isFinite(maxRunnerIncreasePercent)) throw new Error("--max-runner-increase-percent는 유효한 숫자여야 합니다");
+if (!Number.isInteger(minSamples) || minSamples < 10) throw new Error("--min-samples는 10 이상의 정수여야 합니다");
+if (focused && !scopeValues.every(Boolean)) throw new Error("범위를 지정한 비교에는 --scope-workflow, --scope-event, --scope-metric, --before-job, --after-job 다섯 옵션이 모두 필요합니다");
+const renamedJob = focused && scope.beforeJob !== scope.afterJob;
+if (renamedJob && !/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/(?:pull\/\d+|commit\/[0-9a-f]{40})(?:[\w/#.-]*)?$/.test(renameEvidence)) {
+  throw new Error("Job 이름이 변경된 경우 --rename-evidence에 GitHub PR/commit URL이 필요합니다. 해당 URL은 workload 동등성 검토를 대신하지 않습니다");
+}
+if (renameEvidence && !renamedJob) throw new Error("--rename-evidence는 전후 Job 이름이 다른 범위 지정 비교에서만 사용할 수 있습니다");
 
 const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
 const current = JSON.parse(readFileSync(currentPath, "utf8"));
-const baselineMetrics = new Map((baseline.metrics ?? []).map((metric) => [key(metric), metric]));
-const currentMetrics = new Map((current.metrics ?? []).map((metric) => [key(metric), metric]));
+const trustedSources = !focused || [baseline, current].every((payload) =>
+  payload?.schemaVersion === 2 && payload?.phase2Issue === 444 && payload?.requireBoundProvenance === true && payload?.minSamples >= 10);
+const scopedMetrics = (metrics, job) => !focused ? metrics : (metrics ?? [])
+  .filter((m) => m.workflow === scope.workflow && m.eventName === scope.eventName && m.metric === scope.metric && m.job === job)
+  .map((m) => ({ ...m, job: scope.beforeJob }));
+const baselineMetrics = indexMetrics(scopedMetrics(baseline.metrics, scope.beforeJob), "baseline");
+const currentMetrics = indexMetrics(scopedMetrics(current.metrics, scope.afterJob), "current");
 
 const baselineKeys = new Set(baselineMetrics.keys());
 const currentKeys = new Set(currentMetrics.keys());
 const allKeys = [...new Set([...baselineKeys, ...currentKeys])].sort();
-const workloadComparable =
-  baselineKeys.size === currentKeys.size &&
+const workloadKeysMatch = baselineKeys.size > 0 && baselineKeys.size === currentKeys.size &&
   [...baselineKeys].every((metricKey) => currentKeys.has(metricKey));
+const workloadComparable = workloadKeysMatch && !renamedJob && trustedSources;
 
 const emptyMetric = {
   successfulRuns: 0,
@@ -54,8 +93,11 @@ for (const metricKey of allKeys) {
   const after = currentMetrics.get(metricKey);
   const exemplar = before ?? after;
   const presentBoth = Boolean(before && after);
-  const enoughSamples = Boolean(before?.enoughSamples && after?.enoughSamples);
-  const comparable = workloadComparable && presentBoth && enoughSamples;
+  const enoughSamples = Boolean(before?.enoughSamples && after?.enoughSamples &&
+    before.successfulRuns >= minSamples && after.successfulRuns >= minSamples);
+  const validStatistics = Boolean(statisticsValid(before) && statisticsValid(after));
+  const numericComparable = workloadKeysMatch && presentBoth && enoughSamples && validStatistics && trustedSources;
+  const comparable = numericComparable && !renamedJob;
 
   const medianDeltaPercent = presentBoth ? pct(before.medianMs, after.medianMs) : null;
   const p90DeltaPercent = presentBoth ? pct(before.p90Ms, after.p90Ms) : null;
@@ -64,29 +106,28 @@ for (const metricKey of allKeys) {
     : null;
   const wallClockImprovementPercent =
     medianDeltaPercent === null ? null : Number((-medianDeltaPercent).toFixed(2));
-  const adopted =
-    comparable &&
-    wallClockImprovementPercent !== null &&
+  const policyThresholdMet = numericComparable && wallClockImprovementPercent !== null &&
     wallClockImprovementPercent >= minImprovementPercent &&
-    (runnerDeltaPercent === null || runnerDeltaPercent <= maxRunnerIncreasePercent);
+    runnerDeltaPercent !== null && runnerDeltaPercent <= maxRunnerIncreasePercent;
+  const adopted = comparable && policyThresholdMet;
 
-  const recommendation = !workloadComparable
-    ? "WORKLOAD_MISMATCH"
-    : !enoughSamples
-      ? "COLLECT_MORE"
-      : adopted
-        ? "ADOPT"
-        : "DO_NOT_ADOPT";
+  const recommendation = !workloadKeysMatch ? "WORKLOAD_MISMATCH"
+    : !trustedSources ? "PROVENANCE_REQUIRED"
+    : !enoughSamples ? "COLLECT_MORE"
+    : !validStatistics || medianDeltaPercent === null || runnerDeltaPercent === null ? "INVALID_METRICS"
+    : renamedJob ? "REVIEW_REQUIRED"
+    : adopted ? "ADOPT" : "DO_NOT_ADOPT";
 
   comparisons.push({
     workflow: exemplar.workflow,
     eventName: exemplar.eventName,
     lane: exemplar.lane ?? "Other",
     job: exemplar.job,
+    ...(focused ? { beforeJob: scope.beforeJob, afterJob: scope.afterJob } : {}),
     metric: exemplar.metric,
     presentBefore: Boolean(before),
     presentAfter: Boolean(after),
-    comparable,
+    numericComparable, comparable, policyThresholdMet, validStatistics,
     before: before ? {
       successfulRuns: before.successfulRuns,
       medianMs: before.medianMs,
@@ -121,13 +162,15 @@ comparisons.sort((a, b) =>
 );
 
 const payload = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   issue: 444,
-  policy: { minImprovementPercent, maxRunnerIncreasePercent },
-  workloadComparable,
+  policy: { minImprovementPercent, maxRunnerIncreasePercent, minSamples },
+  focused, ...(focused ? { scope, renamedJob, renameEvidence: renameEvidence || null, trustedSources } : {}),
+  workloadKeysMatch, workloadComparable,
   baselineMetricGroups: baselineKeys.size,
   currentMetricGroups: currentKeys.size,
   comparableGroups: comparisons.filter((item) => item.comparable).length,
+  reviewRequiredGroups: comparisons.filter((item) => item.recommendation === "REVIEW_REQUIRED").length,
   adoptGroups: comparisons.filter((item) => item.recommendation === "ADOPT").length,
   comparisons,
 };
@@ -140,12 +183,18 @@ if (summary) {
     "",
     `- 최소 wall-clock 개선: \`${minImprovementPercent}%\``,
     `- 허용 runner-minutes 증가: \`${maxRunnerIncreasePercent}%\``,
-    `- workload metric 집합 일치: \`${workloadComparable}\` (before=${baselineKeys.size}, after=${currentKeys.size})`,
+    `- 최소 양쪽 distinct successful run: \`${minSamples}\``,
+    `- workload metric 집합 일치: \`${workloadKeysMatch}\` (before=${baselineKeys.size}, after=${currentKeys.size})`,
+    ...(focused ? [
+      `- 명시적 scope: \`${scope.workflow}/${scope.eventName}/${scope.metric}\` (before job=\`${scope.beforeJob}\`, after job=\`${scope.afterJob}\`)`,
+      `- provenance-bound 입력: \`${trustedSources}\``,
+      `- job rename: \`${renamedJob}\` (evidence: ${renameEvidence || "n/a"}); 이름 변경만으로 workload 동등성을 증명할 수 없어 ADOPT는 REVIEW_REQUIRED`,
+    ] : []),
     "",
     "| lane | job | metric | runs before/after | median before→after | p90 before→after | runner min Δ | 판정 |",
     "| --- | --- | --- | --- | ---: | ---: | ---: | --- |",
     ...comparisons.map((item) =>
-      `| ${item.lane} | ${item.job} | ${item.metric} | ${item.before.successfulRuns}/${item.after.successfulRuns} | ${item.before.medianMs === null || item.after.medianMs === null ? "n/a" : (item.before.medianMs / 1000).toFixed(2) + "s→" + (item.after.medianMs / 1000).toFixed(2) + "s (" + (item.delta.medianPercent ?? "n/a") + "%)"} | ${item.before.p90Ms === null || item.after.p90Ms === null ? "n/a" : (item.before.p90Ms / 1000).toFixed(2) + "s→" + (item.after.p90Ms / 1000).toFixed(2) + "s (" + (item.delta.p90Percent ?? "n/a") + "%)"} | ${item.delta.runnerMinutesPercent ?? "n/a"}% | ${item.recommendation} |`
+      `| ${item.lane} | ${item.beforeJob && item.beforeJob !== item.afterJob ? `${item.beforeJob}→${item.afterJob}` : item.job} | ${item.metric} | ${item.before.successfulRuns}/${item.after.successfulRuns} | ${item.before.medianMs === null || item.after.medianMs === null ? "n/a" : (item.before.medianMs / 1000).toFixed(2) + "s→" + (item.after.medianMs / 1000).toFixed(2) + "s (" + (item.delta.medianPercent ?? "n/a") + "%)"} | ${item.before.p90Ms === null || item.after.p90Ms === null ? "n/a" : (item.before.p90Ms / 1000).toFixed(2) + "s→" + (item.after.p90Ms / 1000).toFixed(2) + "s (" + (item.delta.p90Percent ?? "n/a") + "%)"} | ${item.delta.runnerMinutesPercent ?? "n/a"}% | ${item.recommendation} |`
     ),
   ];
   appendFileSync(summary, lines.join("\n") + "\n", "utf8");
