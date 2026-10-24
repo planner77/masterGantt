@@ -1,3 +1,9 @@
+## Issue #792 — 보존된 Summary 출처 적용 범위의 opt-in 편집
+
+#785의 구형 Target 메뉴/화면/상세를 복구하지 않고, 기존 Task Editor 연결 출처 아래에 **Summary 직접 원본 한 건의 범위 조정**만 노출한다. 기존 read-only 출처 표기를 모두 editable로 바꾸지 않는다. 동적 whole·subset+coverage 및 inherited source는 원본과 별도이고, 자손 Task에서 inherited source를 복사해 직접 수정하지 않는다.
+
+사용자 순서: 원본 출처별 select → 변경 scope self/subtree → 영향 Task 건수 미리보기 → 확인 후 적용. 서버 source fingerprint/Project revision/token이 변하면 FAIL/CANCEL, 활성 없는 membership의 확대를 금지한다. 다른 직접 연결 dirty/pending·readonly인 동안 mutation disabled; 원본 UUID·coverage·Resource 공수·SVAR Gantt writer는 불변. 디자인은 기존 context editor의 버튼/도움말/오류 token을 재사용하며 실제 Chromium5폭·키보드/Focus 실증은 NOT TESTED. [가이드](TARGET_RESOURCE_USER_GUIDE.md), [설계](exec-plans/active/ISSUE_792.md).
+
 ## Issue #785 — 실물 관점과 폐기 화면 복원
 
 상위 `일정 / 대시보드 / 기준정보`, 대시보드 `KPI / Milestone / 공정&WorkArea / 설비 / 물류 시스템 / 리소스`, 기준정보 `공정&WorkArea / 설비 / 물류 시스템 / 리소스`를 유지한다. 별도 Target 보기·관리·연결·카탈로그·진단·숨은 패널은 제공하지 않는다. 구형 `dashboard.target`은 `dashboard.process`, `master.targets`는 `master.processes`로 입구에서 정규화한다. 복원된 URL/저장 설정으로 폐기 UI를 다시 mount/fetch하지 않는다. 제어/조율 관계 기능은 유지한다.
