@@ -96,7 +96,12 @@ export function TaskLogisticsLinkEditor({
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  useEffect(() => { onPendingChange?.(saving); }, [saving, onPendingChange]);
+  const [legacyScopePending, setLegacyScopePending] = useState(false);
+  // Both the direct writer and the inherited legacy source writer can trigger
+  // ProjectTaskEditor.reload(true); keep the same parent pending lock until
+  // either write and its canonical refresh have settled.
+  const pending = saving || legacyScopePending;
+  useEffect(() => { onPendingChange?.(pending); }, [pending, onPendingChange]);
   const [error, setError] = useState<string | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
 
@@ -203,7 +208,7 @@ export function TaskLogisticsLinkEditor({
   }, [ready, selectedEquipment, selectedSystems, onDirtyChange]);
 
   const toggleEquipment = (equipmentId: string) => {
-    if (!editable || !serverEditable || disabled || saving || !ready) return;
+    if (!editable || !serverEditable || disabled || pending || !ready) return;
     setSuccessNotice(null);
     setSelectedEquipment((prev) => {
       const next = new Map(prev);
@@ -217,7 +222,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const toggleEquipmentScope = (equipmentId: string) => {
-    if (!editable || !serverEditable || disabled || saving || !ready || !isSummary) return;
+    if (!editable || !serverEditable || disabled || pending || !ready || !isSummary) return;
     setSuccessNotice(null);
     setSelectedEquipment((prev) => {
       const next = new Map(prev);
@@ -228,7 +233,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const toggleSystem = (systemId: string) => {
-    if (!editable || !serverEditable || disabled || saving || !ready) return;
+    if (!editable || !serverEditable || disabled || pending || !ready) return;
     setSuccessNotice(null);
     setSelectedSystems((prev) => {
       const next = new Map(prev);
@@ -242,7 +247,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const toggleSystemScope = (systemId: string) => {
-    if (!editable || !serverEditable || disabled || saving || !ready || !isSummary) return;
+    if (!editable || !serverEditable || disabled || pending || !ready || !isSummary) return;
     setSuccessNotice(null);
     setSelectedSystems((prev) => {
       const next = new Map(prev);
@@ -253,7 +258,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const handleSave = async () => {
-    if (!editable || !serverEditable || disabled || saving || !ready || requestReference.current) return;
+    if (!editable || !serverEditable || disabled || pending || !ready || requestReference.current) return;
     const publicId = projectIdFromPathname(window.location.pathname);
     if (!publicId) return;
 
@@ -367,10 +372,11 @@ export function TaskLogisticsLinkEditor({
         {isSummary && links.compatibilityLinks.some(item => !item.inherited && item.sourceTaskId === taskId) ? (
           <LegacyBindingScopeEditor
             taskId={taskId} revision={revision} editable={editable && serverEditable}
-            disabled={disabled || draftDirty || saving || !ready}
+            disabled={disabled || draftDirty || pending || !ready}
             sourceNames={links.compatibilityLinks.filter(item => !item.inherited && item.sourceTaskId === taskId)
               .map(item => ({sourceId:item.sourceId,label:item.name}))}
             onApplied={onApplied} onUnauthorized={onUnauthorized}
+            onPendingChange={setLegacyScopePending}
           />
         ) : null}
       </section> : null}
@@ -430,7 +436,7 @@ export function TaskLogisticsLinkEditor({
                     <input
                       type="checkbox"
                       checked={isChecked}
-                      disabled={!editable || !serverEditable || disabled || saving || !ready || (!isChecked && !eq.active)}
+                      disabled={!editable || !serverEditable || disabled || pending || !ready || (!isChecked && !eq.active)}
                       onChange={() => toggleEquipment(eq.id)}
                     />
                     <span>
@@ -450,7 +456,7 @@ export function TaskLogisticsLinkEditor({
                         type="checkbox"
                         checked={scope === "subtree"}
                         aria-label={`${eq.name} 설비 하위 작업 포함`}
-                        disabled={!editable || !serverEditable || disabled || saving || !ready}
+                        disabled={!editable || !serverEditable || disabled || pending || !ready}
                         onChange={() => toggleEquipmentScope(eq.id)}
                       />
                       <span>하위 작업 포함 (파생)</span>
@@ -519,7 +525,7 @@ export function TaskLogisticsLinkEditor({
                     <input
                       type="checkbox"
                       checked={isChecked}
-                      disabled={!editable || !serverEditable || disabled || saving || !ready || (!isChecked && !sys.active)}
+                      disabled={!editable || !serverEditable || disabled || pending || !ready || (!isChecked && !sys.active)}
                       onChange={() => toggleSystem(sys.id)}
                     />
                     <span>
@@ -539,7 +545,7 @@ export function TaskLogisticsLinkEditor({
                         type="checkbox"
                         checked={scope === "subtree"}
                         aria-label={`${sys.name} 시스템 하위 작업 포함`}
-                        disabled={!editable || !serverEditable || disabled || saving || !ready}
+                        disabled={!editable || !serverEditable || disabled || pending || !ready}
                         onChange={() => toggleSystemScope(sys.id)}
                       />
                       <span>하위 작업 포함 (파생)</span>
@@ -558,7 +564,7 @@ export function TaskLogisticsLinkEditor({
           <button
             type="button"
             className="primary-button"
-            disabled={disabled || !serverEditable || saving || !ready}
+            disabled={disabled || !serverEditable || pending || !ready}
             onClick={() => void handleSave()}
           >
             {saving ? "물류 연결 저장 중..." : "물류 연결 저장"}
