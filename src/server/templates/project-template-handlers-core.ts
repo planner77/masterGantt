@@ -424,10 +424,13 @@ export async function handleInstantiateTemplate(
     }
 
     const payload = (await readBoundedJson(request)) as InstantiateProjectTemplateRequest;
-    if (!payload || typeof payload !== "object") {
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
       throw new PublicApiError(400, "INVALID_REQUEST", "Invalid request body.");
     }
 
+    if (payload.visibility !== undefined && payload.visibility !== "public" && payload.visibility !== "private") {
+      throw new PublicApiError(400, "INVALID_REQUEST", "Invalid project visibility.");
+    }
     if (!payload.name || typeof payload.name !== "string" || payload.name.trim().length === 0) {
       throw new PublicApiError(400, "INVALID_REQUEST", "Project name is required.");
     }

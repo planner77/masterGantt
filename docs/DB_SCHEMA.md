@@ -1,3 +1,7 @@
+## Issue #479 — migration 0031 Project visibility
+
+`db/migrations/0031_project_visibility.sql` adds `projects.visibility TEXT NOT NULL DEFAULT 'public' CHECK (visibility IN ('public','private'))`. Existing projects receive the safe backward-compatible public default; SQLite CHECK protects direct DB writes against null/unknown. Create and Template instantiate default public, Copy preserves source visibility. Metadata PATCH updates visibility in the existing transaction with exactly one project revision increment, without changing password KDF/hash/session auth_version. Existing migration ledger/checksum/pending-batch atomicity and backup+matching-image rollback policy remain. Restart/migration failure injection and Copy/Template round-trip require remote evidence. [Work Packet](exec-plans/active/ISSUE_479.md).
+
 ## Issue #792 — 0027 원본의 단일 scope in-place 수정
 
 DDL 및 신규 migration **없음**. 보존 `task_target_bindings`의 `(project_id, task_id, public_id)`로 **기존 Summary 소스 한 건**을 찾아 `scope=self/subtree`, `updated_at`만 변경한다. `id/public_id/task_id/target_id/selection/anchor_member_id/created_at`, `task_target_binding_members`의 모든 FK/member/coverage, `logistics_targets` 및 `logistics_target_members`, 직접 `task_equipment_links/task_system_links`와 Task/Assignment/Resource는 그대로 둔다. `task_target_subtree_update` trigger는 Summary-only를 보강하고 Project revision을 atomic +1 한다.

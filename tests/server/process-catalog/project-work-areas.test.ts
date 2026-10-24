@@ -183,8 +183,13 @@ describe("#762 direct project-owned WorkAreas",()=>{
     expect(legacy).toHaveLength(2);expect(legacy.every(row=>row.editable===false&&row.diagnostics?.includes("shared"))).toBe(true);expect(legacy.every(row=>Number.isInteger(row.usageCount))).toBe(true);
     const tables=["project_processes","site_product_processes","work_areas","project_process_occurrence_mappings","task_work_area_links","equipment_work_areas","logistics_targets","logistics_target_members"];
     const before=tables.map(table=>f.database.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all());
-    f.database.exec("DROP TRIGGER projects_project_work_area_delete; DROP TRIGGER task_process_links_project_area_scope_guard; DROP TABLE task_project_work_area_links; DROP TABLE equipment_project_work_areas; DROP TABLE project_work_areas; DELETE FROM schema_migrations WHERE version=30");
-    const result=runMigrations(f.database,migrationsDirectory);expect(result.applied).toEqual(["0030_project_work_areas.sql"]);
+    // Reapply the exact legacy 0030 SQL against a historical manifest.
+    // Do not leave migration 31 in the ledger above a removed version 30.
+    const dir=mkdtempSync(join(tmpdir(),"issue-762-legacy-0030-"));dirs.push(dir);
+    const legacyMigrations=join(dir,"migrations");mkdirSync(legacyMigrations);
+    for(const file of readdirSync(migrationsDirectory).filter(file=>/^[0-9]{4}_.*[.]sql$/.test(file)&&Number(file.slice(0,4))<=30))copyFileSync(join(migrationsDirectory,file),join(legacyMigrations,file));
+    f.database.exec("DROP TRIGGER projects_project_work_area_delete; DROP TRIGGER task_process_links_project_area_scope_guard; DROP TABLE task_project_work_area_links; DROP TABLE equipment_project_work_areas; DROP TABLE project_work_areas; DELETE FROM schema_migrations WHERE version>=30");
+    const result=runMigrations(f.database,legacyMigrations);expect(result.applied).toEqual(["0030_project_work_areas.sql"]);
     expect(tables.map(table=>f.database.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all())).toEqual(before);expect(f.database.pragma("foreign_key_check")).toEqual([]);
   });
   it("rolls back additive migration SQL and ledger together on failure",()=>{

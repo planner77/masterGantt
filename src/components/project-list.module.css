@@ -332,3 +332,7 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Issue #479: accessible command semantics without adding a table column. */
+.privateLink { border: 0; padding: 0; background: transparent; font: inherit; cursor: pointer; text-align: left; max-width: 100%; }
+.privateBadge { display: inline; font-size: 0.7rem; font-weight: 500; color: var(--text-muted); white-space: nowrap; }

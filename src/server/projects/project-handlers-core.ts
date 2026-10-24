@@ -23,6 +23,7 @@ import {
   parseApplicationBaseUrl,
 } from "../security/origin-core";
 import { PasswordHashCapacityError } from "../security/password-core";
+import { projectSessionFromCookie } from "../security/project-read-access-core";
 import { ProjectMasterProcessMappingInUseError, ProjectMasterInvalidInputError, ProjectMasterItemInactiveError, ProjectMasterItemNotFoundError, ProjectMasterRelationInvalidError } from "../project-master/project-master-service-core";
 import {
   UNATTRIBUTED_CREATE_RATE_KEY,
@@ -46,6 +47,8 @@ interface ProjectServiceApi {
   create(input: CreateProjectInput): Promise<CreatedProject>;
   listProjects(): ProjectListResponse;
   getReadonlySnapshot(publicId: string): ProjectSnapshotResponse | undefined;
+  getAuthorizedReadonlySnapshot(publicId: string, rawToken?: string): ProjectSnapshotResponse | undefined;
+  projectReadAccess(publicId: string, rawToken?: string): "allowed" | "locked" | "notFound";
   authorize(publicId: string, rawToken: string | undefined): AuthorizationResult;
   updateMetadata(
     authorization: AuthorizedEditSession,
@@ -91,8 +94,8 @@ export interface CreateProjectHandlerDependencies {
 
 export interface ReadProjectHandlerDependencies {
   service:
-    | Pick<ProjectServiceApi, "getReadonlySnapshot">
-    | (() => Pick<ProjectServiceApi, "getReadonlySnapshot">);
+    | Pick<ProjectServiceApi, "getAuthorizedReadonlySnapshot" | "projectReadAccess">
+    | (() => Pick<ProjectServiceApi, "getAuthorizedReadonlySnapshot" | "projectReadAccess">);
   requestId?: () => string;
 }
 
@@ -226,6 +229,7 @@ export async function handleCreateProject(
 export function handleReadProject(
   publicId: string,
   dependencies: ReadProjectHandlerDependencies,
+  request?: Request,
 ): Response {
   const requestId = (dependencies.requestId ?? randomUUID)();
 
@@ -238,9 +242,12 @@ export function handleReadProject(
       );
     }
 
-    const snapshot = resolveDependency(
-      dependencies.service,
-    ).getReadonlySnapshot(publicId);
+    const service = resolveDependency(dependencies.service);
+    const token = request ? projectSessionFromCookie(request.headers.get("cookie")) : undefined;
+    const access = service.projectReadAccess(publicId, token);
+    if (access === "locked") throw new PublicApiError(401, "PROJECT_LOCKED", "A valid session for this private project is required.");
+    if (access === "notFound") throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
+    const snapshot = service.getAuthorizedReadonlySnapshot(publicId, token);
     if (!snapshot) {
       throw new PublicApiError(
         404,

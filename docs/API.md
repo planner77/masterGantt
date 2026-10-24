@@ -1,3 +1,18 @@
+## Issue #479 PR #794 — canonical route ID/내부 Snapshot 계약 교정
+
+URL에 일부 percent-encoded canonical UUID가 들어와도 `/api/projects/{publicId}` 및 모든 하위 API는 **디코딩 후** 같은 Project를 authorize한다. malformed/이중 인코딩으로 canonical ID가 아니면404, private 미인증이면401 `PROJECT_LOCKED`다. HTTP direct GET은 `ProjectService.getAuthorizedReadonlySnapshot`을 호출하고 service도 visibility-aware 검증한다. `getReadonlySnapshot`은 **internal trusted reader 전용**이며 외부 GET/SSR에서 직접 사용하지 않는다. JSON·Excel·SVG의 scoped Export 및 Import commit·Task Assignment post-mutation과 같은 내부 최종 Snapshot 생성은 gateway 통과 후 이 trusted method를 사용하므로 올바르게 잠금 해제된 private 프로젝트에서도 작동한다. [#479 F-001 기록](ISSUE_479_FAILURE_ANALYSIS.md).
+
+## Issue #479 — Project visibility API contract
+
+- `POST /api/projects`: `visibility:"public"|"private"`, optional for legacy callers with default public. Explicit unknown/null rejected400. Newly rendered creation forms transmit visibility.
+- `GET /api/projects`: public listing retains existing fields and adds visibility, including private names.
+- `GET /api/projects/{publicId}`: public anonymous readonly snapshot; private requires matching valid Project edit Cookie. Missing/malformed/foreign/expired/revoked/rotated session rejected401 `PROJECT_LOCKED` (no sensitive snapshot or internal credential).
+- Project-scoped GET/read-only POST/Export under `/api/projects/{publicId}/*` uses same middleware read grant independent of SVAR UI readonly state. `/edit-sessions[/current]` retain their own session API behavior.
+- `PATCH /api/projects/{publicId}`: strictly validated visibility field, existing session + exact Origin + strong If-Match, atomic revision+1. 401/403/412/network failure does not replay stale draft.
+- Copy retains source private/public visibility, but uses newly supplied password and new session. Template instantiate accepts visibility independently of its template, default public. No separate readonly password/session added.
+
+[DB](DB_SCHEMA.md), [Security](SECURITY.md), [Work Packet](exec-plans/active/ISSUE_479.md).
+
 ## Issue #792 — 레거시 Summary 직접 관계 적용 범위 한정 편집
 
 `/api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources` (동일 Project Task; SQLite Node runtime; private/no-store + nosniff):
