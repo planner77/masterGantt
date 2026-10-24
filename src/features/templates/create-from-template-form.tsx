@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { ProjectTemplateDto } from "@/contracts/project-templates";
+import type { ProjectVisibility } from "@/contracts/projects";
 
 interface SubmissionProps {
   readonly onBeginSubmission?: () => boolean;
@@ -42,6 +43,7 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
   const [description, setDescription] = useState("");
   const [projectStartDate, setProjectStartDate] = useState(todayDateString());
   const [editPassword, setEditPassword] = useState("");
+  const [visibility, setVisibility] = useState<ProjectVisibility>("public");
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<Field, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -113,7 +115,7 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
     if (onBeginSubmission && !onBeginSubmission()) return;
     submissionRef.current = true;
     setIsSubmitting(true); setFieldErrors({}); setError(null);
-    const request = { name: name.trim(), ownerName: owner, description: description.trim() || undefined, projectStartDate, editPassword };
+    const request = { name: name.trim(), ownerName: owner, description: description.trim() || undefined, projectStartDate, editPassword, visibility };
     setEditPassword("");
     try {
       const response = await fetch(`/api/project-templates/${encodeURIComponent(selectedTemplate.id)}/instantiate`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
@@ -301,6 +303,12 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
             {fieldErrors.projectStartDate}
           </p> : null}
         </div>
+        <fieldset className="form-field" disabled={isSubmitting}>
+          <legend>공개범위</legend>
+          <label><input type="radio" name="template-project-visibility" checked={visibility === "public"} onChange={() => setVisibility("public")} /> 공개</label>
+          <label><input type="radio" name="template-project-visibility" checked={visibility === "private"} onChange={() => setVisibility("private")} /> 비공개</label>
+          <p>비공개 프로젝트는 목록에 표시되지만 비밀번호 인증 후 열립니다.</p>
+        </fieldset>
         <div
           className="form-field">
           <label htmlFor="inst-password">편집 비밀번호 *</label>
