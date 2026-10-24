@@ -133,6 +133,18 @@ export class LegacyBindingScopeService {
       throw new LogisticsTargetError(409, "LEGACY_SOURCE_STALE");
     if (previous.scope === raw.scope) throw new LogisticsTargetError(409, "LEGACY_SOURCE_UNCHANGED");
     if (task.type !== "summary") throw new LogisticsTargetError(422, "LEGACY_SCOPE_REQUIRES_SUMMARY");
+    // Expanding an old source must not create a new inherited assignment
+    // for a Target or member which has since been made inactive.
+    if (previous.scope === "self" && raw.scope === "subtree") {
+      const target = this.db.prepare("SELECT active FROM logistics_targets WHERE project_id=? AND public_id=?")
+        .get(auth.projectId, previous.targetId) as {active: number} | undefined;
+      const members = snapshot.targets.find(t => t.id === previous.targetId)?.members;
+      if (!target || !members) throw new LogisticsTargetError(409, "LEGACY_SOURCE_INTEGRITY_BLOCKED");
+      const selected = previous.selection === "whole" ? members :
+        members.filter(m => previous.memberIds.includes(m.id));
+      if (target.active !== 1 || selected.some(m => m.active === false))
+        throw new LogisticsTargetError(409, "LEGACY_SOURCE_INACTIVE");
+    }
     const candidate: TaskTargetResolutionInput = { ...snapshot, bindings: snapshot.bindings.map(b =>
       b === previous ? { ...b, scope: raw.scope } : b) };
     ensureProposedPathBudget(candidate);
