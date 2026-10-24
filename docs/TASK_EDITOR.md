@@ -1,3 +1,17 @@
+## Issue #792 F792-001 — Legacy scope PATCH 동안 Task Editor 전역 잠금
+
+첫 PR #795의 P1 코드 리뷰는 legacy 직접 source PATCH의 로컬 `busy`가 상위 Task Editor 잠금에 반영되지 않아 사용자 Task 이름·Resource/직접 설비/System 초안과 탭 탐색을 새 `reload(true)`가 무확인 폐기할 수 있다는 위험을 지적했다. `LegacyBindingScopeEditor`가 **PATCH 시작 이전부터 응답 검증과 `onApplied()/canonical reload` 완료까지** `onPendingChange(true)`를 전파하며 finally에서 false로 해제한다. `TaskLogisticsLinkEditor`는 원래 직접 writer `saving`과 새 `legacyScopePending`의 논리합으로 기존 상위 `ProjectTaskEditor.locked`/잠금 상태를 유지한다.
+
+쓰기 중에는 Task Editor의 이름/Resource·공정·직접 체크박스·저장·닫기 및 tab click/Arrow 키 전환을 차단하고, Escape가 pending 중 dialog를 닫지 못하도록 기존 top-layer 이벤트 가드를 그대로 사용한다. 실패·불확실한 응답은 저장 성공이 아니라 재확인 오류이며 다른 초안을 삭제하지 않는다. 잠금 해제는 재조회 완료 뒤 수행한다. 기존 탭/데이터 원본, Resource·WBS·일정/SVAR writer 계약 변화 없음. 기존 `tests/e2e/issue-726-task-logistics.spec.ts`에 실제 PATCH의 응답만 지연하는 시나리오/잠금 전후·DB Source 검증을 EXTEND했으나 최초 Full #3231.1의 Preflight 실패로 **NOT RUN**이다. [Issue 실패 원장](ISSUE_792_FAILURE_ANALYSIS.md), [Work Packet](exec-plans/active/ISSUE_792.md).
+
+## Issue #792 — Summary의 기존 관계 적용 범위 변경
+
+Task Editor의 `기존 연결 출처`에는 실제 Equipment/System와 원본 Task·상속·`whole/subset`·coverage/공정/WorkArea 문맥을 표시한다. **Summary에 직접 저장된 legacy binding**이 있는 경우만 `기존 관계 적용 범위 수정`을 활성화한다. 원본 관계 → `이 작업만(self)` 또는 `하위 작업 포함(subtree)` → `영향 미리보기` → `영향을 확인하고 적용` 순서이며, 변경되는 실제 Task ID 목록의 건수와 선택된 원본 구성원 수를 확인한다.
+
+비활성 원본을 신규 자손으로 확대하거나 계획된 상속 경로 수의 한도를 초과하는 변경은 거부한다. 사용자 직접 Equipment/System 편집은 별도 초안이다. 그 초안이 dirty/pending, 편집 잠금, readonly 또는 오래된 revision이면 기존 범위 PATCH를 시작하지 않는다. 실패/서버 401/403/409/412/422/중복 응답은 저장 성공으로 표시하지 않고 재조회·재검토를 요구한다. 새로운 소속·coverage나 Target 자체를 생성하지 않고, 상속 출처를 자손의 직접 원본으로 수정하지 않는다. SVAR 일정 writer와 Task 날짜/Resource Assignment를 건드리지 않는다.
+
+해당 UI는 native button/select를 쓰고 기존 CSS token/반응형 editor 내부에 위치한다. 키보드 Tab/Enter/Focus·Escape 처리, 390/768/1024/1440/1920px의 이름 overflow와 실제 브라우저 검증은 원격/수동 실증 전 NOT TESTED. [API](API.md#issue-792--레거시-summary-직접-관계-적용-범위-한정-편집), [AC](exec-plans/active/ISSUE_792.md).
+
 ## Issue #785 — 직접 연결과 기존 출처 읽기
 
 물류 연결은 직접 공정/WorkArea와 Equipment/System을 사용한다. Target 펼침·선택·생성/구성 편집은 폐기한다. 기존 연결은 실물별로 원본 Task·self/subtree·전체/선택 구성·coverage를 표시하는 읽기 전용 출처로 제공한다. 직접 체크박스와 구분하여 기존 자료를 자동 직접 저장하거나 없어진 것으로 표시하지 않는다. 직접 관계 추가/편집은 기존 canonical writer를 사용한다.

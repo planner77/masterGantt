@@ -1,3 +1,22 @@
+## Issue #792 F792-003 — 로컬 재현 및 교차 회귀 보강 (2026-10-24)
+
+Full #3240.1은 Preflight/Policy PASS 뒤 TypeScript·ESLint·Vitest에서 직접 FAIL이었다. 아래 최초 구현 당시 NOT TESTED 기록은 당시 경계로 보존하며 이번 실제 로컬 실행은 [단일 누적 원장](ISSUE_792_FAILURE_ANALYSIS.md)의 F792-003과 구분한다. 로컬 PASS는 새 Head 원격 Full8/Required3·Trusted/Owner 승인 결과가 아니다.
+
+- `EXTEND`: 기존 `task-target-bindings-handlers.test.ts`에서 System.active 변경 뒤 과거 fingerprint의 STALE 거부와 새 fingerprint의 INACTIVE 거부·각 DB 불변을 독립 검증한다. `edit-authorization-handlers.test.ts`는 legacy-binding-sources의 정확 GET/POST/PATCH와 optional-session-read / origin-session-if-match / 실제 mutation 여부를 열거한다. 기존 권한·Origin·If-Match 음성 경계는 유지한다.
+- `EXTEND`: `issue-726-task-logistics.spec.ts`의 기존 #792 실제 HTTP/SQLite/5폭/readonly·지연 PATCH 잠금 시험에 revision 교체 후 이전 source 세션/preview/token 미노출, 최신 subtree 재조회와 같은 scope 미리보기 disabled를 추가한다. compatibilityLinks가 누락되면 명시 FAIL로 처리한다. Task/Revision key 세션 및 unmount epoch는 늦은 응답 무효화와 PATCH→canonical reload 전체 parent pending 계약을 보존한다.
+- `KEEP_UNIQUE`: source whole/subset/coverage·실제 SQLite rollback/restart, #785 JSON/Copy/Template·원본 UUID, 브라우저 geometry·readonly·초안 보호는 서로 다른 위험이다. 테스트 삭제·skip·assertion 완화, 새 spec/shard, retry/timeout 변경 없음. 운영 off-host restore/consumer 실측·수동 Excel은 NOT TESTED다.
+
+## Issue #792 — 보존 레거시 원본 scope writer 영향 / Test Lifecycle (2026-10-24)
+
+### #792 실제 브라우저 보호 (코드 추가, 결과 NOT TESTED)
+
+`tests/e2e/issue-726-task-logistics.spec.ts`의 기존 격리 SQLite/실제 HTTP fixture를 **EXTEND**하였다. 기존 archive Target/whole Summary binding 1건을 runtime seed API 없이 격리 DB에 준비→Task Editor 기존 출처 화면→직접 원본 source 선택→5폭(390/768/1024/1440/1920) overflow/렌더→GET revision·POST 영향 preview nonmutation→PATCH 확인→archive 원본 row 수 동일·source UUID 불변/하위 자손 provenance→readonly 별도 브라우저 세션에서 버튼 disabled. 새 Playwright spec 파일/샤드 고정 배치 없음. 기존 #726의 직접 Checkbox 저장/dirty/401/412/고유 Task/Summary/WorkArea와 #785의 Copy/Template/Excel/Unit 보호 유지. 실제 실행 전 **PASS 아님**, browser focus/Screen Reader 실측과 운영 DB는 추가 검증 대상. [Work Packet](exec-plans/active/ISSUE_792.md), [실패 원장](ISSUE_792_FAILURE_ANALYSIS.md).
+
+- 위험 HIGH / OWNER_MANAGED / qa_required=true. #785의 외부 Target API 410/내부 archive 원본 보존을 유지하면서, **Summary 직접 binding 한 건의 scope=self/subtree**를 in-place 변경한다. 새로운 백필/DDL/Target authoring·member/coverage 수정은 금지. PR은 새 exact Head의 Quality, Chromium 8 shards, Docker Required3와 Trusted, Owner 별도 승인·운영 복구 이전에 PASS/완료로 기록하지 않는다.
+- **AC_TEST_COVERAGE:** AC1 출처·legacy UUID: `tests/server/logistics/task-target-bindings-handlers.test.ts`와 #785 integrity snapshot. AC2 scope 전후 preview/confirmed PATCH: 기존 #617 fixture 확장 `whole/subset`, binding/member/coverage 원본 row 동일, ancestor/child 적용·revision+1. AC3 보안/SQLite: 401/403/409/412/422/428·wrong project/task/source·invalid body/token, 기존 `task-target-bindings.test.ts`·`task-target-bindings-handlers.test.ts`, FK 검사/단일 transaction·rollback. AC4 offhost/외부 consumer0 및 운영 적용: 운영자 실측 **NOT TESTED**. AC5 브라우저5폭·Task Editor 전역 dirty/readonly, v2 WBS/Resource/Copy/Template/Excel 불변: #785/#623 회귀 및 실제 Chromium **NOT TESTED**. AC6 원격 Full8/3/Trusted/Owner **NOT TESTED**.
+- **TEST_LIFECYCLE_REVIEW:** 사전 검색 `tests/server/logistics/task-target-bindings*.test.ts`, `tests/server/projects/issue-785-exchange.test.ts`, `tests/e2e/issue-726-task-logistics.spec.ts`, `tests/e2e/logistics-target-authoring.spec.ts`, `tests/server/resources/resource-public-v2.test.ts`, `tests/server/projects/resource-excel-export.test.ts`. `EXTEND`=동일 실제 SQLite/HTTP 617 fixture에 source별 scope writer 추가. `ADD`=origin/session/version/token 기반 GET/POST/PATCH 및 opt-in UI. `KEEP_UNIQUE`=교환/OOXML/브라우저5폭·포커스, whole/subset coverage, broken FK/rollback/restoration, 실제 HTTP, WBS/Resource exact Assignment/합계 보호. `PARTIAL_OVERLAP`=읽기 출처·영향 요약 재사용; writer 책임 독립. `CONSOLIDATE_CANDIDATE`/`RETIRE_CANDIDATE`=없음, skip/timeout/assertion/CI 완화0.
+- 실행 상태: 본 작업에서 Github repo 편집은 가능하지만 Node/npm/Vitest/Playwright/Docker 및 운영 DB·외부 로그 실행 수단 없음. **로컬 검증 및 실제 원격 CI 결과 NOT TESTED**, 테스트 작성=PASS 아님. [Packet](exec-plans/active/ISSUE_792.md), [누적 실패 원장](ISSUE_792_FAILURE_ANALYSIS.md), [운영 복원](TARGET_RESOURCE_OPERATIONS.md).
+
 ## Issue #785 — 실물 공개 전환의 영향 검증
 
 Risk HIGH, qa_required=true, OWNER_MANAGED. 변경은 전 화면 탐색/Task 출처·실물 영향 API/Resource-WBS v2/교환·템플릿이며 Scheduling·SVAR writer·CI8/Required3·릴리스 권한은 불변이다. 공식 원격 gate는 exact Head의 Quality/E2E8/Docker·Trusted/Owner로 별도 판정한다. [Work Packet](exec-plans/active/ISSUE_785.md), [누적 실패 원장](ISSUE_785_FAILURE_ANALYSIS.md), [baseline 소비자 지도](evidence/issue-785/producer-consumer-baseline.json).

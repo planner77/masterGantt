@@ -1,3 +1,13 @@
+## Issue #792 F792-001 — 안전 편집 pending의 잠금 및 focus 경계
+
+이전 source 편집에서 비동기 PATCH가 진행되면 Task Editor 전체 `aria-busy`, 인접 직접 연결·Resource/작업명·닫기·탭/키보드 탐색을 같은 잠금으로 제어한다. 별도 source 버튼의 local `busy`만으로 잠갔다고 주장하지 않는다. 확인 저장과 `reload(true)`가 완료되기 전에 다른 초안을 생성·이동시켜 초기화하는 경로를 막고, 성공 후 입력을 다시 허용한다. 오류·outdated Revision·네트워크 불확실성에서 사용자 확인 없는 초안 폐기를 금지한다. 동일 5폭/keyboard/Escape/readonly 실제 Chromium 보호는 [#792 E2E](exec-plans/active/ISSUE_792.md)에 추가했으나 첫 Full Preflight 이후 실제 제품 Runner 미실행 → `NOT TESTED`. 기존 Light UI/semantic token/정보밀도/기간 정책 변경 없음.
+
+## Issue #792 — Source-aware legacy 미리보기/확인의 최소 UX
+
+구형 Target 별도 화면·보조 작성기는 되살리지 않는다. 기존 Task Editor 원본 출처 문맥 안에서 **Summary에 직접 저장한 소스 한 건**의 적용 범위만 opt-in으로 수정한다. 선택한 source UUID와 현재 `scope`, 수정 후 실제 영향 Task 건수, 구성원 수를 명시하고 Confirm 없는 mutation을 차단한다. 자체 Task 및 자손 상속 출처, 직접 관계·Resource 공수·실물 구성 변경과 다른 작업임을 분명히 한다.
+
+일반 직접 연결 저장과 원본 scope patch는 독립 draft/권한/현재 revision을 갖는다. 편집 잠금/dirty/pending/readonly·API 오류/네트워크 불확실성에는 모호한 성공/빈 연결 표시를 피하고 최신 정보 확인을 요청한다. native select/button, 기존 semantic token, 인접 error role=alert/미리보기 role=status 및 키보드 접근을 사용한다. 변경 UI의 390/768/1024/1440/1920px, long-name/동명, Tab/Enter/Escape/focus, disabled stale/readonly 상태는 실제 Chromium 검증이 남아 있으며 PASS로 표시하지 않는다. [Task Editor](TASK_EDITOR.md), [Packet](exec-plans/active/ISSUE_792.md).
+
 ## Issue #785 — 폐기 기능의 탐색·접근성·출처 보존
 
 Logistics Target 비노출은 표시 문자열뿐 아니라 숨은 panel mount/fetch, old screenKey/preset, deep link, aria-label·tooltip·error·empty/readonly/stale, drill/복귀·Excel·사용 안내를 포함한다. 폐기 key는 실제 공정/WorkArea 기본 관점으로 정규화하고 유효한 탭/trigger에 focus를 복원한다. DOM/접근성명/네트워크 검증은 캡처와 별도로 수행한다.

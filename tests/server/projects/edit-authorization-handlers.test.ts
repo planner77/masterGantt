@@ -542,6 +542,9 @@ describe("route security inventory", () => {
       "PUT /api/projects/{publicId}/logistics/systems/{systemId}/children",
       "PUT /api/projects/{publicId}/logistics/equipment/{equipmentId}/resource-roles",
       "PUT /api/projects/{publicId}/logistics/systems/{systemId}/resource-roles",
+      "GET /api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources",
+      "POST /api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources",
+      "PATCH /api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources",
       "GET /api/projects/{publicId}/tasks/{taskId}/target-bindings",
       "PUT /api/projects/{publicId}/tasks/{taskId}/target-bindings",
       "GET /api/projects/{publicId}/tasks/{taskId}/logistics-links",
@@ -565,6 +568,12 @@ describe("route security inventory", () => {
       .toMatchObject({ method: "GET", policy: "optional-session-read", mutatesState: false });
     expect(ROUTE_SECURITY_INVENTORY.find(({ template }) => template.endsWith("/logistics/process-mappings/{processId}")))
       .toMatchObject({ method: "PUT", policy: "origin-session-if-match", mutatesState: true });
+    expect(ROUTE_SECURITY_INVENTORY.filter(({ template }) => template.endsWith("/legacy-binding-sources")))
+      .toEqual([
+        { template: "/api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources", method: "GET", policy: "optional-session-read", mutatesState: false },
+        { template: "/api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources", method: "POST", policy: "origin-session-if-match", mutatesState: false },
+        { template: "/api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
+      ]);
     expect(ROUTE_SECURITY_INVENTORY.filter(({ method }) => method === "GET").every(({ mutatesState }) => !mutatesState))
       .toBe(true);
     expect(ROUTE_SECURITY_INVENTORY.find(({ template }) => template === "/api/projects/{publicId}/exports/excel"))

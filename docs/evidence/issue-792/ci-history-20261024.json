@@ -1,0 +1,1857 @@
+{
+  "collected_at": "2026-10-24",
+  "repository": "planner77/masterGantt",
+  "issue": 792,
+  "pr": 795,
+  "scope": "원격 이력 읽기 전용 감사이며 CI PASS나 승인 결과가 아님",
+  "limitations": [
+    "Source artifact는 Actions API의 메타데이터를 조회했으며 ZIP 내용은 다운로드하거나 실행하지 않음.",
+    "취소된 #3233/#3234/#3235에는 source artifact가 없어 testMerge UNKNOWN, #3234 base도 UNKNOWN이며 현재 변경 가능한 PR ref로 추정하지 않음.",
+    "REST workflow_run.pull_requests에는 현재 PR Head가 반영되므로 원본 Head는 run.head_sha와 과거 checkout 로그에서 확인함."
+  ],
+  "runs": [
+    {
+      "id": 40067826081,
+      "number": 3231,
+      "attempt": 1,
+      "status": "completed",
+      "result": "failure",
+      "head": "8f1cab235bd9d15845e729641020e936dc42be79",
+      "event": "pull_request",
+      "created": "2026-10-24T05:50:24Z",
+      "updated": "2026-10-24T05:51:28Z",
+      "artifacts": [
+        {
+          "id": 12550410901,
+          "name": "ci-pr-source-40067826081-1",
+          "expired": false
+        },
+        {
+          "id": 12550401077,
+          "name": "ci-impact-shadow-40067826081-1",
+          "expired": false
+        },
+        {
+          "id": 12550366158,
+          "name": "qa-final-automated-40067826081-1",
+          "expired": false
+        },
+        {
+          "id": 12550066959,
+          "name": "qa-preflight-40067826081-1",
+          "expired": false
+        }
+      ],
+      "base": "b45885812301d14b9f673841e9944b27b2642323",
+      "testMerge": "f999452b8e1c742e2f28dd82067d46f05875f59a",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40067826081",
+      "jobs": [
+        {
+          "id": 120794676490,
+          "name": "변경 경로 판정",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120794676639,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120794727284,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 4,
+              "name": "원본 base SHA의 QA Preflight 실행 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120794727867,
+          "name": "Low E2E policy plan (trusted base)",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120794728725,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120794772122,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "PR 필수 빠른 검사 결과 검증",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120794772446,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120794772509,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120794772563,
+          "name": "Next.js production build",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120794772573,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120794772806,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120794772973,
+          "name": "ESLint",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120794773184,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120794805118,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "병렬 quality 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120794805191,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120794805277,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "Docker smoke 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120794805641,
+          "name": "PR Next.js production build",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120794805878,
+          "name": "Docker smoke 구현",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120794805981,
+          "name": "Low E2E targeted execution",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120794806171,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8 · PR",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120794821828,
+          "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120794821847,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120794823111,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "skipped",
+          "steps": []
+        }
+      ],
+      "evidence": [
+        {
+          "job": 120794727284,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "lines": [
+            "2026-10-24T05:50:44.7701636Z   ref: b45885812301d14b9f673841e9944b27b2642323",
+            "2026-10-24T05:50:50.3362069Z ##[group]Checking out the ref",
+            "2026-10-24T05:50:51.0438861Z HEAD is now at b458858 Issue #785 · PR #793 · Main CI 추적 복구",
+            "2026-10-24T05:50:53.0343547Z - FAIL / DOCUMENTATION_SYNC: docs/exec-plans/active/ISSUE_792.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE — Work Packet ## DOCUMENTATION_SYNC 누락",
+            "2026-10-24T05:50:53.0478835Z ##[error]Process completed with exit code 1."
+          ]
+        },
+        {
+          "job": 120794676490,
+          "name": "변경 경로 판정",
+          "lines": [
+            "2026-10-24T05:50:29.6014595Z   if-no-files-found: error",
+            "2026-10-24T05:50:36.3646485Z ##[group]Checking out the ref",
+            "2026-10-24T05:50:36.8949784Z HEAD is now at f999452 Merge 8f1cab235bd9d15845e729641020e936dc42be79 into b45885812301d14b9f673841e9944b27b2642323"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40068404543,
+      "number": 3232,
+      "attempt": 1,
+      "status": "completed",
+      "result": "failure",
+      "head": "0f2ea6ed587b2d7c63bb8389914188cd16469781",
+      "event": "pull_request",
+      "created": "2026-10-24T05:59:29Z",
+      "updated": "2026-10-24T06:00:32Z",
+      "artifacts": [
+        {
+          "id": 12550456143,
+          "name": "qa-final-automated-40068404543-1",
+          "expired": false
+        },
+        {
+          "id": 12549867599,
+          "name": "ci-pr-source-40068404543-1",
+          "expired": false
+        },
+        {
+          "id": 12549764546,
+          "name": "qa-preflight-40068404543-1",
+          "expired": false
+        },
+        {
+          "id": 12549744318,
+          "name": "ci-impact-shadow-40068404543-1",
+          "expired": false
+        }
+      ],
+      "testMerge": "103a9c964bd1a43d037694dd90e4ec390f042b83",
+      "base": "b45885812301d14b9f673841e9944b27b2642323",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40068404543",
+      "jobs": [
+        {
+          "id": 120796394937,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120796395144,
+          "name": "변경 경로 판정",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120796439262,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 4,
+              "name": "원본 base SHA의 QA Preflight 실행 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796440460,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120796440509,
+          "name": "Low E2E policy plan (trusted base)",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120796477854,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "PR 필수 빠른 검사 결과 검증",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796478200,
+          "name": "ESLint",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120796478346,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120796478402,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120796478488,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120796478693,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120796478863,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120796479161,
+          "name": "Next.js production build",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120796529891,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "병렬 quality 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796529934,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "Docker smoke 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796530005,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796530511,
+          "name": "PR Next.js production build",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120796530816,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8 · PR",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120796530820,
+          "name": "Docker smoke 구현",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120796531044,
+          "name": "Low E2E targeted execution",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120796553831,
+          "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120796554027,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796555478,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "skipped",
+          "steps": []
+        }
+      ],
+      "evidence": [
+        {
+          "job": 120796439262,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "lines": [
+            "2026-10-24T05:59:47.5133981Z   ref: b45885812301d14b9f673841e9944b27b2642323",
+            "2026-10-24T05:59:52.3936306Z ##[group]Checking out the ref",
+            "2026-10-24T05:59:53.1049590Z HEAD is now at b458858 Issue #785 · PR #793 · Main CI 추적 복구",
+            "2026-10-24T05:59:54.5358672Z - FAIL / DOCUMENTATION_SYNC: docs/exec-plans/active/ISSUE_792.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE — DOC_SYNC 기록 누락",
+            "2026-10-24T05:59:54.5497174Z ##[error]Process completed with exit code 1."
+          ]
+        },
+        {
+          "job": 120796395144,
+          "name": "변경 경로 판정",
+          "lines": [
+            "2026-10-24T05:59:33.4593164Z   if-no-files-found: error",
+            "2026-10-24T05:59:40.3325111Z ##[group]Checking out the ref",
+            "2026-10-24T05:59:41.0183113Z HEAD is now at 103a9c9 Merge 0f2ea6ed587b2d7c63bb8389914188cd16469781 into b45885812301d14b9f673841e9944b27b2642323"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40068527434,
+      "number": 3233,
+      "attempt": 1,
+      "status": "completed",
+      "result": "cancelled",
+      "head": "cb2da0c2917ccb42ca2548b33d480b2188334043",
+      "event": "pull_request",
+      "created": "2026-10-24T06:01:09Z",
+      "updated": "2026-10-24T06:01:53Z",
+      "artifacts": [
+        {
+          "id": 12550352490,
+          "name": "ci-impact-shadow-40068527434-1",
+          "expired": false
+        }
+      ],
+      "base": "b45885812301d14b9f673841e9944b27b2642323",
+      "testMerge": "UNKNOWN",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40068527434",
+      "jobs": [
+        {
+          "id": 120796758086,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "cancelled",
+          "steps": [
+            {
+              "number": 2,
+              "name": "현재 PR base SHA checkout (PR 코드·Secret 실행 금지)",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 120796758204,
+          "name": "변경 경로 판정",
+          "conclusion": "cancelled",
+          "steps": [
+            {
+              "number": 3,
+              "name": "PR 원본 출처 증거 보존 (run·attempt별 불변 artifact)",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 120796786138,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "PR 필수 빠른 검사 결과 검증",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796786148,
+          "name": "Low E2E policy plan (trusted base)",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796786521,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796786587,
+          "name": "ESLint",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796786713,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796786770,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796786788,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796786826,
+          "name": "Next.js production build",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796787032,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796787206,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796787334,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796836392,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "Docker smoke 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796836445,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "병렬 quality 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796836605,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796836875,
+          "name": "Low E2E targeted execution",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796837069,
+          "name": "Docker smoke 구현",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796837149,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8 · PR",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796837158,
+          "name": "PR Next.js production build",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796858719,
+          "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120796859569,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796859752,
+          "name": "QA Final — Automated",
+          "conclusion": "cancelled",
+          "steps": []
+        }
+      ],
+      "evidence": [
+        {
+          "job": 120796758086,
+          "name": "QA Final 신뢰 경계 확인",
+          "lines": [
+            "2026-10-24T06:01:13.1901730Z   ref: b45885812301d14b9f673841e9944b27b2642323",
+            "2026-10-24T06:01:14.9292172Z ##[error]The operation was canceled."
+          ]
+        },
+        {
+          "job": 120796758204,
+          "name": "변경 경로 판정",
+          "lines": [
+            "2026-10-24T06:01:14.5840204Z   if-no-files-found: error",
+            "2026-10-24T06:01:14.9426191Z ##[error]The operation was canceled."
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40068533619,
+      "number": 3234,
+      "attempt": 1,
+      "status": "completed",
+      "result": "cancelled",
+      "head": "b01ec6719e5cebb53730559ae124786b2cf04dff",
+      "event": "pull_request",
+      "created": "2026-10-24T06:01:14Z",
+      "updated": "2026-10-24T06:01:19Z",
+      "artifacts": [],
+      "base": "UNKNOWN",
+      "testMerge": "UNKNOWN",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40068533619",
+      "jobs": [],
+      "evidence": []
+    },
+    {
+      "id": 40068539110,
+      "number": 3235,
+      "attempt": 1,
+      "status": "completed",
+      "result": "cancelled",
+      "head": "20bb271dc126e38ee8bf5bd45c611b598333f1dd",
+      "event": "pull_request",
+      "created": "2026-10-24T06:01:18Z",
+      "updated": "2026-10-24T06:02:33Z",
+      "artifacts": [
+        {
+          "id": 12550516101,
+          "name": "ci-impact-shadow-40068539110-1",
+          "expired": false
+        }
+      ],
+      "base": "b45885812301d14b9f673841e9944b27b2642323",
+      "testMerge": "UNKNOWN",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40068539110",
+      "jobs": [
+        {
+          "id": 120796906262,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "cancelled",
+          "steps": [
+            {
+              "number": 2,
+              "name": "현재 PR base SHA checkout (PR 코드·Secret 실행 금지)",
+              "conclusion": "cancelled"
+            }
+          ]
+        },
+        {
+          "id": 120796906433,
+          "name": "변경 경로 판정",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796926787,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796926818,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "PR 필수 빠른 검사 결과 검증",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796926832,
+          "name": "Low E2E policy plan (trusted base)",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796927080,
+          "name": "ESLint",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796927290,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796927319,
+          "name": "Next.js production build",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796927470,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796927556,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796927691,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796927788,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796927913,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796969021,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "병렬 quality 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796969046,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "Docker smoke 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796969093,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120796969674,
+          "name": "Docker smoke 구현",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796969728,
+          "name": "Low E2E targeted execution",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796969774,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8 · PR",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796970184,
+          "name": "PR Next.js production build",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796990837,
+          "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120796991589,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "cancelled",
+          "steps": []
+        },
+        {
+          "id": 120796991745,
+          "name": "QA Final — Automated",
+          "conclusion": "cancelled",
+          "steps": []
+        }
+      ],
+      "evidence": [
+        {
+          "job": 120796906433,
+          "name": "변경 경로 판정",
+          "lines": []
+        },
+        {
+          "job": 120796906262,
+          "name": "QA Final 신뢰 경계 확인",
+          "lines": [
+            "2026-10-24T06:01:56.1717328Z   ref: b45885812301d14b9f673841e9944b27b2642323",
+            "2026-10-24T06:01:57.0381826Z ##[error]The operation was canceled."
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40068581178,
+      "number": 3236,
+      "attempt": 1,
+      "status": "completed",
+      "result": "failure",
+      "head": "2b5d5c5764f3efbbc5a54678e7b332427827d40e",
+      "event": "pull_request",
+      "created": "2026-10-24T06:01:56Z",
+      "updated": "2026-10-24T06:03:40Z",
+      "artifacts": [
+        {
+          "id": 12550282885,
+          "name": "ci-impact-shadow-40068581178-1",
+          "expired": false
+        },
+        {
+          "id": 12549839616,
+          "name": "qa-final-automated-40068581178-1",
+          "expired": false
+        },
+        {
+          "id": 12549804550,
+          "name": "ci-pr-source-40068581178-1",
+          "expired": false
+        },
+        {
+          "id": 12549773165,
+          "name": "qa-preflight-40068581178-1",
+          "expired": false
+        }
+      ],
+      "testMerge": "c97290f43b6bc46ca6598e5c8c196b73329fb1e8",
+      "base": "b45885812301d14b9f673841e9944b27b2642323",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40068581178",
+      "jobs": [
+        {
+          "id": 120797041376,
+          "name": "변경 경로 판정",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120797041682,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120797103043,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 4,
+              "name": "원본 base SHA의 QA Preflight 실행 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120797103888,
+          "name": "Low E2E policy plan (trusted base)",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797104076,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797146994,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "PR 필수 빠른 검사 결과 검증",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120797147324,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797147539,
+          "name": "ESLint",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797147600,
+          "name": "Next.js production build",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797147676,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797147679,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797147692,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797147901,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797197029,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "Docker smoke 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120797197032,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "병렬 quality 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120797197035,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120797197506,
+          "name": "Docker smoke 구현",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797197536,
+          "name": "PR Next.js production build",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797197814,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8 · PR",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797198269,
+          "name": "Low E2E targeted execution",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797213469,
+          "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120797213499,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120797214378,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "skipped",
+          "steps": []
+        }
+      ],
+      "evidence": [
+        {
+          "job": 120797103043,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "lines": [
+            "2026-10-24T06:02:54.0491640Z   ref: b45885812301d14b9f673841e9944b27b2642323",
+            "2026-10-24T06:02:58.9743145Z ##[group]Checking out the ref",
+            "2026-10-24T06:02:59.6887937Z HEAD is now at b458858 Issue #785 · PR #793 · Main CI 추적 복구",
+            "2026-10-24T06:03:01.5371191Z - FAIL / DOCUMENTATION_SYNC: docs/exec-plans/active/ISSUE_792.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE — DOC_SYNC 기록 누락",
+            "2026-10-24T06:03:01.5482144Z ##[error]Process completed with exit code 1."
+          ]
+        },
+        {
+          "job": 120797041376,
+          "name": "변경 경로 판정",
+          "lines": [
+            "2026-10-24T06:02:37.0896912Z   if-no-files-found: error",
+            "2026-10-24T06:02:43.5593400Z ##[group]Checking out the ref",
+            "2026-10-24T06:02:44.2685873Z HEAD is now at c97290f Merge 2b5d5c5764f3efbbc5a54678e7b332427827d40e into b45885812301d14b9f673841e9944b27b2642323"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40068884514,
+      "number": 3238,
+      "attempt": 1,
+      "status": "completed",
+      "result": "failure",
+      "head": "2e72bf6a726ceb7da2d1391156766526c90c7175",
+      "event": "pull_request",
+      "created": "2026-10-24T06:06:28Z",
+      "updated": "2026-10-24T06:07:39Z",
+      "artifacts": [
+        {
+          "id": 12550805353,
+          "name": "qa-preflight-40068884514-1",
+          "expired": false
+        },
+        {
+          "id": 12550755998,
+          "name": "ci-impact-shadow-40068884514-1",
+          "expired": false
+        },
+        {
+          "id": 12550357928,
+          "name": "ci-pr-source-40068884514-1",
+          "expired": false
+        },
+        {
+          "id": 12549738590,
+          "name": "qa-final-automated-40068884514-1",
+          "expired": false
+        }
+      ],
+      "testMerge": "b0697cf13750c4dbcce45accd356c3385d4d534e",
+      "base": "b45885812301d14b9f673841e9944b27b2642323",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40068884514",
+      "jobs": [
+        {
+          "id": 120797824088,
+          "name": "변경 경로 판정",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120797824259,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120797881995,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 4,
+              "name": "원본 base SHA의 QA Preflight 실행 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120797883022,
+          "name": "Low E2E policy plan (trusted base)",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797883140,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797932761,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "PR 필수 빠른 검사 결과 검증",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120797933089,
+          "name": "Next.js production build",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797933304,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797933353,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797933436,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797933526,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797933635,
+          "name": "ESLint",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797933636,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797984353,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "병렬 quality 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120797984383,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "Docker smoke 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120797984443,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120797984809,
+          "name": "Low E2E targeted execution",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797984836,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8 · PR",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797984880,
+          "name": "Docker smoke 구현",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120797985061,
+          "name": "PR Next.js production build",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798005603,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120798005983,
+          "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120798006631,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "skipped",
+          "steps": []
+        }
+      ],
+      "evidence": [
+        {
+          "job": 120797881995,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "lines": [
+            "2026-10-24T06:06:50.6378671Z   ref: b45885812301d14b9f673841e9944b27b2642323",
+            "2026-10-24T06:06:56.4869536Z ##[group]Checking out the ref",
+            "2026-10-24T06:06:57.5381014Z HEAD is now at b458858 Issue #785 · PR #793 · Main CI 추적 복구",
+            "2026-10-24T06:06:59.1866135Z - FAIL / DOCUMENTATION_SYNC: docs/exec-plans/active/ISSUE_792.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE — DOC_SYNC 기록 누락",
+            "2026-10-24T06:06:59.2000447Z ##[error]Process completed with exit code 1."
+          ]
+        },
+        {
+          "job": 120797824088,
+          "name": "변경 경로 판정",
+          "lines": [
+            "2026-10-24T06:06:33.6402687Z   if-no-files-found: error",
+            "2026-10-24T06:06:40.9088307Z ##[group]Checking out the ref",
+            "2026-10-24T06:06:41.5683863Z HEAD is now at b0697cf Merge 2e72bf6a726ceb7da2d1391156766526c90c7175 into b45885812301d14b9f673841e9944b27b2642323"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40069142338,
+      "number": 3239,
+      "attempt": 1,
+      "status": "completed",
+      "result": "failure",
+      "head": "4819a8f8134ca5f5c74e13faf1123121541cdc2c",
+      "event": "pull_request",
+      "created": "2026-10-24T06:10:25Z",
+      "updated": "2026-10-24T06:11:32Z",
+      "artifacts": [
+        {
+          "id": 12550910293,
+          "name": "ci-impact-shadow-40069142338-1",
+          "expired": false
+        },
+        {
+          "id": 12550845046,
+          "name": "ci-pr-source-40069142338-1",
+          "expired": false
+        },
+        {
+          "id": 12550262558,
+          "name": "qa-final-automated-40069142338-1",
+          "expired": false
+        },
+        {
+          "id": 12550253899,
+          "name": "qa-preflight-40069142338-1",
+          "expired": false
+        }
+      ],
+      "base": "b45885812301d14b9f673841e9944b27b2642323",
+      "testMerge": "6db0c7017faacc081776724d13ddd793034a5dcc",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40069142338",
+      "jobs": [
+        {
+          "id": 120798593831,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120798594011,
+          "name": "변경 경로 판정",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120798654052,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 4,
+              "name": "원본 base SHA의 QA Preflight 실행 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120798654829,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798655180,
+          "name": "Low E2E policy plan (trusted base)",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798704593,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "PR 필수 빠른 검사 결과 검증",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120798705106,
+          "name": "Next.js production build",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798705232,
+          "name": "ESLint",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798705234,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798705326,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798705499,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798705516,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798705570,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798747566,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "병렬 quality 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120798747579,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120798747597,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "Docker smoke 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120798748343,
+          "name": "Docker smoke 구현",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798748447,
+          "name": "PR Next.js production build",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798748458,
+          "name": "Low E2E targeted execution",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798748518,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8 · PR",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120798768784,
+          "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120798768856,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120798770288,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "skipped",
+          "steps": []
+        }
+      ],
+      "evidence": [
+        {
+          "job": 120798594011,
+          "name": "변경 경로 판정",
+          "lines": [
+            "2026-10-24T06:10:30.4869170Z   if-no-files-found: error",
+            "2026-10-24T06:10:38.3643193Z ##[group]Checking out the ref",
+            "2026-10-24T06:10:39.1794365Z HEAD is now at 6db0c70 Merge 4819a8f8134ca5f5c74e13faf1123121541cdc2c into b45885812301d14b9f673841e9944b27b2642323"
+          ]
+        },
+        {
+          "job": 120798654052,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "lines": [
+            "2026-10-24T06:10:48.1155751Z   ref: b45885812301d14b9f673841e9944b27b2642323",
+            "2026-10-24T06:10:53.3807703Z ##[group]Checking out the ref",
+            "2026-10-24T06:10:54.0835629Z HEAD is now at b458858 Issue #785 · PR #793 · Main CI 추적 복구",
+            "2026-10-24T06:10:56.1099156Z - FAIL / DOCUMENTATION_SYNC: docs/exec-plans/active/ISSUE_792.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE — Issue AC / test evidence mapping 부족: AC7",
+            "2026-10-24T06:10:56.1198592Z ##[error]Process completed with exit code 1."
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40073927759,
+      "number": 3240,
+      "attempt": 1,
+      "status": "completed",
+      "result": "failure",
+      "head": "25fed516656b2dfa864a7424ab6f3dd4a0df1423",
+      "event": "pull_request",
+      "created": "2026-10-24T07:23:15Z",
+      "updated": "2026-10-24T07:26:11Z",
+      "artifacts": [
+        {
+          "id": 12552715446,
+          "name": "ci-pr-source-40073927759-1",
+          "expired": false
+        },
+        {
+          "id": 12552566876,
+          "name": "qa-preflight-40073927759-1",
+          "expired": false
+        },
+        {
+          "id": 12552243274,
+          "name": "qa-final-automated-40073927759-1",
+          "expired": false
+        },
+        {
+          "id": 12551579774,
+          "name": "ci-impact-shadow-40073927759-1",
+          "expired": false
+        }
+      ],
+      "base": "b45885812301d14b9f673841e9944b27b2642323",
+      "testMerge": "41ee531634eeb0a60513b44ff32c3c1a9e1b4595",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40073927759",
+      "jobs": [
+        {
+          "id": 120813130909,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120813130976,
+          "name": "변경 경로 판정",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120813180344,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120813181240,
+          "name": "Low E2E policy plan (trusted base)",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120813181593,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120813220307,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120813220317,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 7,
+              "name": "Run npm run typecheck",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120813220333,
+          "name": "ESLint",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 6,
+              "name": "Run npm run lint",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120813220342,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 6,
+              "name": "Run npm test",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120813221097,
+          "name": "Next.js production build",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120813221477,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120813221554,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120813589371,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "PR 필수 빠른 검사 결과 검증",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120813646757,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "병렬 quality 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120813646784,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120813646854,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 2,
+              "name": "Docker smoke 결과 집계",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120813647190,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8 · PR",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120813647249,
+          "name": "PR Next.js production build",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120813647289,
+          "name": "Low E2E targeted execution",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120813647836,
+          "name": "Docker smoke 구현",
+          "conclusion": "skipped",
+          "steps": []
+        },
+        {
+          "id": 120813664914,
+          "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+          "conclusion": "success",
+          "steps": []
+        },
+        {
+          "id": 120813664951,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ]
+        },
+        {
+          "id": 120813665831,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "skipped",
+          "steps": []
+        }
+      ],
+      "evidence": [
+        {
+          "job": 120813130976,
+          "name": "변경 경로 판정",
+          "lines": [
+            "2026-10-24T07:23:19.2078883Z   if-no-files-found: error",
+            "2026-10-24T07:23:26.2036246Z ##[group]Checking out the ref",
+            "2026-10-24T07:23:26.8268132Z HEAD is now at 41ee531 Merge 25fed516656b2dfa864a7424ab6f3dd4a0df1423 into b45885812301d14b9f673841e9944b27b2642323"
+          ]
+        }
+      ]
+    }
+  ]
+}
