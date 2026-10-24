@@ -328,6 +328,39 @@ describe("Issue #792 protected legacy binding scope writer", () => {
     expect(revoked.status).toBe(401);
     expect(snapshot(f)).toEqual(baseline);
   });
+  it("rejects a non-Summary direct source and expansion over inactive Target/System", async () => {
+    const f=setup(),d=deps(f);
+    f.bindingService.replace(f.auth,revision(f),f.task.publicId,whole(f));
+    const normal=(await handleGetLegacyBindingSources(legacyRequest(f,f.task.publicId,"GET"),
+      f.project.publicId,f.task.publicId,d).json()).data.sourceBindings[0];
+    expect(normal.canEditScope).toBe(false);
+    const invalid=await handleLegacyBindingScopeMutation(legacyRequest(f,f.task.publicId,"POST",{
+      sourceId:normal.sourceId,sourceFingerprint:normal.sourceFingerprint,scope:"subtree",
+    }),f.project.publicId,f.task.publicId,d,"preview");
+    expect(invalid.status).toBe(422);
+    expect((await invalid.json()).error.code).toBe("LEGACY_SCOPE_REQUIRES_SUMMARY");
+    f.bindingService.replace(f.auth,revision(f),f.summary.publicId,whole(f));
+    const root=(await handleGetLegacyBindingSources(legacyRequest(f,f.summary.publicId,"GET"),
+      f.project.publicId,f.summary.publicId,d).json()).data.sourceBindings[0];
+    const patch={sourceId:root.sourceId,sourceFingerprint:root.sourceFingerprint,scope:"subtree"};
+    const before=snapshot(f);
+    f.db.prepare("UPDATE logistics_targets SET active=0 WHERE project_id=? AND public_id=?")
+      .run(f.project.id,f.target.id);
+    let response=await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,"POST",patch),
+      f.project.publicId,f.summary.publicId,d,"preview");
+    expect(response.status).toBe(409);
+    expect((await response.json()).error.code).toBe("LEGACY_SOURCE_INACTIVE");
+    f.db.prepare("UPDATE logistics_targets SET active=1 WHERE project_id=? AND public_id=?")
+      .run(f.project.id,f.target.id);
+    f.db.prepare("UPDATE project_logistics_systems SET active=0 WHERE project_id=? AND id=?")
+      .run(f.project.id,f.system.id);
+    response=await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,"POST",patch),
+      f.project.publicId,f.summary.publicId,d,"preview");
+    expect(response.status).toBe(409);
+    expect((await response.json()).error.code).toBe("LEGACY_SOURCE_INACTIVE");
+    expect(snapshot(f)).toEqual(before);
+  });
+
   it("rejects an orphan member without emitting empty sources or incrementing revision", async () => {
     const f=setup(),d=deps(f);
     f.bindingService.replace(f.auth,revision(f),f.summary.publicId,whole(f,"self"));
