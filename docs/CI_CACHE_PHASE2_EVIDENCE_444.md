@@ -44,3 +44,10 @@ node scripts/compare-ci-setup-metrics.mjs --baseline before.json --current after
 - `cache-hit`/readiness는 quality/e2e/docker PASS를 대신하지 못한다. artifact에는 분석 JSON/Markdown만 저장하며 원시 secret/.env/runtime DB/test 결과를 추가 저장하지 않는다.
 - **미검증**: 동일 workload/버전의 pair-wise 전후 표본, Main Docker 변동 원인·Main publish cache reuse의 정량 재검증, 의도적 cache miss·stale 회복 실 실행, PR Head Required3/Trusted QA, 병합 후 Main/GHCR.
 - 따라서 `#444`은 **OPEN**, 전체 결과는 `HOLD / REVIEW_REQUIRED`이다. PR 성능 수치만으로 #603 rollback이나 #444 완료/정식 이미지 발행을 승인하지 않는다. CI 안정성과 보안 회귀가 확인되면 cache writer/reader 변경을 별도 교정과 Owner 승인으로 처리한다.
+
+
+## 하위 배포 Issue #790 인계 (2026-10-24)
+
+- 이 원장은 **장기 parent #444의 정량 관측과 HOLD 결정**의 권위 있는 근거이며, 이제 새 [#790](https://github.com/planner77/masterGantt/issues/790)이 `scripts/compare-ci-setup-metrics.mjs` + Vitest + 안내 문서 배포만 담당한다.
+- 기존 [PR #789](https://github.com/planner77/masterGantt/pull/789)의 정확 Head `2ad309c0b7927eeda039032567352e8d2fb00bd0` Full [#3214.1](https://github.com/planner77/masterGantt/actions/runs/40049813638) 및 Trusted [#859.1](https://github.com/planner77/masterGantt/actions/runs/40050520289)은 성공했지만 #790 신규 PR의 Head/QA 증거가 아니다.
+- #790을 완료해도 #444의 실제 cache miss/stale 회복, Main Docker median 증가 원인, runner-minute 변화, 동등 workload 전후 비교, security audit 및 ADOPT/DO_NOT_ADOPT 최종 판정은 **미완료/OPEN**. Generic Finalizer가 #444를 조기 종료시키지 않도록 PR Primary를 #790으로 분리했다.

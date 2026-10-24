@@ -149,3 +149,10 @@ Issue #444의 실제 cache 최적화 채택 Acceptance Criteria는 10-run baseli
 - 보호된 문서 검증기의 독립 AC 매핑과 파일별 `UPDATED` 또는 `N/A(reason)` 구문을 위와 같이 교정하였다.
 - 원인과 이전 PR #448의 실패·취소 원본은 [이슈별 누적 실패 원장](../../ISSUE_444_FAILURE_ANALYSIS.md)에 보존한다.
 - 로컬 Node 22 CLI 10개 및 구문 검사 PASS. 신규 Vitest와 정확 Head 공식 CI 결과는 NOT TESTED. 사용자 지시 범위는 새 PR CI 시작까지이다.
+
+
+## 배포 Lifecycle 하위 분리 #790 (2026-10-24)
+
+- Owner는 **#444 장기 미완료 유지**와 비교기 배포 완료 구분을 승인했다. 신규 [#790](https://github.com/planner77/masterGantt/issues/790) Work Packet은 [ISSUE_790.md](ISSUE_790.md), 기존 #444 [PR #789](https://github.com/planner77/masterGantt/pull/789)는 성공 검증을 보존한 채 Superseded/Closed.
+- #789 Full [#3214.1](https://github.com/planner77/masterGantt/actions/runs/40049813638) 및 Trusted QA [#859.1](https://github.com/planner77/masterGantt/actions/runs/40050520289) PASS는 정확 이전 Head만의 증거다. #790 신규 branch/title/PR `Refs #790`의 Required3·Trusted·Owner 승인/병합·Main CI·GHCR·Generic Finalizer를 별도로 수행한다.
+- #790은 focused CLI·부정 테스트·문서 동기화 후 종료 가능. #444 AC4~AC7/AC10의 실제 Main Docker 인과·miss/stale·원본 secret 감사·ADOPT 확정은 **미완료**, #444 OPEN. 자동 finalize와 no-version GHCR cleanup으로 #444를 조기 종료하지 않는다.

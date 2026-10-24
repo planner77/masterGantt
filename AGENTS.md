@@ -1,3 +1,11 @@
+## Issue #790 — #444 CI cache 전후 비교기 배포 lifecycle 분리 (2026-10-24)
+
+- [#790 Work Packet](docs/exec-plans/active/ISSUE_790.md) / [#444 Parent](https://github.com/planner77/masterGantt/issues/444) / [#444 측정 원장](docs/CI_CACHE_PHASE2_EVIDENCE_444.md). 이전 #444 PR #789 exact Head Full #3214.1 / Trusted #859.1은 과거 PASS 증거로만 보존하고, 신규 canonical `issue-790` branch/title/PR body의 `Refs #790`에 대해 **새 Head CI 및 Trusted QA를 다시 검증**한다.
+- `#790`은 focused Docker cache 수치 비교 도구·한글 오류·부정 회귀·문서 배포만 종료 가능한 하위 이슈다. #444는 Main Docker 시간 증가 원인·cache miss/stale·보안 원시 감사·최종 ADOPT/DO_NOT_ADOPT 검증 전 **OPEN 유지**. `Refs #444`를 가진 PR을 병합해 Generic Finalizer가 parent를 조기 종료시키면 안 된다.
+- 신규 코드의 cache 변경/Node Modules 저장/Required3, Chromium8, Trusted/Owner 신뢰 완화 0. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `release_required=false`, `release_authorized=false`. #790 병합 및 Main/GHCR/Finalizer는 **새 #790 Head의 required3·Trusted·Owner 승인과 병합 가능 상태**가 확인된 뒤에만 진행한다.
+
+---
+
 ## Issue #711 — Test Suite Lifecycle 사전 검색·중복/폐기 방지 (2026-10-23)
 
 모든 Issue/PR 구현자는 변경할 AC/입출력·음성·보안·SQLite/경합·브라우저 위험을 식별한 다음 **기존 Vitest/Playwright/Policy 테스트의 시나리오와 assertion을 먼저 검색**하고, Work Packet/PR의 `TEST_LIFECYCLE_REVIEW`에 `ADD/EXTEND/KEEP_UNIQUE/PARTIAL_OVERLAP/CONSOLIDATE_CANDIDATE/RETIRE_CANDIDATE` 판단·검색 경로·근거·실행/미실행과 잔여 위험을 기록한다. 기존 `AC_TEST_COVERAGE`와 연결하고 중복 표를 만들지 않는다. **정책 Source of Truth는 [Test Lifecycle](docs/TEST_PLAN.md)**, 최초 후보·수집기/시범 감사는 [Issue #711 Inventory](docs/TEST_LIFECYCLE_INVENTORY_711.md), 단계·QA gate는 [Issue Lifecycle](docs/ISSUE_LIFECYCLE.md)다.

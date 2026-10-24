@@ -1110,6 +1110,11 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 - readiness 자동화는 PR artifact 내부의 `runId/workflow/event/headSha/runAttempt`를 신뢰하지 않는다. GitHub Actions run API가 반환한 successful run metadata로 해당 필드를 overwrite하고 `provenanceBound=true`로 표시한 record만 자동 readiness 표본으로 인정한다.
 - before/after 비교는 양쪽의 workflow/event/job/metric key **전체 집합이 동일할 때만** 채택 판정을 허용한다. metric 추가·삭제·rename이 있으면 retained metric이 빨라졌더라도 전체 결과를 `WORKLOAD_MISMATCH`로 두고 동일 workload로 다시 측정한다.
 
+## Issue #790 — #444 비교 도구 배포와 Parent 종료 경계 (2026-10-24)
+
+- 새 [배포 Work Packet](exec-plans/active/ISSUE_790.md)은 #444의 실측 분석 CLI/한글 오류 및 정·음성 테스트·문서화만 검증하여 **#790을 종료 가능한 lifecycle**로 분리한다. 기존 [PR #789 Full #3214.1](https://github.com/planner77/masterGantt/actions/runs/40049813638) + [Trusted #859.1](https://github.com/planner77/masterGantt/actions/runs/40050520289)은 원본 Head에만 귀속한다. #444 PR을 직접 병합하지 않고, 새 `issue-790` Head PR의 Required3/Trusted/Owner를 **독립 실행**한다.
+- **#444 OPEN**: Docker PR median 97.482→90.520s(-7.14%)는 명시적 Job alias로 `REVIEW_REQUIRED`; Main median 112.402→144.491s(+28.55%) 원인 미귀속, 실제 miss/stale와 최종 ADOPT 미검증. Generic Finalizer는 `Refs #790`만 종료하도록 하며 변경 없는 cache writer/required gate·앱 버전/정식 release 정책은 계속 유지한다. [근거 원장](CI_CACHE_PHASE2_EVIDENCE_444.md).
+
 ## Issue #603 — Docker BuildKit PR cache read-only
 
 PR `docker_smoke`(현재 PR 실행 Job ID `pr_docker_smoke`, #659에서 공용 steps 참조)는 shared GHA BuildKit cache를 읽기만 하고 `cache-to`는 `push`에서만 활성화한다. Main `docker_smoke`와 Main publish 경로가 cache writer 책임을 유지한다. PR required Docker build/policy/runtime smoke는 cache miss에서도 동일하게 실행한다. baseline은 #444 readiness Run #32.1이며 PR after는 명시적 Job alias/같은 event/metric/successful run >=10으로 제한해 비교한다. Main regression 및 실제 cache miss 미검증 동안 최종 ADOPT를 하지 않는다.

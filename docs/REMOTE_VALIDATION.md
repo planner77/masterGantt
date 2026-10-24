@@ -1032,6 +1032,13 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 9. readiness artifact의 각 JSONL record가 source run API의 run ID/attempt/head SHA/workflow path/event와 일치하고 `provenanceBound=true`인지 확인한다. artifact가 주장하는 원래 provenance 값은 readiness 표본 권위로 사용하지 않는다.
 10. before/after analysis의 metric key 집합이 다르면 `workloadComparable=false`와 `WORKLOAD_MISMATCH`가 기록되고 ADOPT 그룹이 0인지 확인한다.
 
+## Issue #790 — 분리 배포 PR/Main 검증 (2026-10-24)
+
+1. #444의 원본 [PR #789](https://github.com/planner77/masterGantt/pull/789) Full CI [#3214.1](https://github.com/planner77/masterGantt/actions/runs/40049813638) / Trusted QA [#859.1](https://github.com/planner77/masterGantt/actions/runs/40050520289)은 성공한 **이전 source**로만 기록. 신규 Primary #790의 `issue-790` branch, 제목, 한 개의 `Refs #790` trace를 검증하고 새로운 PR Head/Base/test merge를 수집한다.
+2. 신규 #790 PR에서 Required Quality/E2E/Docker, Trusted QA 및 unresolved threads 0, 최신 main 정렬을 재확인한다. E2E aggregate 성공과 실제 Chromium 8샤드 실행은 분리 기록한다. HIGH/OWNER_MANAGED Owner의 명시적 잔여위험 승인 전 병합 금지.
+3. 병합 후 해당 SHA의 Main CI + 필요 시 ci-SHA candidate GHCR exact digest smoke, 범용 Finalizer 실행/결론 및 **Issue #790만 Closed**, Issue #444는 **OPEN**인지를 확인한다. release_required=false이므로 정식 SemVer 게시 안 함.
+4. #444 기존 실측 PR 개선(−7.14%)·Main 증가(+28.55%)는 동등 실행환경 통제/원인 증명 없음. Main publish cache 재사용·cache miss/stale/민감정보 감사·최종 `ADOPT`는 별도 후속 실증 전까지 `NOT TESTED/HOLD`.
+
 ## Issue #603 Docker cache after 실측
 
 1. PR Actions 로그에 `cache-from type=gha`가 있고 docker_smoke build command에 `cache-to`가 없는지 확인한다.

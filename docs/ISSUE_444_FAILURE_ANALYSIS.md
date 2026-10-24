@@ -59,3 +59,11 @@ risk_level=HIGH / qa_method=OWNER_MANAGED / qa_required=true / release_required=
 - 직접 FAIL: [Job 120739305361](https://github.com/planner77/masterGantt/actions/runs/40049639447/job/120739305361), `PR metadata evidence: FULL_FAILED` — 같은 Head의 과거 Full Run `40048923080.1`은 `conclusion=failure`이므로 성공 증거 재사용 금지. 이것은 정확한 fail-closed 처리이며 QA gate 약화·원본 재실행으로 해결하지 않는다.
 - 파생 FAIL: [QA Final 120739395952](https://github.com/planner77/masterGantt/actions/runs/40049639447/job/120739395952) 및 Quality/E2E/Docker aggregate. Metadata-only에서 Typecheck/ESLint/Vitest/Chromium8/Docker 구현은 SKIPPED/NOT RUN. `changes`와 QA 보호 경계 확인 Job은 PASS이지만 전체 Full PASS가 아니다.
 - 보완/재검증: 파일·코드의 별도 결함으로 분류하지 않는다. 새 Head `f67fd5d5b27613acde83823ab93c8fe10e7c08e9` Full `synchronize`가 정상 경로이며, 추가 원장 반영 후 확정된 정확 Head에서 다시 Full CI를 시작한다. 기존 #3211.1 및 #3212.1은 그대로 FAIL.
+
+
+## 6. #444 원본 PR #789 성공·분리 증거 (2026-10-24)
+
+- [Full PR CI #3214.1, Run 40049813638.1](https://github.com/planner77/masterGantt/actions/runs/40049813638) 원본 Head `2ad309c0b7927eeda039032567352e8d2fb00bd0`: Required Quality/E2E/Docker aggregate, QA Preflight/Automated, unit/lint/typecheck/policy PASS. Chromium 8개 구현 shard는 이 CI에서 SKIPPED로 기록되어 **실제 8/8 실행 PASS 주장 금지**.
+- [Trusted QA #859.1, Run 40050520289.1](https://github.com/planner77/masterGantt/actions/runs/40050520289) SUCCESS, 원본 P1 review `discussion_r4365476882` 해결, behind main 0, conflict 없음. 이전 실패 Run #3211.1/#3212.1의 FAIL은 불변.
+- 정책: `Refs #444`를 유지한 채 #789를 병합하면 Generic Finalizer가 Parent #444를 **완료 전에 종료할 위험**이 있어 금지. 배포 가능 도구를 새 [Issue #790](https://github.com/planner77/masterGantt/issues/790)으로 분리; 기존 #789는 superseded/closed 처리한다.
+- #790의 실패/재실행은 새 `docs/ISSUE_790_FAILURE_ANALYSIS.md`가 필요할 경우 관리한다. #444의 기존 실패 원본을 새 Primary 이슈 실패로 소급 옮기지 않는다. #790의 신규 PR CI/Trusted/Owner/Main/Finalizer는 각각 별도 Run/Head로 검증해야 하며 #444는 **OPEN/HOLD**.
