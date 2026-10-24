@@ -57,7 +57,7 @@ if (!Number.isFinite(maxRunnerIncreasePercent)) throw new Error("--max-runner-in
 if (!Number.isInteger(minSamples) || minSamples < 10) throw new Error("--min-samples must be an integer >= 10");
 if (focused && !scopeValues.every(Boolean)) throw new Error("Focused comparison requires all five scope flags");
 const renamedJob = focused && scope.beforeJob !== scope.afterJob;
-if (renamedJob && !/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/(?:pull|commit)\/\d+(?:[\w/#.-]*)?$/.test(renameEvidence)) {
+if (renamedJob && !/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/(?:pull\/\d+|commit\/[0-9a-f]{40})(?:[\w/#.-]*)?$/.test(renameEvidence)) {
   throw new Error("A job rename requires --rename-evidence with a GitHub PR/commit URL (manual workload review remains required)");
 }
 if (renameEvidence && !renamedJob) throw new Error("--rename-evidence applies only to a focused changed-job comparison");
