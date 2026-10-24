@@ -1,3 +1,17 @@
+## Issue #479 — private Project read security 원격 검증 안내 (2026-10-24)
+
+**근거/범위:** [Issue #479](https://github.com/planner77/masterGantt/issues/479)와 [Work Packet](exec-plans/active/ISSUE_479.md), [F-001~F-003 누적 CI 실패 원장](ISSUE_479_FAILURE_ANALYSIS.md). 현 원격 Full #3223.1/#3228.1/#3230.1은 각각 PR trace/QA/문서 Preflight에서 종료되어 **실제 TypeScript·Vitest·E2E8·Docker는 모두 미실행**. 이 문서는 신규 CI 결과가 아니라 검증 절차 및 상태 기준이다.
+
+1. **신뢰할 Run**: GitHub Actions의 `CI` ready `pull_request` `FINAL_FULL`에 대해 변경 PR 번호 #794, Primary Issue #479, 정확한 Head/Base/Test-Merge, `ci-pr-source-<run>-<attempt>` 및 동일 Run/Attempt의 세 Required aggregate Quality/E2E8/Docker·Trusted QA를 교차 검증한다. 과거 실패/metadata-only/FAST_DEVELOPMENT·Shadow·skip은 PASS 또는 새 Full 출처가 아니다.
+2. **Schema/Project 사용 경로**: 신규·기존 SQLite 마이그레이션 재시작에서 `0031_project_visibility.sql`의 `public` 기본값 및 `private` opt-in, null/invalid CHECK, public↔private PATCH의 강한 `If-Match`·Origin·edit session·revision+1·password/auth_version 불변, 실패/롤백을 검사한다. 기존 공개 Project의 readonly 접근은 유지한다.
+3. **직접 URL 및 비공개 상세**: 비로그인 브라우저의 Project List에는 private 표시가 남지만 `/projects/{id}` SSR title/HTML에 이름·일정·업무 데이터가 없고 generic lock만 보인다. direct `GET /api/projects/{id}`/logistics/dashboard/resource GET 및 read-only POST에 대해 미인증/다른 Project·만료/철회/암호 회전 Cookie는 401 `PROJECT_LOCKED` no-store와 데이터 비노출이어야 한다. percent-encoded 한 문자만 다른 동일 UUID는 디코딩해 같은 401로 판정하고 malformed/encoded slash/double-encode UUID는 404로 거부해야 한다.
+4. **인증 후 기능 보존**: 기존 edit-password 성공으로 해당 Project Edit Session이 생성되면 브라우저 새로고침/설정/Task·Resource 대시보드 접근과 JSON·Excel·SVG Export, Import commit 및 Task Assignment/Mutation 최종 Snapshot 응답이 정상 처리되어야 한다. 별도 읽기 세션은 생성하지 않는다. 원장/Session 타 프로젝트 경계·기존 Public read-only 회귀를 확인한다.
+5. **브라우저 회귀와 안전한 관측**: `tests/e2e/project-visibility.spec.ts` 및 관련 인증/Export/Import/설정 테스트를 Chromium8 전체 선택에 포함한다. 비밀번호 오류·429·Escape/취소 후 민감 입력 초기화·focus 복귀, 390/768/1024/1440/wide 화면 밀도·모달 위치·접근성/차단 동작 확인. 인증 Cookie/비밀번호 원문, 불필요한 사용자 데이터, 운영 DB/Secret은 보고서/원장에 저장하지 않는다.
+
+**실행 판정:** PR gate 전에는 `NOT TESTED`; 정확 Head Full Quality/8 E2E/Docker·QA provenance 확인 후에만 해당 범위 PASS라고 기록. Owner acceptance 없이 병합/정식 GHCR/릴리스/이슈 종료를 진행하지 않는다. `DESIGN.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/QA_REVIEW_POLICY.md`와 3 Required/Owner gate의 정책 자체는 변경하지 않는다.
+
+---
+
 ## Issue #752 — #3158.1 역사적 Gantt 캡처·보안 런타임 경계 재검증 (2026-10-23)
 
 - [Full #3158.1](https://github.com/planner77/masterGantt/actions/runs/39841972369)에서 Policy의 `npm audit --omit=dev`는 `found 0 vulnerabilities`, Python Issue #752 **20/20 PASS**, Type/Lint 성공. Vitest **4 FAIL / 3,175 PASS**는 모두 `tests/fixtures/gantt-state-consistency/capture-install.ts:24`의 `Historical capture requires unchanged package metadata except version`. 4개 영향 파일: `tests/scripts/prepr-verifier.test.ts`, `axis-transaction-runtime-fixture.test.ts`, `canonical-recovery-runtime.test.ts`, `state-consistency-runtime-fixture.test.ts`. 이후 E2E8/Docker/PR Build는 미실행, aggregate+QA는 파생 FAIL.
