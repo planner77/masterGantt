@@ -96,7 +96,8 @@ export async function withApiRequestLogging(
 
   return requestContext.run(context, async () => {
     try {
-      const response = projectScopedAccessResponse(request, requestId) ?? await handler(requestId);
+      const locked = await projectScopedAccessResponse(request, requestId);
+      const response = locked ?? await handler(requestId);
       response.headers.set("X-Request-ID", requestId);
       if (!isHealthRoute(options.route)) {
         const level = completionLevel(response.status);
