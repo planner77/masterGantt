@@ -18,6 +18,7 @@ risk_level=HIGH / qa_method=OWNER_MANAGED / qa_required=true / release_required=
 | #448 | [#1827.1 · 37310094141](https://github.com/planner77/masterGantt/actions/runs/37310094141), [#1828.1 · 37310135909](https://github.com/planner77/masterGantt/actions/runs/37310135909) | `5614ca5811...` | success 당시 PR 이벤트(후속 메타데이터 전환 시점의 효력은 별도) |
 | #448 | [#1829.1 · 37312426386](https://github.com/planner77/masterGantt/actions/runs/37312426386) | Head `5614ca58118051702f19bdb3bee81d42319c9f5b`, historical base/test-merge 정확 SHA **UNKNOWN** | **FAIL**, Changes Job 111770847209 직접 trace mismatch; Required3 파생 FAIL, E2E6/Docker/Quality 구현 SKIPPED |
 | #789 | [#3211.1 · 40048923080](https://github.com/planner77/masterGantt/actions/runs/40048923080) | Head `93835ad7145d7233b3c7bc1accb1875d53c096b0`, Base `4ce403a1e410ca599a780446f39513e1f1158326`, Test-merge `638ed8e584fde62fd5690a28db878830b9deaee3` | **FAIL**, Preflight+QA Final 직접 / Required3 파생, E2E8/Docker 구현 SKIPPED |
+| #789 | [#3212.1 · 40049639447](https://github.com/planner77/masterGantt/actions/runs/40049639447) | Head `93835ad7145d7233b3c7bc1accb1875d53c096b0`, `pull_request.edited`, 이전 #3211.1과 동일 Head | **FAIL** METADATA_ONLY: 기존 Full #3211.1 FAILURE를 재사용 불가, 구현 Job 미실행 |
 
 역사적 #448은 2026-10-05에 병합되지 않고 #450 구현 배포 PR #451로 대체. 해당 기간 취소 원본을 성공으로 재작성하지 않으며, 8개 취소에 별도의 독립 원인이 없는 것으로 **확정하지 않는다**. 접근 가능한 Jobs API에서 일부는 aggregate FAILURE, 일부는 빈 목록이며 직접 실패는 `UNKNOWN/NOT RUN`이다.
 
@@ -27,6 +28,7 @@ risk_level=HIGH / qa_method=OWNER_MANAGED / qa_required=true / release_required=
 | --- | --- | --- | --- |
 | F444-001 (역사) | PR #448 #1829.1 [Job 111770847209](https://github.com/planner77/masterGantt/actions/runs/37312426386/job/111770847209) `scripts/verify-ci-run-trace.py`: `branch issue=444, Primary Issue=450` | POLICY_CI, #448 lifecycle 이관 때 branch/body trace 불일치(메타데이터 직접 원인). Main Docker/Chromium 원인 아님 | #450/PR #451로 canonical 전환(과거 조치); 이번 #789의 branch/title/단일 `Refs #444`는 일치 |
 | F444-002 (현재) | PR #789 #3211.1 [QA Preflight 120737006967](https://github.com/planner77/masterGantt/actions/runs/40048923080/job/120737006967): `RISK_LEVEL`, `QA_METHOD`, `QA_REQUIRED`, `PATH_POLICY`, `ISSUE_AC` 5 FAIL. [QA Final 120736938090](https://github.com/planner77/masterGantt/actions/runs/40048923080/job/120736938090) `PR 본문 qa_method의 명시값 필요` BLOCKED | POLICY_CI, PR 본문에 독립 선언 대신 `- risk_level: **HIGH**; ...` 복합행, Issue AC에 ID 부재. F444-001과 root 다름 | PR 본문 정확한 5개 독립 metadata 줄, Issue 기존 체크박스 AC1..AC10 번호 부여. Work Packet docs gate/10개 AC mapping 사전 교정. 신규 Full CI 출처 전 NOT TESTED |
+| F444-003 (현재) | PR #789 [#3212.1 / 40049639447](https://github.com/planner77/masterGantt/actions/runs/40049639447) [Metadata Job 120739305361](https://github.com/planner77/masterGantt/actions/runs/40049639447/job/120739305361) `FULL_FAILED`; 이전 Full #3211.1 결론 failure | POLICY_CI, PR 본문 edited 이벤트는 성공한 동일 Head 원본 Full 증거만 재사용. 새 독립 테스트 실패가 아님 | 새 Head synchronize Full CI로 재검증. 기존 metadata FAIL 보존, 과거 실패 Full PASS 승격 금지 |
 | REVIEW-P1 (별도) | [review discussion_r4365476882](https://github.com/planner77/masterGantt/pull/789#discussion_r4365476882): 신규 CLI 오류 설명이 영어 | 저장소 한글 CI 메시지 정책 위반; #3211.1에서 테스트 자체 실행되지 않았으므로 실행 실패로 중복 계수하지 않음 | 새 메시지 한국어화, `spawnSync` stderr 4개 음성 테스트·현지 Node22 CLI 10개 검증. reviewer reply/resolve 후 새 Head CI |
 
 ### 파생 실패와 실제 실행 경계
@@ -49,3 +51,11 @@ risk_level=HIGH / qa_method=OWNER_MANAGED / qa_required=true / release_required=
 - 원본 실패 시 기준 Main `4ce403a1e410ca599a780446f39513e1f1158326`. PR #789 branch `ci/issue-444-phase2-evidence-comparison`, 기존 compare `ahead 9 / behind 0`, mergeable true. 새 push 전 Main 최신 SHA/충돌을 재확인하고 필요할 때 정렬한다.
 - P1 thread는 코드+음성 테스트 수정 후 실제 응답을 남기고 GraphQL resolved 확인. CI 시작 전 미해결 리뷰 thread=0인지 재조회한다.
 - 새 PR Head와 정확 Run/Attempt는 push 이후 GitHub가 부여하며 이 문서에 미래 PASS 값을 채우지 않는다. 이전 Full #3211.1은 FAIL로 보존. 다음 `pull_request.synchronize` Full PR CI 시작까지만 승인, 모니터링/병합/Main/GHCR/Finalizer/Issue 종료는 **미실행**.
+
+
+## 5. F444-003 — PR body edited metadata-only #3212.1 (별도 기록)
+
+- 출처: [Run 40049639447 attempt 1](https://github.com/planner77/masterGantt/actions/runs/40049639447), workflow `ci.yml` / `pull_request.edited`, `METADATA_ONLY`; 기존 Head `93835ad7145d7233b3c7bc1accb1875d53c096b0` 유지. PR 본문을 독립 `risk_level`, `qa_method`, `qa_required` 선언으로 교정했을 때 자동 발생한 메타데이터 전용 실행.
+- 직접 FAIL: [Job 120739305361](https://github.com/planner77/masterGantt/actions/runs/40049639447/job/120739305361), `PR metadata evidence: FULL_FAILED` — 같은 Head의 과거 Full Run `40048923080.1`은 `conclusion=failure`이므로 성공 증거 재사용 금지. 이것은 정확한 fail-closed 처리이며 QA gate 약화·원본 재실행으로 해결하지 않는다.
+- 파생 FAIL: [QA Final 120739395952](https://github.com/planner77/masterGantt/actions/runs/40049639447/job/120739395952) 및 Quality/E2E/Docker aggregate. Metadata-only에서 Typecheck/ESLint/Vitest/Chromium8/Docker 구현은 SKIPPED/NOT RUN. `changes`와 QA 보호 경계 확인 Job은 PASS이지만 전체 Full PASS가 아니다.
+- 보완/재검증: 파일·코드의 별도 결함으로 분류하지 않는다. 새 Head `f67fd5d5b27613acde83823ab93c8fe10e7c08e9` Full `synchronize`가 정상 경로이며, 추가 원장 반영 후 확정된 정확 Head에서 다시 Full CI를 시작한다. 기존 #3211.1 및 #3212.1은 그대로 FAIL.
