@@ -1015,15 +1015,15 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 1. PR/Main/Release의 successful setup metric artifact를 동일 기간·동일 workload 기준으로 수집하고 analyzer의 lane별 `readyGroups/notReadyGroups`를 확인한다.
 2. 어떤 비교 대상 그룹이라도 distinct successful run ID <10이면 `phase2Ready=false`를 유지하고 신규 cache 도입을 중단한다.
 3. baseline 충족 후 비용 후보는 runner-minutes/run, median, p90 순으로 확인하되 서로 다른 workflow/event/job/metric을 합쳐 평균내지 않는다.
-4. 변경 후 동일 metric 정의와 workload에서 10-run 표본을 다시 모아 compare script의 `ADOPT | DO_NOT_ADOPT | COLLECT_MORE`를 확인한다.
+4. 변경 후 동일 metric 정의와 workload에서 10-run 표본을 다시 모아 compare script의 `ADOPT | DO_NOT_ADOPT | COLLECT_MORE`를 확인한다. Job rename이 있는 경우 정확한 `--scope-*`, `--before-job`, `--after-job`, GitHub `--rename-evidence`를 요구하며 **REVIEW_REQUIRED**를 최종 ADOPT로 승격하지 않는다. `PROVENANCE_REQUIRED`, `INVALID_METRICS`, `WORKLOAD_MISMATCH`도 fail-closed.
 5. cache miss run에서도 exact PR head의 quality/e2e/docker required gate가 동일하게 실행되고 성공해야 한다. cache hit만으로 PASS를 판정하지 않는다.
 6. Node/Next version 또는 package-lock 변경 후 npm/Next exact key가 바뀌는지, runner OS/arch 변경 시 npm/Next/Docker cache namespace가 분리되는지 workflow와 로그로 확인한다.
 7. setup metric artifact에는 JSONL timing/cache metadata만 존재하고 secret/token/`.env`/runtime DB/test result PASS evidence가 없는지 확인한다.
-8. #444 PR CI 시작 시점에는 표본 부족으로 실제 Playwright browser cache 도입/효과 판정은 N/A이며, PR exact head의 cache contract static test와 기존 required gate 실행 여부를 구현 증거로 사용한다.
+8. 2026-10-24 Run #40046472198 기준 모든 lane 10-run 충족. Playwright cache는 DO_NOT_ADOPT; Docker PR after median -7.14%지만 명시적 Job alias·변경 기간 교란으로 REVIEW_REQUIRED, Main median +28.55%는 인과 미확정. 현행 cache contract static과 새 exact head required gate를 독립 검증한다. [실측 원장](CI_CACHE_PHASE2_EVIDENCE_444.md).
 
 ### Readiness workflow 검증
 
-- #448 병합 후 default branch에 `CI setup Phase 2 readiness` workflow가 존재하는지 확인한다.
+- #450 구현 PR #451이 배포된 default branch에 `CI setup Phase 2 readiness` workflow가 존재하는지 확인한다(구 PR #448은 superseded).
 - successful PR CI/Main CI/Release 완료 시 readiness run이 생성되고, 실패/취소 source에서는 실행 job이 skip되는지 확인한다.
 - readiness run의 checkout ref가 `main`인지, permissions에 contents/pull-request write가 없는지 확인한다.
 - #444에는 `mastergantt-ci-setup-readiness:v1` marker 댓글이 하나만 존재하고 새 run마다 같은 comment ID가 갱신되어야 한다.
@@ -1038,7 +1038,7 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 2. Main push docker_smoke에는 `cache-to type=gha,mode=max`가 존재하는지 확인한다.
 3. PR Docker required aggregate와 image policy/runtime/persistence smoke가 PASS해야 한다.
 4. #603 병합 후 successful PR run 10개 이상에서 `docker-build-cache` median/p90/runner-minutes를 baseline Run #32.1과 비교한다.
-5. Main cache reuse 또는 publish 성능이 악화되면 ADOPT하지 않고 rollback한다.
+5. Main cache reuse 또는 publish 성능이 악화되면 ADOPT하지 않고 rollback을 **검토**한다. 변경 전후 독립 성공 Run·동일 workload 조건과 cache 쓰기 경로의 인과를 실증하기 전에는 임의 원복 금지. 현재 Main median +28.55%, runner min/run +22.28%는 회귀 의심 관측으로 조사 중이며 #603 PR read-only를 원인으로 확정하지 않는다. PR source 23→21 성공 Run median -7.14%는 Job alias REVIEW_REQUIRED. 실제 cache miss와 Main publish reuse 검증 및 exact PR Head Full8/Required3는 미완료.
 
 ## #616 Target F2
 
