@@ -1,3 +1,10 @@
+## [0.132.0] — Unreleased / Issue #479
+
+- 공개/비공개 Project visibility, 기존 Project public migration0031, 생성·Template·Copy·설정 API/UI를 구현한다.
+- 비공개 목록은 검색/표시에 남겨두되 인증된 해당 Project Edit Session 이전에 일정·조회/Export 및 SSR 상세 데이터를 제공하지 않는다. 새 readonly 비밀번호·RBAC/목록 숨김은 추가하지 않는다.
+- Project List unlock/Copy, 직접 URL 잠금 화면, session 만료 시 민감 snapshot 폐기와 SQLite/check/authorization 단위 회귀를 보완한다.
+- `release_required=true`, `release_authorized=false`; 정확 PR CI/Trusted QA/Owner/GHCR/Release는 별도 증거·승인 전 NOT TESTED.
+
 ## [0.131.0] — Unreleased / Issue #785
 
 - 물류 실물·Task 직접 연결 중심으로 전환하고 Logistics Target의 보조 관리/편집·조회 축·KPI 진단·사용자 Excel 용어를 폐기한다. 구형 화면 링크/저장 설정은 공정/WorkArea로 정규화한다.

@@ -1,3 +1,7 @@
+## Issue #479 — Project visibility, SSR and scoped-read security tests
+
+TEST_LIFECYCLE_REVIEW: prior ProjectService, Project contracts, edit session auth, Project/Template Copy, DB migration and E2E authorization tests retained. ADD `tests/server/projects/project-visibility.test.ts` (enum/null/unknown, migration public default/CHECK, private session missing/wrong/expired/revoked, public transition revision+1/password/auth_version). EXTEND: HTML/SSR metadata no-leak, list/dialog+copy navigation, settings state, direct canonical API/Project-scoped read-only POST + Export direct bypass, rotation/cookie and 5-width Playwright. KEEP_UNIQUE existing scrypt/KDF/timing-safe/Origin/revision/SQLite HTTP and browser tests. No skips, retire candidates or changed Required3/Chromium8. Current remote build/Chromium and end-to-end route coverage: NOT TESTED until exact new PR Run/Attempt. [Work Packet](exec-plans/active/ISSUE_479.md).
+
 ## Issue #785 — 실물 공개 전환의 영향 검증
 
 Risk HIGH, qa_required=true, OWNER_MANAGED. 변경은 전 화면 탐색/Task 출처·실물 영향 API/Resource-WBS v2/교환·템플릿이며 Scheduling·SVAR writer·CI8/Required3·릴리스 권한은 불변이다. 공식 원격 gate는 exact Head의 Quality/E2E8/Docker·Trusted/Owner로 별도 판정한다. [Work Packet](exec-plans/active/ISSUE_785.md), [누적 실패 원장](ISSUE_785_FAILURE_ANALYSIS.md), [baseline 소비자 지도](evidence/issue-785/producer-consumer-baseline.json).
