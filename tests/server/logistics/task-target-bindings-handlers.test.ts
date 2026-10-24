@@ -2,6 +2,8 @@ import { LegacyBindingScopeService } from "../../../src/server/logistics/legacy-
 import { handleGetLegacyBindingSources, handleLegacyBindingScopeMutation } from "../../../src/server/logistics/legacy-binding-scope-handlers-core";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import type Database from "better-sqlite3";
 import { afterEach, describe, expect, it } from "vitest";
 import { openDatabase } from "../../../src/server/db/core";
@@ -22,8 +24,8 @@ const baseUrl = "https://gantt.example.com";
 const databases: Database.Database[] = [];
 afterEach(() => { for (const db of databases.splice(0)) db.close(); });
 
-function setup() {
-  const { database: db } = openDatabase({ filename: ":memory:", migrationsDirectory: join(process.cwd(), "db/migrations") });
+function setup(filename = ":memory:") {
+  const { database: db } = openDatabase({ filename, migrationsDirectory: join(process.cwd(), "db/migrations") });
   databases.push(db);
   const project = new ProjectRepository(db).insert({ publicId: randomUUID(), name: "Bindings HTTP", description: "", status: "planned",
     passwordKdf: "scrypt", passwordSalt: Buffer.alloc(16, 1), passwordHash: Buffer.alloc(32, 2),
@@ -326,4 +328,81 @@ describe("Issue #792 protected legacy binding scope writer", () => {
     expect(revoked.status).toBe(401);
     expect(snapshot(f)).toEqual(baseline);
   });
+  it("rejects an orphan member without emitting empty sources or incrementing revision", async () => {
+    const f=setup(),d=deps(f);
+    f.bindingService.replace(f.auth,revision(f),f.summary.publicId,whole(f,"self"));
+    const source=(await handleGetLegacyBindingSources(legacyRequest(f,f.summary.publicId,"GET"),
+      f.project.publicId,f.summary.publicId,d).json()).data.sourceBindings[0];
+    const patch={sourceId:source.sourceId,scope:"subtree",sourceFingerprint:source.sourceFingerprint};
+    const revisionBefore=revision(f);
+    f.db.pragma("foreign_keys = OFF");
+    try {
+      f.db.prepare("DELETE FROM logistics_target_members WHERE public_id=?").run(f.target.members[0].id);
+    } finally { f.db.pragma("foreign_keys = ON"); }
+    expect(f.db.pragma("foreign_key_check")).not.toEqual([]);
+    const original=snapshot(f);
+    const response=await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,"POST",patch),
+      f.project.publicId,f.summary.publicId,d,"preview");
+    expect(response.status).toBe(409);
+    expect((await response.json()).error.code).toBe("LEGACY_SOURCE_INTEGRITY_BLOCKED");
+    expect(snapshot(f)).toEqual(original);
+    expect(revision(f)).toBe(revisionBefore);
+  });
+
+  it("blocks stale revision after async body processing; never mutates archived source", async () => {
+    const f=setup(),d=deps(f);
+    f.bindingService.replace(f.auth,revision(f),f.summary.publicId,whole(f));
+    const source=(await handleGetLegacyBindingSources(legacyRequest(f,f.summary.publicId,"GET"),
+      f.project.publicId,f.summary.publicId,d).json()).data.sourceBindings[0];
+    const patch={sourceId:source.sourceId,scope:"subtree",sourceFingerprint:source.sourceFingerprint};
+    const preview=(await (await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,"POST",patch),
+      f.project.publicId,f.summary.publicId,d,"preview")).json()).data;
+    const oldRev=revision(f);
+    const raw=JSON.stringify({...patch,confirmImpact:true,impactToken:preview.impactToken});
+    const stream = new ReadableStream<Uint8Array>({ pull(controller) {
+      f.bindingService.replace(f.auth,oldRev,f.task.publicId,whole(f));
+      controller.enqueue(new TextEncoder().encode(raw)); controller.close();
+    } });
+    const seed=legacyRequest(f,f.summary.publicId,"PATCH",raw);
+    const input=new Request(seed.url,{method:"PATCH",headers:seed.headers,body:stream,duplex:"half"} as RequestInit);
+    const response=await handleLegacyBindingScopeMutation(input,f.project.publicId,f.summary.publicId,d,"apply");
+    expect(response.status).toBe(412);
+    const sourceAfter=(await handleGetLegacyBindingSources(legacyRequest(f,f.summary.publicId,"GET"),
+      f.project.publicId,f.summary.publicId,d).json()).data.sourceBindings[0];
+    expect(sourceAfter.scope).toBe("self");
+    expect(sourceAfter.sourceId).toBe(source.sourceId);
+    expect(revision(f)).toBe(oldRev+1);
+  });
+
+  it("persists exact source UUID and scope through SQLite file close/restart", async () => {
+    const dir=mkdtempSync(join(tmpdir(),"mastergantt-792-")), filename=join(dir,"test.sqlite");
+    try {
+      const f=setup(filename), d=deps(f);
+      f.bindingService.replace(f.auth,revision(f),f.summary.publicId,whole(f));
+      const source=(await handleGetLegacyBindingSources(legacyRequest(f,f.summary.publicId,"GET"),
+        f.project.publicId,f.summary.publicId,d).json()).data.sourceBindings[0];
+      const patch={sourceId:source.sourceId,scope:"subtree",sourceFingerprint:source.sourceFingerprint};
+      const preview=(await (await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,"POST",patch),
+        f.project.publicId,f.summary.publicId,d,"preview")).json()).data;
+      expect((await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,"PATCH",
+        {...patch,confirmImpact:true,impactToken:preview.impactToken}),
+        f.project.publicId,f.summary.publicId,d,"apply")).status).toBe(200);
+      const before=snapshot(f);
+      const ix=databases.indexOf(f.db); if (ix>=0) databases.splice(ix,1);
+      f.db.close();
+      const reopened=openDatabase({filename,migrationsDirectory:join(process.cwd(),"db/migrations")}).database;
+      try {
+        const after={
+          bindings:reopened.prepare("SELECT * FROM task_target_bindings ORDER BY id").all(),
+          members:reopened.prepare("SELECT * FROM task_target_binding_members ORDER BY binding_id,member_id").all(),
+        };
+        expect(after.bindings).toEqual(before.bindings);
+        expect(after.members).toEqual(before.members);
+        expect((after.bindings[0] as {public_id:string;scope:string}).public_id).toBe(source.sourceId);
+        expect((after.bindings[0] as {scope:string}).scope).toBe("subtree");
+        expect(reopened.pragma("foreign_key_check")).toEqual([]);
+      } finally { reopened.close(); }
+    } finally { rmSync(dir,{recursive:true,force:true}); }
+  });
+
 });
