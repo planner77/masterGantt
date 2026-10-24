@@ -10,6 +10,12 @@
 - Project List unlock/Copy, 직접 URL 잠금 화면, session 만료 시 민감 snapshot 폐기와 SQLite/check/authorization 단위 회귀를 보완한다.
 - `release_required=true`, `release_authorized=false`; 정확 PR CI/Trusted QA/Owner/GHCR/Release는 별도 증거·승인 전 NOT TESTED.
 
+## [0.131.0] — Unreleased / Issue #792 기존 원본 scope 한정 안전 편집
+
+- #785 이후 남은 보존된 물류 관계는 신규 직접 작성과 혼합하거나 자동 이관하지 않는다. Task Editor의 기존 연결 출처에서 **Summary 소유 legacy 직접 binding 한 건**만 적용 범위(self↔subtree) 변경을 미리 보고 확인해 저장할 수 있게 한다. 기존 전체 구성·선택 구성/coverage·원본 UUID·출처·Task/Assignment·설비·System·WorkArea, WBS/Resource·Excel 및 Copy/Template 보존 원칙 불변.
+- `GET/POST/PATCH .../tasks/{taskId}/legacy-binding-sources`: 원본 fingerprint, actual impact, preview token·Origin/If-Match/Session 검증, SQLite IMMEDIATE 단일 UPDATE+사후 graph 검증, Project revision+1/실패 rollback. 기존 Target writer 410 유지.
+- 새 계약/보안/운영 dry-run 절차 및 재사용 SQLite/HTTP 회귀를 추가한다. 전체 archive member/coverage 수정·운영 DB 데이터 이관·외부 consumer0·offhost DR/브라우저 실측은 아직 지원/검증되지 않음. 현행 package 0.131.0 유지하고 후속 정식 릴리스 버전/Owner 게시 승인 대기. PR Full CI/Trusted·Manager ACCEPT·Main/GHCR/Finalizer 완료를 주장하지 않는다. [Issue Packet](docs/exec-plans/active/ISSUE_792.md).
+
 ## [0.131.0] — Unreleased / Issue #785
 
 - 물류 실물·Task 직접 연결 중심으로 전환하고 Logistics Target의 보조 관리/편집·조회 축·KPI 진단·사용자 Excel 용어를 폐기한다. 구형 화면 링크/저장 설정은 공정/WorkArea로 정규화한다.

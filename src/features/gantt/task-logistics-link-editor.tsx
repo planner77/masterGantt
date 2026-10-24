@@ -14,6 +14,7 @@ import type { ProjectTaskDto } from "../../contracts/projects";
 import { descendantTaskCount } from "./task-process-context-model";
 import { IdentifierDetails } from "@/components/identifier-details";
 import styles from "./project-task-editor.module.css";
+import { LegacyBindingScopeEditor } from "./legacy-binding-scope-editor";
 
 interface Props {
   readonly taskId: string;
@@ -95,7 +96,12 @@ export function TaskLogisticsLinkEditor({
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  useEffect(() => { onPendingChange?.(saving); }, [saving, onPendingChange]);
+  const [legacyScopePending, setLegacyScopePending] = useState(false);
+  // Both the direct writer and the inherited legacy source writer can trigger
+  // ProjectTaskEditor.reload(true); keep the same parent pending lock until
+  // either write and its canonical refresh have settled.
+  const pending = saving || legacyScopePending;
+  useEffect(() => { onPendingChange?.(pending); }, [pending, onPendingChange]);
   const [error, setError] = useState<string | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
 
@@ -202,7 +208,7 @@ export function TaskLogisticsLinkEditor({
   }, [ready, selectedEquipment, selectedSystems, onDirtyChange]);
 
   const toggleEquipment = (equipmentId: string) => {
-    if (!editable || !serverEditable || disabled || saving || !ready) return;
+    if (!editable || !serverEditable || disabled || pending || !ready) return;
     setSuccessNotice(null);
     setSelectedEquipment((prev) => {
       const next = new Map(prev);
@@ -216,7 +222,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const toggleEquipmentScope = (equipmentId: string) => {
-    if (!editable || !serverEditable || disabled || saving || !ready || !isSummary) return;
+    if (!editable || !serverEditable || disabled || pending || !ready || !isSummary) return;
     setSuccessNotice(null);
     setSelectedEquipment((prev) => {
       const next = new Map(prev);
@@ -227,7 +233,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const toggleSystem = (systemId: string) => {
-    if (!editable || !serverEditable || disabled || saving || !ready) return;
+    if (!editable || !serverEditable || disabled || pending || !ready) return;
     setSuccessNotice(null);
     setSelectedSystems((prev) => {
       const next = new Map(prev);
@@ -241,7 +247,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const toggleSystemScope = (systemId: string) => {
-    if (!editable || !serverEditable || disabled || saving || !ready || !isSummary) return;
+    if (!editable || !serverEditable || disabled || pending || !ready || !isSummary) return;
     setSuccessNotice(null);
     setSelectedSystems((prev) => {
       const next = new Map(prev);
@@ -252,7 +258,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const handleSave = async () => {
-    if (!editable || !serverEditable || disabled || saving || !ready || requestReference.current) return;
+    if (!editable || !serverEditable || disabled || pending || !ready || requestReference.current) return;
     const publicId = projectIdFromPathname(window.location.pathname);
     if (!publicId) return;
 
@@ -355,14 +361,24 @@ export function TaskLogisticsLinkEditor({
 
       {isSummary ? <p className={styles.note}>하위 작업 포함 선택 시 현재 자손 {descendantTaskCount(taskId, tasks)}개에 파생됩니다. 직접 연결 해제로 상위 출처의 상속 연결을 제거하지 않습니다.</p> : null}
       {links?.compatibilityLinks?.length ? <section className={styles.relationGroup} aria-label="기존 연결 출처">
-        <h4>기존 연결 출처 · 읽기 전용</h4>
-        <p className={styles.note}>원본 관계의 적용 범위와 coverage를 보존합니다. 직접 연결을 추가하거나 해제해도 이 원본은 변경되지 않습니다. 전체 구성의 연결은 구성 변경을 계속 반영합니다.</p>
+        <h4>기존 연결 출처 · 원본 보존</h4>
+        <p className={styles.note}>직접 연결의 추가·삭제는 이 원본에 영향을 주지 않습니다. 기존 전체 구성은 동적이며, Summary 직접 출처에 한해 적용 범위를 미리 보고 수정할 수 있습니다. 원본 구성/coverage/상속은 별도 승인 전 읽기 전용입니다.</p>
         <ul>{links.compatibilityLinks.map((item,index)=><li key={`${item.sourceId}:${item.kind}:${item.entityId}:${index}`} className={styles.contextRow}>
           <strong>{item.name.trim() || "이름 확인 필요"}</strong> · {item.kind === "equipment" ? "설비" : "물류 시스템"}{!item.active ? " · 비활성" : ""}
           <p className={styles.note}>원본 작업: {item.sourceTaskName || "이름 확인 필요"} · {item.inherited ? "상위 작업에서 상속" : "이 작업 연결"} · {item.scope === "subtree" ? "하위 작업 포함" : "작업 자체"} · {item.selection === "whole" ? "전체 구성" : "선택 구성"} · coverage {item.coverageMode === "whole" ? "전체" : item.coverage === null ? "미지정" : `${item.coverage}`}</p>
           {item.context ? <p className={styles.note}>출처 공정: {item.context.process?.name || (item.context.scope === "project_common" ? "프로젝트 공통" : "이름 확인 필요")} · 출처 WorkArea: {item.context.workArea?.name || "구역 미사용"} · 직접 공정·작업 구역 선택과 별도인 기존 원본 문맥입니다.</p> : null}
           <IdentifierDetails identifiers={[{label:item.kind === "equipment" ? "설비 ID" : "시스템 ID",value:item.entityId},{label:"코드",value:item.code},{label:"원본 작업 ID",value:item.sourceTaskId},{label:"원본 관계 참조",value:item.sourceId},...(item.context?.process ? [{label:"출처 공정 ID",value:item.context.process.id}] : []),...(item.context?.workArea ? [{label:"출처 WorkArea ID",value:item.context.workArea.id}] : [])]}/>
         </li>)}</ul>
+        {isSummary && links.compatibilityLinks.some(item => !item.inherited && item.sourceTaskId === taskId) ? (
+          <LegacyBindingScopeEditor
+            taskId={taskId} revision={revision} editable={editable && serverEditable}
+            disabled={disabled || draftDirty || pending || !ready}
+            sourceNames={links.compatibilityLinks.filter(item => !item.inherited && item.sourceTaskId === taskId)
+              .map(item => ({sourceId:item.sourceId,label:item.name}))}
+            onApplied={onApplied} onUnauthorized={onUnauthorized}
+            onPendingChange={setLegacyScopePending}
+          />
+        ) : null}
       </section> : null}
       {/* 설비 연결 섹션 */}
       <fieldset className={styles.relationGroup} style={{ border: "1px solid var(--border-default)", borderRadius: 6, padding: "0.75rem" }}>
@@ -420,7 +436,7 @@ export function TaskLogisticsLinkEditor({
                     <input
                       type="checkbox"
                       checked={isChecked}
-                      disabled={!editable || !serverEditable || disabled || saving || !ready || (!isChecked && !eq.active)}
+                      disabled={!editable || !serverEditable || disabled || pending || !ready || (!isChecked && !eq.active)}
                       onChange={() => toggleEquipment(eq.id)}
                     />
                     <span>
@@ -440,7 +456,7 @@ export function TaskLogisticsLinkEditor({
                         type="checkbox"
                         checked={scope === "subtree"}
                         aria-label={`${eq.name} 설비 하위 작업 포함`}
-                        disabled={!editable || !serverEditable || disabled || saving || !ready}
+                        disabled={!editable || !serverEditable || disabled || pending || !ready}
                         onChange={() => toggleEquipmentScope(eq.id)}
                       />
                       <span>하위 작업 포함 (파생)</span>
@@ -509,7 +525,7 @@ export function TaskLogisticsLinkEditor({
                     <input
                       type="checkbox"
                       checked={isChecked}
-                      disabled={!editable || !serverEditable || disabled || saving || !ready || (!isChecked && !sys.active)}
+                      disabled={!editable || !serverEditable || disabled || pending || !ready || (!isChecked && !sys.active)}
                       onChange={() => toggleSystem(sys.id)}
                     />
                     <span>
@@ -529,7 +545,7 @@ export function TaskLogisticsLinkEditor({
                         type="checkbox"
                         checked={scope === "subtree"}
                         aria-label={`${sys.name} 시스템 하위 작업 포함`}
-                        disabled={!editable || !serverEditable || disabled || saving || !ready}
+                        disabled={!editable || !serverEditable || disabled || pending || !ready}
                         onChange={() => toggleSystemScope(sys.id)}
                       />
                       <span>하위 작업 포함 (파생)</span>
@@ -548,7 +564,7 @@ export function TaskLogisticsLinkEditor({
           <button
             type="button"
             className="primary-button"
-            disabled={disabled || !serverEditable || saving || !ready}
+            disabled={disabled || !serverEditable || pending || !ready}
             onClick={() => void handleSave()}
           >
             {saving ? "물류 연결 저장 중..." : "물류 연결 저장"}

@@ -10,6 +10,12 @@ Project list `GET /api/projects` stays discoverable and shows `visibility`. `/ap
 
 The canonical ProjectService has an independent read guard for direct snapshot consumers. Visibility mutation requires edit session, exact Origin and strong If-Match, increments revision once but does not alter password/hash or auth_version. Single last-unlocked-Project cookie and password KDF semantics remain. This is a private detailed read gate, **not** an invisible-list/SSO/RBAC/readonly-password feature. End-to-end wrong/foreign/expired/rotated session and all route bypass tests remain official CI evidence requirements. [Work Packet](exec-plans/active/ISSUE_479.md).
 
+## Issue #792 — 원본 scope patch의 보안·트랜잭션 경계
+
+신규 `/api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources`는 GET optional session read, POST preview/ PATCH apply만 제공한다. 쓰기는 정확 application Origin 검증, Project edit cookie/session token hash+authVersion/expiry, strong If-Match project revision, UUIDv4 Task/source, bounded strict JSON, owner Project FK를 강제하고 **IMMEDIATE transaction 시작 뒤 권한/revision/source snapshot**을 재검증한다. 제시한 fingerprint와 preview token은 그 시점에 읽은 whole/subset/member/coverage/원본 graph·영향에 묶인다. 토큰만으로 권한 우회 불가하며 타 Project·상속 소스·비Summary·임의 field/Target writer 호출을 막는다.
+
+성공 시 단일 `task_target_bindings.scope` 수정과 revision+1, 원본 FK/UUID 및 member/coverage·원본 컨텍스트 postcheck 불일치 시 409/rollback. `self→subtree` 확대에서는 Target/선택 member의 비활성 상태를 차단하고 계획된 provenance 경로가 기존 제한을 초과하면 preview 422로 거부한다. 에러/응답은 `private, no-store`/`nosniff`, request ID를 사용하며 SQL 원본/credential을 공개하지 않는다. 기존 retired 410 API를 복구하거나 CSRF 보호 강도를 완화하지 않는다. 공격/동시성/운영 DB 실증과 QA/Owner 위험 수용은 아직 NOT TESTED다. [API](API.md#issue-792--레거시-summary-직접-관계-적용-범위-한정-편집)·[Packet](exec-plans/active/ISSUE_792.md).
+
 ## Issue #785 — 공개 경로 퇴역과 호환 읽기 방어
 
 전용 Logistics Target 경로의 410은 기존 Project 검증·Origin·edit-session·strong If-Match 방어를 보존한 종료 응답이다. UI 제거만으로 외부 쓰기를 남겨 두지 않으며 retired method는 실제 데이터/revision을 변경하지 않는다. 내부 legacy service는 지원 Copy/Template·격리 테스트 fixture·읽기 해석에 한정하고 runtime 테스트 seed API를 추가하지 않는다.

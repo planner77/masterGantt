@@ -81,9 +81,10 @@ test("필드 오류 aria 연결·최초 오류 focus·수정 후 해제 및 정�
   await page.locator("#inst-owner-name").fill("담당자");
   await page.locator("#inst-password").fill("Test123!");
   await page.locator("#inst-start-date").fill("2026-10-01");
+  await expect(page.locator("#panel-template fieldset.template-visibility-fieldset").getByRole("radio", { name: "공개", exact: true })).toBeChecked();
   await page.getByRole("button", { name: "템플릿에서 프로젝트 생성", exact: true }).click();
   await page.waitForURL(`/projects/${publicId}`);
-  expect(payload).toEqual({ name: "새 프로젝트", ownerName: "담당자", projectStartDate: "2026-10-01", editPassword: "Test123!" });
+  expect(payload).toEqual({ name: "새 프로젝트", ownerName: "담당자", projectStartDate: "2026-10-01", editPassword: "Test123!", visibility: "public" });
 });
 
 for (const width of [390, 768, 1024, 1440]) {

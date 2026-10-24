@@ -1,5 +1,29 @@
 # 실물·리소스 원본 이관·복구 절차
 
+## Issue #792 — 보존 원본 scope 시범 적용·오프호스트 백업/복구 Gate
+
+### 운영 착수 조건
+
+본 Issue 코드의 수정 단위는 **기존 Summary 직접 `task_target_bindings` 한 건의 self/subtree**이다. 외부 Target CRUD의 410, 원본 `whole/subset/coverage`, 기존 `project_work_areas`, Task/Assignment/E1/MCS/공수와 archive graph는 보존한다. `POST` preview는 읽기 전용 영향 목록이고 `PATCH`는 같은 프로젝트 세션·Origin·If-Match·sourceFingerprint·impactToken을 다시 검증한 뒤 원본 scope만 갱신한다. 대상 Target/구성원이 비활성이거나 계획된 상속 provenance 경로가 상한을 넘으면 범위 확대 단계에서 즉시 거부한다. 원본 구성원 교체, 자동 직접 관계 flatten, table DROP, 운영 데이터 일괄 이관/실사용 전환은 **승인된 범위가 아니다**.
+
+| Gate | 작업·기록할 증거 | 현재 |
+| --- | --- | --- |
+| G0 소비자 | 기간·환경별 외부 legacy API 호출/클라이언트 버전, 410 오류 영향과 담당자, 신규 API 사용 허가/Origin; credential·token은 수집 금지 | NOT TESTED |
+| G1 스냅샷 | 쓰기 중지 또는 SQLite online backup으로 일관된 DB 백업, 정확 migration ledger/schema checksum, `PRAGMA integrity_check`, `foreign_key_check`, Project/Task·Target/member·binding/member 행 개수와 canonical UUID·coverage·sourceTask/WorkArea hash를 **프로젝트·자료구조별** 고정 | NOT TESTED |
+| G2 오프호스트 복원 | 원본 backup digest와 off-host 파일 digest 일치, 별도 호스트/격리 volume에서 현재 image 대응 migration DB 기동·restart, 동일 Source/Task/Assignment/WBS KPI/정확 drill/Excel·Copy/Template snapshot 비교. 구버전 바이너리만 실행하여 무손실 복구를 주장하지 않음 | NOT TESTED |
+| G3 한정 pilot | 운영 전 승인된 **격리 복제본**의 Summary 직접 원본 1건에 GET→POST→PATCH→GET, 동일 source/member/coverage row 및 유효 task ID/quantity·resource 공수 전후 비교, scope 반대 방향 재적용 복원, stale token/Session revoke·FK 손상·중간 오류 롤백 및 재기동 | NOT TESTED |
+| G4 운영 승격 | 운영 담당자/Owner의 정확 Head+데이터셋/백업 일시·digest·검증 로그·소비자 종료 승인, HA/성능·관제 및 긴급 rollback 경로. 불일치1개면 stop, backup 보존·실제 원본 재적용과 revision 재검토 | NOT TESTED |
+
+### 실무 사전 질의(민감정보 제외)
+
+- DB의 실제 경로/버전·WAL 사용 여부·quiesce 조건, 복구 호스트/용량/파일 digest 저장소, 앱 image commit sha를 운영 담당자가 확인해야 한다. 문서의 예제 파일 경로를 운영 디스크 경로라고 추정하면 안 된다.
+- DB 한 트랜잭션마다 읽기 일관성이 필요하다. 활성 WAL 파일을 무작정 복사하는 대신 SQLite `.backup` API 또는 지원되는 온라인 백업 수단으로 일관된 snapshot을 만든 뒤, 별도 호스트로 복사하여 checksum을 기록한다.
+- 격리 복원본에서 다음과 같은 **읽기 전용** 검사를 실행한다(실제 파일 위치는 운영자가 지정): `sqlite3 '<backup-db>' 'PRAGMA integrity_check;PRAGMA foreign_key_check;'`. 변경 전후 `SELECT project_id,task_id,target_id,public_id,scope,selection,anchor_member_id FROM task_target_bindings ORDER BY project_id,id;` 및 `SELECT project_id,binding_id,target_id,member_id,coverage FROM task_target_binding_members ORDER BY project_id,binding_id,member_id;`를 외부 보안 저장소에 비교용으로 보관한다. 수집물에 개인 정보·credential·API token 포함 금지.
+- Preview 토큰은 현재 source·Project revision에 대한 확인 정보이지 오프라인 승인 도장이 아니다. 적용 도중 예외·다른 편집으로 snapshot이 달라지면 새 GET/POST가 선행되어야 한다. 장애 시 부분 UPDATE는 SQLite 롤백되어야 하며, 불일치가 발견되면 원본 백업+대응 image로 복원하거나 검토된 forward correction만 수행한다.
+- 실제 `PRAGMA integrity_check=ok`만으로 외부 consumer 0, 업무 coverage 동일, 정확 WBS KPI, off-host DR 성공은 성립하지 않는다. 모든 G0~G4는 운영 실측 전 **NOT TESTED**이며 승인 없이 프로덕션 DDL·대량 수정·삭제를 진행하지 않는다.
+
+[실행/미검증 Packet](exec-plans/active/ISSUE_792.md) · [단일 누적 실패 원장](ISSUE_792_FAILURE_ANALYSIS.md) · [API](API.md#issue-792--레거시-summary-직접-관계-적용-범위-한정-편집)
+
 ## Issue #785 — 공개 도메인 폐기와 단계적 원본 보존
 
 이번 전환은 DB flatten/backfill/DROP을 수행하지 않는다. whole의 동적 구성·subset coverage·Summary 상속은 내부 archive resolver로 유지하며 실제 실물 ID·원본 Task/Assignment·opaque 관계 출처로 조회한다. 전용 공개 Target API의 410과 기본 resource/WBS v2 전환은 배포 소비자 확인 대상이다. 명시 v1 읽기는 deprecated이며 외부 소비자0을 추정하지 않는다. 구형 caller 목록·사용량·호환 종료일은 운영 조사 전 NOT TESTED다.

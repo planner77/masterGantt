@@ -13,6 +13,20 @@ URL에 일부 percent-encoded canonical UUID가 들어와도 `/api/projects/{pub
 
 [DB](DB_SCHEMA.md), [Security](SECURITY.md), [Work Packet](exec-plans/active/ISSUE_479.md).
 
+## Issue #792 — 레거시 Summary 직접 관계 적용 범위 한정 편집
+
+`/api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources` (동일 Project Task; SQLite Node runtime; private/no-store + nosniff):
+
+| Method | 요청 | 반환 / 불변 |
+| --- | --- | --- |
+| GET | Project + Task UUID, optional edit session | `{data:{projectRevision,taskId,permission:"readonly"\|"edit",sourceBindings:[{sourceId,sourceTaskId,scope,selection,memberCount,sourceFingerprint,canEditScope}]}}`. **정확 Task 직접 보존원본**만 조회, 상속은 편집 대상 제외, 200/404/409/422. ETag strong revision |
+| POST | Origin + valid edit session + `If-Match:"<revision>"` + JSON `{sourceId,scope:"self"\|"subtree",sourceFingerprint}` | 읽기 전용 미리보기: `{data:{projectRevision,taskId,sourceId,beforeScope,afterScope,selection,memberCount,affectedTaskIds,before,after,impactToken}}`; 원본 row/Project revision 증가0 |
+| PATCH | POST와 동일 보호 + JSON `{sourceId,scope,sourceFingerprint,confirmImpact:true,impactToken}` | 원본 `scope` 한 행만 in-place 수정, postcheck 뒤 Project revision +1, 동일 영향 요약/ETag. Preview 없는 token, old source/old revision, 불명확 참조는 거절. 서명·토큰은 UX 영수증이지 외부 authorization secret 아님 |
+
+저장에서 위 경계의 요청 body 외 필드·query는 거부한다. invalid Origin403, missing/revoked/cross-project session401, missing If-Match428, outdated project412, stale fingerprint/impact409, invalid patch/비Summary422, foreign source/Task404; body limit·UTF-8·Content-Type은 공용 bounded JSON 규칙이다. DB snapshot integrity·row budget 실패는 정상0개로 처리하지 않는다. raw `whole/subset`, selected member/coverage, 원본 source ID, archived 공정/WorkArea 문맥은 **이 API에서 변경하지 않는다**. 신규 Target/editor로의 복귀가 아니라 #785 410 유지 상태의 명시적 좁은 수정 통로이다.
+
+실제 외부 소비자/운영 DB/오프호스트 복원·다른 레거시 필드 편집은 승인된 상태가 아니다. [실행 설계](exec-plans/active/ISSUE_792.md), [운영 절차](TARGET_RESOURCE_OPERATIONS.md).
+
 ## Issue #785 — 실물 공개 계약 v2와 구형 경로 퇴역
 
 ### 버전과 소비자 수명

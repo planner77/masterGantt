@@ -281,6 +281,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
     finally { actionReference.current = false; if (mountedReference.current) setOperation(null); }
   }
   function navigateTab(event: KeyboardEvent<HTMLButtonElement>, current: TaskEditorTab) {
+    if (locked || awaitingDecision) return;
     const next = taskEditorTabForKey(current, event.key, tabs);
     if (!next) return;
     event.preventDefault();
@@ -432,7 +433,8 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
           aria-selected={selected}
           aria-controls={"task-editor-panel-" + tab}
           tabIndex={selected ? 0 : -1}
-          onClick={() => setActiveTab(tab)}
+          disabled={locked || awaitingDecision}
+          onClick={() => { if (!locked && !awaitingDecision) setActiveTab(tab); }}
           onKeyDown={(event) => navigateTab(event, tab)}
         >
           <span>{label}</span>
