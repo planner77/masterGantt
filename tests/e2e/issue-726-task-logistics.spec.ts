@@ -500,6 +500,11 @@ test("#792 Summary legacy source-only scope preview/confirm, real HTTP SQLite, 5
     const body=await (await page.request.get(api)).json();
     return body?.data?.sourceBindings?.[0]?.scope;
   }).toBe("subtree");
+  // The parent pending guard must be released only after the source update and
+  // canonical refresh have settled; normal Task edits become available again.
+  await expect(editor.getByRole("button",{name:"작업 편집기 닫기"})).toBeEnabled();
+  await expect(editor.getByRole("tab",{name:/^리소스/})).toBeEnabled();
+  await expect(editor).not.toHaveAttribute("aria-busy", "true");
   const verified=(await (await page.request.get(api)).json()).data;
   expect(verified.projectRevision).toBe(initial.projectRevision+1);
   expect(verified.sourceBindings[0].sourceId).toBe(originalId);
