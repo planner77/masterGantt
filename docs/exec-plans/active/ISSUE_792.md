@@ -31,7 +31,7 @@
 - Route `src/app/api/projects/[publicId]/tasks/[taskId]/legacy-binding-sources/route.ts`
 - 보안 inventory `src/server/security/route-security-inventory.ts`
 - Task Editor `src/features/gantt/legacy-binding-scope-editor.tsx`와 `task-logistics-link-editor.tsx`
-- 테스트 `tests/server/logistics/task-target-bindings-handlers.test.ts` (기존 Fixture·Assertion을 확장), `tests/server/logistics/task-target-bindings.test.ts` (실제 Equipment quantity/coverage와 전·후방 적용·복원)
+- 테스트 `tests/server/logistics/task-target-bindings-handlers.test.ts` (기존 Fixture·Assertion을 확장), `tests/server/logistics/task-target-bindings.test.ts` (실제 Equipment quantity/coverage와 전·후방 적용·복원), `tests/e2e/issue-726-task-logistics.spec.ts` (실제 브라우저·격리SQLite·새 UI/5폭/readonly)
 - 관련 API/Domain/DB/Task/UX/Security/운영·TEST_PLAN/CHANGELOG/PLAN/실패 원장 문서는 본 Issue 계약에 동기화.
 
 ## AC_TEST_COVERAGE
@@ -45,7 +45,7 @@
 | AC5 UI·v2·교환·중복/이탈 | Task Editor 기존 compatibilityLinks + 신규 미리보기, #785/#623 Tests, `task-logistics-link-editor.tsx`, resource/WBS/Copy/Template/Excel의 원본불변 근거 | 신규 API 경로는 v2 집계 DTO에 영향 없음. 별도 UI 390/768/1024/1440/1920·focus/E2E/Excel 검증 NOT TESTED |
 | AC6 Quality/E2E8/Docker/Trusted | non-draft PR Full CI; 신뢰된 base QA, Review Threads 0, strict main, Owner HIGH 수용 | 새 exact Head 원격 실행 시작까지만 승인; 결과/승인 NOT TESTED |
 
-**TEST_LIFECYCLE_REVIEW:** 검색: `tests/server/logistics/task-target-bindings*.test.ts`, `tests/server/projects/issue-785-exchange.test.ts`, `tests/e2e/issue-726-task-logistics.spec.ts`, `tests/e2e/logistics-target-authoring.spec.ts`, `tests/server/resources/resource-public-v2.test.ts`, `tests/server/projects/resource-excel-export.test.ts`. `EXTEND`: #617/#785의 동일 SQLite·세션·legacy fixture에 scope PATCH positive/negative를 추가(동일 UUID와 member row). `KEEP_UNIQUE`: 실제 HTTP, broken FK/transaction, Copy/Template, whole/subset coverage, 리소스 WBS 계산, OOXML, 실제 브라우저5폭·focus; 이 독립 보호는 통합·삭제하지 않는다. `PARTIAL_OVERLAP`: 기존 #785 readonly 출처 조회와 새 writer/확인 경계는 겹치나 독립 책임이다. `ADD`: 신규 endpoint 및 source-aware UI; `CONSOLIDATE_CANDIDATE=없음`, `RETIRE_CANDIDATE=없음`. CI/E2E skip, timeout, Required gate 변경0.
+**TEST_LIFECYCLE_REVIEW:** 검색: `tests/server/logistics/task-target-bindings*.test.ts`, `tests/server/projects/issue-785-exchange.test.ts`, `tests/e2e/issue-726-task-logistics.spec.ts`, `tests/e2e/logistics-target-authoring.spec.ts`, `tests/server/resources/resource-public-v2.test.ts`, `tests/server/projects/resource-excel-export.test.ts`. `EXTEND`: #617/#785의 동일 SQLite·세션·legacy fixture에 scope PATCH positive/negative를 추가(동일 UUID와 member row). #726 기존 실제 Playwright/격리 SQLite source fixtures에 Summary source-only 범위 조정·5폭·readonly·실제 HTTP source provenance를 확장한다. 기존 8shard 배치 파일을 추가하지 않는다. `KEEP_UNIQUE`: 실제 HTTP, broken FK/transaction, Copy/Template, whole/subset coverage, 리소스 WBS 계산, OOXML, 실제 브라우저5폭·focus; 이 독립 보호는 통합·삭제하지 않는다. `PARTIAL_OVERLAP`: 기존 #785 readonly 출처 조회와 새 writer/확인 경계는 겹치나 독립 책임이다. `ADD`: 신규 endpoint 및 source-aware UI; `CONSOLIDATE_CANDIDATE=없음`, `RETIRE_CANDIDATE=없음`. CI/E2E skip, timeout, Required gate 변경0.
 
 ## 운영 dry-run / 검증 범위
 
