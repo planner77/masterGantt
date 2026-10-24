@@ -644,7 +644,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setMetadataVisibility(value.data.project.visibility ?? "public");
     setMasterSelection({ businessUnitId: value.data.project.businessUnit?.id ?? "", productId: value.data.project.product?.id ?? "", siteEntityId: value.data.project.siteEntity?.id ?? "" });
     return true;
-  }, [publicId, setMasterSelection, setMetadataDescription, setMetadataName, setMetadataStatus]);
+  }, [publicId, setMasterSelection, setMetadataDescription, setMetadataName, setMetadataStatus, setMetadataVisibility]);
 
   useEffect(() => {
     const controller = new AbortController();
