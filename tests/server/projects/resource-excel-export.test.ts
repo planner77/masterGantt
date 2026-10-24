@@ -63,6 +63,10 @@ describe("#529 Resource workbook real SQLite HTTP handler and OOXML", () => {
     expect(response.status).toBe(200); expect(response.headers.get("set-cookie")).toBeNull(); expect(response.headers.get("cache-control")).toBe("private, no-store"); expect(response.headers.get("x-content-type-options")).toBe("nosniff");
     const entries = extract(new Uint8Array(await response.arrayBuffer())), wb = entries.get("xl/workbook.xml")!;
     const names = [...wb.matchAll(/name="([^"]+)"/g)].map(m => m[1]); expect(names.slice(-7)).toEqual(["Resource Report", "Resource Milestones", "Group Milestones", "Resource Plan", "Resource Assignments", "Resource Quality", "Resource Relations"]);
+    // #785: preserve the public Resource Report row name in actual SQLite/HTTP/OOXML.
+    const reportXml = entries.get(`xl/worksheets/sheet${names.indexOf("Resource Report") + 1}.xml`)!;
+    expect(reportXml).toContain("Actual report context");
+    expect(reportXml).not.toContain("Actual target context");
     const assignmentXml = entries.get(`xl/worksheets/sheet${names.indexOf("Resource Assignments") + 1}.xml`)!;
     const parsed = cells(assignmentXml); const report = f.service.getDashboard(f.project.publicId)!;
     expect([...assignmentXml.matchAll(/<row /g)]).toHaveLength(report.summary.assignmentCount + 1);

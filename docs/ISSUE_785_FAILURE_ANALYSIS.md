@@ -3,7 +3,7 @@
 Primary Issue: https://github.com/planner77/masterGantt/issues/785
 기준: [공통 실패 원장](PR_CI_FAILURE_TRIAGE.md). 원본 실패를 삭제하거나 PASS로 소급하지 않는다.
 
-현재 재개 Head는 `473b0fb103d445f64ef6b44be63a9b4d6456cbdc`, base는 `dd7f4d86db06e8a10b8c86b5412ed319154011e0`다. 새 Full #3208.1의 #734 보고서 root 불일치는 마지막 F785-006에서 진단한다. 이전71/PRE_QA는 당시 source와 실제 assertion의 범위로 보존하며 새 후보의 PASS로 소급하지 않는다.
+최신 분석 Head는 7af290c87d6317bc9ad1391b1a15f3e63b9fc01a, base/main은 4ce403a1e410ca599a780446f39513e1f1158326이다. Full #3216.1 Resource Excel 직접 실패는 마지막 F785-007에 기록한다. 과거 F785-001~006의 원본 상태 및 동결 로컬97/PRE_QA는 해당 source와 실행 모집단의 이력으로 보존한다.
 
 ## 2026-10-24 재개 — 현재 원격 출처 및 검증 경계
 
@@ -13,9 +13,9 @@ Primary Issue: https://github.com/planner77/masterGantt/issues/785
 
 ## 원인 분석 시점의 Run/Attempt 전체 목록
 
-아래는 원인 분석 시점에 수집한 Full7회 실패/취소 목록이다. 새 게시 후 등록한 Run/Attempt·정확 Head/base/test merge는 같은 Issue의 STATUS와 PR 검증 기록에 연결하며 이 표의 과거 결론을 소급 변경하지 않는다.
+아래는 이번 재실패 분석 시점까지 확인한 Full8회 실패/취소 목록이다. 새 게시 후 등록한 Run/Attempt·정확 Head/base/test merge는 같은 Issue의 STATUS와 PR 검증 기록에 연결하며 이 표의 과거 결론을 소급 변경하지 않는다.
 
-모두 event=`pull_request`, workflow=`.github/workflows/ci.yml`, attempt=`1`이다. 처음5회 base는 `427d22245fb8e11254b2424ea5147ccbd5766979`, #3204.1/#3208.1은 `dd7f4d86db06e8a10b8c86b5412ed319154011e0`다. source artifact/출처 부족을 PASS로 바꾸지 않는다.
+모두 event=`pull_request`, workflow=`.github/workflows/ci.yml`, attempt=`1`이다. 처음5회 base는 `427d22245fb8e11254b2424ea5147ccbd5766979`, #3204.1/#3208.1은 `dd7f4d86db06e8a10b8c86b5412ed319154011e0`, #3216.1은 `4ce403a1e410ca599a780446f39513e1f1158326`이다. source artifact/출처 부족을 PASS로 바꾸지 않는다.
 
 | Full / Run | 원본 Head | 원본 test merge | 직접 실패·취소·미실행 |
 | --- | --- | --- | --- |
@@ -26,6 +26,7 @@ Primary Issue: https://github.com/planner77/masterGantt/issues/785
 | [#3197.1](https://github.com/planner77/masterGantt/actions/runs/40032862265) / `40032862265` / FAILURE | `14a2be51c421eaab0f7f1f4004f4fe222dea21d7` | `322734a1ea8bbaffc89ed876f337d76cbab748f4` | shard2 Job120685901338 #734 확인창의 이름 불일치 실제 FAIL(5PASS/1FAIL/87NOTRUN), 나머지7shard CANCELLED. Quality/Docker SUCCESS |
 | [#3204.1](https://github.com/planner77/masterGantt/actions/runs/40040333641) / `40040333641` / FAILURE | `f03933cb16c6c99a1a35a3095b55b6158d69bab5` | `c442e7c6da33c5a7f92bac038bdddbe36f1cda96` | shard2 Job120710326907 step7 #461 Logistics checkbox 대기 timeout(67PASS/1FAIL/25NOTRUN), 나머지7shard CANCELLED. Quality/Docker SUCCESS; base dd7f4d86 |
 | [#3208.1](https://github.com/planner77/masterGantt/actions/runs/40045100122) / `40045100122` / FAILURE | `473b0fb103d445f64ef6b44be63a9b4d6456cbdc` | `fea4ad9558eec626ecbf56dc996e7d54127d3002` | shard2 Job120725634037 step7 #734 저장 후 spec.root 기대equipment/실제process(5PASS/1FAIL/87NOTRUN), 나머지7 CANCELLED. Quality/Docker SUCCESS; base dd7f4d86 |
+| [#3216.1](https://github.com/planner77/masterGantt/actions/runs/40051075577) / 40051075577 / FAILURE | 7af290c87d6317bc9ad1391b1a15f3e63b9fc01a | c7a5f963efc2a2d9549e0d3c174bc3d2bd637e16 | Shard7 #529 stale Excel metadata key Actual target context → JSON.parse(undefined); 73 PASS/1 FAIL/4 NOT RUN. Shard6/8 PASS, other5 CANCELLED; Quality/Docker PASS, E2E/QA derived FAIL; base4ce403a1 |
 
 초기5회에 대한 Advisory `pr-fast-development.yml`은 #40.1/#42.1/#44.1/#45.1/#47.1 다섯 Run 모두 SKIPPED이며 Full 실행/Required PASS가 아니다. 정확 Run ID와 Head는 정제 영수증에 보존한다. E2E fail-fast로 CANCELLED인28개 shard 로그를 모두 읽었으며, 기록된 추가 test FAIL은0이었다. 취소/미실행 테스트는 NOT TESTED로 유지한다. #3194의 Run CANCELLED와 이미 기록된 test FAIL은 서로 다른 층의 사실이다.
 
@@ -486,3 +487,14 @@ TEST_LIFECYCLE_REVIEW는기존6spec의전체시나리오EXTEND·정확736/누적
 사전 검토 PASS는 게시 준비 범위다. ca3의 실제97과 main통합후 입력한정재사용·fresh검사,Next생성차이로fullCheckoutfalse,자동fastBLOCKED115/UNKNOWN31/step0,공식새HeadRequired3/Trusted/Owner NOT TESTED를 구분했다. AC4안전편집 미구현/READONLY·Owner예외승인없음·HIGH/OWNER_MANAGED/qa_required=true·manager_decision=NOT TESTED/MERGE_READY=BLOCKED·release_authorized=false는 유지한다.
 
 이후 판정stamp/문서만 보완했고 source 추가변경은 없다. clean최종tree와 APIcandidate전체tree/두부모[473b,4ce]를 확인하고 기존PR본문1회→Head/mainlease재조회→nonforce ref1회→새testmerge/리뷰thread·충돌 및 FullCI등록/시작까지만 확인한다. 정확 게시Head/RunID/attempt/base/testmerge·metadata전용사건은 Issue STATUS로 연결하며 문서 자기SHA순환을 만들기 위해 추가push하지 않는다. CI완료모니터링/병합/Main/GHCR/Release/Issue종료/브랜치정리는 제외한다.
+
+## F785-007 — Full #3216.1 / #529 Resource Excel 메타데이터 TEST_CONTRACT (2026-10-24 KST)
+
+- **귀속:** Issue #785/PR #787, [Full Run 40051075577 attempt1](https://github.com/planner77/masterGantt/actions/runs/40051075577), event=pull_request, workflow=.github/workflows/ci.yml, head=7af290c87d6317bc9ad1391b1a15f3e63b9fc01a, base/main=4ce403a1e410ca599a780446f39513e1f1158326, immutable test merge=c7a5f963efc2a2d9549e0d3c174bc3d2bd637e16 (parents base/head; tree 393765fb92b77e52bb0b981276ae7f21b884af2d). 역사7Full·metadata/취소 및 원래 FAIL 결론을 소급 수정하지 않는다.
+- **직접 실패:** [Chromium Shard7 Job120744149110](https://github.com/planner77/masterGantt/actions/runs/40051075577/job/120744149110), 2026-10-24T02:05:30Z, tests/e2e/resource-excel-export-ui.spec.ts:109의 #529 실제 readonly Resource/exact XLSX case. assertReportWorkbook line59에서 metadata.get(Actual target context)는 undefined이고 JSON.parse(undefined)는 SyntaxError. 실제 Export HTTP/ZIP 다운로드·메타데이터 추출 이후 오래된 키를 찾은 Assertion 실패. Shard7: 73 PASS/1 FAIL/4 NOT RUN; Shard6/8 SUCCESS, 다른5 CANCELLED(Fail-Fast). 취소5개 Job 로그에서 다른 기록된 직접 테스트 실패0, 미실행은 NOT TESTED.
+- **파생:** Policy(운영 npm audit 포함)/TypeScript/ESLint/Vitest/PR Build/Docker 구현 및 Required Quality/Docker SUCCESS. Required E2E aggregate와 Automated QA Final은 Shard7로 인한 파생 FAILURE. GitCommitInfo git fetch 3000ms timeout은 직접 ASSERT 오류가 아니다.
+- **원인:** TEST_CONTRACT, F785-001 KPI mock, F785-002 Zod, F785-003~004 설비 공유 ID/이름, F785-005 물류초안, F785-006 설비 보고서 응답 오귀속과 별도 간접 소비자. 생산자는 이미 Resource Report에 Actual report context 및 publicEvidenceJson(bundle.sourceContext)를 기록하고 기존 Actual target context 사용자 축은 폐기했다. #529 E2E만 이전 문자열을 기대. 실제 원본/수량/Assignment 손실 증거는 없으므로 writer를 구 Target 형식으로 되돌리지 않는다. 기존 local Chromium97/25spec에는 #529 case가 없으므로 이전 PASS를 새 실패에 소급하지 않는다.
+- **보완 및 음성 보호:** 기존 #529 E2E 한 시나리오의 재사용 helper에서 현재 정확 metadata 키 존재/문자열 타입, 이전 키 부재, JSON 파싱 후 원래 full canonical resourceScopeContext 값 동등성을 모두 검사. current·exactAssignments·Project 전체 XLSX 3회 동일 helper 경유. 기존 tests/server/projects/resource-excel-export.test.ts의 실제 SQLite/HTTP/OOXML testcase를 EXTEND해 빠른 공개 행명 양성·구 행명 음성 검증. Original source provenance (not current totals)·그 외 원래 raw 수치·Assignment·snapshot·Gantt viewport/focus·limit·보안 단언 보존. 새 E2E spec 0, 테스트 skip/retry/timeout/CI/8shard 변경0.
+- **TEST_LIFECYCLE_REVIEW / AC:** E2E #529 및 해당 기존 Unit EXTEND. 이전 모든 실패 파일·Project/Resource Plan/Excel/ZIP·SQLite/HTTP/Identity/401·stale 및 기간별 수치 검증 KEEP_UNIQUE. AC2 공개 Target 비노출, AC5 T0/A/R/공수, AC7 OOXML Report, AC8 readonly·실제 Gantt/Focus, AC9 사전 검색 후 기존테스트 확장, AC10 docs/EXCEL_EXPORT.md·원장·Work Packet 동기화. 삭제·중복 통합·강제 test skip 없음.
+- **검증 한계:** GitHub source/원본 Job/Writer/기존 소비자 교차 확인과 변경 스니펫 TypeScript 구문 점검만 수행. 컨테이너 GitHub DNS 미해결로 npm/실제 Playwright/SQLite/Docker 로컬 실행 NOT TESTED. 새로운 정확 Head에서 Quality/E2E8/Docker/Trusted QA 결과를 검증해야 하며 CI 시작은 PASS가 아님.
+- **리뷰·승인:** 현재 PR 미해결 review threads0, main/base 및 mergeable=true는 수정 전·후 별도 재확인. risk HIGH, OWNER_MANAGED, manager_decision=NOT TESTED, MERGE_READY=BLOCKED, release_required=true, release_authorized=false. AC4 레거시 관계 자체 안전 편집 NOT IMPLEMENTED/READONLY/Owner 예외 없음, 운영 DB/외부 소비자/off-host backup·restore/Windows Excel 최종수동 UX NOT TESTED. 요청 범위는 보완·원장/문서·새 PR Full CI 시작까지이며 모니터링·병합/Main/GHCR/Release/Finalizer/Issue 종료 불포함.

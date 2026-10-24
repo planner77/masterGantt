@@ -424,3 +424,11 @@ TEST_LIFECYCLE_REVIEW는기존6spec의전체시나리오EXTEND·정확736/누적
 사전 검토 PASS는 게시 준비 범위다. ca3의 실제97과 main통합후 입력한정재사용·fresh검사,Next생성차이로fullCheckoutfalse,자동fastBLOCKED115/UNKNOWN31/step0,공식새HeadRequired3/Trusted/Owner NOT TESTED를 구분했다. AC4안전편집 미구현/READONLY·Owner예외승인없음·HIGH/OWNER_MANAGED/qa_required=true·manager_decision=NOT TESTED/MERGE_READY=BLOCKED·release_authorized=false는 유지한다.
 
 이후 판정stamp/문서만 보완했고 source 추가변경은 없다. clean최종tree와 APIcandidate전체tree/두부모[473b,4ce]를 확인하고 기존PR본문1회→Head/mainlease재조회→nonforce ref1회→새testmerge/리뷰thread·충돌 및 FullCI등록/시작까지만 확인한다. 정확 게시Head/RunID/attempt/base/testmerge·metadata전용사건은 Issue STATUS로 연결하며 문서 자기SHA순환을 만들기 위해 추가push하지 않는다. CI완료모니터링/병합/Main/GHCR/Release/Issue종료/브랜치정리는 제외한다.
+
+## PR #787 REWORK — F785-007 / Full #3216.1 Resource Excel metadata (2026-10-24 KST)
+
+- **원본:** [Run40051075577.1](https://github.com/planner77/masterGantt/actions/runs/40051075577) Head7af290c8/base4ce403a1/test merge c7a5f963. Shard7 Job120744149110의 #529 XLSX 검증이 구 Actual target context 키로 JSON.parse(undefined) FAIL. Shard7 73PASS/1FAIL/4NOTRUN, Shard6/8 PASS·다른5 CANCELLED, Quality/Build/Docker SUCCESS, E2E/QA 파생 FAIL. 이전 F785-001~006 불변.
+- **원인/변경:** 현재 writer는 정확한 공개 Actual report context 행을 출력하지만 과거 #529 테스트만 폐기된 Logistics Target 키 기대. 기존 E2E assertReportWorkbook을 새 키 문자열·기존 구 키 부재·원래 full canonical context 동등 검증으로 EXTEND. 하나의 검증 함수가 Current/exactAssignments/Project XLSX 모두 확인. 기존 실제 SQLite HTTP OOXML Unit도 시트 행명 양성·음성 EXTEND. writer/API/DB/Resource KPI/스냅샷·공수·ZIP·CI 워크플로 수정0.
+- **AC_TEST_COVERAGE / TEST_LIFECYCLE_REVIEW:** 기존 #529 E2E 및 Unit을 사전 검색해 EXTEND, 이전 #719/#734/#461/#785 F006 및 HTTP/SQLite/Report detail/capacity/Plan/Original source provenance/Export security KEEP_UNIQUE. AC2/5/7/8/9/10. docs/EXCEL_EXPORT.md 현행 키와 원본 출처 분리 문서화, 단일 실패 원장 갱신. 새 중복 E2E·skip·timeout/Retry/Required 강도 완화0.
+- **검증/인계:** 실제 로컬 E2E·Unit/npm·Docker는 GitHub DNS·checkout 부재로 NOT TESTED; 기존97 Chromium PASS 모집단은 #529를 포함하지 않음. 새 Head Full Quality/E2E8/Docker, default-main Trusted QA, Owner HIGH 승인 별도. 리뷰·base 충돌 재확인 후 기존 PR synchronize Full CI 시작만 하고 결과 모니터링/병합/Main/GHCR/Finalizer/Issue 종료 없음.
+- **승인 상태:** HIGH/OWNER_MANAGED, manager_decision=NOT TESTED, MERGE_READY=BLOCKED, release_required=true/release_authorized=false. AC4 레거시 안전 편집 미구현·운영 DB/외부 소비자/백업 미검증 유지.

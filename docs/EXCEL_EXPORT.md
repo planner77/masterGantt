@@ -4,6 +4,8 @@
 
 현재 선택/Project 참고·same-R·raw M/D/M/M·null/0·고유 Task/Assignment·수량 비배율·비가산 소계·formula/크기/권한/revision/snapshot 방어는 유지한다. 시트의 반복 출처·공유 실물을 재합산하지 않는다. Resource 요청 기본v2는 실물 필터를 사용하고 구형 descriptor는410 `LOGISTICS_SELECTION_RETIRED`; 명시 `X-MasterGantt-Resource-Version:1` audit 읽기는 deprecated다. 일반 일정 Excel/JSON1.1의 미지원 물류 연결은 기존 전체 실패를 유지하며 전체 backup으로 안내하지 않는다. 아래 과거 시트 설명은 이전 산출물 이력이다. [API](API.md), [검증/미완료](exec-plans/active/ISSUE_785.md).
 
+Resource Excel의 Resource Report 시트 공개 메타데이터 행은 **Actual report context**이다. 구 Actual target context 행은 Logistics Target 업무 도메인 폐기와 함께 사용하지 않는다. 실제 canonical sourceContext/revision/snapshot을 확인하며 Original source provenance (not current totals)는 출발 문맥으로 별도 유지한다. 현재·정확 Assignment·Project 전체 보고서의 고유 공수와 OOXML 원본 보존 정책은 불변이다.
+
 ## Issue #762 — 직접 구역과 일정 Excel의 범위
 
 일반 일정 Excel은 직접 WorkArea/owner/Task·설비 typed 연결을 보존하는 backup이 아니다. 사용0개 직접 구역 원본만 있어도409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`로 전체 거부하며 일부 관계를 누락한 성공 파일을 만들지 않는다. 기존 명시 Resource 보고서 opt-in은 read snapshot과 필터의 분석 출력으로 유지하고 전체 관계 왕복 포맷으로 부르지 않는다. Project Copy/Template v5 또는 대응 DB backup을 사용한다.
