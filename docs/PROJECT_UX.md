@@ -1,3 +1,7 @@
+## Issue #479 — Project visibility + private unlock UX
+
+Creation and Template instantiation expose public/private radio choice (default public). Existing public list links remain links; private list rows show compact text `비공개` and a button opening the Password dialog rather than directly navigating/pre-fetching sensitive data. Copy of a private Project also authenticates before navigating. Wrong password/rate-limited/network/cancel return to list, clear password draft, preserve focus through WorkspaceDialog. Private direct URL SSR displays no project name, description or Task; generic lock page accepts password and refreshes on success. The Project settings security tab edits visibility and submits the same guarded PATCH as other Project metadata. Expired/revoked session on subsequent canonical fetch clears stale client snapshot and requests a locked SSR refresh. Text + lock icon, keyboard focus, Escape and dense table layout follow DESIGN.md; mobile widths390/768/1024/1440/wide and browser screenshots remain NOT TESTED prior to PR CI. [Work Packet](exec-plans/active/ISSUE_479.md).
+
 ## Issue #785 — 실물 관점과 폐기 화면 복원
 
 상위 `일정 / 대시보드 / 기준정보`, 대시보드 `KPI / Milestone / 공정&WorkArea / 설비 / 물류 시스템 / 리소스`, 기준정보 `공정&WorkArea / 설비 / 물류 시스템 / 리소스`를 유지한다. 별도 Target 보기·관리·연결·카탈로그·진단·숨은 패널은 제공하지 않는다. 구형 `dashboard.target`은 `dashboard.process`, `master.targets`는 `master.processes`로 입구에서 정규화한다. 복원된 URL/저장 설정으로 폐기 UI를 다시 mount/fetch하지 않는다. 제어/조율 관계 기능은 유지한다.
