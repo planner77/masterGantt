@@ -357,6 +357,16 @@ describe("Issue #792 protected legacy binding scope writer", () => {
     response=await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,"POST",patch),
       f.project.publicId,f.summary.publicId,d,"preview");
     expect(response.status).toBe(409);
+    expect((await response.json()).error.code).toBe("LEGACY_SOURCE_STALE");
+    expect(snapshot(f)).toEqual(before);
+    // Member active state is part of the fingerprint; reread before testing
+    // the inactive expansion guard so stale protection remains independent.
+    const current=(await handleGetLegacyBindingSources(legacyRequest(f,f.summary.publicId,"GET"),
+      f.project.publicId,f.summary.publicId,d).json()).data.sourceBindings[0];
+    expect(current.sourceFingerprint).not.toBe(root.sourceFingerprint);
+    response=await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,"POST",
+      {...patch,sourceFingerprint:current.sourceFingerprint}),f.project.publicId,f.summary.publicId,d,"preview");
+    expect(response.status).toBe(409);
     expect((await response.json()).error.code).toBe("LEGACY_SOURCE_INACTIVE");
     expect(snapshot(f)).toEqual(before);
   });

@@ -116,3 +116,14 @@
 - 해결: 본 `## AC_TEST_COVERAGE`에 **AC7 역사적 #785 참조 전용 mapping** 한 행을 추가, #792의 AC2/AC4/AC5 기존 근거와 실제 운영 미검증을 연결했다. 기존 Issue 본문 역사·수용 기준을 임의 재정의하거나 실제 무손실 이관 성공으로 표시하지 않는다. 전체 `docs_gate` 항목/Issue 본문 7개 AC token을 사전 검사한다.
 - `TEST_LIFECYCLE_REVIEW`: 코드·fixture·test assertions 변경 **0**. 기존 Unit/SQLite/Chromium8·WBS·Excel·Copy·Template·권한 독립 보호 KEEP_UNIQUE. 최초 2회 Full은 preflight 전후 범위만 검증하여 실제 제품/부하/브라우저 테스트는 `NOT RUN`, 새 Head Full만 권위 있다.
 - 상세 직접/파생/아티팩트/중단·잔여 및 Cross-run matrix: [#792 누적 원장 F792-002](../../ISSUE_792_FAILURE_ANALYSIS.md#f792-002--pr-795-full-32391-documentation_sync-ac7-mapping-failure).
+
+## F792-003 — 전체 이력 재수집 및 Full #3240.1 재작업 (2026-10-24)
+
+- 승인 범위는 기존 PR #795의 분석·보완·리뷰/충돌 확인·누적 원장 기록과 새 Full CI 시작까지다. HIGH / qa_required=true / OWNER_MANAGED, version 0.131.0 유지, release_required=true / release_authorized=false. 원격 Required3·Trusted·Owner 위험 수용 전 MERGE_READY=BLOCKED다.
+- 실제 실행은 Manager + frontend(UI/E2E) + backend(HTTP/SQLite·보안 목록 테스트) + infra(읽기 전용 원격 이력) + qa_docs(읽기 전용 변경 검토)로 분리한다. 문서는 Manager가 소유하며 같은 파일 동시 쓰기와 Sub-Agent의 Issue/PR 댓글·게시를 허용하지 않는다. 과거 커넥터 단일 실행 기록은 당시 사실로 보존한다.
+- infra가 PR branch 전체 Full 9개를 조회했다. 기존 원장에서 빠진 #3232/#3236/#3238의 DOC_SYNC 항목 형식 실패와 #3233/#3234/#3235 취소를 [누적 원장](../../ISSUE_792_FAILURE_ANALYSIS.md)에 백필한다. 취소 Run의 test-merge는 UNKNOWN이고 #3234 base도 UNKNOWN이다. 현재 PR ref로 과거 출처를 추정하지 않는다.
+- #3240.1의 원본 Head `25fed516656b2dfa864a7424ab6f3dd4a0df1423`, base `b45885812301d14b9f673841e9944b27b2642323`, test-merge `41ee531634eeb0a60513b44ff32c3c1a9e1b4595`. Preflight/Policy는 PASS에 도달했으나 TypeScript·ESLint·Vitest가 직접 FAIL이다. Next build/Chromium8/Docker 구현은 NOT RUN, Required3/QA FAIL은 파생이다.
+- frontend는 Task/Revision을 key로 갖는 source 편집 세션으로 동기 effect reset을 대체하고, unmount 시 epoch를 무효화해 낡은 응답을 차단한다. PATCH의 parent pending은 `onApplied` 완료 뒤 finally에서 해제한다. E2E의 선택적 compatibilityLinks는 배열 존재를 명시 검사하며 누락은 계속 FAIL이다.
+- backend는 System.active 변경 후 과거 fingerprint가 STALE로 거부되는 정상 우선순위를 보존한다. 새 source 조회 후 INACTIVE 거부와 DB 불변을 각각 검사한다. 보안 inventory 기대 목록에 신규 세 경로와 GET/POST/PATCH 권한·실제 변경 여부를 정확히 추가한다. 서버 제품 코드·API/DB/보안 계약 변경은 없다.
+- TEST_LIFECYCLE_REVIEW: 기존 두 실패 Vitest 파일·#617/#785 source/교환 회귀와 #726 실제 HTTP/SQLite/5폭/readonly/지연 PATCH를 EXTEND/KEEP_UNIQUE한다. revision 변경 뒤 이전 preview/token 미노출·최신 scope 재조회도 기존 E2E에 추가한다. 신규 spec, skip, retry/timeout, 샤드/Required/validator 변경은 없다.
+- DOCUMENTATION_SYNC의 정형 H2·파일 상태·AC1~AC7 매핑을 신뢰된 base의 `docs_gate`로 재검증한다. 구현의 lifecycle 정리와 테스트 보강은 기존 Task Editor/UX 계약을 유지하므로 API/DB/SECURITY/운영 설계 추가 변경 N/A다. 로컬 검증 및 동결 지문은 누적 원장의 F792-003에 기록한다. 실제 운영 DB/consumer/off-host restore/Windows Excel·수동 운영 UX는 계속 NOT TESTED다.

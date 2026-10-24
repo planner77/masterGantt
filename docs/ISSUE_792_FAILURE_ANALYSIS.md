@@ -107,3 +107,79 @@ Primary Issue: https://github.com/planner77/masterGantt/issues/792
 | F792-001 | [40067826081.1](https://github.com/planner77/masterGantt/actions/runs/40067826081) | `QA Preflight DOCUMENTATION_SYNC H2` 누락 | H2/필수파일/AC1~6 보완 + P1 Draft 잠금 병렬 보완 | 차기 Run의 H2 개선 확인, 제품 검사 여전히 미실행 |
 | F792-002 | [40069142338.1](https://github.com/planner77/masterGantt/actions/runs/40069142338) | `QA Preflight DOCUMENTATION_SYNC AC7` 누락 | #785 AC7 역사적 cross-issue 참조만 `- AC7:`로 명시, 실측 미완료 유지 | 새 Head의 원격 Full 결과 전 NOT TESTED |
 
+
+
+## 2026-10-24 전체 이력 감사 — 기존 원장의 누락 백필
+
+PR #795 branch의 접근 가능한 `CI` Full은 총 **9개, 모두 attempt 1: FAILURE 6개 / CANCELLED 3개**다. 기존 F792-001/F792-002 기록은 최초 확인 범위로 보존하고, 이번 infra 조회로 누락 Run 6개를 보강한다. 각 Run은 `pull_request`, 아래 Head는 원본 `run.head_sha`, base/test-merge는 과거 checkout 로그에서 확인했다. 현재 PR ref 또는 실행 제목으로 과거 SHA를 추정하지 않는다. Source artifact는 메타데이터만 조회했으며 ZIP 실행·정책 검증 영수증 재사용은 하지 않았다. 상세 Job/Step/Artifact 정제 목록은 [보조 증거](evidence/issue-792/ci-history-20261024.json)에 둔다.
+
+| Full / Run ID | 원본 Head | 원본 base / test-merge | 원본 판정·직접 원인 |
+| --- | --- | --- | --- |
+| [#3231.1](https://github.com/planner77/masterGantt/actions/runs/40067826081) / `40067826081` | `8f1cab235bd9d15845e729641020e936dc42be79` | `b45885812301d14b9f673841e9944b27b2642323` / `f999452b8e1c742e2f28dd82067d46f05875f59a` | FAILURE — H2 누락 (F792-001) |
+| [#3232.1](https://github.com/planner77/masterGantt/actions/runs/40068404543) / `40068404543` | `0f2ea6ed587b2d7c63bb8389914188cd16469781` | `b45885812301d14b9f673841e9944b27b2642323` / `103a9c964bd1a43d037694dd90e4ec390f042b83` | FAILURE — DOC_SYNC 기록 누락 (이번 백필) |
+| [#3233.1](https://github.com/planner77/masterGantt/actions/runs/40068527434) / `40068527434` | `cb2da0c2917ccb42ca2548b33d480b2188334043` | `b45885812301d14b9f673841e9944b27b2642323` / `UNKNOWN` | CANCELLED — 출처 보존/checkout 중 취소 |
+| [#3234.1](https://github.com/planner77/masterGantt/actions/runs/40068533619) / `40068533619` | `b01ec6719e5cebb53730559ae124786b2cf04dff` | `UNKNOWN` / `UNKNOWN` | CANCELLED — Job 0개/Artifact 0개 취소 |
+| [#3235.1](https://github.com/planner77/masterGantt/actions/runs/40068539110) / `40068539110` | `20bb271dc126e38ee8bf5bd45c611b598333f1dd` | `b45885812301d14b9f673841e9944b27b2642323` / `UNKNOWN` | CANCELLED — checkout 중 취소 |
+| [#3236.1](https://github.com/planner77/masterGantt/actions/runs/40068581178) / `40068581178` | `2b5d5c5764f3efbbc5a54678e7b332427827d40e` | `b45885812301d14b9f673841e9944b27b2642323` / `c97290f43b6bc46ca6598e5c8c196b73329fb1e8` | FAILURE — DOC_SYNC 기록 누락 (이번 백필) |
+| [#3238.1](https://github.com/planner77/masterGantt/actions/runs/40068884514) / `40068884514` | `2e72bf6a726ceb7da2d1391156766526c90c7175` | `b45885812301d14b9f673841e9944b27b2642323` / `b0697cf13750c4dbcce45accd356c3385d4d534e` | FAILURE — DOC_SYNC 기록 누락 (이번 백필) |
+| [#3239.1](https://github.com/planner77/masterGantt/actions/runs/40069142338) / `40069142338` | `4819a8f8134ca5f5c74e13faf1123121541cdc2c` | `b45885812301d14b9f673841e9944b27b2642323` / `6db0c7017faacc081776724d13ddd793034a5dcc` | FAILURE — AC7 매핑 누락 (F792-002) |
+| [#3240.1](https://github.com/planner77/masterGantt/actions/runs/40073927759) / `40073927759` | `25fed516656b2dfa864a7424ab6f3dd4a0df1423` | `b45885812301d14b9f673841e9944b27b2642323` / `41ee531634eeb0a60513b44ff32c3c1a9e1b4595` | FAILURE — TypeScript·ESLint·Vitest 직접 FAIL (F792-003) |
+
+- **백필 F792-B001 / #3232.1**: 05:59:29Z 시작, Preflight Job `120796439262` Step4에서 `DOC_SYNC 기록 누락`. H2는 있었지만 파일별 `- `path`: UPDATED|N/A(reason)` 파싱 결과가 비어 있었다. Fast Gate 및 Required3/QA FAIL은 파생, 실제 TypeScript/ESLint/Vitest/Next/Chromium8/Docker NOT RUN이다.
+- **백필 F792-B002 / #3236.1**: 06:01:56Z 시작, Preflight Job `120797103043` Step4 같은 `DOC_SYNC 기록 누락`. **백필 F792-B003 / #3238.1**: 06:06:28Z 시작, Preflight Job `120797881995` Step4 같은 오류. 각 Head에서 별도 실패이며 #3231 H2 오류나 #3239 AC7 오류와 합쳐 지우지 않는다. 두 Run 모두 제품 구현 검사는 NOT RUN, Fast Gate/Required3/QA FAIL은 파생이다. 기존 F792-001 최종 교정의 정형 파일 상태 행을 유지하고 base `docs_gate`로 재검증한다.
+- **백필 F792-C001 / #3233.1**: 06:01:09Z 시작, 출처 Job `120796758204` Step3 및 신뢰 경계 Job `120796758086` Step2 취소. Fast Gate `120796786138`, Quality `120796836445`, E2E `120796836605`, Docker `120796836392` FAIL은 취소로 인한 파생이며 제품 Job은 steps=[] 상태에서 취소됐다. 원본 source artifact 없음, test-merge UNKNOWN.
+- **백필 F792-C002 / #3234.1**: 06:01:14Z 시작, Job/Artifact 모두 0개로 취소, base/test-merge UNKNOWN. **백필 F792-C003 / #3235.1**: 06:01:18Z 시작, 신뢰 경계 Job `120796906262` Step2 base checkout 취소; Fast Gate `120796926818`, Quality `120796969021`, E2E `120796969093`, Docker `120796969046` FAIL은 파생. 제품 Job steps=[]로 미실행, source artifact 없음/test-merge UNKNOWN. 취소 전 제품 직접 FAIL 증거는 없으며 PASS나 실패 0건 성공으로 계산하지 않는다.
+- 같은 branch의 FAST_DEVELOPMENT 9개는 모두 SKIPPED이며 Full PASS가 아니다. 해당 범위의 metadata-only/rerun attempt 추가 기록은 조회되지 않았다. 다른 Issue/Main/Release Run은 #792 PR 실패로 복제하지 않는다.
+
+## F792-003 — Full #3240.1 직접 정적·단위 실패와 동일 source 교정
+
+### 원본 실행 증거
+
+[Run 40073927759 / #3240.1](https://github.com/planner77/masterGantt/actions/runs/40073927759), `CI / pull_request`, 2026-10-24 07:23:15Z 시작. Head `25fed516656b2dfa864a7424ab6f3dd4a0df1423`, base `b45885812301d14b9f673841e9944b27b2642323`, 원본 TypeScript checkout의 test-merge `41ee531634eeb0a60513b44ff32c3c1a9e1b4595`. source artifact `ci-pr-source-40073927759-1` ID `12552715446` (조회 당시 만료 아님).
+
+| 실제 Job / Step | 원본 판정·핵심 오류 |
+| --- | --- |
+| TypeScript `120813220317` / Step7 `Run npm run typecheck` | FAIL, 07:24:26Z `issue-726-task-logistics.spec.ts(515,10) TS18048: child.compatibilityLinks is possibly undefined` |
+| ESLint `120813220333` / Step6 `Run npm run lint` | FAIL, 07:25:14Z `legacy-binding-scope-editor.tsx:48` effect 동기 setState, `react-hooks/set-state-in-effect`. 기존 경고 10개는 별도이며 직접 error는 1개 |
+| Vitest `120813220342` / Step6 `Run npm test` | FAIL, `task-target-bindings-handlers.test.ts:360` 비활성 확대 기대 INACTIVE/실제 STALE, `edit-authorization-handlers.test.ts:414` 신규 GET/POST/PATCH 기대 목록 누락. 2 failed / 3268 passed / 3 skipped (3273), 파일 2 failed / 275 passed / 1 skipped (278), 76.22s |
+
+Preflight `120813180344` 및 Policy `120813220307` PASS로 과거 H2/파일별 상태/AC7 교정은 통과했다. Fast Gate `120813589371`, Quality `120813646757`, Chromium `120813646784`, Docker `120813646854`, QA Final Automated `120813664951`의 FAIL은 위 직접 실패의 파생이다. PR Next build `120813647249`, Chromium8 구현 `120813647190`, Docker 구현 `120813647836`은 SKIPPED/NOT RUN이다. advisory Shadow 성공을 Required PASS로 승격하지 않는다.
+
+### 가설·재현·원인별 보완
+
+1. **TEST_CONTRACT**: System.active 변경은 resolver member.active와 fingerprint를 바꾼다. 따라서 예전 fingerprint는 STALE이 먼저 나와야 한다는 가설을 로컬에서 확인했다. 기존 비활성 단언을 삭제하지 않고 과거 fingerprint STALE/DB 불변 → GET 새 fingerprint 변화 → 새 fingerprint INACTIVE/DB 불변을 각각 검사한다. 새 fingerprint까지 허용되는 제품 guard 결함 가설은 기각됐다. 서버 제품 코드는 변경하지 않았다.
+2. **TEST_CONTRACT**: 신규 세 route는 실제 inventory에 있으나 exact 기대 목록 소비자만 빠졌다. 목록 및 GET read / POST guarded nonmutation / PATCH guarded mutation 정책을 정확히 추가했다. Origin/session/If-Match 정책을 낮추지 않았다.
+3. **PRODUCT / UI lifecycle**: Task/Revision props가 바뀌면 effect에서 동기 reset하던 source 편집 세션을 `taskId:revision` key로 교체한다. 전체 Task Editor/직접 연결 초안은 remount하지 않는다. unmount epoch 무효화로 낡은 GET/preview 응답을 막고 PATCH→`onApplied` 종료까지 parent pending 잠금은 유지한다. lint disable·setTimeout 우회는 없다.
+4. **TEST_CONTRACT / 타입**: 선택 필드 compatibilityLinks는 Array.isArray로 존재를 검증해 타입을 좁힌다. 누락은 명시 FAIL이며 `!` 또는 빈 배열 대체로 provenance 검증을 생략하지 않는다.
+5. **LOCAL-008 / FIXTURE_OBSERVABILITY**: 최초 실제 #792 Chromium 실행 15.3s FAIL은 지연 PATCH gate를 해제하자마자 `page.unroute`를 호출해 handler의 `route.continue`와 경합한 `Route is already handled!`였다. 지연 중 잠금까지 도달했으며 이후 canonical/readonly 검증은 완료되지 않았다. handler 완료를 기다린 뒤 unroute하여 실제 PATCH 응답과 잠금을 검증한다. 이 로컬 실패를 원격 #3240의 직접 오류나 제품 성공으로 바꾸지 않는다.
+
+### 누적 Cross-run 및 검증 범위
+
+| 사건 | 누적 실패 계약/파일 | 이번 후보의 대응·잔여 |
+| --- | --- | --- |
+| F792-001 / #3231 | Work Packet H2 | 정확 H2 유지, base docs_gate 재실행 |
+| B001/B002/B003 / #3232/#3236/#3238 | Work Packet 파일별 DOC_SYNC 행 | 정형 상태 행 유지, AC1~AC7 포함 재검증 |
+| C001/C002/C003 / #3233/#3234/#3235 | 취소·원본 source 미확보 | 미실행으로 보존, 과거 test-merge UNKNOWN |
+| F792-002 / #3239 | 역사적 #785 AC7 mapping | AC7의 출처 전용/운영 미검증 범위 유지 |
+| F792-003 / #3240 | UI effect / E2E optional field / HTTP fixture / route inventory | 제품 lifecycle 및 기존 테스트 EXTEND. 과거 pending P1 잠금 유지 |
+| LOCAL-008 | #726 delayed PATCH handler 정리 경합 | 완료 후 unroute, 로컬 재실행 필요 |
+
+실제 실패 테스트의 누적 합집합은 `tests/server/logistics/task-target-bindings-handlers.test.ts`, `tests/server/projects/edit-authorization-handlers.test.ts`, `tests/e2e/issue-726-task-logistics.spec.ts`다. 직접 UI 파일은 `src/features/gantt/legacy-binding-scope-editor.tsx`, 과거 문서 실패는 Work Packet이다. 인접 `task-target-bindings.test.ts` 및 `issue-785-exchange.test.ts`의 실제 UUID/coverage·원자성·교환 경계를 함께 선택했다. 기존 source auth/revision/whole/subset/FK/rollback/restart·Copy/Template·WBS/Excel은 KEEP_UNIQUE, 전체 로컬 Docker/8-shard/OOXML 재반복은 변경 범위 밖이므로 공식 새 PR Full CI에 맡긴다. 기존 테스트 삭제·skip·retry/timeout/샤드·Required·validator 완화는 없다.
+
+### 로컬·문서·리뷰 및 다음 인계
+
+- 환경: 새 worktree `/home/planner/Dev/masterGantt-792`, Node 22.14.0, `npm ci --no-audit --no-fund` 446 packages / 10s PASS. 과거 커넥터의 실행 불가 진술은 당시 경계로 보존한다.
+- backend 원본 재현: `npm test -- tests/server/logistics/task-target-bindings-handlers.test.ts tests/server/projects/edit-authorization-handlers.test.ts` → 2 FAIL / 42 PASS, 1.32s. 보완 뒤 위 두 파일 + `tests/server/logistics/task-target-bindings.test.ts tests/server/projects/issue-785-exchange.test.ts` → 69/69 PASS, 1.96s. qa_docs 별도 재실행 69/69 PASS, 1.97s.
+- frontend 원본 대상 ESLint 1 error 및 TypeScript TS18048 재현 후 대상 ESLint / `npm run typecheck` PASS. 실제 Chromium 최종 결과와 코드/테스트 동결 SHA256은 아래 최종 검증 절에 추가한다.
+- DOCUMENTATION_SYNC: Work Packet·TEST_PLAN·단일 실패 원장 갱신. 기존 API/DB/보안/UX의 source scope 및 pending 의미 계약은 불변이며 추가 설계 변경 N/A다. 운영 DB/외부 consumer/off-host restore/Windows Excel/수동 운영 UX는 NOT TESTED.
+- 실제 역할은 Manager·frontend·backend·infra와 별도 읽기 전용 qa_docs다. qa_docs 로컬 검토는 GitHub 독립 인간 APPROVED 또는 기본 브랜치 Trusted/Owner 영수증이 아니다. HIGH / qa_required=true / OWNER_MANAGED, manager_decision=NOT TESTED / MERGE_READY=BLOCKED, release_required=true / release_authorized=false, version 0.131.0 유지.
+- 현재 PR #795는 unresolved thread 0(기존 P1 resolved) / mergeable=true / main 대비 behind0이며, 게시 직전에 최신 상태를 다시 조회한다. 새 exact Head Full PR CI 시작만 승인됐으며 완료 모니터링·병합/Main/GHCR/Release/Finalizer·브랜치 삭제/Issue 종료는 수행하지 않는다.
+
+### F792-003 최종 동결 source의 Local Fast Feedback
+
+- `npm run typecheck`: PASS, Next dev가 바꾼 AGENTS.md/next-env.d.ts/tsconfig.json을 원복한 최종 tracked 설정에서도 확인했다. 대상 UI/E2E·backend 테스트 ESLint 및 `git diff --check` PASS다.
+- `npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-726-task-logistics.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --grep '#792'`: **1/1 PASS**, case 18.6s / 전체 35.5s. 실제 Chromium·HTTP·격리 SQLite에서 390/768/1024/1440/1920px, readonly, preview nonmutation, UUID·whole·상속 불변, PATCH 지연 중 Task 입력·탭·닫기·Escape 잠금, reload 이후 해제 및 최신 scope/preview 초기화를 확인했다. 전체 8-shard/수동 접근성·운영 UX PASS는 아니다. 원본 LOCAL-008 실패 15.3s는 그대로 보존한다.
+- SHA256 `src/features/gantt/legacy-binding-scope-editor.tsx`: `d8a6abe26c49bcae6efe1656fca8560321bb448f5102ee78a8901524f8d6b919`; `tests/e2e/issue-726-task-logistics.spec.ts`: `104d4ee1c43b62923812aa22b41b3ba32bc09bc2a5ff935717c29809c9d35b7c`.
+- SHA256 `tests/server/logistics/task-target-bindings-handlers.test.ts`: `872c40d9a128c076fa35450367da6cdf4f7012d02421bf52601830cd277557a4`; `tests/server/projects/edit-authorization-handlers.test.ts`: `880fc14eab674fafc604afe3dc01258bf7b170ee1e0c985c770bad68839495be`. 위 동일 source의 HTTP/SQLite·domain·authorization·#785 exchange 4파일 69/69 PASS를 확인했다.
+- keyed revision reset 단독 차이를 증명하는 mutation 시험은 미실행이며, 브라우저 결과는 canonical reload를 포함한 실제 사용 흐름 관측이다. unmount cleanup/async epoch/parent pending은 별도 qa_docs의 읽기 전용 코드 검토로도 확인했다. 새 exact Head의 원격 Required3·Trusted/Owner는 NOT TESTED, Manager ACCEPT는 미실시다.
+- 기본 브랜치 `b45885812301d14b9f673841e9944b27b2642323`의 `qa_final_automated.py::docs_gate`를 별도 추출해 PR 전체 변경 경로와 AC1~AC7로 실행했다. 필수 문서 9개와 DOC_SYNC/AC 매핑은 `STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING` / `MAPPING_PASS_SEMANTIC_REVIEW_PENDING`이다. `node scripts/check-markdown-links.mjs` 321파일 링크 PASS, `git diff --check` PASS. 이는 로컬 구조 검사이며 원격 Preflight/Trusted QA PASS가 아니다.

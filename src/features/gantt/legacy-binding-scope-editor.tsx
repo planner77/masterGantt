@@ -34,7 +34,13 @@ interface Props {
 }
 
 /** Opt-in, independent of the ordinary direct Equipment/System editor draft. */
-export function LegacyBindingScopeEditor({taskId, revision, editable, disabled, sourceNames, onApplied, onUnauthorized, onPendingChange}: Props) {
+export function LegacyBindingScopeEditor(props: Props) {
+  // A preview belongs to one Task/Revision snapshot. Remount its local state
+  // when that identity changes instead of resetting it after a stale render.
+  return <LegacyBindingScopeSession key={`${props.taskId}:${props.revision}`} {...props} />;
+}
+
+function LegacyBindingScopeSession({taskId, revision, editable, disabled, sourceNames, onApplied, onUnauthorized, onPendingChange}: Props) {
   const [open, setOpen] = useState(false);
   const [sources, setSources] = useState<Source[]>([]);
   const [selectedId, setSelectedId] = useState("");
@@ -43,10 +49,11 @@ export function LegacyBindingScopeEditor({taskId, revision, editable, disabled, 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const epoch = useRef(0);
-  useEffect(() => {
+  useEffect(() => () => {
+    // Ignore reads/previews that settle after their snapshot was replaced.
+    // The PATCH finally still releases the parent's lock after onApplied.
     epoch.current += 1;
-    setOpen(false); setSources([]); setSelectedId(""); setPreview(null); setBusy(false); setError(null);
-  }, [taskId, revision]);
+  }, []);
   const selected = sources.find(source => source.sourceId === selectedId);
   const sourceNamesById = new Map<string, string>(sourceNames.map(source => [source.sourceId, source.label] as const));
   const path = () => {

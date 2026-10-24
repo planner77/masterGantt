@@ -469,14 +469,17 @@ test("#792 Summary legacy source-only scope preview/confirm, real HTTP SQLite, 5
   // navigation, basic inputs and all other logistics writers must remain locked.
   let releasePatch: (() => void) | undefined;
   let patchStarted: (() => void) | undefined;
+  let patchHandled: (() => void) | undefined;
   const patchGate = new Promise<void>(resolve => { releasePatch = resolve; });
   const patchSeen = new Promise<void>(resolve => { patchStarted = resolve; });
+  const patchFinished = new Promise<void>(resolve => { patchHandled = resolve; });
   const patchPattern = `**/api/projects/${f.publicId}/tasks/${f.parentTask.taskId}/legacy-binding-sources`;
   await page.route(patchPattern, async route => {
     if (route.request().method() !== "PATCH") { await route.continue(); return; }
     patchStarted?.();
     await patchGate;
-    await route.continue();
+    try { await route.continue(); }
+    finally { patchHandled?.(); }
   });
   await scoped.getByRole("button",{name:"영향을 확인하고 적용"}).click();
   try {
@@ -494,6 +497,9 @@ test("#792 Summary legacy source-only scope preview/confirm, real HTTP SQLite, 5
     await expect(editor).toBeVisible();
   } finally {
     releasePatch?.();
+    // Removing interception before the active handler resumes can handle the
+    // same request twice. Finish the real request before removing its route.
+    await patchFinished;
     await page.unroute(patchPattern);
   }
   await expect.poll(async()=> {
@@ -505,6 +511,15 @@ test("#792 Summary legacy source-only scope preview/confirm, real HTTP SQLite, 5
   await expect(editor.getByRole("button",{name:"작업 편집기 닫기"})).toBeEnabled();
   await expect(editor.getByRole("tab",{name:/^리소스/})).toBeEnabled();
   await expect(editor).not.toHaveAttribute("aria-busy", "true");
+  // The incremented Revision starts a new source editing session. Neither the
+  // previous selection nor its confirmation token may survive the reload.
+  await expect(scoped).toHaveCount(0);
+  await readonlySource.getByRole("button",{name:"기존 관계 적용 범위 수정"}).click();
+  await expect(scoped.getByLabel("적용 범위")).toHaveValue("subtree");
+  await expect(scoped.getByRole("status")).toHaveCount(0);
+  await expect(scoped.getByRole("button",{name:"영향을 확인하고 적용"})).toHaveCount(0);
+  await expect(scoped.getByRole("button",{name:"영향 미리보기"})).toBeDisabled();
+  await scoped.getByRole("button",{name:"취소",exact:true}).click();
   const verified=(await (await page.request.get(api)).json()).data;
   expect(verified.projectRevision).toBe(initial.projectRevision+1);
   expect(verified.sourceBindings[0].sourceId).toBe(originalId);
@@ -512,6 +527,7 @@ test("#792 Summary legacy source-only scope preview/confirm, real HTTP SQLite, 5
   expect(readLegacyFixtureCounts(isolatedApplication,f.publicId)).toEqual(before);
   const child=await readBrowserTaskLogisticsLinks(page,
     `/api/projects/${f.publicId}/tasks/${f.task.taskId}/logistics-links`,observeIsolatedApi);
+  if (!Array.isArray(child.compatibilityLinks)) throw new Error("하위 작업의 기존 관계 출처가 누락되었습니다.");
   expect(child.compatibilityLinks.some(item=>item.sourceId===originalId&&item.inherited===true)).toBe(true);
   const readonlyContext=await page.context().browser()!.newContext();
   try {

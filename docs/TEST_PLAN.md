@@ -1,3 +1,11 @@
+## Issue #792 F792-003 — 로컬 재현 및 교차 회귀 보강 (2026-10-24)
+
+Full #3240.1은 Preflight/Policy PASS 뒤 TypeScript·ESLint·Vitest에서 직접 FAIL이었다. 아래 최초 구현 당시 NOT TESTED 기록은 당시 경계로 보존하며 이번 실제 로컬 실행은 [단일 누적 원장](ISSUE_792_FAILURE_ANALYSIS.md)의 F792-003과 구분한다. 로컬 PASS는 새 Head 원격 Full8/Required3·Trusted/Owner 승인 결과가 아니다.
+
+- `EXTEND`: 기존 `task-target-bindings-handlers.test.ts`에서 System.active 변경 뒤 과거 fingerprint의 STALE 거부와 새 fingerprint의 INACTIVE 거부·각 DB 불변을 독립 검증한다. `edit-authorization-handlers.test.ts`는 legacy-binding-sources의 정확 GET/POST/PATCH와 optional-session-read / origin-session-if-match / 실제 mutation 여부를 열거한다. 기존 권한·Origin·If-Match 음성 경계는 유지한다.
+- `EXTEND`: `issue-726-task-logistics.spec.ts`의 기존 #792 실제 HTTP/SQLite/5폭/readonly·지연 PATCH 잠금 시험에 revision 교체 후 이전 source 세션/preview/token 미노출, 최신 subtree 재조회와 같은 scope 미리보기 disabled를 추가한다. compatibilityLinks가 누락되면 명시 FAIL로 처리한다. Task/Revision key 세션 및 unmount epoch는 늦은 응답 무효화와 PATCH→canonical reload 전체 parent pending 계약을 보존한다.
+- `KEEP_UNIQUE`: source whole/subset/coverage·실제 SQLite rollback/restart, #785 JSON/Copy/Template·원본 UUID, 브라우저 geometry·readonly·초안 보호는 서로 다른 위험이다. 테스트 삭제·skip·assertion 완화, 새 spec/shard, retry/timeout 변경 없음. 운영 off-host restore/consumer 실측·수동 Excel은 NOT TESTED다.
+
 ## Issue #792 — 보존 레거시 원본 scope writer 영향 / Test Lifecycle (2026-10-24)
 
 ### #792 실제 브라우저 보호 (코드 추가, 결과 NOT TESTED)
