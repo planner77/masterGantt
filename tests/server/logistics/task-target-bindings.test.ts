@@ -15,6 +15,7 @@ import { LogisticsTargetService } from "../../../src/server/logistics/logistics-
 import { LogisticsService } from "../../../src/server/logistics/logistics-service-core";
 import { LogisticsRepository } from "../../../src/server/repositories/logistics-repository-core";
 import { ProjectRepository, EditSessionRepository } from "../../../src/server/repositories/project-repository-core";
+import { insertHistoricalPublicProject } from "../../fixtures/legacy-project";
 import { ScheduleRepository } from "../../../src/server/repositories/schedule-repository-core";
 import { ProjectMasterRepository } from "../../../src/server/repositories/project-master-repository-core";
 import { ProcessCatalogRepository } from "../../../src/server/repositories/process-catalog-repository-core";
@@ -23,7 +24,7 @@ import { createSessionToken, sessionExpiry } from "../../../src/server/security/
 const now = new Date("2026-10-14T01:00:00Z"), stamp=now.toISOString(), migrationsDirectory=join(process.cwd(),"db/migrations");
 function setup(filename=":memory:",migrations=migrationsDirectory) {
   const {database:db}=openDatabase({filename,migrationsDirectory:migrations});
-  const project=new ProjectRepository(db).insert({publicId:randomUUID(),name:"F3",description:"",status:"planned",passwordKdf:"scrypt",passwordSalt:Buffer.alloc(16,1),passwordHash:Buffer.alloc(32,2),scryptN:32768,scryptR:8,scryptP:3,scryptKeyLength:32,calendarTimezone:"Asia/Seoul",createdAt:stamp,updatedAt:stamp});
+  const project=insertHistoricalPublicProject(db,{publicId:randomUUID(),name:"F3",description:"",status:"planned",passwordKdf:"scrypt",passwordSalt:Buffer.alloc(16,1),passwordHash:Buffer.alloc(32,2),scryptN:32768,scryptR:8,scryptP:3,scryptKeyLength:32,calendarTimezone:"Asia/Seoul",createdAt:stamp,updatedAt:stamp});
   const token=createSessionToken(), expiresAt=sessionExpiry(now).toISOString();
   const sessionId=new EditSessionRepository(db).insert({projectId:project.id,tokenHash:token.tokenHash,authVersion:project.authVersion,createdAt:stamp,expiresAt});
   const auth={projectId:project.id,projectPublicId:project.publicId,projectRevision:1,projectAuthVersion:project.authVersion,sessionId,tokenHash:token.tokenHash,expiresAt};
@@ -192,7 +193,7 @@ describe("Issue #617 binding persistence and membership guards",()=>{
     for(const name of readdirSync(migrationsDirectory).filter(n=>/^\d{4}_.*\.sql$/.test(n)&&Number(n.slice(0,4))<=26)) copyFileSync(join(migrationsDirectory,name),join(prior,name));
     const f=setup(filename,prior),{equipment,target}=equipmentTarget(f),projectId=f.project.id,taskId=f.leaf.publicId,memberId=target.members[0].id,revision=f.revision();f.db.close();
     const upgraded=openDatabase({filename,migrationsDirectory});
-    expect(upgraded.migrations.applied).toEqual(["0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql"]);
+    expect(upgraded.migrations.applied).toEqual(["0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql"]);
     new TaskTargetBindingService(upgraded.database,{clock:()=>now}).replace(f.auth,revision,taskId,{bindings:[{targetId:target.id,selection:"subset",scope:"self",memberIds:[memberId],coverageByMember:[{memberId,coverage:4}]}]});
     upgraded.database.close();
     const reopened=openDatabase({filename,migrationsDirectory});

@@ -13,6 +13,7 @@ import { LogisticsTypeCatalogRepository } from "../../../src/server/repositories
 import { ProcessCatalogRepository } from "../../../src/server/repositories/process-catalog-repository-core";
 import { ProjectMasterRepository } from "../../../src/server/repositories/project-master-repository-core";
 import { EditSessionRepository, ProjectRepository } from "../../../src/server/repositories/project-repository-core";
+import { historicalEditAuthorization, insertHistoricalPublicProject } from "../../fixtures/legacy-project";
 import { editSessionCookieName } from "../../../src/server/security/cookie-core";
 import { createSessionToken, sessionExpiry } from "../../../src/server/security/session-core";
 
@@ -28,7 +29,7 @@ afterEach(() => {
 
 function setup(filename = ":memory:", migrationsDirectory = migrationDir) {
   const { database: db } = openDatabase({ filename, migrationsDirectory });
-  const project = new ProjectRepository(db).insert({
+  const project = insertHistoricalPublicProject(db, {
     publicId: randomUUID(), name: "F2 acceptance", description: "", status: "planned",
     passwordKdf: "scrypt", passwordSalt: Buffer.alloc(16, 1), passwordHash: Buffer.alloc(32, 2),
     scryptN: 32768, scryptR: 8, scryptP: 3, scryptKeyLength: 32,
@@ -40,7 +41,12 @@ function setup(filename = ":memory:", migrationsDirectory = migrationDir) {
     createdAt: stamp, expiresAt: sessionExpiry(now).toISOString(),
   });
   const projectService = new TaskFieldProjectService(db, { clock: () => now });
-  const authorization = projectService.authorize(project.publicId, token.rawToken);
+  // The pre-0031 fixture has a real session, but no visibility column yet.
+  const authorization = migrationsDirectory === migrationDir
+    ? projectService.authorize(project.publicId, token.rawToken)
+    : { kind: "authorized" as const, authorization: historicalEditAuthorization(
+        project, sessionId, token.tokenHash, sessionExpiry(now).toISOString(),
+      ) };
   if (authorization.kind !== "authorized") throw new Error("Fixture edit authorization failed");
   const logistics = new LogisticsRepository(db);
   const mcs = logistics.insertSystem({
@@ -452,7 +458,7 @@ describe("Issue #672 — #616 F2 acceptance: SQLite migration persistence", () =
     f.db.close();
 
     const first = openDatabase({ filename, migrationsDirectory: migrationDir });
-    expect(first.migrations.applied).toEqual(["0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql"]);
+    expect(first.migrations.applied).toEqual(["0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql"]);
     const target = new LogisticsTargetService(first.database, { clock: () => now }).create(auth, 1, {
       code: "PERSIST", name: "Persisted", scope: "project_common",
       members: [{ kind: "system", entityId: mcsId }],
