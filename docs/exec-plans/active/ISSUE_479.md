@@ -5,7 +5,7 @@
 - Branch: `feat/issue-479-project-visibility`
 - Phase: ANALYSIS → PLAN → IMPLEMENTATION → PR CI → REWORK F-009 (prior Full failures recorded; next exact HEAD Full NOT TESTED)
 - Risk: HIGH (Security/DB/SSR/API+Export); qa_method: OWNER_MANAGED; qa_required: true
-- release_required: true; release_authorized: false; version proposal 0.132.0 MINOR
+- release_required: true; release_authorized: false; version target 0.133.0 MINOR (old 0.132.0 immutable tag owned by #792)
 - DESIGN.md: N/A, local privacy controls implement existing density/focus/status design rules. AGENTS.md: N/A, ownership and Source of Truth unchanged.
 
 ## Design
@@ -119,3 +119,13 @@ EXTEND existing `tests/server/projects/project-handlers.test.ts`, `tests/server/
 - **Root cause**: #265 viewport test used unscoped `page.getByRole("radio")`; #479 correctly adds public/private inputs alongside selected template radio. Playwright strict selector matched three inputs. No evidence from this assertion of a production security failure.
 - **Correction + TEST_LIFECYCLE_REVIEW**: `EXTEND` the existing four-width template long-card test with a `#panel-template` **exact 200-character template-name role locator** and separate scoped public default assertion; keep original 200-char value, owner error/focus, horizontal overflow, screenshot. `KEEP_UNIQUE` prior #282 layout, #479 private authorization/SSR/Export/session, #792 core SQLite regression and F-007 exact template DTO. No skip/timeout/retry/CI8/Required3/QA/production change. Current main behind=0/mergeable and two P1 review threads resolved at pre-change audit.
 - **Source of truth/approval**: only E2E contract, cumulative ledger and this Work Packet updated; AGENTS.md, DESIGN.md, product/API/security/DB/QA/docs policies unchanged. Corrected Head E2E8/8, Trusted QA and Owner HIGH decision remain **NOT TESTED/NOT AUTHORIZED** until new Run, no merge/Main/GHCR/Finalizer/issue close.
+
+
+## 2026-10-25 — v0.133.0 Release rebaseline and handoff (NOT a new CI failure)
+
+- At this checkpoint main base `8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24` has package version `0.132.0` and immutable annotated tag `v0.132.0`. No `v0.133.0` ref was found. The original #479 proposed 0.132.0 has collided with #792 release baseline; do **not** move/reuse tag, overwrite a versioned GHCR image or mark the older release as #479.
+- Rebaseline this feature MINOR to `0.133.0` in package/lock/Changelog, retain Project visibility/security migration0031, React, routes, test and CI policy content unchanged. No new regression was discovered; F-001~F-009 are historical and still in the single cumulative ledger.
+- Proven older exact source: PR #794 HEAD `715190e6396d06c93a0ebbdf456d672ec7df8d46`, Full [#3254.1](https://github.com/planner77/masterGantt/actions/runs/40101140647), `40101140647` attempt1, Required Quality/E2E8/8/Docker + Automated QA SUCCESS. A new version/doc Head is **NOT TESTED** until its own exact Run/Attempt/Source/Trusted QA passes; the old PASS is not reusable as the new Head.
+- User requested formal GHCR publish and Issue close; [Owner release marker](https://github.com/planner77/masterGantt/issues/479#issuecomment-6390447238), `authorized=true`, `expected_version=0.133.0`, author association OWNER. This does not bypass the new Full/Trusted/Owner HIGH acceptance, latest-main strict, no unresolved review, exact-one-line no-body merge commit, Main Full, verified `ci-<SHA>` GHCR candidate, immutable annotated release-image/digest/Finalizer/branch cleanup.
+- **TEST_LIFECYCLE_REVIEW:** KEEP_UNIQUE all existing TypeScript/Vitest/SQLite/E2E8/Origin/If-Match/SSR/export/encoded UUID/DB migration and previous F-006/F-007/F-008/F-009 corrections. Only version metadata and documented release state change; none skipped, retired or relaxed. No local Node/Docker/browser execution via GitHub connector, new PR source tests NOT TESTED.
+- No CI monitoring per owner. Do **not** enable GitHub default auto-merge: repository merge_commit_title=MERGE_MESSAGE yields a noncanonical message, violating `scripts/main_ci_run_name.py` / Main CI. Instead, only after exact new Full+Trusted QA and current main are verified should the merge API use `merge_method=merge, commit_title="Issue #479 · PR #794 · 프로젝트 공개범위 접근제어", commit_message="", expected_head_sha=<new head>`. Main push starts CI; automatic Generic Finalizer may publish/close only on successful authenticated evidence. Until then MERGE/MAIN/GHCR/ISSUE CLOSE=BLOCKED/PENDING.
