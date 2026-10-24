@@ -65,7 +65,7 @@ function equipmentTarget(f:Fixture, historical = false) {
     const member=f.db.prepare("INSERT INTO logistics_target_members(public_id,project_id,target_id,kind,equipment_id,created_at) VALUES(?,?,?,?,?,?)").run(memberPublicId,f.project.id,targetId,"equipment",equipment.id,stamp);
     f.db.prepare("UPDATE logistics_targets SET anchor_member_id=? WHERE id=?").run(Number(member.lastInsertRowid),targetId);
     f.db.prepare("UPDATE projects SET revision=revision+1,updated_at=? WHERE id=?").run(stamp,f.project.id);
-    return {id:targetPublicId,members:[{id:memberPublicId}]};
+    return {id:targetPublicId,projectProcessId:process.publicId,members:[{id:memberPublicId}]};
   }).immediate() : f.targets.create(f.auth,f.revision(),{code:"E",name:"E",scope:"process",projectProcessId:process.publicId,members:[{kind:"equipment",entityId:equipment.publicId}]}).data.target!;
   return {equipment,target};
 }

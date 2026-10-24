@@ -340,10 +340,19 @@ describe("Issue727 persisted Project participation", () => {
     expect(reopened.migrations.applied).toEqual([]);
     expect(new ProjectResourceMembershipService(reopened.database, { clock }).get(publicId).data.resources).toMatchObject([{ id, registered: true, usage: { taskAssignments: 0 } }]);
     expect(new ProjectResourceMembershipService(reopened.database, { clock }).get(legacyProject.publicId).data.resources[0]).toMatchObject({ id: legacyResource.publicId, registered: false, usage: { taskAssignments: 1, systemRoles: 1 } });
-    for (const { table, rows } of legacyRows)
-      expect(reopened.database.prepare(`SELECT * FROM ${table} WHERE id<=? ORDER BY id`).all((rows as {
-        id: number;
-      }[]).at(-1)?.id ?? 0)).toEqual(rows);
+    for (const { table, rows } of legacyRows) {
+      const observed = reopened.database.prepare(`SELECT * FROM ${table} WHERE id<=? ORDER BY id`)
+        .all((rows as Array<{ id: number }>).at(-1)?.id ?? 0) as Array<Record<string, unknown>>;
+      if (table === "projects") {
+        // Every original project retains its full legacy row plus the 0031 public default.
+        expect(observed.map(row => row.visibility)).toEqual(rows.map(() => "public"));
+        expect(observed.map(row => Object.fromEntries(
+          Object.entries(row).filter(([name]) => name !== "visibility"),
+        ))).toEqual(rows);
+      } else {
+        expect(observed).toEqual(rows);
+      }
+    }
     expect(reopened.database.pragma("foreign_key_check")).toEqual([]);
   });
 });
