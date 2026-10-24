@@ -51,6 +51,7 @@
 - AC4: consumer 전환 사용량과 오프호스트 backup/digest/restore/restart, 운영 승인 — TARGET_RESOURCE_OPERATIONS.md G0-G4 runbook, 운영 자료 접근 없어 NOT TESTED.
 - AC5: 원본 source 및 Task Editor 5폭/readonly·동적 WBS/Resource/Copy/Template/Excel 계약, delayed-PATCH 중 초안 소실 방지 — #726 E2E/관련 단위 시험 및 TEST_PLAN, 브라우저 실행 NOT TESTED.
 - AC6: 정확 새 Head의 Full Quality/Chromium8/Docker, Trusted QA와 Owner HIGH 승인 및 릴리스 판단 — CI 새 Run 시작 후 판정, 완료/수용 NOT TESTED.
+- AC7: **상위 Issue #785의 역사적 `AC7 이관·교환` 참조 추적 전용 — #792의 신규 독립 수용 기준을 추가하는 것이 아님.** #792 본문 도입부의 `AC4/AC7`은 [상위 #785 AC7](https://github.com/planner77/masterGantt/issues/785)의 fresh/upgraded/legacy SQLite·backup/restore/restart·Copy/Template·JSON/Excel 원본 무손실·revert 요구사항을 가리킨다. #792에서는 AC2(scope self↔subtree 한 행의 UUID·member·coverage·provenance 보존 및 역전 테스트), AC4(운영 DB/외부 소비자·오프호스트 backup/restore 실증 보류), AC5(Copy/Template/Excel/JSON 기존 계약 유지)의 **기존 증거에만 매핑**한다. 운영 SQLite off-host 복구·전체 레거시 이관/퇴역 및 교환 무손실 실증은 **NOT TESTED/BLOCKED**, 자동 변환·데이터 삭제·추가 구현 승인 아님. `qa_final_automated.py::docs_gate`가 Issue 전문의 `\\bAC\\d+\\b`를 수집하므로 이 historical link도 명시적으로 대응한다.
 
 ## TEST_LIFECYCLE_REVIEW
 
@@ -107,3 +108,11 @@
 - [P1 리뷰 thread](https://github.com/planner77/masterGantt/pull/795#discussion_r4366175663) **원본 직접 scope PATCH 중 외부 Task 초안 삭제 위험**: `LegacyBindingScopeEditor` PATCH 시작 전 parent pending true→`onApplied/reload` 종료 후 false, `TaskLogisticsLinkEditor`의 기존 writer pending과 OR 통합→`ProjectTaskEditor.locked` 및 native 탭 클릭/키보드 잠금, direct Checkbox/name/resource/close 차단. 리뷰 답글 4366206416, 스레드 resolved 상태를 별도 GitHub 조회로 확인. 실제 원격 전체 QA·Owner 승인과 다름.
 - 검증 선택 `EXTEND`: `tests/e2e/issue-726-task-logistics.spec.ts`의 기존 격리SQLite/실제 HTTP/browser를 사용, PATCH 응답만 게이트로 지연시켜 `aria-busy`, close/tab/task-name/equipment/save disabled, Escape 억제, DB before·after, canonical refresh 후 unlock을 검증. 기존 직접/상속·5폭/readonly·whole/subset 및 authorization 회귀 `KEEP_UNIQUE`. 새 spec/shard/skip/retry/timeout 변경0.
 - GitHub 연결로 코드·구조 정적 비교만 수행했으며 GitHub CI 최초 실행이 해당 제품 시나리오에 도달하지 못했다. Node/Playwright/Docker/진짜 운영 restore `NOT TESTED`. 신규 CI 시작 이후 정확 HEAD·Run/Attempt의 Trusted 결과와 Owner HIGH 위험 수용은 별도 판단, `MERGE_READY=BLOCKED`.
+
+## F792-002 — PR #795 Full #3239.1 두 번째 QA Preflight 차단 (2026-10-24)
+
+- **원본**: [Full Run #3239.1](https://github.com/planner77/masterGantt/actions/runs/40069142338) · Run ID `40069142338`, attempt 1, head `4819a8f8134ca5f5c74e13faf1123121541cdc2c`, base `b45885812301d14b9f673841e9944b27b2642323`, 원본 checkout/test-merge `6db0c7017faacc081776724d13ddd793034a5dcc`.
+- 직접 원인은 `QA Preflight` Job `120798654052`의 `DOCUMENTATION_SYNC: Issue AC / test evidence mapping 부족: AC7`. PR metadata/risk/QA/Issue 자체 확인, 원래 DOCUMENTATION_SYNC H2 및 필수 docs 항목은 PASS 단계 도달. 즉 F792-001 H2 문제가 재발한 것이 아니라 `#785 AC4/AC7` **역사적 출처 참조**와 Work Packet AC1~AC6 매핑의 차이다. Product/CI 변경 오류의 증거 아님.
+- 해결: 본 `## AC_TEST_COVERAGE`에 **AC7 역사적 #785 참조 전용 mapping** 한 행을 추가, #792의 AC2/AC4/AC5 기존 근거와 실제 운영 미검증을 연결했다. 기존 Issue 본문 역사·수용 기준을 임의 재정의하거나 실제 무손실 이관 성공으로 표시하지 않는다. 전체 `docs_gate` 항목/Issue 본문 7개 AC token을 사전 검사한다.
+- `TEST_LIFECYCLE_REVIEW`: 코드·fixture·test assertions 변경 **0**. 기존 Unit/SQLite/Chromium8·WBS·Excel·Copy·Template·권한 독립 보호 KEEP_UNIQUE. 최초 2회 Full은 preflight 전후 범위만 검증하여 실제 제품/부하/브라우저 테스트는 `NOT RUN`, 새 Head Full만 권위 있다.
+- 상세 직접/파생/아티팩트/중단·잔여 및 Cross-run matrix: [#792 누적 원장 F792-002](../../ISSUE_792_FAILURE_ANALYSIS.md#f792-002--pr-795-full-32391-documentation_sync-ac7-mapping-failure).

@@ -81,3 +81,29 @@ Primary Issue: https://github.com/planner77/masterGantt/issues/792
 - 직접 실패 **테스트 파일 합집합**: 0개, 첫 Full은 문서 사전 Gate에서 차단되어 Unit/E2E/Build/Docker 구현 미실행. **신규 교차 보호**는 `tests/e2e/issue-726-task-logistics.spec.ts`, `tests/server/logistics/task-target-bindings-handlers.test.ts`, `tests/server/logistics/task-target-bindings.test.ts`, #785 Copy/Template/OOXML·WBS Resource 공통 경계다. 임의 테스트 삭제/통합/약화 없음.
 - 로컬 환경: git clone 대상 GitHub DNS 접근 불가, Node 전용 실제 의존성 설치·TypeScript 전체 빌드/Chromium/Docker 불가. 커넥터 소스 검사·Python 계약과 동등한 구조 정적검사만 수행; 실행 전 `NOT TESTED`. 새 exact Head의 원격 Full8·Trusted·Owner가 실제 검증이다.
 - 이후 rework는 동일 PR #795/branch, latest main 비교 behind=0·Git mergeable·미해결 리뷰 0을 확인하고 정상 non-draft `synchronize` Full을 시작한다. 신규 Run/Attempt·정확 Git HEAD는 Github 원본에서 확인 후 Issue STATUS에 기록, 결과 모니터링 생략; 미확인 Result는 `NOT TESTED`. Merge/Main/GHCR/Release/Finalizer/Issue close 금지.
+
+## F792-002 — PR #795 Full #3239.1 DOCUMENTATION_SYNC AC7 mapping failure
+
+### 원본 provenance / 직접 실패 (2026-10-24 KST)
+- [PR #795 Full Run #3239.1](https://github.com/planner77/masterGantt/actions/runs/40069142338) — `CI` (`pull_request`), **Run ID `40069142338`, attempt 1**, 2026-10-24 06:10:25Z 시작·06:11:32Z 종료, `FAILURE`.
+- Immutable Head `4819a8f8134ca5f5c74e13faf1123121541cdc2c`; base/main `b45885812301d14b9f673841e9944b27b2642323`; 해당 Run의 변경 경로 판정 checkout/test-merge `6db0c7017faacc081776724d13ddd793034a5dcc` (Job `120798594011`의 fetch/checkout 로그). source artifact `ci-pr-source-40069142338-1` ID `12550845046`; preflight report artifact `qa-preflight-40069142338-1` ID `12550253899`.
+- **직접 실패: `QA Preflight — 정책·문서 사전 검사` Job `120798654052` Step4 `원본 base SHA의 QA Preflight 실행 (read-only)`**. 결과 `FAIL:1/DEFERRED:5`, `DOCUMENTATION_SYNC`: `Issue AC / test evidence mapping 부족: AC7`. `PRIMARY_ISSUE`, `RISK_LEVEL`, `QA_METHOD`, `QA_REQUIRED`, `RELEASE_REQUIRED`, `RELEASE_AUTHORIZED`, `PATH_POLICY`, `ISSUE_AC`은 PASS.
+- **직접 원인 분류 `POLICY_CI / TEST_CONTRACT`**: Issue #792 본문의 첫 문단은 이전 #785의 `AC4/AC7` 역사적 잔여 범위를 언급한다. 신뢰된 main의 `scripts/qa_preflight.py`는 issue 전체에서 `\\bAC\\d+\\b` regex로 숫자를 수집하고, `scripts/qa_final_automated.py::docs_gate`는 Work Packet `## AC_TEST_COVERAGE` 내 `- ACn:` 형식과 집합 포함을 검사한다. Issue 자체 체크박스는 AC1~AC6인데 intro의 **역사적 #785 AC7**이 추가로 포착되었다. #792에 AC7 기능이 새로 설계되거나 구현된 것이 아님. 임의 validator weakening/본문 삭제 대신 참조용 명시 mapping을 추가한다.
+- **파생 실패**: PR Fast Gate `120798704593` FAIL(preflight failure), Required Quality `120798747566`, Chromium E2E `120798747579`, Docker `120798747597` aggregate FAIL; QA Final Automated `120798768856` FAIL(required quality failure). **실제** TypeScript `120798705516`, ESLint `120798705232`, Vitest `120798705234`, Policy `120798705326`, PR Next production build `120798748447`, Chromium 8-Shard `120798748518`, Docker 구현 `120798748343` **SKIPPED / NOT RUN**, 제품 테스트 결과 불명. `변경 경로 판정` `120798594011` / `QA Final 신뢰 경계 확인` `120798593831` PASS, `Shadow` `120798768784`는 advisory 성공으로 Full PASS를 대신하지 않는다.
+- 추가 source: Job log `https://github.com/planner77/masterGantt/actions/runs/40069142338/job/120798654052`; 정확 test-merge는 mutable PR merge ref가 아닌 해당 Run의 과거 checkout 기록에서 확보.
+
+### 전 이력 대조와 교정
+- **F792-001 #3231.1** 원인은 `## DOCUMENTATION_SYNC / N/A` H2 불일치였다. 첫 원본 Run `40067826081.1` checkout 기록을 추가 확인해 test-merge SHA를 `f999452b8e1c742e2f28dd82067d46f05875f59a`로 복원 (과거 원장의 UNKNOWN 진술은 당시 확인 경계였으며 덮어쓰지 않음). QA Preflight/Trust/Trace 중첩 오류가 아닌 **다른 문서 매핑 결함**이 뒤이어 드러남. 이전 P1 초안 소실 review는 구현 교정 후 resolved 상태로 보존.
+- **F792-002 #3239.1**에서는 H2/PR metadata/QA declarations/required docs 모두 통과 단계에 도달하고 오직 AC7 항목이 누락. 당초 Work Packet `- AC1:`.. `- AC6:`에 `- AC7:`를 추가하되 명시적으로 **상위 #785 historical AC7 / #792 AC2·AC4·AC5 근거 링크**, 운영 consumer=0/복구·이관/Excel 실측 미완료 및 `NOT TESTED/BLOCKED`를 선언한다.
+- 누적 cross-run 집합: `F792-001` = `DOCUMENTATION_SYNC` section header; `F792-002` = `DOCUMENTATION_SYNC` AC7 reference mapping. 두 Run에서 *직접 실패한 제품 단위/실제 브라우저 spec은 0개*, **미실행이므로 PASS나 문제 없음의 증거가 아님**. 실패 Job/Attempt는 각각 독립 보존한다. 새 source에서도 실패한다면 이전 원장을 교차 감사하며 새 사건을 추가한다.
+- 영향/음성 검증 후보는 기존 `tests/server/logistics/task-target-bindings-handlers.test.ts`, `task-target-bindings.test.ts`, `tests/e2e/issue-726-task-logistics.spec.ts`와 #785 보존/복사·템플릿/OOXML/보안/SQLite 복구 검증, 신규 변경은 Work Packet 매핑 **문서만**. Source of Truth `AGENTS.md`, `docs/TEST_PLAN.md`, `docs/PR_CI_FAILURE_TRIAGE.md` 지침대로 ADD/EXTEND/KEEP_UNIQUE 평가 유지, assertions/timeout/shard/Required Gate 완화0.
+- **최신 후보 검증**: 신뢰된 main `docs_gate`의 문서 영향 합집합과 Issue 전체 `AC token` 대조를 커밋 전 정적 수행; 실행 성공이 아니므로 `Full Build/Vitest/E2E8/Docker/Trusted QA/Owner=NOT TESTED`. 최신 main compare·review unresolved·mergeability 재조회 후 GitHub branch push의 `synchronize`로 **새 Full PR CI 시작까지만**, 모니터링·Main/GHCR/Finalizer/Issue 종료 없이 인계.
+
+### F792 누적 사건 비교
+
+| 사건 | Run/Attempt | 최초 실제 실패 | 검증된 조치 | 실 실행/잔여 |
+| --- | --- | --- | --- | --- |
+| F792-000 | PR 생성 전 | N/A | source/plan 설계 | 미실행 |
+| F792-001 | [40067826081.1](https://github.com/planner77/masterGantt/actions/runs/40067826081) | `QA Preflight DOCUMENTATION_SYNC H2` 누락 | H2/필수파일/AC1~6 보완 + P1 Draft 잠금 병렬 보완 | 차기 Run의 H2 개선 확인, 제품 검사 여전히 미실행 |
+| F792-002 | [40069142338.1](https://github.com/planner77/masterGantt/actions/runs/40069142338) | `QA Preflight DOCUMENTATION_SYNC AC7` 누락 | #785 AC7 역사적 cross-issue 참조만 `- AC7:`로 명시, 실측 미완료 유지 | 새 Head의 원격 Full 결과 전 NOT TESTED |
+
