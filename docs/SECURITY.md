@@ -1,3 +1,9 @@
+## Issue #479 PR #794 F-001 — 외부 Private read와 내부 신뢰 Snapshot 구분 (2026-10-24)
+
+[Codex P1 review #1](https://github.com/planner77/masterGantt/pull/794#discussion_r4366096194)의 percent-encoding 우회를 막기 위해 `URL.pathname`의 raw segment를 Next route parameter와 동일한 단일 `decodeURIComponent` 후 canonical UUIDv4로 검사한다. 잘못된 percent sequence, encoded slash/double-encoded/noncanonical ID는 데이터를 조회하지 않고404 거부한다. 정상 encoded UUID는 동일한 Project session으로 authorization한다.
+
+[Codex P1 review #2](https://github.com/planner77/masterGantt/pull/794#discussion_r4366096195)에 따라 외부 `handleReadProject`와 SSR은 **반드시** `projectReadAccess` + `getAuthorizedReadonlySnapshot`를 호출한다. 기존 `getReadonlySnapshot`은 **HTTP에 직접 노출하면 안 되는 trusted internal aggregate reader**로 유지한다. JSON/Excel/SVG Export·Import·완료된 Mutation 응답은 중앙 `withApiRequestLogging` gateway가 권한을 검사한 뒤 내부 reader를 사용할 수 있다. UI/DTO readonly는 인증이 아니다. Gate가 없는 새 외부 endpoint에서 trusted reader를 직접 연결하면 P1 보안 회귀다. 세 Required Check/Trusted QA/Owner 보호는 불변. [원본 CI 실패와 테스트 미실행](ISSUE_479_FAILURE_ANALYSIS.md).
+
 ## Issue #479 — visibility-aware Project read gate
 
 Project list `GET /api/projects` stays discoverable and shows `visibility`. `/api/projects/{publicId}` and all scoped GET/read-only POST/Export routes are guarded by server application middleware: public anonymous readonly, private same-Project current edit-session only. The original cookie parser enforces exact URL/cookie name, malformed-cookie rejection, Project binding, expiry/revocation and auth_version. Existing session-issuance/current/revocation routes keep their own authentication/rate-limit. Unauthenticated private reads return generic `401 PROJECT_LOCKED`, `private,no-store`, `nosniff`; never embed project name, Task, hash/salt, session, internal ID in responses or SSR document title.

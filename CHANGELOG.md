@@ -1,3 +1,8 @@
+## Issue #479 — PR #794 첫 CI 메타데이터 실패 및 P1 수정 (Unreleased 0.132.0)
+
+- Full Run #3223.1은 canonical `Refs #479`/QA 선언 누락으로 시작 단계에서 중단되었으며 실제 기능 테스트는 SKIPPED; [실패 원장](docs/ISSUE_479_FAILURE_ANALYSIS.md) 보존.
+- private Project의 percent-encoded 경로 우회를 fail-closed canonical decode로 막고, 인증된 Project의 JSON/Excel/SVG Export·Import·Task Assignment가 정상 동작하도록 **외부 인증 Snapshot / 내부 trusted Snapshot** 사용처를 분리했다. 테스트 보강, 새 exact-Head PR CI 전 판정은 NOT TESTED. 기존 인증/Owner/Release gate 불변.
+
 ## [0.132.0] — Unreleased / Issue #479
 
 - 공개/비공개 Project visibility, 기존 Project public migration0031, 생성·Template·Copy·설정 API/UI를 구현한다.
