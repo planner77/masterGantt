@@ -138,11 +138,27 @@ for (const width of [320, 390, 768, 1024, 1440, 1600, 1920]) {
     const templateOwner = await box(page.locator("#inst-owner-name").locator(".."));
     const templateDate = await box(page.locator("#inst-start-date").locator(".."));
     const templatePassword = await box(page.locator("#inst-password").locator(".."));
+    const visibilityFieldset = page.locator("#panel-template fieldset.template-visibility-fieldset");
+    const templateVisibility = await box(visibilityFieldset);
     const templateDescription = await box(page.locator("#inst-desc").locator(".."));
+    const publicRadio = visibilityFieldset.getByRole("radio", { name: "공개", exact: true });
+    const privateRadio = visibilityFieldset.getByRole("radio", { name: "비공개", exact: true });
+    await expect(publicRadio).toBeChecked();
+    await expect(privateRadio).toBeVisible();
+    // Selection must fit inside a dedicated row without altering adjacent fields.
+    const publicRadioBox = await box(publicRadio);
+    const privateRadioBox = await box(privateRadio);
+    expect(sameRow(publicRadioBox, privateRadioBox)).toBe(true);
+    expect(templateVisibility.y).toBeGreaterThan(templatePassword.y + templatePassword.height - 2);
+    expect(templateDescription.y).toBeGreaterThan(templateVisibility.y + templateVisibility.height - 2);
+    await privateRadio.check();
+    await expect(privateRadio).toBeChecked();
+    await publicRadio.check();
+    await expect(publicRadio).toBeChecked();
 
     if (width >= 768) {
       expect(sameRow(templateName, templateOwner)).toBe(true);
-      if (width <= 1024) expect(sameRow(templateDate, templatePassword)).toBe(true);
+      expect(sameRow(templateDate, templatePassword)).toBe(true);
     } else {
       expect(templateOwner.y).toBeGreaterThan(templateName.y + templateName.height - 2);
       expect(templateDate.y).toBeGreaterThan(templateOwner.y + templateOwner.height - 2);

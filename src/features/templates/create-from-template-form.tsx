@@ -303,12 +303,6 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
             {fieldErrors.projectStartDate}
           </p> : null}
         </div>
-        <fieldset className="form-field" disabled={isSubmitting}>
-          <legend>공개범위</legend>
-          <label><input type="radio" name="template-project-visibility" checked={visibility === "public"} onChange={() => setVisibility("public")} /> 공개</label>
-          <label><input type="radio" name="template-project-visibility" checked={visibility === "private"} onChange={() => setVisibility("private")} /> 비공개</label>
-          <p>비공개 프로젝트는 목록에 표시되지만 비밀번호 인증 후 열립니다.</p>
-        </fieldset>
         <div
           className="form-field">
           <label htmlFor="inst-password">편집 비밀번호 *</label>
@@ -331,6 +325,14 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
             {fieldErrors.editPassword}
           </p> : null}
         </div>
+        <fieldset className="form-field template-visibility-fieldset" disabled={isSubmitting}>
+          <legend>공개범위</legend>
+          <div className="template-visibility-options">
+            <label><input type="radio" name="template-project-visibility" checked={visibility === "public"} onChange={() => setVisibility("public")} /> 공개</label>
+            <label><input type="radio" name="template-project-visibility" checked={visibility === "private"} onChange={() => setVisibility("private")} /> 비공개</label>
+          </div>
+          <p>비공개 프로젝트는 목록에 표시되지만 비밀번호 인증 후 열립니다.</p>
+        </fieldset>
         <div
           className="form-field">
           <label htmlFor="inst-desc">프로젝트 설명 (선택)</label>
