@@ -275,8 +275,10 @@ describe("Issue #792 protected legacy binding scope writer", () => {
     const after=snapshot(f);
     expect(after.revision).toBe(oldRevision+1);
     expect(after.members).toEqual(oldSnapshot.members);
-    expect(after.bindings).toEqual(oldSnapshot.bindings.map((binding: Record<string,unknown>) =>
-      binding.public_id === original.sourceId ? {...binding,scope:"subtree"} : binding));
+    expect(after.bindings).toEqual(oldSnapshot.bindings.map(binding => {
+      const row = binding as Record<string, unknown>;
+      return row.public_id === original.sourceId ? {...row, scope: "subtree"} : row;
+    }));
     expect(f.bindingService.get(f.project.publicId,f.task.publicId).effective.inheritedBindings[0].id)
       .toBe(original.sourceId);
     expect(f.db.pragma("foreign_key_check")).toEqual([]);
