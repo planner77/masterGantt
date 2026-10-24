@@ -1,3 +1,11 @@
+## Issue #792 MAIN-792-001 — 병합 커밋 추적 오류·신규 릴리스 후보 교차 검증 (2026-10-24)
+
+- 원본 PR #795 [Full #3244.1](https://github.com/planner77/masterGantt/actions/runs/40075199615) Quality/E2E8/Docker/Trusted PASS에도, Merge Commit `4048245f8dc90c1f46dd1cc58948a17a4fb7338e`의 *다중 행 본문*으로 [Main #3249.1](https://github.com/planner77/masterGantt/actions/runs/40085439884) `verify-ci-run-trace.py`에서 직접 FAIL했다. 그 결과 실제 Main 구현 테스트·GHCR 이미지 게시는 SKIPPED/NOT RUN이며 PR 검증 성공을 Main/GHCR PASS로 대체하지 않는다.
+- **정상·음성 계약:** `scripts/main_ci_run_name.py::format_merge_title`와 `parse_merge_title`·`merge_api_payload`는 `Issue #792 · PR #N · 레거시 관계 릴리스 정렬`처럼 한 줄 **전체** 메시지만 유효; `commit_message:""`로 병합해야 한다. 별도 본문/개행·너무 긴 제목/다른 Issue·PR 번호는 기존 fail-closed로 차단한다. 이미 병합된 커밋을 고치지 않으며 CI 검증기를 완화하지 않는다.
+- **버전 계약:** 기존 `v0.131.0` annotated tag가 첫 부모 `b45885812301d14b9f673841e9944b27b2642323`를 가리키므로 이동/재발행하지 않는다. 신규 `0.132.0` 후보의 `package.json`·`package-lock.json` top-level/root version 동등성·SemVer 단조 증가·CHANGELOG release notes를 `node scripts/verify-release-version.mjs` 및 원격 version gate로 검증한다. 이미 존재하는 태그/rolling alias를 새 commit으로 임의 이동하지 않는다.
+- **교정 범위와 회귀:** application/source/API/migration/auth/CI·tests/runtime/fixtures 변경 없음. 기존 #792 및 #785의 실제 SQLite/HTTP·원본 binding UUID/whole/subset/coverage/inheritance/rollback, #726 5폭/readonly/delayed PATCH, Copy/Template/JSON/Excel·WBS/Resource, Full8→Trusted → **새 한 줄 Merge/Main**→GHCR digest smoke, Owner 버전별 formal Release/Finalizer Gate를 모두 분리한다. 동일 Run/attempt/Head/base/merge SHA로만 PASS를 인정한다.
+- **상태:** `TEST_LIFECYCLE_REVIEW=KEEP_UNIQUE`, 신규 Test 파일·skip/retry/timeout/Shard 변경0. 미완료 외부 consumer 분석, 운영 SQLite off-host backup/restore/restart, Windows Excel/DRM, 원본 member/coverage 확장 안전편집은 `NOT TESTED / BLOCKED`. 작업/검증/실패 출처는 [#792 원장](ISSUE_792_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_792.md)에 보존한다.
+
 ## Issue #792 F792-003 — 로컬 재현 및 교차 회귀 보강 (2026-10-24)
 
 Full #3240.1은 Preflight/Policy PASS 뒤 TypeScript·ESLint·Vitest에서 직접 FAIL이었다. 아래 최초 구현 당시 NOT TESTED 기록은 당시 경계로 보존하며 이번 실제 로컬 실행은 [단일 누적 원장](ISSUE_792_FAILURE_ANALYSIS.md)의 F792-003과 구분한다. 로컬 PASS는 새 Head 원격 Full8/Required3·Trusted/Owner 승인 결과가 아니다.
