@@ -498,6 +498,9 @@ export class ProjectTemplateService {
       throw new ProjectTemplateError("INVALID_TEMPLATE_REQUEST", "Password must be 1 to 12 characters.");
     }
 
+    if (input.visibility !== undefined && input.visibility !== "public" && input.visibility !== "private") {
+      throw new ProjectTemplateError("INVALID_TEMPLATE_REQUEST", "Invalid project visibility.");
+    }
     const snapshot = JSON.parse(template.contentJson) as ProjectTemplateSnapshot;
     const passwordParameters = await this.hashPassword(input.editPassword);
 
@@ -514,6 +517,7 @@ export class ProjectTemplateService {
         name: normalizedName,
         description: normalizedDescription,
         status: "planned",
+        visibility: input.visibility ?? "public",
         passwordKdf: passwordParameters.algorithm,
         passwordSalt: passwordParameters.salt,
         passwordHash: passwordParameters.hash,
@@ -982,6 +986,7 @@ export class ProjectTemplateService {
         name: project.name,
         description: project.description,
         status: "planned",
+        visibility: project.visibility,
         ownerName: normalizedOwner,
         ...this.projectMaster.projectSelectionDto(project.id),
         revision: 1,

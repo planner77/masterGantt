@@ -218,6 +218,7 @@ function projectDto(
     name: string;
     description: string;
     status: ProjectDto["status"];
+    visibility?: ProjectDto["visibility"];
     revision: number;
     calendarTimezone: string;
   },
@@ -232,6 +233,7 @@ function projectDto(
     name: project.name,
     description: project.description,
     status: project.status,
+    visibility: project.visibility ?? "public",
     revision: project.revision,
     calendar,
   };
@@ -677,6 +679,7 @@ export class ProjectService {
           name: input.name,
           description: input.description,
           status: input.status ?? "planned",
+          visibility: input.visibility ?? "public",
           passwordKdf: password.algorithm,
           passwordSalt: password.salt,
           passwordHash: password.hash,
@@ -734,6 +737,7 @@ export class ProjectService {
           name: project.name,
           description: project.description,
           status: project.status,
+          visibility: project.visibility,
           createdAt: project.createdAt,
           updatedAt: project.updatedAt,
         })),
@@ -741,10 +745,20 @@ export class ProjectService {
     };
   }
 
-  getReadonlySnapshot(publicId: string): ProjectSnapshotResponse | undefined {
+  /** Visibility-aware read gate: private snapshots require the exact project edit session. */
+  projectReadAccess(publicId: string, rawToken?: string): "allowed" | "locked" | "notFound" {
+    const project = isCanonicalUuidV4(publicId) ? this.projects.findByPublicId(publicId) : undefined;
+    if (!project) return "notFound";
+    if (project.visibility === "public") return "allowed";
+    if (project.visibility !== "private") return "locked";
+    return this.authorize(publicId, rawToken).kind === "authorized" ? "allowed" : "locked";
+  }
+
+  getReadonlySnapshot(publicId: string, rawToken?: string): ProjectSnapshotResponse | undefined {
     const readSnapshot = this.database.transaction(() => {
       const project = this.projects.findByPublicId(publicId);
-      if (!project) {
+      if (!project || (project.visibility !== "public" &&
+        (project.visibility !== "private" || this.authorize(publicId, rawToken).kind !== "authorized"))) {
         return undefined;
       }
 
@@ -1385,10 +1399,11 @@ export class ProjectService {
       );
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const changedFields: ("name" | "description" | "status")[] = [];
+      const changedFields: ("name" | "description" | "status" | "visibility")[] = [];
       if (input.name !== undefined) changedFields.push("name");
       if (input.description !== undefined) changedFields.push("description");
       if (input.status !== undefined) changedFields.push("status");
+      if (input.visibility !== undefined) changedFields.push("visibility");
       return withStageProjection(this.database, project.id, {
         data: {
           project: projectDto(updated, projectCalendarDto(this.database, project.id)),
