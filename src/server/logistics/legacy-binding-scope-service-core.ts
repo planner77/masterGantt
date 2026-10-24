@@ -7,6 +7,7 @@ import { compareTaskTargetImpact, TaskTargetResolutionError, type TaskTargetReso
 import { loadBoundedTaskLogisticsSnapshot, LogisticsCompatibilityError } from "./task-logistics-compatibility-core";
 import { LogisticsTargetError } from "./logistics-targets-service-core";
 import type { TaskTargetBindingDto } from "../../contracts/task-target-bindings";
+import { RESOURCE_TARGET_LIMITS } from "../../contracts/resource-dashboard";
 
 /**
  * Issue #792: bounded authoring of an EXISTING legacy source's scope.
@@ -43,6 +44,39 @@ function load(db: Database.Database, projectId: number): TaskTargetResolutionInp
     if (error instanceof LogisticsCompatibilityError || error instanceof TaskTargetResolutionError)
       throw new LogisticsTargetError(409, "LEGACY_SOURCE_INTEGRITY_BLOCKED");
     throw error;
+  }
+}
+/** Guard proposed subtree expansion *before* running the all-Task resolver.
+ * The original source is already bounded by loadBoundedTaskLogisticsSnapshot,
+ * but the proposed scope can increase inherited paths by thousands. */
+function ensureProposedPathBudget(snapshot: TaskTargetResolutionInput): void {
+  const byTask = new Map(snapshot.tasks.map(t => [t.id, t]));
+  const descendants = new Map<string, number>();
+  for (const task of snapshot.tasks) {
+    let current: typeof task | undefined = task;
+    const visited = new Set<string>();
+    while (current) {
+      if (visited.has(current.id)) throw new LogisticsTargetError(409, "LEGACY_SOURCE_INTEGRITY_BLOCKED");
+      visited.add(current.id);
+      descendants.set(current.id, (descendants.get(current.id) ?? 0) + 1);
+      current = current.parentId === null ? undefined : byTask.get(current.parentId);
+    }
+  }
+  const targets = new Map(snapshot.targets.map(t => [t.id, t]));
+  let paths = 0;
+  for (const binding of snapshot.bindings) {
+    const target = targets.get(binding.targetId);
+    if (!target) throw new LogisticsTargetError(409, "LEGACY_SOURCE_INTEGRITY_BLOCKED");
+    const selected = binding.selection === "whole" ? target.members.length : binding.memberIds.length;
+    paths += target.members.length + binding.memberIds.length * (binding.coverageByMember?.length ?? 0) +
+      (1 + selected) * (binding.scope === "subtree" ? descendants.get(binding.taskId) ?? 0 : 1);
+    if (paths > RESOURCE_TARGET_LIMITS.provenancePaths)
+      throw new LogisticsTargetError(422, "LOGISTICS_SOURCE_LIMIT_EXCEEDED");
+  }
+  for (const source of snapshot.legacy) {
+    paths += source.scope === "subtree" ? descendants.get(source.taskId) ?? 0 : 1;
+    if (paths > RESOURCE_TARGET_LIMITS.provenancePaths)
+      throw new LogisticsTargetError(422, "LOGISTICS_SOURCE_LIMIT_EXCEEDED");
   }
 }
 function sourceFingerprint(revision: number, source: TaskTargetBindingDto, snapshot: TaskTargetResolutionInput) {
@@ -101,6 +135,7 @@ export class LegacyBindingScopeService {
     if (task.type !== "summary") throw new LogisticsTargetError(422, "LEGACY_SCOPE_REQUIRES_SUMMARY");
     const candidate: TaskTargetResolutionInput = { ...snapshot, bindings: snapshot.bindings.map(b =>
       b === previous ? { ...b, scope: raw.scope } : b) };
+    ensureProposedPathBudget(candidate);
     let impact: ReturnType<typeof compareTaskTargetImpact>;
     try { impact = compareTaskTargetImpact(snapshot, candidate); }
     catch (error) {
