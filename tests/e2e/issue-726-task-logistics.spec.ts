@@ -1,4 +1,4 @@
-import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
+import { readLegacyFixtureCounts, seedLegacyLogistics } from "./fixtures/legacy-logistics-seed";
 import type { Locator, Page } from "@playwright/test";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 import { createTargetProject, targetMasterPassword } from "./fixtures/target-project";
@@ -418,4 +418,70 @@ test("#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류
   await expect(context.getByRole("checkbox", { name: /^A 공정 / })).toBeDisabled();
   expect((await readContext()).processLinks).toEqual([]);
   await page.unroute(contextUrl);
+});
+
+test("#792 Summary legacy source-only scope preview/confirm, real HTTP SQLite, 5 widths, readonly and provenance", async ({page, isolatedApplication, observeIsolatedApi}) => {
+  test.setTimeout(180_000);
+  const f=await createTargetProject(page,isolatedApplication,observeIsolatedApi);
+  const sources=await seedOriginals(f);
+  const system=sources.systems.find(item=>item.code==="MCS")!;
+  const archived=await seedLegacyLogistics(page,isolatedApplication,f.publicId,"/logistics/targets",{
+    code:"LEGACY-792",name:"기존 작업 출처",scope:"project_common",
+    members:[{kind:"system",entityId:system.id}],
+  });
+  const targetId=(archived as {data:{target:{id:string}|null}}).data.target?.id;
+  if(!targetId)throw new Error("격리 원본 Target UUID가 없습니다.");
+  await seedLegacyLogistics(page,isolatedApplication,f.publicId,
+    `/tasks/${f.parentTask.taskId}/target-bindings`,{bindings:[{
+      targetId,selection:"whole",scope:"self",memberIds:[],
+    }]},"put");
+  const before=readLegacyFixtureCounts(isolatedApplication,f.publicId);
+  expect(before.targets).toBe(1);
+  expect(before.members).toBe(1);
+  expect(before.bindings).toBe(1);
+  await page.reload();
+  const editor=await openEditor(page,f.parentTask.name);
+  const readonlySource=editor.getByRole("region",{name:"기존 연결 출처"});
+  await expect(readonlySource).toContainText("전체 구성");
+  await expect(readonlySource.getByRole("button",{name:"기존 관계 적용 범위 수정"})).toBeEnabled();
+  const api=`${isolatedApplication}/api/projects/${f.publicId}/tasks/${f.parentTask.taskId}/legacy-binding-sources`;
+  const baselineResponse=await page.request.get(api);
+  expect(baselineResponse.status()).toBe(200);
+  const initial=(await baselineResponse.json()).data;
+  expect(initial.sourceBindings[0].scope).toBe("self");
+  const originalId=initial.sourceBindings[0].sourceId;
+  await readonlySource.getByRole("button",{name:"기존 관계 적용 범위 수정"}).click();
+  const scoped=editor.getByRole("region",{name:"기존 관계 범위 안전 편집"});
+  await expect(scoped.getByLabel("원본 관계")).toBeVisible();
+  await scoped.getByLabel("적용 범위").selectOption("subtree");
+  for(const width of [390,768,1024,1440,1920]) {
+    await page.setViewportSize({width,height:1000});
+    await assertEditorGeometry(page,editor,width);
+    await expect(scoped.getByRole("button",{name:"영향 미리보기"})).toBeVisible();
+  }
+  await scoped.getByRole("button",{name:"영향 미리보기"}).click();
+  await expect(scoped.getByRole("status")).toContainText("영향 작업");
+  const preMutation=await page.request.get(api);
+  expect((await preMutation.json()).data.projectRevision).toBe(initial.projectRevision);
+  expect(readLegacyFixtureCounts(isolatedApplication,f.publicId)).toEqual(before);
+  await scoped.getByRole("button",{name:"영향을 확인하고 적용"}).click();
+  await expect.poll(async()=> {
+    const body=await (await page.request.get(api)).json();
+    return body?.data?.sourceBindings?.[0]?.scope;
+  }).toBe("subtree");
+  const verified=(await (await page.request.get(api)).json()).data;
+  expect(verified.projectRevision).toBe(initial.projectRevision+1);
+  expect(verified.sourceBindings[0].sourceId).toBe(originalId);
+  expect(verified.sourceBindings[0].selection).toBe("whole");
+  expect(readLegacyFixtureCounts(isolatedApplication,f.publicId)).toEqual(before);
+  const child=await readBrowserTaskLogisticsLinks(page,
+    `/api/projects/${f.publicId}/tasks/${f.task.taskId}/logistics-links`,observeIsolatedApi);
+  expect(child.compatibilityLinks.some(item=>item.sourceId===originalId&&item.inherited===true)).toBe(true);
+  const readonlyContext=await page.context().browser()!.newContext();
+  try {
+    const readonly=await readonlyContext.newPage();
+    await readonly.goto(`${isolatedApplication}/projects/${f.publicId}`);
+    const readonlyEditor=await openEditor(readonly,f.parentTask.name);
+    await expect(readonlyEditor.getByRole("button",{name:"기존 관계 적용 범위 수정"})).toBeDisabled();
+  } finally { await readonlyContext.close(); }
 });
