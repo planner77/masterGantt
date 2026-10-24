@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 
 import type { StructuredLogger } from "../logging/logger-core";
 import { getServerLogger } from "../logging/logger";
+import { projectScopedAccessResponse } from "../security/project-read-access-core";
 
 const REQUEST_ID_PATTERN = /^(?:[0-9a-f]{32}|[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i;
 
@@ -95,7 +96,7 @@ export async function withApiRequestLogging(
 
   return requestContext.run(context, async () => {
     try {
-      const response = await handler(requestId);
+      const response = projectScopedAccessResponse(request, requestId) ?? await handler(requestId);
       response.headers.set("X-Request-ID", requestId);
       if (!isHealthRoute(options.route)) {
         const level = completionLevel(response.status);

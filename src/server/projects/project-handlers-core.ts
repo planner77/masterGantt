@@ -23,6 +23,7 @@ import {
   parseApplicationBaseUrl,
 } from "../security/origin-core";
 import { PasswordHashCapacityError } from "../security/password-core";
+import { projectSessionFromCookie } from "../security/project-read-access-core";
 import { ProjectMasterProcessMappingInUseError, ProjectMasterInvalidInputError, ProjectMasterItemInactiveError, ProjectMasterItemNotFoundError, ProjectMasterRelationInvalidError } from "../project-master/project-master-service-core";
 import {
   UNATTRIBUTED_CREATE_RATE_KEY,
@@ -45,7 +46,7 @@ import {
 interface ProjectServiceApi {
   create(input: CreateProjectInput): Promise<CreatedProject>;
   listProjects(): ProjectListResponse;
-  getReadonlySnapshot(publicId: string): ProjectSnapshotResponse | undefined;
+  getReadonlySnapshot(publicId: string, rawToken?: string): ProjectSnapshotResponse | undefined;
   authorize(publicId: string, rawToken: string | undefined): AuthorizationResult;
   updateMetadata(
     authorization: AuthorizedEditSession,
@@ -226,6 +227,7 @@ export async function handleCreateProject(
 export function handleReadProject(
   publicId: string,
   dependencies: ReadProjectHandlerDependencies,
+  request?: Request,
 ): Response {
   const requestId = (dependencies.requestId ?? randomUUID)();
 
@@ -240,7 +242,7 @@ export function handleReadProject(
 
     const snapshot = resolveDependency(
       dependencies.service,
-    ).getReadonlySnapshot(publicId);
+    ).getReadonlySnapshot(publicId, request ? projectSessionFromCookie(request.headers.get("cookie")) : undefined);
     if (!snapshot) {
       throw new PublicApiError(
         404,
