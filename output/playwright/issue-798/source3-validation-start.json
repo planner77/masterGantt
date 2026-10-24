@@ -1,0 +1,22 @@
+{
+  "phase": "FINAL_SOURCE3_SELECTED4",
+  "startedAt": "2026-10-24T23:00:42.379469+00:00",
+  "sourceHashes": {
+    "package.json": "5a1a0ff77d00b69f832969e3b329f5fa49b5119cf168fb790f597429d37e27b0",
+    "package-lock.json": "2c68c800bd44a9aa61fad15533d8476c9f230a7b589ddbacac796695421fa317",
+    "src/features/resources/wbs-view-dashboard.tsx": "6b4e974f952375349cd0056bda1706d4eda53b25a153fb2a9c6f4345a98bf158",
+    "src/features/resources/wbs-view-composer.tsx": "9486fa288829255cb95337838831b07b13d83b1c7dbad410bac69d7b0a39035b",
+    "src/features/resources/wbs-view.module.css": "83749e2a01011e7caabf789164317eab91d8fb84fd6c9daacbd1b477fab14d05",
+    "tests/e2e/helpers/wbs-controls.ts": "80fcc2bd50384a50e6edec3d35b51cac4f0b4c190994d30ca24d9ad6465d2738",
+    "tests/manual/issue-798-dashboard-density.mjs": "99d4fde139d38648078b90baea1a061275697bc2148b13cf2b76d6b22888e626",
+    "tests/manual/issue-798-compare.py": "964faf0cb121483dce68deb91cb2477419136b7cb784442271fc309e1c87b1cf",
+    "tests/e2e/issue-730-view-composer.spec.ts": "1cd85e5b9f2a932b69997d838e08b74b9a7ccf1b765ea87d1beb3a84e23e3801",
+    "tests/e2e/issue-737-target0-acceptance.spec.ts": "2272bde8c6927e6e175f3241b1bb99e0b6c60b564077bcfd44b6e1c2aa13dc15",
+    "tests/e2e/issue-734-equipment-dashboard.spec.ts": "f325ab8a4498901b93716f541b62c3665ebe3953bbde726cd60934c4d66d8f16",
+    "tests/e2e/issue-735-system-dashboard.spec.ts": "3bbc14f7ac0d72b82120a41b1e7711935940a4e585945a4ecdf8e5c3b75a3c90",
+    "tests/e2e/issue-732-milestone-dashboard.spec.ts": "8b174471a62b9c4526c74529f143a19ac48f97c1b77a9ffad85a074fa69e52e2",
+    "tests/e2e/issue-733-process-workarea-dashboard.spec.ts": "0768e1e0ba1d09bf1b73fbaaae69fe78e3ae3caa024f736fb6a0507c9711b2ca",
+    "tests/e2e/issue-736-resource-dashboard.spec.ts": "c31a3bc08694174929778dd48cf1d9721e582d6cedef84a09f14f79f3348a470",
+    "tests/e2e/issue-762-process-workareas.spec.ts": "4e6db111c4f66994afc6fe9a4850215f420a984160aeebf97c7a4ade6b05837c"
+  }
+}

@@ -1,3 +1,11 @@
+## Issue #798 — 동적 대시보드 공통 제어 밀도 회귀
+
+[#798 Work Packet](exec-plans/active/ISSUE_798.md)의 AC_TEST_COVERAGE와 TEST_LIFECYCLE_REVIEW를 단일 매핑으로 사용한다. #797 감사의 누락 조합·PARTIAL을 이번 PASS로 재사용하지 않고 동일 fixture의 KPI+5관점×390/768/1024/1440/1920 source/geometry/PNG를 변경 전후에 수집한다. header/toolbar/구성 높이·wrap·첫 요약/표Y·가시 지표/행·유효 상태와 document overflow를 비교한다. 지표 요약 자체 개선은 #799, 전 화면 지속 기준선은 #800 범위다.
+
+기존 `issue-730-view-composer.spec.ts`와 #732~#736 consumer 시나리오 및 공유 helper를 EXTEND한다. 새 고급 진입점·접힌 적용값·초기화·Enter/Space/Escape/focus·초안/조회 상태 보존을 추가하고, 기존 전체 Gate·설비/System 원본·정확 Task/Assignment·Plan/Excel·stale/readonly/dirty/401/412 단언은 KEEP_UNIQUE한다. `cross-screen-regression.spec.ts`의 고유 화면/geometry 계약도 유지한다. 제목 유사성을 근거로 테스트를 통합·폐기하거나 timeout/skip/retry·현재 8-shard/Required3를 변경하지 않는다.
+
+수동 수집은 `tests/manual/issue-798-dashboard-density.mjs`를 명시 실행하며 상시 E2E 중복 spec이 아니다. 같은 spec/filter의 서버 snapshot·totals·원본 Task/Assignment·구성/공수/Gate 및 canonical fingerprint·조회 mutation0을 geometry와 별도로 대조한다. 로컬 관측/선택 E2E·독립 PRE_QA·원격 Full quality/e2e/docker/Trusted QA·Manager ACCEPT는 분리 판정한다. 현재 원격 결과는 NOT TESTED이며 사용자 범위는 PR CI 시작까지다.
+
 ## Issue #792 MAIN-792-001 — 병합 커밋 추적 오류·신규 릴리스 후보 교차 검증 (2026-10-24)
 
 - 원본 PR #795 [Full #3244.1](https://github.com/planner77/masterGantt/actions/runs/40075199615) Quality/E2E8/Docker/Trusted PASS에도, Merge Commit `4048245f8dc90c1f46dd1cc58948a17a4fb7338e`의 *다중 행 본문*으로 [Main #3249.1](https://github.com/planner77/masterGantt/actions/runs/40085439884) `verify-ci-run-trace.py`에서 직접 FAIL했다. 그 결과 실제 Main 구현 테스트·GHCR 이미지 게시는 SKIPPED/NOT RUN이며 PR 검증 성공을 Main/GHCR PASS로 대체하지 않는다.

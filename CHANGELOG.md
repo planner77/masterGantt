@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #798 동적 대시보드 제어 영역
+
+- Milestone·공정&WorkArea·설비·물류 시스템·리소스의 제목·현재 경로를 정돈하고 작업 검색·상태·기간을 빠른 toolbar에 배치한다. 표 이름 찾기·정렬·관점 조건·기존 조회 구성은 고급 영역에서 열며 적용 조건·범위와 초기화를 확인할 수 있다.
+- 기존 KPI·구성/작업/전체 Gate·원본 편집·Plan/Excel의 계산과 권한을 유지한다. 5폭 실측·선택 회귀·문서 및 미검증은 [#798 Work Packet](docs/exec-plans/active/ISSUE_798.md)에 기록한다. 앱 버전 유지, PR CI 시작 범위이며 정식 릴리스·최종 QA 완료를 뜻하지 않는다.
+
 ## [0.132.0] — Issue #792 Main CI 재발행 후보 (2026-10-24)
 
 - [원본 PR #795](https://github.com/planner77/masterGantt/pull/795)은 Product·Unit/HTTP/Chromium8/Docker/Trusted QA PASS 후 `main`에 `4048245f8dc90c1f46dd1cc58948a17a4fb7338e`로 병합됐으나, 그 merge commit의 **여러 줄 메시지**가 신뢰된 `verify-ci-run-trace.py`의 한 줄 Merge 계약을 어겨 [Main CI #3249.1](https://github.com/planner77/masterGantt/actions/runs/40085439884)에서 경로 판정만 직접 FAIL했다. 원본 실패 SHA나 Gate 결과는 변경하지 않는다.

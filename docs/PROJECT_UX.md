@@ -1,3 +1,11 @@
+## Issue #798 — 동적 대시보드의 빠른 필터와 조회 설정
+
+Milestone·공정&WorkArea·설비·물류 시스템·리소스는 관점명·현재 적용 경로·도움말을 한 header에 두고, 작업 검색·상태·기간·새로고침을 빠른 제어로 제공한다. 표의 이름 찾기·이름 정렬·관점별 조건과 기존 조회 구성은 `필터·조회 구성`에서 연다. KPI 화면과 구성 참고/필터된 작업/전체 Gate·개인 Plan/Excel 요약은 기존 계약을 유지한다.
+
+작업 검색은 서버 조회 모집단을 바꾸고, 표의 이름 찾기는 행 표시만 제한한다. 고급 영역이 접혀도 적용 조건 수·값과 이름 찾기의 서버 고유 총계 유지, 적용 정렬·System 직접/조율/호환 및 전체/선택 범위를 확인할 수 있어야 한다. 고급 조건 초기화는 작업 검색·상태·기간과 하위 축·접힘·scroll을 유지하며 고급 필터·표 이름 찾기·역순 정렬·선택 시스템/조율 범위를 해제한다. 상세 선택은 해제하고 System 선택/조율을 해제할 때는 관점 기본 direct를 명시한다. `systemIds`만 있는 저장 설정과 빈 선택도 direct이며, `systemView`·`systemIds` 모두 없는 진짜 legacy는 검색/정렬 초기화만으로 direct로 변환하지 않는다. 기존 System 전용 초기화의 동작은 유지한다. 조회 초기화는 현재 조건뿐 아니라 기존 개인 조회 설정·선택·접힘·scroll의 초기화를 포함한다. 고급 영역을 열거나 닫는 행위는 초안·적용 조건·snapshot·결과·원본 데이터를 바꾸지 않는다. 마지막 고급 조건을 해제해 초기화 버튼이 사라지면 지속 표시되는 필터·조회 구성 trigger로 focus를 복원한다.
+
+제어를 접어도 composer와 System 속성 초안은 mount 상태를 유지한다. Escape는 열린 최내측 disclosure부터 닫고 그 summary로, 고급 영역을 닫을 때는 가시 trigger로 focus를 복원한다. 탭·일정 복귀의 관점별 상태, 이전 응답 무효화·stale/pending/readonly·dirty 및 401/412의 기존 host/editor 잠금은 유지한다. 구현·5폭 실측·선택 회귀 및 원격 미검증은 [Work Packet](exec-plans/active/ISSUE_798.md)을 따른다.
+
 ## Issue #792 F792-001 — 기존 연결 source 수정 중 Task Editor 탐색 경합 차단
 
 원본 `scope` PATCH는 공통 `ProjectTaskEditor`의 기존 pending lock과 결합해야 한다. 직접 설비·System·공정·리소스·이름 초안 생성/저장과 다른 탭 전환/닫기는 PATCH 응답·canonical reload 완료 때까지 차단한다. 상속 provenance/원본 UUID/동적 whole/coverage 및 일반 조회·Gantt scroll/selection/Task 작성은 이 동작으로 새로 기록하지 않는다. 사용자에게는 editor 내부 native disabled와 `aria-busy`가 적용되며 실제 5폭·키보드/Focus 시험 결과는 원격 Chromium 성공 전 `NOT TESTED`. P1 리뷰/Fail 기록: [#792 원장](ISSUE_792_FAILURE_ANALYSIS.md), [Task 계약](TASK_EDITOR.md).

@@ -1,3 +1,4 @@
+import { openWbsViewControls } from "./helpers/wbs-controls";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -34,6 +35,7 @@ async function openResource(page:Page){
  await expect(root(page)).toHaveAttribute("data-ready","true",{timeout:30_000});
 }
 async function preset(page:Page,label:string){
+  await openWbsViewControls(root(page));
  const composer=root(page).locator("details").filter({has:page.locator("summary").filter({hasText:/^조회 구성$/})});
  if(!await composer.evaluate(element=>(element as HTMLDetailsElement).open))await composer.locator("summary").click();
  await composer.getByRole("button",{name:label,exact:true}).click();
@@ -55,8 +57,12 @@ test("#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot E
  expect(p.assignmentIds).toEqual(initial.assignmentIds);expect(p.totals.assignments.effort).toEqual(initial.totals.assignments.effort);
  expect(p.spec.levels).toEqual(["process","workArea",{kind:"siblings",dimensions:["equipment","system"]}]);
  const m=await preset(page,"리소스 → Milestone → 공정");expect(m.totals.tasks).toEqual(initial.totals.tasks);
+ await openWbsViewControls(root(page));
  const filter=reportResponse(page,{spec:m.spec,filters:{resourceIds:[f.resource.id]}});await root(page).getByRole("combobox",{name:"개인",exact:true}).selectOption(f.resource.id);await filter;await expect(root(page)).toHaveAttribute("data-ready","true",{timeout:30_000});
  const planResponse=reportResponse(page,{spec:m.spec,filters:{resourceIds:[f.resource.id],granularity:"week"}});await root(page).getByRole("combobox",{name:"Plan 기간",exact:true}).selectOption("week");const plan=await planResponse;
+ await root(page).getByRole("button",{name:/^필터·조회 구성/}).click();
+ await expect(root(page).locator('[aria-label="적용된 고급 조건"]')).toContainText(f.resource.name);
+ await expect(root(page).locator('[aria-label="적용된 고급 조건"]')).toContainText("Plan 기간: 주간");
  await expect(root(page).getByRole("region",{name:"현재 개인 배정 Plan",exact:true})).toBeVisible();
  expect(plan.resourceAdapter?.report.plan).toEqual(plan.plan);
  const download=page.waitForEvent("download");const exportResponse=page.waitForResponse(response=>response.url().endsWith("/exports/excel")&&response.request().method()==="POST");
@@ -76,8 +82,10 @@ test("#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot E
  expect((await f.snapshot()).data.project.revision).toBe(before.data.project.revision);await page.unroute(assignmentRoute);
  const saved=page.waitForResponse(response=>response.url().endsWith(`/tasks/${f.task.taskId}/assignments`)&&response.request().method()==="PUT");await save.click();expect((await saved).status()).toBe(200);
  await editor.getByRole("button",{name:"작업 편집기 닫기",exact:true}).click();await expect(original).toBeFocused();
- await expect(root(page)).toHaveAttribute("data-ready","true",{timeout:30_000});await expect(root(page).getByRole("combobox",{name:"개인",exact:true})).toHaveValue(f.resource.id);await expect(root(page)).toContainText("현재 경로: 리소스 → Milestone → 공정");
+ await expect(root(page)).toHaveAttribute("data-ready","true",{timeout:30_000});await expect(root(page)).toContainText("현재 경로: 리소스 → Milestone → 공정");
  await detail.press("Escape");await expect(trigger).toBeFocused();
+ await openWbsViewControls(root(page));
+ await expect(root(page).getByRole("combobox",{name:"개인",exact:true})).toHaveValue(f.resource.id);
  await expect(page.locator("[data-resource-compatibility]")).toContainText("기존 분석·Plan·견적·Excel");
  const after=await f.snapshot();expect(after.data.assignments?.find(row=>row.id===f.assignment.id)).toMatchObject({id:f.assignment.id,allocation:{percent:80}});expect(after.data.assignments?.filter(row=>row.id!==f.assignment.id)).toEqual(before.data.assignments?.filter(row=>row.id!==f.assignment.id));expect(after.data.project.revision).toBe(before.data.project.revision+1);
 });
@@ -119,6 +127,7 @@ test("#736 새 Resource Plan 선택80·Project140·선택밖 원인 저장 후 �
  const searched=reportResponse(page,{spec:defaultSpec,filters:{taskSearch:filters.taskSearch}});await root(page).getByLabel("작업 검색",{exact:true}).fill(filters.taskSearch);await searched;
  const started=reportResponse(page,{spec:defaultSpec,filters:{taskSearch:filters.taskSearch,from:filters.from}});await root(page).getByLabel("조회 시작일",{exact:true}).fill(filters.from);await started;
  const ended=reportResponse(page,{spec:defaultSpec,filters:{taskSearch:filters.taskSearch,from:filters.from,to:filters.to}});await root(page).getByLabel("조회 종료일",{exact:true}).fill(filters.to);await ended;
+ await openWbsViewControls(root(page));
  const selected=reportResponse(page,{spec:defaultSpec,filters:{taskSearch:filters.taskSearch,from:filters.from,to:filters.to,resourceIds:filters.resourceIds}});await root(page).getByRole("combobox",{name:"개인",exact:true}).selectOption(f.resource.id);await selected;
  const response=reportResponse(page,{spec:defaultSpec,filters});await root(page).getByRole("combobox",{name:"Plan 기간",exact:true}).selectOption("week");const report=await response;expect(report.assignmentIds).toEqual([currentAssignment.id]);
  await expect(root(page)).toHaveAttribute("data-ready","true",{timeout:30_000});

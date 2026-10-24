@@ -1,0 +1,1 @@
+{"key":"kpi-390","result":"FAIL","reason":"CLI failed: ### Error\nTimeoutError: locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('편집 중', { exact: true }) to be visible\u001b[22m\n\u001b[2m    2 × waiting for \"http://127.0.0.1:3198/projects/145bfe2a-f984-48e9-af51-37b3d3bda6a9\" navigation to finish...\u001b[22m\n\u001b[2m      - na"}

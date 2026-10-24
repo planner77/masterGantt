@@ -1,0 +1,76 @@
+{
+  "reviewer": "/root/density_qa",
+  "recordedAt": "2026-10-24T22:57:24.367031+00:00",
+  "scope": "독립 readonly Chromium 신규 공통 제어 경계만. 실제 기기/전체 회귀/원격 CI 아님.",
+  "cliSession": "issue798qa",
+  "rawCommand": "playwright_cli.sh -s=issue798qa run-code --filename /tmp/issue798-qa-common-edges.cli.js --raw",
+  "scriptSha256": "986d7bcf1db4255f806cb1c0304dbf978ea2274ac39ba031f2934c92d73b73ca",
+  "sourceHashes": {
+    "src/features/resources/wbs-view-dashboard.tsx": "6b4e974f952375349cd0056bda1706d4eda53b25a153fb2a9c6f4345a98bf158",
+    "src/features/resources/wbs-view-composer.tsx": "9486fa288829255cb95337838831b07b13d83b1c7dbad410bac69d7b0a39035b",
+    "src/features/resources/wbs-view.module.css": "83749e2a01011e7caabf789164317eab91d8fb84fd6c9daacbd1b477fab14d05"
+  },
+  "originalFinding": {
+    "status": "FAIL",
+    "scope": "표 이름 찾기 마지막 고급 조건 초기화의 keyboard Enter",
+    "before": {
+      "tag": "BUTTON",
+      "text": "고급 조건 초기화"
+    },
+    "after": {
+      "tag": "BODY",
+      "text": null
+    },
+    "nextTab": {
+      "tag": "BUTTON",
+      "text": "ⓘ",
+      "href": null
+    },
+    "resetRemaining": 0,
+    "scriptSha256": "a0474da949156078e17d4705793d13811af1ca2379ebc6135799ba11fccd4c27"
+  },
+  "source3Verification": {
+    "status": "PASS",
+    "cases": [
+      {
+        "case": "열기/닫기·mounted·local 정렬/이름찾기·초기화 focus/query0",
+        "status": "PASS",
+        "focus": {
+          "tag": "BUTTON",
+          "name": "필터·조회 구성"
+        }
+      },
+      {
+        "case": "유효하지 않은 기간의 외부 오류·빠른 조건 보존·초기화 focus/query0",
+        "status": "PASS"
+      },
+      {
+        "case": "IDs-only 1식 복원·직접 범위·신규 초기화 direct 전체/focus",
+        "status": "PASS"
+      },
+      {
+        "case": "IDs-only 0식 복원·직접 범위·신규 초기화 direct 전체/focus",
+        "status": "PASS"
+      },
+      {
+        "case": "진짜 legacy의 local 초기화·legacy 유지/query0/focus",
+        "status": "PASS"
+      },
+      {
+        "case": "잘못된 저장 설정 경고 외부 표시·기본 direct",
+        "status": "PASS"
+      }
+    ],
+    "canonicalUnchanged": true,
+    "revision": 17,
+    "mutations": 0,
+    "projectReadOnlyQueries": 11
+  },
+  "notTested": [
+    "원격 quality/e2e/docker/Trusted QA",
+    "전체 로컬 suite",
+    "물리 touch 기기",
+    "screen reader",
+    "native zoom"
+  ]
+}

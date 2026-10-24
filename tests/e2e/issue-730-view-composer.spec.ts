@@ -1,3 +1,4 @@
+import { openWbsViewControls } from "./helpers/wbs-controls";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -26,6 +27,7 @@ async function openRoot(page: Page, root: Root) {
   await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
 }
 async function composer(root: Locator) {
+  await openWbsViewControls(root);
   const disclosure = root.locator("details").filter({ has: root.page().locator("summary").filter({ hasText: /^조회 구성$/ }) });
   if (!(await disclosure.evaluate(element => (element as HTMLDetailsElement).open))) {
     await disclosure.locator("summary").focus();
@@ -176,6 +178,7 @@ test("#730 지연 원본은 새 상세·상세 Task 명령·이름 검색에 양
   await root.getByRole("button", { name: "상세 닫기", exact: true }).click();
   await original.click();
   await expect.poll(() => release.length).toBe(6);
+  await openWbsViewControls(root);
   await root.getByLabel("표의 이름 찾기", { exact: true }).fill("등록만 설비");
   await expect(row).toHaveCount(0);
   release[5]();
@@ -184,12 +187,14 @@ test("#730 지연 원본은 새 상세·상세 Task 명령·이름 검색에 양
   await expect(root.getByRole("region", { name: "계층 원본 상세", exact: true })).toHaveCount(0);
   await expect(root.getByLabel("표의 이름 찾기", { exact: true })).toHaveValue("등록만 설비");
   // 상세 검증 뒤 host가 다시 확인하는 두 번째 scope에서도 같은 최신 의도를 지킨다.
+  await openWbsViewControls(root);
   await root.getByLabel("표의 이름 찾기", { exact: true }).fill("");
   await row.getByRole("button", { name: "상세", exact: true }).click();
   await expect(taskOriginal).toBeVisible();
   passScopes = 1;
   await detail.getByRole("button", { name: "이 범위 일정 보기", exact: true }).click();
   await expect.poll(() => release.length).toBe(7);
+  await openWbsViewControls(root);
   await root.getByLabel("표의 이름 찾기", { exact: true }).fill("등록만 설비");
   await expect(detail).toHaveCount(0);
   release[6]();
@@ -253,8 +258,10 @@ test("#730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 �
   await expect(table.locator(`tr[data-dimension="system"][data-entity-id="${f.system.id}"]`)).toHaveAttribute("data-depth", "1");
   const expandedProcess = dashboard(page).getByRole("button", { name: "A 공정 하위 접기", exact: true });
   await expect(expandedProcess).toHaveAttribute("aria-expanded", "true");
+  await openWbsViewControls(dashboard(page));
   await dashboard(page).getByLabel("표의 이름 찾기", { exact: true }).fill("A 공정");
   await expect(table.locator("button[aria-expanded]")).toHaveCount(0);
+  await openWbsViewControls(dashboard(page));
   await dashboard(page).getByLabel("표의 이름 찾기", { exact: true }).fill("");
   await expect(expandedProcess).toHaveAttribute("aria-expanded", "true");
   await expect(table.locator(`tr[data-dimension="equipment"][data-entity-id="${f.equipment.id}"]`)).toBeVisible();
@@ -343,10 +350,12 @@ test("#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차
   const equipmentTotals = root.getByLabel("설비 작업 고유 총계", { exact: true });
   await expect(equipmentTotals).toContainText("고유 Task");
   const totalsBeforeNameSearch = await equipmentTotals.innerText();
+  await openWbsViewControls(root);
   await root.getByLabel("표의 이름 찾기", { exact: true }).fill("등록만 설비");
   await expect(detail).toHaveCount(0);
   await expect(row).toHaveCount(0);
   await expect.poll(() => equipmentTotals.innerText()).toBe(totalsBeforeNameSearch);
+  await openWbsViewControls(root);
   await root.getByLabel("표의 이름 찾기", { exact: true }).fill("");
 
   // Fault injection is explicit; successful query responses remain real HTTP.
@@ -567,4 +576,102 @@ test("#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관
   expect(current).toMatchObject({ ...original, name: renamed });
   expect(saved.data.tasks.map(task => task.taskId)).toEqual(baseline.data.tasks.map(task => task.taskId));
   await info.attach("actual-source-save-snapshot", { body: JSON.stringify({ publicId: f.publicId, taskId: f.task.taskId, beforeRevision: beforeReport.projectRevision, afterRevision: afterReport.projectRevision, beforeSnapshotId: beforeReport.snapshotId, afterSnapshotId: afterReport.snapshotId }), contentType: "application/json" });
+});
+
+test("#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조회 불변", async ({ page, browser, isolatedApplication: origin, observeIsolatedApi }) => {
+  test.setTimeout(180_000);
+  const f = await seedWbsViewComposer(page, origin, observeIsolatedApi);
+  const canonical = await f.snapshot();
+  let queries = 0, mutations = 0;
+  page.on("request", request => {
+    if (!new URL(request.url()).pathname.startsWith(`/api/projects/${f.publicId}/`)) return;
+    if (isWbsViewReadQuery(request)) queries++;
+    else if (!["GET", "HEAD", "OPTIONS"].includes(request.method())) mutations++;
+  });
+  for (const kind of roots) {
+    await openRoot(page, kind);
+    const root = dashboard(page);
+    const trigger = root.getByRole("button", { name: /^필터·조회 구성/ });
+    const panel = root.locator("[data-wbs-controls]");
+    const confirmation = await root.getAttribute("data-report-confirmation-id");
+    for (const width of [390, 768, 1024, 1440, 1920]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(trigger).toHaveAttribute("aria-expanded", "false");
+      await expect(panel).toBeHidden();
+      for (const label of ["작업 검색", "조회 시작일", "조회 종료일"]) await expect(root.getByLabel(label, { exact: true })).toBeVisible();
+      await expect(root.getByRole("combobox", { name: "작업 상태", exact: true })).toBeVisible();
+      const beforeQueries = queries;
+      await trigger.focus(); await trigger.press("Space");
+      await expect(panel).toBeVisible();
+      const composer = panel.locator("details").filter({ has: page.locator("summary").filter({ hasText: /^조회 구성$/ }) });
+      const summary = composer.locator(":scope > summary");
+      await summary.focus(); await summary.press("Enter");
+      await expect(composer).toHaveJSProperty("open", true);
+      const addAxis = composer.getByRole("button", { name: "하위 축 추가", exact: true });
+      if (width === 390) await addAxis.click();
+      const draftAxis = await composer.getByRole("combobox", { name: "하위 축 1", exact: true }).inputValue();
+      await addAxis.focus();
+      await page.keyboard.press("Escape");
+      await expect(composer).toHaveJSProperty("open", false);
+      await expect(summary).toBeFocused();
+      await page.keyboard.press("Escape");
+      await expect(panel).toBeHidden(); await expect(trigger).toBeFocused();
+      await trigger.press("Enter"); await summary.focus(); await summary.press("Enter");
+      await expect(composer.getByRole("combobox", { name: "하위 축 1", exact: true })).toHaveValue(draftAxis);
+      await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
+      await expect(panel).toBeHidden(); await expect(trigger).toBeFocused();
+      await trigger.press("Tab"); await expect(root.getByRole("button", { name: "계층 새로고침", exact: true })).toBeFocused();
+      await expect(root).toHaveAttribute("data-report-confirmation-id", confirmation!);
+      expect(queries).toBe(beforeQueries);
+      const measured = await root.evaluate(element => ({
+        documentWidth: document.documentElement.scrollWidth,
+        controls: Array.from(element.querySelectorAll<HTMLElement>("button,input,select")).filter(control => control.checkVisibility({ checkVisibilityCSS: true })).map(control => ({ name: control.getAttribute("aria-label") ?? control.textContent, width: control.getBoundingClientRect().width, height: control.getBoundingClientRect().height })),
+      }));
+      expect(measured.documentWidth).toBeLessThanOrEqual(width + 1);
+      measured.controls.forEach(control => { expect(control.height, String(control.name)).toBeGreaterThanOrEqual(44); });
+    }
+    await openWbsViewControls(root);
+    const localSearch = root.getByLabel("표의 이름 찾기", { exact: true });
+    await localSearch.fill("긴 한국어 English name 조회 조건");
+    await localSearch.press("Escape");
+    await expect(panel).toBeHidden(); await expect(trigger).toBeFocused();
+    const applied = root.locator('[aria-label="적용된 고급 조건"]');
+    await expect(applied).toContainText("표의 이름 찾기: 긴 한국어 English name 조회 조건");
+    await expect(applied).toContainText("서버 고유 총계는 유지");
+    await expect(trigger).toHaveText("필터·조회 구성 (1)");
+    const clearAdvanced = root.getByRole("button", { name: "고급 조건 초기화", exact: true });
+    await clearAdvanced.focus(); await clearAdvanced.press("Enter");
+    await expect(trigger).toBeFocused();
+    await expect(applied).toHaveCount(0);
+    await openWbsViewControls(root); await expect(localSearch).toHaveValue("");
+    await localSearch.press("Escape");
+    if (kind === "process") {
+      const quick = root.getByLabel("작업 검색", { exact: true });
+      const filtered = nextReport(page, { spec: reportSpec(kind), filters: { taskSearch: f.task.name } });
+      await quick.fill(f.task.name); await filtered; await expect(root).toHaveAttribute("data-ready", "true");
+      const filteredConfirmation = await root.getAttribute("data-report-confirmation-id");
+      await openWbsViewControls(root); await localSearch.fill("A 공정");
+      await root.getByRole("combobox", { name: "이름 정렬", exact: true }).selectOption("name-desc");
+      await localSearch.press("Escape");
+      await root.getByRole("button", { name: "고급 조건 초기화", exact: true }).click();
+      await expect(quick).toHaveValue(f.task.name);
+      await expect(root).toHaveAttribute("data-report-confirmation-id", filteredConfirmation!);
+      const cleared = nextReport(page, { spec: reportSpec(kind), filters: { taskSearch: "" } });
+      await quick.fill(""); await cleared; await expect(root).toHaveAttribute("data-ready", "true");
+    }
+  }
+  const touchContext = await browser.newContext({ viewport: { width: 390, height: 900 }, hasTouch: true });
+  await touchContext.addCookies(await page.context().cookies());
+  try {
+    const touchPage = await touchContext.newPage();
+    await touchPage.goto(`${origin}/projects/${f.publicId}`); await openRoot(touchPage, "equipment");
+    let touchQueries = 0;
+    touchPage.on("request", request => { if (isWbsViewReadQuery(request)) touchQueries++; });
+    const touchTrigger = dashboard(touchPage).getByRole("button", { name: /^필터·조회 구성/ });
+    await touchTrigger.tap(); await expect(touchTrigger).toHaveAttribute("aria-expanded", "true");
+    await touchTrigger.tap(); await expect(touchTrigger).toHaveAttribute("aria-expanded", "false");
+    await expect(touchTrigger).toBeFocused(); expect(touchQueries).toBe(0);
+  } finally { await touchContext.close(); }
+  expect(mutations).toBe(0);
+  expect((await f.snapshot()).data).toEqual(canonical.data);
 });

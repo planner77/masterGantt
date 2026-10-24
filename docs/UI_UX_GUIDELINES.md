@@ -1,3 +1,11 @@
+## Issue #798 — 조회 조건의 점진적 노출과 접근성
+
+다섯 동적 대시보드의 빠른 toolbar는 작업 검색·상태·기간·새로고침을 유지하고, 표 이름 찾기·정렬·관점 조건·하위 축 구성은 한 고급 진입점으로 연다. 접힌 조건은 실제 적용 그룹 수와 값·정렬·관점별 범위 및 초기화/재진입을 표시한다. System 속성 초안은 적용된 선택 시스템과 구별하고, 표 이름 찾기는 서버 고유 총계를 바꾸지 않는 표시 조건임을 밝힌다. loading·오류·기간 오류·stale·이전 결과 안내는 설정과 함께 접지 않는다.
+
+native label/button/select/date와 44px 조작 영역·focus ring을 유지한다. 열기/닫기는 필터 적용 동작과 분리하며 내부 controls를 unmount하여 초안을 버리지 않는다. Enter/Space·Tab/Shift+Tab을 지원하고 Escape는 최내측 열린 구성기/도움말부터 처리한다. 상위 고급 영역이 닫히면 내부 focus를 가시 trigger로 복원하고 modal trap을 만들지 않는다. 고급 조건 초기화로 버튼 자체가 사라질 때에도 지속 표시되는 조회 설정 trigger로 focus를 복원하며 BODY로 방치하지 않는다.
+
+390/768/1024/1440/1920px에서 의미별 wrap·긴 한국어/영문/날짜·가려지지 않는 focus와 표 내부 scroll을 실제 Chromium으로 확인한다. 고정 높이/overflow hidden으로 오류·label을 잘라 밀도를 맞추지 않는다. KPI KEEP 대조 및 source-anchored before/after 관측은 [#798 Work Packet](exec-plans/active/ISSUE_798.md)에 기록한다. Design Delta B로 기존 DESIGN의 Workspace-first·Compact controls·Progressive disclosure를 구체화한다.
+
 ## Issue #792 F792-001 — 안전 편집 pending의 잠금 및 focus 경계
 
 이전 source 편집에서 비동기 PATCH가 진행되면 Task Editor 전체 `aria-busy`, 인접 직접 연결·Resource/작업명·닫기·탭/키보드 탐색을 같은 잠금으로 제어한다. 별도 source 버튼의 local `busy`만으로 잠갔다고 주장하지 않는다. 확인 저장과 `reload(true)`가 완료되기 전에 다른 초안을 생성·이동시켜 초기화하는 경로를 막고, 성공 후 입력을 다시 허용한다. 오류·outdated Revision·네트워크 불확실성에서 사용자 확인 없는 초안 폐기를 금지한다. 동일 5폭/keyboard/Escape/readonly 실제 Chromium 보호는 [#792 E2E](exec-plans/active/ISSUE_792.md)에 추가했으나 첫 Full Preflight 이후 실제 제품 Runner 미실행 → `NOT TESTED`. 기존 Light UI/semantic token/정보밀도/기간 정책 변경 없음.

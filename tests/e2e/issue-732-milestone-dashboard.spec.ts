@@ -1,3 +1,4 @@
+import { openWbsViewControls } from "./helpers/wbs-controls";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
 import type { Locator, Page } from "@playwright/test";
 import { test, expect, isolatedApplicationOptions } from "./fixtures/isolated-application";
@@ -16,6 +17,7 @@ async function openMilestone(page: Page) {
   await expect(root(page)).toHaveAttribute("data-ready","true");
 }
 async function preset(page: Page, label: string) {
+  await openWbsViewControls(root(page));
   const panel = root(page).locator("details").filter({has:page.locator("summary").filter({hasText:/^조회 구성$/})});
   if (!await panel.evaluate(node=>(node as HTMLDetailsElement).open)) await panel.locator("summary").click();
   await panel.getByRole("button",{name:label,exact:true}).click();

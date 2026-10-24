@@ -30,7 +30,7 @@ export function WbsViewComposer({ spec, onApply, onReset, presets }: { presets?:
       {spec.root === "equipment" && !presets ? <><button type="button" onClick={() => update(["process", "system", "resource"])}>설비 → 공정 → 시스템 → Resource</button><button type="button" onClick={() => update(["milestone", "process"])}>설비 → Milestone → 공정</button></> : null}
       <button type="button" onClick={()=>update([])}>하위 없음</button>
       <button type="button" disabled={!validation.ok} onClick={() => { if (validation.ok) onApply(validation.spec); }}>적용</button>
-      <button type="button" onClick={onReset}>초기화</button>
+      <button type="button" onClick={onReset}>조회 초기화</button>
     </div>{!validation.ok ? <p role="alert">{validation.message}</p> : null}
   </details>;
 }
