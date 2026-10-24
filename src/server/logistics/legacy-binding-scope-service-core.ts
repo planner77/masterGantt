@@ -35,7 +35,7 @@ function parse(raw: unknown, apply: boolean): Input {
   if (apply && (row.confirmImpact !== true || typeof row.impactToken !== "string" ||
       !/^[a-f0-9]{64}$/.test(row.impactToken))) return invalid("LEGACY_SOURCE_CONFIRMATION_REQUIRED");
   return { sourceId: row.sourceId, scope: row.scope, sourceFingerprint: row.sourceFingerprint,
-    ...(apply ? { confirmImpact: true, impactToken: row.impactToken as string } : {}) };
+    ...(apply ? { confirmImpact: true as const, impactToken: row.impactToken as string } : {}) };
 }
 function load(db: Database.Database, projectId: number): TaskTargetResolutionInput {
   try { return loadBoundedTaskLogisticsSnapshot(db, projectId); }
