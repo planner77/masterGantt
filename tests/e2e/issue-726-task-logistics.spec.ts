@@ -464,7 +464,38 @@ test("#792 Summary legacy source-only scope preview/confirm, real HTTP SQLite, 5
   const preMutation=await page.request.get(api);
   expect((await preMutation.json()).data.projectRevision).toBe(initial.projectRevision);
   expect(readLegacyFixtureCounts(isolatedApplication,f.publicId)).toEqual(before);
+  // P1 review #4366175663: delay the real PATCH without mocking a success.
+  // Until the write AND subsequent canonical reload complete, Task Editor
+  // navigation, basic inputs and all other logistics writers must remain locked.
+  let releasePatch: (() => void) | undefined;
+  let patchStarted: (() => void) | undefined;
+  const patchGate = new Promise<void>(resolve => { releasePatch = resolve; });
+  const patchSeen = new Promise<void>(resolve => { patchStarted = resolve; });
+  const patchPattern = `**/api/projects/${f.publicId}/tasks/${f.parentTask.taskId}/legacy-binding-sources`;
+  await page.route(patchPattern, async route => {
+    if (route.request().method() !== "PATCH") { await route.continue(); return; }
+    patchStarted?.();
+    await patchGate;
+    await route.continue();
+  });
   await scoped.getByRole("button",{name:"영향을 확인하고 적용"}).click();
+  try {
+    await patchSeen;
+    await expect(editor).toHaveAttribute("aria-busy", "true");
+    await expect(editor.getByRole("button",{name:"작업 편집기 닫기"})).toBeDisabled();
+    await expect(editor.getByRole("tab",{name:/^작업 정보/})).toBeDisabled();
+    await expect(editor.getByRole("tab",{name:/^리소스/})).toBeDisabled();
+    await expect(editor.locator('input[name="task-name"]')).toBeDisabled();
+    await expect(editor.getByRole("group",{name:/관련 설비/}).getByRole("checkbox",{name:/AMR-A/})).toBeDisabled();
+    await expect(editor.getByRole("button",{name:"물류 연결 저장",exact:true})).toBeDisabled();
+    const beforeApply = (await (await page.request.get(api)).json()).data;
+    expect(beforeApply.projectRevision).toBe(initial.projectRevision);
+    await page.keyboard.press("Escape");
+    await expect(editor).toBeVisible();
+  } finally {
+    releasePatch?.();
+    await page.unroute(patchPattern);
+  }
   await expect.poll(async()=> {
     const body=await (await page.request.get(api)).json();
     return body?.data?.sourceBindings?.[0]?.scope;
