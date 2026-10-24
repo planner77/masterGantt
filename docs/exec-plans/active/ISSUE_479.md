@@ -28,3 +28,17 @@ SEARCHED: `tests/server/projects/project-contract-security.test.ts`, `project-se
 
 ## Operations
 A private-to-public visibility change immediately enables anonymous readonly; public-to-private immediately denies unauthorized project reads while retaining the current valid session. Owner HIGH acceptance and Trusted QA required before merge, main CI/GHCR/release/Finalizer independent. Restore requires paired backup+image; no blind schema rollback. Exact PR Run/Attempt not yet verified.
+
+## PR #794 F-001 remediation and architecture correction (2026-10-24)
+
+Original Full Run `40065447737.1` [#3223.1](https://github.com/planner77/masterGantt/actions/runs/40065447737) was stopped by two **PR metadata** direct failures (missing standalone `Refs #479`, `qa_method: OWNER_MANAGED`), **not by failed feature tests**; all Quality/E2E8/Docker implementations SKIPPED, Required3/fast gate failed derivatively. Corrected PR body plus Owner flags. Source, job IDs, immutable history, two P1 security reviews and their bounded fixes: [cumulative ledger](../../ISSUE_479_FAILURE_ANALYSIS.md#f-001--pr-794-full-ci-32231-traceqa-metadata-direct-failure-2026-10-24-kst).
+
+### Trust-boundary refinement
+- Public-facing direct API handler and SSR page **only** call `ProjectService.getAuthorizedReadonlySnapshot(id, verifiedRawToken)`, checking visibility and same Project session before constructing any snapshot.
+- Existing `getReadonlySnapshot(id)` is a **trusted internal adapter**, not a user-facing public API: import/export services, post-mutation DTO, internal snapshots continue using it after the central `withApiRequestLogging` route guard enforces private read scope.
+- Central gateway canonicalizes one decoded Project ID matching Next.js route params, rejects malformed/noncanonical encoding before lookup and does not allow `notFound` from escaped raw UUID to skip private auth.
+- New negative regressions: percent-encoded Project identifier bypass, wrong/missing session user-facing canonical401, private export success after valid unlock; unit gate/public/private/revision and retained internal import/export path. HTTP total inventory/full browser/SQLite restart require exact Full CI evidence.
+
+### TEST_LIFECYCLE_REVIEW (F-001)
+EXTEND existing `tests/server/projects/project-handlers.test.ts`, `tests/server/projects/project-visibility.test.ts`, `tests/e2e/project-visibility.spec.ts`. KEEP_UNIQUE SQLite/authorization/origin/strong If-Match/import/export/Playwright. New encoded-path and authorized export regression are **ADD** independent security/service-consumer risks; do not remove or weaken prior credential/DB/browser coverage. CI/build/e2e/QA status is **NOT TESTED** for new head, HIGH OWNER_MANAGED Owner explicit risk acceptance remains required.
+
