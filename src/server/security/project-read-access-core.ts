@@ -16,6 +16,14 @@ export function projectSessionFromCookie(cookieHeader: string | null): string | 
   }
 }
 
+/** Canonicalize the route parameter exactly once (Next route params are decoded). */
+export function decodeProjectRoutePublicId(segment: string): string | null {
+  try {
+    const publicId = decodeURIComponent(segment);
+    return isCanonicalUuidV4(publicId) ? publicId : null;
+  } catch { return null; }
+}
+
 /**
  * Enforced before any project-scoped API handler: GET, read-only POST, exports
  * and mutations. The session issuance/current/revocation endpoints keep their
@@ -26,14 +34,13 @@ export async function projectScopedAccessResponse(request: Request, requestId: s
   const match = /^\/api\/projects\/([^/]+)(\/.*)?$/.exec(path);
   if (!match) return null;
   if (/^\/edit-sessions(?:\/current)?\/?$/.test(match[2] ?? "")) return null;
-  const { getProjectService } = await import("../projects/project-service");
-  // Next.js decodes route parameters. URL.pathname does not: evaluate one identical decoded ID.
-  let publicId: string;
-  try { publicId = decodeURIComponent(match[1]); } catch { publicId = ""; }
-  if (!isCanonicalUuidV4(publicId)) {
+  // Do not delegate malformed/ambiguous project IDs to handlers with a different decoding policy.
+  const publicId = decodeProjectRoutePublicId(match[1]);
+  if (publicId === null) {
     return Response.json({ error: { code: "PROJECT_NOT_FOUND", message: "Project not found.", details: [], requestId } },
       { status: 404, headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
   }
+  const { getProjectService } = await import("../projects/project-service");
   const access = getProjectService().projectReadAccess(publicId, projectSessionFromCookie(request.headers.get("cookie")));
   if (access !== "locked") return null;
   return Response.json({

@@ -5,6 +5,7 @@ import type Database from "better-sqlite3";
 import { openDatabase } from "../../../src/server/db/core";
 import { ProjectService } from "../../../src/server/projects/project-service-core";
 import { parseCreateProjectInput, parseUpdateProjectInput } from "../../../src/server/projects/project-contract";
+import { decodeProjectRoutePublicId } from "../../../src/server/security/project-read-access-core";
 
 const migrationsDirectory = join(process.cwd(), "db", "migrations");
 const databases: Database.Database[] = [];
@@ -24,6 +25,14 @@ function setup() {
 afterEach(() => { databases.splice(0).forEach(db => db.close()); timestamp = "2026-10-24T02:00:00.000Z"; });
 
 describe("Issue #479 visibility and private read authorization", () => {
+  it("normalizes exactly one URI-encoded UUID segment or rejects malformed encoding", () => {
+    const id = "2fd0c93f-cd37-4b68-9f09-412239d99c79";
+    expect(decodeProjectRoutePublicId(id)).toBe(id);
+    expect(decodeProjectRoutePublicId("%32" + id.slice(1))).toBe(id);
+    for (const encoded of ["%ZZ" + id, "%252F" + id, "%2F" + id, "%2e" + id, id.toUpperCase(), "not-a-uuid"]) {
+      expect(decodeProjectRoutePublicId(encoded)).toBeNull();
+    }
+  });
   it("accepts only strict public/private values and permits visibility-only PATCH", () => {
     const base = { name: "Project", ownerName: "Owner", description: "", editPassword: "secret" };
     for (const visibility of ["public", "private"] as const) {

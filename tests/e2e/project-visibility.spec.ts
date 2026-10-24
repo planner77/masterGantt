@@ -26,6 +26,12 @@ test("Issue #479 private project enforces list unlock, direct SSR lock and scope
     expect(canonical.status()).toBe(401);
     const canonicalBody = await canonical.text();
     expect(canonicalBody).not.toContain(name);
+    // Code Review P1: URL.pathname retains percent escapes, but Next route params are decoded.
+    // The same Project must be unauthorized under either route spelling.
+    const encodedId = `%${id.charCodeAt(0).toString(16).padStart(2, "0")}${id.slice(1)}`;
+    const encoded = await guest.request.get(`${origin}/api/projects/${encodedId}/logistics`);
+    expect(encoded.status()).toBe(401);
+    expect(await encoded.text()).not.toContain(name);
     const kpi = await guest.request.get(`${origin}/api/projects/${id}/logistics/kpi`);
     expect(kpi.status()).toBe(401);
     const views = await guest.request.post(`${origin}/api/projects/${id}/resource-dashboard/views`, { data: {} });
@@ -46,7 +52,17 @@ test("Issue #479 private project enforces list unlock, direct SSR lock and scope
     await guest.getByRole("button", { name: "비밀번호 확인 후 열기" }).click();
     await expect(guest).toHaveURL(new RegExp(`/projects/${id}$`));
     await expect(guest.getByRole("heading", { name })).toBeVisible();
-    expect((await guest.request.get(`${origin}/api/projects/${id}`)).status()).toBe(200);
+    const authenticated = await guest.request.get(`${origin}/api/projects/${id}`);
+    expect(authenticated.status()).toBe(200);
+    const snapshot = await authenticated.json();
+    expect(snapshot.data.project.visibility).toBe("private");
+    // Code Review P1: scoped exports must use the trusted internal snapshot after HTTP auth.
+    const jsonExport = await guest.request.post(`${origin}/api/projects/${id}/exports/json`, {
+      data: { scope: "project" },
+      headers: { Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` },
+    });
+    expect(jsonExport.status()).toBe(200);
+    expect(jsonExport.headers()["content-type"]).toContain("application/vnd.mastergantt.import+json");
   } finally {
     await guestContext.close();
   }
