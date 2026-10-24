@@ -2,7 +2,7 @@
 
 Task Editor의 `기존 연결 출처`에는 실제 Equipment/System와 원본 Task·상속·`whole/subset`·coverage/공정/WorkArea 문맥을 표시한다. **Summary에 직접 저장된 legacy binding**이 있는 경우만 `기존 관계 적용 범위 수정`을 활성화한다. 원본 관계 → `이 작업만(self)` 또는 `하위 작업 포함(subtree)` → `영향 미리보기` → `영향을 확인하고 적용` 순서이며, 변경되는 실제 Task ID 목록의 건수와 선택된 원본 구성원 수를 확인한다.
 
-사용자 직접 Equipment/System 편집은 별도 초안이다. 그 초안이 dirty/pending, 편집 잠금, readonly 또는 오래된 revision이면 기존 범위 PATCH를 시작하지 않는다. 실패/서버 401/403/409/412/422/중복 응답은 저장 성공으로 표시하지 않고 재조회·재검토를 요구한다. 새로운 소속·coverage나 Target 자체를 생성하지 않고, 상속 출처를 자손의 직접 원본으로 수정하지 않는다. SVAR 일정 writer와 Task 날짜/Resource Assignment를 건드리지 않는다.
+비활성 원본을 신규 자손으로 확대하거나 계획된 상속 경로 수의 한도를 초과하는 변경은 거부한다. 사용자 직접 Equipment/System 편집은 별도 초안이다. 그 초안이 dirty/pending, 편집 잠금, readonly 또는 오래된 revision이면 기존 범위 PATCH를 시작하지 않는다. 실패/서버 401/403/409/412/422/중복 응답은 저장 성공으로 표시하지 않고 재조회·재검토를 요구한다. 새로운 소속·coverage나 Target 자체를 생성하지 않고, 상속 출처를 자손의 직접 원본으로 수정하지 않는다. SVAR 일정 writer와 Task 날짜/Resource Assignment를 건드리지 않는다.
 
 해당 UI는 native button/select를 쓰고 기존 CSS token/반응형 editor 내부에 위치한다. 키보드 Tab/Enter/Focus·Escape 처리, 390/768/1024/1440/1920px의 이름 overflow와 실제 브라우저 검증은 원격/수동 실증 전 NOT TESTED. [API](API.md#issue-792--레거시-summary-직접-관계-적용-범위-한정-편집), [AC](exec-plans/active/ISSUE_792.md).
 
