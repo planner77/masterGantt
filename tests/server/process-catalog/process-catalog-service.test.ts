@@ -12,6 +12,7 @@ import { ProcessCatalogService } from "../../../src/server/process-catalog/proce
 import { TaskFieldProjectService } from "../../../src/server/projects/task-field-project-service";
 import { ProcessCatalogRepository } from "../../../src/server/repositories/process-catalog-repository-core";
 import { EditSessionRepository, ProjectRepository } from "../../../src/server/repositories/project-repository-core";
+import { historicalEditAuthorization, insertHistoricalPublicProject } from "../../fixtures/legacy-project";
 import { ProjectMasterRepository } from "../../../src/server/repositories/project-master-repository-core";
 import { createSessionToken, sessionExpiry } from "../../../src/server/security/session-core";
 
@@ -43,14 +44,20 @@ function setup(filename = ":memory:", migrations = migrationsDirectory) {
     for (const selectedSite of [site, siteB]) database.prepare("INSERT INTO business_unit_product_sites VALUES (?,?,?)").run(bu.id, product.id, selectedSite.id);
   }
   const triple = { businessUnitId: businessUnit.publicId, productId: product.publicId, siteEntityId: site.publicId };
-  const project = new ProjectRepository(database).insert({ publicId: randomUUID(), name: "Legacy Project", description: "", status: "planned", passwordKdf: "scrypt", passwordSalt: Buffer.alloc(16, 1), passwordHash: Buffer.alloc(32, 2), scryptN: 32768, scryptR: 8, scryptP: 3, scryptKeyLength: 32, calendarTimezone: "Asia/Seoul", createdAt: now.toISOString(), updatedAt: now.toISOString() });
+  const project = insertHistoricalPublicProject(database, { publicId: randomUUID(), name: "Legacy Project", description: "", status: "planned", passwordKdf: "scrypt", passwordSalt: Buffer.alloc(16, 1), passwordHash: Buffer.alloc(32, 2), scryptN: 32768, scryptR: 8, scryptP: 3, scryptKeyLength: 32, calendarTimezone: "Asia/Seoul", createdAt: now.toISOString(), updatedAt: now.toISOString() });
   database.prepare("UPDATE projects SET business_unit_id=?,product_id=?,site_entity_id=? WHERE id=?").run(businessUnit.id, product.id, site.id, project.id);
   const editor = createSessionToken();
-  new EditSessionRepository(database).insert({ projectId: project.id, tokenHash: editor.tokenHash, authVersion: project.authVersion, createdAt: now.toISOString(), expiresAt: sessionExpiry(now).toISOString() });
-  const result = new TaskFieldProjectService(database, { clock: () => now }).authorize(project.publicId, editor.rawToken);
+  const editorSessionId = new EditSessionRepository(database).insert({ projectId: project.id, tokenHash: editor.tokenHash, authVersion: project.authVersion, createdAt: now.toISOString(), expiresAt: sessionExpiry(now).toISOString() });
+  // During pre-0031 migration setup, retain the genuine stored session. The
+  // current authorization service is exercised only after visibility is added.
+  const result = migrations === migrationsDirectory
+    ? new TaskFieldProjectService(database, { clock: () => now }).authorize(project.publicId, editor.rawToken)
+    : { kind: "authorized" as const, authorization: historicalEditAuthorization(
+        project, editorSessionId, editor.tokenHash, sessionExpiry(now).toISOString(),
+      ) };
   if (result.kind !== "authorized") throw new Error("Fixture authorization failed");
   const authorization = result.authorization;
-  const projectRevision = () => new ProjectRepository(database).findByPublicId(project.publicId)!.revision;
+  const projectRevision = () => database.prepare("SELECT revision FROM projects WHERE id = ?").pluck().get(project.id) as number;
   // Historical migration fixtures must be written through their historical schema, before the current service requires the latest tables.
   const legacy = new LogisticsRepository(database).insertProcess({publicId:randomUUID(),projectId:project.id,code:"LEGACY",name:"Existing Process",parentId:null,now:now.toISOString()});
   const process = {id:legacy.publicId,code:legacy.code,name:legacy.name};
@@ -274,7 +281,7 @@ describe("Process catalog migration persistence and SQLite guards", () => {
     const f = setup(filename, migrations);
     const legacyRows = f.database.prepare("SELECT * FROM project_processes").all();
     const beforeRevision = f.projectRevision();
-    expect(runMigrations(f.database, migrationsDirectory).applied).toEqual(["0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql"]);
+    expect(runMigrations(f.database, migrationsDirectory).applied).toEqual(["0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql"]);
     expect(f.database.prepare("SELECT * FROM project_processes").all()).toEqual(legacyRows);
     expect(f.repository.rawMappings(f.project.id)).toEqual([]);
     expect(f.projectRevision()).toBe(beforeRevision);

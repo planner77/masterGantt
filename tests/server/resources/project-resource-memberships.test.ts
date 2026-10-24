@@ -13,6 +13,7 @@ import { runMigrations } from "../../../src/server/db/migrations";
 import { ResourceCatalogRepository } from "../../../src/server/repositories/resource-catalog-repository-core";
 import { LogisticsRepository } from "../../../src/server/repositories/logistics-repository-core";
 import { ProjectRepository } from "../../../src/server/repositories/project-repository-core";
+import { insertHistoricalPublicProject } from "../../fixtures/legacy-project";
 import { ScheduleRepository } from "../../../src/server/repositories/schedule-repository-core";
 import { TaskFieldProjectService } from "../../../src/server/projects/task-field-project-service";
 import { ResourceCatalogService, ResourceCatalogTargetInUseError } from "../../../src/server/resources/resource-catalog-service-core";
@@ -309,7 +310,7 @@ describe("Issue727 persisted Project participation", () => {
         copyFileSync(join(migrationsDirectory, name), join(old, name));
     const filename = join(dir, "app.sqlite3"), initial = openDatabase({ filename, migrationsDirectory: old }).database;
     expect(initial.prepare("SELECT name FROM sqlite_schema WHERE name='project_resource_memberships'").get()).toBeUndefined();
-    const legacyProject = new ProjectRepository(initial).insert({ publicId: randomUUID(), name: "Before migration", description: "", passwordKdf: "scrypt", passwordSalt: Buffer.alloc(16, 1), passwordHash: Buffer.alloc(32, 2), scryptN: 32768, scryptR: 8, scryptP: 3, scryptKeyLength: 32, calendarTimezone: "Asia/Seoul", createdAt: now, updatedAt: now });
+    const legacyProject = insertHistoricalPublicProject(initial, { publicId: randomUUID(), name: "Before migration", description: "", passwordKdf: "scrypt", passwordSalt: Buffer.alloc(16, 1), passwordHash: Buffer.alloc(32, 2), scryptN: 32768, scryptR: 8, scryptP: 3, scryptKeyLength: 32, calendarTimezone: "Asia/Seoul", createdAt: now, updatedAt: now });
     const legacyTask = new ScheduleRepository(initial).insertTask({ projectId: legacyProject.id, publicId: randomUUID(), externalId: "Legacy", name: "Legacy", type: "task", scheduleMode: "auto", requestedStart: "2026-10-19", startDate: "2026-10-19", endDate: "2026-10-19", duration: 1, progress: 0, parentId: null, sortOrder: 0, createdAt: now, updatedAt: now });
     const catalog = new ResourceCatalogRepository(initial), legacyResource = catalog.insertResource({ publicId: randomUUID(), name: "Legacy person", code: null, description: "", now });
     catalog.replaceTaskAssignments({ projectId: legacyProject.id, taskId: legacyTask.id, now, targets: [{ kind: "resource", publicId: legacyResource.publicId, internalId: legacyResource.id, assignmentPublicId: randomUUID(), assignmentStart: null, assignmentEnd: null, allocationPercent: null }] });
@@ -317,9 +318,17 @@ describe("Issue727 persisted Project participation", () => {
     const legacySystem = logistics.insertSystem({ projectId: legacyProject.id, publicId: randomUUID(), code: "SYS", name: "SYS", systemType: "mcs", layer: "coordinator", scope: "project", now });
     logistics.replaceSystemResourceRoles(legacyProject.id, legacySystem.id, [{ resourceId: legacyResource.id, role: "developer", isPrimary: 0 }], now);
     const tables = ["projects", "tasks", "task_assignments", "resources", "project_system_resource_roles"];
-    const legacyRows = tables.map(table => ({ table, rows: initial.prepare(`SELECT * FROM ${table} ORDER BY id`).all() }));
-    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0029_project_resource_memberships.sql", "0030_project_work_areas.sql"]);
-    expect(tables.map(table => ({ table, rows: initial.prepare(`SELECT * FROM ${table} ORDER BY id`).all() }))).toEqual(legacyRows);
+    // Compare every historical value except the newly introduced public-default column.
+    const snapshotRows = () => tables.map(table => {
+      const rows = initial.prepare(`SELECT * FROM ${table} ORDER BY id`).all() as Array<Record<string, unknown>>;
+      return { table, rows: table === "projects"
+        ? rows.map(row => Object.fromEntries(Object.entries(row).filter(([name]) => name !== "visibility")))
+        : rows };
+    });
+    const legacyRows = snapshotRows();
+    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql"]);
+    expect(snapshotRows()).toEqual(legacyRows);
+    expect(initial.prepare("SELECT visibility FROM projects WHERE id = ?").pluck().get(legacyProject.id)).toBe("public");
     expect(new ProjectResourceMembershipService(initial, { clock }).get(legacyProject.publicId).data.resources).toMatchObject([{ id: legacyResource.publicId, registered: false, usage: { taskAssignments: 1, systemRoles: 1 } }]);
     expect(runMigrations(initial, migrationsDirectory).applied).toEqual([]);
     initial.close();
