@@ -6,6 +6,14 @@
 - **교정 범위와 회귀:** application/source/API/migration/auth/CI·tests/runtime/fixtures 변경 없음. 기존 #792 및 #785의 실제 SQLite/HTTP·원본 binding UUID/whole/subset/coverage/inheritance/rollback, #726 5폭/readonly/delayed PATCH, Copy/Template/JSON/Excel·WBS/Resource, Full8→Trusted → **새 한 줄 Merge/Main**→GHCR digest smoke, Owner 버전별 formal Release/Finalizer Gate를 모두 분리한다. 동일 Run/attempt/Head/base/merge SHA로만 PASS를 인정한다.
 - **상태:** `TEST_LIFECYCLE_REVIEW=KEEP_UNIQUE`, 신규 Test 파일·skip/retry/timeout/Shard 변경0. 미완료 외부 consumer 분석, 운영 SQLite off-host backup/restore/restart, Windows Excel/DRM, 원본 member/coverage 확장 안전편집은 `NOT TESTED / BLOCKED`. 작업/검증/실패 출처는 [#792 원장](ISSUE_792_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_792.md)에 보존한다.
 
+## Issue #479 PR #794 F-001 — P1 보안·내부 사용처 회귀 보강
+
+최초 Full [#3223.1](https://github.com/planner77/masterGantt/actions/runs/40065447737)은 `Refs #479`/독립 `qa_method: OWNER_MANAGED` 선언 누락으로 변경 경로·Trusted QA 준비 직접 실패; Code/Chromium8/Docker 실제 검증 SKIPPED. [P1 encoded path](https://github.com/planner77/masterGantt/pull/794#discussion_r4366096194) 및 [P1 private Export/Import](https://github.com/planner77/masterGantt/pull/794#discussion_r4366096195) 테스트를 EXTEND한다. Pure `decodeProjectRoutePublicId` 단일 canonical decoding, malformed/double encoding 거부, User-facing handler 잠금401·민감 이름 비노출, internal trusted snapshot과 user-authorized snapshot 분리, Playwright encoded logistics HTTP401 및 session 유효 private JSON Export200. 기존 시나리오 삭제/skip 없음. 다음 exact-Head CI로만 PASS 판정, 미실행 `NOT TESTED`; [Work Packet](exec-plans/active/ISSUE_479.md).
+
+## Issue #479 — Project visibility, SSR and scoped-read security tests
+
+TEST_LIFECYCLE_REVIEW: prior ProjectService, Project contracts, edit session auth, Project/Template Copy, DB migration and E2E authorization tests retained. ADD `tests/server/projects/project-visibility.test.ts` (enum/null/unknown, migration public default/CHECK, private session missing/wrong/expired/revoked, public transition revision+1/password/auth_version). EXTEND: HTML/SSR metadata no-leak, list/dialog+copy navigation, settings state, direct canonical API/Project-scoped read-only POST + Export direct bypass, rotation/cookie and 5-width Playwright. KEEP_UNIQUE existing scrypt/KDF/timing-safe/Origin/revision/SQLite HTTP and browser tests. No skips, retire candidates or changed Required3/Chromium8. Current remote build/Chromium and end-to-end route coverage: NOT TESTED until exact new PR Run/Attempt. [Work Packet](exec-plans/active/ISSUE_479.md).
+
 ## Issue #792 F792-003 — 로컬 재현 및 교차 회귀 보강 (2026-10-24)
 
 Full #3240.1은 Preflight/Policy PASS 뒤 TypeScript·ESLint·Vitest에서 직접 FAIL이었다. 아래 최초 구현 당시 NOT TESTED 기록은 당시 경계로 보존하며 이번 실제 로컬 실행은 [단일 누적 원장](ISSUE_792_FAILURE_ANALYSIS.md)의 F792-003과 구분한다. 로컬 PASS는 새 Head 원격 Full8/Required3·Trusted/Owner 승인 결과가 아니다.

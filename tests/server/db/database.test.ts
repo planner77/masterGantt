@@ -132,12 +132,19 @@ describe("SQLite connection and schema", () => {
     repo.insertLink({ projectId, publicId: randomUUID(), predecessorTaskId: member.id, successorTaskId: milestone.id, type: "SS", lag: -1, createdAt: stamp, updatedAt: stamp });
     original.prepare("INSERT INTO resources(public_id,name,created_at,updated_at) VALUES(?,?,?,?)").run(randomUUID(), "Legacy R", stamp, stamp);
     original.prepare("INSERT INTO task_assignments(public_id,project_id,task_id,resource_id,created_at,updated_at) VALUES(?,?,?,1,?,?)").run(randomUUID(), projectId, member.id, stamp, stamp);
-    const state = (db: Database.Database) => ["projects", "tasks", "links", "resources", "task_assignments"].map((table) => db.prepare(`SELECT * FROM ${table} ORDER BY id`).all());
+    // Preserve all legacy raw data, compare after excluding only the new column.
+    const state = (db: Database.Database) => ["projects", "tasks", "links", "resources", "task_assignments"].map((table) => {
+      const rows = db.prepare(`SELECT * FROM ${table} ORDER BY id`).all() as Array<Record<string, unknown>>;
+      return table === "projects"
+        ? rows.map(row => Object.fromEntries(Object.entries(row).filter(([name]) => name !== "visibility")))
+        : rows;
+    });
     const before = state(original); original.close();
     const migrated = openDatabase({ filename, migrationsDirectory: sourceMigrations });
     try {
-      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql"]);
+      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql"]);
       expect(state(migrated.database)).toEqual(before);
+      expect(migrated.database.prepare("SELECT visibility FROM projects WHERE id = ?").pluck().get(projectId)).toBe("public");
       expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
       expect(migrated.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     } finally { migrated.database.close(); }
@@ -180,7 +187,7 @@ describe("SQLite connection and schema", () => {
         "0025_process_catalog.sql",
         "0026_logistics_targets.sql",
         "0027_task_target_bindings.sql",
-        "0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql",
+        "0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -983,6 +990,7 @@ describe("project isolation and lifecycle", () => {
         name: "Tie A",
         description: "Tie A description",
         status: "planned",
+        visibility: "public",
         createdAt: "2026-09-12T01:00:00.000Z",
         updatedAt: "2026-09-12T01:00:00.000Z",
       });
@@ -994,6 +1002,7 @@ describe("project isolation and lifecycle", () => {
           "publicId",
           "status",
           "updatedAt",
+          "visibility",
         ]);
       }
     } finally {

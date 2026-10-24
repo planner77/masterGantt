@@ -25,8 +25,8 @@ describe("Issue #751 isolated SQLite request profiling", () => {
     try {
       installE2eSqlObserver(db);
       const response = await withApiRequestLogging(
-        new Request("http://localhost/api/projects/test/resource-dashboard"),
-        { route: "/api/projects/[publicId]/resource-dashboard", logger, observeSqlMetrics: true },
+        new Request("http://localhost/api/test-sql-observer/resource-dashboard"),
+        { route: "/api/test-sql-observer/resource-dashboard", logger, observeSqlMetrics: true },
         () => {
           expect(db.prepare("SELECT 4 AS value").pluck().get()).toBe(4);
           db.prepare("CREATE TABLE example (value INTEGER)").run();
@@ -53,8 +53,8 @@ describe("Issue #751 isolated SQLite request profiling", () => {
     try {
       installE2eSqlObserver(db);
       const response = await withApiRequestLogging(
-        new Request("http://localhost/api/projects/test/assignment-targets"),
-        { route: "/api/projects/[publicId]/assignment-targets", logger, observeSqlMetrics: true },
+        new Request("http://localhost/api/test-sql-observer/assignment-targets"),
+        { route: "/api/test-sql-observer/assignment-targets", logger, observeSqlMetrics: true },
         () => {
           db.prepare("CREATE TABLE constraint_probe (value INTEGER NOT NULL)").run();
           expect(() => db.prepare("INSERT INTO constraint_probe (value) VALUES (?)").run(null)).toThrow();

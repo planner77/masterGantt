@@ -117,6 +117,11 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   const [statusBusyId, setStatusBusyId] = useState<string>();
   const [statusTarget, setStatusTarget] = useState<StatusTarget | null>(null);
   const [statusPassword, setStatusPassword] = useState("");
+  const [privateTarget, setPrivateTarget] = useState<{ project: ProjectListItemDto; copy: boolean } | null>(null);
+  const [privatePassword, setPrivatePassword] = useState("");
+  const [privateError, setPrivateError] = useState<string | null>(null);
+  const [privateBusy, setPrivateBusy] = useState(false);
+  const privateTrigger = useRef<HTMLElement | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [filter, setFilter] = useState<ProjectFilterState>(EMPTY_PROJECT_FILTER);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -298,6 +303,46 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
     setStatusTarget(null);
     setStatusPassword("");
     setStatusError(null);
+  }
+
+  function openPrivate(project: ProjectListItemDto, trigger: HTMLElement, copy = false) {
+    privateTrigger.current = trigger;
+    setPrivateTarget({ project, copy });
+    setPrivatePassword("");
+    setPrivateError(null);
+  }
+  function closePrivate() {
+    if (privateBusy) return;
+    setPrivateTarget(null);
+    setPrivatePassword("");
+    setPrivateError(null);
+  }
+  async function submitPrivate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!privateTarget || privateBusy) return;
+    const password = privatePassword;
+    setPrivatePassword("");
+    if (!password || new TextEncoder().encode(password).length > 1024) {
+      setPrivateError("비밀번호를 확인해 주세요.");
+      return;
+    }
+    setPrivateBusy(true);
+    setPrivateError(null);
+    try {
+      const response = await unlockProjectEditSession(privateTarget.project.publicId, password);
+      if (response.status === 204) {
+        const destination = projectPath(privateTarget.project.publicId) + (privateTarget.copy ? "?copy=1" : "");
+        setPrivateTarget(null);
+        setFilter(EMPTY_PROJECT_FILTER);
+        setFilterOpen(false);
+        router.push(destination);
+      } else {
+        setPrivateError(response.status === 401 ? "프로젝트 비밀번호가 올바르지 않습니다."
+          : response.status === 429 ? "시도가 너무 많습니다. 잠시 후 다시 시도해 주세요."
+          : "잠금을 해제할 수 없습니다. 다시 확인해 주세요.");
+      }
+    } catch { setPrivateError("네트워크 연결을 확인해 주세요."); }
+    finally { setPrivatePassword(""); setPrivateBusy(false); }
   }
 
   function reportError(message: string, body?: unknown) {
@@ -507,7 +552,10 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
             <th scope="col" data-column="actions">작업</th>
           </tr></thead>
           <tbody>{visibleProjects.map((project) => <tr key={project.publicId} data-project-id={project.publicId}>
-            <td className={styles.nameCell} data-column="project"><Link className={styles.nameLink} href={projectPath(project.publicId)} onNavigate={() => { setFilter(EMPTY_PROJECT_FILTER); setFilterOpen(false); }}>{project.name}</Link></td>
+            <td className={styles.nameCell} data-column="project">{project.visibility === "private"
+              ? <button className={`${styles.nameLink} ${styles.privateLink}`} type="button" onClick={event => openPrivate(project, event.currentTarget)}
+                  aria-label={`${project.name} 비공개 프로젝트 열기`}>{project.name} <span className={styles.privateBadge}>🔒 비공개</span></button>
+              : <Link className={styles.nameLink} href={projectPath(project.publicId)} onNavigate={() => { setFilter(EMPTY_PROJECT_FILTER); setFilterOpen(false); }}>{project.name}</Link>}</td>
             <td className={styles.masterCell} data-column="business-unit"><span className={styles.masterValue} title={projectMasterListLabel(project.businessUnit)}>{projectMasterListLabel(project.businessUnit)}</span></td>
             <td className={styles.masterCell} data-column="product"><span className={styles.masterValue} title={projectMasterListLabel(project.product)}>{projectMasterListLabel(project.product)}</span></td>
             <td className={styles.masterCell} data-column="site-entity"><span className={styles.masterValue} title={projectMasterListLabel(project.siteEntity)}>{projectMasterListLabel(project.siteEntity)}</span></td>
@@ -530,12 +578,26 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
             <td className={styles.actions} data-column="actions">
               <ProjectRowActions project={project} projectUrl={projectUrls[project.publicId] ?? null}
                 disabled={deletingId !== undefined || statusBusyId !== undefined || submitting}
-                onDelete={(selected, restoreTarget) => void prepareDelete(selected, restoreTarget)} />
+                onDelete={(selected, restoreTarget) => void prepareDelete(selected, restoreTarget)}
+                onPrivateOpen={(selected, restoreTarget, copy) => openPrivate(selected, restoreTarget, copy)} />
             </td>
           </tr>)}</tbody>
         </table>
       </div>}
     </div>}
+    {privateTarget ? <WorkspaceDialog title="비공개 프로젝트 열기" onClose={closePrivate} busy={privateBusy} restoreFocusRef={privateTrigger}>
+      <p>“{privateTarget.project.name}” 프로젝트는 비공개입니다. 열면 편집 권한도 활성화됩니다.</p>
+      <form className="project-form compact-form" onSubmit={submitPrivate}>
+        <div className="form-field"><label htmlFor="private-list-password">프로젝트 비밀번호</label>
+          <input id="private-list-password" type="password" autoComplete="current-password" required
+            disabled={privateBusy} value={privatePassword} onChange={event => setPrivatePassword(event.target.value)}
+            aria-describedby={privateError ? "private-list-error" : undefined} aria-invalid={Boolean(privateError)} /></div>
+        {privateError ? <p id="private-list-error" role="alert">{privateError}</p> : null}
+        <button className="primary-button" type="submit" disabled={privateBusy}>
+          {privateBusy ? "인증 중…" : "비밀번호 확인 후 열기"}
+        </button>
+      </form>
+    </WorkspaceDialog> : null}
     {statusTarget ? <WorkspaceDialog title="프로젝트 상태 변경" onClose={closeStatusChange} busy={statusBusyId === statusTarget.publicId}>
       <p>“{statusTarget.name}” 프로젝트 상태를 <strong>{projectStatusLabel(statusTarget.nextStatus)}</strong>(으)로 변경하려면 편집 비밀번호를 입력해 주세요.</p>
       {statusError ? <p role="alert">{statusError}</p> : null}

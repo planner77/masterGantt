@@ -4,6 +4,7 @@ import type { ProjectMasterItemDto } from "./project-master";
 import type { ProjectAssignmentDto } from "./resources";
 
 export type ProjectStatus = "planned" | "in_progress" | "completed";
+export type ProjectVisibility = "public" | "private";
 export type TaskStatus = "not_started" | "in_progress" | "completed";
 
 export interface ProjectHolidayDto {
@@ -26,6 +27,8 @@ export interface ProjectCalendarDto {
 }
 
 export interface ProjectDto {
+  /** Present on canonical responses; optional in historical fixtures. */
+  visibility?: ProjectVisibility;
   publicId: string;
   name: string;
   description: string;
@@ -40,6 +43,7 @@ export interface ProjectDto {
 }
 
 export interface ProjectListItemDto {
+  visibility?: ProjectVisibility;
   publicId: string;
   name: string;
   description: string;
@@ -101,6 +105,8 @@ export interface ProjectLinkDto {
 export type ProjectPermission = "readonly" | "edit";
 
 export interface CreateProjectRequest {
+  /** Omission defaults to public for existing clients. */
+  visibility?: ProjectVisibility;
   name: string;
   description: string;
   ownerName: string;
@@ -178,6 +184,7 @@ export interface CurrentEditSessionResponse {
 }
 
 export interface UpdateProjectRequest {
+  visibility?: ProjectVisibility;
   name?: string;
   description?: string;
   status?: ProjectStatus;
@@ -196,7 +203,7 @@ export interface ProjectMetadataMutationResponse {
     warnings: [];
     operation: {
       kind: "projectMetadata";
-      changedFields: ("name" | "description" | "status" | "businessUnitId" | "productId" | "siteEntityId")[];
+      changedFields: ("name" | "description" | "status" | "visibility" | "businessUnitId" | "productId" | "siteEntityId")[];
     };
   };
 }

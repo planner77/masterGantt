@@ -52,7 +52,7 @@ import { resourceEditorFocusDecision } from "./resource-editor-focus-return";
 import type { MilestoneResourceDrill } from "@/features/resources/milestone-resource-drill";
 
 import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
@@ -69,7 +69,7 @@ import { EMPTY_TASK_FILTER, activeTaskFilterCount, filterTasksWithAncestors, typ
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
-import type { DependencyType, LinkMutationResponse, ProjectMetadataMutationResponse, ProjectSnapshotResponse, ProjectStatus, TaskHierarchyCommandRequest, TaskMutationResponse } from "@/contracts/projects";
+import type { DependencyType, LinkMutationResponse, ProjectMetadataMutationResponse, ProjectSnapshotResponse, ProjectStatus, ProjectVisibility, TaskHierarchyCommandRequest, TaskMutationResponse } from "@/contracts/projects";
 import { PROJECT_STATUS_OPTIONS, projectStatusLabel } from "@/features/projects/project-status";
 import {
   patchProjectStatus,
@@ -243,6 +243,7 @@ export function ProjectReadonlyView({ publicId, projectUrl = null, ownerName }: 
 }
 
 function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectViewProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialRootTaskId = searchParams.get("rootTask")?.trim() || null;
   const { notify, clearToast } = useWorkspaceNotifications();
@@ -393,6 +394,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [metadataName, setMetadataName] = useState("");
   const [metadataDescription, setMetadataDescription] = useState("");
   const [metadataStatus, setMetadataStatus] = useState<ProjectStatus>("planned");
+  const [metadataVisibility, setMetadataVisibility] = useState<ProjectVisibility>("public");
   const [masterSelection, setMasterSelection] = useState({ businessUnitId: "", productId: "", siteEntityId: "" });
   const [columnVisibility, setColumnVisibility] = useState<ProjectGridColumnVisibility>(INITIAL_COLUMN_VISIBILITY);
   const [pendingTaskDelete, setPendingTaskDelete] = useState<PendingTaskDelete | null>(null);
@@ -639,9 +641,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       announceProjectRevision(publicId, value.data.project.revision);
     }
     setMetadataName(value.data.project.name); setMetadataDescription(value.data.project.description); setMetadataStatus(value.data.project.status);
+    setMetadataVisibility(value.data.project.visibility ?? "public");
     setMasterSelection({ businessUnitId: value.data.project.businessUnit?.id ?? "", productId: value.data.project.product?.id ?? "", siteEntityId: value.data.project.siteEntity?.id ?? "" });
     return true;
-  }, [publicId, setMasterSelection, setMetadataDescription, setMetadataName, setMetadataStatus]);
+  }, [publicId, setMasterSelection, setMetadataDescription, setMetadataName, setMetadataStatus, setMetadataVisibility]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -650,6 +653,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store", signal: controller.signal });
         if (controller.signal.aborted) return;
         if (response.status === 404) { setState({ status: "not-found" }); return; }
+        if (response.status === 401) { confirmedSnapshotReference.current = null; setState({ status: "error" }); setPermission("readonly"); router.refresh(); return; }
         const body: unknown = await response.json().catch(() => null);
         if (controller.signal.aborted) return;
         if (!response.ok || !isSnapshot(body)) {
@@ -711,6 +715,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const generation = ++canonicalReadGenerationReference.current;
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store", signal });
+      if (response.status === 401) { confirmedSnapshotReference.current = null; setState({ status: "error" }); setPermission("readonly"); router.refresh(); return null; }
       const body: unknown = await response.json().catch(() => null);
       return generation === canonicalReadGenerationReference.current && !signal?.aborted && (!currentRequest || currentRequest()) && response.ok && isSnapshot(body) && applySnapshot(body) ? body : null;
     } catch { return null; }
@@ -1013,6 +1018,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           name: metadataName,
           description: metadataDescription,
           status: metadataStatus,
+          visibility: metadataVisibility,
           businessUnitId: masterSelection.businessUnitId || null,
           productId: masterSelection.productId || null,
           siteEntityId: masterSelection.siteEntityId || null,
@@ -3655,6 +3661,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       metadataName={metadataName}
       metadataDescription={metadataDescription}
       metadataStatus={metadataStatus}
+       metadataVisibility={metadataVisibility}
+       onMetadataVisibilityChange={setMetadataVisibility}
       onMetadataNameChange={setMetadataName}
       onMetadataDescriptionChange={setMetadataDescription}
       onMetadataStatusChange={setMetadataStatus}

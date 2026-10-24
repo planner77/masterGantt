@@ -7,6 +7,7 @@ import type {
   CreateProjectRequest,
   CreateProjectResponse,
   ProjectStatus,
+  ProjectVisibility,
 } from "@/contracts/projects";
 import { PROJECT_STATUS_OPTIONS } from "./project-status";
 import { ProjectMasterSelectFields, useProjectMasterSelectionCatalog } from "./project-master-select-fields";
@@ -63,6 +64,7 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
   const [ownerName, setOwnerName] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<ProjectStatus>("planned");
+  const [visibility, setVisibility] = useState<ProjectVisibility>("public");
   const [editPassword, setEditPassword] = useState("");
   const [masterSelection, setMasterSelection] = useState({ businessUnitId: "", productId: "", siteEntityId: "" });
   const masterCatalog = useProjectMasterSelectionCatalog();
@@ -111,6 +113,7 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
       name,
       description,
       status,
+      visibility,
       ownerName: normalizedOwnerName,
       editPassword,
       businessUnitId: masterSelection.businessUnitId || null,
@@ -241,7 +244,14 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
         aria-labelledby="project-create-permission-heading"
         className="project-create-section project-create-permission-section"
       >
-        <h2 className="project-create-section-title" id="project-create-permission-heading">편집 권한</h2>
+        <h2 className="project-create-section-title" id="project-create-permission-heading">접근 및 편집 권한</h2>
+        <fieldset className="form-field" disabled={isSubmitting}>
+          <legend>공개범위</legend>
+          <label><input type="radio" name="project-visibility" value="public" checked={visibility === "public"} onChange={() => setVisibility("public")} /> 공개</label>
+          <p>목록에서 바로 열 수 있으며 편집할 때 비밀번호가 필요합니다.</p>
+          <label><input type="radio" name="project-visibility" value="private" checked={visibility === "private"} onChange={() => setVisibility("private")} /> 비공개</label>
+          <p>목록에는 표시되지만 비밀번호 인증 후에만 일정을 열 수 있습니다.</p>
+        </fieldset>
         <div className="form-field project-create-password-field">
           <label htmlFor="project-edit-password">편집 비밀번호</label>
           <input
@@ -258,7 +268,7 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
             value={editPassword}
           />
           <p id="project-password-help">
-            1~12자, UTF-8 기준 최대 1,024 bytes입니다. 서버가 최종 검증합니다.
+            1~12자, UTF-8 기준 최대 1,024 bytes입니다. 비공개 프로젝트를 열 때도 같은 비밀번호를 사용합니다.
           </p>
           {fieldErrors.editPassword ? <p className="form-field-error" id="project-password-error">{fieldErrors.editPassword}</p> : null}
         </div>

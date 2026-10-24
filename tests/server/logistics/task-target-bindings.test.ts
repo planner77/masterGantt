@@ -16,6 +16,7 @@ import { LogisticsTargetService } from "../../../src/server/logistics/logistics-
 import { LogisticsService } from "../../../src/server/logistics/logistics-service-core";
 import { LogisticsRepository } from "../../../src/server/repositories/logistics-repository-core";
 import { ProjectRepository, EditSessionRepository } from "../../../src/server/repositories/project-repository-core";
+import { insertHistoricalPublicProject } from "../../fixtures/legacy-project";
 import { ScheduleRepository } from "../../../src/server/repositories/schedule-repository-core";
 import { ProjectMasterRepository } from "../../../src/server/repositories/project-master-repository-core";
 import { ProcessCatalogRepository } from "../../../src/server/repositories/process-catalog-repository-core";
@@ -24,7 +25,7 @@ import { createSessionToken, sessionExpiry } from "../../../src/server/security/
 const now = new Date("2026-10-14T01:00:00Z"), stamp=now.toISOString(), migrationsDirectory=join(process.cwd(),"db/migrations");
 function setup(filename=":memory:",migrations=migrationsDirectory) {
   const {database:db}=openDatabase({filename,migrationsDirectory:migrations});
-  const project=new ProjectRepository(db).insert({publicId:randomUUID(),name:"F3",description:"",status:"planned",passwordKdf:"scrypt",passwordSalt:Buffer.alloc(16,1),passwordHash:Buffer.alloc(32,2),scryptN:32768,scryptR:8,scryptP:3,scryptKeyLength:32,calendarTimezone:"Asia/Seoul",createdAt:stamp,updatedAt:stamp});
+  const project=insertHistoricalPublicProject(db,{publicId:randomUUID(),name:"F3",description:"",status:"planned",passwordKdf:"scrypt",passwordSalt:Buffer.alloc(16,1),passwordHash:Buffer.alloc(32,2),scryptN:32768,scryptR:8,scryptP:3,scryptKeyLength:32,calendarTimezone:"Asia/Seoul",createdAt:stamp,updatedAt:stamp});
   const token=createSessionToken(), expiresAt=sessionExpiry(now).toISOString();
   const sessionId=new EditSessionRepository(db).insert({projectId:project.id,tokenHash:token.tokenHash,authVersion:project.authVersion,createdAt:stamp,expiresAt});
   const auth={projectId:project.id,projectPublicId:project.publicId,projectRevision:1,projectAuthVersion:project.authVersion,sessionId,tokenHash:token.tokenHash,expiresAt};
@@ -33,13 +34,13 @@ function setup(filename=":memory:",migrations=migrationsDirectory) {
   const task=(name:string,type:"task"|"summary"="task",parentId:number|null=null)=>schedule.insertTask({projectId:project.id,publicId:randomUUID(),externalId:name,name,type,scheduleMode:"auto",requestedStart:null,startDate:type==="summary"?null:"2026-10-14",endDate:type==="summary"?null:"2026-10-14",duration:type==="summary"?null:1,progress:type==="summary"?null:0,parentId,sortOrder:0,createdAt:stamp,updatedAt:stamp});
   const summary=task("Summary","summary"), child=task("Child","task",summary.id), leaf=task("Leaf");
   const targets=new LogisticsTargetService(db,{clock:()=>now}), bindings=new TaskTargetBindingService(db,{clock:()=>now});
-  const revision=()=>new ProjectRepository(db).findByPublicId(project.publicId)!.revision;
+  const revision=()=>db.prepare("SELECT revision FROM projects WHERE id=?").pluck().get(project.id) as number;
   const target=(code:string)=>targets.create(auth,revision(),{code,name:code,scope:"project_common",members:[{kind:"system",entityId:systems[0].publicId}]}).data.target!;
   return {db,project,auth,token,logistics,systems,summary,child,leaf,targets,bindings,revision,target};
 }
 type Fixture=ReturnType<typeof setup>;
 const whole=(targetId:string,scope:"self"|"subtree"="self")=>({targetId,selection:"whole",scope,memberIds:[]});
-function equipmentTarget(f:Fixture) {
+function equipmentTarget(f:Fixture, historical = false) {
   const masters=new ProjectMasterRepository(f.db);
   const item=(category:"BUSINESS_UNIT"|"PRODUCT"|"SITE_ENTITY",code:string)=>masters.insertItem({publicId:randomUUID(),category,code,name:code,active:true,sortOrder:0,now:stamp});
   const bu=item("BUSINESS_UNIT","BU"),product=item("PRODUCT","P"),site=item("SITE_ENTITY","S");
@@ -52,7 +53,21 @@ function equipmentTarget(f:Fixture) {
   const process=f.logistics.insertProcess({publicId:randomUUID(),projectId:f.project.id,code:"A",name:"A",parentId:null,active:1,now:stamp});
   const catalog=new ProcessCatalogRepository(f.db);catalog.setMapping(f.project.id,process.id,catalog.find("occurrences",occurrenceId)!,null,stamp);
   const equipment=f.logistics.insertEquipment({publicId:randomUUID(),projectId:f.project.id,processId:process.id,code:"AMR",name:"AMR",equipmentType:"amr",managementUnit:"fleet",quantity:10,now:stamp});
-  const target=f.targets.create(f.auth,f.revision(),{code:"E",name:"E",scope:"process",projectProcessId:process.publicId,members:[{kind:"equipment",entityId:equipment.publicId}]}).data.target!;
+  // A pre-0031 (through-0026) migration fixture must seed the *existing*
+  // Target/member rows without calling today's visibility-aware ProjectRepository.
+  // Keep the real composite FKs and deferred anchor-member integrity enabled.
+  const target=historical ? f.db.transaction(() => {
+    const targetPublicId=randomUUID(),memberPublicId=randomUUID();
+    const occurrence=catalog.find("occurrences",occurrenceId)!;
+    const inserted=f.db.prepare("INSERT INTO logistics_targets(public_id,project_id,code,name,scope,project_process_id,occurrence_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)").run(
+      targetPublicId,f.project.id,"E","E","process",process.id,occurrence.id,stamp,stamp,
+    );
+    const targetId=Number(inserted.lastInsertRowid);
+    const member=f.db.prepare("INSERT INTO logistics_target_members(public_id,project_id,target_id,kind,equipment_id,created_at) VALUES(?,?,?,?,?,?)").run(memberPublicId,f.project.id,targetId,"equipment",equipment.id,stamp);
+    f.db.prepare("UPDATE logistics_targets SET anchor_member_id=? WHERE id=?").run(Number(member.lastInsertRowid),targetId);
+    f.db.prepare("UPDATE projects SET revision=revision+1,updated_at=? WHERE id=?").run(stamp,f.project.id);
+    return {id:targetPublicId,projectProcessId:process.publicId,members:[{id:memberPublicId}]};
+  }).immediate() : f.targets.create(f.auth,f.revision(),{code:"E",name:"E",scope:"process",projectProcessId:process.publicId,members:[{kind:"equipment",entityId:equipment.publicId}]}).data.target!;
   return {equipment,target};
 }
 describe("Issue #617 binding persistence and membership guards",()=>{
@@ -191,9 +206,9 @@ describe("Issue #617 binding persistence and membership guards",()=>{
   it("upgrades an actual 0026 SQLite file and reopens explicit subset/coverage without flattening inheritance",()=>{
     const directory=mkdtempSync(join(tmpdir(),"target-bindings-")),prior=join(directory,"prior"),filename=join(directory,"database.sqlite3");mkdirSync(prior);
     for(const name of readdirSync(migrationsDirectory).filter(n=>/^\d{4}_.*\.sql$/.test(n)&&Number(n.slice(0,4))<=26)) copyFileSync(join(migrationsDirectory,name),join(prior,name));
-    const f=setup(filename,prior),{equipment,target}=equipmentTarget(f),projectId=f.project.id,taskId=f.leaf.publicId,memberId=target.members[0].id,revision=f.revision();f.db.close();
+    const f=setup(filename,prior),{equipment,target}=equipmentTarget(f,true),projectId=f.project.id,taskId=f.leaf.publicId,memberId=target.members[0].id,revision=f.revision();f.db.close();
     const upgraded=openDatabase({filename,migrationsDirectory});
-    expect(upgraded.migrations.applied).toEqual(["0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql"]);
+    expect(upgraded.migrations.applied).toEqual(["0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql"]);
     new TaskTargetBindingService(upgraded.database,{clock:()=>now}).replace(f.auth,revision,taskId,{bindings:[{targetId:target.id,selection:"subset",scope:"self",memberIds:[memberId],coverageByMember:[{memberId,coverage:4}]}]});
     upgraded.database.close();
     const reopened=openDatabase({filename,migrationsDirectory});

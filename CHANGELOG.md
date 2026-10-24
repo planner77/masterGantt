@@ -5,6 +5,18 @@
 - Summary 기존 binding scope self↔subtree 안전 편집 구현·권한·원본 UUID/whole/subset+coverage·provenance·copy/template·WBS/Excel 코드 변경 없음. 운영 외부 consumer=0, 별도 복구호스트 off-host SQLite restore/restart, Windows Excel/DRM, 기존 member/coverage 일반 수정은 **NOT TESTED/미구현**이며 PR/Main/버전 후보만으로 인수 완료·정식 릴리스/Issue 종료 승인으로 간주하지 않는다.
 - `release_required=true`이며 정식 GHCR 이미지 버전 `v0.132.0`의 별도 Owner 버전·위험 승인과 immutable exact Main Quality/E2E8/Docker, 임시 `ci-<SHA>` digest 검증, Release CI, Finalizer 증거가 필요하다. 완료 전 `release_authorized=false`.
 
+## Issue #479 — PR #794 첫 CI 메타데이터 실패 및 P1 수정 (Unreleased 0.132.0)
+
+- Full Run #3223.1은 canonical `Refs #479`/QA 선언 누락으로 시작 단계에서 중단되었으며 실제 기능 테스트는 SKIPPED; [실패 원장](docs/ISSUE_479_FAILURE_ANALYSIS.md) 보존.
+- private Project의 percent-encoded 경로 우회를 fail-closed canonical decode로 막고, 인증된 Project의 JSON/Excel/SVG Export·Import·Task Assignment가 정상 동작하도록 **외부 인증 Snapshot / 내부 trusted Snapshot** 사용처를 분리했다. 테스트 보강, 새 exact-Head PR CI 전 판정은 NOT TESTED. 기존 인증/Owner/Release gate 불변.
+
+## [0.132.0] — Unreleased / Issue #479
+
+- 공개/비공개 Project visibility, 기존 Project public migration0031, 생성·Template·Copy·설정 API/UI를 구현한다.
+- 비공개 목록은 검색/표시에 남겨두되 인증된 해당 Project Edit Session 이전에 일정·조회/Export 및 SSR 상세 데이터를 제공하지 않는다. 새 readonly 비밀번호·RBAC/목록 숨김은 추가하지 않는다.
+- Project List unlock/Copy, 직접 URL 잠금 화면, session 만료 시 민감 snapshot 폐기와 SQLite/check/authorization 단위 회귀를 보완한다.
+- `release_required=true`, `release_authorized=false`; 정확 PR CI/Trusted QA/Owner/GHCR/Release는 별도 증거·승인 전 NOT TESTED.
+
 ## [0.131.0] — Unreleased / Issue #792 기존 원본 scope 한정 안전 편집
 
 - #785 이후 남은 보존된 물류 관계는 신규 직접 작성과 혼합하거나 자동 이관하지 않는다. Task Editor의 기존 연결 출처에서 **Summary 소유 legacy 직접 binding 한 건**만 적용 범위(self↔subtree) 변경을 미리 보고 확인해 저장할 수 있게 한다. 기존 전체 구성·선택 구성/coverage·원본 UUID·출처·Task/Assignment·설비·System·WorkArea, WBS/Resource·Excel 및 Copy/Template 보존 원칙 불변.
