@@ -29,10 +29,12 @@ interface Props {
   sourceNames: ReadonlyArray<{sourceId: string; label: string}>;
   onApplied: () => Promise<void>;
   onUnauthorized?: () => void;
+  /** Lock the surrounding Task Editor for the entire PATCH + canonical reload. */
+  onPendingChange?: (pending: boolean) => void;
 }
 
 /** Opt-in, independent of the ordinary direct Equipment/System editor draft. */
-export function LegacyBindingScopeEditor({taskId, revision, editable, disabled, sourceNames, onApplied, onUnauthorized}: Props) {
+export function LegacyBindingScopeEditor({taskId, revision, editable, disabled, sourceNames, onApplied, onUnauthorized, onPendingChange}: Props) {
   const [open, setOpen] = useState(false);
   const [sources, setSources] = useState<Source[]>([]);
   const [selectedId, setSelectedId] = useState("");
@@ -83,6 +85,9 @@ export function LegacyBindingScopeEditor({taskId, revision, editable, disabled, 
     if (!selected || busy || disabled || !editable) return;
     const generation = ++epoch.current;
     const expected = preview;
+    // A confirmed source mutation can refresh the whole Task Editor. Hold its
+    // shared pending lock before issuing PATCH, through onApplied/reload.
+    if (mode === "apply") onPendingChange?.(true);
     setBusy(true); setError(null);
     if (mode === "preview") setPreview(null);
     try {
@@ -112,7 +117,10 @@ export function LegacyBindingScopeEditor({taskId, revision, editable, disabled, 
     } catch { if (generation === epoch.current) {
       setPreview(null); setError("네트워크 오류 또는 저장 확인 실패입니다. 최신 자료를 다시 조회해 중복 적용을 방지하세요.");
     }}
-    finally { if (generation === epoch.current) setBusy(false); }
+    finally {
+      if (mode === "apply") onPendingChange?.(false);
+      if (generation === epoch.current) setBusy(false);
+    }
   }
   return <div className={styles.contextRow}>
     {!open ? <button type="button" className="secondary-button"
