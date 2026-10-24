@@ -84,7 +84,13 @@ describe("#529 Resource workbook real SQLite HTTP handler and OOXML", () => {
     const response = await http(f, opts);
     expect(response.status).toBe(200);
     const entries = extract(new Uint8Array(await response.arrayBuffer()));
-    const xml = entries.get("xl/worksheets/sheet1.xml")!;
+    // A Gantt worksheet precedes the optional Resource sheets.
+    // Resolve the actual Resource Report index from the workbook metadata.
+    const workbook = entries.get("xl/workbook.xml")!;
+    const sheetNames = [...workbook.matchAll(/name="([^"]+)"/g)].map(match => match[1]);
+    const reportSheetIndex = sheetNames.indexOf("Resource Report");
+    expect(reportSheetIndex, "Resource Report must exist in the workbook").toBeGreaterThanOrEqual(0);
+    const xml = entries.get(`xl/worksheets/sheet${reportSheetIndex + 1}.xml`)!;
     expect(xml).toContain("Actual report context");
     expect(xml).not.toContain("Actual target context");
     const rawCells = cells(xml);
