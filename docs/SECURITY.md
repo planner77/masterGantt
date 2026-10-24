@@ -1,3 +1,9 @@
+## Issue #479 — visibility-aware Project read gate
+
+Project list `GET /api/projects` stays discoverable and shows `visibility`. `/api/projects/{publicId}` and all scoped GET/read-only POST/Export routes are guarded by server application middleware: public anonymous readonly, private same-Project current edit-session only. The original cookie parser enforces exact URL/cookie name, malformed-cookie rejection, Project binding, expiry/revocation and auth_version. Existing session-issuance/current/revocation routes keep their own authentication/rate-limit. Unauthenticated private reads return generic `401 PROJECT_LOCKED`, `private,no-store`, `nosniff`; never embed project name, Task, hash/salt, session, internal ID in responses or SSR document title.
+
+The canonical ProjectService has an independent read guard for direct snapshot consumers. Visibility mutation requires edit session, exact Origin and strong If-Match, increments revision once but does not alter password/hash or auth_version. Single last-unlocked-Project cookie and password KDF semantics remain. This is a private detailed read gate, **not** an invisible-list/SSO/RBAC/readonly-password feature. End-to-end wrong/foreign/expired/rotated session and all route bypass tests remain official CI evidence requirements. [Work Packet](exec-plans/active/ISSUE_479.md).
+
 ## Issue #785 — 공개 경로 퇴역과 호환 읽기 방어
 
 전용 Logistics Target 경로의 410은 기존 Project 검증·Origin·edit-session·strong If-Match 방어를 보존한 종료 응답이다. UI 제거만으로 외부 쓰기를 남겨 두지 않으며 retired method는 실제 데이터/revision을 변경하지 않는다. 내부 legacy service는 지원 Copy/Template·격리 테스트 fixture·읽기 해석에 한정하고 runtime 테스트 seed API를 추가하지 않는다.

@@ -1,3 +1,14 @@
+## Issue #479 — Project visibility API contract
+
+- `POST /api/projects`: `visibility:"public"|"private"`, optional for legacy callers with default public. Explicit unknown/null rejected400. Newly rendered creation forms transmit visibility.
+- `GET /api/projects`: public listing retains existing fields and adds visibility, including private names.
+- `GET /api/projects/{publicId}`: public anonymous readonly snapshot; private requires matching valid Project edit Cookie. Missing/malformed/foreign/expired/revoked/rotated session rejected401 `PROJECT_LOCKED` (no sensitive snapshot or internal credential).
+- Project-scoped GET/read-only POST/Export under `/api/projects/{publicId}/*` uses same middleware read grant independent of SVAR UI readonly state. `/edit-sessions[/current]` retain their own session API behavior.
+- `PATCH /api/projects/{publicId}`: strictly validated visibility field, existing session + exact Origin + strong If-Match, atomic revision+1. 401/403/412/network failure does not replay stale draft.
+- Copy retains source private/public visibility, but uses newly supplied password and new session. Template instantiate accepts visibility independently of its template, default public. No separate readonly password/session added.
+
+[DB](DB_SCHEMA.md), [Security](SECURITY.md), [Work Packet](exec-plans/active/ISSUE_479.md).
+
 ## Issue #785 — 실물 공개 계약 v2와 구형 경로 퇴역
 
 ### 버전과 소비자 수명

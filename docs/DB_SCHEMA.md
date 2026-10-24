@@ -1,3 +1,7 @@
+## Issue #479 — migration 0031 Project visibility
+
+`db/migrations/0031_project_visibility.sql` adds `projects.visibility TEXT NOT NULL DEFAULT 'public' CHECK (visibility IN ('public','private'))`. Existing projects receive the safe backward-compatible public default; SQLite CHECK protects direct DB writes against null/unknown. Create and Template instantiate default public, Copy preserves source visibility. Metadata PATCH updates visibility in the existing transaction with exactly one project revision increment, without changing password KDF/hash/session auth_version. Existing migration ledger/checksum/pending-batch atomicity and backup+matching-image rollback policy remain. Restart/migration failure injection and Copy/Template round-trip require remote evidence. [Work Packet](exec-plans/active/ISSUE_479.md).
+
 ## Issue #785 — 무변환 읽기 호환과 원본 보존
 
 이번 변경은 새 DDL/backfill/downmigration을 도입하지 않는다. `0026_logistics_targets.sql`·`0027_task_target_bindings.sql` 및 배포 migration ledger/checksum을 그대로 보존한다. logistics_targets/members와 task_target_bindings/members는 동적 whole·subset coverage·Summary 상속·지원 Copy/Template를 위한 내부 archive 원본이다. 공개 writer 퇴역은 DB 자료 폐기나 복구 성공이 아니다.
