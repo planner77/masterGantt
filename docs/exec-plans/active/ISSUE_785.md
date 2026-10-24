@@ -7,7 +7,7 @@
 - current validation base: `dd7f4d86db06e8a10b8c86b5412ed319154011e0`, version `0.130.2` (#556/PR #786 통합). 이전 base 검증과 구분한다.
 - branch: `feat/issue-785-retire-logistics-target`; 작업 경로 `/home/planner/Dev/masterGantt-785`.
 - 승인: 2026-10-23 사용자 요청의 분석·설계·구현·문서 동기화·미해결 리뷰/충돌 처리·실패 원장·PR CI 시작까지. Issue의 최초 등록 한정 문구는 이번 명시 요청으로 이 범위에서 대체된다. CI 완료 모니터링·병합·main/GHCR·tag/release·Issue 종료·branch 정리는 제외한다.
-- phase: PR_READY(GIT-BASE-002). 새 main 통합·충돌15개 해소·동결 browser50/Unit40·정적검사·문서·별도 PRE_QA PASS를 완료했다. 기존 PR #787 반영 후 새 Full CI 시작까지만 확인한다. 전체 Issue 수용/병합 승인은 아니다.
+- phase: PR_READY(F785-005). 성공 Task 물류 mock3곳과 기존 geometry oracle을 보완하고 동일 source71/20spec·정적검사·문서/원장·별도 PRE_QA PASS를 확인했다. 기존 PR787 반영 후 새 Full CI 시작까지만 확인한다. 전체 Issue 수용/병합 승인은 아니다.
 - risk_level: HIGH; qa_required: true; qa_method: OWNER_MANAGED. 레거시 관계·공유 집계·외부 API/교환·전 화면 영향. 실제 별도 전문 Agent 구현과 읽기 전용 사전 설계를 사용한다. 독립 인간 QA/Owner 승인은 NOT TESTED이며 Agent 검토와 구별한다.
 - manager_decision: NOT TESTED; MERGE_READY: BLOCKED. 정확 Head Required Quality/E2E8/Docker·Trusted QA·리뷰 스레드 0·Owner HIGH 위험 수용은 후속이다.
 - version_decision: MINOR `0.131.0` (공개 기능·버전 경계 전환); release_required: true; release_authorized: false. 정식 게시 승인이 아니다.
@@ -283,3 +283,48 @@ TEST_PLAN은 이전 원본 blob `1d2b679dda6730306d8f6586ba3921a9458d4e9f`를 �
 구현자와 분리된 실제 read-only `/root/qa_review`는 새 통합 source·원문/정제50case 전수·18spec 합집합·1128파일 네 지문·역사Unit40·정적검사·docs_gate 구조 및 의미·문서/PR초안을 대조해 **PRE_QA=PASS, 미해결 지적0**을 반환했다. 검토한 로컬 merge66c49810의 코드/테스트/lock/tools는 이후 문서·판정 stamp만 보완하는 최종 tree와 동일하다. 초기 e49의 이전32/PRE_QA를 새 source에 재사용하지 않았다.
 
 이는 PR 게시 준비의 사전 검토이며 정식 새Head Required Quality/E2E8/Docker·default-branch Trusted/QA_FINAL·Owner HIGH 위험 수용·전체 Issue ACCEPT를 대체하지 않는다. AC4 안전편집 NOT IMPLEMENTED/READONLY·Owner예외없음, release_required=true/release_authorized=false·MERGE_READY=BLOCKED를 유지한다. 마지막 원격 main/head lease·review thread·test-merge 출처를 확인해 기존 PR787 본문1회·Head1회 반영 후 새Full CI 시작만 확인하고 모니터링하지 않는다. 새Run/Attempt·Head/base/testmerge는 Issue STATUS에 기록한다.
+
+
+## 2026-10-24 REWORK F785-005 — 성공 Task 물류 mock 계약 누락
+
+[단일 누적 원장](../../ISSUE_785_FAILURE_ANALYSIS.md#f785-005--full-32041-task-editor-물류-snapshot-계약-누락-2026-10-24-kst)이 기존6Full·초기 local 실패·새원본/가설/반례·확대선정의현행기록이다. [3204.1 정제증거](../../evidence/issue-785/ci-40040333641-attempt-1.json): Headf03933cb16c6c99a1a35a3095b55b6158d69bab5/base dd7f4d86db06e8a10b8c86b5412ed319154011e0/testmerge c442e7c6da33c5a7f92bac038bdddbe36f1cda96, shard2job120710326907step7의project-task-editor #461 checkbox30초FAIL(67PASS/1FAIL/25NOTRUN). 다른7cancelled로그추가testFAIL0·QualityDockerPASS, E2E/QA파생FAIL이다. artifact는metadata만조회하여Trusted출처PASS를주장하지않는다.
+
+수정전원본 exactscenario가같은red였고 standalone이라선행67case가필수원인은아니다. taskId/master정상·links GET200에도projectRevision/compatibilityLinks누락을trace허용필드로확인했다. 두필드만보완한통제green1/1(2.9초/전체6.2초)로TEST_CONTRACT를확정했다. 기존F001KPIv2/ID/staleDTO교정과다른실제실패로모두보존한다.
+
+동일누락소비자3곳(project-task-editor override·task-link-load-safety helper·task-editor-density helper)을일괄교정하고optionalDTO누락방지를성공전용Required<Pick> 타입으로확인한다. 기존density2case 중 물류 geometry1case는 정상dataready/error0을 확인하도록EXTEND하고 keyboard1case는 그대로 유지한다. 이전50의geometryPASS는원래assertion범위로보존하되정상물류load실증으로확대하지않는다. 제품guard/API/DB/UI계약완화0, 의도malformed/task/revision/permission·권한/지연/readonly음성은유지한다.
+
+TEST_LIFECYCLE_REVIEW: #461기존7 EXTEND·safety12 KEEP_UNIQUE/성공fixture EXTEND·density2 EXTEND; 원장초기9실패spec·System·identifier/KPI음성·HTTP/SQLite·main18 KEEP_UNIQUE다. 신규상시case/spec/skip/timeout/retry/CI8·Required3변경0. 이전50을새source로재실행하고#4617+safety12+#726나머지2를더해71unique/20spec두batch로선정한다. 실행전최종71/PRE_QA는NOT TESTED.
+
+문서영향은원장/Packet/정제source·PR/Issue STATUS갱신이다. 현재교정은성공mock/oracle에한정되어제품API/DB/보안/UX/TEST_PLAN정책내용은추가수정N/A(현행계약/이전갱신보존)다. 1MB TEST_PLAN blob5edc20685005d8877d160059e5fff9ba46c3bac0는덮지않는다. 새Head·동결지문·실제결과/자동UNKNOWN·자동 생성 config차이와독립사전검토를기록한후원격Head1회반영한다. 마지막main/headlease·미해결thread/충돌과새FullRunID+attempt/head/base/testmerge를재확인한다. Manager ACCEPT/Trusted/Required3·AC4 안전 편집/Owner예외없음·MERGE_READY BLOCKED/release_authorized=false는그대로이며CI시작후모니터링/병합/정식게시/Issue종료는하지않는다.
+
+### F785-005 성공 생산자 감사와 동결
+
+별도 qa_docs의 [정적 생산자 감사](../../evidence/issue-785/rerun2-f005-producer-audit.json)는 endpoint 참조17파일과 DTO 배열필드 검색·가져오는stateful fixture를 교차 확인했다. 성공 GET 생산자는 정확3곳이며 현재 revision/compatibility 배열/필수 타입 검사가 모두 있다. 검색범위에서 남은 성공producer metadata누락은0이다. 의도한 오류·요청0인 redirect목적지 응답·실제HTTP/GET전달·PUT gate/오류 주입·관측 helper는 성공생산자에서 제외한 이유를 함께 기록했다. 정적 감사 PASS는 runtime71/PRE_QA를 대체하지 않는다.
+
+최종4파일 외 제품/API/DB/CI/공용 DTO 변경은0이다. frontend의 typecheck·변경4파일 ESLint·diff PASS 후 실제 discovery A36/10spec+B35/11spec, case중복0·고유71/20spec을 고정했다. `tracked src/tests/scripts + package/lock/static runtime-tool configs`1128파일(문서 제외) SHA256은 `60648b89a19a29597390a5a015d1f8dc23176408ddfdb050c6b7df7b6180d776`이다. /tmp/issue785-rerun2-final-selection.json 및 before/after-source·원문/정제batch 결과는 이전50과 다른 prefix로 보존한다. 테스트 생성config는 별도 전후 hash로 보고하며 실행 종료·복원 후 최종 정적검사/자동fast/사전검토를 기록한다.
+
+### F785-005 실행 목록 재조회 범위
+
+[새 원격 이력 조회](../../evidence/issue-785/rerun2-history-requery.json)는 branch의12/12 Run(Full6+advisory6)과 알려진6Head 각각의pull_request Run2/2를 별도 조회했다. per_page100 첫 페이지에 total_count 전부가 반환됐고 알려진6Full의 최신attempt는 모두1이었다. 이 조회범위의 pagination 누락/권한오류0이며 추가Full/attempt는 없었다. 과거5회의 immutable merge부모·직접/취소28로그 **내용**은 이전 정제영수증을 재사용했고, 목록·Head·최신attempt는 이번에 새로 대조했다. 신규3204의 direct/취소7로그는 새로 읽었다. 조직전체/Trusted workflow나 artifact payload 검증까지 완료했다고 확대하지 않는다.
+
+### F785-005 최종 Batch A 결과
+
+[동결 A 영수증](../../evidence/issue-785/rerun2-browser-a.json)은 **36/36 PASS(14.2분), skip/flaky/retry0·exit0**이다. 원본실패#461(최종본문3.2초)을 포함한 group7개·#7348·#7356·#726전체3·이전누적실패/HTTP·SQLite 재시작을 같은후보에서 검증했다. runtime/test/lock/tools1128파일 지문60648b89a19a29597390a5a015d1f8dc23176408ddfdb050c6b7df7b6180d776이 시작/종료 동일함을 확인했다. Next 자동생성2config 차이는 별도로 기록해 fullCheckoutSourceStable=true로 확대하지 않는다. B35는 같은 source로 진행하며 전체71/최종PRE_QA/새원격결과는 아직 NOT TESTED다.
+
+### F785-005 최종 검증 영수증
+
+[최종 browser](../../evidence/issue-785/rerun2-browser-final.json): **A36/36(14.2분)+B35/35(3.7분)=71/71 PASS,20spec·중복/skip/flaky/retry0·exit0**다. 원격실패#461 group7과safety12·#726전체3, 이전누적9실패spec·System·identifier/KPI·main18을 같은최종source에서검증했다. 새정상dataready/빈목록·물류연결저장활성·로드오류0을확인한5폭geometry도통과했으며기존keyboardcase/의도negative는유지됐다. [B 영수증](../../evidence/issue-785/rerun2-browser-b.json)과[원인/동결지문](../../evidence/issue-785/rerun2-f005-diagnosis.json)에각실행을연결한다.
+
+네 A/B 시작/종료1128파일과현재파일의SHA256은모두 `60648b89a19a29597390a5a015d1f8dc23176408ddfdb050c6b7df7b6180d776`다. scopedSourceStable=true와Next생성next-env/tsconfig2개에따른fullCheckoutSourceStable=false를구분한다. 종료후추적58개생성물은HEADf039원본으로복원하고새raw output/trace/HTML은/tmp로보존해Git에게시하지않았다. 이전#556/기타issue의역사이미지를새측정자료로덮지않았다.
+
+[복원후정적검사](../../evidence/issue-785/rerun2-static.json)는typecheckPASS/exit0,전체lintPASS/exit0(error0/기존warning10),Markdown317파일링크·version0.131.0·main대비diffPASS다. TEST_PLANblob5edc20685005d8877d160059e5fff9ba46c3bac0은변경없다. 제품src/공용DTO/guard·package/lock·Unit/capture검증입력변경0이므로이전Unit40·audit0은그입력범위에서만참고/제한재사용하며새로운실행/공식새HeadPASS로주장하지않는다.
+
+[현행자동fast](../../evidence/issue-785/rerun2-prepr-fast.json)는 **BLOCKED/exit1·selected111/UNKNOWN30/missing0/내부step0·sourceStable=true**다. 이전109선정과새111선정을혼용하지않으며새로교정한E2E두파일직접선정이추가됐다. Unknown30의생산자수동영향매핑과71실제실행은자동판정을우회하거나변경하지않는다. 로그출력을읽던최초shell wrapper의exit0을PASS로사용하지않고최종직접명령의exit1을확인했다. 이후문서/판정stamp만보완하며src/tests/lock/tools지문은그대로다.
+
+정식새Head Quality/E2E8/Docker·default-main Trusted/QA_FINAL·Owner ACCEPT는NOT TESTED,AC4안전편집미구현/예외없음·MERGE_READY=BLOCKED/release_authorized=false를유지한다. 최종실제별도read-only PRE_QA후기존PR787의본문1회·Head1회반영과새FullCI등록/시작확인으로인계한다.
+
+### F785-005 독립 사전 검토와 PR 인계
+
+실제 분리된 read-only `/root/qa_review`가 기준Headf039의 working후보(테스트4파일+문서, runtime/test/lock/tools지문60648b89a19a29597390a5a015d1f8dc23176408ddfdb050c6b7df7b6180d776)를 검토해 **PRE_QA=PASS, 미해결 지적0**을 반환했다. 원문71case/20spec·네1128파일manifest·성공producer3곳·모든음성/dirty/401412/ID보호·정적로그·문서구조/매핑·관측한계를 실제 대조했다. baseline f039 자체의 미수정 코드가 PASS했다는 뜻이 아니며, 이후 판정stamp/문서만 보완하고 source추가변경은없다. 게시될candidate의전체tree와검토tree를동일하게확인한다.
+
+이검토는게시준비범위이며새Head의Required3/Trusted/Owner·전체AC수용을대체하지않는다. 실제원격reviewthreads/main충돌·head/baselease를다시확인한후기존PR787본문1회/Head1회로일괄반영하고새FullCI의정확RunID+attempt/Head/base/testmerge·시작상태를Issue STATUS에기록한다. 기존3204FAIL은불변이다. AC4미구현/예외없음·HIGH/OWNER_MANAGED/qa_required=true·Manager NOT TESTED/MERGE_READY BLOCKED·release_authorized=false와모니터링/병합/정식게시/Issue종료제외를유지한다.

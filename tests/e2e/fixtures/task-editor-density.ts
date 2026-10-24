@@ -1,3 +1,4 @@
+import type { TaskLogisticsLinksDto } from "../../../src/contracts/logistics";
 import { toResourcePublicV2 } from "../../../src/contracts/resource-public-v2";
 import { withIntegratedKpi } from "../../fixtures/logistics-integrated-kpi";
 import { expect, type Page, type Request } from "@playwright/test";
@@ -107,7 +108,7 @@ export async function setup(page: Page, options: { editable?: boolean; links?: b
       await route.fulfill({ json: { data: { project: fixture.project, logistics: { processes: [], equipment: [], systems: [], systemLinks: [] }, permission: fixture.editable ? "edit" : "readonly" } } }); return;
     }
     if (path.startsWith(`${apiPath}/tasks/`) && path.endsWith("/logistics-links") && request.method() === "GET") {
-      await route.fulfill({ json: { data: { taskId: path.split("/").at(-2), permission: fixture.editable ? "edit" : "readonly", links: { taskId: path.split("/").at(-2), directEquipmentLinks: [], directSystemLinks: [], inheritedEquipmentLinks: [], inheritedSystemLinks: [], effectiveEquipmentIds: [], effectiveSystemIds: [] } } } }); return;
+      await route.fulfill({ json: { data: { taskId: path.split("/").at(-2), permission: fixture.editable ? "edit" : "readonly", links: { taskId: path.split("/").at(-2)!, projectRevision: fixture.project.revision, compatibilityLinks: [], directEquipmentLinks: [], directSystemLinks: [], inheritedEquipmentLinks: [], inheritedSystemLinks: [], effectiveEquipmentIds: [], effectiveSystemIds: [] } satisfies TaskLogisticsLinksDto & Required<Pick<TaskLogisticsLinksDto, "projectRevision" | "compatibilityLinks">> } } }); return;
     }
     if (path === apiPath && request.method() === "GET") {
       fixture.projectReads += 1;

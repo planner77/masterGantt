@@ -103,7 +103,14 @@ test("#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 �
     await expect(dialog.getByRole("tab")).toHaveCount(5);
     for (const [label, key] of [["소속 작업", "membership"], ["물류 연결", "logistics"]]) {
       await dialog.getByRole("tab", { name: new RegExp(label) }).click();
-      await expect(dialog.getByRole("tabpanel", { name: new RegExp(label) })).toBeVisible();
+      const panel = dialog.getByRole("tabpanel", { name: new RegExp(label) });
+      await expect(panel).toBeVisible();
+      if (key === "logistics") {
+        // Record the loaded empty state, rather than measuring a rejected snapshot's error state.
+        await expect(panel.getByText("등록된 설비가 없습니다.", { exact: false })).toBeVisible();
+        await expect(panel.getByRole("button", { name: "물류 연결 저장", exact: true })).toBeEnabled();
+        await expect(panel.getByRole("alert").filter({ hasText: "물류 연결 정보를 불러오지 못했습니다." })).toHaveCount(0);
+      }
       await page.screenshot({ path: `${output}/${key}-${width}.png` });
       await writeFile(`${output}/${key}-${width}.json`, JSON.stringify(await geometry(dialog), null, 2));
     }

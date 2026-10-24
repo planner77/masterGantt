@@ -1,0 +1,82 @@
+{
+  "schema": "mastergantt-785-f005-diagnosis-v1",
+  "baselineHead": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+  "runId": 40040333641,
+  "attempt": 1,
+  "unmodifiedRed": {
+    "state": "FAIL",
+    "cases": 1,
+    "specSha256": "8d3450bfbdb24459c91f1332069504017e2995d56013c17ffd08900b13e4ccf2",
+    "error": "locator.check Test timeout30000ms",
+    "assertionLine": 1191,
+    "priorCaseRequired": false,
+    "productOrTestEditedBeforeRed": false
+  },
+  "hypotheses": {
+    "missingPositiveSnapshotFields": "SUPPORTED_BY_FIELDS_ONLY_GREEN",
+    "malformedMaster": "REJECTED_BY_MASTER_UNCHANGED_GREEN",
+    "wrongRouteOrTask": "REJECTED_BY_EXACT_TRACE_ID_AND_GET200"
+  },
+  "probeReceipt": "rerun2-f005-snapshot-probe.json",
+  "intermediateControl": {
+    "changedFieldsOnly": [
+      "projectRevision",
+      "compatibilityLinks"
+    ],
+    "cases": 1,
+    "state": "PASS",
+    "bodySeconds": 2.9,
+    "elapsedSeconds": 6.2,
+    "isFinalSourceEvidence": false
+  },
+  "classification": "TEST_CONTRACT",
+  "successProducerAudit": "rerun2-f005-producer-audit.json",
+  "sourceScope": "tracked src/tests/scripts and root package/static runtime-tool configs; documentation excluded for Manager parallel updates",
+  "sourceFileCount": 1128,
+  "sourceDigest": "60648b89a19a29597390a5a015d1f8dc23176408ddfdb050c6b7df7b6180d776",
+  "changedFileSha256": {
+    "tests/e2e/project-task-editor.spec.ts": "bf5bf379834a6281c9692880988d3dd6812fe29bfe0b2f567d37d08353680ccc",
+    "tests/e2e/task-link-load-safety.spec.ts": "8d3bf28dd8e6866baf5ca550848e7831a69f7ef8e21e4c2c16fecac199281aeb",
+    "tests/e2e/fixtures/task-editor-density.ts": "0d5e51ecbc46341f8a8cb4ca8a4568c20b124191dbe9d4cda301c52aa91803be",
+    "tests/e2e/task-editor-form-density.spec.ts": "796a6d5847044efd58fe1c0d7f191f70620b7c672654f47b44cc53e605176d7c"
+  },
+  "productSourceChanged": false,
+  "publicDtoOrGuardWeakened": false,
+  "newSpecOrCase": false,
+  "skipRetryTimeoutChange": false,
+  "densityCorrection": "Existing geometry case now checks loaded empty state, enabled logistics save and no load error before measuring; keyboard case unchanged",
+  "finalBrowser": {
+    "state": "PASS",
+    "plannedBatches": [
+      36,
+      35
+    ],
+    "uniqueCases": 71,
+    "uniqueSpecs": 20,
+    "passed": 71,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "retry": 0,
+    "duplicateCases": 0,
+    "durationMinutes": [
+      14.2,
+      3.7
+    ],
+    "receipt": "rerun2-browser-final.json"
+  },
+  "newHeadRequired": "NOT TESTED",
+  "ownerAccept": "NOT TESTED",
+  "preQa": {
+    "reviewer": "/root/qa_review",
+    "state": "PASS",
+    "readOnly": true,
+    "scope": "F785-005 원인·테스트4파일·71회귀·문서의 PR 게시 준비",
+    "reviewedBaselineHead": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+    "reviewedWorkingSourceDigest": "60648b89a19a29597390a5a015d1f8dc23176408ddfdb050c6b7df7b6180d776",
+    "unresolvedFindings": 0,
+    "newHeadRequired": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "mergeReady": "BLOCKED"
+  }
+}

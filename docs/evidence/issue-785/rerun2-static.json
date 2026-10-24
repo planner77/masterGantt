@@ -1,0 +1,61 @@
+{
+  "schema": "mastergantt-785-rerun2-static-v1",
+  "typecheck": {
+    "command": "npm run typecheck",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 2.55
+  },
+  "lint": {
+    "command": "npm run lint",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 32.35
+  },
+  "markdownLinks": {
+    "command": "node scripts/check-markdown-links.mjs",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 0.08
+  },
+  "version": {
+    "command": "npm run version:check",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 0.1
+  },
+  "prDiff": {
+    "command": "git diff --check origin/main",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 0.05
+  },
+  "lintWarnings": 10,
+  "markdownFileCount": 317,
+  "testPlanBlobUnchanged": "5edc20685005d8877d160059e5fff9ba46c3bac0",
+  "generatedTrackedPathsRestored": 58,
+  "newRawOutputCommitted": false,
+  "generatedRestoreSource": "HEAD f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+  "browserFullCheckoutSourceStable": false,
+  "browserScopedSourceStable": true,
+  "previousEvidence": {
+    "captureUnit40Receipt": "rework-main-infra-resolution.json",
+    "securityAudit0Receipt": "rework-security-audit.json",
+    "newLocalUnitAndAuditExecution": "NOT TESTED",
+    "reuseScope": "원래 capture/package/lock/guard 입력과 제품 src는 변경없음. 새로운Unit/audit 실행이나 새Head Required PASS로 주장하지 않음"
+  },
+  "newHeadRequired": "NOT TESTED",
+  "ownerAccept": "NOT TESTED",
+  "preQa": {
+    "reviewer": "/root/qa_review",
+    "state": "PASS",
+    "readOnly": true,
+    "scope": "F785-005 원인·테스트4파일·71회귀·문서의 PR 게시 준비",
+    "reviewedBaselineHead": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+    "reviewedWorkingSourceDigest": "60648b89a19a29597390a5a015d1f8dc23176408ddfdb050c6b7df7b6180d776",
+    "unresolvedFindings": 0,
+    "newHeadRequired": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "mergeReady": "BLOCKED"
+  }
+}
