@@ -4,10 +4,10 @@
 
 - Primary Issue: https://github.com/planner77/masterGantt/issues/785
 - initial baseline main: `427d22245fb8e11254b2424ea5147ccbd5766979`, version `0.130.1`.
-- current validation base: `dd7f4d86db06e8a10b8c86b5412ed319154011e0`, version `0.130.2` (#556/PR #786 통합). 이전 base 검증과 구분한다.
+- current validation base: `4ce403a1e410ca599a780446f39513e1f1158326`, version `0.130.2` (#556/PR #786 및 #608/PR #788 통합). 이전 base 검증과 구분한다.
 - branch: `feat/issue-785-retire-logistics-target`; 작업 경로 `/home/planner/Dev/masterGantt-785`.
 - 승인: 2026-10-23 사용자 요청의 분석·설계·구현·문서 동기화·미해결 리뷰/충돌 처리·실패 원장·PR CI 시작까지. Issue의 최초 등록 한정 문구는 이번 명시 요청으로 이 범위에서 대체된다. CI 완료 모니터링·병합·main/GHCR·tag/release·Issue 종료·branch 정리는 제외한다.
-- phase: PR_READY(F785-005). 성공 Task 물류 mock3곳과 기존 geometry oracle을 보완하고 동일 source71/20spec·정적검사·문서/원장·별도 PRE_QA PASS를 확인했다. 기존 PR787 반영 후 새 Full CI 시작까지만 확인한다. 전체 Issue 수용/병합 승인은 아니다.
+- phase: PR_READY(F785-006). 응답 오귀속 보완·97/97 PASS·main4ce 충돌0 통합·입력한정재사용 및 freshPython37/Unit11·정적PASS·자동fastBLOCKED 보존·독립사전PRE_QA PASS/미해결0. 최종remotelease/리뷰조회와일괄게시후새CI등록/시작만확인한다.
 - risk_level: HIGH; qa_required: true; qa_method: OWNER_MANAGED. 레거시 관계·공유 집계·외부 API/교환·전 화면 영향. 실제 별도 전문 Agent 구현과 읽기 전용 사전 설계를 사용한다. 독립 인간 QA/Owner 승인은 NOT TESTED이며 Agent 검토와 구별한다.
 - manager_decision: NOT TESTED; MERGE_READY: BLOCKED. 정확 Head Required Quality/E2E8/Docker·Trusted QA·리뷰 스레드 0·Owner HIGH 위험 수용은 후속이다.
 - version_decision: MINOR `0.131.0` (공개 기능·버전 경계 전환); release_required: true; release_authorized: false. 정식 게시 승인이 아니다.
@@ -328,3 +328,99 @@ TEST_LIFECYCLE_REVIEW: #461기존7 EXTEND·safety12 KEEP_UNIQUE/성공fixture EX
 실제 분리된 read-only `/root/qa_review`가 기준Headf039의 working후보(테스트4파일+문서, runtime/test/lock/tools지문60648b89a19a29597390a5a015d1f8dc23176408ddfdb050c6b7df7b6180d776)를 검토해 **PRE_QA=PASS, 미해결 지적0**을 반환했다. 원문71case/20spec·네1128파일manifest·성공producer3곳·모든음성/dirty/401412/ID보호·정적로그·문서구조/매핑·관측한계를 실제 대조했다. baseline f039 자체의 미수정 코드가 PASS했다는 뜻이 아니며, 이후 판정stamp/문서만 보완하고 source추가변경은없다. 게시될candidate의전체tree와검토tree를동일하게확인한다.
 
 이검토는게시준비범위이며새Head의Required3/Trusted/Owner·전체AC수용을대체하지않는다. 실제원격reviewthreads/main충돌·head/baselease를다시확인한후기존PR787본문1회/Head1회로일괄반영하고새FullCI의정확RunID+attempt/Head/base/testmerge·시작상태를Issue STATUS에기록한다. 기존3204FAIL은불변이다. AC4미구현/예외없음·HIGH/OWNER_MANAGED/qa_required=true·Manager NOT TESTED/MERGE_READY BLOCKED·release_authorized=false와모니터링/병합/정식게시/Issue종료제외를유지한다.
+
+
+## 2026-10-24 REWORK F785-006 — 설비 저장 후 보고서 root 불일치
+
+[단일 누적 원장](../../ISSUE_785_FAILURE_ANALYSIS.md#f785-006--full-32081-설비-저장-후-보고서-관점-불일치-2026-10-24-kst)에7Full/metadata1/advisory7 및가설·재현·공유소비자감사를추가한다. [원격 정제영수증](../../evidence/issue-785/ci-40045100122-attempt-1.json): Full3208.1/Run40045100122/attempt1,Head473b0fb103d445f64ef6b44be63a9b4d6456cbdc·base dd7f4d86db06e8a10b8c86b5412ed319154011e0·testmerge fea4ad9558eec626ecbf56dc996e7d54127d3002. shard2job120725634037step7의#734:272가before.spec.root equipment/afterprocess로FAIL(5PASS/1FAIL/87NOTRUN4.6분),revision/snapshot앞단언PASS·focus뒤단언미실행이다. QualityDockerPASS/E2E·QA파생FAIL,취소7추가기록FAIL0·누적취소42다.
+
+3207metadata는oldf039→current473b로SUPERSEDED/full_run=N/A이며Required statussuccess/구현SKIPPED를runtimePASS로쓰지않는다. 원본RunFAIL·staleHead QA BLOCKED는보존한다. sourceartifact는metadata만조회하여Trusted provenancePASS를주장하지않는다. 이전71은실제이전source의검증으로보존하고새후보의PASS로재사용하지않는다.
+
+분류UNKNOWN. frontend는수정전원본#7348순서와단독dirty·실제query/reply/UIroot관측으로피드백루프를확보한다. 원래설비root/spec/filters/scope·정확PATCH1/revision+1/snapshot·두WorkArea/행/focus는보존한다. 응답body조건으로오류응답을걸러PASS시키지않고요청식별/응답echo를검증한다. qa_docs가7개waitForResponse소비자(광역4/부분2/전체조건선례1)와#730저장복귀인접case를감사하며제품/교정범위는근거후확정한다. Root문서단일writer·원격출처infra·재현/교정frontend·별도read-only QA를유지한다.
+
+DOC_SYNC영향과최종동결회귀선정은실제제품/테스트변경범위후확정한다. TESTPLAN1MB원본5edc20685005d8877d160059e5fff9ba46c3bac0는부분조회로덮지않는다. 최종새Head/PRE_QA/Required3·Trusted/Owner/Manager ACCEPT는NOT TESTED이며AC4미구현/예외없음·MERGE_READY BLOCKED/release_authorized=false를유지한다. CI시작후완료모니터링/병합/Main/GHCR/Issue종료는제외한다.
+
+### F785-006 원본 비재현·원격 trace·결정적 red
+
+수정 없는원본#734전체8은 **8/8PASS(4.4분)**, 원본단독dirty(traceon)는 **1/1PASS(본문22.7초/전체40.6초)**였다. [자연 network 순서](../../evidence/issue-785/rerun3-local-natural-sequence.json)에는동일revision의equipment/process report가함께발생했고각성공응답은자신의요청spec과일치했다. 이비재현은원격FAIL을취소하거나환경flaky확정으로사용하지않는다.
+
+원payload/status를보존하고PATCH후equipment전달만700ms지연한 [timing통제1회](../../evidence/issue-785/rerun3-timing-probe.json)도1/1PASS(22.6초/전체38.7초)였다. process서버응답은먼저완료됐지만browser요청이abort되어관측기에전달되지않았으므로의도한경합이재현된것이아니다. 임시DEBUGsource는/tmp에보존하고원본fcfa지문으로복원했다. 성공할때까지반복하지않고실제CItrace를조회했다.
+
+[원본CI허용필드증거](../../evidence/issue-785/rerun3-ci-trace-allowed.json)는playwright-report-shard-2 artifact12541530991의ZIP4,540,711bytes를Actions SHA256 `99a75d3d3caa4de4e0a35deba67f86f6f9c1c4e4d5e627c905cefcefaca6ed34`와대조했다. 실패trace한개(3,191,690bytes)만ZIP/JSON데이터로읽었고JS/PR코드를실행하지않았다. ci-pr-source payload를검증한것은아니며auth/cookie/header/전체raw본문·원본ZIP/trace는Git에저장하지않는다.
+
+원본Before는equipment/rev23이다. PATCH00:36:06.573Z성공/rev24후browser가00:36:06.726Z process/report,00:36:06.987Z equipment/report를각각POST하여각자200/같은root/rev24를반환했다. 그런데테스트APIRequestContext가00:36:07.295Z에다시POST한본문은process였고다시process/rev24를받아after.spec비교에사용했다. 오류DOM에서도설비tab selected·설비tabpanel/현재경로·수정된설비행이확인됐다. 이실패는서버가equipment요청의root를바꾼사례나최종UI가설비관점을잃은사례로관측되지않았다. process요청을발생시킨특정컴포넌트는확정하지않는다.
+
+실제원본matcher source와원격응답순서를결합한명령 `node /tmp/issue785-rerun3-original-matcher-replay.cjs`를실행해 **exit1**, `Original source matcher selected: process`/expected equipment의결정적red를확보했다. 이는브라우저비재현결과와별개인 **actual matcher seam replay**다. 원본source지문/실제CI데이터를확인한뒤행한진단이며가짜제품실패로간주하지않는다. source/재현/가설대조는[진단영수증](../../evidence/issue-785/rerun3-f006-diagnosis.json)에연결한다.
+
+사용자에게세가설/반증예측을공유한후 (1)광역waiter가다른정상process응답을선택한다는가설을원격trace·replay로확인했다. (2)최종UI가process로변경된다는가설은이실패시점의설비DOM/저장행에지지되지않고,(3)서버wrong-echo는관측한각요청/응답root일치로반증됐다. 분류는 **FIXTURE_OBSERVABILITY**이며제품guard/관점state를완화·변경할근거는없다. 이전F003 ID/F004stale DTO/F005mock필드누락과서로다른원인을동일#734의추가사건으로보존한다.
+
+### F785-006 교정 범위·회귀 선정
+
+Manager는약한6spec전체(#730/#732/#733/#734/#735/#737)의모든caller와공유exacthelper·Vitest회귀신설을승인했다. 기존#736정확조건선례는독립baseline으로유지한다. 정확Project path/POST·전체spec/filters/scope/report query와등록후request identity로대상을선택하고선택후status/응답echo를엄격검사한다. 다른내용의응답을body필터로숨기지않고UI가설비query를잃으면timeout/UI보존단언으로실패해야한다. 기존PATCH1회/revision+1/새snapshot/두WorkArea/수정행/원래focus와잘못된scope·응답역전·readonly/error음성을유지한다.
+
+정확discovery에서교정6spec은#7306/#7324/#7335/#7348/#7356/#7376=35case,기존#7365를포함하면40case/7spec이다. 이전71과중복은#7348+#7356=14이므로 **71+40-14=97unique/25spec**이다. 수동4배치A36(10files)/B35(11files)/C15(#730/#732/#733의3files)/D11(#736/#737의2files)로각배치12파일이하를지키며최종source에서다시discovery한다. 25spec은자동진단helper상한을넘는수동분할범위라근거와전체합집합을명시하며자동workflow_dispatch/Full축소를하지않는다. 새matcherUnit은E2E97개에합산하지않는다.
+
+TEST_LIFECYCLE_REVIEW는기존6spec의전체시나리오EXTEND·정확736/누적실패/permission·HTTPSQLite·main18 KEEP_UNIQUE,공유correlation seam의의미있는경합/wrong-echo Unit은ADD다. 새E2E상시spec/CI8-shard배치변경·skip/retry/timeout변경은없다. 새helper/Unit을source manifest에서누락하지않도록staging한뒤실제파일수/지문·최종Unit/E2E결과를기록한다. 문서영향은원장/Packet/정제증거/PR·Issue이며제품/API/DB/보안/UX계약변경없으면정책/TEST_PLAN추가수정은N/A로재사용한다. 현재최종97/Unit/PRE_QA/새Required·Trusted·Owner는NOT TESTED다.
+
+### F785-006 보완 후보의 독립 검토 REWORK와 재동결
+
+최초 sharedhelper 보완은 기존matcher에 대한Unit3FAIL→3PASS·확장7PASS와직접저장smoke2PASS를확인한후1130파일지문 `eddfed861b304dac186f240974bd9a2cdaec54832267491dee89d7643feb0624`로동결해97선정을시작했다. 이단계typecheck의readonly levels6오류/최소mockcast1오류도개발중발견해교정했으며최종PASS만으로초기오류를숨기지않는다.
+
+독립qa_docs가새helper의두결함을추가로입증하여수정전본인소유driver/Playwright만안전중단했다. [중단 영수증](../../evidence/issue-785/rerun3-prototype-stopped.json)은A에서4PASS관측후CANCELLED, B/C/D미실행, source전후동일이다. 이는제품/원격CI새실패가아니라새보완후보의검토결함이며 **최종97PASS에부분4개를재사용하지않는다**.
+
+- REVIEW-F006-P1: async responsepredicate가선택응답을await전에선점하지않아동일query의두미래응답이겹치면빠른두번째로통과한후늦은첫본문이공유body/text를덮을수있었다. 독립메모리harness에서선택request와cachedroot불일치및첫wrong-echo은폐를재현했고설치Playwright의동시predicate실행모델과도대조했다. 신규중첩Unit은기존7PASS+2FAIL로red였고,첫matchingResponse를await전에선점해선택응답별local cache로묶은뒤9/9PASS였다.
+- REVIEW-F006-P2: filter echo가요청key만비교해조건{}에응답{taskSearch:other}도통과했다. WBS parser/service와제품transport의계약은빈배열/undefined제거·배열trim/dedupe/sort·search/taskSearch trim후 **전체조건동등성**이다. 기존#736의toMatchObject는검사한계이며공식subset계약이아니다. 추가filter거부·정상정규화양성을추가한Unit은9PASS+2FAIL→11/11PASS였다.
+
+새predicate는처음일치한응답의capturePromise를동기로예약하고그응답의status/본문/echo검증실패를나중정상응답으로숨기지않는다. 선택request와body가일치하고listener가정리되며전체canonical filter를비교한다. caller의등록후조건객체in-place변경은확인되지않아해당추측으로범위를늘리지않았다. 두교정은원격F006의기존광역matcher오귀속과구분해보존한다.
+
+독립read-only `/root/qa_review`는변경된helper/unit과원문red→green을다시대조하고별도메모리harness로wrong-first-echo FAIL·request/cache동일·listener0·추가filterFAIL·정상정규화PASS를확인해 **REWORK해소정적PASS/미해결0**을반환했다. 이는최종PRE_QA나97실행PASS가아니다. 관련smoke2PASS(1.5분)뒤TSindexsignature해소를위한filter객체shallowcopy만보완했고Unit/typecheck는다시PASS했다.
+
+최종소유8파일은교정6spec+`tests/e2e/helpers/wbs-report.ts`+Vitest의`tests/scripts/wbs-report-correlation.test.ts`다. 새파일을staging하여E2E139spec계약을변경하지않고source manifest1130파일에포함했다. 새지문 `ca3e45a2e59f0cb9302e508fe2e2ef3cee60d9a2a727efb9208f367836ecc956`, helperSHA256 `5e5450870bf1b02907de9c5080716c0e72e1f8978ea03b3bafc3a726a990710c`, unitSHA256 `361affa14ca9c93b84573dcb945e8434ed06f529e326715058a1dd52e2a748a4`를고정했다. A36/B35/C15/D11=97/25spec을/tmp/issue785-rerun3-final2-*의새prefix에서처음부터실행하며중단/중간결과와합산하지않는다. Unit11은별도검증이며E2E97에합산하지않는다.
+
+### F785-006 검증 도중 main 변경과 제한 재사용 계획
+
+게시 준비 조회에서 main은 dd7f4d86db06e8a10b8c86b5412ed319154011e0에서 **4ce403a1e410ca599a780446f39513e1f1158326**(PR #788 / Issue #608)으로 변경됐다. 부모는 [dd7f4d86db06e8a10b8c86b5412ed319154011e0, 886e72d8911695b8b9568754c3636d00956e7f7c]다. 실제 diff는 #608 원장·Packet 두 문서와 `scripts/test_qa_final_automated.py`의 신규 세 테스트, 총3파일/222줄 추가뿐이다. 제품·validator 구현·workflow·package·JS/브라우저 테스트 변경은 없다.
+
+진행 중인97 검증은1130파일 지문ca3e45a2e59f0cb9302e508fe2e2ef3cee60d9a2a727efb9208f367836ecc956에서 그대로 수행한다. 별도qa_docs는 Python 파일이CI quality unittest에서만 실행되고97 browser/새Unit11의import·실행 입력이 아님을 actualdiff와소비자로 확인했다. 이에 종료·생성물복원 후 main 통합, Python 전체test·Unit11·정적검사·새base 자동fast를 새로 실행하고, 전후1130manifest의 유일차이가 이Python1파일인지 대조한다. 충돌해결/추가변경이 브라우저 입력을 바꾸면 선정과 재실행을 다시 평가한다.
+
+이 조건을 충족한 때에만97 actualPASS를 **동일 브라우저 입력에 한정한 Local Fast Feedback 재사용**으로 기록한다. 통합 source에서97을 새로 실행했다고 표현하지 않으며 이전 공식CI PASS를 새Head/base로 재사용하지 않는다. 현재 main 통합·추가검증·최종PRE_QA는 NOT TESTED이고, 새 Required3/Trusted/Owner·Manager ACCEPT와 AC4 예외 미승인은 계속 별도 gate다.
+
+### F785-006 최종 Batch A 실제 결과
+
+[최종 A 영수증](../../evidence/issue-785/rerun3-browser-a.json)은 **36/36 PASS(15.3분), skip/flaky/retry0·exit0**다. 원래실패 #734 dirty/PATCH/spec/snapshot/focus(본문23.2초)·#734 전체8·#735 전체6·이전#461 group7과 누적실패·실제HTTP/SQLite 재시작을 검증했다. 1130파일 지문ca3e45a2e59f0cb9302e508fe2e2ef3cee60d9a2a727efb9208f367836ecc956은 전후동일이다. Next가 next-env.d.ts/tsconfig.json을 생성해 fullCheckoutSourceStable=false인 사실은 별도로 보존한다. B/C/D가 같은동결source에서 계속되며 전체97·main통합 후 추가검증·최종PRE_QA는 아직 NOT TESTED다.
+
+### F785-006 게시 쓰기 권한의 명시적 배정
+
+이번 보완의 Issue 진행 댓글 작성자는 Manager만이다. 최종 clean commit/tree·Head/main lease와 사전 검토를 확인한 Manager의 별도 GO 이후 `infra`에게 기존 PR #787의 본문1회·정확 candidate tree와두부모 commit 생성·non-force ref1회·새CI등록/시작 확인만 위임한다. 이 명시 배정은 위 최초 계약의 Sub-Agent 게시 금지를 해당 최종게시 한정으로 대체하며, 임의 Issue/PR 댓글·병합·릴리스·CI완료 모니터링을 허용하지 않는다. GO 이전 infra는 read-only이고 Issue STATUS는 Manager가 기록한다.
+
+### F785-006 최종 Chromium 전체 결과
+
+[최종 browser 영수증](../../evidence/issue-785/rerun3-browser-final.json)은 **A36/36(15.3분)+B35/35(3.9분)+C15/15(8.3분)+D11/11(5.3분)=고유97/97 PASS,25spec·중복/skip/flaky/retry0·exit0**다. 원래 #734 저장 후 관점 불일치 case와 누적9실패spec·6변경consumer 전체35·독립#736·실제HTTP/SQLite 재시작·main18/권한·KPI음성·geometry/keyboard를 같은동결source에서 검증했다. 중단prototype A4·초기smoke/비재현·Unit11은97에 합산하지 않았다.
+
+네배치의시작/종료 총8manifest와 현재1130파일의 지문은 모두ca3e45a2e59f0cb9302e508fe2e2ef3cee60d9a2a727efb9208f367836ecc956이다. scopedSourceStable=true이며 각배치Next생성next-env/tsconfig차이때문에 fullCheckoutSourceStable=false다. 모든원문로그/trace/HTML과전체manifest는/tmp에보존하고Git에는허용필드JSON만게시한다. [Unit 별도영수증](../../evidence/issue-785/rerun3-unit.json)은11/11PASS(165ms)와원문해시·3FAIL→3PASS/7확장·검토P1 7+2→9/P2 9+2→11을연결한다.
+
+이97은main4ce통합전ca3source의실측이다. 다음생성물복원·main통합·Python전체/Unit11·정적fresh·새base자동fast·실제manifest유일차이대조 및최종PRE_QA를완료하기전게시하지않는다. 새Head Required3/Trusted/Owner는계속NOT TESTED이고AC4/Owner예외없음·MERGE_READY BLOCKED를유지한다.
+
+### F785-006 main 통합·생성물 복원·입력 대조 완료
+
+[생성물 복원 영수증](../../evidence/issue-785/rerun3-generated-cleanup.json): 실행이 끝난 후 추적74개를원본Head473b로복원하고미추적26파일을/tmp보존공간으로옮겼다. AGENTS/Next설정·다른Issue의역사스크린샷을새결과로덮지않았다. TEST_PLAN전체1,083,528B/blob5edc20685005d8877d160059e5fff9ba46c3bac0은그대로다.
+
+로컬보완commit8c69d9a7을보존하고main4ce403a1e410ca599a780446f39513e1f1158326을mergecommit8914d89f760cd18abbf57426488b316a38fbf831로 **충돌0** 통합했다. [입력한정재사용 영수증](../../evidence/issue-785/rerun3-main-input-reuse.json)은1130manifest의유일변경이scripts/test_qa_final_automated.py이며제품/validator/workflow/package/E2E/helper/Unit11입력이동일함을확인한다. 통합지문은 **a98f0ffb6dd0434afe17cab5416fb2417d85c0acdbdaa6328332d374a20b453b**다. 이지문에서97을새로실행한것은아니며ca3의실제97을동일브라우저입력한정Local Fast Feedback으로재사용한다. 공식과거CI PASS는새base로재사용하지않는다.
+
+[통합후새실행](../../evidence/issue-785/rerun3-postmerge-verification.json)은PythonQA전체 **37/37PASS**(신규3test포함)와helper Unit **11/11PASS(160ms)**다. API/Artifact403404429·네트워크/timeout/malformed의BLOCKED보존을mock검사했고실제외부Trusted승인PASS를뜻하지않는다. 이후source변경없이최종정적/자동fast·독립PRE_QA와게시lease/스레드를확인한다. 새원격Required3/Trusted/Owner·Manager ACCEPT/AC4예외는계속NOT TESTED다.
+
+### F785-006 통합후 정적·자동 fast 판정
+
+[새 정적영수증](../../evidence/issue-785/rerun3-static.json)은통합지문a98f0ffb6dd0434afe17cab5416fb2417d85c0acdbdaa6328332d374a20b453b에서typecheckPASS·전체lintPASS(error0/기존warning10)·Markdown319파일링크PASS·version0.131.0과main대비diffPASS다. #608 문서2개추가로이전317파일과구분한다.
+
+[새base 자동fast](../../evidence/issue-785/rerun3-prepr-fast.json)는 **BLOCKED/exit1·selected115/UNKNOWN31/missing0/내부step0·sourceStable=true**다. 이전111/UNKNOWN30과혼용하지않는다. 새UNKNOWN은sharedhelper `tests/e2e/helpers/wbs-report.ts`1개이며직접Unit11과변경6consumer전체35case로수동영향을매핑했다. 기존30UNKNOWN의수동영향표와density/lockfixture추가지도는유지한다. 이수동mapping과97actualPASS는자동선정BLOCKED를PASS로바꾸거나selector정책을우회하지않는다.
+
+이후변경은문서/판정영수증뿐이다. 최종read-only PRE_QA에서원문4batch/8manifest·입력한정재사용·Python37/Unit11·정적·자동BLOCKED·원장/Packet/PR본문·AC4/Owner/공식원격판정경계를대조한후clean최종tree를게시한다. source/guard·CI8shard/35분/Required3/보안·registry권한은변경없다.
+
+### F785-006 독립 사전 검토와 최종 PR 인계
+
+실제 별도 read-only `/root/qa_review`가 최종 통합 후보를 검토해 **PRE_QA=PASS, 미해결 지적0**을 반환했다([검토 영수증](../../evidence/issue-785/rerun3-preqa.json)). 원문4로그의97checkedcase와 정제batch 전수·고유97/25spec/기존71누락0,8전후manifest1130map·현재a98f전체map·유일Python1차이,Python37/Unit11fresh와정적5종 원문sha/exit0,TEST_PLAN전체blob를 대조했다. helper 검토P1/P2해소와6caller전체·736독립·원래보안/저장/focus단언,문서구조/영향mapping·게시범위 의미정합을 확인했다.
+
+사전 검토 PASS는 게시 준비 범위다. ca3의 실제97과 main통합후 입력한정재사용·fresh검사,Next생성차이로fullCheckoutfalse,자동fastBLOCKED115/UNKNOWN31/step0,공식새HeadRequired3/Trusted/Owner NOT TESTED를 구분했다. AC4안전편집 미구현/READONLY·Owner예외승인없음·HIGH/OWNER_MANAGED/qa_required=true·manager_decision=NOT TESTED/MERGE_READY=BLOCKED·release_authorized=false는 유지한다.
+
+이후 판정stamp/문서만 보완했고 source 추가변경은 없다. clean최종tree와 APIcandidate전체tree/두부모[473b,4ce]를 확인하고 기존PR본문1회→Head/mainlease재조회→nonforce ref1회→새testmerge/리뷰thread·충돌 및 FullCI등록/시작까지만 확인한다. 정확 게시Head/RunID/attempt/base/testmerge·metadata전용사건은 Issue STATUS로 연결하며 문서 자기SHA순환을 만들기 위해 추가push하지 않는다. CI완료모니터링/병합/Main/GHCR/Release/Issue종료/브랜치정리는 제외한다.

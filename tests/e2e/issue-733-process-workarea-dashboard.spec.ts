@@ -1,3 +1,4 @@
+import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { Locator, Page } from "@playwright/test";
@@ -5,12 +6,13 @@ import { test, expect, isolatedApplicationOptions } from "./fixtures/isolated-ap
 import { seedWbsViewComposer, viewResourcePassword } from "./fixtures/wbs-view-composer";
 import { targetMasterPassword } from "./fixtures/target-project";
 import type { ProcessCatalogResponse } from "../../src/contracts/process-catalog";
-import type { WbsViewReportDto } from "../../src/contracts/wbs-dashboard-views";
+import type { WbsViewReportDto, WbsViewSpec } from "../../src/contracts/wbs-dashboard-views";
 import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 
 test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword, isolatedResourceAdminPassword: viewResourcePassword, viewport: { width: 1440, height: 1000 } });
 const root = (page: Page) => page.getByTestId("wbs-view-dashboard").filter({ visible: true });
-const reportResponse = (page: Page) => page.waitForResponse(response => response.url().endsWith("/resource-dashboard/views") && response.request().postDataJSON().projection?.kind === "report");
+const defaultSpec: WbsViewSpec = { version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root: "process", levels: [], };
+const reportResponse = (page: Page, condition: Partial<WbsReportCondition> = {}) => waitForWbsReport(page, { spec: defaultSpec, filters: {}, ...condition });
 async function openProcess(page: Page) {
   await page.getByRole("tablist", {name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"대시보드",exact:true}).click();
   await page.getByRole("tablist",{name:"대시보드 보기",exact:true}).getByRole("tab",{name:"공정&WorkArea",exact:true}).click();
@@ -20,7 +22,8 @@ async function preset(page: Page, label: string) {
   const panel = root(page).locator("details").filter({has:page.locator("summary").filter({hasText:/^조회 구성$/})});
   if (!await panel.evaluate(node=>(node as HTMLDetailsElement).open)) await panel.locator("summary").click();
   await panel.getByRole("button",{name:label,exact:true}).click();
-  const response = reportResponse(page);
+  const levels: Record<string, NonNullable<WbsViewSpec["levels"]>> = {"공정 단독": [], "공정 → WorkArea → 설비 / 물류 시스템 → 리소스": ["workArea", { kind: "siblings", dimensions: ["equipment", "system"] }, "resource"], "공정 → Milestone → 리소스": ["milestone", "resource"]};
+  const response = reportResponse(page, { spec: { ...defaultSpec, levels: levels[label] } });
   await panel.getByRole("button",{name:"적용",exact:true}).click();
   const received = await response;
   expect(received.status(),await received.text()).toBe(200);
@@ -179,7 +182,7 @@ test("#733 공정 작업 원본 저장은 같은 경로·새 snapshot으로 복�
   const renamed = "공정 원본 저장 복귀 검증";
   await editor.getByLabel("작업명",{exact:true}).fill(renamed);
   const mutation = page.waitForResponse(response=>response.request().method()==="PATCH"&&new URL(response.url()).pathname===`/api/projects/${f.publicId}/tasks/${f.task.taskId}`);
-  const refreshed = reportResponse(page);
+  const refreshed = reportResponse(page, { spec: initial.spec, filters: initial.filters, scope: initial.sourceContext.scope });
   await editor.getByRole("button",{name:"저장",exact:true}).click();
   expect((await mutation).status()).toBe(200);
   const updated = (await (await refreshed).json()).data as WbsViewReportDto;
@@ -222,7 +225,7 @@ test("#733 WorkArea 원본 dirty 유지·이름 저장은 같은 구역 경로�
   await expect(discard).toBeVisible();await discard.getByRole("button",{name:"계속 편집",exact:true}).click();
   await expect(editor.getByLabel("이름",{exact:true})).toHaveValue(name);
   const saved=page.waitForResponse(response=>response.request().method()==="PATCH"&&new URL(response.url()).pathname===`/api/process-catalog/admin/work-areas/${f.workArea.id}`);
-  const refreshed=reportResponse(page);
+  const refreshed=reportResponse(page, { spec: initial.spec, filters: initial.filters, scope: initial.sourceContext.scope });
   await editor.getByRole("button",{name:"저장",exact:true}).click();
   expect((await saved).status()).toBe(200);
   const updated=(await (await refreshed).json()).data as WbsViewReportDto;

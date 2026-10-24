@@ -1,0 +1,43 @@
+{
+  "schema": "mastergantt-785-rerun3-static-v1",
+  "typecheck": {
+    "command": "npm run typecheck",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 2.49,
+    "rawLogSha256": "9b4081e415be802200f1463f9306c613689c293b6e54a99f2708fa4e823c43f1"
+  },
+  "lint": {
+    "command": "npm run lint",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 32.2,
+    "errors": 0,
+    "warnings": 10,
+    "rawLogSha256": "3f2251eab3431340a4a3caece907a03f4682e4253f479945a52a8e2f803598ca"
+  },
+  "markdownLinks": {
+    "command": "node scripts/check-markdown-links.mjs",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 0.08,
+    "files": 319,
+    "rawLogSha256": "d31f4b196394132aae94bcbfbf5b8130b63c64ea2dcc8cc88b73d28c08c992d8"
+  },
+  "version": {
+    "command": "npm run version:check",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 0.1,
+    "applicationVersion": "0.131.0",
+    "rawLogSha256": "bbf19c43eb08745003a7368ca18b7daa66605c9db531fa936ee1da40f5888826"
+  },
+  "prDiff": {
+    "command": "git diff --check origin/main",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 0.06,
+    "rawLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "sourceDigest": "a98f0ffb6dd0434afe17cab5416fb2417d85c0acdbdaa6328332d374a20b453b"
+}

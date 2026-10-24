@@ -1,3 +1,4 @@
+import { waitForWbsReport } from "./helpers/wbs-report";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import type { Locator, Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
@@ -6,7 +7,7 @@ import { targetMasterPassword } from "./fixtures/target-project";
 import { seedWbsViewComposer, viewResourcePassword } from "./fixtures/wbs-view-composer";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { isWbsViewReadQuery } from "./helpers/read-only-requests";
-import type { WbsViewReportDto, WbsViewSpec } from "../../src/contracts/wbs-dashboard-views";
+import type { WbsViewSpec } from "../../src/contracts/wbs-dashboard-views";
 import type { LogisticsDashboardResponse } from "../../src/contracts/logistics-dashboard";
 import { issue623WorkbookEntries, issue623Table } from "../fixtures/issue-623-backend-fixture";
 
@@ -20,17 +21,10 @@ async function openRoot(page: Page, root: typeof roots[number]) {
   await expect(dashboard(page)).toHaveAttribute("data-root", root);
   await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
 }
-function report(page: Page, root: typeof roots[number], levels?: WbsViewSpec["levels"]) {
-  return page.waitForResponse(response => {
-    if (response.request().method() !== "POST" || !response.url().endsWith("/resource-dashboard/views")) return false;
-    const query = response.request().postDataJSON();
-    return query.projection?.kind === "report" && query.spec.root === root
-      && (levels === undefined || JSON.stringify(query.spec.levels) === JSON.stringify(levels));
-  }).then(async response => {
-    expect(response.status(), await response.text()).toBe(200);
-    return (await response.json()).data as WbsViewReportDto;
-  });
+function report(page: Page, root: typeof roots[number], levels: WbsViewSpec["levels"] = []) {
+  return waitForWbsReport(page, { spec: { version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root, levels, ...(root === "system" ? { systemView: "direct" as const } : {}) }, filters: {} }).then(async response => (await response.json()).data);
 }
+
 async function composer(page: Page) {
   const disclosure = dashboard(page).locator("details").filter({ has: page.locator("summary").filter({ hasText: /^조회 구성$/ }) });
   if (!await disclosure.evaluate(element => (element as HTMLDetailsElement).open)) await disclosure.locator("summary").click();

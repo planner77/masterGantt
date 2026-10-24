@@ -1,0 +1,182 @@
+{
+  "capturedAfterQuery": {
+    "spec": {
+      "version": "wbs-view:v1",
+      "contextSourceVersion": "explicit-task-context:v1",
+      "root": "equipment",
+      "levels": []
+    },
+    "filters": {},
+    "projection": {
+      "kind": "report"
+    }
+  },
+  "visibleRoot": "equipment",
+  "triggerFocused": true,
+  "before": {
+    "spec": {
+      "version": "wbs-view:v1",
+      "contextSourceVersion": "explicit-task-context:v1",
+      "root": "equipment",
+      "levels": []
+    },
+    "filters": {},
+    "projectRevision": 23,
+    "snapshotId": "c1ec770ff54ad5b9a3f27273caa49dd374aba72ed03a9f6aefbb21cf7d4c02b6"
+  },
+  "after": {
+    "spec": {
+      "version": "wbs-view:v1",
+      "contextSourceVersion": "explicit-task-context:v1",
+      "root": "equipment",
+      "levels": []
+    },
+    "filters": {},
+    "projectRevision": 24,
+    "snapshotId": "2e9a7928e327b736f05e3bd9bcb27dbd2b8d2aa4ef158be497b0aa2a55205800"
+  },
+  "reports": [
+    {
+      "request": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "equipment",
+          "levels": []
+        },
+        "filters": {},
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "response": {
+        "status": 200,
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "equipment",
+          "levels": []
+        },
+        "filters": {},
+        "projectRevision": 23,
+        "snapshotId": "c1ec770ff54ad5b9a3f27273caa49dd374aba72ed03a9f6aefbb21cf7d4c02b6"
+      },
+      "saved": false
+    },
+    {
+      "request": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "equipment",
+          "levels": []
+        },
+        "filters": {},
+        "projection": {
+          "kind": "scope",
+          "snapshotId": "c1ec770ff54ad5b9a3f27273caa49dd374aba72ed03a9f6aefbb21cf7d4c02b6",
+          "path": [
+            {
+              "dimension": "equipment",
+              "id": "58397456-9287-4803-a42e-b9eed9c68bc0"
+            }
+          ]
+        }
+      },
+      "response": {
+        "status": 200,
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "equipment",
+          "levels": []
+        },
+        "filters": {},
+        "projectRevision": 23,
+        "snapshotId": "c1ec770ff54ad5b9a3f27273caa49dd374aba72ed03a9f6aefbb21cf7d4c02b6"
+      },
+      "saved": false
+    },
+    {
+      "request": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "process",
+          "levels": []
+        },
+        "filters": {},
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "response": {
+        "status": 200,
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "process",
+          "levels": []
+        },
+        "filters": {},
+        "projectRevision": 23,
+        "snapshotId": "434e676cfc968748cdf001a5e136d607b9c3c8eef046a33f86605ba33facfb3d"
+      },
+      "saved": false
+    },
+    {
+      "request": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "process",
+          "levels": []
+        },
+        "filters": {},
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "response": {
+        "status": 200,
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "process",
+          "levels": []
+        },
+        "filters": {},
+        "projectRevision": 24,
+        "snapshotId": "81c3a3edc7c91b8e27dc6b74abc32d7af829edada4ff3ffc33a37583cdcc660b"
+      },
+      "saved": true
+    },
+    {
+      "request": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "equipment",
+          "levels": []
+        },
+        "filters": {},
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "response": {
+        "status": 200,
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "equipment",
+          "levels": []
+        },
+        "filters": {},
+        "projectRevision": 24,
+        "snapshotId": "2e9a7928e327b736f05e3bd9bcb27dbd2b8d2aa4ef158be497b0aa2a55205800"
+      },
+      "saved": true
+    }
+  ]
+}

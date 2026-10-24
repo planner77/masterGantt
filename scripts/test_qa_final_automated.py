@@ -51,6 +51,85 @@ class Cases(unittest.TestCase):
             self.blocked(lambda url=malicious: handler.redirect_request(
                 original, None, 302, "Found", {}, url))
 
+    def test_t7_api_http_status_fail_closed(self):
+        """Actual QA API client: 403/404/429 must never become PASS."""
+        import urllib.error
+        url = "https://api.github.com/repos/planner77/masterGantt/pulls/608"
+        for method in ("GET", "POST"):
+            for code in (403, 404, 429):
+                with self.subTest(method=method, code=code):
+                    error = urllib.error.HTTPError(url, code, "fixture", {}, None)
+                    with patch.object(qa.urllib.request, "urlopen",
+                                      side_effect=error) as mocked:
+                        with self.assertRaises(qa.Blocked) as raised:
+                            qa.api(method, url, "test-only-token")
+                        self.assertEqual(raised.exception.status, "BLOCKED")
+                        self.assertEqual(raised.exception.reason,
+                                         f"GitHub API 접근 불가 ({code})")
+                        self.assertNotIn("test-only-token", raised.exception.reason)
+                        self.assertEqual(mocked.call_args.args[0].get_method(), method)
+                        self.assertEqual(mocked.call_args.kwargs["timeout"], 20)
+
+    def test_t7_artifact_http_status_fail_closed(self):
+        """Source ZIP access denial/rate limit preserves provenance failure."""
+        import urllib.error
+
+        class FixtureGitHub:
+            token = "test-only-token"
+            prefix = "/repos/planner77/masterGantt"
+
+            def collection(self, route, name):
+                assert route == self.prefix + "/actions/runs/41/artifacts"
+                assert name == "artifacts"
+                return [{"name": "ci-pr-source-41-1", "id": 77,
+                         "size_in_bytes": 128, "expired": False}]
+
+        url = ("https://api.github.com/repos/planner77/masterGantt/"
+               "actions/artifacts/77/zip")
+        for code in (403, 404, 429):
+            with self.subTest(code=code):
+                error = urllib.error.HTTPError(url, code, "fixture", {}, None)
+                with patch.object(qa.urllib.request, "build_opener") as builder:
+                    builder.return_value.open.side_effect = error
+                    with self.assertRaises(qa.Blocked) as raised:
+                        qa.source_artifact(FixtureGitHub(), 41, 1)
+                    self.assertEqual(raised.exception.status, "BLOCKED")
+                    self.assertEqual(raised.exception.reason,
+                                     f"원본 CI artifact HTTP {code} (출처 검증 실패)")
+                    self.assertNotIn("test-only-token", raised.exception.reason)
+                    builder.return_value.open.assert_called_once()
+                    self.assertEqual(builder.return_value.open.call_args.kwargs["timeout"], 20)
+
+    def test_t7_api_artifact_transport_error_fail_closed(self):
+        """Network outage, timeout and malformed response never imply approval."""
+        import urllib.error
+
+        class FixtureGitHub:
+            token = "test-only-token"
+            prefix = "/repos/planner77/masterGantt"
+
+            def collection(self, route, name):
+                return [{"name": "ci-pr-source-41-1", "id": 77,
+                         "size_in_bytes": 128, "expired": False}]
+
+        url = "https://api.github.com/repos/planner77/masterGantt/pulls/608"
+        for error in (urllib.error.URLError("synthetic-unavailable"),
+                      TimeoutError("synthetic-timeout"),
+                      ValueError("synthetic-malformed")):
+            with self.subTest(error_type=type(error).__name__):
+                with patch.object(qa.urllib.request, "urlopen", side_effect=error):
+                    with self.assertRaises(qa.Blocked) as raised:
+                        qa.api("GET", url, "test-only-token")
+                    self.assertEqual(raised.exception.status, "BLOCKED")
+                    self.assertNotIn("test-only-token", raised.exception.reason)
+                with patch.object(qa.urllib.request, "build_opener") as builder:
+                    builder.return_value.open.side_effect = error
+                    with self.assertRaises(qa.Blocked) as raised:
+                        qa.source_artifact(FixtureGitHub(), 41, 1)
+                    self.assertEqual(raised.exception.status, "BLOCKED")
+                    self.assertIn("원본 CI artifact 읽기 불가", raised.exception.reason)
+                    self.assertNotIn("test-only-token", raised.exception.reason)
+
     def blocked(self, f, status="BLOCKED"):
         with self.assertRaises(qa.Blocked) as cm:
             f()

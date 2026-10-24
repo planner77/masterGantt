@@ -1,0 +1,65 @@
+{
+  "schema": "mastergantt-785-rerun3-unit-v1",
+  "command": "npx --no-install vitest run --config tests/config/vitest.config.ts tests/scripts/wbs-report-correlation.test.ts",
+  "state": "PASS",
+  "exitCode": 0,
+  "passed": 11,
+  "failed": 0,
+  "testFiles": 1,
+  "durationMs": 165,
+  "sourceDigest": "ca3e45a2e59f0cb9302e508fe2e2ef3cee60d9a2a727efb9208f367836ecc956",
+  "unitSha256": "361affa14ca9c93b84573dcb945e8434ed06f529e326715058a1dd52e2a748a4",
+  "helperSha256": "5e5450870bf1b02907de9c5080716c0e72e1f8978ea03b3bafc3a726a990710c",
+  "history": {
+    "originalMatcher": {
+      "passed": 0,
+      "failed": 3,
+      "greenPassed": 3
+    },
+    "expandedInitial": {
+      "passed": 7
+    },
+    "reviewP1CacheRace": {
+      "redPassed": 7,
+      "redFailed": 2,
+      "greenPassed": 9
+    },
+    "reviewP2PartialFilterEcho": {
+      "redPassed": 9,
+      "redFailed": 2,
+      "greenPassed": 11
+    }
+  },
+  "rawLogs": {
+    "correlation-unit-red": {
+      "rawLogPath": "/tmp/issue785-rerun3-correlation-unit-red.log",
+      "sha256": "2fdee6462935437ef7605795a3f7382e48bb38a3b006b0cb5b1d8de5d6902591"
+    },
+    "correlation-unit-green": {
+      "rawLogPath": "/tmp/issue785-rerun3-correlation-unit-green.log",
+      "sha256": "8706f117b99264312615634247b2d0a99cd037611ba7a26aed737b61b7f03056"
+    },
+    "helper-race-unit-red": {
+      "rawLogPath": "/tmp/issue785-rerun3-helper-race-unit-red.log",
+      "sha256": "419dfe8c07fba1f25fb62c9cd036979812a79bd1d91796a95e964edaf382f527"
+    },
+    "helper-race-unit-green": {
+      "rawLogPath": "/tmp/issue785-rerun3-helper-race-unit-green.log",
+      "sha256": "9590b6d4f82464d91f75776a369c9001b22bfcf7be7b80f5c6c2198b8af83c8e"
+    },
+    "helper-filter-unit-red": {
+      "rawLogPath": "/tmp/issue785-rerun3-helper-filter-unit-red.log",
+      "sha256": "c328784d1d078b9b8767c29477f5d157efe30b78fe8bbba090f0188fb4f1f31c"
+    },
+    "helper-filter-unit-green": {
+      "rawLogPath": "/tmp/issue785-rerun3-helper-filter-unit-green.log",
+      "sha256": "f939f7174362cb81f6e8acb1a01b6e7afdb1bb3b1b7bf97c6f599c3778ddddf9"
+    },
+    "final2-unit": {
+      "rawLogPath": "/tmp/issue785-rerun3-final2-unit.log",
+      "sha256": "20fe25af4a60eeae501502125aee0e2deb8b1b0ec4e400a5288cb4b7f05d20da"
+    }
+  },
+  "rawLogsCommitted": false,
+  "interpretation": "같은 후보에서 브라우저와 별도로 실행한 Unit 검증이며 Chromium97개·새 Head Required/Trusted/Owner의 PASS를 대체하지 않는다. Vite future configLoader 경고는 원문에 보존했다."
+}
