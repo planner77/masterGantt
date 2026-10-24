@@ -44,7 +44,8 @@ test("Issue #479 private project enforces list unlock, direct SSR lock and scope
     await expect(guest.getByRole("dialog")).toContainText("비공개 프로젝트 열기");
     await guest.getByLabel("프로젝트 비밀번호").fill("wrong479");
     await guest.getByRole("button", { name: "비밀번호 확인 후 열기" }).click();
-    await expect(guest.getByRole("alert")).toContainText("올바르지 않습니다");
+    await expect(guest.locator("#private-list-error")).toHaveRole("alert");
+    await expect(guest.locator("#private-list-error")).toContainText("올바르지 않습니다");
     await expect(guest.getByLabel("프로젝트 비밀번호")).toHaveValue("");
     expect(new URL(guest.url()).pathname).toBe("/");
 

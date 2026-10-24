@@ -127,3 +127,13 @@
 - backend는 System.active 변경 후 과거 fingerprint가 STALE로 거부되는 정상 우선순위를 보존한다. 새 source 조회 후 INACTIVE 거부와 DB 불변을 각각 검사한다. 보안 inventory 기대 목록에 신규 세 경로와 GET/POST/PATCH 권한·실제 변경 여부를 정확히 추가한다. 서버 제품 코드·API/DB/보안 계약 변경은 없다.
 - TEST_LIFECYCLE_REVIEW: 기존 두 실패 Vitest 파일·#617/#785 source/교환 회귀와 #726 실제 HTTP/SQLite/5폭/readonly/지연 PATCH를 EXTEND/KEEP_UNIQUE한다. revision 변경 뒤 이전 preview/token 미노출·최신 scope 재조회도 기존 E2E에 추가한다. 신규 spec, skip, retry/timeout, 샤드/Required/validator 변경은 없다.
 - DOCUMENTATION_SYNC의 정형 H2·파일 상태·AC1~AC7 매핑을 신뢰된 base의 `docs_gate`로 재검증한다. 구현의 lifecycle 정리와 테스트 보강은 기존 Task Editor/UX 계약을 유지하므로 API/DB/SECURITY/운영 설계 추가 변경 N/A다. 로컬 검증 및 동결 지문은 누적 원장의 F792-003에 기록한다. 실제 운영 DB/consumer/off-host restore/Windows Excel·수동 운영 UX는 계속 NOT TESTED다.
+
+
+## MAIN-792-001 — 병합 후 Main trace 실패의 같은 Issue 복구 Work Packet (2026-10-24)
+
+- **실제 완료:** 첫 PR #795는 Head `7c9b66481f52d6597d59a0fe694aef9529029b71`에서 Full #3244.1·Trusted #892.1 PASS, 리뷰 unresolved0/충돌0 후 Merge `4048245f8dc90c1f46dd1cc58948a17a4fb7338e`. Main push [#3249.1](https://github.com/planner77/masterGantt/actions/runs/40085439884)이 실패하여 GHCR 게시·Finalizer를 수행하지 못했다. Issue가 자동 closed됐으나 open 복귀했고 남은 운영 AC는 그대로 BLOCKED.
+- **Root cause:** `scripts/verify-ci-run-trace.py`에 문제가 아니라 merge API의 `commit_message`에 여러 줄을 넣은 운영 절차 오류. `main_ci_run_name.py::parse_merge_title`은 정확 canonical **한 줄 전체 commit**만 허용한다. immutable Main SHA는 바꾸지 않는다. Failed-job rerun, docs-only 대체 PASS, 보호 Gate 우회 금지.
+- **한정 교정 PR 범위:** 기존 PR의 제품 코드 그대로 두고 `package.json`, `package-lock.json` 루트와 앱 버전을 **0.131.0→0.132.0**으로 동기화, `CHANGELOG.md`, 본 Work Packet, `docs/ISSUE_792_FAILURE_ANALYSIS.md`, `docs/TEST_PLAN.md`에 역사적 오류/정식 안전 인계 추가. `v0.131.0` 태그 이전 Main SHA 고정 보존, 새 `v0.132.0`은 Release CI·승인 전 생성 금지.
+- **DOC_SYNC (후속 PR 기준):** UPDATE package/lock·CHANGELOG·Work Packet·Issue 원장·TEST_PLAN. AGENTS/DESIGN/API/DB_SCHEMA/SECURITY/QA_REVIEW_POLICY/CI_CD/GITHUB_OPERATIONS/REMOTE_VALIDATION은 CI 규칙·공개 DTO·migration·auth writer 변경 없어 N/A(현행 계약 불변). 기존 #795 변경 문서의 `UPDATED`는 첫 제품 PR 이력이며 후속 PR의 새로운 제품 변경을 의미하지 않는다.
+- **TEST_LIFECYCLE_REVIEW:** 기존 Vitest/Chromium8/Docker/SQLite/whole/subset/coverage/Copy/Template/OOXML 보호를 KEEP_UNIQUE, 신규/삭제/skip/timeout/retry/shard/설정 변경0. `scripts/main_ci_run_name.py`와 기존 Python 정책 검증, `scripts/verify-release-version.mjs`과 lock 동기화 및 원격 Full+Trusted→canonical merge→Main push CI→임시 ci-SHA GHCR smoke→Owner 버전별 release 승인→Release CI/Finalizer를 새 exact SHA 별로 검증한다.
+- **릴리스:** `release_required=true`, `qa_required=true`, `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `release_authorized=false`(exact 0.132.0 버전/잔여 운영 AC에 대한 별도 승인 근거 필요), `Manager_ACCEPT=NOT TESTED`(새 Head). 본 corrective PR이 Full CI를 성공시켜도 운영 off-host restore·consumer=0·Excel 현장 검증을 완료한 것으로 처리하지 않는다.

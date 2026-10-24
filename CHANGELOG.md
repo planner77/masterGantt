@@ -1,3 +1,10 @@
+## [0.132.0] — Issue #792 Main CI 재발행 후보 (2026-10-24)
+
+- [원본 PR #795](https://github.com/planner77/masterGantt/pull/795)은 Product·Unit/HTTP/Chromium8/Docker/Trusted QA PASS 후 `main`에 `4048245f8dc90c1f46dd1cc58948a17a4fb7338e`로 병합됐으나, 그 merge commit의 **여러 줄 메시지**가 신뢰된 `verify-ci-run-trace.py`의 한 줄 Merge 계약을 어겨 [Main CI #3249.1](https://github.com/planner77/masterGantt/actions/runs/40085439884)에서 경로 판정만 직접 FAIL했다. 원본 실패 SHA나 Gate 결과는 변경하지 않는다.
+- 재발행 교정 PR은 **애플리케이션 버전/Lock/릴리스 문서와 원장만** 변경한다. 기존 v0.131.0 annotated 태그는 원래 부모 `b45885812301d14b9f673841e9944b27b2642323`를 가리키므로 절대 이동/재사용하지 않으며, `0.132.0`을 신규 후보로 선택한다. 다음 Merge는 `scripts/main_ci_run_name.py::merge_api_payload`의 한 줄 제목 + **빈 본문**을 사용해야 한다.
+- Summary 기존 binding scope self↔subtree 안전 편집 구현·권한·원본 UUID/whole/subset+coverage·provenance·copy/template·WBS/Excel 코드 변경 없음. 운영 외부 consumer=0, 별도 복구호스트 off-host SQLite restore/restart, Windows Excel/DRM, 기존 member/coverage 일반 수정은 **NOT TESTED/미구현**이며 PR/Main/버전 후보만으로 인수 완료·정식 릴리스/Issue 종료 승인으로 간주하지 않는다.
+- `release_required=true`이며 정식 GHCR 이미지 버전 `v0.132.0`의 별도 Owner 버전·위험 승인과 immutable exact Main Quality/E2E8/Docker, 임시 `ci-<SHA>` digest 검증, Release CI, Finalizer 증거가 필요하다. 완료 전 `release_authorized=false`.
+
 ## Issue #479 — PR #794 첫 CI 메타데이터 실패 및 P1 수정 (Unreleased 0.132.0)
 
 - Full Run #3223.1은 canonical `Refs #479`/QA 선언 누락으로 시작 단계에서 중단되었으며 실제 기능 테스트는 SKIPPED; [실패 원장](docs/ISSUE_479_FAILURE_ANALYSIS.md) 보존.
