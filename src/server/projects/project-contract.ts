@@ -49,6 +49,7 @@ const newPassword = wellFormedString.refine((value) => {
   return length >= 1 && length <= 12;
 });
 const projectStatus = z.enum(["planned", "in_progress", "completed"]);
+const projectVisibility = z.enum(["public", "private"]);
 const projectMasterId = z.string().uuid().nullable();
 
 const createProjectSchema = z.object({
@@ -57,6 +58,7 @@ const createProjectSchema = z.object({
   ownerName: projectOwnerName,
   editPassword: newPassword,
   status: projectStatus.optional(),
+  visibility: projectVisibility.optional(),
   businessUnitId: projectMasterId.optional(),
   productId: projectMasterId.optional(),
   siteEntityId: projectMasterId.optional(),
@@ -123,11 +125,12 @@ const updateProjectSchema = z.object({
   name: projectName.optional(),
   description: projectDescription.optional(),
   status: projectStatus.optional(),
+  visibility: projectVisibility.optional(),
   businessUnitId: projectMasterId.optional(),
   productId: projectMasterId.optional(),
   siteEntityId: projectMasterId.optional(),
 }).strict().refine(
-  (value) => value.name !== undefined || value.description !== undefined || value.status !== undefined ||
+  (value) => value.name !== undefined || value.description !== undefined || value.status !== undefined || value.visibility !== undefined ||
     value.businessUnitId !== undefined || value.productId !== undefined || value.siteEntityId !== undefined,
 );
 
