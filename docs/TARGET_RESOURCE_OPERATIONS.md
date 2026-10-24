@@ -4,7 +4,7 @@
 
 ### 운영 착수 조건
 
-본 Issue 코드의 수정 단위는 **기존 Summary 직접 `task_target_bindings` 한 건의 self/subtree**이다. 외부 Target CRUD의 410, 원본 `whole/subset/coverage`, 기존 `project_work_areas`, Task/Assignment/E1/MCS/공수와 archive graph는 보존한다. `POST` preview는 읽기 전용 영향 목록이고 `PATCH`는 같은 프로젝트 세션·Origin·If-Match·sourceFingerprint·impactToken을 다시 검증한 뒤 원본 scope만 갱신한다. 원본 구성원 교체, 자동 직접 관계 flatten, table DROP, 운영 데이터 일괄 이관/실사용 전환은 **승인된 범위가 아니다**.
+본 Issue 코드의 수정 단위는 **기존 Summary 직접 `task_target_bindings` 한 건의 self/subtree**이다. 외부 Target CRUD의 410, 원본 `whole/subset/coverage`, 기존 `project_work_areas`, Task/Assignment/E1/MCS/공수와 archive graph는 보존한다. `POST` preview는 읽기 전용 영향 목록이고 `PATCH`는 같은 프로젝트 세션·Origin·If-Match·sourceFingerprint·impactToken을 다시 검증한 뒤 원본 scope만 갱신한다. 대상 Target/구성원이 비활성이거나 계획된 상속 provenance 경로가 상한을 넘으면 범위 확대 단계에서 즉시 거부한다. 원본 구성원 교체, 자동 직접 관계 flatten, table DROP, 운영 데이터 일괄 이관/실사용 전환은 **승인된 범위가 아니다**.
 
 | Gate | 작업·기록할 증거 | 현재 |
 | --- | --- | --- |
