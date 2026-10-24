@@ -432,3 +432,10 @@ TEST_LIFECYCLE_REVIEW는기존6spec의전체시나리오EXTEND·정확736/누적
 - **AC_TEST_COVERAGE / TEST_LIFECYCLE_REVIEW:** 기존 #529 E2E 및 Unit을 사전 검색해 EXTEND, 이전 #719/#734/#461/#785 F006 및 HTTP/SQLite/Report detail/capacity/Plan/Original source provenance/Export security KEEP_UNIQUE. AC2/5/7/8/9/10. docs/EXCEL_EXPORT.md 현행 키와 원본 출처 분리 문서화, 단일 실패 원장 갱신. 새 중복 E2E·skip·timeout/Retry/Required 강도 완화0.
 - **검증/인계:** 실제 로컬 E2E·Unit/npm·Docker는 GitHub DNS·checkout 부재로 NOT TESTED; 기존97 Chromium PASS 모집단은 #529를 포함하지 않음. 새 Head Full Quality/E2E8/Docker, default-main Trusted QA, Owner HIGH 승인 별도. 리뷰·base 충돌 재확인 후 기존 PR synchronize Full CI 시작만 하고 결과 모니터링/병합/Main/GHCR/Finalizer/Issue 종료 없음.
 - **승인 상태:** HIGH/OWNER_MANAGED, manager_decision=NOT TESTED, MERGE_READY=BLOCKED, release_required=true/release_authorized=false. AC4 레거시 안전 편집 미구현·운영 DB/외부 소비자/백업 미검증 유지.
+
+## F785-008 — Main CI trace 제목 실패 / 동일 Issue 후속 교정 (2026-10-24 KST)
+
+- PR #787은 원본 Full #3217.1/Trusted PASS·Owner 승인 후 merge96d97d12로 병합됐으나 Main #3219.1 changes verify-ci-run-trace에서 Manager의 **비어 있지 않은 multiline commit_message**로 FAIL. 기존 immutable Main 실패는 보존하며 GHCR/tag/이슈 종료 없음. `scripts/main_ci_run_name.py`의 commit_title exact 한글30자 이하 + `commit_message:''` preflight는 정책으로서 불변.
+- 동일 Issue/version0.131.0 non-docs corrective PR로 회복하는 기존 #729/Generic Finalizer same-Issue supersession 경로 적용. 다른 이슈가 main first-parent에 개입하면 자동승계 BLOCKED. package/lock/Gantt/제품/api/업무 계약 변경 없음.
+- `tests/server/projects/resource-excel-export.test.ts`의 실제 SQLite HTTP OOXML 기존 #529 테스트를 EXTEND하여 Actual report context JSON의 exact canonical values와 stale target axis가 없음을 검증한다. F785-007 보완의 Unit 양·음성 행 이름뿐 아니라 JSON round-trip 근거를 강화. `docs/TEST_PLAN.md`의 기존 전체 1MB blob을 보존하고 TEST_LIFECYCLE_REVIEW/AC2/5/7/8/9/10을 additive 반영한다. 원래 E2E #529·Resource/Plan/Task·보안·퇴역 410/원본 ID 등은 KEEP_UNIQUE, duplicate E2E spec0.
+- 후속 PR Full8/Required3·default-main Trusted QA·Owner HIGH ACCEPT 전 병합 금지. CI 모니터링 사용자 요청으로 생략. 다음 merge 요청은 `main_ci_run_name.py --as-merge-payload --expected-head-sha`가 산출한 빈 본문/정확 한 줄 제목의 lease-bound Merge API만 허용; Main 완료 후 GHCR exact digest/Release/Finalizer/Issue 종료.

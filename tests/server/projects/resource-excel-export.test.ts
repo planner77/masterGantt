@@ -79,6 +79,28 @@ describe("#529 Resource workbook real SQLite HTTP handler and OOXML", () => {
     const planXml = entries.get(`xl/worksheets/sheet${names.indexOf("Resource Plan") + 1}.xml`)!; expect(planXml).toContain("periodLabel"); expect(planXml).toContain("partial"); expect(planXml).toContain("2026-W41");
     expect(f.state()).toEqual(before);
   });
+  it("round-trips the approved public Resource report context through real Excel OOXML", async () => {
+    const f = fixture(), opts = options(f);
+    const response = await http(f, opts);
+    expect(response.status).toBe(200);
+    const entries = extract(new Uint8Array(await response.arrayBuffer()));
+    const xml = entries.get("xl/worksheets/sheet1.xml")!;
+    expect(xml).toContain("Actual report context");
+    expect(xml).not.toContain("Actual target context");
+    const rawCells = cells(xml);
+    const contextLabels = rawCells.filter(cell => /^A\d+$/.test(cell.ref) && cell.text === "Actual report context");
+    expect(contextLabels).toHaveLength(1);
+    const contextCell = rawCells.find(cell => cell.ref === contextLabels[0].ref.replace(/^A/, "B"));
+    expect(contextCell?.text, "Report context value must be an inline-string cell").toEqual(expect.any(String));
+    const decoded = contextCell!.text!.replace(/&quot;/g, '"' ).replace(/&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+    const context = JSON.parse(decoded);
+    expect(context).toEqual(opts.expectedReport.context);
+    expect(context).toMatchObject({
+      projectPublicId: f.project.publicId,
+      projectRevision: f.service.getDashboard(f.project.publicId)!.projectRevision,
+      sourceProjection: { kind: "report" },
+    });
+  });
   it("keeps legacy bytes unchanged and one transaction/clock with full/current context", () => {
     const f = fixture(), clock = vi.fn(() => new Date(RESOURCE_DASHBOARD_NOW)), service = new ProjectExportSnapshotService(f.database, { clock, mdPerMmEnvironment: "21" });
     const a = service.get(f.project.publicId)!, before = buildProjectExcelWorkbook(a.snapshot, legacy, undefined, a.stageDashboard);

@@ -5409,3 +5409,9 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 실제 fixture 생성은7→11이므로 test 수 증가를 비용절감으로 보고하지 않는다. 같은 source의 전후 fixture/seed/body/teardown·wall-clock, 독립/역순/분리실행·의도적 실패cleanup을 [누적 원장](ISSUE_750_FAILURE_ANALYSIS.md)에 남긴다. 현재8-shard file plan은 그대로이며 로컬 분리실행을 원격샤드 성능으로 환산하지 않는다. #730 과거 실패9파일 합집합과 추가 직접소비자 #624, #623 Domain/SQLite/OOXML을 교차선정하고 정확 실행/미실행을 구별한다. 원격 Required3·Trusted·Owner/Manager는 별도 NOT TESTED다.
 
 추가 교차 실패 #463는 마지막 option bottom879.5/list879의 실제0.5px 잘림이었다. 단언을 완화하지 않고 공용 StageFilterPicker의 목록scroll만ceil 보정하며 기존 #463 case에5폭 Home/ArrowDown/Up와 실패 전 좌표 attachment를 추가한다. source 변경 뒤 #623전체·cross14·#463나머지6case·#462mock4/actual1을 같은 동결로 재검증한다. package/lock은PATCH0.130.1이며 기존version 검사7case와 stage-filter-context도 선정한다. 진단 반복은 고유case 수에 합산하지 않는다.
+
+## Issue #785 F785-008 — 실패 Main CI와 교정 PR 인수 테스트 (2026-10-24)
+
+- 원본 Issue #785 merge SHA 96d97d12의 Main CI #3219.1은 병합 API commit_message에 다중 행을 전달한 Manager 실행 오류로 `verify-ci-run-trace.py` 즉시 FAIL, 실제 Quality/E2E8/Docker/GHCR 미실행. APP/DB 원본 장애가 아님. 원본 CI 성공 소급·정책 완화·history force-update 금지.
+- 원래 #529 Resource Excel HTTP/SQLite/OOXML 테스트를 **EXTEND**하여 Resource Report `Actual report context` 의 canonical JSON payload를 셀 XML 디코딩한 후 `ResourceDrillSourceContext`와 대조한다. 옛 `Actual target context` 부재 및 report `sourceProjection.kind`를 함께 검증한다. 기존 동일 7시트·Assignment·Plan·예산·formula 검증과 브라우저 current/exact/project는 KEEP_UNIQUE.
+- 후속 PR은 같은 Issue #785·version0.131.0·non-docs·main 직계 first-parent. 새 PR Full Quality/E2E8/Docker + Trusted QA·Owner HIGH 수용 → 정확 한 줄 한글 merge 제목/빈 본문 → 새 Main SUCCESS/ci-SHA digest/SBOM·release v0.131.0/Generic Finalizer 순서. 다른 Issue 개입이나 docs-only 변경은 auto inheritance BLOCKED, 기존 FAIL SHA 소급 통과 금지.
