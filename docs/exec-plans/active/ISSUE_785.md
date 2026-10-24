@@ -4,10 +4,10 @@
 
 - Primary Issue: https://github.com/planner77/masterGantt/issues/785
 - initial baseline main: `427d22245fb8e11254b2424ea5147ccbd5766979`, version `0.130.1`.
-- current validation base: `4ce403a1e410ca599a780446f39513e1f1158326`, version `0.130.2` (#556/PR #786 및 #608/PR #788 통합). 이전 base 검증과 구분한다.
+- current validation base for #793: `96d97d12d0502bdc725daedae7dfd9be0090c4d3`, version `0.131.0` (앞선 #787의 실패 Main merge). 초기 #785 P1/P2 검증 base `4ce403a1e410ca599a780446f39513e1f1158326`와 구분한다.
 - branch: `feat/issue-785-retire-logistics-target`; 작업 경로 `/home/planner/Dev/masterGantt-785`.
 - 승인: 2026-10-23 사용자 요청의 분석·설계·구현·문서 동기화·미해결 리뷰/충돌 처리·실패 원장·PR CI 시작까지. Issue의 최초 등록 한정 문구는 이번 명시 요청으로 이 범위에서 대체된다. CI 완료 모니터링·병합·main/GHCR·tag/release·Issue 종료·branch 정리는 제외한다.
-- phase: PR_READY(F785-006). 응답 오귀속 보완·97/97 PASS·main4ce 충돌0 통합·입력한정재사용 및 freshPython37/Unit11·정적PASS·자동fastBLOCKED 보존·독립사전PRE_QA PASS/미해결0. 최종remotelease/리뷰조회와일괄게시후새CI등록/시작만확인한다.
+- phase: PR_REWORK(F785-009). 기존 #787 원본과 F785-001~008 이력 보존, #793 Full #3220.1의 문서 Gate 실패와 P1 review의 Resource Report worksheet 오선택 교정. 새 수정 HEAD의 Required3/Trusted는 NOT TESTED, Main/GHCR/Finalizer 대기.
 - risk_level: HIGH; qa_required: true; qa_method: OWNER_MANAGED. 레거시 관계·공유 집계·외부 API/교환·전 화면 영향. 실제 별도 전문 Agent 구현과 읽기 전용 사전 설계를 사용한다. 독립 인간 QA/Owner 승인은 NOT TESTED이며 Agent 검토와 구별한다.
 - manager_decision: NOT TESTED; MERGE_READY: BLOCKED. 정확 Head Required Quality/E2E8/Docker·Trusted QA·리뷰 스레드 0·Owner HIGH 위험 수용은 후속이다.
 - version_decision: MINOR `0.131.0` (공개 기능·버전 경계 전환); release_required: true; release_authorized: false. 정식 게시 승인이 아니다.
@@ -116,9 +116,9 @@ Pre-PR fast 실행은 sourceStable=true이나 자동 매핑 UNKNOWN28 때문에 
 - `docs/SECURITY.md`: UPDATED
 - `docs/ISSUE_27_PROJECT_COPY.md`: UPDATED
 - `docs/JSON_IMPORT.md`: UPDATED
-- `docs/IMPORT_SCHEMA.md`: UPDATED
-- `docs/IMPORT_EXPORT.md`: UPDATED
-- `docs/EXCEL_EXPORT.md`: UPDATED
+- `docs/IMPORT_SCHEMA.md`: N/A(후속 PR793은 JSON 및 Excel 가져오기 스키마 무변경이고 리소스 보고서 단위 테스트만 교정)
+- `docs/IMPORT_EXPORT.md`: N/A(후속 PR793은 교환 출입력 포맷과 서버 writer 로직에 변화가 없고 Excel Unit 검증 접근만 교정)
+- `docs/EXCEL_EXPORT.md`: N/A(후속 PR793은 Excel 작성기와 공개 metadata 행 계약 불변이고 기존 테스트의 worksheet 조회 위치만 교정)
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/WBS_CROSS_FEATURE_ACCEPTANCE.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
@@ -432,3 +432,18 @@ TEST_LIFECYCLE_REVIEW는기존6spec의전체시나리오EXTEND·정확736/누적
 - **AC_TEST_COVERAGE / TEST_LIFECYCLE_REVIEW:** 기존 #529 E2E 및 Unit을 사전 검색해 EXTEND, 이전 #719/#734/#461/#785 F006 및 HTTP/SQLite/Report detail/capacity/Plan/Original source provenance/Export security KEEP_UNIQUE. AC2/5/7/8/9/10. docs/EXCEL_EXPORT.md 현행 키와 원본 출처 분리 문서화, 단일 실패 원장 갱신. 새 중복 E2E·skip·timeout/Retry/Required 강도 완화0.
 - **검증/인계:** 실제 로컬 E2E·Unit/npm·Docker는 GitHub DNS·checkout 부재로 NOT TESTED; 기존97 Chromium PASS 모집단은 #529를 포함하지 않음. 새 Head Full Quality/E2E8/Docker, default-main Trusted QA, Owner HIGH 승인 별도. 리뷰·base 충돌 재확인 후 기존 PR synchronize Full CI 시작만 하고 결과 모니터링/병합/Main/GHCR/Finalizer/Issue 종료 없음.
 - **승인 상태:** HIGH/OWNER_MANAGED, manager_decision=NOT TESTED, MERGE_READY=BLOCKED, release_required=true/release_authorized=false. AC4 레거시 안전 편집 미구현·운영 DB/외부 소비자/백업 미검증 유지.
+
+## F785-008 — Main CI trace 제목 실패 / 동일 Issue 후속 교정 (2026-10-24 KST)
+
+- PR #787은 원본 Full #3217.1/Trusted PASS·Owner 승인 후 merge96d97d12로 병합됐으나 Main #3219.1 changes verify-ci-run-trace에서 Manager의 **비어 있지 않은 multiline commit_message**로 FAIL. 기존 immutable Main 실패는 보존하며 GHCR/tag/이슈 종료 없음. `scripts/main_ci_run_name.py`의 commit_title exact 한글30자 이하 + `commit_message:''` preflight는 정책으로서 불변.
+- 동일 Issue/version0.131.0 non-docs corrective PR로 회복하는 기존 #729/Generic Finalizer same-Issue supersession 경로 적용. 다른 이슈가 main first-parent에 개입하면 자동승계 BLOCKED. package/lock/Gantt/제품/api/업무 계약 변경 없음.
+- `tests/server/projects/resource-excel-export.test.ts`의 실제 SQLite HTTP OOXML 기존 #529 테스트를 EXTEND하여 Actual report context JSON의 exact canonical values와 stale target axis가 없음을 검증한다. F785-007 보완의 Unit 양·음성 행 이름뿐 아니라 JSON round-trip 근거를 강화. `docs/TEST_PLAN.md`의 기존 전체 1MB blob을 보존하고 TEST_LIFECYCLE_REVIEW/AC2/5/7/8/9/10을 additive 반영한다. 원래 E2E #529·Resource/Plan/Task·보안·퇴역 410/원본 ID 등은 KEEP_UNIQUE, duplicate E2E spec0.
+- 후속 PR Full8/Required3·default-main Trusted QA·Owner HIGH ACCEPT 전 병합 금지. CI 모니터링 사용자 요청으로 생략. 다음 merge 요청은 `main_ci_run_name.py --as-merge-payload --expected-head-sha`가 산출한 빈 본문/정확 한 줄 제목의 lease-bound Merge API만 허용; Main 완료 후 GHCR exact digest/Release/Finalizer/Issue 종료.
+
+## F785-009 — PR #793 Full #3220.1 QA 문서 Gate + 미해결 P1 리뷰 보완 (2026-10-24 KST)
+
+- [원본 Full #3220.1 · Run40057374955](https://github.com/planner77/masterGantt/actions/runs/40057374955), attempt1, `pull_request`, workflow `.github/workflows/ci.yml`, Head `ee05a24f1e988e104a332d92a20469f3ce3189ee`, base/main `96d97d12d0502bdc725daedae7dfd9be0090c4d3`, test merge `59d839cb003d2dd377bf803a7fc5bfd567b80a21` (동일 tree, 부모 base/head). First direct failure는 QA Preflight Job120763274459의 DOCUMENTATION_SYNC: EXCEL_EXPORT에 PR 변경 대비 UPDATED 잘못 지정. Fast Gate Job120763319388 FAIL, Quality/E2E/Docker aggregate 파생FAIL, 실제 Vitest/E2E8/Docker implementation SKIPPED·NOT TESTED. 이전 #3219 main trace 실패/릴리스 미발행 부채와 다른 원인.
+- [P1 review](https://github.com/planner77/masterGantt/pull/793#discussion_r4365798485)에서 `sheet1.xml`은 Gantt 시트이며 Resource Report가 아니라는 별도 테스트 TEST_CONTRACT 결함 확인. CI에서 실제 Unit을 실행하지 않았으므로 리뷰 기반 사전 발견으로 기록하며 가상의 Unit FAIL로 집계하지 않는다. 기존 성공한 인접 테스트가 사용하는 `xl/workbook.xml`의 sheetNames/인덱스를 재사용하고 실제 Resource Report XML을 파싱해 원래 JSON canonical context/legacy 키 부재·동일 숫자/출처 단언을 보존한다. 새 테스트 삭제/skip/timeout/retry/CI 완화 없음.
+- DOCUMENTATION_SYNC 구조 교정: `docs/TEST_PLAN.md`: UPDATED(이 복구 PR의 1MB 원본 보존·F008 영향표 갱신). `docs/EXCEL_EXPORT.md`: N/A(현행 공개 Resource Report 문서와 writer/메타데이터 계약 불변, XLSX 시험 시트 찾아가기만 수정); `docs/IMPORT_EXPORT.md`: N/A(교환 writer/format 불변); `docs/IMPORT_SCHEMA.md`: N/A(가져오기 schema 불변). 단일 H2 `## DOCUMENTATION_SYNC`에 정확 파일별 변경 대비 판정, AC1~10는 기존 `## AC_TEST_COVERAGE`의 유효한 현재 경계로 보존. 기존 #787에서 해당 문서들을 UPDATED했다는 역사적 사실 자체는 유지한다.
+- TEST_LIFECYCLE_REVIEW: 기존 `tests/server/projects/resource-excel-export.test.ts` 실제 SQLite/HTTP/OOXML #529 unit **EXTEND**; 기존 `tests/e2e/resource-excel-export-ui.spec.ts` 세 Workbook, 원본 #719/#734/#461, 보안·Zod/역사 capture·Task/Resource/Plan 회귀 **KEEP_UNIQUE**. AC2/5/7/8/9/10 연계. Test selection/새 Full Quality/Chromium8/Docker·default-main Trusted는 원격 결과 전 NOT TESTED. 이 연결된 GitHub-only 세션에서 실제 npm/Vitest/Chromium/Docker 미실행, 저장소 정적 parse 및 QA docs_gate의 파일별 정책 검사만 검증.
+- 리뷰는 교정 커밋 뒤 근거 답변·P1 스레드 resolve, 최신 main/head mergeability·Git tree 검사 후 새 PR Full CI synchronize 시작까지만. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `MERGE_READY=BLOCKED`, release_required=true(연속 동일 Issue 실패 원장으로 version0.131.0 승계), release_authorized=true(기존 승인 marker #6379091454, 정확 Main/Release 증거 선행). 원본 main #3219.1/후속 #792, 임시 GHCR·tag 미발행 상태 보존. 실패 및 승인 단계 완료 전 PR 병합·Main/Release/GHCR/Finalizer/Issue 종료는 수행하지 않는다.
