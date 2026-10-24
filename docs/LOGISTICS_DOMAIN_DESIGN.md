@@ -1,3 +1,9 @@
+## Issue #792 — 기존 관계 적용 범위 안전 편집 (한정)
+
+#785 공개 Target CRUD/Target binding writer의 410은 유지한다. 신규 직접 연결이 권위 원본이지만, 보존된 `task_target_bindings`의 **Summary 직접 관계 한 건**은 별도 source-aware editor로 `self↔subtree` 범위만 안전하게 수정할 수 있다. 원본 binding UUID·target/Task FK·member UUID·subset coverage·whole 동적 해석·공정/WorkArea 원본은 불변이며 기존 Equipment/System/직접 관계·WBS/Resource/Assignment를 자동 추가하거나 분배하지 않는다.
+
+별도 GET source fingerprint → origin/session/If-Match가 필요한 POST preview → 영향 Task/실물 출처를 확인하는 PATCH apply의 IMMEDIATE transaction(원본 FK/동적 해석 재확인·single-row scope UPDATE·Project revision+1)을 사용한다. 조상에게서 상속된 관계를 하위 Task에서 직접 바꾸거나 legacy read 값을 직접 링크로 flatten하지 않는다. 구성원/coverage/Target 자체 수정과 운영 DB 이관 완료는 **미지원/NOT TESTED**, 실제 offhost backup/restore·consumer inventory·Owner 승인 전 자동 변환·DROP 금지. [API](API.md#issue-792--레거시-summary-직접-관계-적용-범위-한정-편집), [Packet](exec-plans/active/ISSUE_792.md).
+
 ## Issue #785 — 현행 실물 모델과 내부 호환 원본
 
 Logistics Target의 사용자 엔터티/보조 편집 UI 정책은 폐기한다. 신규 업무의 원본은 Project 공정·WorkArea·Equipment/System·Task/Summary 직접 관계다. 공정0..N·구역0..N·공통/공유 System·설비 다중 구역·T0/A/R·같은 WBS 원시 ID를 유지한다. 조회용 그룹을 영속 엔터티나 WBS로 만들지 않는다.
