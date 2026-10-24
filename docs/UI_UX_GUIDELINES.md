@@ -193,6 +193,36 @@ selected는 `aria-selected` 등 의미와 색을 함께 사용한다. readonly/o
 - 390/768/1024/1440/1920px의 normal/readonly/edit/loading/empty/error/stale/권한 거부/파괴적 명령, 긴 KO/EN, mouse/keyboard/touch, 외부 스크롤, focus/ARIA/동일 탭 작업 상태 복원을 확인한다. E2E/browser/원격 PR CI 등 수행하지 못한 증거는 `NOT TESTED`로 분리한다.
 - 유사 도움말 primitive가 이미 있으면 재사용하고 SVAR native Gantt action이나 API/DB·scheduler 계약은 수정하지 않는다. 실제 제품 적용 범위·예외는 [Issue #715](https://github.com/planner77/masterGantt/issues/715)와 UI 검증 결과에서 관리한다.
 
+## 화면별 웹 매뉴얼 진입과 변경 동기화 (Issue #720)
+
+상위 제품 원칙은 [DESIGN.md · 전역 화면별 웹 매뉴얼](../DESIGN.md#전역-화면별-웹-매뉴얼-접근-및-동기화-issue-720)이다. 이 규정은 전역 헤더의 **화면별 웹 매뉴얼**을 다룬다. 위 [#715 상황형 도움말](#설명도움말피드백-노출-기준-issue-715)은 현재 필드 옆의 짧은 힌트·필수 경고이며 **서로 대체하지 않는다**.
+
+**진입 및 상태 보존**
+
+- 전역 헤더 `#workspace-notification-slot`의 벨 옆에 명시적으로 이름을 붙인 매뉴얼 진입점을 둔다. 이동은 button을 흉내 낸 장식 요소가 아니라 **실제 링크**를 기본으로 하며, `aria-label`/accessible name에 '현재 화면 매뉴얼' 및 가능한 경우 화면 이름을 포함한다. 단순 `title`/hover-only에 의존하지 않는다. bell badge·Toast·포커스·hit area와 겹치지 않게 한다.
+- 같은 앱 origin의 `/manual` 목차와 `/manual/<screen-slug>` 화면별 웹 페이지를 제공하며 새 탭으로 열어 원 화면의 편집 초안·modal/탭·필터·scroll·Gantt instance/selection·URL 문맥을 유지한다. 링크를 쓰면 새 탭 차단 시 브라우저 기본 탐색도 가능해야 한다. 외부 서비스/로그인이 필요하지 않아야 하고 `target=_blank`에는 `rel=noopener noreferrer`를 적용한다. 민감한 project publicId, session, token, 잘못된 query/hash를 매뉴얼 URL에 그대로 전달하지 않는다.
+- URL pathname만으로 화면을 구분할 수 없는 Project Workspace의 탭·내부 보기와 Task Editor 등은 중앙화된 안정적인 `screenKey`/기능 `anchor`와 UI 상태를 사용한다. 화면 명칭 변경 후에도 링크 안정성을 검토한다. 매핑할 매뉴얼이 없거나 anchor가 폐기되면 존재하지 않는 기능에 임의 링크하지 않고 `/manual` 목차 또는 유효한 상위 안내로 복구한다.
+- Project Gantt 브라우저 fullscreen에서는 공통 site header가 숨겨질 수 있으므로, 기존 별도 알림 버튼과 충돌하지 않고 **매뉴얼 접근 경로를 유지할지**, 유지한다면 진입 아이콘의 위치·focus/scroll·fullscreen 종료·새 탭 동작을 명시하고 실제 브라우저 검증한다. 가로 영역이 부족한 390/768px 및 long KO/EN에서는 의미를 잃지 않는 hit-area와 keyboard focus-visible을 보존한다.
+
+**매뉴얼 작성 및 변경 추적**
+
+| 경우 | 필수 확인/갱신 사항 |
+| --- | --- |
+| 새 화면·탭 생성 | screenKey/URL/매뉴얼 목차 등록, 화면 목적·구성·진입 방법·주요 기능/정상 흐름·권한·관련 링크·anchor 새 페이지 작성 |
+| 기존 화면 이름·배치·탭 이동 | 정확한 현재 메뉴·화면 캡션·목차·진입 링크·기능 anchor/기존 deep link 이관 검토 |
+| 메뉴/버튼/필터/필드/상태·지표/권한/오류 동작 추가·변경 | 해당 페이지의 명칭, 조작 순서, 허용 범위, 데이터·집계 의미, 정상/readonly/pending/error·복구, 예시/이미지·링크 업데이트 |
+| 화면·기능 삭제 | 페이지 또는 관련 절·anchor, 목차/교차 링크, 안내·스크린샷의 오래된 기능 표기를 제거하거나 현재 유효한 후속 경로로 이관 |
+| 실제 사용자 기능/화면 무변경 | 문서 영향 분석 후 `N/A`와 확인한 screenKey/기능 및 근거 기록; 변경 내용을 보고 자동으로 N/A 간주 금지 |
+
+- 매뉴얼의 사용자가 읽는 원본은 앱과 **같은 Git commit의 Markdown 파일**(권장 `docs/user-manual/**`)로 버전 관리한다. 실제 문구는 현재 배포 기능, 이름 중심 표기(#717), Milestone Ready/Completed, Resource M/D·M/M·Capacity 및 Target 공유/비가산 등 실제 도메인 계약과 일치해야 한다. 앱 사용자 매뉴얼과 내부 개발·운영 문서의 소유권을 분리하되 같은 내용을 상충되게 중복 작성하지 않는다. HTML/Markdown 렌더링은 script/unsafe URL을 거부하고 내부망에서 작동해야 한다.
+- 각 화면 매뉴얼 최소 항목: **목적과 접근 위치 / 화면 영역·탭·컨트롤 / 주요 업무 절차 / 편집 가능 여부와 저장·취소 / 주요 상태·오류·대처 / 관련 화면·용어**. 화면에 없는 기능을 미래 기능처럼 사용자 안내에 섞지 않는다. 검색·목차·anchor 및 올바른 404/fallback을 제공한다.
+- Work Packet와 구현 PR의 `DOCUMENTATION_SYNC`에 **`변경 화면·기능 | screenKey/anchor | 매뉴얼 Markdown/링크 | 변경/삭제/N/A 근거 | 단위·E2E/링크 검사`** 표를 남긴다. **동일 기능 PR에서 실제 매뉴얼 페이지 갱신** 또는 구체적인 무영향 `N/A`가 없으면 Gate를 PASS로 판정하지 않는다. 문서만 수정한 PR의 CI 성공을 실제 페이지 구현 PASS로 오인하지 않는다. [Lifecycle Gate](ISSUE_LIFECYCLE.md#94-documentation_sync-gate)와 `AGENTS.md` 참조.
+
+**검증 및 도입 전환**
+
+- 매뉴얼 기반 구축을 완료한 화면은 링크/anchor 존재, 중복/미사용 screenKey·끊어진 내부 링크, 선택한 탭과 실제 문서 제목·기능의 일치, 삭제된 메뉴 미노출을 정적 검사+Reviewer 의미 검토로 확인한다. Chromium E2E에서 홈/관리자/Project 각 대표 탭, 새 탭 열림·원본 문맥 불변·조회 mutation 0, 벨·Toast·fullscreen, 390/768/1024/1440/1920px, keyboard/ARIA/focus, 404 fallback을 검증한다. 실행하지 않은 경우 `NOT TESTED`로 표기한다.
+- **#720 구현 이전의 임시 상태:** 앱에 `/manual`와 `docs/user-manual/**`가 아직 없는 동안에는 존재하지 않는 페이지 작성 완료를 주장하거나 모든 다른 UI PR을 막는 영구 거짓 N/A를 사용하지 않는다. 각 UI PR은 관련 화면/기능 영향·예정 screenKey/매뉴얼 변경을 Work Packet/PR에 추적하고 **'매뉴얼 기반 미구현(#720), 후속 동기화 필요'**로 명시한다. #720의 최초 화면별 매뉴얼 baseline이 구현·검증·병합되면 이 임시 예외는 종료되고, 이후 해당 화면의 변경은 위 **동일 PR 동기화** 원칙을 따른다.
+
 ## SVAR 데모와 API 확인
 
 UI 기능 설계 전에 유사한 공식 데모가 있는지 확인하고 참조 URL, 확인일, 적용할 interaction, 차이, 사용하는 Core API/설치 버전을 설계 기록에 남긴다.
