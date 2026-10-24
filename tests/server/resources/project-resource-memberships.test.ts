@@ -12,7 +12,6 @@ import { openDatabase } from "../../../src/server/db/core";
 import { runMigrations } from "../../../src/server/db/migrations";
 import { ResourceCatalogRepository } from "../../../src/server/repositories/resource-catalog-repository-core";
 import { LogisticsRepository } from "../../../src/server/repositories/logistics-repository-core";
-import { ProjectRepository } from "../../../src/server/repositories/project-repository-core";
 import { insertHistoricalPublicProject } from "../../fixtures/legacy-project";
 import { ScheduleRepository } from "../../../src/server/repositories/schedule-repository-core";
 import { TaskFieldProjectService } from "../../../src/server/projects/task-field-project-service";

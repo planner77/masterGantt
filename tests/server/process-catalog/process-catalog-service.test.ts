@@ -11,7 +11,7 @@ import { LogisticsRepository } from "../../../src/server/repositories/logistics-
 import { ProcessCatalogService } from "../../../src/server/process-catalog/process-catalog-service-core";
 import { TaskFieldProjectService } from "../../../src/server/projects/task-field-project-service";
 import { ProcessCatalogRepository } from "../../../src/server/repositories/process-catalog-repository-core";
-import { EditSessionRepository, ProjectRepository } from "../../../src/server/repositories/project-repository-core";
+import { EditSessionRepository } from "../../../src/server/repositories/project-repository-core";
 import { historicalEditAuthorization, insertHistoricalPublicProject } from "../../fixtures/legacy-project";
 import { ProjectMasterRepository } from "../../../src/server/repositories/project-master-repository-core";
 import { createSessionToken, sessionExpiry } from "../../../src/server/security/session-core";
