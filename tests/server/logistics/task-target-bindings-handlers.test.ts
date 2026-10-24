@@ -1,3 +1,5 @@
+import { LegacyBindingScopeService } from "../../../src/server/logistics/legacy-binding-scope-service-core";
+import { handleGetLegacyBindingSources, handleLegacyBindingScopeMutation } from "../../../src/server/logistics/legacy-binding-scope-handlers-core";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import type Database from "better-sqlite3";
@@ -223,5 +225,103 @@ describe("Issue #617 binding HTTP authorization and atomicity (AC4/AC6/AC8)", ()
     value = (await getUsage().json()).data;
     expect(value.referencedByTaskCount).toBeNull();
     expect(value.referencedBySummaryCount).toBeNull();
+  });
+});
+
+/** #792 extends the actual SQLite/HTTP archive tests instead of creating a duplicate fixture. */
+describe("Issue #792 protected legacy binding scope writer", () => {
+  function legacyRequest(f: Fixture, taskId: string, method: "GET" | "POST" | "PATCH",
+    body?: unknown, overrides: Record<string,string|null> = {}, query = "") {
+    const seed = request(f, "PUT", {}, overrides);
+    const headers = new Headers(seed.headers);
+    const url = seed.url.replace(f.task.publicId, taskId).replace("/target-bindings", "/legacy-binding-sources") + query;
+    return new Request(url, { method, headers, ...(method === "GET" ? {} : {
+      body: typeof body === "string" ? body : JSON.stringify(body),
+    }) });
+  }
+  function deps(f: Fixture) {
+    return { ...f.config, service: new LegacyBindingScopeService(f.db, () => now) };
+  }
+  it.each(["whole", "subset"] as const)("previews then edits %s original scope in place, preserving identity, dynamic selection and member rows", async selection => {
+    const f = setup();
+    const memberId = f.target.members[0].id;
+    f.bindingService.replace(f.auth, revision(f), f.summary.publicId, { bindings: [{
+      targetId:f.target.id,scope:"self",selection,
+      memberIds:selection === "whole" ? [] : [memberId],
+      ...(selection === "whole" ? {} : {coverageByMember:[{memberId,coverage:null}]}),
+    }] });
+    const d = deps(f), oldRevision = revision(f), oldSnapshot = snapshot(f);
+    const get = handleGetLegacyBindingSources(legacyRequest(f,f.summary.publicId,"GET"),f.project.publicId,f.summary.publicId,d);
+    expect(get.status).toBe(200);
+    const original = (await get.json()).data.sourceBindings[0];
+    expect(original).toMatchObject({scope:"self",selection,canEditScope:true,memberCount:1});
+    expect(snapshot(f)).toEqual(oldSnapshot);
+    const patch = {sourceId:original.sourceId,scope:"subtree",sourceFingerprint:original.sourceFingerprint};
+    const preview = await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,"POST",patch),
+      f.project.publicId,f.summary.publicId,d,"preview");
+    expect(preview.status).toBe(200);
+    const proposal=(await preview.json()).data;
+    expect(proposal.affectedTaskIds).toContain(f.task.publicId);
+    expect(proposal.memberCount).toBe(1);
+    expect(snapshot(f)).toEqual(oldSnapshot);
+    const wrong = await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,"PATCH",
+      {...patch,confirmImpact:true,impactToken:"0".repeat(64)}),f.project.publicId,f.summary.publicId,d,"apply");
+    expect(wrong.status).toBe(409);
+    expect(snapshot(f)).toEqual(oldSnapshot);
+    const applied = await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,"PATCH",
+      {...patch,confirmImpact:true,impactToken:proposal.impactToken}),f.project.publicId,f.summary.publicId,d,"apply");
+    expect(applied.status).toBe(200);
+    expect(applied.headers.get("ETag")).toBe(`"${oldRevision+1}"`);
+    const after=snapshot(f);
+    expect(after.revision).toBe(oldRevision+1);
+    expect(after.members).toEqual(oldSnapshot.members);
+    expect(after.bindings).toEqual(oldSnapshot.bindings.map((binding: Record<string,unknown>) =>
+      binding.public_id === original.sourceId ? {...binding,scope:"subtree"} : binding));
+    expect(f.bindingService.get(f.project.publicId,f.task.publicId).effective.inheritedBindings[0].id)
+      .toBe(original.sourceId);
+    expect(f.db.pragma("foreign_key_check")).toEqual([]);
+  });
+
+  it("rejects unconfirmed, stale, foreign, invalid and unauthorized changes without touching any row", async () => {
+    const f=setup(),d=deps(f);
+    f.bindingService.replace(f.auth,revision(f),f.summary.publicId,whole(f,"self"));
+    const source=(await handleGetLegacyBindingSources(legacyRequest(f,f.summary.publicId,"GET"),
+      f.project.publicId,f.summary.publicId,d).json()).data.sourceBindings[0];
+    const patch={sourceId:source.sourceId,scope:"subtree",sourceFingerprint:source.sourceFingerprint};
+    const preview=(await (await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,"POST",patch),
+      f.project.publicId,f.summary.publicId,d,"preview")).json()).data;
+    const baseline=snapshot(f);
+    const tries = [
+      {method:"PATCH",body:patch,headers:{},status:422},
+      {method:"PATCH",body:{...patch,confirmImpact:true,impactToken:"f".repeat(64)},headers:{},status:409},
+      {method:"PATCH",body:{...patch,confirmImpact:true,impactToken:preview.impactToken},headers:{Origin:null},status:403},
+      {method:"PATCH",body:{...patch,confirmImpact:true,impactToken:preview.impactToken},headers:{Cookie:null},status:401},
+      {method:"PATCH",body:{...patch,confirmImpact:true,impactToken:preview.impactToken},headers:{"If-Match":null},status:428},
+      {method:"PATCH",body:{...patch,confirmImpact:true,impactToken:preview.impactToken},headers:{"If-Match":'"1"'},status:412},
+      {method:"POST",body:{...patch,ignored:true},headers:{},status:422},
+      {method:"POST",body:{...patch,sourceFingerprint:"a".repeat(64)},headers:{},status:409},
+      {method:"POST",body:{...patch,sourceId:randomUUID()},headers:{},status:404},
+      {method:"POST",body:{...patch,scope:"changed"},headers:{},status:422},
+    ] as const;
+    for (const entry of tries) {
+      const result=await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,entry.method,entry.body,
+        entry.headers),f.project.publicId,f.summary.publicId,d,entry.method === "POST" ? "preview":"apply");
+      expect(result.status).toBe(entry.status);
+      expect(snapshot(f)).toEqual(baseline);
+    }
+    expect(handleGetLegacyBindingSources(legacyRequest(f,f.summary.publicId,"GET",undefined,{}, "?bad=1"),
+      f.project.publicId,f.summary.publicId,d).status).toBe(400);
+    expect(handleGetLegacyBindingSources(legacyRequest(f,f.summary.publicId,"GET"),
+      randomUUID(),f.summary.publicId,d).status).toBe(404);
+    expect(handleGetLegacyBindingSources(legacyRequest(f,randomUUID(),"GET"),
+      f.project.publicId,randomUUID(),d).status).toBe(404);
+    const childSource=(await handleGetLegacyBindingSources(legacyRequest(f,f.task.publicId,"GET"),
+      f.project.publicId,f.task.publicId,d).json()).data.sourceBindings;
+    expect(childSource).toEqual([]); // inherited sources are never rewritten as direct child rows
+    f.db.prepare("UPDATE edit_sessions SET revoked_at=? WHERE id=?").run(stamp,f.sessionId);
+    const revoked=await handleLegacyBindingScopeMutation(legacyRequest(f,f.summary.publicId,"PATCH",
+      {...patch,confirmImpact:true,impactToken:preview.impactToken}),f.project.publicId,f.summary.publicId,d,"apply");
+    expect(revoked.status).toBe(401);
+    expect(snapshot(f)).toEqual(baseline);
   });
 });
