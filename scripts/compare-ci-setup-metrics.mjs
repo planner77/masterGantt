@@ -15,14 +15,14 @@ function change(before, after) {
   return Number.isFinite(before) && Number.isFinite(after) ? Math.round(after - before) : null;
 }
 function indexMetrics(metrics, label) {
-  if (!Array.isArray(metrics)) throw new Error(`${label}.metrics must be an array`);
+  if (!Array.isArray(metrics)) throw new Error(`${label}.metrics는 배열이어야 합니다`);
   const result = new Map();
   for (const metric of metrics) {
     if (!metric || [metric.workflow, metric.eventName, metric.job, metric.metric].some((value) => typeof value !== "string" || !value)) {
-      throw new Error(`${label}.metrics contains an invalid workload key`);
+      throw new Error(`${label}.metrics에 유효하지 않은 workflow/event/job/metric 키가 있습니다`);
     }
     const metricKey = key(metric);
-    if (result.has(metricKey)) throw new Error(`${label}.metrics contains duplicate workload key: ${metricKey}`);
+    if (result.has(metricKey)) throw new Error(`${label}.metrics에 중복된 workload 키가 있습니다: ${metricKey}`);
     result.set(metricKey, metric);
   }
   return result;
@@ -50,17 +50,17 @@ const scopeValues = Object.values(scope);
 const focused = scopeValues.some(Boolean);
 
 if (!baselinePath || !currentPath) {
-  throw new Error("Usage: node scripts/compare-ci-setup-metrics.mjs --baseline BASE.json --current CURRENT.json [--scope-workflow PATH --scope-event EVENT --scope-metric METRIC --before-job JOB --after-job JOB --rename-evidence URL]");
+  throw new Error("사용법: node scripts/compare-ci-setup-metrics.mjs --baseline BASE.json --current CURRENT.json [--scope-workflow PATH --scope-event EVENT --scope-metric METRIC --before-job JOB --after-job JOB --rename-evidence URL]");
 }
-if (!Number.isFinite(minImprovementPercent) || minImprovementPercent < 0) throw new Error("--min-improvement-percent must be >= 0");
-if (!Number.isFinite(maxRunnerIncreasePercent)) throw new Error("--max-runner-increase-percent must be a number");
-if (!Number.isInteger(minSamples) || minSamples < 10) throw new Error("--min-samples must be an integer >= 10");
-if (focused && !scopeValues.every(Boolean)) throw new Error("Focused comparison requires all five scope flags");
+if (!Number.isFinite(minImprovementPercent) || minImprovementPercent < 0) throw new Error("--min-improvement-percent는 0 이상이어야 합니다");
+if (!Number.isFinite(maxRunnerIncreasePercent)) throw new Error("--max-runner-increase-percent는 유효한 숫자여야 합니다");
+if (!Number.isInteger(minSamples) || minSamples < 10) throw new Error("--min-samples는 10 이상의 정수여야 합니다");
+if (focused && !scopeValues.every(Boolean)) throw new Error("범위를 지정한 비교에는 --scope-workflow, --scope-event, --scope-metric, --before-job, --after-job 다섯 옵션이 모두 필요합니다");
 const renamedJob = focused && scope.beforeJob !== scope.afterJob;
 if (renamedJob && !/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/(?:pull\/\d+|commit\/[0-9a-f]{40})(?:[\w/#.-]*)?$/.test(renameEvidence)) {
-  throw new Error("A job rename requires --rename-evidence with a GitHub PR/commit URL (manual workload review remains required)");
+  throw new Error("Job 이름이 변경된 경우 --rename-evidence에 GitHub PR/commit URL이 필요합니다. 해당 URL은 workload 동등성 검토를 대신하지 않습니다");
 }
-if (renameEvidence && !renamedJob) throw new Error("--rename-evidence applies only to a focused changed-job comparison");
+if (renameEvidence && !renamedJob) throw new Error("--rename-evidence는 전후 Job 이름이 다른 범위 지정 비교에서만 사용할 수 있습니다");
 
 const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
 const current = JSON.parse(readFileSync(currentPath, "utf8"));

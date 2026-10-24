@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -341,5 +341,32 @@ describe("Issue #444 provenance-bound focused Docker after audit", () => {
     expect(() => execFileSync(process.execPath, [
       ...base, "--scope-workflow", ".github/workflows/ci.yml",
     ], { cwd: root, stdio: "pipe" })).toThrow();
+  });
+});
+
+
+describe("Issue #444: CI 진단 한글 오류 메시지 회귀", () => {
+  const base = ["scripts/compare-ci-setup-metrics.mjs", "--baseline", "not-found-before.json", "--current", "not-found-after.json"];
+  const scope = [
+    "--scope-workflow", ".github/workflows/ci.yml",
+    "--scope-event", "pull_request",
+    "--scope-metric", "docker-build-cache",
+    "--before-job", "docker_smoke",
+    "--after-job", "pr_docker_smoke",
+  ];
+  it("rejects incomplete scope, missing rename evidence and invalid sample sizes in Korean", () => {
+    const cases: { args: string[]; diagnostic: RegExp }[] = [
+      { args: ["--scope-workflow", ".github/workflows/ci.yml"], diagnostic: /다섯 옵션이 모두 필요합니다/ },
+      { args: scope, diagnostic: /Job 이름이 변경된 경우 --rename-evidence에 GitHub PR\/commit URL이 필요합니다/ },
+      { args: [...scope, "--rename-evidence", "https://github.com/planner77/masterGantt/pull/789", "--min-samples", "9"], diagnostic: /--min-samples는 10 이상의 정수여야 합니다/ },
+      { args: [...scope.slice(0, -1), "docker_smoke", "--rename-evidence", "https://github.com/planner77/masterGantt/pull/789"], diagnostic: /전후 Job 이름이 다른 범위 지정 비교/ },
+    ];
+    for (const fixture of cases) {
+      const result = spawnSync(process.execPath, [...base, ...fixture.args], {
+        cwd: root, encoding: "utf8",
+      });
+      expect(result.status).toBe(1);
+      expect(result.stderr).toMatch(fixture.diagnostic);
+    }
   });
 });

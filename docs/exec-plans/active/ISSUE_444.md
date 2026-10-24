@@ -104,29 +104,48 @@ Issue #444의 실제 cache 최적화 채택 Acceptance Criteria는 10-run baseli
 | 잔여 위험 | 기존 ready 요약은 Run 분리 데이터가 없고 CI 구성·제품 버전/runner 환경 변화가 통제되지 않음. Main cache write/publish 재사용과 cache-miss 런타임 실증 필요 |
 | 롤백 | focused 비교 확장, 테스트 및 이 문서만 원복. 운영 cache/required gates는 기존 상태 |
 
-## AC_TEST_COVERAGE (이번 범위)
 
-- AC1: 각 lane group 10 distinct 이상 readiness artifact/marker **PASS(기존 evidence)**.
-- AC2: Before/After median·p90·cache/runner 분포 및 artifact digest **RECORDED**; 수치 원장 문서 링크 참조.
-- AC3~AC4: PR candidate 수치상 threshold 충족, Main regression 관찰; workload 동등성/인과 검증 전 `HOLD / REVIEW_REQUIRED` (**미완료**).
-- AC5~AC7: 현행 `verify-ci-cache-contract.mjs`와 negative test 유지. cache miss/stale·Main writer publish reuse **실 CI 검증 전 NOT TESTED**.
-- AC8: 보안·캐시 책임·invalidation 및 재현 명령 문서 갱신; 원시 artifact secret 없음은 실제 원시 ZIP 감사 없이는 확언하지 않음.
-- AC9: 신규 exact PR head Required Quality/Chromium 8/8/Docker, Trusted QA·Owner Risk 승인: **NOT TESTED/NOT APPROVED** (PR CI 시작 이후 별도).
-- AC10: Merge/Main CI/GHCR/Generic Finalizer/#444 Issue close: **미실행** (사용자 지시 범위 밖).
+## AC_TEST_COVERAGE
+
+- AC1: PR/Main/Release의 successful Run 10개 이상 조건은 기존 trusted readiness Run의 관측값으로 확인한다.
+- AC2: baseline median/p90/cache-hit 수치는 두 readiness artifact의 링크와 digest로 재현 가능하게 기록한다.
+- AC3: PR Docker 전후 median/p90/runner minutes 비교와 별도 Job rename review 상태를 기록한다.
+- AC4: 기준 개선률을 초과해도 Main 비용 변동이 있어 최종 도입 판단은 보류한다.
+- AC5: cache miss 상태의 실제 Required Job 동작은 원격 실증 전 NOT TESTED로 유지한다.
+- AC6: cache stale 상태에서도 기존 Required Gate를 우회할 수 없도록 정적 검증 계약을 유지한다.
+- AC7: 캐시와 측정 artifact의 민감정보 금지 계약은 유지하고 실제 전체 자료 감사는 후속 검증한다.
+- AC8: npm, Next, Docker, Playwright cache의 책임과 무효화 방식을 기존 문서에 반영한다.
+- AC9: 이전 Full PR CI 실패를 보존하고 새 Head Quality/E2E8/Docker Required 결과는 새 Run 전 NOT TESTED다.
+- AC10: 병합 후 Main CI·GHCR 여부와 Issue 종료는 별도 승인 대상이며 이번 작업에서는 실행하지 않는다.
 
 ## DOCUMENTATION_SYNC
 
-- `AGENTS.md`: UPDATED — current Phase 2 evidence/alias 보호 원칙.
-- `docs/CI_CD.md`: UPDATED — focused 전후 비교와 최종 채택 보류 판정.
-- `docs/GITHUB_OPERATIONS.md`: UPDATED — 두 artifact/명령 운영 방식.
-- `docs/REMOTE_VALIDATION.md`: UPDATED — named job mapping, cache miss/Main 회귀 후속.
-- `docs/CI_CACHE_PHASE2_EVIDENCE_444.md`: CREATED — 출처/Run/값/결정 원장.
-- `docs/TEST_PLAN.md`: N/A(기존 Test Lifecycle 정책·시나리오는 변경하지 않고 기존 `ci-cache-phase2.test.ts`에 focused edge cases만 EXTEND).
-- `docs/QA_REVIEW_POLICY.md`, `docs/ISSUE_LIFECYCLE.md`: N/A(Owner-managed/Required3/PR CI/full8/Finalizer gate 불변).
-- `DESIGN.md`, `docs/API.md`, `docs/DB_SCHEMA.md`: N/A(제품 UI/API/DB 계약 변경 없음).
+- `AGENTS.md`: UPDATED
+- `docs/CI_CD.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/CI_CACHE_PHASE2_EVIDENCE_444.md`: UPDATED
+- `docs/ISSUE_444_FAILURE_ANALYSIS.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(기존 Owner 관리 QA 및 승인 기준과 보호 경계 유지)
+- `docs/TEST_PLAN.md`: N/A(기존 테스트 체계 유지 및 기존 Vitest 파일의 검증 항목 확장)
+- `docs/ISSUE_LIFECYCLE.md`: N/A(이슈 병합 승인 및 종료 처리 규칙 변경하지 않음)
+- `DESIGN.md`: N/A(사용자 화면과 기능 디자인 변경 사항이 전혀 없음)
+- `docs/API.md`: N/A(서버 API 계약 변경 없이 CI 측정 로직만 정리)
+- `docs/DB_SCHEMA.md`: N/A(테이블 및 마이그레이션과 저장 구조 변경 없음)
 
 ## PR/Release 범위
 
 - primary trace: `Refs #444`; 과거 #603/#450은 출처이지만 이번 PR의 Primary Issue가 아니다.
 - `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `release_required=false`, `release_authorized=false`; application version 변경 없음.
 - 구현 branch: `ci/issue-444-phase2-evidence-comparison`. 이번 요청은 새 PR **생성 및 PR CI 시작까지만**; CI 모니터링, 병합, Main/GHCR, Issue 종료 불포함.
+
+
+## F444-002 — PR #789 Full Run 40048923080.1 교정
+
+- 실패 Head `93835ad7145d7233b3c7bc1accb1875d53c096b0` / Base `4ce403a1e410ca599a780446f39513e1f1158326`, full CI Run [#3211.1](https://github.com/planner77/masterGantt/actions/runs/40048923080).
+- QA Preflight: PR metadata 3종의 독립 선언이 없어 실패하였고 Issue 원문의 10개 AC에 식별자가 누락되었다. QA Final도 동일 메타데이터를 요구한다.
+- Fast Gate와 Quality/E2E/Docker 집계 실패는 위 직접 실패의 파생 결과이며 실제 구현 테스트는 수행되지 않았다.
+- PR 리뷰 [P1](https://github.com/planner77/masterGantt/pull/789#discussion_r4365476882)은 신규 진단 오류 메시지를 한글로 수정하고 별도 부정 테스트를 추가해 대응한다.
+- 보호된 문서 검증기의 독립 AC 매핑과 파일별 `UPDATED` 또는 `N/A(reason)` 구문을 위와 같이 교정하였다.
+- 원인과 이전 PR #448의 실패·취소 원본은 [이슈별 누적 실패 원장](../../ISSUE_444_FAILURE_ANALYSIS.md)에 보존한다.
+- 로컬 Node 22 CLI 10개 및 구문 검사 PASS. 신규 Vitest와 정확 Head 공식 CI 결과는 NOT TESTED. 사용자 지시 범위는 새 PR CI 시작까지이다.
