@@ -1,0 +1,1 @@
+{"browser":{"browserName":"chromium","launchOptions":{"executablePath":"/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome"},"contextOptions":{"viewport":{"width":1440,"height":900},"locale":"ko-KR","timezoneId":"Asia/Seoul","deviceScaleFactor":1}},"timeouts":{"action":30000,"navigation":180000}}

@@ -1,3 +1,9 @@
+## Issue #797 — DESIGN 기준 전 화면 재감사 / PR CI 시작까지
+
+2026-10-24 main `8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24` / `0.132.0`에서 `docs/issue-797-ui-audit`로 감사 산출물·수동 관측 도구를 구현한다. [Work Packet](ISSUE_797.md), [최신 감사](../../UI_AUDIT_2026_10_24.md)에 전체 화면 소스·기존 이슈 상태·동일 fixture의 KPI+5관점 Chromium5폭 실측·KEEP/후속·테스트 중복 검토를 기록한다. 제품 UI/계산/API/DB 변경 없이 #798은 toolbar/filter/composer, #799는 summary/metric/state, #800은 지속 회귀 책임을 유지하며 #517/#720/#507을 중복 구현하지 않는다.
+
+HIGH/qa_required=true/qa_method=AGENT: 제품 변경0이지만 기본 브랜치 경로 분류기가 Milestone 증거 파일명에도 HIGH를 적용해 최초 LOW에서 상향했다. 별도 ui_ux 설계 감사·frontend 관측·qa_docs 독립 PRE_QA와 Manager 문서 통합을 분리한다. DESIGN Delta B로 DESIGN.md N/A. 버전 유지·release_required=false/release_authorized=false. 이번 종료점은 Ready PR의 정확 Head CI 시작 확인이며 모니터링·병합·Main/GHCR/Finalizer·종료는 범위 밖이다. 원격 quality/e2e/docker·최종 QA/Manager ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED.
+
 ## Issue #792 — 레거시 보존 원본 scope 안전 편집과 운영 이관 Gate (진행)
 
 2026-10-24 main `b45885812301d14b9f673841e9944b27b2642323`에서 `feat/issue-792-legacy-source-scope-safety` 작업. HIGH/OWNER_MANAGED/qa_required=true, 원본 #785/archive 410·direct 연결 보존, 새 API GET source→POST preview→PATCH 확인으로 **Summary 직접 기존 binding 한 건의 self/subtree만** 원자 수정. target/member/coverage/Source UUID·WorkArea·Copy/Template/Resource 산식/Task 상태 불변; 다른 원본 편집/이관 완료는 미지원. version 0.131.0 유지(정식 후속 릴리스 버전/승인 보류), release_required=true/release_authorized=false. [Work Packet](ISSUE_792.md)과 [실패/충돌 원장](../../ISSUE_792_FAILURE_ANALYSIS.md), [운영 Gate](../../TARGET_RESOURCE_OPERATIONS.md)를 따른다. 이번 Owner 요청 범위는 PR Full CI 시작까지만, 모니터링·merge/Main/GHCR/Finalizer/종료 제외. 실제 runtime·운영 DB/외부 소비자/DR 및 QA/Owner 승인 NOT TESTED.

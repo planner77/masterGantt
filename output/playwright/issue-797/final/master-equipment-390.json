@@ -1,0 +1,2796 @@
+{
+  "key": "master-equipment-390",
+  "expectedViewport": {
+    "width": 390,
+    "height": 900
+  },
+  "screenshotDimensions": {
+    "width": 390,
+    "height": 1069
+  },
+  "captureRunId": "representatives-2026-10-24T14-38-36.991Z",
+  "collectorHashAtStart": "2038ac9591667e51b0d264b6e9a847d224c71cc79efb7255b906d02b7dbff53b",
+  "capturedAt": "2026-10-24T14:39:05.430Z",
+  "result": "OBSERVATION",
+  "dashboardNormal": false,
+  "keyboardObserved": false,
+  "screenshot": "output/playwright/issue-797/final/master-equipment-390.png",
+  "viewportScreenshot": "output/playwright/issue-797/final/master-equipment-390-viewport.png",
+  "facts": {
+    "route": "/projects/084fd27c-7dad-48ad-85eb-3f8ac53b99e2",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "document": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "environment": {
+      "locale": "ko-KR",
+      "timezone": "Asia/Seoul",
+      "dpr": 1,
+      "rootFont": "16px",
+      "visualViewportScale": 1,
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "zoom": "default 100%; native125% NOT TESTED; no DPR zoom substitution"
+    },
+    "shell": {
+      "main": {
+        "x": 12,
+        "y": 57,
+        "right": 378,
+        "bottom": 901,
+        "width": 366,
+        "height": 844
+      },
+      "heading": {
+        "x": 12,
+        "y": 77.953125,
+        "right": 178,
+        "bottom": 100.046875,
+        "width": 166,
+        "height": 22.09375
+      },
+      "headerBottom": 57,
+      "auth": null
+    },
+    "controls": [
+      {
+        "tag": "SELECT",
+        "id": "",
+        "type": null,
+        "label": "프로젝트 상태 변경",
+        "rect": {
+          "x": 184,
+          "y": 73.796875,
+          "right": 261,
+          "bottom": 104.1875,
+          "width": 77,
+          "height": 30.390625
+        },
+        "owner": {
+          "x": 12,
+          "y": 71,
+          "right": 378,
+          "bottom": 107,
+          "width": 366,
+          "height": 36
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(30, 64, 175)",
+            "rgb(30, 64, 175)",
+            "rgb(30, 64, 175)",
+            "rgb(30, 64, 175)"
+          ],
+          "background": "rgb(239, 246, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "4px 8px",
+          "font": "650 12px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "12px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "normal",
+          "minHeight": "30.4px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 64, 175)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 64, 175)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "실물 연결 실제 API 검증 프로젝트 링크 복사",
+        "rect": {
+          "x": 12,
+          "y": 120.5,
+          "right": 96.65625,
+          "bottom": 156.5,
+          "width": 84.65625,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 119,
+          "right": 378,
+          "bottom": 158,
+          "width": 366,
+          "height": 39
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6.4px 10px",
+          "font": "650 13px / 19.5px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "19.5px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "내보내기",
+        "rect": {
+          "x": 102.65625,
+          "y": 119,
+          "right": 188.078125,
+          "bottom": 158,
+          "width": 85.421875,
+          "height": 39
+        },
+        "owner": {
+          "x": 12,
+          "y": 119,
+          "right": 378,
+          "bottom": 158,
+          "width": 366,
+          "height": 39
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 10px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "프로젝트 설정",
+        "rect": {
+          "x": 194.078125,
+          "y": 119,
+          "right": 311,
+          "bottom": 158,
+          "width": 116.921875,
+          "height": 39
+        },
+        "owner": {
+          "x": 12,
+          "y": 119,
+          "right": 378,
+          "bottom": 158,
+          "width": 366,
+          "height": 39
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 10px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "project-tab-schedule",
+        "type": "button",
+        "label": "일정",
+        "rect": {
+          "x": 18,
+          "y": 176,
+          "right": 54,
+          "bottom": 212,
+          "width": 36,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 172,
+          "right": 378,
+          "bottom": 213,
+          "width": 366,
+          "height": 41
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 172,
+              "right": 378,
+              "bottom": 213,
+              "width": 366,
+              "height": 41
+            },
+            "overflowX": "auto",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(100, 116, 139)",
+            "rgb(100, 116, 139)",
+            "rgba(0, 0, 0, 0)",
+            "rgb(100, 116, 139)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 4px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(100, 116, 139)",
+          "outlineOffset": "0px",
+          "color": "rgb(100, 116, 139)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "project-tab-dashboard",
+        "type": "button",
+        "label": "대시보드",
+        "rect": {
+          "x": 66,
+          "y": 176,
+          "right": 130,
+          "bottom": 212,
+          "width": 64,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 172,
+          "right": 378,
+          "bottom": 213,
+          "width": 366,
+          "height": 41
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 172,
+              "right": 378,
+              "bottom": 213,
+              "width": 366,
+              "height": 41
+            },
+            "overflowX": "auto",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(100, 116, 139)",
+            "rgb(100, 116, 139)",
+            "rgba(0, 0, 0, 0)",
+            "rgb(100, 116, 139)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 4px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(100, 116, 139)",
+          "outlineOffset": "0px",
+          "color": "rgb(100, 116, 139)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "project-tab-master",
+        "type": "button",
+        "label": "기준정보",
+        "rect": {
+          "x": 142,
+          "y": 176,
+          "right": 206,
+          "bottom": 212,
+          "width": 64,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 172,
+          "right": 378,
+          "bottom": 213,
+          "width": 366,
+          "height": 41
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 172,
+              "right": 378,
+              "bottom": 213,
+              "width": 366,
+              "height": 41
+            },
+            "overflowX": "auto",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(23, 32, 51)",
+            "rgb(23, 32, 51)",
+            "rgb(37, 99, 168)",
+            "rgb(23, 32, 51)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 4px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "project-tab-logistics",
+        "type": "button",
+        "label": "공정&WorkArea",
+        "rect": {
+          "x": 18,
+          "y": 229,
+          "right": 124.453125,
+          "bottom": 265,
+          "width": 106.453125,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 225,
+          "right": 378,
+          "bottom": 266,
+          "width": 366,
+          "height": 41
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 225,
+              "right": 378,
+              "bottom": 266,
+              "width": 366,
+              "height": 41
+            },
+            "overflowX": "auto",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(100, 116, 139)",
+            "rgb(100, 116, 139)",
+            "rgba(0, 0, 0, 0)",
+            "rgb(100, 116, 139)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 4px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(100, 116, 139)",
+          "outlineOffset": "0px",
+          "color": "rgb(100, 116, 139)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "project-tab-master.equipment",
+        "type": "button",
+        "label": "설비",
+        "rect": {
+          "x": 136.453125,
+          "y": 229,
+          "right": 172.453125,
+          "bottom": 265,
+          "width": 36,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 225,
+          "right": 378,
+          "bottom": 266,
+          "width": 366,
+          "height": 41
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 225,
+              "right": 378,
+              "bottom": 266,
+              "width": 366,
+              "height": 41
+            },
+            "overflowX": "auto",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": true,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(23, 32, 51)",
+            "rgb(23, 32, 51)",
+            "rgb(37, 99, 168)",
+            "rgb(23, 32, 51)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 4px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "project-tab-master.systems",
+        "type": "button",
+        "label": "물류 시스템",
+        "rect": {
+          "x": 184.453125,
+          "y": 229,
+          "right": 265.953125,
+          "bottom": 265,
+          "width": 81.5,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 225,
+          "right": 378,
+          "bottom": 266,
+          "width": 366,
+          "height": 41
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 225,
+              "right": 378,
+              "bottom": 266,
+              "width": 366,
+              "height": 41
+            },
+            "overflowX": "auto",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(100, 116, 139)",
+            "rgb(100, 116, 139)",
+            "rgba(0, 0, 0, 0)",
+            "rgb(100, 116, 139)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 4px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(100, 116, 139)",
+          "outlineOffset": "0px",
+          "color": "rgb(100, 116, 139)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "project-tab-master.resources",
+        "type": "button",
+        "label": "리소스",
+        "rect": {
+          "x": 277.953125,
+          "y": 229,
+          "right": 327.953125,
+          "bottom": 265,
+          "width": 50,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 225,
+          "right": 378,
+          "bottom": 266,
+          "width": 366,
+          "height": 41
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 225,
+              "right": 378,
+              "bottom": 266,
+              "width": 366,
+              "height": 41
+            },
+            "overflowX": "auto",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(100, 116, 139)",
+            "rgb(100, 116, 139)",
+            "rgba(0, 0, 0, 0)",
+            "rgb(100, 116, 139)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 4px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(100, 116, 139)",
+          "outlineOffset": "0px",
+          "color": "rgb(100, 116, 139)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "제어·조율 관계",
+        "rect": {
+          "x": 12,
+          "y": 270,
+          "right": 133.4375,
+          "bottom": 310,
+          "width": 121.4375,
+          "height": 40
+        },
+        "owner": {
+          "x": 12,
+          "y": 266,
+          "right": 378,
+          "bottom": 314,
+          "width": 366,
+          "height": 48
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "물류 구성 도움말",
+        "rect": {
+          "x": 246.046875,
+          "y": 342.1875,
+          "right": 278.046875,
+          "bottom": 374.1875,
+          "width": 32,
+          "height": 32
+        },
+        "owner": {
+          "x": 12,
+          "y": 342,
+          "right": 278.046875,
+          "bottom": 374.390625,
+          "width": 266.046875,
+          "height": 32.390625
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 326,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 563
+            },
+            "overflowX": "hidden",
+            "overflowY": "auto"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "0px",
+          "font": "16px / 24px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "16px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "24px",
+          "minHeight": "32px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(100, 116, 139)",
+          "outlineOffset": "0px",
+          "color": "rgb(100, 116, 139)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "type": "search",
+        "label": "물류 항목 검색",
+        "rect": {
+          "x": 29,
+          "y": 420.390625,
+          "right": 361,
+          "bottom": 456.390625,
+          "width": 332,
+          "height": 36
+        },
+        "owner": {
+          "x": 29,
+          "y": 420.390625,
+          "right": 361,
+          "bottom": 537.390625,
+          "width": 332,
+          "height": 117
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 326,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 563
+            },
+            "overflowX": "hidden",
+            "overflowY": "auto"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6.4px 12px",
+          "font": "14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "SELECT",
+        "id": "",
+        "type": null,
+        "label": "공정 필터",
+        "rect": {
+          "x": 29,
+          "y": 468.390625,
+          "right": 361,
+          "bottom": 504.390625,
+          "width": 332,
+          "height": 36
+        },
+        "owner": {
+          "x": 29,
+          "y": 420.390625,
+          "right": 361,
+          "bottom": 537.390625,
+          "width": 332,
+          "height": 117
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 326,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 563
+            },
+            "overflowX": "hidden",
+            "overflowY": "auto"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6.4px 12px",
+          "font": "14px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "normal",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "type": "checkbox",
+        "label": "비활성 항목 포함",
+        "rect": {
+          "x": 29,
+          "y": 520.390625,
+          "right": 42,
+          "bottom": 533.390625,
+          "width": 13,
+          "height": 13
+        },
+        "owner": {
+          "x": 29,
+          "y": 516.390625,
+          "right": 361,
+          "bottom": 537.390625,
+          "width": 332,
+          "height": 21
+        },
+        "labels": [
+          {
+            "id": "",
+            "htmlFor": "",
+            "wrapsControl": true,
+            "text": "비활성 항목 포함"
+          }
+        ],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 326,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 563
+            },
+            "overflowX": "hidden",
+            "overflowY": "auto"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "0px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "none",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(23, 32, 51)",
+            "rgb(23, 32, 51)",
+            "rgb(23, 32, 51)",
+            "rgb(23, 32, 51)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "0px",
+          "font": "14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "auto",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "+ 설비 추가",
+        "rect": {
+          "x": 29,
+          "y": 549.390625,
+          "right": 129.78125,
+          "bottom": 589.390625,
+          "width": 100.78125,
+          "height": 40
+        },
+        "owner": {
+          "x": 29,
+          "y": 549.390625,
+          "right": 361,
+          "bottom": 589.390625,
+          "width": 332,
+          "height": 40
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 326,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 563
+            },
+            "overflowX": "hidden",
+            "overflowY": "auto"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(37, 99, 168)",
+            "rgb(37, 99, 168)",
+            "rgb(37, 99, 168)",
+            "rgb(37, 99, 168)"
+          ],
+          "background": "rgb(37, 99, 168)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineOffset": "0px",
+          "color": "rgb(255, 255, 255)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "수정",
+        "rect": {
+          "x": 1048.625,
+          "y": 676.5625,
+          "right": 1092.625,
+          "bottom": 736.5625,
+          "width": 44,
+          "height": 60
+        },
+        "owner": {
+          "x": 1035.03125,
+          "y": 665.671875,
+          "right": 1106.21875,
+          "bottom": 1035.453125,
+          "width": 71.1875,
+          "height": 369.78125
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 622.390625,
+              "right": 378,
+              "bottom": 1405.734375,
+              "width": 366,
+              "height": 783.34375
+            },
+            "overflowX": "auto",
+            "overflowY": "auto"
+          },
+          {
+            "rect": {
+              "x": 12,
+              "y": 326,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 563
+            },
+            "overflowX": "hidden",
+            "overflowY": "auto"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "제어시스템",
+        "rect": {
+          "x": 1048.625,
+          "y": 744.5625,
+          "right": 1092.625,
+          "bottom": 867.5625,
+          "width": 44,
+          "height": 123
+        },
+        "owner": {
+          "x": 1035.03125,
+          "y": 665.671875,
+          "right": 1106.21875,
+          "bottom": 1035.453125,
+          "width": 71.1875,
+          "height": 369.78125
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 622.390625,
+              "right": 378,
+              "bottom": 1405.734375,
+              "width": 366,
+              "height": 783.34375
+            },
+            "overflowX": "auto",
+            "overflowY": "auto"
+          },
+          {
+            "rect": {
+              "x": 12,
+              "y": 326,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 563
+            },
+            "overflowX": "hidden",
+            "overflowY": "auto"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "담당자",
+        "rect": {
+          "x": 1048.625,
+          "y": 875.5625,
+          "right": 1092.625,
+          "bottom": 956.5625,
+          "width": 44,
+          "height": 81
+        },
+        "owner": {
+          "x": 1035.03125,
+          "y": 665.671875,
+          "right": 1106.21875,
+          "bottom": 1035.453125,
+          "width": 71.1875,
+          "height": 369.78125
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 622.390625,
+              "right": 378,
+              "bottom": 1405.734375,
+              "width": 366,
+              "height": 783.34375
+            },
+            "overflowX": "auto",
+            "overflowY": "auto"
+          },
+          {
+            "rect": {
+              "x": 12,
+              "y": 326,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 563
+            },
+            "overflowX": "hidden",
+            "overflowY": "auto"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "삭제",
+        "rect": {
+          "x": 1048.625,
+          "y": 964.5625,
+          "right": 1092.625,
+          "bottom": 1024.5625,
+          "width": 44,
+          "height": 60
+        },
+        "owner": {
+          "x": 1035.03125,
+          "y": 665.671875,
+          "right": 1106.21875,
+          "bottom": 1035.453125,
+          "width": 71.1875,
+          "height": 369.78125
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 622.390625,
+              "right": 378,
+              "bottom": 1405.734375,
+              "width": 366,
+              "height": 783.34375
+            },
+            "overflowX": "auto",
+            "overflowY": "auto"
+          },
+          {
+            "rect": {
+              "x": 12,
+              "y": 326,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 563
+            },
+            "overflowX": "hidden",
+            "overflowY": "auto"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "수정",
+        "rect": {
+          "x": 1048.625,
+          "y": 1046.34375,
+          "right": 1092.625,
+          "bottom": 1106.34375,
+          "width": 44,
+          "height": 60
+        },
+        "owner": {
+          "x": 1035.03125,
+          "y": 1035.453125,
+          "right": 1106.21875,
+          "bottom": 1404.734375,
+          "width": 71.1875,
+          "height": 369.28125
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 622.390625,
+              "right": 378,
+              "bottom": 1405.734375,
+              "width": 366,
+              "height": 783.34375
+            },
+            "overflowX": "auto",
+            "overflowY": "auto"
+          },
+          {
+            "rect": {
+              "x": 12,
+              "y": 326,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 563
+            },
+            "overflowX": "hidden",
+            "overflowY": "auto"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "제어시스템",
+        "rect": {
+          "x": 1048.625,
+          "y": 1114.34375,
+          "right": 1092.625,
+          "bottom": 1237.34375,
+          "width": 44,
+          "height": 123
+        },
+        "owner": {
+          "x": 1035.03125,
+          "y": 1035.453125,
+          "right": 1106.21875,
+          "bottom": 1404.734375,
+          "width": 71.1875,
+          "height": 369.28125
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 622.390625,
+              "right": 378,
+              "bottom": 1405.734375,
+              "width": 366,
+              "height": 783.34375
+            },
+            "overflowX": "auto",
+            "overflowY": "auto"
+          },
+          {
+            "rect": {
+              "x": 12,
+              "y": 326,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 563
+            },
+            "overflowX": "hidden",
+            "overflowY": "auto"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "담당자",
+        "rect": {
+          "x": 1048.625,
+          "y": 1245.34375,
+          "right": 1092.625,
+          "bottom": 1326.34375,
+          "width": 44,
+          "height": 81
+        },
+        "owner": {
+          "x": 1035.03125,
+          "y": 1035.453125,
+          "right": 1106.21875,
+          "bottom": 1404.734375,
+          "width": 71.1875,
+          "height": 369.28125
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 622.390625,
+              "right": 378,
+              "bottom": 1405.734375,
+              "width": 366,
+              "height": 783.34375
+            },
+            "overflowX": "auto",
+            "overflowY": "auto"
+          },
+          {
+            "rect": {
+              "x": 12,
+              "y": 326,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 563
+            },
+            "overflowX": "hidden",
+            "overflowY": "auto"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "삭제",
+        "rect": {
+          "x": 1048.625,
+          "y": 1334.34375,
+          "right": 1092.625,
+          "bottom": 1394.34375,
+          "width": 44,
+          "height": 60
+        },
+        "owner": {
+          "x": 1035.03125,
+          "y": 1035.453125,
+          "right": 1106.21875,
+          "bottom": 1404.734375,
+          "width": 71.1875,
+          "height": 369.28125
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 622.390625,
+              "right": 378,
+              "bottom": 1405.734375,
+              "width": 366,
+              "height": 783.34375
+            },
+            "overflowX": "auto",
+            "overflowY": "auto"
+          },
+          {
+            "rect": {
+              "x": 12,
+              "y": 326,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 563
+            },
+            "overflowX": "hidden",
+            "overflowY": "auto"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      }
+    ],
+    "excludedControls": 300,
+    "tables": [
+      {
+        "rect": {
+          "x": 13,
+          "y": 623.390625,
+          "right": 1106.21875,
+          "bottom": 1404.734375,
+          "width": 1093.21875,
+          "height": 781.34375
+        },
+        "owner": {
+          "x": 12,
+          "y": 622.390625,
+          "right": 378,
+          "bottom": 1405.734375,
+          "width": 366,
+          "height": 783.34375,
+          "clientWidth": 364,
+          "scrollWidth": 1093,
+          "scrollLeft": 0,
+          "clientHeight": 781,
+          "scrollHeight": 781
+        },
+        "headers": [
+          {
+            "x": 13,
+            "y": 623.390625,
+            "right": 117.171875,
+            "bottom": 665.671875,
+            "width": 104.171875,
+            "height": 42.28125
+          },
+          {
+            "x": 117.171875,
+            "y": 623.390625,
+            "right": 337.171875,
+            "bottom": 665.671875,
+            "width": 220,
+            "height": 42.28125
+          },
+          {
+            "x": 337.171875,
+            "y": 623.390625,
+            "right": 435.15625,
+            "bottom": 665.671875,
+            "width": 97.984375,
+            "height": 42.28125
+          },
+          {
+            "x": 435.15625,
+            "y": 623.390625,
+            "right": 589.734375,
+            "bottom": 665.671875,
+            "width": 154.578125,
+            "height": 42.28125
+          },
+          {
+            "x": 589.734375,
+            "y": 623.390625,
+            "right": 692.484375,
+            "bottom": 665.671875,
+            "width": 102.75,
+            "height": 42.28125
+          },
+          {
+            "x": 692.484375,
+            "y": 623.390625,
+            "right": 865.15625,
+            "bottom": 665.671875,
+            "width": 172.671875,
+            "height": 42.28125
+          },
+          {
+            "x": 865.15625,
+            "y": 623.390625,
+            "right": 965.84375,
+            "bottom": 665.671875,
+            "width": 100.6875,
+            "height": 42.28125
+          },
+          {
+            "x": 965.84375,
+            "y": 623.390625,
+            "right": 1035.03125,
+            "bottom": 665.671875,
+            "width": 69.1875,
+            "height": 42.28125
+          },
+          {
+            "x": 1035.03125,
+            "y": 623.390625,
+            "right": 1106.21875,
+            "bottom": 665.671875,
+            "width": 71.1875,
+            "height": 42.28125
+          }
+        ],
+        "rows": [
+          {
+            "rect": {
+              "x": 13,
+              "y": 665.671875,
+              "right": 1106.21875,
+              "bottom": 1035.453125,
+              "width": 1093.21875,
+              "height": 369.78125
+            },
+            "cells": [
+              {
+                "x": 13,
+                "y": 665.671875,
+                "right": 117.171875,
+                "bottom": 1035.453125,
+                "width": 104.171875,
+                "height": 369.78125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 26.59375,
+                      "y": 842.0625,
+                      "right": 67.203125,
+                      "bottom": 858.0625,
+                      "width": 40.609375,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 117.171875,
+                "y": 665.671875,
+                "right": 337.171875,
+                "bottom": 1035.453125,
+                "width": 220,
+                "height": 369.78125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 130.765625,
+                      "y": 842.0625,
+                      "right": 172.765625,
+                      "bottom": 858.0625,
+                      "width": 42,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 337.171875,
+                "y": 665.671875,
+                "right": 435.15625,
+                "bottom": 1035.453125,
+                "width": 97.984375,
+                "height": 369.78125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 350.765625,
+                      "y": 757.0625,
+                      "right": 421.5625,
+                      "bottom": 899.0625,
+                      "width": 70.796875,
+                      "height": 142
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 364.53125,
+                      "y": 916.3125,
+                      "right": 419.75,
+                      "bottom": 931.3125,
+                      "width": 55.21875,
+                      "height": 15
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 435.15625,
+                "y": 665.671875,
+                "right": 589.734375,
+                "bottom": 1035.453125,
+                "width": 154.578125,
+                "height": 369.78125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 457.75,
+                      "y": 843.5625,
+                      "right": 567.140625,
+                      "bottom": 857.5625,
+                      "width": 109.390625,
+                      "height": 14
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 589.734375,
+                "y": 665.671875,
+                "right": 692.484375,
+                "bottom": 1035.453125,
+                "width": 102.75,
+                "height": 369.78125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 603.328125,
+                      "y": 821.0625,
+                      "right": 633.875,
+                      "bottom": 837.0625,
+                      "width": 30.546875,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 603.328125,
+                      "y": 842.0625,
+                      "right": 608.125,
+                      "bottom": 858.0625,
+                      "width": 4.796875,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 608.125,
+                      "y": 842.0625,
+                      "right": 678.890625,
+                      "bottom": 858.0625,
+                      "width": 70.765625,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 603.328125,
+                      "y": 863.0625,
+                      "right": 622.203125,
+                      "bottom": 879.0625,
+                      "width": 18.875,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 692.484375,
+                "y": 665.671875,
+                "right": 865.15625,
+                "bottom": 1035.453125,
+                "width": 172.671875,
+                "height": 369.78125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 706.078125,
+                      "y": 842.0625,
+                      "right": 748.078125,
+                      "bottom": 858.0625,
+                      "width": 42,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 865.15625,
+                "y": 665.671875,
+                "right": 965.84375,
+                "bottom": 1035.453125,
+                "width": 100.6875,
+                "height": 369.78125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 878.75,
+                      "y": 842.0625,
+                      "right": 920.75,
+                      "bottom": 858.0625,
+                      "width": 42,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 965.84375,
+                "y": 665.671875,
+                "right": 1035.03125,
+                "bottom": 1035.453125,
+                "width": 69.1875,
+                "height": 369.78125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 988.4375,
+                      "y": 843.5625,
+                      "right": 1012.4375,
+                      "bottom": 857.5625,
+                      "width": 24,
+                      "height": 14
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 1035.03125,
+                "y": 665.671875,
+                "right": 1106.21875,
+                "bottom": 1035.453125,
+                "width": 71.1875,
+                "height": 369.78125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 1063.625,
+                      "y": 687.5625,
+                      "right": 1077.625,
+                      "bottom": 724.5625,
+                      "width": 14,
+                      "height": 37
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 1063.625,
+                      "y": 755.5625,
+                      "right": 1077.625,
+                      "bottom": 855.5625,
+                      "width": 14,
+                      "height": 100
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 1063.625,
+                      "y": 886.5625,
+                      "right": 1077.625,
+                      "bottom": 944.5625,
+                      "width": 14,
+                      "height": 58
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 1063.625,
+                      "y": 975.5625,
+                      "right": 1077.625,
+                      "bottom": 1012.5625,
+                      "width": 14,
+                      "height": 37
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              }
+            ],
+            "visibleControls": 4
+          },
+          {
+            "rect": {
+              "x": 13,
+              "y": 1035.453125,
+              "right": 1106.21875,
+              "bottom": 1404.734375,
+              "width": 1093.21875,
+              "height": 369.28125
+            },
+            "cells": [
+              {
+                "x": 13,
+                "y": 1035.453125,
+                "right": 117.171875,
+                "bottom": 1404.734375,
+                "width": 104.171875,
+                "height": 369.28125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 26.59375,
+                      "y": 1211.84375,
+                      "right": 66.78125,
+                      "bottom": 1227.84375,
+                      "width": 40.1875,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 117.171875,
+                "y": 1035.453125,
+                "right": 337.171875,
+                "bottom": 1404.734375,
+                "width": 220,
+                "height": 369.28125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 130.765625,
+                      "y": 1211.84375,
+                      "right": 172.765625,
+                      "bottom": 1227.84375,
+                      "width": 42,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 337.171875,
+                "y": 1035.453125,
+                "right": 435.15625,
+                "bottom": 1404.734375,
+                "width": 97.984375,
+                "height": 369.28125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 350.765625,
+                      "y": 1179.34375,
+                      "right": 410.265625,
+                      "bottom": 1216.34375,
+                      "width": 59.5,
+                      "height": 37
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 364.53125,
+                      "y": 1233.59375,
+                      "right": 419.75,
+                      "bottom": 1248.59375,
+                      "width": 55.21875,
+                      "height": 15
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 435.15625,
+                "y": 1035.453125,
+                "right": 589.734375,
+                "bottom": 1404.734375,
+                "width": 154.578125,
+                "height": 369.28125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 457.75,
+                      "y": 1213.34375,
+                      "right": 567.140625,
+                      "bottom": 1227.34375,
+                      "width": 109.390625,
+                      "height": 14
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 589.734375,
+                "y": 1035.453125,
+                "right": 692.484375,
+                "bottom": 1404.734375,
+                "width": 102.75,
+                "height": 369.28125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 603.328125,
+                      "y": 1211.84375,
+                      "right": 633.875,
+                      "bottom": 1227.84375,
+                      "width": 30.546875,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 633.875,
+                      "y": 1211.84375,
+                      "right": 642.140625,
+                      "bottom": 1227.84375,
+                      "width": 8.265625,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 642.140625,
+                      "y": 1211.84375,
+                      "right": 650.015625,
+                      "bottom": 1227.84375,
+                      "width": 7.875,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 650.015625,
+                      "y": 1211.84375,
+                      "right": 668.890625,
+                      "bottom": 1227.84375,
+                      "width": 18.875,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 692.484375,
+                "y": 1035.453125,
+                "right": 865.15625,
+                "bottom": 1404.734375,
+                "width": 172.671875,
+                "height": 369.28125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 706.078125,
+                      "y": 1211.84375,
+                      "right": 748.078125,
+                      "bottom": 1227.84375,
+                      "width": 42,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 865.15625,
+                "y": 1035.453125,
+                "right": 965.84375,
+                "bottom": 1404.734375,
+                "width": 100.6875,
+                "height": 369.28125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 878.75,
+                      "y": 1211.84375,
+                      "right": 920.75,
+                      "bottom": 1227.84375,
+                      "width": 42,
+                      "height": 16
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 965.84375,
+                "y": 1035.453125,
+                "right": 1035.03125,
+                "bottom": 1404.734375,
+                "width": 69.1875,
+                "height": 369.28125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 988.4375,
+                      "y": 1213.34375,
+                      "right": 1012.4375,
+                      "bottom": 1227.34375,
+                      "width": 24,
+                      "height": 14
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              },
+              {
+                "x": 1035.03125,
+                "y": 1035.453125,
+                "right": 1106.21875,
+                "bottom": 1404.734375,
+                "width": 71.1875,
+                "height": 369.28125,
+                "textRects": [
+                  {
+                    "rect": {
+                      "x": 1063.625,
+                      "y": 1057.34375,
+                      "right": 1077.625,
+                      "bottom": 1094.34375,
+                      "width": 14,
+                      "height": 37
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 1063.625,
+                      "y": 1125.34375,
+                      "right": 1077.625,
+                      "bottom": 1225.34375,
+                      "width": 14,
+                      "height": 100
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 1063.625,
+                      "y": 1256.34375,
+                      "right": 1077.625,
+                      "bottom": 1314.34375,
+                      "width": 14,
+                      "height": 58
+                    },
+                    "intentionalClip": false
+                  },
+                  {
+                    "rect": {
+                      "x": 1063.625,
+                      "y": 1345.34375,
+                      "right": 1077.625,
+                      "bottom": 1382.34375,
+                      "width": 14,
+                      "height": 37
+                    },
+                    "intentionalClip": false
+                  }
+                ]
+              }
+            ],
+            "visibleControls": 4
+          }
+        ],
+        "visibleRows": 1,
+        "rowHeightMin": 369.28125,
+        "rowHeightMax": 369.78125
+      }
+    ]
+  },
+  "metrics": {
+    "primary": null,
+    "headings": [
+      {
+        "text": "실물 연결 실제 API 검증",
+        "x": 12,
+        "y": 77.953125,
+        "width": 166,
+        "height": 22.09375,
+        "bottom": 100.046875
+      },
+      {
+        "text": "물류 구성",
+        "x": 12,
+        "y": 342,
+        "width": 89.59375,
+        "height": 32.390625,
+        "bottom": 374.390625
+      }
+    ],
+    "regions": [],
+    "summaries": [],
+    "filters": [
+      {
+        "text": "비활성 항목 포함",
+        "x": 29,
+        "y": 516.390625,
+        "width": 332,
+        "height": 21,
+        "bottom": 537.390625
+      }
+    ],
+    "states": [
+      {
+        "role": "status",
+        "text": "",
+        "x": 195,
+        "y": 880,
+        "width": 0,
+        "height": 0,
+        "bottom": 880
+      }
+    ],
+    "focus": {
+      "tag": "BUTTON",
+      "name": "설비",
+      "focusVisible": false,
+      "outlineStyle": "none",
+      "rect": {
+        "x": 136.453125,
+        "y": 229,
+        "width": 36,
+        "height": 36,
+        "bottom": 265
+      }
+    }
+  },
+  "domAppVersion": "v0.132.0",
+  "browserVersion": "153.0.8010.12"
+}

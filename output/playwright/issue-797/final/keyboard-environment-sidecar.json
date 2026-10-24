@@ -1,0 +1,231 @@
+{
+  "sourceSha": "8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24",
+  "capturedAt": "2026-10-24T14:52:59.057Z",
+  "scope": "bounded explicit rechecks and native keyboard; initial bulk failures preserved",
+  "cliVersion": "0.1.22",
+  "wrapperSha256": "aa3fdff5d0e4556177f4dfd5f04117e772aa54f94b6a2e34b6c0edf629c6b9b5",
+  "initialSidecarFailure": "single unsafe code block paused at native file chooser; no JSON receipt returned. Modal cleared by closing CLI; current import uses input.setInputFiles without a native OS chooser. No initial success inferred from screenshots.",
+  "before": {
+    "revision": 17,
+    "sha256": "47e048dba49bd67c67f8c6177b9363fb371b3d33e716ca2595dd54d717b4d0a5"
+  },
+  "after": {
+    "revision": 17,
+    "sha256": "47e048dba49bd67c67f8c6177b9363fb371b3d33e716ca2595dd54d717b4d0a5"
+  },
+  "canonicalUnchanged": true,
+  "cases": [
+    {
+      "name": "process-390-explicit-recheck",
+      "result": "PASS",
+      "facts": {
+        "navigationStatus": 200,
+        "viewport": {
+          "width": 390,
+          "height": 900
+        },
+        "documentWidth": 390,
+        "firstSummaryY": 964.390625,
+        "tableY": 1676.390625,
+        "rows": 3,
+        "summaryValues": [
+          "2개",
+          "1개",
+          "2개",
+          "123456796대",
+          "1식",
+          "0개",
+          "1개 / 0식",
+          "2건",
+          "0 / 2건",
+          "0.0%",
+          "2.00 M/D",
+          "환산 기준 미설정",
+          "1건",
+          "0건"
+        ],
+        "initialFailurePreserved": true
+      },
+      "probeSource": "const original=page;const context=await original.context().browser().newContext({storageState:{cookies:await original.context().cookies(),origins:[]},viewport:{width:390,height:900},locale:'ko-KR',timezoneId:'Asia/Seoul',deviceScaleFactor:1});page=await context.newPage();page.setDefaultTimeout(12000);try{const response=await page.goto('http://127.0.0.1:3197/projects/084fd27c-7dad-48ad-85eb-3f8ac53b99e2');await page.getByText('편집 중',{exact:true}).waitFor();await page.getByRole('tablist',{name:'프로젝트 작업공간',exact:true}).getByRole('tab',{name:'대시보드',exact:true}).click();await page.getByRole('tablist',{name:'대시보드 보기',exact:true}).getByRole('tab',{name:'공정&WorkArea',exact:true}).click();const root=page.locator('[data-wbs-view=\"process\"][data-ready=\"true\"]');await root.waitFor();await page.evaluate(async()=>{await document.fonts.ready;window.scrollTo(0,0);});const geometry=await root.evaluate(root=>{const table=root.querySelector('table'),summary=root.querySelector('dl');return{viewport:{width:innerWidth,height:innerHeight},documentWidth:document.documentElement.scrollWidth,firstSummaryY:summary.getBoundingClientRect().y,tableY:table.getBoundingClientRect().y,rows:table.querySelectorAll('tbody tr').length,summaryValues:Array.from(root.querySelectorAll('dl dd')).map(n=>n.textContent.trim())};});if(geometry.viewport.width!==390||geometry.rows<1)throw Error('normal baseline missing');await page.screenshot({path:'/home/planner/Dev/masterGantt-issue-797/output/playwright/issue-797/final/process-390-recheck-viewport.png'});return{navigationStatus:response.status(),...geometry,initialFailurePreserved:true};}finally{await context.close();}",
+      "probeSha256": "37a72f5820af7cfcd9011993b495b5bd71723152c2e8a445d3721f6d0c4c45ac"
+    },
+    {
+      "name": "calendar-1440-explicit-recheck",
+      "result": "PASS",
+      "facts": {
+        "navigationStatus": 200,
+        "ready": true,
+        "previewExecuted": false,
+        "dialog": {
+          "x": 240,
+          "y": 173,
+          "width": 960,
+          "height": 554
+        },
+        "initialFailurePreserved": true
+      },
+      "probeSource": "const original=page;const context=await original.context().browser().newContext({storageState:{cookies:await original.context().cookies(),origins:[]},viewport:{width:1440,height:900},locale:'ko-KR',timezoneId:'Asia/Seoul',deviceScaleFactor:1});page=await context.newPage();page.setDefaultTimeout(12000);try{const response=await page.goto('http://127.0.0.1:3197/projects/084fd27c-7dad-48ad-85eb-3f8ac53b99e2');await page.getByText('편집 중',{exact:true}).waitFor();await page.getByRole('button',{name:'프로젝트 설정',exact:true}).click();const dialog=page.getByRole('dialog',{name:'프로젝트 설정',exact:true});await dialog.getByRole('tab',{name:'작업 캘린더',exact:true}).click();await dialog.getByRole('button',{name:'미리보기 계산',exact:true}).waitFor();await page.screenshot({path:'/home/planner/Dev/masterGantt-issue-797/output/playwright/issue-797/final/calendar-1440-recheck-viewport.png'});return{navigationStatus:response.status(),ready:true,previewExecuted:false,dialog:await dialog.boundingBox(),initialFailurePreserved:true};}finally{await context.close();}",
+      "probeSha256": "4d569eb8ada45061d5f3dee19aca4c9467921cec71bda1267c7be41d7fabe943"
+    },
+    {
+      "name": "settings-Escape-focus-390",
+      "result": "PASS",
+      "facts": {
+        "inDialog": {
+          "tag": "BUTTON",
+          "name": "기본 정보",
+          "focusVisible": true,
+          "outline": "solid"
+        },
+        "restored": {
+          "tag": "BUTTON",
+          "name": "프로젝트 설정",
+          "focusVisible": true,
+          "outline": "solid"
+        }
+      },
+      "probeSource": "const original=page;const context=await original.context().browser().newContext({storageState:{cookies:await original.context().cookies(),origins:[]},viewport:{width:390,height:900},locale:'ko-KR',timezoneId:'Asia/Seoul',deviceScaleFactor:1});page=await context.newPage();page.setDefaultTimeout(12000);try{const response=await page.goto('http://127.0.0.1:3197/projects/084fd27c-7dad-48ad-85eb-3f8ac53b99e2');await page.getByText('편집 중',{exact:true}).waitFor();const trigger=page.getByRole('button',{name:'프로젝트 설정',exact:true}).first();await trigger.focus();await page.keyboard.press('Enter');const dialog=page.getByRole('dialog',{name:'프로젝트 설정',exact:true});await dialog.waitFor();await page.keyboard.press('Tab');const inDialog=await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};});await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});if(!await trigger.evaluate(n=>n===document.activeElement))throw Error('focus did not return to exact trigger');return{inDialog,restored:await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};})};}finally{await context.close();}",
+      "probeSha256": "37cc6172e9a91694930cf9a20a5333dad7e7ec4772559a531f91d8b1462d1ccf"
+    },
+    {
+      "name": "export-Escape-focus-390",
+      "result": "PASS",
+      "facts": {
+        "inDialog": {
+          "tag": "INPUT",
+          "name": "",
+          "focusVisible": true,
+          "outline": "solid"
+        },
+        "restored": {
+          "tag": "BUTTON",
+          "name": "내보내기",
+          "focusVisible": true,
+          "outline": "solid"
+        }
+      },
+      "probeSource": "const original=page;const context=await original.context().browser().newContext({storageState:{cookies:await original.context().cookies(),origins:[]},viewport:{width:390,height:900},locale:'ko-KR',timezoneId:'Asia/Seoul',deviceScaleFactor:1});page=await context.newPage();page.setDefaultTimeout(12000);try{const response=await page.goto('http://127.0.0.1:3197/projects/084fd27c-7dad-48ad-85eb-3f8ac53b99e2');await page.getByText('편집 중',{exact:true}).waitFor();const trigger=page.getByRole('button',{name:'내보내기',exact:true}).first();await trigger.focus();await page.keyboard.press('Enter');const dialog=page.getByRole('dialog',{name:'내보내기',exact:true});await dialog.waitFor();await page.keyboard.press('Tab');const inDialog=await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};});await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});if(!await trigger.evaluate(n=>n===document.activeElement))throw Error('focus did not return to exact trigger');return{inDialog,restored:await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};})};}finally{await context.close();}",
+      "probeSha256": "45e220060cd874fc190f1cb3edc76226b93d470226498c94e141e9e39876f94a"
+    },
+    {
+      "name": "dashboard-Arrows-Home-390",
+      "result": "FAIL",
+      "reason": "Command failed: bash /home/planner/.codex/skills/playwright/scripts/playwright_cli.sh -s=issue797sidecar run-code --filename /home/planner/Dev/masterGantt-issue-797/output/playwright/issue-797/final/dashboard-Arrows-Home-390.cli.js --raw",
+      "probeSource": "const original=page;const context=await original.context().browser().newContext({storageState:{cookies:await original.context().cookies(),origins:[]},viewport:{width:390,height:900},locale:'ko-KR',timezoneId:'Asia/Seoul',deviceScaleFactor:1});page=await context.newPage();page.setDefaultTimeout(12000);try{const response=await page.goto('http://127.0.0.1:3197/projects/084fd27c-7dad-48ad-85eb-3f8ac53b99e2');await page.getByText('편집 중',{exact:true}).waitFor();await page.getByRole('tablist',{name:'프로젝트 작업공간',exact:true}).getByRole('tab',{name:'대시보드',exact:true}).click();const group=page.getByRole('tablist',{name:'대시보드 보기',exact:true}),kpi=group.getByRole('tab',{name:'KPI',exact:true});await kpi.focus();await page.keyboard.press('ArrowRight');const milestone=group.getByRole('tab',{name:'Milestone',exact:true});if(!await milestone.evaluate(n=>n===document.activeElement))throw Error('ArrowRight target differs');const arrow=await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};});await page.keyboard.press('Home');if(!await kpi.evaluate(n=>n===document.activeElement))throw Error('Home target differs');return{arrow,home:await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};})};}finally{await context.close();}",
+      "probeSha256": "5ee9e68efa58691aeb70840b01af26bc3787bed28fae4855595e63471f49778b"
+    },
+    {
+      "name": "settings-Escape-focus-1440",
+      "result": "PASS",
+      "facts": {
+        "inDialog": {
+          "tag": "BUTTON",
+          "name": "기본 정보",
+          "focusVisible": true,
+          "outline": "solid"
+        },
+        "restored": {
+          "tag": "BUTTON",
+          "name": "프로젝트 설정",
+          "focusVisible": true,
+          "outline": "solid"
+        }
+      },
+      "probeSource": "const original=page;const context=await original.context().browser().newContext({storageState:{cookies:await original.context().cookies(),origins:[]},viewport:{width:1440,height:900},locale:'ko-KR',timezoneId:'Asia/Seoul',deviceScaleFactor:1});page=await context.newPage();page.setDefaultTimeout(12000);try{const response=await page.goto('http://127.0.0.1:3197/projects/084fd27c-7dad-48ad-85eb-3f8ac53b99e2');await page.getByText('편집 중',{exact:true}).waitFor();const trigger=page.getByRole('button',{name:'프로젝트 설정',exact:true}).first();await trigger.focus();await page.keyboard.press('Enter');const dialog=page.getByRole('dialog',{name:'프로젝트 설정',exact:true});await dialog.waitFor();await page.keyboard.press('Tab');const inDialog=await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};});await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});if(!await trigger.evaluate(n=>n===document.activeElement))throw Error('focus did not return to exact trigger');return{inDialog,restored:await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};})};}finally{await context.close();}",
+      "probeSha256": "7b97a5e49d04ed4d4734076632d4f8ee1ffc1b2aed11b59578606ca5d906d088"
+    },
+    {
+      "name": "export-Escape-focus-1440",
+      "result": "PASS",
+      "facts": {
+        "inDialog": {
+          "tag": "INPUT",
+          "name": "",
+          "focusVisible": true,
+          "outline": "solid"
+        },
+        "restored": {
+          "tag": "BUTTON",
+          "name": "내보내기",
+          "focusVisible": true,
+          "outline": "solid"
+        }
+      },
+      "probeSource": "const original=page;const context=await original.context().browser().newContext({storageState:{cookies:await original.context().cookies(),origins:[]},viewport:{width:1440,height:900},locale:'ko-KR',timezoneId:'Asia/Seoul',deviceScaleFactor:1});page=await context.newPage();page.setDefaultTimeout(12000);try{const response=await page.goto('http://127.0.0.1:3197/projects/084fd27c-7dad-48ad-85eb-3f8ac53b99e2');await page.getByText('편집 중',{exact:true}).waitFor();const trigger=page.getByRole('button',{name:'내보내기',exact:true}).first();await trigger.focus();await page.keyboard.press('Enter');const dialog=page.getByRole('dialog',{name:'내보내기',exact:true});await dialog.waitFor();await page.keyboard.press('Tab');const inDialog=await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};});await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});if(!await trigger.evaluate(n=>n===document.activeElement))throw Error('focus did not return to exact trigger');return{inDialog,restored:await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};})};}finally{await context.close();}",
+      "probeSha256": "2d209f273a2efc42c8efbcb900d0db2076aafa262b4618885a3e0939bd15af30"
+    },
+    {
+      "name": "dashboard-Arrows-Home-1440",
+      "result": "PASS",
+      "facts": {
+        "arrow": {
+          "tag": "BUTTON",
+          "name": "Milestone",
+          "focusVisible": true,
+          "outline": "solid"
+        },
+        "home": {
+          "tag": "BUTTON",
+          "name": "KPI",
+          "focusVisible": true,
+          "outline": "solid"
+        }
+      },
+      "probeSource": "const original=page;const context=await original.context().browser().newContext({storageState:{cookies:await original.context().cookies(),origins:[]},viewport:{width:1440,height:900},locale:'ko-KR',timezoneId:'Asia/Seoul',deviceScaleFactor:1});page=await context.newPage();page.setDefaultTimeout(12000);try{const response=await page.goto('http://127.0.0.1:3197/projects/084fd27c-7dad-48ad-85eb-3f8ac53b99e2');await page.getByText('편집 중',{exact:true}).waitFor();await page.getByRole('tablist',{name:'프로젝트 작업공간',exact:true}).getByRole('tab',{name:'대시보드',exact:true}).click();const group=page.getByRole('tablist',{name:'대시보드 보기',exact:true}),kpi=group.getByRole('tab',{name:'KPI',exact:true});await kpi.focus();await page.keyboard.press('ArrowRight');const milestone=group.getByRole('tab',{name:'Milestone',exact:true});if(!await milestone.evaluate(n=>n===document.activeElement))throw Error('ArrowRight target differs');const arrow=await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};});await page.keyboard.press('Home');if(!await kpi.evaluate(n=>n===document.activeElement))throw Error('Home target differs');return{arrow,home:await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};})};}finally{await context.close();}",
+      "probeSha256": "1ebc7c56235a46d55f08416d742999a417879dc7b1adfcf8ebb57271865c80ec"
+    },
+    {
+      "name": "import-preview-Escape-focus-390",
+      "result": "PASS",
+      "facts": {
+        "ready": true,
+        "commitExecuted": false,
+        "restored": {
+          "tag": "BUTTON",
+          "name": "가져오기 (JSON)",
+          "focusVisible": true,
+          "outline": "solid"
+        }
+      },
+      "probeSource": "const original=page;const context=await original.context().browser().newContext({storageState:{cookies:await original.context().cookies(),origins:[]},viewport:{width:390,height:900},locale:'ko-KR',timezoneId:'Asia/Seoul',deviceScaleFactor:1});page=await context.newPage();page.setDefaultTimeout(12000);try{const response=await page.goto('http://127.0.0.1:3197/projects/084fd27c-7dad-48ad-85eb-3f8ac53b99e2');await page.getByText('편집 중',{exact:true}).waitFor();await page.locator('summary[aria-label=\"프로젝트 작업 더보기\"]').click();const trigger=page.getByRole('button',{name:'가져오기 (JSON)',exact:true});await trigger.focus();await page.locator('input[type=\"file\"][accept=\".json,application/json\"]').setInputFiles({name:'issue-797-synthetic.json',mimeType:'application/json',buffer:Buffer.from(\"{\\\"schemaVersion\\\":\\\"1.0\\\",\\\"project\\\":{\\\"name\\\":\\\"Synthetic audit 797\\\",\\\"description\\\":\\\"\\\"},\\\"tasks\\\":[{\\\"externalId\\\":\\\"AUDIT797-1\\\",\\\"name\\\":\\\"감사 전용 미리보기 Synthetic task\\\",\\\"parentExternalId\\\":null,\\\"type\\\":\\\"task\\\",\\\"start\\\":\\\"2026-10-14\\\",\\\"duration\\\":1,\\\"progress\\\":0,\\\"predecessors\\\":[]}]}\")});const dialog=page.getByRole('dialog',{name:'JSON 파일 가져오기',exact:true});await dialog.waitFor();const commit=dialog.getByRole('button',{name:'기존 일정에 추가',exact:true});await commit.waitFor();for(let i=0;i<100&&await commit.isDisabled();i++)await page.waitForTimeout(100);if(await commit.isDisabled())throw Error('preview not ready');await page.screenshot({path:'/home/planner/Dev/masterGantt-issue-797/output/playwright/issue-797/final/import-preview-390-viewport.png'});await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});if(!await trigger.evaluate(n=>n===document.activeElement))throw Error('import trigger not restored');return{ready:true,commitExecuted:false,restored:await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};})};}finally{await context.close();}",
+      "probeSha256": "14dd0ebcc6fa12a6879acb2830ebb91aa92771ee175f9822b085c5b45e496e0a"
+    },
+    {
+      "name": "project-no-result-reset-390",
+      "result": "PASS",
+      "facts": {
+        "resetRestoredResult": true,
+        "focus": {
+          "tag": "INPUT",
+          "name": "프로젝트명, 소유자 또는 설명 검색",
+          "focusVisible": true,
+          "outline": "auto"
+        }
+      },
+      "probeSource": "const original=page;const context=await original.context().browser().newContext({storageState:{cookies:await original.context().cookies(),origins:[]},viewport:{width:390,height:900},locale:'ko-KR',timezoneId:'Asia/Seoul',deviceScaleFactor:1});page=await context.newPage();page.setDefaultTimeout(12000);try{const response=await page.goto('http://127.0.0.1:3197/projects/084fd27c-7dad-48ad-85eb-3f8ac53b99e2');await page.getByText('편집 중',{exact:true}).waitFor();await page.goto('http://127.0.0.1:3197/');const search=page.getByRole('searchbox',{name:'프로젝트명, 소유자 또는 설명 검색',exact:true});await search.fill('없는항목_issue797_no_match');await page.getByRole('heading',{name:'조건에 맞는 프로젝트가 없습니다.',exact:true}).waitFor();await page.screenshot({path:'/home/planner/Dev/masterGantt-issue-797/output/playwright/issue-797/final/project-no-result-390-viewport.png'});const reset=page.getByRole('button',{name:'검색/필터 초기화',exact:true});await reset.focus();await page.keyboard.press('Enter');await page.getByRole('link',{name:'실물 연결 실제 API 검증',exact:true}).waitFor();return{resetRestoredResult:true,focus:await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};})};}finally{await context.close();}",
+      "probeSha256": "051a692b2201bfbcf8e73be2f26508614c4e3eab0583a84fa94a4ba534ac02b4"
+    }
+  ],
+  "keyboard390Diagnostic": {
+    "capturedAt": "2026-10-24T14:54:03.589Z",
+    "initialFailurePreserved": true,
+    "sourceSha256": "f7e1973610f051dfc5b3f2fad6720d6edd69faff30427266ded6c7f76829e022",
+    "probeSource": "const original=page;const context=await original.context().browser().newContext({storageState:{cookies:await original.context().cookies(),origins:[]},viewport:{width:390,height:900},locale:'ko-KR',timezoneId:'Asia/Seoul',deviceScaleFactor:1});page=await context.newPage();page.setDefaultTimeout(12000);try{const response=await page.goto('http://127.0.0.1:3197/projects/084fd27c-7dad-48ad-85eb-3f8ac53b99e2');await page.getByText('편집 중',{exact:true}).waitFor();await page.getByRole('tablist',{name:'프로젝트 작업공간',exact:true}).getByRole('tab',{name:'대시보드',exact:true}).click();const group=page.getByRole('tablist',{name:'대시보드 보기',exact:true}),kpi=group.getByRole('tab',{name:'KPI',exact:true});await kpi.focus();await page.keyboard.press('ArrowRight');const milestone=group.getByRole('tab',{name:'Milestone',exact:true});if(!await milestone.evaluate(n=>n===document.activeElement))return {stage:'ArrowRight',matches:false,actual:await page.evaluate(()=>({tag:document.activeElement?.tagName,name:document.activeElement?.getAttribute('aria-label')??document.activeElement?.textContent?.trim(),viewport:innerWidth}))};const arrow=await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};});await page.keyboard.press('Home');if(!await kpi.evaluate(n=>n===document.activeElement))return {stage:'Home',matches:false,actual:await page.evaluate(()=>({tag:document.activeElement?.tagName,name:document.activeElement?.getAttribute('aria-label')??document.activeElement?.textContent?.trim(),viewport:innerWidth}))};await page.screenshot({path:'/home/planner/Dev/masterGantt-issue-797/output/playwright/issue-797/final/dashboard-390-keyboard-diagnostic-viewport.png'});return{matches:true,arrow,home:await page.evaluate(()=>{const active=document.activeElement;return{tag:active?.tagName,name:active?.getAttribute('aria-label')??active?.textContent?.trim().slice(0,80),focusVisible:active?.matches(':focus-visible'),outline:active?getComputedStyle(active).outlineStyle:null};})};}finally{await context.close();}",
+    "result": "OBSERVATION",
+    "facts": {
+      "matches": true,
+      "arrow": {
+        "tag": "BUTTON",
+        "name": "Milestone",
+        "focusVisible": true,
+        "outline": "solid"
+      },
+      "home": {
+        "tag": "BUTTON",
+        "name": "KPI",
+        "focusVisible": true,
+        "outline": "solid"
+      }
+    }
+  }
+}
