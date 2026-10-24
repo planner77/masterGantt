@@ -3,7 +3,7 @@
 - Issue: https://github.com/planner77/masterGantt/issues/479
 - Base/main inspected: `b45885812301d14b9f673841e9944b27b2642323` (2026-10-24 KST)
 - Branch: `feat/issue-479-project-visibility`
-- Phase: ANALYSIS → PLAN → IMPLEMENTATION → PR CI → REWORK F-007 (prior Full failures recorded; next exact HEAD Full NOT TESTED)
+- Phase: ANALYSIS → PLAN → IMPLEMENTATION → PR CI → REWORK F-009 (prior Full failures recorded; next exact HEAD Full NOT TESTED)
 - Risk: HIGH (Security/DB/SSR/API+Export); qa_method: OWNER_MANAGED; qa_required: true
 - release_required: true; release_authorized: false; version proposal 0.132.0 MINOR
 - DESIGN.md: N/A, local privacy controls implement existing density/focus/status design rules. AGENTS.md: N/A, ownership and Source of Truth unchanged.
@@ -111,3 +111,11 @@ EXTEND existing `tests/server/projects/project-handlers.test.ts`, `tests/server/
 - Source [Full #3250.1](https://github.com/planner77/masterGantt/actions/runs/40086230274): Head `2d5d7d5e1a1c5fe53ab4785682c2f7126039c4b1`; Quality/Type/Lint/Vitest/Policy/Preflight/Build/Docker PASS, Chromium 8 shard `project-visibility.spec.ts` `getByRole('alert')` strict-mode collision with Next route announcer, other six shards CANCELLED, seventh SUCCESS, E2E aggregate/QA FAIL.
 - Scoped fix `#private-list-error` semantic role and text assertion; retains error message/cookie clearing, private SSR/401/authenticated Export security. F-001~F-007 unchanged. Work Packet's AC4/AC5/AC6/AC7 regressions stay as explicit mapping, production code/required gate unchanged.
 - Latest main #792 Release PR #796 advanced package baseline v0.132.0 and canonical large changelog/test-plan docs; merge them without overriding new main content. Detailed evidence [F-008](../../ISSUE_479_FAILURE_ANALYSIS.md), no change to release_authorized=false/Owner acceptance. New exact-Head Full8 required; merge/Main/GHCR/Finalizer/Issue closure disallowed until separate approval.
+
+
+## PR #794 F-009 — Full #3253.1 template long-card scoped selection
+
+- Immutable [Full #3253.1](https://github.com/planner77/masterGantt/actions/runs/40098738539) Head `c0f3233b0fb01a5cdec845fa116da28b94c09095`, base `8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24`: Policy/Type/Lint/Vitest/Build/Docker/Required Quality+Docker PASS, **Chromium Shard4** 74 PASS/1 FAIL/1 SKIP/14 NOT RUN; shard5 SUCCESS, six CANCELLED. Required E2E and Automated QA FAIL derivatively. Exact logs/Job IDs, history F-001~F-009 in [single failure ledger](../../ISSUE_479_FAILURE_ANALYSIS.md).
+- **Root cause**: #265 viewport test used unscoped `page.getByRole("radio")`; #479 correctly adds public/private inputs alongside selected template radio. Playwright strict selector matched three inputs. No evidence from this assertion of a production security failure.
+- **Correction + TEST_LIFECYCLE_REVIEW**: `EXTEND` the existing four-width template long-card test with a `#panel-template` **exact 200-character template-name role locator** and separate scoped public default assertion; keep original 200-char value, owner error/focus, horizontal overflow, screenshot. `KEEP_UNIQUE` prior #282 layout, #479 private authorization/SSR/Export/session, #792 core SQLite regression and F-007 exact template DTO. No skip/timeout/retry/CI8/Required3/QA/production change. Current main behind=0/mergeable and two P1 review threads resolved at pre-change audit.
+- **Source of truth/approval**: only E2E contract, cumulative ledger and this Work Packet updated; AGENTS.md, DESIGN.md, product/API/security/DB/QA/docs policies unchanged. Corrected Head E2E8/8, Trusted QA and Owner HIGH decision remain **NOT TESTED/NOT AUTHORIZED** until new Run, no merge/Main/GHCR/Finalizer/issue close.

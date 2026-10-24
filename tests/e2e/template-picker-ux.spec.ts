@@ -90,9 +90,11 @@ test("필드 오류 aria 연결·최초 오류 focus·수정 후 해제 및 정�
 for (const width of [390, 768, 1024, 1440]) {
   test(`긴 카드·선택 요약·오류 필드의 overflow와 focus ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    await installList(page, [{ ...templates[0], name: "가".repeat(200), description: "LongUnbrokenTemplateDescription".repeat(9) }]);
+    const longName = "가".repeat(200);
+    await installList(page, [{ ...templates[0], name: longName, description: "LongUnbrokenTemplateDescription".repeat(9) }]);
     await page.goto("/projects/new?mode=template");
-    await expect(page.getByRole("radio")).toBeChecked();
+    await expect(page.locator("#panel-template").getByRole("radio", { name: longName, exact: true })).toBeChecked();
+    await expect(page.locator("#panel-template fieldset.template-visibility-fieldset").getByRole("radio", { name: "공개", exact: true })).toBeChecked();
     expect(Array.from(await page.locator("#inst-project-name").inputValue()).length).toBe(200);
     await page.getByRole("button", { name: "템플릿에서 프로젝트 생성", exact: true }).click();
     await expect(page.locator("#inst-owner-name")).toBeFocused();
