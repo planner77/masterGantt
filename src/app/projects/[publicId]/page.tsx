@@ -15,7 +15,7 @@ async function readPageState(publicId: string) {
   const rawToken = projectSessionFromCookie(cookie);
   const service = getProjectService();
   const access = service.projectReadAccess(publicId, rawToken);
-  const snapshot = access === "allowed" ? service.getReadonlySnapshot(publicId, rawToken) : undefined;
+  const snapshot = access === "allowed" ? service.getAuthorizedReadonlySnapshot(publicId, rawToken) : undefined;
   return { access, snapshot };
 }
 

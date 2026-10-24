@@ -226,8 +226,8 @@ export class TaskFieldProjectService extends ProjectService {
     };
   }
 
-  override getReadonlySnapshot(publicId: string, rawToken?: string): ProjectSnapshotResponse | undefined {
-    const response = super.getReadonlySnapshot(publicId, rawToken);
+  override getReadonlySnapshot(publicId: string): ProjectSnapshotResponse | undefined {
+    const response = super.getReadonlySnapshot(publicId);
     if (!response) return undefined;
     const project = this.projectsForFields.findByPublicId(publicId);
     if (!project) return undefined;

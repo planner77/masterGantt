@@ -1,5 +1,6 @@
 import { parseEditSessionCookie } from "./cookie-core";
 import { parseApplicationBaseUrl } from "./origin-core";
+import { isCanonicalUuidV4 } from "../projects/project-contract";
 
 /** The canonical project session is the only private read grant; no new credential or role. */
 export function projectSessionFromCookie(cookieHeader: string | null): string | undefined {
@@ -26,7 +27,14 @@ export async function projectScopedAccessResponse(request: Request, requestId: s
   if (!match) return null;
   if (/^\/edit-sessions(?:\/current)?\/?$/.test(match[2] ?? "")) return null;
   const { getProjectService } = await import("../projects/project-service");
-  const access = getProjectService().projectReadAccess(match[1], projectSessionFromCookie(request.headers.get("cookie")));
+  // Next.js decodes route parameters. URL.pathname does not: evaluate one identical decoded ID.
+  let publicId: string;
+  try { publicId = decodeURIComponent(match[1]); } catch { publicId = ""; }
+  if (!isCanonicalUuidV4(publicId)) {
+    return Response.json({ error: { code: "PROJECT_NOT_FOUND", message: "Project not found.", details: [], requestId } },
+      { status: 404, headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
+  }
+  const access = getProjectService().projectReadAccess(publicId, projectSessionFromCookie(request.headers.get("cookie")));
   if (access !== "locked") return null;
   return Response.json({
     error: {

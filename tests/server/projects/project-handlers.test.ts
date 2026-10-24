@@ -318,7 +318,7 @@ describe("readonly and collection GET handlers", () => {
   it("returns readonly data with ETag and never mutates state", async () => {
     const getReadonlySnapshot = vi.fn(() => readonlyResponse);
     const response = handleReadProject(publicId, {
-      service: { getReadonlySnapshot },
+      service: { getAuthorizedReadonlySnapshot: getReadonlySnapshot, projectReadAccess: () => "allowed" as const },
       requestId: () => "request-id",
     });
 
@@ -335,11 +335,11 @@ describe("readonly and collection GET handlers", () => {
   it("returns the same sanitized 404 for malformed and absent IDs", async () => {
     const getReadonlySnapshot = vi.fn(() => undefined);
     const malformed = handleReadProject("NOT-A-UUID", {
-      service: { getReadonlySnapshot },
+      service: { getAuthorizedReadonlySnapshot: getReadonlySnapshot, projectReadAccess: () => "allowed" as const },
       requestId: () => "request-id",
     });
     const absent = handleReadProject(publicId, {
-      service: { getReadonlySnapshot },
+      service: { getAuthorizedReadonlySnapshot: getReadonlySnapshot, projectReadAccess: () => "allowed" as const },
       requestId: () => "request-id",
     });
 

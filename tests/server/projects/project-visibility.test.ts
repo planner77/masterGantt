@@ -55,11 +55,12 @@ describe("Issue #479 visibility and private read authorization", () => {
     const id = first.response.data.project.publicId;
     expect(service.listProjects().data.projects.find(p => p.publicId === id)).toMatchObject({name:"Private name",visibility:"private"});
     expect(service.projectReadAccess(id)).toBe("locked");
-    expect(service.getReadonlySnapshot(id)).toBeUndefined();
+    expect(service.getAuthorizedReadonlySnapshot(id)).toBeUndefined();
+    expect(service.getReadonlySnapshot(id)?.data.project.name).toBe("Private name"); // trusted internal service
     expect(service.projectReadAccess(id, other.rawSessionToken)).toBe("locked");
-    expect(service.getReadonlySnapshot(id, other.rawSessionToken)).toBeUndefined();
+    expect(service.getAuthorizedReadonlySnapshot(id, other.rawSessionToken)).toBeUndefined();
     expect(service.projectReadAccess(id, first.rawSessionToken)).toBe("allowed");
-    expect(service.getReadonlySnapshot(id, first.rawSessionToken)?.data.project.name).toBe("Private name");
+    expect(service.getAuthorizedReadonlySnapshot(id, first.rawSessionToken)?.data.project.name).toBe("Private name");
     timestamp = "2026-10-24T11:00:00.000Z";
     expect(service.projectReadAccess(id, first.rawSessionToken)).toBe("locked");
     timestamp = "2026-10-24T02:00:00.000Z";

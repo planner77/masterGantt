@@ -754,11 +754,17 @@ export class ProjectService {
     return this.authorize(publicId, rawToken).kind === "authorized" ? "allowed" : "locked";
   }
 
-  getReadonlySnapshot(publicId: string, rawToken?: string): ProjectSnapshotResponse | undefined {
+  /** User-facing snapshot: check Project visibility before exposing any data. */
+  getAuthorizedReadonlySnapshot(publicId: string, rawToken?: string): ProjectSnapshotResponse | undefined {
+    if (this.projectReadAccess(publicId, rawToken) !== "allowed") return undefined;
+    return this.getReadonlySnapshot(publicId);
+  }
+
+  /** Trusted internal aggregate snapshot for authenticated exports, imports and post-mutation responses. */
+  getReadonlySnapshot(publicId: string): ProjectSnapshotResponse | undefined {
     const readSnapshot = this.database.transaction(() => {
       const project = this.projects.findByPublicId(publicId);
-      if (!project || (project.visibility !== "public" &&
-        (project.visibility !== "private" || this.authorize(publicId, rawToken).kind !== "authorized"))) {
+      if (!project) {
         return undefined;
       }
 
