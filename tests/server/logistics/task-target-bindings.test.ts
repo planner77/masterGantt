@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { openDatabase } from "../../../src/server/db/core";
 import { TaskTargetBindingService, loadTaskTargetBindingSnapshot } from "../../../src/server/logistics/task-target-bindings-service-core";
+import { LegacyBindingScopeService } from "../../../src/server/logistics/legacy-binding-scope-service-core";
 import { LogisticsTargetService } from "../../../src/server/logistics/logistics-targets-service-core";
 import { LogisticsService } from "../../../src/server/logistics/logistics-service-core";
 import { LogisticsRepository } from "../../../src/server/repositories/logistics-repository-core";
@@ -388,5 +389,48 @@ describe("Issue #785 physical links and retired public boundary",()=>{
       expect(response.status).toBe(409);expect(response.headers.get("x-content-type-options")).toBe("nosniff");
       expect(f.db.prepare("SELECT task_id FROM task_target_bindings").get()).toEqual({task_id:f.leaf.id});
     }finally{f.db.close();}
+  });
+});
+
+describe("Issue #792 actual equipment subset coverage preserved by scope-only writer", () => {
+  it("preserves equipment quantity, selected member identity and numeric coverage across forward/reverse scope", () => {
+    const f=setup();
+    try {
+      const {equipment,target}=equipmentTarget(f), memberId=target.members[0].id;
+      f.bindings.replace(f.auth,f.revision(),f.summary.publicId,{bindings:[{
+        targetId:target.id,selection:"subset",scope:"self",memberIds:[memberId],
+        coverageByMember:[{memberId,coverage:4}],
+      }]});
+      const safe=new LegacyBindingScopeService(f.db,()=>now);
+      const original=safe.get(f.project.publicId,f.summary.publicId);
+      const source=original.sourceBindings[0];
+      const beforeMembers=f.db.prepare("SELECT * FROM task_target_binding_members WHERE project_id=? ORDER BY binding_id,member_id").all(f.project.id);
+      const beforeQty=f.db.prepare("SELECT quantity FROM project_equipment WHERE id=?").get(equipment.id);
+      const preview=safe.preview(f.auth,f.revision(),f.summary.publicId,
+        {sourceId:source.sourceId,scope:"subtree",sourceFingerprint:source.sourceFingerprint}).data;
+      expect(preview.memberCount).toBe(1);
+      expect(preview.affectedTaskIds).toContain(f.child.publicId);
+      const next=safe.apply(f.auth,f.revision(),f.summary.publicId,{
+        sourceId:source.sourceId,scope:"subtree",sourceFingerprint:source.sourceFingerprint,
+        impactToken:preview.impactToken,confirmImpact:true,
+      });
+      expect(next.data.projectRevision).toBe(original.projectRevision+1);
+      expect(f.db.prepare("SELECT * FROM task_target_binding_members WHERE project_id=? ORDER BY binding_id,member_id").all(f.project.id)).toEqual(beforeMembers);
+      expect(f.db.prepare("SELECT quantity FROM project_equipment WHERE id=?").get(equipment.id)).toEqual(beforeQty);
+      const child=f.bindings.get(f.project.publicId,f.child.publicId).effective;
+      expect(child.effectiveEquipmentIds).toEqual([equipment.publicId]);
+      expect(child.effectiveMembers[0].provenance).toMatchObject([{bindingId:source.sourceId,coverage:4,coverageMode:"partial"}]);
+      const reversalSource=safe.get(f.project.publicId,f.summary.publicId).sourceBindings[0];
+      const reversal=safe.preview(f.auth,f.revision(),f.summary.publicId,{sourceId:source.sourceId,
+        scope:"self",sourceFingerprint:reversalSource.sourceFingerprint}).data;
+      safe.apply(f.auth,f.revision(),f.summary.publicId,{sourceId:source.sourceId,scope:"self",
+        sourceFingerprint:reversalSource.sourceFingerprint,impactToken:reversal.impactToken,confirmImpact:true});
+      expect(f.bindings.get(f.project.publicId,f.child.publicId).effective.effectiveEquipmentIds).toEqual([]);
+      expect(f.bindings.get(f.project.publicId,f.summary.publicId).bindings[0]).toMatchObject({
+        id:source.sourceId,selection:"subset",scope:"self",memberIds:[memberId],
+        coverageByMember:[{memberId,coverage:4}],
+      });
+      expect(f.db.pragma("foreign_key_check")).toEqual([]);
+    } finally { f.db.close(); }
   });
 });
