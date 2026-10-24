@@ -46,7 +46,7 @@ export function LegacyBindingScopeEditor({taskId, revision, editable, disabled, 
     setOpen(false); setSources([]); setSelectedId(""); setPreview(null); setBusy(false); setError(null);
   }, [taskId, revision]);
   const selected = sources.find(source => source.sourceId === selectedId);
-  const sourceNamesById = new Map(sourceNames.map(source => [source.sourceId, source.label]));
+  const sourceNamesById = new Map<string, string>(sourceNames.map(source => [source.sourceId, source.label] as const));
   const path = () => {
     const match = /^\/projects\/([^/]+)\/?$/.exec(window.location.pathname);
     if (!match) throw new Error("프로젝트 경로를 확인할 수 없습니다.");
@@ -88,7 +88,7 @@ export function LegacyBindingScopeEditor({taskId, revision, editable, disabled, 
     try {
       const response = await fetch(path(), {
         method: mode === "preview" ? "POST" : "PATCH",
-        headers: {"Origin":window.location.origin,"If-Match":`"${revision}"`,"Content-Type":"application/json"},
+        headers: {"If-Match":`"${revision}"`,"Content-Type":"application/json"},
         body: JSON.stringify({sourceId:selected.sourceId,scope,sourceFingerprint:selected.sourceFingerprint,
           ...(mode === "apply" ? {confirmImpact:true,impactToken:expected?.impactToken} : {})}),
       });
@@ -143,7 +143,7 @@ export function LegacyBindingScopeEditor({taskId, revision, editable, disabled, 
         <button type="button" className="secondary-button" disabled={busy || disabled || scope === selected?.scope}
           onClick={()=>void mutate("preview")}>영향 미리보기</button>
         <button type="button" className="secondary-button" disabled={busy}
-          onClick={()=>{ epoch.current+=1; setOpen(false);setPreview(null);setError(null);}}>취소</button>
+          onClick={()=>{ epoch.current+=1; setBusy(false); setOpen(false);setPreview(null);setError(null);}}>취소</button>
       </div>
       {preview ? <div role="status" aria-live="polite">
         <p className={styles.note}>영향 작업 {preview.affectedTaskIds.length}개 · 구성원 {preview.memberCount}개 · {preview.beforeScope === "self" ? "자체" : "하위 포함"} → {preview.afterScope === "self" ? "자체" : "하위 포함"}. 직접 연결·coverage 및 원본 식별자는 보존됩니다.</p>
