@@ -23,6 +23,7 @@ Primary Issue: https://github.com/planner77/masterGantt/issues/792
 | LOCAL-004 | 정적 위험 교정 | 신규 subtree 후보의 provenance fanout 50,000건 경로 한도 검증 전치 | 단위테스트/부하 NOT RUN |
 | LOCAL-005 | 정적 위험 교정 | 비활성 Target/member의 self→subtree 확대 차단, active coverage/regression 추가 | Vitest NOT RUN |
 | LOCAL-006 | 검증 범위 확대 | orphan/인증·stale async body race/SQLite file restart·Equipment numeric coverage=4·역범위 복원 테스트 확장 | 실행 NOT RUN |
+| LOCAL-007 | 브라우저 영향 테스트 | 기존 #726격리 SQLite·실제 브라우저 시나리오에 Summary source preview/apply·5폭·readonly·출처 불변 검증 추가 | Playwright NOT RUN |
 
 ## PR / Review / Merge / CI 출처
 
