@@ -113,9 +113,22 @@ for (const key of keys) {
     JSON.stringify(x.primary.values?.map(value => value.text)) ===
     JSON.stringify(y.primary.values?.map(value => value.text));
   check(rowInvariant && metricInvariant, "Metric values/row count changed: " + key);
+  // Empty or incomplete async read receipts are missing evidence, never equality.
+  // Every dynamic perspective must report a populated response for its own root.
+  const validReports = evidence => Array.isArray(evidence) && evidence.length > 0 &&
+    evidence.every(report => report !== null && typeof report === "object" &&
+      typeof report.snapshotId === "string" && report.snapshotId.length > 0 &&
+      report.spec && typeof report.spec === "object" && report.spec.root === kind &&
+      report.filters && typeof report.filters === "object" && !Array.isArray(report.filters) &&
+      report.totals && typeof report.totals === "object" && !Array.isArray(report.totals) &&
+      report.range && typeof report.range.from === "string" && typeof report.range.to === "string" &&
+      typeof report.asOfDate === "string");
+  const reportEvidence = kind === "kpi" ||
+    (validReports(x.record.reports) && validReports(y.record.reports));
+  check(reportEvidence, "Missing populated read-only report receipt for " + key);
   const sameReports = kind === "kpi" ||
-    JSON.stringify(x.record.reports) === JSON.stringify(y.record.reports);
-  check(sameReports, "Read-only snapshot/spec/filter/totals changed: " + key);
+    (reportEvidence && JSON.stringify(x.record.reports) === JSON.stringify(y.record.reports));
+  check(sameReports, "Read-only snapshot/spec/filter/totals changed or missing: " + key);
   const overflowFree = [x, y].every(o => o.facts.document.scrollWidth - o.facts.document.clientWidth <= 1);
   const noRegress = Number.isFinite(xSummary) && Number.isFinite(ySummary) &&
     Number.isFinite(xTable) && Number.isFinite(yTable) &&
@@ -131,7 +144,7 @@ for (const key of keys) {
     tableY: Number.isFinite(xTable) ? +(yTable - xTable).toFixed(2) : null,
     visibleMetrics: y.primary.fullyVisibleValues - x.primary.fullyVisibleValues,
     visibleRows: y.primary.fullyVisibleRows - x.primary.fullyVisibleRows };
-  results.push({ key, status: sameEnvironment && rowInvariant && metricInvariant && sameReports && overflowFree && noRegress && kpiKeep ?
+  results.push({ key, status: sameEnvironment && rowInvariant && metricInvariant && reportEvidence && sameReports && overflowFree && noRegress && kpiKeep ?
     kind === "kpi" ? "KEEP" : "PASS_GEOMETRY" : "FAIL_OR_NOT_COMPARABLE", delta });
 }
 const report = {
