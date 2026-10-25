@@ -87,3 +87,54 @@ describe("WBS transport production contract",()=>{
   }finally{f.database.close();}
  });
 });
+
+describe("#809 chart analysis transport binding",()=>{
+ it("accepts the same transaction raw and public-v2 model, and rejects mixed query/source/generation/IDs/selector keys",()=>{
+  const f=wbsDashboardViewsFixture("direct");
+  try{
+   const input:WbsViewQueryInput={spec:defaultWbsViewSpec("resource"),filters:{from:"2026-10-05",to:"2026-10-09",granularity:"week",mdPerMm:20},analysis:{query:{pivot:["resource","milestone"],granularity:"week",unit:"M/D"},fetchGeneration:7}};
+   const data=f.service.queryWbsView(f.project.publicId,input)!;
+   if(data.projection!=="report"||!data.analysis)throw Error("analysis report");
+   const options={projectPublicId:f.project.publicId,projectRevision:data.projectRevision,input};
+   expect(readWbsViewResponse({data},options)).toBe(data);
+   expect(readWbsViewResponse({data:toResourcePublicV2(data)},options).snapshotId).toBe(data.snapshotId);
+   for(const mutate of [
+    (a:NonNullable<typeof data.analysis>)=>{a.scope.source.fetchGeneration=6;},
+    (a:NonNullable<typeof data.analysis>)=>{a.scope.source.sourceContext.snapshotId="0".repeat(64);},
+    (a:NonNullable<typeof data.analysis>)=>{a.scope.unit="M/M";},
+    (a:NonNullable<typeof data.analysis>)=>{a.scope.source.filters.taskSearch="different";},
+    (a:NonNullable<typeof data.analysis>)=>{a.scope.sourceScope!.taskRows[0].equipmentIds=["foreign"];},
+    (a:NonNullable<typeof data.analysis>)=>{a.scope.pivot=["group"];},
+    (a:NonNullable<typeof data.analysis>)=>{a.scope.granularity="month";},
+    (a:NonNullable<typeof data.analysis>)=>{a.scope.conditions={resource:["another"]};},
+    (a:NonNullable<typeof data.analysis>)=>{a.scope.scopeKey="{}";},
+    (a:NonNullable<typeof data.analysis>)=>{a.total.taskIds.push("foreign");},
+    (a:NonNullable<typeof data.analysis>)=>{a.cells[0].selector.scopeKey="old";},
+    (a:NonNullable<typeof data.analysis>)=>{a.plan.resources[0].cells[0].selected.knownMd=NaN;},
+   ]){const corrupted=structuredClone(data);mutate(corrupted.analysis!);expect(()=>readWbsViewResponse({data:corrupted},options)).toThrow("출처");}
+   expect(()=>readWbsViewResponse({data:{...data,analysis:undefined}},options)).toThrow();
+  }finally{f.database.close();}
+ });
+ it("accepts the WBS configuration-only equipment type predicate without narrowing analysis effort or rewriting selector keys",()=>{
+  const f=wbsDashboardViewsFixture("direct");
+  try{
+   const input:WbsViewQueryInput={spec:defaultWbsViewSpec("resource"),filters:{from:"2026-10-05",to:"2026-10-09",equipmentTypeCodes:["amr"]},analysis:{query:{pivot:["resource","equipment"]},fetchGeneration:5}};
+   const data=f.service.queryWbsView(f.project.publicId,input)!;if(data.projection!=="report"||!data.analysis)throw Error("analysis");
+   const options={projectPublicId:f.project.publicId,projectRevision:data.projectRevision,input};
+   expect(data.analysis.scope.source.filters).not.toHaveProperty("physicalEquipmentTypeCodes");
+   const wire=toResourcePublicV2(data);const accepted=readWbsViewResponse({data:wire},{...options,input:{...input,filters:{from:"2026-10-05",to:"2026-10-09",equipmentTypeCodes:["amr"]}}});
+   if(accepted.projection!=="report")throw Error("report");expect(accepted.analysis!.scope.scopeKey).toBe(data.analysis.scope.scopeKey);expect(accepted.analysis!.total.assignmentIds).toEqual(data.analysis.total.assignmentIds);
+  }finally{f.database.close();}
+ });
+ it("does not accept a later analysis generation or a different same-outer-response chart query",()=>{
+  const f=wbsDashboardViewsFixture("mixed");
+  try{
+   const input:WbsViewQueryInput={spec:defaultWbsViewSpec("resource"),filters:{from:"2026-10-05",to:"2026-10-09"},analysis:{query:{pivot:["group"]},fetchGeneration:2}};
+   const data=f.service.queryWbsView(f.project.publicId,input)!;
+   const options={projectPublicId:f.project.publicId,projectRevision:data.projectRevision,input};
+   expect(()=>readWbsViewResponse({data},{...options,input:{...input,analysis:{query:{pivot:["resource"]},fetchGeneration:2}}})).toThrow();
+   expect(()=>readWbsViewResponse({data},{...options,input:{...input,analysis:{query:{pivot:["group"]},fetchGeneration:1}}})).toThrow();
+   expect(readWbsViewResponse({data},options)).toBe(data);
+  }finally{f.database.close();}
+ });
+});

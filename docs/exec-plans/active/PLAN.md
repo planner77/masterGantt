@@ -1,3 +1,9 @@
+## Issue #809 — R3 리소스 차트와 정확 근거
+
+최신 main `56a094b797300a554909cd8d81ef0bafe46d6def`/app0.134.0에서 전용 `feat/issue-809-resource-charts`로 진행한다. 선행 #807 단일 workspace·#808 원장 분석 adapter를 소비하여 기간/Capacity·업무 집중·Milestone/실물 기여의 3유형과 같은 데이터 표·정확 원본/일정·복귀를 구현한다. 기존 WBS query에 동일 transaction의 opt-in 분석 seam만 연결한다.
+
+Manager 문서/통합·ui_ux 읽기 전용 설계·frontend UI/실제 browser·backend server seam·별도 qa_docs 사전검토·infra 게시로 소유를 분리한다. MINOR 후보0.135.0, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false다. [Work Packet](ISSUE_809.md)·[누적 실패 원장](../../ISSUE_809_FAILURE_ANALYSIS.md)의 실제 증거/미검증 경계를 따르며 종료점은 Ready PR Full CI 시작이다. CI 모니터링·병합/Main/GHCR·Release·Issue 종료는 하지 않는다. quality/e2e/docker·Trusted/Owner·Manager ACCEPT는 NOT TESTED다.
+
 ## Issue #808 PR811 — QA 차단 리뷰2건 교정
 
 [Full3297.1](https://github.com/planner77/masterGantt/actions/runs/40197745892)은 기존Head4a1c9c8b의 Required3/E2E8/구현gate 모두 PASS지만 QA Final의 미해결 리뷰2건으로 BLOCKED/RunFAIL, Trusted944.1은 원본실패로 파생FAIL이다. [누적 원장](../../ISSUE_808_FAILURE_ANALYSIS.md)8절과 [Work Packet](ISSUE_808.md)의 REWORK_R01에서 공동배정 개인 교집합 Task분모·개인pivot 미배정null셀을 보완한다. 원본RED4→최종직접33+인접90/7파일123 PASS와 별도 독립 사전검토를 구분한다.

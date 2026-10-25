@@ -153,13 +153,15 @@ export function resourceDrillLiveVisits<State>(
 /** Display adapter only: the caller must separately retain and revalidate the WBS request. */
 export function wbsScheduleDisplayScope(
   scope: Pick<import("@/contracts/wbs-dashboard-views").WbsViewScopeDto, "taskIds" | "assignmentIds" | "ancestorSummaryIds" | "sourceContext" | "snapshotId">,
-  selected: { taskId?: string; assignmentId?: string },
+  selected: { taskId?: string; assignmentId?: string; exactSelection?: { taskIds:string[]; assignmentIds:string[] } },
   assignments: readonly { id: string; taskId: string }[],
 ): import("@/contracts/resource-drill").ResourceDrillScopeDto {
   if (selected.taskId && !scope.taskIds.includes(selected.taskId)) throw Error("REPORT_STALE");
   if (selected.assignmentId && (!selected.taskId || !scope.assignmentIds.includes(selected.assignmentId) || !assignments.some(row => row.id === selected.assignmentId && row.taskId === selected.taskId))) throw Error("REPORT_STALE");
-  const taskIds = selected.taskId ? [selected.taskId] : scope.taskIds;
-  const assignmentIds = scope.assignmentIds.filter(id => (!selected.assignmentId || id === selected.assignmentId) && (!selected.taskId || assignments.some(row => row.id === id && row.taskId === selected.taskId)));
+  const exact=selected.exactSelection;
+  if(exact && (new Set(exact.taskIds).size!==exact.taskIds.length || new Set(exact.assignmentIds).size!==exact.assignmentIds.length || exact.taskIds.some(id=>!scope.taskIds.includes(id)) || exact.assignmentIds.some(id=>!scope.assignmentIds.includes(id)||!assignments.some(row=>row.id===id&&exact.taskIds.includes(row.taskId))) || selected.taskId&&!exact.taskIds.includes(selected.taskId) || selected.assignmentId&&!exact.assignmentIds.includes(selected.assignmentId))) throw Error("REPORT_STALE");
+  const taskIds = selected.taskId ? [selected.taskId] : exact?.taskIds ?? scope.taskIds;
+  const assignmentIds = (exact?.assignmentIds ?? scope.assignmentIds).filter(id => (!selected.assignmentId || id === selected.assignmentId) && (!selected.taskId || assignments.some(row => row.id === id && row.taskId === selected.taskId)));
   const source = scope.sourceContext;
   return {
     schema: "resource-dashboard/1", snapshotId: scope.snapshotId,

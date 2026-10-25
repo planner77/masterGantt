@@ -1,3 +1,11 @@
+## Issue #809 — Resource 차트 연결과 기존 고유 회귀
+
+선행 #807 작업면·#808 원장 adapter를 사용하는 chart consumer만 확장한다. 직접 범위는 기존 WBS query의 opt-in analysis parse/동일 transaction·sourceScope·예산/오류와 Resource 차트의 3유형·동일 값/표·정확 ID 상세/일정·응답 역전/조건 변경이다. 기존 ResourceDashboard/Plan/Excel·공통 geometry는 고유 경계로 유지한다.
+
+`TEST_LIFECYCLE_REVIEW`: 기존 `issue-736-resource-dashboard.spec.ts`, `resource-wbs-dashboard-model.test.ts`, `wbs-view-transport.test.ts`, `resource-drill-navigation-model.test.ts`, `wbs-dashboard-views-http.test.ts`, `issue-736-resource-adapter.test.ts`를 EXTEND, `resource-analysis.test.ts`·`resource-plan*`·`resource-excel-export-dashboard`·OOXML·`cross-screen-regression`·#800 helper는 KEEP_UNIQUE다. 새 전체 E2E 복제·삭제/skip·허용오차/timeout/retry·Required3/8-shard 변경은 없다. 선정한 producer→consumer·명령·고유 case·실패와 최종 source hash는 [Work Packet](exec-plans/active/ISSUE_809.md)·[누적 실패 원장](ISSUE_809_FAILURE_ANALYSIS.md)에 기록한다.
+
+동일 fixture/source에서 390/768/1024/1440/1920×900px의 실제 geometry·문서 overflow와 표 소유 scroll·label/축/범례·가시 행/첫 데이터·keyboard/focus·원본불변을 관측한다. 기간 Plan의 선택80%/같은 개인 Project140%와 null/partial/Capacity0·M/M 미설정·중첩 분류 비가산은 기존 golden과 새 연결을 대조한다. stale/error/readonly·401/412는 해당 server/feature/browser 경계를 구분한다. 로컬 선별 PASS는 원격 full quality/e2e/docker PASS가 아니며 새 PR CI는 시작까지만 수행한다. 실제 기기·screen reader·native125%·운영/Excel 환경은 별도 NOT TESTED다.
+
 ## Issue #808 PR811 REWORK_R01 — 개인 교집합·미배정 pivot
 
 원본 [Full3297.1](https://github.com/planner77/masterGantt/actions/runs/40197745892)의 Required3/Chromium8/구현 테스트는 PASS이고 QA Final만 미해결 리뷰2개로 BLOCKED/RunFAIL이다. 테스트 실패로 잘못 분류하지 않으며 [원장8절](ISSUE_808_FAILURE_ANALYSIS.md)의 전체6runs/attempt·직접/파생 판정과 source evidence를 보존한다.

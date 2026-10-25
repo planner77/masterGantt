@@ -12,11 +12,15 @@ export interface WbsViewScheduleRequest {
   trigger: HTMLElement;
   taskId?: string;
   assignmentId?: string;
+  /** Snapshot-bound chart IDs; a subset of the revalidated WBS scope. */
+  exactSelection?: { taskIds: string[]; assignmentIds: string[] };
   /** Transient UI intent lease; never persisted in navigation history. */
   intentSignal?: AbortSignal;
 }
 export interface ResourceScheduleRequest {
   data: ResourceDashboardDto;
+  /** Cancels a handed-off navigation when the source chart intent is superseded. */
+  intentSignal?: AbortSignal;
   projection: Extract<ResourceDrillProjection, { kind: "scope" }>;
   label: string;
   trigger: HTMLElement;

@@ -1,0 +1,396 @@
+{
+  "schema": "issue-809-independent-local-pre-qa/1",
+  "reviewer": "/root/chart_qa",
+  "scope": "backend-only; UI implementation remains in progress",
+  "dateUtc": "2026-10-25T19:45:10.799743+00:00",
+  "headSha": "56a094b797300a554909cd8d81ef0bafe46d6def",
+  "command": "npx vitest run --config tests/config/vitest.config.ts tests/server/resources/wbs-dashboard-views-http.test.ts tests/server/resources/issue-736-resource-adapter.test.ts tests/domain/resource-analysis.test.ts --reporter=json --outputFile=/tmp/issue-809-qa-backend.json",
+  "nodeVersion": "v22.14.0",
+  "status": "PASS",
+  "exitCode": 0,
+  "passed": 73,
+  "failed": 0,
+  "pending": 0,
+  "sourceStable": true,
+  "sourceSha256BeforeAndAfter": {
+    "src/contracts/wbs-dashboard-views.ts": "3cc4dc01f054a4c4d34dae1a5e1d4927b496a6cea6d05a8094e05c848ae80127",
+    "src/server/resources/resource-dashboard-service-core.ts": "da4d086efe15a0ac2121df512ed02ddbad8c487b19f6d40fedb034d21ff1be41",
+    "src/server/resources/wbs-dashboard-views-query-core.ts": "d5d55eaaebfb85ce30ea764542f17f7306c2851c7cfa7fe087e18e25bced063b",
+    "tests/server/resources/wbs-dashboard-views-http.test.ts": "fd25be0498e5443be35b969a6acc26fabbbc9c8b381a76c700f252aaaab083ba",
+    "tests/server/resources/issue-736-resource-adapter.test.ts": "30f5a2c6f646f42de917e851129259a1c93fd5d70f0a93483cf37b9ac32287d0"
+  },
+  "rawReportSha256": "a812344114d4c93461fc6eb52fed055df8aa6c85deb08600e11a6078c2cc98af",
+  "rawReport": "raw-server-qa.json",
+  "remoteQuality": "NOT TESTED",
+  "remoteE2e": "NOT TESTED",
+  "remoteDocker": "NOT TESTED",
+  "qaFinal": "NOT TESTED",
+  "managerDecision": "NOT TESTED",
+  "featureReview": {
+    "status": "PASS",
+    "dateUtc": "2026-10-25T20:23:24.414760+00:00",
+    "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/resources/wbs-view-transport.test.ts tests/features/resources/resource-drill-navigation-model.test.ts tests/features/resources/resource-wbs-dashboard-model.test.ts --reporter=json --outputFile=/tmp/issue-809-qa-features.json",
+    "passed": 26,
+    "failed": 0,
+    "pending": 0,
+    "rawReport": "raw-feature-qa.json",
+    "rawReportSha256": "51f6b0515cfba167a5db1d98579f6aa489d0d0d1fc3c12c7d9d5740e47304cf3",
+    "sourceFreeze": "../../../output/playwright/issue-809/product-freeze.json",
+    "sourceHashesCheckedBeforeAndAfter": 551,
+    "sourceMismatchBefore": [],
+    "sourceMismatchAfter": [],
+    "additionalRuntimePositives": [
+      {
+        "case": "resource",
+        "status": "PASS"
+      },
+      {
+        "case": "group",
+        "status": "PASS"
+      },
+      {
+        "case": "role",
+        "status": "PASS"
+      },
+      {
+        "case": "monthMM",
+        "status": "PASS"
+      },
+      {
+        "case": "nullBranch",
+        "status": "PASS"
+      }
+    ],
+    "additionalRuntimeNegatives": [
+      {
+        "case": "sameOuterOldGeneration",
+        "status": "PASS"
+      },
+      {
+        "case": "sameOuterWrongPivot",
+        "status": "PASS"
+      },
+      {
+        "case": "sameOuterWrongSourceIds",
+        "status": "PASS"
+      },
+      {
+        "case": "sameOuterMissingPlan",
+        "status": "PASS"
+      },
+      {
+        "case": "crossTaskAssignment",
+        "status": "PASS"
+      },
+      {
+        "case": "foreignTask",
+        "status": "PASS"
+      },
+      {
+        "case": "duplicateAssignment",
+        "status": "PASS"
+      }
+    ],
+    "setupFailures": [
+      {
+        "status": "FAIL",
+        "classification": "QA_TOOL_PREPARATION",
+        "message": "Node --import tsx --input-type=module named import from CJS-transformed TS: no named export defaultWbsViewSpec. Corrected to require interop; product code unchanged."
+      }
+    ],
+    "scope": "Independent local feature/transport/navigation checks only; Chromium evidence and documentation review pending."
+  },
+  "recoveryReview": {
+    "reviewer": "/root/qa_recovery",
+    "checkedAtUtc": "2026-10-25T21:13:15.293907+00:00",
+    "status": "PASS",
+    "mode": "READ_ONLY_CODE_AND_INHERITED_EXECUTION_EVIDENCE_REVALIDATION_WITH_INDEPENDENT_FEATURE_EXECUTION",
+    "headSha": "56a094b797300a554909cd8d81ef0bafe46d6def",
+    "previousReviewer": "/root/chart_qa",
+    "inheritedRawReportsVerified": {
+      "raw-server-qa.json": {
+        "sha256": "a812344114d4c93461fc6eb52fed055df8aa6c85deb08600e11a6078c2cc98af",
+        "passed": 73,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      "raw-feature-qa.json": {
+        "sha256": "51f6b0515cfba167a5db1d98579f6aa489d0d0d1fc3c12c7d9d5740e47304cf3",
+        "passed": 26,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      }
+    },
+    "backendFiveFileHashMismatch": [],
+    "productDeltaFromR01": [
+      "src/features/resources/resource-charts.module.css"
+    ],
+    "r02Freeze": "../../../output/playwright/issue-809/product-freeze-r02.json",
+    "r02ProductHashMismatch": [],
+    "reuseDecision": "이전 Reviewer가 서버73·feature26을 실제 실행했다. 복구 Reviewer는 원본 JSON·SHA256·검증 대상 소스의 불변을 독립 대조했으며 당시 테스트를 직접 재실행했다고 주장하지 않는다. 이후 T0 교정은 r03-final의 독립27case와 별도13체크로 검증했다.",
+    "remoteCi": "NOT TESTED",
+    "qaFinal": "NOT TESTED",
+    "managerDecision": "NOT TESTED",
+    "findings": [
+      {
+        "id": "R809-REC-001",
+        "severity": "P2",
+        "status": "REWORK",
+        "ac": "R3-AC3",
+        "classification": "PRODUCT_DIAGNOSTIC_NAVIGATION_SCOPE",
+        "observed": "개인 R1 필터의 report는 Task4개이며 T0 개인 미배정2개는 모두 그 report 범위 밖이다. 차트가 T0 IDs를 개인 조건 report/path[]로 기존 WBS navigation gateway에 보내므로 정상 source인데도 REPORT_STALE로 거절됐다.",
+        "actualRuntimeResult": {
+          "reportTasks": 4,
+          "diagnosticTasks": 2,
+          "diagnosticTasksOutsideReport": 2,
+          "navigation": "REPORT_STALE"
+        },
+        "reproducer": "node --import tsx + require interop: direct fixture→resource root/2026-10-05..09/resourceIds R1/analysis pivot resource→personallyUnassigned IDs→같은 report의 projection scope→wbsScheduleDisplayScope(exactSelection T0 IDs, A[]). finally에서 fixture DB 종료.",
+        "affectedFiles": [
+          "src/features/resources/resource-charts-dashboard.tsx",
+          "src/features/resources/resource-drill-navigation-model.ts"
+        ],
+        "decision": "Manager 승인 후 원본 재검증과 별도 T0 범위의 명시적 인계를 구현한다. 기존 부분집합·원본 배정 관계 검사를 완화하지 않는다.",
+        "followupSourceHashesObservedWhileImplementerStartedCorrection": {
+          "src/features/resources/resource-charts-dashboard.tsx": "502608ccc82a45fcf5acbc004df5af307afb12416ab0beb68d67b02236741df1",
+          "src/features/resources/resource-drill-navigation-model.ts": "882c8d7ba5d45573f5caa2f341d0de50f178f03bd5839982f3abb0509e1da2ab"
+        },
+        "affectedSourceHashesFromReviewedR02Freeze": {
+          "src/features/resources/resource-charts-dashboard.tsx": "f1edbd1be14873caafcdb20378c941a919ae8effdfaf4f8c52f8ef375614df23",
+          "src/features/resources/resource-drill-navigation-model.ts": "882c8d7ba5d45573f5caa2f341d0de50f178f03bd5839982f3abb0509e1da2ab"
+        },
+        "resolution": {
+          "status": "PASS",
+          "freeze": "output/playwright/issue-809/product-freeze-r03-final.json",
+          "actualRuntimeResult": {
+            "originalDiagnosticTasksOutsidePersonalReport": 2,
+            "correctedNavigationTaskCount": 2,
+            "correctedNavigationAssignmentCount": 0,
+            "status": "PASS"
+          },
+          "positiveChecks": [
+            "원본 T0 P2를 fixture/service/public-v2/별도 진단 report/scope/기존 navigation으로 직접 재검증: 정확 Task2/A0 인계 성공",
+            "개인7조건만 제거하고 taskSearch/status/Milestone/Task/WBS root/실물 조건과 원래 scope 보존"
+          ],
+          "negativeChecks": [
+            "projectRevision",
+            "dataSnapshot",
+            "catalogRevision",
+            "calendarRevision",
+            "range",
+            "asOf",
+            "mdBasis",
+            "providedBasis",
+            "originalScope",
+            "duplicateDiagnosticIds",
+            "assignedTaskOutsideDiagnosticAuthority"
+          ],
+          "additionalCheckCount": 13,
+          "countingRule": "추가13체크는 별도 교차 증거이며 고유 Vitest100case(서버73+최종feature27)에 중복 합산하지 않는다.",
+          "browserEvidence": {
+            "raw": "output/playwright/issue-809/recovery-e2e-final.json",
+            "sourceGuard": "output/playwright/issue-809/recovery-e2e-final-source-guard.json",
+            "durationMs": 57808,
+            "retry": 0,
+            "sourceMismatchBefore": [],
+            "sourceMismatchAfter": [],
+            "coverage": "개인 필터 T0 원본 재검증→정확 Task 집합/Assignment0 일정 인계와 복귀를 포함한 최종 #809 Chromium 실행. 독립 Reviewer가 명령·원본 결과·소스 가드·실제 테스트 단언을 대조했다."
+          }
+        }
+      }
+    ],
+    "featureReview": {
+      "reviewer": "/root/qa_recovery",
+      "checkedAtUtc": "2026-10-25T21:00:37.176803+00:00",
+      "freeze": "output/playwright/issue-809/product-freeze-r03-final.json",
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "--config",
+        "tests/config/vitest.config.ts",
+        "tests/features/resources/wbs-view-transport.test.ts",
+        "tests/features/resources/resource-drill-navigation-model.test.ts",
+        "tests/features/resources/resource-wbs-dashboard-model.test.ts",
+        "--reporter=json",
+        "--outputFile=/tmp/issue-809-recovery-qa-features.json"
+      ],
+      "exitCode": 0,
+      "passed": 27,
+      "failed": 0,
+      "pending": 0,
+      "sourceMismatchBefore": [],
+      "sourceMismatchAfter": [],
+      "rawReport": "raw-recovery-feature-qa.json",
+      "rawReportSha256": "f194ae371175628f2fdb730c77a2a034afc0a0015430151f6fdf00428eaffa49",
+      "sourceHashCount": 551,
+      "sourceFreezeSha256": "59b020ea6b9ed931184ce667bcee5f4e0cc4d630f0dd6e4f17eb33e7b44cae90"
+    },
+    "preExecutionGuardHistory": [
+      {
+        "freeze": "output/playwright/issue-809/product-freeze-r03.json",
+        "status": "BLOCKED",
+        "executedTests": 0,
+        "exitCode": 3,
+        "sourceMismatch": [
+          "src/features/resources/resource-charts-dashboard.tsx"
+        ],
+        "reason": "구현자가 추가 await 뒤 stage lease를 보완 중이어서 실행 전 source guard가 차단했다. 새 r03-final 동결본에서27case를 정상 실행했다."
+      }
+    ],
+    "asyncLifetimeReview": {
+      "status": "PASS_STATIC_REVIEW",
+      "awaitedDiagnosticCallback": true,
+      "callbackFailureCollectedByExistingRevalidationCatch": true,
+      "knownStaleCacheInvalidated": true,
+      "pendingFinalizedOnlyByOwningController": true,
+      "postAwaitStageGuards": [
+        "intentSignal.aborted",
+        "mounted",
+        "actionGeneration",
+        "liveKey"
+      ],
+      "handedOffOwnBusyDoesNotCancelNavigationIntent": true,
+      "existingSynchronousCallbacksPreserved": true,
+      "browserEvidence": "PASS：같은 r03-final551항목의 #80957.808초에서 child/host scope 취소·close lease/busy·개인 T0 인계/복귀를 확인했다. 추가조회 실패는 코드와 음성 source 검증으로 대조했으며 모든 네트워크 오류 조합의 실제 브라우저 재현을 주장하지 않는다."
+    },
+    "pending": [
+      "게시 담당 infra의 최종 stage allowlist에서 trace.zip/임시CLI/log/runtime/DB 제외 확인",
+      "새 exact Head 원격 Required quality/e2e/docker·Trusted QA/Owner 결정·Manager ACCEPT：NOT TESTED"
+    ],
+    "untrackedTraceCredentialCheck": {
+      "status": "LOCAL_ONLY_PUBLICATION_CONTROL_PENDING",
+      "classification": "LOCAL_EVIDENCE_ONLY_NOT_A_PUBLISHED_LEAK",
+      "rawTraces": 2,
+      "requestCookieHeaderCount": 4,
+      "responseSetCookieHeaderCount": 4,
+      "passwordBodyKeyCount": 2,
+      "rawCredentialValuesPrintedOrRetainedInThisReceipt": false,
+      "gitTrackedAtCheck": false,
+      "decision": "원본 ZIP은 로컬 보존하고 stage/원격 게시에서 제외한다. 필요한 경우 기존 승인 정제 절차만 사용한다. 중단된 *.cli.js도 임시 관측 코드이므로 stage 제외하며 Manager에게 전달했다.",
+      "stagingCheckedAtFinalReview": "아직 index 비어 있음. 게시 담당 infra가 최종 allowlist staging 후 ZIP/CLI/log/runtime 미포함을 별도로 확인해야 한다."
+    },
+    "scope": "LOCAL_PRE_QA: 최종 r03-final 소스·로컬 실행 증거·문서 의미의 독립 사전검토. 원격 최종 QA/Owner 승인을 대신하지 않는다.",
+    "finalSourceCheck": {
+      "freeze": "output/playwright/issue-809/product-freeze-r03-final.json",
+      "checkedFiles": 551,
+      "mismatch": [],
+      "applicationVersionAtBrowserExecution": "0.134.0",
+      "currentCandidateVersion": "0.135.0",
+      "versionOnlyFields": 3,
+      "nonVersionPackageAndLockDelta": 0,
+      "generatedConfigurationDiff": 0
+    },
+    "browserEvidenceReview": {
+      "status": "PASS",
+      "executionOwner": "/root/chart_recovery",
+      "reviewer": "/root/qa_recovery",
+      "final809DurationMs": 57808,
+      "sourceMismatchBefore": [],
+      "sourceMismatchAfter": [],
+      "adjacent807ReuseDurationMs": 52361,
+      "adjacent736HistoricalDurationMs": 51500,
+      "reuseBoundary": "#807은 r03 T0 분기 미진입·host/Workspace/CSS 불변으로 재사용한다. #73651.5초는 중단된 원 실행에서 완료된 단일 case의 역사 증거이며 최종 batch3/3으로 합산하지 않는다.",
+      "coverage": "3차트 수치/출처/원본·정확 상세·Editor/일정 왕복·scope 재확인/취소·캐시/역전·401/412·390 focus/scroll·touch/reduced-motion emulation·T0 개인필터 교정",
+      "notTested": [
+        "실제 모바일 기기 touch",
+        "screen reader",
+        "native125% zoom",
+        "production build/Docker/운영",
+        "원격 quality/e2e/docker"
+      ]
+    },
+    "geometryReview": {
+      "status": "PASS",
+      "charts": 15,
+      "keep": 5,
+      "widths": [
+        390,
+        768,
+        1024,
+        1440,
+        1920
+      ],
+      "documentOverflow": 0,
+      "sourceStable": true,
+      "productHashCount": 546,
+      "canonicalFingerprintEqual": true,
+      "canonicalRevision": 17,
+      "canonicalTaskArrayCount": 4,
+      "canonicalAssignmentArrayCount": 1,
+      "captureWrites": 0,
+      "glyph390Delta": [
+        0,
+        0
+      ],
+      "beforeKeepBasicYEqualAllWidths": true,
+      "beforeKeepFullyVisibleRows": [
+        0,
+        0,
+        0,
+        1,
+        1
+      ],
+      "actualScreenshotsInspected": [
+        "after-final-r03/period-390-viewport.png",
+        "after-final-r03/concentration-1440-viewport.png"
+      ],
+      "limit": "모바일 차트 표 완전 가시행0, desktop 기간표1·집중/기여표0. 기본현황 작업면 보존과 overflow0의 PASS이며 전폭 first-fold 데이터 가시나 전환경 접근성 인증이 아니다."
+    },
+    "documentationReview": {
+      "status": "PASS",
+      "structuralGate": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING는 구조 도구의 출력이며 의미 검토는 이 Reviewer가 별도로 수행했다.",
+      "acMapping": "R3-AC1~6 각각 구현/테스트·브라우저/문서 경계를 대조했다.",
+      "updatedDocs": [
+        "API",
+        "ARCHITECTURE",
+        "PROJECT_UX",
+        "RESOURCE_KPI_DASHBOARD",
+        "TARGET_RESOURCE_USER_GUIDE",
+        "REQUIREMENTS",
+        "TEST_PLAN",
+        "UI_UX_GUIDELINES",
+        "PLAN",
+        "CHANGELOG",
+        "ISSUE_809 Work Packet",
+        "ISSUE_809_FAILURE_ANALYSIS"
+      ],
+      "semanticFindings": "개인7조건 제거/Task·실물·원scope 보존·동일source/T0subset·추가조회 수명·캐시/실패·동일source551/100Vitest·화면 측정/first-fold 한계·runtime0.134와version-only0.135·로컬/원격 및 Owner gate 구분이 코드/원본 영수증과 일치한다. 이전 단계의 대기 문장은 시간순 이력이며 최신 최종 마감 문단을 현재 판정으로 본다.",
+      "ciKoreanReview": "PASS：변경 CI workflow/표시명·식별자·Required3/8shard·권한·Action pin 없음. 신규 검증/실패 설명은 한글이며 외부 원문 명령·로그와 PASS/FAIL/BLOCKED/NOT TESTED를 보존했다. 지침만으로 Actions 화면 한글화를 주장하지 않는다.",
+      "finalManagerClosureTextRechecked": true,
+      "finalManagerClosureTextResult": "PASS：packet의 현재 LOCAL_PRE_QA/DOC_SYNC PASS와 원장의 이전 browser 대기 시점 및 현재 최종 마감을 직접 재대조했다. 제품/테스트 변경 없이 상태 설명만 갱신됐다."
+    },
+    "uniqueVitestCases": {
+      "files": 6,
+      "passed": 100,
+      "failed": 0,
+      "pending": 0,
+      "backendInherited": 73,
+      "featureIndependentlyExecuted": 27,
+      "additionalCrossChecks": 13,
+      "countingRule": "이전feature26·반복 실행·추가13교차는100에 합산하지 않는다."
+    },
+    "resultContract": {
+      "localPreQa": "PASS",
+      "documentationSyncSemantic": "PASS",
+      "openP1": 0,
+      "openP2": 0,
+      "remoteQuality": "NOT TESTED",
+      "remoteE2e": "NOT TESTED",
+      "remoteDocker": "NOT TESTED",
+      "mainGhcr": "NOT TESTED",
+      "qaFinal": "NOT TESTED",
+      "managerDecision": "NOT TESTED",
+      "mergeReady": "BLOCKED",
+      "nextPhase": "게시 통제 확인 후 Ready PR의 Full CI 시작. 사용자 요청에 따라 모니터링하지 않는다."
+    },
+    "reviewerIdentity": {
+      "agent": "/root/qa_recovery",
+      "configuredRole": "qa_docs / GPT-6.1 Sol / High",
+      "runtimeModelTelemetry": "NOT TESTED",
+      "boundary": "실제 분리 Agent ID와 직접27case/13체크 실행은 확인했다. 역할 설정을 모델 백엔드의 실제 실행 telemetry로 확대하지 않는다."
+    }
+  }
+}

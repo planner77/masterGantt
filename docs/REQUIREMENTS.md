@@ -1,3 +1,7 @@
+## Issue #809 — Resource 차트와 원본 근거
+
+리소스의 단일 작업면에 기간별 계획/Capacity·개인 과투입, 개인/Group/Role/등급 업무 집중, Resource×Milestone/공정/WorkArea/설비/System 기여의 세 분석 시각을 제공한다. 같은 source/snapshot/scope/unit의 그래프·접근 가능한 표·원본 Task/Assignment·일정 이동을 연결한다. 기간/목록은 제한된 window/정렬/페이지로 탐색하며 비가산 분류·partial/null/0·선택과 Project 참고·전체 Gate를 보존한다. 기존 보기/Plan/Excel·권한·If-Match·Gantt 상태를 유지하고 새 실적/근태/원가·저장 원장/PRO 의존성을 만들지 않는다. [실행 계획](exec-plans/active/ISSUE_809.md)의 AC1~AC6와 실제 증거를 따른다.
+
 ## Issue #553 — Milestone 교환·출력 무손실 인수 (2026-10-25)
 
 #552의 기본 WBS에는 Summary/Task만 표시하고 생산 Timeline marker는 OFF이다. **화면 표시·검색·접힘은 원본 Task/Milestone/Link/Membership, Ready·Completed/공수, revision/권한·Export 범위를 변경하지 않는다**. JSON1.1·Excel은 canonical 데이터를, SVG/PNG는 기존의 확장 WBS·지원 날짜 범위를 출력하며 완전한 화면 스크린샷이 아니다. Legacy mixed·지원되지 않은 renderer 입력은 무단 누락 없이 fail-closed. [사용자 가이드](MILESTONE_USER_GUIDE.md), [#553 추적표](MILESTONE_TIMELINE_TRACEABILITY.md), [#574 기준선 QA](https://github.com/planner77/masterGantt/issues/574)를 적용한다. #573/#693 ON은 별도 선택.

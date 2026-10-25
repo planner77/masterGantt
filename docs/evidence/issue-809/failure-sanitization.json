@@ -1,0 +1,66 @@
+{
+  "issue": 809,
+  "actor": "/root",
+  "createdAt": "2026-10-25T21:17:01.768927+00:00",
+  "reason": "실패한 Playwright context 원본 bytes는 로컬에 보존하고, 공개 문서는 기존 공백 검사를 통과하도록 줄끝 ASCII 공백만 정제한다.",
+  "status": "PASS",
+  "files": [
+    {
+      "publishedPath": "output/playwright/issue-809/failures/equivalent-query-observer.md",
+      "rawLocalPath": ".prepr-reports/issue809-publication/raw-failures/equivalent-query-observer.md",
+      "rawSha256": "6d276adfa01d98a653ab67dbcb710791320e7473bd638d528611c178e5f5f767",
+      "publishedSha256": "826cca2f77b6c1ead58353ea77db9f7a20cc6cc509d9fe6ac9de05914b385274",
+      "changedLines": 4,
+      "removedAsciiWhitespaceBytes": 4,
+      "contentChange": "줄끝 ASCII space/tab만 제거했으며 원본 raw bytes는 로컬에 보존했다."
+    },
+    {
+      "publishedPath": "output/playwright/issue-809/failures/initial-chart-scope-locator.md",
+      "rawLocalPath": ".prepr-reports/issue809-publication/raw-failures/initial-chart-scope-locator.md",
+      "rawSha256": "5ffde8cdc679d796ccc9b8b99b998148288ad4fa2b62f2e97a0cfb1eccc32042",
+      "publishedSha256": "76d3489f904e2702c4458055488ece8b13982887d05ae35e22097c2f2fae29ff",
+      "changedLines": 4,
+      "removedAsciiWhitespaceBytes": 4,
+      "contentChange": "줄끝 ASCII space/tab만 제거했으며 원본 raw bytes는 로컬에 보존했다."
+    },
+    {
+      "publishedPath": "output/playwright/issue-809/failures/navigation-return-focus-root.md",
+      "rawLocalPath": ".prepr-reports/issue809-publication/raw-failures/navigation-return-focus-root.md",
+      "rawSha256": "789b6a13659171d734bd1fac8948f5a0c2b59a9bd04a8dfed02c9a78b118e4c1",
+      "publishedSha256": "0d59d0fc13a42cf9be5165b3739abd921ad7834f24c1cccc1afefa319d55751f",
+      "changedLines": 3,
+      "removedAsciiWhitespaceBytes": 3,
+      "contentChange": "줄끝 ASCII space/tab만 제거했으며 원본 raw bytes는 로컬에 보존했다."
+    },
+    {
+      "publishedPath": "output/playwright/issue-809/failures/navigation-return-scope-focus.md",
+      "rawLocalPath": ".prepr-reports/issue809-publication/raw-failures/navigation-return-scope-focus.md",
+      "rawSha256": "293399bc2464791684515eeaab7bb25be324e704bd6fdb8e954e6fbde52015e1",
+      "publishedSha256": "7b9e2faab4c4ba4c576a195f9a2e24441eea91f46aebfbdaf2c74c2a365e8a88",
+      "changedLines": 3,
+      "removedAsciiWhitespaceBytes": 3,
+      "contentChange": "줄끝 ASCII space/tab만 제거했으며 원본 raw bytes는 로컬에 보존했다."
+    },
+    {
+      "publishedPath": "output/playwright/issue-809/failures/pending-detail-close-focus.md",
+      "rawLocalPath": ".prepr-reports/issue809-publication/raw-failures/pending-detail-close-focus.md",
+      "rawSha256": "6482762f9a4c063bb4805d74e1cacd522a7f0ba89a66e8700771046bc7231a02",
+      "publishedSha256": "626b2f1ba643d7289344e3eb6e4c7bc21d433fed50bd133bde4174497ca55177",
+      "changedLines": 3,
+      "removedAsciiWhitespaceBytes": 3,
+      "contentChange": "줄끝 ASCII space/tab만 제거했으며 원본 raw bytes는 로컬에 보존했다."
+    },
+    {
+      "publishedPath": "output/playwright/issue-809/failures/reversed-request-cache-pending.md",
+      "rawLocalPath": ".prepr-reports/issue809-publication/raw-failures/reversed-request-cache-pending.md",
+      "rawSha256": "5b597602f7ecb112f0552e5ae423bf53fedafff6c8760b27a2de150aa4b0e439",
+      "publishedSha256": "56648ed7dc36834a29f16b0096a301a5fa7f52123324de6ca35bac8b66fdd76e",
+      "changedLines": 3,
+      "removedAsciiWhitespaceBytes": 3,
+      "contentChange": "줄끝 ASCII space/tab만 제거했으며 원본 raw bytes는 로컬에 보존했다."
+    }
+  ],
+  "totalChangedLines": 20,
+  "productAndTestChanges": 0,
+  "localRawExcludedFromGit": true
+}

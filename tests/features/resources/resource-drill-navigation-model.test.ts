@@ -270,3 +270,16 @@ describe("WBS exact schedule display scope", () => {
     expect(result.assignmentIds).toEqual([]);
   });
 });
+
+describe("#809 exact chart selection handoff",()=>{
+ it("retains the selected co-assignee intersection for whole cell and task schedule actions",()=>{
+  const sourceContext={projectPublicId:"p",projectRevision:1,catalogRevision:1,calendarRevision:"c",dataSnapshotId:"d",range:{from:"2026-10-05",to:"2026-10-09"},asOfDate:"2026-10-09",mdPerMm:null,mdPerMmSource:"unset" as const,mdPerMmProvided:false,schema:"wbs-view-source/1" as const,contextSourceVersion:"explicit-task-context:v1" as const,snapshotId:"s",spec:{version:"wbs-view:v1" as const,contextSourceVersion:"explicit-task-context:v1" as const,root:"resource" as const},path:[]};
+  const scope={snapshotId:"s",sourceContext,taskIds:["T1","T2","T0"],assignmentIds:["A1","co-assignee","A2"],ancestorSummaryIds:[]};
+  const assignments=[{id:"A1",taskId:"T1"},{id:"co-assignee",taskId:"T1"},{id:"A2",taskId:"T2"}];
+  const exactSelection={taskIds:["T1","T2"],assignmentIds:["A1","A2"]};
+  expect(wbsScheduleDisplayScope(scope,{exactSelection},assignments)).toMatchObject({taskIds:["T1","T2"],assignmentIds:["A1","A2"],taskCount:2,assignmentCount:2});
+  expect(wbsScheduleDisplayScope(scope,{taskId:"T1",exactSelection},assignments)).toMatchObject({taskIds:["T1"],assignmentIds:["A1"]});
+  expect(wbsScheduleDisplayScope(scope,{taskId:"T0",exactSelection:{taskIds:["T0"],assignmentIds:[]}},assignments).assignmentIds).toEqual([]);
+  for(const invalid of [{taskIds:["foreign"],assignmentIds:[]},{taskIds:["T2"],assignmentIds:["A1"]},{taskIds:["T1","T1"],assignmentIds:["A1"]},{taskIds:["T1"],assignmentIds:["A1","A1"]}])expect(()=>wbsScheduleDisplayScope(scope,{exactSelection:invalid},assignments)).toThrow("REPORT_STALE");
+ });
+});

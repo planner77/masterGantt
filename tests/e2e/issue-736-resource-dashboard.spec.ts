@@ -259,5 +259,88 @@ test("#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨�
   await expect(root(page).getByLabel("조회 시작일",{exact:true})).toHaveValue("2026-10-14");
  }
  await info.attach("issue807-peer-controls",{body:JSON.stringify(evidence,null,2),contentType:"application/json"});
+ await peers.getByRole("button",{name:"Resource Plan",exact:true}).click();await expect(report).toHaveAttribute("data-ready","true");
+ const keptPlan=report.getByRole("region",{name:"Resource Plan",exact:true});await expect(keptPlan).toBeVisible();const planNode=await keptPlan.elementHandle();
+ await peers.getByRole("button",{name:"차트",exact:true}).click();await expect(page.locator("[data-resource-charts]:visible")).toHaveAttribute("data-chart-state","ready");expect(await planNode!.evaluate(node=>node.isConnected)).toBe(true);
+ await peers.getByRole("button",{name:"Resource Plan",exact:true}).click();await expect(report).toHaveAttribute("data-ready","true");await expect(keptPlan).toBeVisible();expect(await planNode!.evaluate(node=>node.isConnected)).toBe(true);await expect(page.locator("[data-resource-charts]")).toBeHidden();expect(await page.locator("[data-resource-charts]").boundingBox()).toBeNull();
  const after=await f.snapshot();expect(after.data).toEqual(before.data);
+});
+
+test.describe("#809 chart interaction",()=>{
+ test.use({hasTouch:true});
+ test("#809 차트3유형 동일원본·개인80/Project140·정확상세·지연명령취소·일정복귀",async({page,isolatedApplication:origin,observeIsolatedApi})=>{
+ test.setTimeout(180_000);
+ const f=await seedWbsViewComposer(page,origin,observeIsolatedApi);
+ const catalog=(await(await page.request.get(`${origin}/api/resources`)).json()).data;
+ await f.mutate(`/tasks/${f.task.taskId}/assignments`,{catalogRevision:catalog.revision,targets:[{kind:"resource",id:f.resource.id,allocation:{start:"2026-10-14",end:"2026-10-14",percent:80}}]},"put");
+ const added=await(await f.mutate("/tasks",{name:"차트 선택밖 원인",type:"task",start:"2026-10-14",duration:1,progress:0})).json();
+ const outside=added.data.tasks.find((task:{name:string})=>task.name==="차트 선택밖 원인");
+ await f.mutate(`/tasks/${outside.taskId}/assignments`,{catalogRevision:catalog.revision,targets:[{kind:"resource",id:f.resource.id,allocation:{start:"2026-10-14",end:"2026-10-14",percent:60}}]},"put");
+ await page.reload();await openResource(page);
+ const peer=page.getByRole("group",{name:"리소스 분석 보기",exact:true});
+ await peer.getByRole("button",{name:"차트",exact:true}).click();
+ const charts=page.getByRole("region",{name:"리소스 차트",exact:true});await expect(charts).toHaveAttribute("data-chart-state","ready");
+ await page.emulateMedia({reducedMotion:"reduce"});await charts.getByRole("group",{name:"차트 유형",exact:true}).getByRole("button",{name:"기간 투입",exact:true}).tap();
+ expect(await charts.getByRole("button",{name:"차트 새로고침",exact:true}).evaluate(element=>({reduced:matchMedia("(prefers-reduced-motion: reduce)").matches,animation:getComputedStyle(element).animationName,transition:getComputedStyle(element).transitionDuration}))).toEqual({reduced:true,animation:"none",transition:"0s"});
+ let lastChartReport!:WbsViewReportDto;let chartReads=0;page.on("request",request=>{if(request.url().endsWith("/resource-dashboard/views")&&request.postDataJSON()?.analysis)chartReads++;});
+ const analysisResponse=()=>page.waitForResponse(response=>response.request().method()==="POST"&&response.url().endsWith("/resource-dashboard/views")&&!!response.request().postDataJSON().analysis&&response.status()===200,{timeout:30_000});
+ // A T0 diagnostic is deliberately outside personal Assignment filters; hand off its exact Task IDs explicitly.
+ const personalRead=analysisResponse();await charts.getByRole("button",{name:"차트 필터·범위",exact:true}).click();await charts.getByRole("combobox",{name:"차트 개인",exact:true}).selectOption(f.resource.id);
+ const personal=(await(await personalRead).json()).data as WbsViewReportDto;await expect(charts).toHaveAttribute("data-chart-state","ready");
+ const diagnosticIds=personal.analysis!.diagnostics.personallyUnassigned.taskIds;expect(diagnosticIds).toHaveLength(1);expect(diagnosticIds.every(id=>!personal.taskIds.includes(id))).toBe(true);
+ const diagnosticTrigger=charts.locator("dl > div").filter({hasText:"선택 공수 미설정 / T0 개인 미배정"}).getByRole("button").nth(1);await diagnosticTrigger.click();
+ const diagnosticDetail=charts.getByRole("region",{name:"차트 원본 상세",exact:true});await expect(diagnosticDetail).toContainText("조건 적용 전 T0 진단");await expect(diagnosticDetail.locator("[data-canonical-task-id]")).toHaveCount(1);
+ await diagnosticDetail.getByRole("button",{name:"Task 원본",exact:true}).click();const diagnosticEditor=page.getByRole("dialog",{name:"작업 정보",exact:true});await expect(diagnosticEditor).toBeVisible();await diagnosticEditor.getByRole("button",{name:"작업 편집기 닫기",exact:true}).click();
+ const diagnosticSchedule=diagnosticDetail.getByRole("button",{name:"차트 선택 범위 일정 보기",exact:true});await diagnosticSchedule.click();await expect(page.getByRole("tablist",{name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"일정",exact:true})).toHaveAttribute("aria-selected","true");
+ await page.getByRole("region",{name:"임시 조회 범위",exact:true}).getByRole("button",{name:/원래 보기/}).click();await expect(diagnosticSchedule).toBeFocused();await expect(charts.getByRole("combobox",{name:"차트 개인",exact:true})).toHaveValue(f.resource.id);
+ await diagnosticDetail.getByRole("button",{name:"차트 상세 닫기",exact:true}).click();const allRead=analysisResponse();await charts.getByRole("combobox",{name:"차트 개인",exact:true}).selectOption("");await allRead;await expect(charts).toHaveAttribute("data-chart-state","ready");
+ await charts.getByRole("button",{name:"차트 필터·범위",exact:true}).click();
+ for(const [label,value] of [["차트 작업 검색",f.task.name],["차트 시작일","2026-10-14"],["차트 종료일","2026-10-14"]]){const next=analysisResponse();await charts.getByLabel(label,{exact:true}).fill(value);lastChartReport=(await(await next).json()).data;await expect(charts).toHaveAttribute("data-chart-state","ready");}
+ const period=charts.getByRole("region",{name:"기간 투입 차트·데이터 표",exact:true});
+ await expect(period).toContainText("Load 80%");await expect(period).toContainText("같은 개인 Project 참고: Load 140%");
+ await charts.getByRole("combobox",{name:"차트 부하 범위",exact:true}).selectOption("project");await expect(period).toContainText("Load 140%");
+ await charts.getByRole("button",{name:"현재 기간 원본",exact:true}).click();
+ const detail=charts.getByRole("region",{name:"차트 원본 상세",exact:true});
+ await expect(detail).toHaveAttribute("data-chart-detail-state","ready");await expect(detail.locator("[data-canonical-task-id]")).toHaveCount(2);
+ // P2 #813: Project-load Plan evidence contains the outside Assignment/Task.
+ // It must be navigable via the Plan gateway without relaxing WBS subset checks.
+ const projectSchedule=detail.getByRole("button",{name:"차트 선택 범위 일정 보기",exact:true});await expect(projectSchedule).toBeEnabled();
+ await projectSchedule.click();
+ const projectReturn=page.getByRole("region",{name:"임시 조회 범위",exact:true});await expect(projectReturn).toContainText("Project 전체 부하 근거");
+ await expect(page.getByRole("tablist",{name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"일정",exact:true})).toHaveAttribute("aria-selected","true");
+ await expect(page.locator(".project-gantt-frame").locator(`.wx-row[data-id=":${outside.taskId}"]`)).toHaveCount(1);
+ await projectReturn.getByRole("button",{name:/원래 보기/}).click();await expect(projectSchedule).toBeFocused();
+ await expect(charts.getByLabel("차트 작업 검색",{exact:true})).toHaveValue(f.task.name);
+ await detail.getByRole("button",{name:"차트 상세 닫기",exact:true}).click();await expect(charts.getByRole("button",{name:"현재 기간 원본",exact:true})).toBeFocused();
+ const equivalentReads=chartReads;await charts.getByRole("group",{name:"차트 유형",exact:true}).getByRole("button",{name:"업무 집중",exact:true}).click();const ranked=lastChartReport;expect(chartReads).toBe(equivalentReads);
+ await expect(charts).toHaveAttribute("data-chart-state","ready");expect(ranked.analysis?.total.taskIds).toEqual([f.task.taskId]);expect(ranked.analysis?.total.assignmentIds).toHaveLength(1);
+ await page.setViewportSize({width:390,height:900});
+ const source=charts.getByRole("region",{name:"공수·업무 분포 데이터 표",exact:true}).getByRole("button",{name:`${f.resource.name} 원본`,exact:true});await source.focus();const selectedScroll=await charts.evaluate(element=>element.closest(".project-resource-panel")!.scrollTop);await source.press("Enter");await expect(detail.locator(`[data-canonical-task-id="${f.task.taskId}"]`)).toBeVisible();
+ const original=detail.getByRole("button",{name:"Task 원본",exact:true});await original.click();const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await expect(editor).toBeVisible();await editor.getByRole("button",{name:"작업 편집기 닫기",exact:true}).click();await expect(original).toBeFocused();
+ // Closing a detail invalidates an in-flight source confirmation before it can open an editor.
+ const pattern=`**/api/projects/${f.publicId}/resource-dashboard/views`;
+ let release!:()=>void,started!:()=>void;const gate=new Promise<void>(resolve=>release=resolve),captured=new Promise<void>(resolve=>started=resolve);let finished=false;
+ await page.route(pattern,async route=>{if(route.request().postDataJSON().projection?.kind!=="scope")return route.continue();const response=await route.fetch();started();await gate;try{await route.fulfill({response});}catch{}finally{finished=true;}});
+ await original.click();await captured;await detail.getByRole("button",{name:"차트 상세 닫기",exact:true}).click();release();await expect.poll(()=>finished).toBe(true);await page.unroute(pattern);await expect(editor).toHaveCount(0);await expect(source).toBeFocused();expect(await charts.evaluate(element=>element.closest(".project-resource-panel")!.scrollTop)).toBe(selectedScroll);
+ const restored=await source.evaluate(element=>{const r=element.getBoundingClientRect(),p=element.closest(".project-resource-panel")!.getBoundingClientRect();return{top:r.top,bottom:r.bottom,panelTop:p.top,panelBottom:p.bottom};});expect(restored.top).toBeGreaterThanOrEqual(restored.panelTop);expect(restored.bottom).toBeLessThanOrEqual(restored.panelBottom);await page.setViewportSize({width:1440,height:1000});
+ await source.click();let scopeReads=0,hostRelease!:()=>void,hostStarted!:()=>void;const hostGate=new Promise<void>(resolve=>hostRelease=resolve),hostCaptured=new Promise<void>(resolve=>hostStarted=resolve);let hostFinished=false;
+ await page.route(pattern,async route=>{if(route.request().postDataJSON().projection?.kind!=="scope")return route.continue();scopeReads++;if(scopeReads!==2)return route.continue();const response=await route.fetch();hostStarted();await hostGate;try{await route.fulfill({response});}catch{}finally{hostFinished=true;}});
+ await detail.getByRole("button",{name:"차트 선택 범위 일정 보기",exact:true}).click();await hostCaptured;await detail.getByRole("button",{name:"차트 상세 닫기",exact:true}).click();hostRelease();await expect.poll(()=>hostFinished).toBe(true);await page.unroute(pattern);await expect(source).toBeFocused();await expect(page.getByRole("tablist",{name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"대시보드",exact:true})).toHaveAttribute("aria-selected","true");
+ await source.click();const schedule=detail.getByRole("button",{name:"차트 선택 범위 일정 보기",exact:true});await schedule.click();await expect(page.getByRole("tablist",{name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"일정",exact:true})).toHaveAttribute("aria-selected","true");
+ await page.getByRole("region",{name:"임시 조회 범위",exact:true}).getByRole("button",{name:/원래 보기/}).click();await expect(schedule).toBeFocused();await expect(charts.getByLabel("차트 작업 검색",{exact:true})).toHaveValue(f.task.name);
+ await detail.getByRole("button",{name:"차트 상세 닫기",exact:true}).click();
+ const distribution=analysisResponse();await charts.getByRole("group",{name:"차트 유형",exact:true}).getByRole("button",{name:"기여 분포",exact:true}).click();const distributed=(await(await distribution).json()).data as WbsViewReportDto;await expect(charts).toHaveAttribute("data-chart-state","ready");expect(distributed.analysis?.total.assignmentIds).toEqual(ranked.analysis?.total.assignmentIds);
+ await charts.getByRole("combobox",{name:"기여 분류",exact:true}).selectOption("process");await expect(charts).toHaveAttribute("data-chart-state","ready");await expect(charts.getByRole("region",{name:"공수·업무 분포 데이터 표",exact:true})).toContainText("0.8 M/D");
+ // An older successful empty reply cannot replace a newer chart query.
+ let oldRelease!:()=>void,oldStarted!:()=>void;const oldGate=new Promise<void>(resolve=>oldRelease=resolve),oldCaptured=new Promise<void>(resolve=>oldStarted=resolve);let oldFinished=false;
+ await page.route(pattern,async route=>{const input=route.request().postDataJSON();if(!input.analysis||input.filters?.taskSearch!=="차트 없는 작업")return route.continue();const response=await route.fetch();oldStarted();await oldGate;try{await route.fulfill({response});}catch{}finally{oldFinished=true;}});
+ await charts.getByLabel("차트 작업 검색",{exact:true}).fill("차트 없는 작업");await oldCaptured;
+ const beforeLatestReads=chartReads;await charts.getByLabel("차트 작업 검색",{exact:true}).fill(f.task.name);await expect(charts).toHaveAttribute("data-chart-state","ready");expect(chartReads).toBe(beforeLatestReads);oldRelease();await expect.poll(()=>oldFinished).toBe(true);await page.unroute(pattern);await expect(charts.getByRole("region",{name:"공수·업무 분포 데이터 표",exact:true})).toContainText("0.8 M/D");
+ // A failed read-only source confirmation must not issue an original command.
+ await charts.getByRole("region",{name:"공수·업무 분포 데이터 표",exact:true}).getByRole("button",{name:/공동 담당 인력.*원본/}).first().click();
+ await page.route(pattern,route=>route.request().postDataJSON().projection?.kind==="scope"?route.fulfill({status:412,json:{error:{code:"REVISION_CONFLICT",message:"원본 충돌 검증"}}}):route.continue());
+ await detail.getByRole("button",{name:"Task 원본",exact:true}).click();await expect(charts).toHaveAttribute("data-chart-state","stale");await expect(editor).toHaveCount(0);await page.unroute(pattern);
+ // A source read error clears the chart rather than retaining actionable stale bars.
+ await page.route(pattern,route=>route.request().postDataJSON().analysis?route.fulfill({status:401,json:{error:{code:"UNAUTHORIZED",message:"조회 권한 검증"}}}):route.continue());await charts.getByRole("button",{name:"차트 새로고침",exact:true}).click();await expect(charts).toHaveAttribute("data-chart-state","error");await expect(charts.getByRole("region",{name:"공수·업무 분포 데이터 표",exact:true})).toHaveCount(0);await page.unroute(pattern);
+});
 });

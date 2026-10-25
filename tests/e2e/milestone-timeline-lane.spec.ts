@@ -229,22 +229,22 @@ test("#551 keyboard focus survives marker disappearing by horizontal clipping",a
 });
 
 test("#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/resize alignment",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"large");await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await settle(page);
-  await frame.locator(".wx-chart").hover();await page.mouse.wheel(0,570);await settle(page);
+  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"large");await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await test.step("#551 large after 3000-row milestone reveal: five animation frames",async()=>settle(page));
+  await frame.locator(".wx-chart").hover();await page.mouse.wheel(0,570);await test.step("#551 large after vertical Chart scroll: five animation frames",async()=>settle(page));
   const before=await probe<Observation>(frame,"read"),height=await frame.locator(".wx-chart").evaluate(node=>node.getBoundingClientRect().height);
   expect(before.top).toBeGreaterThan(0);
   await openWorkspaceView(page, "milestones");
   expect(await frame.locator(".project-milestone-lane").evaluate(node=>node.getBoundingClientRect().height)).toBe(64);
   expect(await frame.locator(".wx-chart").evaluate(node=>node.getBoundingClientRect().height)).toBe(height);
-  await page.getByRole("tab",{name:"일정",exact:true}).click();await settle(page);const returned=await probe<Observation>(frame,"read");expect(returned.instance).toBe(before.instance);expect(returned.top).toBe(before.top);expect(returned.left).toBe(before.left);
-  const splitter=frame.locator(".wx-resizer.wx-resizer-display-all").first(),box=(await splitter.boundingBox())!;await page.mouse.move(box.x+box.width/2,box.y+60);await page.mouse.down();await page.mouse.move(box.x+box.width/2+80,box.y+60,{steps:5});await page.mouse.up();await settle(page);
+  await page.getByRole("tab",{name:"일정",exact:true}).click();await test.step("#551 large after peer Timeline return: five animation frames",async()=>settle(page));const returned=await probe<Observation>(frame,"read");expect(returned.instance).toBe(before.instance);expect(returned.top).toBe(before.top);expect(returned.left).toBe(before.left);
+  const splitter=frame.locator(".wx-resizer.wx-resizer-display-all").first(),box=(await splitter.boundingBox())!;await page.mouse.move(box.x+box.width/2,box.y+60);await page.mouse.down();await page.mouse.move(box.x+box.width/2+80,box.y+60,{steps:5});await page.mouse.up();await test.step("#551 large after splitter resize: five animation frames",async()=>settle(page));
   expect((await probe<Observation>(frame,"read")).gridWidth).not.toBe(before.gridWidth);
   await captureLane(page,info,"peer-resize-diagnostic",{core:await probe(frame,"read"),measurement:await probe(frame,"laneMeasurement"),dom:await frame.evaluate(node=>{const chart=node.querySelector<HTMLElement>(".wx-chart")!,widget=node.querySelector<HTMLElement>(".project-gantt-widget")!;return{chartWidth:chart.getBoundingClientRect().width,chartClientWidth:chart.clientWidth,widgetWidth:widget.getBoundingClientRect().width,hidden:Boolean(widget.closest("[hidden],[inert]")),laneReason:node.querySelector(".project-milestone-lane-state")?.textContent};})});
   await expect(frame.locator(".project-milestone-lane-plot")).toBeVisible();
   const bounds=await frame.evaluate(node=>{const plot=node.querySelector(".wx-chart")!.getBoundingClientRect(),lane=node.querySelector(".project-milestone-lane-plot")!.getBoundingClientRect();return{plotX:plot.x,laneX:lane.x,plotWidth:plot.width,laneWidth:lane.width};});expect(Math.abs(bounds.plotX-bounds.laneX)).toBeLessThanOrEqual(1);expect(Math.abs(bounds.plotWidth-bounds.laneWidth)).toBeLessThanOrEqual(1);
-  await frame.getByRole("button",{name:"Gantt 전체 화면",exact:true}).click();await expect.poll(()=>page.evaluate(()=>Boolean(document.fullscreenElement))).toBe(true);await settle(page);
-  expect((await page.getByLabel("Milestone Timeline",{exact:true}).boundingBox())!.height).toBe(64);await frame.getByRole("button",{name:"Gantt 전체 화면 종료",exact:true}).click();await settle(page);
-  await page.setViewportSize({width:1024,height:1000});await settle(page);expect((await probe<Observation>(frame,"read")).instance).toBe(before.instance);
+  await frame.getByRole("button",{name:"Gantt 전체 화면",exact:true}).click();await expect.poll(()=>page.evaluate(()=>Boolean(document.fullscreenElement))).toBe(true);await test.step("#551 large after fullscreen enter: five animation frames",async()=>settle(page));
+  expect((await page.getByLabel("Milestone Timeline",{exact:true}).boundingBox())!.height).toBe(64);await frame.getByRole("button",{name:"Gantt 전체 화면 종료",exact:true}).click();await test.step("#551 large after fullscreen exit: five animation frames",async()=>settle(page));
+  await page.setViewportSize({width:1024,height:1000});await test.step("#551 large after 1024px resize: five animation frames",async()=>settle(page));expect((await probe<Observation>(frame,"read")).instance).toBe(before.instance);
   const metrics=await probe(frame,"laneMeasurement");expect(state.posts.length+state.patchRequests.length).toBe(0);await captureLane(page,info,"peer-fullscreen-large",{before,returned,height,bounds,metrics,taskCount:1000,milestoneCount:2000,domMarkers:await frame.locator(".project-milestone-lane-marker").count(),mutationCount:0});
 });
 

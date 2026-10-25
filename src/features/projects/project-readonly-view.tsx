@@ -30,6 +30,7 @@ import {
   sameResourceDataContext,
 } from "@/features/resources/resource-drill-scope-model";
 import { fetchWbsView, stableWbsValue } from "@/features/resources/wbs-view-transport";
+import { ResourceChartsDashboard } from "@/features/resources/resource-charts-dashboard";
 import { ResourceWorkspace } from "@/features/resources/resource-workspace";
 import { ResourceWbsDashboard } from "@/features/resources/resource-wbs-dashboard";
 import type { WbsViewDimension, WbsViewScopeDto } from "@/contracts/wbs-dashboard-views";
@@ -1834,7 +1835,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       milestoneFocusSelector,
       resourceDetailKey: detailKey,
       resourceDetailConfirmationId: detail?.dataset.detailConfirmationId,
-      resourceReportConfirmationId: wbsRoot?.dataset.reportConfirmationId ?? document.querySelector<HTMLElement>(`[data-resource-context-id="${resourceViewId}"] [data-resource-dashboard]`)?.dataset.reportConfirmationId,
+      resourceReportConfirmationId: wbsRoot ? wbsRoot.dataset.reportConfirmationId : document.querySelector<HTMLElement>(`[data-resource-context-id="${resourceViewId}"] [data-resource-dashboard]`)?.dataset.reportConfirmationId,
       positions: Array.from(
         document.querySelectorAll<HTMLElement>(
           ".project-workspace-panel:not([hidden]) [data-wbs-scroll],.project-workspace-panel:not([hidden]) .project-gantt-scroll,.project-workspace-panel:not([hidden]) .wx-gantt,.project-workspace-panel:not([hidden]) .wx-chart,.project-workspace-panel:not([hidden]) .resource-dashboard-table-scroll,.project-workspace-panel:not([hidden]) [data-resource-scroll-owner]",
@@ -2453,7 +2454,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           positions: [],
         },
       };
-    }, request.trigger);
+    }, request.trigger, undefined, request.intentSignal);
   }
   function scheduleToResources(nodeIds: readonly string[], summaryId?: string) {
     void performResourceNavigation(async (signal) => {
@@ -3482,6 +3483,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       >
         <ResourceWorkspace key={publicId} active={activeView === "resources"} viewId={resourceViewId} revision={project.revision}
           liveViewIds={resourceDrillLiveVisits(navigationFrames, {resourceViewId} as ResourceNavigationState, entry => entry.resourceViewId)}
+          renderCharts={chartsActive => <>{resourceDrillLiveVisits(navigationFrames, {resourceViewId} as ResourceNavigationState, entry => entry.resourceViewId).map(visitId => {
+            const visit = visitId === resourceViewId ? null : navigationFrames.flatMap(frame => [frame.source, frame.destinationBefore, frame.destination]).find(entry => entry.resourceViewId === visitId && entry.view === "resources");
+            return <div key={visitId} hidden={visitId !== resourceViewId} inert={visitId !== resourceViewId} data-chart-visit={visitId} data-wbs-visit={visitId}>
+              <ResourceChartsDashboard publicId={publicId} revision={project.revision} active={chartsActive && visitId === resourceViewId}
+                busy={busy || navigationLoading || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
+                binding={visit ? visit.binding : resourceBinding}
+                onOpenTask={(taskId, trigger) => openTaskEditor(taskId, "task", trigger)}
+                onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })}
+                onSchedule={scheduleWbsRequest} onResourceSchedule={scheduleResourceRequest}/>
+            </div>;
+          })}</>}
           renderDynamic={dynamicActive => <>{resourceDrillLiveVisits(navigationFrames, {resourceViewId} as ResourceNavigationState, entry => entry.resourceViewId).map(visitId => {
           const visit = visitId === resourceViewId ? null : navigationFrames.flatMap(frame => [frame.source, frame.destinationBefore, frame.destination]).find(entry => entry.resourceViewId === visitId && entry.view === "resources");
           return <div key={visitId} hidden={visitId !== resourceViewId} data-wbs-visit={visitId}>

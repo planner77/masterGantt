@@ -1,3 +1,23 @@
+## Issue #809 — 동일 분석 응답의 차트 소비
+
+리소스 작업면의 차트는 #808 `ResourceAnalysisResult`를 기존 WBS query의 opt-in 응답으로 소비한다. 기존 서버 read transaction에서 만든 sourceContext·snapshot/revision·정규 필터·fetch generation과 scopeKey를 결속한다. legacy Resource snapshot을 WBS snapshot으로 cast하거나 chart별로 원장을 재구성/독립 fetch하지 않는다. 상세 wire·오류·예산은 [API](API.md)의 #809 계약을 따른다.
+
+| 의사결정 | 차트/동일 데이터 표 | 보존할 의미 |
+| --- | --- | --- |
+| 언제 개인 부하가 높은가 | 주/월 계획·기준 Capacity 비교, Load/Peak/개인 초과 | 선택 기여와 동일 개인 Project 전체 참고를 분리; Group 평균으로 개인 위험을 감추지 않음 |
+| 누구에게 업무가 집중되는가 | 개인/Group/Global Role/개발등급별 공수·고유 Task 상태 순위 | Top N은 표시 범위, 전체 총계 아님; Group/Role 중첩 비가산 |
+| 어느 Milestone/실물에 기여하는가 | Resource×Milestone·공정/WorkArea/설비/System의 기여 | 업무 연관은 실물 인원/실적 아님; 전체 Milestone Gate는 선택 완료율과 별도 |
+
+그래프·데이터 표·원본 상세는 동일 raw Task/Assignment와 단위를 사용한다. nullable/partial·설정0·미배정·M/M 기준 미설정·Capacity0은 기존 R2 값 그대로 표현한다. 기간 비교 막대의 계획/Capacity 공통 축은 M/D이며, 공수 표시 단위 M/M은 텍스트 환산이다. 막대 축·Capacity 단위를 별도로 명시하여 전체 축이 M/M으로 바뀐 것으로 읽히지 않게 한다. 과투입·공수 미설정·개인 미배정·완료/지연은 현재 분석 범위와 T0 진단 범위를 구별한다. 실제 실적/근태/전사 가용성·원가를 생성하지 않는다. 기존 Plan/지원 Excel과 비교할 때는 source/snapshot/scope/단위/ID 집합이 동등한지 먼저 확인한다. 서로 다른 보고의 총계를 같은 숫자라고 보장하지 않는다.
+
+정확 근거 선택은 기존 read 재검증과 editor/Gantt gateway를 거친다. 늦은 응답·조건 변경·stale는 이전 결과를 빈 정상/실행 가능한 근거로 대체하지 않는다. 실행 증거와 한계는 [#809 계획](exec-plans/active/ISSUE_809.md)·[누적 원장](ISSUE_809_FAILURE_ANALYSIS.md)을 따른다.
+
+### T0 정확 진단 인계와 캐시 수명
+
+개인 미배정 T0는 개인 조건 적용 전 모집단이라 현재 개인 report 밖의 Task를 포함할 수 있다. T0 일정 액션에만 원 report의 source/snapshot을 먼저 재검증하고 `resourceIds/groupIds/roles/developerGrades/search/resourceActivity/groupActivity` 7개 조건을 제외한 기존 WBS report를 명시적으로 읽는다. taskSearch·실효기간/기준일·Task/WBS/Milestone/실물·원 binding.scope·M/D 환산 기준은 유지한다. 별도 analysis/Plan은 요청하지 않고 같은 canonical dataSnapshot·Project/catalog/calendar 세대·기간/환산 basis 및 정확 T0 부분집합을 확인한 뒤 Task IDs와 개인 Assignment0을 기존 일정 gateway로 인계한다.
+
+원래 개인 조건/차트 선택은 변경하지 않는다. 동일 query·방문·revision·refresh 세대의 확정 모델은 재사용해 복귀 DOM/초점을 보존하고, 현재 조건/revision/refresh와 일치하지 않는 모델은 표시·명령에 사용할 수 없다. 같은 키로 돌아와도 오류/known-stale가 없고 해당 세대의 확정 모델일 때만 재사용한다. 오류/known-stale는 캐시를 폐기한다. T0 추가 조회의 실패/범위초과/출처 변경·닫기/새 사용자 의도는 오래된 명령을 실행하지 않으며 원조건을 유지하고 재조회를 안내한다. 다른 KPI나 전체 조건을 자동 동기화하는 동작이 아니다.
+
 ## Issue #808 — 차트용 분석 read model과 기존 지표 인벤토리
 
 R2는 [#806](https://github.com/planner77/masterGantt/issues/806)의 데이터 계약이며 화면 shell은 #807, 차트 rendering은 #809가 소유한다. `src/domain/resources/resource-analysis.ts`와 `src/contracts/resource-analysis.ts`는 기존 canonical WBS Task/Assignment 원장을 읽는 순수 adapter다. 별도 공수 엔진·HTTP route·DB·materialized view는 추가하지 않는다. 실제 실행/미검증·승인 범위는 [Work Packet](exec-plans/active/ISSUE_808.md)을 따른다.

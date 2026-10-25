@@ -1,0 +1,258 @@
+{
+  "schema": "issue-809/frontend-validation/1",
+  "status": "PASS",
+  "scope": "Local Fast Feedback and real Chromium evidence, not full remote regression or Manager ACCEPT",
+  "baselineSha": "56a094b797300a554909cd8d81ef0bafe46d6def",
+  "branch": "feat/issue-809-resource-charts",
+  "finishedAt": "2026-10-25T21:09:43.140213+00:00",
+  "applicationVersionAtExecution": "0.134.0",
+  "versionOnlyHandoff": "Manager/infra may move package+lock to0.135.0 after this receipt; dependencies and product bytes remain unchanged",
+  "environment": {
+    "node": "v22.14.0",
+    "next": "16.4.2",
+    "playwright": "1.63.0",
+    "runtime": "Next dev; actual CLI browser version in capture observations; package-pinned Chromium in isolated test",
+    "svar": "Core2.7.3 unchanged; official samples/changelog URL lookup only, no demo operation or PRO implementation claim"
+  },
+  "freeze": {
+    "file": "output/playwright/issue-809/product-freeze-r03-final.json",
+    "checkedFiles": 551,
+    "mismatch": [],
+    "sha256": "59b020ea6b9ed931184ce667bcee5f4e0cc4d630f0dd6e4f17eb33e7b44cae90"
+  },
+  "unit": {
+    "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/resources/resource-wbs-dashboard-model.test.ts tests/features/resources/wbs-view-transport.test.ts tests/features/resources/resource-drill-navigation-model.test.ts --reporter=json --outputFile=output/playwright/issue-809/recovery-feature-r03.json",
+    "files": 3,
+    "total": 27,
+    "passed": 27,
+    "failed": 0,
+    "skipped": 0,
+    "raw": "output/playwright/issue-809/recovery-feature-r03.json",
+    "addedCase": "actual fixture/service: personal report diagnosticT0 outsideA → same-data nonpersonal report preserving original scope/effective period → exact existing navigation; changed-source/outside-ID negatives"
+  },
+  "chromium": {
+    "finalExactSource": {
+      "raw": "output/playwright/issue-809/recovery-e2e-final.json",
+      "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-736-resource-dashboard.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --grep #809 --output=output/playwright/issue-809/recovery-e2e-final --reporter=list,json",
+      "cases": [
+        {
+          "title": "#809 차트3유형 동일원본·개인80/Project140·정확상세·지연명령취소·일정복귀",
+          "status": "passed",
+          "durationMs": 57808,
+          "retry": 0
+        }
+      ],
+      "sourceGuard": "output/playwright/issue-809/recovery-e2e-final-source-guard.json",
+      "beforeMismatch": [],
+      "afterMismatch": []
+    },
+    "reusedAdjacent": [
+      {
+        "title": "#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨은 조회 중단·peer 복원",
+        "status": "passed",
+        "durationMs": 52361,
+        "retry": 0
+      }
+    ],
+    "reusedAdjacentRaw": "output/playwright/issue-809/recovery-e2e-r02.json",
+    "reuseReason": "r03 only adds explicit T0 helper/selection branch/test. #807 never invokes diagnostic actions. Workspace/host/Plan behavior and r02 CSS byte hashes unchanged; its chart→Plan DOM/hidden-space checks remain applicable.",
+    "uniqueCases": 2,
+    "notSummed": "Intermediate80931.2s/r0248.3s/r03unguarded1.1min are historical. Interrupted73651.5s excluded from durable final unique-case count.",
+    "coverage": [
+      "three chart types and exact source IDs",
+      "selected80 vs same-person Project140",
+      "personal-filter T0 editor/schedule exact handoff and return",
+      "child and host source-confirmation pending close cancellation",
+      "390px detail scroll/focus; native keyboard",
+      "touch emulation and actual reduced-motion media/computed CSS",
+      "response reversal/cache-hit pending",
+      "412 source rejects command and401 clears chart"
+    ]
+  },
+  "geometry": {
+    "before": "output/playwright/issue-809/before-final/capture-manifest.json",
+    "charts": "output/playwright/issue-809/after-final-r03/capture-manifest.json",
+    "keep": "output/playwright/issue-809/keep-final/capture-manifest.json",
+    "chartSamples": 15,
+    "keepSamples": 5,
+    "faults": [],
+    "sourceStable": true,
+    "canonicalPreservation": true,
+    "canonicalAfter": {
+      "revision": 17,
+      "tasks": 4,
+      "assignments": 1,
+      "fingerprint": "f59898d2465f0d3b3a537b53b050effeda211775f9fa36993a98b22602f6eedc",
+      "writes": [],
+      "readOnlyPostQueries": 20
+    },
+    "overflows": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "keepComparison": [
+      {
+        "viewport": "resource-390",
+        "beforeKpiY": 1017,
+        "afterKpiY": 1017,
+        "beforeTableY": 1458,
+        "afterTableY": 1458,
+        "beforeFullyVisibleRows": 0,
+        "afterFullyVisibleRows": 0
+      },
+      {
+        "viewport": "resource-768",
+        "beforeKpiY": 670,
+        "afterKpiY": 670,
+        "beforeTableY": 958.5,
+        "afterTableY": 958.5,
+        "beforeFullyVisibleRows": 0,
+        "afterFullyVisibleRows": 0
+      },
+      {
+        "viewport": "resource-1024",
+        "beforeKpiY": 578,
+        "afterKpiY": 578,
+        "beforeTableY": 799.5,
+        "afterTableY": 799.5,
+        "beforeFullyVisibleRows": 0,
+        "afterFullyVisibleRows": 0
+      },
+      {
+        "viewport": "resource-1440",
+        "beforeKpiY": 526,
+        "afterKpiY": 526,
+        "beforeTableY": 747.5,
+        "afterTableY": 747.5,
+        "beforeFullyVisibleRows": 1,
+        "afterFullyVisibleRows": 1
+      },
+      {
+        "viewport": "resource-1920",
+        "beforeKpiY": 526,
+        "afterKpiY": 526,
+        "beforeTableY": 747.5,
+        "afterTableY": 747.5,
+        "beforeFullyVisibleRows": 1,
+        "afterFullyVisibleRows": 1
+      }
+    ],
+    "glyphFile": "output/playwright/issue-809/kpi-glyph-baseline-r03.json",
+    "glyph": {
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "rows": [
+        {
+          "label": "선택 계획공수",
+          "boxY": 743,
+          "boxHeight": 44,
+          "glyphY": 754.40625,
+          "glyphHeight": 21,
+          "text": "2 M/D"
+        },
+        {
+          "label": "확인된 동일 개인 Project 과투입",
+          "boxY": 743,
+          "boxHeight": 44,
+          "glyphY": 754.40625,
+          "glyphHeight": 21,
+          "text": "0"
+        },
+        {
+          "label": "초과 M/D · 완료 / 지연",
+          "boxY": 835,
+          "boxHeight": 44,
+          "glyphY": 846.40625,
+          "glyphHeight": 21,
+          "text": "0"
+        },
+        {
+          "label": "선택 공수 미설정 / T0 개인 미배정",
+          "boxY": 835,
+          "boxHeight": 44,
+          "glyphY": 846.40625,
+          "glyphHeight": 21,
+          "text": "0"
+        }
+      ],
+      "topRowGlyphDelta": 0,
+      "bottomRowGlyphDelta": 0
+    },
+    "limit": "Mobile/small-width chart table fully visible rows0; desktop period1. Existing basic before/KEEP rows0/0/0/1/1. These are measurements, not all-state usability/accessibility certification."
+  },
+  "static": {
+    "typecheck": "PASS npx tsc --noEmit --pretty false after generated configuration restored",
+    "eslint": "PASS scoped ESLint error0; unchanged router hook warning1 project-readonly-view.tsx698",
+    "diffCheck": "PASS git diff --check",
+    "generatedRestoration": "Verified only Next-generated AGENTS heading, next-env imports and tsconfig isolated dist include additions; restored exact baseline bytes; owned3209 supervisor and recovery CLI closed"
+  },
+  "recoveryFailures": [
+    {
+      "id": "RECOVERY-SIGTERM",
+      "status": "PARTIAL/UNKNOWN",
+      "fact": "Daemon restart interrupted prior processes with143; original after-final4 samples only, no final manifest."
+    },
+    {
+      "id": "RECOVERY-UNLOCK",
+      "status": "FAIL preparation",
+      "fact": "Synthetic fixture unlock used password instead of editPassword,400 then corrected204."
+    },
+    {
+      "id": "RECOVERY-EXTERNAL-DB",
+      "status": "FAIL preparation",
+      "fact": "First two cases incorrectly used external3209 and collided with existing fixture global masters; both400 before UI. Unset external URL and original isolated fixtures restored."
+    },
+    {
+      "id": "RECOVERY-CAPTURE-INITIAL",
+      "status": "PARTIAL",
+      "fact": "First period390 began before cookie restore and timed out; contribution390 next timed out, causeUNKNOWN. Only owned incomplete collector stopped. Test/capture serialized and only owned server restarted; final15+5 completed."
+    },
+    {
+      "id": "T0-DIAGNOSTIC",
+      "status": "FIXED",
+      "fact": "Independent QA reproduced T0 IDs outside personal report failing secure subset guard. Explicit same-data nonpersonal report now covered by new unit and final browser."
+    },
+    {
+      "id": "KPI-BASELINE",
+      "status": "FIXED",
+      "fact": "Initial390 dd Y725/743 and817/835 differed18px. Final common44px dd and column auto space align boxes743/743 and835/835; actual glyph deltas0/0."
+    },
+    {
+      "id": "REPORTER-RELATIVE-PATH",
+      "status": "PREPARATION corrected",
+      "fact": "Playwright JSON output names were resolved under tests/config. Three original JSON files moved byte-for-byte into intended output directory and now-empty generated config output removed."
+    }
+  ],
+  "publishBoundary": {
+    "exclude": [
+      "all trace.zip: actual Cookie/Set-Cookie/password fields verified; original stays local only",
+      "*.cli.js",
+      "runtime logs/.data/SQLite/.next*",
+      ".playwright-cli/*"
+    ],
+    "remoteCi": "NOT TESTED",
+    "managerDecision": "NOT TESTED",
+    "productionBuild": "NOT TESTED",
+    "realDeviceScreenReaderNativeZoom": "NOT TESTED"
+  }
+}

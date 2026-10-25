@@ -1,0 +1,16 @@
+{
+  "issue": 809,
+  "actor": "/root/publish_recovery",
+  "oldVersion": "0.134.0",
+  "version": "0.135.0",
+  "changedFields": [
+    "package.json.version",
+    "package-lock.json.version",
+    "package-lock.json.packages[\"\"].version"
+  ],
+  "dependencyDelta": 0,
+  "productHashesChecked": 546,
+  "testHashesChecked": 5,
+  "mismatchBefore": [],
+  "mismatchAfter": []
+}

@@ -51,3 +51,91 @@ describe("#736 Resource consumer identity and evidence",()=>{
   }finally{f.database.close();}
  });
 });
+
+// #809 extends this consumer's presentation tests; all arithmetic remains existing R2/Plan authority.
+import { resourceChartCanNavigate,resourceChartDiagnosticQuery,resourceChartDiagnosticSelection,resourceChartEffort,resourceChartMetricValue,resourceChartPlanText,resourceChartQuery,resourceChartRank } from "../../../src/features/resources/resource-charts-model";
+import { calculateResourcePlan } from "../../../src/domain/resources/resource-plan";
+import { resourcePlanFixture,resourcePlanAssignment } from "../../fixtures/resource-plan";
+import { buildResourceAnalysis } from "../../../src/domain/resources/resource-analysis";
+import { wbsTaskLedgerFixture } from "../../fixtures/wbs-task-ledger";
+
+describe("#809 chart presentation preserves canonical meanings",()=>{
+ it("shows selected80 and same-person Project140, peak/excess, and null/partial/conversion separately",()=>{
+  const selected=resourcePlanAssignment("selected","R1",80),outside=resourcePlanAssignment("outside","R1",60);
+  const plan=calculateResourcePlan(resourcePlanFixture({selectedAssignments:[selected],fullProjectAssignments:[selected,outside]}));
+  expect(plan.resources[0].summary.selected.loadPercent).toBe(80);expect(plan.resources[0].summary.project.loadPercent).toBe(140);
+  expect(resourceChartPlanText(plan.resources[0].summary.selected,"M/D",20)).toContain("Load 80%");
+  expect(resourceChartPlanText(plan.resources[0].summary.project,"M/D",20)).toContain("Load 140%");
+  expect(resourceChartPlanText(plan.resources[0].summary.project,"M/D",20)).toContain("초과 5 개인·일 / 2 M/D");
+  const unknown=resourcePlanAssignment("unknown","R1",null),partial=calculateResourcePlan(resourcePlanFixture({selectedAssignments:[selected,unknown],fullProjectAssignments:[selected,unknown]}));
+  const text=resourceChartPlanText(partial.resources[0].summary.selected,"M/D",null);
+  expect(text).toContain("부분합 · 미설정 1건");expect(text).toContain("Load 알려진 부분 80%");
+  expect(resourceChartPlanText(plan.resources[0].summary.selected,"M/M",null)).toContain("환산 기준 미설정");
+  expect(resourceChartPlanText({...plan.resources[0].summary.selected,capacityMd:0,loadPercent:null},"M/D",20)).toContain("Capacity 0의 계획 투입 경고");
+ });
+ it("uses exact R2 cells for three decisions, overlapping raw IDs, ranks and raw units",()=>{
+  const ledger=wbsTaskLedgerFixture();
+  const source={fetchGeneration:1,filters:{},sourceContext:{schema:"wbs-view-source/1" as const,contextSourceVersion:"explicit-task-context:v1" as const,snapshotId:"snapshot",dataSnapshotId:"data",projectPublicId:ledger.kpi.projectPublicId,projectRevision:1,catalogRevision:1,calendarRevision:"calendar",spec:RESOURCE_WBS_DEFAULT_SPEC,path:[],range:{from:ledger.kpi.from,to:ledger.kpi.to},asOfDate:ledger.kpi.asOfDate,mdPerMm:20,mdPerMmSource:"query" as const,mdPerMmProvided:true}};
+  for(const kind of ["period","concentration","contribution"] as const){const query=resourceChartQuery(kind,"group","workArea","week","M/M"),model=buildResourceAnalysis({ledger,source,expectedSource:source,query});
+   const ranked=resourceChartRank(model,"effort",10,0);expect(ranked.allCount).toBe(model.cells.length);
+   for(const cell of ranked.rows){expect(model.cells).toContain(cell);expect(cell.selector.scopeKey).toBe(model.scope.scopeKey);expect(resourceChartMetricValue(cell,"tasks","M/M",20)).toBe(cell.tasks.taskCount);expect(resourceChartMetricValue(cell,"effort","M/M",20)).toBe(cell.assignments.effort.knownMd/20);}
+   expect(resourceChartEffort(model.total.assignments.effort,"M/M",20)).toBe("0.7 M/M");expect(model.total.assignments.effort.knownMd).toBe(14);
+  }
+ });
+ it("does not label unset or unknown conversion as configured zero",()=>{
+  const effort={knownMd:0,plannedMd:null,plannedMm:null,state:"unset" as const,partial:false,unsetCount:2,assignmentIds:["a","b"],unsetAssignmentIds:["a","b"]};
+  expect(resourceChartEffort(effort,"M/D",20)).toBe("미설정 2건");expect(resourceChartEffort(effort,"M/M",null)).toBe("환산 기준 미설정");
+  expect(resourceChartEffort({...effort,state:"empty",plannedMd:0,plannedMm:0,unsetCount:0},"M/D",20)).toBe("0 M/D");
+ });
+});
+
+describe("#809 explicit T0 diagnostic navigation",()=>{
+ it("removes only personal conditions, fixes the original effective period and retains original scope",()=>{
+  const f=wbsDashboardViewsFixture("direct");
+  try{
+   const person=f.resources.get("R1")!.publicId;
+   const original=f.service.queryWbsView(f.project.publicId,{spec:RESOURCE_WBS_DEFAULT_SPEC,filters:{resourceIds:[person],from:"2026-10-01",to:"2026-10-31",asOfDate:"2026-10-26",granularity:"week",mdPerMm:20},analysis:{fetchGeneration:1,query:{pivot:["resource"]}}});
+   if(!original||original.projection!=="report")throw Error("report");
+   const ids=original.analysis!.diagnostics.personallyUnassigned.taskIds;
+   expect(ids.length).toBeGreaterThan(0);expect(ids.every(id=>!original.taskIds.includes(id))).toBe(true);
+   const query=resourceChartDiagnosticQuery(original);
+   expect(query.filters).not.toHaveProperty("resourceIds");expect(query.filters).not.toHaveProperty("granularity");expect(query).not.toHaveProperty("analysis");
+   expect(query.filters).toMatchObject({from:original.range.from,to:original.range.to,asOfDate:original.asOfDate,mdPerMm:20});expect(query.scope).toEqual(original.sourceContext.scope);
+   const diagnostic=f.service.queryWbsView(f.project.publicId,query);
+   if(!diagnostic||diagnostic.projection!=="report")throw Error("report");
+   const exactSelection=resourceChartDiagnosticSelection(original,diagnostic,ids);
+   expect(exactSelection).toEqual({taskIds:ids,assignmentIds:[]});
+   const scope=f.service.queryWbsView(f.project.publicId,{...query,projection:{kind:"scope",snapshotId:diagnostic.snapshotId,path:[]}});
+   if(!scope||scope.projection!=="scope")throw Error("scope");
+   expect(wbsScheduleDisplayScope(scope,{exactSelection},[]).taskIds).toEqual(ids);
+   expect(()=>resourceChartDiagnosticSelection(original,original,ids)).toThrow("REPORT_STALE");
+   expect(()=>resourceChartDiagnosticSelection(original,{...diagnostic,sourceContext:{...diagnostic.sourceContext,calendarRevision:"different"}},ids)).toThrow("REPORT_STALE");
+   expect(()=>resourceChartDiagnosticSelection(original,diagnostic,[original.taskIds[0]])).toThrow("REPORT_STALE");
+   const restricted={...original,filters:{...original.filters,taskSearch:"업무",statuses:["completed" as const]},sourceContext:{...original.sourceContext,scope:{kind:"summarySubtree" as const,rootId:f.tasks.get("S")!.publicId}}};
+   expect(resourceChartDiagnosticQuery(restricted)).toMatchObject({scope:restricted.sourceContext.scope,filters:{taskSearch:"업무",statuses:["completed"]}});
+  }finally{f.database.close();}
+ });
+});
+
+import { wbsScheduleDisplayScope } from "../../../src/features/resources/resource-drill-navigation-model";
+
+
+describe("#809 / PR #813 Project-reference schedule gateway regression", () => {
+  const plan = { scopeKey: "source", row: { kind: "resource" as const, resourceId: "R1" }, demandScope: "project" as const, periodKey: "all", granularity: "week" as const };
+  const selectedReportTaskIds = ["selected-task"];
+  it("allows out-of-WBS Project load evidence only through the validated Plan gateway", () => {
+    const projectEvidence = { taskIds: ["selected-task", "outside-task"], plan };
+    expect(resourceChartCanNavigate(projectEvidence, selectedReportTaskIds, { wbs: true, resourcePlan: true })).toBe(true);
+    expect(resourceChartCanNavigate(projectEvidence, selectedReportTaskIds, { wbs: true, resourcePlan: false })).toBe(false);
+    expect(resourceChartCanNavigate(projectEvidence, selectedReportTaskIds, { wbs: false, resourcePlan: true })).toBe(true);
+    expect(resourceChartCanNavigate({ ...projectEvidence, taskIds: [] }, selectedReportTaskIds, { wbs: true, resourcePlan: true })).toBe(false);
+  });
+  it("preserves the WBS subset restriction and explicit T0 diagnostic exception", () => {
+    const outside = { taskIds: ["selected-task", "outside-task"] };
+    expect(resourceChartCanNavigate(outside, selectedReportTaskIds, { wbs: true, resourcePlan: true })).toBe(false);
+    expect(resourceChartCanNavigate(outside, selectedReportTaskIds, { wbs: false, resourcePlan: true })).toBe(false);
+    expect(resourceChartCanNavigate({ taskIds: ["selected-task"] }, selectedReportTaskIds, { wbs: true, resourcePlan: false })).toBe(true);
+    expect(resourceChartCanNavigate({ ...outside, diagnosticT0: true }, selectedReportTaskIds, { wbs: true, resourcePlan: false })).toBe(true);
+    expect(resourceChartCanNavigate({ ...outside, diagnosticT0: true }, selectedReportTaskIds, { wbs: false, resourcePlan: true })).toBe(false);
+  });
+});

@@ -1,3 +1,8 @@
+## [0.135.0] — Unreleased / Issue #809 Resource 차트
+
+- 리소스 작업면에 기간 투입/Capacity·개인 과투입, 업무 집중, Milestone/실물 기여 차트와 같은 수치 데이터 표·정확 원본 탐색을 추가한다. 기존 WBS 조회에서 같은 snapshot의 #808 분석 모델을 제공하며 별도 공수 계산기/원장·PRO/차트 의존성을 만들지 않는다.
+- 기존 현황·동적 탐색·Plan·견적/Excel과 단위·partial/null/0·분류 비가산·선택/Project 참고·전체 Milestone Gate·권한/복귀 계약을 보존한다. [Work Packet](docs/exec-plans/active/ISSUE_809.md)·[실패 원장](docs/ISSUE_809_FAILURE_ANALYSIS.md)에 구현 검증·미해결/실패와 PR CI 시작 경계를 기록한다. 정식 게시 미승인, 원격/Owner 승인 미완료다.
+
 ## [0.134.0] — Unreleased / Issue #808 분석 read model (2026-10-25)
 
 ### Added

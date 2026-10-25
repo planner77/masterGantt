@@ -1,3 +1,11 @@
+## Issue #809 — 차트의 동일 수치·접근성·표 소유 스크롤
+
+Resource 차트는 기존 compact 작업면의 peer이며 기간 투입/업무 집중/기여 분포를 한 번에 하나만 렌더링한다. 유형·단위·분석 축을 native 제어로 선택하고 같은 데이터의 표·텍스트 요약을 제공한다. 필수 수치와 위험·분모/미산정은 hover tooltip이나 색상만으로 전달하지 않는다. 막대/셀과 표의 원본 열기는 keyboard Enter/Space와 pointer/touch에서 동일 selector를 사용한다.
+
+긴 이름은 이름 우선으로 표시하고 전체 이름을 접근할 수 있게 한다. 다수 Resource/기간은 Top N·페이지·기간 window로 제한한다. 390/768/1024/1440/1920px의 가로 overflow는 문서와 표 내부를 구분하고, 축/범례/단위/버튼의 정렬·가시 행·focus-visible·reduced-motion과 실제 scroll을 확인한다. 숨은 차트는 높이·요청·초점 영역을 만들지 않는다.
+
+상세는 기존 snapshot/정확 ID gateway를 통과하며 닫기/Escape/일정 복귀 때 출발 제어와 상태를 복원한다. 사라진 trigger로 초점을 보내지 않고 가시 유형 제어를 fallback으로 사용한다. stale/401/412와 늦은 응답은 기존 잠금을 유지한다. Design Delta B이며 기존 토큰/spacing·본문 약14px/보조12~13px 원칙을 구체화한다. 검증은 [Work Packet](exec-plans/active/ISSUE_809.md)의 실제 실행 범위로 한정한다.
+
 ## Issue #807 — 리소스 peer 분석과 조건 인계
 
 리소스 전용 host는 기본 현황·동적 계층 탐색·Milestone 교차·Resource Plan·견적/Excel을 native button group과 `aria-pressed`로 제공한다. peer 전환은 호출 버튼 focus를 유지하고 숨은 분석을 hidden/inert·inactive로 둔다. 재방문에서 필터·선택·접힘·내부 scroll·focus와 정확 source를 보존하며 새 방문 기본값과 구분한다. Milestone 내부 계층/비교를 제외한 중복 보기 selector와 반복 제목/안내는 통합한다.
