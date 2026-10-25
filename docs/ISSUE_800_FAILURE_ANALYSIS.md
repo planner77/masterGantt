@@ -41,3 +41,23 @@
 - TEST_LIFECYCLE_REVIEW: 기존 `#798 다섯 관점` 원본 하나 EXTEND, #732~736/API/Gantt·Editor/권한·state KEEP_UNIQUE, 수동 comparator는 opt-in ADD. 이전 리뷰를 해결 처리하기 전에 해당 source diff와 댓글 응답을 확인한다.
 - 로컬/원격 보완 검증: GitHub source/validator 구조 검토 외 local Node/TypeScript/ESLint/Chromium/negative comparer 실행 **NOT TESTED**, 원격 새 Full CI 및 Trusted QA도 **NOT TESTED**. 특정 source를 검사하지 않은 상태를 PASS라고 보고하지 않는다.
 - 차기 Gate: 최신 main·PR Head/mergeable·0 unresolved review threads 확인 → Ready PR에 새 source `synchronize`로 Full PR CI **시작**, 이후 모니터링하지 않음. Risk HIGH, qa_method OWNER_MANAGED, qa_required true, Manager ACCEPT/merge/Main/GHCR/Finalizer/Issue 종료는 승인·증거 별도.
+
+
+## F800-R002 — Metadata-only #3283.1은 이전 Full FAILED의 확인 (2026-10-25 UTC)
+
+[PR metadata #3283.1](https://github.com/planner77/masterGantt/actions/runs/40168523258), Run ID **40168523258**, attempt **1**, event `pull_request / edited METADATA_ONLY`, Head `a669546b231b805f723aa0015797473039033cee`. PR 본문을 규정대로 갱신한 **동일 Head**가 대상이다. QA route Job 121094422996은 SUCCESS(최초 qa_method 파싱 보완의 근거)이지만 metadata evidence Job **121094478976**은 `FULL_FAILED · full_run=40168112076 · Full CI 40168112076.1 conclusion=failure`를 확인해 FAIL. Automated QA Job **121094541000** `required quality 미성공` FAIL; Required3 집계도 FAIL. 독립 Chromium/TypeScript/Docker 구현 PASS가 아니다. 분류 `POLICY_CI / 기존 Full failure 파생`. metadata-only를 Full 재실행/성공으로 계수하지 않는다.
+
+## F800-R003 — 중간 synchronize Full3건의 취소·실패 보존
+
+연속 보완 commit이 PR HEAD를 교체하는 동안 발생한 별도 **전체 검증** 세 Run이다. 모두 원격 `conclusion=cancelled`이지만 일부 Job은 실제 failure 출력을 남겼다. Run을 하나의 FAIL 또는 PASS로 단순화하지 않는다.
+
+| Run·attempt·Head | 확인한 직접/간접 Job 결과 | 미실행·판정 |
+| --- | --- | --- |
+| [#3284.1 / 40168580992](https://github.com/planner77/masterGantt/actions/runs/40168580992), `a5bebc6b55b86d77bf810b98d41d085337aa312a` | QA route PASS, 변경 경로 PASS; QA Preflight CANCELLED, PR Fast Gate Job121094691120 FAIL; Required3 aggregate FAIL; Automated QA Job121094754744 `PR latest Head stale` BLOCKED | Unit/ESLint/TypeScript/E2E/Shards/Docker 구현 CANCELLED. stale는 이후 HEAD 교체의 인증 차단, app test FAIL 불명. |
+| [#3285.1 / 40168609095](https://github.com/planner77/masterGantt/actions/runs/40168609095), `d382b645f24523445152dbde4f7290ad201e2eda` | QA Preflight Job **121094850381** `FAIL 1: Work Packet ## DOCUMENTATION_SYNC 누락` (원래 5개 중 metadata3 해결). PR Fast Gate Job121094901752와 Required3 aggregate FAIL; Automated QA Job121094958431 FAIL | TypeScript/ESLint/Vitest/Chromium/Docker 구현 SKIPPED/CANCELLED. 원본 누락 교정은 Work Packet 후속 HEAD에서 수행. |
+| [#3286.1 / 40168686669](https://github.com/planner77/masterGantt/actions/runs/40168686669), `0b5108102ec4495487eb5c5fd045f52b95145018` | QA route Job **121095004256** `최신 PR/head/base 귀속 검증 실패 (stale이면 재실행 필요)` FAIL. PR Fast Gate/Required3 FAIL(의존/취소 파생) | QA Preflight/실제 구현 검사 CANCELLED, 자동 QA CANCELLED. 해당 Run의 TEST PASS 증거 없음. |
+
+- 3284와3286의 aggregate FAIL은 취소/정책 의존의 **파생**으로, 원본 Chromium shard test의 직접 단언 실패를 증명하지 않는다. 3285의 유일한 확인된 직접 정책 FAIL은 `DOCUMENTATION_SYNC` 누락이며 다음 Head에서 필수 `## DOCUMENTATION_SYNC`와 `## AC_TEST_COVERAGE`를 추가했다.
+- [#3287.1](https://github.com/planner77/masterGantt/actions/runs/40168731490), Head `cf467fb8754414dc50d34ddfd10d9692b6864e89`은 2026-10-25 06:21 UTC 시점 **in_progress** 상태까지 식별했다. 이 기록은 PASS·FAIL 판정이 아니며 추후 source update가 해당 실행을 supersede할 수 있다. 이번 최종 통합 Head의 새 Full run/attempt는 실제 시작 확인 후 별도로 인계한다.
+- 반례/공통 원인: Run #3283에서 metadata parser가 고쳐졌음에도 기존 Full이 실패해 metadata-only만 재실행하는 것은 해결이 아니다. #3285가 해당 metadata에 관해 실패1건만 남긴 것은 교정이 작동했음을 보여 주지만, 해당 Run은 완결되지 않았으므로 문서 gate 또는 제품의 실제 PASS를 증명하지 않는다.
+- REWORK 정적 검토: `qa_preflight.py`와 `qa_final_automated.docs_gate`의 선언·section 정규식에 따라 PR body의 metadata 5개는 정확히 각각 독립 한 줄 1회, Work Packet의 `AC1..AC6`/`DOCUMENTATION_SYNC` 및 `docs/TEST_PLAN.md: UPDATED` 원장 일치가 확인되었다. 실제 새 Full remote 결과는 **NOT TESTED**. 테스트/보안/권한 Gate 우회 없음.

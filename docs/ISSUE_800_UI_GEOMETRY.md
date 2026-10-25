@@ -60,3 +60,11 @@ ISSUE_800_RUN_COMMAND='npm run test:e2e -- --grep "#798 다섯 관점"' \
 `TEST_LIFECYCLE_REVIEW`: `EXTEND` #730 기존 #798 하나 + 공통 observer; `KEEP_UNIQUE` #457 shell, #717/#719, #731~737, 관리자·Gantt/원본·권한·상태; `PARTIAL_OVERLAP` #457/#797 역사 수집기; `ADD` opt-in *비-E2E* 비교 도구; `CONSOLIDATE_CANDIDATE/RETIRE_CANDIDATE` 없음(대체 PASS·Owner 증거 부재). 자동 삭제, flaky skip, Assertion/Required 완화 없음. 예상 추가비용: 기존 테스트 안 DOM 측정 30회, PNG12, KPI 탭 진입1, 새 E2E test/서버/fixture 0. Runner-minutes 절감/증가 실제 값은 CI timing 전에 **N/T**. 기존 Chromium8-shard·Required3·Trusted/Owner 유지.
 
 `DESIGN.md`: Delta B, 원칙 추가·UI CSS 수정 없음 → 변경 N/A. `PROJECT_UX.md`와 `UI_UX_GUIDELINES.md`의 새 증거 안내, `TEST_PLAN.md`의 #711 정책 준수(이 문서와 Work Packet을 이번 coverage 상세 원장으로 사용), `API.md/DB_SCHEMA.md` N/A. 테스트 결과나 비교 기록은 실제 실행 이전 PASS 금지. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`, `release_required=false`, `release_authorized=false`. PR CI 시작만 승인; 모니터링/병합/Main/GHCR/Finalizer/이슈 종료 없음.
+
+
+## 2026-10-25 REWORK — 첫 PR CI 실패와 source 보완 경계
+
+- [원본 Full #3281.1](https://github.com/planner77/masterGantt/actions/runs/40168112076)은 PR body 단일 행 `risk_level`/`qa_method`/`qa_required` 누락 및 Work Packet `DOCUMENTATION_SYNC` heading 부재로 QA Preflight FAIL. 구현 E2E/Quality/Docker 실행은 **NOT RUN**, Required3 FAILURE는 정책 차단의 파생이며 제품 FAIL 증거 아님. metadata-only #3283, 중간 synchronize 취소 #3284~3286의 개별 출처/Job 직접 실패는 [누적 실패 원장](ISSUE_800_FAILURE_ANALYSIS.md)에 기록한다.
+- Codex [P1 KPI 제목 선택](https://github.com/planner77/masterGantt/pull/805#discussion_r4369868207)은 KPI `h4` 카드보다 아래의 관련 Milestone `h3`을 잘못 앵커로 선정하던 문제로, KPI viewport root를 context 기준으로 잡고 다섯 동적 관점은 원래 heading을 유지하도록 교정. 뷰 디자인/원본 CSS 수정 아님.
+- Codex [P2 빈 조회 영수증 비교](https://github.com/planner77/masterGantt/pull/805#discussion_r4369868209)은 양쪽 `reports: []`가 같아도 PASS 가능한 검증 공백을 지적. 비KPI 각 sample의 두 capture에 실제 populated `snapshotId/spec.root/filters/totals/range/asOfDate` receipt가 있는 경우에만 비교하며 누락은 FAIL/NOT_COMPARABLE, KPI는 원래 WBS report N/A이다.
+- 구조 확인은 base validator regex와 현재 source 비교 수준. 변경 HEAD의 실제 Chromium/negative comparator 실행, CI/Trusted/Owner는 별도 확인 전 **NOT TESTED**. #457/#797/#798/#799의 역사 값과 실패를 변경하지 않는다.
