@@ -72,3 +72,23 @@
 | handoff | 기존 PR을 force/rebase하지 않고 동일 branch fast-forward 후 새 Full PR CI 시작만 확인; CI 모니터링, merge/Main/GHCR/Finalizer/Issue 종료 안 함 |
 
 F553-A~F의 원본 매트릭스와 교정 근거는 위 항목에 그대로 보존한다. 이 실패는 E2E/제품 결함으로 확정되지 않았으며, 다음 Run의 실제 첫 실패가 생기면 이 원장에 추가한다. 원시 Runner 로그/기밀정보를 Git에 보관하지 않는다.
+
+
+## F553-H — 2026-10-25 PR #562 Full #3274.1, 정확 Shard Plan 파일 인벤토리 직접 실패
+
+| 구분 | 확인된 원본 증거 / 판단 |
+| --- | --- |
+| 원본 실행/귀속 | [Run 40162277020 / #3274.1](https://github.com/planner77/masterGantt/actions/runs/40162277020), `pull_request` FINAL_FULL, attempt 1, 2026-10-25T04:32:48Z, FAILURE. Primary #553 / PR #562 |
+| HEAD/Base/Test merge | HEAD `b9e1028958196fffe3540a68ae4f4601c9d93f72`, base `22144ce3844ab50ac0f22a715742c9df82e072e8`, synthetic merge `a3c353d94a4dfb791dde892f797cc408adadde9d` (부모 base/head, tree 동일성 Git API 확인) |
+| 직접 실패 Job | `Vitest 단위·통합 테스트` Job `121076245850`, step `Run npm test`: `tests/scripts/e2e-shard-planner.test.ts:109` — `covers all current specs exactly once after #767 eight-shard escalation`. Assertion expected 141 real E2E specs, manifest actual 140. Missing exactly `tests/e2e/milestone-timeline-interchange-http.spec.ts`, duplicate0, stale0 |
+| Vitest/원본 통합 | Vitest **3293 PASS / 1 FAIL / 3 SKIPPED**, 280 suites 중 1 FAIL, 278 PASS, 1 SKIPPED; 새 `tests/integration/milestone-timeline-interchange.test.ts` **13/13 PASS**, 1297ms. `3 SKIPPED`는 별도 기존 `task-dependency-performance.test.ts`의 명시 skip; 이번 교정으로 추가한 skip 없음 |
+| 다른 독립/파생 Job | `변경 경로 판정` 121076139631, `QA Preflight` 121076210022, ESLint 121076245806, TypeScript 121076245845, Policy 121076245932 모두 SUCCESS. `PR 빠른 검사 판정` 121076509315은 `UNIT_RESULT=failure`로 차단. Required Quality 121076557120 / Chromium E2E 121076557117 / Docker 121076557080 및 QA Final 121076572650 FAIL은 **upstream unit의 파생**. `PR Next.js production build`, Chromium 8개 Shard 실행, Docker 구현 모두 SKIPPED/NOT RUN |
+| 분류 / 공통·차이 | `TEST_CONTRACT / POLICY_CI_INVENTORY`: old marker-ON/viewport/inline(F553-A~F)와 별개. 직전 F553-G(#3272)는 standalone Refs metadata 문제였고 **이번 #3274 changes/preflight PASS**로 해당 단일 문제의 직접 재발은 관측되지 않음. 새 HTTP E2E를 #552 main-first 최신 기준으로 선별 이식할 때 `tests/config/e2e-shard-plan.json`의 explicit 8-shard 등록과 정확 집합 guard를 함께 이식하지 않은 통합 누락 |
+| 이전 기타 Run | [PR #562 Metadata-only #3273.1 / 40162212311](https://github.com/planner77/masterGantt/actions/runs/40162212311): 같은 **이전** head `c906cadf...`, event=`pull_request` edited/metadata-only, `PR metadata evidence` Job 121075997112 `FULL_FAILED` (이전 #3272.1 실패된 Full 출처) → required 3·QA 파생 FAIL. **별개 Full 테스트 실패로 세지 않음**. Fast advisory #102.1 / 40162277016 SKIPPED 역시 Full PASS 아님 |
+| 과거 누적 비교 | 초기 old 21 Full = 10 FAIL + 11 CANCELLED; #3272 1 FAIL; **#3274 1 FAIL → 현재 확인된 Full 23회(12 FAIL, 11 CANCELLED)**. #3273 metadata-only 실패 1회 별도. 과거 취소 내부 실제 실패 수집 INCOMPLETE, 6-shard/8-shard 혼동 금지 |
+| 조치 | 신규 정확 경로 한 개를 **Shard4**에 명시 등록, 기존 140개 할당 그대로. `tests/scripts/e2e-shard-planner.test.ts`의 `[18,17,18,17,17,18,17,18]` → `[18,17,18,18,17,18,17,18]`, 신규 파일→4 정확 pin. 기존 equality/duplicates/select union 및 stale-plan negative assertion 보존. `issue553ExplicitPlacement` 출처/비용/미측정 기록. CI validator·E2E runtime/spec 내용/timeout/skip/8-shard/Required gate는 변경 없음 |
+| 배치 근거 | 최근 성공한 **main** 4회 `#3271.1=40159926912`, `#3268.1=40153743650`, `#3263.1=40148159242`, `#3260.1=40142096133`에서 **Shard4 wall 20.5 / 19.8 / 17.3 / 14.1분** 모두 SUCCESS. 신규 3-case의 구형 Full #2278 역사적 실행 28.4/6.8/13.2초는 이전 환경 참고만; 현재 신규 E2E 비용/Shard4 합산 미래 시간은 **NOT MEASURED**. 35분 한도 여유 추정은 PASS 보증 아님, 역사적 `projectedMs` 그대로 둠 |
+| 동일 소스 검증/잔여 | GitHub 현재 `tests/e2e` 실제 상위 spec141개와 Plan 명시 파일141개 **정확 set equality**, duplicate0/stale0, 8 shard ID 1..8, 기존 140개 배치 불변을 원격 읽기 기반 JS 정적 대조 **STATIC PASS**. 새 Head Vitest/Node/Playwright/Docker 실행 **NOT TESTED** (원격 Full 실행 전), 기존 3 skip 불변. 원본 full/unit 실패는 PASS로 소급하지 않음 |
+| 리뷰/충돌/후속 | 이전 리뷰 thread0/reviews0, `mergeable=true`/최신 main 정렬 확인. 새 Head push 전 재확인, fast-forward only / force=false, 최신 PR Full CI **시작까지만**. 이후 모니터링·병합/Main/GHCR/정식 Release/Finalizer/이슈 종료 금지. HIGH/OWNER_MANAGED, release_authorized=false |
+
+원본 [F553-G](#f553-g--pr-562--full-pr-ci-32721-standalone-refs-누락-2026-10-25) 및 F553-A~F를 덮어쓰거나 최신 한 건만으로 진단하지 않는다. 원본 Job/Step·성공/미실행/취소 증거를 분리한다. 추가 direct failure가 밝혀지면 같은 원장에 Run/Attempt별로 누적한다.

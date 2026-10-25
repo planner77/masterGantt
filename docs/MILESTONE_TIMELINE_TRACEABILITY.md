@@ -29,3 +29,11 @@ TEST_LIFECYCLE_REVIEW: 기존 `milestone-visibility.spec.ts`, `project-gantt-ima
 - **AC9:** #549~#553 고정 Source와 exact Run 출처/미검증 및 #548/#574 marker OFF 종합 인수, #573/#693 선택 marker ON 분리 → 본 추적표 + Packet.
 - **AC10:** 독립 QA/Owner ACCEPT·Windows Excel/DRM/운영 proxy·외부 소비자 검증은 실제 증거 전 NOT TESTED, 무단 병합·정식 게시·종료 금지.
 - Issue 본문의 기존 10개 acceptance 체크박스를 **AC1~10**으로 1:1 식별하고 `## AC_TEST_COVERAGE`에서 각각 test/docs/정확 Head 결과를 구분한다.
+
+
+## #3274.1 direct Vitest 실패 — E2E Shard4 계획 복구 (2026-10-25)
+
+- 원본 [#3274.1 / 40162277020](https://github.com/planner77/masterGantt/actions/runs/40162277020): `changes`, Trusted Preflight, TypeScript, ESLint, Policy PASS. Vitest **13/13 Milestone integration PASS**, 전체 3293 PASS / 1 FAIL / 3 existing SKIP. `e2e-shard-planner.test.ts:109`에서 `milestone-timeline-interchange-http.spec.ts` 계획 배치 누락(실물141 vs explicit140). Fast Gate/3 Required/QA Final 파생 실패, 실제 E2E8/Next build/Docker 미실행. [실패 원장 F553-H](ISSUE_553_FAILURE_ANALYSIS.md).
+- [Metadata-only #3273.1 / 40162212311](https://github.com/planner77/masterGantt/actions/runs/40162212311)은 기존 Head의 과거 #3272 Full 실패 확인에 따른 FAIL이지 새 완전 CI 직접 실패가 아님.
+- **AC3/4/6/7:** 신규 3-case 실제 HTTP/SQLite/restart 전용 E2E를 현행 8개 Shard 중 **4번**에 명시 배치, 141/141 unique·중복0/유실0, 기존 140개 배치 유지. 최소 네 개 main successful job Shard4 wall(20.5/19.8/17.3/14.1분)은 선정 근거이며 새 소스 성능 PASS가 아니다. 기존 `tests/scripts/e2e-shard-planner.test.ts` strict file inventory와 negative guard도 지속.
+- **AC10:** 정적 Plan/Issue/PR 출처 조회 ≠ 실제 새 HEAD CI/Test/QA PASS. marker OFF, 사용 가이드, JSON1.1/Excel/SVG/PNG·Copy/Template, Owner release gate 불변. 새 exact-head Full CI 결과 전 `NOT TESTED`.
