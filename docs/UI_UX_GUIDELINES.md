@@ -1,3 +1,9 @@
+## Issue #800 — source 귀속 Geometry 회귀 증거
+
+공통 UI의 compact/Workspace-first는 **실제 첫 요약·데이터 시작 Y, 가시 지표/행, document overflow vs table-owned scroll, sibling overlap**으로 관측한다. KPI의 수치·단위·상태·scope와 5개 동적 관점의 각기 다른 분모/원본/권한을 동일 CSS box로 강제하지 않는다. 비교는 동일 fixture fingerprint/revision·제품 hash·실제 DOM version·height900/5폭·locale/timezone·DPR/root font/visual scale·브라우저 실행 provenance를 요구한다. 다른 앱 버전·미확인 working tree·사진만으로는 개선 PASS가 아니다.
+
+기존 [#457 coverage](ISSUE_457_UI_UX_COVERAGE.md)는 당시의 인증/버튼/표/상태 증거로 불변이고, [#797 감사](UI_AUDIT_2026_10_24.md) 및 [#798/#799 역사 관측](ISSUE_799_DASHBOARD_METRICS.md)은 source를 따로 보존한다. 새 [#800 coverage/비교 계약](ISSUE_800_UI_GEOMETRY.md)은 #730 기존 E2E의 geometry helper/대표 screenshots를 재사용하며 상태×모든 폭·native125%/실기기/screen reader를 수행했다고 표기하지 않는다. 디자인 원칙/업무 동작·accessibility 요구는 변경하지 않는다.
+
 ## Issue #799 — 요약 숫자·단위와 모집단 위계
 
 KPI를 내부 참조로 삼되 기존 card/quality pane·Milestone 원본 표·Resource Plan 배치를 기계적으로 치환하지 않는다. 동적 관점의 공통 요약은 보조 label과 주요 값·단위, 인접 범위 안내를 구분한다. 숫자는 tabular로 비교하고 긴 label·미산정/부분합 상태는 고정 높이나 clipping 없이 읽힌다. 숫자·단위가 분리되어 오해하지 않도록 실제5폭에서 확인한다.
