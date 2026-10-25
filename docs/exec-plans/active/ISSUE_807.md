@@ -163,3 +163,11 @@ Design Delta **B**(기존 Workspace-first/Compact/Progressive disclosure와 focu
 - `AC_TEST_COVERAGE` R1-AC3/R1-AC5/R1-AC6 및 `TEST_LIFECYCLE_REVIEW`: 기존 `resource-editor-focus-return.test.ts`에 active/hidden/current visit negative regression EXTEND, `issue-622-resource-plan-target.spec.ts`에 hidden-peer 현존/복귀 단언 EXTEND. #736·#751·#622·#530 포함 주변 focus/edit/Plan·stale 범위를 교차 대상으로 유지; 신규 중복 full spec/삭제·skip/timeout/retry/CI 정책 변화 없음.
 - `DOCUMENTATION_SYNC`: 기존 사용자 UX·TEST_PLAN·PROJECT_UX 문서는 기능 계약 불변으로 추가 개정 N/A; 본 Work Packet 및 [이슈 누적 원장](../../ISSUE_807_FAILURE_ANALYSIS.md)을 Run/Attempt·직접/파생/취소·수정·검증 미실행·리뷰/충돌로 증분 갱신.
 - 원격 이전 Run의 실패·취소는 PASS로 승격하지 않는다. 새 exact HEAD의 Unit/E2E·Required3·Trusted/Owner 승인·Main/GHCR/Release는 CI 시작 전에 모두 NOT TESTED. 신규 교정 push는 검증 시작 목적이며 CI 완료 모니터링·병합·종료는 하지 않는다.
+
+
+## PR #810 · 두 번째 원격 실패 F807-R02 교정 인계 (2026-10-25)
+
+- [Run #3293.1 / 40185606165 attempt1](https://github.com/planner77/masterGantt/actions/runs/40185606165) 직접 shard5 `issue-719-contextual-help.spec.ts:57`: error 예상 vs pending 실제. Milestone 및 Resource 공존을 가정한 **기존 테스트 계약 오류**로, #807의 기본 Resource report에서 WBS가 hidden/inactive되어 POST를 보내지 않는 정책이 원인이다. 다른 7 shard CANCELLED; 이전 #622 개별 테스트는 shard2에서 PASS했지만 shard2 전체/8shard 완주 아님. Quality·Docker success, E2E/QA Final downstream failure.
+- **TEST_LIFECYCLE_REVIEW / EXTEND**: #719 동일 fixture 5폭 도움말의 기본 Resource 진입은 `기본 현황` ready·WBS hidden/pending·WBS POST0을 확인한다. 별도 기존 지연 WBS 테스트는 Resource에서 **동적 계층 탐색 명시 활성** → 실제 WBS POST를 `page.waitForRequest`로 인증 → 기존 404 `pending→error` → 기본 보고서 복귀 및 tooltip/scroll/쓰기0 검사로 강화. Milestone의 활성 WBS error·기존 도움말/스크린 폭 테스트는 계속 실행한다. 기존 assertion 완화/skip·timeout 증가 없음, #711 중복 테스트 신규 작성 없음.
+- **AC_TEST_COVERAGE** R1-AC2(기본 단일 workspace/no hidden POST), AC3(동적 peer 수동 진입/오류), AC5(5폭·tooltip·오류/ready·포커스), AC6(기존 #719 E2E 확장), AC7(#807 Work Packet·누적 원장 증분). #719 관련 정규 문서는 현재 기능 정책과 일치하여 `DESIGN.md`·`UI_UX_GUIDELINES.md`·`TEST_PLAN.md` 본문 변경 N/A (테스트 구현·실패 증거만 수정). 제품/R2/R3/서버/DB/CI/릴리스 정책 변경 N/A.
+- **Gantt State Consistency #661**: Gantt/Core·Task Editor·Resource drill state implementation source 변경0, 테스트의 화면 진입만 현재 app 계약으로 정렬. 기존 #622/#751 원본 focus handback 및 Resource ownership 계약 변경0. 원격 새 HEAD의 실제 #719/Full8 결과 및 Trusted QA·Owner ACCEPT는 PR CI 시작 시 NOT TESTED.

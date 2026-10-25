@@ -29,9 +29,10 @@ async function openSurface(page: Page, surface: Surface, wbsResponseGate?: Promi
     const row = { id: "proc-1", code: "PROC-01", name: "긴 한글 입고 공정 Long English Process Name", active: true, taskCount: 1, progressPercent: 50, overdueTaskCount: 0, plannedMd: 1, taskIds: [state.tasks[2].taskId] };
     return route.fulfill({ json: toResourcePublicV2({ data: withIntegratedKpi({ projectRevision: state.project.revision, catalogRevision: 1, asOfDate: params.get("asOfDate") || "2026-09-29", timezone: "Asia/Seoul", calculatedAt: "2026-09-29T00:00:00Z", horizonDays: Number(params.get("horizonDays") || 14), systemView: params.get("systemView") === "coordination" ? "coordination" : "direct", activeOnly: params.get("activeOnly") === "true", includedTaskIds: row.taskIds, includedMilestoneIds: [], kpi: { progressPercent: 50, totalDuration: 2, taskCount: 1, overdueTaskCount: 0, overdueTaskIds: [], milestoneTotalCount: 0, milestoneOverdueCount: 0, milestoneOverdueIds: [], milestoneUpcomingCount: 0, milestoneUpcomingIds: [] }, effort: { plannedMd: 1, plannedMm: null, mdPerMm: null, unsetAllocationCount: 0, workloadRange: { from: null, to: null } }, quality: { unlinkedLeafTaskCount: 0, totalLeafTaskCount: 1, unlinkedLeafTaskPercent: 0, equipmentWithoutPrimaryControllerCount: 0, equipmentWithoutOwnerCount: 0, systemsWithoutPrimaryPICount: 0, totalEquipmentMasterCount: 0, totalEquipmentQuantity: 0 }, breakdowns: { processes: [row], equipment: [], systems: [] } }) }) });
   });
-  // This Project exists only in the legacy UI fixture, not in SQLite. Keep
-  // the sibling WBS query's original 404 explicit instead of leaking it to
-  // the real server, whose pending→error height change races help geometry.
+  // This Project exists only in the legacy UI fixture, not in SQLite.
+  // #807: Resource defaults to the legacy summary; its hidden WBS must not
+  // fetch. The 404 is exercised only after an explicit dynamic peer selection
+  // (Milestone WBS continues to fetch when its screen becomes active).
   await page.route(`**${projectPath}/resource-dashboard/views`, async route => {
     if (route.request().method() !== "POST") return route.fallback();
     await wbsResponseGate;
@@ -50,13 +51,33 @@ async function openSurface(page: Page, surface: Surface, wbsResponseGate?: Promi
   const root = surface === "milestone" ? page.getByTestId("milestone-dashboard") : surface === "resource" ? page.locator('[data-resource-dashboard="true"]') : page.getByTestId("logistics-dashboard-view");
   if (surface !== "logistics") await expect(root).toHaveAttribute("data-ready", "true");
   else await expect(root.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
-  if (surface === "milestone" || surface === "resource") {
-    // Legacy data-ready alone does not settle the preceding WBS sibling.
-    // This is terminal error readiness, not a successful WBS report fixture.
-    const wbs = page.locator(`[data-wbs-view="${surface}"]`);
+  if (surface === "milestone") {
+    // The active Milestone WBS must finish its explicit 404 before geometry.
+    const wbs = page.locator('[data-wbs-view="milestone"]');
     await expect(wbs).toHaveAttribute("data-wbs-state", "error");
     await expect(wbs.getByRole("alert")).toContainText("프로젝트를 찾을 수 없습니다.");
     await expect(wbs.getByRole("status")).toHaveCount(0);
+  } else if (surface === "resource") {
+    const peers = page.getByRole("group", { name: "리소스 분석 보기", exact: true });
+    const summary = peers.getByRole("button", { name: "기본 현황", exact: true });
+    const wbs = page.locator('[data-wbs-view="resource"]');
+    if (wbsResponseGate) {
+      // The delayed-query regression explicitly activates the peer. Do not
+      // convert the default summary back into a hidden background WBS fetch.
+      await peers.getByRole("button", { name: "동적 계층 탐색", exact: true }).click();
+      await expect(wbs).toHaveAttribute("data-wbs-state", "error");
+      await expect(wbs.getByRole("alert")).toContainText("프로젝트를 찾을 수 없습니다.");
+      await expect(wbs.getByRole("status")).toHaveCount(0);
+      await summary.click();
+      await expect(root).toHaveAttribute("data-ready", "true");
+      await expect(root).toBeVisible();
+    } else {
+      await expect(summary).toHaveAttribute("aria-pressed", "true");
+      await expect(root).toBeVisible();
+      await expect(wbs).toHaveAttribute("data-ready", "false");
+      await expect(wbs).toHaveAttribute("data-wbs-state", "pending");
+      expect(await wbs.evaluate(element => Boolean(element.closest("[hidden], [inert]")))).toBe(true);
+    }
   }
   return surface === "logistics" ? page.locator(".project-logistics-panel") : root;
 }
@@ -75,11 +96,17 @@ async function geometry(root: Locator) {
 for (const surface of surfaces) test(`#719 ${surface} 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말`, async ({ page, browser }) => {
   test.setTimeout(120_000);
   const writes: string[] = [];
+  const wbsQueries: string[] = [];
   const browserErrors: string[] = [];
   page.on("pageerror", error => browserErrors.push(error.message));
   page.on("console", message => { if (message.type() === "error" && /hydration|cannot (be|contain)|descendant/i.test(message.text())) browserErrors.push(message.text()); });
-  page.on("request", request => { if (request.url().includes("/api/") && !["GET", "HEAD"].includes(request.method()) && !request.url().includes("admin-sessions") && !isWbsViewReadQuery(request)) writes.push(`${request.method()} ${new URL(request.url()).pathname}`); });
+  page.on("request", request => {
+    if (isWbsViewReadQuery(request)) wbsQueries.push(new URL(request.url()).pathname);
+    else if (request.url().includes("/api/") && !["GET", "HEAD"].includes(request.method()) && !request.url().includes("admin-sessions")) writes.push(`${request.method()} ${new URL(request.url()).pathname}`);
+  });
   const root = await openSurface(page, surface);
+  // #807 default Resource is the compact report, not an eagerly fetched WBS.
+  if (surface === "resource") expect(wbsQueries).toEqual([]);
   const dir = `output/playwright/issue-719/${before ? "before" : "after"}`;
   await mkdir(dir, { recursive: true });
   for (const width of widths) {
@@ -117,6 +144,7 @@ for (const surface of surfaces) test(`#719 ${surface} 동일 fixture 5폭 설명
   }
   expect(writes).toEqual([]);
   expect(browserErrors).toEqual([]);
+  if (surface === "resource") expect(wbsQueries).toEqual([]);
 });
 
 test("#719 touch 도움말 tap 열림·바깥 tap 닫힘 및 최소 hit area", async ({ browser, baseURL }) => {
@@ -221,7 +249,7 @@ test("#719 긴 도움말을 키보드로 스크롤하고 Escape 시 초점을 �
   await expect(trigger).toBeFocused();
 });
 
-for (const surface of ["milestone", "resource"] as const) test(`#719 ${surface} 도움말 fixture는 지연 WBS 오류와 기존 데이터가 모두 준비될 때까지 기다린다`, async ({ page }) => {
+for (const surface of ["milestone", "resource"] as const) test(`#719 ${surface} 도움말 fixture는 활성 WBS의 지연 오류와 기존 보고서 준비 경계를 검증한다`, async ({ page }) => {
   const gate = deferred();
   let opened = false;
   const writes: string[] = [];
@@ -230,10 +258,14 @@ for (const surface of ["milestone", "resource"] as const) test(`#719 ${surface} 
   page.on("request", request => {
     if (request.url().includes("/api/") && !["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) writes.push(`${request.method()} ${new URL(request.url()).pathname}`);
   });
+  // A request witness ensures the gate is actually exercised (not merely a
+  // never-activated hidden WBS that happens to remain "pending").
+  const awaitedQuery = page.waitForRequest(request => isWbsViewReadQuery(request));
   const opening = openSurface(page, surface, gate.promise).then(root => { opened = true; return root; });
   try {
     const legacy = surface === "milestone" ? page.getByTestId("milestone-dashboard") : page.locator('[data-resource-dashboard="true"]');
     await expect(legacy).toHaveAttribute("data-ready", "true");
+    await awaitedQuery;
     await expect(page.locator(`[data-wbs-view="${surface}"]`)).toHaveAttribute("data-wbs-state", "pending");
     expect(opened).toBe(false);
   } finally { gate.resolve(); }
