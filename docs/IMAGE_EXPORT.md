@@ -1,3 +1,7 @@
+## Issue #553 — 운영 marker OFF와 SVG/PNG 표시 차이 (2026-10-25)
+
+이미지 Export는 운영 Gantt DOM/표시된 Milestone marker의 즉시 캡처가 아니라 기존 **full-expanded canonical WBS**와 선택 날짜 clip을 따르는 별도 renderer다. 현재 지원하지 않는 Dependency/구조의 fail-closed·XML escape·최대 pixel/row·object URL 정리는 그대로이며, 숨은 Milestone의 모든 Membership/Link 상세를 이미지에 그렸다고 주장하지 않는다. 전체 교환용은 JSON 1.1/Excel 안내. [#553 가이드](MILESTONE_USER_GUIDE.md), [검증 추적표](MILESTONE_TIMELINE_TRACEABILITY.md). 신규 SVG/PNG schema/API/레이아웃 계약 변경 없음.
+
 # Gantt SVG/PNG 내보내기
 
 Issue #245의 이미지 내보내기 계약이다. 기존 Excel workbook 계약은 [EXCEL_EXPORT.md](EXCEL_EXPORT.md)를 따른다.

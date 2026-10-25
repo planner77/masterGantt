@@ -1,3 +1,7 @@
+## Issue #553 — marker OFF 운영에서 JSON 교환 원본 보존 (2026-10-25)
+
+화면 Grid/Chart의 Milestone 행 제거·검색/접힘/필터는 JSON 1.1 **프로젝트 전체 원본**의 Task·Milestone·Link·명시 Membership을 줄이지 않는다. 신규 Project Import는 원본→신규 UUID/FK 매핑으로 의미를 비교하며 유효·상속 소속은 재계산한다. 혼합 endpoint legacy Link의 Export는 원형 기록 가능하나 재Import는 기존 원자 거부 정책이고 Resource/Logistics 전체 백업으로 취급하지 않는다. 실제 회귀 경계는 [#553 가이드](MILESTONE_USER_GUIDE.md)와 [추적표](MILESTONE_TIMELINE_TRACEABILITY.md)를 따른다. API/schema/권한·If-Match 계약은 변경하지 않는다.
+
 ## Issue #785 — 원본 보존과 사용자 산출물 전환
 
 지원 Copy/Template의 내부 legacy graph는 whole/subset·coverage·상속·공유 실물의 원형을 보존한다. 공개 Target writer/사용자 축은 폐기하지만 자료를 버린 성공 파일로 대체하지 않는다. JSON1.0/1.1·일반 일정 Excel의 손실 방지 한계는 유지한다. Resource Excel은 실물·Task·Assignment·opaque provenance로 조회 근거를 출력하며 전체 DB backup/roundtrip 형식은 아니다. [Excel](EXCEL_EXPORT.md), [운영 복구](TARGET_RESOURCE_OPERATIONS.md), [Work Packet](exec-plans/active/ISSUE_785.md).

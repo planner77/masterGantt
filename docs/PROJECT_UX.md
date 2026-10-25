@@ -1,3 +1,7 @@
+## Issue #553 — Milestone 행·마커 OFF Export 사용자 경로 (2026-10-25)
+
+Milestone은 native Grid/Chart 행·bar/생산 marker를 표시하지 않고 Dashboard/소속 Task/Editor에서 접근한다. 일반 WBS 검색/접힘·Day/Week·상위 탭·Resource drill과 무관하게 서버 원본 Stage Gate·관계·공수/Resource 집합은 유지한다. 내보내기 대화상자는 원본 일정과 현재 Gantt 표현의 차이를 짧게 고지하며 형식별 canonical scope는 [#553 사용자 가이드](MILESTONE_USER_GUIDE.md)를 따른다. 별도 Timeline marker ON 기능은 #573/#693 선택 후속이다.
+
 ## Issue #799 — 6관점 요약·지표 표시
 
 KPI의 기존 네 카드·품질 패널·세부표와 Milestone 전체 상태·관리 카드/표, Resource Plan matrix는 유지한다. 다섯 동적 대시보드의 공통 요약은 label과 값·단위의 위계를 구분하고 숫자를 tabular로 비교한다. 구성 참고/프로젝트 참여 참고와 필터된 작업/개인 배정, 전체 Milestone Gate·전체 Capacity/Plan은 별도 모집단으로 읽는다.

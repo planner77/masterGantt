@@ -1,3 +1,7 @@
+## Issue #553 — 숨은 Milestone 및 legacy 관계 무손실 경계 (2026-10-25)
+
+native WBS Milestone 행·port/hidden mixed endpoint는 노출하지 않는다. 원본 Milestone→Milestone, Task→Task 및 기존 legacy mixed Link는 canonical snapshot/JSON Export에서 **조용히 삭제·변환하지 않는다**. 새 Import의 비지원 mixed endpoint는 원자 거부, 이미지 관계 미지원 형태도 fail-closed이다. 실제 편집/복사·완료 잠금은 서버 authority로 판정한다. [#553 사용자 가이드](MILESTONE_USER_GUIDE.md), [누적 실패 원장](ISSUE_553_FAILURE_ANALYSIS.md).
+
 ## Issue #552 — 읽기 전용 관계 조회 경로 (2026-10-13)
 
 - Milestone native WBS 행을 제거한 상태에서도 일반 Task의 Relation Editor는 Task 정보 → 관계 탭 → 해당 Link의 **관계 조회**로 진입한다. 읽기 전용에서는 링크 조회 버튼을 제공하고 관계 추가·삭제/수정 제출은 제공하지 않는다. 편집 권한이 있으면 기존 **관계 편집**과 보호된 변경·삭제가 가능하다.

@@ -1,3 +1,7 @@
+## Issue #553 — Milestone 교환·출력 무손실 인수 (2026-10-25)
+
+#552의 기본 WBS에는 Summary/Task만 표시하고 생산 Timeline marker는 OFF이다. **화면 표시·검색·접힘은 원본 Task/Milestone/Link/Membership, Ready·Completed/공수, revision/권한·Export 범위를 변경하지 않는다**. JSON1.1·Excel은 canonical 데이터를, SVG/PNG는 기존의 확장 WBS·지원 날짜 범위를 출력하며 완전한 화면 스크린샷이 아니다. Legacy mixed·지원되지 않은 renderer 입력은 무단 누락 없이 fail-closed. [사용자 가이드](MILESTONE_USER_GUIDE.md), [#553 추적표](MILESTONE_TIMELINE_TRACEABILITY.md), [#574 기준선 QA](https://github.com/planner77/masterGantt/issues/574)를 적용한다. #573/#693 ON은 별도 선택.
+
 ## Issue #479 — public/private project visibility
 
 Project aggregate has `visibility = public | private`, default public for existing DB and new Projects. The project list remains discoverable and includes visibility. Public Projects remain directly readable in readonly mode; private Projects demand correct exact Password and current same-project edit session before any detailed HTML/API/Task/Dependency/Calendar/Resource/logistics/export read. Unlock uses existing edit session, enabling edit as well. Settings can change visibility under the existing authentication/Origin/If-Match/revision+1 contract; Copy inherits source vis and Template creation can choose visibility. A separate readonly password, user account, RBAC, secret URL or hiding private names are out of scope. [Issue #479 AC and risk](exec-plans/active/ISSUE_479.md).
