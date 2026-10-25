@@ -1,0 +1,2 @@
+### Error
+Error: Synthetic reauthentication failed 400

@@ -1,3 +1,4 @@
+import { openWbsViewControls } from "./helpers/wbs-controls";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
@@ -151,6 +152,7 @@ test("#762 direct 구역 Task·설비 소비자 저장 및 412/pending 초안 �
   await openWorkspaceView(page,"unified");
   const dashboard=page.getByTestId("wbs-view-dashboard").filter({visible:true});
   await expect(dashboard).toHaveAttribute("data-ready","true");
+  await openWbsViewControls(dashboard);
   const composer=dashboard.locator("details").filter({has:page.locator("summary").filter({hasText:/^조회 구성$/})});
   await composer.locator("summary").click();
   await composer.getByRole("button",{name:"공정 → WorkArea → 설비 / 물류 시스템 → 리소스",exact:true}).click();

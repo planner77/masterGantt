@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #798 동적 대시보드 제어 영역
+
+- Milestone·공정&WorkArea·설비·물류 시스템·리소스의 제목·현재 경로를 정돈하고 작업 검색·상태·기간을 빠른 toolbar에 배치한다. 표 이름 찾기·정렬·관점 조건·기존 조회 구성은 고급 영역에서 열며 적용 조건·범위와 초기화를 확인할 수 있다.
+- 기존 KPI·구성/작업/전체 Gate·원본 편집·Plan/Excel의 계산과 권한을 유지한다. 5폭 실측·선택 회귀·문서 및 미검증은 [#798 Work Packet](docs/exec-plans/active/ISSUE_798.md)에 기록한다. 앱 버전 유지, PR CI 시작 범위이며 정식 릴리스·최종 QA 완료를 뜻하지 않는다.
+
 ## [0.133.0] — Unreleased / Issue #479 Project visibility (2026-10-25)
 
 - Issue #479의 Project 공개/비공개 선택, 기존 데이터 migration0031의 public 기본값, Project별 session과 서버 read/SSR/Export 접근제어 및 UI/테스트 보강을 정식 릴리스 후보로 관리한다.

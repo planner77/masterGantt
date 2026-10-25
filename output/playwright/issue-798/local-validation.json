@@ -1,0 +1,167 @@
+{
+  "status": "PASS",
+  "scope": "Local implementation feedback only; official PR quality/e2e/docker and final Manager ACCEPT remain NOT TESTED.",
+  "finishedAt": "2026-10-24T23:04:10.389035+00:00",
+  "sourceHashes": {
+    "package.json": "5a1a0ff77d00b69f832969e3b329f5fa49b5119cf168fb790f597429d37e27b0",
+    "package-lock.json": "2c68c800bd44a9aa61fad15533d8476c9f230a7b589ddbacac796695421fa317",
+    "src/features/resources/wbs-view-dashboard.tsx": "6b4e974f952375349cd0056bda1706d4eda53b25a153fb2a9c6f4345a98bf158",
+    "src/features/resources/wbs-view-composer.tsx": "9486fa288829255cb95337838831b07b13d83b1c7dbad410bac69d7b0a39035b",
+    "src/features/resources/wbs-view.module.css": "83749e2a01011e7caabf789164317eab91d8fb84fd6c9daacbd1b477fab14d05",
+    "tests/e2e/helpers/wbs-controls.ts": "80fcc2bd50384a50e6edec3d35b51cac4f0b4c190994d30ca24d9ad6465d2738",
+    "tests/manual/issue-798-dashboard-density.mjs": "99d4fde139d38648078b90baea1a061275697bc2148b13cf2b76d6b22888e626",
+    "tests/manual/issue-798-compare.py": "964faf0cb121483dce68deb91cb2477419136b7cb784442271fc309e1c87b1cf",
+    "tests/e2e/issue-730-view-composer.spec.ts": "1cd85e5b9f2a932b69997d838e08b74b9a7ccf1b765ea87d1beb3a84e23e3801",
+    "tests/e2e/issue-737-target0-acceptance.spec.ts": "2272bde8c6927e6e175f3241b1bb99e0b6c60b564077bcfd44b6e1c2aa13dc15",
+    "tests/e2e/issue-734-equipment-dashboard.spec.ts": "f325ab8a4498901b93716f541b62c3665ebe3953bbde726cd60934c4d66d8f16",
+    "tests/e2e/issue-735-system-dashboard.spec.ts": "3bbc14f7ac0d72b82120a41b1e7711935940a4e585945a4ecdf8e5c3b75a3c90",
+    "tests/e2e/issue-732-milestone-dashboard.spec.ts": "8b174471a62b9c4526c74529f143a19ac48f97c1b77a9ffad85a074fa69e52e2",
+    "tests/e2e/issue-733-process-workarea-dashboard.spec.ts": "0768e1e0ba1d09bf1b73fbaaae69fe78e3ae3caa024f736fb6a0507c9711b2ca",
+    "tests/e2e/issue-736-resource-dashboard.spec.ts": "c31a3bc08694174929778dd48cf1d9721e582d6cedef84a09f14f79f3348a470",
+    "tests/e2e/issue-762-process-workareas.spec.ts": "4e6db111c4f66994afc6fe9a4850215f420a984160aeebf97c7a4ade6b05837c"
+  },
+  "sourceStableDuringSelected4": true,
+  "commands": [
+    {
+      "name": "TypeScript",
+      "command": "npx tsc --noEmit",
+      "exitCode": 0,
+      "result": "PASS"
+    },
+    {
+      "name": "Targeted ESLint",
+      "command": "npx eslint src/features/resources/wbs-view-dashboard.tsx src/features/resources/wbs-view-composer.tsx tests/e2e/issue-7{30,32,33,34,35,36,37,62}*.ts tests/e2e/helpers/wbs-controls.ts tests/manual/issue-798-dashboard-density.mjs",
+      "exitCode": 0,
+      "result": "PASS"
+    },
+    {
+      "name": "Selected unit tests",
+      "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/resources/wbs-view-model.test.ts tests/features/resources/wbs-view-transport.test.ts tests/features/resources/resource-wbs-dashboard-model.test.ts",
+      "exitCode": 0,
+      "result": "PASS",
+      "files": 3,
+      "uniqueTests": 16
+    },
+    {
+      "name": "Final source3 Chromium",
+      "command": "PLAYWRIGHT_CHROMIUM_EXECUTABLE=/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/issue798-native-source3.json ISSUE730_E2E_ARTIFACT_DIR=output/playwright/issue-798/e2e-730 npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-730-view-composer.spec.ts tests/e2e/issue-735-system-dashboard.spec.ts tests/e2e/issue-736-resource-dashboard.spec.ts --project=chromium --workers=1 --grep '#798|#735 실제 System 직접|#735 구버전 System 저장|#736 Target0' --reporter=list,json",
+      "exitCode": 0,
+      "result": "PASS",
+      "uniqueTests": 4,
+      "tests": [
+        {
+          "title": "#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조회 불변",
+          "file": "issue-730-view-composer.spec.ts",
+          "line": 581,
+          "status": "passed",
+          "durationMs": 42563,
+          "retry": 0,
+          "errors": []
+        },
+        {
+          "title": "#735 실제 System 직접·조정 Task 집합과 고유 Assignment·선택·공정 필터",
+          "file": "issue-735-system-dashboard.spec.ts",
+          "line": 62,
+          "status": "passed",
+          "durationMs": 21629,
+          "retry": 0,
+          "errors": []
+        },
+        {
+          "title": "#735 구버전 System 저장 spec·펼침·상세 선택은 직접 범위로 변환하지 않는다",
+          "file": "issue-735-system-dashboard.spec.ts",
+          "line": 249,
+          "status": "passed",
+          "durationMs": 24365,
+          "retry": 0,
+          "errors": []
+        },
+        {
+          "title": "#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot Excel·정확 Assignment 복귀",
+          "file": "issue-736-resource-dashboard.spec.ts",
+          "line": 48,
+          "status": "passed",
+          "durationMs": 21077,
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "name": "Same fixture before/after comparison",
+      "command": "python3 tests/manual/issue-798-compare.py",
+      "exitCode": 0,
+      "result": "PASS",
+      "pairs": 30,
+      "kpiKeepPairs": 5,
+      "dynamicViewImprovedPairs": 25
+    }
+  ],
+  "environment": {
+    "node": "v22.14.0",
+    "next": "16.4.2",
+    "playwright": "1.63.0",
+    "chromiumVersion": "153.0.8010.12",
+    "geometryRuntime": "Next dev webpack, loopback3198, same synthetic SQLite fixture revision17",
+    "e2eRuntime": "Existing isolatedApplication real HTTP/SQLite per-case, Next dev Turbopack; local Chromium explicit executable",
+    "touch": "Chromium hasTouch390 emulation tested; physical hardware NOT TESTED"
+  },
+  "independentCommonEdges": "independent-common-edges.json",
+  "comparison": "comparison.json",
+  "historicalAttempts": [
+    {
+      "file": "local-chromium-attempt1.json",
+      "status": "FAIL",
+      "counts": "4PASS/3FAIL",
+      "failures": [
+        "F798-L001",
+        "F798-L002",
+        "F798-L003"
+      ]
+    },
+    {
+      "file": "local-chromium-source1.json",
+      "status": "PASS",
+      "uniqueTests": 7,
+      "sourceStatus": "SUPERSEDED for final acceptance by QA product corrections; not reused as final source3 PASS"
+    },
+    {
+      "file": "source2-setup-failed/STATUS.json",
+      "status": "FAIL",
+      "scope": "Wrong synthetic unlock harness schema/expected status, corrected to editPassword/204; no canonical reseed"
+    }
+  ],
+  "testLifecycleReview": {
+    "EXTEND": [
+      "issue-730-view-composer.spec.ts",
+      "issue-732-milestone-dashboard.spec.ts",
+      "issue-733-process-workarea-dashboard.spec.ts",
+      "issue-734-equipment-dashboard.spec.ts",
+      "issue-735-system-dashboard.spec.ts",
+      "issue-736-resource-dashboard.spec.ts",
+      "issue-737-target0-acceptance.spec.ts",
+      "issue-762-process-workareas.spec.ts"
+    ],
+    "KEEP_UNIQUE": [
+      "cross-screen-regression.spec.ts",
+      "existing concurrency/readonly/401/412/precise-original cases not removed"
+    ],
+    "newSpecFiles": 0,
+    "timeoutRetrySkipChanges": false
+  },
+  "preprTargetedDryRun": {
+    "command": "npm run verify:prepr -- --mode=targeted --base=origin/main --issue=798 --risk=HIGH --dry-run",
+    "role": "Planning only: dry-run executes no tests and never supplies a test PASS. Actual report path/result returned to Manager separately.",
+    "resultLocation": "Git-ignored .prepr-reports; publish candidate evidence is not mutated after the planning scan."
+  },
+  "notTested": [
+    "official GitHub PR quality/e2e/docker",
+    "main/GHCR/release",
+    "full local Vitest/E2E/Docker",
+    "physical touch device",
+    "native125% zoom",
+    "screen reader",
+    "every error/state/viewport Cartesian combination"
+  ],
+  "documentationOwner": "Manager; frontend reports impact/evidence only"
+}
