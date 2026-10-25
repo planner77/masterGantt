@@ -165,7 +165,7 @@ test("#621 실물 필터·고유 총계·5폭 내부 scroll·native keyboard·�
     if (path.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !path.endsWith("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes.push(path);
   });
   const root = await openResource(page);
-  expect(await root.getByLabel("리소스 보기", { exact: true }).locator('option[value="targets"]').count()).toBe(0);
+  await expect(page.getByRole("group", {name:"리소스 분석 보기",exact:true}).getByRole("button", {name:/Logistics Target|Target 분석/})).toHaveCount(0);
   const systemId = f.targets[0].members[0].entityId;
   await root.getByLabel("물류 시스템", { exact: true }).selectOption(systemId);
   await expect(root).toHaveAttribute("data-ready", "true");

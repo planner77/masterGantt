@@ -1,0 +1,61 @@
+{
+  "schema": "issue807-r03-prepr:v1",
+  "status": "BLOCKED",
+  "rawReport": ".prepr-reports/issue807-r03-final-fast/report.json",
+  "rawSha256": "1ce7de64702d5f47bd1d562fee755861d62ea5c09d742a5eec07da836dd24777",
+  "baseSha": "abe66b0e82f399be7484664c35a8adfce34c47a1",
+  "headSha": "abe66b0e82f399be7484664c35a8adfce34c47a1",
+  "sourceStartFingerprint": "e82e756844e8d9af6746eb9d735de9097ca60fbd58ffe499194b8d2d994b48e7",
+  "sourceEndFingerprint": "e82e756844e8d9af6746eb9d735de9097ca60fbd58ffe499194b8d2d994b48e7",
+  "sourceStable": true,
+  "selection": {
+    "risk": "HIGH",
+    "inferredRisk": "HIGH",
+    "matched": [],
+    "unknown": [
+      {
+        "path": "tests/e2e/helpers/resource-workspace.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      }
+    ],
+    "missing": [],
+    "excluded": [],
+    "selected": [
+      {
+        "path": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-730-view-composer.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-736-resource-dashboard.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-737-target0-acceptance.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      }
+    ],
+    "state": "BLOCKED",
+    "notSelectedReason": "Not a mapped direct/adjacent consumer for this change; remote Required coverage unchanged"
+  },
+  "steps": [],
+  "errors": [
+    "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+  ],
+  "manualMapping": "resource-workspace helper -> 719/730/736/737 explicit dynamic consumers; candidate A28 + final B direct3/unaffected25, unique28; Unit4. Automated full fast/build not executed, no selection policy bypass."
+}

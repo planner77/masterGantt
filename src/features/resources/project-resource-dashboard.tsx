@@ -1,10 +1,12 @@
 "use client";
+import { useResourceWorkspace, type ResourceWorkspaceView } from "./resource-workspace";
 import { ContextHelp } from "@/components/ui/context-help";
 
 import { IdentifierDetails } from "@/components/identifier-details";
 import { useResourceDrill } from "./resource-drill-context";
 import {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -60,6 +62,7 @@ export function ProjectResourceDashboard({
   refreshDisabled,
   onRefreshProject,
   initialFilters,
+  workspaceView,
 }: {
   publicId: string;
   revision: number;
@@ -67,15 +70,21 @@ export function ProjectResourceDashboard({
   refreshDisabled: boolean;
   onRefreshProject: () => void;
   initialFilters?: ResourceDashboardFilterInput;
+  workspaceView?: ResourceWorkspaceView;
 }) {
   const [initialState] = useState(() => migrateResourcePhysicalFilters(initialFilters ?? DEFAULTS));
   const [filters, setFilters] = useState<ResourceDashboardFilterInput>(initialState.filters);
   const [migrationNotice, setMigrationNotice] = useState(initialState.changed);
   const [mode, setMode] = useState<"group" | "resource">("group");
   const [unit, setUnit] = useState<"md" | "mm">("md");
-  const [view, setView] = useState<"summary" | "tree" | "matrix" | "plan">(
+  const [reportView, setView] = useState<"summary" | "tree" | "matrix" | "plan">(
     "summary",
   );
+  const view = workspaceView ? workspaceView === "plan" ? "plan" : workspaceView === "milestone" ? reportView === "matrix" ? "matrix" : "tree" : "summary" : reportView;
+  const workspace = useResourceWorkspace();
+  const publishPeriod = workspace?.publishPeriod;
+  const importPeriod = workspace?.periods.dynamic;
+  const [periodNotice, setPeriodNotice] = useState<string | null>(null);
   const [granularity, setGranularity] = useState<"week" | "month">("week");
   const [treeOrder, setTreeOrder] = useState<"milestone" | "resource">(
     "milestone",
@@ -109,6 +118,9 @@ export function ProjectResourceDashboard({
     queryKey,
   );
   const data = report.data;
+  useEffect(() => {
+    if (active && data && !report.stale) publishPeriod?.("report", { ...data.range, asOfDate: data.asOfDate, revision: data.projectRevision, snapshotId: data.snapshotId });
+  }, [active, data, report.stale, publishPeriod]);
   // A changed query/snapshot invalidates interactive selections without resetting the cached report.
   const scopeKey = JSON.stringify([publicId, queryKey]);
   const [selectionScopeKey, setSelectionScopeKey] = useState(scopeKey);
@@ -128,6 +140,8 @@ export function ProjectResourceDashboard({
     refreshReport();
   }, [detailStale, refreshReport]);
   const exportContext = useResourceDrill();
+  const sourceScope = exportContext.binding?.scope;
+  const scopeLabel = !sourceScope ? "프로젝트 전체 기준" : sourceScope.kind === "exactAssignments" ? `정확 Assignment ${sourceScope.assignmentIds.length}개 제한` : sourceScope.kind === "scheduleSelection" ? `선택 Task·Summary ${sourceScope.nodeIds.length}개 기준` : "Summary 하위 Task 범위";
   const exportCallback = useRef(exportContext.onExportEvidence);
   useLayoutEffect(() => { exportCallback.current = exportContext.onExportEvidence; }, [exportContext.onExportEvidence]);
   const bindingKey = JSON.stringify(exportContext.binding);
@@ -387,14 +401,14 @@ export function ProjectResourceDashboard({
             개인
           </button>
         </div>
-        <button
+        {(!workspaceView || workspaceView === "estimate") ? <button
           type="button"
           className="secondary-button resource-estimate-button"
           aria-pressed={estimateActive}
           onClick={toggleEstimate}
         >
           개발 견적
-        </button>
+        </button> : null}
         <div
           className="project-gantt-scale-controls"
           role="group"
@@ -427,19 +441,20 @@ export function ProjectResourceDashboard({
         </button>
       </div>
       <div className="resource-dashboard-view-controls">
-        <label>
-          보기
+        {(!workspaceView || workspaceView === "milestone") ? <label>
+          {workspaceView ? "Milestone 보기" : "보기"}
           <select
             aria-label="리소스 보기"
             value={view}
             onChange={(e) => setView(e.target.value as typeof view)}
           >
-            <option value="summary">기본 현황</option>
+            {!workspaceView ? <option value="summary">기본 현황</option> : null}
             <option value="tree">Milestone 계층</option>
             <option value="matrix">Milestone 비교표</option>
-            <option value="plan">Resource Plan</option>
+            {!workspaceView ? <option value="plan">Resource Plan</option> : null}
           </select>
-        </label>
+        </label> : null}
+        {workspaceView === "estimate" ? <p className="resource-dashboard-hint">현재 조건으로 견적·Excel을 확인합니다. 개발 견적 버튼을 누르면 개발자 역할 조건을 적용합니다.</p> : null}
         {view === "plan" ? (
           <label>
             기간 단위
@@ -757,14 +772,28 @@ export function ProjectResourceDashboard({
       </div>
       {data ? (
         <>
+          <div className="resource-dashboard-scope" aria-label="보고서 적용 범위">
           <p className="resource-dashboard-hint">
-            선택 범위: {data.range.from} ~ {data.range.to}
+            {scopeLabel} · 보고서 선택 범위: {data.range.from} ~ {data.range.to}
             {data.rangeFallback ? " · 빈 프로젝트의 기준일 범위" : ""} · 지연
             기준일 {data.asOfDate} ({data.timezone}) · M/M 기준:{" "}
             {data.mdPerMm === null
               ? "미설정 · 전환 불가"
               : `1 M/M = ${data.mdPerMm} M/D (${data.mdPerMmSource === "query" ? "조회 조건" : "환경 설정"})`}
           </p>
+          {workspaceView ? <><details><summary>조회 출처·조건 인계</summary>
+            <p>기본 현황·Milestone 교차·Plan·견적은 이 보고서 조건을 사용합니다. 동적 계층 탐색은 별도 조건·snapshot이며 자동으로 동기화하지 않습니다.</p>
+            <p>동적 조회에서 기간·기준일만 가져옵니다. 검색·개인·Group·역할·등급·Milestone·공정·설비·시스템·선택 범위·단위는 현재 보고서 조건을 유지합니다.</p>
+            {importPeriod ? <p>동적 조회 마지막 확정: {importPeriod.from} ~ {importPeriod.to} · 기준일 {importPeriod.asOfDate} · snapshot {importPeriod.snapshotId}</p> : null}
+            <pre>snapshot {data.snapshotId} · Project revision {data.projectRevision}</pre>
+            <button type="button" className="secondary-button" disabled={!importPeriod || stale} onClick={() => {
+              if (!importPeriod) return;
+              setFilters(previous => ({ ...previous, from: importPeriod.from, to: importPeriod.to, asOfDate: importPeriod.asOfDate }));
+              setPeriodNotice("동적 조회의 기간·기준일을 가져왔습니다. 나머지 보고서 조건은 유지했습니다.");
+            }}>동적 조회 기간·기준일 가져오기</button>
+            {!importPeriod ? <p>동적 계층 탐색에서 현재 revision의 조회를 먼저 확정해 주세요.</p> : null}
+          </details>{periodNotice ? <p role="status">{periodNotice}</p> : null}</> : null}
+          </div>
           <dl className="resource-dashboard-kpis" aria-label="선택 범위 KPI">
             <div>
               <dt>계획 공수</dt>

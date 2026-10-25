@@ -1,3 +1,4 @@
+import { openResourceDynamicView } from "./helpers/resource-workspace";
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { assertDashboardSurface, dashboardSurfaceReceipt, observeDashboardSurface } from "./helpers/ui-geometry";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
@@ -22,8 +23,12 @@ async function captureFocus(page: Page, label: string) {
   await test.info().attach(`${label}.png`, { body: await page.screenshot(), contentType: "image/png" });
 }
 async function openRoot(page: Page, root: Root) {
-  await page.getByRole("tablist", { name: "프로젝트 작업공간", exact: true }).getByRole("tab", { name: "대시보드", exact: true }).click();
-  await page.getByRole("tablist", { name: "대시보드 보기", exact: true }).getByRole("tab", { name: labels[root], exact: true }).click();
+  if (root === "resource") {
+    await openResourceDynamicView(page);
+  } else {
+    await page.getByRole("tablist", { name: "프로젝트 작업공간", exact: true }).getByRole("tab", { name: "대시보드", exact: true }).click();
+    await page.getByRole("tablist", { name: "대시보드 보기", exact: true }).getByRole("tab", { name: labels[root], exact: true }).click();
+  }
   await expect(dashboard(page)).toBeVisible();
   await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
 }

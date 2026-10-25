@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/resources/resource-dashboard-model.test.ts tests/features/resources/resource-wbs-dashboard-model.test.ts tests/features/resources/wbs-view-model.test.ts tests/features/resources/wbs-view-transport.test.ts --reporter=json --outputFile=.prepr-reports/issue807-unit.json",
+  "rawReport": ".prepr-reports/issue807-unit.json",
+  "rawSha256": "31e2c517504e82302f68fe1b6424f1464eb40f80e7bb94b9919b9dc7978c27d1",
+  "passed": 22,
+  "failed": 0,
+  "total": 22,
+  "testFiles": [
+    {
+      "path": "tests/features/resources/resource-dashboard-model.test.ts",
+      "status": "passed",
+      "cases": 6
+    },
+    {
+      "path": "tests/features/resources/resource-wbs-dashboard-model.test.ts",
+      "status": "passed",
+      "cases": 4
+    },
+    {
+      "path": "tests/features/resources/wbs-view-model.test.ts",
+      "status": "passed",
+      "cases": 8
+    },
+    {
+      "path": "tests/features/resources/wbs-view-transport.test.ts",
+      "status": "passed",
+      "cases": 4
+    }
+  ],
+  "scope": "Local Fast Feedback only; remote Quality/E2E/Docker NOT TESTED"
+}

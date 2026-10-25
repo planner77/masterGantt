@@ -1,3 +1,8 @@
+## [0.133.4] — Unreleased / Issue #807 리소스 Workspace 통합
+
+- 리소스의 기존 기본 현황·Milestone 교차·Resource Plan·견적/Excel과 동적 계층 탐색을 단일 작업면의 peer로 제공한다. 기본 펼침 적층과 중복 보기 제어를 줄이고 보고별 조건·범위·snapshot·정확 원본/일정 복귀를 보존한다.
+- 호환되는 기간·기준일만 명시적으로 인계하며 검색/Group/개인·고급 조건·개인 조회 구성과 서버 집계는 유지한다. [Work Packet](docs/exec-plans/active/ISSUE_807.md)·[누적 실패 원장](docs/ISSUE_807_FAILURE_ANALYSIS.md)에 동일 fixture before/after·관련 검증·미검증과 리뷰/충돌을 기록한다. HIGH/OWNER_MANAGED, 정식 게시 미승인. PR CI 시작은 원격 PASS·병합·릴리스 완료가 아니다.
+
 ## [0.133.3] — Unreleased / Issue #553 Milestone 교환·내보내기 무손실 (2026-10-25)
 
 - #552의 운영 WBS는 Summary/Task만 표시하고 상단 marker OFF를 유지한다. 기존 Export 대화상자에서 표시된 화면과 **원본 전체 canonical 일정 출력**이 다를 수 있음을 명시한다. JSON1.1 / Excel / SVG / PNG 기존 계약·권한·If-Match·Resource 보고 범위와 legacy mixed fail-closed는 변경하지 않는다.

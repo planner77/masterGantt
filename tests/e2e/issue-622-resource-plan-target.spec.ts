@@ -1,3 +1,4 @@
+import { selectResourceReportView } from "./helpers/resource-workspace";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { mkdir, writeFile } from "node:fs/promises";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
@@ -21,7 +22,7 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   await expect(root).toHaveAttribute("data-ready", "true");
   await root.getByLabel("기간 시작", { exact: true }).fill("2026-10-14");
   await root.getByLabel("기간 종료", { exact: true }).fill("2026-10-14");
-  await root.getByLabel("리소스 보기", { exact: true }).selectOption("plan");
+  await selectResourceReportView(root, "plan");
   await root.getByRole("button", { name: "개인", exact: true }).click();
   const systemId = f.targets[0].members[0].entityId;
   await root.getByLabel("물류 시스템", { exact: true }).selectOption(systemId);
@@ -105,6 +106,11 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   await expect(editor).toHaveCount(0);
   await expect(root).toHaveAttribute("data-ready", "true");
+  // #807: this inactive dynamic peer remains mounted and stale; it must not
+  // block the visible Plan's canonical editor-return focus receipt.
+  const inactivePeer = page.locator('#project-panel-resources [data-wbs-view="resource"]');
+  await expect(inactivePeer).toHaveAttribute("data-ready", "false");
+  expect(await inactivePeer.evaluate(node => Boolean(node.closest("[hidden], [inert]")))).toBe(true);
   await expect(detail).toHaveAttribute("data-detail-state", "ready");
   await expect(row).toContainText("40%");
   await expect(row).not.toContainText(f.targets[1].name);

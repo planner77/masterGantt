@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { ResourceDashboardFilterInput } from "@/contracts/resource-dashboard";
+import { useResourceWorkspace } from "./resource-workspace";
 import { resourceExportBodyBudget } from "./resource-export-model";
 import { ResourcePlanView } from "./resource-plan-view";
 import { ResourceDrillContext, useResourceDrill, type ResourceScheduleRequest } from "./resource-drill-context";
@@ -58,7 +59,11 @@ function ResourceWbsSummary({data}:{data:WbsViewReportDto}) {
 }
 
 function ResourceWbsControls({data,filters,onChange}:{data:WbsViewReportDto|null;filters:ResourceDashboardFilterInput;onChange:(patch:Partial<ResourceDashboardFilterInput>)=>void}) {
+  const workspace=useResourceWorkspace();
+  const period=workspace?.periods.report;
+  const [notice,setNotice]=useState(false);
   return <div className={styles.controls} aria-label="개인 배정 조건">
+    {workspace ? <div className="resource-dashboard-scope"><p>동적 조회의 조건·개인 보기 구성은 보고서와 별도로 유지합니다.</p>{period ? <p>보고서 마지막 확정: {period.from} ~ {period.to} · 기준일 {period.asOfDate} · snapshot {period.snapshotId}</p> : null}<button type="button" disabled={!period} onClick={()=>{if(period){onChange({from:period.from,to:period.to,asOfDate:period.asOfDate});setNotice(true);}}}>보고서 기간·기준일 가져오기</button><p>기간·기준일만 적용하며 개인·역할·하위 축·검색·현재 범위는 유지합니다.</p>{notice ? <p role="status">보고서의 기간·기준일을 가져왔습니다. 나머지 동적 조회 조건은 유지했습니다.</p>:null}</div> : null}
     <label>개인<select value={filters.resourceIds?.[0]??""} onChange={event=>onChange({resourceIds:event.target.value?[event.target.value]:[]})}><option value="">전체 개인</option>{data?.configuration.resourceMemberships.map(row=><option key={row.id} value={row.id}>{row.name}{!row.active?" (비활성)":""}</option>)}</select></label>
     <label>Global Role<select value={filters.roles?.[0]??""} onChange={event=>onChange({roles:event.target.value?[event.target.value as "PI"|"DEVELOPER"|"EQUIPMENT_OWNER"|"UNSPECIFIED"]:[]})}><option value="">전체 역할</option><option value="DEVELOPER">DEVELOPER</option><option value="PI">PI</option><option value="EQUIPMENT_OWNER">EQUIPMENT_OWNER</option><option value="UNSPECIFIED">역할 미지정</option></select></label>
     <label>개발 등급<select value={filters.developerGrades?.[0]??""} onChange={event=>onChange({developerGrades:event.target.value?[event.target.value as "BEGINNER"|"INTERMEDIATE"|"ADVANCED"|"EXPERT"|"UNSPECIFIED"]:[]})}><option value="">전체 등급</option><option value="BEGINNER">초급</option><option value="INTERMEDIATE">중급</option><option value="ADVANCED">고급</option><option value="EXPERT">특급</option><option value="UNSPECIFIED">미지정</option></select></label>
@@ -66,6 +71,8 @@ function ResourceWbsControls({data,filters,onChange}:{data:WbsViewReportDto|null
   </div>;
 }
 function ResourceWbsTools({data,locked,active,onStale}:{data:WbsViewReportDto;locked:boolean;active:boolean;onStale:()=>void}) {
+  const workspace=useResourceWorkspace(), publishPeriod=workspace?.publishPeriod;
+  useEffect(()=>{if(active&&!locked)publishPeriod?.("dynamic",{...data.range,asOfDate:data.asOfDate,revision:data.projectRevision,snapshotId:data.snapshotId});},[active,locked,data,publishPeriod]);
   const drill=useResourceDrill();
   const [unit,setUnit]=useState<"md"|"mm">("md");
   const effectiveUnit=resourceWbsPlanUnit(unit,data.mdPerMm);

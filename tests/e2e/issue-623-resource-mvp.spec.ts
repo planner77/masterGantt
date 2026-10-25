@@ -1,3 +1,4 @@
+import { selectResourceReportView } from "./helpers/resource-workspace";
 import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { ISSUE_623_TARGET_RESOURCE as oracle } from "../fixtures/issue-623-target-resource";
@@ -98,7 +99,7 @@ async function resource(page: Page) {
   await expect(root).toHaveAttribute("data-ready", "true");
   await root.getByLabel("기간 시작", { exact: true }).fill("2026-10-05");
   await root.getByLabel("기간 종료", { exact: true }).fill("2026-10-12");
-  await root.getByLabel("리소스 보기", { exact: true }).selectOption("summary");
+  await selectResourceReportView(root, "summary");
   await expect(root).toHaveAttribute("data-ready", "true"); return root;
 }
 async function sharedDetail(root: Locator, taskId: string) {

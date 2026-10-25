@@ -1,3 +1,11 @@
+## Issue #807 — 리소스 단일 작업면
+
+`대시보드 → 리소스`는 기존 분석의 **기본 현황**으로 시작한다. 같은 작업면의 `동적 계층 탐색 / Milestone 교차 / Resource Plan / 견적·Excel`에서 필요한 분석을 선택하며, 기존 분석과 동적 보고를 기본 펼침으로 동시에 적층하지 않는다. Milestone 교차의 계층/비교, Group/개인·Role/등급, 주월 Plan·일별 과투입, 개발 견적·Excel과 동적 root/사용자 하위 축은 기존 consumer를 사용한다.
+
+기존 보고와 동적 보고는 검색·selector·snapshot 의미가 다르다. 각 조건·선택·접힘·단위·스크롤과 현재 적용 범위를 따로 보존하며 기간·기준일만 사용자가 명시적으로 가져온다. 이 동작은 Resource/Group·고급 조건·개인 조회 구성을 자동 초기화하거나 두 snapshot이 같다고 표시하지 않는다. 견적 보기 진입과 개발자 조건 적용은 구별한다.
+
+활성 분석만 요청·원본 명령을 수행한다. 비활성 분석은 상태를 유지하며 숨은 focus와 늦은 응답을 차단한다. 원본 편집/일정 왕복은 방문 ID·source·해당 peer와 정확 Task/Assignment를 보존하고 새로운 범위 진입과 이전 방문 복귀를 구분한다. 기존 dirty/pending/readonly·권한·revision/stale 및 Gantt 상태 계약을 따른다. 실제 실행 범위와 미검증은 [Work Packet](exec-plans/active/ISSUE_807.md)에 기록한다.
+
 ## Issue #553 — Milestone 행·마커 OFF Export 사용자 경로 (2026-10-25)
 
 Milestone은 native Grid/Chart 행·bar/생산 marker를 표시하지 않고 Dashboard/소속 Task/Editor에서 접근한다. 일반 WBS 검색/접힘·Day/Week·상위 탭·Resource drill과 무관하게 서버 원본 Stage Gate·관계·공수/Resource 집합은 유지한다. 내보내기 대화상자는 원본 일정과 현재 Gantt 표현의 차이를 짧게 고지하며 형식별 canonical scope는 [#553 사용자 가이드](MILESTONE_USER_GUIDE.md)를 따른다. 별도 Timeline marker ON 기능은 #573/#693 선택 후속이다.

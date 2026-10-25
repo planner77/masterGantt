@@ -1,3 +1,4 @@
+import { openResourceDynamicView } from "./helpers/resource-workspace";
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { waitForWbsReport } from "./helpers/wbs-report";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
@@ -17,8 +18,12 @@ const roots = ["process", "equipment", "system", "resource", "milestone"] as con
 const labels = { process: "공정&WorkArea", equipment: "설비", system: "물류 시스템", resource: "리소스", milestone: "Milestone" };
 const dashboard = (page: Page) => page.getByTestId("wbs-view-dashboard").filter({ visible: true });
 async function openRoot(page: Page, root: typeof roots[number]) {
-  await page.getByRole("tablist", { name: "프로젝트 작업공간", exact: true }).getByRole("tab", { name: "대시보드", exact: true }).click();
-  await page.getByRole("tablist", { name: "대시보드 보기", exact: true }).getByRole("tab", { name: labels[root], exact: true }).click();
+  if (root === "resource") {
+    await openResourceDynamicView(page);
+  } else {
+    await page.getByRole("tablist", { name: "프로젝트 작업공간", exact: true }).getByRole("tab", { name: "대시보드", exact: true }).click();
+    await page.getByRole("tablist", { name: "대시보드 보기", exact: true }).getByRole("tab", { name: labels[root], exact: true }).click();
+  }
   await expect(dashboard(page)).toHaveAttribute("data-root", root);
   await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
 }

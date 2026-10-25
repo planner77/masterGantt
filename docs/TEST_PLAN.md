@@ -1,3 +1,13 @@
+## Issue #807 — 리소스 단일 작업면 회귀
+
+[Work Packet](exec-plans/active/ISSUE_807.md)의 AC1~AC7·TEST_LIFECYCLE_REVIEW를 기준으로 기존 #736·#730/#798/#800 진입 helper를 새 기본 현황/명시 동적 peer에 맞춰 확장한다. #622/#530 nested 복귀·Resource Plan·Dashboard 상태/Excel·readonly/401/412·stale/응답 역전과 #799 지표·cross-screen/Gantt의 고유 단언을 보존한다. 공통 geometry observer를 느슨하게 하거나 별도 중복 full spec·skip/timeout/retry·8shard/Required3를 추가/변경하지 않는다.
+
+같은 fixture/source·권한·범위의 390/768/1024/1440/1920×900px before/after에서 control top/height/width·첫 KPI/표 Y·가시 행·toolbar wrap·document overflow/table scroll owner를 수집한다. 직접 변경은 단일 활성 pane·독립 필터/명시 기간 인계·viewId별 peer 복귀·숨은 fetch/late response·견적 조건/Excel lease다. 긴 KO/EN·0/empty/error/loading/stale/readonly·고급 조건과 keyboard/focus/정확 ID 왕복은 위험 기반 기존 시나리오에 배분하고 미실행 조합을 NOT TESTED로 남긴다. [실패 원장](ISSUE_807_FAILURE_ANALYSIS.md)에 최초 실행부터 보존한다. Local PASS·독립 사전검토는 새 exact-head PR quality/e2e/docker·Trusted/Owner ACCEPT를 대신하지 않는다.
+
+#807 F807-R03 재작업은 초기 변경12개 spec을 전체 소비자 검증으로 해석하지 않는다. WBS Resource root 진입을 기대하는 상시 소비자 **#719/#730/#736/#737**와 공통 root loop·도움말 fixture를 함께 검사한다. `openResourceDynamicView`는 명시 활성 때 실제 report POST를 관측하고 기존 활성 보기의 멱등 재진입에는 새 요청을 요구하지 않는다. #719 지연 오류는 legacy-ready 증거를 동적 전환 **전에** 전달하고 실제 POST/pending→404 error→기본 복귀를 검증한다. 숨은 legacy가 다시 ready가 되기를 기다리지 않는다. 각 소비자의 exact spec/filter/snapshot/원시 ID·기존 오류/포커스 단언은 보존한다.
+
+최초 원격 실패 #622/#719/#737와 기존 로컬 실패 #736/workload-status/milestone-ui/plan-ui의 합집합7파일에 공통5관점·Plan focus/취소/stale·M1 LIFO를 더한 **10개 spec/28개 case**를 동일 source·고유 output·worker1/retries0/max-failures0으로 선택한다. 선정/실행·최종 결과와 미실행은 [Work Packet의 R03 인벤토리](exec-plans/active/ISSUE_807.md) 및 [누적 원격 영수증](evidence/issue-807/rework-r03-remote.json)에 연결한다. #624의3root·#762 process 하위 resource 축·#732~#735 자기 root와 legacy 기본 분석은 Resource root 기본 활성으로 바꾸지 않는다. 과거 source의 #797/#798/#799 수동 collector·캡처는 HISTORICAL이며 현재 source 지원 PASS로 재해석하거나 원본 hash를 갱신하지 않는다.
+
 ## Issue #800 — KPI 기준 6관점 Geometry/coverage 검증 (2026-10-25)
 
 - [#800 coverage·실측/비교 계약](ISSUE_800_UI_GEOMETRY.md), [Work Packet·AC_TEST_COVERAGE·TEST_LIFECYCLE_REVIEW](exec-plans/active/ISSUE_800.md)를 본 TEST_PLAN의 변경 상세 원장으로 사용한다. #457 역사 기준/당시 실패를 덮어쓰지 않는다.

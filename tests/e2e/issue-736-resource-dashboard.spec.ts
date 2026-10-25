@@ -1,3 +1,4 @@
+import { openResourceDynamicView } from "./helpers/resource-workspace";
 import { expectDashboardMetricsReadable } from "./helpers/dashboard-metrics";
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
@@ -31,10 +32,9 @@ function reportResponse(page:Page,condition:ReportCondition={spec:defaultSpec,fi
  }).then(()=>report);
 }
 async function openResource(page:Page){
- await page.getByRole("tablist",{name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"대시보드",exact:true}).click();
- await page.getByRole("tablist",{name:"대시보드 보기",exact:true}).getByRole("tab",{name:"리소스",exact:true}).click();
- await expect(root(page)).toHaveAttribute("data-ready","true",{timeout:30_000});
+ await openResourceDynamicView(page,{readyTimeout:30_000});
 }
+
 async function preset(page:Page,label:string){
   await openWbsViewControls(root(page));
  const composer=root(page).locator("details").filter({has:page.locator("summary").filter({hasText:/^조회 구성$/})});
@@ -87,7 +87,8 @@ test("#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot E
  await detail.press("Escape");await expect(trigger).toBeFocused();
  await openWbsViewControls(root(page));
  await expect(root(page).getByRole("combobox",{name:"개인",exact:true})).toHaveValue(f.resource.id);
- await expect(page.locator("[data-resource-compatibility]")).toContainText("기존 분석·Plan·견적·Excel");
+ await expect(page.getByRole("group",{name:"리소스 분석 보기",exact:true}).getByRole("button",{name:"기본 현황",exact:true})).toBeVisible();
+ await expect(page.locator("[data-resource-compatibility]")).toHaveCount(0);
  const after=await f.snapshot();expect(after.data.assignments?.find(row=>row.id===f.assignment.id)).toMatchObject({id:f.assignment.id,allocation:{percent:80}});expect(after.data.assignments?.filter(row=>row.id!==f.assignment.id)).toEqual(before.data.assignments?.filter(row=>row.id!==f.assignment.id));expect(after.data.project.revision).toBe(before.data.project.revision+1);
 });
 
@@ -203,4 +204,60 @@ test("#736 report 관측은 이전 필터·다른 spec·scope 응답을 제외�
  await send(condition);
  const report=await observed;
  expect(report.snapshotId).toBe("current");expect(report.spec).toEqual(defaultSpec);expect(report.filters).toEqual(condition.filters);
+});
+
+test("#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨은 조회 중단·peer 복원",async({page,isolatedApplication:origin,observeIsolatedApi},info)=>{
+ test.setTimeout(180_000);
+ const f=await seedWbsViewComposer(page,origin,observeIsolatedApi);
+ const before=await f.snapshot();let dynamicReads=0,reportReads=0;
+ page.on("request",request=>{const path=new URL(request.url()).pathname;if(path.endsWith("/resource-dashboard/views")&&request.postDataJSON()?.projection?.kind==="report")dynamicReads++;if(path.endsWith("/resource-dashboard"))reportReads++;});
+ await page.getByRole("tablist",{name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"대시보드",exact:true}).click();
+ await page.getByRole("tablist",{name:"대시보드 보기",exact:true}).getByRole("tab",{name:"리소스",exact:true}).click();
+ const report=page.locator('[data-resource-dashboard="true"]:visible');
+ const peers=page.getByRole("group",{name:"리소스 분석 보기",exact:true});
+ await expect(report).toHaveAttribute("data-ready","true");expect(dynamicReads).toBe(0);
+ await expect(peers.getByRole("button",{name:"기본 현황",exact:true})).toHaveAttribute("aria-pressed","true");
+ await expect(page.locator('[data-wbs-view="resource"]')).toBeHidden();
+ await report.getByLabel("리소스·그룹·Task 이름과 코드 검색",{exact:true}).fill("공동");await expect(report).toHaveAttribute("data-ready","true");
+ await report.getByLabel("기간 시작",{exact:true}).fill("2026-10-14");await expect(report).toHaveAttribute("data-ready","true");
+ await report.getByLabel("기간 종료",{exact:true}).fill("2026-10-16");await expect(report).toHaveAttribute("data-ready","true");
+ await report.getByRole("button",{name:/^필터/}).click();await report.getByLabel("Global Role",{exact:true}).selectOption("DEVELOPER");await expect(report).toHaveAttribute("data-ready","true");
+ await report.getByLabel("Global Role",{exact:true}).press("Escape");
+ const reportNode=await report.elementHandle();const reportRequests=reportReads;
+ await peers.getByRole("button",{name:"동적 계층 탐색",exact:true}).focus();await page.keyboard.press("Space");
+ await expect(root(page)).toHaveAttribute("data-ready","true");await expect(report).toHaveCount(0);
+ await expect(root(page).getByLabel("조회 시작일",{exact:true})).toHaveValue("");await expect(root(page).getByLabel("작업 검색",{exact:true})).toHaveValue("");
+ const activeReads=dynamicReads;
+ const reentry=await openResourceDynamicView(page,{navigate:false});
+ expect(reentry.request).toBeNull();expect(dynamicReads).toBe(activeReads);
+ await openWbsViewControls(root(page));
+ await expect(root(page).getByRole("combobox",{name:"Global Role",exact:true})).toHaveValue("");
+ await expect(root(page)).toContainText("보고서 마지막 확정: 2026-10-14 ~ 2026-10-16");
+ const imported=page.waitForResponse(response=>response.url().endsWith("/resource-dashboard/views")&&response.request().postDataJSON()?.projection?.kind==="report"&&response.request().postDataJSON().filters?.from==="2026-10-14"&&response.request().postDataJSON().filters?.to==="2026-10-16");
+ await root(page).getByRole("button",{name:"보고서 기간·기준일 가져오기",exact:true}).click();expect((await imported).status()).toBe(200);await expect(root(page)).toHaveAttribute("data-ready","true");
+ await expect(root(page).getByRole("combobox",{name:"Global Role",exact:true})).toHaveValue("");
+ await root(page).getByLabel("작업 검색",{exact:true}).fill(f.task.name);await expect(root(page)).toHaveAttribute("data-ready","true");
+ await page.evaluate(()=>window.dispatchEvent(new Event("focus")));await expect(root(page)).toHaveAttribute("data-ready","true");expect(reportReads).toBe(reportRequests);
+ const dynamicNode=await root(page).elementHandle();
+ const evidence=[];
+ for(const width of [390,768,1024,1440,1920]){
+  await page.setViewportSize({width,height:900});
+  await peers.getByRole("button",{name:"기본 현황",exact:true}).focus();await page.keyboard.press("Enter");
+  await expect(report).toHaveAttribute("data-ready","true");
+  expect(await reportNode!.evaluate(node=>node.isConnected)).toBe(true);
+  await expect(report.getByLabel("리소스·그룹·Task 이름과 코드 검색",{exact:true})).toHaveValue("공동");
+  await report.getByRole("button",{name:/^필터/}).click();await expect(report.getByLabel("Global Role",{exact:true})).toHaveValue("DEVELOPER");await report.getByLabel("Global Role",{exact:true}).press("Escape");
+  const controls=await report.locator('.resource-dashboard-filters input,.resource-dashboard-filters select,.resource-dashboard-filters > button').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return{top:r.top,height:r.height,width:r.width};}));
+  expect(controls.every(control=>control.height>=44)).toBe(true);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+  evidence.push({width,controls});
+  const hiddenDynamic=dynamicReads;
+  await page.evaluate(()=>window.dispatchEvent(new Event("focus")));await expect(report).toHaveAttribute("data-ready","true");expect(dynamicReads).toBe(hiddenDynamic);
+  await peers.getByRole("button",{name:"동적 계층 탐색",exact:true}).click();await expect(root(page)).toHaveAttribute("data-ready","true");
+  expect(await dynamicNode!.evaluate(node=>node.isConnected)).toBe(true);
+  await expect(root(page).getByLabel("작업 검색",{exact:true})).toHaveValue(f.task.name);
+  await expect(root(page).getByLabel("조회 시작일",{exact:true})).toHaveValue("2026-10-14");
+ }
+ await info.attach("issue807-peer-controls",{body:JSON.stringify(evidence,null,2),contentType:"application/json"});
+ const after=await f.snapshot();expect(after.data).toEqual(before.data);
 });
