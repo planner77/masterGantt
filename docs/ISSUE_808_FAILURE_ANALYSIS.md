@@ -104,3 +104,22 @@ F808-014/015는 기존 원장의 personal Assignment 교집합 규칙과 실제 
 추가 운영 실패 F808-017: infra의 게시 payload 준비에서 새110,939byte 원격 이력 JSON을 단일 exec 출력으로 읽어 토큰 상한에 따른 JSON truncation/parse 오류가 재발했다. 원격 tree/commit/ref 변경0·제품 source/test 변화0인 단계의 오류이며 F808-012와 같은 원인이다. 동일 원인2회이므로 Manager가 수집 계획을 재검토했다. 모든 파일은 크기 추정 없이6,000byte bounded chunk로 읽어 결합·검증하도록 변경했고, tracked 원격 증거는 전체6run/30job 신원·결론·step별결론개수·모든 비성공step·실패사유·artifact/출처hash를 유지한 정제 형식으로 바꿨다. 반복된 성공 step 설명만 제외하고 원본110,939byte JSON은 `/tmp/issue-808-rework-r01/remote-history.json`에 보존하며 원본SHA를 정제 JSON에 결속했다. 게시 전 local staged tree=remote tree 및 전체 bytes/hash 동등성을 재검증해야 하며 최초 운영 실패를 삭제하지 않는다.
 
 최종 문서·증거의 별도 읽기 검토 DOC_SYNC/LOCAL_PRE_QA PASS, version0.134.0·Markdown343·diffcheck·기존 main 검증기의 DOC_SYNC/AC1~6 구조검사 PASS를 확인했다. 실제 리뷰2개 해결·최신main/충돌·원격tree/부모/bytes·새CI등록은 게시 인계에서 확인한다. 원격게시 후 PR/Head·원본Run/Attempt·리뷰/충돌 상태는 Issue808 STATUS/PR댓글에 기록하며, commit자기참조를 피하기 위해 게시SHA를 이source에 소급삽입하지 않는다. 원본Run40197745892.1 FAIL·Trusted40199971387.1 파생FAIL은 유지한다. 새Head Required3/Trusted/Manager ACCEPT는 NOT TESTED이며 CI시작 이후 결과 모니터링·병합/main/GHCR/Release·Issue종료는 수행하지 않는다.
+
+
+## 10. MAIN-808-001 — 병합 메시지 다중 행으로 Main CI #3299.1 실패 (2026-10-26 KST)
+
+### 원본 증거와 구분
+
+- 원래 [PR #811](https://github.com/planner77/masterGantt/pull/811) exact Head `d3fb5b0ea476006269be61872007304bc65794ea`, Base `048ae92ff673f1d0c4c69171fe3cc9bffe25dc19`, Test-Merge `c965ba1bdb9e6c05bdb8612c657a7d773aec596c`. 실제 merge `028f80b3c59bb373a7a34f3c95279cf8e17be603`의 부모와 Tree `bce5186294384894cbbe4e2f90f8b91266adb40b`는 검증된 Test-Merge와 동일하며 브랜치 최신 정렬·충돌 0이었다.
+- 원본 [Full PR CI #3298.1 / Run 40201535967](https://github.com/planner77/masterGantt/actions/runs/40201535967) attempt 1은 Quality/E2E8/Docker/QA Automated SUCCESS, [Trusted QA #945.1 / 40203867985](https://github.com/planner77/masterGantt/actions/runs/40203867985) attempt 1도 SUCCESS; 원본 #3297.1/Trusted #944.1 실패는 앞 절에 보존.
+- **실제 최초 실패**: [Main CI #3299.1 / Run 40224125090](https://github.com/planner77/masterGantt/actions/runs/40224125090), event=push, head_branch=main, exact SHA `028f80b3c59bb373a7a34f3c95279cf8e17be603`, attempt1, completed/FAILURE. `변경 경로 판정` Job `121261784538`, `CI 실행 추적 메타데이터 검증` Step, `python3 scripts/verify-ci-run-trace.py`가 `Issue # 접두어는 정확한 단일 행 표준 Merge 제목만 허용합니다`로 exit1.
+- **직접 원인**: GitHub merge API에서 유효한 `Issue #808 · PR #811 · 리소스 분석 집계·범위 계약 정비` 제목 아래에 `Merge PR #811 for Issue #808`/Manager ACCEPT/`Refs #808` 여러 줄 `commit_message`를 잘못 전달. `scripts/main_ci_run_name.py::parse_merge_title`의 전체 commit 한 줄 계약 위반. 이는 **병합 실행 절차 결함**이며 Resource 분석 제품/검증기 결함으로 추측하지 않는다. AGENTS.md의 기존 `commit_message=""` 규칙 위반을 사실로 기록한다.
+- Quality/E2E/Docker Required 세 집계 FAIL은 선행 `changes` 실패의 파생 결과. 실제 Policy/TypeScript/ESLint/Vitest/Build/Chromium8/Docker 구현과 GHCR main candidate Job은 **SKIPPED / NOT RUN**, GHCR `ci-028f80b...` digest·SBOM·provenance, 정식 v0.134.0, Finalizer **NOT TESTED / BLOCKED**. 이 Run/Commit은 수정·재분류·retry로 성공화하지 않는다.
+
+### 복구 대상과 테스트 수명 관리
+
+- [#582 병합 제목 규칙](../scripts/main_ci_run_name.py), AGENTS.md, CI/CD·Issue Lifecycle, [#639](exec-plans/active/ISSUE_639.md) 및 [#792 동일 실패 절차](exec-plans/active/ISSUE_792.md)를 적용: 과거 merge SHA 불변 유지. `main_ci_recovery.py`는 **original push CI 부재**용이므로 완료된 실패 Run #3299에는 사용하지 않는다. 새 동일 Issue corrective PR을 **새 exact Head 및 Full PR CI/Trusted QA/Owner 승인**으로만 merge한다.
+- 범위: 원본 Domain·contract·DB·UI·기존 테스트/fixture·CI validator·workflows·Required3/8Shard/timeout/retry/skip을 변경하지 않는다. 기존 정책 검사 `scripts/verify-issue-lifecycle.py`에 **실제 #3299 다중 행 부정 fixture**와 `merge_api_payload` 한 줄/빈 본문 긍정 fixture만 추가한다. 기존 #586/#603/#639 유사·고유 검증은 보존하고 대체하지 않는다.
+- corrective Merge 전 `python3 scripts/main_ci_run_name.py --issue 808 --pr <newPR> --summary '리소스 분석 Main CI 복구' --as-merge-payload --expected-head-sha <newHEAD>`로 기존 도구가 생성한 **정확 페이로드**를 사용한다. 검증된 title과 `commit_message=""`, 40자리 Head lease를 그대로 전달하며 새 PR Head/Base/Test-Merge 출처가 다르면 중단한다.
+- 앱 `0.134.0` 제품과 package/lock 불변. 실패한 같은 Issue Main이 이미 `0.133.4→0.134.0` 변경했으므로 Generic Finalizer의 *같은 Issue 실패 승계·first-parent* 계약 검증 후 버전 발행 의무를 잃지 않는다. [#808 Owner의 v0.134.0 전용 승인](https://github.com/planner77/masterGantt/issues/808#issuecomment-6401854691)은 원본 실패 Main에 대한 면책이 아니라 **다음 verified Main/Release**의 version-scoped 정책 증거다.
+- 추적/승인: 원본 실패 누적 보존; 신 corrective PR CI·Trusted/충돌/리뷰·Owner ACCEPT·Main push full·GHCR/Finalizer는 원격 실제 관측 전 **NOT TESTED**. Issue **OPEN**, 이미지/정식 tag/운영 배포 없음. 사용자 요청대로 새 CI 시작 후 결과 모니터링은 하지 않는다.
