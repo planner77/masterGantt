@@ -1,3 +1,17 @@
+## Issue #506 — PR #803 두 번째 CI 직접 실패 교정 (2026-10-25)
+
+[Full #3265.1](https://github.com/planner77/masterGantt/actions/runs/40150246833)의 QA Preflight·Policy·ESLint는 PASS, 직접 TypeScript TS2322 2곳(`ProjectSnapshotResponse`에 mutation DTO 대입)과 U2 역사 Core fingerprint Unit 1개 FAIL. Fast Gate/Required Quality/E2E/Docker/QA는 파생, Chromium8·Docker/Build 구현은 NOT RUN. 응답 union 타입, 원래 digest가 같은 `tests/fixtures/gantt-state-consistency/capture-sources/canonical-snapshot-sync-original.snapshot.txt` source snapshot, U2 `captureSourceMappings` 및 원본 SHA 비교 단언만 보완한다. 제품 #506 sibling-before, 원본 캡처 `sha256`/12 scenarios, package0.133.1·QA/CI 정책 변경 없음. 기존 F-001/R-001과 F-002/F-003은 [누적 실패 원장](../../ISSUE_506_FAILURE_ANALYSIS.md) 및 [Work Packet](ISSUE_506.md)으로 인계. 새 Head Full PR CI 시작까지만, 원격 PASS/Trusted/Owner NOT TESTED, MERGE_READY BLOCKED.
+
+## Issue #506 — PR #803 Preflight 첫 실패 및 신규 E2E P1 교정 (2026-10-25)
+
+[Full #3264.1](https://github.com/planner77/masterGantt/actions/runs/40149276969)에서는 ISSUE_AC 직접 FAIL로 Policy/Quality/E2E/Docker 구현 Job이 SKIPPED, Required3·QA Final은 파생 FAIL이었다. 리뷰 [P1 #4369186957](https://github.com/planner77/masterGantt/pull/803#discussion_r4369186957)은 실제 미실행 Chart bar E2E의 SVAR colon ID 정규화 누락. Issue 본문의 기존 13AC 내용 보존형 번호 부여, [Work Packet](ISSUE_506.md)의 AC_TEST_COVERAGE/DOCUMENTATION_SYNC 구조 교정, Chart ID 양방향 정규화, [단일 실패 원장](../../ISSUE_506_FAILURE_ANALYSIS.md) 기록 후 새 Full CI를 시작한다. 구 실패를 PASS로 바꾸거나 CI gate/Ruleset/8-shard/테스트 skip을 완화하지 않는다. 새 Head CI/Trusted QA/Owner=NOT TESTED; MERGE_READY=BLOCKED. 모니터링·병합/Main/GHCR/Finalizer/종결 제외.
+
+## Issue #506 — Context Menu sibling 삽입 순서 회귀 교정 (2026-10-25)
+
+- [#506](https://github.com/planner77/masterGantt/issues/506), 기존 #72/#373/#399/#407/#418, `AGENTS.md`·`DESIGN.md`·SVAR `add-task` 공식 API 준수. 기준 main `fcd1ae59d268efa1913f4de625a9013cabd1de4a`, 새 `fix/issue-506-add-above-order-20261025`. 1437커밋 후행한 과거 #506 브랜치 전체 병합 없이 관련 회귀만 최신 main에 이관.
+- 서버의 root/nested `before/after` parent·siblingOrder와 SVAR `next-before`/tail `previous-after`를 일치시킨다. Vitest 서비스·canonical action 및 Chromium 실제 Grid/Chart/reload/scoped 연속성 테스트. [Work Packet](ISSUE_506.md), [TEST_PLAN](../../TEST_PLAN.md).
+- `TEST_LIFECYCLE_REVIEW`: EXTEND #72·canonical sync·TaskHierarchy 기존 파일, ADD 정확 위치 단언; KEEP_UNIQUE scoped/권한·HTTP/SQLite·실제 브라우저, RETIRE/CONSOLIDATE 없음. version `0.133.1`, risk HIGH, QA OWNER_MANAGED. `release_required=true`/`release_authorized=false`, Full CI/Trusted/Owner **NOT TESTED**. 요청 범위 PR CI 시작까지, 모니터링·병합/Main/GHCR·Finalizer/Issue 종료 제외.
+
 ## Issue #798 — 동적 대시보드 제어 영역 밀도 개선 (2026-10-25)
 
 main `8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24`/앱0.132.0에서 독립 `feat/issue-798-dashboard-density`로 진행한다. 선행 #797/PR #801 감사·기존 fixture를 참조하고 새 before/after5폭을 수집한다. 제목/경로/도움말 정돈, 빠른 작업 검색·상태·기간, 접힌 고급 조건·기존 composer와 활성 적용값·초기화·keyboard/focus를 구현한다. KPI baseline·원본/집계·현재8-shard/Required3/Trusted 경계는 유지한다.

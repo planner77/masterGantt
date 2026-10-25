@@ -1,3 +1,13 @@
+## [0.133.1] — Unreleased / Issue #506 Add Above·Below sibling 순서 회귀 (2026-10-25)
+
+- PR #803 [두 번째 Full #3265.1](https://github.com/planner77/masterGantt/actions/runs/40150246833)의 TypeScript TS2322(E2E GET/POST 응답 혼용)와 historic U2 Core SHA pin 오류(Vitest 1 case)를 각각 union 타입과 과거 원본 source snapshot / 불변 provenance lookup으로 교정한다. 기존 U2 12개 capture, sha256 기대값, 현재 #506 제품 writer, Required Quality/E2E8/Docker는 유지. [원장](docs/ISSUE_506_FAILURE_ANALYSIS.md)에 최초부터 누적 보존하며 새 Head CI 결과는 아직 NOT TESTED.
+
+- PR #803 [첫 Full #3264.1](https://github.com/planner77/masterGantt/actions/runs/40149276969)은 `ISSUE_AC` 메타데이터 구조로 사전 FAIL: Issue AC1~AC13과 Work Packet 정확 매핑/문서 형식을 보강했다. P1 리뷰의 SVAR `data-task-id` `:` 접두 미정규화로 인한 Chart E2E 오탐을 교정했다. 기존 실패 원본·미실행 Chromium8/Docker는 [#506 누적 원장](docs/ISSUE_506_FAILURE_ANALYSIS.md)에 별도 기록한다. 신규 PR CI 실제 실행 전 PASS로 판정하지 않는다.
+
+- `Add > Task above`가 기존 형제 작업의 중간에서 잘못 표시될 수 있던 SVAR canonical add 순서를 교정한다. 삽입 지점의 **다음 sibling이 있으면 `add-task mode="before"/target=next` 우선**, 실제 tail인 경우에만 `after/previous`를 사용한다. 서버의 `anchorTaskId`, `placement`, parent, transaction 및 `siblingOrder`/revision 계약은 그대로 유지한다.
+- root/nested/Workspace scope에서 앞/뒤 삽입, 첫/끝 경계, 서버 재조회·연속 siblingOrder, Grid/Chart 렌더 순서, 새로고침 및 Gantt/API instance 보존을 검증하는 Vitest·Playwright 회귀를 보강한다. 선택/접힘/scroll/scale 및 scope-root command guard는 변경하지 않는다.
+- 신규 PATCH 후보 `0.133.1`: 기존 immutable annotated `v0.133.0`은 수정하지 않는다. [#506 Work Packet](docs/exec-plans/active/ISSUE_506.md)·Test Plan/UX 동기화. 새 PR CI/Trusted QA/Owner 정식 릴리스·GHCR/Finalizer는 **NOT TESTED / 미승인** 상태다.
+
 ## [Unreleased] — Issue #798 동적 대시보드 제어 영역
 
 - Milestone·공정&WorkArea·설비·물류 시스템·리소스의 제목·현재 경로를 정돈하고 작업 검색·상태·기간을 빠른 toolbar에 배치한다. 표 이름 찾기·정렬·관점 조건·기존 조회 구성은 고급 영역에서 열며 적용 조건·범위와 초기화를 확인할 수 있다.

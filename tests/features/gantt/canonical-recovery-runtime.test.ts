@@ -26,6 +26,10 @@ describe("U2 installed public Core recovery evidence", () => {
     expect(provenance.installedStoreVersion).toBe("2.7.2");
     expect(provenance.counts).toEqual({ tasks: 5, links: 2, scenarios: 12 });
     assertCapturedInstall(root);
+    // This U2 observation pins the historic source bytes, not the newer #506
+    // production writer. Keep the original sha256 and scenarios unchanged.
+    expect(provenance.captureSourceMappings["src/features/gantt/canonical-snapshot-sync.ts"])
+      .toBe("tests/fixtures/gantt-state-consistency/capture-sources/canonical-snapshot-sync-original.snapshot.txt");
     for (const [path, fingerprint] of Object.entries(provenance.sha256)) {
       expect(createHash("sha256").update(readFileSync(resolve(root, (provenance.captureSourceMappings as Record<string, string>)[path] ?? path))).digest("hex"), path).toBe(fingerprint);
     }
