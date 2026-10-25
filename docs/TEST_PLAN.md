@@ -5475,6 +5475,12 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 
 추가 교차 실패 #463는 마지막 option bottom879.5/list879의 실제0.5px 잘림이었다. 단언을 완화하지 않고 공용 StageFilterPicker의 목록scroll만ceil 보정하며 기존 #463 case에5폭 Home/ArrowDown/Up와 실패 전 좌표 attachment를 추가한다. source 변경 뒤 #623전체·cross14·#463나머지6case·#462mock4/actual1을 같은 동결로 재검증한다. package/lock은PATCH0.130.1이며 기존version 검사7case와 stage-filter-context도 선정한다. 진단 반복은 고유case 수에 합산하지 않는다.
 
+## Issue #797 — 전 화면 감사의 수동 관측 (2026-10-24)
+
+[감사 보고서](UI_AUDIT_2026_10_24.md)와 [Work Packet](exec-plans/active/ISSUE_797.md)에 전체 화면별 existing/extend/gap/N/A, 기존 이슈 상태, 실제 실행·미실행을 기록한다. 기존 `ui-geometry` observer와 `seedWbsViewComposer` fixture를 재사용하는 `tests/manual/issue-797-ui-audit.mjs`는 CI discovery 밖의 opt-in 관측 도구다. 같은 Project/Task 원본의 KPI+5관점·390/768/1024/1440/1920×900px를 측정하고 source/fixture/helper hash·실제 runtime·viewport·첫 요약/표 위치·owner scroll·가시 행을 보존한다. 인덱스나 파일 이름보다 JSON 실제 환경이 우선한다.
+
+`KEEP_UNIQUE`: 기존 #457, #730~#737, #717/#719, 목록·Gantt·Editor·관리자·dialog·실제 error boundary 회귀. `PARTIAL_OVERLAP`: 기존 helper/fixture를 재사용한 수동 계측. `EXTEND` 후보는 #800이 상시 회귀로 수용하며 이 PR에 중복 `.spec.ts`·shard/skip/timeout 변경을 추가하지 않는다. 시각 관측과 실제 HTTP/SQLite·권한/원장·keyboard·native125%/AT는 별개다. 제품 변경이 없으므로 after는 N/A, 로컬 관측은 원격 Required3/Trusted QA·Owner ACCEPT를 대체하지 않는다. 상세 실행 결과·실패·NOT TESTED와 비용은 위 보고서를 따른다.
+
 ## Issue #785 F785-008 — 실패 Main CI와 교정 PR 인수 테스트 (2026-10-24)
 
 - 원본 Issue #785 merge SHA 96d97d12의 Main CI #3219.1은 병합 API commit_message에 다중 행을 전달한 Manager 실행 오류로 `verify-ci-run-trace.py` 즉시 FAIL, 실제 Quality/E2E8/Docker/GHCR 미실행. APP/DB 원본 장애가 아님. 원본 CI 성공 소급·정책 완화·history force-update 금지.

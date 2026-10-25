@@ -2,6 +2,8 @@
 
 [Work Packet](ISSUE_553.md) / [전용 실패 원장](../../ISSUE_553_FAILURE_ANALYSIS.md). #552/PR #561 병합 뒤 21개 old PR CI(10 FAIL·11 CANCELLED)와 충돌한 0.106.1 stacked PR #562를 0.133.3 main 통합으로 재기준화한다. old HEAD `afd5ec2899183a2464b64f91d34e9de5d8a8319c` 및 archive 보존, force/rebase 금지; 최신 main과 두 부모로 충돌 해결. 이전 marker-ON UI·viewport patch는 제외하고 원본 교환 fixture/integration/실제 HTTP·SQLite/restart, Export 공통 안내, 현행 image spec assertion·사용 가이드·추적표만 선별. TEST_LIFECYCLE_REVIEW/AC/NOT TESTED 범위를 Packet에 기록. HIGH/OWNER_MANAGED, 8-shard 새 exact-head PR CI 시작까지만, 병합/Main/GHCR/정식 Release/Issue 종료·모니터링 없음.
 
+#553 PR #562 Full [#3277.1 / 40165691579](https://github.com/planner77/masterGantt/actions/runs/40165691579): old Head `f190b639daf775a95fbd382d62f27bace5400030`/old Base `22144ce3844ab50ac0f22a715742c9df82e072e8`에서 TypeScript·Vitest·Build·Docker·Chromium 8/8 및 Required3 **전부 PASS**, 실제 #553 HTTP/SQLite/restart·Copy/Template·Export4종·권한 3cases PASS. 실행 중 Issue #797/PR801 Main #3280.1이 `f431806329dd3af492e1eb6ce67bb73c1262d61e`로 진입, 마지막 QA Final이 `mergeability 또는 test merge 불일치`로 BLOCKED(원본 두 predicate 중 정확 오류 식별은 UNKNOWN). 오래된 head/base의 PASS를 현재 HEAD PASS로 소급하지 않고 이번 인수는 최신 main 2-parent 보존형 재통합+새 Full PR CI까지. 기존 main #797 UI Audit·TEST_PLAN 등 원본 227 경로 및 #553 stage/교환/문서 테스트·실패원장 이력 보존. [F553-J](../../ISSUE_553_FAILURE_ANALYSIS.md) · [Work Packet](ISSUE_553.md) 참조. HIGH/OWNER_MANAGED/release_authorized=false, 병합·Main CI·GHCR/Finalizer/Issue 종료/CI 모니터링 제외.
+
 ## Issue #799 — 6관점 요약·지표 정돈 (2026-10-25)
 
 초기 main `fcd1ae59d268efa1913f4de625a9013cabd1de4a`/0.133.0에서 시작했으며, #506 병합 이후 main `37963266793e7c4b1827f64d3d9b19b2d5d252fb`/0.133.1에 정렬하여 `feat/issue-799-dashboard-metrics`로 진행한다. #798 완료 source의 제어 영역과 KPI baseline을 유지하고 같은 fixture5폭 before 후 공통 요약의 label/value·단위·tabular 위계만 정돈한다. 구성/작업/전체 Gate·개인 Plan/전체 Capacity의 원래 모집단·수치·정확 drill·권한을 보존한다. #797 감사·#800 상시 기준선·#517 환경 검증과 범위를 구분한다.
@@ -29,6 +31,12 @@ Manager 문서/통합·read-only ui_ux·frontend 단일 구현/관측 writer·�
 main `8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24`/앱0.132.0에서 독립 `feat/issue-798-dashboard-density`로 진행한다. 선행 #797/PR #801 감사·기존 fixture를 참조하고 새 before/after5폭을 수집한다. 제목/경로/도움말 정돈, 빠른 작업 검색·상태·기간, 접힌 고급 조건·기존 composer와 활성 적용값·초기화·keyboard/focus를 구현한다. KPI baseline·원본/집계·현재8-shard/Required3/Trusted 경계는 유지한다.
 
 후속 #799는 요약·지표 의미/밀도, #800은 지속 회귀 기준선으로 분리한다. 파일이 겹치면 이 PR의 확정 source 이후 단일 writer로 진행한다. HIGH/qa_required=true/AGENT, Manager·ui_ux·frontend·별도 qa_docs PRE_QA·infra 역할을 구분한다. 버전 유지·release_required=false/release_authorized=false. 사용자 범위는 문서 동기화와 Ready PR Full CI 시작까지이며 모니터링·merge/Main/GHCR/Issue 종료는 제외한다. [Work Packet](ISSUE_798.md)의 실제 로컬 결과·원격 NOT TESTED·잔여 위험이 기준이다.
+
+## Issue #797 — DESIGN 기준 전 화면 재감사 / PR CI 시작까지
+
+2026-10-24 main `8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24` / `0.132.0`에서 `docs/issue-797-ui-audit`로 감사 산출물·수동 관측 도구를 구현한다. [Work Packet](ISSUE_797.md), [최신 감사](../../UI_AUDIT_2026_10_24.md)에 전체 화면 소스·기존 이슈 상태·동일 fixture의 KPI+5관점 Chromium5폭 실측·KEEP/후속·테스트 중복 검토를 기록한다. 제품 UI/계산/API/DB 변경 없이 #798은 toolbar/filter/composer, #799는 summary/metric/state, #800은 지속 회귀 책임을 유지하며 #517/#720/#507을 중복 구현하지 않는다.
+
+HIGH/qa_required=true/qa_method=AGENT: 제품 변경0이지만 기본 브랜치 경로 분류기가 Milestone 증거 파일명에도 HIGH를 적용해 최초 LOW에서 상향했다. 별도 ui_ux 설계 감사·frontend 관측·qa_docs 독립 PRE_QA와 Manager 문서 통합을 분리한다. DESIGN Delta B로 DESIGN.md N/A. 버전 유지·release_required=false/release_authorized=false. 이번 종료점은 Ready PR의 정확 Head CI 시작 확인이며 모니터링·병합·Main/GHCR/Finalizer·종료는 범위 밖이다. 원격 quality/e2e/docker·최종 QA/Manager ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED.
 
 ## Issue #792 — 레거시 보존 원본 scope 안전 편집과 운영 이관 Gate (진행)
 

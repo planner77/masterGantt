@@ -1,0 +1,40 @@
+{
+  "capturedAt": "2026-10-24T14:42:31.359Z",
+  "sourceSha": "8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24",
+  "appVersion": "0.132.0",
+  "nodeVersion": "v22.14.0",
+  "npmVersion": "11.10.0",
+  "cliVersion": "0.1.22",
+  "wrapperSha256": "aa3fdff5d0e4556177f4dfd5f04117e772aa54f94b6a2e34b6c0edf629c6b9b5",
+  "cliConfigSha256": "4f0c4d137561b6356a126673664780b7ae2bd2c844ec183c7e63c3cf27e883e4",
+  "collectorSha256": "2038ac9591667e51b0d264b6e9a847d224c71cc79efb7255b906d02b7dbff53b",
+  "runtime": "Next.js16.4.2 dev webpack after npm ci; production build NOT TESTED",
+  "browser": {
+    "executable": "existing chromium-1243",
+    "browserVersion": "153.0.8010.12",
+    "userAgentReducedVersion": "HeadlessChrome/153.0.0.0",
+    "githubRunnerEquivalence": "NOT TESTED"
+  },
+  "fixture": {
+    "source": "tests/e2e/fixtures/wbs-view-composer.ts and target-project.ts; actual HTTP and isolated SQLite",
+    "database": ".data/issue-797-final.sqlite3; local synthetic data only, excluded from git",
+    "revision": 17,
+    "seedCollectorSha256": "6a7f9878a440edfba4c45d0e1c9817add345693304997b14bced2377c889bcc7",
+    "seedSourceBody": "original fixture helpers unchanged between seed and frozen collector; seed adaptation documented in manifests",
+    "reauthentication": {
+      "projectMaster": 201,
+      "resources": 201,
+      "projectUnlock": 204,
+      "current": 200,
+      "freshCookieOnlyContextEditing": true
+    }
+  },
+  "browserContextIsolation": "one fresh cookie-only context per sample; authentication cookies copied only in memory; localStorage/sessionStorage empty; no credential dumps",
+  "officialRegression": "NOT TESTED; local observation is not GitHub CI or QA_FINAL PASS",
+  "installedVersions": {
+    "next": "16.4.2",
+    "react": "19.3.0",
+    "svarCore": "2.7.3",
+    "playwrightTest": "1.63.0"
+  }
+}

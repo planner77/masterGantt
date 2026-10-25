@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "sourceSha": "8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24",
+  "collectorSha256": "2038ac9591667e51b0d264b6e9a847d224c71cc79efb7255b906d02b7dbff53b",
+  "captureRunId": "representatives-2026-10-24T14-38-36.991Z",
+  "sample": "calendar-1440",
+  "result": "FAIL",
+  "classification": "LOCAL_NEXT_DEV_INITIALIZATION_FAILURE",
+  "evidence": {
+    "requestTemplate": "GET /projects/[publicId]",
+    "httpStatus": 500,
+    "errorName": "SyntaxError",
+    "message": "Unexpected end of JSON input",
+    "location": "Next dev navigation before Project settings/calendar opened"
+  },
+  "limitations": "최초 navigation500과대기실패는실제증거. 정식production/원격CI및정확manifest원인은미검증. 직전settings/직후copy및Editor의새context는성공; retry로원본실패를덮지않음."
+}

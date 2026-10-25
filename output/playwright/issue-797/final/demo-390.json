@@ -1,0 +1,270 @@
+{
+  "key": "demo-390",
+  "expectedViewport": {
+    "width": 390,
+    "height": 900
+  },
+  "screenshotDimensions": {
+    "width": 390,
+    "height": 1013
+  },
+  "captureRunId": "representatives-2026-10-24T14-38-36.991Z",
+  "collectorHashAtStart": "2038ac9591667e51b0d264b6e9a847d224c71cc79efb7255b906d02b7dbff53b",
+  "capturedAt": "2026-10-24T14:38:57.456Z",
+  "result": "OBSERVATION",
+  "dashboardNormal": false,
+  "keyboardObserved": false,
+  "screenshot": "output/playwright/issue-797/final/demo-390.png",
+  "viewportScreenshot": "output/playwright/issue-797/final/demo-390-viewport.png",
+  "facts": {
+    "route": "/gantt-demo",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "document": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "environment": {
+      "locale": "ko-KR",
+      "timezone": "Asia/Seoul",
+      "dpr": 1,
+      "rootFont": "16px",
+      "visualViewportScale": 1,
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "zoom": "default 100%; native125% NOT TESTED; no DPR zoom substitution"
+    },
+    "shell": {
+      "main": {
+        "x": 16,
+        "y": 57,
+        "right": 374,
+        "bottom": 1012.59375,
+        "width": 358,
+        "height": 955.59375
+      },
+      "heading": {
+        "x": 16,
+        "y": 115,
+        "right": 374,
+        "bottom": 148.59375,
+        "width": 358,
+        "height": 33.59375
+      },
+      "headerBottom": 57,
+      "auth": null
+    },
+    "controls": [
+      {
+        "tag": "INPUT",
+        "id": "",
+        "type": "checkbox",
+        "label": "로컬 편집 미리보기",
+        "rect": {
+          "x": 33,
+          "y": 244.09375,
+          "right": 49,
+          "bottom": 260.09375,
+          "width": 16,
+          "height": 16
+        },
+        "owner": {
+          "x": 33,
+          "y": 241.59375,
+          "right": 176.78125,
+          "bottom": 262.59375,
+          "width": 143.78125,
+          "height": 21
+        },
+        "labels": [
+          {
+            "id": "",
+            "htmlFor": "",
+            "wrapsControl": true,
+            "text": "로컬 편집 미리보기"
+          }
+        ],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "0px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "none",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(23, 32, 51)",
+            "rgb(23, 32, 51)",
+            "rgb(23, 32, 51)",
+            "rgb(23, 32, 51)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "0px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "auto",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "fixture 변경 이벤트 실행",
+        "rect": {
+          "x": 33,
+          "y": 278.59375,
+          "right": 215.46875,
+          "bottom": 318.59375,
+          "width": 182.46875,
+          "height": 40
+        },
+        "owner": {
+          "x": 16,
+          "y": 226.59375,
+          "right": 374,
+          "bottom": 391.59375,
+          "width": 358,
+          "height": 165
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": true,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgb(255, 255, 255)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "0.55",
+          "marginTop": "0px"
+        }
+      }
+    ],
+    "excludedControls": 0,
+    "tables": []
+  },
+  "metrics": {
+    "primary": null,
+    "headings": [
+      {
+        "text": "Gantt 최소 통합",
+        "x": 16,
+        "y": 115,
+        "width": 358,
+        "height": 33.59375,
+        "bottom": 148.59375
+      }
+    ],
+    "regions": [],
+    "summaries": [
+      {
+        "class": "gantt-demo-controls",
+        "x": 16,
+        "y": 226.59375,
+        "width": 358,
+        "height": 165,
+        "bottom": 391.59375
+      },
+      {
+        "class": "wx-GKbcLEGA wx-bar wx-summary",
+        "x": 474,
+        "y": 532.59375,
+        "width": 1200,
+        "height": 31,
+        "bottom": 563.59375
+      }
+    ],
+    "filters": [
+      {
+        "text": "로컬 편집 미리보기",
+        "x": 33,
+        "y": 241.59375,
+        "width": 143.78125,
+        "height": 21,
+        "bottom": 262.59375
+      }
+    ],
+    "states": [
+      {
+        "role": "status",
+        "text": "일정 엔진 결과가 일치합니다.",
+        "x": 16,
+        "y": 411.59375,
+        "width": 358,
+        "height": 24,
+        "bottom": 435.59375
+      }
+    ],
+    "focus": {
+      "tag": "BODY",
+      "name": "본문으로 바로가기MmasterGanttv0.132.0프로젝트리소스물류기준정보SVAR CORE DEMOGantt 최소 통합Summary, 일반 작업, milestone과 Finish",
+      "focusVisible": false,
+      "outlineStyle": "none",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 1012.59375,
+        "bottom": 1012.59375
+      }
+    }
+  },
+  "domAppVersion": "v0.132.0",
+  "browserVersion": "153.0.8010.12"
+}
