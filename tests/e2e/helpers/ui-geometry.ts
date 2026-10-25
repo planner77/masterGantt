@@ -127,7 +127,9 @@ export async function observeDashboardSurface(page: Page, kind: DashboardSurface
       }
       return true;
     };
-    const header = pick("h1,h2,h3");
+    // KPI uses h4 inside its cards; its first h3 is the *later* related-Milestone section.
+    // Anchor KPI to its visible view root, not an optional lower heading.
+    const header = perspective === "kpi" ? element : pick("h1,h2,h3");
     const toolbar = pick(perspective === "kpi" ? '[class*="filterBar"]' : '[aria-label="빠른 조회 조건"]');
     const summary = pick(perspective === "kpi" ? '[class*="kpiGrid"]' : "dl");
     const values = Array.from(element.querySelectorAll(perspective === "kpi" ? '[class*="kpiValueRow"]' : "dl dd")).filter(visible);
