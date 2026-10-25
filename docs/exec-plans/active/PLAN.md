@@ -1,3 +1,9 @@
+## Issue #506 — Context Menu sibling 삽입 순서 회귀 교정 (2026-10-25)
+
+- [#506](https://github.com/planner77/masterGantt/issues/506), 기존 #72/#373/#399/#407/#418, `AGENTS.md`·`DESIGN.md`·SVAR `add-task` 공식 API 준수. 기준 main `fcd1ae59d268efa1913f4de625a9013cabd1de4a`, 새 `fix/issue-506-add-above-order-20261025`. 1437커밋 후행한 과거 #506 브랜치 전체 병합 없이 관련 회귀만 최신 main에 이관.
+- 서버의 root/nested `before/after` parent·siblingOrder와 SVAR `next-before`/tail `previous-after`를 일치시킨다. Vitest 서비스·canonical action 및 Chromium 실제 Grid/Chart/reload/scoped 연속성 테스트. [Work Packet](ISSUE_506.md), [TEST_PLAN](../../TEST_PLAN.md).
+- `TEST_LIFECYCLE_REVIEW`: EXTEND #72·canonical sync·TaskHierarchy 기존 파일, ADD 정확 위치 단언; KEEP_UNIQUE scoped/권한·HTTP/SQLite·실제 브라우저, RETIRE/CONSOLIDATE 없음. version `0.133.1`, risk HIGH, QA OWNER_MANAGED. `release_required=true`/`release_authorized=false`, Full CI/Trusted/Owner **NOT TESTED**. 요청 범위 PR CI 시작까지, 모니터링·병합/Main/GHCR·Finalizer/Issue 종료 제외.
+
 ## Issue #798 — 동적 대시보드 제어 영역 밀도 개선 (2026-10-25)
 
 main `8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24`/앱0.132.0에서 독립 `feat/issue-798-dashboard-density`로 진행한다. 선행 #797/PR #801 감사·기존 fixture를 참조하고 새 before/after5폭을 수집한다. 제목/경로/도움말 정돈, 빠른 작업 검색·상태·기간, 접힌 고급 조건·기존 composer와 활성 적용값·초기화·keyboard/focus를 구현한다. KPI baseline·원본/집계·현재8-shard/Required3/Trusted 경계는 유지한다.

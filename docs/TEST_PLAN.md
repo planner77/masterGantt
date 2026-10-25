@@ -1,3 +1,11 @@
+## Issue #506 — Task Above/Below 정확한 sibling 위치 회귀
+
+- **SQLite/Service**: `tests/server/projects/task-hierarchy-command-service.test.ts` — root [A,B,C]의 B 앞/뒤·첫/마지막, nested Summary의 자식 A/B/C, 동일 `parentExternalId`, family별 `siblingOrder=0..n-1`, revision 및 readonly 재조회. 기존 auth/rollback·API 보호 테스트는 삭제하지 않는다.
+- **SVAR 공개 명령**: `tests/features/gantt/canonical-snapshot-sync.test.ts` — 중간 삽입 시 `add-task mode="before",target=next`, 마지막만 previous-after, root 처음/중간/마지막·nested(접힌 Summary)에서 불필요한 `move-task` 없음. 기존 `canonical-sync-execution.test.ts`의 처음 삽입, `canonical-projection.test.ts`의 preorder/자식 관계 검증은 유지한다.
+- **Chromium E2E**: `tests/e2e/task-context-menu-hierarchy.spec.ts` — menu request `anchorTaskId/placement`, root 중간 Above/Below, scoped Summary 자식 앞/뒤, scope root 두 명령 disabled, 실제 Grid 행·Chart bar Y 순서, 재조회·reload 영속성, 동일 Gantt/API 인스턴스. #72 menu 존재 검증 및 #373/#407/#418 scoped/readonly·선택/스크롤 테스트 유지.
+- **TEST_LIFECYCLE_REVIEW**: EXTEND 기존 service/canonical/E2E; ADD 새로운 위치·연속 order·Grid/Chart assertions; PARTIAL_OVERLAP 기존 #72 작업 존재 검증과 정확 위치 검증; KEEP_UNIQUE HTTP/SQLite/브라우저/권한/모달·재시도/뷰포트. `CONSOLIDATE_CANDIDATE=N/A`, `RETIRE_CANDIDATE=N/A`. 테스트 삭제, skip, retry/timeout/8-shard/Required3 정책 변경 없음.
+- **실제 실행 경계**: 노드/브라우저 체크아웃 실행 환경이 없어 로컬 Vitest/Playwright/tsc/lint/Docker **NOT RUN**. 새 exact-head non-draft PR Full CI/Trusted/Owner 결과는 **NOT TESTED**, 결과와 별도 Owner 승인 전 `MERGE_READY=BLOCKED`; 요청에 따라 CI 모니터링 생략.
+
 ## Issue #798 — 동적 대시보드 공통 제어 밀도 회귀
 
 [#798 Work Packet](exec-plans/active/ISSUE_798.md)의 AC_TEST_COVERAGE와 TEST_LIFECYCLE_REVIEW를 단일 매핑으로 사용한다. #797 감사의 누락 조합·PARTIAL을 이번 PASS로 재사용하지 않고 동일 fixture의 KPI+5관점×390/768/1024/1440/1920 source/geometry/PNG를 변경 전후에 수집한다. header/toolbar/구성 높이·wrap·첫 요약/표Y·가시 지표/행·유효 상태와 document overflow를 비교한다. 지표 요약 자체 개선은 #799, 전 화면 지속 기준선은 #800 범위다.
