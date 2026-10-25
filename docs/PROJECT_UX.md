@@ -1,3 +1,9 @@
+## Issue #799 — 6관점 요약·지표 표시
+
+KPI의 기존 네 카드·품질 패널·세부표와 Milestone 전체 상태·관리 카드/표, Resource Plan matrix는 유지한다. 다섯 동적 대시보드의 공통 요약은 label과 값·단위의 위계를 구분하고 숫자를 tabular로 비교한다. 구성 참고/프로젝트 참여 참고와 필터된 작업/개인 배정, 전체 Milestone Gate·전체 Capacity/Plan은 별도 모집단으로 읽는다.
+
+기존0·미산정·공수 미설정·알려진 부분합·환산 기준 미설정과 미연결/진단 문구를 보존한다. 요약을 카드로 통일하거나 상태색만으로 의미를 전달하지 않는다. #798 toolbar·조회 구성과 원본 drill·필터/선택/scroll/focus 복귀·권한/계산은 기존 계약을 따른다. [6관점 인벤토리/실측](ISSUE_799_DASHBOARD_METRICS.md)와 [Work Packet](exec-plans/active/ISSUE_799.md)에서 실제 브라우저·로컬·원격 검증 상태를 구분한다.
+
 ## Issue #506 — Context Menu Task Above/Below의 sibling·화면 일치
 
 Grid/Chart의 우클릭 `Add > Task above/Task below`는 기존 `task-commands`의 `anchorTaskId`와 `placement="before"|"after"`를 사용한다. 선택 Task와 동일 parent에 즉시 앞/뒤로 생성하며 서버 응답의 root·nested `siblingOrder`는 family별 0부터 연속한다. WBS scope의 허용된 하위 Task에서는 동일하며 scoped root 자체의 앞·뒤 추가는 비활성화한다.

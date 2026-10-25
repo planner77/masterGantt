@@ -1,3 +1,4 @@
+import { expectDashboardMetricsReadable } from "./helpers/dashboard-metrics";
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
 import type { Locator, Page } from "@playwright/test";
@@ -59,6 +60,7 @@ test("#732 Target0 Milestone 단독·두 계층·전체 Gate·5폭과 keyboard",
   await expect(summary).toContainText("완료 0/1 Task");
   for(const width of [390,768,1024,1440,1920]) {
     await page.setViewportSize({width,height:1000});
+    await expectDashboardMetricsReadable(root(page).getByTestId("milestone-wbs-summary"), width);
     const toggle=row.getByRole("button",{name:/하위 접기$/});
     await toggle.focus();await toggle.press("Tab");
     const action=row.getByRole("button",{name:"상세",exact:true});await expect(action).toBeFocused();

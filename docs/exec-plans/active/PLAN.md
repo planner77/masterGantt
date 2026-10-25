@@ -1,3 +1,11 @@
+## Issue #799 — 6관점 요약·지표 정돈 (2026-10-25)
+
+초기 main `fcd1ae59d268efa1913f4de625a9013cabd1de4a`/0.133.0에서 시작했으며, #506 병합 이후 main `37963266793e7c4b1827f64d3d9b19b2d5d252fb`/0.133.1에 정렬하여 `feat/issue-799-dashboard-metrics`로 진행한다. #798 완료 source의 제어 영역과 KPI baseline을 유지하고 같은 fixture5폭 before 후 공통 요약의 label/value·단위·tabular 위계만 정돈한다. 구성/작업/전체 Gate·개인 Plan/전체 Capacity의 원래 모집단·수치·정확 drill·권한을 보존한다. #797 감사·#800 상시 기준선·#517 환경 검증과 범위를 구분한다.
+
+Manager 문서/통합·read-only ui_ux·frontend 단일 구현/관측 writer·별도 qa_docs 사전 검토·infra 버전/게시를 분리한다. PATCH0.133.2, HIGH/qa_required=true/AGENT, release_required=true/release_authorized=false다. 사용자 종료점은 구현·문서 동기화·Ready PR Full CI 시작이며 모니터링·병합/Main/GHCR/릴리스/종료는 하지 않는다. 실제 결과와 Design Delta B·NOT TESTED/QA_FINAL/Manager ACCEPT 경계는 [Work Packet](ISSUE_799.md)을 따른다.
+
+#799 최초 Full #3267.1(40153151893.1) Quality/E2E8/Docker SUCCESS, Trusted #913.1(40155011958.1) base/test-merge mismatch BLOCKED. #506의 제품·회귀 테스트와 기록을 보존하고 중복 버전0.133.1을0.133.2로 이동. 새 exact Head의 Full CI/Trusted/독립 AGENT QA/Owner는 진행 결과 전 NOT TESTED, MERGE_READY=BLOCKED.
+
 ## Issue #506 — PR #803 두 번째 CI 직접 실패 교정 (2026-10-25)
 
 [Full #3265.1](https://github.com/planner77/masterGantt/actions/runs/40150246833)의 QA Preflight·Policy·ESLint는 PASS, 직접 TypeScript TS2322 2곳(`ProjectSnapshotResponse`에 mutation DTO 대입)과 U2 역사 Core fingerprint Unit 1개 FAIL. Fast Gate/Required Quality/E2E/Docker/QA는 파생, Chromium8·Docker/Build 구현은 NOT RUN. 응답 union 타입, 원래 digest가 같은 `tests/fixtures/gantt-state-consistency/capture-sources/canonical-snapshot-sync-original.snapshot.txt` source snapshot, U2 `captureSourceMappings` 및 원본 SHA 비교 단언만 보완한다. 제품 #506 sibling-before, 원본 캡처 `sha256`/12 scenarios, package0.133.1·QA/CI 정책 변경 없음. 기존 F-001/R-001과 F-002/F-003은 [누적 실패 원장](../../ISSUE_506_FAILURE_ANALYSIS.md) 및 [Work Packet](ISSUE_506.md)으로 인계. 새 Head Full PR CI 시작까지만, 원격 PASS/Trusted/Owner NOT TESTED, MERGE_READY BLOCKED.

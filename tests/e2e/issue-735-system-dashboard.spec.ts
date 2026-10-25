@@ -1,3 +1,4 @@
+import { expectDashboardMetricsReadable } from "./helpers/dashboard-metrics";
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
@@ -206,6 +207,7 @@ test("#735 긴 System 이름 5폭 내부 스크롤·표 정렬·키보드 focus"
   const directory = resolve("output/playwright/issue-735"); await mkdir(directory, { recursive: true }); const geometry = [];
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
+    await expectDashboardMetricsReadable(root(page).getByTestId("system-dashboard-summary"), width);
     const row = systemRow(page, f.acsA.id), toggle = row.getByRole("button", { name: /하위 접기$/ }); await toggle.focus(); await toggle.press("Tab");
     const action = row.getByRole("button", { name: "상세", exact: true }); await expect(action).toBeFocused();
     const table = root(page).getByRole("table", { name: "공통 계층 결과", exact: true });

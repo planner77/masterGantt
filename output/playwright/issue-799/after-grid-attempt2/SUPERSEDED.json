@@ -1,0 +1,12 @@
+{
+  "status": "SUPERSEDED",
+  "sourceCssSha256": "b0897fab5a080d2af6160ed44a8335a1ac3e9c0a7a8490781b0731fc8b4ae38c",
+  "reason": "fixed128px grid increased process390 tableY47.5px and has unnecessary intrinsic numeric-width risk; replaced with flex intrinsic layout",
+  "captureStatus": "PARTIAL; edit-mode wait timeout amid concurrent Next generated-config writes, then explicitly cancelled CLI; not a final comparison",
+  "completedSamples": [
+    "kpi-390",
+    "process-390",
+    "equipment-390"
+  ],
+  "sourceScope": "CSS only; before remains valid"
+}

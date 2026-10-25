@@ -1,3 +1,11 @@
+## Issue #799 — 6관점 요약·지표 표시 검증
+
+[Work Packet의 TEST_LIFECYCLE_REVIEW/AC_TEST_COVERAGE](exec-plans/active/ISSUE_799.md)와 [6관점 인벤토리·실측](ISSUE_799_DASHBOARD_METRICS.md)을 기준으로 기존 #731~#737·#730·#717·#719·KPI/Resource·cross-screen 테스트와 같은 fixture를 우선 재사용한다. 수정된 공통 요약의 typography·단위·0/null/미산정/부분합·scope를 기존 spec에 확장하고, 고유 원본/권한/경합/Gate/Plan·Excel·focus 경계를 유지한다. 새 중복 E2E·삭제·skip·timeout/retry·8shard/Required3/Trusted 변경은 하지 않는다.
+
+390/768/1024/1440/1920px의 같은 Project snapshot before/after에서 KPI geometry KEEP, first-data/표 Y·지표 가시성·간격·document overflow·owner scroll·원래 표시값/단위와 canonical fingerprint·업무 mutation0을 비교한다. 긴 KO/EN·동명·0/null/부분합·readonly/loading/error/stale는 영향 기반으로 배분하고 실제 실행과 미실행을 분리한다. 실제 터치/보조기기·native zoom·운영 환경은 #517의 별도 경계다. 로컬 PASS는 공식 exact-head Quality/E2E8/Docker·Trusted/QA_FINAL·Owner ACCEPT를 대신하지 않으며 이번 작업은 PR CI 시작 뒤 모니터링하지 않는다.
+
+- **#799 Trusted base-drift 재검증**: 최초 [Full #3267.1](https://github.com/planner77/masterGantt/actions/runs/40153151893)은 원래 Base의 Quality·E2E8/8·Docker PASS, [Trusted #913.1](https://github.com/planner77/masterGantt/actions/runs/40155011958)은 #506 main 변경 뒤 Base/Test-Merge 불일치로 BLOCKED. #506의 Gantt sibling/역사 캡처 테스트를 그대로 복원하여 새 정확 Head/Base/Test-Merge에서 Full8 재검증하고, 이전 화면 before/after30쌍은 역사적 fixture 증거로 구분한다. CI 정책·경고를 완화하지 않는다.
+
 ## Issue #506 / PR #803 — TypeScript DTO 및 historical U2 capture 회귀 대응 (2026-10-25)
 
 - [원본 Full #3265.1](https://github.com/planner77/masterGantt/actions/runs/40150246833): Preflight·Policy·ESLint PASS. `tests/e2e/task-context-menu-hierarchy.spec.ts`는 GET과 Task 생성 POST의 반환 DTO를 동일 타입으로 다뤄 TS2322 두 곳; `ProjectSnapshotResponse | TaskMutationResponse` union으로 실제 공통 `data.project/data.tasks`만 사용하고 권한·operation 필드를 변조하지 않는다. `typecheck`와 원본 Chromium E2E 재검증은 새 Head에서 수행해야 한다.

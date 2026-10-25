@@ -1,3 +1,9 @@
+## [0.133.2] — Unreleased / Issue #799 대시보드 요약 지표
+
+- 다섯 동적 대시보드의 공통 요약에서 label과 값·단위를 구분하고 숫자 비교와 긴 상태문 읽기를 정돈한다. KPI·Milestone 관리 카드/표·Resource Plan과 구성/필터된 작업/전체 Gate·개인 배정의 계산·범위·원본 drill은 유지한다.
+- [6관점 인벤토리/실측](docs/ISSUE_799_DASHBOARD_METRICS.md)와 [Work Packet](docs/exec-plans/active/ISSUE_799.md)에 before/after·선택 검증·문서·독립 사전 검토 및 미검증 범위를 기록한다. PATCH 후보0.133.2, release_required=true/release_authorized=false; PR CI 시작 범위이며 최종 QA·병합·정식 게시 완료를 뜻하지 않는다.
+- [#804 최초 Full #3267.1](https://github.com/planner77/masterGantt/actions/runs/40153151893)의 Quality·Chromium8/8·Docker PASS 후 [QA Trusted #913.1](https://github.com/planner77/masterGantt/actions/runs/40155011958)은 #506 병합에 따른 정확 Base/Test-Merge 변경으로 BLOCKED. 기존 PASS/FAIL은 각각 보존한다. #506 신규0.133.1과의 버전 경합을 피해 본 Issue는0.133.2로 상향하고 최신 main 통합 후 새 Head Full CI를 요청한다. 기존 화면/원본/CI 정책은 불변이며 최종 AGENT QA·Owner 수용·Release 승인은 별도다.
+
 ## [0.133.1] — Unreleased / Issue #506 Add Above·Below sibling 순서 회귀 (2026-10-25)
 
 - PR #803 [두 번째 Full #3265.1](https://github.com/planner77/masterGantt/actions/runs/40150246833)의 TypeScript TS2322(E2E GET/POST 응답 혼용)와 historic U2 Core SHA pin 오류(Vitest 1 case)를 각각 union 타입과 과거 원본 source snapshot / 불변 provenance lookup으로 교정한다. 기존 U2 12개 capture, sha256 기대값, 현재 #506 제품 writer, Required Quality/E2E8/Docker는 유지. [원장](docs/ISSUE_506_FAILURE_ANALYSIS.md)에 최초부터 누적 보존하며 새 Head CI 결과는 아직 NOT TESTED.
