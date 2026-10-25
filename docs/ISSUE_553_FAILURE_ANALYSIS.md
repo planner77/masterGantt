@@ -52,3 +52,23 @@
 5. G: old PR merge 충돌은 first-parent old HEAD, second-parent 최신 main인 **보존형 통합 커밋**으로 해결하고 새 tree는 최신 main+선택 경계로 고정한다. force/rebase/기존 CI 기록 삭제 없음. 스레드 0 (확인), 최신 PR CI Full8 실행 직전 원장 저장. 새 정확 HEAD·Run은 Issue 댓글로 별도 추적; **새 PR CI quality/e2e/docker/Trusted QA/Owner ACCEPT NOT TESTED**, release_authorized=false, merge/Main/GHCR/issue close/branch cleanup 없음.
 
 추가 조사 조건: 새 CI direct failures는 기존 Run/Attempt와 비교해 위 원장에 **추가**하고 취소된 Job에서 확인되는 원본 오류를 보존한다. Test skip/timeout·tolerance 확대/Required gate 완화로 성공 처리하지 않는다.
+
+
+## F553-G — PR #562 / Full PR CI #3272.1: standalone Refs 누락 (2026-10-25)
+
+| 증거 | 원본 |
+| --- | --- |
+| 원본 run | [Run 40160694952, #3272.1](https://github.com/planner77/masterGantt/actions/runs/40160694952), event `pull_request`, attempt 1, 2026-10-25T04:06:54Z, FAILURE |
+| 귀속 | Issue #553, PR #562, branch `feat/issue-553-milestone-interchange-regression`, HEAD `c906cadffbdaa9f02db01534c17332897014ff55`, base `22144ce3844ab50ac0f22a715742c9df82e072e8`, test-merge `75ef336a6dc085827e9aabfa467f487fd6bafe7a` |
+| 직접 실패 | Changes Job ID 121071428069, step `python3 scripts/verify-ci-run-trace.py`, exit 1: `PR 본문에는 canonical 'Refs #<Primary Issue>'가 정확히 1개 필요합니다: []` |
+| Expected vs actual | standalone `Refs #553` 정확 1개 필요. 실제 PR body `Refs #553 · #548 · #552 · #574`는 정규식 `^Refs #N$`에 불일치. 분류: **POLICY_CI/metadata**, CI parser 정상 fail-closed |
+| 파생 실패 | PR Fast Gate 121071484889 (changes=failure, preflight=skipped); Required Build/static/unit 121071531270, Chromium E2E 121071531136, Docker 121071531108, QA Final Automated 121071548951 실패는 **직접 제품 오류 아님**. QA Final trusted boundary 121071427955 SUCCESS도 QA_FINAL PASS가 아니다 |
+| 미실행·취소 경계 | QA Preflight, Policy, TypeScript, ESLint, Vitest, Next build, Chromium 8개 구현 shard, Docker 구현은 SKIPPED/NOT RUN. metadata-only/LOW targeted/Main GHCR도 SKIPPED. 별도 Run 40160694934 (advisory) skipped는 Full PASS 아님 |
+| 기존 이력 보존 | 과거 21 Full Run = 10 FAIL + 11 CANCELLED. 이번 22번째 Full = **11 FAIL + 11 CANCELLED**. 6-shard 역사/현재 8-shard 미실행을 성공으로 바꾸지 않음. 옛 취소/초기 test-level 전체 실패집합 INCOMPLETE 유지 |
+| 추가 사전 결함 후보 | Base `scripts/qa_preflight.py`와 `scripts/qa_final_automated.py` 분석: Issue body AC1.. 식별자 **없음**, Work Packet에 정확 `## DOCUMENTATION_SYNC`/`## AC_TEST_COVERAGE` 없음. Preflight는 직전 Run에서 SKIPPED이므로 이는 **실행되지 않은 사전 구조 위험**, 별도 직접 FAIL로 계수하지 않음 |
+| 한정 보완 | PR body에 독립 `Refs #553` 단 1개, 관련 #548/#552/#574는 별도 관련 이슈 문장. Issue 기존 수용기준 10개를 AC1~AC10으로 색인. 본 Packet에 `docs_required`의 11개 필수 문서 UPDATE/N/A(reason), AC1..AC10 테스트·미실행 mapping. 코드/test assertion/CI/Required/timeout/shard/보안 변경 없음 |
+| 재검증/미검증 | GitHub 신뢰된 base Python regex/docs_gate와 PR/Issue live metadata 대조 **정적 기준 확인**. 로컬 Node/Vitest/Playwright/native SQLite **NOT EXECUTED**, 향후 새 HEAD Quality/Full E2E8/Docker/QA/Owner **NOT TESTED** |
+| 리뷰/충돌 | GraphQL review threads 0 및 reviews 0, 현재 PR `mergeable=true`, base main 정렬. 정식 MERGE_READY는 별도 CI/Trusted QA/Owner 승인이 필요 |
+| handoff | 기존 PR을 force/rebase하지 않고 동일 branch fast-forward 후 새 Full PR CI 시작만 확인; CI 모니터링, merge/Main/GHCR/Finalizer/Issue 종료 안 함 |
+
+F553-A~F의 원본 매트릭스와 교정 근거는 위 항목에 그대로 보존한다. 이 실패는 E2E/제품 결함으로 확정되지 않았으며, 다음 Run의 실제 첫 실패가 생기면 이 원장에 추가한다. 원시 Runner 로그/기밀정보를 Git에 보관하지 않는다.

@@ -48,3 +48,55 @@ Old PR #562는 marker ON 기반 91-file diff, 최신 main 대비 1398 commits �
 - 신규 사용자 [guide](../../MILESTONE_USER_GUIDE.md)·[MT1~MT5 trace](../../MILESTONE_TIMELINE_TRACEABILITY.md)·[누적 실패 원장](../../ISSUE_553_FAILURE_ANALYSIS.md) 및 Changelog/version 갱신. 기존 DESIGN/AGENTS 정책 변경 필요 없음. `MILESTONE_TIMELINE`, `PROJECT_UX`, `REQUIREMENTS`, `TASK_EDITOR`, `TASK_RELATIONS`, `IMPORT_EXPORT`, `EXCEL_EXPORT`, `IMAGE_EXPORT`, `MILESTONE_STAGE_GATES`의 **서버/화면 기본 계약은 unchanged**; 2026-10-15 정책의 marker OFF가 최신 source of truth이며 새 guide에 사용자 동작/차이를 일관되게 명시.
 - API/DB_SCHEMA/SCHEDULING_ENGINE/SECURITY/CI_CD/DEPLOYMENT N/A: 새 route/schema/migration/권한/계산/writer/Runner/배포 정책 없다. old source의 버전/장치별 log·screenshots 무단 복사 없음.
 - 요청 종료점: 기존 PR 리뷰 스레드/mergeability 확인 → latest-main 충돌 해결 → 새로운 PR Full CI **등록**. 이후 모니터링/병합/Main/GHCR/정식 Release/Issue 종료 안 함. 독립 qa_docs/PRE_QA 및 Manager 최종 수용은 별도 검증, 이번 실행에서 수행했다고 주장하지 않는다.
+
+
+## REWORK_3272 — 반복 사전 FAIL 예방 및 변경 범위 (2026-10-25)
+
+- [실패 Full Run #3272.1 / 40160694952](https://github.com/planner77/masterGantt/actions/runs/40160694952), HEAD `c906cadffbdaa9f02db01534c17332897014ff55`, base `22144ce3844ab50ac0f22a715742c9df82e072e8`, test-merge `75ef336a6dc085827e9aabfa467f487fd6bafe7a`.
+- `changes` 121071428069 직접 실패: 기존 PR body `Refs #553 · #548 · #552 · #574`는 `verify-ci-run-trace.py`의 독립행 정규식 미충족. Fast Gate/Required3/QA Final 실패는 파생, 타입/Unit/Build/Chromium8/Docker **NOT RUN**.
+- 같은 trusted base의 `qa_preflight.py`와 `qa_final_automated.py`를 함께 정적 대조했다. Issue #553의 AC 태그 0개와 이 Packet의 명시적 DOC_SYNC/AC_TEST_COVERAGE 섹션 누락은 **다음 Preflight 예상 차단**이므로 실제 Run에서 미실행인 사실을 유지하면서 구조적으로 보완한다.
+- 기존 Issue 열 개의 acceptance checkbox를 AC1~10으로 1:1 식별했다. PR body는 canonical standalone `Refs #553` 하나만 둔다. Source/DB/API/UX marker OFF/CI 정책/보안 변경 없음. 8-shard 정식 결과·QA_FINAL·Owner ACCEPT는 시작 전 NOT TESTED.
+- TEST_LIFECYCLE_REVIEW: base `scripts/test_qa_preflight.py` / `scripts/verify-ci-run-trace.py` 별도 policy negative test는 **KEEP_UNIQUE**, 제품 PR에서 validator/CI 코드 수정 금지. 기존 #553 canonical fixture/실제 SQLite·HTTP 및 #552 OFF 테스트 보호를 유지. 새로운 테스트 삭제·skip/timeout 완화 없음.
+
+## DOCUMENTATION_SYNC
+
+- `AGENTS.md`: N/A(공통 Issue/QA/CI 실패 대응 절차가 불변이고 metadata 선언만 바로잡는다)
+- `DESIGN.md`: N/A(새 레이아웃·상태·semantic token 변경 없이 marker OFF를 보존한다)
+- `docs/CI_CD.md`: N/A(기존 Full8, 3 Required checks 및 신뢰된 Preflight 구성이 불변이다)
+- `docs/EXCEL_EXPORT.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: N/A(현행 GitHub metadata 검증 계약에 맞추며 workflow 정책은 변경하지 않는다)
+- `docs/IMPORT_EXPORT.md`: UPDATED
+- `docs/IMPORT_SCHEMA.md`: N/A(JSON 1.1 schema와 입력 검증·UUID FK 계약이 동일하다)
+- `docs/QA_REVIEW_POLICY.md`: N/A(HIGH Owner-managed/Trusted QA와 별도 승인 게이트가 동일하다)
+- `docs/REMOTE_VALIDATION.md`: N/A(기존 원격 Run/Attempt/Head/Base/Test-Merge 증거 정책이 동일하다)
+- `docs/SCHEDULING_ENGINE.md`: N/A(일정·Milestone Gate·Resource Roll-up 계산을 변경하지 않는다)
+- `docs/TEST_PLAN.md`: N/A(기존 Test Plan과 #552 marker-OFF 테스트는 불변, 정확 매핑은 아래 AC 표와 추적표로 보완한다)
+- `docs/IMAGE_EXPORT.md`: UPDATED
+- `docs/MILESTONE_STAGE_GATES.md`: UPDATED
+- `docs/MILESTONE_TIMELINE.md`: UPDATED
+- `docs/MILESTONE_TIMELINE_TRACEABILITY.md`: UPDATED
+- `docs/MILESTONE_USER_GUIDE.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/REQUIREMENTS.md`: UPDATED
+- `docs/TASK_EDITOR.md`: UPDATED
+- `docs/TASK_RELATIONS.md`: UPDATED
+- `README.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_553.md`: UPDATED
+- `docs/ISSUE_553_FAILURE_ANALYSIS.md`: UPDATED
+
+위 N/A는 변경 없음의 원인 기록이며 검증 PASS가 아니다. `docs_required`의 전체 합집합 기준으로 변경 여부와 내용 정합을 별도 판정한다.
+
+## AC_TEST_COVERAGE
+
+- AC1: `tests/fixtures/issue-553/canonical-interchange.ts` + `tests/integration/milestone-timeline-interchange.test.ts`와 #552 `milestone-visibility.spec.ts`의 full canonical/조회·Gate·revision 불변, 새 Head NOT TESTED.
+- AC2: `tests/e2e/milestone-timeline-interchange-http.spec.ts` 및 integration의 Origin/If-Match/정확 revision, 새 Head NOT TESTED.
+- AC3: integration/HTTP JSON1.1 UUID·FK·mixed atomic reject, Copy/Template/multi-root/cut·실제 restart, 새 Head NOT TESTED.
+- AC4: integration Excel OOXML/Milestone/Resource opt-in/SVG + 기존 `project-gantt-image-export.spec.ts` SVG/PNG, `resource-excel-export-ui.spec.ts` (#529), 새 Head NOT TESTED.
+- AC5: 기존 #552 `milestone-visibility.spec.ts` 소속 필터/복귀, #464 member/관계, #529 Resource full scope 및 #574 후속 종단 QA, 새 Head NOT TESTED.
+- AC6: #552 390/768/1024/1440/1920 Day/Week + 기존 image export 실제 keyboard/geometry/readonly; 전체 실측은 새 Head NOT TESTED.
+- AC7: 이전 marker-ON #553 UI는 archive 보존·현행 OFF 계약에 무단 적용하지 않음; #552, #140 inline, #529 peer 원본 테스트 유지, skip/허용오차 확대 없음.
+- AC8: `docs/MILESTONE_USER_GUIDE.md`와 동일 Export dialog 문구, Dashboard/소속 Task date fallback 및 JSON/Excel/SVG/PNG 범위·제약, 새 Head NOT TESTED.
+- AC9: `docs/MILESTONE_TIMELINE_TRACEABILITY.md`의 #549~#553 및 #548/#574, #573/#693 선택 ON 분리; 이전 SHA/6-shard PASS 소급 없음.
+- AC10: Issue별 단일 실패 원장 F553-A~G, 독립 QA/Manager 승인/Windows Excel/DRM·운영 proxy 및 #574 종합 QA 상태 명시, 완료 전 NOT TESTED.

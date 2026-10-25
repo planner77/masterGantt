@@ -20,3 +20,12 @@
 - #574: 실제 5폭·HTTP/SQLite·SC-01~14 및 독립 통합 수용의 책임. #573/#693: 사용자 opt-in marker ON용 **선택** 후속이며 #553/574 OFF 수용을 막지 않는다.
 
 TEST_LIFECYCLE_REVIEW: 기존 `milestone-visibility.spec.ts`, `project-gantt-image-export.spec.ts`, `milestone-exchange-state.spec.ts`, `resource-excel-export-ui.spec.ts`, `milestone-stage-exchange.spec.ts`를 검색해 상호 비교했다. canonical fixture/integration 및 실제 HTTP 교환은 **KEEP_UNIQUE** (실제 DB/새 UUID·process restart와 기존 synthetic UI가 다른 위험), 이미지 E2E에 안내 문구 assertion은 **EXTEND**, old marker-ON UI 파일은 **RETIRE_CANDIDATE 아님**—archive에서 역사 보호, 최신 운영에 무단 실행/복원하지 않는다. 기존 테스트 삭제·skip·assertion 완화 없음. 신규/변경 테스트 Local NOT TESTED(실행 환경 미제공), Full8/Trusted/Manager NOT TESTED; 병합/Release 미승인.
+
+
+## #3272.1 실패와 Issue AC8–AC10 매핑 (2026-10-25)
+
+- [원본 Full CI #3272.1](https://github.com/planner77/masterGantt/actions/runs/40160694952): PR Body `Refs #553` 단독 행 부재로 `changes` FAIL, TypeScript/Unit/E2E 8-shard/Docker **NOT RUN**. [F553-G 실패 원장](ISSUE_553_FAILURE_ANALYSIS.md)과 [Issue #553 Work Packet](exec-plans/active/ISSUE_553.md) 참조.
+- **AC8:** 운영 marker-OFF Dashboard/소속 Task 대신 경로와 내보내기 형식 차이 → `MILESTONE_USER_GUIDE.md`, `project-gantt-image-export.spec.ts`.
+- **AC9:** #549~#553 고정 Source와 exact Run 출처/미검증 및 #548/#574 marker OFF 종합 인수, #573/#693 선택 marker ON 분리 → 본 추적표 + Packet.
+- **AC10:** 독립 QA/Owner ACCEPT·Windows Excel/DRM/운영 proxy·외부 소비자 검증은 실제 증거 전 NOT TESTED, 무단 병합·정식 게시·종료 금지.
+- Issue 본문의 기존 10개 acceptance 체크박스를 **AC1~10**으로 1:1 식별하고 `## AC_TEST_COVERAGE`에서 각각 test/docs/정확 Head 결과를 구분한다.
