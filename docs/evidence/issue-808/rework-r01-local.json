@@ -1,0 +1,152 @@
+{
+  "schema": "issue-808-rework-r01-local-validation-v1",
+  "issue": 808,
+  "pr": 811,
+  "parentHead": "4a1c9c8b11cadb70f94f034c4484d3a2acd30597",
+  "base": "048ae92ff673f1d0c4c69171fe3cc9bffe25dc19",
+  "version": "0.134.0",
+  "sourceFiles": {
+    "src/contracts/resource-analysis.ts": "b30753dcbe05af762c3b616346fccb91fb84925c09af44d71274e3907199d697",
+    "src/domain/resources/resource-analysis.ts": "6925bc91a7fa49f5c14d4e4374428e14b3281ac737a8376ac1bc76cb84143c2d",
+    "tests/domain/resource-analysis.test.ts": "db6b027a2ce41ffb5d0dbfa073ffa4a07c673036a47469b6b0db9faf59791a9a"
+  },
+  "originalFailure": {
+    "runId": 40197745892,
+    "attempt": 1,
+    "conclusion": "failure",
+    "directJob": 121188791718,
+    "reason": "미해결 review thread",
+    "requiredQualityE2eDocker": "PASS on parent Head only",
+    "reviewThreads": [
+      "PRRT_kwDOUUB7Bc6wBqcJ",
+      "PRRT_kwDOUUB7Bc6wBqcK"
+    ]
+  },
+  "redReproduction": {
+    "sourceUnchangedAtRed": true,
+    "command": "npx vitest run --config tests/config/vitest.config.ts tests/domain/resource-analysis.test.ts -t 'co-assigned Task|provides the' --reporter=verbose",
+    "failedCases": 4,
+    "notSelectedByDebugFilter": 19,
+    "runs": [
+      {
+        "timeKst": "23:00:00",
+        "durationMs": 389,
+        "exitCode": 1
+      },
+      {
+        "timeKst": "23:00:25",
+        "durationMs": 365,
+        "exitCode": 1
+      }
+    ],
+    "symptoms": [
+      "co-assigned T3: assignmentIds=[] but taskIds=[T3] and completion denominator1",
+      "resource/group/role unassigned null pivot candidate absent"
+    ]
+  },
+  "finalImplementationRun": {
+    "status": "PASS",
+    "files": 7,
+    "tests": 123,
+    "directTests": 33,
+    "adjacentTests": 90,
+    "failed": 0,
+    "skipped": 0,
+    "command": "npx vitest run --config tests/config/vitest.config.ts tests/domain/resource-analysis.test.ts tests/domain/resource-kpi.test.ts tests/domain/resource-plan-budget.test.ts tests/domain/resource-plan-periods.test.ts tests/domain/resource-plan.test.ts tests/domain/wbs-task-ledger-acceptance.test.ts tests/domain/wbs-task-ledger.test.ts --reporter=json --outputFile=/tmp/issue-808-rework-domain.json",
+    "testFiles": [
+      {
+        "path": "tests/domain/resource-analysis.test.ts",
+        "tests": 33,
+        "status": "passed"
+      },
+      {
+        "path": "tests/domain/resource-kpi.test.ts",
+        "tests": 28,
+        "status": "passed"
+      },
+      {
+        "path": "tests/domain/resource-plan-budget.test.ts",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "path": "tests/domain/resource-plan-periods.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "path": "tests/domain/resource-plan.test.ts",
+        "tests": 15,
+        "status": "passed"
+      },
+      {
+        "path": "tests/domain/wbs-task-ledger-acceptance.test.ts",
+        "tests": 13,
+        "status": "passed"
+      },
+      {
+        "path": "tests/domain/wbs-task-ledger.test.ts",
+        "tests": 19,
+        "status": "passed"
+      }
+    ]
+  },
+  "staticChecks": {
+    "typecheck": "PASS",
+    "targetedEslint": "PASS",
+    "diffCheck": "PASS",
+    "releaseVersion": "PASS 0.134.0",
+    "markdownLinks": "PASS 343 files",
+    "documentationStructure": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING / AC1~6 mapping PASS"
+  },
+  "independentLocalPreQa": {
+    "reviewer": "/root/analysis_qa",
+    "directTests": 33,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 584,
+    "checkedAtKst": "2026-10-25 23:06:05",
+    "sourceManifestSameBeforeAfter": true,
+    "originalAndNegativeChecks": 8,
+    "checks": [
+      "co-assigned source R1/query R2: Task0/Assignment0/completion denominator0/T0denominator6/personallyUnassigned2",
+      "resource/group/role individual null buckets",
+      "three nested null axis pairs preserve exact no-personal Task identities and zero assignment effort",
+      "resource[null,R1] OR matches total/cell distinct6Tasks/14MD"
+    ],
+    "status": "PASS",
+    "newFindings": 0,
+    "documentationSync": "PASS final read-only semantic review"
+  },
+  "coverage": {
+    "testLifecycle": "EXTEND existing adapter test file; KEEP_UNIQUE existing ledger/KPI/Plan/Calendar/budget/server/Excel/browser boundaries",
+    "directCaseCount": "previous19 + originalRed4 + crossNegative10 =33",
+    "repeatRunsNotAdded": true,
+    "productionCodeChanges": [
+      "src/domain/resources/resource-analysis.ts"
+    ],
+    "contractsApiDbCalendarCiVersionChanges": false
+  },
+  "environment": {
+    "node": "22.14.0",
+    "vitest": "5.0.0",
+    "typescript": "5.8.3",
+    "actualNext": "16.3.4",
+    "declaredNext": "16.4.2",
+    "dependencyMode": "existing node_modules symlink; no Next API/route changes. Exact frozen install/build/Chromium on new Head deferred to PR Full CI."
+  },
+  "newHeadRemote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "managerDecision": "NOT TESTED"
+  },
+  "notExecutedOnNewSource": [
+    "production build",
+    "local Chromium",
+    "local Docker/GHCR",
+    "Windows Excel/DRM/production proxy/manual UX"
+  ],
+  "sourceTrustBoundary": "Authenticated read transaction owns source/projection assertion; pure adapter is not independent snapshot or authorization verification."
+}

@@ -1,0 +1,1284 @@
+{
+  "schema": "issue-808-remote-failure-history-v1",
+  "issue": 808,
+  "pr": 811,
+  "collectedAt": "2026-10-25 14:02:02 UTC",
+  "baseline": {
+    "head": "4a1c9c8b11cadb70f94f034c4484d3a2acd30597",
+    "base": "048ae92ff673f1d0c4c69171fe3cc9bffe25dc19",
+    "testMerge": "a6db61caa0117f3f8cacc26327d5ef7c0bd5456d",
+    "mergeable": true
+  },
+  "coverage": {
+    "canonicalPrSearchCount": 1,
+    "issueTimeline": {
+      "page1Count": 7,
+      "page2Count": 0,
+      "canonicalPr": 811
+    },
+    "prCommits": [
+      "4a1c9c8b11cadb70f94f034c4484d3a2acd30597"
+    ],
+    "prCommitsPage2": 0,
+    "branchRuns": {
+      "total": 2,
+      "page1": 2,
+      "page2": 0
+    },
+    "recentRepositoryRuns": {
+      "createdFrom": "2026-10-25T13:28:00Z",
+      "total": 8,
+      "page1": 8,
+      "page2": 0
+    },
+    "fullJobs": {
+      "total": 30,
+      "page1": 30,
+      "page2": 0
+    },
+    "fullArtifacts": {
+      "total": 23,
+      "page1": 23,
+      "page2": 0
+    },
+    "trustedJobs": {
+      "total": 1,
+      "page1": 1,
+      "page2": 0
+    },
+    "trustedArtifacts": {
+      "total": 1,
+      "page1": 1,
+      "page2": 0
+    },
+    "attempts": "All six relevant runs have run_attempt=1; no earlier attempts exist",
+    "missing": [],
+    "limits": [
+      "Repository recent-run scan is bounded by first PR creation time; issue timeline and canonical PR search independently found only PR811",
+      "Only failure QA logs and source/QA/diagnostics JSON artifacts were downloaded; successful implementation logs and E2E trace/timing ZIPs were not downloaded because no implementation or shard failure exists",
+      "Artifact JSON is read-only evidence; source artifact cross-check is not a substitute for trusted validator approval"
+    ]
+  },
+  "runs": [
+    {
+      "id": 40199971370,
+      "runNumber": 879,
+      "attempt": 1,
+      "event": "workflow_run",
+      "path": ".github/workflows/ci-setup-readiness.yml",
+      "headSha": "048ae92ff673f1d0c4c69171fe3cc9bffe25dc19",
+      "status": "completed",
+      "conclusion": "skipped",
+      "createdAt": "2026-10-25T13:57:19Z",
+      "updatedAt": "2026-10-25T13:57:20Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40199971370"
+    },
+    {
+      "id": 40199971334,
+      "runNumber": 139,
+      "attempt": 1,
+      "event": "workflow_run",
+      "path": ".github/workflows/issue-752-diagnostics.yml",
+      "headSha": "048ae92ff673f1d0c4c69171fe3cc9bffe25dc19",
+      "status": "completed",
+      "conclusion": "success",
+      "createdAt": "2026-10-25T13:57:19Z",
+      "updatedAt": "2026-10-25T13:57:41Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40199971334"
+    },
+    {
+      "id": 40199971364,
+      "runNumber": 844,
+      "attempt": 1,
+      "event": "workflow_run",
+      "path": ".github/workflows/pr-metadata-reconcile.yml",
+      "headSha": "048ae92ff673f1d0c4c69171fe3cc9bffe25dc19",
+      "status": "completed",
+      "conclusion": "success",
+      "createdAt": "2026-10-25T13:57:19Z",
+      "updatedAt": "2026-10-25T13:57:37Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40199971364"
+    },
+    {
+      "id": 40199971387,
+      "runNumber": 944,
+      "attempt": 1,
+      "event": "workflow_run",
+      "path": ".github/workflows/qa-final-trusted.yml",
+      "headSha": "048ae92ff673f1d0c4c69171fe3cc9bffe25dc19",
+      "status": "completed",
+      "conclusion": "failure",
+      "createdAt": "2026-10-25T13:57:19Z",
+      "updatedAt": "2026-10-25T13:57:35Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40199971387"
+    },
+    {
+      "id": 40197745824,
+      "runNumber": 119,
+      "attempt": 1,
+      "event": "pull_request",
+      "path": ".github/workflows/pr-fast-development.yml",
+      "headSha": "4a1c9c8b11cadb70f94f034c4484d3a2acd30597",
+      "status": "completed",
+      "conclusion": "skipped",
+      "createdAt": "2026-10-25T13:28:12Z",
+      "updatedAt": "2026-10-25T13:28:13Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745824"
+    },
+    {
+      "id": 40197745892,
+      "runNumber": 3297,
+      "attempt": 1,
+      "event": "pull_request",
+      "path": ".github/workflows/ci.yml",
+      "headSha": "4a1c9c8b11cadb70f94f034c4484d3a2acd30597",
+      "status": "completed",
+      "conclusion": "failure",
+      "createdAt": "2026-10-25T13:28:12Z",
+      "updatedAt": "2026-10-25T13:57:17Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892"
+    }
+  ],
+  "excludedRuns": [
+    {
+      "id": 40197834313,
+      "runNumber": 1050,
+      "attempt": 1,
+      "event": "issue_comment",
+      "path": ".github/workflows/release-finalizer.yml",
+      "headSha": "048ae92ff673f1d0c4c69171fe3cc9bffe25dc19",
+      "status": "completed",
+      "conclusion": "skipped",
+      "createdAt": "2026-10-25T13:29:23Z",
+      "updatedAt": "2026-10-25T13:29:29Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197834313",
+      "reason": "issue_comment-triggered Generic Finalizer skipped; not PR validation or a new #808 failure"
+    },
+    {
+      "id": 40197755313,
+      "runNumber": 1049,
+      "attempt": 1,
+      "event": "issue_comment",
+      "path": ".github/workflows/release-finalizer.yml",
+      "headSha": "048ae92ff673f1d0c4c69171fe3cc9bffe25dc19",
+      "status": "completed",
+      "conclusion": "skipped",
+      "createdAt": "2026-10-25T13:28:20Z",
+      "updatedAt": "2026-10-25T13:28:30Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197755313",
+      "reason": "issue_comment-triggered Generic Finalizer skipped; not PR validation or a new #808 failure"
+    }
+  ],
+  "fullJobCounts": {
+    "success": 22,
+    "skipped": 7,
+    "failure": 1
+  },
+  "fullJobs": [
+    {
+      "id": 121182173170,
+      "name": "변경 경로 판정",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:28:14Z",
+      "completedAt": "2026-10-25T13:28:31Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182173170",
+      "stepCounts": {
+        "success": 11,
+        "skipped": 4
+      },
+      "nonSuccessSteps": [
+        {
+          "number": 8,
+          "name": "인증된 Owner exact-main-recovery 검증 (#639)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:28:28Z",
+          "completedAt": "2026-10-25T13:28:28Z"
+        },
+        {
+          "number": 9,
+          "name": "원본 복구 Run·Attempt·SHA 감사 artifact",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:28:28Z",
+          "completedAt": "2026-10-25T13:28:28Z"
+        },
+        {
+          "number": 11,
+          "name": "main docs-only 변경 판정",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:28:29Z",
+          "completedAt": "2026-10-25T13:28:29Z"
+        },
+        {
+          "number": 12,
+          "name": "main release candidate version 판정",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:28:29Z",
+          "completedAt": "2026-10-25T13:28:29Z"
+        }
+      ]
+    },
+    {
+      "id": 121182173327,
+      "name": "QA Final 신뢰 경계 확인",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:28:14Z",
+      "completedAt": "2026-10-25T13:28:27Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182173327",
+      "stepCounts": {
+        "success": 6
+      },
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121182244989,
+      "name": "QA Preflight — 정책·문서 사전 검사",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:28:33Z",
+      "completedAt": "2026-10-25T13:28:51Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182244989",
+      "stepCounts": {
+        "success": 7
+      },
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121182245999,
+      "name": "Low E2E policy plan (trusted base)",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:28:32Z",
+      "completedAt": "2026-10-25T13:28:31Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182245999",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121182246523,
+      "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:28:32Z",
+      "completedAt": "2026-10-25T13:28:31Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182246523",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121182317501,
+      "name": "Vitest 단위·통합 테스트",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:28:53Z",
+      "completedAt": "2026-10-25T13:30:44Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182317501",
+      "stepCounts": {
+        "success": 9
+      },
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121182317532,
+      "name": "TypeScript 타입 검사",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:28:53Z",
+      "completedAt": "2026-10-25T13:30:05Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182317532",
+      "stepCounts": {
+        "success": 11
+      },
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121182317534,
+      "name": "정책·저장소 계약 검사",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:28:54Z",
+      "completedAt": "2026-10-25T13:29:53Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182317534",
+      "stepCounts": {
+        "success": 36
+      },
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121182317548,
+      "name": "ESLint",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:28:53Z",
+      "completedAt": "2026-10-25T13:30:09Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182317548",
+      "stepCounts": {
+        "success": 9
+      },
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121182318558,
+      "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:28:51Z",
+      "completedAt": "2026-10-25T13:28:51Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182318558",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121182318595,
+      "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:28:51Z",
+      "completedAt": "2026-10-25T13:28:51Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182318595",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121182318758,
+      "name": "Next.js production build",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:28:51Z",
+      "completedAt": "2026-10-25T13:28:51Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182318758",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121182754963,
+      "name": "PR 빠른 검사 판정",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:30:47Z",
+      "completedAt": "2026-10-25T13:31:03Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182754963",
+      "stepCounts": {
+        "success": 5
+      },
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121182825849,
+      "name": "PR Next.js production build",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:31:05Z",
+      "completedAt": "2026-10-25T13:32:53Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182825849",
+      "stepCounts": {
+        "success": 15
+      },
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121182825857,
+      "name": "Docker smoke 구현",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:31:05Z",
+      "completedAt": "2026-10-25T13:33:31Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182825857",
+      "stepCounts": {
+        "success": 21,
+        "skipped": 5
+      },
+      "nonSuccessSteps": [
+        {
+          "number": 12,
+          "name": "PR 기준 image와 크기 비교",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:33:01Z",
+          "completedAt": "2026-10-25T13:33:01Z"
+        },
+        {
+          "number": 16,
+          "name": "transport smoke용 Node/npm setup 계측",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:33:04Z",
+          "completedAt": "2026-10-25T13:33:04Z"
+        },
+        {
+          "number": 17,
+          "name": "transport smoke용 Playwright setup 계측",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:33:04Z",
+          "completedAt": "2026-10-25T13:33:04Z"
+        },
+        {
+          "number": 18,
+          "name": "production HTTP·HTTPS 전송 정책 검증",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:33:04Z",
+          "completedAt": "2026-10-25T13:33:04Z"
+        },
+        {
+          "number": 20,
+          "name": "실패 시 container logs",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:33:18Z",
+          "completedAt": "2026-10-25T13:33:18Z"
+        }
+      ]
+    },
+    {
+      "id": 121182825911,
+      "name": "Chromium E2E shard 4/8 · PR",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:31:05Z",
+      "completedAt": "2026-10-25T13:54:49Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182825911",
+      "stepCounts": {
+        "success": 13,
+        "skipped": 1
+      },
+      "nonSuccessSteps": [
+        {
+          "number": 11,
+          "name": "실패 shard Playwright report 업로드",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:54:47Z",
+          "completedAt": "2026-10-25T13:54:47Z"
+        }
+      ]
+    },
+    {
+      "id": 121182825913,
+      "name": "Chromium E2E shard 3/8 · PR",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:31:05Z",
+      "completedAt": "2026-10-25T13:55:13Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182825913",
+      "stepCounts": {
+        "success": 13,
+        "skipped": 1
+      },
+      "nonSuccessSteps": [
+        {
+          "number": 11,
+          "name": "실패 shard Playwright report 업로드",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:55:10Z",
+          "completedAt": "2026-10-25T13:55:10Z"
+        }
+      ]
+    },
+    {
+      "id": 121182825971,
+      "name": "Chromium E2E shard 7/8 · PR",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:31:05Z",
+      "completedAt": "2026-10-25T13:53:37Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182825971",
+      "stepCounts": {
+        "success": 13,
+        "skipped": 1
+      },
+      "nonSuccessSteps": [
+        {
+          "number": 11,
+          "name": "실패 shard Playwright report 업로드",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:53:35Z",
+          "completedAt": "2026-10-25T13:53:35Z"
+        }
+      ]
+    },
+    {
+      "id": 121182825980,
+      "name": "Chromium E2E shard 6/8 · PR",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:31:05Z",
+      "completedAt": "2026-10-25T13:56:50Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182825980",
+      "stepCounts": {
+        "success": 13,
+        "skipped": 1
+      },
+      "nonSuccessSteps": [
+        {
+          "number": 11,
+          "name": "실패 shard Playwright report 업로드",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:56:49Z",
+          "completedAt": "2026-10-25T13:56:49Z"
+        }
+      ]
+    },
+    {
+      "id": 121182825993,
+      "name": "Chromium E2E shard 1/8 · PR",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:31:05Z",
+      "completedAt": "2026-10-25T13:47:50Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182825993",
+      "stepCounts": {
+        "success": 13,
+        "skipped": 1
+      },
+      "nonSuccessSteps": [
+        {
+          "number": 11,
+          "name": "실패 shard Playwright report 업로드",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:47:48Z",
+          "completedAt": "2026-10-25T13:47:48Z"
+        }
+      ]
+    },
+    {
+      "id": 121182826002,
+      "name": "Chromium E2E shard 2/8 · PR",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:31:05Z",
+      "completedAt": "2026-10-25T13:44:45Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182826002",
+      "stepCounts": {
+        "success": 13,
+        "skipped": 1
+      },
+      "nonSuccessSteps": [
+        {
+          "number": 11,
+          "name": "실패 shard Playwright report 업로드",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:44:41Z",
+          "completedAt": "2026-10-25T13:44:41Z"
+        }
+      ]
+    },
+    {
+      "id": 121182826011,
+      "name": "Chromium E2E shard 8/8 · PR",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:31:05Z",
+      "completedAt": "2026-10-25T13:46:38Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182826011",
+      "stepCounts": {
+        "success": 13,
+        "skipped": 1
+      },
+      "nonSuccessSteps": [
+        {
+          "number": 11,
+          "name": "실패 shard Playwright report 업로드",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:46:36Z",
+          "completedAt": "2026-10-25T13:46:36Z"
+        }
+      ]
+    },
+    {
+      "id": 121182826038,
+      "name": "Chromium E2E shard 5/8 · PR",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:31:05Z",
+      "completedAt": "2026-10-25T13:54:17Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182826038",
+      "stepCounts": {
+        "success": 13,
+        "skipped": 1
+      },
+      "nonSuccessSteps": [
+        {
+          "number": 11,
+          "name": "실패 shard Playwright report 업로드",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:54:14Z",
+          "completedAt": "2026-10-25T13:54:14Z"
+        }
+      ]
+    },
+    {
+      "id": 121182827252,
+      "name": "Low E2E targeted execution",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:31:03Z",
+      "completedAt": "2026-10-25T13:31:03Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121182827252",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121183248691,
+      "name": "Build, static checks, and unit tests",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:32:55Z",
+      "completedAt": "2026-10-25T13:32:58Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121183248691",
+      "stepCounts": {
+        "success": 3
+      },
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121183389024,
+      "name": "Docker build and runtime smoke test",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:33:33Z",
+      "completedAt": "2026-10-25T13:33:37Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121183389024",
+      "stepCounts": {
+        "success": 3
+      },
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121188771952,
+      "name": "Chromium end-to-end tests",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:56:53Z",
+      "completedAt": "2026-10-25T13:56:56Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121188771952",
+      "stepCounts": {
+        "success": 3
+      },
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121188791693,
+      "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:56:58Z",
+      "completedAt": "2026-10-25T13:57:11Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121188791693",
+      "stepCounts": {
+        "success": 6,
+        "skipped": 1
+      },
+      "nonSuccessSteps": [
+        {
+          "number": 3,
+          "name": "신규 Shadow 정책 bootstrap — 미설치 시 NOT TESTED",
+          "status": "completed",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-25T13:57:07Z",
+          "completedAt": "2026-10-25T13:57:07Z"
+        }
+      ]
+    },
+    {
+      "id": 121188791718,
+      "name": "QA Final — Automated",
+      "conclusion": "failure",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:56:58Z",
+      "completedAt": "2026-10-25T13:57:16Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121188791718",
+      "stepCounts": {
+        "success": 5,
+        "failure": 1
+      },
+      "nonSuccessSteps": [
+        {
+          "number": 3,
+          "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+          "status": "completed",
+          "conclusion": "failure",
+          "startedAt": "2026-10-25T13:57:10Z",
+          "completedAt": "2026-10-25T13:57:13Z"
+        }
+      ]
+    },
+    {
+      "id": 121188793072,
+      "name": "Main 임시 commit 이미지 게시·검증·정리",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:56:56Z",
+      "completedAt": "2026-10-25T13:56:56Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745892/job/121188793072",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    }
+  ],
+  "trustedJobs": [
+    {
+      "id": 121188878120,
+      "name": "QA Final — Trusted",
+      "conclusion": "failure",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:57:21Z",
+      "completedAt": "2026-10-25T13:57:35Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40199971387/job/121188878120",
+      "stepCounts": {
+        "success": 6,
+        "failure": 1
+      },
+      "nonSuccessSteps": [
+        {
+          "number": 4,
+          "name": "원본 PR CI/Head/base 및 차단 리뷰·문서 증거 독립 조회",
+          "status": "completed",
+          "conclusion": "failure",
+          "startedAt": "2026-10-25T13:57:32Z",
+          "completedAt": "2026-10-25T13:57:33Z"
+        }
+      ]
+    }
+  ],
+  "auxiliaryJobs": [
+    {
+      "id": 121182173819,
+      "name": "FAST_DEVELOPMENT — selected feedback (non-authoritative)",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:28:12Z",
+      "completedAt": "2026-10-25T13:28:12Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40197745824/job/121182173819",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121188879012,
+      "name": "Issue",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:57:20Z",
+      "completedAt": "2026-10-25T13:57:19Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40199971370/job/121188879012",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121188877783,
+      "name": "반복 Full CI 실패 출처 인증 (권고 전용)",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:57:21Z",
+      "completedAt": "2026-10-25T13:57:41Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40199971334/job/121188877783",
+      "stepCounts": {
+        "success": 6
+      },
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121188878896,
+      "name": "실행 간 진단 결과 정제 및 JSON/Markdown 작성",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:57:20Z",
+      "completedAt": "2026-10-25T13:57:19Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40199971334/job/121188878896",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121188878914,
+      "name": "수동 진단 권한·정확한 PR 소스 동결",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:57:20Z",
+      "completedAt": "2026-10-25T13:57:19Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40199971334/job/121188878914",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121188879021,
+      "name": "제한 E2E 진단 ${{ matrix.part }} (승인 증거 아님)",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:57:20Z",
+      "completedAt": "2026-10-25T13:57:19Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40199971334/job/121188879021",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121188879598,
+      "name": "필수 검사 변경 없이 PR 진단 상태 갱신",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:57:20Z",
+      "completedAt": "2026-10-25T13:57:19Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40199971334/job/121188879598",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121188956545,
+      "name": "비차단 진단 권고 댓글 갱신",
+      "conclusion": "skipped",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:57:41Z",
+      "completedAt": "2026-10-25T13:57:41Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40199971334/job/121188956545",
+      "stepCounts": {},
+      "nonSuccessSteps": []
+    },
+    {
+      "id": 121188877563,
+      "name": "최신 metadata-only CI 자동 복구",
+      "conclusion": "success",
+      "status": "completed",
+      "startedAt": "2026-10-25T13:57:21Z",
+      "completedAt": "2026-10-25T13:57:37Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40199971364/job/121188877563",
+      "stepCounts": {
+        "success": 6
+      },
+      "nonSuccessSteps": []
+    }
+  ],
+  "artifacts": {
+    "full": [
+      {
+        "id": 12602006399,
+        "name": "e2e-timing-ci-shard-6",
+        "expired": false,
+        "sizeBytes": 39316,
+        "createdAt": "2026-10-25T13:56:47Z",
+        "expiresAt": "2026-11-24T13:56:47Z"
+      },
+      {
+        "id": 12601886796,
+        "name": "qa-final-automated-40197745892-1",
+        "expired": false,
+        "sizeBytes": 433,
+        "createdAt": "2026-10-25T13:57:14Z",
+        "expiresAt": "2026-11-24T13:57:13Z"
+      },
+      {
+        "id": 12601761078,
+        "name": "ci-setup-metrics-e2e-shard-3",
+        "expired": false,
+        "sizeBytes": 555,
+        "createdAt": "2026-10-25T13:55:09Z",
+        "expiresAt": "2026-11-24T13:55:08Z"
+      },
+      {
+        "id": 12601691338,
+        "name": "ci-impact-shadow-40197745892-1",
+        "expired": false,
+        "sizeBytes": 326,
+        "createdAt": "2026-10-25T13:57:09Z",
+        "expiresAt": "2026-11-24T13:57:08Z"
+      },
+      {
+        "id": 12601651749,
+        "name": "ci-setup-metrics-e2e-shard-7",
+        "expired": false,
+        "sizeBytes": 556,
+        "createdAt": "2026-10-25T13:53:35Z",
+        "expiresAt": "2026-11-24T13:53:34Z"
+      },
+      {
+        "id": 12601621103,
+        "name": "e2e-timing-ci-shard-4",
+        "expired": false,
+        "sizeBytes": 31051,
+        "createdAt": "2026-10-25T13:54:46Z",
+        "expiresAt": "2026-11-24T13:54:45Z"
+      },
+      {
+        "id": 12601550509,
+        "name": "ci-setup-metrics-e2e-shard-1",
+        "expired": false,
+        "sizeBytes": 553,
+        "createdAt": "2026-10-25T13:47:47Z",
+        "expiresAt": "2026-11-24T13:47:47Z"
+      },
+      {
+        "id": 12601545624,
+        "name": "ci-setup-metrics-e2e-shard-2",
+        "expired": false,
+        "sizeBytes": 553,
+        "createdAt": "2026-10-25T13:44:41Z",
+        "expiresAt": "2026-11-24T13:44:40Z"
+      },
+      {
+        "id": 12601410484,
+        "name": "e2e-timing-ci-shard-1",
+        "expired": false,
+        "sizeBytes": 30612,
+        "createdAt": "2026-10-25T13:47:46Z",
+        "expiresAt": "2026-11-24T13:47:46Z"
+      },
+      {
+        "id": 12601397038,
+        "name": "e2e-timing-ci-shard-5",
+        "expired": false,
+        "sizeBytes": 29676,
+        "createdAt": "2026-10-25T13:54:12Z",
+        "expiresAt": "2026-11-24T13:54:11Z"
+      },
+      {
+        "id": 12601346294,
+        "name": "ci-setup-metrics-e2e-shard-4",
+        "expired": false,
+        "sizeBytes": 554,
+        "createdAt": "2026-10-25T13:54:47Z",
+        "expiresAt": "2026-11-24T13:54:46Z"
+      },
+      {
+        "id": 12601267138,
+        "name": "e2e-timing-ci-shard-7",
+        "expired": false,
+        "sizeBytes": 26711,
+        "createdAt": "2026-10-25T13:53:34Z",
+        "expiresAt": "2026-11-24T13:53:33Z"
+      },
+      {
+        "id": 12601247621,
+        "name": "ci-setup-metrics-e2e-shard-6",
+        "expired": false,
+        "sizeBytes": 555,
+        "createdAt": "2026-10-25T13:56:48Z",
+        "expiresAt": "2026-11-24T13:56:48Z"
+      },
+      {
+        "id": 12601132249,
+        "name": "ci-setup-metrics-e2e-shard-5",
+        "expired": false,
+        "sizeBytes": 557,
+        "createdAt": "2026-10-25T13:54:14Z",
+        "expiresAt": "2026-11-24T13:54:13Z"
+      },
+      {
+        "id": 12601111308,
+        "name": "ci-setup-metrics-e2e-shard-8",
+        "expired": false,
+        "sizeBytes": 554,
+        "createdAt": "2026-10-25T13:46:36Z",
+        "expiresAt": "2026-11-24T13:46:35Z"
+      },
+      {
+        "id": 12601056233,
+        "name": "e2e-timing-ci-shard-2",
+        "expired": false,
+        "sizeBytes": 27869,
+        "createdAt": "2026-10-25T13:44:39Z",
+        "expiresAt": "2026-11-24T13:44:38Z"
+      },
+      {
+        "id": 12600867014,
+        "name": "e2e-timing-ci-shard-8",
+        "expired": false,
+        "sizeBytes": 23728,
+        "createdAt": "2026-10-25T13:46:35Z",
+        "expiresAt": "2026-11-24T13:46:34Z"
+      },
+      {
+        "id": 12600837560,
+        "name": "e2e-timing-ci-shard-3",
+        "expired": false,
+        "sizeBytes": 26000,
+        "createdAt": "2026-10-25T13:55:08Z",
+        "expiresAt": "2026-11-24T13:55:07Z"
+      },
+      {
+        "id": 12600698585,
+        "name": "ci-setup-metrics-build",
+        "expired": false,
+        "sizeBytes": 509,
+        "createdAt": "2026-10-25T13:32:49Z",
+        "expiresAt": "2026-11-24T13:32:48Z"
+      },
+      {
+        "id": 12600618169,
+        "name": "qa-preflight-40197745892-1",
+        "expired": false,
+        "sizeBytes": 1236,
+        "createdAt": "2026-10-25T13:28:48Z",
+        "expiresAt": "2026-11-24T13:28:48Z"
+      },
+      {
+        "id": 12600599077,
+        "name": "ci-setup-metrics-docker",
+        "expired": false,
+        "sizeBytes": 492,
+        "createdAt": "2026-10-25T13:33:19Z",
+        "expiresAt": "2026-11-24T13:33:18Z"
+      },
+      {
+        "id": 12600328831,
+        "name": "ci-pr-source-40197745892-1",
+        "expired": false,
+        "sizeBytes": 414,
+        "createdAt": "2026-10-25T13:28:18Z",
+        "expiresAt": "2026-11-24T13:28:17Z"
+      },
+      {
+        "id": 12600289395,
+        "name": "planner77~masterGantt~YWL41U.dockerbuild",
+        "expired": false,
+        "sizeBytes": 48086,
+        "createdAt": "2026-10-25T13:33:21Z",
+        "expiresAt": "2027-01-23T13:28:12Z"
+      }
+    ],
+    "trusted": [
+      {
+        "id": 12600947038,
+        "name": "qa-final-trusted-40197745892-40199971387-1",
+        "expired": false,
+        "sizeBytes": 462
+      }
+    ]
+  },
+  "downloadedEvidence": [
+    {
+      "archive": "ci-pr-source-40197745892-1.zip",
+      "bytes": 414,
+      "sha256": "13669e8c6b99278f2841d512ab24b21e081a4b0842d355d1c853f9bc8aa31885",
+      "members": [
+        {
+          "name": "ci-pr-source.json",
+          "bytes": 496,
+          "content": {
+            "schema": "mastergantt-ci-pr-source-v1",
+            "repository": "planner77/masterGantt",
+            "run_id": 40197745892,
+            "run_attempt": 1,
+            "pr_number": 811,
+            "head_sha": "4a1c9c8b11cadb70f94f034c4484d3a2acd30597",
+            "head_ref": "feat/issue-808-resource-analysis",
+            "head_repository": "planner77/masterGantt",
+            "base_sha": "048ae92ff673f1d0c4c69171fe3cc9bffe25dc19",
+            "base_ref": "main",
+            "base_repository": "planner77/masterGantt",
+            "test_merge_sha": "a6db61caa0117f3f8cacc26327d5ef7c0bd5456d"
+          }
+        }
+      ]
+    },
+    {
+      "archive": "qa-final-automated-40197745892-1.zip",
+      "bytes": 433,
+      "sha256": "e331ea90d945e992df2bed1321f6c03cd574e70e4bbe26e7078a9220f8b5e5d5",
+      "members": [
+        {
+          "name": "qa-final-automated-report.json",
+          "bytes": 373,
+          "content": {
+            "automated_qa": "BLOCKED",
+            "independent_qa": "NOT TESTED",
+            "manager_decision": "NOT TESTED",
+            "rule_version": "598-593-v1",
+            "pr_head_sha": "4a1c9c8b11cadb70f94f034c4484d3a2acd30597",
+            "base_or_test_merge_sha": "a6db61caa0117f3f8cacc26327d5ef7c0bd5456d",
+            "workflow_run_id": "40197745892",
+            "run_attempt": "1",
+            "decision_reason": "미해결 review thread"
+          }
+        }
+      ]
+    },
+    {
+      "archive": "qa-final-trusted-40197745892-40199971387-1.zip",
+      "bytes": 462,
+      "sha256": "61bec349c48a09813477fe3b5709dc175779f32c50b455b5c099928fd846d21e",
+      "members": [
+        {
+          "name": "qa-final-automated-report.json",
+          "bytes": 389,
+          "content": {
+            "automated_qa": "FAIL",
+            "independent_qa": "NOT TESTED",
+            "manager_decision": "NOT TESTED",
+            "rule_version": "598-593-v1",
+            "pr_head_sha": null,
+            "base_or_test_merge_sha": null,
+            "workflow_run_id": "40199971387",
+            "run_attempt": "1",
+            "validator_sha": "048ae92ff673f1d0c4c69171fe3cc9bffe25dc19",
+            "decision_reason": "원본 PR CI run 자체가 성공하지 않았습니다"
+          }
+        }
+      ]
+    },
+    {
+      "archive": "issue-752-observation-40199971334-1.zip",
+      "sha256": "f5e8e743322532afdebbf897655d873ebbb0458a83d03a78c9b043e1864d00c0",
+      "members": [
+        {
+          "name": "diagnosis.json",
+          "content": {
+            "schemaVersion": 1,
+            "repo": "planner77/masterGantt",
+            "diagnosisRunId": 40199971334,
+            "sourceRunId": 40197745892,
+            "status": "NOT_RECOMMENDED",
+            "missing": [],
+            "issue": 808,
+            "pr": 811,
+            "headSha": "4a1c9c8b11cadb70f94f034c4484d3a2acd30597",
+            "baseSha": "048ae92ff673f1d0c4c69171fe3cc9bffe25dc19",
+            "failedAttempts": 0,
+            "failureRunAttempts": [],
+            "recommended": false,
+            "runKey": "811:4a1c9c8b11cadb70f94f034c4484d3a2acd30597:e3b0c44298fc1c14",
+            "p50P95ByShardMinutes": {
+              "Chromium E2E shard 1/8 · PR": {
+                "n": 1,
+                "p50Minutes": 16.75,
+                "p95Minutes": 16.75,
+                "cancelledRate": 0
+              },
+              "Chromium E2E shard 2/8 · PR": {
+                "n": 1,
+                "p50Minutes": 13.667,
+                "p95Minutes": 13.667,
+                "cancelledRate": 0
+              },
+              "Chromium E2E shard 3/8 · PR": {
+                "n": 1,
+                "p50Minutes": 24.133,
+                "p95Minutes": 24.133,
+                "cancelledRate": 0
+              },
+              "Chromium E2E shard 4/8 · PR": {
+                "n": 1,
+                "p50Minutes": 23.733,
+                "p95Minutes": 23.733,
+                "cancelledRate": 0
+              },
+              "Chromium E2E shard 5/8 · PR": {
+                "n": 1,
+                "p50Minutes": 23.2,
+                "p95Minutes": 23.2,
+                "cancelledRate": 0
+              },
+              "Chromium E2E shard 6/8 · PR": {
+                "n": 1,
+                "p50Minutes": 25.75,
+                "p95Minutes": 25.75,
+                "cancelledRate": 0
+              },
+              "Chromium E2E shard 7/8 · PR": {
+                "n": 1,
+                "p50Minutes": 22.533,
+                "p95Minutes": 22.533,
+                "cancelledRate": 0
+              },
+              "Chromium E2E shard 8/8 · PR": {
+                "n": 1,
+                "p50Minutes": 15.55,
+                "p95Minutes": 15.55,
+                "cancelledRate": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "directFailure": {
+    "classification": "REVIEW_GATE / BLOCKED",
+    "runId": 40197745892,
+    "attempt": 1,
+    "jobId": 121188791718,
+    "step": 3,
+    "stepName": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+    "time": "2026-10-25T13:57:13Z",
+    "reason": "미해결 review thread",
+    "exitCode": 1
+  },
+  "derivedFailure": {
+    "classification": "SOURCE_FULL_FAILURE",
+    "runId": 40199971387,
+    "attempt": 1,
+    "jobId": 121188878120,
+    "step": 4,
+    "stepName": "원본 PR CI/Head/base 및 차단 리뷰·문서 증거 독립 조회",
+    "time": "2026-10-25T13:57:33Z",
+    "reason": "원본 PR CI run 자체가 성공하지 않았습니다",
+    "exitCode": 1,
+    "validatorSha": "048ae92ff673f1d0c4c69171fe3cc9bffe25dc19"
+  },
+  "reviewThreads": [
+    {
+      "id": "PRRT_kwDOUUB7Bc6wBqcJ",
+      "path": "src/domain/resources/resource-analysis.ts",
+      "line": 169,
+      "resolved": false,
+      "comments": [
+        {
+          "id": 4371006803,
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Reapply personal Task membership after restricting assignments**\n\nWhen a Task is co-assigned to R1 and R2, a source scoped to R1 combined with `conditions.resource: [\"R2\"]` retains that Task even though the assignment intersection is empty. The query first selects R2's assignment, then this restriction removes it without removing its Task row. Reproducing this with a co-assignment on fixture Task T3 returns `taskIds: [\"T3\"]`, `assignmentIds: []`, and a completion denominator of 1. Recompute selected Task membership after intersecting assignments whenever personal conditions apply, while preserving the separate T0 diagnostics and intentional unassigned selections.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+          "url": "https://github.com/planner77/masterGantt/pull/811#discussion_r4371006803"
+        }
+      ]
+    },
+    {
+      "id": "PRRT_kwDOUUB7Bc6wBqcK",
+      "path": "src/domain/resources/resource-analysis.ts",
+      "line": 114,
+      "resolved": false,
+      "comments": [
+        {
+          "id": 4371006805,
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Include unassigned Tasks in personal pivot candidates**\n\nFor a Resource pivot, candidates contain only registered Resource IDs, so Tasks without personal assignments disappear from every cell even though they remain in the total. With the existing fixture, the total contains six Tasks, but the Resource cells contain only T0–T3; neither GROUP_ONLY nor UNASSIGNED has a cell or an exact-detail selector. Group and Role pivots similarly omit the null bucket when every registered Resource has those classifications. Derive the unassigned candidate from selected Task/Assignment membership, as `projectWbsTaskLedger` already does, rather than relying only on Resource metadata.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+          "url": "https://github.com/planner77/masterGantt/pull/811#discussion_r4371006805"
+        }
+      ]
+    }
+  ],
+  "failureFileUnion": [
+    "src/domain/resources/resource-analysis.ts"
+  ],
+  "failedTestFiles": [],
+  "cancelledJobs": [],
+  "testFailureCount": 0,
+  "metadataRecovery": {
+    "runId": 40199971364,
+    "reason": "Metadata recovery NO_METADATA: 최신 Head metadata-only run 없음",
+    "rerunRequested": false
+  },
+  "diagnostics": {
+    "runId": 40199971334,
+    "status": "NOT_RECOMMENDED",
+    "failedAttempts": 0,
+    "recommended": false,
+    "meaning": "QA-only gate failure does not count as independent implementation failure"
+  },
+  "mutations": {
+    "remote": 0,
+    "repositoryFiles": 0,
+    "reruns": 0,
+    "comments": 0
+  },
+  "representation": {
+    "format": "All run/attempt and job identity/conclusion, step outcome counts, every non-success step, source/artifact hashes and failure reasons retained. Repeated successful step descriptions omitted.",
+    "rawSnapshotSha256": "739fef11206babb3e5ff508f11305dbdfe4f67272b90dede30dbc48765f881d9",
+    "rawSnapshotLocalPath": "/tmp/issue-808-rework-r01/remote-history.json"
+  }
+}

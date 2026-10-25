@@ -1,3 +1,11 @@
+## Issue #808 PR811 REWORK_R01 — 개인 교집합·미배정 pivot
+
+원본 [Full3297.1](https://github.com/planner77/masterGantt/actions/runs/40197745892)의 Required3/Chromium8/구현 테스트는 PASS이고 QA Final만 미해결 리뷰2개로 BLOCKED/RunFAIL이다. 테스트 실패로 잘못 분류하지 않으며 [원장8절](ISSUE_808_FAILURE_ANALYSIS.md)의 전체6runs/attempt·직접/파생 판정과 source evidence를 보존한다.
+
+`resource-analysis.test.ts`를 EXTEND하여 공동T3의 sourceR1∩queryR2(Task/Assignment0·완료분모0), Resource/Group/Role 미배정nullcell과 exactdetail의 원본RED4개를 추가했다. 같은Assignment의 Resource/Group/Role/grade·sourcepath/exactAssignments·nullSource/OR/중첩null·T0/CapacityR·기존물리상세/예산 회귀를 합쳐 직접33(기존19+원본4+교차10) PASS다. 기존6Domain파일90은 ledger/KPI/Plan/Calendar/기간·예산 KEEP_UNIQUE로 같은 후보에서 실행해 총7파일123/123 PASS, failed0/skipped0. 반복실행을 고유 개수로 더하지 않는다.
+
+별도 qa_docs가 동결SHA에서 직접33 및 원본/음성8체크를 독립 실행해 PASS했다. [로컬 증거](evidence/issue-808/rework-r01-local.json), [원격 원본](evidence/issue-808/rework-r01-remote.json)을 구분한다. UI/HTTP/DB/Excel writer·CI 변경0이므로 새로운 전체 E2E 복제·테스트삭제/skip/timeout완화는 없다. 과거원격 성공을 새Head PASS로 전용하지 않으며 새Full Required3/Trusted/Owner는 NOT TESTED다.
+
 ## Issue #808 — 분석 adapter의 범위·원장 재사용 검증
 
 [Work Packet](exec-plans/active/ISSUE_808.md)의 AC1~AC6과 [실패 원장](ISSUE_808_FAILURE_ANALYSIS.md)을 따른다. 새 `tests/domain/resource-analysis.test.ts`는 기존 fixture/selector를 사용해 source/snapshot/revision/generation 결속, 축 내 OR/축 간 AND, ID 기반 pivot/top N/exact detail, 비가산·미설정/null·Plan 보존 계약만 ADD한다. 실제 명령/결과는 Work Packet에 기록하며 원격 Required3/Trusted/Owner PASS와 구분한다.

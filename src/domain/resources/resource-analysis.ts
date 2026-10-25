@@ -106,12 +106,19 @@ function mergeConditions(base: ResourceAnalysisConditions, added: ResourceAnalys
   }
   return result;
 }
-function candidates(snapshot: WbsTaskLedgerSnapshot, dimension: ResourceAnalysisDimension): Array<string | null> {
+function candidates(snapshot: WbsTaskLedgerSnapshot, dimension: ResourceAnalysisDimension, current: WbsTaskLedgerSelection): Array<string | null> {
   const resources = snapshot.prepared.resources;
+  if (["resource", "group", "role"].includes(dimension)) {
+    // Match the WBS projector's null branch: direct Group references and registration
+    // are not personal Assignments, even when every catalog Resource is classified.
+    const rawAssigned = new Set(snapshot.prepared.assignments.filter(row => row.kind === "resource").map(row => row.taskId));
+    const unassigned = current.rows.some(row => !rawAssigned.has(row.taskId));
+    const values = dimension === "resource" ? resources.map(row => row.resourceId)
+      : dimension === "group" ? resources.flatMap(row => row.groupIds.length ? row.groupIds : [null])
+      : resources.flatMap(row => row.roles.length ? row.roles : [null]);
+    return unique([...values, ...(unassigned ? [null] : [])]);
+  }
   if (dimension === "developerGrade") return unique(resources.map(row => row.developerGrade));
-  if (dimension === "resource") return unique(resources.map(row => row.resourceId));
-  if (dimension === "group") return unique(resources.flatMap(row => row.groupIds.length ? row.groupIds : [null]));
-  if (dimension === "role") return unique(resources.flatMap(row => row.roles.length ? row.roles : [null]));
   if (dimension === "milestone") return [...unique(snapshot.prepared.tasks.filter(row => row.type === "milestone").map(row => row.taskId)), null];
   if (dimension === "process") return [...unique(snapshot.prepared.logistics!.processes.map(row => row.id)), null];
   if (dimension === "workArea") return [...unique(snapshot.prepared.logistics!.workAreas.map(row => row.id)), null];
@@ -152,7 +159,7 @@ export function buildResourceAnalysis(input: { ledger: WbsTaskLedgerInput; sourc
   const restricted = (selected: WbsTaskLedgerSelection, activeConditions: ResourceAnalysisConditions): WbsTaskLedgerSelection => {
     if (!scope) return selected;
     const tasks = new Set(scope.taskIds), permitted = new Set(scope.assignmentIds);
-    const rows = selected.rows.filter(row => tasks.has(row.taskId)).map(row => {
+    let rows = selected.rows.filter(row => tasks.has(row.taskId)).map(row => {
       const sourceRow = scope.taskRows.find(source => source.taskId === row.taskId)!;
       const narrowed = { ...row };
       for (const axis of ["process", "workArea", "equipment", "system"] as const) {
@@ -167,6 +174,17 @@ export function buildResourceAnalysis(input: { ledger: WbsTaskLedgerInput; sourc
     }));
     const retainedTasks = new Set(rows.map(row => row.taskId));
     const assignments = selected.assignments.filter(row => permitted.has(row.assignmentId) && retainedTasks.has(row.taskId));
+    const personalFilters = kpi.filters;
+    const hasPersonalCondition = context.path.some(entry => ["resource", "group", "role"].includes(entry.dimension)) ||
+      ["resource", "group", "role", "developerGrade"].some(axis => activeConditions[axis as ResourceAnalysisDimension]?.length) ||
+      Boolean(personalFilters && (personalFilters.eligibleResourceIds !== undefined || personalFilters.resourceIds?.length || personalFilters.groupIds?.length || personalFilters.includeUngrouped || personalFilters.roles?.length || personalFilters.developerGrades?.length || personalFilters.search?.trim()));
+    if (hasPersonalCondition) {
+      const assignedTaskIds = new Set(assignments.map(row => row.taskId));
+      const rawAssigned = new Set(snapshot.prepared.assignments.filter(row => row.kind === "resource").map(row => row.taskId));
+      // Intersect personal Assignment grains before deriving A's Task denominator.
+      // A raw no-personal Task already admitted by an explicit null branch survives.
+      rows = rows.filter(row => assignedTaskIds.has(row.taskId) || !rawAssigned.has(row.taskId));
+    }
     const diagnosticIds = new Set(scope.diagnosticTaskIds);
     const disjointPhysicalPath = context.path.some(entry => ["process", "workArea", "equipment", "system"].includes(entry.dimension) && !(entry.dimension === "system" && context.spec.systemView === "coordination") && activeConditions[entry.dimension]?.length && !activeConditions[entry.dimension]!.includes(entry.id));
     const t0 = disjointPhysicalPath ? [] : selected.selection.t0.filter(row => diagnosticIds.has(row.taskId));
@@ -186,18 +204,21 @@ export function buildResourceAnalysis(input: { ledger: WbsTaskLedgerInput; sourc
     return { key: canonical(values), values, selector: { scopeKey, conditions: exact }, taskIds: [...selected.taskIds], assignmentIds: [...selected.assignmentIds], tasks: summary.tasks, assignments: summary.assignments };
   };
   const cells: ResourceAnalysisCell[] = [];
-  const walk = (values: ResourceAnalysisCell["values"], depth: number) => {
+  const walk = (values: ResourceAnalysisCell["values"], depth: number, current: WbsTaskLedgerSelection) => {
     spend(1);
     if (depth === pivot.length) {
       if (!depth) return;
       if (cells.length >= RESOURCE_ANALYSIS_LIMITS.cells) fail("ANALYSIS_LIMIT_EXCEEDED");
-      const combined = mergeConditions(conditions, Object.fromEntries(values.map(value => [value.dimension, [value.id]])));
-      if (combined) cells.push(cell(values, restricted(union(snapshot, combined, spend), combined)));
+      cells.push(cell(values, current));
       return;
     }
-    for (const id of candidates(snapshot, pivot[depth])) walk([...values, { dimension: pivot[depth], id }], depth + 1);
+    for (const id of candidates(snapshot, pivot[depth], current)) {
+      const nextValues = [...values, { dimension: pivot[depth], id }];
+      const combined = mergeConditions(conditions, Object.fromEntries(nextValues.map(value => [value.dimension, [value.id]])));
+      if (combined) walk(nextValues, depth + 1, restricted(union(snapshot, combined, spend), combined));
+    }
   };
-  walk([], 0);
+  walk([], 0, selection);
   const capacity = selectWbsTaskLedgerPlanScope(snapshot);
   const sourcePersonalConditions: ResourceAnalysisConditions = {};
   for (const entry of context.path) if (["resource", "group", "role"].includes(entry.dimension)) {

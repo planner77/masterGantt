@@ -231,6 +231,110 @@ describe("Resource analysis canonical read model", () => {
     expect(empty.total.assignmentIds).toEqual([]);
     expect(empty.diagnostics.denominator).toBe(6);
   });
+
+  it("removes a co-assigned Task when source and query retain no matching personal Assignment", () => {
+    const ledger = wbsTaskLedgerFixture();
+    ledger.kpi.assignments = [...ledger.kpi.assignments, { assignmentId: "CO", taskId: "T3", kind: "resource", targetId: "R2", allocationPercent: 50 }];
+    const snapshot = resolveWbsTaskLedger(ledger), source = sourceFor(ledger);
+    source.sourceContext.path = [{ dimension: "resource", id: "R1" }];
+    const selected = selectWbsTaskLedger(snapshot, source.sourceContext.path);
+    const model = buildResourceAnalysis({ ledger, source, expectedSource: source,
+      sourceScope: { source, taskIds: selected.taskIds, assignmentIds: selected.assignmentIds, diagnosticTaskIds: selected.selection.t0.map(row => row.taskId), taskRows: selected.rows },
+      query: { conditions: { resource: ["R2"] } } });
+    expect(model.total.assignmentIds).toEqual([]);
+    expect(model.total.taskIds).toEqual([]);
+    expect(model.total.tasks.completion).toEqual({ numerator: 0, denominator: 0, percent: null });
+    expect(model.diagnostics).toMatchObject({ denominator: 6, personallyUnassigned: { count: 2 } });
+  });
+  it.each(["resource", "group", "role"] as const)("provides the %s null pivot and exact detail for Tasks without personal Assignments", dimension => {
+    const ledger = wbsTaskLedgerFixture();
+    ledger.kpi.resources = ledger.kpi.resources.map(resource => ({ ...resource, groupIds: ["G1"], roles: ["DEVELOPER"] }));
+    const model = build({ pivot: [dimension] }, ledger);
+    expect(model.total.taskIds).toHaveLength(6);
+    const emptyPerson = model.cells.find(cell => cell.values[0].id === null);
+    expect(emptyPerson).toBeDefined();
+    expect(emptyPerson!.taskIds).toEqual(["GROUP_ONLY", "UNASSIGNED"]);
+    expect(emptyPerson!.assignments.effort).toMatchObject({ plannedMd: 0, state: "empty" });
+    const detail = selectResourceAnalysisDetails(model, emptyPerson!.selector, model.scope.source);
+    expect(detail.taskIds).toEqual(emptyPerson!.taskIds);
+    expect(detail.assignmentIds).toEqual([]);
+  });
+
+  it.each([
+    { dimension: "resource" as const, id: "R2" },
+    { dimension: "group" as const, id: "G3" },
+    { dimension: "role" as const, id: "PI" },
+    { dimension: "developerGrade" as const, id: "BEGINNER" },
+  ])("requires the same retained Assignment for source R1 and $dimension=$id", ({ dimension, id }) => {
+    const ledger = wbsTaskLedgerFixture();
+    ledger.kpi.resources = ledger.kpi.resources.map(resource => resource.resourceId === "R2" ? { ...resource, groupIds: ["G3"], roles: ["PI"], developerGrade: "BEGINNER" } : resource);
+    ledger.kpi.assignments = [...ledger.kpi.assignments, { assignmentId: "CO", taskId: "T3", kind: "resource", targetId: "R2", allocationPercent: 50 }];
+    const source = sourceFor(ledger); source.sourceContext.path = [{ dimension: "resource", id: "R1" }];
+    const selected = selectWbsTaskLedger(resolveWbsTaskLedger(ledger), source.sourceContext.path);
+    const sourceScope = { source, taskIds: selected.taskIds, assignmentIds: selected.assignmentIds, diagnosticTaskIds: selected.selection.t0.map(row => row.taskId), taskRows: selected.rows };
+    const empty = buildResourceAnalysis({ ledger, source, expectedSource: source, sourceScope, query: { conditions: { [dimension]: [id] }, pivot: ["resource", "milestone"] } });
+    expect(empty.total).toMatchObject({ taskIds: [], assignmentIds: [], tasks: { taskCount: 0, completion: { denominator: 0, percent: null } } });
+    expect(empty.cells.every(cell => cell.taskIds.length === 0 && cell.assignmentIds.length === 0)).toBe(true);
+    expect(empty.taskSources).toEqual([]);
+    expect(empty.diagnostics).toMatchObject({ denominator: 6, personallyUnassigned: { count: 2 } });
+    expect(selectResourceAnalysisDetails(empty, empty.total.selector, source).taskIds).toEqual([]);
+    const positive = buildResourceAnalysis({ ledger, source, expectedSource: source, sourceScope,
+      query: { conditions: { resource: ["R1", "R2"], group: ["G1", "G3"], role: ["DEVELOPER", "PI"], developerGrade: ["ADVANCED", "BEGINNER"] } } });
+    expect(positive.total.assignmentIds).toEqual(["A0", "A1", "A2", "A3"]);
+    expect(positive.total.taskIds).toHaveLength(4);
+    expect(positive.plan.population.resourceIds).toEqual(["R1"]);
+  });
+  it.each(["resource", "group", "role"] as const)("preserves intentional source %s:null Tasks, T0 and empty capacity", dimension => {
+    const ledger = wbsTaskLedgerFixture();
+    ledger.kpi.resources = ledger.kpi.resources.map(resource => ({ ...resource, groupIds: ["G1"], roles: ["DEVELOPER"] }));
+    const source = sourceFor(ledger); source.sourceContext.path = [{ dimension, id: null }];
+    const selected = selectWbsTaskLedger(resolveWbsTaskLedger(ledger), source.sourceContext.path);
+    const model = buildResourceAnalysis({ ledger, source, expectedSource: source,
+      sourceScope: { source, taskIds: selected.taskIds, assignmentIds: selected.assignmentIds, diagnosticTaskIds: selected.selection.t0.map(row => row.taskId), taskRows: selected.rows },
+      query: { conditions: { [dimension]: [null] }, pivot: ["resource", "role"] } });
+    expect(model.total.taskIds).toEqual(["GROUP_ONLY", "UNASSIGNED"]);
+    expect(model.total.assignmentIds).toEqual([]);
+    expect(model.total.assignments.effort).toMatchObject({ plannedMd: 0, state: "empty" });
+    expect(model.diagnostics).toMatchObject({ denominator: 6, personallyUnassigned: { count: 2 } });
+    expect(model.plan.population.resourceIds).toEqual([]);
+    expect(model.plan.totals.summary.selected).toMatchObject({ capacityMd: 0, loadPercent: null });
+    const cell = model.cells.find(row => row.values.every(value => value.id === null));
+    expect(cell?.taskIds).toEqual(model.total.taskIds);
+    expect(selectResourceAnalysisDetails(model, cell!.selector, source).taskIds).toEqual(model.total.taskIds);
+  });
+  it("recomputes exact-Assignment source Task scope without shrinking its diagnostic Task scope", () => {
+    const ledger = wbsTaskLedgerFixture();
+    ledger.kpi.resources = ledger.kpi.resources.map(resource => resource.resourceId === "R2" ? { ...resource, groupIds: ["G3"], roles: ["PI"] } : resource);
+    ledger.kpi.assignments = [...ledger.kpi.assignments, { assignmentId: "CO", taskId: "T3", kind: "resource", targetId: "R2", allocationPercent: 50 }];
+    const snapshot = resolveWbsTaskLedger(ledger), selected = selectWbsTaskLedger(snapshot, [{ dimension: "resource", id: "R1" }]);
+    const source = sourceFor(ledger); source.sourceContext.scope = { kind: "exactAssignments", assignmentIds: ["A3"] };
+    const sourceScope = { source, taskIds: ["T3"], assignmentIds: ["A3"], diagnosticTaskIds: ["T3"], taskRows: selected.rows.filter(row => row.taskId === "T3") };
+    const empty = buildResourceAnalysis({ ledger, source, expectedSource: source, sourceScope, query: { conditions: { role: ["PI"] } } });
+    expect(empty.total.taskIds).toEqual([]);
+    expect(empty.total.tasks.completion.denominator).toBe(0);
+    expect(empty.diagnostics).toMatchObject({ denominator: 1, taskIds: ["T3"], personallyUnassigned: { count: 0 } });
+    const retained = buildResourceAnalysis({ ledger, source, expectedSource: source, sourceScope, query: { conditions: { role: ["DEVELOPER"] } } });
+    expect(retained.total.taskIds).toEqual(["T3"]);
+    expect(retained.total.assignmentIds).toEqual(["A3"]);
+    expect(retained.plan.population.resourceIds).toEqual(["R1"]);
+    expect(retained.plan.totals.summary.project.knownMd).toBe(14);
+  });
+
+  it.each([
+    { dimension: "group" as const, id: "G1" },
+    { dimension: "role" as const, id: "DEVELOPER" },
+  ])("intersects a $dimension source path with query Assignment identities before Task counts", ({ dimension, id }) => {
+    const ledger = wbsTaskLedgerFixture();
+    ledger.kpi.resources = ledger.kpi.resources.map(resource => resource.resourceId === "R2" ? { ...resource, groupIds: ["G3"], roles: ["PI"], developerGrade: "BEGINNER" } : resource);
+    ledger.kpi.assignments = [...ledger.kpi.assignments, { assignmentId: "CO", taskId: "T3", kind: "resource", targetId: "R2", allocationPercent: 50 }];
+    const source = sourceFor(ledger); source.sourceContext.path = [{ dimension, id }];
+    const selected = selectWbsTaskLedger(resolveWbsTaskLedger(ledger), source.sourceContext.path);
+    const sourceScope = { source, taskIds: selected.taskIds, assignmentIds: selected.assignmentIds, diagnosticTaskIds: selected.selection.t0.map(row => row.taskId), taskRows: selected.rows };
+    const model = buildResourceAnalysis({ ledger, source, expectedSource: source, sourceScope, query: { conditions: { resource: ["R2"] }, pivot: ["group", "role"] } });
+    expect(model.total).toMatchObject({ taskIds: [], assignmentIds: [], tasks: { completion: { denominator: 0, percent: null } } });
+    expect(model.cells.every(cell => cell.taskIds.length === 0)).toBe(true);
+    expect(model.diagnostics).toMatchObject({ denominator: 6, personallyUnassigned: { count: 2 } });
+  });
   it("does not mutate the caller's canonical collections or source context", () => {
     const ledger = wbsTaskLedgerFixture(), source = sourceFor(ledger), before = JSON.stringify({ ledger, source });
     build({ conditions: { process: ["PB", "PA"] }, pivot: ["role", "developerGrade"] }, ledger, source);

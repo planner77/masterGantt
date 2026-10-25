@@ -53,3 +53,54 @@ backend의18개 직접 Unit·typecheck·대상 ESLint PASS(22:17:34 KST)는 F808
 infra 사전조회: 최신 main048ae92ff673f1d0c4c69171fe3cc9bffe25dc19, 선행PR810의 리뷰1개 resolved, #808의 과거 canonical PR/CI0. 새PR 게시 직전 최신main·부모/bytes/tree·현재 미해결리뷰/충돌을 조회한다. 실제 PR/head/run/attempt와 게시결과는 Issue808 STATUS/PR에 남긴다. 게시 후 원격 quality/e2e/docker·Trusted QA·Manager ACCEPT는 NOT TESTED 상태로 인계하며 CI 결과를 모니터링하지 않는다.
 
 로컬 환경 한계: 기존 symlink node_modules의 실제 Next는16.3.4, package/lock 선언은16.4.2다. Node22.14.0/Vitest5.0.0/TypeScript5.8.3/native SQLite13.0.3에서 관련 pure Domain·서버/OOXML LFF를 실행했으며 Next API 코드/실제browser/build를 수정·실행하지 않았다. 선언 버전 frozen npm ci·build·Chromium은 원격 Full CI의 별도 NOT TESTED다. 로컬 실행을 완전한 CI 동등 환경으로 보고하지 않는다.
+
+## 8. REWORK_R01 — PR811 Full QA gate·미해결 리뷰2건 (2026-10-25)
+
+이 절이 현재 상태다. 앞선1~7절의 PR 미생성/원격 NOT TESTED·최종19case 사전검토는 최초 게시 당시의 역사적 범위로 보존한다. 사용자 재개 요청에 따라 전체 원장과 GitHub 관련 PR/모든 Run/Attempt·원본 출처·리뷰를 대조했다. 정제 원격 증거는 [rework-r01-remote.json](evidence/issue-808/rework-r01-remote.json)이다.
+
+### 접근 가능한 전체 원격 이력과 판정
+
+원본 PR Head `4a1c9c8b11cadb70f94f034c4484d3a2acd30597`, Base `048ae92ff673f1d0c4c69171fe3cc9bffe25dc19`, Test merge `a6db61caa0117f3f8cacc26327d5ef7c0bd5456d`. canonical PR 검색1·Issue timeline7건·PR commit1개·branch run2개·착수 이후 repository run8개와 각각의 다음 페이지가 비어 있음을 확인했다. 관련6runs 모두 attempt1이며 metadata-only PR CI·이전 attempt는 없다. 서로 다른 workflow의 보조 성공/skip을 Required/Trusted PASS로 전용하지 않는다.
+
+| PR / Run·Attempt | event / 역할 | 실제 판정·최초 실패·취소·미실행 |
+| --- | --- | --- |
+| PR811 / [Full #3297.1·40197745892](https://github.com/planner77/masterGantt/actions/runs/40197745892) | pull_request / 원본 Full | Run FAIL.30Jobs=success22/failure1/skipped7/cancelled0. Required quality/e2e/docker·Chromium8/8·TypeScript/ESLint/Vitest/production build/Docker 구현은 PASS. 유일 실패는 QA Final Automated job121188791718/step3,2026-10-25T13:57:13Z `미해결 review thread`, automated_qa=BLOCKED, exit1 |
+| [Trusted #944.1·40199971387](https://github.com/planner77/masterGantt/actions/runs/40199971387) | workflow_run / 기본브랜치 검증 | 파생 FAIL. job121188878120/step4,13:57:33Z `원본 PR CI run 자체가 성공하지 않았습니다`, exit1. validator SHA는 위 Base와 동일 |
+| [Fast #119.1·40197745824](https://github.com/planner77/masterGantt/actions/runs/40197745824) | pull_request / 참고용 | SKIPPED. 실제 Full/Required PASS 근거가 아님 |
+| [Diagnostics #139.1·40199971334](https://github.com/planner77/masterGantt/actions/runs/40199971334) | workflow_run / 진단 후보 | workflow SUCCESS이나 진단 권고 NOT_RECOMMENDED/failedAttempts0. 실제 구현/테스트 실패0이며 별도 진단 rerun을 시작하지 않음 |
+| [Metadata reconcile #844.1·40199971364](https://github.com/planner77/masterGantt/actions/runs/40199971364) | workflow_run / metadata 복구 | SUCCESS/NO_METADATA, 최신 Head metadata-only run 없음·rerun 요청0. Full/QA 성공이 아님 |
+| [Readiness #879.1·40199971370](https://github.com/planner77/masterGantt/actions/runs/40199971370) | workflow_run / 보조 준비 | SKIPPED. 원본 실패를 성공으로 바꾸지 않음 |
+
+source artifact12600328831의 PR811/run40197745892/attempt1/Head/Base/Test-Merge 일치를 JSON으로 교차 확인했다. QA Automated artifact12601886796·Trusted artifact12600947038은 위 차단 사유와 일치한다. zip을 실행하거나 PR 코드를 검증기로 checkout하지 않았다. Full Jobs30/Artifacts23, Trusted Job1/Artifact1의 후속 페이지는 비었다. 성공한 구현 로그·E2E timing/trace 전체는 실패 분석에 필요하지 않아 다운로드하지 않았고 별도 새로운 PASS 증거로 가정하지 않는다. issue_comment Finalizer 비대상2runs는 별도 제외 목록으로 보존했다. 원본 로그2개와 JSON ZIP4개는 `/tmp/issue-808-rework-r01`에 보존하며 signed download URL/secret은 tracked 증거에 넣지 않는다.
+
+### 누적 Cross-run/리뷰 원인 매트릭스
+
+| ID / 원본 | 계약·재현 및 커버리지 공백 | 보완·현재 후보 검증 |
+| --- | --- | --- |
+| F808-013 / Full3297.1 QA job121188791718·Trusted944.1 | 원본 구현 Required는 PASS이나 미해결 review2개로 QA gate BLOCKED, Trusted는 원본runFAIL로 파생FAIL. 과거 로컬19PASS·리뷰0은 PR등록시점 사실이며 이후 자동 리뷰를 최종 성공으로 가장할 수 없음 | 두 실제 코드 지적을 보완·현재source 회귀검증 후 스레드를 해결하고 새 Head Full을 시작해야 함. workflow/validator·승인 기준 수정 금지 |
+| F808-014 / [review4371006803](https://github.com/planner77/masterGantt/pull/811#discussion_r4371006803) | 공동배정 T3의 R1 source∩R2 query는 assignmentIds=[]이나 TaskT3/완료분모1 잔존. 기존 emptyR2 사례는 공동담당자 배정 자체가 없어 이 교집합 경계를 실행하지 못함 | 원본코드에 회귀추가 RED 확인, 교집합 후 개인 A의 Task 재유도 보완 중. 개인 null 미배정·T0 진단은 별도 보존 |
+| F808-015 / [review4371006805](https://github.com/planner77/masterGantt/pull/811#discussion_r4371006805) | Resource/Group/Role pivot후보가 catalog-only여서 total6Task 중 GROUP_ONLY/UNASSIGNED가 cell/정확 상세에서 누락. 기존 등록-only 검사·비가산 총계 검사는 null bucket의 Task cover를 검증하지 못함 | 세 개인축 null bucket의 실제 Task membership 회귀3개 RED, 기존 원장의 미배정 membership 기준 후보를 재사용해 보완 중. 개인 공수/Capacity 생성 금지 |
+
+원격 실제 실패 테스트 파일 합집합은0(모든 Vitest/E2E 성공). 원격 리뷰 수정 source 합집합은 `src/domain/resources/resource-analysis.ts`. 로컬 재현/교정 테스트 합집합은 `tests/domain/resource-analysis.test.ts`이며 이전 F808003/011의 TypeScript source·F808006~010 상세/분모/비용 계약도 계속 교차 검증한다. 취소0, skipped7은 비대상 job이며 필요한 검증의 PASS로 계산하지 않는다.
+
+### RED feedback loop와 가설·보완 범위
+
+원본 source4a1c9c8b에서 테스트4개만 추가하고 `npx vitest run --config tests/config/vitest.config.ts tests/domain/resource-analysis.test.ts -t 'co-assigned Task|provides the' --reporter=verbose` 실행:23:00:00KST exit1/389ms/4FAILED, 재실행23:00:25 exit1/365ms/동일4FAIL. 기존19개는 디버깅 필터로 미선정이며 최종 회귀 PASS로 합산하지 않는다. 정확 관측은 ghostTask actual[T3]/expected[]와 Resource/Group/Role nullcell undefined다.
+
+가설 순위와 예측을 사람에게 보고한 뒤 검증했다. H1: Assignment 제한 후 Task 재유도가 없어 공동담당 scope 교집합에서만 ghost가 생긴다. H2: metadata-only 후보라 실제 미배정Task 변화가 null 후보에 반영되지 않는다. H3: 무조건 Task=A로 자르면 기존 의도적 null 미배정과 독립 T0도 잃으므로 개인 조건·raw 미배정 분기의 원래 의미를 유지해야 한다. 원본 RED를 직접 실행한 뒤 두 누락 원인을 좁혀 교정하며 원장 엔진·Calendar·HTTP/API·CI 정책을 재구현하지 않는다.
+
+같은 원인 유형 전체를 한 후보에서 교정하고 개인 Resource/Group/Role/grade·source path/exactAssignments·OR/null/미배정·T0/CapacityR·과거 상세/예산/Plan/Excel oracle의 직접·인접·음성 범위를 선정한다. 초기23/23 GREEN은 확대 검사 전이며 최종 source 동결/검증·DOC_SYNC/별도 사전검토·스레드 해결·최신 main 충돌/원격 tree·새 CI 등록 결과는 아래 후속 절에 남긴다. 현재 원본 CI FAIL은 불변이며 새 Head Required/Trusted/Manager ACCEPT는 NOT TESTED다.
+
+## 9. REWORK_R01 최종 동결·검증·남은 원격 gate
+
+F808-014/015는 기존 원장의 personal Assignment 교집합 규칙과 실제 미배정 Task membership을 adapter에 그대로 적용해 교정했다. source/query의 개인 조건이 있으면 교집합 Assignment에서 Task를 재유도하고 raw 개인 미배정 Task가 기존 null 분기로 허용된 경우만 남긴다. T0의 diagnosticTaskIds와 Capacity R은 독립이다. pivot 순회는 현재 prefix selection을 전달해 Resource/Group/Role null 후보를 실제 업무 membership에서 보강한다. 기존 등록 catalog 빈 행·실물 exact detail·비가산 합계·Plan/Calendar/예산은 유지한다.
+
+추가 실제 local FAIL F808-016:23:03:04 새 exactAssignment 회귀가 Project참고 knownMd21.5를 기대했으나 actual14였다. Role DEVELOPER 조건의 same-R은 R1이며 기존 정책대로 full Project R1공수14가 oracle다. 기대를14와 population[R1]로 교정한 TEST_CONTRACT 오류이며 제품 공수 엔진·상한·assertion 의미를 완화하지 않았다. 이후 같은 테스트 포함 직접33 PASS다.
+
+최종 SHA256: contract(불변) `b30753dcbe05af762c3b616346fccb91fb84925c09af44d71274e3907199d697`, Domain `6925bc91a7fa49f5c14d4e4374428e14b3281ac737a8376ac1bc76cb84143c2d`, test `db6b027a2ce41ffb5d0dbfa073ffa4a07c673036a47469b6b0db9faf59791a9a`. [동결 로컬 증거](evidence/issue-808/rework-r01-local.json)에 실제 명령·7파일/123/123(직접33+인접90)·failed0/skipped0, TypeScript/대상ESLint/diffcheck PASS를 기록했다. 33은 최초19+원본RED4+교차10이며 반복·앞선23/31 GREEN을 더하지 않는다.
+
+독립 `/root/analysis_qa`:23:06:05KST 동결source 전후해시일치·직접33/33 PASS(584ms), 별도 원본/음성8체크 PASS. 공동배정 ghostTask0·완료분모0/T0진단6·미배정2, 개인3축 및3쌍 중첩null의 정확Task·Assignment0/공수0, Resource[null,R1] OR의6Task/14MD를 확인했다. 기존F808006~010의19회귀도 모두 통과했고 새P1/P2없음. 이것은 LOCAL_PRE_QA이며 최종humanQA/Trusted/Owner·Manager ACCEPT로 전용하지 않는다.
+
+추가 운영 실패 F808-017: infra의 게시 payload 준비에서 새110,939byte 원격 이력 JSON을 단일 exec 출력으로 읽어 토큰 상한에 따른 JSON truncation/parse 오류가 재발했다. 원격 tree/commit/ref 변경0·제품 source/test 변화0인 단계의 오류이며 F808-012와 같은 원인이다. 동일 원인2회이므로 Manager가 수집 계획을 재검토했다. 모든 파일은 크기 추정 없이6,000byte bounded chunk로 읽어 결합·검증하도록 변경했고, tracked 원격 증거는 전체6run/30job 신원·결론·step별결론개수·모든 비성공step·실패사유·artifact/출처hash를 유지한 정제 형식으로 바꿨다. 반복된 성공 step 설명만 제외하고 원본110,939byte JSON은 `/tmp/issue-808-rework-r01/remote-history.json`에 보존하며 원본SHA를 정제 JSON에 결속했다. 게시 전 local staged tree=remote tree 및 전체 bytes/hash 동등성을 재검증해야 하며 최초 운영 실패를 삭제하지 않는다.
+
+최종 문서·증거의 별도 읽기 검토 DOC_SYNC/LOCAL_PRE_QA PASS, version0.134.0·Markdown343·diffcheck·기존 main 검증기의 DOC_SYNC/AC1~6 구조검사 PASS를 확인했다. 실제 리뷰2개 해결·최신main/충돌·원격tree/부모/bytes·새CI등록은 게시 인계에서 확인한다. 원격게시 후 PR/Head·원본Run/Attempt·리뷰/충돌 상태는 Issue808 STATUS/PR댓글에 기록하며, commit자기참조를 피하기 위해 게시SHA를 이source에 소급삽입하지 않는다. 원본Run40197745892.1 FAIL·Trusted40199971387.1 파생FAIL은 유지한다. 새Head Required3/Trusted/Manager ACCEPT는 NOT TESTED이며 CI시작 이후 결과 모니터링·병합/main/GHCR/Release·Issue종료는 수행하지 않는다.

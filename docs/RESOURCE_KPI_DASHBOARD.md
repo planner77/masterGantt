@@ -25,6 +25,14 @@ R2는 [#806](https://github.com/planner77/masterGantt/issues/806)의 데이터 �
 
 M/D는 기존 calendar-clipped 계획공수이고 M/M은 유효 고정 `mdPerMm`으로만 환산한다. 미설정 M/M은 null, all-unset plannedMd=null, partial은 known 합과 partial 상태를 함께 전달하고 configured0/empty0과 구분한다. Capacity0의 Load는 null이다. 그룹 초과는 개인의 일별 excess 합이며 그룹 평균으로 개인 초과를 숨기지 않는다. Project 참고는 같은 R·기간·Calendar의 Project 전체 공수이며 전사 가용성이나 등록 인원 전체 Capacity가 아니다.
 
+### 개인 교집합과 미배정 pivot (PR811 REWORK_R01)
+
+sourceScope와 추가 개인 조건은 동일 Assignment ID에서 먼저 교집합하고 그 결과의 Task로 개인 A의 Task count/완료 분모를 재유도한다. 공동담당 Task가 다른 담당자의 조건에 맞더라도 source의 개인 Assignment와 교집합이0이면 개인 Task로 남기지 않는다. source의 명시 exactAssignments, Resource/Group/Role path와 같은 개인의 Role/등급 조건에도 같은 규칙을 적용한다. 개인 필터를 적용하지 않는 T0 진단의 `diagnosticTaskIds`는 별도 보존하며 빈 A를 빈 T0로 바꾸지 않는다.
+
+Resource/Group/Role pivot은 현재 분기의 실제 개인 미배정 Task membership에서 `null` 후보를 보강한다. Resource 등록·개인 metadata에 분류가 모두 있어도 `GROUP_ONLY`/완전 미배정 Task가 있으면 정확한 null cell과 상세 selector를 제공한다. Group/Role null은 개인 분류/배정 관점이며 직접 Group 책임을 개인 배정으로 승격하지 않는다. null cell의 `tasks`는 일반 업무 Task, `assignments`는 개인 A이므로 미배정 Task2/Assignment0/공수0이 정상이다. 개인 Assignment나 Capacity를 만들지 않는다.
+
+여러 축의 null 후보는 현재 pivot prefix의 선택을 따른다. null과 실제 Resource의 OR는 기존 원시 ID 합집합이며 중첩 cell을 전체 공수로 재합산하지 않는다. 등록-only catalog 행은 빈 cell로 남길 수 있지만 raw 개인 배정이 없는 Task의 미배정 분기와 구분한다. 의도적인 null 선택은 보존하고 기존 개인 Assignment가 교집합에서 제외된 Task를 가짜 미배정으로 다시 넣지 않는다. [원본 재현·교정](ISSUE_808_FAILURE_ANALYSIS.md), [검증](evidence/issue-808/rework-r01-local.json).
+
 ### 차트 소비 우선순위·상세
 
 R3가 기본 지표를 선택할 때 사용하는 권장 핵심은 (1) 개인 배정 인원/등록 인원 구분, (2) 계획 M/D와 M/M 기준, (3) 고유 Task 완료/지연, (4) Capacity/Load, (5) 개인 peak/초과, (6) 공수 미설정이다. 이번 R2는 화면의 기본 표시를 변경하지 않는다. 상세 분석에는 Resource/Group 순위·기간 추이·Milestone 기여·Role/grade 분포·과투입 순위 및 raw Task/Assignment 근거를 공급한다. Group/Role/Milestone/실물은 중첩 분류라 100% 배타 composition/stack 총계로 사용하면 안 된다. null·부분합·분모·선택/Project 참고·단위를 차트와 표 모두 유지한다.

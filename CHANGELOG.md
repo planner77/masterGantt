@@ -3,6 +3,7 @@
 ### Added
 
 - Resource 분석을 위한 typed read-only 모델을 추가하고 기존 WBS/공수/Plan 원장의 교차 선택·비가산 총계·정확 근거·기간별 지표와 snapshot/generation 검증 계약을 재사용합니다. 차트 UI는 별도 후속 범위입니다 (#808).
+- 개인 Assignment 교집합 뒤 Task/완료 분모를 다시 계산하고, Resource/Group/Role pivot에서 개인 미배정 Task의 null 셀·정확 상세를 보존합니다. 별도 T0 진단과 공수/Capacity 원장은 유지합니다 (#808, PR #811).
 
 ## [0.133.4] — Unreleased / Issue #807 리소스 Workspace 통합
 

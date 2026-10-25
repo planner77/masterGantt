@@ -1,3 +1,9 @@
+## Issue #808 PR811 — QA 차단 리뷰2건 교정
+
+[Full3297.1](https://github.com/planner77/masterGantt/actions/runs/40197745892)은 기존Head4a1c9c8b의 Required3/E2E8/구현gate 모두 PASS지만 QA Final의 미해결 리뷰2건으로 BLOCKED/RunFAIL, Trusted944.1은 원본실패로 파생FAIL이다. [누적 원장](../../ISSUE_808_FAILURE_ANALYSIS.md)8절과 [Work Packet](ISSUE_808.md)의 REWORK_R01에서 공동배정 개인 교집합 Task분모·개인pivot 미배정null셀을 보완한다. 원본RED4→최종직접33+인접90/7파일123 PASS와 별도 독립 사전검토를 구분한다.
+
+같은PR/branch/app0.134.0, HIGH/OWNER_MANAGED/qa_required=true 및 release_required=true/release_authorized=false 유지. 문서·원장·증거 동기화와 리뷰스레드/최신main충돌·동등tree 검증 후 새Head Full CI 시작까지만 수행하고 결과 모니터링·병합/Main/GHCR·Release/Issue종료는 하지 않는다. 새Required3/Trusted/Owner·Manager ACCEPT는 NOT TESTED다.
+
 ## Issue #808 — Resource 분석 read model
 
 최신 main `048ae92ff673f1d0c4c69171fe3cc9bffe25dc19`/app0.133.4의 #807 화면을 보존하고 기존 WBS/KPI/Plan 원장의 typed 분석 adapter를 추가한다. [Work Packet](ISSUE_808.md)의 단일 원장·비가산·T0/A/R·snapshot/generation·정확 ID 계약 및 [실패 원장](../../ISSUE_808_FAILURE_ANALYSIS.md)을 따른다. R3 #809 차트 렌더링·API/DB/Calendar 재구현은 제외한다.

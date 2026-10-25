@@ -4,7 +4,7 @@
 
 - repository: `planner77/masterGantt`
 - issue: [#808](https://github.com/planner77/masterGantt/issues/808); parent [#806](https://github.com/planner77/masterGantt/issues/806), 선행 [#807/PR #810](https://github.com/planner77/masterGantt/pull/810), 소비 후속 [#809](https://github.com/planner77/masterGantt/issues/809)
-- lifecycle_phase: LOCAL_PRE_QA_PASS / PR_CI_START_READY
+- lifecycle_phase: REWORK_R01 / DOC_SYNC_LOCAL_PRE_QA_PASS / PR_CI_START_READY
 - requested_scope: 분석·설계·구현·문서 갱신·리뷰/충돌 확인 및 해결·실패 원장 기록 후 Ready PR Full CI 시작. CI 결과 모니터링·병합·Main/GHCR·정식 Release·Finalizer·브랜치 삭제·Issue 종료는 제외한다.
 - baseline/main: `048ae92ff673f1d0c4c69171fe3cc9bffe25dc19`
 - branch/worktree: `feat/issue-808-resource-analysis`, `/home/planner/Dev/masterGantt-808`
@@ -19,6 +19,12 @@
 - independent_qa: N/A(최종 경로는 Owner-managed); 별도 qa_docs 사전 검토는 최종 Trusted/Owner 승인과 구분한다.
 - manager_decision: NOT TESTED; MERGE_READY: BLOCKED
 - issue_comment_writer: manager; issue_comment_allowed_types: PLAN, STATUS, EXCEPTION
+
+## 현재 재작업 상태
+
+사용자 PR CI 실패 재개 요청에 따라 같은 PR811/branch/app0.134.0에서 REWORK_R01을 수행한다. 원본 Full3297.1의 Quality/E2E8/Docker·구현 gate는 PASS이나 QA Final은 미해결 리뷰2개로 BLOCKED/RunFAIL, Trusted944.1은 원본CI실패로 파생FAIL이다. [원격 이력](../../evidence/issue-808/rework-r01-remote.json)과 [누적 원장8절](../../ISSUE_808_FAILURE_ANALYSIS.md)을 따른다. 아래 최초19case·PR게시전 리뷰0·원격NOT TESTED는 당시 이력이며 새코드 승인 근거가 아니다.
+
+review4371006803(공동담당 scope 교집합 뒤 ghostTask)·4371006805(Resource/Group/Role null pivot 미배정 누락)를 실제 RED4건으로 확인했다. backend가 기존 adapter/테스트를 EXTEND하고 Manager가 관련 문서·원장, infra가 모든 원격Run/Attempt/출처·스레드/충돌 및 게시, 별도 qa_docs가 최종 읽기 전용 사전검토를 수행한다. 동일 파일 소유권을 유지하며 version/권한/Required/CI policy를 바꾸지 않는다. 새 Head에 새 Full CI를 시작해야 하고 이전 Required3PASS를 재사용하지 않는다. 요청 종료점·정식 게시 미승인·Manager NOT TESTED는 유지한다.
 
 ## 역할·소유권
 
@@ -59,6 +65,8 @@ ADD: 새 분석 adapter의 결속·분석 축·read-only 데이터 선택 계약
 
 - `docs/exec-plans/active/ISSUE_808.md`: UPDATED
 - `docs/evidence/issue-808/local-validation.json`: UPDATED
+- `docs/evidence/issue-808/rework-r01-remote.json`: UPDATED
+- `docs/evidence/issue-808/rework-r01-local.json`: UPDATED
 - `docs/ISSUE_808_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/RESOURCE_KPI_DASHBOARD.md`: UPDATED
 - `docs/ARCHITECTURE.md`: UPDATED
@@ -84,11 +92,11 @@ ADD: 새 분석 adapter의 결속·분석 축·read-only 데이터 선택 계약
 - `docs/ISSUE_LIFECYCLE.md`: N/A(현행 정책 적용, workflow/Required3/8-shard·권한·승인 기준 변경 없음)
 - `docs/QA_REVIEW_POLICY.md`: N/A(현행 정책 적용, workflow/Required3/8-shard·권한·승인 기준 변경 없음)
 
-## 검증·현재 상태
+## 최초 게시 후보4a1c9c8b의 역사 검증·상태
 
 구현/관련 LFF·별도 LOCAL_PRE_QA: PASS(아래 동일 source 증거). 원격 quality/e2e/docker·Trusted QA·Manager ACCEPT: NOT TESTED. 초기 GitHub CLI401 및 실제 후속 실패·충돌/리뷰 점검은 [누적 실패 원장](../../ISSUE_808_FAILURE_ANALYSIS.md)에 기록한다. 실제 Windows Excel/DRM·운영 proxy/TLS·수동 UX는 별도 NOT TESTED이며 새 Domain 테스트로 대체하지 않는다.
 
-## 최종 Local Fast Feedback·독립 사전 검토
+## 최초 게시 후보4a1c9c8b의 Local Fast Feedback·사전 검토
 
 [실행 증거](../../evidence/issue-808/local-validation.json)의 최종3파일 SHA256은 contracts `b30753dcbe05af762c3b616346fccb91fb84925c09af44d71274e3907199d697`, Domain `e78ee7e8b7c59793896350e6dcda19d80c613aace0d4746a29bf6cf3ef25c0ef`, test `f76b177830ab8b54cd46eaf23c28e7dbf011065efab6ba425a7dccb322d5d821`다. backend 동결·Manager 직접 재검증·별도 qa_docs 검토 전후 모두 동일하다.
 
@@ -98,8 +106,22 @@ ADD: 새 분석 adapter의 결속·분석 축·read-only 데이터 선택 계약
 - 독립 LOCAL_PRE_QA: `/root/analysis_qa`의 같은 SHA 직접19/19 PASS(22:20:32KST,525ms), 원본 재현5건(totalE10·pivotE10detail·G1 Plan·R1 T0진단6/미배정2·8,555,787byte fixture 한도 거부) PASS. 알려진 P1/P2 교정 확인·새 코드 지적0·문서 의미 검토 PASS. 실제 독립 인간 GitHub APPROVED나 QA_FINAL/Manager ACCEPT로 전용하지 않는다.
 - 테스트 선정: source→새 pure adapter는 ADD. 기존 계산/Calendar·DB/권한·Excel·fetch 모델은 KEEP_UNIQUE. UI·HTTP route 변경0이라 실제 Chromium/새 browser 시나리오·전체 local production build/Docker는 NOT TESTED이며 원격 Full CI가 수행한다.
 
-## 원격·리뷰/충돌 인계
+## 최초 게시 시점 원격·리뷰/충돌 인계
 
 infra 사전조회에서 #808 canonical PR0, 원격 브랜치없음, 과거 #808 CI 실패 관측없음. 선행 PR810의1개 리뷰 스레드는 해결 완료이며 #808로 이관된 미해결 지적없음. 열린8PR의 새 Domain/contract 직접 겹침없음; 기존 문서/버전 잠재겹침은 병합 충돌이 발생했다는 증거가 아니다. 게시 직전 최신 main과 정확 부모·원격 tree/bytes·새 PR의 실제 리뷰/mergeability를 확인한다.
 
 게시 Head·PR/원본 CI Run ID/Attempt는 commit 자기참조를 피하기 위해 Issue808 STATUS와 PR 본문에 기록한다. 이 문서의 PR 시작 준비 판정은 원격 Required3/Trusted QA/Owner 승인 성공이 아니다. 요청대로 CI 시작 확인 후 모니터링하지 않으며 병합·Main/GHCR·release·cleanup·Issue 종료는 수행하지 않는다.
+
+## REWORK_R01 TEST_LIFECYCLE_REVIEW·범위
+
+기존 `resource-analysis.test.ts`23case(최초19+원본RED4)를 EXTEND한다. 모든 과거F808006~010의 물리 상세/Group Calendar/T0·예산 음성과 공동담당 source∩query·같은개인 Group/Role/grade·null/OR·미배정·exactAssignments를 같은 최종source에서 검증한다. 기존 ledger/KPI/Plan/기간/예산·서버 HTTP/SQLite/OOXML·feature transport는 KEEP_UNIQUE로 유지한다. 새 full E2E 복제·테스트삭제/skip/허용오차/timeout/CI게이트 완화 없음.
+
+최초 원격은 테스트/구현 실패0이며 실패한 QA Gate는 실제 리뷰2건을 교정하고 해결해 복구한다. 비대상 skippedjob을 PASS로 바꾸거나 QA job만 rerun하여 변경코드를 검증 없이 승인하지 않는다. 원본4FAIL→첫23GREEN은 보완 과정이며 최종 동결후 직접·교차·정적검증 및 독립 사전검토를 별도로 기록한다.
+
+## REWORK_R01 동결 검증·최종 인계
+
+버전은 아직 병합하지 않은 같은 기능 후보0.134.0을 유지하며 package/lock 변경없음. 변경 source는 adapter/domain와 기존 테스트2파일이고 contract/API/DB/Calendar/권한/CI policy는 불변이다. [최종 로컬 증거](../../evidence/issue-808/rework-r01-local.json)의 동결3파일SHA는 Domain6925bc91a7fa49f5c14d4e4374428e14b3281ac737a8376ac1bc76cb84143c2d/testdb6b027a2ce41ffb5d0dbfa073ffa4a07c673036a47469b6b0db9faf59791a9a/contractb30753dcbe05af762c3b616346fccb91fb84925c09af44d71274e3907199d697이다.
+
+기존suite EXTEND로 직접33(기존19+원본4+교차10) 및 기존6Domain90을 같은후보에서 실행해7파일123/123 PASS, failed0/skipped0다. 명령·파일·case·환경은 JSON에 기록했다. 전체TypeScript·대상ESLint·diffcheck PASS. 유일추가localFAIL은 새test의 잘못된 Project same-R 기대21.5→올바른14 교정이며 [원장9절](../../ISSUE_808_FAILURE_ANALYSIS.md)에 보존했다. 기존서버/OOXML/브라우저는 변경된 adapter를 import하지 않고 HTTP/DB/Excel/UI 변경도 없어 local중복full회귀를 하지 않는다. 새정확Head의 frozen install/build/Chromium/Docker는 원격Full이 검증한다.
+
+별도 `/root/analysis_qa`는 같은동결SHA 직접33/33·원본/음성8체크·과거19회귀를 독립 실행해 PASS, 새P1/P2없음. 문서 최종 결과/증거 읽기 검토 DOC_SYNC PASS와 기존 base 검증기의 구조검사 PASS를 확인했다. 다음은 스레드4371006803/4371006805의 실제보완과 정확source를 인용해 해결하고 최신main/충돌·remote tree/parent/bytes를 확인해 새FullCI를 시작한다. 이것은 LOCAL_PRE_QA이고 최종QA_FINAL/Owner승인·ManagerACCEPT는 NOT TESTED다. 원본RequiredPASS는 과거Head에한정하며 새Head에대체하지 않는다.
