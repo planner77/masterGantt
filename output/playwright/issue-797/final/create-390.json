@@ -1,0 +1,769 @@
+{
+  "key": "create-390",
+  "expectedViewport": {
+    "width": 390,
+    "height": 900
+  },
+  "screenshotDimensions": {
+    "width": 390,
+    "height": 1414
+  },
+  "captureRunId": "representatives-2026-10-24T14-38-36.991Z",
+  "collectorHashAtStart": "2038ac9591667e51b0d264b6e9a847d224c71cc79efb7255b906d02b7dbff53b",
+  "capturedAt": "2026-10-24T14:38:42.768Z",
+  "result": "OBSERVATION",
+  "dashboardNormal": false,
+  "keyboardObserved": false,
+  "screenshot": "output/playwright/issue-797/final/create-390.png",
+  "viewportScreenshot": "output/playwright/issue-797/final/create-390-viewport.png",
+  "facts": {
+    "route": "/projects/new",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "document": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "environment": {
+      "locale": "ko-KR",
+      "timezone": "Asia/Seoul",
+      "dpr": 1,
+      "rootFont": "16px",
+      "visualViewportScale": 1,
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "zoom": "default 100%; native125% NOT TESTED; no DPR zoom substitution"
+    },
+    "shell": {
+      "main": {
+        "x": 12,
+        "y": 57,
+        "right": 378,
+        "bottom": 1231.15625,
+        "width": 366,
+        "height": 1174.15625
+      },
+      "heading": {
+        "x": 12,
+        "y": 95,
+        "right": 378,
+        "bottom": 128.59375,
+        "width": 366,
+        "height": 33.59375
+      },
+      "headerBottom": 57,
+      "auth": null
+    },
+    "controls": [
+      {
+        "tag": "BUTTON",
+        "id": "tab-blank",
+        "type": "button",
+        "label": "빈 프로젝트 만들기",
+        "rect": {
+          "x": 12,
+          "y": 210.59375,
+          "right": 139.78125,
+          "bottom": 246.59375,
+          "width": 127.78125,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 210.59375,
+          "right": 378,
+          "bottom": 247.59375,
+          "width": 366,
+          "height": 37
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(23, 32, 51)",
+            "rgb(23, 32, 51)",
+            "rgb(37, 99, 168)",
+            "rgb(23, 32, 51)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 4px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-template",
+        "type": "button",
+        "label": "템플릿에서 만들기",
+        "rect": {
+          "x": 151.78125,
+          "y": 210.59375,
+          "right": 275.671875,
+          "bottom": 246.59375,
+          "width": 123.890625,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 210.59375,
+          "right": 378,
+          "bottom": 247.59375,
+          "width": 366,
+          "height": 37
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(100, 116, 139)",
+            "rgb(100, 116, 139)",
+            "rgba(0, 0, 0, 0)",
+            "rgb(100, 116, 139)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 4px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(100, 116, 139)",
+          "outlineOffset": "0px",
+          "color": "rgb(100, 116, 139)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "INPUT",
+        "id": "project-name",
+        "type": null,
+        "label": "프로젝트 이름",
+        "rect": {
+          "x": 29,
+          "y": 348.484375,
+          "right": 361,
+          "bottom": 394.484375,
+          "width": 332,
+          "height": 46
+        },
+        "owner": {
+          "x": 12,
+          "y": 271.59375,
+          "right": 378,
+          "bottom": 1191.15625,
+          "width": 366,
+          "height": 919.5625
+        },
+        "labels": [
+          {
+            "id": "",
+            "htmlFor": "project-name",
+            "wrapsControl": false,
+            "text": "프로젝트 이름"
+          }
+        ],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": "false",
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "10px 12px",
+          "font": "16px / 24px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "16px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "24px",
+          "minHeight": "auto",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "INPUT",
+        "id": "project-owner",
+        "type": null,
+        "label": "소유자",
+        "rect": {
+          "x": 29,
+          "y": 435.484375,
+          "right": 361,
+          "bottom": 481.484375,
+          "width": 332,
+          "height": 46
+        },
+        "owner": {
+          "x": 12,
+          "y": 271.59375,
+          "right": 378,
+          "bottom": 1191.15625,
+          "width": 366,
+          "height": 919.5625
+        },
+        "labels": [
+          {
+            "id": "",
+            "htmlFor": "project-owner",
+            "wrapsControl": false,
+            "text": "소유자"
+          }
+        ],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": "false",
+        "describedBy": [
+          {
+            "id": "project-owner-help",
+            "exists": true,
+            "visible": true,
+            "text": "프로젝트 담당자를 표시하는 정보이며 계정/권한과는 연결되지 않습니다. Unicode 문자 기준 최대 100자입니다."
+          }
+        ],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "10px 12px",
+          "font": "16px / 24px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "16px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "24px",
+          "minHeight": "auto",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "SELECT",
+        "id": "project-status",
+        "type": null,
+        "label": "프로젝트 상태",
+        "rect": {
+          "x": 29,
+          "y": 569.484375,
+          "right": 205,
+          "bottom": 609.484375,
+          "width": 176,
+          "height": 40
+        },
+        "owner": {
+          "x": 12,
+          "y": 271.59375,
+          "right": 378,
+          "bottom": 1191.15625,
+          "width": 366,
+          "height": 919.5625
+        },
+        "labels": [
+          {
+            "id": "",
+            "htmlFor": "project-status",
+            "wrapsControl": false,
+            "text": "프로젝트 상태"
+          }
+        ],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 12px",
+          "font": "16px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "16px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "normal",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "TEXTAREA",
+        "id": "project-description",
+        "type": null,
+        "label": "프로젝트 설명 (선택)",
+        "rect": {
+          "x": 29,
+          "y": 814.265625,
+          "right": 361,
+          "bottom": 932.265625,
+          "width": 332,
+          "height": 118
+        },
+        "owner": {
+          "x": 12,
+          "y": 271.59375,
+          "right": 378,
+          "bottom": 1191.15625,
+          "width": 366,
+          "height": 919.5625
+        },
+        "labels": [
+          {
+            "id": "",
+            "htmlFor": "project-description",
+            "wrapsControl": false,
+            "text": "프로젝트 설명 (선택)"
+          }
+        ],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "10px 12px",
+          "font": "16px / 24px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "16px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "24px",
+          "minHeight": "auto",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "INPUT",
+        "id": "project-edit-password",
+        "type": "password",
+        "label": "편집 비밀번호",
+        "rect": {
+          "x": 29,
+          "y": 1025.15625,
+          "right": 349,
+          "bottom": 1071.15625,
+          "width": 320,
+          "height": 46
+        },
+        "owner": {
+          "x": 12,
+          "y": 271.59375,
+          "right": 378,
+          "bottom": 1191.15625,
+          "width": 366,
+          "height": 919.5625
+        },
+        "labels": [
+          {
+            "id": "",
+            "htmlFor": "project-edit-password",
+            "wrapsControl": false,
+            "text": "편집 비밀번호"
+          }
+        ],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": "false",
+        "describedBy": [
+          {
+            "id": "project-password-help",
+            "exists": true,
+            "visible": true,
+            "text": "1~12자, UTF-8 기준 최대 1,024 bytes입니다. 서버가 최종 검증합니다."
+          }
+        ],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)",
+            "rgb(220, 227, 237)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "10px 12px",
+          "font": "16px / 24px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "16px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "24px",
+          "minHeight": "auto",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "submit",
+        "label": "프로젝트 만들기",
+        "rect": {
+          "x": 29,
+          "y": 1134.15625,
+          "right": 361,
+          "bottom": 1174.15625,
+          "width": 332,
+          "height": 40
+        },
+        "owner": {
+          "x": 12,
+          "y": 271.59375,
+          "right": 378,
+          "bottom": 1191.15625,
+          "width": 366,
+          "height": 919.5625
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(37, 99, 168)",
+            "rgb(37, 99, 168)",
+            "rgb(37, 99, 168)",
+            "rgb(37, 99, 168)"
+          ],
+          "background": "rgb(37, 99, 168)",
+          "surroundingBackground": "rgb(255, 255, 255)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineOffset": "0px",
+          "color": "rgb(255, 255, 255)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      }
+    ],
+    "excludedControls": 0,
+    "tables": []
+  },
+  "metrics": {
+    "primary": null,
+    "headings": [
+      {
+        "text": "프로젝트 만들기",
+        "x": 12,
+        "y": 95,
+        "width": 366,
+        "height": 33.59375,
+        "bottom": 128.59375
+      },
+      {
+        "text": "기본 정보",
+        "x": 29,
+        "y": 288.59375,
+        "width": 332,
+        "height": 18.890625,
+        "bottom": 307.484375
+      },
+      {
+        "text": "프로젝트 분류",
+        "x": 29,
+        "y": 642.484375,
+        "width": 332,
+        "height": 18.890625,
+        "bottom": 661.375
+      },
+      {
+        "text": "설명",
+        "x": 29,
+        "y": 937.375,
+        "width": 332,
+        "height": 18.890625,
+        "bottom": 956.265625
+      },
+      {
+        "text": "편집 권한",
+        "x": 29,
+        "y": 1148.265625,
+        "width": 332,
+        "height": 18.890625,
+        "bottom": 1167.15625
+      }
+    ],
+    "regions": [],
+    "summaries": [],
+    "filters": [
+      {
+        "text": "프로젝트 이름",
+        "x": 29,
+        "y": 319.484375,
+        "width": 332,
+        "height": 21,
+        "bottom": 340.484375
+      },
+      {
+        "text": "소유자",
+        "x": 29,
+        "y": 406.484375,
+        "width": 332,
+        "height": 21,
+        "bottom": 427.484375
+      },
+      {
+        "text": "프로젝트 상태",
+        "x": 29,
+        "y": 540.484375,
+        "width": 192,
+        "height": 21,
+        "bottom": 561.484375
+      },
+      {
+        "text": "사업부 (선택)",
+        "x": 29,
+        "y": 673.375,
+        "width": 332,
+        "height": 21,
+        "bottom": 694.375
+      },
+      {
+        "text": "제품 (선택)",
+        "x": 29,
+        "y": 754.375,
+        "width": 332,
+        "height": 21,
+        "bottom": 775.375
+      },
+      {
+        "text": "사업장/법인 (선택)",
+        "x": 29,
+        "y": 835.375,
+        "width": 332,
+        "height": 21,
+        "bottom": 856.375
+      },
+      {
+        "text": "프로젝트 설명 (선택)",
+        "x": 29,
+        "y": 968.265625,
+        "width": 332,
+        "height": 21,
+        "bottom": 989.265625
+      },
+      {
+        "text": "편집 비밀번호",
+        "x": 29,
+        "y": 1179.15625,
+        "width": 332,
+        "height": 21,
+        "bottom": 1200.15625
+      }
+    ],
+    "states": [],
+    "focus": {
+      "tag": "BODY",
+      "name": "본문으로 바로가기MmasterGanttv0.132.0프로젝트리소스물류기준정보NEW PROJECT프로젝트 만들기빈 프로젝트를 만들거나, 기존 템플릿을 기반으로 자동 재계산된 일정을 ",
+      "focusVisible": false,
+      "outlineStyle": "none",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 1414.15625,
+        "bottom": 1414.15625
+      }
+    }
+  },
+  "domAppVersion": "v0.132.0",
+  "browserVersion": "153.0.8010.12"
+}

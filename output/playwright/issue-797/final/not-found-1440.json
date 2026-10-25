@@ -1,0 +1,161 @@
+{
+  "key": "not-found-1440",
+  "expectedViewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "screenshotDimensions": {
+    "width": 1440,
+    "height": 900
+  },
+  "captureRunId": "representatives-2026-10-24T14-38-36.991Z",
+  "collectorHashAtStart": "2038ac9591667e51b0d264b6e9a847d224c71cc79efb7255b906d02b7dbff53b",
+  "capturedAt": "2026-10-24T14:40:27.103Z",
+  "result": "OBSERVATION",
+  "dashboardNormal": false,
+  "keyboardObserved": false,
+  "screenshot": "output/playwright/issue-797/final/not-found-1440.png",
+  "viewportScreenshot": "output/playwright/issue-797/final/not-found-1440-viewport.png",
+  "facts": {
+    "route": "/issue-797-missing",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "document": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440
+    },
+    "environment": {
+      "locale": "ko-KR",
+      "timezone": "Asia/Seoul",
+      "dpr": 1,
+      "rootFont": "16px",
+      "visualViewportScale": 1,
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "zoom": "default 100%; native125% NOT TESTED; no DPR zoom substitution"
+    },
+    "shell": {
+      "main": {
+        "x": 120,
+        "y": 57,
+        "right": 1320,
+        "bottom": 569,
+        "width": 1200,
+        "height": 512
+      },
+      "heading": {
+        "x": 120,
+        "y": 260.90625,
+        "right": 534.421875,
+        "bottom": 304.09375,
+        "width": 414.421875,
+        "height": 43.1875
+      },
+      "headerBottom": 57,
+      "auth": null
+    },
+    "controls": [
+      {
+        "tag": "A",
+        "id": "",
+        "type": null,
+        "label": "프로젝트로 돌아가기",
+        "rect": {
+          "x": 120,
+          "y": 362.09375,
+          "right": 249.890625,
+          "bottom": 383.09375,
+          "width": 129.890625,
+          "height": 21
+        },
+        "owner": {
+          "x": 120,
+          "y": 137,
+          "right": 664,
+          "bottom": 489,
+          "width": 544,
+          "height": 352
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "0px",
+            "0px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(37, 99, 168)",
+            "rgb(37, 99, 168)",
+            "rgb(37, 99, 168)",
+            "rgb(37, 99, 168)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "0px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "auto",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(37, 99, 168)",
+          "outlineOffset": "0px",
+          "color": "rgb(37, 99, 168)",
+          "opacity": "1",
+          "marginTop": "24px"
+        }
+      }
+    ],
+    "excludedControls": 0,
+    "tables": []
+  },
+  "metrics": {
+    "primary": null,
+    "headings": [
+      {
+        "text": "페이지를 찾을 수 없습니다.",
+        "x": 120,
+        "y": 260.90625,
+        "width": 414.421875,
+        "height": 43.1875,
+        "bottom": 304.09375
+      }
+    ],
+    "regions": [],
+    "summaries": [],
+    "filters": [],
+    "states": [],
+    "focus": {
+      "tag": "BODY",
+      "name": "본문으로 바로가기MmasterGanttv0.132.0프로젝트리소스물류기준정보404페이지를 찾을 수 없습니다.주소를 확인하거나 프로젝트 화면으로 돌아가 주세요.프로젝트로 돌아가기se",
+      "focusVisible": false,
+      "outlineStyle": "none",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 900,
+        "bottom": 900
+      }
+    }
+  },
+  "domAppVersion": "v0.132.0",
+  "browserVersion": "153.0.8010.12"
+}

@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "meaning": "모든 초기 준비 실패·중단을 최종 관측 성공과 분리한다. 이 원장은 제품 회귀 PASS 또는 원격 CI 증거가 아니다.",
+  "setup": [
+    {
+      "result": "BLOCKED",
+      "kind": "ENVIRONMENT_SETUP",
+      "reason": "초기 shared node_modules에서 Next16.3.4 발견; 캡처/fixture 전 중단하고 worktree npm ci로16.4.2 설치",
+      "resolved": true
+    },
+    {
+      "result": "BLOCKED",
+      "kind": "BROWSER_SETUP",
+      "reason": "CLI default chromium1247 미설치; 실제 existing chromium1243 executable 명시",
+      "resolved": true
+    }
+  ],
+  "excludedRuns": [
+    {
+      "runId": "initial-dashboards-2026-10-24T14:19:12.768Z",
+      "collectorSha256": "ae5c524eab2202c76468f35e109bb593d66c2f8b8f34f08b4a83ececfd426040",
+      "observations": 30,
+      "result": "EXCLUDED",
+      "reason": "초기 관측. 최종 frozen tool·fresh cookie-only context 증거로 대체하며 최종 결과에 합산하지 않음"
+    },
+    {
+      "runId": "capture-2026-10-24T14-23-11.173Z",
+      "collectorSha256": "b9e07881c223ec17716c6edb957e78a835bdc0a00f500ca653f51b189a2845b8",
+      "completedObservations": 45,
+      "result": "INTERRUPTED",
+      "faults": [
+        {
+          "key": "schedule-390",
+          "reason": "보존된 대시보드 선택 때문에 직접 URL 재진입 후 Gantt panel hidden; 일정 탭 명시 클릭 준비로 교정"
+        }
+      ],
+      "reason": "준비 실패를 제품 결함으로 해석하지 않음"
+    },
+    {
+      "runId": "capture-2026-10-24T14-25-57.379Z",
+      "collectorSha256": "791214cb8ea68d8435b7d16d2b02aab011ff87922d594ad207ed4c7876485ef9",
+      "completedObservations": 11,
+      "result": "INTERRUPTED",
+      "reason": "전체 재수집 전 representative-first 순서로 전환"
+    },
+    {
+      "runId": "representatives-2026-10-24T14-26-32.432Z",
+      "collectorSha256": "791214cb8ea68d8435b7d16d2b02aab011ff87922d594ad207ed4c7876485ef9",
+      "completedObservations": 34,
+      "result": "EXCLUDED",
+      "faults": [
+        {
+          "key": "query-empty-390",
+          "reason": "hidden mounted 5관점의 global label strict ambiguity"
+        },
+        {
+          "key": "projects-390",
+          "expectedViewport": {
+            "width": 390,
+            "height": 900
+          },
+          "observedViewport": {
+            "width": 768,
+            "height": 900
+          },
+          "evidenceKind": "수집 중 디스크 JSON을 읽은 tool transcript; 초기 원본 파일은 최종 run으로 교체됨; PNG 치수는 당시 미측정"
+        }
+      ],
+      "reason": "CLI 전체 종료·분리 재시작, actual viewport/PNG 치수 강제. 중단 run-code 또는 viewport 복원 경합은 가설이며 제품 원인 확정 아님"
+    },
+    {
+      "runId": "representatives-2026-10-24T14-29-57.094Z",
+      "collectorSha256": "6a7f9878a440edfba4c45d0e1c9817add345693304997b14bced2377c889bcc7",
+      "plannedSamples": 48,
+      "completedObservations": 47,
+      "result": "PARTIAL",
+      "preservationPassed": true,
+      "faults": [
+        {
+          "key": "query-stale-1440",
+          "result": "FAIL",
+          "reason": "CLI failed: ### Error\nTimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-wbs-view=\"process\"]').getByRole('button', { name: '원본', exact: true }).first()\u001b[22m\n\n"
+        },
+        {
+          "key": "sample-completeness",
+          "result": "FAIL",
+          "reason": "planned 48; recorded 47"
+        }
+      ],
+      "reason": "query-empty의 이름 필터가 다음 관측으로 누출. process원본 미제공 가설은 철회; 최종 tool의 fresh cookie-only context로 격리"
+    },
+    {
+      "runId": "representatives intermediate before cookie-only isolation",
+      "collectorSha256": "489f2a9988349aef7f17cbb2585e24f0517bda75c4e8c682460bf2d407de0491",
+      "completedObservations": 32,
+      "result": "INTERRUPTED",
+      "reason": "이름 필터/조회 구성 개인 설정 누출 발견으로 fresh context 격리 전환; Enter가 이미 열린 composer를 닫는 준비 오류 포함"
+    },
+    {
+      "runId": "representatives-2026-10-24T14-35-54.921Z",
+      "collectorSha256": "2038ac9591667e51b0d264b6e9a847d224c71cc79efb7255b906d02b7dbff53b",
+      "completedObservations": 8,
+      "result": "INTERRUPTED",
+      "reason": "CLI 재시작 뒤 Project unlock에 password 대신 실제 editPassword 필드 필요. 잘못된 one-off 재인증400과 편집중 대기 FAIL. 올바른 Project204/admin201/current200 및 새 context 편집중 smoke로 교정"
+    }
+  ],
+  "finalRuns": [
+    {
+      "runId": "representatives-2026-10-24T14-38-36.991Z",
+      "phase": "representatives",
+      "collectorSha256": "2038ac9591667e51b0d264b6e9a847d224c71cc79efb7255b906d02b7dbff53b",
+      "sourceSha": "8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24",
+      "observations": 47,
+      "plannedSamples": 48,
+      "result": "PARTIAL",
+      "faults": [
+        {
+          "key": "calendar-1440",
+          "result": "FAIL",
+          "reason": "CLI failed: ### Error\nTimeoutError: locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('편집 중', { exact: true }) to be visible\u001b[22m\n\n"
+        },
+        {
+          "key": "sample-completeness",
+          "result": "FAIL",
+          "reason": "planned 48; recorded 47"
+        }
+      ],
+      "preservationPassed": true,
+      "beforeFingerprint": "47e048dba49bd67c67f8c6177b9363fb371b3d33e716ca2595dd54d717b4d0a5",
+      "afterFingerprint": "47e048dba49bd67c67f8c6177b9363fb371b3d33e716ca2595dd54d717b4d0a5",
+      "readOnlyPostQueries": 10,
+      "observedWrites": 0
+    },
+    {
+      "runId": "dashboards-2026-10-24T14-43-24.729Z",
+      "phase": "dashboards",
+      "collectorSha256": "2038ac9591667e51b0d264b6e9a847d224c71cc79efb7255b906d02b7dbff53b",
+      "sourceSha": "8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24",
+      "observations": 27,
+      "plannedSamples": 30,
+      "result": "PARTIAL",
+      "faults": [
+        {
+          "key": "process-390",
+          "result": "FAIL",
+          "reason": "CLI failed: ### Error\nTimeoutError: locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('편집 중', { exact: true }) to be visible\u001b[22m\n\n"
+        },
+        {
+          "key": "milestone-1024",
+          "result": "FAIL",
+          "reason": "CLI failed: ### Error\nTimeoutError: locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('편집 중', { exact: true }) to be visible\u001b[22m\n\n"
+        },
+        {
+          "key": "system-1024",
+          "result": "FAIL",
+          "reason": "CLI failed: ### Error\nTimeoutError: locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('편집 중', { exact: true }) to be visible\u001b[22m\n\n"
+        },
+        {
+          "key": "sample-completeness",
+          "result": "FAIL",
+          "reason": "planned 30; recorded 27"
+        }
+      ],
+      "preservationPassed": true,
+      "beforeFingerprint": "47e048dba49bd67c67f8c6177b9363fb371b3d33e716ca2595dd54d717b4d0a5",
+      "afterFingerprint": "47e048dba49bd67c67f8c6177b9363fb371b3d33e716ca2595dd54d717b4d0a5",
+      "readOnlyPostQueries": 22,
+      "observedWrites": 0
+    }
+  ],
+  "remaining": "추가 전체 재수집하지 않음. bulk 74/78 관측. calendar1440/process390 단독 recheck와 native keyboard/Import는 별도 sidecar 결과로만 판정하며 원본 PARTIAL을 PASS로 교체하지 않음. milestone1024/system1024 미관측은 NOT TESTED.",
+  "sidecar": {
+    "file": "keyboard-environment-sidecar.json",
+    "cases": 10,
+    "pass": 9,
+    "fail": 1,
+    "canonicalUnchanged": true,
+    "keyboard390Diagnostic": {
+      "matches": true,
+      "arrow": {
+        "tag": "BUTTON",
+        "name": "Milestone",
+        "focusVisible": true,
+        "outline": "solid"
+      },
+      "home": {
+        "tag": "BUTTON",
+        "name": "KPI",
+        "focusVisible": true,
+        "outline": "solid"
+      }
+    },
+    "initialFailurePreserved": true
+  }
+}

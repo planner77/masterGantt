@@ -12,6 +12,10 @@ native label/button/select/date와 44px 조작 영역·focus ring을 유지한�
 
 390/768/1024/1440/1920px에서 의미별 wrap·긴 한국어/영문/날짜·가려지지 않는 focus와 표 내부 scroll을 실제 Chromium으로 확인한다. 고정 높이/overflow hidden으로 오류·label을 잘라 밀도를 맞추지 않는다. KPI KEEP 대조 및 source-anchored before/after 관측은 [#798 Work Packet](exec-plans/active/ISSUE_798.md)에 기록한다. Design Delta B로 기존 DESIGN의 Workspace-first·Compact controls·Progressive disclosure를 구체화한다.
 
+## Issue #797 — 최신 화면 감사와 기존 기준선의 구분
+
+[2026-10-24 감사](UI_AUDIT_2026_10_24.md)는 최신 source의 전체 화면 인벤토리·현재 이슈 상태·동일 fixture 관측을 기록한다. #457의 과거 실행/환경을 덮어쓰거나 당시 후속 문구를 현재 미구현으로 옮기지 않는다. KPI도 viewport별로 측정하며 모든 폭에서 완전한 기준선이라고 가정하지 않는다. 수동 collector의 중립 관측과 업무/접근성·원격 CI 판정, 제품 변경이 없는 KEEP와 개선 후 after를 구분한다. #798의 controls/조회 구성, #799의 요약·지표 표현, #800의 지속 회귀는 각각의 범위·정확 Head에서 수용한다. 기존 디자인·interaction 계약은 변경하지 않는다.
+
 ## Issue #792 F792-001 — 안전 편집 pending의 잠금 및 focus 경계
 
 이전 source 편집에서 비동기 PATCH가 진행되면 Task Editor 전체 `aria-busy`, 인접 직접 연결·Resource/작업명·닫기·탭/키보드 탐색을 같은 잠금으로 제어한다. 별도 source 버튼의 local `busy`만으로 잠갔다고 주장하지 않는다. 확인 저장과 `reload(true)`가 완료되기 전에 다른 초안을 생성·이동시켜 초기화하는 경로를 막고, 성공 후 입력을 다시 허용한다. 오류·outdated Revision·네트워크 불확실성에서 사용자 확인 없는 초안 폐기를 금지한다. 동일 5폭/keyboard/Escape/readonly 실제 Chromium 보호는 [#792 E2E](exec-plans/active/ISSUE_792.md)에 추가했으나 첫 Full Preflight 이후 실제 제품 Runner 미실행 → `NOT TESTED`. 기존 Light UI/semantic token/정보밀도/기간 정책 변경 없음.
