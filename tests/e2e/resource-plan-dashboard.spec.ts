@@ -1,3 +1,4 @@
+import { selectResourceReportView } from "./helpers/resource-workspace";
 import { toResourcePublicV2 } from "../../src/contracts/resource-public-v2";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
@@ -109,9 +110,7 @@ async function setup(page: import("@playwright/test").Page) {
   const before = await viewport(page);
   await openWorkspaceView(page, "resources");
   await expect(root(page)).toHaveAttribute("data-ready", "true");
-  await root(page)
-    .getByLabel("리소스 보기", { exact: true })
-    .selectOption("plan");
+  await selectResourceReportView(root(page), "plan");
   await expect(
     root(page).getByRole("region", { name: "Resource Plan", exact: true }),
   ).toBeVisible();
@@ -360,8 +359,8 @@ test("#527 selected80/project140 parent warning, detail stack and paging focus",
   await expect(
     plan.locator('tr[data-plan-row="resourceMilestone"]').first(),
   ).toContainText("개인 전체 참고 140.00 %");
-  await r.getByLabel("리소스 보기", { exact: true }).selectOption("summary");
-  await r.getByLabel("리소스 보기", { exact: true }).selectOption("plan");
+  await selectResourceReportView(r, "summary");
+  await selectResourceReportView(r, "plan");
   await expect(r).toHaveAttribute("data-ready", "true");
   await expect(plan.getByLabel("부하 범위")).toHaveValue("project");
   await expect(
@@ -411,8 +410,8 @@ test("#527 50visible hierarchy page context and daily pager focus survive view r
   const child = table.locator('tr[data-plan-row="resourceMilestone"]').first();
   await expect(child).toContainText("그룹 0");
   await expect(child).toContainText("개인");
-  await r.getByLabel("리소스 보기", { exact: true }).selectOption("summary");
-  await r.getByLabel("리소스 보기", { exact: true }).selectOption("plan");
+  await selectResourceReportView(r, "summary");
+  await selectResourceReportView(r, "plan");
   await expect(r).toHaveAttribute("data-ready", "true");
   await expect(table.locator("tbody tr")).toHaveCount(34);
   await plan
@@ -473,10 +472,10 @@ test("#527 canceled detail409 is ignored after leaving Plan and stale blocks all
     .first()
     .click();
   await requested;
-  await r.getByLabel("리소스 보기", { exact: true }).selectOption("summary");
+  await selectResourceReportView(r, "summary");
   release();
   await expect(r).toHaveAttribute("data-ready", "true");
-  await r.getByLabel("리소스 보기", { exact: true }).selectOption("plan");
+  await selectResourceReportView(r, "plan");
   await expect(plan.getByRole("alert")).toContainText("데이터가 변경");
   await expect(
     plan.locator('tr[data-plan-row="total"] td button').first(),

@@ -1,3 +1,11 @@
+## Issue #807 — 리소스 peer 분석과 조건 인계
+
+리소스 전용 host는 기본 현황·동적 계층 탐색·Milestone 교차·Resource Plan·견적/Excel을 native button group과 `aria-pressed`로 제공한다. peer 전환은 호출 버튼 focus를 유지하고 숨은 분석을 hidden/inert·inactive로 둔다. 재방문에서 필터·선택·접힘·내부 scroll·focus와 정확 source를 보존하며 새 방문 기본값과 구분한다. Milestone 내부 계층/비교를 제외한 중복 보기 selector와 반복 제목/안내는 통합한다.
+
+보고 간 검색/개인·Group/고급 조건/spec은 독립 상태다. 기간·기준일 인계는 사용자의 명시 동작이며 원본 보고와 대상 범위/확정 snapshot을 혼동시키지 않는다. loading/error/stale·기간 오류·현재 선택과 Project 전체 참고·전체 Milestone Gate·미산정은 일반 사용설명과 함께 접지 않는다. 견적 진입만으로 DEVELOPER 조건을 적용하지 않는다.
+
+기존 compact 리소스 분석을 시각 기준으로 삼고 업무 제어 약14px·helper12~13px·8/12/16px 간격과 같은 그룹 baseline을 정돈한다. 전역 button 높이/margin이나 공통 5관점 스타일을 바꾸지 않고 핵심 44px 조작 영역은 유지한다. 390/768/1024/1440/1920px의 동일 fixture before/after에서 control bounds·첫 KPI/표 Y·가시 행·wrap·문서 overflow와 표 소유 scroll을 확인한다. Tab/Shift+Tab/Enter/Space/Escape와 focus 비가림은 캡처와 별도로 검증한다. Design Delta B/C이며 `DESIGN.md` 신규 원칙은 없다. [설계·실행 경계](exec-plans/active/ISSUE_807.md).
+
 ## Issue #800 — source 귀속 Geometry 회귀 증거
 
 공통 UI의 compact/Workspace-first는 **실제 첫 요약·데이터 시작 Y, 가시 지표/행, document overflow vs table-owned scroll, sibling overlap**으로 관측한다. KPI의 수치·단위·상태·scope와 5개 동적 관점의 각기 다른 분모/원본/권한을 동일 CSS box로 강제하지 않는다. 비교는 동일 fixture fingerprint/revision·제품 hash·실제 DOM version·height900/5폭·locale/timezone·DPR/root font/visual scale·브라우저 실행 provenance를 요구한다. 다른 앱 버전·미확인 working tree·사진만으로는 개선 PASS가 아니다.

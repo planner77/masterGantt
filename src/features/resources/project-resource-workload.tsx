@@ -1,4 +1,5 @@
 "use client";
+import type { ResourceWorkspaceView } from "./resource-workspace";
 import { useState } from "react";
 import type { ResourceDashboardDto, ResourceDashboardFilterInput } from "@/contracts/resource-dashboard";
 import { ProjectResourceDashboard } from "./project-resource-dashboard";
@@ -10,6 +11,7 @@ import type { ResourceExportEvidence } from "./resource-export-model";
 import type { ResourceDrillBinding } from "./resource-drill-transport";
 
 type Props = Readonly<{
+  workspaceViews?: Readonly<Record<string, ResourceWorkspaceView>>;
   publicId: string;
   revision: number;
   active: boolean;
@@ -29,6 +31,7 @@ type Props = Readonly<{
 }>;
 export function ProjectResourceWorkload({
   binding,
+  workspaceViews,
   viewId,
   initialFilters,
   cacheGeneration,
@@ -88,6 +91,7 @@ export function ProjectResourceWorkload({
           >
             <ProjectResourceDashboard
               {...props}
+              workspaceView={workspaceViews ? workspaceViews[id] ?? "summary" : undefined}
               active={props.active && id === key}
               initialFilters={view.initialFilters}
             />

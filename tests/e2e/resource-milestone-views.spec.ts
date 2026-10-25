@@ -1,3 +1,4 @@
+import { selectResourceReportView } from "./helpers/resource-workspace";
 import { toResourcePublicV2 } from "../../src/contracts/resource-public-v2";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
@@ -36,7 +37,7 @@ async function setup(page: import("@playwright/test").Page, manyGroups = false) 
   }).toBe(true); const before = await ganttState(page); expect(before.columns.length).toBeGreaterThan(0); expect(before.selection.length).toBeGreaterThan(0); await openWorkspaceView(page, "resources"); await expect(root(page)).toHaveAttribute("data-ready", "true"); return { state, identity, before };
 }
 test("#526 populated Group/Resource matrix 5폭·bounded cells·순서·단위·focus·Gantt", async ({ page }, testInfo) => {
-  test.setTimeout(120_000); const { identity, before } = await setup(page); const r = root(page); await r.getByLabel("리소스 보기", { exact: true }).selectOption("matrix"); const evidence = []; mkdirSync("output/playwright/issue-526", { recursive: true });
+  test.setTimeout(120_000); const { identity, before } = await setup(page); const r = root(page); await selectResourceReportView(r, "matrix"); const evidence = []; mkdirSync("output/playwright/issue-526", { recursive: true });
   for (const mode of ["group", "resource"] as const) {
     await r.getByRole("button", { name: mode === "group" ? "그룹" : "개인", exact: true }).click();
     const region = r.getByRole("region", { name: `${mode === "group" ? "그룹" : "개인"} Milestone 비교표`, exact: true }), table = region.locator("table");
@@ -94,7 +95,7 @@ async function observeTree(page: import("@playwright/test").Page, tree: import("
   return observations;
 }
 test("#526 three tree paths use server group intersection and retain stage page across collapse", async ({ page }) => {
-  await setup(page); const evidence = []; const r = root(page); await r.getByLabel("리소스 보기", { exact: true }).selectOption("tree");
+  await setup(page); const evidence = []; const r = root(page); await selectResourceReportView(r, "tree");
   const tree = r.getByRole("region", { name: "Milestone 계층 현황", exact: true });
   await tree.getByRole("button", { name: /^그룹 0/ }).click(); await tree.getByRole("button", { name: /^단계 0/ }).click(); await expect(tree.getByLabel("그룹 교차 개인 현황").getByRole("button", { name: /^개인/ })).toHaveCount(40); await tree.getByRole("button", { name: /^개인 0/ }).click(); await expect(tree.getByText(/선택 할당 작업 진척/).first()).toBeVisible(); await expect(tree.getByText(/선행 차단 있음/)).toBeVisible(); evidence.push(...await observeTree(page, tree, "group-milestone-resource"));
   await r.getByLabel("집계 순서", { exact: true }).selectOption("resource"); const tree2 = r.getByRole("region", { name: "Milestone 계층 현황", exact: true }); await tree2.getByRole("button", { name: /^그룹 0/ }).click(); await expect(tree2.getByRole("button", { name: /^개인/ })).toHaveCount(40); await tree2.getByRole("button", { name: /^개인 0/ }).click(); await tree2.getByRole("button", { name: "Milestone 계층 다음", exact: true }).click(); await expect(tree2.getByRole("button", { name: /^단계 6/ })).toBeVisible(); await tree2.getByRole("button", { name: /^개인 0/ }).click(); await tree2.getByRole("button", { name: /^개인 0/ }).click(); await expect(tree2.getByRole("button", { name: /^단계 6/ })).toBeVisible(); await tree2.getByRole("button", { name: /^단계 6/ }).click(); evidence.push(...await observeTree(page, tree2, "group-resource-milestone"));
@@ -102,7 +103,7 @@ test("#526 three tree paths use server group intersection and retain stage page 
 });
 
 test("#526 retained expansions remain bounded after ancestor reopen and mode return", async ({ page }) => {
-  await setup(page, true); const r = root(page); await r.getByLabel("리소스 보기", { exact: true }).selectOption("tree"); const tree = r.getByRole("region", { name: "Milestone 계층 현황", exact: true });
+  await setup(page, true); const r = root(page); await selectResourceReportView(r, "tree"); const tree = r.getByRole("region", { name: "Milestone 계층 현황", exact: true });
   await tree.getByRole("button", { name: /^그룹 0/ }).click(); await tree.getByRole("button", { name: /^단계 0/ }).click(); await expect(tree.getByLabel("그룹 교차 개인 현황").getByRole("button", { name: /^개인/ })).toHaveCount(40);
   for (let i = 0; i < 10; i++) await tree.getByRole("button", { name: new RegExp(`^개인 ${i} `) }).click();
   await expect(tree.locator('[aria-expanded="true"]')).toHaveCount(12); await expect(tree.getByRole("button", { name: /^개인 10 / })).toBeDisabled();
@@ -112,7 +113,7 @@ test("#526 retained expansions remain bounded after ancestor reopen and mode ret
 });
 
 test("#526 canceled child409 does not stale the current report and hidden detail trigger falls back", async ({ page }, testInfo) => {
-  await setup(page); const r = root(page); await r.getByLabel("리소스 보기", { exact: true }).selectOption("tree");
+  await setup(page); const r = root(page); await selectResourceReportView(r, "tree");
   let release!: () => void; const held = new Promise<void>(resolve => { release = resolve; }); let entered!: () => void; const requested = new Promise<void>(resolve => { entered = resolve; });
   let canceledRequest: import("@playwright/test").Request | undefined;
   let routeFinished = false;
@@ -134,13 +135,13 @@ test("#526 canceled child409 does not stale the current report and hidden detail
   await expect(r).toHaveAttribute("data-ready", "true");
   await expect(r.getByRole("alert")).toHaveCount(0);
   await testInfo.attach("canceled-child-completion", { body: JSON.stringify({ abortedBeforeLate409: true, routeFinished, ready: await r.getAttribute("data-ready"), staleAlerts: await r.getByRole("alert").count() }), contentType: "application/json" });
-  await r.getByLabel("리소스 보기", { exact: true }).selectOption("matrix"); const table = r.getByRole("region", { name: "개인 Milestone 비교표", exact: true }); await table.locator("tbody td button").first().click(); await expect(r.locator(".resource-dashboard-selected h3")).toBeFocused(); await r.getByLabel("리소스 보기", { exact: true }).selectOption("summary"); await r.getByRole("button", { name: "상세 닫기" }).click(); await expect(r.getByRole("searchbox", { name: "리소스·그룹·Task 이름과 코드 검색" })).toBeFocused();  } finally { release(); await page.unroute(routePattern); }
+  await selectResourceReportView(r, "matrix"); const table = r.getByRole("region", { name: "개인 Milestone 비교표", exact: true }); await table.locator("tbody td button").first().click(); await expect(r.locator(".resource-dashboard-selected h3")).toBeFocused(); await selectResourceReportView(r, "summary"); await r.getByRole("button", { name: "상세 닫기" }).click(); await expect(r.getByRole("searchbox", { name: "리소스·그룹·Task 이름과 코드 검색" })).toBeFocused();  } finally { release(); await page.unroute(routePattern); }
 });
 
 test("#526 matrix metric grain, missing versus configured zero and unknown completion remain explicit", async ({ page }) => {
   const { state } = await setup(page);
   await page.route(`**${projectPath}/resource-dashboard?*`, route => { const data = milestoneUiFixture(state, new URL(route.request().url()).searchParams); data.resources[0].milestones[0].summary.completion.percent = null; return route.fulfill({ json: toResourcePublicV2({ data }) }); });
-  const r = root(page); await r.getByRole("button", { name: "새로고침", exact: true }).click(); await expect(r).toHaveAttribute("data-ready", "true"); await r.getByLabel("리소스 보기", { exact: true }).selectOption("matrix"); await r.getByRole("button", { name: "개인", exact: true }).click(); const table = r.getByRole("region", { name: "개인 Milestone 비교표", exact: true }).locator("table");
+  const r = root(page); await r.getByRole("button", { name: "새로고침", exact: true }).click(); await expect(r).toHaveAttribute("data-ready", "true"); await selectResourceReportView(r, "matrix"); await r.getByRole("button", { name: "개인", exact: true }).click(); const table = r.getByRole("region", { name: "개인 Milestone 비교표", exact: true }).locator("table");
   await expect(table.locator("tbody tr").nth(1).locator("td").first()).toHaveText("대상 없음"); await expect(table.locator("tbody tr").nth(1).locator("td").first().locator("button")).toHaveCount(0); await expect(table.locator("tbody tr").nth(2).locator("td").first().locator("button")).toHaveText("0.00 M/D");
   const matrix = r.getByRole("region", { name: "Milestone 비교표", exact: true }); await matrix.getByLabel("셀 지표").selectOption("completion"); const first = table.locator("tbody tr").first().locator("td").first().locator("button"); await expect(first).toHaveText("완료율 미산정"); const taskResponse = page.waitForRequest(request => request.url().includes("/resource-dashboard/details?")); await first.press("Enter"); expect(new URL((await taskResponse).url()).searchParams.get("view")).toBe("tasks"); await r.locator(".resource-dashboard-selected h3").press("Escape"); await expect(first).toBeFocused();
   await matrix.getByLabel("셀 지표").selectOption("delayed"); const delayed = page.waitForRequest(request => request.url().includes("/resource-dashboard/details?")); await first.click(); const query = new URL((await delayed).url()).searchParams; expect(query.get("view")).toBe("tasks"); expect(query.get("metric")).toBe("delayed");

@@ -1,3 +1,9 @@
+## Issue #807 — 보고별 단일 Workspace와 출처
+
+리소스의 기본 진입은 기존 **기본 현황**이며 동적 계층 탐색·Milestone 교차·Resource Plan·견적/Excel을 peer로 선택한다. 활성 보고의 조건·범위·KPI를 한 번 표시한다. 기존 Resource 보고와 WBS resource-root 보고의 selector·snapshot·검색은 독립이며 호환되는 기간·기준일만 명시적으로 인계한다. 인계 후 대상 보고의 새 확정 결과를 사용하며 원본 snapshot을 대상 출처로 재사용하지 않는다.
+
+화면 통합으로 고유 Task/Assignment·M/D/M/M·T0/A/R·Group 중첩·등록/개인 배정·부분합/미설정/0/null·선택80%/같은 개인 Project140%·full Milestone Gate의 계산이나 분모는 바뀌지 않는다. 주월 Plan·개인 일별 Peak/과투입·개발 견적과 current/project Excel은 기존 consumer·원본 drill을 사용한다. 동적 root=Resource·개인 view spec·하위 축도 보존한다. R2 집계와 R3 차트는 [#808](https://github.com/planner77/masterGantt/issues/808)/[#809](https://github.com/planner77/masterGantt/issues/809)의 별도 범위다. [인벤토리·검증](exec-plans/active/ISSUE_807.md).
+
 ## Issue #785 — 실물 필터와 기존 공수·Plan 보존
 
 공개 resource/WBS v2는 실물 중심 필터/출처를 제공하며 Target 계층·교차표·선택·카탈로그·진단을 사용자에게 제공하지 않는다. 명시 v1 읽기는 deprecated 호환이며 새 UI에서 사용하지 않는다. 내부 resolver/수치 golden은 유지한다. 새 Equipment/System 조건은 직접+보존 관계의 실제 유효 인스턴스 합집합을 조회하며 기존 member-only 조건으로 대체하지 않는다. 공정/WorkArea는 WBS 명시 문맥을 사용한다.

@@ -1,3 +1,4 @@
+import { selectResourceReportView } from "./helpers/resource-workspace";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import {
   expect,
@@ -227,7 +228,7 @@ test("#527 실제 SQLite/HTTP 선택80·Project140·Group75·일별개인과 투
       .getByLabel("Milestone", { exact: true })
       .selectOption(milestone.taskId);
     await expect(root).toHaveAttribute("data-ready", "true");
-    await root.getByLabel("리소스 보기", { exact: true }).selectOption("plan");
+    await selectResourceReportView(root, "plan");
     await expect(root).toHaveAttribute("data-ready", "true");
     const plan = root.getByRole("region", {
       name: "Resource Plan",

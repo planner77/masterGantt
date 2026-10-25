@@ -1,0 +1,19 @@
+.workspace { min-width:0; max-width:100%; }
+.views { position:sticky; top:0; z-index:5; background:var(--surface-panel); display:flex; flex-wrap:wrap; gap:4px 8px; padding-block:4px 8px; border-bottom:1px solid var(--border-default); }
+.views button { min-height:44px; margin:0; padding:6px 10px; border:1px solid var(--border-control); border-radius:var(--radius); background:var(--surface-panel); color:var(--text-default); font:inherit; font-size:14px; cursor:pointer; }
+.views button[aria-pressed="true"] { background:var(--action-selected-subtle); color:var(--action-selected-foreground); border-color:var(--action-selected); }
+.views button:focus-visible { outline:var(--focus-outline); outline-offset:var(--focus-offset); }
+.workspace > [hidden] { display:none; }
+/* Local density adapter: preserve row budgets and all 44px action targets. */
+.workspace :global(.project-resource-workload) { gap:8px; padding-block:8px; }
+.workspace :global(.resource-dashboard-toolbar) { align-items:center; }
+.workspace :global(.resource-dashboard-filters) { align-items:flex-end; }
+.workspace :global(.resource-dashboard-filters > button) { min-height:44px; }
+.workspace :global(.resource-dashboard-filters input), .workspace :global(.resource-dashboard-filters select), .workspace :global(.resource-dashboard-view-controls select), .workspace :global(.resource-dashboard-advanced input), .workspace :global(.resource-dashboard-advanced select) { height:44px; font-size:14px; }
+.workspace :global(.resource-dashboard-view-controls) { margin:0; align-items:flex-end; }
+.workspace :global(.resource-dashboard-scope) { display:flex; align-items:center; flex-wrap:wrap; gap:4px 12px; color:var(--text-muted); font-size:12px; }
+.workspace :global(.resource-dashboard-scope p) { margin:0; }
+.workspace :global(.resource-dashboard-scope button) { min-height:44px; margin:0; }
+.workspace :global(.resource-dashboard-scope details) { min-width:0; max-width:100%; }
+.workspace :global(.resource-dashboard-scope summary) { min-height:44px; align-content:center; cursor:pointer; }
+.workspace :global(.resource-dashboard-scope pre) { white-space:pre-wrap; overflow-wrap:anywhere; }

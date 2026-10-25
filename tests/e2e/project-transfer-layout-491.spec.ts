@@ -1,3 +1,4 @@
+import { selectResourceReportView } from "./helpers/resource-workspace";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { readFile } from "node:fs/promises";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
@@ -23,6 +24,7 @@ test("Issue #491: Resource Dashboard 실제 공수·큰 서버 표시값·필터
   await expect(panel.getByRole("button",{name:"M/M",exact:true})).toBeDisabled();
   await expect(panel).toContainText("M/M 기준: 미설정 · 전환 불가");
   await capture491(page,info,"effort-actual-empty",".project-resource-workload");
+  await selectResourceReportView(panel,"estimate");
   await panel.getByRole("button",{name:"개발 견적",exact:true}).click();
   await expect(panel.getByRole("button",{name:"개발 견적",exact:true})).toHaveAttribute("aria-pressed","true");
   await expect(panel).toHaveAttribute("data-ready","true");

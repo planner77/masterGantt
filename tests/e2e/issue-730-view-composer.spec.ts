@@ -24,6 +24,7 @@ async function captureFocus(page: Page, label: string) {
 async function openRoot(page: Page, root: Root) {
   await page.getByRole("tablist", { name: "프로젝트 작업공간", exact: true }).getByRole("tab", { name: "대시보드", exact: true }).click();
   await page.getByRole("tablist", { name: "대시보드 보기", exact: true }).getByRole("tab", { name: labels[root], exact: true }).click();
+  if(root === "resource") await page.getByRole("group",{name:"리소스 분석 보기",exact:true}).getByRole("button",{name:"동적 계층 탐색",exact:true}).click();
   await expect(dashboard(page)).toBeVisible();
   await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
 }

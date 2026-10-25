@@ -1,3 +1,4 @@
+import { selectResourceReportView } from "./helpers/resource-workspace";
 import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
@@ -67,10 +68,9 @@ test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt
   expect(explicit.summary.effort.knownMd).toBe(report.summary.effort.knownMd);
   expect(explicit.summary.effort.plannedMm).toBe(0.575);
   const observations = [];
-  const view = root.getByLabel("리소스 보기", { exact: true });
   for (const mode of ["group", "resource"] as const) {
     await root.getByRole("button", { name: mode === "group" ? "그룹" : "개인", exact: true }).click();
-    await view.selectOption("tree");
+    await selectResourceReportView(root, "tree");
     for (const order of mode === "group" ? ["milestone", "resource"] : ["milestone"]) {
       if (mode === "group") await root.getByLabel("집계 순서", { exact: true }).selectOption(order);
       const tree = root.getByRole("region", { name: "Milestone 계층 현황", exact: true });
@@ -91,7 +91,7 @@ test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt
       await page.keyboard.press("Escape");
       observations.push({ kind: "tree", mode, order, text: await tree.innerText() });
     }
-    await view.selectOption("matrix");
+    await selectResourceReportView(root, "matrix");
     const region = root.getByRole("region", { name: `${mode === "group" ? "그룹" : "개인"} Milestone 비교표`, exact: true });
     const first = region.locator("tbody").getByRole("button", { name: `${mode === "group" ? "G1" : "A"} · M1 · 계획 공수 상세`, exact: true }).first();
     await first.focus(); await page.keyboard.press("Enter");
@@ -132,7 +132,7 @@ test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt
     }
   }
   await page.setViewportSize({ width: 1440, height: 900 });
-  await view.selectOption("plan");
+  await selectResourceReportView(root, "plan");
   for (const granularity of ["week", "month"] as const) {
     await root.getByLabel("기간 단위", { exact: true }).selectOption(granularity);
     await expect(root).toHaveAttribute("data-ready", "true");
@@ -164,7 +164,7 @@ test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt
     const url = new URL(response.url());
     return url.pathname === `${seeded.api}/resource-dashboard` && !url.searchParams.has("granularity") && response.status() === 200;
   });
-  await view.selectOption("summary");
+  await selectResourceReportView(root, "summary");
   await (await summaryResponse).json();
   await expect(root).toHaveAttribute("data-ready", "true");
   await root.getByRole("button", { name: "Excel 보고서", exact: true }).click();
@@ -652,6 +652,11 @@ test("#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource�
   const milestoneTab=workspaceViewTab(page, "milestones");
   const resourceTab=workspaceViewTab(page, "resources");
   const scheduleTab=page.getByRole("tab",{name:"일정",exact:true});
+  await openWorkspaceView(page, "resources");
+  const originalResource=page.locator('[data-resource-dashboard="true"]:visible');
+  await expect(originalResource).toHaveAttribute("data-ready","true");
+  await selectResourceReportView(originalResource,"estimate");
+  await expect(originalResource.getByRole("button",{name:"개발 견적",exact:true})).toHaveAttribute("aria-pressed","false");
   await openWorkspaceView(page, "milestones");
   const milestone=page.getByTestId("milestone-dashboard");await expect(milestone).toHaveAttribute("data-ready","true");
   await milestone.getByLabel("Milestone 검색",{exact:true}).fill("M1");
@@ -673,6 +678,8 @@ test("#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource�
   await crossTrigger.focus();await page.keyboard.press("Enter");
   await expect(resourceTab).toHaveAttribute("aria-selected","true");
   const resource=page.locator('[data-resource-dashboard="true"]:visible');await expect(resource).toHaveAttribute("data-ready","true");
+  const workspace=page.locator("[data-resource-workspace]");
+  await expect(workspace).toHaveAttribute("data-resource-peer","summary");
   await expect(resource.getByLabel("기간 시작",{exact:true})).toHaveValue(range.from);
   await expect(resource.getByLabel("기간 종료",{exact:true})).toHaveValue(range.to);
   await expect.poll(()=>resourceReports.some(report=>report.range.from===range.from && report.range.to===range.to && report.summary.taskCount===1 && report.summary.assignmentCount===2)).toBe(true);
@@ -692,19 +699,32 @@ test("#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource�
   expect(assignmentResponse.status()).toBe(200);const assignments=(await assignmentResponse.json()).data as ResourceDashboardDetailsDto;
   expect(assignments.rows).toHaveLength(2);expect(assignments.rows.map(row=>row.assignment!.assignmentId).sort()).toEqual(assignmentIds);expect(assignments.rows.every(row=>row.taskId===t1.taskId)).toBe(true);
   expect(assignments.rows.reduce((sum,row)=>sum+row.assignment!.plannedMd!,0)).toBe(7.5);
+  await selectResourceReportView(resource,"estimate");
+  await expect(workspace).toHaveAttribute("data-resource-peer","estimate");
+  const resourcePanel=page.locator("#project-panel-resources");
+  await resourcePanel.evaluate(panel=>{panel.scrollTop=Math.min(96,panel.scrollHeight-panel.clientHeight);});
   const kpi=resource.getByLabel("선택 범위 KPI",{exact:true});
   const delayed=kpi.locator("div").filter({hasText:/^지연 Task/}).getByRole("button");await expect(delayed).toHaveText("1건");await delayed.focus();await page.keyboard.press("Enter");
   const detail=resource.locator(".resource-dashboard-detail");await expect(detail.locator("tbody tr")).toHaveCount(1);await expect(detail).toContainText("T1");
   const strip=page.getByRole("region",{name:"임시 조회 범위",exact:true});
-  await detail.getByRole("button",{name:"전체 범위 일정 보기",exact:true}).click();
+  const scheduleTrigger=detail.getByRole("button",{name:"전체 범위 일정 보기",exact:true});
+  await scheduleTrigger.click({trial:true});
+  const sourceResourceScroll=await resourcePanel.evaluate(panel=>panel.scrollTop);
+  expect(sourceResourceScroll).toBeGreaterThan(0);
+  await scheduleTrigger.click();
   await expect(scheduleTab).toHaveAttribute("aria-selected","true");await expect(strip).toContainText("고유 Task 1");await expect(strip).toContainText("Assignment 2");
   await expect(frame.locator(`.wx-row[data-id=":${t1.taskId}"]`)).toBeVisible();
   for(const key of ["T2","T3","T4","T5","T6"]) await expect(frame.locator(`.wx-row[data-id=":${seed.tasks[key].taskId}"]`)).toHaveCount(0);
   await strip.getByRole("button",{name:/원래 보기/}).click();await expect(resourceTab).toHaveAttribute("aria-selected","true");
+  await expect(workspace).toHaveAttribute("data-resource-peer","estimate");
+  await expect.poll(()=>resourcePanel.evaluate(panel=>panel.scrollTop)).toBe(sourceResourceScroll);
   await expect(detail.locator("tbody tr")).toHaveCount(1);await expect(resource.getByLabel("기간 시작",{exact:true})).toHaveValue(range.from);await expect(resource.getByLabel("기간 종료",{exact:true})).toHaveValue(range.to);
   await strip.getByRole("button",{name:/원래 보기/}).click();await expect(milestoneTab).toHaveAttribute("aria-selected","true");await expect(strip).toHaveCount(0);
   await expect(milestone.getByLabel("Milestone 검색",{exact:true})).toHaveValue("M1");await expect(milestone.getByLabel("공수 시작일",{exact:true})).toHaveValue(range.from);await expect(milestone.getByLabel("공수 종료일",{exact:true})).toHaveValue(range.to);
   await expect(causeHeading).toBeVisible();await expect(causeRegion).toContainText("T1");await expect(crossTrigger).toBeFocused();
+  await openWorkspaceView(page,"resources");
+  await expect(workspace).toHaveAttribute("data-resource-peer","estimate");
+  await expect(originalResource).toHaveAttribute("data-ready","true");
   const after=await seed.getSnapshot();expect(after).toEqual(canonical);expect((await ganttIntegrationState(page)).instance).toBe(instance);
   const receipt={variant:"T1 task and two personal allocation windows moved to past five weekdays; selected M1 scope only",baseRange:RESOURCE_KPI_INTEGRATION,range,
     asOfDate:report.asOfDate,projectPublicId:seed.publicId,taskId:t1.taskId,milestoneTaskId:seed.tasks.M1.taskId,assignmentIds,projectRevision:canonical.data.project.revision,

@@ -1,3 +1,9 @@
+## Issue #807 — 리소스 단일 Workspace
+
+최신 main `c69c22e248de6d2af9cc753eb0296ff97d4a2b8f`/app0.133.3에서 기존 기본 분석을 첫 작업면으로 두고 동적 탐색·Milestone 교차·Plan·견적/Excel을 peer로 통합한다. [Work Packet](ISSUE_807.md)의 방문별 상태·독립 selector/snapshot·명시 기간 인계·활성 요청·정확 원본 복귀와 [실패 원장](../../ISSUE_807_FAILURE_ANALYSIS.md)을 따른다. #800은 이미 병합·종료되었으며 기존 측정 계약을 재사용한다. R2 #808 집계와 R3 #809 차트는 분리한다.
+
+후보 PATCH0.133.4, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 실제 ui_ux/frontend/qa_docs/infra 역할을 분리한다. 요청 종료점은 구현·문서·리뷰/충돌 처리·실패 기록 뒤 Ready PR Full CI 시작이다. 원격 Required3/Trusted·Owner/Manager ACCEPT는 NOT TESTED이며 CI 모니터링·병합·Main/GHCR·정식 게시·Issue 종료는 수행하지 않는다.
+
 ## Issue #553 — old stacked PR #562 marker-OFF 선별 재통합 (2026-10-25)
 
 [Work Packet](ISSUE_553.md) / [전용 실패 원장](../../ISSUE_553_FAILURE_ANALYSIS.md). #552/PR #561 병합 뒤 21개 old PR CI(10 FAIL·11 CANCELLED)와 충돌한 0.106.1 stacked PR #562를 0.133.3 main 통합으로 재기준화한다. old HEAD `afd5ec2899183a2464b64f91d34e9de5d8a8319c` 및 archive 보존, force/rebase 금지; 최신 main과 두 부모로 충돌 해결. 이전 marker-ON UI·viewport patch는 제외하고 원본 교환 fixture/integration/실제 HTTP·SQLite/restart, Export 공통 안내, 현행 image spec assertion·사용 가이드·추적표만 선별. TEST_LIFECYCLE_REVIEW/AC/NOT TESTED 범위를 Packet에 기록. HIGH/OWNER_MANAGED, 8-shard 새 exact-head PR CI 시작까지만, 병합/Main/GHCR/정식 Release/Issue 종료·모니터링 없음.
