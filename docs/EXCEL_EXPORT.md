@@ -1,3 +1,9 @@
+## Issue #808 — 분석 모델과 지원 Excel의 동등성 범위
+
+새 Resource 분석 read model은 기존 WBS/KPI/Plan 원장의 selector를 재사용하며 workbook writer·HTTP export descriptor·시트와 지원 spec을 변경하지 않는다. chart/pivot의 top N이나 중복 Group/Role/Milestone/실물 소계를 합산해 Excel 총계로 쓰지 않는다. 동등성 비교는 같은 canonical Task/Assignment/Resource ID집합·선택 scope·기간/기준일·effective Calendar·mdPerMm에서 raw M/D/M/M·null/partial/configured0·Task 수·Plan을 대상으로 한다.
+
+WBS와 legacy Resource snapshot은 서로 다른 identity이므로 기존 Resource-root `resourceAdapter {report,binding}`과 서버의 원 출처 재검증이 필요하다. `current`는 선택 제한을 유지하고 `project`는 기존 명시 해제 정책을 따르며, 지원하지 않는 spec/source는 전체 오류를 유지한다. 새 내부 adapter 출력을 임의 export descriptor로 cast하지 않는다. 같은 source의 실제 OOXML/권한/stale 검증은 기존 #623/#736 테스트가 소유하며 차트 UI의 종단 비교는 #809 후속이다. [집계 계약](RESOURCE_KPI_DASHBOARD.md#issue-808--차트용-분석-read-model과-기존-지표-인벤토리).
+
 ## Issue #553 — 운영 marker OFF와 Workbook 데이터 범위 (2026-10-25)
 
 화면에서 Milestone native 행/marker가 표시되지 않더라도 기본 Export는 현행 **canonical Tasks/Gantt/Milestone 전체 일정 행·full Gate 및 명시/유효 Membership**을 유지한다. `includeDependencies=false`가 소속 정보를 제거하지 않는다. 선택적 #529 Resource 보고 범위(F)와 Project 전체 E/P, catalog/source revision 및 미설정·0·부분합 의미를 구별한다. 새 native Timeline 레이아웃으로 Excel Gantt 시트를 교체하지 않는다. [사용자 가이드](MILESTONE_USER_GUIDE.md)/[#553 추적표](MILESTONE_TIMELINE_TRACEABILITY.md); 기존 exporter/API/보안 계약 불변.

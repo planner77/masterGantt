@@ -1,3 +1,11 @@
+## Issue #808 — 분석 adapter의 범위·원장 재사용 검증
+
+[Work Packet](exec-plans/active/ISSUE_808.md)의 AC1~AC6과 [실패 원장](ISSUE_808_FAILURE_ANALYSIS.md)을 따른다. 새 `tests/domain/resource-analysis.test.ts`는 기존 fixture/selector를 사용해 source/snapshot/revision/generation 결속, 축 내 OR/축 간 AND, ID 기반 pivot/top N/exact detail, 비가산·미설정/null·Plan 보존 계약만 ADD한다. 실제 명령/결과는 Work Packet에 기록하며 원격 Required3/Trusted/Owner PASS와 구분한다.
+
+기존 oracle KEEP_UNIQUE: `wbs-task-ledger.test.ts`의 shared5/공동담당7.5·등록/역할-only·선택80/Project140, `resource-kpi*.test.ts`의 같은 Assignment 개인 조건·상태/진단 분모·raw/null, `resource-plan*.test.ts`의 Calendar/개인 초과·Group·ISO주/월·clipping. 서버 `resource-kpi-integration.test.ts`·`issue-622-target-plan-excel.test.ts`·`projects/resource-excel-export.test.ts`는 실제 SQLite·OOXML current/project·ID·stale 경계로 유지한다. `wbs-dashboard-views-http.test.ts`·feature transport/model 및 `issue-736-resource-dashboard.spec.ts`의401/403/412·역전·readonly·정확 복귀는 고유 경계이며 순수 모델 실행으로 대체하지 않는다.
+
+기존 테스트 삭제/skip/assertion·CI gate 완화 없음. UI를 변경하지 않아 geometry·keyboard full E2E를 중복 추가하지 않는다. #809가 실제 차트 consumer를 연결할 때 기존 브라우저/Excel 시나리오를 최소 EXTEND한다. 미실행 항목은 NOT TESTED로 남기며 서로 다른 source의 성공 건수를 합산하지 않는다.
+
 ## Issue #807 — 리소스 단일 작업면 회귀
 
 [Work Packet](exec-plans/active/ISSUE_807.md)의 AC1~AC7·TEST_LIFECYCLE_REVIEW를 기준으로 기존 #736·#730/#798/#800 진입 helper를 새 기본 현황/명시 동적 peer에 맞춰 확장한다. #622/#530 nested 복귀·Resource Plan·Dashboard 상태/Excel·readonly/401/412·stale/응답 역전과 #799 지표·cross-screen/Gantt의 고유 단언을 보존한다. 공통 geometry observer를 느슨하게 하거나 별도 중복 full spec·skip/timeout/retry·8shard/Required3를 추가/변경하지 않는다.

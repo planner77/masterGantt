@@ -1,3 +1,9 @@
+## [0.134.0] — Unreleased / Issue #808 분석 read model (2026-10-25)
+
+### Added
+
+- Resource 분석을 위한 typed read-only 모델을 추가하고 기존 WBS/공수/Plan 원장의 교차 선택·비가산 총계·정확 근거·기간별 지표와 snapshot/generation 검증 계약을 재사용합니다. 차트 UI는 별도 후속 범위입니다 (#808).
+
 ## [0.133.4] — Unreleased / Issue #807 리소스 Workspace 통합
 
 - 리소스의 기존 기본 현황·Milestone 교차·Resource Plan·견적/Excel과 동적 계층 탐색을 단일 작업면의 peer로 제공한다. 기본 펼침 적층과 중복 보기 제어를 줄이고 보고별 조건·범위·snapshot·정확 원본/일정 복귀를 보존한다.

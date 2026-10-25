@@ -1,3 +1,9 @@
+## Issue #808 — Resource 분석 read model
+
+최신 main `048ae92ff673f1d0c4c69171fe3cc9bffe25dc19`/app0.133.4의 #807 화면을 보존하고 기존 WBS/KPI/Plan 원장의 typed 분석 adapter를 추가한다. [Work Packet](ISSUE_808.md)의 단일 원장·비가산·T0/A/R·snapshot/generation·정확 ID 계약 및 [실패 원장](../../ISSUE_808_FAILURE_ANALYSIS.md)을 따른다. R3 #809 차트 렌더링·API/DB/Calendar 재구현은 제외한다.
+
+후보 MINOR0.134.0, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 역할을 분리해 구현·문서·사전 검토·리뷰/충돌 처리 후 Ready PR Full CI 시작까지만 수행한다. 결과 모니터링·병합/Main/GHCR·Release·Issue 종료는 제외하며 Required3/Trusted/Manager ACCEPT는 NOT TESTED다.
+
 ## Issue #807 — 리소스 단일 Workspace
 
 최신 main `c69c22e248de6d2af9cc753eb0296ff97d4a2b8f`/app0.133.3에서 기존 기본 분석을 첫 작업면으로 두고 동적 탐색·Milestone 교차·Plan·견적/Excel을 peer로 통합한다. [Work Packet](ISSUE_807.md)의 방문별 상태·독립 selector/snapshot·명시 기간 인계·활성 요청·정확 원본 복귀와 [실패 원장](../../ISSUE_807_FAILURE_ANALYSIS.md)을 따른다. #800은 이미 병합·종료되었으며 기존 측정 계약을 재사용한다. R2 #808 집계와 R3 #809 차트는 분리한다.
