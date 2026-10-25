@@ -6,10 +6,10 @@
 - issue: [#799](https://github.com/planner77/masterGantt/issues/799)
 - lifecycle_phase: PRE_QA / PR_CI_READY
 - 승인 범위: 분석·계획·구현·문서 동기화·Ready PR Full CI 시작까지. 결과 모니터링·병합·Main/GHCR·릴리스·Finalizer·브랜치 정리·Issue 종료는 제외한다.
-- baseline/main: `fcd1ae59d268efa1913f4de625a9013cabd1de4a` (#798 병합 포함)
+- baseline/main: `fcd1ae59d268efa1913f4de625a9013cabd1de4a` (#798 병합 포함; 최초 before/after 기준), 정렬 main: `37963266793e7c4b1827f64d3d9b19b2d5d252fb` (#506 반영)
 - branch/worktree: `feat/issue-799-dashboard-metrics`, `/home/planner/Dev/masterGantt-799`
-- current_version: `0.133.0`
-- candidate_version: `0.133.1` (기존 표시의 호환 가능한 정돈이므로 PATCH)
+- current_version: `0.133.1` (최신 main #506 병합 뒤; 원래 비교 fixture baseline 0.133.0은 보존)
+- candidate_version: `0.133.2` (#506의 0.133.1과 겹치지 않는 신규 PATCH) (기존 표시의 호환 가능한 정돈이므로 PATCH)
 - version_decision: PLAN의 잠정 keep에서 제품 변경 버전 정책에 따라 PATCH로 정정. package/lock version3곳만 변경하며 의존성·SRI는 유지한다.
 - release_required: true
 - release_authorized: false (버전별 정식 게시 승인 없음)
@@ -165,3 +165,12 @@ python3 tests/manual/issue-799-compare.py
 실제 분리된 `qa_docs /root/metrics_qa`가 현재256파일 후보를 독립 검토해 PRE_QA PASS·미해결 지적0을 반환했다. 제품/테스트7개 지문·Unit22·Chromium7 원본/정제 결과·표준30쌍/동적25 report·exact raw5·독립 readonly/DOM stress·문서/상태 한정·선별256파일과 민감정보 패턴105텍스트파일을 확인했다. 최종 CSS 지문은 위와 같다. KPI의 WBS report가 없는 범위를 분리하도록 한 문서 지적1건은 수정 후 재확인했다.
 
 이 결과는 게시 전 Agent 사전 검토이며 AGENT 보호경로의 실제 별도 인간 QA_FINAL 승인 영수증·Owner HIGH 위험 수용/Manager ACCEPT가 아니다. 해당 최종 승인은 NOT TESTED이고 MERGE_READY=BLOCKED다. Manager는 같은 검증 source/tree의 원격 게시·Ready PR Full CI 시작 인계만 승인하며 병합·정식 릴리스 권한은 부여하지 않는다. 실제 PR Head/base/test merge와 Full run/attempt·시작 상태는 Issue STATUS에 기록한다.
+
+## REWORK — #804 Full CI PASS 이후 Trusted base-drift 복구 (2026-10-25)
+
+- 기존 PR Full [#3267.1 / 40153151893.1](https://github.com/planner77/masterGantt/actions/runs/40153151893): Head `fcac6248b26dd9976f8c55dc7e8e1cde43bf4b58`, Base `fcd1ae59d268efa1913f4de625a9013cabd1de4a`, test merge `3fca88eaff556e43409754cb07cdb9572104085b`, QA Preflight/Quality/E2E8/8/Docker Required3 SUCCESS. 최초 검증 당시 PASS이며 최신 main에 대한 승인 증거가 아니다.
+- 후속 [Trusted #913.1 / 40155011958.1](https://github.com/planner77/masterGantt/actions/runs/40155011958) Job `121054417505` Step4 직접 BLOCKED: `병합 전 PR base/test-merge가 원본 검증과 다릅니다`. 실행 시 main SHA `37963266793e7c4b1827f64d3d9b19b2d5d252fb`. 원인 `POLICY_CI / STALE_BASE`: #506 PR #803이 main에 병합되어 최초 source와 정확한 Base/Test-Merge가 달라졌음. 제품 E2E 직접 실패가 아니다.
+- #506과 #799가 공통으로 변경한 6파일: `CHANGELOG.md`, `docs/PROJECT_UX.md`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md`, `package.json`, `package-lock.json`. 문서는 두 이슈의 서로 다른 top sections를 완전히 보존하고 제품/테스트/fixture의 main-only 변경 9파일은 최신 main blob으로 결합. #799의 dashboard CSS/E2E/이미지/측정 자료는 원본 보존. 동일0.133.1 버전 충돌을 회피하여 PATCH `0.133.2`로 상향, package/lock root 3곳만 변경하며 의존성/SRI 불변.
+- 기존 로컬 before/after30쌍·Chromium7/7·version-check0.133.1과 보고서의 원본 지문은 역사적 당시 실행 증거다. 새 합성 tree에서 Node/npm/Vitest/Chromium/Docker 로컬 재실행은 `NOT RUN`; 정확한 새 Head/Base/Test-Merge Full CI 및 Trusted는 실제 완료 증거 전 `NOT TESTED`. 이전 SUCCESS/FAIL을 새 Head로 소급 변경하지 않는다.
+- `risk_level=HIGH`, `qa_required=true`, `qa_method=AGENT`, `release_required=true`, `release_authorized=false`, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`. 독립 인간 QA_FINAL 승인, Owner 위험 수용/Manager ACCEPT 및 정식 릴리스 권한은 별개다. 리뷰 스레드0·충돌 여부는 최종 push 후 재조회. 요청 범위는 새 PR Full CI 시작까지만이며 모니터링·병합/Main/GHCR/Finalizer/Issue 종료 금지.
+- 공식 실패·원인·보완은 [Issue #799 누적 실패 원장 F799-R001](../../ISSUE_799_FAILURE_ANALYSIS.md)에 구분 기재. 로컬 F799-L001~L010 및 초기 remote 성공·후속 Trusted 실패는 불변.

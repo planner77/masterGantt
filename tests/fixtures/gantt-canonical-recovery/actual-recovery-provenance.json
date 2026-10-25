@@ -81,6 +81,7 @@
   "captureSourceMappings": {
     "package.json": "tests/fixtures/gantt-state-consistency/capture-sources/package-original.snapshot.txt",
     "package-lock.json": "tests/fixtures/gantt-state-consistency/capture-sources/package-lock-original.snapshot.txt",
-    "src/features/gantt/canonical-recovery.ts": "tests/fixtures/gantt-state-consistency/capture-sources/canonical-recovery-original.snapshot.txt"
+    "src/features/gantt/canonical-recovery.ts": "tests/fixtures/gantt-state-consistency/capture-sources/canonical-recovery-original.snapshot.txt",
+    "src/features/gantt/canonical-snapshot-sync.ts": "tests/fixtures/gantt-state-consistency/capture-sources/canonical-snapshot-sync-original.snapshot.txt"
   }
 }

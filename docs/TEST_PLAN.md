@@ -4,6 +4,22 @@
 
 390/768/1024/1440/1920px의 같은 Project snapshot before/after에서 KPI geometry KEEP, first-data/표 Y·지표 가시성·간격·document overflow·owner scroll·원래 표시값/단위와 canonical fingerprint·업무 mutation0을 비교한다. 긴 KO/EN·동명·0/null/부분합·readonly/loading/error/stale는 영향 기반으로 배분하고 실제 실행과 미실행을 분리한다. 실제 터치/보조기기·native zoom·운영 환경은 #517의 별도 경계다. 로컬 PASS는 공식 exact-head Quality/E2E8/Docker·Trusted/QA_FINAL·Owner ACCEPT를 대신하지 않으며 이번 작업은 PR CI 시작 뒤 모니터링하지 않는다.
 
+- **#799 Trusted base-drift 재검증**: 최초 [Full #3267.1](https://github.com/planner77/masterGantt/actions/runs/40153151893)은 원래 Base의 Quality·E2E8/8·Docker PASS, [Trusted #913.1](https://github.com/planner77/masterGantt/actions/runs/40155011958)은 #506 main 변경 뒤 Base/Test-Merge 불일치로 BLOCKED. #506의 Gantt sibling/역사 캡처 테스트를 그대로 복원하여 새 정확 Head/Base/Test-Merge에서 Full8 재검증하고, 이전 화면 before/after30쌍은 역사적 fixture 증거로 구분한다. CI 정책·경고를 완화하지 않는다.
+
+## Issue #506 / PR #803 — TypeScript DTO 및 historical U2 capture 회귀 대응 (2026-10-25)
+
+- [원본 Full #3265.1](https://github.com/planner77/masterGantt/actions/runs/40150246833): Preflight·Policy·ESLint PASS. `tests/e2e/task-context-menu-hierarchy.spec.ts`는 GET과 Task 생성 POST의 반환 DTO를 동일 타입으로 다뤄 TS2322 두 곳; `ProjectSnapshotResponse | TaskMutationResponse` union으로 실제 공통 `data.project/data.tasks`만 사용하고 권한·operation 필드를 변조하지 않는다. `typecheck`와 원본 Chromium E2E 재검증은 새 Head에서 수행해야 한다.
+- `tests/features/gantt/canonical-recovery-runtime.test.ts`의 U2 2026-10-15 actual Core capture는 원본 canonical sync SHA256 `b2ed227f571dd36cd90d143a1954980887afd050f4dfd50b41d866dcea55ed15`을 계속 증명한다. 현재 #506 변경 source `7a6fbcc...`는 그 시점의 증거가 아니다. historical source를 `tests/fixtures/gantt-state-consistency/capture-sources/canonical-snapshot-sync-original.snapshot.txt`에 exact bytes로 보존하고 `actual-recovery-provenance.json`의 `captureSourceMappings`로 **원본만** 참조. 기존 digest/timestamp/12개 cases·Unit oracle을 갱신/무효화하지 않으며 production writer의 동작은 별도 E2E/Unit/SQLite 경로에서 검증한다.
+- `TEST_LIFECYCLE_REVIEW`: EXTEND 기존 E2E 응답 타입과 U2 pinned source Unit; ADD 역사 source fixture 경로 및 고정 assertion; KEEP_UNIQUE 기존 U2 12 scenario·U1/U4/현행 #506 canonical order·서버 read-back·scope·selection·Grid/Chart. 기존 테스트 skip, timeout/retry, CI8-shard/Required3 완화 없음. 원본 F-001/F-002/F-003 및 P1 리뷰는 [#506 누적 원장](ISSUE_506_FAILURE_ANALYSIS.md)에서 구분한다. 실제 새 Head 실행은 **NOT TESTED**.
+
+## Issue #506 — Task Above/Below 정확한 sibling 위치 회귀
+
+- **SQLite/Service**: `tests/server/projects/task-hierarchy-command-service.test.ts` — root [A,B,C]의 B 앞/뒤·첫/마지막, nested Summary의 자식 A/B/C, 동일 `parentExternalId`, family별 `siblingOrder=0..n-1`, revision 및 readonly 재조회. 기존 auth/rollback·API 보호 테스트는 삭제하지 않는다.
+- **SVAR 공개 명령**: `tests/features/gantt/canonical-snapshot-sync.test.ts` — 중간 삽입 시 `add-task mode="before",target=next`, 마지막만 previous-after, root 처음/중간/마지막·nested(접힌 Summary)에서 불필요한 `move-task` 없음. 기존 `canonical-sync-execution.test.ts`의 처음 삽입, `canonical-projection.test.ts`의 preorder/자식 관계 검증은 유지한다.
+- **Chromium E2E**: `tests/e2e/task-context-menu-hierarchy.spec.ts` — menu request `anchorTaskId/placement`, root 중간 Above/Below, scoped Summary 자식 앞/뒤, scope root 두 명령 disabled, 실제 Grid 행·Chart bar Y 순서, 재조회·reload 영속성, 동일 Gantt/API 인스턴스. #72 menu 존재 검증 및 #373/#407/#418 scoped/readonly·선택/스크롤 테스트 유지.
+- **TEST_LIFECYCLE_REVIEW**: EXTEND 기존 service/canonical/E2E; ADD 새로운 위치·연속 order·Grid/Chart assertions; PARTIAL_OVERLAP 기존 #72 작업 존재 검증과 정확 위치 검증; KEEP_UNIQUE HTTP/SQLite/브라우저/권한/모달·재시도/뷰포트. `CONSOLIDATE_CANDIDATE=N/A`, `RETIRE_CANDIDATE=N/A`. 테스트 삭제, skip, retry/timeout/8-shard/Required3 정책 변경 없음.
+- **실제 실행 경계**: 노드/브라우저 체크아웃 실행 환경이 없어 로컬 Vitest/Playwright/tsc/lint/Docker **NOT RUN**. 새 exact-head non-draft PR Full CI/Trusted/Owner 결과는 **NOT TESTED**, 결과와 별도 Owner 승인 전 `MERGE_READY=BLOCKED`; 요청에 따라 CI 모니터링 생략.
+
 ## Issue #798 — 동적 대시보드 공통 제어 밀도 회귀
 
 [#798 Work Packet](exec-plans/active/ISSUE_798.md)의 AC_TEST_COVERAGE와 TEST_LIFECYCLE_REVIEW를 단일 매핑으로 사용한다. #797 감사의 누락 조합·PARTIAL을 이번 PASS로 재사용하지 않고 동일 fixture의 KPI+5관점×390/768/1024/1440/1920 source/geometry/PNG를 변경 전후에 수집한다. header/toolbar/구성 높이·wrap·첫 요약/표Y·가시 지표/행·유효 상태와 document overflow를 비교한다. 지표 요약 자체 개선은 #799, 전 화면 지속 기준선은 #800 범위다.

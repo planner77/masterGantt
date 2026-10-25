@@ -1,5 +1,9 @@
 # Issue #799 — 대시보드 지표 표시 인벤토리와 검증
 
+## 2026-10-25 최신 main 정렬에 따른 증거 범위
+
+원래 KPI+5개 동적 관점 before/after는 초기 main `fcd1ae59d268efa1913f4de625a9013cabd1de4a`(앱0.133.0)에서 출발해 실제 캡처 런타임0.133.1로 수행한 역사적 증거다. 최초 PR Full [#3267.1](https://github.com/planner77/masterGantt/actions/runs/40153151893) 성공 후 #506 병합 main `37963266793e7c4b1827f64d3d9b19b2d5d252fb`(앱0.133.1)으로 Base/Test-Merge가 이동하면서 Trusted [#913.1](https://github.com/planner77/masterGantt/actions/runs/40155011958)은 BLOCKED. **최신 #799 통합 후보는0.133.2**이며 본문 PATCH0.133.1/캡처 원본 기록은 역사적 실제 source로 보존한다. 신규 Head의 Full8/Trusted/AGENT 인간 QA/Owner 검증은 미완료, 기존 값·단위 동등성 측정이나 이미지에 새로운 실행을 덧씌우지 않는다.
+
 ## 기준과 판정 방법
 
 main `fcd1ae59d268efa1913f4de625a9013cabd1de4a`(앱0.133.0, #798 포함)에서 시작한다. #799 후보는 PATCH0.133.1이며 의존성은 같다. 같은 Project/서버 snapshot·관측 fixture를 사용해 KPI+5개 동적 관점을390/768/1024/1440/1920px에서 비교한다. 구체 source·도구 hash·환경·실제 측정은 실행 영수증으로 고정한다. 아래 인벤토리는 소스·read-only 설계와 실제 before/after 관측을 연결한다. 표현 변경·로컬 실행과 공식 원격/최종 QA 판정은 구분한다.

@@ -4,6 +4,12 @@ KPI의 기존 네 카드·품질 패널·세부표와 Milestone 전체 상태·�
 
 기존0·미산정·공수 미설정·알려진 부분합·환산 기준 미설정과 미연결/진단 문구를 보존한다. 요약을 카드로 통일하거나 상태색만으로 의미를 전달하지 않는다. #798 toolbar·조회 구성과 원본 drill·필터/선택/scroll/focus 복귀·권한/계산은 기존 계약을 따른다. [6관점 인벤토리/실측](ISSUE_799_DASHBOARD_METRICS.md)와 [Work Packet](exec-plans/active/ISSUE_799.md)에서 실제 브라우저·로컬·원격 검증 상태를 구분한다.
 
+## Issue #506 — Context Menu Task Above/Below의 sibling·화면 일치
+
+Grid/Chart의 우클릭 `Add > Task above/Task below`는 기존 `task-commands`의 `anchorTaskId`와 `placement="before"|"after"`를 사용한다. 선택 Task와 동일 parent에 즉시 앞/뒤로 생성하며 서버 응답의 root·nested `siblingOrder`는 family별 0부터 연속한다. WBS scope의 허용된 하위 Task에서는 동일하며 scoped root 자체의 앞·뒤 추가는 비활성화한다.
+
+서버에서 확정된 canonical snapshot을 SVAR public `add-task`로 반영할 때 기존 다음 sibling이 존재하면 `mode="before",target=next.id`를 우선하여 삽입한다. 다음 sibling이 없을 때만 `mode="after",target=previous.id`로 tail에 놓는다. Grid 행 및 Chart bar의 즉시 순서가 일치해야 하며 Gantt/API instance remount/불필요한 move, 권한·선택·접힘·스크롤·스케일 리셋을 유발하지 않는다. 새로고침도 SQLite read-back 순서를 따른다. [#506 Work Packet](exec-plans/active/ISSUE_506.md), [Test Plan](TEST_PLAN.md).
+
 ## Issue #798 — 동적 대시보드의 빠른 필터와 조회 설정
 
 Milestone·공정&WorkArea·설비·물류 시스템·리소스는 관점명·현재 적용 경로·도움말을 한 header에 두고, 작업 검색·상태·기간·새로고침을 빠른 제어로 제공한다. 표의 이름 찾기·이름 정렬·관점별 조건과 기존 조회 구성은 `필터·조회 구성`에서 연다. KPI 화면과 구성 참고/필터된 작업/전체 Gate·개인 Plan/Excel 요약은 기존 계약을 유지한다.

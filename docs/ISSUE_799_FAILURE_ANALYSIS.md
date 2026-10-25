@@ -51,3 +51,19 @@ L010 보완 결과: 실패2개 readonly 인벤토리·4PNG와 독립 exact-query
 ## 원격 상태
 
 PR Full CI·Quality/E2E8/Docker·Trusted QA는 아직 NOT TESTED다. 이 로컬 준비/보조 실패를 원격 회귀 결과로 표시하거나 최종 QA/Manager ACCEPT로 사용하지 않는다.
+
+## F799-R001 — 원격 PR Full CI 성공 이후 Trusted Base/Test-Merge 불일치 (2026-10-25)
+
+| 실행/출처 | 판정 |
+| --- | --- |
+| [PR #804 Full #3267.1](https://github.com/planner77/masterGantt/actions/runs/40153151893), run `40153151893` attempt1, `pull_request FINAL_FULL`, Head `fcac6248b26dd9976f8c55dc7e8e1cde43bf4b58`, Base `fcd1ae59d268efa1913f4de625a9013cabd1de4a`, Test-Merge `3fca88eaff556e43409754cb07cdb9572104085b` | Preflight Job `121048790702` PASS; Quality `121049643496` PASS; PR E2E shard1~8 및 Required Chromium `121054333826` PASS; Docker `121049673809` PASS. QA Final Automated `121054351658`는 **SKIPPED**, 독립 최종 QA 승인이 아님. |
+| [QA Trusted #913.1](https://github.com/planner77/masterGantt/actions/runs/40155011958), run `40155011958` attempt1, created `2026-10-25T02:35:15Z`, `workflow_run`, 검증기 main `37963266793e7c4b1827f64d3d9b19b2d5d252fb` | `QA Final — Trusted` Job `121054417505`, Step4 `원본 PR CI/Head/base 및 차단 리뷰·문서 증거 독립 조회`에서 직접 **FAIL/BLOCKED**, `병합 전 PR base/test-merge가 원본 검증과 다릅니다`, exit1. checkout·검증기 SHA 검사·artifact upload는 PASS. [원본 Job](https://github.com/planner77/masterGantt/actions/runs/40155011958/job/121054417505), [원본 artifact](https://github.com/planner77/masterGantt/actions/runs/40155011958/artifacts/12584501640). |
+
+- **원인 분류 `POLICY_CI / STALE_BASE`**: Issue #506 / PR #803의 main 병합 SHA `37963266793e7c4b1827f64d3d9b19b2d5d252fb`가 기존 Base 이후 반영되어 #799 Full 성공 영수증의 Base/Test-Merge와 현재 open PR이 일치하지 않는다. 원래 #799 제품·Unit·E2E·Docker 실패가 아니며 Trusted의 fail-closed 판단은 보호 정책상 정당하다.
+- **충돌·누적 분석**: main 대비 #506 변경15파일 중 #799와 공통6개: `CHANGELOG.md`, `docs/PROJECT_UX.md`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md`, `package.json`, `package-lock.json`. 문서 앞 단락 추가를 모두 유지하고 main-only 제품·테스트·fixture 변경9개를 가져온다. 원래 #799 표시 CSS·기존 다섯 관점 E2E·before/after 이미지/보고서는 지우지 않는다. main #506 후보0.133.1과 겹친 #799 버전을 **0.133.2**로 변경, package+lock root3 version 이외 dependency/SRI 불변. `GIT two-parent merge`로 provenance를 명시한다.
+- **검증·인계**: 원격 diff/버전 JSON·Git Blob/Tree 비교는 정적으로 수행하며 로컬에서 GitHub DNS·실행 환경이 없어 Node/Chromium/Docker **NOT RUN**. 초기 로컬 F799-L001~L010, 기존 Full #3267.1 PASS 및 Trusted #913.1 FAIL은 기록을 삭제하지 않는다. 새 정확 Head/Base/Test-Merge 공식 Full CI/Trusted는 별도 출처로 검증하기 전 `NOT TESTED`이며 과거 PASS 재사용 금지.
+- **QA/승인**: 기존 검토에서 미해결 PR thread0 확인, push 후 다시 검사. `HIGH/AGENT`이므로 최종 별도 인간 QA_FINAL + Owner HIGH 위험 수용 + Manager ACCEPT 필요. `release_required=true`, `release_authorized=false`, `MERGE_READY=BLOCKED`. 이번 사용자 지시의 종료점은 새 Full PR CI **시작**, 완료 감시·병합/Main/GHCR·Release/Finalizer·Issue 종료는 수행하지 않는다.
+
+## 최신 원격 상태 (상단 '원격 상태'의 초기 역사적 NOT TESTED와 구별)
+
+최초 #799 Full #3267.1은 당시 정확 source에 대해 PASS. Trusted #913.1은 최신 main 불일치로 FAIL/BLOCKED. 새 후보0.133.2의 공식 PR Full/Trusted 결과는 신규 Run 등록·완료 전 `NOT TESTED`다.
