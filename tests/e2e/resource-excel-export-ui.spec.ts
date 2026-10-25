@@ -1,3 +1,5 @@
+import { isWbsResourceExcelOptions } from "../../src/contracts/resource-excel-export";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { inflateRawSync } from "node:zlib";
@@ -54,7 +56,11 @@ function assertReportWorkbook(entries: Map<string, string>, report: ResourceDash
   expect(metadata.get("catalogRevision")).toBe(report.catalogRevision);
   expect(metadata.get("calendarRevision")).toBe(report.calendarRevision);
   expect(metadata.get("snapshotId")).toBe(report.snapshotId);
-  expect(JSON.parse(metadata.get("Actual target context") as string)).toEqual(report.resourceScopeContext);
+  // #785: validate the physical report metadata without reviving the retired Target axis.
+  const actualContext = metadata.get("Actual report context");
+  expect(actualContext, "Resource Report must contain its canonical report context").toEqual(expect.any(String));
+  expect(metadata.has("Actual target context")).toBe(false);
+  expect(JSON.parse(actualContext as string)).toEqual(report.resourceScopeContext);
   if (options.originalSourceContext) expect(JSON.parse(metadata.get("Original source provenance (not current totals)") as string)).toEqual(options.originalSourceContext);
   const [head, ...rows] = sheets.get("Resource Assignments")!;
   const id = head.indexOf("assignmentId"), md = head.indexOf("plannedMd"), ids = rows.map(row => row[id]);
@@ -130,7 +136,7 @@ test("#529 실제 readonly Resource·exact 이동 보고서 XLSX 다운로드와
   }));
   const beforeExport = await ganttState(); expect(beforeExport.left).toBeGreaterThan(0);
 
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   const root = page.locator('[data-resource-dashboard="true"]:visible');
   await expect(root).toHaveAttribute("data-ready", "true");
   const trigger = root.getByRole("button", { name: "Excel 보고서", exact: true });
@@ -156,6 +162,7 @@ test("#529 실제 readonly Resource·exact 이동 보고서 XLSX 다운로드와
       : await page.request.get(`${api}/resource-dashboard?${dashboardQuery(filters)}`);
     expect(response.status()).toBe(200); return (await response.json()).data;
   };
+  if (!body.resourceDashboard || isWbsResourceExcelOptions(body.resourceDashboard)) throw new Error("legacy Resource export expected");
   const entries = workbookEntries(await readFile((await download.path())!));
   const currentEvidence = assertReportWorkbook(entries, await actualReport(body.resourceDashboard!), body.resourceDashboard!);
   const xml = [...entries.values()].join(""); expect(xml).toContain("=원래 작업 이름"); expect(xml).not.toContain("<f>");
@@ -163,7 +170,7 @@ test("#529 실제 readonly Resource·exact 이동 보고서 XLSX 다운로드와
   await expect(gantt).toHaveAttribute("data-export-kept", "529");
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   await expect.poll(ganttState).toEqual(beforeExport);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   const mRoot = page.getByTestId("milestone-dashboard"); await expect(mRoot).toHaveAttribute("data-ready", "true");
   await mRoot.getByRole("button", { name: "해당 범위 리소스 보기", exact: true }).click();
   const exactRoot = page.locator('[data-resource-dashboard="true"]:visible'); await expect(exactRoot).toHaveAttribute("data-ready", "true");
@@ -174,6 +181,7 @@ test("#529 실제 readonly Resource·exact 이동 보고서 XLSX 다운로드와
     page.waitForEvent("download"), dialog.getByRole("button", { name: "내보내기", exact: true }).click(),
   ]);
   const exactOptions = (exactRequest.postDataJSON() as ProjectExcelExportRequest).resourceDashboard!;
+  if (isWbsResourceExcelOptions(exactOptions)) throw new Error("legacy exact Resource export expected");
   expect(exactOptions.basis).toBe("current");
   if (exactOptions.basis !== "current") throw new Error("current expected");
   expect(exactOptions.binding?.scope.kind).toBe("exactAssignments");
@@ -186,6 +194,7 @@ test("#529 실제 readonly Resource·exact 이동 보고서 XLSX 다운로드와
     page.waitForEvent("download"), dialog.getByRole("button", { name: "내보내기", exact: true }).click(),
   ]);
   const wholeOptions = (wholeRequest.postDataJSON() as ProjectExcelExportRequest).resourceDashboard!;
+  if (isWbsResourceExcelOptions(wholeOptions)) throw new Error("legacy whole Resource export expected");
   expect(wholeOptions.basis).toBe("project"); expect(wholeOptions).not.toHaveProperty("binding");
   const wholeEvidence = assertReportWorkbook(workbookEntries(await readFile((await wholeDownload.path())!)), await actualReport(wholeOptions), wholeOptions);
   await expect(gantt).toHaveAttribute("data-export-kept", "529");
@@ -204,7 +213,7 @@ test("#529 진단 control: Export 없는 동일 native fixture의 일정·리소
   await frame.locator(".wx-chart").first().hover(); await page.mouse.wheel(120, 0);
   await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttPublicViewport")?.left)).toBe(120);
   const before = await peerDiagnostics(page);
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   await expect(page.locator('[data-resource-dashboard="true"]:visible')).toHaveAttribute("data-ready", "true");
   const hidden = await peerDiagnostics(page);
   // The parent must capture the public Core coordinates separately from the
@@ -233,11 +242,19 @@ test("#529 pending peer restore cancels on native wheel and canonical filter cha
   await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttPublicViewport")?.left)).toBe(120);
   const position = await chart.boundingBox();
   if (!position) throw new Error("visible chart required");
-  const resource = page.getByRole("tab", { name: "리소스", exact: true });
-  await resource.click(); await expect(page.locator('[data-resource-dashboard="true"]:visible')).toHaveAttribute("data-ready", "true");
-  await page.clock.install(); await page.clock.pauseAt(new Date());
+  await openWorkspaceView(page, "resources"); await expect(page.locator('[data-resource-dashboard="true"]:visible')).toHaveAttribute("data-ready", "true");
+  // #733 F733-003 / #569: install() keeps time running until pauseAt().
+  // Fix one wall-clock target 60s ahead of the installed virtual baseline,
+  // so CI runner latency cannot turn the intended pause into a backward jump.
+  const pauseTime = new Date();
+  await page.clock.install({ time: new Date(pauseTime.getTime() - 60_000) });
+  await page.clock.pauseAt(pauseTime);
   await page.getByRole("tab", { name: "일정", exact: true }).evaluate(node => (node as HTMLElement).click());
   await expect(frame).toBeVisible();
+  // Observe the native show commit without completing the pending app restore.
+  await page.clock.runFor(32);
+  const pendingRestore = JSON.parse((await frame.getAttribute("data-gantt-viewport-coordinator-history")) ?? "[]").findLast((event: { kind: string }) => event.kind === "PEER_RETURN");
+  expect(["WAIT_PROJECTION", "PREPARING_GEOMETRY", "WAIT_GEOMETRY"]).toContain(pendingRestore?.phase);
   await page.mouse.move(position.x + position.width / 2, position.y + position.height / 2);
   await page.mouse.wheel(40, 0);
   const viewport = () => frame.evaluate(node => ({ public: Reflect.get(node, "__masterganttPublicViewport"),
@@ -249,23 +266,17 @@ test("#529 pending peer restore cancels on native wheel and canonical filter cha
   expect(inputViewport.dom.left).not.toBe(120);
   expect(inputViewport.dom.left).not.toBe(0);
   const userViewport = inputViewport;
-  // Core public coordinates are authoritative; DOM rounds a fractional pixel.
-  const preserved = async () => {
-    const now = await viewport();
-    return { public: now.public, top: now.dom.top, domWithinOnePixel: Math.abs(now.dom.left - userViewport.dom.left) <= 1, notStale: now.dom.left !== 120 && now.public.left !== 120 };
-  };
-  const expectedPreserved = { public: userViewport.public, top: userViewport.dom.top, domWithinOnePixel: true, notStale: true };
   await page.clock.runFor(200);
-  await expect.poll(preserved).toEqual(expectedPreserved);
+  await expect.poll(viewport).toEqual(userViewport);
   await page.clock.runFor(300);
-  await expect.poll(preserved).toEqual(expectedPreserved);
+  await expect.poll(viewport).toEqual(userViewport);
   expect(await frame.getAttribute("data-gantt-peer-restore")).toBeNull();
   const afterInput = await peerDiagnostics(page);
   const events = JSON.parse(afterInput.events!) as { requestedLeft?: number }[];
   const userEvent = events.findLastIndex(event => event.requestedLeft !== undefined && event.requestedLeft !== 0 && event.requestedLeft !== 120);
   expect(userEvent).toBeGreaterThanOrEqual(0);
   expect(events.slice(userEvent + 1).some(event => event.requestedLeft === 120)).toBe(false);
-  await page.clock.resume(); await resource.click();
+  await page.clock.resume(); await openWorkspaceView(page, "resources");
   await expect(page.locator('[data-resource-dashboard="true"]:visible')).toHaveAttribute("data-ready", "true");
   await page.clock.pauseAt(await page.evaluate(() => new Date(Date.now() + 100).toISOString()));
   await page.getByRole("tab", { name: "일정", exact: true }).evaluate(node => (node as HTMLElement).click());

@@ -1,0 +1,2455 @@
+{
+  "schemaVersion": 1,
+  "issue": 568,
+  "baselineHead": "e1e6e2558481fe01d9f7e57c0148288f77a884de",
+  "dirtySource": true,
+  "sourceManifestSha256": "00cbfad2f05fcb0671b75dea81c4ce8472d884aacf7c268fd2d99a24f2ce8931",
+  "sources": {
+    "src/app/diagnostics/core-action-trace/page.tsx": "defb0bf3b6e642069145dca78f2a65751e45166a0a1e90ebadf28ef50d6b916e",
+    "src/features/gantt/diagnostics/core-action-trace-loader.tsx": "3619c344c695729ac15064c6aebf94d08dff2979a8501a2dfc7dd441c05a888b",
+    "src/features/gantt/diagnostics/core-action-trace-fixture.tsx": "554a33f46e61efb010150ddcc4501d7ea6527820cf85c2a7e8c440a4eae9bc8a",
+    "src/features/gantt/diagnostics/core-action-trace.ts": "ae9919aab7e559eda52e421d57d9b0172b867829479c678ef236defba6bb4eb6",
+    "src/features/gantt/diagnostics/core-trace-observer.ts": "d09118da6b4ae9f9dd5667857595fa572a3676c47520c564c01afa960cffa99c",
+    "src/features/gantt/project-gantt.tsx": "4dac26d8d0f1a1327e8f3733e6f80180a7e03ea5933bae6e240b2103ec7ec232",
+    "tests/domain/core-action-trace.test.ts": "9a223f02dd2e42775e6356c7f1945e99a87611cd54b718e455c0392b0bd45349",
+    "tests/e2e/core-action-trace.spec.ts": "3aad2561483be62426fb24ba8af219df17c79a66fcad0cc4433fb6c2aec3979f"
+  },
+  "installedCore": "2.7.3",
+  "runtime": "actual Chromium 1243 via @playwright/test; React Gantt/Willow; no Core mock",
+  "command": "ISSUE568_HEAD=e1e6e2558481fe01d9f7e57c0148288f77a884de ISSUE568_EVIDENCE_DIR=/tmp/issue568-core-final-pass npx playwright test --config tests/config/playwright.config.ts tests/e2e/core-action-trace.spec.ts --repeat-each=2",
+  "exitCode": 0,
+  "harnessTests": "4 PASS (15.6s)",
+  "localFastFeedback": {
+    "unit": "9 PASS",
+    "typecheck": "PASS",
+    "eslint": "PASS: 0 errors; 4 pre-existing project-gantt hook warnings"
+  },
+  "classification": {
+    "1440": "2 independent browser contexts: actual Core commands/native wheel/state+DOM settle observed",
+    "390": "2 independent browser contexts: native chart clientWidth=0/Core chartWidth>0 initially; capacity oracle NO_SCROLL_CAPACITY after 3 stable frames. Responsive product PASS is not claimed. Native wheel NOT TESTED. Root cause unresolved between harness/theme/native layout.",
+    "layers": "CORE_PUBLIC_API means direct public API commands inside real React Gantt/Willow mounting; it is not a non-React rendering engine. REACT_WRAPPER means React tasks/scale prop commit. FULL_APP observed separately by Project trace hook.",
+    "date": "Installed DataStore.d.ts includes scroll-chart date?:Date and actual Jan1->Feb15 gives public left1800 at40px/day. Current official action doc only lists left/top.",
+    "promise": "Installed typings Promise<any>; actual commands return object thenable and resolve separately before 3-frame native settlement. Resolution is not render completion.",
+    "ordering": "sequence is authority. elapsedMs is local performance-clock observation; no cross-run or manipulated-clock monotonic guarantee."
+  },
+  "history": [
+    {
+      "attempt": 1,
+      "status": "4 FAIL",
+      "reason": "Willow child height not bounded; vertical capacity0. Fixture child420px added.",
+      "rawLocalEvidence": "/tmp/issue568-fixture-initial-failure"
+    },
+    {
+      "attempt": 2,
+      "status": "2 PASS /2 FAIL",
+      "reason": "390px chart width0; native hover impossible. Explicit gridWidth200 did not resolve; root cause remains unconfirmed.",
+      "rawLocalEvidence": "/tmp/issue568-fixture-second-failure"
+    },
+    {
+      "attempt": 3,
+      "status": "2 PASS /2 FAIL",
+      "reason": "390px chart width0 persisted. Fixed observer completion classification, rather than changing product/layout behavior.",
+      "rawLocalEvidence": "/tmp/issue568-fixture-third-failure"
+    },
+    {
+      "attempt": 4,
+      "status": "3 PASS /1 FAIL",
+      "reason": "All browser assertions met; first evidence write ENOENT because mkdir ran only afterEach. mkdir before final writes added.",
+      "rawLocalEvidence": "/tmp/issue568-fixture-fourth-failure"
+    },
+    {
+      "attempt": 5,
+      "status": "4 PASS",
+      "reason": "Diagnostic capacity oracle and artifact writes verified; does not assert product regression PASS."
+    }
+  ],
+  "notTested": [
+    "standalone server 401/412/network (no server mutation exists)",
+    "standalone full Project peer hide/return (full app evidence separate)",
+    "native Inline Enter/Tab/Escape editor lifecycle (control keyboard events only here)",
+    "Milestone lane absent in main Core fixture",
+    "fullscreen standalone",
+    "390px real wheel due zero chart capacity",
+    "full product regression / remote CI / production environment"
+  ],
+  "runs": [
+    {
+      "run": "local-0-390",
+      "width": 390,
+      "repeat": 0,
+      "harnessStatus": "passed",
+      "sourceManifestSha256": "00cbfad2f05fcb0671b75dea81c4ce8472d884aacf7c268fd2d99a24f2ce8931",
+      "entryCount": 160,
+      "dropped": 0,
+      "results": [
+        {
+          "sequence": 18,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 30,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 39,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 45,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 59,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 69,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 83,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 93,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 102,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 111,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 121,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 129,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 138,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 150,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 160,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        }
+      ],
+      "timings": [
+        {
+          "action": "scroll-chart",
+          "requestSequence": 19,
+          "returnSequence": 22,
+          "thenable": true,
+          "resolveSequence": 23,
+          "resolveAfterRequestMs": 0.8,
+          "settleSequence": 30,
+          "settleAfterRequestMs": 36.3
+        },
+        {
+          "action": "update-task",
+          "requestSequence": 31,
+          "returnSequence": 34,
+          "thenable": true,
+          "resolveSequence": 35,
+          "resolveAfterRequestMs": 1.0,
+          "settleSequence": 39,
+          "settleAfterRequestMs": 30.9
+        },
+        {
+          "action": "filter-tasks",
+          "requestSequence": 46,
+          "returnSequence": 49,
+          "thenable": true,
+          "resolveSequence": 50,
+          "resolveAfterRequestMs": 0.7,
+          "settleSequence": 59,
+          "settleAfterRequestMs": 48.6
+        },
+        {
+          "action": "filter-tasks",
+          "requestSequence": 60,
+          "returnSequence": 63,
+          "thenable": true,
+          "resolveSequence": 64,
+          "resolveAfterRequestMs": 0.7,
+          "settleSequence": 69,
+          "settleAfterRequestMs": 45.4
+        },
+        {
+          "action": "select-task",
+          "requestSequence": 70,
+          "returnSequence": 75,
+          "thenable": true,
+          "resolveSequence": 76,
+          "resolveAfterRequestMs": 0.8,
+          "settleSequence": 83,
+          "settleAfterRequestMs": 51.1
+        },
+        {
+          "action": "scroll-chart",
+          "requestSequence": 84,
+          "returnSequence": 87,
+          "thenable": true,
+          "resolveSequence": 88,
+          "resolveAfterRequestMs": 0.5,
+          "settleSequence": 93,
+          "settleAfterRequestMs": 37.6
+        },
+        {
+          "action": "set-columns",
+          "requestSequence": 94,
+          "returnSequence": 97,
+          "thenable": true,
+          "resolveSequence": 98,
+          "resolveAfterRequestMs": 0.4,
+          "settleSequence": 102,
+          "settleAfterRequestMs": 70.9
+        },
+        {
+          "action": "resize-chart",
+          "requestSequence": 103,
+          "returnSequence": 106,
+          "thenable": true,
+          "resolveSequence": 107,
+          "resolveAfterRequestMs": 0.6,
+          "settleSequence": 111,
+          "settleAfterRequestMs": 29.0
+        },
+        {
+          "action": "delete-task",
+          "requestSequence": 112,
+          "returnSequence": 115,
+          "thenable": true,
+          "resolveSequence": 116,
+          "resolveAfterRequestMs": 0.6,
+          "settleSequence": 121,
+          "settleAfterRequestMs": 48.4
+        },
+        {
+          "action": "scroll-chart",
+          "requestSequence": 139,
+          "returnSequence": 142,
+          "thenable": true,
+          "resolveSequence": 143,
+          "resolveAfterRequestMs": 0.6,
+          "settleSequence": 150,
+          "settleAfterRequestMs": 79.3
+        },
+        {
+          "action": "scroll-chart",
+          "requestSequence": 151,
+          "returnSequence": 154,
+          "thenable": true,
+          "resolveSequence": 155,
+          "resolveAfterRequestMs": 12.2,
+          "settleSequence": 160,
+          "settleAfterRequestMs": 24.9
+        }
+      ],
+      "measurements": [
+        {
+          "command": "scroll120",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 96,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "rename-core",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 96,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "rename-react",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 96,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "filter-empty",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 0,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 0,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 420,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "filter-reset",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 0,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 0,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "reveal",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 946,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "date",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "columns",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "resize",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 0,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "delete-core",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 0,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "week",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 0,
+              "scalesWidth": 2300
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 2300,
+              "clientWidth": 0,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "day",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 0,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "scroll30",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 30,
+              "top": 96,
+              "chartWidth": 0,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 30,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "native-wheel30",
+          "result": "NOT TESTED: NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 30,
+              "top": 96,
+              "chartWidth": 0,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 30,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        }
+      ]
+    },
+    {
+      "run": "local-1-390",
+      "width": 390,
+      "repeat": 1,
+      "harnessStatus": "passed",
+      "sourceManifestSha256": "00cbfad2f05fcb0671b75dea81c4ce8472d884aacf7c268fd2d99a24f2ce8931",
+      "entryCount": 154,
+      "dropped": 0,
+      "results": [
+        {
+          "sequence": 18,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 29,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 38,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 44,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 58,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 67,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 81,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 91,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 100,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 109,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 118,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 125,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 132,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 144,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 154,
+          "result": "NO_SCROLL_CAPACITY",
+          "stableFrames": 3
+        }
+      ],
+      "timings": [
+        {
+          "action": "scroll-chart",
+          "requestSequence": 19,
+          "returnSequence": 22,
+          "thenable": true,
+          "resolveSequence": 23,
+          "resolveAfterRequestMs": 0.8,
+          "settleSequence": 29,
+          "settleAfterRequestMs": 50.2
+        },
+        {
+          "action": "update-task",
+          "requestSequence": 30,
+          "returnSequence": 33,
+          "thenable": true,
+          "resolveSequence": 34,
+          "resolveAfterRequestMs": 0.8,
+          "settleSequence": 38,
+          "settleAfterRequestMs": 36.7
+        },
+        {
+          "action": "filter-tasks",
+          "requestSequence": 45,
+          "returnSequence": 48,
+          "thenable": true,
+          "resolveSequence": 49,
+          "resolveAfterRequestMs": 0.7,
+          "settleSequence": 58,
+          "settleAfterRequestMs": 31.2
+        },
+        {
+          "action": "filter-tasks",
+          "requestSequence": 59,
+          "returnSequence": 62,
+          "thenable": true,
+          "resolveSequence": 63,
+          "resolveAfterRequestMs": 0.7,
+          "settleSequence": 67,
+          "settleAfterRequestMs": 45.0
+        },
+        {
+          "action": "select-task",
+          "requestSequence": 68,
+          "returnSequence": 73,
+          "thenable": true,
+          "resolveSequence": 74,
+          "resolveAfterRequestMs": 0.8,
+          "settleSequence": 81,
+          "settleAfterRequestMs": 54.1
+        },
+        {
+          "action": "scroll-chart",
+          "requestSequence": 82,
+          "returnSequence": 85,
+          "thenable": true,
+          "resolveSequence": 86,
+          "resolveAfterRequestMs": 0.5,
+          "settleSequence": 91,
+          "settleAfterRequestMs": 40.8
+        },
+        {
+          "action": "set-columns",
+          "requestSequence": 92,
+          "returnSequence": 95,
+          "thenable": true,
+          "resolveSequence": 96,
+          "resolveAfterRequestMs": 0.4,
+          "settleSequence": 100,
+          "settleAfterRequestMs": 29.7
+        },
+        {
+          "action": "resize-chart",
+          "requestSequence": 101,
+          "returnSequence": 104,
+          "thenable": true,
+          "resolveSequence": 105,
+          "resolveAfterRequestMs": 0.3,
+          "settleSequence": 109,
+          "settleAfterRequestMs": 38.1
+        },
+        {
+          "action": "delete-task",
+          "requestSequence": 110,
+          "returnSequence": 113,
+          "thenable": true,
+          "resolveSequence": 114,
+          "resolveAfterRequestMs": 0.5,
+          "settleSequence": 118,
+          "settleAfterRequestMs": 36.9
+        },
+        {
+          "action": "scroll-chart",
+          "requestSequence": 133,
+          "returnSequence": 136,
+          "thenable": true,
+          "resolveSequence": 137,
+          "resolveAfterRequestMs": 0.4,
+          "settleSequence": 144,
+          "settleAfterRequestMs": 51.6
+        },
+        {
+          "action": "scroll-chart",
+          "requestSequence": 145,
+          "returnSequence": 148,
+          "thenable": true,
+          "resolveSequence": 149,
+          "resolveAfterRequestMs": 3.0,
+          "settleSequence": 154,
+          "settleAfterRequestMs": 19.6
+        }
+      ],
+      "measurements": [
+        {
+          "command": "scroll120",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 96,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "rename-core",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 96,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "rename-react",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 96,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "filter-empty",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 0,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 0,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 420,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "filter-reset",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 0,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 0,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "reveal",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 946,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "date",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "columns",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 154,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "resize",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 0,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "delete-core",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 0,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "week",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 0,
+              "scalesWidth": 2300
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 2300,
+              "clientWidth": 0,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "day",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 0,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "scroll30",
+          "result": "NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 30,
+              "top": 96,
+              "chartWidth": 0,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 30,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "native-wheel30",
+          "result": "NOT TESTED: NO_SCROLL_CAPACITY",
+          "sample": {
+            "core": {
+              "left": 30,
+              "top": 96,
+              "chartWidth": 0,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 30,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 0,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 358,
+              "height": 420,
+              "chartWidth": 0,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        }
+      ]
+    },
+    {
+      "run": "local-0-1440",
+      "width": 1440,
+      "repeat": 0,
+      "harnessStatus": "passed",
+      "sourceManifestSha256": "00cbfad2f05fcb0671b75dea81c4ce8472d884aacf7c268fd2d99a24f2ce8931",
+      "entryCount": 166,
+      "dropped": 0,
+      "results": [
+        {
+          "sequence": 15,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 27,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 36,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 42,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 56,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 65,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 79,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 89,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 98,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 107,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 117,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 128,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 136,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 148,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 156,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 166,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        }
+      ],
+      "timings": [
+        {
+          "action": "scroll-chart",
+          "requestSequence": 16,
+          "returnSequence": 19,
+          "thenable": true,
+          "resolveSequence": 20,
+          "resolveAfterRequestMs": 1,
+          "settleSequence": 27,
+          "settleAfterRequestMs": 49.6
+        },
+        {
+          "action": "update-task",
+          "requestSequence": 28,
+          "returnSequence": 31,
+          "thenable": true,
+          "resolveSequence": 32,
+          "resolveAfterRequestMs": 0.8,
+          "settleSequence": 36,
+          "settleAfterRequestMs": 52.1
+        },
+        {
+          "action": "filter-tasks",
+          "requestSequence": 43,
+          "returnSequence": 46,
+          "thenable": true,
+          "resolveSequence": 47,
+          "resolveAfterRequestMs": 0.8,
+          "settleSequence": 56,
+          "settleAfterRequestMs": 45.7
+        },
+        {
+          "action": "filter-tasks",
+          "requestSequence": 57,
+          "returnSequence": 60,
+          "thenable": true,
+          "resolveSequence": 61,
+          "resolveAfterRequestMs": 1.2,
+          "settleSequence": 65,
+          "settleAfterRequestMs": 52.3
+        },
+        {
+          "action": "select-task",
+          "requestSequence": 66,
+          "returnSequence": 71,
+          "thenable": true,
+          "resolveSequence": 72,
+          "resolveAfterRequestMs": 0.8,
+          "settleSequence": 79,
+          "settleAfterRequestMs": 46.9
+        },
+        {
+          "action": "scroll-chart",
+          "requestSequence": 80,
+          "returnSequence": 83,
+          "thenable": true,
+          "resolveSequence": 84,
+          "resolveAfterRequestMs": 0.7,
+          "settleSequence": 89,
+          "settleAfterRequestMs": 40.6
+        },
+        {
+          "action": "set-columns",
+          "requestSequence": 90,
+          "returnSequence": 93,
+          "thenable": true,
+          "resolveSequence": 94,
+          "resolveAfterRequestMs": 1.2,
+          "settleSequence": 98,
+          "settleAfterRequestMs": 50.1
+        },
+        {
+          "action": "resize-chart",
+          "requestSequence": 99,
+          "returnSequence": 102,
+          "thenable": true,
+          "resolveSequence": 103,
+          "resolveAfterRequestMs": 0.4,
+          "settleSequence": 107,
+          "settleAfterRequestMs": 32.6
+        },
+        {
+          "action": "delete-task",
+          "requestSequence": 108,
+          "returnSequence": 111,
+          "thenable": true,
+          "resolveSequence": 112,
+          "resolveAfterRequestMs": 0.5,
+          "settleSequence": 117,
+          "settleAfterRequestMs": 52.3
+        },
+        {
+          "action": "scroll-chart",
+          "requestSequence": 137,
+          "returnSequence": 140,
+          "thenable": true,
+          "resolveSequence": 141,
+          "resolveAfterRequestMs": 0.6,
+          "settleSequence": 148,
+          "settleAfterRequestMs": 52.3
+        },
+        {
+          "action": "scroll-chart",
+          "requestSequence": 157,
+          "returnSequence": 160,
+          "thenable": true,
+          "resolveSequence": 161,
+          "resolveAfterRequestMs": 8.6,
+          "settleSequence": 166,
+          "settleAfterRequestMs": 26.0
+        }
+      ],
+      "measurements": [
+        {
+          "command": "scroll120",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 96,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "rename-core",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 96,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "rename-react",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 96,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "filter-empty",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 0,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 0,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 420,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "filter-reset",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 0,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 0,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "reveal",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 946,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "date",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "columns",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "resize",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 995,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "delete-core",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 995,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "week",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 1305,
+              "top": 946,
+              "chartWidth": 995,
+              "scalesWidth": 2300
+            },
+            "native": {
+              "left": 1305,
+              "top": 946,
+              "scrollWidth": 2300,
+              "clientWidth": 995,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "day",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 1305,
+              "top": 946,
+              "chartWidth": 995,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1305,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "scroll30",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 30,
+              "top": 96,
+              "chartWidth": 995,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 30,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "native-wheel30",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 60,
+              "top": 96,
+              "chartWidth": 995,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 60,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        }
+      ]
+    },
+    {
+      "run": "local-1-1440",
+      "width": 1440,
+      "repeat": 1,
+      "harnessStatus": "passed",
+      "sourceManifestSha256": "00cbfad2f05fcb0671b75dea81c4ce8472d884aacf7c268fd2d99a24f2ce8931",
+      "entryCount": 165,
+      "dropped": 0,
+      "results": [
+        {
+          "sequence": 15,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 27,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 36,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 42,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 56,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 65,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 79,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 90,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 99,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 108,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 117,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 128,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 135,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 147,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 155,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        },
+        {
+          "sequence": 165,
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "stableFrames": 3
+        }
+      ],
+      "timings": [
+        {
+          "action": "scroll-chart",
+          "requestSequence": 16,
+          "returnSequence": 19,
+          "thenable": true,
+          "resolveSequence": 20,
+          "resolveAfterRequestMs": 0.6,
+          "settleSequence": 27,
+          "settleAfterRequestMs": 53.0
+        },
+        {
+          "action": "update-task",
+          "requestSequence": 28,
+          "returnSequence": 31,
+          "thenable": true,
+          "resolveSequence": 32,
+          "resolveAfterRequestMs": 0.5,
+          "settleSequence": 36,
+          "settleAfterRequestMs": 43.9
+        },
+        {
+          "action": "filter-tasks",
+          "requestSequence": 43,
+          "returnSequence": 46,
+          "thenable": true,
+          "resolveSequence": 47,
+          "resolveAfterRequestMs": 0.6,
+          "settleSequence": 56,
+          "settleAfterRequestMs": 36.2
+        },
+        {
+          "action": "filter-tasks",
+          "requestSequence": 57,
+          "returnSequence": 60,
+          "thenable": true,
+          "resolveSequence": 61,
+          "resolveAfterRequestMs": 0.7,
+          "settleSequence": 65,
+          "settleAfterRequestMs": 45.7
+        },
+        {
+          "action": "select-task",
+          "requestSequence": 66,
+          "returnSequence": 71,
+          "thenable": true,
+          "resolveSequence": 72,
+          "resolveAfterRequestMs": 0.6,
+          "settleSequence": 79,
+          "settleAfterRequestMs": 54.8
+        },
+        {
+          "action": "scroll-chart",
+          "requestSequence": 80,
+          "returnSequence": 83,
+          "thenable": true,
+          "resolveSequence": 84,
+          "resolveAfterRequestMs": 0.5,
+          "settleSequence": 90,
+          "settleAfterRequestMs": 46.7
+        },
+        {
+          "action": "set-columns",
+          "requestSequence": 91,
+          "returnSequence": 94,
+          "thenable": true,
+          "resolveSequence": 95,
+          "resolveAfterRequestMs": 0.4,
+          "settleSequence": 99,
+          "settleAfterRequestMs": 29.2
+        },
+        {
+          "action": "resize-chart",
+          "requestSequence": 100,
+          "returnSequence": 103,
+          "thenable": true,
+          "resolveSequence": 104,
+          "resolveAfterRequestMs": 0.3,
+          "settleSequence": 108,
+          "settleAfterRequestMs": 35.1
+        },
+        {
+          "action": "delete-task",
+          "requestSequence": 109,
+          "returnSequence": 112,
+          "thenable": true,
+          "resolveSequence": 113,
+          "resolveAfterRequestMs": 0.5,
+          "settleSequence": 117,
+          "settleAfterRequestMs": 38.5
+        },
+        {
+          "action": "scroll-chart",
+          "requestSequence": 136,
+          "returnSequence": 139,
+          "thenable": true,
+          "resolveSequence": 140,
+          "resolveAfterRequestMs": 0.4,
+          "settleSequence": 147,
+          "settleAfterRequestMs": 50.7
+        },
+        {
+          "action": "scroll-chart",
+          "requestSequence": 156,
+          "returnSequence": 159,
+          "thenable": true,
+          "resolveSequence": 160,
+          "resolveAfterRequestMs": 6.3,
+          "settleSequence": 165,
+          "settleAfterRequestMs": 32.1
+        }
+      ],
+      "measurements": [
+        {
+          "command": "scroll120",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 96,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "rename-core",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 96,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "rename-react",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 96,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "filter-empty",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 0,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 0,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 420,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "filter-reset",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 0,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 0,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "reveal",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 120,
+              "top": 946,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 120,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "date",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "columns",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 996,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "resize",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 995,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1556,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "delete-core",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 1800,
+              "top": 946,
+              "chartWidth": 995,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1800,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "week",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 1305,
+              "top": 946,
+              "chartWidth": 995,
+              "scalesWidth": 2300
+            },
+            "native": {
+              "left": 1305,
+              "top": 946,
+              "scrollWidth": 2300,
+              "clientWidth": 995,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "day",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 1305,
+              "top": 946,
+              "chartWidth": 995,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 1305,
+              "top": 946,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "scroll30",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 30,
+              "top": 96,
+              "chartWidth": 995,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 30,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "command": "native-wheel30",
+          "result": "NATIVE_LAYOUT_SETTLED",
+          "sample": {
+            "core": {
+              "left": 60,
+              "top": 96,
+              "chartWidth": 995,
+              "scalesWidth": 6040
+            },
+            "native": {
+              "left": 60,
+              "top": 96,
+              "scrollWidth": 6040,
+              "clientWidth": 995,
+              "scrollHeight": 1518,
+              "clientHeight": 420
+            },
+            "geometry": {
+              "width": 1200,
+              "height": 420,
+              "chartWidth": 995,
+              "chartHeight": 420
+            },
+            "focus": "body",
+            "lane": null
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # masterGantt
 
-Milestone의 새 위치·표시 설정·소속/관계·내보내기 차이는 [Milestone 사용 가이드](docs/MILESTONE_USER_GUIDE.md)를 참조하세요. 후보 구현과 main/운영 적용 상태는 가이드의 추적표에서 구분합니다.
+> Milestone 행·상단 마커 OFF 기준의 교환·출력 의미는 [Milestone 사용자 가이드](docs/MILESTONE_USER_GUIDE.md)를 참고한다. 원본 일정 JSON 1.1·Excel·SVG/PNG의 범위는 현재 Gantt 표시와 다를 수 있다.
 
 소규모 프로젝트의 일정과 진행 상황을 관리하는 웹 애플리케이션이다. SVAR React Gantt Core로 일정을 표시·편집하고, 일정 계산은 독립적인 Scheduling Engine에서 수행하는 구조를 목표로 한다.
 
@@ -57,7 +57,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | Playwright | 1.63.0 | Gantt와 Project 생성·직접 조회 Chromium E2E; 기본 격리 포트 3100 |
 | SVAR React Gantt Core | 2.7.3, MIT | Gantt 표시와 Core 이벤트; exact direct dependency |
 | SVAR data provider | Core의 transitive 2.7.2, 직접 사용 안 함 | cookie/If-Match/canonical snapshot 계약이 달라 W07 직접 명령 Adapter 유지 |
-| Zod | 4.6.2 | Project·Task request의 strict server schema 검증 |
+| Zod | 4.6.7 | Project·Task request의 strict server schema 검증; GHSA-mrhx-c7xc-m3w5 패치 (#556 F-002·#785 F785-002), 불신 입력의 크기·건수 한도 별도 유지 |
 | Scheduling Engine | 자체 pure TypeScript | Gregorian ordinal, Project Calendar, 근무일·Leaf Duration; SVAR/DB/시간대 API 비의존 |
 | Excel/이미지 내보내기 | 내부 OOXML/ZIP writer와 자체 SVG renderer | 서버 SVG를 브라우저 Canvas에서 PNG로 변환; SVAR PRO·외부 변환 서비스 미사용 |
 | Docker / Docker Compose | W20 기반 구현 | non-root 단일 애플리케이션, startup migration/readiness와 영속 SQLite volume |
@@ -575,6 +575,7 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 
 | 목적 | 문서 |
 | --- | --- |
+| 실물·리소스 사용·이관·수용 | [사용자 가이드](docs/TARGET_RESOURCE_USER_GUIDE.md), [운영 절차](docs/TARGET_RESOURCE_OPERATIONS.md), [Resource MVP 수용표](docs/TARGET_RESOURCE_ACCEPTANCE.md) |
 | 현재 진행과 다음 작업 | [실행 계획](docs/exec-plans/active/PLAN.md), [W01–W22 작업 목록](docs/ISSUE_BREAKDOWN.md) |
 | 요구사항과 구조 | [REQUIREMENTS](docs/REQUIREMENTS.md), [ARCHITECTURE](docs/ARCHITECTURE.md) |
 | DB·API·보안 계약 | [DB_SCHEMA](docs/DB_SCHEMA.md), [API](docs/API.md), [SECURITY](docs/SECURITY.md) |
@@ -600,7 +601,7 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 
 ## 9. README 유지관리 원칙
 
-각 작업·마일스톤 진행 시 프로젝트 개요, 실제 기술 스택, 설치·재설치·설정·실행 방법, 현재 구현 상태, 관련 산출물 링크를 함께 갱신한다. 실행 명령이나 환경 변수 사용이 바뀌면 해당 구현과 같은 변경에 README를 포함한다. 완료·계획·미검증 상태를 구분하고 상세 계약은 해당 문서를 연결하여 관리한다.
+각 작업·Milestone 진행 시 프로젝트 개요, 실제 기술 스택, 설치·재설치·설정·실행 방법, 현재 구현 상태, 관련 산출물 링크를 함께 갱신한다. 실행 명령이나 환경 변수 사용이 바뀌면 해당 구현과 같은 변경에 README를 포함한다. 완료·계획·미검증 상태를 구분하고 상세 계약은 해당 문서를 연결하여 관리한다.
 
 ## 저장소 파일 배치와 Compose 경로
 

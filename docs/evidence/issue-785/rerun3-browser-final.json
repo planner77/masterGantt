@@ -1,0 +1,72 @@
+{
+  "schema": "mastergantt-785-rerun3-browser-final-v1",
+  "state": "PASS",
+  "baselineHead": "473b0fb103d445f64ef6b44be63a9b4d6456cbdc",
+  "sourceDigest": "ca3e45a2e59f0cb9302e508fe2e2ef3cee60d9a2a727efb9208f367836ecc956",
+  "sourceFiles": 1130,
+  "scopedSourceStable": true,
+  "fullCheckoutSourceStable": false,
+  "passed": 97,
+  "failed": 0,
+  "skipped": 0,
+  "flaky": 0,
+  "retries": 0,
+  "uniqueCases": 97,
+  "uniqueSpecs": 25,
+  "duplicateCases": 0,
+  "batches": [
+    {
+      "batch": "a",
+      "receipt": "rerun3-browser-a.json",
+      "passed": 36,
+      "durationMs": 920940.3069999999,
+      "sourceStable": true,
+      "generatedConfigChangedPaths": [
+        "next-env.d.ts",
+        "tsconfig.json"
+      ],
+      "fullCheckoutSourceStable": false
+    },
+    {
+      "batch": "b",
+      "receipt": "rerun3-browser-b.json",
+      "passed": 35,
+      "durationMs": 234860.83599999998,
+      "sourceStable": true,
+      "generatedConfigChangedPaths": [
+        "next-env.d.ts",
+        "tsconfig.json"
+      ],
+      "fullCheckoutSourceStable": false
+    },
+    {
+      "batch": "c",
+      "receipt": "rerun3-browser-c.json",
+      "passed": 15,
+      "durationMs": 499828.225,
+      "sourceStable": true,
+      "generatedConfigChangedPaths": [
+        "next-env.d.ts",
+        "tsconfig.json"
+      ],
+      "fullCheckoutSourceStable": false
+    },
+    {
+      "batch": "d",
+      "receipt": "rerun3-browser-d.json",
+      "passed": 11,
+      "durationMs": 315976.558,
+      "sourceStable": true,
+      "generatedConfigChangedPaths": [
+        "next-env.d.ts",
+        "tsconfig.json"
+      ],
+      "fullCheckoutSourceStable": false
+    }
+  ],
+  "unit11CountedAsBrowser": false,
+  "prototypePartial4Counted": false,
+  "eightBeforeAfterManifestsEqual": true,
+  "fullSourceManifestsStoredOutsideGit": true,
+  "interpretation": "실행 source ca3에서의 실제 Chromium97PASS. main 통합 뒤 동일 browser 입력에 한정 재사용하며 통합 후 새97실행이라고 주장하지 않는다."
+}

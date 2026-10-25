@@ -1,25 +1,40 @@
-import { openMilestoneEditor } from "./helpers/milestone-ui";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
 import type { MilestoneDashboardResponse } from "../../src/contracts/milestone-dashboard";
+import { diagnosticRoute } from "./fixtures/isolated-application-diagnostics";
+import { readBrowserCanonicalSnapshot } from "./helpers/browser-canonical-snapshot";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
+import { openMilestoneEditor } from "./helpers/milestone-ui";
 
 const adminPassword = "Stage463SyntheticAdmin!";
 test.use({ ...isolatedApplicationOptions, isolatedResourceAdminPassword: adminPassword, viewport: { width: 1440, height: 900 } });
 
-test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource drill과 readonly peer 보존", async ({ page, baseURL, browser }, testInfo) => {
+test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource drill과 readonly peer 보존", async ({ page, baseURL, browser, observeIsolatedApi }, testInfo) => {
   test.setTimeout(240_000);
   page.setDefaultTimeout(20_000);
   const origin = baseURL!;
   const created = await page.request.post("/api/projects", { headers: { Origin: origin }, data: { name: "Stage Dashboard #463", ownerName: "E2E 자동화", description: "실제 SQLite 단계 범위", editPassword: "Stage463!" } });
   expect(created.status()).toBe(201);
   const publicId = (await created.json()).data.project.publicId as string, api = `/api/projects/${publicId}`;
-  const get = async () => (await (await page.request.get(api)).json()) as ProjectSnapshotResponse;
+  const get = async () => {
+    const response = await observeIsolatedApi(api, "GET", () => page.request.get(api));
+    expect(response.status()).toBe(200);
+    return await response.json() as ProjectSnapshotResponse;
+  };
+  // After navigation, confirm UI writes through the browser's same-origin
+  // transport. Do not depend on APIRequestContext's pooled socket lifetime.
+  const getBrowserSnapshot = () => readBrowserCanonicalSnapshot(page, api, observeIsolatedApi);
   let snapshot = await get();
   const headers = () => ({ Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` });
   const mutate = async (path: string, data: unknown, method: "post" | "put" | "patch" = "post", status = 200) => {
     const response = await page.request[method](`${api}${path}`, { headers: headers(), data });
-    expect(response.status(), `${method} ${path}: ${await response.text()}`).toBe(status);
+    let code = "none";
+    if (response.status() !== status) {
+      const body: unknown = await response.json().catch(() => null);
+      if (typeof body === "object" && body !== null && "error" in body && typeof body.error === "object" && body.error !== null && "code" in body.error && typeof body.error.code === "string" && /^[A-Z0-9_]{1,80}$/.test(body.error.code)) code = body.error.code;
+    }
+    expect(response.status(), `${method.toUpperCase()} ${diagnosticRoute(api + path)}: HTTP ${response.status()}, code=${code}`).toBe(status);
     snapshot = await get();
     return response;
   };
@@ -57,30 +72,30 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   };
   // Compile read routes before measuring browser instance preservation in Next dev.
   await dashboard();
-  for (const path of ["/assigned-targets", "/resource-workload", "/logistics/dashboard", `/tasks/${child.taskId}/assignments`, `/tasks/${child.taskId}/logistics-links`]) await (await page.request.get(`${api}${path}`)).body();
+  for (const path of ["/assigned-targets", "/resource-workload", "/logistics/dashboard", "/logistics/kpi?source=integrated", `/tasks/${child.taskId}/assignments`, `/tasks/${child.taskId}/logistics-links`]) await (await page.request.get(`${api}${path}`)).body();
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const row = (taskId: string) => page.locator(`.wx-table-container .wx-row[data-id=":${taskId}"]`).first();
   await row(child.taskId).click({ button: "right" }); await chooseTaskInformation(page);
   const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await expect(dialog).toContainText("상속 Summary에서 상속");
-  const picker = dialog.getByRole("combobox", { name: "완료 단계", exact: true });
+  const picker = dialog.getByRole("combobox", { name: "Milestone", exact: true });
   await picker.fill(join.taskId); await picker.press("Enter");
   const beforeRevision = snapshot.data.project.revision;
   await dialog.getByRole("button", { name: "저장", exact: true }).click(); await expect(dialog).toHaveCount(0);
-  snapshot = await get(); expect(snapshot.data.project.revision).toBe(beforeRevision + 1);
+  snapshot = await getBrowserSnapshot(); expect(snapshot.data.project.revision).toBe(beforeRevision + 1);
   expect(snapshot.data.tasks.find((task) => task.taskId === child.taskId)?.membership).toMatchObject({ explicitMilestoneTaskId: join.taskId, effectiveMilestoneTaskId: join.taskId });
   await openMilestoneEditor(page, join.taskId);
   await dialog.getByRole("tab", { name: /소속 작업/ }).click(); await expect(dialog).toContainText("유효 일반 작업 1개"); await expect(dialog).toContainText("상속 일반 작업");
   await dialog.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   const gridHeader = page.locator(".wx-table-container .wx-header").first();
-  await gridHeader.click({ button: "right" }); await page.locator(".project-column-menu").getByRole("checkbox", { name: "완료 단계", exact: true }).check(); await page.keyboard.press("Escape");
-  await expect(row(child.taskId).getByRole("button", { name: /완료 단계:/ })).toContainText(join.name);
+  await gridHeader.click({ button: "right" }); await page.locator(".project-column-menu").getByRole("checkbox", { name: "Milestone", exact: true }).check(); await page.keyboard.press("Escape");
+  await expect(row(child.taskId).getByRole("button", { name: /Milestone:/ })).toContainText(join.name);
   const stageTrigger = page.locator("#project-panel-schedule .project-stage-filter-trigger");
-  await stageTrigger.click(); const stageSearch = page.getByRole("combobox", { name: "단계 이름·외부 ID·작업 ID 검색" }); await stageSearch.fill(join.taskId); await stageSearch.press("End"); await stageSearch.press("Enter");
+  await stageTrigger.click(); const stageSearch = page.getByRole("combobox", { name: "Milestone 이름·외부 ID·작업 ID 검색" }); await stageSearch.fill(join.taskId); await stageSearch.press("End"); await stageSearch.press("Enter");
   await expect(row(child.taskId)).toBeVisible(); await expect(row(free.taskId)).toHaveCount(0);
-  await stageTrigger.click(); await page.getByRole("combobox", { name: "단계 이름·외부 ID·작업 ID 검색" }).press("Home"); await page.keyboard.press("Enter");
+  await stageTrigger.click(); await page.getByRole("combobox", { name: "Milestone 이름·외부 ID·작업 ID 검색" }).press("Home"); await page.keyboard.press("Enter");
   const full = await dashboard("?asOfDate=2026-10-06&mdPerMm=null");
   expect(full.projectRevision).toBe(snapshot.data.project.revision);
   const fullJoin = full.rows.find((stage) => stage.milestoneTaskId === join.taskId)!;
@@ -101,9 +116,9 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   const logistics = (await (await page.request.get(`${api}/logistics/dashboard?equipmentIds=${equipmentId}&from=2026-10-05&to=2026-10-06&mdPerMm=null`)).json()).data;
   expect(logistics.milestoneStages.milestoneTaskIds).toEqual([b.taskId]);
   expect(logistics.milestoneStages.rows[0].stageGate).toEqual(full.rows.find((stage) => stage.milestoneTaskId === b.taskId)!.stageGate);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   const panel = page.getByTestId("milestone-dashboard"); await expect(panel).toHaveAttribute("data-ready", "true");
-  await panel.getByText("단계 표시·공수 범위 조건", { exact: true }).click();
+  await panel.getByText("Milestone 표시·공수 범위 조건", { exact: true }).click();
   await panel.getByLabel("공수 시작일", { exact: true }).fill("2026-10-05"); await panel.getByLabel("공수 종료일", { exact: true }).fill("2026-10-06");
   await panel.getByRole("combobox", { name: "M/M 환산 기준", exact: true }).selectOption("unset"); await expect(panel).toHaveAttribute("data-ready", "true");
   await expect(panel).toContainText("2 M/D");
@@ -116,13 +131,13 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   const resources = page.getByRole("tabpanel", { name: "리소스", exact: true });
   await expect(page.getByRole("region", { name: "임시 조회 범위", exact: true })).toContainText("Milestone 원본의 정확한 배정 범위");
   await expect(resources).toContainText("2.00");
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tab", { name: "KPI 대시보드", exact: true }).click();
-  const logisticsPanel = page.getByRole("tabpanel", { name: "물류 구성", exact: true });
-  await expect(logisticsPanel.getByRole("heading", { name: "관련 단계 — 단계 전체 상태 기준", exact: true })).toBeVisible();
-  const relatedStage = logisticsPanel.getByRole("region", { name: "완료 단계 전체 상태 표 가로 스크롤", exact: true }).getByRole("row", { name: /M-B/ });
+  await openWorkspaceView(page, "logistics");
+  await openWorkspaceView(page, "kpi");
+  const logisticsPanel = page.locator("#project-panel-logistics");
+  await expect(logisticsPanel.getByRole("heading", { name: "관련 Milestone — Milestone 전체 상태 기준", exact: true })).toBeVisible();
+  const relatedStage = logisticsPanel.getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤", exact: true }).locator(`tr[data-milestone-task-id="${b.taskId}"]`);
   await expect(relatedStage).toContainText("Ready"); await expect(relatedStage).toContainText("1 / 1");
-  expect((await get()).data.project.revision).toBe(snapshot.data.project.revision);
+  expect((await getBrowserSnapshot()).data.project.revision).toBe(snapshot.data.project.revision);
   await testInfo.attach("actual-canonical-stage-snapshot", { body: JSON.stringify({ projectPublicId: publicId, projectRevision: full.projectRevision, catalogRevision: full.catalogRevision, stageIds: full.rows.map((stage) => stage.milestoneTaskId), assignmentIds: partial.effort.assignmentIds, workloadRange: partial.workloadRange, fullJoin: fullJoin.stageGate, grandTotalMd: partial.effort.plannedMd, bucketTotals: partial.effort.buckets.map((bucket) => ({ milestoneTaskId: bucket.milestoneTaskId, plannedMd: bucket.plannedMd })) }, null, 2), contentType: "application/json" });
 
   const readonly = await browser.newContext({ baseURL: origin, viewport: { width: 1440, height: 900 } });
@@ -136,7 +151,7 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
     const treeToggle = peer.locator(`.wx-table-container .wx-row[data-id=":${summary.taskId}"] [data-action="open-task"]`).first();
     await treeToggle.click(); await expect(treeToggle).toHaveClass(/wxi-menu-right/);
     const peerHeader = peer.locator(".wx-table-container .wx-header").first();
-    await peerHeader.click({ button: "right" }); await peer.locator(".project-column-menu").getByRole("checkbox", { name: "완료 단계", exact: true }).check(); await peer.keyboard.press("Escape");
+    await peerHeader.click({ button: "right" }); await peer.locator(".project-column-menu").getByRole("checkbox", { name: "Milestone", exact: true }).check(); await peer.keyboard.press("Escape");
     const nameWidth = (await peerHeader.locator('[data-header-id=":text"]').boundingBox())!.width;
     const selected = peer.locator(`.wx-table-container .wx-row[data-id=":${free.taskId}"]`).first(); await selected.locator('[data-col-id=":text"]').click(); await expect(selected).toHaveClass(/wx-selected/);
     const chart = peer.locator(".project-gantt-widget .wx-chart"); await chart.evaluate((element) => { element.scrollLeft = 120; }); const scroll = await chart.evaluate((element) => element.scrollLeft);
@@ -156,7 +171,7 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
     await expect.poll(liveViewport).toMatchObject({ domLeft: scroll, publicLeft: scroll });
     scrollCheckpoints.push(await scrollCheckpoint("after-fullscreen-exit"));
     scrollCheckpoints.push(await scrollCheckpoint("before-peer-hide"));
-    await peer.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); await expect(peer.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
+    await openWorkspaceView(peer, "milestones"); await expect(peer.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
     await testInfo.attach("actual-readonly-dashboard", { body: await peer.screenshot(), contentType: "image/png" });
     await peer.getByRole("tab", { name: "일정", exact: true }).click();
     await expect.poll(async () => JSON.parse(await frame.getAttribute("data-gantt-peer-restore") ?? "{}")).toMatchObject({ requestedLeft: scroll, count: 1 });
@@ -178,7 +193,7 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
     expect(scrollCheckpoints.find((checkpoint) => checkpoint.phase === "after-peer-return")!.gridWidth, "Peer return preserves Grid split width").toBeCloseTo(scrollCheckpoints.find((checkpoint) => checkpoint.phase === "before-peer-hide")!.gridWidth, 0);
     expect(scrollCheckpoints.find((checkpoint) => checkpoint.phase === "after-peer-return")!.clientWidth, "Peer return preserves Chart split width").toBe(scrollCheckpoints.find((checkpoint) => checkpoint.phase === "before-peer-hide")!.clientWidth);
     await expect(frame).toHaveAttribute("data-project-gantt-api-instance", instance!); await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week"); await expect(selected).toHaveClass(/wx-selected/);
-    await expect(treeToggle).toHaveClass(/wxi-menu-right/); await expect(peerHeader.getByText("완료 단계", { exact: true })).toBeVisible();
+    await expect(treeToggle).toHaveClass(/wxi-menu-right/); await expect(peerHeader.getByText("Milestone", { exact: true })).toBeVisible();
     expect((await peerHeader.locator('[data-header-id=":text"]').boundingBox())!.width).toBeCloseTo(nameWidth, 0);
     expect(scrollCheckpoints.find((checkpoint) => checkpoint.phase === "after-peer-return")!.scrollLeft, "Dashboard/Gantt peer return preserves scroll").toBe(scroll);
     expect(scrollCheckpoints.find((checkpoint) => checkpoint.phase === "after-followup-layout")!.scrollLeft, "Followup layout preserves restored scroll").toBe(scroll);
@@ -186,5 +201,5 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
     expect(scrollCheckpoints.find((checkpoint) => checkpoint.phase === "after-followup-layout")!.publicLeft).toBe(scroll);
     expect(JSON.parse(await frame.getAttribute("data-gantt-peer-restore") ?? "{}").count).toBe(1);
   } finally { await readonly.close(); }
-  expect((await get()).data.project.revision).toBe(snapshot.data.project.revision);
+  expect((await getBrowserSnapshot()).data.project.revision).toBe(snapshot.data.project.revision);
 });

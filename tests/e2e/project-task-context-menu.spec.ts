@@ -1,12 +1,13 @@
+import { readBrowserCanonicalSnapshot } from "./helpers/browser-canonical-snapshot";
+import type { ObserveIsolatedApi } from "./fixtures/isolated-application-diagnostics";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/contracts/projects";
 
 test.use(isolatedApplicationOptions);
 
-async function snapshot(page: import("@playwright/test").Page, api: string) {
-  const response = await page.request.get(api);
-  expect(response.status()).toBe(200);
-  return await response.json() as ProjectSnapshotResponse;
+async function snapshot(page: import("@playwright/test").Page, api: string, observeApi: ObserveIsolatedApi) {
+  return readBrowserCanonicalSnapshot(page, api, observeApi);
 }
 
 async function createTask(
@@ -73,7 +74,7 @@ async function expectClipboardText(page: import("@playwright/test").Page, expect
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(expected);
 }
 
-test("Issue #77 Context Menu opens without activating a submenu", async ({ page }) => {
+test("Issue #77 Context Menu opens without activating a submenu", async ({ page, observeIsolatedApi }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
@@ -86,7 +87,7 @@ test("Issue #77 Context Menu opens without activating a submenu", async ({ page 
   const path = new URL(page.url()).pathname;
   const api = `/api${path}`;
   const origin = new URL(page.url()).origin;
-  const initial = await snapshot(page, api);
+  const initial = await snapshot(page, api, observeIsolatedApi);
   const created = await createTask(page, api, origin, initial.data.project.revision, "Context initial");
   const taskId = created.data.tasks.find((task) => task.name === "Context initial")!.taskId;
 
@@ -131,7 +132,7 @@ test("Issue #77 Context Menu opens without activating a submenu", async ({ page 
   await page.keyboard.press("Escape");
 });
 
-test("Issue #116 task submenus stay operable at viewport corners and in short viewports", async ({ page }) => {
+async function prepareIssue116(page: import("@playwright/test").Page, observeIsolatedApi: ObserveIsolatedApi) {
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Context responsive ${suffix}`);
@@ -140,7 +141,7 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
   const path = new URL(page.url()).pathname;
   const api = `/api${path}`;
-  const current = await snapshot(page, api);
+  const current = await snapshot(page, api, observeIsolatedApi);
   await createTask(page, api, new URL(page.url()).origin, current.data.project.revision, "Responsive menu task");
   await page.reload();
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
@@ -148,6 +149,11 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
   const rootMenu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
   const childMenu = page.getByRole("menu", { name: "Add", exact: true });
   const target = row(page, "Responsive menu task").getByText("Responsive menu task", { exact: true });
+  return { api, rootMenu, childMenu, target };
+}
+
+test("Issue #116 task submenus stay operable at all viewport corners", async ({ page, observeIsolatedApi }) => {
+  const { rootMenu, childMenu, target } = await prepareIssue116(page, observeIsolatedApi);
   for (const width of [390, 768, 1024, 1440]) {
     const height = 844;
     await settleViewportBeforeContextMenu(page, target, width, height);
@@ -230,7 +236,10 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
       await expect(row(page, "Responsive menu task")).toBeFocused();
     }
   }
+});
 
+test("Issue #116 short viewport scrolling clipboard and summary commands preserve menu contracts", async ({ page, observeIsolatedApi }) => {
+  const { api, rootMenu, childMenu, target } = await prepareIssue116(page, observeIsolatedApi);
   await settleViewportBeforeContextMenu(page, target, 390, 844);
   for (const name of ["Convert to", "Move"] as const) {
     await dispatchTaskContextMenuAt(page, target, 380, 836);
@@ -363,7 +372,7 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
   await rootMenu.getByRole("menuitem", { name: "Add", exact: true }).click();
   await childMenu.getByRole("menuitem", { name: "Child task" }).click();
   await expectStructureToast(page);
-  const summary = (await snapshot(page, api)).data.tasks.find((task) => task.name === "Responsive menu task");
+  const summary = (await snapshot(page, api, observeIsolatedApi)).data.tasks.find((task) => task.name === "Responsive menu task");
   expect(summary?.type).toBe("summary");
   await dispatchTaskContextMenuAt(page, target, 380, 836);
   const convert = rootMenu.getByRole("menuitem", { name: "Convert to", exact: true });
@@ -381,7 +390,7 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
 });
 
 
-test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard or revision", async ({ page, context }) => {
+test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard or revision", async ({ page, context, observeIsolatedApi }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await page.goto("/projects/new");
@@ -395,7 +404,7 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
   const origin = new URL(page.url()).origin;
   await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin });
 
-  let current = await snapshot(page, api);
+  let current = await snapshot(page, api, observeIsolatedApi);
   const taskResult = await createTask(page, api, origin, current.data.project.revision, "Copy ID Task");
   const summaryResult = await createTask(page, api, origin, taskResult.data.project.revision, "Copy ID Summary");
   await createTask(page, api, origin, summaryResult.data.project.revision, "Copy ID Milestone");
@@ -409,7 +418,7 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
   await runSubmenu(page, "Convert to", "Milestone");
   await expectStructureToast(page);
 
-  current = await snapshot(page, api);
+  current = await snapshot(page, api, observeIsolatedApi);
   const task = current.data.tasks.find((entry) => entry.name === "Copy ID Task")!;
   const summary = current.data.tasks.find((entry) => entry.name === "Copy ID Summary")!;
   const milestone = current.data.tasks.find((entry) => entry.name === "Copy ID Milestone")!;
@@ -425,7 +434,7 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
 
   await page.reload();
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
-  const revisionBeforeCopyId = (await snapshot(page, api)).data.project.revision;
+  const revisionBeforeCopyId = (await snapshot(page, api, observeIsolatedApi)).data.project.revision;
 
   menu = await openTaskMenu(page, "Copy ID Task");
   await expect(menu.getByRole("menuitem", { name: "Copy ID", exact: true })).toBeEnabled();
@@ -437,14 +446,14 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
   await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
   await expectClipboardText(page, summary.taskId);
 
-  // Milestone has no native WBS Context Menu; expose the same canonical identity through Management.
-  await expect(page.locator('.project-gantt-widget .wx-bar[data-task-id=":' + milestone.taskId + '"]')).toHaveCount(0);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
-  const milestonePanel = page.locator("#project-panel-milestones");
-  await expect(milestonePanel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
-  const manager = milestonePanel.locator('[data-milestone-task-id="' + milestone.taskId + '"]');
-  await manager.getByRole("button", { name: / 관리$/ }).click();
-  await page.getByRole("dialog", { name: / 관리$/ }).getByRole("button", { name: "작업 ID 복사", exact: true }).click();
+  await expect(page.locator(`.wx-row[data-id=":${milestone.taskId}"]`)).toHaveCount(0);
+  await openWorkspaceView(page, "milestones");
+  const panel = page.locator("#project-panel-milestones");
+  await expect(panel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
+  const milestoneRow = panel.locator(`[data-milestone-task-id="${milestone.taskId}"]`);
+  await expect(milestoneRow).toHaveCount(1);
+  await milestoneRow.getByRole("button", { name: "Copy ID Milestone 관리", exact: true }).click();
+  await page.getByRole("dialog", { name: "Copy ID Milestone 관리", exact: true }).getByRole("button", { name: "작업 ID 복사", exact: true }).click();
   await expectClipboardText(page, milestone.taskId);
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   menu = await openTaskMenu(page, "Copy ID Task");
@@ -452,7 +461,7 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
   menu = await openTaskMenu(page, "Copy ID Summary");
   await expect(menu.getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
   await page.keyboard.press("Escape");
-  expect((await snapshot(page, api)).data.project.revision).toBe(revisionBeforeCopyId);
+  expect((await snapshot(page, api, observeIsolatedApi)).data.project.revision).toBe(revisionBeforeCopyId);
 
   await context.clearCookies();
   await page.reload();
@@ -462,7 +471,7 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
   await expect(menu.getByRole("menuitem", { name: "Copy ID", exact: true })).toBeEnabled();
   await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
   await expectClipboardText(page, task.taskId);
-  expect((await snapshot(page, api)).data.project.revision).toBe(revisionBeforeCopyId);
+  expect((await snapshot(page, api, observeIsolatedApi)).data.project.revision).toBe(revisionBeforeCopyId);
 
   await page.goto(`${path}?rootTask=${encodeURIComponent(summary.taskId)}`);
   await expect(row(page, summaryChild.name)).toBeVisible();
@@ -471,7 +480,7 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
   await expectClipboardText(page, summaryChild.taskId);
 });
 
-test("Issue #390 Copy ID uses manual fallback when the browser denies clipboard write", async ({ page }) => {
+test("Issue #390 Copy ID uses manual fallback when the browser denies clipboard write", async ({ page, observeIsolatedApi }) => {
   await page.addInitScript(() => {
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
@@ -488,7 +497,7 @@ test("Issue #390 Copy ID uses manual fallback when the browser denies clipboard 
   const path = new URL(page.url()).pathname;
   const api = `/api${path}`;
   const origin = new URL(page.url()).origin;
-  const current = await snapshot(page, api);
+  const current = await snapshot(page, api, observeIsolatedApi);
   const created = await createTask(page, api, origin, current.data.project.revision, "Fallback ID task");
   const task = created.data.tasks.find((entry) => entry.name === "Fallback ID task")!;
 
@@ -514,7 +523,7 @@ test("Issue #390 Copy ID uses manual fallback when the browser denies clipboard 
   await expect(target).toBeFocused();
 });
 
-test("Issue #72 Context Menu hierarchy commands persist canonical state without remounting", async ({ page }) => {
+test("Issue #72 Context Menu hierarchy commands persist canonical state without remounting", async ({ page, observeIsolatedApi }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
@@ -527,7 +536,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   const path = new URL(page.url()).pathname;
   const api = `/api${path}`;
   const origin = new URL(page.url()).origin;
-  let current = await snapshot(page, api);
+  let current = await snapshot(page, api, observeIsolatedApi);
 
   const aBody = await createTask(page, api, origin, current.data.project.revision, "Context A");
   const a = aBody.data.tasks.find((task) => task.name === "Context A")!;
@@ -552,7 +561,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   menu = await openTaskMenu(page, "Context B");
   await runSubmenu(page, "Move", "Move up");
   await expectStructureToast(page);
-  current = await snapshot(page, api);
+  current = await snapshot(page, api, observeIsolatedApi);
   expect(current.data.tasks
     .filter((task) => task.parentExternalId === null)
     .sort((left, right) => left.siblingOrder - right.siblingOrder)
@@ -561,7 +570,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   menu = await openTaskMenu(page, "Context A");
   await menu.getByRole("menuitem", { name: "Indent", exact: true }).click();
   await expectStructureToast(page);
-  current = await snapshot(page, api);
+  current = await snapshot(page, api, observeIsolatedApi);
   const afterIndentA = current.data.tasks.find((task) => task.taskId === a.taskId)!;
   const afterIndentB = current.data.tasks.find((task) => task.taskId === b.taskId)!;
   expect(afterIndentA.parentExternalId).toBe(afterIndentB.externalId);
@@ -572,7 +581,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   menu = await openTaskMenu(page, "Context B");
   await runSubmenu(page, "Add", "Child task");
   await expectStructureToast(page);
-  current = await snapshot(page, api);
+  current = await snapshot(page, api, observeIsolatedApi);
   const bChildren = current.data.tasks.filter((task) => task.parentExternalId === afterIndentB.externalId);
   expect(bChildren).toHaveLength(2);
 
@@ -580,7 +589,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   await expect(menu.getByRole("menuitem", { name: "Outdent", exact: true })).toBeEnabled();
   await menu.getByRole("menuitem", { name: "Outdent", exact: true }).click();
   await expectStructureToast(page);
-  current = await snapshot(page, api);
+  current = await snapshot(page, api, observeIsolatedApi);
   expect(current.data.tasks.find((task) => task.taskId === a.taskId)?.parentExternalId).toBeNull();
 
   menu = await openTaskMenu(page, "Context C");
@@ -589,36 +598,41 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   await expect(menu.getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
   await runSubmenu(page, "Paste", "Below");
   await expectStructureToast(page);
-  current = await snapshot(page, api);
+  current = await snapshot(page, api, observeIsolatedApi);
   const copies = current.data.tasks.filter((task) => task.name === "Context C");
   expect(copies).toHaveLength(2);
   expect(new Set(copies.map((task) => task.taskId)).size).toBe(2);
   expect(copies.some((task) => task.taskId === c.taskId)).toBe(true);
 
-  const beforeAddRevision = current.data.project.revision;
-  menu = await openTaskMenu(page, "Context A");
-  await runSubmenu(page, "Add", "Task below");
-  await expectStructureToast(page);
-  current = await snapshot(page, api);
-  expect(current.data.project.revision).toBe(beforeAddRevision + 1);
-  expect(current.data.tasks.some((task) => task.name === "새 작업")).toBe(true);
-
   menu = await openTaskMenu(page, "Context A");
   await runSubmenu(page, "Convert to", "Milestone");
   await expectStructureToast(page);
-  current = await snapshot(page, api);
-  expect(current.data.tasks.find((task) => task.taskId === a.taskId)).toMatchObject({ type: "milestone", duration: 0 });
+  current = await snapshot(page, api, observeIsolatedApi);
+  expect(current.data.tasks.find((task) => task.taskId === a.taskId)).toMatchObject({
+    type: "milestone",
+    duration: 0,
+  });
+
+  const beforeAddRevision = current.data.project.revision;
+  await expect(page.locator(`.wx-row[data-id=":${a.taskId}"]`)).toHaveCount(0);
+  menu = await openTaskMenu(page, "Context B");
+  await runSubmenu(page, "Add", "Task below");
+  await expectStructureToast(page);
+  current = await snapshot(page, api, observeIsolatedApi);
+  expect(current.data.project.revision).toBe(beforeAddRevision + 1);
+  expect(current.data.tasks.some((task) => task.name === "새 작업")).toBe(true);
 
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   await page.reload();
-  current = await snapshot(page, api);
+  current = await snapshot(page, api, observeIsolatedApi);
   expect(current.data.tasks.find((task) => task.taskId === a.taskId)?.type).toBe("milestone");
   expect(current.data.tasks.filter((task) => task.name === "Context C")).toHaveLength(2);
-  await expect(page.getByRole("grid").getByText("Context A", { exact: true })).toHaveCount(0);
+  await expect(page.locator(`.wx-row[data-id=":${a.taskId}"]`)).toHaveCount(0);
+  expect(current.data.tasks.find(task => task.taskId === a.taskId)?.name).toBe("Context A");
 });
 
 
-test("Issues #104/#378 keep unrelated mutations available and allow linked Copy/Paste", async ({ page }) => {
+test("Issues #104/#378 keep unrelated mutations available and allow linked Copy/Paste", async ({ page, observeIsolatedApi }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
@@ -631,7 +645,7 @@ test("Issues #104/#378 keep unrelated mutations available and allow linked Copy/
   const path = new URL(page.url()).pathname;
   const api = `/api${path}`;
   const origin = new URL(page.url()).origin;
-  const current = await snapshot(page, api);
+  const current = await snapshot(page, api, observeIsolatedApi);
   const first = await createTask(page, api, origin, current.data.project.revision, "Linked A");
   const second = await createTask(page, api, origin, first.data.project.revision, "Linked B");
   const third = await createTask(page, api, origin, second.data.project.revision, "Unlinked C");
@@ -658,7 +672,7 @@ test("Issues #104/#378 keep unrelated mutations available and allow linked Copy/
   }
   await unrelatedMenu.getByRole("menuitem", { name: "Delete", exact: true }).click();
   await expect(page.locator(".project-gantt-widget .wx-row", { hasText: "Unlinked C" })).toHaveCount(0);
-  const afterDelete = await snapshot(page, api);
+  const afterDelete = await snapshot(page, api, observeIsolatedApi);
   expect(afterDelete.data.links).toHaveLength(1);
   expect(afterDelete.data.links[0]).toMatchObject({
     predecessorExternalId: a.externalId,
@@ -680,7 +694,7 @@ test("Issues #104/#378 keep unrelated mutations available and allow linked Copy/
   await runSubmenu(page, "Paste", "Below");
   await expectStructureToast(page);
 
-  const afterCopy = await snapshot(page, api);
+  const afterCopy = await snapshot(page, api, observeIsolatedApi);
   expect(afterCopy.data.tasks.filter((task) => task.name === "Linked A")).toHaveLength(2);
   expect(afterCopy.data.links).toHaveLength(1);
   expect(afterCopy.data.links[0]).toMatchObject({
@@ -690,7 +704,7 @@ test("Issues #104/#378 keep unrelated mutations available and allow linked Copy/
 });
 
 
-test("Issue #430 allows Cut for internal subtree dependencies and blocks boundary-crossing dependencies", async ({ page }) => {
+test("Issue #430 allows Cut for internal subtree dependencies and blocks boundary-crossing dependencies", async ({ page, observeIsolatedApi }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
@@ -703,7 +717,7 @@ test("Issue #430 allows Cut for internal subtree dependencies and blocks boundar
   const path = new URL(page.url()).pathname;
   const api = `/api${path}`;
   const origin = new URL(page.url()).origin;
-  let current: ProjectSnapshotResponse | TaskMutationResponse = await snapshot(page, api);
+  let current: ProjectSnapshotResponse | TaskMutationResponse = await snapshot(page, api, observeIsolatedApi);
 
   async function add(
     name: string,
@@ -766,7 +780,7 @@ test("Issue #430 allows Cut for internal subtree dependencies and blocks boundar
   await runSubmenu(page, "Paste", "As child");
   await expectStructureToast(page);
 
-  current = await snapshot(page, api);
+  current = await snapshot(page, api, observeIsolatedApi);
   expect(current.data.tasks.find((task) => task.taskId === source.taskId)?.parentExternalId).toBe(target.externalId);
   expect(current.data.links).toContainEqual(internalLink);
 
@@ -789,11 +803,61 @@ test("Issue #430 allows Cut for internal subtree dependencies and blocks boundar
   await expect(sourceMenu.getByRole("menuitem", { name: "Copy", exact: true })).toBeEnabled();
   await page.keyboard.press("Escape");
 
-  const persisted = await snapshot(page, api);
+  const persisted = await snapshot(page, api, observeIsolatedApi);
   expect(persisted.data.project.revision).toBe(current.data.project.revision);
   expect(persisted.data.links).toContainEqual(internalLink);
   expect(persisted.data.links.some((link) =>
     link.predecessorExternalId === second.externalId &&
     link.successorExternalId === outside.externalId
   )).toBe(true);
+});
+
+test("Issue #735 canonical persistence reads use the browser when the independent API transport fails", async ({ page, observeIsolatedApi }) => {
+  const name = `Canonical browser transport ${Date.now()}`;
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill(name);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("CtxPwd12345!");
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
+  const api = `/api${new URL(page.url()).pathname}`;
+  const initial = await snapshot(page, api, observeIsolatedApi);
+  const taskName = "Canonical transport task";
+  const created = await createTask(page, api, new URL(page.url()).origin, initial.data.project.revision, taskName);
+  const taskId = created.data.tasks.find(task => task.name === taskName)!.taskId;
+  await page.reload();
+  await expect(row(page, taskName)).toBeVisible();
+  const canonical = await snapshot(page, api, observeIsolatedApi);
+  expect(canonical.data.tasks.find(task => task.name === taskName)?.taskId).toBe(taskId);
+
+  let independentGets = 0;
+  let browserGets = 0;
+  const countBrowserGet = (request: import("@playwright/test").Request) => {
+    if (request.method() === "GET" && new URL(request.url()).pathname === api) browserGets++;
+  };
+  // Fault only the independent API client. The Page and its browser fetch remain real.
+  const disconnectedApi = new Proxy(page.request, {
+    get(target, property, receiver) {
+      if (property === "get") return async () => {
+        independentGets++;
+        throw new Error("synthetic independent API GET ECONNRESET");
+      };
+      const value = Reflect.get(target, property, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  const browserPage = new Proxy(page, {
+    get(target, property, receiver) {
+      if (property === "request") return disconnectedApi;
+      const value = Reflect.get(target, property, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  page.on("request", countBrowserGet);
+  try {
+    expect(await snapshot(browserPage, api, observeIsolatedApi)).toEqual(canonical);
+    expect(browserGets).toBe(1);
+    expect(independentGets).toBe(0);
+  } finally {
+    page.off("request", countBrowserGet);
+  }
 });

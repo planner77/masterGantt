@@ -1,0 +1,63 @@
+{
+  "schema": "mastergantt-785-f005-positive-producer-audit-v1",
+  "reviewer": "/root/qa_review",
+  "mode": "READ_ONLY_STATIC",
+  "status": "PASS",
+  "testExecutionClaim": false,
+  "search": [
+    "rg -l logistics-links tests/e2e --glob *.ts",
+    "direct/inherited/effective/compatibility DTO field cross-check",
+    "imported tests/fixtures/stateful-project.ts route dispatch"
+  ],
+  "endpointReferenceFiles": [
+    "tests/e2e/browser-task-logistics-links.spec.ts",
+    "tests/e2e/fixtures/isolated-application-diagnostics.ts",
+    "tests/e2e/fixtures/isolated-performance-receipt.ts",
+    "tests/e2e/fixtures/task-editor-density.ts",
+    "tests/e2e/fixtures/wbs-view-composer.ts",
+    "tests/e2e/helpers/browser-task-logistics-links.ts",
+    "tests/e2e/issue-623-resource-mvp.spec.ts",
+    "tests/e2e/issue-726-task-logistics.spec.ts",
+    "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+    "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+    "tests/e2e/logistics-target-authoring.spec.ts",
+    "tests/e2e/milestone-stage-dashboard.spec.ts",
+    "tests/e2e/milestone-stage-exchange.spec.ts",
+    "tests/e2e/milestone-stage-grid.spec.ts",
+    "tests/e2e/project-task-editor.spec.ts",
+    "tests/e2e/resource-target-dashboard-api.spec.ts",
+    "tests/e2e/task-link-load-safety.spec.ts"
+  ],
+  "successGetProducers": [
+    {
+      "path": "tests/e2e/project-task-editor.spec.ts",
+      "line": 1189,
+      "consumer": "#461 Logistics draft scenario"
+    },
+    {
+      "path": "tests/e2e/fixtures/task-editor-density.ts",
+      "line": 111,
+      "consumer": "shared density empty logistics GET"
+    },
+    {
+      "path": "tests/e2e/task-link-load-safety.spec.ts",
+      "line": 19,
+      "consumer": "links helper used by four route handlers"
+    }
+  ],
+  "verifiedSuccessFields": [
+    "live fixture projectRevision",
+    "compatibilityLinks array",
+    "TaskLogisticsLinksDto & Required<Pick> compile check"
+  ],
+  "remainingMissingMetadataInSuccessProducers": 0,
+  "exclusions": {
+    "intentionalNegative": "malformed/null/wrong-task/master wrong-revision/malformed-role/missing-permission/500/network/401",
+    "unreachedRedirectPayload": "browser-task-logistics-links redirect destination asserts request count0",
+    "actualHttpOrPassThrough": "GET continue / PUT gates and errors / HTTP warmup",
+    "observation": "diagnostics/receipts/browser transport helper",
+    "statefulProject": "master-only response; Task links GET continues to actual server"
+  },
+  "runtimeSourceDigest": "60648b89a19a29597390a5a015d1f8dc23176408ddfdb050c6b7df7b6180d776",
+  "finalPreQa": "NOT TESTED"
+}

@@ -58,10 +58,14 @@ test("Issue #288: resource developer grade is created, displayed, and editable",
   await expect(page.getByRole("cell", { name: "특급", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "리소스 추가", exact: true }).click();
 
-  await page.getByLabel("이름", { exact: true }).first().fill("신규개발자");
-  await page.getByLabel("코드", { exact: true }).first().fill("DEV-02");
-  await page.getByLabel("신규 리소스 개발자 등급", { exact: true }).selectOption("ADVANCED");
-  await page.getByRole("button", { name: "추가", exact: true }).first().click();
+  // #717: a collapsed raw-code disclosure also owns a readonly textarea
+  // labeled "코드". Scope edits to the active creation dialog's real inputs.
+  const createDialog = page.getByRole("dialog", { name: "리소스 추가", exact: true });
+  await expect(createDialog).toBeVisible();
+  await createDialog.getByRole("textbox", { name: "이름", exact: true }).fill("신규개발자");
+  await createDialog.getByRole("textbox", { name: "코드", exact: true }).fill("DEV-02");
+  await createDialog.getByLabel("신규 리소스 개발자 등급", { exact: true }).selectOption("ADVANCED");
+  await createDialog.getByRole("button", { name: "추가", exact: true }).click();
 
   for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });

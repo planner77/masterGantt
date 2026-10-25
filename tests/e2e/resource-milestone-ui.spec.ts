@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../src/contracts/projects";
 const password = "Synthetic525Admin!";
@@ -37,11 +38,11 @@ test("#526 실제 SQLite/HTTP 세 계층·비교표·선택 진척과 전체 Gat
   for (const task of [inherited, override]) await mutate(`/tasks/${task.taskId}/assignments`, { catalogRevision: catalog.revision, targets: [{ kind: "resource", id: r1, allocation: { start: null, end: null, percent: 50 } }] }, "put");
   const readonly = await browser.newContext({ baseURL: origin });
   try {
-    const publicPage = await readonly.newPage(); await publicPage.goto(`/projects/${publicId}`); await publicPage.getByRole("tab", { name: "리소스", exact: true }).click(); const root = publicPage.locator('[data-resource-dashboard="true"]'); await expect(root).toHaveAttribute("data-ready", "true");
+    const publicPage = await readonly.newPage(); await publicPage.goto(`/projects/${publicId}`); await openWorkspaceView(publicPage, "resources"); const root = publicPage.locator('[data-resource-dashboard="true"]'); await expect(root).toHaveAttribute("data-ready", "true");
     await root.getByLabel("리소스 보기", { exact: true }).selectOption("tree");
     let tree = root.getByRole("region", { name: "Milestone 계층 현황", exact: true });
     await tree.getByRole("button", { name: "공동 그룹", exact: true }).click(); await tree.getByRole("button", { name: "인수 Milestone", exact: true }).click();
-    await expect(tree.getByText(/선택 할당 작업 진척 100.0%/).first()).toBeVisible(); await expect(tree.getByText(/단계 전체 소속 2\/3/)).toBeVisible(); await expect(tree.getByText(/선행 차단 있음/)).toBeVisible();
+    await expect(tree.getByText(/선택 할당 작업 진척 100.0%/).first()).toBeVisible(); await expect(tree.getByText(/Milestone 전체 소속 2\/3/)).toBeVisible(); await expect(tree.getByText(/선행 차단 있음/)).toBeVisible();
     // Group children arrive asynchronously. The Milestone parent has no resourceId,
     // so target Alice's own expanded summary rather than the last summary in the tree.
     const groupChildren = tree.getByLabel("그룹 교차 개인 현황");

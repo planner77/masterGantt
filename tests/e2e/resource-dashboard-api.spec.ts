@@ -22,7 +22,7 @@ test("Issue #524 실제 브라우저 public readonly report/detail과 재시작 
     }, path);
     expect(fetched.status).toBe(200); expect(fetched.cache).toBe("private, no-store"); expect(fetched.nosniff).toBe("nosniff");
     const report = fetched.body.data as ResourceDashboardDto;
-    expect(report.schema).toBe("resource-dashboard/1"); expect(report.summary.taskCount).toBe(0); expect(report.catalog.resources).toEqual([]);
+    expect(report.schema).toBe("resource-dashboard/2"); expect(report.summary.taskCount).toBe(0); expect(report.catalog.resources).toEqual([]);
     expect(report.mdPerMm).toBeNull(); expect(report.mdPerMmSource).toBe("query");
     const detail = await readonly.request.get(`/api/projects/${publicId}/resource-dashboard/details?mdPerMm=null&snapshotId=${report.snapshotId}&dimension=all`);
     expect(detail.status()).toBe(200); expect((await detail.json()).data.totalCount).toBe(0);

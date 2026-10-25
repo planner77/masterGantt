@@ -1,0 +1,5211 @@
+{
+  "schemaVersion": 2,
+  "captureRunId": "dashboards-2026-10-24T22-27-21.854Z",
+  "collectorHashAtStart": "99d4fde139d38648078b90baea1a061275697bc2148b13cf2b76d6b22888e626",
+  "collectorHashAtEnd": "99d4fde139d38648078b90baea1a061275697bc2148b13cf2b76d6b22888e626",
+  "baselineComparable": true,
+  "sourceSha": "8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24",
+  "capturedAt": "2026-10-24T22:29:54.279Z",
+  "phase": "dashboards",
+  "appVersion": "0.132.0",
+  "installedNextVersion": "16.4.2",
+  "installedPlaywrightVersion": "1.63.0",
+  "command": "node tests/manual/issue-798-dashboard-density.mjs dashboards",
+  "server": "npm run dev -- --hostname 127.0.0.1 --port 3198 --webpack",
+  "fixture": {
+    "source": "seedWbsViewComposer; real local HTTP/isolated SQLite",
+    "revision": 17,
+    "assertionAdapter": "minimal fail-closed status/truthiness/visibility; no runner attachments; archived SQLite seed unavailable",
+    "browserContextIsolation": "fresh cookie-only context for each sample; cookies copied in memory only; localStorage/sessionStorage empty; readonly sample has no cookies"
+  },
+  "environment": {
+    "viewportHeight": 900,
+    "widths": [
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ],
+    "locale": "ko-KR",
+    "timezone": "Asia/Seoul",
+    "zoom": "100%; native125% NOT TESTED",
+    "browserExecutable": "existing chromium-1243; actual browser version in each observation; runner browser equivalence NOT TESTED",
+    "runtime": "Next dev webpack; production/remote NOT TESTED",
+    "screenshots": "*.png fullPage may include document extension with main-owned scroll clipping; *-viewport.png exactly viewport900; scroll owner coordinates in JSON"
+  },
+  "hashes": {
+    "package.json": "5a1a0ff77d00b69f832969e3b329f5fa49b5119cf168fb790f597429d37e27b0",
+    "package-lock.json": "2c68c800bd44a9aa61fad15533d8476c9f230a7b589ddbacac796695421fa317",
+    "tests/manual/issue-798-dashboard-density.mjs": "99d4fde139d38648078b90baea1a061275697bc2148b13cf2b76d6b22888e626",
+    "tests/e2e/helpers/ui-geometry.ts": "9363055d8c06c24e6aa987ace33a0066d81e151d2136dcc49d4bbcc0eec03e39",
+    "tests/e2e/fixtures/target-project.ts": "91a98b4d6fcefc4fb088189d690de481e1fa1593a79e070715593dfa47f18f00",
+    "tests/e2e/fixtures/wbs-view-composer.ts": "6f096b3b00a0af79396a9f2ead3e8d85267f942632c17bc33bad6d16a713fc33",
+    "tests/e2e/fixtures/isolated-application-diagnostics.ts": "dd8e330cb510adbcf996c79d401a0a1f0701797add612599b07abbdbcfa62144",
+    "tests/e2e/helpers/read-only-requests.ts": "8c738ce778e4bfa093470170bc6195d067dd39648606eaab4ff75adf96d998bd",
+    "node_modules/next/package.json": "e84ada0a68191fed192392bfb8ee35ad4ed8e7439f645a40dd48cf139588ddc5",
+    "node_modules/@playwright/test/package.json": "5587f932b8979b6889654b60e3c28aeb7ca0abbac00eec8c176c939a16149536"
+  },
+  "sourceHashes": {
+    "src/app/api/health/live/route.ts": "02aad3c326b235aaf0a45f53419b32605d4bf5ead9ac14c5a704418dcb31ef03",
+    "src/app/api/health/ready/route.ts": "e8cf6cc27a3cb67d5d9322ddeeb1afde548c2e71988b41fa0fc7277801491637",
+    "src/app/api/logistics-catalog/admin-password/route.ts": "640951cba70c91db3099bc3c1c9edf67a96158fb3fe170ee60b22c6e711da876",
+    "src/app/api/logistics-catalog/admin-sessions/route.ts": "789a635a875b086d074a2fa8aec7ea53df24e2ee501c7c6269447c60db37e44a",
+    "src/app/api/logistics-catalog/admin/equipment-types/[code]/route.ts": "cb3cf3afd668faa8ca7ba4a4fe93c2e003a9081910831b71281009742b1697f2",
+    "src/app/api/logistics-catalog/admin/equipment-types/route.ts": "c93bf903ee516ae32b91eff92dcb13bb278595b342a12764e6268bb569d86dfe",
+    "src/app/api/logistics-catalog/admin/system-types/[code]/route.ts": "1d72b6bac13a2d189e65ec233fb55f4fdd0dda9cf0c651cf17b914d40e15657f",
+    "src/app/api/logistics-catalog/admin/system-types/route.ts": "e0db9594147771335d9e702cf6d3a814dd5c2cd21354a65e78a4d4d44ee9318f",
+    "src/app/api/logistics-catalog/types/route.ts": "6b44d9ba33315a5f354b97e79917b9471762b27093dff1a456708681ddfa4e12",
+    "src/app/api/process-catalog/admin/occurrences/[id]/route.ts": "52a9f6a30f667ec4493d99a4fd1610dae7a6bf413f5cf407aa323f228c73bd5a",
+    "src/app/api/process-catalog/admin/occurrences/apply-standard/route.ts": "818ac7f7bd501acbfc02548d84faf2fa71904b36a781325edef7a57d83f75b01",
+    "src/app/api/process-catalog/admin/occurrences/route.ts": "f535fb8d8dab828a6c0161e35847c209b6e22dd2f15efbcf31c9eb6cb920161f",
+    "src/app/api/process-catalog/admin/route.ts": "6389dd760852a12ff9fa9a85553ee76567648813d7f6898fc28ada9735bd7d49",
+    "src/app/api/process-catalog/admin/standard-diff/route.ts": "0de6e9c9439035cd0e2bac92d4209095e4f69fdbe1e8cd32450d51cf57fe199d",
+    "src/app/api/process-catalog/admin/standards/[id]/route.ts": "2206085c85a6a110b8681c5bc1a85f99b68ce7ba0f23cc21e31873122c26ab48",
+    "src/app/api/process-catalog/admin/standards/route.ts": "a845d67428e241cd02f1167454475a22f2f44e2b8e154e449b68cc707f8ea0e7",
+    "src/app/api/process-catalog/admin/types/[id]/route.ts": "62f3e2d67ae152c73147cc058b052ff66677adfe451d9cd0b85f92437088e201",
+    "src/app/api/process-catalog/admin/types/route.ts": "c1de04a5c35efb21d4107c46bb0b3068a120d800c12cdf8ba9aa8bc23decf42b",
+    "src/app/api/process-catalog/admin/work-areas/[id]/route.ts": "0474de7e47e3b2b09abf7ea88d6245731f7a6e4c4ab00c95d9446b01808cd808",
+    "src/app/api/process-catalog/admin/work-areas/route.ts": "1909d6af6b8575ead50e7961d79ccc6cd0811f314e90c41346bb462cd955bb52",
+    "src/app/api/project-master/admin-password/route.ts": "00e22a2a3b35630e5a92acb04f791945a6e8da3c12058c361d31c81161568644",
+    "src/app/api/project-master/admin-sessions/route.ts": "b1ee722c0c16d3315d226d338feb1f6e65fe931ee7f170787d74345862b575dc",
+    "src/app/api/project-master/admin/items/[itemId]/route.ts": "504783fd4f88a77ba360721af8d8a8826f53486a7cb43337c2ebd797d877941b",
+    "src/app/api/project-master/admin/items/route.ts": "8392ff4f663e86d824b4b800b3ebc45a0f7ec59862cdcd09afdf914822403b1c",
+    "src/app/api/project-master/admin/relations/route.ts": "a631a872ad71849cc9dee8d25597a930491e6082da7b787b977cde8bd81c5821",
+    "src/app/api/project-master/catalog/route.ts": "5d6d0937a4dcba0f5a1de66d583f0001d752a24d1d3261a0b45fbfedab2ded74",
+    "src/app/api/project-templates/[templateId]/duplicate/route.ts": "8419732d23ecaa48169bd6494ed7e14d45285e5b53ed4cbefea737ef1b42b270",
+    "src/app/api/project-templates/[templateId]/instantiate/route.ts": "ece51f1f150020022ac68a6e8c5469c129ba1b3ebc2c7240b1089446b55aa6f3",
+    "src/app/api/project-templates/[templateId]/route.ts": "4fe172a15ff2b34ffad7e3e445224f9b3a02d3fa7f7834ff9918f4f0ac6bcac3",
+    "src/app/api/project-templates/route.ts": "e5c3797c98a7efba728bead9939f20f62c0e379d5d70b51f664e95cfadbab64d",
+    "src/app/api/projects/[publicId]/assigned-targets/route.ts": "7a71a55d11686b4f50dd8a876ec1325d2483e1c0533b5d6cf71df9e1e63ef26a",
+    "src/app/api/projects/[publicId]/assignment-targets/route.ts": "2700547f05549a269d76735b830a9c308f667f858a8080e7ea143c76609d3fb3",
+    "src/app/api/projects/[publicId]/copy/route.ts": "3c9e75524edaa74e1681765c5e01af6a20b3e1bc000a29a6aca12a35d478075e",
+    "src/app/api/projects/[publicId]/edit-password/route.ts": "c6c3634ebbc42c1734b7ae2f1edd7c15c9328781d6c768febf9b3add39974f6b",
+    "src/app/api/projects/[publicId]/edit-sessions/current/route.ts": "a2ab1c058c4a4ac115dde820ba041d65ad6711af10127ab50a87fb4f0c69aed1",
+    "src/app/api/projects/[publicId]/edit-sessions/route.ts": "350aabcea924545e6d76c85109ec40aeedb2d7d9a936bf354c268b6b5db27408",
+    "src/app/api/projects/[publicId]/exports/excel/route.ts": "8d625b904bfdac4be326e7dd12a6cb95c5b15acc06211964d658e8da2d67a42e",
+    "src/app/api/projects/[publicId]/exports/gantt-svg/route.ts": "87fae0ac39f1fccd8f479bc8a9055ac567143586f2baea9bc91098cbdd0f6a3e",
+    "src/app/api/projects/[publicId]/exports/json/route.ts": "77d7438ea3a567e6ae53fbdc9f96df47ecf37b7b60e5c9cd002ebe4be3493ba8",
+    "src/app/api/projects/[publicId]/imports/preview/route.ts": "82e75f8151670d9d1ff8cd10f9879099abad598436bf62cb6d9dfc46ffc7bd86",
+    "src/app/api/projects/[publicId]/imports/route.ts": "15a357cc85b53e08c69d99e3ddcf8f35f7cd0974a06f257fd17bf92e776679ec",
+    "src/app/api/projects/[publicId]/links/[linkId]/route.ts": "ed3ead588d79d3c1f11c5a3d1175b26610eccbce9066daafaa2c9ae521827607",
+    "src/app/api/projects/[publicId]/links/route.ts": "e249ae3f8c4a718257178ca8a2e9bc6f64969f44481b210b4ae3792f367f9a55",
+    "src/app/api/projects/[publicId]/logistics/dashboard/route.ts": "801c0c33d6ac66f1e36481a9f0d92bf9f99b899f4fb9661a7e9d35dab92deeb4",
+    "src/app/api/projects/[publicId]/logistics/equipment/[equipmentId]/resource-roles/route.ts": "5ad86179cc76ed7e7e89e5b1f62d583a6ff954f233c94add27bc0fdaa536072e",
+    "src/app/api/projects/[publicId]/logistics/equipment/[equipmentId]/route.ts": "868860197424b14fb193376a6b316a22d9f019a3f82adcb941fbca06a2518792",
+    "src/app/api/projects/[publicId]/logistics/equipment/[equipmentId]/systems/route.ts": "27de39315bbce8f498df14d645e526df3705ce0534d0cf9d46012a0b3a37a399",
+    "src/app/api/projects/[publicId]/logistics/equipment/[equipmentId]/usage/route.ts": "0c4f34bd96a03e2abde1ac77d5b07d1fb93ee7aa3fed6d3465abb9241ddfcc2a",
+    "src/app/api/projects/[publicId]/logistics/equipment/route.ts": "df87c419d42a448770d4e06dc4e4cfaef0207860482de4c899fd55e446983d12",
+    "src/app/api/projects/[publicId]/logistics/kpi/route.ts": "0182cb48c4a0317d5ad53b0336c27ea6b6216ae137ef9a7e1c0403ee615ecaa3",
+    "src/app/api/projects/[publicId]/logistics/process-context/route.ts": "13a77d74bad5a9df6eabb77189bf8c5176e54b45f45acf7d2693662660b71838",
+    "src/app/api/projects/[publicId]/logistics/process-mappings/[processId]/route.ts": "986ad0e4d496f6bb4c1581f782e453af9137494e3b33352b804903822c002269",
+    "src/app/api/projects/[publicId]/logistics/processes/[processId]/route.ts": "5206bf086dc95012f84a3ef4c6c0b281bdace99319319d6a5799333dae35881e",
+    "src/app/api/projects/[publicId]/logistics/processes/[processId]/work-areas/route.ts": "06f1cdc0defb4f5b1f49adc48afe45e8eb41c8ee18a12ff32a3257ca0f64dba2",
+    "src/app/api/projects/[publicId]/logistics/processes/route.ts": "0f3d55af440e9c1a76c0aa6f9178cf3bdd42c3e448a0bf4fd262397b5788a7ef",
+    "src/app/api/projects/[publicId]/logistics/route.ts": "9daf77c598b903809a8037be4dfc1b860da460f08a3fca2ab602f03aa7715668",
+    "src/app/api/projects/[publicId]/logistics/systems/[systemId]/children/route.ts": "c7d218b8b72ac4b843660e10b5c4bc9d09e50a510e7c0fe2c77b64f0ccf951e3",
+    "src/app/api/projects/[publicId]/logistics/systems/[systemId]/processes/route.ts": "83fac483a9fad5e3813ec360ccd352f0194359304ee42d3f3f4d610699bbb6ab",
+    "src/app/api/projects/[publicId]/logistics/systems/[systemId]/resource-roles/route.ts": "faac0b1c0ae369bbb047b12308aafb895a497c8ec2b55a72bb4a0b0172f2e945",
+    "src/app/api/projects/[publicId]/logistics/systems/[systemId]/route.ts": "d2d374b316ba7372e3bb798279a64e1c5affd78b137f61f617890a7499bce92d",
+    "src/app/api/projects/[publicId]/logistics/systems/[systemId]/usage/route.ts": "365ca35fb3ca7ef0573a8415b21e22fb63dcf00d74b515b5808a1f459f698dd9",
+    "src/app/api/projects/[publicId]/logistics/systems/route.ts": "b1d056910469fa05947bc5e308263a50c5db5454270530c49e3f12042da46900",
+    "src/app/api/projects/[publicId]/logistics/targets/[targetId]/impact/route.ts": "b9757907625d5b7d492ebaca14e7f3a7543f0aaa053a4f5697e0c510793acdaf",
+    "src/app/api/projects/[publicId]/logistics/targets/[targetId]/route.ts": "75d71586c89f25a4d85b11f2e747455be05b9dc9c40b68701efd24cbc71783b2",
+    "src/app/api/projects/[publicId]/logistics/targets/[targetId]/usage/route.ts": "9b17c16858a6e78dcd0c8fe05ab07b30abed491a2bd957e6e690f0933b17dd2e",
+    "src/app/api/projects/[publicId]/logistics/targets/route.ts": "4680817b5dc3f67d2d937c9d50646c53325d7a0bcfd9445039fdda5da03fc4b4",
+    "src/app/api/projects/[publicId]/logistics/work-areas/[workAreaId]/route.ts": "a8d9e241b0476e2c9360db7104a58a9143d19e862e0d219c3699a8a51e5c81f2",
+    "src/app/api/projects/[publicId]/milestone-dashboard/route.ts": "905bf9078d8b5d25a6b0d8efc350aeefb17f55e9f5c4ecf69badc1bf782e661e",
+    "src/app/api/projects/[publicId]/milestone-memberships/route.ts": "4c5a9d1c3202336684716b7d451cc9f49eb5e56c64be0a5c71fc723aea73f048",
+    "src/app/api/projects/[publicId]/resource-dashboard/details/route.ts": "ef51a917a4bcaa62898f08d3c592d618280a37364c6e4a240b084b3dc6198376",
+    "src/app/api/projects/[publicId]/resource-dashboard/group-children/route.ts": "08748e3d7954269310282c57a28939d6bd99b2ddb622f61f2371160db807d6f0",
+    "src/app/api/projects/[publicId]/resource-dashboard/plan/daily/route.ts": "4cbfe6fb06163387f55fdf1729ad943f751904406cdeea4a1e2cfd43a47db71c",
+    "src/app/api/projects/[publicId]/resource-dashboard/plan/day-assignments/route.ts": "ea050ac01ea9ae30a3ce0c266d4760b74279cbbea6a01463cd3c005c093799b6",
+    "src/app/api/projects/[publicId]/resource-dashboard/plan/day-resources/route.ts": "f4bb0c6ab2794216277de65f391be1e9192e6ab61128d9a97104ea783bff5178",
+    "src/app/api/projects/[publicId]/resource-dashboard/query/route.ts": "2f3e8ff9bdeaac7cba8485f99d43602dba502f31de64b6afe4eba8593d0cae87",
+    "src/app/api/projects/[publicId]/resource-dashboard/route.ts": "a2f76e829c803f00801b7c5be5350a370cb80632088403ed1ef8a03cf4c7833b",
+    "src/app/api/projects/[publicId]/resource-dashboard/scope/route.ts": "db3eb17bc343fc8a87ac3b9886036791a67a93752bcffef3b782a2803a5e481f",
+    "src/app/api/projects/[publicId]/resource-dashboard/views/route.ts": "5067b8d8feee2da66628188fccfb7e78579a4d77cf06a94439c734024fbe6791",
+    "src/app/api/projects/[publicId]/resource-memberships/[resourceId]/route.ts": "8563f18ec459736ccbe1144fde28482e2add8f573abab22cd44a231282427526",
+    "src/app/api/projects/[publicId]/resource-memberships/route.ts": "363f17c0a3936c49f4002392393bce1ac21dd7674aeab89c5a62b0f6ad14d04e",
+    "src/app/api/projects/[publicId]/resource-workload/route.ts": "df7c392361bd601956d8cefcb82c9e7285e954a130e66da267d85cc184428e90",
+    "src/app/api/projects/[publicId]/route.ts": "e682b60d18bf42ae8ca199764e30b9b3f7ccf2aae465f074a8d342813f4e646b",
+    "src/app/api/projects/[publicId]/task-commands/route.ts": "dee48e0e0cf6623260a8ec0f73f2fa09786d9006c2e734f8f4294f717faa1532",
+    "src/app/api/projects/[publicId]/tasks/[taskId]/assignments/route.ts": "a81a330409293351fbc2682d3982cc687ecd33897b89b7ce72d5eef248996abc",
+    "src/app/api/projects/[publicId]/tasks/[taskId]/legacy-binding-sources/route.ts": "414f6bbd18ce541a5b12abdd69215d8742caf064faad790128526d551d14cd84",
+    "src/app/api/projects/[publicId]/tasks/[taskId]/logistics-links/route.ts": "e61ffb686cc29514b2baeada2e1e8e92452b86e91693de7c2532bb59384283b4",
+    "src/app/api/projects/[publicId]/tasks/[taskId]/process-context/route.ts": "e189c713e657d9f673415fbb281f2ed5cb07d7f3c4bc0c69c033fdbaedc9fff0",
+    "src/app/api/projects/[publicId]/tasks/[taskId]/route.ts": "19c645f53d83b77058d20025df995b3d295f4078c27f8a9429786e4151e19066",
+    "src/app/api/projects/[publicId]/tasks/[taskId]/target-bindings/route.ts": "65ed490a385a709e9e8feb818f091aecc3df0b6f90bf79c3eaf3ce1c699c4a7c",
+    "src/app/api/projects/[publicId]/tasks/route.ts": "ddd613eed2d758cae91a83029d758dc26158eb503a2c8e21b9fc626b34e3a3e2",
+    "src/app/api/projects/[publicId]/work-calendar/preview/route.ts": "88016b4b993e7913b1d9b370f9bd04705ea51d2c95ac32f74a39b8921dfb97b8",
+    "src/app/api/projects/[publicId]/work-calendar/route.ts": "c53ccb560403cbfc77a2f4b1ec429423723d6e40947567349546ece59ef9e94e",
+    "src/app/api/projects/route.ts": "9fa0b4bc8b0158e446d1e4e915ac2effa2bf5602aacc89887b6ecd5094b35537",
+    "src/app/api/resource-catalog/admin-password/route.ts": "72702bcaede542abe5574ddd603e75c157cd9df75587cc0859ec36d70454ae0a",
+    "src/app/api/resource-catalog/admin-sessions/route.ts": "44589577b762c12afaffad9bdc6107414450e2226cf161f2f34b61538ccf418f",
+    "src/app/api/resource-groups/[groupId]/members/route.ts": "5542f188332c3c01122f94920f413c48a783d15c4133009e62b381c67e04b89e",
+    "src/app/api/resource-groups/[groupId]/route.ts": "f86c11757dd6ce1de8d8274914511f32af7317131b51130dcf3ca33bda64d6f7",
+    "src/app/api/resource-groups/route.ts": "44ae00740ada768091d189cad0545c32b9032741fbeed2b639b8a4398b33f8a9",
+    "src/app/api/resources/[resourceId]/route.ts": "ef7a2234b25ae585edba98945bc82f460a69a72ad4e70cf5aaa04225085edee6",
+    "src/app/api/resources/route.ts": "1fb76f64d64e5fa95e843abea253ba44f079dad11df2f821ca5ef4bff6336192",
+    "src/app/api/work-calendars/countries/route.ts": "e9c179ee8e5e1959c358a6f65e5c7b5acad43915fac74cd63b2a175e78654f41",
+    "src/app/diagnostics/core-action-trace/page.tsx": "defb0bf3b6e642069145dca78f2a65751e45166a0a1e90ebadf28ef50d6b916e",
+    "src/app/diagnostics/gantt-adapter/page.tsx": "487a75b2f784695b7dc789c5a12972f0ff6e45729439a2ec21fbdbf35b25cbe9",
+    "src/app/e2e-error-boundary/page.tsx": "780f2ec6e2a0f5a2df759e003717d88f72a109cc2e5f49ebd8833bb669e1c424",
+    "src/app/error.tsx": "408057aacbe95ae76b34164056f8666eab25128df9163cf4d37d50c5c1620346",
+    "src/app/gantt-demo/error.tsx": "3414546ee3576f8c4b78c2ce0f5cead9ec3a6069bd13eb3ee08848632fdfc66d",
+    "src/app/gantt-demo/page.tsx": "f78b18ba9e75d16b49a909aa7262548d49b8c3f53401b68ab740707e3740f52e",
+    "src/app/globals.css": "6f6673e45f75ecde8da89a9d90bffd2a4961c03a8ab9cb79645f974aa6b768ea",
+    "src/app/icon.svg": "46ea8567d16879aafb998f675188043dab8b45d03ae5bb389c426e2e76364bd8",
+    "src/app/layout.tsx": "3fc011bb5ce44ac67206f9e3ae6795a3a2cd0c8b611f5959e377000339dbbd9c",
+    "src/app/loading.tsx": "74e465dfa4443a7fe61180b78d508e31ba34808f2fb839b3fa353d509166692f",
+    "src/app/logistics-admin/page.tsx": "cd70a3326ee3cbf00152c91e296119de6251a613230acfccbf3d966ddfdbf78f",
+    "src/app/not-found.tsx": "daf61ff5cb55a865224a8862625c0ac225a3db9d48255740522a5a2c85fa5beb",
+    "src/app/page.tsx": "8496e1af881f59039efc92ed48602ddcd41bffa604efc6c1865a016073c65f36",
+    "src/app/project-master-admin/page.tsx": "8e3917c9cfcd5b8576d95b5b058ebf0cf7d733f8be58c187c2f076bafa75ffef",
+    "src/app/projects/[publicId]/page.tsx": "d737b1bd1928473c6895ef1f7fe00f922d5384fe31126ef2137244466211ea6b",
+    "src/app/projects/new/page.tsx": "4740fbaac6770ca1e59788d185ebc573202d76bb89cb949fd3fc9d82b7df7cf6",
+    "src/app/resources/page.tsx": "5fc8f1e9e7a25a9e6827d0069cc8ff1773a46ebcc00904eaeb030181082eb730",
+    "src/components/admin-auth.module.css": "4bad4d9d81d5ab3acdcd9385b6ac77475d8fc5946fa901e5bd2d9a17ed4948f9",
+    "src/components/admin-auth.tsx": "63b3211d7093ddf7051c7a1169f4c9ddfa47180c5f57bd53a66f6ed8462b0f88",
+    "src/components/clipboard-write.ts": "d80a8a8e4f18dfaac68f1f0a52fdc482a1db9213060d7eafccb19eef1848b8a2",
+    "src/components/empty-projects.tsx": "0a9ca79a3af9d589e0cc5cc3ca4c6a881d231fb2d7e5fb4cc9772f7a77a536a4",
+    "src/components/identifier-details.module.css": "493d82aeb2884b5eb92494ec35a4765e1004b9554a549f19abe98bc2175f3c41",
+    "src/components/identifier-details.tsx": "0df5bb2eb3cd0a59f4101ce7e8e845f50fec4683893ba6c97f51a6bfb9369ac6",
+    "src/components/project-link-button.tsx": "e18126a0b0933020b01fbd5a17dab31e4c7b456bceb4fbfce3c23c83ec98a72b",
+    "src/components/project-list.module.css": "98bcbb05e7cbb1da8eb47be2998213da1606737251550f58da8e9310fa1c2493",
+    "src/components/project-list.tsx": "be9f6bb92e08335b38cbd4566612b249f042c633089ccd588f35fd6c0dd63e15",
+    "src/components/project-row-actions.module.css": "5b342f67460f3b91cff61817c39502f63fe672bc40392686d7710a93345d28df",
+    "src/components/project-row-actions.tsx": "fe07df9acdd79bdca4bbe34e990c527d74726765f549aa190df80f5a08c4fbe7",
+    "src/components/ui/context-help.module.css": "b2456f635b5df5f83d0e415531ac670aac40263803e59896499f5f8ff86205cc",
+    "src/components/ui/context-help.tsx": "ea24949ce0627cf048e270ff0de433c197846227e808f6fe007f4d3cb382d76b",
+    "src/components/workspace-dialog.tsx": "550febe8bcfa0ab5fc2fca2a8a2d54ab2615e8dda9018a0d89f1d866507f7b21",
+    "src/components/workspace-feedback.module.css": "b3682a827ff45ac1a15696120a25ec3aded6b1b36287439e8e66924b4e2294bc",
+    "src/components/workspace-message-context.ts": "c8f7c9658478072dc2fa6fe0650d18c8a81cdfcc401f9c413a8d5a6cec4f36fe",
+    "src/components/workspace-navigation.tsx": "b1816bbf4fe444cfdf6f13bf1600174d6ee9e8f76573d8c6886f7759e90effe1",
+    "src/components/workspace-notification-state.ts": "1d24d913340283fb1b6699953b9867e04355ae0034e7787d32b45af2508d7bca",
+    "src/components/workspace-notifications.tsx": "fc72d8d512f31709e8d5a036e3e1f3378090ec9225141add4a32fcdb64371f2a",
+    "src/components/workspace-shell.tsx": "09e92a535e60e4eb4ec4f391a978267088fb6d26f47744777e4f0fc375b18326",
+    "src/contracts/import.ts": "cd6c5e5f46a858a443173b942ea3ad88232b2ec896006a8ae6be13419b2c4384",
+    "src/contracts/logistics-dashboard.ts": "c8fd95547e4bcbb2c30573c375b48b5a15428fd39fa80cb859b8a21c84cb87b8",
+    "src/contracts/logistics-targets.ts": "bb24645f9e46c177b0db1b4967d25ffb59ceaea4085582a918324a326ff71afc",
+    "src/contracts/logistics.ts": "4628fed3730bfd4823a341664ed80cdd974c4b8b4a80e197d6e8738af5ab4ade",
+    "src/contracts/milestone-dashboard.ts": "2c35c4339fea557cf51c8ecf61abf161e340c65c29143a58e24f0a888cf64855",
+    "src/contracts/milestones.ts": "d4d27d065ad213e329aa2212aeea08956cd27292894bacf91cfd3be2df5ad17f",
+    "src/contracts/process-catalog.ts": "929f466906d22d43b7d1bf6309d8bd01616cb5175c32e4fb8dabe4af0bcbb526",
+    "src/contracts/process-context.ts": "a833c2ca66a73350f198b0361c2d7ae1972fee69e8c2d0a8bf6a6cc43dd68a29",
+    "src/contracts/project-excel-export.ts": "b8f3239076d9c58703155c7c2a69ae22517925114a7439af0a44bf40afb372cc",
+    "src/contracts/project-gantt-image-export.ts": "92573fde709afccafc7200fa1090a7956b13637595a8fb48d5bd6e717850575b",
+    "src/contracts/project-import.ts": "9048f1f9c4afd679a729720ddfe4a6a8d217d699e9c7d51ae19edba459502189",
+    "src/contracts/project-json-export.ts": "04670c230cd33082bdfea1cf38b43cd4f2e40c506e518d7f08bcc8dd225da72f",
+    "src/contracts/project-master.ts": "ff4429ee7e40e15e457de391187d2b9bd8464c6c40ece8837fc56917c0df3952",
+    "src/contracts/project-resource-memberships.ts": "d232112970bd8b9224b532214b2e32d313dce9c2951a68696cc8406561da407a",
+    "src/contracts/project-templates.ts": "e7a5db5ade2699fae031159a255ac659bc8eeff5e11941a507cdc6206fb0aacc",
+    "src/contracts/projects.ts": "300358ba498ccd5bf923bd0a5e76ec2b4d4c8a2f37ba716ea40129b398bcd96f",
+    "src/contracts/resource-dashboard.ts": "34d494f5a4d5860a1dfc25278a3e5296901fb96318cbfcf9ca874a0da7a8985a",
+    "src/contracts/resource-drill.ts": "055313374ca6b43813dbe676153cc9b75c113cabb801b93bc5d0c1fc107a81f7",
+    "src/contracts/resource-excel-export.ts": "729a7ef8766033466cb94d03616c23744646b03d42b5eee8e1aca83e0fcb845f",
+    "src/contracts/resource-public-v2.ts": "97257a7f6ffdec1cee625cf131336278e8d6184622fcaa83ee1c7c080d41497a",
+    "src/contracts/resources.ts": "9c0329aa55f40128d3682af629af1801408eb542d9d723e1da234802df2f61b2",
+    "src/contracts/task-target-bindings.ts": "4c1b2e0f15905927fe7eecc56ff4add5a5ef83f1d1aeb6e6ff2d26a168c3a73f",
+    "src/contracts/wbs-dashboard-views.ts": "a2bd5a1c8a72006c327f0dd451c8230074fd72f9d79e074a0a1ba6ffe1c590bd",
+    "src/contracts/work-calendar.ts": "f6eb185e525ded026843c68893033a33c77598f8c0eee3c87072c9b3ff58de59",
+    "src/domain/logistics/task-target-bindings.ts": "f7bb97257f0ed0e4ce421b952b03e127a5afa4873a1a780b5c2cca3b8eccd454",
+    "src/domain/milestones/membership-copy-plan.ts": "e93871b8841f5d119efd35b8bfbacfef5e8e94aaf92422d7431b4b6e79a8d240",
+    "src/domain/milestones/project-stage-model.ts": "daf201bee0f29156f9e020314172fcd6c291cb36f1322d68a717abe1fd0af785",
+    "src/domain/milestones/stage-gates.ts": "8451f75117a15780f77a9b1d5f63f5d465a504217dfa19cfb536a699c0b6e9ec",
+    "src/domain/resources/md-per-mm.ts": "87a174ffc8a475fc22869bee772cd0baa9abe04fbd44f373b86c1baa1a6466ff",
+    "src/domain/resources/resource-kpi-targets.ts": "4281f98051a5811e6d50f73e640ab8db7bd0d4ea3b8aa29ec250041d8441013f",
+    "src/domain/resources/resource-kpi.ts": "7b343f3918ee0cfe2903a72e12a1c832b8db0d4679d4575f8ad97cda82229358",
+    "src/domain/resources/resource-plan-periods.ts": "bc7b6d6f67b5179a35031582b4204f7534a98f421875e2aef09a8c78839218d3",
+    "src/domain/resources/resource-plan.ts": "1fd3fe5ba02a8e9f9d48d10e99d605808e640cff41692e4d668116dbaff1bf3f",
+    "src/domain/resources/resource-target-kpi.ts": "377bef5ab7e5b3a93349f6b05cef87c880fad57b91df7b4214a4b0add90aefa1",
+    "src/domain/resources/wbs-task-ledger.ts": "f401c4bba7816e92e59bed503437a7c117c15a8b72b36b25f2b371dedc7bb1e2",
+    "src/domain/scheduling/calendar.ts": "4539e95094c270b205af5c88efae021db7816efa8d70bfa5ba3a55de15ea48ae",
+    "src/domain/scheduling/date-only.ts": "03713b4fe4225a87103cf20fe17e2d9ab056a7870c862d9bf06e7fe06ca73e88",
+    "src/domain/scheduling/dependency.ts": "e37ab1d5404901398b8f67d436d1cbcdc34664303e3add8c5ada82780e541c00",
+    "src/domain/scheduling/errors.ts": "c9603b552279d75fcd723b058912e3eb2459d4708bd0fa92cc95ffb5a9be6737",
+    "src/domain/scheduling/hierarchy.ts": "3daac30d19488512f9c8edb555871dd8fe9c5bbec2eb5bb7fef949b90d2408d3",
+    "src/domain/scheduling/index.ts": "6b1da1a514b3f5602bab5f9800fcf1b6d08551780b87fcbdaba899b54cbb2094",
+    "src/domain/scheduling/leaf.ts": "c93789e0435f9e4999d9704a71895883f59ecf5d8728ae719b26e091dea16ac4",
+    "src/domain/scheduling/resource-calendar.ts": "05189427abeff43af60c61db7ab23cadcf2d0b6789e863d8a492dbcf87b6114e",
+    "src/domain/scheduling/task-candidate.ts": "88310b0cd5408448233cc6ad5373be09a7d957a42ad8168bf293dd42232a9bcf",
+    "src/domain/task-status.ts": "fa80ce490ac8f61ad9581f667bbeadc2eac7d3b2b0b00d78c3e60336ca358674",
+    "src/domain/tasks/task-patch-fields.ts": "88e286a548a228c95edd03ba6e4c20f01b83c1184660a49ad697214f96c60305",
+    "src/features/gantt/adapter/gantt-adapter.ts": "396aa60ec36f22e7fbe2aad55225e88173675189e6bd0b15f4ffd2d5837d4490",
+    "src/features/gantt/canonical-projection.ts": "9f61fa4d6cd1e961406f6cff93d28e6f619d64689f57f97eac9fffe884223708",
+    "src/features/gantt/canonical-recovery.ts": "362a8d9c67f55791aa89e80ba7622cf83f1609d4efc114bad9c47a092ac66ce6",
+    "src/features/gantt/canonical-snapshot-sync.ts": "b2ed227f571dd36cd90d143a1954980887afd050f4dfd50b41d866dcea55ed15",
+    "src/features/gantt/chart-vertical-dnd.ts": "bc6f7fbb81935ba1fdd994db6a239c0d7a4df600edbdffe386671aab91cbadf4",
+    "src/features/gantt/command-gateway.ts": "b0965b60062b508e17dbc131fbafa03d9cf2b2c1a1cf6f1b82bc754256c32779",
+    "src/features/gantt/core-conformance.ts": "6b6e2d52e8fa6ba8ef73d5a96f2ee41bc61e118f457e78f7ad0efae7862dc138",
+    "src/features/gantt/date-adapter.ts": "d31b3ca719a6ba6436b653dc5369602475c0d9bef1e7691205d968dcd8f442e5",
+    "src/features/gantt/day-header-tooltip.ts": "07aa77fe0cec7c14592a61aba9bb7e418ee8cf5c929b6c192dd4e25688d5214a",
+    "src/features/gantt/diagnostics/core-action-trace-fixture.tsx": "27ec17ff8720db20082dc4f95ca095da257288037141d43723d2074d1d34f5e0",
+    "src/features/gantt/diagnostics/core-action-trace-loader.tsx": "3619c344c695729ac15064c6aebf94d08dff2979a8501a2dfc7dd441c05a888b",
+    "src/features/gantt/diagnostics/core-action-trace.ts": "9cb1e377794fbd9725097825b404286d9e676d769b53baf7a0c8f0d4e6b9e3c8",
+    "src/features/gantt/diagnostics/core-trace-observer.ts": "d09118da6b4ae9f9dd5667857595fa572a3676c47520c564c01afa960cffa99c",
+    "src/features/gantt/diagnostics/gantt-adapter-fixture.tsx": "49889aef5bbb370ffdbe8274b79cc847bfedc42fa40c3367bb0ff8c6911562d6",
+    "src/features/gantt/diagnostics/gantt-adapter-loader.tsx": "ff44c767e5ec7533f395ccd9ceb09b1b895dad0a04ced2dc0e0ce81d5c455c8c",
+    "src/features/gantt/gantt-demo.tsx": "e1c570137d1400f1c28702473b1660ba5a176d0729bbc17e302a430effab726c",
+    "src/features/gantt/gantt-scale-toolbar.css": "ea29efdc000224f2603a6db0f158135adff2de1d89627bcdb98ce1f79a608da8",
+    "src/features/gantt/grid-start-date-editor.ts": "8daf2b629734fdf0fb2bee6374312a5b751d8346a8c6f2e7f09b275ab153e012",
+    "src/features/gantt/inline-name-session.ts": "14a83d0aeeee8f330e09151c90e320920370aaa23f3c6bb056810b8199fd978b",
+    "src/features/gantt/legacy-binding-scope-editor.tsx": "d8a6abe26c49bcae6efe1656fca8560321bb448f5102ee78a8901524f8d6b919",
+    "src/features/gantt/menu-scroll-guard.ts": "a7af233b724de3347af3f893f32ff85208cde198c760492d3c26aa539f1d9cad",
+    "src/features/gantt/metadata-viewport-restore.ts": "312231aed7c1aef8f0099e642f047c5ea329967eec6670bfa2c658dbbbae3dcc",
+    "src/features/gantt/milestone-membership-model.ts": "20898b48919fbe0589d6ead4e959a0b08ca7ada339501b67d28b6d0684fd3e68",
+    "src/features/gantt/milestone-membership-panel.tsx": "e59f0eeca171c8cbe21fc5c176d312c1622c7f94d71ad362b0ad23ccd5340cdf",
+    "src/features/gantt/milestone-membership-picker.tsx": "48057deb9e92f3249cbe85e140a72345a9d2a806f71c259e71168ad46f22e3f8",
+    "src/features/gantt/milestone-timeline-adapter.ts": "083f934c4cb55c474a365a093d5085b3144e579deca99635452941b2f3ec71c1",
+    "src/features/gantt/milestone-timeline-lane-model.ts": "35183ab987f8675478817428ef297c12978f85528f3b9dbd59013545a15a4a98",
+    "src/features/gantt/milestone-timeline-lane.css": "a1ce1b2dbc8e0f9f886af304f93d6295d7e0ef8bc74b30b54d3bf68e14005074",
+    "src/features/gantt/milestone-timeline-lane.tsx": "b1f65757dee0d77ebbaa62a8691dc09ea6bfd07f0639780cbe6418d1359d5856",
+    "src/features/gantt/native-task-add-intent.ts": "3d19bc5170a13b06304a040cd4f220af8d1d6d302341f6e1e74882cc28232af4",
+    "src/features/gantt/peer-viewport-capture.ts": "095e9cf87fd3110523384bb64d0a1a8df806c910e4227d8776e5fceb9f6c3f8c",
+    "src/features/gantt/product-consistency.ts": "0703bfe32b8e6f3a08c9f7c7e1837e96d2fbe7a8b297db9a7ef755a0cede122c",
+    "src/features/gantt/project-gantt.tsx": "f6c3d83e9d204c5666452a88d3d760a4a324d82770cd95c17db12ebcea233c6f",
+    "src/features/gantt/project-task-adapter.ts": "4996769eef4cc65959da810ec16130944b2821ef9e3cb3b4ce0dceeffdaea3cd",
+    "src/features/gantt/project-task-editor.module.css": "acc0dd51d467993ff20d0ad5e3ee410bfbf47cc3ceef35ec7b1e22ec2042ee0d",
+    "src/features/gantt/project-task-editor.tsx": "0d63409881a2761aca7ae8c484add45df4ad583cade82206cd4db3f2ac1bdabc",
+    "src/features/gantt/projection-observation-scheduler.ts": "98982eea18a08eaea52a40684e7b902da4eda0c33998d3b18349e869614ab0f0",
+    "src/features/gantt/projection-settled.ts": "30821c1e020fc6228eb20d43d9fac6dc083c6195ead3394932b86dd439868be8",
+    "src/features/gantt/relation-context-menu.tsx": "cb846de8dab40abf54d8ce7957c67d4e1a17886f12d47c31c643b3f09e7ac9e2",
+    "src/features/gantt/relation-editor-dialog.css": "e22588fe754bc3d7841eb3b976c436af95a684874d35fdd445e664357a7cbdc1",
+    "src/features/gantt/relation-editor-dialog.tsx": "8bda4cd492ae3ae2a3a03a51b6361f9de32d8844c278ae951a1cd2c55fa3ed0e",
+    "src/features/gantt/relation-editor-model.ts": "b75414c64aa6f6d7180ac825f8000d581bd20e8a3daf9e6f162c083bbaaba78f",
+    "src/features/gantt/scheduling-runtime-fixture.ts": "0b4bdd98fe369c350b2384980fa5c8f43d27652e85e7377c8c329afe456dd696",
+    "src/features/gantt/state-consistency/contracts.ts": "53c9dea5479811fc6e459e130e9dff40b69468ceda97faaaf82b646aebd091e7",
+    "src/features/gantt/state-consistency/core-reader.ts": "86fb8cdc53f703d985a76febc0ebfbe9f70ba6147e42abe93ec3f2aaf736ab6b",
+    "src/features/gantt/state-consistency/index.ts": "90d7c1c4edd65fa40cb8cf9a606d690bcbe122e543dbb4434f277219713cc057",
+    "src/features/gantt/summary-toggle-preference.ts": "a3ac8bf519c74762bf1c7a93b4dae22c8b150b8956889bf0683b2aa83604aaf3",
+    "src/features/gantt/svar-gantt.tsx": "a7d7d7e6f128ff041d65f85f186eeca1a520aab6354e380e6217f8f371be0d83",
+    "src/features/gantt/task-assignment-editor.tsx": "1f07c2d3f781e26607e41bc625924af41b8ed8b25a2b4054c3fb263506d30c9b",
+    "src/features/gantt/task-context-menu-model.ts": "37f3837f2fdba6c85f47593c72f5ebcbd78a14368fc472ab4c9df1d11a76553d",
+    "src/features/gantt/task-context-menu.css": "5c9c6d2a73d2ceadf6453541449ac7a06baa573911b14b0e6764a728021f187f",
+    "src/features/gantt/task-context-target.ts": "ee8cb1f33f01b64d0698e5d9609aa6e753d6616836876fffa6a21bb3bb71f87f",
+    "src/features/gantt/task-delete-model.ts": "18d123600f4d5cf73fa9e7ff30bbe5d2cd0d85fd61e58bc18fd9a43e6330e4d7",
+    "src/features/gantt/task-editor-model.ts": "3d2c62dc170317071c80689158637edb1dbe0ea98dc1594303133ea0efd64dd6",
+    "src/features/gantt/task-editor-view-model.ts": "b130c2abd5c185d75f425acdb9948b0e4961b3d8817614ce7d025dca849eee41",
+    "src/features/gantt/task-hover-tooltip.ts": "ffd58dc208d4461b07d76c7da9120f797df42216aa3f8047fbfdd409bbde47b9",
+    "src/features/gantt/task-link-scope.ts": "471549dd2ac18341206fa690e9e6e7cfa48b15a98cfdd065a85689974c82b177",
+    "src/features/gantt/task-logistics-link-editor.tsx": "e0117b1ce97c5474df82b39d41b8db3b14eb1ea5029f53c7f2f5fe9ff7acde03",
+    "src/features/gantt/task-move-gateway.ts": "eaf6ccc7925dcf18abcf2a868fde95ba47e42b586d83410d6b20a40012acc0c0",
+    "src/features/gantt/task-process-context-editor.tsx": "69ac7408e3b0c542c257ced985d0749075f60f204bd85a93decb67a17f25bb49",
+    "src/features/gantt/task-process-context-model.ts": "1f1c9d832000e18c57233f8d17597be1d0e461106890377d9d2b3cc529bdc99d",
+    "src/features/gantt/task-relations.ts": "b9a037011f0f853c0d7db9e38eeab1cfc5377b56a9ef902d103219b7b77148f4",
+    "src/features/gantt/task-selection-model.ts": "a1f710ab3901c14276da95acce778fa0ccb8360c2257a7383e9c74ed3dace0b8",
+    "src/features/gantt/task-subtree-scope.ts": "42748565c6c1f1324bba58482a6707d53e1752d455ff1a44aafd8a99a1c090dc",
+    "src/features/gantt/timeline-range.ts": "10eac801f3aa066088b48574624db65c4663f1e38551e2026fc87f713c3c74c3",
+    "src/features/gantt/viewport/axis-transaction.ts": "c1b205adddd50f8f743a4cdcbfca4e34c2b2b8af60c646f8efc04a2cf0d713d2",
+    "src/features/gantt/viewport/copy-viewport-continuity.ts": "a86175522f3ef46e5167e39265f9448933f4788efd799457c8369b7720a6a698",
+    "src/features/gantt/viewport/observation-animation-frame.ts": "0f0036a9f1e94743243f068dd095fbdda95ad34e617ad374ccbfa0f994bf69cc",
+    "src/features/gantt/viewport/projection-observation.ts": "b2f3b1711500cb304d985109135dddecd02fc7cc2ce2dd88f6df78bc20e1aa8a",
+    "src/features/gantt/viewport/svar-viewport-port.ts": "65311eedcb881d5c76225f89c2c4dcc1cbd6bcc56e11e8221f41c36bc32c833d",
+    "src/features/gantt/viewport/task-focus-handoff.ts": "cd4b49f3657ea82ec7d6553d17882ddab0b0a0fcf832eb8be2d46e28d73bf8fb",
+    "src/features/gantt/viewport/task-reveal-target.ts": "7ea38ad52d9580ace10e15b634cc27738c0ceade7a35b52a6d2c7d4a393f29e4",
+    "src/features/gantt/viewport/viewport-coordinator.ts": "90487f8d04fd12b02f21c6159ce7b236cf1da5926a2406b050b6e06d815b75fe",
+    "src/features/gantt/week-calendar-interval.ts": "226e09e3d1936d3db8214b9d27947cff19ef8552cb6d96fe3777745c909934d1",
+    "src/features/gantt/week-header-tooltip.ts": "164cd434ef364021f020c46796ee72c06dc6121a6eb80b653d7a843c8c5cb170",
+    "src/features/gantt/week-timeline-tooltip.ts": "a83100852e5cdc3b198179f7caa7dab52062a4f4cf9a812831ba2d2bccfd929a",
+    "src/features/logistics/logistics-identity.ts": "0dd5e21dc1eba89c67c9ed009951a1a3579a1cf53721044e918f86ebfe340008",
+    "src/features/logistics/logistics-kpi-configuration.tsx": "4dd2d073fd0f54468d86be06e874b701fe7c9515e5b65ee0b8a3ccd909caf774",
+    "src/features/logistics/logistics-kpi-validation.ts": "90520f80c6e7e99809ead1223a516029662788ed1582050a85a1ca26776ef279",
+    "src/features/logistics/logistics-type-catalog-admin.module.css": "4338525bd64033641c82b8b6a139b68b315bef1ec5c92125894cb7ae8e66fce1",
+    "src/features/logistics/logistics-type-catalog-admin.tsx": "f8af1183bc0e46467ff4f25d4b1a62910f2a8eac515f9203102692d8c481a276",
+    "src/features/logistics/logistics-type-field.tsx": "39e8537e6d6f717b624c1d958fee8b04d3dc1ac4be52263d21166a7506b7fb3b",
+    "src/features/logistics/logistics-unified-model.ts": "cdd8ed9d91481b1f56e7f3e25eb71a6408df8df2cb9dc662c17df2d640a7aa9a",
+    "src/features/logistics/project-logistics-dashboard.module.css": "3e32cb0fc08d337fb30a2e7fce44b0f62a9602ef6847ef84eced486021defb63",
+    "src/features/logistics/project-logistics-dashboard.tsx": "749ee98e2e909996db2d90d2097d23d0732f460f5754dc6f7a21b68d8f68626b",
+    "src/features/logistics/project-logistics-management.module.css": "8e81943f562674d7933fb814957c078e7fcfeb9ff79f30aa4903956c67f59d65",
+    "src/features/logistics/project-logistics-management.tsx": "91731b0b3dc37fe1a05d193b3e198a9423082a0e3357ac914c0595b4811a529e",
+    "src/features/logistics/project-logistics-unified.module.css": "c58b877d8f9ec09807b7f645ae329aedd40745ad75c60362222a47d8a90ddd83",
+    "src/features/logistics/project-logistics-unified.tsx": "1c197bc4f6d3087d6ef29c96df30b99937ddf58855d538f06c0c6428cdaaeb76",
+    "src/features/logistics/project-process-management.module.css": "bd4f485bb5684f5743f0693c9e8bde724967bc3c14bac40bd9f9d6ca01abd299",
+    "src/features/logistics/project-process-management.tsx": "841b007d67861957ab16128ce4a483eb7951631907d308fbd552ddb5a6fd68ab",
+    "src/features/logistics/project-workarea-management.tsx": "f2abb4cf9e0955d6616a1dd9f97abcc96d129ea8a05e47bdfc3fb126c8d4d5b8",
+    "src/features/logistics/project-workarea-options.ts": "787a2b0f2ebf2f283bb681eafe81c1cc6a3469ceebb825c724b3bb1db2709754",
+    "src/features/logistics/target-ui.module.css": "423d9215bed0ccfb550ac0a899e8154a5881d42916b6685976e75f02718ed0de",
+    "src/features/logistics/task-context-label.ts": "1d86932c42361f5c6d60910476348020dd471be16a25a08fc2719a248713bd18",
+    "src/features/logistics/use-logistics-view-state.ts": "11036e304acc137ee4760af502f0d8bce5c8043251fea4e1733b221f7d6365a2",
+    "src/features/milestones/milestone-create-dialog.tsx": "5df69eba7b0291835c08b7a746f553df821732131f1ada0ff39046612a86b99d",
+    "src/features/milestones/milestone-dashboard-model.ts": "e577c09f596ddf29a11fe157bfca58eab51d651a21016c2aa10bbfd8d43a4662",
+    "src/features/milestones/milestone-management-model.ts": "ae38f793517b33d509527809696278bbd84ab87f5903bab6983ea044c78c3a2a",
+    "src/features/milestones/milestone-timeline-model.ts": "0bb8bc2fbb21d3df7de2a57805356df34325a9ceda512f9b05da7c3a7468f30c",
+    "src/features/milestones/milestone-timeline-preference.ts": "e6437005a980ac18a8e66bb01deacaef4343de34b52a5f0193e8f239e6dc119a",
+    "src/features/milestones/milestone-wbs-dashboard-model.ts": "cc4b73e3adadc01275a1aab937c00660b9831fc368d349d0421a4e783984b6a9",
+    "src/features/milestones/milestone-wbs-dashboard.module.css": "9b0c1a405e301b541967955b650057994ba2130e5cbb62a7fb8c449401af130e",
+    "src/features/milestones/milestone-wbs-dashboard.tsx": "c31565559a474d83690f517fb294831fc02e11dc51215a6530fdaa599a6110b6",
+    "src/features/milestones/project-milestone-dashboard.module.css": "7f0325ed972d219f14c77f73efbdb1f507e8163354e4ecc894526030bea0d7c3",
+    "src/features/milestones/project-milestone-dashboard.tsx": "e667dfb857a0017a82ebd1633022951a043ed14a0a303acf475a9f6febfe94e9",
+    "src/features/milestones/project-milestone-stage-table.tsx": "b25bf8f6b749e16810efa3045beb66fb62b5ead575eed998e7ad74a1d3d5ef00",
+    "src/features/milestones/use-milestone-dashboard.ts": "79a04415416c0650a24e9fef536b8821fddaa27c9b44e05041627810aadcdd39",
+    "src/features/milestones/use-milestone-timeline-preference.ts": "222ebb5d91074b3bfee1d8783e9c45bc93cbf57603d6fa9d2e0db4bde88936ca",
+    "src/features/project-master/project-master-admin.module.css": "85a5b0ba3091f7bde8376af83efea0c82b8fcdeaeb58895d419bd640126f6d88",
+    "src/features/project-master/project-master-admin.tsx": "bd32c3aa99fe7187157ad17686b6ea4100ceb7e6ad00574ee4706c2c457fb880",
+    "src/features/project-master/project-master-relations-editor.module.css": "eb2985412a1742bc7a26ee35534c705224a368b80ac0f8ed53c64476bce155c7",
+    "src/features/project-master/project-master-relations-editor.tsx": "b6f8b5eebac448273ed320fcea19ad505043451dba9a52468efeee890cb3dc08",
+    "src/features/projects/canonical-snapshot-recovery.ts": "d0400bab93288ef963e378cbb9cf309eeabc6ed0b728530dc3a2192072758dc5",
+    "src/features/projects/create-project-form.tsx": "280656c8016b5085966aa25c9cb2445dc07fe4a43d485a98c3b73d7135c1794b",
+    "src/features/projects/edit-permission.ts": "1792ee6d87db080923584e06667eb4af81cb1ca74b0ad52e3533e04aa457caaf",
+    "src/features/projects/new-project-tabs.tsx": "c584d15973d7ee3112caecdd55c0c58bd056cad480f5962c9ea0143f4ee15131",
+    "src/features/projects/project-copy-button.tsx": "b5a778ae201b9c8da16eef004e0b3d8d3497d3623f08d05bf6dad3a58e6299ab",
+    "src/features/projects/project-copy-confirm-model.ts": "68a206d9e669b97e0a676fae429bcf1287c7d4c8972627eeebaeea3aa46faf3a",
+    "src/features/projects/project-copy-entry.tsx": "9b0be1ea01a673708653e6da5974e1e85de2a7a99ed5642e5527c10f2ac97522",
+    "src/features/projects/project-copy-membership-confirm.module.css": "0496e5f992d5747531478a8fe5a0de4f66a5188157a1d4467e183c2dade9a6f4",
+    "src/features/projects/project-copy-membership-confirm.tsx": "cdbe786a5d94ab10ebb88bcfd72e2a446e92d1f27b285810f0040dd729b9fbf8",
+    "src/features/projects/project-excel-export-button.tsx": "64c393b0b0c3c3e62f5eb74e013291a640213997f3d0f2d0e9e213c88b377e1f",
+    "src/features/projects/project-export.module.css": "46171c4068de4a3d15c3a4b28d154b55f17c0580e4e44ce63c0cc5a948c1d9bf",
+    "src/features/projects/project-import-button.tsx": "3e4f7cbea1713f5d7c6371a5e6ebdfcddc67011748722a96dace14ff93503eb2",
+    "src/features/projects/project-import-model.ts": "9af05c77735f4b090e7ff9c7ccc4e2a3080303d4b0d5424661900b93db1aeab7",
+    "src/features/projects/project-import-preview.module.css": "0094222bd697fd18e923a35ce2a32d1775f28d0f0176a36b63ed6d5f66486ea1",
+    "src/features/projects/project-import-preview.tsx": "2cbefbe8184cc434d535189ebd9085eb4cd59f093168ecc9e1920298a32a2bfd",
+    "src/features/projects/project-list-filter.ts": "559dd657f9305250729c9c3f17a61ebb57e524b3e1bd765019276e244a258e0f",
+    "src/features/projects/project-list-metadata.ts": "f78d6162c17352a59f188e06c8c38a837ad82d099ba3bd3636eb5399d087ee46",
+    "src/features/projects/project-master-select-fields.tsx": "ff2a3e9d530c88437881c893ebe83533e70976b79c569c8cf701cded0236d0cb",
+    "src/features/projects/project-owner-display.tsx": "a36fff1966f1f81ae29215ea2503a184bce5ab6e3d371dcadb7d4c2e72f59184",
+    "src/features/projects/project-permission-recheck-boundary.tsx": "9c6d70a729a81dda1362e5705bdcfdb87f2e90fba845736ba27887849f63b960",
+    "src/features/projects/project-readonly-view.tsx": "84e2eec717ad26734b8c29933f26c4ba20acd01a2ccf824fe101be85b190b5ae",
+    "src/features/projects/project-revision-sync.ts": "ad573211c0257391fc3355574eca60a6d747dc8b84715d48501fdef2538edd50",
+    "src/features/projects/project-search-filter.ts": "9827bad17a0c4206585f7a70abcf0510d42591d93c3d74be227811adc3871388",
+    "src/features/projects/project-settings-dialog.module.css": "60d617d6103c0881b85e32c9f7600d52e974a21077fc77dc37ce0bf0003c05b7",
+    "src/features/projects/project-settings-dialog.tsx": "04d7c6bd5adb774adf96ec2554a70b2c5bfcef6a936b2b1b84b2dafbf85ae336",
+    "src/features/projects/project-status-mutation.ts": "00c501feb0ca3192c4b84e3e95a4fc29b7e00c15a54b192463b5af0efed41981",
+    "src/features/projects/project-status.ts": "34bf24c256859c6806a0318ae8fab0743b55edf3f35dde559e88981a579493d8",
+    "src/features/projects/project-work-calendar-editor.module.css": "9614cea4482f886248781cd63aaad54e0dce7e7321b8faf32ce44a16c75a89a5",
+    "src/features/projects/project-work-calendar-editor.tsx": "da07d363aa8c5c213fd2b363f4b8a2eb4c84f227ddce1f12c7ddd41a636d54b5",
+    "src/features/projects/project-workspace-navigation.ts": "b7cf0267fcc086aa549f24f273d12d4bf6529d263034984e9a8b91f6943498c7",
+    "src/features/projects/resource-editor-focus-return.ts": "a3b806679a9e2680e5866a1dd9c38c714061a146c0dd89c02d8a571129b33c8a",
+    "src/features/projects/stage-filter-picker.css": "1d7167b8bd47696381c9342506c1d284b2f4cc87fe7a22915c812258e293b4d8",
+    "src/features/projects/stage-filter-picker.tsx": "521fe751eb90c1ff37411b665bf611a797593e3b9adb90fb4d3c27746510737b",
+    "src/features/resources/equipment-dashboard-model.ts": "0fe71247fc3ef39e5a2eabed126c015312cd6599cee6e4d0a4f329c3eaf837bc",
+    "src/features/resources/equipment-dashboard.module.css": "0ce6bb2c9dd3c557731749e27ff6c05fc4a61650696d6d7a8697b10203fe788a",
+    "src/features/resources/equipment-dashboard.tsx": "899d7bf51a36ab849ae1f6f6ff5e5cf79677cd0053fa38c4f194dc8e8b54f347",
+    "src/features/resources/legacy-project-resource-workload.tsx": "f6e9d9aad1b6b59340258cb6bb56bab1222b74d8442e213f2fc1611ea9f975fe",
+    "src/features/resources/milestone-resource-drill.ts": "335e03d8c696a0b4cc6610bd02f1ebecd106b0db10420d22ddff661144d02908",
+    "src/features/resources/physical-connection-sources.tsx": "6acb157667f6ce95c916495c020b691e687386a7b939bc4ae9749b42e012db37",
+    "src/features/resources/process-workarea-dashboard-model.ts": "f97935c5c4e87229e14544e780842a36521bdfc6c237157beada170e502ea9aa",
+    "src/features/resources/process-workarea-dashboard.module.css": "db960a4843c5a4c716633b070caafd314eb149dd1cebb2f06e1e057da547457d",
+    "src/features/resources/process-workarea-dashboard.tsx": "130b4a548953cc30280f5e5fedd4563dd186b16240542ce7cff3fa25cf7b42a0",
+    "src/features/resources/project-resource-dashboard.tsx": "97e81a3ed5bd1810fcf10c99d1af01fec927cfba345dc48ac4d1e3f8d94ae984",
+    "src/features/resources/project-resource-memberships-model.ts": "c10af94ca8fac17eb38b7edb0e2f55872b00cfeeb05bcfd97ccdea9b8584e360",
+    "src/features/resources/project-resource-memberships.module.css": "bbf5777cc2bbc02daa73d1b8058945dadd56804829f0144b8abd6a90bd740fcf",
+    "src/features/resources/project-resource-memberships.tsx": "20ba7422ba28b992dc0d0b434abd77643cf4d911f6a99d14db79cd65705b579e",
+    "src/features/resources/project-resource-workload.tsx": "2e8d92fdbf4515d3957767c08c6c26236a13ee9d00518bdcba20e8ee5beaf56c",
+    "src/features/resources/resource-catalog-admin.module.css": "8a4369182e52a68104e4e31edd91f238bad3777693c118f01504a1418d6e37c4",
+    "src/features/resources/resource-catalog-admin.tsx": "741e7f3acbfd41de5a347966dffc4d020dbd9c80fe44e08193633f6caaaa9f1a",
+    "src/features/resources/resource-dashboard-details.tsx": "51fb39491f55c158e4ffdf5d95ba4dc5fb4b82d1273104ae4a8e5e2f785c8658",
+    "src/features/resources/resource-dashboard-model.ts": "fda295b8bb8873054dbbd8cfebe6aebd4e6cbc96b816830e02d9c1a7860457ac",
+    "src/features/resources/resource-dashboard.module.css": "e56c008a6a58e8f012ec6a7bcff68b04150f7cd1fd93cbc46b4f160d6abe9468",
+    "src/features/resources/resource-drill-context.tsx": "59333861ab8f21bdc03604ca71a9b11d8ad1fa23fa5ab2aa183f433e1890c487",
+    "src/features/resources/resource-drill-navigation-model.ts": "af5d10a51835a7ff2fec17ec9be8d7ebad77a59c43956e277183c64a973b8f8e",
+    "src/features/resources/resource-drill-scope-model.ts": "c1f42aaf843251aac9e03b23fd74db65b168aa10237ba1d16397c1262d7e0c4e",
+    "src/features/resources/resource-drill-transport.ts": "71b9637edd910b5f0d96abe4596b1ae289638ed0fbc68fa6ff8e1edc46b71f5c",
+    "src/features/resources/resource-export-model.ts": "be8f12b15f91d63c9c1204f8dc9acad5728886206504cef601cf1c31fd3a42c4",
+    "src/features/resources/resource-milestone-views.tsx": "5341bd2a635ab13e088c40316cb10d4a72e62022fe6b9e117e328b3cfa843a28",
+    "src/features/resources/resource-navigation-viewport.ts": "fe75ab5492ea59b7ce3a8fc79b79c8c460612776a10ad23c3aaa0e00e63f177c",
+    "src/features/resources/resource-physical-filters.ts": "41d1ee972f214cc57266f12d6e4353552aae89773e9339fcc49ef7dfaef3fcbf",
+    "src/features/resources/resource-plan-details.tsx": "524467c8936152b11ae053ac189926ff35dad22558e02f7143800b22596d449c",
+    "src/features/resources/resource-plan-model.ts": "73687effc1010b641afce995ef6f1ff4c1ab70775eb5019672348e7cc3f1a59e",
+    "src/features/resources/resource-plan-view.tsx": "da6a740a1d4f2b536094e041825b773ac9cf3ffff32a40363d6b648985bec6ab",
+    "src/features/resources/resource-search-filter.ts": "88bd4994f84a63ae3c4fee9f24b64dee74a26b33e82d19c0c99f2840a7618190",
+    "src/features/resources/resource-summary-row-identity.ts": "811a80698b8a9a841e5768773ead7e9bcaba8c7bf90c8ab8f4b69ddf15e4af1d",
+    "src/features/resources/resource-target-views.module.css": "f93915862d56cf9b111965fcf58e08de17bcc167acbe79fa7a24a1e53159a0bb",
+    "src/features/resources/resource-target-views.tsx": "0ed2346631949c934929597f5f0de8f4c3b2e8dbfe552caa62e78d8be3324f61",
+    "src/features/resources/resource-wbs-dashboard-model.ts": "4c3a3ff7b04b86cf910ff8b2fb2eb3ccd3241032ffe163864f2797819a7203c1",
+    "src/features/resources/resource-wbs-dashboard.tsx": "f9d2eec216ea40c470221eeb98c3a98f3d3cfbfcfb39245d73da42029e41220c",
+    "src/features/resources/system-dashboard-model.ts": "f080320480e25c5765290046a60f305ee4c634f0b0cf672a7cf8ac9aff864143",
+    "src/features/resources/system-dashboard.module.css": "d65cd9c8a9b52b2fc837f1bd3729e75b5a7ad9ec856c979ee0b11e7f09b5cd7c",
+    "src/features/resources/system-dashboard.tsx": "ee882f8de380a2b4090de15a9a9ad4a2ba625b583ab99dbc56c65093e709b8e6",
+    "src/features/resources/use-resource-dashboard.ts": "d7a770a23a221eb0ed47dd8761f0a4fd3716c8e836a053ef3836b9853157faf8",
+    "src/features/resources/wbs-view-composer.tsx": "d7831c10e3c30665a2c996054811b6adc28b6e2132b075a70cb6ec2aee2cb8dc",
+    "src/features/resources/wbs-view-dashboard.tsx": "732ee8c7bfd955f392f4fdadf392b93cfaacf34086d52fce49c77aed3e7aafb3",
+    "src/features/resources/wbs-view-details.tsx": "680332bb522edf9c55a27e4fb2e8bb41c8016f406806e3a535b6434cced4dc13",
+    "src/features/resources/wbs-view-model.ts": "9acfc8fbe5ecfbb0dc672c350b2330f3a36032bfc3a61f763a224defd9084e52",
+    "src/features/resources/wbs-view-storage.ts": "da875c5ebc304feda24e0f18aa9e41faaccad09db2bebe5a8df0d6e030f6de77",
+    "src/features/resources/wbs-view-table.tsx": "11ceb1612904cb800e6b7ec963df018627154281659dd9108cc701f952762644",
+    "src/features/resources/wbs-view-transport.ts": "165814fe493d6a9d4ad8cbf08a324e711166523b00477b2c8e1d1b28f550bbeb",
+    "src/features/resources/wbs-view.module.css": "280529e1203ea99436da48238bb2dbdf93e70ea9aa3ffd13831afcab58e43b76",
+    "src/features/templates/create-from-template-form.tsx": "d5a20b02678972f91b74ec1025a13a4e511d8a897b2e013a37eabfdda9a09f18",
+    "src/features/templates/project-save-as-template-button.tsx": "7331e5b90eca6d42338a13da261c9d83580b9020a711f33e175aa16869adfe3e",
+    "src/features/templates/project-save-as-template.module.css": "d970cd60f0af0b9fc031da80b0febf43a75c56820542682d778892752110271b",
+    "src/features/testing/error-boundary-probe.tsx": "569c738ab5278f80bc255b3cc77b34fd7d705279d4aa61d33937b221b43f6344",
+    "src/instrumentation.ts": "b8436d6d287b7413f731b5e1720779d338643a6c2de3ab1510e69c241b108e1b",
+    "src/lib/client-local-id.ts": "e534400e76d705748c41e78175fc153a6147ee0bd59002e0db8160f80ab76b45",
+    "src/lib/date-display.ts": "97be20e8e5d2f85768654ad322b2400fe40e851cdc041eaa7b632233d8162047",
+    "src/lib/gantt-scale-format.ts": "798a69deb9f3ba03623c9ede01dca0b52ea18c1f7f41df152801982ab0cde062",
+    "src/lib/iso-week.ts": "ff8491eaa8d8cd6cd30eec72e25d1e3bb743195f033ad170f44bfbc9f05526f5",
+    "src/server/calendars/calendar-resolution-core.ts": "fd216a151d57e6fb82a2b886a5aa8b802dc072f6849642bb521d7345436a804f",
+    "src/server/calendars/country-calendar-data.ts": "cf054bed0ea9a8a359ffabc3641715ec76df3603fdcbbbc603d3685162c41cf8",
+    "src/server/calendars/default-calendar-core.ts": "6e56268d23c020852304b3e34a74a024dce686cb892384bea866f207218fac3a",
+    "src/server/calendars/resource-calendar-error-core.ts": "b711617689c1ca5f3afff979e2fc12756ba3c970a045b2498218e8bdbac69fcd",
+    "src/server/calendars/work-calendar-handlers-core.ts": "760a25abab26e75ea4c206898c75df86087aee2cdb541169d7a36e45580629b1",
+    "src/server/calendars/work-calendar-service-core.ts": "ec572a08400a000a7dcdd18725c8e6516a2cd6a934997c26e71dae82feb7b5b4",
+    "src/server/calendars/work-calendar-service.ts": "3c5ac614e9bd74ffc502d34f8ddf95ff3436e5523b27bb6dfcdd0527afdc2bf5",
+    "src/server/db/config.ts": "8f3b6138dd9544eb619b998a1203b33fd108f799da254c7423c8543a04e6e2f8",
+    "src/server/db/core.ts": "e85fd2a9bbee3653ddb954466b6c0d39fd9f236ae573eff117ac6f6ec083b78b",
+    "src/server/db/database.ts": "4f545017ac1805d067a39f460d006d188134861a3397fb66bbb6dd479fad5f93",
+    "src/server/db/e2e-sql-observer-core.ts": "e7364c1e1ae08f785dd383e31860b044eb6366ce796a6642ef41fff05640cf7e",
+    "src/server/db/index.ts": "1ab755b98afdee69ce37ecf3bf62784957c3852c02512c16425329875d9f18df",
+    "src/server/db/migrations.ts": "1d1f2739467549a8894b8404a1a019457ba8c58e0bcd6360b065a99bffbdb2b7",
+    "src/server/exports/project-context-export-guard-core.ts": "46f61311a00103ac75238e210e07511b3d834e9ae20e5011fbff9e93de7f20bf",
+    "src/server/exports/project-excel-export-contract.ts": "f50aad025d2b01f51e6ec4eb49197a88fe803366341df8d490759abb70a60d5d",
+    "src/server/exports/project-excel-export-core.ts": "aef39ade0cb006b97a7a3453f45fea3e768d8f01ac1744f016dbaa9507f18e41",
+    "src/server/exports/project-excel-export-handler-core.ts": "535c3bae169021026982ba5343eb4e5d6a8069b27d71930dbd998c935af5afe8",
+    "src/server/exports/project-excel-export-style-types.d.ts": "7800a00686fa62f0ad4fe6c1831ee63a37a8e2ae10840d13bb39cca19762dda8",
+    "src/server/exports/project-export-snapshot-service-core.ts": "1a752cae76d453250ab5a09f4725aaf7c767896da6dea8fd7a34639ffb8974f0",
+    "src/server/exports/project-json-export-core.ts": "c8de95caa6b0f202b0958421cc6a6d913e06c0c2f1bb27cf1050851fd7a8c536",
+    "src/server/exports/project-json-export-handler-core.ts": "bab630c42b9c8b50f114497d2f069f8ab522c3b4e63a7fa5654135e5c991f1a6",
+    "src/server/exports/project-svg-export-contract.ts": "0f7c0465eebd9f7ac580efd77280bdd2c12b3b2a9d528a7a5a2a2760bc200c96",
+    "src/server/exports/project-svg-export-core.ts": "7d9a5bc291dc667eabf29e48f5a2c3f11780ac941953b1332331ddf4387696ea",
+    "src/server/exports/project-svg-export-handler-core.ts": "dc6a40373163a6bf4644c76322cbbc0813c37b992c8be285e422d2ee596e340d",
+    "src/server/exports/resource-excel-export-core.ts": "113aa9345f2946738b114bc6cc36e7f0eaf9317fa20f093864d9cdf3bf58dc97",
+    "src/server/health/liveness-core.ts": "923fcb0543d505513a6d10c8aa8bd8d46c63135112ef6ed711ca775f2d252756",
+    "src/server/health/liveness.ts": "ef54eb0fcc54b079a1e49c2643f41ab5f89798536f77a29ab93724764758f44e",
+    "src/server/health/readiness-core.ts": "ff43835bd3d8b21bff9ffac9eb24bfc6f98367f8c8b09f9239b48f3059498bda",
+    "src/server/health/readiness-handler-core.ts": "44e9b8316f777f866ad9f11f17b3f326670f6b0b716fbb4cc66c6b297c2a5310",
+    "src/server/health/readiness-service-core.ts": "10bd06e0bdc5e715fcdf6658300a0de75cd0f8ae41145d59032656cbcfb9c519",
+    "src/server/health/readiness.ts": "547a48a3f01bdd6f1fd9ead992fbe09c65558ed97ec98fe7c83ab171d538c84f",
+    "src/server/http/api-error-core.ts": "8c8adb73f80fdb1b08f2e3622e127c3e511d90178abf618d115842ec409bd605",
+    "src/server/http/request-context-core.ts": "c8355e4d819fa5d196960bf3f88d50cb773bafd33ad4172185a91bd39f4b6dc5",
+    "src/server/http/request-core.ts": "a1fe33c601679e3f864f4016a0753e40f0015f9c196463da2ed3f73f549b694d",
+    "src/server/imports/project-import-handlers-core.ts": "f826dcd2271944d16737e97b4cf4e879b0146d572696b5f9837a8c45ec76bd28",
+    "src/server/imports/project-import-parser-core.ts": "7bd74649e25e9cc4c18e40f6eec16ac9936a40dcc37ebf754cc221000e9ea5ad",
+    "src/server/imports/project-import-service-core.ts": "fab81cea61043df978f4fa5d095eed081da92df3757647136eac7305a9a7745c",
+    "src/server/imports/project-import-service.ts": "b35060a31c3ff007a067977b7fa72e87cdc366c420e4b0f006fe1f107d185bc9",
+    "src/server/logging/logger-core.ts": "9373cc6733a604620a5cbf8b2fcfd820c188870420c5bfc27b66df615e0679d4",
+    "src/server/logging/logger.ts": "f7f6a282d18db1b78a4f943d0a50a006c1e0b6202fe335bddba5418e6c479fc8",
+    "src/server/logistics/legacy-binding-scope-handlers-core.ts": "75ede79f6460332fba405be8eac5121afdf85ef7bda83891b38e12e757c79d0b",
+    "src/server/logistics/legacy-binding-scope-service-core.ts": "236cc44acbb46f1bfe6b17aee924302ac6ecd61ec1be2b88d240a916faa62ed6",
+    "src/server/logistics/logistics-contract.ts": "c308803472514f2494f695d5e5a3bd7a53a1dde6570d63a67e85a22bead486b0",
+    "src/server/logistics/logistics-dashboard-service.ts": "324cdacab15f076c3a471a8dbaf2c9d65c139df16650ba09ad376172769901ed",
+    "src/server/logistics/logistics-handlers-core.ts": "edd3aa1484990ad56fd8dd4c05f881e2462970807ecd474f1916e5143ee985de",
+    "src/server/logistics/logistics-kpi-handlers-core.ts": "b02e9793531c789e4250dc19ffb770ec603560d3680a28a8cf9486701a8d9f64",
+    "src/server/logistics/logistics-kpi-service-core.ts": "ae569a1c0748fc517dc9f99b7dc5d1a1bfa56a66a93e4fa71ce293a8ffc0c01c",
+    "src/server/logistics/logistics-kpi-snapshot-core.ts": "96c639d060116ab0bb9f209852dffc7573ab276fcb695209af6fc8941168f84b",
+    "src/server/logistics/logistics-physical-usage-core.ts": "59075d7b478847d14d13c19812d14d5e9b6e3462343a1f20f6b48583c5f5cae5",
+    "src/server/logistics/logistics-retirement-handlers-core.ts": "3a99d0e98cbe83a48a115bede8914134934543f32b3994b8903c04692f25a925",
+    "src/server/logistics/logistics-service-core.ts": "19c519c28c933ab5f19933238ac75cc02db18f188459cd245e391670f7793a3b",
+    "src/server/logistics/logistics-service.ts": "a905be3a1aac4333a5756b0886a6f9ac7fde96a1f6073de144fcc3e55989e032",
+    "src/server/logistics/logistics-targets-handlers-core.ts": "02778527aa46dd3fa44092df73442616d3257d5fc724e4a570cc56c4d06d0042",
+    "src/server/logistics/logistics-targets-service-core.ts": "baf040bb36f5d15f5e2dbd39bb7ae9e4d8fda0f3be3da52815682d6e5ff99cfd",
+    "src/server/logistics/logistics-type-catalog-handlers-core.ts": "3a537a3eff4d83db1e714a7bdd26f9f76182ba01916d2e4160732dbe0c3cf896",
+    "src/server/logistics/logistics-type-catalog-service-core.ts": "6c2fe6c93b57d113a9bac26526f573630254d900616ca016ad27ff076e838de5",
+    "src/server/logistics/logistics-type-catalog-service.ts": "0bd114579e667c8c73deaf1904fd853cee21a24fc1dc8d78ff9be317f2b3c7fa",
+    "src/server/logistics/project-context-transfer-core.ts": "3795184b1fc1590b86f25296fa8d3f1019707a1a59d1ffb7c284e22950bde55e",
+    "src/server/logistics/task-logistics-compatibility-core.ts": "ba4bfb0660d00e340d8d51eb4092e35c6bcc5e019705e83d74f0d03a56ee88b8",
+    "src/server/logistics/task-target-bindings-handlers-core.ts": "0cda1dbbdcd5c2a337cfc52eaf404d637580844e8c3eb177025a432c0f17a9d0",
+    "src/server/logistics/task-target-bindings-service-core.ts": "03901f70772cdb5fd1d829c5e036abe854a62e5838d086d0b5ded1eb414ffbe1",
+    "src/server/logistics/task-target-transfer-core.ts": "7eb1158483bcbc17502191c8660b900267b397805839a562f94bd4eec0827631",
+    "src/server/process-catalog/process-catalog-handlers-core.ts": "a6c9a796e8ff8e131a52252a5e166e236c08850f256a9162e89a0f5c91724297",
+    "src/server/process-catalog/process-catalog-service-core.ts": "e7be1ad99553976bf7474632c4e401f9d790bfa57e3ac2b1cb5e8570268ab246",
+    "src/server/process-catalog/process-catalog-service.ts": "fbb6efa7d8dd72795de39a4e8fdd1c1a8c373f0f28e1f3e70deba47324d2d2bc",
+    "src/server/project-master/project-master-handlers-core.ts": "e4bd701cee80e1e90fea3e77801caf9860148cdccadf56a9a6665c8744ed58ed",
+    "src/server/project-master/project-master-service-core.ts": "4290bda432881bdfd7e66d9ad7b741ad556aa74077eee053c38dfc09df267a98",
+    "src/server/project-master/project-master-service.ts": "e3a9af8246f39ae2191b6c015d9a354f8be7c656b0dad9ed4ebdc9c3af092f91",
+    "src/server/projects/edit-session-handlers-core.ts": "615ba26669a7ee36ccbb0e6269c245b3b0cd607aa730c4d7df71fb1955bcabfa",
+    "src/server/projects/link-contract.ts": "30332b0f95475bb4b6f461875e364c37b7b275bd5cd4d0d86efea45a258a659f",
+    "src/server/projects/link-handlers-core.ts": "919eefd4c78421ca3320a2c60313ebc0bf76c3ae6d639558467fa482f4d1b18b",
+    "src/server/projects/link-service-core.ts": "6f48a88626e58cc63449b1379f96596897d6f1984eab3c209e7c4fb3269cf21e",
+    "src/server/projects/milestone-dashboard-calculation-core.ts": "92b23b96ba192cc46c11d560ac38466f4cd172e8c235bf17689437b93a10df47",
+    "src/server/projects/milestone-dashboard-handlers-core.ts": "5ec810dcb0f01a0177db33f82fa4c8fa6371a806c5f822caf643b5970637d37e",
+    "src/server/projects/milestone-dashboard-projection-core.ts": "d1b15dc03c637062354bbfaf1a3fe971daf005a4be9aac0ab1e5a7dbdbd42766",
+    "src/server/projects/milestone-dashboard-service-core.ts": "6f1f0ed64e2fb9cee2c6c715e70dd9e56f6e1f5b5618dd1c1c036d406bed3b23",
+    "src/server/projects/milestone-dashboard-service.ts": "9fccfdc7a1056cdcb26301131d4cba1eb2ccd0f38caf9791f73f268523e0912e",
+    "src/server/projects/milestone-stage-core.ts": "6e49b0a318b072ad4cf525251c3969cc98dbb0cb13f887b1418bbec2be9acf15",
+    "src/server/projects/project-contract.ts": "42056f8578fcfeae1127defcb7e649b64b719a85adb79c853b6912205eb372e3",
+    "src/server/projects/project-copy-handler-core.ts": "78fb8879f85375cbfcd159cdf9c8980381ae1526b618e2914cf668b6ae19a83c",
+    "src/server/projects/project-copy-service-core.ts": "0fde929498d3b5c102af21ec8c8b0564610035637651fd45c6072131f6b91d75",
+    "src/server/projects/project-handlers-core.ts": "8f70f8c49064a40a3548758de1bc25ebab032584c9ceafded229c27aae17e095",
+    "src/server/projects/project-service-core.ts": "ac9701ecfec38ccda6b91f9d6fe7696056d8b25bce93ff4238468dea56631990",
+    "src/server/projects/project-service.ts": "9385dbcf0fb810ab06f14a9d213fcf68fc0f6744fdb8574f2101e397d549cef7",
+    "src/server/projects/project-share-url-core.ts": "91a9554650297e9da732a0bb08592e4b8d270c5603cb0e003727a25483a2ec3e",
+    "src/server/projects/task-contract.ts": "9e5ff66a11a29c4e2cb7ee91ea594c6fe5964d7b9bbf574bbb77e6b8513801f7",
+    "src/server/projects/task-field-companion-services.ts": "2f8998d21248a365a490e67990d3e08432d59e8a185814e9c7612e98dfcf4d2b",
+    "src/server/projects/task-field-project-service.ts": "30e1aee93212cd093c3489e6c50886b957e1a65ad01b706a59c6f1199693d019",
+    "src/server/projects/task-handlers-core.ts": "34c13dcd2f7e9934289ec3ddff09ace9cd91c6ef9e1e06acf8c688da990b39f4",
+    "src/server/projects/task-hierarchy-contract.ts": "ac921c18939f4961fc35951fc92a8cfc0a8debaea2159b4b25dd7e862936b9bb",
+    "src/server/projects/task-hierarchy-handlers-core.ts": "e3f0e9a7478ad5a80f58da6a7a4d52e600c5af7def3ebfb71f4c97cf9fd962a2",
+    "src/server/projects/task-hierarchy-service-core.ts": "eff4780c9a0f65d6ca1f4d0d039c17bac09081121f2732d88cad63e619f9705a",
+    "src/server/projects/task-schedule-guard.ts": "69896d484d779e3996e8331be50ac6a514c58d925b85db9677598dc1c196c6a4",
+    "src/server/projects/task-subtree-delete-service-core.ts": "495858da4c026b87f039f82c16ed32412f72a628ef085c74920aea2c344eef7b",
+    "src/server/repositories/index.ts": "47e97954f98f5bd1d7a8b04ac3cec77e0484b93d20ca241621fd665c08534095",
+    "src/server/repositories/logistics-repository-core.ts": "809ea46ea46335e8fb196c247f3976b165b033277c7390ba8fb94bc2ed58da35",
+    "src/server/repositories/logistics-repository.ts": "c07e383dbb9d44dc5debada94183091ef7d6b177639b659b474408d087540ba1",
+    "src/server/repositories/logistics-type-catalog-repository-core.ts": "46a7e121cea9f4495b5cb2eae423396117badfe552f1362e60e126ae12664e87",
+    "src/server/repositories/milestone-membership-repository-core.ts": "cdc567e30c38c155b7acc1c6ef7c98d048883119b4c7af43f6556bafa8bf3294",
+    "src/server/repositories/process-catalog-repository-core.ts": "5af6e793da8a316ca0f2ddfe719b62ca21a5711a051a346b562542beeb262f30",
+    "src/server/repositories/process-context-repository-core.ts": "e422f6ac07eb512bdc2f99b3807d84ce2158f84b9c61d2f482c3bd26c49f173a",
+    "src/server/repositories/project-master-repository-core.ts": "59d5858f148ef2c07aa073b3a9e4238d2b463432ff4d8ec2df684e6ff7d6274d",
+    "src/server/repositories/project-owner-repository-core.ts": "28946f0a0ca3be7a004ec9e6224082809e77146d7c72624a16990ae77c30e9ee",
+    "src/server/repositories/project-repository-core.ts": "0ab88263a2d1fd46d13d870f262c6010ed2c513d5be52479ce699d6dc51e64db",
+    "src/server/repositories/project-repository.ts": "34b6bebe30868b099f6e591240bb856b6b9253931778e1bf72b94dcfb32bf331",
+    "src/server/repositories/project-resource-membership-repository-core.ts": "51a7ca8b931d0162475e0beaa561720c28965070b9fda31959263922b4c5dea1",
+    "src/server/repositories/project-template-repository-core.ts": "365e29057cab55c59afb32443d8fdc9b6f450d053285336ca042d69693d6dcf3",
+    "src/server/repositories/project-work-area-repository-core.ts": "c7f79f67ae0befd58cea7dc9b357fa271b98b24a08e865df5198665ed956628e",
+    "src/server/repositories/resource-catalog-repository-core.ts": "2768d53df0ef8863e7985b2d2543a6c6b1e901d8e819db61d9e431f532513f44",
+    "src/server/repositories/resource-dashboard-repository-core.ts": "f2ba51f919ef3387d48a9f940f0401bdc1de05b563f88537faa6c2ac78abbda2",
+    "src/server/repositories/resource-target-snapshot-repository-core.ts": "3b1ba34cd5ae77c92397024b0d7032c10020f5a5e6a31099ff55731bbfe89436",
+    "src/server/repositories/schedule-repository-core.ts": "820090952637ae8f78df655240e349b815336293e1af4cd2aaa5293cdb72f968",
+    "src/server/repositories/schedule-repository.ts": "5462dfdf51e29dadf90b7441cc7537e376bcdd51d26f755aec462e3da53102b9",
+    "src/server/repositories/task-target-binding-repository-core.ts": "1e49cacce4be24bac871983cf3bcb29077f8c2b3b80a0d72501b301032d8f457",
+    "src/server/repositories/wbs-view-snapshot-repository-core.ts": "e66bd42ddb0b786e5db15998813fa23f5a0f96594de447c696373181430fbd0b",
+    "src/server/repositories/work-calendar-repository-core.ts": "2197f81804f74695199895a93e19aa4f454b94345fe94ef41a7770cc621e7ac7",
+    "src/server/resources/md-per-mm-core.ts": "f4d81ad0e879fc1a43af8477c334064121a2e364af883201f52f6f8fedf93589",
+    "src/server/resources/project-resource-membership-handlers-core.ts": "f5b2b0600f5dfb3366210ab4471a8d7d14e263c5811cd800636d81a4fd69089e",
+    "src/server/resources/project-resource-membership-service-core.ts": "d82971d920d6322f62400f96222da1990c7d38ae6dbd7e80b4fb232d56c0b29e",
+    "src/server/resources/project-resource-membership-service.ts": "7a5e7c13b0879a5a532b06e9b306dd77671f04e807f22dabb1e1bddef9d4a883",
+    "src/server/resources/resource-catalog-handlers-core.ts": "7944770b804a4ed7a5ac3b8a0c81bb14657380d7c862b6472b6fd65ba19f40df",
+    "src/server/resources/resource-catalog-service-core.ts": "31501058f22b1f6bae7612b869d5db368d50ecfc821bf572b462018f1ba320d9",
+    "src/server/resources/resource-catalog-service.ts": "1c7d22cc20b86e6e925ac54543b5ecf9ccded2e318ea6ae91da0a5d952782fd3",
+    "src/server/resources/resource-dashboard-handlers-core.ts": "2c60400b0c259109236e7e61cf8ec5abb384cc5736f0c8c3177a5f78de3eec5f",
+    "src/server/resources/resource-dashboard-query-core.ts": "800feda170816b89043067b4e6224180dd728a3ec6e994762faf4c9427a07b03",
+    "src/server/resources/resource-dashboard-service-core.ts": "a28f07fca3230a33d2c98b39a973d818633bbc7b503f8109bee19e3a9765b552",
+    "src/server/resources/resource-dashboard-service.ts": "5822f9b9424df904ed3f59d411de57762519f7b8830e510d7f43baf57d229daf",
+    "src/server/resources/resource-data-context-core.ts": "98bc97638b0adf65c7583ef7ac55f5f48dade9bde29d5098a369eda41423a8ef",
+    "src/server/resources/resource-drill-query-core.ts": "3b66fcb3b5066fbdc5397a068a4692ab5fabbb1e917bdb7313416157474b84c2",
+    "src/server/resources/resource-public-v2-core.ts": "ec096bd1846f8af9f6d2a9251750c292989be3eebecb9df6025c58c42f818cd7",
+    "src/server/resources/resource-workload-service-core.ts": "a35da87965afe510fbfa86f30a65dab1646132d6fc34d14d948cfc44ca36c7b8",
+    "src/server/resources/wbs-dashboard-views-core.ts": "3c78b454373181426fe14929ace76d31b0d6f1987a776a15e1872935c204f84b",
+    "src/server/resources/wbs-dashboard-views-handlers-core.ts": "97446cb0ba59d5aad71a51e3eed0a0beb28f312a0f42bb618bc2368059297bbb",
+    "src/server/resources/wbs-dashboard-views-query-core.ts": "6c93b2c7cf4cd1bad49a6a317fdf338d9df114d3fff03bcb64b6b2b5a4a175ce",
+    "src/server/security/cookie-core.ts": "b52e04e06cfa29451a48f8bb7caf14716c303da77b278560bdf49d5a0502bf24",
+    "src/server/security/logistics-catalog-cookie-core.ts": "4798cf651fa2959e11e75cbd17ac5801b8afffc1b15a0eb7efa925659c21f575",
+    "src/server/security/origin-core.ts": "1d372ff27c7c0e6fbe6d2a92f36c743af5f74641cffe3b79ec3a71ca9c19e530",
+    "src/server/security/password-core.ts": "51de3d88f093abbb947b2f83b09b1032f5097b677bc067f770312f2e67d0bd71",
+    "src/server/security/password.ts": "4b135c5cf5277b7dec7803654b5bf4570d669cf317aed6cbb6e6dc1011f0992d",
+    "src/server/security/project-master-admin-cookie-core.ts": "1ecd73e49c6618eb3d9fb8cf060d37c3206d06f055c1147d0ffc3b56348e2229",
+    "src/server/security/rate-limit-core.ts": "464fa9c37a56f40b5ee36db52b4ce37455c11c3e2fc9c0f9694de65bef310ff7",
+    "src/server/security/resource-catalog-cookie-core.ts": "b2228b8e086e916cd6d055a7e51ab9df81a753e0215e023b18b608aad48aaae4",
+    "src/server/security/route-security-inventory.ts": "2af52b3fecbda370d6f9e7943f81652d4fd07c60a8239002706f9187da3f59f8",
+    "src/server/security/session-core.ts": "df6ab1a0b515fba50849276f3993bc4912767b3bb077dd0c38e1e36d9192ac06",
+    "src/server/templates/logistics-template-graph-core.ts": "f99a98632a9a8af1bad90427a9dc5f7a68cae0d302ce10435bbc2e2d6ed0d3db",
+    "src/server/templates/project-template-handlers-core.ts": "5ae15d8f3d788f8eb8d0e1cf5cf82d78a7b4ccd1f3750987c6f43886e68758a9",
+    "src/server/templates/project-template-service-core.ts": "eba24284c9ed9ef6ae46f778f4f68bb045389eec0beeb79cd8bb962c06ca6389",
+    "src/server/templates/project-template-service.ts": "39863783008a9e81ccda13e22baee3023de5c7a859b8a7c71d4ea769468871e5",
+    "src/server/testing/error-boundary-probe-gate.ts": "97ecd1be2bffe979828214ab9a46590028399567f62d644f793ba810872facd5"
+  },
+  "beforeSnapshot": {
+    "revision": 17,
+    "tasks": 4,
+    "assignments": 1,
+    "fingerprint": "d1d06a5717d536e1353954660d2758be859f01e2250a8a64845b0ba97fa04779"
+  },
+  "afterSnapshot": {
+    "revision": 17,
+    "tasks": 4,
+    "assignments": 1,
+    "fingerprint": "d1d06a5717d536e1353954660d2758be859f01e2250a8a64845b0ba97fa04779",
+    "writes": [],
+    "readOnlyPostQueries": 25
+  },
+  "preservationPassed": true,
+  "plannedSamples": 30,
+  "observations": [
+    {
+      "key": "kpi-390",
+      "file": "kpi-390.json",
+      "primary": {
+        "kind": "kpi",
+        "root": {
+          "x": 12,
+          "y": 359.390625,
+          "width": 366,
+          "height": 2534,
+          "bottom": 2893.390625
+        },
+        "firstSummary": {
+          "x": 12,
+          "y": 855.390625,
+          "width": 366,
+          "height": 821,
+          "bottom": 1676.390625
+        },
+        "summaryCount": 1,
+        "valueCount": 4,
+        "values": [
+          {
+            "text": "0%가중 평균",
+            "x": 33,
+            "y": 910.390625,
+            "width": 324,
+            "height": 33,
+            "bottom": 943.390625
+          },
+          {
+            "text": "2건",
+            "x": 33,
+            "y": 1134.390625,
+            "width": 324,
+            "height": 33,
+            "bottom": 1167.390625
+          },
+          {
+            "text": "1건 지연/0건 임박",
+            "x": 33,
+            "y": 1338.390625,
+            "width": 324,
+            "height": 34,
+            "bottom": 1372.390625
+          },
+          {
+            "text": "2M/D— M/M · 환산 기준 미설정",
+            "x": 33,
+            "y": 1543.390625,
+            "width": 324,
+            "height": 33,
+            "bottom": 1576.390625
+          }
+        ],
+        "fullyVisibleValues": 0,
+        "table": {
+          "x": 13,
+          "y": 1793.390625,
+          "width": 1052,
+          "height": 184,
+          "bottom": 1977.390625
+        },
+        "rowCount": 1,
+        "fullyVisibleRows": 0,
+        "ready": null
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1793.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 12,
+            "y": 1792.390625,
+            "right": 378,
+            "bottom": 1984.390625,
+            "width": 366,
+            "height": 192,
+            "clientWidth": 364,
+            "scrollWidth": 1052,
+            "scrollLeft": 0,
+            "clientHeight": 190,
+            "scrollHeight": 190
+          }
+        },
+        {
+          "y": 2651.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 12,
+            "y": 2650.390625,
+            "right": 378,
+            "bottom": 2877.390625,
+            "width": 366,
+            "height": 227,
+            "clientWidth": 364,
+            "scrollWidth": 836,
+            "scrollLeft": 0,
+            "clientHeight": 225,
+            "scrollHeight": 225
+          }
+        }
+      ]
+    },
+    {
+      "key": "milestone-390",
+      "file": "milestone-390.json",
+      "primary": {
+        "kind": "milestone",
+        "root": {
+          "x": 12,
+          "y": 290,
+          "width": 366,
+          "height": 1213,
+          "bottom": 1503
+        },
+        "firstSummary": {
+          "x": 12,
+          "y": 875,
+          "width": 366,
+          "height": 244,
+          "bottom": 1119
+        },
+        "summaryCount": 1,
+        "valueCount": 9,
+        "values": [
+          {
+            "text": "2건",
+            "x": 12,
+            "y": 903,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 927
+          },
+          {
+            "text": "0 / 2건",
+            "x": 105.6875,
+            "y": 903,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 927
+          },
+          {
+            "text": "0.0%",
+            "x": 208.203125,
+            "y": 903,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 927
+          },
+          {
+            "text": "1건",
+            "x": 12,
+            "y": 967,
+            "width": 85.1875,
+            "height": 24,
+            "bottom": 991
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 121.1875,
+            "y": 967,
+            "width": 67.015625,
+            "height": 24,
+            "bottom": 991
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 212.203125,
+            "y": 967,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 991
+          },
+          {
+            "text": "1건",
+            "x": 12,
+            "y": 1031,
+            "width": 121.65625,
+            "height": 24,
+            "bottom": 1055
+          },
+          {
+            "text": "1건",
+            "x": 157.65625,
+            "y": 1031,
+            "width": 121.65625,
+            "height": 24,
+            "bottom": 1055
+          },
+          {
+            "text": "0건",
+            "x": 12,
+            "y": 1095,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 1119
+          }
+        ],
+        "fullyVisibleValues": 0,
+        "table": {
+          "x": 13,
+          "y": 1283,
+          "width": 772,
+          "height": 163,
+          "bottom": 1446
+        },
+        "rowCount": 2,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1283,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 12,
+            "y": 1282,
+            "right": 378,
+            "bottom": 1447,
+            "width": 366,
+            "height": 165,
+            "clientWidth": 364,
+            "scrollWidth": 772,
+            "scrollLeft": 0,
+            "clientHeight": 163,
+            "scrollHeight": 163
+          }
+        },
+        {
+          "y": 3340.5,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 18,
+            "y": 3339.5,
+            "right": 372,
+            "bottom": 3571.5,
+            "width": 354,
+            "height": 232,
+            "clientWidth": 352,
+            "scrollWidth": 1052,
+            "scrollLeft": 0,
+            "clientHeight": 230,
+            "scrollHeight": 230
+          }
+        },
+        {
+          "y": 3753,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 18,
+            "y": 3752,
+            "right": 372,
+            "bottom": 3947,
+            "width": 354,
+            "height": 195,
+            "clientWidth": 352,
+            "scrollWidth": 800,
+            "scrollLeft": 0,
+            "clientHeight": 193,
+            "scrollHeight": 193
+          }
+        }
+      ]
+    },
+    {
+      "key": "process-390",
+      "file": "process-390.json",
+      "primary": {
+        "kind": "process",
+        "root": {
+          "x": 12,
+          "y": 371.390625,
+          "width": 366,
+          "height": 1586,
+          "bottom": 1957.390625
+        },
+        "firstSummary": {
+          "x": 12,
+          "y": 964.390625,
+          "width": 366,
+          "height": 244,
+          "bottom": 1208.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 14,
+        "values": [
+          {
+            "text": "2개",
+            "x": 12,
+            "y": 992.390625,
+            "width": 122.296875,
+            "height": 24,
+            "bottom": 1016.390625
+          },
+          {
+            "text": "1개",
+            "x": 158.296875,
+            "y": 992.390625,
+            "width": 105.453125,
+            "height": 24,
+            "bottom": 1016.390625
+          },
+          {
+            "text": "2개",
+            "x": 12,
+            "y": 1056.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 1080.390625
+          },
+          {
+            "text": "123456796대",
+            "x": 135.96875,
+            "y": 1056.390625,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 1080.390625
+          },
+          {
+            "text": "1식",
+            "x": 263.890625,
+            "y": 1056.390625,
+            "width": 83.96875,
+            "height": 24,
+            "bottom": 1080.390625
+          },
+          {
+            "text": "0개",
+            "x": 12,
+            "y": 1120.390625,
+            "width": 132.875,
+            "height": 24,
+            "bottom": 1144.390625
+          },
+          {
+            "text": "1개 / 0식",
+            "x": 12,
+            "y": 1184.390625,
+            "width": 223.4375,
+            "height": 24,
+            "bottom": 1208.390625
+          },
+          {
+            "text": "2건",
+            "x": 12,
+            "y": 1276.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 1300.390625
+          },
+          {
+            "text": "0 / 2건",
+            "x": 105.6875,
+            "y": 1276.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 1300.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 208.203125,
+            "y": 1276.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 1300.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 12,
+            "y": 1340.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 1364.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 138.984375,
+            "y": 1340.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 1364.390625
+          },
+          {
+            "text": "1건",
+            "x": 12,
+            "y": 1404.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 1428.390625
+          },
+          {
+            "text": "0건",
+            "x": 191.171875,
+            "y": 1404.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 1428.390625
+          }
+        ],
+        "fullyVisibleValues": 0,
+        "table": {
+          "x": 13,
+          "y": 1676.390625,
+          "width": 772,
+          "height": 224,
+          "bottom": 1900.390625
+        },
+        "rowCount": 3,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1676.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 3,
+          "owner": {
+            "x": 12,
+            "y": 1675.390625,
+            "right": 378,
+            "bottom": 1901.390625,
+            "width": 366,
+            "height": 226,
+            "clientWidth": 364,
+            "scrollWidth": 772,
+            "scrollLeft": 0,
+            "clientHeight": 224,
+            "scrollHeight": 224
+          }
+        }
+      ]
+    },
+    {
+      "key": "equipment-390",
+      "file": "equipment-390.json",
+      "primary": {
+        "kind": "equipment",
+        "root": {
+          "x": 12,
+          "y": 371.390625,
+          "width": 366,
+          "height": 1749.1875,
+          "bottom": 2120.578125
+        },
+        "firstSummary": {
+          "x": 12,
+          "y": 1111.390625,
+          "width": 366,
+          "height": 116,
+          "bottom": 1227.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 12,
+        "values": [
+          {
+            "text": "2개",
+            "x": 12,
+            "y": 1139.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 1163.390625
+          },
+          {
+            "text": "123456796대",
+            "x": 135.96875,
+            "y": 1139.390625,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 1163.390625
+          },
+          {
+            "text": "0개",
+            "x": 12,
+            "y": 1203.390625,
+            "width": 175.84375,
+            "height": 24,
+            "bottom": 1227.390625
+          },
+          {
+            "text": "1개",
+            "x": 211.84375,
+            "y": 1203.390625,
+            "width": 132.875,
+            "height": 24,
+            "bottom": 1227.390625
+          },
+          {
+            "text": "2건",
+            "x": 12,
+            "y": 1295.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 1319.390625
+          },
+          {
+            "text": "0 / 2건",
+            "x": 105.6875,
+            "y": 1295.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 1319.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 208.203125,
+            "y": 1295.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 1319.390625
+          },
+          {
+            "text": "1건",
+            "x": 12,
+            "y": 1359.390625,
+            "width": 121.140625,
+            "height": 24,
+            "bottom": 1383.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 157.140625,
+            "y": 1359.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 1383.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 12,
+            "y": 1423.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 1447.390625
+          },
+          {
+            "text": "1건",
+            "x": 155.921875,
+            "y": 1423.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 1447.390625
+          },
+          {
+            "text": "0건",
+            "x": 12,
+            "y": 1487.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 1511.390625
+          }
+        ],
+        "fullyVisibleValues": 0,
+        "table": {
+          "x": 13,
+          "y": 1616.390625,
+          "width": 772,
+          "height": 271.1875,
+          "bottom": 1887.578125
+        },
+        "rowCount": 3,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1616.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 3,
+          "owner": {
+            "x": 12,
+            "y": 1615.390625,
+            "right": 378,
+            "bottom": 1888.578125,
+            "width": 366,
+            "height": 273.1875,
+            "clientWidth": 364,
+            "scrollWidth": 772,
+            "scrollLeft": 0,
+            "clientHeight": 271,
+            "scrollHeight": 271
+          }
+        }
+      ]
+    },
+    {
+      "key": "system-390",
+      "file": "system-390.json",
+      "primary": {
+        "kind": "system",
+        "root": {
+          "x": 12,
+          "y": 371.390625,
+          "width": 366,
+          "height": 1485,
+          "bottom": 1856.390625
+        },
+        "firstSummary": {
+          "x": 12,
+          "y": 1184.390625,
+          "width": 366,
+          "height": 116,
+          "bottom": 1300.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 11,
+        "values": [
+          {
+            "text": "1식",
+            "x": 12,
+            "y": 1212.390625,
+            "width": 83.96875,
+            "height": 24,
+            "bottom": 1236.390625
+          },
+          {
+            "text": "0개",
+            "x": 119.96875,
+            "y": 1212.390625,
+            "width": 135.921875,
+            "height": 24,
+            "bottom": 1236.390625
+          },
+          {
+            "text": "0대",
+            "x": 12,
+            "y": 1276.390625,
+            "width": 139.890625,
+            "height": 24,
+            "bottom": 1300.390625
+          },
+          {
+            "text": "0식",
+            "x": 175.890625,
+            "y": 1276.390625,
+            "width": 148.875,
+            "height": 24,
+            "bottom": 1300.390625
+          },
+          {
+            "text": "1건",
+            "x": 12,
+            "y": 1368.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 1392.390625
+          },
+          {
+            "text": "0 / 1건",
+            "x": 105.6875,
+            "y": 1368.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 1392.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 208.203125,
+            "y": 1368.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 1392.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 12,
+            "y": 1432.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 1456.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 138.984375,
+            "y": 1432.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 1456.390625
+          },
+          {
+            "text": "0건",
+            "x": 12,
+            "y": 1496.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 1520.390625
+          },
+          {
+            "text": "0건",
+            "x": 191.171875,
+            "y": 1496.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 1520.390625
+          }
+        ],
+        "fullyVisibleValues": 0,
+        "table": {
+          "x": 13,
+          "y": 1697.390625,
+          "width": 772,
+          "height": 102,
+          "bottom": 1799.390625
+        },
+        "rowCount": 1,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1697.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 12,
+            "y": 1696.390625,
+            "right": 378,
+            "bottom": 1800.390625,
+            "width": 366,
+            "height": 104,
+            "clientWidth": 364,
+            "scrollWidth": 772,
+            "scrollLeft": 0,
+            "clientHeight": 102,
+            "scrollHeight": 102
+          }
+        }
+      ]
+    },
+    {
+      "key": "resource-390",
+      "file": "resource-390.json",
+      "primary": {
+        "kind": "resource",
+        "root": {
+          "x": 12,
+          "y": 294,
+          "width": 366,
+          "height": 1869,
+          "bottom": 2163
+        },
+        "firstSummary": {
+          "x": 12,
+          "y": 1067,
+          "width": 366,
+          "height": 116,
+          "bottom": 1183
+        },
+        "summaryCount": 2,
+        "valueCount": 14,
+        "values": [
+          {
+            "text": "0명",
+            "x": 12,
+            "y": 1095,
+            "width": 67.96875,
+            "height": 24,
+            "bottom": 1119
+          },
+          {
+            "text": "0명",
+            "x": 103.96875,
+            "y": 1095,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 1119
+          },
+          {
+            "text": "0명",
+            "x": 231.890625,
+            "y": 1095,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 1119
+          },
+          {
+            "text": "1명",
+            "x": 12,
+            "y": 1159,
+            "width": 195.640625,
+            "height": 24,
+            "bottom": 1183
+          },
+          {
+            "text": "0명",
+            "x": 231.640625,
+            "y": 1159,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 1183
+          },
+          {
+            "text": "2건",
+            "x": 12,
+            "y": 1259,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 1283
+          },
+          {
+            "text": "0 / 2건",
+            "x": 105.6875,
+            "y": 1259,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 1283
+          },
+          {
+            "text": "0.0%",
+            "x": 208.203125,
+            "y": 1259,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 1283
+          },
+          {
+            "text": "1건",
+            "x": 12,
+            "y": 1323,
+            "width": 157.109375,
+            "height": 24,
+            "bottom": 1347
+          },
+          {
+            "text": "1명",
+            "x": 193.109375,
+            "y": 1323,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 1347
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 12,
+            "y": 1387,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 1411
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 138.984375,
+            "y": 1387,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 1411
+          },
+          {
+            "text": "0건",
+            "x": 12,
+            "y": 1451,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 1475
+          },
+          {
+            "text": "1건",
+            "x": 209.109375,
+            "y": 1451,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 1475
+          }
+        ],
+        "fullyVisibleValues": 0,
+        "table": {
+          "x": 13,
+          "y": 1943,
+          "width": 772,
+          "height": 163,
+          "bottom": 2106
+        },
+        "rowCount": 2,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1943,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 12,
+            "y": 1942,
+            "right": 378,
+            "bottom": 2107,
+            "width": 366,
+            "height": 165,
+            "clientWidth": 364,
+            "scrollWidth": 772,
+            "scrollLeft": 0,
+            "clientHeight": 163,
+            "scrollHeight": 163
+          }
+        }
+      ]
+    },
+    {
+      "key": "kpi-768",
+      "file": "kpi-768.json",
+      "primary": {
+        "kind": "kpi",
+        "root": {
+          "x": 24,
+          "y": 360.390625,
+          "width": 720,
+          "height": 2436,
+          "bottom": 2796.390625
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 800.390625,
+          "width": 720,
+          "height": 821,
+          "bottom": 1621.390625
+        },
+        "summaryCount": 1,
+        "valueCount": 4,
+        "values": [
+          {
+            "text": "0%가중 평균",
+            "x": 45,
+            "y": 855.390625,
+            "width": 678,
+            "height": 33,
+            "bottom": 888.390625
+          },
+          {
+            "text": "2건",
+            "x": 45,
+            "y": 1079.390625,
+            "width": 678,
+            "height": 33,
+            "bottom": 1112.390625
+          },
+          {
+            "text": "1건 지연/0건 임박",
+            "x": 45,
+            "y": 1283.390625,
+            "width": 678,
+            "height": 34,
+            "bottom": 1317.390625
+          },
+          {
+            "text": "2M/D— M/M · 환산 기준 미설정",
+            "x": 45,
+            "y": 1488.390625,
+            "width": 678,
+            "height": 33,
+            "bottom": 1521.390625
+          }
+        ],
+        "fullyVisibleValues": 1,
+        "table": {
+          "x": 25,
+          "y": 1720.390625,
+          "width": 1052,
+          "height": 184,
+          "bottom": 1904.390625
+        },
+        "rowCount": 1,
+        "fullyVisibleRows": 0,
+        "ready": null
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1720.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 24,
+            "y": 1719.390625,
+            "right": 744,
+            "bottom": 1911.390625,
+            "width": 720,
+            "height": 192,
+            "clientWidth": 718,
+            "scrollWidth": 1052,
+            "scrollLeft": 0,
+            "clientHeight": 190,
+            "scrollHeight": 190
+          }
+        },
+        {
+          "y": 2554.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 24,
+            "y": 2553.390625,
+            "right": 744,
+            "bottom": 2780.390625,
+            "width": 720,
+            "height": 227,
+            "clientWidth": 718,
+            "scrollWidth": 836,
+            "scrollLeft": 0,
+            "clientHeight": 225,
+            "scrollHeight": 225
+          }
+        }
+      ]
+    },
+    {
+      "key": "milestone-768",
+      "file": "milestone-768.json",
+      "primary": {
+        "kind": "milestone",
+        "root": {
+          "x": 24,
+          "y": 291,
+          "width": 720,
+          "height": 883,
+          "bottom": 1174
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 695,
+          "width": 720,
+          "height": 116,
+          "bottom": 811
+        },
+        "summaryCount": 1,
+        "valueCount": 9,
+        "values": [
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 723,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 747
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 723,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 747
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 723,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 747
+          },
+          {
+            "text": "1건",
+            "x": 344.171875,
+            "y": 723,
+            "width": 85.1875,
+            "height": 24,
+            "bottom": 747
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 453.359375,
+            "y": 723,
+            "width": 67.015625,
+            "height": 24,
+            "bottom": 747
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 544.375,
+            "y": 723,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 747
+          },
+          {
+            "text": "1건",
+            "x": 24,
+            "y": 787,
+            "width": 121.65625,
+            "height": 24,
+            "bottom": 811
+          },
+          {
+            "text": "1건",
+            "x": 169.65625,
+            "y": 787,
+            "width": 121.65625,
+            "height": 24,
+            "bottom": 811
+          },
+          {
+            "text": "0건",
+            "x": 315.3125,
+            "y": 787,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 811
+          }
+        ],
+        "fullyVisibleValues": 9,
+        "table": {
+          "x": 25,
+          "y": 954,
+          "width": 832,
+          "height": 163,
+          "bottom": 1117
+        },
+        "rowCount": 2,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 954,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 24,
+            "y": 953,
+            "right": 744,
+            "bottom": 1118,
+            "width": 720,
+            "height": 165,
+            "clientWidth": 718,
+            "scrollWidth": 832,
+            "scrollLeft": 0,
+            "clientHeight": 163,
+            "scrollHeight": 163
+          }
+        },
+        {
+          "y": 2341.5,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 30,
+            "y": 2340.5,
+            "right": 738,
+            "bottom": 2572.5,
+            "width": 708,
+            "height": 232,
+            "clientWidth": 706,
+            "scrollWidth": 1052,
+            "scrollLeft": 0,
+            "clientHeight": 230,
+            "scrollHeight": 230
+          }
+        },
+        {
+          "y": 2700,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 30,
+            "y": 2699,
+            "right": 738,
+            "bottom": 2894,
+            "width": 708,
+            "height": 195,
+            "clientWidth": 706,
+            "scrollWidth": 800,
+            "scrollLeft": 0,
+            "clientHeight": 193,
+            "scrollHeight": 193
+          }
+        }
+      ]
+    },
+    {
+      "key": "process-768",
+      "file": "process-768.json",
+      "primary": {
+        "kind": "process",
+        "root": {
+          "x": 24,
+          "y": 372.390625,
+          "width": 720,
+          "height": 1192,
+          "bottom": 1564.390625
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 784.390625,
+          "width": 720,
+          "height": 116,
+          "bottom": 900.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 14,
+        "values": [
+          {
+            "text": "2개",
+            "x": 24,
+            "y": 812.390625,
+            "width": 122.296875,
+            "height": 24,
+            "bottom": 836.390625
+          },
+          {
+            "text": "1개",
+            "x": 170.296875,
+            "y": 812.390625,
+            "width": 105.453125,
+            "height": 24,
+            "bottom": 836.390625
+          },
+          {
+            "text": "2개",
+            "x": 299.75,
+            "y": 812.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 836.390625
+          },
+          {
+            "text": "123456796대",
+            "x": 423.71875,
+            "y": 812.390625,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 836.390625
+          },
+          {
+            "text": "1식",
+            "x": 551.640625,
+            "y": 812.390625,
+            "width": 83.96875,
+            "height": 24,
+            "bottom": 836.390625
+          },
+          {
+            "text": "0개",
+            "x": 24,
+            "y": 876.390625,
+            "width": 132.875,
+            "height": 24,
+            "bottom": 900.390625
+          },
+          {
+            "text": "1개 / 0식",
+            "x": 180.875,
+            "y": 876.390625,
+            "width": 223.4375,
+            "height": 24,
+            "bottom": 900.390625
+          },
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 968.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 992.390625
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 968.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 992.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 968.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 992.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 344.171875,
+            "y": 968.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 992.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 471.15625,
+            "y": 968.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 992.390625
+          },
+          {
+            "text": "1건",
+            "x": 24,
+            "y": 1032.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 1056.390625
+          },
+          {
+            "text": "0건",
+            "x": 203.171875,
+            "y": 1032.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 1056.390625
+          }
+        ],
+        "fullyVisibleValues": 5,
+        "table": {
+          "x": 25,
+          "y": 1283.390625,
+          "width": 832,
+          "height": 224,
+          "bottom": 1507.390625
+        },
+        "rowCount": 3,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1283.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 3,
+          "owner": {
+            "x": 24,
+            "y": 1282.390625,
+            "right": 744,
+            "bottom": 1508.390625,
+            "width": 720,
+            "height": 226,
+            "clientWidth": 718,
+            "scrollWidth": 832,
+            "scrollLeft": 0,
+            "clientHeight": 224,
+            "scrollHeight": 224
+          }
+        }
+      ]
+    },
+    {
+      "key": "equipment-768",
+      "file": "equipment-768.json",
+      "primary": {
+        "kind": "equipment",
+        "root": {
+          "x": 24,
+          "y": 372.390625,
+          "width": 720,
+          "height": 1289.1875,
+          "bottom": 1661.578125
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 910.390625,
+          "width": 720,
+          "height": 52,
+          "bottom": 962.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 12,
+        "values": [
+          {
+            "text": "2개",
+            "x": 24,
+            "y": 938.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 962.390625
+          },
+          {
+            "text": "123456796대",
+            "x": 147.96875,
+            "y": 938.390625,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 962.390625
+          },
+          {
+            "text": "0개",
+            "x": 275.890625,
+            "y": 938.390625,
+            "width": 175.84375,
+            "height": 24,
+            "bottom": 962.390625
+          },
+          {
+            "text": "1개",
+            "x": 475.734375,
+            "y": 938.390625,
+            "width": 132.875,
+            "height": 24,
+            "bottom": 962.390625
+          },
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 1030.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 1054.390625
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 1030.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 1054.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 1030.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 1054.390625
+          },
+          {
+            "text": "1건",
+            "x": 344.171875,
+            "y": 1030.390625,
+            "width": 121.140625,
+            "height": 24,
+            "bottom": 1054.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 489.3125,
+            "y": 1030.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 1054.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 616.296875,
+            "y": 1030.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 1054.390625
+          },
+          {
+            "text": "1건",
+            "x": 24,
+            "y": 1094.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 1118.390625
+          },
+          {
+            "text": "0건",
+            "x": 203.171875,
+            "y": 1094.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 1118.390625
+          }
+        ],
+        "fullyVisibleValues": 0,
+        "table": {
+          "x": 25,
+          "y": 1181.390625,
+          "width": 832,
+          "height": 247.1875,
+          "bottom": 1428.578125
+        },
+        "rowCount": 3,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1181.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 3,
+          "owner": {
+            "x": 24,
+            "y": 1180.390625,
+            "right": 744,
+            "bottom": 1429.578125,
+            "width": 720,
+            "height": 249.1875,
+            "clientWidth": 718,
+            "scrollWidth": 832,
+            "scrollLeft": 0,
+            "clientHeight": 247,
+            "scrollHeight": 247
+          }
+        }
+      ]
+    },
+    {
+      "key": "system-768",
+      "file": "system-768.json",
+      "primary": {
+        "kind": "system",
+        "root": {
+          "x": 24,
+          "y": 372.390625,
+          "width": 720,
+          "height": 1124,
+          "bottom": 1496.390625
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 952.390625,
+          "width": 720,
+          "height": 52,
+          "bottom": 1004.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 11,
+        "values": [
+          {
+            "text": "1식",
+            "x": 24,
+            "y": 980.390625,
+            "width": 83.96875,
+            "height": 24,
+            "bottom": 1004.390625
+          },
+          {
+            "text": "0개",
+            "x": 131.96875,
+            "y": 980.390625,
+            "width": 135.921875,
+            "height": 24,
+            "bottom": 1004.390625
+          },
+          {
+            "text": "0대",
+            "x": 291.890625,
+            "y": 980.390625,
+            "width": 139.890625,
+            "height": 24,
+            "bottom": 1004.390625
+          },
+          {
+            "text": "0식",
+            "x": 455.78125,
+            "y": 980.390625,
+            "width": 148.875,
+            "height": 24,
+            "bottom": 1004.390625
+          },
+          {
+            "text": "1건",
+            "x": 24,
+            "y": 1072.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 1096.390625
+          },
+          {
+            "text": "0 / 1건",
+            "x": 117.6875,
+            "y": 1072.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 1096.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 1072.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 1096.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 344.171875,
+            "y": 1072.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 1096.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 471.15625,
+            "y": 1072.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 1096.390625
+          },
+          {
+            "text": "0건",
+            "x": 24,
+            "y": 1136.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 1160.390625
+          },
+          {
+            "text": "0건",
+            "x": 203.171875,
+            "y": 1136.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 1160.390625
+          }
+        ],
+        "fullyVisibleValues": 0,
+        "table": {
+          "x": 25,
+          "y": 1337.390625,
+          "width": 832,
+          "height": 102,
+          "bottom": 1439.390625
+        },
+        "rowCount": 1,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1337.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 24,
+            "y": 1336.390625,
+            "right": 744,
+            "bottom": 1440.390625,
+            "width": 720,
+            "height": 104,
+            "clientWidth": 718,
+            "scrollWidth": 832,
+            "scrollLeft": 0,
+            "clientHeight": 102,
+            "scrollHeight": 102
+          }
+        }
+      ]
+    },
+    {
+      "key": "resource-768",
+      "file": "resource-768.json",
+      "primary": {
+        "kind": "resource",
+        "root": {
+          "x": 24,
+          "y": 295,
+          "width": 720,
+          "height": 1301,
+          "bottom": 1596
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 807,
+          "width": 720,
+          "height": 52,
+          "bottom": 859
+        },
+        "summaryCount": 2,
+        "valueCount": 14,
+        "values": [
+          {
+            "text": "0명",
+            "x": 24,
+            "y": 835,
+            "width": 67.96875,
+            "height": 24,
+            "bottom": 859
+          },
+          {
+            "text": "0명",
+            "x": 115.96875,
+            "y": 835,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 859
+          },
+          {
+            "text": "0명",
+            "x": 243.890625,
+            "y": 835,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 859
+          },
+          {
+            "text": "1명",
+            "x": 387.8125,
+            "y": 835,
+            "width": 195.640625,
+            "height": 24,
+            "bottom": 859
+          },
+          {
+            "text": "0명",
+            "x": 607.453125,
+            "y": 835,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 859
+          },
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 935,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 959
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 935,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 959
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 935,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 959
+          },
+          {
+            "text": "1건",
+            "x": 344.171875,
+            "y": 935,
+            "width": 157.109375,
+            "height": 24,
+            "bottom": 959
+          },
+          {
+            "text": "1명",
+            "x": 525.28125,
+            "y": 935,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 959
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 24,
+            "y": 999,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 1023
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 150.984375,
+            "y": 999,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 1023
+          },
+          {
+            "text": "0건",
+            "x": 294.90625,
+            "y": 999,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 1023
+          },
+          {
+            "text": "1건",
+            "x": 492.015625,
+            "y": 999,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 1023
+          }
+        ],
+        "fullyVisibleValues": 5,
+        "table": {
+          "x": 25,
+          "y": 1376,
+          "width": 832,
+          "height": 163,
+          "bottom": 1539
+        },
+        "rowCount": 2,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1376,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 24,
+            "y": 1375,
+            "right": 744,
+            "bottom": 1540,
+            "width": 720,
+            "height": 165,
+            "clientWidth": 718,
+            "scrollWidth": 832,
+            "scrollLeft": 0,
+            "clientHeight": 163,
+            "scrollHeight": 163
+          }
+        }
+      ]
+    },
+    {
+      "key": "kpi-1024",
+      "file": "kpi-1024.json",
+      "primary": {
+        "kind": "kpi",
+        "root": {
+          "x": 24,
+          "y": 312.390625,
+          "width": 976,
+          "height": 1566.5,
+          "bottom": 1878.890625
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 578.390625,
+          "width": 976,
+          "height": 412,
+          "bottom": 990.390625
+        },
+        "summaryCount": 1,
+        "valueCount": 4,
+        "values": [
+          {
+            "text": "0%가중 평균",
+            "x": 45,
+            "y": 633.390625,
+            "width": 272.65625,
+            "height": 33,
+            "bottom": 666.390625
+          },
+          {
+            "text": "2건",
+            "x": 375.65625,
+            "y": 633.390625,
+            "width": 272.671875,
+            "height": 33,
+            "bottom": 666.390625
+          },
+          {
+            "text": "1건 지연/0건 임박",
+            "x": 706.328125,
+            "y": 633.390625,
+            "width": 272.65625,
+            "height": 34,
+            "bottom": 667.390625
+          },
+          {
+            "text": "2M/D— M/M · 환산 기준 미설정",
+            "x": 45,
+            "y": 857.390625,
+            "width": 272.65625,
+            "height": 33,
+            "bottom": 890.390625
+          }
+        ],
+        "fullyVisibleValues": 3,
+        "table": {
+          "x": 25,
+          "y": 1089.390625,
+          "width": 1052,
+          "height": 184,
+          "bottom": 1273.390625
+        },
+        "rowCount": 1,
+        "fullyVisibleRows": 0,
+        "ready": null
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1089.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 24,
+            "y": 1088.390625,
+            "right": 1000,
+            "bottom": 1280.390625,
+            "width": 976,
+            "height": 192,
+            "clientWidth": 974,
+            "scrollWidth": 1052,
+            "scrollLeft": 0,
+            "clientHeight": 190,
+            "scrollHeight": 190
+          }
+        },
+        {
+          "y": 1636.890625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 24,
+            "y": 1635.890625,
+            "right": 1000,
+            "bottom": 1862.890625,
+            "width": 976,
+            "height": 227,
+            "clientWidth": 974,
+            "scrollWidth": 974,
+            "scrollLeft": 0,
+            "clientHeight": 225,
+            "scrollHeight": 225
+          }
+        }
+      ]
+    },
+    {
+      "key": "milestone-1024",
+      "file": "milestone-1024.json",
+      "primary": {
+        "kind": "milestone",
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 976,
+          "height": 883,
+          "bottom": 1126
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 647,
+          "width": 976,
+          "height": 116,
+          "bottom": 763
+        },
+        "summaryCount": 1,
+        "valueCount": 9,
+        "values": [
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 675,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 699
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 675,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 699
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 675,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 699
+          },
+          {
+            "text": "1건",
+            "x": 344.171875,
+            "y": 675,
+            "width": 85.1875,
+            "height": 24,
+            "bottom": 699
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 453.359375,
+            "y": 675,
+            "width": 67.015625,
+            "height": 24,
+            "bottom": 699
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 544.375,
+            "y": 675,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 699
+          },
+          {
+            "text": "1건",
+            "x": 688.296875,
+            "y": 675,
+            "width": 121.65625,
+            "height": 24,
+            "bottom": 699
+          },
+          {
+            "text": "1건",
+            "x": 833.953125,
+            "y": 675,
+            "width": 121.65625,
+            "height": 24,
+            "bottom": 699
+          },
+          {
+            "text": "0건",
+            "x": 24,
+            "y": 739,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 763
+          }
+        ],
+        "fullyVisibleValues": 9,
+        "table": {
+          "x": 25,
+          "y": 906,
+          "width": 974,
+          "height": 163,
+          "bottom": 1069
+        },
+        "rowCount": 2,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 906,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 24,
+            "y": 905,
+            "right": 1000,
+            "bottom": 1070,
+            "width": 976,
+            "height": 165,
+            "clientWidth": 974,
+            "scrollWidth": 974,
+            "scrollLeft": 0,
+            "clientHeight": 163,
+            "scrollHeight": 163
+          }
+        },
+        {
+          "y": 2293.5,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 30,
+            "y": 2292.5,
+            "right": 994,
+            "bottom": 2524.5,
+            "width": 964,
+            "height": 232,
+            "clientWidth": 962,
+            "scrollWidth": 1052,
+            "scrollLeft": 0,
+            "clientHeight": 230,
+            "scrollHeight": 230
+          }
+        },
+        {
+          "y": 2634,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 30,
+            "y": 2633,
+            "right": 994,
+            "bottom": 2828,
+            "width": 964,
+            "height": 195,
+            "clientWidth": 962,
+            "scrollWidth": 962,
+            "scrollLeft": 0,
+            "clientHeight": 193,
+            "scrollHeight": 193
+          }
+        }
+      ]
+    },
+    {
+      "key": "process-1024",
+      "file": "process-1024.json",
+      "primary": {
+        "kind": "process",
+        "root": {
+          "x": 24,
+          "y": 324.390625,
+          "width": 976,
+          "height": 1107,
+          "bottom": 1431.390625
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 736.390625,
+          "width": 976,
+          "height": 116,
+          "bottom": 852.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 14,
+        "values": [
+          {
+            "text": "2개",
+            "x": 24,
+            "y": 764.390625,
+            "width": 122.296875,
+            "height": 24,
+            "bottom": 788.390625
+          },
+          {
+            "text": "1개",
+            "x": 170.296875,
+            "y": 764.390625,
+            "width": 105.453125,
+            "height": 24,
+            "bottom": 788.390625
+          },
+          {
+            "text": "2개",
+            "x": 299.75,
+            "y": 764.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 788.390625
+          },
+          {
+            "text": "123456796대",
+            "x": 423.71875,
+            "y": 764.390625,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 788.390625
+          },
+          {
+            "text": "1식",
+            "x": 551.640625,
+            "y": 764.390625,
+            "width": 83.96875,
+            "height": 24,
+            "bottom": 788.390625
+          },
+          {
+            "text": "0개",
+            "x": 659.609375,
+            "y": 764.390625,
+            "width": 132.875,
+            "height": 24,
+            "bottom": 788.390625
+          },
+          {
+            "text": "1개 / 0식",
+            "x": 24,
+            "y": 828.390625,
+            "width": 223.4375,
+            "height": 24,
+            "bottom": 852.390625
+          },
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 920.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 944.390625
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 920.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 944.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 920.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 944.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 344.171875,
+            "y": 920.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 944.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 471.15625,
+            "y": 920.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 944.390625
+          },
+          {
+            "text": "1건",
+            "x": 615.078125,
+            "y": 920.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 944.390625
+          },
+          {
+            "text": "0건",
+            "x": 794.25,
+            "y": 920.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 944.390625
+          }
+        ],
+        "fullyVisibleValues": 7,
+        "table": {
+          "x": 25,
+          "y": 1150.390625,
+          "width": 974,
+          "height": 224,
+          "bottom": 1374.390625
+        },
+        "rowCount": 3,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1150.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 3,
+          "owner": {
+            "x": 24,
+            "y": 1149.390625,
+            "right": 1000,
+            "bottom": 1375.390625,
+            "width": 976,
+            "height": 226,
+            "clientWidth": 974,
+            "scrollWidth": 974,
+            "scrollLeft": 0,
+            "clientHeight": 224,
+            "scrollHeight": 224
+          }
+        }
+      ]
+    },
+    {
+      "key": "equipment-1024",
+      "file": "equipment-1024.json",
+      "primary": {
+        "kind": "equipment",
+        "root": {
+          "x": 24,
+          "y": 324.390625,
+          "width": 976,
+          "height": 1268.1875,
+          "bottom": 1592.578125
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 841.390625,
+          "width": 976,
+          "height": 52,
+          "bottom": 893.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 12,
+        "values": [
+          {
+            "text": "2개",
+            "x": 24,
+            "y": 869.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 893.390625
+          },
+          {
+            "text": "123456796대",
+            "x": 147.96875,
+            "y": 869.390625,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 893.390625
+          },
+          {
+            "text": "0개",
+            "x": 275.890625,
+            "y": 869.390625,
+            "width": 175.84375,
+            "height": 24,
+            "bottom": 893.390625
+          },
+          {
+            "text": "1개",
+            "x": 475.734375,
+            "y": 869.390625,
+            "width": 132.875,
+            "height": 24,
+            "bottom": 893.390625
+          },
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 961.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 985.390625
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 961.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 985.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 961.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 985.390625
+          },
+          {
+            "text": "1건",
+            "x": 344.171875,
+            "y": 961.390625,
+            "width": 121.140625,
+            "height": 24,
+            "bottom": 985.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 489.3125,
+            "y": 961.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 985.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 616.296875,
+            "y": 961.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 985.390625
+          },
+          {
+            "text": "1건",
+            "x": 760.21875,
+            "y": 961.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 985.390625
+          },
+          {
+            "text": "0건",
+            "x": 24,
+            "y": 1025.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 1049.390625
+          }
+        ],
+        "fullyVisibleValues": 0,
+        "table": {
+          "x": 25,
+          "y": 1112.390625,
+          "width": 974,
+          "height": 247.1875,
+          "bottom": 1359.578125
+        },
+        "rowCount": 3,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1112.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 3,
+          "owner": {
+            "x": 24,
+            "y": 1111.390625,
+            "right": 1000,
+            "bottom": 1360.578125,
+            "width": 976,
+            "height": 249.1875,
+            "clientWidth": 974,
+            "scrollWidth": 974,
+            "scrollLeft": 0,
+            "clientHeight": 247,
+            "scrollHeight": 247
+          }
+        }
+      ]
+    },
+    {
+      "key": "system-1024",
+      "file": "system-1024.json",
+      "primary": {
+        "kind": "system",
+        "root": {
+          "x": 24,
+          "y": 324.390625,
+          "width": 976,
+          "height": 1060,
+          "bottom": 1384.390625
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 904.390625,
+          "width": 976,
+          "height": 52,
+          "bottom": 956.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 11,
+        "values": [
+          {
+            "text": "1식",
+            "x": 24,
+            "y": 932.390625,
+            "width": 83.96875,
+            "height": 24,
+            "bottom": 956.390625
+          },
+          {
+            "text": "0개",
+            "x": 131.96875,
+            "y": 932.390625,
+            "width": 135.921875,
+            "height": 24,
+            "bottom": 956.390625
+          },
+          {
+            "text": "0대",
+            "x": 291.890625,
+            "y": 932.390625,
+            "width": 139.890625,
+            "height": 24,
+            "bottom": 956.390625
+          },
+          {
+            "text": "0식",
+            "x": 455.78125,
+            "y": 932.390625,
+            "width": 148.875,
+            "height": 24,
+            "bottom": 956.390625
+          },
+          {
+            "text": "1건",
+            "x": 24,
+            "y": 1024.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 1048.390625
+          },
+          {
+            "text": "0 / 1건",
+            "x": 117.6875,
+            "y": 1024.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 1048.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 1024.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 1048.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 344.171875,
+            "y": 1024.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 1048.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 471.15625,
+            "y": 1024.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 1048.390625
+          },
+          {
+            "text": "0건",
+            "x": 615.078125,
+            "y": 1024.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 1048.390625
+          },
+          {
+            "text": "0건",
+            "x": 794.25,
+            "y": 1024.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 1048.390625
+          }
+        ],
+        "fullyVisibleValues": 0,
+        "table": {
+          "x": 25,
+          "y": 1225.390625,
+          "width": 974,
+          "height": 102,
+          "bottom": 1327.390625
+        },
+        "rowCount": 1,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1225.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 24,
+            "y": 1224.390625,
+            "right": 1000,
+            "bottom": 1328.390625,
+            "width": 976,
+            "height": 104,
+            "clientWidth": 974,
+            "scrollWidth": 974,
+            "scrollLeft": 0,
+            "clientHeight": 102,
+            "scrollHeight": 102
+          }
+        }
+      ]
+    },
+    {
+      "key": "resource-1024",
+      "file": "resource-1024.json",
+      "primary": {
+        "kind": "resource",
+        "root": {
+          "x": 24,
+          "y": 247,
+          "width": 976,
+          "height": 1280,
+          "bottom": 1527
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 759,
+          "width": 976,
+          "height": 52,
+          "bottom": 811
+        },
+        "summaryCount": 2,
+        "valueCount": 14,
+        "values": [
+          {
+            "text": "0명",
+            "x": 24,
+            "y": 787,
+            "width": 67.96875,
+            "height": 24,
+            "bottom": 811
+          },
+          {
+            "text": "0명",
+            "x": 115.96875,
+            "y": 787,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 811
+          },
+          {
+            "text": "0명",
+            "x": 243.890625,
+            "y": 787,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 811
+          },
+          {
+            "text": "1명",
+            "x": 387.8125,
+            "y": 787,
+            "width": 195.640625,
+            "height": 24,
+            "bottom": 811
+          },
+          {
+            "text": "0명",
+            "x": 607.453125,
+            "y": 787,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 811
+          },
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 887,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 911
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 887,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 911
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 887,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 911
+          },
+          {
+            "text": "1건",
+            "x": 344.171875,
+            "y": 887,
+            "width": 157.109375,
+            "height": 24,
+            "bottom": 911
+          },
+          {
+            "text": "1명",
+            "x": 525.28125,
+            "y": 887,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 911
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 653.203125,
+            "y": 887,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 911
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 780.1875,
+            "y": 887,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 911
+          },
+          {
+            "text": "0건",
+            "x": 24,
+            "y": 951,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 975
+          },
+          {
+            "text": "1건",
+            "x": 221.109375,
+            "y": 951,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 975
+          }
+        ],
+        "fullyVisibleValues": 5,
+        "table": {
+          "x": 25,
+          "y": 1307,
+          "width": 974,
+          "height": 163,
+          "bottom": 1470
+        },
+        "rowCount": 2,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1307,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 24,
+            "y": 1306,
+            "right": 1000,
+            "bottom": 1471,
+            "width": 976,
+            "height": 165,
+            "clientWidth": 974,
+            "scrollWidth": 974,
+            "scrollLeft": 0,
+            "clientHeight": 163,
+            "scrollHeight": 163
+          }
+        },
+        {
+          "y": 2178.5,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 24,
+            "y": 2171.5,
+            "right": 1000,
+            "bottom": 2297.5,
+            "width": 976,
+            "height": 126,
+            "clientWidth": 974,
+            "scrollWidth": 1132,
+            "scrollLeft": 0,
+            "clientHeight": 124,
+            "scrollHeight": 124
+          }
+        }
+      ]
+    },
+    {
+      "key": "kpi-1440",
+      "file": "kpi-1440.json",
+      "primary": {
+        "kind": "kpi",
+        "root": {
+          "x": 24,
+          "y": 312.390625,
+          "width": 1392,
+          "height": 1311.5,
+          "bottom": 1623.890625
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 527.390625,
+          "width": 1392,
+          "height": 208,
+          "bottom": 735.390625
+        },
+        "summaryCount": 1,
+        "valueCount": 4,
+        "values": [
+          {
+            "text": "0%가중 평균",
+            "x": 45,
+            "y": 582.390625,
+            "width": 294,
+            "height": 33,
+            "bottom": 615.390625
+          },
+          {
+            "text": "2건",
+            "x": 397,
+            "y": 582.390625,
+            "width": 294,
+            "height": 33,
+            "bottom": 615.390625
+          },
+          {
+            "text": "1건 지연/0건 임박",
+            "x": 749,
+            "y": 582.390625,
+            "width": 294,
+            "height": 34,
+            "bottom": 616.390625
+          },
+          {
+            "text": "2M/D— M/M · 환산 기준 미설정",
+            "x": 1101,
+            "y": 582.390625,
+            "width": 294,
+            "height": 33,
+            "bottom": 615.390625
+          }
+        ],
+        "fullyVisibleValues": 4,
+        "table": {
+          "x": 25,
+          "y": 834.390625,
+          "width": 1390,
+          "height": 184,
+          "bottom": 1018.390625
+        },
+        "rowCount": 1,
+        "fullyVisibleRows": 0,
+        "ready": null
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 834.390625,
+          "partiallyVisibleRows": 1,
+          "totalRows": 1,
+          "owner": {
+            "x": 24,
+            "y": 833.390625,
+            "right": 1416,
+            "bottom": 1025.390625,
+            "width": 1392,
+            "height": 192,
+            "clientWidth": 1390,
+            "scrollWidth": 1390,
+            "scrollLeft": 0,
+            "clientHeight": 190,
+            "scrollHeight": 190
+          }
+        },
+        {
+          "y": 1381.890625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 24,
+            "y": 1380.890625,
+            "right": 1416,
+            "bottom": 1607.890625,
+            "width": 1392,
+            "height": 227,
+            "clientWidth": 1390,
+            "scrollWidth": 1390,
+            "scrollLeft": 0,
+            "clientHeight": 225,
+            "scrollHeight": 225
+          }
+        }
+      ]
+    },
+    {
+      "key": "milestone-1440",
+      "file": "milestone-1440.json",
+      "primary": {
+        "kind": "milestone",
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 1392,
+          "height": 739,
+          "bottom": 982
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 567,
+          "width": 1392,
+          "height": 52,
+          "bottom": 619
+        },
+        "summaryCount": 1,
+        "valueCount": 9,
+        "values": [
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 595,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 595,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 595,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "1건",
+            "x": 344.171875,
+            "y": 595,
+            "width": 85.1875,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 453.359375,
+            "y": 595,
+            "width": 67.015625,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 544.375,
+            "y": 595,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "1건",
+            "x": 688.296875,
+            "y": 595,
+            "width": 121.65625,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "1건",
+            "x": 833.953125,
+            "y": 595,
+            "width": 121.65625,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "0건",
+            "x": 979.609375,
+            "y": 595,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 619
+          }
+        ],
+        "fullyVisibleValues": 9,
+        "table": {
+          "x": 25,
+          "y": 762,
+          "width": 1390,
+          "height": 163,
+          "bottom": 925
+        },
+        "rowCount": 2,
+        "fullyVisibleRows": 1,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 762,
+          "partiallyVisibleRows": 2,
+          "totalRows": 2,
+          "owner": {
+            "x": 24,
+            "y": 761,
+            "right": 1416,
+            "bottom": 926,
+            "width": 1392,
+            "height": 165,
+            "clientWidth": 1390,
+            "scrollWidth": 1390,
+            "scrollLeft": 0,
+            "clientHeight": 163,
+            "scrollHeight": 163
+          }
+        },
+        {
+          "y": 1698.5,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 30,
+            "y": 1697.5,
+            "right": 1410,
+            "bottom": 1929.5,
+            "width": 1380,
+            "height": 232,
+            "clientWidth": 1378,
+            "scrollWidth": 1378,
+            "scrollLeft": 0,
+            "clientHeight": 230,
+            "scrollHeight": 230
+          }
+        },
+        {
+          "y": 2039,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 30,
+            "y": 2038,
+            "right": 1410,
+            "bottom": 2233,
+            "width": 1380,
+            "height": 195,
+            "clientWidth": 1378,
+            "scrollWidth": 1378,
+            "scrollLeft": 0,
+            "clientHeight": 193,
+            "scrollHeight": 193
+          }
+        }
+      ]
+    },
+    {
+      "key": "process-1440",
+      "file": "process-1440.json",
+      "primary": {
+        "kind": "process",
+        "root": {
+          "x": 24,
+          "y": 324.390625,
+          "width": 1392,
+          "height": 963,
+          "bottom": 1287.390625
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 656.390625,
+          "width": 1392,
+          "height": 52,
+          "bottom": 708.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 14,
+        "values": [
+          {
+            "text": "2개",
+            "x": 24,
+            "y": 684.390625,
+            "width": 122.296875,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "1개",
+            "x": 170.296875,
+            "y": 684.390625,
+            "width": 105.453125,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "2개",
+            "x": 299.75,
+            "y": 684.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "123456796대",
+            "x": 423.71875,
+            "y": 684.390625,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "1식",
+            "x": 551.640625,
+            "y": 684.390625,
+            "width": 83.96875,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "0개",
+            "x": 659.609375,
+            "y": 684.390625,
+            "width": 132.875,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "1개 / 0식",
+            "x": 816.484375,
+            "y": 684.390625,
+            "width": 223.4375,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 776.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 800.390625
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 776.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 800.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 776.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 800.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 344.171875,
+            "y": 776.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 800.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 471.15625,
+            "y": 776.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 800.390625
+          },
+          {
+            "text": "1건",
+            "x": 615.078125,
+            "y": 776.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 800.390625
+          },
+          {
+            "text": "0건",
+            "x": 794.25,
+            "y": 776.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 800.390625
+          }
+        ],
+        "fullyVisibleValues": 14,
+        "table": {
+          "x": 25,
+          "y": 1006.390625,
+          "width": 1390,
+          "height": 224,
+          "bottom": 1230.390625
+        },
+        "rowCount": 3,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1006.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 3,
+          "owner": {
+            "x": 24,
+            "y": 1005.390625,
+            "right": 1416,
+            "bottom": 1231.390625,
+            "width": 1392,
+            "height": 226,
+            "clientWidth": 1390,
+            "scrollWidth": 1390,
+            "scrollLeft": 0,
+            "clientHeight": 224,
+            "scrollHeight": 224
+          }
+        }
+      ]
+    },
+    {
+      "key": "equipment-1440",
+      "file": "equipment-1440.json",
+      "primary": {
+        "kind": "equipment",
+        "root": {
+          "x": 24,
+          "y": 324.390625,
+          "width": 1392,
+          "height": 1080,
+          "bottom": 1404.390625
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 761.390625,
+          "width": 1392,
+          "height": 52,
+          "bottom": 813.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 12,
+        "values": [
+          {
+            "text": "2개",
+            "x": 24,
+            "y": 789.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 813.390625
+          },
+          {
+            "text": "123456796대",
+            "x": 147.96875,
+            "y": 789.390625,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 813.390625
+          },
+          {
+            "text": "0개",
+            "x": 275.890625,
+            "y": 789.390625,
+            "width": 175.84375,
+            "height": 24,
+            "bottom": 813.390625
+          },
+          {
+            "text": "1개",
+            "x": 475.734375,
+            "y": 789.390625,
+            "width": 132.875,
+            "height": 24,
+            "bottom": 813.390625
+          },
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 881.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 881.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 881.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "1건",
+            "x": 344.171875,
+            "y": 881.390625,
+            "width": 121.140625,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 489.3125,
+            "y": 881.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 616.296875,
+            "y": 881.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "1건",
+            "x": 760.21875,
+            "y": 881.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "0건",
+            "x": 939.390625,
+            "y": 881.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 905.390625
+          }
+        ],
+        "fullyVisibleValues": 4,
+        "table": {
+          "x": 25,
+          "y": 947.390625,
+          "width": 1390,
+          "height": 224,
+          "bottom": 1171.390625
+        },
+        "rowCount": 3,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 947.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 3,
+          "owner": {
+            "x": 24,
+            "y": 946.390625,
+            "right": 1416,
+            "bottom": 1172.390625,
+            "width": 1392,
+            "height": 226,
+            "clientWidth": 1390,
+            "scrollWidth": 1390,
+            "scrollLeft": 0,
+            "clientHeight": 224,
+            "scrollHeight": 224
+          }
+        }
+      ]
+    },
+    {
+      "key": "system-1440",
+      "file": "system-1440.json",
+      "primary": {
+        "kind": "system",
+        "root": {
+          "x": 24,
+          "y": 324.390625,
+          "width": 1392,
+          "height": 980,
+          "bottom": 1304.390625
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 824.390625,
+          "width": 1392,
+          "height": 52,
+          "bottom": 876.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 11,
+        "values": [
+          {
+            "text": "1식",
+            "x": 24,
+            "y": 852.390625,
+            "width": 83.96875,
+            "height": 24,
+            "bottom": 876.390625
+          },
+          {
+            "text": "0개",
+            "x": 131.96875,
+            "y": 852.390625,
+            "width": 135.921875,
+            "height": 24,
+            "bottom": 876.390625
+          },
+          {
+            "text": "0대",
+            "x": 291.890625,
+            "y": 852.390625,
+            "width": 139.890625,
+            "height": 24,
+            "bottom": 876.390625
+          },
+          {
+            "text": "0식",
+            "x": 455.78125,
+            "y": 852.390625,
+            "width": 148.875,
+            "height": 24,
+            "bottom": 876.390625
+          },
+          {
+            "text": "1건",
+            "x": 24,
+            "y": 944.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 968.390625
+          },
+          {
+            "text": "0 / 1건",
+            "x": 117.6875,
+            "y": 944.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 968.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 944.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 968.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 344.171875,
+            "y": 944.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 968.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 471.15625,
+            "y": 944.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 968.390625
+          },
+          {
+            "text": "0건",
+            "x": 615.078125,
+            "y": 944.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 968.390625
+          },
+          {
+            "text": "0건",
+            "x": 794.25,
+            "y": 944.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 968.390625
+          }
+        ],
+        "fullyVisibleValues": 4,
+        "table": {
+          "x": 25,
+          "y": 1145.390625,
+          "width": 1390,
+          "height": 102,
+          "bottom": 1247.390625
+        },
+        "rowCount": 1,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1145.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 24,
+            "y": 1144.390625,
+            "right": 1416,
+            "bottom": 1248.390625,
+            "width": 1392,
+            "height": 104,
+            "clientWidth": 1390,
+            "scrollWidth": 1390,
+            "scrollLeft": 0,
+            "clientHeight": 102,
+            "scrollHeight": 102
+          }
+        }
+      ]
+    },
+    {
+      "key": "resource-1440",
+      "file": "resource-1440.json",
+      "primary": {
+        "kind": "resource",
+        "root": {
+          "x": 24,
+          "y": 247,
+          "width": 1392,
+          "height": 1115,
+          "bottom": 1362
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 679,
+          "width": 1392,
+          "height": 52,
+          "bottom": 731
+        },
+        "summaryCount": 2,
+        "valueCount": 14,
+        "values": [
+          {
+            "text": "0명",
+            "x": 24,
+            "y": 707,
+            "width": 67.96875,
+            "height": 24,
+            "bottom": 731
+          },
+          {
+            "text": "0명",
+            "x": 115.96875,
+            "y": 707,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 731
+          },
+          {
+            "text": "0명",
+            "x": 243.890625,
+            "y": 707,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 731
+          },
+          {
+            "text": "1명",
+            "x": 387.8125,
+            "y": 707,
+            "width": 195.640625,
+            "height": 24,
+            "bottom": 731
+          },
+          {
+            "text": "0명",
+            "x": 607.453125,
+            "y": 707,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 731
+          },
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 807,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 807,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 807,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "1건",
+            "x": 344.171875,
+            "y": 807,
+            "width": 157.109375,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "1명",
+            "x": 525.28125,
+            "y": 807,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 653.203125,
+            "y": 807,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 780.1875,
+            "y": 807,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "0건",
+            "x": 924.109375,
+            "y": 807,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "1건",
+            "x": 1121.21875,
+            "y": 807,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 831
+          }
+        ],
+        "fullyVisibleValues": 14,
+        "table": {
+          "x": 25,
+          "y": 1142,
+          "width": 1390,
+          "height": 163,
+          "bottom": 1305
+        },
+        "rowCount": 2,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1142,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 24,
+            "y": 1141,
+            "right": 1416,
+            "bottom": 1306,
+            "width": 1392,
+            "height": 165,
+            "clientWidth": 1390,
+            "scrollWidth": 1390,
+            "scrollLeft": 0,
+            "clientHeight": 163,
+            "scrollHeight": 163
+          }
+        },
+        {
+          "y": 1965.5,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 24,
+            "y": 1958.5,
+            "right": 1416,
+            "bottom": 2050.5,
+            "width": 1392,
+            "height": 92,
+            "clientWidth": 1390,
+            "scrollWidth": 1390,
+            "scrollLeft": 0,
+            "clientHeight": 90,
+            "scrollHeight": 90
+          }
+        }
+      ]
+    },
+    {
+      "key": "kpi-1920",
+      "file": "kpi-1920.json",
+      "primary": {
+        "kind": "kpi",
+        "root": {
+          "x": 240,
+          "y": 312.390625,
+          "width": 1440,
+          "height": 1311.5,
+          "bottom": 1623.890625
+        },
+        "firstSummary": {
+          "x": 240,
+          "y": 527.390625,
+          "width": 1440,
+          "height": 208,
+          "bottom": 735.390625
+        },
+        "summaryCount": 1,
+        "valueCount": 4,
+        "values": [
+          {
+            "text": "0%가중 평균",
+            "x": 261,
+            "y": 582.390625,
+            "width": 306,
+            "height": 33,
+            "bottom": 615.390625
+          },
+          {
+            "text": "2건",
+            "x": 625,
+            "y": 582.390625,
+            "width": 306,
+            "height": 33,
+            "bottom": 615.390625
+          },
+          {
+            "text": "1건 지연/0건 임박",
+            "x": 989,
+            "y": 582.390625,
+            "width": 306,
+            "height": 34,
+            "bottom": 616.390625
+          },
+          {
+            "text": "2M/D— M/M · 환산 기준 미설정",
+            "x": 1353,
+            "y": 582.390625,
+            "width": 306,
+            "height": 33,
+            "bottom": 615.390625
+          }
+        ],
+        "fullyVisibleValues": 4,
+        "table": {
+          "x": 241,
+          "y": 834.390625,
+          "width": 1438,
+          "height": 184,
+          "bottom": 1018.390625
+        },
+        "rowCount": 1,
+        "fullyVisibleRows": 0,
+        "ready": null
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 834.390625,
+          "partiallyVisibleRows": 1,
+          "totalRows": 1,
+          "owner": {
+            "x": 240,
+            "y": 833.390625,
+            "right": 1680,
+            "bottom": 1025.390625,
+            "width": 1440,
+            "height": 192,
+            "clientWidth": 1438,
+            "scrollWidth": 1438,
+            "scrollLeft": 0,
+            "clientHeight": 190,
+            "scrollHeight": 190
+          }
+        },
+        {
+          "y": 1381.890625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 240,
+            "y": 1380.890625,
+            "right": 1680,
+            "bottom": 1607.890625,
+            "width": 1440,
+            "height": 227,
+            "clientWidth": 1438,
+            "scrollWidth": 1438,
+            "scrollLeft": 0,
+            "clientHeight": 225,
+            "scrollHeight": 225
+          }
+        }
+      ]
+    },
+    {
+      "key": "milestone-1920",
+      "file": "milestone-1920.json",
+      "primary": {
+        "kind": "milestone",
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 1872,
+          "height": 739,
+          "bottom": 982
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 567,
+          "width": 1872,
+          "height": 52,
+          "bottom": 619
+        },
+        "summaryCount": 1,
+        "valueCount": 9,
+        "values": [
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 595,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 595,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 595,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "1건",
+            "x": 344.171875,
+            "y": 595,
+            "width": 85.1875,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 453.359375,
+            "y": 595,
+            "width": 67.015625,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 544.375,
+            "y": 595,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "1건",
+            "x": 688.296875,
+            "y": 595,
+            "width": 121.65625,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "1건",
+            "x": 833.953125,
+            "y": 595,
+            "width": 121.65625,
+            "height": 24,
+            "bottom": 619
+          },
+          {
+            "text": "0건",
+            "x": 979.609375,
+            "y": 595,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 619
+          }
+        ],
+        "fullyVisibleValues": 9,
+        "table": {
+          "x": 25,
+          "y": 762,
+          "width": 1870,
+          "height": 163,
+          "bottom": 925
+        },
+        "rowCount": 2,
+        "fullyVisibleRows": 1,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 762,
+          "partiallyVisibleRows": 2,
+          "totalRows": 2,
+          "owner": {
+            "x": 24,
+            "y": 761,
+            "right": 1896,
+            "bottom": 926,
+            "width": 1872,
+            "height": 165,
+            "clientWidth": 1870,
+            "scrollWidth": 1870,
+            "scrollLeft": 0,
+            "clientHeight": 163,
+            "scrollHeight": 163
+          }
+        },
+        {
+          "y": 1698.5,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 30,
+            "y": 1697.5,
+            "right": 1890,
+            "bottom": 1929.5,
+            "width": 1860,
+            "height": 232,
+            "clientWidth": 1858,
+            "scrollWidth": 1858,
+            "scrollLeft": 0,
+            "clientHeight": 230,
+            "scrollHeight": 230
+          }
+        },
+        {
+          "y": 2039,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 30,
+            "y": 2038,
+            "right": 1890,
+            "bottom": 2233,
+            "width": 1860,
+            "height": 195,
+            "clientWidth": 1858,
+            "scrollWidth": 1858,
+            "scrollLeft": 0,
+            "clientHeight": 193,
+            "scrollHeight": 193
+          }
+        }
+      ]
+    },
+    {
+      "key": "process-1920",
+      "file": "process-1920.json",
+      "primary": {
+        "kind": "process",
+        "root": {
+          "x": 240,
+          "y": 324.390625,
+          "width": 1440,
+          "height": 963,
+          "bottom": 1287.390625
+        },
+        "firstSummary": {
+          "x": 240,
+          "y": 656.390625,
+          "width": 1440,
+          "height": 52,
+          "bottom": 708.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 14,
+        "values": [
+          {
+            "text": "2개",
+            "x": 240,
+            "y": 684.390625,
+            "width": 122.296875,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "1개",
+            "x": 386.296875,
+            "y": 684.390625,
+            "width": 105.453125,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "2개",
+            "x": 515.75,
+            "y": 684.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "123456796대",
+            "x": 639.71875,
+            "y": 684.390625,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "1식",
+            "x": 767.640625,
+            "y": 684.390625,
+            "width": 83.96875,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "0개",
+            "x": 875.609375,
+            "y": 684.390625,
+            "width": 132.875,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "1개 / 0식",
+            "x": 1032.484375,
+            "y": 684.390625,
+            "width": 223.4375,
+            "height": 24,
+            "bottom": 708.390625
+          },
+          {
+            "text": "2건",
+            "x": 240,
+            "y": 776.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 800.390625
+          },
+          {
+            "text": "0 / 2건",
+            "x": 333.6875,
+            "y": 776.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 800.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 436.203125,
+            "y": 776.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 800.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 560.171875,
+            "y": 776.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 800.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 687.15625,
+            "y": 776.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 800.390625
+          },
+          {
+            "text": "1건",
+            "x": 831.078125,
+            "y": 776.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 800.390625
+          },
+          {
+            "text": "0건",
+            "x": 1010.25,
+            "y": 776.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 800.390625
+          }
+        ],
+        "fullyVisibleValues": 14,
+        "table": {
+          "x": 241,
+          "y": 1006.390625,
+          "width": 1438,
+          "height": 224,
+          "bottom": 1230.390625
+        },
+        "rowCount": 3,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1006.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 3,
+          "owner": {
+            "x": 240,
+            "y": 1005.390625,
+            "right": 1680,
+            "bottom": 1231.390625,
+            "width": 1440,
+            "height": 226,
+            "clientWidth": 1438,
+            "scrollWidth": 1438,
+            "scrollLeft": 0,
+            "clientHeight": 224,
+            "scrollHeight": 224
+          }
+        }
+      ]
+    },
+    {
+      "key": "equipment-1920",
+      "file": "equipment-1920.json",
+      "primary": {
+        "kind": "equipment",
+        "root": {
+          "x": 240,
+          "y": 324.390625,
+          "width": 1440,
+          "height": 1080,
+          "bottom": 1404.390625
+        },
+        "firstSummary": {
+          "x": 240,
+          "y": 761.390625,
+          "width": 1440,
+          "height": 52,
+          "bottom": 813.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 12,
+        "values": [
+          {
+            "text": "2개",
+            "x": 240,
+            "y": 789.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 813.390625
+          },
+          {
+            "text": "123456796대",
+            "x": 363.96875,
+            "y": 789.390625,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 813.390625
+          },
+          {
+            "text": "0개",
+            "x": 491.890625,
+            "y": 789.390625,
+            "width": 175.84375,
+            "height": 24,
+            "bottom": 813.390625
+          },
+          {
+            "text": "1개",
+            "x": 691.734375,
+            "y": 789.390625,
+            "width": 132.875,
+            "height": 24,
+            "bottom": 813.390625
+          },
+          {
+            "text": "2건",
+            "x": 240,
+            "y": 881.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "0 / 2건",
+            "x": 333.6875,
+            "y": 881.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 436.203125,
+            "y": 881.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "1건",
+            "x": 560.171875,
+            "y": 881.390625,
+            "width": 121.140625,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 705.3125,
+            "y": 881.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 832.296875,
+            "y": 881.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "1건",
+            "x": 976.21875,
+            "y": 881.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 905.390625
+          },
+          {
+            "text": "0건",
+            "x": 1155.390625,
+            "y": 881.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 905.390625
+          }
+        ],
+        "fullyVisibleValues": 4,
+        "table": {
+          "x": 241,
+          "y": 947.390625,
+          "width": 1438,
+          "height": 224,
+          "bottom": 1171.390625
+        },
+        "rowCount": 3,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 947.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 3,
+          "owner": {
+            "x": 240,
+            "y": 946.390625,
+            "right": 1680,
+            "bottom": 1172.390625,
+            "width": 1440,
+            "height": 226,
+            "clientWidth": 1438,
+            "scrollWidth": 1438,
+            "scrollLeft": 0,
+            "clientHeight": 224,
+            "scrollHeight": 224
+          }
+        }
+      ]
+    },
+    {
+      "key": "system-1920",
+      "file": "system-1920.json",
+      "primary": {
+        "kind": "system",
+        "root": {
+          "x": 240,
+          "y": 324.390625,
+          "width": 1440,
+          "height": 980,
+          "bottom": 1304.390625
+        },
+        "firstSummary": {
+          "x": 240,
+          "y": 824.390625,
+          "width": 1440,
+          "height": 52,
+          "bottom": 876.390625
+        },
+        "summaryCount": 2,
+        "valueCount": 11,
+        "values": [
+          {
+            "text": "1식",
+            "x": 240,
+            "y": 852.390625,
+            "width": 83.96875,
+            "height": 24,
+            "bottom": 876.390625
+          },
+          {
+            "text": "0개",
+            "x": 347.96875,
+            "y": 852.390625,
+            "width": 135.921875,
+            "height": 24,
+            "bottom": 876.390625
+          },
+          {
+            "text": "0대",
+            "x": 507.890625,
+            "y": 852.390625,
+            "width": 139.890625,
+            "height": 24,
+            "bottom": 876.390625
+          },
+          {
+            "text": "0식",
+            "x": 671.78125,
+            "y": 852.390625,
+            "width": 148.875,
+            "height": 24,
+            "bottom": 876.390625
+          },
+          {
+            "text": "1건",
+            "x": 240,
+            "y": 944.390625,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 968.390625
+          },
+          {
+            "text": "0 / 1건",
+            "x": 333.6875,
+            "y": 944.390625,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 968.390625
+          },
+          {
+            "text": "0.0%",
+            "x": 436.203125,
+            "y": 944.390625,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 968.390625
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 560.171875,
+            "y": 944.390625,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 968.390625
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 687.15625,
+            "y": 944.390625,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 968.390625
+          },
+          {
+            "text": "0건",
+            "x": 831.078125,
+            "y": 944.390625,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 968.390625
+          },
+          {
+            "text": "0건",
+            "x": 1010.25,
+            "y": 944.390625,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 968.390625
+          }
+        ],
+        "fullyVisibleValues": 4,
+        "table": {
+          "x": 241,
+          "y": 1145.390625,
+          "width": 1438,
+          "height": 102,
+          "bottom": 1247.390625
+        },
+        "rowCount": 1,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1145.390625,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 240,
+            "y": 1144.390625,
+            "right": 1680,
+            "bottom": 1248.390625,
+            "width": 1440,
+            "height": 104,
+            "clientWidth": 1438,
+            "scrollWidth": 1438,
+            "scrollLeft": 0,
+            "clientHeight": 102,
+            "scrollHeight": 102
+          }
+        }
+      ]
+    },
+    {
+      "key": "resource-1920",
+      "file": "resource-1920.json",
+      "primary": {
+        "kind": "resource",
+        "root": {
+          "x": 24,
+          "y": 247,
+          "width": 1872,
+          "height": 1115,
+          "bottom": 1362
+        },
+        "firstSummary": {
+          "x": 24,
+          "y": 679,
+          "width": 1872,
+          "height": 52,
+          "bottom": 731
+        },
+        "summaryCount": 2,
+        "valueCount": 14,
+        "values": [
+          {
+            "text": "0명",
+            "x": 24,
+            "y": 707,
+            "width": 67.96875,
+            "height": 24,
+            "bottom": 731
+          },
+          {
+            "text": "0명",
+            "x": 115.96875,
+            "y": 707,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 731
+          },
+          {
+            "text": "0명",
+            "x": 243.890625,
+            "y": 707,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 731
+          },
+          {
+            "text": "1명",
+            "x": 387.8125,
+            "y": 707,
+            "width": 195.640625,
+            "height": 24,
+            "bottom": 731
+          },
+          {
+            "text": "0명",
+            "x": 607.453125,
+            "y": 707,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 731
+          },
+          {
+            "text": "2건",
+            "x": 24,
+            "y": 807,
+            "width": 69.6875,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "0 / 2건",
+            "x": 117.6875,
+            "y": 807,
+            "width": 78.515625,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "0.0%",
+            "x": 220.203125,
+            "y": 807,
+            "width": 99.96875,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "1건",
+            "x": 344.171875,
+            "y": 807,
+            "width": 157.109375,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "1명",
+            "x": 525.28125,
+            "y": 807,
+            "width": 103.921875,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "2.00 M/D",
+            "x": 653.203125,
+            "y": 807,
+            "width": 102.984375,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "환산 기준 미설정",
+            "x": 780.1875,
+            "y": 807,
+            "width": 119.921875,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "0건",
+            "x": 924.109375,
+            "y": 807,
+            "width": 173.109375,
+            "height": 24,
+            "bottom": 831
+          },
+          {
+            "text": "1건",
+            "x": 1121.21875,
+            "y": 807,
+            "width": 155.171875,
+            "height": 24,
+            "bottom": 831
+          }
+        ],
+        "fullyVisibleValues": 14,
+        "table": {
+          "x": 25,
+          "y": 1142,
+          "width": 1870,
+          "height": 163,
+          "bottom": 1305
+        },
+        "rowCount": 2,
+        "fullyVisibleRows": 0,
+        "ready": "true"
+      },
+      "documentOverflow": 0,
+      "tables": [
+        {
+          "y": 1142,
+          "partiallyVisibleRows": 0,
+          "totalRows": 2,
+          "owner": {
+            "x": 24,
+            "y": 1141,
+            "right": 1896,
+            "bottom": 1306,
+            "width": 1872,
+            "height": 165,
+            "clientWidth": 1870,
+            "scrollWidth": 1870,
+            "scrollLeft": 0,
+            "clientHeight": 163,
+            "scrollHeight": 163
+          }
+        },
+        {
+          "y": 1965.5,
+          "partiallyVisibleRows": 0,
+          "totalRows": 1,
+          "owner": {
+            "x": 24,
+            "y": 1958.5,
+            "right": 1896,
+            "bottom": 2050.5,
+            "width": 1872,
+            "height": 92,
+            "clientWidth": 1870,
+            "scrollWidth": 1870,
+            "scrollLeft": 0,
+            "clientHeight": 90,
+            "scrollHeight": 90
+          }
+        }
+      ]
+    }
+  ],
+  "faults": [],
+  "notTested": [
+    "production build",
+    "remote PR CI",
+    "native125%",
+    "screen reader",
+    "real device",
+    "all state × all viewport combinations",
+    "import file chooser/preview",
+    "copy/export commit",
+    "complete keyboard navigation on every screen"
+  ]
+}

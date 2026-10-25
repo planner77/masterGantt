@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  wbsScheduleDisplayScope,
   clearResourceDrill,
   resourceDrillLiveVisits,
   pushResourceDrillFrame,
@@ -234,5 +235,38 @@ describe("Resource drill navigation model", () => {
     expect(
       resourceDrillGuardReason({ ...guards, editorOpen: true }, "old", "new"),
     ).toBe("stale");
+  });
+});
+
+
+describe("WBS exact schedule display scope", () => {
+  const sourceContext = {
+    schema: "wbs-view-source/1" as const, contextSourceVersion: "explicit-task-context:v1" as const,
+    snapshotId: "wbs-snapshot", projectPublicId: "project", projectRevision: 2, catalogRevision: 3,
+    calendarRevision: "calendar", dataSnapshotId: "data", spec: {version:"wbs-view:v1" as const,contextSourceVersion:"explicit-task-context:v1" as const,root:"equipment" as const,levels:["milestone" as const]},
+    path: [{dimension:"equipment" as const,id:"E1"},{dimension:"milestone" as const,id:"M"}],
+    range:{from:"2026-01-01",to:"2026-12-31"},asOfDate:"2026-06-01",mdPerMm:null,mdPerMmSource:"unset" as const,mdPerMmProvided:false,
+  };
+  const scope = {snapshotId:"wbs-snapshot",sourceContext,taskIds:["T1","T2"],assignmentIds:["A1","A2"],ancestorSummaryIds:["parent"]};
+  const assignments = [{id:"A1",taskId:"T1"},{id:"A2",taskId:"T2"},{id:"E2-assignment",taskId:"T1"}];
+  it("preserves exact E1→Milestone scope and narrows Task without including its E2 assignment", () => {
+    const result = wbsScheduleDisplayScope(scope,{taskId:"T1"},assignments);
+    expect(result.taskIds).toEqual(["T1"]);
+    expect(result.assignmentIds).toEqual(["A1"]);
+    expect(result.taskCount).toBe(1);
+    expect(result.ancestorSummaryIds).toEqual(["parent"]);
+    expect(result.sourceContext.sourceProjection).toEqual({kind:"schedule"});
+    expect(sourceContext.path).toEqual([{dimension:"equipment",id:"E1"},{dimension:"milestone",id:"M"}]);
+  });
+  it("rejects foreign Tasks and Assignments instead of expanding the source", () => {
+    expect(()=>wbsScheduleDisplayScope(scope,{taskId:"T3"},assignments)).toThrow("REPORT_STALE");
+    expect(()=>wbsScheduleDisplayScope(scope,{taskId:"T1",assignmentId:"E2-assignment"},assignments)).toThrow("REPORT_STALE");
+    expect(()=>wbsScheduleDisplayScope(scope,{taskId:"T1",assignmentId:"A2"},assignments)).toThrow("REPORT_STALE");
+    expect(()=>wbsScheduleDisplayScope(scope,{assignmentId:"A1"},assignments)).toThrow("REPORT_STALE");
+  });
+  it("allows unassigned Task navigation while preserving an empty Assignment set", () => {
+    const result=wbsScheduleDisplayScope({...scope,taskIds:["unassigned"],assignmentIds:[]},{taskId:"unassigned"},assignments);
+    expect(result.taskIds).toEqual(["unassigned"]);
+    expect(result.assignmentIds).toEqual([]);
   });
 });

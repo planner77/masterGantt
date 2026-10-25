@@ -104,6 +104,8 @@ const exportLayout: ProjectExcelExportRequest["layout"] = {
 function ResourceReportEvidence({ lease, basis }: { lease: ResourceExportLease; basis: ResourceExportBasis }) {
   const report = lease.report, filters = report.filters;
   const names = resourceExportFilterNames;
+  const targetCatalog = report.targetProjection?.catalog ?? [];
+  const targetNames = (ids: readonly string[] | undefined, dimension: string) => names(ids ?? [], targetCatalog.filter(item => item.dimension === dimension));
   const rows = [
     ["개인", names(filters.resourceIds, report.catalog.resources)], ["Group", names(filters.groupIds, report.catalog.groups)],
     ["Milestone", names(filters.milestoneIds, report.catalog.milestones)],
@@ -111,6 +113,11 @@ function ResourceReportEvidence({ lease, basis }: { lease: ResourceExportLease; 
     ["Role / Grade", `${filters.roles.join(", ") || "전체"} / ${filters.developerGrades.join(", ") || "전체"}`],
     ["검색 / Task 검색", `${filters.search || "없음"} / ${filters.taskSearch || "없음"}`],
     ["상태 / 개인·Group 활성", `${filters.statuses.join(", ") || "전체"} / ${filters.resourceActivity} · ${filters.groupActivity}`],
+    ["공정 / occurrence", `${targetNames(filters.projectProcessIds, "projectProcess")} / ${targetNames(filters.processOccurrenceIds, "process")}`],
+    ["공정 종류", targetNames(filters.processTypeIds, "processType")],
+    ["WorkArea", targetNames(filters.workAreaIds, "workArea").replace(/(^| \/ )unassigned(?= \/ |$)/g, "$1WorkArea 미사용 (unassigned)")],
+    ["선택 설비 / 시스템", `${targetNames(filters.equipmentIds, "equipment")} / ${targetNames(filters.systemIds, "system")}`],
+    ["설비 / 시스템 종류", `${filters.equipmentTypeCodes?.join(", ") || "전체"} / ${filters.systemTypeCodes?.join(", ") || "전체"}`],
     ["시간대", report.timezone], ["Project / Catalog / Calendar revision", `${report.projectRevision} / ${report.catalogRevision} / ${report.calendarRevision}`],
     ["대상 범위", `고유 Task ${report.summary.taskCount} · Assignment ${report.summary.assignmentCount}`],
     ["이동 범위", lease.binding ? JSON.stringify(lease.binding.scope) : "이동 제한 없음"],
@@ -161,10 +168,19 @@ export function ProjectExportButton({ publicId, expectedRevision = 0, ref, getRe
     return () => {
       requestAnimationFrame(() => {
         const visible = (node: HTMLElement | null): node is HTMLElement => !!node && node.isConnected &&
-          !node.closest("[hidden], [inert]") && node.getClientRects().length > 0 && !node.matches(":disabled");
+          !node.closest("[hidden], [inert]") && node.checkVisibility({ checkVisibilityCSS: true }) &&
+          node.getClientRects().length > 0 && !node.matches(":disabled");
+        // The current workspace has two selected tabs: the top-level section and
+        // its active child. Restore a hidden Resource trigger to the actual
+        // secondary destination, not the first selected ancestor (#724 F05).
         if (visible(origin)) return;
-        const activeTab = Array.from(document.querySelectorAll<HTMLElement>('[role="tab"][aria-selected="true"]')).find(visible);
-        const fallback = activeTab ?? general;
+        const project = general?.closest(".project-readonly");
+        const selectedTabs = project ? Array.from(project.querySelectorAll<HTMLElement>(
+          '[role="tab"][aria-selected="true"][tabindex="0"]',
+        )).filter(visible) : [];
+        const childTab = selectedTabs.find(tab => tab.closest(".project-secondary-tabs"));
+        const sectionTab = selectedTabs.find(tab => tab.closest('[role="tablist"][aria-label="프로젝트 작업공간"]'));
+        const fallback = childTab ?? sectionTab ?? general;
         if (visible(fallback)) fallback.focus({ preventScroll: true });
       });
     };
@@ -329,19 +345,19 @@ export function ProjectExportButton({ publicId, expectedRevision = 0, ref, getRe
             onChange={() => setIncludeDependencies(true)} /> 일정 Dependency 포함</label>
           <label><input type="radio" name="excel-dependencies" checked={!includeDependencies}
             onChange={() => setIncludeDependencies(false)} /> 일정 Dependency 제외</label>
-          <p>일정 Dependency를 포함하면 Gantt 화살표와 관계 정보 시트가 생성됩니다. 명시·유효 단계 및 상속 출처는 이 선택과 관계없이 출력합니다.</p>
-          <p>단계 요약은 서버 기본 프로젝트 전체 공수·오늘 Project timezone 기준·임박 14일·서버 환산 기준입니다. 현재 Dashboard의 검색·선택·공수 조건·수동 기준일은 적용하지 않습니다.</p>
+          <p>일정 Dependency를 포함하면 Gantt 화살표와 관계 정보 시트가 생성됩니다. 명시·유효 Milestone 및 상속 출처는 이 선택과 관계없이 출력합니다.</p>
+          <p>Milestone 요약은 서버 기본 프로젝트 전체 공수·오늘 Project timezone 기준·임박 14일·서버 환산 기준입니다. 현재 Dashboard의 검색·선택·공수 조건·수동 기준일은 적용하지 않습니다.</p>
           <label><input type="checkbox" checked={includeLogistics} disabled={busy}
             onChange={(event) => setIncludeLogistics(event.target.checked)} /> 물류 구성 보고서 포함 (공정·설비·시스템·연결 시트)</label>
           <label><input type="checkbox" checked={includeResourceDashboard}
-            onChange={event => { setIncludeResourceDashboard(event.target.checked); setMessage(null); }} /> 리소스 현황 보고서 포함 (7개 시트)</label>
+            onChange={event => { setIncludeResourceDashboard(event.target.checked); setMessage(null); }} /> 리소스 현황 보고서 포함 (공수·실물 연결 근거)</label>
           {includeResourceDashboard ? <div className={styles.resourceReport}>
-            <p>아래 범위는 추가 리소스 7개 시트에만 적용합니다. 기존 일정·단계·물류·견적 시트는 Project 전체 기준입니다.</p>
+            <p>구성 및 조회 조건에 따라 공수·실물 연결·원본 추적 시트를 추가합니다. 아래 범위는 추가 리소스 보고서 시트에만 적용합니다. 기존 일정·Milestone·물류·견적 시트는 Project 전체 기준입니다.</p>
             <label><input type="radio" name="resource-report-basis" checked={resourceBasis === "current"}
               onChange={() => setResourceBasis("current")} /> 현재 선택 조건</label>
             <label><input type="radio" name="resource-report-basis" checked={resourceBasis === "project"}
               onChange={() => setResourceBasis("project")} /> Project 전체 (확인된 기간·기준일·환산 정책 유지)</label>
-            <p>Project 전체는 분류·Task·WBS·Milestone·검색·상태·이동 배정 범위를 제외합니다. 화면 조건과 이동 기록은 유지합니다.</p>
+            <p>Project 전체는 분류·공정·WorkArea·설비·시스템 종류/인스턴스·Task·WBS·Milestone·검색·상태·이동 배정 범위를 제외합니다. 화면 조건과 이동 기록은 유지합니다.</p>
             {resourceLease?.report.resourceScopeContext ? <>
               <p>대상 보고서: {resourceLease.report.range.from} ~ {resourceLease.report.range.to} · 기준일 {resourceLease.report.asOfDate}
                 {" · "}환산 {resourceLease.report.mdPerMm ?? "미설정"} ({resourceLease.report.mdPerMmSource})</p>
@@ -367,11 +383,11 @@ export function ProjectExportButton({ publicId, expectedRevision = 0, ref, getRe
           <label><input type="checkbox" checked={includeResourceEffort} disabled={busy}
             onChange={(event) => setIncludeResourceEffort(event.target.checked)} /> 리소스 공수 견적 포함 (역할·개발자 Summary/Detail)</label>
         </fieldset> : format === "json" ? <>
-          <p>JSON 1.1은 프로젝트 전체 일정·일정 Dependency·명시 단계 소속을 보존합니다. Description·URL·Baseline을 포함하며 Resource·Logistics는 제외합니다.</p>
+          <p>JSON 1.1은 프로젝트 전체 일정·일정 Dependency·명시 Milestone 소속을 보존합니다. Description·URL·Baseline을 포함하며 Resource·Logistics는 제외합니다.</p>
           <p>작업 UUID는 원본 참고 metadata입니다. 가져오기 대상의 Task UUID는 새로 생성하고 대상 Calendar를 적용합니다.</p>
           {jsonReview ? <p role="alert">검토 revision {jsonReview.revision}: 서로 다른 유형의 기존 Dependency {jsonReview.mixedCount}개를 원형대로 내보냅니다. 이 파일은 현재 JSON 가져오기의 유형 제한으로 다시 가져올 수 없습니다. 관계를 삭제하지 않습니다.</p> : null}
         </> : <>
-          <p>이미지의 전체 Grid는 작업명·시작일·기간 고정 열입니다. 화면의 선택 열 전체나 단계 소속 상세는 포함하지 않으며, 단계 정보는 Excel·JSON으로 내보내 주세요.</p>
+          <p>이미지의 전체 Grid는 작업명·시작일·기간 고정 열입니다. 화면의 선택 열 전체나 Milestone 소속 상세는 포함하지 않으며, Milestone 정보는 Excel·JSON으로 내보내 주세요.</p>
           <fieldset disabled={busy}>
             <legend>범위</legend>
             <label><input type="radio" name="gantt-export-scope" checked={scope === "project"}

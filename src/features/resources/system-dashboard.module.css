@@ -1,0 +1,6 @@
+.summary { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.summary h4 { margin-block: 8px; }
+.summary > details { margin-block: 8px; }
+.summary dl { margin-block: 8px; }
+.filters { min-inline-size: 0; border: 0; padding: 0; margin: 8px 0; }
+.filters select { max-inline-size: 100%; }

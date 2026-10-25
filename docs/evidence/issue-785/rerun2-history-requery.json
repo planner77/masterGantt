@@ -1,0 +1,441 @@
+{
+  "schema": "mastergantt-issue-785-rerun2-history-requery-v1",
+  "observedAt": "2026-10-24T00:08:46.347Z",
+  "notes": {
+    "priorImmutableSource": "Earlier five immutable merge parent/checkout receipts are reused; the initial rerun2 branch query also freshly returned all 12 runs and latest attempt1 for all six Full runs.",
+    "thisPass": "Fresh independent branch+six exact-head queries; totalCount equals returnedCount under per_page100, page1.",
+    "claimScope": "Requested branch and the six known immutable PR Heads, at observation time; not organization-wide Actions history.",
+    "writes": false
+  },
+  "observations": [
+    {
+      "scope": "branch",
+      "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?branch=feat%2Fissue-785-retire-logistics-target&per_page=100&page=1",
+      "state": "COMPLETE_FIRST_PAGE",
+      "totalCount": 12,
+      "returnedCount": 12,
+      "runs": [
+        {
+          "id": 40040333636,
+          "path": ".github/workflows/pr-fast-development.yml",
+          "number": 53,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T23:33:22Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40040333641,
+          "path": ".github/workflows/ci.yml",
+          "number": 3204,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "failure",
+          "head": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T23:33:22Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40032862265,
+          "path": ".github/workflows/ci.yml",
+          "number": 3197,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "failure",
+          "head": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T22:19:35Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40032862037,
+          "path": ".github/workflows/pr-fast-development.yml",
+          "number": 47,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T22:19:35Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40030302107,
+          "path": ".github/workflows/pr-fast-development.yml",
+          "number": 45,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head": "d8180882ea30ff72af83ef4c049e40bd1caea18d",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T21:56:30Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40030302113,
+          "path": ".github/workflows/ci.yml",
+          "number": 3195,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "failure",
+          "head": "d8180882ea30ff72af83ef4c049e40bd1caea18d",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T21:56:30Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40030198045,
+          "path": ".github/workflows/pr-fast-development.yml",
+          "number": 44,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head": "f7235d51cb9784f891697555dee52297b705b422",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T21:55:30Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40030198022,
+          "path": ".github/workflows/ci.yml",
+          "number": 3194,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "head": "f7235d51cb9784f891697555dee52297b705b422",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T21:55:30Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40028478605,
+          "path": ".github/workflows/pr-fast-development.yml",
+          "number": 42,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head": "433fa32279be7c9c0f812c40b717f91298741fe3",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T21:40:30Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40028478592,
+          "path": ".github/workflows/ci.yml",
+          "number": 3192,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "failure",
+          "head": "433fa32279be7c9c0f812c40b717f91298741fe3",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T21:40:30Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 39975107692,
+          "path": ".github/workflows/pr-fast-development.yml",
+          "number": 40,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head": "0a33b6ab7017b4d60d75562c1104eaea75747b28",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T15:04:28Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 39975107608,
+          "path": ".github/workflows/ci.yml",
+          "number": 3187,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "failure",
+          "head": "0a33b6ab7017b4d60d75562c1104eaea75747b28",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T15:04:28Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        }
+      ]
+    },
+    {
+      "scope": "head",
+      "head": "0a33b6ab7017b4d60d75562c1104eaea75747b28",
+      "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?event=pull_request&head_sha=0a33b6ab7017b4d60d75562c1104eaea75747b28&per_page=100&page=1",
+      "state": "COMPLETE_FIRST_PAGE",
+      "totalCount": 2,
+      "returnedCount": 2,
+      "runs": [
+        {
+          "id": 39975107692,
+          "path": ".github/workflows/pr-fast-development.yml",
+          "number": 40,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head": "0a33b6ab7017b4d60d75562c1104eaea75747b28",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T15:04:28Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 39975107608,
+          "path": ".github/workflows/ci.yml",
+          "number": 3187,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "failure",
+          "head": "0a33b6ab7017b4d60d75562c1104eaea75747b28",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T15:04:28Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        }
+      ]
+    },
+    {
+      "scope": "head",
+      "head": "433fa32279be7c9c0f812c40b717f91298741fe3",
+      "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?event=pull_request&head_sha=433fa32279be7c9c0f812c40b717f91298741fe3&per_page=100&page=1",
+      "state": "COMPLETE_FIRST_PAGE",
+      "totalCount": 2,
+      "returnedCount": 2,
+      "runs": [
+        {
+          "id": 40028478605,
+          "path": ".github/workflows/pr-fast-development.yml",
+          "number": 42,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head": "433fa32279be7c9c0f812c40b717f91298741fe3",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T21:40:30Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40028478592,
+          "path": ".github/workflows/ci.yml",
+          "number": 3192,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "failure",
+          "head": "433fa32279be7c9c0f812c40b717f91298741fe3",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T21:40:30Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        }
+      ]
+    },
+    {
+      "scope": "head",
+      "head": "f7235d51cb9784f891697555dee52297b705b422",
+      "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?event=pull_request&head_sha=f7235d51cb9784f891697555dee52297b705b422&per_page=100&page=1",
+      "state": "COMPLETE_FIRST_PAGE",
+      "totalCount": 2,
+      "returnedCount": 2,
+      "runs": [
+        {
+          "id": 40030198045,
+          "path": ".github/workflows/pr-fast-development.yml",
+          "number": 44,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head": "f7235d51cb9784f891697555dee52297b705b422",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T21:55:30Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40030198022,
+          "path": ".github/workflows/ci.yml",
+          "number": 3194,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "head": "f7235d51cb9784f891697555dee52297b705b422",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T21:55:30Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        }
+      ]
+    },
+    {
+      "scope": "head",
+      "head": "d8180882ea30ff72af83ef4c049e40bd1caea18d",
+      "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?event=pull_request&head_sha=d8180882ea30ff72af83ef4c049e40bd1caea18d&per_page=100&page=1",
+      "state": "COMPLETE_FIRST_PAGE",
+      "totalCount": 2,
+      "returnedCount": 2,
+      "runs": [
+        {
+          "id": 40030302107,
+          "path": ".github/workflows/pr-fast-development.yml",
+          "number": 45,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head": "d8180882ea30ff72af83ef4c049e40bd1caea18d",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T21:56:30Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40030302113,
+          "path": ".github/workflows/ci.yml",
+          "number": 3195,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "failure",
+          "head": "d8180882ea30ff72af83ef4c049e40bd1caea18d",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T21:56:30Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        }
+      ]
+    },
+    {
+      "scope": "head",
+      "head": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+      "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?event=pull_request&head_sha=14a2be51c421eaab0f7f1f4004f4fe222dea21d7&per_page=100&page=1",
+      "state": "COMPLETE_FIRST_PAGE",
+      "totalCount": 2,
+      "returnedCount": 2,
+      "runs": [
+        {
+          "id": 40032862265,
+          "path": ".github/workflows/ci.yml",
+          "number": 3197,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "failure",
+          "head": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T22:19:35Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40032862037,
+          "path": ".github/workflows/pr-fast-development.yml",
+          "number": 47,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head": "14a2be51c421eaab0f7f1f4004f4fe222dea21d7",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T22:19:35Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        }
+      ]
+    },
+    {
+      "scope": "head",
+      "head": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+      "url": "https://api.github.com/repos/planner77/masterGantt/actions/runs?event=pull_request&head_sha=f03933cb16c6c99a1a35a3095b55b6158d69bab5&per_page=100&page=1",
+      "state": "COMPLETE_FIRST_PAGE",
+      "totalCount": 2,
+      "returnedCount": 2,
+      "runs": [
+        {
+          "id": 40040333636,
+          "path": ".github/workflows/pr-fast-development.yml",
+          "number": 53,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T23:33:22Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        },
+        {
+          "id": 40040333641,
+          "path": ".github/workflows/ci.yml",
+          "number": 3204,
+          "attempt": 1,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "failure",
+          "head": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+          "headBranch": "feat/issue-785-retire-logistics-target",
+          "created": "2026-10-23T23:33:22Z",
+          "pullRequestNumbers": [
+            787
+          ]
+        }
+      ]
+    }
+  ]
+}

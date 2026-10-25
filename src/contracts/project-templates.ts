@@ -14,6 +14,7 @@ export interface ProjectTemplateDto {
   processCount: number;
   equipmentCount: number;
   systemCount: number;
+  processMappingCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -116,12 +117,56 @@ export interface TemplateTaskSystemLinkSnapshotItem {
   scope: "self" | "subtree";
 }
 
+/** F2 portable reference to a global occurrence, keyed by the local process code. */
+export interface TemplateProcessMappingSnapshotItem {
+  processCode: string;
+  occurrenceId: string;
+  workAreaId: string | null;
+}
+
+export interface TemplateTargetSnapshotItem {
+  code: string;
+  name: string;
+  scope: "process" | "project_common";
+  processCode: string | null;
+  occurrenceId: string | null;
+  workAreaId: string | null;
+  active: boolean;
+  description: string;
+  members: Array<{ kind: "equipment" | "system"; instanceCode: string }>;
+}
+
 export interface TemplateMembershipSnapshotItem {
   taskExternalId: string;
   milestoneExternalId: string;
 }
 
+/** Project-owned WorkAreas use source UUIDs as snapshot-local keys, then receive new IDs. */
+export interface TemplateProjectWorkAreaSnapshotItem {
+  workAreaId: string;
+  processCode: string;
+  code: string;
+  name: string;
+  active: boolean;
+  sortOrder: number;
+}
+
+/** Global WorkArea IDs stay stable; local WorkArea IDs are remapped in version 5. */
+export interface TemplateEquipmentWorkAreasSnapshotItem {
+  equipmentCode: string;
+  workAreaLinks: Array<{ processCode: string; workAreaId: string }>;
+}
+
+export interface TemplateTaskContextSnapshotItem {
+  taskExternalId: string;
+  /** null is a historical unset context; [] is an explicit empty selection. */
+  processLinks: Array<{ processCode: string; scope: "self" | "subtree" }> | null;
+  workAreaLinks: Array<{ processCode: string; workAreaId: string; scope: "self" | "subtree" }> | null;
+}
+
 export interface ProjectTemplateSnapshot {
+  /** Explicit Project participants, referencing existing global Resource IDs. */
+  resourceMemberships?: string[];
   /** Omission supports snapshots saved before membership preservation. */
   memberships?: TemplateMembershipSnapshotItem[];
   sourceRevision: number;
@@ -144,6 +189,17 @@ export interface ProjectTemplateSnapshot {
     systems: TemplateSystemSnapshotItem[];
     taskEquipmentLinks: TemplateTaskEquipmentLinkSnapshotItem[];
     taskSystemLinks: TemplateTaskSystemLinkSnapshotItem[];
+    /** Omitted for historical (pre-F2) snapshots. F2 snapshots must use version 2. */
+    schemaVersion?: 2 | 3 | 4 | 5;
+    /** Version 5 preserves all project-owned areas, including unused areas. */
+    projectWorkAreas?: TemplateProjectWorkAreaSnapshotItem[];
+    /** Version 4 preserves explicit Equipment locations and Task contexts, including empty selections. */
+    equipmentWorkAreas?: TemplateEquipmentWorkAreasSnapshotItem[];
+    taskContexts?: TemplateTaskContextSnapshotItem[];
+    /** Version 3 preserves explicit WBS bindings; inherited rows are never saved. */
+    taskTargetBindings?: Array<{ taskExternalId: string; targetCode: string; scope: "self" | "subtree"; selection: "whole" | "subset"; members: Array<{kind: "equipment" | "system"; instanceCode: string; coverage: number | null}> }>;
+    processMappings?: TemplateProcessMappingSnapshotItem[];
+    targets?: TemplateTargetSnapshotItem[];
   };
 }
 
@@ -170,6 +226,8 @@ export interface DuplicateProjectTemplateRequest {
 }
 
 export interface InstantiateProjectTemplateRequest {
+  /** Template metadata never dictates new Project access. */
+  visibility?: import("./projects").ProjectVisibility;
   name: string;
   ownerName: string;
   description?: string;
@@ -208,6 +266,7 @@ export interface InstantiateProjectTemplateResponse {
         processes?: number;
         equipment?: number;
         systems?: number;
+        processMappings?: number;
       };
     };
     warnings: string[];

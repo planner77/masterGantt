@@ -1,0 +1,1659 @@
+{
+  "description": "최초 최종 소스 실패와 단발 진단의 trace에서 추출한 시간 관측이다. HTTP 소요 합은 동시 요청을 포함하므로 벽시계 시간이나 fixture/before hook에 더하지 않는다. Before Hooks에는 isolatedApplicationRuntime 기간이 포함되어 두 값을 중복 합산하지 않는다.",
+  "classification": "UNKNOWN",
+  "causeConfirmed": false,
+  "interpretation": "두 실행 모두 1920px matrix의 마지막 조합에서 전체 30초 예산이 소진됐다. scrollLeft 값 불일치의 반복 대기 증거는 없으며, 환경 또는 시간 변동 가능성은 있으나 제품 성능 영향을 배제하지 않는다.",
+  "observations": {
+    "final-watcher-http-resource": {
+      "fixtureRuntimeMs": 14645.141,
+      "beforeHookMs": 14695.283,
+      "beforeHookEndToFirstViewportMs": 21815.182,
+      "screenshotsCompleted": 9,
+      "lastExpectDurationMs": 0.403,
+      "httpRequestCount": 104,
+      "httpResponseTimeSumMs": 22951.784,
+      "slowestHttp": [
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/logistics/kpi",
+          "status": 200,
+          "durationMs": 1599.606,
+          "actor": "browser"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/resource-dashboard/views",
+          "status": 200,
+          "durationMs": 1486.551,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/assigned-targets",
+          "status": 200,
+          "durationMs": 1416.203,
+          "actor": "browser"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/tasks/:id/assignments",
+          "status": 200,
+          "durationMs": 1336.133,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 1300.551,
+          "actor": "browser"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/tasks/:id/target-bindings",
+          "status": 200,
+          "durationMs": 1276.797,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/targets",
+          "status": 201,
+          "durationMs": 1244.001,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/resource-groups/:id/members",
+          "status": 200,
+          "durationMs": 1217.638,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/processes",
+          "status": 201,
+          "durationMs": 1102.681,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/work-calendar",
+          "status": 200,
+          "durationMs": 1101.637,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/logistics/process-mappings/:id",
+          "status": 200,
+          "durationMs": 970.178,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/resource-catalog/admin-sessions",
+          "status": 201,
+          "durationMs": 409.776,
+          "actor": "api"
+        }
+      ],
+      "httpRequests": [
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/assigned-targets",
+          "status": -1,
+          "durationMs": 1.995,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": -1,
+          "durationMs": 1.544,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 137.733,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": -1,
+          "durationMs": 13.441,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": 12.855,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/edit-sessions/current",
+          "status": 200,
+          "durationMs": 131.095,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": 200,
+          "durationMs": 116.837,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 341.807,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/assigned-targets",
+          "status": 200,
+          "durationMs": 1416.203,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/logistics/kpi",
+          "status": 200,
+          "durationMs": 1599.606,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/assigned-targets",
+          "status": -1,
+          "durationMs": 1.393,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": -1,
+          "durationMs": 1.093,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/assigned-targets",
+          "status": 200,
+          "durationMs": 251.283,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 269.056,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": -1,
+          "durationMs": 20.556,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": 19.478,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/edit-sessions/current",
+          "status": 200,
+          "durationMs": 186.09,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 29.355,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": 200,
+          "durationMs": 33.054,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/logistics/kpi",
+          "status": 200,
+          "durationMs": 224.129,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 1300.551,
+          "actor": "browser"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/resource-dashboard/views",
+          "status": 200,
+          "durationMs": 1486.551,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 152.731,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 42.582,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 34.705,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 37.039,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 29.555,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 156.939,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 23.827,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 147.708,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 25.229,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 144.094,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 20.182,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 147.292,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 23.22,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 145.566,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 22.211,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 158.991,
+          "actor": "browser"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin-sessions",
+          "status": 201,
+          "durationMs": 286.948,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/admin/items",
+          "status": 200,
+          "durationMs": 167.609,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/items",
+          "status": 201,
+          "durationMs": 19.138,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/items",
+          "status": 201,
+          "durationMs": 24.118,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/items",
+          "status": 201,
+          "durationMs": 18.352,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/relations",
+          "status": 200,
+          "durationMs": 158.643,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/relations",
+          "status": 200,
+          "durationMs": 15.786,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/process-catalog/admin",
+          "status": 200,
+          "durationMs": 212.25,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/types",
+          "status": 201,
+          "durationMs": 218.192,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/occurrences",
+          "status": 201,
+          "durationMs": 219.62,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/occurrences",
+          "status": 201,
+          "durationMs": 22.536,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/work-areas",
+          "status": 201,
+          "durationMs": 227.145,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects",
+          "status": 201,
+          "durationMs": 326.256,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 92.277,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/processes",
+          "status": 201,
+          "durationMs": 1102.681,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 85.875,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/logistics/process-mappings/:id",
+          "status": 200,
+          "durationMs": 970.178,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 86.209,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/processes",
+          "status": 201,
+          "durationMs": 97.219,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 11.435,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/logistics/process-mappings/:id",
+          "status": 200,
+          "durationMs": 133.35,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 18.474,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/tasks",
+          "status": 201,
+          "durationMs": 113.907,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 13.485,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/tasks",
+          "status": 201,
+          "durationMs": 27.262,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 113.267,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/work-calendar",
+          "status": 200,
+          "durationMs": 1101.637,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/admin/items",
+          "status": 200,
+          "durationMs": 8.547,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/items",
+          "status": 201,
+          "durationMs": 18.4,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/relations",
+          "status": 200,
+          "durationMs": 15.483,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/process-catalog/admin",
+          "status": 200,
+          "durationMs": 8.755,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/standards",
+          "status": 201,
+          "durationMs": 170.978,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/occurrences/apply-standard",
+          "status": 200,
+          "durationMs": 174.522,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/occurrences/apply-standard",
+          "status": 200,
+          "durationMs": 22.146,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 108.176,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/logistics/process-mappings/:id",
+          "status": 200,
+          "durationMs": 124.111,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 18.686,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/targets",
+          "status": 201,
+          "durationMs": 1244.001,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 116.818,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/targets",
+          "status": 201,
+          "durationMs": 127.805,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 16.965,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/targets",
+          "status": 201,
+          "durationMs": 27.575,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 16.342,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/targets",
+          "status": 201,
+          "durationMs": 26.065,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 15.681,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/targets",
+          "status": 201,
+          "durationMs": 30.208,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 15.256,
+          "actor": "api"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/projects/:id/tasks/:id",
+          "status": 200,
+          "durationMs": 136.084,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 16.692,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/tasks/:id/target-bindings",
+          "status": 200,
+          "durationMs": 1276.797,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 127.335,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/tasks/:id/target-bindings",
+          "status": 200,
+          "durationMs": 144.924,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 18.304,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/tasks",
+          "status": 201,
+          "durationMs": 156.375,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 28.473,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/tasks/:id/target-bindings",
+          "status": 200,
+          "durationMs": 33.341,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/resource-catalog/admin-sessions",
+          "status": 201,
+          "durationMs": 409.776,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/resources",
+          "status": 200,
+          "durationMs": 243.957,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/resources",
+          "status": 201,
+          "durationMs": 31.098,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/resource-groups",
+          "status": 201,
+          "durationMs": 208.12,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/resource-groups/:id/members",
+          "status": 200,
+          "durationMs": 1217.638,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/resource-groups",
+          "status": 201,
+          "durationMs": 18.585,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/resource-groups/:id/members",
+          "status": 200,
+          "durationMs": 158.248,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 147.809,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/tasks/:id/assignments",
+          "status": 200,
+          "durationMs": 1336.133,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 144.15,
+          "actor": "api"
+        }
+      ]
+    },
+    "diagnostic-resource623": {
+      "fixtureRuntimeMs": 18168.391,
+      "beforeHookMs": 18230.92,
+      "beforeHookEndToFirstViewportMs": 22474.55,
+      "screenshotsCompleted": 9,
+      "lastExpectDurationMs": 0.569,
+      "httpRequestCount": 104,
+      "httpResponseTimeSumMs": 24017.74,
+      "slowestHttp": [
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/assigned-targets",
+          "status": 200,
+          "durationMs": 1792.525,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/logistics/kpi",
+          "status": 200,
+          "durationMs": 1749.605,
+          "actor": "browser"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/logistics/process-mappings/:id",
+          "status": 200,
+          "durationMs": 1581.168,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/processes",
+          "status": 201,
+          "durationMs": 1419.993,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 1343.977,
+          "actor": "browser"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/targets",
+          "status": 201,
+          "durationMs": 1223.235,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/resource-dashboard/views",
+          "status": 200,
+          "durationMs": 1223.144,
+          "actor": "browser"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/work-calendar",
+          "status": 200,
+          "durationMs": 1206.204,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/tasks/:id/target-bindings",
+          "status": 200,
+          "durationMs": 1175.986,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/tasks/:id/assignments",
+          "status": 200,
+          "durationMs": 1053.914,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/resource-groups/:id/members",
+          "status": 200,
+          "durationMs": 1042.756,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 392.873,
+          "actor": "browser"
+        }
+      ],
+      "httpRequests": [
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/assigned-targets",
+          "status": -1,
+          "durationMs": 6.594,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": -1,
+          "durationMs": 6.573,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 142.41,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": -1,
+          "durationMs": 18.23,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": 17.936,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/edit-sessions/current",
+          "status": 200,
+          "durationMs": 132.514,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": 200,
+          "durationMs": 215.767,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 392.873,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/assigned-targets",
+          "status": 200,
+          "durationMs": 1792.525,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/logistics/kpi",
+          "status": 200,
+          "durationMs": 1749.605,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/assigned-targets",
+          "status": -1,
+          "durationMs": 1.334,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": -1,
+          "durationMs": 1.465,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/assigned-targets",
+          "status": 200,
+          "durationMs": 298.248,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 312.285,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": -1,
+          "durationMs": 10.615,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": 10.017,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/edit-sessions/current",
+          "status": 200,
+          "durationMs": 163.664,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 35.317,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": 200,
+          "durationMs": 42.448,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/logistics/kpi",
+          "status": 200,
+          "durationMs": 222.063,
+          "actor": "browser"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/resource-dashboard/views",
+          "status": 200,
+          "durationMs": 1223.144,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 1343.977,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 148.317,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 20.616,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 24.847,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 21.66,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 21.869,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 20.555,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": -1,
+          "durationMs": 163.296,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 30.742,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 21.878,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 138.287,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 23.578,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 146.1,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 24.365,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 138.511,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 22.956,
+          "actor": "browser"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id/resource-dashboard",
+          "status": 200,
+          "durationMs": 144.281,
+          "actor": "browser"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin-sessions",
+          "status": 201,
+          "durationMs": 327.11,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/admin/items",
+          "status": 200,
+          "durationMs": 168.651,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/items",
+          "status": 201,
+          "durationMs": 26.042,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/items",
+          "status": 201,
+          "durationMs": 24.75,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/items",
+          "status": 201,
+          "durationMs": 15.954,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/relations",
+          "status": 200,
+          "durationMs": 170.878,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/relations",
+          "status": 200,
+          "durationMs": 21.015,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/process-catalog/admin",
+          "status": 200,
+          "durationMs": 283.241,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/types",
+          "status": 201,
+          "durationMs": 226.855,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/occurrences",
+          "status": 201,
+          "durationMs": 262.433,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/occurrences",
+          "status": 201,
+          "durationMs": 21.781,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/work-areas",
+          "status": 201,
+          "durationMs": 290.169,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects",
+          "status": 201,
+          "durationMs": 380.468,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 110.793,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/processes",
+          "status": 201,
+          "durationMs": 1419.993,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 108.883,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/logistics/process-mappings/:id",
+          "status": 200,
+          "durationMs": 1581.168,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 101.387,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/processes",
+          "status": 201,
+          "durationMs": 115.229,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 16.437,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/logistics/process-mappings/:id",
+          "status": 200,
+          "durationMs": 129.569,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 33.051,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/tasks",
+          "status": 201,
+          "durationMs": 186.32,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 16.579,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/tasks",
+          "status": 201,
+          "durationMs": 28.944,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 118.825,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/work-calendar",
+          "status": 200,
+          "durationMs": 1206.204,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/admin/items",
+          "status": 200,
+          "durationMs": 9.904,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/items",
+          "status": 201,
+          "durationMs": 16.207,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/project-master/admin/relations",
+          "status": 200,
+          "durationMs": 15.692,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/process-catalog/admin",
+          "status": 200,
+          "durationMs": 9.928,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/standards",
+          "status": 201,
+          "durationMs": 186.788,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/occurrences/apply-standard",
+          "status": 200,
+          "durationMs": 167.814,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/process-catalog/admin/occurrences/apply-standard",
+          "status": 200,
+          "durationMs": 20.896,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 121.367,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/logistics/process-mappings/:id",
+          "status": 200,
+          "durationMs": 133.256,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 21.662,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/targets",
+          "status": 201,
+          "durationMs": 1223.235,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 125.073,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/targets",
+          "status": 201,
+          "durationMs": 125.001,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 15.37,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/targets",
+          "status": 201,
+          "durationMs": 24.925,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 13.44,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/targets",
+          "status": 201,
+          "durationMs": 25.732,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 13.052,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/logistics/targets",
+          "status": 201,
+          "durationMs": 25.954,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 12.588,
+          "actor": "api"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/projects/:id/tasks/:id",
+          "status": 200,
+          "durationMs": 126.082,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 13.055,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/tasks/:id/target-bindings",
+          "status": 200,
+          "durationMs": 1175.986,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 110.512,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/tasks/:id/target-bindings",
+          "status": 200,
+          "durationMs": 121.634,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 12.423,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/:id/tasks",
+          "status": 201,
+          "durationMs": 129.742,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 12.872,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/tasks/:id/target-bindings",
+          "status": 200,
+          "durationMs": 23.359,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/resource-catalog/admin-sessions",
+          "status": 201,
+          "durationMs": 311.96,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/resources",
+          "status": 200,
+          "durationMs": 203.873,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/resources",
+          "status": 201,
+          "durationMs": 37.247,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/resource-groups",
+          "status": 201,
+          "durationMs": 232.464,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/resource-groups/:id/members",
+          "status": 200,
+          "durationMs": 1042.756,
+          "actor": "api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/resource-groups",
+          "status": 201,
+          "durationMs": 16.61,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/resource-groups/:id/members",
+          "status": 200,
+          "durationMs": 138.562,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 127.713,
+          "actor": "api"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/projects/:id/tasks/:id/assignments",
+          "status": 200,
+          "durationMs": 1053.914,
+          "actor": "api"
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/:id",
+          "status": 200,
+          "durationMs": 174.901,
+          "actor": "api"
+        }
+      ]
+    }
+  },
+  "hypothesis": "ENV_CANDIDATE"
+}

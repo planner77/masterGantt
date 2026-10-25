@@ -1,16 +1,42 @@
+## Issue #553 — marker OFF 운영에서 JSON 교환 원본 보존 (2026-10-25)
+
+화면 Grid/Chart의 Milestone 행 제거·검색/접힘/필터는 JSON 1.1 **프로젝트 전체 원본**의 Task·Milestone·Link·명시 Membership을 줄이지 않는다. 신규 Project Import는 원본→신규 UUID/FK 매핑으로 의미를 비교하며 유효·상속 소속은 재계산한다. 혼합 endpoint legacy Link의 Export는 원형 기록 가능하나 재Import는 기존 원자 거부 정책이고 Resource/Logistics 전체 백업으로 취급하지 않는다. 실제 회귀 경계는 [#553 가이드](MILESTONE_USER_GUIDE.md)와 [추적표](MILESTONE_TIMELINE_TRACEABILITY.md)를 따른다. API/schema/권한·If-Match 계약은 변경하지 않는다.
+
+## Issue #785 — 원본 보존과 사용자 산출물 전환
+
+지원 Copy/Template의 내부 legacy graph는 whole/subset·coverage·상속·공유 실물의 원형을 보존한다. 공개 Target writer/사용자 축은 폐기하지만 자료를 버린 성공 파일로 대체하지 않는다. JSON1.0/1.1·일반 일정 Excel의 손실 방지 한계는 유지한다. Resource Excel은 실물·Task·Assignment·opaque provenance로 조회 근거를 출력하며 전체 DB backup/roundtrip 형식은 아니다. [Excel](EXCEL_EXPORT.md), [운영 복구](TARGET_RESOURCE_OPERATIONS.md), [Work Packet](exec-plans/active/ISSUE_785.md).
+
+## Issue #762 — 직접 WorkArea 원본의 손실 방지
+
+직접 구역이 사용되지 않았더라도 `project_work_areas` 원본이 있으면 일정 JSON/일반 일정 Excel은409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`로 전체 거부한다. 해당 형식은 직접 구역/owner/연결을 보존하는 전체 backup이 아니다. JSON Import는 projectWorkAreas 등 직접 소속 필드를 명시적으로 거부하며 조용히 무시하지 않는다. 기존 context/Target/membership loss guard와 Resource 보고서 opt-in의 조회 범위는 유지한다.
+
+전체 관계 이동은 지원 Project Copy/Template logistics v5 또는 대응 DB backup 경로를 사용한다. Copy/Template는 직접 UUID/owner/link를 remap하고 legacy 공유 UUID는 보존한다. [보존 계약](ISSUE_27_PROJECT_COPY.md#issue-762--직접-소속-workarea의-copytemplate-v5)과 [미검증 경계](exec-plans/active/ISSUE_762.md)를 따른다.
+
+## Issue #736 — 리소스 동적 조회 보고서
+
+Resource root Excel은 동일 WBS source/snapshot/spec/path·개인 Assignment selector를 재검증해 기존 보고 writer를 재사용한다. `current`와 명시 Project 전체의 조건 해제, 중첩 비가산 근거행·raw ID/null·Plan/견적 보존은 [Excel 계약](EXCEL_EXPORT.md#issue-736--리소스-동적-조회와-excel)을 따른다. 개인 browser 조회 설정은 Import 원본이나 공유 업무 데이터가 아니며 일정 JSON/Template·Project Copy·VBA 입력 schema는 변경하지 않는다. 보고용 Excel을 무손실 운영 백업이나 재Import 형식으로 간주하지 않는다. 미지원 root/형식을 지원 범위로 조용히 변환하지 않는다.
+
+## Issue #725 — 공정·WorkArea 문맥과 교환 경계
+
+일정 JSON1.0/1.1과 Excel은 설비의 다중 WorkArea 또는 Task 직접 공정/WorkArea·명시0개 marker를 보존하는 전체 backup 포맷이 아니다. 해당 관계 또는 marker가 존재하면 일정 JSON/Excel Export는409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`로 전체 거부한다. 명시 공정0개도 legacy와 의미가 다르므로 관계 행0개라는 이유로 내보내지 않는다. 기존 Target/binding 손실 방지는 유지한다. 명시 Resource 보고서 opt-in Excel은 기존 보고서 범위로 허용하며 신규 직접 관계의 전체 backup·왕복 포맷으로 부르지 않는다.
+
+JSON Import에서 `equipmentWorkAreas`, `workAreaIds`, `taskContexts`, `taskProcessContexts`, `processLinks`, `workAreaLinks` 등 신규 문맥 필드는 중첩 위치와 무관하게400 `PROCESS_CONTEXT_IMPORT_UNSUPPORTED`로 거부한다. 일부 항목만 무시하거나 빈 배열로 저장하지 않는다. schedule-stage/create-only 계약을 전체 참조 restore로 확대하지 않는다.
+
+해당 그래프를 옮길 때는 [Project Copy 또는 지원 Templatev4](ISSUE_27_PROJECT_COPY.md#issue-725--직접-문맥의-copytemplate-v4)를 사용한다. global 실제 소유권·Project triple·local ID remap·원자 rollback을 재검증한다. full JSON 교환 #379 재개발, 실제 Excel/VBA/DRM 환경 검증은 이번 범위가 아니다. 실제 검증 결과는 [Work Packet](exec-plans/active/ISSUE_725.md)을 따른다.
+
+## Issue #727 — 프로젝트 참여 관계의 교환 경계
+
+Project Copy 및 지원 Project Template는 명시 Resource 등록 관계를 global ID로 보존한다. Template의 optional `resourceMemberships`는 구 형식 생략과 호환되며 참조 검증 실패는 전체 transaction을 rollback한다. 자세한 DB/API 계약은 [DB_SCHEMA](DB_SCHEMA.md), [API](API.md), [Project Copy](ISSUE_27_PROJECT_COPY.md)를 따른다.
+
+일정용 JSON과 일반 일정 Excel은 명시 Project–Resource 참여 관계를 표현하지 않는다. 등록이 있는 Project를 무손실 교환인 것처럼 성공 출력하지 않고 명시 오류로 거부한다. 이 형식을 임의 확장한 Import도 unknown membership 필드를 무시하지 않는다. 명시 `includeResourceEffort=true` 공수 견적과 `resourceDashboard` Resource Excel은 조회 보고서이며 전체 Project backup/참여 등록 roundtrip이 아니다. SVG/PNG 역시 보이는 일정의 그림으로 참여 원장을 보존하는 백업이 아니다. 지원 Copy/Template 또는 대응 DB backup을 사용하고 #379의 전체 참조 교환 구현 완료로 주장하지 않는다.
+
 # Import / Export
 
-## Issue #553 — Timeline 표시와 일정 교환의 독립성
+## Issue #623 — Copy·Template·보고서와 backup 분리
 
-Milestone Timeline ON/OFF, 작업 검색·접힘·선택 범위는 JSON 1.1의 모집단을 바꾸지 않는다. Export는 프로젝트 전체 canonical Task/Summary/Milestone, 모든 Dependency, 명시 Membership을 사용한다. 새 Project Import는 모든 Task/Link UUID를 새로 발급하고 parent·endpoint·명시 소속 FK를 다시 연결한다. 비교 시 UUID 문자열의 동일성 대신 외부 ID 대응에 따른 일정·상태·Baseline·형제 순서·유효 상속·전체 Gate 의미를 확인한다. Target Calendar가 바뀌면 일정 의미까지 동일하다고 보장하지 않는다.
+Q1은 기존 Project/Task Copy·Template logistics schemaVersion3(binding 포함)/v2/legacy(이후 #725 v4 확장)·cut/reparent의 local ID remap/sharedMCS/global catalog 재사용·coverage/상속과 잘못된 site 참조 원자 거부를 통합 검증한다. 새 포맷/무손실 Import/자동 cross-site 이름 매핑을 추가하지 않는다.
 
-화면에서 숨긴 Milestone은 전체 Project Copy/Template 및 Summary/multi-root Copy의 canonical 자손 집합에도 포함된다. 전체 Copy의 progress reset 옵션, Template의 상태·Baseline 초기화, subtree Copy의 외부 소속 제외 확인·Assignment 제한·완료 경계 잠금, Cut의 기존 ID 유지 정책을 그대로 적용한다. 표시 설정은 서버 권한이나 transaction 검증의 근거가 아니다. Resource/Logistics 데이터는 JSON 1.1 교환 대상이 아니므로 전체 운영 백업과 구분한다.
-
-고정 fixture [canonical-interchange.ts](../tests/fixtures/issue-553/canonical-interchange.ts)는 33개 작업, 8개 FS/SS/FF/SF signed-lag 관계, 5개 명시 소속을 가진다. [통합 테스트](../tests/integration/milestone-timeline-interchange.test.ts)는 UUID/FK remap, 전체 Copy/Template/multi-root Copy·Cut, 완료 불일치와 경계 잠금, legacy mixed 출력 후 외부 Import 전체 거부, Import/Copy/Template/subtree의 강제 Membership 쓰기 오류 rollback을 비교한다. M-only Summary의 기간은 현행 inclusive 근무일 roll-up이며 Milestone leaf의 duration 0과 혼동하지 않는다.
-
-실제 HTTP/native SQLite 및 Next 프로세스 재시작 검증은 [HTTP 통합 테스트](../tests/e2e/milestone-timeline-interchange-http.spec.ts)가 담당한다. 로컬 실행 결과와 source hash, 최초 실패 이력은 [TEST_PLAN](TEST_PLAN.md)과 [추적표](MILESTONE_TIMELINE_TRACEABILITY.md)에 기록하며 PR `quality/e2e/docker` 결과와 별도로 판정한다. Legacy mixed 및 완료 불일치 파일은 원형 Export가 가능해도 현재 create-only Import가 전체 거부할 수 있으며, 재Import 성공을 보장하지 않는다.
-
-#553 로컬 통합 13개와 실제 HTTP 3개는 PASS다. HTTP는 실제 Next 프로세스 재시작을 포함하며 관련 소스 408개는 실행 전후 일치했다. 외부 ID 충돌 409와 mixed 관계 자체의 `422 MIXED_DEPENDENCY_UNSUPPORTED`는 다른 검증 단계다. 새 프로젝트 생성 후 이전 프로젝트 mutation을 검증할 때 해당 프로젝트의 편집 세션을 다시 연결하며, 이 절차가 Origin/revision 검증을 대신하지 않는다. [선택 증거](../output/playwright/issue-553/backend-http/execution-contract.json)는 최초 fixture/oracle 실패와 최종 실행을 구분한다. 원격 CI와 전체 Lifecycle ACCEPT는 NOT TESTED다.
+#379 전체 참조 JSON은 미완료다. Target-bearing plain 일정 JSON/Excel 거부와 명시 Resource Excel 보고서 허용은 기존 loss guard이며 보고서는 전체 Target backup이 아니다. 이관/rollback은 대응 DB backup+image 또는 forward corrective 절차로 구별한다. 실제 지원과 합성/운영 증거는 [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md), [운영 절차](TARGET_RESOURCE_OPERATIONS.md), [수용표](TARGET_RESOURCE_ACCEPTANCE.md)를 따른다.
 
 ## Issue #464 — JSON 1.1과 보호된 Import/Export
 
@@ -434,3 +460,19 @@ Phase 2가 완료되기 전에는 빈 Gantt sheet나 오해할 수 있는 부분
 빈 Summary는 schemaVersion 1.0에서 생략 또는 null 일정으로 표현할 수 있고 기존 유효 Summary source snapshot도 검증 후 자손으로 재파생한다. `src/contracts/import.ts`는 파싱된 JSON object의 순수 schema/domain 검증을 제공한다. 당시 #345는 pure validator만 구현했다. 현재 JSON HTTP preview/commit과 저장 transaction은 위 #464 계약을 따른다. CSV/byte/encoding/원본 Excel 처리와 실제 Windows VBA 검증은 이 pure validator PASS와 구분한다.
 
 Excel Export는 미산정 Summary의 WBS/행을 유지하고 날짜·기간·진척 셀을 공란으로 내보낸다. 전체 일정 범위는 실제 날짜 집합만 사용한다. SVG/PNG 행·bar 계약은 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다. 현재 workbook은 Project direct hyperlink를 생성하지 않는다. 공유 URL에 비밀값을 넣지 않는 기존 정책은 유지한다.
+
+## Issue #615 — 공정 매핑과 포맷 경계
+
+F1의 Project copy는 local 공정 ID만 치환하고 같은 BU/product/site의 공통 occurrence·WorkArea 참조를 보존한다. 매핑이 있는 원본에서 기존 Template snapshot 저장은 `409 PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED`이며 silent loss를 허용하지 않는다. Template versioned 확장은 #616에서 수행한다.
+
+현행 WBS JSON·Excel은 full Project/DB backup 포맷이 아니며 신규 공통 공정 catalog/매핑을 round-trip하지 않는다. 이 변경은 기존 Import schema를 확장하지 않는다. 공통 참조를 포함하는 versioned 전체 참조 포맷은 #379 및 Target 후속 계약으로 관리한다. 전체 DB backup/restore와 부분 내보내기를 혼동하지 않는다.
+
+## Issue #617 — Target binding 포맷 이행과 loss guard
+
+서버 Project/Subtree Copy와 Project Template v3는 명시 Task–Target binding/subset/coverage를 보존한다. Template의 `logistics.taskTargetBindings`는 Task external ID, Target code, typed instance code로 포맷 내부 관계를 표현하고 복원 시 새 local UUID를 발급한다. 상속 유효집합을 명시 row로 저장하지 않는다. binding 없는 v2 및 legacy Template는 호환하되 unknown version/깨진 참조/누락 binding을 정상 성공으로 처리하지 않는다. 상세 계약은 [Project Copy](ISSUE_27_PROJECT_COPY.md#issue-617--명시-target-binding-복사)를 따른다.
+
+WBS JSON schema1.0/1.1과 기존 Excel 일정 내보내기는 Target binding의 전체 backup 포맷이 아니다. JSON의 기존 Target-bearing export 차단은 유지하고 신규 binding도 명시적으로 보호한다. binding이 있는 Resource 보고서 opt-in 없는 일정 Excel은 `409 TASK_TARGET_EXPORT_UNSUPPORTED`로 거부한다. #622의 명시 Resource 보고서 opt-in은 별도 Target 근거 sheet를 append하며 허용하되 전체 복원/왕복 형식은 아니다. Import에서 신규 binding 필드는 `TARGET_BINDING_IMPORT_UNSUPPORTED` 등 명시 오류로 거부하며 field를 버린 성공을 반환하지 않는다. 새로운 외부 전체 참조 versioned JSON/복원은 #379 후속이며 DB backup/restore와도 구분한다. 이 변경은 기존 JSON schema 번호를 몰래 확장하지 않는다.
+
+## Issue #620 — Resource Target 보고의 교환 경계
+
+Resource report/detail/drill의 R2 Target 확장은 WBS JSON/CSV·Copy/Template 교환 형식을 변경하지 않는다. Resource Excel은 공통 source fingerprint에 Target 참조를 포함해 서비스 stale409를 공개 Excel API의 `412 REVISION_MISMATCH`로 매핑한다. R2 당시 Target 필터/`projectionOrder` 거부는 #622의 strict current/project 보고서 지원으로 대체됐으며, 조건을 조용히 버린 파일을 성공 처리하지 않는다. 기존 일정/Import의 무손실 포맷 지원을 확대하는 변경은 아니다. 상세 [Excel](EXCEL_EXPORT.md), [API](API.md), [R2 검증](exec-plans/active/ISSUE_620.md)을 따른다.

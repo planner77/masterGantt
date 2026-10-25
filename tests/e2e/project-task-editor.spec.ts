@@ -1,11 +1,13 @@
+import type { TaskLogisticsLinksDto } from "../../src/contracts/logistics";
+import { expectRawIdentifier } from "./helpers/identifier-details";
 import { mkdir, writeFile } from "node:fs/promises";
-import { installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
 import { expect, test, type Page, type Request } from "@playwright/test";
 import type { ProjectDto, ProjectLinkDto, ProjectTaskDto, UpdateTaskRequest } from "../../src/contracts/projects";
 import { createWorkingCalendar } from "../../src/domain/scheduling/calendar";
 import { scheduleLeaf } from "../../src/domain/scheduling/leaf";
 import { normalizeTaskStatusProgress, taskStatusFromProgress } from "../../src/domain/task-status";
 import { chooseTaskInformation, taskContextMenu } from "./helpers/task-context-menu";
+import { installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
 
 const publicId = "a3405d3d-8cb4-4da4-9b0f-43a5de330004";
 const apiPath = `/api/projects/${publicId}`;
@@ -187,7 +189,7 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
     }
     await route.continue();
   });
-  await installMilestoneDashboardFixture(page, fixture, apiPath);
+  await installMilestoneDashboardFixture(page, fixture);
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByText(fixture.editable ? "편집 중" : "읽기 전용", { exact: true })).toBeVisible();
   await expect(row(page, "Beta leaf")).toBeVisible();
@@ -196,6 +198,8 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
 }
 
 async function openRow(page: Page, name = "Beta leaf") {
+  if (name === "Milestone") { await openMilestoneEditor(page, id(5)); return; }
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
   const targetRow = name === "Beta leaf" ? rowByTaskId(page, id(4)) : name === "Summary" ? rowByTaskId(page, id(1)) : row(page, name);
   if (name === "Beta leaf" || name === "Summary") {
     await expect(targetRow).toBeVisible();
@@ -256,7 +260,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expect(editor(page).getByLabel("요청 시작일", { exact: true })).toHaveAttribute("readonly", "");
     await expect(editor(page).getByLabel("Description", { exact: true })).not.toHaveAttribute("readonly", "");
     await expect(editor(page).getByLabel("URL", { exact: true })).not.toHaveAttribute("readonly", "");
-    await expect(editor(page).getByText("하위 작업 기본 완료 단계", { exact: true })).toBeVisible();
+    await expect(editor(page).getByText("하위 작업 기본 Milestone", { exact: true })).toBeVisible();
     await cancel(page);
     await header.click({ button: "right" });
     await expect(page.locator(".project-column-menu")).toBeVisible();
@@ -686,13 +690,13 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
     const candidate = modal.locator(".relation-editor-candidate-item", { hasText: "Alpha leaf" });
     await expect(candidate).toHaveCount(1);
-    await expect(candidate).toContainText("외부 ID: EDITOR-3");
-    await expect(candidate).toContainText(`작업 ID: ${id(3)}`);
+    await expect(candidate).toContainText("Alpha leaf");
+    await expect(candidate).not.toContainText(id(3));
     await candidate.click();
 
     await expect(modal.getByText("Alpha leaf", { exact: true })).toBeVisible();
-    await expect(modal.getByText("외부 ID: EDITOR-3", { exact: true })).toBeVisible();
-    await expect(modal.getByText(`작업 ID: ${id(3)}`, { exact: true })).toBeVisible();
+    await expectRawIdentifier(modal, "외부 ID", "EDITOR-3");
+    await expectRawIdentifier(modal, "작업 ID", id(3));
 
     await modal.getByRole("button", { name: "관계 추가", exact: true }).click();
     await expect.poll(() => fixture.linkMutations.length).toBe(1);
@@ -710,7 +714,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
   test("Issue #377/#462 관계가 없는 Milestone에서 same-type anchor 기반 Relation Editor로 새 후행 Milestone 관계를 추가한다", async ({ page }) => {
     const fixture = await setup(page, { editable: true, milestonePeer: true });
-    await openMilestoneEditor(page, id(5));
+    await openRow(page, "Milestone");
     const taskDialog = editor(page);
     const relationTab = taskDialog.getByRole("tab", { name: /관계/ });
     await relationTab.click();
@@ -719,7 +723,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     const modal = relationEditor(page);
     await expect(modal).toContainText("기준 작업 [Milestone]");
     await modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...").fill("Milestone peer");
-    await modal.getByRole("button", { name: /Milestone peer.*외부 ID: EDITOR-6.*작업 ID:/ }).click();
+    await modal.getByRole("button", { name: /^Milestone peer/ }).click();
     await modal.getByLabel("관계 유형 (Type)", { exact: true }).selectOption("FF");
     await modal.getByLabel("지연 시간 (Lag, 일 단위)", { exact: true }).fill("-1");
     await modal.getByRole("button", { name: "관계 추가", exact: true }).click();
@@ -899,7 +903,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       const body = dialog.locator("form > div").first();
       const footer = dialog.locator("form > footer");
       await expect(dialog).toContainText("일반 작업");
-      await expect(dialog).toContainText("External ID");
+      await expectRawIdentifier(dialog, "외부 ID", "EDITOR-4");
       await expect(dialog).toContainText("Revision 20");
       const dialogBox = await dialog.boundingBox();
       const headerBox = await header.boundingBox();
@@ -1043,12 +1047,12 @@ test("Issue #485 Global Role 필터는 후보만 제한하고 assignment 저장�
 
 test("#461 picker UUID·동명이인·긴 후보 keyboard·Summary 필드·리소스 초안 보호", async ({ page }) => {
   const fixture = await setup(page, { assignmentTargets: true });
-  for (let index = 10; index < 32; index++) fixture.tasks.push(task(index, `완료 단계 긴 한글 English duplicate ${index === 10 || index === 11 ? "same" : index}`, { type: "milestone", duration: 0, status: "not_started", progress: 0 }));
+  for (let index = 10; index < 32; index++) fixture.tasks.push(task(index, `Gate 긴 한글 English duplicate ${index === 10 || index === 11 ? "same" : index}`, { type: "milestone", duration: 0, status: "not_started", progress: 0 }));
   fixture.tasks[0].membership = { explicitMilestoneTaskId: id(10), effectiveMilestoneTaskId: id(10), inheritedFromTaskId: null };
   fixture.tasks[1].membership = { explicitMilestoneTaskId: id(11), effectiveMilestoneTaskId: id(11), inheritedFromTaskId: null };
   await page.reload();
   await openRow(page, "Child");
-  const dialog = editor(page), picker = dialog.getByRole("combobox", { name: "완료 단계", exact: true });
+  const dialog = editor(page), picker = dialog.getByRole("combobox", { name: "Milestone", exact: true });
   const listbox = dialog.getByRole("listbox");
   const assertCompactOption = async (name: string, date: string) => {
     const option = listbox.getByRole("option");
@@ -1083,7 +1087,7 @@ test("#461 picker UUID·동명이인·긴 후보 keyboard·Summary 필드·리�
   await expect(listbox).toHaveCount(0);
   await picker.fill("same");
   await expect(listbox.getByRole("option")).toHaveCount(2);
-  await picker.fill("완료 단계");
+  await picker.fill("Gate");
   for (let index = 0; index < 18; index++) await picker.press("ArrowDown");
   const visible = await picker.evaluate((element) => { const active = document.getElementById(element.getAttribute("aria-activedescendant")!)!, list = document.getElementById(element.getAttribute("aria-controls")!)!, body = element.closest("dialog")!.querySelector('[class*="body"]')!; const a = active.getBoundingClientRect(), b = list.getBoundingClientRect(), input = element.getBoundingClientRect(), owner = body.getBoundingClientRect(); return { activeOptionTop: a.top, activeOptionBottom: a.bottom, listOwnerTop: b.top, listOwnerBottom: b.bottom, activeOptionVisible: a.top >= b.top && a.bottom <= b.bottom, inputTop: input.top, inputBottom: input.bottom, bodyTop: owner.top, bodyBottom: owner.bottom, focusedInputVisible: input.top >= owner.top && input.bottom <= owner.bottom, focusedInputRetained: element === document.activeElement, listScrollTop: list.scrollTop }; });
   expect(visible.activeOptionVisible).toBe(true); expect(visible.focusedInputVisible).toBe(true); expect(visible.focusedInputRetained).toBe(true);
@@ -1097,14 +1101,14 @@ test("#461 picker UUID·동명이인·긴 후보 keyboard·Summary 필드·리�
   await dialog.getByRole("tab", { name: /리소스/ }).click(); await expect(dialog.getByRole("checkbox", { name: /Resource A/ })).toBeDisabled();
   await dialog.getByRole("button", { name: "최신 정보 다시 불러오기" }).click(); await dialog.getByRole("button", { name: "변경사항 버리고 다시 불러오기" }).click();
   const resource = dialog.getByRole("checkbox", { name: /Resource A/ }); await expect(resource).toBeEnabled(); await resource.check();
-  await dialog.getByRole("tab", { name: "작업 정보", exact: true }).click(); await expect(save(page)).toBeDisabled(); await expect(picker).not.toHaveAttribute("aria-readonly"); await expect(picker).toHaveAccessibleDescription("검색·조회는 가능합니다. 완료 단계 소속 변경은 잠겨 있습니다.");
+  await dialog.getByRole("tab", { name: "작업 정보", exact: true }).click(); await expect(save(page)).toBeDisabled(); await expect(picker).not.toHaveAttribute("aria-readonly"); await expect(picker).toHaveAccessibleDescription("검색·조회는 가능합니다. Milestone 소속 변경은 잠겨 있습니다.");
   await picker.fill("Milestone"); await expect(dialog.getByRole("listbox").getByRole("option")).toHaveCount(1); await picker.press("Enter"); await expect(dialog).toContainText("직접 지정"); expect(fixture.patches).toHaveLength(0); await picker.press("Escape");
   await expect(dialog.getByLabel("기준 시작일", { exact: true })).toHaveAttribute("readonly", ""); await expect(dialog.getByRole("button", { name: "현재 일정으로 설정", exact: true })).toBeDisabled();
   await dialog.getByRole("button", { name: "작업 편집기 닫기" }).click(); await expect(dialog).toContainText("저장하지 않은");
   await dialog.getByRole("button", { name: "계속 편집" }).click(); await dialog.getByRole("tab", { name: /리소스/ }).click(); await expect(resource).toBeChecked();
   await dialog.getByRole("button", { name: "작업 편집기 닫기" }).click(); await dialog.getByRole("button", { name: "변경사항 버리고 닫기" }).click();
   await openRow(page, "Summary");
-  const summaryPicker = dialog.getByRole("combobox", { name: "하위 작업 기본 완료 단계", exact: true });
+  const summaryPicker = dialog.getByRole("combobox", { name: "하위 작업 기본 Milestone", exact: true });
   await summaryPicker.fill(" EDITOR-11 ");
   const summaryOption = dialog.getByRole("listbox").getByRole("option");
   await expect(summaryOption).toHaveCount(1);
@@ -1147,7 +1151,7 @@ test("#461 Resource 신규 선택 해제는 잔여 draft로 dirty를 유지하�
 });
 
 test("#461 reload 후 작업 유형이 바뀌면 유효하지 않은 소속 작업 탭을 정규화한다", async ({ page }) => {
-  const fixture = await setup(page); await openMilestoneEditor(page, id(5));
+  const fixture = await setup(page); await openRow(page, "Milestone");
   const dialog = editor(page); await dialog.getByRole("tab", { name: /소속 작업/ }).click();
   const milestone = fixture.tasks.find((task) => task.taskId === id(5))!;
   milestone.type = "task"; milestone.duration = 1; milestone.stageGate = undefined; fixture.project.revision += 1;
@@ -1179,26 +1183,26 @@ test("#461 Resource 외부 revision·401에서도 초안 유지, 확인 focus와
 
 test("#461 Logistics 별도 초안·외부 revision·401 유지와 교차 저장 잠금", async ({ page }) => {
   const fixture = await setup(page);
-  await page.route(`**${apiPath}/logistics`, async (route) => route.fulfill({ json: { data: { project: fixture.project, logistics: { equipment: [{ id: id(80), name: "설비 초안", code: "EQ-80", equipmentType: "other", resourceRoles: [] }], systems: [] } } } }));
+  await page.route(`**${apiPath}/logistics`, async (route) => route.fulfill({ json: { data: { project: fixture.project, permission: "edit", logistics: { equipment: [{ id: id(80), name: "설비 초안", code: "EQ-80", equipmentType: "other", active: true, resourceRoles: [] }], systems: [] } } } }));
   await page.route(`**${apiPath}/tasks/${id(4)}/logistics-links`, async (route) => {
     if (route.request().method() === "PUT") { await route.fulfill({ status: 401, json: { error: { code: "UNAUTHORIZED" } } }); return; }
-    await route.fulfill({ json: { data: { taskId: id(4), links: { taskId: id(4), directEquipmentLinks: [], directSystemLinks: [], inheritedEquipmentLinks: [], inheritedSystemLinks: [], effectiveEquipmentIds: [], effectiveSystemIds: [] } } } });
+    await route.fulfill({ json: { data: { taskId: id(4), permission: "edit", links: { taskId: id(4), projectRevision: fixture.project.revision, compatibilityLinks: [], directEquipmentLinks: [], directSystemLinks: [], inheritedEquipmentLinks: [], inheritedSystemLinks: [], effectiveEquipmentIds: [], effectiveSystemIds: [] } satisfies TaskLogisticsLinksDto & Required<Pick<TaskLogisticsLinksDto, "projectRevision" | "compatibilityLinks">> } } });
   });
   await openRow(page); const dialog = editor(page); await dialog.getByRole("tab", { name: /물류 연결/ }).click();
   const equipment = dialog.getByRole("checkbox", { name: /설비 초안/ }); await equipment.check();
-  await dialog.getByRole("tab", { name: "작업 정보", exact: true }).click(); await expect(save(page)).toBeDisabled(); await expect(dialog.getByRole("combobox", { name: "완료 단계", exact: true })).not.toHaveAttribute("aria-readonly"); await expect(dialog.getByRole("combobox", { name: "완료 단계", exact: true })).toHaveAccessibleDescription("검색·조회는 가능합니다. 완료 단계 소속 변경은 잠겨 있습니다.");
+  await dialog.getByRole("tab", { name: "작업 정보", exact: true }).click(); await expect(save(page)).toBeDisabled(); await expect(dialog.getByRole("combobox", { name: "Milestone", exact: true })).not.toHaveAttribute("aria-readonly"); await expect(dialog.getByRole("combobox", { name: "Milestone", exact: true })).toHaveAccessibleDescription("검색·조회는 가능합니다. Milestone 소속 변경은 잠겨 있습니다.");
   fixture.project.revision++; await page.evaluate(({ publicId, revision }) => window.dispatchEvent(new StorageEvent("storage", { key: `mastergantt:project-revision:${publicId}`, newValue: String(revision) })), { publicId, revision: fixture.project.revision });
   await expect(dialog).toContainText("기준 Revision이 변경"); await dialog.getByRole("tab", { name: /물류 연결/ }).click(); await expect(equipment).toBeChecked(); await expect(equipment).toBeDisabled();
   await dialog.getByRole("button", { name: "최신 정보 다시 불러오기" }).click(); await dialog.getByRole("button", { name: "변경사항 버리고 다시 불러오기" }).click(); await expect(equipment).not.toBeChecked(); await equipment.check();
-  await dialog.getByRole("button", { name: /물류 연결 저장/ }).click(); await expect(dialog).toContainText("편집 권한이 없습니다"); await expect(equipment).toBeChecked(); await expect(equipment).toBeDisabled();
+  await dialog.getByRole("button", { name: /물류 연결 저장/ }).click(); await expect(dialog).toContainText("편집 권한이 만료"); await expect(equipment).toBeChecked(); await expect(equipment).toBeDisabled();
 });
 
 test("#461 readonly 검색 조회와 completed 후보 지정 거부", async ({ page }) => {
   const fixture = await setup(page, { editable: false });
   fixture.tasks[4].status = "completed"; fixture.tasks[4].progress = 100;
   await page.reload(); await openRow(page); const dialog = editor(page);
-  const picker = dialog.getByRole("combobox", { name: "완료 단계", exact: true });
-  await expect(picker).toBeEnabled(); await expect(picker).not.toHaveAttribute("aria-readonly"); await expect(picker).toHaveAccessibleDescription("검색·조회는 가능합니다. 완료 단계 소속 변경은 잠겨 있습니다.");
+  const picker = dialog.getByRole("combobox", { name: "Milestone", exact: true });
+  await expect(picker).toBeEnabled(); await expect(picker).not.toHaveAttribute("aria-readonly"); await expect(picker).toHaveAccessibleDescription("검색·조회는 가능합니다. Milestone 소속 변경은 잠겨 있습니다.");
   await picker.fill("Milestone"); const option = dialog.getByRole("listbox").getByRole("option"); await expect(option).toHaveCount(1); await expect(option).toHaveAttribute("aria-disabled", "true");
   await expect(picker).toHaveValue("Milestone");
   await picker.press("Enter"); await expect(picker).toHaveValue("Milestone"); await expect(dialog).toContainText("미지정"); expect(fixture.tasks.find((task) => task.taskId === id(4))?.membership?.explicitMilestoneTaskId ?? null).toBeNull(); expect(fixture.patches).toHaveLength(0);

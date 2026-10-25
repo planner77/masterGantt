@@ -1,3 +1,4 @@
+import { RESOURCE_READ_VERSION_HEADER, fromResourcePublicV2, toResourcePublicV2 } from "../../contracts/resource-public-v2";
 import type {
   ResourceDashboardFilterInput,
   ResourceDashboardSelector,
@@ -8,6 +9,8 @@ import type {
   ResourceDrillScope,
   ResourceDrillSourceContext,
 } from "@/contracts/resource-drill";
+
+import { RESOURCE_PHYSICAL_FILTER_KEYS, RESOURCE_TARGET_FILTER_KEYS } from "../../contracts/resource-dashboard";
 
 export interface ResourceDrillBinding {
   sourceContext: ResourceDrillSourceContext;
@@ -23,6 +26,7 @@ const listKeys = [
   "developerGrades",
   "statuses",
 ];
+const allListKeys = [...listKeys, ...RESOURCE_TARGET_FILTER_KEYS, ...RESOURCE_PHYSICAL_FILTER_KEYS, "projectionOrder"];
 const scalarKeys = [
   "from",
   "to",
@@ -36,11 +40,12 @@ const scalarKeys = [
 ];
 export function drillFilters(
   query: URLSearchParams,
+  legacy = false,
 ): ResourceDashboardFilterInput {
   const values: Record<string, unknown> = {};
-  for (const key of listKeys)
+  for (const key of allListKeys)
     if (query.has(key))
-      values[key] = query.get(key)!.split(",").filter(Boolean);
+      values[!legacy && key === "equipmentTypeCodes" ? "physicalEquipmentTypeCodes" : !legacy && key === "systemTypeCodes" ? "physicalSystemTypeCodes" : key] = query.get(key)!.split(",").filter(Boolean);
   for (const key of scalarKeys)
     if (query.has(key)) values[key] = query.get(key);
   if (query.has("mdPerMm"))
@@ -55,6 +60,7 @@ export function dashboardSelector(
   query: URLSearchParams,
 ): ResourceDashboardSelector {
   return {
+    ...(query.has("targetPath") ? {targetPath: JSON.parse(query.get("targetPath")!)} : {}),
     dimension: query.get("dimension") as ResourceDashboardSelector["dimension"],
     id: nullableId(query.get("id")),
     metric: query.get("metric") as ResourceDashboardSelector["metric"],
@@ -161,6 +167,7 @@ export async function queryResourceDrill(
   init?: RequestInit,
 ) {
   const request = { ...input, ...normalizedBinding(input) };
+  const legacy = new Headers(init?.headers).get(RESOURCE_READ_VERSION_HEADER) === "1";
   const response = await fetch(
     `/api/projects/${encodeURIComponent(publicId)}/resource-dashboard/query`,
     {
@@ -168,15 +175,14 @@ export async function queryResourceDrill(
       method: "POST",
       credentials: "same-origin",
       cache: "no-store",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(request),
+      headers: { ...Object.fromEntries(new Headers(init?.headers)), "Content-Type": "application/json" },
+      body: JSON.stringify(legacy ? request : toResourcePublicV2(request)),
     },
   );
   if (!response.ok) return response;
-  const body = await response
-      .clone()
-      .json()
-      .catch(() => null),
+  const rawBody = await response.clone().json().catch(() => null);
+  if (!legacy && rawBody?.data?.schema !== "resource-dashboard/2") throw Error("INVALID_RESPONSE");
+  const body = fromResourcePublicV2(rawBody) as typeof rawBody,
     echo = body?.drill;
   if (
     !echo ||
@@ -184,7 +190,8 @@ export async function queryResourceDrill(
     stable(echo.scope) !== stable(request.scope) ||
     stable(echo.projection) !== stable(request.projection) ||
     echo.assignmentScope !== "exact-source-intersection" ||
-    echo.projectReferenceScope !== "same-resource-population-and-period"
+    echo.projectReferenceScope !== "same-resource-population-and-period" ||
+    ((request.filters.projectionOrder !== undefined || RESOURCE_TARGET_FILTER_KEYS.some(key => request.filters[key]?.length)) && echo.targetProjectReferenceScope !== "full-canonical-project-same-period")
   )
     throw Error("INVALID_RESPONSE");
   if (
@@ -196,24 +203,30 @@ export async function queryResourceDrill(
     throw Error("INVALID_RESPONSE");
   return response;
 }
-export function resourceProjectionFetch(
+export async function resourceProjectionFetch(
   binding: ResourceDrillBinding | null,
   path: string,
   init?: RequestInit,
 ) {
-  if (!binding)
-    return fetch(path, {
+  if (!binding) {
+    const response = await fetch(path, {
       ...init,
       credentials: "same-origin",
       cache: "no-store",
     });
+    if (response.ok && new Headers(init?.headers).get(RESOURCE_READ_VERSION_HEADER) !== "1") {
+      const body = await response.clone().json().catch(()=>null);
+      if(body?.data?.schema !== "resource-dashboard/2") throw Error("INVALID_RESPONSE");
+    }
+    return response;
+  }
   const url = new URL(path, "http://resource-query.invalid"),
     publicId = decodeURIComponent(url.pathname.split("/")[3]);
   return queryResourceDrill(
     publicId,
     {
       ...binding,
-      filters: drillFilters(url.searchParams),
+      filters: drillFilters(url.searchParams,new Headers(init?.headers).get(RESOURCE_READ_VERSION_HEADER) === "1"),
       projection: drillProjection(url),
     },
     init,
@@ -240,6 +253,8 @@ export function normalizedDrillFilters(input: ResourceDashboardFilterInput) {
         ].sort(),
       ]),
     ),
+    ...Object.fromEntries([...RESOURCE_TARGET_FILTER_KEYS,...RESOURCE_PHYSICAL_FILTER_KEYS].filter(key => input[key]?.length).map(key => [key, [...new Set(input[key])].sort()])),
+    ...(input.projectionOrder?.length ? {projectionOrder:input.projectionOrder} : {}),
     mdPerMm: input.mdPerMm ?? null,
     mdPerMmProvided: Object.hasOwn(input, "mdPerMm"),
     ...(input.granularity ? { granularity: input.granularity } : {}),

@@ -9,7 +9,34 @@ export type { ResourcePlanRowSelector, ResourcePlanDemandScope, ResourcePlanGran
 export const RESOURCE_DASHBOARD_LIMITS = Object.freeze({ tasks: 5000, assignments: 8000, links: 20000, calendarRules: 20000, calendarDates: 20000, catalogMemberships: 16000,
   rangeDays: 366, idsPerField: 200, totalIds: 400, groupsPerResource: 32, groupAssignmentRows: 16000,
   cells: 5000, wbsPathEntries: 50000, wbsPathChars: 20000, reportBytes: 2 * 1024 * 1024, detailPage: 100, detailOffset: 8000 });
-export interface ResourceDashboardFilterInput {
+export const RESOURCE_TARGET_LIMITS = Object.freeze({ snapshotRows: 50000, provenancePaths: 50000, lineageEdges: 50000, projectionCells: 5000, responseSourceRows: 5000 });
+export const RESOURCE_PHYSICAL_FILTER_KEYS = ["equipmentIds", "systemIds", "physicalEquipmentTypeCodes", "physicalSystemTypeCodes"] as const;
+export const RESOURCE_TARGET_FILTER_KEYS = ["targetIds", "projectProcessIds", "processOccurrenceIds", "processTypeIds", "workAreaIds", "targetScopes", "memberEquipmentIds", "memberSystemIds", "equipmentTypeCodes", "systemTypeCodes", "directEquipmentIds", "directSystemIds"] as const;
+export const RESOURCE_TARGET_DIMENSIONS = ["target", "process", "processType", "workArea", "scope", "equipmentType", "systemType", "equipment", "system", "group", "resource"] as const;
+export type ResourceTargetDimension = typeof RESOURCE_TARGET_DIMENSIONS[number];
+export interface ResourceDashboardTargetFilters {
+  equipmentIds?: string[]; systemIds?: string[]; physicalEquipmentTypeCodes?: string[]; physicalSystemTypeCodes?: string[];
+  targetIds?: string[]; projectProcessIds?: string[]; processOccurrenceIds?: string[]; processTypeIds?: string[]; workAreaIds?: string[];
+  targetScopes?: ("process" | "project_common")[];
+  memberEquipmentIds?: string[]; memberSystemIds?: string[]; equipmentTypeCodes?: string[]; systemTypeCodes?: string[];
+  directEquipmentIds?: string[]; directSystemIds?: string[];
+  projectionOrder?: ResourceTargetDimension[];
+}
+export interface ResourceTargetPathEntry { dimension: ResourceTargetDimension; id: string | null }
+export interface ResourceDashboardTargetNode {
+  dimension: ResourceTargetDimension; id: string | null; name: string | null; active: boolean | null;
+  summary: ResourceDashboardSummary; sourceKinds: ("target_binding" | "legacy_direct" | "target_unlinked")[];
+  equipmentQuantity: number; systemCount: number; children: ResourceDashboardTargetNode[];
+}
+export interface ResourceDashboardTargetProjection {
+  order: ResourceTargetDimension[]; children: ResourceDashboardTargetNode[];
+  projectReference: ResourceDashboardSummary;
+  relatedMembers: import("../domain/resources/resource-kpi-targets").ResourceKpiTargetMemberSummary;
+  diagnostics: { targetUnlinkedTaskCount: number; legacyOnlyTaskCount: number; unusedTargetIds: string[]; projectCommonTargetIds: string[]; noWorkAreaTargetIds: string[]; unmappedProjectProcessIds: string[] };
+  metadata: { limits: typeof RESOURCE_TARGET_LIMITS; measure: "related planned effort"; subtotalsAdditive: false; assignmentScope: "A"; memberScope: "T0"; projectReferenceScope: "full canonical Project; same period/calendar/asOf/mdPerMm; no source or user filters" };
+  catalog: { dimension: ResourceTargetDimension | "projectProcess"; id: string; name: string; active: boolean; code: string | null }[];
+}
+export interface ResourceDashboardFilterInput extends ResourceDashboardTargetFilters {
   from?: string; to?: string; asOfDate?: string;
   search?: string; taskSearch?: string;
   mode?: "resource" | "group";
@@ -19,7 +46,7 @@ export interface ResourceDashboardFilterInput {
   roles?: ResourceWorkloadRole[]; developerGrades?: (DeveloperGrade | "UNSPECIFIED")[]; statuses?: TaskStatus[];
   mdPerMm?: number | null;
 }
-export interface ResourceDashboardFilters {
+export interface ResourceDashboardFilters extends ResourceDashboardTargetFilters {
   from: string | null; to: string | null; asOfDate: string | null; search: string; taskSearch: string;
   mode: "resource" | "group";
   granularity?: ResourcePlanGranularity;
@@ -30,12 +57,13 @@ export interface ResourceDashboardFilters {
 }
 export type ResourceDashboardMetric = "all" | "notStarted" | "inProgress" | "completed" | "delayed" | "unset" | "completelyUnassigned" | "groupOnly" | "personallyUnassigned";
 export interface ResourceDashboardSelector {
-  dimension: "all" | "resource" | "group" | "role" | "milestone" | "diagnostic";
+  dimension: "all" | "resource" | "group" | "role" | "milestone" | "diagnostic" | "targetProjection";
+  targetPath?: ResourceTargetPathEntry[];
   id: string | null;
   milestoneTaskId?: string | null;
   metric: ResourceDashboardMetric;
   resourceId?: string;
-  assignmentScope?: "selected" | "milestoneReference" | "milestoneExcluded";
+  assignmentScope?: "selected" | "milestoneReference" | "milestoneExcluded" | "projectReference";
 }
 export interface ResourceDashboardEffort {
   knownMd: number; plannedMd: number | null; plannedMm: number | null;
@@ -65,9 +93,10 @@ export interface ResourceDashboardStage {
   selected: ResourceDashboardSummary;
 }
 export interface ResourceDashboardDto {
+  targetProjection?: ResourceDashboardTargetProjection;
   resourceScopeContext?: ResourceDrillSourceContext;
   plan?: ResourceDashboardPlanDto;
-  schema: "resource-dashboard/1"; projectPublicId: string; projectRevision: number; catalogRevision: number;
+  schema: "resource-dashboard/1" | "resource-dashboard/2"; projectPublicId: string; projectRevision: number; catalogRevision: number;
   calendarRevision: string; snapshotId: string; calculatedAt: string; asOfDate: string; timezone: "Asia/Seoul";
   filters: ResourceDashboardFilters; range: { from: string; to: string }; rangeFallback: boolean;
   mdPerMm: number | null; mdPerMmSource: "query" | "environment" | "unset";
@@ -83,7 +112,8 @@ export interface ResourceDashboardDto {
     inapplicableFilters: string[]; personalFiltersAppliedToA: boolean };
   catalog: { resources: { id: string; name: string; code: string | null; active: boolean; roles: ResourceWorkloadRole[]; developerGrade: DeveloperGrade | null; groupIds: string[] }[];
     groups: { id: string; name: string; code: string | null; active: boolean }[];
-    milestones: { id: string; name: string }[]; wbsRoots: { id: string; name: string; type: "task" | "summary" | "milestone" }[] };
+    milestones: { id: string; name: string }[]; wbsRoots: { id: string; name: string; type: "task" | "summary" | "milestone" }[];
+    targetOptions?: ResourceDashboardTargetProjection["catalog"] };
   metadata: { groupRoleSubtotalsAdditive: false; precision: "raw"; diagnosticsScope: string; searchScope: string;
     historicalStateRestoration: false; totalFrom: "full selected assignment set"; limits: typeof RESOURCE_DASHBOARD_LIMITS };
 }
@@ -91,6 +121,7 @@ export interface ResourceDashboardDetailInput {
   snapshotId: string; selector: ResourceDashboardSelector; view: "tasks" | "assignments"; offset: number; limit: number;
 }
 export interface ResourceDashboardDetailRow {
+  targetSources?: import("./task-target-bindings").TaskTargetBindingsDto;
   taskId: string; taskName: string; externalId: string; status: TaskStatus; progress: number | null;
   taskStart: string | null; taskEnd: string | null; duration: number | null;
   wbsPath: { taskId: string; name: string }[];
@@ -103,7 +134,7 @@ export interface ResourceDashboardDetailRow {
 }
 export interface ResourceDashboardDetailsDto {
   resourceDataContext?: ResourceDataContext;
-  schema: "resource-dashboard/1"; snapshotId: string; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
+  schema: "resource-dashboard/1" | "resource-dashboard/2"; snapshotId: string; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
   selector: ResourceDashboardSelector; view: "tasks" | "assignments"; offset: number; limit: number; totalCount: number;
   nextOffset: number | null; rows: ResourceDashboardDetailRow[];
 }
@@ -115,7 +146,7 @@ export interface ResourceDashboardGroupChildrenInput {
 }
 export interface ResourceDashboardGroupChildrenDto {
   resourceDataContext?: ResourceDataContext;
-  schema: "resource-dashboard/1"; snapshotId: string; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
+  schema: "resource-dashboard/1" | "resource-dashboard/2"; snapshotId: string; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
   groupId: string | null; milestoneTaskId?: string | null; filters: ResourceDashboardFilters; range: { from: string; to: string }; asOfDate: string; mdPerMm: number | null; mdPerMmSource: "query" | "environment" | "unset"; summary: ResourceDashboardSummary;
   offset: number; limit: number; totalCount: number; nextOffset: number | null; rows: ResourceDashboardRow[];
 }
@@ -125,7 +156,13 @@ export interface ResourcePlanPersonMetadata {
   name: string; code: string | null; active: boolean; groupIds: string[];
   roles: ResourceWorkloadRole[]; developerGrade: DeveloperGrade | null;
 }
+export interface ResourcePlanTargetContext {
+  filters: ResourceDashboardTargetFilters;
+  measure: "related planned effort"; subtotalsAdditive: false;
+  projectReferenceScope: "same Capacity R and period; Target/Task/Milestone/source restrictions removed";
+}
 export interface ResourceDashboardPlanDto extends Omit<ResourcePlanResult, "resources" | "groups" | "metadata"> {
+  targetContext?: ResourcePlanTargetContext;
   resources: (Omit<ResourcePlanResourceSeries, "milestones"> & ResourcePlanPersonMetadata & { milestones: (ResourcePlanResourceSeries["milestones"][number] & { name: string; scheduledDate: string | null })[] })[];
   groups: (ResourcePlanGroupSeries & { name: string; code: string | null; active: boolean })[];
   metadata: ResourcePlanResult["metadata"] & { limits: typeof RESOURCE_PLAN_LIMITS; populationScope: "ordinary-task-personal-assignment-history-classification-only"; groupDisplayScope: "selected-group-and-activity" };
@@ -136,12 +173,14 @@ export interface ResourcePlanDetailInput {
   demandScope: ResourcePlanDemandScope; date?: string; offset: number; limit: number;
 }
 export interface ResourcePlanDetailContext extends ResourcePlanDetailInput {
+  resourceScopeContext?: ResourceDrillSourceContext;
+  targetContext?: ResourcePlanTargetContext;
   resourceDataContext?: ResourceDataContext;
-  schema: "resource-dashboard/1"; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
+  schema: "resource-dashboard/1" | "resource-dashboard/2"; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
   filters: ResourceDashboardFilters; range: { from: string; to: string }; asOfDate: string; mdPerMm: number | null; mdPerMmSource: "query" | "environment" | "unset";
   totalCount: number; nextOffset: number | null;
 }
 export interface ResourcePlanDailyDto extends ResourcePlanDetailContext { view: "daily"; rows: ResourcePlanDailyRow[] }
 export interface ResourcePlanDayResourcesDto extends ResourcePlanDetailContext { view: "day-resources"; rows: (ResourcePlanDayResourceRow & ResourcePlanPersonMetadata)[] }
-export interface ResourcePlanDayAssignmentsDto extends ResourcePlanDetailContext { view: "day-assignments"; rows: (ResourcePlanDayAssignmentRow & { taskName: string; externalId: string; taskStart: string | null; taskEnd: string | null; assignmentStart: string | null; assignmentEnd: string | null; milestoneName: string; wbsPath: { taskId: string; name: string }[] })[] }
+export interface ResourcePlanDayAssignmentsDto extends ResourcePlanDetailContext { view: "day-assignments"; rows: (ResourcePlanDayAssignmentRow & { targetSources?: import("./task-target-bindings").TaskTargetBindingsDto; resourceActive?: boolean; taskName: string; externalId: string; taskStart: string | null; taskEnd: string | null; assignmentStart: string | null; assignmentEnd: string | null; milestoneName: string; wbsPath: { taskId: string; name: string }[] })[] }
 export type ResourcePlanDetailsDto = ResourcePlanDailyDto | ResourcePlanDayResourcesDto | ResourcePlanDayAssignmentsDto;

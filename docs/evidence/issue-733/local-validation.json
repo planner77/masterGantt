@@ -1,0 +1,171 @@
+{
+  "schema": "issue733-local-validation-v1",
+  "recordedAt": "2026-10-19T23:15:37.568842+00:00",
+  "baseSha": "71b870b75da73f413da54e22e55bb03dc0f5abe7",
+  "applicationVersion": "0.125.0",
+  "environment": {
+    "node": "22.14.0",
+    "npm": "11.10.0",
+    "playwright": "1.63.0",
+    "browser": "Playwright-managed Chromium",
+    "workers": 1,
+    "retries": 0,
+    "maxFailures": 0
+  },
+  "runtimeSource": {
+    "schema": "issue733-runtime-source-v1",
+    "fileCount": 973,
+    "aggregateSha256": "83d6e30966426b5fb794d9c2bf6d2482e6c344d8c3fae0d7fba1a3fae386e080",
+    "coverage": "src/** + tests/** + package.json + package-lock.json; generated next-env/tsconfig verified separately"
+  },
+  "unit": {
+    "status": "PASS",
+    "exitCode": 0,
+    "fileCount": 12,
+    "passed": 116,
+    "failed": 0,
+    "files": [
+      "tests/domain/wbs-task-ledger-acceptance.test.ts",
+      "tests/domain/wbs-task-ledger.test.ts",
+      "tests/features/resources/process-workarea-dashboard.test.ts",
+      "tests/features/resources/resource-drill-navigation-model.test.ts",
+      "tests/features/resources/resource-drill-transport.test.ts",
+      "tests/features/resources/wbs-view-model.test.ts",
+      "tests/features/resources/wbs-view-transport.test.ts",
+      "tests/server/logistics/issue-731-kpi.test.ts",
+      "tests/server/resources/issue-733-process-configuration.test.ts",
+      "tests/server/resources/resource-kpi-compatibility.test.ts",
+      "tests/server/resources/resource-kpi-integration.test.ts",
+      "tests/server/resources/wbs-dashboard-views-http.test.ts"
+    ]
+  },
+  "browser": {
+    "direct": {
+      "status": "PASS",
+      "exitCode": 0,
+      "uniqueCases": 5,
+      "durationMs": 198144.56,
+      "report": "/tmp/issue733-direct5-report/index.html"
+    },
+    "adjacent": {
+      "status": "PASS",
+      "exitCode": 0,
+      "uniqueCases": 9,
+      "durationDisplay": "5.5m",
+      "cases": [
+        "✓  1 [chromium] › tests/e2e/issue-624-logistics-unified.spec.ts:53:5 › #624 same canonical Project across four logistics perspectives, full Milestone gate, exact drill and five widths (28.8s)",
+        "✓  2 [chromium] › tests/e2e/issue-719-contextual-help.spec.ts:74:37 › #719 logistics 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말 (11.2s)",
+        "✓  3 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:86:5 › #730 지연 원본은 새 상세·상세 Task 명령·이름 검색에 양보한다 (24.8s)",
+        "✓  4 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:201:5 › #730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 복원·Gantt 보존 (36.6s)",
+        "✓  5 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:277:5 › #730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차단·구버전 설정 복구 (35.0s)",
+        "✓  6 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:402:5 › #730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키보드·읽기 전용 가상 그룹 (28.1s)",
+        "✓  7 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:430:5 › #730 실제 HTTP Milestone·리소스·WorkArea 원본 ID와 취소 후 정확한 조회 복귀 (26.4s)",
+        "✓  8 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:507:5 › #730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관점 보존 (22.9s)",
+        "✓  9 [chromium] › tests/e2e/milestone-dashboard-state.spec.ts:20:5 › #463 readonly full-state/F separation, keyboard and five-width geometry (6.8s)"
+      ],
+      "log": "/tmp/issue733-regression.log"
+    },
+    "captureProbes": {
+      "count": 2,
+      "status": "PASS",
+      "countedAsProductAcceptance": false,
+      "temporarySpecsRemoved": true
+    },
+    "evidenceDirectory": "output/playwright/issue-733"
+  },
+  "static": {
+    "typecheck": "PASS",
+    "lint": {
+      "status": "PASS",
+      "errors": 0,
+      "existingWarnings": 13
+    },
+    "version": "PASS",
+    "testDiscovery": {
+      "status": "PASS",
+      "unitFiles": 250,
+      "browserCases": 763,
+      "rootAndExternalCwd": true
+    },
+    "markdown": {
+      "status": "PASS",
+      "files": 276
+    },
+    "diffCheck": "PASS",
+    "productionBuild": "PASS",
+    "productionBuildExitCode": 0
+  },
+  "prepr": {
+    "fast": {
+      "status": "BLOCKED",
+      "sourceStable": true,
+      "steps": [],
+      "errors": [
+        "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+      ],
+      "unknown": [
+        {
+          "path": "src/contracts/wbs-dashboard-views.ts",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "src/features/logistics/project-logistics-unified.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "src/server/resources/wbs-dashboard-views-core.ts",
+          "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+        }
+      ],
+      "missing": [],
+      "report": ".prepr-reports/issue733-fast/report.json"
+    },
+    "targeted": {
+      "status": "BLOCKED",
+      "sourceStable": true,
+      "steps": [],
+      "errors": [
+        "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+      ],
+      "unknown": [
+        {
+          "path": "src/contracts/wbs-dashboard-views.ts",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "src/features/logistics/project-logistics-unified.tsx",
+          "reason": "No verified producer→consumer test map. Manager must map/verify."
+        },
+        {
+          "path": "src/server/resources/wbs-dashboard-views-core.ts",
+          "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+        }
+      ],
+      "missing": [],
+      "report": ".prepr-reports/issue733-targeted/report.json"
+    }
+  },
+  "review": {
+    "separateQaDocsSourceReview": "PASS",
+    "unresolvedSourceP1P2": 0,
+    "independentHumanQa": "N/A(Owner-managed)",
+    "riskLevel": "HIGH",
+    "qaMethod": "OWNER_MANAGED",
+    "managerDecision": "NOT TESTED"
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "mainGhcr": "N/A(request scope)",
+    "releaseRequired": true,
+    "releaseAuthorized": false,
+    "monitorCi": false
+  },
+  "exclusions": {
+    "remoteOnly": "Official full regression/6 hosted shards/Docker runtime/GHCR/Trusted/Owner",
+    "localBoundedSelection": "Only directly affected #730 six cases, #624 exact legacy integration, #463 readonly, #719 logistics plus dedicated #733 five; remaining historical #730 failure file cases are deferred to full PR CI",
+    "environment": "Physical touch/screen reader/final manual UX/production not tested"
+  }
+}

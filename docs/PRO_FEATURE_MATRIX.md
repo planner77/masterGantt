@@ -124,8 +124,8 @@ same-parent Chart reorder는 SVAR PRO에 의존하지 않는다. Core 2.7.3의 �
 
 #551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
 
-## Issue #552 — Core 표시 전환
+## Issue #552 — Core WBS 분리와 운영 marker-OFF
 
-단일 표시 토글과 ordinary WBS controlled projection은 공개 Core filter-tasks/select-task/scroll-chart를 사용한다. canonical 전체 tasks/links와 별도 조회 lane을 유지하며 PRO markers, private write, deep import, 새 Gantt/remount 또는 새 패키지를 사용하지 않는다. 설치 typed derived rows의 read-only filter-reset 확인과 DOM plot/owner clip 측정은 기존 버전 결합 adapter에 격리한다. 안정 공식 geometry 보장 또는 PRO parity로 표기하지 않는다. 개발 bounded select/display probe는 실제 browser 기술 실험이고 production testhook이 아니다. 원격/main/실물 touch와 local synthetic/actual HTTP 증거는 별도다.
+공개 Core `filter-tasks`와 기존 controlled projection으로 Summary/Task만 표시하며 M native row/bar/대체 endpoint는0이다. canonical 전체 Task/Link/Membership·Summary 파생·전체 Gate·Resource/Target·Export는 유지한다. 운영 marker lane/guide/예약 높이·marker-only observer/listener/RAF/date-axis/scroll은0이고 Toolbar toggle/default ON/임시 날짜 ON은 제거한다. 날짜 확인은 Dashboard의 같은 canonical M Editor와 정확한 소속 Task 경로를 사용하며 숨은 M select·M 날짜축 확장은 금지한다.
 
-#552의 Chart 측정은 최신 DOM commit과 installed `_columnsWidth`/`_scrollSize`/`_chartHeight`를 단일 adapter에서 읽는다. 지원 all/Chart-only의 실제 plot과 설치 Layout 식이 ±1px로 일치하는 stale 폭만 공개 `resize-chart`로 직전 layoutKey=[version,correction,_columnsWidth,widget.offsetWidth]와 같은 재요청은 보완하지 않는다. 새 layoutKey의 측정 요청은 다시 한 번 보완할 수 있다. Grid-only와 unsupported geometry는 fail-closed하며 private store write/라이브러리 수정/강제 scroll 없이 현재 공개 left/top을 유지한다. 이 derived state/DOM 의존은 Core 2.7.3/store 2.7.2 검증 경계이며 안정된 공식 geometry 계약으로 확대하지 않는다.
+#551 기본 OFF 개발 opt-in capability와 버전 결합 read-only geometry adapter는 보존한다. PRO markers·private write·deep import·library patch·새 Gantt/remount·새 package를 추가하지 않는다. 과거 #552 독자 resize 보완은 현재 authority가 아니며 main #667의 단일 sync/Coordinator/U4 port를 소비한다. 안정 공식 geometry 보장이나 PRO parity로 표기하지 않는다. `NEXT_PUBLIC_GANTT_WBS_MODE=legacy`는 marker gate와 독립인 build-time 비상 복구로 재빌드/재배포가 필요하다. 실제 browser/HTTP·SQLite/원격 Quality/E2E/Docker 결과는 [Work Packet](exec-plans/active/ISSUE_552.md)에서 source별로 분리한다.

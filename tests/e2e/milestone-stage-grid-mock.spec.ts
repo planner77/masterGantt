@@ -8,11 +8,11 @@ test("#462 readonly stage query and keyboard common editor entry preserve instan
   summary.membership = { explicitMilestoneTaskId: milestone.taskId, effectiveMilestoneTaskId: milestone.taskId, inheritedFromTaskId: null };
   const requests: string[] = []; await page.goto(`/projects/${publicId}`); await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible(); const identity = await rememberGanttRoot(page);
   page.on("request", (request) => { if (new URL(request.url()).pathname === `/api/projects/${publicId}` || !["GET", "HEAD"].includes(request.method())) requests.push(`${request.method()} ${new URL(request.url()).pathname}`); });
-  const trigger = page.locator('#project-panel-schedule .project-stage-filter-trigger'); await trigger.click(); const input = page.getByRole("combobox", { name: "단계 이름·외부 ID·작업 ID 검색" }); await input.fill(` ${milestone.taskId.toUpperCase()} `); await input.press("ArrowDown"); await input.press("ArrowDown"); await input.press("Enter"); await expect(trigger).toBeFocused();
+  const trigger = page.locator('#project-panel-schedule .project-stage-filter-trigger'); await trigger.click(); const input = page.getByRole("combobox", { name: "Milestone 이름·외부 ID·작업 ID 검색" }); await input.fill(` ${milestone.taskId.toUpperCase()} `); await input.press("ArrowDown"); await input.press("ArrowDown"); await input.press("Enter"); await expect(trigger).toBeFocused();
   await expect(rowNamed(page, "Existing summary child")).toBeVisible(); await expect(rowNamed(page, "Stable leaf")).toHaveCount(0);
   await rowNamed(page, "Existing summary child").click({ button: "right" }); const menu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
-  for (let i=0;i<12;i++) { if (await menu.getByRole("menuitem", { name: "완료 단계 연결…", exact: true }).evaluate((element) => element === document.activeElement)) break; await page.keyboard.press("ArrowDown"); }
-  await page.keyboard.press("Enter"); const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true }); await expect(dialog).toBeVisible(); await expect(dialog.getByRole("combobox", { name: "완료 단계", exact: true })).toBeEnabled(); await page.keyboard.press("Escape"); await expect(dialog).toHaveCount(0);
+  for (let i=0;i<12;i++) { if (await menu.getByRole("menuitem", { name: "Milestone 연결…", exact: true }).evaluate((element) => element === document.activeElement)) break; await page.keyboard.press("ArrowDown"); }
+  await page.keyboard.press("Enter"); const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true }); await expect(dialog).toBeVisible(); await expect(dialog.getByRole("combobox", { name: "Milestone", exact: true })).toBeEnabled(); await page.keyboard.press("Escape"); await expect(dialog).toHaveCount(0);
   await expectSameGanttRoot(page, identity); expect(requests).toEqual([]);
 });
 
@@ -22,12 +22,9 @@ test("#462 native mixed Link port interaction is rejected before API and legacy 
   fixture.links.push({ id: "00000000-0000-4000-8000-000000000090", predecessorExternalId: ordinary.externalId, successorExternalId: milestone.externalId, type: "FS", lag: 0, legacyMixed: true });
   await page.setViewportSize({ width: 1440, height: 1000 }); await page.goto(`/projects/${publicId}`); await expect(page.getByText("편집 중", { exact: true })).toBeVisible(); const identity = await rememberGanttRoot(page); let writes = 0;
   page.on("request", (request) => { if (request.url().includes(`/api/projects/${publicId}/links`) && !["GET", "HEAD"].includes(request.method())) writes++; });
-  // Milestone remains canonical, but native WBS/Chart does not expose mixed Link ports.
-  const source = page.locator('.wx-bar[data-task-id=":' + milestone.taskId + '"]');
-  const target = page.locator('.wx-bar[data-task-id=":' + ordinary.taskId + '"]');
-  await expect(source).toHaveCount(0); await expect(target).toBeVisible();
-  await expect(page.locator('[data-link-id=":00000000-0000-4000-8000-000000000090"]')).toHaveCount(0);
-  expect(writes).toBe(0); expect(fixture.links).toHaveLength(1); await expectSameGanttRoot(page, identity);
+  const source = page.locator(`.wx-bar[data-task-id=":${milestone.taskId}"]`), target = page.locator(`.wx-bar[data-task-id=":${ordinary.taskId}"]`);
+  await expect(source).toHaveCount(0); // A hidden Milestone cannot expose a native Link port.
+  await expect(target).toBeVisible(); expect(writes).toBe(0); expect(fixture.links).toHaveLength(1); await expectSameGanttRoot(page, identity);
   await rowNamed(page, "Stable leaf").click({ button: "right" }); await chooseTaskInformation(page); const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true }); await dialog.getByRole("tab", { name: /관계/ }).click(); await expect(dialog).toContainText("Stable milestone"); await dialog.getByRole("button", { name: "Stable milestone 관계 편집", exact: true }).click();
   const relation = page.getByRole("dialog", { name: /작업 관계 관리/ }); await expect(relation).toBeVisible(); await expect(relation.getByRole("button", { name: "수정 저장", exact: true })).toBeDisabled(); await expect(relation.getByRole("button", { name: "관계 삭제", exact: true }).first()).toBeEnabled(); await relation.getByRole("button", { name: "닫기", exact: true }).click();
   // External canonical completed state is delivered by the existing visibility refresh.
@@ -44,7 +41,7 @@ test("#462 canonical URL update/delete and tree/scroll/scale survive stage trans
   const summaryRow = rowNamed(page, "Stable summary"), toggle = summaryRow.locator('[data-action="open-task"]'); await toggle.click(); await expect(toggle).toHaveClass(/wxi-menu-right/);
   const frame = page.locator('.project-gantt-frame'), scale = await frame.getAttribute('data-gantt-scale-mode'); const grid = page.locator('.project-gantt-scroll'); await grid.evaluate((element) => { element.scrollLeft = 32; }); const scroll = await grid.evaluate((element) => element.scrollLeft);
   let reads = 0; page.on('request', (request) => { if (new URL(request.url()).pathname === `/api/projects/${publicId}`) reads++; });
-  await page.locator('#project-panel-schedule .project-stage-filter-trigger').click(); const picker = page.getByRole('combobox', { name: '단계 이름·외부 ID·작업 ID 검색' }); await picker.fill(milestone.taskId); await picker.press('End'); await picker.press('Enter'); await expect(toggle).toHaveClass(/wxi-menu-right/); await page.getByRole('button', { name: '단계 조건 해제', exact: true }).click(); await expect(toggle).toHaveClass(/wxi-menu-right/);
+  await page.locator('#project-panel-schedule .project-stage-filter-trigger').click(); const picker = page.getByRole('combobox', { name: 'Milestone 이름·외부 ID·작업 ID 검색' }); await picker.fill(milestone.taskId); await picker.press('End'); await picker.press('Enter'); await expect(toggle).toHaveClass(/wxi-menu-right/); await page.getByRole('button', { name: 'Milestone 조건 해제', exact: true }).click(); await expect(toggle).toHaveClass(/wxi-menu-right/);
   await expectSameGanttRoot(page, identity); await expect(frame).toHaveAttribute('data-gantt-scale-mode', scale!); expect(await grid.evaluate((element) => element.scrollLeft)).toBe(scroll); expect(reads).toBe(0);
   const leafRow = rowNamed(page, 'Stable leaf'); await expect(leafRow).toHaveAttribute('data-task-url', 'https://example.test/a');
   await page.evaluate(() => { const current = window as typeof window & { stageOpenedUrls: string[] }; current.stageOpenedUrls = []; window.open = ((url?: string | URL, _target?: string, features?: string) => { current.stageOpenedUrls.push(`${url}|${features}`); return null; }) as typeof window.open; });
@@ -65,12 +62,12 @@ test("#462 stage column preserves resized name width and pending disables editor
   const before = (await nameCell.boundingBox())!.width, grip = (await nameCell.locator('.wx-grip').boundingBox())!;
   await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2); await page.mouse.down(); await page.mouse.move(grip.x + grip.width / 2 + 48, grip.y + grip.height / 2, { steps: 6 }); await page.mouse.up();
   const resized = (await nameCell.boundingBox())!.width; expect(resized).toBeGreaterThan(before + 20);
-  const toggle = async (shown: boolean) => { await header.click({ button: 'right' }); await page.locator('.project-column-menu').getByRole('checkbox', { name: '완료 단계', exact: true }).setChecked(shown); await page.keyboard.press('Escape'); };
+  const toggle = async (shown: boolean) => { await header.click({ button: 'right' }); await page.locator('.project-column-menu').getByRole('checkbox', { name: 'Milestone', exact: true }).setChecked(shown); await page.keyboard.press('Escape'); };
   await toggle(true); expect((await nameCell.boundingBox())!.width).toBeCloseTo(resized, 0); expect((await header.locator('[data-header-id=":milestoneStage"]').boundingBox())!.width).toBe(180);
   await toggle(false); expect((await nameCell.boundingBox())!.width).toBeCloseTo(resized, 0); await toggle(true);
   const gate = deferred(), started = deferred(); fixture.nextPost = { kind: 'success', gate, started };
   await page.getByRole('button', { name: '요약 작업 추가', exact: true }).click(); await started.promise;
-  const row = rowNamed(page, 'Existing summary child'); await expect(row.getByRole('button', { name: /완료 단계:/ })).toBeDisabled();
-  await row.click({ button: 'right' }); const menu = page.getByRole('menu', { name: '작업 메뉴', exact: true }); await expect(menu.getByRole('menuitem', { name: '완료 단계 연결…', exact: true })).toBeDisabled(); await page.keyboard.press('Escape');
+  const row = rowNamed(page, 'Existing summary child'); await expect(row.getByRole('button', { name: /Milestone:/ })).toBeDisabled();
+  await row.click({ button: 'right' }); const menu = page.getByRole('menu', { name: '작업 메뉴', exact: true }); await expect(menu.getByRole('menuitem', { name: 'Milestone 연결…', exact: true })).toBeDisabled(); await page.keyboard.press('Escape');
   gate.resolve(); await expect(page.getByRole('button', { name: '요약 작업 추가', exact: true })).toBeEnabled(); await expectSameGanttRoot(page, identity); expect(fixture.posts).toHaveLength(1);
 });

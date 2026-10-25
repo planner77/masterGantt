@@ -1,0 +1,99 @@
+{
+  "viewport": 1920,
+  "document": 1920,
+  "tableWidth": 1438,
+  "scroll": {
+    "width": 1438,
+    "content": 1438,
+    "overflow": "auto"
+  },
+  "header": [
+    {
+      "left": 241,
+      "width": 886
+    },
+    {
+      "left": 1127,
+      "width": 144
+    },
+    {
+      "left": 1271,
+      "width": 88
+    },
+    {
+      "left": 1359,
+      "width": 88
+    },
+    {
+      "left": 1447,
+      "width": 88
+    },
+    {
+      "left": 1535,
+      "width": 144
+    }
+  ],
+  "first": [
+    {
+      "left": 241,
+      "width": 886
+    },
+    {
+      "left": 1127,
+      "width": 144
+    },
+    {
+      "left": 1271,
+      "width": 88
+    },
+    {
+      "left": 1359,
+      "width": 88
+    },
+    {
+      "left": 1447,
+      "width": 88
+    },
+    {
+      "left": 1535,
+      "width": 144
+    }
+  ],
+  "buttons": [
+    {
+      "name": "공통 계층 조회 도움말",
+      "width": 44,
+      "height": 44
+    },
+    {
+      "name": "계층 새로고침",
+      "width": 122,
+      "height": 44
+    },
+    {
+      "name": "상세",
+      "width": 54,
+      "height": 44
+    },
+    {
+      "name": "원본",
+      "width": 54,
+      "height": 44
+    },
+    {
+      "name": "상세",
+      "width": 54,
+      "height": 44
+    },
+    {
+      "name": "원본",
+      "width": 54,
+      "height": 44
+    },
+    {
+      "name": "상세",
+      "width": 54,
+      "height": 44
+    }
+  ]
+}

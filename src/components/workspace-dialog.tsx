@@ -4,10 +4,11 @@ import { useContext, useEffect, useId, useLayoutEffect, useRef, type ReactNode, 
 import { WorkspaceMessageContext } from "./workspace-message-context";
 import styles from "./workspace-feedback.module.css";
 
-export function WorkspaceDialog({ title, children, onClose, onEscape, busy = false, feedback = true, restoreFocusRef, size = "standard" }: Readonly<{
+export function WorkspaceDialog({ title, children, onClose, onEscape, busy = false, feedback = true, restoreFocusRef, size = "standard", controlledEscape = false }: Readonly<{
   title: string; children: ReactNode; onClose: () => void; onEscape?: () => void; busy?: boolean; feedback?: boolean;
   restoreFocusRef?: RefObject<HTMLElement | null>;
   size?: "standard" | "wide";
+  controlledEscape?: boolean;
 }>) {
   const reference = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -46,6 +47,15 @@ export function WorkspaceDialog({ title, children, onClose, onEscape, busy = fal
   return <dialog ref={reference} className={`${styles.dialog} ${size === "wide" ? styles.dialogWide : ""}`} aria-labelledby={titleId}
     onCancel={(event) => { event.preventDefault(); if (!busy) (onEscape ?? onClose)(); }}
     onKeyDown={(event) => {
+      if (controlledEscape && event.key === "Escape" && !event.defaultPrevented) {
+        const openDialogs = document.querySelectorAll("dialog[open]");
+        if (openDialogs.item(openDialogs.length - 1) !== event.currentTarget) return;
+        // Own repeated Escape before native close-watcher handling can bypass draft confirmation.
+        event.preventDefault();
+        event.stopPropagation();
+        if (!busy) (onEscape ?? onClose)();
+        return;
+      }
       if (event.key !== "Tab" || !(event.target instanceof HTMLElement) || event.target.closest("dialog") !== event.currentTarget) return;
       const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button, input, select, textarea, a[href], summary, [tabindex]'))
         .filter((element) => element.tabIndex >= 0 && !element.matches(":disabled") && !element.closest("[hidden], [inert]") && element.getClientRects().length > 0);

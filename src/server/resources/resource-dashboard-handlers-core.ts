@@ -1,3 +1,4 @@
+import { resourceReadError, resourceReadVersion, resourceReadInput, resourceReadParams, resourceReadOutput, resourceReadHeaders } from "./resource-public-v2-core";
 import { readBoundedJson } from "../http/request-core";
 import { isExactAllowedOrigin, parseApplicationBaseUrl } from "../security/origin-core";
 import { RESOURCE_DRILL_LIMITS, type ResourceDrillQueryInput, type ResourceDrillScopeRequest } from "../../contracts/resource-drill";
@@ -19,18 +20,19 @@ export async function handleGetResourceDashboard(request: Request, publicId: str
   const requestId = (dependencies.requestId ?? randomUUID)();
   try {
     if (!isCanonicalUuidV4(publicId)) throw new PublicApiError(404, "PROJECT_NOT_FOUND", "프로젝트를 찾을 수 없습니다.");
-    const params = new URL(request.url).searchParams;
+    const version = resourceReadVersion(request);
+    const params = resourceReadParams(new URL(request.url).searchParams,version);
     const filter = parseResourceDashboardQuery(params, details === true, details === "group-children");
     const children = details === "group-children" ? parseResourceDashboardGroupChildren(params) : null;
     const detail = details === true ? parseResourceDashboardDetails(params) : null;
     const service = typeof dependencies.service === "function" ? dependencies.service() : dependencies.service;
     const data = children ? service.getGroupChildren!(publicId, filter, children) : detail ? service.getDetails(publicId, filter, detail) : service.getDashboard(publicId, filter);
     if (!data) throw new PublicApiError(404, "PROJECT_NOT_FOUND", "프로젝트를 찾을 수 없습니다.");
-    return Response.json({ data }, { headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", "X-Request-ID": requestId } });
+    return Response.json(resourceReadOutput({ data },version), { headers: { ...resourceReadHeaders(version), "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", "X-Request-ID": requestId } });
   } catch (error) {
     const normalized = error instanceof ResourceCalendarExceptionConflictError || error instanceof PersistedWorkCalendarConflictError
       ? new PublicApiError(409, "RESOURCE_CALENDAR_EXCEPTION_CONFLICT", "근무 달력의 충돌을 먼저 해결해 주세요.") : error;
-    const response = apiErrorResponse(normalized, requestId);
+    const response = apiErrorResponse(resourceReadError(normalized,request), requestId);
     response.headers.set("Cache-Control", "private, no-store");
     response.headers.set("X-Content-Type-Options", "nosniff");
     return response;
@@ -43,15 +45,16 @@ export async function handleGetResourcePlan(request: Request, publicId: string, 
   const requestId = (dependencies.requestId ?? randomUUID)();
   try {
     if (!isCanonicalUuidV4(publicId)) throw new PublicApiError(404, "PROJECT_NOT_FOUND", "프로젝트를 찾을 수 없습니다.");
-    const { filter, detail } = parseResourcePlanDetails(new URL(request.url).searchParams, kind);
+    const version=resourceReadVersion(request);
+    const { filter, detail } = parseResourcePlanDetails(resourceReadParams(new URL(request.url).searchParams,version), kind);
     const service = typeof dependencies.service === "function" ? dependencies.service() : dependencies.service;
     const data = service.getPlanDetails(publicId, filter, detail, kind);
     if (!data) throw new PublicApiError(404, "PROJECT_NOT_FOUND", "프로젝트를 찾을 수 없습니다.");
-    return Response.json({ data }, { headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", "X-Request-ID": requestId } });
+    return Response.json(resourceReadOutput({ data },version), { headers: { ...resourceReadHeaders(version), "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", "X-Request-ID": requestId } });
   } catch (error) {
     const normalized = error instanceof ResourceCalendarExceptionConflictError || error instanceof PersistedWorkCalendarConflictError
       ? new PublicApiError(409, "RESOURCE_CALENDAR_EXCEPTION_CONFLICT", "근무 달력의 충돌을 먼저 해결해 주세요.") : error;
-    const response = apiErrorResponse(normalized, requestId);
+    const response = apiErrorResponse(resourceReadError(normalized,request), requestId);
     response.headers.set("Cache-Control", "private, no-store"); response.headers.set("X-Content-Type-Options", "nosniff"); return response;
   }
 }
@@ -66,15 +69,16 @@ export async function handleResourceDrill(request: Request, publicId: string, de
     if (post && !isExactAllowedOrigin(request.headers.get("Origin"), parseApplicationBaseUrl(dependencies.applicationBaseUrl, dependencies.environment, dependencies.allowInsecureHttp))) {
       throw new PublicApiError(403, "ORIGIN_NOT_ALLOWED", "허용된 서비스 주소에서 다시 요청해 주세요.");
     }
-    const input = post ? parseResourceDrillQuery(await readBoundedJson(request, RESOURCE_DRILL_LIMITS.bodyBytes)) : parseResourceDrillScopeRequest(new URL(request.url).searchParams);
+    const version=resourceReadVersion(request);
+    const input = post ? parseResourceDrillQuery(resourceReadInput(await readBoundedJson(request, RESOURCE_DRILL_LIMITS.bodyBytes),version)) : parseResourceDrillScopeRequest(resourceReadParams(new URL(request.url).searchParams,version));
     const service = typeof dependencies.service === "function" ? dependencies.service() : dependencies.service;
     const result = post ? service.query(publicId, input as ResourceDrillQueryInput) : service.getScope(publicId, input as ResourceDrillScopeRequest);
     if (!result) throw new PublicApiError(404, "PROJECT_NOT_FOUND", "프로젝트를 찾을 수 없습니다.");
-    return Response.json(post ? result : { data: result }, { headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", "X-Request-ID": requestId } });
+    return Response.json(resourceReadOutput(post ? result : { data: result },version), { headers: { ...resourceReadHeaders(version), "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", "X-Request-ID": requestId } });
   } catch (error) {
     const normalized = error instanceof ResourceCalendarExceptionConflictError || error instanceof PersistedWorkCalendarConflictError
       ? new PublicApiError(409, "RESOURCE_CALENDAR_EXCEPTION_CONFLICT", "근무 달력의 충돌을 먼저 해결해 주세요.") : error;
-    const response = apiErrorResponse(normalized, requestId);
+    const response = apiErrorResponse(resourceReadError(normalized,request), requestId);
     response.headers.set("Cache-Control", "private, no-store"); response.headers.set("X-Content-Type-Options", "nosniff"); return response;
   }
 }

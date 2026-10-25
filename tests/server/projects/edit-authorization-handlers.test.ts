@@ -420,9 +420,26 @@ describe("route security inventory", () => {
       "GET /api/project-master/admin/items",
       "POST /api/project-master/admin/items",
       "PATCH /api/project-master/admin/items/{itemId}",
+      "POST /api/project-master/admin/relations",
+      "DELETE /api/project-master/admin/relations",
       "POST /api/project-master/admin-sessions",
       "DELETE /api/project-master/admin-sessions",
       "PUT /api/project-master/admin-password",
+      "GET /api/process-catalog/admin",
+      "GET /api/process-catalog/admin/standard-diff",
+      "POST /api/process-catalog/admin/types",
+      "PATCH /api/process-catalog/admin/types/{id}",
+      "DELETE /api/process-catalog/admin/types/{id}",
+      "POST /api/process-catalog/admin/standards",
+      "PATCH /api/process-catalog/admin/standards/{id}",
+      "DELETE /api/process-catalog/admin/standards/{id}",
+      "POST /api/process-catalog/admin/occurrences",
+      "PATCH /api/process-catalog/admin/occurrences/{id}",
+      "DELETE /api/process-catalog/admin/occurrences/{id}",
+      "POST /api/process-catalog/admin/work-areas",
+      "PATCH /api/process-catalog/admin/work-areas/{id}",
+      "DELETE /api/process-catalog/admin/work-areas/{id}",
+      "POST /api/process-catalog/admin/occurrences/apply-standard",
       "GET /api/project-templates",
       "POST /api/project-templates",
       "GET /api/project-templates/{templateId}",
@@ -433,6 +450,9 @@ describe("route security inventory", () => {
       "GET /api/projects/{publicId}",
       "PATCH /api/projects/{publicId}",
       "DELETE /api/projects/{publicId}",
+      "GET /api/projects/{publicId}/resource-memberships",
+      "POST /api/projects/{publicId}/resource-memberships",
+      "DELETE /api/projects/{publicId}/resource-memberships/{resourceId}",
       "POST /api/projects/{publicId}/copy",
       "POST /api/projects/{publicId}/exports/json",
       "POST /api/projects/{publicId}/exports/excel",
@@ -478,6 +498,7 @@ describe("route security inventory", () => {
       "GET /api/projects/{publicId}/assigned-targets",
       "GET /api/projects/{publicId}/resource-dashboard/scope",
       "POST /api/projects/{publicId}/resource-dashboard/query",
+      "POST /api/projects/{publicId}/resource-dashboard/views",
       "GET /api/projects/{publicId}/resource-dashboard",
       "GET /api/projects/{publicId}/resource-dashboard/details",
       "GET /api/projects/{publicId}/resource-dashboard/group-children",
@@ -490,7 +511,23 @@ describe("route security inventory", () => {
       "POST /api/projects/{publicId}/work-calendar/preview",
       "PUT /api/projects/{publicId}/work-calendar",
       "PUT /api/projects/{publicId}/tasks/{taskId}/assignments",
+      "GET /api/projects/{publicId}/logistics/process-context",
+      "PUT /api/projects/{publicId}/logistics/process-mappings/{processId}",
+      "GET /api/projects/{publicId}/tasks/{taskId}/process-context",
+      "PUT /api/projects/{publicId}/tasks/{taskId}/process-context",
+      "GET /api/projects/{publicId}/logistics/equipment/{equipmentId}/usage",
+      "GET /api/projects/{publicId}/logistics/systems/{systemId}/usage",
+      "GET /api/projects/{publicId}/logistics/targets",
+      "POST /api/projects/{publicId}/logistics/targets",
+      "GET /api/projects/{publicId}/logistics/targets/{targetId}",
+      "PATCH /api/projects/{publicId}/logistics/targets/{targetId}",
+      "DELETE /api/projects/{publicId}/logistics/targets/{targetId}",
+      "POST /api/projects/{publicId}/logistics/targets/{targetId}/impact",
+      "GET /api/projects/{publicId}/logistics/targets/{targetId}/usage",
       "GET /api/projects/{publicId}/logistics",
+      "POST /api/projects/{publicId}/logistics/processes/{processId}/work-areas",
+      "PATCH /api/projects/{publicId}/logistics/work-areas/{workAreaId}",
+      "DELETE /api/projects/{publicId}/logistics/work-areas/{workAreaId}",
       "POST /api/projects/{publicId}/logistics/processes",
       "PATCH /api/projects/{publicId}/logistics/processes/{processId}",
       "DELETE /api/projects/{publicId}/logistics/processes/{processId}",
@@ -505,15 +542,38 @@ describe("route security inventory", () => {
       "PUT /api/projects/{publicId}/logistics/systems/{systemId}/children",
       "PUT /api/projects/{publicId}/logistics/equipment/{equipmentId}/resource-roles",
       "PUT /api/projects/{publicId}/logistics/systems/{systemId}/resource-roles",
+      "GET /api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources",
+      "POST /api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources",
+      "PATCH /api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources",
+      "GET /api/projects/{publicId}/tasks/{taskId}/target-bindings",
+      "PUT /api/projects/{publicId}/tasks/{taskId}/target-bindings",
       "GET /api/projects/{publicId}/tasks/{taskId}/logistics-links",
       "PUT /api/projects/{publicId}/tasks/{taskId}/logistics-links",
       "GET /api/projects/{publicId}/logistics/dashboard",
+      "GET /api/projects/{publicId}/logistics/kpi",
     ]);
     for (const route of ROUTE_SECURITY_INVENTORY.filter(({ mutatesState }) => mutatesState)) {
       expect(route.method).not.toBe("GET");
       expect(route.policy).not.toBe("public-read");
     }
     expect(ROUTE_SECURITY_INVENTORY.find(({ template }) => template.endsWith("/resource-dashboard/query"))).toMatchObject({ method: "POST", policy: "origin-public-query-read", mutatesState: false });
+    const processCatalog = ROUTE_SECURITY_INVENTORY.filter(({ template }) => template.startsWith("/api/process-catalog/"));
+    expect(processCatalog).toHaveLength(15);
+    for (const route of processCatalog) {
+      expect(route).toMatchObject(route.method === "GET"
+        ? { policy: "process-catalog-admin-read", mutatesState: false }
+        : { policy: "origin-process-catalog-admin-if-match", mutatesState: true });
+    }
+    expect(ROUTE_SECURITY_INVENTORY.find(({ template }) => template.endsWith("/logistics/process-context")))
+      .toMatchObject({ method: "GET", policy: "optional-session-read", mutatesState: false });
+    expect(ROUTE_SECURITY_INVENTORY.find(({ template }) => template.endsWith("/logistics/process-mappings/{processId}")))
+      .toMatchObject({ method: "PUT", policy: "origin-session-if-match", mutatesState: true });
+    expect(ROUTE_SECURITY_INVENTORY.filter(({ template }) => template.endsWith("/legacy-binding-sources")))
+      .toEqual([
+        { template: "/api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources", method: "GET", policy: "optional-session-read", mutatesState: false },
+        { template: "/api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources", method: "POST", policy: "origin-session-if-match", mutatesState: false },
+        { template: "/api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
+      ]);
     expect(ROUTE_SECURITY_INVENTORY.filter(({ method }) => method === "GET").every(({ mutatesState }) => !mutatesState))
       .toBe(true);
     expect(ROUTE_SECURITY_INVENTORY.find(({ template }) => template === "/api/projects/{publicId}/exports/excel"))
@@ -550,6 +610,27 @@ describe("route security inventory", () => {
       "GET /api/project-master/catalog": "project-master-catalog-read",
       "POST /api/project-master/admin-sessions": "origin-project-master-admin-auth",
       "POST /api/project-master/admin/items": "origin-project-master-admin-if-match",
+      "POST /api/project-master/admin/relations": "origin-project-master-admin-if-match",
+      "DELETE /api/project-master/admin/relations": "origin-project-master-admin-if-match",
+      "GET /api/process-catalog/admin": "process-catalog-admin-read",
+      "GET /api/process-catalog/admin/standard-diff": "process-catalog-admin-read",
+      "POST /api/process-catalog/admin/types": "origin-process-catalog-admin-if-match",
+      "PATCH /api/process-catalog/admin/types/{id}": "origin-process-catalog-admin-if-match",
+      "DELETE /api/process-catalog/admin/types/{id}": "origin-process-catalog-admin-if-match",
+      "POST /api/process-catalog/admin/standards": "origin-process-catalog-admin-if-match",
+      "PATCH /api/process-catalog/admin/standards/{id}": "origin-process-catalog-admin-if-match",
+      "DELETE /api/process-catalog/admin/standards/{id}": "origin-process-catalog-admin-if-match",
+      "POST /api/process-catalog/admin/occurrences": "origin-process-catalog-admin-if-match",
+      "PATCH /api/process-catalog/admin/occurrences/{id}": "origin-process-catalog-admin-if-match",
+      "DELETE /api/process-catalog/admin/occurrences/{id}": "origin-process-catalog-admin-if-match",
+      "POST /api/process-catalog/admin/work-areas": "origin-process-catalog-admin-if-match",
+      "PATCH /api/process-catalog/admin/work-areas/{id}": "origin-process-catalog-admin-if-match",
+      "DELETE /api/process-catalog/admin/work-areas/{id}": "origin-process-catalog-admin-if-match",
+      "POST /api/process-catalog/admin/occurrences/apply-standard": "origin-process-catalog-admin-if-match",
+      "GET /api/projects/{publicId}/logistics/process-context": "optional-session-read",
+      "PUT /api/projects/{publicId}/logistics/process-mappings/{processId}": "origin-session-if-match",
+      "GET /api/projects/{publicId}/tasks/{taskId}/process-context": "optional-session-read",
+      "PUT /api/projects/{publicId}/tasks/{taskId}/process-context": "origin-session-if-match",
       "PATCH /api/projects/{publicId}": "origin-session-if-match",
       "DELETE /api/projects/{publicId}": "origin-session-if-match",
       "POST /api/projects/{publicId}/exports/excel": "origin-if-match-read",

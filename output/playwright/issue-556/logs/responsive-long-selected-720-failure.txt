@@ -1,0 +1,189 @@
+테스트·정적검사 실행 출력 발췌(줄 끝 공백 정규화). 앱 런타임 WebServer 로그는 제외했으며 전체 원본은 로컬 /tmp에 별도 보존합니다.
+
+{
+  "width": 720,
+  "mode": "readonly",
+  "geometry": {
+    "bounds": {
+      "left": 24,
+      "right": 696,
+      "width": 672
+    },
+    "documentWidth": 720,
+    "viewport": 720,
+    "outside": [
+      {
+        "name": "필터 2",
+        "x": 84,
+        "y": 274,
+        "width": 625,
+        "height": 40,
+        "right": 709,
+        "bottom": 314
+      },
+      {
+        "name": "Milestone 조건 해제",
+        "x": 553,
+        "y": 411,
+        "width": 156,
+        "height": 156,
+        "right": 709,
+        "bottom": 567
+      }
+    ],
+    "overlaps": [],
+    "controls": [
+      {
+        "name": "작업명, 설명, External ID 검색",
+        "x": 24,
+        "y": 276,
+        "width": 52,
+        "height": 36,
+        "right": 76,
+        "bottom": 312
+      },
+      {
+        "name": "필터 2",
+        "x": 84,
+        "y": 274,
+        "width": 625,
+        "height": 40,
+        "right": 709,
+        "bottom": 314
+      },
+      {
+        "name": "Milestone: 긴 Milestone 소속 이름 긴 Milestone 소속 이름 긴 Milestone 소속 이름 긴 Milestone 소속 이름 긴 Milestone 소속 이름 긴 Milestone 소속 이름 긴 Milestone 소속 이름 긴 Milestone 소속 이름 긴 Milestone 소속 이름 긴 Milestone 소속 이름 긴 Milestone 소속 이름 긴 Milestone 소속 이름",
+        "x": 24,
+        "y": 411,
+        "width": 283.25,
+        "height": 156,
+        "right": 307.25,
+        "bottom": 567
+      },
+      {
+        "name": "Milestone 조건 해제",
+        "x": 553,
+        "y": 411,
+        "width": 156,
+        "height": 156,
+        "right": 709,
+        "bottom": 567
+      },
+      {
+        "name": "담당자·공수 조회",
+        "x": 24,
+        "y": 575,
+        "width": 135,
+        "height": 44,
+        "right": 159,
+        "bottom": 619
+      },
+      {
+        "name": "Summary 전체 담당자·공수",
+        "x": 167,
+        "y": 575,
+        "width": 198,
+        "height": 44,
+        "right": 365,
+        "bottom": 619
+      },
+      {
+        "name": "초기화",
+        "x": 32,
+        "y": 322,
+        "width": 44,
+        "height": 81,
+        "right": 76,
+        "bottom": 403
+      }
+    ]
+  }
+}
+node:internal/modules/run_main:122
+    triggerUncaughtException(
+    ^
+
+ExpectError: expect(received).toEqual(expected) // deep equality
+
+- Expected  -  1
++ Received  + 20
+
+- Array []
++ Array [
++   Object {
++     "bottom": 314,
++     "height": 40,
++     "name": "필터 2",
++     "right": 709,
++     "width": 625,
++     "x": 84,
++     "y": 274,
++   },
++   Object {
++     "bottom": 567,
++     "height": 156,
++     "name": "Milestone 조건 해제",
++     "right": 709,
++     "width": 156,
++     "x": 553,
++     "y": 411,
++   },
++ ]
+    at captureRawStack (/home/planner/Dev/masterGantt-worktrees/issue-556/node_modules/playwright-core/lib/coreBundle.js:8588:17)
+    at callMatcherAsStep (/home/planner/Dev/masterGantt-worktrees/issue-556/node_modules/playwright/lib/matchers/expect.js:13310:57)
+    at Object.toEqual (/home/planner/Dev/masterGantt-worktrees/issue-556/node_modules/playwright/lib/matchers/expect.js:13302:23)
+    at /home/planner/Dev/masterGantt-worktrees/issue-556/output/playwright/issue-556/responsive.mjs:66:30 {
+  matcherResult: {
+    actual: [
+      {
+        name: '필터 2',
+        x: 84,
+        y: 274,
+        width: 625,
+        height: 40,
+        right: 709,
+        bottom: 314
+      },
+      {
+        name: 'Milestone 조건 해제',
+        x: 553,
+        y: 411,
+        width: 156,
+        height: 156,
+        right: 709,
+        bottom: 567
+      }
+    ],
+    expected: [],
+    message: 'expect(received).toEqual(expected) // deep equality\n' +
+      '\n' +
+      '- Expected  -  1\n' +
+      '+ Received  + 20\n' +
+      '\n' +
+      '- Array []\n' +
+      '+ Array [\n' +
+      '+   Object {\n' +
+      '+     "bottom": 314,\n' +
+      '+     "height": 40,\n' +
+      '+     "name": "필터 2",\n' +
+      '+     "right": 709,\n' +
+      '+     "width": 625,\n' +
+      '+     "x": 84,\n' +
+      '+     "y": 274,\n' +
+      '+   },\n' +
+      '+   Object {\n' +
+      '+     "bottom": 567,\n' +
+      '+     "height": 156,\n' +
+      '+     "name": "Milestone 조건 해제",\n' +
+      '+     "right": 709,\n' +
+      '+     "width": 156,\n' +
+      '+     "x": 553,\n' +
+      '+     "y": 411,\n' +
+      '+   },\n' +
+      '+ ]',
+    name: 'toEqual',
+    pass: false
+  }
+}
+
+Node.js v22.14.0

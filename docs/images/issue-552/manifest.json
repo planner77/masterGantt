@@ -1,0 +1,20 @@
+{
+  "capturedIn": "Native Add null 의미 복원 후 최종29 실행의 marker-OFF Day/Week geometry",
+  "environment": "Chromium / Next dev / synthetic HTTP / Core2.7.3 / America/New_York",
+  "evidenceScope": "현재390px/1440px WBS선별화면; dev-only기술미리보기는운영marker토글이아님",
+  "sourceSha256": {
+    "src/features/projects/project-readonly-view.tsx": "e79c7b0808af1124c4936b9a739c793634a0ee5a88a77003b2fdfa5d7e2528f7",
+    "src/features/gantt/project-gantt.tsx": "2ecd5745aa05a84c6057bc1a08f482049fb52435430621900fcb2784c0f38571",
+    "src/features/milestones/project-milestone-dashboard.tsx": "731b717486746dc76102c538fefd20aab9abfc0ec44ddfc12566066cc77b3308",
+    "src/features/gantt/milestone-membership-panel.tsx": "07a19f0d4018665c3b1645d5a9ac45584004025e246cb9511d17c2c3cbc60487"
+  },
+  "images": {
+    "docs/images/issue-552/marker-off-390.png": "5f18631a63af1d28be2bf499b3477a360102a947d1efba0ee09ebdd661fa6f81",
+    "docs/images/issue-552/marker-off-1440.png": "99b648331b26ec62153f81275f436f5a8b149c139e22f7623bd54a7c4939796a"
+  },
+  "recordedAt": "2026-10-16T12:50:40.367499+00:00",
+  "limits": [
+    "선택로컬증거는원격전체회귀·production browser·최종OwnerACCEPT가아님",
+    "과거output/playwright/issue-552산출물은과거source증거로보존"
+  ]
+}

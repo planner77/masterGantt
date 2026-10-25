@@ -59,6 +59,21 @@ async function fixture(page: Page) {
   await page.route(`**/api/projects/${copiedId}/edit-sessions/current`, (route) => route.fulfill({ json: { data: { permission: "readonly" } } }));
   return state;
 }
+// Document load can wait for unrelated assets. Dialog recovery starts only
+// after the normal canonical read and the actual workspace are ready.
+async function openProject(page: Page, state: Awaited<ReturnType<typeof fixture>>) {
+  const initialReadCompleted = state.getCompleted.promise;
+  await Promise.all([
+    page.waitForResponse(response => response.request().method() === "GET"
+      && new URL(response.url()).pathname === `/api/projects/${publicId}` && response.status() === 200),
+    page.goto(`/projects/${publicId}`, { waitUntil: "domcontentloaded" }),
+  ]);
+  await initialReadCompleted;
+  await expect(page.getByRole("tab", { name: "일정", exact: true })).toBeVisible();
+  const root = await rememberGanttRoot(page);
+  await page.locator(".project-action-menu > summary").click({ trial: true });
+  return root;
+}
 async function show(page: Page, kind: Kind) {
   const menu = page.locator(".project-action-menu");
   if (!(await menu.evaluate((element) => (element as HTMLDetailsElement).open))) await menu.locator("summary").click();
@@ -88,7 +103,7 @@ async function success(page: Page, kind: Kind, dialog: Locator) {
 for (const kind of ["copy", "template"] as const) {
   test(`${kind} 401 재인증은 초안을 보존하고 auth POST부터 닫기·중복 제출을 잠근다`, async ({ page }) => {
     const state = await fixture(page);
-    await page.goto(`/projects/${publicId}`);
+    await openProject(page, state);
     const { dialog } = await show(page, kind);
     await draft(dialog, kind);
     state.mutationFailure = "401";
@@ -118,7 +133,7 @@ for (const kind of ["copy", "template"] as const) {
 
   test(`${kind} 412는 명시 원본 GET 후 새 If-Match로만 재제출한다`, async ({ page }) => {
     const state = await fixture(page);
-    await page.goto(`/projects/${publicId}`);
+    await openProject(page, state);
     const { dialog } = await show(page, kind);
     await draft(dialog, kind); state.mutationFailure = "412";
     await dialog.getByRole("button", { name: labels[kind].submit, exact: true }).click();
@@ -141,7 +156,7 @@ for (const kind of ["copy", "template"] as const) {
   for (const failure of ["500", "network", "null-task", "revision", "wrong-source"] as const) {
     test(`${kind} 최초 GET ${failure}는 mutation을 막고 retry로 복구한다`, async ({ page }) => {
       const state = await fixture(page);
-      await page.goto(`/projects/${publicId}`);
+      await openProject(page, state);
       await page.getByRole("tab", { name: "일정", exact: true }).waitFor();
       state.getFailure = failure;
       const { dialog } = await show(page, kind);
@@ -159,7 +174,7 @@ for (const kind of ["copy", "template"] as const) {
 
   test(`${kind} 재진입 GET 실패는 이전 snapshot으로 제출하지 못한다`, async ({ page }) => {
     const state = await fixture(page);
-    await page.goto(`/projects/${publicId}`);
+    await openProject(page, state);
     const first = await show(page, kind);
     await expect(first.dialog.getByLabel(labels[kind].name, { exact: true })).not.toHaveValue("");
     await page.keyboard.press("Escape");
@@ -174,7 +189,7 @@ for (const kind of ["copy", "template"] as const) {
 
   test(`${kind} 지연 GET 중 닫기·재열기는 이전 응답을 무시한다`, async ({ page }) => {
     const state = await fixture(page);
-    await page.goto(`/projects/${publicId}`);
+    await openProject(page, state);
     await page.getByRole("tab", { name: "일정", exact: true }).waitFor();
     state.getGate = deferred(); state.getStarted = deferred(); state.getCompleted = deferred();
     const first = await show(page, kind);
@@ -199,7 +214,7 @@ for (const kind of ["copy", "template"] as const) {
     test(`${kind} 401 오류·입력·닫기 keyboard와 focus 복원 ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       const state = await fixture(page);
-      await page.goto(`/projects/${publicId}`);
+      await openProject(page, state);
       const root = await rememberGanttRoot(page);
       const { dialog, trigger } = await show(page, kind);
       await draft(dialog, kind); state.mutationFailure = "401";
@@ -232,7 +247,7 @@ for (const kind of ["copy", "template"] as const) {
 
 test("Copy 제출 전 revision 변경은 POST0으로 최신 원본 확인으로 돌아간다", async ({ page }) => {
   const state = await fixture(page);
-  await page.goto(`/projects/${publicId}`);
+  await openProject(page, state);
   const { dialog } = await show(page, "copy");
   await draft(dialog, "copy"); state.source.project.revision = 41;
   await dialog.getByRole("button", { name: "복사본 생성" }).click();
@@ -248,9 +263,73 @@ test("Copy 제출 전 revision 변경은 POST0으로 최신 원본 확인으로 
 
 test("copy=1 자동 진입은 StrictMode에서도 최신 원본 ready로 복구한다", async ({ page }) => {
   await fixture(page);
-  await page.goto(`/projects/${publicId}?copy=1`);
+  await page.goto(`/projects/${publicId}?copy=1`, { waitUntil: "domcontentloaded" });
   const dialog = page.getByRole("dialog", { name: "프로젝트 복사", exact: true });
   await expect(dialog.getByLabel("새 프로젝트명", { exact: true })).not.toHaveValue("");
   await expect(dialog.getByRole("button", { name: "복사본 생성" })).toBeEnabled();
   await page.keyboard.press("Escape"); await expect(dialog).toHaveCount(0);
+});
+
+
+for (const kind of ["copy", "template"] as const) {
+  test(`${kind} 비필수 asset load 대기 중에도 정상 원본 ready 후 GET500 회복을 검증한다`, async ({ page }) => {
+    const assetGate = deferred(), assetStarted = deferred();
+    await page.route("**/derived-recovery-load-probe.svg", async route => {
+      assetStarted.resolve();
+      await assetGate.promise;
+      await route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>' });
+    });
+    await page.addInitScript(() => {
+      addEventListener("DOMContentLoaded", () => {
+        const image = document.createElement("img");
+        image.src = "/derived-recovery-load-probe.svg";
+        image.hidden = true;
+        document.body.append(image);
+      }, { once: true });
+    });
+    const state = await fixture(page);
+    const original = structuredClone({ project: state.source.project, tasks: state.source.tasks, links: state.source.links });
+    try {
+      const root = await openProject(page, state);
+      await assetStarted.promise;
+      expect(await page.evaluate(() => document.readyState)).toBe("interactive");
+      expect(await page.evaluate(() => (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming).loadEventEnd)).toBe(0);
+      state.getFailure = "500";
+      const { dialog } = await show(page, kind);
+      await expect(dialog.getByRole("alert")).toBeVisible();
+      if (kind === "copy") await expect(dialog.locator('button[type="submit"]')).toHaveCount(0);
+      else await expect(dialog.locator('button[type="submit"]')).toBeDisabled();
+      expect(state.posts).toBe(0);
+      state.getFailure = null;
+      await dialog.getByRole("button", { name: "다시 시도" }).click();
+      await expect(dialog.getByLabel(labels[kind].name, { exact: true })).toBeEnabled();
+      await expect(dialog.getByLabel(labels[kind].name, { exact: true })).not.toHaveValue("");
+      await page.keyboard.press("Escape");
+      await expect(dialog).toHaveCount(0);
+      await expectSameGanttRoot(page, root);
+      expect(state.posts).toBe(0);
+      expect({ project: state.source.project, tasks: state.source.tasks, links: state.source.links }).toEqual(original);
+    } finally { assetGate.resolve(); }
+    await page.waitForLoadState("load");
+  });
+}
+
+test("초기 정상 canonical GET이 지연되면 derived dialog 준비가 먼저 완료되지 않는다", async ({ page }) => {
+  const state = await fixture(page);
+  state.getGate = deferred();
+  const gate = state.getGate;
+  const original = structuredClone({ project: state.source.project, tasks: state.source.tasks, links: state.source.links });
+  let ready = false;
+  const opening = openProject(page, state).then(root => { ready = true; return root; });
+  await state.getStarted.promise;
+  try {
+    expect(ready).toBe(false);
+    await expect(page.locator(".project-gantt-frame[data-project-gantt-api-instance]")).toHaveCount(0);
+    expect(state.posts).toBe(0);
+  } finally { gate.resolve(); }
+  const root = await opening;
+  expect(ready).toBe(true);
+  await expectSameGanttRoot(page, root);
+  expect(state.posts).toBe(0);
+  expect({ project: state.source.project, tasks: state.source.tasks, links: state.source.links }).toEqual(original);
 });

@@ -1,0 +1,575 @@
+{
+  "schema": "mastergantt-issue667-ci2831-correction-v1",
+  "parentHead": "b300ae0411117a31ea3cfc59692f69f3d64f21be",
+  "integration": {
+    "main": "fd219130491c53d054754eac41a58e4a6a3da0c6",
+    "alreadyIncluded": true,
+    "unresolvedReviewsBefore": 0,
+    "conflictsBefore": 0
+  },
+  "ledgerConsulted": [
+    "docs/ISSUE_667_FAILURE_ANALYSIS.md: 증상인덱스/재개6단계",
+    "docs/evidence/issue-667/ci2827-correction.json",
+    "docs/evidence/issue-667/ci2829-correction.json"
+  ],
+  "remoteOriginal": {
+    "identity": {
+      "runId": 38852119218,
+      "runNumber": 2831,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/38852119218",
+      "head": "b300ae0411117a31ea3cfc59692f69f3d64f21be",
+      "base": "fd219130491c53d054754eac41a58e4a6a3da0c6",
+      "attempt": 1,
+      "event": "pull_request",
+      "testMerge": "4bba91fea299e68b032c9a0b366dfbc0e8557373",
+      "workflowPath": ".github/workflows/ci.yml",
+      "workflowId": 356198495,
+      "testMergeParents": [
+        "fd219130491c53d054754eac41a58e4a6a3da0c6",
+        "b300ae0411117a31ea3cfc59692f69f3d64f21be"
+      ]
+    },
+    "required": {
+      "quality": {
+        "status": "PASS",
+        "job": 116816278914
+      },
+      "e2e": {
+        "status": "FAIL",
+        "job": 116819334172
+      },
+      "docker": {
+        "status": "PASS",
+        "job": 116816495532
+      }
+    },
+    "automatedQa": {
+      "status": "FAIL",
+      "job": 116819352862
+    },
+    "failure": {
+      "job": 116815978545,
+      "shard": 4,
+      "step": 7,
+      "file": "tests/e2e/milestone-timeline-lane.spec.ts",
+      "testLine": 380,
+      "assertionLine": 391,
+      "title": "#551 opt-in sibling lane 768px actual geometry",
+      "expected": "SETTLED",
+      "received": "SUPERSEDED",
+      "passed": 53,
+      "failed": 1,
+      "skipped": 1,
+      "notRun": 89
+    },
+    "sourceArtifact": {
+      "id": 12025212600,
+      "name": "ci-pr-source-38852119218-1",
+      "digest": "sha256:83f8a35905a7be0a94c4aa3f3b2ab7a193b2717d15045531877ea48b67730b70",
+      "trusted": false,
+      "identityMatches": true,
+      "crossCheckedAgainst": [
+        "Run API",
+        "QA job 환경",
+        "test merge Git 부모"
+      ]
+    },
+    "status": "completed",
+    "conclusion": "failure",
+    "shards": [
+      {
+        "shard": 1,
+        "job": 116815978605,
+        "status": "CANCELLED",
+        "observedPass": 112
+      },
+      {
+        "shard": 2,
+        "job": 116815978560,
+        "status": "CANCELLED",
+        "observedPass": 64
+      },
+      {
+        "shard": 3,
+        "job": 116815978629,
+        "status": "CANCELLED",
+        "observedPass": 80
+      },
+      {
+        "shard": 4,
+        "job": 116815978545,
+        "status": "FAIL",
+        "passed": 53,
+        "failed": 1,
+        "skipped": 1,
+        "notRun": 89
+      },
+      {
+        "shard": 5,
+        "job": 116815978652,
+        "status": "CANCELLED",
+        "observedPass": 61
+      },
+      {
+        "shard": 6,
+        "job": 116815978618,
+        "status": "PASS",
+        "passed": 89,
+        "skipped": 1
+      }
+    ],
+    "additionalActualFailures": 0,
+    "globalError": "Testing stopped early after 1 maximum allowed failures.",
+    "previousCases": {
+      "iso": {
+        "status": "PASS",
+        "seconds": 5.3
+      },
+      "geometry390": {
+        "status": "PASS",
+        "seconds": 3.5
+      },
+      "geometry1024_1440_1920": "NOT RUN",
+      "taskHoverPrevious2829": "NOT RUN",
+      "sc01Normal": {
+        "status": "PASS",
+        "seconds": 9.4
+      },
+      "sc01Raf90": {
+        "status": "PASS",
+        "seconds": 9.1
+      },
+      "viewport463": {
+        "status": "PASS",
+        "seconds": 5.8
+      }
+    },
+    "traceBoundary": {
+      "day768Geometry": "PASS",
+      "weekUi": "week",
+      "latestProjection": "rows/PENDING observation6→7",
+      "latestDelivery": "day/gen2/semantic2obs2",
+      "beforeProbeCoordinator": "RANGE_EXTENSION SETTLING writes5",
+      "axis": "SETTLED/PRESERVED",
+      "coreLeft": 10032,
+      "nativeLeft": 10032,
+      "contextEpoch": 1,
+      "intentEpoch": 0,
+      "gestureEpoch": 0,
+      "registeredDiagnosticTerminalCaptured": false,
+      "directCancellationOrigin": "UNKNOWN"
+    }
+  },
+  "analysis": {
+    "status": "로컬통제경합확인/원격직접취소기원UNKNOWN유지",
+    "boundary": "#2827과결과값이유사해도같은원인으로단정하지않음. #2829Tooltip정착전제와분리.",
+    "observation": "원격UIWeek이나최신deliveryday·rowsPENDING. 로컬자연5폭진단은UI/CoreWeek·dataReadytrue이면서같은dayreceipt상태에서전부PASS; pending단독충분원인가설기각.",
+    "remoteCausalLimit": "새DIAGNOSTIC등록/취소terminal미기록; 정확취소기원UNKNOWN. native-forward와같다고단정하지않음",
+    "rejectedHypotheses": [
+      "SUPERSEDED문자열만으로#2827clamp재발단정",
+      "WeekrowsPENDING이면항상실패",
+      "기존#2829Tooltip정착문제와동일원인단정"
+    ],
+    "classification": "fixture date-semantic lease admission precondition",
+    "confirmedLocal": "진단에서WeekDIAG정착관측만24actualRAF보류: 요청전day/gen2→요청중week/gen3, DIAG SUPERSEDED. API/revision40/context1/gesture0/intent0불변, 새USER_GESTURE0. 기존RANGE의NEW_RANGE취소와DIAG의STALE_CONTEXT_OR_INTENT를구별.",
+    "sourceContract": "range current()는initial.projectionEpoch에귀속. 새semantic이기존DIAGlease를폐기하는fail-closed동작은유지.",
+    "correctionPlan": "임시DEV필드/24RAF진단변형원복후, geometry검증의첫reveal전에현재scale의U3semantic/delivery·실제axis/geometry준비를읽기전용확인. 첫명령1회/STRICTSETTLED유지; 의도적pending/wheel음성엔미적용.",
+    "productChangesPlanned": 0,
+    "timeoutsRetriesSkipsAssertionsWeakened": false,
+    "helperAppliesOnly": "geometry5폭의Day/Week최초reveal등록전제; 필터편집0인mixedfixture. SC-09의도적pending/wheel·다른lane/Core reveal에는gate미적용.",
+    "revealCallBoundary": "최초probe.reveal호출1회. 이미visible+coherent이면coordinator명령없이SETTLED가능; 모든폭에서DIAGNOSTIC_SCROLL1발행을주장하지않음."
+  },
+  "source": {
+    "status": "FROZEN / 최종동일source검증PASS·drift0",
+    "changedTestFiles": {
+      "tests/e2e/milestone-timeline-lane.spec.ts": "29f9380dc4e09fa62540f42061534777bf14c500295863e5fde35d097563482a"
+    },
+    "fingerprint": "122414ffa09f855b847f3af475f4a5ce1c2fc7b006b565097d8ed1f8436f6267",
+    "fingerprintMethod": "변경source path→SHA256 map key정렬·compactUTF8JSON의SHA256; docs/원복제품제외",
+    "productFilesChanged": 0,
+    "workflowDependencyChanges": 0,
+    "previousEvidenceFilesPreserved": 12,
+    "unchangedRuntime": {
+      "src/features/gantt/project-gantt.tsx": {
+        "sha256": "b97245159d9422086f3bbc4427da21a702d0bb00218ab8df651c9d376cb293a1",
+        "matchesHead": true
+      },
+      "src/features/gantt/viewport/viewport-coordinator.ts": {
+        "sha256": "90bfa5ed37649d1b9516546a19469e372c7fe2f37269f52db31b9edf33ad5762",
+        "matchesHead": true
+      },
+      "src/features/gantt/viewport/svar-viewport-port.ts": {
+        "sha256": "53369580ca0f837e3d3192a9377f490c20d6e433f21cc9a4f521d39eb3f9662d",
+        "matchesHead": true
+      }
+    },
+    "diagnosticSnapshots": {
+      "original": {
+        "provenance": "original backups; diagnostic variants reconstructed from retained exact execution script; diagnostic hashes match contemporaneous manifest",
+        "files": {
+          "src/features/gantt/project-gantt.tsx": "b97245159d9422086f3bbc4427da21a702d0bb00218ab8df651c9d376cb293a1",
+          "src/features/gantt/viewport/viewport-coordinator.ts": "90bfa5ed37649d1b9516546a19469e372c7fe2f37269f52db31b9edf33ad5762",
+          "tests/e2e/milestone-timeline-lane.spec.ts": "95dce8d433b1d659e08f23634bd56a5bfa8d4328174024dae60106cf740b52b0"
+        }
+      },
+      "diagnostic": {
+        "provenance": "original backups; diagnostic variants reconstructed from retained exact execution script; diagnostic hashes match contemporaneous manifest",
+        "files": {
+          "src/features/gantt/project-gantt.tsx": "a98105ac11b0482619efc38c3712a718f6f95332f78c262815dd83302d748b8d",
+          "src/features/gantt/viewport/viewport-coordinator.ts": "90bfa5ed37649d1b9516546a19469e372c7fe2f37269f52db31b9edf33ad5762",
+          "tests/e2e/milestone-timeline-lane.spec.ts": "21627f5bc2fdd69913025bb1b0aedaa49ef75d5d06a33fb74c8a812c9ef4a139"
+        }
+      },
+      "pending-control": {
+        "provenance": "original backups; diagnostic variants reconstructed from retained exact execution script; diagnostic hashes match contemporaneous manifest",
+        "files": {
+          "src/features/gantt/project-gantt.tsx": "a98105ac11b0482619efc38c3712a718f6f95332f78c262815dd83302d748b8d",
+          "src/features/gantt/viewport/viewport-coordinator.ts": "e932aaa4392a4a41cb8232f798669d0e71bb37844e2afc7068b453dc0affc680",
+          "tests/e2e/milestone-timeline-lane.spec.ts": "21627f5bc2fdd69913025bb1b0aedaa49ef75d5d06a33fb74c8a812c9ef4a139"
+        }
+      },
+      "ready-control": {
+        "src/features/gantt/project-gantt.tsx": "a98105ac11b0482619efc38c3712a718f6f95332f78c262815dd83302d748b8d",
+        "src/features/gantt/viewport/viewport-coordinator.ts": "e932aaa4392a4a41cb8232f798669d0e71bb37844e2afc7068b453dc0affc680",
+        "tests/e2e/milestone-timeline-lane.spec.ts": "dafaa76b9df0c7054121d28a4cae34f83f45b7f7bd83704e85d4b5bc4281603b"
+      }
+    },
+    "snapshotProvenanceBoundary": "원격원본spec는traceembeddedbytes와HEAD직접동일확인. 일부진단snapshot은원본backup/실제편집스크립트로재구성+당시보존hash대조; 동일강도직접추출증거로표시하지않음.",
+    "generatedRestored": [
+      "next-env.d.ts",
+      "tsconfig.json"
+    ],
+    "previousEvidenceTrackedDiff": []
+  },
+  "local": {
+    "status": "최종선택LFF PASS(Chromium55/Unit91); 원본FAIL·비재현/통제단계분리보존",
+    "originalExact": {
+      "status": "PASS",
+      "cases": 1,
+      "meaning": "원본768 단독 비재현. 이PASS로원본FAIL을취소하거나원인을확정하지않음",
+      "testDurationReportedSeconds": 2.6,
+      "reportDurationReportedSeconds": 5.7,
+      "sourceSha256": "95dce8d433b1d659e08f23634bd56a5bfa8d4328174024dae60106cf740b52b0",
+      "sourceProvenance": "qa_docs원격failuretrace embeddedsrc와HEADspec bytes직접일치확인",
+      "reportDurationMs": 5738.975,
+      "globalErrors": 0,
+      "execution": {
+        "htmlPath": "output/playwright/issue-667/ci2831-original-html/index.html",
+        "htmlSha256": "d2cfa310caea88fc8e8886f742686fc31b0bd7bfd3b09c2ff147f71fe7d9f08f",
+        "startTime": 1792127044323,
+        "reportDurationMs": 5738.975,
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "errors": [],
+        "testDurationSumMs": 2578,
+        "raw": "output/playwright/issue-667/ci2831-original.log",
+        "timing": "output/playwright/issue-667/ci2831-original-timing.json",
+        "commandRecord": {
+          "command": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2831-original-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2831-original-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-timeline-lane.spec.ts --grep 'opt-in sibling lane 768px actual geometry' --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2831-original-results >output/playwright/issue-667/ci2831-original.log 2>&1",
+          "recordedAt": "2026-10-16T05:04:10.090Z",
+          "sessionId": "38808"
+        },
+        "sourceManifest": "output/playwright/issue-667/ci2831-original-source/manifest.json",
+        "timingReporterPassedDurationSumMs": 2578
+      },
+      "sourceSnapshot": {
+        "provenance": "original backups; diagnostic variants reconstructed from retained exact execution script; diagnostic hashes match contemporaneous manifest",
+        "files": {
+          "src/features/gantt/project-gantt.tsx": "b97245159d9422086f3bbc4427da21a702d0bb00218ab8df651c9d376cb293a1",
+          "src/features/gantt/viewport/viewport-coordinator.ts": "90bfa5ed37649d1b9516546a19469e372c7fe2f37269f52db31b9edf33ad5762",
+          "tests/e2e/milestone-timeline-lane.spec.ts": "95dce8d433b1d659e08f23634bd56a5bfa8d4328174024dae60106cf740b52b0"
+        }
+      }
+    },
+    "naturalDiagnostic": {
+      "status": "PASS",
+      "cases": 5,
+      "scalesPerCase": 2,
+      "meaning": "각390/768/1024/1440/1920폭Day/Week10관측. Week는이전day/gen2·rowsPENDING·기존RANGE APPLYING/SETTLING에서oldprojection2로SETTLED. 원본FAIL소급PASS아님.",
+      "gestureIntentContextChanged": false,
+      "reportDurationMs": 14851.171,
+      "execution": {
+        "htmlPath": "output/playwright/issue-667/ci2831-diagnostic-html/index.html",
+        "htmlSha256": "f5c5cfc02857fe89b4a7efceeb08c7ac5c7ed9aa398f35e292d781020f0223a0",
+        "startTime": 1792127286530,
+        "reportDurationMs": 14851.170999999998,
+        "stats": {
+          "total": 5,
+          "expected": 5,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "errors": [],
+        "testDurationSumMs": 11424,
+        "raw": "output/playwright/issue-667/ci2831-diagnostic.log",
+        "timing": "output/playwright/issue-667/ci2831-diagnostic-timing.json",
+        "commandRecord": {
+          "command": "cp src/features/gantt/project-gantt.tsx /tmp/ci2831-original-project-gantt.tsx\ncp tests/e2e/milestone-timeline-lane.spec.ts /tmp/ci2831-original-spec.ts\npython3 - <<'PY'\np='src/features/gantt/project-gantt.tsx';s=open(p).read();old='''return { canonicalTaskCount: tasksReference.current.length, coreTaskCount: coreTasks?.length ?? null,''';new='''return { coreScale: state.scales?.at(-1)?.unit, dataReady: consistencyReference.current?.dataReady(), viewportStamp: viewportCoordinatorReference.current?.stamp(), canonicalTaskCount: tasksReference.current.length, coreTaskCount: coreTasks?.length ?? null,''';assert s.count(old)==1;s=s.replace(old,new);open(p,'w').write(s)\np='tests/e2e/milestone-timeline-lane.spec.ts';s=open(p).read();old='''  const revealOutcome = await probe<string>(frame, \"reveal\", \"2026-03-10\");''';new='''  const diagnostics = await frame.evaluate(async node => {\n    const api = Reflect.get(node, \"__masterganttMilestoneTimeline\");\n    const snapshot = () => {\n      const core = api.read(), chart = node.querySelector<HTMLElement>(\".wx-chart\")!, owner = node.querySelector<HTMLElement>(\".wx-gantt\")!;\n      const receipt = JSON.parse(node.dataset.ganttProjectionReceipt ?? \"null\");\n      return { displayScale: node.dataset.ganttScaleMode, coreScale: core.coreScale, dataReady: core.dataReady,\n        stamp: { contextEpoch: core.viewportStamp?.contextEpoch, gesture: core.viewportStamp?.gesture, intent: core.viewportStamp?.intent },\n        core: { left: core.left, top: core.top, width: core.width, chartWidth: core.chartWidth, start: core.start, end: core.end },\n        native: { left: chart.scrollLeft, top: owner.scrollTop, width: chart.scrollWidth, chartWidth: chart.clientWidth },\n        receipt: receipt && { generation: receipt.generation, api: receipt.apiInstance, revision: receipt.revision, scale: receipt.scale, outcome: receipt.outcome },\n        observation: JSON.parse(node.dataset.ganttProjectionObservation ?? \"null\"), semantic: JSON.parse(node.dataset.ganttSemanticProjectionReceipt ?? \"null\"),\n        coordinator: JSON.parse(node.dataset.ganttViewportCoordinatorHistory ?? \"[]\").slice(-12) };\n    };\n    const before = snapshot(), outcome = await api.reveal(\"2026-03-10\");\n    return { before, outcome, after: snapshot() };\n  });\n  console.log(\"CI2831_REVEAL\", JSON.stringify(diagnostics));\n  const revealOutcome = diagnostics.outcome;''';assert s.count(old)==1;s=s.replace(old,new);open(p,'w').write(s)\nPY\nCI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2831-diagnostic-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2831-diagnostic-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-timeline-lane.spec.ts --grep 'opt-in sibling lane.*actual geometry' --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2831-diagnostic-results >output/playwright/issue-667/ci2831-diagnostic.log 2>&1",
+          "recordedAt": "2026-10-16T05:08:21.413Z",
+          "sessionId": "68751"
+        },
+        "sourceManifest": "output/playwright/issue-667/ci2831-diagnostic-source/manifest.json",
+        "timingReporterPassedDurationSumMs": 11424
+      },
+      "sourceSnapshot": {
+        "provenance": "original backups; diagnostic variants reconstructed from retained exact execution script; diagnostic hashes match contemporaneous manifest",
+        "files": {
+          "src/features/gantt/project-gantt.tsx": "a98105ac11b0482619efc38c3712a718f6f95332f78c262815dd83302d748b8d",
+          "src/features/gantt/viewport/viewport-coordinator.ts": "90bfa5ed37649d1b9516546a19469e372c7fe2f37269f52db31b9edf33ad5762",
+          "tests/e2e/milestone-timeline-lane.spec.ts": "21627f5bc2fdd69913025bb1b0aedaa49ef75d5d06a33fb74c8a812c9ef4a139"
+        }
+      }
+    },
+    "controlledRace": {
+      "status": "FAIL",
+      "cases": 1,
+      "controlledVariable": "WeekDIAG정착관측만24actualRAF보류(진단전용)",
+      "receiptBefore": "day/gen2",
+      "receiptDuring": "week/gen3",
+      "received": "SUPERSEDED",
+      "diagnosticDecisionReason": "STALE_CONTEXT_OR_INTENT",
+      "priorRangeDecisionReason": "NEW_RANGE",
+      "fixedContext": {
+        "revision": 40,
+        "contextEpoch": 1,
+        "gestureEpoch": 0,
+        "intentEpoch": 0,
+        "apiInstanceChanged": false
+      },
+      "newUserGesture": 0,
+      "boundary": "자연원본비재현PASS/원격미계측과별도. 임시hook/RAF변형최종제품미포함. source/명령/HTML은execution/sourceSnapshot에보존.",
+      "review": "qa_docs rawlog/임시diff직접대조. projectionEpoch2→3으로initial고정불일치라는통제취소인과타당; layout/filter변경을관측했다고확대하지않음.",
+      "reportDurationMs": 5553.964,
+      "execution": {
+        "htmlPath": "output/playwright/issue-667/ci2831-pending-control-html/index.html",
+        "htmlSha256": "462b839a8dfddf67d72daa96b728656243db1961043dd5a63f99e7e7f989e32e",
+        "startTime": 1792127413656,
+        "reportDurationMs": 5553.964,
+        "stats": {
+          "total": 1,
+          "expected": 0,
+          "unexpected": 1,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": false
+        },
+        "errors": [],
+        "testDurationSumMs": 2218,
+        "raw": "output/playwright/issue-667/ci2831-pending-control.log",
+        "timing": "output/playwright/issue-667/ci2831-pending-control-timing.json",
+        "commandRecord": {
+          "command": "cp src/features/gantt/viewport/viewport-coordinator.ts /tmp/ci2831-original-coordinator.ts\npython3 - <<'PY'\np='src/features/gantt/viewport/viewport-coordinator.ts';s=open(p).read();old='''        trace(\"SETTLING\");\n        let stable = 0, geometry = \"\", diagnosticRepairs = 0;''';new='''        trace(\"SETTLING\");\n        if (command.kind === \"DIAGNOSTIC_SCROLL\" && initial.context.scale === \"week\") {\n          for (let frame = 0; frame < 24 && current(); frame++) await port.frame(controller.signal);\n        }\n        let stable = 0, geometry = \"\", diagnosticRepairs = 0;''';assert s.count(old)==1;s=s.replace(old,new);open(p,'w').write(s)\nPY\nCI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2831-pending-control-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2831-pending-control-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-timeline-lane.spec.ts --grep 'opt-in sibling lane 768px actual geometry' --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2831-pending-control-results >output/playwright/issue-667/ci2831-pending-control.log 2>&1",
+          "recordedAt": "2026-10-16T05:10:19.245Z",
+          "sessionId": "62945"
+        },
+        "sourceManifest": "output/playwright/issue-667/ci2831-pending-control-source/manifest.json",
+        "timingReporterPassedDurationSumMs": 0
+      },
+      "sourceSnapshot": {
+        "provenance": "original backups; diagnostic variants reconstructed from retained exact execution script; diagnostic hashes match contemporaneous manifest",
+        "files": {
+          "src/features/gantt/project-gantt.tsx": "a98105ac11b0482619efc38c3712a718f6f95332f78c262815dd83302d748b8d",
+          "src/features/gantt/viewport/viewport-coordinator.ts": "e932aaa4392a4a41cb8232f798669d0e71bb37844e2afc7068b453dc0affc680",
+          "tests/e2e/milestone-timeline-lane.spec.ts": "21627f5bc2fdd69913025bb1b0aedaa49ef75d5d06a33fb74c8a812c9ef4a139"
+        }
+      },
+      "testDurationBoundary": "HTML실패case duration2218ms. timing reporter는PASS만집계해0이며실제실패duration0으로쓰지않음."
+    },
+    "readyControlledRace": {
+      "status": "PASS",
+      "cases": 1,
+      "controlledVariable": "같은24actualRAF보류+명령전현재scale준비gate",
+      "receiptBefore": "week/gen3",
+      "receiptAfter": "week/gen3",
+      "latestDelivery": "SETTLED",
+      "received": "SETTLED",
+      "strictGeometry": "PASS",
+      "fixedObservedContext": {
+        "contextEpoch": 1,
+        "gestureEpoch": 0,
+        "intentEpoch": 0
+      },
+      "boundary": "통제변수에서gate유효성증거. 진단코드원복후최종회귀는별도; 원격직접인과확정아님",
+      "reportDurationMs": 6585.704,
+      "execution": {
+        "htmlPath": "output/playwright/issue-667/ci2831-ready-control-html/index.html",
+        "htmlSha256": "bed88721312694a885be5c79135a4b5e262ceaa54e13102885a956a240617439",
+        "startTime": 1792127705152,
+        "reportDurationMs": 6585.704,
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "errors": [],
+        "testDurationSumMs": 3164,
+        "raw": "output/playwright/issue-667/ci2831-ready-control.log",
+        "timing": "output/playwright/issue-667/ci2831-ready-control-timing.json",
+        "commandRecord": {
+          "command": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2831-ready-control-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2831-ready-control-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-timeline-lane.spec.ts --grep 'opt-in sibling lane 768px actual geometry' --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2831-ready-control-results >output/playwright/issue-667/ci2831-ready-control.log 2>&1",
+          "recordedAt": "2026-10-16T05:15:11.765Z",
+          "sessionId": "9726"
+        },
+        "sourceManifest": "output/playwright/issue-667/ci2831-ready-control-source/manifest.json",
+        "timingReporterPassedDurationSumMs": 3164
+      },
+      "sourceSnapshot": {
+        "src/features/gantt/project-gantt.tsx": "a98105ac11b0482619efc38c3712a718f6f95332f78c262815dd83302d748b8d",
+        "src/features/gantt/viewport/viewport-coordinator.ts": "e932aaa4392a4a41cb8232f798669d0e71bb37844e2afc7068b453dc0affc680",
+        "tests/e2e/milestone-timeline-lane.spec.ts": "dafaa76b9df0c7054121d28a4cae34f83f45b7f7bd83704e85d4b5bc4281603b"
+      }
+    },
+    "selection": {
+      "specs": 6,
+      "uniqueCases": 55,
+      "casesByFile": {
+        "milestone-timeline-lane.spec.ts": 21,
+        "milestone-timeline-core.spec.ts": 9,
+        "viewport-coordinator.spec.ts": 8,
+        "project-gantt-scale.spec.ts": 1,
+        "project-task-hover-tooltip.spec.ts": 6,
+        "project-multi-task-copy-paste.spec.ts": 10
+      },
+      "actualHttpSqlite": 10,
+      "mockApiActualSvarDom": 45,
+      "retries": 0,
+      "maxFailures": 0,
+      "exclusions": "제품/공유helper/서버/DB/보안/Calendar/Resource변경0. 해당전수재실행N/A; 공식전체PRCI/전체SC/환경별인수는별도.",
+      "boundary": "원본/자연/통제/중간PASS와최종55중복합산안함"
+    },
+    "coordinatorUnit": {
+      "status": "PASS",
+      "files": 1,
+      "passed": 91,
+      "durationMs": 194,
+      "raw": "output/playwright/issue-667/ci2831-coordinator-unit.log",
+      "meaning": "기존gesture/hidden/context/revision/projection취소·후속repair0음성포함. 제품알고리즘변경0.",
+      "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/viewport-coordinator.test.ts >output/playwright/issue-667/ci2831-coordinator-unit.log 2>&1",
+      "exitCode": 0
+    },
+    "finalChromium": {
+      "status": "PASS",
+      "files": 6,
+      "uniqueCases": 55,
+      "passed": 55,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "globalErrors": 0,
+      "reportDurationMs": 300934.71,
+      "testDurationSumMs": 190573,
+      "html": "output/playwright/issue-667/ci2831-final-html/index.html",
+      "htmlSha256": "52343b04bf003beb6c770f87f573ccf17d1020bc6925aff6b2f91e7d4081b473",
+      "command": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2831-final-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2831-final-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-timeline-lane.spec.ts tests/e2e/milestone-timeline-core.spec.ts tests/e2e/viewport-coordinator.spec.ts tests/e2e/project-gantt-scale.spec.ts tests/e2e/project-task-hover-tooltip.spec.ts tests/e2e/project-multi-task-copy-paste.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2831-final-results >output/playwright/issue-667/ci2831-final.log 2>&1",
+      "raw": "output/playwright/issue-667/ci2831-final.log",
+      "timing": "output/playwright/issue-667/ci2831-final-timing.json",
+      "startTimeEpochMs": 1792127857362,
+      "exitCode": 0,
+      "sourceHashDrift": 0,
+      "boundary": "4단계원본/자연/통제/중간결과와합산하지않음"
+    },
+    "environment": {
+      "node": "22.14.0",
+      "playwright": "1.63.0",
+      "chromium": "153.0.8010.12",
+      "browserBuild": 1243,
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 0,
+      "nodeTZ": "UTC",
+      "laneCoreBrowserTimezone": "America/New_York",
+      "defaultViewport": [
+        1280,
+        720
+      ],
+      "expectTimeoutMs": 5000,
+      "defaultTestTimeoutMs": 30000,
+      "copyTestTimeoutMs": 90000,
+      "copyFirstTestTimeoutMs": 180000,
+      "selection": {
+        "lane": 21,
+        "Core": 9,
+        "viewport": 8,
+        "scale": 1,
+        "hover": 6,
+        "Copy": 10,
+        "uniqueTotal": 55,
+        "actualHttpCopy": 10,
+        "mockApiActualCore": 45
+      },
+      "excluded": "Resource/Calendar/server authorization: runtime/shared helpers unchanged",
+      "cwd": "/home/planner/Dev/masterGantt-worktrees/issue-667",
+      "newPrepRafDeadlineMs": 5000,
+      "timeoutIncreased": false
+    },
+    "static": {
+      "typecheck": {
+        "status": "PASS",
+        "command": "npm run typecheck",
+        "exitCode": 0
+      },
+      "changedTestLint": {
+        "status": "PASS",
+        "command": "npx eslint tests/e2e/milestone-timeline-lane.spec.ts",
+        "errors": 0,
+        "warnings": 0,
+        "exitCode": 0
+      },
+      "markdown": {
+        "status": "PASS",
+        "command": "node scripts/check-markdown-links.mjs",
+        "files": 229
+      },
+      "version": {
+        "status": "PASS",
+        "command": "npm run version:check",
+        "value": "0.114.1"
+      },
+      "diff": {
+        "status": "PASS",
+        "command": "git diff --check"
+      }
+    }
+  },
+  "review": {
+    "method": "OWNER_MANAGED",
+    "riskLevel": "HIGH",
+    "qaRequired": true,
+    "reviewer": "/root/pre_review",
+    "preQa": "PASS",
+    "documentationSync": "PASS",
+    "qaFinal": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "managerDecision": "NOT TESTED",
+    "mergeReady": "BLOCKED",
+    "scope": "별도qa_docs read-only PRE_QA; 이번7파일·선택55사례/Unit91/실제증거한정. 추가지적0. 별도재실행없음. 인간QA_FINAL승인아님."
+  },
+  "newRemoteValidation": "NOT TESTED (게시후새FullPRCI시작확인까지)",
+  "release": {
+    "version": "0.114.1",
+    "releaseRequired": true,
+    "releaseAuthorized": false
+  },
+  "archive": {
+    "entryPoint": "docs/ISSUE_667_FAILURE_ANALYSIS.md",
+    "rawOriginal": "/tmp/issue667-ci2831/",
+    "localArtifacts": "output/playwright/issue-667/",
+    "retentionBoundary": "분석/안전추출/해시/명령Git보존; rawHTML/trace는Git밖/Actions만료경계구분",
+    "originalZipSha256": {
+      "report.zip": "55f8ebb353dcaffee744303ccf3c0e432aeb0bb578713d13b83f0c6ecadb1696",
+      "source.zip": "83f8a35905a7be0a94c4aa3f3b2ab7a193b2717d15045531877ea48b67730b70"
+    },
+    "handling": "zip읽기전용/안전추출/코드실행없음"
+  }
+}

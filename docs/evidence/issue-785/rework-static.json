@@ -1,0 +1,44 @@
+{
+  "typecheck": {
+    "command": "npm run typecheck",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 3.06
+  },
+  "lint": {
+    "command": "npm run lint",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 42.21
+  },
+  "schema": "mastergantt-785-rework-static-v1",
+  "unit": {
+    "state": "PASS",
+    "files": 4,
+    "passed": 40,
+    "exitCode": 0,
+    "durationSeconds": 1.97
+  },
+  "lintWarnings": 10,
+  "generatedConfigsRestored": true,
+  "fullBrowserCheckoutSourceStable": false,
+  "markdownLinks": {
+    "state": "PASS",
+    "files": 315
+  },
+  "applicationVersion": {
+    "state": "PASS",
+    "version": "0.131.0"
+  },
+  "diffCheck": "PASS",
+  "testPlanBlobUnchanged": "1d2b679dda6730306d8f6586ba3921a9458d4e9f",
+  "preQa": {
+    "reviewer": "/root/qa_review",
+    "state": "PASS",
+    "scope": "F785-004 교정·검증·문서의 PR 게시 준비",
+    "readOnly": true,
+    "unresolvedFindings": 0,
+    "ownerAcceptance": "NOT TESTED",
+    "mergeReady": "BLOCKED"
+  }
+}

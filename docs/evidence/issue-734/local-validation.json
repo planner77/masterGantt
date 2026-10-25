@@ -1,0 +1,86 @@
+{
+  "issue": 734,
+  "baseline": "05f1e560eee456e6fba5535255c9ede30a357c16",
+  "version": "0.127.0",
+  "unit": {
+    "files": 15,
+    "passed": 155,
+    "failed": 0,
+    "skipped": 0,
+    "paths": [
+      "domain/wbs-task-ledger-acceptance.test.ts",
+      "domain/wbs-task-ledger.test.ts",
+      "features/resources/equipment-dashboard.test.ts",
+      "features/resources/process-workarea-dashboard.test.ts",
+      "features/resources/resource-drill-navigation-model.test.ts",
+      "features/resources/resource-drill-transport.test.ts",
+      "features/resources/system-dashboard.test.ts",
+      "features/resources/wbs-view-model.test.ts",
+      "features/resources/wbs-view-transport.test.ts",
+      "server/resources/issue-733-process-configuration.test.ts",
+      "server/resources/issue-734-equipment-configuration.test.ts",
+      "server/resources/issue-735-system-dashboard.test.ts",
+      "server/resources/resource-dashboard-rollup.test.ts",
+      "server/resources/resource-kpi-integration.test.ts",
+      "server/resources/wbs-dashboard-views-http.test.ts"
+    ]
+  },
+  "chromium": {
+    "passed": 3,
+    "not_tested": 5,
+    "observed_elapsed_seconds": [
+      53.0,
+      46.8,
+      42.2
+    ],
+    "five_width_screenshots": "NOT TESTED",
+    "limitation": "Runtime interruption before the full eight-case suite completed; no full E2E PASS claimed",
+    "evidence_base": "05f1e560eee456e6fba5535255c9ede30a357c16",
+    "current_integrated_source": "NOT TESTED (8 cases)"
+  },
+  "product_manifest": {
+    "files": 513,
+    "mismatches": 0,
+    "sha256": "f39195c7bc657cf14b05e72b9d08dc3758b10b6397c64a11cfdfca34f5bd420e",
+    "scope": "Pre-#735 integration evidence only"
+  },
+  "prepr": {
+    "fast": {
+      "state": "BLOCKED",
+      "unknown": 4,
+      "missing": 0,
+      "steps": 0,
+      "sourceStable": true
+    },
+    "targeted": {
+      "state": "BLOCKED",
+      "unknown": 4,
+      "missing": 0,
+      "steps": 0,
+      "sourceStable": true
+    }
+  },
+  "remote_required_checks": "NOT TESTED",
+  "trusted_qa": "NOT TESTED",
+  "manager_decision": "NOT TESTED",
+  "release_authorized": false,
+  "static": {
+    "typecheck": "PASS",
+    "lint": {
+      "state": "PASS",
+      "errors": 0,
+      "existing_warnings": 13
+    },
+    "markdown": {
+      "state": "PASS",
+      "files": 278
+    },
+    "discovery": {
+      "state": "PASS",
+      "unit_files": 252,
+      "browser_cases": 773
+    },
+    "version": "PASS"
+  },
+  "current_base": "08a1d9ff25a97aba67f08d6b67029ac55d45121a"
+}

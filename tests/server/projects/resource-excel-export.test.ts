@@ -19,6 +19,14 @@ function extract(bytes: Uint8Array) { const b = Buffer.from(bytes), entries = ne
 function cells(xml: string) { return [...xml.matchAll(/<c r="([A-Z]+\d+)"[^>]*?(?:\/>|>(.*?)<\/c>)/g)].map(match => ({ ref: match[1], raw: match[0], number: /<v>(.*?)<\/v>/.exec(match[2] ?? "")?.[1], text: /<t[^>]*>(.*?)<\/t>/.exec(match[2] ?? "")?.[1] })); }
 async function http(f: ReturnType<typeof fixture>, resourceDashboard?: ResourceExcelExportOptions, body?: string, headers: Record<string, string> = {}) { const service = new ProjectExportSnapshotService(f.database, { clock: () => new Date(RESOURCE_DASHBOARD_NOW), mdPerMmEnvironment: "21" }); return handleProjectExcelExport(new Request(`https://gantt.example/api/projects/${f.project.publicId}/exports/excel`, { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://gantt.example", "If-Match": '"1"', ...headers }, body: body ?? JSON.stringify({ ...legacy, ...(resourceDashboard ? { resourceDashboard } : {}) }) }), f.project.publicId, { service: { getReadonlySnapshot: () => undefined }, applicationBaseUrl: "https://gantt.example", environment: "production", getExportBundle: (...args) => service.get(...args) }); }
 describe("#529 Resource workbook real SQLite HTTP handler and OOXML", () => {
+  it("keeps seven append sheets when Plan requests an empty Target catalog for filters", async () => {
+    const f = fixture(), response = await http(f, options(f, { granularity: "week", projectionOrder: ["resource", "target"] }), undefined, { "X-MasterGantt-Resource-Version": "1" });
+    expect(response.status).toBe(200);
+    const entries = extract(new Uint8Array(await response.arrayBuffer()));
+    const names = [...entries.get("xl/workbook.xml")!.matchAll(/name="([^"]+)"/g)].map(match => match[1]);
+    expect(names.filter(name => name.startsWith("Resource ") || name === "Group Milestones")).toHaveLength(7);
+    expect(names).not.toContain("Resource Logistics");
+  });
   it("checks actual UTF-8 XML and final ZIP bytes and all count boundaries without truncation", () => {
     for (const key of ["sheetRows", "reportRows", "reportCells"] as const) { const cap = RESOURCE_EXCEL_EXPORT_LIMITS[key]; expect(() => assertResourceExcelBudget(key, cap, cap)).not.toThrow(); expect(() => assertResourceExcelBudget(key, cap + 1, cap)).toThrow("limit exceeded"); }
     const xml = "가".repeat(Math.floor(RESOURCE_EXCEL_EXPORT_LIMITS.workbookXmlBytes / 3)), tail = "x".repeat(RESOURCE_EXCEL_EXPORT_LIMITS.workbookXmlBytes % 3);
@@ -55,6 +63,10 @@ describe("#529 Resource workbook real SQLite HTTP handler and OOXML", () => {
     expect(response.status).toBe(200); expect(response.headers.get("set-cookie")).toBeNull(); expect(response.headers.get("cache-control")).toBe("private, no-store"); expect(response.headers.get("x-content-type-options")).toBe("nosniff");
     const entries = extract(new Uint8Array(await response.arrayBuffer())), wb = entries.get("xl/workbook.xml")!;
     const names = [...wb.matchAll(/name="([^"]+)"/g)].map(m => m[1]); expect(names.slice(-7)).toEqual(["Resource Report", "Resource Milestones", "Group Milestones", "Resource Plan", "Resource Assignments", "Resource Quality", "Resource Relations"]);
+    // #785: preserve the public Resource Report row name in actual SQLite/HTTP/OOXML.
+    const reportXml = entries.get(`xl/worksheets/sheet${names.indexOf("Resource Report") + 1}.xml`)!;
+    expect(reportXml).toContain("Actual report context");
+    expect(reportXml).not.toContain("Actual target context");
     const assignmentXml = entries.get(`xl/worksheets/sheet${names.indexOf("Resource Assignments") + 1}.xml`)!;
     const parsed = cells(assignmentXml); const report = f.service.getDashboard(f.project.publicId)!;
     expect([...assignmentXml.matchAll(/<row /g)]).toHaveLength(report.summary.assignmentCount + 1);
@@ -66,6 +78,34 @@ describe("#529 Resource workbook real SQLite HTTP handler and OOXML", () => {
     const milestoneXml = entries.get(`xl/worksheets/sheet${names.indexOf("Resource Milestones") + 1}.xml`)!; expect(milestoneXml).toContain("scheduledDate"); expect(milestoneXml).toContain("2026-10-05");
     const planXml = entries.get(`xl/worksheets/sheet${names.indexOf("Resource Plan") + 1}.xml`)!; expect(planXml).toContain("periodLabel"); expect(planXml).toContain("partial"); expect(planXml).toContain("2026-W41");
     expect(f.state()).toEqual(before);
+  });
+  it("round-trips the approved public Resource report context through real Excel OOXML", async () => {
+    const f = fixture(), opts = options(f);
+    const response = await http(f, opts);
+    expect(response.status).toBe(200);
+    const entries = extract(new Uint8Array(await response.arrayBuffer()));
+    // A Gantt worksheet precedes the optional Resource sheets.
+    // Resolve the actual Resource Report index from the workbook metadata.
+    const workbook = entries.get("xl/workbook.xml")!;
+    const sheetNames = [...workbook.matchAll(/name="([^"]+)"/g)].map(match => match[1]);
+    const reportSheetIndex = sheetNames.indexOf("Resource Report");
+    expect(reportSheetIndex, "Resource Report must exist in the workbook").toBeGreaterThanOrEqual(0);
+    const xml = entries.get(`xl/worksheets/sheet${reportSheetIndex + 1}.xml`)!;
+    expect(xml).toContain("Actual report context");
+    expect(xml).not.toContain("Actual target context");
+    const rawCells = cells(xml);
+    const contextLabels = rawCells.filter(cell => /^A\d+$/.test(cell.ref) && cell.text === "Actual report context");
+    expect(contextLabels).toHaveLength(1);
+    const contextCell = rawCells.find(cell => cell.ref === contextLabels[0].ref.replace(/^A/, "B"));
+    expect(contextCell?.text, "Report context value must be an inline-string cell").toEqual(expect.any(String));
+    const decoded = contextCell!.text!.replace(/&quot;/g, '"' ).replace(/&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+    const context = JSON.parse(decoded);
+    expect(context).toEqual(opts.expectedReport.context);
+    expect(context).toMatchObject({
+      projectPublicId: f.project.publicId,
+      projectRevision: f.service.getDashboard(f.project.publicId)!.projectRevision,
+      sourceProjection: { kind: "report" },
+    });
   });
   it("keeps legacy bytes unchanged and one transaction/clock with full/current context", () => {
     const f = fixture(), clock = vi.fn(() => new Date(RESOURCE_DASHBOARD_NOW)), service = new ProjectExportSnapshotService(f.database, { clock, mdPerMmEnvironment: "21" });

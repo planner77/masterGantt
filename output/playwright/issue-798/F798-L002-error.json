@@ -1,0 +1,15 @@
+{
+  "failureId": "F798-L002",
+  "status": "FAIL",
+  "scope": "Local selected Chromium attempt1; not remote CI failure",
+  "testSourceSha256": "026e1dea9b2ae7fbe9faef3fa3972aa88847893b9cdc8da188eb7d17ace38214",
+  "errorExcerpt": "Error: expect(locator).toBeChecked() failed\n\nLocator: getByTestId('wbs-view-dashboard').visible().getByRole('group', { name: '설비 유형', exact: true }).getByRole('checkbox', { name: 'AGV (무인운반차)', exact: true })\nExpected: checked\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeChecked\" getByTestId('wbs-view-dashboard').visible().getByRole('group', { name: '설비 유형', exact: true }).getByRole('checkbox', { name: 'AGV (무인운반차)', exact: true }) with timeout 5000ms\n  - waiting for getByTestId('wbs-view-dashboard').visible().getByRole('group', { name: '설비 유형', exact: true }).getByRole('checkbox', { name: 'AGV (무인운반차)', exact: true })",
+  "accessibilitySnapshotEvidence": [
+    "- button \"필터·조회 구성 (1)\"",
+    "- paragraph: \"설비 유형: 1개 · AGV (무인운반차)\""
+  ],
+  "cause": "After reload outer disclosure correctly defaults closed; existing checkbox role assertions failed because test omitted user-visible re-entry. AX confirms restored applied AGV summary/count.",
+  "correction": "Reopen outer disclosure after reload before original checked/notchecked assertions; verify collapsed active summary before reopening.",
+  "rawTrace": "Preserved only /tmp/issue798-first-run-test-results; not committed.",
+  "finalRerun": "NOT TESTED"
+}

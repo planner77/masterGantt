@@ -1,4 +1,12 @@
-import type { ResourceExcelExportOptions, ResourceExcelReportBundle, ResourceExcelAssignmentRow } from "../../contracts/resource-excel-export";
+import { workAreaBelongsToProcess } from "../../domain/resources/resource-kpi-targets";
+import { resolveWbsTaskLedger, WbsTaskLedgerInputError } from "../../domain/resources/wbs-task-ledger";
+import { WBS_VIEW_LIMITS, type WbsViewResponseDto, type WbsViewResponseContext, type WbsViewReportDto, type WbsViewScopeDto } from "../../contracts/wbs-dashboard-views";
+import { parseWbsViewQuery } from "./wbs-dashboard-views-query-core";
+import { createWbsViewProjection, wbsViewSelectedSources } from "./wbs-dashboard-views-core";
+import { RESOURCE_PHYSICAL_FILTER_KEYS, RESOURCE_TARGET_LIMITS, RESOURCE_TARGET_FILTER_KEYS, type ResourceDashboardTargetFilters, type ResourceDashboardTargetProjection, type ResourceDashboardTargetNode, type ResourceTargetPathEntry } from "../../contracts/resource-dashboard";
+import { projectResourceKpiTargets } from "../../domain/resources/resource-target-kpi";
+import { ResourceKpiTargetInputError, ResourceKpiTargetLimitError, hasResourceKpiTargetPathFilters, selectResourceKpiTargetPaths, summarizeResourceKpiTargetMembers, type ResourceKpiTargetFilters } from "../../domain/resources/resource-kpi-targets";
+import { isWbsResourceExcelOptions, type ResourceExcelExportInput, type WbsResourceExcelExportOptions, type ResourceExcelExportOptions, type ResourceExcelReportBundle, type ResourceExcelAssignmentRow } from "../../contracts/resource-excel-export";
 import { parseResourceExcelOptions } from "../exports/project-excel-export-contract";
 import { resourceFingerprint as fingerprint, readResourceDataSnapshot } from "./resource-data-context-core";
 import type { ResourceDrillQueryInput, ResourceDrillQueryResponse, ResourceDrillScope, ResourceDrillScopeDto, ResourceDrillScopeRequest, ResourceDrillSourceContext, ResourceDrillSourceProjection } from "../../contracts/resource-drill";
@@ -53,6 +61,23 @@ function assertDiagnosticAssignmentDayBudget(
     if (totalDays > DIAGNOSTIC_ASSIGNMENT_DAYS_LIMIT) resourceDashboardLimit("diagnostic.assignmentDays");
   }
 }
+function targetCall<T>(call: () => T): T {
+  try { return call(); } catch (error) {
+    if (error instanceof ResourceKpiTargetLimitError) resourceDashboardLimit(`projection.target.${error.dimension}`);
+    if (error instanceof ResourceKpiTargetInputError) invalidSelection();
+    throw error;
+  }
+}
+function targetFilters(filters: ResourceDashboardTargetFilters): ResourceKpiTargetFilters {
+  const output: ResourceKpiTargetFilters = Object.fromEntries([...RESOURCE_TARGET_FILTER_KEYS,...RESOURCE_PHYSICAL_FILTER_KEYS].filter(key => filters[key] !== undefined).map(key => [key, filters[key]]));
+  if (filters.targetIds) output.targetIds = filters.targetIds.map(id => id === "unassigned" ? null : id);
+  if (filters.workAreaIds) output.workAreaIds = filters.workAreaIds.map(id => id === "unassigned" ? null : id);
+  return output;
+}
+function wantsTargets(filters: ResourceDashboardTargetFilters) { return filters.projectionOrder !== undefined || RESOURCE_TARGET_FILTER_KEYS.some(key => filters[key] !== undefined); }
+// Physical source evidence belongs to every canonical detail, independently of
+// retired projection/filter requests. Source fan-out keeps the same page budget.
+function wantsPhysicalSources(snapshot: { domain: { logistics?: unknown } }) { return snapshot.domain.logistics !== undefined; }
 function compact(value: ResourceKpiTotals, selector: ResourceDashboardSelector): ResourceDashboardSummary {
   return { taskCount: value.taskCount, resourceCount: value.resourceCount, assignmentCount: value.assignmentCount,
     notStarted: value.notStarted.count, inProgress: value.inProgress.count, completed: value.completed.count, delayed: value.delayed.count,
@@ -77,6 +102,88 @@ function milestoneOrder(snapshot: { taskById: Map<string, { startDate: string | 
 
 export class ResourceDashboardService {
   constructor(private readonly database: Database.Database, private readonly options: { clock?: () => Date; mdPerMmEnvironment?: string } = {}) {}
+  queryWbsView(publicId: string, value: unknown): WbsViewResponseDto | undefined {
+    const input = parseWbsViewQuery(value);
+    return this.database.transaction(() => {
+      let snapshot;
+      try { snapshot = this.prepareSnapshot(publicId, input.filters ?? {}, true); }
+      catch (error) { if (input.projection?.kind !== "report" && error instanceof PublicApiError && error.code === "INVALID_SELECTION") stale(); throw error; }
+      if (!snapshot) return undefined;
+      const source = snapshot.wbsContext!;
+      const snapshotId = fingerprint({ sourceVersion: input.spec.contextSourceVersion, spec: input.spec, snapshotId: snapshot.snapshotId, scope: input.scope ?? null });
+      const projection = input.projection!;
+      if (projection.kind !== "report" && projection.snapshotId !== snapshotId) stale();
+      const restriction = input.scope ? this.resolveRestriction(snapshot, input.scope) : undefined;
+      try {
+        const ledger = resolveWbsTaskLedger({ ...source, version: "wbs-task-ledger:v1", contextSourceVersion: input.spec.contextSourceVersion, snapshotProjectPublicId: publicId,
+          kpi: { ...snapshot.domain.input, logistics: snapshot.targetSnapshot.logistics },
+          processActivity: snapshot.targetSnapshot.identity.processes.map(row => ({ id: row.id, active: row.active === 1 })),
+          workAreaActivity: snapshot.targetSnapshot.identity.workAreas.map(row => ({ id: row.id, active: row.active === 1 })), maxProjectionCells: WBS_VIEW_LIMITS.cells });
+        const labels = new Map<string, string>([
+          ...snapshot.targetSnapshot.catalog.map(row => [JSON.stringify([row.dimension === "projectProcess" ? "process" : row.dimension, row.id]), row.name] as [string, string]),
+          ...snapshot.resources.map(row => [JSON.stringify(["resource", row.publicId]), row.name] as [string, string]),
+          ...snapshot.groups.map(row => [JSON.stringify(["group", row.publicId]), row.name] as [string, string]),
+          ...snapshot.milestones.map(row => [JSON.stringify(["milestone", row.publicId]), row.name] as [string, string]),
+        ]);
+        const view = createWbsViewProjection(ledger, input, labels, restriction), selected = view.selected;
+        const sourceContext = { ...snapshot.dataContext, range: { from: snapshot.from, to: snapshot.to }, asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, mdPerMmSource: snapshot.mdPerMmSource, mdPerMmProvided: snapshot.filters.mdPerMmProvided,
+          schema: "wbs-view-source/1" as const, contextSourceVersion: input.spec.contextSourceVersion, snapshotId, spec: input.spec, path: projection.kind === "report" ? [] : projection.path, ...(input.scope ? { scope: input.scope } : {}) };
+        const context: WbsViewResponseContext = { schema: "wbs-view-report/1" as const, snapshotId, projectPublicId: publicId, projectRevision: snapshot.project.revision, sourceContext, spec: input.spec, filters: input.filters ?? {},
+          range: sourceContext.range, asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, metadata: { ...ledger.metadata, ...(input.spec.systemView !== undefined || input.spec.systemIds !== undefined ? { systemSelection: { systemView: input.spec.systemView ?? "direct", systemIds: input.spec.systemIds ?? ledger.configuration.systems.map(row => row.id) } } : {}), limits: WBS_VIEW_LIMITS, excel: input.spec.root === "resource" ? { supported: true, reason: "동일 출처의 리소스 Excel 및 비가산 계층 근거를 제공합니다." } : { supported: false, code: "WBS_VIEW_EXPORT_UNSUPPORTED", reason: "이 관점의 동적 Excel은 아직 지원하지 않습니다. 기존 호환 보고서를 이용해 주세요." } } };
+        const selectedAssignmentIds = new Set(selected.assignmentIds);
+        const selectedSources = selected.rows.map(row => ({ taskId: row.taskId, sources: wbsViewSelectedSources(row, selectedAssignmentIds, projection.kind === "report" ? [] : projection.path, input.spec.systemView) }));
+        if (selectedSources.reduce((sum, row) => sum + row.sources.length, 0) > WBS_VIEW_LIMITS.sourceRows) resourceDashboardLimit("projection.wbs.sourceRows");
+        const instancePaths = selected.rows.flatMap(row => (["equipment", "system"] as const).flatMap(kind => (kind === "equipment" ? row.equipmentIds : row.systemIds).map(instanceId => ({ taskId: row.taskId, kind, instanceId,
+          sources: wbsViewSelectedSources(row, selectedAssignmentIds, projection.kind === "report" ? [] : projection.path, input.spec.systemView).filter(source => source.entityKind === kind && source.entityId === instanceId),
+          targetMembers: row.targetSources.effectiveMembers.filter(member => member.kind === kind && member.entityId === instanceId),
+          legacySources: row.targetSources.legacySources.filter(member => member.kind === kind && member.entityId === instanceId) }))));
+        if (instancePaths.length > WBS_VIEW_LIMITS.sourceRows) resourceDashboardLimit("projection.wbs.instancePaths");
+        const instanceIds = [...new Map(instancePaths.map(row => [JSON.stringify([row.kind, row.instanceId]), { kind: row.kind, instanceId: row.instanceId }])).values()];
+        const scope = { selectedSources, instanceIds, instancePaths, taskIds: selected.taskIds, assignmentIds: selected.assignmentIds, taskCount: selected.taskIds.length, assignmentCount: selected.assignmentIds.length,
+          ancestorSummaryIds: [...new Set(selected.taskIds.flatMap(id => snapshot.paths.get(id)!.filter(entry => snapshot.taskById.get(entry.taskId)!.type === "summary").map(entry => entry.taskId)))].sort() };
+        let data: WbsViewResponseDto;
+        if (projection.kind === "scope") data = { ...context, projection: "scope", ...scope, path: projection.path, taskSources: selected.rows };
+        else if (projection.kind === "details") {
+          const totalCount = projection.view === "tasks" ? selected.taskIds.length : selected.assignments.length;
+          const page = { start: projection.offset, end: projection.offset + projection.limit };
+          const rows = projection.view === "tasks" ? selected.taskIds.slice(page.start, page.end).map(taskId => ({ ...this.detailRow(snapshot, taskId, null), taskSources: selected.rows.find(row => row.taskId === taskId)!, selectedSources: selectedSources.find(row => row.taskId === taskId)!.sources, instancePaths: instancePaths.filter(row => row.taskId === taskId) })) : selected.assignments.slice(page.start, page.end).map(row => ({ ...this.detailRow(snapshot, row.taskId, row), taskSources: selected.rows.find(task => task.taskId === row.taskId)!, selectedSources: selectedSources.find(task => task.taskId === row.taskId)!.sources, instancePaths: instancePaths.filter(task => task.taskId === row.taskId) }));
+          data = { ...context, projection: "details", path: projection.path, view: projection.view, offset: projection.offset, limit: projection.limit, totalCount, nextOffset: projection.offset + rows.length < totalCount ? projection.offset + rows.length : null, rows };
+        } else {
+          const calculated = { snapshot, selection: selected.selection, referenceRows: selected.assignments, excludedRows: [], diagnosticSelection: selected.selection, diagnosticDomain: snapshot.domain };
+          const equipmentTypeNames = new Map(source.equipmentTypes.map(row => [row.code, row.name]));
+          const equipmentAreas = new Map<string, typeof source.equipmentWorkAreas>();
+          for (const link of source.equipmentWorkAreas) {
+            const links = equipmentAreas.get(link.equipmentId) ?? [];
+            links.push(link); equipmentAreas.set(link.equipmentId, links);
+          }
+          const resourceScope: ResourceDrillScope = { kind: "exactAssignments", assignmentIds: selected.assignmentIds };
+          const resourceReport = input.spec.root === "resource" && snapshot.filters.granularity ? this.getDashboard(publicId, input.filters, resourceScope) : undefined;
+          data = { ...context, ...(resourceReport ? { resourceAdapter: { report: resourceReport, binding: { sourceContext: resourceReport.resourceScopeContext!, scope: resourceScope } } } : {}), projection: "report", ...scope, totals: view.totals, children: view.children, taskSources: selected.rows, configuration: ledger.configuration, configurationCatalog: {
+              processes: snapshot.targetSnapshot.identity.processes.map(({ id, name, occurrenceId }) => ({ id, name, occurrenceId })),
+              workAreas: snapshot.targetSnapshot.identity.workAreas.map(area => ({ id:area.id, name:area.name, occurrenceId:area.occurrenceId, processIds: snapshot.targetSnapshot.identity.processes.filter(process => workAreaBelongsToProcess(area,process)).map(process => process.id) })),
+              instances: snapshot.targetSnapshot.logistics.instances.map(instance => ({ kind: instance.kind, id: instance.entityId, name: labels.get(JSON.stringify([instance.kind, instance.entityId]))! })),
+              equipment: source.equipment.map(row => ({ id: row.id, name: row.name, equipmentType: row.equipmentType,
+                equipmentTypeName: equipmentTypeNames.get(row.equipmentType) ?? row.equipmentType,
+                managementUnit: row.managementUnit, quantity: row.quantity, active: row.active, primaryProcessId: row.processId,
+                workAreaLinks: (equipmentAreas.get(row.id) ?? []).map(({ processId, occurrenceId, workAreaId }) => ({ processId, occurrenceId, workAreaId })),
+                resourceRoles: row.resourceRoles.map(({ resourceId, resourceName, role, isPrimary, active }) => ({ resourceId, resourceName, role, isPrimary, active })),
+                controlSystems: row.controlSystems.map(control => ({ ...control, systemName: labels.get(JSON.stringify(["system", control.systemId]))! })),
+              })),
+              milestones: snapshot.milestones.map(row => ({ id: row.publicId, name: row.name })),
+            }, diagnostics: ledger.diagnostics,
+            fullMilestones: [...ledger.prepared.projection.gates].map(([milestoneTaskId, stageGate]) => ({ milestoneTaskId, stageGate })),
+            ...(snapshot.filters.granularity ? { plan: this.renderPlan(calculated) } : {}) };
+        }
+        assertResourcePlanResponseBytes({ data });
+        return data;
+      } catch (error) {
+        if (error instanceof WbsTaskLedgerInputError) { if (error.code.includes("LIMIT") || error.code.includes("BUDGET")) resourceDashboardLimit("projection.wbs"); invalidSelection(); }
+        if (error instanceof ResourceKpiTargetLimitError) resourceDashboardLimit(`projection.wbs.${error.dimension}`);
+        if (error instanceof ResourceKpiTargetInputError) invalidSelection();
+        throw error;
+      }
+    })();
+  }
   getDashboard(publicId: string, filter: ResourceDashboardFilterInput = {}, scope?: ResourceDrillScope): ResourceDashboardDto | undefined {
     return this.database.transaction(() => this.calculate(publicId, filter, scope)?.report)();
   }
@@ -106,7 +213,7 @@ export class ResourceDashboardService {
       if (!period || (detail.date !== undefined && (detail.date < period.from || detail.date > period.to))) invalidSelection();
       this.validatePlanRow(snapshot, plan, detail.selector);
       const page = { offset: detail.offset, limit: detail.limit };
-      const context = { resourceDataContext: snapshot.dataContext, schema: "resource-dashboard/1" as const, ...detail, projectPublicId: publicId, projectRevision: snapshot.project.revision,
+      const context = { resourceScopeContext: this.sourceContext(snapshot, { kind: "report" }), ...this.planTargetContext(snapshot), resourceDataContext: snapshot.dataContext, schema: "resource-dashboard/1" as const, ...detail, projectPublicId: publicId, projectRevision: snapshot.project.revision,
         catalogRevision: snapshot.catalogRevision, calendarRevision: snapshot.calendarRevision, filters: snapshot.filters, range: { from: snapshot.from, to: snapshot.to },
         asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, mdPerMmSource: snapshot.mdPerMmSource };
       let result: ResourcePlanDetailsDto;
@@ -118,9 +225,10 @@ export class ResourceDashboardService {
         result = { ...context, view: kind, ...data, rows: data.rows.map((row) => ({ ...row, ...this.planPerson(snapshot, row.resourceId) })) };
       } else {
         const data = planCall(() => getResourcePlanDayAssignments(plan, { row: detail.selector, date: detail.date!, demandScope: detail.demandScope }, page));
+        if (wantsPhysicalSources(snapshot)) this.assertTargetSourceBudget(snapshot, data.rows.map(row => row.taskId));
         result = { ...context, view: kind, ...data, rows: data.rows.map((row) => {
           const task = snapshot.taskById.get(row.taskId)!, assignment = snapshot.assignmentById.get(row.assignmentId)!;
-          return { ...row, taskName: task.name, externalId: task.externalId, taskStart: task.startDate, taskEnd: task.endDate,
+          return { ...row, resourceActive: snapshot.resourceById.get(row.resourceId)!.active, ...(wantsPhysicalSources(snapshot) ? { targetSources: snapshot.domain.logistics!.resolved.get(row.taskId)! } : {}), taskName: task.name, externalId: task.externalId, taskStart: task.startDate, taskEnd: task.endDate,
             assignmentStart: assignment.assignmentStart, assignmentEnd: assignment.assignmentEnd, milestoneName: row.milestoneTaskId === null ? "Milestone 미지정" : snapshot.taskById.get(row.milestoneTaskId)!.name, wbsPath: snapshot.paths.get(row.taskId)! };
         }) };
       }
@@ -191,6 +299,12 @@ export class ResourceDashboardService {
       if (selector.dimension === "resource") validPerson(selector.id!);
       if (selector.dimension === "group") validGroup(selector.id);
       if (selector.dimension === "milestone") validTask(selector.id, "milestone");
+      if (selector.dimension === "targetProjection") for (const entry of selector.targetPath!) {
+        if (entry.id === null || entry.dimension === "scope") continue;
+        if (entry.dimension === "resource") validPerson(entry.id);
+        else if (entry.dimension === "group") validGroup(entry.id);
+        else if (!data.targetSnapshot.catalog.some(row => row.dimension === entry.dimension && row.id === entry.id)) invalidSelection();
+      }
       validPerson(selector.resourceId); validTask(selector.milestoneTaskId, "milestone");
     } else if (origin.kind === "groupChildren") { validGroup(origin.groupId); validTask(origin.milestoneTaskId, "milestone"); }
     else if (origin.kind === "plan") {
@@ -226,6 +340,8 @@ export class ResourceDashboardService {
       validateFilterIds(input.filters.milestoneIds, new Set(data.storedTasks.filter(task => task.type === "milestone").map(task => task.publicId)), "unassigned");
       validateFilterIds(input.filters.resourceIds, new Set(data.resources.map(resource => resource.publicId)));
       validateFilterIds(input.filters.groupIds, new Set(data.groups.map(group => group.publicId)), "ungrouped");
+      const targetCatalogDimensions = { targetIds: "target", projectProcessIds: "projectProcess", processOccurrenceIds: "process", processTypeIds: "processType", workAreaIds: "workArea", memberEquipmentIds: "equipment", memberSystemIds: "system", directEquipmentIds: "equipment", directSystemIds: "system", equipmentTypeCodes: "equipmentType", systemTypeCodes: "systemType" } as const;
+      for (const [key, dimension] of Object.entries(targetCatalogDimensions)) validateFilterIds(input.filters[key as keyof typeof targetCatalogDimensions], new Set(data.targetSnapshot.catalog.filter(row => row.dimension === dimension).map(row => row.id)), ["targetIds", "workAreaIds"].includes(key) ? "unassigned" : undefined);
       const projection = input.projection;
       const filter = { ...input.filters, ...( "granularity" in projection ? { granularity: projection.granularity } : {}) };
       // Freeze one clock for all nested projections in this same SQLite read transaction.
@@ -237,12 +353,13 @@ export class ResourceDashboardService {
       else if (projection.kind === "scope") result = service.getScope(publicId, projection.target === "dashboard" ? { view: "dashboard", filters: filter, snapshotId: projection.snapshotId, selector: projection.selector } : { view: "plan", filters: filter, detail: { ...projection, offset: 0, limit: 100 } }, input.scope) as ResourceDrillScopeDto | undefined;
       else result = service.getPlanDetails(publicId, filter, projection, projection.kind === "planDaily" ? "daily" : projection.kind === "planDayResources" ? "day-resources" : "day-assignments", input.scope);
       if (!result) return undefined;
-      const response = { data: result, drill: { sourceContext: source, scope: input.scope, targetFilters: normalizeResourceDashboardFilters(filter), projection, assignmentScope: "exact-source-intersection" as const, projectReferenceScope: "same-resource-population-and-period" as const } };
+      const response = { data: result, drill: { sourceContext: source, scope: input.scope, targetFilters: normalizeResourceDashboardFilters(filter), projection, assignmentScope: "exact-source-intersection" as const, projectReferenceScope: "same-resource-population-and-period" as const, ...(wantsTargets(filter) ? { targetProjectReferenceScope: "full-canonical-project-same-period" as const } : {}) } };
       assertResourcePlanResponseBytes(response, projection.kind === "report" ? "plan.bytes" : "detail.bytes"); return response;
     })();
   }
-  getExcelReport(publicId: string, rawOptions: ResourceExcelExportOptions): ResourceExcelReportBundle | undefined {
+  getExcelReport(publicId: string, rawOptions: ResourceExcelExportInput): ResourceExcelReportBundle | undefined {
     const options = parseResourceExcelOptions(rawOptions);
+    if (isWbsResourceExcelOptions(options)) return this.getWbsExcelReport(publicId, options);
     return this.database.transaction(() => {
       const data = readResourceDataSnapshot(this.database, publicId);
       if (!data) return undefined;
@@ -290,8 +407,71 @@ export class ResourceDashboardService {
         return { assignmentId: row.assignmentId, taskId: row.taskId, taskName: task.name, resourceId: row.targetId, resourceName: resource.name, groupIds: snapshot.groupIdsByResource.get(row.targetId) ?? [], roles: resource.roles,
           assignmentStart: row.start ?? null, assignmentEnd: row.end ?? null, effectiveFrom, effectiveTo, allocationPercent: null, overlapsRange: effectiveFrom <= snapshot.to && effectiveTo >= snapshot.from };
       });
-      return { basis: options.basis, sourceContext: actual, ...(options.originalSourceContext ?? (options.basis === "current" ? options.binding?.sourceContext : undefined) ? { originalSourceContext: options.originalSourceContext ?? (options.basis === "current" ? options.binding?.sourceContext : undefined) } : {}), ...(scope ? { scope } : {}), report, plans, assignments, quality: { scope: "T0-before-personal-filters", tasks, unsetAssignments } } as ResourceExcelReportBundle;
+      let targetData: ResourceExcelReportBundle["targetData"];
+      if (snapshot.targetSnapshot.logistics.targets.length || snapshot.targetSnapshot.logistics.legacy.length || RESOURCE_TARGET_FILTER_KEYS.some(key => snapshot.filters[key]?.length)) {
+        const full = this.planInput(calculated).fullProjectAssignments;
+        const taskIds = [...new Set([...selection.t0.map(row => row.taskId), ...full.map(row => row.taskId)])].sort();
+        this.assertTargetSourceBudget(snapshot, taskIds, RESOURCE_TARGET_LIMITS.provenancePaths);
+        const enriched = (row: ResourceKpiAssignmentRow): ResourceExcelAssignmentRow => {
+          const detail = this.detailRow(snapshot, row.taskId, row), task = snapshot.taskById.get(row.taskId)!;
+          return { ...detail, assignment: detail.assignment!, targetSources: snapshot.domain.logistics!.resolved.get(row.taskId)!, delayed: task.progress! < 100 && task.endDate! < snapshot.asOfDate };
+        };
+        targetData = { projection: report.targetProjection ?? this.renderTargets(calculated), graph: snapshot.targetSnapshot.logistics,
+          taskSources: taskIds.map(id => snapshot.domain.logistics!.resolved.get(id)!), projectAssignments: full.map(enriched) };
+        for (const row of assignments) row.targetSources = snapshot.domain.logistics!.resolved.get(row.taskId)!;
+      }
+      return { basis: options.basis, sourceContext: actual, ...(options.originalSourceContext ?? (options.basis === "current" ? options.binding?.sourceContext : undefined) ? { originalSourceContext: options.originalSourceContext ?? (options.basis === "current" ? options.binding?.sourceContext : undefined) } : {}), ...(scope ? { scope } : {}), report, plans, assignments, ...(targetData ? { targetData } : {}), quality: { scope: "T0-before-personal-filters", tasks, unsetAssignments } } as ResourceExcelReportBundle;
     })();
+  }
+  private getWbsExcelReport(publicId: string, options: WbsResourceExcelExportOptions): ResourceExcelReportBundle | undefined {
+    return this.database.transaction(() => {
+      const expected = options.expectedReport.context;
+      const data = readResourceDataSnapshot(this.database, publicId, true);
+      if (!data) return undefined;
+      this.validateSourceContext(data, { ...expected, sourceProjection: { kind: "report" } });
+      const origin = this.queryWbsView(publicId, { spec: expected.spec, filters: options.expectedReport.filters, ...(expected.scope ? { scope: expected.scope } : {}), projection: { kind: "scope", snapshotId: expected.snapshotId, path: expected.path } }) as WbsViewScopeDto;
+      if (fingerprint(origin.sourceContext) !== fingerprint(expected)) stale();
+      const filters: ResourceDashboardFilterInput = options.basis === "current" ? options.expectedReport.filters : {
+        from: expected.range.from, to: expected.range.to, asOfDate: expected.asOfDate,
+        ...(expected.mdPerMmProvided ? { mdPerMm: expected.mdPerMm } : {}),
+      };
+      const scope = options.basis === "current" ? expected.scope : undefined;
+      const report = this.queryWbsView(publicId, { spec: expected.spec, filters, ...(scope ? { scope } : {}) }) as WbsViewReportDto | undefined;
+      if (!report) return undefined;
+      const path = options.basis === "current" ? expected.path : [];
+      const selection = this.queryWbsView(publicId, { spec: report.spec, filters, ...(scope ? { scope } : {}), projection: { kind: "scope", snapshotId: report.snapshotId, path } }) as WbsViewScopeDto;
+      if (options.basis === "current" && (report.snapshotId !== options.expectedReport.snapshotId || fingerprint(selection.sourceContext) !== fingerprint(expected))) stale();
+      if (fingerprint(report.range) !== fingerprint(expected.range) || report.asOfDate !== expected.asOfDate || report.mdPerMm !== expected.mdPerMm || report.sourceContext.mdPerMmSource !== expected.mdPerMmSource || report.sourceContext.mdPerMmProvided !== expected.mdPerMmProvided) stale();
+      const exactScope: ResourceDrillScope = { kind: "exactAssignments", assignmentIds: selection.assignmentIds };
+      const adapter = options.basis === "current" ? this.getDashboard(publicId, filters, exactScope)! : this.getDashboard(publicId, filters)!;
+      const legacyOptions: ResourceExcelExportOptions = options.basis === "current" ? {
+        basis: "current", expectedReport: { context: adapter.resourceScopeContext!, snapshotId: adapter.snapshotId, filters },
+        binding: { sourceContext: adapter.resourceScopeContext!, scope: exactScope }, granularities: options.granularities,
+      } : { basis: "project", expectedReport: { context: adapter.resourceScopeContext! }, granularities: options.granularities };
+      const bundle = this.getExcelReport(publicId, legacyOptions)!;
+      if (fingerprint([...bundle.assignments.map(row => row.assignment.assignmentId)].sort()) !== fingerprint([...selection.assignmentIds].sort())) stale();
+      const calculated = this.prepareAndSelect(publicId, filters, undefined, options.basis === "current" ? exactScope : undefined)!;
+      const projectAssignments = this.planInput(calculated).fullProjectAssignments.map((row): ResourceExcelAssignmentRow => {
+        const detail = this.detailRow(calculated.snapshot, row.taskId, row), task = calculated.snapshot.taskById.get(row.taskId)!;
+        return { ...detail, assignment: detail.assignment!, delayed: task.progress! < 100 && task.endDate! < calculated.snapshot.asOfDate };
+      });
+      return { ...bundle, wbsView: { request: options, legacyOptions, report, selection, projectAssignments } };
+    })();
+  }
+  private planTargetContext(snapshot: NonNullable<ReturnType<ResourceDashboardService["prepareSnapshot"]>>) {
+    return wantsTargets(snapshot.filters) ? { targetContext: {
+      filters: Object.fromEntries([...RESOURCE_TARGET_FILTER_KEYS, "projectionOrder" as const].filter(key => snapshot.filters[key] !== undefined).map(key => [key, snapshot.filters[key]])),
+      measure: "related planned effort" as const, subtotalsAdditive: false as const,
+      projectReferenceScope: "same Capacity R and period; Target/Task/Milestone/source restrictions removed" as const,
+    } } : {};
+  }
+  private assertTargetSourceBudget(snapshot: NonNullable<ReturnType<ResourceDashboardService["prepareSnapshot"]>>, taskIds: readonly string[], limit: number = RESOURCE_TARGET_LIMITS.responseSourceRows) {
+    let count = 0;
+    for (const id of taskIds) {
+      const source = snapshot.domain.logistics!.resolved.get(id)!;
+      count += source.bindings.length + source.inheritedBindings.length + source.legacySources.length + source.effectiveMembers.reduce((sum, member) => sum + 1 + member.provenance.length, 0);
+      if (count > limit) resourceDashboardLimit("projection.detailTargetSources");
+    }
   }
   private planPerson(snapshot: NonNullable<ReturnType<ResourceDashboardService["prepareSnapshot"]>>, resourceId: string): ResourcePlanPersonMetadata {
     const resource = snapshot.resourceById.get(resourceId)!;
@@ -331,7 +511,7 @@ export class ResourceDashboardService {
   }
   private renderPlan(calculated: NonNullable<ReturnType<ResourceDashboardService["prepareAndSelect"]>>): ResourceDashboardPlanDto {
     const { snapshot } = calculated, raw = planCall(() => calculateResourcePlan(this.planInput(calculated)));
-    return { ...raw, resources: raw.resources.map((row) => ({ ...row, ...this.planPerson(snapshot, row.resourceId), milestones: row.milestones.slice().sort((a, b) => milestoneOrder(snapshot, a.milestoneTaskId, b.milestoneTaskId)).map((milestone) => ({ ...milestone,
+    return { ...raw, ...this.planTargetContext(snapshot), resources: raw.resources.map((row) => ({ ...row, ...this.planPerson(snapshot, row.resourceId), milestones: row.milestones.slice().sort((a, b) => milestoneOrder(snapshot, a.milestoneTaskId, b.milestoneTaskId)).map((milestone) => ({ ...milestone,
       name: milestone.milestoneTaskId === null ? "Milestone 미지정" : snapshot.taskById.get(milestone.milestoneTaskId)!.name, scheduledDate: milestone.milestoneTaskId === null ? null : snapshot.taskById.get(milestone.milestoneTaskId)!.startDate })) })),
       groups: raw.groups.filter((row) => this.visiblePlanGroup(snapshot, row.groupId)).map((row) => { const group = snapshot.groups.find((group) => group.publicId === row.groupId); return { ...row, name: group?.name ?? "미분류 리소스", code: group?.code ?? null, active: group?.active ?? true }; }),
       metadata: { ...raw.metadata, limits: RESOURCE_PLAN_LIMITS, populationScope: "ordinary-task-personal-assignment-history-classification-only", groupDisplayScope: "selected-group-and-activity" } };
@@ -342,6 +522,7 @@ export class ResourceDashboardService {
     if (detail.selector.id !== null) params.set("id", detail.selector.id);
     else if (detail.selector.dimension === "group") params.set("id", "ungrouped");
     else if (detail.selector.dimension === "milestone") params.set("id", "unassigned");
+    if (detail.selector.targetPath !== undefined) params.set("targetPath", JSON.stringify(detail.selector.targetPath));
     if (detail.selector.resourceId !== undefined) params.set("resourceId", detail.selector.resourceId);
     if (detail.selector.assignmentScope !== undefined) params.set("assignmentScope", detail.selector.assignmentScope);
     if (detail.selector.milestoneTaskId !== undefined) params.set("milestoneTaskId", detail.selector.milestoneTaskId ?? "unassigned");
@@ -363,12 +544,22 @@ export class ResourceDashboardService {
         ? targetTaskIds.map((taskId) => ({ taskId, row: null }))
         : rows.map((row) => ({ taskId: row.taskId, row }));
       details.sort((a, b) => a.taskId.localeCompare(b.taskId) || (a.row?.assignmentId ?? "").localeCompare(b.row?.assignmentId ?? ""));
-      const page = details.slice(checked.offset, checked.offset + checked.limit).map(({ taskId, row }) => this.detailRow(snapshot, taskId, row));
+      const selectedPage = details.slice(checked.offset, checked.offset + checked.limit);
+      if (wantsPhysicalSources(snapshot)) {
+        // Bound repeated Assignment provenance before allocating page DTOs.
+        let sourceRows = 0;
+        for (const { taskId } of selectedPage) {
+          const sources = snapshot.domain.logistics!.resolved.get(taskId)!;
+          sourceRows += sources.bindings.length + sources.inheritedBindings.length + sources.legacySources.length + sources.effectiveMembers.reduce((sum, member) => sum + 1 + member.provenance.length, 0);
+          if (sourceRows > RESOURCE_TARGET_LIMITS.responseSourceRows) resourceDashboardLimit("projection.detailTargetSources");
+        }
+      }
+      const page = selectedPage.map(({ taskId, row }) => this.detailRow(snapshot, taskId, row));
       const result: ResourceDashboardDetailsDto = { resourceDataContext: snapshot.dataContext, schema: "resource-dashboard/1", snapshotId: report.snapshotId, projectPublicId: publicId,
         projectRevision: report.project.revision, catalogRevision: report.catalogRevision, calendarRevision: report.calendarRevision,
         selector, view: checked.view, offset: checked.offset, limit: checked.limit, totalCount: details.length,
         nextOffset: checked.offset + checked.limit < details.length ? checked.offset + checked.limit : null, rows: page };
-      if (Buffer.byteLength(JSON.stringify(result)) > LIMITS.reportBytes) resourceDashboardLimit("detail.bytes");
+      if (Buffer.byteLength(JSON.stringify({ data: result })) > LIMITS.reportBytes) resourceDashboardLimit("detail.bytes");
       return result;
     })();
   }
@@ -377,7 +568,7 @@ export class ResourceDashboardService {
     const task = taskById.get(taskId)!, membership = projection.membership.get(taskId)!;
     const resource = row ? resourceById.get(row.resourceId)! : null;
     const assignment = row ? assignmentById.get(row.assignmentId)! : null;
-    return { taskId, taskName: task.name, externalId: task.externalId, status: task.status, progress: task.progress,
+    return { ...(wantsPhysicalSources(snapshot) ? { targetSources: domain.logistics!.resolved.get(taskId)! } : {}), taskId, taskName: task.name, externalId: task.externalId, status: task.status, progress: task.progress,
       taskStart: task.startDate, taskEnd: task.endDate, duration: task.duration, wbsPath: paths.get(taskId)!, ...membership,
       assignment: row && resource && assignment ? { assignmentId: row.assignmentId, resourceId: row.resourceId, resourceName: resource.name, resourceCode: resource.code, active: resource.active,
         roles: resource.roles.length ? resource.roles : ["UNSPECIFIED"], developerGrade: resource.developerGrade, groupIds: row.groupIds,
@@ -394,10 +585,12 @@ export class ResourceDashboardService {
     if (selector.dimension === "milestone" && selector.id !== null && !snapshot.milestones.some((row) => row.publicId === selector.id)) invalidSelection();
     if (selector.milestoneTaskId !== undefined && selector.milestoneTaskId !== null && !snapshot.milestones.some((row) => row.publicId === selector.milestoneTaskId)) invalidSelection();
     if (selector.resourceId !== undefined) this.validateGroupResource(snapshot, selector.id, selector.resourceId);
-    const scopeRows = selector.assignmentScope === "milestoneReference" ? referenceRows : selector.assignmentScope === "milestoneExcluded" ? excludedRows : selection.assignments;
+    const targetIds = selector.dimension === "targetProjection" ? this.targetPathAssignments(calculated, selector.targetPath!) : null;
+    const scopeRows = selector.assignmentScope === "projectReference" ? targetCall(() => selectResourceKpiAssignments(domain, {})).assignments : selector.assignmentScope === "milestoneReference" ? referenceRows : selector.assignmentScope === "milestoneExcluded" ? excludedRows : selection.assignments;
     const scopeTotals = summarizeResourceKpiAssignments(domain, scopeRows);
     const metricTaskIds = selector.metric === "notStarted" ? scopeTotals.notStarted.taskIds : selector.metric === "inProgress" ? scopeTotals.inProgress.taskIds : selector.metric === "completed" ? scopeTotals.completed.taskIds : selector.metric === "delayed" ? scopeTotals.delayed.taskIds : null;
     let rows: ResourceKpiAssignmentRow[] = scopeRows.filter((row) =>
+      (targetIds === null || targetIds.has(row.assignmentId)) &&
       (selector.resourceId === undefined || row.resourceId === selector.resourceId) &&
       (selector.dimension !== "resource" || row.resourceId === selector.id) &&
       (selector.dimension !== "group" || (selector.id === null ? !row.groupIds.length : row.groupIds.includes(selector.id))) &&
@@ -460,7 +653,7 @@ export class ResourceDashboardService {
         catalogRevision: snapshot.catalogRevision, calendarRevision: snapshot.calendarRevision, filters: snapshot.filters, range: { from: snapshot.from, to: snapshot.to }, asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, mdPerMmSource: snapshot.mdPerMmSource, groupId: checked.groupId,
         ...(checked.milestoneTaskId === undefined ? {} : { milestoneTaskId: checked.milestoneTaskId }), summary: compact(summarizeResourceKpiAssignments(snapshot.domain, rows), selector),
         offset: checked.offset, limit: checked.limit, totalCount: resourceIds.length, nextOffset: checked.offset + checked.limit < resourceIds.length ? checked.offset + checked.limit : null, rows: pageRows };
-      if (Buffer.byteLength(JSON.stringify(result)) > LIMITS.reportBytes) resourceDashboardLimit("detail.bytes");
+      if (Buffer.byteLength(JSON.stringify({ data: result })) > LIMITS.reportBytes) resourceDashboardLimit("detail.bytes");
       return result;
     })();
   }
@@ -469,11 +662,11 @@ export class ResourceDashboardService {
     const groupIds = snapshot.groupIdsByResource.get(resourceId) ?? [];
     if (groupId === null ? groupIds.length > 0 : !groupIds.includes(groupId)) invalidSelection();
   }
-  private prepareSnapshot(publicId: string, filter: ResourceDashboardFilterInput) {
+  private prepareSnapshot(publicId: string, filter: ResourceDashboardFilterInput, includeParticipation = false) {
     if (!isCanonicalUuidV4(publicId)) return undefined;
-    const rawData = readResourceDataSnapshot(this.database, publicId);
+    const rawData = readResourceDataSnapshot(this.database, publicId, includeParticipation);
     if (!rawData) return undefined;
-    const { project, storedTasks, assignments, resources, groups, memberships, projectCalendar } = rawData;
+    const { project, storedTasks, assignments, resources, groups, memberships, projectCalendar, targetSnapshot } = rawData;
     const now = (this.options.clock ?? (() => new Date()))();
     const filters = normalizeResourceDashboardFilters(filter);
     const taskById = new Map(storedTasks.map((row) => [row.publicId, row])), internalTasks = new Map(storedTasks.map((row) => [row.id, row]));
@@ -515,15 +708,15 @@ export class ResourceDashboardService {
       activityMatches(resource.active, filters.resourceActivity) && (filters.groupActivity === "all" || groups.some((group) => group.memberResourceIds.includes(resource.publicId) &&
         (!filters.groupIds.length || filters.groupIds.includes(group.publicId)) && activityMatches(group.active, filters.groupActivity))),
     ).map((row) => row.publicId);
-    const domain = prepareResourceKpiSnapshot({ projectPublicId: publicId, timezone: "Asia/Seoul", asOfDate, from, to, tasks, memberships, links,
+    const domain = targetCall(() => prepareResourceKpiSnapshot({ logistics: targetSnapshot.logistics, projectPublicId: publicId, timezone: "Asia/Seoul", asOfDate, from, to, tasks, memberships, links,
       resources: resources.map((row) => ({ resourceId: row.publicId, name: row.name, code: row.code, groupSearchText: groups.filter((group) => group.memberResourceIds.includes(row.publicId)).map((group) => `${group.name} ${group.code ?? ""}`).join(" "), groupIds: groupIdsByResource.get(row.publicId) ?? [], roles: row.roles, developerGrade: row.developerGrade })),
       assignments: assignments.map((row) => ({ assignmentId: row.publicId, taskId: row.taskPublicId, kind: row.kind, targetId: row.targetPublicId, start: row.assignmentStart, end: row.assignmentEnd, allocationPercent: row.allocationPercent })),
       projectCalendar, calendarExceptions, maxProjectionCells: LIMITS.cells, mdPerMm: filters.mdPerMmProvided ? filters.mdPerMm : undefined, mdPerMmEnvironment: this.options.mdPerMmEnvironment,
-      filters: { eligibleResourceIds, taskIds: filters.taskIds, wbsRootIds: filters.wbsRootIds, milestoneIds: filters.milestoneIds.map((id) => id === "unassigned" ? null : id),
+      filters: { ...targetFilters(filters), ...(includeParticipation ? { equipmentTypeCodes: undefined } : {}), eligibleResourceIds, taskIds: filters.taskIds, wbsRootIds: filters.wbsRootIds, milestoneIds: filters.milestoneIds.map((id) => id === "unassigned" ? null : id),
         resourceIds: filters.resourceIds, groupIds: filters.groupIds.filter((id) => id !== "ungrouped"), includeUngrouped: filters.groupIds.includes("ungrouped"),
-        roles: filters.roles, developerGrades: filters.developerGrades, statuses: filters.statuses, search: filters.search, taskSearch: filters.taskSearch } });
-    const snapshotId = fingerprint({ dataSnapshotId: rawData.context.dataSnapshotId, filters: { ...filters, mode: undefined, granularity: undefined }, from, to, asOfDate, mdPerMm: domain.mdPerMm });
-    return { dataContext: rawData.context, project, publicId, now, filters, from, to, asOfDate, dates, tasks, storedTasks, resources, groups, milestones, groupIdsByResource,
+        roles: filters.roles, developerGrades: filters.developerGrades, statuses: filters.statuses, search: filters.search, taskSearch: filters.taskSearch } }));
+    const snapshotId = fingerprint({ dataSnapshotId: rawData.context.dataSnapshotId, filters: { ...filters, mode: undefined, granularity: undefined, projectionOrder: undefined }, from, to, asOfDate, mdPerMm: domain.mdPerMm });
+    return { wbsContext: rawData.wbsContext, targetSnapshot, dataContext: rawData.context, project, publicId, now, filters, from, to, asOfDate, dates, tasks, storedTasks, resources, groups, milestones, groupIdsByResource,
       taskById, resourceById, assignmentById: new Map(assignments.map((row) => [row.publicId, row])), paths, domain, mdPerMmSource: mdPerMmSource(filters.mdPerMmProvided ? filters.mdPerMm : undefined, this.options.mdPerMmEnvironment), catalogRevision, calendarRevision, snapshotId };
   }
   private prepareAndSelect(publicId: string, filter: ResourceDashboardFilterInput, expectedSnapshotId?: string, scope?: ResourceDrillScope) {
@@ -534,15 +727,16 @@ export class ResourceDashboardService {
     if (expectedSnapshotId !== undefined && snapshot.snapshotId !== expectedSnapshotId) stale();
     const restrict = (value: ReturnType<typeof selectResourceKpiAssignments>) => restriction ? { ...value, assignments: value.assignments.filter((row) => restriction.tasks.has(row.taskId) && (!restriction.assignments || restriction.assignments.has(row.assignmentId))), t0: value.t0.filter((task) => restriction.tasks.has(task.taskId)), t0Ids: new Set([...value.t0Ids].filter((id) => restriction.tasks.has(id))) } : value;
     // Keep the same exact drill scope, but do not narrow diagnostic coverage to personal filters.
-    const diagnosticSelection = restrict(selectResourceKpiAssignments(snapshot.domain, {
+    const diagnosticSelection = targetCall(() => restrict(selectResourceKpiAssignments(snapshot.domain, {
+      ...targetFilters(snapshot.filters),
       taskIds: snapshot.domain.input.filters?.taskIds,
       wbsRootIds: snapshot.domain.input.filters?.wbsRootIds,
       milestoneIds: snapshot.domain.input.filters?.milestoneIds,
       statuses: snapshot.domain.input.filters?.statuses,
       taskSearch: snapshot.domain.input.filters?.taskSearch,
-    }));
-    const reference = restrict(selectResourceKpiAssignments(snapshot.domain, { ...snapshot.domain.input.filters, milestoneIds: [] }));
-    const selection = snapshot.filters.milestoneIds.length ? restrict(selectResourceKpiAssignments(snapshot.domain)) : reference;
+    })));
+    const reference = targetCall(() => restrict(selectResourceKpiAssignments(snapshot.domain, { ...snapshot.domain.input.filters, milestoneIds: [] })));
+    const selection = snapshot.filters.milestoneIds.length ? targetCall(() => restrict(selectResourceKpiAssignments(snapshot.domain))) : reference;
     try { assertResourceKpiProjectionBudget(snapshot.domain, selection); } catch (error) { if (error instanceof ResourceKpiProjectionLimitError) resourceDashboardLimit("projection.cells"); throw error; }
     const selectedIds = new Set(selection.assignments.map((row) => row.assignmentId));
     const excludedRows = reference.assignments.filter((row) => !selectedIds.has(row.assignmentId));
@@ -555,6 +749,51 @@ export class ResourceDashboardService {
     const report = this.renderReport(calculated);
     if (calculated.snapshot.filters.granularity) { report.plan = this.renderPlan(calculated); assertResourcePlanResponseBytes({ data: report }); }
     return { report };
+  }
+  private targetPathAssignments(calculated: NonNullable<ReturnType<ResourceDashboardService["prepareAndSelect"]>>, path: ResourceTargetPathEntry[]) {
+    const { snapshot, selection } = calculated;
+    const raw = targetCall(() => projectResourceKpiTargets(snapshot.domain, selection, path.map(entry => entry.dimension)));
+    let nodes = raw.children;
+    let found: typeof nodes[number] | undefined;
+    for (const entry of path) { found = nodes.find(node => node.dimension === entry.dimension && node.id === entry.id); if (!found) invalidSelection(); nodes = found.children; }
+    if (!found) invalidSelection();
+    return new Set(found.totals.assignmentIds);
+  }
+  private renderTargets(calculated: NonNullable<ReturnType<ResourceDashboardService["prepareAndSelect"]>>): ResourceDashboardTargetProjection {
+    const { snapshot, selection } = calculated, { domain, filters } = snapshot, logistics = domain.logistics!;
+    const order = filters.projectionOrder ?? ["target", "group", "resource"];
+    let sourceRows = 0;
+    for (const task of selection.t0) {
+      const sources = logistics.resolved.get(task.taskId)!;
+      sourceRows += sources.bindings.length + sources.inheritedBindings.length + sources.legacySources.length + sources.effectiveMembers.reduce((sum, member) => sum + 1 + member.provenance.length, 0);
+      if (sourceRows > RESOURCE_TARGET_LIMITS.responseSourceRows) resourceDashboardLimit("projection.targetSources");
+    }
+    const raw = targetCall(() => projectResourceKpiTargets(domain, selection, order));
+    const catalog = [...snapshot.targetSnapshot.catalog,
+      ...snapshot.groups.map(row => ({ dimension: "group" as const, id: row.publicId, name: row.name, code: row.code, active: row.active })),
+      ...snapshot.resources.map(row => ({ dimension: "resource" as const, id: row.publicId, name: row.name, code: row.code, active: row.active }))];
+    const labels = new Map(catalog.map(row => [JSON.stringify([row.dimension, row.id]), row]));
+    const nodes = (values: typeof raw.children, parent: ResourceTargetPathEntry[]): ResourceDashboardTargetNode[] => values.map(node => {
+      const path = [...parent, { dimension: node.dimension, id: node.id }], label = labels.get(JSON.stringify([node.dimension, node.id]));
+      return { dimension: node.dimension, id: node.id, name: label?.name ?? (node.dimension === "scope" ? node.id : null), active: label?.active ?? null,
+        summary: compact(node.totals, { dimension: "targetProjection", id: null, targetPath: path, metric: "all" }), sourceKinds: node.sourceKinds,
+        equipmentQuantity: node.relatedMembers.equipmentQuantity, systemCount: node.relatedMembers.systemCount, children: nodes(node.children, path) };
+    });
+    const tasks = selection.t0.map(task => task.taskId);
+    const paths = tasks.flatMap(taskId => selectResourceKpiTargetPaths(logistics, logistics.resolved.get(taskId)!, selection.filters).map(path => ({ taskId, path })));
+    const used = new Set([...logistics.resolved.values()].flatMap(task => task.effectiveTargetIds));
+    const unused = logistics.targets.filter(target => !used.has(target.id)).map(target => target.id);
+    const unlinked = tasks.filter(id => !logistics.resolved.get(id)!.effectiveTargetIds.length);
+    // Full Project reference is explicitly independent of the selected exact-source scope.
+    const full = targetCall(() => selectResourceKpiAssignments(domain, {}));
+    return { order: [...order], children: nodes(raw.children, []),
+      projectReference: compact(summarizeResourceKpiAssignments(domain, full.assignments), { dimension: "all", id: null, metric: "all", assignmentScope: "projectReference" }),
+      relatedMembers: summarizeResourceKpiTargetMembers(logistics, paths, hasResourceKpiTargetPathFilters(selection.filters) ? unlinked : tasks),
+      diagnostics: { targetUnlinkedTaskCount: unlinked.length, legacyOnlyTaskCount: unlinked.filter(id => logistics.resolved.get(id)!.legacySources.length > 0).length,
+        unusedTargetIds: unused, projectCommonTargetIds: logistics.targets.filter(target => target.scope === "project_common").map(target => target.id),
+        noWorkAreaTargetIds: logistics.targets.filter(target => target.scope === "process" && target.workAreaId === null).map(target => target.id),
+        unmappedProjectProcessIds: logistics.processes.filter(process => process.occurrenceId === null).map(process => process.id) },
+      metadata: { limits: RESOURCE_TARGET_LIMITS, measure: "related planned effort", subtotalsAdditive: false, assignmentScope: "A", memberScope: "T0", projectReferenceScope: "full canonical Project; same period/calendar/asOf/mdPerMm; no source or user filters" }, catalog };
   }
   private renderReport(calculated: NonNullable<ReturnType<ResourceDashboardService["prepareAndSelect"]>>) {
     const { snapshot, selection, referenceRows, excludedRows } = calculated;
@@ -592,11 +831,16 @@ export class ResourceDashboardService {
         inapplicableFilters: [...raw.diagnostics.inapplicableFilters], personalFiltersAppliedToA: raw.diagnostics.personalFiltersAppliedToA },
       catalog: { resources: resources.map((row) => ({ id: row.publicId, name: row.name, code: row.code, active: row.active, roles: row.roles, developerGrade: row.developerGrade, groupIds: groupIdsByResource.get(row.publicId) ?? [] })),
         groups: groups.map((row) => ({ id: row.publicId, name: row.name, code: row.code, active: row.active })), milestones: milestones.map((row) => ({ id: row.publicId, name: row.name })),
-        wbsRoots: storedTasks.map((row) => ({ id: row.publicId, name: row.name, type: row.type })) },
+        wbsRoots: storedTasks.map((row) => ({ id: row.publicId, name: row.name, type: row.type })),
+        targetOptions: snapshot.targetSnapshot.catalog },
       metadata: { groupRoleSubtotalsAdditive: false, precision: "raw", diagnosticsScope: "T0: Task/WBS/Milestone/status/taskSearch/canonical task dates; no personal/activity filters or search",
         searchScope: "A: Resource name/code OR its connected Group name/code OR assigned Task name/externalId/WBS path; taskSearch applies to T0 and A", historicalStateRestoration: false, totalFrom: "full selected assignment set", limits: LIMITS },
     };
-    if (Buffer.byteLength(JSON.stringify(report)) > LIMITS.reportBytes) resourceDashboardLimit("projection.reportBytes");
+    // Resource Plan needs Target filters and a compact catalog, not the bounded
+    // resource/Target projection tree. Keep the legacy filtered report and explicit
+    // Target view projection unchanged when granularity is omitted or order requested.
+    if (wantsTargets(filters) && (!filters.granularity || filters.projectionOrder !== undefined)) report.targetProjection = this.renderTargets(calculated);
+    if (Buffer.byteLength(JSON.stringify({ data: report })) > LIMITS.reportBytes) resourceDashboardLimit("projection.reportBytes");
     return report;
   }
 }

@@ -1,0 +1,13 @@
+{
+  "failureId": "F798-L003",
+  "status": "FAIL",
+  "scope": "Local selected Chromium attempt1; not remote CI failure",
+  "testSourceSha256": "20ff5e25250023911e36f9682a5afbe11caf5f41597a4f81812a2cbafbd6b897",
+  "errorExcerpt": "Error: expect(locator).toBeFocused() failed\n\nLocator:  locator('[data-wbs-view=\"resource\"]').visible().locator('tr[data-dimension=\"resource\"][data-entity-id=\"6b1167db-18cd-4d91-92dc-2f4c6a01d1ee\"]').getByRole('button', { name: '상세', exact: true })\nExpected: focused\nReceived: inactive\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toBeFocused\" locator('[data-wbs-view=\"resource\"]').visible().locator('tr[data-dimension=\"resource\"][data-entity-id=\"6b1167db-18cd-4d91-92dc-2f4c6a01d1ee\"]').getByRole('button', { name: '상세', exact: true }) with timeout 5000ms\n  - waiting for locator('[data-wbs-view=\"resource\"]').visible().locator('tr[data-dimension=\"resource\"][data-entity-id=\"6b1167db-18cd-4d91-92dc-2f4c6a01d1ee\"]').getByRole('button', { name: '상세', exact: true })\n    14 × locator resolved to <button type=\"button\" data-resource-action=\"entity-details\">상세</button>\n       - unexpected value \"inactive\"",
+  "accessibilitySnapshotEvidence": [],
+  "cause": "Added advanced-controls inspection moved focus from restored Assignment original before pre-existing detail Escape path. Nonfocusable detail.press cannot move focus from outer trigger; event target inference from test/helper sequence, not separately instrumented. No changed product close handler.",
+  "correction": "Move added advanced-controls inspection after original detail Escape and table-row trigger focus assertion; preserve original editor-to-original-to-detail-Escape-to-row focus path.",
+  "rawTrace": "Preserved only /tmp/issue798-first-run-test-results; not committed.",
+  "finalRerun": "NOT TESTED",
+  "independentTraceEvidence": "qa_docs verified trace.zip 0/1-trace.trace final sequence: Frame.focus(advanced trigger) then Frame.press(nonfocusable detail section, Escape); no intervening interior button focus. Detail section has no tabindex. Actual DOM keydown target was not separately instrumented."
+}

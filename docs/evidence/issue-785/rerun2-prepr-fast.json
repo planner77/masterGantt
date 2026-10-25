@@ -1,0 +1,158 @@
+{
+  "schema": "mastergantt-785-rerun2-prepr-v1",
+  "command": "npm run verify:prepr -- --mode=fast --base=origin/main --issue=785 --pr=787 --risk=HIGH",
+  "status": "BLOCKED",
+  "exitCode": 1,
+  "startedAt": "2026-10-24T00:22:26.683Z",
+  "completedAt": "2026-10-24T00:22:26.833Z",
+  "sourceStart": {
+    "baseRef": "origin/main",
+    "baseSha": "dd7f4d86db06e8a10b8c86b5412ed319154011e0",
+    "headSha": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+    "workingDiffSha256": "b20daba2fa62671b51fc2af8a2478d869802893e612ca94cea654d0a14f27f19",
+    "fingerprint": "5155b71ba1d86d4c06e7b944dabcd09bdc8e72f626943be1c76971f04d9daa68",
+    "dirty": true
+  },
+  "sourceEnd": {
+    "baseRef": "origin/main",
+    "baseSha": "dd7f4d86db06e8a10b8c86b5412ed319154011e0",
+    "headSha": "f03933cb16c6c99a1a35a3095b55b6158d69bab5",
+    "workingDiffSha256": "b20daba2fa62671b51fc2af8a2478d869802893e612ca94cea654d0a14f27f19",
+    "fingerprint": "5155b71ba1d86d4c06e7b944dabcd09bdc8e72f626943be1c76971f04d9daa68",
+    "dirty": true
+  },
+  "sourceStable": true,
+  "selected": 111,
+  "unknown": [
+    {
+      "path": "src/contracts/logistics-dashboard.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/contracts/logistics.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/contracts/project-templates.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/contracts/wbs-dashboard-views.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/gantt/task-logistics-link-editor.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/gantt/task-process-context-editor.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/gantt/task-target-binding-editor.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/logistics-kpi-configuration.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/logistics-kpi-validation.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/logistics-unified-model.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/project-logistics-dashboard.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/project-logistics-management.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/project-logistics-targets.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/project-logistics-unified.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/target-detail.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/logistics/target-master-registration.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/projects/project-excel-export-button.tsx",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/features/projects/project-workspace-navigation.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "src/server/logistics/task-logistics-compatibility-core.ts",
+      "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+    },
+    {
+      "path": "src/server/repositories/resource-target-snapshot-repository-core.ts",
+      "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+    },
+    {
+      "path": "src/server/resources/resource-drill-query-core.ts",
+      "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+    },
+    {
+      "path": "src/server/templates/logistics-template-graph-core.ts",
+      "reason": "No actual direct server-module test import found; generic smoke tests are insufficient"
+    },
+    {
+      "path": "tests/e2e/fixtures/isolated-application.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/e2e/fixtures/issue-621-target-project.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/e2e/fixtures/issue-623-target-resource.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/e2e/fixtures/legacy-logistics-seed.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/e2e/fixtures/target-project.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/e2e/fixtures/task-editor-density.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/fixtures/gantt-state-consistency/approved-zod-4.6.7-lock.json",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    },
+    {
+      "path": "tests/fixtures/stateful-project.ts",
+      "reason": "No verified producer→consumer test map. Manager must map/verify."
+    }
+  ],
+  "missing": [],
+  "steps": [],
+  "interpretation": "자동선정 BLOCKED 유지. 실제 동결71 Chromium과 공식 새Head CI/Owner를 별도 판정. 최초 로그읽기 wrapper의 shell exit0을 검증 PASS로 사용하지 않고 최종 직접 command의 exit1을 확인했다.",
+  "selectionDeltaFromPrevious109": {
+    "added": [
+      "tests/e2e/task-editor-form-density.spec.ts",
+      "tests/e2e/task-link-load-safety.spec.ts"
+    ],
+    "removed": []
+  }
+}

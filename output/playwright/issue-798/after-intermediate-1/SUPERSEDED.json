@@ -1,0 +1,13 @@
+{
+  "status": "SUPERSEDED",
+  "reason": "Manager approved mobile title/help same row refinement; collector stopped between samples before CSS changed. Partial intermediate observations not final after evidence.",
+  "completedJsonSamples": 15,
+  "productSourceHashes": {
+    "src/features/resources/wbs-view-dashboard.tsx": "1228f8d45b0401623bbb7ac3d909539e1f3f5e925b995d4e74ea28ae0f0a48b0",
+    "src/features/resources/wbs-view-composer.tsx": "9486fa288829255cb95337838831b07b13d83b1c7dbad410bac69d7b0a39035b",
+    "src/features/resources/wbs-view.module.css": "f06c6245db6eed3620b905cb6908f8240025bc4325ef2bdf8880f4545735e44a"
+  },
+  "originalDirectory": "output/playwright/issue-798/after",
+  "archivedDirectory": "output/playwright/issue-798/after-intermediate-1",
+  "pathResolution": "Original capture payloads are preserved verbatim. Resolve each original after/<basename> screenshot/JSON reference to the same basename within archivedDirectory. The live after/ directory now contains newer final-source evidence and must not be used for these archived payloads."
+}

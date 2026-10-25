@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "scope": "Local Chromium execution; not remote CI",
+  "sanitization": "Runtime stdout/stderr, raw logs, full config and attachment bodies omitted; error first line only (request call logs/headers omitted); execution verdicts retained. Original is ignored/local only.",
+  "original": {
+    "path": ".prepr-reports/issue799-originals/local-chromium-grid-superseded.json",
+    "sha256": "a08c0582fa82798d17100f42df41d9969a25f89848143a394e4b758f9c3f22d6",
+    "bytes": 2251437
+  },
+  "command": [
+    "/home/planner/.nvm/versions/node/v22.14.0/bin/node",
+    "/home/planner/Dev/masterGantt-799/node_modules/.bin/playwright",
+    "test",
+    "--config",
+    "tests/config/playwright.config.ts",
+    "tests/e2e/issue-732-milestone-dashboard.spec.ts:39",
+    "tests/e2e/issue-733-process-workarea-dashboard.spec.ts:121",
+    "tests/e2e/issue-734-equipment-dashboard.spec.ts:184",
+    "tests/e2e/issue-735-system-dashboard.spec.ts:203",
+    "tests/e2e/issue-736-resource-dashboard.spec.ts:49",
+    "tests/e2e/issue-736-resource-dashboard.spec.ts:94",
+    "tests/e2e/issue-736-resource-dashboard.spec.ts:156",
+    "--reporter=json"
+  ],
+  "stats": {
+    "startTime": "2026-10-25T01:35:54.062Z",
+    "duration": 211273.845,
+    "expected": 3,
+    "skipped": 4,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "file": "issue-732-milestone-dashboard.spec.ts",
+      "line": 39,
+      "title": "#732 Target0 Milestone 단독·두 계층·전체 Gate·5폭과 keyboard",
+      "tests": [
+        {
+          "status": "expected",
+          "expectedStatus": "passed",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 34231,
+              "retry": 0,
+              "error": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "issue-733-process-workarea-dashboard.spec.ts",
+      "line": 121,
+      "title": "#733 공정 조회 긴 이름·5폭 내부 스크롤·키보드",
+      "tests": [
+        {
+          "status": "expected",
+          "expectedStatus": "passed",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 41263,
+              "retry": 0,
+              "error": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "issue-734-equipment-dashboard.spec.ts",
+      "line": 184,
+      "title": "#734 5폭 긴 이름·내부 overflow·열 정렬·native Tab/Escape",
+      "tests": [
+        {
+          "status": "expected",
+          "expectedStatus": "passed",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 33939,
+              "retry": 0,
+              "error": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "line": 203,
+      "title": "#735 긴 System 이름 5폭 내부 스크롤·표 정렬·키보드 focus",
+      "tests": [
+        {
+          "status": "skipped",
+          "expectedStatus": "passed",
+          "results": [
+            {
+              "status": "interrupted",
+              "duration": 5074,
+              "retry": 0,
+              "error": "Error: apiRequestContext.fetch: Test ended."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "issue-736-resource-dashboard.spec.ts",
+      "line": 49,
+      "title": "#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot Excel·정확 Assignment 복귀",
+      "tests": [
+        {
+          "status": "skipped",
+          "expectedStatus": "passed",
+          "results": []
+        }
+      ]
+    },
+    {
+      "file": "issue-736-resource-dashboard.spec.ts",
+      "line": 94,
+      "title": "#736 5폭 keyboard·focus·내부 overflow 및 stale/error 잠금",
+      "tests": [
+        {
+          "status": "skipped",
+          "expectedStatus": "passed",
+          "results": []
+        }
+      ]
+    },
+    {
+      "file": "issue-736-resource-dashboard.spec.ts",
+      "line": 156,
+      "title": "#736 readonly·응답 역전·낡은 Excel 파일 폐기",
+      "tests": [
+        {
+          "status": "skipped",
+          "expectedStatus": "passed",
+          "results": []
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

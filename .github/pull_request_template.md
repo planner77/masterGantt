@@ -10,6 +10,17 @@ Closes #
 
 <!-- 주요 변경 파일/동작을 작성합니다. -->
 
+## TEST_LIFECYCLE_REVIEW
+
+<!-- 제품·테스트 계약 변경 시 근거를 기록합니다. 단일 정책: docs/TEST_PLAN.md의 Issue #711 Test Lifecycle. -->
+- 변경된 계약/AC(긍정·음성·보안·DB·경합·실제 브라우저):
+- 기존 테스트 검색 경로·케이스·fixture / 미커버 위험:
+- 판정: `ADD` / `EXTEND` / `KEEP_UNIQUE` / `PARTIAL_OVERLAP` / `CONSOLIDATE_CANDIDATE` / `RETIRE_CANDIDATE` / N/A(사유)
+- 기존 `AC_TEST_COVERAGE` 링크·정확 HEAD의 로컬/원격 실행 근거(미실행은 NOT TESTED):
+- 중복/폐기 후보의 old→new 보존·승인/rollback(해당 없으면 N/A):
+
+> 비슷한 제목/Issue 번호는 삭제 근거가 아닙니다. 의미적 중복·폐기에는 동일 source의 대체 PASS, 보안/브라우저/SQLite/경합 AC 보존, 리뷰 및 Owner 승인이 필요하며 자동 skip/Required 완화는 금지합니다.
+
 ## Local Fast Feedback
 
 - [ ] 변경과 직접 관련된 최소 로컬 테스트를 수행했거나, 수행하지 않은 이유를 기록했습니다.

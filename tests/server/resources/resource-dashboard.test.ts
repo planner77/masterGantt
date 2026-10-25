@@ -35,7 +35,7 @@ describe("resource dashboard native SQLite and direct HTTP", () => {
     const data = (await response.json()).data;
     const raw = calculateResourceKpi(f.source);
     expect(data.summary).toMatchObject({ taskCount: raw.total.taskCount, resourceCount: 2, assignmentCount: 5, effort: { plannedMd: raw.total.effort.plannedMd, partial: true, unsetCount: 2 } });
-    expect(data).toMatchObject({ schema: "resource-dashboard/1", projectRevision: 1, catalogRevision: f.catalog.getRevision(), asOfDate: "2026-10-17", timezone: "Asia/Seoul", calculatedAt: RESOURCE_DASHBOARD_NOW, mdPerMm: 21, mdPerMmSource: "environment" });
+    expect(data).toMatchObject({ schema: "resource-dashboard/2", projectRevision: 1, catalogRevision: f.catalog.getRevision(), asOfDate: "2026-10-17", timezone: "Asia/Seoul", calculatedAt: RESOURCE_DASHBOARD_NOW, mdPerMm: 21, mdPerMmSource: "environment" });
     expect(data.snapshotId).toMatch(/^[a-f0-9]{64}$/); expect(data.calendarRevision).toMatch(/^[a-f0-9]{64}$/); expect(clock).toHaveBeenCalledTimes(1);
     for (const row of [...data.resources, ...data.groups]) expect(row.milestones.reduce((sum: number, cell: { summary: { effort: { knownMd: number } } }) => sum + cell.summary.effort.knownMd, 0)).toBeCloseTo(row.summary.effort.knownMd, 14);
     expect(data.groups.find((row: { name: string }) => row.name === "G1").summary.taskCount).toBe(3);

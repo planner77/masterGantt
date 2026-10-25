@@ -23,7 +23,8 @@ import {
   parseApplicationBaseUrl,
 } from "../security/origin-core";
 import { PasswordHashCapacityError } from "../security/password-core";
-import { ProjectMasterInvalidInputError, ProjectMasterItemInactiveError, ProjectMasterItemNotFoundError } from "../project-master/project-master-service-core";
+import { projectSessionFromCookie } from "../security/project-read-access-core";
+import { ProjectMasterProcessMappingInUseError, ProjectMasterInvalidInputError, ProjectMasterItemInactiveError, ProjectMasterItemNotFoundError, ProjectMasterRelationInvalidError } from "../project-master/project-master-service-core";
 import {
   UNATTRIBUTED_CREATE_RATE_KEY,
   type FixedWindowRateLimiter,
@@ -46,6 +47,8 @@ interface ProjectServiceApi {
   create(input: CreateProjectInput): Promise<CreatedProject>;
   listProjects(): ProjectListResponse;
   getReadonlySnapshot(publicId: string): ProjectSnapshotResponse | undefined;
+  getAuthorizedReadonlySnapshot(publicId: string, rawToken?: string): ProjectSnapshotResponse | undefined;
+  projectReadAccess(publicId: string, rawToken?: string): "allowed" | "locked" | "notFound";
   authorize(publicId: string, rawToken: string | undefined): AuthorizationResult;
   updateMetadata(
     authorization: AuthorizedEditSession,
@@ -91,8 +94,8 @@ export interface CreateProjectHandlerDependencies {
 
 export interface ReadProjectHandlerDependencies {
   service:
-    | Pick<ProjectServiceApi, "getReadonlySnapshot">
-    | (() => Pick<ProjectServiceApi, "getReadonlySnapshot">);
+    | Pick<ProjectServiceApi, "getAuthorizedReadonlySnapshot" | "projectReadAccess">
+    | (() => Pick<ProjectServiceApi, "getAuthorizedReadonlySnapshot" | "projectReadAccess">);
   requestId?: () => string;
 }
 
@@ -188,6 +191,12 @@ export async function handleCreateProject(
       if (error instanceof ProjectMasterInvalidInputError || error instanceof ProjectMasterItemNotFoundError) {
         throw new PublicApiError(400, "INVALID_PROJECT_MASTER", "The selected project master item is invalid.");
       }
+      if (error instanceof ProjectMasterProcessMappingInUseError) {
+        throw new PublicApiError(409, "PROJECT_PROCESS_MAPPING_IN_USE", "Remap or remove project process mappings before changing the project classification.");
+      }
+      if (error instanceof ProjectMasterRelationInvalidError) {
+        throw new PublicApiError(409,"PROJECT_MASTER_RELATION_INVALID","The selected classification is not connected.");
+      }
       if (error instanceof ProjectMasterItemInactiveError) {
         throw new PublicApiError(409, "PROJECT_MASTER_INACTIVE", "The selected project master item is inactive.");
       }
@@ -220,6 +229,7 @@ export async function handleCreateProject(
 export function handleReadProject(
   publicId: string,
   dependencies: ReadProjectHandlerDependencies,
+  request?: Request,
 ): Response {
   const requestId = (dependencies.requestId ?? randomUUID)();
 
@@ -232,9 +242,12 @@ export function handleReadProject(
       );
     }
 
-    const snapshot = resolveDependency(
-      dependencies.service,
-    ).getReadonlySnapshot(publicId);
+    const service = resolveDependency(dependencies.service);
+    const token = request ? projectSessionFromCookie(request.headers.get("cookie")) : undefined;
+    const access = service.projectReadAccess(publicId, token);
+    if (access === "locked") throw new PublicApiError(401, "PROJECT_LOCKED", "A valid session for this private project is required.");
+    if (access === "notFound") throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
+    const snapshot = service.getAuthorizedReadonlySnapshot(publicId, token);
     if (!snapshot) {
       throw new PublicApiError(
         404,
@@ -349,6 +362,12 @@ export async function handleUpdateProject(
     } catch (error) {
       if (error instanceof ProjectMasterInvalidInputError || error instanceof ProjectMasterItemNotFoundError) {
         throw new PublicApiError(400, "INVALID_PROJECT_MASTER", "The selected project master item is invalid.");
+      }
+      if (error instanceof ProjectMasterProcessMappingInUseError) {
+        throw new PublicApiError(409, "PROJECT_PROCESS_MAPPING_IN_USE", "Remap or remove project process mappings before changing the project classification.");
+      }
+      if (error instanceof ProjectMasterRelationInvalidError) {
+        throw new PublicApiError(409,"PROJECT_MASTER_RELATION_INVALID","The selected classification is not connected.");
       }
       if (error instanceof ProjectMasterItemInactiveError) {
         throw new PublicApiError(409, "PROJECT_MASTER_INACTIVE", "The selected project master item is inactive.");

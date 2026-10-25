@@ -1,0 +1,7 @@
+{
+  "description": "후속 host handoff 보완 전 정상 회귀 27개 PASS. 모든 배치 exit0, sourceStable=true. 최종 소스의 회귀 PASS로 사용하지 않는다.",
+  "uniqueCases": 27,
+  "passed": 27,
+  "sourceSha256": "ed9aa41ae4b7a5b606edf6a29ee7924c7cf0439be2275f702b156602fbc80937",
+  "remoteCi": "NOT TESTED"
+}

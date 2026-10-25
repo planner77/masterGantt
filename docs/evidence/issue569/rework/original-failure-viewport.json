@@ -1,0 +1,14 @@
+{
+  "viewport": {
+    "public": {
+      "left": 120,
+      "top": 0
+    },
+    "dom": {
+      "left": 120,
+      "top": 0
+    }
+  },
+  "events": "[{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":-484,\"height\":-72},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":0,\"top\":96,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"scroll-chart\",\"left\":120,\"top\":0,\"visible\":true},{\"action\":\"resize-chart\",\"left\":120,\"top\":0,\"visible\":true,\"width\":906,\"height\":460}]",
+  "restored": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120}"
+}

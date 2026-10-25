@@ -1,10 +1,13 @@
 "use client";
 
+import { IdentifierDetails } from "@/components/identifier-details";
+
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { linkStructureLocked } from "./relation-editor-model";
 import type { ProjectLinkDto, ProjectTaskDto } from "../../contracts/projects";
 import type { ProjectTaskUpdateCommand } from "./project-task-adapter";
 import { TaskAssignmentEditor } from "./task-assignment-editor";
+import { TaskProcessContextEditor } from "./task-process-context-editor";
 import { TaskLogisticsLinkEditor } from "./task-logistics-link-editor";
 import { taskEditorTabs, taskEditorTabForKey, type TaskEditorTab } from "./task-editor-view-model";
 import { buildTaskRelations, formatTaskRelationType, getTaskRelationMutationBlockReason, type TaskRelationView } from "./task-relations";
@@ -40,12 +43,14 @@ export interface ProjectTaskEditorHandle {
 
 interface Props {
   readonly initialTab?: TaskEditorTab;
+  readonly initialAssignment?: { assignmentId: string; resourceId: string };
   readonly session: TaskEditorSession;
   readonly latestTask: ProjectTaskDto | undefined;
   readonly tasks: readonly ProjectTaskDto[];
   readonly links: readonly ProjectLinkDto[];
   readonly revision: number;
   readonly editable: boolean;
+  readonly blockedReason?: string;
   readonly hasLinks: boolean;
   readonly busy: boolean;
   readonly onSave: (command: ProjectTaskUpdateCommand, revision: number) => Promise<TaskEditorSaveResult>;
@@ -63,7 +68,7 @@ function RelationList({
   title,
   relations,
   showActions,
-  viewOnly,
+  editable,
   actionsDisabled,
   deleteLocked,
   onEdit,
@@ -72,7 +77,7 @@ function RelationList({
   title: string;
   relations: readonly TaskRelationView[];
   showActions: boolean;
-  viewOnly: boolean;
+  editable: boolean;
   actionsDisabled: boolean;
   deleteLocked: (id: string) => boolean;
   onEdit: (relation: TaskRelationView, trigger: HTMLElement) => void;
@@ -86,13 +91,13 @@ function RelationList({
           <div className={styles.relationTask}><strong>{relation.relatedTaskName}</strong> <code>{relation.relatedTaskExternalId}</code></div>
           {showActions && relation.resolved ? <div className={styles.relationActions}>
             <button
-              aria-label={`${relation.relatedTaskName} 관계 ${viewOnly ? "조회" : "편집"}`}
+              aria-label={`${relation.relatedTaskName} 관계 ${editable ? "편집" : "조회"}`}
               className="secondary-button"
               disabled={actionsDisabled}
               onClick={(event) => onEdit(relation, event.currentTarget)}
               type="button"
-            >{viewOnly ? "조회" : "편집"}</button>
-            {!viewOnly ? <button
+            >{editable ? "편집" : "조회"}</button>
+            {editable ? <button
               aria-label={`${relation.relatedTaskName} 관계 삭제`}
               className="danger-button"
               disabled={actionsDisabled || deleteLocked(relation.id)}
@@ -113,11 +118,13 @@ function RelationList({
 export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(function ProjectTaskEditor({
   session,
   initialTab = "task",
+  initialAssignment,
   latestTask,
   tasks,
   links,
   revision,
   editable,
+  blockedReason,
   hasLinks,
   busy,
   onSave,
@@ -132,9 +139,13 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
 }, ref) {
   const [membershipDraft, setMembershipDraft] = useState<Record<string, string | null>>({});
   const [resourcePending, setResourcePending] = useState(false);
-  const [logisticsPending, setLogisticsPending] = useState(false);
+  const [legacyLogisticsPending, setLogisticsPending] = useState(false);
+  const [processPending, setProcessPending] = useState(false);
+  const logisticsPending = legacyLogisticsPending || processPending;
   const [resourceDirty, setResourceDirty] = useState(false);
-  const [logisticsDirty, setLogisticsDirty] = useState(false);
+  const [legacyLogisticsDirty, setLogisticsDirty] = useState(false);
+  const [processDirty, setProcessDirty] = useState(false);
+  const logisticsDirty = legacyLogisticsDirty || processDirty;
   const [discardGeneration, setDiscardGeneration] = useState(0);
   const [navigation, setNavigation] = useState<{ id: string; locate: boolean } | null>(null);
   const [base, setBase] = useState(session);
@@ -252,6 +263,12 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
     if (locked || awaitingDecision || actionReference.current) return;
     if (dirty) setConfirmation("close"); else onClose();
   }
+  function dismissFromEscape() {
+    if (locked || actionReference.current) return;
+    if (confirmation || navigation) { setConfirmation(null); setNavigation(null); }
+    else if (relationDeleteTarget) cancelRelationDelete();
+    else close();
+  }
   async function reload(afterChildSave = false) {
     if ((!afterChildSave && locked) || actionReference.current) return;
     actionReference.current = true; setOperation("reload"); setConfirmation(null);
@@ -259,11 +276,12 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
       const next = await onReload(base.task.taskId);
       if (!mountedReference.current) return;
       if (!next) { setError("최신 정보를 불러올 수 없습니다. 작업이 존재하는지와 네트워크 연결을 확인해 주세요."); return; }
-      setMembershipDraft({}); setResourceDirty(false); setLogisticsDirty(false); setDiscardGeneration((value) => value + 1); setBase(next); setActiveTab((current) => taskEditorTabs(next.task.type).includes(current) ? current : "task"); setDraft(createTaskEditorDraft(next.task, next.calendar)); setScheduleBasis("duration"); setConflicted(false); setError(null);
+      setMembershipDraft({}); setResourceDirty(false); setLogisticsDirty(false); setProcessDirty(false); setDiscardGeneration((value) => value + 1); setBase(next); setActiveTab((current) => taskEditorTabs(next.task.type).includes(current) ? current : "task"); setDraft(createTaskEditorDraft(next.task, next.calendar)); setScheduleBasis("duration"); setConflicted(false); setError(null);
     } catch { if (mountedReference.current) setError("최신 정보를 불러올 수 없습니다. 입력 내용은 유지됩니다."); }
     finally { actionReference.current = false; if (mountedReference.current) setOperation(null); }
   }
   function navigateTab(event: KeyboardEvent<HTMLButtonElement>, current: TaskEditorTab) {
+    if (locked || awaitingDecision) return;
     const next = taskEditorTabForKey(current, event.key, tabs);
     if (!next) return;
     event.preventDefault();
@@ -336,7 +354,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
   }
   async function applyMemberships() {
     if (!onMembershipSave || locked || awaitingDecision || actionReference.current || basicDirty || resourceDirty || logisticsDirty || readOnly || base.task.status === "completed" || !changes.length) return;
-    try { membershipProjection(tasks, links, changes); } catch { setError("완료 단계를 먼저 재개해야 합니다. 소속 초안은 유지됩니다."); return; }
+    try { membershipProjection(tasks, links, changes); } catch { setError("Milestone을 먼저 재개해야 합니다. 소속 초안은 유지됩니다."); return; }
     actionReference.current = true; setOperation("membership"); setError(null);
     try {
       const result = await onMembershipSave({ changes }, base.revision);
@@ -357,25 +375,38 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
     busy: locked || awaitingDecision || membershipDirty || resourceDirty || logisticsDirty || (base.task.type === "milestone" && base.task.status === "completed"),
   });
   const relationMutationDisabled = relationMutationBlockReason !== null;
-  const taskTypeLabel = base.task.type === "summary" ? "요약 작업" : base.task.type === "milestone" ? "마일스톤" : "일반 작업";
+  const taskTypeLabel = base.task.type === "summary" ? "요약 작업" : base.task.type === "milestone" ? "Milestone" : "일반 작업";
   const scheduleIssue = validateTaskEditorSchedule(base.task, draft, base.calendar, scheduleBasis);
 
-  return <dialog className={styles.dialog} ref={dialogReference} aria-labelledby="task-editor-title" aria-describedby="task-editor-description" aria-busy={locked || undefined} onKeyDown={(event) => { if (event.key === "Escape" && locked) { event.preventDefault(); event.stopPropagation(); } }} onCancel={(event) => { event.preventDefault(); if (confirmation || navigation) { setConfirmation(null); setNavigation(null); } else if (relationDeleteTarget) cancelRelationDelete(); else close(); }}>
+  return <dialog className={styles.dialog} ref={dialogReference} aria-labelledby="task-editor-title" aria-describedby="task-editor-description" aria-busy={locked || undefined} onKeyDown={(event) => {
+    if (event.key !== "Escape" || event.defaultPrevented) return;
+    const openDialogs = document.querySelectorAll("dialog[open]");
+    if (openDialogs.item(openDialogs.length - 1) !== event.currentTarget) return;
+    // Repeated native cancel events can become noncancelable; own Escape before close-watcher handling.
+    event.preventDefault();
+    event.stopPropagation();
+    dismissFromEscape();
+  }} onCancel={(event) => {
+    if (event.target !== event.currentTarget) return;
+    event.preventDefault();
+    dismissFromEscape();
+  }}>
     <header className={styles.header}>
       <div className={styles.headerText}>
         <h2 id="task-editor-title">작업 정보</h2>
         <p className={styles.headerMeta} id="task-editor-description">
           <span className={styles.typeBadge}>{taskTypeLabel}</span>
-          <span>External ID <code>{base.task.externalId}</code></span>
+          <span>{base.task.name}</span>
           <span>Revision {base.revision}</span>
         </p>
+        <IdentifierDetails label={`${base.task.name} 식별 정보`} identifiers={[{label: "외부 ID", value: base.task.externalId}, {label: "작업 ID", value: base.task.taskId}]} />
       </div>
       <button className="secondary-button" type="button" disabled={locked || awaitingDecision} onClick={close} aria-label="작업 편집기 닫기">닫기</button>
     </header>
 
     <div className={styles.noticeStack}>
-      {navigation ? <div className={styles.discard} role="alert"><p>저장하지 않은 변경사항을 버리고 다른 작업으로 이동할까요?</p><div className={styles.confirmationActions}><button type="button" ref={confirmationCancelReference} className="secondary-button" onClick={() => setNavigation(null)}>계속 편집</button><button type="button" className="secondary-button" onClick={() => { const next = navigation; setNavigation(null); setMembershipDraft({}); setDraft(createTaskEditorDraft(base.task, base.calendar)); setResourceDirty(false); setLogisticsDirty(false); setDiscardGeneration((value) => value + 1); if (next.locate) onTaskLocate?.(next.id); else onTaskOpen?.(next.id); }}>변경사항 버리고 이동</button></div></div> : null}
-      {restriction ? <p className={styles.note}>{restriction}</p> : null}
+      {navigation ? <div className={styles.discard} role="alert"><p>저장하지 않은 변경사항을 버리고 다른 작업으로 이동할까요?</p><div className={styles.confirmationActions}><button type="button" ref={confirmationCancelReference} className="secondary-button" onClick={() => setNavigation(null)}>계속 편집</button><button type="button" className="secondary-button" onClick={() => { const next = navigation; setNavigation(null); setMembershipDraft({}); setDraft(createTaskEditorDraft(base.task, base.calendar)); setResourceDirty(false); setLogisticsDirty(false); setProcessDirty(false); setDiscardGeneration((value) => value + 1); if (next.locate) onTaskLocate?.(next.id); else onTaskOpen?.(next.id); }}>변경사항 버리고 이동</button></div></div> : null}
+      {restriction ? <p className={styles.note}>{blockedReason ?? restriction}</p> : null}
       {stale ? <p className={styles.error} role="alert">다른 편집 내용이 먼저 저장되었거나 기준 Revision이 변경되었습니다. 입력 내용은 보존됩니다. 최신 정보를 다시 불러온 뒤 검토해 주세요.</p> : null}
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
       {confirmation ? <div className={styles.discard} role="alert">
@@ -402,7 +433,8 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
           aria-selected={selected}
           aria-controls={"task-editor-panel-" + tab}
           tabIndex={selected ? 0 : -1}
-          onClick={() => setActiveTab(tab)}
+          disabled={locked || awaitingDecision}
+          onClick={() => { if (!locked && !awaitingDecision) setActiveTab(tab); }}
           onKeyDown={(event) => navigateTab(event, tab)}
         >
           <span>{label}</span>
@@ -504,12 +536,12 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
             </fieldset>
           </div>
 
-          {base.task.type === "milestone" && base.task.stageGate ? <section className={styles.metadata} aria-label="완료 단계 준비 상태">
-            <h3>완료 단계 준비 상태</h3><p>본인 상태: {base.task.status === "completed" ? "완료" : base.task.status === "in_progress" ? "진행 중" : "시작 전"}</p>
+          {base.task.type === "milestone" && base.task.stageGate ? <section className={styles.metadata} aria-label="Milestone 준비 상태">
+            <h3>Milestone 준비 상태</h3><p>본인 상태: {base.task.status === "completed" ? "완료" : base.task.status === "in_progress" ? "진행 중" : "시작 전"}</p>
             <p>{base.task.stageGate.manualEvent ? "수동 이벤트 · 작업 진척 대상 없음 (N/A)" : `소속 작업 진척 ${base.task.stageGate.memberProgressPercent ?? 0}% · 미완료 작업 ${base.task.stageGate.incompleteMemberTaskIds.length}개`}</p>
-            <p>미완료 선행 단계 {base.task.stageGate.incompletePredecessorMilestoneTaskIds.length}개 · {base.task.stageGate.ready === true || (base.task.stageGate.manualEvent && base.task.stageGate.predecessorsCompleted) ? "완료 처리 가능 · 상태를 명시적으로 선택하여 저장해 주세요." : "완료 조건을 확인해 주세요."}</p>
+            <p>미완료 선행 Milestone {base.task.stageGate.incompletePredecessorMilestoneTaskIds.length}개 · {base.task.stageGate.ready === true || (base.task.stageGate.manualEvent && base.task.stageGate.predecessorsCompleted) ? "완료 처리 가능 · 상태를 명시적으로 선택하여 저장해 주세요." : "완료 조건을 확인해 주세요."}</p>
             {base.task.stageGate.incompleteMemberTaskIds.length ? <details><summary>미완료 소속 작업</summary><ul>{base.task.stageGate.incompleteMemberTaskIds.map((id) => <li key={id}><button type="button" className="secondary-button" disabled={locked} onClick={() => navigateTask(id)}>{tasks.find((row) => row.taskId === id)?.name ?? id}</button></li>)}</ul></details> : null}
-            {base.task.stageGate.incompletePredecessorMilestoneTaskIds.length ? <details><summary>미완료 선행 완료 단계</summary><ul>{base.task.stageGate.incompletePredecessorMilestoneTaskIds.map((id) => <li key={id}><button type="button" className="secondary-button" disabled={locked} onClick={() => navigateTask(id)}>{tasks.find((row) => row.taskId === id)?.name ?? id}</button></li>)}</ul></details> : null}
+            {base.task.stageGate.incompletePredecessorMilestoneTaskIds.length ? <details><summary>미완료 선행 Milestone</summary><ul>{base.task.stageGate.incompletePredecessorMilestoneTaskIds.map((id) => <li key={id}><button type="button" className="secondary-button" disabled={locked} onClick={() => navigateTask(id)}>{tasks.find((row) => row.taskId === id)?.name ?? id}</button></li>)}</ul></details> : null}
             {base.task.stageGate.completionInconsistent ? <p className={styles.error}>완료 기록과 현재 소속/선행 상태가 일치하지 않습니다. 진단 정보이며 자동으로 재개하지 않습니다.</p> : null}
             {base.task.status === "completed" ? <p>소속/관계를 수정하려면 상태를 진행 중 또는 시작 전으로 변경하고 먼저 저장해 주세요. 재개와 구조 변경은 별도 저장입니다.</p> : null}
           </section> : null}
@@ -622,6 +654,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
           tabIndex={0}
         >
           <TaskAssignmentEditor
+            initialAssignment={initialAssignment}
             taskId={base.task.taskId}
             revision={base.revision}
             editable={editable}
@@ -671,8 +704,8 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
                 title="선행 작업"
                 relations={relations.predecessors}
                 showActions
-                viewOnly={readOnly}
-                actionsDisabled={locked || stale || dirty || (!readOnly && relationMutationDisabled)}
+                editable={editable}
+                actionsDisabled={editable ? relationMutationDisabled : locked || stale || !relationSnapshotMatches}
                 deleteLocked={(id) => linkStructureLocked(links.find((link) => link.id === id), tasks)}
                 onEdit={(relation, trigger) => onRelationEditorOpen({ kind: "link", linkId: relation.id }, trigger)}
                 onDelete={requestRelationDelete}
@@ -681,8 +714,8 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
                 title="후행 작업"
                 relations={relations.successors}
                 showActions
-                viewOnly={readOnly}
-                actionsDisabled={locked || stale || dirty || (!readOnly && relationMutationDisabled)}
+                editable={editable}
+                actionsDisabled={editable ? relationMutationDisabled : locked || stale || !relationSnapshotMatches}
                 deleteLocked={(id) => linkStructureLocked(links.find((link) => link.id === id), tasks)}
                 onEdit={(relation, trigger) => onRelationEditorOpen({ kind: "link", linkId: relation.id }, trigger)}
                 onDelete={requestRelationDelete}
@@ -699,16 +732,24 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
           hidden={activeTab !== "logistics"}
           tabIndex={0}
         >
+          {base.task.type !== "milestone" ? <TaskProcessContextEditor
+            taskId={base.task.taskId} taskType={base.task.type} tasks={tasks} revision={base.revision}
+            editable={editable} disabled={locked || readOnly || basicDirty || membershipDirty || resourceDirty || legacyLogisticsDirty}
+            discardGeneration={discardGeneration} onDirtyChange={setProcessDirty} onPendingChange={setProcessPending}
+            onUnauthorized={onAuthorizationExpired} onApplied={() => reload(true)} /> : null}
+          <h3>직접 설비·물류 시스템 연결</h3>
           <TaskLogisticsLinkEditor
+            tasks={tasks}
             taskId={base.task.taskId}
             taskType={base.task.type}
             revision={base.revision}
             editable={editable}
-            disabled={locked || readOnly || basicDirty || membershipDirty || resourceDirty}
+            disabled={locked || readOnly || basicDirty || membershipDirty || resourceDirty || processDirty}
             discardGeneration={discardGeneration} onDirtyChange={setLogisticsDirty} onPendingChange={setLogisticsPending} onUnauthorized={onAuthorizationExpired}
             onApplied={() => reload(true)}
             onSelectionCountChange={setLogisticsCount}
           />
+
         </section>
       </div>
 

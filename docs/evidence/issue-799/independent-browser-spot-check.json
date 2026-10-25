@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "receiptOrigin": "Manager transcription of independent qa_docs /root/metrics_qa actual browser execution message; not a raw browser JSON export",
+  "reviewer": "/root/metrics_qa",
+  "evidenceKind": "READ_ONLY_REAL_FIXTURE_SPOT_CHECK",
+  "status": "PASS",
+  "productCssSha256": "78a76f5c98a99d4a91cf5994f6a89310c4d9441e7b922d92eb1ed73e0d71eaf5",
+  "origin": "http://127.0.0.1:3199",
+  "browserExecutableRevision": "chromium-1243",
+  "view": "equipment",
+  "access": "public unauthenticated readonly",
+  "measurements": [
+    {
+      "width": 390,
+      "metricCount": 12,
+      "allValuesFit": true,
+      "documentOverflow": 0,
+      "tableOwnerClientWidth": 364,
+      "tableOwnerScrollWidth": 772,
+      "helpEnterOpened": true,
+      "helpEscapeClosed": true,
+      "helpFocusReturned": true
+    },
+    {
+      "width": 1440,
+      "metricCount": 12,
+      "allValuesFit": true,
+      "documentOverflow": 0,
+      "tableOwnerClientWidth": 1390,
+      "tableOwnerScrollWidth": 1390,
+      "helpEnterOpened": true,
+      "helpEscapeClosed": true,
+      "helpFocusReturned": true
+    }
+  ],
+  "canonical": {
+    "httpStatus": 200,
+    "revision": 17,
+    "tasks": 4,
+    "assignments": 1,
+    "fingerprint": "1dd5a90c59bedb603a4c84a0b2b88053b83b0757b6d643aee1fd40fd875cc80d",
+    "beforeAfterEqual": true,
+    "projectWrites": 0
+  },
+  "limitations": [
+    "Equipment only at two widths, not all six views or all states",
+    "Grid candidate observations are SUPERSEDED and not reused",
+    "Actual device/screen reader/native zoom/production not tested",
+    "Agent PRE_QA only; human QA_FINAL and Owner ACCEPT remain NOT TESTED"
+  ]
+}

@@ -1,6 +1,27 @@
+import type { APIResponse, Page } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated, submitProjectUnlock } from "./fixtures/isolated-application";
 
 test.use(isolatedApplicationOptions);
+
+/**
+ * The isolated Next.js development server can occasionally reset the socket
+ * while recompiling under the E2E shard load. Retry transport failures for
+ * idempotent project GET only; never retry writes or HTTP error responses.
+ * Keep the same bounded policy already used by other E2E specs.
+ */
+async function getProjectWithTransientResetRetry(page: Page, projectPath: string): Promise<APIResponse> {
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await page.request.get(projectPath);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!/socket hang up|ECONNRESET/i.test(message) || attempt === maxAttempts) throw error;
+      await page.waitForTimeout(250 * attempt);
+    }
+  }
+  throw new Error("Unreachable: bounded project GET retries exhausted.");
+}
 
 function uniqueSuffix(): string {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -25,6 +46,10 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   browser,
   page,
 }) => {
+  // #659: 실제 PR CI #2690은 22.6s PASS, #2691은 기본 30s 초과.
+  // 여러 프로젝트/브라우저 문맥·실제 권한 경로를 끝까지 검증하는 본 1개 테스트에만
+  // 유한한 60초 한도를 지정한다. 단언·쓰기 재시도·브라우저 종료 예외는 완화하지 않는다.
+  test.setTimeout(60_000);
   const suffix = uniqueSuffix();
   const firstName = `W05 Project ${suffix}`;
   const savedName = `W05 Saved ${suffix}`;
@@ -38,7 +63,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   await page.getByText("프로젝트 설정", { exact: true }).click();
   await expect(page.getByRole("button", { name: "프로젝트 정보 저장" })).toBeVisible();
 
-  const directSnapshot = await page.request.get(projectPath);
+  const directSnapshot = await getProjectWithTransientResetRetry(page, projectPath);
   expect(directSnapshot.status()).toBe(200);
   expect((await directSnapshot.json()).data.permission).toBe("readonly");
 
@@ -76,7 +101,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   await expect(page.getByRole("heading", { name: savedName })).toBeVisible();
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
 
-  const afterSave = await page.request.get(projectPath);
+  const afterSave = await getProjectWithTransientResetRetry(page, projectPath);
   const afterSaveBody = await afterSave.json();
   let currentRevision = afterSaveBody.data.project.revision as number;
   const sessionBeforeSafeMethods = await page.request.get(
@@ -88,7 +113,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   const options = await page.request.fetch(projectPath, { method: "OPTIONS" });
   expect(options.headers()["access-control-allow-credentials"]).toBeUndefined();
   expect(options.headers()["access-control-allow-origin"]).toBeUndefined();
-  const afterSafeMethods = await page.request.get(projectPath);
+  const afterSafeMethods = await getProjectWithTransientResetRetry(page, projectPath);
   expect((await afterSafeMethods.json()).data.project.revision).toBe(currentRevision);
   const sessionAfterSafeMethods = await page.request.get(
     `${projectPath}/edit-sessions/current`,
@@ -107,7 +132,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   ]);
   expect(concurrentMetadataWrites.filter((response) => response.status() === 200)).toHaveLength(1);
   expect(concurrentMetadataWrites.filter((response) => response.status() === 412)).toHaveLength(1);
-  const afterConcurrentWrite = await page.request.get(projectPath);
+  const afterConcurrentWrite = await getProjectWithTransientResetRetry(page, projectPath);
   const afterConcurrentWriteBody = await afterConcurrentWrite.json();
   expect(afterConcurrentWriteBody.data.project.revision).toBe(currentRevision + 1);
   expect(["concurrent write A", "concurrent write B"]).toContain(

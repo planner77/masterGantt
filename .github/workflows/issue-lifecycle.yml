@@ -45,7 +45,7 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: issue-lifecycle-${{ inputs.issue_number }}
+  group: mastergantt-release-finalizer
   cancel-in-progress: false
   queue: max
 
@@ -67,6 +67,7 @@ jobs:
       - name: Verify lifecycle context
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
         run: |
           python3 scripts/issue_lifecycle.py verify \
             --issue "${{ inputs.issue_number }}" \
@@ -95,6 +96,7 @@ jobs:
       - name: Release approved target
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 scripts/issue_lifecycle.py release \
@@ -125,6 +127,7 @@ jobs:
       - name: Finalize approved lifecycle
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 scripts/issue_lifecycle.py finalize \
@@ -156,6 +159,7 @@ jobs:
       - name: Release and finalize approved lifecycle
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOW_TARGETED_POLICY_ENABLED: ${{ vars.LOW_TARGETED_POLICY_ENABLED }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 scripts/issue_lifecycle.py release_finalize \

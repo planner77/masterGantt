@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { setup } from "./fixtures/task-editor-density";
 import { expect, test, isolatedApplicationOptions, submitProjectUnlock } from "./fixtures/isolated-application";
 import { capture490, create490, longDescription490, longName490 } from "./helpers/issue490-settings-fixture";
+import { interiorGanttScrollLeft } from "./helpers/gantt-scroll-capacity";
 
 test.use({ ...isolatedApplicationOptions, locale:"ko-KR", timezoneId:"Asia/Seoul" });
 
@@ -140,9 +141,43 @@ test("Issue #490: 설정 탭·닫기·metadata 저장은 WBS·Gantt 상태를 �
   const taskHeader=header.getByText("작업",{exact:true}).locator("..");const widthBefore=(await taskHeader.boundingBox())!.width;const grip=(await taskHeader.locator(".wx-grip").boundingBox())!;await page.mouse.move(grip.x+grip.width/2,grip.y+grip.height/2);await page.mouse.down();await page.mouse.move(grip.x+grip.width/2+48,grip.y+grip.height/2,{steps:6});await page.mouse.up();expect((await taskHeader.boundingBox())!.width).toBeGreaterThan(widthBefore+20);
   await frame.getByRole("button",{name:"주",exact:true}).click();
   const target=page.locator('.project-gantt-widget .wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000004"]');await target.click({button:"right",position:{x:12,y:19}});await page.keyboard.press("Escape");
-  const chart=frame.locator(".wx-chart").first(),vertical=frame.locator(".wx-gantt").first();await chart.evaluate(n=>{n.scrollLeft=120;});await vertical.evaluate(n=>{n.scrollTop=38;});
+  const chart=frame.locator(".wx-chart").first(),vertical=frame.locator(".wx-gantt").first();
+  // #624 CI #2920 / #703: native scrollWidth-clientWidth rounded to 19px,
+  // but assigning its end boundary stayed at 18px throughout the 5s poll.
+  // Exercise a *strictly positive interior* position rather than assuming the
+  // last measured CSSOM pixel is writable; keep exact equality after setup.
+  const chartMeasure=await chart.evaluate(n=>({
+    scrollWidth:n.scrollWidth,clientWidth:n.clientWidth,
+    capacity:Math.max(0,n.scrollWidth-n.clientWidth),
+  }));
+  expect(chartMeasure.capacity,"Gantt chart must offer horizontal scrolling for viewport preservation").toBeGreaterThan(0);
+  const expectedChartScroll=interiorGanttScrollLeft(chartMeasure.capacity);
+  expect(expectedChartScroll,"#490 test needs actual, positive, interior native horizontal movement").toBeGreaterThan(0);
+  // Main #3183.1: X가 settled되기 전에 Y를 설정하면 후행 Core/DOM 투영이 Y를 0으로 덮어쓸 수 있다.
+  // 기존 Playwright poll 예산과 38px 정확 일치를 유지하며 읽기 전용 readiness를 확인한다.
+  await chart.evaluate((n,left)=>{n.scrollLeft=left;},expectedChartScroll);
+  await expect.poll(()=>chart.evaluate(n=>n.scrollLeft)).toBe(expectedChartScroll);
+  const verticalReadiness=await vertical.evaluate(async n=>{
+    await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
+    return {scrollHeight:n.scrollHeight,clientHeight:n.clientHeight,capacity:Math.max(0,n.scrollHeight-n.clientHeight),before:n.scrollTop};
+  });
+  expect(verticalReadiness.capacity,"#490 needs real native Y movement beyond 38px; do not clamp to zero").toBeGreaterThan(38);
+  await expect.poll(()=>chart.evaluate(n=>n.scrollLeft)).toBe(expectedChartScroll);
+  const verticalAfterSet=await vertical.evaluate(n=>{
+    n.scrollTop=38;
+    return {top:n.scrollTop,capacity:Math.max(0,n.scrollHeight-n.clientHeight)};
+  });
+  await info.attach("issue490-bounded-native-scroll-setup", {
+    contentType:"application/json",
+    body:JSON.stringify({source:"#624 #703 interior X + #750 Main3183.1 native Y readiness",chartMeasure,expectedChartScroll,
+      actual:await chart.evaluate(n=>({scrollLeft:n.scrollLeft,capacity:Math.max(0,n.scrollWidth-n.clientWidth)})),
+      verticalReadiness,verticalAfterSet}),
+  });
+  // 후행 React/Core scroll listener가 Y를 다시 쓰는지 두 animation frame 이후에도 확인한다.
+  await vertical.evaluate(async()=>{await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));});
+  await expect.poll(()=>vertical.evaluate(n=>n.scrollTop)).toBe(38);
   const state=async()=>({...(await frame.evaluate(element=>({api:element.getAttribute("data-project-gantt-api-instance"),instance:element.getAttribute("data-project-gantt-instance"),publicViewport:Reflect.get(element,"__masterganttPublicViewport"),fullscreen:document.fullscreenElement===element,scale:element.getAttribute("data-gantt-scale-mode"),chartScroll:element.querySelector(".wx-chart")!.scrollLeft,verticalScroll:element.querySelector(".wx-gantt")!.scrollTop,selected:Array.from(element.querySelectorAll('.wx-row[data-copy-selected="true"]')).map(n=>n.getAttribute("data-id")),tree:Array.from(element.querySelectorAll('[data-action="open-task"]')).map(n=>({id:n.closest("[data-id]")?.getAttribute("data-id"),closed:n.classList.contains("wxi-menu-right")})),scope:document.querySelector('.project-scope-tabs [aria-selected="true"]')?.textContent,rootTask:new URL(location.href).searchParams.get("rootTask")}))),columns:await header.locator('[role="columnheader"]').evaluateAll(nodes=>nodes.map(n=>({id:n.getAttribute("data-header-id"),width:n.getBoundingClientRect().width})))});
-  await expect.poll(async()=>(await state()).chartScroll).toBe(120);await expect.poll(async()=>(await state()).verticalScroll).toBe(38);
+  await expect.poll(async()=>(await state()).chartScroll).toBe(expectedChartScroll);await expect.poll(async()=>(await state()).verticalScroll).toBe(38);
   const nestedRow=page.locator(`.wx-table-container .wx-row[data-id=":${nestedId}"]`);await nestedRow.locator('[data-action="open-task"]').click();await expect(page.locator('.wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000081"]')).toHaveCount(0);
   const before=await state();expect(before.selected).toHaveLength(1);expect(before.tree.some(n=>n.closed)).toBe(true);expect(before.columns.length).toBeGreaterThan(3);expect(before.columns.some(n=>n.id===":externalId"&&n.width>0)).toBe(true);
   const phases=[{phase:"before",state:before}];

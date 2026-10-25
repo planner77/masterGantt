@@ -1,0 +1,6 @@
+{
+  "result": "FAIL",
+  "scope": "manual capture setup",
+  "reason": "incorrect reauthentication request password/201; actual editPassword/204; capture cancelled before valid sample",
+  "canonicalMutation": "No successful fixture mutation; revalidate fingerprint on corrected capture"
+}

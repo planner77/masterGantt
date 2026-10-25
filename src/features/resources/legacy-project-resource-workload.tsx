@@ -1,5 +1,7 @@
 "use client";
 
+import { IdentifierDetails } from "@/components/identifier-details";
+
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import type {
@@ -317,10 +319,10 @@ export function LegacyProjectResourceWorkload({ publicId, drillScope = null, onC
   return (
     <section aria-labelledby="resource-workload-heading" className="project-resource-workload">
       {drillScope ? <div className="resource-workload-note" role="status">
-        <strong>완료 단계에서 전달한 개인 assignment 표시 범위</strong> · {drillScope.from} ~ {drillScope.to} · Revision {drillScope.projectRevision}/{drillScope.catalogRevision}
-        <p>단계 Dashboard 범위 공수: {effort(drillScope.plannedMd, drillScope.plannedMm, "md")}{drillScope.plannedMm === null ? " · M/M 미설정" : ` / ${effort(drillScope.plannedMd, drillScope.plannedMm, "mm")}`}. 아래 행과 표시 subtotal은 같은 기간을 기존 Resource 서버 계산으로 조회한 뒤 전달된 assignment ID와 기존 필터를 적용합니다. 상단 전체 합계는 같은 기간의 Project 전체 값입니다. 단계 공수는 반올림 전 합계이며 Resource는 기존 반올림 기준을 사용합니다. 단계의 명시 M/M 환산 기준은 Resource에 전달하지 않습니다. Resource 환산 기준은 {data?.mdPerMm === null || data?.mdPerMm === undefined ? "미설정" : `${data.mdPerMm} M/D = 1 M/M (환경 설정)`}입니다.</p>
-        {!drillCurrent ? <p>리소스 응답 Revision이 전달한 범위와 다릅니다. 최신 완료 단계에서 다시 진입하거나 범위를 해제해 주세요.</p> : null}
-        <button type="button" className="secondary-button" onClick={onClearDrillScope}>완료 단계 전달 범위 해제</button>
+        <strong>Milestone에서 전달한 개인 assignment 표시 범위</strong> · {drillScope.from} ~ {drillScope.to} · Revision {drillScope.projectRevision}/{drillScope.catalogRevision}
+        <p>Milestone Dashboard 범위 공수: {effort(drillScope.plannedMd, drillScope.plannedMm, "md")}{drillScope.plannedMm === null ? " · M/M 미설정" : ` / ${effort(drillScope.plannedMd, drillScope.plannedMm, "mm")}`}. 아래 행과 표시 subtotal은 같은 기간을 기존 Resource 서버 계산으로 조회한 뒤 전달된 assignment ID와 기존 필터를 적용합니다. 상단 전체 합계는 같은 기간의 Project 전체 값입니다. Milestone 공수는 반올림 전 합계이며 Resource는 기존 반올림 기준을 사용합니다. Milestone의 명시 M/M 환산 기준은 Resource에 전달하지 않습니다. Resource 환산 기준은 {data?.mdPerMm === null || data?.mdPerMm === undefined ? "미설정" : `${data.mdPerMm} M/D = 1 M/M (환경 설정)`}입니다.</p>
+        {!drillCurrent ? <p>리소스 응답 Revision이 전달한 범위와 다릅니다. 최신 Milestone에서 다시 진입하거나 범위를 해제해 주세요.</p> : null}
+        <button type="button" className="secondary-button" onClick={onClearDrillScope}>Milestone 전달 범위 해제</button>
       </div> : null}
       <div className="resource-workload-header">
         <div>
@@ -428,7 +430,7 @@ export function LegacyProjectResourceWorkload({ publicId, drillScope = null, onC
                   {group.resources.map((resource) => (
                     <details className="resource-workload-resource" key={`${group.id ?? "ungrouped"}:${resource.id}`}>
                       <summary>
-                        <span className="resource-workload-name">{targetByKey.get(`resource:${resource.id}`)?.name ?? resource.name}{(targetByKey.get(`resource:${resource.id}`)?.code ?? resource.code) ? ` (${targetByKey.get(`resource:${resource.id}`)?.code ?? resource.code})` : ""}</span>
+                        <span className="resource-workload-name">{targetByKey.get(`resource:${resource.id}`)?.name ?? resource.name}</span>
                         <span>{resource.start ?? "—"} ~ {resource.end ?? "—"}</span>
                         <span>{effort(resource.effortMd, resource.effortMm, unit)}</span>
                         {resource.developerGrade ? <span className="status-badge">{gradeLabel(resource.developerGrade)}</span> : null}
@@ -436,6 +438,7 @@ export function LegacyProjectResourceWorkload({ publicId, drillScope = null, onC
                         {resource.overAllocated ? <span className="status-badge danger" title="과투입은 전체 assignment의 일별 투입률 합계 기준입니다.">과투입</span> : null}
                         {resource.unsetCount ? <span className="status-badge warning">미설정 {resource.unsetCount}</span> : null}
                       </summary>
+                      <IdentifierDetails label={`${resource.name} 식별 정보`} identifiers={[{label:"리소스 ID",value:resource.id},...((targetByKey.get(`resource:${resource.id}`)?.code??resource.code)?[{label:"코드",value:(targetByKey.get(`resource:${resource.id}`)?.code??resource.code)!}]:[])]}/>
                       <div className="resource-workload-table-scroll">
                         <table className="resource-workload-table">
                           <thead>

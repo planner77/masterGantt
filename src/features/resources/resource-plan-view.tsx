@@ -1,4 +1,7 @@
 "use client";
+import { ContextHelp } from "@/components/ui/context-help";
+
+import { IdentifierDetails } from "@/components/identifier-details";
 import { useRef, useState } from "react";
 import type { ResourceDashboardDto } from "@/contracts/resource-dashboard";
 import type {
@@ -36,6 +39,12 @@ export function ResourcePlanView({
     [metric, setMetric] = useState<"effort" | "load" | "excess">("effort"),
     [scope, setScope] = useState<ResourcePlanDemandScope>("selected"),
     [selection, setSelection] = useState<PlanDetailStep | null>(null);
+  const queryIdentity = JSON.stringify(data.filters);
+  const [selectionQuery, setSelectionQuery] = useState(queryIdentity);
+  if (selectionQuery !== queryIdentity) {
+    setSelectionQuery(queryIdentity);
+    setSelection(null);
+  }
   const trigger = useRef<HTMLElement | null>(null),
     fallback = useRef<HTMLSelectElement>(null);
   const plan = data.plan;
@@ -131,7 +140,7 @@ export function ResourcePlanView({
           }
         >
           {row.selector.kind === "resourceMilestone"
-            ? "단계 기여(선택) · "
+            ? "Milestone 기여(선택) · "
             : ""}
           {planMetric(selected, metric, unit)}
         </button>
@@ -206,15 +215,14 @@ export function ResourcePlanView({
               setScope(e.target.value as ResourcePlanDemandScope)
             }
           >
-            <option value="selected">선택 Milestone·Task 기여</option>
+            <option value="selected">선택 실물·Milestone·Task 기여</option>
             <option value="project">동일 개인의 Project 전체 참고</option>
           </select>
         </label>
+        <ContextHelp label="Resource Plan Capacity 도움말"><p>공정·WorkArea·설비·시스템·Task·Milestone·기간·검색으로 Capacity 모집단을 줄이지 않습니다. 유효 근무일1 M/D 기준이며 Group·Milestone Capacity는 비가산 참고값입니다.</p></ContextHelp>
       </div>
       <p className="resource-dashboard-hint">
-        현재 Project 개인 {plan.population.resourceCount}명 · 유효 근무일1 M/D
-        기준. Task·Milestone·기간·검색으로 Capacity 모집단을 줄이지 않습니다.
-        Group 소계와 단계 Capacity는 비가산이며 전사 가용 인력이 아닙니다.
+        현재 Project 개인 {plan.population.resourceCount}명 · 유효 근무일1 M/D · Group·Milestone Capacity 비가산 · 전사 가용 인력 아님
       </p>
       <p className="resource-dashboard-hint">
         조회 전체 {scope === "selected" ? "선택 기여" : "Project 전체 참고"} ·
@@ -357,6 +365,7 @@ export function ResourcePlanView({
                       {row.description}
                     </small>
                   ) : null}
+                  {row.selector.kind === "resource" ? <IdentifierDetails label={`${row.name} 식별 정보`} identifiers={[{label:"리소스 ID",value:row.selector.resourceId}, ...(data.catalog.resources.find(resource=>"resourceId" in row.selector && resource.id===row.selector.resourceId)?.code ? [{label:"코드",value:data.catalog.resources.find(resource=>"resourceId" in row.selector && resource.id===row.selector.resourceId)!.code!}] : [])]}/> : row.selector.kind === "group" && row.selector.groupId ? <IdentifierDetails label={`${row.name} 식별 정보`} identifiers={[{label:"그룹 ID",value:row.selector.groupId},...(data.catalog.groups.find(group=>"groupId" in row.selector&&group.id===row.selector.groupId)?.code?[{label:"코드",value:data.catalog.groups.find(group=>"groupId" in row.selector&&group.id===row.selector.groupId)!.code!}]:[])]}/> : null}
                 </th>
                 {periods.map((p) => (
                   <td key={p.key}>{cell(row, p.key)}</td>
@@ -369,7 +378,7 @@ export function ResourcePlanView({
       </div>
       {selection && selection.input.granularity === plan.granularity ? (
         <ResourcePlanDetails
-          key={`${data.snapshotId}:${JSON.stringify(selection)}`}
+          key={JSON.stringify(selection)}
           data={data}
           initial={selection}
           stale={stale}

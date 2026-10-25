@@ -36,9 +36,10 @@ export interface ResourceDrillEcho {
   targetFilters: ResourceDashboardFilters; projection: ResourceDrillProjection;
   /** Selected A/T0 restrictions never narrow the Plan's explicitly labelled Project reference. */
   assignmentScope: "exact-source-intersection"; projectReferenceScope: "same-resource-population-and-period";
+  targetProjectReferenceScope?: "full-canonical-project-same-period";
 }
 export interface ResourceDrillScopeDto {
-  schema: "resource-dashboard/1"; snapshotId: string; sourceContext: ResourceDrillSourceContext;
+  schema: "resource-dashboard/1" | "resource-dashboard/2"; snapshotId: string; sourceContext: ResourceDrillSourceContext;
   taskIds: string[]; assignmentIds: string[]; taskCount: number; assignmentCount: number;
   /** Ancestor summaries are context only, never part of taskCount. */
   ancestorSummaryIds: string[];

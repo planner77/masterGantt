@@ -1,4 +1,5 @@
-import type { ResourceExcelExportOptions } from "../../contracts/resource-excel-export";
+import { RESOURCE_READ_VERSION_HEADER, isRetiredResourceSelection, resourceV2FiltersToInternal } from "../../contracts/resource-public-v2";
+import type { ResourceExcelExportInput } from "../../contracts/resource-excel-export";
 import { randomUUID } from "node:crypto";
 
 import type { ProjectSnapshotResponse } from "@/contracts/projects";
@@ -35,7 +36,7 @@ export interface ProjectExcelExportHandlerDependencies {
   requestId?: () => string;
   buildWorkbook?: typeof buildProjectExcelWorkbook;
   getResourceWorkload?: (publicId: string) => ResourceWorkloadResponse | undefined;
-  getExportBundle?: (publicId: string, includeResourceEffort: boolean, resourceOptions?: ResourceExcelExportOptions, expectedRevision?: number) => ProjectExportSnapshotBundle | undefined;
+  getExportBundle?: (publicId: string, includeResourceEffort: boolean, resourceOptions?: ResourceExcelExportInput, expectedRevision?: number) => ProjectExportSnapshotBundle | undefined;
 }
 
 function resolveDependency<T>(dependency: T | (() => T)): T {
@@ -72,7 +73,24 @@ export async function handleProjectExcelExport(
 
     const expectedRevision = parseRequiredIfMatch(request);
     const rawInput = await readBoundedJson(request, EXPORT_BODY_LIMIT_BYTES);
-    const parsed = parseProjectExcelExportInput(rawInput);
+    const requestedVersion = request.headers.get(RESOURCE_READ_VERSION_HEADER);
+    if (requestedVersion !== null && requestedVersion !== "1" && requestedVersion !== "2") throw new PublicApiError(400, "INVALID_REQUEST", "지원하지 않는 보고서 버전입니다.");
+    let exportInput = rawInput;
+    if (requestedVersion !== "1" && rawInput && typeof rawInput === "object" && !Array.isArray(rawInput)) {
+      const raw = rawInput as Record<string, unknown>;
+      if (isRetiredResourceSelection(raw.resourceDashboard)) throw new PublicApiError(410, "LOGISTICS_SELECTION_RETIRED", "이전 물류 조회 조건은 종료되었습니다. 실물 관점에서 다시 조회해 주세요.");
+      if (raw.resourceDashboard && typeof raw.resourceDashboard === "object" && !Array.isArray(raw.resourceDashboard)) {
+        const dashboard = raw.resourceDashboard as Record<string, unknown>;
+        if (dashboard.expectedReport && typeof dashboard.expectedReport === "object" && !Array.isArray(dashboard.expectedReport)) {
+          const expected = dashboard.expectedReport as Record<string, unknown>;
+          const context = expected.context as { schema?: unknown } | undefined;
+          // WBS uses explicit context type predicates already; legacy Resource
+          // type names require the physical union predicates at the v2 edge.
+          exportInput = { ...raw, resourceDashboard: { ...dashboard, expectedReport: { ...expected, ...(expected.filters === undefined || context?.schema === "wbs-view-source/1" ? {} : { filters: resourceV2FiltersToInternal(expected.filters) }) } } };
+        }
+      }
+    }
+    const parsed = parseProjectExcelExportInput(exportInput);
     if (!parsed.success) {
       throw new PublicApiError(400, "INVALID_REQUEST", "The export input is invalid.", parsed.details);
     }
@@ -132,6 +150,7 @@ export async function handleProjectExcelExport(
         "Content-Disposition": `attachment; filename="${filename}"`,
         "X-Content-Type-Options": "nosniff",
         ETag: `"${expectedRevision}"`,
+        ...(requestedVersion === "1" ? { Deprecation: "true" } : {}),
       },
     });
   } catch (error) {

@@ -1,0 +1,83 @@
+{
+  "status": "PASS",
+  "exitCode": 0,
+  "stats": {
+    "startTime": "2026-10-24T22:42:45.226Z",
+    "duration": 302548.8,
+    "expected": 7,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "title": "#730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 복원·Gantt 보존",
+      "file": "issue-730-view-composer.spec.ts",
+      "line": 210,
+      "status": "passed",
+      "durationMs": 30882,
+      "retry": 0,
+      "errors": []
+    },
+    {
+      "title": "#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조회 불변",
+      "file": "issue-730-view-composer.spec.ts",
+      "line": 581,
+      "status": "passed",
+      "durationMs": 47430,
+      "retry": 0,
+      "errors": []
+    },
+    {
+      "title": "#732 Target0 Milestone 단독·두 계층·전체 Gate·5폭과 keyboard",
+      "file": "issue-732-milestone-dashboard.spec.ts",
+      "line": 38,
+      "status": "passed",
+      "durationMs": 22400,
+      "retry": 0,
+      "errors": []
+    },
+    {
+      "title": "#733 Target0 다중 구역·동급 설비/System·고유 KPI·단독 및 Milestone 경로·정확 원본 복귀",
+      "file": "issue-733-process-workarea-dashboard.spec.ts",
+      "line": 55,
+      "status": "passed",
+      "durationMs": 22647,
+      "retry": 0,
+      "errors": []
+    },
+    {
+      "title": "#734 유형 OR 필터와 controls·Task association 출처는 서로 추론하지 않는다",
+      "file": "issue-734-equipment-dashboard.spec.ts",
+      "line": 319,
+      "status": "passed",
+      "durationMs": 21406,
+      "retry": 0,
+      "errors": []
+    },
+    {
+      "title": "#735 실제 System 직접·조정 Task 집합과 고유 Assignment·선택·공정 필터",
+      "file": "issue-735-system-dashboard.spec.ts",
+      "line": 62,
+      "status": "passed",
+      "durationMs": 22764,
+      "retry": 0,
+      "errors": []
+    },
+    {
+      "title": "#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot Excel·정확 Assignment 복귀",
+      "file": "issue-736-resource-dashboard.spec.ts",
+      "line": 48,
+      "status": "passed",
+      "durationMs": 20471,
+      "retry": 0,
+      "errors": []
+    }
+  ],
+  "productSourceHashes": {
+    "src/features/resources/wbs-view-composer.tsx": "9486fa288829255cb95337838831b07b13d83b1c7dbad410bac69d7b0a39035b",
+    "src/features/resources/wbs-view-dashboard.tsx": "1228f8d45b0401623bbb7ac3d909539e1f3f5e925b995d4e74ea28ae0f0a48b0",
+    "src/features/resources/wbs-view.module.css": "83749e2a01011e7caabf789164317eab91d8fb84fd6c9daacbd1b477fab14d05"
+  },
+  "sourceStatus": "Historical source1, superseded for final acceptance by independent QA System IDs-only presentation/reset correction; no failure of these seven cases is hidden."
+}

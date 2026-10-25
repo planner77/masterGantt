@@ -1,0 +1,8 @@
+{
+  "status": "FAIL",
+  "category": "LOCAL_HARNESS_SETUP",
+  "reason": "Wrong synthetic unlock request key password and expected201; unchanged API requires editPassword and204. Reauthentication returned400 and KPI390 preparation waited30s for edit state. Collector stopped after first logged failure; next sample was in flight and not included as completed observation. No canonical seeding or business mutation.",
+  "completedObservations": 0,
+  "failedSamplesLogged": 1,
+  "inFlightUnrecordedSample": "milestone-390"
+}

@@ -1,0 +1,58 @@
+{
+  "results": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "durationMs": 43443
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "exitCode": 130,
+      "durationMs": 48600
+    },
+    {
+      "command": [
+        "node",
+        "scripts/verify-release-version.mjs"
+      ],
+      "exitCode": 0,
+      "durationMs": 72
+    },
+    {
+      "command": [
+        "node",
+        "scripts/verify-test-discovery.mjs"
+      ],
+      "exitCode": 0,
+      "durationMs": 16105
+    },
+    {
+      "command": [
+        "node",
+        "scripts/check-markdown-links.mjs"
+      ],
+      "exitCode": 0,
+      "durationMs": 144
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "durationMs": 80
+    }
+  ],
+  "scope": "Local Fast Feedback, not remote CI",
+  "classification": "LOCAL_INTERRUPTED",
+  "reason": "Full ESLint overlapped active isolated Next generated output; only verified owned ESLint process interrupted. No source/config changes; final standalone static validation is separate."
+}

@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
@@ -39,7 +40,7 @@ async function fixture(page: Page, kind: "mixed" | "milestone-only" | "empty" = 
   // their inactive requests bounded without inventing Tasks in zero-row cases.
   if (kind !== "mixed") await page.route(`**${projectPath}/resource-dashboard*`, route => route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } }));
   if (kind !== "mixed") await page.route(`**${projectPath}/assigned-targets`, route => route.fulfill({ json: { data: { projectRevision: state.project.revision, catalogRevision: 1, assignments: [], targets: [] } } }));
-  await page.route(`**${projectPath}/logistics/dashboard*`, route => route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } }));
+  await page.route(`**${projectPath}/logistics/kpi*`, route => route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } }));
   await page.goto(`/projects/${publicId}`);
   const frame = page.locator(".project-gantt-frame");
   await expect.poll(() => frame.evaluate(node => Boolean(Reflect.get(node, "__masterganttMilestoneTimeline")))).toBe(true);
@@ -80,7 +81,8 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#549 Core filter geometr
     // Scale rerenders must retain the same filtered rows and public instance.
     expect((await probe<Observation>(frame, "read")).rows.map(row => row.id)).toEqual(ids);
     for (const task of state.tasks.filter(task => task.type === "task")) {
-      await probe(frame, "reveal", task.start); await settle(page);
+      const outcome = await probe(frame, "reveal", task.start); await settle(page);
+      await info.attach(`reveal-${width}-${scale}-${task.externalId}`, { body: JSON.stringify({ outcome, date: task.start, coordinate: await probe(frame, "coordinate", task.start), state: await probe(frame, "read"), viewport: await frame.evaluate(node => { const chart = node.querySelector<HTMLElement>(".wx-chart")!; return { left: chart.scrollLeft, capacity: chart.scrollWidth-chart.clientWidth, coordinator: node.getAttribute("data-gantt-viewport-coordinator") }; }) }), contentType: "application/json" });
       const coordinate = await probe<{ contentX: number; visible: boolean }>(frame, "coordinate", task.start);
       const measured = (await geometry(frame)).find(row => row.id === `:${task.taskId}`)!;
       expect(coordinate.visible).toBe(true);
@@ -102,7 +104,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#549 Core filter geometr
   await evidence(info, `geometry-${width}`, { before, after, observations, mutationCount: 0 }, page);
   await probe(frame, "filter", null); await settle(page);
   // #552 production owns the Summary/Task projection after a public reset.
-  expect((await probe<Observation>(frame, "read")).rows.map(row => row.id)).toEqual(ids);
+  await expect.poll(async () => (await probe<Observation>(frame, "read")).rows.map(row => row.id)).toEqual(ids);
 });
 
 test("#549 DST reveal uses the same calendar-day geometry as native Task bars", async ({ page }, info) => {
@@ -117,8 +119,11 @@ test("#549 DST reveal uses the same calendar-day geometry as native Task bars", 
     await probe(frame, "scroll", 0); await probe(frame, "reveal", "2026-03-10"); await settle(page);
     const corrected = await probe<Observation>(frame, "read");
     expect(Math.abs(corrected.left - coordinate.contentX)).toBeLessThanOrEqual(1);
-    const left = corrected.left; await probe(frame, "reveal", "2026-03-10"); await settle(page);
-    expect((await probe<Observation>(frame, "read")).left).toBe(left);
+    const left = corrected.left, scrollEvents = corrected.events.filter(event => event.action === "scroll-chart").length;
+    expect(await probe(frame, "reveal", "2026-03-10")).toBe("SETTLED"); await settle(page);
+    const repeated = await probe<Observation>(frame, "read");
+    expect(repeated.left).toBe(left);
+    expect(repeated.events.filter(event => event.action === "scroll-chart")).toHaveLength(scrollEvents);
     observations.push({ scale, coordinate, native, corrected, nativeError: native.left - coordinate.contentX });
   }
   await evidence(info, "DST-reveal", { observations }, page);
@@ -135,7 +140,7 @@ for (const kind of ["milestone-only", "empty"] as const) test(`#549 ${kind} date
   expect(after.end.getTime()).toBeGreaterThanOrEqual(before.end.getTime()); expect(after.instance).toBe(before.instance);
   let coordinateAfter = null;
   if (kind === "milestone-only") {
-    expect(await probe(frame, "reveal", state.tasks[0].start)).toBe(true); await settle(page);
+    expect(await probe(frame, "reveal", state.tasks[0].start)).toBe("SETTLED"); await settle(page);
     coordinateAfter = await probe<{ insideRange: boolean; visible: boolean }>(frame, "coordinate", state.tasks[0].start);
     expect(coordinateAfter.insideRange).toBe(true); expect(coordinateAfter.visible).toBe(true);
   }
@@ -162,16 +167,46 @@ test("#549 public event order/resize/columns/fullscreen/peer return retain filte
   expect(await page.evaluate(() => Boolean(document.fullscreenElement))).toBe(true);
   await page.getByRole("button", { name: "Gantt 전체 화면 종료", exact: true }).click(); await settle(page);
   const peerBefore = await probe<Observation>(frame, "read");
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   await page.getByRole("tab", { name: "일정", exact: true }).click(); await settle(page);
   const peerAfter = await probe<Observation>(frame, "read");
   expect(Math.abs(peerAfter.left - peerBefore.left)).toBeLessThanOrEqual(1);
   expect(peerAfter.instance).toBe(before.instance); expect(peerAfter.rows.map(row => row.id)).toEqual(ids);
   expect(peerAfter.links).toEqual(before.links);
-  await probe(frame, "scroll", peerAfter.width - peerAfter.chartWidth); await settle(page);
-  expect((await probe<Observation>(frame, "read")).width).toBeGreaterThan(peerAfter.width);
-  const after = await probe<Observation>(frame, "read"); expect(after.events.some(event => event.action === "filter-tasks")).toBe(true);
-  expect(after.events.some(event => event.action === "resize-chart")).toBe(true); expect(after.events.some(event => event.action === "scroll-chart")).toBe(true);
+  // #530 protects a just-restored peer viewport against stale programmatic
+  // scroll-chart commands. A trusted wheel inside the Chart is a new user
+  // intent and releases that guard before the synthetic right-edge probe.
+  const chart = frame.locator(".wx-chart");
+  await chart.hover();
+  await page.mouse.wheel(31, 0);
+  // Main CI #2359.1 trace: the right-edge scroll-chart(36960) arrived
+  // BEFORE the delayed wheel scroll-chart(26671). Synchronize the actual
+  // Core and DOM wheel settlement, not merely mouse.wheel() completion.
+  await expect.poll(async () => {
+    const publicLeft = (await probe<Observation>(frame, "read")).left;
+    const nativeLeft = await chart.evaluate(node => (node as HTMLElement).scrollLeft);
+    return publicLeft > peerAfter.left && Math.abs(nativeLeft - publicLeft) <= 1;
+  }, { message: "trusted wheel settles in Core and native Chart before right-edge navigation", timeout: 10_000 }).toBe(true);
+  await settle(page);
+  const wheelApplied = await probe<Observation>(frame, "read");
+  expect(wheelApplied.left).toBeGreaterThan(peerAfter.left);
+  await probe(frame, "scroll", wheelApplied.width - wheelApplied.chartWidth);
+  // #367 schedules extension on a requestAnimationFrame after Core scroll.
+  // Preserve the real extension assertion; do not assume five RAFs always
+  // include both the Core event and the new scale commit.
+  await expect.poll(
+    async () => (await probe<Observation>(frame, "read")).width,
+    { message: "timeline extends near its right edge after a trusted user wheel", timeout: 10_000 },
+  ).toBeGreaterThan(peerAfter.width);
+  await settle(page);
+  const after = await probe<Observation>(frame, "read");
+  expect(after.instance).toBe(before.instance);
+  expect(after.rows.map(row => row.id)).toEqual(ids);
+  expect(after.links).toEqual(before.links);
+  expect(after.canonicalIds).toEqual(before.canonicalIds);
+  expect(after.events.some(event => event.action === "filter-tasks")).toBe(true);
+  expect(after.events.some(event => event.action === "resize-chart")).toBe(true);
+  expect(after.events.some(event => event.action === "scroll-chart")).toBe(true);
   expect(state.patchRequests).toHaveLength(0); expect(state.posts).toHaveLength(0);
   await evidence(info, "viewport-events", { before, resized, peerBefore, peerAfter, after, mutationCount: 0 }, page);
 });

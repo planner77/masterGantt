@@ -1,0 +1,275 @@
+{
+  "schema": "mastergantt-issue-785-rerun3-ci-trace-allowed-v1",
+  "runId": 40045100122,
+  "runAttempt": 1,
+  "jobId": 120725634037,
+  "artifactId": 12541530991,
+  "artifactName": "playwright-report-shard-2",
+  "outerZip": {
+    "path": "/tmp/issue785-rerun3-ci-artifacts/playwright-report-shard-2.zip",
+    "bytes": 4540711,
+    "sha256": "99a75d3d3caa4de4e0a35deba67f86f6f9c1c4e4d5e627c905cefcefaca6ed34",
+    "matchesActionsDigest": true
+  },
+  "failedTrace": {
+    "path": "/tmp/issue785-rerun3-ci-artifacts/failed-dirty-trace.zip",
+    "bytes": 3191690,
+    "sha256": "6d55e58bfe9367dd853b4ae78678ba349f2d76e090bdd0ac24ee6b8d742d6ce1"
+  },
+  "httpTimeline": [
+    {
+      "sourceFile": "1-trace.network",
+      "method": "POST",
+      "urlPath": "/api/projects/115d9835-04d6-458e-9f61-15aa09151599/resource-dashboard/views",
+      "startedDateTime": "2026-10-24T00:36:01.720Z",
+      "startMonotonicMs": 272047.86,
+      "durationMs": 970.0709999999999,
+      "status": 200,
+      "request": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "equipment",
+          "levels": []
+        },
+        "filters": {},
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "response": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "equipment",
+          "levels": []
+        },
+        "projection": "report",
+        "projectRevision": 23,
+        "snapshotId": "96d8a27c76f2b1e9708387bd9df69ed813b9ec8e07f650ce4492e292b8645ddb"
+      },
+      "requestResource": "resources/ce37fb00e5711052d82515f9a3af8b7714503862.json",
+      "responseResource": "resources/48326072d38f0f2efac5fbbf47462626d6585ef3.json"
+    },
+    {
+      "sourceFile": "1-trace.network",
+      "method": "POST",
+      "urlPath": "/api/projects/115d9835-04d6-458e-9f61-15aa09151599/resource-dashboard/views",
+      "startedDateTime": "2026-10-24T00:36:03.158Z",
+      "startMonotonicMs": 273481.333,
+      "durationMs": 50.911,
+      "status": 200,
+      "request": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "equipment",
+          "levels": []
+        },
+        "filters": {},
+        "projection": {
+          "kind": "scope",
+          "snapshotId": "96d8a27c76f2b1e9708387bd9df69ed813b9ec8e07f650ce4492e292b8645ddb",
+          "path": [
+            {
+              "dimension": "equipment",
+              "id": "dd824ef8-2104-4819-9ba8-cd5a9e66ce87"
+            }
+          ]
+        }
+      },
+      "response": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "equipment",
+          "levels": []
+        },
+        "projection": "scope",
+        "projectRevision": 23,
+        "snapshotId": "96d8a27c76f2b1e9708387bd9df69ed813b9ec8e07f650ce4492e292b8645ddb"
+      },
+      "requestResource": "resources/622ce0640dd30ffc940a71886724f2f93b2403b5.json",
+      "responseResource": "resources/c0b6e774d3491c9d14cec9ede9c83b136fc84da4.json"
+    },
+    {
+      "sourceFile": "1-trace.network",
+      "method": "POST",
+      "urlPath": "/api/projects/115d9835-04d6-458e-9f61-15aa09151599/resource-dashboard/views",
+      "startedDateTime": "2026-10-24T00:36:03.365Z",
+      "startMonotonicMs": 273694.875,
+      "durationMs": 37.676,
+      "status": 200,
+      "request": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "process",
+          "levels": []
+        },
+        "filters": {},
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "response": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "process",
+          "levels": []
+        },
+        "projection": "report",
+        "projectRevision": 23,
+        "snapshotId": "0fdb8cd2acb4436362f2ccf55669dac60caef717ca7bd092884a4334fcabd76e"
+      },
+      "requestResource": "resources/c08b9aa48d16ce9c78549bb5dcbc8bc8a59122fb.json",
+      "responseResource": "resources/b0b11921696b1b59955f991b012cf7b96dd91de8.json"
+    },
+    {
+      "sourceFile": "1-trace.network",
+      "method": "PATCH",
+      "urlPath": "/api/projects/115d9835-04d6-458e-9f61-15aa09151599/logistics/equipment/dd824ef8-2104-4819-9ba8-cd5a9e66ce87",
+      "startedDateTime": "2026-10-24T00:36:06.573Z",
+      "startMonotonicMs": 276948.638,
+      "durationMs": 64.083,
+      "status": 200,
+      "request": {},
+      "response": {
+        "projectRevision": 24
+      },
+      "requestResource": "resources/dabf4bfa15a06d9f5e4a7a201225a4c3e2132a08.json",
+      "responseResource": "resources/8680e2d11cbcaff1d07ec79cf8c2e4e3a262546c.json"
+    },
+    {
+      "sourceFile": "1-trace.network",
+      "method": "POST",
+      "urlPath": "/api/projects/115d9835-04d6-458e-9f61-15aa09151599/resource-dashboard/views",
+      "startedDateTime": "2026-10-24T00:36:06.726Z",
+      "startMonotonicMs": 277057.949,
+      "durationMs": 75.193,
+      "status": 200,
+      "request": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "process",
+          "levels": []
+        },
+        "filters": {},
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "response": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "process",
+          "levels": []
+        },
+        "projection": "report",
+        "projectRevision": 24,
+        "snapshotId": "510f4041645aadbb51aae1da2b762699f7ca15d0e010bc0513dc5862c8100b9c"
+      },
+      "requestResource": "resources/c08b9aa48d16ce9c78549bb5dcbc8bc8a59122fb.json",
+      "responseResource": "resources/53cd15acbc2861eb691902bb5b3c345d1d9c2ffa.json"
+    },
+    {
+      "sourceFile": "1-trace.network",
+      "method": "POST",
+      "urlPath": "/api/projects/115d9835-04d6-458e-9f61-15aa09151599/resource-dashboard/views",
+      "startedDateTime": "2026-10-24T00:36:06.987Z",
+      "startMonotonicMs": 277319.225,
+      "durationMs": 60.582,
+      "status": 200,
+      "request": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "equipment",
+          "levels": []
+        },
+        "filters": {},
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "response": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "equipment",
+          "levels": []
+        },
+        "projection": "report",
+        "projectRevision": 24,
+        "snapshotId": "8c57a2839783fa2200dc9906745d7e272e171a718f73fcfa367cfc5fff350974"
+      },
+      "requestResource": "resources/ce37fb00e5711052d82515f9a3af8b7714503862.json",
+      "responseResource": "resources/581ad8f4af77f7ee077a22c5886f829ea529422d.json"
+    },
+    {
+      "sourceFile": "0-trace.network",
+      "method": "POST",
+      "urlPath": "/api/projects/115d9835-04d6-458e-9f61-15aa09151599/resource-dashboard/views",
+      "startedDateTime": "2026-10-24T00:36:07.295Z",
+      "startMonotonicMs": 277616.963,
+      "durationMs": 42.90399999998044,
+      "status": 200,
+      "request": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "process",
+          "levels": []
+        },
+        "filters": {},
+        "projection": {
+          "kind": "report"
+        }
+      },
+      "response": {
+        "spec": {
+          "version": "wbs-view:v1",
+          "contextSourceVersion": "explicit-task-context:v1",
+          "root": "process",
+          "levels": []
+        },
+        "projection": "report",
+        "projectRevision": 24,
+        "snapshotId": "510f4041645aadbb51aae1da2b762699f7ca15d0e010bc0513dc5862c8100b9c"
+      },
+      "requestResource": "resources/c08b9aa48d16ce9c78549bb5dcbc8bc8a59122fb.json",
+      "responseResource": "resources/53cd15acbc2861eb691902bb5b3c345d1d9c2ffa.json"
+    }
+  ],
+  "errorDom": {
+    "equipmentTabSelected": true,
+    "equipmentPanelVisible": true,
+    "currentPathEquipment": true,
+    "savedEquipmentNameVisible": true,
+    "allowedAriaLines": [
+      "- tab \"설비\" [selected] [ref=f2e47] [cursor=pointer]",
+      "- tabpanel \"설비\" [ref=f2e51]:",
+      "- heading \"설비\" [level=3] [ref=f2e64]",
+      "- paragraph [ref=f2e67]: \"현재 경로: 설비\"",
+      "- rowheader \"설비 원본 저장 검증 설비\" [ref=f2e181]:"
+    ]
+  },
+  "observations": [
+    "The actual equipment PATCH succeeded at revision24.",
+    "After that PATCH, both process/report and equipment/report POSTs succeeded with matching request and response root.",
+    "The explicit test APIRequestContext POST copied process/report request bytes, not equipment/report.",
+    "At failure, the visible selected tab/panel/path remained equipment and the saved equipment name was rendered."
+  ],
+  "inference": "The captured comparison used a different legitimate report query. This trace does not demonstrate the server changing an equipment request to process or the UI losing the equipment view.",
+  "exclusions": [
+    "No authentication headers/cookies/CSRF/password/token or raw request headers are extracted.",
+    "No full API response DTO, HTML/JS execution or PR source checkout is performed.",
+    "Source artifact12540783634 remains metadata-only; this is a separate Playwright report archive observation."
+  ],
+  "sourceArtifactPayloadDownloaded": false,
+  "sourceZipExecuted": false,
+  "remoteWrites": false
+}

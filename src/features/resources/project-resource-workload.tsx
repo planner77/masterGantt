@@ -25,6 +25,7 @@ type Props = Readonly<{
   onExportEvidence: (evidence: ResourceExportEvidence) => void;
   onReport: (data: ResourceDashboardDto) => void;
   onOpenTask: (id: string) => void;
+  onOpenAssignment?: (taskId: string, assignmentId: string, resourceId: string, trigger: HTMLElement) => void;
 }>;
 export function ProjectResourceWorkload({
   binding,
@@ -34,6 +35,7 @@ export function ProjectResourceWorkload({
   liveViewIds,
   onSchedule,
   onOpenTask,
+  onOpenAssignment,
   onReport,
   onExport,
   onExportEvidence,
@@ -79,6 +81,7 @@ export function ProjectResourceWorkload({
               onExportEvidence: id === key ? onExportEvidence : undefined,
               onSchedule,
               onOpenTask,
+              onOpenAssignment,
               onReport: id === key ? onReport : undefined,
               locked: props.refreshDisabled,
             }}

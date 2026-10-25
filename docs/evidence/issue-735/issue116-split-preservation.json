@@ -1,0 +1,19 @@
+{
+  "oldTests": 8,
+  "newTests": 9,
+  "oldIssue116": 1,
+  "newIssue116": 2,
+  "oldExpectationCalls": 93,
+  "newExpectationCalls": 93,
+  "missingExpectations": 0,
+  "addedExpectations": 0,
+  "otherTestsByteIdentical": true,
+  "otherTestCount": 7,
+  "sourceSha256": "0fcb9cfab7bf28ae04a4133a0893be5dc2c9644c2465bfd28b77484999f5aafd",
+  "method": "TypeScript AST callback source + lexical token-normalized expectation multiset; unaffected test callback source byte comparison",
+  "wholeOriginalFlowTokensPreserved": true,
+  "wholeOriginalFlowTokensSha256": "5e214ab58c60f2eb099640f71455e85f2dd346b752365b1b0fa5cfc562c98a5d",
+  "wholeFlowMethod": "Original callback token sequence equals extracted setup (excluding new return) followed by A and B statements (excluding their new setup calls); setup is intentionally executed separately in each test.",
+  "oldHead": "c7159c7fc253a6d9ea154ba915a2ce11a2a75cf1",
+  "oldSpecSha256": "980b0cdd88d1b92942a82e4af1c0e001b7447d118cc9ec11729b693a3aa6d39d"
+}

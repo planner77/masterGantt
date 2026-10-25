@@ -1,3 +1,5 @@
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import type { APIResponse, Page, TestInfo } from "@playwright/test";
 import { writeFile } from "node:fs/promises";
 import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
@@ -122,15 +124,13 @@ test("#552 실제 UI Summary Copy는 숨은 Milestone·내부 관계·소속 전
   const observe = (request: import("@playwright/test").Request) => {
     const path = new URL(request.url()).pathname;
     if (path === f.api && request.method() === "GET") toggleProjectGets++;
-    if (path.startsWith(f.api) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method())) toggleMutations++;
+    if (path.startsWith(f.api) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !isWbsViewReadQuery(request)) toggleMutations++;
   };
   page.on("request", observe);
-  const toggle = page.getByRole("button", { name: "◆ Milestone 표시", exact: true });
-  await expect(toggle).toHaveAttribute("aria-pressed", "true");
-  await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-pressed", "false");
-  await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "◆ Milestone 표시", exact: true })).toHaveCount(0);
+  await openWorkspaceView(page, "milestones");
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await expect(frame.locator(".project-milestone-lane,.project-milestone-lane-guide")).toHaveCount(0);
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   page.off("request", observe);
   expect(toggleMutations).toBe(0);

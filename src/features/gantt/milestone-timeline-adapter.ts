@@ -60,6 +60,11 @@ export async function filterMilestoneWbsRows(api: Pick<IApi, "exec">, visibleTas
 export interface MilestonePlotGeometry {
   readonly left: number;
   readonly width: number;
+  /** Native scale's rendered content origin relative to the visible Chart plot.
+   * Unlike Core scrollLeft, this includes the actual scroll/transform applied
+   * to both the header cells and Task bars in the current DOM frame.
+   */
+  readonly axisOrigin: number;
   readonly visibleLeft: number;
   readonly visibleRight: number;
   readonly controlLeft: number;
@@ -74,8 +79,15 @@ export function readMilestonePlotGeometry(api: Pick<IApi, "getState">, widget: H
   const chart = widget.querySelector<HTMLElement>(".wx-chart"), state = api.getState();
   if (!widget.isConnected || !chart || widget.closest("[hidden], [inert]") || !milestoneDateCoordinate(api, "2000-01-01")) return null;
   const plot = chart.getBoundingClientRect(), root = widget.getBoundingClientRect();
-  if (!plot.width || !plot.height || !root.width || !root.height || typeof state._chartWidth !== "number" || Math.abs(plot.width - state._chartWidth) > 1) return null;
+  // The Core width can include the native scrollbar gutter after a Grid resize.
+  // Use rendered Chart bounds for lane placement and visible clipping.
+  if (!plot.width || !plot.height || !root.width || !root.height || typeof state._chartWidth !== "number" || !Number.isFinite(state._chartWidth) || state._chartWidth <= 0) return null;
   const header = chart.querySelector<HTMLElement>(".wx-scale")?.getBoundingClientRect();
+  // Place the sibling lane against the same *rendered* axis as native bars.
+  // Core scrollLeft and DOM scroll/transform can transiently diverge after
+  // viewport coordination, especially on programmatic date reveal.
+  const axisOrigin = header ? header.left - plot.left : NaN;
+  if (!Number.isFinite(axisOrigin) || !header?.width || !header.height) return null;
   const owner = widget.closest<HTMLElement>(".project-gantt-scroll");
   const ownerBox = owner?.getBoundingClientRect();
   const clipLeft = Math.max(0, ownerBox ? ownerBox.x + owner!.clientLeft : 0);
@@ -83,69 +95,6 @@ export function readMilestonePlotGeometry(api: Pick<IApi, "getState">, widget: H
   const visibleLeft = Math.max(0, clipLeft - plot.x), visibleRight = Math.min(plot.width, clipRight - plot.x);
   const list = widget.querySelector<HTMLElement>(".project-milestone-lane-list")?.getBoundingClientRect();
   const controlLeft = list && list.right > plot.x ? Math.max(visibleLeft, list.right - plot.x) : visibleLeft;
-  return { left: plot.x - root.x, width: plot.width, visibleLeft, visibleRight, controlLeft,
+  return { left: plot.x - root.x, width: plot.width, axisOrigin, visibleLeft, visibleRight, controlLeft,
     bodyTop: (header?.bottom ?? plot.y) - root.y, bodyHeight: Math.max(0, plot.bottom - (header?.bottom ?? plot.y)) };
-}
-
-/** Grid-only layouts have no Chart width but still own a WBS projection.
- * Read the installed Core's derived rows only to detect a native filter reset.
- * Collapsed children are permitted; a row outside the controlled IDs is not.
- */
-export function milestoneWbsProjectionMatches(api: Pick<IApi, "getState">, visibleTaskIds: readonly string[] | null): boolean {
-  if (visibleTaskIds === null) return true;
-  const allowed = new Set(visibleTaskIds);
-  const rows = api.getState()._tasks;
-  return Array.isArray(rows) && rows.every(row => typeof row.id === "string" && allowed.has(row.id));
-}
-
-export function canApplyMilestoneWbsProjection(widget: HTMLElement): boolean {
-  if (!widget.isConnected || widget.closest("[hidden], [inert]")) return false;
-  const box = widget.getBoundingClientRect();
-  return box.width > 0 && box.height > 0;
-}
-
-/** Bounded development evidence; no state/store writes or geometry authority. */
-export function readMilestoneCoreLayoutDiagnostic(api: Pick<IApi, "getState">, widget: HTMLElement | null) {
-  const state = api.getState();
-  return { isFiltered: state._isFiltered, scrollSize: state._scrollSize, columnsWidth: state._columnsWidth, chartHeight: state._chartHeight, filterKeys: Object.keys(state.filterValues ?? {}).slice(0, 20),
-    boxes: widget ? Array.from(widget.querySelectorAll<HTMLElement>(".wx-pseudo-rows,.wx-gantt,.wx-chart,.wx-table-container,.wx-resizer")).slice(0, 10).map(element => {
-      const box = element.getBoundingClientRect();
-      return { className: element.className, width: box.width, height: box.height, offsetWidth: element.offsetWidth, clientWidth: element.clientWidth, scrollWidth: element.scrollWidth };
-    }) : [] };
-}
-
-interface MilestoneChartResizeInput {
-  ownerWidth: number; contentWidth: number; gridWidth: number; resizerWidth: number;
-  plotWidth: number; plotHeight: number; scaleHeight: number;
-  stateWidth: number; stateHeight: number; scrollSize: number;
-}
-
-/** Installed Layout.jsx formula, verified against the current DOM commit.
- * This repairs a stale derived width through the public action, never the store.
- * The collapsed Chart-only rail must supply its effective width, not gridWidth.
- */
-export function milestoneChartResizeCorrection(input: MilestoneChartResizeInput): { width: number; height: number; scrollSize: number } | null {
-  const { ownerWidth, contentWidth, gridWidth, resizerWidth, plotWidth, plotHeight, scaleHeight, stateWidth, stateHeight, scrollSize } = input;
-  if (!Object.values(input).every(Number.isFinite) || ownerWidth <= 0 || contentWidth <= 0 || gridWidth < 0 ||
-    plotWidth <= 0 || plotHeight <= 0 || stateWidth <= 0 || stateHeight <= 0 || scaleHeight < 0 || scrollSize < 0 ||
-    resizerWidth !== 4 || Math.abs(ownerWidth - contentWidth - scrollSize) > 1 ||
-    Math.abs(plotHeight - scaleHeight - stateHeight) > 1) return null;
-  const width = ownerWidth - gridWidth - scrollSize - resizerWidth;
-  if (width <= 0 || Math.abs(width - plotWidth) > 1 || Math.abs(stateWidth - plotWidth) <= 1) return null;
-  return { width, height: stateHeight, scrollSize };
-}
-
-export function readMilestoneChartResizeCorrection(api: Pick<IApi, "getState">, widget: HTMLElement) {
-  if (!canApplyMilestoneWbsProjection(widget)) return null;
-  const owner = widget.querySelector<HTMLElement>(".wx-gantt"), content = widget.querySelector<HTMLElement>(".wx-pseudo-rows"),
-    grid = widget.querySelector<HTMLElement>(".wx-table-container"), resizer = widget.querySelector<HTMLElement>(".wx-resizer"),
-    chart = widget.querySelector<HTMLElement>(".wx-chart");
-  if (!owner || !content || !grid || !resizer || !chart) return null;
-  const state = api.getState(), plot = chart.getBoundingClientRect();
-  const gridWidth = state._columnsWidth;
-  if (typeof gridWidth !== "number" || Math.abs(grid.clientWidth - gridWidth) > 1) return null;
-  return milestoneChartResizeCorrection({ ownerWidth: owner.offsetWidth, contentWidth: content.offsetWidth, gridWidth,
-    resizerWidth: resizer.getBoundingClientRect().width, plotWidth: plot.width, plotHeight: plot.height,
-    scaleHeight: state._scales?.height ?? NaN, stateWidth: state._chartWidth ?? NaN,
-    stateHeight: state._chartHeight ?? NaN, scrollSize: state._scrollSize ?? NaN });
 }

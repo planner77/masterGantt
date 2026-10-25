@@ -50,4 +50,15 @@ describe("Resource dashboard client contracts", () => {
     expect(plannedEffort({ ...effort, state: "configured", plannedMd: 0 }, "md")).toBe("0.00 M/D");
     expect(plannedEffort({ ...effort, state: "configured", plannedMm: 0 }, "mm")).toBe("0.00 M/M");
   });
+  it("preserves the compact Plan Target catalog without requesting a projection", () => {
+    const query = new URLSearchParams("mode=group");
+    const report = resourceDashboardUiFixture(fixture, query);
+    const target = { dimension: "target" as const, id: "00000000-0000-4000-8000-000000006222", name: "Target A", code: "A", active: true };
+    report.catalog.targetOptions = [target];
+    expect(report.targetProjection).toBeUndefined();
+    expect(readDashboard({ data: report }, fixture.project.publicId, query)?.catalog.targetOptions).toEqual([target]);
+    const malformed = { ...report, catalog: { ...report.catalog, targetOptions: [{ ...target, active: "yes" }] } };
+    expect(readDashboard({ data: malformed }, fixture.project.publicId, query)).toBeNull();
+  });
+
 });

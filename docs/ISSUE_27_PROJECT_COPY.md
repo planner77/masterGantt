@@ -1,3 +1,31 @@
+## Issue #785 — 실물 중심 모델과 archive 무손실 Copy
+
+신규 직접 모델은 기존 공정/WorkArea/설비/System·Task/Assignment를 복사하며 별도 archive 그룹을 추론 생성하지 않는다. 기존 archive graph가 있으면 whole/subset·coverage·self/subtree·동일/공유 실물의 원형을 지원 Copy/Template 내부 snapshot에서 원자 재매핑한다. 이 보존 복사는 사용자 도메인 재도입이나 공개 writer 허용이 아니다.
+
+원본 행과 JOIN snapshot의 참조 완전성을 확인하여 dangling/누락을 부분 성공으로 복사하지 않는다. 실패는 새 Project·관계·session까지 전체 rollback하고 source 불변을 유지한다. 공개 Template 건수 DTO에서 폐기 엔터티를 제거하며 private snapshot은 유지한다. JSON1.1을 전체 원본 backup으로 확대하지 않는다. [API](API.md), [교환/운영](TARGET_RESOURCE_OPERATIONS.md), [검증](exec-plans/active/ISSUE_785.md).
+
+## Issue #762 — 직접 소속 WorkArea의 Copy·Template v5
+
+Project Copy는 사용량0을 포함한 모든 직접 WorkArea를 새 local UUID로 복제하고 대상의 remapped 공정 owner와 Task/설비 링크를 함께 복원한다. 기존 hierarchy·code/name/상태/정렬을 보존하고 legacy global occurrence/WorkArea UUID는 그대로 재사용한다. 같은 Project의 Task subtree copy는 직접 구역의 같은 UUID를 사용하며 구역을 복제하지 않는다.
+
+지원 Template logistics schemaVersion5는 `projectWorkAreas`에 원본 `workAreaId`와 snapshot-local `processCode`·code/name/active/sortOrder를 기록한다. 적용 시 공정과 직접 구역의 새 UUID를 발급하고 링크를 remap한다. 기존 v2/v3/v4의 global 참조·explicit Task context marker·self/subtree는 계속 검증한다. 같은 이름으로 참조를 복원하지 않는다. 손상된 owner/중복/미지원 version/참조는 원자 rollback이며 누락 구역을 빈 목록으로 간주하지 않는다. 일정 JSON은 이 그래프의 backup 포맷이 아니다.
+
+## Issue #725 — 직접 문맥의 Copy·Template v4
+
+전체 Project Copy는 설비–WorkArea0..N의 새 Equipment/Project-local 공정을 치환하고 global occurrence/WorkArea ID를 유지한다. Task 직접 공정/WorkArea self/subtree와 명시0개 marker를 새 Task에 치환한다. legacy-null을 명시 빈 배열로 바꾸거나 inherited/effective 결과를 직접 row로 저장하지 않는다. 설비 원본1개·quantity와 타 공정 구역 연결을 보존하며 원본 Project는 변경하지 않는다. 같은 Project의 Task/Subtree Copy는 복사 집합의 직접 문맥과 명시0개 marker를 새 Task로 옮기고 Project-local 공정/구역 원본을 재사용한다. 원본 조상에서 파생된 문맥을 leaf 직접 row로 저장하지 않는다. 비활성 기존 동일 참조도 보존한다.
+
+Template는 설비 WorkArea 관계 또는 Task 명시 marker가 있으면 `logistics.schemaVersion=4`로 저장한다. v4는 `equipmentWorkAreas:[{equipmentCode,workAreaLinks:[{processCode,workAreaId}]}]`, `taskContexts:[{taskExternalId,processLinks:[{processCode,scope}],workAreaLinks:[{processCode,workAreaId,scope}]}]`, `taskTargetBindings` 배열을 요구한다. code/externalId는 snapshot-local key이고 WorkArea는 global public ID다. marker 있는 Task만 직렬화하므로 row가 없는 Task는 legacy-null, `[]/[]`는 명시0개로 복원한다. 호환 입력 null/null도 legacy이며 null/배열 혼합은 거부한다.
+
+복원은 Project/Task/공정/Equipment/System/Target graph와 같은 transaction에서 local identity와 actual owner를 재검증한다. global catalog를 복제하거나 이름으로 타 site에 치환하지 않는다. 파손·중복·foreign 참조는 `409 PROCESS_CONTEXT_TRANSFER_INVALID` 등으로 전체 rollback한다. v2/v3/legacy는 기존 의미를 유지하고 신규 필드를 끼운 구버전·필수 배열 누락·unknown version은 `409 TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED` 등 명시 오류로 거부한다. 아래 #615 mapped Template 미지원 설명은 도입 당시 이력이며 현행 v2/v3/v4 지원이 우선한다.
+
+일정 JSON/Excel은 신규 관계/marker를 담지 못하므로 조용히 누락한 성공 파일을 만들지 않는다. [교환 경계](IMPORT_EXPORT.md#issue-725--공정workarea-문맥과-교환-경계)와 [실행 원장](exec-plans/active/ISSUE_725.md)을 따른다. 이 계약은 전체 참조 교환 #379 또는 배포/원격 검증 완료를 뜻하지 않는다.
+
+## Issue #727 — 명시 리소스 참여 보존
+
+전체 Project Copy는 `project_resource_memberships`를 새 Project에 복사하면서 global Resource ID를 그대로 재사용한다. Resource 원본을 복제하거나 미등록 기존 사용자를 자동 명시 등록하지 않는다. 원본 Project revision·등록·Task/Assignment·설비/시스템 책임 관계는 그대로이며, 복사 중 참조/쓰기 실패는 새 Project·세션·등록을 포함해 전체 rollback한다. 진척 초기화는 참여자 등록을 제거하지 않는다.
+
+지원 Template는 optional `resourceMemberships: string[]`에 global Resource public ID를 최대10000개, 중복 없이 저장·복원한다. 구 Template의 생략은 등록0과 호환되고 비활성 기존 참조도 보존한다. unknown/잘못된/중복 참조를 정상 복원으로 숨기지 않는다. 이 목록은 사람의 신규 생성이나 권한 부여가 아니며 Assignment와 독립이다. 별도 subtree Task Copy는 Project 참여 목록 전체를 복제하는 명령이 아니다. [검증 계획](exec-plans/active/ISSUE_727.md).
+
 # Issue #27 프로젝트 복사
 
 ## 목표
@@ -60,3 +88,19 @@ CI의 version consistency, typecheck, lint, Vitest, production build, Chromium E
 원본 일정의 canonical 검증에는 원본 Link 전체를 함께 전달한다. FS/lag로 유효 시작일이 requestedStart보다 늦어진 정상 일정은 Dependency 재계산을 포함해 비교하므로 진척률 초기화 여부와 관계없이 복사할 수 있다. 기존 일정 validator와 Summary Dependency endpoint 금지 규칙을 유지하며 잘못 저장된 일정은 전체 복사를 거부한다. Template은 저장된 유효 시작일의 상대 offset과 Link를 보관하고 새 Project Calendar에서 다시 계산한다.
 
 관련 검증은 `tests/server/projects/milestone-membership-copy.test.ts`의 새 FK/상속/override·source 불변·reset·legacy·401/412·강제 write 실패 rollback과 기존 전체 Copy 회귀에 포함한다. Local Fast Feedback는 공식 PR quality/e2e/docker 검증을 대체하지 않는다.
+
+## Issue #615 — 공통 공정 매핑 복사
+
+매핑 원본 copy는 source와 destination의 BUSINESS_UNIT/PRODUCT/SITE_ENTITY가 같아야 한다. local 공정 ID는 copy의 source→new process map으로 치환하고 occurrence/WorkArea 등 global public identity는 그대로 참조한다. 비활성 기존 참조도 보존한다. Task/설비의 local ID 치환과 기존 authorization/revision 계약은 유지한다.
+
+다른 triple로 매핑을 조용히 넘기지 않으며 `409 PROJECT_PROCESS_MAPPING_IN_USE`로 전체 생성 transaction을 rollback한다. 미매핑 legacy copy는 기존대로 동작한다. F1 당시 Template snapshot은 새 참조를 표현하지 못해 매핑이 있는 source의 Template 저장을 `409 PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED`로 차단했다. 현재는 #616/#617/#725의 versioned Template 확장·명시 remap을 따르며 공통 master를 Project별 복제하지 않는다.
+
+## Issue #617 — 명시 Target binding 복사
+
+전체 Project Copy는 F2의 새 Target/member graph를 만든 뒤 명시 Task–Target binding/subset/coverage를 Task/Target/member local ID map으로 한 번씩 치환한다. binding UUID도 새로 발급한다. 동일 원본 MCS를 N개 Target이 공유하면 새 Project에서도 복사한 System 1개를 재사용한다. 전역 occurrence/WorkArea와 Resource는 기존 참조·정확 triple 계약을 유지한다.
+
+같은 Project의 subtree Copy는 새 Task/binding UUID를 만들고 Target/member/instance를 재사용한다. #617부터 기존 Task의 명시 legacy Equipment/System self/subtree row도 새 Task에 복사한다. 과거 subtree Copy의 legacy 물류 omission 동작을 확장한 것이며 원본 row/instance는 변경하지 않는다. 직접 binding만 복사하고 원본 조상에서 상속된 연결을 leaf의 직접 row로 평탄화하지 않는다. 따라서 destination의 조상에 따라 실제 합집합은 달라질 수 있어 기존 복사 영향 확인과 함께 검증한다. cut/reparent는 Task/binding identity를 유지하며 새 조상으로 인한 유효 Target 변경을 확인한다.
+
+Project Template는 #725 직접 문맥이 없고 binding이 있으면 `logistics.schemaVersion=3`과 `taskTargetBindings=[{taskExternalId,targetCode,scope,selection,members:[{kind,instanceCode,coverage}]}]`를 저장한다. binding 없는 기존 v2와 legacy snapshot은 계속 지원하되 v2/unversioned에 신규 binding 필드를 끼워 넣지 못한다. 복원은 Project/Task/물류 graph와 같은 outer transaction에서 모든 참조를 검증하고 새 UUID로 생성한다. broken/unknown 참조는 `409 TASK_TARGET_TRANSFER_INVALID` 등 명시 오류로 전체 rollback한다. 앞의 #615 “mapped Template 미지원”은 당시 이력이며 현재 v2/v3/v4 구현이 우선한다.
+
+명시 연결/상속 구분·새 ID·원본 불변·legacy·Milestone·실패 rollback 검증과 exact Head 상태는 [#617 Work Packet](exec-plans/active/ISSUE_617.md)을 따른다.

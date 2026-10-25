@@ -57,6 +57,13 @@
 .dashboard :global(.resource-dashboard-matrix small) { display:block; }
 
 .dashboard :global(.resource-milestone-identity) { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; line-height:20px; min-width:0; }
+/* #717: Keep the name and the on-demand raw identity side by side so
+   very long display names cannot expand every Milestone matrix row.
+   Preserve the 44px keyboard/touch summary hit target and full raw IDs. */
+.dashboard :global(.resource-milestone-matrix-identity) { display:flex; align-items:flex-start; gap:8px; min-width:0; max-width:100%; }
+.dashboard :global(.resource-milestone-matrix-identity > .resource-milestone-identity) { flex:1 1 0; }
+.dashboard :global(.resource-milestone-matrix-identity > details) { flex:0 0 88px; max-width:88px; }
+.dashboard :global(.resource-milestone-matrix-identity > details > summary) { white-space:nowrap; text-overflow:ellipsis; overflow:hidden; }
 .dashboard :global(.resource-dashboard-matrix) { font-size:12px; font-variant-numeric:tabular-nums; }
 
 .dashboard :global(.resource-milestone-scope) { display:flex; flex-direction:column; gap:4px; margin:8px 0; }
@@ -81,3 +88,4 @@
 .dashboard :global(.resource-plan-scroll) { --plan-identity-width:280px; scroll-padding-left:calc(var(--plan-identity-width) + 8px); scroll-padding-top:96px; }
 .dashboard :global(.resource-plan-matrix td button) { scroll-margin:6px; }
 @media(max-width:600px) { .dashboard :global(.resource-plan-scroll) { --plan-identity-width:144px; } }
+.dashboard :global(.resource-plan-detail-table button) { max-width:100%; white-space:normal; overflow-wrap:anywhere; scroll-margin:6px; }

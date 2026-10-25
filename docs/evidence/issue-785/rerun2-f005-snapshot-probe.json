@@ -1,0 +1,66 @@
+{
+  "source": "unmodified original red trace; allowlisted fields only",
+  "rows": [
+    {
+      "path": "projects/a3405d3d-8cb4-4da4-9b0f-43a5de330004/tasks/00000000-0000-4000-8000-000000000004/logistics-links",
+      "method": "GET",
+      "status": 200,
+      "taskId": "00000000-0000-4000-8000-000000000004",
+      "linksTaskId": "00000000-0000-4000-8000-000000000004",
+      "linkKeys": [
+        "directEquipmentLinks",
+        "directSystemLinks",
+        "effectiveEquipmentIds",
+        "effectiveSystemIds",
+        "inheritedEquipmentLinks",
+        "inheritedSystemLinks",
+        "taskId"
+      ],
+      "projectRevision": null,
+      "compatibilityLinksPresent": false,
+      "masterRevision": null,
+      "masterPermission": "edit",
+      "masterEquipment": []
+    },
+    {
+      "path": "projects/a3405d3d-8cb4-4da4-9b0f-43a5de330004/logistics",
+      "method": "GET",
+      "status": 200,
+      "taskId": null,
+      "linksTaskId": null,
+      "linkKeys": [],
+      "projectRevision": null,
+      "compatibilityLinksPresent": false,
+      "masterRevision": 20,
+      "masterPermission": "edit",
+      "masterEquipment": [
+        {
+          "id": "00000000-0000-4000-8000-000000000080",
+          "name": "설비 초안",
+          "type": "other",
+          "resourceRoleCount": 0
+        }
+      ]
+    },
+    {
+      "path": "projects/a3405d3d-8cb4-4da4-9b0f-43a5de330004/logistics",
+      "method": "GET",
+      "status": 200,
+      "taskId": null,
+      "linksTaskId": null,
+      "linkKeys": [],
+      "projectRevision": null,
+      "compatibilityLinksPresent": false,
+      "masterRevision": 20,
+      "masterPermission": "edit",
+      "masterEquipment": [
+        {
+          "id": "00000000-0000-4000-8000-000000000080",
+          "name": "설비 초안",
+          "type": "other",
+          "resourceRoleCount": 0
+        }
+      ]
+    }
+  ]
+}

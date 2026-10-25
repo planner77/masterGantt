@@ -34,6 +34,7 @@ test("SVG/PNG export uses current revision, preserves the workspace, and validat
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: "내보내기", exact: true });
   await expect(dialog.getByLabel("형식")).toBeFocused();
+  await expect(dialog).toContainText("화면의 Milestone 표시와 별개로 원본 일정 데이터를 출력하며");
   await expect(dialog.getByText("일정 Dependency 포함", { exact: true })).toBeVisible();
   await dialog.getByLabel("형식").selectOption("svg");
   await expect(dialog).toContainText("작업명·시작일·기간 고정 열");

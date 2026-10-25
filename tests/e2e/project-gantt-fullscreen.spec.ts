@@ -344,19 +344,26 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await fullscreenButton(page).click();
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
     await guardExitFullscreen(page);
-    const source = page.locator(".wx-table-container .wx-row[data-id=\":00000000-0000-4000-8000-000000000003\"]").first();
-    await source.click({ button: "right", position: { x: 12, y: 19 } });
+    const link = page.locator(`[data-link-id=":${linkId}"]`).first();
+    await expect(link).toBeVisible();
+    await rowNamed(page, "Stable leaf").click({ button: "right" });
     await chooseTaskInformation(page);
-    const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
-    await editor.getByRole("tab", { name: /관계/ }).click();
-    await editor.getByRole("button", { name: "Existing summary child 관계 편집", exact: true }).click();
+    const parentEditor = taskEditor(page);
+    await parentEditor.getByRole("tab", { name: /관계/ }).click();
+    await parentEditor.getByRole("button", { name: "Existing summary child 관계 편집", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "작업 관계 관리 (Relation Editor)", exact: true });
     await expect(dialog).toBeVisible();
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
     await expect.poll(() => exitFullscreenCalls(page)).toBe(0);
     await dialog.getByRole("button", { name: "작업 관계 관리 (Relation Editor) 닫기" }).click();
     await expect(dialog).toHaveCount(0);
-    await editor.getByRole("button", { name: "작업 편집기 닫기" }).click();
+    await expect.poll(() => isOwnFullscreen(page)).toBe(true);
+    // The Relation Editor was launched from the Task Editor. Closing the
+    // child dialog does not close its modal parent, which still intercepts
+    // pointer input. Dismiss the parent through the supported editor action
+    // before using the fullscreen toolbar.
+    await parentEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+    await expect(parentEditor).toHaveCount(0);
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
     await expectSameGanttRoot(page, identity);
     await restoreExitFullscreen(page);

@@ -1,0 +1,96 @@
+{
+  "baselineSha": "53c57743380e5d72a38e753078fc87c9d1b01365",
+  "scope": "Reviewed source and tests only; excludes package/docs/generated files/artifacts",
+  "hashMethod": "sorted path UTF-8 + NUL + bytes + NUL, SHA256",
+  "sha256": "0ca20de819e3609df51a244c60c0dddfde14333cac424408201fba395c44569d",
+  "files": [
+    {
+      "path": "src/contracts/resource-dashboard.ts",
+      "sha256": "9e650dfa8e6810997bb522561459bebfe99d5b8ca9a71898edc2771053752808"
+    },
+    {
+      "path": "src/contracts/resource-excel-export.ts",
+      "sha256": "29ad41e31effe88ca5f153ae079540309e8c7cb4d5bfa42acc0c894c34a7e4b5"
+    },
+    {
+      "path": "src/domain/resources/resource-target-kpi.ts",
+      "sha256": "377bef5ab7e5b3a93349f6b05cef87c880fad57b91df7b4214a4b0add90aefa1"
+    },
+    {
+      "path": "src/features/projects/project-excel-export-button.tsx",
+      "sha256": "766a610124b0da102cc8089f9692bdc885dfe7814370a0a8bdabab63a2b4795d"
+    },
+    {
+      "path": "src/features/resources/project-resource-dashboard.tsx",
+      "sha256": "b53d451fa3eb464462d9e0f43dc39eed461e13132cc0d30cdd1ff690dbbf4d04"
+    },
+    {
+      "path": "src/features/resources/resource-dashboard.module.css",
+      "sha256": "31639f1d8e3b93a9f2958d88ccc5c839c6843b5b2a5915b0b4add7ba2489cff2"
+    },
+    {
+      "path": "src/features/resources/resource-plan-details.tsx",
+      "sha256": "ab111f832893ac2eaf3b5b7dc3924c534eef36bf2811f722c2c0434577935572"
+    },
+    {
+      "path": "src/features/resources/resource-plan-model.ts",
+      "sha256": "567b72a1764a72c99c9ff1320f08d54a5cb1b68782c52ca62578d693f908b382"
+    },
+    {
+      "path": "src/features/resources/resource-plan-view.tsx",
+      "sha256": "3537e5bfb261ba89152581a5f34e6393be1c4d5158fa437bb361fc81c864441f"
+    },
+    {
+      "path": "src/server/exports/project-excel-export-contract.ts",
+      "sha256": "927ec09d7591be4996e8f8e201063a2a34f926c3f062e655ce30d26e36954b32"
+    },
+    {
+      "path": "src/server/exports/project-export-snapshot-service-core.ts",
+      "sha256": "991d7b1120a4486e31976bdd51771d71d070d52334b0636a5ae6d0527c9866c1"
+    },
+    {
+      "path": "src/server/exports/resource-excel-export-core.ts",
+      "sha256": "bc6fb39849fd1e26dd75d68b3913f907a80d84c78ad9b40e47a3cbe522e896b1"
+    },
+    {
+      "path": "src/server/resources/resource-dashboard-service-core.ts",
+      "sha256": "f9e519b3968a5dd97c631979184c857cf96c0bb787973cd21997fac5136bf56b"
+    },
+    {
+      "path": "tests/domain/resource-target-plan.test.ts",
+      "sha256": "2b3fe3d2f578572cde7af2f57581780adc9f7fadb157858065edce4c35a49ffd"
+    },
+    {
+      "path": "tests/e2e/issue-622-resource-plan-target.spec.ts",
+      "sha256": "a08a7384862647964c034751a61a5373eaae24780e6af9dcbf8651ca9d3702bd"
+    },
+    {
+      "path": "tests/e2e/resource-excel-export-dashboard.spec.ts",
+      "sha256": "0750573a8274b79881e0852cebf64797931cadca758102d146175db88bf99a00"
+    },
+    {
+      "path": "tests/features/resources/resource-export-model.test.ts",
+      "sha256": "0626180fb09b09ce25d3058d34a13871711885bde852ebf75f1ad4fba84cb5b4"
+    },
+    {
+      "path": "tests/fixtures/resource-plan-ui.ts",
+      "sha256": "28aa80c055a3ebe93b386f4ff28a97abf5aed1c1bfb4d55c39b611d055e89d67"
+    },
+    {
+      "path": "tests/fixtures/resource-target-plan.ts",
+      "sha256": "fbf2c3a8b5024a8a1e3bb46b634998bba5f8de0c263bd086dfa1cb7515298322"
+    },
+    {
+      "path": "tests/server/projects/resource-excel-export.test.ts",
+      "sha256": "2b1d681d15e21920a352e3c384eb5b9b848bf79949f036f336a74252186522bd"
+    },
+    {
+      "path": "tests/server/resources/issue-622-target-plan-excel.test.ts",
+      "sha256": "ca06dc707a5458c0824ae2917748ae04fa8272e5f5dcbace9cfbecea24da5bb3"
+    },
+    {
+      "path": "tests/server/resources/resource-target-dashboard.test.ts",
+      "sha256": "c13a30b40fdd906ac0b676b3ac9d29239fbf6a0c2b35610a46e5771acd67e36c"
+    }
+  ]
+}

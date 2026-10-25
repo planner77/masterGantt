@@ -1,4 +1,88 @@
+## Issue #479 PR #794 F-001 — 외부 Private read와 내부 신뢰 Snapshot 구분 (2026-10-24)
+
+[Codex P1 review #1](https://github.com/planner77/masterGantt/pull/794#discussion_r4366096194)의 percent-encoding 우회를 막기 위해 `URL.pathname`의 raw segment를 Next route parameter와 동일한 단일 `decodeURIComponent` 후 canonical UUIDv4로 검사한다. 잘못된 percent sequence, encoded slash/double-encoded/noncanonical ID는 데이터를 조회하지 않고404 거부한다. 정상 encoded UUID는 동일한 Project session으로 authorization한다.
+
+[Codex P1 review #2](https://github.com/planner77/masterGantt/pull/794#discussion_r4366096195)에 따라 외부 `handleReadProject`와 SSR은 **반드시** `projectReadAccess` + `getAuthorizedReadonlySnapshot`를 호출한다. 기존 `getReadonlySnapshot`은 **HTTP에 직접 노출하면 안 되는 trusted internal aggregate reader**로 유지한다. JSON/Excel/SVG Export·Import·완료된 Mutation 응답은 중앙 `withApiRequestLogging` gateway가 권한을 검사한 뒤 내부 reader를 사용할 수 있다. UI/DTO readonly는 인증이 아니다. Gate가 없는 새 외부 endpoint에서 trusted reader를 직접 연결하면 P1 보안 회귀다. 세 Required Check/Trusted QA/Owner 보호는 불변. [원본 CI 실패와 테스트 미실행](ISSUE_479_FAILURE_ANALYSIS.md).
+
+## Issue #479 — visibility-aware Project read gate
+
+Project list `GET /api/projects` stays discoverable and shows `visibility`. `/api/projects/{publicId}` and all scoped GET/read-only POST/Export routes are guarded by server application middleware: public anonymous readonly, private same-Project current edit-session only. The original cookie parser enforces exact URL/cookie name, malformed-cookie rejection, Project binding, expiry/revocation and auth_version. Existing session-issuance/current/revocation routes keep their own authentication/rate-limit. Unauthenticated private reads return generic `401 PROJECT_LOCKED`, `private,no-store`, `nosniff`; never embed project name, Task, hash/salt, session, internal ID in responses or SSR document title.
+
+The canonical ProjectService has an independent read guard for direct snapshot consumers. Visibility mutation requires edit session, exact Origin and strong If-Match, increments revision once but does not alter password/hash or auth_version. Single last-unlocked-Project cookie and password KDF semantics remain. This is a private detailed read gate, **not** an invisible-list/SSO/RBAC/readonly-password feature. End-to-end wrong/foreign/expired/rotated session and all route bypass tests remain official CI evidence requirements. [Work Packet](exec-plans/active/ISSUE_479.md).
+
+## Issue #792 — 원본 scope patch의 보안·트랜잭션 경계
+
+신규 `/api/projects/{publicId}/tasks/{taskId}/legacy-binding-sources`는 GET optional session read, POST preview/ PATCH apply만 제공한다. 쓰기는 정확 application Origin 검증, Project edit cookie/session token hash+authVersion/expiry, strong If-Match project revision, UUIDv4 Task/source, bounded strict JSON, owner Project FK를 강제하고 **IMMEDIATE transaction 시작 뒤 권한/revision/source snapshot**을 재검증한다. 제시한 fingerprint와 preview token은 그 시점에 읽은 whole/subset/member/coverage/원본 graph·영향에 묶인다. 토큰만으로 권한 우회 불가하며 타 Project·상속 소스·비Summary·임의 field/Target writer 호출을 막는다.
+
+성공 시 단일 `task_target_bindings.scope` 수정과 revision+1, 원본 FK/UUID 및 member/coverage·원본 컨텍스트 postcheck 불일치 시 409/rollback. `self→subtree` 확대에서는 Target/선택 member의 비활성 상태를 차단하고 계획된 provenance 경로가 기존 제한을 초과하면 preview 422로 거부한다. 에러/응답은 `private, no-store`/`nosniff`, request ID를 사용하며 SQL 원본/credential을 공개하지 않는다. 기존 retired 410 API를 복구하거나 CSRF 보호 강도를 완화하지 않는다. 공격/동시성/운영 DB 실증과 QA/Owner 위험 수용은 아직 NOT TESTED다. [API](API.md#issue-792--레거시-summary-직접-관계-적용-범위-한정-편집)·[Packet](exec-plans/active/ISSUE_792.md).
+
+## Issue #785 — 공개 경로 퇴역과 호환 읽기 방어
+
+전용 Logistics Target 경로의 410은 기존 Project 검증·Origin·edit-session·strong If-Match 방어를 보존한 종료 응답이다. UI 제거만으로 외부 쓰기를 남겨 두지 않으며 retired method는 실제 데이터/revision을 변경하지 않는다. 내부 legacy service는 지원 Copy/Template·격리 테스트 fixture·읽기 해석에 한정하고 runtime 테스트 seed API를 추가하지 않는다.
+
+새 실물 영향 조회와 resource/WBS v2는 기존 Project read·bounded input·same snapshot·private no-store/nosniff를 따른다. 외부 source ID/표시 ID를 권한 근거로 신뢰하지 않는다. 비정상 FK/교차 Project·부분 snapshot은 명시 실패하고 기존 원본과 transaction rollback을 보존한다. v1 명시 호환은 새 작성 권한이 아니다. Owner HIGH/Required3/Trusted·release 권한 정책은 변경하지 않는다. [API](API.md), [실행 경계](exec-plans/active/ISSUE_785.md).
+
+## Issue #556 — Zod 운영 의존성 High 감사 차단과 잔여 입력 크기 보호 (2026-10-24)
+
+[PR #786 Full CI #3193.1](https://github.com/planner77/masterGantt/actions/runs/40028881375)에서 Zod4.6.2에 대해 [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)(collection validation의 비정상 메모리 소비, High)가 `npm audit --omit=dev`를 차단했다. 정확 `zod@4.6.7` [업스트림 릴리스](https://github.com/colinhacks/zod/releases/tag/v4.6.7) 및 manifest/lock/SRI로 운영 패키지를 교정하지만, 권고 severity/CI policy/Required/Trusted QA/Owner Gate를 우회하지 않는다. 새 Head 원격 `npm ci`·audit PASS 및 실제 Next/Chromium/Docker 호환은 아직 검증되지 않았다.
+
+**잔여 보안 경계:** Zod를 최신 패치로 올렸다는 사실만으로 크기 상한 없는 배열·집합·맵의 모든 메모리 고갈 위험까지 해결되었다고 보장하지 않는다. JSON 전송 byte/depth, route 입력 건수, 중첩 컨테이너 최대 길이 및 처리 예산을 서버에서 계속 검증한다. 이번 PR은 기존 input schema/API/auth/DB 계약을 바꾸지 않고 취약 dependency 패치 및 승인된 역사적 테스트 캡처 비교만 한정 수정한다. 역사적 캡처의 Zod4.6.2와 Next16.3.8 원본은 삭제·덮어쓰지 않으며 `approved-zod-4.6.7-lock.json`의 실제 registry/SRI/metadata를 정확히 검증한 비교용 메모리 사본만 정규화한다. 전수 unbounded schema 감사나 운영 공격 내성 검증은 **NOT TESTED**이며, 추가 검토 시 별도 범위로 진행한다.
+
+[Issue #556 누적 실패 원장](ISSUE_556_FAILURE_ANALYSIS.md)의 F-001 E2E와 F-002 dependency audit, [Work Packet](exec-plans/active/ISSUE_556.md)의 TEST_LIFECYCLE_REVIEW를 구분한다. 새 exact-Head Full CI·Owner/Trusted 검증과 승인 전 MERGE_READY=BLOCKED, release_authorized=false.
+
+---
+
+## Issue #762 — Next.js 16.4.2 보안 패치의 역사적 Gantt 캡처 검증 계약 (2026-10-22)
+
+[Full #3160.1](https://github.com/planner77/masterGantt/actions/runs/39843514111)에서 Next.js 16.4.2의 production audit는 통과했지만, 구 Gantt Core 브라우저 capture fixture의 Next.js 16.3.8 잠금 파일과 현재 `package.json`/`package-lock.json`의 비교가 Vitest 네 사례에서 실패했다. 역사적 기록과 해시를 바꾸어 현재 설치의 PASS라고 주장하지 않는다. `tests/fixtures/gantt-state-consistency/capture-install.ts`는 `approved-next-16.4.2-lock.json`의 **Next.js/`@next/env` 및 8개 플랫폼 `@next/swc-*` 전체 lock package object**를 SRI·registry URL/architecture/optional/dependencies까지 일치시킨 후에만 구 캡처 비교용 메모리 객체에서 16.3.8로 정규화한다. 그 외 manifest metadata·scripts·모든 563개 lock entry 및 Core 원본 캡처 해시는 기존 strict equality 유지.
+
+공식 안전성은 PR Head의 `npm audit --omit=dev`, `npm ci`, Vitest 역사 캡처·변조 음성 회귀, Next build/Docker standalone 및 전체 Chromium8 실제 실행과 default-main Trusted/Owner 승인으로 검증하며 static fixture 테스트는 패치 버전의 실제 HTTP/운영/Chromium 검증을 대체하지 않는다. 수정 사유/검증/미실행: [#762 단일 실패 원장 F-006](ISSUE_762_FAILURE_ANALYSIS.md). Runtime token/auth/SQLite, 원래 캡처와 공개 SVAR 2.7.3 버전, CI 보안 gate는 불변.
+
+---
+
+## Issue #762 — Next.js 16.4.2 production dependency 긴급 보안 패치 (2026-10-22)
+
+[Full PR CI #3155.3](https://github.com/planner77/masterGantt/actions/runs/39793693125)에서 기존 `next@16.3.8`의 `npm audit --omit=dev`가 1 critical을 검출했다. 외부 보안 권고 [GHSA-2464-fhr4-w9xw](https://github.com/advisories/GHSA-2464-fhr4-w9xw)(SVG RCE), [GHSA-673q-mjm6-r5xr](https://github.com/advisories/GHSA-673q-mjm6-r5xr)(use cache Typed Array RCE), [GHSA-p3m5-59mp-jv5r](https://github.com/advisories/GHSA-p3m5-59mp-jv5r)(App Router Server Actions DoS)는 Next 16.0.0~16.4.0 영향·16.4.1 최초 패치를 공표했다. 실제 npm audit는 `next@16.4.2`를 제공하는 수정안으로 표시했다. 정확한 `next` + `@next/env` 및 8개 플랫폼 SWC optional dependency의 manifest/lock을 16.4.2로 고정한다. 기존 `sharp@0.35.5`는 권고의 SVG workaround 최소치를 이미 충족하며 별도로 변경하지 않는다.
+
+운영보안 게이트 `npm audit --omit=dev`를 예외처리·skip·allowlist하지 않는다. `npm ci`는 exact SRI/lock version 확인을, CI Quality와 Production Build/Docker smoke는 새 Next 런타임 호환을, Chromium8은 기존 UI·Task·설비/공정/WorkArea 직접·legacy 경로를 검증해야 한다. 로컬 네트워크가 npm registry DNS에 접근하지 못해 새로운 후보의 실제 의존성 설치/감사/실행은 PR Full 원격 재검증 전 **NOT TESTED**다. 이전 Head #3155.1의 Full8 PASS는 수정된 보안 버전의 PASS로 소급하지 않는다.
+
+단일 실패 원장: [#762 F-004/F-005](ISSUE_762_FAILURE_ANALYSIS.md#8-f-004--f-005--full-3155-attempt별-원격-비교-및-nextjs-production-audit-보완-2026-10-22). 정식 게시와 Owner HIGH 위험 수용은 별도.
+
+---
+
+## Issue #762 — Project WorkArea mutation 권한
+
+신규 Project 직접 구역의 POST/PATCH/DELETE는 기존 Project-scoped edit session·정확 Origin·strong If-Match를 적용하고 transaction 안에서 권한과 revision을 다시 확인한다. Project/공정/구역 UUID의 실제 owner와 활성·사용량을 서버에서 검증한다. 다른 Project/공정 구역 연결·owner 변경·중복·사용 중 삭제는 전체 거부하고 관계/Project revision의 부분 저장을 남기지 않는다.
+
+Project edit는 global catalog admin 권한을 부여하지 않는다. legacy shared 구역은 Project 경로에서 읽기 전용이고 기존 catalog 관리자 mutation을 사용한다. 신규 공정/직접 구역은 분류 triple 미지정으로 차단하지 않으며 분류 권한 검증을 제거하는 의미가 아니다. DTO/정제 증거에는 public ID만 제공하고 실제 SQLite·backup·session·secret은 게시하지 않는다. 기존 public-read/no-store/nosniff와 readonly UI를 유지한다.
+
+## Issue #731 — KPI 전용 읽기 경로
+
+`GET /api/projects/{publicId}/logistics/kpi?source=integrated`는 기존 Project direct readonly와 같은 public-read이며 route security inventory에 mutation0으로 등록한다. 편집 session을 만들거나 Owner/PI/등록 참여를 편집 ACL로 사용하지 않는다. Project UUID·strict source/filter 및 snapshot 조건을 검증하고 `private, no-store`·`nosniff` 응답을 사용한다. 공개 응답은 같은 Project 원본의 최소 이름/ID·관계/진단 범위이며 password/session·내부 DB ID를 추가하지 않는다. Task/Assignment/master 편집은 기존 Origin/session/If-Match 경계를 계속 적용한다. 실제 수용·오류 검증 상태는 [Work Packet](exec-plans/active/ISSUE_731.md)을 따른다.
+
+## Issue #729 — bounded WBS 조회와 원본 범위
+
+신규 versioned 다관점 POST는 public-read이며 편집 session을 요구하지 않는다. 기존 읽기 전용 POST와 같이 정확 Origin·bounded JSON 입력, canonical Project ID 및 서버 strict schema를 검증한다. 조회는 revision/Task/Assignment/등록/기준정보 mutation0이다. 저장된 Project와 명시 등록/해당 Project 사용·책임으로 연결된 Resource만 읽고 전역 사용자 전체를 응답하지 않는다.
+
+클라이언트의 path/원시 ID/행 key는 권한이나 범위 증명이 아니다. 서버가 동일 snapshot/spec/filter에서 선택 경로와 Task/Assignment 범위를 다시 계산하고 foreign ID·유효하지 않은 경로·stale를 거부한다. 상세·drill의 공유 Milestone 조인은 현재 Task 범위를 확장하지 않는다. 요청·rows/cells/source/계산량/응답 bytes 예산은 유한하며 초과 시 절삭 총계 없이 전체 실패한다. no-store/nosniff와 기존 편집 session/Origin/strong revision·Excel Export 보호는 유지한다. [API](API.md#issue-729--versioned-wbs-다관점-조회) 및 [검증 원장](exec-plans/active/ISSUE_729.md) 참조.
+
 # Security
+
+## Issue #623 — 통합 수용의 권한·원자성·복구
+
+기존 public read와 보호 mutation의 session/Origin/strong If-Match,exact canonical Assignment·source/current scope를 실제 HTTP/Chromium·SQLite로 검증한다. 조회/그룹/페이지는 저장0,각 실제 편집은 저장1·원본 ID 보존,401/409/412·잘못된 참조·migration 실패는 부분 저장0을 확인한다. Target/master/Calendar/Resource 변경은 구 report/detail/Excel 성공과 혼합하지 않는다.
+
+합성 DB/화면·제한된 numeric/UUID/hash evidence만 게시하며 실제 backup/DB/WAL/SHM·password/token/.env·운영 로그는 포함하지 않는다. 기존 formula inlineStr/XML escape·한도·no-store/nosniff·포맷 loss guard를 검증하며 보안 정책을 완화하지 않는다. [운영 절차](TARGET_RESOURCE_OPERATIONS.md), [수용표](TARGET_RESOURCE_ACCEPTANCE.md)에서 운영 restore/환경별 미검증을 구별한다.
+
+## Issue #622 — Target Plan·Resource Excel 안전 경계
+
+기존 public read Plan/detail의 Target/member 근거는 같은 Project read guard·snapshot·bounded page/source/JSON 검증 안에서 제공한다. 선택 밖 Project 참고도 같은 Capacity R의 해당 Project 배정이며 전사 Resource 정보를 조회하지 않는다. 정확 Assignment 수정은 기존 session/Origin/strong If-Match·canonical Task/개인 ID 검증을 그대로 사용한다.
+
+Resource Excel opt-in의 Target 조건은 공통 strict parser로 검증하고 source/current context와 Target/master fingerprint를 같은 read transaction에서 확인한다. stale는 공개 export412로 전체 실패한다. Plain Target-bearing 일정/JSON의 손실 방지는 유지하며 보고서 opt-in만 명시 current/project 근거를 append한다. Target label/분류 문자열은 inlineStr/XML escape·문자 한도·불허 문자 검사로 보호하고 formula/매크로/외부 workbook 관계를 생성하지 않는다. 기존 읽기/편집 권한·no-store/nosniff·본문8KiB 및 row/cell/XML/ZIP·원본/응답 예산을 높이지 않는다. 안전 회귀와 환경별 미검증은 [#622 Work Packet](exec-plans/active/ISSUE_622.md)을 따른다.
+
+## Issue #538 — Project master relation mutation
+
+`POST|DELETE /api/project-master/admin/relations`은 기준정보 관리자 전용 세션, 동일 Origin, strong catalog `If-Match`와 atomic revision 증가를 요구한다. Project 편집권은 관계 수정권을 부여하지 않는다. 참조 중 링크 해제 및 child link가 남은 parent 해제는 서버에서 409로 보호한다. 클라이언트 선택지 필터만으로 API 직접 호출을 신뢰하지 않으며 create/update/template은 조합을 서버에서 검증한다. 비정상·stale 요청의 mutation은 rollback되어 기존 Project/relations를 변경하지 않는다.
 
 ## Issue #460 — 단계 mutation과 데이터 유실 방지
 
@@ -373,7 +457,7 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 관리자 로그인은 #280 물류 관리자와 같은 bounded process-global 제한(20회/15분)을 적용한 뒤 KDF를 수행한다. 관리자 mutation은 exact Origin과 catalog revision을 서버에서 다시 검증하며 UI 로그인 상태를 권한 근거로 사용하지 않는다. 비밀번호 회전 시 기존 project-master 관리자 세션은 모두 revoke하고, 사용 중 stable code 변경과 FK parent 삭제는 fail-closed 처리한다.
 
 
-## Issue #463 — readonly 단계 대시보드
+## Issue #463 — readonly Milestone 대시보드
 
 `GET /api/projects/{publicId}/milestone-dashboard`는 route security inventory의 `public-read`, mutatesState=false다. 기존 Project direct read와 같은 공개 범위이며 편집 세션·Origin·If-Match를 요구하지 않는다. query는 allowlist/단일 scalar/UUID/enum/date/숫자/개수·길이 제한으로 서버에서 검증한다. bound Project repository 조회 및 동일 read transaction을 사용하고 unknown valid filter ID는 empty-match 처리한다. 응답은 public ID와 Project 관련 최소 표시 metadata만 포함하며 credential/session/token/internal PK/SQL/stack/path를 포함하지 않는다. 응답과 오류는 no-store다.
 
@@ -414,3 +498,46 @@ POST는 실제 UTF-8 byte1MiB, content-type/charset/content-encoding, strict obj
 opt-in Workbook 전체 typed 입력(snapshot/legacy workload/Stage/Resource bundle)의 XML1.0 불허 문자·U+FFFE/U+FFFF·unpaired surrogate는 JSON escaping 이전에도 검증해 EXPORT_UNSUPPORTED로 전체 실패한다. tab/LF/CR와 유효 supplementary Unicode/=+-@ 원문을 보존한다. 신규 시트당50000/전체150000행·1000000실제셀·opt-in 전체XML32MiB/ZIP16MiB의 사전/최종 actualbyte 검증은 legacy opt-in 없는 파일에 적용하지 않는다.
 
 신규 Resource Report에만 validated APP_BASE_URL parser에서 만든 canonical `/projects/{publicId}` external hyperlink relationship 1개를 허용한다. writer는 server-only canonicalProjectUrl만 받고 request에 URL 필드는 없다. Task/user URL·credential·query·fragment·secret은 relationship target으로 만들지 않는다. Password/hash/session/Cookie/internal SQL/DB ID를 보고서·오류·로그에 추가하지 않는다. 성공/오류 private,no-store/nosniff/no-cookie와 UUID filename은 유지한다. [API](API.md#issue-529-resource-보고서-excel-opt-in)를 따른다.
+
+## Issue #530 공개 조회와 편집 권한 통합 회귀
+
+Resource GET의 Project UUID 공개 읽기, query POST의 exact Origin, Excel POST의 exact Origin·strong `If-Match`와 보호 Task mutation의 edit session을 실제 HTTP로 각각 확인한다. 공개 읽기와 Export는 edit session 없이 허용한다. `private, no-store`는 응답 cache 정책이며 private Project authorization 모델을 뜻하지 않는다. 현재 별도의 private Project 모델은 없고 공개 링크 보유자의 읽기를 차단하는 신규 권한을 이 회귀에 추가하지 않는다. 조직 SSO/reverse proxy 접근 통제는 해당 운영 환경의 별도 검증이다.
+
+회귀는 foreign Project ID 거부, stale report/export 실패, 조회/Export 전후 canonical snapshot 불변, 쿠키 발급 없음과 Workbook 내 credential 필드 없음·서버 생성 Project hyperlink를 확인한다. 합성 admin/edit password는 disposable test instance의 fixture에만 사용하며 운영 secret이나 SQLite 파일을 게시하지 않는다. 신규 session/token 저장소·Origin 예외·권한 우회는 없다.
+
+## Issue #615 — 공정 catalog 권한·동시성
+
+공통 catalog 읽기/쓰기 및 standard diff/apply는 기존 Project Master admin cookie/session을 요구한다. Project edit cookie로 관리자 권한을 얻지 못한다. mutation은 정확 Origin + strong If-Match(process catalog revision)을 요구하고 body 대기 이후 IMMEDIATE transaction에서 관리자 만료/폐기·revision을 재검증한다. catalog 조회/오류에도 `Cache-Control: private, no-store`를 사용한다.
+
+Project context는 현재 direct-link public readonly 정책을 적용한다. 존재하는 Project는 edit cookie 없이 readonly context를 읽고 유효한 Project edit session이면 permission=edit다. 이 API가 새로운 private Project 모드를 도입하지 않으며 public ID+정확 선택 triple로만 데이터를 제한한다. Project mapping은 edit session/Origin/strong If-Match(Project revision) + body processCatalogRevision을 transaction 안에서 검증한다. foreign Project process·다른 BU/product/site occurrence·다른 occurrence WorkArea를 거부하고 실패 시 전체 rollback한다. 공통 admin 권한으로 Project edit 권한을 대신하지 않는다.
+
+미인증401, Origin403, 참조/활성/분류 충돌409, stale revision412를 구분하며 일반500으로 FK 원문/SQL/비밀값을 노출하지 않는다. UUID/허용 필드/검색 길이/limit/JSON body 크기를 제한한다. 비활성 기존 참조는 보존하고 신규 참조만 거부한다. 관리자 비밀값·세션·실제 DB/log를 Git/Issue/PR에 기록하지 않는다. 운영 TLS/proxy 검증은 별도다.
+
+## Target write authority (#616)
+
+GET Target and usage follow the Project logistics read policy. Create/PATCH/DELETE requires the existing Project edit session, exact trusted Origin and strong If-Match; checks repeat inside IMMEDIATE SQL transaction after request body await. Composite project FKs and process/WorkArea FK reject foreign instances. Shared instance memberships never elevate Project edit permission to global catalog admin. Unsupported lossy Template/JSON paths fail closed. Target mutation, inline instance creation and Project revision commit or roll back together. Generic Project auth/Origin/revision policy and historical F2 service tests passed on v0.108.0 Main #2710.1/Release #167.1; dedicated Target HTTP 401/403/409/412, bad ETag, malformed/oversize, rollback tests are newly added in #672 and **NOT TESTED until its exact-Head PR CI**. Product API and authorization policy remain unchanged.
+
+## #616 versioned Template graph security
+
+Template 저장은 유효한 소스 Project edit-session/strong revision을 확인한 transactional source snapshot에서 F1 occurrence/WorkArea와 F2 typed instance/Target 관계를 수집한다. Template 생성 시 common catalog를 수정하지 않는다. Instantiate는 기존 Origin/create rate limit과 새 Project atomic write를 재사용하며 BU/Product/Site triple·global occurrence/WorkArea·typed member ID를 서버에서 재검증한다. 부재, 중복, 외부 공정, unsupported graphVersion은 409로 전체 rollback한다. Legacy Template은 무그래프 호환, schedule-only JSON 1.1은 Target이 있으면 기존 409 차단 유지.
+
+## Issue #620 — Target 보고 조회 신뢰 경계
+
+Resource–Target 보고는 기존 Project public UUID read를 재사용한다. 별도 private Project 모델이나 조회용 edit password 요구를 추가하지 않으며 Project 편집 세션을 master 관리 권한으로 확대하지 않는다. 기존 protected mutation/admin의 session/Origin/strong If-Match 및401/403은 그대로다. 조회는 `private, no-store`·nosniff이며 Task/Target/기준정보나 revision을 변경하지 않는다.
+
+Target/member/binding·공정 매핑·관련 master 이름/active는 동일 read transaction의 fingerprint에 결속한다. report/detail/drill에서 stale source 또는 현재 Target 참조 변경은409로 거부한다. `exactAssignments`의 출처 제한을 공동담당자의 다른 Assignment로 확대하지 않는다. Target/member 필터의 서로 다른 binding 혼합, 같은 kind의 다른 member type/instance 혼합을 금지한다. canonical public ID를 사용하며 내부 PK·다른 Project Target/instance·글로벌 미할당 Resource/membership을 응답하지 않는다.
+
+새 조건 없는 기존 보고 호환을 유지하고 unknown/cross-project 선택은400, fan-out/cell/응답 예산 초과는422로 전체 거부한다. 오류에 SQL/stack/secret을 포함하지 않으며 부분총계를 완전한 결과로 반환하지 않는다. 전체 Project 참고는 현재 Project 안의 명시 범위이며 다른 Project 데이터 접근 권한이 아니다. [API](API.md), [R2 검증 원장](exec-plans/active/ISSUE_620.md)을 참조한다.
+## Issue #621 — Resource Target 조회·정확 Assignment 수정 경계
+
+Target 계층·비교·필터·헤더 상세는 기존 공개 Project read/Resource 보고 scope를 사용하며 저장 권한이나 revision을 변경하지 않는다. #528 exactAssignments source 제한은 Target 조건과 교집합으로 전달하고 공동담당자 전체로 확대하지 않는다. 서버 총계·참고 scope·snapshot 검증과 bounded report 오류를 유지한다.
+
+Assignment 수정은 기존 Task assignments PUT의 optional `editAssignmentId`로 요청하며 기존 session·Origin·strong If-Match·catalog revision을 그대로 적용한다. Project/Task/resource에 속한 정확 Assignment를 검증한 뒤 선택 row만 갱신한다. 다른 Task/Project·Group·가상 Target 헤더·잘못된 ID/기간/allocation은 원자적으로 거부한다. 기존 generic 교체의 의미를 우회하거나 권한 없는 보존/수정 경로를 만들지 않는다. 공동담당자의 allocation=null·비활성/legacy 값은 조회상 원본이며 해당 exact 수정의 대상이 아니다.
+
+readonly/401/409/412·pending/dirty·응답역전에서 기존 Editor 초안·취소/재조회 guard를 사용한다. Client 표시 상태는 서버 authorization 근거가 아니며 저장 후 report는 최신 canonical snapshot 또는 명시 stale다. 실제 실행 범위는 [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 기록한다.
+
+## Issue #785 — Zod 운영 의존성 보안 패치 (2026-10-24)
+
+[GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)는 Zod의 과도한 컬렉션 검증 시 메모리 고갈 위험(High, 취약 <4.6.6, 최초 패치4.6.6)을 기술한다. PR #787 [Full #3192.1](https://github.com/planner77/masterGantt/actions/runs/40028478592)에서 기존 정확 `zod@4.6.2`로 `npm audit --omit=dev` 실패. 실행 환경이 제시한 안정 패치 `4.6.7`을 정확 production dependency와 npm lock registry/SRI에만 적용한다. `npm audit fix --force`, 검사 skip/Ruleset 약화 금지.
+
+과거 SVAR/Gantt의 `package-original.snapshot.txt`와 `package-lock-original.snapshot.txt`는 수정하지 않는다. `capture-install.ts`가 기존 정확 Next security 예외 외에 `approved-zod-4.6.7-lock.json`의 정확 Zod metadata만 메모리에서 원본으로 정규화하고 모든 다른 차이를 거부한다. 새 HEAD의 실제 npm ci/audit, 원본 Zod parser/보안·history capture/전체 Vitest, E2E8, Docker/QA/Owner는 별도 검증 대상이며 CI 시작 전 NOT TESTED.

@@ -8,6 +8,7 @@ import {
   flattenPlanRows,
   planDetailQuery,
   planMetric,
+  planTargetLabel,
   readPlanDetails,
 } from "../../../src/features/resources/resource-plan-model";
 import { readDashboard } from "../../../src/features/resources/resource-dashboard-model";
@@ -218,4 +219,28 @@ describe("Resource Plan UI scope and snapshot contract", () => {
     expect(empty.plan!.resources).toEqual([]);
     expect(empty.plan!.totals.summary.selected.capacityMd).toBe(0);
   });
+  it("labels selected and out-of-filter Project assignments from the compact Plan Target catalog", () => {
+    const { data } = planUiFixture(state, new URLSearchParams("granularity=week"));
+    const a = planId(7, 1), b = planId(7, 2);
+    const outsideName = "Target B · 긴 물류 설비 통합 제어 대상 이름";
+    data.targetProjection = undefined;
+    data.filters.targetIds = [a];
+    data.catalog.targetOptions = [
+      { dimension: "target", id: a, name: "Target A", code: "A", active: true },
+      { dimension: "workArea", id: b, name: "Wrong dimension", code: "AREA", active: true },
+      { dimension: "target", id: b, name: outsideName, code: "B", active: false },
+    ];
+    const before = structuredClone(data);
+    expect(planTargetLabel(data, a)).toBe("Target A");
+    expect(planTargetLabel(data, b)).toBe(outsideName);
+    expect(planTargetLabel(data, "unassigned")).toBe("Target 미연결");
+    expect(planTargetLabel({ ...data, catalog: { ...data.catalog, targetOptions: [] } }, b)).toBe("Target 정보 없음");
+    expect(data).toEqual(before);
+    data.catalog.targetOptions[2].name = "Target A";
+    expect(planTargetLabel(data, a)).toBe("Target A (A)");
+    expect(planTargetLabel(data, b)).toBe("Target A (B)");
+    data.catalog.targetOptions[2].code = null;
+    expect(planTargetLabel(data, b)).toBe(`Target A (${b})`);
+  });
+
 });

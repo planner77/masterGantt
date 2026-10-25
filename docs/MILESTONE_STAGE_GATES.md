@@ -1,21 +1,19 @@
-# Milestone Stage Gates
+## Issue #553 — 표시/데이터 교환 분리 (2026-10-25)
 
-## Issue #553 — Timeline과 전체 단계 판정의 교환 회귀
+운영 marker OFF 및 WBS native Milestone 행 제외는 이 문서의 full canonical 직접/상속 Membership, E(M)/P(M), Ready·Completed·manual Event/완료 잠금, Resource·Target Roll-up을 계산에서 제외하지 않는다. JSON1.1의 명시 소속과 Excel의 유효/출처 소속을 구분하고 숨김/검색/접힘 및 SVG/PNG 미지원의 무단 삭제로 원본을 변경하지 않는다. [#553 교환 가이드](MILESTONE_USER_GUIDE.md) / [추적표](MILESTONE_TIMELINE_TRACEABILITY.md). 기존 Gate algorithm/API/DB/schema는 변경하지 않는다.
 
-화면 표시/검색/선택 scope는 E(M)의 전체 유효 일반 Task와 P(M)의 전체 직접 선행 Milestone 집합을 바꾸지 않는다. JSON/전체 Copy/Template에서는 명시 소속만 저장·remap하고, 유효 소속·상속 출처·Summary roll-up과 Gate는 대상 전체 hierarchy에서 재계산한다. Resource report가 한 member/Assignment만 선택해도 stage 출력은 범위 밖 member를 포함한 전체 Gate를 유지한다.
+## #548 — 표시 정책과 단계 집계의 분리 (2026-10-15)
 
-[고정 fixture](../tests/fixtures/issue-553/canonical-interchange.ts)와 [통합 테스트](../tests/integration/milestone-timeline-interchange.test.ts)는 중첩 상속·직접 override·빈 Summary·M-only Summary·수동 빈 M·Ready/Blocked·완료 기록 불일치 및 완료 구조 잠금을 같은 canonical 데이터에서 검증한다. 완료 member를 다시 미완료로 편집한 기존 M의 completionInconsistent 진단은 보존한다. 외부 member가 있는 완료 M 단독 Copy는 `COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED`로 원자 거부하며, 전체 Project Copy의 보존/초기화 옵션과 혼동하지 않는다.
+[Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)의 #552 marker-OFF 기준선은 native Grid/Chart Milestone 행·Bar만 제외하며 Stage Gate 계산·Membership·Task 취합·명시 Completed·Resource/Target Roll-up을 변경하지 않는다. 서버 full canonical E(M)·P(M), 소속 Summary 상속·override, 완료 구조 잠금, 기존 mixed Link/Copy/Template/JSON·Excel 정보 보존이 계속 권위다. marker 없는 UI에서도 #550 Milestone Dashboard/Editor/정확한 소속 Task 조회가 필수다. #551 별도 lane marker는 필요성·실증을 확인한 뒤 #573/#693에서만 선택 활성화하며 도메인 엔진의 입력이나 권한 근거가 아니다.
 
-Subtree/multi-root Copy는 숨은 M을 포함한 canonical 자손 union에 기존 내부 연결 remap·외부 소속 제외 확인·Assignment guard를 적용한다. Cut/reparent는 UUID를 유지하고 destination 상속을 다시 계산한다. Membership 저장 실패를 강제로 발생시킨 Import/전체 Copy/Template/subtree 테스트는 전체 Task/Link/Membership/revision rollback과 FK 무결성을 비교한다. API/DB/domain 정책은 변경하지 않으며, [실제 HTTP 및 재시작 테스트](../tests/e2e/milestone-timeline-interchange-http.spec.ts)와 원격 PR CI 판정은 각각의 증거를 따른다.
-
-#553 로컬 통합 13개 및 실제 HTTP 3개는 PASS다. 실제 HTTP는 완료 M 단독 Copy의 `409 COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED`, 소속 제외 미확인의 `409 TASK_COPY_MEMBERSHIP_REVIEW_REQUIRED`, 별도 cookie 없는 `401 EDIT_SESSION_REQUIRED`, 원본 session을 연결한 stale `412 REVISION_MISMATCH` 및 각 거부 후 canonical snapshot/revision 불변을 확인했다. 강제 SQL trigger rollback은 native SQLite service 통합 근거이며 HTTP fault injection으로 과대 표시하지 않는다. [선택 증거](../output/playwright/issue-553/backend-http/execution-contract.json)와 공식 PR CI는 별도다.
+# Milestone — Membership 및 Stage Gate 내부 판정
 
 ## Issue #459 Epic 통합 계약
 
-Issue #459는 #460~#464의 상위 계약이다. 완료 단계 기능은 하나의 거대한 mutation으로 구현하지 않고 저장/Editor/Gantt/KPI/교환 경계를 분리하되 동일 canonical Stage projection을 사용한다.
+Issue #459는 #460~#464의 상위 계약이다. Milestone 기능은 하나의 거대한 mutation으로 구현하지 않고 저장/Editor/Gantt/KPI/교환 경계를 분리하되 동일 canonical Stage projection을 사용한다.
 
 - **WBS**: Summary/Task 구조와 파생 일정.
-- **Membership**: Task/Summary가 어느 완료 단계에 속하는지 나타내는 explicit 0..1 + Summary 상속 관계. 일정 제약이 아니다.
+- **Membership**: Task/Summary가 어느 Milestone에 속하는지 나타내는 explicit 0..1 + Summary 상속 관계. 일정 제약이 아니다.
 - **Task Dependency**: member Task들의 실제 실행 순서/제약. 서로 다른 Milestone의 Task 사이 Link가 있어도 단계 Dependency로 자동 승격하지 않는다.
 - **Milestone Dependency**: 단계 자체에 일정 Gate 제약이 필요할 때만 명시적으로 생성한다.
 - **Ready/Completed**: Ready는 전체 유효 member Task와 직접 선행 Milestone 완료에서 파생하고, Completed는 사용자 명시 상태다.
@@ -64,7 +62,7 @@ E(M)는 M에 유효 소속된 고유 일반 Task 집합이다. Summary/Milestone
 
 Ready는 자동 완료가 아니다. status 선택/progress=100/생성/타입 변환 등 새 Milestone 완료 전환은 같은 서버 guard를 사용한다. 구성원이 있는 단계는 작업·선행 모두 완료, 수동 이벤트는 선행 모두 완료를 요구한다. 기존 `completed ↔ progress=100` 동기화는 유지한다. Summary의 파생 progress=100은 Milestone 완료 command가 아니다.
 
-기존 완료 단계의 Task/선행 재개는 허용한다. 다른 단계를 자동 재개하거나 원래 완료 기록을 고치지 않고 `completionInconsistent`로 진단한다. 이미 completed인 Milestone의 이름·진척100 재저장은 새로운 완료 전환이 아니다. 명시적 비완료 전환으로 단계를 재개한 뒤 구조를 수정한다.
+기존 Milestone의 Task/선행 재개는 허용한다. 다른 단계를 자동 재개하거나 원래 완료 기록을 고치지 않고 `completionInconsistent`로 진단한다. 이미 completed인 Milestone의 이름·진척100 재저장은 새로운 완료 전환이 아니다. 명시적 비완료 전환으로 단계를 재개한 뒤 구조를 수정한다.
 
 ## 원자 mutation
 
@@ -76,7 +74,7 @@ Ready는 자동 완료가 아니다. status 선택/progress=100/생성/타입 �
 
 ## 완료 구조 잠금
 
-서버는 transaction 안에서 이전/새 explicit row와 유효 일반 Task 집합을 각각 비교한다. 같은 effective 결과라도 explicit↔상속 변경, 빈 Summary 기본값 변경은 구조 변경이다. 완료 단계가 old/new 영향 target이면 `COMPLETED_MILESTONE_STRUCTURE_LOCKED`로 차단한다.
+서버는 transaction 안에서 이전/새 explicit row와 유효 일반 Task 집합을 각각 비교한다. 같은 effective 결과라도 explicit↔상속 변경, 빈 Summary 기본값 변경은 구조 변경이다. Milestone이 old/new 영향 target이면 `COMPLETED_MILESTONE_STRUCTURE_LOCKED`로 차단한다.
 
 Task 생성/삭제, subtree 삭제, 첫-child Summary 전환, hierarchy create/convert/indent/outdent/reparent/Copy 모두 같은 검사를 거친다. Cut은 기존 identity의 reparent이므로 같은 잠금이 적용된다. same-parent reorder·이름/설명·일반 작업 일정/진척은 소속을 바꾸지 않는 한 허용한다. override 때문에 실제 소속이 유지되는 이동과 Milestone child 생성도 blanket-lock하지 않는다.
 
@@ -105,7 +103,7 @@ Task 생성/삭제, subtree 삭제, 첫-child Summary 전환, hierarchy create/c
 | JSON Import preview/commit | 실제 protected handler/validation, 1.0/1.1 create-only append, preview digest/revision 결속, target Calendar/full Gate 검증, 원자 저장 또는 전체 rollback | [JSON Import](JSON_IMPORT.md), [API](API.md) |
 | JSON Export | full Project JSON1.1의 tasks/모든 Link/명시 memberships/source metadata. 기존 mixed도 원형 출력하지만 현행 외부 Import는 파일 전체 거부 | [Import/Export](IMPORT_EXPORT.md) |
 | JSON 1.0/1.1 validator/schema | 1.0 strict 호환 유지, 1.1 별도 machine schema/예제. source UUID는 참고 정보, effective/Ready/client legacy bypass 입력 거부 | [Import Schema](IMPORT_SCHEMA.md) |
-| SVG/PNG | 기존 고정 Grid 작업명/시작/기간과 canonical Chart의 시각 출력. live 단계 열 전체 복제나 metadata backup은 아님. 단계 상세는 Excel/JSON | [Image Export](IMAGE_EXPORT.md) |
+| SVG/PNG | 기존 고정 Grid 작업명/시작/기간과 canonical Chart의 시각 출력. live Milestone 열 전체 복제나 metadata backup은 아님. 단계 상세는 Excel/JSON | [Image Export](IMAGE_EXPORT.md) |
 
 실패 시 원본/새 Project/Template에 부분 row를 남기지 않는다. JSON의 Resource/Logistics 교환·CSV HTTP parser·Windows VBA producer 확장은 이 범위 밖이다. Excel 단계 요약의 기본 full F/평가일/horizon14/환산 기준은 현재 Dashboard UI 조건과 다를 수 있으며 metadata와 UI에서 구분한다. 직접 builder에서 단계 데이터의 typed summary가 없으면 `EXPORT_UNSUPPORTED`, production handler의 필요한 report 설정 부재는 `CONFIGURATION_ERROR`로 실패한다. 동일 Project/Catalog revision 검증을 생략하지 않는다.
 
@@ -144,23 +142,23 @@ Local Fast Feedback와 PR quality/e2e/docker 공식 회귀를 분리한다. CI �
 
 Editor는 `project-stage-model.ts`의 browser-safe full-project snapshot/preview를 재사용한다. 검색·Grid 필터·WBS 표시·날짜 범위를 Gate 입력으로 사용하지 않는다. Task/Summary picker의 null 초안에서도 preview effective/inheritedFrom 값을 같이 표시한다. Milestone 후보의 Summary 지정은 root 하나만 바꾸며 상속을 direct rows로 확장하지 않는다. batch impact는 고유 일반 Task의 effective 대상이 실제 달라진 수다.
 
-완료 단계는 old/new target 잠금을 preview하고 서버가 transaction에서 다시 검증한다. manualEvent의 ready=null은 가짜 0%/100%가 아니며 predecessor 조건을 만족하면 명시 완료를 시도한다. 완료 기록 불일치는 진단이며 자동 재개가 없다. 본인 상태·memberProgress·미완료 member/predecessor를 분리하고 재개 성공 canonical을 받은 뒤 소속/관계 변경을 활성화한다.
+Milestone은 old/new target 잠금을 preview하고 서버가 transaction에서 다시 검증한다. manualEvent의 ready=null은 가짜 0%/100%가 아니며 predecessor 조건을 만족하면 명시 완료를 시도한다. 완료 기록 불일치는 진단이며 자동 재개가 없다. 본인 상태·memberProgress·미완료 member/predecessor를 분리하고 재개 성공 canonical을 받은 뒤 소속/관계 변경을 활성화한다.
 
 Task/Summary 이름+소속 한 PATCH, Milestone 초안 한 batch POST와 같은 canonical revision 동기화를 `tests/domain/milestone-editor-model.test.ts`, `tests/e2e/milestone-stage-editor.spec.ts`, `project-task-editor.spec.ts`의 #461 fixture로 검증한다. DB/migration/Domain algorithm/Import·Copy·Grid 변경은 이 UI Issue의 범위 밖이다.
 
 ## Issue #462 조회 projection과 Scheduling Link UI
 
-단계 필터와 Grid의 effective/출처는 browser-safe stageSnapshotFromProject/projectStageGates projection을 사용한다. scoped task 배열을 상속 계산의 authority로 사용하지 않으며 canonical hierarchy는 그대로 보존한다. Summary context는 effective 일반 Task 수에 합산하지 않고 Milestone 자신의 소속 셀은 비어 있다. 표시 목록의 날짜 정렬은 Dependency 생성·Ready 계산·일정 재계산·WBS 저장을 하지 않는다.
+Milestone 필터와 Grid의 effective/출처는 browser-safe stageSnapshotFromProject/projectStageGates projection을 사용한다. scoped task 배열을 상속 계산의 authority로 사용하지 않으며 canonical hierarchy는 그대로 보존한다. Summary context는 effective 일반 Task 수에 합산하지 않고 Milestone 자신의 소속 셀은 비어 있다. 표시 목록의 날짜 정렬은 Dependency 생성·Ready 계산·일정 재계산·WBS 저장을 하지 않는다.
 
 신규 Link UI는 같은 유형 후보와 native drag guard를 사용한다. 기존 mixed Link는 기존 일정/canonical 표시를 유지하며 Ready의 선행 단계 집계는 기존 공용 domain 규칙을 그대로 따른다. 완료 Milestone 양 endpoint 보호는 기존 #460 구조 정책의 UI 표현이고 domain/DB/API 변경은 없다.
 
 
-## Issue #463 단계 대시보드 읽기 모델
+## Issue #463 Milestone 대시보드 읽기 모델
 
 `GET /api/projects/{publicId}/milestone-dashboard`는 공개 readonly 조회다. [typed contract](../src/contracts/milestone-dashboard.ts)를 기준으로 서버가 하나의 SQLite read transaction에서 Project row와 revision, Task/Link/explicit Membership, 물류 관계, Resource/assignment/catalog revision 및 Calendar를 읽는다. 시계는 요청마다 한 번 캡처한다. `projectStageGates`의 전체 snapshot을 재사용하며 별도 상속/Ready 엔진이나 영속 집계 테이블을 만들지 않는다.
 
 - E(M)는 M에 effective 소속된 고유 일반 Task 전체이며 P(M)는 직접 predecessor Milestone 전체다. Summary 및 기존 mixed Task→Milestone Link는 이 집합의 member/predecessor가 아니다.
-- S는 검색/단계 선택과 물류·Resource 조건에 관련된 고유 Milestone 표시 집합이다. 날짜순은 표시 순서이며 새로운 Dependency를 만들지 않는다.
+- S는 검색/Milestone 선택과 물류·Resource 조건에 관련된 고유 Milestone 표시 집합이다. 날짜순은 표시 순서이며 새로운 Dependency를 만들지 않는다.
 - F는 Project 전체를 기준으로 물류·Resource·Global Role·등급·기간 조건을 적용한 일반 Task/개인 assignment 범위다. 기존 WBS scope는 적용하지 않는다. 검색과 `milestoneIds`는 S만 제한한다. 기간은 F만 제한한다.
 - 물류와 Resource 조건을 함께 적용할 때 S의 관련성도 **같은 일반 Task**가 두 조건의 non-date 교집합을 만족해야 한다. 한 member는 물류, 다른 member는 Resource 조건을 각각 만족하는 식으로 stage를 포함하지 않는다. 날짜는 계속 F-only이므로 S 관련성 계산에는 사용하지 않는다. Resource 조건이 없을 때 Milestone 자신의 기존 물류 match는 계속 S 관련성으로 인정한다.
 - 같은 Resource assignment 하나가 Resource/Global Role/등급 조건을 모두 만족해야 Task가 일치한다. 서로 다른 담당자 둘의 속성을 조합하지 않는다. 역할 0개/등급 미지정은 UNSPECIFIED이며 Task별 수행 역할은 별도로 저장하지 않는다.
@@ -214,9 +212,14 @@ Milestone 자체 일정 위치 명령은 canonical Milestone 표시 노드를 �
 
 Milestone 직접 위치의 복귀 frame에는 검증한 원본 resourceScopeContext를 보존한다. 오늘의 lookup report context로 기간·평가일·환산·sourceProjection을 바꾸지 않는다. Strip에서 원본 기간과 평가일·환산 출처를 표시하고 복귀 직전 원본 정책을 다시 검증한다. 수동 평가일2026-10-02/기간2026-10-01–2026-10-03/명시1 M/M당15 M/D의 native fixture로 원본 표시와 복귀 입력 보존을 확인했다.
 
+
+## Issue #530 Resource·Milestone 통합 검증
+
+Resource 선택 진척과 전체 canonical Ready/Blocked는 별개다. R8 통합 원장의 M1/M2/미지정 소계, 계층·교차표·정확한 일정 이동·Excel 대조는 기존 소속·상속·명시 완료·잠금 계산을 바꾸지 않는다. [팀별 Milestone 사용 흐름](RESOURCE_KPI_DASHBOARD.md#팀별-milestone-공수에서-개인과-task-찾기)에서 같은 범위의 개인/Task로 내려가되 ancestor Summary를 KPI 분모로 추가하지 않는다.
 ## Issue #549 — 표시 projection과 전체 Gate
 
 [Milestone Timeline](MILESTONE_TIMELINE.md)의 순수 조회 모델은 전체 canonical Task/Link를 기존 `projectStageGates`에 전달한다. WBS scope/작업 조건/접힘/표시 OFF/viewport clip으로 전체 Membership, E(M)/P(M), ready/manualEvent/completionInconsistent를 변경하지 않는다. 별도 active Milestone은 native 작업 선택과 분리하며 가시 일반 Task와 전체 member의 교집합만 강조한다. 전체 canonical subtree 영향 설명은 기존 Copy 제외·완료 구조 잠금·external Link/Assignment guard를 대체하지 않는다. MT1은 운영 행 제거·새 Gate 계산·API/DB mutation 계약 변경을 하지 않는다.
+
 
 
 ## Issue #550 — 관리 진입과 기존 전체 Gate
@@ -228,3 +231,17 @@ Milestone 직접 위치의 복귀 frame에는 검증한 원본 resourceScopeCont
 전체 canonical E(M)/P(M), explicit/상속/override, 수동 ready=null, 완료 불일치와 기존 Summary roll-up을 유지한다. WBS 조건의 입력은 ordinary Summary/Task지만 filterTasksWithAncestors의 마지막 context는 전체 tasks를 사용한다. native 행/M marker/viewport/표시 설정을 모집단이나 Ready 엔진 입력으로 사용하지 않는다. OFF도 소속 단계 필터와 전체 Dashboard 조회가 동작한다.
 
 Copy/Delete/Move 대상은 전체 canonical subtree이며 숨은 M을 제외하지 않는다. Copy의 외부 소속/incident/완료/Assignment 제한과 기존 삭제·구조 명령 guard를 구별한다. types 호환, 날짜 확인·복귀와 M root drift는 [Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리)을 따른다.
+
+#552 marker-OFF의 `Milestone 날짜·소속 확인`은 같은 canonical M 상세를 열며 미정 날짜도 조회 가능하다. 소속 Task0은 일정 탐색 불가 사유로 구별하며 Ready=true로 바꾸지 않는다. production lane/예약 높이/marker-only side effect0과 native M row/bar0은 독립 검증한다. Summary full subtree Copy/Delete/Move와 completed/fullE/explicit/incident/external Membership·Assignment Copy 보호는 보존하며 legacy WBS 비상 복구가 Gate/Resource/Target 계산을 바꾸지 않는다.
+
+## Issue #719 — 지표 인접 도움말
+
+Ready/선행 차단/지연/임박/위험 정의와 전체 상태 정렬 상세는 각 지표/표 인접 도움말로 제공한다. 프로젝트 전체·WBS 미적용, 자동/수동 기준일·현재 snapshot, 지표 중복/건수 합산 불가, 전체 소속·직접 선행 기준과 계획 공수의 다른 분모는 짧게 직접 유지한다. 공수 기간·환산·숨은 Milestone bucket 합산·미설정 수, 완료 처리율/소속 적용률의 분자·분모도 그대로다.
+
+이 변경은 Stage Gate 계산/Ready·Completed·drill/marker-OFF·canonical 계약을 바꾸지 않는다. 동일 fixture 5폭/keyboard·touch·범위/상태 보존 검증은 [Work Packet](exec-plans/active/ISSUE_719.md)을 따른다.
+
+## Issue #732 — 동적 Milestone 조회와 관리 보존
+
+전용 Dashboard consumer는 기존 Milestone Task identity와 full Stage projection을 읽는다. 선택 공정/WorkArea/설비/System/Resource 경로의 Task/Assignment 지표가 전체 소속 E(M)·직접 선행 P(M)의 Gate를 대체하지 않는다. E1-t1-M/E2-t2-M에서 E1 선택으로 t1만 완료돼도 t2나 선행이 미완료면 전체 판정을 그대로 표시하고 Completed를 자동 저장하지 않는다.
+
+소속0/조건 밖0/날짜 미정을 구별하며 원본 생성·편집·소속/관계·삭제/변환 보호는 기존 API/editor다. explicit0..1 + Summary 상속/override라는 저장 계약은 그대로며 다중 effective 소속을 도입하지 않는다. 여러 동적 경로의 Task/Assignment 중복은 고유 원장 합집합으로 해석한다. marker OFF·native Milestone 행 분리는 Gate/소속 원본의 변경 근거가 아니다. [전용 구현과 보존표](exec-plans/active/ISSUE_732.md)를 참조한다.

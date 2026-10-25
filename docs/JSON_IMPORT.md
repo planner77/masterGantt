@@ -1,6 +1,14 @@
+## Issue #785 — 실물 연결과 구형 파일의 명시적 한계
+
+일정 JSON1.0/1.1의 표현 범위는 확대하지 않는다. 직접 공정/구역/실물 관계와 내부 보존 연결을 표현하지 못하는 입력·출력은 기존 손실 방지 오류로 전체 거부한다. 사용자 메시지는 설비·물류 연결과 지원 Copy/Template를 안내하며 폐기된 엔터티의 생성/편집을 안내하지 않는다. unknown field 무시·빈 관계 저장·부분 성공으로 전환하지 않는다. 전체 관계 교환은 지원 versioned Template·Copy, 전체 DB 복구는 대응 backup 계약을 따른다. [Import schema](IMPORT_SCHEMA.md), [#785 실행](exec-plans/active/ISSUE_785.md).
+
+## Issue #725 — 공정·WorkArea 문맥 손실 차단
+
+일정 JSON1.0/1.1은 설비 다중 WorkArea 및 Task 직접 공정/WorkArea·명시0개를 지원하지 않는다. 신규 문맥 필드는 중첩 위치와 무관하게400 `PROCESS_CONTEXT_IMPORT_UNSUPPORTED`로 전체 거부한다. 해당 관계/marker가 있는 Project의 JSON Export도409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`이며 빈 관계처럼 버리지 않는다. Copy/지원 Templatev4의 별도 참조 remap을 사용한다. [정확한 형식 경계](IMPORT_SCHEMA.md#issue-725--직접-문맥은-schedule-stage-입력에서-미지원)를 따른다. #379 full graph 교환은 별도다.
+
 # JSON 파일 가져오기와 내보내기
 
-JSON 파일은 기존 Project에 새 Tasks/Links/명시 단계 소속을 추가하는 create-only 교환 형식이다. 대상 Project metadata와 Calendar를 덮어쓰지 않는다. `schemaVersion: "1.0"`은 기존 일정 입력을 지원하고 `"1.1"`은 status·description·URL·leaf Baseline·명시 Milestone membership·source metadata를 지원한다. 정확한 필드는 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)와 두 machine schema를 따른다.
+JSON 파일은 기존 Project에 새 Tasks/Links/명시 Milestone 소속을 추가하는 create-only 교환 형식이다. 대상 Project metadata와 Calendar를 덮어쓰지 않는다. `schemaVersion: "1.0"`은 기존 일정 입력을 지원하고 `"1.1"`은 status·description·URL·leaf Baseline·명시 Milestone membership·source metadata를 지원한다. 정확한 필드는 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)와 두 machine schema를 따른다.
 
 Project Workspace의 `더보기 → 가져오기 (JSON)`에서 파일을 선택하고 Preview를 수행한다. 유효 edit session이 필요하다. 편집기/다른 mutation 중 진입을 막고 파일/target/revision/permission이 바뀌면 이전 preview를 폐기한다. 오류는 전체 거부이며 일부 행만 저장하지 않는다. Preview의 counts, normalizedTasks, changedTasks, warning과 target Calendar를 확인한 뒤 동일 파일을 commit한다. 빈 파일은 preview counts0/commit 비활성이다. 실패 시 현재 Project Tasks/Links/소속/revision은 보존된다. 412에서는 “최신 일정 조회”로 대상 canonical revision을 갱신하되 파일/dialog을 유지하고 이전 preview를 폐기한다. 조회 실패는 명시적으로 재시도하고 target/permission/cancel 또는 요청 세대가 바뀐 늦은 응답은 적용하지 않는다. 자동 저장 없이 사용자가 다시 Preview/diff를 확인한 뒤 Commit한다.
 

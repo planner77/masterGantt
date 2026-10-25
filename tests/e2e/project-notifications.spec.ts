@@ -13,13 +13,13 @@ async function notificationCommandReady(page: Page, fixture: StatefulProjectFixt
   await expect(page.locator(".schedule-saving")).toHaveCount(0);
 }
 
-/** Notifications use a supported root command with a synthetic server rejection.
- * Hidden M child commands stay absent; actual parent rejection is a server test concern. */
+/** A supported root create command receives a synthetic 422 validation rejection.
+ * Native hidden Milestone child commands remain absent; that domain guard is tested separately. */
 async function rejectRootForNotification(page: Page, fixture: StatefulProjectFixture, unread: number) {
   await expect(rowNamed(page, "Stable milestone")).toHaveCount(0);
   await notificationCommandReady(page, fixture);
   const before = await page.evaluate(async path => (await fetch(path)).json(), projectPath);
-  fixture.nextPost = { kind: "error", status: 422, code: "INVALID_PARENT_TASK" };
+  fixture.nextPost = { kind: "error", status: 422, code: "VALIDATION_ERROR" };
   const requestCount = fixture.posts.length;
   await rootAdd(page).dispatchEvent("click");
   await expect.poll(() => fixture.posts.length).toBe(requestCount + 1);
@@ -66,17 +66,30 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const identity = await rememberGanttRoot(page);
   const chart = page.locator(".wx-chart");
-  await notificationCommandReady(page, fixture);
-  await expect.poll(() => chart.evaluate(el => el.scrollWidth - el.clientWidth)).toBeGreaterThanOrEqual(200);
-  await page.locator(".project-gantt-frame").evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").scroll(200));
-  await expect.poll(() => page.locator(".project-gantt-frame").evaluate(node => Reflect.get(node, "__masterganttPublicViewport")?.left)).toBe(200);
-  let before = await geometry(page);
-  const layoutBounds = () => page.evaluate(() => { const rect=(selector:string)=>{const r=document.querySelector(selector)!.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};return {frame:rect(".project-gantt-frame"),lane:rect(".project-milestone-lane")}; });
-  const frameAndLane = await layoutBounds(); expect(frameAndLane.lane.height).toBe(64);
+  await chart.evaluate((element) => { element.scrollLeft = 200; });
+  const before = await geometry(page);
+  // Marker-OFF: no lane, guide, or reserved 64px spacer. Keep the Gantt's
+  // actual native owner and workspace geometry invariant across notifications.
+  const layoutBounds = () => page.evaluate(() => {
+    const frame = document.querySelector(".project-gantt-frame");
+    const widget = document.querySelector(".project-gantt-lane-layout");
+    const nativeOwner = document.querySelector(".project-gantt-native-owner");
+    if (!(frame && widget && nativeOwner)) throw new Error("Missing canonical Gantt layout");
+    const rect = (node: Element) => {
+      const box = node.getBoundingClientRect();
+      return { x: box.x, y: box.y, width: box.width, height: box.height };
+    };
+    return { frame: rect(frame), widget: rect(widget), nativeOwner: rect(nativeOwner),
+      markers: document.querySelectorAll(".project-milestone-lane,.project-milestone-lane-guide").length };
+  });
+  const frameWithoutLane = await layoutBounds();
+  expect(frameWithoutLane.markers).toBe(0);
+  expect(Math.abs(frameWithoutLane.nativeOwner.y - frameWithoutLane.widget.y)).toBeLessThanOrEqual(1);
+  expect(frameWithoutLane.nativeOwner.height).toBeGreaterThan(0);
   await captureNotificationLayout(page,"before");
   // Native dispatch avoids Playwright actionability auto-scroll from changing the Grid position.
   await rejectRootForNotification(page, fixture, 1);
-  await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업");
+  await expect(page.getByTestId("workspace-toast")).toContainText("작업 정보를 저장할 수 없습니다");
   await expect(page.getByRole("button", { name: "알림함, 미확인 1건" })).toBeVisible();
   expect(await geometry(page)).toEqual(before);
   await expectSameGanttRoot(page, identity);
@@ -91,14 +104,10 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
   await captureNotificationLayout(page,"after-success");
   expect(fixture.project.revision).toBe(beforeCreateRevision+1); expect(fixture.createdTaskIds).toHaveLength(1);
   expect(fixture.tasks.map(task=>task.taskId).sort()).toEqual([...beforeCreateIds,fixture.createdTaskIds[0]].sort());
-  const scopeNotice=page.locator(".project-copy-selection-status"); await expect(scopeNotice).toHaveText("표시 범위가 변경되어 이전 클립보드를 비웠습니다.");
-  const occupied=await scopeNotice.evaluate(node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {height:r.height,marginTop:parseFloat(s.marginTop),marginBottom:parseFloat(s.marginBottom)};});
-  expect(occupied).toEqual({height:20,marginTop:4,marginBottom:4}); const noticeHeight=occupied.height+occupied.marginTop+occupied.marginBottom; expect(noticeHeight).toBe(28);
-  const afterCreate=await geometry(page); expect(afterCreate.grid.height).toBe(before.grid.height-noticeHeight); expect(afterCreate.chart.height).toBe(before.chart.height-noticeHeight);
-  expect({...afterCreate,grid:{...afterCreate.grid,height:before.grid.height},chart:{...afterCreate.chart,height:before.chart.height}}).toEqual(before);
-  expect(await layoutBounds()).toEqual(frameAndLane);
-  // Canonical creation adds the existing scope notice; later notification operations use its exact stable layout.
-  before=afterCreate;
+  // A canonical task addition preserves the explicit selection boundary and clipboard.
+  await expect(page.locator(".project-copy-selection-status")).toHaveCount(0);
+  expect(await geometry(page)).toEqual(before);
+  expect(await layoutBounds()).toEqual(frameWithoutLane);
   await expectSameGanttRoot(page, identity);
   await page.clock.fastForward(5_100);
   await expect(page.getByTestId("workspace-toast")).toBeEmpty();
@@ -107,7 +116,7 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
   await bell.focus(); await page.keyboard.press("Enter");
   const inbox = page.getByRole("dialog", { name: "오류 알림함" });
   await expect(inbox).toBeVisible();
-  await expect(inbox.getByLabel("알림 1 내용")).toHaveValue(/마일스톤에는 하위 작업/);
+  await expect(inbox.getByLabel("알림 1 내용")).toHaveValue(/작업 정보를 저장할 수 없습니다/);
   expect(await geometry(page)).toEqual(before);
   await expectSameGanttRoot(page, identity);
   await inbox.getByRole("button", { name: "내용 복사", exact: true }).click();
@@ -284,7 +293,7 @@ for (const width of [320, 360, 361, 375, 390, 400, 401, 414, 768, 1440]) {
 
     // Native dispatch avoids scrolling the workspace away from the header while creating unread state.
     await rejectRootForNotification(page, fixture, 1);
-    await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업");
+    await expect(page.getByTestId("workspace-toast")).toContainText("작업 정보를 저장할 수 없습니다");
     const unreadBell = page.getByRole("button", { name: "알림함, 미확인 1건", exact: true });
     await expect(unreadBell).toBeVisible();
     const unreadBellBox = await unreadBell.boundingBox();

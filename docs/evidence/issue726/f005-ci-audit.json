@@ -1,0 +1,750 @@
+{
+  "schema": "mastergantt-issue-ci-audit-v1",
+  "primary_issue": 726,
+  "pr": 743,
+  "issue_url": "https://github.com/planner77/masterGantt/issues/726",
+  "pr_url": "https://github.com/planner77/masterGantt/pull/743",
+  "observed_at_utc": "2026-10-19 00:14:26 UTC",
+  "scope": "완료된 F-005 Run의 원본 감사. 이전4개 Run은 기존 증거 불변으로 참조한다. 새 CI 모니터링·GitHub 변경·병합·릴리스 없음.",
+  "source_trust_boundary": "ci-pr-source는 PR 측 비신뢰 자료다. ZIP은 메모리에서 ci-pr-source.json만 읽었고 실행/PR 코드 checkout을 하지 않았다. archive digest·API run/head/repository·6개 checkout SHA/Merge Head into Base 메시지와 대조했다. 역사적 실패 원장용 출처 보강이며 protected main Trusted QA PASS·commit→PR 단일 귀속·Owner ACCEPT를 주장하지 않는다.",
+  "prior_cumulative_evidence": {
+    "path": "docs/evidence/issue726/ci-cumulative-20261019.json",
+    "sha256": "e4f0443cd4683f0f807048f95e7df1127c34ebd76906e7e27aa827f366adae76",
+    "summary": {
+      "completed_full_runs": 4,
+      "observed_run_attempts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "e2e_shard_jobs": 24,
+      "job_conclusions": {
+        "failure": 4,
+        "cancelled": 20
+      },
+      "actual_failed_test_occurrences": 5,
+      "unique_failed_test_cases": 4,
+      "failure_files": 4,
+      "important_backfill": "F-002의 CANCELLED Shard2에도 #719 actual FAIL이 있었으며 F-004는 같은 관측 증상의 재발이다.",
+      "aggregate_quality_successes": 4,
+      "aggregate_docker_successes": 4,
+      "aggregate_e2e_failures": 4
+    },
+    "failure_file_union": [
+      "tests/e2e/issue-726-task-logistics.spec.ts",
+      "tests/e2e/project-workspace-tabs-518.spec.ts",
+      "tests/e2e/issue-719-contextual-help.spec.ts",
+      "tests/e2e/logistics-target-authoring.spec.ts"
+    ],
+    "run_attempts": [
+      {
+        "run_id": 39166340575,
+        "run_attempt": 1,
+        "shard_job_ids": [
+          117790363404,
+          117790363448,
+          117790363437,
+          117790363382,
+          117790363522,
+          117790363419
+        ]
+      },
+      {
+        "run_id": 39169140616,
+        "run_attempt": 1,
+        "shard_job_ids": [
+          117798833696,
+          117798833747,
+          117798833756,
+          117798833759,
+          117798833705,
+          117798833745
+        ]
+      },
+      {
+        "run_id": 39172673374,
+        "run_attempt": 1,
+        "shard_job_ids": [
+          117809255585,
+          117809255571,
+          117809255541,
+          117809255536,
+          117809255551,
+          117809255513
+        ]
+      },
+      {
+        "run_id": 39174916249,
+        "run_attempt": 1,
+        "shard_job_ids": [
+          117815890260,
+          117815890304,
+          117815890282,
+          117815890268,
+          117815890261,
+          117815890250
+        ]
+      }
+    ],
+    "note": "이전 원본24 Shard를 다시 네트워크 조회하지 않았다. 기존 정제 증거와 이슈 누적 원장 §1~7 전체를 대조했다."
+  },
+  "cumulative_summary": {
+    "full_runs": 5,
+    "run_attempts": [
+      {
+        "run_id": 39166340575,
+        "run_attempt": 1
+      },
+      {
+        "run_id": 39169140616,
+        "run_attempt": 1
+      },
+      {
+        "run_id": 39172673374,
+        "run_attempt": 1
+      },
+      {
+        "run_id": 39174916249,
+        "run_attempt": 1
+      },
+      {
+        "run_id": 39177358648,
+        "run_attempt": 1
+      }
+    ],
+    "shard_jobs": 30,
+    "shard_job_conclusions": {
+      "success": 5,
+      "failure": 5,
+      "cancelled": 20
+    },
+    "actual_failed_test_occurrences": 6,
+    "unique_failed_test_cases": 5,
+    "failure_files": 5,
+    "failure_file_union": [
+      "tests/e2e/issue-726-task-logistics.spec.ts",
+      "tests/e2e/project-workspace-tabs-518.spec.ts",
+      "tests/e2e/issue-719-contextual-help.spec.ts",
+      "tests/e2e/logistics-target-authoring.spec.ts",
+      "tests/e2e/task-link-load-safety.spec.ts"
+    ],
+    "important_context": "F-002-B 숨은 CANCELLED #719 실패를 포함한다. F-005는 과거4개 actual 실패 case가 개별 PASS한 뒤 다른 소비자의 새 실패가 노출된 사건이다. 이전 실패를 소급 PASS로 변경하지 않는다."
+  },
+  "run": {
+    "failure_id": "F-005",
+    "workflow": "CI",
+    "workflow_id": 356198495,
+    "run_number": 2989,
+    "run_id": 39177358648,
+    "run_attempt": 1,
+    "run_url": "https://github.com/planner77/masterGantt/actions/runs/39177358648",
+    "run_name": "PR CI [전체 검증] · [Issue #726] feat: 설비·시스템 관리와 작업 직접 연결 개선 · PR #743 · Run #2989.1",
+    "event": "pull_request",
+    "event_action": "synchronize",
+    "event_action_evidence": "이전 수정 Head 게시 및 Manager handoff의 synchronize 귀속. connector raw event.action은 제공되지 않으므로 독립 재확인하지 않음.",
+    "status": "completed",
+    "conclusion": "failure",
+    "head_sha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+    "base_sha": "0209c72f8a0702415f2e00b63c895549a65dbe81",
+    "test_merge_sha": "c7469cce30dbe26352940e619dbfcb8736900c46",
+    "branch": "feat/issue-726-logistics-master",
+    "source_artifact": {
+      "id": 12155320346,
+      "name": "ci-pr-source-39177358648-1",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/artifacts/12155320346",
+      "digest": "sha256:bdaa23a670dc61b236e30ba909b72c71e78ed8fcf03aab792c90d3342173135b",
+      "expired": false,
+      "created_at": "2026-10-18T23:38:26Z",
+      "expires_at": "2026-11-17T23:38:26Z",
+      "size_in_bytes": 413,
+      "api_run_id": 39177358648,
+      "api_head_sha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+      "api_repository_id": 1363180293,
+      "api_head_repository_id": 1363180293,
+      "json": {
+        "schema": "mastergantt-ci-pr-source-v1",
+        "repository": "planner77/masterGantt",
+        "run_id": 39177358648,
+        "run_attempt": 1,
+        "pr_number": 743,
+        "head_sha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+        "head_ref": "feat/issue-726-logistics-master",
+        "head_repository": "planner77/masterGantt",
+        "base_sha": "0209c72f8a0702415f2e00b63c895549a65dbe81",
+        "base_ref": "main",
+        "base_repository": "planner77/masterGantt",
+        "test_merge_sha": "c7469cce30dbe26352940e619dbfcb8736900c46"
+      },
+      "entries": [
+        "ci-pr-source.json"
+      ],
+      "computed_zip_sha256": "bdaa23a670dc61b236e30ba909b72c71e78ed8fcf03aab792c90d3342173135b",
+      "checks": {
+        "schema_valid": true,
+        "repository_and_pr": true,
+        "run_attempt": true,
+        "head_base_as_assigned": true,
+        "artifact_api_run_head_repository": true,
+        "digest_matches_archive": true,
+        "all_six_checkout_test_merge_match": true,
+        "all_six_merge_head_base_messages": true
+      }
+    },
+    "required_aggregates": [
+      {
+        "id": 117823264416,
+        "name": "Build, static checks, and unit tests",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117823264416",
+        "failed_steps": []
+      },
+      {
+        "id": 117823486937,
+        "name": "Docker build and runtime smoke test",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117823486937",
+        "failed_steps": []
+      },
+      {
+        "id": 117828226081,
+        "name": "Chromium end-to-end tests",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117828226081",
+        "failed_steps": [
+          "E2E shard 결과 집계"
+        ]
+      }
+    ],
+    "qa_final": {
+      "id": 117828245417,
+      "name": "QA Final — Automated",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117828245417",
+      "failed_steps": [
+        "최신 PR 증거·문서·리뷰 확인 (read-only)"
+      ],
+      "automated_qa": "FAIL",
+      "decision_reason": "required e2e 미성공",
+      "need_quality": "success",
+      "need_e2e": "failure",
+      "need_docker": "success",
+      "classification": "DERIVED_REQUIRED_E2E_FAILURE",
+      "note": "새 제품 오류가 아니라 E2E 실패에 따른 파생 판정. protected main Trusted QA와 별도."
+    },
+    "playwright_totals": {
+      "passed": 695,
+      "failed": 1,
+      "skipped": 3,
+      "did_not_run": 25,
+      "cancelled_shard_jobs": 0
+    },
+    "shards": [
+      {
+        "id": 117823051536,
+        "name": "Chromium E2E shard 1/6 · PR",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117823051536",
+        "failed_steps": [],
+        "shard": 1,
+        "e2e_step": "success",
+        "playwright_summary": {
+          "passed": 135,
+          "failed": 0,
+          "skipped": 0,
+          "did_not_run": 0,
+          "duration_display": "22.3m"
+        },
+        "actual_failures": [],
+        "skipped_cases": [],
+        "completed_pass_lines": 135,
+        "checkout_ref": "c7469cce30dbe26352940e619dbfcb8736900c46",
+        "git_merge_message_head_base_observed": true,
+        "max_failures_summary_seen": false
+      },
+      {
+        "id": 117823051546,
+        "name": "Chromium E2E shard 2/6 · PR",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117823051546",
+        "failed_steps": [],
+        "shard": 2,
+        "e2e_step": "success",
+        "playwright_summary": {
+          "passed": 129,
+          "failed": 0,
+          "skipped": 1,
+          "did_not_run": 0,
+          "duration_display": "21.0m"
+        },
+        "actual_failures": [],
+        "skipped_cases": [
+          {
+            "file": "tests/e2e/logistics-table-density.spec.ts",
+            "observed_log_line": "2026-10-18T23:47:34.2683640Z   -   45 [chromium] › tests/e2e/logistics-table-density.spec.ts:41:5 › #454 before 두 유형과 이름·비밀번호 dialog 5폭 실제 geometry",
+            "reason": "기존 before 환경 전용 baseline capture test.skip. 신규 skip 변경 아님; PASS로 합산하지 않음."
+          }
+        ],
+        "completed_pass_lines": 129,
+        "checkout_ref": "c7469cce30dbe26352940e619dbfcb8736900c46",
+        "git_merge_message_head_base_observed": true,
+        "max_failures_summary_seen": false
+      },
+      {
+        "id": 117823051497,
+        "name": "Chromium E2E shard 3/6 · PR",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117823051497",
+        "failed_steps": [],
+        "shard": 3,
+        "e2e_step": "success",
+        "playwright_summary": {
+          "passed": 102,
+          "failed": 0,
+          "skipped": 1,
+          "did_not_run": 0,
+          "duration_display": "16.3m"
+        },
+        "actual_failures": [],
+        "skipped_cases": [
+          {
+            "file": "tests/e2e/master-controls-density.spec.ts",
+            "observed_log_line": "2026-10-18T23:50:41.3104891Z   -   58 [chromium] › tests/e2e/master-controls-density.spec.ts:30:5 › #455 before 세 범주와 password dialog 5폭 computed geometry",
+            "reason": "기존 before 환경 전용 baseline capture test.skip. 신규 skip 변경 아님; PASS로 합산하지 않음."
+          }
+        ],
+        "completed_pass_lines": 102,
+        "checkout_ref": "c7469cce30dbe26352940e619dbfcb8736900c46",
+        "git_merge_message_head_base_observed": true,
+        "max_failures_summary_seen": false
+      },
+      {
+        "id": 117823051477,
+        "name": "Chromium E2E shard 4/6 · PR",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117823051477",
+        "failed_steps": [
+          "E2E shard 실행"
+        ],
+        "shard": 4,
+        "e2e_step": "failure",
+        "playwright_summary": {
+          "passed": 132,
+          "failed": 1,
+          "skipped": 1,
+          "did_not_run": 25,
+          "duration_display": "24.7m"
+        },
+        "actual_failures": [
+          {
+            "failure_id": "F-005",
+            "job_id": 117823051477,
+            "file": "tests/e2e/task-link-load-safety.spec.ts",
+            "test_line": 23,
+            "assertion_line": 54,
+            "column": 24,
+            "title": "조회 500에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다",
+            "first_actual_failure_at_utc": "2026-10-19T00:05:47.0940935Z",
+            "message": "expect(locator).toBeEnabled() failed",
+            "locator": "getByRole('dialog', { name: '작업 정보', exact: true }).getByRole('button', { name: '물류 연결 저장', exact: true })",
+            "expected": "enabled",
+            "actual": "disabled",
+            "timeout_ms": 5000,
+            "prior_assertion": "53줄의 기존 연결 설비 checkbox checked는 통과했다. 55줄 save.click·mutation1·원본 payload·If-Match 검사는 미도달.",
+            "classification_at_raw_audit": "UNKNOWN",
+            "cause_hypothesis": "복구된 체크상태 외 저장 준비/상위 잠금의 모든 조건을 제품·fixture와 교차 재현해야 한다. assertion 완화나 timeout 증가로 원인을 확정할 수 없다.",
+            "cause_owner": "Manager/frontend domain 조사·원본 재현·교정 결과를 Issue 원장에 별도로 추가",
+            "error_context_path": "test-results/task-link-load-safety-조회-500에서-빈-PUT을-막고-재시도로-기존-연결을-복원한다-chromium/error-context.md",
+            "trace_path": "test-results/task-link-load-safety-조회-500에서-빈-PUT을-막고-재시도로-기존-연결을-복원한다-chromium/trace.zip",
+            "short_sanitized_excerpt": [
+              "Error: expect(locator).toBeEnabled() failed",
+              "Expected: enabled; Received: disabled; Timeout: 5000ms",
+              "14 × locator resolved to <button disabled type=\"button\" class=\"primary-button\">물류 연결 저장</button>",
+              "52 | const selected = dialog.getByRole(\"checkbox\", { name: /기존 연결 설비/ });",
+              "53 | await expect(selected).toBeChecked();",
+              "54 | await expect(save).toBeEnabled();"
+            ]
+          }
+        ],
+        "skipped_cases": [
+          {
+            "file": "tests/e2e/resource-tabs.spec.ts",
+            "observed_log_line": "2026-10-19T00:05:11.4214047Z   -  120 [chromium] › tests/e2e/resource-tabs.spec.ts:5:5 › #453 baseline before 5폭 동일 긴 카탈로그 실제 화면과 geometry",
+            "reason": "기존 before 환경 전용 baseline capture test.skip. 신규 skip 변경 아님; PASS로 합산하지 않음."
+          }
+        ],
+        "completed_pass_lines": 132,
+        "checkout_ref": "c7469cce30dbe26352940e619dbfcb8736900c46",
+        "git_merge_message_head_base_observed": true,
+        "max_failures_summary_seen": true
+      },
+      {
+        "id": 117823051501,
+        "name": "Chromium E2E shard 5/6 · PR",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117823051501",
+        "failed_steps": [],
+        "shard": 5,
+        "e2e_step": "success",
+        "playwright_summary": {
+          "passed": 84,
+          "failed": 0,
+          "skipped": 0,
+          "did_not_run": 0,
+          "duration_display": "17.9m"
+        },
+        "actual_failures": [],
+        "skipped_cases": [],
+        "completed_pass_lines": 84,
+        "checkout_ref": "c7469cce30dbe26352940e619dbfcb8736900c46",
+        "git_merge_message_head_base_observed": true,
+        "max_failures_summary_seen": false
+      },
+      {
+        "id": 117823051494,
+        "name": "Chromium E2E shard 6/6 · PR",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117823051494",
+        "failed_steps": [],
+        "shard": 6,
+        "e2e_step": "success",
+        "playwright_summary": {
+          "passed": 113,
+          "failed": 0,
+          "skipped": 0,
+          "did_not_run": 0,
+          "duration_display": "12.7m"
+        },
+        "actual_failures": [],
+        "skipped_cases": [],
+        "completed_pass_lines": 113,
+        "checkout_ref": "c7469cce30dbe26352940e619dbfcb8736900c46",
+        "git_merge_message_head_base_observed": true,
+        "max_failures_summary_seen": false
+      }
+    ],
+    "other_jobs": [
+      {
+        "id": 117822676693,
+        "name": "QA Final 신뢰 경계 확인",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117822676693",
+        "failed_steps": []
+      },
+      {
+        "id": 117822676844,
+        "name": "변경 경로 판정",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117822676844",
+        "failed_steps": []
+      },
+      {
+        "id": 117822717042,
+        "name": "QA Preflight — 정책·문서 사전 검사",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117822717042",
+        "failed_steps": []
+      },
+      {
+        "id": 117822718151,
+        "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+        "status": "completed",
+        "conclusion": "skipped",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117822718151",
+        "failed_steps": []
+      },
+      {
+        "id": 117822759275,
+        "name": "정책·저장소 계약 검사",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117822759275",
+        "failed_steps": []
+      },
+      {
+        "id": 117822759287,
+        "name": "Vitest 단위·통합 테스트",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117822759287",
+        "failed_steps": []
+      },
+      {
+        "id": 117822759304,
+        "name": "ESLint",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117822759304",
+        "failed_steps": []
+      },
+      {
+        "id": 117822759327,
+        "name": "TypeScript 타입 검사",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117822759327",
+        "failed_steps": []
+      },
+      {
+        "id": 117822760130,
+        "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+        "status": "completed",
+        "conclusion": "skipped",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117822760130",
+        "failed_steps": []
+      },
+      {
+        "id": 117822760461,
+        "name": "Next.js production build",
+        "status": "completed",
+        "conclusion": "skipped",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117822760461",
+        "failed_steps": []
+      },
+      {
+        "id": 117822760569,
+        "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+        "status": "completed",
+        "conclusion": "skipped",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117822760569",
+        "failed_steps": []
+      },
+      {
+        "id": 117823009429,
+        "name": "PR 빠른 검사 판정",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117823009429",
+        "failed_steps": []
+      },
+      {
+        "id": 117823051486,
+        "name": "Docker smoke 구현",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117823051486",
+        "failed_steps": []
+      },
+      {
+        "id": 117823051535,
+        "name": "PR Next.js production build",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117823051535",
+        "failed_steps": []
+      },
+      {
+        "id": 117828246576,
+        "name": "Main 임시 commit 이미지 게시·검증·정리",
+        "status": "completed",
+        "conclusion": "skipped",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117828246576",
+        "failed_steps": []
+      }
+    ],
+    "artifacts": [
+      {
+        "id": 12155886306,
+        "name": "e2e-timing-ci-shard-4",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/artifacts/12155886306",
+        "digest": "sha256:81c5df6781759fb2feabefb96a38c3f91ccff3c050608ab9bec89b3befcfdc87",
+        "expired": false,
+        "created_at": "2026-10-19T00:05:49Z",
+        "expires_at": "2026-11-18T00:05:48Z",
+        "size_in_bytes": 1342,
+        "api_run_id": 39177358648,
+        "api_head_sha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+        "api_repository_id": 1363180293,
+        "api_head_repository_id": 1363180293
+      },
+      {
+        "id": 12155805187,
+        "name": "e2e-timing-ci-shard-6",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/artifacts/12155805187",
+        "digest": "sha256:9a6d1da6b6175479a03c306097d484acdec012a0ac6fab3188866ea67e1889d7",
+        "expired": false,
+        "created_at": "2026-10-18T23:53:51Z",
+        "expires_at": "2026-11-17T23:53:50Z",
+        "size_in_bytes": 1235,
+        "api_run_id": 39177358648,
+        "api_head_sha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+        "api_repository_id": 1363180293,
+        "api_head_repository_id": 1363180293
+      },
+      {
+        "id": 12155785763,
+        "name": "e2e-timing-ci-shard-1",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/artifacts/12155785763",
+        "digest": "sha256:3e2260ca15240dc851beeba0ebd92b1bc8f58f196b4d8bfa4de0104507005a4e",
+        "expired": false,
+        "created_at": "2026-10-19T00:03:27Z",
+        "expires_at": "2026-11-18T00:03:26Z",
+        "size_in_bytes": 1372,
+        "api_run_id": 39177358648,
+        "api_head_sha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+        "api_repository_id": 1363180293,
+        "api_head_repository_id": 1363180293
+      },
+      {
+        "id": 12155785222,
+        "name": "e2e-timing-ci-shard-3",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/artifacts/12155785222",
+        "digest": "sha256:0ec2a5a1b081d6eae6406e03e9a5b7793ec02023bcfb30670acf4f48609c2545",
+        "expired": false,
+        "created_at": "2026-10-18T23:57:23Z",
+        "expires_at": "2026-11-17T23:57:23Z",
+        "size_in_bytes": 1204,
+        "api_run_id": 39177358648,
+        "api_head_sha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+        "api_repository_id": 1363180293,
+        "api_head_repository_id": 1363180293
+      },
+      {
+        "id": 12155631393,
+        "name": "e2e-timing-ci-shard-5",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/artifacts/12155631393",
+        "digest": "sha256:bed69554607db15d62ccbf9e174af4195ae5d520cc9af7c9c600952e8c445420",
+        "expired": false,
+        "created_at": "2026-10-18T23:58:55Z",
+        "expires_at": "2026-11-17T23:58:54Z",
+        "size_in_bytes": 1075,
+        "api_run_id": 39177358648,
+        "api_head_sha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+        "api_repository_id": 1363180293,
+        "api_head_repository_id": 1363180293
+      },
+      {
+        "id": 12155537584,
+        "name": "playwright-report-shard-4",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/artifacts/12155537584",
+        "digest": "sha256:cb5e15a137cf282d10c610dae713b91ee274343ab668eaec8bb756d108267725",
+        "expired": false,
+        "created_at": "2026-10-19T00:05:52Z",
+        "expires_at": "2026-10-26T00:05:50Z",
+        "size_in_bytes": 10580647,
+        "api_run_id": 39177358648,
+        "api_head_sha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+        "api_repository_id": 1363180293,
+        "api_head_repository_id": 1363180293
+      },
+      {
+        "id": 12155516716,
+        "name": "qa-final-automated-39177358648-1",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/artifacts/12155516716",
+        "digest": "sha256:c47120b1a9dacf6efe5f0c68be875a15dbc9869cfd0c600043cc7be2dec3920d",
+        "expired": false,
+        "created_at": "2026-10-19T00:06:12Z",
+        "expires_at": "2026-11-18T00:06:11Z",
+        "size_in_bytes": 431,
+        "api_run_id": 39177358648,
+        "api_head_sha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+        "api_repository_id": 1363180293,
+        "api_head_repository_id": 1363180293
+      },
+      {
+        "id": 12155427565,
+        "name": "e2e-timing-ci-shard-2",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/artifacts/12155427565",
+        "digest": "sha256:1e80a95b715dd8065f00e675a417b6cf27acf1dc4359b910256960a69492ad3f",
+        "expired": false,
+        "created_at": "2026-10-19T00:02:05Z",
+        "expires_at": "2026-11-18T00:02:04Z",
+        "size_in_bytes": 1330,
+        "api_run_id": 39177358648,
+        "api_head_sha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+        "api_repository_id": 1363180293,
+        "api_head_repository_id": 1363180293
+      },
+      {
+        "id": 12155320346,
+        "name": "ci-pr-source-39177358648-1",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/artifacts/12155320346",
+        "digest": "sha256:bdaa23a670dc61b236e30ba909b72c71e78ed8fcf03aab792c90d3342173135b",
+        "expired": false,
+        "created_at": "2026-10-18T23:38:26Z",
+        "expires_at": "2026-11-17T23:38:26Z",
+        "size_in_bytes": 413,
+        "api_run_id": 39177358648,
+        "api_head_sha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+        "api_repository_id": 1363180293,
+        "api_head_repository_id": 1363180293
+      },
+      {
+        "id": 12154424882,
+        "name": "qa-preflight-39177358648-1",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/39177358648/artifacts/12154424882",
+        "digest": "sha256:40c52a36c829fb316aae697ffb161e20631d41f51580bb40ac236456b841f2aa",
+        "expired": false,
+        "created_at": "2026-10-18T23:38:46Z",
+        "expires_at": "2026-11-17T23:38:45Z",
+        "size_in_bytes": 1234,
+        "api_run_id": 39177358648,
+        "api_head_sha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+        "api_repository_id": 1363180293,
+        "api_head_repository_id": 1363180293
+      }
+    ],
+    "prior_failure_case_passes": [
+      {
+        "job_id": 117823051477,
+        "job_conclusion": "failure",
+        "observed_pass": "2026-10-18T23:44:05.6605758Z   ✓    7 [chromium] › tests/e2e/issue-726-task-logistics.spec.ts:236:5 › #726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류 보존과 상위 출처 구별 (49.9s)"
+      },
+      {
+        "job_id": 117823051477,
+        "job_conclusion": "failure",
+        "observed_pass": "2026-10-18T23:46:32.4932637Z   ✓   11 [chromium] › tests/e2e/logistics-target-authoring.spec.ts:255:5 › Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호 (26.1s)"
+      },
+      {
+        "job_id": 117823051501,
+        "job_conclusion": "success",
+        "observed_pass": "2026-10-18T23:52:06.0911816Z   ✓  51 [chromium] › tests/e2e/project-workspace-tabs-518.spec.ts:6:5 › #518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5폭 tab geometry (10.6s)"
+      },
+      {
+        "job_id": 117823051546,
+        "job_conclusion": "success",
+        "observed_pass": "2026-10-18T23:47:31.9309910Z   ✓   42 [chromium] › tests/e2e/issue-719-contextual-help.spec.ts:113:5 › #719 공정 없는 설비 추가는 지속 경고를 표시하고 도움말로 숨기지 않는다 (2.6s)"
+      }
+    ]
+  },
+  "analysis_handoff": {
+    "confirmed": [
+      "원격 최초 오류는 500 복구 이후 save disabled이며 checkbox checked는 먼저 통과했다.",
+      "이 Run에서 이전4개 actual failure case 개별 PASS를 관측했다.",
+      "나머지5 Shard는 완료 SUCCESS이며 실제FAIL은 Shard4의1건만 관측했다.",
+      "새파일은 과거 fail-fast에서 실행되지 않았을 수 있는 후반 소비자다. 최초 도입 원인은 git blame/원본 재현으로 별도 확인해야 한다."
+    ],
+    "hypotheses": [
+      "물류 링크 조회 복구와 별개로 부모·동료 편집기의 dirty/pending/permission/readiness가 저장을 잠글 가능성.",
+      "기존 load-safety fixture가 새 producer 응답·권한·revision 계약을 완전하게 제공하지 않을 가능성."
+    ],
+    "not_proven": [
+      "PRODUCT 대 TEST_CONTRACT 최종 분류",
+      "404/401 경고나 git fetch timeout이 이 disabled 오류를 직접 발생시켰다는 인과",
+      "원격 Playwright trace의 실제 부모 state"
+    ],
+    "requested_next_validation": "domain 담당자가 원본 실패를 재현하고 모든 누적 실패5파일+같은 readiness/fixture 소비자의 직접·간접·음성 경계를 maxFailures0으로 확인한다. gate/assertion/timeout/retry/skip을 완화하지 않는다."
+  },
+  "limitations": [
+    "Connector jobs/artifacts/run 조회는 첫 페이지만 제공한다. 이 Run에서 jobs25개·artifacts19개와6개 Shard 모두 회수했으나 모든 과거 attempt/삭제 기록의 부재는 증명하지 않는다.",
+    "source artifact의 attempt1·Head/base/test-merge 및 실행 checkout은 일치하지만 독립 Trust 검증 전체를 실행한 것은 아니다.",
+    "Playwright HTML report/trace는 API 존재·만료·digest만 확인했고 다운로드/재생하지 않았다.",
+    "695 PASS는 이 실패 Head의 개별 테스트 결과다. E2E aggregate는 FAIL이며 3 skipped/25 not run을 PASS로 계산하지 않는다.",
+    "'1 error was not a part of any test'는 maxFailures 도달시 reporter.onError 요약과 함께 나타났다. 별도 독립 테스트 실패로 합산하지 않는다. 기존 누적 증거의 Playwright1.63.0 source 근거를 재사용한다.",
+    "GitCommitInfo 3000ms fetch 경고 뒤 테스트가 계속 실행되므로 최초 실제 오류 원인으로 확정하지 않는다.",
+    "새 후보 source의 검증·최종 QA/Manager/Owner ACCEPT·새 PR CI 결과는 이 감사 범위 밖이며 NOT TESTED다."
+  ]
+}

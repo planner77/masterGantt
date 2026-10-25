@@ -1,4 +1,58 @@
+## Issue #792 — 기존 관계 적용 범위 안전 편집 (한정)
+
+#785 공개 Target CRUD/Target binding writer의 410은 유지한다. 신규 직접 연결이 권위 원본이지만, 보존된 `task_target_bindings`의 **Summary 직접 관계 한 건**은 별도 source-aware editor로 `self↔subtree` 범위만 안전하게 수정할 수 있다. 원본 binding UUID·target/Task FK·member UUID·subset coverage·whole 동적 해석·공정/WorkArea 원본은 불변이며 기존 Equipment/System/직접 관계·WBS/Resource/Assignment를 자동 추가하거나 분배하지 않는다.
+
+별도 GET source fingerprint → origin/session/If-Match가 필요한 POST preview → 영향 Task/실물 출처를 확인하는 PATCH apply의 IMMEDIATE transaction(원본 FK/동적 해석 재확인·single-row scope UPDATE·Project revision+1)을 사용한다. 조상에게서 상속된 관계를 하위 Task에서 직접 바꾸거나 legacy read 값을 직접 링크로 flatten하지 않는다. 구성원/coverage/Target 자체 수정과 운영 DB 이관 완료는 **미지원/NOT TESTED**, 실제 offhost backup/restore·consumer inventory·Owner 승인 전 자동 변환·DROP 금지. [API](API.md#issue-792--레거시-summary-직접-관계-적용-범위-한정-편집), [Packet](exec-plans/active/ISSUE_792.md).
+
+## Issue #785 — 현행 실물 모델과 내부 호환 원본
+
+Logistics Target의 사용자 엔터티/보조 편집 UI 정책은 폐기한다. 신규 업무의 원본은 Project 공정·WorkArea·Equipment/System·Task/Summary 직접 관계다. 공정0..N·구역0..N·공통/공유 System·설비 다중 구역·T0/A/R·같은 WBS 원시 ID를 유지한다. 조회용 그룹을 영속 엔터티나 WBS로 만들지 않는다.
+
+기존 whole/subset·coverage·self/subtree·동명/공유/비활성 원본은 내부 호환 해석으로 유지하고 실제 실물 ID·출처를 제공한다. 새 직접 관계만으로 동적 whole을 표현할 수 없어 평탄화하지 않는다. 외부 전용 경로 퇴역·v2 공개 DTO와 지원 Copy/Template archive 보존은 [API](API.md), [실행 설계](exec-plans/active/ISSUE_785.md)를 따른다. 아래 최초 설계의 Target 보조 화면/작성 설명은 역사이며 현재 정책이 아니다.
+
+## Issue #762 — Project 공정과 WorkArea 직접 소속
+
+신규 정상 등록은 Project 공정→선택 WorkArea0..N의 두 종류로 완결한다. 사업부/제품/사업장은 Project 분류이고 신규 공정/구역 CRUD 전제조건이 아니다. 구역의 owner 공정과 설비의 주 관리 공정은 서로 다르며 설비는 서로 다른 공정의 구역에 연결할 수 있다. Task/Summary는 공정0..N과 선택 구역을 명시하고 WBS 계층을 공정 계층으로 치환하지 않는다.
+
+직접 구역은 `project_work_areas`의 한 Project/공정에 속한다. 기존 유형/제품 표준/site occurrence/global WorkArea/mapping은 호환 원본으로 유지한다. legacy shared 구역은 explicit mapping별 alias이며 복수 processId에 같은 원본 UUID가 나타날 수 있다. 이를 단일 owner로 자동 전환하지 않으며 project edit는 global 구역 수정 권한이 아니다. 참조 해소·승인된 전환 전까지 호환 경로를 유지한다. [Work Packet](exec-plans/active/ISSUE_762.md)의 before→after inventory·배포/검증을 따른다.
+
+## Issue #735 — 시스템 원본을 중심으로 한 조회
+
+시스템 관점의 관리 대상은 유형이 아닌 System 인스턴스다. 공유 MCS는 프로젝트 공통 또는 복수 공정 속성을 가진 단일 원본이며 조회 경로별 복제·숨은 Target·공수 배분 입력을 요구하지 않는다. 실제 coordinates/controls와 같은 Task의 공정/설비/리소스 연관을 구별한다. 직접/조율 모드는 기존 공통 원장을 선택할 뿐 구성·WBS·Task 명시 공정0..N을 변경하지 않는다. 책임 역할 PI/개발자는 개인 투입·개발 실적·가동률의 증거가 아니다. [시스템 관점](LOGISTICS_DASHBOARD.md#issue-735--물류-시스템-전용-관점), [구현/검증 경계](exec-plans/active/ISSUE_735.md)를 따른다.
+
+## Issue #726 — 기존 관리 원본과 직접 Task 편집
+
+기준정보 설비/물류 시스템은 기존 단일 CRUD·공유 인스턴스 editor를 재사용한다. 같은 설비/MCS를 공정·Target·표시 경로별로 복제하지 않으며 공유 원본 수정, Target 구성원 해제, 실물 삭제를 구별한다. 수량·역할·controls/coordinates 변경은 기존 공유 사용처 확인과 서버 방어를 통한다.
+
+Task 물류 연결은 직접 Equipment/System 및 #725의 명시 공정/WorkArea 편집이 기본이며 기존 whole/subset/coverage는 내부 호환 원본으로 보존하며 공개 보조 편집은 폐기한다. 각 경로는 독립 저장이고 UI 재배치로 관계를 자동 복사·변환하지 않는다. 명시 공정0..N·legacy null·self/subtree와 직접/조상 출처를 보존한다. Task에 함께 연결된 설비와 MCS는 작업 연관이며 자동 제어관계·공수 배분·Task 복제의 근거가 아니다. 기준정보 다중 WorkArea는 주 관리 공정과 별도다.
+
+새 schema/서버 writer는 없고 #725 API의 Project/catalog revision 및 기존 canonical gateway를 사용한다. 조회 실패는 빈 연결로 처리하지 않으며 독립 저장 간 dirty/pending 잠금을 유지한다. 출처 안내는 명시 ancestor subtree이며 전체 #728 해석/후속 #729 공개 조회와 구별한다. [Task UX](TASK_EDITOR.md), [검증](exec-plans/active/ISSUE_726.md).
+
+## Issue #728 — 구성 원장과 WBS 작업 연관
+
+WBS Task가 분석 출발점이다. 같은 Task의 명시 공정·설비·System은 실제 구성/제어관계가 없어도 교차 조회할 수 있지만, 이를 설비 공정 소속/controls/coordinates로 바꾸지 않는다. `E1→Milestone M→공정`은 E1에 관련된 Task/Assignment를 유지하며 M의 다른 작업으로 확장하지 않는다. full Gate는 전체 원본을 유지한다.
+
+W1의 타 공정 다중 WorkArea와 W2의 Task 명시 공정0..N을 적용한다. 기준정보의 담당 공정과 Task 작업 공정은 별도며 명시0은 정상이다. 신규 해석기는 구성·작업·Target 출처/version을 구분하고 구형 API 산식/필터는 보존한다. [단일 Domain 입력·KPI 계약](WBS_TASK_LEDGER.md), [검증 원장](exec-plans/active/ISSUE_728.md)을 따른다. 공개 조회 통합은 #729 이후다.
+
+## Issue #725 — WBS 중심의 선택적 공정·WorkArea 문맥
+
+#723/#725의 최신 W1/W2 결정은 아래 최초 설계 기본안보다 우선한다. 공정 occurrence 하나의 WorkArea는0..N이고 각 WorkArea는 정확히 occurrence 하나에 소속한다. 설비 하나는 타 공정 구역을 포함한0..N WorkArea에 연결될 수 있다. `Equipment.processId`는 계속 주 관리 공정이며 실제 WorkArea 소유 공정과 별개다. 설비–구역은 typed 관계 컬렉션으로 저장하고 공정 매핑의 기존 `workAreaId`는 호환 기본 구역으로 유지한다.
+
+Task/Summary 직접 공정은 사용자가0..N개 선택한다. Equipment/System/WorkArea/Target로 Task 공정을 자동 채우지 않는다. 명시0개의 marker와 구형 미도입 null을 구분하며 명시0개를 legacy fallback 허가로 읽지 않는다. 직접 WorkArea는 실제 소유 공정을 명시 선택해야 하고 공정을 자동 추가하지 않는다. self/subtree 및 직접/legacy/기준정보 출처를 보존하며 공통 해석·집계는 #728/#729, Task Editor 화면은 #726의 범위다.
+
+같은 E10을 조립 WA-A와 검사 WA-B에 연결해도 Equipment 원본1개·quantity10이다. 두 구역의 관련 수량이 각각10이어도 Project 고유 총량은10이며 구역별 배치 대수를 뜻하지 않는다. 구성 관계가 제어 관계·Task Dependency·Task/Target 복제·공수 배분을 만들지 않는다. 별도 기준정보 화면은 Target0개에서 동작하고 숨은 Target을 생성하지 않는다.
+
+실제 신규 저장 계약은 migration0028, [DB](DB_SCHEMA.md#issue-725--선택적-다중-workareatask-직접-문맥-migration-0028)와 [API](API.md#issue-725--target-없는-공정workarea-직접-문맥)를 따른다. 아래 LG 초기 계획의 미구현 경로/복사 차단은 도입 당시 기록이며 현재 [Copy·Template](ISSUE_27_PROJECT_COPY.md#issue-725--직접-문맥의-copytemplate-v4) 지원이 우선한다. 실제 검증은 [실행 원장](exec-plans/active/ISSUE_725.md)에서 구별한다.
+
 # 물류 구축 프로젝트 도메인 설계
+
+## Issue #615 — F1 기반 모델
+
+[#615 Work Packet](exec-plans/active/ISSUE_615.md)의 migration0025·공통 process catalog·명시 Project mapping API가 F1 구현 범위다. legacy 공정/Task/설비를 변환하지 않고 WorkArea는 선택 사항이며 BU/product/site의 정확한 occurrence만 연결한다. 표준 변경은 Project 공정을 자동 생성·삭제하지 않는다. 같은 triple copy는 공통 ID를 보존하고 F1 당시 mapped Template 저장은 포맷 확장 전409였으며 현재 versioned Template 지원을 따른다. 실제 계약은 [API](API.md)/[DB_SCHEMA](DB_SCHEMA.md)/[LOGISTICS_TARGETS](LOGISTICS_TARGETS.md)를 따른다. 새 화면·Target/member/binding·Resource 축 및 운영 적용/원격 CI 성공은 후속 증거가 필요하다.
+
+## Issue #614 — 현행 물류와 Target 확장 계약
+
+이 문서의 최초 계획 상태와 과거 고정 type 목록은 당시 설계 이력이다. 현재 구현은 `src/contracts/logistics.ts`·Service·migration ledger와 [API](API.md)/[DB_SCHEMA](DB_SCHEMA.md)를 우선하며 Equipment/System type은 동적 catalog code string이다. 새 공정 master·occurrence/WorkArea·Target/member/binding·관련 Resource 공수 계약은 [LOGISTICS_TARGETS](LOGISTICS_TARGETS.md), 우선순위와 책임은 [Target/Resource 실행 계획](exec-plans/active/TARGET_RESOURCE_ROLLOUT.md)을 따른다. F0는 문서·합성 fixture 검산이며 신규 runtime/DDL 구현을 의미하지 않는다. 기존 직접 연결·합집합 상속·권한·일정 계약은 보존한다.
 
 ## 1. 상태·요구·근거
 
@@ -140,7 +194,7 @@ CREATE UNIQUE INDEX equipment_one_primary_owner
 
 ## 7. API·canonical 계약 제안
 
-기존 Route Handler → Service → Repository → SQLite 경계를 유지한다. 아래 경로는 구현 예정이며 아직 동작하는 API가 아니다.
+기존 Route Handler → Service → Repository → SQLite 경계를 유지한다. 아래 경로는 최초 LG 설계 당시 제안이며 현재 동작 여부·정확한 경로는 [API](API.md)의 구현 계약을 따른다.
 
 | 경로 | 목적 |
 | --- | --- |
@@ -174,7 +228,7 @@ Readonly/edit, loading/empty/no-result/error, dirty draft/취소, 401/403/412, f
 
 ## 9. 복사·교환·단계적 배포
 
-LG-01부터 물류 데이터가 있는 Project의 기존 복사는 LG-06이 준비될 때까지 명시적인409 `LOGISTICS_COPY_NOT_SUPPORTED_YET`로 차단한다. 물류 없는 기존 Project 복사는 유지한다. 복사된 것처럼 보이지만 물류만 누락된 결과를 만들지 않는다.
+초기 LG-01부터 LG-06 도입 전까지 물류 Project 복사는 명시적인409 `LOGISTICS_COPY_NOT_SUPPORTED_YET`로 차단했다. 현재는 전체 물류 Copy·versioned Template 참조 remap을 지원한다. 물류 없는 기존 Project 복사는 유지한다. 복사된 것처럼 보이지만 물류만 누락된 결과를 만들지 않는다.
 
 완전 복사는 새 local ID 매핑으로 공정/WBS/설비/시스템/모든 관계를 원자 복사하고 global Resource ID는 유지한다. inactive와 self/subtree도 보존한다. resetProgress는 기존 계약을 따르고 Summary 재계산을 수행한다. Project 삭제는 global catalog를 보존한다.
 
@@ -213,3 +267,15 @@ Excel은 선택적 물류 보고용 sheet를 추가하고 직접/파생, code/pu
 ## Issue #345: 빈 컨테이너의 연결
 
 Summary는 자손 0개여도 `self/subtree` 연결을 그대로 보존한다. 마지막 자식 삭제·이동은 부모 연결의 scope를 바꾸거나 삭제하지 않으며 나중에 추가되는 실제 자손은 기존 ancestor subtree 상속 규칙을 적용받는다. 미산정 Summary는 날짜 있는 Leaf로 취급하지 않는다. 명시적으로 Summary 자체를 삭제할 때만 그 row의 직접 연결이 기존 FK 삭제 계약을 따른다.
+
+## Issue #617 — WBS–Target 연결과 단일 해석기
+
+F3는 Target/member를 Task/Summary에 whole/subset 및 self/subtree로 연결한다. 모든 Summary 조상의 subtree와 직접 연결을 합집합으로 읽으며 하위 명시는 조상을 대체하지 않는다. Project-local UUID와 typed member 소유를 저장 경계에서 검증하고 effective instance dedup 뒤에도 모든 Target 경로와 legacy 직접 연결 출처를 보존한다. 공유 System 직접 연결만으로 Target을 추론하지 않는다. Equipment coverage는 연결의 작업 수량이고 instance quantity와 Resource 공수 원장을 변경하지 않는다.
+
+[LOGISTICS_TARGETS](LOGISTICS_TARGETS.md)의 F3 절 및 [API](API.md)/[DB_SCHEMA](DB_SCHEMA.md)가 신규 runtime 계약이다. 모든 후속 보기/Resource 계산은 같은 pure resolver를 재사용하며 별도 화면 해석기를 만들지 않는다. 현재 물류 Dashboard/Resource KPI의 기존 필터·분모를 조용히 Target 축으로 확대하지 않는다. Target UI/Resource 축은 #618/#619 이후, 이번 원격 CI·운영 적용 증거는 [#617 Work Packet](exec-plans/active/ISSUE_617.md)에서 별도로 판정한다.
+
+## Issue #719 — 물류 화면 설명과 선행 조건
+
+물류 구성 소개·빈 목록의 생성 학습문구와 관련 Milestone의 상세 정의는 인접 도움말로 이동한다. `Gantt WBS와 독립`, 조회의 평가일·환산·전체 소속/직접 선행 기준 및 물류 KPI 범위 불변은 직접 유지한다. 공정 없는 설비 추가는 mutation 없이 지속 오류로 선행 조건을 알린다.
+
+공유 Target/원본의 수정 영향, 연결 해제와 원본 삭제의 구별, 사용 중 삭제 제한, Primary 역할 제약·readonly·401/412/stale·초안/pending 계약은 기존 UI에 직접 남는다. Domain/API/DB·통합 조회 집계·원본 연결은 변경하지 않는다. [실행 원장](exec-plans/active/ISSUE_719.md)을 따른다.

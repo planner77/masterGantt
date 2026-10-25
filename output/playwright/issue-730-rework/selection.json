@@ -1,0 +1,31 @@
+{
+  "description": "직접 기능 회귀 #730 6개, 누적 실제 실패 파일 #463 7개 전체, 변경된 쓰기 관찰기의 직접 소비자 13개, 인접 #518 1개를 선정했다.",
+  "uniqueCaseCount": 27,
+  "negativeUnitCaseCount": 23,
+  "controlledNegativeCaseCount": 1,
+  "policy": {
+    "workers": 1,
+    "retries": 0,
+    "maxFailures": 0
+  },
+  "excluded": [
+    {
+      "file": "logistics-dashboard-request-state.spec.ts",
+      "reason": "#731 KPI 하위 보기만 활성화하며 WBS 통합 보기는 비활성 상태이다."
+    },
+    {
+      "file": "project-logistics-management.spec.ts",
+      "reason": "#726 설비 기준정보 관리만 활성화하며 WBS 통합 보기로 진입하지 않는다."
+    },
+    {
+      "group": "일정 전용 및 endpoint 한정 쓰기 관찰기",
+      "reason": "WBS 조회를 실행하지 않거나 Task·관계·배정 등 실제 mutation 경로만 계수하므로 예외를 추가하지 않는다."
+    },
+    {
+      "file": "milestone-visibility-persistence.spec.ts 두 번째 case",
+      "reason": "삭제 확인 취소 직후 관찰기를 해제하며 그동안 WBS 대시보드에 진입하지 않는다."
+    }
+  ],
+  "preservation": "기존 업무 mutation0 및 실제 쓰기 수 단언은 그대로 유지한다. exact POST+프로젝트UUID+/resource-dashboard/views만 공통 helper로 읽기 분류한다.",
+  "remoteCi": "NOT TESTED"
+}

@@ -157,3 +157,8 @@ Project 리소스 탭의 기본 조회는 새 raw Resource Dashboard API로 확�
 기존 legacy resource-workload API/UI와 stage Assignment drill을 유지하면서 Resource KPI Dashboard의 Resource Plan 보기로 기간별 서버 계획을 표시한다. 주/월·Group/개인·Milestone 기여의 raw 계산은 독립 Domain/API 결과이며 UI에서 allocation/Capacity를 재계산하지 않는다. 상세의 Assignment별 M/M은 동일한 명시적 환산값으로 표시한다.
 
 현재 Project의 개인 할당 이력 모집단은 기여 필터와 구별한다. 미배정 전역 Catalog 인력을 포함하거나 active flag를 고용/FTE로 해석하지 않는다. Group 평균이 낮아도 개인 초과 경고와 개인·날짜별 근거를 조회한다. 단계 반복 Capacity/Group 소계는 비가산이며 실제 근태·전사 가용성으로 이름 붙이지 않는다. 상세 UI·snapshot/null/pagination 계약은 RESOURCE_KPI_DASHBOARD를 따른다.
+
+
+## Issue #530 통합 검증과 사용자 가이드
+
+신규 Resource KPI/Plan/API/Excel의 같은 원장 정합성은 [통합 사용자 가이드](RESOURCE_KPI_DASHBOARD.md#issue-530-통합-사용자-가이드)에서 확인한다. 기존 workload의 4자리 반올림·unset0·allocation 저장·Resource Calendar·과투입 계약은 유지한다. 새 raw 부분합/null과 legacy 값을 서로 같은 표시 정책으로 취급하지 않는다. 실행 범위와 미검증 항목은 [Issue #530 계획](exec-plans/active/ISSUE_530.md)을 따른다.

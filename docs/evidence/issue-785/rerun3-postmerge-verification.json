@@ -1,0 +1,21 @@
+{
+  "schema": "mastergantt-785-rerun3-postmerge-verification-v1",
+  "baseSha": "4ce403a1e410ca599a780446f39513e1f1158326",
+  "pythonQa": {
+    "command": "python3 scripts/test_qa_final_automated.py",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 0.11,
+    "rawLogSha256": "250f86965bd04928068a6fda460c382e54643bb5416afa49922c08b13128e936",
+    "passed": 37
+  },
+  "unit11": {
+    "command": "npx --no-install vitest run --config tests/config/vitest.config.ts tests/scripts/wbs-report-correlation.test.ts",
+    "exitCode": 0,
+    "state": "PASS",
+    "durationSeconds": 0.64,
+    "rawLogSha256": "a698617abbb81afeb1a248424b4076439ce5bf5bebf6a08d68543462ce364754",
+    "passed": 11,
+    "testDurationMs": 160
+  }
+}

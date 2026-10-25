@@ -1,0 +1,42 @@
+[
+  {
+    "file": "command-config-receipts.json",
+    "sha256": "476c82602169bd2785c7f470f4ea93049e775a973e002049b17fb7a327e0017e",
+    "bytes": 3758
+  },
+  {
+    "file": "lane-390-numeric-geometry.json",
+    "sha256": "dc843c125e2f52959ba97aff2b794b0f365e13327e6aaf24387d4927dbdad18b",
+    "bytes": 16302
+  },
+  {
+    "file": "reproduction-matrix.json",
+    "sha256": "a5a91f6da0dc508bcce25d51da1467bad8305276c89e6381c953421cc8867b1c",
+    "bytes": 16809
+  },
+  {
+    "file": "supplemental-validation.json",
+    "sha256": "b007246bb879b8711a8ce6d371801d43c95a3f12c0ca01a561f2c59789a63195",
+    "bytes": 5870
+  },
+  {
+    "file": "trace1-inline-observer.json",
+    "sha256": "c4b912be9a62451b8baa080e44a1f824ebf9bb41a7a08623c96bf092a581ae70",
+    "bytes": 136236
+  },
+  {
+    "file": "trace1-pending-observer.json",
+    "sha256": "fc506e07fc61ae23d882360503fdfefa5a1ca894fb441c574e124cb02e78220b",
+    "bytes": 103925
+  },
+  {
+    "file": "trace2-inline-observer.json",
+    "sha256": "e5d052e95ab9da51d1130c43fc981727d17605dd146ca77445e3de047f58e5d0",
+    "bytes": 137186
+  },
+  {
+    "file": "trace2-pending-observer.json",
+    "sha256": "5aa90d89a367a4f03e48ddd7f8ba6fa17b2e1abcd0a6b2122880ed4a854cf48c",
+    "bytes": 104400
+  }
+]

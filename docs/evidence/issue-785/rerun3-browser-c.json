@@ -1,0 +1,277 @@
+{
+  "batch": "c",
+  "startedAt": "2026-10-24T01:23:16.490588+00:00",
+  "finishedAt": "2026-10-24T01:31:15.507713+00:00",
+  "exitCode": 0,
+  "sourceBefore": "ca3e45a2e59f0cb9302e508fe2e2ef3cee60d9a2a727efb9208f367836ecc956",
+  "sourceAfter": "ca3e45a2e59f0cb9302e508fe2e2ef3cee60d9a2a727efb9208f367836ecc956",
+  "sourceStable": true,
+  "sourceChangedPaths": [],
+  "generatedConfigChangedPaths": [
+    "next-env.d.ts",
+    "tsconfig.json"
+  ],
+  "fullCheckoutSourceStable": false,
+  "generatedConfigBefore": {
+    "next-env.d.ts": "79188d659e89eba7a027d37b0c72c4535777cbd586f10b3f1b5d3614f49caf75",
+    "tsconfig.json": "4798706442f5b3d84613139ffa811168c92d98a1098911ba543dbedb7cb36358"
+  },
+  "generatedConfigAfter": {
+    "next-env.d.ts": "4c2e28915a7dd7d2e1083f344ff6f56fdce2ee181ea5aca205821087bc09c8cf",
+    "tsconfig.json": "e250175d10a4579c0a707e6e5b332f66123459330b5f356b8771c81830ab1543"
+  },
+  "tools": {
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "os": "Linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "next": "16.4.2",
+    "zod": "4.6.7",
+    "@playwright/test": "1.63.0"
+  },
+  "command": {
+    "batch": "c",
+    "expectedCount": 15,
+    "argv": [
+      "npx",
+      "--no-install",
+      "playwright",
+      "test",
+      "--config=tests/config/playwright.config.ts",
+      "--project=chromium",
+      "--workers=1",
+      "--retries=0",
+      "--max-failures=0",
+      "tests/e2e/issue-730-view-composer.spec.ts",
+      "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+      "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+      "--grep",
+      "#730 |#732 |#733 "
+    ],
+    "environmentUnset": [
+      "PLAYWRIGHT_BASE_URL"
+    ]
+  },
+  "stats": {
+    "total": 15,
+    "expected": 15,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "durationMs": 499828.225,
+  "cases": [
+    {
+      "file": "issue-730-view-composer.spec.ts",
+      "title": "#730 지연 원본은 새 상세·상세 Task 명령·이름 검색에 양보한다",
+      "location": {
+        "file": "issue-730-view-composer.spec.ts",
+        "line": 90,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 19740,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-730-view-composer.spec.ts",
+      "title": "#730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 복원·Gantt 보존",
+      "location": {
+        "file": "issue-730-view-composer.spec.ts",
+        "line": 205,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 25384,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-730-view-composer.spec.ts",
+      "title": "#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차단·구버전 설정 복구",
+      "location": {
+        "file": "issue-730-view-composer.spec.ts",
+        "line": 281,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 21781,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-730-view-composer.spec.ts",
+      "title": "#730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키보드·읽기 전용 가상 그룹",
+      "location": {
+        "file": "issue-730-view-composer.spec.ts",
+        "line": 409,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 21796,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-730-view-composer.spec.ts",
+      "title": "#730 실제 HTTP Milestone·리소스·WorkArea 원본 ID와 취소 후 정확한 조회 복귀",
+      "location": {
+        "file": "issue-730-view-composer.spec.ts",
+        "line": 437,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 24727,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-730-view-composer.spec.ts",
+      "title": "#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관점 보존",
+      "location": {
+        "file": "issue-730-view-composer.spec.ts",
+        "line": 514,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 21159,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-732-milestone-dashboard.spec.ts",
+      "title": "#732 Target0 Milestone 단독·두 계층·전체 Gate·5폭과 keyboard",
+      "location": {
+        "file": "issue-732-milestone-dashboard.spec.ts",
+        "line": 36,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 18720,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-732-milestone-dashboard.spec.ts",
+      "title": "#732 Milestone readonly 조회는 추가를 차단하고 mutation을 만들지 않는다",
+      "location": {
+        "file": "issue-732-milestone-dashboard.spec.ts",
+        "line": 80,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 17102,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-732-milestone-dashboard.spec.ts",
+      "title": "#732 Milestone 소속 Task 원본 저장은 같은 경로·새 snapshot으로 복귀하고 stale/error 명령을 잠근다",
+      "location": {
+        "file": "issue-732-milestone-dashboard.spec.ts",
+        "line": 90,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 16619,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-732-milestone-dashboard.spec.ts",
+      "title": "#732 조건 밖 생성 성공은 필터를 유지하고 정확한 원본 접근을 안내한다",
+      "location": {
+        "file": "issue-732-milestone-dashboard.spec.ts",
+        "line": 129,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 17196,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-733-process-workarea-dashboard.spec.ts",
+      "title": "#733 Target0 다중 구역·동급 설비/System·고유 KPI·단독 및 Milestone 경로·정확 원본 복귀",
+      "location": {
+        "file": "issue-733-process-workarea-dashboard.spec.ts",
+        "line": 53,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 20906,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-733-process-workarea-dashboard.spec.ts",
+      "title": "#733 공정 조회 긴 이름·5폭 내부 스크롤·키보드",
+      "location": {
+        "file": "issue-733-process-workarea-dashboard.spec.ts",
+        "line": 118,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 19547,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-733-process-workarea-dashboard.spec.ts",
+      "title": "#733 공정 단독 readonly 조회는 원본 편집과 mutation을 제공하지 않는다",
+      "location": {
+        "file": "issue-733-process-workarea-dashboard.spec.ts",
+        "line": 161,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 15369,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-733-process-workarea-dashboard.spec.ts",
+      "title": "#733 공정 작업 원본 저장은 같은 경로·새 snapshot으로 복귀하고 stale/error 명령을 잠근다",
+      "location": {
+        "file": "issue-733-process-workarea-dashboard.spec.ts",
+        "line": 171,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 16224,
+      "retry": 0,
+      "errorFirstLine": null
+    },
+    {
+      "file": "issue-733-process-workarea-dashboard.spec.ts",
+      "title": "#733 WorkArea 원본 dirty 유지·이름 저장은 같은 구역 경로와 새 snapshot으로 복귀한다",
+      "location": {
+        "file": "issue-733-process-workarea-dashboard.spec.ts",
+        "line": 209,
+        "column": 5
+      },
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 15226,
+      "retry": 0,
+      "errorFirstLine": null
+    }
+  ],
+  "rawLogSha256": "3e695959cafe72e47a0e6edf141a0674650335999b5786bcefd6c269928395e4"
+}

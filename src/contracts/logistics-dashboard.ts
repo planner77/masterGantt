@@ -96,6 +96,7 @@ export interface LogisticsDashboardSystemRowDto {
 }
 
 export interface LogisticsDashboardDto {
+  integrated?: LogisticsIntegratedKpiDto;
   /** Additive full-stage projection; existing KPI/effort/included ID scopes are unchanged. */
   milestoneStages?: { milestoneTaskIds: string[]; rows: MilestoneDashboardStageDto[] };
   projectRevision: number;
@@ -120,4 +121,59 @@ export interface LogisticsDashboardDto {
 
 export interface LogisticsDashboardResponse {
   data: LogisticsDashboardDto;
+}
+
+/** Explicit opt-in consumer. The historical /logistics/dashboard response stays unchanged. */
+export interface LogisticsIntegratedKpiDto {
+  source: "direct+target:v1" | "physical-connections:v2";
+  contextSourceVersion: "explicit-task-context:v1";
+  snapshotId: string;
+  dataSnapshotId: string;
+  filters: LogisticsDashboardFilterInput;
+  assignmentIds: string[];
+  effortState: "empty" | "configured" | "partial" | "unset";
+  assignmentRows: Array<{ id: string; taskId: string; targetKind: "resource" | "group"; targetId: string; targetName: string; allocationPercent: number | null }>;
+  resourceRows: Array<{ id: string; name: string; code: string | null }>;
+  taskSources: Array<{
+    taskId: string;
+    processIds: string[];
+    workAreaIds: string[];
+    equipmentIds: string[];
+    systemIds: string[];
+    targetIds: string[];
+    sources: import("../domain/resources/wbs-task-ledger").WbsTaskLedgerSource[];
+  }>;
+  configuration: {
+    scope: "registered configuration; independent from related Task/Assignment population";
+    processIds: string[];
+    workAreaIds: string[];
+    equipmentIds: string[];
+    equipmentQuantity: number;
+    systemIds: string[];
+    registeredResourceIds: string[];
+    participatingResourceIds: string[];
+    assignedResourceIds: string[];
+    targets: Array<{ id: string; name: string; active: boolean; taskIds: string[] }>;
+    workAreas: Array<{ id: string; name: string; active: boolean; processIds: string[]; taskIds: string[]; assignmentIds: string[]; equipmentIds: string[]; equipmentQuantity: number }>;
+  };
+  diagnostics: {
+    scope: "full canonical Project; missing responsibility diagnostics use active masters";
+    unlinkedTaskIds: string[];
+    unlinkedLeafTaskIds: string[];
+    completelyUnassignedTaskIds: string[];
+    personallyUnassignedTaskIds: string[];
+    groupOnlyTaskIds: string[];
+    unsetAllocationTaskIds: string[];
+    unsetAllocationAssignmentIds: string[];
+    equipmentWithoutPrimaryControllerIds: string[];
+    equipmentWithoutOwnerIds: string[];
+    systemsWithoutPrimaryPIIds: string[];
+    equipmentWithoutTaskIds: string[];
+    systemsWithoutTaskIds: string[];
+    targetWithoutTaskIds: string[];
+    processWithoutTaskIds: string[];
+    workAreaWithoutTaskIds: string[];
+    legacyContextTaskIds: string[];
+    explicitEmptyProcessTaskIds: string[];
+  };
 }

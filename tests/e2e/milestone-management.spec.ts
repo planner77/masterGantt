@@ -1,3 +1,5 @@
+import { expectRawIdentifier } from "./helpers/identifier-details";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
@@ -24,7 +26,7 @@ async function fixture(page: Page, editable = true, count = 30) {
   });
   await page.goto(`/projects/${publicId}`);
   const identity = await rememberGanttRoot(page);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   await expect(panel(page).getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
   return { state, identity };
 }
@@ -42,7 +44,7 @@ async function layoutObservation(page: Page) {
     const rect = (element: Element) => { const r = element.getBoundingClientRect(); return { x: r.x, y: r.y, right: r.right, bottom: r.bottom, width: r.width, height: r.height }; };
     const headers = Array.from(table.querySelectorAll("thead th")).map(rect);
     const cells = Array.from(table.querySelectorAll("tbody tr:first-child td")).map(rect);
-    const buttons = Array.from(table.querySelectorAll("tbody tr:first-child button")).map(button => ({ button: rect(button), cell: rect(button.closest("td")!) }));
+    const buttons = Array.from(table.querySelectorAll("tbody tr:first-child button")).filter(button => button.checkVisibility()).map(button => ({ button: rect(button), cell: rect(button.closest("td")!) }));
     const toolbar = dashboard.querySelector('[class*="sectionHeading"]')!;
     const controls = Array.from(toolbar.querySelectorAll("button")).map(rect);
     const focus = document.activeElement!, style = getComputedStyle(focus);
@@ -70,10 +72,11 @@ async function fallbackObservation(page: Page) {
 for (const width of [390, 768, 1024, 1440, 1920]) test(`#550 관리 목록 ${width}px · readonly/keyboard/긴 이름/많은 행`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: 900 });
   const { state, identity } = await fixture(page, false), before = JSON.stringify({ tasks: state.tasks, links: state.links, revision: state.project.revision });
-  const table = panel(page).getByRole("region", { name: "완료 단계 전체 상태 표 가로 스크롤" });
+  const table = panel(page).getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤" });
   await expect(panel(page).getByRole("button", { name: "Milestone 추가", exact: true })).toBeDisabled();
   const rows = panel(page).locator("tr[data-milestone-task-id]");
   expect(await rows.count()).toBe(30);
+  await expect(rows.first().getByRole("button", { name: /Milestone 상세$/ })).toBeEnabled();
   const trigger = rows.first().getByRole("button", { name: / 관리$/ });
   await trigger.focus(); await page.keyboard.press("Enter");
   const menu = page.getByRole("dialog", { name: / 관리$/ }); await expect(menu).toBeVisible();
@@ -105,8 +108,8 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#550 관리 목록 ${wid
   await expectSameGanttRoot(page, identity);
   expect(JSON.stringify({ tasks: state.tasks, links: state.links, revision: state.project.revision })).toBe(before);
   expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
-  await panel(page).getByLabel("단계 검색", { exact: true }).fill("no-match-550");
-  await expect(panel(page).getByText("조건에 일치하는 완료 단계가 없습니다.", { exact: false })).toBeVisible();
+  await panel(page).getByLabel("Milestone 검색", { exact: true }).fill("no-match-550");
+  await expect(panel(page).getByText("조건에 일치하는 Milestone이 없습니다.", { exact: false })).toBeVisible();
 });
 
 test("#550 생성 pending·성공 exact ID·dirty 보호·동일 instance", async ({ page }, info) => {
@@ -121,7 +124,7 @@ test("#550 생성 pending·성공 exact ID·dirty 보호·동일 instance", asyn
   gate.resolve(); await expect(form).toBeHidden(); await expect(editor(page)).toBeVisible();
   expect(state.posts[0]).toMatchObject({ type: "milestone", duration: 0, progress: 0, parentExternalId: null }); expect(state.posts[0]).not.toHaveProperty("parentTaskId");
   const created = state.tasks.find(task => task.taskId === state.createdTaskIds[0])!;
-  await expect(editor(page)).toContainText(created.externalId);
+  await expectRawIdentifier(editor(page), "외부 ID", created.externalId);
   await editor(page).getByLabel("작업명", { exact: true }).fill("저장하지 않은 초안");
   await page.keyboard.press("Escape"); await expect(editor(page)).toContainText("저장하지 않은");
   await editor(page).getByRole("button", { name: "변경사항 버리고 닫기", exact: true }).click(); await expect(editor(page)).toBeHidden();
@@ -139,6 +142,10 @@ for (const outcome of ["401", "412", "network"] as const) test(`#550 생성 ${ou
   await expect(form.getByRole("alert").last()).toBeVisible(); await expect(form.getByLabel("Milestone 이름", { exact: true })).toHaveValue("실패 초안");
   await expect(form.getByLabel("요청 시작일", { exact: true })).toHaveValue("2026-10-09");
   expect(state.posts).toHaveLength(1); expect(state.project.revision).toBe(revision); expect(state.createdTaskIds).toHaveLength(0);
+  if (outcome === "412") {
+    await expect(form.getByRole("button", { name: "Milestone 생성", exact: true })).toBeDisabled();
+    await expect(form).toContainText("기준 Revision이 변경되었습니다");
+  }
   await capture(page, info, `create-${outcome}`, { revision, requestCount: state.posts.length, draftPreserved: true });
   await page.keyboard.press("Escape"); await expect(form).toContainText("초안을 버리고"); await form.getByRole("button", { name: "초안 버리고 닫기", exact: true }).click(); await expect(form).toBeHidden();
 });
@@ -189,7 +196,23 @@ test("#550 동일 ID utility·단일 Copy·삭제 확인·삭제 후 목록 focu
   const confirm = page.getByRole("dialog", { name: "작업 삭제", exact: true }); await expect(confirm).toBeVisible();
   expect(deleted).toHaveLength(0); await confirm.getByRole("button", { name: "하위 작업 포함 삭제", exact: true }).click();
   await expect(confirm).toBeHidden(); await expect(row).toHaveCount(0);
-  await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute("data-milestone-focus"))).toMatch(/search|add|heading/);
+  // #647 / historical #616 recovery #2621 (shard 3): a disconnected
+  // management trigger may not reclaim focus from a native closing dialog.
+  // Verify a live, visible Milestone-panel focus owner, not merely a CSS
+  // selector that could pass on a hidden tab or disconnected element.
+  await expect.poll(() => page.evaluate(() => {
+    const active = document.activeElement;
+    const owner = document.getElementById("project-panel-milestones");
+    if (!(active instanceof HTMLElement) || !owner || owner.hidden || !owner.contains(active)) return null;
+    return active.getAttribute("data-milestone-focus");
+  })).toMatch(/^(search|add|heading)$/);
+  await expect(panel(page).getByLabel("Milestone 검색", { exact: true })).toBeFocused();
+  // #2626 shard 3: DOM focus alone is insufficient if preventScroll leaves the
+  // restored toolbar above the viewport; the visible focus ring must be hittable.
+  const restored = await fallbackObservation(page);
+  expect(restored.rect.y - restored.ring).toBeGreaterThanOrEqual(0);
+  expect(restored.rect.bottom + restored.ring).toBeLessThanOrEqual(restored.viewport.height);
+  expect(restored.centerHit).toBe(true);
   expect(deleted).toEqual([original.taskId]); await expectSameGanttRoot(page, identity);
   await capture(page, info, "commands-focus", { commands, deleted, revision: state.project.revision, instance: identity });
 });
@@ -216,7 +239,7 @@ test("#550 보고 검색 응답 역전 · 최신 조건과 canonical revision �
     const report = dashboardFixture(state, params); started.resolve(); await gate.promise;
     await route.fulfill({ json: { data: report } }); delivered.resolve();
   });
-  const search = panel(page).getByLabel("단계 검색", { exact: true });
+  const search = panel(page).getByLabel("Milestone 검색", { exact: true });
   await search.fill("late-550"); await started.promise;
   await search.fill("M-001");
   await expect(panel(page).getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
@@ -301,9 +324,9 @@ for (const reopen of ["same-id", "other-id"] as const) test(`#550 committed miss
   await expect(row).toBeVisible(); await expect(menu).toBeHidden();
   const requested = reopen === "same-id" ? milestone : other;
   await panel(page).locator(`[data-milestone-task-id="${requested.taskId}"]`).getByRole("button", { name: / 관리$/ }).click();
-  await expect(menu).toBeVisible(); await expect(menu).toContainText(requested.taskId);
+  await expect(menu).toBeVisible(); await expectRawIdentifier(menu, "작업 ID", requested.taskId);
   const frames = await releaseApplicationFrames(page); expect(frames.held).toBeGreaterThan(0); expect(frames.cancelled).toBeGreaterThan(0);
-  await expect(menu).toBeVisible(); await expect(menu).toContainText(requested.taskId);
+  await expect(menu).toBeVisible(); await expectRawIdentifier(menu, "작업 ID", requested.taskId);
   expect(await menu.evaluate(node => node.contains(document.activeElement))).toBe(true);
   expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0); await expectSameGanttRoot(page, identity);
   await capture(page, info, `expiry-race-${reopen}`, { committedMissing: true, returnedBeforeFrameRelease: true, automaticReopen: false, requestedTaskId: requested.taskId, frames, dialogRetainsFocus: true, mutation: 0, instance: identity });

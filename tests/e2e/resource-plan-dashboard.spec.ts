@@ -1,3 +1,5 @@
+import { toResourcePublicV2 } from "../../src/contracts/resource-public-v2";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import {
@@ -45,11 +47,11 @@ async function setup(page: import("@playwright/test").Page) {
   await page.route(`**${projectPath}/resource-dashboard?*`, (route) => {
     const q = new URL(route.request().url()).searchParams;
     return route.fulfill({
-      json: {
+      json: toResourcePublicV2({
         data: q.has("granularity")
           ? planUiFixture(state, q).data
           : resourceDashboardUiFixture(state, q),
-      },
+      }),
     });
   });
   for (const kind of ["daily", "day-resources", "day-assignments"] as const)
@@ -57,13 +59,13 @@ async function setup(page: import("@playwright/test").Page) {
       `**${projectPath}/resource-dashboard/plan/${kind}?*`,
       (route) =>
         route.fulfill({
-          json: {
+          json: toResourcePublicV2({
             data: planDetailsUiFixture(
               state,
               new URL(route.request().url()).searchParams,
               kind,
             ),
-          },
+          }),
         }),
     );
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -105,7 +107,7 @@ async function setup(page: import("@playwright/test").Page) {
       current.public?.left === current.dom.left && current.public?.top === current.dom.top;
   }).toBe(true);
   const before = await viewport(page);
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   await expect(root(page)).toHaveAttribute("data-ready", "true");
   await root(page)
     .getByLabel("리소스 보기", { exact: true })
@@ -143,7 +145,10 @@ test("#527 week/month two hierarchies 20geometry, bound50rows, sticky lastwindow
         const disclosure = table
           .locator('tr[data-plan-row="group"]')
           .first()
-          .locator("th button");
+          // #717: the row header also contains collapsed ID/copy controls.
+          // Only the direct expander owns aria-expanded, not raw-ID copy actions.
+          .locator('th > button[aria-expanded]');
+        await expect(disclosure).toHaveCount(1);
         if ((await disclosure.getAttribute("aria-expanded")) === "false")
           await disclosure.click();
       }
@@ -189,7 +194,7 @@ test("#527 week/month two hierarchies 20geometry, bound50rows, sticky lastwindow
                     1,
               ),
             ),
-            contained: Array.from(el.querySelectorAll("button")).every((b) => {
+            contained: Array.from(el.querySelectorAll("button")).filter(button => button.checkVisibility()).every((b) => {
               const c = b.closest("th,td")!.getBoundingClientRect(),
                 r = b.getBoundingClientRect();
               return r.left >= c.left - 1 && r.right <= c.right + 1;
@@ -347,7 +352,7 @@ test("#527 selected80/project140 parent warning, detail stack and paging focus",
   await expect(first).toContainText("활성");
   await expect(
     plan.locator('tr[data-plan-row="resourceMilestone"]').first(),
-  ).toContainText("단계 기여(선택)");
+  ).toContainText("Milestone 기여(선택)");
   await plan.getByLabel("부하 범위").selectOption("project");
   await expect(
     plan.locator('tr[data-plan-row="resourceMilestone"]').first(),
@@ -375,17 +380,21 @@ test("#527 50visible hierarchy page context and daily pager focus survive view r
     table = plan
       .getByRole("region", { name: "그룹 기간 계획표", exact: true })
       .locator("table");
-  await table
-    .locator('tr[data-plan-row="group"]')
-    .first()
-    .locator("th button")
-    .click();
+  // #717: the header also contains hidden, readonly ID/code copy buttons.
+  // Keep those actions hidden by default and target the unique painted expander.
+  const groupRow = table.locator('tr[data-plan-row="group"]').first();
+  const hiddenIdentityCopies = groupRow.locator('th details:not([open]) button');
+  expect(await hiddenIdentityCopies.count()).toBeGreaterThan(0);
+  await expect(hiddenIdentityCopies.first()).toBeHidden();
+  const groupDisclosure = groupRow.locator('th > button[aria-expanded]');
+  await expect(groupDisclosure).toHaveCount(1);
+  await groupDisclosure.click();
+  await expect(groupDisclosure).toHaveAttribute("aria-expanded", "true");
   for (let i = 0; i < 24; i++) {
     const disclosure = table
       .locator('tr[data-plan-row="resource"]')
       .filter({ hasText: new RegExp(`^개인 ${i} `) })
-      .getByRole("button")
-      .first();
+      .locator('th > button[aria-expanded]');
     if (
       !(await disclosure.count()) &&
       (await plan

@@ -7,7 +7,7 @@ import { assertFocusVisible, assertIdentifiableInput, assertSiblingControls, cap
 const admins = [
   { page: "/resources", name: "resource", session: "/api/resource-catalog/admin-sessions", catalog: "/api/resources", data: { revision: 1, resources: [], groups: [] } },
   { page: "/logistics-admin", name: "logistics", session: "/api/logistics-catalog/admin-sessions", catalog: "/api/logistics-catalog/admin/equipment-types", data: { revision: 1, equipmentTypes: [], systemTypes: [] } },
-  { page: "/project-master-admin", name: "master", session: "/api/project-master/admin-sessions", catalog: "/api/project-master/admin/items", data: { revision: 1, businessUnits: [], products: [], siteEntities: [], items: [] } },
+  { page: "/project-master-admin", name: "master", session: "/api/project-master/admin-sessions", catalog: "/api/project-master/admin/items", data: { revision: 1, businessUnits: [], products: [], siteEntities: [], relations: [], items: [] } },
 ];
 test.use({ locale: "ko-KR", timezoneId: "Asia/Seoul" });
 const baseline = false;

@@ -1,0 +1,59 @@
+{
+  "description": "최종 동결 소스의 선정 브라우저 검증이다. 공식 원격 전체 회귀 결과를 대신하지 않는다.",
+  "batch": "final-direct-focus",
+  "startedAt": "2026-10-19T08:46:14.105884+00:00",
+  "finishedAt": "2026-10-19T08:47:55.112846+00:00",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--config",
+    "tests/config/playwright.config.ts",
+    "tests/e2e/issue-730-view-composer.spec.ts",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=0",
+    "--reporter=list,json",
+    "--output=/home/planner/Dev/masterGantt-issue-730-rework/.prepr-reports/issue-730-rework/final-direct-focus",
+    "--grep",
+    "지연 원본은|실제 HTTP Milestone·리소스"
+  ],
+  "exitCode": 0,
+  "sourceStable": true,
+  "sourceFiles": 656,
+  "changedSourceFiles": [],
+  "stats": {
+    "duration": 101693.178,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "title": "#730 지연 원본은 새 상세·상세 Task 명령·이름 검색에 양보한다",
+      "file": "issue-730-view-composer.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 28665
+        }
+      ]
+    },
+    {
+      "title": "#730 실제 HTTP Milestone·리소스·WorkArea 원본 ID와 취소 후 정확한 조회 복귀",
+      "file": "issue-730-view-composer.spec.ts",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 34183
+        }
+      ]
+    }
+  ],
+  "sourceSha256Before": "c743f9103205eab7cae3f5550f0097bcf0c3621a0d64054ea13379bc7f09cbda",
+  "sourceSha256After": "c743f9103205eab7cae3f5550f0097bcf0c3621a0d64054ea13379bc7f09cbda",
+  "sourceManifest": "final-source-freeze.json"
+}

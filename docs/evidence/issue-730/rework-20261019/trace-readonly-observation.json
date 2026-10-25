@@ -1,0 +1,28 @@
+{
+  "schema": "issue-730-trace-readonly-observation/1",
+  "observedAtUtc": "2026-10-19T08:37:04.508458+00:00",
+  "runId": 39215173057,
+  "runAttempt": 1,
+  "jobId": 117937947454,
+  "artifact": {
+    "id": 12169197471,
+    "name": "playwright-report-shard-1",
+    "sha256": "428cdaba126af35a7fd368652890806e428255cde1d4d07bb37eda45a73b68f4",
+    "digestValidated": true,
+    "archiveBytes": 5766811,
+    "nestedTraceZipBytes": 5402194
+  },
+  "stackSpecFiles": [
+    "milestone-dashboard-state.spec.ts"
+  ],
+  "networkEntriesRead": 2,
+  "nonGetApiRequests": [
+    {
+      "method": "POST",
+      "pathnameTemplate": "/api/projects/[publicId]/resource-dashboard/views",
+      "status": 404
+    }
+  ],
+  "finding": "실패 #463 trace의 유일한 non-GET API 요청은 POST /api/projects/[publicId]/resource-dashboard/views이며 status404이다. 초기 writes1 오류에 관해 실제 조회 URL을 추가 확인했다. status200 또는 업무 mutation 성공을 뜻하지 않는다.",
+  "boundary": "과거 UNKNOWN 문장을 수정하지 않고 날짜가 있는 추가 분석으로 append한다. ZIP/중첩ZIP은 메모리에서 제한 크기로 읽었으며 extract/실행하지 않았다. header/cookie/body/query·원시trace/ZIP·다운로드URL은 출력하거나 파일에 보존하지 않는다."
+}

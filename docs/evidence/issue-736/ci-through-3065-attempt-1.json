@@ -1,0 +1,986 @@
+{
+  "issue": 736,
+  "pr": 760,
+  "repository": "planner77/masterGantt",
+  "branch": "feat/issue-736-resource-dashboard",
+  "collectionScope": {
+    "branchEvent": "pull_request",
+    "listedRuns": 3,
+    "pageSize": 100,
+    "allRunsAttemptOne": true,
+    "ciResultsAreHistorical": true
+  },
+  "runs": [
+    {
+      "runId": 39439974649,
+      "runNumber": 3059,
+      "runAttempt": 1,
+      "event": "pull_request",
+      "headSha": "94e602c3ee3c524dc41b348dd8ebe20330d59d1e",
+      "baseSha": "08a1d9ff25a97aba67f08d6b67029ac55d45121a",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649",
+      "createdAt": "2026-10-20T14:31:17Z",
+      "startedAt": "2026-10-20T14:31:17Z",
+      "updatedAt": "2026-10-20T14:42:35Z",
+      "sourceArtifact": [
+        {
+          "id": 12273665124,
+          "name": "ci-pr-source-39439974649-1",
+          "digest": "sha256:571780b8f113e8e01ee837232b90fe9b5f780b0ebd362379048dd00a461f944b"
+        }
+      ],
+      "jobs": [
+        {
+          "jobId": 118686918254,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:31:20Z",
+          "completedAt": "2026-10-20T14:31:31Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118686918254"
+        },
+        {
+          "jobId": 118686919110,
+          "name": "변경 경로 판정",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:31:21Z",
+          "completedAt": "2026-10-20T14:31:36Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118686919110"
+        },
+        {
+          "jobId": 118687076849,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:31:38Z",
+          "completedAt": "2026-10-20T14:31:53Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118687076849"
+        },
+        {
+          "jobId": 118687078559,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:31:36Z",
+          "completedAt": "2026-10-20T14:31:36Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118687078559"
+        },
+        {
+          "jobId": 118687236102,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:31:56Z",
+          "completedAt": "2026-10-20T14:33:16Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118687236102"
+        },
+        {
+          "jobId": 118687236119,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:31:56Z",
+          "completedAt": "2026-10-20T14:32:40Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118687236119"
+        },
+        {
+          "jobId": 118687236139,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "failure",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:31:56Z",
+          "completedAt": "2026-10-20T14:32:54Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118687236139"
+        },
+        {
+          "jobId": 118687236466,
+          "name": "ESLint",
+          "conclusion": "cancelled",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:31:57Z",
+          "completedAt": "2026-10-20T14:42:00Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118687236466"
+        },
+        {
+          "jobId": 118687238399,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:31:54Z",
+          "completedAt": "2026-10-20T14:31:54Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118687238399"
+        },
+        {
+          "jobId": 118687239526,
+          "name": "Next.js production build",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:31:54Z",
+          "completedAt": "2026-10-20T14:31:54Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118687239526"
+        },
+        {
+          "jobId": 118687239537,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:31:54Z",
+          "completedAt": "2026-10-20T14:31:54Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118687239537"
+        },
+        {
+          "jobId": 118692633668,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "failure",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:42:02Z",
+          "completedAt": "2026-10-20T14:42:12Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118692633668"
+        },
+        {
+          "jobId": 118692740545,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:42:15Z",
+          "completedAt": "2026-10-20T14:42:18Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118692740545"
+        },
+        {
+          "jobId": 118692740869,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:42:15Z",
+          "completedAt": "2026-10-20T14:42:18Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118692740869"
+        },
+        {
+          "jobId": 118692741384,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:42:15Z",
+          "completedAt": "2026-10-20T14:42:19Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118692741384"
+        },
+        {
+          "jobId": 118692741735,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6 · PR",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:42:12Z",
+          "completedAt": "2026-10-20T14:42:12Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118692741735"
+        },
+        {
+          "jobId": 118692742666,
+          "name": "Docker smoke 구현",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:42:13Z",
+          "completedAt": "2026-10-20T14:42:12Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118692742666"
+        },
+        {
+          "jobId": 118692742671,
+          "name": "PR Next.js production build",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:42:13Z",
+          "completedAt": "2026-10-20T14:42:12Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118692742671"
+        },
+        {
+          "jobId": 118692801510,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:42:21Z",
+          "completedAt": "2026-10-20T14:42:34Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118692801510"
+        },
+        {
+          "jobId": 118692803792,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T14:42:19Z",
+          "completedAt": "2026-10-20T14:42:19Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39439974649/job/118692803792"
+        }
+      ],
+      "testMergeSha": "a0289adf7c30db53aab4b07d5e0a1f82edaf35bf",
+      "sourceArtifactSchema": "mastergantt-ci-pr-source-v1",
+      "testMergeParentsVerified": true
+    },
+    {
+      "runId": 39485528120,
+      "runNumber": 3062,
+      "runAttempt": 1,
+      "event": "pull_request",
+      "headSha": "f340a84526a3b38ed602ebcc8eaf5010807269c2",
+      "baseSha": "08a1d9ff25a97aba67f08d6b67029ac55d45121a",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120",
+      "createdAt": "2026-10-20T19:40:59Z",
+      "startedAt": "2026-10-20T19:40:59Z",
+      "updatedAt": "2026-10-20T19:53:56Z",
+      "sourceArtifact": [
+        {
+          "id": 12292154291,
+          "name": "ci-pr-source-39485528120-1",
+          "digest": "sha256:12b9b038d145b4dc462c2ec4be3dfa02d2d290d5d554355e5ae822b9168417d7"
+        }
+      ],
+      "jobs": [
+        {
+          "jobId": 118844817360,
+          "name": "변경 경로 판정",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:41:01Z",
+          "completedAt": "2026-10-20T19:41:12Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118844817360"
+        },
+        {
+          "jobId": 118844817624,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:41:02Z",
+          "completedAt": "2026-10-20T19:41:14Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118844817624"
+        },
+        {
+          "jobId": 118844920898,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:41:14Z",
+          "completedAt": "2026-10-20T19:41:25Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118844920898"
+        },
+        {
+          "jobId": 118844923287,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:41:12Z",
+          "completedAt": "2026-10-20T19:41:12Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118844923287"
+        },
+        {
+          "jobId": 118845026837,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:41:27Z",
+          "completedAt": "2026-10-20T19:42:22Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845026837"
+        },
+        {
+          "jobId": 118845026873,
+          "name": "ESLint",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:41:28Z",
+          "completedAt": "2026-10-20T19:42:39Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845026873"
+        },
+        {
+          "jobId": 118845026936,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:41:27Z",
+          "completedAt": "2026-10-20T19:42:34Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845026936"
+        },
+        {
+          "jobId": 118845026965,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:41:27Z",
+          "completedAt": "2026-10-20T19:42:16Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845026965"
+        },
+        {
+          "jobId": 118845029135,
+          "name": "Next.js production build",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:41:25Z",
+          "completedAt": "2026-10-20T19:41:25Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845029135"
+        },
+        {
+          "jobId": 118845029706,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:41:25Z",
+          "completedAt": "2026-10-20T19:41:25Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845029706"
+        },
+        {
+          "jobId": 118845030009,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:41:26Z",
+          "completedAt": "2026-10-20T19:41:25Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845030009"
+        },
+        {
+          "jobId": 118845625089,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:42:41Z",
+          "completedAt": "2026-10-20T19:43:14Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845625089"
+        },
+        {
+          "jobId": 118845905709,
+          "name": "Docker smoke 구현",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:43:17Z",
+          "completedAt": "2026-10-20T19:45:43Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845905709"
+        },
+        {
+          "jobId": 118845905766,
+          "name": "Chromium E2E shard 5/6 · PR",
+          "conclusion": "failure",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:43:16Z",
+          "completedAt": "2026-10-20T19:52:17Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845905766"
+        },
+        {
+          "jobId": 118845905767,
+          "name": "PR Next.js production build",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:43:16Z",
+          "completedAt": "2026-10-20T19:44:34Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845905767"
+        },
+        {
+          "jobId": 118845905770,
+          "name": "Chromium E2E shard 4/6 · PR",
+          "conclusion": "cancelled",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:43:16Z",
+          "completedAt": "2026-10-20T19:53:32Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845905770"
+        },
+        {
+          "jobId": 118845905789,
+          "name": "Chromium E2E shard 2/6 · PR",
+          "conclusion": "cancelled",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:43:16Z",
+          "completedAt": "2026-10-20T19:53:33Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845905789"
+        },
+        {
+          "jobId": 118845905831,
+          "name": "Chromium E2E shard 1/6 · PR",
+          "conclusion": "cancelled",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:43:16Z",
+          "completedAt": "2026-10-20T19:53:33Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845905831"
+        },
+        {
+          "jobId": 118845905944,
+          "name": "Chromium E2E shard 6/6 · PR",
+          "conclusion": "cancelled",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:43:17Z",
+          "completedAt": "2026-10-20T19:53:35Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845905944"
+        },
+        {
+          "jobId": 118845906042,
+          "name": "Chromium E2E shard 3/6 · PR",
+          "conclusion": "cancelled",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:43:16Z",
+          "completedAt": "2026-10-20T19:53:33Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118845906042"
+        },
+        {
+          "jobId": 118846549636,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:44:36Z",
+          "completedAt": "2026-10-20T19:44:40Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118846549636"
+        },
+        {
+          "jobId": 118847118908,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:45:46Z",
+          "completedAt": "2026-10-20T19:45:50Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118847118908"
+        },
+        {
+          "jobId": 118850965427,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:53:37Z",
+          "completedAt": "2026-10-20T19:53:39Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118850965427"
+        },
+        {
+          "jobId": 118851004741,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:53:42Z",
+          "completedAt": "2026-10-20T19:53:55Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118851004741"
+        },
+        {
+          "jobId": 118851007264,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T19:53:40Z",
+          "completedAt": "2026-10-20T19:53:39Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39485528120/job/118851007264"
+        }
+      ],
+      "testMergeSha": "4ca650d052b2a31ef4fb7b47f83f9a0e01500def",
+      "sourceArtifactSchema": "mastergantt-ci-pr-source-v1",
+      "testMergeParentsVerified": true,
+      "shardFiveTiming": {
+        "schemaVersion": 1,
+        "runId": "39485528120",
+        "runAttempt": 1,
+        "headSha": "4ca650d052b2a31ef4fb7b47f83f9a0e01500def",
+        "eventName": "pull_request",
+        "shard": 5,
+        "shardCount": 6,
+        "status": "failed",
+        "runnerReadyMs": 12663,
+        "entries": [
+          {
+            "file": "tests/e2e/admin-legacy-button-spacing.spec.ts",
+            "durationMs": 1624
+          },
+          {
+            "file": "tests/e2e/browser-task-logistics-links.spec.ts",
+            "durationMs": 783
+          },
+          {
+            "file": "tests/e2e/issue-622-resource-plan-target.spec.ts",
+            "durationMs": 46431
+          },
+          {
+            "file": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+            "durationMs": 39339
+          },
+          {
+            "file": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+            "durationMs": 37033
+          },
+          {
+            "file": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+            "durationMs": 30499
+          },
+          {
+            "file": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+            "durationMs": 33125
+          },
+          {
+            "file": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+            "durationMs": 29952
+          },
+          {
+            "file": "tests/e2e/issue-736-resource-dashboard.spec.ts",
+            "durationMs": 38927
+          },
+          {
+            "file": "tests/e2e/issue-736-resource-dashboard.spec.ts",
+            "durationMs": 29879
+          }
+        ]
+      }
+    },
+    {
+      "runId": 39488288938,
+      "runNumber": 3065,
+      "runAttempt": 1,
+      "event": "pull_request",
+      "headSha": "3c335ba1cd4ac3f747f2f841fde16a81353aa490",
+      "baseSha": "08a1d9ff25a97aba67f08d6b67029ac55d45121a",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938",
+      "createdAt": "2026-10-20T20:00:33Z",
+      "startedAt": "2026-10-20T20:00:33Z",
+      "updatedAt": "2026-10-20T20:12:14Z",
+      "sourceArtifact": [
+        {
+          "id": 12293762736,
+          "name": "ci-pr-source-39488288938-1",
+          "digest": "sha256:916b26f8006c97e561d689a1755e252f6503679bb342e02a91ddf23f06f0143c"
+        }
+      ],
+      "jobs": [
+        {
+          "jobId": 118854370013,
+          "name": "QA Final 신뢰 경계 확인",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:00:36Z",
+          "completedAt": "2026-10-20T20:00:47Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118854370013"
+        },
+        {
+          "jobId": 118854370394,
+          "name": "변경 경로 판정",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:00:36Z",
+          "completedAt": "2026-10-20T20:00:47Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118854370394"
+        },
+        {
+          "jobId": 118854484378,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:00:50Z",
+          "completedAt": "2026-10-20T20:01:01Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118854484378"
+        },
+        {
+          "jobId": 118854487199,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:00:48Z",
+          "completedAt": "2026-10-20T20:00:47Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118854487199"
+        },
+        {
+          "jobId": 118854598334,
+          "name": "TypeScript 타입 검사",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:01:03Z",
+          "completedAt": "2026-10-20T20:01:37Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118854598334"
+        },
+        {
+          "jobId": 118854598524,
+          "name": "정책·저장소 계약 검사",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:01:03Z",
+          "completedAt": "2026-10-20T20:01:56Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118854598524"
+        },
+        {
+          "jobId": 118854598640,
+          "name": "Vitest 단위·통합 테스트",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:01:03Z",
+          "completedAt": "2026-10-20T20:02:35Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118854598640"
+        },
+        {
+          "jobId": 118854598848,
+          "name": "ESLint",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:01:03Z",
+          "completedAt": "2026-10-20T20:01:56Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118854598848"
+        },
+        {
+          "jobId": 118854600650,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/6",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:01:01Z",
+          "completedAt": "2026-10-20T20:01:01Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118854600650"
+        },
+        {
+          "jobId": 118854601677,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:01:01Z",
+          "completedAt": "2026-10-20T20:01:01Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118854601677"
+        },
+        {
+          "jobId": 118854602035,
+          "name": "Next.js production build",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:01:01Z",
+          "completedAt": "2026-10-20T20:01:01Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118854602035"
+        },
+        {
+          "jobId": 118855379431,
+          "name": "PR 빠른 검사 판정",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:02:37Z",
+          "completedAt": "2026-10-20T20:02:50Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118855379431"
+        },
+        {
+          "jobId": 118855505273,
+          "name": "PR Next.js production build",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:02:52Z",
+          "completedAt": "2026-10-20T20:03:55Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118855505273"
+        },
+        {
+          "jobId": 118855505332,
+          "name": "Docker smoke 구현",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:02:52Z",
+          "completedAt": "2026-10-20T20:05:04Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118855505332"
+        },
+        {
+          "jobId": 118855505496,
+          "name": "Chromium E2E shard 6/6 · PR",
+          "conclusion": "cancelled",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:02:52Z",
+          "completedAt": "2026-10-20T20:11:54Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118855505496"
+        },
+        {
+          "jobId": 118855505534,
+          "name": "Chromium E2E shard 1/6 · PR",
+          "conclusion": "cancelled",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:02:52Z",
+          "completedAt": "2026-10-20T20:11:52Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118855505534"
+        },
+        {
+          "jobId": 118855505554,
+          "name": "Chromium E2E shard 4/6 · PR",
+          "conclusion": "cancelled",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:02:52Z",
+          "completedAt": "2026-10-20T20:11:53Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118855505554"
+        },
+        {
+          "jobId": 118855505585,
+          "name": "Chromium E2E shard 2/6 · PR",
+          "conclusion": "cancelled",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:02:52Z",
+          "completedAt": "2026-10-20T20:11:55Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118855505585"
+        },
+        {
+          "jobId": 118855505647,
+          "name": "Chromium E2E shard 5/6 · PR",
+          "conclusion": "failure",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:02:52Z",
+          "completedAt": "2026-10-20T20:10:40Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118855505647"
+        },
+        {
+          "jobId": 118855505688,
+          "name": "Chromium E2E shard 3/6 · PR",
+          "conclusion": "cancelled",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:02:52Z",
+          "completedAt": "2026-10-20T20:11:54Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118855505688"
+        },
+        {
+          "jobId": 118856046491,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:03:57Z",
+          "completedAt": "2026-10-20T20:04:00Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118856046491"
+        },
+        {
+          "jobId": 118856618749,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:05:07Z",
+          "completedAt": "2026-10-20T20:05:11Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118856618749"
+        },
+        {
+          "jobId": 118860027492,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:11:57Z",
+          "completedAt": "2026-10-20T20:12:00Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118860027492"
+        },
+        {
+          "jobId": 118860070910,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:12:02Z",
+          "completedAt": "2026-10-20T20:12:13Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118860070910"
+        },
+        {
+          "jobId": 118860073092,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "conclusion": "skipped",
+          "attempt": 1,
+          "startedAt": "2026-10-20T20:12:01Z",
+          "completedAt": "2026-10-20T20:12:01Z",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/39488288938/job/118860073092"
+        }
+      ],
+      "testMergeSha": "4253da1cb93aa72a69502f15111298357495ab41",
+      "sourceArtifactSchema": "mastergantt-ci-pr-source-v1",
+      "testMergeParentsVerified": true,
+      "shardFiveTiming": {
+        "schemaVersion": 1,
+        "runId": "39488288938",
+        "runAttempt": 1,
+        "headSha": "4253da1cb93aa72a69502f15111298357495ab41",
+        "eventName": "pull_request",
+        "shard": 5,
+        "shardCount": 6,
+        "status": "failed",
+        "runnerReadyMs": 10849,
+        "entries": [
+          {
+            "file": "tests/e2e/admin-legacy-button-spacing.spec.ts",
+            "durationMs": 1401
+          },
+          {
+            "file": "tests/e2e/browser-task-logistics-links.spec.ts",
+            "durationMs": 666
+          },
+          {
+            "file": "tests/e2e/issue-622-resource-plan-target.spec.ts",
+            "durationMs": 39737
+          },
+          {
+            "file": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+            "durationMs": 31580
+          },
+          {
+            "file": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+            "durationMs": 30571
+          },
+          {
+            "file": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+            "durationMs": 25037
+          },
+          {
+            "file": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+            "durationMs": 27830
+          },
+          {
+            "file": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+            "durationMs": 25521
+          },
+          {
+            "file": "tests/e2e/issue-736-resource-dashboard.spec.ts",
+            "durationMs": 33939
+          },
+          {
+            "file": "tests/e2e/issue-736-resource-dashboard.spec.ts",
+            "durationMs": 25709
+          }
+        ]
+      }
+    }
+  ],
+  "cancelledShardObservations": [
+    {
+      "run_id": 39485528120,
+      "id": 118845905770,
+      "name": "Chromium E2E shard 4/6 · PR",
+      "selected": 160,
+      "passes": 32,
+      "failures": 0,
+      "skipped": 0,
+      "first": "﻿2026-10-20T19:43:17.2960122Z Current runner version: '2.337.0'",
+      "cancel": "2026-10-20T19:53:29.6052672Z ##[error]The operation was canceled.",
+      "lastPassed": "2026-10-20T19:53:12.5000884Z   ✓   32 [chromium] › tests/e2e/project-list-search-filter.spec.ts:18:7 › Issue #84 프로젝트 목록 검색·필터 › Quick Search와 고급 조건을 AND로 조합하고 서버 재조회 없이 초기화한다 (2.0s)",
+      "actualFailures": []
+    },
+    {
+      "run_id": 39485528120,
+      "id": 118845905789,
+      "name": "Chromium E2E shard 2/6 · PR",
+      "selected": 134,
+      "passes": 111,
+      "failures": 0,
+      "skipped": 1,
+      "first": "﻿2026-10-20T19:43:17.4553372Z Current runner version: '2.337.0'",
+      "cancel": "2026-10-20T19:53:30.2036461Z ##[error]The operation was canceled.",
+      "lastPassed": "2026-10-20T19:53:23.8943829Z   ✓  112 [chromium] › tests/e2e/project-task-persistence.spec.ts:58:5 › persists pointer edits, restores rejected writes, and serializes a same-revision race (20.5s)",
+      "actualFailures": []
+    },
+    {
+      "run_id": 39485528120,
+      "id": 118845905831,
+      "name": "Chromium E2E shard 1/6 · PR",
+      "selected": 142,
+      "passes": 23,
+      "failures": 0,
+      "skipped": 0,
+      "first": "﻿2026-10-20T19:43:17.6896158Z Current runner version: '2.337.0'",
+      "cancel": "2026-10-20T19:53:30.0378781Z ##[error]The operation was canceled.",
+      "lastPassed": "2026-10-20T19:53:27.1547492Z   ✓   23 [chromium] › tests/e2e/milestone-timeline-core.spec.ts:73:55 › #549 Core filter geometry/no-loss 768px (5.0s)",
+      "actualFailures": []
+    },
+    {
+      "run_id": 39485528120,
+      "id": 118845905944,
+      "name": "Chromium E2E shard 6/6 · PR",
+      "selected": 139,
+      "passes": 53,
+      "failures": 0,
+      "skipped": 0,
+      "first": "﻿2026-10-20T19:43:17.9428965Z Current runner version: '2.337.0'",
+      "cancel": "2026-10-20T19:53:30.6811213Z ##[error]The operation was canceled.",
+      "lastPassed": "2026-10-20T19:53:29.1554610Z   ✓   53 [chromium] › tests/e2e/logistics-dashboard-request-state.spec.ts:210:7 › #731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 390px (2.7s)",
+      "actualFailures": []
+    },
+    {
+      "run_id": 39485528120,
+      "id": 118845906042,
+      "name": "Chromium E2E shard 3/6 · PR",
+      "selected": 108,
+      "passes": 46,
+      "failures": 0,
+      "skipped": 0,
+      "first": "﻿2026-10-20T19:43:17.6981463Z Current runner version: '2.337.0'",
+      "cancel": "2026-10-20T19:53:30.2873038Z ##[error]The operation was canceled.",
+      "lastPassed": "2026-10-20T19:53:21.9773518Z   ✓   46 [chromium] › tests/e2e/issue-623-resource-mvp.spec.ts:300:3 › #623 실제 Target 다열·중첩Group 390px geometry·keyboard·query0·렌더관측 (22.1s)",
+      "actualFailures": []
+    },
+    {
+      "run_id": 39488288938,
+      "id": 118855505496,
+      "name": "Chromium E2E shard 6/6 · PR",
+      "selected": 139,
+      "passes": 47,
+      "failures": 0,
+      "skipped": 0,
+      "first": "﻿2026-10-20T20:02:53.1921077Z Current runner version: '2.338.0'",
+      "cancel": "2026-10-20T20:11:50.8879857Z ##[error]The operation was canceled.",
+      "lastPassed": "2026-10-20T20:11:50.1022968Z   ✓   47 [chromium] › tests/e2e/logistics-dashboard-request-state.spec.ts:127:5 › 기간 빈 값·0·91·소수는 field 오류와 GET 차단 후 정상 범위로 복구한다 (1.8s)",
+      "actualFailures": []
+    },
+    {
+      "run_id": 39488288938,
+      "id": 118855505534,
+      "name": "Chromium E2E shard 1/6 · PR",
+      "selected": 142,
+      "passes": 13,
+      "failures": 0,
+      "skipped": 0,
+      "first": "﻿2026-10-20T20:02:52.7248812Z Current runner version: '2.338.0'",
+      "cancel": "2026-10-20T20:11:50.0266244Z ##[error]The operation was canceled.",
+      "lastPassed": "2026-10-20T20:11:24.3821000Z   ✓   13 [chromium] › tests/e2e/issue-735-system-dashboard.spec.ts:212:5 › #735 readonly System 조회는 원본 편집·mutation을 제공하지 않는다 (40.1s)",
+      "actualFailures": []
+    },
+    {
+      "run_id": 39488288938,
+      "id": 118855505554,
+      "name": "Chromium E2E shard 4/6 · PR",
+      "selected": 160,
+      "passes": 32,
+      "failures": 0,
+      "skipped": 0,
+      "first": "﻿2026-10-20T20:02:52.7898743Z Current runner version: '2.338.0'",
+      "cancel": "2026-10-20T20:11:50.1592060Z ##[error]The operation was canceled.",
+      "lastPassed": "2026-10-20T20:11:45.4779082Z   ✓   32 [chromium] › tests/e2e/project-list-search-filter.spec.ts:18:7 › Issue #84 프로젝트 목록 검색·필터 › Quick Search와 고급 조건을 AND로 조합하고 서버 재조회 없이 초기화한다 (1.9s)",
+      "actualFailures": []
+    },
+    {
+      "run_id": 39488288938,
+      "id": 118855505585,
+      "name": "Chromium E2E shard 2/6 · PR",
+      "selected": 134,
+      "passes": 73,
+      "failures": 0,
+      "skipped": 1,
+      "first": "﻿2026-10-20T20:02:53.5060409Z Current runner version: '2.338.0'",
+      "cancel": "2026-10-20T20:11:51.2637109Z ##[error]The operation was canceled.",
+      "lastPassed": "2026-10-20T20:11:49.6203877Z   ✓   74 [chromium] › tests/e2e/project-gantt-inline-name.spec.ts:145:7 › #572 resources 탭에 숨겨진 동안 저장된 이름은 일정 복귀 때 확인된다 (5.0s)",
+      "actualFailures": []
+    },
+    {
+      "run_id": 39488288938,
+      "id": 118855505688,
+      "name": "Chromium E2E shard 3/6 · PR",
+      "selected": 108,
+      "passes": 50,
+      "failures": 0,
+      "skipped": 0,
+      "first": "﻿2026-10-20T20:02:52.9721048Z Current runner version: '2.338.0'",
+      "cancel": "2026-10-20T20:11:50.6932189Z ##[error]The operation was canceled.",
+      "lastPassed": "2026-10-20T20:11:45.7747035Z   ✓   50 [chromium] › tests/e2e/issue-623-resource-mvp.spec.ts:300:3 › #623 실제 Target 다열·중첩Group 1920px geometry·keyboard·query0·렌더관측 (15.4s)",
+      "actualFailures": []
+    }
+  ],
+  "legacyLintCancellation": {
+    "runId": 39439974649,
+    "runAttempt": 1,
+    "jobId": 118687236466,
+    "status": "cancelled",
+    "checkoutFetchStartedAt": "2026-10-20T14:31:58.7950321Z",
+    "cancelledAt": "2026-10-20T14:41:57.9508256Z",
+    "observation": "git fetch hung about 599 seconds; npm run lint never started",
+    "inference": "10-minute job timeout consistent; explicit timeout annotation not obtained",
+    "laterRunsLint": "SUCCESS"
+  },
+  "timeoutRebalanceDecision": {
+    "e2eTimeoutEvidence": false,
+    "jobTimeoutMinutes": 35,
+    "actualLatestFailedShardSeconds": 468,
+    "cancelledLatestShardsSeconds": [
+      540,
+      541,
+      542,
+      543
+    ],
+    "currentDecision": "No shard redistribution warranted by these assertion failures; retain gates, 6 shards, timeout, retry and fail-fast contracts",
+    "warning": "Cancelled runs do not establish full-shard critical runtime or complete suite PASS; compare completed successful runs before future rebalance"
+  },
+  "provenanceCaveat": "Historical run.pull_requests[].head resolves to current PR head; use immutable source artifact plus run.head_sha and Git two-parent API checks"
+}

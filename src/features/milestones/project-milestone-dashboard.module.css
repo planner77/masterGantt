@@ -48,7 +48,7 @@
 .causes h3 { min-width: 0; }
 .causeGroup ul { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .causeGroup li { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.causeGroup li > span { min-width: 0; }
+.causeIdentity { min-width: 0; overflow-wrap: anywhere; }
 .error { color: var(--status-error); border: 1px solid var(--border); padding: 12px; border-radius: 6px; }
 @media(max-width:1024px) { .filters { grid-template-columns: minmax(0,1fr) minmax(0,1fr); } .advancedGrid { grid-template-columns: repeat(2,minmax(0,1fr)); } .kpis { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media(max-width:540px) { .filters, .advancedGrid, .kpis { grid-template-columns: minmax(0,1fr); } .causeGroup li { flex-direction: column; } .sectionHeading { flex-wrap: wrap; } }
@@ -65,7 +65,10 @@
 .managementActions small { display: block; color: var(--text-muted); font-size: 12px; margin-top: 4px; }
 @media (max-width: 600px) { .sectionHeading { flex-wrap: wrap; } .managementActions { grid-template-columns: minmax(0, 1fr); } }
 
-.tableOwner { max-height: 480px; overflow: auto; }
+.stageTableOwner { max-height: 480px; overflow: auto; }
 .stageTable tr[data-date-highlight="true"] {
   background: var(--action-selected-subtle);
 }
+
+.metricHeading { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.kpis article .metricHeading button { margin-top: 0; }

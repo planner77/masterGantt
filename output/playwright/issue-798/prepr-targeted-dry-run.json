@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "tool": "mastergantt-prepr",
+  "issue": 798,
+  "mode": "targeted",
+  "status": "NOT TESTED",
+  "startedAt": "2026-10-24T23:05:16.553Z",
+  "completedAt": "2026-10-24T23:05:17.033Z",
+  "versions": {
+    "os": "linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "cpuCount": 16,
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "packageVersion": "0.132.0",
+    "lockVersion": "0.132.0",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "ciNode": "22",
+    "ciPlaywright": "1.63.0",
+    "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+    "e2e": {
+      "fullyParallel": true,
+      "workers": 1,
+      "shardsLocal": 1,
+      "shardsGitHub": 6,
+      "config": "tests/config/playwright.config.ts"
+    }
+  },
+  "risk": "HIGH",
+  "selection": {
+    "risk": "HIGH",
+    "inferredRisk": "HIGH",
+    "matched": [
+      {
+        "path": "src/features/resources/wbs-view-composer.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/wbs-view-dashboard.tsx",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      },
+      {
+        "path": "src/features/resources/wbs-view.module.css",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      }
+    ],
+    "unknown": [
+      {
+        "path": "tests/e2e/helpers/wbs-controls.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "tests/manual/issue-798-compare.py",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "tests/manual/issue-798-dashboard-density.mjs",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      }
+    ],
+    "missing": [],
+    "excluded": [],
+    "selected": [
+      {
+        "path": "tests/e2e/issue-730-view-composer.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-735-system-dashboard.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-736-resource-dashboard.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-737-target0-acceptance.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-762-process-workareas.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-stage-editor.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-resource-calendar-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-work-calendar-preview.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/resource-drill-ui.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/axis-transaction.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/date-adapter.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/milestone-timeline-adapter.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      }
+    ],
+    "state": "BLOCKED",
+    "notSelectedReason": "Not a mapped direct/adjacent consumer for this change; remote Required coverage unchanged"
+  },
+  "steps": [],
+  "deferred": [
+    {
+      "check": "GitHub QA Preflight / Trusted QA / Owner",
+      "state": "DEFERRED",
+      "reason": "GitHub PR metadata, protected base validator and signed approval required"
+    },
+    {
+      "check": "PR Required Quality/E2E/Docker aggregates",
+      "state": "DEFERRED",
+      "reason": "Exact PR head/base/test-merge/run/attempt must be verified by GitHub Actions"
+    },
+    {
+      "check": "6 independent Chromium runners and fail-fast",
+      "state": "DEFERRED",
+      "reason": "Local worker=1 cannot reproduce six GitHub runners"
+    },
+    {
+      "check": "npm audit --omit=dev",
+      "state": "DEFERRED",
+      "reason": "Requires npm registry and CI environment; run explicitly if available"
+    },
+    {
+      "check": "remote Compose/transport/GHCR",
+      "state": "DEFERRED",
+      "reason": "Local test never accesses production runtime or registry"
+    }
+  ],
+  "errors": [
+    "Dry run only; no tests executed"
+  ],
+  "sourceStable": true,
+  "sourceStart": {
+    "baseRef": "origin/main",
+    "baseSha": "8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24",
+    "headSha": "8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24",
+    "fingerprint": "294c2e57f21d23b530e16421407315adb601c95c35bbbc76c57b1c2f98fa8aff"
+  },
+  "sourceEnd": {
+    "baseRef": "origin/main",
+    "baseSha": "8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24",
+    "headSha": "8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24",
+    "fingerprint": "294c2e57f21d23b530e16421407315adb601c95c35bbbc76c57b1c2f98fa8aff"
+  },
+  "rawReport": ".prepr-reports/2026-10-24T23-05-16.554Z-1419127-aefcfdd7/report.json",
+  "interpretation": "Plan only, no tests executed. Candidate documentation and this receipt were attached after the plan; tested product/test hashes did not change. NOT TESTED is not PASS."
+}

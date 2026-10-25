@@ -1,0 +1,9 @@
+{
+  "status": "FAIL",
+  "scope": "manual supplemental collection before product edit",
+  "completeReceipt": false,
+  "capturedMetricPngs": 18,
+  "reason": "locator.waitFor edit-mode visible timeout30000ms; no aggregate receipt produced",
+  "productBefore30": "separate complete baseline30 retained",
+  "runtime": "Next dev webpack; mount warning observed; attribution not established"
+}

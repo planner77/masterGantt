@@ -1,3 +1,4 @@
+import { ProcessContextError } from "../repositories/process-context-repository-core";
 import { randomUUID } from "node:crypto";
 
 import type {
@@ -121,7 +122,9 @@ function requireAuthorizedSession(
 function mapError(error: unknown, requestId: string): Response {
   let mapped = error;
 
-  if (error instanceof EditSessionInvalidError) {
+  if (error instanceof ProcessContextError) {
+    mapped = new PublicApiError(error.status,error.code,error.message);
+  } else if (error instanceof EditSessionInvalidError) {
     mapped = new PublicApiError(401, "EDIT_SESSION_REQUIRED", "A valid edit session is required.");
   } else if (error instanceof RevisionMismatchError) {
     mapped = new PublicApiError(412, "REVISION_MISMATCH", "Project changed. Reload and retry.");
@@ -810,4 +813,18 @@ export async function handleGetLogisticsDashboard(
   } catch (error) {
     return mapError(error, requestId);
   }
+}
+
+/** Direct WorkArea writes use the existing Project session/Origin/revision boundary. */
+export async function handleMutateWorkArea(request: Request, publicId: string, identifier: string,
+  action: "create" | "update" | "delete", dependencies: LogisticsHandlerDependencies): Promise<Response> {
+  const requestId=(dependencies.requestId??randomUUID)();
+  try {
+    if(!isCanonicalUuidV4(publicId)||!isCanonicalUuidV4(identifier)) throw new PublicApiError(404,"LOGISTICS_NOT_FOUND","WorkArea 또는 공정을 찾을 수 없습니다.");
+    const url=appUrl(dependencies);requireOrigin(request,url);
+    const auth=requireAuthorizedSession(request,publicId,dependencies,url), expected=parseRequiredIfMatch(request);
+    const input=action==="delete"?{}:await readBoundedJson(request);
+    const result=resolve(dependencies.logisticsService).mutateWorkArea(auth,expected,action,identifier,input);
+    return action==="delete"?deleteMutationResponse(result):mutationResponse(result,action==="create"?201:200);
+  } catch(error) {return mapError(error,requestId);}
 }

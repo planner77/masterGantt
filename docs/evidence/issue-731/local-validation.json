@@ -1,0 +1,71 @@
+{
+  "issue": 731,
+  "baselineSha": "01fdc08bf4b2f69f9797a8bd411d6712e7478c09",
+  "version": "0.123.0",
+  "environment": {
+    "node": "22.14.0",
+    "npm": "11.10.0",
+    "browser": "Local Chromium / Next dev synthetic mocked API; server units use migrated SQLite + real Node HTTP"
+  },
+  "checks": {
+    "targetedUnit": {
+      "status": "PASS",
+      "files": 6,
+      "uniqueTests": 94,
+      "evidence": "unit-results.json"
+    },
+    "chromium": {
+      "status": "PASS",
+      "uniqueTests": 27,
+      "durationMs": 84099.9,
+      "evidence": "../../../output/playwright/issue-731/local-ui-receipt.json"
+    },
+    "typecheck": "PASS",
+    "lint": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 13,
+      "scope": "unmodified existing files"
+    },
+    "version": "PASS",
+    "markdownLinks": "PASS",
+    "testDiscovery": "PASS",
+    "docGate": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING",
+    "preprFast": "BLOCKED",
+    "preprTargeted": "BLOCKED",
+    "preprReason": "UNKNOWN8 verified automatic test maps absent; sourceStable=true, steps=0. Actual targeted runs recorded separately."
+  },
+  "sourceSha256": {
+    "src/app/api/projects/[publicId]/logistics/kpi/route.ts": "0182cb48c4a0317d5ad53b0336c27ea6b6216ae137ef9a7e1c0403ee615ecaa3",
+    "src/contracts/logistics-dashboard.ts": "3e9f39072e92bc175678da984c9271e87facb4bcade6c5f567b3929eb3927cef",
+    "src/features/logistics/logistics-kpi-configuration.tsx": "96118637b59c5b4264c19cd65513072fe12759511cfa173cf1234f84f4a907e3",
+    "src/features/logistics/logistics-kpi-validation.ts": "2b00f283428f3abf4ff74351caf023105273c64a4f303f166c5ba220491f5298",
+    "src/features/logistics/project-logistics-dashboard.module.css": "3e32cb0fc08d337fb30a2e7fce44b0f62a9602ef6847ef84eced486021defb63",
+    "src/features/logistics/project-logistics-dashboard.tsx": "66d590f456f665e9c2f0a59b4538d779a6c786c60eddca428c866f7b861ab143",
+    "src/features/logistics/project-logistics-management.tsx": "f5a5a5e890fe1848ecfd88fdc6ce1547ef0acc1cddace6b1a2108742c46d36e2",
+    "src/features/projects/project-readonly-view.tsx": "ab83a61e4b5ea48627482d40a01eb07c7784242b267d0e728dc15533ffad4a5e",
+    "src/server/logistics/logistics-kpi-handlers-core.ts": "41e0fd93fed1c157cc06d0fb39b7cf488a5c24e7a37a9a6f7f40192485881d3e",
+    "src/server/logistics/logistics-kpi-service-core.ts": "09af06d22b29857951067b14bd9beb96070e91eb23cae59381fc1f69cb5098ce",
+    "src/server/logistics/logistics-kpi-snapshot-core.ts": "96c639d060116ab0bb9f209852dffc7573ab276fcb695209af6fc8941168f84b",
+    "src/server/security/route-security-inventory.ts": "def474339053d34eaf36cebe995f75a6c36a8498ad7cc5f771c4c8aa3ce422f9",
+    "tests/e2e/fixtures/task-editor-density.ts": "e4cec602aa97984ff148e5c574660f3d594fed6181b73dedd0ccd6d60f1d0e2f",
+    "tests/e2e/issue-719-contextual-help.spec.ts": "7c8a11f88e3bd124174161e54f047631d2d285416560a23bbe1ca4e4e225856a",
+    "tests/e2e/logistics-dashboard-request-state.spec.ts": "17af84acc9e6631852d071368b4307ba7219a5ee3215b3c24c090ba9dcd5ff23",
+    "tests/e2e/milestone-stage-dashboard.spec.ts": "5a57d797fc2d9adc38cc0f686a121daa29810817bbf04017e8ce94d246fd83e2",
+    "tests/e2e/milestone-stage-exchange.spec.ts": "8e5573bb09d0bdc4283f8ed37181c95aa7e8e61174c51f4adb5a60e85668d9a8",
+    "tests/e2e/milestone-stage-grid.spec.ts": "317149efbcbd7024b34aca3760fa65dd3e2dd4e3bcab6e86fd8c42993c6803ba",
+    "tests/e2e/milestone-timeline-core.spec.ts": "bed97afa87ac16e04f0469ed8b41cba21029032702cadd6696d52270bef77ef9",
+    "tests/e2e/milestone-timeline-lane.spec.ts": "b5ecb3884bcfa4fe1336d24c469d5d3d0aa26ef466d65ebabc392aa97b624a6c",
+    "tests/fixtures/logistics-integrated-kpi.ts": "23fe250a4be26bee6bd890ee5768ab51536bb9638b41943bc9a52509446d7e08",
+    "tests/server/logistics/issue-731-kpi.test.ts": "f5a5c1b4ef023a5ff4ef2c721e97aa433715fc2bee7cb6f7dce926393f365448",
+    "tests/server/projects/edit-authorization-handlers.test.ts": "789075be0825efe1875f10e0daa94beb670d509cb3db516043869d490f7e3dda"
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "managerDecision": "NOT TESTED"
+  },
+  "releaseAuthorized": false
+}

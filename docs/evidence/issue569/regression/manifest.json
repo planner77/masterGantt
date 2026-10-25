@@ -1,0 +1,22 @@
+[
+  {
+    "file": "baseline-regression.json",
+    "sha256": "b99c80474c2090cd89334d43bbb6b75e9002b8845fd7d1bbfad2938ae6a71bfb",
+    "bytes": 9424
+  },
+  {
+    "file": "command-config-receipts.json",
+    "sha256": "84c77932f4b58eb78914c451f1e5872ea90c6f2480a89725f6cc23999e8c90db",
+    "bytes": 1864
+  },
+  {
+    "file": "main-native-grid-observations.json",
+    "sha256": "af3fb4a74bce1c6b19b6e6c43b3644a8a3f42a9f1541cc7562887aa07ddff283",
+    "bytes": 272418
+  },
+  {
+    "file": "pr562-lane390-geometry.json",
+    "sha256": "e8059e15eb488855c806073d461eb0ce3631b9dd844fa6e0e3e30f274cbba3b9",
+    "bytes": 13204
+  }
+]
