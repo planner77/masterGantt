@@ -1,3 +1,7 @@
+## Issue #553 — 표시/데이터 교환 분리 (2026-10-25)
+
+운영 marker OFF 및 WBS native Milestone 행 제외는 이 문서의 full canonical 직접/상속 Membership, E(M)/P(M), Ready·Completed·manual Event/완료 잠금, Resource·Target Roll-up을 계산에서 제외하지 않는다. JSON1.1의 명시 소속과 Excel의 유효/출처 소속을 구분하고 숨김/검색/접힘 및 SVG/PNG 미지원의 무단 삭제로 원본을 변경하지 않는다. [#553 교환 가이드](MILESTONE_USER_GUIDE.md) / [추적표](MILESTONE_TIMELINE_TRACEABILITY.md). 기존 Gate algorithm/API/DB/schema는 변경하지 않는다.
+
 ## #548 — 표시 정책과 단계 집계의 분리 (2026-10-15)
 
 [Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)의 #552 marker-OFF 기준선은 native Grid/Chart Milestone 행·Bar만 제외하며 Stage Gate 계산·Membership·Task 취합·명시 Completed·Resource/Target Roll-up을 변경하지 않는다. 서버 full canonical E(M)·P(M), 소속 Summary 상속·override, 완료 구조 잠금, 기존 mixed Link/Copy/Template/JSON·Excel 정보 보존이 계속 권위다. marker 없는 UI에서도 #550 Milestone Dashboard/Editor/정확한 소속 Task 조회가 필수다. #551 별도 lane marker는 필요성·실증을 확인한 뒤 #573/#693에서만 선택 활성화하며 도메인 엔진의 입력이나 권한 근거가 아니다.

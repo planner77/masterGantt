@@ -1,3 +1,9 @@
+## Issue #553 — old stacked PR #562 marker-OFF 선별 재통합 (2026-10-25)
+
+[Work Packet](ISSUE_553.md) / [전용 실패 원장](../../ISSUE_553_FAILURE_ANALYSIS.md). #552/PR #561 병합 뒤 21개 old PR CI(10 FAIL·11 CANCELLED)와 충돌한 0.106.1 stacked PR #562를 0.133.3 main 통합으로 재기준화한다. old HEAD `afd5ec2899183a2464b64f91d34e9de5d8a8319c` 및 archive 보존, force/rebase 금지; 최신 main과 두 부모로 충돌 해결. 이전 marker-ON UI·viewport patch는 제외하고 원본 교환 fixture/integration/실제 HTTP·SQLite/restart, Export 공통 안내, 현행 image spec assertion·사용 가이드·추적표만 선별. TEST_LIFECYCLE_REVIEW/AC/NOT TESTED 범위를 Packet에 기록. HIGH/OWNER_MANAGED, 8-shard 새 exact-head PR CI 시작까지만, 병합/Main/GHCR/정식 Release/Issue 종료·모니터링 없음.
+
+#553 PR #562 Full [#3277.1 / 40165691579](https://github.com/planner77/masterGantt/actions/runs/40165691579): old Head `f190b639daf775a95fbd382d62f27bace5400030`/old Base `22144ce3844ab50ac0f22a715742c9df82e072e8`에서 TypeScript·Vitest·Build·Docker·Chromium 8/8 및 Required3 **전부 PASS**, 실제 #553 HTTP/SQLite/restart·Copy/Template·Export4종·권한 3cases PASS. 실행 중 Issue #797/PR801 Main #3280.1이 `f431806329dd3af492e1eb6ce67bb73c1262d61e`로 진입, 마지막 QA Final이 `mergeability 또는 test merge 불일치`로 BLOCKED(원본 두 predicate 중 정확 오류 식별은 UNKNOWN). 오래된 head/base의 PASS를 현재 HEAD PASS로 소급하지 않고 이번 인수는 최신 main 2-parent 보존형 재통합+새 Full PR CI까지. 기존 main #797 UI Audit·TEST_PLAN 등 원본 227 경로 및 #553 stage/교환/문서 테스트·실패원장 이력 보존. [F553-J](../../ISSUE_553_FAILURE_ANALYSIS.md) · [Work Packet](ISSUE_553.md) 참조. HIGH/OWNER_MANAGED/release_authorized=false, 병합·Main CI·GHCR/Finalizer/Issue 종료/CI 모니터링 제외.
+
 ## Issue #799 — 6관점 요약·지표 정돈 (2026-10-25)
 
 초기 main `fcd1ae59d268efa1913f4de625a9013cabd1de4a`/0.133.0에서 시작했으며, #506 병합 이후 main `37963266793e7c4b1827f64d3d9b19b2d5d252fb`/0.133.1에 정렬하여 `feat/issue-799-dashboard-metrics`로 진행한다. #798 완료 source의 제어 영역과 KPI baseline을 유지하고 같은 fixture5폭 before 후 공통 요약의 label/value·단위·tabular 위계만 정돈한다. 구성/작업/전체 Gate·개인 Plan/전체 Capacity의 원래 모집단·수치·정확 drill·권한을 보존한다. #797 감사·#800 상시 기준선·#517 환경 검증과 범위를 구분한다.

@@ -61,3 +61,21 @@
 - [#3287.1](https://github.com/planner77/masterGantt/actions/runs/40168731490), Head `cf467fb8754414dc50d34ddfd10d9692b6864e89`은 2026-10-25 06:21 UTC 시점 **in_progress** 상태까지 식별했다. 이 기록은 PASS·FAIL 판정이 아니며 추후 source update가 해당 실행을 supersede할 수 있다. 이번 최종 통합 Head의 새 Full run/attempt는 실제 시작 확인 후 별도로 인계한다.
 - 반례/공통 원인: Run #3283에서 metadata parser가 고쳐졌음에도 기존 Full이 실패해 metadata-only만 재실행하는 것은 해결이 아니다. #3285가 해당 metadata에 관해 실패1건만 남긴 것은 교정이 작동했음을 보여 주지만, 해당 Run은 완결되지 않았으므로 문서 gate 또는 제품의 실제 PASS를 증명하지 않는다.
 - REWORK 정적 검토: `qa_preflight.py`와 `qa_final_automated.docs_gate`의 선언·section 정규식에 따라 PR body의 metadata 5개는 정확히 각각 독립 한 줄 1회, Work Packet의 `AC1..AC6`/`DOCUMENTATION_SYNC` 및 `docs/TEST_PLAN.md: UPDATED` 원장 일치가 확인되었다. 실제 새 Full remote 결과는 **NOT TESTED**. 테스트/보안/권한 Gate 우회 없음.
+
+
+## F800-R004 — #3288.1 Full의 전체 구현 PASS 이후 QA Final 출처/병합 차단 (2026-10-25)
+
+| 귀속 | 원본 |
+| --- | --- |
+| Issue/PR | [#800](https://github.com/planner77/masterGantt/issues/800) / [#805](https://github.com/planner77/masterGantt/pull/805) |
+| 원본 CI | [Full PR CI #3288.1](https://github.com/planner77/masterGantt/actions/runs/40169055755), run ID 40169055755, attempt 1, event pull_request/synchronize, 완료 2026-10-25 07:20 UTC |
+| source | HEAD `9daa8d722dd1daeff0eb78f712f2b887e4efa9bb` / 이벤트 Base `f431806329dd3af492e1eb6ce67bb73c1262d61e` / 이벤트 Test Merge `f6b0dc34435807254dd91685ae41ca025e9ff65f` (parents Base/HEAD, 당시의 인증된 tree) |
+| 직접 실패 | QA Final — Automated Job **121105760594**, step3 `최신 PR 증거·문서·리뷰 확인`: `자동 QA BLOCKED; 사유: mergeability 또는 test merge 불일치` |
+| 실제 성공 | QA route·Preflight·Policy·PR Fast Gate, TypeScript, ESLint, Vitest, production build, Chromium E2E shard 1/8~8/8 및 E2E Required aggregate, Quality Required aggregate, Docker Required aggregate **SUCCESS**. PR Docker 구현 Job SKIPPED(경로 판정에 따른 정상 분기) |
+| 별도 미실행 | Independent QA / Owner ACCEPT / Main/GHCR/Finalizer **NOT TESTED**; 사용자 요청 전 merge 금지 |
+
+**시점·원인:** PR #805의 원본 Test Merge는 06:25:50 UTC 구 Base `f431806` 기준으로 구성되었다. CI 진행 중 06:54:52 UTC에 [#553/PR #562](https://github.com/planner77/masterGantt/pull/562)의 병합이 Main을 `efc40c1864ffc3629f16d6956bf57c3b0889b96d` / 앱 v0.133.3으로 갱신했다. QA Final이 07:20:25 UTC에 현재 PR의 `mergeable`과 Test Merge를 재인증할 때에는 구 원본과 최신 기준이 달랐고 GitHub는 `mergeable=false / mergeable_state=dirty`를 보고했다. 이 때문에 소스/통합 충돌 상태를 fail-closed로 차단했다. **제품/Chromium 테스트 실패가 아닌 base-drift·Git 충돌/증거 귀속(POLICY_CI)**이며 기존 필수 성공 결과를 새 Head의 PASS로 승격하지 않는다.
+
+**Main sync 교정:** 역사 원장과 최초 source는 보존하고 PR 원래 Head와 최신 Main의 두 부모를 갖는 실제 merge commit으로 정렬. 두 브랜치가 공통으로 수정한 파일은 `docs/PROJECT_UX.md` 1개이며, 양쪽이 당시 Base 앞에 각각 `#800`과 `#553` 안내 섹션을 prepend한 변경이다. Base 본문·main의 #553 전문·PR #800 전문을 정확히 모두 보존해 순서 `#553 → #800 → 원본`으로 충돌 해결. 나머지 #800 코드·fixture·docs 변경은 그대로, 최신 main의 Milestone/export·E2E shard plan·version 0.133.3 모두 유지. 변경 HEAD에 대한 이전 #3288 결과는 역사적 Run으로 유지하고 새로운 Full CI의 성공은 새 Run/Attempt로만 판정한다.
+
+**검증·위험:** 원본 두 tree와 공통 Base의 blob SHA 및 전체 recursive tree 비교, 충돌 파일의 prefix/suffix 정확 일치, 변경 외 모든 main 경로 보존/PR 변경 경로 보존을 기록. 실제 병합 후 QA/Review thread 0·mergeable 재조회 및 새 PR CI 시작까지만 진행. 본 원장 작성 시 최종 병합 SHA/새 Run ID는 생성 전이라 미확정, 임의 PASS/성능 개선 수치 없음. Owner-managed HIGH, qa_required=true, release_required=false; CI 모니터링/병합/Main/GHCR/Issue 종료는 별도 지시 전 수행하지 않는다.

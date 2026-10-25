@@ -1,3 +1,9 @@
+## [0.133.3] — Unreleased / Issue #553 Milestone 교환·내보내기 무손실 (2026-10-25)
+
+- #552의 운영 WBS는 Summary/Task만 표시하고 상단 marker OFF를 유지한다. 기존 Export 대화상자에서 표시된 화면과 **원본 전체 canonical 일정 출력**이 다를 수 있음을 명시한다. JSON1.1 / Excel / SVG / PNG 기존 계약·권한·If-Match·Resource 보고 범위와 legacy mixed fail-closed는 변경하지 않는다.
+- 옛 PR #562의 0.106.1 / marker ON stacked branch는 archive와 merge parent로 보존하고 최신 main(22144ce3844a)을 병합 부모로 정렬한다. 과거 viewport/inline 임시 교정과 ON 사용자 가이드는 이식하지 않는다. 고정 fixture·단위/HTTP+SQLite 재시작 테스트를 선별 이관, 기존 이미지 Export E2E에 안내 assertion을 추가한다.
+- [전용 누적 실패 원장](docs/ISSUE_553_FAILURE_ANALYSIS.md) / [Work Packet](docs/exec-plans/active/ISSUE_553.md) / [사용 가이드](docs/MILESTONE_USER_GUIDE.md) / [추적표](docs/MILESTONE_TIMELINE_TRACEABILITY.md). HIGH / OWNER_MANAGED, 새 head Quality/E2E8/Docker/Trusted QA는 실행 결과 전 NOT TESTED, release_authorized=false. #574 marker-OFF 종합 수용은 별도이며 #573/#693 marker-ON은 선택 후속이다.
+
 ## [0.133.2] — Unreleased / Issue #799 대시보드 요약 지표
 
 - 다섯 동적 대시보드의 공통 요약에서 label과 값·단위를 구분하고 숫자 비교와 긴 상태문 읽기를 정돈한다. KPI·Milestone 관리 카드/표·Resource Plan과 구성/필터된 작업/전체 Gate·개인 배정의 계산·범위·원본 drill은 유지한다.

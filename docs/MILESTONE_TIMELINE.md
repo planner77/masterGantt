@@ -1,3 +1,7 @@
+## Issue #553 — 기존 PR #562의 marker ON 이력을 OFF 기준으로 정렬 (2026-10-25)
+
+기존 #553/old PR head `afd5ec2899183a2464b64f91d34e9de5d8a8319c`의 ON 토글·lane/cluster·프로젝트별 표시 preference를 현재 사용자 계약으로 인용하지 않는다. **운영 기본은 Milestone native Grid/Chart row/bar 0 + marker/lane/guide OFF**이며 관리·날짜 탐색은 Milestone Dashboard/소속 Task·Editor 경로로 한정한다. full canonical data는 표시 집합과 분리돼 JSON1.1/Excel, Copy/Template 및 기존 이미지 출력 계약에서 보존되어야 한다. [교환 사용자 가이드](MILESTONE_USER_GUIDE.md), [실행·미검증 추적표](MILESTONE_TIMELINE_TRACEABILITY.md), [표시 정책](MILESTONE_PRESENTATION_POLICY.md)을 따른다. #574는 marker-OFF 종단 Gate, #573/#693은 선택 ON 별도 기술/운영 게이트다.
+
 ## 2026-10-15 표시 정책 변경: WBS 행 분리 먼저, 상단 마커 마지막 (#548)
 
 현재 도메인·검증 기준은 [Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)를 따른다. 기존 MT1~MT3(#549~#551) **기술 구현/미리보기 기록과 과거 target 기본 ON 표는 역사적 계약**으로 남긴다. 제품 목표는 아래 순서로 변경되었다.

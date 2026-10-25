@@ -4,11 +4,12 @@
 
 - repository: `planner77/masterGantt`
 - issue: [#800](https://github.com/planner77/masterGantt/issues/800)
-- lifecycle_phase: REWORK / NEW_FULL_PR_CI_START_PENDING
+- lifecycle_phase: MAIN_SYNC / NEW_FULL_PR_CI_START_PENDING
 - requested_scope: source/issues/docs review → plan → minimal implementation/docs → unresolved review threads/conflict review → Ready PR Full CI start; **no CI monitoring/merge/Main/GHCR/Finalizer/Issue closure**
 - baseline/main: `f431806329dd3af492e1eb6ce67bb73c1262d61e` (2026-10-25 KST, `0.133.2`)
 - branch: `feat/issue-800-geometry-regression`
-- candidate_version: `0.133.2` (test/docs only; no application/lock version bump)
+- current_main: `efc40c1864ffc3629f16d6956bf57c3b0889b96d` (#553/PR #562, v0.133.3; prior baseline 0.133.2 preserved)
+- candidate_version: `0.133.3` (inherited from main; #800 test/docs-only, no additional version bump)
 - change_boundary: `tests/e2e/helpers/ui-geometry.ts`, existing `tests/e2e/issue-730-view-composer.spec.ts`, opt-in `tests/manual/issue-800-compare-geometry.mjs`, #800 coverage docs and applicable guides. `src/`, contracts, DB, workflows, dependencies unchanged.
 - design_delta: B (existing DESIGN.md Workspace-first/KPI reference verification only; `DESIGN.md` unchanged)
 - risk_level: HIGH (shared E2E geometry observer; longer existing test)
@@ -80,6 +81,13 @@ Negative checks: missing row/summary, overlapping toolbar siblings, document hor
 - PR 본문에 정확 독립 `risk_level: HIGH` / `qa_method: OWNER_MANAGED` / `qa_required: true` / `release_required: false` / `release_authorized: false` 각 하나만 선언하고 Work Packet 구조를 base `qa_preflight.py`/`qa_final_automated.docs_gate`와 일치시킴. Required/CI policy 수정하지 않음.
 - 미해결 Codex [P1 KPI heading](https://github.com/planner77/masterGantt/pull/805#discussion_r4369868207)·[P2 empty receipt](https://github.com/planner77/masterGantt/pull/805#discussion_r4369868209)를 반영. 기존 KPI 카드보다 아래의 Milestone 제목을 header로 오인하지 않도록 KPI root anchor를 사용하고, 동적 비교는 양쪽 유효한 query receipt 최소1/명세/spec.root/filters/totals/range를 요구. 같은 source Chromium 및 comparator negative 실행은 N/T; 실제 remote Full Run이 필요.
 - 이번 재작업은 현행 8-shard/Required3/Trusted/Owner 경계와 기존 테스트 의미를 보존. 미해결 리뷰 응답/resolve, main/base 충돌 재점검 뒤 Ready PR synchronize가 새로운 Full CI를 시작하도록 함. 이전 FAIL을 재실행 PASS로 대체하지 않음.
+
+
+### #3288 원격 QA Final 차단과 최신 main 정렬 (2026-10-25)
+
+- [Full #3288.1](https://github.com/planner77/masterGantt/actions/runs/40169055755), HEAD `9daa8d722dd1daeff0eb78f712f2b887e4efa9bb`: Quality/Policy/TypeScript/ESLint/Vitest/Next build/E2E shard8/8/Docker Required3 모두 SUCCESS. 그러나 QA Final Job121105760594는 `mergeability 또는 test merge 불일치`로 BLOCKED. 이 결론을 E2E 실패로 기록하거나 사용자 Owner ACCEPT로 간주하지 않는다.
+- CI 진행 중 #553/PR #562 병합 후 main이 `efc40c1864ffc3629f16d6956bf57c3b0889b96d` (v0.133.3)으로 변경되었다. 기존 이벤트 Base `f431806`/Test Merge `f6b0dc3`는 최신 main 근거가 아니다. 최신 Main과 원래 HEAD를 부모로 갖는 merge commit으로 정렬하고 `docs/PROJECT_UX.md`의 공통 prepend(#553+#800)를 모두 보존한다. 상세 원본·직접/파생 실패 및 조치는 [누적 실패 원장](../../ISSUE_800_FAILURE_ANALYSIS.md) F800-R004.
+- #800의 테스트/제품 코드·과거 수집 수치는 수정 없이 유지; Main의 Milestone·Export, 테스트/shard plan, package/lock v0.133.3을 동기화한다. Review threads 및 최종 mergeability를 재확인하고 **새 정확 HEAD Full PR CI 시작**만 관찰한다. 독립 QA/Owner, 새 E2E·Trusted 결과는 미실행 시 NOT TESTED. 병합/Main/GHCR/Finalizer/Issue 종료 권한 없음.
 
 ## Gate
 

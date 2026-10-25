@@ -1,3 +1,7 @@
+## Issue #553 — 운영 marker OFF와 Workbook 데이터 범위 (2026-10-25)
+
+화면에서 Milestone native 행/marker가 표시되지 않더라도 기본 Export는 현행 **canonical Tasks/Gantt/Milestone 전체 일정 행·full Gate 및 명시/유효 Membership**을 유지한다. `includeDependencies=false`가 소속 정보를 제거하지 않는다. 선택적 #529 Resource 보고 범위(F)와 Project 전체 E/P, catalog/source revision 및 미설정·0·부분합 의미를 구별한다. 새 native Timeline 레이아웃으로 Excel Gantt 시트를 교체하지 않는다. [사용자 가이드](MILESTONE_USER_GUIDE.md)/[#553 추적표](MILESTONE_TIMELINE_TRACEABILITY.md); 기존 exporter/API/보안 계약 불변.
+
 ## Issue #785 — 실물 보고서와 opaque 관계 근거
 
 사용자용 Target 축/필터/시트·진단은 폐기하고 기존 물류 자료를 실제 실물·Task/Assignment 근거로 제공한다. `Resource Logistics`, `Resource Entity Catalog`, `Resource Entity Sources` 시트를 사용한다. 실물 canonical ID·이름·수량·관련 Task/선택 Assignment, source Task·scope/whole/subset·coverage·opaque 관계 참조를 보존한다. 폐기 엔터티 이름·별도 카탈로그/집계 축을 제공하지 않는다. OOXML Relationship의 일반 `Target` 속성은 파일 규격이며 이 도메인과 무관하다.
