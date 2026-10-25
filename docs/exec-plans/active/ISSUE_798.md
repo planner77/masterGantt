@@ -4,12 +4,13 @@
 
 - repository: `planner77/masterGantt`
 - issue: [#798](https://github.com/planner77/masterGantt/issues/798)
-- lifecycle_phase: PR_READY (동결 tree의 독립 PRE_QA 후 PR_CI_STARTED 인계)
+- lifecycle_phase: PR_MAIN_SYNC (기존 Full 성공/Trusted BLOCKED 기록 및 최신 main 정렬; 새 Full CI 시작 대기)
 - 승인 범위: 분석·계획·구현·관련 문서 갱신·Ready PR Full CI 시작까지. 완료 모니터링·병합·Main/GHCR·정식 릴리스·브랜치 정리·Issue 종료는 제외한다.
-- baseline/main: `8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24`
+- initial baseline/main: `8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24` (원래 로컬 30쌍 측정 기준)
+- synchronized main target: `2229c67f9968199bb5fe91fc2cd538c54554abac` (#479 병합)
 - branch/worktree: `feat/issue-798-dashboard-density`, `/home/planner/Dev/masterGantt-798`
 - existing_pr: 착수 시 없음. 게시 이후 정확 Head와 CI 등록은 Issue STATUS에 기록한다.
-- current_version/version_decision: `0.132.0` / keep. 기존 제어의 배치를 개선하며 버전·의존성은 변경하지 않는다.
+- current_version/version_decision: `0.133.0` / keep (최신 main #479 보존). 원래 구현·로컬 측정 기준은 `0.132.0`; #798 자체 버전 변경 없음.
 - release_required: false (이번 승인 범위는 PR CI 시작까지)
 - release_authorized: false (정식 게시 승인 없음)
 - risk_level: HIGH
@@ -207,3 +208,11 @@
 [정제 영수증](../../../output/playwright/issue-798/prepr-targeted-dry-run.json): `npm run verify:prepr -- --mode=targeted --base=origin/main --issue=798 --risk=HIGH --dry-run`, exit0·overall NOT TESTED·selection BLOCKED·selected16·UNKNOWN3·missing0·steps0·sourceStable=true다. UNKNOWN은 새 공통 E2E helper·수동 collector·수동 compare의 자동 producer→consumer 매핑 미등록3건이며 매핑/정책을 임의 수정하지 않았다. 이들의 수동 검증은 위 최종 Unit16/Chromium4·30쌍 비교·명시적인 테스트 매핑으로 별도 기록했다.
 
 원본 `report.json`과 `SUMMARY.md`는 Git에서 제외된 `.prepr-reports/2026-10-24T23-05-16.554Z-1419127-aefcfdd7/`에 있다. 계획 checkpoint의 working fingerprint는 `294c2e57f21d23b530e16421407315adb601c95c35bbbc76c57b1c2f98fa8aff`로 시작/끝이 같다. 이 결과 문단과 정제 영수증은 계획 실행 뒤 문서/증거로 추가했고 검증한 제품·테스트 bytes는 변경하지 않았다. fingerprint를 최종 게시 tree SHA와 혼동하거나 dry-run을 로컬/원격 테스트 PASS로 사용하지 않는다.
+
+## 2026-10-25 · QA Trusted #905 차단과 latest main 정렬
+
+- 역사적 원본 [PR #802 Full CI #3259.1](https://github.com/planner77/masterGantt/actions/runs/40141948672) Required Quality/E2E8/8/Docker **PASS**, 그러나 후속 [Trusted QA #905.1](https://github.com/planner77/masterGantt/actions/runs/40143922220)은 `mergeability 또는 test merge 불일치`로 **BLOCKED/FAIL**. Full CI 통과를 QA_FINAL 통과로 오인하지 않는다. 원인은 [F798-R001 실패 원장](../../ISSUE_798_FAILURE_ANALYSIS.md)을 따른다.
+- 최신 main `8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24`→`2229c67f9968199bb5fe91fc2cd538c54554abac` (#479, 0.133.0) 전진. Git tree 비교에서 PR383 / main58 / 3개 공통 수정 `CHANGELOG.md`, `docs/PROJECT_UX.md`, `docs/TEST_PLAN.md`를 확인했다. 충돌 문서는 #798 서두와 신규 main 내용을 모두 보존하고 nonconflicting PR blob SHA와 main 단독 변경도 보존한다.
+- #798 로컬 Chromium4/4·before/after30·PRE_QA는 원래 source에 대한 역사적 증거다. #479 통합 이후 신규 Head의 Full8·Trusted/QA_FINAL·Owner ACCEPT는 아직 **NOT TESTED**. 병합 승인 전 새로운 검사와 독립 QA/Owner 결정을 요구한다.
+- TEST_LIFECYCLE_REVIEW: 기존 #730/#732~#736/cross-screen과 #479 보안·Project 테스트 KEEP_UNIQUE. 추가 테스트·삭제·skip/retry/timeout·CI 정책 변경0. 새 Head는 인증된 Full8/Quality/Docker에서 재평가한다.
+- 사용자 승인 범위: **PR CI 시작까지만**. 모니터링·병합/Main/GHCR/릴리스/Issue 종료 미실행. 새 Head/Run ID는 Issue STATUS 댓글로 남긴다.

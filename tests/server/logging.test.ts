@@ -158,11 +158,11 @@ describe("request correlation", () => {
   it("keeps unexpected server details out of the client response and logs a 500", async () => {
     const requestId = "123e4567-e89b-42d3-a456-426614174000";
     const { logger, lines } = captureLogger();
-    const request = new Request("http://localhost/api/projects/1", { method: "PATCH" });
+    const request = new Request("http://localhost/api/test-logging-error/1", { method: "PATCH" });
 
     const response = await withApiRequestLogging(
       request,
-      { route: "/api/projects/[publicId]", logger, requestId: () => requestId },
+      { route: "/api/test-logging-error/[id]", logger, requestId: () => requestId },
       (correlationId) => apiErrorResponse(new Error("internal database detail"), correlationId),
     );
     const body = JSON.stringify(await response.json());

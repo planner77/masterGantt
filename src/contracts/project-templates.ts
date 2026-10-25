@@ -226,6 +226,8 @@ export interface DuplicateProjectTemplateRequest {
 }
 
 export interface InstantiateProjectTemplateRequest {
+  /** Template metadata never dictates new Project access. */
+  visibility?: import("./projects").ProjectVisibility;
   name: string;
   ownerName: string;
   description?: string;

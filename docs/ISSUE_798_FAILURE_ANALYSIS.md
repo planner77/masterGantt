@@ -57,3 +57,12 @@
 ## 최종 재검증
 
 [최종 실행 영수증](../output/playwright/issue-798/local-validation.json)과 [Chromium4 원장](../output/playwright/issue-798/local-chromium-source3.json)은 source3에서4/4 PASS·retry0/skip0/flaky0·2.8분을 기록한다. F798-L001~L005의 보완 후 실제5관점 조작·저장된 System legacy/IDs-only0/1·새 초기화·focus와 Resource 원본/Plan/Excel을 검증했다. 같은 제품 지문의 after30·독립 read-only6경계·TypeScript/ESLint·Unit16도 PASS다. 최초 선택4 PASS/3 FAIL·중간 source1 선택7/7 PASS·중간 source2 관측은 각각의 지문과 결과로 보존하며 합산하거나 최종 source의 PASS로 소급하지 않는다. 전체 원격 회귀·QA_FINAL·Manager ACCEPT는 NOT TESTED다.
+
+## F798-R001 — Full CI 성공 후 Trusted QA의 Test Merge/mergeability 차단 (2026-10-25)
+
+- 원본 [PR #802 Full CI #3259.1](https://github.com/planner77/masterGantt/actions/runs/40141948672): 원본 Head `ca7cec8f5bf78f25191c1a9dd3d96e03bc145656`, Base `8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24`, Test Merge `504ca658646bab0cb8b1672266913fdc96f4a957`. TypeScript·ESLint·Unit·Build·Chromium E2E 8/8·Docker 및 Required3 **SUCCESS**. 이 원본 성공 기록을 변경하지 않는다.
+- 후속 기본 브랜치 [QA Trusted #905.1](https://github.com/planner77/masterGantt/actions/runs/40143922220), Job `121021174525`: 정확한 원본 CI 확인 중 `자동 QA: BLOCKED` / `SHA: None` / `사유: mergeability 또는 test merge 불일치`로 종료(Exit 1). 검증기 checkout·SHA 일치·report artifact 업로드는 SUCCESS; 실패는 `원본 PR CI/Head/base 및 차단 리뷰·문서 증거 독립 조회` 단계. 제품 테스트 실패와 구분한다. 두 조건을 함께 검사하므로 실패 순간의 개별 위반 조건은 로그만으로 분리 불가.
+- Full 시작 이후 Issue #479/PR #794가 `main`에 2229c67f9968199bb5fe91fc2cd538c54554abac로 병합되어 제품 버전 0.133.0으로 전진했다. 원본 Base `8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24`와 다른 최신 main 및 PR `mergeable=false/dirty`를 별도 인증. 원본 Head는 당시 정상 E2E8/8였으나 현재 병합·Trusted QA 증거는 아니다.
+- 3-way Git tree 실감사: 기준 Base 대비 PR 변경383개(신규366, 삭제0), 최신 main 변경58개. 같은 Blob 경로에 양쪽이 독립 수정한 충돌은 `CHANGELOG.md`, `docs/PROJECT_UX.md`, `docs/TEST_PLAN.md` 3개뿐. PR의 #798 prepend와 Main의 #479/버전·문서 추가를 결합해 양쪽을 보존하고, 그 외 PR 변경은 blob SHA 그대로, main 단독 변경58개는 그대로 유지한다. force push나 주 브랜치 직접 수정 없이 두 부모 merge commit을 생성한다.
+- Main의 `package.json`/`package-lock.json` 버전 0.133.0 및 #479 공개범위/권한/마이그레이션·테스트를 보존한다. #798 자체 UI/테스트/이미지 결과의 과거 local source 영수증은 역사적 증거로 두며 Main #479 통합 이후 새로운 Head의 제품/Chromium 검증을 수행한 것으로 소급하지 않는다.
+- 조치 상태: 최신 main 병합 정렬·문서 통합·원장 기록 후 PR Head `synchronize`로 **신규 Full PR CI 시작 요청**. 새 CI Run/Attempt, 신규 Trusted QA, 독립 QA_FINAL·Owner ACCEPT 및 병합은 모두 원격 새 증거 확인 전 **NOT TESTED/BLOCKED**이다. 기존 fail-closed/Required3/8-shard/Ruleset/릴리스 경계 변경 없음. TEST_LIFECYCLE_REVIEW=KEEP_UNIQUE(기존 회귀 유지), 테스트 신규/삭제/skip/retry/timeout 정책 변경0.

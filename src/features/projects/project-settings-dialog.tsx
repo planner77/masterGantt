@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from "react";
 import { WorkspaceDialog } from "../../components/workspace-dialog";
-import type { ProjectStatus } from "../../contracts/projects";
+import type { ProjectStatus, ProjectVisibility } from "../../contracts/projects";
 import type { ProjectMasterItemDto } from "../../contracts/project-master";
 import { PROJECT_STATUS_OPTIONS } from "./project-status";
 import { ProjectWorkCalendarEditor } from "./project-work-calendar-editor";
@@ -21,9 +21,11 @@ interface ProjectSettingsDialogProps {
   metadataName: string;
   metadataDescription: string;
   metadataStatus: ProjectStatus;
+  metadataVisibility: ProjectVisibility;
   onMetadataNameChange: (value: string) => void;
   onMetadataDescriptionChange: (value: string) => void;
   onMetadataStatusChange: (value: ProjectStatus) => void;
+  onMetadataVisibilityChange: (value: ProjectVisibility) => void;
   masterSelection: ProjectMasterSelectionValue;
   onMasterSelectionChange: (value: ProjectMasterSelectionValue) => void;
   currentMaster: { businessUnit?: ProjectMasterItemDto | null; product?: ProjectMasterItemDto | null; siteEntity?: ProjectMasterItemDto | null };
@@ -57,9 +59,11 @@ export function ProjectSettingsDialog({
   metadataName,
   metadataDescription,
   metadataStatus,
+  metadataVisibility,
   onMetadataNameChange,
   onMetadataDescriptionChange,
   onMetadataStatusChange,
+  onMetadataVisibilityChange,
   masterSelection,
   onMasterSelectionChange,
   currentMaster,
@@ -239,6 +243,20 @@ export function ProjectSettingsDialog({
           className={styles.panel}
         >
           <div className={styles.securitySection}>
+            <form className="project-form compact-form" noValidate onSubmit={onSaveMetadata}>
+              <div className="form-field">
+                <label htmlFor="metadata-visibility">공개범위</label>
+                <select id="metadata-visibility" disabled={busy} value={metadataVisibility}
+                  onChange={event => onMetadataVisibilityChange(event.target.value as ProjectVisibility)}>
+                  <option value="public">공개 — 비밀번호 없이 일정 조회</option>
+                  <option value="private">비공개 — 비밀번호 인증 후 조회 및 편집</option>
+                </select>
+                <p>공개범위 변경은 현재 편집 세션과 최신 프로젝트 Revision이 필요합니다.</p>
+              </div>
+              <div className={styles.formActions}><button className="secondary-button" type="submit" disabled={busy}>
+                {isSavingMetadata ? "저장 중…" : "공개범위 저장"}
+              </button></div>
+            </form>
             <form className="project-form compact-form" noValidate onSubmit={onChangePassword}>
               <div className="form-field">
                 <label htmlFor="new-edit-password">새 편집 비밀번호</label>
