@@ -53,7 +53,7 @@ describe("#736 Resource consumer identity and evidence",()=>{
 });
 
 // #809 extends this consumer's presentation tests; all arithmetic remains existing R2/Plan authority.
-import { resourceChartDiagnosticQuery,resourceChartDiagnosticSelection,resourceChartEffort,resourceChartMetricValue,resourceChartPlanText,resourceChartQuery,resourceChartRank } from "../../../src/features/resources/resource-charts-model";
+import { resourceChartCanNavigate,resourceChartDiagnosticQuery,resourceChartDiagnosticSelection,resourceChartEffort,resourceChartMetricValue,resourceChartPlanText,resourceChartQuery,resourceChartRank } from "../../../src/features/resources/resource-charts-model";
 import { calculateResourcePlan } from "../../../src/domain/resources/resource-plan";
 import { resourcePlanFixture,resourcePlanAssignment } from "../../fixtures/resource-plan";
 import { buildResourceAnalysis } from "../../../src/domain/resources/resource-analysis";
@@ -118,3 +118,24 @@ describe("#809 explicit T0 diagnostic navigation",()=>{
 });
 
 import { wbsScheduleDisplayScope } from "../../../src/features/resources/resource-drill-navigation-model";
+
+
+describe("#809 / PR #813 Project-reference schedule gateway regression", () => {
+  const plan = { scopeKey: "source", row: { kind: "resource" as const, resourceId: "R1" }, demandScope: "project" as const, periodKey: "all", granularity: "week" as const };
+  const selectedReportTaskIds = ["selected-task"];
+  it("allows out-of-WBS Project load evidence only through the validated Plan gateway", () => {
+    const projectEvidence = { taskIds: ["selected-task", "outside-task"], plan };
+    expect(resourceChartCanNavigate(projectEvidence, selectedReportTaskIds, { wbs: true, resourcePlan: true })).toBe(true);
+    expect(resourceChartCanNavigate(projectEvidence, selectedReportTaskIds, { wbs: true, resourcePlan: false })).toBe(false);
+    expect(resourceChartCanNavigate(projectEvidence, selectedReportTaskIds, { wbs: false, resourcePlan: true })).toBe(true);
+    expect(resourceChartCanNavigate({ ...projectEvidence, taskIds: [] }, selectedReportTaskIds, { wbs: true, resourcePlan: true })).toBe(false);
+  });
+  it("preserves the WBS subset restriction and explicit T0 diagnostic exception", () => {
+    const outside = { taskIds: ["selected-task", "outside-task"] };
+    expect(resourceChartCanNavigate(outside, selectedReportTaskIds, { wbs: true, resourcePlan: true })).toBe(false);
+    expect(resourceChartCanNavigate(outside, selectedReportTaskIds, { wbs: false, resourcePlan: true })).toBe(false);
+    expect(resourceChartCanNavigate({ taskIds: ["selected-task"] }, selectedReportTaskIds, { wbs: true, resourcePlan: false })).toBe(true);
+    expect(resourceChartCanNavigate({ ...outside, diagnosticT0: true }, selectedReportTaskIds, { wbs: true, resourcePlan: false })).toBe(true);
+    expect(resourceChartCanNavigate({ ...outside, diagnosticT0: true }, selectedReportTaskIds, { wbs: false, resourcePlan: true })).toBe(false);
+  });
+});

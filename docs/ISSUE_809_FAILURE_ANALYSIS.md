@@ -136,3 +136,27 @@ U809-12 교정의 실제390 glyphRange는 첫 KPI row의 두 값 Y754.40625/754.
 공개 실패 문서 줄끝 공백 정제는 [전후SHA 영수증](evidence/issue-809/failure-sanitization.json)으로 추적한다. 원본 bytes는 로컬 ignored 경로에 보존하고 공개본은 ASCII trailing whitespace만 제거했다. 실패 내용/코드/라인 판정은 동일하며 원본 실패를 성공으로 바꾸지 않는다.
 
 일반 push 인증 실패 F809-P02는 원격 branch/PR 생성 이전에 발생했다. 저장된 CLI 자격값을 추출/공유하거나 권한/CI 정책을 우회하지 않고 이미 연결된 GitHub 앱의 승인된 저장소 쓰기 기능으로 동일 산출물을 게시한다. 원격 commit/PR/CI는 실제 조회 전 PASS로 간주하지 않는다.
+
+## 2026-10-26 KST — F809-CI-001 / PR #813 Full #3304.1 최초 원격 실패와 통합 교정
+
+### A–C. 모든 확인 가능한 원격 실행·최초 직접 실패·Cross-run
+
+| PR / Run / Attempt | 원본 SHA 및 분류 | 결과 / 첫 실제 실패 | 후속·누락 |
+| --- | --- | --- | --- |
+| [#813](https://github.com/planner77/masterGantt/pull/813) · [CI #3304.1 / 40235454996](https://github.com/planner77/masterGantt/actions/runs/40235454996) · 1 · pull_request / CI | Head `e25c34c54f1044a8217cf82f91171a37486a974b`, Base `56a094b797300a554909cd8d81ef0bafe46d6def`, test-merge `e1237cdfcbabc50a4c6e8555af4387d34fdd6415` | [Shard 1/8, Job 121296525737](https://github.com/planner77/masterGantt/actions/runs/40235454996/job/121296525737) 실제 FAILURE, Playwright `tests/e2e/milestone-timeline-lane.spec.ts:231` #551 3,000 canonical rows (1,000 Task + 2,000 Milestone), `Test timeout of 30000ms exceeded`, `settle()` line 24의 `page.evaluate` 내부 5×requestAnimationFrame. 해당 shard 56 PASS/1 FAIL/47 NOT RUN. | Shard 2–8은 취소(CANCELLED; 내부 개별 PASS/FAIL 미확정). Required quality SUCCESS, docker SUCCESS, E2E aggregate [Job 121300194861](https://github.com/planner77/masterGantt/actions/runs/40235454996/job/121300194861) FAILURE(파생), QA Final Automated [Job 121300215810](https://github.com/planner77/masterGantt/actions/runs/40235454996/job/121300215810) FAILURE(파생: required E2E 미성공). |
+| 같은 Head의 [보조 Workflow 40235455019](https://github.com/planner77/masterGantt/actions/runs/40235455019) | skipped | 실행된 테스트 없음 | 원본 Full 실패 횟수에 합산하지 않음 |
+
+기존 Issue #809 원장에는 원격 Full PR 실패가 없으며 최초 게시된 CI는 위 #3304.1이다. 이 원장의 F809-L01~L14, E01~E03, Q/P/R/U 사건은 로컬 준비·UI/코드 검토 및 중단 등으로 보존되며 원격 Full 실패 횟수로 합산하지 않는다. `GitCommitInfo`의 3초 `git fetch` 경고는 이후 56개 PASS가 이어져 최초 직접 실패로 채택하지 않는다. 개별 Shard 중도 CANCELLED를 성공으로 추정하지 않는다.
+
+**F809-CI-001 원인 분류: UNKNOWN (browser rendering/performance/fixture/runner contention 가설 검증 전).** 실패 지점은 `settle`의 5 RAF 대기이며 Gantt 스크롤/resize assertion에서 관찰된 불일치의 근거는 없다. 부하가 높은 3천 Task fixture의 제품/runner 정체 가능성은 가설이고 원본 30초 timeout 증가, 3천 건 축소, skip/retry 및 CI gate 완화는 하지 않는다. Shard1의 [Playwright report artifact 12614997477](https://github.com/planner77/masterGantt/actions/runs/40235454996/artifacts/12614997477)와 [timing artifact 12615112219](https://github.com/planner77/masterGantt/actions/runs/40235454996/artifacts/12615112219)가 별도 원본이다. 새로운 CI에서도 재현하면 해당 trace/프레임 구간 확인 후 원인별 교정이 필요하다.
+
+**R809-007 / PR [미해결 P2 review](https://github.com/planner77/masterGantt/pull/813):** `resource-charts-dashboard.tsx`의 일정 이동 버튼이 `data.taskIds` WBS subset만 검사해, 선택 Task 80% vs 동일 개인 Project 140%에서 외부 Task를 포함하는 합법적 Plan 원본의 이동까지 숨겼다. 검증된 PRODUCT/UI 제어 조건 결함이며 F809-CI-001의 Milestone 브라우저 timeout과는 별도 원인이다. 선택 Project Plan은 기존 read-only `onResourceSchedule`/Plan `demandScope=project` 원본 gateway가 있을 때만 열고, 일반 WBS는 exact task subset, T0 진단은 기존 예외, gate 부재 시 fail-closed로 유지한다.
+
+### D–F. 전체 실패 경로 합집합, 변경 영향, 수정과 검증 경계
+
+- **기존 직접 FAIL 합집합:** 원격 `tests/e2e/milestone-timeline-lane.spec.ts`의 #551 large/resize/fullscreen. 원장의 로컬 UI/fixture·scope/focus·T0/역전 오류는 기존 최종 #809 검증 영수증에 보존. 7개 취소 shard는 추가 미실행/미입증이며 PASS 아님.
+- **이번 변경 범위:** chart Plan/WBS 선택 gate를 공유 순수 함수 `resourceChartCanNavigate`로 분리, Project Plan 외부 Task 허용·WBS 제한·T0·무게이트 음성 Unit 2건 추가. 기존 `tests/e2e/issue-736-resource-dashboard.spec.ts`의 선택80/Project140 fixture에 외부 Task 일정 이동, 원래 보기/focus·필터 유지 실제 browser 단언을 추가. 원격 직접 실패 #551 large case는 일곱 개 5-frame settle 경로만 Playwright `test.step`으로 구분하여 **실패 원인 관측을 보강**하고 시간/데이터·assertion/재시도 정책은 변경하지 않았다.
+- **KEEP_UNIQUE:** 기존 #551 Milestone 축/3천 건/전체 화면 시각 정합, 기존 WBS/Plan/Excel/OOXML·상호선택·T0/401/412/8-shard. 차트 일반 원장 산식·DB/ACL·기간·Task/Assignment 원시 집합·CI/Required/QA/Release는 변경하지 않는다.
+- **본 GitHub 연결에서 로컬 Node/Chromium/Docker 실행:** NOT TESTED(체크아웃·실행 가능 런타임 미제공). 원본 이전 Head의 56 PASS/품질·Docker success는 이번 수정 후보 SHA의 통과 증거가 아니다. 수정 코드는 source contract/정적 비교로만 확인하며 **동일 source 통합 E2E, TypeScript, Vitest, Docker, Trusted QA 및 리뷰 이후 Quality/E2E8/Docker 결과는 새 원격 Head에서 확인해야 함**.
+- **Cross-run 요약:** F809-CI-001 `#3304.1 / Shard1 / milestone-timeline-lane.spec.ts` 직접 FAIL → 새 Head에서 동일 #551/E2E8 재검증 대기, 원인 UNKNOWN. R809-007 `#813 P2 / chart Plan navigation` 확정 결함 → Unit 음성/확장 E2E 실행 대기. 이슈 내 다른 원격 Full PR 실패는 검색된 접근 가능 실행에 없음.
+- **병합/승인:** mergeable true, latest main 대비 behind0은 보완 전 원격 조회 사실. 새 commit 이후 다시 PR mergeability/review0 확인. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, Required3/Trusted QA/Manager ACCEPT/정식 GHCR는 아직 새 Head에서 미입증, MERGE_READY=BLOCKED. 새로운 Full CI는 `synchronize` push 이후 Issue/PR 댓글의 불변 Run ID/Attempt를 사용해 별도 추적하며 시작을 성공으로 해석하지 않는다.

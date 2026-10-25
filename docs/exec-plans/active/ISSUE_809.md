@@ -122,3 +122,10 @@ Manager의 MINOR 결정에 따라 infra `/root/publish_recovery`가 package.json
 최종 게시 전 latest main·원격 tree/bytes/부모·PR 리뷰/충돌을 infra가 다시 확인한다. PR Head와 원본 CI Run/Attempt 등록은 커밋 자기참조·추가 CI 방지를 위해 Issue STATUS에 기록한다. 이 패킷의 PR_CI_READY는 원격 Required/Trusted/Owner PASS가 아니다. quality/e2e/docker·QA_FINAL/Manager ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED다. 요청 범위는 Ready PR Full CI 시작에서 끝내고 결과를 모니터링하지 않는다.
 
 최종 독립 Reviewer `/root/qa_recovery`는 r03-final source·version3필드 외 변경0·자동 생성 설정 diff0·실제100Vitest/57.808초/15+KEEP5/glyph0/T0·비동기 수명과 문서 의미를 대조해 LOCAL_PRE_QA PASS(새 P1/P2 없음)를 반환했다. 이전 `/root/chart_qa`의 실행 증거 재검증/재사용과 복구 Reviewer의 직접27case·T0 교차 실행을 구분했다. 이 판정은 remote QA_FINAL/Owner/Manager ACCEPT가 아니며 모두 NOT TESTED다.
+
+
+## 2026-10-26 F809-CI-001 REWORK / PR #813
+
+[원본 Full #3304.1](https://github.com/planner77/masterGantt/actions/runs/40235454996): Shard1 #551 3천 Task 대량 Milestone peer/fullscreen 시 30초 `settle`(5 RAF) timeout 1직접 FAIL, Shard1 56 PASS·47 NOT RUN, 기타 shard2–8 CANCELLED, E2E 집계/QA 파생 FAIL. Quality/Build/Docker PASS는 **이전 Head**에 한정. 원인은 현 로그로 UNKNOWN; timeout 증가/fixture 축소/skip/retry·CI 정책 완화 대신 대표 #551 test의 7정착 경로를 이름 있는 test.step으로 관측한다.
+
+같은 PR 새 P2 review는 선택80/개인 Project140의 외부 Task 포함 Plan 원본으로 일정 이동 버튼을 숨기는 실제 제품 제어 결함. chart 선택 gate를 순수 함수로 분리하여 검증된 Plan gateway만 외부 Task를 허용하고 일반 WBS subset/T0 명시 예외/게이트 부재 차단은 유지. 기존 #736 chart 통합 E2E에 Project gateway→외부 Task→일정/복귀+focus/필터를, 기존 Resource feature unit에 양성·음성 2건을 확장(EXTEND, 새 전체 spec 없음). 수정 후 로컬 Node/Chromium 실행은 이 GitHub 연동 환경에서 NOT TESTED이며 원격 동일 source CI가 필요하다. [원장 상세](../../ISSUE_809_FAILURE_ANALYSIS.md) 참조. Required3/Trusted/Owner/Manager ACCEPT 및 MergeReady는 새 Head에서 미검증·BLOCKED.

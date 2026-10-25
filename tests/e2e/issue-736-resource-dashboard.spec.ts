@@ -302,6 +302,15 @@ test.describe("#809 chart interaction",()=>{
  await charts.getByRole("button",{name:"현재 기간 원본",exact:true}).click();
  const detail=charts.getByRole("region",{name:"차트 원본 상세",exact:true});
  await expect(detail).toHaveAttribute("data-chart-detail-state","ready");await expect(detail.locator("[data-canonical-task-id]")).toHaveCount(2);
+ // P2 #813: Project-load Plan evidence contains the outside Assignment/Task.
+ // It must be navigable via the Plan gateway without relaxing WBS subset checks.
+ const projectSchedule=detail.getByRole("button",{name:"차트 선택 범위 일정 보기",exact:true});await expect(projectSchedule).toBeEnabled();
+ await projectSchedule.click();
+ const projectReturn=page.getByRole("region",{name:"임시 조회 범위",exact:true});await expect(projectReturn).toContainText("Project 전체 부하 근거");
+ await expect(page.getByRole("tablist",{name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"일정",exact:true})).toHaveAttribute("aria-selected","true");
+ await expect(page.locator(".project-gantt-frame").locator(`.wx-row[data-id=":${outside.taskId}"]`)).toHaveCount(1);
+ await projectReturn.getByRole("button",{name:/원래 보기/}).click();await expect(projectSchedule).toBeFocused();
+ await expect(charts.getByLabel("차트 작업 검색",{exact:true})).toHaveValue(f.task.name);
  await detail.getByRole("button",{name:"차트 상세 닫기",exact:true}).click();await expect(charts.getByRole("button",{name:"현재 기간 원본",exact:true})).toBeFocused();
  const equivalentReads=chartReads;await charts.getByRole("group",{name:"차트 유형",exact:true}).getByRole("button",{name:"업무 집중",exact:true}).click();const ranked=lastChartReport;expect(chartReads).toBe(equivalentReads);
  await expect(charts).toHaveAttribute("data-chart-state","ready");expect(ranked.analysis?.total.taskIds).toEqual([f.task.taskId]);expect(ranked.analysis?.total.assignmentIds).toHaveLength(1);

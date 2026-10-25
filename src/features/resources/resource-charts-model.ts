@@ -1,4 +1,4 @@
-import type { ResourceAnalysisCell, ResourceAnalysisDimension, ResourceAnalysisQuery, ResourceAnalysisResult } from "../../contracts/resource-analysis";
+import type { ResourceAnalysisCell, ResourceAnalysisDimension, ResourceAnalysisPlanSelector, ResourceAnalysisQuery, ResourceAnalysisResult } from "../../contracts/resource-analysis";
 import type { WbsViewQueryInput, WbsViewReportDto } from "../../contracts/wbs-dashboard-views";
 import { rankResourceAnalysisCells } from "../../domain/resources/resource-analysis";
 import type { ResourcePlanMetrics } from "../../domain/resources/resource-plan";
@@ -22,6 +22,21 @@ export function resourceChartDiagnosticSelection(origin: WbsViewReportDto, diagn
     JSON.stringify(origin.sourceContext.scope) !== JSON.stringify(diagnostic.sourceContext.scope) ||
     new Set(taskIds).size !== taskIds.length || taskIds.some(id => !allowed.has(id) || !diagnostic.taskIds.includes(id))) throw Error("REPORT_STALE");
   return { taskIds: [...taskIds], assignmentIds: [] as string[] };
+}
+
+/** Plan project-load evidence may legitimately include tasks outside the selected WBS report.
+ * Only its separate, validated Resource Plan gateway can navigate that wider evidence.
+ * WBS actions remain restricted to their original task subset (except explicit T0).
+ */
+export function resourceChartCanNavigate(
+  selection: { taskIds: readonly string[]; plan?: ResourceAnalysisPlanSelector; diagnosticT0?: boolean },
+  selectedTaskIds: readonly string[],
+  gateway: { wbs: boolean; resourcePlan: boolean },
+): boolean {
+  if (!selection.taskIds.length) return false;
+  if (selection.plan) return gateway.resourcePlan;
+  return gateway.wbs && (selection.diagnosticT0 === true ||
+    selection.taskIds.every(id => selectedTaskIds.includes(id)));
 }
 
 export type ResourceChartKind = "period" | "concentration" | "contribution";
