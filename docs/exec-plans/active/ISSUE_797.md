@@ -39,10 +39,10 @@
 - `risk_triggers`: `output/playwright/issue-797/**/milestone-*.json` 및 PNG의 보수적 파일 기반 HIGH. 제품 상태 전이·보호 정책 변경은 없고 기존 안전성 테스트와 required gate를 추가/삭제/완화하지 않는다. 개발 서버의 자동 생성 차이는 최종 diff에 포함하지 않는다.
 - `affected_paths`: 수동 관측 도구, 감사 증거·보고서, 활성 계획과 검증 안내 문서.
 - `qa_required: true`
-- `qa_method: AGENT`
-- `qa_review_mode: qa_docs` (실제 별도 독립 검토 필수)
-- `reviewer: /root/audit_qa`; 실제 분리된 실행. UI 설계 `/root/audit_design`, 관측 구현 `/root/audit_browser`, 통합 `/root`.
-- `qa_evidence: NOT TESTED` (최종 diff 사전 검토 후 기록)
+- `qa_method: OWNER_MANAGED` (2026-10-25 Owner의 명시적 전환 지시에 따라 AGENT에서 변경)
+- `qa_review_mode: N/A(Owner-managed)` — 최신 Head의 별도 qa_docs 최종 승인은 요구하지 않되 신뢰된 원격 CI·Trusted QA·Owner 위험 수용을 유지.
+- `reviewer: N/A(Owner-managed)`; 기존 `/root/audit_qa`의 독립 PRE_QA는 최초 Head `1d6fad35`에 대한 역사 증거로만 보존.
+- `qa_evidence: N/A(Owner-managed; 독립 최종 QA 별도 실행 없음)`; Codex 최신 Head 코드 리뷰는 독립 qa_docs 실행을 대신하지 않는다.
 - `trusted_qa_run: NOT TESTED`
 - `ci_evidence: quality/e2e/docker NOT TESTED`
 - `qa_final: NOT TESTED`; `manager_decision: NOT TESTED`; `MERGE_READY: BLOCKED`.
@@ -118,3 +118,11 @@
 - 충돌은 `docs/TEST_PLAN.md`, `docs/UI_UX_GUIDELINES.md`, `docs/exec-plans/active/PLAN.md`의 추가 항목 위치 충돌이다. main의 #798/#799/#506 등 새로운 계약과 #797 감사 안내를 **양쪽 모두 보존**하는 합집합 정렬이다. 제품 소스·테스트 실행 정책·SQLite/API는 수정하지 않는다. 원본 수동 collector·221개 첨부증거는 원래 blob/tree를 재사용하여 보존한다.
 - `docs/UI_AUDIT_2026_10_24.md`의 74건 관측과 일부 준비 FAIL은 **main 8d9dd93 / v0.132.0의 역사적 before**로 그대로 유지한다. #798/#799 병합 이후의 현재 화면 after나 새로운 회귀 PASS로 승격하지 않는다. 이후 최신 main의 비교/변경 후 지속 검증은 #800에 귀속한다.
 - 충돌 해소 후 새로운 merge Head에 대한 GitHub PR CI/Trusted QA 및 Owner 판정은 **기존 #3255.1 성공과 구분해 새 실행 기준으로 판단**한다. 해당 시점의 로컬 full build·Chromium 재실행은 NOT RUN. `HIGH/qa_required=true/qa_method=AGENT`, `release_required=false/release_authorized=false`, `MERGE_READY=BLOCKED`를 유지한다. 사용자 요청 종료점은 PR CI 시작이며 이후 감시/병합/게시/종료를 하지 않는다.
+
+## 2026-10-25 Owner 관리 전환 및 최종 병합 인계
+
+- Owner가 PR #801에 대해 `AGENT → OWNER_MANAGED`로의 전환과 병합 후 Main CI·Generic Finalizer 시작을 명시 승인했다. 정확한 PR Head에서만 유효하며 검증기/Ruleset·CI Required3·risk HIGH·qa_required=true를 완화하지 않는다.
+- 선행 Ready Full PR [#3276.1](https://github.com/planner77/masterGantt/actions/runs/40164224759), 이전 Head `477d776f8e2fcd603a682c3b802cca7571b0b12e`의 세 required aggregate SUCCESS와 [Trusted #921.1](https://github.com/planner77/masterGantt/actions/runs/40164520844) PASS는 **이 메타데이터·문서 전환 이후 새로운 Head의 성공 근거가 아니다**. 새로운 exact Head의 PR Full/Trusted·Reviewer thread0·strict base 일치를 재검증한 다음에만 Manager ACCEPT·merge할 것.
+- Owner의 HIGH 잔여 위험 인수 경계: 수동 브라우저 감사 74/78관측(PARTIAL), 준비 실패4/sidecar 실패1·calendar1440 HTTP500 정확 원인 UNKNOWN, native125%/실기기/screen reader·운영 실증 NOT TESTED. 본 이슈는 측정과 후속 인계가 목적이므로 #798/#799 제품 개선과 #800의 최신 지속 회귀를 완료한 것으로 취급하지 않는다. 실패·미검증 결과를 역사 자료로 계속 보존한다.
+- `DOCUMENTATION_SYNC`: 이 문서의 현재 QA 경로는 OWNER_MANAGED이며 GitHub PR body도 동일하게 선언. 기존 기록의 원격 `NOT TESTED`는 기록 당시의 상태이며 새로운 검증 결과는 불변 GitHub Run URL/Attempt와 PR 댓글에서 관리한다.
+- 변경 경로: 위 Work Packet 텍스트만 수정, 기존 수동 collector/증거 221개·제품 src/API/DB/계산/보안·workflow 및 package/lock 그대로. `release_required=false`, `release_authorized=false` 유지. 버전 변동 및 정식 GHCR SemVer 릴리스 없음. Main의 임시 ci-image는 실측된 경로 분류와 실제 Gate로 판정; Generic Finalizer가 verified Main CI 이후 safety cleanup·Issue FINAL/종료를 수행한다.
