@@ -226,8 +226,11 @@ export async function applyCanonicalGanttSync(
     const position = siblings.findIndex(candidate => candidate.id === id);
     const previous = siblings.slice(0, position).findLast(candidate => actualParents.get(String(candidate.id)) === normalizedParent(task));
     const next = siblings.slice(position + 1).find(candidate => actualParents.get(String(candidate.id)) === normalizedParent(task));
-    const placement = previous ? { target: previous.id, mode: "after" as const }
-      : next ? { target: next.id, mode: "before" as const }
+    // #506: preserve an exact middle insertion by targeting the surviving
+    // successor; SVAR's after-anchor path can append inside an existing family.
+    // Keep after-previous only for a genuine tail insertion.
+    const placement = next ? { target: next.id, mode: "before" as const }
+      : previous ? { target: previous.id, mode: "after" as const }
       : task.parent && task.parent !== 0 ? { target: task.parent, mode: "child" as const } : {};
     await api.exec("add-task", {
       id,
