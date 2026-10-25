@@ -1,3 +1,8 @@
+## [0.133.1] — Unreleased / Issue #799 대시보드 요약 지표
+
+- 다섯 동적 대시보드의 공통 요약에서 label과 값·단위를 구분하고 숫자 비교와 긴 상태문 읽기를 정돈한다. KPI·Milestone 관리 카드/표·Resource Plan과 구성/필터된 작업/전체 Gate·개인 배정의 계산·범위·원본 drill은 유지한다.
+- [6관점 인벤토리/실측](docs/ISSUE_799_DASHBOARD_METRICS.md)와 [Work Packet](docs/exec-plans/active/ISSUE_799.md)에 before/after·선택 검증·문서·독립 사전 검토 및 미검증 범위를 기록한다. PATCH 후보0.133.1, release_required=true/release_authorized=false; PR CI 시작 범위이며 최종 QA·병합·정식 게시 완료를 뜻하지 않는다.
+
 ## [Unreleased] — Issue #798 동적 대시보드 제어 영역
 
 - Milestone·공정&WorkArea·설비·물류 시스템·리소스의 제목·현재 경로를 정돈하고 작업 검색·상태·기간을 빠른 toolbar에 배치한다. 표 이름 찾기·정렬·관점 조건·기존 조회 구성은 고급 영역에서 열며 적용 조건·범위와 초기화를 확인할 수 있다.

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "receiptOrigin": "Manager transcription of independent qa_docs /root/metrics_qa tool-execution report; not a raw browser JSON export",
+  "reviewer": "/root/metrics_qa",
+  "evidenceKind": "READ_ONLY_DOM_STRESS_NOT_SERVER_FIXTURE",
+  "productSource": {
+    "path": "src/features/resources/wbs-view.module.css",
+    "sha256": "78a76f5c98a99d4a91cf5994f6a89310c4d9441e7b922d92eb1ed73e0d71eaf5"
+  },
+  "environment": {
+    "origin": "http://127.0.0.1:3199",
+    "browserExecutableRevision": "chromium-1243",
+    "browserVersion": "Not transcribed; standard observations record the actual version",
+    "widths": [
+      390,
+      1440
+    ]
+  },
+  "status": "PASS",
+  "probes": 6,
+  "samples": [
+    {
+      "text": "12345678901234567890대",
+      "valueBoxWidth": 222.609375
+    },
+    {
+      "text": "1234567890.00 M/D · 알려진 부분합",
+      "valueBoxWidth": 293.453125
+    },
+    {
+      "text": "산정 불가 · 공수 미설정",
+      "valueBoxWidth": 185.015625
+    }
+  ],
+  "assertions": {
+    "allRangeContainment": true,
+    "documentOverflow": 0,
+    "numericUnitTokenLineCount": 1,
+    "domOriginalTextRestoredInFinally": true,
+    "projectWrites": 0
+  },
+  "computedStyles": {
+    "display": "flex",
+    "gap": "8px 16px",
+    "valueFontSize": "18px",
+    "valueFontWeight": "600",
+    "overflowWrap": "normal"
+  },
+  "canonical": {
+    "httpStatus": 200,
+    "revision": 17,
+    "tasks": 4,
+    "assignments": 1,
+    "fingerprint": "1dd5a90c59bedb603a4c84a0b2b88053b83b0757b6d643aee1fd40fd875cc80d",
+    "beforeAfterEqual": true
+  },
+  "limitations": [
+    "Synthetic text replacement in readonly DOM; no claim that 20-digit quantity is a legal persisted server value",
+    "Not a server partial-effort fixture; original DOM text restored",
+    "Actual device/screen reader/native zoom/production not tested",
+    "Grid candidate observations are SUPERSEDED, not final-source evidence",
+    "Independent Agent PRE_QA evidence; human QA_FINAL and Owner acceptance remain NOT TESTED"
+  ],
+  "measurementNote": "valueBoxWidth is the dd bounding-box width reported by the independent browser probe; Range containment was checked separately against that box."
+}

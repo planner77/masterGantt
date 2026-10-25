@@ -1,0 +1,9 @@
+{
+  "src/features/resources/wbs-view.module.css": "78a76f5c98a99d4a91cf5994f6a89310c4d9441e7b922d92eb1ed73e0d71eaf5",
+  "tests/e2e/helpers/dashboard-metrics.ts": "849d244263dcf3c5d61523f861c1d4fcfd428721b61e420e2c4d8b0a267c9a10",
+  "tests/e2e/issue-734-equipment-dashboard.spec.ts": "8072acea3af72cf2343f25049055093133029cdce99949fe6511dc0f1682b334",
+  "tests/e2e/issue-735-system-dashboard.spec.ts": "171b3851607791695e62c3fb10586e2f3488a7a8b25b0d8776828ce2056c632a",
+  "tests/e2e/issue-732-milestone-dashboard.spec.ts": "4464f51768939319a53199456aade743e2abe81a90b4314e35c5f34c944c7e5f",
+  "tests/e2e/issue-733-process-workarea-dashboard.spec.ts": "942cb4c6175678ec810eb2c1991a3b8bb4c1c336dab5adc68534a16cf3e2aa7a",
+  "tests/e2e/issue-736-resource-dashboard.spec.ts": "15303284da9844857199cbda05ece5c32b62626ed6fda66c7b938328e0327ad3"
+}

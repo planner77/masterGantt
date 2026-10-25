@@ -1,3 +1,9 @@
+## Issue #799 — 6관점 요약·지표 표시 검증
+
+[Work Packet의 TEST_LIFECYCLE_REVIEW/AC_TEST_COVERAGE](exec-plans/active/ISSUE_799.md)와 [6관점 인벤토리·실측](ISSUE_799_DASHBOARD_METRICS.md)을 기준으로 기존 #731~#737·#730·#717·#719·KPI/Resource·cross-screen 테스트와 같은 fixture를 우선 재사용한다. 수정된 공통 요약의 typography·단위·0/null/미산정/부분합·scope를 기존 spec에 확장하고, 고유 원본/권한/경합/Gate/Plan·Excel·focus 경계를 유지한다. 새 중복 E2E·삭제·skip·timeout/retry·8shard/Required3/Trusted 변경은 하지 않는다.
+
+390/768/1024/1440/1920px의 같은 Project snapshot before/after에서 KPI geometry KEEP, first-data/표 Y·지표 가시성·간격·document overflow·owner scroll·원래 표시값/단위와 canonical fingerprint·업무 mutation0을 비교한다. 긴 KO/EN·동명·0/null/부분합·readonly/loading/error/stale는 영향 기반으로 배분하고 실제 실행과 미실행을 분리한다. 실제 터치/보조기기·native zoom·운영 환경은 #517의 별도 경계다. 로컬 PASS는 공식 exact-head Quality/E2E8/Docker·Trusted/QA_FINAL·Owner ACCEPT를 대신하지 않으며 이번 작업은 PR CI 시작 뒤 모니터링하지 않는다.
+
 ## Issue #798 — 동적 대시보드 공통 제어 밀도 회귀
 
 [#798 Work Packet](exec-plans/active/ISSUE_798.md)의 AC_TEST_COVERAGE와 TEST_LIFECYCLE_REVIEW를 단일 매핑으로 사용한다. #797 감사의 누락 조합·PARTIAL을 이번 PASS로 재사용하지 않고 동일 fixture의 KPI+5관점×390/768/1024/1440/1920 source/geometry/PNG를 변경 전후에 수집한다. header/toolbar/구성 높이·wrap·첫 요약/표Y·가시 지표/행·유효 상태와 document overflow를 비교한다. 지표 요약 자체 개선은 #799, 전 화면 지속 기준선은 #800 범위다.

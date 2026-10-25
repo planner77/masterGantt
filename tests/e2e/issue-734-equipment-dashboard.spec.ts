@@ -1,3 +1,4 @@
+import { expectDashboardMetricsReadable } from "./helpers/dashboard-metrics";
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
@@ -196,6 +197,7 @@ test("#734 5폭 긴 이름·내부 overflow·열 정렬·native Tab/Escape", asy
     }
     for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
+    await expectDashboardMetricsReadable(root(page).getByTestId("equipment-summary"), width);
     const table = root(page).getByRole("table", { name: "공통 계층 결과", exact: true });
     const row = table.locator(`tr[data-dimension="equipment"][data-entity-id="${f.equipment.id}"]`);
     const detail = row.getByRole("button", { name: "상세", exact: true }); await expect(detail).toBeEnabled(); await detail.focus(); await expect(detail).toBeFocused(); await detail.press("Tab");

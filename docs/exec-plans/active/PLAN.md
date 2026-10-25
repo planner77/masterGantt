@@ -1,3 +1,9 @@
+## Issue #799 — 6관점 요약·지표 정돈 (2026-10-25)
+
+최신 main `fcd1ae59d268efa1913f4de625a9013cabd1de4a`/0.133.0에서 `feat/issue-799-dashboard-metrics`로 진행한다. #798 완료 source의 제어 영역과 KPI baseline을 유지하고 같은 fixture5폭 before 후 공통 요약의 label/value·단위·tabular 위계만 정돈한다. 구성/작업/전체 Gate·개인 Plan/전체 Capacity의 원래 모집단·수치·정확 drill·권한을 보존한다. #797 감사·#800 상시 기준선·#517 환경 검증과 범위를 구분한다.
+
+Manager 문서/통합·read-only ui_ux·frontend 단일 구현/관측 writer·별도 qa_docs 사전 검토·infra 버전/게시를 분리한다. PATCH0.133.1, HIGH/qa_required=true/AGENT, release_required=true/release_authorized=false다. 사용자 종료점은 구현·문서 동기화·Ready PR Full CI 시작이며 모니터링·병합/Main/GHCR/릴리스/종료는 하지 않는다. 실제 결과와 Design Delta B·NOT TESTED/QA_FINAL/Manager ACCEPT 경계는 [Work Packet](ISSUE_799.md)을 따른다.
+
 ## Issue #798 — 동적 대시보드 제어 영역 밀도 개선 (2026-10-25)
 
 main `8d9dd93a9305ebc66ef1fb3784c9788c3e2ece24`/앱0.132.0에서 독립 `feat/issue-798-dashboard-density`로 진행한다. 선행 #797/PR #801 감사·기존 fixture를 참조하고 새 before/after5폭을 수집한다. 제목/경로/도움말 정돈, 빠른 작업 검색·상태·기간, 접힌 고급 조건·기존 composer와 활성 적용값·초기화·keyboard/focus를 구현한다. KPI baseline·원본/집계·현재8-shard/Required3/Trusted 경계는 유지한다.

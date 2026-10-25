@@ -1,0 +1,10 @@
+{
+  "status": "SUPERSEDED",
+  "cssSha256": "b0897fab5a080d2af6160ed44a8335a1ac3e9c0a7a8490781b0731fc8b4ae38c",
+  "completedPass": 3,
+  "interrupted": 1,
+  "notRun": 3,
+  "exit": 130,
+  "reason": "Manager-approved final intrinsic flex candidate; frontend interrupted own runner via SIGINT before modifying CSS",
+  "notCiSkipPolicy": "No skip/timeout/retry configuration modified"
+}

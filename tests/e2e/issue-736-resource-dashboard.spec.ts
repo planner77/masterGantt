@@ -1,3 +1,4 @@
+import { expectDashboardMetricsReadable } from "./helpers/dashboard-metrics";
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -97,7 +98,8 @@ test("#736 5폭 keyboard·focus·내부 overflow 및 stale/error 잠금",async({
  const toggle=row.getByRole("button",{name:/하위 (펼치기|접기)$/});await toggle.click();
  const directory=resolve("output/playwright/issue-736");await mkdir(directory,{recursive:true});const geometry=[];
  for(const width of [390,768,1024,1440,1920]){
-  await page.setViewportSize({width,height:1000});await toggle.focus();await toggle.press("Tab");const action=row.getByRole("button",{name:"상세",exact:true});await expect(action).toBeFocused();
+  await page.setViewportSize({width,height:1000});
+    await expectDashboardMetricsReadable(root(page).getByTestId("resource-wbs-summary"), width);await toggle.focus();await toggle.press("Tab");const action=row.getByRole("button",{name:"상세",exact:true});await expect(action).toBeFocused();
   const measured=await action.evaluate(element=>{const button=element.getBoundingClientRect(),owner=element.closest("[data-wbs-scroll]")!,bounds=owner.getBoundingClientRect();return{document:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth,left:button.left,right:button.right,ownerLeft:bounds.left,ownerRight:bounds.right,scroll:owner.scrollWidth,client:owner.clientWidth};});
   expect(measured.document).toBeLessThanOrEqual(width+1);expect(measured.left).toBeGreaterThanOrEqual(measured.ownerLeft);expect(measured.right).toBeLessThanOrEqual(measured.ownerRight);if(width<=768)expect(measured.scroll).toBeGreaterThan(measured.client);geometry.push({width,...measured});
   await info.attach(`resource-${width}.png`,{body:await root(page).screenshot({path:resolve(directory,`resource-${width}.png`)}),contentType:"image/png"});

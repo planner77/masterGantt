@@ -19,7 +19,10 @@
 .table thead th { position: sticky; top: 0; background: var(--surface-panel); z-index: 1; }
 .table col { width: 88px; }.table .identityCol { width: calc(100% - 552px); }.table .effortCol { width: 144px; }.table .actionsCol { width: 144px; }
 .identity { display: flex; gap: 8px; align-items: center; min-width: 0; }.identity button { flex: 0 0 44px; }.identity span { min-width: 0; overflow-wrap: anywhere; }.identity small { display: block; color: var(--text-muted); font-weight: normal; }
-.summary { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 0; }.summary div { display: grid; gap: 4px; }.summary dd { margin: 0; font-variant-numeric: tabular-nums; }
+.summary { display: flex; flex-wrap: wrap; gap: 8px 16px; min-width: 0; margin: 0; }
+.summary > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; max-width: 100%; }
+.summary dt { color: var(--text-muted); font-size: 0.8125rem; overflow-wrap: anywhere; }
+.summary dd { margin: auto 0 0; font-size: 1.125rem; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: normal; }
 .detail { border-top: 1px solid var(--border-default); padding-block: 12px; display: grid; gap: 8px; min-width: 0; }.detail h3 { margin: 0; }.detail ul { padding-left: 20px; }.detail li { margin-block: 8px; overflow-wrap: anywhere; }
 .subtle { color: var(--text-muted); margin: 0; font-size: 0.875rem; overflow-wrap: anywhere; }
 @media (max-width: 600px) { .table { min-width: 772px; }.table .identityCol { width: calc(100% - 552px); }.controls label { max-width: 100%; } }
