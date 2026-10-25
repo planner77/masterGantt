@@ -1,4 +1,5 @@
 import { openWbsViewControls } from "./helpers/wbs-controls";
+import { assertDashboardSurface, dashboardSurfaceReceipt, observeDashboardSurface } from "./helpers/ui-geometry";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -582,6 +583,7 @@ test("#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조
   test.setTimeout(180_000);
   const f = await seedWbsViewComposer(page, origin, observeIsolatedApi);
   const canonical = await f.snapshot();
+  const surfaces: Awaited<ReturnType<typeof observeDashboardSurface>>[] = [];
   let queries = 0, mutations = 0;
   page.on("request", request => {
     if (!new URL(request.url()).pathname.startsWith(`/api/projects/${f.publicId}/`)) return;
@@ -629,6 +631,14 @@ test("#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조
       }));
       expect(measured.documentWidth).toBeLessThanOrEqual(width + 1);
       measured.controls.forEach(control => { expect(control.height, String(control.name)).toBeGreaterThanOrEqual(44); });
+      // #800 EXTEND (not a duplicate 5x5 spec): record real first-data/scroll/overlap on the same fixture.
+      const geometry = await observeDashboardSurface(page, kind);
+      assertDashboardSurface(geometry, width);
+      surfaces.push(geometry);
+      if (width === 390 || width === 1440) {
+        await test.info().attach("issue-800-" + kind + "-" + width + ".png",
+          { body: await page.screenshot({ fullPage: false }), contentType: "image/png" });
+      }
     }
     await openWbsViewControls(root);
     const localSearch = root.getByLabel("표의 이름 찾기", { exact: true });
@@ -660,6 +670,24 @@ test("#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조
       await quick.fill(""); await cleared; await expect(root).toHaveAttribute("data-ready", "true");
     }
   }
+  // KPI is the KEEP reference, measured in the same seeded project and browser session.
+  await openWorkspaceView(page, "kpi");
+  await expect(page.getByTestId("logistics-dashboard-view").filter({ visible: true })
+    .locator('[class*="kpiGrid"]')).toBeVisible();
+  await expect(page.getByTestId("logistics-dashboard-view").filter({ visible: true })
+    .locator("table tbody tr").first()).toBeVisible();
+  for (const width of [390, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    const geometry = await observeDashboardSurface(page, "kpi");
+    assertDashboardSurface(geometry, width);
+    surfaces.push(geometry);
+    if (width === 390 || width === 1440) {
+      await test.info().attach("issue-800-kpi-" + width + ".png",
+        { body: await page.screenshot({ fullPage: false }), contentType: "image/png" });
+    }
+  }
+  expect(surfaces).toHaveLength(30);
+  await dashboardSurfaceReceipt(page, test.info(), surfaces);
   const touchContext = await browser.newContext({ viewport: { width: 390, height: 900 }, hasTouch: true });
   await touchContext.addCookies(await page.context().cookies());
   try {

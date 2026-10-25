@@ -1,3 +1,11 @@
+## Issue #800 — KPI 기준 6관점 Geometry/coverage 검증 (2026-10-25)
+
+- [#800 coverage·실측/비교 계약](ISSUE_800_UI_GEOMETRY.md), [Work Packet·AC_TEST_COVERAGE·TEST_LIFECYCLE_REVIEW](exec-plans/active/ISSUE_800.md)를 본 TEST_PLAN의 변경 상세 원장으로 사용한다. #457 역사 기준/당시 실패를 덮어쓰지 않는다.
+- #711 분류: `EXTEND` 기존 `issue-730-view-composer.spec.ts` #798 E2E 1건(동일 isolated SQLite/HTTP fixture, 5관점5폭+KPI5폭); `KEEP_UNIQUE` #457 shell/#717/#719/#732~736/Gantt·원본·권한·경합; `PARTIAL_OVERLAP` #797/#798/#799 수동 관측; `ADD` read-only opt-in before/after 비교 CLI(Playwright test discover 제외). 신규 상시 spec/test/skip/Required 완화=0.
+- 실제 DOM geometry: 첫 요약·표 Y, viewport 안 보이는 지표·행, control sibling overlap, document overflow vs table-owned scroll, 상태·focus/Escape. 390/768/1024/1440/1920×900px, ko-KR/Asia/Seoul·DPR/font/zoom/브라우저·HEAD/DOM version/파일 해시 연결. KPI 절대 Y를 동적 관점에 강제하지 않는다.
+- 동일 fixture·version/collector/source hash가 증명된 before/after만 정량 비교. 단일 Head capture·이전 PR/다른 버전·미실행 원본을 현재 PASS로 취급하지 않으며 #517 native125%/실기기/screen reader는 N/A. 필터·선택·스크롤·원본 Task/Assignment 및 권한·stale/Error·Task Editor/Gantt는 독립 기존 E2E를 재사용한다.
+- 예상 추가 테스트 비용은 기존 case 안 DOM30관측/viewport PNG12, KPI tab1; isolated server·새 E2E case·shard 계획 변경0. 정확 runner-minutes와 QA/Owner 판정은 새 PR Head CI 전 **NOT TESTED**. Required Quality/Chromium8/Docker, Trusted/Owner, 엄격한 main 동기화 정책 유지.
+
 ## Issue #799 — 6관점 요약·지표 표시 검증
 
 [Work Packet의 TEST_LIFECYCLE_REVIEW/AC_TEST_COVERAGE](exec-plans/active/ISSUE_799.md)와 [6관점 인벤토리·실측](ISSUE_799_DASHBOARD_METRICS.md)을 기준으로 기존 #731~#737·#730·#717·#719·KPI/Resource·cross-screen 테스트와 같은 fixture를 우선 재사용한다. 수정된 공통 요약의 typography·단위·0/null/미산정/부분합·scope를 기존 spec에 확장하고, 고유 원본/권한/경합/Gate/Plan·Excel·focus 경계를 유지한다. 새 중복 E2E·삭제·skip·timeout/retry·8shard/Required3/Trusted 변경은 하지 않는다.

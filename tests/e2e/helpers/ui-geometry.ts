@@ -98,3 +98,133 @@ export async function captureUi(page: Page, testInfo: TestInfo, key: string, sel
   await testInfo.attach(key, { body: JSON.stringify({ provenance, facts }), contentType: "application/json" });
   return facts;
 }
+
+
+/** #800: lightweight six-perspective geometry observer (no screenshots or writes). */
+export type DashboardSurfaceKind = "kpi" | "milestone" | "process" | "equipment" | "system" | "resource";
+
+export async function observeDashboardSurface(page: Page, kind: DashboardSurfaceKind) {
+  const root = kind === "kpi"
+    ? page.getByTestId("logistics-dashboard-view").filter({ visible: true })
+    : page.locator('[data-wbs-view="' + kind + '"][data-ready="true"]').filter({ visible: true });
+  return root.evaluate((element, perspective) => {
+    const visible = (node: Element) =>
+      node.checkVisibility({ checkVisibilityCSS: true }) &&
+      !node.closest('[inert],[aria-hidden="true"],details:not([open]) > :not(summary)');
+    const rect = (node: Element | null) => {
+      if (!node) return null;
+      const r = node.getBoundingClientRect();
+      return { x: r.x, y: r.y, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
+    };
+    const pick = (selector: string) => Array.from(element.querySelectorAll(selector)).find(visible) ?? null;
+    const insideViewport = (node: Element) => {
+      const r = node.getBoundingClientRect();
+      if (r.x < -1 || r.y < -1 || r.right > innerWidth + 1 || r.bottom > innerHeight + 1) return false;
+      for (let parent = node.parentElement; parent; parent = parent.parentElement) {
+        const p = parent.getBoundingClientRect(), s = getComputedStyle(parent);
+        if (["auto", "scroll", "hidden", "clip"].includes(s.overflowY) && (r.y < p.y - 1 || r.bottom > p.bottom + 1)) return false;
+        if (["auto", "scroll", "hidden", "clip"].includes(s.overflowX) && (r.x < p.x - 1 || r.right > p.right + 1)) return false;
+      }
+      return true;
+    };
+    // KPI uses h4 inside its cards; its first h3 is the *later* related-Milestone section.
+    // Anchor KPI to its visible view root, not an optional lower heading.
+    const header = perspective === "kpi" ? element : pick("h1,h2,h3");
+    const toolbar = pick(perspective === "kpi" ? '[class*="filterBar"]' : '[aria-label="빠른 조회 조건"]');
+    const summary = pick(perspective === "kpi" ? '[class*="kpiGrid"]' : "dl");
+    const values = Array.from(element.querySelectorAll(perspective === "kpi" ? '[class*="kpiValueRow"]' : "dl dd")).filter(visible);
+    const table = pick("table");
+    const rows = table ? Array.from(table.querySelectorAll("tbody tr")).filter(visible) : [];
+    const controls = toolbar ? Array.from(toolbar.children).filter(visible) : [];
+    const intersections: number[][] = [];
+    for (let i = 0; i < controls.length; i++) for (let j = i + 1; j < controls.length; j++) {
+      const a = controls[i].getBoundingClientRect(), b = controls[j].getBoundingClientRect();
+      if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
+          Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1) intersections.push([i, j]);
+    }
+    let scrollOwner: Element | null = table?.parentElement ?? null;
+    while (scrollOwner && scrollOwner !== element) {
+      const style = getComputedStyle(scrollOwner);
+      if (["auto", "scroll"].includes(style.overflowX)) break;
+      scrollOwner = scrollOwner.parentElement;
+    }
+    if (scrollOwner === element) scrollOwner = null;
+    const rootStyle = getComputedStyle(document.documentElement);
+    return {
+      kind: perspective,
+      route: location.pathname,
+      viewport: { width: innerWidth, height: innerHeight },
+      environment: {
+        locale: navigator.language, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        dpr: devicePixelRatio, rootFont: rootStyle.fontSize,
+        visualViewportScale: visualViewport?.scale ?? null,
+      },
+      state: element.getAttribute("data-wbs-state") ?? "kpi",
+      ready: element.getAttribute("data-ready") ?? "kpi",
+      header: rect(header), toolbar: rect(toolbar), firstSummary: rect(summary), firstTable: rect(table),
+      metricCount: values.length, visibleMetricCount: values.filter(insideViewport).length,
+      rowCount: rows.length, visibleRowCount: rows.filter(insideViewport).length,
+      controlCount: controls.length,
+      controlRows: [...new Set(controls.map(node => Math.round(node.getBoundingClientRect().y)))].length,
+      siblingOverlap: intersections,
+      documentOverflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+      scrollOwner: scrollOwner ? {
+        rect: rect(scrollOwner), scrollWidth: scrollOwner.scrollWidth, clientWidth: scrollOwner.clientWidth,
+        scrollHeight: scrollOwner.scrollHeight, clientHeight: scrollOwner.clientHeight,
+        overflowX: getComputedStyle(scrollOwner).overflowX,
+      } : null,
+      states: {
+        alerts: Array.from(element.querySelectorAll('[role="alert"]')).filter(visible).length,
+        statuses: Array.from(element.querySelectorAll('[role="status"]')).filter(visible).length,
+      },
+    };
+  }, kind);
+}
+
+export function assertDashboardSurface(facts: Awaited<ReturnType<typeof observeDashboardSurface>>, expectedWidth: number) {
+  expect(facts.viewport).toEqual({ width: expectedWidth, height: 900 });
+  expect(facts.documentOverflow, facts.kind + " document horizontal overflow").toBeLessThanOrEqual(1);
+  expect(facts.header, facts.kind + " heading").not.toBeNull();
+  expect(facts.firstSummary, facts.kind + " first summary").not.toBeNull();
+  expect(facts.firstTable, facts.kind + " first table").not.toBeNull();
+  expect(facts.metricCount, facts.kind + " visible metric elements").toBeGreaterThan(0);
+  expect(facts.rowCount, facts.kind + " populated fixture table rows").toBeGreaterThan(0);
+  expect(facts.siblingOverlap, facts.kind + " toolbar sibling overlap").toEqual([]);
+  expect(facts.firstSummary!.y).toBeGreaterThanOrEqual(facts.header!.y - 1);
+  expect(facts.firstTable!.y).toBeGreaterThanOrEqual(facts.firstSummary!.y - 1);
+  if (facts.kind !== "kpi") {
+    expect(facts.ready).toBe("true");
+    expect(facts.scrollOwner?.overflowX, facts.kind + " table-owned horizontal scrolling").toMatch(/auto|scroll/);
+  }
+}
+
+/** Attach exact source, test/fixture hashes and runtime conditions to #800's 30 samples. */
+export async function dashboardSurfaceReceipt(page: Page, testInfo: TestInfo, samples: Awaited<ReturnType<typeof observeDashboardSurface>>[]) {
+  const root = resolve(__dirname, "../../..");
+  const paths = [
+    "tests/e2e/issue-730-view-composer.spec.ts", "tests/e2e/helpers/ui-geometry.ts",
+    "tests/e2e/fixtures/wbs-view-composer.ts", "tests/e2e/fixtures/target-project.ts",
+    "tests/config/playwright.config.ts", "package.json", "package-lock.json",
+  ];
+  const hashes = await Promise.all(paths.map(async path => ({
+    path, sha256: createHash("sha256").update(await readFile(resolve(root, path))).digest("hex"),
+  })));
+  const sourceSha = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
+  const dirty = execFileSync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" }).trim().length > 0;
+  const appVersion = JSON.parse(await readFile(resolve(root, "package.json"), "utf8")).version;
+  const domAppVersion = (await page.locator(".brand-version").first().textContent())?.trim();
+  expect(domAppVersion, "actual DOM app version").toBe("v" + appVersion);
+  const receipt = {
+    schema: "issue-800:dashboard-geometry:v1",
+    captureStatus: "OBSERVED: fixture browser geometry, not product before/after or QA approval",
+    sourceSha, dirty, appVersion, domAppVersion,
+    capturedAt: new Date().toISOString(), command: process.env.ISSUE_800_RUN_COMMAND ?? "NOT RECORDED",
+    browserVersion: page.context().browser()?.version() ?? "UNKNOWN",
+    case: testInfo.titlePath, testAndFixtureHashes: hashes,
+    sampleCount: samples.length, samples,
+    notTested: ["native 125% / screen reader / real device (#517)", "production/operational browser",
+      "before/after cross-SHA comparison without a separately authenticated same-fixture pair"],
+  };
+  await testInfo.attach("issue-800-dashboard-geometry", { body: JSON.stringify(receipt, null, 2), contentType: "application/json" });
+  return receipt;
+}
