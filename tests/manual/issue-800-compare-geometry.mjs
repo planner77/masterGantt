@@ -6,7 +6,7 @@
  */
 import { createHash } from "node:crypto";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { resolve, dirname, basename, join } from "node:path";
+import { resolve, dirname, join } from "node:path";
 
 const [beforeArg, afterArg, outputArg] = process.argv.slice(2);
 if (!beforeArg || !afterArg) {
