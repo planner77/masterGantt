@@ -156,7 +156,21 @@ test("#553 actual HTTP supported SVG variant and closed/import/session/revision 
   const nativeRow = (id: string) => page.locator(`.project-gantt-widget .wx-row[data-id=":${id}"]`);
   await expect(nativeRow(f.task("S").taskId)).toBeVisible();
   const collapse = nativeRow(f.task("S").taskId).locator('[data-action="open-task"]'); await collapse.click(); await expect(collapse).toHaveClass(/wxi-menu-right/);
-  const toggle = page.getByRole("button", { name: "◆ Milestone 표시", exact: true }); await toggle.click(); await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  // #552 marker-OFF is the production baseline. The old "◆ Milestone 표시"
+  // toggle no longer exists; verify zero native M rows/bars and lane DOM instead.
+  // The server's canonical M tasks remain in before.data and must survive all exports.
+  const hiddenMilestones = before.data.tasks.filter(task => task.type === "milestone");
+  expect(hiddenMilestones.length).toBeGreaterThan(0);
+  const hiddenMilestoneSelector = hiddenMilestones.flatMap(task => [
+    `.wx-row[data-id$="${task.taskId}"]`,
+    `.wx-bar[data-task-id$="${task.taskId}"]`,
+  ]).join(",");
+  const assertMarkerOff = async () => {
+    await expect(page.getByRole("button", { name: "◆ Milestone 표시", exact: true })).toHaveCount(0);
+    await expect(frame.locator(".project-milestone-lane,.project-milestone-lane-guide")).toHaveCount(0);
+    await expect(frame.locator(hiddenMilestoneSelector)).toHaveCount(0);
+  };
+  await assertMarkerOff();
   const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색", exact: true }); await search.fill("FREE");
   await expect(nativeRow(f.task("FREE").taskId)).toBeVisible(); await expect(nativeRow(f.task("INHERITED").taskId)).toHaveCount(0);
   const trigger = page.getByRole("button", { name: "내보내기", exact: true }).first(), dialog = page.getByRole("dialog", { name: "내보내기", exact: true });
@@ -181,13 +195,13 @@ test("#553 actual HTTP supported SVG variant and closed/import/session/revision 
     if (format === "svg") { const text = bytes.toString(); expect(text).toContain("M-ONLY"); expect(text).toContain("M-INTERNAL"); expect(text.match(/<polygon /g)).toHaveLength(before.data.tasks.filter(t => t.type === "milestone").length); fullSvgDimensions = /<svg[^>]*width="(\d+)" height="(\d+)"/.exec(text); expect(fullSvgDimensions).not.toBeNull(); }
     if (format === "png") { expect(bytes.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a"); expect(bytes.readUInt32BE(16)).toBe(Number(fullSvgDimensions![1])); expect(bytes.readUInt32BE(20)).toBe(Number(fullSvgDimensions![2])); downloads.push({ ...record, width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) }); }
     else downloads.push(record);
-    await expect(dialog).toHaveCount(0); await expect(trigger).toBeFocused(); await expect(toggle).toHaveAttribute("aria-pressed", "false"); await expect(search).toHaveValue("FREE"); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", instance!); expect(await f.get()).toEqual(before);
+    await expect(dialog).toHaveCount(0); await expect(trigger).toBeFocused(); await assertMarkerOff(); await expect(search).toHaveValue("FREE"); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", instance!); expect(await f.get()).toEqual(before);
   }
   page.off("request", observe); expect(mutations).toBe(0);
   await expect.poll(() => page.evaluate(() => { const state = (window as unknown as Window & { __issue553ObjectUrls: { created: number; revoked: number } }).__issue553ObjectUrls; return state.created - state.revoked; })).toBe(0);
   // Clearing the search confirms the original collapsed tree survived every export.
   await search.fill(""); await expect(nativeRow(f.task("S").taskId).locator('[data-action="open-task"]')).toHaveClass(/wxi-menu-right/);
-  await evidence(info, "actual-browser-off-search-collapsed-downloads", { publicId: f.publicId, revision: before.data.project.revision, apiInstance: instance, showMilestones: false, searchDuringDownloads: "FREE", collapsedSummaryExternalId: "S", downloads, mutationRequestCount: mutations, canonicalSnapshotUnchanged: true, objectUrlsAllRevoked: true, actualHttpNoRouteMocking: true });
+  await evidence(info, "actual-browser-off-search-collapsed-downloads", { publicId: f.publicId, revision: before.data.project.revision, apiInstance: instance, showMilestones: false, markerOffNoNativeRowsOrLane: true, searchDuringDownloads: "FREE", collapsedSummaryExternalId: "S", downloads, mutationRequestCount: mutations, canonicalSnapshotUnchanged: true, objectUrlsAllRevoked: true, actualHttpNoRouteMocking: true });
   const svgResponse = await accepted(await page.request.post(`${f.api}/exports/gantt-svg`, { headers: f.headers(), data: { scope: "project", scale: "week", hierarchyDisplay: "expanded" } }), 200);
   const svg = await svgResponse.text(); expect(svg).toContain("M-ONLY"); expect(svg).toContain("M-INTERNAL"); expect(svg.match(/<polygon /g)).toHaveLength(before.data.tasks.filter(t => t.type === "milestone").length);
   const clipped = await accepted(await page.request.post(`${f.api}/exports/gantt-svg`, { headers: f.headers(), data: { scope: "range", startDate: "2026-10-06", endDate: "2026-10-07", scale: "day", hierarchyDisplay: "expanded" } }), 200); expect(await clipped.text()).toContain('width="64"');

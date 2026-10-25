@@ -37,3 +37,10 @@ TEST_LIFECYCLE_REVIEW: 기존 `milestone-visibility.spec.ts`, `project-gantt-ima
 - [Metadata-only #3273.1 / 40162212311](https://github.com/planner77/masterGantt/actions/runs/40162212311)은 기존 Head의 과거 #3272 Full 실패 확인에 따른 FAIL이지 새 완전 CI 직접 실패가 아님.
 - **AC3/4/6/7:** 신규 3-case 실제 HTTP/SQLite/restart 전용 E2E를 현행 8개 Shard 중 **4번**에 명시 배치, 141/141 unique·중복0/유실0, 기존 140개 배치 유지. 최소 네 개 main successful job Shard4 wall(20.5/19.8/17.3/14.1분)은 선정 근거이며 새 소스 성능 PASS가 아니다. 기존 `tests/scripts/e2e-shard-planner.test.ts` strict file inventory와 negative guard도 지속.
 - **AC10:** 정적 Plan/Issue/PR 출처 조회 ≠ 실제 새 HEAD CI/Test/QA PASS. marker OFF, 사용 가이드, JSON1.1/Excel/SVG/PNG·Copy/Template, Owner release gate 불변. 새 exact-head Full CI 결과 전 `NOT TESTED`.
+
+
+## #3275.1 marker-OFF 신규 브라우저 교환 회귀 후속 (F553-I, 2026-10-25)
+
+- [Full Run 40163358017](https://github.com/planner77/masterGantt/actions/runs/40163358017): Quality/Docker/TS/ESLint/Vitest/Preflight/Policy, Shard1·7 PASS, Shard4는 29 PASS/1 FAIL; 나머지 5 shard CANCELLED. 실제 HTTP/SQLite/restart와 Copy/Template 첫 2개 PASS, 세 번째 case의 구 `◆ Milestone 표시` 버튼 클릭이 160000ms timeout. 후반 Export/권한·원자 guard는 NOT RUN. [누적 원장 F553-I](ISSUE_553_FAILURE_ANALYSIS.md) 참조.
+- **AC1/4/5/6/7/8/10:** 운영 #552 marker-OFF 기준의 사용자 토글0·native Milestone Grid row/bar0·lane/guide0를 **정확 canonical Milestone IDs**에 대해 4개 JSON/Excel/SVG/PNG Download 전후 실제 DOM으로 검사. 기존 export bytes/원본 Tasks·Links·Membership/Gate·revision 및 readonly·401/412/422·no server mutation·Summary collapse/search/Core instance·Object URL leak0 단언은 보존. 사용자 Marker ON 재활성화가 아니라 기존 위험의 정확한 oracle 이전이다.
+- #552 전용 브라우저 row0/marker 부수작용0와 #553 실제 HTTP/SQLite Export 검증은 목적/출처가 달라 별도 유지. #574 marker-OFF 통합 최종 게이트와 #573/#693 선택 marker-ON은 그대로 분리. 변경 새 Head PR/QA/운영 Excel·DRM은 실제 Run 전 **NOT TESTED**.

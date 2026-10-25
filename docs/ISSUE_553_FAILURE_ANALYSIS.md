@@ -92,3 +92,21 @@ F553-A~F의 원본 매트릭스와 교정 근거는 위 항목에 그대로 보�
 | 리뷰/충돌/후속 | 이전 리뷰 thread0/reviews0, `mergeable=true`/최신 main 정렬 확인. 새 Head push 전 재확인, fast-forward only / force=false, 최신 PR Full CI **시작까지만**. 이후 모니터링·병합/Main/GHCR/정식 Release/Finalizer/이슈 종료 금지. HIGH/OWNER_MANAGED, release_authorized=false |
 
 원본 [F553-G](#f553-g--pr-562--full-pr-ci-32721-standalone-refs-누락-2026-10-25) 및 F553-A~F를 덮어쓰거나 최신 한 건만으로 진단하지 않는다. 원본 Job/Step·성공/미실행/취소 증거를 분리한다. 추가 direct failure가 밝혀지면 같은 원장에 Run/Attempt별로 누적한다.
+
+
+## F553-I — 2026-10-25 PR #562 Full CI #3275.1: 구형 Milestone 토글 대기 E2E 실패
+
+| 항목 | 원본 관찰·종합 판단 |
+| --- | --- |
+| Run 출처 | [Full Run 40163358017 / #3275.1](https://github.com/planner77/masterGantt/actions/runs/40163358017), attempt 1, event `pull_request`, 2026-10-25 04:50:40Z 시작, 결론 FAILURE. Issue #553, PR #562. HEAD `2a19bdf0d1d5afae547e8a1a094165bd5d617b58`, Base `22144ce3844ab50ac0f22a715742c9df82e072e8`, test-merge `745ddf999af593a03389b939b58c9bdd8ddbdc18` (정확 Base+Head 부모 및 동일 Git Tree 확인) |
+| 최초 직접 실패 | Chromium shard **4/8**, Job **121079815242**, step `E2E shard 실행`, `tests/e2e/milestone-timeline-interchange-http.spec.ts:159`, 세 번째 `actual HTTP supported SVG variant and closed/import/session/revision atomic guards`: `locator.click`가 **존재하지 않는** `getByRole('button',{name:'◆ Milestone 표시',exact:true})`를 기다려 **기존 test timeout 160000ms 초과** (2.7분). Category `TEST_CONTRACT` — old marker-ON 테스트 계약을 #552 production marker-OFF baseline에 이식한 오류 |
+| 기대/실제 | old #553 spec은 toggle.click 및 4개 Export 완료 후 `aria-pressed=false`를 요구. 실제 제품·[Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)는 marker OFF, native M Grid row/Chart bar0, lane/guide0, 사용자 토글 **0**. 과거 #552 `milestone-visibility.spec.ts`도 toggle absence를 보호. 사용하지 않는 버튼을 복원하거나 test timeout만 늘려서는 안 됨 |
+| 직접 PASS | 변경 경로·QA Preflight·TS·ESLint·Vitest·Policy·PR Fast Gate·Next production build·Docker implementation·Required Quality/Docker 모두 SUCCESS. Chromium shards **1/8, 7/8 SUCCESS**. Shard4는 **29 PASS / 1 FAIL** (전체 17.9분), 신규 HTTP 첫 두 건 JSON/Excel/Resource/Logistics·SQLite restart **32.7초 PASS**, Copy/Template/multi-root Copy/Cut **7.0초 PASS**. 해당 원본 Head에서만 유효 |
+| CANCELLED/NOT RUN | 다른 shards **2/8,3/8,5/8,6/8,8/8 CANCELLED** (중간 일부 case 성공을 shard PASS로 승격 금지). 세 번째 #553 테스트는 line159 이후 JSON/Excel/SVG/PNG 다운로드·원자 거부 등 미실행. Chromium Required aggregate Job 121083249524, QA Final Job 121083263875 FAILURE는 직접 E2E 오류의 **파생**, 별도 제품 결함으로 중복 계산하지 않음 |
+| Cross-run 원인 구분 | F553-G #3272 canonical Refs 오류: #3275 changes/Preflight 성공으로 직접 재발 관측되지 않음. F553-H #3274 141/140 Shard plan 미등록: #3275 Vitest/실제 8 shard 실행으로 직접 재발 관측되지 않음. F553-A~F의 old native marker/viewport 혼합 과거 장애 중 **구형 표시 E2E** 범주와 연결되며 새로운 제품 결함으로 단정하지 않음 |
+| 원본 총계 | 기존 old Full **21회(10 FAIL/11 CANCELLED)** + #3272 FAIL + #3274 FAIL + #3275 FAIL = **24 Full 중 13 FAIL/11 CANCELLED**. #3273 metadata-only FAIL은 별개, FAST_DEVELOPMENT skipped는 PASS/Full 아님. 초기 취소 및 과거 test-level 전체 실패 집합은 INCOMPLETE 유지 |
+| 보완 | `tests/e2e/milestone-timeline-interchange-http.spec.ts`에서 구 toggle.click/aria-pressed 단언을 `assertMarkerOff`로 교체. 원본 fixture의 **모든 Milestone ID**에 대한 native Grid row/bar가 실제 DOM 0, lane/guide 0, 사용자 토글 0을 **export 전과 JSON·Excel·SVG·PNG 각각 완료 후** 검사. 33 Task/8 Link/5 membership, real HTTP/SQLite, 원본 snapshot·revision 불변, If-Match, Summary 접힘·FREE 검색, Core instance, 실제 파일 bytes/OOXML/SVG polygon/PNG/URL revoke, 401/412/422/rollback·mutation0 검증은 삭제/완화 없음. 증거에 `markerOffNoNativeRowsOrLane:true` 추가 |
+| 테스트 수명주기 | `tests/e2e/milestone-visibility.spec.ts` existing OFF native ID/zero effect **KEEP_UNIQUE**, 이 #553 실제 HTTP/Export는 다른 계약 **KEEP_UNIQUE + EXTEND**. 기존 Stage/Copy/Membership 원장, 실패 보안 경계, `tests/config/e2e-shard-plan.json` 141/141, 8 shards, original 160000ms, worker/Required/skip/timeout 불변. 원본 E2E/메타데이터/CI 기록 삭제나 PASS 소급 없음 |
+| 증거·잔여 위험 | [원본 Shard4 로그](https://github.com/planner77/masterGantt/actions/runs/40163358017/job/121079815242), Playwright report Artifact 12586979975 및 실패 trace. 교정된 source는 GitHub blob/기존 #552 표시 정책 기준으로 정적으로 검토, 변경 Head 실제 Chromium/HTTP/SQLite·TypeScript/Vitest/Build/Docker **NOT TESTED**. 미해결 리뷰/merge conflict·새 PR CI는 게시 직전 재확인. 고위험 Owner-managed/release_authorized=false; 병합/Main/GHCR/Finalizer/Issue 종료·CI 모니터링 승인 없음 |
+
+앞선 F553-A~H/원본 Run·Attempt와 취소·미실행 결과는 삭제하지 않는다. 특히 원래 line159뿐 아니라 **각 다운로드 후 반복되던 구형 toggle assertion도 함께 변경**해 동일 원인 반복 노출을 막는다.
