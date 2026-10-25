@@ -1,3 +1,56 @@
+## Issue #808 — 차트용 분석 read model과 기존 지표 인벤토리
+
+R2는 [#806](https://github.com/planner77/masterGantt/issues/806)의 데이터 계약이며 화면 shell은 #807, 차트 rendering은 #809가 소유한다. `src/domain/resources/resource-analysis.ts`와 `src/contracts/resource-analysis.ts`는 기존 canonical WBS Task/Assignment 원장을 읽는 순수 adapter다. 별도 공수 엔진·HTTP route·DB·materialized view는 추가하지 않는다. 실제 실행/미검증·승인 범위는 [Work Packet](exec-plans/active/ISSUE_808.md)을 따른다.
+
+### 지표·출처·지원 뷰 인벤토리
+
+| 판정 | 지표 / 필요 데이터 | source ID / selector 및 필터 의미 | 지원 view |
+| --- | --- | --- | --- |
+| KEEP | 고유 Task/Assignment/Resource, 완료·진행·지연, M/D/M/M, unset/partial/0 | `resource-kpi.ts` prepare/select/summarize. 공수는 Project+Assignment, Task 상태는 Task distinct; 같은 개인 Assignment에 Resource/Group/Role/grade 적용 | 기존 ResourceDashboard·Milestone·Excel |
+| KEEP | 실제 공정/WorkArea/설비/System·Resource/Group/Role/Milestone 교차 | `resolveWbsTaskLedger` → `selectWbsTaskLedger` → `summarizeWbsTaskLedger`, canonical Task/Assignment/Resource IDs·관계 provenance. 공유 경로 소계 비가산 | WBS view·Resource root·정확 상세·지원 Resource Excel |
+| KEEP | 등록/역할-only/배정/미배정·Group-only 구별 | WBS `participation`, `tasks`, `assignments`, `diagnostics`의 원래 grain. 등록이나 실물 역할은 개인 공수/Capacity를 만들지 않음 | 동적 리소스·프로젝트 등록·원본 상세 |
+| KEEP | 기간별 계획/Capacity/Load·peak·초과일·초과 M/D | `selectWbsTaskLedgerPlanScope` → `calculateResourcePlan`; R은 기존 개인 모집단, 선택과 동일 개인 Project 전체 참고를 별도 보존 | Resource Plan·주월·일별 상세·지원 Excel |
+| KEEP | ISO주/월·기간 clipping·Calendar | `buildResourcePlanPeriods`와 effective Resource calendar. 기간 양끝 inclusive, 달력 단위 Capacity와 개인 excess 합 | Plan·기간 series |
+| KEEP | 정확 source/snapshot와 Excel | WBS Resource-root `resourceAdapter {report,binding}` → 기존 bounded detail/scope/Plan/Excel 검증 | current/project·Task/Assignment 상세·OOXML |
+| EXTEND | 분석 pivot/series·상위 N·과투입 순위·exact IDs·등급 slice | 새 typed adapter에서 위 원장/selector를 포장. 표시 이름 대신 canonical ID, 같은 축 OR/다른 축 AND. top N은 표시 subset이며 총계 아님 | #809가 소비할 내부 read model |
+| N/A | SQL/materialized view/저장소·실적/근태/FTE/원가 | 현재 원장으로 계산 가능; 새로운 persistence와 추정 실적 불필요 | 지원하지 않음 |
+
+기존 legacy Resource API의 폐기 공정/WorkArea 필터를 부활시키지 않는다. 새 adapter는 WBS의 명시 공정/WorkArea·실물 selector를 사용한다. 같은 관계로 선택된 Task를 개인·실물 인원·실적·제어 종속으로 해석하지 않는다. 사용자 Target 분석 축을 추가하지 않는다.
+
+### 범위·분모·비가산 계약
+
+같은 차원의 복수 선택은 OR, 서로 다른 차원은 AND다. 기존 `selectWbsTaskLedger` selector 배열 자체는 동일 축도 AND이므로 새 adapter가 축 내 원시 ID 합집합을 만들고 중복을 제거한다. 개인/Group/Role/grade 조건은 한 개인 Assignment에서 모두 일치해야 한다. 다른 담당자의 속성을 결합해 Task만 일치시키지 않는다. Group membership 중복·Role 중복·Milestone/실물 중복 경로에서 Assignment를 재합산하지 않는다.
+
+총계의 기준은 선택 원시 Task/Assignment ID 집합이며 pivot/상위 N/중첩 소계의 합이 아니다. Task 전체/진단 T0와 개인 Assignment A의 할당 Task, Capacity R은 서로 다른 grain이다. 상태 필터를 적용한 Task 완료율은 그 선택 집합의 completed/Task count이며 full Project 완료율로 표시하지 않는다. Milestone 전체 Gate/Ready/Blocked는 full canonical projection이며 개인 기여·선택 Task 완료율과 분리한다.
+
+M/D는 기존 calendar-clipped 계획공수이고 M/M은 유효 고정 `mdPerMm`으로만 환산한다. 미설정 M/M은 null, all-unset plannedMd=null, partial은 known 합과 partial 상태를 함께 전달하고 configured0/empty0과 구분한다. Capacity0의 Load는 null이다. 그룹 초과는 개인의 일별 excess 합이며 그룹 평균으로 개인 초과를 숨기지 않는다. Project 참고는 같은 R·기간·Calendar의 Project 전체 공수이며 전사 가용성이나 등록 인원 전체 Capacity가 아니다.
+
+### 개인 교집합과 미배정 pivot (PR811 REWORK_R01)
+
+sourceScope와 추가 개인 조건은 동일 Assignment ID에서 먼저 교집합하고 그 결과의 Task로 개인 A의 Task count/완료 분모를 재유도한다. 공동담당 Task가 다른 담당자의 조건에 맞더라도 source의 개인 Assignment와 교집합이0이면 개인 Task로 남기지 않는다. source의 명시 exactAssignments, Resource/Group/Role path와 같은 개인의 Role/등급 조건에도 같은 규칙을 적용한다. 개인 필터를 적용하지 않는 T0 진단의 `diagnosticTaskIds`는 별도 보존하며 빈 A를 빈 T0로 바꾸지 않는다.
+
+Resource/Group/Role pivot은 현재 분기의 실제 개인 미배정 Task membership에서 `null` 후보를 보강한다. Resource 등록·개인 metadata에 분류가 모두 있어도 `GROUP_ONLY`/완전 미배정 Task가 있으면 정확한 null cell과 상세 selector를 제공한다. Group/Role null은 개인 분류/배정 관점이며 직접 Group 책임을 개인 배정으로 승격하지 않는다. null cell의 `tasks`는 일반 업무 Task, `assignments`는 개인 A이므로 미배정 Task2/Assignment0/공수0이 정상이다. 개인 Assignment나 Capacity를 만들지 않는다.
+
+여러 축의 null 후보는 현재 pivot prefix의 선택을 따른다. null과 실제 Resource의 OR는 기존 원시 ID 합집합이며 중첩 cell을 전체 공수로 재합산하지 않는다. 등록-only catalog 행은 빈 cell로 남길 수 있지만 raw 개인 배정이 없는 Task의 미배정 분기와 구분한다. 의도적인 null 선택은 보존하고 기존 개인 Assignment가 교집합에서 제외된 Task를 가짜 미배정으로 다시 넣지 않는다. [원본 재현·교정](ISSUE_808_FAILURE_ANALYSIS.md), [검증](evidence/issue-808/rework-r01-local.json).
+
+### 차트 소비 우선순위·상세
+
+R3가 기본 지표를 선택할 때 사용하는 권장 핵심은 (1) 개인 배정 인원/등록 인원 구분, (2) 계획 M/D와 M/M 기준, (3) 고유 Task 완료/지연, (4) Capacity/Load, (5) 개인 peak/초과, (6) 공수 미설정이다. 이번 R2는 화면의 기본 표시를 변경하지 않는다. 상세 분석에는 Resource/Group 순위·기간 추이·Milestone 기여·Role/grade 분포·과투입 순위 및 raw Task/Assignment 근거를 공급한다. Group/Role/Milestone/실물은 중첩 분류라 100% 배타 composition/stack 총계로 사용하면 안 된다. null·부분합·분모·선택/Project 참고·단위를 차트와 표 모두 유지한다.
+
+조회 출처·Project revision·snapshot·기간·기준일·필터·단위·fetch generation을 명시적으로 결속한다. WBS report snapshot은 spec/source/scope에, legacy Resource snapshot은 raw data/정규 필터/기간/환산에 묶여 문자열이 달라야 할 수 있다. 서로 다른 DTO를 snapshot 같다고 cast하거나 화면 요청의 늦은 응답을 현재 차트로 표시하지 않는다. 서버 canonical read snapshot에서 모델을 만들고 현재 요청 provenance를 재검증해야 한다. stale/권한 오류를 이전 데이터 또는 빈 정상 결과로 대체하지 않는다. HTTP401/403/412 처리와 export 현재 snapshot 검증은 기존 consumer/service 책임이다.
+
+### R3 호출 seam과 검증 책임
+
+`buildResourceAnalysis({ledger, source, expectedSource, sourceScope, query})`를 기존 인증된 서버 read transaction 안에서 호출한다. `source`는 원래 `WbsViewSourceContext`인 `sourceContext`, 요청 `fetchGeneration`, 정규화한 `filters`를 보존한다. `source.filters`는 `ledger.kpi.filters`와 일치해야 한다. `query`는 `conditions`, 최대2개 `pivot`, `granularity=week|month`, `unit=M/D|M/M`이며 조건을 해제하면 새 scope가 된다.
+
+원 출처의 path/scope 또는 system spec으로 범위를 좁혔으면 `sourceScope`가 필수다. 기존 `createWbsViewProjection(...).selected`가 산출한 같은 거래의 `{taskIds, assignmentIds, rows, selection.t0}`를 `{source, taskIds, assignmentIds, taskRows: rows, diagnosticTaskIds: selected.selection.t0.map(task => task.taskId)}`로 인계한다. `taskIds`는 선택 근거이며 `diagnosticTaskIds`는 개인 조건을 적용하지 않는 기존 T0 진단 분모로, 두 집합을 혼용하지 않는다. `taskRows`는 선택된 실제 공정/WorkArea/설비/System/Milestone 근거를 보존한다. 이는 **호출자가 검증한 원장의 선언**이며 모델의 출처 동등성 검사가 DB snapshot 해시나 HTTP 접근 권한을 독립 인증하는 것은 아니다. 임의 client JSON으로 ledger/sourceScope를 구성해 신뢰해서는 안 된다. legacy 원본은 입력 내부에 유지하고 결과의 Task 근거는 중립 실물/Task/Assignment 필드만 제공한다.
+
+응답 사용은 `acceptResourceAnalysisResponse({source, scopeKey}, response)`로 현재 요청을 확인한다. `scopeKey`는 source·기본 필터·추가 조건·정확 sourceScope·pivot·granularity·unit을 결속하므로 같은 세대의 다른 조건도 재사용하지 않는다. fetch generation 증가·Abort·401/403/412 이후 표시 제거는 소비자 책임이며 helper는 실패/역전/출처 불일치에 null을 반환한다. `selectResourceAnalysisDetails`는 같은 모델의 cell selector만 인수한다. 과투입 순위와 `selectResourceAnalysisPlanDetails`는 source/scopeKey·Resource·selected/project·기간·granularity를 유지해 선택80%의 Assignment와 Project140%의 원시 Assignment를 혼동하지 않는다.
+
+기존 Plan 예산200,000 resource-days/1,000,000 assignment-days/5,000 matrix cells, 기존 report2MiB UTF-8 직렬화·축당200/전체400 raw ID token 한도를 재사용한다. 분석 자체는5,000cells/256 OR조합/500,000 selection work rows로 유한하다. ID 검증 scan도 같은 작업량 예산에 포함하며 중복 token을 제거하기 전에 개수를 제한한다. 한도 초과는 `ANALYSIS_LIMIT_EXCEEDED`로 전체 실패하며 결과를 조용히 자르지 않는다. top N은 생략 건수와 원래 총계를 함께 반환하는 명시 표시 동작이다.
+
+새 typed 분석 모델 자체는 workbook writer나 범위 지원을 확장하지 않는다. 기존에 지원되는 Resource root/Plan/Excel의 같은 canonical ID집합·범위·기간·환산을 비교하며, 미지원 spec은 기존 전체 오류를 유지한다. 실제 차트 UI/응답 역전/드릴 왕복의 browser 종단 증거는 #809에서 추가한다.
+
 ## Issue #807 — 보고별 단일 Workspace와 출처
 
 리소스의 기본 진입은 기존 **기본 현황**이며 동적 계층 탐색·Milestone 교차·Resource Plan·견적/Excel을 peer로 선택한다. 활성 보고의 조건·범위·KPI를 한 번 표시한다. 기존 Resource 보고와 WBS resource-root 보고의 selector·snapshot·검색은 독립이며 호환되는 기간·기준일만 명시적으로 인계한다. 인계 후 대상 보고의 새 확정 결과를 사용하며 원본 snapshot을 대상 출처로 재사용하지 않는다.

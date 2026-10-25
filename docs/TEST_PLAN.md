@@ -1,3 +1,19 @@
+## Issue #808 PR811 REWORK_R01 — 개인 교집합·미배정 pivot
+
+원본 [Full3297.1](https://github.com/planner77/masterGantt/actions/runs/40197745892)의 Required3/Chromium8/구현 테스트는 PASS이고 QA Final만 미해결 리뷰2개로 BLOCKED/RunFAIL이다. 테스트 실패로 잘못 분류하지 않으며 [원장8절](ISSUE_808_FAILURE_ANALYSIS.md)의 전체6runs/attempt·직접/파생 판정과 source evidence를 보존한다.
+
+`resource-analysis.test.ts`를 EXTEND하여 공동T3의 sourceR1∩queryR2(Task/Assignment0·완료분모0), Resource/Group/Role 미배정nullcell과 exactdetail의 원본RED4개를 추가했다. 같은Assignment의 Resource/Group/Role/grade·sourcepath/exactAssignments·nullSource/OR/중첩null·T0/CapacityR·기존물리상세/예산 회귀를 합쳐 직접33(기존19+원본4+교차10) PASS다. 기존6Domain파일90은 ledger/KPI/Plan/Calendar/기간·예산 KEEP_UNIQUE로 같은 후보에서 실행해 총7파일123/123 PASS, failed0/skipped0. 반복실행을 고유 개수로 더하지 않는다.
+
+별도 qa_docs가 동결SHA에서 직접33 및 원본/음성8체크를 독립 실행해 PASS했다. [로컬 증거](evidence/issue-808/rework-r01-local.json), [원격 원본](evidence/issue-808/rework-r01-remote.json)을 구분한다. UI/HTTP/DB/Excel writer·CI 변경0이므로 새로운 전체 E2E 복제·테스트삭제/skip/timeout완화는 없다. 과거원격 성공을 새Head PASS로 전용하지 않으며 새Full Required3/Trusted/Owner는 NOT TESTED다.
+
+## Issue #808 — 분석 adapter의 범위·원장 재사용 검증
+
+[Work Packet](exec-plans/active/ISSUE_808.md)의 AC1~AC6과 [실패 원장](ISSUE_808_FAILURE_ANALYSIS.md)을 따른다. 새 `tests/domain/resource-analysis.test.ts`는 기존 fixture/selector를 사용해 source/snapshot/revision/generation 결속, 축 내 OR/축 간 AND, ID 기반 pivot/top N/exact detail, 비가산·미설정/null·Plan 보존 계약만 ADD한다. 실제 명령/결과는 Work Packet에 기록하며 원격 Required3/Trusted/Owner PASS와 구분한다.
+
+기존 oracle KEEP_UNIQUE: `wbs-task-ledger.test.ts`의 shared5/공동담당7.5·등록/역할-only·선택80/Project140, `resource-kpi*.test.ts`의 같은 Assignment 개인 조건·상태/진단 분모·raw/null, `resource-plan*.test.ts`의 Calendar/개인 초과·Group·ISO주/월·clipping. 서버 `resource-kpi-integration.test.ts`·`issue-622-target-plan-excel.test.ts`·`projects/resource-excel-export.test.ts`는 실제 SQLite·OOXML current/project·ID·stale 경계로 유지한다. `wbs-dashboard-views-http.test.ts`·feature transport/model 및 `issue-736-resource-dashboard.spec.ts`의401/403/412·역전·readonly·정확 복귀는 고유 경계이며 순수 모델 실행으로 대체하지 않는다.
+
+기존 테스트 삭제/skip/assertion·CI gate 완화 없음. UI를 변경하지 않아 geometry·keyboard full E2E를 중복 추가하지 않는다. #809가 실제 차트 consumer를 연결할 때 기존 브라우저/Excel 시나리오를 최소 EXTEND한다. 미실행 항목은 NOT TESTED로 남기며 서로 다른 source의 성공 건수를 합산하지 않는다.
+
 ## Issue #807 — 리소스 단일 작업면 회귀
 
 [Work Packet](exec-plans/active/ISSUE_807.md)의 AC1~AC7·TEST_LIFECYCLE_REVIEW를 기준으로 기존 #736·#730/#798/#800 진입 helper를 새 기본 현황/명시 동적 peer에 맞춰 확장한다. #622/#530 nested 복귀·Resource Plan·Dashboard 상태/Excel·readonly/401/412·stale/응답 역전과 #799 지표·cross-screen/Gantt의 고유 단언을 보존한다. 공통 geometry observer를 느슨하게 하거나 별도 중복 full spec·skip/timeout/retry·8shard/Required3를 추가/변경하지 않는다.

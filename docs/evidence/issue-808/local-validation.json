@@ -1,0 +1,147 @@
+{
+  "issue": 808,
+  "baseline": "048ae92ff673f1d0c4c69171fe3cc9bffe25dc19",
+  "branch": "feat/issue-808-resource-analysis",
+  "version": "0.134.0",
+  "sourceFiles": {
+    "src/contracts/resource-analysis.ts": "b30753dcbe05af762c3b616346fccb91fb84925c09af44d71274e3907199d697",
+    "src/domain/resources/resource-analysis.ts": "e78ee7e8b7c59793896350e6dcda19d80c613aace0d4746a29bf6cf3ef25c0ef",
+    "tests/domain/resource-analysis.test.ts": "f76b177830ab8b54cd46eaf23c28e7dbf011065efab6ba425a7dccb322d5d821"
+  },
+  "frozenSourceMatchesBackend": true,
+  "environment": {
+    "node": "v22.14.0",
+    "vitest": "5.0.0",
+    "next": "16.3.4",
+    "dependencies": "existing node_modules symlink; package/lock dependencies unchanged",
+    "declaredNext": "16.4.2",
+    "limitation": "Local symlink has Next16.3.4, while package/lock declare16.4.2. No Next API code changed or browser/build executed; exact frozen install/build/Chromium deferred to PR Full CI."
+  },
+  "localRuns": [
+    {
+      "name": "direct-final",
+      "status": "PASS",
+      "files": 1,
+      "tests": 19,
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0,
+      "startTimeUtc": "2026-10-25T13:20:51.657000+00:00",
+      "testFiles": [
+        {
+          "path": "tests/domain/resource-analysis.test.ts",
+          "count": 19,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "name": "adjacent",
+      "status": "PASS",
+      "files": 11,
+      "tests": 152,
+      "passed": 152,
+      "failed": 0,
+      "skipped": 0,
+      "startTimeUtc": "2026-10-25T13:12:29.663000+00:00",
+      "testFiles": [
+        {
+          "path": "tests/domain/resource-kpi.test.ts",
+          "count": 28,
+          "status": "passed"
+        },
+        {
+          "path": "tests/domain/resource-plan-budget.test.ts",
+          "count": 9,
+          "status": "passed"
+        },
+        {
+          "path": "tests/domain/resource-plan-periods.test.ts",
+          "count": 6,
+          "status": "passed"
+        },
+        {
+          "path": "tests/domain/resource-plan.test.ts",
+          "count": 15,
+          "status": "passed"
+        },
+        {
+          "path": "tests/domain/wbs-task-ledger-acceptance.test.ts",
+          "count": 13,
+          "status": "passed"
+        },
+        {
+          "path": "tests/domain/wbs-task-ledger.test.ts",
+          "count": 19,
+          "status": "passed"
+        },
+        {
+          "path": "tests/features/resources/resource-dashboard-model.test.ts",
+          "count": 6,
+          "status": "passed"
+        },
+        {
+          "path": "tests/features/resources/wbs-view-transport.test.ts",
+          "count": 4,
+          "status": "passed"
+        },
+        {
+          "path": "tests/server/projects/resource-excel-export.test.ts",
+          "count": 22,
+          "status": "passed"
+        },
+        {
+          "path": "tests/server/resources/resource-kpi-integration.test.ts",
+          "count": 5,
+          "status": "passed"
+        },
+        {
+          "path": "tests/server/resources/wbs-dashboard-views-http.test.ts",
+          "count": 25,
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "staticChecks": {
+    "typecheck": "PASS",
+    "targetedEslint": "PASS",
+    "releaseVersion": "PASS",
+    "markdownLinks": {
+      "status": "PASS",
+      "files": 343
+    },
+    "diffCheck": "PASS",
+    "documentationStructure": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING"
+  },
+  "independentLocalPreQa": {
+    "reviewer": "/root/analysis_qa",
+    "method": "read-only separate agent",
+    "sourceManifestSameBeforeAfter": true,
+    "directTests": 19,
+    "regressionReproductionsPassed": [
+      "total physical E10 scope",
+      "pivot cell physical E10 details",
+      "G1 Plan group projection",
+      "source R1 T0 denominator6/personallyUnassigned2/personal flag",
+      "oversized500Task/500Assignment/32Group output blocked"
+    ],
+    "status": "PASS",
+    "finalRemoteQa": "NOT TESTED"
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "managerDecision": "NOT TESTED"
+  },
+  "notExecuted": [
+    "production build",
+    "Chromium browser",
+    "local Docker smoke",
+    "main/GHCR/Release/Finalizer",
+    "Windows Excel/DRM/production proxy/manual UX"
+  ],
+  "adjacentReuseReason": "11 existing files and their ledger/KPI/Plan/server/Excel/fixture consumers unchanged. These tests do not import the new adapter; preserved results are separate from final new-adapter tests."
+}

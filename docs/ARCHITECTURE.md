@@ -1,3 +1,9 @@
+## Issue #808 — Resource 분석 adapter의 읽기 경계
+
+`resource-analysis.ts`는 기존 canonical `WbsTaskLedger`와 명시 provenance를 받아 KPI/pivot/기간 series·순위·exact Task/Assignment 근거를 제공하는 순수 읽기 모델이다. resolve/select/summarize 원장과 `selectWbsTaskLedgerPlanScope`→`calculateResourcePlan`을 재사용하며 공수·Calendar·Capacity engine과 DB·HTTP route를 추가하지 않는다. 호출자는 기존 서버 authorization/read transaction에서 얻은 원장과 현재 scope/snapshot/revision/기간·generation을 결속해야 한다. 모델은 접근 권한을 부여하지 않는다. `source.filters`는 원장 필터와 같아야 하며 좁힌 path/scope/system spec은 같은 거래의 기존 projection selected IDs/narrowed taskRows 및 개인 조건을 적용하지 않는 별도 diagnosticTaskIds(T0)인 `sourceScope`를 필수로 받는다. source/sourceScope는 호출자가 인증한 원장 선언이며 모델이 DB snapshot 해시를 독립 인증하지 않는다. 응답 소비자는 현재 source와 query/pivot/기간단위/unit을 결속한 scopeKey를 함께 확인한다.
+
+Group/Role/Milestone/실물 경로의 소계는 비가산이며 raw Assignment 합집합이 총계다. WBS/legacy Resource report의 다른 snapshot identity를 합치지 않고 기존 Resource-root `resourceAdapter {report,binding}` bridge와 지원 Excel 검증을 유지한다. 차트 rendering·fetch UI는 #809 범위다. [지표·인벤토리](RESOURCE_KPI_DASHBOARD.md#issue-808--차트용-분석-read-model과-기존-지표-인벤토리), [Work Packet](exec-plans/active/ISSUE_808.md).
+
 ## Issue #479 PR #794 — API boundary와 trusted internal snapshot 보완
 
 `projectScopedAccessResponse(request)`는 `/api/projects/{id}` 모든 내부 scoped 라우트의 entry에서 **decode-once / canonical ID** → visibility / exact Project-scoped Cookie 세션을 검증한다. malformed id는404, private unauthed는401을 반환하고 handler/read/export로 진행하지 않는다. Public-facing direct GET/SSR은 다시 `getAuthorizedReadonlySnapshot`으로 검사하는 defense-in-depth를 제공한다. 내부 Import/Export/Task Assignment·Mutation 결과에 사용되는 `getReadonlySnapshot`은 DB aggregate 내부 trusted 경로로 남기며 외부 route에서 직접 호출할 수 없다. [Run #3223.1 직접 실패·P1 리뷰](ISSUE_479_FAILURE_ANALYSIS.md).
