@@ -71,6 +71,7 @@ ADD: 새 분석 adapter의 결속·분석 축·read-only 데이터 선택 계약
 - `docs/RESOURCE_KPI_DASHBOARD.md`: UPDATED
 - `docs/ARCHITECTURE.md`: UPDATED
 - `docs/EXCEL_EXPORT.md`: UPDATED
+- `AGENTS.md`: N/A(기존_한줄_Merge_제목과_빈본문_보호QA_운영규칙을_수정없이_그대로_적용)
 - `docs/TEST_PLAN.md`: N/A(최초 PR에서 계약 검증 정리됨; 이번 교정은 기존 Python 정책 검사에 역사적 오류 fixture만 추가하며 테스트 선택·검증 기준은 그대로)
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
@@ -137,3 +138,13 @@ infra 사전조회에서 #808 canonical PR0, 원격 브랜치없음, 과거 #808
 - **AC_TEST_COVERAGE:** AC1~AC6 Resource 원본 계약은 최초 PR 고유 테스트+Full #3298.1에서 검증. 교정 추가 검증은 현재 실패 Run #3299.1 original immutable message의 정확한 negative assertion과 정식 Payload `commit_message=""`/HEAD lease positive, Python policy·Full/Trusted. 다음 merge 전에 `main_ci_run_name.py --validate-title --as-merge-payload`를 새 PR 번호·HEAD에 대해 실행하여 one-line/empty-body를 사전 확인. Merge/CI 결과는 반드시 새 SHA/Run 증거로 분리.
 - **릴리스:** 원래 main `0.133.4→0.134.0` 실패 후 다음 same-Issue merge의 version unchanged에 대한 Generic Finalizer inherited release obligation을 원본 first-parent chain에서 확인한다. [정확 버전 Owner 승인](https://github.com/planner77/masterGantt/issues/808#issuecomment-6401854691)은 0.134.0만 포함. 후보 `ci-<new SHA>`가 성공하기 전 tag/promotion/FINAL/Issue CLOSED 금지.
 - **상태:** 복구 PR용 문서/코드 준비. 신규 Head Full PR CI/Trusted QA/Owner ACCEPT, Main CI/GHCR/Finalizer 전부 아직 NOT TESTED. CI 시작 뒤 사용자 지시상 모니터링하지 않음.
+
+
+## MAIN-808-002 — PR #812 Full #3300.1 QA Preflight 실패 및 복구 (2026-10-26 KST)
+
+- **원본:** [PR #812](https://github.com/planner77/masterGantt/pull/812), [Full CI #3300.1 / Run 40225206676](https://github.com/planner77/masterGantt/actions/runs/40225206676), attempt 1, event pull_request/FINAL_FULL, Head `cc96a3e7f79f692efa56d06d115e72c7e1be4140`, Base `028f80b3c59bb373a7a34f3c95279cf8e17be603`, Test Merge `0e9f0d524b1ac9bde78c109d65af908ed3f69fc7`. 원본 문맥/초기 추정/취소/미실행은 [같은 Issue의 누적 실패 원장](../../ISSUE_808_FAILURE_ANALYSIS.md) 11절에 불변 보존한다.
+- **직접 실패:** Job121265068621 QA Preflight가 정확 단독 한 줄 `risk_level` / `qa_method` / `qa_required` 부재와 Work Packet `DOCUMENTATION_SYNC`의 `AGENTS.md` 판정 누락을 보고. 독립 QA route Job121264993470도 `qa_method` 누락을 BLOCKED로 확인. `PATH_POLICY`은 앞선 값 누락의 파생, PR Fast Gate와 Required3 FAIL도 같은 의존 차단의 파생이다. 실제 Policy/TypeScript/ESLint/Vitest/Next Build/Chromium E2E8/Docker 구현 Job은 SKIPPED/NOT RUN.
+- **교정:** PR 본문에 메타데이터 각 한 줄을 정확히 1회만 선언(`risk_level: HIGH`, `qa_method: OWNER_MANAGED`, `qa_required: true`, `release_required: true`, `release_authorized: true`); Primary `Refs #808`는 1회 유지. `release_authorized`는 이전 [Owner 0.134.0 승인](https://github.com/planner77/masterGantt/issues/808#issuecomment-6401854691)의 version-scoped 내용만 계승하고 검증 없는 신규 릴리스를 허용하지 않는다.
+- **문서 영향:** `AGENTS.md: N/A`를 필수 `DOCUMENTATION_SYNC` section에 정규 단일 행으로 기록. 보호된 `scripts/verify-issue-lifecycle.py` 변경의 문서 union인 `AGENTS.md`/`docs/QA_REVIEW_POLICY.md`/`docs/CI_CD.md`/`docs/TEST_PLAN.md`/`docs/GITHUB_OPERATIONS.md`/`docs/REMOTE_VALIDATION.md` 모두 실제 diff 여부 또는 N/A(reason)로 확인한다. 이번 교정은 정책/제품/테스트 코드 변경0이고 기존 불변 #3299 Main 실패 및 부정·긍정 테스트를 보존한다.
+- **TEST_LIFECYCLE_REVIEW:** 기존 `verify-issue-lifecycle.py`의 직접 부정·긍정 fixture는 KEEP_UNIQUE, Main #3299/PR #812 검증 메타데이터와 문서만 교정. 새 스펙/skip/Required/8-shard/timeout/QA gate 변경0. GitHub connector 소스·정규식 구조 검사는 확인했으나 변경된 정확 Head의 Python Policy/Node/Chromium/Trusted는 새 원격 실행 전 **NOT TESTED**.
+- **범위/잔여:** Owner-managed HIGH, QA required. 미해결 리뷰·충돌 확인 및 최신 Main 정렬 후 GitHub branch 단일 source commit으로 새 Full PR CI만 시작. CI 결과 감시·PR 병합·Main/GHCR/Release/Finalizer/Issue 종료는 수행하지 않는다.

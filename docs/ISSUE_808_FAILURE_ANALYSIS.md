@@ -123,3 +123,23 @@ F808-014/015는 기존 원장의 personal Assignment 교집합 규칙과 실제 
 - corrective Merge 전 `python3 scripts/main_ci_run_name.py --issue 808 --pr <newPR> --summary '리소스 분석 Main CI 복구' --as-merge-payload --expected-head-sha <newHEAD>`로 기존 도구가 생성한 **정확 페이로드**를 사용한다. 검증된 title과 `commit_message=""`, 40자리 Head lease를 그대로 전달하며 새 PR Head/Base/Test-Merge 출처가 다르면 중단한다.
 - 앱 `0.134.0` 제품과 package/lock 불변. 실패한 같은 Issue Main이 이미 `0.133.4→0.134.0` 변경했으므로 Generic Finalizer의 *같은 Issue 실패 승계·first-parent* 계약 검증 후 버전 발행 의무를 잃지 않는다. [#808 Owner의 v0.134.0 전용 승인](https://github.com/planner77/masterGantt/issues/808#issuecomment-6401854691)은 원본 실패 Main에 대한 면책이 아니라 **다음 verified Main/Release**의 version-scoped 정책 증거다.
 - 추적/승인: 원본 실패 누적 보존; 신 corrective PR CI·Trusted/충돌/리뷰·Owner ACCEPT·Main push full·GHCR/Finalizer는 원격 실제 관측 전 **NOT TESTED**. Issue **OPEN**, 이미지/정식 tag/운영 배포 없음. 사용자 요청대로 새 CI 시작 후 결과 모니터링은 하지 않는다.
+
+
+## 11. PR-808-002 — Corrective PR #812 Full CI #3300.1 최초 실패 (2026-10-26 KST)
+
+### 인증된 원격 출처·직접 실패
+
+- Primary Issue [#808](https://github.com/planner77/masterGantt/issues/808), 새 corrective [PR #812](https://github.com/planner77/masterGantt/pull/812). 이전 PR #811의 Full #3297.1 FAIL/#3298.1 SUCCESS, Main #3299.1 FAIL은 각 8~10절에 불변 보존. 새 PR은 과거 PASS를 재사용하지 않는다.
+- 원본 [Full PR CI #3300.1](https://github.com/planner77/masterGantt/actions/runs/40225206676), Run ID **40225206676**, Attempt **1**, event=`pull_request / FINAL_FULL`, 2026-10-25T19:15:59Z ~ 19:17:09Z, conclusion **failure**. 정확 PR HEAD `cc96a3e7f79f692efa56d06d115e72c7e1be4140`, base `028f80b3c59bb373a7a34f3c95279cf8e17be603`, Test Merge Git Ref `0e9f0d524b1ac9bde78c109d65af908ed3f69fc7`. 관련 임시 GHCR/정식 Release 실행 없음.
+- 최초 직접 실패 #1: QA Preflight Job **121265068621**, `원본 base SHA의 QA Preflight 실행 (read-only)`. 실제 FAIL 5 / DEFERRED 5. `RISK_LEVEL`, `QA_METHOD`, `QA_REQUIRED` 모두 "정확히 한 개의 선언 필요" (PR 본문에 inline backticks/설명만 있고 전체 행 `risk_level:` 등 없음). `PATH_POLICY` FAIL은 위험/QA 필수 선언 누락에서 파생. `DOCUMENTATION_SYNC` FAIL: `docs/exec-plans/active/ISSUE_808.md: 문서 영향 기록 없음: AGENTS.md`. 원본 Artifact `qa-preflight-40225206676-1` ID 12610936962.
+- 직접 독립 경계: QA route Job **121264993470**, `보호 변경·AGENT 경로 판정` FAIL, `QA 경로 BLOCKED: PR 본문 qa_method의 명시값 필요`. 앞의 같은 메타데이터 입력 결함이 원인이고 제품 코드 검증 실패 아님.
+- **파생:** PR Fast Gate Job **121265137306** FAIL (PREFLIGHT failure 및 필수 Policy/Typecheck/Lint/Unit skipped). Required aggregate Quality **121265187379**, Chromium E2E **121265187425**, Docker **121265187387**는 모두 FAIL (QA Preflight fail-closed). 변경 경로 판정 **121264993698** SUCCESS, Shadow advisory SUCCESS. 실제 Policy/TypeScript/ESLint/Vitest/Next Build/Chromium shard8/Docker smoke 구현은 **SKIPPED/NOT RUN**. QA Automated도 SKIPPED. Cancelled implementation 중 직접 테스트 FAIL 관측 0(원본 직접 오류는 metadata/docs).
+- 분류: **POLICY_CI (metadata/docs source contract)**. 원래 MAIN-808-001의 multiline merge payload 수정 실패는 별개로 보존한다. 이번 실패를 Resource R2 계산·#808 정책 테스트의 회귀라고 단정할 근거 없다.
+
+### 누적 cross-run 진단·단일 보완
+
+- 기존 원장 F808-001~017(도구/TS/원본재현/리뷰 등), #811 3297 리뷰 FAIL/3298 PASS, #811 Main #3299 trace FAIL 및 #812 Full #3300 실패를 모두 구분. 원본 MAIN CI 실패를 rerun으로 소급 PASS시키지 않고 한 줄 merge 제목/빈 commit body 검증 fixture를 유지한다.
+- 대응: PR #812 메타데이터의 전체 행 `risk_level: HIGH`, `qa_method: OWNER_MANAGED`, `qa_required: true`, `release_required: true`, `release_authorized: true`를 **각 정확 1개**로 선언. Work Packet의 `## DOCUMENTATION_SYNC`에 `- \`AGENTS.md\`: N/A(원래_한줄제목_빈본문_계약_불변)` 추가. Required QA_DOCS six paths 전수 확인; `AC_TEST_COVERAGE` AC1~AC6 보존. 공식 QA validator 변경/자동 skip/대상 Registry 권한 증가 없음.
+- 영향 테스트: 직접 기존 `scripts/verify-issue-lifecycle.py` (MAIN-808-001 negative/positive) 유지, 구 #582/#586/#639 trace·CI metadata와 QA Preflight/Trusted·8 shard/3 Required를 전체 PR CI에서 재검증. 스펙 제거·추가/중복·예외 처리 없음.
+- 로컬 preflight 실제 실행/Playwright/정식 Registry: 이 연결 환경에서 **NOT TESTED**, 구조적 정규식/PR-body/필수 문서 매핑 확인만 사전 수행. 새 Head Full CI 및 Trusted/Owner 전 **NOT TESTED**. 미해결 review=0 및 충돌 여부는 새 Head 게시 직후 재검증, 실패되면 새로운 원본 이력에 추가한다.
+- 인계: \`fix/issue-808-main-trace-recovery\` 브랜치를 최신 main과 strict 정렬 후 정확 commit lease 단일 게시 → PR #812 \`synchronize\` Full CI 시작까지. 모니터링/병합/Main CI/GHCR/정식 tag/Finalizer/Issue close 범위 아님.
