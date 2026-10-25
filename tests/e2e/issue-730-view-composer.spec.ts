@@ -674,6 +674,8 @@ test("#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조
   await openWorkspaceView(page, "kpi");
   await expect(page.getByTestId("logistics-dashboard-view").filter({ visible: true })
     .locator('[class*="kpiGrid"]')).toBeVisible();
+  await expect(page.getByTestId("logistics-dashboard-view").filter({ visible: true })
+    .locator("table tbody tr").first()).toBeVisible();
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     const geometry = await observeDashboardSurface(page, "kpi");
