@@ -4,7 +4,7 @@
 
 - repository: `planner77/masterGantt`
 - issue: [#800](https://github.com/planner77/masterGantt/issues/800)
-- lifecycle_phase: IMPLEMENTED_LOCAL_SOURCE / PR_CI_START_PENDING
+- lifecycle_phase: REWORK / NEW_FULL_PR_CI_START_PENDING
 - requested_scope: source/issues/docs review → plan → minimal implementation/docs → unresolved review threads/conflict review → Ready PR Full CI start; **no CI monitoring/merge/Main/GHCR/Finalizer/Issue closure**
 - baseline/main: `f431806329dd3af492e1eb6ce67bb73c1262d61e` (2026-10-25 KST, `0.133.2`)
 - branch: `feat/issue-800-geometry-regression`
@@ -12,7 +12,9 @@
 - change_boundary: `tests/e2e/helpers/ui-geometry.ts`, existing `tests/e2e/issue-730-view-composer.spec.ts`, opt-in `tests/manual/issue-800-compare-geometry.mjs`, #800 coverage docs and applicable guides. `src/`, contracts, DB, workflows, dependencies unchanged.
 - design_delta: B (existing DESIGN.md Workspace-first/KPI reference verification only; `DESIGN.md` unchanged)
 - risk_level: HIGH (shared E2E geometry observer; longer existing test)
-- qa_required: true; qa_method: OWNER_MANAGED; independent_qa: N/A (Owner-managed)
+- qa_required: true
+- qa_method: OWNER_MANAGED
+- independent_qa: N/A (Owner-managed)
 - manager_decision: NOT TESTED; MERGE_READY: BLOCKED
 - release_required: false; release_authorized: false
 
@@ -47,8 +49,37 @@ Negative checks: missing row/summary, overlapping toolbar siblings, document hor
 
 - #797 auditor at `8d9dd93a...`/0.132.0 found 3 failed standard dashboard samples and calendar1440 dev HTTP500; sidecar was separate. Preserve original/partial evidence.
 - #799 original before/after at specific source/runtime0.133.1: documented 30 pairs, KPI KEEP, 25 dynamic first-data Y improvement; baseline commit HEAD and actual working-tree source CSS fingerprints must not be conflated.
-- #800: test code and compare command authored, **actual local Chromium E2E/manual compare/typecheck/lint NOT TESTED in this connector-only run**. New Head Full CI not yet executed at authoring time; final status requires actual PR run ID, checks and Owner decision.
+- #800 original Full [#3281.1](https://github.com/planner77/masterGantt/actions/runs/40168112076) **FAILED** at QA Preflight; exact Head `a669546b231b805f723aa0015797473039033cee`, Base `f431806329dd3af492e1eb6ce67bb73c1262d61e`. 원본 원인·파생 Job·미실행 구별은 [단일 누적 실패 원장](../../ISSUE_800_FAILURE_ANALYSIS.md)을 따른다. 보완 HEAD의 local Chromium/manual compare/typecheck/lint 및 새 Full CI는 **NOT TESTED**이며 새 Run/Attempt 완료 전 PASS 불가.
 - Rollback: revert #800 helper additions, #730 instrumentation, standalone read-only comparator, #800 docs; previous suite/behavior unchanged.
+
+## AC_TEST_COVERAGE
+
+- AC1: [#797 전체 화면 mapping](../../ISSUE_800_UI_GEOMETRY.md)의 #457/#717/#719/#730~736/Gantt·Admin의 existing/extend/gap/N/A별 원본 spec·assertion·과거 Issue; 이번 HEAD exact-Run 실행은 N/T.
+- AC2: [#730 기존 #798 단일 E2E](../../../tests/e2e/issue-730-view-composer.spec.ts)의 5관점5폭 + KPI5폭 = 30관측, visible rows/summary/table/focus/owner overflow guard 및 source+fixture+DOM hash. Before/after 증거는 [read-only 비교기](../../../tests/manual/issue-800-compare-geometry.mjs); 새 source 비교는 N/T.
+- AC3: 긴 KO/EN/동일 이름·0/null/부분합은 #717/#799/#732~736, loading/error/stale/readonly/disabled는 #730/#797, keyboard/Tab/Escape/tooltip은 #798/#719/#457 원본을 KEEP_UNIQUE; 모든 상태×폭 및 native125%는 N/T 또는 #517 N/A.
+- AC4: #730 canonical project read-back·조회 POST/업무 mutation 구분·Task/Assignment/원본 값·Gantt/Core selection/filter/scroll와 Task Editor/관리 기능 고유 E2E. 해당 HEAD 전체 Run 전 서버/권한 PASS 아님.
+- AC5: #711 TEST_LIFECYCLE_REVIEW에 따라 기존 1개 spec/test EXTEND, 새 상시 suite 0, 독립 수동 comparator ADD, Chromium 8-shard/Required3 유지, 실제 비용 증가는 CI timing 전 N/T.
+- AC6: #457 역사 불변, [#797 감사](../../UI_AUDIT_2026_10_24.md)/[#799 원본 실측](../../ISSUE_799_DASHBOARD_METRICS.md)과 현재 source 분리; UI/UX Guide·Project UX·TEST_PLAN 기록. 원본 #3281.1 실패와 새 CI 별개.
+
+## DOCUMENTATION_SYNC
+
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/UI_UX_GUIDELINES.md`: UPDATED
+- `docs/ISSUE_800_UI_GEOMETRY.md`: UPDATED
+- `docs/ISSUE_800_FAILURE_ANALYSIS.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_800.md`: UPDATED
+- `DESIGN.md`: N/A(기존_디자인_원칙만_검증하고_제품_시각_설계_변경_없음)
+- `docs/API.md`: N/A(API나_원본_조회_계약_변경_없음)
+- `docs/DB_SCHEMA.md`: N/A(SQLite나_스키마_변경_없음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(일정_로직과_계산_변경_없음)
+
+## REWORK / 리뷰·정책 증거
+
+- 원본 PR #805 Full #3281.1: QA Preflight가 본문 3개 필수 선언(독립 한 줄이 아님)과 Work Packet의 `DOCUMENTATION_SYNC` 부재를 FAIL. 그 결과 QA route/PR Fast Gate/Required3 파생 FAIL, 구현 TypeScript·E2E8·Docker 전부 SKIPPED/NOT RUN. 자세한 direct/derived 분류는 [원장](../../ISSUE_800_FAILURE_ANALYSIS.md) F800-R001.
+- PR 본문에 정확 독립 `risk_level: HIGH` / `qa_method: OWNER_MANAGED` / `qa_required: true` / `release_required: false` / `release_authorized: false` 각 하나만 선언하고 Work Packet 구조를 base `qa_preflight.py`/`qa_final_automated.docs_gate`와 일치시킴. Required/CI policy 수정하지 않음.
+- 미해결 Codex [P1 KPI heading](https://github.com/planner77/masterGantt/pull/805#discussion_r4369868207)·[P2 empty receipt](https://github.com/planner77/masterGantt/pull/805#discussion_r4369868209)를 반영. 기존 KPI 카드보다 아래의 Milestone 제목을 header로 오인하지 않도록 KPI root anchor를 사용하고, 동적 비교는 양쪽 유효한 query receipt 최소1/명세/spec.root/filters/totals/range를 요구. 같은 source Chromium 및 comparator negative 실행은 N/T; 실제 remote Full Run이 필요.
+- 이번 재작업은 현행 8-shard/Required3/Trusted/Owner 경계와 기존 테스트 의미를 보존. 미해결 리뷰 응답/resolve, main/base 충돌 재점검 뒤 Ready PR synchronize가 새로운 Full CI를 시작하도록 함. 이전 FAIL을 재실행 PASS로 대체하지 않음.
 
 ## Gate
 
