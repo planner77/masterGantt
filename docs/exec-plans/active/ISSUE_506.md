@@ -11,7 +11,25 @@
 2. `canonical-snapshot-sync.ts::applyCanonicalGanttSync`는 새 Task가 기존 두 sibling 사이에 올 때 **previous-after**를 우선 사용해 SVAR가 서버의 목표 위치와 어긋날 여지가 있었다. 다음 survivor가 있으면 **next-before**를 우선하고, 마지막에서만 previous-after, 자식 첫 추가면 parent-child, root first-only면 기본 add를 유지한다. 불필요한 sibling `move-task`와 remount는 금지.
 3. 별도 selection, expansion, scroll/scale, scope/readonly/mutation lock·revision, dependency, milestone/type, view projection/key, summary schedule 계산 변경 없음.
 
-## AC_TEST_COVERAGE / TEST_LIFECYCLE_REVIEW
+## AC_TEST_COVERAGE
+
+Issue [#506](https://github.com/planner77/masterGantt/issues/506)의 원문 수용 기준 13개에 보존형 AC ID를 부여하고 동일 test/lifecycle 표에 연결한다. 구조적 AC 매핑과 실제 테스트 통과 여부를 별도로 판단한다.
+
+- AC1: 동일 parent의 root/nested 새 Task 생성 — tests/server/projects/task-hierarchy-command-service.test.ts 및 task-context-menu-hierarchy.spec.ts에서 검증한다.
+- AC2: anchor 바로 위 삽입 — server create-before, canonical SVAR next-before 및 E2E 정확 행 순서를 검사한다.
+- AC3: root와 nested 양쪽 의미 — server root/nested SQLite, E2E Summary scope 경계가 동일하다.
+- AC4: 중간 sibling이 끝으로 append되지 않음 — canonical sync next-before 회귀 Unit, Grid/Chart E2E로 탐지한다.
+- AC5: server DTO와 Grid/Chart 순서 일치 — E2E canonical order, Grid DOM row, 실제 Chart bar y 검사를 대응한다.
+- AC6: siblingOrder가 연속 0..N-1 — server response와 재조회 및 E2E orderedFamily에서 체크한다.
+- AC7: reload 없는 즉시 렌더 — Playwright E2E에서 명령 직후 DOM 폴링과 instance 불변성을 확인한다.
+- AC8: reload 이후 위치 영속 — server readonly read-back과 E2E page.reload 후 canonical/DOM 검증이다.
+- AC9: Task below 다음 sibling 생성 — root 및 nested create-after, SVAR 중간/끝 Unit, E2E negative를 검증한다.
+- AC10: Workspace scope descendant 위치 — E2E Summary 범위의 Child B 앞뒤 command/DOM 확인이다.
+- AC11: scope root Above/Below disabled — E2E scope Summary 메뉴 disabled와 기존 #373/#407 guard 유지이다.
+- AC12: Gantt/API 리마운트 금지 — E2E mutation 전후 frame instance/api-instance 일치 검증이다.
+- AC13: 선택·접힘·스크롤·스케일 보존 — 기존 #373/#407/#418 및 canonical-sync/viewport 특화 회귀 KEEP_UNIQUE, 전체 실행은 CI에서 검증한다.
+
+## TEST_LIFECYCLE_REVIEW
 | AC | 증거 구현 | Lifecycle |
 | --- | --- | --- |
 | Root 첫/중간/끝에서 Above/Below가 즉시 sibling이고 server read-back 연속 | `tests/server/projects/task-hierarchy-command-service.test.ts` (root test), `tests/features/gantt/canonical-snapshot-sync.test.ts` (public-action tests) | EXTEND/ADD |
@@ -23,10 +41,38 @@
 - PARTIAL_OVERLAP 기존 존재/순서 단언; 테스트 파일 분리 목적이 SQLite/HTTP vs SVAR action vs 실제 browser라 유지. `CONSOLIDATE_CANDIDATE=N/A`, `RETIRE_CANDIDATE=N/A`. 기존 파일 삭제/skip/retry/timeout/CI 샤드 변경 없음.
 
 ## DOCUMENTATION_SYNC
-- UPDATED `CHANGELOG.md`, `docs/PROJECT_UX.md`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md`, 새 `docs/exec-plans/active/ISSUE_506.md`, `package.json`, `package-lock.json`.
-- N/A `AGENTS.md`, `DESIGN.md`(원칙·스타일 SoT 불변), `docs/REQUIREMENTS.md`, `docs/UI_UX_GUIDELINES.md`(기존 #72 명세), `docs/API.md`(새 payload 없음), `docs/DB_SCHEMA.md`·`docs/SCHEDULING_ENGINE.md`(DDL/scheduler 변경 없음), `docs/ARCHITECTURE.md`·`docs/ISSUE_LIFECYCLE.md`·`docs/CI_CD.md`(인프라·정책 변경 없음).
+
+변경 diff의 실행·테스트·제품 경로가 요구하는 문서 Source of Truth에 대해 원격 기본 브랜치 `docs_gate`의 항목별 형식과 실제 변경 여부를 일치시킨다.
+
+- `AGENTS.md`: N/A(기존 테스트 생애주기와 기본 브랜치 신뢰정책을 적용하며 본문 수정 불필요)
+- `DESIGN.md`: N/A(기존 SVAR-native와 scope-relative 디자인 원칙을 사용하며 신규 정책 없음)
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_506.md`: UPDATED
+- `docs/ISSUE_506_FAILURE_ANALYSIS.md`: UPDATED
+- `package.json`: UPDATED
+- `package-lock.json`: UPDATED
+- `docs/REQUIREMENTS.md`: N/A(기존 Issue 72 우클릭 상대 위치 요구 및 작업 규칙 유지)
+- `docs/UI_UX_GUIDELINES.md`: N/A(기존 SVAR context menu 계약과 장애 경계 유지)
+- `docs/API.md`: N/A(동일 기존 create command 계약 및 권한과 If-Match 유지)
+- `docs/DB_SCHEMA.md`: N/A(새 테이블 컬럼 인덱스 및 SQLite migration 없음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(일정 재계산 정책과 sibling hierarchy 서비스 변경 없음)
+- `docs/CI_CD.md`: N/A(8-shard 품질 정책 및 Required 세 검사 우회나 조정 없음)
+- `docs/ISSUE_LIFECYCLE.md`: N/A(기존 단계와 QA gating 정책을 변경하지 않고 준수)
+- `docs/ARCHITECTURE.md`: N/A(제품 구조 및 구성요소 책임 경계에 변화 없음)
+
 
 ## 검증·Gate 인계
 - `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `release_required=true`, `release_authorized=false`, `manager_decision=NOT TESTED`.
 - 현재 GitHub 원격 코드 비교 및 정적 문자열 검증만 수행. 로컬 Node/npm/Vitest/Playwright/Docker runtime 검증은 실행 가능한 체크아웃 부재로 **NOT RUN / NOT TESTED**. 테스트 코드를 작성한 사실은 PASS 증거가 아니다.
 - exact HEAD Full Quality/E2E 8 shards/Docker Required3, Trusted QA, 최신 base, 미해결 리뷰 thread0, Owner 수용 전 `MERGE_READY=BLOCKED`. 사용자가 요청한 이번 단계는 non-draft PR CI **시작**까지만이며 CI 모니터링·병합/Main/GHCR/Finalizer/Issue close는 수행하지 않는다.
+
+
+## REWORK — PR #803 첫 Full CI #3264.1 / 리뷰 P1 (2026-10-25)
+
+- [원본 Full Run #3264.1](https://github.com/planner77/masterGantt/actions/runs/40149276969): exact head `9ca412219c1d5efc26b691f3e553e51a2d395d9d` / base `fcd1ae59d268efa1913f4de625a9013cabd1de4a` / test merge `6cde0bbce85ea845868aca4827473dfafa95598b`. 직접 `QA Preflight`의 `ISSUE_AC` 구조 실패. 원본 Issue는 13개 체크박스만 있었고 `AC1..AC13` 토큰이 없었다. 이 원본 실패를 소급 PASS로 변경하지 않는다.
+- Issue #506의 기존 13개 수용 항목에 동일 내용의 `AC1..AC13` 고유 ID를 부여했고 Work Packet `## AC_TEST_COVERAGE`에 개별 매핑을 작성했다. 이전 결합 제목과 비정형 `DOCUMENTATION_SYNC` 항목도 trusted 기본 브랜치 `docs_gate`가 인식하는 구조로 정리한다. 이는 검증기 완화가 아닌 메타데이터 보완이다.
+- [P1 review](https://github.com/planner77/masterGantt/pull/803#discussion_r4369186957): `expectRenderedSiblingOrder`의 Chart `data-task-id`에 SVAR `:` 접두가 있지만 예상 `ProjectTaskDto.taskId`에는 없으므로 비교가 빈 배열이 되는 직접 E2E 테스트 결함. `projection-settled.ts`와 같은 `.replace(/^:/, "")`를 filter/결과 모두 적용. E2E는 원본 Run에서는 **실행되지 않아** 이 오류를 Run 직접 FAIL로 계산하지 않는다.
+- 원인 세부 분류, 원본 23 Job·artifact 구분 및 Cross-run 매트릭스: [#506 누적 실패 원장](../../ISSUE_506_FAILURE_ANALYSIS.md). 사전 문서 구조 확인은 원격 PASS가 아니며 신규 exact HEAD Quality/E2E8/Docker/Trusted/Owner 검증 전 `MERGE_READY=BLOCKED`.

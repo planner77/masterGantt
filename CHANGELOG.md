@@ -1,5 +1,7 @@
 ## [0.133.1] — Unreleased / Issue #506 Add Above·Below sibling 순서 회귀 (2026-10-25)
 
+- PR #803 [첫 Full #3264.1](https://github.com/planner77/masterGantt/actions/runs/40149276969)은 `ISSUE_AC` 메타데이터 구조로 사전 FAIL: Issue AC1~AC13과 Work Packet 정확 매핑/문서 형식을 보강했다. P1 리뷰의 SVAR `data-task-id` `:` 접두 미정규화로 인한 Chart E2E 오탐을 교정했다. 기존 실패 원본·미실행 Chromium8/Docker는 [#506 누적 원장](docs/ISSUE_506_FAILURE_ANALYSIS.md)에 별도 기록한다. 신규 PR CI 실제 실행 전 PASS로 판정하지 않는다.
+
 - `Add > Task above`가 기존 형제 작업의 중간에서 잘못 표시될 수 있던 SVAR canonical add 순서를 교정한다. 삽입 지점의 **다음 sibling이 있으면 `add-task mode="before"/target=next` 우선**, 실제 tail인 경우에만 `after/previous`를 사용한다. 서버의 `anchorTaskId`, `placement`, parent, transaction 및 `siblingOrder`/revision 계약은 그대로 유지한다.
 - root/nested/Workspace scope에서 앞/뒤 삽입, 첫/끝 경계, 서버 재조회·연속 siblingOrder, Grid/Chart 렌더 순서, 새로고침 및 Gantt/API instance 보존을 검증하는 Vitest·Playwright 회귀를 보강한다. 선택/접힘/scroll/scale 및 scope-root command guard는 변경하지 않는다.
 - 신규 PATCH 후보 `0.133.1`: 기존 immutable annotated `v0.133.0`은 수정하지 않는다. [#506 Work Packet](docs/exec-plans/active/ISSUE_506.md)·Test Plan/UX 동기화. 새 PR CI/Trusted QA/Owner 정식 릴리스·GHCR/Finalizer는 **NOT TESTED / 미승인** 상태다.

@@ -1,3 +1,7 @@
+## Issue #506 — PR #803 Preflight 첫 실패 및 신규 E2E P1 교정 (2026-10-25)
+
+[Full #3264.1](https://github.com/planner77/masterGantt/actions/runs/40149276969)에서는 ISSUE_AC 직접 FAIL로 Policy/Quality/E2E/Docker 구현 Job이 SKIPPED, Required3·QA Final은 파생 FAIL이었다. 리뷰 [P1 #4369186957](https://github.com/planner77/masterGantt/pull/803#discussion_r4369186957)은 실제 미실행 Chart bar E2E의 SVAR colon ID 정규화 누락. Issue 본문의 기존 13AC 내용 보존형 번호 부여, [Work Packet](ISSUE_506.md)의 AC_TEST_COVERAGE/DOCUMENTATION_SYNC 구조 교정, Chart ID 양방향 정규화, [단일 실패 원장](../../ISSUE_506_FAILURE_ANALYSIS.md) 기록 후 새 Full CI를 시작한다. 구 실패를 PASS로 바꾸거나 CI gate/Ruleset/8-shard/테스트 skip을 완화하지 않는다. 새 Head CI/Trusted QA/Owner=NOT TESTED; MERGE_READY=BLOCKED. 모니터링·병합/Main/GHCR/Finalizer/종결 제외.
+
 ## Issue #506 — Context Menu sibling 삽입 순서 회귀 교정 (2026-10-25)
 
 - [#506](https://github.com/planner77/masterGantt/issues/506), 기존 #72/#373/#399/#407/#418, `AGENTS.md`·`DESIGN.md`·SVAR `add-task` 공식 API 준수. 기준 main `fcd1ae59d268efa1913f4de625a9013cabd1de4a`, 새 `fix/issue-506-add-above-order-20261025`. 1437커밋 후행한 과거 #506 브랜치 전체 병합 없이 관련 회귀만 최신 main에 이관.

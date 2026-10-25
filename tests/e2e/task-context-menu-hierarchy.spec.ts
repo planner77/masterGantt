@@ -128,8 +128,13 @@ async function expectRenderedSiblingOrder(
     const ids = bars.map((task) => task.taskId);
     return page.locator(".project-gantt-widget .wx-chart .wx-bar[data-task-id]").evaluateAll(
       (elements, taskIds) => elements
-        .filter((el) => taskIds.includes(el.getAttribute("data-task-id") ?? ""))
-        .map((el) => ({ id: el.getAttribute("data-task-id"), top: el.getBoundingClientRect().top }))
+        // SVAR 2.7.3 DOM prefixes data-task-id with ":"; the canonical DTO does not.
+        // Normalize before filtering AND before returning IDs (review P1, #506).
+        .map((el) => ({
+          id: (el.getAttribute("data-task-id") ?? "").replace(/^:/, ""),
+          top: el.getBoundingClientRect().top,
+        }))
+        .filter((item) => taskIds.includes(item.id))
         .sort((a, b) => a.top - b.top)
         .map((item) => item.id),
       ids,
