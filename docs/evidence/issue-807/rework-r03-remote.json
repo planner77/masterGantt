@@ -1,0 +1,1222 @@
+{
+  "captured_at": "2026-10-25",
+  "issue": 807,
+  "pr": 810,
+  "head": "abe66b0e82f399be7484664c35a8adfce34c47a1",
+  "base": "c69c22e248de6d2af9cc753eb0296ff97d4a2b8f",
+  "testMerge": "42465b2fccabcf4956982369079c908a0fa7c518",
+  "mergeable": true,
+  "mergeableState": "blocked",
+  "reviewThreadCount": 1,
+  "unresolvedReviewThreads": 0,
+  "resolvedThread": "PRRT_kwDOUUB7Bc6wAZW-",
+  "actualRemoteFailureFiles": [
+    "tests/e2e/issue-622-resource-plan-target.spec.ts",
+    "tests/e2e/issue-719-contextual-help.spec.ts",
+    "tests/e2e/issue-737-target0-acceptance.spec.ts"
+  ],
+  "fullLocalAndRemoteFailureUnion": [
+    "tests/e2e/issue-736-resource-dashboard.spec.ts",
+    "tests/e2e/project-resource-workload-status.spec.ts",
+    "tests/e2e/resource-milestone-ui.spec.ts",
+    "tests/e2e/resource-plan-ui.spec.ts",
+    "tests/e2e/issue-622-resource-plan-target.spec.ts",
+    "tests/e2e/issue-719-contextual-help.spec.ts",
+    "tests/e2e/issue-737-target0-acceptance.spec.ts"
+  ],
+  "trustedFailures": [
+    {
+      "run": 40184425357,
+      "job": 121142084029,
+      "reason": [
+        "2026-10-25T10:21:34.9557783Z - 자동 QA: **FAIL**",
+        "2026-10-25T10:21:34.9559869Z - 사유: 원본 PR CI run 자체가 성공하지 않았습니다"
+      ]
+    },
+    {
+      "run": 40186037188,
+      "job": 121146905153,
+      "reason": [
+        "2026-10-25T10:45:07.6907887Z - 자동 QA: **FAIL**",
+        "2026-10-25T10:45:07.6910266Z - 사유: 원본 PR CI run 자체가 성공하지 않았습니다"
+      ]
+    },
+    {
+      "run": 40187801757,
+      "job": 121152190248,
+      "reason": [
+        "2026-10-25T11:11:25.7309579Z - 자동 QA: **FAIL**",
+        "2026-10-25T11:11:25.7312888Z - 사유: 원본 PR CI run 자체가 성공하지 않았습니다"
+      ]
+    }
+  ],
+  "coverageLimits": "read-only audit; no remote mutation; artifact metadata and ci-pr-source JSON downloaded/checked; full Playwright report ZIP not downloaded; cancellation logs all21 checked, no extra assertion FAIL found; no superseded Head result reused as current PASS",
+  "schema": "issue807-cumulative-pr-failures:v1",
+  "runs": [
+    {
+      "id": 40184046283,
+      "n": 3292,
+      "attempt": 1,
+      "event": "pull_request",
+      "path": ".github/workflows/ci.yml",
+      "head": "6ab0c8f8ba1b844d68e0623b201680750d7171d4",
+      "base": "c69c22e248de6d2af9cc753eb0296ff97d4a2b8f",
+      "testMerge": "2e005ede2aea25d293d0dcf3d2f39a37653eee79",
+      "testMergeParents": [
+        "c69c22e248de6d2af9cc753eb0296ff97d4a2b8f",
+        "6ab0c8f8ba1b844d68e0623b201680750d7171d4"
+      ],
+      "commitPrCount": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "created": "2026-10-25T10:15:50Z",
+      "completed": "2026-10-25T10:21:17Z",
+      "directFailedJob": 121141514697,
+      "testSummary": [
+        "2026-10-25T10:18:47.1542206Z HEAD is now at 2e005ed Merge 6ab0c8f8ba1b844d68e0623b201680750d7171d4 into c69c22e248de6d2af9cc753eb0296ff97d4a2b8f",
+        "2026-10-25T10:18:47.1611047Z [command]/usr/bin/git log -1 --format=%H",
+        "2026-10-25T10:20:33.2439015Z   1 failed",
+        "2026-10-25T10:20:33.2440682Z   92 did not run"
+      ],
+      "artifacts": [
+        {
+          "id": 12595019639,
+          "name": "playwright-report-shard-2",
+          "expired": false,
+          "size": 5915817,
+          "created": "2026-10-25T10:20:36Z"
+        },
+        {
+          "id": 12594644476,
+          "name": "ci-pr-source-40184046283-1",
+          "expired": false,
+          "size": 415,
+          "created": "2026-10-25T10:15:56Z"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 121140946166,
+          "name": "변경 경로 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121140946395,
+          "name": "QA Final 신뢰 경계 확인",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121141012655,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121141013504,
+          "name": "Low E2E policy plan (trusted base)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121141013841,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121141073521,
+          "name": "Vitest 단위·통합 테스트",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121141073545,
+          "name": "TypeScript 타입 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121141073562,
+          "name": "ESLint",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121141073581,
+          "name": "정책·저장소 계약 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121141074779,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121141074800,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121141074819,
+          "name": "Next.js production build",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121141465474,
+          "name": "PR 빠른 검사 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121141514583,
+          "name": "Docker smoke 구현",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121141514602,
+          "name": "PR Next.js production build",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121141514654,
+          "name": "Chromium E2E shard 4/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121141514655,
+          "name": "Chromium E2E shard 6/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121141514670,
+          "name": "Chromium E2E shard 8/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121141514682,
+          "name": "Chromium E2E shard 7/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121141514696,
+          "name": "Chromium E2E shard 3/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121141514697,
+          "name": "Chromium E2E shard 2/8 · PR",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행"
+            }
+          ]
+        },
+        {
+          "id": 121141514720,
+          "name": "Chromium E2E shard 1/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121141514751,
+          "name": "Chromium E2E shard 5/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121141515672,
+          "name": "Low E2E targeted execution",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121141807928,
+          "name": "Build, static checks, and unit tests",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121141975364,
+          "name": "Docker build and runtime smoke test",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121142001773,
+          "name": "Chromium end-to-end tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계"
+            }
+          ]
+        },
+        {
+          "id": 121142019144,
+          "name": "QA Final — Automated",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)"
+            }
+          ]
+        },
+        {
+          "id": 121142019195,
+          "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121142020540,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        }
+      ],
+      "directFailureExcerpt": "2026-10-25T10:19:40.0884353Z \n2026-10-25T10:20:33.1906624Z   ✘   1 [chromium] › tests/e2e/issue-622-resource-plan-target.spec.ts:10:5 › #622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Excel·다섯 화면폭 (33.8s)\n2026-10-25T10:20:33.1917863Z Testing stopped early after 1 maximum allowed failures.\n2026-10-25T10:20:33.2390996Z \n2026-10-25T10:20:33.2397371Z \n2026-10-25T10:20:33.2408253Z   1) [chromium] › tests/e2e/issue-622-resource-plan-target.spec.ts:10:5 › #622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Excel·다섯 화면폭 \n2026-10-25T10:20:33.2409478Z \n2026-10-25T10:20:33.2409862Z     Error: expect(locator).toBeFocused() failed\n2026-10-25T10:20:33.2410372Z \n2026-10-25T10:20:33.2412387Z     Locator:  locator('[data-resource-dashboard=\"true\"]:visible').getByRole('region', { name: '기간 부하 상세', exact: true }).locator('[data-canonical-task-id=\"eadd50ee-e291-405e-971c-0afc3c4e87ab\"]').getByRole('button', { name: '배정 편집: ALICE · 긴 공동 담당 리소스 이름', exact: true })\n2026-10-25T10:20:33.2414276Z     Expected: focused\n2026-10-25T10:20:33.2414612Z     Received: inactive\n2026-10-25T10:20:33.2414932Z     Timeout:  5000ms\n2026-10-25T10:20:33.2415126Z \n2026-10-25T10:20:33.2415248Z     Call log:\n2026-10-25T10:20:33.2417405Z       - Expect \"toBeFocused\" locator('[data-resource-dashboard=\"true\"]:visible').getByRole('region', { name: '기간 부하 상세', exact: true }).locator('[data-canonical-task-id=\"eadd50ee-e291-405e-971c-0afc3c4e87ab\"]').getByRole('button', { name: '배정 편집: ALICE · 긴 공동 담당 리소스 이름', exact: true }) with timeout 5000ms\n2026-10-25T10:20:33.2421702Z       - waiting for locator('[data-resource-dashboard=\"true\"]:visible').getByRole('region', { name: '기간 부하 상세', exact: true }).locator('[data-canonical-task-id=\"eadd50ee-e291-405e-971c-0afc3c4e87ab\"]').getByRole('button', { name: '배정 편집: ALICE · 긴 공동 담당 리소스 이름', exact: true })\n2026-10-25T10:20:33.2423791Z         14 × locator resolved to <button type=\"button\" data-resource-assignment-edit=\"true\">배정 편집: ALICE · 긴 공동 담당 리소스 이름</button>\n2026-10-25T10:20:33.2424557Z            - unexpected value \"inactive\"\n2026-10-25T10:20:33.2424789Z \n2026-10-25T10:20:33.2424795Z \n2026-10-25T10:20:33.2425649Z       113 |   expect(assignmentsAfter.find((assignment: { id: string }) => assignment.id === outsideAssignment.id)).toMatchObject({ taskId: f.unset.taskId, allocation: { percent: 40 } });\n2026-10-25T10:20:33.2427488Z       114 |   expect(assignmentsAfter.filter((assignment: { id: string }) => assignment.id !== outsideAssignment.id)).toEqual(assignmentsBefore.filter((assignment: { id: string }) => assignment.id !== outsideAssignment.id));\n2026-10-25T10:20:33.2428883Z     > 115 |   await expect(edit).toBeFocused();\n2026-10-25T10:20:33.2429271Z           |                      ^\n2026-10-25T10:20:33.2429838Z       116 |   // Preserve focus across the next two render frames, not just the initial restore.\n2026-10-25T10:20:33.2430857Z       117 |   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));\n2026-10-25T10:20:33.2431650Z       118 |   await expect(edit).toBeFocused();\n2026-10-25T10:20:33.2432400Z         at /home/runner/work/masterGantt/masterGantt/tests/e2e/issue-622-resource-plan-target.spec.ts:115:22\n2026-10-25T10:20:33.2432947Z \n2026-10-25T10:20:33.2433977Z     Error Context: test-results/issue-622-resource-plan-ta-fd562-외부-배정-편집-복귀·동일-Excel·다섯-화면폭-chromium/error-context.md\n2026-10-25T10:20:33.2434600Z \n2026-10-25T10:20:33.2435089Z     attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n2026-10-25T10:20:33.2435993Z     test-results/issue-622-resource-plan-ta-fd562-외부-배정-편집-복귀·동일-Excel·다섯-화면폭-chromium/trace.zip\n2026-10-25T10:20:33.2436536Z     Usage:\n2026-10-25T10:20:33.2436660Z \n2026-10-25T10:20:33.2437310Z         npx playwright show-trace test-results/issue-622-resource-plan-ta-fd562-외부-배정-편집-복귀·동일-Excel·다섯-화면폭-chromium/trace.zip\n2026-10-25T10:20:33.2437885Z \n2026-10-25T10:20:33.2438582Z     ────────────────────────────────────────────────────────────────────────────────────────────────\n2026-10-25T10:20:33.2438918Z \n2026-10-25T10:20:33.2439015Z   1 failed\n2026-10-25T10:20:33.2440027Z     [chromium] › tests/e2e/issue-622-resource-plan-target.spec.ts:10:5 › #622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Excel·다섯 화면폭 \n2026-10-25T10:20:33.2440682Z   92 did not run\n2026-10-25T10:20:33.2441199Z   1 error was not a part of any test, see above for details\n2026-10-25T10:20:33.3306521Z ##[error]Process completed with exit code 1.\n2026-10-25T10:20:33.3371770Z ##[group]Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a\n2026-10-25T10:20:33.3372251Z with:\n2026-10-25T10:20:33.3372475Z   name: e2e-timing-ci-shard-2\n2026-10-25T10:20:33.3372792Z   path: test-results/e2e-timing-shard-2.json\n2026-10-25T10:20:33.3373125Z   if-no-files-found: ignore\n2026-10-25T10:20:33.3373388Z   retention-days: 30\n2026-10-25T10:20:33.3373629Z   compression-level: 6\n2026-10-25T10:20:33.3374077Z   overwrite: false\n2026-10-25T10:20:33.3374319Z   include-hidden-files: false\n2026-10-25T10:20:33.3374588Z   archive: true\n2026-10-25T10:20:33.3374802Z env:\n2026-10-25T10:20:33.3375008Z   NODE_VERSION: 22\n2026-10-25T10:20:33.3375233Z ##[endgroup]\n2026-10-25T10:20:33.4860667Z With the provided path, there will be 1 file uploaded\n2026-10-25T10:20:33.4868258Z Artifact name is valid!\n2026-10-25T10:20:33.4869425Z Root directory input is valid!\n2026-10-25T10:20:33.6741180Z Uploading artifact: e2e-timing-ci-shard-2.zip\n2026-10-25T10:20:33.6781871Z Beginning upload of artifact content to blob storage\n2026-10-25T10:20:33.7575957Z Uploaded bytes 2623\n2026-10-25T10:20:33.7731188Z Finished uploading artifact content to blob storage!\n2026-10-25T10:20:33.7733655Z SHA256 digest of uploaded artifact is d5ab425a1ee1706082eed28bea6cbcd7419f859b0f5d27eda156792caeaa3171"
+    },
+    {
+      "id": 40185606165,
+      "n": 3293,
+      "attempt": 1,
+      "event": "pull_request",
+      "path": ".github/workflows/ci.yml",
+      "head": "470d202f2475ef3b58581b9bd4ff5a9d63b7defe",
+      "base": "c69c22e248de6d2af9cc753eb0296ff97d4a2b8f",
+      "testMerge": "0b0775eb40c09cc1d15ceb83554fe4959aae4a52",
+      "testMergeParents": [
+        "c69c22e248de6d2af9cc753eb0296ff97d4a2b8f",
+        "470d202f2475ef3b58581b9bd4ff5a9d63b7defe"
+      ],
+      "commitPrCount": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "created": "2026-10-25T10:38:28Z",
+      "completed": "2026-10-25T10:44:51Z",
+      "directFailedJob": 121146212881,
+      "testSummary": [
+        "2026-10-25T10:41:39.7778753Z HEAD is now at 0b0775e Merge 470d202f2475ef3b58581b9bd4ff5a9d63b7defe into c69c22e248de6d2af9cc753eb0296ff97d4a2b8f",
+        "2026-10-25T10:41:39.7884675Z [command]/usr/bin/git log -1 --format=%H",
+        "2026-10-25T10:44:05.0088512Z   1 failed",
+        "2026-10-25T10:44:05.0091073Z   94 did not run",
+        "2026-10-25T10:44:05.0091472Z   9 passed (1.7m)"
+      ],
+      "artifacts": [
+        {
+          "id": 12595917933,
+          "name": "playwright-report-shard-5",
+          "expired": false,
+          "size": 2577244,
+          "created": "2026-10-25T10:44:08Z"
+        },
+        {
+          "id": 12595917257,
+          "name": "ci-pr-source-40185606165-1",
+          "expired": false,
+          "size": 415,
+          "created": "2026-10-25T10:38:34Z"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 121145624103,
+          "name": "변경 경로 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121145624284,
+          "name": "QA Final 신뢰 경계 확인",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121145695746,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121145696560,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121145696827,
+          "name": "Low E2E policy plan (trusted base)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121145749931,
+          "name": "TypeScript 타입 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121145749949,
+          "name": "ESLint",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121145750007,
+          "name": "Vitest 단위·통합 테스트",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121145750733,
+          "name": "Next.js production build",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121145750831,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121145751040,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121145751610,
+          "name": "정책·저장소 계약 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121146158425,
+          "name": "PR 빠른 검사 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121146212687,
+          "name": "PR Next.js production build",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121146212689,
+          "name": "Docker smoke 구현",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121146212792,
+          "name": "Chromium E2E shard 4/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121146212837,
+          "name": "Chromium E2E shard 3/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121146212838,
+          "name": "Chromium E2E shard 6/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121146212881,
+          "name": "Chromium E2E shard 5/8 · PR",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행"
+            }
+          ]
+        },
+        {
+          "id": 121146212889,
+          "name": "Chromium E2E shard 7/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121146212896,
+          "name": "Chromium E2E shard 8/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121146212918,
+          "name": "Chromium E2E shard 2/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121146213012,
+          "name": "Chromium E2E shard 1/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121146213888,
+          "name": "Low E2E targeted execution",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121146501431,
+          "name": "Build, static checks, and unit tests",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121146586314,
+          "name": "Docker build and runtime smoke test",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121146822076,
+          "name": "Chromium end-to-end tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계"
+            }
+          ]
+        },
+        {
+          "id": 121146838663,
+          "name": "QA Final — Automated",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)"
+            }
+          ]
+        },
+        {
+          "id": 121146838674,
+          "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121146839425,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        }
+      ],
+      "directFailureExcerpt": "2026-10-25T10:43:57.3075822Z   ✓    9 [chromium] › tests/e2e/issue-719-contextual-help.spec.ts:75:37 › #719 milestone 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말 (11.6s)\n2026-10-25T10:44:04.9304117Z   ✘   10 [chromium] › tests/e2e/issue-719-contextual-help.spec.ts:75:37 › #719 resource 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말 (7.5s)\n2026-10-25T10:44:04.9314257Z Testing stopped early after 1 maximum allowed failures.\n2026-10-25T10:44:05.0020143Z \n2026-10-25T10:44:05.0025206Z \n2026-10-25T10:44:05.0039794Z   1) [chromium] › tests/e2e/issue-719-contextual-help.spec.ts:75:37 › #719 resource 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말 \n2026-10-25T10:44:05.0041141Z \n2026-10-25T10:44:05.0044846Z     Error: expect(locator).toHaveAttribute(expected) failed\n2026-10-25T10:44:05.0046576Z \n2026-10-25T10:44:05.0047229Z     Locator:  locator('[data-wbs-view=\"resource\"]')\n2026-10-25T10:44:05.0048026Z     Expected: \"error\"\n2026-10-25T10:44:05.0048629Z     Received: \"pending\"\n2026-10-25T10:44:05.0049159Z     Timeout:  5000ms\n2026-10-25T10:44:05.0049420Z \n2026-10-25T10:44:05.0049815Z     Call log:\n2026-10-25T10:44:05.0051036Z       - Expect \"toHaveAttribute\" locator('[data-wbs-view=\"resource\"]') with timeout 5000ms\n2026-10-25T10:44:05.0052468Z       - waiting for locator('[data-wbs-view=\"resource\"]')\n2026-10-25T10:44:05.0058545Z         14 × locator resolved to <section data-ready=\"false\" data-root=\"resource\" aria-label=\"공통 계층 조회\" data-wbs-ready=\"false\" data-wbs-view=\"resource\" data-wbs-state=\"pending\" data-report-confirmation-id=\"0\" data-testid=\"wbs-view-dashboard\" class=\"wbs-view-module___Rrt9a__root\" data-project-public-id=\"a3405d3d-8cb4-4da4-9b0f-43a5de330003\">…</section>\n2026-10-25T10:44:05.0061995Z            - unexpected value \"pending\"\n2026-10-25T10:44:05.0062502Z \n2026-10-25T10:44:05.0062513Z \n2026-10-25T10:44:05.0065332Z       55 |     // This is terminal error readiness, not a successful WBS report fixture.\n2026-10-25T10:44:05.0066735Z       56 |     const wbs = page.locator(`[data-wbs-view=\"${surface}\"]`);\n2026-10-25T10:44:05.0067619Z     > 57 |     await expect(wbs).toHaveAttribute(\"data-wbs-state\", \"error\");\n2026-10-25T10:44:05.0068602Z          |                       ^\n2026-10-25T10:44:05.0072039Z       58 |     await expect(wbs.getByRole(\"alert\")).toContainText(\"프로젝트를 찾을 수 없습니다.\");\n2026-10-25T10:44:05.0073575Z       59 |     await expect(wbs.getByRole(\"status\")).toHaveCount(0);\n2026-10-25T10:44:05.0074507Z       60 |   }\n2026-10-25T10:44:05.0075178Z         at openSurface (/home/runner/work/masterGantt/masterGantt/tests/e2e/issue-719-contextual-help.spec.ts:57:23)\n2026-10-25T10:44:05.0076343Z         at /home/runner/work/masterGantt/masterGantt/tests/e2e/issue-719-contextual-help.spec.ts:82:16\n2026-10-25T10:44:05.0077176Z \n2026-10-25T10:44:05.0081044Z     Error Context: test-results/issue-719-contextual-help--6ceed-5폭-설명-높이·작업면·overflow-및-도움말-chromium/error-context.md\n2026-10-25T10:44:05.0081945Z \n2026-10-25T10:44:05.0082757Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────\n2026-10-25T10:44:05.0084031Z     test-results/issue-719-contextual-help--6ceed-5폭-설명-높이·작업면·overflow-및-도움말-chromium/trace.zip\n2026-10-25T10:44:05.0084814Z     Usage:\n2026-10-25T10:44:05.0085028Z \n2026-10-25T10:44:05.0086166Z         npx playwright show-trace test-results/issue-719-contextual-help--6ceed-5폭-설명-높이·작업면·overflow-및-도움말-chromium/trace.zip\n2026-10-25T10:44:05.0087109Z \n2026-10-25T10:44:05.0087817Z     ────────────────────────────────────────────────────────────────────────────────────────────────\n2026-10-25T10:44:05.0088357Z \n2026-10-25T10:44:05.0088512Z   1 failed\n2026-10-25T10:44:05.0090091Z     [chromium] › tests/e2e/issue-719-contextual-help.spec.ts:75:37 › #719 resource 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말 \n2026-10-25T10:44:05.0091073Z   94 did not run\n2026-10-25T10:44:05.0091472Z   9 passed (1.7m)\n2026-10-25T10:44:05.0092023Z   1 error was not a part of any test, see above for details\n2026-10-25T10:44:05.1493548Z ##[error]Process completed with exit code 1.\n2026-10-25T10:44:05.1549564Z ##[group]Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a\n2026-10-25T10:44:05.1549994Z with:\n2026-10-25T10:44:05.1550205Z   name: e2e-timing-ci-shard-5\n2026-10-25T10:44:05.1550502Z   path: test-results/e2e-timing-shard-5.json\n2026-10-25T10:44:05.1550987Z   if-no-files-found: ignore\n2026-10-25T10:44:05.1551230Z   retention-days: 30\n2026-10-25T10:44:05.1551453Z   compression-level: 6\n2026-10-25T10:44:05.1551686Z   overwrite: false\n2026-10-25T10:44:05.1551905Z   include-hidden-files: false\n2026-10-25T10:44:05.1552147Z   archive: true\n2026-10-25T10:44:05.1552341Z env:\n2026-10-25T10:44:05.1552539Z   NODE_VERSION: 22\n2026-10-25T10:44:05.1552740Z ##[endgroup]\n2026-10-25T10:44:05.2975165Z With the provided path, there will be 1 file uploaded\n2026-10-25T10:44:05.2985105Z Artifact name is valid!\n2026-10-25T10:44:05.3004979Z Root directory input is valid!\n2026-10-25T10:44:05.5627129Z Uploading artifact: e2e-timing-ci-shard-5.zip\n2026-10-25T10:44:05.5668873Z Beginning upload of artifact content to blob storage\n2026-10-25T10:44:05.7299732Z Uploaded bytes 2473"
+    },
+    {
+      "id": 40186806490,
+      "n": 3294,
+      "attempt": 1,
+      "event": "pull_request",
+      "path": ".github/workflows/ci.yml",
+      "head": "abe66b0e82f399be7484664c35a8adfce34c47a1",
+      "base": "c69c22e248de6d2af9cc753eb0296ff97d4a2b8f",
+      "testMerge": "42465b2fccabcf4956982369079c908a0fa7c518",
+      "testMergeParents": [
+        "c69c22e248de6d2af9cc753eb0296ff97d4a2b8f",
+        "abe66b0e82f399be7484664c35a8adfce34c47a1"
+      ],
+      "commitPrCount": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "created": "2026-10-25T10:56:26Z",
+      "completed": "2026-10-25T11:11:06Z",
+      "directFailedJob": 121149785099,
+      "testSummary": [
+        "2026-10-25T10:59:32.1482178Z HEAD is now at 42465b2 Merge abe66b0e82f399be7484664c35a8adfce34c47a1 into c69c22e248de6d2af9cc753eb0296ff97d4a2b8f",
+        "2026-10-25T10:59:32.1547821Z [command]/usr/bin/git log -1 --format=%H",
+        "2026-10-25T11:10:15.2203127Z   1 failed",
+        "2026-10-25T11:10:15.2204272Z   59 did not run",
+        "2026-10-25T11:10:15.2204782Z   38 passed (10.0m)"
+      ],
+      "artifacts": [
+        {
+          "id": 12597086129,
+          "name": "playwright-report-shard-6",
+          "expired": false,
+          "size": 5736370,
+          "created": "2026-10-25T11:10:20Z"
+        },
+        {
+          "id": 12596169125,
+          "name": "ci-pr-source-40186806490-1",
+          "expired": false,
+          "size": 414,
+          "created": "2026-10-25T10:56:31Z"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 121149230265,
+          "name": "QA Final 신뢰 경계 확인",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121149230434,
+          "name": "변경 경로 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121149290645,
+          "name": "QA Preflight — 정책·문서 사전 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121149291793,
+          "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121149292239,
+          "name": "Low E2E policy plan (trusted base)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121149346361,
+          "name": "정책·저장소 계약 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121149346368,
+          "name": "TypeScript 타입 검사",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121149346370,
+          "name": "ESLint",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121149346405,
+          "name": "Vitest 단위·통합 테스트",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121149347264,
+          "name": "Next.js production build",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121149347392,
+          "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121149347753,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121149731352,
+          "name": "PR 빠른 검사 판정",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121149785016,
+          "name": "Docker smoke 구현",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121149785038,
+          "name": "PR Next.js production build",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121149785070,
+          "name": "Chromium E2E shard 2/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121149785073,
+          "name": "Chromium E2E shard 5/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121149785083,
+          "name": "Chromium E2E shard 8/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121149785093,
+          "name": "Chromium E2E shard 3/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121149785099,
+          "name": "Chromium E2E shard 6/8 · PR",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedSteps": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행"
+            }
+          ]
+        },
+        {
+          "id": 121149785128,
+          "name": "Chromium E2E shard 1/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121149785130,
+          "name": "Chromium E2E shard 4/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121149785141,
+          "name": "Chromium E2E shard 7/8 · PR",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "failedSteps": []
+        },
+        {
+          "id": 121149785945,
+          "name": "Low E2E targeted execution",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        },
+        {
+          "id": 121150103378,
+          "name": "Build, static checks, and unit tests",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121150248523,
+          "name": "Docker build and runtime smoke test",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121152092441,
+          "name": "Chromium end-to-end tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedSteps": [
+            {
+              "number": 2,
+              "name": "E2E shard 결과 집계"
+            }
+          ]
+        },
+        {
+          "id": 121152109573,
+          "name": "QA Final — Automated",
+          "status": "completed",
+          "conclusion": "failure",
+          "failedSteps": [
+            {
+              "number": 3,
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)"
+            }
+          ]
+        },
+        {
+          "id": 121152109591,
+          "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+          "status": "completed",
+          "conclusion": "success",
+          "failedSteps": []
+        },
+        {
+          "id": 121152110434,
+          "name": "Main 임시 commit 이미지 게시·검증·정리",
+          "status": "completed",
+          "conclusion": "skipped",
+          "failedSteps": []
+        }
+      ],
+      "directFailureExcerpt": "2026-10-25T11:09:29.7846040Z   ✓  38 [chromium] › tests/e2e/issue-726-task-logistics.spec.ts:423:5 › #792 Summary legacy source-only scope preview/confirm, real HTTP SQLite, 5 widths, readonly and provenance (23.8s)\n2026-10-25T11:10:15.1719872Z   ✘  39 [chromium] › tests/e2e/issue-737-target0-acceptance.spec.ts:43:5 › #737 Target0 동일 원본으로 기준정보·일정·6관점 왕복, 사용자 축 구성과 편집 1회 (28.5s)\n2026-10-25T11:10:15.1736414Z Testing stopped early after 1 maximum allowed failures.\n2026-10-25T11:10:15.2157175Z \n2026-10-25T11:10:15.2162285Z \n2026-10-25T11:10:15.2172677Z   1) [chromium] › tests/e2e/issue-737-target0-acceptance.spec.ts:43:5 › #737 Target0 동일 원본으로 기준정보·일정·6관점 왕복, 사용자 축 구성과 편집 1회 \n2026-10-25T11:10:15.2173505Z \n2026-10-25T11:10:15.2173978Z     Error: expect(locator).toHaveAttribute(expected) failed\n2026-10-25T11:10:15.2174278Z \n2026-10-25T11:10:15.2174893Z     Locator: getByTestId('wbs-view-dashboard').visible()\n2026-10-25T11:10:15.2175443Z     Expected: \"resource\"\n2026-10-25T11:10:15.2176323Z     Timeout: 5000ms\n2026-10-25T11:10:15.2176827Z     Error: element(s) not found\n2026-10-25T11:10:15.2177421Z \n2026-10-25T11:10:15.2177594Z     Call log:\n2026-10-25T11:10:15.2179469Z       - Expect \"toHaveAttribute\" getByTestId('wbs-view-dashboard').visible() with timeout 5000ms\n2026-10-25T11:10:15.2180500Z       - waiting for getByTestId('wbs-view-dashboard').visible()\n2026-10-25T11:10:15.2180933Z \n2026-10-25T11:10:15.2181045Z \n2026-10-25T11:10:15.2181942Z       20 |   await page.getByRole(\"tablist\", { name: \"프로젝트 작업공간\", exact: true }).getByRole(\"tab\", { name: \"대시보드\", exact: true }).click();\n2026-10-25T11:10:15.2183386Z       21 |   await page.getByRole(\"tablist\", { name: \"대시보드 보기\", exact: true }).getByRole(\"tab\", { name: labels[root], exact: true }).click();\n2026-10-25T11:10:15.2185456Z     > 22 |   await expect(dashboard(page)).toHaveAttribute(\"data-root\", root);\n2026-10-25T11:10:15.2186281Z          |                                 ^\n2026-10-25T11:10:15.2186953Z       23 |   await expect(dashboard(page)).toHaveAttribute(\"data-ready\", \"true\");\n2026-10-25T11:10:15.2187520Z       24 | }\n2026-10-25T11:10:15.2188543Z       25 | function report(page: Page, root: typeof roots[number], levels: WbsViewSpec[\"levels\"] = []) {\n2026-10-25T11:10:15.2189699Z         at openRoot (/home/runner/work/masterGantt/masterGantt/tests/e2e/issue-737-target0-acceptance.spec.ts:22:33)\n2026-10-25T11:10:15.2190462Z         at /home/runner/work/masterGantt/masterGantt/tests/e2e/issue-737-target0-acceptance.spec.ts:92:5\n2026-10-25T11:10:15.2190825Z \n2026-10-25T11:10:15.2190984Z     Error: page.waitForResponse: Test ended.\n2026-10-25T11:10:15.2191191Z \n2026-10-25T11:10:15.2191325Z        at helpers/wbs-report.ts:45\n2026-10-25T11:10:15.2191503Z \n2026-10-25T11:10:15.2191744Z       43 |     type Capture = { text: string; body: { data: WbsViewReportDto } };\n2026-10-25T11:10:15.2192180Z       44 |     let capture: Promise<Capture> | undefined;\n2026-10-25T11:10:15.2192618Z     > 45 |     const response = await page.waitForResponse(async response => {\n2026-10-25T11:10:15.2193014Z          |                                 ^\n2026-10-25T11:10:15.2193344Z       46 |       const request = response.request();\n2026-10-25T11:10:15.2193955Z       47 |       if (capture || !futureRequests.has(request) || !matchesWbsReportRequest(request, pathname, condition)) return false;\n2026-10-25T11:10:15.2195637Z       48 |       // Reserve the first matching response before any await. A faster overlapping\n2026-10-25T11:10:15.2196445Z         at waitForWbsReport (/home/runner/work/masterGantt/masterGantt/tests/e2e/helpers/wbs-report.ts:45:33)\n2026-10-25T11:10:15.2197199Z         at report (/home/runner/work/masterGantt/masterGantt/tests/e2e/issue-737-target0-acceptance.spec.ts:26:26)\n2026-10-25T11:10:15.2197939Z         at /home/runner/work/masterGantt/masterGantt/tests/e2e/issue-737-target0-acceptance.spec.ts:91:22\n2026-10-25T11:10:15.2198318Z \n2026-10-25T11:10:15.2199232Z     Error Context: test-results/issue-737-target0-acceptan-78d27-보·일정·6관점-왕복-사용자-축-구성과-편집-1회-chromium/error-context.md\n2026-10-25T11:10:15.2199675Z \n2026-10-25T11:10:15.2200101Z     attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n2026-10-25T11:10:15.2200849Z     test-results/issue-737-target0-acceptan-78d27-보·일정·6관점-왕복-사용자-축-구성과-편집-1회-chromium/trace.zip\n2026-10-25T11:10:15.2201296Z     Usage:\n2026-10-25T11:10:15.2201411Z \n2026-10-25T11:10:15.2201964Z         npx playwright show-trace test-results/issue-737-target0-acceptan-78d27-보·일정·6관점-왕복-사용자-축-구성과-편집-1회-chromium/trace.zip\n2026-10-25T11:10:15.2202389Z \n2026-10-25T11:10:15.2202745Z     ────────────────────────────────────────────────────────────────────────────────────────────────\n2026-10-25T11:10:15.2203015Z \n2026-10-25T11:10:15.2203127Z   1 failed\n2026-10-25T11:10:15.2203764Z     [chromium] › tests/e2e/issue-737-target0-acceptance.spec.ts:43:5 › #737 Target0 동일 원본으로 기준정보·일정·6관점 왕복, 사용자 축 구성과 편집 1회 \n2026-10-25T11:10:15.2204272Z   59 did not run\n2026-10-25T11:10:15.2204782Z   38 passed (10.0m)\n2026-10-25T11:10:15.2205201Z   1 error was not a part of any test, see above for details\n2026-10-25T11:10:15.6301954Z ##[error]Process completed with exit code 1.\n2026-10-25T11:10:15.6354961Z ##[group]Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a\n2026-10-25T11:10:15.6355378Z with:\n2026-10-25T11:10:15.6355602Z   name: e2e-timing-ci-shard-6\n2026-10-25T11:10:15.6355900Z   path: test-results/e2e-timing-shard-6.json\n2026-10-25T11:10:15.6356200Z   if-no-files-found: ignore\n2026-10-25T11:10:15.6356441Z   retention-days: 30"
+    }
+  ],
+  "cancelledShardAudit": [
+    {
+      "id": 121141514654,
+      "name": "Chromium E2E shard 4/8 · PR",
+      "run": 40184046283,
+      "logAvailable": true,
+      "logChars": 70905,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:20:04.1843762Z   ✓   2 [chromium] › tests/e2e/gantt-state-recovery-editor.spec.ts:17:7 › SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic receipt만 만든다 — 실제 RAF 90ms 지연 (6.6s)",
+        "2026-10-25T10:20:21.1603381Z   ✓   3 [chromium] › tests/e2e/gantt-state-recovery-editor.spec.ts:93:5 › SC-05 Editor commit 뒤 500·GET 실패는 초안을 보존하고 명시 재조회로만 복구한다 (6.6s)",
+        "2026-10-25T10:20:37.7873265Z   ✓   4 [chromium] › tests/e2e/gantt-state-recovery-editor.spec.ts:194:7 › SC-09 실제 edit 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다 (6.2s)",
+        "2026-10-25T10:20:50.5263297Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121141514655,
+      "name": "Chromium E2E shard 6/8 · PR",
+      "run": 40184046283,
+      "logAvailable": true,
+      "logChars": 121881,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:20:37.0457616Z   ✓  22 [chromium] › tests/e2e/canonical-projection.spec.ts:316:5 › #570 filters and scale retain empty Summary containers without opening leaves (4.5s)",
+        "2026-10-25T10:20:39.2040417Z   ✓  23 [chromium] › tests/e2e/error-boundary-regression.spec.ts:51:5 › #502 root error boundary를 실제 오류·keyboard retry·focus restore로 검증한다 (2.1s)",
+        "2026-10-25T10:20:40.9533479Z   ✓  24 [chromium] › tests/e2e/error-boundary-regression.spec.ts:62:5 › #502 gantt-demo error boundary를 실제 오류·keyboard retry·focus restore로 검증한다 (1.7s)",
+        "2026-10-25T10:20:50.5630574Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121141514670,
+      "name": "Chromium E2E shard 8/8 · PR",
+      "run": 40184046283,
+      "logAvailable": true,
+      "logChars": 70394,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:19:56.1551293Z   ✓    1 [chromium] › tests/e2e/admin-legacy-button-spacing.spec.ts:6:5 › Issue #452: empty project CTA and manual-copy dialog keep parent-owned spacing (1.8s)",
+        "2026-10-25T10:20:36.5686384Z   ✓    2 [chromium] › tests/e2e/issue-621-resource-target.spec.ts:39:5 › #621 실제 HTTP union 총계·두 Target 공유 identity·페이지·권한/412·조회 mutation0 (23.2s)",
+        "2026-10-25T10:20:50.5806722Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121141514682,
+      "name": "Chromium E2E shard 7/8 · PR",
+      "run": 40184046283,
+      "logAvailable": true,
+      "logChars": 72790,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:20:29.4045772Z   ✓   8 [chromium] › tests/e2e/gantt-adapter-poc.spec.ts:15:7 › Issue569 1024px day A/B/C 실제 Adapter PoC (10.1s)",
+        "2026-10-25T10:20:39.4986292Z   ✓   9 [chromium] › tests/e2e/gantt-adapter-poc.spec.ts:15:7 › Issue569 1024px week A/B/C 실제 Adapter PoC (10.1s)",
+        "2026-10-25T10:20:50.1004963Z   ✓  10 [chromium] › tests/e2e/gantt-adapter-poc.spec.ts:15:7 › Issue569 1440px day A/B/C 실제 Adapter PoC (10.6s)",
+        "2026-10-25T10:20:50.5683717Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121141514696,
+      "name": "Chromium E2E shard 3/8 · PR",
+      "run": 40184046283,
+      "logAvailable": true,
+      "logChars": 85614,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:20:31.5523007Z   ✓   16 [chromium] › tests/e2e/grid-task-start-reveal.spec.ts:359:5 › #514 before editable name pointer observes native selection and inline editor reveal (2.1s)",
+        "2026-10-25T10:20:33.8279072Z   ✓   17 [chromium] › tests/e2e/grid-task-start-reveal.spec.ts:380:5 › #514 before Week fullscreen nested reveal and null Summary selection (2.3s)",
+        "2026-10-25T10:20:35.8878731Z   ✓   18 [chromium] › tests/e2e/grid-task-start-reveal.spec.ts:411:5 › #514 before pending peer restore must not overwrite native Grid Task start reveal (2.1s)",
+        "2026-10-25T10:20:50.5240162Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121141514720,
+      "name": "Chromium E2E shard 1/8 · PR",
+      "run": 40184046283,
+      "logAvailable": true,
+      "logChars": 88578,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:20:45.5406609Z   ✓   20 [chromium] › tests/e2e/derived-dialog-recovery.spec.ts:157:9 › template 최초 GET network는 mutation을 막고 retry로 복구한다 (2.4s)",
+        "2026-10-25T10:20:47.9910783Z   ✓   21 [chromium] › tests/e2e/derived-dialog-recovery.spec.ts:157:9 › template 최초 GET null-task는 mutation을 막고 retry로 복구한다 (2.4s)",
+        "2026-10-25T10:20:50.4217330Z   ✓   22 [chromium] › tests/e2e/derived-dialog-recovery.spec.ts:157:9 › template 최초 GET revision는 mutation을 막고 retry로 복구한다 (2.4s)",
+        "2026-10-25T10:20:50.4902760Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121141514751,
+      "name": "Chromium E2E shard 5/8 · PR",
+      "run": 40184046283,
+      "logAvailable": true,
+      "logChars": 82714,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:20:36.2905913Z   ✓    7 [chromium] › tests/e2e/issue-717-name-first.spec.ts:8:7 › #717 이름 우선과 전체 ID 접근 1920px (3.7s)",
+        "2026-10-25T10:20:38.2385776Z   ✓    8 [chromium] › tests/e2e/issue-717-name-first.spec.ts:95:7 › #717 터치 › 이름으로 탐색하고 ID 원문을 펼친다 (1.9s)",
+        "2026-10-25T10:20:46.7114451Z   ✓    9 [chromium] › tests/e2e/issue-719-contextual-help.spec.ts:75:37 › #719 milestone 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말 (8.5s)",
+        "2026-10-25T10:20:50.5427772Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121146212792,
+      "name": "Chromium E2E shard 4/8 · PR",
+      "run": 40185606165,
+      "logAvailable": true,
+      "logChars": 70459,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:43:26.9943518Z   ✓   2 [chromium] › tests/e2e/gantt-state-recovery-editor.spec.ts:17:7 › SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic receipt만 만든다 — 실제 RAF 90ms 지연 (10.8s)",
+        "2026-10-25T10:43:55.3252440Z   ✓   3 [chromium] › tests/e2e/gantt-state-recovery-editor.spec.ts:93:5 › SC-05 Editor commit 뒤 500·GET 실패는 초안을 보존하고 명시 재조회로만 복구한다 (10.9s)",
+        "2026-10-25T10:44:23.3682910Z   ✓   4 [chromium] › tests/e2e/gantt-state-recovery-editor.spec.ts:194:7 › SC-09 실제 edit 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다 (11.4s)",
+        "2026-10-25T10:44:23.5786688Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121146212837,
+      "name": "Chromium E2E shard 3/8 · PR",
+      "run": 40185606165,
+      "logAvailable": true,
+      "logChars": 86093,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:43:39.1614393Z   ✓   16 [chromium] › tests/e2e/grid-task-start-reveal.spec.ts:359:5 › #514 before editable name pointer observes native selection and inline editor reveal (2.5s)",
+        "2026-10-25T10:43:42.4682567Z   ✓   17 [chromium] › tests/e2e/grid-task-start-reveal.spec.ts:380:5 › #514 before Week fullscreen nested reveal and null Summary selection (3.3s)",
+        "2026-10-25T10:43:45.4714878Z   ✓   18 [chromium] › tests/e2e/grid-task-start-reveal.spec.ts:411:5 › #514 before pending peer restore must not overwrite native Grid Task start reveal (3.0s)",
+        "2026-10-25T10:44:23.5300980Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121146212838,
+      "name": "Chromium E2E shard 6/8 · PR",
+      "run": 40185606165,
+      "logAvailable": true,
+      "logChars": 122042,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:44:01.6466663Z   ✓  22 [chromium] › tests/e2e/canonical-projection.spec.ts:316:5 › #570 filters and scale retain empty Summary containers without opening leaves (5.3s)",
+        "2026-10-25T10:44:03.5914111Z   ✓  23 [chromium] › tests/e2e/error-boundary-regression.spec.ts:51:5 › #502 root error boundary를 실제 오류·keyboard retry·focus restore로 검증한다 (1.9s)",
+        "2026-10-25T10:44:06.0552599Z   ✓  24 [chromium] › tests/e2e/error-boundary-regression.spec.ts:62:5 › #502 gantt-demo error boundary를 실제 오류·keyboard retry·focus restore로 검증한다 (2.5s)",
+        "2026-10-25T10:44:23.5896777Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121146212889,
+      "name": "Chromium E2E shard 7/8 · PR",
+      "run": 40185606165,
+      "logAvailable": true,
+      "logChars": 73094,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:43:50.8635083Z   ✓   9 [chromium] › tests/e2e/gantt-adapter-poc.spec.ts:15:7 › Issue569 1024px week A/B/C 실제 Adapter PoC (11.0s)",
+        "2026-10-25T10:44:02.4829082Z   ✓  10 [chromium] › tests/e2e/gantt-adapter-poc.spec.ts:15:7 › Issue569 1440px day A/B/C 실제 Adapter PoC (11.6s)",
+        "2026-10-25T10:44:14.1984222Z   ✓  11 [chromium] › tests/e2e/gantt-adapter-poc.spec.ts:15:7 › Issue569 1440px week A/B/C 실제 Adapter PoC (11.7s)",
+        "2026-10-25T10:44:23.6210423Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121146212896,
+      "name": "Chromium E2E shard 8/8 · PR",
+      "run": 40185606165,
+      "logAvailable": true,
+      "logChars": 70644,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:42:50.1634552Z   ✓    1 [chromium] › tests/e2e/admin-legacy-button-spacing.spec.ts:6:5 › Issue #452: empty project CTA and manual-copy dialog keep parent-owned spacing (1.6s)",
+        "2026-10-25T10:43:29.5065929Z   ✓    2 [chromium] › tests/e2e/issue-621-resource-target.spec.ts:39:5 › #621 실제 HTTP union 총계·두 Target 공유 identity·페이지·권한/412·조회 mutation0 (22.4s)",
+        "2026-10-25T10:44:11.4834016Z   ✓    3 [chromium] › tests/e2e/issue-621-resource-target.spec.ts:98:5 › #621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱신·dirty/pending (25.4s)",
+        "2026-10-25T10:44:23.6099759Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121146212918,
+      "name": "Chromium E2E shard 2/8 · PR",
+      "run": 40185606165,
+      "logAvailable": true,
+      "logChars": 70457,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:43:24.4690845Z   ✓   1 [chromium] › tests/e2e/issue-622-resource-plan-target.spec.ts:10:5 › #622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Excel·다섯 화면폭 (31.4s)",
+        "2026-10-25T10:44:06.8255600Z   ✓   2 [chromium] › tests/e2e/issue-734-equipment-dashboard.spec.ts:76:5 › #734 Target0 AMR10+5·비활성·Task0·미배정·구역별10/고유15·M/D5·전체 Gate (25.6s)",
+        "2026-10-25T10:44:23.5232139Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121146213012,
+      "name": "Chromium E2E shard 1/8 · PR",
+      "run": 40185606165,
+      "logAvailable": true,
+      "logChars": 97583,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T10:44:16.4347355Z   ✓   29 [chromium] › tests/e2e/derived-dialog-recovery.spec.ts:214:9 › template 401 오류·입력·닫기 keyboard와 focus 복원 1440px (3.0s)",
+        "2026-10-25T10:44:20.0727769Z   ✓   30 [chromium] › tests/e2e/derived-dialog-recovery.spec.ts:248:5 › Copy 제출 전 revision 변경은 POST0으로 최신 원본 확인으로 돌아간다 (3.6s)",
+        "2026-10-25T10:44:22.6188125Z   ✓   31 [chromium] › tests/e2e/derived-dialog-recovery.spec.ts:264:5 › copy=1 자동 진입은 StrictMode에서도 최신 원본 ready로 복구한다 (2.5s)",
+        "2026-10-25T10:44:23.5261601Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121149785070,
+      "name": "Chromium E2E shard 2/8 · PR",
+      "run": 40186806490,
+      "logAvailable": true,
+      "logChars": 73154,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T11:08:42.0524976Z   ✓  13 [chromium] › tests/e2e/milestone-management-persistence.spec.ts:192:58 › #550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (past) (22.3s)",
+        "2026-10-25T11:09:22.0290168Z   ✓  14 [chromium] › tests/e2e/milestone-management-persistence.spec.ts:192:58 › #550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (future) (21.5s)",
+        "2026-10-25T11:10:28.0043504Z   ✓  15 [chromium] › tests/e2e/milestone-stage-editor.spec.ts:9:5 › #461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개·geometry (47.5s)",
+        "2026-10-25T11:10:36.2325616Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121149785073,
+      "name": "Chromium E2E shard 5/8 · PR",
+      "run": 40186806490,
+      "logAvailable": true,
+      "logChars": 154957,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T11:10:05.0890401Z   ✓   80 [chromium] › tests/e2e/milestone-management.spec.ts:335:56 › #550 삭제 확인 disconnected trigger · escape visible fallback (2.1s)",
+        "2026-10-25T11:10:07.7621805Z   ✓   81 [chromium] › tests/e2e/milestone-wbs-mode.spec.ts:6:5 › #552 explicit WBS mode rollback preserves canonical data with marker effects OFF (2.7s)",
+        "2026-10-25T11:10:24.1007079Z   ✓   82 [chromium] › tests/e2e/project-chart-vertical-dnd.spec.ts:11:5 › Issue #299 Chart bar 수직 DnD는 sibling 순서만 한 번 저장하고 reload 후 유지한다 (5.1s)",
+        "2026-10-25T11:10:36.2683906Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121149785083,
+      "name": "Chromium E2E shard 8/8 · PR",
+      "run": 40186806490,
+      "logAvailable": true,
+      "logChars": 170543,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T11:10:28.1331042Z   ✓   77 [chromium] › tests/e2e/project-notifications.spec.ts:144:5 › Clipboard API가 없는 HTTP 호환 환경은 같은 사용자 동작에서 legacy 자동 복사한다 (1.6s)",
+        "2026-10-25T11:10:29.8535428Z   ✓   78 [chromium] › tests/e2e/project-notifications.spec.ts:179:5 › Clipboard API 권한 거부는 legacy로 우회하지 않고 수동 fallback과 재시도를 제공한다 (1.7s)",
+        "2026-10-25T11:10:34.8327473Z   ✓   79 [chromium] › tests/e2e/project-notifications.spec.ts:230:5 › 좁은 화면의 여러 오류 알림은 내부 스크롤로 확인하고 원문 서버 응답을 노출하지 않는다 (5.0s)",
+        "2026-10-25T11:10:36.2693372Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121149785093,
+      "name": "Chromium E2E shard 3/8 · PR",
+      "run": 40186806490,
+      "logAvailable": true,
+      "logChars": 100053,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T11:10:30.6575922Z   ✓   80 [chromium] › tests/e2e/project-repeated-input-accessibility.spec.ts:236:5 › #340 readonly pane 건수는 현재 Task에 표시 가능한 할당 대상만 집계한다 (2.3s)",
+        "2026-10-25T11:10:32.2465905Z   ✓   81 [chromium] › tests/e2e/project-task-quick-view.spec.ts:6:7 › Issue #552 replaces #196 quick views with marker-OFF WBS › 일정 Toolbar에 표시 토글이 없고 WBS는 Summary/Task만 표시한다 (1.6s)",
+        "2026-10-25T11:10:34.1652292Z   ✓   82 [chromium] › tests/e2e/project-task-quick-view.spec.ts:15:7 › Issue #552 replaces #196 quick views with marker-OFF WBS › Task 유형과 표시 전환은 ancestor context·canonical data·instance를 보존하고 mutation이 없다 (1.9s)",
+        "2026-10-25T11:10:36.2339606Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121149785128,
+      "name": "Chromium E2E shard 1/8 · PR",
+      "run": 40186806490,
+      "logAvailable": true,
+      "logChars": 102268,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T11:09:02.7094298Z   ✓   44 [chromium] › tests/e2e/issue-623-resource-mvp.spec.ts:419:3 › #623 실제 실물 연결·중첩Group 1024px geometry·keyboard·query0·렌더관측 (18.8s)",
+        "2026-10-25T11:09:39.0486774Z   ✓   45 [chromium] › tests/e2e/issue-623-resource-mvp.spec.ts:419:3 › #623 실제 실물 연결·중첩Group 1440px geometry·keyboard·query0·렌더관측 (19.2s)",
+        "2026-10-25T11:10:14.4784650Z   ✓   46 [chromium] › tests/e2e/issue-623-resource-mvp.spec.ts:419:3 › #623 실제 실물 연결·중첩Group 1920px geometry·keyboard·query0·렌더관측 (18.6s)",
+        "2026-10-25T11:10:36.2080391Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121149785130,
+      "name": "Chromium E2E shard 4/8 · PR",
+      "run": 40186806490,
+      "logAvailable": true,
+      "logChars": 72483,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T11:08:59.4683528Z   ✓  13 [chromium] › tests/e2e/issue-735-system-dashboard.spec.ts:63:5 › #735 실제 System 직접·조정 Task 집합과 고유 Assignment·선택·공정 필터 (27.4s)",
+        "2026-10-25T11:09:47.2682009Z   ✓  14 [chromium] › tests/e2e/issue-735-system-dashboard.spec.ts:122:5 › #735 System 정확 원본 dirty·취소·저장 후 새 snapshot과 같은 조회 복귀 (30.9s)",
+        "2026-10-25T11:10:34.7672835Z   ✓  15 [chromium] › tests/e2e/issue-735-system-dashboard.spec.ts:178:5 › #735 System Task·Assignment·일정 왕복과 stale·error 원본 잠금 (30.7s)",
+        "2026-10-25T11:10:36.2635818Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "id": 121149785141,
+      "name": "Chromium E2E shard 7/8 · PR",
+      "run": 40186806490,
+      "logAvailable": true,
+      "logChars": 79406,
+      "actualFailCandidates": [],
+      "tailSignals": [
+        "2026-10-25T11:10:15.1693249Z   ✓  31 [chromium] › tests/e2e/logistics-target-authoring.spec.ts:89:5 › #785 5폭 탭 왕복은 Target 네트워크·DOM·접근성 제어 0이며 canonical 불변 (22.4s)",
+        "2026-10-25T11:10:27.3845074Z   ✓  32 [chromium] › tests/e2e/project-context-toolbar-responsive.spec.ts:8:7 › Issue #118 390px 긴 제목과 일정 도구줄이 readonly/editing에서 Gantt 공간을 보존한다 (12.2s)",
+        "2026-10-25T11:10:35.8198890Z   ✓  33 [chromium] › tests/e2e/project-context-toolbar-responsive.spec.ts:8:7 › Issue #118 768px 긴 제목과 일정 도구줄이 readonly/editing에서 Gantt 공간을 보존한다 (8.4s)",
+        "2026-10-25T11:10:36.2895204Z ##[error]The operation was canceled."
+      ]
+    }
+  ],
+  "sourceArtifacts": [
+    {
+      "artifactId": 12594644476,
+      "savedJsonSha256": "d086ca0fb0875eee971ee6c226e34133682c85bf1a65952f267df381f17e87e0",
+      "source": {
+        "schema": "mastergantt-ci-pr-source-v1",
+        "repository": "planner77/masterGantt",
+        "run_id": 40184046283,
+        "run_attempt": 1,
+        "pr_number": 810,
+        "head_sha": "6ab0c8f8ba1b844d68e0623b201680750d7171d4",
+        "head_ref": "feat/issue-807-resource-workspace",
+        "head_repository": "planner77/masterGantt",
+        "base_sha": "c69c22e248de6d2af9cc753eb0296ff97d4a2b8f",
+        "base_ref": "main",
+        "base_repository": "planner77/masterGantt",
+        "test_merge_sha": "2e005ede2aea25d293d0dcf3d2f39a37653eee79"
+      },
+      "crossCheck": "historical run attempt/head + current PR identity/repository/base / Git test-merge parents / unique commit-to-PR attribution verified; superseded Head not reused as current Gate; JSON data only, artifact code not executed"
+    },
+    {
+      "artifactId": 12595917257,
+      "savedJsonSha256": "856bce80bb96b348b39f28f7bff3d24230686670626882d6cf85733deead1053",
+      "source": {
+        "schema": "mastergantt-ci-pr-source-v1",
+        "repository": "planner77/masterGantt",
+        "run_id": 40185606165,
+        "run_attempt": 1,
+        "pr_number": 810,
+        "head_sha": "470d202f2475ef3b58581b9bd4ff5a9d63b7defe",
+        "head_ref": "feat/issue-807-resource-workspace",
+        "head_repository": "planner77/masterGantt",
+        "base_sha": "c69c22e248de6d2af9cc753eb0296ff97d4a2b8f",
+        "base_ref": "main",
+        "base_repository": "planner77/masterGantt",
+        "test_merge_sha": "0b0775eb40c09cc1d15ceb83554fe4959aae4a52"
+      },
+      "crossCheck": "historical run attempt/head + current PR identity/repository/base / Git test-merge parents / unique commit-to-PR attribution verified; superseded Head not reused as current Gate; JSON data only, artifact code not executed"
+    },
+    {
+      "artifactId": 12596169125,
+      "savedJsonSha256": "2dc150b068f824a0d208678f2fbc99db774d1d626a52d3f2b76c2b3b1b2da5ba",
+      "source": {
+        "schema": "mastergantt-ci-pr-source-v1",
+        "repository": "planner77/masterGantt",
+        "run_id": 40186806490,
+        "run_attempt": 1,
+        "pr_number": 810,
+        "head_sha": "abe66b0e82f399be7484664c35a8adfce34c47a1",
+        "head_ref": "feat/issue-807-resource-workspace",
+        "head_repository": "planner77/masterGantt",
+        "base_sha": "c69c22e248de6d2af9cc753eb0296ff97d4a2b8f",
+        "base_ref": "main",
+        "base_repository": "planner77/masterGantt",
+        "test_merge_sha": "42465b2fccabcf4956982369079c908a0fa7c518"
+      },
+      "crossCheck": "historical run attempt/head + current PR identity/repository/base / Git test-merge parents / unique commit-to-PR attribution verified; superseded Head not reused as current Gate; JSON data only, artifact code not executed"
+    }
+  ]
+}

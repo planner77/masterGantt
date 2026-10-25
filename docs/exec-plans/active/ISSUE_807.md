@@ -4,7 +4,7 @@
 
 - repository: `planner77/masterGantt`
 - issue: [#807](https://github.com/planner77/masterGantt/issues/807); 상위 [#806](https://github.com/planner77/masterGantt/issues/806)
-- lifecycle_phase: REWORK / CORRECTIVE_FULL_PR_CI_START_PENDING
+- lifecycle_phase: REWORK_R03 / PR_CI_START_READY
 - requested_scope: 분석·설계·구현·문서 동기화·리뷰/충돌 처리·실패 원장 기록·Ready PR Full CI 시작까지. CI 모니터링·병합·main/GHCR·tag/release·Finalizer·브랜치 정리·Issue 종료는 제외한다.
 - baseline/main: `c69c22e248de6d2af9cc753eb0296ff97d4a2b8f`; baseline tree `ea77ef51d13660ca271e3c4159d6f7c614db8a41`
 - branch/worktree: `feat/issue-807-resource-workspace`, `/home/planner/Dev/masterGantt-807`
@@ -16,7 +16,7 @@
 - risk_reason: 리소스 host·탐색 복귀·활성 요청·필터/견적/Plan/Excel consumer와 version-only 보호 경로 영향
 - qa_required: true
 - qa_method: OWNER_MANAGED
-- independent_review: 별도 `qa_docs` `/root/resource_qa`의 최종 LOCAL_PRE_QA PASS / DOCUMENTATION_SYNC PASS. 제품 코드·선택 회귀·원문/관측·문서·버전을 검토했으며 Trusted/Owner gate와 구분한다.
+- independent_review: R1 이전 후보의 PASS는 역사적 범위다. R03 최종 후보는 별도 `qa_docs` `/root/resource_qa`가 코드·문서·원본 실행/해시·미영향 재사용을 독립 재검토하여 LOCAL_PRE_QA PASS / DOCUMENTATION_SYNC PASS로 반환했다. Trusted/Owner gate와 구분한다.
 - manager_decision: NOT TESTED; MERGE_READY: BLOCKED
 - issue_comment_writer: manager; issue_comment_allowed_types: PLAN, STATUS, EXCEPTION
 
@@ -82,6 +82,8 @@ Design Delta **B**(기존 Workspace-first/Compact/Progressive disclosure와 focu
 
 - `docs/exec-plans/active/ISSUE_807.md`: UPDATED
 - `docs/ISSUE_807_FAILURE_ANALYSIS.md`: UPDATED
+- `docs/evidence/issue-807/rework-r03-remote.json`: UPDATED
+- `docs/evidence/issue-807/rework-r03-prepr.json`: UPDATED
 - `docs/PROJECT_UX.md`: UPDATED
 - `docs/UI_UX_GUIDELINES.md`: UPDATED
 - `docs/RESOURCE_KPI_DASHBOARD.md`: UPDATED
@@ -171,3 +173,64 @@ Design Delta **B**(기존 Workspace-first/Compact/Progressive disclosure와 focu
 - **TEST_LIFECYCLE_REVIEW / EXTEND**: #719 동일 fixture 5폭 도움말의 기본 Resource 진입은 `기본 현황` ready·WBS hidden/pending·WBS POST0을 확인한다. 별도 기존 지연 WBS 테스트는 Resource에서 **동적 계층 탐색 명시 활성** → 실제 WBS POST를 `page.waitForRequest`로 인증 → 기존 404 `pending→error` → 기본 보고서 복귀 및 tooltip/scroll/쓰기0 검사로 강화. Milestone의 활성 WBS error·기존 도움말/스크린 폭 테스트는 계속 실행한다. 기존 assertion 완화/skip·timeout 증가 없음, #711 중복 테스트 신규 작성 없음.
 - **AC_TEST_COVERAGE** R1-AC2(기본 단일 workspace/no hidden POST), AC3(동적 peer 수동 진입/오류), AC5(5폭·tooltip·오류/ready·포커스), AC6(기존 #719 E2E 확장), AC7(#807 Work Packet·누적 원장 증분). #719 관련 정규 문서는 현재 기능 정책과 일치하여 `DESIGN.md`·`UI_UX_GUIDELINES.md`·`TEST_PLAN.md` 본문 변경 N/A (테스트 구현·실패 증거만 수정). 제품/R2/R3/서버/DB/CI/릴리스 정책 변경 N/A.
 - **Gantt State Consistency #661**: Gantt/Core·Task Editor·Resource drill state implementation source 변경0, 테스트의 화면 진입만 현재 app 계약으로 정렬. 기존 #622/#751 원본 focus handback 및 Resource ownership 계약 변경0. 원격 새 HEAD의 실제 #719/Full8 결과 및 Trusted QA·Owner ACCEPT는 PR CI 시작 시 NOT TESTED.
+
+## PR #810 · 세 번째 실패 F807-R03 누적 진단
+
+- rework baseline/head: `abe66b0e82f399be7484664c35a8adfce34c47a1` / 같은 `feat/issue-807-resource-workspace`; 최신 main/base는 계속 `c69c22e248de6d2af9cc753eb0296ff97d4a2b8f`. 버전0.133.4 유지, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 이전 원격 교정 두 개를 fast-forward로 인수했고 사용자 자료를 보존했다.
+- 원격 전체: [#3292.1](https://github.com/planner77/masterGantt/actions/runs/40184046283) #622 focus PRODUCT, [#3293.1](https://github.com/planner77/masterGantt/actions/runs/40185606165) #719 기본 활성 가정 TEST_CONTRACT, [#3294.1](https://github.com/planner77/masterGantt/actions/runs/40186806490) #737 공통 root loop TEST_CONTRACT. 각 Quality/Docker SUCCESS·E2E/Automated QA/Trusted 파생 FAIL을 보존한다. 세 source artifact JSON·Git 두 부모/commit→PR 단일 귀속을 교차 확인하고 취소21개 shard 로그에서 추가 실제 FAIL이 없음을 확인했다. 모든 Job ID/미실행과 검증 범위는 [단일 원장 R03](../../ISSUE_807_FAILURE_ANALYSIS.md), [원격 영수증](../../evidence/issue-807/rework-r03-remote.json)에 기록한다.
+- 원본 abe66b0e의 #737 첫 case RED를 로컬1/1 FAIL(25.2초)로 재현했다. 제품 코드를 되돌리지 않고 명시 동적 진입을 테스트 계약으로 정렬한다. #719의 별도 legacy-ready/dynamic 전환 대기 경합은 실제 POST/gate/준비 단계 handshake로 제거한다. 제품 source·API·도메인·Gantt·버전/lock·CI 변경0을 유지한다.
+
+### TEST_LIFECYCLE_REVIEW — 소비자 전수 인벤토리 정정
+
+초기 사전검토의 변경12개 spec 검색은 일반 root loop와 특수 도움말 fixture를 누락했다. 당시 실제 local PASS/QA를 삭제하지 않되 전체 소비자 검증 완료를 뜻하지 않음을 정정한다.
+
+| 파일/경계 | 판정·보완·현재 실행 |
+| --- | --- |
+| #730 공통 root / #736 Resource / #737 통합 root | EXTEND: 기존 helper를 `openResourceDynamicView`로 결속. 비활성→동적 실제 POST/ready와 기존 활성 멱등 재진입 구분. 각 caller의 exact report·ID/Gate/Excel·원본/복귀 단언 유지 |
+| #719 도움말 fixture | EXTEND: 기본 현황 ready·숨은 WBS 요청0과 명시 활성의 지연 pending/error 분리, 전환 전 legacy-ready witness·정확 root report POST. 이전 기본5폭 및 오류/tooltip/scroll 단언 유지 |
+| #622 실제 Plan/Assignment focus | KEEP_UNIQUE: R01 active receipt와 hidden/inert peer·과거 visit 회귀를 실제 DOM/SQLite로 확인. 활성 pending/foreign modal·stale의 WAIT/CANCEL은 별도 Unit 유지 |
+| workload status·Milestone UI·Plan UI | KEEP_UNIQUE: 과거 로컬 실패 합집합, mock readonly/권한·응답 역전·준비/오류와 실제 HTTP/SQLite·Plan80/140·일별 부하. 환경 실패를 제품 FAIL로 재분류하지 않음 |
+| Plan dashboard focus/취소/stale·#530 M1 LIFO | KEEP_UNIQUE: 새/기존 방문·정확 Assignment·기본/견적 peer·원래 nonzero scroll·Core instance/원본 불변 |
+| #624 / #762 / #732~#735 | KEEP_UNIQUE/간접: 각각3root·process 하위 resource 축·자기 root 소비자. Resource root 진입으로 변경하지 않음. #734 탭 왕복도 설비 복귀 계약 유지 |
+| `helpers/ui-geometry.ts` | KEEP_UNIQUE: #730에서 실제 가시 root를 전달하며 ready·값/행·source receipt 검사를 완화하지 않음 |
+| #797/#798/#799 수동 collector·이전 캡처 | HISTORICAL / 현재 실행 지원 N/A. 당시 source/collector hash 보존, 현재 source와 섞어 개선/지원 PASS를 주장하지 않음 |
+| 신규/폐기 | ADD/RETIRE_CANDIDATE 없음. 기존 helper와4개 consumer spec만 확장, 새 상시 spec·skip/timeout/retry·Required3/8shard 변경0 |
+
+### AC_TEST_COVERAGE — R03 증분
+
+- AC1/AC6: 위 소비자 인벤토리와 누락 원인·전 원격3파일/로컬4파일 합집합을 실제 로그로 대조했다.
+- AC2/AC3: 기본 현황을 유지하고 동적 보기만 명시 활성한다. helper의 이미 활성 재진입은 request=null·POST 증가0을 기존 #807 case에 추가한다.
+- AC4/AC5: 기존 #737 원시 ID/snapshot·KPI/Excel·mutation1/원본 편집과 Core 보존, #622 focus·#719 pending/error·#736 readonly/응답 역전·Plan80/140·LIFO를 동일 source 선택으로 실행한다.
+- AC7: TEST_PLAN·본 Work Packet·누적 원장·정제 원격 영수증 갱신. UI/UX 실제 제품 계약·API/DB·DESIGN 원칙 변경은 없어 관련 사용자 문서의 추가 개정은 N/A. Design Delta B의 기존 명시 탐색/상태 계약 적용이며 신규 공통 원칙은 없다.
+
+### 검증 계획·출처·상태
+
+단일 bounded 진단은 기존10개 spec의28개 case다. 원격 직접 실패3case와 전체 과거 실패7파일을 빠짐없이 포함하고 공통 helper·멱등/숨은 요청·오류 gate·정확 focus·Plan/LIFO 음성을 추가했다. `--workers=1 --retries=0 --max-failures=0` 및 실행별 고유 output을 사용하며 원본 source RED와 최종 source를 구분한다. 최종 실행 결과·source 지문·원문 report SHA는 완료 후 아래에 기록한다. 변경된4개 spec 이외의 전체 원격 Full은 새 Head에서 별도 NOT TESTED다.
+
+R01/R02는 당시 로컬 실행이 NOT TESTED로 게시됐으며 초기6ab의 Unit22/Chromium6·UI hash는 해당 옛 source의 역사 증거다. R01은 제품 host/포커스 모듈을 변경했으므로 최초 c84dd... aggregate를 최신 source proof로 재사용하지 않는다. 이번 R03의 제품 source 불변은 **abe66b0e 대비** `git diff -- src`와 새 지문으로 증명한다.
+
+### 후보A 동결 Local Fast Feedback
+
+- 후보A `.prepr-reports/issue807-r03-union/report.json`: **10개 spec / 28개 case PASS**, retry0/skip0/flaky0, 총524.369초. raw SHA256 `a42ab6d1baf036120885ea28dfff7c8d5b4e5ad150fd942ab5098e9990224af4`. #6221·#7193·#7302·#7366·#7371·workload status9·#5301·Milestone UI1·Plan dashboard3·Plan UI1의 실제 case 분배다.
+- 테스트 diff SHA256 시작/끝 `90ef399a68718a37404e387241dea0ac47cef7353223d6b8ec86be2cfcee05d7` 일치. abe66b0e의 제품 `src` Git tree `faf53573b216afa753f0f0c2569f617f2a6fde1a`를 유지하며 제품 source 변경0이다. 단위/브라우저 source 동결과 최종 문서·실행 영수증 추가를 구분한다.
+- R01 관련 Unit `resource-editor-focus-return.test.ts` 고유4/4 PASS. Manager raw JSON `.prepr-reports/issue807-r03-focus-unit.json` SHA256 `b340a626f2fef488fc8d5e89344feb67c6954f1d165cb197e4006429c4543839`. 같은 Unit의 두 역할 중복 실행을 고유8case로 계산하지 않는다.
+- 원본 abe66b0e #737 RED1case는 개별 약25.2초·전체 Run46.302초. `.prepr-reports/issue807-r03-red/report.json` SHA256 `d5861ceb72b44586fb8314279d976d247d9549fddb950cb3d5cef7b7d48c9e5c`. 최종 PASS가 원본 RED/3회 원격 FAIL을 지우지 않는다.
+- 이10개 spec은 전체 PR Full8/Required3가 아니다. 수정한 동적 소비자4개·7개 누적 실패 파일의 실행 증거와 제외 사유는 위 인벤토리에 연결하고 다른 전체 소비자/runner/production build·Docker는 새 원격 Full에 인계한다.
+
+### 최종 원래 단언 보존 검토
+
+28PASS 후보A의 #730/#737 resource early return이 원래 generic visible WBS locator의 공통 단언을 건너뛰는 것을 제출 전에 발견했다. helper 한정 selector로 바꾸면서 원래의 중복 가시 root 검출 범위를 줄이지 않도록 두 caller에서 navigation만 분기하고 기존 모든 root의 visible/ready/root 단언을 복원한다. 최종 후보B의 변경은 두 test 함수뿐이며 제품·공유 helper·#719/#736·다른25case의 driver bytes는 그대로다.
+
+[Issue Lifecycle의 Local Fast Feedback 영향별 재사용](../../ISSUE_LIFECYCLE.md)에 따라 #730 선택2case와 #737 첫1case를 최종 source에서 재실행하고 미영향25case를 원래28PASS에서 재사용한다. 전체28case의 최종 실행이라고 잘못 표시하거나28+3을31고유 test로 합산하지 않는다. 모든 Required 원격 CI/QA는 새 Head에서 다시 검증해야 한다. 후보B raw report/지문·최종 static/독립 검토 결과는 완료 후 아래 인계에 기록한다.
+
+최종B 직접 재검증은 **3/3 PASS**, retry0/skip0/flaky0,143.619초다. `.prepr-reports/issue807-r03-final-strict/report.json` SHA256 `f85e11c0d7d04fb80c0d431fc55177034467793a7a82fe69a64d7a59ef1c2a4a`. 별도 Reviewer가 helper/#719/#736 bytes는A와 같고730/737의공통단언복원만다름을 독립 확인했다. [정제 로컬 영수증](../../../output/playwright/issue-807/rework-r03-local.json)의 원본 RED·A28·B3·미영향25case 재사용과 파일별 source hash를 참조한다. 이는 고유28개 브라우저 시나리오의 Local Fast Feedback 범위이며 동일 최종B source에서28개 전부를 다시 실행했다고 주장하지 않는다.
+
+### 최종 static·자동 도구·독립 검토 인계
+
+최종 typecheck·변경 대상 ESLint·diff 검사 PASS, `verify-release-version.mjs` PASS(0.133.4), test discovery PASS(280 Unit 파일/815 browser test·root/외부 cwd 일치), Markdown341파일 링크 PASS다. Next 서버를 종료하고 본인 생성 AGENTS/next-env/tsconfig 및 과거 tracked 캡처27개를 원본 bytes로 복원했다. 과거 실행 산출물을 새 증거로 덮어쓰지 않고 raw 고유 output/정제 R03 영수증을 사용한다.
+
+실제 `verify:prepr --mode=fast --base=abe66b0e82f399be7484664c35a8adfce34c47a1 --issue=807 --pr=810 --risk=HIGH`는 **BLOCKED**(exit1), sourceStable=true, selected4·UNKNOWN1·missing0·실행 step0이다. [정제 Pre-PR 영수증](../../evidence/issue-807/rework-r03-prepr.json)의 유일한 UNKNOWN은 `tests/e2e/helpers/resource-workspace.ts`다. 자동 매핑은 변경하지 않았고 이 helper→#719/#730/#736/#737의 실제 실행/멱등·POST/가시성 단언을 위 소비자 표와 로컬 영수증으로 수동 매핑했다. CLI fast/build 자체를 PASS로 간주하지 않으며 개별 Unit4·고유28case Local Fast Feedback·static 결과와 구분한다.
+
+별도 `/root/resource_qa`는 최종B 직접3·미영향25 재사용·Unit4·source/테스트 지문·원본 RED·세 원격 FAIL과 취소21개·문서 정합/과거 증거 복원을 독립 확인해 **R03 LOCAL_PRE_QA=PASS / DOCUMENTATION_SYNC=PASS**, 새 P1/P2 없음으로 반환했다. 이전R1 QA 검색 누락은 원장에서 보존했다. Manager의 판정은 요청한 PR CI 시작 범위의 게시 준비 확인이며 원격 Required3/Trusted·Owner/Manager ACCEPT·병합/릴리스 승인이 아니다.
+
+최신 PR Head/main·미해결 thread·충돌을 게시 직전 다시 확인하고 같은 PR에 한 번 synchronize한다. 실제 원격 Head/tree/부모/bytes·새 Run ID/Attempt/Head/Base/Test-Merge 등록은 Issue STATUS에 남기며 CI 결과를 모니터링하지 않는다. GitHub CLI 저장 인증 실패는 그대로 두고 기존 연결 GitHub 도구의 게시·공개 exact fetch 동등성 검증을 사용한다.

@@ -1,3 +1,4 @@
+import { openResourceDynamicView } from "./helpers/resource-workspace";
 import { expectDashboardMetricsReadable } from "./helpers/dashboard-metrics";
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
@@ -31,11 +32,9 @@ function reportResponse(page:Page,condition:ReportCondition={spec:defaultSpec,fi
  }).then(()=>report);
 }
 async function openResource(page:Page){
- await page.getByRole("tablist",{name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"대시보드",exact:true}).click();
- await page.getByRole("tablist",{name:"대시보드 보기",exact:true}).getByRole("tab",{name:"리소스",exact:true}).click();
- await page.getByRole("group",{name:"리소스 분석 보기",exact:true}).getByRole("button",{name:"동적 계층 탐색",exact:true}).click();
- await expect(root(page)).toHaveAttribute("data-ready","true",{timeout:30_000});
+ await openResourceDynamicView(page,{readyTimeout:30_000});
 }
+
 async function preset(page:Page,label:string){
   await openWbsViewControls(root(page));
  const composer=root(page).locator("details").filter({has:page.locator("summary").filter({hasText:/^조회 구성$/})});
@@ -228,6 +227,9 @@ test("#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨�
  await peers.getByRole("button",{name:"동적 계층 탐색",exact:true}).focus();await page.keyboard.press("Space");
  await expect(root(page)).toHaveAttribute("data-ready","true");await expect(report).toHaveCount(0);
  await expect(root(page).getByLabel("조회 시작일",{exact:true})).toHaveValue("");await expect(root(page).getByLabel("작업 검색",{exact:true})).toHaveValue("");
+ const activeReads=dynamicReads;
+ const reentry=await openResourceDynamicView(page,{navigate:false});
+ expect(reentry.request).toBeNull();expect(dynamicReads).toBe(activeReads);
  await openWbsViewControls(root(page));
  await expect(root(page).getByRole("combobox",{name:"Global Role",exact:true})).toHaveValue("");
  await expect(root(page)).toContainText("보고서 마지막 확정: 2026-10-14 ~ 2026-10-16");

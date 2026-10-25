@@ -1,0 +1,668 @@
+{
+  "schema": "issue807-r03-local:v1",
+  "recordedAt": "2026-10-25T11:38:57.148512+00:00",
+  "baselineHead": "abe66b0e82f399be7484664c35a8adfce34c47a1",
+  "applicationVersion": "0.133.4",
+  "productSourceTree": "faf53573b216afa753f0f0c2569f617f2a6fde1a",
+  "productSourceChanges": [],
+  "testDiffSha256Before": "1c565dc498dc8a26cf061cde02a67218b0144bd3c665974e0f32c5c2d1405624",
+  "testDiffSha256After": "1c565dc498dc8a26cf061cde02a67218b0144bd3c665974e0f32c5c2d1405624",
+  "changedTestHashes": {
+    "tests/e2e/helpers/resource-workspace.ts": "44486b936e0ef2d45d1ff258f052c350aea2d2cb233749447c41c5f45fd5f4ad",
+    "tests/e2e/issue-719-contextual-help.spec.ts": "a1652911b56ace31e1d9d22e78407e91b4e87f8358210e4bbd08335114465b5c",
+    "tests/e2e/issue-730-view-composer.spec.ts": "025b3711851aac5917ae6e22ac9bf68a573644bf3bea8079131ff56ef0febe21",
+    "tests/e2e/issue-736-resource-dashboard.spec.ts": "a0ee2be3aecb2285832d90c04148a25fa3c48057bacb41953a3cca226377ae9d",
+    "tests/e2e/issue-737-target0-acceptance.spec.ts": "0e238b3fb04dd37d1422eaf765cb6918e7db56488b8ffe08a9771e843de7211d"
+  },
+  "originalRed": {
+    "rawLocalReport": ".prepr-reports/issue807-r03-red/report.json",
+    "rawSha256": "d5861ceb72b44586fb8314279d976d247d9549fddb950cb3d5cef7b7d48c9e5c",
+    "stats": {
+      "startTime": "2026-10-25T11:17:07.857Z",
+      "duration": 46302.409999999996,
+      "expected": 0,
+      "skipped": 0,
+      "unexpected": 1,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "file": "issue-737-target0-acceptance.spec.ts",
+        "line": 43,
+        "title": "#737 Target0 동일 원본으로 기준정보·일정·6관점 왕복, 사용자 축 구성과 편집 1회",
+        "status": "failed",
+        "durationMs": 25176,
+        "retry": 0
+      }
+    ],
+    "cause": "원본 #737 openRoot(resource)가 기본 현황에서 숨은 Resource WBS의 기본 활성화를 가정했다. waitForResponse Test ended는 파생 오류다."
+  },
+  "unit": {
+    "uniqueCases": 4,
+    "result": "PASS",
+    "duplicateExecutions": 2,
+    "managerRawReport": ".prepr-reports/issue807-r03-focus-unit.json",
+    "managerRawSha256": "b340a626f2fef488fc8d5e89344feb67c6954f1d165cb197e4006429c4543839",
+    "frontendStdout": ".prepr-reports/issue807-r03-focus-unit.stdout.log",
+    "boundary": "두 독립 실행은 고유4개로만 계수하며8개로 합산하지 않는다."
+  },
+  "helperApi": {
+    "name": "openResourceDynamicView",
+    "alreadyActive": "visible/aria-pressed=true이면 기존 ready/confirmation을 확인하며 신규 POST/refresh를 강제하지 않는다.",
+    "activation": "inactive이면 화면 전환 전에 정확 Project의 root=resource/projection=report POST witness를 설치하고 명시적으로 동적 peer를 선택한다.",
+    "options": {
+      "navigate": "기본true; #719는 기존 기본 보고서에서 false로 활성화한다.",
+      "waitForReady": "기본true; #719 지연404는 false로 두고 호출자가 실제 pending→error와 기본 복귀를 확인한다.",
+      "readyTimeout": "#736의 기존30초 ready 설정만 유지하며 다른 caller는 기존 expect 기본값을 쓴다."
+    },
+    "callerReceipts": "기존 정확 spec/filters/scope/snapshot 및 workbook/canonical/Gantt 단언과 waitForWbsReport는 유지한다."
+  },
+  "entryInventory": [
+    {
+      "paths": [
+        "tests/e2e/issue-730-view-composer.spec.ts",
+        "tests/e2e/issue-736-resource-dashboard.spec.ts",
+        "tests/e2e/issue-737-target0-acceptance.spec.ts"
+      ],
+      "decision": "EXTEND",
+      "reason": "분산된 Resource 동적 진입을 공통 helper로 정렬한다. #737 누락을 교정하고 기존 두 consumer도 같은 계약을 쓴다."
+    },
+    {
+      "paths": [
+        "tests/e2e/issue-719-contextual-help.spec.ts"
+      ],
+      "decision": "EXTEND",
+      "reason": "기본 현황 hidden WBS pending/POST0 유지; 지연 활성화는 legacy-ready phase witness→실제 WBS report POST→pending→404/error→기본 보고서 복귀로 제어한다."
+    },
+    {
+      "paths": [
+        "tests/e2e/helpers/ui-geometry.ts",
+        "tests/e2e/helpers/wbs-controls.ts",
+        "tests/e2e/helpers/wbs-report.ts"
+      ],
+      "decision": "KEEP_UNIQUE",
+      "reason": "observer/controls는 이미 활성화된 명시 root를 받는다. full spec/filter/scope 응답 매칭·visible/ready·geometry 단언을 완화하지 않는다."
+    },
+    {
+      "paths": [
+        "tests/e2e/helpers/workspace-navigation.ts"
+      ],
+      "decision": "KEEP_UNIQUE",
+      "reason": "일반 Resource 진입은 기존 보고서 기본을 보존한다. 동적 peer를 자동 활성화하면 legacy 소비자와 hidden POST0 경계를 위반한다."
+    },
+    {
+      "paths": [
+        "tests/e2e/issue-624-logistics-unified.spec.ts",
+        "tests/e2e/issue-762-process-workareas.spec.ts",
+        "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+        "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+        "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+        "tests/e2e/issue-735-system-dashboard.spec.ts"
+      ],
+      "decision": "KEEP_UNIQUE",
+      "reason": "#624 실제 root는process/equipment/system3개; 나머지는각고정root의하위 Resource축 또는 설비→리소스탭→설비 복귀이며 Resource WBS 기본활성을 기다리지 않는다."
+    },
+    {
+      "paths": [
+        "tests/e2e/resource-excel-export-ui.spec.ts",
+        "tests/e2e/project-resource-workload-status.spec.ts",
+        "tests/e2e/issue-621-resource-target.spec.ts",
+        "tests/e2e/issue-622-resource-plan-target.spec.ts"
+      ],
+      "decision": "KEEP_UNIQUE",
+      "reason": "ResourceDashboard legacy consumer는명시report selector/Plan/Excel/current·project/Task·Assignment와focus경계를보존한다."
+    },
+    {
+      "paths": [
+        "tests/manual/issue-797-ui-audit.mjs",
+        "tests/manual/issue-798-dashboard-density.mjs",
+        "tests/manual/issue-799-dashboard-metrics.mjs",
+        "tests/manual/issue-799-metric-details.mjs",
+        "tests/manual/issue-799-read-only-supplement.mjs"
+      ],
+      "decision": "KEEP_UNIQUE",
+      "reason": "해당Issue고정source의역사관측기. 최신Resource workspace 지원/현재PASS로주장하지않으며 기존collector hash·과거증거보존을위해변경하지않는다.",
+      "scope": "HISTORICAL_ONLY",
+      "currentSourceValidation": "NOT TESTED"
+    },
+    {
+      "paths": [
+        "tests/manual/issue-807-resource-workspace.mjs"
+      ],
+      "decision": "KEEP_UNIQUE",
+      "reason": "새legacy기본면을측정하는이슈807수집기. 이번tests-only교정으로UIgeometry를재수집하지않으며기존관측의당시source범위유지."
+    }
+  ],
+  "cleanup": {
+    "historicalOutputBaseline": ".prepr-reports/issue807-r03-historical-output-baseline.json",
+    "producedArchiveManifest": ".prepr-reports/issue807-r03-produced-output-manifest.json",
+    "restoredHistoricalFiles": 27,
+    "generatedRestored": [
+      "AGENTS.md",
+      "next-env.d.ts",
+      "tsconfig.json"
+    ],
+    "nextServersStopped": true,
+    "finalCandidateBHistoricalOutputsChanged": 0,
+    "finalCandidateBArchiveManifest": ".prepr-reports/issue807-r03-strict-produced-output-manifest.json"
+  },
+  "staticChecks": {
+    "typecheck": "PASS",
+    "targetedEslint": "PASS",
+    "diffWhitespace": "PASS"
+  },
+  "officialRemoteRegression": "NOT TESTED",
+  "managerDecision": "NOT TESTED",
+  "limits": [
+    "로컬28case는원격Full8/Required3/Trusted/Owner승인을대체하지않는다.",
+    "원본3292/3293/3294실패·취소를소급PASS하지않는다.",
+    "새제품소스수정0;R01제품focus교정과R02/R03테스트계약을동일abe제품source에서검증했다.",
+    "최종 B의 엄격한 visible-root 단언 복원은 직접3case로 재검증했고 나머지25case는 A의 미영향 증거를 재사용한다."
+  ],
+  "candidateAUnion": {
+    "rawLocalReport": ".prepr-reports/issue807-r03-union/report.json",
+    "rawSha256": "a42ab6d1baf036120885ea28dfff7c8d5b4e5ad150fd942ab5098e9990224af4",
+    "stats": {
+      "startTime": "2026-10-25T11:21:52.469Z",
+      "duration": 524369.238,
+      "expected": 28,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "file": "issue-622-resource-plan-target.spec.ts",
+        "line": 10,
+        "title": "#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Excel·다섯 화면폭",
+        "status": "passed",
+        "durationMs": 22751,
+        "retry": 0
+      },
+      {
+        "file": "issue-719-contextual-help.spec.ts",
+        "line": 98,
+        "title": "#719 resource 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "status": "passed",
+        "durationMs": 9195,
+        "retry": 0
+      },
+      {
+        "file": "issue-719-contextual-help.spec.ts",
+        "line": 254,
+        "title": "#719 milestone 도움말 fixture는 활성 WBS의 지연 오류와 기존 보고서 준비 경계를 검증한다",
+        "status": "passed",
+        "durationMs": 2083,
+        "retry": 0
+      },
+      {
+        "file": "issue-719-contextual-help.spec.ts",
+        "line": 254,
+        "title": "#719 resource 도움말 fixture는 활성 WBS의 지연 오류와 기존 보고서 준비 경계를 검증한다",
+        "status": "passed",
+        "durationMs": 2118,
+        "retry": 0
+      },
+      {
+        "file": "issue-730-view-composer.spec.ts",
+        "line": 452,
+        "title": "#730 실제 HTTP Milestone·리소스·WorkArea 원본 ID와 취소 후 정확한 조회 복귀",
+        "status": "passed",
+        "durationMs": 23649,
+        "retry": 0
+      },
+      {
+        "file": "issue-730-view-composer.spec.ts",
+        "line": 587,
+        "title": "#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조회 불변",
+        "status": "passed",
+        "durationMs": 44046,
+        "retry": 0
+      },
+      {
+        "file": "issue-736-resource-dashboard.spec.ts",
+        "line": 49,
+        "title": "#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot Excel·정확 Assignment 복귀",
+        "status": "passed",
+        "durationMs": 20776,
+        "retry": 0
+      },
+      {
+        "file": "issue-736-resource-dashboard.spec.ts",
+        "line": 95,
+        "title": "#736 5폭 keyboard·focus·내부 overflow 및 stale/error 잠금",
+        "status": "passed",
+        "durationMs": 22182,
+        "retry": 0
+      },
+      {
+        "file": "issue-736-resource-dashboard.spec.ts",
+        "line": 117,
+        "title": "#736 새 Resource Plan 선택80·Project140·선택밖 원인 저장 후 정확 일별 상세 복귀",
+        "status": "passed",
+        "durationMs": 20910,
+        "retry": 0
+      },
+      {
+        "file": "issue-736-resource-dashboard.spec.ts",
+        "line": 157,
+        "title": "#736 readonly·응답 역전·낡은 Excel 파일 폐기",
+        "status": "passed",
+        "durationMs": 19204,
+        "retry": 0
+      },
+      {
+        "file": "issue-736-resource-dashboard.spec.ts",
+        "line": 187,
+        "title": "#736 report 관측은 이전 필터·다른 spec·scope 응답을 제외한다",
+        "status": "passed",
+        "durationMs": 109,
+        "retry": 0
+      },
+      {
+        "file": "issue-736-resource-dashboard.spec.ts",
+        "line": 209,
+        "title": "#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨은 조회 중단·peer 복원",
+        "status": "passed",
+        "durationMs": 22666,
+        "retry": 0
+      },
+      {
+        "file": "issue-737-target0-acceptance.spec.ts",
+        "line": 48,
+        "title": "#737 Target0 동일 원본으로 기준정보·일정·6관점 왕복, 사용자 축 구성과 편집 1회",
+        "status": "passed",
+        "durationMs": 25210,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 14,
+        "title": "#525 첫 실패·atomic catalog 오류는 입력을 보존하며 개별 상세 실패도 재시도한다",
+        "status": "passed",
+        "durationMs": 2220,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 26,
+        "title": "#525 네트워크 실패·malformed200·조건 echo mismatch를 성공으로 표시하지 않는다",
+        "status": "passed",
+        "durationMs": 2169,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 34,
+        "title": "#525 stale 결과·검색·기간·활성·단위·열린 행을 보존하고 역전 응답은 버린다",
+        "status": "passed",
+        "durationMs": 2816,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 45,
+        "title": "#525 중복 새로고침·hidden polling 방지와 focus catch-up 및 revision 복구",
+        "status": "passed",
+        "durationMs": 2455,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 53,
+        "title": "#525 snapshot409·선택삭제400·한도422는 잠금과 명시 복구·focus를 제공한다",
+        "status": "passed",
+        "durationMs": 2693,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 62,
+        "title": "#525 개발 견적·단위·필터 keyboard 및 5폭 geometry와 Gantt 실제 상태를 보존한다",
+        "status": "passed",
+        "durationMs": 7793,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 149,
+        "title": "#525 기존 stage assignment drill은 legacy API와 기본 Dashboard 조회상태를 보존한다",
+        "status": "passed",
+        "durationMs": 3323,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 174,
+        "title": "#525 외부 snapshot 교체는 사라지는 상세 focus만 복원하고 필터 focus를 보존한다",
+        "status": "passed",
+        "durationMs": 2337,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 202,
+        "title": "#525 긴 한국어·영문·ID와 많은 Dashboard 그룹·개인·Task의 5폭 geometry",
+        "status": "passed",
+        "durationMs": 16760,
+        "retry": 0
+      },
+      {
+        "file": "resource-kpi-integration-ui.spec.ts",
+        "line": 617,
+        "title": "#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource→M1 LIFO",
+        "status": "passed",
+        "durationMs": 13770,
+        "retry": 0
+      },
+      {
+        "file": "resource-milestone-ui.spec.ts",
+        "line": 8,
+        "title": "#526 실제 SQLite/HTTP 세 계층·비교표·선택 진척과 전체 Gate",
+        "status": "passed",
+        "durationMs": 12347,
+        "retry": 0
+      },
+      {
+        "file": "resource-plan-dashboard.spec.ts",
+        "line": 320,
+        "title": "#527 selected80/project140 parent warning, detail stack and paging focus",
+        "status": "passed",
+        "durationMs": 4684,
+        "retry": 0
+      },
+      {
+        "file": "resource-plan-dashboard.spec.ts",
+        "line": 371,
+        "title": "#527 50visible hierarchy page context and daily pager focus survive view return",
+        "status": "passed",
+        "durationMs": 9118,
+        "retry": 0
+      },
+      {
+        "file": "resource-plan-dashboard.spec.ts",
+        "line": 444,
+        "title": "#527 canceled detail409 is ignored after leaving Plan and stale blocks all drill",
+        "status": "passed",
+        "durationMs": 3840,
+        "retry": 0
+      },
+      {
+        "file": "resource-plan-ui.spec.ts",
+        "line": 19,
+        "title": "#527 실제 SQLite/HTTP 선택80·Project140·Group75·일별개인과 투입",
+        "status": "passed",
+        "durationMs": 15114,
+        "retry": 0
+      }
+    ],
+    "command": "env -u PLAYWRIGHT_BASE_URL -u PLAYWRIGHT_CHROMIUM_EXECUTABLE PLAYWRIGHT_JSON_OUTPUT_FILE=.prepr-reports/issue807-r03-union/report.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-719-contextual-help.spec.ts tests/e2e/issue-730-view-composer.spec.ts tests/e2e/issue-736-resource-dashboard.spec.ts tests/e2e/issue-737-target0-acceptance.spec.ts tests/e2e/project-resource-workload-status.spec.ts tests/e2e/issue-622-resource-plan-target.spec.ts tests/e2e/resource-milestone-ui.spec.ts tests/e2e/resource-plan-ui.spec.ts tests/e2e/resource-plan-dashboard.spec.ts tests/e2e/resource-kpi-integration-ui.spec.ts --grep '#719 resource 동일 fixture|#719 (milestone|resource) 도움말 fixture|#730 실제 HTTP Milestone·리소스·WorkArea|#798|#736|#807|#737 Target0 동일 원본|#525|#622 Target 선택80|#526 실제 SQLite|#527 실제 SQLite|#527 selected80/project140|#527 50visible|#527 canceled detail409|#530 실제 M1 원인' --workers=1 --retries=0 --max-failures=0 --output=.prepr-reports/issue807-r03-union/test-results --reporter=list,json > .prepr-reports/issue807-r03-union.stdout.log 2>&1",
+    "configuration": "기존 isolated-application fixture; workers1,retries0,max-failures0; 별도 수동 서버 없음",
+    "candidate": "A",
+    "testDiffSha256Before": "90ef399a68718a37404e387241dea0ac47cef7353223d6b8ec86be2cfcee05d7",
+    "testDiffSha256After": "90ef399a68718a37404e387241dea0ac47cef7353223d6b8ec86be2cfcee05d7",
+    "changedTestHashes": {
+      "tests/e2e/helpers/resource-workspace.ts": "44486b936e0ef2d45d1ff258f052c350aea2d2cb233749447c41c5f45fd5f4ad",
+      "tests/e2e/issue-719-contextual-help.spec.ts": "a1652911b56ace31e1d9d22e78407e91b4e87f8358210e4bbd08335114465b5c",
+      "tests/e2e/issue-730-view-composer.spec.ts": "38f7c9fb5f5711d71888962efc205ce3dc631eea4a6d93ac43dd6eb8d5c5d5a1",
+      "tests/e2e/issue-736-resource-dashboard.spec.ts": "a0ee2be3aecb2285832d90c04148a25fa3c48057bacb41953a3cca226377ae9d",
+      "tests/e2e/issue-737-target0-acceptance.spec.ts": "213fef2c017ecc750f888e5f008a8616849bd6a912f5fadc52cbaba6f7c18596"
+    }
+  },
+  "finalCandidateB": {
+    "candidate": "B",
+    "changeFromA": "#730/#737 Resource 경로의 early return을 제거하고 navigation만 if/else로 분리했다. 기존 generic visible WBS locator의 원래 단언을 모든 root에서 공통 실행한다.",
+    "changedFromA": [
+      "tests/e2e/issue-730-view-composer.spec.ts",
+      "tests/e2e/issue-737-target0-acceptance.spec.ts"
+    ],
+    "sharedHelperAnd719And736Unchanged": true,
+    "rawLocalReport": ".prepr-reports/issue807-r03-final-strict/report.json",
+    "rawSha256": "f85e11c0d7d04fb80c0d431fc55177034467793a7a82fe69a64d7a59ef1c2a4a",
+    "stats": {
+      "startTime": "2026-10-25T11:35:23.946Z",
+      "duration": 143618.931,
+      "expected": 3,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "directCases": [
+      {
+        "file": "issue-730-view-composer.spec.ts",
+        "line": 452,
+        "title": "#730 실제 HTTP Milestone·리소스·WorkArea 원본 ID와 취소 후 정확한 조회 복귀",
+        "status": "passed",
+        "durationMs": 24652,
+        "retry": 0
+      },
+      {
+        "file": "issue-730-view-composer.spec.ts",
+        "line": 587,
+        "title": "#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조회 불변",
+        "status": "passed",
+        "durationMs": 45882,
+        "retry": 0
+      },
+      {
+        "file": "issue-737-target0-acceptance.spec.ts",
+        "line": 48,
+        "title": "#737 Target0 동일 원본으로 기준정보·일정·6관점 왕복, 사용자 축 구성과 편집 1회",
+        "status": "passed",
+        "durationMs": 26103,
+        "retry": 0
+      }
+    ],
+    "reusedUnaffectedCases": [
+      {
+        "file": "issue-622-resource-plan-target.spec.ts",
+        "line": 10,
+        "title": "#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Excel·다섯 화면폭",
+        "status": "passed",
+        "durationMs": 22751,
+        "retry": 0
+      },
+      {
+        "file": "issue-719-contextual-help.spec.ts",
+        "line": 98,
+        "title": "#719 resource 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "status": "passed",
+        "durationMs": 9195,
+        "retry": 0
+      },
+      {
+        "file": "issue-719-contextual-help.spec.ts",
+        "line": 254,
+        "title": "#719 milestone 도움말 fixture는 활성 WBS의 지연 오류와 기존 보고서 준비 경계를 검증한다",
+        "status": "passed",
+        "durationMs": 2083,
+        "retry": 0
+      },
+      {
+        "file": "issue-719-contextual-help.spec.ts",
+        "line": 254,
+        "title": "#719 resource 도움말 fixture는 활성 WBS의 지연 오류와 기존 보고서 준비 경계를 검증한다",
+        "status": "passed",
+        "durationMs": 2118,
+        "retry": 0
+      },
+      {
+        "file": "issue-736-resource-dashboard.spec.ts",
+        "line": 49,
+        "title": "#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot Excel·정확 Assignment 복귀",
+        "status": "passed",
+        "durationMs": 20776,
+        "retry": 0
+      },
+      {
+        "file": "issue-736-resource-dashboard.spec.ts",
+        "line": 95,
+        "title": "#736 5폭 keyboard·focus·내부 overflow 및 stale/error 잠금",
+        "status": "passed",
+        "durationMs": 22182,
+        "retry": 0
+      },
+      {
+        "file": "issue-736-resource-dashboard.spec.ts",
+        "line": 117,
+        "title": "#736 새 Resource Plan 선택80·Project140·선택밖 원인 저장 후 정확 일별 상세 복귀",
+        "status": "passed",
+        "durationMs": 20910,
+        "retry": 0
+      },
+      {
+        "file": "issue-736-resource-dashboard.spec.ts",
+        "line": 157,
+        "title": "#736 readonly·응답 역전·낡은 Excel 파일 폐기",
+        "status": "passed",
+        "durationMs": 19204,
+        "retry": 0
+      },
+      {
+        "file": "issue-736-resource-dashboard.spec.ts",
+        "line": 187,
+        "title": "#736 report 관측은 이전 필터·다른 spec·scope 응답을 제외한다",
+        "status": "passed",
+        "durationMs": 109,
+        "retry": 0
+      },
+      {
+        "file": "issue-736-resource-dashboard.spec.ts",
+        "line": 209,
+        "title": "#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨은 조회 중단·peer 복원",
+        "status": "passed",
+        "durationMs": 22666,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 14,
+        "title": "#525 첫 실패·atomic catalog 오류는 입력을 보존하며 개별 상세 실패도 재시도한다",
+        "status": "passed",
+        "durationMs": 2220,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 26,
+        "title": "#525 네트워크 실패·malformed200·조건 echo mismatch를 성공으로 표시하지 않는다",
+        "status": "passed",
+        "durationMs": 2169,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 34,
+        "title": "#525 stale 결과·검색·기간·활성·단위·열린 행을 보존하고 역전 응답은 버린다",
+        "status": "passed",
+        "durationMs": 2816,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 45,
+        "title": "#525 중복 새로고침·hidden polling 방지와 focus catch-up 및 revision 복구",
+        "status": "passed",
+        "durationMs": 2455,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 53,
+        "title": "#525 snapshot409·선택삭제400·한도422는 잠금과 명시 복구·focus를 제공한다",
+        "status": "passed",
+        "durationMs": 2693,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 62,
+        "title": "#525 개발 견적·단위·필터 keyboard 및 5폭 geometry와 Gantt 실제 상태를 보존한다",
+        "status": "passed",
+        "durationMs": 7793,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 149,
+        "title": "#525 기존 stage assignment drill은 legacy API와 기본 Dashboard 조회상태를 보존한다",
+        "status": "passed",
+        "durationMs": 3323,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 174,
+        "title": "#525 외부 snapshot 교체는 사라지는 상세 focus만 복원하고 필터 focus를 보존한다",
+        "status": "passed",
+        "durationMs": 2337,
+        "retry": 0
+      },
+      {
+        "file": "project-resource-workload-status.spec.ts",
+        "line": 202,
+        "title": "#525 긴 한국어·영문·ID와 많은 Dashboard 그룹·개인·Task의 5폭 geometry",
+        "status": "passed",
+        "durationMs": 16760,
+        "retry": 0
+      },
+      {
+        "file": "resource-kpi-integration-ui.spec.ts",
+        "line": 617,
+        "title": "#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource→M1 LIFO",
+        "status": "passed",
+        "durationMs": 13770,
+        "retry": 0
+      },
+      {
+        "file": "resource-milestone-ui.spec.ts",
+        "line": 8,
+        "title": "#526 실제 SQLite/HTTP 세 계층·비교표·선택 진척과 전체 Gate",
+        "status": "passed",
+        "durationMs": 12347,
+        "retry": 0
+      },
+      {
+        "file": "resource-plan-dashboard.spec.ts",
+        "line": 320,
+        "title": "#527 selected80/project140 parent warning, detail stack and paging focus",
+        "status": "passed",
+        "durationMs": 4684,
+        "retry": 0
+      },
+      {
+        "file": "resource-plan-dashboard.spec.ts",
+        "line": 371,
+        "title": "#527 50visible hierarchy page context and daily pager focus survive view return",
+        "status": "passed",
+        "durationMs": 9118,
+        "retry": 0
+      },
+      {
+        "file": "resource-plan-dashboard.spec.ts",
+        "line": 444,
+        "title": "#527 canceled detail409 is ignored after leaving Plan and stale blocks all drill",
+        "status": "passed",
+        "durationMs": 3840,
+        "retry": 0
+      },
+      {
+        "file": "resource-plan-ui.spec.ts",
+        "line": 19,
+        "title": "#527 실제 SQLite/HTTP 선택80·Project140·Group75·일별개인과 투입",
+        "status": "passed",
+        "durationMs": 15114,
+        "retry": 0
+      }
+    ],
+    "command": "env -u PLAYWRIGHT_BASE_URL -u PLAYWRIGHT_CHROMIUM_EXECUTABLE PLAYWRIGHT_JSON_OUTPUT_FILE=.prepr-reports/issue807-r03-final-strict/report.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-730-view-composer.spec.ts tests/e2e/issue-737-target0-acceptance.spec.ts --grep '#730 실제 HTTP Milestone·리소스·WorkArea|#798|#737 Target0 동일 원본' --workers=1 --retries=0 --max-failures=0 --output=.prepr-reports/issue807-r03-final-strict/test-results --reporter=list,json > .prepr-reports/issue807-r03-final-strict.stdout.log 2>&1",
+    "coverage": {
+      "directExecuted": 3,
+      "unaffectedReused": 25,
+      "uniqueCovered": 28,
+      "successfulExecutionsAcrossAandB": 31,
+      "boundary": "최종 B 전체28개를 한 번에 실행했다고 주장하지 않는다. A의28PASS 뒤 영향2파일의 직접3case를 B에서 다시 실행했으며 byte 동등인 공통helper/나머지driver/제품에 의존한 미영향25개를 Manager 승인 영향분석으로 재사용한다. 31개 고유test가 아니다."
+    }
+  },
+  "result": "PASS"
+}

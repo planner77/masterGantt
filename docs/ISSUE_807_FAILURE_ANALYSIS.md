@@ -2,6 +2,8 @@
 
 Primary Issue: [#807](https://github.com/planner77/masterGantt/issues/807). Source of truth: [PR CI 실패 분석 정책](PR_CI_FAILURE_TRIAGE.md), [Work Packet](exec-plans/active/ISSUE_807.md). 갱신일 2026-10-25. 원본 FAIL/BLOCKED/NOT TESTED를 후속 성공으로 지우지 않는다.
 
+최신 재개는 **F807-R03**이다. 최초 R01/R02와 로컬 L01~L11은 아래에 불변 이력으로 보존한다. 세 Full Run·90개 Job·취소21개 shard의 원본 로그와 출처 교차검증은 [누적 원격 영수증](evidence/issue-807/rework-r03-remote.json)을 참조한다.
+
 ## 원본 Run/Attempt 목록
 
 착수 시 #807 관련 PR·원격 CI 없음. 기존 #800/PR #805와 #798/#799 실패는 다른 Issue의 원본 기록이며 이 이슈 실패 횟수에 합산하지 않는다. 새 PR CI의 Required Quality/E2E8/Docker 및 Trusted/Owner 결과는 실행 전 NOT TESTED다.
@@ -64,3 +66,53 @@ before/after 동일 fixture5폭과 최종 Chromium6·Unit22·typecheck/lint·ver
 - **누적 이력 관계:** R01 PRODUCT focus-handback `#622`는 이번 shard2에서 해당 개별 case 성공으로 교정 방향을 지지하지만 후속 Full 8/8 성공으로 간주 불가. R02는 **새로운 #719 소비자의 오래된 readiness 전제**이며 R01 재발이 아니다. 과거 F807-L04/L05/L06/L07 환경·UI 이력은 계속 보존. 실패 E2E 합집합: `issue-736-resource-dashboard.spec.ts` / `project-resource-workload-status.spec.ts` / `resource-milestone-ui.spec.ts` / `resource-plan-ui.spec.ts` / `issue-622-resource-plan-target.spec.ts` / **`issue-719-contextual-help.spec.ts`**.
 - **보완 / AC_TEST_COVERAGE & TEST_LIFECYCLE_REVIEW:** 기존 `issue-719-contextual-help.spec.ts` 하나를 EXTEND. 기본 Resource의 가시 `기본 현황`과 숨은 WBS `pending/data-ready=false` 및 **WBS POST0**를 단언해 요청·지오메트리 무부작용 보호. 지연 404 회귀는 Resource peer를 **사용자가 명시적으로 활성화**한 다음 실제 WBS read POST를 관측하고 `pending→error`를 검증, `기본 현황`으로 복귀한 뒤 기존 tooltip/5폭/스크롤·비쓰기 assertion 유지. Milestone 쪽 원래 pending→error·도움말 검증도 유지. test 이름을 실제 동작으로 정정. 새 중복 spec, skip/retry/timeout/Required/8shard, 제품/API/Gantt/DB 변경 없음.
 - **동결/검증:** GitHub 실패 로그·이전 #622 PASS log·프로덕션 view 계약을 source로 대조했다. 이 연결의 로컬 Playwright/npm 의존성·실제 브라우저 및 새 HEAD의 실행 결과는 **NOT TESTED**. 실제 Run 종료와 실패 출처는 위 R01/R02 두 개를 보존. 기존 P1 review thread `PRRT_kwDOUUB7Bc6wAZW-` resolved, 재검토 시 신규 thread/충돌을 확인한다. 이번 범위는 새로운 exact HEAD의 Full PR CI 시작까지(결과 감시/병합/Main/GHCR/tag/Issue 종료 제외).
+
+## F807-R03 — 세 번째 Full #3294.1 및 누락 소비자 전체 진단 (2026-10-25)
+
+### 원본 귀속·직접/파생·미실행
+
+- [Full #3294.1](https://github.com/planner77/masterGantt/actions/runs/40186806490), Run ID `40186806490`, attempt `1`, `pull_request`, `.github/workflows/ci.yml`, `FINAL_FULL`. HEAD `abe66b0e82f399be7484664c35a8adfce34c47a1`, base/main `c69c22e248de6d2af9cc753eb0296ff97d4a2b8f`, test merge `42465b2fccabcf4956982369079c908a0fa7c518`의 두 부모는 해당 base/head다. 원격 실행은 2026-10-25 10:56:26~11:11:06 UTC.
+- 직접 FAIL은 [shard6 job `121149785099`](https://github.com/planner77/masterGantt/actions/runs/40186806490/job/121149785099), `tests/e2e/issue-737-target0-acceptance.spec.ts:22`의 `openRoot(resource)`다(첫 통합 case의 호출 line92). `getByTestId('wbs-view-dashboard').filter({visible:true})`에 `data-root=resource`를 기대했으나 가시 요소가 없어 실패했다. 뒤의 `page.waitForResponse: Test ended`는 이미 끝난 테스트의 응답 waiter 정리 오류이며 독립 제품 오류로 계수하지 않는다.
+- 실패 shard는 **38 PASS / 1 FAIL / 59 NOT RUN**, 나머지7개 shard CANCELLED다. 세 Full 전체의 취소 **21개 shard 로그를 모두 조회**해 추가 실제 assertion FAIL이 없음을 확인했다. 부분 PASS는 취소 shard 전체 또는 Full8/8 PASS가 아니다. Job별 ID/결론은 위 정제 JSON에 보존한다.
+- Required Quality job `121150103378` 및 Docker job `121150248523` SUCCESS; 실제 static/unit/build/Docker도 SUCCESS. Required E2E `121152092441` 및 Automated QA `121152109573` FAIL은 직접 shard 실패의 파생이다. [Trusted #941.1 / Run `40187801757`](https://github.com/planner77/masterGantt/actions/runs/40187801757), job `121152190248`도 원본 CI 미성공으로 FAIL이다. 새로운 Head의 어느 Gate도 이 이전 성공으로 대체하지 않는다.
+- `playwright-report-shard-6` Artifact `12597086129`는 조회 시 미만료·5,736,370bytes였다. 메타데이터와 원본 Job 로그는 확인했으나 전체 report ZIP 내부 trace는 다운로드/분석하지 않았다. 출처 artifact `ci-pr-source-40186806490-1` ID `12596169125`는 다운로드 후 **JSON만 데이터로 읽었다**. 실행하거나 artifact 코드를 checkout하지 않았다.
+
+### 전 이력 교차 확인
+
+| 원본 Full/attempt | 직접 실패·분류 | 해당 원본의 결과 | 후속 개별 증거와 한계 |
+| --- | --- | --- | --- |
+| [#3292.1 / 40184046283](https://github.com/planner77/masterGantt/actions/runs/40184046283) | #622 line115 focus `focused` 기대/`inactive` 실제, PRODUCT | 실패 shard1 FAIL/92 NOT RUN, 나머지7 CANCELLED; Quality/Docker SUCCESS | 470d202f 활성 receipt 교정 뒤 #3293/#3294에서 해당 개별 case PASS. Full/shard 전체 PASS는 아님 |
+| [#3293.1 / 40185606165](https://github.com/planner77/masterGantt/actions/runs/40185606165) | #719 line57 `error` 기대/숨은 WBS `pending` 실제, TEST_CONTRACT | 실패 shard9 PASS/1 FAIL/94 NOT RUN, 나머지7 CANCELLED; Quality/Docker SUCCESS | abe66b0e 명시 동적 진입 뒤 #3294에서 #719 개별 case들 PASS. 추가 gate 대기 경합은 별도 아래 기록 |
+| [#3294.1 / 40186806490](https://github.com/planner77/masterGantt/actions/runs/40186806490) | #737 line22 공통 root loop의 Resource 동적 기본 활성 가정, TEST_CONTRACT | 실패 shard38 PASS/1 FAIL/59 NOT RUN, 나머지7 CANCELLED; Quality/Docker SUCCESS | 새 원본 RED 재현 후 공통 진입·소비자 전체 보완. 새 source 로컬/원격 결과는 분리 |
+
+세 run/attempt와 원본 source artifact `12594644476` / `12595917257` / `12596169125`의 repository·PR810·Head/base/test merge를 현재 GitHub API와 교차 검증했다. 각 test merge의 정확한 두 부모와 commit→PR **단일810 귀속**을 확인했다. R01/R02에 남아 있는 당시 artifact 미확인 표현은 이력이며 이번 확인으로 덮어쓰지 않는다. 본 재조회는 출처 인증을 추가한 것이지 과거 FAIL을 PASS로 바꾼 것이 아니다.
+
+Trusted #939.1/Run `40184425357` job `121142084029`, #940.1/Run `40186037188` job `121146905153`도 각각 원본 Full 미성공에 따른 FAIL을 확인했다. 초기 문서의 Trusted NOT TESTED는 당시 미확인 상태로 유지하고 이번 결과를 증분 기록한다. 동일 Head의 FAST_DEVELOPMENT #115/#116/#117 SKIPPED는 원격 직접 실패 횟수나 Full 성공으로 합산하지 않는다.
+
+원격 실제 실패 파일 합집합은 **#622/#719/#737 3파일**이다. 과거 로컬 실패 #736/workload-status/milestone-ui/plan-ui4개를 포함한 전체 합집합은 **7파일**이며 fixture 초기화·UI 관측·제품·테스트 계약을 서로 재분류하지 않는다.
+
+### 원인·반례·계획 변경
+
+1. 원본 abe66b0e에서 #737 첫 case를 실제 Chromium으로 **1/1 FAIL(25.2초)** 재현했다. `.prepr-reports/issue807-r03-red/report.json`과 고유 trace/error-context에 line22/92·가시 요소 없음·응답 waiter 파생 오류가 원격과 일치한다. 제품 소스 변경 없이 기존 실패 검사 자체가 RED 신호다.
+2. #719 다음 #737에서 같은 기본 활성 가정이 순차 노출되어 Manager가 개별 테스트 한 곳 수정 계획을 중단하고 전체 WBS 소비자/helper·공통 root loop·도움말 fixture를 검색하도록 확대했다. 초기 R1 사전검토는 변경한12개 spec 중심이어서 #719 특수 fixture와 #737 일반 root loop를 놓쳤다. 당시 local PASS/QA 기록은 보존하되 전체 소비자 검증 완료로 확대하지 않는다.
+3. 상시 WBS Resource root 소비자는 #719/#730/#736/#737 네 파일이다. #730/#736은 이미 명시 동적 진입을 사용하지만 같은 계약을 공통 helper로 결속한다. #737은 누락을 교정한다. #624는 process/equipment/system만, #762는 process 하위 Resource 축, #732~#735는 자신의 root다. #734의 리소스 탭 왕복은 설비 복귀만 검증한다. legacy 기본 분석 소비자를 일괄 동적 진입으로 바꾸면 승인된 기본 동작을 되돌리는 회귀이므로 유지한다.
+4. #719의 R02 지연 case에는 별도 **TEST_CONTRACT 대기 경합**이 있었다. helper가 dynamic을 활성화한 뒤 외부 case가 hidden legacy `data-ready=true`를 기다리면 gate 해제 전 준비를 기다릴 수 있다. #3294에서 개별 PASS였어도 경합이 없다는 증명은 아니다. 준비 단계 handshake를 dynamic 전환 전에 전달해 대기 순서를 명시하고 실제 POST·pending·404 error·기본 현황 복귀·tooltip/scroll·비쓰기 단언을 유지한다.
+5. 공유 동적 진입은 inactive→dynamic에서만 실제 Resource report POST를 관측하고 ready를 확인한다. 이미 활성·확정인 동적 보기 재진입은 새 POST/refresh를 강제하지 않는 멱등 동작을 유지한다. 각 호출자의 exact spec/filter/snapshot/원본 ID 단언을 삭제하거나 넓히지 않는다. 제품·서버·도메인·Gantt·버전·CI 정책 변경은 필요 없으며 assertion/timeout/retry/skip·8shard/Required3를 완화하지 않는다.
+
+### 동일 source 검증·독립 검토·게시
+
+기존 세 원격 실패 case와 전체 로컬 실패 합집합·인접/음성 소비자를 한 동결 source의 bounded 선택으로 재검증한다. 자동 도구의 UNKNOWN과 직접 실행을 구별하고 raw command/report fingerprint·실행 결과·미실행을 Work Packet과 정제 영수증에 기록한다. 아직 새 원격 Required3/Trusted/Owner·Manager ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED다. 기존 PR/branch를 재사용하며 최종 리뷰/충돌 재확인·원장 갱신 후 새 synchronize Full CI 등록까지만 수행한다.
+
+R03 보조 편집 도구의 최초 Python 들여쓰기 오류와 오래된 문서 phase anchor의 patch 검증 실패는 파일 쓰기 전에 중단했다. 올바른 현재 anchor/스크립트로 적용 후 typecheck·대상 ESLint를 수행했다. 이 준비 오류를 제품/테스트 실행 FAIL 또는 추가 원격 실패로 계수하지 않는다.
+
+후보A 동결 합집합 진단은 **10개 spec / 28개 case 전부 PASS**, retry0/skip0/flaky0/FAIL0, 총524.369초다. 원격 실패3파일과 전체 과거 실패7파일이 모두 실제 선택에 포함됐다. 원본 #737 RED는 개별 case 약25.2초·전체 Run46.302초이며 최종 결과에 성공으로 합산하지 않는다. raw `.prepr-reports/issue807-r03-red/report.json` SHA256 `d5861ceb72b44586fb8314279d976d247d9549fddb950cb3d5cef7b7d48c9e5c`, 후보A `.prepr-reports/issue807-r03-union/report.json` SHA256 `a42ab6d1baf036120885ea28dfff7c8d5b4e5ad150fd942ab5098e9990224af4`를 보존한다.
+
+테스트 diff SHA256은 시작/종료 모두 `90ef399a68718a37404e387241dea0ac47cef7353223d6b8ec86be2cfcee05d7`, abe66b0e 대비 제품 source 변경0이다. R01 focus-return Unit은 고유4/4 PASS, raw `.prepr-reports/issue807-r03-focus-unit.json` SHA256 `b340a626f2fef488fc8d5e89344feb67c6954f1d165cb197e4006429c4543839`다. 구현 Agent와 Manager의 동일 Unit 중복 실행을8개 고유 test로 합산하지 않는다. 실제 #622/Plan focus·foreign/stale/취소·#719 준비/오류·#737 원시 ID/KPI/Excel·#736 readonly/응답 역전·#530 LIFO/원본·Core 보존과 공통5폭이 통과했다. local PASS는 새 원격 Full 결과가 아니다.
+
+마지막 사전검토에서 후보A의 #730/#737 resource 분기 early return이 원래의 **모든 가시 WBS에 대한 strict locator 단언**을 건너뛰는 경계를 발견했다. helper의 Resource 한정 root 검사는 정상 흐름에서 같지만 원래의 중복 가시 root 검출 범위를 그대로 보존하기 위해 두 caller의 navigation만 else로 분리하고 기존 공통 visible/ready/root 단언을 모든 root에 적용한다. 제품·공유 helper·다른 소비자는 변경하지 않는다. 후보A28PASS는 보존하고 최종 후보B의 직접 영향 #7302case/#7371case를 재실행한다. 나머지25case는 같은 helper/driver·제품 bytes의 영향 없는 Local Fast Feedback로 재사용하며31개 고유 PASS로 합산하지 않는다. 원격 전체 required gate는 언제나 새 Head에서 새로 검증한다.
+
+최종 후보B의 직접3case **3/3 PASS**, retry0/skip0/flaky0,143.619초. raw `.prepr-reports/issue807-r03-final-strict/report.json` SHA256 `f85e11c0d7d04fb80c0d431fc55177034467793a7a82fe69a64d7a59ef1c2a4a`다. 최종 source의 helper/#719/#736 bytes가 후보A와 같고 두 caller만 다름을 별도 Reviewer가 독립 대조했다. [정제 로컬 영수증](../output/playwright/issue-807/rework-r03-local.json)에 전체10spec/28case 선택·원본 RED·A/B 실행·미영향25case 재사용·명령·최종 파일별 hash를 연결한다.
+
+R03 최종 typecheck·대상 ESLint·version/discovery/Markdown·diff PASS와 기존 생성물/과거 캡처 복원을 확인했다. [자동 Pre-PR fast](evidence/issue-807/rework-r03-prepr.json)는 UNKNOWN1(shared resource-workspace helper) 때문에 BLOCKED(exit1/sourceStable=true/selected4/missing0/step0)이며 자동 매핑 정책을 바꾸지 않았다. Work Packet과 실제7파일 합집합·4개 동적 소비자/음성 검증을 수동 매핑했고 CLI fast/build PASS와 개별 검증을 구별한다.
+
+독립 `/root/resource_qa`의 **R03 LOCAL_PRE_QA PASS / DOCUMENTATION_SYNC PASS**, 새 P1/P2 없음. 이번 판정은 새 원격 Required3/Trusted·Owner/Manager ACCEPT가 아니다. 게시 직전 실제 최신 Head/base·미해결 리뷰/충돌을 재조회하고 검토한 tree의 descendant commit 하나를 같은 branch/PR에 게시한다. 새 CI 등록 증거는 Issue STATUS로 인계하고 원격 실행 결과는 NOT TESTED로 둔다.

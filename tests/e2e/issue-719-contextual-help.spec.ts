@@ -1,3 +1,4 @@
+import { openResourceDynamicView } from "./helpers/resource-workspace";
 import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { toResourcePublicV2 } from "../../src/contracts/resource-public-v2";
 import { withIntegratedKpi } from "../fixtures/logistics-integrated-kpi";
@@ -15,7 +16,7 @@ const widths = [390, 768, 1024, 1440, 1920];
 const surfaces = ["milestone", "resource", "resource-admin", "logistics", "logistics-admin", "master"] as const;
 type Surface = typeof surfaces[number];
 
-async function openSurface(page: Page, surface: Surface, wbsResponseGate?: Promise<void>): Promise<Locator> {
+async function openSurface(page: Page, surface: Surface, wbsResponseGate?: Promise<void>, onLegacyReady?: () => void): Promise<Locator> {
   if (surface === "resource-admin") { await resourceAdmin453(page); await loginResourceAdmin453(page); return page.locator("main"); }
   if (surface === "master") { await mockMaster455(page); await loginMaster455(page); return page.locator("main"); }
   if (surface === "logistics-admin") { await mockLogistics454(page); await loginLogistics454(page); return page.locator("main"); }
@@ -51,6 +52,7 @@ async function openSurface(page: Page, surface: Surface, wbsResponseGate?: Promi
   const root = surface === "milestone" ? page.getByTestId("milestone-dashboard") : surface === "resource" ? page.locator('[data-resource-dashboard="true"]') : page.getByTestId("logistics-dashboard-view");
   if (surface !== "logistics") await expect(root).toHaveAttribute("data-ready", "true");
   else await expect(root.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
+  onLegacyReady?.();
   if (surface === "milestone") {
     // The active Milestone WBS must finish its explicit 404 before geometry.
     const wbs = page.locator('[data-wbs-view="milestone"]');
@@ -64,7 +66,7 @@ async function openSurface(page: Page, surface: Surface, wbsResponseGate?: Promi
     if (wbsResponseGate) {
       // The delayed-query regression explicitly activates the peer. Do not
       // convert the default summary back into a hidden background WBS fetch.
-      await peers.getByRole("button", { name: "동적 계층 탐색", exact: true }).click();
+      await openResourceDynamicView(page, { navigate: false, waitForReady: false });
       await expect(wbs).toHaveAttribute("data-wbs-state", "error");
       await expect(wbs.getByRole("alert")).toContainText("프로젝트를 찾을 수 없습니다.");
       await expect(wbs.getByRole("status")).toHaveCount(0);
@@ -251,6 +253,7 @@ test("#719 긴 도움말을 키보드로 스크롤하고 Escape 시 초점을 �
 
 for (const surface of ["milestone", "resource"] as const) test(`#719 ${surface} 도움말 fixture는 활성 WBS의 지연 오류와 기존 보고서 준비 경계를 검증한다`, async ({ page }) => {
   const gate = deferred();
+  const legacyReady = deferred();
   let opened = false;
   const writes: string[] = [];
   const browserErrors: string[] = [];
@@ -260,11 +263,16 @@ for (const surface of ["milestone", "resource"] as const) test(`#719 ${surface} 
   });
   // A request witness ensures the gate is actually exercised (not merely a
   // never-activated hidden WBS that happens to remain "pending").
-  const awaitedQuery = page.waitForRequest(request => isWbsViewReadQuery(request));
-  const opening = openSurface(page, surface, gate.promise).then(root => { opened = true; return root; });
+  const awaitedQuery = page.waitForRequest(request => {
+    if (!isWbsViewReadQuery(request)) return false;
+    const input = request.postDataJSON();
+    return input.spec?.root === surface && input.projection?.kind === "report";
+  });
+  const opening = openSurface(page, surface, gate.promise, () => legacyReady.resolve()).then(root => { opened = true; return root; });
   try {
-    const legacy = surface === "milestone" ? page.getByTestId("milestone-dashboard") : page.locator('[data-resource-dashboard="true"]');
-    await expect(legacy).toHaveAttribute("data-ready", "true");
+    // The helper confirms legacy readiness before activating an independent
+    // peer. Do not race that phase with the legacy peer becoming inactive.
+    await legacyReady.promise;
     await awaitedQuery;
     await expect(page.locator(`[data-wbs-view="${surface}"]`)).toHaveAttribute("data-wbs-state", "pending");
     expect(opened).toBe(false);
