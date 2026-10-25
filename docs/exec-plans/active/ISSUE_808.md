@@ -71,7 +71,7 @@ ADD: 새 분석 adapter의 결속·분석 축·read-only 데이터 선택 계약
 - `docs/RESOURCE_KPI_DASHBOARD.md`: UPDATED
 - `docs/ARCHITECTURE.md`: UPDATED
 - `docs/EXCEL_EXPORT.md`: UPDATED
-- `docs/TEST_PLAN.md`: UPDATED
+- `docs/TEST_PLAN.md`: N/A(최초 PR에서 계약 검증 정리됨; 이번 교정은 기존 Python 정책 검사에 역사적 오류 fixture만 추가하며 테스트 선택·검증 기준은 그대로)
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
 
@@ -133,7 +133,7 @@ infra 사전조회에서 #808 canonical PR0, 원격 브랜치없음, 과거 #808
 - **1차 완료/실패:** PR #811 Full #3298.1 SUCCESS, 기본 브랜치 Trusted #945.1 SUCCESS, 미해결 리뷰0/충돌0, 실제 merge `028f80b3c59bb373a7a34f3c95279cf8e17be603`. 그러나 [Main #3299.1](https://github.com/planner77/masterGantt/actions/runs/40224125090)의 trace gate FAIL로 Mandatory Quality/E2E/Docker/임시 GHCR 구현은 미실행. 합법적인 정식 게시/Issue close 불가. **Root cause는 병합 요청 commit_message에 붙인 여러 줄 본문**이며 기존 표준 검증기 결함 아님. 상세·원본 JOB은 [MAIN-808-001 실패 원장](../../ISSUE_808_FAILURE_ANALYSIS.md) 10절.
 - **복구 방법:** main rewind·실패 SHA 재실행·validator 완화·GHCR 수동 게시 금지. `fix/issue-808-main-trace-recovery` 브랜치에 같은 Issue corrective PR: 실제 실패 메시지 부정 정책 fixture 및 정확 한 줄/빈 본문 긍정 fixture, 영속 원장/Work Packet/TEST_PLAN. 원본 Domain/typed contract/DB/API/UI·버전0.134.0 불변. 기존 테스트와 원격 full 검증 유지.
 - **TEST_LIFECYCLE_REVIEW:** 신규 `verify-issue-lifecycle.py` 사례는 실제 실패 출처의 HISTORY_NEGATIVE 회귀 추가. 기존 #582/#586/#639 메타데이터 검증·필수 Quality/E2E8/Docker·QA Trusted·Resource 분석 Domain 및 관련 E2E는 KEEP_UNIQUE; 어느 파일도 제거/skip/timeout 확대하지 않음. 정책 스크립트 고위험 분류 `HIGH/OWNER_MANAGED/qa_required=true` 유지. 원본 PR과 새 corrective PR의 Full/Trusted PASS를 혼합하지 않는다.
-- **DOCUMENTATION_SYNC corrective delta:** `docs/ISSUE_808_FAILURE_ANALYSIS.md` UPDATED; `docs/exec-plans/active/ISSUE_808.md` UPDATED; `docs/TEST_PLAN.md` UPDATED. `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`: 기존 한 줄/빈 body·Main 실패 복구·Owner/Trusted 게이트 정책의 변경 없이 적용하므로 N/A. 나머지 최초 구현 문서·Work Packet AC1~AC6는 소스 불변으로 재사용.
+- **DOCUMENTATION_SYNC corrective delta:** `docs/ISSUE_808_FAILURE_ANALYSIS.md` UPDATED; `docs/exec-plans/active/ISSUE_808.md` UPDATED; `docs/TEST_PLAN.md` N/A(최초 PR에서 검증 계약 정리, 이번 교정은 정책 스크립트의 기존 fixture에 실패 사례 추가). `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`: 기존 한 줄/빈 body·Main 실패 복구·Owner/Trusted 게이트 정책의 변경 없이 적용하므로 N/A. 나머지 최초 구현 문서·Work Packet AC1~AC6는 소스 불변으로 재사용.
 - **AC_TEST_COVERAGE:** AC1~AC6 Resource 원본 계약은 최초 PR 고유 테스트+Full #3298.1에서 검증. 교정 추가 검증은 현재 실패 Run #3299.1 original immutable message의 정확한 negative assertion과 정식 Payload `commit_message=""`/HEAD lease positive, Python policy·Full/Trusted. 다음 merge 전에 `main_ci_run_name.py --validate-title --as-merge-payload`를 새 PR 번호·HEAD에 대해 실행하여 one-line/empty-body를 사전 확인. Merge/CI 결과는 반드시 새 SHA/Run 증거로 분리.
 - **릴리스:** 원래 main `0.133.4→0.134.0` 실패 후 다음 same-Issue merge의 version unchanged에 대한 Generic Finalizer inherited release obligation을 원본 first-parent chain에서 확인한다. [정확 버전 Owner 승인](https://github.com/planner77/masterGantt/issues/808#issuecomment-6401854691)은 0.134.0만 포함. 후보 `ci-<new SHA>`가 성공하기 전 tag/promotion/FINAL/Issue CLOSED 금지.
 - **상태:** 복구 PR용 문서/코드 준비. 신규 Head Full PR CI/Trusted QA/Owner ACCEPT, Main CI/GHCR/Finalizer 전부 아직 NOT TESTED. CI 시작 뒤 사용자 지시상 모니터링하지 않음.
