@@ -9,6 +9,7 @@ Source of Truth: [docs/PR_CI_FAILURE_TRIAGE.md](PR_CI_FAILURE_TRIAGE.md) 및 [Wo
 | PR / Run | 날짜·이벤트 | 정확한 Source | 직접 FAIL / 인과 단계 | 결론 |
 | --- | --- | --- | --- | --- |
 | #803 · [Full Run #3264.1 / ID 40149276969](https://github.com/planner77/masterGantt/actions/runs/40149276969) · Attempt 1 | 2026-10-25 01:05:50Z~01:07:00Z, `pull_request` `FINAL_FULL` | Head `9ca412219c1d5efc26b691f3e553e51a2d395d9d`; Base `fcd1ae59d268efa1913f4de625a9013cabd1de4a`; test merge `6cde0bbce85ea845868aca4827473dfafa95598b`; branch `fix/issue-506-add-above-order-20261025` | QA Preflight `ISSUE_AC` 직접 FAIL → PR Fast Gate → Quality/E2E/Docker Required3 aggregate·Automated QA 파생 FAIL | **FAIL**, 제품/E2E/Docker **NOT RUN** |
+| #803 · [Full Run #3265.1 / ID 40150246833](https://github.com/planner77/masterGantt/actions/runs/40150246833) · Attempt 1 | 2026-10-25 01:20:30Z~01:23:23Z, `pull_request` `FINAL_FULL` | Head `5d76889dd2bc3ccf3653c5e35a945a74e4b13fdf`; Base `fcd1ae59d268efa1913f4de625a9013cabd1de4a`; test merge `1700c935de92e81134ab5f378e41207f6832ad4b`; same branch | Direct TS2322 Typecheck 2곳 + U2 immutable provenance Vitest 1개 FAIL → PR Fast Gate/Required3/Automated QA 파생 | **FAIL**, PR E2E8/Build/Docker **NOT RUN** |
 
 - 동일 Head의 별도 `FAST_DEVELOPMENT` Run `40149276957`/Run #96.1은 Draft가 아닌 Ready PR이므로 **SKIPPED**; 공식 PR Full 성공 근거가 아니다.
 - 원본 Source artifact `ci-pr-source-40149276969-1` ID `12581531469`, Preflight `qa-preflight-40149276969-1` ID `12581592382`, Automated QA `qa-final-automated-40149276969-1` ID `12581762393`, advisory `ci-impact-shadow-40149276969-1` ID `12582276901`; [Run artifacts](https://github.com/planner77/masterGantt/actions/runs/40149276969). 위 artifact들은 PASS 판정이 아니라 실패 출처/보고서다.
@@ -57,3 +58,43 @@ Source of Truth: [docs/PR_CI_FAILURE_TRIAGE.md](PR_CI_FAILURE_TRIAGE.md) 및 [Wo
 - 변경 의도: #506 API/DB/권한 불변, root/middle/nested의 정확 sibling 위치/Chart ID 단언을 *완화하지 않고* 정정.
 - 시뮬레이션/정적 검사와 실제 CI는 별개: trusted `qa_preflight`와 `docs_gate` 구조식에 대한 원문 검증만 확인, 원격 PASS는 다음 Run 완료 전 미확인.
 - 최종 code/document HEAD, 새 CI Run ID·Attempt, 리뷰 해결/충돌 상태는 해당 게시 단계의 결과로 Work Packet 또는 원장에 추가 기록한다. CI 모니터링·병합/Main/GHCR/Issue 종료는 이번 지시 범위 밖이다.
+
+## 6. F-002 / F-003 — Full #3265.1 신규 직접 실패 (2026-10-25)
+
+### 6.1 원본 출처와 결과
+
+- Run: [PR Full #3265.1](https://github.com/planner77/masterGantt/actions/runs/40150246833), ID `40150246833`, attempt **1**, event `pull_request FINAL_FULL`, 2026-10-25T01:20:30Z ~ 01:23:23Z. Head `5d76889dd2bc3ccf3653c5e35a945a74e4b13fdf`, base `fcd1ae59d268efa1913f4de625a9013cabd1de4a`, test-merge `1700c935de92e81134ab5f378e41207f6832ad4b`.
+- [source artifact](https://github.com/planner77/masterGantt/actions/runs/40150246833/artifacts/12582363670) `ci-pr-source-40150246833-1` ID `12582363670`; Preflight ID `12582523031`, Automated QA ID `12582019109`, advisory Shadow ID `12582538531`. FAST_DEVELOPMENT Run `40150246925` SKIPPED는 Full 증거 아님.
+- Preflight Job `121040170441` **PASS** (이전 F-001 ISSUE_AC 및 DOCUMENTATION_SYNC PASS), Policy `121040223526` **PASS**, ESLint `121040223527` **PASS**.
+- 직접 **FAIL 2 Job**: TypeScript `121040223583` Step7 `npm run typecheck`, Vitest `121040223562` Step6 `npm test`. PR Fast Gate `121040573281`은 Typecheck/Unit 실패를 집계해 FAIL, Required Quality `121040611112`, E2E `121040611193`, Docker `121040611110` aggregate 및 Automated QA `121040627509`은 **파생 FAIL**. Next.js production build, Chromium8 PR 구현, Docker smoke 구현은 **SKIPPED / NOT RUN**. Shadow `121040627363` PASS는 advisory-only.
+- 직접 Vitest 총계 **279 test files(277 PASS, 1 FAIL, 1 SKIPPED), 3284 tests(3280 PASS, 1 FAIL, 3 SKIPPED)**. 현재 이 결과는 원본 #3265.1만 설명하며 새 Head PASS로 재사용 금지.
+
+### F-002 — E2E DTO 타입 불일치 (TEST_CONTRACT)
+
+- **최초 실제 실패:** `tests/e2e/task-context-menu-hierarchy.spec.ts(706,5)` 및 `(716,5)`, `TS2322: TaskMutationResponse is not assignable to ProjectSnapshotResponse`. GET의 `data.permission` 필수, POST mutation의 `data.operation/warnings`이며 permission 없음. `let snapshot`을 GET-only 타입으로 추론했으나 이후 `createRootTask()/response.json()`의 mutation DTO를 재할당한 신규 테스트 작성 오류.
+- **교정:** `ProjectSnapshotResponse | TaskMutationResponse` 명시 union을 통해 실제 응답 타입을 보존하고 공통 `data.project/data.tasks`만 사용. `as unknown as`, 필드 fabrication 또는 검사 비활성화는 하지 않는다. 제품 API/DB 계약 불변, TypeScript 새 Head 결과 **NOT TESTED**.
+
+### F-003 — immutable U2 캡처가 현행 코드로 잘못 판정됨 (FIXTURE_OBSERVABILITY)
+
+- **최초 실제 실패:** `tests/features/gantt/canonical-recovery-runtime.test.ts:30`의 `U2 installed public Core recovery evidence > pins actual module, fixture and installed lockfile`.
+- 원본 과거 capture `actual-recovery-provenance.json`의 `src/features/gantt/canonical-snapshot-sync.ts` 기대 SHA256: `b2ed227f571dd36cd90d143a1954980887afd050f4dfd50b41d866dcea55ed15`. #506로 현재 제품 writer의 실제 SHA256 `7a6fbcc0837cce5175545ad9b29287077d0a8b0c915307621c7235990be3d791`. 핀 증거의 과거 source와 현행 writer를 동일 파일로 조회한 provenance 경계가 문제. #506 기능 실패의 관측 결과가 아니다.
+- **교정:** [Git commit `7d1bb8e`](https://github.com/planner77/masterGantt/commit/7d1bb8e47b1a60e0636a894e70554cd02acc3717)의 동일 SHA를 가진 역사적 source bytes를 `tests/fixtures/gantt-state-consistency/capture-sources/canonical-snapshot-sync-original.snapshot.txt`에 불변 스냅샷으로 추가. `tests/fixtures/gantt-canonical-recovery/actual-recovery-provenance.json`의 `captureSourceMappings`에만 source 경로를 등록. `tests/features/gantt/canonical-recovery-runtime.test.ts`는 mapping 경로도 단언하고 기존 SHA-256 비교를 **그대로 실행**. 원본 `sha256`, `capturedAt`, browser observation, 12 scenarios 및 counts 변경 0. 최신 #506 실제 Core 동작은 원본 U2 캡처로 통과 처리하지 않는다.
+
+### 6.2 첫 실패부터의 Cross-run 비교
+
+| ID | 기존 원본과 재발 분류 | 이번 조치 | 새로운 Head/잔여 |
+| --- | --- | --- | --- |
+| F-001 · #3264.1 | Issue AC ID 부재 POLICY_CI → #3265.1 Preflight PASS(원본 상태 보존) | AC1~AC13/정규 Work Packet 유지 | 새 Preflight는 NOT TESTED |
+| R-001 · 최초 P1 review | Chart `data-task-id` colon 접두 정규화 이전 완료, 두 Run의 E2E 모두 미실행 | 정규화 유지, 기존 리뷰 스레드 해결 상태 | Chromium 실제 PASS는 NOT TESTED |
+| F-002 · #3265.1 | 첫 TypeScript 실행에서 DTO 혼용 직접 FAIL | 응답 union 타입 정정, unsafe cast 없음 | 새 Typecheck NOT TESTED |
+| F-003 · #3265.1 | 첫 Unit 실행에서 historical source pin mismatch 직접 FAIL | immutably captured source path+mapping, SHA 재기록 없음 | 새 U2 + full Vitest NOT TESTED |
+
+- **누적 직접 실패 파일 집합:** `scripts/qa_preflight.py::ISSUE_AC`(첫 Run), `tests/e2e/task-context-menu-hierarchy.spec.ts` (TS2322 두 곳, 두 번째 Run), `tests/features/gantt/canonical-recovery-runtime.test.ts` (U2 pin, 두 번째 Run). 추가 간접·음성: `actual-recovery-provenance.json`, `capture-sources` 원본, `tests/features/gantt/state-consistency-runtime-fixture.test.ts`, `tests/features/gantt/axis-transaction-runtime-fixture.test.ts`, `tests/features/gantt/canonical-snapshot-sync.test.ts`, `tests/server/projects/task-hierarchy-command-service.test.ts`, #506 E2E Chrome, 기존 #373/#399/#407/#418.
+- 제품 `src/features/gantt/canonical-snapshot-sync.ts`의 #506 next-before 로직을 롤백하지 않고, 캡처 원본과 현행 제품을 분리. 기존 검증기/Required3/Chromium8, test skip/retries/timeout 및 원본 digest 수정 금지. `AGENTS.md`, `DESIGN.md`, GANTT_STATE_CONFORMANCE historical evidence 계약 유지.
+- **환경/정확 Source 검증 경계:** 연결 GitHub API 원격 읽기·정적 타입 선언·과거 source blob/expected digest 대조 완료. Node_modules 설치, 로컬 TypeScript/Vitest/Chrome/Docker 실측은 체크아웃·실행 환경 부재로 **NOT RUN**. 이전 Run PASS 항목을 새 Head에 전용하지 않는다.
+- **리뷰·충돌 인계:** PR #803 기존 P1 review thread `PRRT_kwDOUUB7Bc6v9QU_`는 이전 교정 후 RESOLVED; 이번 교정 게시 전 원격 compare ahead3/behind0·GitHub mergeable=true. 게시 후 최신 main/conflict·unresolved threads 재확인. `HIGH/OWNER_MANAGED`, `qa_required=true`, `release_required=true`, `release_authorized=false`; QA/Owner ACCEPT 없이 `MERGE_READY=BLOCKED`.
+
+## 7. 새 Full CI 시작까지의 인계
+
+- 이번 변경은 첫 실패를 포함한 재실패 전체 원장을 보존하고 F-002와 F-003을 교정하는 **단일 후보 source**다. 구현 테스트 시나리오 축소, old observed PASS 재분류 없음.
+- 새 HEAD의 실제 Typecheck/Vitest/Chromium8/Docker, Trusted QA, Owner 결과는 **NOT TESTED**. PR #803 non-draft 기존 브랜치에 새 commit을 보내 `pull_request synchronize` Full CI 시작까지만 수행하고 완료 감시는 생략한다. Main/GHCR/Finalizer/이슈 종료 없음.

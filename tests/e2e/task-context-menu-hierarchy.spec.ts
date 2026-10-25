@@ -701,7 +701,10 @@ test("Issue #506 places root and nested Add Above/Below immediately around the a
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
   const api = `/api${new URL(page.url()).pathname}`;
   const origin = new URL(page.url()).origin;
-  let snapshot = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  // GET snapshots and task mutations are distinct DTOs with shared project/tasks.
+  // Preserve the actual response type instead of assuming mutation has permission.
+  let snapshot: ProjectSnapshotResponse | TaskMutationResponse =
+    await (await page.request.get(api)).json() as ProjectSnapshotResponse;
   for (const name of ["A", "B", "C", "Summary"]) {
     snapshot = await createRootTask(page, api, origin, snapshot.data.project.revision, name);
   }

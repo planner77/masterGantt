@@ -1,5 +1,7 @@
 ## [0.133.1] — Unreleased / Issue #506 Add Above·Below sibling 순서 회귀 (2026-10-25)
 
+- PR #803 [두 번째 Full #3265.1](https://github.com/planner77/masterGantt/actions/runs/40150246833)의 TypeScript TS2322(E2E GET/POST 응답 혼용)와 historic U2 Core SHA pin 오류(Vitest 1 case)를 각각 union 타입과 과거 원본 source snapshot / 불변 provenance lookup으로 교정한다. 기존 U2 12개 capture, sha256 기대값, 현재 #506 제품 writer, Required Quality/E2E8/Docker는 유지. [원장](docs/ISSUE_506_FAILURE_ANALYSIS.md)에 최초부터 누적 보존하며 새 Head CI 결과는 아직 NOT TESTED.
+
 - PR #803 [첫 Full #3264.1](https://github.com/planner77/masterGantt/actions/runs/40149276969)은 `ISSUE_AC` 메타데이터 구조로 사전 FAIL: Issue AC1~AC13과 Work Packet 정확 매핑/문서 형식을 보강했다. P1 리뷰의 SVAR `data-task-id` `:` 접두 미정규화로 인한 Chart E2E 오탐을 교정했다. 기존 실패 원본·미실행 Chromium8/Docker는 [#506 누적 원장](docs/ISSUE_506_FAILURE_ANALYSIS.md)에 별도 기록한다. 신규 PR CI 실제 실행 전 PASS로 판정하지 않는다.
 
 - `Add > Task above`가 기존 형제 작업의 중간에서 잘못 표시될 수 있던 SVAR canonical add 순서를 교정한다. 삽입 지점의 **다음 sibling이 있으면 `add-task mode="before"/target=next` 우선**, 실제 tail인 경우에만 `after/previous`를 사용한다. 서버의 `anchorTaskId`, `placement`, parent, transaction 및 `siblingOrder`/revision 계약은 그대로 유지한다.

@@ -1,3 +1,7 @@
+## Issue #506 — PR #803 두 번째 CI 직접 실패 교정 (2026-10-25)
+
+[Full #3265.1](https://github.com/planner77/masterGantt/actions/runs/40150246833)의 QA Preflight·Policy·ESLint는 PASS, 직접 TypeScript TS2322 2곳(`ProjectSnapshotResponse`에 mutation DTO 대입)과 U2 역사 Core fingerprint Unit 1개 FAIL. Fast Gate/Required Quality/E2E/Docker/QA는 파생, Chromium8·Docker/Build 구현은 NOT RUN. 응답 union 타입, 원래 digest가 같은 `tests/fixtures/gantt-state-consistency/capture-sources/canonical-snapshot-sync-original.snapshot.txt` source snapshot, U2 `captureSourceMappings` 및 원본 SHA 비교 단언만 보완한다. 제품 #506 sibling-before, 원본 캡처 `sha256`/12 scenarios, package0.133.1·QA/CI 정책 변경 없음. 기존 F-001/R-001과 F-002/F-003은 [누적 실패 원장](../../ISSUE_506_FAILURE_ANALYSIS.md) 및 [Work Packet](ISSUE_506.md)으로 인계. 새 Head Full PR CI 시작까지만, 원격 PASS/Trusted/Owner NOT TESTED, MERGE_READY BLOCKED.
+
 ## Issue #506 — PR #803 Preflight 첫 실패 및 신규 E2E P1 교정 (2026-10-25)
 
 [Full #3264.1](https://github.com/planner77/masterGantt/actions/runs/40149276969)에서는 ISSUE_AC 직접 FAIL로 Policy/Quality/E2E/Docker 구현 Job이 SKIPPED, Required3·QA Final은 파생 FAIL이었다. 리뷰 [P1 #4369186957](https://github.com/planner77/masterGantt/pull/803#discussion_r4369186957)은 실제 미실행 Chart bar E2E의 SVAR colon ID 정규화 누락. Issue 본문의 기존 13AC 내용 보존형 번호 부여, [Work Packet](ISSUE_506.md)의 AC_TEST_COVERAGE/DOCUMENTATION_SYNC 구조 교정, Chart ID 양방향 정규화, [단일 실패 원장](../../ISSUE_506_FAILURE_ANALYSIS.md) 기록 후 새 Full CI를 시작한다. 구 실패를 PASS로 바꾸거나 CI gate/Ruleset/8-shard/테스트 skip을 완화하지 않는다. 새 Head CI/Trusted QA/Owner=NOT TESTED; MERGE_READY=BLOCKED. 모니터링·병합/Main/GHCR/Finalizer/종결 제외.

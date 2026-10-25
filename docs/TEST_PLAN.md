@@ -1,3 +1,9 @@
+## Issue #506 / PR #803 — TypeScript DTO 및 historical U2 capture 회귀 대응 (2026-10-25)
+
+- [원본 Full #3265.1](https://github.com/planner77/masterGantt/actions/runs/40150246833): Preflight·Policy·ESLint PASS. `tests/e2e/task-context-menu-hierarchy.spec.ts`는 GET과 Task 생성 POST의 반환 DTO를 동일 타입으로 다뤄 TS2322 두 곳; `ProjectSnapshotResponse | TaskMutationResponse` union으로 실제 공통 `data.project/data.tasks`만 사용하고 권한·operation 필드를 변조하지 않는다. `typecheck`와 원본 Chromium E2E 재검증은 새 Head에서 수행해야 한다.
+- `tests/features/gantt/canonical-recovery-runtime.test.ts`의 U2 2026-10-15 actual Core capture는 원본 canonical sync SHA256 `b2ed227f571dd36cd90d143a1954980887afd050f4dfd50b41d866dcea55ed15`을 계속 증명한다. 현재 #506 변경 source `7a6fbcc...`는 그 시점의 증거가 아니다. historical source를 `tests/fixtures/gantt-state-consistency/capture-sources/canonical-snapshot-sync-original.snapshot.txt`에 exact bytes로 보존하고 `actual-recovery-provenance.json`의 `captureSourceMappings`로 **원본만** 참조. 기존 digest/timestamp/12개 cases·Unit oracle을 갱신/무효화하지 않으며 production writer의 동작은 별도 E2E/Unit/SQLite 경로에서 검증한다.
+- `TEST_LIFECYCLE_REVIEW`: EXTEND 기존 E2E 응답 타입과 U2 pinned source Unit; ADD 역사 source fixture 경로 및 고정 assertion; KEEP_UNIQUE 기존 U2 12 scenario·U1/U4/현행 #506 canonical order·서버 read-back·scope·selection·Grid/Chart. 기존 테스트 skip, timeout/retry, CI8-shard/Required3 완화 없음. 원본 F-001/F-002/F-003 및 P1 리뷰는 [#506 누적 원장](ISSUE_506_FAILURE_ANALYSIS.md)에서 구분한다. 실제 새 Head 실행은 **NOT TESTED**.
+
 ## Issue #506 — Task Above/Below 정확한 sibling 위치 회귀
 
 - **SQLite/Service**: `tests/server/projects/task-hierarchy-command-service.test.ts` — root [A,B,C]의 B 앞/뒤·첫/마지막, nested Summary의 자식 A/B/C, 동일 `parentExternalId`, family별 `siblingOrder=0..n-1`, revision 및 readonly 재조회. 기존 auth/rollback·API 보호 테스트는 삭제하지 않는다.
