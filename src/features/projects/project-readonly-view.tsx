@@ -49,7 +49,7 @@ import { ProjectMilestoneDashboard } from "@/features/milestones/project-milesto
 import { MilestoneCreateDialog } from "@/features/milestones/milestone-create-dialog";
 import { milestoneRootPayload, resolveCreatedMilestone, isVisibleFocusTarget, type MilestoneManagementCommand } from "@/features/milestones/milestone-management-model";
 import { copyTextWithLegacyCommand, writeTextWithCompatibility } from "@/components/clipboard-write";
-import { resourceEditorFocusDecision } from "./resource-editor-focus-return";
+import { activeResourceEditorReceipts, resourceEditorFocusDecision } from "./resource-editor-focus-return";
 import type { MilestoneResourceDrill } from "@/features/resources/milestone-resource-drill";
 
 import dynamic from "next/dynamic";
@@ -1439,13 +1439,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         const modals = [...document.querySelectorAll<HTMLDialogElement>("dialog:modal")];
         const modal = modals.some(dialog => dialog !== closingDialog) ? "foreign" as const
           : modals.length ? "closing" as const : "none" as const;
-        const detailRoot = detailKey
-          ? panel.querySelector<HTMLElement>('[data-projection-detail-key="' + CSS.escape(detailKey) + '"]')
-          : panel;
+        const { reportPending, reportConfirmed, detailRoot } = activeResourceEditorReceipts(panel, detailKey);
         const decision = resourceEditorFocusDecision({
           modal,
-          reportPending: Boolean(panel.querySelector('[data-ready="false"]')),
-          reportConfirmed: Boolean(panel.querySelector<HTMLElement>('[data-resource-dashboard="true"][data-ready="true"]')?.dataset.reportConfirmationId),
+          reportPending,
+          reportConfirmed,
           detailOrigin: Boolean(detailKey),
           detailPresent: Boolean(detailRoot),
           detailState: detailRoot?.getAttribute("data-detail-state") ?? null,

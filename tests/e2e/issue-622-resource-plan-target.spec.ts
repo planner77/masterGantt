@@ -106,6 +106,11 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   await expect(editor).toHaveCount(0);
   await expect(root).toHaveAttribute("data-ready", "true");
+  // #807: this inactive dynamic peer remains mounted and stale; it must not
+  // block the visible Plan's canonical editor-return focus receipt.
+  const inactivePeer = page.locator('#project-panel-resources [data-wbs-view="resource"]');
+  await expect(inactivePeer).toHaveAttribute("data-ready", "false");
+  expect(await inactivePeer.evaluate(node => Boolean(node.closest("[hidden], [inert]")))).toBe(true);
   await expect(detail).toHaveAttribute("data-detail-state", "ready");
   await expect(row).toContainText("40%");
   await expect(row).not.toContainText(f.targets[1].name);

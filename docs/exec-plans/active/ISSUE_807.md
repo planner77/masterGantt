@@ -4,7 +4,7 @@
 
 - repository: `planner77/masterGantt`
 - issue: [#807](https://github.com/planner77/masterGantt/issues/807); 상위 [#806](https://github.com/planner77/masterGantt/issues/806)
-- lifecycle_phase: PR_READY / FULL_PR_CI_START_PENDING
+- lifecycle_phase: REWORK / CORRECTIVE_FULL_PR_CI_START_PENDING
 - requested_scope: 분석·설계·구현·문서 동기화·리뷰/충돌 처리·실패 원장 기록·Ready PR Full CI 시작까지. CI 모니터링·병합·main/GHCR·tag/release·Finalizer·브랜치 정리·Issue 종료는 제외한다.
 - baseline/main: `c69c22e248de6d2af9cc753eb0296ff97d4a2b8f`; baseline tree `ea77ef51d13660ca271e3c4159d6f7c614db8a41`
 - branch/worktree: `feat/issue-807-resource-workspace`, `/home/planner/Dev/masterGantt-807`
@@ -154,3 +154,12 @@ Design Delta **B**(기존 Workspace-first/Compact/Progressive disclosure와 focu
 `/root/resource_qa`가 최종 제품 hash·UI/Unit 원문·before/after PNG/manifest·Pre-PR BLOCKED 영수증·수동 매핑·누적 실패·문서별 UPDATED/N/A·버전3곳·생성물 복원을 독립 확인하여 **LOCAL_PRE_QA=PASS / DOCUMENTATION_SYNC=PASS**, 새 P1/P2 없음으로 반환했다. Manager는 PR CI 시작 범위의 게시 준비를 확인했다. 이는 원격 Required3/Trusted QA·Owner 위험 수용·최종 Manager ACCEPT가 아니다.
 
 게시 전 공개 원격 `main`을 재조회하여 baseline `c69c22e248de6d2af9cc753eb0296ff97d4a2b8f`와 같음을 확인했다. #807 기존 PR이 없어 기존 미해결 GitHub thread/병합 충돌은 N/A이고 사전 코드 지적은 조치·검증 완료했다. 최종 원격 commit의 tree/부모/full bytes 및 새 PR의 thread/mergeability·Full run 등록을 infra가 검증하고 Issue STATUS로 인계한다.
+
+
+## PR #810 · 첫 원격 실패의 교정 인계 (2026-10-25)
+
+- [실제 Full Run #3292.1](https://github.com/planner77/masterGantt/actions/runs/40184046283)에서 Required Quality·Docker는 SUCCESS, shard2 `issue-622-resource-plan-target.spec.ts:115`의 focus 복원이 직접 FAIL, 다른 7 shard는 CANCELLED, E2E aggregate·QA Final은 파생 FAIL. 초기 source `6ab0c8f8ba1b844d68e0623b201680750d7171d4`.
+- [P1 리뷰](https://github.com/planner77/masterGantt/pull/810#discussion_r4370479625)와 교차 확인: 숨은 dynamic peer·이전 visit의 미확정 `data-ready`가 visible Plan의 편집 종료 포커스 복귀를 차단. 제품의 visible active receipt만 수집하도록 수정, 기존 실제 canonical report/detail의 readiness와 foreign modal cancellation은 유지.
+- `AC_TEST_COVERAGE` R1-AC3/R1-AC5/R1-AC6 및 `TEST_LIFECYCLE_REVIEW`: 기존 `resource-editor-focus-return.test.ts`에 active/hidden/current visit negative regression EXTEND, `issue-622-resource-plan-target.spec.ts`에 hidden-peer 현존/복귀 단언 EXTEND. #736·#751·#622·#530 포함 주변 focus/edit/Plan·stale 범위를 교차 대상으로 유지; 신규 중복 full spec/삭제·skip/timeout/retry/CI 정책 변화 없음.
+- `DOCUMENTATION_SYNC`: 기존 사용자 UX·TEST_PLAN·PROJECT_UX 문서는 기능 계약 불변으로 추가 개정 N/A; 본 Work Packet 및 [이슈 누적 원장](../../ISSUE_807_FAILURE_ANALYSIS.md)을 Run/Attempt·직접/파생/취소·수정·검증 미실행·리뷰/충돌로 증분 갱신.
+- 원격 이전 Run의 실패·취소는 PASS로 승격하지 않는다. 새 exact HEAD의 Unit/E2E·Required3·Trusted/Owner 승인·Main/GHCR/Release는 CI 시작 전에 모두 NOT TESTED. 신규 교정 push는 검증 시작 목적이며 CI 완료 모니터링·병합·종료는 하지 않는다.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resourceEditorFocusDecision, type ResourceEditorFocusReadiness } from "../../../src/features/projects/resource-editor-focus-return";
+import { activeResourceEditorReceipts, resourceEditorFocusDecision, type ResourceEditorFocusReadiness } from "../../../src/features/projects/resource-editor-focus-return";
 
 const ready: ResourceEditorFocusReadiness = {
   modal: "none",
@@ -32,5 +32,47 @@ describe("Issue #751/#622 Resource editor focus return readiness", () => {
     expect(resourceEditorFocusDecision({
       ...ready, modal: "foreign", reportPending: true,
     })).toBe("CANCEL");
+  });
+});
+
+describe("Issue #807 inactive workspace peers must not delay Resource editor focus", () => {
+  const node = (hidden: boolean, dataset: Record<string, string>, detailState = "ready") => ({
+    dataset,
+    closest: () => hidden ? ({} as Element) : null,
+    getAttribute: (name: string) => name === "data-detail-state" ? detailState : null,
+  }) as unknown as HTMLElement;
+
+  it("requires current visible receipts, not hidden dynamic/old visit stale receipts", () => {
+    const inactiveDynamic = node(true, { reportConfirmationId: "0" });
+    const inactiveVisit = node(true, { reportConfirmationId: "outdated" });
+    const activeReport = node(false, { reportConfirmationId: "canonical-new" });
+    const inactiveDetail = node(true, { projectionDetailKey: "assignment", detailConfirmationId: "old-detail" });
+    const activeDetail = node(false, { projectionDetailKey: "assignment", detailConfirmationId: "canonical-detail" });
+    const activePending = node(false, {});
+    let pendingVisible = false;
+    const panel = {
+      querySelectorAll: (selector: string) => {
+        if (selector === '[data-ready="false"]') return pendingVisible ? [inactiveDynamic, inactiveVisit, activePending] : [inactiveDynamic, inactiveVisit];
+        if (selector === '[data-resource-dashboard="true"][data-ready="true"], [data-wbs-view="resource"][data-ready="true"]')
+          return [inactiveVisit, activeReport];
+        if (selector === "[data-projection-detail-key]") return [inactiveDetail, activeDetail];
+        return [];
+      },
+    } as unknown as HTMLElement;
+    const receipts = activeResourceEditorReceipts(panel, "assignment");
+    expect(receipts).toEqual({ reportPending: false, reportConfirmed: true, detailRoot: activeDetail });
+    expect(resourceEditorFocusDecision({
+      ...ready,
+      reportPending: receipts.reportPending,
+      reportConfirmed: receipts.reportConfirmed,
+      detailPresent: Boolean(receipts.detailRoot),
+      detailState: receipts.detailRoot?.getAttribute("data-detail-state") ?? null,
+      detailConfirmationId: receipts.detailRoot?.dataset.detailConfirmationId,
+    })).toBe("READY");
+    expect(activeResourceEditorReceipts(panel, "not-this-visit").detailRoot).toBeNull();
+    pendingVisible = true;
+    expect(activeResourceEditorReceipts(panel, "assignment").reportPending).toBe(true);
+    activeReport.dataset.reportConfirmationId = "0";
+    expect(activeResourceEditorReceipts(panel, "assignment").reportConfirmed).toBe(false);
   });
 });
