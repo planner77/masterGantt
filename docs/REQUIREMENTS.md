@@ -1,3 +1,7 @@
+## Issue #479 — public/private project visibility
+
+Project aggregate has `visibility = public | private`, default public for existing DB and new Projects. The project list remains discoverable and includes visibility. Public Projects remain directly readable in readonly mode; private Projects demand correct exact Password and current same-project edit session before any detailed HTML/API/Task/Dependency/Calendar/Resource/logistics/export read. Unlock uses existing edit session, enabling edit as well. Settings can change visibility under the existing authentication/Origin/If-Match/revision+1 contract; Copy inherits source vis and Template creation can choose visibility. A separate readonly password, user account, RBAC, secret URL or hiding private names are out of scope. [Issue #479 AC and risk](exec-plans/active/ISSUE_479.md).
+
 ## Issue #785 — 물류 실물 중심 업무와 내부 호환 경계
 
 이 결정은 이전 “Target 보조 호환 UI 유지” 정책을 대체한다. 사용자 업무는 Project 공정·WorkArea·Equipment/System·Task/Summary 직접 연결과 같은 Task/Assignment의 6개 대시보드다. Logistics Target의 생성·목록·검색·편집·필터·진단·Excel 축을 노출하지 않는다. 별도 이름 숨김으로 원본을 읽지 못하게 만들지 않으며 기존 자료는 실물별 출처·coverage·상속으로 조회한다.

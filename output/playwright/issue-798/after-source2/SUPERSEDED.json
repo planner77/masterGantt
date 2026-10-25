@@ -1,0 +1,13 @@
+{
+  "status": "SUPERSEDED",
+  "reason": "Independent read-only keyboard QA confirmed new common advanced reset removes the final-condition resetbutton and focus falls to BODY; synchronous persistent disclosure trigger focus fallback required. Final source3 after30 must be recollected same fixture. Source2 actual30 geometry/report equality remains historical, not final acceptance.",
+  "completedJsonSamples": 30,
+  "productSourceHashes": {
+    "src/features/resources/wbs-view-composer.tsx": "9486fa288829255cb95337838831b07b13d83b1c7dbad410bac69d7b0a39035b",
+    "src/features/resources/wbs-view-dashboard.tsx": "649425786578ed07ebbc7929512c992948bd09496c5b6092335b3503a6f0923d",
+    "src/features/resources/wbs-view.module.css": "83749e2a01011e7caabf789164317eab91d8fb84fd6c9daacbd1b477fab14d05"
+  },
+  "originalDirectory": "output/playwright/issue-798/after",
+  "archivedDirectory": "output/playwright/issue-798/after-source2",
+  "pathResolution": "Original capture payloads are preserved verbatim. Resolve each original after/<basename> screenshot/JSON reference to the same basename within archivedDirectory. The live after/ directory now contains newer final-source evidence and must not be used for these archived payloads."
+}

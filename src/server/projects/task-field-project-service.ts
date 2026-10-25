@@ -140,6 +140,7 @@ export class TaskFieldProjectService extends ProjectService {
           name: input.name,
           description: input.description,
           status: input.status ?? "planned",
+          visibility: input.visibility ?? "public",
           passwordKdf: password.algorithm,
           passwordSalt: password.salt,
           passwordHash: password.hash,
@@ -186,6 +187,7 @@ export class TaskFieldProjectService extends ProjectService {
                 name: project.name,
                 description: project.description,
                 status: project.status,
+                visibility: project.visibility,
                 ownerName,
                 ...this.projectMasterForFields.projectSelectionDto(project.id),
                 revision: project.revision,
@@ -326,6 +328,7 @@ export class TaskFieldProjectService extends ProjectService {
         ...(input.name !== undefined ? { name: input.name } : {}),
         ...(input.description !== undefined ? { description: input.description } : {}),
         ...(input.status !== undefined ? { status: input.status } : {}),
+        ...(input.visibility !== undefined ? { visibility: input.visibility } : {}),
       };
       const current = this.projectsForFields.findById(authorization.projectId);
       if (!current) throw new Error("Project not found.");

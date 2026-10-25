@@ -1,0 +1,7 @@
+{
+  "status": "FAIL",
+  "scope": "manual supplemental collection before product edit",
+  "completeReceipt": false,
+  "reason": "capture process exited143 SIGTERM; cause UNKNOWN; Manager/frontend/infra did not intentionally terminate",
+  "productBefore30": "separate complete baseline30 retained"
+}

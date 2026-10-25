@@ -1,3 +1,33 @@
+## Issue #799 — 6관점 요약·지표 표시 검증
+
+[Work Packet의 TEST_LIFECYCLE_REVIEW/AC_TEST_COVERAGE](exec-plans/active/ISSUE_799.md)와 [6관점 인벤토리·실측](ISSUE_799_DASHBOARD_METRICS.md)을 기준으로 기존 #731~#737·#730·#717·#719·KPI/Resource·cross-screen 테스트와 같은 fixture를 우선 재사용한다. 수정된 공통 요약의 typography·단위·0/null/미산정/부분합·scope를 기존 spec에 확장하고, 고유 원본/권한/경합/Gate/Plan·Excel·focus 경계를 유지한다. 새 중복 E2E·삭제·skip·timeout/retry·8shard/Required3/Trusted 변경은 하지 않는다.
+
+390/768/1024/1440/1920px의 같은 Project snapshot before/after에서 KPI geometry KEEP, first-data/표 Y·지표 가시성·간격·document overflow·owner scroll·원래 표시값/단위와 canonical fingerprint·업무 mutation0을 비교한다. 긴 KO/EN·동명·0/null/부분합·readonly/loading/error/stale는 영향 기반으로 배분하고 실제 실행과 미실행을 분리한다. 실제 터치/보조기기·native zoom·운영 환경은 #517의 별도 경계다. 로컬 PASS는 공식 exact-head Quality/E2E8/Docker·Trusted/QA_FINAL·Owner ACCEPT를 대신하지 않으며 이번 작업은 PR CI 시작 뒤 모니터링하지 않는다.
+
+- **#799 Trusted base-drift 재검증**: 최초 [Full #3267.1](https://github.com/planner77/masterGantt/actions/runs/40153151893)은 원래 Base의 Quality·E2E8/8·Docker PASS, [Trusted #913.1](https://github.com/planner77/masterGantt/actions/runs/40155011958)은 #506 main 변경 뒤 Base/Test-Merge 불일치로 BLOCKED. #506의 Gantt sibling/역사 캡처 테스트를 그대로 복원하여 새 정확 Head/Base/Test-Merge에서 Full8 재검증하고, 이전 화면 before/after30쌍은 역사적 fixture 증거로 구분한다. CI 정책·경고를 완화하지 않는다.
+
+## Issue #506 / PR #803 — TypeScript DTO 및 historical U2 capture 회귀 대응 (2026-10-25)
+
+- [원본 Full #3265.1](https://github.com/planner77/masterGantt/actions/runs/40150246833): Preflight·Policy·ESLint PASS. `tests/e2e/task-context-menu-hierarchy.spec.ts`는 GET과 Task 생성 POST의 반환 DTO를 동일 타입으로 다뤄 TS2322 두 곳; `ProjectSnapshotResponse | TaskMutationResponse` union으로 실제 공통 `data.project/data.tasks`만 사용하고 권한·operation 필드를 변조하지 않는다. `typecheck`와 원본 Chromium E2E 재검증은 새 Head에서 수행해야 한다.
+- `tests/features/gantt/canonical-recovery-runtime.test.ts`의 U2 2026-10-15 actual Core capture는 원본 canonical sync SHA256 `b2ed227f571dd36cd90d143a1954980887afd050f4dfd50b41d866dcea55ed15`을 계속 증명한다. 현재 #506 변경 source `7a6fbcc...`는 그 시점의 증거가 아니다. historical source를 `tests/fixtures/gantt-state-consistency/capture-sources/canonical-snapshot-sync-original.snapshot.txt`에 exact bytes로 보존하고 `actual-recovery-provenance.json`의 `captureSourceMappings`로 **원본만** 참조. 기존 digest/timestamp/12개 cases·Unit oracle을 갱신/무효화하지 않으며 production writer의 동작은 별도 E2E/Unit/SQLite 경로에서 검증한다.
+- `TEST_LIFECYCLE_REVIEW`: EXTEND 기존 E2E 응답 타입과 U2 pinned source Unit; ADD 역사 source fixture 경로 및 고정 assertion; KEEP_UNIQUE 기존 U2 12 scenario·U1/U4/현행 #506 canonical order·서버 read-back·scope·selection·Grid/Chart. 기존 테스트 skip, timeout/retry, CI8-shard/Required3 완화 없음. 원본 F-001/F-002/F-003 및 P1 리뷰는 [#506 누적 원장](ISSUE_506_FAILURE_ANALYSIS.md)에서 구분한다. 실제 새 Head 실행은 **NOT TESTED**.
+
+## Issue #506 — Task Above/Below 정확한 sibling 위치 회귀
+
+- **SQLite/Service**: `tests/server/projects/task-hierarchy-command-service.test.ts` — root [A,B,C]의 B 앞/뒤·첫/마지막, nested Summary의 자식 A/B/C, 동일 `parentExternalId`, family별 `siblingOrder=0..n-1`, revision 및 readonly 재조회. 기존 auth/rollback·API 보호 테스트는 삭제하지 않는다.
+- **SVAR 공개 명령**: `tests/features/gantt/canonical-snapshot-sync.test.ts` — 중간 삽입 시 `add-task mode="before",target=next`, 마지막만 previous-after, root 처음/중간/마지막·nested(접힌 Summary)에서 불필요한 `move-task` 없음. 기존 `canonical-sync-execution.test.ts`의 처음 삽입, `canonical-projection.test.ts`의 preorder/자식 관계 검증은 유지한다.
+- **Chromium E2E**: `tests/e2e/task-context-menu-hierarchy.spec.ts` — menu request `anchorTaskId/placement`, root 중간 Above/Below, scoped Summary 자식 앞/뒤, scope root 두 명령 disabled, 실제 Grid 행·Chart bar Y 순서, 재조회·reload 영속성, 동일 Gantt/API 인스턴스. #72 menu 존재 검증 및 #373/#407/#418 scoped/readonly·선택/스크롤 테스트 유지.
+- **TEST_LIFECYCLE_REVIEW**: EXTEND 기존 service/canonical/E2E; ADD 새로운 위치·연속 order·Grid/Chart assertions; PARTIAL_OVERLAP 기존 #72 작업 존재 검증과 정확 위치 검증; KEEP_UNIQUE HTTP/SQLite/브라우저/권한/모달·재시도/뷰포트. `CONSOLIDATE_CANDIDATE=N/A`, `RETIRE_CANDIDATE=N/A`. 테스트 삭제, skip, retry/timeout/8-shard/Required3 정책 변경 없음.
+- **실제 실행 경계**: 노드/브라우저 체크아웃 실행 환경이 없어 로컬 Vitest/Playwright/tsc/lint/Docker **NOT RUN**. 새 exact-head non-draft PR Full CI/Trusted/Owner 결과는 **NOT TESTED**, 결과와 별도 Owner 승인 전 `MERGE_READY=BLOCKED`; 요청에 따라 CI 모니터링 생략.
+
+## Issue #798 — 동적 대시보드 공통 제어 밀도 회귀
+
+[#798 Work Packet](exec-plans/active/ISSUE_798.md)의 AC_TEST_COVERAGE와 TEST_LIFECYCLE_REVIEW를 단일 매핑으로 사용한다. #797 감사의 누락 조합·PARTIAL을 이번 PASS로 재사용하지 않고 동일 fixture의 KPI+5관점×390/768/1024/1440/1920 source/geometry/PNG를 변경 전후에 수집한다. header/toolbar/구성 높이·wrap·첫 요약/표Y·가시 지표/행·유효 상태와 document overflow를 비교한다. 지표 요약 자체 개선은 #799, 전 화면 지속 기준선은 #800 범위다.
+
+기존 `issue-730-view-composer.spec.ts`와 #732~#736 consumer 시나리오 및 공유 helper를 EXTEND한다. 새 고급 진입점·접힌 적용값·초기화·Enter/Space/Escape/focus·초안/조회 상태 보존을 추가하고, 기존 전체 Gate·설비/System 원본·정확 Task/Assignment·Plan/Excel·stale/readonly/dirty/401/412 단언은 KEEP_UNIQUE한다. `cross-screen-regression.spec.ts`의 고유 화면/geometry 계약도 유지한다. 제목 유사성을 근거로 테스트를 통합·폐기하거나 timeout/skip/retry·현재 8-shard/Required3를 변경하지 않는다.
+
+수동 수집은 `tests/manual/issue-798-dashboard-density.mjs`를 명시 실행하며 상시 E2E 중복 spec이 아니다. 같은 spec/filter의 서버 snapshot·totals·원본 Task/Assignment·구성/공수/Gate 및 canonical fingerprint·조회 mutation0을 geometry와 별도로 대조한다. 로컬 관측/선택 E2E·독립 PRE_QA·원격 Full quality/e2e/docker/Trusted QA·Manager ACCEPT는 분리 판정한다. 현재 원격 결과는 NOT TESTED이며 사용자 범위는 PR CI 시작까지다.
+
 ## Issue #792 MAIN-792-001 — 병합 커밋 추적 오류·신규 릴리스 후보 교차 검증 (2026-10-24)
 
 - 원본 PR #795 [Full #3244.1](https://github.com/planner77/masterGantt/actions/runs/40075199615) Quality/E2E8/Docker/Trusted PASS에도, Merge Commit `4048245f8dc90c1f46dd1cc58948a17a4fb7338e`의 *다중 행 본문*으로 [Main #3249.1](https://github.com/planner77/masterGantt/actions/runs/40085439884) `verify-ci-run-trace.py`에서 직접 FAIL했다. 그 결과 실제 Main 구현 테스트·GHCR 이미지 게시는 SKIPPED/NOT RUN이며 PR 검증 성공을 Main/GHCR PASS로 대체하지 않는다.
@@ -5,6 +35,14 @@
 - **버전 계약:** 기존 `v0.131.0` annotated tag가 첫 부모 `b45885812301d14b9f673841e9944b27b2642323`를 가리키므로 이동/재발행하지 않는다. 신규 `0.132.0` 후보의 `package.json`·`package-lock.json` top-level/root version 동등성·SemVer 단조 증가·CHANGELOG release notes를 `node scripts/verify-release-version.mjs` 및 원격 version gate로 검증한다. 이미 존재하는 태그/rolling alias를 새 commit으로 임의 이동하지 않는다.
 - **교정 범위와 회귀:** application/source/API/migration/auth/CI·tests/runtime/fixtures 변경 없음. 기존 #792 및 #785의 실제 SQLite/HTTP·원본 binding UUID/whole/subset/coverage/inheritance/rollback, #726 5폭/readonly/delayed PATCH, Copy/Template/JSON/Excel·WBS/Resource, Full8→Trusted → **새 한 줄 Merge/Main**→GHCR digest smoke, Owner 버전별 formal Release/Finalizer Gate를 모두 분리한다. 동일 Run/attempt/Head/base/merge SHA로만 PASS를 인정한다.
 - **상태:** `TEST_LIFECYCLE_REVIEW=KEEP_UNIQUE`, 신규 Test 파일·skip/retry/timeout/Shard 변경0. 미완료 외부 consumer 분석, 운영 SQLite off-host backup/restore/restart, Windows Excel/DRM, 원본 member/coverage 확장 안전편집은 `NOT TESTED / BLOCKED`. 작업/검증/실패 출처는 [#792 원장](ISSUE_792_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_792.md)에 보존한다.
+
+## Issue #479 PR #794 F-001 — P1 보안·내부 사용처 회귀 보강
+
+최초 Full [#3223.1](https://github.com/planner77/masterGantt/actions/runs/40065447737)은 `Refs #479`/독립 `qa_method: OWNER_MANAGED` 선언 누락으로 변경 경로·Trusted QA 준비 직접 실패; Code/Chromium8/Docker 실제 검증 SKIPPED. [P1 encoded path](https://github.com/planner77/masterGantt/pull/794#discussion_r4366096194) 및 [P1 private Export/Import](https://github.com/planner77/masterGantt/pull/794#discussion_r4366096195) 테스트를 EXTEND한다. Pure `decodeProjectRoutePublicId` 단일 canonical decoding, malformed/double encoding 거부, User-facing handler 잠금401·민감 이름 비노출, internal trusted snapshot과 user-authorized snapshot 분리, Playwright encoded logistics HTTP401 및 session 유효 private JSON Export200. 기존 시나리오 삭제/skip 없음. 다음 exact-Head CI로만 PASS 판정, 미실행 `NOT TESTED`; [Work Packet](exec-plans/active/ISSUE_479.md).
+
+## Issue #479 — Project visibility, SSR and scoped-read security tests
+
+TEST_LIFECYCLE_REVIEW: prior ProjectService, Project contracts, edit session auth, Project/Template Copy, DB migration and E2E authorization tests retained. ADD `tests/server/projects/project-visibility.test.ts` (enum/null/unknown, migration public default/CHECK, private session missing/wrong/expired/revoked, public transition revision+1/password/auth_version). EXTEND: HTML/SSR metadata no-leak, list/dialog+copy navigation, settings state, direct canonical API/Project-scoped read-only POST + Export direct bypass, rotation/cookie and 5-width Playwright. KEEP_UNIQUE existing scrypt/KDF/timing-safe/Origin/revision/SQLite HTTP and browser tests. No skips, retire candidates or changed Required3/Chromium8. Current remote build/Chromium and end-to-end route coverage: NOT TESTED until exact new PR Run/Attempt. [Work Packet](exec-plans/active/ISSUE_479.md).
 
 ## Issue #792 F792-003 — 로컬 재현 및 교차 회귀 보강 (2026-10-24)
 

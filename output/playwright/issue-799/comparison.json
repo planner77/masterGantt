@@ -1,0 +1,982 @@
+{
+  "status": "PASS",
+  "boundary": "Local default-fixture Chromium only; not PR CI, final QA or Manager ACCEPT",
+  "beforeCheckoutHeadSha": "fcd1ae59d268efa1913f4de625a9013cabd1de4a",
+  "afterCheckoutHeadSha": "fcd1ae59d268efa1913f4de625a9013cabd1de4a",
+  "sourceWorkingTreeModified": true,
+  "sourceIdentity": "Captured sourceHashes pin actual working-tree bytes; checkout HEAD is baseline only, not the final after/published source.",
+  "sourceChanges": [
+    "src/features/resources/wbs-view.module.css"
+  ],
+  "afterSourceHashes": {
+    "src/features/resources/wbs-view.module.css": "78a76f5c98a99d4a91cf5994f6a89310c4d9441e7b922d92eb1ed73e0d71eaf5"
+  },
+  "collectorSha256": "a5e76e69b9b0a27ae9850ef56ca3579823afd21478b9bb8945b6ae68dcabacbe",
+  "supplementaryCollectorSha256": "2a103ba4bdc6f1a68614abf97716348ce8f26e5deae30ba7075898d58292af90",
+  "readonlySupplementCollectorSha256": "3f56d2fc596d98de33cc40f8ccd7c28cbd915b75d27d30959b3fe2bd4edc69ae",
+  "supplementaryOriginalAfter": {
+    "status": "PARTIAL",
+    "completed": 4,
+    "faults": [
+      {
+        "root": "process",
+        "width": 1440,
+        "message": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('편집 중', { exact: true }) to be visible\u001b[22m\n"
+      },
+      {
+        "root": "resource",
+        "width": 1440,
+        "message": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('편집 중', { exact: true }) to be visible\u001b[22m\n"
+      }
+    ]
+  },
+  "readonlySupplement": {
+    "status": "PASS",
+    "inventories": 2,
+    "faults": [],
+    "boundary": "Separate readonly1440 inventories for process/resource and independent exact same-query5 raw reports; not a clean single six-view supplemental run; standard30 same-auth geometry remains separate."
+  },
+  "pairs": 30,
+  "kpiKeepPairs": 5,
+  "fullRawReportEqualSpecs": 5,
+  "canonicalRevision": 17,
+  "canonicalFingerprint": "1dd5a90c59bedb603a4c84a0b2b88053b83b0757b6d643aee1fd40fd875cc80d",
+  "projectMutations": 0,
+  "geometry": [
+    {
+      "key": "kpi-390",
+      "before": {
+        "firstSummaryY": 855.390625,
+        "firstTableY": 1793.390625,
+        "fullyVisibleValues": 0,
+        "valueCount": 4,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "after": {
+        "firstSummaryY": 855.390625,
+        "firstTableY": 1793.390625,
+        "fullyVisibleValues": 0,
+        "valueCount": 4,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "tableShiftPx": 0.0
+    },
+    {
+      "key": "milestone-390",
+      "before": {
+        "firstSummaryY": 769,
+        "firstTableY": 1177,
+        "fullyVisibleValues": 6,
+        "valueCount": 9,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "after": {
+        "firstSummaryY": 769,
+        "firstTableY": 1100.5,
+        "fullyVisibleValues": 7,
+        "valueCount": 9,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "tableShiftPx": -76.5
+    },
+    {
+      "key": "process-390",
+      "before": {
+        "firstSummaryY": 858.390625,
+        "firstTableY": 1570.390625,
+        "fullyVisibleValues": 0,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "after": {
+        "firstSummaryY": 858.390625,
+        "firstTableY": 1481.390625,
+        "fullyVisibleValues": 0,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "tableShiftPx": -89.0
+    },
+    {
+      "key": "equipment-390",
+      "before": {
+        "firstSummaryY": 858.390625,
+        "firstTableY": 1363.390625,
+        "fullyVisibleValues": 0,
+        "valueCount": 12,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "after": {
+        "firstSummaryY": 858.390625,
+        "firstTableY": 1279.890625,
+        "fullyVisibleValues": 0,
+        "valueCount": 12,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "tableShiftPx": -83.5
+    },
+    {
+      "key": "system-390",
+      "before": {
+        "firstSummaryY": 891.390625,
+        "firstTableY": 1404.390625,
+        "fullyVisibleValues": 0,
+        "valueCount": 11,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "after": {
+        "firstSummaryY": 891.390625,
+        "firstTableY": 1384.890625,
+        "fullyVisibleValues": 0,
+        "valueCount": 11,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "tableShiftPx": -19.5
+    },
+    {
+      "key": "resource-390",
+      "before": {
+        "firstSummaryY": 797,
+        "firstTableY": 1673,
+        "fullyVisibleValues": 3,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "after": {
+        "firstSummaryY": 797,
+        "firstTableY": 1648,
+        "fullyVisibleValues": 3,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "tableShiftPx": -25
+    },
+    {
+      "key": "kpi-768",
+      "before": {
+        "firstSummaryY": 800.390625,
+        "firstTableY": 1720.390625,
+        "fullyVisibleValues": 1,
+        "valueCount": 4,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "after": {
+        "firstSummaryY": 800.390625,
+        "firstTableY": 1720.390625,
+        "fullyVisibleValues": 1,
+        "valueCount": 4,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "tableShiftPx": 0.0
+    },
+    {
+      "key": "milestone-768",
+      "before": {
+        "firstSummaryY": 588,
+        "firstTableY": 847,
+        "fullyVisibleValues": 9,
+        "valueCount": 9,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "after": {
+        "firstSummaryY": 588,
+        "firstTableY": 840,
+        "fullyVisibleValues": 9,
+        "valueCount": 9,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "tableShiftPx": -7
+    },
+    {
+      "key": "process-768",
+      "before": {
+        "firstSummaryY": 677.390625,
+        "firstTableY": 1176.390625,
+        "fullyVisibleValues": 12,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "after": {
+        "firstSummaryY": 677.390625,
+        "firstTableY": 1162.390625,
+        "fullyVisibleValues": 13,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "tableShiftPx": -14.0
+    },
+    {
+      "key": "equipment-768",
+      "before": {
+        "firstSummaryY": 677.390625,
+        "firstTableY": 948.390625,
+        "fullyVisibleValues": 12,
+        "valueCount": 12,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "after": {
+        "firstSummaryY": 677.390625,
+        "firstTableY": 939.890625,
+        "fullyVisibleValues": 12,
+        "valueCount": 12,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "tableShiftPx": -8.5
+    },
+    {
+      "key": "system-768",
+      "before": {
+        "firstSummaryY": 710.390625,
+        "firstTableY": 1095.390625,
+        "fullyVisibleValues": 9,
+        "valueCount": 11,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "after": {
+        "firstSummaryY": 710.390625,
+        "firstTableY": 1086.890625,
+        "fullyVisibleValues": 10,
+        "valueCount": 11,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "tableShiftPx": -8.5
+    },
+    {
+      "key": "resource-768",
+      "before": {
+        "firstSummaryY": 616,
+        "firstTableY": 1185,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "after": {
+        "firstSummaryY": 616,
+        "firstTableY": 1176.5,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "tableShiftPx": -8.5
+    },
+    {
+      "key": "kpi-1024",
+      "before": {
+        "firstSummaryY": 578.390625,
+        "firstTableY": 1089.390625,
+        "fullyVisibleValues": 3,
+        "valueCount": 4,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "after": {
+        "firstSummaryY": 578.390625,
+        "firstTableY": 1089.390625,
+        "fullyVisibleValues": 3,
+        "valueCount": 4,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "tableShiftPx": 0.0
+    },
+    {
+      "key": "milestone-1024",
+      "before": {
+        "firstSummaryY": 540,
+        "firstTableY": 799,
+        "fullyVisibleValues": 9,
+        "valueCount": 9,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "after": {
+        "firstSummaryY": 540,
+        "firstTableY": 733.5,
+        "fullyVisibleValues": 9,
+        "valueCount": 9,
+        "fullyVisibleRows": 1,
+        "rowCount": 2
+      },
+      "tableShiftPx": -65.5
+    },
+    {
+      "key": "process-1024",
+      "before": {
+        "firstSummaryY": 629.390625,
+        "firstTableY": 1043.390625,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "after": {
+        "firstSummaryY": 629.390625,
+        "firstTableY": 976.390625,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "tableShiftPx": -67.0
+    },
+    {
+      "key": "equipment-1024",
+      "before": {
+        "firstSummaryY": 629.390625,
+        "firstTableY": 900.390625,
+        "fullyVisibleValues": 12,
+        "valueCount": 12,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "after": {
+        "firstSummaryY": 629.390625,
+        "firstTableY": 833.390625,
+        "fullyVisibleValues": 12,
+        "valueCount": 12,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "tableShiftPx": -67.0
+    },
+    {
+      "key": "system-1024",
+      "before": {
+        "firstSummaryY": 662.390625,
+        "firstTableY": 983.390625,
+        "fullyVisibleValues": 11,
+        "valueCount": 11,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "after": {
+        "firstSummaryY": 662.390625,
+        "firstTableY": 980.390625,
+        "fullyVisibleValues": 11,
+        "valueCount": 11,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "tableShiftPx": -3.0
+    },
+    {
+      "key": "resource-1024",
+      "before": {
+        "firstSummaryY": 568,
+        "firstTableY": 1116,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "after": {
+        "firstSummaryY": 568,
+        "firstTableY": 1107.5,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "tableShiftPx": -8.5
+    },
+    {
+      "key": "kpi-1440",
+      "before": {
+        "firstSummaryY": 527.390625,
+        "firstTableY": 834.390625,
+        "fullyVisibleValues": 4,
+        "valueCount": 4,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "after": {
+        "firstSummaryY": 527.390625,
+        "firstTableY": 834.390625,
+        "fullyVisibleValues": 4,
+        "valueCount": 4,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "tableShiftPx": 0.0
+    },
+    {
+      "key": "milestone-1440",
+      "before": {
+        "firstSummaryY": 460,
+        "firstTableY": 655,
+        "fullyVisibleValues": 9,
+        "valueCount": 9,
+        "fullyVisibleRows": 2,
+        "rowCount": 2
+      },
+      "after": {
+        "firstSummaryY": 460,
+        "firstTableY": 653.5,
+        "fullyVisibleValues": 9,
+        "valueCount": 9,
+        "fullyVisibleRows": 2,
+        "rowCount": 2
+      },
+      "tableShiftPx": -1.5
+    },
+    {
+      "key": "process-1440",
+      "before": {
+        "firstSummaryY": 549.390625,
+        "firstTableY": 899.390625,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "after": {
+        "firstSummaryY": 549.390625,
+        "firstTableY": 896.390625,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "tableShiftPx": -3.0
+    },
+    {
+      "key": "equipment-1440",
+      "before": {
+        "firstSummaryY": 549.390625,
+        "firstTableY": 735.390625,
+        "fullyVisibleValues": 12,
+        "valueCount": 12,
+        "fullyVisibleRows": 1,
+        "rowCount": 3
+      },
+      "after": {
+        "firstSummaryY": 549.390625,
+        "firstTableY": 732.390625,
+        "fullyVisibleValues": 12,
+        "valueCount": 12,
+        "fullyVisibleRows": 1,
+        "rowCount": 3
+      },
+      "tableShiftPx": -3.0
+    },
+    {
+      "key": "system-1440",
+      "before": {
+        "firstSummaryY": 582.390625,
+        "firstTableY": 903.390625,
+        "fullyVisibleValues": 11,
+        "valueCount": 11,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "after": {
+        "firstSummaryY": 582.390625,
+        "firstTableY": 900.390625,
+        "fullyVisibleValues": 11,
+        "valueCount": 11,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "tableShiftPx": -3.0
+    },
+    {
+      "key": "resource-1440",
+      "before": {
+        "firstSummaryY": 488,
+        "firstTableY": 951,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "after": {
+        "firstSummaryY": 488,
+        "firstTableY": 948,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "tableShiftPx": -3
+    },
+    {
+      "key": "kpi-1920",
+      "before": {
+        "firstSummaryY": 527.390625,
+        "firstTableY": 834.390625,
+        "fullyVisibleValues": 4,
+        "valueCount": 4,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "after": {
+        "firstSummaryY": 527.390625,
+        "firstTableY": 834.390625,
+        "fullyVisibleValues": 4,
+        "valueCount": 4,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "tableShiftPx": 0.0
+    },
+    {
+      "key": "milestone-1920",
+      "before": {
+        "firstSummaryY": 460,
+        "firstTableY": 655,
+        "fullyVisibleValues": 9,
+        "valueCount": 9,
+        "fullyVisibleRows": 2,
+        "rowCount": 2
+      },
+      "after": {
+        "firstSummaryY": 460,
+        "firstTableY": 653.5,
+        "fullyVisibleValues": 9,
+        "valueCount": 9,
+        "fullyVisibleRows": 2,
+        "rowCount": 2
+      },
+      "tableShiftPx": -1.5
+    },
+    {
+      "key": "process-1920",
+      "before": {
+        "firstSummaryY": 549.390625,
+        "firstTableY": 899.390625,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "after": {
+        "firstSummaryY": 549.390625,
+        "firstTableY": 896.390625,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 3
+      },
+      "tableShiftPx": -3.0
+    },
+    {
+      "key": "equipment-1920",
+      "before": {
+        "firstSummaryY": 549.390625,
+        "firstTableY": 735.390625,
+        "fullyVisibleValues": 12,
+        "valueCount": 12,
+        "fullyVisibleRows": 1,
+        "rowCount": 3
+      },
+      "after": {
+        "firstSummaryY": 549.390625,
+        "firstTableY": 732.390625,
+        "fullyVisibleValues": 12,
+        "valueCount": 12,
+        "fullyVisibleRows": 1,
+        "rowCount": 3
+      },
+      "tableShiftPx": -3.0
+    },
+    {
+      "key": "system-1920",
+      "before": {
+        "firstSummaryY": 582.390625,
+        "firstTableY": 903.390625,
+        "fullyVisibleValues": 11,
+        "valueCount": 11,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "after": {
+        "firstSummaryY": 582.390625,
+        "firstTableY": 900.390625,
+        "fullyVisibleValues": 11,
+        "valueCount": 11,
+        "fullyVisibleRows": 0,
+        "rowCount": 1
+      },
+      "tableShiftPx": -3.0
+    },
+    {
+      "key": "resource-1920",
+      "before": {
+        "firstSummaryY": 488,
+        "firstTableY": 951,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "after": {
+        "firstSummaryY": 488,
+        "firstTableY": 948,
+        "fullyVisibleValues": 14,
+        "valueCount": 14,
+        "fullyVisibleRows": 0,
+        "rowCount": 2
+      },
+      "tableShiftPx": -3
+    }
+  ],
+  "inventory1440": [
+    {
+      "root": "kpi",
+      "width": 1440,
+      "permission": "original editable supplemental run",
+      "groups": [],
+      "rawReportEqual": "N/A separate endpoint; KEEP geometry/source"
+    },
+    {
+      "root": "milestone",
+      "width": 1440,
+      "permission": "original editable supplemental run",
+      "groups": [
+        {
+          "scope": "Milestone 선택 작업 고유 총계",
+          "labelsAndValues": [
+            {
+              "label": "고유 Task",
+              "value": "2건"
+            },
+            {
+              "label": "완료 / 지연",
+              "value": "0 / 2건"
+            },
+            {
+              "label": "기간가중 진척",
+              "value": "0.0%"
+            },
+            {
+              "label": "Assignment",
+              "value": "1건"
+            },
+            {
+              "label": "계획 M/D",
+              "value": "2.00 M/D"
+            },
+            {
+              "label": "계획 M/M",
+              "value": "환산 기준 미설정"
+            },
+            {
+              "label": "개인 미배정 Task",
+              "value": "1건"
+            },
+            {
+              "label": "물류 미연결 Task",
+              "value": "1건"
+            },
+            {
+              "label": "공수 미설정 Assignment",
+              "value": "0건"
+            }
+          ]
+        }
+      ],
+      "rawReportEqual": true
+    },
+    {
+      "root": "process",
+      "width": 1440,
+      "permission": "readonly; empty-cookie fresh context",
+      "groups": [
+        {
+          "scope": "등록 구성 참고",
+          "labelsAndValues": [
+            {
+              "label": "고유 Project 공정",
+              "value": "2개"
+            },
+            {
+              "label": "고유 WorkArea",
+              "value": "1개"
+            },
+            {
+              "label": "설비 관리단위",
+              "value": "2개"
+            },
+            {
+              "label": "설비 원본 수량",
+              "value": "123456796대"
+            },
+            {
+              "label": "물류 시스템",
+              "value": "1식"
+            },
+            {
+              "label": "현재 작업 0인 공정",
+              "value": "0개"
+            },
+            {
+              "label": "현재 작업 미연결 설비 / System",
+              "value": "1개 / 0식"
+            }
+          ]
+        },
+        {
+          "scope": "공정 작업 고유 총계",
+          "labelsAndValues": [
+            {
+              "label": "고유 Task",
+              "value": "2건"
+            },
+            {
+              "label": "완료 / 지연",
+              "value": "0 / 2건"
+            },
+            {
+              "label": "기간가중 진척",
+              "value": "0.0%"
+            },
+            {
+              "label": "관련 계획 M/D",
+              "value": "2.00 M/D"
+            },
+            {
+              "label": "관련 계획 M/M",
+              "value": "환산 기준 미설정"
+            },
+            {
+              "label": "개인 미배정 Task (T0)",
+              "value": "1건"
+            },
+            {
+              "label": "공수 미설정 Assignment",
+              "value": "0건"
+            }
+          ]
+        }
+      ],
+      "rawReportEqual": true
+    },
+    {
+      "root": "equipment",
+      "width": 1440,
+      "permission": "original editable supplemental run",
+      "groups": [
+        {
+          "scope": "등록 구성 참고",
+          "labelsAndValues": [
+            {
+              "label": "설비 관리단위",
+              "value": "2개"
+            },
+            {
+              "label": "설비 원본 수량",
+              "value": "123456796대"
+            },
+            {
+              "label": "전체 등록 중 비활성 설비",
+              "value": "0개"
+            },
+            {
+              "label": "현재 작업 0인 설비",
+              "value": "1개"
+            }
+          ]
+        },
+        {
+          "scope": "설비 작업 고유 총계",
+          "labelsAndValues": [
+            {
+              "label": "고유 Task",
+              "value": "2건"
+            },
+            {
+              "label": "완료 / 지연",
+              "value": "0 / 2건"
+            },
+            {
+              "label": "기간가중 진척",
+              "value": "0.0%"
+            },
+            {
+              "label": "고유 Assignment",
+              "value": "1건"
+            },
+            {
+              "label": "관련 계획 M/D",
+              "value": "2.00 M/D"
+            },
+            {
+              "label": "관련 계획 M/M",
+              "value": "환산 기준 미설정"
+            },
+            {
+              "label": "개인 미배정 Task (T0)",
+              "value": "1건"
+            },
+            {
+              "label": "공수 미설정 Assignment",
+              "value": "0건"
+            }
+          ]
+        }
+      ],
+      "rawReportEqual": true
+    },
+    {
+      "root": "system",
+      "width": 1440,
+      "permission": "original editable supplemental run",
+      "groups": [
+        {
+          "scope": "시스템 구성 참고",
+          "labelsAndValues": [
+            {
+              "label": "등록 시스템",
+              "value": "1식"
+            },
+            {
+              "label": "제어 설비 관리단위",
+              "value": "0개"
+            },
+            {
+              "label": "제어 설비 원본 수량",
+              "value": "0대"
+            },
+            {
+              "label": "현재 작업 0인 시스템",
+              "value": "0식"
+            }
+          ]
+        },
+        {
+          "scope": "시스템 작업 고유 총계",
+          "labelsAndValues": [
+            {
+              "label": "고유 Task",
+              "value": "1건"
+            },
+            {
+              "label": "완료 / 지연",
+              "value": "0 / 1건"
+            },
+            {
+              "label": "기간가중 진척",
+              "value": "0.0%"
+            },
+            {
+              "label": "관련 계획 M/D",
+              "value": "2.00 M/D"
+            },
+            {
+              "label": "관련 계획 M/M",
+              "value": "환산 기준 미설정"
+            },
+            {
+              "label": "개인 미배정 Task (T0)",
+              "value": "0건"
+            },
+            {
+              "label": "공수 미설정 Assignment",
+              "value": "0건"
+            }
+          ]
+        }
+      ],
+      "rawReportEqual": true
+    },
+    {
+      "root": "resource",
+      "width": 1440,
+      "permission": "readonly; empty-cookie fresh context",
+      "groups": [
+        {
+          "scope": "프로젝트 참여 인원",
+          "labelsAndValues": [
+            {
+              "label": "등록 인원",
+              "value": "0명"
+            },
+            {
+              "label": "등록만 된 인원",
+              "value": "0명"
+            },
+            {
+              "label": "역할만 있는 인원",
+              "value": "0명"
+            },
+            {
+              "label": "Project Task 개인 배정 인원",
+              "value": "1명"
+            },
+            {
+              "label": "비활성 기존 참조",
+              "value": "0명"
+            }
+          ]
+        },
+        {
+          "scope": "리소스 작업 고유 총계",
+          "labelsAndValues": [
+            {
+              "label": "고유 Task",
+              "value": "2건"
+            },
+            {
+              "label": "완료 / 지연",
+              "value": "0 / 2건"
+            },
+            {
+              "label": "기간가중 진척",
+              "value": "0.0%"
+            },
+            {
+              "label": "고유 개인 Assignment",
+              "value": "1건"
+            },
+            {
+              "label": "선택 배정 인원",
+              "value": "1명"
+            },
+            {
+              "label": "관련 계획 M/D",
+              "value": "2.00 M/D"
+            },
+            {
+              "label": "관련 계획 M/M",
+              "value": "환산 기준 미설정"
+            },
+            {
+              "label": "공수 미설정 Assignment",
+              "value": "0건"
+            },
+            {
+              "label": "개인 미배정 Task (T0)",
+              "value": "1건"
+            }
+          ]
+        }
+      ],
+      "rawReportEqual": true
+    }
+  ],
+  "limitation": "Typography and spacing improve readability; first-table movement is reported per view/width and is not asserted to universally improve. Raw report receipts are five independent exact default queries; browser totals/geometry are30 same-auth pairs. Supplemental closeups combine original4 editable with two separate readonly inventories when available; the original6 run remains PARTIAL and global header geometry is not compared across permission modes."
+}

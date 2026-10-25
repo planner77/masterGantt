@@ -111,3 +111,10 @@
 - 제품 UI/API/DB/계산·CI·의존성/버전 변경0, after=N/A. 로컬 개발 초기화 HTTP500/JSON 오류의 정확 원인·production 재현은 미확정이며 최초 실패를 보존한다.
 
 현재 원격 `quality/e2e/docker`, Trusted QA, 최종 QA/Manager ACCEPT는 NOT TESTED다. PRE_QA는 실제 별도 `/root/audit_qa`가 수행하며 정확 commit Head의 최종 사전 판정·PR·CI Run URL/attempt는 내용 동결 후 Issue STATUS/PR에 기록한다. native125%·실기기·screen reader·운영 source/digest는 #517의 별도 검증이며 자동화 브라우저 또는 DPR 변경으로 대체하지 않는다. 모든 폭×모든 상태의 전수 PASS를 주장하지 않는다.
+
+## 2026-10-25 최신 main 동기화와 감사 기준선 보호
+
+- 기존 Ready [PR #801](https://github.com/planner77/masterGantt/pull/801)의 Head `1d6fad35c39d8ebaa6631a2a74362addd7566114`에서 [Full PR CI #3255.1](https://github.com/planner77/masterGantt/actions/runs/40105650487)는 SUCCESS였다. 이후 main `22144ce3844ab50ac0f22a715742c9df82e072e8`까지 41개 커밋이 추가되어 PR이 dirty가 되었다.
+- 충돌은 `docs/TEST_PLAN.md`, `docs/UI_UX_GUIDELINES.md`, `docs/exec-plans/active/PLAN.md`의 추가 항목 위치 충돌이다. main의 #798/#799/#506 등 새로운 계약과 #797 감사 안내를 **양쪽 모두 보존**하는 합집합 정렬이다. 제품 소스·테스트 실행 정책·SQLite/API는 수정하지 않는다. 원본 수동 collector·221개 첨부증거는 원래 blob/tree를 재사용하여 보존한다.
+- `docs/UI_AUDIT_2026_10_24.md`의 74건 관측과 일부 준비 FAIL은 **main 8d9dd93 / v0.132.0의 역사적 before**로 그대로 유지한다. #798/#799 병합 이후의 현재 화면 after나 새로운 회귀 PASS로 승격하지 않는다. 이후 최신 main의 비교/변경 후 지속 검증은 #800에 귀속한다.
+- 충돌 해소 후 새로운 merge Head에 대한 GitHub PR CI/Trusted QA 및 Owner 판정은 **기존 #3255.1 성공과 구분해 새 실행 기준으로 판단**한다. 해당 시점의 로컬 full build·Chromium 재실행은 NOT RUN. `HIGH/qa_required=true/qa_method=AGENT`, `release_required=false/release_authorized=false`, `MERGE_READY=BLOCKED`를 유지한다. 사용자 요청 종료점은 PR CI 시작이며 이후 감시/병합/게시/종료를 하지 않는다.

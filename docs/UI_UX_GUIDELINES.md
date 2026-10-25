@@ -1,3 +1,17 @@
+## Issue #799 — 요약 숫자·단위와 모집단 위계
+
+KPI를 내부 참조로 삼되 기존 card/quality pane·Milestone 원본 표·Resource Plan 배치를 기계적으로 치환하지 않는다. 동적 관점의 공통 요약은 보조 label과 주요 값·단위, 인접 범위 안내를 구분한다. 숫자는 tabular로 비교하고 긴 label·미산정/부분합 상태는 고정 높이나 clipping 없이 읽힌다. 숫자·단위가 분리되어 오해하지 않도록 실제5폭에서 확인한다.
+
+구성 수·조회된 고유 Task/Assignment·전체 Gate·개인 Plan/전체 Capacity의 분모를 합치지 않는다. 완료/지연 전체를 하나의 실패색으로 칠하거나 정상0·미배정·미연결·공수 미설정·null을 같은 상태로 만들지 않는다. 기존 native controls·44px 조작 영역·표 owner scroll·도움말/원본 dialog의 keyboard·focus 복귀를 보존한다. 적용은 Design Delta B이며 [인벤토리/실측](ISSUE_799_DASHBOARD_METRICS.md)의 source-anchored 관측과 [Work Packet](exec-plans/active/ISSUE_799.md)의 미검증 범위를 따른다.
+
+## Issue #798 — 조회 조건의 점진적 노출과 접근성
+
+다섯 동적 대시보드의 빠른 toolbar는 작업 검색·상태·기간·새로고침을 유지하고, 표 이름 찾기·정렬·관점 조건·하위 축 구성은 한 고급 진입점으로 연다. 접힌 조건은 실제 적용 그룹 수와 값·정렬·관점별 범위 및 초기화/재진입을 표시한다. System 속성 초안은 적용된 선택 시스템과 구별하고, 표 이름 찾기는 서버 고유 총계를 바꾸지 않는 표시 조건임을 밝힌다. loading·오류·기간 오류·stale·이전 결과 안내는 설정과 함께 접지 않는다.
+
+native label/button/select/date와 44px 조작 영역·focus ring을 유지한다. 열기/닫기는 필터 적용 동작과 분리하며 내부 controls를 unmount하여 초안을 버리지 않는다. Enter/Space·Tab/Shift+Tab을 지원하고 Escape는 최내측 열린 구성기/도움말부터 처리한다. 상위 고급 영역이 닫히면 내부 focus를 가시 trigger로 복원하고 modal trap을 만들지 않는다. 고급 조건 초기화로 버튼 자체가 사라질 때에도 지속 표시되는 조회 설정 trigger로 focus를 복원하며 BODY로 방치하지 않는다.
+
+390/768/1024/1440/1920px에서 의미별 wrap·긴 한국어/영문/날짜·가려지지 않는 focus와 표 내부 scroll을 실제 Chromium으로 확인한다. 고정 높이/overflow hidden으로 오류·label을 잘라 밀도를 맞추지 않는다. KPI KEEP 대조 및 source-anchored before/after 관측은 [#798 Work Packet](exec-plans/active/ISSUE_798.md)에 기록한다. Design Delta B로 기존 DESIGN의 Workspace-first·Compact controls·Progressive disclosure를 구체화한다.
+
 ## Issue #797 — 최신 화면 감사와 기존 기준선의 구분
 
 [2026-10-24 감사](UI_AUDIT_2026_10_24.md)는 최신 source의 전체 화면 인벤토리·현재 이슈 상태·동일 fixture 관측을 기록한다. #457의 과거 실행/환경을 덮어쓰거나 당시 후속 문구를 현재 미구현으로 옮기지 않는다. KPI도 viewport별로 측정하며 모든 폭에서 완전한 기준선이라고 가정하지 않는다. 수동 collector의 중립 관측과 업무/접근성·원격 CI 판정, 제품 변경이 없는 KEEP와 개선 후 after를 구분한다. #798의 controls/조회 구성, #799의 요약·지표 표현, #800의 지속 회귀는 각각의 범위·정확 Head에서 수용한다. 기존 디자인·interaction 계약은 변경하지 않는다.

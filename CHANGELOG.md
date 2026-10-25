@@ -1,9 +1,49 @@
+## [0.133.2] — Unreleased / Issue #799 대시보드 요약 지표
+
+- 다섯 동적 대시보드의 공통 요약에서 label과 값·단위를 구분하고 숫자 비교와 긴 상태문 읽기를 정돈한다. KPI·Milestone 관리 카드/표·Resource Plan과 구성/필터된 작업/전체 Gate·개인 배정의 계산·범위·원본 drill은 유지한다.
+- [6관점 인벤토리/실측](docs/ISSUE_799_DASHBOARD_METRICS.md)와 [Work Packet](docs/exec-plans/active/ISSUE_799.md)에 before/after·선택 검증·문서·독립 사전 검토 및 미검증 범위를 기록한다. PATCH 후보0.133.2, release_required=true/release_authorized=false; PR CI 시작 범위이며 최종 QA·병합·정식 게시 완료를 뜻하지 않는다.
+- [#804 최초 Full #3267.1](https://github.com/planner77/masterGantt/actions/runs/40153151893)의 Quality·Chromium8/8·Docker PASS 후 [QA Trusted #913.1](https://github.com/planner77/masterGantt/actions/runs/40155011958)은 #506 병합에 따른 정확 Base/Test-Merge 변경으로 BLOCKED. 기존 PASS/FAIL은 각각 보존한다. #506 신규0.133.1과의 버전 경합을 피해 본 Issue는0.133.2로 상향하고 최신 main 통합 후 새 Head Full CI를 요청한다. 기존 화면/원본/CI 정책은 불변이며 최종 AGENT QA·Owner 수용·Release 승인은 별도다.
+
+## [0.133.1] — Unreleased / Issue #506 Add Above·Below sibling 순서 회귀 (2026-10-25)
+
+- PR #803 [두 번째 Full #3265.1](https://github.com/planner77/masterGantt/actions/runs/40150246833)의 TypeScript TS2322(E2E GET/POST 응답 혼용)와 historic U2 Core SHA pin 오류(Vitest 1 case)를 각각 union 타입과 과거 원본 source snapshot / 불변 provenance lookup으로 교정한다. 기존 U2 12개 capture, sha256 기대값, 현재 #506 제품 writer, Required Quality/E2E8/Docker는 유지. [원장](docs/ISSUE_506_FAILURE_ANALYSIS.md)에 최초부터 누적 보존하며 새 Head CI 결과는 아직 NOT TESTED.
+
+- PR #803 [첫 Full #3264.1](https://github.com/planner77/masterGantt/actions/runs/40149276969)은 `ISSUE_AC` 메타데이터 구조로 사전 FAIL: Issue AC1~AC13과 Work Packet 정확 매핑/문서 형식을 보강했다. P1 리뷰의 SVAR `data-task-id` `:` 접두 미정규화로 인한 Chart E2E 오탐을 교정했다. 기존 실패 원본·미실행 Chromium8/Docker는 [#506 누적 원장](docs/ISSUE_506_FAILURE_ANALYSIS.md)에 별도 기록한다. 신규 PR CI 실제 실행 전 PASS로 판정하지 않는다.
+
+- `Add > Task above`가 기존 형제 작업의 중간에서 잘못 표시될 수 있던 SVAR canonical add 순서를 교정한다. 삽입 지점의 **다음 sibling이 있으면 `add-task mode="before"/target=next` 우선**, 실제 tail인 경우에만 `after/previous`를 사용한다. 서버의 `anchorTaskId`, `placement`, parent, transaction 및 `siblingOrder`/revision 계약은 그대로 유지한다.
+- root/nested/Workspace scope에서 앞/뒤 삽입, 첫/끝 경계, 서버 재조회·연속 siblingOrder, Grid/Chart 렌더 순서, 새로고침 및 Gantt/API instance 보존을 검증하는 Vitest·Playwright 회귀를 보강한다. 선택/접힘/scroll/scale 및 scope-root command guard는 변경하지 않는다.
+- 신규 PATCH 후보 `0.133.1`: 기존 immutable annotated `v0.133.0`은 수정하지 않는다. [#506 Work Packet](docs/exec-plans/active/ISSUE_506.md)·Test Plan/UX 동기화. 새 PR CI/Trusted QA/Owner 정식 릴리스·GHCR/Finalizer는 **NOT TESTED / 미승인** 상태다.
+
+## [Unreleased] — Issue #798 동적 대시보드 제어 영역
+
+- Milestone·공정&WorkArea·설비·물류 시스템·리소스의 제목·현재 경로를 정돈하고 작업 검색·상태·기간을 빠른 toolbar에 배치한다. 표 이름 찾기·정렬·관점 조건·기존 조회 구성은 고급 영역에서 열며 적용 조건·범위와 초기화를 확인할 수 있다.
+- 기존 KPI·구성/작업/전체 Gate·원본 편집·Plan/Excel의 계산과 권한을 유지한다. 5폭 실측·선택 회귀·문서 및 미검증은 [#798 Work Packet](docs/exec-plans/active/ISSUE_798.md)에 기록한다. 앱 버전 유지, PR CI 시작 범위이며 정식 릴리스·최종 QA 완료를 뜻하지 않는다.
+
+## [0.133.0] — Unreleased / Issue #479 Project visibility (2026-10-25)
+
+- Issue #479의 Project 공개/비공개 선택, 기존 데이터 migration0031의 public 기본값, Project별 session과 서버 read/SSR/Export 접근제어 및 UI/테스트 보강을 정식 릴리스 후보로 관리한다.
+- Issue #792로 이미 존재하는 `v0.132.0` immutable annotated tag와 동일 버전의 재게시를 방지하기 위해 신규 MINOR `v0.133.0`으로 재기준화한다. API/DB/CI 정책/Playwright assertion 변경 없이 package/lock을 동기화한다.
+- [PR #794 기존 Full #3254.1](https://github.com/planner77/masterGantt/actions/runs/40101140647)은 직전 Head `715190e6` Required3/E2E8/8/Automated QA SUCCESS. 신규 버전 커밋의 Full·기본 브랜치 Trusted QA·Owner HIGH 확인, Main exact SHA/임시 GHCR digest와 정식 Release/Finalizer는 실행 결과 확보 전 **NOT TESTED / PENDING**.
+- [Issue #479 Owner version-scoped release authorization](https://github.com/planner77/masterGantt/issues/479#issuecomment-6390447238) `expected_version=0.133.0`. 과거 F-001~F-009 불변, 외부 DR·운영 DB/Windows Excel 실측 미검증과 실패 시 fail-closed 유지.
+
 ## [0.132.0] — Issue #792 Main CI 재발행 후보 (2026-10-24)
 
 - [원본 PR #795](https://github.com/planner77/masterGantt/pull/795)은 Product·Unit/HTTP/Chromium8/Docker/Trusted QA PASS 후 `main`에 `4048245f8dc90c1f46dd1cc58948a17a4fb7338e`로 병합됐으나, 그 merge commit의 **여러 줄 메시지**가 신뢰된 `verify-ci-run-trace.py`의 한 줄 Merge 계약을 어겨 [Main CI #3249.1](https://github.com/planner77/masterGantt/actions/runs/40085439884)에서 경로 판정만 직접 FAIL했다. 원본 실패 SHA나 Gate 결과는 변경하지 않는다.
 - 재발행 교정 PR은 **애플리케이션 버전/Lock/릴리스 문서와 원장만** 변경한다. 기존 v0.131.0 annotated 태그는 원래 부모 `b45885812301d14b9f673841e9944b27b2642323`를 가리키므로 절대 이동/재사용하지 않으며, `0.132.0`을 신규 후보로 선택한다. 다음 Merge는 `scripts/main_ci_run_name.py::merge_api_payload`의 한 줄 제목 + **빈 본문**을 사용해야 한다.
 - Summary 기존 binding scope self↔subtree 안전 편집 구현·권한·원본 UUID/whole/subset+coverage·provenance·copy/template·WBS/Excel 코드 변경 없음. 운영 외부 consumer=0, 별도 복구호스트 off-host SQLite restore/restart, Windows Excel/DRM, 기존 member/coverage 일반 수정은 **NOT TESTED/미구현**이며 PR/Main/버전 후보만으로 인수 완료·정식 릴리스/Issue 종료 승인으로 간주하지 않는다.
 - `release_required=true`이며 정식 GHCR 이미지 버전 `v0.132.0`의 별도 Owner 버전·위험 승인과 immutable exact Main Quality/E2E8/Docker, 임시 `ci-<SHA>` digest 검증, Release CI, Finalizer 증거가 필요하다. 완료 전 `release_authorized=false`.
+
+## Issue #479 — PR #794 첫 CI 메타데이터 실패 및 P1 수정 (Unreleased 0.132.0)
+
+- Full Run #3223.1은 canonical `Refs #479`/QA 선언 누락으로 시작 단계에서 중단되었으며 실제 기능 테스트는 SKIPPED; [실패 원장](docs/ISSUE_479_FAILURE_ANALYSIS.md) 보존.
+- private Project의 percent-encoded 경로 우회를 fail-closed canonical decode로 막고, 인증된 Project의 JSON/Excel/SVG Export·Import·Task Assignment가 정상 동작하도록 **외부 인증 Snapshot / 내부 trusted Snapshot** 사용처를 분리했다. 테스트 보강, 새 exact-Head PR CI 전 판정은 NOT TESTED. 기존 인증/Owner/Release gate 불변.
+
+## Issue #479 — 과거 0.132.0 릴리스 후보(0.133.0으로 상향)
+
+- 공개/비공개 Project visibility, 기존 Project public migration0031, 생성·Template·Copy·설정 API/UI를 구현한다.
+- 비공개 목록은 검색/표시에 남겨두되 인증된 해당 Project Edit Session 이전에 일정·조회/Export 및 SSR 상세 데이터를 제공하지 않는다. 새 readonly 비밀번호·RBAC/목록 숨김은 추가하지 않는다.
+- Project List unlock/Copy, 직접 URL 잠금 화면, session 만료 시 민감 snapshot 폐기와 SQLite/check/authorization 단위 회귀를 보완한다.
+- `release_required=true`, `release_authorized=false`; 정확 PR CI/Trusted QA/Owner/GHCR/Release는 별도 증거·승인 전 NOT TESTED.
 
 ## [0.131.0] — Unreleased / Issue #792 기존 원본 scope 한정 안전 편집
 

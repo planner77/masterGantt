@@ -75,7 +75,7 @@ describe("migration CLI", () => {
         "0025_process_catalog.sql",
         "0026_logistics_targets.sql",
         "0027_task_target_bindings.sql",
-        "0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql",
+        "0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql",
       ],
     });
     expect(diagnosticEvents(first.stderr).map((entry) => entry.event)).toEqual([
@@ -94,7 +94,7 @@ describe("migration CLI", () => {
     const database = new Database(filename, { readonly: true });
     try {
       expect(database.prepare("SELECT count(*) AS count FROM schema_migrations").get())
-        .toEqual({ count: 30 });
+        .toEqual({ count: 31 });
       expect(database.prepare("SELECT count(*) AS count FROM projects").get())
         .toEqual({ count: 0 });
       expect(database.prepare("SELECT revision FROM resource_catalog_state WHERE id = 1").get())
@@ -112,6 +112,8 @@ describe("migration CLI", () => {
         .toEqual({ count: 0 });
       expect(database.prepare("SELECT count(*) AS count FROM business_unit_product_sites").get())
         .toEqual({ count: 0 });
+      expect(database.prepare(`SELECT name, type, "notnull" AS required FROM pragma_table_info('projects') WHERE name='visibility'`).get())
+        .toEqual({ name: "visibility", type: "TEXT", required: 1 });
       const ownerColumn = database.prepare("SELECT name, \"notnull\" AS required FROM pragma_table_info('projects') WHERE name = 'owner_name'").get();
       expect(ownerColumn).toEqual({ name: "owner_name", required: 0 });
       const allocationColumn = database.prepare("SELECT name, type FROM pragma_table_info('task_assignments') WHERE name = 'allocation_percent'").get();

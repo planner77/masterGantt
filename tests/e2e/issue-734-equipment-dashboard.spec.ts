@@ -1,3 +1,5 @@
+import { expectDashboardMetricsReadable } from "./helpers/dashboard-metrics";
+import { openWbsViewControls } from "./helpers/wbs-controls";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import { mkdir } from "node:fs/promises";
@@ -26,6 +28,7 @@ async function openEquipment(page: Page) {
   await expect(root(page)).toHaveAttribute("data-ready", "true");
 }
 async function composer(page: Page) {
+  await openWbsViewControls(root(page));
   const panel = root(page).locator("details").filter({ has: page.locator("summary").filter({ hasText: /^조회 구성$/ }) });
   if (!await panel.evaluate(node => (node as HTMLDetailsElement).open)) await panel.locator(":scope > summary").click();
   return panel;
@@ -194,6 +197,7 @@ test("#734 5폭 긴 이름·내부 overflow·열 정렬·native Tab/Escape", asy
     }
     for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
+    await expectDashboardMetricsReadable(root(page).getByTestId("equipment-summary"), width);
     const table = root(page).getByRole("table", { name: "공통 계층 결과", exact: true });
     const row = table.locator(`tr[data-dimension="equipment"][data-entity-id="${f.equipment.id}"]`);
     const detail = row.getByRole("button", { name: "상세", exact: true }); await expect(detail).toBeEnabled(); await detail.focus(); await expect(detail).toBeFocused(); await detail.press("Tab");
@@ -323,11 +327,15 @@ test("#734 유형 OR 필터와 controls·Task association 출처는 서로 추�
   const control = logistics.systems.find(system => system.code === "CTRL")!;
   await f.mutate(`/logistics/equipment/${f.equipment.id}/systems`, { systems: [{ systemId: control.id, controlRole: "primary" }] }, "put");
   const first = nextReport(page); await page.reload(); await openEquipment(page); const all = (await (await first).json()).data as WbsViewReportDto;
+  await openWbsViewControls(root(page));
   const types = root(page).getByRole("group", { name: "설비 유형", exact: true });
   const filtered = nextReport(page, { filters: { equipmentTypeCodes: ["agv"] } }); await types.getByRole("checkbox", { name: "AGV (무인운반차)", exact: true }).check();
   const agv = (await (await filtered).json()).data as WbsViewReportDto; await expect(root(page)).toHaveAttribute("data-ready", "true");
   expect(agv.filters.equipmentTypeCodes).toEqual(["agv"]); expect(agv.totals.configurationReference.equipmentQuantity).toBe(3); expect(agv.taskIds).toEqual([]);
-  await page.reload(); await openEquipment(page); await expect(types.getByRole("checkbox", { name: "AGV (무인운반차)", exact: true })).toBeChecked(); await expect(types.getByRole("checkbox", { name: "AMR (자율이동로봇)", exact: true })).not.toBeChecked();
+  await page.reload(); await openEquipment(page);
+  await expect(root(page).locator('[aria-label="적용된 고급 조건"]')).toContainText("AGV (무인운반차)");
+  await openWbsViewControls(root(page));
+  await expect(types.getByRole("checkbox", { name: "AGV (무인운반차)", exact: true })).toBeChecked(); await expect(types.getByRole("checkbox", { name: "AMR (자율이동로봇)", exact: true })).not.toBeChecked();
   const union = nextReport(page, { filters: { equipmentTypeCodes: ["agv", "amr"] } }); await types.getByRole("checkbox", { name: "AMR (자율이동로봇)", exact: true }).check();
   const both = (await (await union).json()).data as WbsViewReportDto; await expect(root(page)).toHaveAttribute("data-ready", "true"); expect(both.totals.configurationReference.equipmentQuantity).toBe(all.totals.configurationReference.equipmentQuantity); expect(both.taskIds).toEqual([f.task.taskId]); expect(all.taskIds).toContain(f.task.taskId);
   const reset = nextReport(page, { filters: { equipmentTypeCodes: [] } }); await types.getByRole("button", { name: "전체 유형", exact: true }).click(); await reset; await expect(root(page)).toHaveAttribute("data-ready", "true");

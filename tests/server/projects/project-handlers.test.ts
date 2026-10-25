@@ -315,10 +315,20 @@ describe("POST /api/projects handler", () => {
 });
 
 describe("readonly and collection GET handlers", () => {
+  it("returns a generic 401 before calling the user-facing snapshot for locked private projects", async () => {
+    const getAuthorizedReadonlySnapshot = vi.fn(() => readonlyResponse);
+    const response = handleReadProject(publicId, { service: { getAuthorizedReadonlySnapshot, projectReadAccess: () => "locked" as const }, requestId: () => "locked-request" });
+    expect(response.status).toBe(401);
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    const payload = JSON.stringify(await response.json());
+    expect(payload).toContain("PROJECT_LOCKED");
+    expect(payload).not.toContain("Plant Expansion");
+    expect(getAuthorizedReadonlySnapshot).not.toHaveBeenCalled();
+  });
   it("returns readonly data with ETag and never mutates state", async () => {
     const getReadonlySnapshot = vi.fn(() => readonlyResponse);
     const response = handleReadProject(publicId, {
-      service: { getReadonlySnapshot },
+      service: { getAuthorizedReadonlySnapshot: getReadonlySnapshot, projectReadAccess: () => "allowed" as const },
       requestId: () => "request-id",
     });
 
@@ -335,11 +345,11 @@ describe("readonly and collection GET handlers", () => {
   it("returns the same sanitized 404 for malformed and absent IDs", async () => {
     const getReadonlySnapshot = vi.fn(() => undefined);
     const malformed = handleReadProject("NOT-A-UUID", {
-      service: { getReadonlySnapshot },
+      service: { getAuthorizedReadonlySnapshot: getReadonlySnapshot, projectReadAccess: () => "allowed" as const },
       requestId: () => "request-id",
     });
     const absent = handleReadProject(publicId, {
-      service: { getReadonlySnapshot },
+      service: { getAuthorizedReadonlySnapshot: getReadonlySnapshot, projectReadAccess: () => "allowed" as const },
       requestId: () => "request-id",
     });
 

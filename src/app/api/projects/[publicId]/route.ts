@@ -25,7 +25,7 @@ export async function GET(
     handleReadProject(publicId, {
       service: getProjectService,
       requestId: () => requestId,
-    }),
+    }, request),
   );
 }
 

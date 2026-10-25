@@ -1,0 +1,99 @@
+{
+  "status": "FAIL",
+  "exitCode": 1,
+  "stats": {
+    "startTime": "2026-10-24T22:37:06.148Z",
+    "duration": 273224.522,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 3,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "title": "#730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 복원·Gantt 보존",
+      "file": "issue-730-view-composer.spec.ts",
+      "line": 210,
+      "status": "passed",
+      "durationMs": 26940,
+      "retry": 0,
+      "errors": []
+    },
+    {
+      "title": "#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조회 불변",
+      "file": "issue-730-view-composer.spec.ts",
+      "line": 581,
+      "status": "failed",
+      "durationMs": 21248,
+      "retry": 0,
+      "errors": [
+        "Error: expect(locator).toBeVisible() failed\n\nLocator: getByTestId('wbs-view-dashboard').visible().getByLabel('작업 상태', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByTestId('wbs-view-dashboard').visible().getByLabel('작업 상태', { exact: true }) with timeout 5000ms\n  - waiting for getByTestId('wbs-view-dashboard').visible().getByLabel('작업 상태', { exact: true })\n\n\n  599 |       await expect(trigger).toHaveAttribute(\"aria-expanded\", \"false\");\n  600 |       await expect(panel).toBeHidden();\n> 601 |       for (const label of [\"작업 검색\", \"작업 상태\", \"조회 시작일\", \"조회 종료일\"]) await expect(root.getByLabel(label, { exact: true })).toBeVisible();\n      |                                                                                                                         ^\n  602 |       const beforeQueries = queries;\n  603 |       await trigger.focus(); await trigger.press(\"Space\");\n  604 |       await expect(panel).toBeVisible();\n    at /home/planner/Dev/masterGantt-798/tests/e2e/issue-730-view-composer.spec.ts:601:121"
+      ]
+    },
+    {
+      "title": "#732 Target0 Milestone 단독·두 계층·전체 Gate·5폭과 keyboard",
+      "file": "issue-732-milestone-dashboard.spec.ts",
+      "line": 38,
+      "status": "passed",
+      "durationMs": 18296,
+      "retry": 0,
+      "errors": []
+    },
+    {
+      "title": "#733 Target0 다중 구역·동급 설비/System·고유 KPI·단독 및 Milestone 경로·정확 원본 복귀",
+      "file": "issue-733-process-workarea-dashboard.spec.ts",
+      "line": 55,
+      "status": "passed",
+      "durationMs": 19951,
+      "retry": 0,
+      "errors": []
+    },
+    {
+      "title": "#734 유형 OR 필터와 controls·Task association 출처는 서로 추론하지 않는다",
+      "file": "issue-734-equipment-dashboard.spec.ts",
+      "line": 319,
+      "status": "failed",
+      "durationMs": 22873,
+      "retry": 0,
+      "errors": [
+        "Error: expect(locator).toBeChecked() failed\n\nLocator: getByTestId('wbs-view-dashboard').visible().getByRole('group', { name: '설비 유형', exact: true }).getByRole('checkbox', { name: 'AGV (무인운반차)', exact: true })\nExpected: checked\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeChecked\" getByTestId('wbs-view-dashboard').visible().getByRole('group', { name: '설비 유형', exact: true }).getByRole('checkbox', { name: 'AGV (무인운반차)', exact: true }) with timeout 5000ms\n  - waiting for getByTestId('wbs-view-dashboard').visible().getByRole('group', { name: '설비 유형', exact: true }).getByRole('checkbox', { name: 'AGV (무인운반차)', exact: true })\n\n\n  331 |   const agv = (await (await filtered).json()).data as WbsViewReportDto; await expect(root(page)).toHaveAttribute(\"data-ready\", \"true\");\n  332 |   expect(agv.filters.equipmentTypeCodes).toEqual([\"agv\"]); expect(agv.totals.configurationReference.equipmentQuantity).toBe(3); expect(agv.taskIds).toEqual([]);\n> 333 |   await page.reload(); await openEquipment(page); await expect(types.getByRole(\"checkbox\", { name: \"AGV (무인운반차)\", exact: true })).toBeChecked(); await expect(types.getByRole(\"checkbox\", { name: \"AMR (자율이동로봇)\", exact: true })).not.toBeChecked();\n      |                                                                                                                                   ^\n  334 |   const union = nextReport(page, { filters: { equipmentTypeCodes: [\"agv\", \"amr\"] } }); await types.getByRole(\"checkbox\", { name: \"AMR (자율이동로봇)\", exact: true }).check();\n  335 |   const both = (await (await union).json()).data as WbsViewReportDto; await expect(root(page)).toHaveAttribute(\"data-ready\", \"true\"); expect(both.totals.configurationReference.equipmentQuantity).toBe(all.totals.configurationReference.equipmentQuantity); expect(both.taskIds).toEqual([f.task.taskId]); expect(all.taskIds).toContain(f.task.taskId);\n  336 |   const reset = nextReport(page, { filters: { equipmentTypeCodes: [] } }); await types.getByRole(\"button\", { name: \"전체 유형\", exact: true }).click(); await reset; await expect(root(page)).toHaveAttribute(\"data-ready\", \"true\");\n    at /home/planner/Dev/masterGantt-798/tests/e2e/issue-734-equipment-dashboard.spec.ts:333:131"
+      ]
+    },
+    {
+      "title": "#735 실제 System 직접·조정 Task 집합과 고유 Assignment·선택·공정 필터",
+      "file": "issue-735-system-dashboard.spec.ts",
+      "line": 62,
+      "status": "passed",
+      "durationMs": 23282,
+      "retry": 0,
+      "errors": []
+    },
+    {
+      "title": "#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot Excel·정확 Assignment 복귀",
+      "file": "issue-736-resource-dashboard.spec.ts",
+      "line": 48,
+      "status": "failed",
+      "durationMs": 29250,
+      "retry": 0,
+      "errors": [
+        "Error: expect(locator).toBeFocused() failed\n\nLocator:  locator('[data-wbs-view=\"resource\"]').visible().locator('tr[data-dimension=\"resource\"][data-entity-id=\"6b1167db-18cd-4d91-92dc-2f4c6a01d1ee\"]').getByRole('button', { name: '상세', exact: true })\nExpected: focused\nReceived: inactive\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toBeFocused\" locator('[data-wbs-view=\"resource\"]').visible().locator('tr[data-dimension=\"resource\"][data-entity-id=\"6b1167db-18cd-4d91-92dc-2f4c6a01d1ee\"]').getByRole('button', { name: '상세', exact: true }) with timeout 5000ms\n  - waiting for locator('[data-wbs-view=\"resource\"]').visible().locator('tr[data-dimension=\"resource\"][data-entity-id=\"6b1167db-18cd-4d91-92dc-2f4c6a01d1ee\"]').getByRole('button', { name: '상세', exact: true })\n    14 × locator resolved to <button type=\"button\" data-resource-action=\"entity-details\">상세</button>\n       - unexpected value \"inactive\"\n\n\n  85 |  await openWbsViewControls(root(page));\n  86 |  await expect(root(page)).toHaveAttribute(\"data-ready\",\"true\",{timeout:30_000});await expect(root(page).getByRole(\"combobox\",{name:\"개인\",exact:true})).toHaveValue(f.resource.id);await expect(root(page)).toContainText(\"현재 경로: 리소스 → Milestone → 공정\");\n> 87 |  await detail.press(\"Escape\");await expect(trigger).toBeFocused();\n     |                                                     ^\n  88 |  await expect(page.locator(\"[data-resource-compatibility]\")).toContainText(\"기존 분석·Plan·견적·Excel\");\n  89 |  const after=await f.snapshot();expect(after.data.assignments?.find(row=>row.id===f.assignment.id)).toMatchObject({id:f.assignment.id,allocation:{percent:80}});expect(after.data.assignments?.filter(row=>row.id!==f.assignment.id)).toEqual(before.data.assignments?.filter(row=>row.id!==f.assignment.id));expect(after.data.project.revision).toBe(before.data.project.revision+1);\n  90 | });\n    at /home/planner/Dev/masterGantt-798/tests/e2e/issue-736-resource-dashboard.spec.ts:87:53"
+      ]
+    }
+  ],
+  "sourceHashes": {
+    "src/features/resources/wbs-view-dashboard.tsx": "1228f8d45b0401623bbb7ac3d909539e1f3f5e925b995d4e74ea28ae0f0a48b0",
+    "src/features/resources/wbs-view.module.css": "83749e2a01011e7caabf789164317eab91d8fb84fd6c9daacbd1b477fab14d05",
+    "src/features/resources/wbs-view-composer.tsx": "9486fa288829255cb95337838831b07b13d83b1c7dbad410bac69d7b0a39035b",
+    "tests/e2e/issue-730-view-composer.spec.ts": "a157a36dcc989d9aa2c22eba2a17928344daf863ac9fbd9c1d7d9501b9fef75f",
+    "tests/e2e/issue-737-target0-acceptance.spec.ts": "2272bde8c6927e6e175f3241b1bb99e0b6c60b564077bcfd44b6e1c2aa13dc15",
+    "tests/e2e/issue-734-equipment-dashboard.spec.ts": "026e1dea9b2ae7fbe9faef3fa3972aa88847893b9cdc8da188eb7d17ace38214",
+    "tests/e2e/issue-735-system-dashboard.spec.ts": "85d7ed1f767977a16a4194ba3ced6252ef1c5726f9f7760dfe6cc31c308ca738",
+    "tests/e2e/issue-732-milestone-dashboard.spec.ts": "8b174471a62b9c4526c74529f143a19ac48f97c1b77a9ffad85a074fa69e52e2",
+    "tests/e2e/issue-733-process-workarea-dashboard.spec.ts": "0768e1e0ba1d09bf1b73fbaaae69fe78e3ae3caa024f736fb6a0507c9711b2ca",
+    "tests/e2e/issue-736-resource-dashboard.spec.ts": "20ff5e25250023911e36f9682a5afbe11caf5f41597a4f81812a2cbafbd6b897",
+    "tests/e2e/issue-762-process-workareas.spec.ts": "4e6db111c4f66994afc6fe9a4850215f420a984160aeebf97c7a4ade6b05837c",
+    "tests/e2e/helpers/wbs-controls.ts": "80fcc2bd50384a50e6edec3d35b51cac4f0b4c190994d30ca24d9ad6465d2738"
+  },
+  "nativeReport": "/tmp/issue798-native-attempt1.json (uncommitted)",
+  "rawTracePreservedLocally": "/tmp/issue798-first-run-test-results (uncommitted, may contain auth state)"
+}

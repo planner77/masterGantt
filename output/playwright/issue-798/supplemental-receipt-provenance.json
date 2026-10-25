@@ -1,0 +1,12 @@
+{
+  "scripts": [
+    "query-receipt.cli.js",
+    "after-query-receipt.cli.js"
+  ],
+  "purpose": "Intended reproducible supplemental read-only API query source, not throwaway auth code. Contains synthetic fixture IDs/specs/totals from before1440, no authentication request body/cookies/tokens. Loopback3198 only; each script asserts returned snapshot equals original before1440 snapshot.",
+  "originalBeforeReceipt": "before-supplemental-reports.json",
+  "finalAfterReceipt": "after-supplemental-reports.json",
+  "sourceBoundary": "Original browser before capture retained snapshot/spec/filter/totals, not raw IDs/Gates. Before supplemental receipt was read after presentation edit using unchanged backend source and identical canonical fixture/snapshot; do not describe it as original browser payload.",
+  "archiveResolution": "Source1/2 supplemental receipts moved inside corresponding after-source1/2 folders with their capture payloads.",
+  "rawTraceNotPublished": true
+}

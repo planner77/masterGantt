@@ -1,0 +1,19 @@
+{
+  "failureId": "F798-L001",
+  "status": "FAIL",
+  "scope": "Local selected Chromium attempt1; not remote CI failure",
+  "testSourceSha256": "a157a36dcc989d9aa2c22eba2a17928344daf863ac9fbd9c1d7d9501b9fef75f",
+  "productSourceHashes": {
+    "src/features/resources/wbs-view-composer.tsx": "9486fa288829255cb95337838831b07b13d83b1c7dbad410bac69d7b0a39035b",
+    "src/features/resources/wbs-view-dashboard.tsx": "1228f8d45b0401623bbb7ac3d909539e1f3f5e925b995d4e74ea28ae0f0a48b0",
+    "src/features/resources/wbs-view.module.css": "83749e2a01011e7caabf789164317eab91d8fb84fd6c9daacbd1b477fab14d05"
+  },
+  "errorExcerpt": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByTestId('wbs-view-dashboard').visible().getByLabel('작업 상태', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByTestId('wbs-view-dashboard').visible().getByLabel('작업 상태', { exact: true }) with timeout 5000ms\n  - waiting for getByTestId('wbs-view-dashboard').visible().getByLabel('작업 상태', { exact: true })",
+  "accessibilitySnapshotEvidence": [
+    "- combobox \"작업 상태\":"
+  ],
+  "cause": "New test getByLabel exact text lookup includes native select option text; accessible combobox name is correctly 작업 상태. Product/source and required assertions unchanged.",
+  "correction": "Use getByRole(combobox,{name:작업 상태,exact:true}); likewise sort native select.",
+  "rawTrace": "Retained only under ignored local test-results and later /tmp; not committed because traces may contain authentication state.",
+  "finalRerun": "NOT TESTED"
+}

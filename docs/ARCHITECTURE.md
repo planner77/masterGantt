@@ -1,3 +1,11 @@
+## Issue #479 PR #794 — API boundary와 trusted internal snapshot 보완
+
+`projectScopedAccessResponse(request)`는 `/api/projects/{id}` 모든 내부 scoped 라우트의 entry에서 **decode-once / canonical ID** → visibility / exact Project-scoped Cookie 세션을 검증한다. malformed id는404, private unauthed는401을 반환하고 handler/read/export로 진행하지 않는다. Public-facing direct GET/SSR은 다시 `getAuthorizedReadonlySnapshot`으로 검사하는 defense-in-depth를 제공한다. 내부 Import/Export/Task Assignment·Mutation 결과에 사용되는 `getReadonlySnapshot`은 DB aggregate 내부 trusted 경로로 남기며 외부 route에서 직접 호출할 수 없다. [Run #3223.1 직접 실패·P1 리뷰](ISSUE_479_FAILURE_ANALYSIS.md).
+
+## Issue #479 — Project visibility server ownership
+
+ProjectList public summary → private unlock command → existing edit session issue → authenticated server ProjectPage → Project Workspace. Global API request wrapper evaluates visibility/session for `/api/projects/{publicId}/*` (including GET, read-only POST/exports) before handler; canonical ProjectService validates private read again. SSR HTML/metadata/title are conditional on cookie-validated read and use a generic lock route when denied. Domain/DB owns visibility, not UI/SVAR. Copy/Template paths persist it in new Project row; settings mutation uses existing project transaction revision authority. [Security](SECURITY.md), [UX](PROJECT_UX.md), [Work Packet](exec-plans/active/ISSUE_479.md).
+
 ## Issue #785 — 공개 실물 DTO와 내부 archive 해석의 분리
 
 Route Handler → Service → Repository → SQLite와 기존 WBS/F3 해석기를 유지한다. 원본 그래프를 새 직접 행으로 물질화하지 않고 동일 read snapshot에서 실제 Equipment/System ID·원본 Task·scope/selection/coverage를 제공한다. Task 직접 연결의 기존 writer와 읽기 전용 compatibilityLinks는 분리하며 수정 전 영향도 실제 실물→정확 Task로 조회한다. 불완전한 참조는 빈 연결로 치환하지 않는다.

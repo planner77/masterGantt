@@ -1,3 +1,5 @@
+import { expectDashboardMetricsReadable } from "./helpers/dashboard-metrics";
+import { openWbsViewControls } from "./helpers/wbs-controls";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -20,6 +22,7 @@ async function openSystem(page: Page) {
   await expect(root(page)).toHaveAttribute("data-ready", "true");
 }
 async function preset(page: Page, label: string, spec: WbsViewSpec = defaultSpec) {
+  await openWbsViewControls(root(page));
   const composer = root(page).locator("details").filter({ has: page.locator("summary").filter({ hasText: /^조회 구성$/ }) });
   if (!await composer.evaluate(node => (node as HTMLDetailsElement).open)) await composer.locator(":scope > summary").click();
   await composer.getByRole("button", { name: label, exact: true }).click();
@@ -86,12 +89,24 @@ test("#735 실제 System 직접·조정 Task 집합과 고유 Assignment·선택
     expect(response.status()).toBe(200); await expect(root(page)).toHaveAttribute("data-ready", "true");
     return (await response.json()).data as WbsViewReportDto;
   };
+  await openWbsViewControls(root(page));
   const coordinatedUi = await filteredReport({ ...defaultSpec, systemView: "coordination" }, () => root(page).getByRole("combobox", { name: "시스템 연결 범위", exact: true }).selectOption("coordination"));
   expect(coordinatedUi.children.find(row => row.selector.id === f.mcs.id)!.taskIds).toEqual([f.task.taskId]);
   await root(page).getByText("시스템 속성 필터", { exact: true }).click();
   await root(page).getByRole("combobox", { name: "시스템 공정 범위", exact: true }).selectOption("project");
+  const draftConfirmation = await root(page).getAttribute("data-report-confirmation-id");
+  const controlsTrigger = root(page).getByRole("button", { name: /^필터·조회 구성/ });
+  await controlsTrigger.click(); await expect(root(page).locator("[data-wbs-controls]")).toBeHidden();
+  await expect(root(page)).toHaveAttribute("data-report-confirmation-id", draftConfirmation!);
+  await openWbsViewControls(root(page));
+  await expect(root(page).getByRole("combobox", { name: "시스템 공정 범위", exact: true })).toHaveValue("project");
+  await expect(root(page)).toHaveAttribute("data-report-confirmation-id", draftConfirmation!);
   const common = await filteredReport({ ...coordinatedUi.spec, systemIds: [f.mcs.id] }, () => root(page).getByRole("button", { name: "시스템 속성 필터 적용", exact: true }).click());
   expect(common.children.map(row => row.selector.id)).toEqual([f.mcs.id]);
+  await controlsTrigger.click();
+  await expect(root(page).locator('[aria-label="적용된 고급 조건"]')).toContainText(f.mcs.name);
+  await expect(root(page)).toContainText("시스템 연결 범위: 조율 범위 포함");
+  await openWbsViewControls(root(page));
   await root(page).getByRole("combobox", { name: "시스템 공정 범위", exact: true }).selectOption("");
   await root(page).getByRole("combobox", { name: "시스템 PI", exact: true }).selectOption(f.resource.id);
   await root(page).getByRole("combobox", { name: "시스템 개발자", exact: true }).selectOption(f.resource.id);
@@ -192,6 +207,7 @@ test("#735 긴 System 이름 5폭 내부 스크롤·표 정렬·키보드 focus"
   const directory = resolve("output/playwright/issue-735"); await mkdir(directory, { recursive: true }); const geometry = [];
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
+    await expectDashboardMetricsReadable(root(page).getByTestId("system-dashboard-summary"), width);
     const row = systemRow(page, f.acsA.id), toggle = row.getByRole("button", { name: /하위 접기$/ }); await toggle.focus(); await toggle.press("Tab");
     const action = row.getByRole("button", { name: "상세", exact: true }); await expect(action).toBeFocused();
     const table = root(page).getByRole("table", { name: "공통 계층 결과", exact: true });
@@ -244,11 +260,35 @@ test("#735 구버전 System 저장 spec·펼침·상세 선택은 직접 범위�
   const received = reportResponse(page, { spec: legacy.spec, filters: {} }); await page.reload(); await openSystem(page);
   const restored = (await (await received).json()).data as WbsViewReportDto;
   expect(restored.spec).toEqual(legacy.spec); expect(restored.taskIds.sort()).toEqual(legacy.taskIds.sort());
+  await openWbsViewControls(root(page));
   await expect(root(page).getByRole("combobox", { name: "시스템 연결 범위", exact: true })).toHaveValue("legacy");
   await expect(systemRow(page, f.acsA.id).getByRole("button", { name: /하위 접기$/ })).toBeVisible();
   const detail = root(page).getByRole("region", { name: "계층 원본 상세", exact: true }); await expect(detail).toHaveAttribute("data-detail-state", "ready");
   await expect(detail.getByRole("heading", { name: f.acsA.name, exact: true })).toBeVisible();
   const stored = await page.evaluate(publicId => JSON.parse(localStorage.getItem(`mastergantt:wbs-view:1:${publicId}:system`)!).state, f.publicId);
   expect(stored.spec).toEqual(legacy.spec); expect(stored.selected).toEqual(state.selected); expect(stored.expanded).toEqual(state.expanded); expect(stored.focus).toBe(state.focus);
+  await expect(root(page)).toContainText("시스템 연결 범위: 기존 전체 작업 (호환)");
+  const direct = await f.query({ systemView: "direct", levels: ["process"] });
+  for (const systemIds of [[f.acsA.id], []]) {
+    // An IDs-only saved spec is direct selection, including an explicit empty selection.
+    const idsOnly = await f.query({ systemView: undefined, systemIds, levels: ["process"] });
+    expect(idsOnly.spec.systemView).toBeUndefined(); expect(idsOnly.spec.systemIds).toEqual(systemIds);
+    if (!systemIds.length) expect(idsOnly.taskIds).toEqual([]);
+    const idsState = { ...state, spec: idsOnly.spec, expanded: [], selected: null, focus: null };
+    await page.evaluate(({ publicId, state }) => localStorage.setItem(`mastergantt:wbs-view:1:${publicId}:system`, JSON.stringify({ schema: "wbs-view-state/1", projectPublicId: publicId, state })), { publicId: f.publicId, state: idsState });
+    const idsReceived = reportResponse(page, { spec: idsOnly.spec, filters: {} }); await page.reload(); await openSystem(page);
+    const restoredIds = (await (await idsReceived).json()).data as WbsViewReportDto;
+    expect(restoredIds.snapshotId).toBe(idsOnly.snapshotId); expect(restoredIds.taskIds).toEqual(idsOnly.taskIds);
+    await expect(root(page)).toContainText("시스템 연결 범위: 직접 연결만");
+    await expect(root(page)).toContainText(`시스템 선택: ${systemIds.length}식`);
+    const resetSpec = { ...idsOnly.spec, systemView: "direct" as const }; delete resetSpec.systemIds;
+    const resetReceived = reportResponse(page, { spec: resetSpec, filters: {} });
+    await root(page).getByRole("button", { name: "고급 조건 초기화", exact: true }).click();
+    const resetReport = (await (await resetReceived).json()).data as WbsViewReportDto;
+    await expect(root(page)).toHaveAttribute("data-ready", "true");
+    expect(resetReport.spec).toEqual(resetSpec); expect(resetReport.taskIds).toEqual(direct.taskIds);
+    await expect(root(page)).toContainText("시스템 연결 범위: 직접 연결만");
+    await expect(root(page)).toContainText("시스템 선택: 전체");
+  }
   expect((await f.snapshot()).data).toEqual(before.data);
 });

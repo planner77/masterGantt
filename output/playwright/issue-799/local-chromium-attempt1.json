@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "scope": "Local Chromium execution; not remote CI",
+  "sanitization": "Runtime stdout/stderr, raw logs, full config and attachment bodies omitted; error first line only (request call logs/headers omitted); execution verdicts retained. Original is ignored/local only.",
+  "original": {
+    "path": ".prepr-reports/issue799-originals/local-chromium-attempt1.json",
+    "sha256": "7c690c66ada8b40d553ef8019f1a993891c1452e9ce470a204ad05b941865bba",
+    "bytes": 51508
+  },
+  "command": [
+    "/home/planner/.nvm/versions/node/v22.14.0/bin/node",
+    "/home/planner/Dev/masterGantt-799/node_modules/.bin/playwright",
+    "test",
+    "--config",
+    "tests/config/playwright.config.ts",
+    "tests/e2e/issue-732-milestone-dashboard.spec.ts:39",
+    "tests/e2e/issue-733-process-workarea-dashboard.spec.ts:121",
+    "tests/e2e/issue-734-equipment-dashboard.spec.ts:184",
+    "tests/e2e/issue-735-system-dashboard.spec.ts:203",
+    "tests/e2e/issue-736-resource-dashboard.spec.ts:49",
+    "tests/e2e/issue-736-resource-dashboard.spec.ts:94",
+    "tests/e2e/issue-736-resource-dashboard.spec.ts:156",
+    "--reporter=json"
+  ],
+  "stats": {
+    "startTime": "2026-10-25T01:34:38.648Z",
+    "duration": 15787.653999999999,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 7,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "file": "issue-732-milestone-dashboard.spec.ts",
+      "line": 39,
+      "title": "#732 Target0 Milestone 단독·두 계층·전체 Gate·5폭과 keyboard",
+      "tests": [
+        {
+          "status": "unexpected",
+          "expectedStatus": "passed",
+          "results": [
+            {
+              "status": "failed",
+              "duration": 3210,
+              "retry": 0,
+              "error": "Error: 400 {\"error\":{\"code\":\"INVALID_REQUEST\",\"message\":\"The project master input is invalid.\",\"details\":[],\"requestId\":\"5d613262-ba20-41fd-bc38-8a92e77a3f7e\"}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "issue-733-process-workarea-dashboard.spec.ts",
+      "line": 121,
+      "title": "#733 공정 조회 긴 이름·5폭 내부 스크롤·키보드",
+      "tests": [
+        {
+          "status": "unexpected",
+          "expectedStatus": "passed",
+          "results": [
+            {
+              "status": "failed",
+              "duration": 554,
+              "retry": 0,
+              "error": "Error: 400 {\"error\":{\"code\":\"INVALID_REQUEST\",\"message\":\"The project master input is invalid.\",\"details\":[],\"requestId\":\"837154ec-6379-4c7a-add5-49d6cbd9eeb4\"}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "issue-734-equipment-dashboard.spec.ts",
+      "line": 184,
+      "title": "#734 5폭 긴 이름·내부 overflow·열 정렬·native Tab/Escape",
+      "tests": [
+        {
+          "status": "unexpected",
+          "expectedStatus": "passed",
+          "results": [
+            {
+              "status": "failed",
+              "duration": 615,
+              "retry": 0,
+              "error": "Error: 400 {\"error\":{\"code\":\"INVALID_REQUEST\",\"message\":\"The project master input is invalid.\",\"details\":[],\"requestId\":\"7d2e6911-4852-4f41-ae78-fed85a74b5df\"}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "issue-735-system-dashboard.spec.ts",
+      "line": 203,
+      "title": "#735 긴 System 이름 5폭 내부 스크롤·표 정렬·키보드 focus",
+      "tests": [
+        {
+          "status": "unexpected",
+          "expectedStatus": "passed",
+          "results": [
+            {
+              "status": "failed",
+              "duration": 540,
+              "retry": 0,
+              "error": "Error: 400 {\"error\":{\"code\":\"INVALID_REQUEST\",\"message\":\"The project master input is invalid.\",\"details\":[],\"requestId\":\"63709d3c-803d-4d4a-9c78-d0146a73c3d1\"}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "issue-736-resource-dashboard.spec.ts",
+      "line": 49,
+      "title": "#736 Target0 Resource 단독·동적계층·개인 Plan·같은 snapshot Excel·정확 Assignment 복귀",
+      "tests": [
+        {
+          "status": "unexpected",
+          "expectedStatus": "passed",
+          "results": [
+            {
+              "status": "failed",
+              "duration": 451,
+              "retry": 0,
+              "error": "Error: 400 {\"error\":{\"code\":\"INVALID_REQUEST\",\"message\":\"The project master input is invalid.\",\"details\":[],\"requestId\":\"959c9802-498a-4b0b-b310-701eef6fdd35\"}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "issue-736-resource-dashboard.spec.ts",
+      "line": 94,
+      "title": "#736 5폭 keyboard·focus·내부 overflow 및 stale/error 잠금",
+      "tests": [
+        {
+          "status": "unexpected",
+          "expectedStatus": "passed",
+          "results": [
+            {
+              "status": "failed",
+              "duration": 548,
+              "retry": 0,
+              "error": "Error: 400 {\"error\":{\"code\":\"INVALID_REQUEST\",\"message\":\"The project master input is invalid.\",\"details\":[],\"requestId\":\"aa0d662e-7af2-44e7-8d04-27aae30b1333\"}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "issue-736-resource-dashboard.spec.ts",
+      "line": 156,
+      "title": "#736 readonly·응답 역전·낡은 Excel 파일 폐기",
+      "tests": [
+        {
+          "status": "unexpected",
+          "expectedStatus": "passed",
+          "results": [
+            {
+              "status": "failed",
+              "duration": 490,
+              "retry": 0,
+              "error": "Error: 400 {\"error\":{\"code\":\"INVALID_REQUEST\",\"message\":\"The project master input is invalid.\",\"details\":[],\"requestId\":\"5efd9315-e376-43ad-b2ea-08c766cb7c1e\"}}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

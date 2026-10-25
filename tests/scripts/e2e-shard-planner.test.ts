@@ -102,9 +102,9 @@ describe("historical E2E shard planner", () => {
     expect(plan.schemaVersion).toBe(1);
     expect(plan.shardCount).toBe(8);
     expect(plan.shards.map(group => group.shard).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
-    // #762까지의 기존 138개 spec을 유지하고 #737 교차 기능 수용을 Shard6에 명시 배치한다.
+    // The #479 private read security spec is deliberately assigned to shard 8, not silently dropped.
     // 누락·중복은 계속 실패해야 하며 hash fallback으로 대체하지 않는다.
-    expect(plan.shards.map(group => group.files.length)).toEqual([18, 17, 18, 17, 17, 18, 17, 17]);
+    expect(plan.shards.map(group => group.files.length)).toEqual([18, 17, 18, 17, 17, 18, 17, 18]);
     expect(new Set(entries).size).toBe(entries.length);
     expect([...entries].sort()).toEqual(discovered); // New specs require deliberate plan slots.
     const selected = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(shard =>

@@ -1,3 +1,7 @@
+## Issue #479 ADR — Visibility-aware detailed read and existing password (2026-10-24)
+
+Preserve D02 all-project listing but make detailed Project reads visibility-aware. `public` gives existing anonymous readonly snapshot; `private` requires exactly that Project's current edit-session for detailed HTTP/export/SSR. Reuse existing project Password/KDF/single last-unlock cookie; success grants edit as before. No new read-session/SSO/RBAC, and SVAR readonly is not security authority. Creation defaults public; Copy preserves source, Template instantiate chooses independent visibility. public↔private changes project revision but never password/auth_version. This is application-owned, not SVAR-owned. [Work Packet](exec-plans/active/ISSUE_479.md).
+
 ## Issue #659 — PR Shard 내부 `--max-failures=1` 및 W05 개별 타임아웃 결정 (2026-10-13)
 
 - 관찰: #2691 E2E shard4 테스트 53번 W05가 30s timeout으로 실패한 뒤 130개 중 나머지 검증이 진행되며 matrix fail-fast 취소가 늦었다. 첫 오류는 단언 완화 없이 별도 Test에 유한 60s 상한을 설정한다(이전 #2690 22.6s PASS, #2691 30.2s FAIL). `browserContext.close` protocol 오류는 타임아웃 이후 2차 예외로 보고, 무시/억제하지 않는다.

@@ -1,3 +1,4 @@
+import { openWbsViewControls } from "./helpers/wbs-controls";
 import { waitForWbsReport } from "./helpers/wbs-report";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import type { Locator, Page } from "@playwright/test";
@@ -26,6 +27,7 @@ function report(page: Page, root: typeof roots[number], levels: WbsViewSpec["lev
 }
 
 async function composer(page: Page) {
+  await openWbsViewControls(dashboard(page));
   const disclosure = dashboard(page).locator("details").filter({ has: page.locator("summary").filter({ hasText: /^조회 구성$/ }) });
   if (!await disclosure.evaluate(element => (element as HTMLDetailsElement).open)) await disclosure.locator("summary").click();
   return disclosure;

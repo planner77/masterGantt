@@ -221,6 +221,7 @@
         "tests/e2e/project-notifications.spec.ts",
         "tests/e2e/project-settings-layout-490.spec.ts",
         "tests/e2e/project-status.spec.ts",
+        "tests/e2e/project-visibility.spec.ts",
         "tests/e2e/resource-plan-api.spec.ts",
         "tests/e2e/resource-plan-ui.spec.ts"
       ]

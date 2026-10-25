@@ -1,3 +1,5 @@
+import { expectDashboardMetricsReadable } from "./helpers/dashboard-metrics";
+import { openWbsViewControls } from "./helpers/wbs-controls";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -19,6 +21,7 @@ async function openProcess(page: Page) {
   await expect(root(page)).toHaveAttribute("data-ready","true");
 }
 async function preset(page: Page, label: string) {
+  await openWbsViewControls(root(page));
   const panel = root(page).locator("details").filter({has:page.locator("summary").filter({hasText:/^조회 구성$/})});
   if (!await panel.evaluate(node=>(node as HTMLDetailsElement).open)) await panel.locator("summary").click();
   await panel.getByRole("button",{name:label,exact:true}).click();
@@ -133,6 +136,7 @@ test("#733 공정 조회 긴 이름·5폭 내부 스크롤·키보드", async ({
   const geometry = [];
   for(const width of [390,768,1024,1440,1920]) {
     await page.setViewportSize({width,height:1000});
+    await expectDashboardMetricsReadable(root(page).getByTestId("process-workarea-summary"), width);
     const table = root(page).getByRole("table",{name:"공통 계층 결과",exact:true});
     const firstRow = table.locator(`tr[data-dimension="process"][data-entity-id="${f.processIds[0]}"]`);
     const toggle=firstRow.getByRole("button",{name:/하위 접기$/});
