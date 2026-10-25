@@ -495,6 +495,45 @@ except trace.TraceError:
 else:
     raise SystemExit("the failed #586 merge message must not silently pass trace validation")
 
+# MAIN-808-001: PR #811 passed Full/Trusted QA, but its immutable main
+# merge carried an operator-supplied multiline commit body. Run #3299.1
+# must remain FAIL; a later same-Issue corrective PR requires a fresh SHA,
+# full gates and an exact single-line/empty-body merge payload.
+failed_808_message = (
+    "Issue #808 · PR #811 · 리소스 분석 집계·범위 계약 정비\n\n"
+    "Merge PR #811 for Issue #808.\n\n"
+    "Owner/Manager ACCEPT: PR Full #3298.1 SUCCESS, Trusted QA #945.1 "
+    "SUCCESS, all review threads resolved, strict main aligned.\n\n"
+    "Refs #808"
+)
+require(
+    main_run_name.parse_merge_title(failed_808_message) is None,
+    "historical Issue #808 multiline Main #3299 must never become PASS",
+)
+try:
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": failed_808_message},
+    })
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("Main #3299 invalid merge body must stay blocked")
+corrective_808_payload = main_run_name.merge_api_payload(
+    808, 999, "리소스 분석 Main CI 복구", "a" * 40
+)
+require(
+    corrective_808_payload["commit_message"] == ""
+    and main_run_name.parse_merge_title(corrective_808_payload["commit_title"])
+        == (808, 999, "리소스 분석 Main CI 복구")
+    and trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": corrective_808_payload["commit_title"]},
+    }) == (808, 999),
+    "corrective #808 merge must use a lease-bound, one-line empty-body payload",
+)
+
+
 # Issue #603 / PR #604: a *one-line* English-only merge title was invalid.
 # This exact historical main SHA cannot be rewritten; a later same-Issue PR
 # with full-scope CI and a Korean canonical title must supersede its failed CI.
