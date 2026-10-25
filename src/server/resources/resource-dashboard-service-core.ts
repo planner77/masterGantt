@@ -1,5 +1,6 @@
 import { workAreaBelongsToProcess } from "../../domain/resources/resource-kpi-targets";
 import { resolveWbsTaskLedger, WbsTaskLedgerInputError } from "../../domain/resources/wbs-task-ledger";
+import { buildResourceAnalysis, ResourceAnalysisInputError } from "../../domain/resources/resource-analysis";
 import { WBS_VIEW_LIMITS, type WbsViewResponseDto, type WbsViewResponseContext, type WbsViewReportDto, type WbsViewScopeDto } from "../../contracts/wbs-dashboard-views";
 import { parseWbsViewQuery } from "./wbs-dashboard-views-query-core";
 import { createWbsViewProjection, wbsViewSelectedSources } from "./wbs-dashboard-views-core";
@@ -149,6 +150,16 @@ export class ResourceDashboardService {
           const rows = projection.view === "tasks" ? selected.taskIds.slice(page.start, page.end).map(taskId => ({ ...this.detailRow(snapshot, taskId, null), taskSources: selected.rows.find(row => row.taskId === taskId)!, selectedSources: selectedSources.find(row => row.taskId === taskId)!.sources, instancePaths: instancePaths.filter(row => row.taskId === taskId) })) : selected.assignments.slice(page.start, page.end).map(row => ({ ...this.detailRow(snapshot, row.taskId, row), taskSources: selected.rows.find(task => task.taskId === row.taskId)!, selectedSources: selectedSources.find(task => task.taskId === row.taskId)!.sources, instancePaths: instancePaths.filter(task => task.taskId === row.taskId) }));
           data = { ...context, projection: "details", path: projection.path, view: projection.view, offset: projection.offset, limit: projection.limit, totalCount, nextOffset: projection.offset + rows.length < totalCount ? projection.offset + rows.length : null, rows };
         } else {
+          // The legacy prepared input retains undefined filter keys. The R2
+          // allowlist consumes only effective, serializable filter declarations.
+          const analysisFilters = Object.fromEntries(Object.entries(ledger.input.kpi.filters ?? {}).filter(([, value]) => value !== undefined));
+          const analysisSource = { sourceContext, fetchGeneration: input.analysis?.fetchGeneration ?? 1, filters: analysisFilters };
+          const analysis = input.analysis ? planCall(() => buildResourceAnalysis({ ledger: { ...ledger.input, kpi: { ...ledger.input.kpi, filters: analysisFilters } }, source: analysisSource, expectedSource: analysisSource,
+            sourceScope: { source: analysisSource, taskIds: selected.taskIds, assignmentIds: selected.assignmentIds,
+              // Pass the R2 identity contract explicitly; archived relation
+              // evidence remains owned by the existing WBS report renderer.
+              taskRows: selected.rows.map(({ taskId, processIds, workAreaIds, equipmentIds, systemIds, milestoneTaskId }) => ({ taskId, processIds, workAreaIds, equipmentIds, systemIds, milestoneTaskId })),
+              diagnosticTaskIds: selected.selection.t0.map(row => row.taskId) }, query: input.analysis!.query })) : undefined;
           const calculated = { snapshot, selection: selected.selection, referenceRows: selected.assignments, excludedRows: [], diagnosticSelection: selected.selection, diagnosticDomain: snapshot.domain };
           const equipmentTypeNames = new Map(source.equipmentTypes.map(row => [row.code, row.name]));
           const equipmentAreas = new Map<string, typeof source.equipmentWorkAreas>();
@@ -158,7 +169,7 @@ export class ResourceDashboardService {
           }
           const resourceScope: ResourceDrillScope = { kind: "exactAssignments", assignmentIds: selected.assignmentIds };
           const resourceReport = input.spec.root === "resource" && snapshot.filters.granularity ? this.getDashboard(publicId, input.filters, resourceScope) : undefined;
-          data = { ...context, ...(resourceReport ? { resourceAdapter: { report: resourceReport, binding: { sourceContext: resourceReport.resourceScopeContext!, scope: resourceScope } } } : {}), projection: "report", ...scope, totals: view.totals, children: view.children, taskSources: selected.rows, configuration: ledger.configuration, configurationCatalog: {
+          data = { ...context, ...(analysis ? { analysis } : {}), ...(resourceReport ? { resourceAdapter: { report: resourceReport, binding: { sourceContext: resourceReport.resourceScopeContext!, scope: resourceScope } } } : {}), projection: "report", ...scope, totals: view.totals, children: view.children, taskSources: selected.rows, configuration: ledger.configuration, configurationCatalog: {
               processes: snapshot.targetSnapshot.identity.processes.map(({ id, name, occurrenceId }) => ({ id, name, occurrenceId })),
               workAreas: snapshot.targetSnapshot.identity.workAreas.map(area => ({ id:area.id, name:area.name, occurrenceId:area.occurrenceId, processIds: snapshot.targetSnapshot.identity.processes.filter(process => workAreaBelongsToProcess(area,process)).map(process => process.id) })),
               instances: snapshot.targetSnapshot.logistics.instances.map(instance => ({ kind: instance.kind, id: instance.entityId, name: labels.get(JSON.stringify([instance.kind, instance.entityId]))! })),
@@ -177,6 +188,11 @@ export class ResourceDashboardService {
         assertResourcePlanResponseBytes({ data });
         return data;
       } catch (error) {
+        if (error instanceof ResourceAnalysisInputError) {
+          if (error.code === "ANALYSIS_LIMIT_EXCEEDED") resourceDashboardLimit("projection.resourceAnalysis");
+          if (error.code === "SOURCE_MISMATCH") stale();
+          invalidSelection();
+        }
         if (error instanceof WbsTaskLedgerInputError) { if (error.code.includes("LIMIT") || error.code.includes("BUDGET")) resourceDashboardLimit("projection.wbs"); invalidSelection(); }
         if (error instanceof ResourceKpiTargetLimitError) resourceDashboardLimit(`projection.wbs.${error.dimension}`);
         if (error instanceof ResourceKpiTargetInputError) invalidSelection();

@@ -3,6 +3,8 @@ import { parseResourceDashboardQuery } from "./resource-dashboard-query-core";
 import { PublicApiError } from "../http/api-error-core";
 import { isCanonicalUuidV4 } from "../projects/project-contract";
 import type { ResourceDrillScope } from "../../contracts/resource-drill";
+import { RESOURCE_ANALYSIS_DIMENSIONS, type ResourceAnalysisConditions, type ResourceAnalysisQuery } from "../../contracts/resource-analysis";
+import { RESOURCE_DASHBOARD_LIMITS } from "../../contracts/resource-dashboard";
 const invalid = (): never => { throw new PublicApiError(400, "INVALID_REQUEST", "WBS 조회 명세와 선택 경로를 확인해 주세요."); };
 function object(value: unknown, keys: readonly string[]): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).some(key => !keys.includes(key))) return invalid();
@@ -11,7 +13,7 @@ function object(value: unknown, keys: readonly string[]): Record<string, unknown
 const dimension = (value: unknown): WbsViewDimension => typeof value === "string" && WBS_VIEW_DIMENSIONS.includes(value as WbsViewDimension) ? value as WbsViewDimension : invalid();
 const scalarInteger = (value: unknown, fallback: number, min: number, max: number): number => value === undefined ? fallback : typeof value === "number" && Number.isSafeInteger(value) && value >= min && value <= max ? value : invalid();
 export function parseWbsViewQuery(value: unknown): WbsViewQueryInput {
-  const input = object(value, ["spec", "filters", "projection", "scope"]), spec = object(input.spec, ["version", "contextSourceVersion", "root", "levels", "systemView", "systemIds"]);
+  const input = object(value, ["spec", "filters", "projection", "scope", "analysis"]), spec = object(input.spec, ["version", "contextSourceVersion", "root", "levels", "systemView", "systemIds"]);
   if (spec.version !== "wbs-view:v1" || spec.contextSourceVersion !== "explicit-task-context:v1") invalid();
   const root = dimension(spec.root), levels: WbsViewLevel[] = [];
   if ((spec.systemView !== undefined || spec.systemIds !== undefined) && root !== "system") invalid();
@@ -74,5 +76,27 @@ export function parseWbsViewQuery(value: unknown): WbsViewQueryInput {
       }
     }
   }
-  return { spec: { version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root, levels, ...(spec.systemView === undefined ? {} : { systemView: spec.systemView as "direct" | "coordination" }), ...(systemIds === undefined ? {} : { systemIds }) }, filters: checked, ...(scope ? { scope } : {}), projection };
+  let analysis: WbsViewQueryInput["analysis"];
+  if (input.analysis !== undefined) {
+    if (projection.kind !== "report") invalid();
+    const raw = object(input.analysis, ["query", "fetchGeneration"]);
+    if (typeof raw.fetchGeneration !== "number" || !Number.isSafeInteger(raw.fetchGeneration) || raw.fetchGeneration < 1) invalid();
+    const query = object(raw.query, ["conditions", "pivot", "granularity", "unit"]);
+    const pivot = query.pivot;
+    if (pivot !== undefined && (!Array.isArray(pivot) || pivot.length > 2 || new Set(pivot).size !== pivot.length || pivot.some(axis => !RESOURCE_ANALYSIS_DIMENSIONS.includes(axis)))) invalid();
+    if (query.granularity !== undefined && query.granularity !== "week" && query.granularity !== "month" || query.unit !== undefined && query.unit !== "M/D" && query.unit !== "M/M") invalid();
+    const conditions: ResourceAnalysisConditions = {};
+    if (query.conditions !== undefined) {
+      const values = object(query.conditions, RESOURCE_ANALYSIS_DIMENSIONS);
+      let ids = 0;
+      for (const [axis, selected] of Object.entries(values)) {
+        if (!Array.isArray(selected) || selected.length > RESOURCE_DASHBOARD_LIMITS.idsPerField || selected.some(id => id !== null && (typeof id !== "string" || !id.length || id.length > 100))) invalid();
+        ids += (selected as unknown[]).length;
+        if (ids > RESOURCE_DASHBOARD_LIMITS.totalIds) invalid();
+        conditions[axis as keyof ResourceAnalysisConditions] = [...new Set(selected as (string | null)[])];
+      }
+    }
+    analysis = { fetchGeneration: raw.fetchGeneration as number, query: { ...query, ...(query.conditions === undefined ? {} : { conditions }) } as ResourceAnalysisQuery };
+  }
+  return { spec: { version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root, levels, ...(spec.systemView === undefined ? {} : { systemView: spec.systemView as "direct" | "coordination" }), ...(systemIds === undefined ? {} : { systemIds }) }, filters: checked, ...(scope ? { scope } : {}), projection, ...(analysis ? { analysis } : {}) };
 }

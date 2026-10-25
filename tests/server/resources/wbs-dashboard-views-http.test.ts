@@ -4,7 +4,8 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import type { WbsViewDimension, WbsViewLevel, WbsViewQueryInput } from "../../../src/contracts/wbs-dashboard-views";
+import type { WbsViewDimension, WbsViewLevel, WbsViewQueryInput, WbsViewReportDto } from "../../../src/contracts/wbs-dashboard-views";
+import { selectResourceAnalysisDetails, selectResourceAnalysisPlanDetails } from "../../../src/domain/resources/resource-analysis";
 import { handleWbsViewQuery } from "../../../src/server/resources/wbs-dashboard-views-handlers-core";
 import { handleProjectExcelExport } from "../../../src/server/exports/project-excel-export-handler-core";
 import { openDatabase } from "../../../src/server/db/core";
@@ -405,5 +406,99 @@ describe("#729 migrated SQLite → production handler → actual HTTP acceptance
     });
     const evidence = { environment: "Node HTTP socket → production handler → actual migrated SQLite; not Next browser E2E", baseline: { tasks: 8, members: 2, queries: baseline.queries, elapsedMs: baseline.elapsedMs, responseBytes: baseline.responseBytes }, increased: { tasks: 128, assignments: 124, members: 27, queries: increased.queries, elapsedMs: increased.elapsedMs, responseBytes: increased.responseBytes }, queryPlans };
     if (process.env.ISSUE_729_BENCHMARK_OUTPUT) writeFileSync(process.env.ISSUE_729_BENCHMARK_OUTPUT, JSON.stringify(evidence, null, 2));
+  });
+});
+
+// #809 extends the real transport oracle rather than duplicating its server fixture.
+describe("#809 same-transaction chart analysis", () => {
+  it.each(["direct", "mixed"] as const)("%s opt-in report preserves canonical totals, exact IDs, source generation and nonadditive cells", async mode => {
+    const f = await fixture(mode), before = f.state();
+    const plain = (await f.report(spec("resource"))).data;
+    expect(plain).not.toHaveProperty("analysis");
+    const response = await f.query({ spec: spec("resource"), filters, analysis: { fetchGeneration: 7, query: { pivot: ["resource", "process"], unit: "M/M", granularity: "week" } } });
+    expect(response.status, await response.clone().text()).toBe(200);
+    const data = (await response.json()).data as WbsViewReportDto, model = data.analysis!;
+    expect(model.scope.source.sourceContext).toEqual(data.sourceContext);
+    expect(model.scope.source.fetchGeneration).toBe(7);
+    expect(model.scope.sourceScope!.taskIds).toEqual(data.taskIds);
+    expect(model.scope.sourceScope!.assignmentIds).toEqual(data.assignmentIds);
+    expect(model.total.tasks).toEqual(data.totals.tasks);
+    expect(model.total.assignments).toEqual(data.totals.assignments);
+    expect(model.total.assignments.effort).toMatchObject({ knownMd: 14, plannedMm: 0.7 });
+    expect(model.metadata.subtotalsAdditive).toBe(false);
+    expect(model.fullMilestones).toEqual(data.fullMilestones);
+    expect(JSON.stringify(model)).not.toMatch(/targetId|targetSources|targetMembers|targetWithoutTaskIds/);
+    for (const archived of f.targets) expect(JSON.stringify(model)).not.toContain(archived.id);
+    const exact = selectResourceAnalysisDetails(model, model.total.selector, model.scope.source);
+    expect(exact.taskIds.sort()).toEqual([...data.taskIds].sort());
+    expect(exact.assignmentIds.sort()).toEqual([...data.assignmentIds].sort());
+    const planIds = model.plan.resources.flatMap(row => selectResourceAnalysisPlanDetails(model, { scopeKey: model.scope.scopeKey, row: { kind: "resource", resourceId: row.resourceId }, demandScope: "selected", periodKey: "all", granularity: "week" }, model.scope.source).assignmentIds);
+    expect([...new Set(planIds)].sort()).toEqual([...data.assignmentIds].sort());
+    expect(f.state()).toEqual(before);
+  });
+
+  it("analysis conditions never expand source exactAssignments or reintroduce a co-assignee ghost Task", async () => {
+    const f = await fixture("direct"), r1 = f.resources.get("R1")!, r2 = f.resources.get("R2")!, task = f.tasks.get("T2")!;
+    f.catalog.replaceTaskAssignments({ projectId: f.project.id, taskId: task.id, now, targets: [{ kind: "resource", internalId: r2.id, publicId: r2.publicId, assignmentPublicId: f.assignmentIds.get("A2")!, assignmentStart: null, assignmentEnd: null, allocationPercent: 80 }] });
+    const body = { spec: spec("resource"), filters, scope: { kind: "exactAssignments", assignmentIds: [f.assignmentIds.get("A1")!] }, analysis: { fetchGeneration: 1, query: { pivot: ["resource"], conditions: { resource: [r2.publicId] } } } };
+    const empty = await f.query(body); expect(empty.status, await empty.clone().text()).toBe(200);
+    const model = (await empty.json()).data.analysis;
+    expect(model.total.taskIds).toEqual([]); expect(model.total.assignmentIds).toEqual([]);
+    const selected = await f.query({ ...body, analysis: { ...body.analysis, query: { ...body.analysis.query, conditions: { resource: [r1.publicId] } } } });
+    const data = (await selected.json()).data as WbsViewReportDto;
+    expect(data.analysis!.total.taskIds).toEqual([f.tasks.get("T1")!.publicId]);
+    expect(data.analysis!.total.assignmentIds).toEqual([f.assignmentIds.get("A1")]);
+    expect(data.analysis!.fullMilestones).toEqual(data.fullMilestones);
+  });
+
+  it("shared5 and physical source clipping retain nonpersonal diagnostics and precise source rows", async () => {
+    const f = await fixture("direct"), assignmentId = f.assignmentIds.get("A3")!, taskId = f.tasks.get("T3")!.publicId;
+    const response = await f.query({ spec: spec("resource"), filters: { ...filters, taskIds: [taskId] }, analysis: { fetchGeneration: 2, query: { pivot: ["resource", "workArea"], conditions: { process: [f.processA.publicId] } } } });
+    expect(response.status, await response.clone().text()).toBe(200);
+    const data = (await response.json()).data as WbsViewReportDto, model = data.analysis!;
+    expect(model.total.assignments.effort.knownMd).toBe(5);
+    expect(model.total.assignmentIds).toEqual([assignmentId]);
+    expect(model.taskSources[0].processIds).toEqual([f.processA.publicId]);
+    expect(model.scope.sourceScope!.diagnosticTaskIds).toEqual([taskId]);
+    expect(model.fullMilestones).toEqual(data.fullMilestones);
+    expect(JSON.stringify(data)).not.toMatch(/"(?:targetId|targetIds|targetSources|targetMembers)"/);
+  });
+
+  it("unknown analysis input, bounded IDs and nonreport opt-ins fail closed without mutation", async () => {
+    const f = await fixture("direct"), before = f.state(), report = (await f.report(spec("resource"))).data;
+    const valid = { fetchGeneration: 1, query: {} };
+    for (const analysis of [
+      null, {}, { ...valid, other: true }, { ...valid, fetchGeneration: 0 }, { ...valid, fetchGeneration: 1.5 },
+      { ...valid, query: { unknown: true } }, { ...valid, query: { pivot: ["resource", "resource"] } },
+      { ...valid, query: { pivot: ["target"] } }, { ...valid, query: { unit: "hours" } },
+      { ...valid, query: { granularity: "day" } }, { ...valid, query: { conditions: { target: [null] } } },
+      { ...valid, query: { conditions: { resource: [""] } } }, { ...valid, query: { conditions: { resource: Array(201).fill(null) } } },
+    ]) {
+      const result = await f.query({ spec: spec("resource"), filters, analysis });
+      expect(result.status, JSON.stringify(analysis)).toBe(400);
+    }
+    for (const projection of [{ kind: "scope", snapshotId: report.snapshotId, path: [] }, { kind: "details", snapshotId: report.snapshotId, path: [], view: "tasks" }]) {
+      expect((await f.query({ spec: spec("resource"), filters, analysis: valid, projection })).status).toBe(400);
+    }
+    const foreign = await f.query({ spec: spec("resource"), filters, analysis: { ...valid, query: { conditions: { resource: [randomUUID()] } } } });
+    expect(foreign.status).toBe(400); expect((await foreign.json()).error.code).toBe("INVALID_SELECTION");
+    expect((await f.query({ spec: spec("resource"), filters, analysis: valid }, "https://foreign.example")).status).toBe(403);
+    expect(f.state()).toEqual(before);
+  });
+
+  it("Plan matrix budget is a bounded422 response with no partial chart or mutation", async () => {
+    const f = await fixture("direct");
+    const targets = Array.from({ length: 100 }, (_, index) => {
+      const resource = f.catalog.insertResource({ publicId: randomUUID(), name: `Chart budget ${index}`, code: `CHART-${index}`, description: "", now });
+      return { kind: "resource" as const, internalId: resource.id, publicId: resource.publicId, assignmentPublicId: randomUUID(), assignmentStart: null, assignmentEnd: null, allocationPercent: 100 };
+    });
+    f.catalog.replaceTaskAssignments({ projectId: f.project.id, taskId: f.tasks.get("T0")!.id, now, targets });
+    const before = f.state();
+    const response = await f.query({ spec: spec("resource"), filters: { from: "2026-01-01", to: "2026-12-31" }, analysis: { fetchGeneration: 1, query: { granularity: "week" } } });
+    expect(response.status, await response.clone().text()).toBe(422);
+    const body = await response.json();
+    expect(body.error.code).toBe("REPORT_LIMIT_EXCEEDED");
+    expect(body.error.details).toContainEqual(expect.objectContaining({ path: "plan.matrixCells" }));
+    expect(body.data).toBeUndefined(); expect(f.state()).toEqual(before);
   });
 });

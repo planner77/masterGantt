@@ -1,0 +1,459 @@
+{
+  "issue": 809,
+  "phase": "LOCAL_FAST_FEEDBACK",
+  "status": "PASS",
+  "scope": "backend same-transaction analysis seam and adjacent existing oracles",
+  "baselineSha": "56a094b797300a554909cd8d81ef0bafe46d6def",
+  "branch": "feat/issue-809-resource-charts",
+  "startedAt": "2026-10-25T19:43:40.801Z",
+  "environment": {
+    "node": "v22.14.0",
+    "platform": "linux",
+    "arch": "x64",
+    "next": "16.4.2",
+    "vitest": "5.0.0",
+    "appVersionAtExecution": "0.134.0"
+  },
+  "sourceHashes": {
+    "src/contracts/wbs-dashboard-views.ts": "3cc4dc01f054a4c4d34dae1a5e1d4927b496a6cea6d05a8094e05c848ae80127",
+    "src/server/resources/resource-dashboard-service-core.ts": "da4d086efe15a0ac2121df512ed02ddbad8c487b19f6d40fedb034d21ff1be41",
+    "src/server/resources/wbs-dashboard-views-query-core.ts": "d5d55eaaebfb85ce30ea764542f17f7306c2851c7cfa7fe087e18e25bced063b",
+    "tests/server/resources/wbs-dashboard-views-http.test.ts": "fd25be0498e5443be35b969a6acc26fabbbc9c8b381a76c700f252aaaab083ba",
+    "tests/server/resources/issue-736-resource-adapter.test.ts": "30f5a2c6f646f42de917e851129259a1c93fd5d70f0a93483cf37b9ac32287d0"
+  },
+  "testCommand": "npx vitest run --config tests/config/vitest.config.ts tests/server/resources/wbs-dashboard-views-http.test.ts tests/server/resources/issue-736-resource-adapter.test.ts tests/domain/resource-analysis.test.ts --reporter=json --outputFile=/tmp/issue-809-backend-final.json",
+  "tests": {
+    "files": 3,
+    "total": 73,
+    "passed": 73,
+    "failed": 0,
+    "skipped": 0,
+    "exitCode": 0
+  },
+  "suites": [
+    {
+      "file": "tests/domain/resource-analysis.test.ts",
+      "status": "passed",
+      "durationMs": 960.1416015625,
+      "cases": [
+        {
+          "name": "Resource analysis canonical read model keeps WBS UI/Excel source Task and Assignment sets and raw KPI totals exactly",
+          "status": "passed",
+          "durationMs": 89.12255599999992
+        },
+        {
+          "name": "Resource analysis canonical read model keeps shared5 MD across physical paths, then co-assignment7.5 without summing pivots",
+          "status": "passed",
+          "durationMs": 43.00146700000005
+        },
+        {
+          "name": "Resource analysis canonical read model uses same-axis OR, different-axis AND and matches classification on one actual assignee",
+          "status": "passed",
+          "durationMs": 25.10961199999997
+        },
+        {
+          "name": "Resource analysis canonical read model retains registered/role-only participation separately and never gives it capacity or effort",
+          "status": "passed",
+          "durationMs": 14.713598000000047
+        },
+        {
+          "name": "Resource analysis canonical read model preserves selected80 versus same-person full-project140, individual peak and overload rank",
+          "status": "passed",
+          "durationMs": 9.356416999999965
+        },
+        {
+          "name": "Resource analysis canonical read model preserves status-filter denominators and T0 diagnostics before personal conditions",
+          "status": "passed",
+          "durationMs": 6.84299400000009
+        },
+        {
+          "name": "Resource analysis canonical read model preserves all-unset, partial, configured nonworking0, empty and missing MM basis",
+          "status": "passed",
+          "durationMs": 23.22491100000002
+        },
+        {
+          "name": "Resource analysis canonical read model uses existing clipped ISO-year/month periods and calendar overrides without new formulas",
+          "status": "passed",
+          "durationMs": 17.48136199999999
+        },
+        {
+          "name": "Resource analysis canonical read model returns stable exact selectors and deterministic topN without an invented Other subtotal",
+          "status": "passed",
+          "durationMs": 17.9628560000001
+        },
+        {
+          "name": "Resource analysis canonical read model rejects unknown IDs, public Target axes, invalid ranges, missing/MM-mixed source and excessive pivots",
+          "status": "passed",
+          "durationMs": 8.062868000000208
+        },
+        {
+          "name": "Resource analysis canonical read model clears stale, future, mixed snapshot and401/403/412/error replies and accepts only current generation",
+          "status": "passed",
+          "durationMs": 15.502927
+        },
+        {
+          "name": "Resource analysis canonical read model binds exact existing WBS source selection without broadening co-assignees or Plan project reference",
+          "status": "passed",
+          "durationMs": 16.44993999999997
+        },
+        {
+          "name": "Resource analysis canonical read model rejects a same-generation reply for changed conditions, pivot, period or unit",
+          "status": "passed",
+          "durationMs": 35.687459999999874
+        },
+        {
+          "name": "Resource analysis canonical read model keeps the original narrowed physical selector rows in OR unions and safe detail output",
+          "status": "passed",
+          "durationMs": 39.29786399999989
+        },
+        {
+          "name": "Resource analysis canonical read model keeps selected Group display scoped while retaining full calendar membership",
+          "status": "passed",
+          "durationMs": 16.95256100000006
+        },
+        {
+          "name": "Resource analysis canonical read model keeps pivot-cell physical detail exact even when its total contains several instances",
+          "status": "passed",
+          "durationMs": 5.4157809999999245
+        },
+        {
+          "name": "Resource analysis canonical read model rejects UTF8 reports above the existing 2MiB limit, preserving bounded Plan/cell budgets",
+          "status": "passed",
+          "durationMs": 429.5361109999999
+        },
+        {
+          "name": "Resource analysis canonical read model keeps source personal A separate from source T0 diagnostic Tasks",
+          "status": "passed",
+          "durationMs": 8.254721000000018
+        },
+        {
+          "name": "Resource analysis canonical read model removes a co-assigned Task when source and query retain no matching personal Assignment",
+          "status": "passed",
+          "durationMs": 6.936177000000043
+        },
+        {
+          "name": "Resource analysis canonical read model provides the resource null pivot and exact detail for Tasks without personal Assignments",
+          "status": "passed",
+          "durationMs": 3.44098699999995
+        },
+        {
+          "name": "Resource analysis canonical read model provides the group null pivot and exact detail for Tasks without personal Assignments",
+          "status": "passed",
+          "durationMs": 6.137021999999888
+        },
+        {
+          "name": "Resource analysis canonical read model provides the role null pivot and exact detail for Tasks without personal Assignments",
+          "status": "passed",
+          "durationMs": 6.326955999999882
+        },
+        {
+          "name": "Resource analysis canonical read model requires the same retained Assignment for source R1 and resource=R2",
+          "status": "passed",
+          "durationMs": 7.541009000000031
+        },
+        {
+          "name": "Resource analysis canonical read model requires the same retained Assignment for source R1 and group=G3",
+          "status": "passed",
+          "durationMs": 16.104299999999967
+        },
+        {
+          "name": "Resource analysis canonical read model requires the same retained Assignment for source R1 and role=PI",
+          "status": "passed",
+          "durationMs": 18.304012000000057
+        },
+        {
+          "name": "Resource analysis canonical read model requires the same retained Assignment for source R1 and developerGrade=BEGINNER",
+          "status": "passed",
+          "durationMs": 10.969800000000077
+        },
+        {
+          "name": "Resource analysis canonical read model preserves intentional source resource:null Tasks, T0 and empty capacity",
+          "status": "passed",
+          "durationMs": 5.007726999999932
+        },
+        {
+          "name": "Resource analysis canonical read model preserves intentional source group:null Tasks, T0 and empty capacity",
+          "status": "passed",
+          "durationMs": 4.152895000000171
+        },
+        {
+          "name": "Resource analysis canonical read model preserves intentional source role:null Tasks, T0 and empty capacity",
+          "status": "passed",
+          "durationMs": 3.024486999999908
+        },
+        {
+          "name": "Resource analysis canonical read model recomputes exact-Assignment source Task scope without shrinking its diagnostic Task scope",
+          "status": "passed",
+          "durationMs": 14.646141999999827
+        },
+        {
+          "name": "Resource analysis canonical read model intersects a group source path with query Assignment identities before Task counts",
+          "status": "passed",
+          "durationMs": 4.6522520000000895
+        },
+        {
+          "name": "Resource analysis canonical read model intersects a role source path with query Assignment identities before Task counts",
+          "status": "passed",
+          "durationMs": 13.825329999999894
+        },
+        {
+          "name": "Resource analysis canonical read model does not mutate the caller's canonical collections or source context",
+          "status": "passed",
+          "durationMs": 13.141583999999966
+        }
+      ]
+    },
+    {
+      "file": "tests/server/resources/issue-736-resource-adapter.test.ts",
+      "status": "passed",
+      "durationMs": 3028.544189453125,
+      "cases": [
+        {
+          "name": "#736 Resource-root existing Plan and Excel adapters Target0 preserves two dynamic hierarchies, membership-only0, same-assignment filters and co-assignee7.5",
+          "status": "passed",
+          "durationMs": 693.9218420000002
+        },
+        {
+          "name": "#736 Resource-root existing Plan and Excel adapters same Milestone cannot reintroduce another resource's equipment/process Task",
+          "status": "passed",
+          "durationMs": 118.00173100000029
+        },
+        {
+          "name": "#736 Resource-root existing Plan and Excel adapters direct shared5 is emitted once per raw Assignment with repeated path evidence and nullable M/M",
+          "status": "passed",
+          "durationMs": 203.4307349999999
+        },
+        {
+          "name": "#736 Resource-root existing Plan and Excel adapters mixed shared5 is emitted once per raw Assignment with repeated path evidence and nullable M/M",
+          "status": "passed",
+          "durationMs": 272.667962
+        },
+        {
+          "name": "#736 Resource-root existing Plan and Excel adapters current exact selector excludes co-assignees; project removes all restrictions while retaining source provenance",
+          "status": "passed",
+          "durationMs": 432.4628010000001
+        },
+        {
+          "name": "#736 Resource-root existing Plan and Excel adapters preserves unset, configured nonworking0 and unassigned raw Task evidence",
+          "status": "passed",
+          "durationMs": 382.87567000000035
+        },
+        {
+          "name": "#736 Resource-root existing Plan and Excel adapters fails exact Origin/revision, foreign/tampered/stale source and unsupported root without a workbook",
+          "status": "passed",
+          "durationMs": 335.81289800000013
+        },
+        {
+          "name": "#736 Resource-root existing Plan and Excel adapters Target0 explicit-context-only Excel retains same-R project raw causes",
+          "status": "passed",
+          "durationMs": 337.6466769999997
+        },
+        {
+          "name": "#736 Resource-root existing Plan and Excel adapters keeps selected80/Project140 and exact project daily cause with the original Calendar/Capacity R",
+          "status": "passed",
+          "durationMs": 247.5441890000002
+        }
+      ]
+    },
+    {
+      "file": "tests/server/resources/wbs-dashboard-views-http.test.ts",
+      "status": "passed",
+      "durationMs": 7521.69287109375,
+      "cases": [
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC1 W2 direct source is distinct14/A8/B9/unlinked2 without implicit process fallback",
+          "status": "passed",
+          "durationMs": 185.79343900000003
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC1 W2 target source is distinct14/A8/B9/unlinked2 without implicit process fallback",
+          "status": "passed",
+          "durationMs": 136.69486200000028
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC1 W2 mixed source is distinct14/A8/B9/unlinked2 without implicit process fallback",
+          "status": "passed",
+          "durationMs": 154.6116509999997
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC1 registered-only roots and raw unassigned work survive all resource axes",
+          "status": "passed",
+          "durationMs": 174.44171000000006
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC2/3 root-only, typed sibling and serial examples retain order-independent raw unions",
+          "status": "passed",
+          "durationMs": 377.9362080000001
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC2/3 reversing equipment/system siblings preserves process task and assignment unions",
+          "status": "passed",
+          "durationMs": 118.28334399999994
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC4 E1→shared Milestone→process never widens to E2-T2; exact detail pages and drill match IDs",
+          "status": "passed",
+          "durationMs": 176.70069699999976
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC4 readonly Origin isolation, strict spec/foreign selection and filter-bound snapshot errors",
+          "status": "passed",
+          "durationMs": 285.808497
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC4 processContext changes invalidate exact details without requiring revision bumps",
+          "status": "passed",
+          "durationMs": 162.77243399999998
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC4 multiWorkArea changes invalidate exact details without requiring revision bumps",
+          "status": "passed",
+          "durationMs": 148.65398499999947
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC4 workAreaName changes invalidate exact details without requiring revision bumps",
+          "status": "passed",
+          "durationMs": 120.09131199999956
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC4 membership changes invalidate exact details without requiring revision bumps",
+          "status": "passed",
+          "durationMs": 118.96785700000055
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC4 resourceName changes invalidate exact details without requiring revision bumps",
+          "status": "passed",
+          "durationMs": 127.43248999999923
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC4 calendar changes invalidate exact details without requiring revision bumps",
+          "status": "passed",
+          "durationMs": 111.42781299999933
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC4 targetName changes invalidate exact details without requiring revision bumps",
+          "status": "passed",
+          "durationMs": 121.31965400000081
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC4 assignment changes invalidate exact details without requiring revision bumps",
+          "status": "passed",
+          "durationMs": 147.06070799999998
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC1/4 persisted SQLite restart (isolated setup phase) AC1/4 persisted explicit process0 and multiWorkAreas retain snapshot/exact HTTP details after reopen",
+          "status": "passed",
+          "durationMs": 73.75696100000005
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC3 W1 cross-process WorkAreas are complete and quantity is a distinct union",
+          "status": "passed",
+          "durationMs": 79.10987800000021
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC5 legacy report/Target filters/Plan remain unchanged after opt-in views",
+          "status": "passed",
+          "durationMs": 132.0518949999996
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC4 exact raw Assignment drill excludes another assignee of the same Task",
+          "status": "passed",
+          "durationMs": 131.4861609999998
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC4 every source scope intersects original filters before report, scope and details",
+          "status": "passed",
+          "durationMs": 290.25241000000005
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC4 unsupported WBS Excel export returns explicit409 instead of dropping the view scope",
+          "status": "passed",
+          "durationMs": 108.08372000000054
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC1 configured nonworking0, unset effort and raw unassigned remain distinct",
+          "status": "passed",
+          "durationMs": 138.61783699999978
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC6 fan-out and actual response byte limits fail explicitly without partial totals",
+          "status": "passed",
+          "durationMs": 1872.9478689999996
+        },
+        {
+          "name": "#729 migrated SQLite → production handler → actual HTTP acceptance AC6 increased actual input keeps SQL query count bounded and records response bytes/time",
+          "status": "passed",
+          "durationMs": 284.4454619999997
+        },
+        {
+          "name": "#809 same-transaction chart analysis direct opt-in report preserves canonical totals, exact IDs, source generation and nonadditive cells",
+          "status": "passed",
+          "durationMs": 134.56833600000027
+        },
+        {
+          "name": "#809 same-transaction chart analysis mixed opt-in report preserves canonical totals, exact IDs, source generation and nonadditive cells",
+          "status": "passed",
+          "durationMs": 133.756034
+        },
+        {
+          "name": "#809 same-transaction chart analysis analysis conditions never expand source exactAssignments or reintroduce a co-assignee ghost Task",
+          "status": "passed",
+          "durationMs": 127.7617369999989
+        },
+        {
+          "name": "#809 same-transaction chart analysis shared5 and physical source clipping retain nonpersonal diagnostics and precise source rows",
+          "status": "passed",
+          "durationMs": 91.0439320000005
+        },
+        {
+          "name": "#809 same-transaction chart analysis unknown analysis input, bounded IDs and nonreport opt-ins fail closed without mutation",
+          "status": "passed",
+          "durationMs": 135.0448749999996
+        },
+        {
+          "name": "#809 same-transaction chart analysis Plan matrix budget is a bounded422 response with no partial chart or mutation",
+          "status": "passed",
+          "durationMs": 128.69280099999924
+        }
+      ]
+    }
+  ],
+  "staticChecks": {
+    "scopedEslint": {
+      "status": "PASS",
+      "command": "npx eslint src/contracts/wbs-dashboard-views.ts src/server/resources/resource-dashboard-service-core.ts src/server/resources/wbs-dashboard-views-query-core.ts tests/server/resources/wbs-dashboard-views-http.test.ts tests/server/resources/issue-736-resource-adapter.test.ts",
+      "exitCode": 0
+    },
+    "diffCheck": {
+      "status": "PASS",
+      "command": "git diff --check -- src/contracts/wbs-dashboard-views.ts src/server/resources/resource-dashboard-service-core.ts src/server/resources/wbs-dashboard-views-query-core.ts tests/server/resources/wbs-dashboard-views-http.test.ts tests/server/resources/issue-736-resource-adapter.test.ts",
+      "exitCode": 0
+    },
+    "wholeTypeScript": {
+      "status": "FAIL",
+      "command": "npx tsc --noEmit --pretty false",
+      "exitCode": 2,
+      "firstError": "src/features/resources/resource-charts-dashboard.tsx(106,146): error TS1005: colon expected",
+      "scope": "Concurrent frontend source was still being authored; passed before that file existed. Final whole-tree typecheck belongs to frontend/Manager integration and is not claimed here."
+    }
+  },
+  "newCoverage": [
+    "direct/mixed HTTP v2 same sourceContext/generation/exact IDs/totals/nonadditive cells and no retired field/UUID in complete analysis including scopeKey",
+    "exactAssignments intersection excludes foreign personal Task",
+    "shared5 physical contribution and T0 sourceScope",
+    "strict opt-in keys/pivots/units/IDs/fetchGeneration/report-only and Origin403 without mutation",
+    "actual100Resource one-year Plan matrix budget returns422 REPORT_LIMIT_EXCEEDED without data/mutation",
+    "existing #736 Plan/Excel80vs140 and configured0/unset parity extended"
+  ],
+  "observations": [
+    "All first direct and final backend test executions passed. Source normalization removes undefined prepared-filter keys before the R2 allowlist.",
+    "An initial code-review concern incorrectly asserted archived UUID leakage via full taskRows. Baseline R2 already picks six identity fields before scopeKey serialization, so no original RED reproduced that concern. Explicit minimal server input and direct/mixed wire tests retain defense and verification.",
+    "Plan budget errors are mapped through the existing planCall to bounded422; no original500 execution is claimed.",
+    "Vite config native-loader deprecation warning is preserved as a warning, not a test failure."
+  ],
+  "remoteCi": "NOT TESTED",
+  "mainArtifact": "NOT TESTED",
+  "mutationOrAuthorizationChanges": false,
+  "documentationOwner": "Manager: API/ARCHITECTURE/RESOURCE_KPI_DASHBOARD/TEST_PLAN/Work Packet/failure ledger",
+  "nextOwner": "independent qa_docs then frontend/Manager integration"
+}

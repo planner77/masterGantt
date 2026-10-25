@@ -1,3 +1,4 @@
+import { validateResourceChartsResponse } from "./resource-charts-response";
 import { fromResourcePublicV2 } from "../../contracts/resource-public-v2";
 import { z } from "zod";
 import type { WbsViewResponseDto, WbsViewQueryInput, WbsViewSpec } from "../../contracts/wbs-dashboard-views";
@@ -62,6 +63,7 @@ export function readWbsViewResponse(body:unknown, expected:WbsViewFetchOptions):
       const keys=new Set<string>();
       const check=(children:CheckedNode[],parent:CheckedNode["path"],parentTasks:string[],parentAssignments:string[]):boolean=>children.every(child=>{ if(keys.has(child.viewRowKey)||!validPath(child.path)||stableWbsValue(child.path)!==stableWbsValue([...parent,child.selector])||child.taskIds.some(id=>!parentTasks.includes(id))||child.assignmentIds.some(id=>!parentAssignments.includes(id)))return false; keys.add(child.viewRowKey);return check(child.children,child.path,child.taskIds,child.assignmentIds); });
       if(!check(data.children,[],data.taskIds,data.assignmentIds))return invalid();
+      if(expected.input.analysis && !validateResourceChartsResponse(bodyData(body) as import("../../contracts/wbs-dashboard-views").WbsViewReportDto,expected.input.analysis))return invalid();
     }
   }
   // All nested source data is retained untouched after schema and provenance checks.

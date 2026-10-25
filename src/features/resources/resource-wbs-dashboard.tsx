@@ -81,7 +81,7 @@ function ResourceWbsTools({data,locked,active,onStale}:{data:WbsViewReportDto;lo
     {data.filters.granularity && data.resourceAdapter ? <section aria-label="현재 개인 배정 Plan" className={`${styles.root} ${planStyles.dashboard}`}><div className={styles.controls}><h4>Resource Plan</h4><label>Plan 단위<select value={effectiveUnit} onChange={event=>setUnit(event.target.value as "md"|"mm")}><option value="md">M/D</option><option value="mm" disabled={data.mdPerMm===null}>M/M</option></select></label></div><p className={styles.subtle}>선택 계획과 같은 개인의 Project 전체 부하 참고를 구별합니다. Capacity는 기존 개인 배정 이력·Calendar 기준이며 등록 인원을 추가하지 않습니다.</p><ResourceDrillContext.Provider value={{...drill,binding:data.resourceAdapter.binding,locked:locked||!active,onSchedule:drill.onSchedule ? request=>drill.onSchedule!({...request,binding:data.resourceAdapter!.binding}) : undefined}}><ResourcePlanView data={data.resourceAdapter.report} mode="resource" unit={effectiveUnit} stale={locked} active={active} onStale={onStale}/></ResourceDrillContext.Provider></section> : null}
   </>;
 }
-function ResourceWbsExport({data,locked,onStale}:{data:WbsViewReportDto;locked:boolean;onStale:()=>void}) {
+export function ResourceWbsExport({data,locked,onStale}:{data:WbsViewReportDto;locked:boolean;onStale:()=>void}) {
   const [basis,setBasis]=useState<"current"|"project">("current");
   const [pending,setPending]=useState(false);
   const [message,setMessage]=useState<string|null>(null);

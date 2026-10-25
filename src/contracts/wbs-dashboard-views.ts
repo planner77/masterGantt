@@ -1,6 +1,7 @@
 import type { ResourceDashboardFilterInput } from "./resource-dashboard";
 import type { ResourceDrillScope } from "./resource-drill";
 import type { EquipmentDto } from "./logistics";
+import type { ResourceAnalysisQuery, ResourceAnalysisResult } from "./resource-analysis";
 export const WBS_VIEW_DIMENSIONS = ["process", "workArea", "equipment", "system", "resource", "milestone", "group", "role"] as const;
 export type WbsViewDimension = typeof WBS_VIEW_DIMENSIONS[number];
 export interface WbsViewPathEntry { dimension: WbsViewDimension; id: string | null }
@@ -21,6 +22,8 @@ export interface WbsViewQueryInput {
   filters?: ResourceDashboardFilterInput;
   scope?: ResourceDrillScope;
   projection?: WbsViewProjection;
+  /** Report-only analysis from this request's canonical read transaction. */
+  analysis?: { query: ResourceAnalysisQuery; fetchGeneration: number };
 }
 
 import type { ResourceDataContext } from "./resource-drill";
@@ -78,6 +81,7 @@ export interface WbsViewReportDto extends WbsViewResponseContext, WbsViewIdentit
   /** Existing report/Plan/detail adapters retain their own exact-scope identity. */
   resourceAdapter?: { report: import("./resource-dashboard").ResourceDashboardDto; binding: { sourceContext: import("./resource-drill").ResourceDrillSourceContext; scope: ResourceDrillScope } };
   fullMilestones: ReturnType<typeof summarizeWbsTaskLedger>["fullMilestones"]; plan?: ResourceDashboardPlanDto;
+  analysis?: ResourceAnalysisResult;
 }
 export interface WbsViewDetailsDto extends WbsViewResponseContext {
   projection: "details"; path: WbsViewPathEntry[]; view: "tasks" | "assignments";

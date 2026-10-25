@@ -124,12 +124,18 @@ describe("#736 Resource-root existing Plan and Excel adapters", () => {
     const f = fixture(), assignment = f.assignmentIds.get("A0")!;
     f.database.prepare("UPDATE task_assignments SET allocation_percent=NULL WHERE public_id=?").run(assignment);
     const report = query(f), a = await workbook(f, options(report));
+    const analysis = (f.service.queryWbsView(f.project.publicId, { spec, filters, analysis: { fetchGeneration: 1, query: { pivot: ["resource"] } } }) as WbsViewReportDto).analysis!;
+    expect(analysis.total.assignments.effort).toEqual(report.totals.assignments.effort);
+    expect(analysis.total.taskIds).toContain(f.tasks.get("UNASSIGNED")!.publicId);
     expect(issue623Table(a.sheet("Resource Assignments")).find(row => row.assignmentId === assignment)).toMatchObject({ plannedMd: null, plannedMm: null });
     expect(a.sheet("Resource Relations")).toContain(f.tasks.get("UNASSIGNED")!.publicId);
     f.database.prepare("UPDATE tasks SET end_date='2026-10-11' WHERE public_id=?").run(f.tasks.get("T0")!.publicId);
     f.database.prepare("UPDATE task_assignments SET assignment_start='2026-10-10',assignment_end='2026-10-11',allocation_percent=100 WHERE public_id=?").run(assignment);
     const zero = query(f, { ...filters, to: "2026-10-11", taskIds: [f.tasks.get("T0")!.publicId] }), b = await workbook(f, options(zero));
     expect(issue623Table(b.sheet("Resource Assignments"))[0]).toMatchObject({ plannedMd: 0, plannedMm: null });
+    const zeroAnalysis = (f.service.queryWbsView(f.project.publicId, { spec, filters: zero.filters, analysis: { fetchGeneration: 2, query: { pivot: ["resource"] } } }) as WbsViewReportDto).analysis!;
+    expect(zeroAnalysis.total.assignments.effort).toEqual(zero.totals.assignments.effort);
+    expect(zeroAnalysis.total.assignments.effort).toMatchObject({ knownMd: 0, plannedMd: 0, plannedMm: null, state: "configured" });
   });
 
   it("fails exact Origin/revision, foreign/tampered/stale source and unsupported root without a workbook", async () => {
@@ -179,12 +185,15 @@ describe("#736 Resource-root existing Plan and Excel adapters", () => {
   it("keeps selected80/Project140 and exact project daily cause with the original Calendar/Capacity R", () => {
     const f = issue623BackendFixture(); close.push(() => f.db.close());
     const selectedFilters = { ...f.filters, resourceIds: [f.id("R4")], taskIds: [f.id("SELECTED")], mdPerMm: null };
-    const data = f.service.queryWbsView(f.project.publicId, { spec, filters: selectedFilters }) as WbsViewReportDto;
+    const data = f.service.queryWbsView(f.project.publicId, { spec, filters: selectedFilters, analysis: { fetchGeneration: 3, query: { pivot: ["resource"], granularity: "week", unit: "M/M" } } }) as WbsViewReportDto;
     const adapter = data.resourceAdapter!, plan = adapter.report.plan!;
     expect(plan.population.resourceIds).toEqual([f.id("R4")]);
     expect(plan.totals.summary.selected).toMatchObject({ capacityMd: 5, knownMd: 4, loadPercent: 80, plannedMm: null });
     expect(plan.totals.summary.project).toMatchObject({ knownMd: 7, loadPercent: 140, plannedMm: null });
     expect(data.plan!.totals).toEqual(plan.totals);
+    expect(data.analysis!.plan.totals).toEqual(plan.totals);
+    expect(data.analysis!.plan.population.resourceIds).toEqual(plan.population.resourceIds);
+    expect(data.analysis!.total.assignmentIds).toEqual(data.assignmentIds);
     const input = { snapshotId: adapter.report.snapshotId, granularity: "week" as const, periodId: "all", selector: { kind: "resource" as const, resourceId: f.id("R4") }, demandScope: "project" as const, date: "2026-10-05", offset: 0, limit: 100 };
     const details = f.service.getPlanDetails(f.project.publicId, selectedFilters, input, "day-assignments", adapter.binding.scope) as ResourcePlanDayAssignmentsDto;
     expect(details.rows.map(row => row.assignmentId).sort()).toEqual([f.id("SELECTED-R4"), f.id("OUTSIDE-R4")].sort());

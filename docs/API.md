@@ -1,3 +1,21 @@
+## Issue #809 — WBS report의 opt-in Resource 분석
+
+기존 `POST /api/projects/{publicId}/resource-dashboard/views`에 report 전용 `analysis`를 추가한다. 생략하면 기존 응답과 계산 경계를 유지한다. 새 route·mutation·DB는 없고 public/private read grant·exact Origin·JSON/body 제한·no-store·Resource wire v2와 명시 v1 호환 경계를 유지한다.
+
+```json
+{
+  "spec": {"version":"wbs-view:v1","contextSourceVersion":"explicit-task-context:v1","root":"resource","levels":[]},
+  "filters": {"from":"2026-10-01","to":"2026-10-31","asOfDate":"2026-10-26"},
+  "analysis": {"fetchGeneration":1,"query":{"pivot":["resource","milestone"],"granularity":"week","unit":"M/D"}}
+}
+```
+
+`analysis.query`는 선택적 `conditions`, `pivot`, `granularity`, `unit`만 허용한다. 조건 축은 `resource/group/role/developerGrade/milestone/process/workArea/equipment/system`; 축별 문자열 또는 null의 배열(같은 축 OR, 다른 축 AND)이다. ID 배열은 필드당200·전체400개, 문자열 길이1~100, 중복은 정규화한다. pivot은 중복 없는 최대2축, granularity는 week/month, unit은 M/D 또는 M/M이다. fetchGeneration은1 이상의 safe integer다. 알 수 없는 키·축·단위·잘못된 배열/세대·details/scope에서 analysis 입력은400 `INVALID_REQUEST`, 없는/foreign 선택은400 `INVALID_SELECTION`이다.
+
+report의 optional `analysis: ResourceAnalysisResult`는 동일 read transaction의 원장·현재 projection Task/Assignment·task identity와 개인 조건 전 T0 진단을 사용한다. sourceContext/snapshot/projectRevision·정규 base filters·fetchGeneration·query/pivot/unit/granularity를 scopeKey에 결속하며 기존 WBS snapshot을 legacy Resource snapshot으로 바꾸지 않는다. raw Task/Assignment·total/cells·taskSources·Plan·diagnostics·participation/fullMilestones 및 중첩 비가산 metadata는 #808 typed 계약을 따른다. 공개v2는 기존 실물 변환/폐기 필드 제거를 적용한다.
+
+R2 모델의 작업량·Plan 예산과 기존 전체 응답 UTF-8 2MiB 예산을 함께 적용한다. 초과는422 `REPORT_LIMIT_EXCEEDED`, source 불일치는409 `REPORT_STALE`, private read 미인증401·Origin403은 기존 경계다. 오류를 빈 성공으로 바꾸지 않는다. 분석의 단위/조건 변경은 source snapshot과 별개로 scopeKey·fetch generation에서 확인하고 낡은 응답의 원본 명령을 실행하지 않는다. 기존 mutation의 If-Match/412는 변경하지 않는다. [Work Packet](exec-plans/active/ISSUE_809.md)·[지표 의미](RESOURCE_KPI_DASHBOARD.md)를 따른다.
+
 ## Issue #479 PR #794 — canonical route ID/내부 Snapshot 계약 교정
 
 URL에 일부 percent-encoded canonical UUID가 들어와도 `/api/projects/{publicId}` 및 모든 하위 API는 **디코딩 후** 같은 Project를 authorize한다. malformed/이중 인코딩으로 canonical ID가 아니면404, private 미인증이면401 `PROJECT_LOCKED`다. HTTP direct GET은 `ProjectService.getAuthorizedReadonlySnapshot`을 호출하고 service도 visibility-aware 검증한다. `getReadonlySnapshot`은 **internal trusted reader 전용**이며 외부 GET/SSR에서 직접 사용하지 않는다. JSON·Excel·SVG의 scoped Export 및 Import commit·Task Assignment post-mutation과 같은 내부 최종 Snapshot 생성은 gateway 통과 후 이 trusted method를 사용하므로 올바르게 잠금 해제된 private 프로젝트에서도 작동한다. [#479 F-001 기록](ISSUE_479_FAILURE_ANALYSIS.md).

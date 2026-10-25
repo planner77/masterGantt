@@ -2,7 +2,7 @@
 import { createContext, useCallback, useContext, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import styles from "./resource-workspace.module.css";
 
-export type ResourceWorkspaceView = "summary" | "dynamic" | "milestone" | "plan" | "estimate";
+export type ResourceWorkspaceView = "summary" | "dynamic" | "milestone" | "plan" | "estimate" | "charts";
 export type ResourceWorkspacePeriod = { from: string; to: string; asOfDate: string; revision: number; snapshotId: string };
 type Periods = Partial<Record<"report" | "dynamic", ResourceWorkspacePeriod>>;
 const ResourceWorkspaceContext = createContext<{
@@ -11,14 +11,15 @@ const ResourceWorkspaceContext = createContext<{
 } | null>(null);
 export const useResourceWorkspace = () => useContext(ResourceWorkspaceContext);
 const VIEWS: ReadonlyArray<readonly [ResourceWorkspaceView, string]> = [
-  ["summary", "기본 현황"], ["dynamic", "동적 계층 탐색"], ["milestone", "Milestone 교차"],
+  ["summary", "기본 현황"], ["charts", "차트"], ["dynamic", "동적 계층 탐색"], ["milestone", "Milestone 교차"],
   ["plan", "Resource Plan"], ["estimate", "견적·Excel"],
 ];
 
 /** Visits own their peer selection just as the existing report adapters own filters. */
-export function ResourceWorkspace({ active, viewId, liveViewIds, revision, renderDynamic, renderReport }: {
+export function ResourceWorkspace({ active, viewId, liveViewIds, revision, renderDynamic, renderReport, renderCharts }: {
   active: boolean; viewId: number; liveViewIds: readonly number[]; revision: number;
   renderDynamic: (active: boolean) => ReactNode;
+  renderCharts?: (active: boolean) => ReactNode;
   renderReport: (active: boolean, views: Readonly<Record<string, ResourceWorkspaceView>>) => ReactNode;
 }) {
   const id = useId();
@@ -33,18 +34,18 @@ export function ResourceWorkspace({ active, viewId, liveViewIds, revision, rende
     const observer = new ResizeObserver(measure); observer.observe(nav); measure();
     return () => { observer.disconnect(); panel.style.scrollPaddingTop = previous; };
   }, []);
-  const [visits, setVisits] = useState<Record<string, { view: ResourceWorkspaceView; periods: Periods }>>({});
+  const [visits, setVisits] = useState<Record<string, { view: ResourceWorkspaceView; reportView: ResourceWorkspaceView; periods: Periods }>>({});
   const key = String(viewId), pinned = new Set(liveViewIds.map(String));
   pinned.add(key);
   let current = visits;
   if (Object.keys(visits).some(visit => !pinned.has(visit))) current = Object.fromEntries(Object.entries(visits).filter(([visit]) => pinned.has(visit)));
-  if (!current[key]) current = { ...current, [key]: { view: "summary", periods: {} } };
+  if (!current[key]) current = { ...current, [key]: { view: "summary", reportView: "summary", periods: {} } };
   if (current !== visits) setVisits(current);
   const view = current[key].view;
   const select = (next: ResourceWorkspaceView) => {
     const panel = host.current?.closest<HTMLElement>(".project-resource-panel");
     if (panel) scrollPositions.current[`${key}:${view}`] = panel.scrollTop;
-    setVisits(previous => ({ ...previous, [key]: { ...previous[key], view: next } }));
+    setVisits(previous => ({ ...previous, [key]: { ...previous[key], view: next, reportView: next === "charts" ? previous[key].reportView : next } }));
   };
   useLayoutEffect(() => {
     const panel = host.current?.closest<HTMLElement>(".project-resource-panel");
@@ -66,10 +67,13 @@ export function ResourceWorkspace({ active, viewId, liveViewIds, revision, rende
     <div ref={host} className={styles.workspace} data-resource-workspace data-resource-peer={view}>
       <div ref={navigation} className={styles.views} role="group" aria-label="리소스 분석 보기">
         {VIEWS.map(([value, label]) => <button key={value} type="button" aria-pressed={view === value}
-          aria-controls={`${id}-${value === "dynamic" ? "dynamic" : "report"}`} onClick={() => select(value)}>{label}</button>)}
+          aria-controls={`${id}-${value === "dynamic" ? "dynamic" : value === "charts" ? "charts" : "report"}`} onClick={() => select(value)}>{label}</button>)}
       </div>
-      <div id={`${id}-report`} hidden={view === "dynamic"} inert={view === "dynamic"}>
-        {renderReport(active && view !== "dynamic", Object.fromEntries(Object.entries(current).map(([visit, state]) => [visit, state.view])))}
+      <div id={`${id}-report`} hidden={view === "dynamic" || view === "charts"} inert={view === "dynamic" || view === "charts"}>
+        {renderReport(active && view !== "dynamic" && view !== "charts", Object.fromEntries(Object.entries(current).map(([visit, state]) => [visit, state.view === "charts" ? state.reportView : state.view])))}
+      </div>
+      <div id={`${id}-charts`} hidden={view !== "charts"} inert={view !== "charts"}>
+        {renderCharts?.(active && view === "charts")}
       </div>
       <div id={`${id}-dynamic`} hidden={view !== "dynamic"} inert={view !== "dynamic"}>
         {renderDynamic(active && view === "dynamic")}
