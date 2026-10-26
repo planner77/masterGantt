@@ -209,13 +209,13 @@ test("#736 report 관측은 이전 필터·다른 spec·scope 응답을 제외�
 test("#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨은 조회 중단·peer 복원",async({page,isolatedApplication:origin,observeIsolatedApi},info)=>{
  test.setTimeout(180_000);
  const f=await seedWbsViewComposer(page,origin,observeIsolatedApi);
- const before=await f.snapshot();let dynamicReads=0,reportReads=0;
- page.on("request",request=>{const path=new URL(request.url()).pathname;if(path.endsWith("/resource-dashboard/views")&&request.postDataJSON()?.projection?.kind==="report")dynamicReads++;if(path.endsWith("/resource-dashboard"))reportReads++;});
+ const before=await f.snapshot();let dynamicReads=0,reportReads=0,chartReads=0;
+ page.on("request",request=>{const path=new URL(request.url()).pathname;if(path.endsWith("/resource-dashboard/views")){const input=request.postDataJSON();if(input?.projection?.kind==="report"&&!input.analysis)dynamicReads++;if(input?.analysis)chartReads++;}if(path.endsWith("/resource-dashboard"))reportReads++;});
  await page.getByRole("tablist",{name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"대시보드",exact:true}).click();
  await page.getByRole("tablist",{name:"대시보드 보기",exact:true}).getByRole("tab",{name:"리소스",exact:true}).click();
  const report=page.locator('[data-resource-dashboard="true"]:visible');
  const peers=page.getByRole("group",{name:"리소스 분석 보기",exact:true});
- await expect(report).toHaveAttribute("data-ready","true");expect(dynamicReads).toBe(0);
+ await expect(report).toHaveAttribute("data-ready","true");expect(dynamicReads).toBe(0);expect(chartReads).toBe(0);
  await expect(peers.getByRole("button",{name:"기본 현황",exact:true})).toHaveAttribute("aria-pressed","true");
  await expect(page.locator('[data-wbs-view="resource"]')).toBeHidden();
  await report.getByLabel("리소스·그룹·Task 이름과 코드 검색",{exact:true}).fill("공동");await expect(report).toHaveAttribute("data-ready","true");
@@ -224,8 +224,19 @@ test("#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨�
  await report.getByRole("button",{name:/^필터/}).click();await report.getByLabel("Global Role",{exact:true}).selectOption("DEVELOPER");await expect(report).toHaveAttribute("data-ready","true");
  await report.getByLabel("Global Role",{exact:true}).press("Escape");
  const reportNode=await report.elementHandle();const reportRequests=reportReads;
+ // The new chart and dynamic views must agree on canonical IDs for the same unfiltered Project.
+ // Their reporting filters/projections differ, so do not compare snapshot IDs or pretend the units are identical.
+ const dynamicReceipt=page.waitForResponse(response=>response.request().method()==="POST"
+   &&response.url().endsWith("/resource-dashboard/views")
+   &&response.request().postDataJSON()?.projection?.kind==="report"
+   &&!response.request().postDataJSON()?.analysis
+   &&response.request().postDataJSON()?.spec?.root==="resource"
+   &&response.status()===200);
  await peers.getByRole("button",{name:"동적 계층 탐색",exact:true}).focus();await page.keyboard.press("Space");
+ const dynamicSource=(await(await dynamicReceipt).json()).data as WbsViewReportDto;
  await expect(root(page)).toHaveAttribute("data-ready","true");await expect(report).toHaveCount(0);
+ expect(dynamicSource.taskIds).toContain(f.task.taskId);
+ expect(dynamicSource.assignmentIds).toContain(f.assignment.id);
  await expect(root(page).getByLabel("조회 시작일",{exact:true})).toHaveValue("");await expect(root(page).getByLabel("작업 검색",{exact:true})).toHaveValue("");
  const activeReads=dynamicReads;
  const reentry=await openResourceDynamicView(page,{navigate:false});
@@ -261,8 +272,23 @@ test("#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨�
  await info.attach("issue807-peer-controls",{body:JSON.stringify(evidence,null,2),contentType:"application/json"});
  await peers.getByRole("button",{name:"Resource Plan",exact:true}).click();await expect(report).toHaveAttribute("data-ready","true");
  const keptPlan=report.getByRole("region",{name:"Resource Plan",exact:true});await expect(keptPlan).toBeVisible();const planNode=await keptPlan.elementHandle();
- await peers.getByRole("button",{name:"차트",exact:true}).click();await expect(page.locator("[data-resource-charts]:visible")).toHaveAttribute("data-chart-state","ready");expect(await planNode!.evaluate(node=>node.isConnected)).toBe(true);
+ expect(chartReads).toBe(0);
+ const chartReceipt=page.waitForResponse(response=>response.request().method()==="POST"
+   &&response.url().endsWith("/resource-dashboard/views")
+   &&response.request().postDataJSON()?.projection?.kind==="report"
+   &&!!response.request().postDataJSON()?.analysis
+   &&response.request().postDataJSON()?.spec?.root==="resource"
+   &&response.status()===200);
+ await peers.getByRole("button",{name:"차트",exact:true}).click();
+ const chartSource=(await(await chartReceipt).json()).data as WbsViewReportDto;
+ await expect(page.locator("[data-resource-charts]:visible")).toHaveAttribute("data-chart-state","ready");
+ expect(chartSource.analysis).toBeDefined();
+ expect([...chartSource.taskIds].sort()).toEqual([...dynamicSource.taskIds].sort());
+ expect([...chartSource.assignmentIds].sort()).toEqual([...dynamicSource.assignmentIds].sort());
+ expect(await planNode!.evaluate(node=>node.isConnected)).toBe(true);
+ const chartRequests=chartReads;expect(chartRequests).toBeGreaterThan(0);
  await peers.getByRole("button",{name:"Resource Plan",exact:true}).click();await expect(report).toHaveAttribute("data-ready","true");await expect(keptPlan).toBeVisible();expect(await planNode!.evaluate(node=>node.isConnected)).toBe(true);await expect(page.locator("[data-resource-charts]")).toBeHidden();expect(await page.locator("[data-resource-charts]").boundingBox()).toBeNull();
+ await page.evaluate(()=>window.dispatchEvent(new Event("focus")));await expect(report).toHaveAttribute("data-ready","true");expect(chartReads).toBe(chartRequests);
  const after=await f.snapshot();expect(after.data).toEqual(before.data);
 });
 
