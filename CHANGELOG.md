@@ -1,3 +1,10 @@
+## [0.135.3] — Unreleased / Issue #818 활성 진행률 핸들의 인접 Task 오대상 교정 후보 (2026-10-27)
+
+- Project Gantt bar에 stacking 경계를 적용해 활성 Summary 진행률 marker가 다음 Task 중심의 실제 우클릭을 가로채던 결함을 교정한다. 진행률을 실제 drag하는 동안에만 소유 bar를 올려 숫자가 인접 bar에 가려지지 않도록 하고 mouseup 뒤 복귀한다. 기존 inactive visibility·native marker top80%/26px·progress/body/resize 분기·Summary60%/34·44px 행·날짜/정렬·canonical/권한은 보존한다.
+- 기존 Summary E2E에 raw mouse·실제 Task ID/Editor target 회귀를 확장하고 직접/인접 검증과 중간 실패를 [#818 원장](docs/ISSUE_818_FAILURE_ANALYSIS.md)에 기록한다. 기존 [F816-006](docs/ISSUE_816_FAILURE_ANALYSIS.md) 실패는 역사적 증거로 유지한다.
+- 로컬 직접34/추가 자동94 E2E 및 Unit3344(기존3skip)·build/type/lint가 통과했다. Pre-PR 총괄은 Next 생성 추적파일의 sourceStable=false로 BLOCKED이며 원장에 보존한다.
+- `0.135.3`은 새 PATCH 후보이며 정식 릴리스 승인이 없다. 새 exact-head Full PR CI/Trusted/독립 인간 QA/Owner·main/GHCR/Release는 별도 NOT TESTED다. [Work Packet](docs/exec-plans/active/ISSUE_818.md).
+
 ## [0.135.2] — Unreleased / Issue #816 Gantt 세로 밀도 (2026-10-26)
 
 - Project Gantt의 Grid+Chart 세로 cell은 공개 `cellHeight` 34px(fine pointer), 44px(coarse pointer / 선택 터치 목표)로 일원화한다. 일반 Task bar는 SVAR Core의 row 계산에 따라 축소되고 Summary의 기존 60% 시각 몸체·전체 hitbox/진행률·상태는 유지한다. 일반 체크박스 38px 최소 높이를 제거해 줄어든 34px 행과 겹치지 않는다.

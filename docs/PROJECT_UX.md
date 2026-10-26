@@ -1,3 +1,9 @@
+## Issue #818 — 활성 진행률 핸들과 인접 Task의 포인터 대상
+
+Summary를 hover하여 native 진행률 핸들이 표시되어도 다음 Task 중심의 실제 우클릭은 그 Task의 메뉴/Editor를 열어야 한다. #816 비표시 marker의 visibility 교정을 유지하고 Project-local bar stacking 경계로 활성 marker가 다음 sibling body를 가로채지 않도록 한다. 실제 native progress drag 중에만 소유 bar의 표시 우선순위를 올려 숫자가 인접 bar에 가려지지 않도록 하고 mouseup 뒤 평상시 stacking으로 복귀한다. native top80%/26px·Summary marker/move 분기와 leaf body 이동/resize를 보존하며 Summary60%·34px fine/44px coarse·Day/Week·readonly/fullscreen·Grid↔Chart 중심±1px·날짜/x-width·같은 root/scroll/canonical 계약은 유지한다.
+
+Summary 진척은 자손에서 계산하므로 handle의 native hit/drag 분기 검사는 직접 진척 PATCH 성공을 뜻하지 않는다. Summary native progress는 기존 canonical 복구·write0을, leaf는 실제 HTTP/SQLite 진척0/50/100·bar 이동/resize를 각각 검사한다. Core2.7.3 Summary right edge는 resize가 아닌 move이며 직접 일정 PATCH는 금지다. 원본과 같은 Summary 일정 미리보기 잔류는 이번 CSS 교정으로 해결했다고 주장하지 않는다. 화면별 raw mouse·elementFromPoint·실제 Editor 대상 증거와 미검증 조합은 [#818 Work Packet](exec-plans/active/ISSUE_818.md)·[누적 원장](ISSUE_818_FAILURE_ANALYSIS.md)에 기록한다. #816의 F816-006 실패와 과거 CI 성공은 보존하며 새로운 source의 로컬 성공을 exact-head Full/Trusted/독립 인간 QA/Owner 승인으로 대체하지 않는다.
+
 ## Issue #816 — Project Gantt 세로 정보 밀도 및 터치 보존 (2026-10-26)
 
 - 일반(fine-pointer) 환경의 SVAR Core 2.7.3 공식 `cellHeight`는 **34px**이다. 기존 공식 기본 38px 대비 -4px(-10.5%); 동일한 고정 작업면에서 이론상 약 11.8% 많은 행이 들어간다. 가시 행 증가량의 *실제 계측*은 브라우저 실행 전 NOT TESTED다.

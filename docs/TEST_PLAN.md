@@ -1,3 +1,11 @@
+## Issue #818 — 활성 progress marker의 실제 포인터 대상 회귀 (2026-10-27)
+
+- **TEST_LIFECYCLE_REVIEW:** 기존 `project-summary-bar-visual.spec.ts`를 EXTEND하여 Summary 활성 hover→다음 child 중심 raw `page.mouse` 우클릭·`elementFromPoint` Task ID·실제 메뉴/Editor 이름을 검사한다. locator 자동스크롤 성공으로 raw pointer 실패를 가리지 않는다. 진행 중 marker 숫자 중앙의 실제 hit, mouseup 뒤 native drag class 해제와 별도 인접 raw target을 검사한다. 기존 inactive visibility·native26px·coarse44px 실제 tap·Summary60%/±1px·root/scroll·readonly write0 단언을 보존한다.
+- **직접/인접/음성:** `project-task-delete-context.spec.ts`의 실제 HTTP/SQLite body 이동/resize/leaf 진척0/50/100·revision/이웃 불변, `projection-row-alignment.spec.ts` strict positive/negative·80+virtual, `project-task-hover-tooltip.spec.ts`, empty Summary/selection/fullscreen의 고유 계약을 KEEP_UNIQUE한다. Summary 직접 진척 PATCH는 기존 금지이므로 native drag target과 canonical 복구/write0 검사로 분리한다.
+- **범위:** 34/44px × Day/Week × readonly/edit × fullscreen·중첩/빈 Summary의 실제 DOM rect/hit/Pointer 증거와 미실행을 [Work Packet AC1~AC5](exec-plans/active/ISSUE_818.md)·[실패 원장](ISSUE_818_FAILURE_ANALYSIS.md)에 명시한다. 새 중복 full spec·기존 assertion/skip/timeout/retry·Required3/8-shard 완화 없음. DESIGN Delta C.
+- **최종 로컬:** 직접34 E2E PASS, 추가 자동선정11spec94 E2E PASS, 전체Unit3344 PASS/기존3SKIP 및 build/type/lint PASS. 자동 fast/targeted 총괄은 Next 생성 추적파일의 sourceStable=false로 BLOCKED이며 원장에 두 지문·원복·미검증을 보존한다. 중복 실행 수는 합산하지 않는다.
+- **판정:** 새 소스의 원본 RED와 GREEN·중간 환경 실패는 서로 구분한다. 로컬 선별 실행은 공식 Full PR CI/Trusted/최종 독립 인간 QA/Owner PASS가 아니며 이번 요청은 Ready Full CI 시작까지만이다. HIGH/AGENT/qa_required=true, release_required=true/release_authorized=false, Manager ACCEPT는 NOT TESTED다.
+
 ## Issue #816 — SVAR Gantt Grid/Chart 행 높이 회귀 (2026-10-26)
 
 - **범위/위험:** `HIGH / OWNER_MANAGED / qa_required=true`. 공식 SVAR `cellHeight` 34px(fine), 44px(coarse), Summary 60%, ordinary bar 예상 25~29px, 동일 ID 행↔bar 중심 ±1px. 기존 #375/#637 positive·negative를 그대로 보존하고 assertion/timeout/retry/Required3/8-shard·QA 게이트를 완화하지 않는다.
