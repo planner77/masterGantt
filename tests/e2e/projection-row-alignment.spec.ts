@@ -66,6 +66,9 @@ for (const width of [390, 768, 1024, 1440, 1920]) for (const scale of ["Day", "W
     await page.keyboard.press("ArrowDown");
     await aligned(page);
     const after = await geometry(page);
+    expect(after.rowHeight).toBeCloseTo(34, 0);
+    expect(after.pairs.length).toBeGreaterThan(0);
+    expect(after.pairs.every(pair => pair.barHeight >= 25 && pair.barHeight <= 29)).toBe(true);
     expect(after.gridTop).toBe(0);
     expect(after.chartTop).toBe(0);
     expect(Math.abs(after.coreTop - after.ownerTop)).toBeLessThanOrEqual(1);
@@ -112,6 +115,7 @@ for (const scale of ["Day", "Week"]) test(`#637 native owner Y and wide Grid X r
     // This fixture has fixed-height rows and no collapsed nodes. Use the
     // actual Core order and measured row/viewport heights, not the subset
     // that happened to mount, to require every visible virtual row.
+    expect(sample.rowHeight).toBeCloseTo(34, 0);
     expect(sample.rowHeight).toBeGreaterThan(0);
     const coreIds = sample.receipt.coreVisibleIds as string[];
     // All canonical IDs persist, but native Grid/Chart rows exclude hidden

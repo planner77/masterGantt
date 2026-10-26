@@ -13,6 +13,7 @@ const taskBar = (page: Page, ordinal: number) =>
 
 type BarMetrics = Readonly<{
   rootX: number;
+  rootY: number;
   rootWidth: number;
   rootHeight: number;
   visualTop: number;
@@ -30,6 +31,7 @@ async function barMetrics(bar: Locator): Promise<BarMetrics> {
     const progressRect = progress?.getBoundingClientRect() ?? null;
     return {
       rootX: root.x,
+      rootY: root.y,
       rootWidth: root.width,
       rootHeight: root.height,
       visualTop: Number.parseFloat(visual.top),
@@ -50,7 +52,19 @@ async function expectSummaryGeometry(page: Page) {
   const summaryMetrics = await barMetrics(summary);
   const taskMetrics = await barMetrics(task);
   const ratio = summaryMetrics.visualHeight / taskMetrics.rootHeight;
-
+  const summaryRow = ganttRoot(page).locator(`.project-gantt-widget .wx-table-container .wx-row[data-id=":${id(1)}"]`);
+  const taskRow = ganttRoot(page).locator(`.project-gantt-widget .wx-table-container .wx-row[data-id=":${id(2)}"]`);
+  const [summaryRowBounds, taskRowBounds] = await Promise.all([summaryRow.boundingBox(), taskRow.boundingBox()]);
+  expect(summaryRowBounds).not.toBeNull();
+  expect(taskRowBounds).not.toBeNull();
+  // #816: desktop 34px row, shorter ordinary Task; #375 Summary remains 60%.
+  expect(summaryRowBounds!.height).toBeCloseTo(34, 0);
+  expect(taskRowBounds!.height).toBeCloseTo(34, 0);
+  expect(taskMetrics.rootHeight).toBeGreaterThanOrEqual(25);
+  expect(taskMetrics.rootHeight).toBeLessThanOrEqual(29);
+  expect(summaryMetrics.visualHeight).toBeLessThan(taskMetrics.rootHeight);
+  expect(Math.abs(summaryMetrics.rootY + summaryMetrics.rootHeight / 2 - summaryRowBounds!.y - summaryRowBounds!.height / 2)).toBeLessThanOrEqual(1);
+  expect(Math.abs(taskMetrics.rootY + taskMetrics.rootHeight / 2 - taskRowBounds!.y - taskRowBounds!.height / 2)).toBeLessThanOrEqual(1);
   expect(summaryMetrics.rootHeight).toBeCloseTo(taskMetrics.rootHeight, 0);
   expect(ratio).toBeGreaterThanOrEqual(0.55);
   expect(ratio).toBeLessThanOrEqual(0.70);
@@ -66,7 +80,7 @@ async function expectSummaryGeometry(page: Page) {
   return { summary, summaryMetrics };
 }
 
-test("Issue #375 keeps the Summary hit box while drawing a centered 60% visual bar", async ({ page }) => {
+test("Issue #375 keeps the Summary hit box while drawing a centered 60% visual bar", async ({ page }, testInfo) => {
   const fixture = await installStatefulProjectFixture(page);
   fixture.tasks.push({
     ...fixture.tasks[0],
@@ -88,7 +102,7 @@ test("Issue #375 keeps the Summary hit box while drawing a centered 60% visual b
   await expect(taskBar(page, 5)).toHaveCount(0);
   await expect(taskBar(page, 4)).toHaveCount(0); // #552: canonical Milestone is not a native WBS bar.
 
-  for (const width of [390, 768, 1024, 1440, 1600]) {
+  for (const width of [390, 768, 1024, 1440, 1600, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     await expectSummaryGeometry(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
@@ -96,6 +110,15 @@ test("Issue #375 keeps the Summary hit box while drawing a centered 60% visual b
   }
 
   const { summary, summaryMetrics } = await expectSummaryGeometry(page);
+  await testInfo.attach("issue-816-summary-task-geometry", {
+    body: JSON.stringify({
+      cellHeight: await ganttRoot(page).getAttribute("data-gantt-cell-height"),
+      summary: summaryMetrics,
+      task: await barMetrics(taskBar(page, 2)),
+      viewport: page.viewportSize(),
+    }),
+    contentType: "application/json",
+  });
   const transparentStripY = Math.max(1, Math.floor(summaryMetrics.visualTop / 2));
   await summary.click({
     button: "right",
@@ -125,4 +148,34 @@ test("Issue #375 keeps the Summary hit box while drawing a centered 60% visual b
   await expect(taskBar(page, 5)).toHaveCount(0);
   expect(fixture.posts).toHaveLength(0);
   expect(fixture.patchRequests).toHaveLength(0);
+});
+
+test("Issue #816 keeps the 44px coarse-pointer checkbox target within its own row", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({
+    baseURL,
+    hasTouch: true,
+    isMobile: true,
+    viewport: { width: 390, height: 900 },
+  });
+  try {
+    const page = await context.newPage();
+    const fixture = await installStatefulProjectFixture(page);
+    await page.goto(`/projects/${publicId}`);
+    await expect.poll(() => page.evaluate(() => window.matchMedia("(pointer: coarse)").matches)).toBe(true);
+    await expect(ganttRoot(page)).toHaveAttribute("data-gantt-cell-height", "44");
+    const row = ganttRoot(page).locator(`.wx-table-container .wx-row[data-id=":${id(2)}"]`);
+    const label = row.locator(".project-copy-selection-hitarea");
+    await expect(label).toBeVisible();
+    const [rowBounds, targetBounds] = await Promise.all([row.boundingBox(), label.boundingBox()]);
+    expect(rowBounds).not.toBeNull();
+    expect(targetBounds).not.toBeNull();
+    expect(rowBounds!.height).toBeGreaterThanOrEqual(44);
+    expect(targetBounds!.height).toBeGreaterThanOrEqual(44);
+    await label.tap();
+    await expect(label.locator("input[data-copy-selection]")).toBeChecked();
+    expect(fixture.posts).toHaveLength(0);
+    expect(fixture.patchRequests).toHaveLength(0);
+  } finally {
+    await context.close();
+  }
 });

@@ -143,6 +143,10 @@ import type { DependencyType } from "../../contracts/projects";
 import "./task-context-menu.css";
 import "./gantt-scale-toolbar.css";
 
+// #816: one public SVAR cellHeight governs both Grid and Chart row geometry.
+const GANTT_FINE_POINTER_CELL_HEIGHT = 34;
+const GANTT_COARSE_POINTER_CELL_HEIGHT = 44;
+
 interface CopySelectionContextValue {
   tasksById: ReadonlyMap<string, ProjectTaskDto>;
   selectedTaskIds: readonly string[];
@@ -454,6 +458,18 @@ export function ProjectGantt({
   projectPublicId,
 }: ProjectGanttProps) {
   const { notify } = useWorkspaceNotifications();
+  // Coarse devices need the existing 44px checkbox target. Keep the same
+  // mounted Core instance and adapt the public prop, not private row DOM.
+  const [coarsePointer, setCoarsePointer] = useState(false);
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+    const pointer = window.matchMedia("(pointer: coarse)");
+    const syncPointer = () => setCoarsePointer(pointer.matches);
+    syncPointer();
+    pointer.addEventListener("change", syncPointer);
+    return () => pointer.removeEventListener("change", syncPointer);
+  }, []);
+  const ganttCellHeight = coarsePointer ? GANTT_COARSE_POINTER_CELL_HEIGHT : GANTT_FINE_POINTER_CELL_HEIGHT;
   const apiReference = useRef<IApi | null>(null);
   const projectionReceiptGeneration = useRef(0);
   const projectionObservationAttempt = useRef(0);
@@ -4345,7 +4361,7 @@ export function ProjectGantt({
   }, [taskMenu, taskSubmenu]);
 
   return (
-    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={(editable && !mutationLocked ) || undefined}>
+    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-cell-height={ganttCellHeight} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={(editable && !mutationLocked ) || undefined}>
       <CopySelectionContext.Provider value={selectionContext}><Willow>
       <div className="project-gantt-scale-toolbar">
         {process.env.NODE_ENV !== "production" && milestoneTimeline ? <button type="button" aria-pressed={timelinePreview} onClick={() => setTimelinePreview(value => !value)}>Milestone Timeline 기술 미리보기</button> : null}
@@ -4435,6 +4451,7 @@ export function ProjectGantt({
               points={viewVisible && laneSource?.model === milestoneTimeline.timelineModel && laneSource.context === viewportContinuityKey && laneSource.scale === scaleMode && laneSource.api === apiInstanceId && laneSource.display === timelinePreviewDisplay ? lanePoints : []}
               contextKey={`${viewportContinuityKey}:${viewVisible}`} busy={mutationLocked} readOnly={!editable} onGuide={setLaneGuide} /> : null}
             <div className="project-gantt-native-owner"><Locale words={ganttIsoLocale}><Gantt
+              cellHeight={ganttCellHeight}
               cellWidth={GANTT_CELL_WIDTH[scaleMode]}
               columns={initialConfig.columns}
               gridWidth={480}
