@@ -1,3 +1,7 @@
+## Issue #816 — 일정 Grid·Task Bar 세로 밀도 (2026-10-26)
+
+- [Work Packet](ISSUE_816.md) 기준 Source of Truth는 SVAR Core 공식 `cellHeight`/기존 #375 Summary 및 #637 Grid/Chart projection. 0.135.1→**0.135.2 PATCH 후보**, fine34px / coarse44px, Summary 60% 몸체와 ±1px 중심·80+ 가상행/checkbox를 보호한다. 기존 Chromium 2개 spec **EXTEND**, coarse tap case **ADD**. Project UX/TEST_PLAN/CHANGELOG 동기화. HIGH/OWNER_MANAGED, 원격 PR Full 시작까지만, CI 모니터링·병합·GHCR/릴리스/이슈 종료 제외.
+
 ## Issue #809 — R3 리소스 차트와 정확 근거
 
 최신 main `56a094b797300a554909cd8d81ef0bafe46d6def`/app0.134.0에서 전용 `feat/issue-809-resource-charts`로 진행한다. 선행 #807 단일 workspace·#808 원장 분석 adapter를 소비하여 기간/Capacity·업무 집중·Milestone/실물 기여의 3유형과 같은 데이터 표·정확 원본/일정·복귀를 구현한다. 기존 WBS query에 동일 transaction의 opt-in 분석 seam만 연결한다.
