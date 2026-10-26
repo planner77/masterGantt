@@ -143,3 +143,11 @@ Manager의 MINOR 결정에 따라 infra `/root/publish_recovery`가 package.json
 
 **Release 정책:** 기존 `v0.135.0` tag 이동/삭제/재발행 금지. `0.135.1`은 동일 Issue #809의 **non-docs corrective PATCH 후보**일 뿐 별도 Owner 신규 버전 승인 marker는 없다. `risk_level=HIGH; qa_method=OWNER_MANAGED; qa_required=true; manager_decision=NOT TESTED; release_required=true; release_authorized=false; MERGE_READY=BLOCKED`. 실제 Node/Chromium/도커는 이 GitHub 연결에 checkout 런타임이 없어 NOT TESTED. 이번 요청은 리뷰/충돌 확인 후 **새 PR Full CI 시작까지**이며 모니터링·병합/Main/새 tag/GHCR/Finalizer/branch cleanup/Issue 종료는 하지 않는다.
 
+## 2026-10-26 — PR #814 QA Preflight #3307.1 차단 교정 및 검증 경계
+
+[원본 Full CI #3307.1 / 40252205907.1](https://github.com/planner77/masterGantt/actions/runs/40252205907)은 `HEAD=6682d8d7b7bba260ecdf26030cbba8cee63b7d00`, `base=12ce9a05c85ca52bd746107b54a817313668814a`, #814 교정 PR의 QA Preflight [Job 121346447423](https://github.com/planner77/masterGantt/actions/runs/40252205907/job/121346447423)에서 **DOC_SYNC 직접 FAIL 1**: `docs/TEST_PLAN.md`를 Work Packet 첫 `## DOCUMENTATION_SYNC`에서 `UPDATED`로 선언했으나 PR changed paths에 해당 문서가 없었다. PR Fast Gate/Required Quality-E2E-Docker/QA Final FAIL은 파생이고, 실제 TypeScript/Build/Vitest/Chromium8/Docker 구현은 전부 **SKIPPED/NOT RUN**. 본 원장 [F809-CI-002](../../ISSUE_809_FAILURE_ANALYSIS.md)에서 초기 #551, 차트 P2, #556 Release focus, 문서 미동기화를 구분한다.
+
+**교정/TEST_LIFECYCLE_REVIEW:** 제품/E2E 로직·초기 회귀 assertion을 덮거나 완화하지 않고 `docs/TEST_PLAN.md`에 #556 원본 검증의 220ms disabled 지연과 focus 복구·새 사용자 intent 차단/기존 #528 #530 #717 #731 #736 #809 KEEP_UNIQUE 관계를 추가했다. 변경된 실제 문서 경로와 첫 `## DOCUMENTATION_SYNC`의 `- \`docs/TEST_PLAN.md\`: UPDATED`가 일치하도록 한다. 기존 Work Packet의 AC1~AC6·TEST_LIFECYCLE_REVIEW는 불변이며 #809-AC3/AC6과 연계한 이 단락의 고유 E2E 확장은 `tests/e2e/resource-drill-ui.spec.ts`에 속한다.
+
+**변경 영향:** `docs/TEST_PLAN.md`, `docs/exec-plans/active/ISSUE_809.md`, `docs/ISSUE_809_FAILURE_ANALYSIS.md` UPDATED. `AGENTS.md`/DESIGN/QA_REVIEW_POLICY/CI_CD/ISSUE_LIFECYCLE/GITHUB_OPERATIONS/REMOTE_VALIDATION/API/DB/SECURITY 및 제품/Lock/테스트 소스는 이번 문서 교정에서 N/A(해당 정책·동작·게이트/버전 변경 없음). 기존 후보 `0.135.1`, 릴리스 승인 false, HIGH/OWNER_MANAGED·Owner 결정 NOT TESTED 유지. 원본 QA 사전 검사 규칙은 수정하지 않고 정확 신규 PR Full CI 시작까지만 진행한다. 독립 Trusted QA/Owner 위험 수용·Main/GHCR/Finalizer/Issue 종료는 미검증.
+

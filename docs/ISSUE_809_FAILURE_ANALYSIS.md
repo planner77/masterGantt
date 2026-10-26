@@ -192,3 +192,23 @@ Artifact: [실패 Playwright report·trace ID 12619275650](https://github.com/pl
 
 본 연결에서는 완전한 Node modules/Chromium/Docker 체크아웃을 실행하지 않았으므로 로컬 TypeScript/Vitest/E2E/Build/QA는 **NOT TESTED**. 신규 PR에 대해 Review0/충돌0/원격 start 확인까지만 수행하고 CI 결과 지속 조회하지 않는다. `risk_level=HIGH; qa_method=OWNER_MANAGED; qa_required=true; manager_decision=NOT TESTED; release_required=true; release_authorized=false (v0.135.1); MERGE_READY=BLOCKED`. 최신 Head Required3/Trusted QA·Owner 위험 수용·새 v0.135.1 게시 승인·Main/Finalizer는 별도 진행이 필요하다.
 
+## 2026-10-26 KST — F809-CI-002 / PR #814 Full #3307.1 QA Preflight 문서 영향 게이트 차단
+
+### A–C. 원본 Run/Job/Attempt·직접 실패와 파생 차단
+
+- **원본:** [PR #814](https://github.com/planner77/masterGantt/pull/814), `pull_request` Full [CI #3307.1 / Run 40252205907 attempt 1](https://github.com/planner77/masterGantt/actions/runs/40252205907), Head `6682d8d7b7bba260ecdf26030cbba8cee63b7d00`, Base `12ce9a05c85ca52bd746107b54a817313668814a`. 검증기 자체는 trusted main의 `scripts/qa_preflight.py`→`qa_final_automated.docs_gate`.
+- **최초 직접 실패 1건:** [QA Preflight Job 121346447423](https://github.com/planner77/masterGantt/actions/runs/40252205907/job/121346447423)의 `원본 base SHA의 QA Preflight 실행 (read-only)` step4. 정확한 메시지: `FAIL / DOCUMENTATION_SYNC: docs/exec-plans/active/ISSUE_809.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE — 문서 변경 또는 N/A(reason) 미입증: docs/TEST_PLAN.md`. `PRIMARY_ISSUE/RISK_LEVEL/QA_METHOD/QA_REQUIRED/RELEASE_REQUIRED/RELEASE_AUTHORIZED/PATH_POLICY/ISSUE_AC`는 각각 PASS; Preflight `FAIL 1 / DEFERRED 5`.
+- **파생 실패:** PR Fast Gate [Job 121346509885](https://github.com/planner77/masterGantt/actions/runs/40252205907/job/121346509885) `PREFLIGHT_RESULT=failure`로 FAIL. Required Quality [121346570104](https://github.com/planner77/masterGantt/actions/runs/40252205907/job/121346570104), E2E [121346570207](https://github.com/planner77/masterGantt/actions/runs/40252205907/job/121346570207), Docker [121346570184](https://github.com/planner77/masterGantt/actions/runs/40252205907/job/121346570184) aggregate는 모두 fail-closed FAIL, QA Final Automated [121346590573](https://github.com/planner77/masterGantt/actions/runs/40252205907/job/121346590573) 역시 후속 FAIL.
+- **NOT RUN / SKIPPED:** 실제 TypeScript·ESLint·Vitest·Next build·정책 구현 job, Playwright Chromium E2E 8/8 구현, Docker smoke 구현. 따라서 이번 Run에는 `#556` focus 복귀의 재발·성공 여부를 판정할 수 있는 실행 증거가 **없다**. 선행 GHCR Release #198.1의 제품/UI 실패와 독립적인 `POLICY_CI / DOCUMENTATION_SYNC` 사건이다.
+
+### D. 종합 원인 및 변경 근거
+
+- **확정 원인 (DOC_SYNC/검증 계약):** 교정 PR은 `src/features/projects/project-readonly-view.tsx`와 `tests/e2e/resource-drill-ui.spec.ts`를 변경했지만 `docs/TEST_PLAN.md`를 변경하지 않았다. Work Packet의 첫 `## DOCUMENTATION_SYNC`는 과거 #809 초기 작업에서 `- \`docs/TEST_PLAN.md\`: UPDATED`를 유지했으나 이번 PR의 실제 changed-path 집합에는 해당 파일이 없다. 신뢰된 검증기의 `docs_gate()`는 `UPDATED`이면 **실제 PR diff에 파일이 있어야** 하고, 아니면 이유를 갖춘 `N/A(reason)`으로 표기해야 하므로 정상적으로 실패했다. 이번 회귀는 신규 테스트의 의미·실측 경계가 명확하여 `TEST_PLAN`에 실제 추가 기록하는 `UPDATED` 경로를 택한다. Preflight를 비활성화하거나 조건을 완화하지 않는다.
+- **이력 교차:** `F809-CI-001`(#551 대량 fixture RAF timeout; 최초 PR) → R809-007(Chart Plan P2 review) → 성공 PR #3305.1/Main #3306.1 → `F809-REL-001`(#556 Release focus 실패, static+7/8 PASS) → **F809-CI-002**(새 corrective PR #814의 QA 문서 계약 미충족, 실제 모든 무거운 테스트 SKIPPED). 서로 다른 직접 원인·Run/Attempt이며 과거 FAIL을 PASS로 대체하지 않는다.
+
+### E–G. 보완·선정 테스트·검증 경계
+
+- **보완:** 기존 `docs/TEST_PLAN.md`에 Issue #809/#556의 일정→Resource→원래 보기 focus·220ms 일시 disabled·논리 트리거 재조회·최근 사용자 입력 우선·read-only·snapshot/selection/Gantt identity 계약과 기존 #556 E2E EXTEND/관련 #528/#530/#717/#731/#736/#809 KEEP_UNIQUE를 명시. `docs/exec-plans/active/ISSUE_809.md`에 이번 Run·Job 및 `TEST_PLAN UPDATED` 실제 path 동기화, 이 누적 원장에 원본·파생·SKIPPED 기록을 추가한다.
+- **변경하지 않음:** 기존 PR #814의 제품·E2E 수정 및 package/lock `0.135.1`, 원래 `v0.135.0` immutable tag, CI/QA/Ruleset/E2E8/skip/retry/timeout, release authorization, 오리지널 실패 이력. 이 corrective commit은 문서3파일 변경만 수행.
+- **검증:** 원격 Job 로그와 trusted `docs_gate` 정규식·실제 바뀐 파일 경로의 구조를 대조했다. Node/Chromium/Docker 실행은 본 연결에서 NOT TESTED. 신규 Head에서 정확 PR Full CI/Trusted/Owner 및 구현 회귀의 결과를 재검증해야 하며 CI 시작은 PASS가 아니다. 리뷰 스레드·latest main·충돌 확인 후 PR synchronize로 새 CI를 요청한다. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `release_required=true`, `release_authorized=false`(후보 `0.135.1`), `MERGE_READY=BLOCKED`. 병합/Main/정식 GHCR·tag/Finalizer/Issue 종료는 요청 제외.
+
