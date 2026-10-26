@@ -2,6 +2,7 @@
 
 - 일반(fine-pointer) 환경의 SVAR Core 2.7.3 공식 `cellHeight`는 **34px**이다. 기존 공식 기본 38px 대비 -4px(-10.5%); 동일한 고정 작업면에서 이론상 약 11.8% 많은 행이 들어간다. 가시 행 증가량의 *실제 계측*은 브라우저 실행 전 NOT TESTED다.
 - `(pointer: coarse)`에서는 기존 선택 체크박스의 44px 터치 목표가 행 사이에 겹치지 않도록 행 자체를 **44px**로 사용한다. 선택 label은 일반 행의 기존 min-height 38px 제약을 제거하고 행 안을 채운다. MediaQuery 변경은 같은 <Gantt> 공개 prop만 갱신하며 새로운 native instance remount/viewport 초기화는 허용하지 않는다.
+- 선택 label의 중앙·여백과 input 탭은 native checkbox 활성화 한 번으로 처리한다. label의 pointerdown/mousedown/click은 Grid 포커스·행 선택 처리로 전파하지 않으며 native 기본 활성화·onChange/Shift range·Space·Context Menu는 보존한다. 터치 도중 Grid 포커스가 click 대상을 바꾸던 실패와 로컬/원격 구분은 [단일 실패 원장](ISSUE_816_FAILURE_ANALYSIS.md)의 F816-004를 따른다.
 - 일반 Task 바는 Core의 row-height 파생 치수를 사용하므로 짧아지며(34px row의 예상 bar 27px), Summary의 #375 `::before{inset:20% 0}` 60% 몸체/진행률과 full-size hitbox는 그대로 둔다. Summary visual/Task root 비율은 0.55~0.70, 각 Grid/Chart 동일 ID의 Y 중심 차이는 ±1px이어야 한다.
 - Grid/Chart 패널 높이·가로폭·날짜 header, Day/Week 수평 좌표/기간, native scrolling/80+ 가상행/독립 Grid Y 금지, readonly/edit, Fullscreen, 기존 Task/Milestone/Empty Summary·링크·일정·Export 계약은 변경하지 않는다. [Work Packet](exec-plans/active/ISSUE_816.md)과 [Test Plan](TEST_PLAN.md)에서 실제 증거/미실행을 구분한다.
 

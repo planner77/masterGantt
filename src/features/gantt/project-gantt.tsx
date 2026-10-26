@@ -162,7 +162,12 @@ function ProjectTaskSelectionCell({ row }: { row: Record<string, unknown> }) {
     const context = useContext(CopySelectionContext);
     if (!context) return null;
     const id = String(row.id);
-    return <label className="project-copy-selection-hitarea">
+    // Keep Grid focus/selection handlers out of native label activation. In
+    // particular, Grid's mousedown focus can scroll a touch target before click.
+    return <label className="project-copy-selection-hitarea"
+      onPointerDown={(event) => event.stopPropagation()}
+      onMouseDown={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}>
       <input type="checkbox" data-copy-selection={id}
         aria-label={`${context.tasksById.get(id)?.name ?? String(row.text ?? "작업")} 복사 대상으로 선택`}
         checked={context.selectedTaskIds.includes(id)}

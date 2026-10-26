@@ -1,5 +1,21 @@
 # Issue #816 — Gantt Grid 행·Task 막대 높이 축소 Work Packet
 
+## REWORK #3 — Full #3317.1 coarse-pointer 선택 실패 (2026-10-26)
+
+- Manager 범위: 기존 PR #817 / Head `b3475c064e1b7ef03e4657d0ec6c0b9207ee2e28`, main/base `cd010d6bcff26f10ad00c42cdf3528b851519938`, 버전 `0.135.2` 유지. 최신 Shard1 `121517917754`의 `project-summary-bar-visual.spec.ts:175` 실제 `label.tap()` 후 checkbox unchecked 원인을 재현·분리하고 실제 44px label 조작과 selection/no-write 계약을 복구한다. Quality/Docker PASS; E2E/QA FAIL; 취소 shard의 추가 오류는 infra가 회수 중이다. 이전 F816-001/002/003 원본·미검증을 보존한다.
+- 요구/설계/AC: 34px fine/44px coarse·Summary 비율·Grid/Chart ±1px 불변. label의 여백과 input 실제 탭은 같은 선택 동작을 정확히 1회 수행하고 이웃 행 선택/스크롤/DnD/키보드·Shift/Ctrl/readonly에 영향을 주지 않아야 한다. 기존 tap assertion을 checkbox 직접 click으로 대체하거나 force/skip/retry/timeout 완화하지 않는다. 먼저 원본 최소 E2E FAIL을 확보한 뒤 원인에 맞는 최소 제품/테스트 수정만 허용한다.
+- 역할/소유권: root Manager가 계획/문서/최종 commit·push·CI 시작 담당, infra(gpt-6.1-sol/high)는 원격 전체 이력·취소 로그·provenance read-only, frontend(gpt-6.1-sol/medium)는 `src/features/gantt/project-gantt.tsx` 및 직접 관련 E2E/선택 테스트만 수정, qa_docs(gpt-6.1-sol/high)는 구현 완료·DOC_SYNC 후 별도 read-only 검토. 동시 동일 파일 쓰기 금지; Agent에게 GitHub 댓글/commit/push/CI 권한 위임 없음.
+- TEST_LIFECYCLE_REVIEW: #375/#816 Summary/touch, copy-selection label/input/keyboard/shift/context, #637 projection, #492 hover 및 readiness unit 기존 경계를 검색하고 EXTEND/KEEP_UNIQUE로 선정. 동결한 후보 source에서 과거 실패 합집합과 직접/간접/음성 소비자를 fail-fast 없이 검증하고 명령/지문/미실행 이유를 원장에 기록한다.
+- 위험 HIGH / OWNER_MANAGED / qa_required=true 유지. release_required=true/release_authorized=false, 원격 새 Head Required3/8-shard/Trusted/Owner NOT TESTED. 사용자가 승인한 종료 지점은 **새 PR CI 시작 확인**이며 이후 모니터링/병합/Main/GHCR/Finalizer/Issue close 없음. DOCUMENTATION_SYNC와 원장은 구현 결과 후 갱신한다.
+
+### REWORK #3 구현·검증 및 DOCUMENTATION_SYNC
+
+- frontend는 label pointerdown/mousedown/click만 Grid로 전파하지 않도록 보완했고 native input 활성화/onChange·키보드/Shift·readonly를 보존했다. 원래 coarse tap FAIL 재현 → mousedown 단일 통제 PASS → label 여백 실패 추가 발견 → 최종 중앙/여백/input·readonly/no-write 회귀 PASS. 구체 원인·반례/최초 및 취소 로그·로컬 실행 오류는 [단일 원장 F816-004](../../ISSUE_816_FAILURE_ANALYSIS.md)에 기록한다.
+- 동결 source(원장 SHA-2566개)에서 E2E 과거 실패 합집합 **21/21 PASS**, private mount namespace의 새 `/data` 실제 SQLite31 migrations+production standalone 선택 **5/5 PASS**(10.9s), unit **40/40 PASS**, typecheck/Build PASS, ESLint0 errors/기존3 hook warnings, diff check/debug 제거 PASS. 중간18PASS/3trace-FAIL·선택1/4→4/1→1/4·첫production0/5는 환경 준비 오류로 보존하고 최종26 고유 E2E와 합산하지 않는다. 로컬 전체8shard/Docker/실기기·before/after main/Trusted·Owner는 NOT TESTED다.
+- TEST_LIFECYCLE_REVIEW: coarse spec EXTEND, 이전 projection/hover와 copy-selection/keyboard/URL/context/readonly/readiness KEEP_UNIQUE, 통합/폐기/skip/timeout/retry 변경0. 직접 CLI는 원본 및 누적 실패 합집합을 정확히 고정하는 bounded 진단이며 Pre-PR/CI 정책 변경 없음.
+- DOCUMENTATION_SYNC: 원장·이 Packet·PROJECT_UX·TEST_PLAN·CHANGELOG·active PLAN UPDATED. README(기능/실행법 동일), DESIGN/UI_UX_GUIDELINES(기존 native label/44px 규칙 적용·Delta C), Architecture/API/DB/Scheduling/GSC/CI/REMOTE_VALIDATION/Lifecycle(저장/구조/권한/viewport writer/정책 불변), package/lock(기존0.135.2 후보 유지)는 N/A(reason). 자동 생성된 AGENTS/Next config는 복원, 실제 자격증명·DB·빌드·원시 trace는 커밋 제외.
+- 역할 실증: infra=gpt-6.1-sol/high 원격 read-only 조사, frontend=gpt-6.1-sol/medium 제품/test·실제 실행, root Manager=계획/문서/통합·commit/push. 별도 qa_docs(gpt-6.1-sol/high)가 코드/테스트/문서·실행 로그/동결 지문을 read-only 검토해 사전검토 PASS를 반환했다. 문서 freshness P3(phase/최초 NOT TESTED 시점)를 Manager가 교정했고 코드/테스트 blocker는 없었다. 이 사전검토는 QA_FINAL/Owner ACCEPT가 아니다. HIGH/OWNER_MANAGED와 release_authorized=false 유지, 사용자 승인 종료 지점은 새 PR CI 시작이다.
+
 ## REWORK #2 — CI #3315.1 반복 Hover FAIL 및 Metadata #3316.1 분리 (2026-10-26)
 
 - [누적 원장](../../ISSUE_816_FAILURE_ANALYSIS.md) F816-001/002/003, 인증된 [Full #3315.1](https://github.com/planner77/masterGantt/actions/runs/40301017370) (Head `a2c876a29c8eda35bd60e0a19a2eb7dc08dbf7c7`, testmerge `3633e9661e87c9fe700b16bb1481038ca9932f17`) Quality/Docker PASS, E2E Shard6 #492 Hover 직접 FAIL·Shard2/7 PASS·기타 5 CANCELLED, E2E/QA 파생 FAIL. 별도 [Metadata #3316.1](https://github.com/planner77/masterGantt/actions/runs/40301188286)의 `DEFERRED`는 그 시각 원본 Full 진행 중이라는 비권위 source; 중복 직접 구현 실패 아님.
@@ -22,10 +38,10 @@
 
 - repository: `planner77/masterGantt`
 - issue: [#816](https://github.com/planner77/masterGantt/issues/816); related #375, #637, #142, #233, #345, #552, #556, #711, #797, #800
-- lifecycle_phase: REWORK 2 / FULL_PR_CI_RESTART_PENDING (#3314.1, #3315.1 E2E FAIL; #3316.1 METADATA_ONLY DEFERRED; next Head required checks NOT TESTED)
+- lifecycle_phase: REWORK 3 / FULL_PR_CI_RESTART_PENDING (#3314.1/#3315.1/#3317.1 E2E FAIL; #3316.1 METADATA_ONLY DEFERRED; 동결 로컬 회귀·DOC_SYNC·별도 사전검토 PASS, next Head required checks NOT TESTED)
 - baseline/main: `cd010d6bcff26f10ad00c42cdf3528b851519938` (2026-10-26 KST, `0.135.1`)
 - branch: `feat/issue-816-gantt-row-density`
-- current_version: `0.135.1`; candidate_version: `0.135.2` PATCH (new version only; no tag/GHCR promotion)
+- baseline_version: `0.135.1`; current_version: `0.135.2`; candidate_version: `0.135.2` PATCH (new version only; no tag/GHCR promotion)
 - requested_scope: repository docs/SVAR official API and related issues → analysis/plan/implementation/tests/doc sync → open review/conflicts → **ready Full PR CI start**; CI monitoring, merge, Main, GHCR/Finalizer, Issue closure OUT OF SCOPE.
 - risk_level: HIGH
 - risk_reason: changing SVAR Grid/Chart native geometry impacts virtual scrolling, selection, focus, task editing, drag/resize/dependency and touch targets.
@@ -53,7 +69,7 @@
 
 - AC1: 34px Grid row measured in #375/#637 suites, before-vs-after main38px/current-state fixed work area visible count. **Configured 34px; actual before/after NOT TESTED.**
 - AC2: #375 normal bar 25..29px, Summary pseudo visual/root 0.55..0.70, centering ≤1px, progress/text hit/x/width status. Native historic31px baseline comparison **NOT TESTED**.
-- AC3: #637 exact ID grid↔bar center ≤1px, 390/768/1024/1440/1920×Day/Week, independent Grid Y scroll0, 80+ virtual IDs, negative injection and restored receipt; #375 fullscreen/gantt identity; cross mode structure/filter existing tests. Execution **NOT TESTED**.
+- AC3: #637 exact ID grid↔bar center ≤1px, 390/768/1024/1440/1920×Day/Week, independent Grid Y scroll0, 80+ virtual IDs, negative injection and restored receipt; #375 fullscreen/gantt identity; cross mode structure/filter existing tests. 로컬 projection/Summary/hover 합집합21과 인접 선택5 PASS(원장 참조); 새 Head 원격 전체 회귀는 **NOT TESTED**.
 - AC4: 44px coarse row and label actual `tap`/checkbox checked/no write, original multi-select, drag/resize/tooltip/link/inline editor/focus/readonly suites KEEP_UNIQUE. Native coarse device and 125% OS zoom **NOT TESTED**.
 - AC5: #375 Summary body/root/progress, #142 dates x/width, #345 empty summary, #552 native Milestone row OFF, task/domain/API/Export/canonical and viewport state unchanged; existing checks never deleted.
 - AC6: existing Playwright coverage expanded across 390/768/1024/1440/1600/1920, two scales, readonly/edit, fullscreen, 80+ rows, JSON metrics & screenshot; exact compare before/after, remote Required Quality/E2E8/Docker/Trusted QA/Owner, actual touchscreen **NOT TESTED** until source evidence.
@@ -63,7 +79,7 @@
 
 - Search of existing assertion/title/file before changes: `project-summary-bar-visual.spec.ts` (#375 Summary shape/hit/readonly/Week/fullscreen), `projection-row-alignment.spec.ts` (#637 Grid-only scroll, 80+ virtual rows, required center, natural negative and settled recovery), `project-multi-task-copy-paste.spec.ts` (checkbox/selection, URL, keyboard/Shift), `project-chart-vertical-dnd.spec.ts`, `project-gantt-fullscreen.spec.ts`, `project-gantt-inline-name.spec.ts`, `project-gantt-scale.spec.ts`, `project-task-hover-tooltip.spec.ts`, `project-gantt-density.spec.ts`, `project-empty-summary.spec.ts`.
 - EXTEND `project-summary-bar-visual.spec.ts` and `projection-row-alignment.spec.ts`; ADD **one coarse touch case** inside first spec; KEEP_UNIQUE other source/risk boundaries. PARTIAL_OVERLAP center checks (Summary pseudo/normal virtual rows are independent). CONSOLIDATE_CANDIDATE/RETIRE_CANDIDATE: none. Existing assertions/skip/timeout/retry/test names and shard groups unchanged. Original #637 historical failures not reclassified.
-- Test execution: remote connector-based source editing/static pattern+manifest consistency only. Same-source local Node TypeScript/Vitest/Playwright/Next/HTTP/SQLite/Docker and screenshot not executed: **LOCAL NOT TESTED**. PR Full run exact Head is the next independent validation, NOT TESTED before its result.
+- 최초 구현 시점 Test execution: remote connector-based source editing/static pattern+manifest consistency only로 **LOCAL NOT TESTED**였다. REWORK #3에서 실제 Node TypeScript/Vitest/Playwright/Next/HTTP/SQLite 선별 검증을 실행했으며 최종 결과는 위 절/원장 참조. Docker·전체8-shard·정확 main before/after 및 실기기·native125%는 NOT TESTED. 새 Head PR Full run 결과는 별도 검증이다.
 - Before/after baseline requirement: run same fixture on main `cd010d6...` and PR Head, record browser/OS/viewport/pointer/DPR/locale/row and bar/pseudo rects, visible rows, root instance, Y vs X scroll, keyboard + screenshot/hash. Historical 38px/31px serves reference only; actual new bar 25..29px must not be asserted passed until Chromium.
 
 ## DOCUMENTATION_SYNC
@@ -94,6 +110,6 @@
 
 ## Gate, measurement risk and rollback
 
-- PR Ready create → Full CI auto-start. Current Head TypeScript/Vitest/Chromium/SQLite/actual UI screenshots not executed locally. Existing #375/#637 test expansions require native Core 2.7.3 actual metric confirmation; if 34px row/27px task or CSS label geometry differ, correct on same PR without weakening 0.55..0.70 and ±1px constraints. 390px overflow, fullscreen/read-only/snapshot/virtual 80+ and touch 44px must pass.
+- 기존 Ready PR에 새 Head push → Full CI auto-start. 로컬 TypeScript/Vitest/Chromium/SQLite/Build 선별 검증은 위 REWORK #3의 PASS이고, 실제 main before/after 계측·full regression·실기기 수용은 NOT TESTED다. Existing #375/#637 test expansions require native Core 2.7.3 actual metric confirmation; if 34px row/27px task or CSS label geometry differ, correct on same PR without weakening 0.55..0.70 and ±1px constraints. 390px overflow, fullscreen/read-only/snapshot/virtual 80+ and touch 44px must pass.
 - Code review: newly created PR initially has no review threads; any later must be resolved based on code and exact Head before merge. Verify latest main and mergeability. CI start is not CI success, Trusted/Owner QA or release authorization.
 - Rollback: revert issue feature branch patch/0.135.2 candidate, label override, tests and docs. No schema migration or stored data rewrite. No release/tag/merged branch changes under this directive.

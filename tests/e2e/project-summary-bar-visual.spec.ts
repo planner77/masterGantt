@@ -173,6 +173,26 @@ test("Issue #816 keeps the 44px coarse-pointer checkbox target within its own ro
     expect(targetBounds!.height).toBeGreaterThanOrEqual(44);
     await label.tap();
     await expect(label.locator("input[data-copy-selection]")).toBeChecked();
+    const checkbox = label.locator("input[data-copy-selection]");
+    const selection = page.getByRole("group", { name: "복사 대상 선택" });
+    await expect(selection).toContainText("선택 1개");
+    // Label padding must forward exactly one native activation, just like the input.
+    await label.tap({ position: { x: 3, y: 3 } });
+    await expect(checkbox).not.toBeChecked();
+    await expect(selection).toContainText("선택 0개");
+    await checkbox.tap();
+    await expect(checkbox).toBeChecked();
+    await expect(selection).toContainText("선택 1개");
+    await label.tap({ position: { x: 3, y: 3 } });
+    await expect(checkbox).not.toBeChecked();
+    await expect(row).toHaveAttribute("aria-selected", "false");
+    await expect(ganttRoot(page).locator("input[data-copy-selection]:checked")).toHaveCount(0);
+    fixture.sessionEditable = false;
+    await page.reload();
+    await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+    await label.tap({ position: { x: 3, y: 3 } });
+    await expect(checkbox).toBeChecked();
+    await expect(selection).toContainText("선택 1개");
     expect(fixture.posts).toHaveLength(0);
     expect(fixture.patchRequests).toHaveLength(0);
   } finally {

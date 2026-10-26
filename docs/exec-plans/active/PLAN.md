@@ -1,5 +1,7 @@
 ## Issue #816 — 일정 Grid·Task Bar 세로 밀도 (2026-10-26)
 
+- **REWORK #3:** Full #3317.1 coarse tap unchecked는 label native 활성화 중 Grid mousedown 포커스 간섭으로 분리·보완했다. [누적 원장](../../ISSUE_816_FAILURE_ANALYSIS.md)에 전체4 CI 실행과 취소 샤드/과거 보완·로컬 환경 실패를 보존했다. 동결 소스 E2E21+인접5, unit40·typecheck·Build PASS, Lint0 errors/기존3 warnings. 별도 사전 QA·문서검토 후 새 Full 시작까지만 진행하며 새 원격 결과는 NOT TESTED다.
+
 - [첫 PR #817 Full #3314.1 교정 및 단일 실패 원장](../../ISSUE_816_FAILURE_ANALYSIS.md): Shard3 고정 virtual-scroll2400→native max, Shard6 CANCELLED 내부 #492 실제 hover hit FAIL 두 건 대조. Codex P2 review #4374759680 / 테스트 계약 유지; 원본 Quality/Docker PASS·E2E/QA FAIL. 새로운 정확 Head Full CI 시작 전은 NOT TESTED, 병합/GHCR/종료 금지.
 
 - [Work Packet](ISSUE_816.md) 기준 Source of Truth는 SVAR Core 공식 `cellHeight`/기존 #375 Summary 및 #637 Grid/Chart projection. 0.135.1→**0.135.2 PATCH 후보**, fine34px / coarse44px, Summary 60% 몸체와 ±1px 중심·80+ 가상행/checkbox를 보호한다. 기존 Chromium 2개 spec **EXTEND**, coarse tap case **ADD**. Project UX/TEST_PLAN/CHANGELOG 동기화. HIGH/OWNER_MANAGED, 원격 PR Full 시작까지만, CI 모니터링·병합·GHCR/릴리스/이슈 종료 제외.
