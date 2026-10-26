@@ -36,6 +36,14 @@ async function expectTooltip(
   revision: number,
 ): Promise<string> {
   await target.scrollIntoViewIfNeeded();
+  // #816 F816-002: position a smaller Chart bar centrally once before
+  // checking the original real-hit, current Core/native and U3 readiness.
+  // This is setup, not a hover retry or relaxed visibility assertion.
+  if (await target.evaluate(node => node.matches(".wx-bar[data-task-id]"))) {
+    await target.evaluate(node => node.scrollIntoView({
+      block: "center", inline: "center", behavior: "auto",
+    }));
+  }
   const frame = ganttRoot(page);
   // 이 시나리오는 검색을 편집하지 않는다. 현재 scope·U3·hit가 새 hover의 전제다.
   await waitForGanttReadiness(target, { operation: "hover", allowCancelledPriorWork: true, api: await frame.getAttribute("data-project-gantt-api-instance"), revision,

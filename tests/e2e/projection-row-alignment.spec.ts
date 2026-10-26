@@ -104,8 +104,19 @@ for (const scale of ["Day", "Week"]) test(`#637 native owner Y and wide Grid X r
   await expect.poll(async () => (await geometry(page)).gridLeft).toBe(120);
   const expectedVisibleIds = expectedWbsIds(fixture.tasks);
   const expectedCanonicalIds = fixture.tasks.map(task => task.taskId);
+  // #816 F816-001: 34px rows shorten native scroll capacity. Probe the
+  // actual scroll bottom, not an unattainable fixed 2400px position.
+  const scrollBudget = await frame.locator(".wx-gantt").evaluate(element => ({
+    maxTop: element.scrollHeight - element.clientHeight,
+    scrollHeight: element.scrollHeight,
+    clientHeight: element.clientHeight,
+  }));
+  expect(scrollBudget.maxTop).toBeGreaterThan(1200);
+  await info.attach("native-scroll-virtual-budget", {
+    body: JSON.stringify(scrollBudget), contentType: "application/json",
+  });
   const samples = [];
-  for (const top of [300, 1200, 2400, 0]) {
+  for (const top of [300, 1200, scrollBudget.maxTop, 0]) {
     await frame.locator(".wx-gantt").evaluate((element, top) => { element.scrollTop = top; }, top);
     await expect.poll(async () => (await geometry(page)).coreTop).toBe(top);
     await aligned(page);

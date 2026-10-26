@@ -1,10 +1,20 @@
 # Issue #816 — Gantt Grid 행·Task 막대 높이 축소 Work Packet
 
+## 2026-10-26 REWORK — PR #817 첫 Full CI 및 리뷰
+
+- **원본·누적 실패 원장:** [ISSUE_816_FAILURE_ANALYSIS.md](../../ISSUE_816_FAILURE_ANALYSIS.md), [CI #3314.1 / Run 40284101069](https://github.com/planner77/masterGantt/actions/runs/40284101069), Head `ced5fbf3ef99ba4f3d52bfeed2fc84e87b4e53c4`, base `cd010d6bcff26f10ad00c42cdf3528b851519938`, test-merge `46426d99588d037637bef1d97a27e4efcead09e2`.
+- **F816-001 TEST_CONTRACT:** Shard3/8 (Job121444542220) `projection-row-alignment.spec.ts` Day virtual-scroll 고정 target2400 / browser actual2287 (34px row로 native scroll range 감소). 98PASS/1FAIL/1SKIP/42 NOT RUN. `scrollHeight-clientHeight` native max를 측정해 `[300,1200,max,0]`에서 기존 Core/Chart/owner 동등·Grid X120·±1px/virtual membership/negative recovery 계약을 **그대로** 적용한다. Codex P2 review thread #4374759680 대응.
+- **F816-002 UNKNOWN(표시/실제 hit 또는 fixture setup):** 최종 Job status는 CANCELLED인 Shard6/8 (Job121444542208)에서도 내부 직접 FAIL 존재. #492 `project-task-hover-tooltip.spec.ts:100` 첫 Chart hover의 유일 blocker `HOVER_TARGET_NOT_HITTABLE`; 63PASS/1FAIL/1SKIP/33 NOT RUN. Occluder/실제 hit-point trace 미보존, source 원인 확정 금지. 실제 bar를 중앙에 **한 번** 놓는 좁은 fixture 준비를 보완하되 기존 `elementFromPoint` hit, 3RAF/U3, Tooltip 실제 내용/close·zero-mutation assertion **유지**. 새 Chromium 판정 전 해결 **NOT TESTED**.
+- Required Quality/Docker PASS(원본 Head), E2E aggregate FAIL, QA Automated는 `NEED_E2E=failure` 파생 FAIL. 나머지 Shard1/2/4/5/7/8 모두 CANCELLED(접근 가능한 로그상 추가 assertion FAIL 없음; 개별 PASS 아님). 다른 미실행·취소 케이스를 PASS로 소급 금지.
+- **TEST_LIFECYCLE_REVIEW:** #637 기존 E2E **EXTEND** (AC1/AC3 native last-row/strict align), #492 고유 E2E **EXTEND** (AC4 실제 hit 기준 보존), #375 Summary/touch 및 다른 고유 E2E **KEEP_UNIQUE**. 새 test 삭제·skip·timeout/retry/CI Required3/8-shard 조정 없음.
+- **DOCUMENTATION_SYNC:** 이 Packet 및 새 단일 원장과 [active PLAN](PLAN.md) UPDATED, 기존 `docs/TEST_PLAN.md`/#816 AC 테스트 목록과 `docs/PROJECT_UX.md`의 Gantt 제품 동작은 그대로 유효해 계약 변경 없음. `AGENTS.md`, `DESIGN.md`, API/DB/Architecture/CI/제품 소스·package/lock: N/A(제품/정책/버전 변경0).
+- 로컬/browser/SQLite/실기기 재실행은 이 연결 경로에서 **NOT TESTED**. 원본 Job 로그·review·Git 부모 및 mergeable/source ancestry는 확인. 새 Head Full PR CI로 실제 검증을 시작하고 모니터링하지 않는다. HIGH/OWNER_MANAGED, independent QA·Owner·Merge/GHCR/Finalizer/Issue close 미수행; `release_authorized=false`.
+
 ## Issue Work Packet
 
 - repository: `planner77/masterGantt`
 - issue: [#816](https://github.com/planner77/masterGantt/issues/816); related #375, #637, #142, #233, #345, #552, #556, #711, #797, #800
-- lifecycle_phase: PR_READY / FULL_PR_CI_START_PENDING
+- lifecycle_phase: REWORK / FULL_PR_CI_RESTART_PENDING (original #3314.1 E2E FAIL; new Head required checks NOT TESTED)
 - baseline/main: `cd010d6bcff26f10ad00c42cdf3528b851519938` (2026-10-26 KST, `0.135.1`)
 - branch: `feat/issue-816-gantt-row-density`
 - current_version: `0.135.1`; candidate_version: `0.135.2` PATCH (new version only; no tag/GHCR promotion)

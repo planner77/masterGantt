@@ -1,5 +1,7 @@
 ## Issue #816 — 일정 Grid·Task Bar 세로 밀도 (2026-10-26)
 
+- [첫 PR #817 Full #3314.1 교정 및 단일 실패 원장](../../ISSUE_816_FAILURE_ANALYSIS.md): Shard3 고정 virtual-scroll2400→native max, Shard6 CANCELLED 내부 #492 실제 hover hit FAIL 두 건 대조. Codex P2 review #4374759680 / 테스트 계약 유지; 원본 Quality/Docker PASS·E2E/QA FAIL. 새로운 정확 Head Full CI 시작 전은 NOT TESTED, 병합/GHCR/종료 금지.
+
 - [Work Packet](ISSUE_816.md) 기준 Source of Truth는 SVAR Core 공식 `cellHeight`/기존 #375 Summary 및 #637 Grid/Chart projection. 0.135.1→**0.135.2 PATCH 후보**, fine34px / coarse44px, Summary 60% 몸체와 ±1px 중심·80+ 가상행/checkbox를 보호한다. 기존 Chromium 2개 spec **EXTEND**, coarse tap case **ADD**. Project UX/TEST_PLAN/CHANGELOG 동기화. HIGH/OWNER_MANAGED, 원격 PR Full 시작까지만, CI 모니터링·병합·GHCR/릴리스/이슈 종료 제외.
 
 ## Issue #809 — R3 리소스 차트와 정확 근거
