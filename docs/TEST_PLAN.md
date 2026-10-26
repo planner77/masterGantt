@@ -8,6 +8,9 @@
 
 **증거/미실행:** [PR #814 첫 Full #3307.1](https://github.com/planner77/masterGantt/actions/runs/40252205907)은 QA Preflight에서 변경된 테스트 대비 이 테스트 계획 문서가 PR diff에 빠져 `DOCUMENTATION_SYNC` FAIL; 실제 E2E·Vitest·Docker가 **SKIPPED**되었다. 이번 문서 추가와 Work Packet `UPDATED`을 동일 HEAD에 결속해 신규 Full CI에서 검증한다. 기존 PASS를 새 소스에 소급하지 않고 실제 실행 전 `NOT TESTED`다. 실제 mobile touch/native zoom/screen reader·Windows Excel/DRM·운영 복구는 별도 미검증이며, [Work Packet](exec-plans/active/ISSUE_809.md)에서 코드/테스트·Docs와 Release 승인 경계를 구분한다.
 
+**PR #814 Full #3308.1 fixture 교정 (2026-10-26):** [Run 40253032474.1](https://github.com/planner77/masterGantt/actions/runs/40253032474)에서 #556의 기존 `toBeFocused()`까지 도달하기 전에 새 관측기 준비가 `panel.hidden && Summary trigger DOM 존재`의 초기 조건을 잘못 가정해 `Summary return focus fixture is unavailable`로 직접 FAIL했다(Shard1 95 PASS/1 FAIL/8 NOT RUN). 실제 버튼 focus 복원은 이 Run에서 **NOT TESTED**. 새 fixture는 일정 탭 `aria-selected=false → true` 의미 상태 전환 및 Summary 버튼의 실제 DOM 생성에 맞추어 hold를 설치하고, pending 해제 후 220ms hold를 풀며 영수증 `data-focus-hold-armed/released`와 원래 focus/ID·선택·view·write0 단언을 모두 보존한다. `TEST_CONTRACT/FIXTURE_OBSERVABILITY` 단독 변경이며 제품 코드/QA/timeout/retry/skip/8-shard gate 변경 없음. [누적 F809-CI-003](ISSUE_809_FAILURE_ANALYSIS.md).
+
+
 ## Issue #809 — Resource 차트 연결과 기존 고유 회귀
 
 선행 #807 작업면·#808 원장 adapter를 사용하는 chart consumer만 확장한다. 직접 범위는 기존 WBS query의 opt-in analysis parse/동일 transaction·sourceScope·예산/오류와 Resource 차트의 3유형·동일 값/표·정확 ID 상세/일정·응답 역전/조건 변경이다. 기존 ResourceDashboard/Plan/Excel·공통 geometry는 고유 경계로 유지한다.

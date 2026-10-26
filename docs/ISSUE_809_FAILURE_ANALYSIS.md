@@ -212,3 +212,27 @@ Artifact: [실패 Playwright report·trace ID 12619275650](https://github.com/pl
 - **변경하지 않음:** 기존 PR #814의 제품·E2E 수정 및 package/lock `0.135.1`, 원래 `v0.135.0` immutable tag, CI/QA/Ruleset/E2E8/skip/retry/timeout, release authorization, 오리지널 실패 이력. 이 corrective commit은 문서3파일 변경만 수행.
 - **검증:** 원격 Job 로그와 trusted `docs_gate` 정규식·실제 바뀐 파일 경로의 구조를 대조했다. Node/Chromium/Docker 실행은 본 연결에서 NOT TESTED. 신규 Head에서 정확 PR Full CI/Trusted/Owner 및 구현 회귀의 결과를 재검증해야 하며 CI 시작은 PASS가 아니다. 리뷰 스레드·latest main·충돌 확인 후 PR synchronize로 새 CI를 요청한다. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `release_required=true`, `release_authorized=false`(후보 `0.135.1`), `MERGE_READY=BLOCKED`. 병합/Main/정식 GHCR·tag/Finalizer/Issue 종료는 요청 제외.
 
+## 2026-10-26 KST — F809-CI-003 / PR #814 Full #3308.1 #556 테스트 지연 Fixture 사전조건 오류
+
+### A–C. 원본 전체 이력 / 직접 실패와 파생 및 취소
+
+- **원본:** [PR #814](https://github.com/planner77/masterGantt/pull/814), [Full CI #3308.1 / Run 40253032474 attempt 1](https://github.com/planner77/masterGantt/actions/runs/40253032474), `pull_request`, `.github/workflows/ci.yml`, Head `7582d3fd9b2f5c7fb81dd2fff11d36168259dc91`, Base `12ce9a05c85ca52bd746107b54a817313668814a`. 이 Run은 완료/FAIL.
+- **첫 직접 실패:** [Chromium E2E shard1/8 Job 121349443186](https://github.com/planner77/masterGantt/actions/runs/40253032474/job/121349443186), `tests/e2e/resource-drill-ui.spec.ts:494:5`의 #556 Summary→리소스→원래 보기. `observeLookup:592`의 새 테스트 `page.evaluate`가 `Error: Summary return focus fixture is unavailable`로 종료. **95 PASS, 1 FAIL, 8 DID NOT RUN**. 실제 `expect(button).toBeFocused()`까지 도달하지 못함.
+- **구체 원인 분류: `TEST_CONTRACT / FIXTURE_OBSERVABILITY`.** 전 단계 F809-REL-001을 실증하기 위해 추가한 테스트 자체가 리소스 화면에서 `project-panel-schedule`이 미리 `hidden=true`이고 `Summary` 버튼이 이미 DOM에 있다는 **동시 사전조건**을 강제했다(`if (!panel || !panel.hidden || !trigger)`). 로그는 이 복합 조건의 불충족을 증명하나 어느 단일 값이 틀렸는지는 출력하지 않아 특정 단일 원인을 단정하지 않는다. 이 실패는 제품의 최종 포커스 복원 결과나 GHCR 레지스트리 오류를 검증한 결과가 **아니다**.
+- **독립 성공:** QA Preflight, Policy, TypeScript, ESLint, Vitest, PR Next.js production build, Docker smoke, Required Quality/Docker **SUCCESS**. Chromium shard3/8 [Job 121349443148](https://github.com/planner77/masterGantt/actions/runs/40253032474/job/121349443148) 및 8/8 [121349443190](https://github.com/planner77/masterGantt/actions/runs/40253032474/job/121349443190)은 SUCCESS. Shard3의 1 skipped는 해당 실행의 실제 reporter 값이며 새 skip을 추가한 결과가 아니다.
+- **취소/파생:** shard2/4/5/6/7 **CANCELLED** (Job 121349443177/121349443121/121349443103/121349443096/121349443164; 완료된 개별 PASS를 전체 성공으로 전용하지 않음). E2E Required aggregate [Job 121354986595](https://github.com/planner77/masterGantt/actions/runs/40253032474/job/121354986595) FAIL 및 QA Final Automated [Job 121355011060](https://github.com/planner77/masterGantt/actions/runs/40253032474/job/121355011060) FAIL은 shard 직접 실패의 파생. `PR_E2E_STOP_ON_FAILURE=true`의 fail-fast 취소 정책은 기존 설정 그대로.
+- **원본 artifact:** [Shard1 Playwright report ID 12621389916](https://github.com/planner77/masterGantt/actions/runs/40253032474/artifacts/12621389916), [timing ID 12622320981](https://github.com/planner77/masterGantt/actions/runs/40253032474/artifacts/12622320981). Job text와 실패 line은 직접 확인했으나 ZIP 내부 Trace 이벤트 분석은 NOT TESTED, 내부 값을 출력/공개하지 않음.
+
+### D. 전 이력 합집합과 원인별 구분
+
+1. **F809-CI-001** — PR #813 #3304.1 `#551` 대량 Milestone 5 RAF 30s timeout(실패 직접, 브라우저/runner 근본 원인 UNKNOWN) → 보강 후 #3305.1 Full Required PASS. 기존 P2 **R809-007**(차트 Plan 원본 인계)는 독립 코드 리뷰에서 확인하여 교정됨.
+2. **F809-REL-001** — Main #3306.1 PASS 후 v0.135.0 GHCR Release #198.1 shard1 `#556` `toBeFocused` 5s FAIL(직접), Release quality 파생, 정식 이미지 승격 미실행. 제품의 schedule 복귀 2 RAF race는 코드상 위험으로 확인; 실제 Release 시점 이벤트 순서는 미확정.
+3. **F809-CI-002** — 교정 PR #814 #3307.1 `DOCUMENTATION_SYNC / docs/TEST_PLAN.md` 입력 계약 직접 FAIL → 해당 문서 실제 갱신으로 구조 검증 교정. 모든 구현 Job SKIPPED였으며 포커스 회귀 실행 증거 없음.
+4. **F809-CI-003 (이번)** — #814 #3308.1에서 QA/Quality/Docker는 PASS, **테스트 준비용 DOM 사전조건**에서 #556가 먼저 예외. 앞선 #556 실제 focus assertion 실패와 동일하지 않음. 5개 shard 취소 및 E2E/QA aggregate 파생 FAIL.
+
+### E–G. 보완과 검증 경계
+
+- **테스트 준비 로직만 교정:** 숨은 일정 패널과 Summary 버튼의 **이전 DOM 상태**를 강요하는 guard를 폐기한다. 실제 활성 리소스 보기에서 `project-tab-schedule`의 `aria-selected=false → true`를 감시하고, 선택된 일정 화면의 **정확한** `[data-schedule-resource-drill="summary"]` 버튼이 React commit으로 나타날 때만 220ms disabled hold를 설치한다. 과거 2 RAF 정착 이전에 disable하고, navigation pending이 해제된 뒤에만 hold를 풀며, `data-focus-hold-armed/released`를 검증한다. 이후 원래 `toBeFocused`·exact Task/Assignment·rootTask/selected checkbox·Gantt instance·no writes 단언을 **그대로 유지**한다.
+- **변경 범위/영향:** `tests/e2e/resource-drill-ui.spec.ts`의 #556 한 시나리오를 EXTEND, 변경된 관측 계약을 `docs/TEST_PLAN.md`, `docs/exec-plans/active/ISSUE_809.md`, 이 원장에 동기화. 제품 `focusNavigation`/DOM/DB/권한/Calendar·R2 원장/Resource 차트·버전(package/lock)·CI/workflow/8-shard/Required3·QA 정책은 이번 차례 **변경 없음**. #528 동일 파일, #530/#717/#731/#736/#809 실제 복귀 고유 시나리오는 KEEP_UNIQUE.
+- **검증 상태:** 직접 Run source·Job·정확 예외 코드와 기존 앱 JSX의 `tab aria-selected`/명령 DOM 식별자를 대조했다. 로컬 Node/Chromium/Docker·Playwright Trace 내부 검증은 NOT TESTED(원격 빌드 환경과 연결된 체크아웃 부재). 신규 Head의 PR Full CI에서 #556 실제 focus 단언이 실행·PASS하는지를 검증해야 하며, 현재 증거로 제품 포커스 수정의 성공을 확정할 수 없다.
+- **출시/병합:** Owner-managed HIGH, `qa_required=true`, `manager_decision=NOT TESTED`, `release_required=true`, `release_authorized=false`(corrective `0.135.1`). 원래 annotated `v0.135.0` SHA/기존 GHCR/실패 Run을 변경하지 않음. 같은 PR에서 리뷰 스레드·strict 최신 main/충돌 확인 후 `synchronize`로 **새 PR CI 시작까지만** 진행. 새 Run의 Required3/Trusted QA/Owner 위험 수용·병합/Main/Finalizer/GHCR·Issue 완료는 전부 미확정/범위 밖.
