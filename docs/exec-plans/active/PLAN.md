@@ -1,3 +1,13 @@
+## Issue #816 — 일정 Grid·Task Bar 세로 밀도 (2026-10-26)
+
+- **REWORK #4:** [Full #3318.1](https://github.com/planner77/masterGantt/actions/runs/40311630203)의 Delete D 우클릭은 다른 Summary의 투명 progress marker가 중심을0.0938px 가로막는 제품 오류로 재현했다. 비표시 marker를 hit-test에서 제외하고 native26px·top80%/드래그 위치를 유지한다. 중앙 배치 후보는 자기 Task 이동 회귀로 기각했다. 과거/신규 실패4spec 합집합과 marker/body/resize/readonly를 동결 검증하며, 활성 marker의 raw 우클릭 wrong-target는 F816-006 PRODUCT/AC4 FAIL로 미해결이며 Manager REWORK/병합 BLOCKED다. 정확 증거·결과는 [단일 원장](../../ISSUE_816_FAILURE_ANALYSIS.md)에 기록하고 새 Full PR CI 시작까지만 진행한다.
+
+- **REWORK #3:** Full #3317.1 coarse tap unchecked는 label native 활성화 중 Grid mousedown 포커스 간섭으로 분리·보완했다. [누적 원장](../../ISSUE_816_FAILURE_ANALYSIS.md)에 전체4 CI 실행과 취소 샤드/과거 보완·로컬 환경 실패를 보존했다. 동결 소스 E2E21+인접5, unit40·typecheck·Build PASS, Lint0 errors/기존3 warnings. 별도 사전 QA·문서검토 후 새 Full 시작까지만 진행하며 새 원격 결과는 NOT TESTED다.
+
+- [첫 PR #817 Full #3314.1 교정 및 단일 실패 원장](../../ISSUE_816_FAILURE_ANALYSIS.md): Shard3 고정 virtual-scroll2400→native max, Shard6 CANCELLED 내부 #492 실제 hover hit FAIL 두 건 대조. Codex P2 review #4374759680 / 테스트 계약 유지; 원본 Quality/Docker PASS·E2E/QA FAIL. 새로운 정확 Head Full CI 시작 전은 NOT TESTED, 병합/GHCR/종료 금지.
+
+- [Work Packet](ISSUE_816.md) 기준 Source of Truth는 SVAR Core 공식 `cellHeight`/기존 #375 Summary 및 #637 Grid/Chart projection. 0.135.1→**0.135.2 PATCH 후보**, fine34px / coarse44px, Summary 60% 몸체와 ±1px 중심·80+ 가상행/checkbox를 보호한다. 기존 Chromium 2개 spec **EXTEND**, coarse tap case **ADD**. Project UX/TEST_PLAN/CHANGELOG 동기화. HIGH/OWNER_MANAGED, 원격 PR Full 시작까지만, CI 모니터링·병합·GHCR/릴리스/이슈 종료 제외.
+
 ## Issue #809 — R3 리소스 차트와 정확 근거
 
 최신 main `56a094b797300a554909cd8d81ef0bafe46d6def`/app0.134.0에서 전용 `feat/issue-809-resource-charts`로 진행한다. 선행 #807 단일 workspace·#808 원장 분석 adapter를 소비하여 기간/Capacity·업무 집중·Milestone/실물 기여의 3유형과 같은 데이터 표·정확 원본/일정·복귀를 구현한다. 기존 WBS query에 동일 transaction의 opt-in 분석 seam만 연결한다.

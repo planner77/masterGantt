@@ -13,7 +13,8 @@ export interface GanttReadinessSnapshot {
   native: { left: number; top: number; capacity: number; clientWidth: number; clientHeight: number };
   domIds: string[]; header: boolean; axisExists: boolean; geometry: number[];
   coordinate: { insideRange: boolean; contentX: number } | null;
-  hover: { hit: boolean; rect: number[] } | null;
+  hover: { hit: boolean; rect: number[]; point?: [number, number] | null; centerHit?: boolean;
+    probes?: Array<{ x: number; y: number; hit: boolean; topTag: string | null; topClass: string | null }> } | null;
 }
 export interface GanttReadinessExpectation {
   operation: "observe" | "scroll" | "date-reveal" | "hover";

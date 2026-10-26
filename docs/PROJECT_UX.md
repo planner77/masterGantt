@@ -1,3 +1,12 @@
+## Issue #816 — Project Gantt 세로 정보 밀도 및 터치 보존 (2026-10-26)
+
+- 일반(fine-pointer) 환경의 SVAR Core 2.7.3 공식 `cellHeight`는 **34px**이다. 기존 공식 기본 38px 대비 -4px(-10.5%); 동일한 고정 작업면에서 이론상 약 11.8% 많은 행이 들어간다. 가시 행 증가량의 *실제 계측*은 브라우저 실행 전 NOT TESTED다.
+- `(pointer: coarse)`에서는 기존 선택 체크박스의 44px 터치 목표가 행 사이에 겹치지 않도록 행 자체를 **44px**로 사용한다. 선택 label은 일반 행의 기존 min-height 38px 제약을 제거하고 행 안을 채운다. MediaQuery 변경은 같은 <Gantt> 공개 prop만 갱신하며 새로운 native instance remount/viewport 초기화는 허용하지 않는다.
+- 선택 label의 중앙·여백과 input 탭은 native checkbox 활성화 한 번으로 처리한다. label의 pointerdown/mousedown/click은 Grid 포커스·행 선택 처리로 전파하지 않으며 native 기본 활성화·onChange/Shift range·Space·Context Menu는 보존한다. 터치 도중 Grid 포커스가 click 대상을 바꾸던 실패와 로컬/원격 구분은 [단일 실패 원장](ISSUE_816_FAILURE_ANALYSIS.md)의 F816-004를 따른다.
+- 일반 Task 바는 Core의 row-height 파생 치수를 사용하므로 짧아지며(34px row의 예상 bar 27px), Summary의 #375 `::before{inset:20% 0}` 60% 몸체/진행률과 full-size hitbox는 그대로 둔다. Summary visual/Task root 비율은 0.55~0.70, 각 Grid/Chart 동일 ID의 Y 중심 차이는 ±1px이어야 한다.
+- 진행률 marker는 native `top:80%`·26px 크기/drag 위치를 유지하고 **비표시 상태를 hit-test에서도 제외**한다. 기존 bar hover 또는 `wx-progress-in-drag`에서만 표시한다. 34px 행에서 다른 Summary의 투명 marker가 다음 Task 우클릭을 가로채던 F816-005를 수정하는 범위이며, 활성 marker에서 raw 포인터로 다음 Task를 우클릭했을 때 이전 Summary가 열리는 별도 F816-006은 미해결 PRODUCT/AC4 FAIL로 원장에 분리한다. 중앙 배치로 Task 중심 이동을 progress drag로 바꾸지 않는다.
+- Grid/Chart 패널 높이·가로폭·날짜 header, Day/Week 수평 좌표/기간, native scrolling/80+ 가상행/독립 Grid Y 금지, readonly/edit, Fullscreen, 기존 Task/Milestone/Empty Summary·링크·일정·Export 계약은 변경하지 않는다. [Work Packet](exec-plans/active/ISSUE_816.md)과 [Test Plan](TEST_PLAN.md)에서 실제 증거/미실행을 구분한다.
+
 ## Issue #809 — Release #198.1 / #556 일정→리소스 복귀 포커스 계약 (2026-10-26)
 
 일정의 `담당자·공수 조회` 및 `Summary 전체 담당자·공수`에서 리소스 조회 뒤 `원래 보기`로 돌아오면 정확한 출발 명령이 DOM에 연결되고 활성화된 후 키보드 포커스를 복구한다. 2회의 `requestAnimationFrame`은 `navigationLoading`으로 인한 disabled 및 화면 활성화 완료의 증거가 아니다. 버튼이 교체되면 `data-schedule-resource-drill` 논리 식별자로 같은 제어를 다시 찾고 패널 visibility·pending·enabled 전이를 관찰한다. source 소멸 시에만 유효한 일정 탭으로 복귀하며, 새 사용자 pointer/keyboard/wheel·실제 다른 focus owner/모달/새 navigation generation이 자동 복원보다 우선한다. 원래 Summary/rootTask·선택·read-only·Gantt instance·viewport 상태는 유지한다. [검증·실패 경계](ISSUE_809_FAILURE_ANALYSIS.md).

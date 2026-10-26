@@ -66,6 +66,9 @@ for (const width of [390, 768, 1024, 1440, 1920]) for (const scale of ["Day", "W
     await page.keyboard.press("ArrowDown");
     await aligned(page);
     const after = await geometry(page);
+    expect(after.rowHeight).toBeCloseTo(34, 0);
+    expect(after.pairs.length).toBeGreaterThan(0);
+    expect(after.pairs.every(pair => pair.barHeight >= 25 && pair.barHeight <= 29)).toBe(true);
     expect(after.gridTop).toBe(0);
     expect(after.chartTop).toBe(0);
     expect(Math.abs(after.coreTop - after.ownerTop)).toBeLessThanOrEqual(1);
@@ -101,8 +104,19 @@ for (const scale of ["Day", "Week"]) test(`#637 native owner Y and wide Grid X r
   await expect.poll(async () => (await geometry(page)).gridLeft).toBe(120);
   const expectedVisibleIds = expectedWbsIds(fixture.tasks);
   const expectedCanonicalIds = fixture.tasks.map(task => task.taskId);
+  // #816 F816-001: 34px rows shorten native scroll capacity. Probe the
+  // actual scroll bottom, not an unattainable fixed 2400px position.
+  const scrollBudget = await frame.locator(".wx-gantt").evaluate(element => ({
+    maxTop: element.scrollHeight - element.clientHeight,
+    scrollHeight: element.scrollHeight,
+    clientHeight: element.clientHeight,
+  }));
+  expect(scrollBudget.maxTop).toBeGreaterThan(1200);
+  await info.attach("native-scroll-virtual-budget", {
+    body: JSON.stringify(scrollBudget), contentType: "application/json",
+  });
   const samples = [];
-  for (const top of [300, 1200, 2400, 0]) {
+  for (const top of [300, 1200, scrollBudget.maxTop, 0]) {
     await frame.locator(".wx-gantt").evaluate((element, top) => { element.scrollTop = top; }, top);
     await expect.poll(async () => (await geometry(page)).coreTop).toBe(top);
     await aligned(page);
@@ -112,6 +126,7 @@ for (const scale of ["Day", "Week"]) test(`#637 native owner Y and wide Grid X r
     // This fixture has fixed-height rows and no collapsed nodes. Use the
     // actual Core order and measured row/viewport heights, not the subset
     // that happened to mount, to require every visible virtual row.
+    expect(sample.rowHeight).toBeCloseTo(34, 0);
     expect(sample.rowHeight).toBeGreaterThan(0);
     const coreIds = sample.receipt.coreVisibleIds as string[];
     // All canonical IDs persist, but native Grid/Chart rows exclude hidden

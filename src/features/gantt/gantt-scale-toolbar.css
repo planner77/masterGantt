@@ -56,6 +56,17 @@
   height: auto;
 }
 
+/* Native opacity-only handles extend below compact rows. Keep inactive
+   handles out of hit testing without moving the progress drag target. */
+.project-gantt-widget .wx-bar > .wx-progress-marker {
+  visibility: hidden;
+}
+
+.project-gantt-widget .wx-bar:hover > .wx-progress-marker,
+.project-gantt-widget .wx-bar > .wx-progress-marker.wx-progress-in-drag {
+  visibility: visible;
+}
+
 .project-gantt-widget .wx-bar.wx-summary:hover::before,
 .project-gantt-widget .wx-bar.wx-summary.wx-selected::before {
   box-shadow: var(--wx-gantt-bar-shadow);
@@ -286,7 +297,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 38px;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
   width: 100%;
   cursor: pointer;
 }
@@ -296,6 +309,7 @@
 .project-copy-selection-status,
 .project-copy-selection-help { color: var(--text-muted); font-size: 0.8125rem; }
 .project-copy-selection-status { margin: 0.25rem 0; }
+/* #816: coarse-pointer rows are 44px; the target must not overlay adjacent rows. */
 @media (pointer: coarse) { .project-copy-selection-hitarea { min-height: 44px; } }
 
 .project-gantt-week-scale {

@@ -16,7 +16,23 @@ export async function readGanttReadiness(target: Locator, expected: GanttReadine
       const axis = chart.querySelector<HTMLElement>(".wx-scale")?.getBoundingClientRect();
       const coordinate = request.expected.date ? probe?.coordinate?.(request.expected.date) : null;
       const rect = node.getBoundingClientRect(), x = (Math.max(0, rect.left) + Math.min(innerWidth, rect.right)) / 2,
-        y = (Math.max(0, rect.top) + Math.min(innerHeight, rect.bottom)) / 2, hit = document.elementFromPoint(x, y);
+        y = (Math.max(0, rect.top) + Math.min(innerHeight, rect.bottom)) / 2;
+      // #816 F816-003: Week bars can be only 19px wide. A center-only
+      // elementFromPoint probe is not a proof that the *whole* visual Task is
+      // unhittable. Select an actual DOM hit point before making a real move.
+      // Rows and wider bars still require the original center hit.
+      const narrowBar = node.matches(".wx-bar[data-task-id]") && rect.width <= 24;
+      const points: Array<[number, number]> = [[x, y]];
+      if (narrowBar) for (const xFraction of [0.25, 0.75]) for (const yFraction of [0.5, 0.25, 0.75]) {
+        points.push([rect.left + rect.width * xFraction, rect.top + rect.height * yFraction]);
+      }
+      const hitProbes = request.expected.operation === "hover" ? points.map(([probeX, probeY]) => {
+        const top = document.elementFromPoint(probeX, probeY);
+        return { x: probeX, y: probeY, hit: !!top && node.contains(top),
+          topTag: top?.tagName.toLowerCase() ?? null,
+          topClass: top?.getAttribute("class")?.slice(0, 120) ?? null };
+      }) : [];
+      const firstHit = hitProbes.find(entry => entry.hit);
       const recovery = parse("ganttCanonicalRecovery");
       return {
         connected: frame.isConnected && node.isConnected && chart.isConnected && owner.isConnected,
@@ -41,7 +57,11 @@ export async function readGanttReadiness(target: Locator, expected: GanttReadine
           frame.clientWidth, frame.clientHeight, frame.querySelector(".project-gantt-scroll")?.scrollLeft ?? 0,
           axis?.x ?? 0, axis?.y ?? 0, axis?.width ?? 0, axis?.height ?? 0, innerWidth, innerHeight, Number(document.fullscreenElement === frame)],
         coordinate: coordinate ? { insideRange: coordinate.insideRange, contentX: coordinate.contentX } : null,
-        hover: request.expected.operation === "hover" ? { hit: !!hit && node.contains(hit), rect: [rect.x, rect.y, rect.width, rect.height, x, y] } : null,
+        hover: request.expected.operation === "hover" ? {
+          hit: !!firstHit, rect: [rect.x, rect.y, rect.width, rect.height, x, y],
+          point: firstHit ? [firstHit.x, firstHit.y] as [number, number] : null,
+          centerHit: hitProbes[0]?.hit ?? false, probes: hitProbes,
+        } : null,
       };
     };
     const samples = [capture()], deadline = performance.now() + 5_000;

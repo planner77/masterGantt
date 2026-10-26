@@ -1,3 +1,11 @@
+## [0.135.2] — Unreleased / Issue #816 Gantt 세로 밀도 (2026-10-26)
+
+- Project Gantt의 Grid+Chart 세로 cell은 공개 `cellHeight` 34px(fine pointer), 44px(coarse pointer / 선택 터치 목표)로 일원화한다. 일반 Task bar는 SVAR Core의 row 계산에 따라 축소되고 Summary의 기존 60% 시각 몸체·전체 hitbox/진행률·상태는 유지한다. 일반 체크박스 38px 최소 높이를 제거해 줄어든 34px 행과 겹치지 않는다.
+- 터치 체크박스의 label pointer/mouse/click 전파를 Grid 포커스·행 선택에서 격리해 탭 도중 click 대상이 스크롤 영역으로 바뀌어 선택이 누락되던 오류를 수정했다. 원래 native label/input·Shift/Space·readonly 동작을 보존하고 label 여백/중앙의 1회 토글 회귀를 확장했다. 실제 재현·검증은 [#816 누적 원장](docs/ISSUE_816_FAILURE_ANALYSIS.md)에 기록한다.
+- 투명한 native 진행률 marker가 다음 Task의 우클릭을 가로채던 오류를 수정했다. 비표시 marker를 hit-test에서 제외하고 기존 hover/진행률 drag 표시·26px native geometry는 유지한다. 활성 marker의 raw 우클릭 wrong-target는 [F816-006 미해결 PRODUCT/AC4 FAIL](docs/ISSUE_816_FAILURE_ANALYSIS.md)로 분리하며 해결·Owner 승인 전 완료로 판단하지 않는다.
+- 기존 #375 Summary visual E2E와 #637 virtual Grid/Chart alignment E2E를 확장한다(390/768/1024/1440/1920, Day/Week, readonly/edit, Fullscreen, ±1px, 음성 Y 오차/회복). Coarse-pointer 44px 실제 tap/선택 무변경 검증을 같은 기존 suite에 추가한다. 날짜·폭·canonical 일정/API/DB/권한/Export/CI 8-shard 정책 불변.
+- `0.135.2`는 새 PATCH **후보**이고 정식 GHCR/Release 승인은 없다. 역사적 #637 38px/31px는 최신 동일 Source 실측이 아님. 로컬 Node/Chromium/SQLite 선별 회귀와 Build는 원장에 기록했으며 실제 main before/after·실기기 및 원격 새 Head required/Trusted/Owner는 **NOT TESTED**. [Issue #816 Work Packet](docs/exec-plans/active/ISSUE_816.md).
+
 ## [0.135.1] — Unreleased / Issue #809 GHCR Release 품질 교정 후보 (2026-10-26)
 
 - `v0.135.0` annotated tag(`12ce9a05c85ca52bd746107b54a817313668814a`)의 [GHCR Release #198.1](https://github.com/planner77/masterGantt/actions/runs/40245250839)은 #556 Schedule→Resource→원래 보기 버튼 focus 단언 실패로 quality gate가 차단됐다. Static+7/8 E2E 성공, 1/8 실패 및 후보 검증·promotion 미실행은 원장에 보존한다.
