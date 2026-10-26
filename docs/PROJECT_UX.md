@@ -1,3 +1,7 @@
+## Issue #809 — Release #198.1 / #556 일정→리소스 복귀 포커스 계약 (2026-10-26)
+
+일정의 `담당자·공수 조회` 및 `Summary 전체 담당자·공수`에서 리소스 조회 뒤 `원래 보기`로 돌아오면 정확한 출발 명령이 DOM에 연결되고 활성화된 후 키보드 포커스를 복구한다. 2회의 `requestAnimationFrame`은 `navigationLoading`으로 인한 disabled 및 화면 활성화 완료의 증거가 아니다. 버튼이 교체되면 `data-schedule-resource-drill` 논리 식별자로 같은 제어를 다시 찾고 패널 visibility·pending·enabled 전이를 관찰한다. source 소멸 시에만 유효한 일정 탭으로 복귀하며, 새 사용자 pointer/keyboard/wheel·실제 다른 focus owner/모달/새 navigation generation이 자동 복원보다 우선한다. 원래 Summary/rootTask·선택·read-only·Gantt instance·viewport 상태는 유지한다. [검증·실패 경계](ISSUE_809_FAILURE_ANALYSIS.md).
+
 ## Issue #809 — 리소스 차트 작업면
 
 `대시보드 → 리소스 → 차트`는 기간 투입·업무 집중·기여 분포 중 한 유형을 보여 준다. 기존 기본 현황·동적 탐색·Milestone 교차·Resource Plan·견적/Excel은 그대로 접근한다. 현재 범위·기간·기준일·단위를 먼저 확인하고 그래프와 같은 수치의 데이터 표에서 원본 근거를 연다. 차트를 열지 않은 기존 보기에는 차트 공간을 예약하지 않는다.

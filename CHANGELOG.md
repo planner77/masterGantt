@@ -1,3 +1,9 @@
+## [0.135.1] — Unreleased / Issue #809 GHCR Release 품질 교정 후보 (2026-10-26)
+
+- `v0.135.0` annotated tag(`12ce9a05c85ca52bd746107b54a817313668814a`)의 [GHCR Release #198.1](https://github.com/planner77/masterGantt/actions/runs/40245250839)은 #556 Schedule→Resource→원래 보기 버튼 focus 단언 실패로 quality gate가 차단됐다. Static+7/8 E2E 성공, 1/8 실패 및 후보 검증·promotion 미실행은 원장에 보존한다.
+- 일정 원본 버튼 복귀를 두 RAF 가정 대신 panel 활성/return pending·disabled DOM 증거 및 정확 명령 selector 재조회로 보완한다. 최신 사용자 입력·모달 우선과 기존 선택/범위·readonly·Gantt를 유지하며, #556 기존 Chromium case에 220ms 비활성 지연 재현을 추가한다. assertion/timeout/retry/skip/Required/8-shard·release 권한 정책은 유지한다.
+- `0.135.1`은 불변 실패 `v0.135.0`의 동일 Issue corrective PATCH **후보**로서 `release_required=true/release_authorized=false`이다. 새 버전의 정식 게시/종료는 별도 Owner 승인·새 PR/Main/Release 검증 전 미실행. [누적 실패 원장](docs/ISSUE_809_FAILURE_ANALYSIS.md) / [Work Packet](docs/exec-plans/active/ISSUE_809.md).
+
 ## [0.135.0] — Unreleased / Issue #809 Resource 차트
 
 - 리소스 작업면에 기간 투입/Capacity·개인 과투입, 업무 집중, Milestone/실물 기여 차트와 같은 수치 데이터 표·정확 원본 탐색을 추가한다. 기존 WBS 조회에서 같은 snapshot의 #808 분석 모델을 제공하며 별도 공수 계산기/원장·PRO/차트 의존성을 만들지 않는다.

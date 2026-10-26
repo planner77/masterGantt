@@ -587,8 +587,56 @@ test("#556 선택 Summary 자손과 현재 Summary 전체 담당자·공수를 �
       for (const name of ["Alice556", "Bob556", "Carol556"]) {
         await expect(dashboard.locator('[data-resource-row="resource"]').filter({ hasText: name })).toBeVisible();
       }
+      if (scope.kind === "summarySubtree") {
+        // #809 F809-CI-003: 대시보드 표시 중 숨은 일정 패널의 DOM 형태를
+        // 가정하지 않는다. 실제 일정 탭 활성화와 논리 Summary 명령을 기다린다.
+        await expect(p.getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "false");
+        await p.evaluate(() => {
+          const panel = document.getElementById("project-panel-schedule");
+          const tab = document.getElementById("project-tab-schedule");
+          if (!panel || !tab) throw Error("Schedule workspace shell is missing");
+          let armed = false;
+          const onReturn = () => {
+            if (armed || tab.getAttribute("aria-selected") !== "true") return;
+            const trigger = panel.querySelector<HTMLButtonElement>('[data-schedule-resource-drill="summary"]');
+            if (!trigger) return; // 버튼이 React commit 후에 생성될 수도 있다.
+            armed = true;
+            observer.disconnect();
+            trigger.disabled = true;
+            panel.dataset.focusHoldArmed = "true";
+            // 기존 두-RAF 시점보다 늦게 enable: React가 먼저 해제해도 유지.
+            const hold = new MutationObserver(() => {
+              if (trigger.isConnected && !trigger.disabled) trigger.disabled = true;
+            });
+            hold.observe(trigger, { attributes: true, attributeFilter: ["disabled"] });
+            let elapsed = false;
+            let released = false;
+            const release = () => {
+              if (released || !elapsed || panel.dataset.resourceNavigationPending === "true") return;
+              released = true;
+              hold.disconnect();
+              pending.disconnect();
+              if (trigger.isConnected) trigger.disabled = false;
+              panel.dataset.focusHoldReleased = "true";
+            };
+            const pending = new MutationObserver(release);
+            pending.observe(panel, { attributes: true, attributeFilter: ["data-resource-navigation-pending"] });
+            window.setTimeout(() => { elapsed = true; release(); }, 220);
+          };
+          const observer = new MutationObserver(onReturn);
+          observer.observe(document.body, { subtree: true, childList: true, attributes: true,
+            attributeFilter: ["aria-selected"] });
+          onReturn();
+        });
+      }
       await strip.getByRole("button", { name: /원래 보기/ }).click();
       await expect(p.getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "true");
+      if (scope.kind === "summarySubtree") {
+        const schedule = p.locator("#project-panel-schedule");
+        await expect(schedule).toHaveAttribute("data-focus-hold-armed", "true");
+        await expect(schedule).toHaveAttribute("data-focus-hold-released", "true");
+        await expect(button).toBeEnabled();
+      }
       await expect(button).toBeFocused();
       await expect(selectedCheckbox).toBeChecked();
       expect(new URL(p.url()).searchParams.get("rootTask")).toBe(root.taskId);

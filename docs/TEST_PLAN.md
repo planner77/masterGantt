@@ -1,3 +1,16 @@
+## Issue #809 — PR #814 / #556 GHCR Release 복귀 포커스 교정 회귀 (2026-10-26)
+
+[GHCR Release #198.1](https://github.com/planner77/masterGantt/actions/runs/40245250839)의 #556 `resource-drill-ui.spec.ts:494` (Summary 전체 담당자·공수→리소스 조회→원래 보기)에서 `toBeFocused()` 5s 실패, 103 PASS/1 FAIL을 기록한다. 동일 source의 Main CI #3306.1에서는 같은 case가 통과했으므로 출시 환경·포커스 정착 간 경쟁 위험을 별도로 추적한다. [누적 F809-REL-001 및 PR #814 Preflight F809-CI-002](ISSUE_809_FAILURE_ANALYSIS.md).
+
+**TEST_LIFECYCLE_REVIEW (EXTEND):** 기존 `tests/e2e/resource-drill-ui.spec.ts`의 #556 단일 실제 SQLite/HTTP 시나리오를 유지하고, Summary 조회 후 복귀 당시 원본 버튼 disabled를 220ms 의도적으로 유지한 다음 재활성화 완료와 **동일 명령으로의 정확 키보드 포커스 복구**를 검증한다. 앱은 일정 패널의 가시·비활성/inert, 돌아오기 navigation pending, 실효 disabled 및 modal 수명을 확인하고 `data-schedule-resource-drill=selected|summary` 논리 식별자로 이전 DOM이 교체되어도 같은 명령만 재탐색한다. 새 pointer/keyboard/wheel/다른 실제 focus owner가 기존 자동 복귀보다 우선한다. 기존 #556의 Task/Assignment IDs·Summary rootTask·선택 체크·Gantt instance·readonly write0/assertion을 제거하지 않는다.
+
+**KEEP_UNIQUE / 영향 대비:** 같은 파일 #528 실제 Resource↔일정 왕복·Editor, `resource-kpi-integration-ui.spec.ts` #530 중첩 frame/viewport, #717/#731 키보드/사용자 입력 우선, #736/#809 차트·Plan Project 전체 외부 Task 정확 ID·일정 복귀 및 R2/Plan/OOXML/Excel·권한/401/412는 서로 다른 기능·제품 계약을 검증하므로 통합·삭제하지 않는다. 수정 소유는 `ProjectReadonlyView.focusNavigation` schedule return producer와 #556 consumer이다. 신규 고유 전체 spec 없음, retries0·timeout/fixture·8-shard·Required3·Trusted/Owner/Release/Finalizer gate 불변.
+
+**증거/미실행:** [PR #814 첫 Full #3307.1](https://github.com/planner77/masterGantt/actions/runs/40252205907)은 QA Preflight에서 변경된 테스트 대비 이 테스트 계획 문서가 PR diff에 빠져 `DOCUMENTATION_SYNC` FAIL; 실제 E2E·Vitest·Docker가 **SKIPPED**되었다. 이번 문서 추가와 Work Packet `UPDATED`을 동일 HEAD에 결속해 신규 Full CI에서 검증한다. 기존 PASS를 새 소스에 소급하지 않고 실제 실행 전 `NOT TESTED`다. 실제 mobile touch/native zoom/screen reader·Windows Excel/DRM·운영 복구는 별도 미검증이며, [Work Packet](exec-plans/active/ISSUE_809.md)에서 코드/테스트·Docs와 Release 승인 경계를 구분한다.
+
+**PR #814 Full #3308.1 fixture 교정 (2026-10-26):** [Run 40253032474.1](https://github.com/planner77/masterGantt/actions/runs/40253032474)에서 #556의 기존 `toBeFocused()`까지 도달하기 전에 새 관측기 준비가 `panel.hidden && Summary trigger DOM 존재`의 초기 조건을 잘못 가정해 `Summary return focus fixture is unavailable`로 직접 FAIL했다(Shard1 95 PASS/1 FAIL/8 NOT RUN). 실제 버튼 focus 복원은 이 Run에서 **NOT TESTED**. 새 fixture는 일정 탭 `aria-selected=false → true` 의미 상태 전환 및 Summary 버튼의 실제 DOM 생성에 맞추어 hold를 설치하고, pending 해제 후 220ms hold를 풀며 영수증 `data-focus-hold-armed/released`와 원래 focus/ID·선택·view·write0 단언을 모두 보존한다. `TEST_CONTRACT/FIXTURE_OBSERVABILITY` 단독 변경이며 제품 코드/QA/timeout/retry/skip/8-shard gate 변경 없음. [누적 F809-CI-003](ISSUE_809_FAILURE_ANALYSIS.md).
+
+
 ## Issue #809 — Resource 차트 연결과 기존 고유 회귀
 
 선행 #807 작업면·#808 원장 adapter를 사용하는 chart consumer만 확장한다. 직접 범위는 기존 WBS query의 opt-in analysis parse/동일 transaction·sourceScope·예산/오류와 Resource 차트의 3유형·동일 값/표·정확 ID 상세/일정·응답 역전/조건 변경이다. 기존 ResourceDashboard/Plan/Excel·공통 geometry는 고유 경계로 유지한다.
