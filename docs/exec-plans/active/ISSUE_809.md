@@ -129,3 +129,17 @@ Manager의 MINOR 결정에 따라 infra `/root/publish_recovery`가 package.json
 [원본 Full #3304.1](https://github.com/planner77/masterGantt/actions/runs/40235454996): Shard1 #551 3천 Task 대량 Milestone peer/fullscreen 시 30초 `settle`(5 RAF) timeout 1직접 FAIL, Shard1 56 PASS·47 NOT RUN, 기타 shard2–8 CANCELLED, E2E 집계/QA 파생 FAIL. Quality/Build/Docker PASS는 **이전 Head**에 한정. 원인은 현 로그로 UNKNOWN; timeout 증가/fixture 축소/skip/retry·CI 정책 완화 대신 대표 #551 test의 7정착 경로를 이름 있는 test.step으로 관측한다.
 
 같은 PR 새 P2 review는 선택80/개인 Project140의 외부 Task 포함 Plan 원본으로 일정 이동 버튼을 숨기는 실제 제품 제어 결함. chart 선택 gate를 순수 함수로 분리하여 검증된 Plan gateway만 외부 Task를 허용하고 일반 WBS subset/T0 명시 예외/게이트 부재 차단은 유지. 기존 #736 chart 통합 E2E에 Project gateway→외부 Task→일정/복귀+focus/필터를, 기존 Resource feature unit에 양성·음성 2건을 확장(EXTEND, 새 전체 spec 없음). 수정 후 로컬 Node/Chromium 실행은 이 GitHub 연동 환경에서 NOT TESTED이며 원격 동일 source CI가 필요하다. [원장 상세](../../ISSUE_809_FAILURE_ANALYSIS.md) 참조. Required3/Trusted/Owner/Manager ACCEPT 및 MergeReady는 새 Head에서 미검증·BLOCKED.
+
+
+## 2026-10-26 — #809 GHCR Release #198.1 실패 후속 P1 보완
+
+**근거:** [GHCR Release #198.1](https://github.com/planner77/masterGantt/actions/runs/40245250839) / [Main #3306.1](https://github.com/planner77/masterGantt/actions/runs/40242715595) / annotated `v0.135.0`의 정확 merge SHA `12ce9a05c85ca52bd746107b54a817313668814a`. Main은 성공했지만 Release shard1의 기존 #556 실제 Summary→Resource→원래 보기에서 버튼 focus 5s FAIL(103 PASS/1 FAIL). Static 및 다른 E2E 7샤드 PASS, Release quality 집계 FAIL/후속 GHCR publish SKIPPED. 초기 #551 timeout과 R809-007의 Plan P2는 원장상 별도 이력이다. [F809-REL-001 누적 원장](../../ISSUE_809_FAILURE_ANALYSIS.md).
+
+**분석·보완:** 화면 복귀의 2-RAF focus 시도와 `navigationLoading`에 따른 버튼 disabled 전이는 동기화되지 않을 수 있다(실제 실패 Trace 세부 시퀀스는 NOT TESTED). 일정 패널 가시/return pending/원본 버튼의 실제 enabled·modal 상태를 MutationObserver로 확인하고 안정적 selected/summary selector로 동일 논리 명령을 재식별한다. 새 사용자 keyboard/pointer/wheel·modal/다른 focus owner/새 generation 우선. 기존 필터·Summary·Resource/Gantt·이전 scroll/selection/read-only mutation0 유지.
+
+**TEST_LIFECYCLE_REVIEW / AC_TEST_COVERAGE:** #809-AC3·#556-AC5/AC9: 기존 `resource-drill-ui.spec.ts`의 #556 시나리오 **EXTEND**(Summary 복귀 버튼 220ms 지연 활성화·정확 focus, 기존 Task/Assignment/readonly/context/Gantt 확인 유지), #528 동일 spec 정확 선택 ID/일정 복귀는 **KEEP_UNIQUE**. `issue-736-resource-dashboard.spec.ts`(#809 chart/Plan Project 외부 Task), `resource-kpi-integration-ui.spec.ts`(#530 nested/LIFO viewport), #717/#731 tab·사용자 focus, R2/Plan/Excel/HTTP/SQLite/권한 고유 검증은 **KEEP_UNIQUE**. 신규 spec 삭제/복제, timeout·skip/retry 및 8-shard/Required 완화 없음. Work Packet 및 failure ledger에 producer→consumer/negative/실제 불검증을 기록함.
+
+**DOCUMENTATION_SYNC:** UPDATED: Work Packet, 단일 `ISSUE_809_FAILURE_ANALYSIS.md`, `PROJECT_UX.md`, `CHANGELOG.md`, `package.json`, `package-lock.json`. `TEST_PLAN.md`은 기존 활성 #556/#528/#809 테스트 그대로 유지(테스트 선정/확장 근거를 이 패킷에 작성하여 정책 변경 N/A). `AGENTS.md`/DESIGN/CI_CD/ISSUE_LIFECYCLE/REMOTE_VALIDATION/QA_REVIEW_POLICY/API/DB/SECURITY·Import/Excel/운영 배포 정책은 수정된 계약이 없어 N/A.
+
+**Release 정책:** 기존 `v0.135.0` tag 이동/삭제/재발행 금지. `0.135.1`은 동일 Issue #809의 **non-docs corrective PATCH 후보**일 뿐 별도 Owner 신규 버전 승인 marker는 없다. `risk_level=HIGH; qa_method=OWNER_MANAGED; qa_required=true; manager_decision=NOT TESTED; release_required=true; release_authorized=false; MERGE_READY=BLOCKED`. 실제 Node/Chromium/도커는 이 GitHub 연결에 checkout 런타임이 없어 NOT TESTED. 이번 요청은 리뷰/충돌 확인 후 **새 PR Full CI 시작까지**이며 모니터링·병합/Main/새 tag/GHCR/Finalizer/branch cleanup/Issue 종료는 하지 않는다.
+

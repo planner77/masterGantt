@@ -160,3 +160,35 @@ U809-12 교정의 실제390 glyphRange는 첫 KPI row의 두 값 Y754.40625/754.
 - **본 GitHub 연결에서 로컬 Node/Chromium/Docker 실행:** NOT TESTED(체크아웃·실행 가능 런타임 미제공). 원본 이전 Head의 56 PASS/품질·Docker success는 이번 수정 후보 SHA의 통과 증거가 아니다. 수정 코드는 source contract/정적 비교로만 확인하며 **동일 source 통합 E2E, TypeScript, Vitest, Docker, Trusted QA 및 리뷰 이후 Quality/E2E8/Docker 결과는 새 원격 Head에서 확인해야 함**.
 - **Cross-run 요약:** F809-CI-001 `#3304.1 / Shard1 / milestone-timeline-lane.spec.ts` 직접 FAIL → 새 Head에서 동일 #551/E2E8 재검증 대기, 원인 UNKNOWN. R809-007 `#813 P2 / chart Plan navigation` 확정 결함 → Unit 음성/확장 E2E 실행 대기. 이슈 내 다른 원격 Full PR 실패는 검색된 접근 가능 실행에 없음.
 - **병합/승인:** mergeable true, latest main 대비 behind0은 보완 전 원격 조회 사실. 새 commit 이후 다시 PR mergeability/review0 확인. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, Required3/Trusted QA/Manager ACCEPT/정식 GHCR는 아직 새 Head에서 미입증, MERGE_READY=BLOCKED. 새로운 Full CI는 `synchronize` push 이후 Issue/PR 댓글의 불변 Run ID/Attempt를 사용해 별도 추적하며 시작을 성공으로 해석하지 않는다.
+
+## 2026-10-26 KST — F809-REL-001 / GHCR Release #198.1 직접 실패 및 후속 PATCH 후보
+
+### A–C. PR·Main·Release 교차 원장 (서로 다른 Run/Attempt 구분)
+
+| 고정 출처 | 직접 결과 | 파생 결과/미실행 및 이력 |
+| --- | --- | --- |
+| [PR #813 Full #3304.1 / 40235454996.1](https://github.com/planner77/masterGantt/actions/runs/40235454996), Head `e25c34c54f1044a8217cf82f91171a37486a974b` | Shard1 #551 3,000 Task/Milestone의 5 RAF/30s timeout — **F809-CI-001, UNKNOWN** | 다른 샤드 취소·E2E/QA 집계 파생 FAIL. 원본 기록 보존 |
+| [PR #813 Full #3305.1 / 40239997193.1](https://github.com/planner77/masterGantt/actions/runs/40239997193), Head `9867ece194d7aa2355c2b834c0852a451653b8ea` | Required Quality/E2E 8/8/Docker/QA Automated PASS, [Trusted #952.1](https://github.com/planner77/masterGantt/actions/runs/40242256307) PASS | 최초 #551 실패의 원인 확정이나 삭제가 아님. R809-007 Plan P2 교정 별도 |
+| [Main #3306.1 / 40242715595.1](https://github.com/planner77/masterGantt/actions/runs/40242715595), merge `12ce9a05c85ca52bd746107b54a817313668814a` | Quality/E2E 8/8/Docker 및 후보 GHCR exact SHA smoke PASS. [Shard1 Job 121317828787](https://github.com/planner77/masterGantt/actions/runs/40242715595/job/121317828787)에서 **동일 #556 case 7.7s PASS**, shard 104/104 PASS | Main 성공은 Release 정적/E2E 성공을 대체하지 않음 |
+| [Generic Finalizer #1068.1 / 40245194601](https://github.com/planner77/masterGantt/actions/runs/40245194601) | `release_start` 성공: v0.135.0 exact Owner marker/annotated tag 및 Release workflow dispatch | 정식 GHCR 게시·Issue FINAL/close 아님 |
+| **[GHCR Release #198.1 / 40245250839.1](https://github.com/planner77/masterGantt/actions/runs/40245250839)** · annotated tag `v0.135.0` peeled SHA `12ce9a05c85ca52bd746107b54a817313668814a` | **[Release shard1 Job 121325496041](https://github.com/planner77/masterGantt/actions/runs/40245250839/job/121325496041) 직접 FAILURE**: `tests/e2e/resource-drill-ui.spec.ts:494:5` #556 Summary→Resource→원래 보기, `observeLookup:592`의 `expect(button).toBeFocused()`, Expected focused/Received inactive, 5,000ms. **103 PASS / 1 FAIL** | Static SUCCESS, E2E shard2–8 7/7 SUCCESS. [Quality Job 121331383938](https://github.com/planner77/masterGantt/actions/runs/40245250839/job/121331383938) `E2E=failure` 파생 FAIL; candidate/attestation/promotion/Resume **SKIPPED**. |
+
+Artifact: [실패 Playwright report·trace ID 12619275650](https://github.com/planner77/masterGantt/actions/runs/40245250839/artifacts/12619275650) (7일 보존), [Shard1 timing ID 12619405291](https://github.com/planner77/masterGantt/actions/runs/40245250839/artifacts/12619405291). 로그·Job steps는 원격 조회했으나 trace.zip 안의 DOM 이벤트 타임라인은 본 연결로 읽지 못하여 **NOT TESTED**. 테스트용 `PROJECT_NOT_FOUND` 404 및 Node setup 경고는 직접 실패 단언의 확인된 원인이 아니다.
+
+### D. 직접 원인과 가능 기전의 구분
+
+- **직접 실패 확정:** #556 원래 보기 뒤 Summary 조회 **버튼 focus 복원 단언 불충족**. 로그에서 버튼은 14회 DOM으로 탐색되고 비활성 focus 상태였다. 일정 탭으로 복귀한 앞선 assertion까지 통과했으며 데이터 산식/OCI registry publish 에러는 확인되지 않았다. 동일 exact merge source Main PASS 대비 Release FAIL이므로 제품 UI 타이밍/runner contention 가능성을 구분해야 한다.
+- **소스상 원인 후보:** `src/features/projects/project-readonly-view.tsx`의 `focusNavigation()`은 schedule 복귀에서 2×`requestAnimationFrame` 후 한 번만 focus를 시도한다. 그 사이 `finishResourceNavigation`의 pending 전환으로 조회 버튼 `disabled`가 잠시 유지될 수 있다. 이때 명령이 존재해도 `isVisibleFocusTarget`은 disabled를 거부하며 원본 focus 기회가 소진된다. **구조적 race 위험은 코드로 확인되지만** 이번 실패의 정확한 이벤트 순서는 Trace 미열람으로 `UNKNOWN`이다. F809-CI-001 #551의 browser RAF timeout과 같은 원인으로 단정하지 않는다.
+- **교정:** schedule source 명령을 안정된 `data-schedule-resource-drill=selected|summary`로 기록하여 DOM 교체 후에도 정확한 대상 재조회. schedule panel visible/inert·`data-resource-navigation-pending`/버튼 disabled 및 native modal을 DOM event로 관측하고 ready 후 1회 focus. 새 pointer/keyboard/wheel/다른 실제 focus owner/generation은 오래된 복원을 즉시 취소; 대상이 유효하지 않으면 일정 탭 fallback. 원래 rootTask·선택·scope·Gantt instance 및 readonly/no-write 유지.
+- **재현/회귀:** 기존 `tests/e2e/resource-drill-ui.spec.ts` #556 실제 HTTP·SQLite 테스트에 Summary 복귀 당시 원본 버튼의 enabled를 **220ms 의도적으로 지연**시켜 과거 two-RAF 창을 넘기는 검증을 추가한다. 기존 exact Task/Assignment ID·readonly 0-write·selection/scope·일정 탭·원래 trigger focus 및 #528 인접 검증을 보존하며 assertion/timeout/fixture/skip/retry/8-shard/Required 정책 완화 없음.
+
+### E–G. 누적 실패 합집합 및 release 권한 경계
+
+이슈 #809 실패 합집합은 **F809-CI-001**(#551 초기 PR 대량 fixture RAF timeout, 원인 UNKNOWN) + **R809-007**(Plan project-wide 외부 Task 일정보기 P2, 기존 교정) + **F809-REL-001**(이번 #556 원래 보기 focus 단언 실패)로 구분한다. 원본 직접 FAIL과 집계/취소/미실행은 서로 합산하지 않는다. 이전 PR/Main PASS를 신규 교정 HEAD의 PASS로 소급하지 않는다.
+
+`v0.135.0` annotated tag는 이미 생성되어 원래 merge SHA를 가리키고 GitHub Release `v0.135.0`는 조회 시 404, 정식 GHCR promotion Job는 미실행이다. 태그 이동/삭제/재게시·registry alias 강제 덮어쓰기 금지. [Issue Lifecycle — Release failure supersession](ISSUE_LIFECYCLE.md)의 동일 Issue 비문서 교정 및 **새 SemVer** 원칙에 따라 PATCH `0.135.1`은 **신규 후보**로만 제시한다. 과거 tag와 run은 불변이며 `0.135.0` 승인 marker는 `0.135.1` 발행 권한이 아니다.
+
+테스트 영향 분류: 변경 producer=일정 FocusNavigation 복원, 소비자=#556 정확 source/비활성/원래보기, #528 선택 Task/Resource 왕복·LIFO, #809 chart/Plan 일정, #717 상위 탭 focus, #731 최신 user intent, #530 viewport nested 복귀. #556 기존 case EXTEND, #528/#809/#717/#731/#530은 KEEP_UNIQUE. 테스트·문서 버전 업데이트 외 DB/API/권한/원장/산식/CI workflow·GHCR 발행 로직 변경0.
+
+본 연결에서는 완전한 Node modules/Chromium/Docker 체크아웃을 실행하지 않았으므로 로컬 TypeScript/Vitest/E2E/Build/QA는 **NOT TESTED**. 신규 PR에 대해 Review0/충돌0/원격 start 확인까지만 수행하고 CI 결과 지속 조회하지 않는다. `risk_level=HIGH; qa_method=OWNER_MANAGED; qa_required=true; manager_decision=NOT TESTED; release_required=true; release_authorized=false (v0.135.1); MERGE_READY=BLOCKED`. 최신 Head Required3/Trusted QA·Owner 위험 수용·새 v0.135.1 게시 승인·Main/Finalizer는 별도 진행이 필요하다.
+
