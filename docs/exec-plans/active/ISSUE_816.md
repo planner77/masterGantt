@@ -1,5 +1,13 @@
 # Issue #816 — Gantt Grid 행·Task 막대 높이 축소 Work Packet
 
+## REWORK #2 — CI #3315.1 반복 Hover FAIL 및 Metadata #3316.1 분리 (2026-10-26)
+
+- [누적 원장](../../ISSUE_816_FAILURE_ANALYSIS.md) F816-001/002/003, 인증된 [Full #3315.1](https://github.com/planner77/masterGantt/actions/runs/40301017370) (Head `a2c876a29c8eda35bd60e0a19a2eb7dc08dbf7c7`, testmerge `3633e9661e87c9fe700b16bb1481038ca9932f17`) Quality/Docker PASS, E2E Shard6 #492 Hover 직접 FAIL·Shard2/7 PASS·기타 5 CANCELLED, E2E/QA 파생 FAIL. 별도 [Metadata #3316.1](https://github.com/planner77/masterGantt/actions/runs/40301188286)의 `DEFERRED`는 그 시각 원본 Full 진행 중이라는 비권위 source; 중복 직접 구현 실패 아님.
+- 지난 중앙 `scrollIntoView` 보완은 다시 `HOVER_TARGET_NOT_HITTABLE`로 실패하여 폐기. Shard6 실제 report JSON의 Week bar 폭 **19px**·높이27px·좌표 x578/y417.5 및 U3/Core-native 완전 SETTLED를 확인했고 root occluder class는 당시 증거 부족으로 UNKNOWN. 방어적 `elementFromPoint`를 강제로 true 만들지 않고 **좁은 bar 한정 여러 내부 실제 pixel 검증 → 검증된 한 점에서 실제 Playwright hover**로 교정; 넓은 bar/Grid 원래 중심 check, 기존 tooltip/date/focus/scroll/hit assertions 보존. 새 failure artifact에는 좌표별 최상단 tag/class를 담아 진단할 수 있게 함.
+- **TEST_LIFECYCLE_REVIEW** #711: existing #492 `project-task-hover-tooltip.spec.ts` EXTEND + 기존 shared `gantt-readiness.ts`/state의 실제 hit point 관측, #375/#637 및 기타 GSC/U3 tests KEEP_UNIQUE. 기존 테스트 삭제·skip·timeout/retry/Readiness state 완화 없고 Core/프로젝트 제품 파일 변경0. F816-001은 #3315 Shard3 CANCELLED로 검증 미도달; original #3314 FAIL을 성공으로 소급하지 않음.
+- **검증:** archived original error artifact 실열람(19×27/center blocked), local 합성 headless Chromium 투명 중앙 overlay: center false/좌우 내부 bar true (synthetic, actual source PASS 아님). 이번 앱 Next/real SQLite/Cross-file Chromium 실실행은 NOT TESTED. AGENTS/DESIGN/GANTT_STATE_CONSISTENCY·CONFORMANCE/Adapter ADR/Sync Trace, 원장, Git diff·Codex thread, 관련 테스트 검토. 새 Head Full CI로 실제 판정하고 이후 모니터링하지 않는다.
+- **DOCUMENTATION_SYNC:** 위 새 원장+Work Packet 갱신. 기존 PROJECT_UX/TEST_PLAN/CHANGELOG/PLAN의 행34px·Task bar27px·Summary60%·±1px·touch44px 계약 unchanged; API/DB/CI/보안/라이브러리/패키지 불변으로 N/A. risk HIGH/OWNER_MANAGED, qa_required=true, release_required=true/release_authorized=false, Manager ACCEPT·Trusted NOT TESTED, merge/GHCR/Finalizer/Issue close 제외.
+
 ## 2026-10-26 REWORK — PR #817 첫 Full CI 및 리뷰
 
 - **원본·누적 실패 원장:** [ISSUE_816_FAILURE_ANALYSIS.md](../../ISSUE_816_FAILURE_ANALYSIS.md), [CI #3314.1 / Run 40284101069](https://github.com/planner77/masterGantt/actions/runs/40284101069), Head `ced5fbf3ef99ba4f3d52bfeed2fc84e87b4e53c4`, base `cd010d6bcff26f10ad00c42cdf3528b851519938`, test-merge `46426d99588d037637bef1d97a27e4efcead09e2`.
@@ -14,7 +22,7 @@
 
 - repository: `planner77/masterGantt`
 - issue: [#816](https://github.com/planner77/masterGantt/issues/816); related #375, #637, #142, #233, #345, #552, #556, #711, #797, #800
-- lifecycle_phase: REWORK / FULL_PR_CI_RESTART_PENDING (original #3314.1 E2E FAIL; new Head required checks NOT TESTED)
+- lifecycle_phase: REWORK 2 / FULL_PR_CI_RESTART_PENDING (#3314.1, #3315.1 E2E FAIL; #3316.1 METADATA_ONLY DEFERRED; next Head required checks NOT TESTED)
 - baseline/main: `cd010d6bcff26f10ad00c42cdf3528b851519938` (2026-10-26 KST, `0.135.1`)
 - branch: `feat/issue-816-gantt-row-density`
 - current_version: `0.135.1`; candidate_version: `0.135.2` PATCH (new version only; no tag/GHCR promotion)

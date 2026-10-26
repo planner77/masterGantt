@@ -36,20 +36,19 @@ async function expectTooltip(
   revision: number,
 ): Promise<string> {
   await target.scrollIntoViewIfNeeded();
-  // #816 F816-002: position a smaller Chart bar centrally once before
-  // checking the original real-hit, current Core/native and U3 readiness.
-  // This is setup, not a hover retry or relaxed visibility assertion.
-  if (await target.evaluate(node => node.matches(".wx-bar[data-task-id]"))) {
-    await target.evaluate(node => node.scrollIntoView({
-      block: "center", inline: "center", behavior: "auto",
-    }));
-  }
+  // #816 F816-003: retain one native reveal. The prior extra center scroll
+  // did not repair the 19px Week bar. Readiness now records real hit probes,
+  // and the real pointer hover uses its checked in-bar location.
   const frame = ganttRoot(page);
   // 이 시나리오는 검색을 편집하지 않는다. 현재 scope·U3·hit가 새 hover의 전제다.
-  await waitForGanttReadiness(target, { operation: "hover", allowCancelledPriorWork: true, api: await frame.getAttribute("data-project-gantt-api-instance"), revision,
+  const readiness = await waitForGanttReadiness(target, { operation: "hover", allowCancelledPriorWork: true, api: await frame.getAttribute("data-project-gantt-api-instance"), revision,
     scale: (await frame.getAttribute("data-gantt-scale-mode")) as "day" | "week",
     scope: new URL(page.url()).searchParams.get("rootTask")?.trim() || null, query: "", queryWitness: { kind: "unchanged" } });
-  await target.hover();
+  const hitPoint = readiness.hover?.point, bounds = readiness.hover?.rect;
+  if (!hitPoint || !bounds) throw new Error("Gantt hover requires an actual hittable Task/Grid target");
+  // Playwright retains its pointer actionability checks at this exact DOM
+  // verified point. Never force-hover, synthesize a tooltip, or retry on fail.
+  await target.hover({ position: { x: hitPoint[0] - bounds[0], y: hitPoint[1] - bounds[1] } });
   const current = tooltip(page);
   await expect(current).toBeVisible();
   await expect(current.locator(".project-task-hover-tooltip-name")).toHaveText(name);
