@@ -4,6 +4,7 @@
 - `(pointer: coarse)`에서는 기존 선택 체크박스의 44px 터치 목표가 행 사이에 겹치지 않도록 행 자체를 **44px**로 사용한다. 선택 label은 일반 행의 기존 min-height 38px 제약을 제거하고 행 안을 채운다. MediaQuery 변경은 같은 <Gantt> 공개 prop만 갱신하며 새로운 native instance remount/viewport 초기화는 허용하지 않는다.
 - 선택 label의 중앙·여백과 input 탭은 native checkbox 활성화 한 번으로 처리한다. label의 pointerdown/mousedown/click은 Grid 포커스·행 선택 처리로 전파하지 않으며 native 기본 활성화·onChange/Shift range·Space·Context Menu는 보존한다. 터치 도중 Grid 포커스가 click 대상을 바꾸던 실패와 로컬/원격 구분은 [단일 실패 원장](ISSUE_816_FAILURE_ANALYSIS.md)의 F816-004를 따른다.
 - 일반 Task 바는 Core의 row-height 파생 치수를 사용하므로 짧아지며(34px row의 예상 bar 27px), Summary의 #375 `::before{inset:20% 0}` 60% 몸체/진행률과 full-size hitbox는 그대로 둔다. Summary visual/Task root 비율은 0.55~0.70, 각 Grid/Chart 동일 ID의 Y 중심 차이는 ±1px이어야 한다.
+- 진행률 marker는 native `top:80%`·26px 크기/drag 위치를 유지하고 **비표시 상태를 hit-test에서도 제외**한다. 기존 bar hover 또는 `wx-progress-in-drag`에서만 표시한다. 34px 행에서 다른 Summary의 투명 marker가 다음 Task 우클릭을 가로채던 F816-005를 수정하는 범위이며, 활성 marker에서 raw 포인터로 다음 Task를 우클릭했을 때 이전 Summary가 열리는 별도 F816-006은 미해결 PRODUCT/AC4 FAIL로 원장에 분리한다. 중앙 배치로 Task 중심 이동을 progress drag로 바꾸지 않는다.
 - Grid/Chart 패널 높이·가로폭·날짜 header, Day/Week 수평 좌표/기간, native scrolling/80+ 가상행/독립 Grid Y 금지, readonly/edit, Fullscreen, 기존 Task/Milestone/Empty Summary·링크·일정·Export 계약은 변경하지 않는다. [Work Packet](exec-plans/active/ISSUE_816.md)과 [Test Plan](TEST_PLAN.md)에서 실제 증거/미실행을 구분한다.
 
 ## Issue #809 — Release #198.1 / #556 일정→리소스 복귀 포커스 계약 (2026-10-26)

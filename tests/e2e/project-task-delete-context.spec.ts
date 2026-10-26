@@ -1,5 +1,6 @@
 import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/contracts/projects";
+import { seedReorderProject } from "./helpers/grid-task-reorder";
 
 test.use(isolatedApplicationOptions);
 
@@ -233,4 +234,72 @@ for (const recovery of ["normal", "stale", "unavailable", "401", "412", "network
   } finally {
     await testInfo.attach("canonical-delete-recovery-trace", { body: JSON.stringify(trace, null, 2), contentType: "application/json" });
   }
+});
+
+test("Issue #816 preserves native body moves, resize and progress dragging in compact rows", async ({ page, baseURL }) => {
+  test.setTimeout(90_000);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const { api, snapshot } = await seedReorderProject(page, baseURL!);
+  const task = snapshot.data.tasks.find((entry) => entry.name === "Task B")!;
+  const taskPath = `${api}/tasks/${task.taskId}`;
+  const bar = page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${task.taskId}"]`);
+  const origin = new URL(page.url()).origin;
+  const frame = page.locator(".project-gantt-frame");
+  let current = snapshot;
+  async function drag(fromX: number, y: number, delta: number) {
+    const instance = await frame.getAttribute("data-project-gantt-api-instance");
+    const response = page.waitForResponse((candidate) => candidate.request().method() === "PATCH" && new URL(candidate.url()).pathname === taskPath);
+    await page.mouse.move(fromX, y);
+    await page.mouse.down();
+    await page.mouse.move(fromX + delta, y, { steps: 8 });
+    await page.mouse.up();
+    const result = await response;
+    expect(result.status()).toBe(200);
+    const next = await result.json() as TaskMutationResponse;
+    expect(next.data.project.revision).toBe(current.data.project.revision + 1);
+    expect(next.data.tasks.filter((entry) => entry.taskId !== task.taskId)).toEqual(current.data.tasks.filter((entry) => entry.taskId !== task.taskId));
+    current = next;
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", instance!);
+    return { request: result.request().postDataJSON(), task: next.data.tasks.find((entry) => entry.taskId === task.taskId)! };
+  }
+  for (const progress of [0, 50, 100]) {
+    const seed = await page.request.patch(taskPath, {
+      headers: { Origin: origin, "If-Match": `"${current.data.project.revision}"` }, data: { progress },
+    });
+    expect(seed.status()).toBe(200);
+    current = await seed.json() as TaskMutationResponse;
+    await page.reload();
+    await page.getByRole("button", { name: "주", exact: true }).click();
+    await expect(bar).toBeVisible();
+    const before = current.data.tasks.find((entry) => entry.taskId === task.taskId)!;
+    const box = (await bar.boundingBox())!;
+    const moved = await drag(box.x + box.width / 2, box.y + box.height / 2, 68);
+    expect(moved.request).toHaveProperty("start");
+    expect(moved.request).not.toHaveProperty("progress");
+    expect(moved.task.start).not.toBe(before.start);
+    expect(moved.task.duration).toBe(before.duration);
+    expect(moved.task.progress).toBe(progress);
+  }
+  await page.getByRole("button", { name: "일", exact: true }).click();
+  const beforeResize = current.data.tasks.find((entry) => entry.taskId === task.taskId)!;
+  const resizeBox = (await bar.boundingBox())!;
+  const resized = await drag(resizeBox.x + resizeBox.width - 2, resizeBox.y + resizeBox.height / 2, resizeBox.width / beforeResize.duration!);
+  expect(resized.request).toHaveProperty("duration");
+  expect(resized.request).not.toHaveProperty("progress");
+  expect(resized.task.duration).toBe(beforeResize.duration! + 1);
+  expect(resized.task.progress).toBe(100);
+  const seed = await page.request.patch(taskPath, {
+    headers: { Origin: origin, "If-Match": `"${current.data.project.revision}"` }, data: { progress: 50 },
+  });
+  expect(seed.status()).toBe(200);
+  current = await seed.json() as TaskMutationResponse;
+  await page.reload();
+  await bar.hover();
+  const marker = bar.locator(".wx-progress-marker");
+  await expect(marker).toHaveCSS("visibility", "visible");
+  const markerBox = (await marker.boundingBox())!;
+  const progressBox = (await bar.boundingBox())!;
+  const progressed = await drag(Math.round(markerBox.x + markerBox.width / 2), markerBox.y + markerBox.height / 2, Math.round(progressBox.width * 0.2));
+  expect(progressed.request).toEqual({ progress: 70 });
+  expect(progressed.task.progress).toBe(70);
 });

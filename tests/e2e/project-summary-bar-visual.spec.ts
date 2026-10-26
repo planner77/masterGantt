@@ -199,3 +199,66 @@ test("Issue #816 keeps the 44px coarse-pointer checkbox target within its own ro
     await context.close();
   }
 });
+
+for (const coarse of [false, true]) test(`Issue #816 keeps inactive progress handles out of neighboring ${coarse ? "44px touch" : "34px pointer"} row hits`, async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL, hasTouch: coarse, isMobile: coarse, viewport: { width: 1440, height: 1000 } });
+  try {
+    const page = await context.newPage();
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.tasks[0].progress = 50;
+    fixture.tasks[1].progress = 50;
+    await page.goto(`/projects/${publicId}`);
+    await expect(ganttRoot(page)).toHaveAttribute("data-gantt-cell-height", coarse ? "44" : "34");
+    for (const scale of ["일", "주"]) {
+      await ganttRoot(page).getByRole("button", { name: scale, exact: true }).click();
+      for (const ordinal of [1, 2]) {
+        const bar = taskBar(page, ordinal);
+        await expect(bar).toBeVisible();
+        await page.mouse.move(10, 10);
+        const geometry = await bar.evaluate((element) => {
+          const root = element.getBoundingClientRect();
+          const marker = element.querySelector<HTMLElement>(".wx-progress-marker")!;
+          const handle = marker.getBoundingClientRect();
+          const hit = document.elementFromPoint(root.x + root.width / 2, root.y + root.height / 2);
+          return { handleHeight: handle.height, hitTask: hit?.closest(".wx-bar")?.getAttribute("data-task-id") };
+        });
+        expect(geometry.handleHeight).toBe(26);
+        expect(geometry.hitTask).toBe(`:${id(ordinal)}`);
+        if (!coarse) {
+          await bar.hover();
+          await expect(bar.locator(".wx-progress-marker")).toHaveCSS("opacity", "1");
+          await expect(bar.locator(".wx-progress-marker")).toHaveCSS("visibility", "visible");
+        }
+      }
+    }
+    expect(fixture.patchRequests).toHaveLength(0);
+    expect(fixture.posts).toHaveLength(0);
+    if (!coarse) {
+      // An active predecessor handle can overlap this narrow Week bar. A real
+      // pointer transfer must still open the following Task, not its Summary.
+      for (const entry of fixture.tasks.slice(0, 2)) {
+        entry.start = "2026-01-05";
+        entry.end = "2026-01-05";
+        entry.duration = 1;
+        entry.progress = 0;
+      }
+      await page.reload();
+      await ganttRoot(page).getByRole("button", { name: "주", exact: true }).click();
+      await taskBar(page, 1).hover();
+      await expect(taskBar(page, 1).locator(".wx-progress-marker")).toHaveCSS("visibility", "visible");
+      await taskBar(page, 2).click({ button: "right" });
+      await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
+      const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+      await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue("Existing summary child");
+      await page.keyboard.press("Escape");
+      await expect(editor).toHaveCount(0);
+    }
+    fixture.sessionEditable = false;
+    await page.reload();
+    await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+    await expect(ganttRoot(page).locator(".wx-progress-marker")).toHaveCount(0);
+    expect(fixture.patchRequests).toHaveLength(0);
+  } finally {
+    await context.close();
+  }
+});

@@ -56,6 +56,17 @@
   height: auto;
 }
 
+/* Native opacity-only handles extend below compact rows. Keep inactive
+   handles out of hit testing without moving the progress drag target. */
+.project-gantt-widget .wx-bar > .wx-progress-marker {
+  visibility: hidden;
+}
+
+.project-gantt-widget .wx-bar:hover > .wx-progress-marker,
+.project-gantt-widget .wx-bar > .wx-progress-marker.wx-progress-in-drag {
+  visibility: visible;
+}
+
 .project-gantt-widget .wx-bar.wx-summary:hover::before,
 .project-gantt-widget .wx-bar.wx-summary.wx-selected::before {
   box-shadow: var(--wx-gantt-bar-shadow);

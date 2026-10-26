@@ -1,5 +1,28 @@
 # Issue #816 — Gantt Grid 행·Task 막대 높이 축소 Work Packet
 
+## REWORK #4 — Full #3318.1 Task 삭제 우클릭 실패 (2026-10-26)
+
+- 재개 기준: 기존 PR #817 / Head `e69cd78c530f3d3ec148f74484e540a2aa236e97`, main/base `cd010d6bcff26f10ad00c42cdf3528b851519938`, test merge `2dc65601e46a0273872b6245399554c42c8d0a30`. [Full #3318.1](https://github.com/planner77/masterGantt/actions/runs/40311630203)의 Quality/Docker PASS, Shard5 `121535073428` 직접 FAIL, E2E/QA 파생 FAIL; 다른7 shard CANCELLED의 내부 로그는 infra가 대조한다.
+- 신규 F816-005: `project-task-delete-context.spec.ts` normal recovery의 Delete D Chart bar 우클릭에서 Summary 하위 `.wx-progress-marker`가 pointer를 가로막아 본래90초 제한에 도달했다. 원인 분류는 재현 전 UNKNOWN이며 기존 hover 원인과 같다고 단정하지 않는다. 기존 F816-001~004의 판정·반례·미실행을 보존한다.
+- 소유권: root Manager=요구·계획/버전·누적 원장/관련 문서·최종 commit/push/CI 시작; infra=원본 전체 이력·실패/취소 로그·provenance read-only; frontend=`project-task-delete-context.spec.ts` 원본 재현·`gantt-scale-toolbar.css`의 Project-local native progress marker 배치 및 기존 Summary/progress 회귀 확장; ui_ux=설치 Core marker/접근성·geometry 설계 read-only 검토; qa_docs=DOC_SYNC 이후 별도 read-only 사전검토. 동일 파일 동시 쓰기 금지, Sub-Agent GitHub 댓글/commit/push 권한 없음.
+- TEST_LIFECYCLE_REVIEW: 기존 삭제 normal/stale/unavailable/401/412/network·subtree/readonly/선택 사례와 Summary/hover/projection hit 경계를 검색한다. 누적 실제 실패4개 spec 합집합(기존3개 + delete-context)과 직접·인접·음성 소비자를 같은 동결 source에서 순차 검증한다. 실제 right-click/확정 삭제 보존·canonical/revision·unknown 잠금/명시 복구·같은 instance/scroll/tree/scale 및34/44px·Summary0.55~0.70·Y±1px 단언은 유지한다. skip/retry/timeout/CI8-shard/Required3 정책 변경 금지.
+- 버전0.135.2 후보 유지, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 로컬/새 Head 원격·Trusted/Owner는 실행 전 NOT TESTED. 사용자 범위는 **새 Ready Full PR CI 시작 확인까지**이며 CI 모니터링/merge/Main/GHCR/Finalizer/Issue close는 제외한다. 원장·DOC_SYNC는 구현·실행 후 실제 결과로 확정한다.
+
+### REWORK #4 구현·문서 영향 및 검증 인계
+
+- 원본 e69cd78c normal90초 FAIL과 최소 fine hit-ID 회귀 FAIL을 확보했다. opacity0인 이전 Summary의 native26px marker가34px 행의 다음 Task 중심을0.0938px 가로막는 PRODUCT다. 같은 ID Grid/Chart 정렬은 정상이다. 중앙 배치는 Week 자기 Task 이동→progress 분기 위험으로 기각했으며, isolation-only 원본 PASS도 표시/stacking 회귀 미검증으로 채택하지 않았다.
+- `gantt-scale-toolbar.css`의 Project Gantt 직계 marker에 비표시 `visibility:hidden`, 기존 bar hover/`wx-progress-in-drag`에서 visible을 적용한다. native top80%/26px/가로 위치·이벤트 처리는 유지한다. 기존 삭제7cases는 보존하고 Summary spec2cases(fine/coarse×Day/Week·실제 center hit·hover 표시·readonly marker0/write0) 및 실제 HTTP/SQLite body 중심 이동(progress0/50/100)·resize·진행률 drag 사례를 확장한다.
+- 활성 marker의 인접 행 침범 가능성은 미해결 위험으로 분리하며 원본 숨은 marker 사건 교정과 전체AC4 수용을 혼동하지 않는다. 최초 bounded active probe는 준비POST429로 미도달해 FAIL이 아닌 NOT TESTED였다. 이후 실제 우클릭은 성공했으며 정확 Edit 대상 검증 결과를 최종 원장에 결속한다. 새 소유 서버/DB로 실제 검증하고 rate-limit·skip/retry/timeout/Required3/8-shard는 변경하지 않는다. 원본/실험/최종 실행 수와 source 지문은 [단일 원장](../../ISSUE_816_FAILURE_ANALYSIS.md)에 기록한다.
+- DOCUMENTATION_SYNC 영향: 원장·이 Packet·PROJECT_UX·TEST_PLAN·CHANGELOG·active PLAN UPDATED. `DESIGN.md`/`UI_UX_GUIDELINES.md`는 기존 보이지 않는 control의 pointer 간섭 금지와 native 조작성 원칙 적용(Delta C)으로 N/A, `ARCHITECTURE`/GSC/Conformance는 state writer·strictY±1px·U3/instance 계약 불변으로 N/A, API/DB/Scheduling/Import/Export·보안/권한은 데이터/동작 계약 불변으로 N/A, CI_CD/REMOTE_VALIDATION/GitHub/Lifecycle은 기존 게이트·권한·원격 증거 계약 불변으로 N/A, README/AGENTS는 제품 실행법·공통 지침 불변으로 N/A, package/lock은 기존0.135.2 후보 유지로 N/A다.
+- 실제 별도 ui_ux가 설치 Core/source·공식 styling/cellHeight와 기존 UX 계약을 읽기 전용 검토했다. 중앙 배치 철회·비표시 marker 최소 보완에 조건부 APPROVE이고 browser PASS/QA_FINAL/Owner ACCEPT는 아니다. 동결 source 실행·별도 qa_docs 사전검토 뒤 root가 원격 상태 재확인/일반push로 새Full 시작 URL·Head를 남긴다. 이후 CI 모니터링·merge/GHCR/Issue close는 수행하지 않는다.
+
+### REWORK #4 최종 실행·판정
+
+- 같은7파일 source 지문에서 누적4spec **31 PASS**(dev23+production5/3분할), 인접 실제 HTTP/SQLite 선택5 **PASS13.8s**, unit40 **PASS318ms**, Build/typecheck/변경test lint0error0warning **PASS**다. 초기cold23실행22PASS1timeout(최초navigation22.123s), shared production8실행5PASS3seed429FAIL, dynamic-import/69좌표 실험·조기standalone 준비 실패는 [원장](../../ISSUE_816_FAILURE_ANALYSIS.md)에 보존하고 최종 고유36E2E+40unit에 중복 합산하지 않는다.
+- **F816-006 / PRODUCT / AC4 FAIL:** active Summary hover 뒤 raw mouse로 다음 Week child 중심을 우클릭→Edit 대상이 잘못된 `Stable summary`다. locator.click의 자동스크롤 경로 child PASS는 이 경계의 대체가 아니다. native26px/top80% geometry를 유지한 최소 inactive 보완의 한계로 명시하며 Manager **REWORK**, 전체 기능 QA_FINAL/Owner ACCEPT·병합 **BLOCKED**다. 활성 핸들 설계와 raw 포인터 회귀/해결은 남은 작업이다.
+- Pre-PR `fast`/`targeted`는 실제 실행했으나 기존 helper2경로의 자동 소비자 매핑UNKNOWN으로 **BLOCKED/exit1**, 자동18test는 NOT TESTED다. sourceStable=true, working fingerprint `80d7bc86a5708213d2566d89737cf12f7c835aabf823ed4f54892399650bc139`, 보고서2개 및 수동 영향 선정·실행 환경/로그·SHA7은 원장 참조. 정책을 변경하지 않는다.
+- dev/production 소유 서버 종료, Next generated config2개 HEAD복원, 자체 output은/tmp보존, 검증 source7지문 동일. root Markdown350파일/diff 검사를 수행하고 별도 qa_docs가 원본/통제/최종 source·실제 로그·문서와 CI 원인 한정 보완/AC4 FAIL 분리를 검토한다. 이는 원격 Required3/Trusted PASS나 Owner 수용이 아니다. root가 미해결review/충돌/remotehead를 재확인한 뒤 일반push로 새Full CI 시작만 확인하며 모니터링은 하지 않는다.
+
 ## REWORK #3 — Full #3317.1 coarse-pointer 선택 실패 (2026-10-26)
 
 - Manager 범위: 기존 PR #817 / Head `b3475c064e1b7ef03e4657d0ec6c0b9207ee2e28`, main/base `cd010d6bcff26f10ad00c42cdf3528b851519938`, 버전 `0.135.2` 유지. 최신 Shard1 `121517917754`의 `project-summary-bar-visual.spec.ts:175` 실제 `label.tap()` 후 checkbox unchecked 원인을 재현·분리하고 실제 44px label 조작과 selection/no-write 계약을 복구한다. Quality/Docker PASS; E2E/QA FAIL; 취소 shard의 추가 오류는 infra가 회수 중이다. 이전 F816-001/002/003 원본·미검증을 보존한다.
@@ -38,7 +61,7 @@
 
 - repository: `planner77/masterGantt`
 - issue: [#816](https://github.com/planner77/masterGantt/issues/816); related #375, #637, #142, #233, #345, #552, #556, #711, #797, #800
-- lifecycle_phase: REWORK 3 / FULL_PR_CI_RESTART_PENDING (#3314.1/#3315.1/#3317.1 E2E FAIL; #3316.1 METADATA_ONLY DEFERRED; 동결 로컬 회귀·DOC_SYNC·별도 사전검토 PASS, next Head required checks NOT TESTED)
+- lifecycle_phase: REWORK 4 / FULL_PR_CI_RESTART_PENDING (F816-005 비표시 marker 보완·동결 자동36E2E+40unit PASS; F816-006 raw active pointer PRODUCT/AC4 FAIL, Pre-PR 자동선정 BLOCKED; 새 Head 원격 NOT TESTED)
 - baseline/main: `cd010d6bcff26f10ad00c42cdf3528b851519938` (2026-10-26 KST, `0.135.1`)
 - branch: `feat/issue-816-gantt-row-density`
 - baseline_version: `0.135.1`; current_version: `0.135.2`; candidate_version: `0.135.2` PATCH (new version only; no tag/GHCR promotion)
@@ -46,7 +69,8 @@
 - risk_level: HIGH
 - risk_reason: changing SVAR Grid/Chart native geometry impacts virtual scrolling, selection, focus, task editing, drag/resize/dependency and touch targets.
 - qa_method: OWNER_MANAGED; qa_required: true
-- independent_qa: NOT TESTED; manager_decision: NOT TESTED; MERGE_READY: BLOCKED
+- independent_qa: NOT TESTED; manager_decision: REWORK; MERGE_READY: BLOCKED
+- manager_reason: 비표시 marker 원본 CI 실패는 보완했지만 별도 raw active pointer F816-006의 AC4 FAIL이 남아 전체 기능 승인/병합 불가
 - release_required: true; release_authorized: false
 
 ## Source, analysis, design
