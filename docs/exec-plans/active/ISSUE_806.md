@@ -4,7 +4,7 @@
 
 - repository: `planner77/masterGantt`
 - issue: [#806](https://github.com/planner77/masterGantt/issues/806); children [#807](https://github.com/planner77/masterGantt/issues/807), [#808](https://github.com/planner77/masterGantt/issues/808), [#809](https://github.com/planner77/masterGantt/issues/809); geometry [#800](https://github.com/planner77/masterGantt/issues/800)
-- lifecycle_phase: DOCUMENTATION_SYNC / PR_CI_START_READY (remote checks and acceptance NOT TESTED)
+- lifecycle_phase: REWORK_R01 / DOCUMENTATION_SYNC_READY / PR_CI_START_PENDING (prior Full #3311.1 QA Preflight failed)
 - requested_scope: 기존 R1/R2/R3 구현의 최신 main 종단 대조 → 기존 E2E 교차 계약 최소 보강 → 수용 증거·문서 갱신 → Ready PR Full CI 시작. 이후 모니터링·병합·Main CI·GHCR/Release·Finalizer·Issue 종료 제외.
 - baseline/main: `73901d7eb86a734e1017df04efa0ba26c5abbb45` (2026-10-26 KST, Issue #809/PR #814 교정 포함)
 - branch: `feat/issue-806-resource-epic-integration`
@@ -35,14 +35,12 @@
 
 ## AC_TEST_COVERAGE
 
-| Epic AC | 기존 근거/변경 | 현재 동결 판정 |
-| --- | --- | --- |
-| E1 기존↔새 기능 inventory·source/브라우저 증거 | [#807 Work Packet](ISSUE_807.md) 단일화 전후 5폭, [#808](ISSUE_808.md) KPI provenance, [#809](ISSUE_809.md) 차트15·KEEP5, [#800](../../ISSUE_800_UI_GEOMETRY.md) 30관측·출처. [종단 인벤토리](../../ISSUE_806_EPIC_ACCEPTANCE.md) 신설 | 역사적 evidence 매핑, 현재 Head 브라우저 N/T |
-| E2 첫 화면 중복·밀도·KEEP | #807 실제 before→after geometry·단일 peer, #809 기본 현황 KEEP baseline; 기존 #807 E2E의 기본 화면·hidden/inert/Plan 보존 assertion | 기존 제품, 정확 새 Head CI N/T |
-| E3 Resource/Role/Grade·실물·Milestone·Plan·비가산·위험/미설정 | #808 Domain/Pivot·#809 HTTP/SQLite·Resource Plan golden/진단, #736 기능·Excel 독립 검증 | 새 서버/계산 없음; 기존 경계 KEEP_UNIQUE |
-| E4 chart↔table↔canonical Task/Assignment↔Gantt·복귀/Excel | **EXTEND** #807 E2E에서 미필터 dynamic report IDs ↔ 첫 chart report IDs 집합 golden, 숨은 chart 조회0. #809 E2E는 80/140·T0·Plan·원본 상세/일정, #736 Excel scope를 각각 검증 | 새 assertion 원격 Chromium N/T |
-| E5 5폭·state·focus·geometry | #800 기존 #730 real fixture 6관점×5폭, #807 5폭 peer·원본/scroll, #809 3차트×5폭/KEEP5. 단위/출처/상태/viewport 세부는 종단 원장에 분리 | 새로운 0.135.1 before/after·screen reader/native125%/실기기 N/T |
-| E6 문서·QA/CI/Owner | 이 Work Packet·Epic 원장·Resource KPI 문서 갱신; 별도 release/버전 변경 없음; 기존 #711 policy 준수 | PR Full8/Required3/Trusted/Owner N/T, merge 차단 |
+- AC1: E1 before/after KEEP inventory: #807 Workspace five widths, #808 source model, #809 chart15 and KEEP5, #800 KPI six-view geometry30. Source/history/provenance inventory in [Epic acceptance](../../ISSUE_806_EPIC_ACCEPTANCE.md); new HEAD actual Chromium NOT TESTED.
+- AC2: E2 single default Resource peer and KPI/legacy compact baseline: #807 existing browser test and geometry; #809 KEEP evidence. Current source will be verified in required CI.
+- AC3: E3 canonical Task/Assignment/Resource Group Role Grade Milestone physical pivot, Plan/Capacity and non-additive T0/null/partial/overload: #808 Domain and #809 HTTP SQLite Plan goldens KEEP_UNIQUE.
+- AC4: E4 chart/table/Plan/export and exact original navigation: #807 existing Playwright E2E EXTEND unfiltered dynamic-chart canonical Task/Assignment ID sets and inactive chart no-fetch; #809 drill/401/412/80-versus-140 and #736 Excel separate evidence.
+- AC5: E5 geometry at 390/768/1024/1440/1920, focus/keyboard/stale/error/readonly: #807 peer, #809 chart, #800 five-width baseline; actual 0.135.1/new Head and native125%/screenreader NOT TESTED.
+- AC6: E6 documentation and gate: updated this Work Packet, Epic source provenance and single [failure ledger](../../ISSUE_806_FAILURE_ANALYSIS.md); resource KPI existing guide link. Required3 Chromium8 Trusted QA/Owner blocked until new Head verified.
 
 ## TEST_LIFECYCLE_REVIEW (#711)
 
@@ -55,15 +53,33 @@
 
 ## DOCUMENTATION_SYNC
 
-- `docs/exec-plans/active/ISSUE_806.md`: ADDED — Work Packet·수용·테스트·위험·원격 gate.
-- `docs/ISSUE_806_EPIC_ACCEPTANCE.md`: ADDED — source-anchored before/after inventory, E1~E6 evidence/미검증, 후속 수용.
-- `docs/RESOURCE_KPI_DASHBOARD.md`: UPDATED — R1/R2/R3 종단 수용 문서 링크·scope 유의.
-- `tests/e2e/issue-736-resource-dashboard.spec.ts`: UPDATED — 기존 E2E 한 test EXTEND.
-- `docs/PROJECT_UX.md`, `docs/UI_UX_GUIDELINES.md`, `docs/TEST_PLAN.md`, `docs/TARGET_RESOURCE_USER_GUIDE.md`: N/A — #807/#808/#809/#800에서 기능·사용자 흐름·접근성·Test Lifecycle 지침 기갱신. 새로운 제품 동작/UI 규칙 없음.
-- `DESIGN.md`: N/A / Design Delta B·C — 기존 compact·single-workspace·일치 원본 보호 규칙을 통합 테스트로 구체화하며 공통 원칙 변경 없음.
-- `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/ARCHITECTURE.md`, `docs/EXCEL_EXPORT.md`: N/A — 공개 계약/스키마/아키텍처·workbook format 불변.
-- `AGENTS.md`, `package.json`, `package-lock.json`, CI/workflow: N/A — 현재 정책·0.135.1 유지.
+- `docs/exec-plans/active/ISSUE_806.md`: UPDATED
+- `docs/ISSUE_806_EPIC_ACCEPTANCE.md`: UPDATED
+- `docs/ISSUE_806_FAILURE_ANALYSIS.md`: UPDATED
+- `docs/RESOURCE_KPI_DASHBOARD.md`: UPDATED
+- `docs/TEST_PLAN.md`: N/A(기존 Test Lifecycle 정책과 실제 테스트 선정 근거 유효; 이번 보완은 이슈 식별자와 기존 E2E 한 테스트에 대한 문서 계약 복구)
+- `docs/PROJECT_UX.md`: N/A(제품 UX 및 원본 드릴다운 계약 변경 없음)
+- `docs/UI_UX_GUIDELINES.md`: N/A(기존 density keyboard focus 지침 변경 없음)
+- `docs/TARGET_RESOURCE_USER_GUIDE.md`: N/A(사용자 조작과 릴리스 범위 변경 없음)
+- `DESIGN.md`: N/A(기존 Workspace first와 KPI 기준의 Delta B C 세부 검증만 보완)
+- `docs/API.md`: N/A(공개 read contract 수정 없음)
+- `docs/DB_SCHEMA.md`: N/A(DB 원장 migration 변경 없음)
+- `docs/ARCHITECTURE.md`: N/A(아키텍처와 persistence 변경 없음)
+- `docs/EXCEL_EXPORT.md`: N/A(Excel writer와 출력 계약 변경 없음)
+- `AGENTS.md`: N/A(기존 실패 원장과 QA 지침 그대로 준수)
+- `package.json`: N/A(앱 version 0.135.1 유지)
+- `package-lock.json`: N/A(dependencies와 lock version 변경 없음)
+- `tests/e2e/issue-736-resource-dashboard.spec.ts`: UPDATED
 
 ## CI/QA·후속 게이트
 
 PR은 Ready, canonical Issue #806의 metadata `risk_level: HIGH`, `qa_method: OWNER_MANAGED`, `qa_required: true`, `release_required: false`, `release_authorized: false`를 명시한다. 생성 직전 최신 main/다른 #806 PR·source/tree를 검증하고, PR 후 미해결 리뷰/mergeability 및 Full CI 등록을 확인한다. 현 시점 Required Quality/Chromium8/Docker·QA Final/Trusted/Owner 수용·실제 native125%/screen reader/Windows Excel은 **NOT TESTED**다. CI 모니터링, 병합, release, Issue 종료는 이후 별도 사용자 승인으로 진행한다.
+
+## REWORK_R01 — Full PR CI #3311.1 QA Preflight 직접 실패 (2026-10-26 KST)
+
+- 원본: [Run #3311.1 · 40268435859.1](https://github.com/planner77/masterGantt/actions/runs/40268435859), PR #815, Head `0812598bab7a8e99d42034815ee549866b353bb1`, Base `73901d7eb86a734e1017df04efa0ba26c5abbb45`, test merge `e325c042a82ee5a712c3cad82ecb5628ee6e5578`.
+- 최초 직접 원인: Job `121395890824` base `scripts/qa_preflight.py` / `ISSUE_AC` FAIL. #806의 E1~E6은 정확한 수용 범위지만 parser는 `AC1` 등 표준 식별자만 탐색한다. 정책 우회 대신 이슈의 `AC1(E1)~AC6(E6)` 별칭을 추가하고 E1~E6 체크 미완료 보존.
+- 파생 결과: Fast Gate, Required Quality/E2E/Docker, QA Final automated FAIL; TypeScript/Lint/Vitest/Next build/E2E8/PR Docker implementation은 SKIPPED/NOT RUN. 역사 실패는 FAIL로 보존. 더 자세한 집계·Artifact는 [단일 실패 원장](../../ISSUE_806_FAILURE_ANALYSIS.md).
+- 원본 실패로 아직 실행하지 않았던 DOC_SYNC도 정적 감사에서 위험을 확인: 기존 `AC_TEST_COVERAGE`의 E1 table 및 `DOCUMENTATION_SYNC`의 `ADDED`/비정규 N/A는 main `qa_final_automated.docs_gate`가 요구하는 `- AC1:` 및 경로별 `UPDATED / N/A(reason)` 형식과 불일치. **실제 별도 CI 실패로 계수하지 않고** 이번 보완 묶음에서 선제 정합화.
+- TEST_LIFECYCLE_REVIEW: 기존 #807 #809가 공유하는 `tests/e2e/issue-736-resource-dashboard.spec.ts` 한 사례 EXTEND 유지. #808 Domain·#736 Plan/Excel·#800 Geometry 및 기존 401/412/snapshot exact return KEEP_UNIQUE. 새 assertion/test/skip/timeout/retry/CI policy 변경 없음. 지역 Node/Chromium/SQLite/Docker 결과 NOT TESTED.
+- 원격 기존 Head는 main behind0 / mergeable=true / review thread0, Codex summary findings0 (정확 새 Head의 human/Trusted QA 승인 아님). 새로운 Ready Head 게시 직전에 다시 확인. 현재 Gate MERGE_READY=BLOCKED, release_required=false, authorized=false. 새 PR CI는 시작까지만 확인하고 병합·Main/GHCR/Finalizer/이슈 종료/CI 모니터링 없음.

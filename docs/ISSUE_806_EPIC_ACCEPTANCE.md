@@ -55,12 +55,12 @@
 
 | AC | 실제 달성 범위(소스/역사 증거) | 아직 필요한 정확 증거 |
 | --- | --- | --- |
-| E1 | 위 KEEP/FIX/DELETE-MERGED inventory + #807/#808/#809/#800 명시 출처 | 현행 main/PR Head 0.135.1의 실제 브라우저 before/after 재비교는 없다 |
-| E2 | R1 단일 업무면·UI 관측, R3 기본 현황 KEEP 증거 | 현재 Head 5폭 변화 검증, 화면 변경 없음은 source audit |
-| E3 | R2 read model·Plan·Server golden, R3 3개 차트/동등 표·실물/Milestone | 전체 기능의 최신 Head CI Required / 실기기 |
-| E4 | R3 chart/Plan/정확 drill E2E, 이번 R1↔R3 고유 ID 통합 보강 | #806 새 assertion 원격 Chromium 실행/성공 |
-| E5 | R1·R3 history 5폭/keyboard·#800 6관점 관측 계약 | 0.135.1/새 Head geometry·누락 상태·native125%/screen reader |
-| E6 | [Work Packet](exec-plans/active/ISSUE_806.md), 이 Epic 문서, 기존 Resource KPI/Project UX/UI Guide/Test Plan 연계; Design Delta B/C | PR CI Required3+Chromium8/8·Trusted QA·Owner 위험 수용 및 명시 종료 결정 |
+| AC1 / E1 | 위 KEEP/FIX/DELETE-MERGED inventory + #807/#808/#809/#800 명시 출처 | 현행 main/PR Head 0.135.1의 실제 브라우저 before/after 재비교는 없다 |
+| AC2 / E2 | R1 단일 업무면·UI 관측, R3 기본 현황 KEEP 증거 | 현재 Head 5폭 변화 검증, 화면 변경 없음은 source audit |
+| AC3 / E3 | R2 read model·Plan·Server golden, R3 3개 차트/동등 표·실물/Milestone | 전체 기능의 최신 Head CI Required / 실기기 |
+| AC4 / E4 | R3 chart/Plan/정확 drill E2E, 이번 R1↔R3 고유 ID 통합 보강 | #806 새 assertion 원격 Chromium 실행/성공 |
+| AC5 / E5 | R1·R3 history 5폭/keyboard·#800 6관점 관측 계약 | 0.135.1/새 Head geometry·누락 상태·native125%/screen reader |
+| AC6 / E6 | [Work Packet](exec-plans/active/ISSUE_806.md), 이 Epic 문서, 기존 Resource KPI/Project UX/UI Guide/Test Plan 연계; Design Delta B/C | PR CI Required3+Chromium8/8·Trusted QA·Owner 위험 수용 및 명시 종료 결정 |
 
 검증의 단위는 서로 다르다: **정적 구조 확인 ≠ 과거 로컬 실행 ≠ 최신 PR CI ≠ Trusted QA ≠ Owner 수용 ≠ 실제 운영 현장 검증**. 검증하지 않은 상태는 `NOT TESTED`이고 과거 실패·취소를 PASS로 재분류하지 않는다. 이전 #807/#808/#809 이슈 종료만으로 이 Epic의 E1–E6이 자동 완료되지 않는다.
 
@@ -74,3 +74,9 @@
 ## 진행 후 게이트
 
 요청 범위는 #806 신규 Ready PR CI **시작까지**다. 이후 PR에 새 P1/P2 리뷰·충돌이 확인되면 해당 지적을 해결하고 최신 main/base/test-merge, 변경 Head 전체 Required3·Trusted QA를 다시 검증해야 한다. 정확 Head PR CI 성공과 독립된 Owner 수용 이전에는 `MERGE_READY=BLOCKED`, 정식 GHCR/태그/Finalizer/Issue 종료 모두 미승인이다.
+
+## 2026-10-26 — #3311.1 QA Preflight 계약 보완 기록
+
+- [실패 원본](https://github.com/planner77/masterGantt/actions/runs/40268435859)은 `ISSUE_AC`: 본문 E1~E6에 표준 `AC1..AC6` 이름이 없음. Issue #806에 `AC1 (E1)`~`AC6 (E6)`로 식별자만 병기했으며 의미와 미완료 체크박스는 보존했다.
+- 기존 Work Packet은 검증기의 `AC_TEST_COVERAGE` 행별 `- AC1: ...` / `DOCUMENTATION_SYNC` path별 `UPDATED / N/A(reason)` 표준에 불일치하여 정책 차단이 잠재했으나 첫 Run에서 실제 실행되지 않았다. 두 구조를 함께 복구했다. [누적 실패 원장](ISSUE_806_FAILURE_ANALYSIS.md)에 직접 실패, 파생 및 미실행을 분리 기록한다.
+- 현재 Head의 실제 Node/E2E/HTTP/SQLite/Required3/Trusted QA 및 Owner 수용은 전부 NOT TESTED. 이번 변경은 문서·Issue metadata뿐이며 제품 계약/테스트 assertion/CI 규칙과 version0.135.1 불변이다.
