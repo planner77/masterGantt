@@ -1,3 +1,7 @@
+## 2026-10-27 후속 추적 — F816-006 / Issue #818
+
+이 문서의 F816-006 원본 PRODUCT/AC4 FAIL과 #816 당시 판정은 그대로 보존한다. 별도 [Issue #818](https://github.com/planner77/masterGantt/issues/818)의 [Work Packet](exec-plans/active/ISSUE_818.md)·[누적 실패 원장](ISSUE_818_FAILURE_ANALYSIS.md)에서 실제 raw pointer RED, 최소 CSS 후보와 후속 교차 회귀를 추적한다. #818 새 source의 로컬 성공이나 PR CI 시작을 과거 실패의 소급 PASS·정식 QA/Owner 승인으로 해석하지 않는다.
+
 # Issue #816 — PR CI 누적 실패 원장
 
 ## 2026-10-26 네 번째 Full 실패 — #3318.1 / F816-005 Task 삭제 우클릭

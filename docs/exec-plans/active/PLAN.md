@@ -1,3 +1,11 @@
+## Issue #818 — 활성 Summary 진행률 핸들의 인접 Task 오대상 교정
+
+main `596dd70db8b242f450ab555ed2bcf049a0c14564` / `0.135.2`에서 #816 F816-006의 PRODUCT/P1 raw-pointer 결함을 별도 `fix/issue-818-progress-hit-target`로 교정한다. Summary hover→Week child 중심 실제 우클릭의 Editor 오대상 RED를 확보하고 Project-local bar stacking 최소 수정과 기존 inactive/native progress/body/resize·34/44px·Day/Week/readonly/fullscreen·strict±1px 회귀를 검증한다. [Work Packet](ISSUE_818.md), [누적 실패 원장](../../ISSUE_818_FAILURE_ANALYSIS.md).
+
+최종 직접34 및 추가 자동94 E2E, Unit3344(기존3skip)·build/type/lint PASS. Pre-PR 두 보고서는 Next 자동 생성 추적파일 변경으로 sourceStable=false/BLOCKED이며 생성물을 보존·원복하고 원장에 기록했다. 별도 qa_docs 사전검토 PASS는 최종 인간 QA/Trusted/Owner가 아니다.
+
+Manager=통합/문서·frontend=CSS/기존 E2E·infra=원격 운영·ui_ux=설계 비교·qa_docs=별도 사전검토로 분리한다. PATCH0.135.3 후보, HIGH/AGENT/qa_required=true, release_required=true/release_authorized=false. 문서·리뷰/충돌 정리 뒤 Ready Full PR CI 시작까지만 진행하며 모니터링·병합/Main/GHCR/Release/Issue 종료는 범위 밖이다. 로컬 성공은 exact-head Quality/E2E8/Docker·Trusted/최종 인간 QA/Owner 승인이 아니며 MERGE_READY=BLOCKED다.
+
 ## Issue #816 — 일정 Grid·Task Bar 세로 밀도 (2026-10-26)
 
 - **REWORK #4:** [Full #3318.1](https://github.com/planner77/masterGantt/actions/runs/40311630203)의 Delete D 우클릭은 다른 Summary의 투명 progress marker가 중심을0.0938px 가로막는 제품 오류로 재현했다. 비표시 marker를 hit-test에서 제외하고 native26px·top80%/드래그 위치를 유지한다. 중앙 배치 후보는 자기 Task 이동 회귀로 기각했다. 과거/신규 실패4spec 합집합과 marker/body/resize/readonly를 동결 검증하며, 활성 marker의 raw 우클릭 wrong-target는 F816-006 PRODUCT/AC4 FAIL로 미해결이며 Manager REWORK/병합 BLOCKED다. 정확 증거·결과는 [단일 원장](../../ISSUE_816_FAILURE_ANALYSIS.md)에 기록하고 새 Full PR CI 시작까지만 진행한다.

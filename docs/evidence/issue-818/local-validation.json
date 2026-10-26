@@ -1,0 +1,503 @@
+{
+  "schema": "issue818-local-validation-v1",
+  "issue": 818,
+  "baseline_sha": "596dd70db8b242f450ab555ed2bcf049a0c14564",
+  "candidate_version": "0.135.3",
+  "qa_method": "AGENT",
+  "risk_level": "HIGH",
+  "remote_ci": "NOT TESTED",
+  "manager_decision": "NOT TESTED",
+  "merge_ready": "BLOCKED",
+  "manual_e2e": {
+    "union_passed": 32,
+    "http_sqlite_selected_passed": 2,
+    "unique_passed": 34,
+    "failed": 0,
+    "skipped": 0,
+    "environment": "webpack dev3128 + disposable SQLite, not production artifact"
+  },
+  "source_sha256": {
+    "src/features/gantt/gantt-scale-toolbar.css": "e4d692ac850bcc6dfdbdc0a923298b1178ffc093455cad34197389c3486af745",
+    "tests/e2e/project-summary-bar-visual.spec.ts": "9f11de1235dd79a92e4475241fdb466e73bfe597a179db36822634b47c8660eb",
+    "tests/e2e/project-task-delete-context.spec.ts": "467366f63189fc58b9d10efee4e1c26926fa1790d910a0b4e36f1e0b28fda93e"
+  },
+  "prepr": {
+    "fast": {
+      "report_path": ".prepr-reports/2026-10-26T20-32-25.424Z-3397391-90ebb3a6/report.json",
+      "status": "BLOCKED",
+      "source_stable": false,
+      "source_start": "03e630ca2c08d608867e1e85f845e0352fa86f6b6516d188f060cfee6c07d881",
+      "source_end": "5a0596288e5a0ada3681dd3af17e0499d360e28e51577c27c22c0ce24b181efc",
+      "errors": [
+        "STALE: working source/base/head changed during local verification"
+      ],
+      "selection": {
+        "risk": "HIGH",
+        "inferredRisk": "HIGH",
+        "matched": [
+          {
+            "path": "package-lock.json",
+            "rule": "issue-552-locked-dependencies",
+            "reason": "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+          },
+          {
+            "path": "package.json",
+            "rule": "prepr-tooling",
+            "reason": "Pre-PR tool parser, source provenance, failure and safety regression"
+          },
+          {
+            "path": "src/features/gantt/gantt-scale-toolbar.css",
+            "rule": "issue-552-gantt-presentation",
+            "reason": "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+          }
+        ],
+        "unknown": [],
+        "missing": [],
+        "excluded": [],
+        "selected": [
+          {
+            "path": "tests/e2e/gantt-state-product-integration.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+            ]
+          },
+          {
+            "path": "tests/e2e/milestone-visibility.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-context-toolbar-responsive.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-gantt-fullscreen.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-gantt-scale.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-gantt-stability.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-notifications.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-summary-bar-visual.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Changed test itself"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-task-delete-context.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Changed test itself"
+            ]
+          },
+          {
+            "path": "tests/e2e/projection-row-alignment.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/viewport-coordinator.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+            "kind": "unit",
+            "reasons": [
+              "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+            ]
+          },
+          {
+            "path": "tests/features/gantt/axis-transaction.test.ts",
+            "kind": "unit",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/features/gantt/canonical-recovery-runtime.test.ts",
+            "kind": "unit",
+            "reasons": [
+              "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+            ]
+          },
+          {
+            "path": "tests/features/gantt/milestone-visibility.test.ts",
+            "kind": "unit",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+            "kind": "unit",
+            "reasons": [
+              "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+            ]
+          },
+          {
+            "path": "tests/scripts/prepr-verifier.test.ts",
+            "kind": "unit",
+            "reasons": [
+              "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility",
+              "Pre-PR tool parser, source provenance, failure and safety regression"
+            ]
+          }
+        ],
+        "state": "READY",
+        "notSelectedReason": "Not a mapped direct/adjacent consumer for this change; remote Required coverage unchanged"
+      },
+      "steps": [
+        {
+          "label": "Version contract",
+          "command": [
+            "node",
+            "scripts/verify-release-version.mjs"
+          ],
+          "durationMs": 33,
+          "exitCode": 0,
+          "status": "PASS"
+        },
+        {
+          "label": "Test discovery",
+          "command": [
+            "node",
+            "scripts/verify-test-discovery.mjs"
+          ],
+          "durationMs": 9273,
+          "exitCode": 0,
+          "status": "PASS"
+        },
+        {
+          "label": "Markdown links",
+          "command": [
+            "node",
+            "scripts/check-markdown-links.mjs"
+          ],
+          "durationMs": 114,
+          "exitCode": 0,
+          "status": "PASS"
+        },
+        {
+          "label": "CI cache contract",
+          "command": [
+            "node",
+            "scripts/verify-ci-cache-contract.mjs"
+          ],
+          "durationMs": 44,
+          "exitCode": 0,
+          "status": "PASS"
+        },
+        {
+          "label": "Local QA fixture policy",
+          "command": [
+            "python3",
+            "scripts/test_qa_preflight.py"
+          ],
+          "durationMs": 102,
+          "exitCode": 0,
+          "status": "PASS"
+        },
+        {
+          "label": "Dependencies",
+          "command": [
+            "npm",
+            "ls",
+            "--depth=0",
+            "--offline"
+          ],
+          "durationMs": 583,
+          "exitCode": 0,
+          "status": "PASS"
+        },
+        {
+          "label": "Typecheck",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "durationMs": 22235,
+          "exitCode": 0,
+          "status": "PASS"
+        },
+        {
+          "label": "Lint",
+          "command": [
+            "npm",
+            "run",
+            "lint"
+          ],
+          "durationMs": 44091,
+          "exitCode": 0,
+          "status": "PASS"
+        },
+        {
+          "label": "Unit",
+          "command": [
+            "npm",
+            "test"
+          ],
+          "durationMs": 30907,
+          "exitCode": 0,
+          "status": "PASS"
+        },
+        {
+          "label": "Production build",
+          "command": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "durationMs": 76292,
+          "exitCode": 0,
+          "status": "PASS"
+        }
+      ],
+      "unit_passed": 3344,
+      "unit_existing_skipped": 3
+    },
+    "targeted": {
+      "report_path": ".prepr-reports/2026-10-26T20-36-07.702Z-3413562-2ca8acb8/report.json",
+      "status": "BLOCKED",
+      "source_stable": false,
+      "source_start": "03e630ca2c08d608867e1e85f845e0352fa86f6b6516d188f060cfee6c07d881",
+      "source_end": "6daea5c7c6de3a58424d9e942a83c9a8d43ced3bd139e3fccd474d0477f8963a",
+      "errors": [
+        "STALE: working source/base/head changed during local verification"
+      ],
+      "selection": {
+        "risk": "HIGH",
+        "inferredRisk": "HIGH",
+        "matched": [
+          {
+            "path": "package-lock.json",
+            "rule": "issue-552-locked-dependencies",
+            "reason": "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+          },
+          {
+            "path": "package.json",
+            "rule": "prepr-tooling",
+            "reason": "Pre-PR tool parser, source provenance, failure and safety regression"
+          },
+          {
+            "path": "src/features/gantt/gantt-scale-toolbar.css",
+            "rule": "issue-552-gantt-presentation",
+            "reason": "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+          }
+        ],
+        "unknown": [],
+        "missing": [],
+        "excluded": [],
+        "selected": [
+          {
+            "path": "tests/e2e/gantt-state-product-integration.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+            ]
+          },
+          {
+            "path": "tests/e2e/milestone-visibility.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-context-toolbar-responsive.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-gantt-fullscreen.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-gantt-scale.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-gantt-stability.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-notifications.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-summary-bar-visual.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Changed test itself"
+            ]
+          },
+          {
+            "path": "tests/e2e/project-task-delete-context.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Changed test itself"
+            ]
+          },
+          {
+            "path": "tests/e2e/projection-row-alignment.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/e2e/viewport-coordinator.spec.ts",
+            "kind": "chromium",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+            "kind": "unit",
+            "reasons": [
+              "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+            ]
+          },
+          {
+            "path": "tests/features/gantt/axis-transaction.test.ts",
+            "kind": "unit",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/features/gantt/canonical-recovery-runtime.test.ts",
+            "kind": "unit",
+            "reasons": [
+              "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+            ]
+          },
+          {
+            "path": "tests/features/gantt/milestone-visibility.test.ts",
+            "kind": "unit",
+            "reasons": [
+              "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers"
+            ]
+          },
+          {
+            "path": "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+            "kind": "unit",
+            "reasons": [
+              "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+            ]
+          },
+          {
+            "path": "tests/scripts/prepr-verifier.test.ts",
+            "kind": "unit",
+            "reasons": [
+              "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility",
+              "Pre-PR tool parser, source provenance, failure and safety regression"
+            ]
+          }
+        ],
+        "state": "READY",
+        "notSelectedReason": "Not a mapped direct/adjacent consumer for this change; remote Required coverage unchanged"
+      },
+      "steps": [
+        {
+          "label": "Targeted Unit",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+            "tests/features/gantt/axis-transaction.test.ts",
+            "tests/features/gantt/canonical-recovery-runtime.test.ts",
+            "tests/features/gantt/milestone-visibility.test.ts",
+            "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+            "tests/scripts/prepr-verifier.test.ts"
+          ],
+          "durationMs": 3022,
+          "exitCode": 0,
+          "status": "PASS"
+        },
+        {
+          "label": "Chromium E2E",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "--project=chromium",
+            "--workers=1",
+            "--retries=0",
+            "tests/e2e/gantt-state-product-integration.spec.ts",
+            "tests/e2e/milestone-visibility.spec.ts",
+            "tests/e2e/project-context-toolbar-responsive.spec.ts",
+            "tests/e2e/project-gantt-fullscreen.spec.ts",
+            "tests/e2e/project-gantt-scale.spec.ts",
+            "tests/e2e/project-gantt-stability.spec.ts",
+            "tests/e2e/project-notifications.spec.ts",
+            "tests/e2e/project-summary-bar-visual.spec.ts",
+            "tests/e2e/project-task-delete-context.spec.ts",
+            "tests/e2e/projection-row-alignment.spec.ts",
+            "tests/e2e/viewport-coordinator.spec.ts"
+          ],
+          "durationMs": 837774,
+          "exitCode": 0,
+          "status": "PASS"
+        }
+      ],
+      "unit_passed": 85,
+      "e2e_passed": 94,
+      "e2e_failed": 0,
+      "e2e_skipped": 0,
+      "selection_files": 17,
+      "selection_e2e_files": 11,
+      "selection_unit_files": 6
+    }
+  }
+}

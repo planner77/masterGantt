@@ -56,6 +56,18 @@
   height: auto;
 }
 
+/* Keep each native bar's affordances in its own stacking context so a
+   predecessor's progress handle cannot cover the next bar's body. */
+.project-gantt-widget .wx-bar {
+  isolation: isolate;
+}
+
+/* Once the native handle owns a drag, keep its numeric feedback visible
+   above neighboring bodies until Core releases wx-progress-in-drag. */
+.project-gantt-widget .wx-bar:has(> .wx-progress-in-drag) {
+  z-index: 3;
+}
+
 /* Native opacity-only handles extend below compact rows. Keep inactive
    handles out of hit testing without moving the progress drag target. */
 .project-gantt-widget .wx-bar > .wx-progress-marker {

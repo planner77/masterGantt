@@ -288,18 +288,24 @@ test("Issue #816 preserves native body moves, resize and progress dragging in co
   expect(resized.request).not.toHaveProperty("progress");
   expect(resized.task.duration).toBe(beforeResize.duration! + 1);
   expect(resized.task.progress).toBe(100);
-  const seed = await page.request.patch(taskPath, {
-    headers: { Origin: origin, "If-Match": `"${current.data.project.revision}"` }, data: { progress: 50 },
-  });
-  expect(seed.status()).toBe(200);
-  current = await seed.json() as TaskMutationResponse;
-  await page.reload();
-  await bar.hover();
-  const marker = bar.locator(".wx-progress-marker");
-  await expect(marker).toHaveCSS("visibility", "visible");
-  const markerBox = (await marker.boundingBox())!;
-  const progressBox = (await bar.boundingBox())!;
-  const progressed = await drag(Math.round(markerBox.x + markerBox.width / 2), markerBox.y + markerBox.height / 2, Math.round(progressBox.width * 0.2));
-  expect(progressed.request).toEqual({ progress: 70 });
-  expect(progressed.task.progress).toBe(70);
+  for (const progress of [0, 50, 100]) {
+    const seed = await page.request.patch(taskPath, {
+      headers: { Origin: origin, "If-Match": `"${current.data.project.revision}"` }, data: { progress },
+    });
+    expect(seed.status()).toBe(200);
+    current = await seed.json() as TaskMutationResponse;
+    await page.reload();
+    await bar.hover();
+    const beforeProgress = current.data.tasks.find((entry) => entry.taskId === task.taskId)!;
+    const marker = bar.locator(".wx-progress-marker");
+    await expect(marker).toHaveCSS("visibility", "visible");
+    const markerBox = (await marker.boundingBox())!;
+    const progressBox = (await bar.boundingBox())!;
+    const delta = progress === 100 ? -20 : 20;
+    const progressed = await drag(Math.round(markerBox.x + markerBox.width / 2), markerBox.y + markerBox.height / 2, Math.round(progressBox.width * delta / 100));
+    expect(progressed.request).toEqual({ progress: progress + delta });
+    expect(progressed.task.progress).toBe(progress + delta);
+    expect(progressed.task.start).toBe(beforeProgress.start);
+    expect(progressed.task.duration).toBe(beforeProgress.duration);
+  }
 });

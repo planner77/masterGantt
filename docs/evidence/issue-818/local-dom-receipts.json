@@ -1,0 +1,1000 @@
+[
+  {
+    "test": "Issue #818 keeps active handle targets on 34px 일 rows (normal)",
+    "attachment": "issue-818-active-target-geometry",
+    "data": {
+      "coarse": false,
+      "scale": "일",
+      "fullscreen": false,
+      "receipts": [
+        {
+          "progress": 0,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 546,
+            "y": 391,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 0,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 546,
+            "y": 425,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 546,
+            "y": 391,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 546,
+            "y": 425,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 546,
+            "y": 391,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 546,
+            "y": 425,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 546,
+            "y": 391,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 546,
+            "y": 425,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "test": "Issue #818 keeps active handle targets on 34px 일 rows (fullscreen)",
+    "attachment": "issue-818-active-target-geometry",
+    "data": {
+      "coarse": false,
+      "scale": "일",
+      "fullscreen": true,
+      "receipts": [
+        {
+          "progress": 0,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 534,
+            "y": 173,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 0,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 534,
+            "y": 207,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 534,
+            "y": 173,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 534,
+            "y": 207,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 534,
+            "y": 173,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 534,
+            "y": 207,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 534,
+            "y": 173,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 534,
+            "y": 207,
+            "width": 36,
+            "height": 27
+          },
+          "centerError": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "test": "Issue #818 keeps active handle targets on 34px 주 rows (normal)",
+    "attachment": "issue-818-active-target-geometry",
+    "data": {
+      "coarse": false,
+      "scale": "주",
+      "fullscreen": false,
+      "receipts": [
+        {
+          "progress": 0,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 578,
+            "y": 391,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 0,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 578,
+            "y": 425,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 578,
+            "y": 391,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 578,
+            "y": 425,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 578,
+            "y": 391,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 578,
+            "y": 425,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 578,
+            "y": 391,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 578,
+            "y": 425,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "test": "Issue #818 keeps active handle targets on 34px 주 rows (fullscreen)",
+    "attachment": "issue-818-active-target-geometry",
+    "data": {
+      "coarse": false,
+      "scale": "주",
+      "fullscreen": true,
+      "receipts": [
+        {
+          "progress": 0,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 566,
+            "y": 173,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 0,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 566,
+            "y": 207,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 566,
+            "y": 173,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 566,
+            "y": 207,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 566,
+            "y": 173,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 566,
+            "y": 207,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 566,
+            "y": 173,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 566,
+            "y": 207,
+            "width": 10,
+            "height": 27
+          },
+          "centerError": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "test": "Issue #818 keeps active handle targets on 44px 일 rows (normal)",
+    "attachment": "issue-818-active-target-geometry",
+    "data": {
+      "coarse": true,
+      "scale": "일",
+      "fullscreen": false,
+      "receipts": [
+        {
+          "progress": 0,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 546,
+            "y": 401,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 0,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 546,
+            "y": 445,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 546,
+            "y": 401,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 546,
+            "y": 445,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 546,
+            "y": 401,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 546,
+            "y": 445,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 546,
+            "y": 401,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 546,
+            "y": 445,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "test": "Issue #818 keeps active handle targets on 44px 일 rows (fullscreen)",
+    "attachment": "issue-818-active-target-geometry",
+    "data": {
+      "coarse": true,
+      "scale": "일",
+      "fullscreen": true,
+      "receipts": [
+        {
+          "progress": 0,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 534,
+            "y": 183,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 0,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 534,
+            "y": 227,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 534,
+            "y": 183,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 534,
+            "y": 227,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 534,
+            "y": 183,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 534,
+            "y": 227,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 534,
+            "y": 183,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 534,
+            "y": 227,
+            "width": 36,
+            "height": 37
+          },
+          "centerError": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "test": "Issue #818 keeps active handle targets on 44px 주 rows (normal)",
+    "attachment": "issue-818-active-target-geometry",
+    "data": {
+      "coarse": true,
+      "scale": "주",
+      "fullscreen": false,
+      "receipts": [
+        {
+          "progress": 0,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 578,
+            "y": 401,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 0,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 578,
+            "y": 445,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 578,
+            "y": 401,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 578,
+            "y": 445,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 578,
+            "y": 401,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 578,
+            "y": 445,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 578,
+            "y": 401,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 578,
+            "y": 445,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "test": "Issue #818 keeps active handle targets on 44px 주 rows (fullscreen)",
+    "attachment": "issue-818-active-target-geometry",
+    "data": {
+      "coarse": true,
+      "scale": "주",
+      "fullscreen": true,
+      "receipts": [
+        {
+          "progress": 0,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 566,
+            "y": 183,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 0,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 566,
+            "y": 227,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 566,
+            "y": 183,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 50,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 566,
+            "y": 227,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 566,
+            "y": 183,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": 100,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 566,
+            "y": 227,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 1,
+          "target": ":00000000-0000-4000-8000-000000000002",
+          "hit": ":00000000-0000-4000-8000-000000000002",
+          "root": {
+            "x": 566,
+            "y": 183,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        },
+        {
+          "progress": null,
+          "source": 2,
+          "target": ":00000000-0000-4000-8000-000000000005",
+          "hit": ":00000000-0000-4000-8000-000000000005",
+          "root": {
+            "x": 566,
+            "y": 227,
+            "width": 10,
+            "height": 37
+          },
+          "centerError": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "test": "Issue #818 preserves native Summary progress grabs and canonical restore",
+    "attachment": "issue-818-summary-progress-grabs",
+    "data": [
+      {
+        "progress": 0,
+        "point": {
+          "x": 578,
+          "y": 382
+        },
+        "markerHeight": 26,
+        "hit": true,
+        "activeLabelHit": true,
+        "endpoints": [
+          {
+            "width": 16,
+            "height": 16,
+            "hitLink": true,
+            "hitTask": ":00000000-0000-4000-8000-000000000001"
+          },
+          {
+            "width": 16,
+            "height": 16,
+            "hitLink": true,
+            "hitTask": ":00000000-0000-4000-8000-000000000001"
+          }
+        ]
+      },
+      {
+        "progress": 50,
+        "point": {
+          "x": 583,
+          "y": 382
+        },
+        "markerHeight": 26,
+        "hit": true,
+        "activeLabelHit": true,
+        "endpoints": [
+          {
+            "width": 16,
+            "height": 16,
+            "hitLink": true,
+            "hitTask": ":00000000-0000-4000-8000-000000000001"
+          },
+          {
+            "width": 16,
+            "height": 16,
+            "hitLink": true,
+            "hitTask": ":00000000-0000-4000-8000-000000000001"
+          }
+        ]
+      },
+      {
+        "progress": 100,
+        "point": {
+          "x": 588,
+          "y": 382
+        },
+        "markerHeight": 26,
+        "hit": true,
+        "activeLabelHit": true,
+        "endpoints": [
+          {
+            "width": 16,
+            "height": 16,
+            "hitLink": true,
+            "hitTask": ":00000000-0000-4000-8000-000000000001"
+          },
+          {
+            "width": 16,
+            "height": 16,
+            "hitLink": true,
+            "hitTask": ":00000000-0000-4000-8000-000000000001"
+          }
+        ]
+      }
+    ]
+  }
+]

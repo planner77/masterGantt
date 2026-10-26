@@ -246,7 +246,13 @@ for (const coarse of [false, true]) test(`Issue #816 keeps inactive progress han
       await ganttRoot(page).getByRole("button", { name: "주", exact: true }).click();
       await taskBar(page, 1).hover();
       await expect(taskBar(page, 1).locator(".wx-progress-marker")).toHaveCSS("visibility", "visible");
-      await taskBar(page, 2).click({ button: "right" });
+      const childBounds = await taskBar(page, 2).boundingBox();
+      expect(childBounds).not.toBeNull();
+      const childCenter = { x: childBounds!.x + childBounds!.width / 2, y: childBounds!.y + childBounds!.height / 2 };
+      // Raw pointer transfer preserves the active predecessor marker geometry;
+      // locator.click() may scroll and conceal this wrong-target regression.
+      await page.mouse.move(childCenter.x, childCenter.y);
+      await page.mouse.click(childCenter.x, childCenter.y, { button: "right" });
       await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
       const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
       await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue("Existing summary child");
@@ -261,4 +267,162 @@ for (const coarse of [false, true]) test(`Issue #816 keeps inactive progress han
   } finally {
     await context.close();
   }
+});
+
+for (const coarse of [false, true]) for (const scale of ["일", "주"] as const) for (const fullscreen of [false, true]) {
+  test(`Issue #818 keeps active handle targets on ${coarse ? 44 : 34}px ${scale} rows (${fullscreen ? "fullscreen" : "normal"})`, async ({ browser, baseURL }, testInfo) => {
+    const context = await browser.newContext({ baseURL, hasTouch: coarse, isMobile: coarse, viewport: { width: 1440, height: 1000 } });
+    try {
+      const page = await context.newPage();
+      const fixture = await installStatefulProjectFixture(page);
+      fixture.tasks[1].type = "summary";
+      fixture.tasks.push({ ...fixture.tasks[2], taskId: id(5), externalId: "NESTED-818", name: "Nested child 818", parentExternalId: fixture.tasks[1].externalId, siblingOrder: 0 });
+      fixture.tasks.push({ ...fixture.tasks[0], taskId: id(6), externalId: "EMPTY-818", name: "Empty summary 818", parentExternalId: null, siblingOrder: 4, start: null, end: null, duration: null, progress: null });
+      const receipts: unknown[] = [];
+      for (const progress of [0, 50, 100, null]) {
+        fixture.sessionEditable = progress !== null;
+        for (const task of fixture.tasks.filter((entry) => [id(1), id(2), id(5)].includes(entry.taskId))) {
+          task.start = "2026-01-05";
+          task.end = "2026-01-05";
+          task.duration = 1;
+          task.progress = progress ?? 100;
+        }
+        await page.goto(`/projects/${publicId}`);
+        await expect(page.getByText(progress === null ? "읽기 전용" : "편집 중", { exact: true })).toBeVisible();
+        await expect(ganttRoot(page)).toHaveAttribute("data-gantt-cell-height", coarse ? "44" : "34");
+        const identity = await rememberGanttRoot(page);
+        await ganttRoot(page).getByRole("button", { name: scale, exact: true }).click();
+        if (fullscreen) {
+          await ganttRoot(page).getByRole("button", { name: "Gantt 전체 화면", exact: true }).click();
+          await expect.poll(() => page.evaluate(() => document.fullscreenElement === document.querySelector(".project-gantt-frame"))).toBe(true);
+        }
+        await expectSameGanttRoot(page, identity);
+        await expect(taskBar(page, 6)).toHaveCount(0);
+        for (const [source, target, name] of [[1, 2, "Existing summary child"], [2, 5, "Nested child 818"]] as const) {
+          const sourceBar = taskBar(page, source);
+          const targetBar = taskBar(page, target);
+          await sourceBar.hover();
+          if (progress !== null) await expect(sourceBar.locator(".wx-progress-marker")).toHaveCSS("visibility", "visible");
+          else await expect(sourceBar.locator(".wx-progress-marker")).toHaveCount(0);
+          const bounds = (await targetBar.boundingBox())!;
+          const center = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
+          await page.mouse.move(center.x, center.y);
+          const receipt = await targetBar.evaluate((element, point) => {
+            const root = element.getBoundingClientRect();
+            const row = document.querySelector(`.wx-table-container .wx-row[data-id="${element.getAttribute("data-task-id")}"]`)!.getBoundingClientRect();
+            const hit = document.elementFromPoint(point.x, point.y);
+            return { target: element.getAttribute("data-task-id"), hit: hit?.closest(".wx-bar")?.getAttribute("data-task-id"), root: { x: root.x, y: root.y, width: root.width, height: root.height }, centerError: Math.abs(root.y + root.height / 2 - row.y - row.height / 2) };
+          }, center);
+          receipts.push({ progress, source, ...receipt });
+          expect(receipt.hit).toBe(`:${id(target)}`);
+          expect(receipt.centerError).toBeLessThanOrEqual(1);
+          await page.mouse.click(center.x, center.y, { button: "right" });
+          await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
+          const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+          await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(name);
+          if (!coarse && scale === "주" && !fullscreen && progress === 0 && target === 2) {
+            await page.screenshot({ path: "output/playwright/issue-818/correct-child-editor.png" });
+          }
+          await page.keyboard.press("Escape");
+          await expect(editor).toHaveCount(0);
+          await expectSameGanttRoot(page, identity);
+        }
+        if (fullscreen) {
+          await ganttRoot(page).getByRole("button", { name: "Gantt 전체 화면 종료", exact: true }).click();
+          await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
+        }
+      }
+      expect(fixture.posts).toHaveLength(0);
+      expect(fixture.patchRequests).toHaveLength(0);
+      expect(fixture.project.revision).toBe(fixture.initialRevision);
+      await testInfo.attach("issue-818-active-target-geometry", { body: JSON.stringify({ coarse, scale, fullscreen, receipts }), contentType: "application/json" });
+    } finally {
+      await context.close();
+    }
+  });
+}
+
+test("Issue #818 preserves native Summary progress grabs and canonical restore", async ({ page }, testInfo) => {
+  const fixture = await installStatefulProjectFixture(page);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const receipts: unknown[] = [];
+  for (const progress of [0, 50, 100]) {
+    for (const entry of fixture.tasks.slice(0, 2)) {
+      entry.start = "2026-01-05";
+      entry.end = "2026-01-05";
+      entry.duration = 1;
+      entry.progress = progress;
+    }
+    await page.goto(`/projects/${publicId}`);
+    await ganttRoot(page).getByRole("button", { name: "주", exact: true }).click();
+    const identity = await rememberGanttRoot(page);
+    const summary = taskBar(page, 1);
+    await summary.click();
+    await expect(summary).toHaveAttribute("data-copy-selected", "true");
+    await summary.focus();
+    await expect(summary).toBeFocused();
+    await summary.hover();
+    const endpoints = await summary.locator(".wx-link").evaluateAll((elements) => elements.map((element) => {
+      const rect = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+      return { width: rect.width, height: rect.height, hitLink: hit?.closest(".wx-link") === element, hitTask: hit?.closest(".wx-bar")?.getAttribute("data-task-id") };
+    }));
+    expect(endpoints).toHaveLength(2);
+    for (const endpoint of endpoints) {
+      expect(endpoint.width).toBeGreaterThan(0);
+      expect(endpoint.height).toBeGreaterThan(0);
+      expect(endpoint.hitTask).toBe(`:${id(1)}`);
+      expect(endpoint.hitLink).toBe(true);
+    }
+    const marker = summary.locator(".wx-progress-marker");
+    await expect(marker).toHaveCSS("visibility", "visible");
+    const root = (await summary.boundingBox())!;
+    const markerBox = (await marker.boundingBox())!;
+    // Grab the native triangular tip inside the owning bar. The part painted
+    // behind the next bar is deliberately not that Summary's hit target.
+    const point = { x: Math.round(markerBox.x + markerBox.width / 2), y: root.y + root.height - 2 };
+    const hit = await marker.evaluate((element, position) => document.elementFromPoint(position.x, position.y) === element, point);
+    expect(hit).toBe(true);
+    await page.mouse.move(point.x, point.y);
+    await page.mouse.down();
+    await expect(marker).toHaveClass(/wx-progress-in-drag/);
+    await page.mouse.move(point.x + (progress === 100 ? -8 : 8), point.y, { steps: 4 });
+    const activeLabelHit = await marker.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === element;
+    });
+    if (progress === 0) await page.screenshot({ path: "output/playwright/issue-818/active-progress-target.png" });
+    expect(activeLabelHit).toBe(true);
+    await page.mouse.up();
+    await expect(marker).not.toHaveClass(/wx-progress-in-drag/);
+    // Summary progress is derived; native preview must restore rather than
+    // issue a forbidden direct Summary PATCH or change an adjacent task.
+    await expect(marker).toHaveText(String(progress));
+    await expectSameGanttRoot(page, identity);
+    const canonicalBeforeNativePreviews = JSON.stringify(fixture.tasks);
+    for (const operation of ["body", "right-edge"]) {
+      if (operation === "right-edge") await ganttRoot(page).getByRole("button", { name: "일", exact: true }).click();
+      const before = (await summary.boundingBox())!;
+      const start = { x: operation === "body" ? before.x + before.width / 2 : before.x + before.width - 2, y: before.y + before.height / 2 };
+      await page.mouse.move(start.x, start.y);
+      await page.mouse.down();
+      await expect(marker).not.toHaveClass(/wx-progress-in-drag/);
+      await page.mouse.move(start.x + 68, start.y, { steps: 4 });
+      await page.mouse.up();
+      // Core intentionally treats Summary edges as moves, not resize.
+      // Baseline and corrected CSS preview this exact native-only movement.
+      await expect.poll(async () => {
+        const after = (await summary.boundingBox())!;
+        return after.x - before.x;
+      }).toBe(68);
+      await expect(marker).toHaveText(String(progress));
+      expect(JSON.stringify(fixture.tasks)).toBe(canonicalBeforeNativePreviews);
+      await expectSameGanttRoot(page, identity);
+    }
+    receipts.push({ progress, point, markerHeight: markerBox.height, hit, activeLabelHit, endpoints });
+  }
+  expect(fixture.patchRequests).toHaveLength(0);
+  expect(fixture.posts).toHaveLength(0);
+  expect(fixture.project.revision).toBe(fixture.initialRevision);
+  await testInfo.attach("issue-818-summary-progress-grabs", { body: JSON.stringify(receipts), contentType: "application/json" });
 });
