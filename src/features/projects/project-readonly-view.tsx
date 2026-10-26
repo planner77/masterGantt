@@ -2024,7 +2024,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       };
       const observer = new MutationObserver(restore);
       observer.observe(document.body, { subtree: true, childList: true, attributes: true,
-        attributeFilter: ["hidden", "inert", "disabled", "data-resource-navigation-pending"] });
+        attributeFilter: ["hidden", "inert", "open", "disabled", "data-resource-navigation-pending"] });
       controller.signal.addEventListener("abort", () => observer.disconnect(), { once: true });
       requestAnimationFrame(restore);
       return;
