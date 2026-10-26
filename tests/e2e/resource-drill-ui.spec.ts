@@ -587,8 +587,33 @@ test("#556 선택 Summary 자손과 현재 Summary 전체 담당자·공수를 �
       for (const name of ["Alice556", "Bob556", "Carol556"]) {
         await expect(dashboard.locator('[data-resource-row="resource"]').filter({ hasText: name })).toBeVisible();
       }
+      if (scope.kind === "summarySubtree") {
+        // 복귀 중 활성화가 두 RAF보다 늦어도 원본 명령에 focus를 되돌려야 한다.
+        await p.evaluate(() => {
+          const panel = document.getElementById("project-panel-schedule");
+          const trigger = panel?.querySelector<HTMLButtonElement>('[data-schedule-resource-drill="summary"]');
+          if (!panel || !panel.hidden || !trigger) throw Error("Summary return focus fixture is unavailable");
+          const observer = new MutationObserver(() => {
+            if (panel.hidden) return;
+            observer.disconnect();
+            trigger.disabled = true;
+            const hold = new MutationObserver(() => { if (!trigger.disabled) trigger.disabled = true; });
+            hold.observe(trigger, { attributes: true, attributeFilter: ["disabled"] });
+            window.setTimeout(() => {
+              hold.disconnect();
+              trigger.disabled = false;
+              trigger.dataset.focusHoldReleased = "true";
+            }, 220);
+          });
+          observer.observe(panel, { attributes: true, attributeFilter: ["hidden"] });
+        });
+      }
       await strip.getByRole("button", { name: /원래 보기/ }).click();
       await expect(p.getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "true");
+      if (scope.kind === "summarySubtree") {
+        await expect(button).toHaveAttribute("data-focus-hold-released", "true");
+        await expect(button).toBeEnabled();
+      }
       await expect(button).toBeFocused();
       await expect(selectedCheckbox).toBeChecked();
       expect(new URL(p.url()).searchParams.get("rootTask")).toBe(root.taskId);

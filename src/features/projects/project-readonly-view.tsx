@@ -125,6 +125,7 @@ type ResourceNavigationState = {
   wbsSource?: string;
   wbsDetailIdentity?: string;
   resourceFocusSelector?: string;
+  scheduleFocusSelector?: string;
   milestoneFocusSelector?: string;
   resourceDetailKey?: string;
   resourceDetailConfirmationId?: string;
@@ -1818,6 +1819,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       trigger?.hasAttribute("data-milestone-resource-trigger") && milestoneBucket
       ? `[data-milestone-effort-bucket="${CSS.escape(milestoneBucket)}"] button[data-milestone-resource-trigger]`
       : undefined;
+    const scheduleKind = trigger?.getAttribute("data-schedule-resource-drill");
+    const scheduleFocusSelector = activeView === "schedule" && (scheduleKind === "selected" || scheduleKind === "summary")
+      ? `[data-schedule-resource-drill="${scheduleKind}"]` : undefined;
     return {
       viewport: navigationViewport.current,
       view: activeView,
@@ -1832,6 +1836,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       wbsSource: trigger?.closest<HTMLElement>("[data-wbs-view]")?.dataset.wbsView,
       wbsDetailIdentity,
       resourceFocusSelector,
+      scheduleFocusSelector,
       milestoneFocusSelector,
       resourceDetailKey: detailKey,
       resourceDetailConfirmationId: detail?.dataset.detailConfirmationId,
@@ -1982,6 +1987,46 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         controller.abort();
       };
       requestAnimationFrame(() => restore(0));
+      return;
+    }
+    if (origin && state.view === "schedule") {
+      const controller = new AbortController();
+      wbsFocusControllerReference.current = controller;
+      const startingFocus = document.activeElement;
+      const cancel = () => controller.abort();
+      for (const event of ["pointerdown", "keydown", "wheel"] as const)
+        window.addEventListener(event, cancel, { capture: true, passive: true, signal: controller.signal });
+      const restore = () => {
+        if (controller.signal.aborted || focusGeneration !== taskFocusGeneration.current) { controller.abort(); return; }
+        const panel = document.getElementById("project-panel-schedule");
+        // #809 Release: 두 RAF는 복귀 중 disabled 제어가 활성화되었다는 증거가 아니다.
+        if (!panel || panel.hidden || panel.closest("[hidden],[inert]") ||
+            panel.dataset.resourceNavigationPending === "true" || document.querySelector("dialog:modal")) return;
+        const focused = document.activeElement;
+        if (focused instanceof HTMLElement && focused !== document.body &&
+            focused !== startingFocus && focused !== state.trigger &&
+            focused !== scheduleTabReference.current && !focused.matches('[role="tab"]') &&
+            !panel.contains(focused) && !focused.closest("[hidden],[inert]")) {
+          controller.abort();
+          return;
+        }
+        const logical = state.scheduleFocusSelector ? panel.querySelector<HTMLElement>(state.scheduleFocusSelector) : null;
+        const exact = isVisibleFocusTarget(state.trigger) && panel.contains(state.trigger) ? state.trigger :
+          isVisibleFocusTarget(logical) ? logical : null;
+        // 일시 disabled이면 무관한 탭에 포커스하지 않고 활성화 DOM 이벤트를 기다린다.
+        if (!exact && ((state.trigger?.isConnected && panel.contains(state.trigger) && state.trigger.matches(":disabled")) ||
+            logical?.matches(":disabled"))) return;
+        const target = exact ?? workspaceFocusFallback("schedule");
+        if (isVisibleFocusTarget(target)) {
+          target.focus({ preventScroll: true });
+          if (document.activeElement === target) controller.abort();
+        }
+      };
+      const observer = new MutationObserver(restore);
+      observer.observe(document.body, { subtree: true, childList: true, attributes: true,
+        attributeFilter: ["hidden", "inert", "disabled", "data-resource-navigation-pending"] });
+      controller.signal.addEventListener("abort", () => observer.disconnect(), { once: true });
+      requestAnimationFrame(restore);
       return;
     }
     requestAnimationFrame(() =>
@@ -3214,6 +3259,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         aria-hidden={activeView !== "schedule" || undefined}
         inert={activeView !== "schedule"}
         data-dashboard-inactive={activeView !== "schedule" || undefined}
+        data-resource-navigation-pending={navigationLoading || undefined}
         aria-busy={isSavingTask || undefined}
         className="project-schedule project-workspace-panel"
       >
@@ -3258,6 +3304,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             <button
               className="secondary-button"
               type="button"
+              data-schedule-resource-drill="selected"
               disabled={selectedResourceBlockedReason !== null}
               aria-describedby={`schedule-selected-resources-description ${resourceOverlayOpen ? "schedule-selected-resources-overlay-state" : "schedule-selected-resources-state"}`}
               title={selectedResourceBlockedReason ?? "선택한 Task 및 선택 Summary의 일반 Task 자손에 배정된 모든 개인을 Resource 대시보드에서 조회"}
@@ -3270,6 +3317,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               <button
                 className="secondary-button"
                 type="button"
+                data-schedule-resource-drill="summary"
                 disabled={summaryResourceBlockedReason !== null}
                 aria-describedby={`schedule-summary-resources-description ${resourceOverlayOpen ? "schedule-summary-resources-overlay-state" : "schedule-summary-resources-state"}`}
                 title={summaryResourceBlockedReason ?? "현재 Summary 범위의 일반 Task 자손 전체에 배정된 개인과 공수를 조회"}
