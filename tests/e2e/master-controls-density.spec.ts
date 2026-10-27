@@ -84,6 +84,9 @@ test("#455 after 세 범주 5폭 입력·행·표·focus 및 dialog geometry",as
   }
   await writeFile(resolve(dir,"environment.json"),JSON.stringify({...await page.evaluate(()=>({locale:navigator.language,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,userAgent:navigator.userAgent})),browserVersion:browser.version(),capturedAt:new Date().toISOString(),zoom:"100% default;native125% NOT TESTED: headless Chromium native browser zoom UI unavailable;no emulation used"},null,2)+"\n");
   expect(mutations(mock.requests)).toHaveLength(0);
+  const coarse=await browser.newContext({baseURL:new URL(page.url()).origin,viewport:{width:390,height:900},hasTouch:true});
+  try{const touch=await coarse.newPage();await mockMaster455(touch);await loginMaster455(touch);expect(await touch.evaluate(()=>matchMedia("(pointer:coarse), (any-pointer:coarse)").matches)).toBe(true);const targets=await touch.locator("main").evaluate(element=>Array.from(element.querySelectorAll("button,input,select")).filter(control=>control.checkVisibility()).map(control=>({name:control.getAttribute("aria-label")??control.textContent,height:control.getBoundingClientRect().height})));targets.forEach(target=>expect(target.height,String(target.name)).toBeGreaterThanOrEqual(44));}finally{await coarse.close();}
+
 });
 
 test("#455 category/filter 전환 초안과 current category 생성·명시 저장·상태 변경",async({page})=>{

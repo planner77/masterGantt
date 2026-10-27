@@ -125,6 +125,8 @@ export function ProjectLogisticsManagement({
   const [workareaLocked,setWorkareaLocked] = useState(false);
   const [localSubTab, setLocalSubTab] = useState<SubTab>("dashboard");
   const activeSubTab = subview ?? localSubTab;
+  const embeddedDashboard = hideSubviewNavigation && (activeSubTab === "dashboard" || activeSubTab === "unified");
+  const embeddedMaster = hideSubviewNavigation && !embeddedDashboard;
   function setActiveSubTab(view: SubTab) { setLocalSubTab(view); onSubviewChange?.(view); }
   const [kpiOrigin, setKpiOrigin] = useState<{ trigger: HTMLElement; revision: number; kind: KpiMasterKind; id: string } | null>(null);
   const pendingMasterFocus = useRef<{ kind: FocusableMasterKind; id: string; revision: number } | null>(null);
@@ -431,7 +433,7 @@ export function ProjectLogisticsManagement({
 
       if (res.status === 401 || res.status === 403) {
         onUnauthorized();
-        setErrorMessage("편집 권한이 만료되었습니다. 상단의 편집 활성화를 다시 진행해 주세요.");
+        setErrorMessage("편집 권한이 만료되었습니다. 상단의 편집 잠금 해제를 다시 진행해 주세요.");
       } else if (res.status === 412) {
         const err = json as { error?: { code?: string } };
         setErrorMessage(err?.error?.code === "PROCESS_CATALOG_REVISION_MISMATCH"
@@ -545,9 +547,8 @@ export function ProjectLogisticsManagement({
     else requestAnimationFrame(() => {if (isVisibleFocusTarget(trigger)) trigger.focus({preventScroll:true});});
   }, [processModal.open,equipmentModal.open,systemModal.open,onWbsEntityRequestHandled]);
   return (
-    <div className={styles.logisticsContainer}>
-      {/* Header */}
-      <div className={styles.headerSection}>
+    <div className={`${styles.logisticsContainer}${embeddedDashboard ? ` ${styles.embeddedDashboard}` : embeddedMaster ? ` ${styles.embeddedMaster}` : ""}`}>
+      {!embeddedDashboard && !embeddedMaster ? <div className={styles.headerSection}>
         <div className={styles.headerTitleGroup}>
           <div className={styles.headingRow}>
             <h2 className={styles.headerTitle}>물류 구성</h2><span className={styles.wbsNotice}>Gantt WBS와 독립</span>
@@ -559,10 +560,10 @@ export function ProjectLogisticsManagement({
         </div>
         {!editable ? (
           <div className={styles.readonlyNotice}>
-            조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 활성화&apos;를 진행해 주세요.
+            조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.
           </div>
         ) : null}
-      </div>
+      </div> : null}
 
       {/* Sub Navigation */}
       <div style={hideSubviewNavigation ? { display: "none" } : undefined} hidden={hideSubviewNavigation} className={styles.subTabList} role="tablist" aria-label="물류 구성 세부 영역">
@@ -643,17 +644,18 @@ export function ProjectLogisticsManagement({
 
       {activeSubTab === "processes" ? <h2>공정 &amp; 작업 구역 관리</h2> : null}
       {/* Toolbar (Filters & Actions) - Only for management subtabs */}
+      {embeddedMaster && !editable ? <p className={styles.readonlyNotice}>조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.</p> : null}
       {activeSubTab !== "dashboard" && activeSubTab !== "unified" ? (
         <div className={styles.toolbar} role="toolbar" aria-label="물류 필터 및 도구">
           <div className={styles.filtersGroup}>
-            <input
+            <label className={styles.masterSearch}><span>검색</span><input
               className={styles.searchInput}
               type="search"
               placeholder="이름, 코드 또는 ID 검색"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="물류 항목 검색"
-            />
+            /></label>
             {activeSubTab === "equipment" || activeSubTab === "systems" ? (
               <select
                 className={styles.selectInput}
@@ -680,6 +682,7 @@ export function ProjectLogisticsManagement({
           </div>
 
           <div className={styles.actionsGroup}>
+            {embeddedMaster ? <ContextHelp label="물류 구성 도움말"><p>프로젝트 내 공정, 설비, 제어 및 조율 시스템과 담당자 배정 관계를 관리합니다.</p><p>물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다.</p></ContextHelp> : null}
             {activeSubTab === "processes" ? <button type="button" className="secondary-button" disabled={busy || isSubmitting || workareaLocked} onClick={onRequireRefresh}>공정 새로고침</button> : null}
             {editable && activeSubTab === "processes" ? (
               <button

@@ -17,6 +17,24 @@ Grid/Chart는 하나의 ProjectGantt-local 밀도 상태를 공유한다. Day/We
 
 공개 SVAR `cellHeight`가 양쪽 행 높이를 소유하고 Grid 본문에만 글꼴/line-height를 적용한다. Summary60% 시각 계층과 full-size hitbox·#818 활성 progress stacking·인접 Task 우클릭을 보존한다. 기존 단일 viewport coordinator/port가 실제 Task ID와 본문 내 Y offset을 기준으로 밀도 anchor intent를 처리한다. 새 사용자 입력/문맥은 오래된 복원보다 우선하며 직접 scrollTop 배율 계산·별도 writer·remount를 도입하지 않는다. 각 단계의 fresh projection 관측·중심 오차≤1px·수평 좌표/scrollLeft·canonical write0은 실제 검증 증거로 확인한다.
 
+## Issue #824 — 조회·기준정보의 역할별 밀도
+
+공통 WBS 조회는 Milestone·공정&WorkArea·설비·물류 시스템과 기존 리소스 소비자에서 같은 typography와 포인터별 크기를 소유한다. 본문은14px 전후, 도구는13px/20px, section 제목은16px를 기준으로 하고 fine36px·coarse/혼합 포인터44px 이상을 사용한다. 넓은 화면의 빠른 검색은 보이는 label과 입력을 같은 행에 두며 좁은 폭·긴 문구는 의미 단위로 wrap한다. 고급 조건수·현재 경로/기간·초기화·pending/error/stale는 밀도 개선을 위해 숨기지 않는다.
+
+Milestone 계층 조회와 전체 Gate·관리 구획은 각각 이름과 범위를 유지한다. 작은 제목·hairline 경계·간격으로 title→toolbar→body를 구분하며 선택 Task/Assignment·계획공수와 전체 Milestone Ready/Blocked/Completed·기준일·명시 완료를 합치지 않는다. 기존 원본 편집·일정/조회 왕복의 경로·필터·focus와 단일 Gantt instance는 유지한다.
+
+프로젝트 기준정보4관점은 상위 workspace의 폭·gutter를 재사용하고 원본 관리에 필요한 제목/도움말·권한 상태를 제공한다. 공정/WorkArea 동시 비교, 설비의 원본 수량·여러 구역, 시스템 직접/조율, 프로젝트 참여등록과 개인 Task배정을 서로 구분한다. 전역 Global Resource는 별도의 개인/그룹·구성원 원본 관리 화면이다.
+
+전역 Resource·물류 유형·프로젝트 마스터 목록은 본문14px 전후·보조12–13px·section16px·관리40px/coarse44px를 비교 기준으로 사용한다. 관리 workspace100rem·gutter24/16px와 인증 폼32.5rem/40px 제한은 보존한다. dialog·native choice·편집 폼의 별도44px 계약을 전역 축소하지 않는다. 이름/코드·역할·비활성·삭제 불가 이유·관계와 명시적인 표 column budget을 유지하며 좁은 화면의 가로 scroll은 표가 소유한다.
+
+위 내용은 목표·소비자 계약이며 실제 구현/실행 범위는 [통합 Work Packet](exec-plans/active/ISSUE_824.md)과 [25개 AC 검증 추적](ISSUE_824_VALIDATION.md)을 따른다. 최초 감사의 공개 readonly 관측·synthetic 관리자 UI·실제 HTTP/SQLite·현재 운영 데이터 및 원격 CI를 서로 대체하지 않는다.
+
+## Issue #825 — 물류 dashboard 공용 shell
+
+KPI·공정&WorkArea·설비·물류 시스템의 embedded 물류 shell은 상위 project workspace가 제공하는 가용 폭 전체를 사용하고 inline gutter를 다시 더하지 않는다. 상위 peer 탭 바로 아래에 해당 조회 도구와 데이터가 이어지며, `물류 구성 / Gantt WBS와 독립` 제목을 중복 적층하지 않는다. 기준정보 소비자의 기존 제목·ContextHelp·조회 전용 안내는 유지한다. 대시보드의 현재 편집 권한은 상위 프로젝트 context로 계속 식별한다. Milestone의 기존 full-width host는 바꾸지 않는다.
+
+KPI 조건은 기준일/자동 기준일, 임박 일수, 시스템 집계 범위, 활성 조건, 새로고침을 의미별 compact 그룹으로 자연 wrap한다. mobile에서 모든 제어를 전폭 세로로 강제하지 않으며 bar 높이는 실제 내용과 padding으로 결정한다. 긴 option·연결된 기간 오류·집계 모집단/평가일·단위·미산정/부분값 경고와 keyboard focus를 clip하지 않는다. KPI 카드의 adaptive 배치·숫자 강조와 정확 원본/drill·복귀·조회 상태/응답 역전 계약은 유지한다. 기준정보 표의 숨은 접근성 설명은 table scroll owner 안에 위치시켜 문서 전체를 밀지 않으며 표의 내부 가로 scroll과 원래 accessible name을 유지한다. 동적 WBS 조회의 검색/typography/control 밀도는 후속 #826 범위다. [계획·검증 경계](exec-plans/active/ISSUE_825.md).
+
 ## Issue #819 — 리소스 6개 분석 화면의 밀도·이름 우선 회귀 교정
 
 대시보드 → 리소스의 기본 현황, 차트, 동적 계층 탐색, Milestone 교차, Resource Plan, 견적·Excel은 같은 compact host를 사용한다. fine pointer 제어는36px·13px label/20px line-height, coarse는44px target을 유지하며 버튼의 내용 중앙·같은 행 input/select/button 정렬을 맞춘다. KPI 숫자 강조와 action label typography를 분리한다. 다른5관점·관리/Task Editor의 크기를 이 변경으로 일괄 수정하지 않는다.

@@ -2,6 +2,8 @@
 
 적용 기준: 2026-09-23.
 
+최종 구체화: 2026-10-27, [대시보드·관리 화면 재점검 #824](https://github.com/planner77/masterGantt/issues/824). 아래 목표 기준의 문서 반영은 제품 적용 완료를 뜻하지 않는다. 실제 관측과 미검증 범위는 [재점검 기록](docs/UI_UX_REAUDIT_2026_10_27.md)을 따른다.
+
 이 문서는 masterGantt의 **제품 시각 언어와 화면 설계 방향의 Source of Truth**다. 세부 interaction·접근성·검증 규칙은 [docs/UI_UX_GUIDELINES.md](docs/UI_UX_GUIDELINES.md), 화면별 현재 계약은 [docs/PROJECT_UX.md](docs/PROJECT_UX.md)와 [docs/TASK_EDITOR.md](docs/TASK_EDITOR.md)를 함께 따른다.
 
 ## 1. Design Direction
@@ -100,6 +102,8 @@ semantic 역할을 우선한다.
 
 큰 제목과 설명이 작업공간을 밀어내지 않도록 한다.
 
+반복 조회 대시보드는 탭 → 현재 조건 → 요약 → 본문의 계층을 사용한다. 탭에서 이미 식별되는 화면명을 큰 제목으로 다시 선언하지 않는다. 조회 경로·검색 라벨·보조 설명은 13px 전후, 본문·표는 14px 전후, 필요한 section heading은 16px를 기준으로 한다. 같은 역할의 상단 동적 조회와 하단 대시보드가 서로 다른 기본 글꼴을 상속하지 않도록 호스트가 크기·line-height를 소유한다. semantic heading level은 유지하며 KPI 숫자·단위의 강조는 일반 본문·action label 크기와 별도로 결정한다.
+
 ### Spacing
 
 기본 spacing scale:
@@ -144,11 +148,20 @@ Primary Work Surface
 - 화면별 작업 명령을 전역 header에 섞지 않는다.
 - viewport 기반 gutter를 사용하며 업무 화면을 불필요한 중앙 max-width로 제한하지 않는다.
 
+### 프로젝트 작업면의 폭과 context 소유권 (Issue #824)
+
+- 대시보드와 프로젝트 기준정보의 작업 폭·좌우 gutter는 상위 Project Workspace가 소유한다. 하위에 삽입한 물류·조회 컴포넌트는 그 가용 폭을 사용하며 독립 페이지용 `1440px` 중앙 제한이나 중복 gutter를 다시 적용하지 않는다. 전체 폭은 viewport 끝까지 붙인다는 뜻이 아니라 상위 gutter를 제외한 작업 폭이다.
+- 선택 탭 아래에는 해당 화면의 조건·주요 데이터가 이어진다. `물류 구성 / Gantt WBS와 독립`처럼 여러 탭에 반복되는 구현·도메인 관계 설명은 상시 헤더로 쌓지 않고 기존 상황형 도움말로 제공한다. 현재 읽기 전용/편집 상태는 식별 가능하게 유지하고 권한·오류·stale·집계 범위에 필요한 안내는 해당 명령이나 결과 옆에 둔다.
+- 제목/도구/본문과 서로 다른 업무 구획은 작은 heading, 관계에 맞는 간격, hairline divider 또는 subtle surface로 구분한다. Milestone의 선택 작업 계층 조회와 전체 Gate·관리처럼 모집단이 다른 구획은 범위를 각각 명시하며 시각 정돈을 위해 합치지 않는다.
+- 가용 폭과 실제 내용 폭, 좌우 gutter 및 첫 데이터 위치를 같은 viewport에서 비교한다. 폭을 넓힐 때 표의 column budget도 재산정하며 고정 metadata만 늘리거나 문서 전체에 가로 스크롤을 만들지 않는다. 전역 관리자 shell과 인증 폼의 명시적 제한은 다음 절의 별도 계약이다.
+
 ### 공통 관리자 페이지와 인증 폼 (Issue #452)
 
 `/resources`, `/logistics-admin`, `/project-master-admin`은 동일 레벨의 관리 workspace로 같은 page gutter·compact top spacing·heading scale을 사용한다. 로그인 전후 page shell은 같으며 설명 줄 수에 따른 자연 높이 차이를 고정 높이로 숨기지 않는다. 인증 form만 내용 제한 폭을 적용하고 관리 목록의 작업 면적은 별도로 확보한다.
 
 관리 page는 desktop 최대 100rem, 좌우 gutter 24px(640px 이하 16px), top 20px/bottom 40px, heading 24px와 heading→content gap 16px를 소유한다. 공통 presentation은 최대 `32.5rem` 인증 panel, 16px padding, 12px gap과 명시적인 입력 경계·배경·높이·padding을 소유한다. desktop에서는 label 아래 password input과 제출 버튼의 bottom alignment 및 40px control-size를 맞춘다. 같은 행의 top/height 차이는 1 CSS px 이하여야 하며 좁은 화면은 input 다음 submit 순서로 쌓는다. 세 관리자 영역의 비밀번호·세션·API·권한은 공유하지 않는다.
+
+Global Resource 카탈로그와 프로젝트의 리소스 분석/참여관리는 서로 다른 소비자다. 하나의 정돈을 다른 화면의 완료 근거로 쓰지 않는다. 전역 관리자 목록은 인증 폼의 제한 폭을 상속하지 않으며 본문·표 14px 전후, 보조 정보 12–13px, section heading 16px와 기존 40px 제어를 비교 기준으로 사용한다. 등록·검색·상태·목록·구성원/관계 편집의 필요한 구획을 유지하면서 불필요한 중첩 panel과 상속 글꼴 차이를 줄인다. 인증 후 populated·장문·오류 상태를 실제 확인한 뒤 문제 구역만 변경한다. 인증 전 화면이 양호하다는 이유로 관리 목록을 PASS로 판정하지 않는다.
 
 button primitive의 기본 외부 margin은 0이며 간격과 위치는 toolbar/form/footer/독립 CTA의 부모가 소유한다. `.text-link`의 문맥별 간격, KPI 카드의 `margin-top:auto`와 Task Editor의 기존 44px hit-area는 별도 의미를 유지한다. 전역 `button { margin:0!important }`나 화면별 무차별 상쇄 대신 실제 소비자의 의도 간격을 이관한다. [구현·검증 계획](docs/exec-plans/active/ISSUE_452.md)을 따른다.
 
@@ -224,6 +237,8 @@ Table이 아닌 Resource/Admin list·card·pane도 **명시적 geometry budget**
 
 이 기준은 #807/#736에서 리소스 제어에 일괄 적용했던 fine-pointer 44px를 #819의 pointer별 계약으로 교정한다. 적용 화면과 실제 검증은 [리소스 화면 계약](docs/PROJECT_UX.md) 및 [UI/UX 가이드](docs/UI_UX_GUIDELINES.md)를 따른다.
 
+#824 후속에서는 같은 반복 조회 제어의 목표를 KPI·Milestone·공정&WorkArea·설비·물류 시스템에도 적용한다. fine pointer는 36px 제어·13px 도구 라벨, coarse pointer는 최소 44px 조작 영역을 사용한다. 이는 #825~#827의 소비자별 구현·검증 대상이며 위의 기존 44px 소비자가 이미 교정됐다는 선언이 아니다. 관리자 40px·Task Editor 44px 및 native checkbox/radio의 별도 의미·label target은 유지한다. 프로젝트 기준정보의 목록 검색·관리 제어는 40px, 편집 dialog는 별도 44px 계약을 적용하고 대시보드 반복 조회의 36px 검색과 구분한다. 소비자별 before/after와 coarse target은 별도로 검증하며 전역 축소하지 않는다.
+
 ### Task Editor
 
 - tab 기반 정보 구조를 유지한다.
@@ -239,6 +254,10 @@ Table이 아닌 Resource/Admin list·card·pane도 **명시적 geometry budget**
 - 활성 조건 수, 결과 수, 초기화 가능 여부를 명시한다.
 - compact toolbar를 우선하되 좁은 화면에서 명령이 숨겨져 사용할 수 없게 만들지 않는다.
 - 동일 의미의 Task/Resource/Project filter가 서로 다른 시각 문법을 만들지 않는다.
+
+넓은 화면의 quick search는 **보이는 label과 input을 같은 행**에 두고 주변 조건·결과 수·명령과 정렬한다. label 연결과 accessible name을 보존하며 placeholder만으로 대체하지 않는다. 좁은 폭·긴 라벨에서는 의미 단위로 wrap하고 필요한 경우 label 위 배치를 허용한다. 인증·복합 등록 폼의 label 위 배치는 별도 계약이다.
+
+KPI 기간·기준일·집계 범위 도구의 배경 높이는 실제 제어와 줄 수, 6–8px 전후의 세로 padding으로 결정한다. 빈 최소 높이·stretch·중첩 surface padding으로 도구 영역을 늘리지 않는다. 필요한 기간/기준일·단위·모집단·활성 조건·오류 설명은 짧은 인접 문구로 남기며 높이를 줄이려고 잘라내지 않는다. 동일 행 input/select/button의 top·bottom 차이는 1 CSS px 이내를 목표로 한다.
 
 ## 5. Control and State Rules
 

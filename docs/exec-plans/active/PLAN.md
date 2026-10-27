@@ -6,6 +6,50 @@ MINOR 후보0.136.0, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/
 
 최종 로컬 선별137 Chromium/312 Unit과 fast3350 Unit·build 명령은 PASS지만, Next 생성 추적 파일 변경으로 Pre-PR 두 총괄은 BLOCKED/sourceStable=false다. 제품/test/script 13개 SHA 불변 및 원본 실패/취소·정제 증거는 Packet/원장에 보존하고 Ready PR CI 시작으로 인계한다.
 
+## Issue #824 REWORK — PR #835 첫 Full3342.1 (2026-10-27)
+
+[누적 원장](../../ISSUE_824_FAILURE_ANALYSIS.md)에 원본 Run40521099686.1·8샤드 전체로그·Quality/Docker SUCCESS/E2E FAIL 및 Trusted990.1 파생 FAIL을 보존했다. 장문5폭 geometry의 고정44px 기대값을 놓친 TEST_CONTRACT 누락을 기존 fine36/coarse44 양축 oracle·readonly touch helper로 동기화한다. 제품/권한·계산/CI gate·skip/timeout/retry는 변경하지 않는다. 원본RED→동결직접2case·실제helper음성4관측·type/lint PASS와제품불변Local재사용을분리했다. 관측170PASS/1FAIL/1조건부SKIP/657미완료를 구분하고 새 Head Full8/Required3·Trusted·인간 AGENT QA·Manager/main/Release 전에는 OPEN이다.
+
+## Issue #824 — 공통 조회·Milestone·관리자 밀도 순차 통합 (2026-10-27)
+
+[통합 Work Packet](ISSUE_824.md)과 [최초 감사](../../UI_UX_REAUDIT_2026_10_27.md)를 기준으로 선행 #825 완료 main `e95cb091`/app `0.135.5`에서 #826→#827→#828→#829→#830을 구현·직접 검증 순서로 진행한다. 최종 GHCR 게시1회 요청에 따라 하나의 PR·main merge·PATCH0.135.6 후보로 통합하며 하위 Issue 종료는 최종 Main/Release 증거 뒤에 수행한다. 중간 main 게시를 만들지 않는다.
+
+실제 ui_ux 읽기 전용 설계·frontend 단일 구현·qa_docs 별도 사전검토·infra 운영으로 역할을 분리한다. 다섯 구현과 고유 Chromium20case·실제 SQLite2case, v0.135.6 최종22표본·build/typecheck/focused lint 로컬 검증을 완료했다. 초기 환경/테스트 오류와 실제 coarse/포커스 P2는 원본/교정 증거를 구분한다. HIGH/AGENT/qa_required=true, 보호 경로에 대한 독립 인간 최종 QA·정확Head Required3/Trusted와 Manager ACCEPT는 NOT TESTED다. 사용자 최종 GHCR 요청과 OWNER의 정확 v0.135.6 승인 marker를 기록했으며 자동 QA나 Agent 사전검토를 최종 인간 승인으로 확대하지 않는다. 63km·실운영/AT/native125%는 #517의 미검증 경계를 유지한다.
+
+## PR-825-002 — Full #3339.1 QA Preflight 문서 계약 실패와 국소 교정 (2026-10-27)
+
+[Issue #825](https://github.com/planner77/masterGantt/issues/825) / [PR #834](https://github.com/planner77/masterGantt/pull/834) / [누적 실패 원장](../../ISSUE_825_FAILURE_ANALYSIS.md) / [Work Packet](ISSUE_825.md). Ready Full PR CI [#3339.1 / Run 40487734659.1](https://github.com/planner77/masterGantt/actions/runs/40487734659)에서 신뢰 base QA Preflight Job `122133904498` 직접 **FAIL / DOCUMENTATION_SYNC**: 신규 #834 PR diff에 없는 `docs/TEST_PLAN.md`를 Work Packet의 최초 `## DOCUMENTATION_SYNC`에서 옛 #833 제품 PR의 `UPDATED`로 계속 선언. `scripts/qa_final_automated.py::docs_gate`는 `UPDATED`일 때 실제 변경 필수이며, 후반 `### DOCUMENTATION_SYNC (corrective delta)`에 쓴 N/A는 최초 `##`의 분류를 대체하지 못함. Required3/QA Automated는 파생 FAIL, 실제 Policy/TypeScript/Unit/E2E8/Docker 구현 **NOT RUN**. 이전 Draft #3337 및 Ready #3338은 CANCELLED, Trusted #985~987은 각각 취소·실패한 원본 Full/Artifact에 대한 신뢰 검증 차단이다.
+
+기존 최초 `## DOCUMENTATION_SYNC`의 해당 행만 현재 보완 PR의 정확한 문서 영향 `N/A(구체적 사유)`로 교정하고 원래 #833의 TEST_PLAN 변경 기록은 별도 시점의 불변 이력으로 보존한다. 기존 제품/스크립트/QA 게이트/8Shard/Required3/버전0.135.5 변경 없음. 누적 원장·Work Packet·PLAN에 처음부터 전체 원본 Run/Attempt/Job/직접·파생/Skipped와 완화 없는 새 Head 검증 계획을 기록. BASE `7ba1521407e6a1060ef442f1730275d38976f741`, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. 최신 PR HEAD에서 main alignment/미해결 review/충돌 재확인 후 새로운 Full PR CI를 **시작**하고 종료 결과는 모니터링하지 않는다. 새 PR CI/Trusted/Manager ACCEPT=NOT TESTED, MERGE_READY=BLOCKED, Main/GHCR/정식 릴리스/Issue 종료는 이 요청 범위가 아니다.
+
+## MAIN-825-001 — Main #3336.1 trace 실패·같은 Issue corrective PR (2026-10-27)
+
+[Issue #825](https://github.com/planner77/masterGantt/issues/825) / [불변 실패 원장](../../ISSUE_825_FAILURE_ANALYSIS.md) / [Work Packet](ISSUE_825.md). 기존 PR #833 Full #3335.1/Trusted #983.1 SUCCESS 뒤 Merge `7ba1521407e6a1060ef442f1730275d38976f741`의 **다중 행 `commit_message`**로 [Main #3336.1 / 40484177455.1](https://github.com/planner77/masterGantt/actions/runs/40484177455) `변경 경로 판정` 직접 FAIL; Required3는 파생 FAIL, 실제 Chromium8/Docker/Policy/Unit/Build 및 임시 GHCR은 SKIPPED/NOT RUN. `scripts/verify-ci-run-trace.py`의 한 줄 메타데이터 기준은 정상이며 이전 실패 SHA/Run을 소급 성공·재실행하지 않는다.
+
+최신 실패 Main 기준 **같은 #825의 새 non-docs corrective PR**로 `scripts/verify-issue-lifecycle.py` 기존 #582/#808 계약 테스트에 실제 원본 메시지 negative와 단일 한 줄/빈 본문/Head lease positive만 EXTEND하고, 누적 원장·Work Packet·PLAN을 동기화한다. 제품/API/DB/KPI/원본 UI·package/lock `0.135.5`, Required Quality/E2E8/Docker·QA/CI validator/Ruleset 불변. HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. 정규 Full PR CI/Trusted·Owner 범위 승인·충돌/리뷰 검토 뒤 CLI `main_ci_run_name.py --as-merge-payload --validate-title`에서 검증한 canonical **한 줄 제목 + `commit_message=""` + exact Head lease**만으로 병합하여 새로운 push Main CI를 시작한다. 원본 Main이 실패한 이상 같은 Issue Main success supersession과 원래 버전 승계는 최종 release gate에서 별도 인증한다. 새 PR/Main CI 결과·GHCR·Finalizer는 실제 실행 전 NOT TESTED, CI 완료 모니터링·정식 tag/Release·Issue 종료는 이번 범위 아님.
+
+## Issue #825 — QA Trusted 두 회차 차단 및 Owner-managed 전환 (2026-10-27)
+
+[Issue #825](https://github.com/planner77/masterGantt/issues/825) / [PR #833](https://github.com/planner77/masterGantt/pull/833) / [Work Packet](ISSUE_825.md). 원본 `b66f588` [Full #3330.1](https://github.com/planner77/masterGantt/actions/runs/40455522644) 및 main 정렬 `a7f45f6` [Full #3333.1](https://github.com/planner77/masterGantt/actions/runs/40470969178)의 Quality/E2E8/Docker는 SUCCESS이나, [Trusted #979](https://github.com/planner77/masterGantt/actions/runs/40458359626)과 [#981](https://github.com/planner77/masterGantt/actions/runs/40474635264)는 둘 다 **AGENT 선택 시 현재 Head의 독립 인간 `QA_FINAL: PASS` 증거가 없어 BLOCKED**. 개발 서버·Pre-PR 오류와 Trusted 차단을 혼합하거나 과거 성공을 소급하지 않는다.
+
+Owner의 명시적 지시로 **`qa_method=OWNER_MANAGED`** 전환하고 새 HEAD의 Ready Full PR CI를 시작한다. `risk_level=HIGH`, `qa_required=true`, `release_required=true`, `release_authorized=false` 유지. 기본 main Trusted QA·Required3·strict 최신 Head/Base·review thread0·AC/docs·HIGH 위험의 별도 Owner/Manager 수용·병합 승인은 모두 유지하며, 독립 인간 QA 미실행은 N/A(Owner-managed)로 구분한다. 기존 #825 AGENT 계획은 아래에 역사적 시점의 기록으로 보존하고 새 결정은 [Work Packet](ISSUE_825.md) QA 전환 절을 정규 최신 원장으로 사용한다. 코드/테스트/버전/CI 정책 변경 없이 문서/PR QA 메타데이터만 일치시킨다. 요청 종료점은 **PR CI 시작**까지이며 모니터링·병합/Main/GHCR/Finalizer/Issue 종료 없음, 새 HEAD 필수 검증 결과는 시작 때 NOT TESTED, MERGE_READY=BLOCKED다.
+
+## Issue #825 — 물류 dashboard 폭·중복 헤더·KPI 조건 영역
+
+main `dc8543f390616c0d5aca90a4f91899f3cf7ac5da` /0.135.4 기준 [#825](https://github.com/planner77/masterGantt/issues/825)를 `fix/issue-825-dashboard-shell`에서 구현한다. 별도 ui_ux 설계 → frontend 공용 shell/KPI 표시·기존 E2E 확장 → Manager 문서/통합 → 별도 qa_docs 사전검토 → infra Ready PR CI 시작 순서이며 [Work Packet](ISSUE_825.md)에 AC/소유권·실제 증거를 기록한다. 후속 #826 공통 WBS typography/search와 Milestone 폭은 수정하지 않는다.
+
+후보 PATCH0.135.5, risk_level=HIGH/qa_method=AGENT/qa_required=true, release_required=true/release_authorized=false. 제품 구현·문서 갱신과 최종 source의5화면×5폭 관측(정규24+별도1440보정1),coarse/readonly25관측 및production타깃7/7 PASS를 기록했다. 이전dev/환경실패·Pre-PR mapping BLOCKED는 보존한다. 로컬 검증과 원격 Required3·QA Final·Manager ACCEPT를 구분하고, 이번 요청은 CI 시작까지만 수행한다. 모니터링·병합·Main/GHCR/Release·Issue 종료는 범위 밖이다.
+
+## Issue #831 REWORK — PR #832 Preflight F831-001 (2026-10-27)
+
+최초 [Full PR CI #3329.1](https://github.com/planner77/masterGantt/actions/runs/40453783682)에서 Preflight의 `DOCUMENTATION_SYNC` 직접 FAIL(Work Packet에 경로별 `UPDATED/N/A(reason)` 문장 누락), 나머지 구현 검사 NOT RUN/aggregate 파생 FAIL. [Work Packet](ISSUE_831.md)에서 필수 문서 7개를 정확 경로별로 기록하고 AC1~5를 `- ACn:` 형태로 매핑. 새 [누적 실패 원장](../../ISSUE_831_FAILURE_ANALYSIS.md)에 Run/Attempt·Job/Step·test-merge·직접/파생·미실행을 보존한다. QA 검증기/Workflow/Required3/owner 승인 체계는 불변이며 다음 새 HEAD Full CI 시작 후 모니터링·병합·Main/GHCR/Finalizer/종료는 범위 밖이다.
+
+## Issue #831 — Terra 6.1 Agent별 비용/품질 재배치 (2026-10-27)
+
+[Issue #831](https://github.com/planner77/masterGantt/issues/831) / [Work Packet](ISSUE_831.md) / [Agent 설정 정책](../../AGENT_CONFIGURATION.md). 기존 #347 Sol 중심 설정에서 ui_ux(read-only)와 frontend의 기본 모델만 GPT-6.1 Terra/medium으로 조건부 변경한다. Manager/backend/scheduler/infra/qa_docs Sol/high, researcher/excel_vba Luna/medium, 나머지 sandbox 및 동시 실행 6은 불변이다. 복잡한 SVAR/공통 상태·보안/revision·지속 CI 회귀는 작업별 Sol/high 재배정, Luna→Terra/Astra 역시 Manager가 명시적으로 위험/비용 근거를 기록한다.
+
+Agent 모델 설정/문서/정적 테스트만 변경, application 0.135.4 유지. 위험 HIGH/OWNER_MANAGED/qa_required=true, release_required=false/release_authorized=false. 별도 원격 실제 모델 식별, PR Required3/Trusted/Owner와 10건 시범은 실행 전 NOT TESTED; **병합/Main/GHCR/Finalizer/이슈 종료 금지**, README/DESIGN/API/DB/CI Gate N/A(reason)는 Work Packet에 기록한다.
+
 ## Issue #819 — 리소스 6peer UI/UX 회귀 교정 (2026-10-27)
 
 [Issue #819](https://github.com/planner77/masterGantt/issues/819) / [Work Packet](ISSUE_819.md) / [누적 실패 원장](../../ISSUE_819_FAILURE_ANALYSIS.md). 기존 `fix/issue-819-resource-ui-consistency` 작업을 재사용하고 main `495027854c2ab73f7f91d0b6205c86397cff4497`의 #818을 통합했다. Resource-local fine36px/13px/line20·coarse44px, 이름 우선·기술ID 상세·반복 설명 도움말과 조건/KPI/데이터/보조 Export 구획을 교정한다. 다른 관점·원본 지표/필터/권한·정확drill·Plan/Export 계약은 유지한다.

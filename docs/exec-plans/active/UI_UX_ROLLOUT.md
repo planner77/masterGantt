@@ -1,3 +1,7 @@
+## Issue #824 후속 통합 개선 (2026-10-27)
+
+선행 #825 완료 뒤 #826 공통 조회 → #827 Milestone → #828 Global Resource → #829 프로젝트 기준정보 → #830 전역 관리자를 순차 구현·직접 검증한다. [최초 감사](../../UI_UX_REAUDIT_2026_10_27.md)의 과거 관측과 [통합 Work Packet](ISSUE_824.md)의 현행 source/fixture·미검증을 구분한다. 최종 릴리스 한 번을 위해 통합 PR/main merge 한 건으로 진행하며 정확 Head CI·독립 인간 AGENT QA·Manager/main/Release 완료 전 이슈를 종료하지 않는다.
+
 # UI/UX 이슈 순차 실행 계획
 
 요청: 원격 UI/UX 이슈를 Issue Lifecycle에 따라 단계별 처리하고 변경본을 로컬 Docker로 제공한다. **Issue #30은 제외**한다.

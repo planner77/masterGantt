@@ -134,8 +134,21 @@ test("#453 after 동일 5폭 두 표·모달·footer·focus geometry", async ({ 
     await page.setViewportSize({ width, height: 900 });
     for (const kind of ["resources", "groups"] as const) {
       await page.getByRole("tab", { name: kind === "resources" ? /^리소스 \d/ : /^리소스 그룹/ }).click();
-      if (kind === "groups") await page.getByRole("button", { name: "구성원", exact: true }).first().click();
+      if (kind === "groups") {
+        await page.getByRole("button", { name: "구성원", exact: true }).first().click();
+        const members=page.getByRole("region",{name:/관리 0 구성원/});
+        const memberSearch=members.getByRole("textbox");
+        const visibleLabel=memberSearch.locator("..").locator("span");
+        await expect(visibleLabel).toHaveText("구성원 리소스 검색");
+        await expect(memberSearch).toHaveAccessibleName(new RegExp(await visibleLabel.innerText()));
+      }
       const panel = page.locator(`#resource-panel-${kind}`);
+      const searchName=kind === "resources" ? "리소스 검색" : "리소스 그룹 검색";
+      const search=page.getByLabel(searchName,{exact:true});
+      await expect(search.locator("..")).toContainText(searchName);
+      const density=await search.evaluate(element=>({height:element.getBoundingClientRect().height,font:getComputedStyle(element).fontSize,labelFont:getComputedStyle(element.parentElement!).fontSize}));
+      expect(density.height).toBe(40);expect(density.font).toBe("14px");expect(density.labelFont).toBe("13px");
+      await expect(panel.locator("h2").first()).toHaveCSS("font-size","16px");
       await panel.getByRole("textbox").first().focus();
       const geometry = await panel.evaluate((element) => {
         const box = (e: Element) => { const r = e.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height }; };
@@ -182,6 +195,18 @@ test("#453 after 동일 5폭 두 표·모달·footer·focus geometry", async ({ 
       await page.keyboard.press("Escape"); await expect(dialog).toHaveCount(0);
     }
   }
+  // #828: touch retains the same catalog semantics and uses larger actual targets.
+  const coarse=await browser.newContext({baseURL:new URL(page.url()).origin,viewport:{width:390,height:900},hasTouch:true});
+  try {
+    const touch=await coarse.newPage();const touchState=await resourceAdmin453(touch);await loginResourceAdmin453(touch);
+    expect(await touch.evaluate(()=>matchMedia("(pointer:coarse), (any-pointer:coarse)").matches)).toBe(true);
+    for(const kind of ["resources","groups"] as const){
+      await touch.getByRole("tab",{name:kind==="resources"?/^리소스 \d/:/^리소스 그룹/}).tap();
+      const targets=await touch.locator(`#resource-panel-${kind}`).evaluate(element=>Array.from(element.querySelectorAll("button,input:not([type=checkbox]),select")).filter(control=>control.checkVisibility()).map(control=>({height:control.getBoundingClientRect().height,name:control.getAttribute("aria-label")??control.textContent})));
+      targets.forEach(target=>expect(target.height,String(target.name)).toBeGreaterThanOrEqual(44));
+    }
+    expect(touchState.requests).toHaveLength(0);
+  }finally{await coarse.close();}
 });
 
 for (const kind of ["리소스", "그룹"]) test(`#453 ${kind} 생성 dirty 취소·계속 편집·명시 폐기와 조회 전용 삭제 불가`, async ({ page }) => {

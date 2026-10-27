@@ -1,0 +1,178 @@
+{
+  "schema": "mastergantt-issue824-ci-failure-counts-appendix-v1",
+  "original_immutable_ledger_sha256": "22ea8b75222eb780c19b8f13d3dc42883dbee3eb539f249e167495e4471da050",
+  "line_count_note": "splitlines() counts physical log lines; original ledger split(\\n) included one trailing empty record. Original bytes unchanged.",
+  "reported_planned": 829,
+  "observed_pass_records": 170,
+  "observed_fail_records": 1,
+  "observed_skip_records": 1,
+  "unaccounted_after_pass_fail_skip": 657,
+  "explicit_did_not_run_from_shard5": 82,
+  "cancelled_seven_no_completed_case_result": 575,
+  "scope_note": "829 planned = 170 observed pass + 1 direct fail + 1 observed conditional baseline skip + 657 without terminal case result. The657 comprises shard5 explicit82 did-not-run plus575 cancelled-job remainder; the575 may include interrupted, not-started, or unobserved conditional skip and cannot be classified further from these logs. Original broad remainder658 included the observed1 skip. No suite PASS claim.",
+  "observed_skip_source": {
+    "job_id": 122249836715,
+    "spec": "tests/e2e/logistics-table-density.spec.ts:41",
+    "case": "#454 before 두 유형과 이름·비밀번호 dialog 5폭 실제 geometry",
+    "guard": "process.env.LOGISTICS_CAPTURE !== \"before\"",
+    "reason": "before 전용 baseline 캡처",
+    "source_sha": "c7506bb615dcb53541c07daa48afb2636257cadf"
+  },
+  "shards": [
+    {
+      "job_id": 122249836248,
+      "log_lines_splitlines": 863,
+      "original_split_newline_records": 864,
+      "sha256": "cba76356fef167fc3e9cda65ce8c450fe1ec4a9742194cda82626e4a0897e695",
+      "reported_planned": 78,
+      "observed_case_lines": {
+        "passed": 23,
+        "failed": 0,
+        "skipped": 0
+      },
+      "observed_skipped_cases": [],
+      "unaccounted_without_completed_case_record": 55
+    },
+    {
+      "job_id": 122249836305,
+      "log_lines_splitlines": 825,
+      "original_split_newline_records": 826,
+      "sha256": "88a79a9c2a799d4112561856dd1003af51bf704a071222a812a29d0c7fb6a500",
+      "reported_planned": 93,
+      "observed_case_lines": {
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0
+      },
+      "observed_skipped_cases": [],
+      "unaccounted_without_completed_case_record": 86
+    },
+    {
+      "job_id": 122249836325,
+      "log_lines_splitlines": 789,
+      "original_split_newline_records": 790,
+      "sha256": "82db7ce6e43481387b79e78fccd07d00d8ec4bb320b33384949191889b36d19e",
+      "reported_planned": 93,
+      "observed_case_lines": {
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0
+      },
+      "observed_skipped_cases": [],
+      "unaccounted_without_completed_case_record": 87
+    },
+    {
+      "job_id": 122249836331,
+      "log_lines_splitlines": 980,
+      "original_split_newline_records": 981,
+      "sha256": "1b79f58ea618be35f87ea07fcd007aeeaaf80011d8fc7b31ad18b3948df4b94a",
+      "reported_planned": 98,
+      "observed_case_lines": {
+        "passed": 31,
+        "failed": 0,
+        "skipped": 0
+      },
+      "observed_skipped_cases": [],
+      "unaccounted_without_completed_case_record": 67
+    },
+    {
+      "job_id": 122249836500,
+      "log_lines_splitlines": 817,
+      "original_split_newline_records": 818,
+      "sha256": "fedb67b44094bbd844ff4c915e1a6c16030bcf4e3f32cbefb74a47280a6cf75a",
+      "reported_planned": 103,
+      "observed_case_lines": {
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0
+      },
+      "observed_skipped_cases": [],
+      "unaccounted_without_completed_case_record": 92
+    },
+    {
+      "job_id": 122249836530,
+      "log_lines_splitlines": 939,
+      "original_split_newline_records": 940,
+      "sha256": "98a7da526b59f367d5accb642c5d173f0940314a3c94acb84f4cb76f6bea1e74",
+      "reported_planned": 106,
+      "observed_case_lines": {
+        "passed": 23,
+        "failed": 1,
+        "skipped": 0
+      },
+      "observed_skipped_cases": [],
+      "unaccounted_without_completed_case_record": 82
+    },
+    {
+      "job_id": 122249836715,
+      "log_lines_splitlines": 906,
+      "original_split_newline_records": 907,
+      "sha256": "b16b103431ff0983f71324d9821b9a791b48de1986b527c4ee2eece9b7fb1903",
+      "reported_planned": 142,
+      "observed_case_lines": {
+        "passed": 32,
+        "failed": 0,
+        "skipped": 1
+      },
+      "observed_skipped_cases": [
+        {
+          "line": 808,
+          "marker": "-",
+          "case_index": 21,
+          "text": "2026-10-27T14:34:10.7195101Z   -   21 [chromium] › tests/e2e/logistics-table-density.spec.ts:41:5 › #454 before 두 유형과 이름·비밀번호 dialog 5폭 실제 geometry"
+        }
+      ],
+      "unaccounted_without_completed_case_record": 109
+    },
+    {
+      "job_id": 122249837358,
+      "log_lines_splitlines": 944,
+      "original_split_newline_records": 945,
+      "sha256": "28f699216eedf56d2682fbee8c92f23b8a099a8e95a04b6e2834d72365ca866f",
+      "reported_planned": 116,
+      "observed_case_lines": {
+        "passed": 37,
+        "failed": 0,
+        "skipped": 0
+      },
+      "observed_skipped_cases": [],
+      "unaccounted_without_completed_case_record": 79
+    }
+  ],
+  "observed_at": "2026-10-27T14:43:39.470Z",
+  "run_timestamps": {
+    "created_at": "2026-10-27T14:26:20Z",
+    "run_started_at": "2026-10-27T14:26:20Z",
+    "updated_at": "2026-10-27T14:35:11Z",
+    "first_direct_failure_at": "2026-10-27T14:34:06.4398210Z"
+  },
+  "branch_pr_runs": {
+    "total_count": 2,
+    "runs": [
+      {
+        "id": 40521099686,
+        "number": 3342,
+        "attempt": 1,
+        "path": ".github/workflows/ci.yml",
+        "event": "pull_request",
+        "head_sha": "c7506bb615dcb53541c07daa48afb2636257cadf",
+        "status": "completed",
+        "conclusion": "failure",
+        "created_at": "2026-10-27T14:26:20Z",
+        "updated_at": "2026-10-27T14:35:11Z"
+      },
+      {
+        "id": 40521099820,
+        "number": 149,
+        "attempt": 1,
+        "path": ".github/workflows/pr-fast-development.yml",
+        "event": "pull_request",
+        "head_sha": "c7506bb615dcb53541c07daa48afb2636257cadf",
+        "status": "completed",
+        "conclusion": "skipped",
+        "created_at": "2026-10-27T14:26:20Z",
+        "updated_at": "2026-10-27T14:26:21Z"
+      }
+    ]
+  }
+}

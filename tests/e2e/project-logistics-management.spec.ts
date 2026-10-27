@@ -291,7 +291,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
       fixture.sessionEditable = false;
       await page.reload();
       await openWorkspaceView(page, "equipment");
-      await expect(page.getByText("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 활성화'를 진행해 주세요.")).toBeVisible();
+      await expect(page.getByText("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요.")).toBeVisible();
       await expect(page.getByRole("button", { name: "+ 설비 추가", exact: true })).toHaveCount(0);
       expect(writes).toEqual([]);
     } finally {
@@ -447,7 +447,8 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     });
   }
 
-  test("Readonly 모드에서는 생성/수정/삭제 버튼이 숨겨지고 안내문이 표시된다", async ({ page }) => {
+  test("Readonly 모드에서는 생성/수정/삭제 버튼을 숨기고 좁은 화면의 안내·도움말·표 스크롤을 유지한다", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
     const fixture = await installStatefulProjectFixture(page);
     fixture.sessionEditable = false;
     fixture.logistics = sampleLogisticsData();
@@ -457,8 +458,24 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
 
     // Verify readonly notice
     await expect(
-      page.getByText("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 활성화'를 진행해 주세요."),
+      page.getByText("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요."),
     ).toBeVisible();
+
+    const help = page.getByRole("button", { name: "물류 구성 도움말", exact: true });
+    await help.click();
+    await expect(page.getByText("물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다.")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(help).toBeFocused();
+    const geometry = await page.locator("#panel-processes table").evaluate(table => ({
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: document.documentElement.clientWidth,
+      tableWidth: table.getBoundingClientRect().width,
+      ownerWidth: table.parentElement!.clientWidth,
+      scrollWidth: table.parentElement!.scrollWidth,
+    }));
+    expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth);
+    expect(geometry.tableWidth).toBeGreaterThan(geometry.ownerWidth);
+    expect(geometry.scrollWidth).toBeGreaterThan(geometry.ownerWidth);
 
     // Ensure + 공정 추가 button is not rendered
     await expect(page.getByRole("button", { name: "+ 공정 추가" })).toHaveCount(0);
@@ -782,17 +799,29 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     expect(new URL(deleteUrl).search).toBe("");
   });
 
-  test("반응형 4개 폭(390, 768, 1024, 1440px)에서 공정 추가 모달과 문서에 가로 overflow가 없다", async ({ page }) => {
+  test("반응형 5개 폭(390, 768, 1024, 1440, 1920px)에서 공용 shell·공정 추가 모달과 문서에 가로 overflow가 없다", async ({ page }) => {
     const fixture = await installStatefulProjectFixture(page);
     fixture.sessionEditable = true;
     fixture.logistics = sampleLogisticsData();
 
-    for (const width of [390, 768, 1024, 1440]) {
+    for (const width of [390, 768, 1024, 1440, 1920]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/projects/${publicId}`);
       await openWorkspaceView(page, "logistics");
       await openWorkspaceView(page, "processes");
-      await expect(page.getByRole("heading", { level: 2, name: "물류 구성" })).toBeVisible();
+      await expect(page.getByRole("heading", { level: 2, name: "물류 구성", exact: true })).toHaveCount(0);
+      const heading = page.getByRole("heading", { level: 2, name: "공정 & 작업 구역 관리", exact: true });
+      await expect(heading).toBeVisible();
+      await expect(heading).toHaveCSS("font-size","16px");
+      await expect(page.getByRole("button", { name: "물류 구성 도움말", exact: true })).toBeVisible();
+      const shell = await heading.evaluate(element => {
+        const host = element.closest("#project-panel-logistics")!;
+        const container = host.lastElementChild!;
+        const parent = host.getBoundingClientRect(), child = container.getBoundingClientRect();
+        return { leftGap: child.left - parent.left, rightGap: parent.right - child.right };
+      });
+      expect(Math.abs(shell.leftGap)).toBeLessThanOrEqual(1);
+      expect(Math.abs(shell.rightGap)).toBeLessThanOrEqual(1);
 
       const addButton = page.getByRole("button", { name: "+ 공정 추가" });
       await addButton.click();

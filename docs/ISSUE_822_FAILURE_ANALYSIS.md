@@ -80,3 +80,12 @@
 - **보완:** `FILTER_EMPTY_RESET`에만 취소 가능한 `port.frame(controller.signal)`을 `port.apply()`보다 먼저 요구하고 그 뒤 `current()` 원 출처·gesture·query 계약을 재확인한다. 해당 프레임 도중 새 입력·query change가 발생하면 `SUPERSEDED`로 종료하고 **Core apply 0**. 무관한 RANGE_EXTENSION/DIAGNOSTIC·기존 viewport intent 동작은 변경하지 않는다. 독립 명령 writer/DOM transform/timeout 증가 없음.
 - **테스트 수명:** 기존 negative `port.apply not called`를 유지하고 positive에 `frame 전 apply=0` 단언 추가(EXTEND). 기존 #570 E2E zero 기대, #816/#818/#637 고유 정합성은 KEEP_UNIQUE. 테스트 실행 전 로컬=NOT TESTED, 새 HEAD Full/Trusted/Owner 결과는 실행 뒤에만 판정. #3326.1과 #3327.1 원본 실패/취소·미실행은 보존.
 - 리뷰: 원격 review_threads=0, PR mergeable=true, main SHA `dc8543f390616c0d5aca90a4f91899f3cf7ac5da`와 base 일치. 사용자 지시는 수정·원장·PR CI 시작까지이며 CI 모니터링/병합/Main/GHCR/Finalizer/종료 제외.
+
+## ALIGN-822-001 — 최신 Main 30 commits 정렬 / CI Source Provenance (2026-10-28)
+
+- 과거 기본 브랜치 `dc8543f390616c0d5aca90a4f91899f3cf7ac5da`, 최신 `main` `ed82de78f243291251ed32132a233545654b8920`, PR #823 원 Head `3eb95675c09e00a510480915efae2470f3ba42b8`. 정확 merge-base가 과거 base이며 Branch 3 ahead / Main 30 ahead, Main 149 files 변경 / PR 32 files 변경. 기존 PR은 latest main에 비해 behind 상태였다.
+- 기존 [Full PR #3328.1 / Run 40453138588](https://github.com/planner77/masterGantt/actions/runs/40453138588) 이벤트 pull_request / RunAttempt1 / 정확 이전 Head의 Quality, Build, Unit, E2E 8/8, Docker 및 QA Final Automated는 `SUCCESS`. **그 당시 source 성공**이며 Main 정렬 후 새 Head의 PASS 아님. 앞선 F822-REMOTE-001(#3326 Chromium)·F822-REMOTE-002(#3327 Unit)는 실패 원장에 그대로 남긴다.
+- 파일 충돌 경계는 CHANGELOG, PROJECT_UX, TEST_PLAN, exec-plans/active/PLAN, package.json, package-lock.json의 6개. 네 Markdown 모두 서로 다른 상단 추가 블록이고 동일 old-base suffix가 문자 단위로 일치했으므로 #822와 최신 #825/#824 문서 추가 부분을 모두 보존. package/lock는 root version만 다른 동등한 의존성 그래프이며 latest main `0.135.6` 위의 #822 MINOR 후보 `0.136.0` 채택. main의 AGENTS/DESIGN과 #824/#825 전체 구현/검증·바이너리 증거 유지, Gantt source 직접 겹침 없음.
+- Main tree 위에 PR 32개 변경 blob을 overlay하고 문서 4개를 순서 있게 합친 two-parent merge commit을 기존 PR 브랜치에 fast-forward(무 force)한다. 충돌 marker·과거 버전 역행/CI 정책·테스트 skip/assertion/timeout 변경 없이 최신 main ancestry 유지.
+- 신규 실패가 확인된 것은 아니다. CI #3328.1 성공 뒤 main이 변경되어 검증 출처가 stale한 상황을 **정렬 감사**로 기록한다. 병합된 소스의 로컬 빌드/E2E 실행 환경은 없어 `NOT TESTED`; exact aligned HEAD 신규 Full PR CI + Trusted/Owner 수용이 필요하다. CI 모니터링·main merge·GHCR 게시·Finalizer·이슈 종료는 사용자 지시 밖이다.
+- 병합 전 review thread 0, submitted review 0. Risk HIGH, OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false, manager_decision=NOT TESTED, MERGE_READY=BLOCKED(신규 검증 전).

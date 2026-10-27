@@ -1,6 +1,7 @@
+.hierarchy { display: flow-root; min-width: 0; }
 .summary { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
 .summary summary { padding: 6px; overflow-wrap: anywhere; }
-.summary h4 { margin-block: 12px 8px; }
+.summary h4 { margin-block: 12px 8px; font-size: 14px; line-height: 20px; }
 .notice { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; min-width: 0; padding: 8px; overflow-wrap: anywhere; }
 .notice p { flex-basis: 100%; margin: 0; }
 .notice button { min-height: 44px; max-width: 100%; white-space: normal; }

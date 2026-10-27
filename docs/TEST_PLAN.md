@@ -9,6 +9,20 @@
 
 선별 Local Fast Feedback과 Pre-PR의 실제 source/환경·명령·결과/실패는 Packet 및 정제 증거로 연결한다. 원격 Required3/Chromium8/Trusted/Owner는 별도이며 이번 범위는 Ready PR CI 시작까지만이다.
 
+## Issue #824 — 공통 조회·Milestone·기준정보 밀도 회귀
+
+#826→#827→#828→#829→#830 순서로 기존 직접·인접 시나리오를 확장한다. 공통 조회5소비자의 body/tool/section 글꼴·line-height, fine36/coarse44, 넓은 label/input 수평 정렬·동일 제어 top/bottom≤1px와 narrow 의미별 wrap을 확인한다. Milestone 계층/전체 Gate의 독립 scope·명명된 구획·keyboard/focus·원본 왕복을 유지한다.
+
+전역 Resource 개인/그룹/구성원, 프로젝트 기준정보4관점, 전역 물류2유형과 프로젝트 마스터3범주/관계를 같은 synthetic fixture/source의390/768/1024/1440/1920×900에서 before/after 비교한다. 관리40/coarse44·장문/동명·원본 code/name/역할·action column·표 소유 scroll·문서 overflow0·focus clipping을 측정한다. 정상 CRUD·readonly/401/412·pending/오류·재시도·dirty/Escape/복원은 기존 meaningful spec을 EXTEND/KEEP_UNIQUE하며 CSS-only 복제나 timeout/retry/skip 완화로 대체하지 않는다.
+
+[AC별 검증 추적](ISSUE_824_VALIDATION.md)은 실제 HTTP/SQLite와 mock 응답 UI, 기존 테스트 존재와 현재 Head 실행을 구분한다. [Packet](exec-plans/active/ISSUE_824.md)의 exact source/fixture·명령·실패 원본·증거로 판정하고 공식 전체 회귀는 새 Head의 Required3/Full8·Trusted 결과로 확인한다. protected AGENT 인간 QA·Manager ACCEPT와 Main/Release exact digest는 별도 gate다. 운영63km·실기기/native125%/AT는 #517의 NOT TESTED 경계를 유지한다.
+
+## Issue #825 — 물류 shell과 KPI 조건 영역 회귀
+
+기존 `logistics-dashboard-request-state.spec.ts`의5폭 long-name/keyboard/기간 오류 시나리오와 `project-logistics-management.spec.ts`의 master modal/readonly 시나리오를 EXTEND한다. dashboard의 host 경계·중복 헤더0·KPI label/control containment·1920px 조건 행, master 도움말/조회 전용 안내와390px 공정의 숨은 설명이 문서 overflow를 만들지 않는 경계를 검증한다. 별도 전체 E2E를 복제하거나 기존 pending/응답 역전·stale·오류·정확 원본/drill·Gantt 상태 고유 단언을 약화하지 않는다.
+
+`tests/manual/issue-825-dashboard-metrics.mjs`는 기존 #799의 opt-in collector/실제 HTTP·SQLite fixture를 재사용하여 같은 source 환경·ko-KR·Asia/Seoul·DPR1에서 KPI/Milestone/공정&WorkArea/설비/물류 시스템의390/768/1024/1440/1920×900px before/after를 기록한다. shell/host 좌우·filter bar 높이·첫 KPI top·표 소유 scroll·문서 overflow와 source hashes를 분리한다. 캡처 존재 자체는 UX PASS가 아니며 coarse·keyboard·기준정보와 상태 검증은 실제 실행 기록에 한정한다. 63km 직접 재현/native125%/실기기/AT·운영 검증은 #517의 별도 NOT TESTED 경계다. AC 매핑·변경 영향/제외 근거·실제 결과는 [Work Packet](exec-plans/active/ISSUE_825.md)에 기록한다. 원격 Required3 및 QA/Owner gate를 변경하지 않는다.
+
 ## Issue #819 — 리소스 6peer UI/UX 재발 방지
 
 기존 #736 Resource workspace/차트·#730 다관점 회귀를 EXTEND하여 Resource-local fine36px·13px/20px와 coarse44px, 같은 행 제어 정렬≤1px·padding/문서 overflow·표 소유 scroll·6peer 첫 데이터 위치를 검증한다. 비리소스 관점의 기존44px 기대는 보존한다. 기술ID 기본 비노출·명명된 원문 상세의 keyboard 접근, 반복 설명의 상황형 도움말 전환, 필수 범위/단위/분모/partial/null/0·오류/stale의 가시성을 검증한다.

@@ -1,0 +1,48 @@
+{
+  "result": "PASS",
+  "scope": "Local production targeted execution only; not full local suite, remote quality/e2e/docker, independent QA or Manager ACCEPT",
+  "passed": 7,
+  "failed": 0,
+  "uniqueCases": 7,
+  "duration": "17.2s",
+  "cases": [
+    "✓  1 [chromium] › tests/e2e/logistics-dashboard-request-state.spec.ts:53:7 › 조회 missing-integrated는 이전 결과를 숨기고 다시 시도로 복구한다 (2.1s)",
+    "✓  2 [chromium] › tests/e2e/logistics-dashboard-request-state.spec.ts:158:7 › 세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 390px (2.3s)",
+    "✓  3 [chromium] › tests/e2e/logistics-dashboard-request-state.spec.ts:158:7 › 세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 768px (2.3s)",
+    "✓  4 [chromium] › tests/e2e/logistics-dashboard-request-state.spec.ts:158:7 › 세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1024px (2.3s)",
+    "✓  5 [chromium] › tests/e2e/logistics-dashboard-request-state.spec.ts:158:7 › 세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1440px (2.3s)",
+    "✓  6 [chromium] › tests/e2e/project-logistics-management.spec.ts:450:7 › Issue #186 물류 구성 탭 및 관리 화면 (LG-03) › Readonly 모드에서는 생성/수정/삭제 버튼을 숨기고 좁은 화면의 안내·도움말·표 스크롤을 유지한다 (874ms)",
+    "✓  7 [chromium] › tests/e2e/project-logistics-management.spec.ts:802:7 › Issue #186 물류 구성 탭 및 관리 화면 (LG-03) › 반응형 5개 폭(390, 768, 1024, 1440, 1920px)에서 공용 shell·공정 추가 모달과 문서에 가로 overflow가 없다 (4.3s)"
+  ],
+  "baseURL": "http://127.0.0.1:3205",
+  "runtime": "Same built Next standalone production with corrected process-private /data mount; HMR absent",
+  "browserVersion": "153.0.8010.12",
+  "playwrightVersion": "1.63.0",
+  "browserVersionSource": "Actual launched Playwright-managed chromium executable verified in this session; same executable used by default chromium project",
+  "workers": 1,
+  "retries": 0,
+  "testTimeoutsUnchanged": true,
+  "head": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+  "sourceHashes": {
+    "src/features/logistics/project-logistics-management.tsx": "71a7354caeac27f60f01debbded733b85915a4912a0d60a22ea90dbf7e1b8b26",
+    "src/features/logistics/project-logistics-management.module.css": "b57d5f8491e8492b185756942d0505b19a562b77788e3fc965d986c845a45332",
+    "src/features/logistics/project-logistics-dashboard.tsx": "f41cb351867a9e2badb40d6dfb390b902dd0bbea9897a623964ed3b19a715459",
+    "src/features/logistics/project-logistics-dashboard.module.css": "bbabc7f6c791cca4887e8c1807ee3cda8a2936d9f2af745d382ebde73e73093e",
+    "tests/e2e/logistics-dashboard-request-state.spec.ts": "457e09d13f645d1f1201ca01c767384c55be136da1a203937b98f558869b2b25",
+    "tests/e2e/project-logistics-management.spec.ts": "d82d731ba1e49ce738a2bfc3b732f77cca188f798b6ac44c7eceb60ff3be027b"
+  },
+  "sourceUnchangedSinceEnvironmentFailure": true,
+  "log": "output/playwright/issue-825/e2e-production-corrected.log",
+  "output": "output/playwright/issue-825/e2e-production-corrected",
+  "priorEvidence": [
+    "e2e-first-run/summary.json",
+    "e2e-trace-diagnosis.json",
+    "e2e-production-targeted-summary.json"
+  ],
+  "priorFailuresPreserved": true,
+  "notes": [
+    "All first dev-run failures and the corrected readonly390/master5width behavior are covered by this seven-case execution.",
+    "The preceding production run failed before tests reached product behavior because DATABASE_PATH violated the existing /data guard; guard unchanged.",
+    "Previous dev and production setup failures remain FAIL evidence and are not retroactively changed to PASS."
+  ]
+}

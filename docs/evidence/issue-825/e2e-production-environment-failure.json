@@ -1,0 +1,595 @@
+{
+  "result": "FAIL",
+  "classification": "ENVIRONMENT_SETUP_FAILURE",
+  "passed": 0,
+  "failed": 7,
+  "uniqueCases": 7,
+  "baseURL": "http://127.0.0.1:3205",
+  "runtime": "Next standalone production, HMR absent",
+  "browserVersion": "153.0.8010.12",
+  "browserVersionSource": "Actual launched Playwright-managed chromium executable after run; same executable used by project chromium config",
+  "playwrightVersion": "1.63.0",
+  "workers": 1,
+  "retries": 0,
+  "testTimeoutsUnchanged": true,
+  "log": "output/playwright/issue-825/e2e-production-targeted.log",
+  "managerConfirmedCause": "Production DATABASE_PATH was under worktree/.data instead of required /data, so the existing production guard rejected page rendering. Manager is correcting isolated environment; no product guard changed.",
+  "observations": "HTML200 with RSC server error digest3017141885, React minified441; all recorded static chunks200; no canonical/session mock call. Production failure is distinct from prior Next dev HMR/manifest errors.",
+  "sourceHashes": {
+    "src/features/logistics/project-logistics-management.tsx": "71a7354caeac27f60f01debbded733b85915a4912a0d60a22ea90dbf7e1b8b26",
+    "src/features/logistics/project-logistics-management.module.css": "b57d5f8491e8492b185756942d0505b19a562b77788e3fc965d986c845a45332",
+    "src/features/logistics/project-logistics-dashboard.tsx": "f41cb351867a9e2badb40d6dfb390b902dd0bbea9897a623964ed3b19a715459",
+    "src/features/logistics/project-logistics-dashboard.module.css": "bbabc7f6c791cca4887e8c1807ee3cda8a2936d9f2af745d382ebde73e73093e",
+    "tests/e2e/logistics-dashboard-request-state.spec.ts": "457e09d13f645d1f1201ca01c767384c55be136da1a203937b98f558869b2b25",
+    "tests/e2e/project-logistics-management.spec.ts": "d82d731ba1e49ce738a2bfc3b732f77cca188f798b6ac44c7eceb60ff3be027b"
+  },
+  "records": [
+    {
+      "trace": "output/playwright/issue-825/e2e-production-targeted/logistics-dashboard-reques-241e3-ted는-이전-결과를-숨기고-다시-시도로-복구한다-chromium/trace.zip",
+      "consoleErrors": [
+        "Error: Minified React error #441; visit https://react.dev/errors/441 for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      ],
+      "pageErrors": [],
+      "apiRequests": 0,
+      "httpErrorStatuses": [],
+      "serverDigests": [
+        "3017141885"
+      ],
+      "buildIds": [
+        "SbH-ahjLa5Lo0KrHSNKj3"
+      ],
+      "staticResourceStatuses": [
+        {
+          "path": "/_next/static/css/190cf9ea95faba6b.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/webpack-9d889cb4e68ab258.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/9f6448e38aa79268.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/cb946f1881ece1d7.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/main-app-5af5505789794718.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/8500-107859ed31978aa3.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/5555-bab93caa4e15d907.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/1328-15c94ae35d8a7ad8.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-e199e788e58acf79.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/3794-929ddf93564bd8a1.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-f58ee1fc38da31c9.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/error-f668c27ea00d4c6e.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/page-2585dd3f5617c4c5.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/logistics-admin/page-ef5777e2eb73adcd.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/resources/page-06db7ab5bb4b29ff.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/project-master-admin/page-4d3b7a0f1e0223dd.js",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "trace": "output/playwright/issue-825/e2e-production-targeted/logistics-dashboard-reques-6469b-상-drilldown-Gantt-보존-1440px-chromium/trace.zip",
+      "consoleErrors": [
+        "Error: Minified React error #441; visit https://react.dev/errors/441 for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      ],
+      "pageErrors": [],
+      "apiRequests": 0,
+      "httpErrorStatuses": [],
+      "serverDigests": [
+        "3017141885"
+      ],
+      "buildIds": [
+        "SbH-ahjLa5Lo0KrHSNKj3"
+      ],
+      "staticResourceStatuses": [
+        {
+          "path": "/_next/static/css/190cf9ea95faba6b.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/9f6448e38aa79268.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/cb946f1881ece1d7.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/webpack-9d889cb4e68ab258.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/main-app-5af5505789794718.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/8500-107859ed31978aa3.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/5555-bab93caa4e15d907.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/1328-15c94ae35d8a7ad8.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-e199e788e58acf79.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/page-2585dd3f5617c4c5.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-f58ee1fc38da31c9.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/error-f668c27ea00d4c6e.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/3794-929ddf93564bd8a1.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/resources/page-06db7ab5bb4b29ff.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/logistics-admin/page-ef5777e2eb73adcd.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/project-master-admin/page-4d3b7a0f1e0223dd.js",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "trace": "output/playwright/issue-825/e2e-production-targeted/logistics-dashboard-reques-7a050-정상-drilldown-Gantt-보존-768px-chromium/trace.zip",
+      "consoleErrors": [
+        "Error: Minified React error #441; visit https://react.dev/errors/441 for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      ],
+      "pageErrors": [],
+      "apiRequests": 0,
+      "httpErrorStatuses": [],
+      "serverDigests": [
+        "3017141885"
+      ],
+      "buildIds": [
+        "SbH-ahjLa5Lo0KrHSNKj3"
+      ],
+      "staticResourceStatuses": [
+        {
+          "path": "/_next/static/css/190cf9ea95faba6b.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/webpack-9d889cb4e68ab258.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/cb946f1881ece1d7.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/9f6448e38aa79268.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/main-app-5af5505789794718.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/8500-107859ed31978aa3.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-e199e788e58acf79.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/5555-bab93caa4e15d907.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/1328-15c94ae35d8a7ad8.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/3794-929ddf93564bd8a1.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/error-f668c27ea00d4c6e.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-f58ee1fc38da31c9.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/page-2585dd3f5617c4c5.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/logistics-admin/page-ef5777e2eb73adcd.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/resources/page-06db7ab5bb4b29ff.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/project-master-admin/page-4d3b7a0f1e0223dd.js",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "trace": "output/playwright/issue-825/e2e-production-targeted/logistics-dashboard-reques-a083c-상-drilldown-Gantt-보존-1024px-chromium/trace.zip",
+      "consoleErrors": [
+        "Error: Minified React error #441; visit https://react.dev/errors/441 for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      ],
+      "pageErrors": [],
+      "apiRequests": 0,
+      "httpErrorStatuses": [],
+      "serverDigests": [
+        "3017141885"
+      ],
+      "buildIds": [
+        "SbH-ahjLa5Lo0KrHSNKj3"
+      ],
+      "staticResourceStatuses": [
+        {
+          "path": "/_next/static/chunks/webpack-9d889cb4e68ab258.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/190cf9ea95faba6b.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/9f6448e38aa79268.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/cb946f1881ece1d7.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/main-app-5af5505789794718.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/8500-107859ed31978aa3.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/3794-929ddf93564bd8a1.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-e199e788e58acf79.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/5555-bab93caa4e15d907.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/1328-15c94ae35d8a7ad8.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/page-2585dd3f5617c4c5.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/error-f668c27ea00d4c6e.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-f58ee1fc38da31c9.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/resources/page-06db7ab5bb4b29ff.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/logistics-admin/page-ef5777e2eb73adcd.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/project-master-admin/page-4d3b7a0f1e0223dd.js",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "trace": "output/playwright/issue-825/e2e-production-targeted/logistics-dashboard-reques-e84a1-정상-drilldown-Gantt-보존-390px-chromium/trace.zip",
+      "consoleErrors": [
+        "Error: Minified React error #441; visit https://react.dev/errors/441 for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      ],
+      "pageErrors": [],
+      "apiRequests": 0,
+      "httpErrorStatuses": [],
+      "serverDigests": [
+        "3017141885"
+      ],
+      "buildIds": [
+        "SbH-ahjLa5Lo0KrHSNKj3"
+      ],
+      "staticResourceStatuses": [
+        {
+          "path": "/_next/static/css/190cf9ea95faba6b.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/9f6448e38aa79268.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/cb946f1881ece1d7.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/webpack-9d889cb4e68ab258.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/main-app-5af5505789794718.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/8500-107859ed31978aa3.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/5555-bab93caa4e15d907.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-e199e788e58acf79.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/1328-15c94ae35d8a7ad8.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/3794-929ddf93564bd8a1.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/error-f668c27ea00d4c6e.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-f58ee1fc38da31c9.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/page-2585dd3f5617c4c5.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/resources/page-06db7ab5bb4b29ff.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/project-master-admin/page-4d3b7a0f1e0223dd.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/logistics-admin/page-ef5777e2eb73adcd.js",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "trace": "output/playwright/issue-825/e2e-production-targeted/project-logistics-manageme-3b7e6-고-좁은-화면의-안내·도움말·표-스크롤을-유지한다-chromium/trace.zip",
+      "consoleErrors": [
+        "Error: Minified React error #441; visit https://react.dev/errors/441 for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      ],
+      "pageErrors": [],
+      "apiRequests": 0,
+      "httpErrorStatuses": [],
+      "serverDigests": [
+        "3017141885"
+      ],
+      "buildIds": [
+        "SbH-ahjLa5Lo0KrHSNKj3"
+      ],
+      "staticResourceStatuses": [
+        {
+          "path": "/_next/static/chunks/webpack-9d889cb4e68ab258.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/190cf9ea95faba6b.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/9f6448e38aa79268.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/cb946f1881ece1d7.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/main-app-5af5505789794718.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/8500-107859ed31978aa3.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/5555-bab93caa4e15d907.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/1328-15c94ae35d8a7ad8.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/3794-929ddf93564bd8a1.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-e199e788e58acf79.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-f58ee1fc38da31c9.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/error-f668c27ea00d4c6e.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/page-2585dd3f5617c4c5.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/resources/page-06db7ab5bb4b29ff.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/logistics-admin/page-ef5777e2eb73adcd.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/project-master-admin/page-4d3b7a0f1e0223dd.js",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "trace": "output/playwright/issue-825/e2e-production-targeted/project-logistics-manageme-89909--추가-모달과-문서에-가로-overflow가-없다-chromium/trace.zip",
+      "consoleErrors": [
+        "Error: Minified React error #441; visit https://react.dev/errors/441 for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      ],
+      "pageErrors": [],
+      "apiRequests": 0,
+      "httpErrorStatuses": [],
+      "serverDigests": [
+        "3017141885"
+      ],
+      "buildIds": [
+        "SbH-ahjLa5Lo0KrHSNKj3"
+      ],
+      "staticResourceStatuses": [
+        {
+          "path": "/_next/static/css/190cf9ea95faba6b.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/9f6448e38aa79268.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/css/cb946f1881ece1d7.css",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/webpack-9d889cb4e68ab258.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/main-app-5af5505789794718.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/3794-929ddf93564bd8a1.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/8500-107859ed31978aa3.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-e199e788e58acf79.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/5555-bab93caa4e15d907.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/1328-15c94ae35d8a7ad8.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-f58ee1fc38da31c9.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/error-f668c27ea00d4c6e.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/page-2585dd3f5617c4c5.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/logistics-admin/page-ef5777e2eb73adcd.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/resources/page-06db7ab5bb4b29ff.js",
+          "status": 200
+        },
+        {
+          "path": "/_next/static/chunks/app/project-master-admin/page-4d3b7a0f1e0223dd.js",
+          "status": 200
+        }
+      ]
+    }
+  ]
+}
