@@ -1,3 +1,9 @@
+## Issue #825 — 물류 dashboard 폭·중복 헤더·KPI 조건 영역
+
+main `dc8543f390616c0d5aca90a4f91899f3cf7ac5da` /0.135.4 기준 [#825](https://github.com/planner77/masterGantt/issues/825)를 `fix/issue-825-dashboard-shell`에서 구현한다. 별도 ui_ux 설계 → frontend 공용 shell/KPI 표시·기존 E2E 확장 → Manager 문서/통합 → 별도 qa_docs 사전검토 → infra Ready PR CI 시작 순서이며 [Work Packet](ISSUE_825.md)에 AC/소유권·실제 증거를 기록한다. 후속 #826 공통 WBS typography/search와 Milestone 폭은 수정하지 않는다.
+
+후보 PATCH0.135.5, risk_level=HIGH/qa_method=AGENT/qa_required=true, release_required=true/release_authorized=false. 제품 구현·문서 갱신과 최종 source의5화면×5폭 관측(정규24+별도1440보정1),coarse/readonly25관측 및production타깃7/7 PASS를 기록했다. 이전dev/환경실패·Pre-PR mapping BLOCKED는 보존한다. 로컬 검증과 원격 Required3·QA Final·Manager ACCEPT를 구분하고, 이번 요청은 CI 시작까지만 수행한다. 모니터링·병합·Main/GHCR/Release·Issue 종료는 범위 밖이다.
+
 ## Issue #819 — 리소스 6peer UI/UX 회귀 교정 (2026-10-27)
 
 [Issue #819](https://github.com/planner77/masterGantt/issues/819) / [Work Packet](ISSUE_819.md) / [누적 실패 원장](../../ISSUE_819_FAILURE_ANALYSIS.md). 기존 `fix/issue-819-resource-ui-consistency` 작업을 재사용하고 main `495027854c2ab73f7f91d0b6205c86397cff4497`의 #818을 통합했다. Resource-local fine36px/13px/line20·coarse44px, 이름 우선·기술ID 상세·반복 설명 도움말과 조건/KPI/데이터/보조 Export 구획을 교정한다. 다른 관점·원본 지표/필터/권한·정확drill·Plan/Export 계약은 유지한다.

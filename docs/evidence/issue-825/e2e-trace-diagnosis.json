@@ -1,0 +1,895 @@
+{
+  "finalRun": {
+    "result": "FAIL",
+    "passed": 4,
+    "failed": 3,
+    "total": 7,
+    "duration": "2.4m",
+    "workers": 1,
+    "retries": 0,
+    "existingTimeoutsUnchanged": true,
+    "log": "output/playwright/issue-825/e2e-final-targeted.log",
+    "remainingFailures": [
+      "missing-integrated: initial project loading; no canonical/session request completed; no console or pageError; root cause not conclusively established",
+      "long-name1024: initial Gantt loading, Next HMR router-before-initialization errors and RSC500 Manifest file is empty",
+      "master5width: navigation click timeout with Next manifest JSON.parse Unexpected end of JSON input, HMR router-before-initialization errors and hydration mismatch"
+    ],
+    "passes": [
+      "long-name390",
+      "long-name768",
+      "long-name1440",
+      "readonly390 help Escape/focus, document overflow0, table-owned scroll"
+    ]
+  },
+  "observedBoundary": "The local Next dev execution has concrete manifest/HMR failures. No timeout/guard/assertion was weakened. No claim that all local tests or remote CI passed.",
+  "records": [
+    {
+      "stage": "e2e-first-run/test-results",
+      "trace": "output/playwright/issue-825/e2e-first-run/test-results/logistics-dashboard-reques-241e3-ted는-이전-결과를-숨기고-다시-시도로-복구한다-chromium/trace.zip",
+      "errors": [],
+      "consoleErrors": [],
+      "api": [],
+      "http500": [],
+      "hmrRebuilds": 0,
+      "htmlScriptRefs": [
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793077316871",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793077316871"
+          ]
+        }
+      ]
+    },
+    {
+      "stage": "e2e-first-run/test-results",
+      "trace": "output/playwright/issue-825/e2e-first-run/test-results/logistics-dashboard-reques-6469b-상-drilldown-Gantt-보존-1440px-chromium/trace.zip",
+      "errors": [],
+      "consoleErrors": [],
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": -1,
+          "durationMs": 0.33699999999953434
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": -1,
+          "durationMs": 0.05199999999604188
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": 200,
+          "durationMs": 348.037
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": 200,
+          "durationMs": 347.151
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": -1,
+          "durationMs": 5.834000000002561
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": 5.426000000006752
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/edit-sessions/current",
+          "status": 200,
+          "durationMs": 13.308
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/kpi?source=integrated&horizonDays=14&systemView=direct",
+          "status": 200,
+          "durationMs": 24.311999999999998
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 126.956
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": 200,
+          "durationMs": 139.127
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": -1,
+          "durationMs": 0.08000000001629815
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": -1,
+          "durationMs": 0.042000000015832484
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": 200,
+          "durationMs": 379.35299999999995
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": 200,
+          "durationMs": 379.016
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": -1,
+          "durationMs": 15.814000000013039
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": 4.1600000000034925
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/edit-sessions/current",
+          "status": 200,
+          "durationMs": 7.84
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/kpi?source=integrated&horizonDays=14&systemView=direct",
+          "status": 200,
+          "durationMs": 32.435
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 171.65
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": 200,
+          "durationMs": 192.489
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/kpi?source=integrated&horizonDays=14&systemView=direct&snapshotId=integrated-ui-snapshot",
+          "status": 200,
+          "durationMs": 55.213
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/resource-dashboard/scope?view=context",
+          "status": 200,
+          "durationMs": 13.646999999999998
+        },
+        {
+          "method": "POST",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/resource-dashboard/query",
+          "status": 200,
+          "durationMs": 18.265
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/kpi?source=integrated&snapshotId=integrated-ui-snapshot&asOfDate=2026-09-29&horizonDays=14&systemView=direct&activeOnly=false",
+          "status": 200,
+          "durationMs": 19.596
+        }
+      ],
+      "http500": [],
+      "hmrRebuilds": 4,
+      "htmlScriptRefs": [
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793077453872",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793077453872"
+          ]
+        },
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793077463565",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793077463565"
+          ]
+        }
+      ]
+    },
+    {
+      "stage": "e2e-first-run/test-results",
+      "trace": "output/playwright/issue-825/e2e-first-run/test-results/logistics-dashboard-reques-7a050-정상-drilldown-Gantt-보존-768px-chromium/trace.zip",
+      "errors": [],
+      "consoleErrors": [],
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": -1,
+          "durationMs": 0.5359999999927823
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": -1,
+          "durationMs": 0.0560000000114087
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": 200,
+          "durationMs": 511.528
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": 200,
+          "durationMs": 512.974
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": -1,
+          "durationMs": 6.113000000012107
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": 5.5310000000172295
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/edit-sessions/current",
+          "status": 200,
+          "durationMs": 23.157
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/kpi?source=integrated&horizonDays=14&systemView=direct",
+          "status": 200,
+          "durationMs": 22.832
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 327.84600000000006
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": 200,
+          "durationMs": 344.959
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": -1,
+          "durationMs": 15.126000000018394
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": -1,
+          "durationMs": 6.9799999999813735
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": -1,
+          "durationMs": 0.05499999999301508
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": 0.04199999998672865
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": 200,
+          "durationMs": 147.395
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": 200,
+          "durationMs": 148.921
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/edit-sessions/current",
+          "status": 200,
+          "durationMs": 352.481
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/kpi?source=integrated&horizonDays=14&systemView=direct",
+          "status": 200,
+          "durationMs": 155.84199999999998
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 192.19799999999998
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": 200,
+          "durationMs": 207.49599999999998
+        }
+      ],
+      "http500": [],
+      "hmrRebuilds": 2,
+      "htmlScriptRefs": [
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793077417099",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793077417099"
+          ]
+        },
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793077432617",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793077432617"
+          ]
+        }
+      ]
+    },
+    {
+      "stage": "e2e-first-run/test-results",
+      "trace": "output/playwright/issue-825/e2e-first-run/test-results/logistics-dashboard-reques-a083c-상-drilldown-Gantt-보존-1024px-chromium/trace.zip",
+      "errors": [],
+      "consoleErrors": [],
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": -1,
+          "durationMs": 0.31900000001769513
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": -1,
+          "durationMs": 0.05199999999604188
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": 200,
+          "durationMs": 350.83299999999997
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": 200,
+          "durationMs": 350.358
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": -1,
+          "durationMs": 6.587999999988824
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": 5.149000000004889
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/edit-sessions/current",
+          "status": 200,
+          "durationMs": 14.234
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/kpi?source=integrated&horizonDays=14&systemView=direct",
+          "status": 200,
+          "durationMs": 70.312
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 146.76
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": 200,
+          "durationMs": 158.98
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": -1,
+          "durationMs": 0.0659999999916181
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": -1,
+          "durationMs": 0.04800000000977889
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": -1,
+          "durationMs": 0.15600000001722947
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": 0.08500000002095476
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": 200,
+          "durationMs": 221.993
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": 200,
+          "durationMs": 223.14499999999998
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/edit-sessions/current",
+          "status": -1,
+          "durationMs": -1
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 203.667
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": -1
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/kpi?source=integrated&horizonDays=14&systemView=direct",
+          "status": -1,
+          "durationMs": -1
+        }
+      ],
+      "http500": [],
+      "hmrRebuilds": 1,
+      "htmlScriptRefs": [
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793077441017",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793077441017"
+          ]
+        },
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793077446452",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793077446452"
+          ]
+        }
+      ]
+    },
+    {
+      "stage": "e2e-first-run/test-results",
+      "trace": "output/playwright/issue-825/e2e-first-run/test-results/logistics-dashboard-reques-e84a1-정상-drilldown-Gantt-보존-390px-chromium/trace.zip",
+      "errors": [],
+      "consoleErrors": [],
+      "api": [],
+      "http500": [],
+      "hmrRebuilds": 0,
+      "htmlScriptRefs": [
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793077401500",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793077401500"
+          ]
+        }
+      ]
+    },
+    {
+      "stage": "e2e-final-targeted",
+      "trace": "output/playwright/issue-825/e2e-final-targeted/logistics-dashboard-reques-241e3-ted는-이전-결과를-숨기고-다시-시도로-복구한다-chromium/trace.zip",
+      "errors": [],
+      "consoleErrors": [],
+      "api": [],
+      "http500": [],
+      "hmrRebuilds": 0,
+      "htmlScriptRefs": [
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793077970481",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793077970481"
+          ]
+        }
+      ]
+    },
+    {
+      "stage": "e2e-final-targeted",
+      "trace": "output/playwright/issue-825/e2e-final-targeted/logistics-dashboard-reques-a083c-상-drilldown-Gantt-보존-1024px-chromium/trace.zip",
+      "errors": [
+        "Internal Next.js error: Router action dispatched before initialization."
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": -1,
+          "durationMs": 0.06600000000617001
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": -1,
+          "durationMs": 0.01900000000023283
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": 200,
+          "durationMs": 197.42000000000002
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": 200,
+          "durationMs": 197.187
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": -1,
+          "durationMs": 10.255000000004657
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": 9.130000000004657
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/edit-sessions/current",
+          "status": 200,
+          "durationMs": 8.795
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/kpi?source=integrated&horizonDays=14&systemView=direct",
+          "status": 200,
+          "durationMs": 14.656
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 398.55400000000003
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": 200,
+          "durationMs": 120.064
+        }
+      ],
+      "http500": [
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003?_rsc=3WtZStYO_oMplEHl",
+          "name": "Error",
+          "message": "Manifest file is empty",
+          "stack": "Error: Manifest file is empty\n    at evalManifest (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/load-manifest.external.js:85:15)\n    at evalManifestFromRelativePath (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/load-manifest.external.js:106:12)\n    at AppPageRouteModule.loadManifests (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:367:64005)\n    at /home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:367:69894\n    at NextTracerImpl.trace (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/lib/trace/tracer.js:180:72)\n    at AppPageRouteModule.prepareImpl (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:367:69799)\n    at async Module.handler (webpack-internal:///(rsc)/./node_modules/next/dist/build/templates/app-page-runtime.js:171:31)\n    at async DevServer.renderToResponseWithComponentsImpl (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/base-server.js:1731:9)\n    at async DevServer.renderPageComponent (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/base-server.js:1790:24)\n    at async DevServer.renderToResponseImpl (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/base-server.js:1833:36)\n    at async DevServer.pipeImpl (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/base-server.js:1252:25)\n    at async NextNodeServer.handleCatchallRenderRequest (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/next-server.js:340:17)\n    at async DevServer.handleRequestImpl (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/base-server.js:974:17)\n    at async /home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/dev/next-dev-server.js:384:20\n    at async Span.traceAsyncFn (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/trace/trace.js:168:20)\n    at async DevServer.handleRequest (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/dev/next-dev-server.js:380:24)\n    at async invokeRender (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/lib/router-server.js:363:21)\n    at async handleRequest (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/lib/router-server.js:567:24)\n    at async requestHandlerImpl (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/lib/router-server.js:636:13)\n    at async Server.requestListener (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/lib/start-server.js:210:13)"
+        }
+      ],
+      "hmrRebuilds": 14,
+      "htmlScriptRefs": [
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793078029130",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793078029130"
+          ]
+        },
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793078041940",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793078041940"
+          ]
+        }
+      ]
+    },
+    {
+      "stage": "e2e-final-targeted",
+      "trace": "output/playwright/issue-825/e2e-final-targeted/project-logistics-manageme-89909--추가-모달과-문서에-가로-overflow가-없다-chromium/trace.zip",
+      "errors": [
+        "Internal Next.js error: Router action dispatched before initialization.",
+        "Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid HTML tag nesting.\n\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\n\nhttps://react.dev/link/hydration-mismatch\n\n  ...\n    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>\n      <AppDevOverlayErrorBoundary globalError={[...]}>\n        <ReplaySsrOnlyErrors>\n        <DevRootHTTPAccessFallbackBoundary>\n          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>\n            <HTTPAccessFallbackErrorBoundary pathname=\"/projects/...\" notFound={<NotAllowedRootHTTPFallbackError>} ...>\n              <RedirectBoundary>\n                <RedirectErrorBoundary router={{...}}>\n                  <Head>\n                  <__next_root_layout_boundary__>\n                    <LoadingBoundaryProvider loading={[...]}>\n                      <SegmentViewNode type=\"layout\" pagePath=\"layout.tsx\">\n                        <SegmentTrieNode>\n                        <link>\n                        <RootLayout>\n                          <html lang=\"ko\">\n                            <body>\n                              <WorkspaceShell>\n                                <div\n+                                 className=\"app-shell\"\n-                                 className={null}\n-                                 hidden=\"\"\n                                >\n+                                 <a className=\"skip-link\" href=\"#main-content\">\n-                                 <Suspense>\n                                  ...\n                  ...\n"
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Can't perform a React state update on a component that hasn't mounted yet. This indicates that you have a side-effect in your render function that asynchronously tries to update the component. Move this work to useEffect instead.",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "api": [
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": -1,
+          "durationMs": 0.07399999999324791
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": -1,
+          "durationMs": 0.08599999999569263
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": 200,
+          "durationMs": 234.596
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": 200,
+          "durationMs": 234.329
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": -1,
+          "durationMs": 40.072000000000116
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": 39.57500000001164
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/edit-sessions/current",
+          "status": 200,
+          "durationMs": 12.124
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 247.905
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": 200,
+          "durationMs": 28.898000000000003
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/process-context",
+          "status": 404,
+          "durationMs": 181.198
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": -1,
+          "durationMs": 6.069000000017695
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": -1,
+          "durationMs": 9.08599999998114
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/assigned-targets",
+          "status": 200,
+          "durationMs": 18.137
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "status": 200,
+          "durationMs": 17.938
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": -1,
+          "durationMs": 6.114999999990687
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": -1,
+          "durationMs": 5.872999999992317
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/edit-sessions/current",
+          "status": 200,
+          "durationMs": 3.94
+        },
+        {
+          "method": "GET",
+          "path": "/api/logistics-catalog/types",
+          "status": 200,
+          "durationMs": 103.75800000000001
+        },
+        {
+          "method": "GET",
+          "path": "/api/project-master/catalog",
+          "status": 200,
+          "durationMs": 136.292
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/process-context",
+          "status": 404,
+          "durationMs": 404.794
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/process-context",
+          "status": 404,
+          "durationMs": 143.438
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/kpi?source=integrated&horizonDays=14&systemView=direct",
+          "status": 404,
+          "durationMs": 183.387
+        },
+        {
+          "method": "GET",
+          "path": "/api/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003/logistics/kpi?source=integrated&horizonDays=14&systemView=direct",
+          "status": 404,
+          "durationMs": 253.018
+        }
+      ],
+      "http500": [
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003?_rsc=3WtZStYO_oMplEHl",
+          "name": "SyntaxError",
+          "message": "Unexpected end of JSON input",
+          "stack": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at loadManifest (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/load-manifest.external.js:57:25)\n    at DevServer.getNextFontManifest (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/next-server.js:874:55)\n    at DevServer.findPageComponents (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/dev/next-dev-server.js:676:39)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async DevServer.renderPageComponent (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/base-server.js:1774:24)\n    at async DevServer.renderToResponseImpl (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/base-server.js:1833:36)\n    at async DevServer.pipeImpl (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/base-server.js:1252:25)\n    at async NextNodeServer.handleCatchallRenderRequest (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/next-server.js:340:17)\n    at async DevServer.handleRequestImpl (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/base-server.js:974:17)\n    at async /home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/dev/next-dev-server.js:384:20\n    at async Span.traceAsyncFn (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/trace/trace.js:168:20)\n    at async DevServer.handleRequest (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/dev/next-dev-server.js:380:24)\n    at async invokeRender (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/lib/router-server.js:363:21)\n    at async handleRequest (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/lib/router-server.js:567:24)\n    at async requestHandlerImpl (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/lib/router-server.js:636:13)\n    at async Server.requestListener (/home/planner/Dev/masterGantt-worktrees/issue-825/node_modules/next/dist/server/lib/start-server.js:210:13)"
+        }
+      ],
+      "hmrRebuilds": 26,
+      "htmlScriptRefs": [
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793078076121",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793078076121"
+          ]
+        },
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793078086275",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793078086275"
+          ]
+        },
+        {
+          "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "scripts": [
+            "/_next/static/chunks/main-app.js?v=1793078101352",
+            "/_next/static/chunks/app-pages-internals.js",
+            "/_next/static/chunks/app/error.js",
+            "/_next/static/chunks/app/page.js",
+            "/_next/static/chunks/app/layout.js",
+            "/_next/static/chunks/polyfills.js",
+            "/_next/static/chunks/webpack.js?v=1793078101352"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,9 @@
+## Issue #825 — 물류 dashboard 공용 shell
+
+KPI·공정&WorkArea·설비·물류 시스템의 embedded 물류 shell은 상위 project workspace가 제공하는 가용 폭 전체를 사용하고 inline gutter를 다시 더하지 않는다. 상위 peer 탭 바로 아래에 해당 조회 도구와 데이터가 이어지며, `물류 구성 / Gantt WBS와 독립` 제목을 중복 적층하지 않는다. 기준정보 소비자의 기존 제목·ContextHelp·조회 전용 안내는 유지한다. 대시보드의 현재 편집 권한은 상위 프로젝트 context로 계속 식별한다. Milestone의 기존 full-width host는 바꾸지 않는다.
+
+KPI 조건은 기준일/자동 기준일, 임박 일수, 시스템 집계 범위, 활성 조건, 새로고침을 의미별 compact 그룹으로 자연 wrap한다. mobile에서 모든 제어를 전폭 세로로 강제하지 않으며 bar 높이는 실제 내용과 padding으로 결정한다. 긴 option·연결된 기간 오류·집계 모집단/평가일·단위·미산정/부분값 경고와 keyboard focus를 clip하지 않는다. KPI 카드의 adaptive 배치·숫자 강조와 정확 원본/drill·복귀·조회 상태/응답 역전 계약은 유지한다. 기준정보 표의 숨은 접근성 설명은 table scroll owner 안에 위치시켜 문서 전체를 밀지 않으며 표의 내부 가로 scroll과 원래 accessible name을 유지한다. 동적 WBS 조회의 검색/typography/control 밀도는 후속 #826 범위다. [계획·검증 경계](exec-plans/active/ISSUE_825.md).
+
 ## Issue #819 — 리소스 6개 분석 화면의 밀도·이름 우선 회귀 교정
 
 대시보드 → 리소스의 기본 현황, 차트, 동적 계층 탐색, Milestone 교차, Resource Plan, 견적·Excel은 같은 compact host를 사용한다. fine pointer 제어는36px·13px label/20px line-height, coarse는44px target을 유지하며 버튼의 내용 중앙·같은 행 input/select/button 정렬을 맞춘다. KPI 숫자 강조와 action label typography를 분리한다. 다른5관점·관리/Task Editor의 크기를 이 변경으로 일괄 수정하지 않는다.

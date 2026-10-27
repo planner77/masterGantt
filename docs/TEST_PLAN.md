@@ -1,3 +1,9 @@
+## Issue #825 — 물류 shell과 KPI 조건 영역 회귀
+
+기존 `logistics-dashboard-request-state.spec.ts`의5폭 long-name/keyboard/기간 오류 시나리오와 `project-logistics-management.spec.ts`의 master modal/readonly 시나리오를 EXTEND한다. dashboard의 host 경계·중복 헤더0·KPI label/control containment·1920px 조건 행, master 도움말/조회 전용 안내와390px 공정의 숨은 설명이 문서 overflow를 만들지 않는 경계를 검증한다. 별도 전체 E2E를 복제하거나 기존 pending/응답 역전·stale·오류·정확 원본/drill·Gantt 상태 고유 단언을 약화하지 않는다.
+
+`tests/manual/issue-825-dashboard-metrics.mjs`는 기존 #799의 opt-in collector/실제 HTTP·SQLite fixture를 재사용하여 같은 source 환경·ko-KR·Asia/Seoul·DPR1에서 KPI/Milestone/공정&WorkArea/설비/물류 시스템의390/768/1024/1440/1920×900px before/after를 기록한다. shell/host 좌우·filter bar 높이·첫 KPI top·표 소유 scroll·문서 overflow와 source hashes를 분리한다. 캡처 존재 자체는 UX PASS가 아니며 coarse·keyboard·기준정보와 상태 검증은 실제 실행 기록에 한정한다. 63km 직접 재현/native125%/실기기/AT·운영 검증은 #517의 별도 NOT TESTED 경계다. AC 매핑·변경 영향/제외 근거·실제 결과는 [Work Packet](exec-plans/active/ISSUE_825.md)에 기록한다. 원격 Required3 및 QA/Owner gate를 변경하지 않는다.
+
 ## Issue #819 — 리소스 6peer UI/UX 재발 방지
 
 기존 #736 Resource workspace/차트·#730 다관점 회귀를 EXTEND하여 Resource-local fine36px·13px/20px와 coarse44px, 같은 행 제어 정렬≤1px·padding/문서 overflow·표 소유 scroll·6peer 첫 데이터 위치를 검증한다. 비리소스 관점의 기존44px 기대는 보존한다. 기술ID 기본 비노출·명명된 원문 상세의 keyboard 접근, 반복 설명의 상황형 도움말 전환, 필수 범위/단위/분모/partial/null/0·오류/stale의 가시성을 검증한다.
