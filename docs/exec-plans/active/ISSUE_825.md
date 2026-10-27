@@ -183,3 +183,43 @@ Head별 원격 quality/e2e/docker의 run/attempt·review thread0·mergeability �
 - 변경사항은 Work Packet·활성 PLAN·PR 본문의 QA 선택 및 최신 상태 기록에 한정한다. **DOCUMENTATION_SYNC:** `docs/exec-plans/active/ISSUE_825.md` UPDATED (QA 전환·Trusted 실패 원본·경계), `docs/exec-plans/active/PLAN.md` UPDATED (현행 QA 방법 및 Run 인계), `docs/QA_REVIEW_POLICY.md` N/A (기존 #598 정책 적용), `AGENTS.md` N/A (실행 지침 변경 없음), `docs/TEST_PLAN.md` N/A (테스트·AC 검증 계약 불변), `docs/PROJECT_UX.md`, `docs/LOGISTICS_DASHBOARD.md`, `CHANGELOG.md` N/A (제품/사용자 기능 추가 변경 없음), `DESIGN.md` N/A (디자인 계약 불변), `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md` N/A (API/DB/일정 변경 없음), `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md` N/A (CI/검증 정책과 실행 계약 불변).
 - 원본 Full CI의 성공은 새 HEAD 성공으로 재사용하지 않는다. 새 `pull_request/synchronize` Full8+Quality/Docker 및 trusted main QA의 **실제 Run/Attempt·Head/Base/Test Merge**는 새 HEAD 게시 후 확인한다. 신규 Trusted QA가 PASS여도 Owner의 별도 HIGH 위험 수용, Manager ACCEPT·병합 승인, 정식 릴리스 승인(`release_authorized=false`)은 자동 성립하지 않는다.
 - 요청 범위: 신규 PR CI **시작까지**. CI 결과 모니터링, PR 병합, Main CI, GHCR 게시, 정식 Release, branch cleanup, Issue 종료는 수행하지 않는다. MERGE_READY=BLOCKED.
+
+## MAIN-825-001 — Main CI #3336.1 불변 Merge 메시지 실패 및 같은 Issue 복구 (2026-10-27)
+
+### 사건·변경 소유권
+
+- 최초 기능 PR [#833](https://github.com/planner77/masterGantt/pull/833) Full [#3335.1 / 40477404132.1](https://github.com/planner77/masterGantt/actions/runs/40477404132) / Trusted [#983.1 / 40481539833.1](https://github.com/planner77/masterGantt/actions/runs/40481539833)은 SUCCESS. Merge `7ba1521407e6a1060ef442f1730275d38976f741` (부모 `09d461f...` / `66754b9...`) 후 [Main #3336.1 / 40484177455.1](https://github.com/planner77/masterGantt/actions/runs/40484177455) FAIL. 최초 직접: `changes` Job `122121700586`, Step7에서 `Issue #` 단일 행 Merge 제목 오류. `Quality`/`E2E`/`Docker` Required3 FAIL은 파생, 구현 Job/임시 GHCR은 SKIPPED. 자세한 단일 누적 원본: [Issue #825 실패 원장](../../ISSUE_825_FAILURE_ANALYSIS.md).
+- 본 제품·테스트·QA/CI 정책 결함이 아니라 **병합 요청에서 `commit_title` 뒤에 장문 `commit_message`를 전달한 운영 실수**. `AGENTS.md`, `scripts/main_ci_run_name.py`, `docs/GITHUB_OPERATIONS.md`의 기존 한 줄·빈 본문·Head lease 계약을 적용하지 않은 것이 원인. 기존 validator/Required3을 완화·변경하지 않는다.
+- 사용자 요청: MAIN 원인 분석, 보완·원장 기록 후 새 Main CI 시작. 정책이 요구하는 보호 Main/PR CI/Trusted Gate를 우회하여 바로 Main을 push할 수 없음. 최신 Main `7ba1521407e6a1060ef442f1730275d38976f741` 기반 새 `fix/issue-825-main-trace-recovery` branch와 동일 Primary Issue corrective PR만 사용한다. 원래 Merge SHA/Run/Issue 댓글/최초 충돌·PR review 이력은 보존한다.
+- 구현 범위: `scripts/verify-issue-lifecycle.py` 기존 한 줄 Merge 검증 테스트에 **역사적 #3336.1 실제 메시지 negative** 및 **정식 빈 body·lease-bound helper positive**를 국소 EXTEND한다. 제품 UI/Material KPI 수치/Project/Task/Resource/API/DB/readonly/Calendar·기존 E2E Assertion·CI/QA Validator/Workflow 불변. package/lock `0.135.5` 유지, 동일 실패 이슈/버전의 첫 부모 승계만 후보. 실제 GHCR/SBOM/Finalizer는 새로운 Main 검증 이후 별도.
+- 역할: Manager=원인·원장·Work Packet/PR 품질·최종 gate, infra=브랜치·정확 CI/Trusted 확인·준수 병합, qa_docs=별도 실행될 때만 독립 검토. 이번 통합 연결에서 독립 Agent를 새로 실행했다고 주장하지 않는다.
+- risk_level=HIGH; qa_method=OWNER_MANAGED; qa_required=true; independent_qa=N/A(Owner-managed); release_required=true; release_authorized=false; Manager HIGH 수용/ACCEPT는 실제 원격 결과와 사용자 지시 범위에서 별도 판정. 이번 요청은 정식 SemVer GHCR/tag 게시 또는 Finalizer/Issue 종료가 아니다.
+
+### TEST_LIFECYCLE_REVIEW / AC_TEST_COVERAGE (corrective delta)
+
+- 기존 테스트 우선 검색: `scripts/verify-issue-lifecycle.py`의 #582/586/603/639/808 message+push 검증, `scripts/main_ci_run_name.py::parse_merge_title/merge_api_payload/validate_merge_title`; 새 파일/테스트 suite 추가보다 **EXTEND**가 적합. 현재 PR의 추가 유일 사례는 기존 코드의 history negative + corrective positive이며, 다른 Issue 각각의 역사적 증거는 `KEEP_UNIQUE`. `ADD` 신규 spec0/`CONSOLIDATE`·`RETIRE` 없음.
+- AC1~AC5 (#825 원래 사용자 대시보드 수용 기준): 최초 기능 PR의 배치·표/readonly/기간 조건 실측 및 Chromium E2E를 유지하며 제품 소스 변화 없음. 교정 PR은 이 AC의 새로운 UX PASS를 주장하지 않는다. 추가 CI 품질 계약: malformed main message → trace FAIL, valid one-line + empty body + exact Head lease → trace PASS; 실제 Main Run 증거는 신규 Merge 이후만.
+- 진단 및 검증 선정: 정책 Python `python3 scripts/verify-issue-lifecycle.py` (실행 환경 확보 시), 기존 `qa_preflight`/metadata 검증·exact Head Full PR CI Quality/Chromium8/Docker 및 default-main Trusted. 현지 실행의 속도/출력/완료 증거가 없으면 `NOT TESTED`; GitHub 실행 여부/상태는 신규 Run 생성 시 기록. 기존 실패 Job rerun은 동일 immutable Merge 메시지이므로 불필요·금지.
+- 범위 밖: actual 63km 프로젝트/125%/실기기·AT·운영 SQLite, 원래 dev HMR/Pre-PR mapping 미검증을 success로 승격하지 않음; #517 별도 운영/장치 수용 정책 불변.
+
+### DOCUMENTATION_SYNC (MAIN-825-001 corrective delta, prior entries preserved)
+
+- `docs/ISSUE_825_FAILURE_ANALYSIS.md`: UPDATED(원본 PR/QA/metadata/Main 실패 및 직접/파생·Run/Attempt/Job·교정 계획 단일 누적 원장 신규 작성)
+- `docs/exec-plans/active/ISSUE_825.md`: UPDATED(보호 Main 실패 인계·위험/QA/문서/AC와 릴리스 경계)
+- `docs/exec-plans/active/PLAN.md`: UPDATED(같은 Issue corrective 및 신규 Main CI 경로 명시)
+- `scripts/verify-issue-lifecycle.py`: UPDATED(기존 테스트에 정확 과거 failure negative + 계약 positive만 EXTEND)
+- `docs/TEST_PLAN.md`: N/A(신규 E2E/Unit 사양·제품 AC 재설계 없음; 기존 #582/#808 정책 fixture의 사건별 기록 확대이며 테스트 수명 인계는 이 Packet의 TEST_LIFECYCLE_REVIEW)
+- `AGENTS.md`: N/A(현행 한 줄 제목·빈 Merge 본문·Head lease 지침 **이미 명시**, 이번 오류는 호출자의 미준수)
+- `docs/QA_REVIEW_POLICY.md`: N/A(OWNER_MANAGED·HIGH·Trusted/Owner 검증 경계 원래대로 유지)
+- `docs/CI_CD.md`: N/A(기존 Main 동일 Issue corrective, immutable Main 실패 승계·release_required 계약 불변)
+- `docs/GITHUB_OPERATIONS.md`: N/A(기존 canonical `--as-merge-payload` 운영 절차를 정확 재사용)
+- `docs/REMOTE_VALIDATION.md`: N/A(Main/PR CI provenance·Run/Attempt·Exact SHA 기준은 기존 절차 그대로)
+- `DESIGN.md`, `docs/UI_UX_GUIDELINES.md`, `docs/PROJECT_UX.md`, `docs/LOGISTICS_DASHBOARD.md`, `CHANGELOG.md`: N/A(제품 UI/CSS/버전/디자인 변경 없음)
+- `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md`, `docs/SECURITY.md`: N/A(API/DB/일정/권한/보안 계약 변경 없음)
+
+### 정확한 후속 Gate
+
+1. 새 PR body의 정규 단독 `Refs #825`, `risk_level: HIGH`, `qa_method: OWNER_MANAGED`, `qa_required: true`, `release_required: true`, `release_authorized: false`를 선언. Title과 branch의 #825 단일 귀속·최신 main·충돌0/리뷰 스레드0을 재확인.
+2. 새 정확 Head의 Full PR CI 및 default-main Trusted 출처 SUCCESS, 보안/프로세스 강제 조건을 확인할 때만 병합. 새 Head CI 결과가 UNKNOWN이면 `MERGE_READY=BLOCKED`.
+3. 새 PR 번호·HEAD가 확보되면 **병합 API 실행 전에** `scripts/main_ci_run_name.py --as-merge-payload --expected-head-sha`·`--validate-title`과 실제 `merge_api_payload` 출력 검증. `commit_message=""`, `merge_method=merge`, `Issue #825 · PR #<새 PR> · 물류 대시보드 Main CI 복구` 1행만 지정; 제목 외 설명 금지.
+4. GitHub 보호 Main이 새 merge SHA로 정렬된 후 자동 `push` Main CI의 원본 Run/Attempt 시작을 확인, **완료 모니터링은 하지 않음**. 이전 Main #3336.1 FAILURE를 새로운 성공으로 바꾸지 않는다. 후보 이미지/정식 릴리스/Finalizer/Issue Close는 별도 Owner 승인 및 검증 없이는 금지.

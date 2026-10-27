@@ -534,6 +534,54 @@ require(
 )
 
 
+
+# MAIN-825-001: immutable Main #3336.1 from PR #833 passed Full/Trusted,
+# but the merge operator supplied a multiline body.  Preserve that source
+# failure, then exercise the already-approved lease-bound one-line payload
+# for a new same-Issue non-docs corrective PR.  No validator relaxation.
+failed_825_message = (
+    "Issue #825 · PR #833 · 물류 대시보드 폭·중복 헤더·KPI 정돈\n\n"
+    "Merge PR #833 (Refs #825); owner-managed QA, full PR CI #3335.1 "
+    "and Trusted #983.1 verified. Preserve failure history and "
+    "release_authorized=false."
+)
+require(
+    main_run_name.parse_merge_title(failed_825_message) is None,
+    "historical Main #3336.1 multiline message must remain invalid",
+)
+try:
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": failed_825_message},
+    })
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("historical Main #3336.1 failure must not be promoted to PASS")
+
+corrective_825_payload = main_run_name.merge_api_payload(
+    825, 999, "물류 대시보드 Main CI 복구", "b" * 40
+)
+require(
+    corrective_825_payload == {
+        "merge_method": "merge",
+        "commit_title": "Issue #825 · PR #999 · 물류 대시보드 Main CI 복구",
+        "commit_message": "",
+        "expected_head_sha": "b" * 40,
+    }
+    and main_run_name.parse_merge_title(corrective_825_payload["commit_title"])
+    == (825, 999, "물류 대시보드 Main CI 복구")
+    and trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {
+            "message": corrective_825_payload["commit_title"]
+            + corrective_825_payload["commit_message"]
+        },
+    }) == (825, 999),
+    "corrective #825 must retain canonical one-line title, empty body and exact Head lease",
+)
+
+
 # Issue #603 / PR #604: a *one-line* English-only merge title was invalid.
 # This exact historical main SHA cannot be rewritten; a later same-Issue PR
 # with full-scope CI and a Korean canonical title must supersede its failed CI.
