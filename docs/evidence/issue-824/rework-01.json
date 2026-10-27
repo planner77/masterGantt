@@ -1,0 +1,329 @@
+{
+  "classification": "TEST_CONTRACT",
+  "remoteOriginal": {
+    "runId": 40521099686,
+    "attempt": 1,
+    "status": "FAIL",
+    "head": "c7506bb615dcb53541c07daa48afb2636257cadf",
+    "base": "e95cb0911c43173074e663febd1a9a94b8af6910",
+    "testMerge": "546ba63c4bd9c2a367e3e2a7a5a3eba2818d9e84",
+    "quality": "PASS",
+    "docker": "PASS",
+    "e2e": "FAIL",
+    "failingShard": 5,
+    "otherShards": "CANCELLED, not PASS"
+  },
+  "source": {
+    "observedAt": "2026-10-27T14:50:42.560Z",
+    "testPath": "tests/e2e/issue-730-view-composer.spec.ts",
+    "testSha256": "7973deafae09bd18bdb37c0f7889295a30d5eb67c50ec7f07f4a956d5a4a2f65",
+    "helperSha256": "0ef3767924faaaebcc9ff36aafe9aedbeb246e7d051aa9cc872e336087ab869b",
+    "baselineTestSha256": "f13b7ac7285f58a61091109a85425c76bf706349f3470c3a6bf2dbd6aacd01ae",
+    "products": {
+      "src/features/logistics/logistics-type-catalog-admin.module.css": {
+        "baseline": "70dd4408fb10bd6ebfe03684929fb5a11f45ae5ac7ad725335c59d1e14cdd23e",
+        "current": "70dd4408fb10bd6ebfe03684929fb5a11f45ae5ac7ad725335c59d1e14cdd23e",
+        "unchanged": true
+      },
+      "src/features/logistics/project-logistics-management.module.css": {
+        "baseline": "c17eab592cfa8beaaa1915cc6c785ff27a59a2462da420bb9a2f52526dca527b",
+        "current": "c17eab592cfa8beaaa1915cc6c785ff27a59a2462da420bb9a2f52526dca527b",
+        "unchanged": true
+      },
+      "src/features/logistics/project-logistics-management.tsx": {
+        "baseline": "4e4d7949a9eeecbc0fdc7f3489ac227a3e13cd90f2cdad2ccd987e1e7b65ca62",
+        "current": "4e4d7949a9eeecbc0fdc7f3489ac227a3e13cd90f2cdad2ccd987e1e7b65ca62",
+        "unchanged": true
+      },
+      "src/features/logistics/project-process-management.module.css": {
+        "baseline": "101efdf6ea1d9559dff1ba3d3d0e01610ab165da2e805a229ddbdb7b04c2d344",
+        "current": "101efdf6ea1d9559dff1ba3d3d0e01610ab165da2e805a229ddbdb7b04c2d344",
+        "unchanged": true
+      },
+      "src/features/milestones/milestone-wbs-dashboard.module.css": {
+        "baseline": "8fe460684fbc18e294e4ed686ec0f49d3bf0cb1d4d543f546137b7afd888318f",
+        "current": "8fe460684fbc18e294e4ed686ec0f49d3bf0cb1d4d543f546137b7afd888318f",
+        "unchanged": true
+      },
+      "src/features/milestones/milestone-wbs-dashboard.tsx": {
+        "baseline": "7abe1c4f0b0069eb6088e09ee4ecce582a18e47292600dfa3da12d7b1923022b",
+        "current": "7abe1c4f0b0069eb6088e09ee4ecce582a18e47292600dfa3da12d7b1923022b",
+        "unchanged": true
+      },
+      "src/features/milestones/project-milestone-dashboard.module.css": {
+        "baseline": "ddcc0272296a45d1e4077b883738ceab7eb5ec03755c374b4a09d7578d99e52f",
+        "current": "ddcc0272296a45d1e4077b883738ceab7eb5ec03755c374b4a09d7578d99e52f",
+        "unchanged": true
+      },
+      "src/features/milestones/project-milestone-dashboard.tsx": {
+        "baseline": "08c9d934dfc1643cd9d9d6539cb0f5cd7678ed1851558c7c62c564a04004ce72",
+        "current": "08c9d934dfc1643cd9d9d6539cb0f5cd7678ed1851558c7c62c564a04004ce72",
+        "unchanged": true
+      },
+      "src/features/project-master/project-master-admin.module.css": {
+        "baseline": "5ce8c1c560c61effc8b5b9a847f68b922475b5178b3e9653b9b6c535fc4f3d78",
+        "current": "5ce8c1c560c61effc8b5b9a847f68b922475b5178b3e9653b9b6c535fc4f3d78",
+        "unchanged": true
+      },
+      "src/features/project-master/project-master-relations-editor.module.css": {
+        "baseline": "643df0ed035df94a6add5272d3e1df96d7e4858fcd9b3333f1a217a57df66b60",
+        "current": "643df0ed035df94a6add5272d3e1df96d7e4858fcd9b3333f1a217a57df66b60",
+        "unchanged": true
+      },
+      "src/features/projects/project-readonly-view.tsx": {
+        "baseline": "7734a4daa1079fe0be75d8d0404105f9d7d72d669c8062d6931a2edb8556a116",
+        "current": "7734a4daa1079fe0be75d8d0404105f9d7d72d669c8062d6931a2edb8556a116",
+        "unchanged": true
+      },
+      "src/features/resources/project-resource-memberships.module.css": {
+        "baseline": "a813f1079c383185c374f2a9a0665d65568bacd94446394fc42de782a8d316ef",
+        "current": "a813f1079c383185c374f2a9a0665d65568bacd94446394fc42de782a8d316ef",
+        "unchanged": true
+      },
+      "src/features/resources/resource-catalog-admin.module.css": {
+        "baseline": "2e3c6723f24986e882feddb09b257f83f5a5ecd6493b027785155869697becd3",
+        "current": "2e3c6723f24986e882feddb09b257f83f5a5ecd6493b027785155869697becd3",
+        "unchanged": true
+      },
+      "src/features/resources/resource-catalog-admin.tsx": {
+        "baseline": "e95ca702ea1c3e284c0a2e6142d1bc0623ed02742c4a74d806f715f6ffffed9c",
+        "current": "e95ca702ea1c3e284c0a2e6142d1bc0623ed02742c4a74d806f715f6ffffed9c",
+        "unchanged": true
+      },
+      "src/features/resources/resource-workspace.module.css": {
+        "baseline": "ab2e9180e57e4330dde4acc886f54a39cb4301a483f3465481c778df89d69958",
+        "current": "ab2e9180e57e4330dde4acc886f54a39cb4301a483f3465481c778df89d69958",
+        "unchanged": true
+      },
+      "src/features/resources/wbs-view-dashboard.tsx": {
+        "baseline": "f83625b949de0621a64a12be547d896626ba549dacee1866968e5a80724be33e",
+        "current": "f83625b949de0621a64a12be547d896626ba549dacee1866968e5a80724be33e",
+        "unchanged": true
+      },
+      "src/features/resources/wbs-view.module.css": {
+        "baseline": "7c3d2a944bea171bb5fff0cfaa67c01960e8abbad84e8fd4f49963fba7a47c23",
+        "current": "7c3d2a944bea171bb5fff0cfaa67c01960e8abbad84e8fd4f49963fba7a47c23",
+        "unchanged": true
+      }
+    },
+    "productFiles": 17,
+    "allProductBytesUnchanged": true,
+    "packageUnchanged": true
+  },
+  "sourceShaAtEnd": "7973deafae09bd18bdb37c0f7889295a30d5eb67c50ec7f07f4a956d5a4a2f65",
+  "sourceStable": true,
+  "local": {
+    "red": {
+      "status": "FAIL_REPRODUCED",
+      "command": "ISSUE730_E2E_ARTIFACT_DIR=output/playwright/issue-824/rework-01/red/geometry npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-730-view-composer.spec.ts -g \"#730 실제 HTTP 긴 이름\" --project chromium --workers 1 --retries 0",
+      "session_id": 85570,
+      "exitCode": 1,
+      "stdout": "red/stdout.log",
+      "sha256": "1a1247d9d033e5508562b0a44d8531b074869ea77ee82f9f76251d796b180b92",
+      "expected44Actual36": true
+    },
+    "green": {
+      "status": "PASS",
+      "command": "ISSUE730_E2E_ARTIFACT_DIR=output/playwright/issue-824/rework-01/green/geometry npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-730-view-composer.spec.ts -g \"#730 실제 HTTP 긴 이름|#798 다섯 관점\" --project chromium --workers 1 --retries 0",
+      "session_id": 75172,
+      "exitCode": 0,
+      "stdout": "green/stdout.log",
+      "sha256": "6244cfa5dc8bfbd434cf1a888c8acaad608fbc634840ab17860f2e8c5f0bb8fd",
+      "uniqueCases": 2,
+      "passedLines": [
+        "  ✓  1 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:429:5 › #730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키보드·읽기 전용 가상 그룹 (27.7s)",
+        "  ✓  2 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:593:5 › #798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조회 불변 (1.9m)"
+      ],
+      "total": "3.1m",
+      "geometrySamples": [
+        {
+          "file": "geometry-1024.json",
+          "pointer": {
+            "coarse": false,
+            "anyCoarse": false
+          },
+          "minimum": 36,
+          "root": "equipment",
+          "viewport": 1024,
+          "buttonCount": 9,
+          "minimumHeight": 36,
+          "minimumWidth": 36
+        },
+        {
+          "file": "geometry-1440.json",
+          "pointer": {
+            "coarse": false,
+            "anyCoarse": false
+          },
+          "minimum": 36,
+          "root": "equipment",
+          "viewport": 1440,
+          "buttonCount": 9,
+          "minimumHeight": 36,
+          "minimumWidth": 36
+        },
+        {
+          "file": "geometry-1920.json",
+          "pointer": {
+            "coarse": false,
+            "anyCoarse": false
+          },
+          "minimum": 36,
+          "root": "equipment",
+          "viewport": 1920,
+          "buttonCount": 9,
+          "minimumHeight": 36,
+          "minimumWidth": 36
+        },
+        {
+          "file": "geometry-390-coarse.json",
+          "pointer": {
+            "coarse": true,
+            "anyCoarse": true
+          },
+          "minimum": 44,
+          "root": "resource",
+          "viewport": 390,
+          "buttonCount": 9,
+          "minimumHeight": 44,
+          "minimumWidth": 44
+        },
+        {
+          "file": "geometry-390.json",
+          "pointer": {
+            "coarse": false,
+            "anyCoarse": false
+          },
+          "minimum": 36,
+          "root": "equipment",
+          "viewport": 390,
+          "buttonCount": 9,
+          "minimumHeight": 36,
+          "minimumWidth": 36
+        },
+        {
+          "file": "geometry-768.json",
+          "pointer": {
+            "coarse": false,
+            "anyCoarse": false
+          },
+          "minimum": 36,
+          "root": "equipment",
+          "viewport": 768,
+          "buttonCount": 9,
+          "minimumHeight": 36,
+          "minimumWidth": 36
+        }
+      ]
+    },
+    "negative": {
+      "status": "PASS",
+      "sourceSha256": "7973deafae09bd18bdb37c0f7889295a30d5eb67c50ec7f07f4a956d5a4a2f65",
+      "helperSha256": "0ef3767924faaaebcc9ff36aafe9aedbeb246e7d051aa9cc872e336087ab869b",
+      "uniqueControlledObservations": 4,
+      "restoredPositive": true,
+      "canonicalUnchanged": true,
+      "receipt": "negative/receipt.json",
+      "command": "ISSUE730_E2E_ARTIFACT_DIR=output/playwright/issue-824/rework-01/negative npx playwright test --config output/playwright/issue-824/rework-01/density-negative.config.ts --project chromium --workers 1 --retries 0",
+      "session_id": 73027,
+      "exitCode": 0,
+      "sourceSnapshots": [
+        "density-negative.spec.snapshot.txt",
+        "density-negative.config.snapshot.txt"
+      ],
+      "stdout": "negative-audited-stdout.log",
+      "scope": "Local-only wrapper loads exact source helper, uses fresh browser per axis, verifies actual media and same node/page/context, then restores original inline style. Not a new tracked test or mirror unit.",
+      "preservedFirstFailure": "negative-attempt1-condition-loss",
+      "firstFailureClassification": "MANUAL_CONDITION_CONTROL: media changed to fine between positive capture and next probe. Same page/context confirmed by audited run; precise driver-internal cause UNKNOWN. No product workaround.",
+      "afterFullPageObservation": "Coarse page/context retains identity, but post-restored-fullPage media reads false/false. Assertion-time media true/true and 43 rejection independently proven."
+    },
+    "verification": {
+      "startedAt": "2026-10-27T14:57:00.391Z",
+      "sourceHashesAtStart": {
+        "src/features/logistics/logistics-type-catalog-admin.module.css": "70dd4408fb10bd6ebfe03684929fb5a11f45ae5ac7ad725335c59d1e14cdd23e",
+        "src/features/logistics/project-logistics-management.module.css": "c17eab592cfa8beaaa1915cc6c785ff27a59a2462da420bb9a2f52526dca527b",
+        "src/features/logistics/project-logistics-management.tsx": "4e4d7949a9eeecbc0fdc7f3489ac227a3e13cd90f2cdad2ccd987e1e7b65ca62",
+        "src/features/logistics/project-process-management.module.css": "101efdf6ea1d9559dff1ba3d3d0e01610ab165da2e805a229ddbdb7b04c2d344",
+        "src/features/milestones/milestone-wbs-dashboard.module.css": "8fe460684fbc18e294e4ed686ec0f49d3bf0cb1d4d543f546137b7afd888318f",
+        "src/features/milestones/milestone-wbs-dashboard.tsx": "7abe1c4f0b0069eb6088e09ee4ecce582a18e47292600dfa3da12d7b1923022b",
+        "src/features/milestones/project-milestone-dashboard.module.css": "ddcc0272296a45d1e4077b883738ceab7eb5ec03755c374b4a09d7578d99e52f",
+        "src/features/milestones/project-milestone-dashboard.tsx": "08c9d934dfc1643cd9d9d6539cb0f5cd7678ed1851558c7c62c564a04004ce72",
+        "src/features/project-master/project-master-admin.module.css": "5ce8c1c560c61effc8b5b9a847f68b922475b5178b3e9653b9b6c535fc4f3d78",
+        "src/features/project-master/project-master-relations-editor.module.css": "643df0ed035df94a6add5272d3e1df96d7e4858fcd9b3333f1a217a57df66b60",
+        "src/features/projects/project-readonly-view.tsx": "7734a4daa1079fe0be75d8d0404105f9d7d72d669c8062d6931a2edb8556a116",
+        "src/features/resources/project-resource-memberships.module.css": "a813f1079c383185c374f2a9a0665d65568bacd94446394fc42de782a8d316ef",
+        "src/features/resources/resource-catalog-admin.module.css": "2e3c6723f24986e882feddb09b257f83f5a5ecd6493b027785155869697becd3",
+        "src/features/resources/resource-catalog-admin.tsx": "e95ca702ea1c3e284c0a2e6142d1bc0623ed02742c4a74d806f715f6ffffed9c",
+        "src/features/resources/resource-workspace.module.css": "ab2e9180e57e4330dde4acc886f54a39cb4301a483f3465481c778df89d69958",
+        "src/features/resources/wbs-view-dashboard.tsx": "f83625b949de0621a64a12be547d896626ba549dacee1866968e5a80724be33e",
+        "src/features/resources/wbs-view.module.css": "7c3d2a944bea171bb5fff0cfaa67c01960e8abbad84e8fd4f49963fba7a47c23",
+        "package.json": "0731c98bfb61c495f4565c6bf70daba806d11a2b5c23be9e58868bcac15fde90",
+        "package-lock.json": "e5abe437601e6df6eb2c5363632952ef901127ca82d5db19eb25a3011fecf2ad",
+        "tests/e2e/issue-730-view-composer.spec.ts": "7973deafae09bd18bdb37c0f7889295a30d5eb67c50ec7f07f4a956d5a4a2f65"
+      },
+      "commands": [
+        {
+          "name": "typecheck",
+          "command": [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "durationMs": 3456,
+          "stdout": "output/playwright/issue-824/rework-01/audit-typecheck.stdout.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "focused-lint",
+          "command": [
+            "npx",
+            "eslint",
+            "tests/e2e/issue-730-view-composer.spec.ts"
+          ],
+          "exitCode": 0,
+          "signal": null,
+          "durationMs": 1464,
+          "stdout": "output/playwright/issue-824/rework-01/audit-focused-lint.stdout.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "sourceHashesAtEnd": {
+        "src/features/logistics/logistics-type-catalog-admin.module.css": "70dd4408fb10bd6ebfe03684929fb5a11f45ae5ac7ad725335c59d1e14cdd23e",
+        "src/features/logistics/project-logistics-management.module.css": "c17eab592cfa8beaaa1915cc6c785ff27a59a2462da420bb9a2f52526dca527b",
+        "src/features/logistics/project-logistics-management.tsx": "4e4d7949a9eeecbc0fdc7f3489ac227a3e13cd90f2cdad2ccd987e1e7b65ca62",
+        "src/features/logistics/project-process-management.module.css": "101efdf6ea1d9559dff1ba3d3d0e01610ab165da2e805a229ddbdb7b04c2d344",
+        "src/features/milestones/milestone-wbs-dashboard.module.css": "8fe460684fbc18e294e4ed686ec0f49d3bf0cb1d4d543f546137b7afd888318f",
+        "src/features/milestones/milestone-wbs-dashboard.tsx": "7abe1c4f0b0069eb6088e09ee4ecce582a18e47292600dfa3da12d7b1923022b",
+        "src/features/milestones/project-milestone-dashboard.module.css": "ddcc0272296a45d1e4077b883738ceab7eb5ec03755c374b4a09d7578d99e52f",
+        "src/features/milestones/project-milestone-dashboard.tsx": "08c9d934dfc1643cd9d9d6539cb0f5cd7678ed1851558c7c62c564a04004ce72",
+        "src/features/project-master/project-master-admin.module.css": "5ce8c1c560c61effc8b5b9a847f68b922475b5178b3e9653b9b6c535fc4f3d78",
+        "src/features/project-master/project-master-relations-editor.module.css": "643df0ed035df94a6add5272d3e1df96d7e4858fcd9b3333f1a217a57df66b60",
+        "src/features/projects/project-readonly-view.tsx": "7734a4daa1079fe0be75d8d0404105f9d7d72d669c8062d6931a2edb8556a116",
+        "src/features/resources/project-resource-memberships.module.css": "a813f1079c383185c374f2a9a0665d65568bacd94446394fc42de782a8d316ef",
+        "src/features/resources/resource-catalog-admin.module.css": "2e3c6723f24986e882feddb09b257f83f5a5ecd6493b027785155869697becd3",
+        "src/features/resources/resource-catalog-admin.tsx": "e95ca702ea1c3e284c0a2e6142d1bc0623ed02742c4a74d806f715f6ffffed9c",
+        "src/features/resources/resource-workspace.module.css": "ab2e9180e57e4330dde4acc886f54a39cb4301a483f3465481c778df89d69958",
+        "src/features/resources/wbs-view-dashboard.tsx": "f83625b949de0621a64a12be547d896626ba549dacee1866968e5a80724be33e",
+        "src/features/resources/wbs-view.module.css": "7c3d2a944bea171bb5fff0cfaa67c01960e8abbad84e8fd4f49963fba7a47c23",
+        "package.json": "0731c98bfb61c495f4565c6bf70daba806d11a2b5c23be9e58868bcac15fde90",
+        "package-lock.json": "e5abe437601e6df6eb2c5363632952ef901127ca82d5db19eb25a3011fecf2ad",
+        "tests/e2e/issue-730-view-composer.spec.ts": "7973deafae09bd18bdb37c0f7889295a30d5eb67c50ec7f07f4a956d5a4a2f65"
+      },
+      "sourceStable": true,
+      "completedAt": "2026-10-27T14:57:05.315Z",
+      "status": "PASS"
+    }
+  },
+  "cleanup": {
+    "ports3100and3199ListeningPids": "",
+    "temporaryTsSourcesRenamed": true,
+    "generatedFilesForManagerRestore": [
+      "AGENTS.md",
+      "next-env.d.ts",
+      "tsconfig.json"
+    ]
+  },
+  "nextRemote": "New Head Full8/Required3/Trusted QA NOT TESTED; previous failed run unchanged."
+}

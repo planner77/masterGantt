@@ -1,3 +1,7 @@
+## Issue #824 REWORK — PR #835 첫 Full3342.1 (2026-10-27)
+
+[누적 원장](../../ISSUE_824_FAILURE_ANALYSIS.md)에 원본 Run40521099686.1·8샤드 전체로그·Quality/Docker SUCCESS/E2E FAIL 및 Trusted990.1 파생 FAIL을 보존했다. 장문5폭 geometry의 고정44px 기대값을 놓친 TEST_CONTRACT 누락을 기존 fine36/coarse44 양축 oracle·readonly touch helper로 동기화한다. 제품/권한·계산/CI gate·skip/timeout/retry는 변경하지 않는다. 원본RED→동결직접2case·실제helper음성4관측·type/lint PASS와제품불변Local재사용을분리했다. 관측170PASS/1FAIL/1조건부SKIP/657미완료를 구분하고 새 Head Full8/Required3·Trusted·인간 AGENT QA·Manager/main/Release 전에는 OPEN이다.
+
 ## Issue #824 — 공통 조회·Milestone·관리자 밀도 순차 통합 (2026-10-27)
 
 [통합 Work Packet](ISSUE_824.md)과 [최초 감사](../../UI_UX_REAUDIT_2026_10_27.md)를 기준으로 선행 #825 완료 main `e95cb091`/app `0.135.5`에서 #826→#827→#828→#829→#830을 구현·직접 검증 순서로 진행한다. 최종 GHCR 게시1회 요청에 따라 하나의 PR·main merge·PATCH0.135.6 후보로 통합하며 하위 Issue 종료는 최종 Main/Release 증거 뒤에 수행한다. 중간 main 게시를 만들지 않는다.

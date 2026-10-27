@@ -1,0 +1,789 @@
+{
+  "schema": "mastergantt-issue824-ci-failure-audit-v1",
+  "observed_at": "2026-10-27T14:39:08.461Z",
+  "repository": "planner77/masterGantt",
+  "pr": 835,
+  "issue": 824,
+  "source_ci": {
+    "id": 40521099686,
+    "number": 3342,
+    "attempt": 1,
+    "event": "pull_request",
+    "path": ".github/workflows/ci.yml",
+    "status": "completed",
+    "conclusion": "failure",
+    "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686",
+    "head_sha": "c7506bb615dcb53541c07daa48afb2636257cadf",
+    "base_sha": "e95cb0911c43173074e663febd1a9a94b8af6910",
+    "test_merge_sha": "546ba63c4bd9c2a367e3e2a7a5a3eba2818d9e84",
+    "source_artifact_id": 12741532584,
+    "source_artifact_fields": {
+      "schema": "mastergantt-ci-pr-source-v1",
+      "repository": "planner77/masterGantt",
+      "run_id": 40521099686,
+      "run_attempt": 1,
+      "pr_number": 835,
+      "head_sha": "c7506bb615dcb53541c07daa48afb2636257cadf",
+      "head_ref": "feat/issue-824-dashboard-consistency",
+      "head_repository": "planner77/masterGantt",
+      "base_sha": "e95cb0911c43173074e663febd1a9a94b8af6910",
+      "base_ref": "main",
+      "base_repository": "planner77/masterGantt",
+      "test_merge_sha": "546ba63c4bd9c2a367e3e2a7a5a3eba2818d9e84"
+    },
+    "provenance_scope": "원본 artifact 스키마·run/attempt·PR·Head/base/test-merge 필드를 생성 시 PR 및 Git 두 부모/동일 Tree 증거와 대조. Trusted 최종 PASS는 아님."
+  },
+  "required_aggregates": [
+    {
+      "id": 122250697069,
+      "name": "Build, static checks, and unit tests",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:31:02Z",
+      "completed_at": "2026-10-27T14:31:06Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122250697069",
+      "classification": "EXECUTED_SUCCESS"
+    },
+    {
+      "id": 122250986075,
+      "name": "Docker build and runtime smoke test",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:31:30Z",
+      "completed_at": "2026-10-27T14:31:34Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122250986075",
+      "classification": "EXECUTED_SUCCESS"
+    },
+    {
+      "id": 122252915321,
+      "name": "Chromium end-to-end tests",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-10-27T14:34:51Z",
+      "completed_at": "2026-10-27T14:34:54Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122252915321",
+      "classification": "DERIVED_FROM_SHARD_FAILURE"
+    }
+  ],
+  "direct_failure": {
+    "job_id": 122249836530,
+    "step_number": 7,
+    "step_name": "E2E shard 실행",
+    "test_file": "tests/e2e/issue-730-view-composer.spec.ts",
+    "test_line": 424,
+    "assertion_line": 82,
+    "test": "HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키보드·읽기 전용 가상 그룹",
+    "control": "공통 계층 조회 도움말",
+    "assertion": "height >= 44",
+    "expected": 44,
+    "actual": 36,
+    "classification": "TEST_CONTRACT_MISMATCH_WITH_APPROVED_FINE36_COARSE44",
+    "classification_scope": "기존 geometry()가 pointer 구분 없이44를 강제한 원본과 CI 실제36을 확인. Manager가 frontend TESTONLY로 배정; 제품/CI/timeout/retry 완화 없이 pointer별 계약을 재검증해야 함.",
+    "first_failure_at": "2026-10-27T14:34:06.4398210Z"
+  },
+  "shard_union_audit": {
+    "all_eight_original_logs_read": true,
+    "additional_failed_test_records_found": false,
+    "scope_note": "취소7 Job의 원본 로그에 추가 ✘ 테스트 실패 또는 비취소 assertion 오류 없음. 취소된 실행의 나머지 케이스가 PASS라는 뜻은 아님.",
+    "observed_pass_records": 170,
+    "observed_failed_tests": 1,
+    "reported_total_planned": 829,
+    "uncompleted_or_unverified": 658,
+    "shards": [
+      {
+        "job_id": 122249836248,
+        "name": "Chromium E2E shard 7/8 · PR",
+        "conclusion": "cancelled",
+        "e2e_step": {
+          "name": "E2E shard 실행",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "number": 7,
+          "started_at": "2026-10-27T14:30:13Z",
+          "completed_at": "2026-10-27T14:34:42Z"
+        },
+        "log_lines": 864,
+        "observed_pass_lines": 23,
+        "observed_failed_test_lines": [],
+        "reported_counts": [
+          "2026-10-27T14:30:23.9747088Z Running 78 tests using 1 worker",
+          "2026-10-27T14:34:42.7214762Z ##[error]The operation was canceled."
+        ],
+        "reported_total": 78,
+        "explicit_not_run": null,
+        "uncompleted_or_unverified": 55,
+        "counting_note": "취소 Job은 최종 테스트 요약이 없어 로그의 완료 ✓행만 관측. 나머지는 중단/미실행 구분 불명이며 PASS 아님."
+      },
+      {
+        "job_id": 122249836305,
+        "name": "Chromium E2E shard 2/8 · PR",
+        "conclusion": "cancelled",
+        "e2e_step": {
+          "name": "E2E shard 실행",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "number": 7,
+          "started_at": "2026-10-27T14:30:20Z",
+          "completed_at": "2026-10-27T14:34:43Z"
+        },
+        "log_lines": 826,
+        "observed_pass_lines": 7,
+        "observed_failed_test_lines": [],
+        "reported_counts": [
+          "2026-10-27T14:30:32.1376121Z Running 93 tests using 1 worker",
+          "2026-10-27T14:34:43.0068007Z ##[error]The operation was canceled."
+        ],
+        "reported_total": 93,
+        "explicit_not_run": null,
+        "uncompleted_or_unverified": 86,
+        "counting_note": "취소 Job은 최종 테스트 요약이 없어 로그의 완료 ✓행만 관측. 나머지는 중단/미실행 구분 불명이며 PASS 아님."
+      },
+      {
+        "job_id": 122249836325,
+        "name": "Chromium E2E shard 4/8 · PR",
+        "conclusion": "cancelled",
+        "e2e_step": {
+          "name": "E2E shard 실행",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "number": 7,
+          "started_at": "2026-10-27T14:30:15Z",
+          "completed_at": "2026-10-27T14:34:42Z"
+        },
+        "log_lines": 790,
+        "observed_pass_lines": 6,
+        "observed_failed_test_lines": [],
+        "reported_counts": [
+          "2026-10-27T14:30:30.7922705Z Running 93 tests using 1 worker",
+          "2026-10-27T14:34:42.5986135Z ##[error]The operation was canceled."
+        ],
+        "reported_total": 93,
+        "explicit_not_run": null,
+        "uncompleted_or_unverified": 87,
+        "counting_note": "취소 Job은 최종 테스트 요약이 없어 로그의 완료 ✓행만 관측. 나머지는 중단/미실행 구분 불명이며 PASS 아님."
+      },
+      {
+        "job_id": 122249836331,
+        "name": "Chromium E2E shard 6/8 · PR",
+        "conclusion": "cancelled",
+        "e2e_step": {
+          "name": "E2E shard 실행",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "number": 7,
+          "started_at": "2026-10-27T14:30:17Z",
+          "completed_at": "2026-10-27T14:34:43Z"
+        },
+        "log_lines": 981,
+        "observed_pass_lines": 31,
+        "observed_failed_test_lines": [],
+        "reported_counts": [
+          "2026-10-27T14:30:30.3338964Z Running 98 tests using 1 worker",
+          "2026-10-27T14:34:43.9510244Z ##[error]The operation was canceled."
+        ],
+        "reported_total": 98,
+        "explicit_not_run": null,
+        "uncompleted_or_unverified": 67,
+        "counting_note": "취소 Job은 최종 테스트 요약이 없어 로그의 완료 ✓행만 관측. 나머지는 중단/미실행 구분 불명이며 PASS 아님."
+      },
+      {
+        "job_id": 122249836500,
+        "name": "Chromium E2E shard 8/8 · PR",
+        "conclusion": "cancelled",
+        "e2e_step": {
+          "name": "E2E shard 실행",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "number": 7,
+          "started_at": "2026-10-27T14:30:28Z",
+          "completed_at": "2026-10-27T14:34:43Z"
+        },
+        "log_lines": 818,
+        "observed_pass_lines": 11,
+        "observed_failed_test_lines": [],
+        "reported_counts": [
+          "2026-10-27T14:30:39.9149747Z Running 103 tests using 1 worker",
+          "2026-10-27T14:34:43.4790801Z ##[error]The operation was canceled."
+        ],
+        "reported_total": 103,
+        "explicit_not_run": null,
+        "uncompleted_or_unverified": 92,
+        "counting_note": "취소 Job은 최종 테스트 요약이 없어 로그의 완료 ✓행만 관측. 나머지는 중단/미실행 구분 불명이며 PASS 아님."
+      },
+      {
+        "job_id": 122249836530,
+        "name": "Chromium E2E shard 5/8 · PR",
+        "conclusion": "failure",
+        "e2e_step": {
+          "name": "E2E shard 실행",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 7,
+          "started_at": "2026-10-27T14:30:18Z",
+          "completed_at": "2026-10-27T14:34:06Z"
+        },
+        "log_lines": 940,
+        "observed_pass_lines": 23,
+        "observed_failed_test_lines": [
+          "2026-10-27T14:34:06.4398210Z   ✘   24 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:424:5 › #730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키보드·읽기 전용 가상 그룹 (14.1s)"
+        ],
+        "reported_counts": [
+          "2026-10-27T14:30:30.5564931Z Running 106 tests using 1 worker",
+          "2026-10-27T14:34:06.4413163Z Testing stopped early after 1 maximum allowed failures.",
+          "2026-10-27T14:34:06.5412908Z   1 failed",
+          "2026-10-27T14:34:06.5413659Z   82 did not run",
+          "2026-10-27T14:34:06.5413786Z   23 passed (3.8m)",
+          "2026-10-27T14:34:06.7942689Z ##[error]Process completed with exit code 1."
+        ],
+        "reported_total": 106,
+        "explicit_not_run": 82,
+        "uncompleted_or_unverified": 82,
+        "counting_note": "Playwright 최종 요약: 23 passed / 1 failed / 82 did not run"
+      },
+      {
+        "job_id": 122249836715,
+        "name": "Chromium E2E shard 3/8 · PR",
+        "conclusion": "cancelled",
+        "e2e_step": {
+          "name": "E2E shard 실행",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "number": 7,
+          "started_at": "2026-10-27T14:30:50Z",
+          "completed_at": "2026-10-27T14:34:43Z"
+        },
+        "log_lines": 907,
+        "observed_pass_lines": 32,
+        "observed_failed_test_lines": [],
+        "reported_counts": [
+          "2026-10-27T14:31:06.2666676Z Running 142 tests using 1 worker",
+          "2026-10-27T14:34:43.8479521Z ##[error]The operation was canceled."
+        ],
+        "reported_total": 142,
+        "explicit_not_run": null,
+        "uncompleted_or_unverified": 110,
+        "counting_note": "취소 Job은 최종 테스트 요약이 없어 로그의 완료 ✓행만 관측. 나머지는 중단/미실행 구분 불명이며 PASS 아님."
+      },
+      {
+        "job_id": 122249837358,
+        "name": "Chromium E2E shard 1/8 · PR",
+        "conclusion": "cancelled",
+        "e2e_step": {
+          "name": "E2E shard 실행",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "number": 7,
+          "started_at": "2026-10-27T14:30:25Z",
+          "completed_at": "2026-10-27T14:34:42Z"
+        },
+        "log_lines": 945,
+        "observed_pass_lines": 37,
+        "observed_failed_test_lines": [],
+        "reported_counts": [
+          "2026-10-27T14:30:37.4840766Z Running 116 tests using 1 worker",
+          "2026-10-27T14:34:42.6798022Z ##[error]The operation was canceled."
+        ],
+        "reported_total": 116,
+        "explicit_not_run": null,
+        "uncompleted_or_unverified": 79,
+        "counting_note": "취소 Job은 최종 테스트 요약이 없어 로그의 완료 ✓행만 관측. 나머지는 중단/미실행 구분 불명이며 PASS 아님."
+      }
+    ]
+  },
+  "all_implementation_jobs": [
+    {
+      "id": 122248097021,
+      "name": "변경 경로 판정",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:26:22Z",
+      "completed_at": "2026-10-27T14:26:42Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122248097021",
+      "failed_steps": [],
+      "verification_state": "PASS in this original attempt only"
+    },
+    {
+      "id": 122248097184,
+      "name": "QA Final 신뢰 경계 확인",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:26:23Z",
+      "completed_at": "2026-10-27T14:26:39Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122248097184",
+      "failed_steps": [],
+      "verification_state": "PASS in this original attempt only"
+    },
+    {
+      "id": 122248302545,
+      "name": "QA Preflight — 정책·문서 사전 검사",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:26:45Z",
+      "completed_at": "2026-10-27T14:27:04Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122248302545",
+      "failed_steps": [],
+      "verification_state": "PASS in this original attempt only"
+    },
+    {
+      "id": 122248305300,
+      "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-10-27T14:26:43Z",
+      "completed_at": "2026-10-27T14:26:42Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122248305300",
+      "failed_steps": [],
+      "verification_state": "NOT EXECUTED"
+    },
+    {
+      "id": 122248305946,
+      "name": "Low E2E policy plan (trusted base)",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-10-27T14:26:43Z",
+      "completed_at": "2026-10-27T14:26:43Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122248305946",
+      "failed_steps": [],
+      "verification_state": "NOT EXECUTED"
+    },
+    {
+      "id": 122248504390,
+      "name": "Vitest 단위·통합 테스트",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:27:06Z",
+      "completed_at": "2026-10-27T14:29:10Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122248504390",
+      "failed_steps": [],
+      "verification_state": "PASS in this original attempt only"
+    },
+    {
+      "id": 122248504485,
+      "name": "TypeScript 타입 검사",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:27:07Z",
+      "completed_at": "2026-10-27T14:28:15Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122248504485",
+      "failed_steps": [],
+      "verification_state": "PASS in this original attempt only"
+    },
+    {
+      "id": 122248504630,
+      "name": "정책·저장소 계약 검사",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:27:07Z",
+      "completed_at": "2026-10-27T14:28:09Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122248504630",
+      "failed_steps": [],
+      "verification_state": "PASS in this original attempt only"
+    },
+    {
+      "id": 122248504656,
+      "name": "ESLint",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:27:07Z",
+      "completed_at": "2026-10-27T14:28:11Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122248504656",
+      "failed_steps": [],
+      "verification_state": "PASS in this original attempt only"
+    },
+    {
+      "id": 122248506705,
+      "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-10-27T14:27:05Z",
+      "completed_at": "2026-10-27T14:27:04Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122248506705",
+      "failed_steps": [],
+      "verification_state": "NOT EXECUTED"
+    },
+    {
+      "id": 122248507600,
+      "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-10-27T14:27:05Z",
+      "completed_at": "2026-10-27T14:27:04Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122248507600",
+      "failed_steps": [],
+      "verification_state": "NOT EXECUTED"
+    },
+    {
+      "id": 122248507621,
+      "name": "Next.js production build",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-10-27T14:27:05Z",
+      "completed_at": "2026-10-27T14:27:04Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122248507621",
+      "failed_steps": [],
+      "verification_state": "NOT EXECUTED"
+    },
+    {
+      "id": 122249676628,
+      "name": "PR 빠른 검사 판정",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:29:12Z",
+      "completed_at": "2026-10-27T14:29:27Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122249676628",
+      "failed_steps": [],
+      "verification_state": "PASS in this original attempt only"
+    },
+    {
+      "id": 122249836182,
+      "name": "Docker smoke 구현",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:29:29Z",
+      "completed_at": "2026-10-27T14:31:27Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122249836182",
+      "failed_steps": [],
+      "verification_state": "PASS in this original attempt only"
+    },
+    {
+      "id": 122249836188,
+      "name": "PR Next.js production build",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:29:29Z",
+      "completed_at": "2026-10-27T14:30:57Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122249836188",
+      "failed_steps": [],
+      "verification_state": "PASS in this original attempt only"
+    },
+    {
+      "id": 122249836248,
+      "name": "Chromium E2E shard 7/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "started_at": "2026-10-27T14:29:29Z",
+      "completed_at": "2026-10-27T14:34:47Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122249836248",
+      "failed_steps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ],
+      "verification_state": "CANCELLED / PARTIAL EXECUTION ONLY"
+    },
+    {
+      "id": 122249836305,
+      "name": "Chromium E2E shard 2/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "started_at": "2026-10-27T14:29:29Z",
+      "completed_at": "2026-10-27T14:34:47Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122249836305",
+      "failed_steps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ],
+      "verification_state": "CANCELLED / PARTIAL EXECUTION ONLY"
+    },
+    {
+      "id": 122249836325,
+      "name": "Chromium E2E shard 4/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "started_at": "2026-10-27T14:29:29Z",
+      "completed_at": "2026-10-27T14:34:46Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122249836325",
+      "failed_steps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ],
+      "verification_state": "CANCELLED / PARTIAL EXECUTION ONLY"
+    },
+    {
+      "id": 122249836331,
+      "name": "Chromium E2E shard 6/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "started_at": "2026-10-27T14:29:30Z",
+      "completed_at": "2026-10-27T14:34:49Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122249836331",
+      "failed_steps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ],
+      "verification_state": "CANCELLED / PARTIAL EXECUTION ONLY"
+    },
+    {
+      "id": 122249836500,
+      "name": "Chromium E2E shard 8/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "started_at": "2026-10-27T14:29:30Z",
+      "completed_at": "2026-10-27T14:34:48Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122249836500",
+      "failed_steps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ],
+      "verification_state": "CANCELLED / PARTIAL EXECUTION ONLY"
+    },
+    {
+      "id": 122249836530,
+      "name": "Chromium E2E shard 5/8 · PR",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-10-27T14:29:29Z",
+      "completed_at": "2026-10-27T14:34:12Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122249836530",
+      "failed_steps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "failure"
+        }
+      ],
+      "verification_state": "DIRECT FAIL"
+    },
+    {
+      "id": 122249836715,
+      "name": "Chromium E2E shard 3/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "started_at": "2026-10-27T14:29:30Z",
+      "completed_at": "2026-10-27T14:34:49Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122249836715",
+      "failed_steps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ],
+      "verification_state": "CANCELLED / PARTIAL EXECUTION ONLY"
+    },
+    {
+      "id": 122249837358,
+      "name": "Chromium E2E shard 1/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "started_at": "2026-10-27T14:29:29Z",
+      "completed_at": "2026-10-27T14:34:46Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122249837358",
+      "failed_steps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행",
+          "conclusion": "cancelled"
+        }
+      ],
+      "verification_state": "CANCELLED / PARTIAL EXECUTION ONLY"
+    },
+    {
+      "id": 122249838999,
+      "name": "Low E2E targeted execution",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-10-27T14:29:28Z",
+      "completed_at": "2026-10-27T14:29:27Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122249838999",
+      "failed_steps": [],
+      "verification_state": "NOT EXECUTED"
+    },
+    {
+      "id": 122250697069,
+      "name": "Build, static checks, and unit tests",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:31:02Z",
+      "completed_at": "2026-10-27T14:31:06Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122250697069",
+      "failed_steps": [],
+      "verification_state": "PASS in this original attempt only"
+    },
+    {
+      "id": 122250986075,
+      "name": "Docker build and runtime smoke test",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:31:30Z",
+      "completed_at": "2026-10-27T14:31:34Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122250986075",
+      "failed_steps": [],
+      "verification_state": "PASS in this original attempt only"
+    },
+    {
+      "id": 122252915321,
+      "name": "Chromium end-to-end tests",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-10-27T14:34:51Z",
+      "completed_at": "2026-10-27T14:34:54Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122252915321",
+      "failed_steps": [
+        {
+          "number": 2,
+          "name": "E2E shard 결과 집계",
+          "conclusion": "failure"
+        }
+      ],
+      "verification_state": "DERIVED FAIL"
+    },
+    {
+      "id": 122252963623,
+      "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T14:34:57Z",
+      "completed_at": "2026-10-27T14:35:11Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122252963623",
+      "failed_steps": [],
+      "verification_state": "PASS in this original attempt only"
+    },
+    {
+      "id": 122252967004,
+      "name": "QA Final — Automated",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-10-27T14:34:55Z",
+      "completed_at": "2026-10-27T14:34:54Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122252967004",
+      "failed_steps": [],
+      "verification_state": "NOT EXECUTED"
+    },
+    {
+      "id": 122252967551,
+      "name": "Main 임시 commit 이미지 게시·검증·정리",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-10-27T14:34:55Z",
+      "completed_at": "2026-10-27T14:34:54Z",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/job/122252967551",
+      "failed_steps": [],
+      "verification_state": "NOT EXECUTED"
+    }
+  ],
+  "trusted_qa": {
+    "run_id": 40522527253,
+    "run_number": 990,
+    "attempt": 1,
+    "status": "completed",
+    "conclusion": "failure",
+    "validator_sha": "e95cb0911c43173074e663febd1a9a94b8af6910",
+    "job_id": 122253178063,
+    "step_number": 4,
+    "classification": "DERIVED_SOURCE_CI_NOT_SUCCESS",
+    "report": {
+      "automated_qa": "FAIL",
+      "independent_qa": "NOT TESTED",
+      "manager_decision": "NOT TESTED",
+      "rule_version": "598-593-v1",
+      "pr_head_sha": null,
+      "base_or_test_merge_sha": null,
+      "workflow_run_id": "40522527253",
+      "run_attempt": "1",
+      "validator_sha": "e95cb0911c43173074e663febd1a9a94b8af6910",
+      "decision_reason": "원본 PR CI run 자체가 성공하지 않았습니다"
+    },
+    "artifact_id": 12742975751,
+    "url": "https://github.com/planner77/masterGantt/actions/runs/40522527253"
+  },
+  "review_state": {
+    "review_submissions": 0,
+    "unresolved_threads": 0,
+    "independent_human_qa": "NOT TESTED",
+    "manager_accept": "NOT TESTED"
+  },
+  "artifact": {
+    "id": 12741529586,
+    "name": "playwright-report-shard-5",
+    "bytes": 3300901,
+    "sha256": "676a75a47f0d7d2487c6e1f5dacbb0d3108d31669895d14ef40724e3585239c0",
+    "url": "https://github.com/planner77/masterGantt/actions/runs/40521099686/artifacts/12741529586"
+  },
+  "mutations": {
+    "rerun": 0,
+    "cancel": 0,
+    "push": 0,
+    "pr_body_edit": 0,
+    "merge": 0,
+    "registry": 0,
+    "issue_close": 0
+  },
+  "next": "현재 Head 재실행 금지. frontend TESTONLY 수정·새 Head·QA 이후 새 Full8/Required3/Trusted를 재검증. 이전 Quality/Docker PASS는 새 Head에서는 stale.",
+  "local_raw_files": [
+    {
+      "path": "ci-pr-source-40521099686-1.zip",
+      "bytes": 418,
+      "sha256": "3d15384d210b1918f80cc9e0de2864f2f653257a852a4ccf1a652078f93853b9"
+    },
+    {
+      "path": "job-122249836248.log",
+      "bytes": 78118,
+      "sha256": "cba76356fef167fc3e9cda65ce8c450fe1ec4a9742194cda82626e4a0897e695"
+    },
+    {
+      "path": "job-122249836305.log",
+      "bytes": 73556,
+      "sha256": "88a79a9c2a799d4112561856dd1003af51bf704a071222a812a29d0c7fb6a500"
+    },
+    {
+      "path": "job-122249836325.log",
+      "bytes": 69437,
+      "sha256": "82db7ce6e43481387b79e78fccd07d00d8ec4bb320b33384949191889b36d19e"
+    },
+    {
+      "path": "job-122249836331.log",
+      "bytes": 121487,
+      "sha256": "1b79f58ea618be35f87ea07fcd007aeeaaf80011d8fc7b31ad18b3948df4b94a"
+    },
+    {
+      "path": "job-122249836500.log",
+      "bytes": 77904,
+      "sha256": "fedb67b44094bbd844ff4c915e1a6c16030bcf4e3f32cbefb74a47280a6cf75a"
+    },
+    {
+      "path": "job-122249836530.log",
+      "bytes": 94816,
+      "sha256": "98a7da526b59f367d5accb642c5d173f0940314a3c94acb84f4cb76f6bea1e74"
+    },
+    {
+      "path": "job-122249836715.log",
+      "bytes": 92006,
+      "sha256": "b16b103431ff0983f71324d9821b9a791b48de1986b527c4ee2eece9b7fb1903"
+    },
+    {
+      "path": "job-122249837358.log",
+      "bytes": 104649,
+      "sha256": "28f699216eedf56d2682fbee8c92f23b8a099a8e95a04b6e2834d72365ca866f"
+    },
+    {
+      "path": "playwright-report-shard-5.zip",
+      "bytes": 3300901,
+      "sha256": "676a75a47f0d7d2487c6e1f5dacbb0d3108d31669895d14ef40724e3585239c0"
+    },
+    {
+      "path": "qa-final-trusted-40521099686-40522527253-1.zip",
+      "bytes": 462,
+      "sha256": "5d3592f1cd4c0176cb2ad2ba37a521096ca474d2b2458db85f99a8cd50c48955"
+    },
+    {
+      "path": "trusted-job-122253178063.log",
+      "bytes": 19593,
+      "sha256": "545326daed3f234e7c96a38ddded743a62a007c7f7a2de8e9e23f6a9f5ce3eab"
+    }
+  ]
+}

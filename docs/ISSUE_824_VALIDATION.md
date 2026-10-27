@@ -114,11 +114,11 @@ R은 실제 Next HTTP/SQLite·세션을 사용하는 시나리오, M은 응답�
 
 - F824-010 / 최종 실측 / ENVIRONMENT: CLI 재시작 후 이전 synthetic project edit cookie가 없어 최초 재측정 준비가 BLOCKED됐다. 인증 요청에 `password` 필드를 사용해400이었으며 실제 계약의 `editPassword`로204 세션을 복원했다. 제품/API/guard를 변경하지 않고 실패한 준비 로그·부분 관측과 최종 `after-final136-focusfix2*`22표본을 분리했다. 비밀번호/쿠키 값은 게시 증거에 포함하지 않는다.
 
-## 최종 로컬 실행 영수증
+## 최초 PR c750 source의 로컬 실행 영수증
 
 - [단계별 명령·stdout SHA·고유case](evidence/issue-824/phase-command-receipts.json): 고유 Chromium20case = #8261 + #8271 + #8283 + #8297 + #8308. 실제 HTTP/SQLite3case와 응답 제어 UI17case를 구분한다. 반복 #453/#538의 재검증을 고유case에 더하지 않는다. 별도 실제 SQLite 서비스/handler2case는 앞서 기록했다. 일부 원본 stdout은 원래 tool result에서 정확히 재구성한 영수증으로 표시했으며 원래 redirected stdout과 구분한다.
 - [최종22표본 manifest](evidence/issue-824/final-runtime-manifest.json), [요약](evidence/issue-824/final-runtime-summary.json): WBS5소비자1440px×fine/coarse10, KPI390/1440px×fine/coarse4, Milestone 실제 scroll-owner 경계4, 관계 실제 nativeTab4다. DOM v0.135.6·Next16.4.2·Playwright1.63.0·Headless Chromium153, locale ko-KR/timezone Asia/Seoul·DPR1/visual scale1·root font16px를 기록했다. 제품/collector source start=end·fault0·문서 overflow0이며 project3그룹 canonical revision17/fingerprint `c0506d05699ad2ba6b68c36ccf4dab3be030ff47e02cb6e553c822624f0df2a7`가 전후 같았다.
-- [최종 build/type/lint](evidence/issue-824/final-fast-validation.json): 새 source의 production build39.441초/typecheck23.528초/focused ESLint11.457초 모두 exit0·PASS. 수정된 product17+기존E2E8+collector1+package/lock2,28파일의 SHA256 start=end/current를 검증한다. 기존 router warning1은 유지한다. 이는28파일의 동결 범위이며 Manager 문서·Next 생성물까지 포함한 whole-Git sourceStable 선언이 아니다.
+- [최종 build/type/lint](evidence/issue-824/final-fast-validation.json): 새 source의 production build39.441초/typecheck23.528초/focused ESLint11.457초 모두 exit0·PASS. 수정된 product17+기존E2E8+collector1+package/lock2,당시28파일의 SHA256 start=end/current를 검증했다. 이후 test-only REWORK에서는 아래 새 지문으로 구분한다. 기존 router warning1은 유지한다. 이는28파일의 동결 범위이며 Manager 문서·Next 생성물까지 포함한 whole-Git sourceStable 선언이 아니다.
 - [F824-009 집약 영수증](evidence/issue-824/focusfix-result.json)과 [FAIL/PASS 진단](evidence/issue-824/focus-visibility-manifest.json)은 최초 수평 focus 검사와 새 전체 outline/viewport·clip ancestor 양축 검사의 차이를 보존한다. 기존44px 버튼·outline을 축소해 통과시키지 않았다.
 - [서버·CLI 정리](evidence/issue-824/cleanup.json): 본 작업 세션과 loopback3199만 종료·포트 미점유를 확인했다. 실제 운영 서버/DB는 사용하지 않았다. 기존 E2E가 갱신한 tracked 역사적 산출물114개는 task-local 원본/해시를 보존한 뒤 baseline으로 복원했다. Next 생성 AGENTS.md·tsconfig.json2파일도 별도 보존 후 baseline으로 복원했으며 복원 후 typecheck PASS다. raw runtime 로그/trace ZIP/DB/쿠키는 Git에 저장하지 않는다.
 
@@ -143,3 +143,13 @@ R은 실제 Next HTTP/SQLite·세션을 사용하는 시나리오, M은 응답�
 ## 환경별 별도 미검증
 
 63km 실프로젝트·운영 관리자 목록, 실제 reverse proxy/TLS/storage, native125%·실기기·screen reader는 NOT TESTED다. synthetic fixture·Chromium·GitHub Actions로 이 환경별 결과를 대체하지 않으며 #517의 별도 검증을 유지한다.
+
+## 원격 첫 Full 실패 이후의 현재 상태
+
+[Full3342.1](https://github.com/planner77/masterGantt/actions/runs/40521099686)은 Quality/Docker SUCCESS·E2E FAILURE, [Trusted990.1](https://github.com/planner77/masterGantt/actions/runs/40522527253)은 원본 CI 미성공의 파생 FAIL이다. 장문 geometry helper의 기존 고정44px 소비자를 놓쳤으며 fine36/coarse44 계약에 맞는 테스트만 교정한다. 기존 로컬/사전검토 PASS를 새 후보 전체 회귀로 소급하지 않는다. 전체 실행/취소/미검증 계수와 원본·동결 재검증은 [단일 PR CI 원장](ISSUE_824_FAILURE_ANALYSIS.md)을 따른다.
+
+### REWORK-01 새 후보의 실행 범위
+
+[누적 원장](ISSUE_824_FAILURE_ANALYSIS.md)의 실제 RED→직접/교차2case PASS·실제 helper 음성4관측·type/lint PASS와 [새 영수증](evidence/issue-824/rework-01.json)을 따른다. test 한 파일만 바뀌었고 제품17/버전/collector는 불변이므로 기존 build/22runtime을 로컬 영향 분석으로 재사용한다.28파일의 새 지문은 `147cf042f44863b60310ef9f3aeb4f6a1277d1ffeffe70247400fa2b7648df08`이며 초기 지문의 current 동일 주장을 새 후보에 재사용하지 않는다. 누적 고유 Chromium21=실HTTP/SQLite4+mock17, 새 동결 후보 실행은2case다. 이전20의 #798을 중복 합산하지 않고 임시 negative4관측도 새 상시 case로 세지 않는다. 새 Head의 전체 Full8/Required3·Trusted/인간 QA·Manager/main/Release는 NOT TESTED다.
+
+새 test/doc의 [독립 REWORK_PRE_QA](evidence/issue-824/pre-qa-rework-01.json)는 PASS/미해결 지적0이다. 이는 원본 Full FAIL·취소/미검증을 소급 PASS로 바꾸거나 새 Head의 인간 QA·Required/Trusted 승인을 생성하지 않는다.

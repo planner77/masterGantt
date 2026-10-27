@@ -1,6 +1,14 @@
 {
   "scope": "보관 파일의 bytes/SHA256 목록. QA 승인이나 원격 PASS 증거를 자동 생성하지 않음.",
   "files": {
+    "ci-40521099686-attempt-1-counts.json": {
+      "bytes": 6280,
+      "sha256": "603236f84def2b055d8a5eb1e3ddd0d035c4ef6bb08eef7da7ff2a4f951612d5"
+    },
+    "ci-40521099686-attempt-1.json": {
+      "bytes": 29583,
+      "sha256": "22ea8b75222eb780c19b8f13d3dc42883dbee3eb539f249e167495e4471da050"
+    },
     "cleanup.json": {
       "bytes": 184,
       "sha256": "f2abbf5611c82a55561153e1f98a5529f17acd047fa2c255bbc2d49184e94e8a"
@@ -157,6 +165,10 @@
       "bytes": 11197,
       "sha256": "a1a937d175c3cd5bb49b54fcb17179ed3675e6f00d129a883107c8d243b7e3e5"
     },
+    "pre-qa-rework-01.json": {
+      "bytes": 913,
+      "sha256": "d7523b07560a5b1be20d6682ef1b37ba569ff6446b81c62054961f2e7c75f860"
+    },
     "pre-qa.json": {
       "bytes": 1003,
       "sha256": "9c7125c777d7e5a300409b927db19fdf59f9ca59ae4e0007cd7137d4c192819d"
@@ -236,6 +248,22 @@
     "resources-manifest.json": {
       "bytes": 7362,
       "sha256": "f944c2610dceacab89783d463d66f6120f79313d7307ecc60cedbe807d3eca62"
+    },
+    "rework-01-negative-initial-observation.json": {
+      "bytes": 4068,
+      "sha256": "a35203997d901b480fc150bc53019773301fd5cd112020a8ec3a4593b15ef3bb"
+    },
+    "rework-01-negative.json": {
+      "bytes": 3817,
+      "sha256": "c629059ee3f52067349099a21b48f021374550aa4c4b5514c695bbae594b4f0b"
+    },
+    "rework-01-verification.json": {
+      "bytes": 6037,
+      "sha256": "5f53c53264dcbe0936f248d51e77e4a9eabacd78faf8493bf55a6c6b470692f1"
+    },
+    "rework-01.json": {
+      "bytes": 17533,
+      "sha256": "f0230a473bb2c84427ac517ca9f4c7652e1113e06c02f4ec0b123416066dddf6"
     },
     "security-fast-feedback.json": {
       "bytes": 1270,

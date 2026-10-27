@@ -5,7 +5,7 @@
 - issue: #824; children: #826, #827, #828, #829, #830; prerequisite #825 CLOSED.
 - baseline: `e95cb091` / app `0.135.5`.
 - branch: `feat/issue-824-dashboard-consistency`.
-- lifecycle_phase: PR_READY / REMOTE_VALIDATION_PENDING.
+- lifecycle_phase: REWORK_VALIDATED / PR_CI_READY.
 - requested_scope: 다섯 하위 이슈 구현·검증·문서·PR·최종 릴리스·종료. 사용자 최종 GHCR 1회 요청에 따라 구현과 직접 검증은 #826→#827→#828→#829→#830 순차 수행하며 하나의 PR/main merge/version으로 통합한다. 하위 종료는 최종 릴리스 증거 이후로 유예한다.
 - publication_contract: 최종 main merge의 `ci-<SHA>` 이미지1개를1회 빌드/push·exact digest smoke/SBOM/provenance 검증 후 동일 digest를 version/rolling tag로 정식 승격한다. Release 재빌드와 하위 이슈별 중간 main merge/게시를 만들지 않는다.
 - lifecycle_mapping: 통합 PR의 canonical `Refs #824`는 한 줄만 사용하고 하위는 Related 링크로 연결한다. Generic Finalizer는 primary #824를 처리하며 하위 #826~#830은 동일 최종 release 및 각 AC 증거를 확인한 Manager가 정상 FINAL 설명 후 순서대로 close한다. bot FINAL marker를 수동 생성하지 않는다.
@@ -17,10 +17,10 @@
 - risk_reason: 공통 CSS의 다섯 소비자와 관리자 작업면; package/lock 보호 경로 변경 예정. API/DB/계산/권한/CI·QA 정책은 변경하지 않는다.
 - qa_method: AGENT
 - qa_required: true
-- reviewer: `/root/qa` 별도 read-only PRE_QA=PASS, 미해결 P1/P2=0. 보호 경로 최종 독립 인간 QA 영수증은 NOT TESTED.
+- reviewer: 초기 source PRE_QA=PASS 이력 보존. CI가 누락된 geometry 소비자를 발견한 뒤 `/root/qa` REWORK_PRE_QA=PASS/지적0으로 새 test/doc 후보를 검산했다. 보호 경로 최종 독립 인간 QA 영수증은 NOT TESTED.
 - independent_qa: NOT TESTED
-- trusted_qa: NOT TESTED
-- manager_decision: NOT TESTED
+- trusted_qa: FAIL (원본 Full3342.1 미성공의 파생 Trusted990.1; 새 후보는 NOT TESTED)
+- manager_decision: NOT TESTED (새 후보; 원본 c750는 REWORK)
 - MERGE_READY: BLOCKED
 - issue_comment_writer: Manager
 - issue_comment_allowed_types: PLAN, STATUS, EXCEPTION, DECISION_REQUIRED, RESUME, FINAL
@@ -60,6 +60,7 @@ Manager는 문서/버전·통합·Issue 기록을 작성한다. ui_ux는 읽기 
 - `package-lock.json`: UPDATED
 - `docs/exec-plans/active/ISSUE_824.md`: UPDATED
 - `docs/ISSUE_824_VALIDATION.md`: UPDATED
+- `docs/ISSUE_824_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/UI_UX_REAUDIT_2026_10_27.md`: UPDATED
 - `docs/exec-plans/active/UI_UX_ROLLOUT.md`: UPDATED
 
@@ -115,3 +116,17 @@ Manager는 문서/버전·통합·Issue 기록을 작성한다. ui_ux는 읽기 
 ### 최종 독립 사전검토
 
 `/root/qa` PRE_QA=PASS, 미해결 P1/P2=0. [검토 영수증](../../evidence/issue-824/pre-qa.json)의28파일 정규화 SHA256 지문은 `32231e165187eec1d7da4b2f18ece639e7f04bdb865056e1a7f23a84e6c4f38b`다. 실행을 중복 수행한 것이 아니라 현재 source·stdout/manifest hash·압축 원본·실측 수치·대표 이미지·25AC/문서를 구현자와 분리해 검산했다. F824-009 FAIL/PASS와 기존 outline/44px 보존, 보호 AGENT 인간 gate와 자동 Pre-PR7UNKNOWN/BLOCKED를 확인했다. 이 결과는 인간 GitHub APPROVED·QA_FINAL PASS·기본 브랜치 Trusted·Manager ACCEPT가 아니다.
+
+## 첫 Full PR CI 실패와 REWORK (2026-10-27)
+
+[원격 Full3342.1](https://github.com/planner77/masterGantt/actions/runs/40521099686)의 Quality/Docker는 원본 c750 Head에서 SUCCESS였으나 E2E는 장문 geometry helper의 고정44px 기대/실제fine36px로 FAIL했다. 전체8로그를 감사해 추가 실제FAIL0, 관측PASS170/FAIL1/조건부SKIP1/완료결과미확인657을 구분했다. Trusted990.1은 원본 CI 미성공의 파생 FAIL이며 인간 QA 미확보가 이번 직접 원인은 아니다.
+
+[누적 PR CI 실패 원장](../../ISSUE_824_FAILURE_ANALYSIS.md)과 원본/계수 보충 JSON을 기준으로 같은 spec의 media별 양축36/44·readonly coarse helper 실행을 교정한다. 초기 사전검토와 로컬20case PASS는 역사적 이력이며 새 test 후보의 검증/공식 Full을 대체하지 않는다. 새 Head에서는 이전 Quality/Docker도 stale이며 Required3/Full8·Trusted·인간 QA·Manager/main/Release를 모두 재검증한다. 제품36/44 계약·정식0.135.6 후보·게시1회 계획과 기존 gate는 유지한다.
+
+### REWORK-01 동결 후보 인계 (2026-10-28)
+
+제품/버전/collector 변경 없이 기존 `issue-730-view-composer.spec.ts` 한 파일의 geometry oracle을 실제 pointer/any-pointer에 따른36/44 양축으로 동기화했다. coarse390 기존 readonly 문맥의 helper 실행을 추가하고 fine5폭의 별도 증거가 덮이지 않게 coarse suffix를 사용한다. 원본 RED·정규 직접/교차2case PASS·실제 DOM negative35/43 양축4관측 거절/복원·typecheck/focused lint PASS 및 최초 수동 media 조건 통제 FAIL은 [누적 원장](../../ISSUE_824_FAILURE_ANALYSIS.md)에 결속했다.
+
+새28파일 지문은 `147cf042f44863b60310ef9f3aeb4f6a1277d1ffeffe70247400fa2b7648df08`이며 test SHA256은 `7973deafae09bd18bdb37c0f7889295a30d5eb67c50ec7f07f4a956d5a4a2f65`다. 이전28 current 지문과 원격 Quality/Docker를 새 Head PASS로 재사용하지 않는다. 제품17/package·lock/collector 불변에 한해 기존 build·22runtime Local 증거를 재사용하고 현재 test/doc은 별도 독립 재검토한다. 단계별 누적 정규 고유21case(실HTTP/SQLite4+mock17)와 새 후보 실행2case·음성4관측을 구분한다. 새 Full8/Required3·Trusted/독립 인간 QA·Manager 승인·main/Release 전 이슈는 OPEN이다.
+
+REWORK-01 독립 사전 재검토는 [REWORK_PRE_QA 영수증](../../evidence/issue-824/pre-qa-rework-01.json)의 PASS/지적0이다. Root는 실제 media별 양축·기존 구조/권한·readonly guard가 유지된 것을 확인했고 현재 source/type/lint·문서 동기화 후 새 PR synchronize Full8을 요청한다. 아직 새 Head의 CI나 인간 QA를 PASS로 선언하지 않는다.

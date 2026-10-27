@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "scope": "REWORK_PRE_QA 별도 read-only 사전검토. 새 Head 원격/인간 QA/Manager 승인 아님.",
+  "reviewer": "/root/qa",
+  "openFindings": 0,
+  "testSha256": "7973deafae09bd18bdb37c0f7889295a30d5eb67c50ec7f07f4a956d5a4a2f65",
+  "reviewedSourceFiles": 28,
+  "sourceFingerprint": "147cf042f44863b60310ef9f3aeb4f6a1277d1ffeffe70247400fa2b7648df08",
+  "verification": {
+    "directAdjacentCases": 2,
+    "controlledNegativeObservations": 4,
+    "typecheck": "PASS",
+    "focusedLint": "PASS",
+    "products17Unchanged": true,
+    "versionCollectorUnchanged": true
+  },
+  "limitations": [
+    "원본 Full3342.1은 FAIL 불변",
+    "새 Head Required3/Full8·Trusted·인간 QA·Manager/main/Release NOT TESTED",
+    "기존 build/22runtime은 제품불변 Local 영향 분석 재사용만 허용",
+    "처음 음성조건 통제FAIL·media전환 내부원인UNKNOWN 보존"
+  ]
+}
