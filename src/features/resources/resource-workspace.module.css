@@ -41,4 +41,4 @@
 .workspace :global(.resource-period-transfer > p) { margin-block:4px; }
 .workspace :global(.resource-period-transfer > summary) { color:var(--text-default); }
 .workspace :global(.resource-export-section) { border-block-start:1px solid var(--border-default); padding-block:8px; }
-@media(pointer:coarse) { .workspace { --resource-control-height:44px; } }
+@media(pointer:coarse), (any-pointer:coarse) { .workspace { --resource-control-height:44px; } }

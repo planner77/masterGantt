@@ -1,0 +1,131 @@
+{
+  "status": "PASS",
+  "sourcePath": "/home/planner/Dev/masterGantt-worktrees/issue-824/tests/e2e/issue-730-view-composer.spec.ts",
+  "sourceSha256": "7973deafae09bd18bdb37c0f7889295a30d5eb67c50ec7f07f4a956d5a4a2f65",
+  "sourceStable": true,
+  "kind": "Actual browser controlled-DOM negative diagnostics using the exact source geometry helper, not an application/unit duplicate",
+  "cases": [
+    {
+      "coarse": false,
+      "pointer": {
+        "coarse": false,
+        "anyCoarse": false
+      },
+      "axis": "height",
+      "actual": 35,
+      "minimum": 36,
+      "afterProbe": {
+        "actual": 35,
+        "probe": "false-height",
+        "pointer": {
+          "coarse": false,
+          "anyCoarse": false
+        }
+      },
+      "pageAndRootMatch": true,
+      "pageAndContextMatch": true,
+      "result": "REJECTED_AS_EXPECTED",
+      "message": "Error: 공통 계층 조회 도움말\n\nexpect(received).toBeGreaterThanOrEqual(expected)\n\nExpected: >= 36\nReceived:    35",
+      "afterRestoredFullPageCapture": {
+        "pointer": {
+          "coarse": false,
+          "anyCoarse": false
+        },
+        "url": "/projects/ce38405c-b767-49af-9587-f7b4f186e80f"
+      },
+      "samePageAfterCapture": true
+    },
+    {
+      "coarse": false,
+      "pointer": {
+        "coarse": false,
+        "anyCoarse": false
+      },
+      "axis": "width",
+      "actual": 35,
+      "minimum": 36,
+      "afterProbe": {
+        "actual": 35,
+        "probe": "false-width",
+        "pointer": {
+          "coarse": false,
+          "anyCoarse": false
+        }
+      },
+      "pageAndRootMatch": true,
+      "pageAndContextMatch": true,
+      "result": "REJECTED_AS_EXPECTED",
+      "message": "Error: 공통 계층 조회 도움말\n\nexpect(received).toBeGreaterThanOrEqual(expected)\n\nExpected: >= 36\nReceived:    35",
+      "afterRestoredFullPageCapture": {
+        "pointer": {
+          "coarse": false,
+          "anyCoarse": false
+        },
+        "url": "/projects/ce38405c-b767-49af-9587-f7b4f186e80f"
+      },
+      "samePageAfterCapture": true
+    },
+    {
+      "coarse": true,
+      "pointer": {
+        "coarse": true,
+        "anyCoarse": true
+      },
+      "axis": "height",
+      "actual": 43,
+      "minimum": 44,
+      "afterProbe": {
+        "actual": 43,
+        "probe": "true-height",
+        "pointer": {
+          "coarse": true,
+          "anyCoarse": true
+        }
+      },
+      "pageAndRootMatch": true,
+      "pageAndContextMatch": true,
+      "result": "REJECTED_AS_EXPECTED",
+      "message": "Error: 공통 계층 조회 도움말\n\nexpect(received).toBeGreaterThanOrEqual(expected)\n\nExpected: >= 44\nReceived:    43",
+      "afterRestoredFullPageCapture": {
+        "pointer": {
+          "coarse": false,
+          "anyCoarse": false
+        },
+        "url": "/projects/ce38405c-b767-49af-9587-f7b4f186e80f"
+      },
+      "samePageAfterCapture": true
+    },
+    {
+      "coarse": true,
+      "pointer": {
+        "coarse": true,
+        "anyCoarse": true
+      },
+      "axis": "width",
+      "actual": 43,
+      "minimum": 44,
+      "afterProbe": {
+        "actual": 43,
+        "probe": "true-width",
+        "pointer": {
+          "coarse": true,
+          "anyCoarse": true
+        }
+      },
+      "pageAndRootMatch": true,
+      "pageAndContextMatch": true,
+      "result": "REJECTED_AS_EXPECTED",
+      "message": "Error: 공통 계층 조회 도움말\n\nexpect(received).toBeGreaterThanOrEqual(expected)\n\nExpected: >= 44\nReceived:    43",
+      "afterRestoredFullPageCapture": {
+        "pointer": {
+          "coarse": false,
+          "anyCoarse": false
+        },
+        "url": "/projects/ce38405c-b767-49af-9587-f7b4f186e80f"
+      },
+      "samePageAfterCapture": true
+    }
+  ],
+  "restoredPositive": true,
+  "canonicalUnchanged": true
+}

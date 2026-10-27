@@ -1,0 +1,23 @@
+{
+  "kind": "Local Fast Feedback",
+  "command": "npx vitest run --config tests/config/vitest.config.ts tests/server/security/admin-session-isolation.test.ts tests/server/resources/resource-catalog-delete.test.ts -t 'Issue #452: each global administrator|enforces DELETE Origin/admin/If-Match'",
+  "result": "PASS",
+  "executed": 2,
+  "notSelected": 4,
+  "note": "-t 선택에서 제외된 4case이며 신규 skip 변경 없음. 브라우저/전체 회귀 아님.",
+  "output": "Test Files 2 passed (2)\nTests 2 passed | 4 skipped (6)\nStart at 22:03:55\nDuration 1.64s",
+  "sourceHashes": {
+    "tests/server/security/admin-session-isolation.test.ts": "bf6bb389c02d093e2415e6aa449202acccb1daf4331f9adb4a4a3cdf979f3638",
+    "tests/server/resources/resource-catalog-delete.test.ts": "d7ff7215861543779ade03a44a9948c1488d4271053eae047a3053452f96eb91"
+  },
+  "base": "e95cb0911c43173074e663febd1a9a94b8af6910",
+  "coverage": [
+    "실제 in-memory SQLite/migration 기반 Resource·Logistics·Project Master·Project edit 세션 상호 거부",
+    "실제 Resource DELETE handler Origin403/noCookie401/stale412/inUse409·DB 불변"
+  ],
+  "notTested": [
+    "실운영 관리자 인증",
+    "Logistics/Master HTTP401/412 직접 검증",
+    "원격 전체 회귀"
+  ]
+}

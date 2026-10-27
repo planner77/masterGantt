@@ -1,0 +1,69 @@
+{
+  "result": "PASS",
+  "samples": 50,
+  "sourceStable": true,
+  "errors": [],
+  "comparison": [
+    {
+      "name": "process-fine-390",
+      "toolbarHeight": [
+        284,
+        216
+      ],
+      "firstDataY": [
+        1440.5,
+        1279.5
+      ],
+      "documentWidth": 390
+    },
+    {
+      "name": "process-fine-768",
+      "toolbarHeight": [
+        152,
+        124
+      ],
+      "firstDataY": [
+        1121.5,
+        1016.5
+      ],
+      "documentWidth": 768
+    },
+    {
+      "name": "process-fine-1024",
+      "toolbarHeight": [
+        152,
+        124
+      ],
+      "firstDataY": [
+        935.5,
+        844.5
+      ],
+      "documentWidth": 1024
+    },
+    {
+      "name": "process-fine-1440",
+      "toolbarHeight": [
+        72,
+        36
+      ],
+      "firstDataY": [
+        855.5,
+        756.5
+      ],
+      "documentWidth": 1440
+    },
+    {
+      "name": "process-fine-1920",
+      "toolbarHeight": [
+        72,
+        36
+      ],
+      "firstDataY": [
+        855.5,
+        756.5
+      ],
+      "documentWidth": 1920
+    }
+  ],
+  "beforeManifestLimitation": "Initial collector omitted untouched project-process CSS due to wrong path; all changed WBS dashboard/root sources were included. Resource workspace media extension reviewed in source and final integrated check includes its hash."
+}

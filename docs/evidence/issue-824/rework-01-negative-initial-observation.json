@@ -1,0 +1,159 @@
+{
+  "status": "FAIL",
+  "classification": "FIXTURE_OBSERVABILITY",
+  "scope": "원격 CI 실패 횟수와 별개인 로컬 수동 음성조건 통제 실패. 실제media가fine인43px허용은제품/계약오류아님.",
+  "cause": "positive coarse측정44 뒤 다음43probe가실제media false/false·minimum36으로수집되어coarse43거절조건을만들지못함.",
+  "causalStatus": "캡처를포함한관측구간에서coarse→fine전환은관측했으나driver내부원인은UNKNOWN. 동일page/context확인은최종fresh-context진단과구분.",
+  "stdoutSha256": "b6aa7972cd3e6c5560ab3b607677a640ec005e9f39347f5f652facfc1c70ba1d",
+  "probeScriptSha256": "1a92eeb06ff4ee4663e9d3f3bf2917684e29b7bbca9431da509c738656097ef3",
+  "geometry": [
+    {
+      "file": "geometry/coarse-restored/geometry-390-coarse.json",
+      "sha256": "8e630e237461ab2b89ef0e941ec4eeb811c253709e78d7cb15a83df6e9c8be31",
+      "pointer": {
+        "coarse": true,
+        "anyCoarse": true
+      },
+      "minimum": 44,
+      "buttons": [
+        {
+          "name": "공통 계층 조회 도움말",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "필터·조회 구성",
+          "width": 179,
+          "height": 44
+        },
+        {
+          "name": "계층 새로고침",
+          "width": 103,
+          "height": 44
+        },
+        {
+          "name": "설비 구성과 작업 범위 도움말",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "상세",
+          "width": 48,
+          "height": 44
+        },
+        {
+          "name": "상세",
+          "width": 48,
+          "height": 44
+        },
+        {
+          "name": "상세",
+          "width": 48,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "file": "geometry/coarse-restored/geometry-390.json",
+      "sha256": "fa702f43fdbb7a8a3e97227ae856198e51e87b20325e0b84de784d7282cefbbd",
+      "pointer": {
+        "coarse": false,
+        "anyCoarse": false
+      },
+      "minimum": 36,
+      "buttons": [
+        {
+          "name": "공통 계층 조회 도움말",
+          "width": 36,
+          "height": 43
+        },
+        {
+          "name": "필터·조회 구성",
+          "width": 179,
+          "height": 36
+        },
+        {
+          "name": "계층 새로고침",
+          "width": 103,
+          "height": 36
+        },
+        {
+          "name": "설비 구성과 작업 범위 도움말",
+          "width": 36,
+          "height": 36
+        },
+        {
+          "name": "상세",
+          "width": 48,
+          "height": 36
+        },
+        {
+          "name": "상세",
+          "width": 48,
+          "height": 36
+        },
+        {
+          "name": "상세",
+          "width": 48,
+          "height": 36
+        }
+      ]
+    },
+    {
+      "file": "geometry/fine-restored/geometry-1440.json",
+      "sha256": "1e8aa3beec1ef6394cc67ddac0da5b586ea7e0378140bc7b816a51ea531a36b0",
+      "pointer": {
+        "coarse": false,
+        "anyCoarse": false
+      },
+      "minimum": 36,
+      "buttons": [
+        {
+          "name": "공통 계층 조회 도움말",
+          "width": 36,
+          "height": 36
+        },
+        {
+          "name": "필터·조회 구성",
+          "width": 106,
+          "height": 36
+        },
+        {
+          "name": "계층 새로고침",
+          "width": 103.015625,
+          "height": 36
+        },
+        {
+          "name": "설비 구성과 작업 범위 도움말",
+          "width": 36,
+          "height": 36
+        },
+        {
+          "name": "상세",
+          "width": 48,
+          "height": 36
+        },
+        {
+          "name": "원본",
+          "width": 48,
+          "height": 36
+        },
+        {
+          "name": "상세",
+          "width": 48,
+          "height": 36
+        },
+        {
+          "name": "원본",
+          "width": 48,
+          "height": 36
+        },
+        {
+          "name": "상세",
+          "width": 48,
+          "height": 36
+        }
+      ]
+    }
+  ]
+}

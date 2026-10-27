@@ -74,24 +74,29 @@ async function geometry(page: Page, root: Locator, width: number) {
   measurement.first.forEach((cell, index) => { expect(Math.abs(cell.left - measurement.header[index].left)).toBeLessThanOrEqual(1); expect(Math.abs(cell.width - measurement.header[index].width)).toBeLessThanOrEqual(1); });
   expect(measurement.scroll.overflow).toMatch(/auto|scroll/);
   if (width <= 768) expect(measurement.scroll.content).toBeGreaterThan(measurement.scroll.width);
+  // #826 shares one density contract across roots; pointer capability is the
+  // independent oracle, rather than the product's CSS custom property.
+  const pointer = await page.evaluate(() => ({ coarse: matchMedia("(pointer: coarse)").matches, anyCoarse: matchMedia("(any-pointer: coarse)").matches }));
+  const controlMinimum = pointer.coarse || pointer.anyCoarse ? 44 : 36;
   const buttons = [];
   for (const button of await root.getByRole("button").all()) {
     if (await button.isVisible()) {
       const bounds = await button.boundingBox();
       const name = await button.getAttribute("aria-label") ?? await button.innerText();
-      expect(bounds!.height, name).toBeGreaterThanOrEqual(44);
-      expect(bounds!.width, name).toBeGreaterThanOrEqual(44);
+      expect(bounds!.height, name).toBeGreaterThanOrEqual(controlMinimum);
+      expect(bounds!.width, name).toBeGreaterThanOrEqual(controlMinimum);
       buttons.push({ name, width: bounds!.width, height: bounds!.height });
     }
   }
-  const evidence = { ...measurement, buttons };
+  const evidence = { ...measurement, pointer, controlMinimum, root: await root.getAttribute("data-root"), buttons };
   const directory = resolve(process.env.ISSUE730_E2E_ARTIFACT_DIR ?? "output/playwright/issue-730");
   await mkdir(directory, { recursive: true });
   await root.getByRole("region", { name: "공통 계층 표 스크롤", exact: true }).scrollIntoViewIfNeeded();
   await root.getByRole("region", { name: "공통 계층 표 스크롤", exact: true }).evaluate(element => { element.scrollLeft = 0; });
-  await page.screenshot({ path: resolve(directory, `composer-${width}.png`), fullPage: true });
-  await writeFile(resolve(directory, `geometry-${width}.json`), JSON.stringify(evidence, null, 2));
-  await test.info().attach(`issue-730-${width}px`, { body: JSON.stringify(evidence), contentType: "application/json" });
+  const suffix = pointer.coarse || pointer.anyCoarse ? "-coarse" : "";
+  await page.screenshot({ path: resolve(directory, `composer-${width}${suffix}.png`), fullPage: true });
+  await writeFile(resolve(directory, `geometry-${width}${suffix}.json`), JSON.stringify(evidence, null, 2));
+  await test.info().attach(`issue-730-${width}px${suffix}`, { body: JSON.stringify(evidence), contentType: "application/json" });
   return evidence;
 }
 
@@ -440,6 +445,7 @@ test("#730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키
     const readonly = await context.newPage();
     await readonly.goto(`/projects/${f.publicId}`);
     await openRoot(readonly, "resource");
+    await geometry(readonly, dashboard(readonly), 390);
     const virtual = dashboard(readonly).getByRole("row").filter({ hasText: "미배정" });
     await expect(virtual).toHaveCount(1);
     await expect(virtual.getByRole("button", { name: "원본", exact: true })).toHaveCount(0);
@@ -635,9 +641,17 @@ test("#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조
         controls: Array.from(element.querySelectorAll<HTMLElement>("button,input,select")).filter(control => control.checkVisibility({ checkVisibilityCSS: true })).map(control => ({ name: control.getAttribute("aria-label") ?? control.textContent, width: control.getBoundingClientRect().width, height: control.getBoundingClientRect().height })),
       }));
       expect(measured.documentWidth).toBeLessThanOrEqual(width + 1);
-      // Resource Workspace owns fine-pointer density; other root contracts stay 44px.
-      const controlMinimum = kind === "resource" ? 36 : 44;
+      // #826: every shared WBS consumer owns the same pointer-aware density.
+      const controlMinimum = await page.evaluate(() => matchMedia("(pointer: coarse), (any-pointer: coarse)").matches ? 44 : 36);
       measured.controls.forEach(control => { expect(control.height, String(control.name)).toBeGreaterThanOrEqual(controlMinimum); });
+      const quickDensity = await root.locator('[aria-label="빠른 조회 조건"]').evaluate(element => ({
+        fields: Array.from(element.querySelectorAll("input,select,button")).map(control => ({ height: control.getBoundingClientRect().height, font: getComputedStyle(control).fontSize })),
+        narrowPair: [element.querySelector("select")!, element.querySelector("button[aria-expanded]")!].map(control => ({ top: control.getBoundingClientRect().top, bottom: control.getBoundingClientRect().bottom })),
+        labels: Array.from(element.querySelectorAll("label")).map(label => ({ top: label.getBoundingClientRect().top, bottom: label.getBoundingClientRect().bottom, controlTop: label.querySelector("input,select")!.getBoundingClientRect().top, controlBottom: label.querySelector("input,select")!.getBoundingClientRect().bottom })),
+      }));
+      quickDensity.fields.forEach(control => { expect(control.height).toBe(controlMinimum); expect(control.font).toBe("13px"); });
+      if (width <= 600) { expect(Math.abs(quickDensity.narrowPair[0].top - quickDensity.narrowPair[1].top)).toBeLessThanOrEqual(1); expect(Math.abs(quickDensity.narrowPair[0].bottom - quickDensity.narrowPair[1].bottom)).toBeLessThanOrEqual(1); }
+      if (width > 600) quickDensity.labels.forEach(label => { expect(Math.abs(label.top - label.controlTop)).toBeLessThanOrEqual(1); expect(Math.abs(label.bottom - label.controlBottom)).toBeLessThanOrEqual(1); });
       // #800 EXTEND (not a duplicate 5x5 spec): record real first-data/scroll/overlap on the same fixture.
       const geometry = await observeDashboardSurface(page, kind);
       assertDashboardSurface(geometry, width);
@@ -703,6 +717,14 @@ test("#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조
     let touchQueries = 0;
     touchPage.on("request", request => { if (isWbsViewReadQuery(request)) touchQueries++; });
     const touchTrigger = dashboard(touchPage).getByRole("button", { name: /^필터·조회 구성/ });
+    expect(await touchPage.evaluate(() => matchMedia("(pointer: coarse), (any-pointer: coarse)").matches)).toBe(true);
+    for (const kind of roots) {
+      await openRoot(touchPage, kind);
+      const controls = await dashboard(touchPage).locator('[aria-label="빠른 조회 조건"]').evaluate(element => Array.from(element.querySelectorAll("button,input,select")).map(control => ({ height: control.getBoundingClientRect().height, font: getComputedStyle(control).fontSize })));
+      controls.forEach(control => { expect(control.height).toBeGreaterThanOrEqual(44); expect(control.font).toBe("13px"); });
+    }
+    await openRoot(touchPage, "equipment");
+    touchQueries = 0;
     await touchTrigger.tap(); await expect(touchTrigger).toHaveAttribute("aria-expanded", "true");
     await touchTrigger.tap(); await expect(touchTrigger).toHaveAttribute("aria-expanded", "false");
     await expect(touchTrigger).toBeFocused(); expect(touchQueries).toBe(0);

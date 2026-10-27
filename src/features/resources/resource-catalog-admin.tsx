@@ -637,7 +637,7 @@ export function ResourceCatalogAdmin() {
     <section className={styles.card} id="resource-panel-resources" role="tabpanel" aria-labelledby="resource-tab-resources" hidden={activeTab !== "resources"}>
       <h2 id="resources-title">리소스</h2>
       <div className={styles.searchBar}>
-        <input ref={resourceSearchRef} placeholder="리소스 검색 (이름, 코드 또는 ID)" aria-label="리소스 검색" value={resourceQuery} disabled={busy} onChange={(e) => setResourceQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setResourceQuery(""); }} />
+        <label className={styles.searchField}><span>리소스 검색</span><input ref={resourceSearchRef} placeholder="리소스 검색 (이름, 코드 또는 ID)" aria-label="리소스 검색" value={resourceQuery} disabled={busy} onChange={(e) => setResourceQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setResourceQuery(""); }} /></label>
         {statusSelect("resource")}<span className={styles.matchCount} role="status">일치 {filteredResources.length} / 전체 {catalog.data.resources.length}</span>
         <button className="primary-button" type="button" disabled={locked} onClick={(e) => openEditor("resource", e.currentTarget)}>리소스 추가</button>
       </div>
@@ -662,7 +662,7 @@ export function ResourceCatalogAdmin() {
     <section className={styles.card} id="resource-panel-groups" role="tabpanel" aria-labelledby="resource-tab-groups" hidden={activeTab !== "groups"}>
       <h2 id="groups-title">리소스 그룹</h2>
       <div className={styles.searchBar}>
-        <input ref={groupSearchRef} placeholder="리소스 그룹 검색 (이름, 코드 또는 ID)" aria-label="리소스 그룹 검색" value={groupQuery} disabled={busy} onChange={(e) => setGroupQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setGroupQuery(""); }} />
+        <label className={styles.searchField}><span>리소스 그룹 검색</span><input ref={groupSearchRef} placeholder="리소스 그룹 검색 (이름, 코드 또는 ID)" aria-label="리소스 그룹 검색" value={groupQuery} disabled={busy} onChange={(e) => setGroupQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setGroupQuery(""); }} /></label>
         {statusSelect("group")}<span className={styles.matchCount} role="status">일치 {filteredGroups.length} / 전체 {catalog.data.groups.length}</span>
         <button className="primary-button" type="button" disabled={locked} onClick={(e) => openEditor("group", e.currentTarget)}>그룹 추가</button>
       </div>
@@ -688,14 +688,14 @@ export function ResourceCatalogAdmin() {
       {missingMembers.length ? <p className={styles.error} role="alert">최신 목록에 없는 리소스 {missingMembers.length}개의 선택을 보존했습니다. 최신 목록을 확인해야 저장할 수 있습니다.</p> : null}
       {membersDiffer ? <p className={styles.note}>저장된 구성원과 현재 선택이 다릅니다. 목록을 확인한 후 구성원을 저장해 주세요.</p> : null}
       <div className={styles.searchBar}>
-        <input
+        <label className={styles.searchField}><span>구성원 리소스 검색</span><input
           placeholder="구성원 리소스 검색 (이름, 코드 또는 ID)"
           value={memberQuery}
           disabled={busy}
           onChange={(event) => setMemberQuery(event.target.value)}
           onKeyDown={(event) => { if (event.key === "Escape") setMemberQuery(""); }}
           aria-label={`${selectedGroup.name} 구성원 리소스 검색`}
-        />
+        /></label>
         <span className={styles.matchCount} role="status" aria-live="polite" aria-atomic="true">
           일치 {filteredMemberResources.length} / 전체 {catalog.data.resources.length} · 선택 {selectedMembers.size}
         </span>

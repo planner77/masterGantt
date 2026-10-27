@@ -61,6 +61,11 @@ test("#732 Target0 Milestone 단독·두 계층·전체 Gate·5폭과 keyboard",
   for(const width of [390,768,1024,1440,1920]) {
     await page.setViewportSize({width,height:1000});
     await expectDashboardMetricsReadable(root(page).getByTestId("milestone-wbs-summary"), width);
+    const hierarchy=page.getByRole("region",{name:"Milestone 계층 조회",exact:true});
+    const management=page.getByRole("region",{name:"Milestone 전체 상태·관리",exact:true});
+    await expect(hierarchy).toBeVisible();await expect(management).toBeVisible();
+    const sectionGeometry=await management.evaluate(element=>{const previous=document.querySelector('section[aria-label="Milestone 계층 조회"]')!;return {top:element.getBoundingClientRect().top,previousBottom:previous.getBoundingClientRect().bottom,border:getComputedStyle(element).borderTopWidth,font:getComputedStyle(element).fontSize,heading:getComputedStyle(element.querySelector("h2")!).fontSize};});
+    expect(sectionGeometry.top-sectionGeometry.previousBottom).toBeGreaterThanOrEqual(15);expect(sectionGeometry.border).toBe("1px");expect(sectionGeometry.font).toBe("14px");expect(sectionGeometry.heading).toBe("16px");
     const toggle=row.getByRole("button",{name:/하위 접기$/});
     await toggle.focus();await toggle.press("Tab");
     const action=row.getByRole("button",{name:"상세",exact:true});await expect(action).toBeFocused();

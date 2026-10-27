@@ -250,7 +250,8 @@ export function ProjectMilestoneDashboard({
       ]
     : [];
   return (
-    <div
+    <section
+      aria-label="Milestone 전체 상태·관리"
       className={styles.dashboard}
       data-testid="milestone-dashboard"
       data-project-public-id={publicId}
@@ -745,6 +746,6 @@ export function ProjectMilestoneDashboard({
           </section>
         </div>
       ) : null}
-    </div>
+    </section>
   );
 }

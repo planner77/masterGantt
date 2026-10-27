@@ -1,13 +1,14 @@
-.panel { display: grid; gap: 12px; min-width: 0; }
+.panel { font-size: 14px; line-height: 20px; display: grid; gap: 12px; min-width: 0; }
 .heading, .toolbar, .pagination { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
 .heading { justify-content: space-between; }
 .heading h2, .heading p { margin: 0; }
-.description, .metadata { color: var(--text-muted); font-size: .875rem; overflow-wrap: anywhere; }
+.heading h2 { font-size: 16px; line-height: 24px; }
+.description, .metadata { color: var(--text-muted); font-size: 13px; overflow-wrap: anywhere; }
 .counts { display: flex; flex-wrap: wrap; gap: 8px 20px; padding: 10px 0; border-block: 1px solid var(--border-default); }
 .filters { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; }
-.filters label { display: grid; gap: 4px; min-width: 0; font-size: .875rem; }
+.filters label { display: grid; gap: 4px; min-width: 0; font-size: 13px; }
 .filters label:first-child { flex: 1 1 220px; }
-.filters input, .filters select { min-height: 36px; max-width: 100%; padding: 6px 8px; color: var(--text-default); background: var(--surface-panel); border: 1px solid var(--border-control); border-radius: var(--radius); font: inherit; }
+.filters input, .filters select { min-height: 40px; max-width: 100%; padding: 6px 8px; color: var(--text-default); background: var(--surface-panel); border: 1px solid var(--border-control); border-radius: var(--radius); box-sizing: border-box; font-family: inherit; font-size: 14px; line-height: 20px; }
 .filters input { width: 100%; box-sizing: border-box; }
 .advanced { display: grid; gap: 10px; }
 .advanced summary { cursor: pointer; width: fit-content; }
@@ -27,3 +28,11 @@
 @media(max-width: 767px) { .heading { align-items: flex-start; } .filters label { flex: 1 1 130px; } .counts { gap: 8px 12px; } }
 
 .filterFields { display: grid; gap: 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
+
+.panel button { box-sizing: border-box; min-height: 40px; font-family: inherit; font-size: 14px; line-height: 20px; }
+.advanced summary { min-height: 40px; align-content: center; font-size: 13px; }
+.dialogBody .filters input, .dialogBody .filters select, .dialogBody button { min-height: 44px; }
+@media (pointer: coarse), (any-pointer: coarse) { .panel button, .filters input, .filters select, .advanced summary { min-height: 44px; } }
+
+.scheduleAction { min-height: 40px; }
+@media (pointer: coarse), (any-pointer: coarse) { .scheduleAction { min-height: 44px; } }

@@ -1,14 +1,17 @@
-.panel { display: grid; gap: 1rem; min-width: 0; }
-.toolbar, .card, .members { border: 1px solid var(--border-default); border-radius: var(--radius); padding: 1rem; background: var(--surface-panel); min-width: 0; }
+.panel { display: grid; gap: 12px; min-width: 0; font-size: 14px; line-height: 20px; }
+.panel button { box-sizing: border-box; min-height: 40px; font-size: 14px; line-height: 20px; }
+.toolbar, .card, .members { border: 1px solid var(--border-default); border-radius: var(--radius); padding: 12px; background: var(--surface-panel); min-width: 0; }
 .card[hidden] { display: none; }
-.card h2, .members h2 { margin: 0 0 1rem; font-size: 1.1rem; }
+.card h2, .members h2 { margin: 0 0 12px; font-size: 16px; line-height: 24px; }
 .tabs { display: flex; gap: .5rem; overflow-x: auto; overflow-y: hidden; padding: .5rem; }
 .tabs button { flex: 0 0 auto; min-height: 40px; padding: .5rem .75rem; border: 1px solid var(--border-control); border-radius: var(--radius); background: var(--surface-panel); color: var(--text-default); font: inherit; }
 .tabs button[aria-selected=true] { color: var(--text-default); border-color: var(--action-selected); background: var(--surface-subtle); }
 .searchBar { display: flex; gap: .5rem; align-items: center; margin-bottom: .75rem; flex-wrap: wrap; min-width: 0; }
-.searchBar > input { flex: 1 1 200px; min-width: 0; min-height: 38px; border: 1px solid var(--border-control); border-radius: calc(var(--radius) - .125rem); background: var(--surface-panel); color: var(--text-default); padding: .4rem .6rem; font: inherit; }
-.statusField { display: flex; align-items: center; gap: .4rem; font-size: .85rem; }
-.statusField select, .field input, .field select { min-height: 38px; min-width: 0; max-width: 100%; box-sizing: border-box; border: 1px solid var(--border-control); border-radius: calc(var(--radius) - .125rem); background: var(--surface-panel); color: var(--text-default); padding: .45rem .6rem; font: inherit; }
+.searchField { display: flex; align-items: center; gap: 8px; flex: 1 1 200px; min-width: 0; font-size: 13px; }
+.searchField > span { flex: 0 0 auto; }
+.searchField input { flex: 1 1 auto; width: 100%; min-width: 0; min-height: 40px; border: 1px solid var(--border-control); border-radius: calc(var(--radius) - .125rem); background: var(--surface-panel); color: var(--text-default); padding: 6px 8px; box-sizing: border-box; font-family: inherit; font-size: 14px; line-height: 20px; }
+.statusField { display: flex; align-items: center; gap: .4rem; font-size: 13px; }
+.statusField select, .field input, .field select { min-height: 40px; min-width: 0; max-width: 100%; box-sizing: border-box; border: 1px solid var(--border-control); border-radius: calc(var(--radius) - .125rem); background: var(--surface-panel); color: var(--text-default); padding: 6px 8px; font-family: inherit; font-size: 14px; line-height: 20px; }
 .matchCount { font-size: .8125rem; color: var(--text-muted); white-space: nowrap; }
 .tableScroll { max-width: 100%; min-width: 0; overflow: auto; max-height: 36rem; padding: .5rem; border: 1px solid var(--border-default); }
 .tableScroll table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .875rem; }
@@ -22,32 +25,35 @@
 .rowActions, .actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; min-width: 0; }
 .rowActions button { white-space: nowrap; }
 .inactive { color: var(--text-readonly); }
-.members { margin-top: 1rem; }
+.members { margin-top: 12px; }
 .memberGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr)); gap: .75rem; margin-top: .75rem; }
 .member { display: flex; gap: .45rem; align-items: center; overflow-wrap: anywhere; min-width: 0; }
 .member input { flex: 0 0 auto; }
 .memberRoleText { color: var(--text-muted); font-size: .78rem; }
 .error { color: var(--status-error); margin: 0; overflow-wrap: anywhere; }
-.note { color: var(--text-muted); margin: 0; font-size: .9rem; overflow-wrap: anywhere; }
+.note { color: var(--text-muted); margin: 0; font-size: 13px; overflow-wrap: anywhere; }
 .emptyState { padding: 1rem 0; color: var(--text-muted); font-size: .875rem; text-align: center; }
 .memberFooterActions { display: flex; justify-content: space-between; gap: .5rem; align-items: center; width: 100%; margin-top: 1rem; flex-wrap: wrap; }
 .adminActionRow { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .adminActionRow button { white-space: nowrap; }
 .editorForm { display: flex; flex-direction: column; min-height: 0; max-height: calc(100dvh - 12rem); gap: .75rem; }
 .editorBody { display: grid; gap: .75rem; min-height: 0; overflow-y: auto; padding: .5rem; }
-.field { display: grid; gap: .3rem; min-width: 0; font-size: .9rem; }
-.field input, .field select { width: 100%; }
+.field { display: grid; gap: .3rem; min-width: 0; font-size: 13px; }
+.field input, .field select { width: 100%; min-height: 44px; }
+.dialogActions button { min-height: 44px; }
 .dialogActions { display: flex; justify-content: flex-end; gap: .5rem; flex-wrap: wrap; flex: 0 0 auto; margin-top: 1rem; }
 .resourceRoleFieldset { min-width: 0; margin: 0; border: 1px solid var(--border-control); border-radius: calc(var(--radius) - .125rem); padding: .5rem; }
 .resourceRoleFieldset legend { padding: 0 .2rem; color: var(--text-muted); font-size: .8rem; }
 .roleOptions { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
 .roleOptions label { display: inline-flex; align-items: center; gap: .3rem; font-size: .85rem; white-space: nowrap; }
 .panel input:focus-visible, .panel select:focus-visible, .tabs button:focus-visible, .tableScroll:focus-visible, .editorBody input:focus-visible, .editorBody select:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
-@media (max-width: 40rem) { .searchBar > input { flex-basis: 100%; } }
+@media (max-width: 40rem) { .searchField { flex-basis: 100%; } }
 @media (max-width: 28rem) { .adminActionRow { gap: .375rem; } .adminActionRow button { min-width: 0; padding-inline: .5rem; font-size: .75rem; } }
 
 .roleBadges { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; min-width: 0; }
 .roleBadge { display: inline-flex; max-width: 100%; padding: .1rem .35rem; border: 1px solid var(--border-default); border-radius: 999px; color: inherit; font-size: .75rem; white-space: nowrap; }
 
-.headingRow { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.headingRow { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: 12px; }
 .headingRow h2 { margin: 0; }
+
+@media (pointer: coarse), (any-pointer: coarse) { .panel button, .searchField input, .statusField select { min-height: 44px; } .member, .roleOptions label { min-height: 44px; } }

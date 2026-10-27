@@ -108,6 +108,7 @@ type Permission = "readonly" | "edit";
 type PermissionCheckState = "checking" | "complete";
 type PendingTaskDelete = TaskDeletePlan & Readonly<{ revision: number }>;
 import { DASHBOARD_SCREENS, MASTER_SCREENS, normalizeWorkspaceScreen, legacyWorkspaceScreen, logisticsSubview, workspaceSection, workspaceView, type WorkspaceScreen, type WorkspaceSection, type WorkspaceView } from "./project-workspace-navigation";
+import resourceMembershipStyles from "@/features/resources/project-resource-memberships.module.css";
 import { ProjectResourceMemberships } from "@/features/resources/project-resource-memberships";
 import { IdentifierDetails } from "@/components/identifier-details";
 type KpiNavigationSource = { snapshotId: string; filters: import("@/contracts/logistics-dashboard").LogisticsDashboardFilterInput };
@@ -3661,7 +3662,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           }}>KPI로 돌아가기</button>
         </aside> : null}
         <ProjectResourceMemberships openResourceRequest={wbsEntityRequest?.dimension === "resource" ? wbsEntityRequest : null} onResourceRequestHandled={finishWbsEntityRequest} recoveryRequired={canonicalRecoveryBlocked} publicId={publicId} revision={project.revision} active={activeView === "resource-master"} editable={editing} disabled={busy || editorSession !== null} onChanged={reloadCanonicalSnapshot} onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }} taskNames={new Map(tasks.map(task => [task.taskId, task.name]))} onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })} />
-        <button type="button" className="secondary-button" onClick={() => selectScreen("schedule")}>작업 일정에서 배정 관리</button>
+        <button type="button" className={`secondary-button ${resourceMembershipStyles.scheduleAction}`} onClick={() => selectScreen("schedule")}>작업 일정에서 배정 관리</button>
       </section>
     </div>
 

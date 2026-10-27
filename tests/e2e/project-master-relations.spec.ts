@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const bu = { id:"50000000-0000-4000-8000-000000000001",category:"BUSINESS_UNIT",code:"BU",name:"사업부 A",active:true,sortOrder:0 };
 const other = { id:"50000000-0000-4000-8000-000000000002",category:"BUSINESS_UNIT",code:"B2",name:"사업부 B",active:true,sortOrder:0 };
@@ -38,15 +38,18 @@ test("Issue #538: Project 생성의 종속 옵션과 상위 변경 시 초안 �
   await expect(page.getByRole("status").filter({hasText:"사업부가 변경되어"})).toBeVisible();
 });
 
-test("Issue #538: 관리자 관계 연결과 명시적 두 단계 해제", async ({page}) => {
+test("Issue #538: 관리자 관계 연결과 명시적 두 단계 해제", async ({page,browser}) => {
   let revision=1;
   let relations: Array<{businessUnitId:string;productId:string;siteEntityId:string|null}> = [];
-  const response=() => ({data:{revision,...base,relations,items:[...base.businessUnits,...base.products,...base.siteEntities].map((i)=>({...i,usageCount:0}))}});
-  await page.route("**/api/project-master/admin-sessions",async (route)=>{
+  let longNames=false;
+  const display=(item:typeof bu)=>({...item,name:longNames?`${item.name} 긴 한국어 Long English ${"N".repeat(100)}`:item.name});
+  const response=() => ({data:{revision,...base,businessUnits:base.businessUnits.map(display),products:base.products.map(display),siteEntities:base.siteEntities.map(display),relations,items:[...base.businessUnits,...base.products,...base.siteEntities].map((i)=>({...display(i),usageCount:0}))}});
+  const installRoutes=async(targetPage:Page)=>{
+  await targetPage.route("**/api/project-master/admin-sessions",async (route)=>{
     await route.fulfill(route.request().method()==="POST" ? {status:201,json:{data:{permission:"project_master_admin",expiresAt:"2030-01-01T00:00:00Z"}}} : {status:204});
   });
-  await page.route("**/api/project-master/admin/items",async (route)=>{await route.fulfill({status:200,json:response(),headers:{"ETag":`"${revision}"`}});});
-  await page.route("**/api/project-master/admin/relations",async (route)=>{
+  await targetPage.route("**/api/project-master/admin/items",async (route)=>{await route.fulfill({status:200,json:response(),headers:{"ETag":`"${revision}"`}});});
+  await targetPage.route("**/api/project-master/admin/relations",async (route)=>{
     const input=route.request().postDataJSON() as {businessUnitId:string;productId:string;siteEntityId?:string|null};
     const link={businessUnitId:input.businessUnitId,productId:input.productId,siteEntityId:input.siteEntityId ?? null};
     const key=(x:typeof link)=>[x.businessUnitId,x.productId,x.siteEntityId ?? ""].join(":");
@@ -55,6 +58,8 @@ test("Issue #538: 관리자 관계 연결과 명시적 두 단계 해제", async
     revision++;
     await route.fulfill({status:200,json:response(),headers:{"ETag":`"${revision}"`}});
   });
+  };
+  await installRoutes(page);
   await page.goto("/project-master-admin");
   await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
   await page.getByRole("button",{name:"로그인",exact:true}).click();
@@ -74,6 +79,34 @@ test("Issue #538: 관리자 관계 연결과 명시적 두 단계 해제", async
   await removeSite.click();
   await expect(table.locator("tbody tr")).toHaveCount(1);
   await expect(table.getByText("베트남 법인")).toHaveCount(0);
+  // #830: long identities keep a bounded table and native keyboard access to its last column.
+  longNames=true;relations=[pair,triple];await page.getByRole("button",{name:"새로고침",exact:true}).click();await expect(table.locator("tbody tr")).toHaveCount(2);
+  const assertFullFocusVisible=async(target:Locator)=>{
+    await expect(target).toBeFocused();
+    await target.page().evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
+    const facts=await target.evaluate(element=>{const r=element.getBoundingClientRect(),s=getComputedStyle(element),outlineWidth=parseFloat(s.outlineWidth)||0,outlineOffset=parseFloat(s.outlineOffset)||0,inset=Math.max(0,outlineWidth+outlineOffset),ring={left:r.left-inset,right:r.right+inset,top:r.top-inset,bottom:r.bottom+inset},clip={left:0,right:innerWidth,top:0,bottom:innerHeight};const ancestors=[];for(let owner=element.parentElement;owner;owner=owner.parentElement){const style=getComputedStyle(owner),box=owner.getBoundingClientRect(),paint=/(paint|strict|content)/.test(style.contain),clipPath=style.clipPath!=="none",clipX=["auto","scroll","hidden","clip"].includes(style.overflowX)||paint||clipPath,clipY=["auto","scroll","hidden","clip"].includes(style.overflowY)||paint||clipPath,client={left:box.left+owner.clientLeft,right:box.left+owner.clientLeft+owner.clientWidth,top:box.top+owner.clientTop,bottom:box.top+owner.clientTop+owner.clientHeight};if(clipX){clip.left=Math.max(clip.left,client.left);clip.right=Math.min(clip.right,client.right);}if(clipY){clip.top=Math.max(clip.top,client.top);clip.bottom=Math.min(clip.bottom,client.bottom);}ancestors.push({id:owner.id,clipX,clipY,clipPath,client});}return {outlineWidth,outlineOffset,ring,clip,ancestors,horizontal:ring.left>=clip.left&&ring.right<=clip.right,vertical:ring.top>=clip.top&&ring.bottom<=clip.bottom};});
+    expect(facts.outlineWidth,JSON.stringify(facts)).toBeGreaterThan(0);expect(facts.ancestors.some(a=>a.clipPath)).toBe(false);expect(facts.horizontal,JSON.stringify(facts)).toBe(true);expect(facts.vertical,JSON.stringify(facts)).toBe(true);
+  };
+  const section=page.locator('section[aria-labelledby="project-master-relations-heading"]');
+  for(const width of [390,768,1024,1440,1920]){
+    await page.setViewportSize({width,height:900});
+    const geometry=await table.evaluate(element=>{const box=(e:Element)=>e.getBoundingClientRect();const owner=element.parentElement!;const headers=Array.from(element.querySelectorAll("th"));return {document:document.documentElement.scrollWidth,table:box(element).width,owner:owner.clientWidth,lastColumn:box(headers.at(-1)!).width,aligned:Array.from(element.querySelectorAll("tbody tr")).every(row=>Array.from(row.children).every((cell,index)=>Math.abs(box(cell).x-box(headers[index]).x)<=1&&Math.abs(box(cell).width-box(headers[index]).width)<=1)),buttons:Array.from(element.querySelectorAll("tbody button")).map(button=>({width:box(button).width,height:box(button).height,cell:box(button.closest("td")!).width}))};});
+    expect(geometry.document).toBeLessThanOrEqual(width);expect(geometry.table).toBeLessThanOrEqual(Math.max(680,geometry.owner)+1);expect(geometry.lastColumn).toBeGreaterThanOrEqual(130);expect(geometry.aligned).toBe(true);geometry.buttons.forEach(button=>{expect(button.height).toBe(40);expect(button.width).toBeLessThanOrEqual(button.cell-16);});
+    const target=table.getByRole("button").first();await section.getByRole("combobox").first().focus();for(let step=0;step<10&&!await target.evaluate(element=>element===document.activeElement);step++)await page.keyboard.press("Tab");await expect(target).toBeFocused();
+    await assertFullFocusVisible(target);
+  }
+  const revisionBeforeCoarse=revision;
+  const coarse=await browser.newContext({baseURL:new URL(page.url()).origin,viewport:{width:390,height:900},hasTouch:true});
+  try{
+    const touch=await coarse.newPage();await installRoutes(touch);await touch.goto("/project-master-admin");await touch.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");await touch.getByRole("button",{name:"로그인",exact:true}).click();
+    const touchSection=touch.locator('section[aria-labelledby="project-master-relations-heading"]');await expect(touchSection).toBeVisible();
+    expect(await touch.evaluate(()=>matchMedia("(pointer:coarse), (any-pointer:coarse)").matches)).toBe(true);
+    for(const width of [390,1440]){
+      await touch.setViewportSize({width,height:900});const target=touchSection.locator("table tbody button").first();await touchSection.getByRole("combobox").first().focus();for(let step=0;step<10&&!await target.evaluate(element=>element===document.activeElement);step++)await touch.keyboard.press("Tab");
+      expect((await target.boundingBox())!.height).toBeGreaterThanOrEqual(44);await assertFullFocusVisible(target);
+    }
+  }finally{await coarse.close();}
+  expect(revision).toBe(revisionBeforeCoarse);
 });
 
 test("Issue #538: 비활성 사업부·제품으로 신규 하위 분류 선택 불가", async ({page}) => {

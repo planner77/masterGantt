@@ -291,7 +291,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
       fixture.sessionEditable = false;
       await page.reload();
       await openWorkspaceView(page, "equipment");
-      await expect(page.getByText("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 활성화'를 진행해 주세요.")).toBeVisible();
+      await expect(page.getByText("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요.")).toBeVisible();
       await expect(page.getByRole("button", { name: "+ 설비 추가", exact: true })).toHaveCount(0);
       expect(writes).toEqual([]);
     } finally {
@@ -458,7 +458,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
 
     // Verify readonly notice
     await expect(
-      page.getByText("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 활성화'를 진행해 주세요."),
+      page.getByText("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요."),
     ).toBeVisible();
 
     const help = page.getByRole("button", { name: "물류 구성 도움말", exact: true });
@@ -809,8 +809,10 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
       await page.goto(`/projects/${publicId}`);
       await openWorkspaceView(page, "logistics");
       await openWorkspaceView(page, "processes");
-      const heading = page.getByRole("heading", { level: 2, name: "물류 구성" });
+      await expect(page.getByRole("heading", { level: 2, name: "물류 구성", exact: true })).toHaveCount(0);
+      const heading = page.getByRole("heading", { level: 2, name: "공정 & 작업 구역 관리", exact: true });
       await expect(heading).toBeVisible();
+      await expect(heading).toHaveCSS("font-size","16px");
       await expect(page.getByRole("button", { name: "물류 구성 도움말", exact: true })).toBeVisible();
       const shell = await heading.evaluate(element => {
         const host = element.closest("#project-panel-logistics")!;
