@@ -1,3 +1,7 @@
+## Issue #831 REWORK — PR #832 Preflight F831-001 (2026-10-27)
+
+최초 [Full PR CI #3329.1](https://github.com/planner77/masterGantt/actions/runs/40453783682)에서 Preflight의 `DOCUMENTATION_SYNC` 직접 FAIL(Work Packet에 경로별 `UPDATED/N/A(reason)` 문장 누락), 나머지 구현 검사 NOT RUN/aggregate 파생 FAIL. [Work Packet](ISSUE_831.md)에서 필수 문서 7개를 정확 경로별로 기록하고 AC1~5를 `- ACn:` 형태로 매핑. 새 [누적 실패 원장](../../ISSUE_831_FAILURE_ANALYSIS.md)에 Run/Attempt·Job/Step·test-merge·직접/파생·미실행을 보존한다. QA 검증기/Workflow/Required3/owner 승인 체계는 불변이며 다음 새 HEAD Full CI 시작 후 모니터링·병합·Main/GHCR/Finalizer/종료는 범위 밖이다.
+
 ## Issue #831 — Terra 6.1 Agent별 비용/품질 재배치 (2026-10-27)
 
 [Issue #831](https://github.com/planner77/masterGantt/issues/831) / [Work Packet](ISSUE_831.md) / [Agent 설정 정책](../../AGENT_CONFIGURATION.md). 기존 #347 Sol 중심 설정에서 ui_ux(read-only)와 frontend의 기본 모델만 GPT-6.1 Terra/medium으로 조건부 변경한다. Manager/backend/scheduler/infra/qa_docs Sol/high, researcher/excel_vba Luna/medium, 나머지 sandbox 및 동시 실행 6은 불변이다. 복잡한 SVAR/공통 상태·보안/revision·지속 CI 회귀는 작업별 Sol/high 재배정, Luna→Terra/Astra 역시 Manager가 명시적으로 위험/비용 근거를 기록한다.
