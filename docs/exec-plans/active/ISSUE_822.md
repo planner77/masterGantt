@@ -127,3 +127,10 @@ fast의 Next build와 targeted의 Next dev/격리 HTTP 서버가 추적된 AGENT
 원격 Quality/Chromium8/Docker·Trusted/Owner·Manager ACCEPT는 NOT TESTED이며 MERGE_READY=BLOCKED다. Ready PR Full CI 시작만 확인하고 모니터링·병합·Main/GHCR·정식 게시·Finalizer·Issue 종료는 수행하지 않는다. 정확한 PR/Head/Base/Test-Merge/Run·Attempt와 리뷰/충돌 조회는 게시 후 Issue STATUS로 인계한다.
 
 Rollback은 밀도 state/input/CSS·typed anchor intent·관련 테스트/문서 및 버전 후보를 함께 revert한다. DB/사용자 업무 데이터 이관은 없다.
+
+## 2026-10-27 REWORK — Full CI #3326.1 실제 원인·조치
+
+- Run 40446716353.1 / PR #823 / HEAD 0e22dd95347bd53d8ccd249c4a1697d521af618e. Chromium 4/8의 기존 #570 metadata/empty-search x=0 기대가 실제 x=120으로 실패(70PASS/1FAIL/1SKIP/21NOT RUN); 1/6 취소 및 QA 종합 파생 실패는 별개. 원본 세부 사항은 단일 실패 원장 F822-REMOTE-001.
+- typed FILTER_EMPTY_RESET을 기존 single coordinator+Core public scroll-chart로 제한. active filtered empty query·native zero membership·source current만 실행하며 새 user input/query에서 취소, 기타 밀도/기간/Server mutation 불변.
+- TEST_LIFECYCLE_REVIEW: 기존 #570 E2E KEEP_UNIQUE+EXTEND(원래 exact assertion 유지), 새로운 Coordinator positive/negative Unit ADD. #822 AC2/AC6 및 #570 E2E 귀속; #816/#818/#637 독립 검증은 유지.
+- 수정 HEAD 로컬 Unit/Playwright는 실제 실행 증거가 없어 NOT TESTED. 새 원격 Full CI와 Trusted QA/Owner gate 전 MERGE BLOCKED. risk HIGH / OWNER_MANAGED / qa_required=true / release_required=true / release_authorized=false. DESIGN/AGENTS/API/DB/CI 정책 변경은 N/A.

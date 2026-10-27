@@ -60,3 +60,13 @@
 최종 실행에는 수정된 독립 hybrid/44px 인접 rect 비중첩과 현재 fixture가 포함된다. 기존8case 보고서/geometry 단독 capture는 당시 test SHA를 유지하며 현재137case의 test SHA와 혼동하지 않는다. 제품5개 SHA는 같다. 최초 fixture 오류/79px 제품 오류/43px 목표 오류/매핑 UNKNOWN/중단 원본은 위 원장에 보존한다.
 
 실제 qa_docs source 사전검토 PASS는 최종 Trusted/Owner 승인이 아니다. 원격 Quality/Chromium8/Docker·Trusted/Owner/Manager ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED다. Main/GHCR/정식 Release/Finalizer·Issue 종료는 요청 범위 밖이다.
+
+## F822-REMOTE-001 — PR #823 Full #3326.1 Chromium shard4 직접 실패 (2026-10-27)
+
+- 원본: https://github.com/planner77/masterGantt/actions/runs/40446716353 (attempt1, event=pull_request); Head 0e22dd95347bd53d8ccd249c4a1697d521af618e, Base dc8543f390616c0d5aca90a4f91899f3cf7ac5da. 실패 Job ID 122000415734.
+- 직접 실패: tests/e2e/task-editor-form-density.spec.ts:324 (#570), line410의 empty active query 결과에서 publicLeft Expected 0 / Received 120, expect.poll 5000ms 초과. shard4 70 PASS / 1 FAIL / 기존1 SKIP / 21 NOT RUN. CI의 max-failures=1 조기 중단.
+- 다른 shard: 2/3/5/7/8 성공, 1/6 취소. Quality/Build/Unit/Docker 성공, Chromium aggregate 실패 및 QA Final Automated 실패는 직접 E2E 실패의 파생. GitCommitInfo 3000ms 경고는 직접 assertion 원인 증거가 아님.
+- 원인: 현행 filter-tasks 및 metadata 복원은 결과 0건일 때 native/Core 수평 scroll이 120에 남는 경로를 명시적으로 정착시키지 않는다. 빈 필터에 대한 일회성 viewport reset의 미구현 경계가 노출됨. 재실행 trace 없이 간헐적 실패로 단정하지 않음.
+- 보완: 기존 단일 Coordinator/Port에 FILTER_EMPTY_RESET typed 명령 추가. filtered+empty+실제 Core _tasks.length=0과 원래 query/source 일치에만 공개 scroll-chart로 left0. 일반 빈 프로젝트·새 사용자 gesture·새 query에는 영향 주지 않고 이전 restore 권한을 취소. 직접 DOM writer/remount/권한·일정·날짜축 변경 없음.
+- 검증: 기존 #570 E2E의 line410 기대0·5초 timeout 그대로 유지. Coordinator 단위의 성공/음성 Unit 2개 신규. 기존 #816/#818/#637 테스트 보존, TEST_LIFECYCLE_REVIEW=ADD(Unit)+EXTEND(기존 E2E)+KEEP_UNIQUE(기타 독립 위험). 변경 commit 전 로컬 실행 NOT TESTED, 수정의 효능은 신규 remote PR Full 결과 전 NOT TESTED.
+- 리뷰/정렬: 발견한 미해결 리뷰 thread 0, PR mergeable=true, main 기존 base와 동일. CI 실패·취소 원본은 보존하고 과거 PASS로 수정하지 않는다.

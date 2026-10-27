@@ -2416,7 +2416,20 @@ export function ProjectGantt({
       const expected = buildProjection({ revision: requestedProjection.revision, tasks: currentTasks, links: [], displayTasks: [] }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: wbsDisplayMode, expandedTree, columnPrefs: null, scale: scaleMode });
       const actualVisibleIds = api.getState()._tasks.map(task => String(task.id));
       const membershipCorrect = JSON.stringify(actualVisibleIds) === JSON.stringify(expected.logicalVisibleIds);
-      if (applied?.api === api && applied.key === requestedProjection.keys.membership && applied.structure === requestedProjection.keys.structure && membershipCorrect) return;
+      const resetEmptyFilter = async () => {
+        const coordinator = viewportCoordinatorReference.current;
+        const viewport = viewportPortReference.current?.read();
+        // #822 CI #3326.1: an empty active query must discard stale x=120.
+        if (coordinator && viewport?.context.empty && viewport.context.filtered &&
+            requestedProjection.logicalVisibleIds.length === 0 && api.getState()._tasks.length === 0 &&
+            (viewport.core.left > 1 || viewport.native.left > 1) &&
+            projectionReference.current.keys.membership === requestedProjection.keys.membership)
+          await coordinator.request({ kind: "FILTER_EMPTY_RESET" });
+      };
+      if (applied?.api === api && applied.key === requestedProjection.keys.membership && applied.structure === requestedProjection.keys.structure && membershipCorrect) {
+        await resetEmptyFilter();
+        return;
+      }
       const visible = wbsDisplayMode === "compatibility" && visibleTaskIds === null ? null : new Set(requestedProjection.membershipIds);
       // Matching IDs alone do not prove that Core's rendered tree has the new
       // hierarchy/type payload. Structural commits still need a public refresh.
@@ -2441,6 +2454,7 @@ export function ProjectGantt({
       }
       taskFilterAppliedReference.current = visible !== null;
       appliedTaskFilterReference.current = { api, key: requestedProjection.keys.membership, structure: requestedProjection.keys.structure };
+      await resetEmptyFilter();
     }).catch(() => onCanonicalSyncFailureReference.current());
   }, [apiInstanceId, viewVisible, visibleTaskFilterKey, projection.keys.structure, projection.keys.membership, projectRevision, scaleMode, columns, projection, viewRootTaskId, visibleTaskIds, wbsDisplayMode, ganttCellHeight]);
   useEffect(() => {

@@ -257,6 +257,13 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     if (!current() || !read().measurable) return null;
     const state = api.getState();
     if (command.kind === "RANGE_EXTENSION") { const result = await extentTransaction(current, source, command.width); return result?.outcome === "SETTLED" ? result.position ?? null : null; }
+    if (command.kind === "FILTER_EMPTY_RESET") {
+      const sample = read();
+      // Never let a stale filter callback reset a newer nonempty query.
+      if (!sample.context.filtered || !sample.context.empty || state._tasks.length !== 0) return null;
+      await exec("scroll-chart", { left: 0, eventSource: tag });
+      return read().core;
+    }
     if (command.kind === "DIAGNOSTIC_SCROLL") {
       if (process.env.NODE_ENV === "production" || !Number.isFinite(command.left) || command.left < 0 || read().capacity.left < command.left - 1) return null;
       // Diagnostic requests cannot replenish an existing peer repair budget.

@@ -36,7 +36,7 @@ function fixture(maxFrames = 12) {
       if (signal.aborted) finish(false);
     })),
     apply: vi.fn(async command => {
-      const position = "position" in command ? command.position : { left: 30, top: 48 };
+      const position = command.kind === "FILTER_EMPTY_RESET" ? { left: 0, top: sample.core.top } : "position" in command ? command.position : { left: 30, top: 48 };
       sample = { ...sample, core: position, native: position };
       return position;
     }),
@@ -65,6 +65,37 @@ const peer: ViewportCommand = { kind: "PEER_RETURN", position: { left: 120, top:
 const passive: ViewportCommand = { kind: "PASSIVE_RESTORE", position: { left: 120, top: 96 } };
 
 describe("Viewport Coordinator arbitration and bounded observation", () => {
+  it("resets horizontal scroll only for an active empty query", async () => {
+    const f = fixture();
+    expect(await f.coordinator.request({ kind: "FILTER_EMPTY_RESET" })).toBe("NOT_MEASURABLE");
+    f.context({ filter: "name=query", receiptFilter: "name=query", filtered: true, empty: true });
+    f.coordinator.contextChanged();
+    const pending = f.coordinator.request({ kind: "FILTER_EMPTY_RESET" });
+    await f.advance(8);
+    expect(await pending).toBe("SETTLED");
+    expect(f.sample.core.left).toBe(0);
+    expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_EMPTY_RESET" }, expect.any(Function), expect.any(Object));
+    expect(f.port.protect).not.toHaveBeenCalled();
+    f.coordinator.dispose();
+  });
+
+  it("invalidates an empty-filter reset on new user input or query", async () => {
+    const f = fixture();
+    f.context({ filter: "name=query", receiptFilter: "name=query", filtered: true, empty: true });
+    f.coordinator.contextChanged();
+    const first = f.coordinator.request({ kind: "FILTER_EMPTY_RESET" });
+    f.coordinator.userInput();
+    await f.advance(2);
+    expect(await first).toBe("SUPERSEDED");
+    const second = f.coordinator.request({ kind: "FILTER_EMPTY_RESET" });
+    f.context({ filter: "name=other", receiptFilter: "name=other" });
+    f.coordinator.contextChanged();
+    await f.advance(2);
+    expect(await second).toBe("SUPERSEDED");
+    expect(f.port.apply).not.toHaveBeenCalled();
+    f.coordinator.dispose();
+  });
+
   it("arbitrates density anchoring under the original gesture and lets later native input revoke it", async () => {
     const f = fixture();
     f.coordinator.userInput();
