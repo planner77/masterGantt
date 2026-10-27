@@ -15,16 +15,16 @@ function setting(contents: string, key: string): string {
 const roles: Record<string, {
   model: string;
   effort: string;
-  readonly?: boolean;
+  readOnly?: boolean;
 }> = {
-  "researcher": { model: "gpt-6-luna", effort: "medium", readonly: true },
-  "ui-ux": { model: "gpt-6.1-terra", effort: "medium", readonly: true },
+  "researcher": { model: "gpt-6-luna", effort: "medium", readOnly: true },
+  "ui-ux": { model: "gpt-6.1-terra", effort: "medium", readOnly: true },
   "frontend": { model: "gpt-6.1-terra", effort: "medium" },
   "backend": { model: "gpt-6.1-sol", effort: "high" },
   "scheduler": { model: "gpt-6.1-sol", effort: "high" },
   "excel-vba": { model: "gpt-6-luna", effort: "medium" },
   "infra": { model: "gpt-6.1-sol", effort: "high" },
-  "qa-docs": { model: "gpt-6.1-sol", effort: "high", readonly: true },
+  "qa-docs": { model: "gpt-6.1-sol", effort: "high", readOnly: true },
 };
 
 describe("Issue #831 — Terra role selection (configuration contract)", () => {
@@ -38,7 +38,7 @@ describe("Issue #831 — Terra role selection (configuration contract)", () => {
       const contents = readFileSync(resolve(agentsDir, `${name}.toml`), "utf8");
       expect(setting(contents, "model")).toBe(config.model);
       expect(setting(contents, "model_reasoning_effort")).toBe(config.effort);
-      if (config.readonly) {
+      if (config.readOnly) {
         expect(setting(contents, "sandbox_mode")).toBe("read-only");
       } else {
         expect(contents).not.toMatch(/^sandbox_mode\s*=\s*"read-only"/m);
