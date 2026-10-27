@@ -430,8 +430,8 @@ GitHub-hosted runner로 대체할 수 없는 Windows Excel/VBA/DRM, 실제 rever
 ```text
 Main / Manager → GPT-6.1 Sol / High
 researcher     → GPT-6 Luna / Medium
-ui_ux          → GPT-6.1 Sol / Medium
-frontend       → GPT-6.1 Sol / Medium
+ui_ux          → GPT-6.1 Terra / Medium
+frontend       → GPT-6.1 Terra / Medium
 backend        → GPT-6.1 Sol / High
 scheduler      → GPT-6.1 Sol / High
 excel_vba      → GPT-6 Luna / Medium
@@ -441,7 +441,9 @@ qa_docs        → GPT-6.1 Sol / High
 
 실제 model/effort 지원 여부는 실행 환경에서 확인하며 설정값을 실제 실행 검증으로 과대 표시하지 않는다.
 
-비용 효율 기본값은 GPT-6.1 Sol이며, Astra는 Manager가 작업의 실제 난이도·위험이 Sol High를 초과한다고 판단한 경우에만 해당 작업/세션에 일시 승격한다. 반복적 공식 문서 조사와 정형 Excel/VBA 변환은 GPT-6 Luna를 기본값으로 사용한다.
+역할별 기본 배치는 [Agent Configuration — #831 Terra 도입](docs/AGENT_CONFIGURATION.md)이 최신 결정 원본이다. **GPT-6.1 Terra**는 UI/UX 설계와 범위가 명확한 Frontend/CSS/컴포넌트 구현의 비용·속도 균형을 위해 Medium으로 시범 적용한다. 공통 상태, SVAR native drag/resize/dependency·계층 조작, auth/revision, 데이터/권한/안전성, 복잡한 architecture·지속 CI 회귀 등 위험이 확인되면 Manager는 작업 시작 전 또는 재작업 시 해당 작업/세션을 **GPT-6.1 Sol/High로 명시적으로 재배정**하고 Issue/Work Packet에 범위·사유·실제 모델 증거를 남긴다. 설정값을 runtime 실행 증거로 간주하거나 지원되지 않는 모델을 **조용히 대체하지 않는다**.
+
+Manager/backend/scheduler/infra/qa_docs는 Sol High 기본을 유지하며, Sol High로 해결되지 않는 복잡 문제에만 Manager가 Astra를 예외적으로 일시 승격한다. 반복적 공식 문서 조사와 정형 Excel/VBA 변환은 GPT-6 Luna/Medium을 유지한다(동일 과금 토큰 기준 Terra는 Luna 대비 약 10배). 비정형 이미지·화면 해석이나 복잡한 VBA 디버깅 등은 범위를 확인해 Terra/Medium, 보안·데이터 계약 변경은 Sol/High로 작업별 승격한다. 모든 승격은 Manager 결정과 새 세션/실제 모델 식별을 필요로 하며, 역할 권한·기존 CI/QA/Owner Gate·동시 실행 6은 유지한다.
 
 ### Manager
 
