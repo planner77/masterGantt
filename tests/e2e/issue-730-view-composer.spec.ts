@@ -635,9 +635,17 @@ test("#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조
         controls: Array.from(element.querySelectorAll<HTMLElement>("button,input,select")).filter(control => control.checkVisibility({ checkVisibilityCSS: true })).map(control => ({ name: control.getAttribute("aria-label") ?? control.textContent, width: control.getBoundingClientRect().width, height: control.getBoundingClientRect().height })),
       }));
       expect(measured.documentWidth).toBeLessThanOrEqual(width + 1);
-      // Resource Workspace owns fine-pointer density; other root contracts stay 44px.
-      const controlMinimum = kind === "resource" ? 36 : 44;
+      // #826: every shared WBS consumer owns the same pointer-aware density.
+      const controlMinimum = await page.evaluate(() => matchMedia("(pointer: coarse), (any-pointer: coarse)").matches ? 44 : 36);
       measured.controls.forEach(control => { expect(control.height, String(control.name)).toBeGreaterThanOrEqual(controlMinimum); });
+      const quickDensity = await root.locator('[aria-label="빠른 조회 조건"]').evaluate(element => ({
+        fields: Array.from(element.querySelectorAll("input,select,button")).map(control => ({ height: control.getBoundingClientRect().height, font: getComputedStyle(control).fontSize })),
+        narrowPair: [element.querySelector("select")!, element.querySelector("button[aria-expanded]")!].map(control => ({ top: control.getBoundingClientRect().top, bottom: control.getBoundingClientRect().bottom })),
+        labels: Array.from(element.querySelectorAll("label")).map(label => ({ top: label.getBoundingClientRect().top, bottom: label.getBoundingClientRect().bottom, controlTop: label.querySelector("input,select")!.getBoundingClientRect().top, controlBottom: label.querySelector("input,select")!.getBoundingClientRect().bottom })),
+      }));
+      quickDensity.fields.forEach(control => { expect(control.height).toBe(controlMinimum); expect(control.font).toBe("13px"); });
+      if (width <= 600) { expect(Math.abs(quickDensity.narrowPair[0].top - quickDensity.narrowPair[1].top)).toBeLessThanOrEqual(1); expect(Math.abs(quickDensity.narrowPair[0].bottom - quickDensity.narrowPair[1].bottom)).toBeLessThanOrEqual(1); }
+      if (width > 600) quickDensity.labels.forEach(label => { expect(Math.abs(label.top - label.controlTop)).toBeLessThanOrEqual(1); expect(Math.abs(label.bottom - label.controlBottom)).toBeLessThanOrEqual(1); });
       // #800 EXTEND (not a duplicate 5x5 spec): record real first-data/scroll/overlap on the same fixture.
       const geometry = await observeDashboardSurface(page, kind);
       assertDashboardSurface(geometry, width);
@@ -703,6 +711,14 @@ test("#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조
     let touchQueries = 0;
     touchPage.on("request", request => { if (isWbsViewReadQuery(request)) touchQueries++; });
     const touchTrigger = dashboard(touchPage).getByRole("button", { name: /^필터·조회 구성/ });
+    expect(await touchPage.evaluate(() => matchMedia("(pointer: coarse), (any-pointer: coarse)").matches)).toBe(true);
+    for (const kind of roots) {
+      await openRoot(touchPage, kind);
+      const controls = await dashboard(touchPage).locator('[aria-label="빠른 조회 조건"]').evaluate(element => Array.from(element.querySelectorAll("button,input,select")).map(control => ({ height: control.getBoundingClientRect().height, font: getComputedStyle(control).fontSize })));
+      controls.forEach(control => { expect(control.height).toBeGreaterThanOrEqual(44); expect(control.font).toBe("13px"); });
+    }
+    await openRoot(touchPage, "equipment");
+    touchQueries = 0;
     await touchTrigger.tap(); await expect(touchTrigger).toHaveAttribute("aria-expanded", "true");
     await touchTrigger.tap(); await expect(touchTrigger).toHaveAttribute("aria-expanded", "false");
     await expect(touchTrigger).toBeFocused(); expect(touchQueries).toBe(0);
