@@ -14,6 +14,24 @@ const taskBar = (page: Page, ordinal: number) =>
   ganttRoot(page).locator(`.project-gantt-widget .wx-bar[data-task-id=":${id(ordinal)}"]`);
 const tooltip = (page: Page) => page.locator(".project-task-hover-tooltip-content").last();
 
+async function setTooltipDensity(page: Page, height: number) {
+  const frame = ganttRoot(page);
+  for (let current = Number(await frame.getAttribute("data-gantt-cell-height")); current > height; current -= 2) {
+    const row = rowNamed(page, "Existing summary child");
+    const box = await row.boundingBox();
+    if (!box) throw new Error("Tooltip density setup requires a visible native Grid row");
+    await page.mouse.move(box.x + Math.min(100, box.width / 2), box.y + box.height / 2);
+    await page.keyboard.down("Control");
+    await page.mouse.wheel(0, 120);
+    await page.keyboard.up("Control");
+    await expect(frame).toHaveAttribute("data-gantt-cell-height", String(current - 2));
+  }
+  await expect.poll(async () => {
+    const raw = await frame.getAttribute("data-gantt-projection-receipt");
+    return raw ? JSON.parse(raw).outcome : null;
+  }).toBe("SETTLED");
+}
+
 async function displayDate(page: Page, value: string): Promise<string> {
   return page.evaluate((dateOnly) => {
     const [year, month, day] = dateOnly.split("-").map(Number);
@@ -93,9 +111,12 @@ test("Issue #492 shows the same canonical Task details from Grid and Chart", asy
   expect(fixture.patchRequests).toHaveLength(0);
 });
 
-test("Issue #492 keeps the hover tooltip across Week, fullscreen, WBS scope and readonly", async ({ page }) => {
+for (const densityHeight of [34, 32, 28]) test(
+  densityHeight === 34 ? "Issue #492 keeps the hover tooltip across Week, fullscreen, WBS scope and readonly"
+    : `Issue #822 ${densityHeight}px preserves canonical hover tooltip across Week, fullscreen, WBS scope and readonly`, async ({ page }) => {
   const fixture = await installStatefulProjectFixture(page);
   await page.goto(`/projects/${publicId}`);
+  await setTooltipDensity(page, densityHeight);
 
   const start = await displayDate(page, "2026-01-05");
   const end = await displayDate(page, "2026-01-06");
@@ -116,11 +137,13 @@ test("Issue #492 keeps the hover tooltip across Week, fullscreen, WBS scope and 
   await page.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)" }).click();
   await expect(rowNamed(page, "Existing summary child")).toBeVisible();
   await expectTooltip(page, rowNamed(page, "Existing summary child"), "Existing summary child", start, end, fixture.project.revision);
+  await expect(ganttRoot(page)).toHaveAttribute("data-gantt-cell-height", String(densityHeight));
   await expect(ganttRoot(page)).toHaveAttribute("data-project-gantt-api-instance", instance!);
 
   fixture.sessionEditable = false;
   await page.reload();
   await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+  await setTooltipDensity(page, densityHeight);
   await expectTooltip(page, rowNamed(page, "Existing summary child"), "Existing summary child", start, end, fixture.project.revision);
 
   expect(fixture.posts).toHaveLength(0);

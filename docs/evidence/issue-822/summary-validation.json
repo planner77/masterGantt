@@ -1,0 +1,58 @@
+{
+  "command": "npm run test:e2e -- tests/e2e/project-summary-bar-visual.spec.ts --grep 'Issue #822|Issue #818/#822'",
+  "baselineSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+  "startTime": 1793070748565,
+  "durationMs": 53154.024999999994,
+  "sourceHashes": {
+    "src/features/gantt/gantt-density.ts": "be359667ec7cb1dcdccfdc74f47a57fc8ec440f9fa7836445601e9fa6fea2ceb",
+    "src/features/gantt/project-gantt.tsx": "ed673be67ac7ef6ea3802004d305398bfa8c050d80d54ebbe0063d7f9ab81788",
+    "src/features/gantt/gantt-scale-toolbar.css": "3556abad9ef2a2b1b71c1110486d1a90f5bb5390acb47509de40567ac8c58696",
+    "src/features/gantt/viewport/viewport-coordinator.ts": "0b249b6bba26dab7950e9b304324308e7206312b3f9254af29babaaeae913012",
+    "src/features/gantt/viewport/svar-viewport-port.ts": "b3658b2765fe8a0c0b8f86833ad278504e5d974ce08bfb32f5b46a04d51ff06f",
+    "tests/e2e/project-summary-bar-visual.spec.ts": "7b169bf80d140e85e6e01d3450cbbfc008c8a2b9984351fd1d5b19d6b97082c1"
+  },
+  "sourceStable": true,
+  "cases": [
+    {
+      "title": "Issue #818/#822 preserves native Summary progress grabs and canonical restore in 34px rows",
+      "durationMs": 8935,
+      "status": "passed"
+    },
+    {
+      "title": "Issue #818/#822 preserves native Summary progress grabs and canonical restore in 32px rows",
+      "durationMs": 8412,
+      "status": "passed"
+    },
+    {
+      "title": "Issue #818/#822 preserves native Summary progress grabs and canonical restore in 28px rows",
+      "durationMs": 9366,
+      "status": "passed"
+    },
+    {
+      "title": "Issue #822 synchronizes native Grid/Chart density, preserves geometry and owns only body Ctrl wheel",
+      "durationMs": 6612,
+      "status": "passed"
+    },
+    {
+      "title": "Issue #822 keeps a virtual middle-row anchor through bursts and state transitions",
+      "durationMs": 6995,
+      "status": "passed"
+    },
+    {
+      "title": "Issue #822 scopes cancellation and clamps hybrid/coarse changes without resetting the instance",
+      "durationMs": 2874,
+      "status": "passed"
+    },
+    {
+      "title": "Issue #822 preserves collapsed tree, selection, custom columns and cancellable inline editing",
+      "durationMs": 3327,
+      "status": "passed"
+    },
+    {
+      "title": "Issue #822 pauses density while a canonical mutation owns row geometry",
+      "durationMs": 2734,
+      "status": "passed"
+    }
+  ],
+  "scope": "Local Chromium real native input; mocked canonical Project API. Remote Full CI and final QA NOT TESTED."
+}

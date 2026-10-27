@@ -65,6 +65,25 @@ const peer: ViewportCommand = { kind: "PEER_RETURN", position: { left: 120, top:
 const passive: ViewportCommand = { kind: "PASSIVE_RESTORE", position: { left: 120, top: 96 } };
 
 describe("Viewport Coordinator arbitration and bounded observation", () => {
+  it("arbitrates density anchoring under the original gesture and lets later native input revoke it", async () => {
+    const f = fixture();
+    f.coordinator.userInput();
+    const source = f.coordinator.stamp();
+    f.update({ receipt: null });
+    const pending = f.coordinator.request({ kind: "DENSITY_ANCHOR", rowId: ":task", offset: 90, left: 120 }, source);
+    await f.advance(2);
+    expect(f.port.apply).not.toHaveBeenCalled();
+    f.coordinator.userInput();
+    await f.advance(2);
+    expect(await pending).toBe("SUPERSEDED");
+    expect(f.port.apply).not.toHaveBeenCalled();
+    f.context({ projectionEpoch: 6 });
+    const current = f.coordinator.request({ kind: "DENSITY_ANCHOR", rowId: ":task", offset: 90, left: 120 });
+    await f.advance(10);
+    expect(await current).toBe("SETTLED");
+    f.coordinator.dispose();
+  });
+
   it("invalidates settled consumer stamps on another accepted intent, unchanged-position input, context round-trip, and disposal", async () => {
     const f = fixture(), first = f.coordinator.request({ kind: "TASK_REVEAL", taskId: "task" });
     const firstStamp = f.coordinator.stamp();

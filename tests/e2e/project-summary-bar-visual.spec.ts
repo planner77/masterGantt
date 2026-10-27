@@ -1,5 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
+  deferred,
+  rootAdd,
   expectSameGanttRoot,
   ganttRoot,
   installStatefulProjectFixture,
@@ -342,7 +344,7 @@ for (const coarse of [false, true]) for (const scale of ["일", "주"] as const)
   });
 }
 
-test("Issue #818 preserves native Summary progress grabs and canonical restore", async ({ page }, testInfo) => {
+for (const height of [34, 32, 28]) test(`Issue #818/#822 preserves native Summary progress grabs and canonical restore in ${height}px rows`, async ({ page }, testInfo) => {
   const fixture = await installStatefulProjectFixture(page);
   await page.setViewportSize({ width: 1440, height: 1000 });
   const receipts: unknown[] = [];
@@ -354,6 +356,10 @@ test("Issue #818 preserves native Summary progress grabs and canonical restore",
       entry.progress = progress;
     }
     await page.goto(`/projects/${publicId}`);
+    for (let current = 34; current > height; current -= 2) {
+      await densityWheel(page, taskBar(page, 1), 120);
+      await expect(ganttRoot(page)).toHaveAttribute('data-gantt-cell-height', String(current - 2));
+    }
     await ganttRoot(page).getByRole("button", { name: "주", exact: true }).click();
     const identity = await rememberGanttRoot(page);
     const summary = taskBar(page, 1);
@@ -391,7 +397,7 @@ test("Issue #818 preserves native Summary progress grabs and canonical restore",
       const rect = element.getBoundingClientRect();
       return document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === element;
     });
-    if (progress === 0) await page.screenshot({ path: "output/playwright/issue-818/active-progress-target.png" });
+    if (progress === 0 && height === 34) await page.screenshot({ path: "output/playwright/issue-818/active-progress-target.png" });
     expect(activeLabelHit).toBe(true);
     await page.mouse.up();
     await expect(marker).not.toHaveClass(/wx-progress-in-drag/);
@@ -425,4 +431,278 @@ test("Issue #818 preserves native Summary progress grabs and canonical restore",
   expect(fixture.posts).toHaveLength(0);
   expect(fixture.project.revision).toBe(fixture.initialRevision);
   await testInfo.attach("issue-818-summary-progress-grabs", { body: JSON.stringify(receipts), contentType: "application/json" });
+});
+
+async function densityWheel(page: Page, surface: Locator, delta: number, tail = false) {
+  const box = await surface.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move(box!.x + Math.min(box!.width / 2, 100), box!.y + box!.height / 2);
+  await page.keyboard.down("Control");
+  await page.mouse.wheel(0, delta);
+  if (tail) await surface.dispatchEvent('wheel', { ctrlKey: true, deltaY: Math.sign(delta), bubbles: true, cancelable: true });
+  await page.keyboard.up("Control");
+}
+
+test("Issue #822 synchronizes native Grid/Chart density, preserves geometry and owns only body Ctrl wheel", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const fixture = await installStatefulProjectFixture(page);
+  for (let n = 5; n < 100; n++) fixture.tasks.push({ ...fixture.tasks[2], taskId: id(n), externalId: `DENSITY-${n}`, name: `긴 작업 이름과 English task density ${n}`, siblingOrder: n });
+  await page.goto(`/projects/${publicId}`);
+  const root = ganttRoot(page);
+  const identity = await rememberGanttRoot(page);
+  const row = root.locator(`.wx-table .wx-row[data-id=":${id(2)}"]`);
+  const body = taskBar(page, 2);
+  await expect(root).toHaveAttribute("data-gantt-cell-height", "34");
+  const measure = async () => {
+    const [summary, ordinary, grid] = await Promise.all([barMetrics(taskBar(page, 1)), barMetrics(taskBar(page, 2)), row.boundingBox()]);
+    return { summary, ordinary, row: grid!, font: await row.locator('.wx-text').first().evaluate(element => parseFloat(getComputedStyle(element).fontSize)),
+      visible: await root.locator('.wx-table .wx-row[data-id]').evaluateAll(rows => rows.filter(row => { const box = row.getBoundingClientRect(), owner = row.closest('.wx-gantt')?.getBoundingClientRect(); return owner && box.top >= owner.top && box.bottom <= owner.bottom; }).length),
+      left: await root.locator('.wx-chart').first().evaluate(element => element.scrollLeft) };
+  };
+  const baseline = await measure();
+  const receipts = [baseline];
+  await testInfo.attach('issue-822-before', { body: await page.screenshot(), contentType: 'image/png' });
+  for (const [level, height] of [32, 30, 28].entries()) {
+    await densityWheel(page, level % 2 === 0 ? row : body, 120);
+    await expect(root).toHaveAttribute("data-gantt-cell-height", String(height));
+    await expect.poll(async () => (await row.boundingBox())?.height).toBe(height);
+    const current = await measure(); receipts.push(current);
+    expect(current.font).toBeLessThan(receipts[receipts.length - 2].font);
+    expect(current.font).toBeGreaterThanOrEqual(12);
+    expect(current.ordinary.rootHeight).toBeLessThan(receipts[receipts.length - 2].ordinary.rootHeight);
+    expect(current.summary.visualHeight / current.ordinary.rootHeight).toBeGreaterThanOrEqual(0.55);
+    expect(current.summary.visualHeight / current.ordinary.rootHeight).toBeLessThanOrEqual(0.7);
+    expect(Math.abs(current.row.y + current.row.height / 2 - current.ordinary.rootY - current.ordinary.rootHeight / 2)).toBeLessThanOrEqual(1);
+    expect(current.ordinary.rootX).toBeCloseTo(baseline.ordinary.rootX, 0);
+    expect(current.ordinary.rootWidth).toBeCloseTo(baseline.ordinary.rootWidth, 0);
+    expect(current.left).toBe(baseline.left);
+    await expectSameGanttRoot(page, identity);
+  }
+  expect(receipts.at(-1)!.visible).toBeGreaterThan(baseline.visible);
+  await testInfo.attach('issue-822-minimum', { body: await page.screenshot(), contentType: 'image/png' });
+  await densityWheel(page, row, 1200);
+  await expect(root).toHaveAttribute("data-gantt-cell-height", "28");
+  // Native marker hit-test and neighboring body context remain distinct at minimum density.
+  await taskBar(page, 1).hover();
+  const child = await taskBar(page, 2).boundingBox();
+  await page.mouse.click(child!.x + child!.width / 2, child!.y + child!.height / 2, { button: 'right' });
+  await expect(page.getByRole('menu', { name: '작업 메뉴' })).toBeVisible();
+  await page.getByRole('menuitem', { name: 'Edit', exact: true }).click();
+  const editor = page.getByRole('dialog', { name: '작업 정보', exact: true });
+  await expect(editor.getByLabel('작업명', { exact: true })).toHaveValue('Existing summary child');
+  await densityWheel(page, editor.getByLabel('작업명', { exact: true }), -120);
+  await expect(root).toHaveAttribute('data-gantt-cell-height', '28');
+  await page.keyboard.press('Escape');
+  const checkbox = row.locator('input[type="checkbox"]');
+  await checkbox.check();
+  await expect(checkbox).toBeChecked();
+  await densityWheel(page, checkbox, -120);
+  await expect(root).toHaveAttribute("data-gantt-cell-height", "28");
+  await root.getByRole('button', { name: '주', exact: true }).click();
+  await expect(root).toHaveAttribute('data-gantt-scale-mode', 'week');
+  await expect(root).toHaveAttribute("data-gantt-cell-height", "28");
+  await root.getByRole('button', { name: '일', exact: true }).click();
+  for (const height of [30, 32, 34]) {
+    await densityWheel(page, row, -120);
+    await expect(root).toHaveAttribute("data-gantt-cell-height", String(height));
+  }
+  await densityWheel(page, body, -1200);
+  await expect(root).toHaveAttribute("data-gantt-cell-height", "34");
+  const restored = await measure();
+  expect(restored.row.height).toBe(baseline.row.height);
+  expect(restored.font).toBe(baseline.font);
+  expect(restored.ordinary.rootHeight).toBe(baseline.ordinary.rootHeight);
+  await expectSameGanttRoot(page, identity);
+  expect(fixture.posts).toHaveLength(0);
+  expect(fixture.patchRequests).toHaveLength(0);
+  await testInfo.attach('issue-822-restored', { body: await page.screenshot(), contentType: 'image/png' });
+  await testInfo.attach('issue-822-density-dom', { body: JSON.stringify({ viewport: page.viewportSize(), environment: await page.evaluate(() => ({ dpr: devicePixelRatio, locale: navigator.language, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches })), receipts, restored }), contentType: 'application/json' });
+});
+
+test("Issue #822 keeps a virtual middle-row anchor through bursts and state transitions", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const fixture = await installStatefulProjectFixture(page);
+  for (let n = 5; n < 130; n++) fixture.tasks.push({ ...fixture.tasks[2], taskId: id(n), externalId: `ANCHOR-${n}`, name: `한국어 Long English anchor task ${n}`, siblingOrder: n });
+  await page.goto(`/projects/${publicId}`);
+  const root = ganttRoot(page), identity = await rememberGanttRoot(page);
+  const vertical = root.locator('.wx-gantt').first();
+  const row = root.locator(`.wx-table .wx-row[data-id=":${id(2)}"]`);
+  await row.hover();
+  await page.mouse.wheel(0, 1600);
+  await expect.poll(() => vertical.evaluate(element => element.scrollTop)).toBeGreaterThan(1200);
+  const readAnchor = () => root.locator('.wx-table .wx-row[data-id]').evaluateAll(rows => {
+    const viewport = document.querySelector('.project-gantt-widget .wx-gantt')!.getBoundingClientRect();
+    const candidate = rows.map(row => ({ id: row.getAttribute('data-id')!, box: row.getBoundingClientRect() }))
+      .filter(({ box }) => box.top > viewport.top + 100 && box.bottom < viewport.bottom - 100)
+      .sort((a, b) => Math.abs(a.box.y + a.box.height / 2 - viewport.y - viewport.height / 2) - Math.abs(b.box.y + b.box.height / 2 - viewport.y - viewport.height / 2))[0];
+    return candidate ? { id: candidate.id, offset: candidate.box.top + candidate.box.height / 2 - viewport.top } : null;
+  });
+  await expect.poll(readAnchor).not.toBeNull();
+  const anchor = (await readAnchor())!;
+  const anchorRow = root.locator(`.wx-table .wx-row[data-id="${anchor.id}"]`);
+  const anchorOffset = () => anchorRow.evaluate(element => {
+    const box = element.getBoundingClientRect(), viewport = document.querySelector('.project-gantt-widget .wx-gantt')!.getBoundingClientRect();
+    return box.top + box.height / 2 - viewport.top;
+  });
+  const receipts: unknown[] = [];
+  for (const height of [32, 30, 28, 30, 32, 34]) {
+    await densityWheel(page, anchorRow, height < Number(await root.getAttribute('data-gantt-cell-height')) ? 120 : -120, true);
+    await expect(root).toHaveAttribute('data-gantt-cell-height', String(height));
+    // Residual high-resolution tail events belong to the same density lease.
+    await expect.poll(async () => Math.abs(await anchorOffset() - anchor.offset)).toBeLessThanOrEqual(1);
+    receipts.push({ height, offset: await anchorOffset(), scrollTop: await vertical.evaluate(element => element.scrollTop) });
+    await expectSameGanttRoot(page, identity);
+  }
+  await densityWheel(page, anchorRow, 120);
+  await expect(root).toHaveAttribute('data-gantt-cell-height', '32');
+  await expect.poll(async () => Math.abs(await anchorOffset() - anchor.offset)).toBeLessThanOrEqual(1);
+  // Fullscreen, peer dashboard and scale retain the same local density/instance.
+  await root.getByRole('button', { name: '주', exact: true }).click();
+  await expect(root).toHaveAttribute('data-gantt-cell-height', '32');
+  await root.getByRole('button', { name: 'Gantt 전체 화면', exact: true }).click();
+  await expect(root.getByRole('button', { name: 'Gantt 전체 화면 종료', exact: true })).toBeVisible();
+  await expect(root).toHaveAttribute('data-gantt-cell-height', '32');
+  await root.getByRole('button', { name: 'Gantt 전체 화면 종료', exact: true }).click();
+  await page.getByRole('tab', { name: '대시보드', exact: true }).click();
+  await page.getByRole('tab', { name: '일정', exact: true }).click();
+  await expect(root).toHaveAttribute('data-gantt-cell-height', '32');
+  await expectSameGanttRoot(page, identity);
+  expect(fixture.posts).toHaveLength(0);
+  expect(fixture.patchRequests).toHaveLength(0);
+  await testInfo.attach('issue-822-anchor-dom', { body: JSON.stringify({ anchor, receipts }), contentType: 'application/json' });
+});
+
+test("Issue #822 scopes cancellation and clamps hybrid/coarse changes without resetting the instance", async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = window.matchMedia.bind(window);
+    const lists: MediaQueryList[] = [];
+    let override: { coarse: boolean; hybrid: boolean } | null = null;
+    const apply = (list: MediaQueryList) => {
+      if (!override) return;
+      const matches = override.coarse && (!override.hybrid || list.media === '(any-pointer: coarse)');
+      Object.defineProperty(list, 'matches', { configurable: true, value: matches });
+    };
+    window.matchMedia = (query: string) => {
+      const list = original(query);
+      if (query === '(pointer: coarse)' || query === '(any-pointer: coarse)') {
+        lists.push(list);
+        apply(list);
+      }
+      return list;
+    };
+    Object.assign(window, { setDensityTouch: (coarse: boolean, hybrid = false) => {
+      override = { coarse, hybrid };
+      for (const list of lists) {
+        apply(list);
+        list.dispatchEvent(new MediaQueryListEvent('change', { matches: list.matches, media: list.media }));
+      }
+    } });
+  });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const fixture = await installStatefulProjectFixture(page);
+  await page.goto(`/projects/${publicId}`);
+  const root = ganttRoot(page), identity = await rememberGanttRoot(page);
+  const row = root.locator(`.wx-row[data-id=":${id(2)}"]`);
+  for (const height of [32, 30, 28]) { await densityWheel(page, row, 120); await expect(root).toHaveAttribute('data-gantt-cell-height', String(height)); }
+  const cancellation = await page.evaluate(() => {
+    const result: Record<string, boolean> = {};
+    for (const [key, selector, ctrlKey] of [['body', '.wx-table .wx-row[data-id]', true], ['ordinary', '.wx-table .wx-row[data-id]', false], ['header', '.wx-scale', true], ['outside', 'main h1', true], ['input', '.wx-row input', true]] as const) {
+      const target = document.querySelector(selector);
+      if (!target) throw new Error(`Missing cancellation target ${key}`);
+      const event = new WheelEvent('wheel', { ctrlKey, deltaY: 1, bubbles: true, cancelable: true });
+      target.dispatchEvent(event); result[key] = event.defaultPrevented;
+    }
+    return result;
+  });
+  expect(cancellation).toEqual({ body: true, ordinary: false, header: false, outside: false, input: false });
+  for (const width of [390, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await expect(row).toHaveCSS('height', '28px');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    const checkbox = row.locator('input[type="checkbox"]');
+    await checkbox.focus(); await expect(checkbox).toBeFocused();
+  }
+  // Hybrid: the primary mouse stays fine while a secondary touch pointer is coarse.
+  await page.evaluate(() => (window as unknown as { setDensityTouch(value: boolean, hybrid?: boolean): void }).setDensityTouch(true, true));
+  await expect(root).toHaveAttribute('data-gantt-cell-height', '44');
+  expect(await page.evaluate(() => [matchMedia('(pointer: coarse)').matches, matchMedia('(any-pointer: coarse)').matches])).toEqual([false, true]);
+  const currentTarget = await row.locator('.project-copy-selection-hitarea').boundingBox();
+  const nextTarget = await root.locator(`.wx-row[data-id=":${id(3)}"] .project-copy-selection-hitarea`).boundingBox();
+  expect(currentTarget!.height).toBeGreaterThanOrEqual(44);
+  expect(currentTarget!.y + currentTarget!.height).toBeLessThanOrEqual(nextTarget!.y + 0.01);
+  await page.evaluate(() => (window as unknown as { setDensityTouch(value: boolean): void }).setDensityTouch(true));
+  expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true);
+  await densityWheel(page, row, 1200);
+  await expect(root).toHaveAttribute('data-gantt-cell-height', '44');
+  expect((await row.locator('.project-copy-selection-hitarea').boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await page.evaluate(() => (window as unknown as { setDensityTouch(value: boolean): void }).setDensityTouch(false));
+  await expect(root).toHaveAttribute('data-gantt-cell-height', '34');
+  await expectSameGanttRoot(page, identity);
+  expect(fixture.patchRequests).toHaveLength(0);
+});
+
+test("Issue #822 preserves collapsed tree, selection, custom columns and cancellable inline editing", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const fixture = await installStatefulProjectFixture(page);
+  await page.goto(`/projects/${publicId}`);
+  const root = ganttRoot(page), identity = await rememberGanttRoot(page);
+  const summary = root.locator(`.wx-row[data-id=":${id(1)}"]`);
+  const toggle = summary.locator('[data-action="open-task"]');
+  await toggle.click();
+  await expect(toggle).toHaveClass(/wxi-menu-right/);
+  const leaf = root.locator(`.wx-row[data-id=":${id(3)}"]`);
+  await leaf.locator('[data-col-id=":projectStart"]').click();
+  await expect(leaf).toHaveClass(/wx-selected/);
+  const header = root.locator('.wx-table-container .wx-header').first();
+  await header.click({ button: 'right' });
+  const columns = page.locator('.project-column-menu');
+  await columns.getByRole('checkbox', { name: '외부 ID', exact: true }).check();
+  await columns.getByRole('checkbox', { name: '기간', exact: true }).uncheck();
+  await page.keyboard.press('Escape');
+  for (const height of [32, 30, 28]) {
+    await densityWheel(page, leaf, 120);
+    await expect(root).toHaveAttribute('data-gantt-cell-height', String(height));
+    await expect(toggle).toHaveClass(/wxi-menu-right/);
+    await expect(root.locator(`.wx-row[data-id=":${id(2)}"]`)).toHaveCount(0);
+    await expect(root.locator(`.wx-row[data-id=":${id(4)}"]`)).toHaveCount(0);
+    await expect(leaf).toHaveClass(/wx-selected/);
+    await expect(header.getByText('외부 ID', { exact: true })).toBeVisible();
+    await expect(header.getByText('기간', { exact: true })).toHaveCount(0);
+  }
+  await leaf.locator('[data-col-id=":text"] .wx-content > .wx-text').click();
+  const input = leaf.locator('.wx-cell.wx-editor input.wx-text');
+  await expect(input).toBeFocused();
+  await input.fill('미저장 초안');
+  await densityWheel(page, input, -120);
+  await expect(root).toHaveAttribute('data-gantt-cell-height', '28');
+  await expect(input).toHaveValue('미저장 초안');
+  await input.press('Escape');
+  await expect(leaf.locator('[data-col-id=":text"]')).toBeFocused();
+  await expect(leaf).toContainText('Stable leaf');
+  await expectSameGanttRoot(page, identity);
+  expect(fixture.patchRequests).toHaveLength(0);
+  expect(fixture.posts).toHaveLength(0);
+});
+
+test("Issue #822 pauses density while a canonical mutation owns row geometry", async ({ page }) => {
+  const fixture = await installStatefulProjectFixture(page);
+  await page.goto(`/projects/${publicId}`);
+  const root = ganttRoot(page), identity = await rememberGanttRoot(page);
+  const row = root.locator(`.wx-row[data-id=":${id(2)}"]`);
+  await densityWheel(page, row, 120);
+  await expect(root).toHaveAttribute('data-gantt-cell-height', '32');
+  const gate = deferred(), started = deferred();
+  fixture.nextPost = { kind: 'success', gate, started };
+  await rootAdd(page).click(); await started.promise;
+  await expect(root).toHaveAttribute('data-task-mutation-locked', 'true');
+  await densityWheel(page, row, 120);
+  await expect(root).toHaveAttribute('data-gantt-cell-height', '32');
+  expect(fixture.posts).toHaveLength(1);
+  gate.resolve();
+  await expect(root).not.toHaveAttribute('data-task-mutation-locked', 'true');
+  await densityWheel(page, row, 120);
+  await expect(root).toHaveAttribute('data-gantt-cell-height', '30');
+  await expectSameGanttRoot(page, identity);
+  expect(fixture.posts).toHaveLength(1);
+  expect(fixture.patchRequests).toHaveLength(0);
 });

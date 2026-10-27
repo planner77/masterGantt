@@ -111,6 +111,36 @@ describe("Issue #699 — risk/path/real test selection", () => {
     expect(s.state).toBe("READY");
     expect(s.selected.map((x) => x.path)).toContain("tests/scripts/prepr-verifier.test.ts");
   });
+  it("정확한 HIGH 밀도 모듈을 직접 Unit과 실제 geometry·입력 소비자에 연결한다", () => {
+    const path = "src/features/gantt/gantt-density.ts";
+    const selection = selectImpact({ changed: [path], tests, risk: "HIGH" });
+    expect(selection.state).toBe("READY");
+    expect(selection.unknown).toEqual([]);
+    expect(selection.missing).toEqual([]);
+    expect(selection.selected.map((item) => item.path)).toEqual([
+      "tests/e2e/project-gantt-scale.spec.ts",
+      "tests/e2e/project-summary-bar-visual.spec.ts",
+      "tests/e2e/project-task-delete-context.spec.ts",
+      "tests/e2e/project-task-hover-tooltip.spec.ts",
+      "tests/e2e/projection-row-alignment.spec.ts",
+      "tests/features/gantt/gantt-density.test.ts",
+    ]);
+    expect(inferRisk([path])).toBe("HIGH");
+    expect(() => selectImpact({ changed: [path], tests, risk: "MEDIUM" })).toThrow(/below path floor/);
+  });
+  it("인접 미등록 밀도 모듈과 직접 소비자 누락은 계속 BLOCKED한다", () => {
+    const adjacent = "src/features/gantt/gantt-density-experimental.ts";
+    const unknown = selectImpact({ changed: [adjacent], tests, risk: "HIGH" });
+    expect(unknown.state).toBe("BLOCKED");
+    expect(unknown.unknown.map((item) => item.path)).toEqual([adjacent]);
+    const missing = selectImpact({
+      changed: ["src/features/gantt/gantt-density.ts"],
+      tests: { ...tests, unit: tests.unit.filter((path) => path !== "tests/features/gantt/gantt-density.test.ts") },
+      risk: "HIGH",
+    });
+    expect(missing.state).toBe("BLOCKED");
+    expect(missing.missing.map((item) => item.path)).toContain("tests/features/gantt/gantt-density.test.ts");
+  });
   it("maps Issue #552 shared UI, lockfile and browser helper to real direct/adjacent/negative consumers", () => {
     const paths = [
       "package-lock.json", "src/features/gantt/gantt-scale-toolbar.css",

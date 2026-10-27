@@ -15,7 +15,8 @@ export type ViewportCommand =
   | { kind: "DIAGNOSTIC_SCROLL"; left: number }
   | { kind: "RANGE_EXTENSION"; width: number }
   | { kind: "NATIVE_ADD"; positions: readonly NativeViewportPosition[] }
-  | { kind: "DRAG_EDGE"; top: number };
+  | { kind: "DRAG_EDGE"; top: number }
+  | { kind: "DENSITY_ANCHOR"; rowId: string; offset: number; left: number };
 export type NativeViewportPosition = Readonly<{ selector: string; left: number; top: number; owner?: HTMLElement }>;
 export type ViewportOutcome = "SETTLED" | "SUPERSEDED" | "NOT_MEASURABLE" | "NO_SCROLL_CAPACITY" | "TIMED_OUT" | "FAILED" | "UNSUPPORTED";
 export type ViewportPhase = "IDLE" | "WAIT_PROJECTION" | "PREPARING_GEOMETRY" | "WAIT_GEOMETRY" | "APPLYING" | "SETTLING" | ViewportOutcome;
@@ -46,7 +47,7 @@ export interface ViewportPort {
   release(): void;
   trace(phase: ViewportPhase, command?: ViewportCommand, outcome?: ViewportOutcome, metadata?: ViewportTraceMetadata): void;
 }
-const priority = (command: ViewportCommand) => command.kind === "TASK_REVEAL" || command.kind === "DATE_REVEAL" || command.kind === "DIAGNOSTIC_DATE_REVEAL" || command.kind === "DRAG_EDGE" ? 4 : command.kind === "FILTER_RETURN" ? 3 : command.kind === "PEER_RETURN" || command.kind === "NATIVE_ADD" ? 2 : 1;
+const priority = (command: ViewportCommand) => command.kind === "TASK_REVEAL" || command.kind === "DATE_REVEAL" || command.kind === "DIAGNOSTIC_DATE_REVEAL" || command.kind === "DRAG_EDGE" || command.kind === "DENSITY_ANCHOR" ? 4 : command.kind === "FILTER_RETURN" ? 3 : command.kind === "PEER_RETURN" || command.kind === "NATIVE_ADD" ? 2 : 1;
 const identity = (context: ViewportContext) => JSON.stringify([context.apiInstance, context.key, context.scope, context.filter, context.scale, context.columns, context.geometry]);
 export function validViewportReceipt(sample: ViewportSample): boolean {
   const { context, receipt } = sample;

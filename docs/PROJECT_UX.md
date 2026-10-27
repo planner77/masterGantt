@@ -1,3 +1,22 @@
+## Issue #822 — Ctrl+휠 세로 밀도 조절
+
+일정의 Grid 또는 Chart **본문**에 포인터를 놓고 `Ctrl+휠 아래`로 행·본문 글꼴·Task bar를 함께 축소하고, `Ctrl+휠 위`로 기본 크기까지 확대한다. fine pointer의 행은34/32/30/28px, Grid 본문 글꼴은14/13.3/12.6/12.04px이며 기존 명시12px 보조 제어는 최소 크기를 유지한다. 최초 진입은34px, 터치 가능한 coarse·혼합 포인터는44px 단일 프로파일로 조작 목표를 보존한다. 최종 단계별 실측과 검증 범위는 [#822 Work Packet](exec-plans/active/ISSUE_822.md)에 기록한다.
+
+동일1440×1000 fixture의 실제 DOM 계측은 다음과 같다. Summary는 native root 대비 약60%이며 동일 Task의 Grid/Chart 중심 차이는0.5px였다. 이 값은 아래 로컬 정제 증거의 환경 범위이며 모든 기기·운영 성능을 보장하지 않는다.
+
+| 행 높이 px | Grid 글꼴 px | 일반 bar px | Summary visual px | 완전히 보이는 행 |
+| --- | --- | --- | --- | --- |
+|34|14|27|16.2188|18|
+|32|13.3|25|15|19|
+|30|12.6|23|13.8125|21|
+|28|12.04|21|12.625|22|
+
+[DOM 증거](evidence/issue-822/issue-822-density-dom.json)에서 기본→최소→기본의 치수와 날짜X546px/폭72px·scrollLeft0 불변을 확인한다. 깊이 스크롤한 별도 [기준 행 증거](evidence/issue-822/issue-822-anchor-dom.json)는 id57의 viewport 내 중심 offset360px가32→30→28→30→32→34px에서 유지됨을 기록한다. Geometry fixture는 canonical99/native WBS98행이고 anchor fixture는 canonical129/native WBS128행이다. 이 대표 범위는1000Task+2000Milestone 장기 실증을 대체하지 않는다.
+
+Grid/Chart는 하나의 ProjectGantt-local 밀도 상태를 공유한다. Day/Week·scope/filter·fullscreen·대시보드 왕복에서 같은 상태를 유지하고 브라우저 재시작 후 설정은 저장하지 않는다. 휠 아래는 더 많은 행을 표시하며 날짜축 가로폭/단위·일정 데이터·revision·Export는 바꾸지 않는다. 일반 휠과 Gantt 밖 Ctrl+휠은 기존 동작이며 header/toolbar·텍스트 입력·dialog/menu/popover는 밀도 조작에서 제외한다. 유효 Ctrl+휠만 native capture/non-passive listener가 소유하고 browser/time zoom 중복을 막으며 deltaMode의 pixel/line×16px/page×100px를60px 임계로 누적하여 정수 단계를 적용한다. 250ms 유휴·방향 반전 시 잔량 초기화, RAF당 최대1단계 및 cleanup을 적용한다. 저장·복구 대기나 드래그 중에는 대상 Ctrl+휠의 기본 확대를 취소하되 밀도 변경을 잠시 보류한다. 터치 가능성에 따른44px 안전 전환은 별도로 유지한다.
+
+공개 SVAR `cellHeight`가 양쪽 행 높이를 소유하고 Grid 본문에만 글꼴/line-height를 적용한다. Summary60% 시각 계층과 full-size hitbox·#818 활성 progress stacking·인접 Task 우클릭을 보존한다. 기존 단일 viewport coordinator/port가 실제 Task ID와 본문 내 Y offset을 기준으로 밀도 anchor intent를 처리한다. 새 사용자 입력/문맥은 오래된 복원보다 우선하며 직접 scrollTop 배율 계산·별도 writer·remount를 도입하지 않는다. 각 단계의 fresh projection 관측·중심 오차≤1px·수평 좌표/scrollLeft·canonical write0은 실제 검증 증거로 확인한다.
+
 ## Issue #819 — 리소스 6개 분석 화면의 밀도·이름 우선 회귀 교정
 
 대시보드 → 리소스의 기본 현황, 차트, 동적 계층 탐색, Milestone 교차, Resource Plan, 견적·Excel은 같은 compact host를 사용한다. fine pointer 제어는36px·13px label/20px line-height, coarse는44px target을 유지하며 버튼의 내용 중앙·같은 행 input/select/button 정렬을 맞춘다. KPI 숫자 강조와 action label typography를 분리한다. 다른5관점·관리/Task Editor의 크기를 이 변경으로 일괄 수정하지 않는다.

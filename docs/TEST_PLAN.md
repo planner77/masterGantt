@@ -1,3 +1,14 @@
+## Issue #822 — runtime 세로 밀도와 입력·상태 회귀
+
+[Work Packet의 AC_TEST_COVERAGE/TEST_LIFECYCLE_REVIEW](exec-plans/active/ISSUE_822.md)를 단일 매핑으로 사용한다. 기존 scale/Summary/projection/viewport suite를 EXTEND하고 단계·clamp·deltaMode/누적·방향 반전 Unit을 ADD한다. #816 coarse tap·#818 실제 pointer 우클릭/진행률·HTTP/SQLite·#637 strictY 음성/회복·selection/tooltip/canonical 권한은 KEEP_UNIQUE다. 기존 테스트 삭제·skip/assertion/timeout/retry 완화 및 새 중복 full spec은 도입하지 않는다.
+
+- 직접: Grid/Chart 각 Ctrl+wheel-down/up·공유 단계·상/하한·글꼴12px 이상·34→최소→34 동일 source geometry와 가시 행 증가·Summary ratio0.55~0.70·Grid/Chart 동일 ID 중심≤1px.
+- 인접: 최소/중간 native progress·move/resize·#818 인접 우클릭·checkbox/Shift·inline·dependency/tooltip/focus,80+ 가상행·접힘/filter/scope·Day/Week/fullscreen/peer 왕복의 instance/API·선택/tree/column/anchor·fresh SETTLED 보존.
+- 음성: Ctrl 없는 휠·외부 Ctrl wheel·header/toolbar/input/dialog 제외, browser/time zoom 중복0·날짜 X/폭/scrollLeft 불변·canonical write0, 연타/방향 변경·StrictMode listener cleanup 및 stale restore 취소.
+- 접근성:390/768/1024/1440/1920px·한/영 장문·reduced motion·keyboard·fine/coarse/혼합44px 목표 비중첩. 실기기·OS browser zoom·screen reader는 실제 수행 전 NOT TESTED다.
+
+선별 Local Fast Feedback과 Pre-PR의 실제 source/환경·명령·결과/실패는 Packet 및 정제 증거로 연결한다. 원격 Required3/Chromium8/Trusted/Owner는 별도이며 이번 범위는 Ready PR CI 시작까지만이다.
+
 ## Issue #819 — 리소스 6peer UI/UX 재발 방지
 
 기존 #736 Resource workspace/차트·#730 다관점 회귀를 EXTEND하여 Resource-local fine36px·13px/20px와 coarse44px, 같은 행 제어 정렬≤1px·padding/문서 overflow·표 소유 scroll·6peer 첫 데이터 위치를 검증한다. 비리소스 관점의 기존44px 기대는 보존한다. 기술ID 기본 비노출·명명된 원문 상세의 keyboard 접근, 반복 설명의 상황형 도움말 전환, 필수 범위/단위/분모/partial/null/0·오류/stale의 가시성을 검증한다.

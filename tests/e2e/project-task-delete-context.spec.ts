@@ -236,7 +236,7 @@ for (const recovery of ["normal", "stale", "unavailable", "401", "412", "network
   }
 });
 
-test("Issue #816 preserves native body moves, resize and progress dragging in compact rows", async ({ page, baseURL }) => {
+for (const height of [34, 32, 28]) test(`Issue #816/#822 preserves native body moves, resize and progress dragging in ${height}px rows`, async ({ page, baseURL }) => {
   test.setTimeout(90_000);
   await page.setViewportSize({ width: 1440, height: 1000 });
   const { api, snapshot } = await seedReorderProject(page, baseURL!);
@@ -246,6 +246,16 @@ test("Issue #816 preserves native body moves, resize and progress dragging in co
   const origin = new URL(page.url()).origin;
   const frame = page.locator(".project-gantt-frame");
   let current = snapshot;
+  async function applyDensity() {
+    if (height === 34) return;
+    await bar.hover();
+    for (let current = 34; current > height; current -= 2) {
+      await page.keyboard.down('Control');
+      await page.mouse.wheel(0, 120);
+      await page.keyboard.up('Control');
+      await expect(frame).toHaveAttribute('data-gantt-cell-height', String(current - 2));
+    }
+  }
   async function drag(fromX: number, y: number, delta: number) {
     const instance = await frame.getAttribute("data-project-gantt-api-instance");
     const response = page.waitForResponse((candidate) => candidate.request().method() === "PATCH" && new URL(candidate.url()).pathname === taskPath);
@@ -269,6 +279,7 @@ test("Issue #816 preserves native body moves, resize and progress dragging in co
     expect(seed.status()).toBe(200);
     current = await seed.json() as TaskMutationResponse;
     await page.reload();
+    await applyDensity();
     await page.getByRole("button", { name: "주", exact: true }).click();
     await expect(bar).toBeVisible();
     const before = current.data.tasks.find((entry) => entry.taskId === task.taskId)!;
@@ -295,6 +306,7 @@ test("Issue #816 preserves native body moves, resize and progress dragging in co
     expect(seed.status()).toBe(200);
     current = await seed.json() as TaskMutationResponse;
     await page.reload();
+    await applyDensity();
     await bar.hover();
     const beforeProgress = current.data.tasks.find((entry) => entry.taskId === task.taskId)!;
     const marker = bar.locator(".wx-progress-marker");

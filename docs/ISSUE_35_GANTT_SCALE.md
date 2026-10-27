@@ -70,3 +70,9 @@ SVAR React 2.7.3은 React `start/end` prop 변경 시 `dataStore.init(storeConfi
 사용자가 탐색해 확보한 미래 end는 app ref로 단조 증가시킨다. canonical Task sync나 Day/Week 전환이 Core의 flexible end를 다시 계산해 더 짧게 만들면 같은 public resize path로 이전 end 이상을 복구한다. React `end` prop을 변경하지 않으므로 이 확장 자체가 SVAR store re-init을 유발하지 않는다.
 
 Chromium은 native `scrollTo()`로 실제 React `onScroll` → SVAR `scroll-chart` 경로를 발생시켜 3회 연속 미래 확장, 동일 Gantt/API instance, non-zero scroll, mutation 0회를 검증한다. 기존 #373 scoped `filter-tasks`, 다중 selection/column/tree 상태가 range extension 때문에 초기화되지 않는지도 전체 E2E에서 회귀 검증한다.
+
+## Issue #822 Ctrl+휠로 세로 크기 조절
+
+일정 Grid 또는 Chart 본문에 마우스를 올린 뒤 Ctrl을 누르고 휠을 아래로 굴리면 행·글꼴·막대가 함께 작아져 더 많은 작업을 볼 수 있다. 위로 굴리면 최초 크기까지 돌아온다. 두 영역은 같은 값을 사용하며 Day/Week 버튼은 날짜축 표시 단위를 계속 담당한다. 터치 가능한 coarse·혼합 장치는44px 조작 목표를 위해 세로 축소를 제공하지 않는다.
+
+일반 휠은 기존 스크롤이고, Gantt 밖 Ctrl+휠은 원래 browser 동작이다. 입력 중인 셀·대화상자·메뉴와 header/toolbar는 대상이 아니다. 같은 일정 세션의 Day/Week·전체화면·범위/필터·대시보드 왕복에서 밀도를 유지하며 브라우저를 다시 시작하면 기본값으로 시작한다. 업무 데이터나 출력 파일의 일정은 변경하지 않는다. 단계별 실제 수치·안전한 하한·검증 범위는 [Project UX](PROJECT_UX.md) 및 [#822 Work Packet](exec-plans/active/ISSUE_822.md)을 따른다.

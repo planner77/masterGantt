@@ -322,7 +322,7 @@
 .project-copy-selection-help { color: var(--text-muted); font-size: 0.8125rem; }
 .project-copy-selection-status { margin: 0.25rem 0; }
 /* #816: coarse-pointer rows are 44px; the target must not overlay adjacent rows. */
-@media (pointer: coarse) { .project-copy-selection-hitarea { min-height: 44px; } }
+.project-gantt-frame[data-gantt-cell-height="44"] .project-copy-selection-hitarea { min-height: 44px; }
 
 .project-gantt-week-scale {
   position: relative;
@@ -457,4 +457,11 @@
   flex-direction: column;
   min-height: 0;
   min-width: 0;
+}
+
+/* #822: body typography follows the shared native row profile; header,
+   toolbar and other workspaces retain their existing type scale. */
+.project-gantt-widget .wx-table .wx-body .wx-cell {
+  font-size: var(--project-gantt-density-font, 14px);
+  line-height: 1.25;
 }

@@ -1,3 +1,11 @@
+## Issue #822 — Ctrl+휠 세로 밀도 구현
+
+main `dc8543f390616c0d5aca90a4f91899f3cf7ac5da`/app0.135.4에서 전용 `feat/issue-822-gantt-density`로 진행한다. #81634/44px·#818 progress pointer·#637 정렬을 보존하고 공유 local density·Grid typography·공개 cellHeight·단일 viewport anchor를 추가한다. [Work Packet](ISSUE_822.md)의 AC1~8·TEST_LIFECYCLE_REVIEW·문서/실제 검증 증거를 따른다.
+
+MINOR 후보0.136.0, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false다. ui_ux 설계·frontend 구현·Manager 문서·qa_docs 독립 사전검토·infra 게시를 분리한다. 종료점은 리뷰/충돌 처리 뒤 Ready PR Full CI 시작이며 모니터링·병합/Main/GHCR·Release/Issue 종료를 포함하지 않는다. 원격 Required3/Trusted/Owner·Manager ACCEPT는 NOT TESTED다.
+
+최종 로컬 선별137 Chromium/312 Unit과 fast3350 Unit·build 명령은 PASS지만, Next 생성 추적 파일 변경으로 Pre-PR 두 총괄은 BLOCKED/sourceStable=false다. 제품/test/script 13개 SHA 불변 및 원본 실패/취소·정제 증거는 Packet/원장에 보존하고 Ready PR CI 시작으로 인계한다.
+
 ## Issue #819 — 리소스 6peer UI/UX 회귀 교정 (2026-10-27)
 
 [Issue #819](https://github.com/planner77/masterGantt/issues/819) / [Work Packet](ISSUE_819.md) / [누적 실패 원장](../../ISSUE_819_FAILURE_ANALYSIS.md). 기존 `fix/issue-819-resource-ui-consistency` 작업을 재사용하고 main `495027854c2ab73f7f91d0b6205c86397cff4497`의 #818을 통합했다. Resource-local fine36px/13px/line20·coarse44px, 이름 우선·기술ID 상세·반복 설명 도움말과 조건/KPI/데이터/보조 Export 구획을 교정한다. 다른 관점·원본 지표/필터/권한·정확drill·Plan/Export 계약은 유지한다.

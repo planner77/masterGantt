@@ -1,0 +1,78 @@
+{
+  "densityHeight": 28,
+  "receipts": [
+    {
+      "progress": 0,
+      "point": {
+        "x": 578,
+        "y": 376
+      },
+      "markerHeight": 26,
+      "hit": true,
+      "activeLabelHit": true,
+      "endpoints": [
+        {
+          "width": 16,
+          "height": 16,
+          "hitLink": true,
+          "hitTask": ":00000000-0000-4000-8000-000000000001"
+        },
+        {
+          "width": 16,
+          "height": 16,
+          "hitLink": true,
+          "hitTask": ":00000000-0000-4000-8000-000000000001"
+        }
+      ]
+    },
+    {
+      "progress": 50,
+      "point": {
+        "x": 583,
+        "y": 376
+      },
+      "markerHeight": 26,
+      "hit": true,
+      "activeLabelHit": true,
+      "endpoints": [
+        {
+          "width": 16,
+          "height": 16,
+          "hitLink": true,
+          "hitTask": ":00000000-0000-4000-8000-000000000001"
+        },
+        {
+          "width": 16,
+          "height": 16,
+          "hitLink": true,
+          "hitTask": ":00000000-0000-4000-8000-000000000001"
+        }
+      ]
+    },
+    {
+      "progress": 100,
+      "point": {
+        "x": 588,
+        "y": 376
+      },
+      "markerHeight": 26,
+      "hit": true,
+      "activeLabelHit": true,
+      "endpoints": [
+        {
+          "width": 16,
+          "height": 16,
+          "hitLink": true,
+          "hitTask": ":00000000-0000-4000-8000-000000000001"
+        },
+        {
+          "width": 16,
+          "height": 16,
+          "hitLink": true,
+          "hitTask": ":00000000-0000-4000-8000-000000000001"
+        }
+      ]
+    }
+  ],
+  "provenance": "summary-validation.json; native Summary 28px case"
+}

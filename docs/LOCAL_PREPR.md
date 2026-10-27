@@ -1,3 +1,7 @@
+## Issue #822 — 세로 밀도 helper의 명시적 영향 매핑
+
+신규 `src/features/gantt/gantt-density.ts`는 로컬 단계/clamp·wheel 누적/대상 분기의 producer다. `prepr-core`에서 이 정확 경로만 HIGH로 분류하고 직접 density Unit과 기존 Summary/scale/tooltip Chromium의 양방향 입력·scope/filter·native geometry·비대상 음성 소비자를 선택한다. 매핑이 없던 초기 dry-run UNKNOWN은 미실행 계획 결과로 보존한다. 임의 helper·알 수 없는 경로는 여전히 BLOCKED이며 선택을 위한 catch-all/UNKNOWN 우회·원격 Required 범위 변경은 없다. 실제 결과·source fingerprint·미검증은 [#822 Work Packet](exec-plans/active/ISSUE_822.md)을 따른다.
+
 # Local Pre-PR Verification — Issue #699
 
 ## Issue #703 — 로컬 PASS와 Preview 게시의 경계 (2026-10-17)

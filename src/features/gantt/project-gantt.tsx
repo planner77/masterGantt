@@ -1,5 +1,7 @@
 "use client";
 
+import { createDensityWheel, densityHeight, densityFontScale, nextDensityLevel, isDensityWheelTarget } from "./gantt-density";
+
 import { createInlineNameSession, type InlineNameSubmitCause } from "./inline-name-session";
 
 import { createViewportCoordinator, type ViewportCoordinator, type ViewportController, type ViewportStamp, type ViewportContext } from "./viewport/viewport-coordinator";
@@ -143,9 +145,6 @@ import type { DependencyType } from "../../contracts/projects";
 import "./task-context-menu.css";
 import "./gantt-scale-toolbar.css";
 
-// #816: one public SVAR cellHeight governs both Grid and Chart row geometry.
-const GANTT_FINE_POINTER_CELL_HEIGHT = 34;
-const GANTT_COARSE_POINTER_CELL_HEIGHT = 44;
 
 interface CopySelectionContextValue {
   tasksById: ReadonlyMap<string, ProjectTaskDto>;
@@ -463,18 +462,10 @@ export function ProjectGantt({
   projectPublicId,
 }: ProjectGanttProps) {
   const { notify } = useWorkspaceNotifications();
-  // Coarse devices need the existing 44px checkbox target. Keep the same
-  // mounted Core instance and adapt the public prop, not private row DOM.
-  const [coarsePointer, setCoarsePointer] = useState(false);
-  useEffect(() => {
-    if (typeof window.matchMedia !== "function") return;
-    const pointer = window.matchMedia("(pointer: coarse)");
-    const syncPointer = () => setCoarsePointer(pointer.matches);
-    syncPointer();
-    pointer.addEventListener("change", syncPointer);
-    return () => pointer.removeEventListener("change", syncPointer);
-  }, []);
-  const ganttCellHeight = coarsePointer ? GANTT_COARSE_POINTER_CELL_HEIGHT : GANTT_FINE_POINTER_CELL_HEIGHT;
+  const [density, setDensity] = useState({ level: 0, coarse: false });
+  const ganttCellHeight = densityHeight(density.level, density.coarse);
+  const densityReference = useRef(density);
+  const pendingDensityAnchor = useRef<{ rowId: string; offset: number; left: number; source: ViewportStamp } | null>(null);
   const apiReference = useRef<IApi | null>(null);
   const projectionReceiptGeneration = useRef(0);
   const projectionObservationAttempt = useRef(0);
@@ -2092,7 +2083,11 @@ export function ProjectGantt({
       if (!(event.target instanceof Element)) return;
       const filter = (event.type === "input" || event.type === "change") && event.target.closest(".project-schedule-filter-toolbar, .project-task-filter-panel");
       if (filter) coordinator.filterInput();
-      else if (root.contains(event.target) && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container") && !event.target.closest("dialog")) coordinator.userInput();
+      else if (root.contains(event.target) && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container") && !event.target.closest("dialog")) {
+        // Density owns one wheel-burst lease. Sub-threshold tail events must
+        // not revoke its in-flight anchor; unrelated native input still wins.
+        if (!(event instanceof WheelEvent && event.ctrlKey && !event.altKey && !event.metaKey && event.cancelable && isDensityWheelTarget(event.target, root))) coordinator.userInput();
+      }
       else return;
       metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null;
       nativeAddContinuityReference.current = null;
@@ -2118,6 +2113,93 @@ export function ProjectGantt({
       metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null;
     };
   }, [apiInstanceId, onViewportController, recordTimelineEnd, scheduleTimelineExtension, expandTimelineScale]);
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root || !apiInstanceId) return;
+    const primary = window.matchMedia("(pointer: coarse)");
+    const any = window.matchMedia("(any-pointer: coarse)");
+    const accumulator = createDensityWheel();
+    let scheduled = 0, direction = 0, lastWheel = -Infinity, pointerY: number | null = null;
+    const change = (level: number, coarse: boolean, y: number | null) => {
+      const previous = densityReference.current;
+      if (level === previous.level && coarse === previous.coarse) return;
+      const coordinator = viewportCoordinatorReference.current;
+      const sample = viewportPortReference.current?.read();
+      const vertical = root.querySelector<HTMLElement>(".wx-gantt");
+      if (coordinator && sample?.measurable && vertical) {
+        const body = vertical.getBoundingClientRect();
+        const targetY = y ?? body.top + body.height / 2;
+        const rows = [...root.querySelectorAll<HTMLElement>(".wx-table .wx-row[data-id]")]
+          .map(row => ({ row, box: row.getBoundingClientRect() }))
+          .filter(({ box }) => box.bottom > body.top && box.top < body.bottom);
+        const nearest = rows.reduce<(typeof rows)[number] | null>((nearest, candidate) => {
+          const center = (box: DOMRect) => box.top + box.height / 2;
+          return !nearest || Math.abs(center(candidate.box) - targetY) < Math.abs(center(nearest.box) - targetY) ? candidate : nearest;
+        }, null);
+        if (nearest?.row.dataset.id) {
+          const { row, box } = nearest;
+          pendingDensityAnchor.current = { rowId: row.dataset.id!, offset: box.top + box.height / 2 - body.top, left: sample.core.left, source: coordinator.stamp() };
+        }
+      }
+      projectionReceiptReference.current = null;
+      densityReference.current = { level, coarse };
+      setDensity({ level, coarse });
+    };
+    const syncPointer = () => {
+      // A touch-capable hybrid cannot shrink its targets below 44px.
+      const coarse = primary.matches || any.matches;
+      if (coarse === densityReference.current.coarse) return;
+      viewportCoordinatorReference.current?.userInput();
+      accumulator.reset();
+      change(0, coarse, null);
+    };
+    const wheel = (event: WheelEvent) => {
+      if (!event.ctrlKey || event.altKey || event.metaKey || !event.cancelable || !(event.target instanceof Element) || !isDensityWheelTarget(event.target, root)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      // Native mutation/recovery owns temporary row geometry. Consume the
+      // shortcut but pause density until that canonical boundary settles.
+      if (mutationLockedReference.current || consistencyBlockedReference.current || event.buttons !== 0) {
+        accumulator.reset();
+        return;
+      }
+      pointerY = event.clientY;
+      const now = performance.now();
+      if (now - lastWheel > 250) viewportCoordinatorReference.current?.userInput();
+      lastWheel = now;
+      const next = accumulator.push(event.deltaY, event.deltaMode, now);
+      if (!next) return;
+      direction = next;
+      if (scheduled) return;
+      scheduled = requestAnimationFrame(() => {
+        scheduled = 0;
+        if (mutationLockedReference.current || consistencyBlockedReference.current) { accumulator.reset(); return; }
+        const current = densityReference.current;
+        const level = nextDensityLevel(current.level, direction, current.coarse);
+        if (level !== current.level) viewportCoordinatorReference.current?.userInput();
+        change(level, current.coarse, pointerY);
+      });
+    };
+    syncPointer();
+    primary.addEventListener("change", syncPointer);
+    any.addEventListener("change", syncPointer);
+    root.addEventListener("wheel", wheel, { capture: true, passive: false });
+    return () => {
+      cancelAnimationFrame(scheduled);
+      root.removeEventListener("wheel", wheel, true);
+      primary.removeEventListener("change", syncPointer);
+      any.removeEventListener("change", syncPointer);
+    };
+  }, [apiInstanceId]);
+  useEffect(() => {
+    const anchor = pendingDensityAnchor.current;
+    pendingDensityAnchor.current = null;
+    const coordinator = viewportCoordinatorReference.current;
+    if (anchor && coordinator?.validSource(anchor.source)) {
+      void coordinator.request({ kind: "DENSITY_ANCHOR", rowId: anchor.rowId, offset: anchor.offset, left: anchor.left }, anchor.source);
+    }
+  }, [ganttCellHeight]);
+
   useLayoutEffect(() => {
     if (!viewVisible || !apiInstanceId || !peerViewportRestore ||
       peerViewportRestore.key !== viewportContinuityKey ||
@@ -2317,6 +2399,8 @@ export function ProjectGantt({
     // reconstituted. Visibility is an application of WBS presentation, not a
     // canonical data revision: recheck the actual Core rows whenever the
     // schedule becomes visible again, without resetting the API instance.
+    // Core 2.7.3 also rebuilds visible rows for a cellHeight-only config
+    // update, so recheck membership and tracked tree intent after density.
     if (!viewVisible) return;
     const requestedProjection = projection;
     const requestedApi = apiReference.current;
@@ -2358,7 +2442,7 @@ export function ProjectGantt({
       taskFilterAppliedReference.current = visible !== null;
       appliedTaskFilterReference.current = { api, key: requestedProjection.keys.membership, structure: requestedProjection.keys.structure };
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [apiInstanceId, viewVisible, visibleTaskFilterKey, projection.keys.structure, projection.keys.membership, projectRevision, scaleMode, columns, projection, viewRootTaskId, visibleTaskIds, wbsDisplayMode]);
+  }, [apiInstanceId, viewVisible, visibleTaskFilterKey, projection.keys.structure, projection.keys.membership, projectRevision, scaleMode, columns, projection, viewRootTaskId, visibleTaskIds, wbsDisplayMode, ganttCellHeight]);
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const request = milestoneProbeRequest.current;
@@ -2531,7 +2615,7 @@ export function ProjectGantt({
       observation?.cancel(); layoutObserver.disconnect(); api.detach(tag);
     };
   }, [apiInstanceId, projectRevision, projection.keys.data, projection.keys.structure, projection.keys.membership,
-    projection.keys.layout, scaleMode, columns, viewVisible, projection, viewportContinuityKey, viewRootTaskId, mutationPending, canonicalRecoveryBlocked]);
+    projection.keys.layout, scaleMode, columns, viewVisible, projection, viewportContinuityKey, viewRootTaskId, mutationPending, canonicalRecoveryBlocked, ganttCellHeight]);
 
   useEffect(() => {
     if (!viewVisible || !apiInstanceId || !peerViewportRestore || peerViewportRestore.key !== viewportContinuityKey || peerViewportConsumed.current === peerViewportRestore) return;
@@ -4366,7 +4450,7 @@ export function ProjectGantt({
   }, [taskMenu, taskSubmenu]);
 
   return (
-    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-cell-height={ganttCellHeight} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={(editable && !mutationLocked ) || undefined}>
+    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-cell-height={ganttCellHeight} data-gantt-density-level={density.level} style={{ "--project-gantt-density-font": `${Math.max(12, 14 * densityFontScale(density.level, density.coarse))}px` } as React.CSSProperties} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={(editable && !mutationLocked ) || undefined}>
       <CopySelectionContext.Provider value={selectionContext}><Willow>
       <div className="project-gantt-scale-toolbar">
         {process.env.NODE_ENV !== "production" && milestoneTimeline ? <button type="button" aria-pressed={timelinePreview} onClick={() => setTimelinePreview(value => !value)}>Milestone Timeline 기술 미리보기</button> : null}

@@ -1,3 +1,7 @@
+## Issue #822 — 일정 본문의 세로 밀도
+
+Project 일정 Grid/Chart 본문의 Ctrl+휠은 행 높이·Grid 본문 글꼴·Task bar를 함께 조절한다. 아래 방향은 축소, 위 방향은 최초 표시 크기까지 확대하며 두 영역은 같은 로컬 상태를 사용한다. 일반 휠·외부 browser zoom·입력/모달을 보호하고 날짜축 단위·가로폭 및 canonical 일정/API/DB/revision·Export를 변경하지 않는다. 같은 Gantt 세션의 view 전환 상태와 기준 Task 위치를 기존 coordinator로 보존하며 터치 가능한 환경은44px 목표를 우선한다. 세부 입력·단계/하한·검증은 [Project UX](PROJECT_UX.md)와 [#822 Work Packet](exec-plans/active/ISSUE_822.md)을 따른다.
+
 ## Issue #809 — Resource 차트와 원본 근거
 
 리소스의 단일 작업면에 기간별 계획/Capacity·개인 과투입, 개인/Group/Role/등급 업무 집중, Resource×Milestone/공정/WorkArea/설비/System 기여의 세 분석 시각을 제공한다. 같은 source/snapshot/scope/unit의 그래프·접근 가능한 표·원본 Task/Assignment·일정 이동을 연결한다. 기간/목록은 제한된 window/정렬/페이지로 탐색하며 비가산 분류·partial/null/0·선택과 Project 참고·전체 Gate를 보존한다. 기존 보기/Plan/Excel·권한·If-Match·Gantt 상태를 유지하고 새 실적/근태/원가·저장 원장/PRO 의존성을 만들지 않는다. [실행 계획](exec-plans/active/ISSUE_809.md)의 AC1~AC6와 실제 증거를 따른다.
