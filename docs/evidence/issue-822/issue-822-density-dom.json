@@ -1,0 +1,195 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "environment": {
+    "dpr": 1,
+    "locale": "en-US",
+    "reducedMotion": false
+  },
+  "receipts": [
+    {
+      "summary": {
+        "rootX": 546,
+        "rootY": 357,
+        "rootWidth": 72,
+        "rootHeight": 27,
+        "visualTop": 5.39062,
+        "visualWidth": 72,
+        "visualHeight": 16.2188,
+        "progressTop": 5.390625,
+        "progressHeight": 16.21875
+      },
+      "ordinary": {
+        "rootX": 546,
+        "rootY": 391,
+        "rootWidth": 72,
+        "rootHeight": 27,
+        "visualTop": null,
+        "visualWidth": null,
+        "visualHeight": null,
+        "progressTop": 1,
+        "progressHeight": 25
+      },
+      "row": {
+        "x": 25,
+        "y": 388,
+        "width": 480,
+        "height": 34
+      },
+      "font": 14,
+      "visible": 18,
+      "left": 0
+    },
+    {
+      "summary": {
+        "rootX": 546,
+        "rootY": 357,
+        "rootWidth": 72,
+        "rootHeight": 25,
+        "visualTop": 5,
+        "visualWidth": 72,
+        "visualHeight": 15,
+        "progressTop": 5,
+        "progressHeight": 15
+      },
+      "ordinary": {
+        "rootX": 546,
+        "rootY": 389,
+        "rootWidth": 72,
+        "rootHeight": 25,
+        "visualTop": null,
+        "visualWidth": null,
+        "visualHeight": null,
+        "progressTop": 1,
+        "progressHeight": 23
+      },
+      "row": {
+        "x": 25,
+        "y": 386,
+        "width": 480,
+        "height": 32
+      },
+      "font": 13.3,
+      "visible": 19,
+      "left": 0
+    },
+    {
+      "summary": {
+        "rootX": 546,
+        "rootY": 357,
+        "rootWidth": 72,
+        "rootHeight": 23,
+        "visualTop": 4.59375,
+        "visualWidth": 72,
+        "visualHeight": 13.8125,
+        "progressTop": 4.59375,
+        "progressHeight": 13.8125
+      },
+      "ordinary": {
+        "rootX": 546,
+        "rootY": 387,
+        "rootWidth": 72,
+        "rootHeight": 23,
+        "visualTop": null,
+        "visualWidth": null,
+        "visualHeight": null,
+        "progressTop": 1,
+        "progressHeight": 21
+      },
+      "row": {
+        "x": 25,
+        "y": 384,
+        "width": 480,
+        "height": 30
+      },
+      "font": 12.6,
+      "visible": 21,
+      "left": 0
+    },
+    {
+      "summary": {
+        "rootX": 546,
+        "rootY": 357,
+        "rootWidth": 72,
+        "rootHeight": 21,
+        "visualTop": 4.1875,
+        "visualWidth": 72,
+        "visualHeight": 12.625,
+        "progressTop": 4.1875,
+        "progressHeight": 12.625
+      },
+      "ordinary": {
+        "rootX": 546,
+        "rootY": 385,
+        "rootWidth": 72,
+        "rootHeight": 21,
+        "visualTop": null,
+        "visualWidth": null,
+        "visualHeight": null,
+        "progressTop": 1,
+        "progressHeight": 19
+      },
+      "row": {
+        "x": 25,
+        "y": 382,
+        "width": 480,
+        "height": 28
+      },
+      "font": 12.04,
+      "visible": 22,
+      "left": 0
+    }
+  ],
+  "restored": {
+    "summary": {
+      "rootX": 546,
+      "rootY": 348,
+      "rootWidth": 72,
+      "rootHeight": 27,
+      "visualTop": 5.39062,
+      "visualWidth": 72,
+      "visualHeight": 16.2188,
+      "progressTop": 5.390625,
+      "progressHeight": 16.21875
+    },
+    "ordinary": {
+      "rootX": 546,
+      "rootY": 382,
+      "rootWidth": 72,
+      "rootHeight": 27,
+      "visualTop": null,
+      "visualWidth": null,
+      "visualHeight": null,
+      "progressTop": 1,
+      "progressHeight": 25
+    },
+    "row": {
+      "x": 25,
+      "y": 379,
+      "width": 480,
+      "height": 34
+    },
+    "font": 14,
+    "visible": 18,
+    "left": 0
+  },
+  "provenance": {
+    "baselineSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+    "command": "npm run test:e2e -- tests/e2e/project-summary-bar-visual.spec.ts --grep 'synchronizes native Grid/Chart density'",
+    "startTime": 1793070861632,
+    "durationMs": 11821.161,
+    "caseDurationMs": 7899,
+    "status": "passed",
+    "sourceHashes": {
+      "src/features/gantt/gantt-density.ts": "be359667ec7cb1dcdccfdc74f47a57fc8ec440f9fa7836445601e9fa6fea2ceb",
+      "src/features/gantt/project-gantt.tsx": "ed673be67ac7ef6ea3802004d305398bfa8c050d80d54ebbe0063d7f9ab81788",
+      "src/features/gantt/gantt-scale-toolbar.css": "3556abad9ef2a2b1b71c1110486d1a90f5bb5390acb47509de40567ac8c58696",
+      "src/features/gantt/viewport/viewport-coordinator.ts": "0b249b6bba26dab7950e9b304324308e7206312b3f9254af29babaaeae913012",
+      "src/features/gantt/viewport/svar-viewport-port.ts": "b3658b2765fe8a0c0b8f86833ad278504e5d974ce08bfb32f5b46a04d51ff06f",
+      "tests/e2e/project-summary-bar-visual.spec.ts": "d4cff9a842d352933ced1178176334c2655953f8c0828cafa96351bd136d209d"
+    },
+    "sourceStable": true
+  }
+}

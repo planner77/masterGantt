@@ -1,0 +1,781 @@
+{
+  "issue": 822,
+  "baselineSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+  "sourceSha256": {
+    "scripts/prepr-core.mjs": "e5259da43a79f93d6b88fdf3e6c19808e26ced69442d81d2ba962cac8cb2535d",
+    "src/features/gantt/gantt-density.ts": "be359667ec7cb1dcdccfdc74f47a57fc8ec440f9fa7836445601e9fa6fea2ceb",
+    "src/features/gantt/gantt-scale-toolbar.css": "3556abad9ef2a2b1b71c1110486d1a90f5bb5390acb47509de40567ac8c58696",
+    "src/features/gantt/project-gantt.tsx": "ed673be67ac7ef6ea3802004d305398bfa8c050d80d54ebbe0063d7f9ab81788",
+    "src/features/gantt/viewport/svar-viewport-port.ts": "b3658b2765fe8a0c0b8f86833ad278504e5d974ce08bfb32f5b46a04d51ff06f",
+    "src/features/gantt/viewport/viewport-coordinator.ts": "0b249b6bba26dab7950e9b304324308e7206312b3f9254af29babaaeae913012",
+    "tests/e2e/project-gantt-scale.spec.ts": "18392fd64065a996cf63a2ac142fd4f2af881cb1c2c8b79b9f599cc44acd90d5",
+    "tests/e2e/project-summary-bar-visual.spec.ts": "ab012848af8d0f23d1c36dbc9351036787c64006cc6a6d9388086298095158ca",
+    "tests/e2e/project-task-delete-context.spec.ts": "7b987b7ee4281e64444b0f87f88512094436600a569d0fa0f164346874908191",
+    "tests/e2e/project-task-hover-tooltip.spec.ts": "d23f9e6e844b34542441bd2d3244db9fed598730a61b84fbcedaeb590146ce8e",
+    "tests/features/gantt/gantt-density.test.ts": "2db1d9e2f5f188912679bc383b6caaac3980d46eb761303e6382ea055aea9789",
+    "tests/features/gantt/viewport-coordinator.test.ts": "450243048b36ef12511373b8a197d5ab24e33bdc029ca053af304e3559f58853",
+    "tests/scripts/prepr-verifier.test.ts": "3618c709a1795185d2391ba1ecd8fefaa55783738a5f012223882f639ad2de43"
+  },
+  "productTestScriptSourceStable": true,
+  "reports": {
+    "fast": {
+      "path": ".prepr-reports/issue-822-fast/report.json",
+      "sha256": "728f5b90ba13869ebb47c3a588c64eefbaf7c6f64ee6c48be3f1f949ca6a645d",
+      "status": "BLOCKED",
+      "sourceStable": false,
+      "sourceStart": {
+        "baseRef": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "baseSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "headSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "workingDiffSha256": "e9441881081cdd62e04643dbec34a1139a90fe33c80acdbe4ec624f07f52938c",
+        "fingerprint": "b01f8be3086c524eb2a1fe23dc6ea6615a874e457073c683525eeed84f4f7cec",
+        "dirty": true,
+        "changed": [
+          "CHANGELOG.md",
+          "docs/ISSUE_35_GANTT_SCALE.md",
+          "docs/ISSUE_822_FAILURE_ANALYSIS.md",
+          "docs/LOCAL_PREPR.md",
+          "docs/PROJECT_UX.md",
+          "docs/REQUIREMENTS.md",
+          "docs/TEST_PLAN.md",
+          "docs/evidence/issue-822/issue-822-anchor-dom.json",
+          "docs/evidence/issue-822/issue-822-before.png",
+          "docs/evidence/issue-822/issue-822-density-dom.json",
+          "docs/evidence/issue-822/issue-822-minimum.png",
+          "docs/evidence/issue-822/issue-822-restored.png",
+          "docs/evidence/issue-822/issue-822-summary-native-28.json",
+          "docs/evidence/issue-822/summary-validation.json",
+          "docs/exec-plans/active/ISSUE_822.md",
+          "docs/exec-plans/active/PLAN.md",
+          "output/playwright/issue-818/active-progress-target.png",
+          "output/playwright/issue-822/source-before-geometry.sha256",
+          "output/playwright/issue-822/source-before-summary.sha256",
+          "package-lock.json",
+          "package.json",
+          "scripts/prepr-core.mjs",
+          "src/features/gantt/gantt-density.ts",
+          "src/features/gantt/gantt-scale-toolbar.css",
+          "src/features/gantt/project-gantt.tsx",
+          "src/features/gantt/viewport/svar-viewport-port.ts",
+          "src/features/gantt/viewport/viewport-coordinator.ts",
+          "tests/e2e/project-gantt-scale.spec.ts",
+          "tests/e2e/project-summary-bar-visual.spec.ts",
+          "tests/e2e/project-task-delete-context.spec.ts",
+          "tests/e2e/project-task-hover-tooltip.spec.ts",
+          "tests/features/gantt/gantt-density.test.ts",
+          "tests/features/gantt/viewport-coordinator.test.ts",
+          "tests/scripts/prepr-verifier.test.ts"
+        ]
+      },
+      "sourceEnd": {
+        "baseRef": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "baseSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "headSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "workingDiffSha256": "51781028b99c7547690c8abfa57aca0e6b57454c5f9488b0ddb03c02d7890b53",
+        "fingerprint": "5bc9117c4b1f56a7aeb3bc2e0bfc6aa3b876109cbce47837ba5860b6a8eadf07",
+        "dirty": true,
+        "changed": [
+          "CHANGELOG.md",
+          "docs/ISSUE_35_GANTT_SCALE.md",
+          "docs/ISSUE_822_FAILURE_ANALYSIS.md",
+          "docs/LOCAL_PREPR.md",
+          "docs/PROJECT_UX.md",
+          "docs/REQUIREMENTS.md",
+          "docs/TEST_PLAN.md",
+          "docs/evidence/issue-822/issue-822-anchor-dom.json",
+          "docs/evidence/issue-822/issue-822-before.png",
+          "docs/evidence/issue-822/issue-822-density-dom.json",
+          "docs/evidence/issue-822/issue-822-minimum.png",
+          "docs/evidence/issue-822/issue-822-restored.png",
+          "docs/evidence/issue-822/issue-822-summary-native-28.json",
+          "docs/evidence/issue-822/summary-validation.json",
+          "docs/exec-plans/active/ISSUE_822.md",
+          "docs/exec-plans/active/PLAN.md",
+          "next-env.d.ts",
+          "output/playwright/issue-818/active-progress-target.png",
+          "output/playwright/issue-822/source-before-geometry.sha256",
+          "output/playwright/issue-822/source-before-summary.sha256",
+          "package-lock.json",
+          "package.json",
+          "scripts/prepr-core.mjs",
+          "src/features/gantt/gantt-density.ts",
+          "src/features/gantt/gantt-scale-toolbar.css",
+          "src/features/gantt/project-gantt.tsx",
+          "src/features/gantt/viewport/svar-viewport-port.ts",
+          "src/features/gantt/viewport/viewport-coordinator.ts",
+          "tests/e2e/project-gantt-scale.spec.ts",
+          "tests/e2e/project-summary-bar-visual.spec.ts",
+          "tests/e2e/project-task-delete-context.spec.ts",
+          "tests/e2e/project-task-hover-tooltip.spec.ts",
+          "tests/features/gantt/gantt-density.test.ts",
+          "tests/features/gantt/viewport-coordinator.test.ts",
+          "tests/scripts/prepr-verifier.test.ts",
+          "tsconfig.json"
+        ]
+      },
+      "versions": {
+        "os": "linux",
+        "release": "6.6.87.2-microsoft-standard-WSL2",
+        "cpuCount": 16,
+        "node": "v22.14.0",
+        "npm": "11.10.0",
+        "packageVersion": "0.136.0",
+        "lockVersion": "0.136.0",
+        "playwright": "1.63.0",
+        "chromiumRevision": "1243",
+        "ciNode": "22",
+        "ciPlaywright": "1.63.0",
+        "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+        "e2e": {
+          "fullyParallel": true,
+          "workers": 1,
+          "shardsLocal": 1,
+          "shardsGitHub": 6,
+          "config": "tests/config/playwright.config.ts"
+        }
+      },
+      "selection": {
+        "state": "READY",
+        "unknown": [],
+        "missing": []
+      },
+      "steps": [
+        {
+          "label": "Version contract",
+          "command": [
+            "node",
+            "scripts/verify-release-version.mjs"
+          ],
+          "startedAt": "2026-10-27T03:16:18.820Z",
+          "durationMs": 30,
+          "exitCode": 0,
+          "signal": null,
+          "status": "PASS",
+          "caseCount": null
+        },
+        {
+          "label": "Test discovery",
+          "command": [
+            "node",
+            "scripts/verify-test-discovery.mjs"
+          ],
+          "startedAt": "2026-10-27T03:16:18.851Z",
+          "durationMs": 8107,
+          "exitCode": 0,
+          "signal": null,
+          "status": "PASS",
+          "caseCount": null
+        },
+        {
+          "label": "Markdown links",
+          "command": [
+            "node",
+            "scripts/check-markdown-links.mjs"
+          ],
+          "startedAt": "2026-10-27T03:16:26.958Z",
+          "durationMs": 105,
+          "exitCode": 0,
+          "signal": null,
+          "status": "PASS",
+          "caseCount": null
+        },
+        {
+          "label": "CI cache contract",
+          "command": [
+            "node",
+            "scripts/verify-ci-cache-contract.mjs"
+          ],
+          "startedAt": "2026-10-27T03:16:27.063Z",
+          "durationMs": 29,
+          "exitCode": 0,
+          "signal": null,
+          "status": "PASS",
+          "caseCount": null
+        },
+        {
+          "label": "Local QA fixture policy",
+          "command": [
+            "python3",
+            "scripts/test_qa_preflight.py"
+          ],
+          "startedAt": "2026-10-27T03:16:27.092Z",
+          "durationMs": 87,
+          "exitCode": 0,
+          "signal": null,
+          "status": "PASS",
+          "caseCount": null
+        },
+        {
+          "label": "Dependencies",
+          "command": [
+            "npm",
+            "ls",
+            "--depth=0",
+            "--offline"
+          ],
+          "startedAt": "2026-10-27T03:16:27.179Z",
+          "durationMs": 491,
+          "exitCode": 0,
+          "signal": null,
+          "status": "PASS",
+          "caseCount": null
+        },
+        {
+          "label": "Typecheck",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "startedAt": "2026-10-27T03:16:27.671Z",
+          "durationMs": 3216,
+          "exitCode": 0,
+          "signal": null,
+          "status": "PASS",
+          "caseCount": null
+        },
+        {
+          "label": "Lint",
+          "command": [
+            "npm",
+            "run",
+            "lint"
+          ],
+          "startedAt": "2026-10-27T03:16:30.887Z",
+          "durationMs": 37660,
+          "exitCode": 0,
+          "signal": null,
+          "status": "PASS",
+          "caseCount": null
+        },
+        {
+          "label": "Unit",
+          "command": [
+            "npm",
+            "test"
+          ],
+          "startedAt": "2026-10-27T03:17:08.547Z",
+          "durationMs": 29243,
+          "exitCode": 0,
+          "signal": null,
+          "status": "PASS",
+          "caseCount": 3350
+        },
+        {
+          "label": "Production build",
+          "command": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "startedAt": "2026-10-27T03:17:37.790Z",
+          "durationMs": 65741,
+          "exitCode": 0,
+          "signal": null,
+          "status": "PASS",
+          "caseCount": null
+        }
+      ],
+      "errors": [
+        "STALE: working source/base/head changed during local verification"
+      ]
+    },
+    "targeted_initial": {
+      "path": ".prepr-reports/issue-822-targeted/report.json",
+      "sha256": "3f122590023ab208a684d8c0001672d23cafae44e42704528dc1a14264219e13",
+      "status": "BLOCKED",
+      "sourceStable": false,
+      "sourceStart": {
+        "baseRef": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "baseSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "headSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "workingDiffSha256": "a44b09529051606332582d9748c8383a2d027f4e918720f856c55b1a568d80e4",
+        "fingerprint": "e877016a84bbea3019c4eb5819a4d2b57fda74ff9bf300985e0564d6fc548bec",
+        "dirty": true,
+        "changed": [
+          "CHANGELOG.md",
+          "docs/ISSUE_35_GANTT_SCALE.md",
+          "docs/ISSUE_822_FAILURE_ANALYSIS.md",
+          "docs/LOCAL_PREPR.md",
+          "docs/PROJECT_UX.md",
+          "docs/REQUIREMENTS.md",
+          "docs/TEST_PLAN.md",
+          "docs/evidence/issue-822/issue-822-anchor-dom.json",
+          "docs/evidence/issue-822/issue-822-before.png",
+          "docs/evidence/issue-822/issue-822-density-dom.json",
+          "docs/evidence/issue-822/issue-822-minimum.png",
+          "docs/evidence/issue-822/issue-822-restored.png",
+          "docs/evidence/issue-822/issue-822-summary-native-28.json",
+          "docs/evidence/issue-822/summary-validation.json",
+          "docs/exec-plans/active/ISSUE_822.md",
+          "docs/exec-plans/active/PLAN.md",
+          "output/playwright/issue-818/active-progress-target.png",
+          "output/playwright/issue-822/source-before-geometry.sha256",
+          "output/playwright/issue-822/source-before-summary.sha256",
+          "package-lock.json",
+          "package.json",
+          "scripts/prepr-core.mjs",
+          "src/features/gantt/gantt-density.ts",
+          "src/features/gantt/gantt-scale-toolbar.css",
+          "src/features/gantt/project-gantt.tsx",
+          "src/features/gantt/viewport/svar-viewport-port.ts",
+          "src/features/gantt/viewport/viewport-coordinator.ts",
+          "tests/e2e/project-gantt-scale.spec.ts",
+          "tests/e2e/project-summary-bar-visual.spec.ts",
+          "tests/e2e/project-task-delete-context.spec.ts",
+          "tests/e2e/project-task-hover-tooltip.spec.ts",
+          "tests/features/gantt/gantt-density.test.ts",
+          "tests/features/gantt/viewport-coordinator.test.ts",
+          "tests/scripts/prepr-verifier.test.ts"
+        ]
+      },
+      "sourceEnd": {
+        "baseRef": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "baseSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "headSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "workingDiffSha256": "b1dcfbd585520835b3e0607bcd10bea133edee0c3a89ab3d6ea4018e8548b0e6",
+        "fingerprint": "30d89ba4925b4f04d34d2fd3c0bd487d58d7383cb78dac7ccb0dfc7629191c00",
+        "dirty": true,
+        "changed": [
+          "AGENTS.md",
+          "CHANGELOG.md",
+          "docs/ISSUE_35_GANTT_SCALE.md",
+          "docs/ISSUE_822_FAILURE_ANALYSIS.md",
+          "docs/LOCAL_PREPR.md",
+          "docs/PROJECT_UX.md",
+          "docs/REQUIREMENTS.md",
+          "docs/TEST_PLAN.md",
+          "docs/evidence/issue-822/issue-822-anchor-dom.json",
+          "docs/evidence/issue-822/issue-822-before.png",
+          "docs/evidence/issue-822/issue-822-density-dom.json",
+          "docs/evidence/issue-822/issue-822-minimum.png",
+          "docs/evidence/issue-822/issue-822-restored.png",
+          "docs/evidence/issue-822/issue-822-summary-native-28.json",
+          "docs/evidence/issue-822/summary-validation.json",
+          "docs/exec-plans/active/ISSUE_822.md",
+          "docs/exec-plans/active/PLAN.md",
+          "next-env.d.ts",
+          "output/playwright/issue-818/active-progress-target.png",
+          "output/playwright/issue-822/source-before-geometry.sha256",
+          "output/playwright/issue-822/source-before-summary.sha256",
+          "package-lock.json",
+          "package.json",
+          "scripts/prepr-core.mjs",
+          "src/features/gantt/gantt-density.ts",
+          "src/features/gantt/gantt-scale-toolbar.css",
+          "src/features/gantt/project-gantt.tsx",
+          "src/features/gantt/viewport/svar-viewport-port.ts",
+          "src/features/gantt/viewport/viewport-coordinator.ts",
+          "tests/e2e/project-gantt-scale.spec.ts",
+          "tests/e2e/project-summary-bar-visual.spec.ts",
+          "tests/e2e/project-task-delete-context.spec.ts",
+          "tests/e2e/project-task-hover-tooltip.spec.ts",
+          "tests/features/gantt/gantt-density.test.ts",
+          "tests/features/gantt/viewport-coordinator.test.ts",
+          "tests/scripts/prepr-verifier.test.ts",
+          "tsconfig.json"
+        ]
+      },
+      "versions": {
+        "os": "linux",
+        "release": "6.6.87.2-microsoft-standard-WSL2",
+        "cpuCount": 16,
+        "node": "v22.14.0",
+        "npm": "11.10.0",
+        "packageVersion": "0.136.0",
+        "lockVersion": "0.136.0",
+        "playwright": "1.63.0",
+        "chromiumRevision": "1243",
+        "ciNode": "22",
+        "ciPlaywright": "1.63.0",
+        "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+        "e2e": {
+          "fullyParallel": true,
+          "workers": 1,
+          "shardsLocal": 1,
+          "shardsGitHub": 6,
+          "config": "tests/config/playwright.config.ts"
+        }
+      },
+      "selection": {
+        "state": "READY",
+        "unknown": [],
+        "missing": []
+      },
+      "steps": [
+        {
+          "label": "Targeted Unit",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+            "tests/features/gantt/axis-transaction.test.ts",
+            "tests/features/gantt/canonical-recovery-runtime.test.ts",
+            "tests/features/gantt/canonical-recovery.test.ts",
+            "tests/features/gantt/copy-viewport-continuity.test.ts",
+            "tests/features/gantt/gantt-density.test.ts",
+            "tests/features/gantt/milestone-visibility.test.ts",
+            "tests/features/gantt/state-consistency-harness.test.ts",
+            "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+            "tests/features/gantt/viewport-coordinator.test.ts",
+            "tests/scripts/prepr-verifier.test.ts"
+          ],
+          "startedAt": "2026-10-27T03:19:18.176Z",
+          "durationMs": 3194,
+          "exitCode": 0,
+          "signal": null,
+          "status": "PASS",
+          "caseCount": 312
+        },
+        {
+          "label": "Chromium E2E",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "--project=chromium",
+            "--workers=1",
+            "--retries=0",
+            "tests/e2e/gantt-state-product-integration.spec.ts",
+            "tests/e2e/milestone-dashboard-state.spec.ts",
+            "tests/e2e/milestone-visibility.spec.ts",
+            "tests/e2e/project-context-toolbar-responsive.spec.ts",
+            "tests/e2e/project-gantt-fullscreen.spec.ts",
+            "tests/e2e/project-gantt-scale.spec.ts",
+            "tests/e2e/project-gantt-stability.spec.ts",
+            "tests/e2e/project-multi-task-copy-paste.spec.ts",
+            "tests/e2e/project-notifications.spec.ts",
+            "tests/e2e/project-search-filter.spec.ts",
+            "tests/e2e/project-summary-bar-visual.spec.ts",
+            "tests/e2e/project-task-delete-context.spec.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "tests/e2e/project-task-hover-tooltip.spec.ts",
+            "tests/e2e/projection-row-alignment.spec.ts",
+            "tests/e2e/resource-drill-ui.spec.ts",
+            "tests/e2e/viewport-coordinator.spec.ts"
+          ],
+          "startedAt": "2026-10-27T03:19:21.373Z",
+          "durationMs": 158312,
+          "exitCode": 130,
+          "signal": null,
+          "status": "FAIL",
+          "caseCount": 7
+        }
+      ],
+      "errors": [
+        "FAILED: Chromium E2E",
+        "STALE: working source/base/head changed during local verification"
+      ]
+    },
+    "targeted_final": {
+      "path": ".prepr-reports/issue-822-targeted-final/report.json",
+      "sha256": "6374a81d7e442855f1bfa65515262e502d81213fa4d44cfa2cc1fd3f1a8036cc",
+      "status": "BLOCKED",
+      "sourceStable": false,
+      "sourceStart": {
+        "baseRef": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "baseSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "headSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "workingDiffSha256": "a36205ddd04c57124a00d10c64f08d787b7657eee629b1abcddf96d07f6a7e40",
+        "fingerprint": "6bbc021e67b1fc63d53826a2b48f5062964645a58379bb7b0f9f72034d55112f",
+        "dirty": true,
+        "changed": [
+          "CHANGELOG.md",
+          "docs/ISSUE_35_GANTT_SCALE.md",
+          "docs/ISSUE_822_FAILURE_ANALYSIS.md",
+          "docs/LOCAL_PREPR.md",
+          "docs/PROJECT_UX.md",
+          "docs/REQUIREMENTS.md",
+          "docs/TEST_PLAN.md",
+          "docs/evidence/issue-822/issue-822-anchor-dom.json",
+          "docs/evidence/issue-822/issue-822-before.png",
+          "docs/evidence/issue-822/issue-822-density-dom.json",
+          "docs/evidence/issue-822/issue-822-minimum.png",
+          "docs/evidence/issue-822/issue-822-restored.png",
+          "docs/evidence/issue-822/issue-822-summary-native-28.json",
+          "docs/evidence/issue-822/summary-validation.json",
+          "docs/exec-plans/active/ISSUE_822.md",
+          "docs/exec-plans/active/PLAN.md",
+          "output/playwright/issue-818/active-progress-target.png",
+          "output/playwright/issue-822/source-before-geometry.sha256",
+          "output/playwright/issue-822/source-before-summary.sha256",
+          "package-lock.json",
+          "package.json",
+          "scripts/prepr-core.mjs",
+          "src/features/gantt/gantt-density.ts",
+          "src/features/gantt/gantt-scale-toolbar.css",
+          "src/features/gantt/project-gantt.tsx",
+          "src/features/gantt/viewport/svar-viewport-port.ts",
+          "src/features/gantt/viewport/viewport-coordinator.ts",
+          "tests/e2e/project-gantt-scale.spec.ts",
+          "tests/e2e/project-summary-bar-visual.spec.ts",
+          "tests/e2e/project-task-delete-context.spec.ts",
+          "tests/e2e/project-task-hover-tooltip.spec.ts",
+          "tests/features/gantt/gantt-density.test.ts",
+          "tests/features/gantt/viewport-coordinator.test.ts",
+          "tests/scripts/prepr-verifier.test.ts"
+        ]
+      },
+      "sourceEnd": {
+        "baseRef": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "baseSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "headSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+        "workingDiffSha256": "367e566a4835b206345d2827e2b83f2814ae65f28270ce552b749f8308e696e1",
+        "fingerprint": "18ac9a22e3a658a3f562e9fceb6a08a39f4ccefd0b6b139ef36ba34ea1615d07",
+        "dirty": true,
+        "changed": [
+          "AGENTS.md",
+          "CHANGELOG.md",
+          "docs/ISSUE_35_GANTT_SCALE.md",
+          "docs/ISSUE_822_FAILURE_ANALYSIS.md",
+          "docs/LOCAL_PREPR.md",
+          "docs/PROJECT_UX.md",
+          "docs/REQUIREMENTS.md",
+          "docs/TEST_PLAN.md",
+          "docs/evidence/issue-528/resource-drill-1440.png",
+          "docs/evidence/issue-528/resource-drill-390.png",
+          "docs/evidence/issue-822/issue-822-anchor-dom.json",
+          "docs/evidence/issue-822/issue-822-before.png",
+          "docs/evidence/issue-822/issue-822-density-dom.json",
+          "docs/evidence/issue-822/issue-822-minimum.png",
+          "docs/evidence/issue-822/issue-822-restored.png",
+          "docs/evidence/issue-822/issue-822-summary-native-28.json",
+          "docs/evidence/issue-822/summary-validation.json",
+          "docs/exec-plans/active/ISSUE_822.md",
+          "docs/exec-plans/active/PLAN.md",
+          "next-env.d.ts",
+          "output/playwright/issue-463/dashboard-1024.png",
+          "output/playwright/issue-463/dashboard-1440.png",
+          "output/playwright/issue-463/dashboard-1920.png",
+          "output/playwright/issue-463/dashboard-390.png",
+          "output/playwright/issue-463/dashboard-768.png",
+          "output/playwright/issue-463/dashboard-stage-table-1024.png",
+          "output/playwright/issue-463/dashboard-stage-table-1440.png",
+          "output/playwright/issue-463/dashboard-stage-table-1920.png",
+          "output/playwright/issue-463/dashboard-stage-table-390.png",
+          "output/playwright/issue-463/dashboard-stage-table-768.png",
+          "output/playwright/issue-463/geometry-partial-1024.json",
+          "output/playwright/issue-463/geometry-partial-1440.json",
+          "output/playwright/issue-463/geometry-partial-1920.json",
+          "output/playwright/issue-463/geometry-partial-390.json",
+          "output/playwright/issue-463/geometry-partial-768.json",
+          "output/playwright/issue-463/geometry.json",
+          "output/playwright/issue-818/active-progress-target.png",
+          "output/playwright/issue-818/correct-child-editor.png",
+          "output/playwright/issue-822/source-before-geometry.sha256",
+          "output/playwright/issue-822/source-before-summary.sha256",
+          "output/playwright/issue258-after-1024.png",
+          "output/playwright/issue258-after-1440.png",
+          "output/playwright/issue258-after-390.png",
+          "output/playwright/issue258-after-768.png",
+          "package-lock.json",
+          "package.json",
+          "scripts/prepr-core.mjs",
+          "src/features/gantt/gantt-density.ts",
+          "src/features/gantt/gantt-scale-toolbar.css",
+          "src/features/gantt/project-gantt.tsx",
+          "src/features/gantt/viewport/svar-viewport-port.ts",
+          "src/features/gantt/viewport/viewport-coordinator.ts",
+          "tests/e2e/project-gantt-scale.spec.ts",
+          "tests/e2e/project-summary-bar-visual.spec.ts",
+          "tests/e2e/project-task-delete-context.spec.ts",
+          "tests/e2e/project-task-hover-tooltip.spec.ts",
+          "tests/features/gantt/gantt-density.test.ts",
+          "tests/features/gantt/viewport-coordinator.test.ts",
+          "tests/scripts/prepr-verifier.test.ts",
+          "tsconfig.json"
+        ]
+      },
+      "versions": {
+        "os": "linux",
+        "release": "6.6.87.2-microsoft-standard-WSL2",
+        "cpuCount": 16,
+        "node": "v22.14.0",
+        "npm": "11.10.0",
+        "packageVersion": "0.136.0",
+        "lockVersion": "0.136.0",
+        "playwright": "1.63.0",
+        "chromiumRevision": "1243",
+        "ciNode": "22",
+        "ciPlaywright": "1.63.0",
+        "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+        "e2e": {
+          "fullyParallel": true,
+          "workers": 1,
+          "shardsLocal": 1,
+          "shardsGitHub": 6,
+          "config": "tests/config/playwright.config.ts"
+        }
+      },
+      "selection": {
+        "state": "READY",
+        "unknown": [],
+        "missing": []
+      },
+      "steps": [
+        {
+          "label": "Targeted Unit",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+            "tests/features/gantt/axis-transaction.test.ts",
+            "tests/features/gantt/canonical-recovery-runtime.test.ts",
+            "tests/features/gantt/canonical-recovery.test.ts",
+            "tests/features/gantt/copy-viewport-continuity.test.ts",
+            "tests/features/gantt/gantt-density.test.ts",
+            "tests/features/gantt/milestone-visibility.test.ts",
+            "tests/features/gantt/state-consistency-harness.test.ts",
+            "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+            "tests/features/gantt/viewport-coordinator.test.ts",
+            "tests/scripts/prepr-verifier.test.ts"
+          ],
+          "startedAt": "2026-10-27T03:23:59.167Z",
+          "durationMs": 2410,
+          "exitCode": 0,
+          "signal": null,
+          "status": "PASS",
+          "caseCount": 312
+        },
+        {
+          "label": "Chromium E2E",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "--project=chromium",
+            "--workers=1",
+            "--retries=0",
+            "tests/e2e/gantt-state-product-integration.spec.ts",
+            "tests/e2e/milestone-dashboard-state.spec.ts",
+            "tests/e2e/milestone-visibility.spec.ts",
+            "tests/e2e/project-context-toolbar-responsive.spec.ts",
+            "tests/e2e/project-gantt-fullscreen.spec.ts",
+            "tests/e2e/project-gantt-scale.spec.ts",
+            "tests/e2e/project-gantt-stability.spec.ts",
+            "tests/e2e/project-multi-task-copy-paste.spec.ts",
+            "tests/e2e/project-notifications.spec.ts",
+            "tests/e2e/project-search-filter.spec.ts",
+            "tests/e2e/project-summary-bar-visual.spec.ts",
+            "tests/e2e/project-task-delete-context.spec.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "tests/e2e/project-task-hover-tooltip.spec.ts",
+            "tests/e2e/projection-row-alignment.spec.ts",
+            "tests/e2e/resource-drill-ui.spec.ts",
+            "tests/e2e/viewport-coordinator.spec.ts"
+          ],
+          "startedAt": "2026-10-27T03:24:01.579Z",
+          "durationMs": 1312998,
+          "exitCode": 0,
+          "signal": null,
+          "status": "PASS",
+          "caseCount": 137
+        }
+      ],
+      "errors": [
+        "STALE: working source/base/head changed during local verification"
+      ]
+    }
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "ownerAcceptance": "NOT TESTED",
+    "mainGhcr": "NOT TESTED",
+    "formalRelease": "NOT TESTED"
+  },
+  "scope": "로컬 실행 결과와 source 증거. Pre-PR 총괄 BLOCKED를 PASS로 승격하지 않으며 원격 Full/Owner 승인을 대체하지 않는다.",
+  "notes": [
+    "fast:3350 Unit PASS/기존3SKIP 및 production build 포함10개 명령PASS, lint0error/기존17warning.",
+    "targeted_initial: Manager가 fixture 정적 결함 교정을 위해 SIGINT,7PASS/1interrupted/129NOT RUN. 실패/취소 원본보존.",
+    "targeted_final:312 Unit PASS,17spec137 Chromium PASS/0FAIL/0SKIP,workers1/retries0. Unit312와 사전175는3350의 부분집합이며 중복합산하지 않는다.",
+    "실행 중 Next가 AGENTS heading/next-env.d.ts/tsconfig.json의 생성 타입 경로를 변경했다. 종료 후 baseline bytes 복원.13개 제품/test/script SHA는 시작 전과 동일. 총괄fingerprint는변경되어BLOCKED 유지.",
+    "Pre-PR helper의 shardsGitHub:6은 역사적 표시값이며 현재 원격8-shard의실행증거가아니다. 워크플로/8-shard/Required3 변경없음.",
+    "기존 summary-validation8PASS 및 geometry캡처1PASS는각각의당시testSHA를보존한다. 제품5SHA는같지만후속hybridfixture보완으로testSHA가달라졌으며최종137case는현재testSHA실행이다.",
+    "geometry:canonical99/nativeWBS98,anchor:canonical129/nativeWBS128.실제터치하드웨어/OSbrowserzoom/screenreader/1000Task+2000Milestone장기실증은NOT TESTED.",
+    "targeted 기존E2E가 issue528/issue463/issue258의 추적된 역사적 PNG·geometry 출력도 갱신했다. 실행 원본을 /tmp/issue822-generated-artifacts에 보존하고 baseline bytes로 복원하여 커밋에서 제외했다. sourceStable=false에는 이 출력 변경도 포함되며 Next 생성 파일만의 차이로 한정하지 않는다."
+  ],
+  "restoredTestGeneratedArtifacts": [
+    {
+      "path": "docs/evidence/issue-528/resource-drill-1440.png",
+      "producedSha256": "0026acdd7e4c9b603ef21293bf66d25d677a811249fd21d2a87f3699f78a469d",
+      "baselineSha256": "2efe3186385bb2e00a482bb5f070c999e005fc9ad1af407b9de8f8061df209bb"
+    },
+    {
+      "path": "docs/evidence/issue-528/resource-drill-390.png",
+      "producedSha256": "62b9ef34c69c9ba347b1ac725169848bd64846e958e92584499ee7f8c0349a9b",
+      "baselineSha256": "a6056f27ea385d81b4ed5c9871bff644d508c1eed9b9a4711c36202121ae1d66"
+    },
+    {
+      "path": "output/playwright/issue-463/dashboard-1024.png",
+      "producedSha256": "4e4c6ceedc6c2195130ebd66d638d5a6ff90a6223de4dbff53d1f6ee62d0c502",
+      "baselineSha256": "1b92e738896f2e5fea7344ab44c50a2774462cd6eebd946c81b6bfd7de21c235"
+    },
+    {
+      "path": "output/playwright/issue-463/dashboard-1440.png",
+      "producedSha256": "4df9cbf3ea0fd820959b8af8813795cf10e4de83ada0f7ce39cce1732ee1cf53",
+      "baselineSha256": "5e167b153c29b8e4b7f765a6d853afabca3c0e68dd7b41b9491ec7037fea40e2"
+    },
+    {
+      "path": "output/playwright/issue-463/dashboard-1920.png",
+      "producedSha256": "aa96a1c6f7cbc055d2fbd9ae81b9bb375cdad90b3ff36890a146d0e8f56d5f2c",
+      "baselineSha256": "3249638699f4876e8fc3647967d3488f6318b98444a6f1deadafa4b4028675f8"
+    },
+    {
+      "path": "output/playwright/issue-463/dashboard-390.png",
+      "producedSha256": "6e59b27ec5b5f75e49e396d99e32df43d92fea390a9882b7ea293a6968115b10",
+      "baselineSha256": "59cb4cf4123823bf9ea63184d849dfee675245c867288e3403d6df966a2b47c3"
+    },
+    {
+      "path": "output/playwright/issue-463/dashboard-768.png",
+      "producedSha256": "2c6a4708655b659c1fcc3a23158856e7700be0253dacb7a13ed0a9126b5b7d2d",
+      "baselineSha256": "16cd625e3d39694ae88f3508582b67eae7504fc44f762c4c0f9328f1912c7338"
+    },
+    {
+      "path": "output/playwright/issue-463/dashboard-stage-table-1024.png",
+      "producedSha256": "4b61fe633746474a3a7a0d33d5e73f6de748573793baf9c43cf595418ba17650",
+      "baselineSha256": "413d00ec2b68f587cff8d3da8c31106b5bd1bd0b861ba16141c0a65027a8e313"
+    },
+    {
+      "path": "output/playwright/issue-463/dashboard-stage-table-1440.png",
+      "producedSha256": "f1f15dd210b9830b05181279dce25bbd21e9f54e1ee67c391352a547bc52978c",
+      "baselineSha256": "17ecc12937a7ac4af006d7df2155c9d2e2b72b1525573a307310ffa51f2419f4"
+    },
+    {
+      "path": "output/playwright/issue-463/dashboard-stage-table-1920.png",
+      "producedSha256": "0c01b5e89e9131cec2fcc8dff3fbe07d78dcfafb530288fb71169d5d8cf0d1c9",
+      "baselineSha256": "e0a7f3728db534f2af9b0c760c662c89deaaa2ede9e3850ad0f4f093898c37e7"
+    },
+    {
+      "path": "output/playwright/issue-463/dashboard-stage-table-390.png",
+      "producedSha256": "ede8da9c74d6a9e25fed49d2535072e1f2e3123e1d7572c6aab5f80c3310df34",
+      "baselineSha256": "3ede690dfeaf552b4df90dd45cd9f5ebe7b561b7568e996b7980cf954c746a12"
+    },
+    {
+      "path": "output/playwright/issue-463/dashboard-stage-table-768.png",
+      "producedSha256": "0244bb033644f07bc1cba4c69b4ff80924092f57f0c02aad1204d2aa8dd33b94",
+      "baselineSha256": "b6edc8eeeb225fb9d49257a6b7ec6df4b35534c1a02f7b385fb3ba503ad52e7c"
+    },
+    {
+      "path": "output/playwright/issue-463/geometry.json",
+      "producedSha256": "81557abe2426426285235c0cce6aee94fa1a99008a3c132653e7e1a4f8e1b995",
+      "baselineSha256": "632c141f917feaa95872455f12394e73a4fe1109f3a3c96acc72373fdabb7a04"
+    },
+    {
+      "path": "output/playwright/issue258-after-1440.png",
+      "producedSha256": "8e2736b17716c5abebb25d4abbdc136cd40cee6e465532d3e1190d5c12aa7baf",
+      "baselineSha256": "c9cce72adaa5269bd0d8366e4bbfe9bfc2657b97a1273d74a2f7b8819c4e1341"
+    },
+    {
+      "path": "output/playwright/issue258-after-390.png",
+      "producedSha256": "5c0e48f92a35ad9d28e7b54f5568aa8a02e74d269eb1e76446726ed37f8ce2ff",
+      "baselineSha256": "5748adb8e99352684185bc9e06ac32f1eaf25469d3a6e9a31ca8a207da50c23c"
+    }
+  ]
+}

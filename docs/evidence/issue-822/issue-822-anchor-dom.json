@@ -1,0 +1,38 @@
+{
+  "anchor": {
+    "id": ":00000000-0000-4000-8000-000000000057",
+    "offset": 360
+  },
+  "receipts": [
+    {
+      "height": 32,
+      "offset": 360,
+      "scrollTop": 1489
+    },
+    {
+      "height": 30,
+      "offset": 360,
+      "scrollTop": 1378
+    },
+    {
+      "height": 28,
+      "offset": 360,
+      "scrollTop": 1267
+    },
+    {
+      "height": 30,
+      "offset": 360,
+      "scrollTop": 1378
+    },
+    {
+      "height": 32,
+      "offset": 360,
+      "scrollTop": 1489
+    },
+    {
+      "height": 34,
+      "offset": 360,
+      "scrollTop": 1600
+    }
+  ]
+}

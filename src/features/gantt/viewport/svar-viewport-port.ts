@@ -257,6 +257,13 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     if (!current() || !read().measurable) return null;
     const state = api.getState();
     if (command.kind === "RANGE_EXTENSION") { const result = await extentTransaction(current, source, command.width); return result?.outcome === "SETTLED" ? result.position ?? null : null; }
+    if (command.kind === "FILTER_EMPTY_RESET") {
+      const sample = read();
+      // Never let a stale filter callback reset a newer nonempty query.
+      if (!sample.context.filtered || !sample.context.empty || state._tasks.length !== 0) return null;
+      await exec("scroll-chart", { left: 0, eventSource: tag });
+      return read().core;
+    }
     if (command.kind === "DIAGNOSTIC_SCROLL") {
       if (process.env.NODE_ENV === "production" || !Number.isFinite(command.left) || command.left < 0 || read().capacity.left < command.left - 1) return null;
       // Diagnostic requests cannot replenish an existing peer repair budget.
@@ -294,6 +301,24 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
       return read().core;
     }
     if (command.kind === "DRAG_EDGE") target = { left: state.scrollLeft, top: command.top };
+    else if (command.kind === "DENSITY_ANCHOR") {
+      // Resolve the same public Grid row after Core committed cellHeight.
+      // Measure its native offset; never infer row positions from old heights.
+      const rows = [...root.querySelectorAll<HTMLElement>(".wx-table .wx-row[data-id]")];
+      const y = vertical(), sample = read();
+      const ids = sample.receipt?.logicalVisibleIds;
+      const anchorIndex = ids?.indexOf(command.rowId.replace(/^:/, "")) ?? -1;
+      if (!y || !ids || anchorIndex < 0) return null;
+      // A resize may virtualize the original anchor out of the DOM. Its
+      // position is derived from a currently measured row and the fresh
+      // public projection order, never from an old scrollTop/height ratio.
+      const row = rows.find(row => row.dataset.id === command.rowId) ?? rows.find(row => ids.includes((row.dataset.id ?? "").replace(/^:/, "")));
+      if (!row) return null;
+      const rowIndex = ids.indexOf((row.dataset.id ?? "").replace(/^:/, ""));
+      const box = row.getBoundingClientRect();
+      const offset = box.top + box.height / 2 + (anchorIndex - rowIndex) * box.height - y.getBoundingClientRect().top;
+      target = { left: command.left, top: Math.max(0, Math.min(sample.capacity.top, sample.core.top + offset - command.offset)) };
+    }
     else target = command.position;
     if (![target.left, target.top].every(value => Number.isFinite(value) && value >= 0)) return null;
     const sample = read();
@@ -302,7 +327,7 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     if (!current()) return null;
     // A filter bookmark is one-shot; it cannot intercept a later native
     // scroll-chart event. Peer/passive guards keep their stale-rewind policy.
-    if (command.kind !== "DRAG_EDGE" && command.kind !== "FILTER_RETURN" && command.protect !== false) {
+    if (command.kind !== "DRAG_EDGE" && command.kind !== "DENSITY_ANCHOR" && command.kind !== "FILTER_RETURN" && command.protect !== false) {
       const accepted = read();
       if (accepted.core.left === target.left && accepted.core.top === target.top)
         authority = { target, current, geometry: accepted.geometry, repairs };

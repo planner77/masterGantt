@@ -1,6 +1,6 @@
 {
   "name": "mastergantt",
-  "version": "0.135.6",
+  "version": "0.136.0",
   "private": true,
   "engines": {
     "node": ">=22"

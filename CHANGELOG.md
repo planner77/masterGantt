@@ -1,3 +1,10 @@
+## [0.136.0] — Unreleased / Issue #822 일정 세로 밀도 후보 (2026-10-27)
+
+### Added
+
+- 일정 Grid/Chart 본문의 Ctrl+휠로 행 높이·본문 글꼴·Task bar를 함께 조절한다. fine pointer는 기본34px 상한과 최소12px 글꼴을 사용하고 터치 가능한 coarse·혼합 환경은44px 조작 목표를 유지한다. 일반 휠·입력/모달·가로 날짜축·canonical 저장 계약을 보존하며 기존 단일 viewport coordinator로 기준 Task 위치와 새 projection 관측을 조정한다.
+- 같은 Gantt의 Day/Week·scope/filter·fullscreen·대시보드 왕복에 밀도 상태를 유지한다. 기존 회귀를 확장하고 단계/delta·실제 geometry/입력·상태 보존 검증을 [#822 Work Packet](docs/exec-plans/active/ISSUE_822.md)에 기록한다. 새 MINOR 후보이며 정식 게시 승인이 없다. 원격 Full/Trusted/Owner·Main/GHCR/Release는 별도 NOT TESTED다.
+
 ## [0.135.6] — Unreleased / Issue #824 조회·기준정보 밀도 통합 개선 (2026-10-27)
 
 - 공통 계층 조회5소비자의 검색 label/입력·section/body/tool 글꼴과 fine36/coarse44px를 통일하고 활성 조건·경로·기간·정확 원본과 Gantt 상태를 보존한다.

@@ -1,3 +1,11 @@
+## Issue #822 — Ctrl+휠 세로 밀도 구현
+
+main `dc8543f390616c0d5aca90a4f91899f3cf7ac5da`/app0.135.4에서 전용 `feat/issue-822-gantt-density`로 진행한다. #81634/44px·#818 progress pointer·#637 정렬을 보존하고 공유 local density·Grid typography·공개 cellHeight·단일 viewport anchor를 추가한다. [Work Packet](ISSUE_822.md)의 AC1~8·TEST_LIFECYCLE_REVIEW·문서/실제 검증 증거를 따른다.
+
+MINOR 후보0.136.0, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false다. ui_ux 설계·frontend 구현·Manager 문서·qa_docs 독립 사전검토·infra 게시를 분리한다. 종료점은 리뷰/충돌 처리 뒤 Ready PR Full CI 시작이며 모니터링·병합/Main/GHCR·Release/Issue 종료를 포함하지 않는다. 원격 Required3/Trusted/Owner·Manager ACCEPT는 NOT TESTED다.
+
+최종 로컬 선별137 Chromium/312 Unit과 fast3350 Unit·build 명령은 PASS지만, Next 생성 추적 파일 변경으로 Pre-PR 두 총괄은 BLOCKED/sourceStable=false다. 제품/test/script 13개 SHA 불변 및 원본 실패/취소·정제 증거는 Packet/원장에 보존하고 Ready PR CI 시작으로 인계한다.
+
 ## Issue #824 REWORK — PR #835 첫 Full3342.1 (2026-10-27)
 
 [누적 원장](../../ISSUE_824_FAILURE_ANALYSIS.md)에 원본 Run40521099686.1·8샤드 전체로그·Quality/Docker SUCCESS/E2E FAIL 및 Trusted990.1 파생 FAIL을 보존했다. 장문5폭 geometry의 고정44px 기대값을 놓친 TEST_CONTRACT 누락을 기존 fine36/coarse44 양축 oracle·readonly touch helper로 동기화한다. 제품/권한·계산/CI gate·skip/timeout/retry는 변경하지 않는다. 원본RED→동결직접2case·실제helper음성4관측·type/lint PASS와제품불변Local재사용을분리했다. 관측170PASS/1FAIL/1조건부SKIP/657미완료를 구분하고 새 Head Full8/Required3·Trusted·인간 AGENT QA·Manager/main/Release 전에는 OPEN이다.

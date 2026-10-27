@@ -15,7 +15,9 @@ export type ViewportCommand =
   | { kind: "DIAGNOSTIC_SCROLL"; left: number }
   | { kind: "RANGE_EXTENSION"; width: number }
   | { kind: "NATIVE_ADD"; positions: readonly NativeViewportPosition[] }
-  | { kind: "DRAG_EDGE"; top: number };
+  | { kind: "DRAG_EDGE"; top: number }
+  | { kind: "DENSITY_ANCHOR"; rowId: string; offset: number; left: number }
+  | { kind: "FILTER_EMPTY_RESET" };
 export type NativeViewportPosition = Readonly<{ selector: string; left: number; top: number; owner?: HTMLElement }>;
 export type ViewportOutcome = "SETTLED" | "SUPERSEDED" | "NOT_MEASURABLE" | "NO_SCROLL_CAPACITY" | "TIMED_OUT" | "FAILED" | "UNSUPPORTED";
 export type ViewportPhase = "IDLE" | "WAIT_PROJECTION" | "PREPARING_GEOMETRY" | "WAIT_GEOMETRY" | "APPLYING" | "SETTLING" | ViewportOutcome;
@@ -46,7 +48,7 @@ export interface ViewportPort {
   release(): void;
   trace(phase: ViewportPhase, command?: ViewportCommand, outcome?: ViewportOutcome, metadata?: ViewportTraceMetadata): void;
 }
-const priority = (command: ViewportCommand) => command.kind === "TASK_REVEAL" || command.kind === "DATE_REVEAL" || command.kind === "DIAGNOSTIC_DATE_REVEAL" || command.kind === "DRAG_EDGE" ? 4 : command.kind === "FILTER_RETURN" ? 3 : command.kind === "PEER_RETURN" || command.kind === "NATIVE_ADD" ? 2 : 1;
+const priority = (command: ViewportCommand) => command.kind === "TASK_REVEAL" || command.kind === "DATE_REVEAL" || command.kind === "DIAGNOSTIC_DATE_REVEAL" || command.kind === "DRAG_EDGE" || command.kind === "DENSITY_ANCHOR" ? 4 : command.kind === "FILTER_RETURN" || command.kind === "FILTER_EMPTY_RESET" ? 3 : command.kind === "PEER_RETURN" || command.kind === "NATIVE_ADD" ? 2 : 1;
 const identity = (context: ViewportContext) => JSON.stringify([context.apiInstance, context.key, context.scope, context.filter, context.scale, context.columns, context.geometry]);
 export function validViewportReceipt(sample: ViewportSample): boolean {
   const { context, receipt } = sample;
@@ -109,10 +111,13 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
     if (source.intent < explicitEpoch) return reject("SUPERSEDED", "STALE_INTENT");
     if (pending && (level < pending.priority || command.kind === "RANGE_EXTENSION")) return reject("SUPERSEDED", "LOWER_PRIORITY");
     if (!initial.context.visible || (!initial.measurable && (command.kind === "RANGE_EXTENSION" || command.kind === "DIAGNOSTIC_SCROLL"))) return reject("NOT_MEASURABLE", "HIDDEN_OR_UNMEASURABLE");
-    if (initial.context.empty && command.kind !== "RANGE_EXTENSION") return reject("NOT_MEASURABLE", "EMPTY_PROJECTION");
+    if (initial.context.empty && command.kind !== "RANGE_EXTENSION" && command.kind !== "FILTER_EMPTY_RESET") return reject("NOT_MEASURABLE", "EMPTY_PROJECTION");
+    if (command.kind === "FILTER_EMPTY_RESET" && (!initial.context.filtered || !initial.context.empty || !initial.measurable)) return reject("NOT_MEASURABLE", "NOT_EMPTY_FILTER");
     // Axis extension now also preserves X/Y under its registered lease.
     // It cannot run beside an existing coordinate intent or outlive a newer one.
-    if (command.kind === "RANGE_EXTENSION" || command.kind === "DIAGNOSTIC_SCROLL") {
+    if (command.kind === "RANGE_EXTENSION" || command.kind === "DIAGNOSTIC_SCROLL" || command.kind === "FILTER_EMPTY_RESET") {
+      // An active empty filter may reset horizontal scroll through this single port.
+      if (command.kind === "FILTER_EMPTY_RESET") cancel("FILTER_EMPTY_RESET");
       if (command.kind === "RANGE_EXTENSION" && (!Number.isFinite(command.width) || command.width <= 0 || command.width > 1_000_000))
         return reject("UNSUPPORTED", "INVALID_RANGE_WIDTH");
       if (command.kind === "DIAGNOSTIC_SCROLL" && (process.env.NODE_ENV === "production" || !Number.isFinite(command.left) || command.left < 0))
@@ -124,10 +129,18 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
         const sample = port.read();
         return !disposed && !controller.signal.aborted && sourceCurrent() && validSource(source) && source.intent === epoch && sample.context.revision === initial.context.revision && sample.context.visible &&
           (command.kind !== "DIAGNOSTIC_SCROLL" || (sample.context.revision === initial.context.revision &&
-            sample.context.projectionEpoch === initial.context.projectionEpoch));
+            sample.context.projectionEpoch === initial.context.projectionEpoch)) &&
+          (command.kind !== "FILTER_EMPTY_RESET" || (sample.context.empty && sample.context.filtered && sample.context.filter === initial.context.filter));
       };
       let result: ViewportOutcome = "TIMED_OUT";
       try {
+        if (command.kind === "FILTER_EMPTY_RESET") {
+          // The active query can be superseded between scheduling a reset and
+          // the actual native scroll. Observe one cancellable frame first:
+          // a new gesture/filter invalidates the lease before any Core write.
+          trace("WAIT_GEOMETRY");
+          if (!(await port.frame(controller.signal)) || !current()) return result = "SUPERSEDED";
+        }
         trace("APPLYING");
         const applied = await port.apply(command, current, source);
         if (!current()) return result = "SUPERSEDED";
@@ -143,7 +156,13 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
           // safe, three-frame Core/native geometry observation. The dev-only
           // scroll probe likewise must not acquire production restore authority.
           const coherent = Math.abs(sample.core.left - sample.native.left) <= 1 && Math.abs(sample.core.top - sample.native.top) <= 1 &&
-            (command.kind !== "DIAGNOSTIC_SCROLL" || sample.core.left === command.left);
+            (command.kind !== "DIAGNOSTIC_SCROLL" || sample.core.left === command.left) &&
+            (command.kind !== "FILTER_EMPTY_RESET" || (sample.core.left === 0 && sample.native.left === 0));
+          if (command.kind === "FILTER_EMPTY_RESET" && !coherent && animated && geometry === sample.geometry &&
+            sample.core.left === 0 && sample.native.left > 1 && diagnosticRepairs < 3 && current()) {
+            diagnosticRepairs++;
+            port.repair({ left: 0, top: sample.core.top });
+          }
           if (command.kind === "DIAGNOSTIC_SCROLL" && !coherent && animated && geometry === sample.geometry &&
             sample.core.left === command.left && sample.core.top === applied.top && diagnosticRepairs < 3 &&
             sample.capacity.left >= command.left - 1 && sample.capacity.top >= applied.top - 1 && current()) {

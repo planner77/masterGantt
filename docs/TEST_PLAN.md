@@ -1,3 +1,14 @@
+## Issue #822 — runtime 세로 밀도와 입력·상태 회귀
+
+[Work Packet의 AC_TEST_COVERAGE/TEST_LIFECYCLE_REVIEW](exec-plans/active/ISSUE_822.md)를 단일 매핑으로 사용한다. 기존 scale/Summary/projection/viewport suite를 EXTEND하고 단계·clamp·deltaMode/누적·방향 반전 Unit을 ADD한다. #816 coarse tap·#818 실제 pointer 우클릭/진행률·HTTP/SQLite·#637 strictY 음성/회복·selection/tooltip/canonical 권한은 KEEP_UNIQUE다. 기존 테스트 삭제·skip/assertion/timeout/retry 완화 및 새 중복 full spec은 도입하지 않는다.
+
+- 직접: Grid/Chart 각 Ctrl+wheel-down/up·공유 단계·상/하한·글꼴12px 이상·34→최소→34 동일 source geometry와 가시 행 증가·Summary ratio0.55~0.70·Grid/Chart 동일 ID 중심≤1px.
+- 인접: 최소/중간 native progress·move/resize·#818 인접 우클릭·checkbox/Shift·inline·dependency/tooltip/focus,80+ 가상행·접힘/filter/scope·Day/Week/fullscreen/peer 왕복의 instance/API·선택/tree/column/anchor·fresh SETTLED 보존.
+- 음성: Ctrl 없는 휠·외부 Ctrl wheel·header/toolbar/input/dialog 제외, browser/time zoom 중복0·날짜 X/폭/scrollLeft 불변·canonical write0, 연타/방향 변경·StrictMode listener cleanup 및 stale restore 취소.
+- 접근성:390/768/1024/1440/1920px·한/영 장문·reduced motion·keyboard·fine/coarse/혼합44px 목표 비중첩. 실기기·OS browser zoom·screen reader는 실제 수행 전 NOT TESTED다.
+
+선별 Local Fast Feedback과 Pre-PR의 실제 source/환경·명령·결과/실패는 Packet 및 정제 증거로 연결한다. 원격 Required3/Chromium8/Trusted/Owner는 별도이며 이번 범위는 Ready PR CI 시작까지만이다.
+
 ## Issue #824 — 공통 조회·Milestone·기준정보 밀도 회귀
 
 #826→#827→#828→#829→#830 순서로 기존 직접·인접 시나리오를 확장한다. 공통 조회5소비자의 body/tool/section 글꼴·line-height, fine36/coarse44, 넓은 label/input 수평 정렬·동일 제어 top/bottom≤1px와 narrow 의미별 wrap을 확인한다. Milestone 계층/전체 Gate의 독립 scope·명명된 구획·keyboard/focus·원본 왕복을 유지한다.

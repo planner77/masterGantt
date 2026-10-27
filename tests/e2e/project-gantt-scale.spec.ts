@@ -1,6 +1,83 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expectSameGanttRoot, ganttRoot, installStatefulProjectFixture, publicId as statefulPublicId, rememberGanttRoot, rowNamed } from "../fixtures/stateful-project";
 
 const publicId = "35000000-0000-4000-8000-000000000035";
+
+async function wheelDensity(page: Page, row: Locator, height: number) {
+  const frame = ganttRoot(page);
+  const before = Number(await frame.getAttribute("data-gantt-cell-height"));
+  const direction = height < before ? 120 : -120;
+  for (let current = before; current !== height; current += direction > 0 ? -2 : 2) {
+    const box = await row.boundingBox();
+    if (!box) throw new Error("Density gesture requires a visible native Grid row");
+    await page.mouse.move(box.x + Math.min(100, box.width / 2), box.y + box.height / 2);
+    await page.keyboard.down("Control");
+    await page.mouse.wheel(0, direction);
+    await page.keyboard.up("Control");
+    await expect(frame).toHaveAttribute("data-gantt-cell-height", String(current + (direction > 0 ? -2 : 2)));
+  }
+  await expect.poll(async () => {
+    const receipt = await frame.getAttribute("data-gantt-projection-receipt");
+    return receipt ? JSON.parse(receipt).outcome : null;
+  }).toBe("SETTLED");
+}
+
+test("Issue #822 preserves scoped search membership and Shift selection through density changes", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const fixture = await installStatefulProjectFixture(page);
+  fixture.tasks[1].name = "Density scope child A";
+  for (const [ordinal, suffix] of [[5, "B"], [6, "C"]] as const) fixture.tasks.push({
+    ...fixture.tasks[1], taskId: `00000000-0000-4000-8000-${String(ordinal).padStart(12, "0")}`,
+    externalId: `DENSITY-SCOPE-${suffix}`, name: `Density scope child ${suffix}`, siblingOrder: ordinal,
+  });
+  await page.goto(`/projects/${statefulPublicId}`);
+  const identity = await rememberGanttRoot(page), frame = ganttRoot(page);
+  await rowNamed(page, "Stable summary").click({ button: "right" });
+  await page.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`rootTask=${fixture.tasks[0].taskId}`));
+  const scope = page.getByRole("tablist", { name: "WBS 범위 탭" }).getByRole("tab", { name: "Stable summary", exact: true });
+  await expect(scope).toHaveAttribute("aria-selected", "true");
+  const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색", exact: true });
+  await search.fill("Density scope child");
+  const children = ["A", "B", "C"].map(suffix => rowNamed(page, `Density scope child ${suffix}`));
+  for (const row of children) await expect(row).toBeVisible();
+  const checkboxes = children.map(row => row.locator("input[data-copy-selection]"));
+  await checkboxes[0].check();
+  await checkboxes[2].click({ modifiers: ["Shift"] });
+  for (const checkbox of checkboxes) await expect(checkbox).toBeChecked();
+  const receipts = [];
+  for (const height of [32, 28, 34]) {
+    await wheelDensity(page, children[1], height);
+    await expect(search).toHaveValue("Density scope child");
+    await expect(scope).toHaveAttribute("aria-selected", "true");
+    for (const row of children) await expect(row).toBeVisible();
+    for (const checkbox of checkboxes) await expect(checkbox).toBeChecked();
+    await expect(rowNamed(page, "Stable leaf")).toHaveCount(0);
+    await expect(rowNamed(page, "Stable milestone")).toHaveCount(0);
+    await expectSameGanttRoot(page, identity);
+    receipts.push({ height, receipt: JSON.parse((await frame.getAttribute("data-gantt-projection-receipt"))!) });
+  }
+  // A new query with the same task IDs still owns the filter; density must not
+  // resurrect the previous scope's excluded Milestone or outside leaf.
+  await search.fill("Density scope child B");
+  await expect(children[1]).toBeVisible();
+  await expect(children[0]).toHaveCount(0);
+  await expect(children[2]).toHaveCount(0);
+  await wheelDensity(page, children[1], 28);
+  await expect(search).toHaveValue("Density scope child B");
+  await expect(children[0]).toHaveCount(0);
+  await expect(children[2]).toHaveCount(0);
+  await page.getByRole("button", { name: "초기화", exact: true }).click();
+  for (const row of children) await expect(row).toBeVisible();
+  await expect(frame).toHaveAttribute("data-gantt-cell-height", "28");
+  await expect(rowNamed(page, "Stable leaf")).toHaveCount(0);
+  await expect(rowNamed(page, "Stable milestone")).toHaveCount(0);
+  await expectSameGanttRoot(page, identity);
+  expect(fixture.posts).toHaveLength(0);
+  expect(fixture.patchRequests).toHaveLength(0);
+  expect(fixture.project.revision).toBe(fixture.initialRevision);
+  await testInfo.attach("issue-822-scoped-density", { body: JSON.stringify(receipts), contentType: "application/json" });
+});
 
 test("switches the Gantt timeline between day and ISO week headers without remounting", async ({ page }) => {
   await page.route(`**/api/projects/${publicId}`, (route) => route.fulfill({ json: {

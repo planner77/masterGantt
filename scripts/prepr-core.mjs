@@ -183,6 +183,16 @@ const RULES = [
     reason: "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers",
   },
   {
+    id: "issue-822-gantt-density", risk: "HIGH",
+    re: /^src\/features\/gantt\/gantt-density\.ts$/,
+    unitPaths: ["tests/features/gantt/gantt-density.test.ts"],
+    browser: [
+      "project-gantt-scale", "project-summary-bar-visual", "projection-row-alignment",
+      "project-task-delete-context", "project-task-hover-tooltip",
+    ],
+    reason: "Gantt 밀도 단계·휠 입력 → 실제 Grid/Chart geometry·행 정렬·진행률 적중·읽기 전용 tooltip 회귀",
+  },
+  {
     id: "issue-552-project-workspace", risk: "HIGH",
     re: /^src\/features\/projects\/(?:project-readonly-view|project-copy-membership-confirm)\.tsx$/,
     browser: [
