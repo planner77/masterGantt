@@ -150,3 +150,12 @@ Head별 원격 quality/e2e/docker의 run/attempt·review thread0·mergeability �
 ### 독립 사전검토
 
 `/root/qa_825`의 실제 분리된 read-only **PRE_QA=PASS**, 미해결 finding0건. 제품·테스트6파일의 최종 production 영수증 hash, AC1~AC5·문서·version-only·P2보정·실측출처·실패보존을 확인했다. main 검증기의 순수 구조 검사도 DOCUMENTATION_SYNC=STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING / AC_TEST_COVERAGE=MAPPING_PASS_SEMANTIC_REVIEW_PENDING, risk_floor=HIGH이며 보호 경로는 package.json/package-lock.json2개다. 이 로컬 사전검토/구조 검사는 원격 QA Final·인간 review 영수증·Manager ACCEPT가 아니다.
+
+## Main 정렬 인계 (2026-10-27)
+
+- 최초 PR: [#833](https://github.com/planner77/masterGantt/pull/833), 원본 Head `b66f58843fa29c86bf1756182676b501cbe3fd8f`, 원본 base `dc8543f390616c0d5aca90a4f91899f3cf7ac5da`. 최초 원격 [Full CI #3330.1 / Run 40455522644.1](https://github.com/planner77/masterGantt/actions/runs/40455522644)는 quality/E2E 8/8/docker SUCCESS. 이 성공은 원본 HEAD/Base 귀속이며 새로운 정렬 HEAD의 검증 결과가 아니다.
+- 최신 main `09d461f96f4cf99f5addd56d0894500cdbe02ed6` (Issue #831/PR #832 포함)에 대해 원본 PR HEAD와 main을 두 부모로 보존하는 merge commit으로 정렬한다. force/rebase 없이 최신 main의 `.codex/agents/frontend.toml`, `.codex/agents/ui-ux.toml`, `AGENTS.md`, `docs/AGENT_CONFIGURATION.md`, `docs/ISSUE_831_FAILURE_ANALYSIS.md`, `docs/exec-plans/active/ISSUE_831.md`, `tests/scripts/agent-model-selection.test.ts`의 정확한 blob을 통합한다.
+- 실제 충돌: `docs/exec-plans/active/PLAN.md` 맨 앞에 #825·#831 문단이 각각 추가되어 GitHub `mergeable_state=dirty`로 판정됐다. 원본 base의 229,831자 suffix를 두 쪽이 모두 그대로 보존하므로 #825 문단·#831 두 문단·공통 base 원문 순으로 병합하여 이전 계획 기록을 삭제하지 않는다. 제품/테스트/회귀·기존 source 증거는 그대로 유지한다.
+- 새 HEAD 작성 전 PR review threads 0건, PR reviews 0건. 이전 사전 QA의 PRE_QA PASS/로컬 production 7/7 PASS는 HEAD가 변한 이후 보호된 최종 QA 및 원격 Full CI를 대신하지 않는다. 새 HEAD에 대해 risk=HIGH, qa_method=AGENT, qa_required=true, release_required=true, release_authorized=false, Manager ACCEPT=NOT TESTED, MERGE_READY=BLOCKED를 유지한다.
+- [누적 실패 원장 정책](../../PR_CI_FAILURE_TRIAGE.md)은 **최초 원격 PR CI 실패 시** `docs/ISSUE_825_FAILURE_ANALYSIS.md`를 생성하도록 요구한다. 이슈 #825의 원격 Full PR CI 첫 시도는 성공했으므로 아직 해당 원장 파일은 없다. 개발 서버 HMR/RSC·잘못된 production DB 경로·Pre-PR BLOCKED 등의 원본 실패는 앞선 절과 `docs/evidence/issue-825/`에 보존, #831 원격 PR 실패는 최신 main의 독립 원장에 그대로 남긴다. 병합 충돌을 PR CI 직접 실패로 오분류하지 않는다.
+- 요청된 종료점: 새 `pull_request/synchronize` Full CI를 **시작**하고 run/attempt를 별도 Issue STATUS로 보고. 이후 결과 확인·최종 Trusted/인간 리뷰·Owner 승인·병합·Main/GHCR·Release/Issue 종료는 수행하지 않는다. 새 HEAD Required3 및 QA Final 결과는 시작 시점 NOT TESTED.

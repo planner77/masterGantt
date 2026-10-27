@@ -1,3 +1,53 @@
+## Issue #831 — GPT-6.1 Terra 역할별 선택 (2026-10-27)
+
+### 결정 및 범위
+
+OpenAI 공식 [Terra 발표(한국어)](https://openai.com/ko-KR/index/introducing-gpt-6-1-terra/), [Terra 모델 카드](https://developers.openai.com/api/docs/models/gpt-6.1-terra), [Sol 발표](https://openai.com/ko-KR/index/introducing-gpt-6-1-sol/)와 [모델 단가](https://help.openai.com/en/articles/20001415-chatgpt-rate-card-enterprise-token-based-pricing)를 바탕으로 기존 [#347 Sol 배치](https://github.com/planner77/masterGantt/issues/347)를 갱신한다. **모든 Agent를 Terra로 바꾸지 않는다.** 사용자 요청의 목적/성능/비용을 분리하여 **UI/UX와 Frontend의 기본값만 조건부로 Terra/medium**으로 변경한다. 실측되지 않은 비용·속도·성공률 개선은 추정으로만 표시한다.
+
+| Codex 역할 | #347 활성 값(전) | #831 값(후) | 결정 근거 |
+| --- | --- | --- | --- |
+| Main / Manager | `gpt-6.1-sol` / high | **유지** | 요구사항·Architecture·위험/병합/승인 판단 |
+| researcher (read-only) | `gpt-6-luna` / medium | **유지** | 다량의 반복 공식 자료 탐색·비교; Terra보다 낮은 토큰비 |
+| ui_ux (read-only) | `gpt-6.1-sol` / medium | **`gpt-6.1-terra` / medium** | 화면·시각적 이해·interaction review에 특화 |
+| frontend | `gpt-6.1-sol` / medium | **`gpt-6.1-terra` / medium (시범)** | 제한된 React/UI/CSS·테스트 구현; 고위험 구현은 승격 |
+| backend | `gpt-6.1-sol` / high | **유지** | SQLite, API, 인증, transaction/revision 위험 |
+| scheduler | `gpt-6.1-sol` / high | **유지** | scheduling 알고리즘·달력·의존성 경계 |
+| excel_vba | `gpt-6-luna` / medium | **유지** | 명세 기반 반복 구조화 변환 |
+| infra | `gpt-6.1-sol` / high | **유지** | CI 실패 provenance·권한·GHCR·release fail-closed |
+| qa_docs (read-only) | `gpt-6.1-sol` / high | **유지** | 독립 보안/회귀/계약 리뷰 |
+
+`AGENTS.md` 5절은 이 활성 모델 표를 따른다. 실제 설정은 `.codex/config.toml`과 `.codex/agents/{role}.toml`이다. `sandbox_mode`, 담당 범위, GitHub 권한, `max_concurrent_threads_per_session = 6`, `OWNER_MANAGED`/독립 QA, 기존 PR Required Quality/E2E/Docker와 Trusted/Owner, Main/GHCR/Finalizer는 **변경하지 않는다**. Application API/DB/UI, package version, 정식 release는 N/A.
+
+### 비용/성능 근거와 해석 경계
+
+| Standard API 1M tokens | GPT-6 Luna | GPT-6.1 Terra | GPT-6.1 Sol | GPT-6 Astra |
+| --- | ---: | ---: | ---: | ---: |
+| 일반 입력 | $0.10 | $1.00 | $2.00 | $10.00 |
+| 캐시 입력 | $0.01 | $0.05 | $0.10 | $1.00 |
+| 출력 | $0.50 | $5.00 | $10.00 | $50.00 |
+
+동일한 **비캐시 입력 400만 + 출력 100만** 토큰 구성의 단순 산식: Luna **$0.90**, Terra **$9**, Sol **$18**, Astra **$90**. 실제 사용량이나 예산 추정이 아니다. Codex/Work 구독 한도와 API/token 청구는 별개이며, reasoning 토큰·캐시 유지·long-context 할증·재실행·부가 도구비·CI 재작업 비용이 달라지면 task당 절감률도 달라진다. 같은 입력/출력 토큰 구성에서는 Terra가 Sol의 절반 가격이나, **동일 성과를 위해 토큰·시도량이 2배 이상 필요하면 비용 이점이 사라질 수 있다**. Luna 대비 Terra의 토큰비는 10배이므로 기계적 승격을 금지한다.
+
+OpenAI 공식 발표에서는 Agents' Last Exam medium 설정에서 Terra가 GPT-5.6 Terra 대비 약 15%p 높은 점수와 약 1/3 비용, Sol/Astra 대비 3배 이상 빠른 작업 종료를 보고한다. Terminal-Bench 4.0 max에서 Terra 50.3% (GPT-5.6 Terra 21.5%)이며 **최상위 복잡 코딩은 Sol/Astra가 적합**하다고 명시한다. 해당 측정은 *masterGantt* 작업, Medium frontend 코드 품질, GitHub Actions 최초 성공률에 대한 직접 증거가 아니다. `gpt-6.1-terra`는 OpenAI API와 Codex에서 지원된다고 발표되었으나 사용자 실행 환경의 모델 접근/실제 실행 메타데이터는 별도 확인한다.
+
+### 작업 난이도별 배정·승격 (자동 fallback 금지)
+
+1. **UI/UX (Terra medium):** 캡처/화면의 정보 구조, 컴포넌트 구성, 밀도·정렬, 상호작용·접근성 근거 비교의 read-only 분석. 공통 상태/설계 범위 상충, 인증·민감 UX, 다단계 실시간 상태·Gantt native interaction의 복잡한 결정은 Manager에게 **Sol high 작업별 승격 요청**.
+2. **Frontend (Terra medium):** 범위가 명확한 CSS, 단일/제한된 컴포넌트, 제약이 명확한 React/UI와 관련 Vitest/Playwright 보완을 우선 수행. **SVAR drag/resize/dependency, 대규모 계층/summary/state 동기화, auth/revision, 경쟁/성능, 잘못된 대상 이벤트 및 재발 CI 실패**는 Sol high로 별도 작업/세션 명시적 승격 후 변경·검토. 해당 위험을 Terra 단독으로 해소했다고 간주하지 않는다.
+3. **Researcher/Excel (Luna medium):** 공식 자료 대량 조사/구조화 매핑은 유지. 화면/기술 도면의 비정형 이미지 해석, 복잡 VBA 디버깅은 필요성이 명확할 때 Terra medium **명시적 작업별 승격**. 데이터·보안·API 계약 변경에는 Sol high 사용.
+4. **Manager/Backend/Scheduler/Infra/QA (Sol high):** 기존 기본값 유지. Sol high로도 증거·고난도 해법이 불충분한 경우에 한하여 Manager가 **Astra를 해당 범위에 일시 지정**하며 범위/실제 모델/결과를 문서화한다.
+
+Manager는 PLAN/REWORK에서 작업 위험 분류→역할 선택→기본 모델 확인→필요 시 모델 변경과 이유를 **Issue Work Packet/Result Contract에 명시**한다. 정적 TOML이 세션 중 자동 모델 전환을 의미하지 않는다. 실제 런타임이 작업별 explicit model override/별도 세션을 지원하는지 먼저 확인하고, 지원하지 않으면 즉시 승격됐다고 표시하지 않는다. 모델 미지원, 호출 실패, 컨텍스트 부족은 **BLOCKED 또는 NOT TESTED**로 구분하고 무단 silent downgrade는 금지한다. 기존 `qa_docs` 독립 검토/Owner ACCEPT는 모델 품질 점수가 대신할 수 없다.
+
+### 시범 측정, acceptance, rollback
+
+- 초기 동종 UI 구현 **10개 작업**(가능한 범위)에서 정확한 역할/모델/effort/runtime ID, 입력·캐시·출력·reasoning tokens(접근 가능 시), 재시도/수정 작업량, 작업시간, PR 첫 Full CI 결과, 제품·E2E 직접 회귀, Owner 수동 보완을 동종 **Sol 기준선**과 비교한다. 측정이 부족하면 절감 효과 **NOT TESTED/INSUFFICIENT_DATA**.
+- 사용자/Owner의 품질 기준과 구체적 CI 실패·기능 회귀는 비용보다 우선한다. Terra 사용과 관련 있는 P1 이상 제품 회귀가 시범 중 **2건** 발생하거나, 동종 작업 대비 수정/Runner 비용이 절감분을 지속적으로 상회하면 **frontend만 우선 Sol 6.1/medium으로 되돌리는 PR**을 권고한다. Terra 모델이 실제 선택되지 않으면 측정을 유효한 시범으로 간주하지 않는다.
+- 유효한 TOML, `AGENTS.md` 활성 표, 기존 Agent QA 지침 및 `tests/scripts/agent-model-selection.test.ts`·`tests/scripts/agent-qa-contract.test.ts`의 정적 회귀를 확인한다. GitHub Actions와 실제 Codex 실행은 **서로 독립한 검증**이며 이 문서/설정 변경만으로 전부 PASS로 보고하지 않는다.
+- 고위험 cross-cutting Agent 설정 변경이므로 `HIGH/OWNER_MANAGED/qa_required=true`, 새 PR HEAD의 기존 Quality/E2E/Docker·Trusted QA·Owner ACCEPT 확인 전 병합 금지. `release_required=false`, `release_authorized=false`.
+
+---
+
 ## Issue #598 후속 — 활성 Agent QA 지침 (2026-10-17)
 
 - 현재 정책은 [QA Review Policy](QA_REVIEW_POLICY.md)에 따르며, 적용 위치는 TOML의 **`developer_instructions` 내부**다. 파일 끝 주석은 실행 지침이 아니다.
