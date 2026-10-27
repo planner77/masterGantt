@@ -82,7 +82,7 @@ B — 기존 workspace-first·가용 폭·compact toolbar·progressive disclosur
 - `docs/UI_UX_GUIDELINES.md`: N/A(기존 responsive·label·focus 계약 유지, 새 공통 interaction 없음)
 - `docs/PROJECT_UX.md`: UPDATED
 - `docs/LOGISTICS_DASHBOARD.md`: UPDATED
-- `docs/TEST_PLAN.md`: UPDATED
+- `docs/TEST_PLAN.md`: N/A(이번 교정 PR은 기존 CI 추적 검증 스크립트 내부의 과거 실패와 정상 입력 사례만 보강하며 테스트 계획과 E2E 및 Unit 생명주기 정책을 변경하지 않음)
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_825.md`: UPDATED
 - `docs/evidence/issue-825/geometry.json`: UPDATED
@@ -223,3 +223,14 @@ Head별 원격 quality/e2e/docker의 run/attempt·review thread0·mergeability �
 2. 새 정확 Head의 Full PR CI 및 default-main Trusted 출처 SUCCESS, 보안/프로세스 강제 조건을 확인할 때만 병합. 새 Head CI 결과가 UNKNOWN이면 `MERGE_READY=BLOCKED`.
 3. 새 PR 번호·HEAD가 확보되면 **병합 API 실행 전에** `scripts/main_ci_run_name.py --as-merge-payload --expected-head-sha`·`--validate-title`과 실제 `merge_api_payload` 출력 검증. `commit_message=""`, `merge_method=merge`, `Issue #825 · PR #<새 PR> · 물류 대시보드 Main CI 복구` 1행만 지정; 제목 외 설명 금지.
 4. GitHub 보호 Main이 새 merge SHA로 정렬된 후 자동 `push` Main CI의 원본 Run/Attempt 시작을 확인, **완료 모니터링은 하지 않음**. 이전 Main #3336.1 FAILURE를 새로운 성공으로 바꾸지 않는다. 후보 이미지/정식 릴리스/Finalizer/Issue Close는 별도 Owner 승인 및 검증 없이는 금지.
+
+
+## PR-825-002 — PR #834 Full #3339.1 Preflight 실패 및 국소 문서 정합성 교정 (2026-10-27)
+
+- **원본 Full:** [#3339.1 / Run 40487734659.1](https://github.com/planner77/masterGantt/actions/runs/40487734659), event=`pull_request` (Ready/FINAL_FULL), HEAD `eec2bd0a1bb121d1a0b7c8377b41580f98ce7056`, Base `7ba1521407e6a1060ef442f1730275d38976f741`, Test merge `420b7a1ca9072aea15056966888194e8e41e93bf`; completed/FAILURE. `변경 경로 판정` SUCCESS, 정책/Issue/위험도/qa_method/QA Required/Release flags/AC 매핑 PASS. [QA Preflight Job 122133904498](https://github.com/planner77/masterGantt/actions/runs/40487734659/job/122133904498) Step4 `원본 base SHA의 QA Preflight 실행` 직접 FAIL: **`문서 변경 또는 N/A(reason) 미입증: docs/TEST_PLAN.md`**.
+- **확정 원인:** 이전 제품 PR #833의 `docs/TEST_PLAN.md` 변경 선언(`UPDATED`)을 복구 PR #834의 현행 최상위 `## DOCUMENTATION_SYNC`에서 그대로 인계했으나 이번 #834 diff에는 해당 파일이 없음. 신뢰된 base `scripts/qa_final_automated.py::docs_gate`는 첫 정확 `## DOCUMENTATION_SYNC`의 `- \`경로\`: UPDATED/N/A(reason)` 단독 행을 파싱하며, `UPDATED`는 반드시 현재 PR changed paths에 포함되어야 한다. 아래 별도 `### DOCUMENTATION_SYNC (MAIN-825-001 ...)`의 N/A는 상위 `##` 원장으로 재정의되지 않아 기존 `UPDATED`와 충돌. **문서 검증 입력 오류(POLICY_CI/DOCUMENTATION_SYNC)**이며 제품 코드, E2E 실패가 아니다.
+- **파생/미실행:** PR Fast Gate Job `122134029056` FAIL은 Preflight fail/정책·TypeScript·ESLint·Unit 미실행 파생. Required Quality `122134161436`, E2E `122134161626`, Docker `122134161542` FAIL 모두 fail-closed 파생. QA Final Automated `122134203110` FAIL도 required 미성공 파생. 실제 Policy/TS/ESLint/Vitest/Next build/Chromium8 shards/Docker smoke는 SKIPPED/NOT RUN, Main 임시 GHCR SKIPPED. 기존 실패 원본은 [누적 실패 원장](../../ISSUE_825_FAILURE_ANALYSIS.md)에 불변 보존.
+- **한정 교정:** 이 Work Packet의 **최초 `## DOCUMENTATION_SYNC` 내부** `docs/TEST_PLAN.md`를 현재 diff의 실제 영향에 맞는 긴 근거의 `N/A(reason)`으로 교정한다. 역사적 PR #833에서는 그 문서가 변경되었음을 삭제/소급 부정하지 않고 원본 PR·본 Packet 이전 기록에 보존한다. `docs/TEST_PLAN.md` 자체, `scripts/qa_final_automated.py`, `scripts/qa_preflight.py`, `scripts/verify-issue-lifecycle.py` 변경 없음. Required3/8Shard/timeout/Retry/assertion·QA/Ruleset 보호 조건 불변.
+- **TEST_LIFECYCLE_REVIEW:** 기존 Policy negative/positive는 KEEP_UNIQUE, 제품·브라우저/DB 시험도 KEEP_UNIQUE. 신규 spec/삭제/무단 skip 없음. 이번 문서 수정에는 별도 테스트 케이스 불필요; 기존 base docs_gate 계약으로 구조 검사 후 Full PR CI의 실제 검증 결과를 기다린다. `AC_TEST_COVERAGE` 기존 AC1~AC5, 원래 #825 KPI/표 폭·readonly·period/filter 및 실패 복구 계약 보존.
+- **DOCUMENTATION_SYNC (교정분):** `docs/exec-plans/active/ISSUE_825.md`: UPDATED (QA Preflight의 직접 오류와 실제 문서 영향 교정), `docs/ISSUE_825_FAILURE_ANALYSIS.md`: UPDATED (새 F825-PR-001 및 취소 Run 이력), `docs/exec-plans/active/PLAN.md`: UPDATED (현재 복구 상태 인계). `docs/TEST_PLAN.md`: N/A (변경 계획·기준 없음), `AGENTS.md`: N/A (현행 Merge title 및 CI 운영 지침 그대로 적용), `docs/QA_REVIEW_POLICY.md`·`docs/CI_CD.md`·`docs/GITHUB_OPERATIONS.md`·`docs/REMOTE_VALIDATION.md`: N/A (정책/검증기/운영 계약 변경 없음). 제품·기타 도메인 문서: N/A (UI/API/DB/Scheduler 코드 변경 없음).
+- **잔여 위험·인계:** 로컬 동일-source Python/JS 및 모든 원격 Job PASS는 새 HEAD에서 실제 실행 전 NOT TESTED. `risk_level=HIGH, qa_method=OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false` 유지. 새 Head/통합 test merge/리뷰 스레드·Main 정렬 확인 후 새 Full PR CI를 시작하며 결과는 사용자 요청대로 모니터링하지 않는다. 정식 병합·Main/GHCR·릴리스·Issue 종료는 이 지시의 범위가 아니다.

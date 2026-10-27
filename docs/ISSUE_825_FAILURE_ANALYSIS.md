@@ -46,3 +46,37 @@ Primary Issue: [#825](https://github.com/planner77/masterGantt/issues/825) | 원
 - PR 검증: 원격 새 정확 Head/Base/Test-Merge의 Full CI Required3(Chromium8/8 실제), 신뢰된 default-main Trusted, 리뷰 thread0 및 충돌 없음 확인 후에만 새 같은 Issue의 `merge_method=merge`, 짧은 한글 제목, **빈 commit_message**, lease-bound `expected_head_sha`로 정식 병합. 예시 명령: `python3 scripts/main_ci_run_name.py --issue 825 --pr <새 PR 번호> --summary "물류 대시보드 Main CI 복구" --as-merge-payload --expected-head-sha <새 PR SHA>` 후 `--validate-title` 비교. GitHub PR metadata의 `Refs #825`는 별도 한 행.
 - **정식 릴리스:** 실패 Merge가 이미 `0.135.4 → 0.135.5`를 Main에 반영했음. 같은 Issue의 연속 non-docs corrective가 앱 버전 `0.135.5`를 유지할 때에만 Generic Finalizer의 *same-Issue failed-Main inheritance* 허용 여부를 별도 평가. `release_required=true`, `release_authorized=false`. 버전별 Owner 릴리스 승인 없이 annotated tag·rolling GHCR/정식 Release·Issue close 금지.
 - Main #3336 실패 원본 증거는 [Issue STATUS/EXCEPTION](https://github.com/planner77/masterGantt/issues/825#issuecomment-6439176679)에서도 확인 가능. 새로운 PR/Head의 검증 및 새로운 Main push Run은 실제 생성 전 **NOT TESTED**. CI 모니터링은 요청 범위 밖.
+
+## 4. PR-825-002 — PR #834 Full CI #3339.1 Preflight 직접 실패 (2026-10-27 KST)
+
+### 정확한 원격 Run/Attempt 전체 인계
+
+새 복구 PR: [#834](https://github.com/planner77/masterGantt/pull/834), branch `fix/issue-825-main-trace-recovery`, Head `eec2bd0a1bb121d1a0b7c8377b41580f98ce7056`, base/main `7ba1521407e6a1060ef442f1730275d38976f741`. PR 작업 트리의 제품/버전 `0.135.5` 및 기존 QA/CI 검증기 불변. 다음 각각의 원본 결론은 성공으로 소급 변경하지 않는다.
+
+| 사례 | 원본 GitHub Workflow / Attempt | 원인 분류·상태 |
+| --- | --- | --- |
+| C825-PR-001 | [PR #3337.1 / 40487715106.1](https://github.com/planner77/masterGantt/actions/runs/40487715106) · `DRAFT_BLOCKED` | CANCELLED. Draft 작업 진행 중 중단된 원본이며 Full PASS/직접 제품 FAIL이 아님 |
+| C825-PR-002 | [PR #3338.1 / 40487725707.1](https://github.com/planner77/masterGantt/actions/runs/40487725707) · `FINAL_FULL` | CANCELLED. 빠른 Draft↔Ready 전환 과정에서 superseded, 성공이나 완결된 Full 검증 아님 |
+| F825-PR-001 | **[PR #3339.1 / 40487734659.1](https://github.com/planner77/masterGantt/actions/runs/40487734659)** · `FINAL_FULL` | **FAILURE / POLICY_CI(DOCUMENTATION_SYNC)**. 정확 Head 상단, Test merge `420b7a1ca9072aea15056966888194e8e41e93bf`; 원본 직접 실패 Preflight Job `122133904498` Step4 |
+| F825-QA-004 | [Trusted #985.1 / 40487742357.1](https://github.com/planner77/masterGantt/actions/runs/40487742357), Job `122133677489` | BLOCKED/FAILURE: 원본 #3338 cancelled, 신뢰된 출처에서 `원본 CI PR event artifact 누락/중복/만료`. 직접 E2E 실패 아님 |
+| F825-QA-005 | [Trusted #986.1 / 40487771115.1](https://github.com/planner77/masterGantt/actions/runs/40487771115), Job `122133773349` | FAILURE: #3337 cancelled의 `원본 PR CI run 자체가 성공하지 않았습니다` 파생 |
+| F825-QA-006 | [Trusted #987.1 / 40487948606.1](https://github.com/planner77/masterGantt/actions/runs/40487948606), Job `122134369480` | FAILURE: #3339.1 실패의 `원본 PR CI run 자체가 성공하지 않았습니다` 파생 |
+
+비권위 FAST_DEVELOPMENT 실행 #145/#146 CANCELLED 및 #147 SKIPPED는 Full 검증 출처로 사용하지 않는다. 특정 Run의 미실행 Job을 임의 PASS 처리하지 않는다.
+
+### 최초 직접 실패와 파생 경계
+
+- 원본 [QA Preflight Job 122133904498](https://github.com/planner77/masterGantt/actions/runs/40487734659/job/122133904498), Step 4 `원본 base SHA의 QA Preflight 실행 (read-only)`에서 `2026-10-27T10:21:41Z`에 FAIL 1, DEFERRED 5. **`DOCUMENTATION_SYNC: docs/exec-plans/active/ISSUE_825.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE — 문서 변경 또는 N/A(reason) 미입증: docs/TEST_PLAN.md`**. Artifact [qa-preflight-40487734659-1 / 12725508647](https://github.com/planner77/masterGantt/actions/runs/40487734659/artifacts/12725508647). `PRIMARY_ISSUE`, `RISK_LEVEL`, `QA_METHOD`, `QA_REQUIRED`, `RELEASE_REQUIRED/AUTHORIZED`, `PATH_POLICY`, `ISSUE_AC` 모두 PASS.
+- 원본 정확 `## DOCUMENTATION_SYNC`에는 `- \`docs/TEST_PLAN.md\`: UPDATED`가 남아 있지만 PR #834 변경 경로는 `scripts/verify-issue-lifecycle.py`, `docs/ISSUE_825_FAILURE_ANALYSIS.md`, `docs/exec-plans/active/ISSUE_825.md`, `docs/exec-plans/active/PLAN.md`뿐이다. 신뢰된 base `scripts/qa_final_automated.py::docs_gate`는 **첫 최상위 `## DOCUMENTATION_SYNC` 단독 행**에서만 경로별 `UPDATED` 또는 `N/A(reason)`를 읽고, `UPDATED`는 현재 PR에서 실제 변경됐을 때만 인정한다. 뒤쪽 `### DOCUMENTATION_SYNC (MAIN-825-001 ...)`의 `N/A`는 그 단일 첫 번째 섹션 판정을 대신하지 않는다.
+- **확정 직접 원인:** 원본 #833에서 TEST_PLAN을 갱신했던 역사적 문서 상태가 신규 #834의 현행 원장에 잘못 승계된 **Work Packet source 계약 오류(POLICY_CI / DOCUMENTATION_SYNC)**. 정책 스크립트/CI Runner·제품 회귀 원인으로 단정할 근거 없음. 코드·검증기 수정 없이 원장 정합성만 교정한다.
+- 파생: PR Fast Gate Job `122134029056` FAIL(`PREFLIGHT_RESULT=failure`, Policy/TypeScript/Lint/Unit SKIPPED), Required Quality `122134161436`, E2E `122134161626`, Docker `122134161542`는 **모두 전제조건 미충족에 따른 FAILURE**, QA Final Automated `122134203110`도 `required quality 미성공`으로 파생 FAILURE. 실제 TypeScript, ESLint, Policy/Vitest, Next Build, Chromium8 implementation, Docker runtime smoke는 전부 SKIPPED/NOT RUN. Main 임시 GHCR Job은 SKIPPED. Shadow advisory SUCCESS는 제품/필수 Required 성공이 아님.
+- 실행 결과/QA 신뢰 판단: `DOCUMENTATION_SYNC`만 실패했지만 그 다음 구현 검사들은 **실행되지 않았으므로 PASS/FAIL을 판정하지 않는다**. 같은 HEAD에 대한 처음 Full #3339.1의 실패는 새 HEAD 검증으로 덮어쓸 수 없고, 이전 #833 정상 Full/Trusted도 #834 복구의 출처로 재사용 불가.
+
+### 교정 내역, Cross-run 판정과 인계
+
+- **한정 보완:** `docs/exec-plans/active/ISSUE_825.md`의 첫 `## DOCUMENTATION_SYNC`에 있는 `docs/TEST_PLAN.md` 선언을 `UPDATED` → 명시적 근거 `N/A(reason)`으로 수정. 이번 PR은 기존 `scripts/verify-issue-lifecycle.py` 고유 canonical merge 테스트에 원본 #3336 실패 message negative/올바른 payload positive만 확장하고 TEST_PLAN의 E2E·테스트 Lifecycle 의미/기준을 바꾸지 않으므로 문서 자체 수정은 불필요. **최초 #833에서 TEST_PLAN.md가 실제 수정된 이력은 원본 PR #833과 현행 Packet의 과거 절에 그대로 보존**한다.
+- 기존 base `docs_gate`의 단일 SECTION 정규식·`QA_DOCS` 합집합을 사용하여 `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md` 6개 모두 현행 diff의 `UPDATED` 또는 길이 요건 충족 `N/A(reason)`인지 **정적 검사**했다(6/6 충족). 이는 원격 QA Preflight/Full PR CI PASS가 아니며, 새 Head 실측은 NOT TESTED.
+- **TEST_LIFECYCLE_REVIEW:** 새 테스트 삭제/변형 없이 기존 #582/#586/#639/#808의 `scripts/verify-issue-lifecycle.py` 고유 정책 시나리오를 KEEP_UNIQUE; 본 PR의 그 파일 추가 사례를 EXTEND하고 제품/Chromium/SQLite 고유 회귀 보존. 테스트 assertion, timeout/retry, 8-shard 및 Required3 게이트 수정·skip 금지.
+- **DOCUMENTATION_SYNC:** `docs/exec-plans/active/ISSUE_825.md`: UPDATED(현행 첫 섹션과 추가 이력 정합성), `docs/ISSUE_825_FAILURE_ANALYSIS.md`: UPDATED(원본 F825-PR-001/C825-PR-001·002/Trusted #985~987 이력), `docs/exec-plans/active/PLAN.md`: UPDATED(교정 경계/Run 목록). `docs/TEST_PLAN.md`: N/A(계약 불변), `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`: N/A(기존 검증/운영 계약 유지), 기타 제품/API/DB/Design/Resource 문서: N/A(코드 영향 없음).
+- **교차 비교:** MAIN-825-001은 병합 운영자가 commit_message에 다중행을 넣은 **MERGE_METADATA 직접 실패**; F825-PR-001은 새 PR Work Packet의 **DOCUMENTATION_SYNC 직접 실패**. 둘 다 POLICY_CI 범주이나 원인·시점·주체/보완이 독립이다. 이전 QA AGENT 인수 누락 및 stale metadata 이벤트도 각각 이 원장의 앞 절에 보존하며 교정 성공의 증거로 소급하지 않는다.
+- **인계:** 신규 Head에서 실제 Full PR CI+Trusted QA 미검증, 독립 QA는 `N/A(Owner-managed)`, `risk_level=HIGH`, `qa_required=true`, `release_required=true`, `release_authorized=false`, `MERGE_READY=BLOCKED`. 미해결 review thread/충돌0과 정확 Main 정렬을 새 Head 게시 후 확인. 사용자 범위는 **PR CI 시작까지**이고 모니터링·merge/Main/GHCR/Release/Issue close는 실행하지 않는다. 원본 병합 Main #3336.1은 immutable FAILURE로 유지.
