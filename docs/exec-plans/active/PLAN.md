@@ -1,3 +1,9 @@
+## Issue #825 — QA Trusted 두 회차 차단 및 Owner-managed 전환 (2026-10-27)
+
+[Issue #825](https://github.com/planner77/masterGantt/issues/825) / [PR #833](https://github.com/planner77/masterGantt/pull/833) / [Work Packet](ISSUE_825.md). 원본 `b66f588` [Full #3330.1](https://github.com/planner77/masterGantt/actions/runs/40455522644) 및 main 정렬 `a7f45f6` [Full #3333.1](https://github.com/planner77/masterGantt/actions/runs/40470969178)의 Quality/E2E8/Docker는 SUCCESS이나, [Trusted #979](https://github.com/planner77/masterGantt/actions/runs/40458359626)과 [#981](https://github.com/planner77/masterGantt/actions/runs/40474635264)는 둘 다 **AGENT 선택 시 현재 Head의 독립 인간 `QA_FINAL: PASS` 증거가 없어 BLOCKED**. 개발 서버·Pre-PR 오류와 Trusted 차단을 혼합하거나 과거 성공을 소급하지 않는다.
+
+Owner의 명시적 지시로 **`qa_method=OWNER_MANAGED`** 전환하고 새 HEAD의 Ready Full PR CI를 시작한다. `risk_level=HIGH`, `qa_required=true`, `release_required=true`, `release_authorized=false` 유지. 기본 main Trusted QA·Required3·strict 최신 Head/Base·review thread0·AC/docs·HIGH 위험의 별도 Owner/Manager 수용·병합 승인은 모두 유지하며, 독립 인간 QA 미실행은 N/A(Owner-managed)로 구분한다. 기존 #825 AGENT 계획은 아래에 역사적 시점의 기록으로 보존하고 새 결정은 [Work Packet](ISSUE_825.md) QA 전환 절을 정규 최신 원장으로 사용한다. 코드/테스트/버전/CI 정책 변경 없이 문서/PR QA 메타데이터만 일치시킨다. 요청 종료점은 **PR CI 시작**까지이며 모니터링·병합/Main/GHCR/Finalizer/Issue 종료 없음, 새 HEAD 필수 검증 결과는 시작 때 NOT TESTED, MERGE_READY=BLOCKED다.
+
 ## Issue #825 — 물류 dashboard 폭·중복 헤더·KPI 조건 영역
 
 main `dc8543f390616c0d5aca90a4f91899f3cf7ac5da` /0.135.4 기준 [#825](https://github.com/planner77/masterGantt/issues/825)를 `fix/issue-825-dashboard-shell`에서 구현한다. 별도 ui_ux 설계 → frontend 공용 shell/KPI 표시·기존 E2E 확장 → Manager 문서/통합 → 별도 qa_docs 사전검토 → infra Ready PR CI 시작 순서이며 [Work Packet](ISSUE_825.md)에 AC/소유권·실제 증거를 기록한다. 후속 #826 공통 WBS typography/search와 Milestone 폭은 수정하지 않는다.

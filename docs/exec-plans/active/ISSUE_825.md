@@ -14,9 +14,12 @@
 - release_authorized: false
 - risk_level: HIGH
 - risk_reason: 제품 변경은 제한된 UI MEDIUM이나 package/lock version 보호 경로가 포함되어 main 검증기의 risk_floor에 따라 HIGH로 상향한다. 서버·권한·계산·비동기 상태 producer는 수정하지 않는다. 별도 사전 QA와 최종 exact-head Owner/Trusted gate를 분리한다.
-- qa_method: AGENT
+- qa_method: OWNER_MANAGED
 - qa_required: true
-- reviewer: `/root/qa_825` 별도 read-only 사전검토. 원격 Required3 및 exact-head QA Final/Manager ACCEPT는 NOT TESTED.
+- reviewer: `/root/qa_825`의 과거 read-only PRE_QA=PASS (정식 독립 인간 QA 최종 승인과 별개)
+- independent_qa: N/A (OWNER_MANAGED 전환에 따른 최종 독립 인간 리뷰 의무 없음; 기존 사전검토 결과 보존)
+- trusted_qa: 이전 Head 두 차례 BLOCKED, 새로운 Head 검증은 NOT TESTED
+- owner_high_risk_acceptance: NOT TESTED (OWNER_MANAGED 전환 승인은 병합·HIGH 위험 수용 승인과 구분)
 - manager_decision: NOT TESTED
 - MERGE_READY: BLOCKED
 - issue_comment_writer: Manager
@@ -159,3 +162,24 @@ Head별 원격 quality/e2e/docker의 run/attempt·review thread0·mergeability �
 - 새 HEAD 작성 전 PR review threads 0건, PR reviews 0건. 이전 사전 QA의 PRE_QA PASS/로컬 production 7/7 PASS는 HEAD가 변한 이후 보호된 최종 QA 및 원격 Full CI를 대신하지 않는다. 새 HEAD에 대해 risk=HIGH, qa_method=AGENT, qa_required=true, release_required=true, release_authorized=false, Manager ACCEPT=NOT TESTED, MERGE_READY=BLOCKED를 유지한다.
 - [누적 실패 원장 정책](../../PR_CI_FAILURE_TRIAGE.md)은 **최초 원격 PR CI 실패 시** `docs/ISSUE_825_FAILURE_ANALYSIS.md`를 생성하도록 요구한다. 이슈 #825의 원격 Full PR CI 첫 시도는 성공했으므로 아직 해당 원장 파일은 없다. 개발 서버 HMR/RSC·잘못된 production DB 경로·Pre-PR BLOCKED 등의 원본 실패는 앞선 절과 `docs/evidence/issue-825/`에 보존, #831 원격 PR 실패는 최신 main의 독립 원장에 그대로 남긴다. 병합 충돌을 PR CI 직접 실패로 오분류하지 않는다.
 - 요청된 종료점: 새 `pull_request/synchronize` Full CI를 **시작**하고 run/attempt를 별도 Issue STATUS로 보고. 이후 결과 확인·최종 Trusted/인간 리뷰·Owner 승인·병합·Main/GHCR·Release/Issue 종료는 수행하지 않는다. 새 HEAD Required3 및 QA Final 결과는 시작 시점 NOT TESTED.
+
+## QA Trusted #979/#981 및 Owner-managed 전환 (2026-10-27)
+
+### 원본 이력과 직접 실패 (기존 판정 불변)
+
+| 경계 | 정확 Head / Base | 실제 Run / Attempt | 결론·최초 직접 차단 |
+| --- | --- | --- | --- |
+| 원본 Full PR CI | `b66f58843fa29c86bf1756182676b501cbe3fd8f` / `dc8543f390616c0d5aca90a4f91899f3cf7ac5da` | [40455522644.1](https://github.com/planner77/masterGantt/actions/runs/40455522644) | SUCCESS — Quality, Chromium E2E 8/8, Docker 모두 성공 |
+| Trusted #979 | 위 원본 Full Run 귀속, 신뢰된 검증기 main `09d461f96f4cf99f5addd56d0894500cdbe02ed6` | [40458359626.1](https://github.com/planner77/masterGantt/actions/runs/40458359626), Job `122036866602` | FAILURE — Step “원본 PR CI/Head/base 및 차단 리뷰·문서 증거 독립 조회” |
+| Main 정렬 후 Full PR CI | `a7f45f6e5175bc09cf57f565bfb29ac7588edba5` / `09d461f96f4cf99f5addd56d0894500cdbe02ed6` | [40470969178.1](https://github.com/planner77/masterGantt/actions/runs/40470969178) | SUCCESS — Quality, Chromium E2E 8/8, Docker 성공 |
+| Trusted #981 | 위 Main 정렬 Full Run 귀속, 동일 신뢰된 main 검증기 | [40474635264.1](https://github.com/planner77/masterGantt/actions/runs/40474635264), Job `122089718678` | FAILURE — 동일 Step/동일 차단 사유 |
+
+두 Trusted Job 원본 로그의 직접 사유: **“AGENT 보호 파일: 현재 Head에 대한 독립 인간 QA_FINAL: PASS 리뷰 필요”**. 두 Head에 대하여 GitHub APPROVED 리뷰 0건, 미해결 review thread 0건이며, 이전 별도 `qa_docs PRE_QA=PASS`는 GitHub가 요구하는 독립 인간 최종 리뷰가 아님. 판정: 선택된 **QA 승인 경로의 요구 증거 부재 (POLICY_CI / GATE_MISSING)**. 제품 결함이나 PR Required3 직접 실패로 분류하지 않는다. 앞선 Full PASS를 Trusted PASS로 바꾸지 않는다. 별도의 원격 Full PR CI 직접 실패가 없으므로 [실패 원장 정책](../../PR_CI_FAILURE_TRIAGE.md)의 “최초 PR CI 실패 시 `docs/ISSUE_825_FAILURE_ANALYSIS.md` 생성” 조건은 아직 발동하지 않았다. QA Trusted 두 실제 실패 및 개발 서버/환경·Pre-PR 관측은 여기와 기존 source 증거에 누적 보존한다.
+
+### 사용자 결정·후속 검증
+
+- 사용자 명시 지시: **`qa_method=OWNER_MANAGED` 전환 후 신규 Full PR CI 재시작**. 현재 QA 정책 [#598](../../QA_REVIEW_POLICY.md)은 HIGH 및 보호 package/lock 경로에서도 Owner-managed를 허용한다. `risk_level=HIGH`, `qa_required=true` 유지; `independent_qa=N/A(Owner-managed, 독립 검토 없음)`는 미실행의 정직한 표기이지 사람의 QA PASS가 아니다.
+- 제품 변경 파일, 기존 테스트/정적 분석/QA 실패 원본, `package.json` 및 lock version `0.135.5`, AC1~AC5·문서/증거 링크를 그대로 보존한다. QA·CI/Ruleset 검증기 자체는 변경하지 않는다.
+- 변경사항은 Work Packet·활성 PLAN·PR 본문의 QA 선택 및 최신 상태 기록에 한정한다. **DOCUMENTATION_SYNC:** `docs/exec-plans/active/ISSUE_825.md` UPDATED (QA 전환·Trusted 실패 원본·경계), `docs/exec-plans/active/PLAN.md` UPDATED (현행 QA 방법 및 Run 인계), `docs/QA_REVIEW_POLICY.md` N/A (기존 #598 정책 적용), `AGENTS.md` N/A (실행 지침 변경 없음), `docs/TEST_PLAN.md` N/A (테스트·AC 검증 계약 불변), `docs/PROJECT_UX.md`, `docs/LOGISTICS_DASHBOARD.md`, `CHANGELOG.md` N/A (제품/사용자 기능 추가 변경 없음), `DESIGN.md` N/A (디자인 계약 불변), `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md` N/A (API/DB/일정 변경 없음), `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md` N/A (CI/검증 정책과 실행 계약 불변).
+- 원본 Full CI의 성공은 새 HEAD 성공으로 재사용하지 않는다. 새 `pull_request/synchronize` Full8+Quality/Docker 및 trusted main QA의 **실제 Run/Attempt·Head/Base/Test Merge**는 새 HEAD 게시 후 확인한다. 신규 Trusted QA가 PASS여도 Owner의 별도 HIGH 위험 수용, Manager ACCEPT·병합 승인, 정식 릴리스 승인(`release_authorized=false`)은 자동 성립하지 않는다.
+- 요청 범위: 신규 PR CI **시작까지**. CI 결과 모니터링, PR 병합, Main CI, GHCR 게시, 정식 Release, branch cleanup, Issue 종료는 수행하지 않는다. MERGE_READY=BLOCKED.
