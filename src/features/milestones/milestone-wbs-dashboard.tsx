@@ -15,7 +15,7 @@ export function MilestoneWbsDashboard({ tasks, revision, ...props }: Omit<WbsVie
     title: "Milestone 계층 조회", defaultSpec: MILESTONE_WBS_DEFAULT_SPEC,
     presets: MILESTONE_WBS_PRESETS, renderSummary: data => <MilestoneWbsSummary data={data} tasks={tasks} revision={revision}/>,
   };
-  return <WbsViewDashboard {...props} revision={revision} root="milestone" consumer={consumer}/>;
+  return <section className={milestoneStyles.hierarchy} aria-label="Milestone 계층 조회"><WbsViewDashboard {...props} revision={revision} root="milestone" consumer={consumer}/></section>;
 }
 function MilestoneWbsSummary({ data, tasks, revision }: { data: WbsViewReportDto; tasks: readonly ProjectTaskDto[]; revision: number }) {
   const view = milestoneWbsPresentation(data);
