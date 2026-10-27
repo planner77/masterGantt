@@ -33,10 +33,13 @@ async function setup(page: Page, editable = true) {
   return { mutations };
 }
 for (const width of [390, 768, 1024, 1440, 1920]) {
-  test(`membership layout and registration keyboard flow at ${width}px`, async ({ page }, testInfo) => {
+  test(`membership layout and registration keyboard flow at ${width}px`, async ({ page, browser }, testInfo) => {
     await page.setViewportSize({ width, height: 1000 });
     const { mutations } = await setup(page);
     const panel = page.locator("#project-panel-resource-master");
+    await expect(panel.getByRole("heading",{name:"프로젝트 리소스",exact:true})).toHaveCSS("font-size","16px");
+    const searchDensity=await panel.getByRole("searchbox").evaluate(element=>({height:element.getBoundingClientRect().height,font:getComputedStyle(element).fontSize}));
+    expect(searchDensity.height).toBe(40);expect(searchDensity.font).toBe("14px");
     await expect(panel.getByText("등록 3명", { exact: true })).toBeVisible();
     await expect(panel.getByText("작업 배정 1명", { exact: true })).toBeVisible();
     await expect(panel.getByRole("row", { name: /작업 배정 담당자/ }).getByRole("button", { name: "등록 해제", exact: true })).toBeDisabled();
@@ -72,6 +75,10 @@ for (const width of [390, 768, 1024, 1440, 1920]) {
     await expect(panel.getByText("작업 배정 1명", { exact: true })).toBeVisible();
     expect(mutations).toEqual(["POST"]);
     await page.screenshot({ path: testInfo.outputPath(`registered-${width}.png`) });
+    if(width===1440){
+      const coarse=await browser.newContext({baseURL:new URL(page.url()).origin,viewport:{width:390,height:900},hasTouch:true});
+      try{const touch=await coarse.newPage();await setup(touch);expect(await touch.evaluate(()=>matchMedia("(pointer:coarse), (any-pointer:coarse)").matches)).toBe(true);const targets=await touch.locator("#project-panel-resource-master").evaluate(element=>Array.from(element.querySelectorAll("button,input:not([type=checkbox]),select,summary")).filter(control=>control.checkVisibility()).map(control=>({height:control.getBoundingClientRect().height,name:control.getAttribute("aria-label")??control.textContent})));targets.forEach(target=>expect(target.height,String(target.name)).toBeGreaterThanOrEqual(44));}finally{await coarse.close();}
+    }
   });
 }
 test("readonly permits discovery of project use without registration or unrelated catalog", async ({ page }) => {
