@@ -1,0 +1,14 @@
+
+> mastergantt@0.135.3 test:e2e
+> playwright test --config tests/config/playwright.config.ts tests/e2e/issue-730-view-composer.spec.ts --grep #798 다섯 관점 --project=chromium --workers=1 --retries=0 --max-failures=0 --output=/tmp/issue819-composer-results --reporter=list
+
+
+Running 1 test using 1 worker
+
+(node:2459970) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2459970) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:587:5 › #798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조회 불변 (38.4s)
+
+  1 passed (39.9s)

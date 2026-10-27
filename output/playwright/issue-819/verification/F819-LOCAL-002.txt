@@ -1,0 +1,44 @@
+
+> mastergantt@0.135.3 test:e2e
+> playwright test --config tests/config/playwright.config.ts tests/e2e/issue-736-resource-dashboard.spec.ts --grep #807 단일 --project=chromium --workers=1 --retries=0 --max-failures=0 --output=/tmp/issue819-peer-final-results --reporter=list
+
+
+Running 1 test using 1 worker
+
+(node:2415556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2415556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › tests/e2e/issue-736-resource-dashboard.spec.ts:209:5 › #807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨은 조회 중단·peer 복원 (8.2s)
+
+
+  1) [chromium] › tests/e2e/issue-736-resource-dashboard.spec.ts:209:5 › #807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨은 조회 중단·peer 복원 
+
+    Error: Milestone
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "20px"
+    Received: "normal"
+
+      330 |    for(const control of geometry.controls){
+      331 |     expect(control.height,control.label??"").toBeGreaterThanOrEqual(36);
+    > 332 |     if(!control.metric){expect(control.font,control.label??"").toBe("13px");expect(control.lineHeight,control.label??"").toBe("20px");}
+          |                                                                                                                          ^
+      333 |     if(control.compact)expect(control.height,control.label??"").toBeLessThanOrEqual(37);
+      334 |     // Record glyph ink separately from the symmetric control/line-box inset.
+      335 |     // The font's ascent/descent is not the row alignment budget.
+        at /home/planner/Dev/masterGantt-ui-consistency/tests/e2e/issue-736-resource-dashboard.spec.ts:332:122
+
+    Error Context: ../../../../tmp/issue819-peer-final-results/issue-736-resource-dashboa-43bc3-·명시적-기간-인계·숨은-조회-중단·peer-복원-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../tmp/issue819-peer-final-results/issue-736-resource-dashboa-43bc3-·명시적-기간-인계·숨은-조회-중단·peer-복원-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../../tmp/issue819-peer-final-results/issue-736-resource-dashboa-43bc3-·명시적-기간-인계·숨은-조회-중단·peer-복원-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › tests/e2e/issue-736-resource-dashboard.spec.ts:209:5 › #807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨은 조회 중단·peer 복원 

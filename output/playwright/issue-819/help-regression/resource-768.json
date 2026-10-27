@@ -1,0 +1,67 @@
+{
+  "viewport": {
+    "width": 768,
+    "height": 900
+  },
+  "documentWidth": 768,
+  "noteOnlyHeight": 54,
+  "notes": [
+    {
+      "text": "프로젝트 전체 기준 · 보고서 선택 범위: 2026-09-01 ~ 2026-09-30 · 지연 기준일 2026-09-18 (Asia/Seoul) · M/M 기준: 1 M/M = 20 M/D (환경 설정)",
+      "top": 559,
+      "bottom": 595,
+      "left": 24,
+      "right": 744,
+      "width": 720,
+      "height": 36
+    },
+    {
+      "text": "중첩 소계 · 합산 불가 · 계획공수는 실적 아님",
+      "top": 889.5,
+      "bottom": 907.5,
+      "left": 24,
+      "right": 744,
+      "width": 720,
+      "height": 18
+    }
+  ],
+  "primaryDataTop": 643,
+  "rowCount": 1,
+  "visibleRowCount": 0,
+  "tables": [
+    {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "height": 0,
+      "ownerWidth": 0,
+      "scrollWidth": 0
+    },
+    {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "height": 0,
+      "ownerWidth": 0,
+      "scrollWidth": 0
+    },
+    {
+      "top": 982.5,
+      "bottom": 1124.5,
+      "left": 31,
+      "right": 1151,
+      "width": 1120,
+      "height": 142,
+      "ownerWidth": 718,
+      "scrollWidth": 1132
+    }
+  ],
+  "helpTriggerCount": 1,
+  "browserVersion": "153.0.8010.12",
+  "fixture": "issue-719 shared synthetic fixtures",
+  "zoom": "100% browser default"
+}

@@ -20,7 +20,7 @@ export interface WbsViewConsumer {
   presets: Array<{ label: string; levels: NonNullable<WbsViewSpec["levels"]> }>;
   renderControls?: (context: { spec: WbsViewSpec; onApply: (spec: WbsViewSpec) => void; disabled: boolean }) => ReactNode;
   renderSummary: (data: WbsViewReportDto) => ReactNode;
-  renderSupplement?: (data: WbsViewReportDto) => ReactNode;
+  renderSupplement?: (data: WbsViewReportDto, state: {locked: boolean; active: boolean; onStale: () => void}) => ReactNode;
   renderFilters?: (context: { data: WbsViewReportDto | null; filters: ResourceDashboardFilterInput; onChange: (patch: Partial<ResourceDashboardFilterInput>) => void }) => ReactNode;
   Controls?: ComponentType<{data: WbsViewReportDto | null; filters: ResourceDashboardFilterInput; onChange: (patch: Partial<ResourceDashboardFilterInput>) => void}>;
   renderExtra?: (data: WbsViewReportDto, state: {locked: boolean; active: boolean; onStale: () => void}) => ReactNode;
@@ -203,7 +203,7 @@ function WbsViewDashboardRoot({consumer,publicId,revision,root,active,busy,bindi
         else if(button.right>right)owner.scrollLeft=clamp(owner.scrollLeft+button.right-right);
       }}><WbsViewTable rowAnnotation={consumer?.rowAnnotation ? node => consumer.rowAnnotation!(data,node) : undefined} data={data} expanded={new Set(state.expanded)} sort={state.sort??"name-asc"} locked={locked} selected={state.selected?.viewRowKey??null} rowSearch={state.rowSearch} onToggle={key=>{cancelOriginal();setState(previous=>({...previous,expanded:previous.expanded.includes(key)?previous.expanded.filter(item=>item!==key):[...previous.expanded,key]}));}} onDetails={(node,element)=>{cancelOriginal();trigger.current=element;setSelection({node,snapshot:data.snapshotId,key:queryKey});setState(previous=>({...previous,selected:{viewRowKey:node.viewRowKey,path:node.path}}));}} onOriginal={onOpenEntity?openOriginal:undefined}/></div>
       {!data.children.length?<p>현재 조건에 해당하는 결과가 없습니다.</p>:null}
-      {consumer?.renderSupplement?.(data)}
+      {consumer?.renderSupplement?.(data,{locked,active,onStale:markStale})}
       <details><summary>조회 snapshot·원본 출처</summary><p className={styles.subtle}>snapshot {data.snapshotId} · Project revision {data.projectRevision}</p><pre className={styles.subtle}>{JSON.stringify(data.sourceContext,null,2)}</pre></details>
       {currentSelection?<div hidden={!currentReport || staleSnapshot===data.snapshotId} inert={!currentReport || staleSnapshot===data.snapshotId}><WbsViewDetails key={currentSelection.node.viewRowKey} data={data} node={currentSelection.node} locked={locked||!active} onStale={markStale} onClose={close} onIntent={cancelOriginal} onOpenTask={onOpenTask??drill.onOpenTask} onOpenAssignment={onOpenAssignment??drill.onOpenAssignment} onSchedule={onSchedule??drill.onWbsSchedule}/></div>:null}
     </>:null}

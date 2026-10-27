@@ -15,6 +15,15 @@ const VIEWS: ReadonlyArray<readonly [ResourceWorkspaceView, string]> = [
   ["plan", "Resource Plan"], ["estimate", "견적·Excel"],
 ];
 
+/** Reveal only this navigation's horizontal target, never the work panel. */
+function revealResourceView(nav: HTMLElement, target = nav.querySelector<HTMLButtonElement>('button[aria-pressed="true"]')) {
+  if (!target || !nav.checkVisibility()) return;
+  const bounds = nav.getBoundingClientRect(), button = target.getBoundingClientRect();
+  const left = bounds.left + nav.clientLeft + 3, right = left + nav.clientWidth - 6;
+  const delta = button.left < left ? button.left - left : button.right > right ? button.right - right : 0;
+  if (delta) nav.scrollLeft = Math.max(0, Math.min(nav.scrollWidth - nav.clientWidth, nav.scrollLeft + delta));
+}
+
 /** Visits own their peer selection just as the existing report adapters own filters. */
 export function ResourceWorkspace({ active, viewId, liveViewIds, revision, renderDynamic, renderReport, renderCharts }: {
   active: boolean; viewId: number; liveViewIds: readonly number[]; revision: number;
@@ -30,7 +39,7 @@ export function ResourceWorkspace({ active, viewId, liveViewIds, revision, rende
     const panel = host.current?.closest<HTMLElement>(".project-resource-panel"), nav = navigation.current;
     if (!panel || !nav) return;
     const previous = panel.style.scrollPaddingTop;
-    const measure = () => { panel.style.scrollPaddingTop = `${nav.getBoundingClientRect().height + 8}px`; };
+    const measure = () => { panel.style.scrollPaddingTop = `${nav.getBoundingClientRect().height + 8}px`; revealResourceView(nav); };
     const observer = new ResizeObserver(measure); observer.observe(nav); measure();
     return () => { observer.disconnect(); panel.style.scrollPaddingTop = previous; };
   }, []);
@@ -50,6 +59,7 @@ export function ResourceWorkspace({ active, viewId, liveViewIds, revision, rende
   useLayoutEffect(() => {
     const panel = host.current?.closest<HTMLElement>(".project-resource-panel");
     if (!active || !panel) return;
+    if (navigation.current) revealResourceView(navigation.current);
     panel.scrollTop = scrollPositions.current[`${key}:${view}`] ?? 0;
     const remember = () => { scrollPositions.current[`${key}:${view}`] = panel.scrollTop; };
     panel.addEventListener("scroll", remember, { passive: true });
@@ -65,7 +75,9 @@ export function ResourceWorkspace({ active, viewId, liveViewIds, revision, rende
   const periods = Object.fromEntries(Object.entries(current[key].periods).filter(([, period]) => period.revision === revision));
   return <ResourceWorkspaceContext.Provider value={{ periods, publishPeriod }}>
     <div ref={host} className={styles.workspace} data-resource-workspace data-resource-peer={view}>
-      <div ref={navigation} className={styles.views} role="group" aria-label="리소스 분석 보기">
+      <div ref={navigation} className={styles.views} role="group" aria-label="리소스 분석 보기" onFocusCapture={event => {
+        if (event.target instanceof HTMLButtonElement) revealResourceView(event.currentTarget, event.target);
+      }}>
         {VIEWS.map(([value, label]) => <button key={value} type="button" aria-pressed={view === value}
           aria-controls={`${id}-${value === "dynamic" ? "dynamic" : value === "charts" ? "charts" : "report"}`} onClick={() => select(value)}>{label}</button>)}
       </div>

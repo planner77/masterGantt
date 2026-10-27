@@ -1,3 +1,9 @@
+## Issue #819 — 리소스 6peer UI/UX 재발 방지
+
+기존 #736 Resource workspace/차트·#730 다관점 회귀를 EXTEND하여 Resource-local fine36px·13px/20px와 coarse44px, 같은 행 제어 정렬≤1px·padding/문서 overflow·표 소유 scroll·6peer 첫 데이터 위치를 검증한다. 비리소스 관점의 기존44px 기대는 보존한다. 기술ID 기본 비노출·명명된 원문 상세의 keyboard 접근, 반복 설명의 상황형 도움말 전환, 필수 범위/단위/분모/partial/null/0·오류/stale의 가시성을 검증한다.
+
+기존 긴 이름/ID5폭·#719 도움말/error·Resource Plan/견적/Excel/정확 Task·Assignment/T0/latecancel·keyboard/focus·no-write는 KEEP_UNIQUE이며 중복 전체 spec을 만들지 않는다. before/after는 동일 fixture/source 환경으로 귀속하고 실제 로컬 범위·미실행과 exact-Head 원격 Required3/8shard·Trusted/Main/GHCR/Finalizer를 구분한다. 선정/실행 결과와 잔여 위험은 [#819 Work Packet](exec-plans/active/ISSUE_819.md)에 기록한다.
+
 ## Issue #818 — 활성 progress marker의 실제 포인터 대상 회귀 (2026-10-27)
 
 - **TEST_LIFECYCLE_REVIEW:** 기존 `project-summary-bar-visual.spec.ts`를 EXTEND하여 Summary 활성 hover→다음 child 중심 raw `page.mouse` 우클릭·`elementFromPoint` Task ID·실제 메뉴/Editor 이름을 검사한다. locator 자동스크롤 성공으로 raw pointer 실패를 가리지 않는다. 진행 중 marker 숫자 중앙의 실제 hit, mouseup 뒤 native drag class 해제와 별도 인접 raw target을 검사한다. 기존 inactive visibility·native26px·coarse44px 실제 tap·Summary60%/±1px·root/scroll·readonly write0 단언을 보존한다.

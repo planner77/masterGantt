@@ -219,10 +219,10 @@ export function ResourcePlanView({
             <option value="project">동일 개인의 Project 전체 참고</option>
           </select>
         </label>
-        <ContextHelp label="Resource Plan Capacity 도움말"><p>공정·WorkArea·설비·시스템·Task·Milestone·기간·검색으로 Capacity 모집단을 줄이지 않습니다. 유효 근무일1 M/D 기준이며 Group·Milestone Capacity는 비가산 참고값입니다.</p></ContextHelp>
+        <ContextHelp label="Resource Plan Capacity 도움말"><p>공정·WorkArea·설비·시스템·Task·Milestone·기간·검색으로 Capacity 모집단을 줄이지 않습니다. 유효 근무일1 M/D 기준이며 Group·Milestone Capacity는 비가산 참고값입니다. 현재 Project의 개인 배정 이력에 따른 모집단이며 전사 가용 인력이 아닙니다.</p></ContextHelp>
       </div>
       <p className="resource-dashboard-hint">
-        현재 Project 개인 {plan.population.resourceCount}명 · 유효 근무일1 M/D · Group·Milestone Capacity 비가산 · 전사 가용 인력 아님
+        현재 Project 개인 {plan.population.resourceCount}명 · Capacity 비가산 참고 · 유효 근무일1 M/D
       </p>
       <p className="resource-dashboard-hint">
         조회 전체 {scope === "selected" ? "선택 기여" : "Project 전체 참고"} ·

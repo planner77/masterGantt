@@ -1,0 +1,20 @@
+
+> mastergantt@0.135.3 test
+> vitest run --config tests/config/vitest.config.ts tests/features/resources/resource-wbs-dashboard-model.test.ts tests/features/resources/wbs-view-model.test.ts tests/features/resources/resource-plan-model.test.ts tests/features/resources/resource-dashboard-model.test.ts tests/features/resources/resource-summary-row-identity.test.ts tests/features/resources/resource-export-model.test.ts
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (tests/config/vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.0 /home/planner/Dev/masterGantt-ui-consistency
+
+
+ Test Files  6 passed (6)
+      Tests  46 passed (46)
+   Start at  22:51:24
+   Duration  1.66s (transform 52%, tests 29%, import 19%, worker 1%)
+
+  Transform  transforming modules took 2.67s · 52% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+

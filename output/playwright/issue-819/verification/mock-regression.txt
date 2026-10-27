@@ -1,0 +1,18 @@
+
+> mastergantt@0.135.3 test:e2e
+> playwright test --config tests/config/playwright.config.ts tests/e2e/(issue-719-contextual-help|project-resource-workload-status|resource-excel-export-dashboard).spec.ts --grep #719 resource 동일|#525 긴 한국어|#529 --project=chromium --workers=1 --retries=0 --max-failures=0 --output=/tmp/issue819-mock-regression-results --reporter=list
+
+
+Running 5 tests using 1 worker
+
+(node:2467326) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2467326) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/issue-719-contextual-help.spec.ts:98:37 › #719 resource 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말 (7.8s)
+  ✓  2 [chromium] › tests/e2e/project-resource-workload-status.spec.ts:202:5 › #525 긴 한국어·영문·ID와 많은 Dashboard 그룹·개인·Task의 5폭 geometry (18.8s)
+  ✓  3 [chromium] › tests/e2e/resource-excel-export-dashboard.spec.ts:29:5 › #529 보고서 범위·기간 옵션은 stale 재조회와 재진입에서 보존 (2.0s)
+  ✓  4 [chromium] › tests/e2e/resource-excel-export-dashboard.spec.ts:73:5 › #529 dialog 5폭 geometry·native focus와 늦은 파일 폐기 (1.8s)
+  ✓  5 [chromium] › tests/e2e/resource-excel-export-dashboard.spec.ts:141:5 › #529 상세 stale는 일반 opt-in 생성을 차단하고 숨은 Resource trigger는 visible tab으로 복원 (1.9s)
+
+  5 passed (34.0s)

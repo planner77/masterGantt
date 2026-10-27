@@ -1,0 +1,4 @@
+
+> mastergantt@0.135.3 typecheck
+> tsc --noEmit
+

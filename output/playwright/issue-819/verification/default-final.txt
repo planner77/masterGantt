@@ -1,0 +1,14 @@
+
+> mastergantt@0.135.3 test:e2e
+> playwright test --config tests/config/playwright.config.ts tests/e2e/issue-819-capture-probe.spec.ts --grep capture resource workspace baseline --project=chromium --workers=1 --retries=0 --max-failures=0 --output=/tmp/issue819-default-final-results --reporter=list
+
+
+Running 1 test using 1 worker
+
+(node:2443638) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2443638) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/issue-819-capture-probe.spec.ts:7:5 › capture resource workspace baseline (5.7s)
+
+  1 passed (6.6s)

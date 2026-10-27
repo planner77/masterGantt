@@ -243,10 +243,18 @@ test("#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨�
  expect(reentry.request).toBeNull();expect(dynamicReads).toBe(activeReads);
  await openWbsViewControls(root(page));
  await expect(root(page).getByRole("combobox",{name:"Global Role",exact:true})).toHaveValue("");
- await expect(root(page)).toContainText("보고서 마지막 확정: 2026-10-14 ~ 2026-10-16");
+ const transfer=root(page).locator("details").filter({has:page.getByText("보고서 기간 가져오기 · 별도 조건",{exact:true})});
+ await expect(transfer).toHaveJSProperty("open",false);
+ expect(await root(page).innerText()).not.toContain(dynamicSource.snapshotId);
+ const transferTrigger=transfer.locator(":scope > summary");await transferTrigger.focus();await transferTrigger.press("Enter");
+ await expect(transfer).toHaveJSProperty("open",true);
+ await expect(transfer).toContainText("보고서 마지막 확정: 2026-10-14 ~ 2026-10-16");
+ const transferredSnapshot=(await transfer.innerText()).match(/snapshot (\S+)/)?.[1];expect(transferredSnapshot).toBeTruthy();
  const imported=page.waitForResponse(response=>response.url().endsWith("/resource-dashboard/views")&&response.request().postDataJSON()?.projection?.kind==="report"&&response.request().postDataJSON().filters?.from==="2026-10-14"&&response.request().postDataJSON().filters?.to==="2026-10-16");
  await root(page).getByRole("button",{name:"보고서 기간·기준일 가져오기",exact:true}).click();expect((await imported).status()).toBe(200);await expect(root(page)).toHaveAttribute("data-ready","true");
  await expect(root(page).getByRole("combobox",{name:"Global Role",exact:true})).toHaveValue("");
+ await transferTrigger.focus();await transferTrigger.press("Enter");await expect(transfer).toHaveJSProperty("open",false);
+ expect(await root(page).innerText()).not.toContain(transferredSnapshot!);
  await root(page).getByLabel("작업 검색",{exact:true}).fill(f.task.name);await expect(root(page)).toHaveAttribute("data-ready","true");
  await page.evaluate(()=>window.dispatchEvent(new Event("focus")));await expect(root(page)).toHaveAttribute("data-ready","true");expect(reportReads).toBe(reportRequests);
  const dynamicNode=await root(page).elementHandle();
@@ -259,7 +267,7 @@ test("#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨�
   await expect(report.getByLabel("리소스·그룹·Task 이름과 코드 검색",{exact:true})).toHaveValue("공동");
   await report.getByRole("button",{name:/^필터/}).click();await expect(report.getByLabel("Global Role",{exact:true})).toHaveValue("DEVELOPER");await report.getByLabel("Global Role",{exact:true}).press("Escape");
   const controls=await report.locator('.resource-dashboard-filters input,.resource-dashboard-filters select,.resource-dashboard-filters > button').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return{top:r.top,height:r.height,width:r.width};}));
-  expect(controls.every(control=>control.height>=44)).toBe(true);
+  expect(controls.every(control=>Math.abs(control.height-36)<=1)).toBe(true);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
   evidence.push({width,controls});
   const hiddenDynamic=dynamicReads;
@@ -289,6 +297,73 @@ test("#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨�
  const chartRequests=chartReads;expect(chartRequests).toBeGreaterThan(0);
  await peers.getByRole("button",{name:"Resource Plan",exact:true}).click();await expect(report).toHaveAttribute("data-ready","true");await expect(keptPlan).toBeVisible();expect(await planNode!.evaluate(node=>node.isConnected)).toBe(true);await expect(page.locator("[data-resource-charts]")).toBeHidden();expect(await page.locator("[data-resource-charts]").boundingBox()).toBeNull();
  await page.evaluate(()=>window.dispatchEvent(new Event("focus")));await expect(report).toHaveAttribute("data-ready","true");expect(chartReads).toBe(chartRequests);
+ // #819 EXTEND: all six peers share one compact control contract, while each
+ // report keeps its original filters, source IDs and mounted lifecycle.
+ const workspace=page.locator("[data-resource-workspace]");
+ const matrix=[];await mkdir("output/playwright/issue-819/after",{recursive:true});
+ for(const width of [390,768,1024,1440,1920]){
+  await page.setViewportSize({width,height:1000});
+  for(const [peer,view] of [["기본 현황","summary"],["차트","charts"],["동적 계층 탐색","dynamic"],["Milestone 교차","milestone"],["Resource Plan","plan"],["견적·Excel","estimate"]]){
+   await peers.getByRole("button",{name:peer,exact:true}).focus();await page.keyboard.press("Enter");
+   await expect(workspace).toHaveAttribute("data-resource-peer",view);
+   const active=view==="charts"?page.locator("[data-resource-charts]"):view==="dynamic"?root(page):report;
+   await expect(active).toHaveAttribute("data-ready","true");
+   const geometry=await workspace.evaluate(element=>{
+    const nav=element.querySelector<HTMLElement>('[aria-label="리소스 분석 보기"]')!;
+    const controls=Array.from(element.querySelectorAll<HTMLElement>("button,input,select")).filter(control=>control.checkVisibility());
+    const firstData=Array.from(element.querySelectorAll<HTMLElement>("dl,tbody")).find(node=>node.checkVisibility());
+    const table=Array.from(element.querySelectorAll<HTMLTableElement>("table")).find(node=>node.checkVisibility());
+    const panel=element.closest<HTMLElement>(".project-resource-panel")!;
+    const panelBox=panel.getBoundingClientRect();
+    const rows=Array.from(table?.querySelectorAll("tbody tr")??[]).map(row=>row.getBoundingClientRect());
+    const selected=nav.querySelector<HTMLElement>('button[aria-pressed="true"]')!,selectedBox=selected.getBoundingClientRect(),navBox=nav.getBoundingClientRect();
+    return {selectedLeft:selectedBox.left,selectedRight:selectedBox.right,navLeft:navBox.left,navRight:navBox.right,selectedOutlineOffset:getComputedStyle(selected).outlineOffset,tableTop:table?.getBoundingClientRect().top,firstRowTop:rows[0]?.top,visibleRows:rows.filter(row=>row.bottom>panelBox.top&&row.top<panelBox.bottom).length,navigationHeight:nav.getBoundingClientRect().height,navigationClient:nav.clientWidth,navigationScroll:nav.scrollWidth,documentWidth:document.documentElement.scrollWidth,firstDataTop:firstData?.getBoundingClientRect().top,
+     visibleUUIDs:(element as HTMLElement).innerText.match(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/g)??[],
+     controls:controls.map(control=>{
+      const rect=control.getBoundingClientRect(),style=getComputedStyle(control),range=document.createRange();range.selectNodeContents(control);const text=range.getBoundingClientRect();
+      const metric=!!control.closest("dd"),form=control.matches('input:not([type="checkbox"]):not([type="radio"]),select');
+      const simpleButton=control.tagName==="BUTTON"&&!metric&&text.height<=parseFloat(style.lineHeight)+1&&!control.closest("table");
+      return {label:control.getAttribute("aria-label")??control.textContent?.trim(),top:rect.top,bottom:rect.bottom,left:rect.left,right:rect.right,height:rect.height,width:rect.width,font:style.fontSize,lineHeight:style.lineHeight,padding:[style.paddingTop,style.paddingRight,style.paddingBottom,style.paddingLeft],lineBoxCenterOffset:Math.abs((parseFloat(style.paddingTop)+parseFloat(style.borderTopWidth)-parseFloat(style.paddingBottom)-parseFloat(style.borderBottomWidth))/2),textCenterOffset:simpleButton?Math.abs((text.top+text.bottom-rect.top-rect.bottom)/2):null,metric,nativeSelect:control.tagName==="SELECT",compact:form||simpleButton};
+     })};
+   });
+   expect(geometry.navigationHeight).toBeLessThanOrEqual(48);
+   expect(geometry.selectedLeft).toBeGreaterThanOrEqual(geometry.navLeft-1);expect(geometry.selectedRight).toBeLessThanOrEqual(geometry.navRight+1);
+   expect(parseFloat(geometry.selectedOutlineOffset)).toBeLessThanOrEqual(0);
+   expect(geometry.documentWidth).toBeLessThanOrEqual(width+1);expect(geometry.visibleUUIDs).toEqual([]);
+   expect(await active.innerText()).not.toMatch(/snapshot\s+[a-f0-9]{16,}/i);
+   expect(geometry.controls.length).toBeGreaterThan(0);
+   for(const control of geometry.controls){
+    expect(control.height,control.label??"").toBeGreaterThanOrEqual(36);
+    if(!control.metric){expect(control.font,control.label??"").toBe("13px");
+     // Chromium native select keeps appearance:auto and computes line-height
+     // as normal even with an explicit 20px declaration. Its box stays 36px.
+     if(!control.nativeSelect)expect(control.lineHeight,control.label??"").toBe("20px");
+    }
+    if(control.compact)expect(control.height,control.label??"").toBeLessThanOrEqual(37);
+    // Record glyph ink separately from the symmetric control/line-box inset.
+    // The font's ascent/descent is not the row alignment budget.
+    if(control.compact)expect(control.lineBoxCenterOffset,control.label??"").toBeLessThanOrEqual(1);
+   }
+   for(let i=0;i<geometry.controls.length;i++)for(const other of geometry.controls.slice(i+1)){
+    const control=geometry.controls[i],overlapX=Math.min(control.right,other.right)-Math.max(control.left,other.left),overlapY=Math.min(control.bottom,other.bottom)-Math.max(control.top,other.top);
+    expect(overlapX>1&&overlapY>1,`${control.label} / ${other.label}`).toBe(false);
+    if(control.compact&&other.compact&&overlapX<=1&&overlapY>=Math.min(control.height,other.height)/2){
+     expect(Math.abs(control.top-other.top),`${control.label} / ${other.label} top`).toBeLessThanOrEqual(1);
+     expect(Math.abs(control.bottom-other.bottom),`${control.label} / ${other.label} bottom`).toBeLessThanOrEqual(1);
+    }
+   }
+   if(width===390)expect(geometry.navigationScroll).toBeGreaterThan(geometry.navigationClient);
+   if(peer==="견적·Excel")await expect(report.locator(':scope > .resource-dashboard-view-controls')).toBeHidden();
+   matrix.push({width,peer,...geometry});
+   if(width===390||width===1440)await page.screenshot({path:`output/playwright/issue-819/after/${width}-${view}.png`});
+  }
+ }
+ // The current peer remains visible when desktop navigation becomes narrow.
+ await page.setViewportSize({width:1440,height:1000});await peers.getByRole("button",{name:"Resource Plan",exact:true}).click();
+ await page.setViewportSize({width:390,height:1000});
+ await expect.poll(()=>peers.evaluate(element=>{const nav=element.getBoundingClientRect(),selected=element.querySelector('[aria-pressed="true"]')!.getBoundingClientRect();return selected.left>=nav.left-1&&selected.right<=nav.right+1;})).toBe(true);
+ await info.attach("issue819-six-peer-geometry",{body:JSON.stringify(matrix,null,2),contentType:"application/json"});
+ await writeFile("output/playwright/issue-819/after/geometry.json",JSON.stringify(matrix,null,2));
  const after=await f.snapshot();expect(after.data).toEqual(before.data);
 });
 
@@ -306,6 +381,17 @@ test.describe("#809 chart interaction",()=>{
  const peer=page.getByRole("group",{name:"리소스 분석 보기",exact:true});
  await peer.getByRole("button",{name:"차트",exact:true}).click();
  const charts=page.getByRole("region",{name:"리소스 차트",exact:true});await expect(charts).toHaveAttribute("data-chart-state","ready");
+ expect(await page.evaluate(()=>matchMedia("(pointer:coarse)").matches)).toBe(true);
+ const coarseEvidence=[];
+ for(const width of [390,1440]){await page.setViewportSize({width,height:1000});for(const [label,view] of [["기본 현황","summary"],["차트","charts"],["동적 계층 탐색","dynamic"],["Milestone 교차","milestone"],["Resource Plan","plan"],["견적·Excel","estimate"]]){
+  await peer.getByRole("button",{name:label,exact:true}).tap();
+  const active=view==="charts"?charts:view==="dynamic"?root(page):page.locator('[data-resource-dashboard="true"]');await expect(active).toHaveAttribute("data-ready","true");
+  const coarseControls=await page.locator('[data-resource-workspace]').locator('button,input:not([type="checkbox"]):not([type="radio"]),select').evaluateAll(nodes=>nodes.filter(node=>node.checkVisibility()).map(node=>({height:node.getBoundingClientRect().height,font:getComputedStyle(node).fontSize})));
+  expect(coarseControls.length).toBeGreaterThan(0);coarseControls.forEach(control=>expect(control.height).toBeGreaterThanOrEqual(44));
+  const navHeight=await peer.evaluate(element=>element.getBoundingClientRect().height);expect(navHeight).toBeLessThanOrEqual(56);
+  coarseEvidence.push({width,view,navHeight,controls:coarseControls});
+ }}await test.info().attach("issue819-coarse-six-peers",{body:JSON.stringify(coarseEvidence,null,2),contentType:"application/json"});
+ await page.setViewportSize({width:1440,height:1000});await peer.getByRole("button",{name:"차트",exact:true}).tap();await expect(charts).toHaveAttribute("data-chart-state","ready");
  await page.emulateMedia({reducedMotion:"reduce"});await charts.getByRole("group",{name:"차트 유형",exact:true}).getByRole("button",{name:"기간 투입",exact:true}).tap();
  expect(await charts.getByRole("button",{name:"차트 새로고침",exact:true}).evaluate(element=>({reduced:matchMedia("(prefers-reduced-motion: reduce)").matches,animation:getComputedStyle(element).animationName,transition:getComputedStyle(element).transitionDuration}))).toEqual({reduced:true,animation:"none",transition:"0s"});
  let lastChartReport!:WbsViewReportDto;let chartReads=0;page.on("request",request=>{if(request.url().endsWith("/resource-dashboard/views")&&request.postDataJSON()?.analysis)chartReads++;});

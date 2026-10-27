@@ -212,6 +212,18 @@ Table이 아닌 Resource/Admin list·card·pane도 **명시적 geometry budget**
 
 조회 설정은 Project와 관점별 개인 브라우저 상태로 관리하고 업무 revision·다른 사용자의 설정과 분리한다. 구성기와 표는 기존 compact control·이름 우선·상황형 도움말·표 소유 scroll을 사용한다. 출발 관점의 조건·snapshot·펼침·선택·스크롤·focus를 정확한 원본 편집과 조회 복귀에서도 보존하고, stale 원본에서 상세나 이동을 실행하지 않는다. 세부 검증·저장·복구 계약은 [UI/UX 가이드](docs/UI_UX_GUIDELINES.md)와 [Project UX](docs/PROJECT_UX.md)를 따른다.
 
+### 화면 확장 시 밀도·식별·정보 계층 상속 (Issue #819)
+
+새 peer·하위 분석·상세 화면은 호스트의 제어 크기·글꼴·설명 노출·이름 우선·상태 계층을 상속한다. 기능을 추가할 때 컴포넌트의 `font:inherit` 또는 포인터 구분 없는 `min-height:44px`로 이미 확정된 밀도를 되돌리지 않는다. 공통 제어 기준은 한 곳에서 소유하고 해당 소비자의 회귀 검증을 함께 확장한다.
+
+- **반복 조회 대시보드 제어:** fine pointer의 compact 기준은 36px 높이, 13px label/20px line-height와 수평 10px padding이다. 버튼은 내용 폭과 padding으로 결정하고 내용은 수직·수평 중앙 정렬한다. Native select처럼 플랫폼이 line-height를 소유하는 제어는 appearance/조작을 바꾸지 않고 실제 높이·font·행 정렬로 동일성을 검증한다. coarse pointer는 최소 44px 조작 영역을 유지한다. 긴 값·오류를 고정 높이나 clipping으로 숨기지 않으며 icon-only는 접근 가능한 이름과 폭·높이를 보장한다. 첫 적용 범위는 프로젝트 리소스 6peer다. 다른 기존 대시보드의 명시적인 44px, 관리자 40px·Task Editor 44px 계약은 해당 소비자의 별도 교정·검증 전까지 유지하며 전역에서 일괄 변경하지 않는다.
+- **정렬과 typography:** 같은 control 행의 input/select/button은 top·bottom 차이 1 CSS px 이내를 목표로 하고 부모가 gap·정렬을 소유한다. 의미 없는 stretch·최소 폭이나 라벨보다 과도한 padding을 추가하지 않는다. action label은 주변 본문보다 크게 만들지 않는다. 주요 KPI 숫자 강조는 수치·단위의 별도 typography이며 그 안의 버튼 라벨까지 커지는 근거가 아니다.
+- **정보 구획:** 조건·현재 범위 → 핵심 KPI → 주요 데이터 → 보조 진단·Export 순서로 읽히게 한다. 작은 section heading, 관계에 맞는 간격, hairline divider와 subtle semantic surface로 구분하고 모든 구역을 카드로 감싸지 않는다. 숫자는 단위와 함께 비교 가능하게 강조하며 정상 0·미설정·부분값·경고의 의미를 구별한다.
+- **설명과 기술 정보:** 반복 사용법은 명명된 도움말로, snapshot/revision/내부 ID는 접힌 상세·진단·복사로 제공한다. 기본 행에서는 이름과 사용자 의미의 맥락을 우선한다. canonical ID·검색·정확한 원본 탐색·복사 데이터는 바꾸지 않는다. 현재 범위·분모·단위·비가산/부분값·권한·stale와 같은 판단 필수 정보는 짧은 인접 문구로 유지한다.
+- **재발 검증:** 같은 fixture·source·환경의 전체 peer와 390/768/1024/1440/1920px에서 control bounds·라벨 크기·첫 데이터 위치·겹침·문서/표 소유 overflow를 비교한다. coarse target, 긴/동일 이름, 원문 상세의 keyboard/touch 접근, 도움말 Escape/focus 복귀와 기존 필터·선택·snapshot/오류 상태도 직접 검증한다. 새 하위 화면 추가 시 호스트의 밀도/식별 검증을 적용하고 과거 screenshot·CSS 선언만으로 PASS하지 않는다.
+
+이 기준은 #807/#736에서 리소스 제어에 일괄 적용했던 fine-pointer 44px를 #819의 pointer별 계약으로 교정한다. 적용 화면과 실제 검증은 [리소스 화면 계약](docs/PROJECT_UX.md) 및 [UI/UX 가이드](docs/UI_UX_GUIDELINES.md)를 따른다.
+
 ### Task Editor
 
 - tab 기반 정보 구조를 유지한다.
