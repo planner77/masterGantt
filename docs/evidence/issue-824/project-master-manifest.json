@@ -1,0 +1,161 @@
+{
+  "before": {
+    "file": "project-master-before.json.gz",
+    "uncompressedSHA256": "bd4564aa7f0e04c49ed8e9c8e8d6a45a8e7963b684d83e791700139ebc42ef43",
+    "samples": 40,
+    "faults": [],
+    "sourceStable": true,
+    "sourceHashes": {
+      "src/features/resources/wbs-view.module.css": "7c3d2a944bea171bb5fff0cfaa67c01960e8abbad84e8fd4f49963fba7a47c23",
+      "src/features/resources/wbs-view-dashboard.tsx": "f83625b949de0621a64a12be547d896626ba549dacee1866968e5a80724be33e",
+      "src/features/resources/resource-workspace.module.css": "ab2e9180e57e4330dde4acc886f54a39cb4301a483f3465481c778df89d69958",
+      "src/features/milestones/milestone-wbs-dashboard.tsx": "7abe1c4f0b0069eb6088e09ee4ecce582a18e47292600dfa3da12d7b1923022b",
+      "src/features/milestones/milestone-wbs-dashboard.module.css": "8fe460684fbc18e294e4ed686ec0f49d3bf0cb1d4d543f546137b7afd888318f",
+      "src/features/milestones/project-milestone-dashboard.tsx": "08c9d934dfc1643cd9d9d6539cb0f5cd7678ed1851558c7c62c564a04004ce72",
+      "src/features/milestones/project-milestone-dashboard.module.css": "ddcc0272296a45d1e4077b883738ceab7eb5ec03755c374b4a09d7578d99e52f",
+      "src/features/resources/resource-catalog-admin.tsx": "f4dcedfbf2d789f49a6ff630950b6851d835f350848b7b620fae9297d75cb93b",
+      "src/features/resources/resource-catalog-admin.module.css": "2e3c6723f24986e882feddb09b257f83f5a5ecd6493b027785155869697becd3",
+      "src/features/resources/project-resource-memberships.module.css": "bbf5777cc2bbc02daa73d1b8058945dadd56804829f0144b8abd6a90bd740fcf",
+      "src/features/logistics/project-logistics-management.module.css": "b57d5f8491e8492b185756942d0505b19a562b77788e3fc965d986c845a45332",
+      "src/features/logistics/project-process-management.module.css": "bd4f485bb5684f5743f0693c9e8bde724967bc3c14bac40bd9f9d6ca01abd299",
+      "src/features/logistics/logistics-type-catalog-admin.module.css": "4338525bd64033641c82b8b6a139b68b315bef1ec5c92125894cb7ae8e66fce1",
+      "src/features/project-master/project-master-admin.module.css": "85a5b0ba3091f7bde8376af83efea0c82b8fcdeaeb58895d419bd640126f6d88",
+      "src/features/project-master/project-master-relations-editor.module.css": "eb2985412a1742bc7a26ee35534c705224a368b80ac0f8ed53c64476bce155c7"
+    },
+    "status": "MEASURED_BASELINE"
+  },
+  "after": {
+    "file": "project-master-after.json.gz",
+    "uncompressedSHA256": "87b8f571dc716e5d0cc9be295e5d59847e607fd18145a2624e5ddcae9a2753b8",
+    "samples": 40,
+    "faults": [],
+    "sourceStable": true,
+    "sourceHashes": {
+      "src/features/resources/wbs-view.module.css": "7c3d2a944bea171bb5fff0cfaa67c01960e8abbad84e8fd4f49963fba7a47c23",
+      "src/features/projects/project-readonly-view.tsx": "7734a4daa1079fe0be75d8d0404105f9d7d72d669c8062d6931a2edb8556a116",
+      "src/features/resources/wbs-view-dashboard.tsx": "f83625b949de0621a64a12be547d896626ba549dacee1866968e5a80724be33e",
+      "src/features/resources/resource-workspace.module.css": "ab2e9180e57e4330dde4acc886f54a39cb4301a483f3465481c778df89d69958",
+      "src/features/milestones/milestone-wbs-dashboard.tsx": "7abe1c4f0b0069eb6088e09ee4ecce582a18e47292600dfa3da12d7b1923022b",
+      "src/features/milestones/milestone-wbs-dashboard.module.css": "8fe460684fbc18e294e4ed686ec0f49d3bf0cb1d4d543f546137b7afd888318f",
+      "src/features/milestones/project-milestone-dashboard.tsx": "08c9d934dfc1643cd9d9d6539cb0f5cd7678ed1851558c7c62c564a04004ce72",
+      "src/features/milestones/project-milestone-dashboard.module.css": "ddcc0272296a45d1e4077b883738ceab7eb5ec03755c374b4a09d7578d99e52f",
+      "src/features/resources/resource-catalog-admin.tsx": "f4dcedfbf2d789f49a6ff630950b6851d835f350848b7b620fae9297d75cb93b",
+      "src/features/resources/resource-catalog-admin.module.css": "2e3c6723f24986e882feddb09b257f83f5a5ecd6493b027785155869697becd3",
+      "src/features/resources/project-resource-memberships.module.css": "a813f1079c383185c374f2a9a0665d65568bacd94446394fc42de782a8d316ef",
+      "src/features/logistics/project-logistics-management.module.css": "c17eab592cfa8beaaa1915cc6c785ff27a59a2462da420bb9a2f52526dca527b",
+      "src/features/logistics/project-process-management.module.css": "101efdf6ea1d9559dff1ba3d3d0e01610ab165da2e805a229ddbdb7b04c2d344",
+      "src/features/logistics/logistics-type-catalog-admin.module.css": "4338525bd64033641c82b8b6a139b68b315bef1ec5c92125894cb7ae8e66fce1",
+      "src/features/project-master/project-master-admin.module.css": "85a5b0ba3091f7bde8376af83efea0c82b8fcdeaeb58895d419bd640126f6d88",
+      "src/features/project-master/project-master-relations-editor.module.css": "eb2985412a1742bc7a26ee35534c705224a368b80ac0f8ed53c64476bce155c7"
+    },
+    "status": "PASS_CHANGED_SURFACE"
+  },
+  "before-attempt1-selector-fail": {
+    "file": "project-master-before-attempt1-selector-fail.json.gz",
+    "uncompressedSHA256": "6affd022cb4155d7bfbae55e29903ba87274f03358350ad0f78022d88fa88be2",
+    "samples": 0,
+    "faults": [
+      {
+        "name": "process-fine",
+        "error": "Error: Command failed: bash /home/planner/.codex/skills/playwright/scripts/playwright_cli.sh -s=issue824 run-code --filename /home/planner/Dev/masterGantt-worktrees/issue-824/output/playwright/issue-824/project-master/before/process-fine.cli.js --raw"
+      },
+      {
+        "name": "equipment-fine",
+        "error": "Error: Command failed: bash /home/planner/.codex/skills/playwright/scripts/playwright_cli.sh -s=issue824 run-code --filename /home/planner/Dev/masterGantt-worktrees/issue-824/output/playwright/issue-824/project-master/before/equipment-fine.cli.js --raw"
+      },
+      {
+        "name": "system-fine",
+        "error": "Error: Command failed: bash /home/planner/.codex/skills/playwright/scripts/playwright_cli.sh -s=issue824 run-code --filename /home/planner/Dev/masterGantt-worktrees/issue-824/output/playwright/issue-824/project-master/before/system-fine.cli.js --raw"
+      },
+      {
+        "name": "resource-fine",
+        "error": "Error: Command failed: bash /home/planner/.codex/skills/playwright/scripts/playwright_cli.sh -s=issue824 run-code --filename /home/planner/Dev/masterGantt-worktrees/issue-824/output/playwright/issue-824/project-master/before/resource-fine.cli.js --raw"
+      },
+      {
+        "name": "process-coarse",
+        "error": "Error: Command failed: bash /home/planner/.codex/skills/playwright/scripts/playwright_cli.sh -s=issue824 run-code --filename /home/planner/Dev/masterGantt-worktrees/issue-824/output/playwright/issue-824/project-master/before/process-coarse.cli.js --raw"
+      },
+      {
+        "name": "equipment-coarse",
+        "error": "Error: Command failed: bash /home/planner/.codex/skills/playwright/scripts/playwright_cli.sh -s=issue824 run-code --filename /home/planner/Dev/masterGantt-worktrees/issue-824/output/playwright/issue-824/project-master/before/equipment-coarse.cli.js --raw"
+      },
+      {
+        "name": "system-coarse",
+        "error": "Error: Command failed: bash /home/planner/.codex/skills/playwright/scripts/playwright_cli.sh -s=issue824 run-code --filename /home/planner/Dev/masterGantt-worktrees/issue-824/output/playwright/issue-824/project-master/before/system-coarse.cli.js --raw"
+      },
+      {
+        "name": "resource-coarse",
+        "error": "Error: Command failed: bash /home/planner/.codex/skills/playwright/scripts/playwright_cli.sh -s=issue824 run-code --filename /home/planner/Dev/masterGantt-worktrees/issue-824/output/playwright/issue-824/project-master/before/resource-coarse.cli.js --raw"
+      }
+    ],
+    "sourceStable": true,
+    "sourceHashes": {
+      "src/features/resources/wbs-view.module.css": "7c3d2a944bea171bb5fff0cfaa67c01960e8abbad84e8fd4f49963fba7a47c23",
+      "src/features/resources/wbs-view-dashboard.tsx": "f83625b949de0621a64a12be547d896626ba549dacee1866968e5a80724be33e",
+      "src/features/resources/resource-workspace.module.css": "ab2e9180e57e4330dde4acc886f54a39cb4301a483f3465481c778df89d69958",
+      "src/features/milestones/milestone-wbs-dashboard.tsx": "7abe1c4f0b0069eb6088e09ee4ecce582a18e47292600dfa3da12d7b1923022b",
+      "src/features/milestones/milestone-wbs-dashboard.module.css": "8fe460684fbc18e294e4ed686ec0f49d3bf0cb1d4d543f546137b7afd888318f",
+      "src/features/milestones/project-milestone-dashboard.tsx": "08c9d934dfc1643cd9d9d6539cb0f5cd7678ed1851558c7c62c564a04004ce72",
+      "src/features/milestones/project-milestone-dashboard.module.css": "ddcc0272296a45d1e4077b883738ceab7eb5ec03755c374b4a09d7578d99e52f",
+      "src/features/resources/resource-catalog-admin.tsx": "f4dcedfbf2d789f49a6ff630950b6851d835f350848b7b620fae9297d75cb93b",
+      "src/features/resources/resource-catalog-admin.module.css": "2e3c6723f24986e882feddb09b257f83f5a5ecd6493b027785155869697becd3",
+      "src/features/resources/project-resource-memberships.module.css": "bbf5777cc2bbc02daa73d1b8058945dadd56804829f0144b8abd6a90bd740fcf",
+      "src/features/logistics/project-logistics-management.module.css": "b57d5f8491e8492b185756942d0505b19a562b77788e3fc965d986c845a45332",
+      "src/features/logistics/project-process-management.module.css": "bd4f485bb5684f5743f0693c9e8bde724967bc3c14bac40bd9f9d6ca01abd299",
+      "src/features/logistics/logistics-type-catalog-admin.module.css": "4338525bd64033641c82b8b6a139b68b315bef1ec5c92125894cb7ae8e66fce1",
+      "src/features/project-master/project-master-admin.module.css": "85a5b0ba3091f7bde8376af83efea0c82b8fcdeaeb58895d419bd640126f6d88",
+      "src/features/project-master/project-master-relations-editor.module.css": "eb2985412a1742bc7a26ee35534c705224a368b80ac0f8ed53c64476bce155c7"
+    },
+    "status": "FAILED_OR_INTERMEDIATE_RETAINED"
+  },
+  "after-attempt1-advanced-coarse-fail": {
+    "file": "project-master-after-attempt1-advanced-coarse-fail.json.gz",
+    "uncompressedSHA256": "68e191911e8eb39e756730d2055f4801c71ff3cc93fb25b8132d15b8399f1ab8",
+    "samples": 40,
+    "faults": [],
+    "sourceStable": true,
+    "sourceHashes": {
+      "src/features/resources/wbs-view.module.css": "7c3d2a944bea171bb5fff0cfaa67c01960e8abbad84e8fd4f49963fba7a47c23",
+      "src/features/resources/wbs-view-dashboard.tsx": "f83625b949de0621a64a12be547d896626ba549dacee1866968e5a80724be33e",
+      "src/features/resources/resource-workspace.module.css": "ab2e9180e57e4330dde4acc886f54a39cb4301a483f3465481c778df89d69958",
+      "src/features/milestones/milestone-wbs-dashboard.tsx": "7abe1c4f0b0069eb6088e09ee4ecce582a18e47292600dfa3da12d7b1923022b",
+      "src/features/milestones/milestone-wbs-dashboard.module.css": "8fe460684fbc18e294e4ed686ec0f49d3bf0cb1d4d543f546137b7afd888318f",
+      "src/features/milestones/project-milestone-dashboard.tsx": "08c9d934dfc1643cd9d9d6539cb0f5cd7678ed1851558c7c62c564a04004ce72",
+      "src/features/milestones/project-milestone-dashboard.module.css": "ddcc0272296a45d1e4077b883738ceab7eb5ec03755c374b4a09d7578d99e52f",
+      "src/features/resources/resource-catalog-admin.tsx": "f4dcedfbf2d789f49a6ff630950b6851d835f350848b7b620fae9297d75cb93b",
+      "src/features/resources/resource-catalog-admin.module.css": "2e3c6723f24986e882feddb09b257f83f5a5ecd6493b027785155869697becd3",
+      "src/features/resources/project-resource-memberships.module.css": "d013fdaf4d4b63e6a8baa82af476df7adb2a0e6ad85d19ea83144256d4499bad",
+      "src/features/logistics/project-logistics-management.module.css": "2fa1187d3a2858e85698b92b3fa3fdad025399342f57e999dece551fb00470cd",
+      "src/features/logistics/project-process-management.module.css": "8094d9d5c1f59a13f0c1868f75804bc72982918a3c5709c03862c71254af12e8",
+      "src/features/logistics/logistics-type-catalog-admin.module.css": "4338525bd64033641c82b8b6a139b68b315bef1ec5c92125894cb7ae8e66fce1",
+      "src/features/project-master/project-master-admin.module.css": "85a5b0ba3091f7bde8376af83efea0c82b8fcdeaeb58895d419bd640126f6d88",
+      "src/features/project-master/project-master-relations-editor.module.css": "eb2985412a1742bc7a26ee35534c705224a368b80ac0f8ed53c64476bce155c7"
+    },
+    "status": "FAILED_OR_INTERMEDIATE_RETAINED"
+  },
+  "after-before-gateway-coarse-fix": {
+    "file": "project-master-after-before-gateway-coarse-fix.json.gz",
+    "uncompressedSHA256": "734a8414311d97275cfe3d8eab0251f63a9034bbc388eb1c01a17893a1388ff5",
+    "samples": 40,
+    "faults": [],
+    "sourceStable": true,
+    "sourceHashes": {
+      "src/features/resources/wbs-view.module.css": "7c3d2a944bea171bb5fff0cfaa67c01960e8abbad84e8fd4f49963fba7a47c23",
+      "src/features/resources/wbs-view-dashboard.tsx": "f83625b949de0621a64a12be547d896626ba549dacee1866968e5a80724be33e",
+      "src/features/resources/resource-workspace.module.css": "ab2e9180e57e4330dde4acc886f54a39cb4301a483f3465481c778df89d69958",
+      "src/features/milestones/milestone-wbs-dashboard.tsx": "7abe1c4f0b0069eb6088e09ee4ecce582a18e47292600dfa3da12d7b1923022b",
+      "src/features/milestones/milestone-wbs-dashboard.module.css": "8fe460684fbc18e294e4ed686ec0f49d3bf0cb1d4d543f546137b7afd888318f",
+      "src/features/milestones/project-milestone-dashboard.tsx": "08c9d934dfc1643cd9d9d6539cb0f5cd7678ed1851558c7c62c564a04004ce72",
+      "src/features/milestones/project-milestone-dashboard.module.css": "ddcc0272296a45d1e4077b883738ceab7eb5ec03755c374b4a09d7578d99e52f",
+      "src/features/resources/resource-catalog-admin.tsx": "f4dcedfbf2d789f49a6ff630950b6851d835f350848b7b620fae9297d75cb93b",
+      "src/features/resources/resource-catalog-admin.module.css": "2e3c6723f24986e882feddb09b257f83f5a5ecd6493b027785155869697becd3",
+      "src/features/resources/project-resource-memberships.module.css": "d013fdaf4d4b63e6a8baa82af476df7adb2a0e6ad85d19ea83144256d4499bad",
+      "src/features/logistics/project-logistics-management.module.css": "c17eab592cfa8beaaa1915cc6c785ff27a59a2462da420bb9a2f52526dca527b",
+      "src/features/logistics/project-process-management.module.css": "101efdf6ea1d9559dff1ba3d3d0e01610ab165da2e805a229ddbdb7b04c2d344",
+      "src/features/logistics/logistics-type-catalog-admin.module.css": "4338525bd64033641c82b8b6a139b68b315bef1ec5c92125894cb7ae8e66fce1",
+      "src/features/project-master/project-master-admin.module.css": "85a5b0ba3091f7bde8376af83efea0c82b8fcdeaeb58895d419bd640126f6d88",
+      "src/features/project-master/project-master-relations-editor.module.css": "eb2985412a1742bc7a26ee35534c705224a368b80ac0f8ed53c64476bce155c7"
+    },
+    "status": "FAILED_OR_INTERMEDIATE_RETAINED"
+  }
+}

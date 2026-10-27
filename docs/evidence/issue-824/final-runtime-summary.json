@@ -1,0 +1,214 @@
+{
+  "status": "PASS",
+  "scope": "22 local mock/HTTP runtime observations, frozen product/collector hashes and version metadata; separate fast-validation binds package/lock/test hashes. Not full Git/remote CI/AT.",
+  "samples": 22,
+  "groups": [
+    {
+      "family": "wbs",
+      "path": "output/playwright/issue-824/wbs/after-final136-focusfix2/geometry.json",
+      "samples": 10,
+      "faults": 0,
+      "sourceStable": true,
+      "collectorStable": true,
+      "version": "0.135.6",
+      "domVersions": [
+        "v0.135.6"
+      ],
+      "canonicalBefore": {
+        "revision": 17,
+        "fingerprint": "c0506d05699ad2ba6b68c36ccf4dab3be030ff47e02cb6e553c822624f0df2a7"
+      },
+      "canonicalAfter": {
+        "revision": 17,
+        "fingerprint": "c0506d05699ad2ba6b68c36ccf4dab3be030ff47e02cb6e553c822624f0df2a7"
+      },
+      "nativeFocus": []
+    },
+    {
+      "family": "kpi",
+      "path": "output/playwright/issue-824/kpi/after-final136-focusfix2/geometry.json",
+      "samples": 4,
+      "faults": 0,
+      "sourceStable": true,
+      "collectorStable": true,
+      "version": "0.135.6",
+      "domVersions": [
+        "v0.135.6"
+      ],
+      "canonicalBefore": {
+        "revision": 17,
+        "fingerprint": "c0506d05699ad2ba6b68c36ccf4dab3be030ff47e02cb6e553c822624f0df2a7"
+      },
+      "canonicalAfter": {
+        "revision": 17,
+        "fingerprint": "c0506d05699ad2ba6b68c36ccf4dab3be030ff47e02cb6e553c822624f0df2a7"
+      },
+      "nativeFocus": []
+    },
+    {
+      "family": "milestone",
+      "path": "output/playwright/issue-824/milestone/after-final136-focusfix2-boundary/geometry.json",
+      "samples": 4,
+      "faults": 0,
+      "sourceStable": true,
+      "collectorStable": true,
+      "version": "0.135.6",
+      "domVersions": [
+        "v0.135.6"
+      ],
+      "canonicalBefore": {
+        "revision": 17,
+        "fingerprint": "c0506d05699ad2ba6b68c36ccf4dab3be030ff47e02cb6e553c822624f0df2a7"
+      },
+      "canonicalAfter": {
+        "revision": 17,
+        "fingerprint": "c0506d05699ad2ba6b68c36ccf4dab3be030ff47e02cb6e553c822624f0df2a7"
+      },
+      "nativeFocus": []
+    },
+    {
+      "family": "global-master",
+      "path": "output/playwright/issue-824/global-master/after-final136-focusfix2-focus/geometry.json",
+      "samples": 4,
+      "faults": 0,
+      "sourceStable": true,
+      "collectorStable": true,
+      "version": "0.135.6",
+      "domVersions": [
+        "v0.135.6"
+      ],
+      "canonicalBefore": null,
+      "canonicalAfter": null,
+      "nativeFocus": [
+        {
+          "name": "relations-fine-390",
+          "focused": true,
+          "horizontal": true,
+          "vertical": true,
+          "outlineWidth": 3,
+          "outlineOffset": 3,
+          "ring": {
+            "left": 229,
+            "right": 330.890625,
+            "top": 844.671875,
+            "bottom": 896.671875
+          },
+          "viewport": {
+            "left": 0,
+            "top": 0,
+            "right": 390,
+            "bottom": 900
+          },
+          "intersection": {
+            "left": 33,
+            "top": 688.171875,
+            "right": 357,
+            "bottom": 900
+          },
+          "immediateRing": {
+            "left": 229,
+            "right": 330.890625,
+            "top": 844.671875,
+            "bottom": 896.671875
+          }
+        },
+        {
+          "name": "relations-fine-1440",
+          "focused": true,
+          "horizontal": true,
+          "vertical": true,
+          "outlineWidth": 3,
+          "outlineOffset": 3,
+          "ring": {
+            "left": 1271,
+            "right": 1372.890625,
+            "top": 586.40625,
+            "bottom": 638.40625
+          },
+          "viewport": {
+            "left": 0,
+            "top": 0,
+            "right": 1440,
+            "bottom": 900
+          },
+          "intersection": {
+            "left": 41,
+            "top": 503.40625,
+            "right": 1399,
+            "bottom": 827.40625
+          },
+          "immediateRing": {
+            "left": 1271,
+            "right": 1372.890625,
+            "top": 586.40625,
+            "bottom": 638.40625
+          }
+        },
+        {
+          "name": "relations-coarse-390",
+          "focused": true,
+          "horizontal": true,
+          "vertical": true,
+          "outlineWidth": 3,
+          "outlineOffset": 3,
+          "ring": {
+            "left": 229,
+            "right": 330.890625,
+            "top": 841.671875,
+            "bottom": 897.671875
+          },
+          "viewport": {
+            "left": 0,
+            "top": 0,
+            "right": 390,
+            "bottom": 900
+          },
+          "intersection": {
+            "left": 33,
+            "top": 687.171875,
+            "right": 357,
+            "bottom": 900
+          },
+          "immediateRing": {
+            "left": 229,
+            "right": 330.890625,
+            "top": 841.671875,
+            "bottom": 897.671875
+          }
+        },
+        {
+          "name": "relations-coarse-1440",
+          "focused": true,
+          "horizontal": true,
+          "vertical": true,
+          "outlineWidth": 3,
+          "outlineOffset": 3,
+          "ring": {
+            "left": 1271,
+            "right": 1372.890625,
+            "top": 583.796875,
+            "bottom": 639.796875
+          },
+          "viewport": {
+            "left": 0,
+            "top": 0,
+            "right": 1440,
+            "bottom": 900
+          },
+          "intersection": {
+            "left": 41,
+            "top": 502.796875,
+            "right": 1399,
+            "bottom": 826.796875
+          },
+          "immediateRing": {
+            "left": 1271,
+            "right": 1372.890625,
+            "top": 583.796875,
+            "bottom": 639.796875
+          }
+        }
+      ]
+    }
+  ]
+}

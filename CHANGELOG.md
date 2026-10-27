@@ -1,3 +1,11 @@
+## [0.135.6] — Unreleased / Issue #824 조회·기준정보 밀도 통합 개선 (2026-10-27)
+
+- 공통 계층 조회5소비자의 검색 label/입력·section/body/tool 글꼴과 fine36/coarse44px를 통일하고 활성 조건·경로·기간·정확 원본과 Gantt 상태를 보존한다.
+- Milestone 계층 조회와 전체 Gate·관리의 명명된 구획·hairline 경계를 제공하며 선택 작업/공수와 전체 상태의 모집단은 구분한다.
+- Global Resource의 개인/그룹/구성원 검색·목록, 프로젝트 기준정보4관점의 원본 관리와 전역 물류 유형을 정돈한다. 관리40/coarse44px·편집dialog44px 및 shell/auth 예외를 구분한다.
+- 장문 프로젝트 마스터 관계 표에 명시적인 열 예산과 표 소유 scroll을 적용하고 기존 품목의 fine14px/40px·원본/관계/권한 계약을 유지한다.
+- #826→#827→#828→#829→#830을 순차 검증하고 통합 PR/main merge 한 건·동일 digest의 정식 승격1회를 사용한다. 실제 검증·최초 실패·미검증과 보호 AGENT 인간 QA/CI/Manager gate는 [Work Packet](docs/exec-plans/active/ISSUE_824.md)을 따른다.
+
 ## [0.135.5] — Unreleased / Issue #825 물류 대시보드 공간 정돈 후보 (2026-10-27)
 
 - KPI·공정&WorkArea·설비·물류 시스템은 프로젝트 workspace의 가용 폭을 사용하고 중복 물류 구성 헤더를 줄인다. 기준정보의 원본 관리 도움말·조회 전용 안내와 Milestone의 기존 폭은 유지한다.

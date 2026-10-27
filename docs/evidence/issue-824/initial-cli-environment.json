@@ -1,0 +1,10 @@
+{
+  "status": "BLOCKED",
+  "stage": "initial browser open",
+  "cause": "CLI selected chromium-1247, which was not installed",
+  "resolution": "CLI config explicitly selected existing Chromium1243 chrome-linux64/chrome; no product or CI change",
+  "browserPath": "/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome",
+  "syntheticOrigin": "http://127.0.0.1:3199",
+  "database": ".data/issue824.sqlite3",
+  "notEvidenceFor": ["production", "remote CI", "full regression"]
+}

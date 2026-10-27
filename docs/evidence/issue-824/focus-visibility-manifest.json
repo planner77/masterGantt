@@ -1,0 +1,10 @@
+{
+  "focus-visibility-before": {
+    "file": "focus-visibility-before.json",
+    "sha256": "b1efb7b06a865f9efc4a10ec1be100e7ea43864e34ab1e27cd5e84571e24c49b"
+  },
+  "focus-visibility-after": {
+    "file": "focus-visibility-after.json",
+    "sha256": "15eade1a05d9e0b401a76aa334ec81689542d538ba8139b852e79e699c5f1777"
+  }
+}

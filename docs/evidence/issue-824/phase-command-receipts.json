@@ -1,0 +1,166 @@
+{
+  "scope": "Local Fast Feedback across phase-specific frozen sources, not final Head full regression. Required remote quality/e2e/docker and human QA remain NOT TESTED.",
+  "uniqueChromiumCasesByPhase": {
+    "826": 1,
+    "827": 1,
+    "828": 3,
+    "829": 7,
+    "830": 8
+  },
+  "totalUniqueChromiumCases": 20,
+  "repeatedCaseNote": "The #453 after case was re-executed for label-in-name and corrected coarse scope; #538 relationship case was re-executed with stronger focus containment. These are not extra unique cases.",
+  "typecheck": {
+    "first": {
+      "status": "FAIL",
+      "stdout": "final-runtime/typecheck-attempt1-fail/stdout.log",
+      "cause": "New coarse block was in a dynamic test without browser fixture; TS2304 and six dependent errors."
+    },
+    "corrected": {
+      "status": "PASS",
+      "session_id": 21231,
+      "command": "npx tsc --noEmit",
+      "stdout": "final-runtime/typecheck-corrected.stdout.log",
+      "exitCode": 0
+    },
+    "correctedResourceCase": {
+      "status": "PASS",
+      "session_id": 42889,
+      "stdout": "resources/e2e-label-final/corrected-scope.stdout.log",
+      "duration": "11.4s case / 12.6s total",
+      "includes": "fine5width + label-in-name + actual coarse resource/group targets >=44"
+    }
+  },
+  "runs": [
+    {
+      "phase": "826",
+      "path": "wbs/e2e-final/stdout.log",
+      "session_id": 18377,
+      "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-730-view-composer.spec.ts -g \"#798 다섯 관점\" --project chromium --workers 1 --retries 0",
+      "evidenceKind": "actual redirected stdout, copied without reconstruction",
+      "stdoutSha256": "296b34925bde6fb18a1afb2bdffce3d048f1e72c9099a0cf01e76e18c30eb723",
+      "runStatus": "PASS",
+      "passedLines": [
+        "  ✓  1 [chromium] › tests/e2e/issue-730-view-composer.spec.ts:587:5 › #798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조회 불변 (1.7m)"
+      ],
+      "failedLines": []
+    },
+    {
+      "phase": "827",
+      "path": "milestone/e2e-final/stdout.log",
+      "session_id": 64739,
+      "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-732-milestone-dashboard.spec.ts -g \"#732 Target0\" --project chromium --workers 1 --retries 0",
+      "evidenceKind": "actual redirected stdout, copied without reconstruction",
+      "stdoutSha256": "2cea1619c977e4b737f506290b00e3e4189be1ebb2b798f6d2f31395f5bd0734",
+      "runStatus": "PASS",
+      "passedLines": [
+        "  ✓  1 [chromium] › tests/e2e/issue-732-milestone-dashboard.spec.ts:39:5 › #732 Target0 Milestone 단독·두 계층·전체 Gate·5폭과 keyboard (28.4s)"
+      ],
+      "failedLines": []
+    },
+    {
+      "phase": "828",
+      "path": "resources/e2e-final/functional-three.stdout.log",
+      "session_id": 33185,
+      "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3199 npx playwright test --config tests/config/playwright.config.ts tests/e2e/resource-tabs.spec.ts -g \"#453 after|탭별 조건|프로필 원자\" --project chromium --workers 1 --retries 0",
+      "evidenceKind": "actual redirected stdout, copied without reconstruction",
+      "stdoutSha256": "6373ad7012a980793e06d69961c0aa068a03e219d6aca7a7ce4556f7aa97f4fe",
+      "runStatus": "PASS",
+      "passedLines": [
+        "  ✓  1 [chromium] › tests/e2e/resource-tabs.spec.ts:29:5 › #453 탭별 조건·스크롤·구성원 초안과 키보드 폐기 확인 (2.1s)",
+        "  ✓  2 [chromium] › tests/e2e/resource-tabs.spec.ts:67:5 › #453 프로필 원자 저장·403 초안·폐기 확인·pending 중복과 Escape (1.6s)",
+        "  ✓  3 [chromium] › tests/e2e/resource-tabs.spec.ts:128:5 › #453 after 동일 5폭 두 표·모달·footer·focus geometry (7.1s)"
+      ],
+      "failedLines": []
+    },
+    {
+      "phase": "829",
+      "path": "project-master/e2e-final/shell-five-width.stdout.log",
+      "session_id": 80409,
+      "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3199 npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-logistics-management.spec.ts -g \"반응형 5개 폭|조회 전용 모드\" --project chromium --workers 1 --retries 0",
+      "evidenceKind": "actual redirected stdout, copied without reconstruction",
+      "stdoutSha256": "a70da733638e6c2709ae5b29b7310e3044b24aa13d0ead1557c01fd1facac872",
+      "runStatus": "PASS",
+      "passedLines": [
+        "  ✓  1 [chromium] › tests/e2e/project-logistics-management.spec.ts:802:7 › Issue #186 물류 구성 탭 및 관리 화면 (LG-03) › 반응형 5개 폭(390, 768, 1024, 1440, 1920px)에서 공용 shell·공정 추가 모달과 문서에 가로 overflow가 없다 (15.8s)"
+      ],
+      "failedLines": []
+    },
+    {
+      "phase": "829",
+      "path": "project-master/e2e-final/readonly-pending-membership.stdout.log",
+      "session_id": 31682,
+      "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3199 npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-logistics-management.spec.ts tests/e2e/project-resource-memberships-ui.spec.ts -g \"Readonly 모드|공정 초안은 pending|membership layout.*1440|stale server|readonly permits\" --project chromium --workers 1 --retries 0",
+      "evidenceKind": "actual redirected stdout, copied without reconstruction",
+      "stdoutSha256": "db9839596dcbd92b6adcd23cbee61db7f768ef26ad506fdd67594b0cb75d8f0e",
+      "runStatus": "FAIL",
+      "passedLines": [
+        "  ✓  1 [chromium] › tests/e2e/project-logistics-management.spec.ts:450:7 › Issue #186 물류 구성 탭 및 관리 화면 (LG-03) › Readonly 모드에서는 생성/수정/삭제 버튼을 숨기고 좁은 화면의 안내·도움말·표 스크롤을 유지한다 (3.4s)",
+        "  ✓  2 [chromium] › tests/e2e/project-logistics-management.spec.ts:659:7 › Issue #186 물류 구성 탭 및 관리 화면 (LG-03) › 공정 초안은 pending 중복 제출·Escape와 network/412/401 이후에도 보존된다 (5.9s)",
+        "  ✓  4 [chromium] › tests/e2e/project-resource-memberships-ui.spec.ts:84:5 › readonly permits discovery of project use without registration or unrelated catalog (3.4s)",
+        "  ✓  5 [chromium] › tests/e2e/project-resource-memberships-ui.spec.ts:93:5 › stale server blocks resubmission and retains selected draft (3.8s)"
+      ],
+      "failedLines": [
+        "  ✘  3 [chromium] › tests/e2e/project-resource-memberships-ui.spec.ts:36:7 › membership layout and registration keyboard flow at 1440px (8.4s)"
+      ]
+    },
+    {
+      "phase": "829",
+      "path": "project-master/e2e-final/stdout.log",
+      "session_id": 56206,
+      "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3199 npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-resource-memberships-ui.spec.ts -g \"membership layout.*1440\" --project chromium --workers 1 --retries 0",
+      "evidenceKind": "actual redirected stdout, copied without reconstruction",
+      "stdoutSha256": "5cd61e4fa3285157b6614616153a3fdb4e372a248eab3189724e1b89e81ba6c4",
+      "runStatus": "PASS",
+      "passedLines": [
+        "  ✓  1 [chromium] › tests/e2e/project-resource-memberships-ui.spec.ts:36:7 › membership layout and registration keyboard flow at 1440px (8.5s)"
+      ],
+      "failedLines": []
+    },
+    {
+      "phase": "829",
+      "path": "project-master/e2e-real-final/stdout.log",
+      "session_id": 29658,
+      "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-762-process-workareas.spec.ts -g \"#762 분류\" --project chromium --workers 1 --retries 0",
+      "evidenceKind": "actual redirected stdout, copied without reconstruction",
+      "stdoutSha256": "84f2af3ff76ef900da60a4ca2ab5d310f929341d5362673e36e232c34c87a615",
+      "runStatus": "PASS",
+      "passedLines": [
+        "  ✓  1 [chromium] › tests/e2e/issue-762-process-workareas.spec.ts:11:5 › #762 분류·catalog·Target 없이 공정과 0..N 구역 CRUD·소비자·권한·5폭 (41.6s)"
+      ],
+      "failedLines": []
+    },
+    {
+      "phase": "830",
+      "path": "global-master/e2e-direct-final/stdout.log",
+      "session_id": 78504,
+      "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3199 npx playwright test --config tests/config/playwright.config.ts tests/e2e/logistics-table-density.spec.ts tests/e2e/master-controls-density.spec.ts tests/e2e/project-master-relations.spec.ts -g \"#454 after|#455 after|관리자 관계 연결\" --project chromium --workers 1 --retries 0",
+      "evidenceKind": "actual redirected stdout, copied without reconstruction",
+      "stdoutSha256": "335f9259d166f405ef0b8f89e8d594805d7ffa948ab4a607eb2e72357c268e0f",
+      "runStatus": "PASS",
+      "passedLines": [
+        "  ✓  1 [chromium] › tests/e2e/logistics-table-density.spec.ts:79:5 › #454 after 두 유형·dialog 5폭 정렬과 마지막 action keyboard 접근 (6.8s)",
+        "  ✓  2 [chromium] › tests/e2e/master-controls-density.spec.ts:53:5 › #455 after 세 범주 5폭 입력·행·표·focus 및 dialog geometry (6.1s)",
+        "  ✓  3 [chromium] › tests/e2e/project-master-relations.spec.ts:41:5 › Issue #538: 관리자 관계 연결과 명시적 두 단계 해제 (1.5s)"
+      ],
+      "failedLines": []
+    },
+    {
+      "phase": "830",
+      "path": "global-master/e2e-direct-final/functional-and-relation-focus.stdout.log",
+      "session_id": 52412,
+      "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3199 npx playwright test --config tests/config/playwright.config.ts tests/e2e/logistics-table-density.spec.ts tests/e2e/master-controls-density.spec.ts tests/e2e/project-master-relations.spec.ts -g \"관리자 관계 연결|#454 설비 유형 추가|#454 rename pending|#455 category/filter|#455 password pending|#454 loading\" --project chromium --workers 1 --retries 0",
+      "evidenceKind": "actual redirected stdout, copied without reconstruction",
+      "stdoutSha256": "87b8bf45cb26e0679b7a4bbc10a4673536efe6c0328fe02f96510d84a2416002",
+      "runStatus": "PASS",
+      "passedLines": [
+        "  ✓  1 [chromium] › tests/e2e/logistics-table-density.spec.ts:130:66 › #454 설비 유형 추가·이름·활성 변경은 explicit payload와 If-Match 보존 (1.4s)",
+        "  ✓  2 [chromium] › tests/e2e/logistics-table-density.spec.ts:139:45 › #454 rename pending 동기 제출1·반복 Escape와 focus (1.6s)",
+        "  ✓  3 [chromium] › tests/e2e/logistics-table-density.spec.ts:170:5 › #454 loading·GET 오류·catalog0·filter0와 종류 전환은 mutation0 (929ms)",
+        "  ✓  4 [chromium] › tests/e2e/master-controls-density.spec.ts:92:5 › #455 category/filter 전환 초안과 current category 생성·명시 저장·상태 변경 (1.5s)",
+        "  ✓  5 [chromium] › tests/e2e/master-controls-density.spec.ts:125:5 › #455 password pending 반복 Escape·Tab·닫기·중복 제출 및 복원 (1.3s)",
+        "  ✓  6 [chromium] › tests/e2e/project-master-relations.spec.ts:41:5 › Issue #538: 관리자 관계 연결과 명시적 두 단계 해제 (1.8s)"
+      ],
+      "failedLines": []
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "scope": "PRE_QA: 제품/테스트/문서/로컬 영수증의 별도 읽기 전용 사전검토. 인간 QA_FINAL/원격 CI/Manager ACCEPT 아님.",
+  "reviewer": "/root/qa",
+  "reviewedSourceFiles": 28,
+  "sourceFingerprint": "32231e165187eec1d7da4b2f18ece639e7f04bdb865056e1a7f23a84e6c4f38b",
+  "sourceFingerprintMethod": "JSON sorted keys, separators comma/colon, SHA256 of path→file SHA256 mapping",
+  "openP1P2": 0,
+  "localEvidence": {
+    "uniqueChromium": 20,
+    "realHttpSqlite": 3,
+    "mockUi": 17,
+    "sqliteServiceHandler": 2,
+    "finalRuntimeObservations": 22,
+    "build": "PASS",
+    "typecheck": "PASS",
+    "focusedLint": "PASS"
+  },
+  "preservedLimitations": [
+    "기존 router warning1",
+    "Pre-PR dry-run NOT TESTED/선정 BLOCKED·7 UNKNOWN",
+    "AGENT 보호 package/lock의 독립 인간 QA_FINAL 미확보",
+    "새 Head Full8/Required3·Trusted·Manager/main/Release 미실행",
+    "실운영/AT/native125%/실기기 NOT TESTED (#517)"
+  ]
+}

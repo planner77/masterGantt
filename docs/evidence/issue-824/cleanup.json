@@ -1,0 +1,10 @@
+{
+  "stoppedPids": [
+    1751251
+  ],
+  "scope": "Own isolated Next server3199 only",
+  "cliSession": "issue824focus",
+  "cliClosed": true,
+  "listeningPids": [],
+  "status": "PASS"
+}

@@ -1,3 +1,15 @@
+## Issue #824 — 조회·기준정보의 역할별 밀도
+
+공통 WBS 조회는 Milestone·공정&WorkArea·설비·물류 시스템과 기존 리소스 소비자에서 같은 typography와 포인터별 크기를 소유한다. 본문은14px 전후, 도구는13px/20px, section 제목은16px를 기준으로 하고 fine36px·coarse/혼합 포인터44px 이상을 사용한다. 넓은 화면의 빠른 검색은 보이는 label과 입력을 같은 행에 두며 좁은 폭·긴 문구는 의미 단위로 wrap한다. 고급 조건수·현재 경로/기간·초기화·pending/error/stale는 밀도 개선을 위해 숨기지 않는다.
+
+Milestone 계층 조회와 전체 Gate·관리 구획은 각각 이름과 범위를 유지한다. 작은 제목·hairline 경계·간격으로 title→toolbar→body를 구분하며 선택 Task/Assignment·계획공수와 전체 Milestone Ready/Blocked/Completed·기준일·명시 완료를 합치지 않는다. 기존 원본 편집·일정/조회 왕복의 경로·필터·focus와 단일 Gantt instance는 유지한다.
+
+프로젝트 기준정보4관점은 상위 workspace의 폭·gutter를 재사용하고 원본 관리에 필요한 제목/도움말·권한 상태를 제공한다. 공정/WorkArea 동시 비교, 설비의 원본 수량·여러 구역, 시스템 직접/조율, 프로젝트 참여등록과 개인 Task배정을 서로 구분한다. 전역 Global Resource는 별도의 개인/그룹·구성원 원본 관리 화면이다.
+
+전역 Resource·물류 유형·프로젝트 마스터 목록은 본문14px 전후·보조12–13px·section16px·관리40px/coarse44px를 비교 기준으로 사용한다. 관리 workspace100rem·gutter24/16px와 인증 폼32.5rem/40px 제한은 보존한다. dialog·native choice·편집 폼의 별도44px 계약을 전역 축소하지 않는다. 이름/코드·역할·비활성·삭제 불가 이유·관계와 명시적인 표 column budget을 유지하며 좁은 화면의 가로 scroll은 표가 소유한다.
+
+위 내용은 목표·소비자 계약이며 실제 구현/실행 범위는 [통합 Work Packet](exec-plans/active/ISSUE_824.md)과 [25개 AC 검증 추적](ISSUE_824_VALIDATION.md)을 따른다. 최초 감사의 공개 readonly 관측·synthetic 관리자 UI·실제 HTTP/SQLite·현재 운영 데이터 및 원격 CI를 서로 대체하지 않는다.
+
 ## Issue #825 — 물류 dashboard 공용 shell
 
 KPI·공정&WorkArea·설비·물류 시스템의 embedded 물류 shell은 상위 project workspace가 제공하는 가용 폭 전체를 사용하고 inline gutter를 다시 더하지 않는다. 상위 peer 탭 바로 아래에 해당 조회 도구와 데이터가 이어지며, `물류 구성 / Gantt WBS와 독립` 제목을 중복 적층하지 않는다. 기준정보 소비자의 기존 제목·ContextHelp·조회 전용 안내는 유지한다. 대시보드의 현재 편집 권한은 상위 프로젝트 context로 계속 식별한다. Milestone의 기존 full-width host는 바꾸지 않는다.

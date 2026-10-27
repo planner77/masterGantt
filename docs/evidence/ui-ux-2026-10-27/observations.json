@@ -1,0 +1,2808 @@
+{
+  "observedAtUtc": "2026-10-27T04:49:27.699541+00:00",
+  "mainSha": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+  "mainVersion": "0.135.4",
+  "deployedRevision": "596dd70db8b242f450ab555ed2bcf049a0c14564",
+  "deployedVersion": "0.135.2",
+  "runtime": "existing local Docker production app on 127.0.0.1:8299",
+  "browser": "cached Chromium 153 via Playwright CLI; headless; ko-KR; Asia/Seoul; viewport height 900",
+  "method": "GET navigation and page.evaluate DOM geometry/getComputedStyle; no application writes or auth attempts. Navigation may trigger read-only query POST. Accessible public Test project, not the user-reported 63km project. In-memory browser context. No before/after implementation comparison.",
+  "captureCount": 26,
+  "sourceBlobComparisons": [
+    {
+      "path": "src/features/logistics/project-logistics-management.tsx",
+      "deployedBlob": "236a5d9d5c72758eccf72a15ecd081689f93ee2e",
+      "mainBlob": "236a5d9d5c72758eccf72a15ecd081689f93ee2e",
+      "equal": true
+    },
+    {
+      "path": "src/features/logistics/project-logistics-management.module.css",
+      "deployedBlob": "569854a37ee61f92fd7182a902932b84299679ea",
+      "mainBlob": "569854a37ee61f92fd7182a902932b84299679ea",
+      "equal": true
+    },
+    {
+      "path": "src/features/logistics/project-logistics-dashboard.module.css",
+      "deployedBlob": "76b0c2af70c194d3b370a71a14022cd562987b10",
+      "mainBlob": "76b0c2af70c194d3b370a71a14022cd562987b10",
+      "equal": true
+    },
+    {
+      "path": "src/features/resources/wbs-view.module.css",
+      "deployedBlob": "b320d67f8fa30283ebbea00722c61340b1048c42",
+      "mainBlob": "b320d67f8fa30283ebbea00722c61340b1048c42",
+      "equal": true
+    },
+    {
+      "path": "src/features/milestones/project-milestone-dashboard.module.css",
+      "deployedBlob": "4aabc0ed8b0cbe4673c59870acdb7ef8cfe8e544",
+      "mainBlob": "4aabc0ed8b0cbe4673c59870acdb7ef8cfe8e544",
+      "equal": true
+    },
+    {
+      "path": "src/features/resources/resource-catalog-admin.module.css",
+      "deployedBlob": "385569071c7a372061dc225541f8a6f3742c96c2",
+      "mainBlob": "385569071c7a372061dc225541f8a6f3742c96c2",
+      "equal": true
+    },
+    {
+      "path": "src/features/logistics/logistics-type-catalog-admin.module.css",
+      "deployedBlob": "304efa2b3e81a2bfe849cb0d1df32570b5a4de33",
+      "mainBlob": "304efa2b3e81a2bfe849cb0d1df32570b5a4de33",
+      "equal": true
+    },
+    {
+      "path": "src/features/project-master/project-master-admin.module.css",
+      "deployedBlob": "287885f7b7d84344c7334233beb82a7d41aa1ae3",
+      "mainBlob": "287885f7b7d84344c7334233beb82a7d41aa1ae3",
+      "equal": true
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "dashboard.kpi-1920.png",
+      "sha256": "c573a922f4ef06c37ce3873e3276d077c935bf0b1c0d24a261e5fbb4616d07c5"
+    },
+    {
+      "file": "dashboard.process-1920.png",
+      "sha256": "3835cf085a5b2dc9e4b1833a5d22898bb1b8f4e87035461c9ffbfd8599ed6e49"
+    },
+    {
+      "file": "dashboard.milestones-1920.png",
+      "sha256": "9f25b3f91533ad5f256a147bfa208711d7f44341bfd7f8f1a077e57d72177fa9"
+    },
+    {
+      "file": "master.processes-1920.png",
+      "sha256": "080bc8bc8f045b9ad238d1194e561d4e5ca2cc3c685fe5a927504a7b5760b2c3"
+    }
+  ],
+  "observations": [
+    {
+      "screen": "dashboard.kpi",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 247
+        },
+        {
+          "text": "관련 Milestone — Milestone 전체 상태 기준",
+          "font": "16px",
+          "height": 24,
+          "y": 763.390625
+        },
+        {
+          "text": "등록 구성과 연결 상태",
+          "font": "14px",
+          "height": 21,
+          "y": 1299.890625
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "KPI",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "공정별 현황 (2)",
+          "font": "14px",
+          "height": 39
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 240,
+          "y": 231,
+          "width": 1440,
+          "height": 1408.890625,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 240,
+          "y": 247,
+          "width": 1440,
+          "height": 45.390625,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "project-logistics-dashboard_dashboardContainer__byVQv",
+          "x": 240,
+          "y": 312.390625,
+          "width": 1440,
+          "height": 1311.5,
+          "padding": "16px 0px",
+          "maxWidth": "none"
+        },
+        {
+          "class": "project-logistics-dashboard_filterBar__4JzA4",
+          "x": 240,
+          "y": 328.390625,
+          "width": 1440,
+          "height": 65,
+          "padding": "14px 20px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "기준일 (As of)",
+          "font": "14px",
+          "height": 35,
+          "y": 343.390625
+        },
+        {
+          "text": "임박 기준 (일)",
+          "font": "14px",
+          "height": 35,
+          "y": 343.390625
+        },
+        {
+          "text": "시스템 집계 범위",
+          "font": "14px",
+          "height": 32,
+          "y": 344.890625
+        },
+        {
+          "text": "활성 마스터만 보기",
+          "font": "14px",
+          "height": 13,
+          "y": 354.390625
+        },
+        {
+          "text": "새로고침",
+          "font": "14px",
+          "height": 35,
+          "y": 343.390625
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.milestones",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "Milestone 계층 조회",
+          "font": "16px",
+          "height": 24,
+          "y": 253
+        },
+        {
+          "text": "Milestone 대시보드",
+          "font": "18px",
+          "height": 27,
+          "y": 893.5
+        },
+        {
+          "text": "완료 처리율",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1180.5
+        },
+        {
+          "text": "Ready",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1186.75
+        },
+        {
+          "text": "선행 차단",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1186.75
+        },
+        {
+          "text": "지연",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1186.75
+        },
+        {
+          "text": "임박",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1354.25
+        },
+        {
+          "text": "계획 일정 위험",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1354.25
+        },
+        {
+          "text": "소속 적용률",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1348
+        },
+        {
+          "text": "Milestone 전체 상태 · 표시 1개",
+          "font": "15px",
+          "height": 22.5,
+          "y": 1532.5
+        },
+        {
+          "text": "범위 내 계획 공수 · 모든 Milestone + 미지정",
+          "font": "15px",
+          "height": 22.5,
+          "y": 1833
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "Milestone",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "wbs-view_toolbar__CQbgT",
+          "x": 24,
+          "y": 299,
+          "width": 1872,
+          "height": 72,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "작업 검색",
+          "font": "16px",
+          "height": 44,
+          "y": 327
+        },
+        {
+          "text": "작업 상태전체시작 전진행 중완료",
+          "font": "16px",
+          "height": 44,
+          "y": 327
+        },
+        {
+          "text": "조회 시작일",
+          "font": "16px",
+          "height": 44,
+          "y": 327
+        },
+        {
+          "text": "조회 종료일",
+          "font": "16px",
+          "height": 44,
+          "y": 327
+        },
+        {
+          "text": "계층 새로고침",
+          "font": "16px",
+          "height": 44,
+          "y": 327
+        },
+        {
+          "text": "새로고침",
+          "font": "12px",
+          "height": 32,
+          "y": 899.5
+        },
+        {
+          "text": "Milestone 검색",
+          "font": "13px",
+          "height": 36,
+          "y": 980
+        },
+        {
+          "text": "기준일",
+          "font": "13px",
+          "height": 36,
+          "y": 980
+        },
+        {
+          "text": "수동 기준일",
+          "font": "13px",
+          "height": 13,
+          "y": 991.5
+        },
+        {
+          "text": "임박 기간 (일)",
+          "font": "13px",
+          "height": 36,
+          "y": 980
+        },
+        {
+          "text": "개발시작 전 · 2026-11-02",
+          "font": "13px",
+          "height": 13,
+          "y": 1191
+        },
+        {
+          "text": "이범기",
+          "font": "13px",
+          "height": 13,
+          "y": 1191
+        },
+        {
+          "text": "PI",
+          "font": "13px",
+          "height": 13,
+          "y": 1191
+        },
+        {
+          "text": "DEVELOPER",
+          "font": "13px",
+          "height": 13,
+          "y": 1218.5
+        },
+        {
+          "text": "EQUIPMENT_OWNER",
+          "font": "13px",
+          "height": 13,
+          "y": 1246
+        },
+        {
+          "text": "Global Role 미지정",
+          "font": "13px",
+          "height": 13,
+          "y": 1273.5
+        },
+        {
+          "text": "초급",
+          "font": "13px",
+          "height": 13,
+          "y": 1191
+        },
+        {
+          "text": "중급",
+          "font": "13px",
+          "height": 13,
+          "y": 1218.5
+        },
+        {
+          "text": "고급",
+          "font": "13px",
+          "height": 13,
+          "y": 1246
+        },
+        {
+          "text": "특급",
+          "font": "13px",
+          "height": 13,
+          "y": 1273.5
+        },
+        {
+          "text": "등급 미지정",
+          "font": "13px",
+          "height": 13,
+          "y": 1301
+        },
+        {
+          "text": "성형",
+          "font": "13px",
+          "height": 13,
+          "y": 1385
+        },
+        {
+          "text": "인쇄",
+          "font": "13px",
+          "height": 13,
+          "y": 1456.5
+        },
+        {
+          "text": "Picking STK",
+          "font": "13px",
+          "height": 13,
+          "y": 1385
+        },
+        {
+          "text": "SCS",
+          "font": "13px",
+          "height": 13,
+          "y": 1385
+        },
+        {
+          "text": "이범기",
+          "font": "13px",
+          "height": 13,
+          "y": 1385
+        },
+        {
+          "text": "공수 시작일",
+          "font": "13px",
+          "height": 36,
+          "y": 1569.5
+        },
+        {
+          "text": "공수 종료일",
+          "font": "13px",
+          "height": 36,
+          "y": 1569.5
+        },
+        {
+          "text": "시스템 범위직접 연결조율 범위 포함",
+          "font": "13px",
+          "height": 36,
+          "y": 1569.5
+        },
+        {
+          "text": "활성 물류 마스터만",
+          "font": "13px",
+          "height": 13,
+          "y": 1569.25
+        },
+        {
+          "text": "하위 공정 포함",
+          "font": "13px",
+          "height": 13,
+          "y": 1640.75
+        },
+        {
+          "text": "M/M 환산 기준환경 설정 기준명시 기준미설정 (환경 기준 제외)",
+          "font": "13px",
+          "height": 36,
+          "y": 1641
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.process",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 247
+        },
+        {
+          "text": "공정&WorkArea",
+          "font": "16px",
+          "height": 24,
+          "y": 334.390625
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "공정&WorkArea",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 240,
+          "y": 231,
+          "width": 1440,
+          "height": 974.390625,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 240,
+          "y": 247,
+          "width": 1440,
+          "height": 45.390625,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "wbs-view_toolbar__CQbgT",
+          "x": 240,
+          "y": 380.390625,
+          "width": 1440,
+          "height": 72,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "작업 검색",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "작업 상태전체시작 전진행 중완료",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "조회 시작일",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "조회 종료일",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "계층 새로고침",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.equipment",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 247
+        },
+        {
+          "text": "설비",
+          "font": "16px",
+          "height": 24,
+          "y": 334.390625
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "설비",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 240,
+          "y": 231,
+          "width": 1440,
+          "height": 925.390625,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 240,
+          "y": 247,
+          "width": 1440,
+          "height": 45.390625,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "wbs-view_toolbar__CQbgT",
+          "x": 240,
+          "y": 380.390625,
+          "width": 1440,
+          "height": 72,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "작업 검색",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "작업 상태전체시작 전진행 중완료",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "조회 시작일",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "조회 종료일",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "계층 새로고침",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.system",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 247
+        },
+        {
+          "text": "물류 시스템",
+          "font": "16px",
+          "height": 24,
+          "y": 334.390625
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "물류 시스템",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 240,
+          "y": 231,
+          "width": 1440,
+          "height": 856.390625,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 240,
+          "y": 247,
+          "width": 1440,
+          "height": 45.390625,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "wbs-view_toolbar__CQbgT",
+          "x": 240,
+          "y": 380.390625,
+          "width": 1440,
+          "height": 72,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "작업 검색",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "작업 상태전체시작 전진행 중완료",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "조회 시작일",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "조회 종료일",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "계층 새로고침",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.resources",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "리소스 공수",
+          "font": "16px",
+          "height": 24,
+          "y": 309
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "리소스",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "resource-dashboard-toolbar",
+          "x": 24,
+          "y": 300,
+          "width": 1872,
+          "height": 42,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "새로고침",
+          "font": "14px",
+          "height": 40,
+          "y": 301
+        },
+        {
+          "text": "기간 시작",
+          "font": "14px",
+          "height": 44,
+          "y": 396
+        },
+        {
+          "text": "기간 종료",
+          "font": "14px",
+          "height": 44,
+          "y": 396
+        },
+        {
+          "text": "Milestone",
+          "font": "14px",
+          "height": 44,
+          "y": 396
+        },
+        {
+          "text": "설비",
+          "font": "14px",
+          "height": 44,
+          "y": 396
+        },
+        {
+          "text": "물류 시스템",
+          "font": "14px",
+          "height": 44,
+          "y": 396
+        },
+        {
+          "text": "리소스·그룹·Task 이름과 코드 검색",
+          "font": "14px",
+          "height": 44,
+          "y": 396
+        }
+      ]
+    },
+    {
+      "screen": "master.processes",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 343
+        },
+        {
+          "text": "공정 & 작업 구역 관리",
+          "font": "18px",
+          "height": 27,
+          "y": 408.390625
+        },
+        {
+          "text": "공정을 선택해 작업 구역을 확인하세요",
+          "font": "16px",
+          "height": 24,
+          "y": 774.734375
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "기준정보",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "공정&WorkArea",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 240,
+          "y": 327,
+          "width": 1440,
+          "height": 512.734375,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 240,
+          "y": 343,
+          "width": 1440,
+          "height": 45.390625,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "project-logistics-management_toolbar__Wq49Q",
+          "x": 240,
+          "y": 463.390625,
+          "width": 1440,
+          "height": 66,
+          "padding": "12px 16px",
+          "maxWidth": "100%"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "물류 항목 검색",
+          "font": "14px",
+          "height": 36,
+          "y": 478.390625
+        },
+        {
+          "text": "비활성 항목 포함",
+          "font": "14px",
+          "height": 13,
+          "y": 489.890625
+        },
+        {
+          "text": "공정 새로고침",
+          "font": "14px",
+          "height": 40,
+          "y": 476.390625
+        }
+      ]
+    },
+    {
+      "screen": "master.equipment",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 295
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "기준정보",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "설비",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 240,
+          "y": 279,
+          "width": 1440,
+          "height": 309.953125,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 240,
+          "y": 295,
+          "width": 1440,
+          "height": 45.390625,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "project-logistics-management_toolbar__Wq49Q",
+          "x": 240,
+          "y": 360.390625,
+          "width": 1440,
+          "height": 62,
+          "padding": "12px 16px",
+          "maxWidth": "100%"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "물류 항목 검색",
+          "font": "14px",
+          "height": 36,
+          "y": 373.390625
+        },
+        {
+          "text": "공정 필터",
+          "font": "14px",
+          "height": 36,
+          "y": 373.390625
+        },
+        {
+          "text": "비활성 항목 포함",
+          "font": "14px",
+          "height": 13,
+          "y": 384.890625
+        }
+      ]
+    },
+    {
+      "screen": "master.systems",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 295
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "기준정보",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "물류 시스템",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 240,
+          "y": 279,
+          "width": 1440,
+          "height": 309.953125,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 240,
+          "y": 295,
+          "width": 1440,
+          "height": 45.390625,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "project-logistics-management_toolbar__Wq49Q",
+          "x": 240,
+          "y": 360.390625,
+          "width": 1440,
+          "height": 62,
+          "padding": "12px 16px",
+          "maxWidth": "100%"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "물류 항목 검색",
+          "font": "14px",
+          "height": 36,
+          "y": 373.390625
+        },
+        {
+          "text": "공정 필터",
+          "font": "14px",
+          "height": 36,
+          "y": 373.390625
+        },
+        {
+          "text": "비활성 항목 포함",
+          "font": "14px",
+          "height": 13,
+          "y": 384.890625
+        }
+      ]
+    },
+    {
+      "screen": "master.resources",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "프로젝트 리소스",
+          "font": "18px",
+          "height": 27,
+          "y": 283
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "기준정보",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "리소스",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-resource-memberships_toolbar__OZZto",
+          "x": 1428.640625,
+          "y": 287,
+          "width": 467.359375,
+          "height": 40,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "프로젝트 리소스 이름 검색",
+          "font": "14px",
+          "height": 36,
+          "y": 484
+        },
+        {
+          "text": "전역 역할전체PI개발자설비 담당",
+          "font": "14px",
+          "height": 36,
+          "y": 589
+        },
+        {
+          "text": "개발자 등급전체초급중급고급특급",
+          "font": "14px",
+          "height": 36,
+          "y": 589
+        },
+        {
+          "text": "Group전체MCS01",
+          "font": "14px",
+          "height": 36,
+          "y": 589
+        },
+        {
+          "text": "등록 상태전체등록됨등록 필요",
+          "font": "14px",
+          "height": 36,
+          "y": 589
+        },
+        {
+          "text": "사용 상태전체사용 없음 (등록만 포함)작업 배정됨책임 역할만 있음",
+          "font": "14px",
+          "height": 36,
+          "y": 589
+        },
+        {
+          "text": "활성 상태전체활성비활성",
+          "font": "14px",
+          "height": 36,
+          "y": 589
+        }
+      ]
+    },
+    {
+      "screen": "/resources",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "리소스 관리",
+          "font": "24px",
+          "height": 30,
+          "y": 103
+        },
+        {
+          "text": "관리자 로그인",
+          "font": "16px",
+          "height": 24,
+          "y": 176
+        }
+      ],
+      "activeTabs": [],
+      "surfaces": [],
+      "primaryControls": [
+        {
+          "text": "관리자 비밀번호",
+          "font": "14.4px",
+          "height": 40,
+          "y": 264.015625
+        },
+        {
+          "text": "로그인",
+          "font": "14px",
+          "height": 40,
+          "y": 264.015625
+        }
+      ]
+    },
+    {
+      "screen": "/logistics-admin",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 유형 관리",
+          "font": "24px",
+          "height": 30,
+          "y": 103
+        },
+        {
+          "text": "관리자 로그인",
+          "font": "16px",
+          "height": 24,
+          "y": 200
+        }
+      ],
+      "activeTabs": [],
+      "surfaces": [],
+      "primaryControls": [
+        {
+          "text": "관리자 비밀번호",
+          "font": "14.4px",
+          "height": 40,
+          "y": 288.015625
+        },
+        {
+          "text": "로그인",
+          "font": "14px",
+          "height": 40,
+          "y": 288.015625
+        }
+      ]
+    },
+    {
+      "screen": "/project-master-admin",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "프로젝트 기준정보 관리",
+          "font": "24px",
+          "height": 30,
+          "y": 103
+        },
+        {
+          "text": "프로젝트 기준정보 관리자 로그인",
+          "font": "16px",
+          "height": 24,
+          "y": 200
+        }
+      ],
+      "activeTabs": [],
+      "surfaces": [],
+      "primaryControls": [
+        {
+          "text": "관리자 비밀번호",
+          "font": "14.4px",
+          "height": 40,
+          "y": 309.625
+        },
+        {
+          "text": "로그인",
+          "font": "14px",
+          "height": 40,
+          "y": 309.625
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.kpi",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 247
+        },
+        {
+          "text": "관련 Milestone — Milestone 전체 상태 기준",
+          "font": "16px",
+          "height": 24,
+          "y": 763.390625
+        },
+        {
+          "text": "등록 구성과 연결 상태",
+          "font": "14px",
+          "height": 21,
+          "y": 1299.890625
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "KPI",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "공정별 현황 (2)",
+          "font": "14px",
+          "height": 39
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 1408.890625,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 24,
+          "y": 247,
+          "width": 1392,
+          "height": 45.390625,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "project-logistics-dashboard_dashboardContainer__byVQv",
+          "x": 24,
+          "y": 312.390625,
+          "width": 1392,
+          "height": 1311.5,
+          "padding": "16px 0px",
+          "maxWidth": "none"
+        },
+        {
+          "class": "project-logistics-dashboard_filterBar__4JzA4",
+          "x": 24,
+          "y": 328.390625,
+          "width": 1392,
+          "height": 65,
+          "padding": "14px 20px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "기준일 (As of)",
+          "font": "14px",
+          "height": 35,
+          "y": 343.390625
+        },
+        {
+          "text": "임박 기준 (일)",
+          "font": "14px",
+          "height": 35,
+          "y": 343.390625
+        },
+        {
+          "text": "시스템 집계 범위",
+          "font": "14px",
+          "height": 32,
+          "y": 344.890625
+        },
+        {
+          "text": "활성 마스터만 보기",
+          "font": "14px",
+          "height": 13,
+          "y": 354.390625
+        },
+        {
+          "text": "새로고침",
+          "font": "14px",
+          "height": 35,
+          "y": 343.390625
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.milestones",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "Milestone 계층 조회",
+          "font": "16px",
+          "height": 24,
+          "y": 253
+        },
+        {
+          "text": "Milestone 대시보드",
+          "font": "18px",
+          "height": 27,
+          "y": 893.5
+        },
+        {
+          "text": "완료 처리율",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1180.5
+        },
+        {
+          "text": "Ready",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1186.75
+        },
+        {
+          "text": "선행 차단",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1186.75
+        },
+        {
+          "text": "지연",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1186.75
+        },
+        {
+          "text": "임박",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1354.25
+        },
+        {
+          "text": "계획 일정 위험",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1354.25
+        },
+        {
+          "text": "소속 적용률",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1348
+        },
+        {
+          "text": "Milestone 전체 상태 · 표시 1개",
+          "font": "15px",
+          "height": 22.5,
+          "y": 1532.5
+        },
+        {
+          "text": "범위 내 계획 공수 · 모든 Milestone + 미지정",
+          "font": "15px",
+          "height": 22.5,
+          "y": 1833
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "Milestone",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "wbs-view_toolbar__CQbgT",
+          "x": 24,
+          "y": 299,
+          "width": 1392,
+          "height": 72,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "작업 검색",
+          "font": "16px",
+          "height": 44,
+          "y": 327
+        },
+        {
+          "text": "작업 상태전체시작 전진행 중완료",
+          "font": "16px",
+          "height": 44,
+          "y": 327
+        },
+        {
+          "text": "조회 시작일",
+          "font": "16px",
+          "height": 44,
+          "y": 327
+        },
+        {
+          "text": "조회 종료일",
+          "font": "16px",
+          "height": 44,
+          "y": 327
+        },
+        {
+          "text": "계층 새로고침",
+          "font": "16px",
+          "height": 44,
+          "y": 327
+        },
+        {
+          "text": "새로고침",
+          "font": "12px",
+          "height": 32,
+          "y": 899.5
+        },
+        {
+          "text": "Milestone 검색",
+          "font": "13px",
+          "height": 36,
+          "y": 980
+        },
+        {
+          "text": "기준일",
+          "font": "13px",
+          "height": 36,
+          "y": 980
+        },
+        {
+          "text": "수동 기준일",
+          "font": "13px",
+          "height": 13,
+          "y": 991.5
+        },
+        {
+          "text": "임박 기간 (일)",
+          "font": "13px",
+          "height": 36,
+          "y": 980
+        },
+        {
+          "text": "개발시작 전 · 2026-11-02",
+          "font": "13px",
+          "height": 13,
+          "y": 1191
+        },
+        {
+          "text": "이범기",
+          "font": "13px",
+          "height": 13,
+          "y": 1191
+        },
+        {
+          "text": "PI",
+          "font": "13px",
+          "height": 13,
+          "y": 1191
+        },
+        {
+          "text": "DEVELOPER",
+          "font": "13px",
+          "height": 13,
+          "y": 1218.5
+        },
+        {
+          "text": "EQUIPMENT_OWNER",
+          "font": "13px",
+          "height": 13,
+          "y": 1246
+        },
+        {
+          "text": "Global Role 미지정",
+          "font": "13px",
+          "height": 13,
+          "y": 1273.5
+        },
+        {
+          "text": "초급",
+          "font": "13px",
+          "height": 13,
+          "y": 1191
+        },
+        {
+          "text": "중급",
+          "font": "13px",
+          "height": 13,
+          "y": 1218.5
+        },
+        {
+          "text": "고급",
+          "font": "13px",
+          "height": 13,
+          "y": 1246
+        },
+        {
+          "text": "특급",
+          "font": "13px",
+          "height": 13,
+          "y": 1273.5
+        },
+        {
+          "text": "등급 미지정",
+          "font": "13px",
+          "height": 13,
+          "y": 1301
+        },
+        {
+          "text": "성형",
+          "font": "13px",
+          "height": 13,
+          "y": 1385
+        },
+        {
+          "text": "인쇄",
+          "font": "13px",
+          "height": 13,
+          "y": 1456.5
+        },
+        {
+          "text": "Picking STK",
+          "font": "13px",
+          "height": 13,
+          "y": 1385
+        },
+        {
+          "text": "SCS",
+          "font": "13px",
+          "height": 13,
+          "y": 1385
+        },
+        {
+          "text": "이범기",
+          "font": "13px",
+          "height": 13,
+          "y": 1385
+        },
+        {
+          "text": "공수 시작일",
+          "font": "13px",
+          "height": 36,
+          "y": 1569.5
+        },
+        {
+          "text": "공수 종료일",
+          "font": "13px",
+          "height": 36,
+          "y": 1569.5
+        },
+        {
+          "text": "시스템 범위직접 연결조율 범위 포함",
+          "font": "13px",
+          "height": 36,
+          "y": 1569.5
+        },
+        {
+          "text": "활성 물류 마스터만",
+          "font": "13px",
+          "height": 13,
+          "y": 1569.25
+        },
+        {
+          "text": "하위 공정 포함",
+          "font": "13px",
+          "height": 13,
+          "y": 1640.75
+        },
+        {
+          "text": "M/M 환산 기준환경 설정 기준명시 기준미설정 (환경 기준 제외)",
+          "font": "13px",
+          "height": 36,
+          "y": 1641
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.process",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 247
+        },
+        {
+          "text": "공정&WorkArea",
+          "font": "16px",
+          "height": 24,
+          "y": 334.390625
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "공정&WorkArea",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 974.390625,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 24,
+          "y": 247,
+          "width": 1392,
+          "height": 45.390625,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "wbs-view_toolbar__CQbgT",
+          "x": 24,
+          "y": 380.390625,
+          "width": 1392,
+          "height": 72,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "작업 검색",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "작업 상태전체시작 전진행 중완료",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "조회 시작일",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "조회 종료일",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "계층 새로고침",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.equipment",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 247
+        },
+        {
+          "text": "설비",
+          "font": "16px",
+          "height": 24,
+          "y": 334.390625
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "설비",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 925.390625,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 24,
+          "y": 247,
+          "width": 1392,
+          "height": 45.390625,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "wbs-view_toolbar__CQbgT",
+          "x": 24,
+          "y": 380.390625,
+          "width": 1392,
+          "height": 72,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "작업 검색",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "작업 상태전체시작 전진행 중완료",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "조회 시작일",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "조회 종료일",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "계층 새로고침",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.system",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 247
+        },
+        {
+          "text": "물류 시스템",
+          "font": "16px",
+          "height": 24,
+          "y": 334.390625
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "물류 시스템",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 856.390625,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 24,
+          "y": 247,
+          "width": 1392,
+          "height": 45.390625,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "wbs-view_toolbar__CQbgT",
+          "x": 24,
+          "y": 380.390625,
+          "width": 1392,
+          "height": 72,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "작업 검색",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "작업 상태전체시작 전진행 중완료",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "조회 시작일",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "조회 종료일",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        },
+        {
+          "text": "계층 새로고침",
+          "font": "16px",
+          "height": 44,
+          "y": 408.390625
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.kpi",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 294
+        },
+        {
+          "text": "관련 Milestone — Milestone 전체 상태 기준",
+          "font": "16px",
+          "height": 24,
+          "y": 1772.953125
+        },
+        {
+          "text": "등록 구성과 연결 상태",
+          "font": "14px",
+          "height": 21,
+          "y": 2637.953125
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "KPI",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "공정별 현황 (2)",
+          "font": "14px",
+          "height": 39
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 2699.953125,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 12,
+          "y": 294,
+          "width": 366,
+          "height": 112.953125,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "project-logistics-dashboard_dashboardContainer__byVQv",
+          "x": 12,
+          "y": 426.953125,
+          "width": 366,
+          "height": 2535,
+          "padding": "16px 0px",
+          "maxWidth": "none"
+        },
+        {
+          "class": "project-logistics-dashboard_filterBar__4JzA4",
+          "x": 12,
+          "y": 442.953125,
+          "width": 366,
+          "height": 290,
+          "padding": "12px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "기준일 (As of)",
+          "font": "14px",
+          "height": 35,
+          "y": 484.953125
+        },
+        {
+          "text": "임박 기준 (일)",
+          "font": "14px",
+          "height": 35,
+          "y": 531.953125
+        },
+        {
+          "text": "시스템 집계 범위",
+          "font": "14px",
+          "height": 32,
+          "y": 607.953125
+        },
+        {
+          "text": "활성 마스터만 보기",
+          "font": "14px",
+          "height": 13,
+          "y": 655.953125
+        },
+        {
+          "text": "새로고침",
+          "font": "14px",
+          "height": 35,
+          "y": 684.953125
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.milestones",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "Milestone 계층 조회",
+          "font": "16px",
+          "height": 24,
+          "y": 300
+        },
+        {
+          "text": "Milestone 대시보드",
+          "font": "18px",
+          "height": 27,
+          "y": 1340.5
+        },
+        {
+          "text": "완료 처리율",
+          "font": "13px",
+          "height": 19.5,
+          "y": 1978.5
+        },
+        {
+          "text": "Ready",
+          "font": "13px",
+          "height": 19.5,
+          "y": 2152.25
+        },
+        {
+          "text": "선행 차단",
+          "font": "13px",
+          "height": 19.5,
+          "y": 2306.25
+        },
+        {
+          "text": "지연",
+          "font": "13px",
+          "height": 19.5,
+          "y": 2460.25
+        },
+        {
+          "text": "임박",
+          "font": "13px",
+          "height": 19.5,
+          "y": 2614.25
+        },
+        {
+          "text": "계획 일정 위험",
+          "font": "13px",
+          "height": 19.5,
+          "y": 2768.25
+        },
+        {
+          "text": "소속 적용률",
+          "font": "13px",
+          "height": 19.5,
+          "y": 2916
+        },
+        {
+          "text": "Milestone 전체 상태 · 표시 1개",
+          "font": "15px",
+          "height": 22.5,
+          "y": 3100.5
+        },
+        {
+          "text": "범위 내 계획 공수 · 모든 Milestone + 미지정",
+          "font": "15px",
+          "height": 22.5,
+          "y": 3401
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "Milestone",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "wbs-view_toolbar__CQbgT",
+          "x": 12,
+          "y": 375,
+          "width": 366,
+          "height": 284,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "작업 검색",
+          "font": "16px",
+          "height": 44,
+          "y": 403
+        },
+        {
+          "text": "작업 상태전체시작 전진행 중완료",
+          "font": "16px",
+          "height": 44,
+          "y": 483
+        },
+        {
+          "text": "조회 시작일",
+          "font": "16px",
+          "height": 44,
+          "y": 563
+        },
+        {
+          "text": "조회 종료일",
+          "font": "16px",
+          "height": 44,
+          "y": 563
+        },
+        {
+          "text": "계층 새로고침",
+          "font": "16px",
+          "height": 44,
+          "y": 615
+        },
+        {
+          "text": "새로고침",
+          "font": "12px",
+          "height": 32,
+          "y": 1433.5
+        },
+        {
+          "text": "Milestone 검색",
+          "font": "13px",
+          "height": 36,
+          "y": 1551
+        },
+        {
+          "text": "기준일",
+          "font": "13px",
+          "height": 36,
+          "y": 1622.5
+        },
+        {
+          "text": "수동 기준일",
+          "font": "13px",
+          "height": 13,
+          "y": 1682
+        },
+        {
+          "text": "임박 기간 (일)",
+          "font": "13px",
+          "height": 36,
+          "y": 1742
+        },
+        {
+          "text": "개발시작 전 · 2026-11-02",
+          "font": "13px",
+          "height": 13,
+          "y": 2019
+        },
+        {
+          "text": "이범기",
+          "font": "13px",
+          "height": 13,
+          "y": 2165
+        },
+        {
+          "text": "PI",
+          "font": "13px",
+          "height": 13,
+          "y": 2293
+        },
+        {
+          "text": "DEVELOPER",
+          "font": "13px",
+          "height": 13,
+          "y": 2320.5
+        },
+        {
+          "text": "EQUIPMENT_OWNER",
+          "font": "13px",
+          "height": 13,
+          "y": 2348
+        },
+        {
+          "text": "Global Role 미지정",
+          "font": "13px",
+          "height": 13,
+          "y": 2375.5
+        },
+        {
+          "text": "초급",
+          "font": "13px",
+          "height": 13,
+          "y": 2459.5
+        },
+        {
+          "text": "중급",
+          "font": "13px",
+          "height": 13,
+          "y": 2487
+        },
+        {
+          "text": "고급",
+          "font": "13px",
+          "height": 13,
+          "y": 2514.5
+        },
+        {
+          "text": "특급",
+          "font": "13px",
+          "height": 13,
+          "y": 2542
+        },
+        {
+          "text": "등급 미지정",
+          "font": "13px",
+          "height": 13,
+          "y": 2569.5
+        },
+        {
+          "text": "성형",
+          "font": "13px",
+          "height": 13,
+          "y": 2653.5
+        },
+        {
+          "text": "인쇄",
+          "font": "13px",
+          "height": 13,
+          "y": 2725
+        },
+        {
+          "text": "Picking STK",
+          "font": "13px",
+          "height": 13,
+          "y": 2853
+        },
+        {
+          "text": "SCS",
+          "font": "13px",
+          "height": 13,
+          "y": 2981
+        },
+        {
+          "text": "이범기",
+          "font": "13px",
+          "height": 13,
+          "y": 3109
+        },
+        {
+          "text": "공수 시작일",
+          "font": "13px",
+          "height": 36,
+          "y": 3222
+        },
+        {
+          "text": "공수 종료일",
+          "font": "13px",
+          "height": 36,
+          "y": 3293.5
+        },
+        {
+          "text": "시스템 범위직접 연결조율 범위 포함",
+          "font": "13px",
+          "height": 36,
+          "y": 3365
+        },
+        {
+          "text": "활성 물류 마스터만",
+          "font": "13px",
+          "height": 13,
+          "y": 3424.5
+        },
+        {
+          "text": "하위 공정 포함",
+          "font": "13px",
+          "height": 13,
+          "y": 3472.5
+        },
+        {
+          "text": "M/M 환산 기준환경 설정 기준명시 기준미설정 (환경 기준 제외)",
+          "font": "13px",
+          "height": 36,
+          "y": 3532.5
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.process",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 294
+        },
+        {
+          "text": "공정&WorkArea",
+          "font": "16px",
+          "height": 24,
+          "y": 448.953125
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "공정&WorkArea",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 1579.953125,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 12,
+          "y": 294,
+          "width": 366,
+          "height": 112.953125,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "wbs-view_toolbar__CQbgT",
+          "x": 12,
+          "y": 523.953125,
+          "width": 366,
+          "height": 284,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "작업 검색",
+          "font": "16px",
+          "height": 44,
+          "y": 551.953125
+        },
+        {
+          "text": "작업 상태전체시작 전진행 중완료",
+          "font": "16px",
+          "height": 44,
+          "y": 631.953125
+        },
+        {
+          "text": "조회 시작일",
+          "font": "16px",
+          "height": 44,
+          "y": 711.953125
+        },
+        {
+          "text": "조회 종료일",
+          "font": "16px",
+          "height": 44,
+          "y": 711.953125
+        },
+        {
+          "text": "계층 새로고침",
+          "font": "16px",
+          "height": 44,
+          "y": 763.953125
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.equipment",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 294
+        },
+        {
+          "text": "설비",
+          "font": "16px",
+          "height": 24,
+          "y": 448.953125
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "설비",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 1493.453125,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 12,
+          "y": 294,
+          "width": 366,
+          "height": 112.953125,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "wbs-view_toolbar__CQbgT",
+          "x": 12,
+          "y": 523.953125,
+          "width": 366,
+          "height": 284,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "작업 검색",
+          "font": "16px",
+          "height": 44,
+          "y": 551.953125
+        },
+        {
+          "text": "작업 상태전체시작 전진행 중완료",
+          "font": "16px",
+          "height": 44,
+          "y": 631.953125
+        },
+        {
+          "text": "조회 시작일",
+          "font": "16px",
+          "height": 44,
+          "y": 711.953125
+        },
+        {
+          "text": "조회 종료일",
+          "font": "16px",
+          "height": 44,
+          "y": 711.953125
+        },
+        {
+          "text": "계층 새로고침",
+          "font": "16px",
+          "height": 44,
+          "y": 763.953125
+        }
+      ]
+    },
+    {
+      "screen": "dashboard.system",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 구성",
+          "font": "21.6px",
+          "height": 32.390625,
+          "y": 294
+        },
+        {
+          "text": "물류 시스템",
+          "font": "16px",
+          "height": 24,
+          "y": 448.953125
+        }
+      ],
+      "activeTabs": [
+        {
+          "text": "대시보드",
+          "font": "14px",
+          "height": 36
+        },
+        {
+          "text": "물류 시스템",
+          "font": "14px",
+          "height": 36
+        }
+      ],
+      "surfaces": [
+        {
+          "class": "project-logistics-management_logisticsContainer__y1XJK",
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 1361.453125,
+          "padding": "16px 0px",
+          "maxWidth": "1440px"
+        },
+        {
+          "class": "project-logistics-management_headerSection__UaZd0",
+          "x": 12,
+          "y": 294,
+          "width": 366,
+          "height": 112.953125,
+          "padding": "0px 0px 12px",
+          "maxWidth": "100%"
+        },
+        {
+          "class": "wbs-view_toolbar__CQbgT",
+          "x": 12,
+          "y": 523.953125,
+          "width": 366,
+          "height": 284,
+          "padding": "0px",
+          "maxWidth": "none"
+        }
+      ],
+      "primaryControls": [
+        {
+          "text": "작업 검색",
+          "font": "16px",
+          "height": 44,
+          "y": 551.953125
+        },
+        {
+          "text": "작업 상태전체시작 전진행 중완료",
+          "font": "16px",
+          "height": 44,
+          "y": 631.953125
+        },
+        {
+          "text": "조회 시작일",
+          "font": "16px",
+          "height": 44,
+          "y": 711.953125
+        },
+        {
+          "text": "조회 종료일",
+          "font": "16px",
+          "height": 44,
+          "y": 711.953125
+        },
+        {
+          "text": "계층 새로고침",
+          "font": "16px",
+          "height": 44,
+          "y": 763.953125
+        }
+      ]
+    },
+    {
+      "screen": "/resources",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "리소스 관리",
+          "font": "24px",
+          "height": 30,
+          "y": 103
+        },
+        {
+          "text": "관리자 로그인",
+          "font": "16px",
+          "height": 24,
+          "y": 176
+        }
+      ],
+      "activeTabs": [],
+      "surfaces": [],
+      "primaryControls": [
+        {
+          "text": "관리자 비밀번호",
+          "font": "14.4px",
+          "height": 40,
+          "y": 285.625
+        },
+        {
+          "text": "로그인",
+          "font": "14px",
+          "height": 40,
+          "y": 337.625
+        }
+      ]
+    },
+    {
+      "screen": "/logistics-admin",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "물류 유형 관리",
+          "font": "24px",
+          "height": 30,
+          "y": 103
+        },
+        {
+          "text": "관리자 로그인",
+          "font": "16px",
+          "height": 24,
+          "y": 200
+        }
+      ],
+      "activeTabs": [],
+      "surfaces": [],
+      "primaryControls": [
+        {
+          "text": "관리자 비밀번호",
+          "font": "14.4px",
+          "height": 40,
+          "y": 309.625
+        },
+        {
+          "text": "로그인",
+          "font": "14px",
+          "height": 40,
+          "y": 361.625
+        }
+      ]
+    },
+    {
+      "screen": "/project-master-admin",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "documentOverflowPx": 0,
+      "headings": [
+        {
+          "text": "프로젝트 기준정보 관리",
+          "font": "24px",
+          "height": 30,
+          "y": 103
+        },
+        {
+          "text": "프로젝트 기준정보 관리자 로그인",
+          "font": "16px",
+          "height": 24,
+          "y": 200
+        }
+      ],
+      "activeTabs": [],
+      "surfaces": [],
+      "primaryControls": [
+        {
+          "text": "관리자 비밀번호",
+          "font": "14.4px",
+          "height": 40,
+          "y": 309.625
+        },
+        {
+          "text": "로그인",
+          "font": "14px",
+          "height": 40,
+          "y": 361.625
+        }
+      ]
+    }
+  ],
+  "notTested": [
+    "63km project direct reproduction",
+    "authenticated global admin lists/CRUD",
+    "768px and 1024px",
+    "coarse pointer and actual touch",
+    "keyboard/focus/Escape",
+    "loading/error/stale/edit/pending",
+    "native 125% and screen reader",
+    "latest-main complete runtime",
+    "official CI/QA_FINAL/Manager ACCEPT"
+  ]
+}

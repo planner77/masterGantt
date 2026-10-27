@@ -1,3 +1,9 @@
+## Issue #824 — 공통 조회·Milestone·관리자 밀도 순차 통합 (2026-10-27)
+
+[통합 Work Packet](ISSUE_824.md)과 [최초 감사](../../UI_UX_REAUDIT_2026_10_27.md)를 기준으로 선행 #825 완료 main `e95cb091`/app `0.135.5`에서 #826→#827→#828→#829→#830을 구현·직접 검증 순서로 진행한다. 최종 GHCR 게시1회 요청에 따라 하나의 PR·main merge·PATCH0.135.6 후보로 통합하며 하위 Issue 종료는 최종 Main/Release 증거 뒤에 수행한다. 중간 main 게시를 만들지 않는다.
+
+실제 ui_ux 읽기 전용 설계·frontend 단일 구현·qa_docs 별도 사전검토·infra 운영으로 역할을 분리한다. 다섯 구현과 고유 Chromium20case·실제 SQLite2case, v0.135.6 최종22표본·build/typecheck/focused lint 로컬 검증을 완료했다. 초기 환경/테스트 오류와 실제 coarse/포커스 P2는 원본/교정 증거를 구분한다. HIGH/AGENT/qa_required=true, 보호 경로에 대한 독립 인간 최종 QA·정확Head Required3/Trusted와 Manager ACCEPT는 NOT TESTED다. 사용자 최종 GHCR 요청과 OWNER의 정확 v0.135.6 승인 marker를 기록했으며 자동 QA나 Agent 사전검토를 최종 인간 승인으로 확대하지 않는다. 63km·실운영/AT/native125%는 #517의 미검증 경계를 유지한다.
+
 ## PR-825-002 — Full #3339.1 QA Preflight 문서 계약 실패와 국소 교정 (2026-10-27)
 
 [Issue #825](https://github.com/planner77/masterGantt/issues/825) / [PR #834](https://github.com/planner77/masterGantt/pull/834) / [누적 실패 원장](../../ISSUE_825_FAILURE_ANALYSIS.md) / [Work Packet](ISSUE_825.md). Ready Full PR CI [#3339.1 / Run 40487734659.1](https://github.com/planner77/masterGantt/actions/runs/40487734659)에서 신뢰 base QA Preflight Job `122133904498` 직접 **FAIL / DOCUMENTATION_SYNC**: 신규 #834 PR diff에 없는 `docs/TEST_PLAN.md`를 Work Packet의 최초 `## DOCUMENTATION_SYNC`에서 옛 #833 제품 PR의 `UPDATED`로 계속 선언. `scripts/qa_final_automated.py::docs_gate`는 `UPDATED`일 때 실제 변경 필수이며, 후반 `### DOCUMENTATION_SYNC (corrective delta)`에 쓴 N/A는 최초 `##`의 분류를 대체하지 못함. Required3/QA Automated는 파생 FAIL, 실제 Policy/TypeScript/Unit/E2E8/Docker 구현 **NOT RUN**. 이전 Draft #3337 및 Ready #3338은 CANCELLED, Trusted #985~987은 각각 취소·실패한 원본 Full/Artifact에 대한 신뢰 검증 차단이다.
