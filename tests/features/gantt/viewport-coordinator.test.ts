@@ -71,6 +71,8 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     f.context({ filter: "name=query", receiptFilter: "name=query", filtered: true, empty: true });
     f.coordinator.contextChanged();
     const pending = f.coordinator.request({ kind: "FILTER_EMPTY_RESET" });
+    // The zero-position write must not occur on the scheduling stack.
+    expect(f.port.apply).not.toHaveBeenCalled();
     await f.advance(8);
     expect(await pending).toBe("SETTLED");
     expect(f.sample.core.left).toBe(0);

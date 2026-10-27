@@ -134,6 +134,13 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
       };
       let result: ViewportOutcome = "TIMED_OUT";
       try {
+        if (command.kind === "FILTER_EMPTY_RESET") {
+          // The active query can be superseded between scheduling a reset and
+          // the actual native scroll. Observe one cancellable frame first:
+          // a new gesture/filter invalidates the lease before any Core write.
+          trace("WAIT_GEOMETRY");
+          if (!(await port.frame(controller.signal)) || !current()) return result = "SUPERSEDED";
+        }
         trace("APPLYING");
         const applied = await port.apply(command, current, source);
         if (!current()) return result = "SUPERSEDED";

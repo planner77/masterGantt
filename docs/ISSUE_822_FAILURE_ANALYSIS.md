@@ -70,3 +70,13 @@
 - 보완: 기존 단일 Coordinator/Port에 FILTER_EMPTY_RESET typed 명령 추가. filtered+empty+실제 Core _tasks.length=0과 원래 query/source 일치에만 공개 scroll-chart로 left0. 일반 빈 프로젝트·새 사용자 gesture·새 query에는 영향 주지 않고 이전 restore 권한을 취소. 직접 DOM writer/remount/권한·일정·날짜축 변경 없음.
 - 검증: 기존 #570 E2E의 line410 기대0·5초 timeout 그대로 유지. Coordinator 단위의 성공/음성 Unit 2개 신규. 기존 #816/#818/#637 테스트 보존, TEST_LIFECYCLE_REVIEW=ADD(Unit)+EXTEND(기존 E2E)+KEEP_UNIQUE(기타 독립 위험). 변경 commit 전 로컬 실행 NOT TESTED, 수정의 효능은 신규 remote PR Full 결과 전 NOT TESTED.
 - 리뷰/정렬: 발견한 미해결 리뷰 thread 0, PR mergeable=true, main 기존 base와 동일. CI 실패·취소 원본은 보존하고 과거 PASS로 수정하지 않는다.
+
+## F822-REMOTE-002 — PR #823 Full #3327.1 Vitest 직접 실패 (2026-10-27)
+
+- 원본: https://github.com/planner77/masterGantt/actions/runs/40452136896, attempt=1, event=pull_request, PR#823, HEAD `166d1879babb37561171eadf59d16da7f6e0600e`, base `dc8543f390616c0d5aca90a4f91899f3cf7ac5da`.
+- **직접 실패:** Unit Job `122017249896`, `tests/features/gantt/viewport-coordinator.test.ts:95`, `invalidates an empty-filter reset on new user input or query`. 원래 negative assertion `expect(f.port.apply).not.toHaveBeenCalled()` 에서 `FILTER_EMPTY_RESET` 호출 2회 검출. Test Files: 280 PASS/1 FAIL/1 기존 SKIP, Tests: 3351 PASS/1 FAIL/3 SKIP (총3355).
+- **파생:** Fast Gate `122017718568`는 `UNIT_RESULT=failure`로 FAIL. PR Next production build, Chromium 8샤드, Docker 구현은 SKIPPED/NOT RUN; Required3와 QA Final은 gate FAIL (본 재실행에서 E2E/Docker 제품 테스트 실패가 아님). TypeScript/Lint/Policy/Preflight는 SUCCESS. `--max-failures`/Required3/Trusted/Ruleset 완화 없음.
+- **원인 및 범위:** #3326.1 교정에서 `FILTER_EMPTY_RESET`을 기존 Coordinator로 보냈지만 `request()`가 첫 비동기 checkpoint 이전에 `port.apply()`를 호출한다. 그래서 사용자 `userInput()`이나 새로운 query `contextChanged()`가 같은 JavaScript turn에서 들어와도 native Core write에 이미 진입한 뒤였다. 검증이 경합 취소를 정확히 적발한 **실제 안전 경계 누락**이며 불규칙 CI 장애라고 단정하지 않는다.
+- **보완:** `FILTER_EMPTY_RESET`에만 취소 가능한 `port.frame(controller.signal)`을 `port.apply()`보다 먼저 요구하고 그 뒤 `current()` 원 출처·gesture·query 계약을 재확인한다. 해당 프레임 도중 새 입력·query change가 발생하면 `SUPERSEDED`로 종료하고 **Core apply 0**. 무관한 RANGE_EXTENSION/DIAGNOSTIC·기존 viewport intent 동작은 변경하지 않는다. 독립 명령 writer/DOM transform/timeout 증가 없음.
+- **테스트 수명:** 기존 negative `port.apply not called`를 유지하고 positive에 `frame 전 apply=0` 단언 추가(EXTEND). 기존 #570 E2E zero 기대, #816/#818/#637 고유 정합성은 KEEP_UNIQUE. 테스트 실행 전 로컬=NOT TESTED, 새 HEAD Full/Trusted/Owner 결과는 실행 뒤에만 판정. #3326.1과 #3327.1 원본 실패/취소·미실행은 보존.
+- 리뷰: 원격 review_threads=0, PR mergeable=true, main SHA `dc8543f390616c0d5aca90a4f91899f3cf7ac5da`와 base 일치. 사용자 지시는 수정·원장·PR CI 시작까지이며 CI 모니터링/병합/Main/GHCR/Finalizer/종료 제외.

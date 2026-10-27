@@ -134,3 +134,9 @@ Rollback은 밀도 state/input/CSS·typed anchor intent·관련 테스트/문서
 - typed FILTER_EMPTY_RESET을 기존 single coordinator+Core public scroll-chart로 제한. active filtered empty query·native zero membership·source current만 실행하며 새 user input/query에서 취소, 기타 밀도/기간/Server mutation 불변.
 - TEST_LIFECYCLE_REVIEW: 기존 #570 E2E KEEP_UNIQUE+EXTEND(원래 exact assertion 유지), 새로운 Coordinator positive/negative Unit ADD. #822 AC2/AC6 및 #570 E2E 귀속; #816/#818/#637 독립 검증은 유지.
 - 수정 HEAD 로컬 Unit/Playwright는 실제 실행 증거가 없어 NOT TESTED. 새 원격 Full CI와 Trusted QA/Owner gate 전 MERGE BLOCKED. risk HIGH / OWNER_MANAGED / qa_required=true / release_required=true / release_authorized=false. DESIGN/AGENTS/API/DB/CI 정책 변경은 N/A.
+
+## REWORK — Full #3327.1 Unit negative intent 취소 방어
+
+- 원발 Run `40452136896.1`, HEAD `166d1879babb37561171eadf59d16da7f6e0600e`, base `dc8543f390616c0d5aca90a4f91899f3cf7ac5da`. 3351 Unit PASS/1 FAIL/3 SKIP. `FILTER_EMPTY_RESET` 취소 직전 apply 호출2회(기존 negative assertion line95); E2E/Docker 실험은 Fast Gate BLOCKED로 NOT RUN. 집계 QA FAIL은 파생. F822-REMOTE-002 참고.
+- 취소 가능 frame을 `FILTER_EMPTY_RESET` 전용 apply-preflight에 추가하고 정확 source/gesture/query 유효성을 재확인. 기존 negative no-apply를 유지하고 positive case에서 적용 전 apply 0 검증을 추가. 현재 port 동작·단일 coordinator/source/유효 필터·core membership 검증은 유지. 진입 경합 수정은 실제 전체 regression 확인 전 NOT TESTED.
+- TEST_LIFECYCLE_REVIEW=EXTEND (기존 coordinator negative + positive), KEEP_UNIQUE (#570 E2E, #816/#818/#637, HTTP/SQLite). AC_TEST_COVERAGE=#822 AC2·AC6. DESIGN/AGENTS/CI policy/QA/ruleset/API/DB 변경 N/A. risk HIGH, OWNER_MANAGED, release_required=true, release_authorized=false, merge_ready BLOCKED.
