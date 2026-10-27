@@ -134,7 +134,14 @@ test("#453 after 동일 5폭 두 표·모달·footer·focus geometry", async ({ 
     await page.setViewportSize({ width, height: 900 });
     for (const kind of ["resources", "groups"] as const) {
       await page.getByRole("tab", { name: kind === "resources" ? /^리소스 \d/ : /^리소스 그룹/ }).click();
-      if (kind === "groups") await page.getByRole("button", { name: "구성원", exact: true }).first().click();
+      if (kind === "groups") {
+        await page.getByRole("button", { name: "구성원", exact: true }).first().click();
+        const members=page.getByRole("region",{name:/관리 0 구성원/});
+        const memberSearch=members.getByRole("textbox");
+        const visibleLabel=memberSearch.locator("..").locator("span");
+        await expect(visibleLabel).toHaveText("구성원 리소스 검색");
+        await expect(memberSearch).toHaveAccessibleName(new RegExp(await visibleLabel.innerText()));
+      }
       const panel = page.locator(`#resource-panel-${kind}`);
       const searchName=kind === "resources" ? "리소스 검색" : "리소스 그룹 검색";
       const search=page.getByLabel(searchName,{exact:true});

@@ -688,7 +688,7 @@ export function ResourceCatalogAdmin() {
       {missingMembers.length ? <p className={styles.error} role="alert">최신 목록에 없는 리소스 {missingMembers.length}개의 선택을 보존했습니다. 최신 목록을 확인해야 저장할 수 있습니다.</p> : null}
       {membersDiffer ? <p className={styles.note}>저장된 구성원과 현재 선택이 다릅니다. 목록을 확인한 후 구성원을 저장해 주세요.</p> : null}
       <div className={styles.searchBar}>
-        <label className={styles.searchField}><span>구성원 검색</span><input
+        <label className={styles.searchField}><span>구성원 리소스 검색</span><input
           placeholder="구성원 리소스 검색 (이름, 코드 또는 ID)"
           value={memberQuery}
           disabled={busy}
