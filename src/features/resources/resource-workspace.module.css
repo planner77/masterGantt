@@ -1,19 +1,44 @@
-.workspace { min-width:0; max-width:100%; }
-.views { position:sticky; top:0; z-index:5; background:var(--surface-panel); display:flex; flex-wrap:wrap; gap:4px 8px; padding-block:4px 8px; border-bottom:1px solid var(--border-default); }
-.views button { min-height:44px; margin:0; padding:6px 10px; border:1px solid var(--border-control); border-radius:var(--radius); background:var(--surface-panel); color:var(--text-default); font:inherit; font-size:14px; cursor:pointer; }
-.views button[aria-pressed="true"] { background:var(--action-selected-subtle); color:var(--action-selected-foreground); border-color:var(--action-selected); }
-.views button:focus-visible { outline:var(--focus-outline); outline-offset:var(--focus-offset); }
+.workspace {
+  --resource-control-height:36px;
+  --resource-control-font:13px;
+  min-width:0; max-width:100%; font-size:13px; line-height:1.5;
+}
+.views { position:sticky; top:0; z-index:5; background:var(--surface-panel); display:flex; flex-wrap:nowrap; gap:8px; padding-block:4px 6px; overflow-x:auto; border-bottom:1px solid var(--border-default); }
+.views button { display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; white-space:nowrap; border:0; border-bottom:2px solid transparent; border-radius:0; background:transparent; color:var(--text-muted); cursor:pointer; }
+.views button[aria-pressed="true"] { background:var(--action-selected-subtle); color:var(--action-selected-foreground); border-bottom-color:var(--action-selected); }
+.views button:focus-visible { outline:var(--focus-outline); outline-offset:-3px; }
 .workspace > [hidden] { display:none; }
-/* Local density adapter: preserve row budgets and all 44px action targets. */
+/* The workspace owns control density; report/chart adapters retain their state
+   and table geometry. Coarse pointers keep the larger action target. */
+.workspace.workspace :global(button), .workspace.workspace :global(input:not([type="checkbox"]):not([type="radio"])), .workspace.workspace :global(select) {
+  box-sizing:border-box; min-height:var(--resource-control-height); min-width:var(--resource-control-height); max-width:100%; margin:0;
+  font-family:inherit; font-size:var(--resource-control-font); line-height:20px;
+}
+.workspace.workspace :global(button) { padding:6px 10px; }
+.workspace.workspace :global(input:not([type="checkbox"]):not([type="radio"])), .workspace.workspace :global(select) { height:var(--resource-control-height); padding:6px 8px; }
+.workspace.workspace :global(summary) { min-height:var(--resource-control-height); align-content:center; font-size:13px; }
 .workspace :global(.project-resource-workload) { gap:8px; padding-block:8px; }
-.workspace :global(.resource-dashboard-toolbar) { align-items:center; }
-.workspace :global(.resource-dashboard-filters) { align-items:flex-end; }
-.workspace :global(.resource-dashboard-filters > button) { min-height:44px; }
-.workspace :global(.resource-dashboard-filters input), .workspace :global(.resource-dashboard-filters select), .workspace :global(.resource-dashboard-view-controls select), .workspace :global(.resource-dashboard-advanced input), .workspace :global(.resource-dashboard-advanced select) { height:44px; font-size:14px; }
-.workspace :global(.resource-dashboard-view-controls) { margin:0; align-items:flex-end; }
+.workspace :global(.resource-dashboard-toolbar) { align-items:center; padding-bottom:8px; border-bottom:1px solid var(--border-default); }
+.workspace :global(.resource-dashboard-toolbar h2) { font-size:16px; }
+.workspace :global(.resource-dashboard-toolbar > .project-gantt-scale-controls) { align-items:center; }
+.workspace.workspace :global(.resource-dashboard-filters), .workspace.workspace :global(.resource-dashboard-view-controls), .workspace :global(.resource-export-section > div), .workspace :global([aria-label="현재 개인 배정 Plan"] > div) { align-items:flex-end; }
+.workspace :global(.resource-dashboard-view-controls) { margin:0; }
+.workspace :global(.resource-dashboard-view-controls:empty) { display:none; }
 .workspace :global(.resource-dashboard-scope) { display:flex; align-items:center; flex-wrap:wrap; gap:4px 12px; color:var(--text-muted); font-size:12px; }
 .workspace :global(.resource-dashboard-scope p) { margin:0; }
-.workspace :global(.resource-dashboard-scope button) { min-height:44px; margin:0; }
 .workspace :global(.resource-dashboard-scope details) { min-width:0; max-width:100%; }
-.workspace :global(.resource-dashboard-scope summary) { min-height:44px; align-content:center; cursor:pointer; }
+.workspace :global(.resource-dashboard-scope summary) { cursor:pointer; }
 .workspace :global(.resource-dashboard-scope pre) { white-space:pre-wrap; overflow-wrap:anywhere; }
+.workspace :global(.resource-dashboard-kpis) { background:var(--surface-panel); }
+.workspace :global(.resource-dashboard-kpis[aria-label="Global Role별 계획 공수"]) { background:var(--surface-subtle); }
+.workspace :global(.resource-dashboard-kpis dd) { font-size:16px; font-weight:600; }
+.workspace.workspace :global(.resource-dashboard-kpis dd button), .workspace.workspace :global([data-resource-charts] dl dd button) { padding:0 4px; font-size:inherit; line-height:inherit; }
+.workspace :global(.resource-summary-section) { margin:0; padding-block:8px; border-block-start:1px solid var(--border-default); }
+.workspace :global(.resource-participation-summary) { background:var(--surface-subtle); padding:8px; }
+.workspace :global(.resource-summary-section h4) { margin:0 0 8px; font-size:14px; }
+.workspace :global(.resource-summary-section dl) { margin:0; }
+.workspace :global(.resource-period-transfer) { flex-basis:100%; border-block-end:1px solid var(--border-default); padding-bottom:4px; }
+.workspace :global(.resource-period-transfer > p) { margin-block:4px; }
+.workspace :global(.resource-period-transfer > summary) { color:var(--text-default); }
+.workspace :global(.resource-export-section) { border-block-start:1px solid var(--border-default); padding-block:8px; }
+@media(pointer:coarse) { .workspace { --resource-control-height:44px; } }

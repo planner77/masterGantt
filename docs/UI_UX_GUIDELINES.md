@@ -1,3 +1,9 @@
+## Issue #819 — 리소스 하위 화면의 compact 상속과 정보 계층
+
+프로젝트 → 대시보드 → 리소스의 기본 현황·차트·동적 계층 탐색·Milestone 교차·Resource Plan·견적/Excel은 같은 host 밀도 계약을 사용한다. #807/#798의 일괄 44px 기대는 이 리소스 범위에서 fine36px·13px/20px, coarse44px로 교정한다. Native select의 computed line-height는 플랫폼이 소유하므로 높이/font/행 정렬로 검증하고 버튼·텍스트 입력의20px 기준과 구별한다. 다른 dashboard 관점·관리/Task Editor의 기존 명시 계약은 그대로 적용한다. 같은 행 제어의 top/bottom 차이 ≤1px·내용 중앙 정렬, label에 맞는 폭/padding, 긴 값·focus/오류 비잘림을 실제 browser로 확인한다.
+
+조건/현재 범위·핵심 KPI·주요 데이터·보조 진단/Export의 구획은 작은 제목·divider·semantic surface로 드러낸다. 반복 설명과 snapshot/revision/UUID는 도움말/접힌 원문 상세로 옮기고 현재 범위/단위/분모/부분값·미설정·비가산/권한·stale는 짧게 인접 표시한다. 실제 선택·검색·정확 drill/복사 ID는 유지한다. 6peer×5폭·coarse·keyboard/touch·Escape/focus·원문 접근·조회-only mutation0와 상태 복원을 기존 고유 테스트에 연결한다. 영속 원칙은 [DESIGN](../DESIGN.md#화면-확장-시-밀도식별정보-계층-상속-issue-819), 실행 범위는 [Work Packet](exec-plans/active/ISSUE_819.md)을 따른다.
+
 ## Issue #809 — 차트의 동일 수치·접근성·표 소유 스크롤
 
 Resource 차트는 기존 compact 작업면의 peer이며 기간 투입/업무 집중/기여 분포를 한 번에 하나만 렌더링한다. 유형·단위·분석 축을 native 제어로 선택하고 같은 데이터의 표·텍스트 요약을 제공한다. 필수 수치와 위험·분모/미산정은 hover tooltip이나 색상만으로 전달하지 않는다. 막대/셀과 표의 원본 열기는 keyboard Enter/Space와 pointer/touch에서 동일 selector를 사용한다.

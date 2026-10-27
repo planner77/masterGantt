@@ -377,7 +377,7 @@ export function ProjectResourceDashboard({
         <ContextHelp label="리소스 공수 도움말">
           <p>투입 시작/종료는 선택 기간으로 자른 Assignment 구간입니다. Grand Total은 선택 Assignment를 한 번만 합산합니다.</p>
           <p>할당 작업 진척은 계획기간 가중값이며 개인의 실제 기여도·소진 공수가 아닙니다.</p>
-          <p>그룹은 현재 개인 소속 분류입니다. Group 직접 담당만 있는 Task는 보조 진단에서 조회합니다.</p>
+          <p>그룹은 현재 개인 소속 분류입니다. Group 직접 담당만 있는 Task는 보조 진단에서 조회합니다. 선택 Assignment는 중복 제외하며 그룹·Global Role 소계는 합산하지 않습니다.</p>
         </ContextHelp>
         <button type="button" className="secondary-button" disabled={refreshDisabled}
           onClick={event => exportContext.onExport?.(event.currentTarget)}>Excel 보고서</button>
@@ -409,6 +409,7 @@ export function ProjectResourceDashboard({
         >
           개발 견적
         </button> : null}
+        {workspaceView === "estimate" ? <ContextHelp label="견적·Excel 조건 도움말"><p>현재 조건으로 견적·Excel을 확인합니다. 개발 견적 버튼을 누르면 개발자 역할 조건을 적용합니다.</p></ContextHelp> : null}
         <div
           className="project-gantt-scale-controls"
           role="group"
@@ -454,7 +455,6 @@ export function ProjectResourceDashboard({
             {!workspaceView ? <option value="plan">Resource Plan</option> : null}
           </select>
         </label> : null}
-        {workspaceView === "estimate" ? <p className="resource-dashboard-hint">현재 조건으로 견적·Excel을 확인합니다. 개발 견적 버튼을 누르면 개발자 역할 조건을 적용합니다.</p> : null}
         {view === "plan" ? (
           <label>
             기간 단위
@@ -904,10 +904,7 @@ export function ProjectResourceDashboard({
               );
             })}
           </dl>
-          <p className="resource-dashboard-hint">
-            선택 Assignment 중복 제외 · 그룹·Global Role 소계 합산 불가 · 진척은 실제 기여·소진 공수 아님
-            {data.summary.effort.unsetCount ? " · 공수 미설정 포함: 알려진 공수만 표시" : ""}
-          </p>
+          <p className="resource-dashboard-hint">중첩 소계 · 합산 불가 · 계획공수는 실적 아님{data.summary.effort.unsetCount ? " · 공수 미설정 포함: 알려진 공수만 표시" : ""}</p>
           {report.planData ? (
             <div hidden={view !== "plan"} inert={view !== "plan"}>
               <FocusRestoreBoundary

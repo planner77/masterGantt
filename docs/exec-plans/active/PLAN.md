@@ -1,3 +1,9 @@
+## Issue #819 — 리소스 6peer UI/UX 회귀 교정 (2026-10-27)
+
+[Issue #819](https://github.com/planner77/masterGantt/issues/819) / [Work Packet](ISSUE_819.md) / [누적 실패 원장](../../ISSUE_819_FAILURE_ANALYSIS.md). 기존 `fix/issue-819-resource-ui-consistency` 작업을 재사용하고 main `495027854c2ab73f7f91d0b6205c86397cff4497`의 #818을 통합했다. Resource-local fine36px/13px/line20·coarse44px, 이름 우선·기술ID 상세·반복 설명 도움말과 조건/KPI/데이터/보조 Export 구획을 교정한다. 다른 관점·원본 지표/필터/권한·정확drill·Plan/Export 계약은 유지한다.
+
+PATCH `0.135.4` 후보, HIGH/OWNER_MANAGED/qa_required=true. 기존 승인 marker는0.135.3 전용이며0.135.4 release_authorized=false다. 이번 요청은 문서/누적실패/리뷰·충돌 정리 후 **Ready Full PR CI 시작까지**이고 모니터링·병합·Main/GHCR/Release·Issue 종료는 수행하지 않는다. Agent 설계/QA 사전검토와 로컬 선별 PASS는 원격 Required3/8shard·Trusted/Owner 승인을 대신하지 않는다.
+
 ## Issue #818 — 활성 Summary 진행률 핸들의 인접 Task 오대상 교정
 
 main `596dd70db8b242f450ab555ed2bcf049a0c14564` / `0.135.2`에서 #816 F816-006의 PRODUCT/P1 raw-pointer 결함을 별도 `fix/issue-818-progress-hit-target`로 교정한다. Summary hover→Week child 중심 실제 우클릭의 Editor 오대상 RED를 확보하고 Project-local bar stacking 최소 수정과 기존 inactive/native progress/body/resize·34/44px·Day/Week/readonly/fullscreen·strict±1px 회귀를 검증한다. [Work Packet](ISSUE_818.md), [누적 실패 원장](../../ISSUE_818_FAILURE_ANALYSIS.md).

@@ -1,3 +1,11 @@
+## Issue #819 — 리소스 6개 분석 화면의 밀도·이름 우선 회귀 교정
+
+대시보드 → 리소스의 기본 현황, 차트, 동적 계층 탐색, Milestone 교차, Resource Plan, 견적·Excel은 같은 compact host를 사용한다. fine pointer 제어는36px·13px label/20px line-height, coarse는44px target을 유지하며 버튼의 내용 중앙·같은 행 input/select/button 정렬을 맞춘다. KPI 숫자 강조와 action label typography를 분리한다. 다른5관점·관리/Task Editor의 크기를 이 변경으로 일괄 수정하지 않는다.
+
+현재 조건/범위 → 주요 KPI → 표/차트 → 보조 진단/Export 순서로 읽히게 하고 의미별 제목·hairline·semantic surface를 사용한다. 반복 사용법은 명명된 도움말, snapshot/revision/내부 ID는 접힌 상세로 제공한다. 이름과 사용자 의미의 맥락을 먼저 표시하며 canonical ID·검색·드릴·복사 값은 그대로다. 기간/분모/단위·선택 범위와 Project 전체 참고·부분값/미설정/비가산·권한/오류/stale 정보는 계속 인접 표시한다.
+
+6peer 상태와 독립 필터·명시적 기간 인계·조회-only·정확 Task/Assignment drill·Plan/견적/Excel·늦은 응답/복귀 계약은 보존한다. 상세 구현·실제 before/after 및 원격 결과는 [#819 Work Packet](exec-plans/active/ISSUE_819.md)에 구분 기록한다. 과거 #807/#809의 검증 결과를 새source PASS로 재사용하지 않는다.
+
 ## Issue #818 — 활성 진행률 핸들과 인접 Task의 포인터 대상
 
 Summary를 hover하여 native 진행률 핸들이 표시되어도 다음 Task 중심의 실제 우클릭은 그 Task의 메뉴/Editor를 열어야 한다. #816 비표시 marker의 visibility 교정을 유지하고 Project-local bar stacking 경계로 활성 marker가 다음 sibling body를 가로채지 않도록 한다. 실제 native progress drag 중에만 소유 bar의 표시 우선순위를 올려 숫자가 인접 bar에 가려지지 않도록 하고 mouseup 뒤 평상시 stacking으로 복귀한다. native top80%/26px·Summary marker/move 분기와 leaf body 이동/resize를 보존하며 Summary60%·34px fine/44px coarse·Day/Week·readonly/fullscreen·Grid↔Chart 중심±1px·날짜/x-width·같은 root/scroll/canonical 계약은 유지한다.

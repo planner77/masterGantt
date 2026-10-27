@@ -1,3 +1,9 @@
+## [0.135.4] — Unreleased / Issue #819 리소스 분석 화면 교정 후보 (2026-10-27)
+
+### Fixed
+
+- 프로젝트 대시보드의 리소스 6개 분석 화면에서 반복 설명·기술ID 상시 노출과 버튼/라벨 크기·정렬·정보 구획의 UI/UX 회귀를 교정한다. fine36px·13px/20px와 coarse44px를 구분하고 기존 지표·필터·정확 원본 탐색·Plan/견적/Excel 계약을 유지한다. 지속적인 하위 화면 밀도/식별/정보 계층 상속과 회귀 검증 원칙을 DESIGN에 반영한다(#819).
+
 ## [0.135.3] — Unreleased / Issue #818 활성 진행률 핸들의 인접 Task 오대상 교정 후보 (2026-10-27)
 
 - Project Gantt bar에 stacking 경계를 적용해 활성 Summary 진행률 marker가 다음 Task 중심의 실제 우클릭을 가로채던 결함을 교정한다. 진행률을 실제 drag하는 동안에만 소유 bar를 올려 숫자가 인접 bar에 가려지지 않도록 하고 mouseup 뒤 복귀한다. 기존 inactive visibility·native marker top80%/26px·progress/body/resize 분기·Summary60%/34·44px 행·날짜/정렬·canonical/권한은 보존한다.

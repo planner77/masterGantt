@@ -1,0 +1,175 @@
+
+> mastergantt@0.135.2 build
+> next build --webpack && node scripts/prepare-standalone-runtime.mjs && npm run build:runtime-tools
+
+▲ Next.js 16.4.2 (webpack)
+✓ Running next.config.ts took 129ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 28.6s
+  Running TypeScript ...
+  Finished TypeScript in 32.4s ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/9) ...
+  Generating static pages using 15 workers (2/9) 
+  Generating static pages using 15 workers (4/9) 
+  Generating static pages using 15 workers (6/9) 
+✓ Generating static pages using 15 workers (9/9) in 620ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+⚠ 27 traced files were not included in the standalone output
+because their paths are outside of `outputFileTracingRoot`.
+First 100 skipped files:
+  - ../masterGantt-809/node_modules/next/dist/compiled/jest-worker/processChild.js
+  - ../masterGantt-809/node_modules/next/dist/compiled/jest-worker/threadChild.js
+  - ../masterGantt-809/node_modules/next/dist/server/lib/start-server.js
+  - ../masterGantt-809/node_modules/next/dist/server/next-server.js
+  - ../masterGantt-809/node_modules/next/dist/server/next.js
+  - ../masterGantt-809/node_modules/next/dist/server/require-hook.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/app-page/module.compiled.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/app-page/vendored/contexts/app-router-context.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/app-page/vendored/contexts/entrypoints.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/app-page/vendored/contexts/head-manager-context.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/app-page/vendored/contexts/hooks-client-context.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/app-page/vendored/contexts/image-config-context.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/app-page/vendored/contexts/router-context.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/app-page/vendored/contexts/server-inserted-html.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/pages/module.compiled.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/pages/vendored/contexts/app-router-context.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/pages/vendored/contexts/entrypoints.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/pages/vendored/contexts/head-manager-context.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/pages/vendored/contexts/hooks-client-context.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/pages/vendored/contexts/html-context.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/pages/vendored/contexts/image-config-context.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/pages/vendored/contexts/loadable-context.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/pages/vendored/contexts/loadable.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/pages/vendored/contexts/router-context.js
+  - ../masterGantt-809/node_modules/next/dist/server/route-modules/pages/vendored/contexts/server-inserted-html.js
+  - ../masterGantt-809/node_modules/styled-jsx/index.js
+  - ../masterGantt-809/node_modules/styled-jsx/style.js
+Set `outputFileTracingRoot` to a common parent directory
+to include these files.
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /api/health/live
+├ ƒ /api/health/ready
+├ ƒ /api/logistics-catalog/admin-password
+├ ƒ /api/logistics-catalog/admin-sessions
+├ ƒ /api/logistics-catalog/admin/equipment-types
+├ ƒ /api/logistics-catalog/admin/equipment-types/[code]
+├ ƒ /api/logistics-catalog/admin/system-types
+├ ƒ /api/logistics-catalog/admin/system-types/[code]
+├ ƒ /api/logistics-catalog/types
+├ ƒ /api/process-catalog/admin
+├ ƒ /api/process-catalog/admin/occurrences
+├ ƒ /api/process-catalog/admin/occurrences/[id]
+├ ƒ /api/process-catalog/admin/occurrences/apply-standard
+├ ƒ /api/process-catalog/admin/standard-diff
+├ ƒ /api/process-catalog/admin/standards
+├ ƒ /api/process-catalog/admin/standards/[id]
+├ ƒ /api/process-catalog/admin/types
+├ ƒ /api/process-catalog/admin/types/[id]
+├ ƒ /api/process-catalog/admin/work-areas
+├ ƒ /api/process-catalog/admin/work-areas/[id]
+├ ƒ /api/project-master/admin-password
+├ ƒ /api/project-master/admin-sessions
+├ ƒ /api/project-master/admin/items
+├ ƒ /api/project-master/admin/items/[itemId]
+├ ƒ /api/project-master/admin/relations
+├ ƒ /api/project-master/catalog
+├ ƒ /api/project-templates
+├ ƒ /api/project-templates/[templateId]
+├ ƒ /api/project-templates/[templateId]/duplicate
+├ ƒ /api/project-templates/[templateId]/instantiate
+├ ƒ /api/projects
+├ ƒ /api/projects/[publicId]
+├ ƒ /api/projects/[publicId]/assigned-targets
+├ ƒ /api/projects/[publicId]/assignment-targets
+├ ƒ /api/projects/[publicId]/copy
+├ ƒ /api/projects/[publicId]/edit-password
+├ ƒ /api/projects/[publicId]/edit-sessions
+├ ƒ /api/projects/[publicId]/edit-sessions/current
+├ ƒ /api/projects/[publicId]/exports/excel
+├ ƒ /api/projects/[publicId]/exports/gantt-svg
+├ ƒ /api/projects/[publicId]/exports/json
+├ ƒ /api/projects/[publicId]/imports
+├ ƒ /api/projects/[publicId]/imports/preview
+├ ƒ /api/projects/[publicId]/links
+├ ƒ /api/projects/[publicId]/links/[linkId]
+├ ƒ /api/projects/[publicId]/logistics
+├ ƒ /api/projects/[publicId]/logistics/dashboard
+├ ƒ /api/projects/[publicId]/logistics/equipment
+├ ƒ /api/projects/[publicId]/logistics/equipment/[equipmentId]
+├ ƒ /api/projects/[publicId]/logistics/equipment/[equipmentId]/resource-roles
+├ ƒ /api/projects/[publicId]/logistics/equipment/[equipmentId]/systems
+├ ƒ /api/projects/[publicId]/logistics/equipment/[equipmentId]/usage
+├ ƒ /api/projects/[publicId]/logistics/kpi
+├ ƒ /api/projects/[publicId]/logistics/process-context
+├ ƒ /api/projects/[publicId]/logistics/process-mappings/[processId]
+├ ƒ /api/projects/[publicId]/logistics/processes
+├ ƒ /api/projects/[publicId]/logistics/processes/[processId]
+├ ƒ /api/projects/[publicId]/logistics/processes/[processId]/work-areas
+├ ƒ /api/projects/[publicId]/logistics/systems
+├ ƒ /api/projects/[publicId]/logistics/systems/[systemId]
+├ ƒ /api/projects/[publicId]/logistics/systems/[systemId]/children
+├ ƒ /api/projects/[publicId]/logistics/systems/[systemId]/processes
+├ ƒ /api/projects/[publicId]/logistics/systems/[systemId]/resource-roles
+├ ƒ /api/projects/[publicId]/logistics/systems/[systemId]/usage
+├ ƒ /api/projects/[publicId]/logistics/targets
+├ ƒ /api/projects/[publicId]/logistics/targets/[targetId]
+├ ƒ /api/projects/[publicId]/logistics/targets/[targetId]/impact
+├ ƒ /api/projects/[publicId]/logistics/targets/[targetId]/usage
+├ ƒ /api/projects/[publicId]/logistics/work-areas/[workAreaId]
+├ ƒ /api/projects/[publicId]/milestone-dashboard
+├ ƒ /api/projects/[publicId]/milestone-memberships
+├ ƒ /api/projects/[publicId]/resource-dashboard
+├ ƒ /api/projects/[publicId]/resource-dashboard/details
+├ ƒ /api/projects/[publicId]/resource-dashboard/group-children
+├ ƒ /api/projects/[publicId]/resource-dashboard/plan/daily
+├ ƒ /api/projects/[publicId]/resource-dashboard/plan/day-assignments
+├ ƒ /api/projects/[publicId]/resource-dashboard/plan/day-resources
+├ ƒ /api/projects/[publicId]/resource-dashboard/query
+├ ƒ /api/projects/[publicId]/resource-dashboard/scope
+├ ƒ /api/projects/[publicId]/resource-dashboard/views
+├ ƒ /api/projects/[publicId]/resource-memberships
+├ ƒ /api/projects/[publicId]/resource-memberships/[resourceId]
+├ ƒ /api/projects/[publicId]/resource-workload
+├ ƒ /api/projects/[publicId]/task-commands
+├ ƒ /api/projects/[publicId]/tasks
+├ ƒ /api/projects/[publicId]/tasks/[taskId]
+├ ƒ /api/projects/[publicId]/tasks/[taskId]/assignments
+├ ƒ /api/projects/[publicId]/tasks/[taskId]/legacy-binding-sources
+├ ƒ /api/projects/[publicId]/tasks/[taskId]/logistics-links
+├ ƒ /api/projects/[publicId]/tasks/[taskId]/process-context
+├ ƒ /api/projects/[publicId]/tasks/[taskId]/target-bindings
+├ ƒ /api/projects/[publicId]/work-calendar
+├ ƒ /api/projects/[publicId]/work-calendar/preview
+├ ƒ /api/resource-catalog/admin-password
+├ ƒ /api/resource-catalog/admin-sessions
+├ ƒ /api/resource-groups
+├ ƒ /api/resource-groups/[groupId]
+├ ƒ /api/resource-groups/[groupId]/members
+├ ƒ /api/resources
+├ ƒ /api/resources/[resourceId]
+├ ƒ /api/work-calendars/countries
+├ ƒ /diagnostics/core-action-trace
+├ ƒ /diagnostics/gantt-adapter
+├ ƒ /e2e-error-boundary
+├ ƒ /gantt-demo
+├ ○ /icon.svg
+├ ○ /logistics-admin
+├ ○ /project-master-admin
+├ ƒ /projects/[publicId]
+├ ○ /projects/new
+└ ○ /resources
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+> mastergantt@0.135.2 build:runtime-tools
+> tsc -p tsconfig.runtime-tools.json
+

@@ -1,0 +1,2186 @@
+[
+  {
+    "width": 390,
+    "peer": "기본 현황",
+    "navigationHeight": 47,
+    "documentWidth": 390,
+    "controls": [
+      {
+        "text": "기본 현황",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "차트",
+        "height": 36,
+        "width": 46,
+        "font": "13px"
+      },
+      {
+        "text": "동적 계층 탐색",
+        "height": 36,
+        "width": 104,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 교차",
+        "height": 36,
+        "width": 105,
+        "font": "13px"
+      },
+      {
+        "text": "Resource Plan",
+        "height": 36,
+        "width": 102,
+        "font": "13px"
+      },
+      {
+        "text": "견적·Excel",
+        "height": 36,
+        "width": 79,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "Excel 보고서",
+        "height": 36,
+        "width": 95,
+        "font": "13px"
+      },
+      {
+        "text": "그룹",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "개인",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "M/D",
+        "height": 36,
+        "width": 47,
+        "font": "13px"
+      },
+      {
+        "text": "M/M",
+        "height": 36,
+        "width": 49,
+        "font": "13px"
+      },
+      {
+        "text": "새로고침",
+        "height": 36,
+        "width": 74,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "전체Milestone 미지정인수 Milestone",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "전체다공정 장거리 통합 반송 설비 Long operational equipment name등록만 설비",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "전체통합 시스템",
+        "height": 36,
+        "width": 366,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 366,
+        "font": "13px"
+      },
+      {
+        "text": "필터",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "▸미분류 리소스",
+        "height": 36,
+        "width": 114,
+        "font": "13px"
+      }
+    ],
+    "visibleUUIDs": []
+  },
+  {
+    "width": 390,
+    "peer": "차트",
+    "navigationHeight": 47,
+    "documentWidth": 390,
+    "controls": [
+      {
+        "text": "기본 현황",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "차트",
+        "height": 36,
+        "width": 46,
+        "font": "13px"
+      },
+      {
+        "text": "동적 계층 탐색",
+        "height": 36,
+        "width": 104,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 교차",
+        "height": 36,
+        "width": 105,
+        "font": "13px"
+      },
+      {
+        "text": "Resource Plan",
+        "height": 36,
+        "width": 102,
+        "font": "13px"
+      },
+      {
+        "text": "견적·Excel",
+        "height": 36,
+        "width": 79,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "기간 투입",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "업무 집중",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "기여 분포",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 180,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 156,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 156,
+        "font": "13px"
+      },
+      {
+        "text": "주간월간",
+        "height": 36,
+        "width": 64,
+        "font": "13px"
+      },
+      {
+        "text": "M/DM/M",
+        "height": 36,
+        "width": 84,
+        "font": "13px"
+      },
+      {
+        "text": "차트 필터·범위",
+        "height": 36,
+        "width": 106,
+        "font": "13px"
+      },
+      {
+        "text": "차트 새로고침",
+        "height": 36,
+        "width": 103,
+        "font": "13px"
+      },
+      {
+        "text": "2 M/D",
+        "height": 36,
+        "width": 57,
+        "font": "18px"
+      },
+      {
+        "text": "0",
+        "height": 36,
+        "width": 36,
+        "font": "18px"
+      },
+      {
+        "text": "2",
+        "height": 36,
+        "width": 36,
+        "font": "18px"
+      },
+      {
+        "text": "0",
+        "height": 36,
+        "width": 36,
+        "font": "18px"
+      },
+      {
+        "text": "1",
+        "height": 36,
+        "width": 36,
+        "font": "18px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "선택 조건 기여동일 개인 Project 전체 참고",
+        "height": 36,
+        "width": 194,
+        "font": "13px"
+      },
+      {
+        "text": "현재 기간 원본",
+        "height": 36,
+        "width": 106,
+        "font": "13px"
+      },
+      {
+        "text": "2 M/D · Capacity 2 M/D · Load 100% · Peak day 100% · 초과 0 개인",
+        "height": 94,
+        "width": 544,
+        "font": "13px"
+      },
+      {
+        "text": "이전 개인",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "다음 개인",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "이전 기간",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "다음 기간",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "현재 선택 조건·계층Project 전체 (기간·기준일·환산 유지)",
+        "height": 36,
+        "width": 245,
+        "font": "13px"
+      },
+      {
+        "text": "계층 Excel 보고서",
+        "height": 36,
+        "width": 123,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      }
+    ],
+    "visibleUUIDs": []
+  },
+  {
+    "width": 390,
+    "peer": "동적 계층 탐색",
+    "navigationHeight": 47,
+    "documentWidth": 390,
+    "controls": [
+      {
+        "text": "기본 현황",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "차트",
+        "height": 36,
+        "width": 46,
+        "font": "13px"
+      },
+      {
+        "text": "동적 계층 탐색",
+        "height": 36,
+        "width": 104,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 교차",
+        "height": 36,
+        "width": 105,
+        "font": "13px"
+      },
+      {
+        "text": "Resource Plan",
+        "height": 36,
+        "width": 102,
+        "font": "13px"
+      },
+      {
+        "text": "견적·Excel",
+        "height": 36,
+        "width": 79,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 366,
+        "font": "13px"
+      },
+      {
+        "text": "전체시작 전진행 중완료",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "필터·조회 구성",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "계층 새로고침",
+        "height": 36,
+        "width": 103,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "상세",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "원본",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "상세",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "현재 선택 조건·계층Project 전체 (기간·기준일·환산 유지)",
+        "height": 36,
+        "width": 245,
+        "font": "13px"
+      },
+      {
+        "text": "계층 Excel 보고서",
+        "height": 36,
+        "width": 123,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      }
+    ],
+    "visibleUUIDs": []
+  },
+  {
+    "width": 390,
+    "peer": "Milestone 교차",
+    "navigationHeight": 47,
+    "documentWidth": 390,
+    "controls": [
+      {
+        "text": "기본 현황",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "차트",
+        "height": 36,
+        "width": 46,
+        "font": "13px"
+      },
+      {
+        "text": "동적 계층 탐색",
+        "height": 36,
+        "width": 104,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 교차",
+        "height": 36,
+        "width": 105,
+        "font": "13px"
+      },
+      {
+        "text": "Resource Plan",
+        "height": 36,
+        "width": 102,
+        "font": "13px"
+      },
+      {
+        "text": "견적·Excel",
+        "height": 36,
+        "width": 79,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "Excel 보고서",
+        "height": 36,
+        "width": 95,
+        "font": "13px"
+      },
+      {
+        "text": "그룹",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "개인",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "M/D",
+        "height": 36,
+        "width": 47,
+        "font": "13px"
+      },
+      {
+        "text": "M/M",
+        "height": 36,
+        "width": 49,
+        "font": "13px"
+      },
+      {
+        "text": "새로고침",
+        "height": 36,
+        "width": 74,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 계층Milestone 비교표",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "그룹 → Milestone → 개인 → Task그룹 → 개인 → Milestone → Task",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "전체Milestone 미지정인수 Milestone",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "전체다공정 장거리 통합 반송 설비 Long operational equipment name등록만 설비",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "전체통합 시스템",
+        "height": 36,
+        "width": 366,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 366,
+        "font": "13px"
+      },
+      {
+        "text": "필터",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "계층 모두 접기",
+        "height": 36,
+        "width": 106,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "이전",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "다음",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "▸미분류 리소스",
+        "height": 36,
+        "width": 114,
+        "font": "13px"
+      }
+    ],
+    "visibleUUIDs": []
+  },
+  {
+    "width": 390,
+    "peer": "Resource Plan",
+    "navigationHeight": 47,
+    "documentWidth": 390,
+    "controls": [
+      {
+        "text": "기본 현황",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "차트",
+        "height": 36,
+        "width": 46,
+        "font": "13px"
+      },
+      {
+        "text": "동적 계층 탐색",
+        "height": 36,
+        "width": 104,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 교차",
+        "height": 36,
+        "width": 105,
+        "font": "13px"
+      },
+      {
+        "text": "Resource Plan",
+        "height": 36,
+        "width": 102,
+        "font": "13px"
+      },
+      {
+        "text": "견적·Excel",
+        "height": 36,
+        "width": 79,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "Excel 보고서",
+        "height": 36,
+        "width": 95,
+        "font": "13px"
+      },
+      {
+        "text": "그룹",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "개인",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "M/D",
+        "height": 36,
+        "width": 47,
+        "font": "13px"
+      },
+      {
+        "text": "M/M",
+        "height": 36,
+        "width": 49,
+        "font": "13px"
+      },
+      {
+        "text": "새로고침",
+        "height": 36,
+        "width": 74,
+        "font": "13px"
+      },
+      {
+        "text": "주월",
+        "height": 36,
+        "width": 366,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "전체Milestone 미지정인수 Milestone",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "전체다공정 장거리 통합 반송 설비 Long operational equipment name등록만 설비",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "전체통합 시스템",
+        "height": 36,
+        "width": 366,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 366,
+        "font": "13px"
+      },
+      {
+        "text": "필터",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "계획 공수평균 Load %과투입 M/D",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "선택 실물·Milestone·Task 기여동일 개인의 Project 전체 참고",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "행 이전",
+        "height": 36,
+        "width": 62,
+        "font": "13px"
+      },
+      {
+        "text": "행 다음",
+        "height": 36,
+        "width": 62,
+        "font": "13px"
+      },
+      {
+        "text": "기간 이전",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "기간 다음",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "2.00 M/D",
+        "height": 36,
+        "width": 72,
+        "font": "13px"
+      },
+      {
+        "text": "2.00 M/D",
+        "height": 36,
+        "width": 72,
+        "font": "13px"
+      },
+      {
+        "text": "미분류 리소스",
+        "height": 36,
+        "width": 101,
+        "font": "13px"
+      },
+      {
+        "text": "2.00 M/D",
+        "height": 36,
+        "width": 72,
+        "font": "13px"
+      },
+      {
+        "text": "2.00 M/D",
+        "height": 36,
+        "width": 72,
+        "font": "13px"
+      }
+    ],
+    "visibleUUIDs": []
+  },
+  {
+    "width": 390,
+    "peer": "견적·Excel",
+    "navigationHeight": 47,
+    "documentWidth": 390,
+    "controls": [
+      {
+        "text": "기본 현황",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "차트",
+        "height": 36,
+        "width": 46,
+        "font": "13px"
+      },
+      {
+        "text": "동적 계층 탐색",
+        "height": 36,
+        "width": 104,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 교차",
+        "height": 36,
+        "width": 105,
+        "font": "13px"
+      },
+      {
+        "text": "Resource Plan",
+        "height": 36,
+        "width": 102,
+        "font": "13px"
+      },
+      {
+        "text": "견적·Excel",
+        "height": 36,
+        "width": 79,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "Excel 보고서",
+        "height": 36,
+        "width": 95,
+        "font": "13px"
+      },
+      {
+        "text": "그룹",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "개인",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "개발 견적",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "M/D",
+        "height": 36,
+        "width": 47,
+        "font": "13px"
+      },
+      {
+        "text": "M/M",
+        "height": 36,
+        "width": 49,
+        "font": "13px"
+      },
+      {
+        "text": "새로고침",
+        "height": 36,
+        "width": 74,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "전체Milestone 미지정인수 Milestone",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "전체다공정 장거리 통합 반송 설비 Long operational equipment name등록만 설비",
+        "height": 36,
+        "width": 179,
+        "font": "13px"
+      },
+      {
+        "text": "전체통합 시스템",
+        "height": 36,
+        "width": 366,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 366,
+        "font": "13px"
+      },
+      {
+        "text": "필터",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "▸미분류 리소스",
+        "height": 36,
+        "width": 114,
+        "font": "13px"
+      }
+    ],
+    "visibleUUIDs": []
+  },
+  {
+    "width": 1440,
+    "peer": "기본 현황",
+    "navigationHeight": 47,
+    "documentWidth": 1440,
+    "controls": [
+      {
+        "text": "기본 현황",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "차트",
+        "height": 36,
+        "width": 46,
+        "font": "13px"
+      },
+      {
+        "text": "동적 계층 탐색",
+        "height": 36,
+        "width": 104,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 교차",
+        "height": 36,
+        "width": 105,
+        "font": "13px"
+      },
+      {
+        "text": "Resource Plan",
+        "height": 36,
+        "width": 102,
+        "font": "13px"
+      },
+      {
+        "text": "견적·Excel",
+        "height": 36,
+        "width": 79,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "Excel 보고서",
+        "height": 36,
+        "width": 95,
+        "font": "13px"
+      },
+      {
+        "text": "그룹",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "개인",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "M/D",
+        "height": 36,
+        "width": 47,
+        "font": "13px"
+      },
+      {
+        "text": "M/M",
+        "height": 36,
+        "width": 49,
+        "font": "13px"
+      },
+      {
+        "text": "새로고침",
+        "height": 36,
+        "width": 74,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 193.703125,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "전체Milestone 미지정인수 Milestone",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "전체다공정 장거리 통합 반송 설비 Long operational equipment name등록만 설비",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "전체통합 시스템",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 327.421875,
+        "font": "13px"
+      },
+      {
+        "text": "필터",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "▸미분류 리소스",
+        "height": 36,
+        "width": 114,
+        "font": "13px"
+      }
+    ],
+    "visibleUUIDs": []
+  },
+  {
+    "width": 1440,
+    "peer": "차트",
+    "navigationHeight": 47,
+    "documentWidth": 1440,
+    "controls": [
+      {
+        "text": "기본 현황",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "차트",
+        "height": 36,
+        "width": 46,
+        "font": "13px"
+      },
+      {
+        "text": "동적 계층 탐색",
+        "height": 36,
+        "width": 104,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 교차",
+        "height": 36,
+        "width": 105,
+        "font": "13px"
+      },
+      {
+        "text": "Resource Plan",
+        "height": 36,
+        "width": 102,
+        "font": "13px"
+      },
+      {
+        "text": "견적·Excel",
+        "height": 36,
+        "width": 79,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "기간 투입",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "업무 집중",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "기여 분포",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 180,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 156,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 156,
+        "font": "13px"
+      },
+      {
+        "text": "주간월간",
+        "height": 36,
+        "width": 64,
+        "font": "13px"
+      },
+      {
+        "text": "M/DM/M",
+        "height": 36,
+        "width": 84,
+        "font": "13px"
+      },
+      {
+        "text": "차트 필터·범위",
+        "height": 36,
+        "width": 106,
+        "font": "13px"
+      },
+      {
+        "text": "차트 새로고침",
+        "height": 36,
+        "width": 103,
+        "font": "13px"
+      },
+      {
+        "text": "2 M/D",
+        "height": 36,
+        "width": 57,
+        "font": "18px"
+      },
+      {
+        "text": "0",
+        "height": 36,
+        "width": 36,
+        "font": "18px"
+      },
+      {
+        "text": "2",
+        "height": 36,
+        "width": 36,
+        "font": "18px"
+      },
+      {
+        "text": "0",
+        "height": 36,
+        "width": 36,
+        "font": "18px"
+      },
+      {
+        "text": "1",
+        "height": 36,
+        "width": 36,
+        "font": "18px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "선택 조건 기여동일 개인 Project 전체 참고",
+        "height": 36,
+        "width": 194,
+        "font": "13px"
+      },
+      {
+        "text": "현재 기간 원본",
+        "height": 36,
+        "width": 106,
+        "font": "13px"
+      },
+      {
+        "text": "2 M/D · Capacity 2 M/D · Load 100% · Peak day 100% · 초과 0 개인",
+        "height": 94,
+        "width": 1174,
+        "font": "13px"
+      },
+      {
+        "text": "이전 개인",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "다음 개인",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "이전 기간",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "다음 기간",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "현재 선택 조건·계층Project 전체 (기간·기준일·환산 유지)",
+        "height": 36,
+        "width": 245,
+        "font": "13px"
+      },
+      {
+        "text": "계층 Excel 보고서",
+        "height": 36,
+        "width": 123,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      }
+    ],
+    "visibleUUIDs": []
+  },
+  {
+    "width": 1440,
+    "peer": "동적 계층 탐색",
+    "navigationHeight": 47,
+    "documentWidth": 1440,
+    "controls": [
+      {
+        "text": "기본 현황",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "차트",
+        "height": 36,
+        "width": 46,
+        "font": "13px"
+      },
+      {
+        "text": "동적 계층 탐색",
+        "height": 36,
+        "width": 104,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 교차",
+        "height": 36,
+        "width": 105,
+        "font": "13px"
+      },
+      {
+        "text": "Resource Plan",
+        "height": 36,
+        "width": 102,
+        "font": "13px"
+      },
+      {
+        "text": "견적·Excel",
+        "height": 36,
+        "width": 79,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 362.40625,
+        "font": "13px"
+      },
+      {
+        "text": "전체시작 전진행 중완료",
+        "height": 36,
+        "width": 223.03125,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 278.78125,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 278.765625,
+        "font": "13px"
+      },
+      {
+        "text": "필터·조회 구성",
+        "height": 36,
+        "width": 106,
+        "font": "13px"
+      },
+      {
+        "text": "계층 새로고침",
+        "height": 36,
+        "width": 103.015625,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "상세",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "원본",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "상세",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "현재 선택 조건·계층Project 전체 (기간·기준일·환산 유지)",
+        "height": 36,
+        "width": 245,
+        "font": "13px"
+      },
+      {
+        "text": "계층 Excel 보고서",
+        "height": 36,
+        "width": 123,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      }
+    ],
+    "visibleUUIDs": []
+  },
+  {
+    "width": 1440,
+    "peer": "Milestone 교차",
+    "navigationHeight": 47,
+    "documentWidth": 1440,
+    "controls": [
+      {
+        "text": "기본 현황",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "차트",
+        "height": 36,
+        "width": 46,
+        "font": "13px"
+      },
+      {
+        "text": "동적 계층 탐색",
+        "height": 36,
+        "width": 104,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 교차",
+        "height": 36,
+        "width": 105,
+        "font": "13px"
+      },
+      {
+        "text": "Resource Plan",
+        "height": 36,
+        "width": 102,
+        "font": "13px"
+      },
+      {
+        "text": "견적·Excel",
+        "height": 36,
+        "width": 79,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "Excel 보고서",
+        "height": 36,
+        "width": 95,
+        "font": "13px"
+      },
+      {
+        "text": "그룹",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "개인",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "M/D",
+        "height": 36,
+        "width": 47,
+        "font": "13px"
+      },
+      {
+        "text": "M/M",
+        "height": 36,
+        "width": 49,
+        "font": "13px"
+      },
+      {
+        "text": "새로고침",
+        "height": 36,
+        "width": 74,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 계층Milestone 비교표",
+        "height": 36,
+        "width": 220,
+        "font": "13px"
+      },
+      {
+        "text": "그룹 → Milestone → 개인 → Task그룹 → 개인 → Milestone → Task",
+        "height": 36,
+        "width": 220,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 193.703125,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "전체Milestone 미지정인수 Milestone",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "전체다공정 장거리 통합 반송 설비 Long operational equipment name등록만 설비",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "전체통합 시스템",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 327.421875,
+        "font": "13px"
+      },
+      {
+        "text": "필터",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "계층 모두 접기",
+        "height": 36,
+        "width": 106,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "이전",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "다음",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "▸미분류 리소스",
+        "height": 36,
+        "width": 114,
+        "font": "13px"
+      }
+    ],
+    "visibleUUIDs": []
+  },
+  {
+    "width": 1440,
+    "peer": "Resource Plan",
+    "navigationHeight": 47,
+    "documentWidth": 1440,
+    "controls": [
+      {
+        "text": "기본 현황",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "차트",
+        "height": 36,
+        "width": 46,
+        "font": "13px"
+      },
+      {
+        "text": "동적 계층 탐색",
+        "height": 36,
+        "width": 104,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 교차",
+        "height": 36,
+        "width": 105,
+        "font": "13px"
+      },
+      {
+        "text": "Resource Plan",
+        "height": 36,
+        "width": 102,
+        "font": "13px"
+      },
+      {
+        "text": "견적·Excel",
+        "height": 36,
+        "width": 79,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "Excel 보고서",
+        "height": 36,
+        "width": 95,
+        "font": "13px"
+      },
+      {
+        "text": "그룹",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "개인",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "M/D",
+        "height": 36,
+        "width": 47,
+        "font": "13px"
+      },
+      {
+        "text": "M/M",
+        "height": 36,
+        "width": 49,
+        "font": "13px"
+      },
+      {
+        "text": "새로고침",
+        "height": 36,
+        "width": 74,
+        "font": "13px"
+      },
+      {
+        "text": "주월",
+        "height": 36,
+        "width": 220,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 193.703125,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "전체Milestone 미지정인수 Milestone",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "전체다공정 장거리 통합 반송 설비 Long operational equipment name등록만 설비",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "전체통합 시스템",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 327.421875,
+        "font": "13px"
+      },
+      {
+        "text": "필터",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "계획 공수평균 Load %과투입 M/D",
+        "height": 36,
+        "width": 220,
+        "font": "13px"
+      },
+      {
+        "text": "선택 실물·Milestone·Task 기여동일 개인의 Project 전체 참고",
+        "height": 36,
+        "width": 220,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "행 이전",
+        "height": 36,
+        "width": 62,
+        "font": "13px"
+      },
+      {
+        "text": "행 다음",
+        "height": 36,
+        "width": 62,
+        "font": "13px"
+      },
+      {
+        "text": "기간 이전",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "기간 다음",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "2.00 M/D",
+        "height": 36,
+        "width": 72,
+        "font": "13px"
+      },
+      {
+        "text": "2.00 M/D",
+        "height": 36,
+        "width": 72,
+        "font": "13px"
+      },
+      {
+        "text": "미분류 리소스",
+        "height": 36,
+        "width": 101,
+        "font": "13px"
+      },
+      {
+        "text": "2.00 M/D",
+        "height": 36,
+        "width": 72,
+        "font": "13px"
+      },
+      {
+        "text": "2.00 M/D",
+        "height": 36,
+        "width": 72,
+        "font": "13px"
+      }
+    ],
+    "visibleUUIDs": []
+  },
+  {
+    "width": 1440,
+    "peer": "견적·Excel",
+    "navigationHeight": 47,
+    "documentWidth": 1440,
+    "controls": [
+      {
+        "text": "기본 현황",
+        "height": 36,
+        "width": 75,
+        "font": "13px"
+      },
+      {
+        "text": "차트",
+        "height": 36,
+        "width": 46,
+        "font": "13px"
+      },
+      {
+        "text": "동적 계층 탐색",
+        "height": 36,
+        "width": 104,
+        "font": "13px"
+      },
+      {
+        "text": "Milestone 교차",
+        "height": 36,
+        "width": 105,
+        "font": "13px"
+      },
+      {
+        "text": "Resource Plan",
+        "height": 36,
+        "width": 102,
+        "font": "13px"
+      },
+      {
+        "text": "견적·Excel",
+        "height": 36,
+        "width": 79,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "Excel 보고서",
+        "height": 36,
+        "width": 95,
+        "font": "13px"
+      },
+      {
+        "text": "그룹",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "개인",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "개발 견적",
+        "height": 36,
+        "width": 77,
+        "font": "13px"
+      },
+      {
+        "text": "ⓘ",
+        "height": 36,
+        "width": 36,
+        "font": "13px"
+      },
+      {
+        "text": "M/D",
+        "height": 36,
+        "width": 47,
+        "font": "13px"
+      },
+      {
+        "text": "M/M",
+        "height": 36,
+        "width": 49,
+        "font": "13px"
+      },
+      {
+        "text": "새로고침",
+        "height": 36,
+        "width": 74,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 193.703125,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "전체Milestone 미지정인수 Milestone",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "전체다공정 장거리 통합 반송 설비 Long operational equipment name등록만 설비",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "전체통합 시스템",
+        "height": 36,
+        "width": 193.71875,
+        "font": "13px"
+      },
+      {
+        "text": "",
+        "height": 36,
+        "width": 327.421875,
+        "font": "13px"
+      },
+      {
+        "text": "필터",
+        "height": 36,
+        "width": 48,
+        "font": "13px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "1건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "0건",
+        "height": 36,
+        "width": 36,
+        "font": "16px"
+      },
+      {
+        "text": "▸미분류 리소스",
+        "height": 36,
+        "width": 114,
+        "font": "13px"
+      }
+    ],
+    "visibleUUIDs": []
+  }
+]

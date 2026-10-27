@@ -1,0 +1,416 @@
+{
+  "issue": 819,
+  "resume_checked_date": "2026-10-27",
+  "historical_baseline_sha": "596dd70db8b242f450ab555ed2bcf049a0c14564",
+  "historical_build_version": "0.135.3",
+  "source": {
+    "src/features/resources/resource-workspace.module.css": {
+      "expected_sha256": "c0e81385ba48f23789a91c8347403be83535767b3403b552674d8be678729f3a",
+      "current_sha256": "c0e81385ba48f23789a91c8347403be83535767b3403b552674d8be678729f3a",
+      "matches": true
+    },
+    "src/features/resources/resource-workspace.tsx": {
+      "expected_sha256": "b84f5d3d015c4753e3a32d82fa0c8064e86ab5d5647f13ebc8fbc63433378858",
+      "current_sha256": "b84f5d3d015c4753e3a32d82fa0c8064e86ab5d5647f13ebc8fbc63433378858",
+      "matches": true
+    },
+    "src/features/resources/resource-charts.module.css": {
+      "expected_sha256": "5bd207f9af21ad15faefc45ec362b09775e33580b8466fe7e7c0e7dcf4216382",
+      "current_sha256": "5bd207f9af21ad15faefc45ec362b09775e33580b8466fe7e7c0e7dcf4216382",
+      "matches": true
+    },
+    "src/features/resources/resource-charts-dashboard.tsx": {
+      "expected_sha256": "144472ff3e0740b5e64e92fc80f3f49dc1ef7e835954ddd65f4ef8f0dda7a397",
+      "current_sha256": "144472ff3e0740b5e64e92fc80f3f49dc1ef7e835954ddd65f4ef8f0dda7a397",
+      "matches": true
+    },
+    "src/features/resources/resource-wbs-dashboard.tsx": {
+      "expected_sha256": "b837cc3d13acbe9edded5e9b14633240b7001b5cf4a521df066d41d1eb21b985",
+      "current_sha256": "b837cc3d13acbe9edded5e9b14633240b7001b5cf4a521df066d41d1eb21b985",
+      "matches": true
+    },
+    "src/features/resources/resource-plan-view.tsx": {
+      "expected_sha256": "49de6f9ee564a10cc10c1a9deb461720c23737406e2439ea00601548f802e24c",
+      "current_sha256": "49de6f9ee564a10cc10c1a9deb461720c23737406e2439ea00601548f802e24c",
+      "matches": true
+    },
+    "src/features/resources/project-resource-dashboard.tsx": {
+      "expected_sha256": "a03f29336277ea7cc32c04f7559eb756ee071d39dcc8bba1756a3737b33b9493",
+      "current_sha256": "a03f29336277ea7cc32c04f7559eb756ee071d39dcc8bba1756a3737b33b9493",
+      "matches": true
+    },
+    "src/features/resources/wbs-view-dashboard.tsx": {
+      "expected_sha256": "aedfe324e5203c1dee33c6adb94cfcb1ff9cabfbdab26fa521131687c169c004",
+      "current_sha256": "aedfe324e5203c1dee33c6adb94cfcb1ff9cabfbdab26fa521131687c169c004",
+      "matches": true
+    },
+    "tests/e2e/issue-736-resource-dashboard.spec.ts": {
+      "expected_sha256": "9a446d09868ecdb32a6eb61893655300ed86a06d3ccfcde082c820441f66b55f",
+      "current_sha256": "9a446d09868ecdb32a6eb61893655300ed86a06d3ccfcde082c820441f66b55f",
+      "matches": true
+    },
+    "tests/e2e/issue-730-view-composer.spec.ts": {
+      "expected_sha256": "0bed12e9f51c087e35253e64c727d7121ad371c3bb73170c4ae8d5d64d0f5726",
+      "current_sha256": "0bed12e9f51c087e35253e64c727d7121ad371c3bb73170c4ae8d5d64d0f5726",
+      "matches": true
+    }
+  },
+  "validation_scope": {
+    "official_remote_ci": "NOT TESTED",
+    "browser_regression_cases": 11,
+    "temporary_capture_probe_cases": 1,
+    "unit_tests": 46,
+    "unit_files": 6,
+    "fine_matrix": "6 peers x 390/768/1024/1440/1920 at height1000",
+    "coarse_matrix": "6 peers x 390/1440 at height1000",
+    "environment_limits": "Chromium emulation; native125%, physical touch device, screen reader, Windows Excel/DRM and deployed proxy NOT TESTED"
+  },
+  "evidence_roles": {
+    "before": "same default seed probe, baseline product source",
+    "after-default-final": "same default seed probe, final frozen product source; directly comparable with before",
+    "after": "final existing #807 scenario after prior filters/state changes; 30-row geometry matrix, not default before/after comparison",
+    "after-default": "intermediate source capture; historical only, archived outside tracked evidence at /tmp/issue819-resumed-artifact-backup"
+  },
+  "runs": [
+    {
+      "id": "peer-verified",
+      "status": "PASS",
+      "cases": 1,
+      "log": "output/playwright/issue-819/verification/peer-verified.txt",
+      "sha256": "3b9034de746cc759403c937333924e0986e8f0cf9ba189563aa1d90feab4437b",
+      "execution": "previous interrupted session; verified original log and frozen source on resume"
+    },
+    {
+      "id": "coarse",
+      "status": "PASS",
+      "cases": 1,
+      "log": "output/playwright/issue-819/verification/coarse.txt",
+      "sha256": "52a60f5274e8bf6e353a97f4c18055b3502c268b019aaa297d6a2805fc357d52",
+      "execution": "previous interrupted session; verified original log and frozen source on resume"
+    },
+    {
+      "id": "plan",
+      "status": "PASS",
+      "cases": 1,
+      "log": "output/playwright/issue-819/verification/plan.txt",
+      "sha256": "49d60ed3a2b6db53665aab6409232f0259c94ce26f91fc5a455f78ed034fd8e9",
+      "execution": "previous interrupted session; verified original log and frozen source on resume"
+    },
+    {
+      "id": "composer",
+      "status": "PASS",
+      "cases": 1,
+      "log": "output/playwright/issue-819/verification/composer.txt",
+      "sha256": "4aff416b8b7f30f5bb758c920e118c65eb05ab46a69930ff2922e283a77f8abb",
+      "execution": "previous interrupted session; verified original log and frozen source on resume"
+    },
+    {
+      "id": "readonly",
+      "status": "PASS",
+      "cases": 1,
+      "log": "output/playwright/issue-819/verification/readonly.txt",
+      "sha256": "589ac7fe847eb999cbca0521eb2e61e6afc635e327d05d7e7d7f5cfafde1829e",
+      "execution": "previous interrupted session; verified original log and frozen source on resume"
+    },
+    {
+      "id": "mock-regression",
+      "status": "PASS",
+      "cases": 5,
+      "log": "output/playwright/issue-819/verification/mock-regression.txt",
+      "sha256": "dc9b4b5213ea5355f00ef227f6458617b573829c7186a4db0a0d163906113ee3",
+      "execution": "previous interrupted session; verified original log and frozen source on resume"
+    },
+    {
+      "id": "dynamic-geometry",
+      "status": "PASS",
+      "cases": 1,
+      "log": "output/playwright/issue-819/verification/dynamic-geometry.txt",
+      "sha256": "f7359ec94a77b83cc4e01cc656903c8eae8d6adffc7ad6b2525fc66f65d44ec8",
+      "execution": "previous interrupted session; verified original log and frozen source on resume"
+    },
+    {
+      "id": "default-final",
+      "status": "PASS",
+      "cases": 1,
+      "log": "output/playwright/issue-819/verification/default-final.txt",
+      "sha256": "d55e23226c4ea98f37369c25d3c445673970e8648546e09a6b977c654ad68617",
+      "execution": "previous interrupted session; verified original log and frozen source on resume"
+    }
+  ],
+  "failed_history": [
+    {
+      "id": "F819-LOCAL-001",
+      "log": "/tmp/issue819-peer.log",
+      "reason": "glyph ink versus line-box test contract",
+      "durable_log": "output/playwright/issue-819/verification/F819-LOCAL-001.txt"
+    },
+    {
+      "id": "F819-LOCAL-002",
+      "log": "/tmp/issue819-peer-final.log",
+      "reason": "native SELECT computed line-height normal; native-control-specific test contract",
+      "durable_log": "output/playwright/issue-819/verification/F819-LOCAL-002.txt"
+    },
+    {
+      "id": "F819-LOCAL-003",
+      "log": "/tmp/issue819-peer-frozen.log",
+      "reason": "nested control selector strict mode; scoped top-level selector in final test",
+      "durable_log": "output/playwright/issue-819/verification/F819-LOCAL-003.txt"
+    }
+  ],
+  "resume_integration": {
+    "checked_date": "2026-10-27",
+    "merge_commit": "1a03c439",
+    "main_sha": "495027854c2ab73f7f91d0b6205c86397cff4497",
+    "current_application_version": "0.135.4",
+    "source_sha256": {
+      "src/features/resources/resource-workspace.module.css": "c0e81385ba48f23789a91c8347403be83535767b3403b552674d8be678729f3a",
+      "src/features/resources/resource-workspace.tsx": "b84f5d3d015c4753e3a32d82fa0c8064e86ab5d5647f13ebc8fbc63433378858",
+      "src/features/resources/resource-charts.module.css": "5bd207f9af21ad15faefc45ec362b09775e33580b8466fe7e7c0e7dcf4216382",
+      "src/features/resources/resource-charts-dashboard.tsx": "144472ff3e0740b5e64e92fc80f3f49dc1ef7e835954ddd65f4ef8f0dda7a397",
+      "src/features/resources/resource-wbs-dashboard.tsx": "b837cc3d13acbe9edded5e9b14633240b7001b5cf4a521df066d41d1eb21b985",
+      "src/features/resources/resource-plan-view.tsx": "49de6f9ee564a10cc10c1a9deb461720c23737406e2439ea00601548f802e24c",
+      "src/features/resources/project-resource-dashboard.tsx": "a03f29336277ea7cc32c04f7559eb756ee071d39dcc8bba1756a3737b33b9493",
+      "src/features/resources/wbs-view-dashboard.tsx": "aedfe324e5203c1dee33c6adb94cfcb1ff9cabfbdab26fa521131687c169c004",
+      "tests/e2e/issue-736-resource-dashboard.spec.ts": "9a446d09868ecdb32a6eb61893655300ed86a06d3ccfcde082c820441f66b55f",
+      "tests/e2e/issue-730-view-composer.spec.ts": "0bed12e9f51c087e35253e64c727d7121ad371c3bb73170c4ae8d5d64d0f5726"
+    },
+    "all_ten_files_identical_to_executed_source": true,
+    "reuse_reason": "Integration changed Gantt and documentation/version paths, while the eight Resource product files and two extended E2E specs remain byte-identical to the final executed source. Previous selected Resource browser results are reused only as local scoped feedback. New exact-head PR Full CI is NOT TESTED.",
+    "browser_reexecution": "NOT RUN after integration; no product or E2E source change in this selected scope"
+  },
+  "capture_provenance": {
+    "baseline_build_version": "0.135.2",
+    "final_build_version": "0.135.3",
+    "next_version": "16.4.2 webpack recorded in both build logs",
+    "fixture_helper_config": {
+      "tests/e2e/fixtures/wbs-view-composer.ts": {
+        "resume_sha256": "6f096b3b00a0af79396a9f2ead3e8d85267f942632c17bc33bad6d16a713fc33",
+        "baseline_blob_sha256": "6f096b3b00a0af79396a9f2ead3e8d85267f942632c17bc33bad6d16a713fc33",
+        "unchanged_from_baseline": true,
+        "hash_timing": "recomputed on resume; not a contemporaneous capture receipt"
+      },
+      "tests/e2e/fixtures/target-project.ts": {
+        "resume_sha256": "91a98b4d6fcefc4fb088189d690de481e1fa1593a79e070715593dfa47f18f00",
+        "baseline_blob_sha256": "91a98b4d6fcefc4fb088189d690de481e1fa1593a79e070715593dfa47f18f00",
+        "unchanged_from_baseline": true,
+        "hash_timing": "recomputed on resume; not a contemporaneous capture receipt"
+      },
+      "tests/e2e/fixtures/isolated-application.ts": {
+        "resume_sha256": "5e438ce2e81cfce9ab15a2a05bd40997bd36d9ef0ec3070ab499f2574c3796b0",
+        "baseline_blob_sha256": "5e438ce2e81cfce9ab15a2a05bd40997bd36d9ef0ec3070ab499f2574c3796b0",
+        "unchanged_from_baseline": true,
+        "hash_timing": "recomputed on resume; not a contemporaneous capture receipt"
+      },
+      "tests/e2e/helpers/resource-workspace.ts": {
+        "resume_sha256": "44486b936e0ef2d45d1ff258f052c350aea2d2cb233749447c41c5f45fd5f4ad",
+        "baseline_blob_sha256": "44486b936e0ef2d45d1ff258f052c350aea2d2cb233749447c41c5f45fd5f4ad",
+        "unchanged_from_baseline": true,
+        "hash_timing": "recomputed on resume; not a contemporaneous capture receipt"
+      },
+      "tests/config/playwright.config.ts": {
+        "resume_sha256": "79be0d6d6daad5babfebd5b707ee138d8968c35f0b9bee9f8461f830099655ef",
+        "baseline_blob_sha256": "79be0d6d6daad5babfebd5b707ee138d8968c35f0b9bee9f8461f830099655ef",
+        "unchanged_from_baseline": true,
+        "hash_timing": "recomputed on resume; not a contemporaneous capture receipt"
+      },
+      "tests/e2e/issue-719-contextual-help.spec.ts": {
+        "resume_sha256": "a1652911b56ace31e1d9d22e78407e91b4e87f8358210e4bbd08335114465b5c",
+        "baseline_blob_sha256": "a1652911b56ace31e1d9d22e78407e91b4e87f8358210e4bbd08335114465b5c",
+        "unchanged_from_baseline": true,
+        "hash_timing": "recomputed on resume; not a contemporaneous capture receipt"
+      }
+    },
+    "probes": {
+      "before_runtime": {
+        "recovered_path": "/tmp/issue819-capture-probe-before-runtime.ts",
+        "durable_path": "output/playwright/issue-819/verification/capture-probe-before_runtime.ts.txt",
+        "sha256": "107c2682e55451a3d3f1f7dee957fea235b0d849277514231d15be0f0ad5638a",
+        "hash_timing": "recomputed on resume; recovered probe copy, not proof of original on-disk bytes at capture time"
+      },
+      "final": {
+        "recovered_path": "/tmp/issue819-capture-probe-final.ts",
+        "durable_path": "output/playwright/issue-819/verification/capture-probe-final.ts.txt",
+        "sha256": "b572200fc3e00abac175e4ab33c99913394b117b8406d419ac556f784d4c9c5b",
+        "hash_timing": "recomputed on resume; recovered probe copy, not proof of original on-disk bytes at capture time"
+      }
+    },
+    "probe_difference": "Only el.innerText versus (el as HTMLElement).innerText in browser evaluate. The HTMLElement cast is erased by TypeScript; assertions, navigation, fixture, geometry and screenshot paths are otherwise identical. Recovered before-runtime copy timestamp is later than the initial capture, so it is not a contemporaneous original-source fingerprint.",
+    "declared_environment": {
+      "config": "tests/config/playwright.config.ts: chromium project spreads devices[Desktop Chrome]",
+      "capture_probe_viewports": "setViewportSize width390/1440, height1000",
+      "matrix_viewports": "existing #807 test declares width390/768/1024/1440/1920,height1000; coarse existing #809 test declares width390/1440,height1000",
+      "locale": "NOT_EXPLICITLY_CONFIGURED",
+      "browser_timezone": "NOT_EXPLICITLY_CONFIGURED",
+      "server_project_timezone": "fixture/API model timezone is domain input, not evidence of browser timezone"
+    },
+    "captured_runtime_environment": {
+      "browser_version": "NOT_CAPTURED for before/after-default-final/after six-peer capture",
+      "locale": "NOT_CAPTURED",
+      "browser_timezone": "NOT_CAPTURED",
+      "browser_zoom": "NOT_CAPTURED",
+      "device_scale_factor": "NOT_CAPTURED",
+      "note": "Current installed Chromium/host locale/TZ values are not applied retrospectively. Config defaults and declared viewport are not runtime measurements."
+    },
+    "separate_help_regression": {
+      "evidence": "output/playwright/issue-819/help-regression/resource-{390,768,1024,1440,1920}.json",
+      "observed_browser_version": "153.0.8010.12 via browser.version() in this separate #719 regression only",
+      "observed_viewport": "innerWidth/innerHeight captured; height900",
+      "zoom_annotation": "100% browser default is a literal label in test source, not a measured browser zoom result",
+      "locale": "NOT_CAPTURED",
+      "browser_timezone": "NOT_CAPTURED",
+      "scope_note": "No environment inference for six-peer captures. resource-admin-* files are not evidence of the selected resource #719 execution."
+    },
+    "png_runtime_dimensions": {
+      "before": {
+        "1440-charts.png": [
+          1440,
+          1000
+        ],
+        "1440-dynamic.png": [
+          1440,
+          1000
+        ],
+        "1440-estimate.png": [
+          1440,
+          1000
+        ],
+        "1440-milestone.png": [
+          1440,
+          1000
+        ],
+        "1440-plan.png": [
+          1440,
+          1000
+        ],
+        "1440-summary.png": [
+          1440,
+          1000
+        ],
+        "390-charts.png": [
+          390,
+          1000
+        ],
+        "390-dynamic.png": [
+          390,
+          1000
+        ],
+        "390-estimate.png": [
+          390,
+          1000
+        ],
+        "390-milestone.png": [
+          390,
+          1000
+        ],
+        "390-plan.png": [
+          390,
+          1000
+        ],
+        "390-summary.png": [
+          390,
+          1000
+        ]
+      },
+      "after-default-final": {
+        "1440-charts.png": [
+          1440,
+          1000
+        ],
+        "1440-dynamic.png": [
+          1440,
+          1000
+        ],
+        "1440-estimate.png": [
+          1440,
+          1000
+        ],
+        "1440-milestone.png": [
+          1440,
+          1000
+        ],
+        "1440-plan.png": [
+          1440,
+          1000
+        ],
+        "1440-summary.png": [
+          1440,
+          1000
+        ],
+        "390-charts.png": [
+          390,
+          1000
+        ],
+        "390-dynamic.png": [
+          390,
+          1000
+        ],
+        "390-estimate.png": [
+          390,
+          1000
+        ],
+        "390-milestone.png": [
+          390,
+          1000
+        ],
+        "390-plan.png": [
+          390,
+          1000
+        ],
+        "390-summary.png": [
+          390,
+          1000
+        ]
+      },
+      "after": {
+        "1440-charts.png": [
+          1440,
+          1000
+        ],
+        "1440-dynamic.png": [
+          1440,
+          1000
+        ],
+        "1440-estimate.png": [
+          1440,
+          1000
+        ],
+        "1440-milestone.png": [
+          1440,
+          1000
+        ],
+        "1440-plan.png": [
+          1440,
+          1000
+        ],
+        "1440-summary.png": [
+          1440,
+          1000
+        ],
+        "390-charts.png": [
+          390,
+          1000
+        ],
+        "390-dynamic.png": [
+          390,
+          1000
+        ],
+        "390-estimate.png": [
+          390,
+          1000
+        ],
+        "390-milestone.png": [
+          390,
+          1000
+        ],
+        "390-plan.png": [
+          390,
+          1000
+        ],
+        "390-summary.png": [
+          390,
+          1000
+        ]
+      }
+    }
+  }
+}

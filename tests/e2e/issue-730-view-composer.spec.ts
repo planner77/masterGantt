@@ -635,7 +635,9 @@ test("#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조
         controls: Array.from(element.querySelectorAll<HTMLElement>("button,input,select")).filter(control => control.checkVisibility({ checkVisibilityCSS: true })).map(control => ({ name: control.getAttribute("aria-label") ?? control.textContent, width: control.getBoundingClientRect().width, height: control.getBoundingClientRect().height })),
       }));
       expect(measured.documentWidth).toBeLessThanOrEqual(width + 1);
-      measured.controls.forEach(control => { expect(control.height, String(control.name)).toBeGreaterThanOrEqual(44); });
+      // Resource Workspace owns fine-pointer density; other root contracts stay 44px.
+      const controlMinimum = kind === "resource" ? 36 : 44;
+      measured.controls.forEach(control => { expect(control.height, String(control.name)).toBeGreaterThanOrEqual(controlMinimum); });
       // #800 EXTEND (not a duplicate 5x5 spec): record real first-data/scroll/overlap on the same fixture.
       const geometry = await observeDashboardSurface(page, kind);
       assertDashboardSurface(geometry, width);

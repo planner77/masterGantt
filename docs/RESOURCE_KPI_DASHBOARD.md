@@ -1,3 +1,9 @@
+## Issue #819 — 분석 화면 표현의 지속 계약
+
+리소스 6peer는 [DESIGN의 밀도 상속](../DESIGN.md#화면-확장-시-밀도식별정보-계층-상속-issue-819)에 따라 fine36px·13px/20px, coarse44px 제어와 이름 우선·기술ID on-demand를 적용한다. 필터/현재 범위·핵심 지표·차트/표·보조 진단/Export 구획을 구분하며 반복 설명은 명명된 도움말로 제공한다. 주요 KPI 숫자를 강조해도 action label은 제어 typography를 따른다.
+
+기존 source/snapshot·고유 Task/Assignment·분모/단위·부분합/null/설정0·미설정·비가산·선택 범위와 Project 전체 참고·Milestone 전체 Gate·Plan/견적/Excel의 독립 의미는 그대로다. snapshot/revision 원문은 접힌 상세에서 확인하고 이를 이름/상태보다 먼저 노출하지 않는다. 실제 구현·로컬/원격 증거는 [#819 Work Packet](exec-plans/active/ISSUE_819.md)을 따른다.
+
 ## Issue #806 — 리소스 통합 Workspace 종단 검증 (R1/R2/R3)
 
 [#806 Epic 종단 수용 원장](ISSUE_806_EPIC_ACCEPTANCE.md)은 #807 기본 현황·동적 계층·Milestone/Plan/견적 통합, #808 canonical read model, #809 세 유형 차트·같은 원본 상세 및 #800 5폭 Geometry를 **출처 SHA·실행 환경별로 분리**해 연결한다. R1에서 기존 `기존 분석`의 고유 기능을 제거하지 않았으며 chart는 활성 peer에서만 조회한다. 같은 unfiltered Project의 dynamic/차트는 정확 canonical Task/Assignment ID 집합을 공유하고, 서로 다른 검색·scope·projection/단위의 snapshot이나 수치를 자동 동등화하지 않는다. 새 #806 E2E는 R1 기존 브라우저 테스트를 확장해 이 교차 계약을 검증하며 새 저장소·계산식·PRO 의존성을 도입하지 않는다. 현재 0.135.1 정확 PR Head의 Required/Trusted QA·현장 실측은 별도 증거 확보 전 `NOT TESTED`다.

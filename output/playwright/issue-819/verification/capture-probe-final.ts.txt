@@ -1,0 +1,17 @@
+import { test, expect, isolatedApplicationOptions } from './fixtures/isolated-application';
+import { seedWbsViewComposer, viewResourcePassword } from './fixtures/wbs-view-composer';
+import { targetMasterPassword } from './fixtures/target-project';
+import { openResourceDynamicView } from './helpers/resource-workspace';
+import { mkdir, writeFile } from 'node:fs/promises';
+test.use({...isolatedApplicationOptions,isolatedProjectMasterAdminPassword:targetMasterPassword,isolatedResourceAdminPassword:viewResourcePassword});
+test('capture resource workspace baseline',async({page,isolatedApplication:origin,observeIsolatedApi})=>{
+ test.setTimeout(180000);const f=await seedWbsViewComposer(page,origin,observeIsolatedApi);await openResourceDynamicView(page,{readyTimeout:30000});
+ const evidence=[];const phase=process.env.ISSUE819_PHASE??'before';await mkdir(`output/playwright/issue-819/${phase}`,{recursive:true});
+ for(const width of [390,1440]){await page.setViewportSize({width,height:1000});for(const peer of ['기본 현황','차트','동적 계층 탐색','Milestone 교차','Resource Plan','견적·Excel']){
+ const nav=page.getByRole('group',{name:'리소스 분석 보기',exact:true});await nav.getByRole('button',{name:peer,exact:true}).click();
+ const selected=page.locator('[data-resource-workspace]');await expect(selected).toHaveAttribute('data-resource-peer',{'기본 현황':'summary','차트':'charts','동적 계층 탐색':'dynamic','Milestone 교차':'milestone','Resource Plan':'plan','견적·Excel':'estimate'}[peer]!);
+ const active=peer==='차트'?page.locator('[data-resource-charts]'):peer==='동적 계층 탐색'?page.locator('[data-wbs-view="resource"]'):page.locator('[data-resource-dashboard]');await expect(active).toHaveAttribute('data-ready','true',{timeout:30000});
+ evidence.push({width,peer,...await selected.evaluate(el=>({navigationHeight:el.querySelector('[aria-label="리소스 분석 보기"]')!.getBoundingClientRect().height,documentWidth:document.documentElement.scrollWidth,controls:[...el.querySelectorAll('button,input,select')].filter(e=>e.checkVisibility()).map(e=>({text:e.textContent?.trim().slice(0,60),height:e.getBoundingClientRect().height,width:e.getBoundingClientRect().width,font:getComputedStyle(e).fontSize})),visibleUUIDs:((el as HTMLElement).innerText.match(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/g)??[])}))});
+ await page.screenshot({path:`output/playwright/issue-819/${phase}/${width}-${await selected.getAttribute('data-resource-peer')}.png`});
+ }}await writeFile(`output/playwright/issue-819/${phase}/geometry.json`,JSON.stringify(evidence,null,2));expect((await f.snapshot()).data.tasks.length).toBeGreaterThan(0);
+});
