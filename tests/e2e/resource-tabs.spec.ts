@@ -195,6 +195,18 @@ test("#453 after 동일 5폭 두 표·모달·footer·focus geometry", async ({ 
       await page.keyboard.press("Escape"); await expect(dialog).toHaveCount(0);
     }
   }
+  // #828: touch retains the same catalog semantics and uses larger actual targets.
+  const coarse=await browser.newContext({baseURL:new URL(page.url()).origin,viewport:{width:390,height:900},hasTouch:true});
+  try {
+    const touch=await coarse.newPage();const touchState=await resourceAdmin453(touch);await loginResourceAdmin453(touch);
+    expect(await touch.evaluate(()=>matchMedia("(pointer:coarse), (any-pointer:coarse)").matches)).toBe(true);
+    for(const kind of ["resources","groups"] as const){
+      await touch.getByRole("tab",{name:kind==="resources"?/^리소스 \d/:/^리소스 그룹/}).tap();
+      const targets=await touch.locator(`#resource-panel-${kind}`).evaluate(element=>Array.from(element.querySelectorAll("button,input:not([type=checkbox]),select")).filter(control=>control.checkVisibility()).map(control=>({height:control.getBoundingClientRect().height,name:control.getAttribute("aria-label")??control.textContent})));
+      targets.forEach(target=>expect(target.height,String(target.name)).toBeGreaterThanOrEqual(44));
+    }
+    expect(touchState.requests).toHaveLength(0);
+  }finally{await coarse.close();}
 });
 
 for (const kind of ["리소스", "그룹"]) test(`#453 ${kind} 생성 dirty 취소·계속 편집·명시 폐기와 조회 전용 삭제 불가`, async ({ page }) => {
@@ -210,18 +222,6 @@ for (const kind of ["리소스", "그룹"]) test(`#453 ${kind} 생성 dirty 취�
   await expect(dialog).toHaveCount(0); await expect(trigger).toBeFocused(); await trigger.click(); await expect(dialog.getByLabel("이름", { exact: true })).toHaveValue("");
   await dialog.getByRole("button", { name: "취소", exact: true }).click();
   for (const button of await page.getByRole("button", { name: /삭제 불가$/ }).all()) { await button.scrollIntoViewIfNeeded(); const box = (await button.boundingBox())!; await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await button.focus(); await button.press("Enter"); }
-  // #828: touch retains the same catalog semantics and uses larger actual targets.
-  const coarse=await browser.newContext({baseURL:new URL(page.url()).origin,viewport:{width:390,height:900},hasTouch:true});
-  try {
-    const touch=await coarse.newPage();const touchState=await resourceAdmin453(touch);await loginResourceAdmin453(touch);
-    expect(await touch.evaluate(()=>matchMedia("(pointer:coarse), (any-pointer:coarse)").matches)).toBe(true);
-    for(const kind of ["resources","groups"] as const){
-      await touch.getByRole("tab",{name:kind==="resources"?/^리소스 \d/:/^리소스 그룹/}).tap();
-      const targets=await touch.locator(`#resource-panel-${kind}`).evaluate(element=>Array.from(element.querySelectorAll("button,input:not([type=checkbox]),select")).filter(control=>control.checkVisibility()).map(control=>({height:control.getBoundingClientRect().height,name:control.getAttribute("aria-label")??control.textContent})));
-      targets.forEach(target=>expect(target.height,String(target.name)).toBeGreaterThanOrEqual(44));
-    }
-    expect(touchState.requests).toHaveLength(0);
-  }finally{await coarse.close();}
   expect(state.requests).toHaveLength(0);
 });
 
