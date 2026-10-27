@@ -74,24 +74,29 @@ async function geometry(page: Page, root: Locator, width: number) {
   measurement.first.forEach((cell, index) => { expect(Math.abs(cell.left - measurement.header[index].left)).toBeLessThanOrEqual(1); expect(Math.abs(cell.width - measurement.header[index].width)).toBeLessThanOrEqual(1); });
   expect(measurement.scroll.overflow).toMatch(/auto|scroll/);
   if (width <= 768) expect(measurement.scroll.content).toBeGreaterThan(measurement.scroll.width);
+  // #826 shares one density contract across roots; pointer capability is the
+  // independent oracle, rather than the product's CSS custom property.
+  const pointer = await page.evaluate(() => ({ coarse: matchMedia("(pointer: coarse)").matches, anyCoarse: matchMedia("(any-pointer: coarse)").matches }));
+  const controlMinimum = pointer.coarse || pointer.anyCoarse ? 44 : 36;
   const buttons = [];
   for (const button of await root.getByRole("button").all()) {
     if (await button.isVisible()) {
       const bounds = await button.boundingBox();
       const name = await button.getAttribute("aria-label") ?? await button.innerText();
-      expect(bounds!.height, name).toBeGreaterThanOrEqual(44);
-      expect(bounds!.width, name).toBeGreaterThanOrEqual(44);
+      expect(bounds!.height, name).toBeGreaterThanOrEqual(controlMinimum);
+      expect(bounds!.width, name).toBeGreaterThanOrEqual(controlMinimum);
       buttons.push({ name, width: bounds!.width, height: bounds!.height });
     }
   }
-  const evidence = { ...measurement, buttons };
+  const evidence = { ...measurement, pointer, controlMinimum, root: await root.getAttribute("data-root"), buttons };
   const directory = resolve(process.env.ISSUE730_E2E_ARTIFACT_DIR ?? "output/playwright/issue-730");
   await mkdir(directory, { recursive: true });
   await root.getByRole("region", { name: "공통 계층 표 스크롤", exact: true }).scrollIntoViewIfNeeded();
   await root.getByRole("region", { name: "공통 계층 표 스크롤", exact: true }).evaluate(element => { element.scrollLeft = 0; });
-  await page.screenshot({ path: resolve(directory, `composer-${width}.png`), fullPage: true });
-  await writeFile(resolve(directory, `geometry-${width}.json`), JSON.stringify(evidence, null, 2));
-  await test.info().attach(`issue-730-${width}px`, { body: JSON.stringify(evidence), contentType: "application/json" });
+  const suffix = pointer.coarse || pointer.anyCoarse ? "-coarse" : "";
+  await page.screenshot({ path: resolve(directory, `composer-${width}${suffix}.png`), fullPage: true });
+  await writeFile(resolve(directory, `geometry-${width}${suffix}.json`), JSON.stringify(evidence, null, 2));
+  await test.info().attach(`issue-730-${width}px${suffix}`, { body: JSON.stringify(evidence), contentType: "application/json" });
   return evidence;
 }
 
@@ -440,6 +445,7 @@ test("#730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키
     const readonly = await context.newPage();
     await readonly.goto(`/projects/${f.publicId}`);
     await openRoot(readonly, "resource");
+    await geometry(readonly, dashboard(readonly), 390);
     const virtual = dashboard(readonly).getByRole("row").filter({ hasText: "미배정" });
     await expect(virtual).toHaveCount(1);
     await expect(virtual.getByRole("button", { name: "원본", exact: true })).toHaveCount(0);
