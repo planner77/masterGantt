@@ -125,6 +125,7 @@ export function ProjectLogisticsManagement({
   const [workareaLocked,setWorkareaLocked] = useState(false);
   const [localSubTab, setLocalSubTab] = useState<SubTab>("dashboard");
   const activeSubTab = subview ?? localSubTab;
+  const embeddedDashboard = hideSubviewNavigation && (activeSubTab === "dashboard" || activeSubTab === "unified");
   function setActiveSubTab(view: SubTab) { setLocalSubTab(view); onSubviewChange?.(view); }
   const [kpiOrigin, setKpiOrigin] = useState<{ trigger: HTMLElement; revision: number; kind: KpiMasterKind; id: string } | null>(null);
   const pendingMasterFocus = useRef<{ kind: FocusableMasterKind; id: string; revision: number } | null>(null);
@@ -545,9 +546,8 @@ export function ProjectLogisticsManagement({
     else requestAnimationFrame(() => {if (isVisibleFocusTarget(trigger)) trigger.focus({preventScroll:true});});
   }, [processModal.open,equipmentModal.open,systemModal.open,onWbsEntityRequestHandled]);
   return (
-    <div className={styles.logisticsContainer}>
-      {/* Header */}
-      <div className={styles.headerSection}>
+    <div className={`${styles.logisticsContainer}${embeddedDashboard ? ` ${styles.embeddedDashboard}` : ""}`}>
+      {!embeddedDashboard ? <div className={styles.headerSection}>
         <div className={styles.headerTitleGroup}>
           <div className={styles.headingRow}>
             <h2 className={styles.headerTitle}>물류 구성</h2><span className={styles.wbsNotice}>Gantt WBS와 독립</span>
@@ -562,7 +562,7 @@ export function ProjectLogisticsManagement({
             조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 활성화&apos;를 진행해 주세요.
           </div>
         ) : null}
-      </div>
+      </div> : null}
 
       {/* Sub Navigation */}
       <div style={hideSubviewNavigation ? { display: "none" } : undefined} hidden={hideSubviewNavigation} className={styles.subTabList} role="tablist" aria-label="물류 구성 세부 영역">

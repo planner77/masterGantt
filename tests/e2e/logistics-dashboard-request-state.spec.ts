@@ -125,7 +125,8 @@ test("빠른 기간 변경의 응답 역전은 최신 결과를 유지한다", a
   await expect(view.getByText("10일 이내 임박", { exact: true })).toHaveCount(0);
 });
 
-test("기간 빈 값·0·91·소수는 field 오류와 GET 차단 후 정상 범위로 복구한다", async ({ page }) => {
+test("기간 빈 값·0·91·소수는 좁은 화면에서도 field 오류와 GET 차단 후 정상 범위로 복구한다", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 });
   await installStatefulProjectFixture(page);
   let reads = 0;
   await page.route(dashboardPath, (route) => { reads++; return route.fulfill({ json: toResourcePublicV2({ data: dashboard(route) }) }); });
@@ -136,7 +137,13 @@ test("기간 빈 값·0·91·소수는 field 오류와 GET 차단 후 정상 범
   for (const invalid of ["", "0", "91", "1.5"]) {
     await horizon.fill(invalid);
     await expect(horizon).toHaveAttribute("aria-invalid", "true");
-    await expect(view.getByRole("alert")).toContainText("1~90 사이의 정수");
+    const error = view.getByRole("alert");
+    await expect(error).toContainText("1~90 사이의 정수");
+    expect(await error.evaluate(element => {
+      const rect = element.getBoundingClientRect(), owner = element.parentElement!.getBoundingClientRect();
+      return rect.left >= owner.left - 1 && rect.right <= owner.right + 1
+        && element.scrollHeight <= element.clientHeight + 1;
+    })).toBe(true);
     await expect(view.getByRole("button", { name: "새로고침", exact: true })).toBeDisabled();
     await expect(view.getByRole("button", { name: "일정에서 전체 작업 보기" })).toHaveCount(0);
     expect(reads).toBe(initialReads);
@@ -157,6 +164,38 @@ for (const width of [390, 768, 1024, 1440, 1920]) {
     await openWorkspaceView(page, "kpi");
     const view = page.getByTestId("logistics-dashboard-view");
     await expect(view.getByRole("tablist", { name: "물류 세부 현황" })).toBeVisible();
+    // #825: the workspace owns the width and context; the embedded KPI starts
+    // with useful controls instead of another logistics heading.
+    await expect(page.getByRole("heading", { name: "물류 구성", exact: true })).toHaveCount(0);
+    const framing = await view.evaluate(element => {
+      const host = element.closest("#project-panel-logistics")!;
+      const bounds = (node: Element) => {
+        const rect = node.getBoundingClientRect();
+        return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, height: rect.height };
+      };
+      const date = element.querySelector<HTMLInputElement>('input[type="date"]')!;
+      const filter = date.parentElement!.parentElement!;
+      const controls = Array.from(filter.querySelectorAll("input:not([type=checkbox]),select,button"));
+      return {
+        host: bounds(host), view: bounds(element), filter: bounds(filter),
+        controls: controls.map(bounds),
+        labels: Array.from(filter.querySelectorAll("label")).map(bounds),
+        firstKpiTop: element.querySelector("h4")!.getBoundingClientRect().top,
+      };
+    });
+    expect(Math.abs(framing.view.left - framing.host.left)).toBeLessThanOrEqual(1);
+    expect(Math.abs(framing.view.right - framing.host.right)).toBeLessThanOrEqual(1);
+    for (const item of [...framing.controls, ...framing.labels]) {
+      expect(item.left).toBeGreaterThanOrEqual(framing.filter.left - 1);
+      expect(item.right).toBeLessThanOrEqual(framing.filter.right + 1);
+      expect(item.top).toBeGreaterThanOrEqual(framing.filter.top - 1);
+      expect(item.bottom).toBeLessThanOrEqual(framing.filter.bottom + 1);
+    }
+    if (width === 1920) {
+      expect(framing.filter.height).toBeLessThan(65);
+      expect(Math.max(...framing.controls.map(item => item.top)) - Math.min(...framing.controls.map(item => item.top))).toBeLessThanOrEqual(1);
+    }
+    await testInfo.attach(`kpi-workspace-framing-${width}`, { body: JSON.stringify(framing), contentType: "application/json" });
     const processes = view.getByRole("tab", { name: /^공정별 현황/ });
     const equipment = view.getByRole("tab", { name: /^설비별 현황/ });
     const systems = view.getByRole("tab", { name: /^물류 시스템별 현황/ });

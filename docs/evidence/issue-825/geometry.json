@@ -1,0 +1,1808 @@
+{
+  "issue": 825,
+  "baseline": "dc8543f390616c0d5aca90a4f91899f3cf7ac5da",
+  "beforeVersion": "0.135.4",
+  "afterVersion": "0.135.5",
+  "environment": {
+    "viewportHeight": 900,
+    "widths": [
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ],
+    "locale": "ko-KR",
+    "timezone": "Asia/Seoul",
+    "zoom": "100%; native125% NOT TESTED",
+    "browserExecutable": "chromium-1243; CLI uses explicit local executable; actual browser version in each observation; runner equivalence NOT TESTED",
+    "runtime": "Next dev webpack; production/remote NOT TESTED",
+    "screenshots": "*.png fullPage may include document extension with main-owned scroll clipping; *-viewport.png exactly viewport900; scroll owner coordinates in JSON"
+  },
+  "collectorHash": "5853404ade6c88f7809e5a3b7d45b66c303560612840c7d139c5bd24b2ac3bac",
+  "sameCollector": true,
+  "sourceChanges": {
+    "src/features/logistics/project-logistics-dashboard.module.css": {
+      "before": "3e32cb0fc08d337fb30a2e7fce44b0f62a9602ef6847ef84eced486021defb63",
+      "after": "bbabc7f6c791cca4887e8c1807ee3cda8a2936d9f2af745d382ebde73e73093e"
+    },
+    "src/features/logistics/project-logistics-dashboard.tsx": {
+      "before": "749ee98e2e909996db2d90d2097d23d0732f460f5754dc6f7a21b68d8f68626b",
+      "after": "f41cb351867a9e2badb40d6dfb390b902dd0bbea9897a623964ed3b19a715459"
+    },
+    "src/features/logistics/project-logistics-management.module.css": {
+      "before": "8e81943f562674d7933fb814957c078e7fcfeb9ff79f30aa4903956c67f59d65",
+      "after": "b57d5f8491e8492b185756942d0505b19a562b77788e3fc965d986c845a45332"
+    },
+    "src/features/logistics/project-logistics-management.tsx": {
+      "before": "91731b0b3dc37fe1a05d193b3e198a9423082a0e3357ac914c0595b4811a529e",
+      "after": "71a7354caeac27f60f01debbded733b85915a4912a0d60a22ea90dbf7e1b8b26"
+    }
+  },
+  "canonical": {
+    "before": {
+      "revision": 17,
+      "tasks": 4,
+      "assignments": 1,
+      "fingerprint": "7e063bef58657a2e68d3eb44443b6426dc4f1a190fc08f422950331a4920871b"
+    },
+    "after": {
+      "revision": 17,
+      "tasks": 4,
+      "assignments": 1,
+      "fingerprint": "7e063bef58657a2e68d3eb44443b6426dc4f1a190fc08f422950331a4920871b",
+      "writes": [],
+      "readOnlyPostQueries": 20
+    },
+    "unchangedWithinCaptures": true,
+    "unchangedAcrossCaptures": true
+  },
+  "finalSourceCapture": {
+    "regularObservations": 24,
+    "planned": 25,
+    "faults": [
+      {
+        "key": "kpi-1440",
+        "result": "FAIL",
+        "reason": "CLI failed: ### Error\nTimeoutError: locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('편집 중', { exact: true }) to be visible\u001b[22m\n\n"
+      },
+      {
+        "key": "sample-completeness",
+        "result": "FAIL",
+        "reason": "planned 25; recorded 24"
+      }
+    ],
+    "correctiveSample": "kpi-1440",
+    "correctiveReason": "original setup edit-badge wait timeout; separate same-source observation; original failure retained",
+    "correctiveSourceHash": "6b6d0f9aa10b7b37051290ee506326d1943b0ee6077f707dddc7fc821eaf8186"
+  },
+  "observations": [
+    {
+      "key": "kpi-390",
+      "kind": "kpi",
+      "width": 390,
+      "before": {
+        "shell": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 2631.390625,
+          "bottom": 2909.390625
+        },
+        "shellOwner": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 611,
+          "bottom": 889
+        },
+        "root": {
+          "x": 12,
+          "y": 359.390625,
+          "width": 366,
+          "height": 2534,
+          "bottom": 2893.390625
+        },
+        "filterBar": {
+          "x": 12,
+          "y": 375.390625,
+          "width": 366,
+          "height": 290,
+          "bottom": 665.390625
+        },
+        "firstKpiOrSummary": {
+          "x": 12,
+          "y": 855.390625,
+          "width": 366,
+          "height": 821,
+          "bottom": 1676.390625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 2370,
+          "bottom": 2648
+        },
+        "shellOwner": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 611,
+          "bottom": 889
+        },
+        "root": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 2370,
+          "bottom": 2648
+        },
+        "filterBar": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 214,
+          "bottom": 492
+        },
+        "firstKpiOrSummary": {
+          "x": 12,
+          "y": 658,
+          "width": 366,
+          "height": 821,
+          "bottom": 1479
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:08:30.847Z"
+    },
+    {
+      "key": "milestone-390",
+      "kind": "milestone",
+      "width": 390,
+      "before": {
+        "shell": null,
+        "shellOwner": null,
+        "root": {
+          "x": 12,
+          "y": 290,
+          "width": 366,
+          "height": 1030.5,
+          "bottom": 1320.5
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 12,
+          "y": 769,
+          "width": 366,
+          "height": 167.5,
+          "bottom": 936.5
+        }
+      },
+      "after": {
+        "shell": null,
+        "shellOwner": null,
+        "root": {
+          "x": 12,
+          "y": 290,
+          "width": 366,
+          "height": 1030.5,
+          "bottom": 1320.5
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 12,
+          "y": 769,
+          "width": 366,
+          "height": 167.5,
+          "bottom": 936.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:08:38.027Z"
+    },
+    {
+      "key": "process-390",
+      "kind": "process",
+      "width": 390,
+      "before": {
+        "shell": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 1512.390625,
+          "bottom": 1790.390625
+        },
+        "shellOwner": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 611,
+          "bottom": 889
+        },
+        "root": {
+          "x": 12,
+          "y": 371.390625,
+          "width": 366,
+          "height": 1391,
+          "bottom": 1762.390625
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 12,
+          "y": 858.390625,
+          "width": 366,
+          "height": 167.5,
+          "bottom": 1025.890625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 1415,
+          "bottom": 1693
+        },
+        "shellOwner": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 611,
+          "bottom": 889
+        },
+        "root": {
+          "x": 12,
+          "y": 290,
+          "width": 366,
+          "height": 1391,
+          "bottom": 1681
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 12,
+          "y": 777,
+          "width": 366,
+          "height": 167.5,
+          "bottom": 944.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:08:44.049Z"
+    },
+    {
+      "key": "equipment-390",
+      "kind": "equipment",
+      "width": 390,
+      "before": {
+        "shell": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 1534.078125,
+          "bottom": 1812.078125
+        },
+        "shellOwner": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 611,
+          "bottom": 889
+        },
+        "root": {
+          "x": 12,
+          "y": 371.390625,
+          "width": 366,
+          "height": 1412.6875,
+          "bottom": 1784.078125
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 12,
+          "y": 858.390625,
+          "width": 366,
+          "height": 109,
+          "bottom": 967.390625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 1436.6875,
+          "bottom": 1714.6875
+        },
+        "shellOwner": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 611,
+          "bottom": 889
+        },
+        "root": {
+          "x": 12,
+          "y": 290,
+          "width": 366,
+          "height": 1412.6875,
+          "bottom": 1702.6875
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 12,
+          "y": 777,
+          "width": 366,
+          "height": 109,
+          "bottom": 886
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:08:49.958Z"
+    },
+    {
+      "key": "system-390",
+      "kind": "system",
+      "width": 390,
+      "before": {
+        "shell": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 1293.890625,
+          "bottom": 1571.890625
+        },
+        "shellOwner": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 611,
+          "bottom": 889
+        },
+        "root": {
+          "x": 12,
+          "y": 371.390625,
+          "width": 366,
+          "height": 1172.5,
+          "bottom": 1543.890625
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 12,
+          "y": 891.390625,
+          "width": 366,
+          "height": 109,
+          "bottom": 1000.390625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 1196.5,
+          "bottom": 1474.5
+        },
+        "shellOwner": {
+          "x": 12,
+          "y": 278,
+          "width": 366,
+          "height": 611,
+          "bottom": 889
+        },
+        "root": {
+          "x": 12,
+          "y": 290,
+          "width": 366,
+          "height": 1172.5,
+          "bottom": 1462.5
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 12,
+          "y": 810,
+          "width": 366,
+          "height": 109,
+          "bottom": 919
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:08:56.758Z"
+    },
+    {
+      "key": "kpi-768",
+      "kind": "kpi",
+      "width": 768,
+      "before": {
+        "shell": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 2533.390625,
+          "bottom": 2812.390625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 610,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 360.390625,
+          "width": 720,
+          "height": 2436,
+          "bottom": 2796.390625
+        },
+        "filterBar": {
+          "x": 24,
+          "y": 376.390625,
+          "width": 720,
+          "height": 290,
+          "bottom": 666.390625
+        },
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 800.390625,
+          "width": 720,
+          "height": 821,
+          "bottom": 1621.390625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 1747,
+          "bottom": 2026
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 610,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 1747,
+          "bottom": 2026
+        },
+        "filterBar": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 97,
+          "bottom": 376
+        },
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 486,
+          "width": 720,
+          "height": 413,
+          "bottom": 899
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:09:04.879Z"
+    },
+    {
+      "key": "milestone-768",
+      "kind": "milestone",
+      "width": 768,
+      "before": {
+        "shell": null,
+        "shellOwner": null,
+        "root": {
+          "x": 24,
+          "y": 291,
+          "width": 720,
+          "height": 769,
+          "bottom": 1060
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 588,
+          "width": 720,
+          "height": 109,
+          "bottom": 697
+        }
+      },
+      "after": {
+        "shell": null,
+        "shellOwner": null,
+        "root": {
+          "x": 24,
+          "y": 291,
+          "width": 720,
+          "height": 769,
+          "bottom": 1060
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 588,
+          "width": 720,
+          "height": 109,
+          "bottom": 697
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:09:09.060Z"
+    },
+    {
+      "key": "process-768",
+      "kind": "process",
+      "width": 768,
+      "before": {
+        "shell": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 1192.390625,
+          "bottom": 1471.390625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 610,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 372.390625,
+          "width": 720,
+          "height": 1071,
+          "bottom": 1443.390625
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 677.390625,
+          "width": 720,
+          "height": 109,
+          "bottom": 786.390625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 1095,
+          "bottom": 1374
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 610,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 291,
+          "width": 720,
+          "height": 1071,
+          "bottom": 1362
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 596,
+          "width": 720,
+          "height": 109,
+          "bottom": 705
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:09:15.567Z"
+    },
+    {
+      "key": "equipment-768",
+      "kind": "equipment",
+      "width": 768,
+      "before": {
+        "shell": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 1169.078125,
+          "bottom": 1448.078125
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 610,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 372.390625,
+          "width": 720,
+          "height": 1047.6875,
+          "bottom": 1420.078125
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 677.390625,
+          "width": 720,
+          "height": 50.5,
+          "bottom": 727.890625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 1071.6875,
+          "bottom": 1350.6875
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 610,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 291,
+          "width": 720,
+          "height": 1047.6875,
+          "bottom": 1338.6875
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 596,
+          "width": 720,
+          "height": 50.5,
+          "bottom": 646.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:09:21.514Z"
+    },
+    {
+      "key": "system-768",
+      "kind": "system",
+      "width": 768,
+      "before": {
+        "shell": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 994.890625,
+          "bottom": 1273.890625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 610,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 372.390625,
+          "width": 720,
+          "height": 873.5,
+          "bottom": 1245.890625
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 710.390625,
+          "width": 720,
+          "height": 50.5,
+          "bottom": 760.890625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 897.5,
+          "bottom": 1176.5
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 279,
+          "width": 720,
+          "height": 610,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 291,
+          "width": 720,
+          "height": 873.5,
+          "bottom": 1164.5
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 629,
+          "width": 720,
+          "height": 50.5,
+          "bottom": 679.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:09:27.076Z"
+    },
+    {
+      "key": "kpi-1024",
+      "kind": "kpi",
+      "width": 1024,
+      "before": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 1663.890625,
+          "bottom": 1894.890625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 312.390625,
+          "width": 976,
+          "height": 1566.5,
+          "bottom": 1878.890625
+        },
+        "filterBar": {
+          "x": 24,
+          "y": 328.390625,
+          "width": 976,
+          "height": 116,
+          "bottom": 444.390625
+        },
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 578.390625,
+          "width": 976,
+          "height": 412,
+          "bottom": 990.390625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 1459.5,
+          "bottom": 1690.5
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 1459.5,
+          "bottom": 1690.5
+        },
+        "filterBar": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 97,
+          "bottom": 328
+        },
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 438,
+          "width": 976,
+          "height": 412,
+          "bottom": 850
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:09:33.326Z"
+    },
+    {
+      "key": "milestone-1024",
+      "kind": "milestone",
+      "width": 1024,
+      "before": {
+        "shell": null,
+        "shellOwner": null,
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 976,
+          "height": 710.5,
+          "bottom": 953.5
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 540,
+          "width": 976,
+          "height": 50.5,
+          "bottom": 590.5
+        }
+      },
+      "after": {
+        "shell": null,
+        "shellOwner": null,
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 976,
+          "height": 710.5,
+          "bottom": 953.5
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 540,
+          "width": 976,
+          "height": 50.5,
+          "bottom": 590.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:09:37.659Z"
+    },
+    {
+      "key": "process-1024",
+      "kind": "process",
+      "width": 1024,
+      "before": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 1054.390625,
+          "bottom": 1285.390625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 324.390625,
+          "width": 976,
+          "height": 933,
+          "bottom": 1257.390625
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 629.390625,
+          "width": 976,
+          "height": 50.5,
+          "bottom": 679.890625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 957,
+          "bottom": 1188
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 976,
+          "height": 933,
+          "bottom": 1176
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 548,
+          "width": 976,
+          "height": 50.5,
+          "bottom": 598.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:09:43.473Z"
+    },
+    {
+      "key": "equipment-1024",
+      "kind": "equipment",
+      "width": 1024,
+      "before": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 1110.578125,
+          "bottom": 1341.578125
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 324.390625,
+          "width": 976,
+          "height": 989.1875,
+          "bottom": 1313.578125
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 629.390625,
+          "width": 976,
+          "height": 50.5,
+          "bottom": 679.890625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 1013.1875,
+          "bottom": 1244.1875
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 976,
+          "height": 989.1875,
+          "bottom": 1232.1875
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 548,
+          "width": 976,
+          "height": 50.5,
+          "bottom": 598.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:09:49.657Z"
+    },
+    {
+      "key": "system-1024",
+      "kind": "system",
+      "width": 1024,
+      "before": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 936.390625,
+          "bottom": 1167.390625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 324.390625,
+          "width": 976,
+          "height": 815,
+          "bottom": 1139.390625
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 662.390625,
+          "width": 976,
+          "height": 50.5,
+          "bottom": 712.890625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 839,
+          "bottom": 1070
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 976,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 976,
+          "height": 815,
+          "bottom": 1058
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 581,
+          "width": 976,
+          "height": 50.5,
+          "bottom": 631.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:09:56.323Z"
+    },
+    {
+      "key": "kpi-1440",
+      "kind": "kpi",
+      "width": 1440,
+      "before": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 1408.890625,
+          "bottom": 1639.890625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 312.390625,
+          "width": 1392,
+          "height": 1311.5,
+          "bottom": 1623.890625
+        },
+        "filterBar": {
+          "x": 24,
+          "y": 328.390625,
+          "width": 1392,
+          "height": 65,
+          "bottom": 393.390625
+        },
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 527.390625,
+          "width": 1392,
+          "height": 208,
+          "bottom": 735.390625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 1211.5,
+          "bottom": 1442.5
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 1211.5,
+          "bottom": 1442.5
+        },
+        "filterBar": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 53,
+          "bottom": 284
+        },
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 394,
+          "width": 1392,
+          "height": 208,
+          "bottom": 602
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": true,
+      "afterCapturedAt": "2026-10-27T05:12:33.462Z"
+    },
+    {
+      "key": "milestone-1440",
+      "kind": "milestone",
+      "width": 1440,
+      "before": {
+        "shell": null,
+        "shellOwner": null,
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 1392,
+          "height": 630.5,
+          "bottom": 873.5
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 460,
+          "width": 1392,
+          "height": 50.5,
+          "bottom": 510.5
+        }
+      },
+      "after": {
+        "shell": null,
+        "shellOwner": null,
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 1392,
+          "height": 630.5,
+          "bottom": 873.5
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 460,
+          "width": 1392,
+          "height": 50.5,
+          "bottom": 510.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:10:34.076Z"
+    },
+    {
+      "key": "process-1440",
+      "kind": "process",
+      "width": 1440,
+      "before": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 974.390625,
+          "bottom": 1205.390625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 324.390625,
+          "width": 1392,
+          "height": 853,
+          "bottom": 1177.390625
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 549.390625,
+          "width": 1392,
+          "height": 50.5,
+          "bottom": 599.890625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 877,
+          "bottom": 1108
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 1392,
+          "height": 853,
+          "bottom": 1096
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 468,
+          "width": 1392,
+          "height": 50.5,
+          "bottom": 518.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:10:38.930Z"
+    },
+    {
+      "key": "equipment-1440",
+      "kind": "equipment",
+      "width": 1440,
+      "before": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 986.390625,
+          "bottom": 1217.390625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 324.390625,
+          "width": 1392,
+          "height": 865,
+          "bottom": 1189.390625
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 549.390625,
+          "width": 1392,
+          "height": 50.5,
+          "bottom": 599.890625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 889,
+          "bottom": 1120
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 1392,
+          "height": 865,
+          "bottom": 1108
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 468,
+          "width": 1392,
+          "height": 50.5,
+          "bottom": 518.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:10:45.018Z"
+    },
+    {
+      "key": "system-1440",
+      "kind": "system",
+      "width": 1440,
+      "before": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 856.390625,
+          "bottom": 1087.390625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 324.390625,
+          "width": 1392,
+          "height": 735,
+          "bottom": 1059.390625
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 582.390625,
+          "width": 1392,
+          "height": 50.5,
+          "bottom": 632.890625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 759,
+          "bottom": 990
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1392,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 1392,
+          "height": 735,
+          "bottom": 978
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 501,
+          "width": 1392,
+          "height": 50.5,
+          "bottom": 551.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:10:51.005Z"
+    },
+    {
+      "key": "kpi-1920",
+      "kind": "kpi",
+      "width": 1920,
+      "before": {
+        "shell": {
+          "x": 240,
+          "y": 231,
+          "width": 1440,
+          "height": 1408.890625,
+          "bottom": 1639.890625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 240,
+          "y": 312.390625,
+          "width": 1440,
+          "height": 1311.5,
+          "bottom": 1623.890625
+        },
+        "filterBar": {
+          "x": 240,
+          "y": 328.390625,
+          "width": 1440,
+          "height": 65,
+          "bottom": 393.390625
+        },
+        "firstKpiOrSummary": {
+          "x": 240,
+          "y": 527.390625,
+          "width": 1440,
+          "height": 208,
+          "bottom": 735.390625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 1211.5,
+          "bottom": 1442.5
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 1211.5,
+          "bottom": 1442.5
+        },
+        "filterBar": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 53,
+          "bottom": 284
+        },
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 394,
+          "width": 1872,
+          "height": 208,
+          "bottom": 602
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:10:57.516Z"
+    },
+    {
+      "key": "milestone-1920",
+      "kind": "milestone",
+      "width": 1920,
+      "before": {
+        "shell": null,
+        "shellOwner": null,
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 1872,
+          "height": 630.5,
+          "bottom": 873.5
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 460,
+          "width": 1872,
+          "height": 50.5,
+          "bottom": 510.5
+        }
+      },
+      "after": {
+        "shell": null,
+        "shellOwner": null,
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 1872,
+          "height": 630.5,
+          "bottom": 873.5
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 460,
+          "width": 1872,
+          "height": 50.5,
+          "bottom": 510.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:11:03.722Z"
+    },
+    {
+      "key": "process-1920",
+      "kind": "process",
+      "width": 1920,
+      "before": {
+        "shell": {
+          "x": 240,
+          "y": 231,
+          "width": 1440,
+          "height": 974.390625,
+          "bottom": 1205.390625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 240,
+          "y": 324.390625,
+          "width": 1440,
+          "height": 853,
+          "bottom": 1177.390625
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 240,
+          "y": 549.390625,
+          "width": 1440,
+          "height": 50.5,
+          "bottom": 599.890625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 877,
+          "bottom": 1108
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 1872,
+          "height": 853,
+          "bottom": 1096
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 468,
+          "width": 1872,
+          "height": 50.5,
+          "bottom": 518.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:11:09.876Z"
+    },
+    {
+      "key": "equipment-1920",
+      "kind": "equipment",
+      "width": 1920,
+      "before": {
+        "shell": {
+          "x": 240,
+          "y": 231,
+          "width": 1440,
+          "height": 986.390625,
+          "bottom": 1217.390625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 240,
+          "y": 324.390625,
+          "width": 1440,
+          "height": 865,
+          "bottom": 1189.390625
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 240,
+          "y": 549.390625,
+          "width": 1440,
+          "height": 50.5,
+          "bottom": 599.890625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 889,
+          "bottom": 1120
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 1872,
+          "height": 865,
+          "bottom": 1108
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 468,
+          "width": 1872,
+          "height": 50.5,
+          "bottom": 518.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:11:14.323Z"
+    },
+    {
+      "key": "system-1920",
+      "kind": "system",
+      "width": 1920,
+      "before": {
+        "shell": {
+          "x": 240,
+          "y": 231,
+          "width": 1440,
+          "height": 856.390625,
+          "bottom": 1087.390625
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 240,
+          "y": 324.390625,
+          "width": 1440,
+          "height": 735,
+          "bottom": 1059.390625
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 240,
+          "y": 582.390625,
+          "width": 1440,
+          "height": 50.5,
+          "bottom": 632.890625
+        }
+      },
+      "after": {
+        "shell": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 759,
+          "bottom": 990
+        },
+        "shellOwner": {
+          "x": 24,
+          "y": 231,
+          "width": 1872,
+          "height": 658,
+          "bottom": 889
+        },
+        "root": {
+          "x": 24,
+          "y": 243,
+          "width": 1872,
+          "height": 735,
+          "bottom": 978
+        },
+        "filterBar": null,
+        "firstKpiOrSummary": {
+          "x": 24,
+          "y": 501,
+          "width": 1872,
+          "height": 50.5,
+          "bottom": 551.5
+        }
+      },
+      "documentOverflow": 0,
+      "correctiveObservation": false,
+      "afterCapturedAt": "2026-10-27T05:11:20.726Z"
+    }
+  ],
+  "notTested": [
+    "63km actual project",
+    "all states x all viewports",
+    "real device/touch",
+    "native125%",
+    "screen reader",
+    "remote quality/e2e/docker",
+    "main/GHCR/release"
+  ],
+  "supplementaryProvenance": {
+    "readonlyCoarse": {
+      "artifact": "supplement-final.json",
+      "sha256": "e57d37ec62af6c3c9394ee51c0d34d6edf62d2b56281c49d19cf5e15fbc534f9",
+      "producerSha256": "a97ebf69f98ef848f032dbd2fd5337d5f35fb6a90a4b01c87cedc0cecac5cb64",
+      "artifactModifiedAt": "2026-10-27T05:12:15.601001+00:00",
+      "sourceHashes": {
+        "src/features/logistics/project-logistics-dashboard.module.css": "bbabc7f6c791cca4887e8c1807ee3cda8a2936d9f2af745d382ebde73e73093e",
+        "src/features/logistics/project-logistics-dashboard.tsx": "f41cb351867a9e2badb40d6dfb390b902dd0bbea9897a623964ed3b19a715459",
+        "src/features/logistics/project-logistics-management.module.css": "b57d5f8491e8492b185756942d0505b19a562b77788e3fc965d986c845a45332",
+        "src/features/logistics/project-logistics-management.tsx": "71a7354caeac27f60f01debbded733b85915a4912a0d60a22ea90dbf7e1b8b26"
+      },
+      "attribution": "final product source frozen; current source hashes checked against final collector; local observation, not trusted remote evidence"
+    },
+    "kpi1440Corrective": {
+      "artifact": "kpi-1440-corrective.json",
+      "sha256": "3e20cea8e1bceb6b57a3af22cd8f614d4cab7b6a8060fd5b8352a7165e378f32",
+      "producerSha256": "6b6d0f9aa10b7b37051290ee506326d1943b0ee6077f707dddc7fc821eaf8186",
+      "artifactModifiedAt": "2026-10-27T05:12:34.021944+00:00",
+      "sourceHashes": {
+        "src/features/logistics/project-logistics-dashboard.module.css": "bbabc7f6c791cca4887e8c1807ee3cda8a2936d9f2af745d382ebde73e73093e",
+        "src/features/logistics/project-logistics-dashboard.tsx": "f41cb351867a9e2badb40d6dfb390b902dd0bbea9897a623964ed3b19a715459",
+        "src/features/logistics/project-logistics-management.module.css": "b57d5f8491e8492b185756942d0505b19a562b77788e3fc965d986c845a45332",
+        "src/features/logistics/project-logistics-management.tsx": "71a7354caeac27f60f01debbded733b85915a4912a0d60a22ea90dbf7e1b8b26"
+      },
+      "attribution": "final product source frozen; current source hashes checked against final collector; local observation, not trusted remote evidence"
+    }
+  }
+}

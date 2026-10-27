@@ -1,3 +1,9 @@
+## [0.135.5] — Unreleased / Issue #825 물류 대시보드 공간 정돈 후보 (2026-10-27)
+
+- KPI·공정&WorkArea·설비·물류 시스템은 프로젝트 workspace의 가용 폭을 사용하고 중복 물류 구성 헤더를 줄인다. 기준정보의 원본 관리 도움말·조회 전용 안내와 Milestone의 기존 폭은 유지한다.
+- KPI 기간·기준일·집계 범위·활성 조건·새로고침은 내용에 맞게 줄바꿈하는 compact 그룹으로 정돈하고 adaptive 카드·수치·단위·경고·원본 drill 의미를 보존한다. 동적 조회 typography/search는 후속 #826 범위다.
+- 후보 PATCH이며 release_required=true/release_authorized=false. 실제 로컬/원격 검증과 미검증 범위는 [Work Packet](docs/exec-plans/active/ISSUE_825.md)에 기록한다. 이번 요청은 PR CI 시작까지이며 병합/정식 게시 완료가 아니다.
+
 ## [0.135.4] — Unreleased / Issue #819 리소스 분석 화면 교정 후보 (2026-10-27)
 
 ### Fixed

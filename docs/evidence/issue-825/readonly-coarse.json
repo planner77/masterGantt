@@ -1,0 +1,568 @@
+{
+  "records": [
+    {
+      "kind": "kpi",
+      "width": 390,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "coarse": true,
+      "documentOverflow": 0,
+      "bar": {
+        "x": 12,
+        "y": 278,
+        "width": 366,
+        "height": 246
+      },
+      "controls": [
+        {
+          "tag": "INPUT",
+          "label": "",
+          "x": 110.21875,
+          "y": 286,
+          "width": 140,
+          "height": 44
+        },
+        {
+          "tag": "INPUT",
+          "label": "",
+          "x": 107.109375,
+          "y": 338,
+          "width": 72,
+          "height": 44
+        },
+        {
+          "tag": "SELECT",
+          "label": "직접 연결만 (Direct)조율 범위 포함 (Coordination Roll-up)",
+          "x": 12,
+          "y": 419,
+          "width": 275,
+          "height": 44
+        },
+        {
+          "tag": "LABEL",
+          "label": "활성 마스터만 보기",
+          "x": 12,
+          "y": 471,
+          "width": 138.78125,
+          "height": 44
+        },
+        {
+          "tag": "BUTTON",
+          "label": "새로고침",
+          "x": 292,
+          "y": 471,
+          "width": 86,
+          "height": 44
+        }
+      ],
+      "duplicateHeaders": 0
+    },
+    {
+      "kind": "master",
+      "label": "공정&WorkArea",
+      "width": 390,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 12,
+        "width": 366
+      },
+      "owner": {
+        "x": 12,
+        "width": 366
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "설비",
+      "width": 390,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 12,
+        "width": 366
+      },
+      "owner": {
+        "x": 12,
+        "width": 366
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "물류 시스템",
+      "width": 390,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 12,
+        "width": 366
+      },
+      "owner": {
+        "x": 12,
+        "width": 366
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "리소스",
+      "width": 390,
+      "permission": "readonly",
+      "smoke": "navigation only"
+    },
+    {
+      "kind": "kpi",
+      "width": 768,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "coarse": true,
+      "documentOverflow": 0,
+      "bar": {
+        "x": 24,
+        "y": 279,
+        "width": 720,
+        "height": 113
+      },
+      "controls": [
+        {
+          "tag": "INPUT",
+          "label": "",
+          "x": 122.21875,
+          "y": 287,
+          "width": 140,
+          "height": 44
+        },
+        {
+          "tag": "INPUT",
+          "label": "",
+          "x": 365.328125,
+          "y": 287,
+          "width": 72,
+          "height": 44
+        },
+        {
+          "tag": "SELECT",
+          "label": "직접 연결만 (Direct)조율 범위 포함 (Coordination Roll-up)",
+          "x": 137.78125,
+          "y": 339,
+          "width": 275,
+          "height": 44
+        },
+        {
+          "tag": "LABEL",
+          "label": "활성 마스터만 보기",
+          "x": 420.78125,
+          "y": 339,
+          "width": 138.78125,
+          "height": 44
+        },
+        {
+          "tag": "BUTTON",
+          "label": "새로고침",
+          "x": 658,
+          "y": 339,
+          "width": 86,
+          "height": 44
+        }
+      ],
+      "duplicateHeaders": 0
+    },
+    {
+      "kind": "master",
+      "label": "공정&WorkArea",
+      "width": 768,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 24,
+        "width": 720
+      },
+      "owner": {
+        "x": 24,
+        "width": 720
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "설비",
+      "width": 768,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 24,
+        "width": 720
+      },
+      "owner": {
+        "x": 24,
+        "width": 720
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "물류 시스템",
+      "width": 768,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 24,
+        "width": 720
+      },
+      "owner": {
+        "x": 24,
+        "width": 720
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "리소스",
+      "width": 768,
+      "permission": "readonly",
+      "smoke": "navigation only"
+    },
+    {
+      "kind": "kpi",
+      "width": 1024,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "coarse": true,
+      "documentOverflow": 0,
+      "bar": {
+        "x": 24,
+        "y": 231,
+        "width": 976,
+        "height": 113
+      },
+      "controls": [
+        {
+          "tag": "INPUT",
+          "label": "",
+          "x": 122.21875,
+          "y": 239,
+          "width": 140,
+          "height": 44
+        },
+        {
+          "tag": "INPUT",
+          "label": "",
+          "x": 365.328125,
+          "y": 239,
+          "width": 72,
+          "height": 44
+        },
+        {
+          "tag": "SELECT",
+          "label": "직접 연결만 (Direct)조율 범위 포함 (Coordination Roll-up)",
+          "x": 559.109375,
+          "y": 239,
+          "width": 275,
+          "height": 44
+        },
+        {
+          "tag": "LABEL",
+          "label": "활성 마스터만 보기",
+          "x": 842.109375,
+          "y": 239,
+          "width": 138.78125,
+          "height": 44
+        },
+        {
+          "tag": "BUTTON",
+          "label": "새로고침",
+          "x": 914,
+          "y": 291,
+          "width": 86,
+          "height": 44
+        }
+      ],
+      "duplicateHeaders": 0
+    },
+    {
+      "kind": "master",
+      "label": "공정&WorkArea",
+      "width": 1024,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 24,
+        "width": 976
+      },
+      "owner": {
+        "x": 24,
+        "width": 976
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "설비",
+      "width": 1024,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 24,
+        "width": 976
+      },
+      "owner": {
+        "x": 24,
+        "width": 976
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "물류 시스템",
+      "width": 1024,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 24,
+        "width": 976
+      },
+      "owner": {
+        "x": 24,
+        "width": 976
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "리소스",
+      "width": 1024,
+      "permission": "readonly",
+      "smoke": "navigation only"
+    },
+    {
+      "kind": "kpi",
+      "width": 1440,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "coarse": true,
+      "documentOverflow": 0,
+      "bar": {
+        "x": 24,
+        "y": 231,
+        "width": 1392,
+        "height": 61
+      },
+      "controls": [
+        {
+          "tag": "INPUT",
+          "label": "",
+          "x": 122.21875,
+          "y": 239,
+          "width": 140,
+          "height": 44
+        },
+        {
+          "tag": "INPUT",
+          "label": "",
+          "x": 365.328125,
+          "y": 239,
+          "width": 72,
+          "height": 44
+        },
+        {
+          "tag": "SELECT",
+          "label": "직접 연결만 (Direct)조율 범위 포함 (Coordination Roll-up)",
+          "x": 559.109375,
+          "y": 239,
+          "width": 275,
+          "height": 44
+        },
+        {
+          "tag": "LABEL",
+          "label": "활성 마스터만 보기",
+          "x": 842.109375,
+          "y": 239,
+          "width": 138.78125,
+          "height": 44
+        },
+        {
+          "tag": "BUTTON",
+          "label": "새로고침",
+          "x": 1330,
+          "y": 239,
+          "width": 86,
+          "height": 44
+        }
+      ],
+      "duplicateHeaders": 0
+    },
+    {
+      "kind": "master",
+      "label": "공정&WorkArea",
+      "width": 1440,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 24,
+        "width": 1392
+      },
+      "owner": {
+        "x": 24,
+        "width": 1392
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "설비",
+      "width": 1440,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 24,
+        "width": 1392
+      },
+      "owner": {
+        "x": 24,
+        "width": 1392
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "물류 시스템",
+      "width": 1440,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 24,
+        "width": 1392
+      },
+      "owner": {
+        "x": 24,
+        "width": 1392
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "리소스",
+      "width": 1440,
+      "permission": "readonly",
+      "smoke": "navigation only"
+    },
+    {
+      "kind": "kpi",
+      "width": 1920,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "coarse": true,
+      "documentOverflow": 0,
+      "bar": {
+        "x": 24,
+        "y": 231,
+        "width": 1872,
+        "height": 61
+      },
+      "controls": [
+        {
+          "tag": "INPUT",
+          "label": "",
+          "x": 122.21875,
+          "y": 239,
+          "width": 140,
+          "height": 44
+        },
+        {
+          "tag": "INPUT",
+          "label": "",
+          "x": 365.328125,
+          "y": 239,
+          "width": 72,
+          "height": 44
+        },
+        {
+          "tag": "SELECT",
+          "label": "직접 연결만 (Direct)조율 범위 포함 (Coordination Roll-up)",
+          "x": 559.109375,
+          "y": 239,
+          "width": 275,
+          "height": 44
+        },
+        {
+          "tag": "LABEL",
+          "label": "활성 마스터만 보기",
+          "x": 842.109375,
+          "y": 239,
+          "width": 138.78125,
+          "height": 44
+        },
+        {
+          "tag": "BUTTON",
+          "label": "새로고침",
+          "x": 1810,
+          "y": 239,
+          "width": 86,
+          "height": 44
+        }
+      ],
+      "duplicateHeaders": 0
+    },
+    {
+      "kind": "master",
+      "label": "공정&WorkArea",
+      "width": 1920,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 24,
+        "width": 1872
+      },
+      "owner": {
+        "x": 24,
+        "width": 1872
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "설비",
+      "width": 1920,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 24,
+        "width": 1872
+      },
+      "owner": {
+        "x": 24,
+        "width": 1872
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "물류 시스템",
+      "width": 1920,
+      "permission": "readonly",
+      "helpEscapeFocus": true,
+      "shell": {
+        "x": 24,
+        "width": 1872
+      },
+      "owner": {
+        "x": 24,
+        "width": 1872
+      },
+      "documentOverflow": 0
+    },
+    {
+      "kind": "master",
+      "label": "리소스",
+      "width": 1920,
+      "permission": "readonly",
+      "smoke": "navigation only"
+    }
+  ],
+  "faults": [],
+  "result": "PASS",
+  "browser": "153.0.8010.12",
+  "environment": "Next dev webpack; DPR1; ko-KR; Asia/Seoul; synthetic HTTP/SQLite; readonly + coarse; no real touch/AT/native zoom"
+}

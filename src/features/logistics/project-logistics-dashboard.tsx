@@ -285,7 +285,7 @@ export function ProjectLogisticsDashboard({
           <p className={styles.scopeNote}>현재 snapshot 평가일 {dashboard.asOfDate} · {dashboard.timezone} · 과거 상태 복원이 아닙니다. {conversionLabel(dashboard.effort.mdPerMm, dashboard.effort.mdPerMmSource)}</p>
           <div className={styles.headingRow}>
             <span className={styles.scopeNote}>직접·상속·기존 연결 통합 · 공정은 Task 명시 기준</span>
-            <ContextHelp label="통합 집계 기준 도움말">직접 연결, 상속 연결과 기존 연결 출처를 합친 고유 Task·Assignment를 집계합니다. 기존 연결 출처만 있는 작업도 포함합니다. 공정별 현황은 Task에 명시한 공정 기준이며, 조상 공정만 연결된 작업이나 legacy 문맥을 같은 공정 실적으로 합치지 않습니다. 시스템 조율 범위는 위 선택에 따릅니다. 등록 구성·전체 프로젝트 진단, 현재 KPI 선택 범위, 관련 Milestone의 전체 상태는 서로 다른 범위입니다.</ContextHelp>
+            <ContextHelp label="통합 집계 기준 도움말">공정·설비·제어 및 조율 시스템은 Gantt WBS와 독립적으로 관리하며, 아래 KPI는 같은 프로젝트의 Task·Assignment 연결을 조회합니다. 직접 연결, 상속 연결과 기존 연결 출처를 합친 고유 Task·Assignment를 집계합니다. 기존 연결 출처만 있는 작업도 포함합니다. 공정별 현황은 Task에 명시한 공정 기준이며, 조상 공정만 연결된 작업이나 legacy 문맥을 같은 공정 실적으로 합치지 않습니다. 시스템 조율 범위는 위 선택에 따릅니다. 등록 구성·전체 프로젝트 진단, 현재 KPI 선택 범위, 관련 Milestone의 전체 상태는 서로 다른 범위입니다.</ContextHelp>
             {dashboard.integrated ? <IdentifierDetails label="집계 출처 정보" identifiers={[{ label: "Snapshot ID", value: dashboard.integrated.snapshotId }, { label: "집계 출처", value: dashboard.integrated.source }, { label: "공정 문맥 버전", value: dashboard.integrated.contextSourceVersion }]} /> : null}
           </div>
           {/* 2. 핵심 KPI 카드 그리드 */}

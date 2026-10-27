@@ -6,9 +6,12 @@
   gap: 1.25rem;
   width: 100%;
   min-width: 0;
-  max-width: 1440px;
-  margin: 0 auto;
+  max-width: 100%;
   padding: 1rem 0;
+}
+
+.embeddedDashboard {
+  padding: 0;
 }
 
 .headerSection {
@@ -184,6 +187,7 @@
 
 /* Table Styles */
 .tableContainer {
+  position: relative;
   width: 100%;
   max-width: 100%;
   min-width: 0;
