@@ -11,6 +11,6 @@
 .table th { white-space: nowrap; font-weight: 600; }
 .table th:last-child, .table td:last-child { width: 130px; }
 .table td { overflow-wrap: anywhere; }
-.table td:last-child button { white-space: nowrap; }
+.table td:last-child button { white-space: nowrap; scroll-margin-block: 8px; }
 
 @media (pointer: coarse), (any-pointer: coarse) { .section button, .controls select { min-height: 44px; } }
