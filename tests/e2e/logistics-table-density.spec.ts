@@ -85,6 +85,8 @@ test("#454 after 두 유형·dialog 5폭 정렬과 마지막 action keyboard 접
       await page.getByRole("button",{name:label,exact:true}).click();
       await page.locator("table").evaluate(table=>{table.parentElement!.scrollLeft=0;});
       const facts=await geometry(page);
+      await expect(page.getByRole("table")).toHaveCSS("font-size","14px");
+      for(const label of ["유형명","코드","정렬"]){const input=page.getByLabel(label,{exact:true});const density=await input.evaluate(element=>({height:element.getBoundingClientRect().height,font:getComputedStyle(element).fontSize}));expect(density.height).toBe(40);expect(density.font).toBe("14px");}
       expect(facts.documentWidth).toBeLessThanOrEqual(width);
       expect(facts.table.width).toBeGreaterThanOrEqual(824);
       expect(facts.headers[0].width).toBeGreaterThanOrEqual(240);
@@ -120,6 +122,9 @@ test("#454 after 두 유형·dialog 5폭 정렬과 마지막 action keyboard 접
   }
   const environment=await page.evaluate(()=>({locale:navigator.language,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,userAgent:navigator.userAgent}));
   await writeFile(resolve(dir,"environment.json"),JSON.stringify({...environment,browserVersion:browser.version(),capturedAt:new Date().toISOString(),zoom:"100% default; native125% NOT TESTED"},null,2)+"\n");
+  const coarse=await browser.newContext({baseURL:new URL(page.url()).origin,viewport:{width:390,height:900},hasTouch:true});
+  try{const touch=await coarse.newPage();await mockLogistics454(touch);await loginLogistics454(touch);expect(await touch.evaluate(()=>matchMedia("(pointer:coarse), (any-pointer:coarse)").matches)).toBe(true);for(const label of ["설비 유형","시스템 유형"]){await touch.getByRole("button",{name:label,exact:true}).tap();const panel=touch.getByRole("group",{name:"물류 유형 종류",exact:true}).locator("../..");const targets=await panel.evaluate(element=>Array.from(element.querySelectorAll("button,input,select")).filter(control=>control.checkVisibility()).map(control=>({name:control.textContent,height:control.getBoundingClientRect().height})));targets.forEach(target=>expect(target.height,String(target.name)).toBeGreaterThanOrEqual(44));}}finally{await coarse.close();}
+
 });
 
 for(const [label,code] of [["설비 유형","agv"],["시스템 유형","mcs"]])test(`#454 ${label} 추가·이름·활성 변경은 explicit payload와 If-Match 보존`,async({page})=>{

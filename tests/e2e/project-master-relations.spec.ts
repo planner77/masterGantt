@@ -41,7 +41,9 @@ test("Issue #538: Project 생성의 종속 옵션과 상위 변경 시 초안 �
 test("Issue #538: 관리자 관계 연결과 명시적 두 단계 해제", async ({page}) => {
   let revision=1;
   let relations: Array<{businessUnitId:string;productId:string;siteEntityId:string|null}> = [];
-  const response=() => ({data:{revision,...base,relations,items:[...base.businessUnits,...base.products,...base.siteEntities].map((i)=>({...i,usageCount:0}))}});
+  let longNames=false;
+  const display=(item:typeof bu)=>({...item,name:longNames?`${item.name} 긴 한국어 Long English ${"N".repeat(100)}`:item.name});
+  const response=() => ({data:{revision,...base,businessUnits:base.businessUnits.map(display),products:base.products.map(display),siteEntities:base.siteEntities.map(display),relations,items:[...base.businessUnits,...base.products,...base.siteEntities].map((i)=>({...display(i),usageCount:0}))}});
   await page.route("**/api/project-master/admin-sessions",async (route)=>{
     await route.fulfill(route.request().method()==="POST" ? {status:201,json:{data:{permission:"project_master_admin",expiresAt:"2030-01-01T00:00:00Z"}}} : {status:204});
   });
@@ -74,6 +76,16 @@ test("Issue #538: 관리자 관계 연결과 명시적 두 단계 해제", async
   await removeSite.click();
   await expect(table.locator("tbody tr")).toHaveCount(1);
   await expect(table.getByText("베트남 법인")).toHaveCount(0);
+  // #830: long identities keep a bounded table and native keyboard access to its last column.
+  longNames=true;relations=[pair,triple];await page.getByRole("button",{name:"새로고침",exact:true}).click();await expect(table.locator("tbody tr")).toHaveCount(2);
+  const section=page.locator('section[aria-labelledby="project-master-relations-heading"]');
+  for(const width of [390,768,1024,1440,1920]){
+    await page.setViewportSize({width,height:900});
+    const geometry=await table.evaluate(element=>{const box=(e:Element)=>e.getBoundingClientRect();const owner=element.parentElement!;const headers=Array.from(element.querySelectorAll("th"));return {document:document.documentElement.scrollWidth,table:box(element).width,owner:owner.clientWidth,lastColumn:box(headers.at(-1)!).width,aligned:Array.from(element.querySelectorAll("tbody tr")).every(row=>Array.from(row.children).every((cell,index)=>Math.abs(box(cell).x-box(headers[index]).x)<=1&&Math.abs(box(cell).width-box(headers[index]).width)<=1)),buttons:Array.from(element.querySelectorAll("tbody button")).map(button=>({width:box(button).width,height:box(button).height,cell:box(button.closest("td")!).width}))};});
+    expect(geometry.document).toBeLessThanOrEqual(width);expect(geometry.table).toBeLessThanOrEqual(Math.max(680,geometry.owner)+1);expect(geometry.lastColumn).toBeGreaterThanOrEqual(130);expect(geometry.aligned).toBe(true);geometry.buttons.forEach(button=>{expect(button.height).toBe(40);expect(button.width).toBeLessThanOrEqual(button.cell-16);});
+    const target=table.getByRole("button").first();await section.getByRole("combobox").first().focus();for(let step=0;step<10&&!await target.evaluate(element=>element===document.activeElement);step++)await page.keyboard.press("Tab");await expect(target).toBeFocused();
+    expect(await target.evaluate(element=>{const r=element.getBoundingClientRect(),owner=element.closest("table")!.parentElement!.getBoundingClientRect();const inset=Math.max(3,parseFloat(getComputedStyle(element).outlineWidth)||0);return r.left-inset>=owner.left&&r.right+inset<=owner.right;})).toBe(true);
+  }
 });
 
 test("Issue #538: 비활성 사업부·제품으로 신규 하위 분류 선택 불가", async ({page}) => {
