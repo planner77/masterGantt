@@ -556,3 +556,7 @@ readonly/401/409/412·pending/dirty·응답역전에서 기존 Editor 초안·�
 `DELETE`는 `project_issues` 행을 삭제하지 않고 lifecycle_state='DELETED', deleted_at·updated_at을 설정. 전체 목록/검색/summary/KPI에서 삭제 상태 필터를 공통 적용한다. Task·Resource 원본 FK 삭제는 해당 Issue 연결만 NULL, 이름/설명 보존. Project 자체 삭제/백업은 이전처럼 ON DELETE CASCADE를 따른다. 삭제 Issue 재열람/일반 복구/credential reset 경로는 제공하지 않는다.
 
 Issue 내용 텍스트는 HTML 실행 없이 React escape하며 본문 raw URL은 그대로 저장한다. 폼에서 별도 링크 미리보기는 제거했다. 일반 링크 렌더링을 다시 도입할 경우 http(s) 프로토콜/rel=noopener noreferrer 및 XSS 음성 검증 필수. no-store, scoped project read grant, If-Match CAS, DTO에 salt/hash 미포함, 로그에 원문/해시/입력 body 미기록을 유지한다.
+
+### #849 업무 상태 변경의 인증·삭제 보호
+
+상태 변경(등록/진행 중/완료)은 다른 Issue 본문 변경과 동일한 보안 mutation이다. #846 개별 Issue 비밀번호(또는 Project 편집 권한자의 별도 credential initialize/reset)·private Project read gate·Origin·strong If-Match·credential 재검증·request ID/rate limit을 우회하지 않는다. 업무 `issue_status`와 논리 `lifecycle_state`는 완전히 독립이고 DELETED는 모든 보통 조회·상태별 KPI에서 제외된다. 구 `completed`와 완료일을 호환 유지하되 API 입력 모순은 400, DB 직접 쓰기 모순은 0034 trigger에서 실패한다. 새로운 상태 선택으로 Task/Gantt 또는 Project 수정 권한을 부여하지 않는다.

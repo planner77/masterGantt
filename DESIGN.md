@@ -386,10 +386,10 @@ Milestone 관리·날짜·소속 Task 탐색은 Gantt marker 없이도 항상 �
 추후 상단 Timeline marker는 [#693](https://github.com/planner77/masterGantt/issues/693)의 **선택적인 별도 단계**로만 활성화하며 처음에는 OFF여야 한다. #573의 접근성/390px/날짜축 gate 및 실제 rollback 검증 전 기본 ON으로 출시하지 않는다. 같은 화면에 native Milestone 행과 marker를 중복 노출하지 않는다. 기존 token/flat density/keyboard/focus 원칙은 유지하고 새 시각 테마를 만들지 않는다.
 
 
-### Project Issue peer workspace — Issues #838–#840 (2026-10-28)
+### Project Issue peer workspace — Issues #838–#840 / #846 / #849 (2026-10-29)
 
 Project Workspace 상위 peer 탭은 **일정 / Issue / 대시보드 / 기준정보** 순서를 따른다. Issue는 Task 일정·Milestone·기준정보의 새 하위 탭이 아닌 독립 Project Issue 조회/편집 화면이다. 탭 전환은 기존 SVAR Gantt instance·viewport·scale·selection·dirty 상태를 재생성/변경하지 않는다. 직접 URL screen=issue 복귀·focus·aria-controls/tabpanel·키보드 ArrowRight/Left/Home/End를 제공한다.
 
-Issue는 **compact toolbar(전체 완료 KPI + 등록) → 검색 조건(문구/완료 상태) → 목록 → 하단 pagination** 순서로 배치한다. 완료 N / 전체 M (%)는 페이지/검색과 무관하게 전체 프로젝트 분모. 목록은 Issue명/완료여부/담당자/발생일/완료일을 사용하고, 긴 Issue명은 가용 너비를 흡수하며 나머지 metadata는 intrinsic min width와 표 내부 가로 스크롤을 사용한다. 검색·페이지 크기 변경은 첫 페이지로 복귀한다.
+Issue는 **compact toolbar(전체/완료/진행 중/등록 건수·비율 + 등록 명령) → 검색 조건(문구/업무 상태) → 목록 → 하단 pagination** 순서로 배치한다. 상태별 건수와 비율은 페이지/검색과 무관한 삭제 제외 전체 프로젝트 분모(T=C+P+R, 0건 0.0%). 목록은 Issue명/상태/담당자/발생일/완료일을 사용하고, 긴 Issue명은 가용 너비를 흡수하며 나머지 metadata는 intrinsic min width와 표 내부 가로 스크롤을 사용한다. 검색·상태·페이지 크기 변경은 첫 페이지로 복귀한다. 상태 기본 검색·초기화는 등록+진행 중이며, 전체/각 상태를 조회할 수 있다.
 
-등록/수정은 필요할 때 여는 detail form이며 제목/등록일/등록자·담당자/발생일/완료 체크+날짜/**관련 Task → Issue 내용 multiline** 순서로 표시한다. Issue 내용 원문과 URL을 그대로 보존하되 별도 '링크 미리보기' 영역은 제거한다. 자원/Task 직접 입력과 검색 선택 ID/이름을 구별한다. 신규 등록에는 Issue 비밀번호+확인, 보호 Issue 수정·삭제에는 해당 비밀번호, 기존 레코드 초기화·분실 재설정에는 Project 편집 세션+실제 Project 비밀번호를 명시적으로 요구한다. 삭제는 경고·확인 후 논리 상태 전환이며 목록/완료 KPI에서 제외한다. 비밀번호·오류·readonly/pending·409/412/429 안내, Escape/Tab/focus restore를 compact UI로 제공한다. 390/768/1024/1440/1920px·키보드·스크린리더 label·coarse pointer 확인을 필요로 한다. 공통 시각 디자인 토큰/전역 Layout 규칙은 변경하지 않는다. 세부 [#846 Issue 가이드](docs/PROJECT_ISSUES_USER_GUIDE.md).
+등록/수정은 필요할 때 여는 detail form이며 제목/등록일/등록자·담당자/발생일/상태 선택(등록·진행 중·완료)+조건부 완료일/**관련 Task → Issue 내용 multiline** 순서로 표시한다. Issue 내용 원문과 URL을 그대로 보존하되 별도 '링크 미리보기' 영역은 제거한다. 자원/Task 직접 입력과 검색 선택 ID/이름을 구별한다. 신규 등록에는 Issue 비밀번호+확인, 보호 Issue 수정·삭제에는 해당 비밀번호, 기존 레코드 초기화·분실 재설정에는 Project 편집 세션+실제 Project 비밀번호를 명시적으로 요구한다. 삭제는 경고·확인 후 논리 상태 전환이며 목록/상태별 KPI에서 제외한다. 비밀번호·오류·readonly/pending·409/412/429 안내, Escape/Tab/focus restore를 compact UI로 제공한다. 390/768/1024/1440/1920px·키보드·스크린리더 label·coarse pointer 확인을 필요로 한다. 공통 시각 디자인 토큰/전역 Layout 규칙은 변경하지 않는다. 세부 [#846 Issue 가이드](docs/PROJECT_ISSUES_USER_GUIDE.md).

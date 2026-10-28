@@ -1863,20 +1863,21 @@ exact 모드의 잘못된 Assignment/Task/resource 조합·Group·일반 Task가
 사용자 경로는 Resource–Target 상세의 정확한 개인 배정 편집이다. 조회 selector/path는 저장 대상 ID가 아니며 변경 후 report는 새 canonical revision으로 재조회하거나 stale로 잠근다. [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 실제 server/HTTP/Chromium 검증과 미검증을 기록한다.
 
 
-## Project Issues API — #838–#840 / #846
+## Project Issues API — #838–#840 / #846 / #849
 
 별도의 프로젝트 Issue(현장 이슈) API. 프로젝트 read gate는 기존 정책을 유지한다. GET는 공개 Project만 무인증 허용, 비공개는 유효 Project edit session 요구. 모든 쓰기는 정확 Origin, bounded UTF-8 JSON, strong If-Match: "projectRevision", Cache-Control: private, no-store 및 request ID를 사용한다.
 
 | Method | Endpoint | 요청·권한 / 결과 |
 |---|---|---|
-| GET | /api/projects/{publicId}/issues?q=&status=all/open/completed&page=1&limit=10/20/50/100 | 조회 가능한 프로젝트의 삭제되지 않은 Issue 검색·page/summary; `ProjectIssueDto.credentialState`는 `protected`/`unconfigured`만 노출 |
-| POST | /api/projects/{publicId}/issues | Project edit session 필수; 기존 `ProjectIssueInput` 11필드 + `issuePassword`/ `confirmIssuePassword`(8~128자), 201 반환 |
-| PATCH | /api/projects/{publicId}/issues/{issueId} | 기존 `ProjectIssueInput` 11필드 + `issuePassword`; **해당 Issue 비밀번호 필수** (Project edit session 불필요, 단 비공개 프로젝트 read gate 유지). 200 |
+| GET | /api/projects/{publicId}/issues?q=&status=all/open/registered/in_progress/completed&page=1&limit=10/20/50/100 | 조회 가능한 프로젝트의 삭제되지 않은 Issue 검색·page/summary(전체·완료·진행 중·등록); `status` 생략 시 호환 기본 all, `open`은 등록+진행 중; `ProjectIssueDto.status`는 registered/in_progress/completed; `ProjectIssueDto.credentialState`는 `protected`/`unconfigured`만 노출 |
+| POST | /api/projects/{publicId}/issues | Project edit session 필수; 기존 11필드 + 선택적 업무 `status`(기본 registered; 이진 레거시 입력이면 completed에 따라 유도) + `issuePassword`/ `confirmIssuePassword`(8~128자), 201 반환 |
+| PATCH | /api/projects/{publicId}/issues/{issueId} | 기존 11필드 + 선택적 `status` + `issuePassword`; **해당 Issue 비밀번호 필수** (Project edit session 불필요, 단 비공개 프로젝트 read gate 유지). 200 |
 | DELETE | /api/projects/{publicId}/issues/{issueId} | JSON `{ "issuePassword": "..." }` + 해당 Issue 인증, 서버 `lifecycle_state=DELETED/deleted_at`, 200 `{data:{projectRevision,deleted:true}}`. 이미 삭제/다른 Project ID는 404 |
 | PATCH | /api/projects/{publicId}/issues/{issueId}/credential | Project edit session **및 현재 프로젝트 편집 비밀번호** 모두 필요; `{operation:"initialize"|"reset",projectPassword,newPassword,confirmPassword}`, 200. 기존 무비밀번호 Issue는 initialize만, 보호 Issue는 reset만 가능. 본문 쓰기 권한 대체 불가 |
 
-`ProjectIssueInput` = title, description, reporterName, reporterResourceId(UUID|null), assigneeName, assigneeResourceId(UUID|null), occurredOn(YYYY-MM-DD), completed(boolean), completedOn(YYYY-MM-DD|null), relatedTaskId(UUID|null), relatedTaskText. 생성/수정시각·Issue UUID는 서버 소유. Task·Resource ID는 프로젝트 범위 검증. 완료↔완료일 CHECK 유지. Issue별 password 원문·hash/salt/kdf는 **DTO/GET 응답과 로그에서 제외**되며 서버 DB 전용이다.
+`ProjectIssueInput` = title, description, reporterName, reporterResourceId(UUID|null), assigneeName, assigneeResourceId(UUID|null), occurredOn(YYYY-MM-DD), completed(boolean), completedOn(YYYY-MM-DD|null), relatedTaskId(UUID|null), relatedTaskText; #849 선택적 `status`(registered|in_progress|completed). status가 없으면 기존 completed=true→completed, false→registered; 명시 status는 completed/완료일과 모순 시 400. 생성/수정시각·Issue UUID는 서버 소유. Task·Resource ID는 프로젝트 범위 검증. 완료↔완료일 CHECK 및 status↔completed/완료일 trigger 유지. Issue별 password 원문·hash/salt/kdf는 **DTO/GET 응답과 로그에서 제외**되며 서버 DB 전용이다.
 
 - 모든 Issue 변경은 SQLite IMMEDIATE transaction에서 credentials 상태/프로젝트 revision 및 project-private read grant를 다시 확인하고 `projects.revision`을 CAS advance한다. Project edit session은 POST/credential-management에만 수정 권한을 부여한다. Issue Password는 Task, Resource, WBS 등의 mutation 권한이 아니다.
-- 삭제된 Issue는 전체 KPI COUNT, 완료 numerator, 검색, 전체/미완료/완료, pagination, 수정 응답에서 제외. 삭제 상태 필터는 추가하지 않는다. 동일 DELETE 반복은 일반 경계의 404이며 DB 레코드는 보존한다.
+- 삭제된 Issue는 상태별 전체 KPI COUNT, 세 상태별 numerator, 검색, open/all/registered/in_progress/completed, pagination, 수정 응답에서 제외. 삭제 상태 필터는 추가하지 않는다. 동일 DELETE 반복은 일반 경계의 404이며 DB 레코드는 보존한다.
+- #849 조회 응답 `data.summary={total,completed,inProgress,registered}`는 같은 SQLite deferred read transaction의 Project 전체 삭제 제외 모집단으로 계산된다. `total=completed+inProgress+registered`; 0건은 0/0.0%. 필터링된 `data.total`/pages/rows는 summary와 별개다. 목록 기본 open은 UI가 status=open을 명시 전송하고, legacy GET에서 status 생략은 계속 all이다. 신규 Issue 기본 status=registered, 완료 선택 시 Asia/Seoul 완료일을 기본값으로 넣고 상태 전환 때 완료일을 지운다.
 - 400 INVALID_ISSUE (입력/비밀번호 형식), 401 PROJECT_LOCKED/EDIT_SESSION_REQUIRED/ISSUE_PASSWORD_INVALID/ISSUE_MANAGER_PASSWORD_INVALID, 403 ORIGIN_NOT_ALLOWED, 404 PROJECT_NOT_FOUND/ISSUE_NOT_FOUND, 409 ISSUE_PASSWORD_NOT_SET/ISSUE_CREDENTIAL_STATE_CONFLICT, 412 REVISION_MISMATCH, 413 REQUEST_TOO_LARGE, 415 UNSUPPORTED_MEDIA_TYPE, 428 PRECONDITION_REQUIRED, 429 ISSUE_PASSWORD_RATE_LIMITED(Retry-After), 503 ISSUE_AUTH_BUSY 등을 구분한다. Error requestId는 제공하되 비밀번호 값은 제외한다.
