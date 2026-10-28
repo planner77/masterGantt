@@ -34,12 +34,12 @@ Primary Issue: [#846](https://github.com/planner77/masterGantt/issues/846)
 기존 같은 이름 테스트라 하더라도 Project auth / Browser E2E / SQLite FK / migration checksum / Private read boundary는 독립 관찰이므로 RETIRE/skip/assertion 완화 불가. 신규 delete/status variant는 기존 CRUD 검증을 대체하지 않는다. `docs/TEST_PLAN.md` 5,617행 원본 Blob을 검증하여 삭제 없이 #846 AC 표를 append했고 원본 0032 migration을 변경하지 않았다.
 
 ## 4. Failure history·validation gate
-- #846 전용 기존 PR/CI 실패: **관측 없음**, 신규 실패는 [누적 실패 원장](../../ISSUE_846_FAILURE_ANALYSIS.md)에 HEAD/Run/Attempt/Job+원본 증거와 미실행·파생 실패를 구분해 기록.
+- #846 PR #848 Run #3383.1 (`40667716755`) **QA Preflight 직접 FAIL**: Work Packet의 `## DOCUMENTATION_SYNC`/`## AC_TEST_COVERAGE` 정확 제목+`- `path`: UPDATED/N/A(...)` 기록 부재. 코드 품질·단위·브라우저·Docker는 **SKIPPED**이고 Required 3종/QA 자동은 파생 FAIL; 전용 [누적 실패 원장](../../ISSUE_846_FAILURE_ANALYSIS.md)에 원본 Job IDs와 reviewer findings 기록.
 - #838–#840 PR #841의 과거 실패: migration 32 schema/route exact inventories, fixture FK, 4-peer UX 키보드; 현재 migration 33과 DELETE/credential 새 route를 고려하여 직접/간접 시험 파일을 보존. 과거 #841 실패를 #846 원격 실패로 오인하지 않는다.
 - **Local Test/Build/Browser**: GitHub connector environment에는 npm checkout/SQLite runtime이 없어 **NOT EXECUTED**. 새 PR HEAD의 Required Quality/Chromium8/Docker/Trusted QA 원격 증거 이전 **NOT TESTED**; 해당 결과를 성공으로 소급 금지. 실제 Main/GHCR/Finalizer 미실행.
-- PR 작성 이후 open review threads 0/P1P2 0, current main conflict 여부를 원격 API로 확인. 문제 발견 시 우선 해결·commit 후 새 exact HEAD PR CI. CI 시작 후 **모니터링 없음**.
+- PR #848 시작 HEAD `dcb240562bc32ab2d503b2ff368990bc17b4dc9d`에서 Codex P1/P2 리뷰 2건이 발견되어 stale POST fixture와 Project password unlock policy를 수정 대상으로 분류. 변경 전 main behind=0/mergeable=true; 수정 뒤 최신 main/리뷰 스레드 재검사 및 정확 새 HEAD Full PR CI 시작. 새 Run은 시작 자체만 확인하고 결과 **모니터링 없음**.
 
-## 5. DOCUMENTATION_SYNC
+## DOCUMENTATION_SYNC
 | 경로 | 적용 |
 |---|---|
 | `AGENTS.md` | UPDATED: 최초 #838 session-only 정책에 #846 예외/최신 계약 명시 |
@@ -54,6 +54,40 @@ Primary Issue: [#846](https://github.com/planner77/masterGantt/issues/846)
 | `docs/CI_CD.md`, `docs/QA_REVIEW_POLICY.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md` | N/A: CI workflow/Required/QA/Release/remote evidence policy 변경 없음 |
 | `docs/SCHEDULING_ENGINE.md` | N/A: Gantt/WBS 계산 엔진 변경 없음 |
 | `CHANGELOG.md`, `package*.json` | N/A: Owner로부터 정식 릴리스 승인/버전 범위 미요청, PR만 시작 |
+
+### QA Preflight 형식 계약 — 정확한 영향 기록
+
+기존 표는 작업자용 의미 설명으로 유지한다. 자동 Preflight `scripts/qa_final_automated.py::docs_gate`의 exact section/line format은 아래 별도 항목으로 충족한다. 정책 N/A는 변경되지 않은 CI/QA 규칙을 임의 완화한다는 의미가 아니다.
+
+- `AGENTS.md`: UPDATED
+- `DESIGN.md`: UPDATED
+- `docs/API.md`: UPDATED
+- `docs/ARCHITECTURE.md`: UPDATED
+- `docs/DB_SCHEMA.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/SECURITY.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/PROJECT_ISSUES_USER_GUIDE.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_846.md`: UPDATED
+- `docs/ISSUE_846_FAILURE_ANALYSIS.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(Owner-managed QA and trusted approval gates unchanged)
+- `docs/CI_CD.md`: N/A(Full PR CI and required Quality E2E Docker checks unchanged)
+- `docs/GITHUB_OPERATIONS.md`: N/A(PR review merge and release operations remain unchanged)
+- `docs/REMOTE_VALIDATION.md`: N/A(Remote exact Head and run attempt evidence requirements unchanged)
+- `docs/SCHEDULING_ENGINE.md`: N/A(Issue-only data changes never mutate canonical scheduling engine)
+- `docs/IMPORT_EXPORT.md`: N/A(Project import export semantics and formats are unchanged)
+- `docs/IMPORT_SCHEMA.md`: N/A(Issue ledger remains excluded from project import/export)
+- `docs/EXCEL_EXPORT.md`: N/A(Excel schedule and resource exports are outside this change)
+
+## AC_TEST_COVERAGE
+
+- AC1: Extend tests/server/projects/project-issues.test.ts for new per-Issue salt, scrypt payload validation, no GET verifier disclosure, legacy UNSET initialize/reset, credential audit. Browser project-issues.spec.ts verifies password confirmation.
+- AC2: Extend tests/server/projects/project-issues.test.ts for correct Issue password without Project edit session on public Project, wrong/other password, private read gate, project edit token not bypassing Issue credentials.
+- AC3: Extend Issue service and browser E2E for preserved SQL tombstone, deleted_at, exclusion from all status/query/pagination/KPI, and three filter values all/open/completed unchanged.
+- AC4: Extend Issue HTTP service tests for Origin, stale 412, wrong Project references, duplicate DELETE, reset and revision revalidation; migrations/index/route security snapshots advanced to version 33. Production backup/restore remains NOT TESTED.
+- AC5: Extend tests/e2e/project-issues.spec.ts to verify Task field before multiline Issue description, no link preview, original Task search, completion toggle, password and delete confirmation without changing Gantt state.
+- AC6: Extend tests/e2e/project-issues.spec.ts for 390/768/1024/1440/1920 dialog bounds, keyboard Escape/focus restoration, 401 error. Native screenreader and real mobile remain NOT TESTED.
+- AC7: AGENTS.md, DESIGN.md, API, ARCHITECTURE, DB_SCHEMA, SECURITY, PROJECT_UX, TEST_PLAN, Issue user guide, Work Packet and cumulative failure log updated; TEST_LIFECYCLE_REVIEW existing cases EXTEND and independent auth/Task/Gantt KEEP_UNIQUE, no test RETIRE.
 
 ## 6. 비기능 및 잔여 위험
 - Database operational backup/restoration, replication/shared limiter, Playwright multiple widths/real mobile/voiceover/accessibility 및 현장 QA는 원격 PR CI만으로 검증되지 않음.
