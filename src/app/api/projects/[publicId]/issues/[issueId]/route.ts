@@ -8,7 +8,7 @@ import { handleProjectIssues } from "@/server/projects/project-issue-handlers-co
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 interface RouteContext { params: Promise<{ publicId: string; issueId: string }> }
-export async function PATCH(request: Request, context: RouteContext): Promise<Response> {
+async function handle(request: Request, context: RouteContext): Promise<Response> {
   const { publicId, issueId } = await context.params;
   return withApiRequestLogging(request, {
     route: "/api/projects/[publicId]/issues/[issueId]", trustProxy: process.env.TRUST_PROXY,
@@ -18,3 +18,6 @@ export async function PATCH(request: Request, context: RouteContext): Promise<Re
     requestId: () => requestId,
   }, issueId));
 }
+
+export const PATCH = handle;
+export const DELETE = handle;
