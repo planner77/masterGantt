@@ -343,8 +343,8 @@ export class ProjectIssueService {
       const project = this.currentReadProject(publicId, expectedRevision, readAuthorization);
       this.requireUnchangedIssue(project.id, issueId, initial);
       const result = this.database.prepare(
-        "UPDATE project_issues SET lifecycle_state='DELETED', deleted_at=?, updated_at=? WHERE project_id=? AND public_id=? AND lifecycle_state='ACTIVE'"
-      ).run(nowText, nowText, project.id, issueId);
+        "UPDATE project_issues SET lifecycle_state='DELETED', deleted_at=? WHERE project_id=? AND public_id=? AND lifecycle_state='ACTIVE'"
+      ).run(nowText, project.id, issueId);
       if (result.changes !== 1) throw new PublicApiError(404, "ISSUE_NOT_FOUND", missingMessage);
       return { data: { projectRevision: this.advance(project.id, expectedRevision, nowText), deleted: true as const } };
     }).immediate();
