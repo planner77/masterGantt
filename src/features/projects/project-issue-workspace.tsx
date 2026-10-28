@@ -94,8 +94,13 @@ export function ProjectIssueWorkspace({
     const params = new URLSearchParams({
       q: query, status, page: String(page), limit: String(limit),
     });
-    setLoading(true);
-    setLoadError(null);
+    // Reflect the pending network operation from an asynchronous callback,
+    // not synchronously inside the React effect body.
+    void Promise.resolve().then(() => {
+      if (!mounted) return;
+      setLoading(true);
+      setLoadError(null);
+    });
     fetch(rootPath + "?" + params.toString(), { cache: "no-store", signal: controller.signal })
       .then(async response => {
         const body: unknown = await response.json();
@@ -125,7 +130,6 @@ export function ProjectIssueWorkspace({
     const controller = new AbortController();
     let mounted = true;
     const name = personPicker === "reporter" ? form.reporterName : form.assigneeName;
-    setResourceError(null);
     const params = new URLSearchParams({ scope: "project", q: name, limit: "100" });
     fetch("/api/projects/" + encodeURIComponent(publicId) + "/resource-memberships?" + params.toString(),
       { cache: "no-store", signal: controller.signal })
@@ -227,10 +231,10 @@ export function ProjectIssueWorkspace({
       <div className={styles.inline}>
         <input id={"project-issue-" + nameKey} type="text" maxLength={120}
           value={form[nameKey]} disabled={locked}
-          onChange={event => updateForm({ [nameKey]: event.target.value, [idKey]: null })} />
+          onChange={event => { updateForm({ [nameKey]: event.target.value, [idKey]: null }); setResourceError(null); }} />
         <button className="secondary-button" type="button" disabled={locked}
           aria-expanded={selected} aria-controls={"project-issue-picker-" + kind}
-          onClick={() => { setPersonPicker(selected ? null : kind); setResources([]); }}>
+          onClick={() => { setPersonPicker(selected ? null : kind); setResources([]); setResourceError(null); }}>
           리소스 검색
         </button>
       </div>

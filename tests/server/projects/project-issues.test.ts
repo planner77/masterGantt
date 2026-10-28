@@ -89,6 +89,7 @@ describe("#838-#840 project Issue persistence and API", () => {
     for (let index = 0; index < 22; index++) {
       f.service.mutate(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
         title: "문제 " + String(index).padStart(2, "0"),
+        description: "재발 상황 " + index,
         completed: index < 11, completedOn: index < 11 ? "2026-10-28" : null,
       })));
     }
