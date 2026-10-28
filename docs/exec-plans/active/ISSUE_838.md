@@ -41,8 +41,17 @@
 GitHub Issue 동기화, 다중 Task 연결, 첨부·댓글, JSON/Excel 파이프라인 신규 계약 및 Scheduler/Gantt 내부 변경.
 
 
+
+## Release-target semantics (Owner-requested)
+
+- Target application version: `0.137.0`; the current main `0.136.0` version is incremented exactly once in `package.json`, `package-lock.json` and `CHANGELOG.md` to require one formal release for the integrated three-Issue product feature.
+- `release_required=true`, `release_authorized=true` is grounded in the user's explicit 2026-10-28 request for a one-time GHCR publication and batch closure. This is **not** a substitute for actual Owner issue-comment `mastergantt-release-authorization:v1` for exact `expected_version=0.137.0`, nor for certified Main image digest and immutable version tag.
+- Formal release must happen once through shared Generic Finalizer after latest exact PR/Main CI and Owner Manager ACCEPT; no PR preview image promotion or hand-created one-off release job.
+- Do not mark #838/#839/#840 CLOSED until verified release `0.137.0`, OCI digest, Finalizer completion and corresponding exact Issue FINAL evidence. Sub-issues #839/#840 may need explicit post-verified bulk closure with links to the primary release receipt.
+
 ## DOCUMENTATION_SYNC
 
+- `CHANGELOG.md`: UPDATED (0.137.0 consolidated release entry)
 - `AGENTS.md`: UPDATED
 - `DESIGN.md`: UPDATED
 - `docs/API.md`: UPDATED

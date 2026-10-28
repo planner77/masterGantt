@@ -1,3 +1,16 @@
+## [0.137.0] — Unreleased / Issues #838–#840 Project Issue 모듈 (2026-10-28)
+
+### Added
+
+- 프로젝트 일정 옆 **Issue** 상위 탭에서 Task 관련 Issue를 독립 원장으로 등록·수정·조회한다. 제목, 서버 등록일, 등록자·담당자 직접입력/리소스 검색, 발생일, 완료 체크/완료일, HTTP(S) 링크 자동 생성 가능한 multiline 내용, 관련 Task 직접입력/검색을 지원한다.
+- 프로젝트 전체 Issue 완료 건수/발생 건수/완료율 KPI, 제목·내용·사람·Task/완료여부 검색, 페이지당 10·20·50·100건의 안정 정렬 및 페이지네이션.
+- 프로젝트 공개/비공개 조회 및 기존 편집 세션·strong If-Match·Origin 보안, 프로젝트 범위 FK와 Task/리소스 원본 삭제 시 사람/Task명 스냅샷 보존, SQLite migration 0032, API/도메인/브라우저·DB 테스트.
+
+### Migration / Validation
+
+- DB schema version 0032 (forward-only). 기존 Issue 데이터가 없는 새 기능이므로 기존 일정 데이터의 의미 변경은 없다. 사용 전 SQLite 백업/복구 계획을 유지한다.
+- Full PR 8-shard E2E/Quality/Docker, Trusted QA, Owner Managed HIGH 수용, Main candidate and one formal GHCR v0.137.0 release required. **NOT VERIFIED** until exact CI and finalizer evidence.
+
 ## [0.136.0] — Unreleased / Issue #822 일정 세로 밀도 후보 (2026-10-27)
 
 ### Added

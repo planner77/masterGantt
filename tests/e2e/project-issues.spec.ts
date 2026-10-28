@@ -73,6 +73,8 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
 
   await page.goto("/projects/" + publicId);
   const gantt = page.locator(".project-gantt-frame");
+  // DOM existence does not imply the SVAR viewport API has completed init.
+  await expect(gantt).toHaveAttribute("data-project-gantt-api-instance", /.+/);
   const originalInstance = await gantt.getAttribute("data-project-gantt-api-instance");
   const tabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
   await expect(tabs.getByRole("tab")).toHaveText(["일정", "Issue", "대시보드", "기준정보"]);
