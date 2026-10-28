@@ -1,3 +1,12 @@
+
+## Issues #838–#840 — Project Issue 탭 및 Issue 원장 (2026-10-28)
+
+- Project Issue는 GitHub 개발 Issue 및 WBS Task/Milestone과 다른 **프로젝트 범위의 독립 원장**이다. 일정 옆 네 번째 상위 peer 순서는 **일정 / Issue / 대시보드 / 기준정보**다. WBS 원본·Task 상태·Gantt scroll/selection/scale은 탭 전환만으로 변경하지 않는다.
+- 사용자가 Issue를 등록/수정할 때는 기존 Project edit session·Origin·정확 strong If-Match/revision을 검사하고 SQLite transaction에서 session을 다시 검증한다. 공개 Project만 무인증 조회가 가능하고 비공개 조회는 기존 project read gate를 따른다. 별도 권한이나 임의 Resource 등록을 만들지 않는다.
+- 서버가 등록/수정 시간을 소유한다. 발생일 기본값/완료 체크 시 자동 일자는 Asia/Seoul이며 완료 체크·완료일은 불변식으로 처리한다. Task·Resource 선택 시 프로젝트·원본 ID를 검사한다. 삭제 시 FK 연결 해제와 작성 당시 이름/텍스트 보존을 구분한다.
+- 조회는 전체 분모 기반 KPI와 검색 결과 수를 구분하며 페이지당 10/20/50/100; 내용의 HTTP(S) 링크는 React 이스케이프와 프로토콜 검사로만 렌더링한다. 기존 DESIGN.md compact controls/name-first/focus/scroll-owner와 Project Workspace 상태 계약을 상속한다.
+- 통합 구현 #838/#839/#840, 동일 PR, **정식 GHCR 최종 1회 및 일괄 종료**. QA OWNER_MANAGED는 독립 인간 리뷰 의무를 대체할 뿐 실제 Required Quality/E2E8/Docker·Trusted QA·P1/P2 미해결 thread 0·strict main·원본 Main CI/OCI/Release Finalizer·Owner exact-version 승인·버그 수정은 우회하지 않는다. 세부 계약 [통합 Work Packet](docs/exec-plans/active/ISSUE_838_840.md), [사용자 가이드](docs/PROJECT_ISSUES_USER_GUIDE.md), [QA](docs/QA_REVIEW_POLICY.md).
+
 ## Issue #711 — Test Suite Lifecycle 사전 검색·중복/폐기 방지 (2026-10-23)
 
 모든 Issue/PR 구현자는 변경할 AC/입출력·음성·보안·SQLite/경합·브라우저 위험을 식별한 다음 **기존 Vitest/Playwright/Policy 테스트의 시나리오와 assertion을 먼저 검색**하고, Work Packet/PR의 `TEST_LIFECYCLE_REVIEW`에 `ADD/EXTEND/KEEP_UNIQUE/PARTIAL_OVERLAP/CONSOLIDATE_CANDIDATE/RETIRE_CANDIDATE` 판단·검색 경로·근거·실행/미실행과 잔여 위험을 기록한다. 기존 `AC_TEST_COVERAGE`와 연결하고 중복 표를 만들지 않는다. **정책 Source of Truth는 [Test Lifecycle](docs/TEST_PLAN.md)**, 최초 후보·수집기/시범 감사는 [Issue #711 Inventory](docs/TEST_LIFECYCLE_INVENTORY_711.md), 단계·QA gate는 [Issue Lifecycle](docs/ISSUE_LIFECYCLE.md)다.

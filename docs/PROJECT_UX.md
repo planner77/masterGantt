@@ -1766,3 +1766,10 @@ KPI 진단에서 공정·WorkArea→owner 공정·설비·물류 시스템 원�
 생성 성공 후 같은 새 Milestone ID의 기존 Editor를 연다. 현재 조건으로 목록에서 제외될 수 있다는 안내를 제공하고 목록 조건을 자동 초기화하지 않는다. 저장·취소 후 원래 Dashboard/유효 trigger로 초점을 복원하며 trigger가 사라지면 현재 관리 검색·추가 버튼·제목 순으로 유효한 대상을 찾아 복원한다. 원본/Task/Assignment 명령은 동일 snapshot의 정확 경로를 검증한 뒤 기존 editor host로 연결한다. readonly/dirty/pending·401/412/stale·필터 탈락을 새 우회 흐름으로 해결하지 않는다. marker OFF와 native Grid/Chart Milestone 행 분리, Gantt 인스턴스/viewport writer는 그대로다.
 
 세부 보존표·검증 상태·문서 영향은 [#732 Work Packet](exec-plans/active/ISSUE_732.md)을 따른다.
+
+
+## Project Issue 상위 탭 (#838–#840, 2026-10-28)
+
+프로젝트 상위 탭은 일정 / **Issue** / 대시보드 / 기준정보다. Issue는 일정/Gantt의 새 Task 유형이 아니라 프로젝트별 독립 문제 원장이다. 생성/상세 편집과 필터·페이지·조회 결과는 Issue 탭 자체가 소유한다. 다른 탭으로 이동해도 기존 Gantt instance와 뷰포트 상태를 보존한다.
+
+Issue 탭: 전체 Issue 완료 KPI(필터와 독립), 제목·내용·등록자·담당자·Task 문자열 검색 및 완료 상태, 최신순 목록 5열, 10/20/50/100 페이지 크기. 검색 조건/limit 변경 시 페이지=1. 등록/수정 폼은 읽기 전용/권한 부족/동시성 충돌을 명시하며, 등록일 서버 소유·발생일 수정·완료체크/날짜 일치·설명 URL 안전 링크를 지원한다. Task/리소스의 원본 ID는 검색·선택일 때만 연결하고 직접 입력은 스냅샷 텍스트로 보존한다. 모듈 사용 설명은 [사용자 가이드](PROJECT_ISSUES_USER_GUIDE.md).

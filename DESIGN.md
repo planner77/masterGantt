@@ -205,7 +205,7 @@ Table이 아닌 Resource/Admin list·card·pane도 **명시적 geometry budget**
 
 ### Project Workspace
 
-- compact project context + `일정 / 대시보드 / 기준정보` 상위 peer tabs + workspace toolbar + 업무 작업면 구조를 유지한다.
+- compact project context + `일정 / Issue / 대시보드 / 기준정보` 상위 peer tabs + workspace toolbar + 업무 작업면 구조를 유지한다.
 - 대시보드 하위는 `KPI / Milestone / 공정&WorkArea / 설비 / 물류 시스템 / 리소스`, 기준정보 하위는 `공정&WorkArea / 설비 / 물류 시스템 / 리소스` 순서다. 일정은 전체 WBS가 기본이며 열린 Summary 범위 탭과 명시적인 `전체 일정 보기` 명령을 제공한다. 중복 `전체 프로젝트` 하위 탭은 두지 않는다.
 - 관리와 분석을 탐색에서 구분한다. 기준정보는 원본 등록·수정, 대시보드는 조회·정확한 원본 편집으로 이동하는 경로다. 같은 엔터티의 ID/API/editor를 재사용하며 조회용 계층을 저장 WBS로 만들거나 기준정보·Task·Assignment를 복제하지 않는다.
 - WBS Task가 중심 원장이다. 공정·WorkArea·설비·시스템은 같은 작업을 읽는 관점이며 기준정보 트리를 별도 일정으로 만들지 않는다. 공정의 WorkArea0..N과 설비의 다중 WorkArea0..N을 구분하고, Task의 명시 공정0..N은 구성 관계에서 자동 채우지 않는다. 구역 미연결·공정 미선택은 정상 상태이며 가짜 기본 항목을 생성하지 않는다. 설비가 여러 구역과 관련돼도 원본 수량은 고유 설비 기준으로 유지한다.
@@ -384,3 +384,12 @@ UI/UX 관련 Skill을 **실제로 사용**해 화면을 설계·구현·검토�
 Milestone 관리·날짜·소속 Task 탐색은 Gantt marker 없이도 항상 접근 가능해야 한다. 사용자가 marker OFF 상태에서 '해당 날짜에서 보기'를 요청하면 숨은 native 행이나 일시 marker 활성화에 의존하지 않고 기존 Dashboard·Task로 명시적으로 안내한다. 표시 전환은 원본 Stage Gate, 일정, Link, Resource/Target 집계, 권한·Export를 바꾸지 않는다.
 
 추후 상단 Timeline marker는 [#693](https://github.com/planner77/masterGantt/issues/693)의 **선택적인 별도 단계**로만 활성화하며 처음에는 OFF여야 한다. #573의 접근성/390px/날짜축 gate 및 실제 rollback 검증 전 기본 ON으로 출시하지 않는다. 같은 화면에 native Milestone 행과 marker를 중복 노출하지 않는다. 기존 token/flat density/keyboard/focus 원칙은 유지하고 새 시각 테마를 만들지 않는다.
+
+
+### Project Issue peer workspace — Issues #838–#840 (2026-10-28)
+
+Project Workspace 상위 peer 탭은 **일정 / Issue / 대시보드 / 기준정보** 순서를 따른다. Issue는 Task 일정·Milestone·기준정보의 새 하위 탭이 아닌 독립 Project Issue 조회/편집 화면이다. 탭 전환은 기존 SVAR Gantt instance·viewport·scale·selection·dirty 상태를 재생성/변경하지 않는다. 직접 URL screen=issue 복귀·focus·aria-controls/tabpanel·키보드 ArrowRight/Left/Home/End를 제공한다.
+
+Issue는 **compact toolbar(전체 완료 KPI + 등록) → 검색 조건(문구/완료 상태) → 목록 → 하단 pagination** 순서로 배치한다. 완료 N / 전체 M (%)는 페이지/검색과 무관하게 전체 프로젝트 분모. 목록은 Issue명/완료여부/담당자/발생일/완료일을 사용하고, 긴 Issue명은 가용 너비를 흡수하며 나머지 metadata는 intrinsic min width와 표 내부 가로 스크롤을 사용한다. 검색·페이지 크기 변경은 첫 페이지로 복귀한다.
+
+등록/수정은 필요할 때 여는 detail form이며 제목/등록일/등록자·담당자/발생일/완료 체크+날짜/설명 multiline/관련 Task를 상호 구분한다. 자원/Task 이름 직접 입력은 원본 연결과 구분하고 검색 선택은 이름과 ID를 함께 표시한다. 완료 체크 시 오늘 날짜를 입력하고 해제 시 지운다. URL은 escaped safe link 및 multiline preview로 표시한다. 390/768/1024/1440/wide, coarse pointer 44px/fine compact, tab focus·긴 다국어 텍스트·empty/no-result/read-only·stale·error를 검증한다. 세부 경로 [Issue 가이드](docs/PROJECT_ISSUES_USER_GUIDE.md).

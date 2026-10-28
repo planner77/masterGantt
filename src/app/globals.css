@@ -1402,6 +1402,8 @@ h2 {
   display: none;
 }
 
+.project-issue-panel { overflow-x: hidden; overflow-y: auto; padding: 0.25rem 0; }
+
 .project-resource-panel {
   overflow-x: hidden;
   overflow-y: auto;
