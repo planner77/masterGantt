@@ -104,6 +104,8 @@ export async function handleProjectIssues(
     // Creation and credential recovery need project-level authority; normal edits never use it.
     const authorization = isCreate || isManage
       ? requireProjectEditSession(projectService, publicId, token) : null;
+    const readGrant = !isCreate && !isManage ? projectService.authorize(publicId, token) : null;
+    const readAuthorization = readGrant?.kind === "authorized" ? readGrant.authorization : undefined;
     const revision = parseRequiredIfMatch(request);
     const body = await readBoundedJson(request, 16384);
     let result;
@@ -118,11 +120,11 @@ export async function handleProjectIssues(
     } else if (isPatch) {
       const { input, password } = parseIssueUpdateRequest(body);
       consumePasswordBudget(publicId, issueId!);
-      result = await service.update(publicId, issueId!, revision, input, password);
+      result = await service.update(publicId, issueId!, revision, input, password, readAuthorization);
     } else {
       const { password } = parseIssueDeleteRequest(body);
       consumePasswordBudget(publicId, issueId!);
-      result = await service.softDelete(publicId, issueId!, revision, password);
+      result = await service.softDelete(publicId, issueId!, revision, password, readAuthorization);
     }
     return Response.json(result, {
       status: isCreate ? 201 : 200,
