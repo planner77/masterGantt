@@ -267,6 +267,60 @@ describe("#838-#840 project Issue persistence and API", () => {
     expect(mutateGone.status).toBe(404);
   });
 
+  it("#846 isolates every Issue credential and rejects invalid Origin or private access", async () => {
+    const f = await fixture();
+    const a = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({ title: "A Issue" })), issuePassword);
+    const b = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({ title: "B Issue" })), "IssuePassword#OTHER");
+    const wrongOnA = await f.handle(f.request("PATCH", { ...updateBody(), issuePassword: "IssuePassword#OTHER" },
+      { issueId: a.data.issue.issueId }), f.a, a.data.issue.issueId);
+    expect(wrongOnA.status).toBe(401);
+    const wrongOnB = await f.handle(f.request("DELETE", { issuePassword },
+      { issueId: b.data.issue.issueId }), f.a, b.data.issue.issueId);
+    expect(wrongOnB.status).toBe(401);
+    const origin = await f.handle(f.request("PATCH", updateBody(), {
+      issueId: a.data.issue.issueId, origin: "https://attacker.example",
+    }), f.a, a.data.issue.issueId);
+    expect(origin.status).toBe(403);
+    // Simulate the existing Project visibility contract change; the Issue password
+    // must never grant a private Project read session or mutation.
+    f.db.prepare("UPDATE projects SET visibility = 'private', revision = revision + 1 WHERE id = ?")
+      .run(f.a.authorization.projectId);
+    const privateGet = await f.handle(f.request("GET", undefined, { token: "no-session" }));
+    expect(privateGet.status).toBe(401);
+    const privateWrite = await f.handle(f.request("PATCH", updateBody(), {
+      issueId: a.data.issue.issueId, token: "no-session",
+    }), f.a, a.data.issue.issueId);
+    expect(privateWrite.status).toBe(401);
+    const validPrivateWrite = await f.handle(f.request("PATCH", updateBody(), {
+      issueId: a.data.issue.issueId,
+    }), f.a, a.data.issue.issueId);
+    expect(validPrivateWrite.status).toBe(200);
+  });
+
+  it("#846 rate-limits Issue password guesses with Retry-After and keeps underlying data unchanged", async () => {
+    const { issuePasswordGlobalRateLimiter, issuePasswordPerIssueRateLimiter } =
+      await import("../../../src/server/security/rate-limit-core");
+    issuePasswordGlobalRateLimiter.clear(); issuePasswordPerIssueRateLimiter.clear();
+    try {
+      const f = await fixture();
+      const created = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input()), issuePassword);
+      const id = created.data.issue.issueId;
+      for (let n = 0; n < 10; n++) {
+        const result = await f.handle(f.request("PATCH",
+          { ...updateBody({ title: "attacker" }), issuePassword: "WrongPassword" }, { issueId: id }), f.a, id);
+        expect(result.status).toBe(401);
+      }
+      const throttled = await f.handle(f.request("PATCH", updateBody({ title: "attacker" }),
+        { issueId: id }), f.a, id);
+      expect(throttled.status).toBe(429);
+      expect(Number(throttled.headers.get("retry-after"))).toBeGreaterThan(0);
+      expect(f.service.list(f.a.publicId, parseProjectIssueQuery(new URLSearchParams())).data.issues[0].title)
+        .toBe("차량 정지");
+    } finally {
+      issuePasswordGlobalRateLimiter.clear(); issuePasswordPerIssueRateLimiter.clear();
+    }
+  });
+
   it("#846 legacy password initialization and reset require project session plus actual project password", async () => {
     const f = await fixture();
     const id = randomUUID();
