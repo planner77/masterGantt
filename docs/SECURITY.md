@@ -549,7 +549,9 @@ readonly/401/409/412·pending/dirty·응답역전에서 기존 Editor 초안·�
 
 신규 Issue의 verifier는 랜덤 16-byte salt + scrypt(N=32768,r=8,p=3,32-byte) KDF 저장; 원문/복호화 가능한 암호를 저장하지 않고 시점 안전 비교와 서버 KDF 동시성 제한을 사용한다. 8~128자/512-byte 제한, strict input allowlist, JSON 16KiB, Origin/CSRF, rate-limit(인스턴스별 global 100/15분, Issue별 10/15분), requestId/보안 에러 감사(No secrets)를 적용한다. 다중 App replica 배포 시 in-memory limiter는 별도 인스턴스 간 공유하지 않으므로 프록시/중앙 제한 또는 single-writer 배치를 권장한다.
 
-현재 프로젝트 비밀번호 입력은 신규 Issue 비밀번호의 제어문자·512-byte 제한을 적용하지 않는다. 기존 `parseUnlockProjectInput`의 well-formed Unicode/최대 1024-byte 계약을 재사용하므로 이전에 허용된 탭·줄바꿈/다국어 프로젝트 비밀번호도 인증 가능하다. 오직 **신규 Issue 암호**에 강화된 no-control 정책을 적용한다.\n\n레거시 `credential_state=UNSET` Issue는 default password/claim 허용 금지, 관리자 명시적 `/credential` 초기 설정만 가능. Project edit session + 실제 Project 비밀번호(별도 KDF 재검증) + revision 일치 필요. 분실 시 RESET도 동일 수단만 제공하며 `project_issue_credential_audit`에 action/sessionId/requestId/time을 기록한다. 관리자라 해도 Issue 내용 PATCH/DELETE bypass는 불가. credential version/비밀값 snapshot을 KDF 후 transaction에서 다시 확인해 재설정/삭제 경합을 막는다.
+현재 프로젝트 비밀번호 입력은 신규 Issue 비밀번호의 제어문자·512-byte 제한을 적용하지 않는다. 기존 `parseUnlockProjectInput`의 well-formed Unicode/최대 1024-byte 계약을 재사용하므로 이전에 허용된 탭·줄바꿈/다국어 프로젝트 비밀번호도 인증 가능하다. 오직 **신규 Issue 암호**에 강화된 no-control 정책을 적용한다.
+
+레거시 `credential_state=UNSET` Issue는 default password/claim 허용 금지, 관리자 명시적 `/credential` 초기 설정만 가능. Project edit session + 실제 Project 비밀번호(별도 KDF 재검증) + revision 일치 필요. 분실 시 RESET도 동일 수단만 제공하며 `project_issue_credential_audit`에 action/sessionId/requestId/time을 기록한다. 관리자라 해도 Issue 내용 PATCH/DELETE bypass는 불가. credential version/비밀값 snapshot을 KDF 후 transaction에서 다시 확인해 재설정/삭제 경합을 막는다.
 
 `DELETE`는 `project_issues` 행을 삭제하지 않고 lifecycle_state='DELETED', deleted_at·updated_at을 설정. 전체 목록/검색/summary/KPI에서 삭제 상태 필터를 공통 적용한다. Task·Resource 원본 FK 삭제는 해당 Issue 연결만 NULL, 이름/설명 보존. Project 자체 삭제/백업은 이전처럼 ON DELETE CASCADE를 따른다. 삭제 Issue 재열람/일반 복구/credential reset 경로는 제공하지 않는다.
 
