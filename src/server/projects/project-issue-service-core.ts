@@ -294,8 +294,11 @@ export class ProjectIssueService {
     };
   }
   private issueParams(projectId: number, input: ProjectIssueInput, issueId: string, nowText: string) {
+    // Keep the new status in a single SQL parameter, without passing the
+    // transport-only "status" key to better-sqlite3's strict named binding.
+    const { status, ...fields } = input;
     return {
-      projectId, ...input, issueStatus: input.status ?? (input.completed ? "completed" : "registered"),
+      projectId, ...fields, issueStatus: status ?? (input.completed ? "completed" : "registered"),
       completed: input.completed ? 1 : 0,
       issueId, createdAt: nowText, updatedAt: nowText,
     };
