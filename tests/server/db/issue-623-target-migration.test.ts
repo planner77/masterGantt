@@ -52,7 +52,7 @@ describe("#623 actual schema migration and non-destructive recovery acceptance",
     const f = seedLegacy(old), before = evidence(old), backup = join(dir, "before-target.sqlite3");
     expect(old.prepare("SELECT 1 FROM sqlite_schema WHERE name='process_types'").get()).toBeUndefined();
     await old.backup(backup); old.close();
-    const upgraded = open(filename); expect(upgraded.migrations.applied).toEqual(["0025_process_catalog.sql", "0026_logistics_targets.sql", "0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql"]);
+    const upgraded = open(filename); expect(upgraded.migrations.applied).toEqual(["0025_process_catalog.sql", "0026_logistics_targets.sql", "0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql"]);
     const db = upgraded.database; assertLedger(db); expect(evidence(db)).toEqual(before);
     expect(db.prepare("SELECT COUNT(*) FROM project_process_occurrence_mappings").pluck().get()).toBe(0);
     expect(db.prepare("SELECT COUNT(*) FROM process_types").pluck().get()).toBe(0);

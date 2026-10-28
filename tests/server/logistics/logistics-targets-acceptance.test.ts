@@ -458,7 +458,7 @@ describe("Issue #672 — #616 F2 acceptance: SQLite migration persistence", () =
     f.db.close();
 
     const first = openDatabase({ filename, migrationsDirectory: migrationDir });
-    expect(first.migrations.applied).toEqual(["0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql"]);
+    expect(first.migrations.applied).toEqual(["0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql"]);
     const target = new LogisticsTargetService(first.database, { clock: () => now }).create(auth, 1, {
       code: "PERSIST", name: "Persisted", scope: "project_common",
       members: [{ kind: "system", entityId: mcsId }],

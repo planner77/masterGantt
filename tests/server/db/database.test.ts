@@ -142,7 +142,7 @@ describe("SQLite connection and schema", () => {
     const before = state(original); original.close();
     const migrated = openDatabase({ filename, migrationsDirectory: sourceMigrations });
     try {
-      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql"]);
+      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql"]);
       expect(state(migrated.database)).toEqual(before);
       expect(migrated.database.prepare("SELECT visibility FROM projects WHERE id = ?").pluck().get(projectId)).toBe("public");
       expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
@@ -187,7 +187,7 @@ describe("SQLite connection and schema", () => {
         "0025_process_catalog.sql",
         "0026_logistics_targets.sql",
         "0027_task_target_bindings.sql",
-        "0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql",
+        "0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
