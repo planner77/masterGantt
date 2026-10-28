@@ -81,7 +81,7 @@ export function ProjectIssueWorkspace({
   const createLocked = !editable || busy || saving;
   const expectedRevision = () => Math.max(revision, list?.data.projectRevision ?? 0);
   const passwordValid = (password: string) => Array.from(password).length >= 8 &&
-    Array.from(password).length <= 128 && !/[\\u0000-\\u001f\\u007f]/.test(password);
+    Array.from(password).length <= 128 && !/[\u0000-\u001f\u007f]/.test(password);
 
   useEffect(() => {
     if (!active) return;
