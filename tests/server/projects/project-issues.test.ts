@@ -1,8 +1,11 @@
 import { createHash, randomUUID } from "node:crypto";
+import { copyFileSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type Database from "better-sqlite3";
 import { afterEach, describe, expect, it } from "vitest";
 import { openDatabase } from "../../../src/server/db/core";
+import { runMigrations } from "../../../src/server/db/migrations";
 import { TaskFieldProjectService } from "../../../src/server/projects/task-field-project-service";
 import {
   ProjectIssueService, parseProjectIssueInput, parseProjectIssueQuery,
@@ -335,6 +338,43 @@ describe("#838-#840 project Issue persistence and API", () => {
         .toBe("차량 정지");
     } finally {
       issuePasswordGlobalRateLimiter.clear(); issuePasswordPerIssueRateLimiter.clear();
+    }
+  });
+
+  it("#846 upgrades a persisted migration-0032 Issue to UNSET without changing original content/checksum", async () => {
+    const oldDir = mkdtempSync(join(tmpdir(), "issue-846-before-0033-"));
+    try {
+      for (const name of readdirSync(migrationsDirectory)) {
+        if (/^\d{4}_.*\.sql$/.test(name) && Number(name.slice(0, 4)) <= 32) {
+          copyFileSync(join(migrationsDirectory, name), join(oldDir, name));
+        }
+      }
+      const db = openDatabase({ filename: ":memory:", migrationsDirectory: oldDir }).database;
+      databases.push(db);
+      const projects = new TaskFieldProjectService(db, { clock, hashPassword });
+      const made = await projects.create({ name: "Legacy Issue Upgrade", description: "",
+        editPassword: "test" });
+      const projectId = (db.prepare("SELECT id FROM projects WHERE public_id = ?")
+        .get(made.response.data.project.publicId) as { id: number }).id;
+      const id = randomUUID();
+      db.prepare("INSERT INTO project_issues(public_id, project_id, title, occurred_on, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)")
+        .run(id, projectId, "0032 원본 유지", "2026-10-28", now, now);
+      const original = db.prepare("SELECT public_id, title, description, completed, completed_on, related_task_text, created_at, updated_at FROM project_issues WHERE public_id=?")
+        .get(id);
+      const checksum = db.prepare("SELECT checksum FROM schema_migrations WHERE version=32").pluck().get();
+      expect(db.prepare("SELECT MAX(version) FROM schema_migrations").pluck().get()).toBe(32);
+      expect(runMigrations(db, migrationsDirectory).applied).toEqual(["0033_project_issue_credentials_soft_delete.sql"]);
+      expect(db.prepare("SELECT MAX(version) FROM schema_migrations").pluck().get()).toBe(33);
+      expect(db.prepare("SELECT checksum FROM schema_migrations WHERE version=32").pluck().get()).toBe(checksum);
+      expect(db.prepare("SELECT public_id, title, description, completed, completed_on, related_task_text, created_at, updated_at FROM project_issues WHERE public_id=?")
+        .get(id)).toEqual(original);
+      expect(db.prepare("SELECT credential_state, credential_version, password_hash, lifecycle_state, deleted_at FROM project_issues WHERE public_id=?")
+        .get(id)).toEqual({ credential_state: "UNSET", credential_version: 0,
+          password_hash: null, lifecycle_state: "ACTIVE", deleted_at: null });
+      expect(db.pragma("foreign_key_check")).toEqual([]);
+      expect(runMigrations(db, migrationsDirectory).applied).toEqual([]);
+    } finally {
+      rmSync(oldDir, { recursive: true, force: true });
     }
   });
 
