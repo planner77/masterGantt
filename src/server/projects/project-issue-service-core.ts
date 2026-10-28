@@ -102,6 +102,11 @@ function passwordField(raw: unknown): string {
   }
   return raw;
 }
+function projectPasswordField(raw: unknown): string {
+  if (typeof raw !== "string" || raw.length < 1 || Buffer.byteLength(raw, "utf8") > 512 ||
+    /[\\u0000-\\u001f\\u007f]/.test(raw)) invalid("프로젝트 비밀번호를 확인해 주세요.");
+  return raw;
+}
 function passwordConfirmation(password: string, confirmation: unknown): void {
   if (typeof confirmation !== "string" || confirmation !== password)
     invalid("비밀번호 확인이 일치하지 않습니다.");
@@ -132,7 +137,7 @@ export function parseIssueCredentialRequest(raw: unknown): {
     invalid();
   const newPassword = passwordField(data.newPassword);
   passwordConfirmation(newPassword, data.confirmPassword);
-  return { operation: data.operation, projectPassword: passwordField(data.projectPassword), newPassword };
+  return { operation: data.operation, projectPassword: projectPasswordField(data.projectPassword), newPassword };
 }
 export function parseProjectIssueQuery(params: URLSearchParams): ProjectIssueQuery {
   const allowed = new Set(["q", "status", "page", "limit"]);
