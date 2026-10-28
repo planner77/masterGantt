@@ -56,9 +56,12 @@ class MainCandidateMappingTest(unittest.TestCase):
         with self.assertRaisesRegex(Blocked, "MAIN_PUBLISH"):
             self.run_verifier(main_jobs=jobs)
 
-    def test_synthetic_main_source_sha_cannot_be_passed(self):
-        with self.assertRaisesRegex(Blocked, "INVALID"):
-            self.run_verifier(source_digest=DIGEST[:12])
+    def test_invalid_main_sha_cannot_be_passed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(Blocked, "INVALID"):
+                release.validate_release_source(
+                    "planner77/masterGantt", MAIN[:12], "0.136.0", REVISION,
+                    DIGEST, "token", pathlib.Path(tmp))
 
 
 if __name__ == "__main__":
