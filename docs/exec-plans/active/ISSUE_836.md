@@ -1,6 +1,15 @@
 # Issue #836 — PR Verified OCI Image → Main → Release 조건부 재사용 Work Packet
 2026-10-28 | [Issue #836](https://github.com/planner77/masterGantt/issues/836) | Branch `issue-836-verified-oci-reuse` | Base main `a4c52b9ba2499a95045a7d85a2c62164210672e6`
 
+## REWORK #1 — Full PR #3348.1 실패·Owner 기본 ON 결정 (2026-10-28)
+
+- [PR #837 Run #3348.1](https://github.com/planner77/masterGantt/actions/runs/40614685816), original Head `f3e71892e8a886157767421b649aefcda6780272`, Base `a4c52b9ba2499a95045a7d85a2c62164210672e6`, Test-Merge `9b17635ba8f118ba63fb4421a8cbe9dbd2bc4307`. **F836-001** 직접 Docker Smoke `version=` 누락: PR changes 단계가 Main-only release_candidate output에 의존해 OCI validator가 `package version invalid`로 차단. Buildx OCI manifest/index/provenance export 자체는 성공. `changes.package_version`를 PR/Main immutable checkout에서 계산해 fallback; validated package.json SemVer는 OCI label/build arg/config와 같아야 한다.
+- 동시에 **F836-002** 별도 Chromium shard6 `project-transfer-layout-491.spec.ts:159` API GET `ECONNRESET`, 해당 shard 77 PASS·1 FAIL·1 SKIP·21 NOT RUN. 본 PR의 앱·테스트 파일 변경은 없으며 실제 원인은 미확정. Assertion/skip/Retry/timeout을 약화하지 않고 새 Full8에서 재현 확인, 재발 시 Trace+runner server logs 원인 분리. Required Docker/E2E 및 Automated QA 실패는 이 두 직접 원인의 파생이다. Policy/Typecheck/Lint/Vitest/build/Preflight 성공은 별개.
+- Codex Review는 코드 지적이 아니라 사용량 한도 초과로 미완료, 미해결 inline thread 0, 초기 PR mergeable=true. Owner가 Codex/QA Review 리스크를 OWNER_MANAGED로 수용하겠다고 명시했으나 **실제 Full Required3·Trusted 정책·원본 review thread/strict main은 변경하지 않는다**.
+- 신규 구체 결정: `PR_IMAGE_REUSE_ENABLED` **미설정/true = 기본 ON**, **false = SHADOW·기존 Safe Build Rollback**. Main에서 실제 source/Build input/OCI subject가 일치하면 PR artifact 재검증+Main Smoke+GHCR 동일 Digest; 정상 불일치는 Main 1회 재빌드 후 전체 검사; 위조/불명은 BLOCKED. Repo variable이 이미 false로 설정되었다면 명시적 rollback으로 간주하며 별도 변경 필요하다.
+- 추가 교정: Buildx OCI archive가 중첩 `index.json` wrapper를 가진 경우 레이아웃 digest와 실 Registry subject index digest를 구분해 반환·검증, no-digest relabel 금지; immutable PR Head로 Full run 조회. Regression `test_ci_image_reuse.py`에 wrapped-index/PR SemVer/default ON·false 롤백을 추가.
+- 누적 직접/파생 실패·원본 출처·실제 미검증 범위: [Issue #836 Failure Ledger](../../ISSUE_836_FAILURE_ANALYSIS.md). **새 HEAD Full PR CI 전 아직 NOT TESTED**, Main merge/GHCR/Finalizer/Issue 종료 금지.
+
 ## SOURCE / SCOPE
 - 제품 동작/UI/API/DB/앱 SemVer 불변. 구현은 PR OCI evidence, Main source/build contract, Main same-run immutable OCI subject, GHCR exact digest, Release dual-source proof에 한정한다.
 - 기준 문서: `AGENTS.md`, `DESIGN.md` (UI 비적용), `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`, `docs/TEST_PLAN.md`, `docs/GENERIC_RELEASE_FINALIZER.md`, `docs/ISSUE_836_FAILURE_ANALYSIS.md`, `docs/PR_CI_FAILURE_TRIAGE.md`, `docs/ISSUE_LIFECYCLE.md`.
