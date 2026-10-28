@@ -23,14 +23,18 @@ import zipfile
 from typing import Any
 
 from verified_oci import OciError, validate_archive, require
+from ci_image_contract import ContractError, verify as verify_build_contract
 
 REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 SHA_RE = re.compile(r"^[a-f0-9]{40}$")
 MAX_ZIP = 3 * 1024**3
 SENSITIVE_INPUTS = (
-    ".github/workflows/ci.yml", "scripts/verified_oci.py",
-    "scripts/ci_image_reuse.py", "scripts/verify-image-policy.sh",
-    "scripts/verify-transport-smoke.sh", "scripts/verify-compose-smoke.sh",
+    ".github/workflows/ci.yml", ".github/workflows/release-image.yml",
+    "scripts/verified_oci.py", "scripts/ci_image_contract.py",
+    "scripts/ci_image_reuse.py", "scripts/verify_ci_image_release.py",
+    "scripts/verify-image-policy.sh", "scripts/verify-transport-smoke.sh",
+    "scripts/verify-compose-smoke.sh", "scripts/qa_final_automated.py",
+    "scripts/verify-ci-run-trace.py",
 )
 REQUIRED = (
     "Build, static checks, and unit tests",
@@ -238,6 +242,24 @@ def verify_source(repo: str, main_sha: str, token: str, tempdir: pathlib.Path,
                                      revision=test_merge, version=version)
     except (OciError, ValueError, TypeError, OSError) as error:
         raise Blocked("PR_OCI_INTEGRITY_OR_PROVENANCE_CONFLICT") from error
+    receipt_bytes = download_artifact(repo, run_id,
+        f"ci-pr-build-contract-{run_id}-{attempt}", token,
+        "ci-image-build-contract.json", 120_000)
+    try:
+        receipt = json.loads(receipt_bytes)
+    except (ValueError, UnicodeError, TypeError) as error:
+        raise Blocked("BUILD_CONTRACT_JSON_INVALID") from error
+    try:
+        verify_build_contract(receipt, root=pathlib.Path.cwd(), repository=repo,
+            run_id=run_id, attempt=attempt, revision=test_merge,
+            version=version, digest=inspected["index_digest"],
+            archive_sha256=inspected["archive_sha256"], main_tree=main_tree)
+    except ContractError as error:
+        if str(error) in ("BUILD_INPUT_OR_BUILDER_DRIFT",
+                          "GitHub runner image version unavailable",
+                          "unexpected runner platform") or str(error).startswith("builder unavailable"):
+            raise Ineligible("PR_MAIN_BUILDER_OR_INPUT_DRIFT") from error
+        raise Blocked("PR_BUILD_CONTRACT_SOURCE_CONFLICT") from error
     return {
         "schema": "mastergantt-ci-image-source-v1",
         "main_sha": main_sha,
