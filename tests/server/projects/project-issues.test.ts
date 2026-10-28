@@ -152,7 +152,13 @@ describe("#838-#840 project Issue persistence and API", () => {
     expect(() => f.service.mutate(f.a.authorization, f.a.revision() - 1,
       parseProjectIssueInput(input()))).toThrow("프로젝트가 변경");
     f.db.prepare("DELETE FROM tasks WHERE project_id=? AND public_id=?").run(f.a.authorization.projectId, ownTask.taskId);
-    f.db.prepare("DELETE FROM resources WHERE public_id=?").run(resource.publicId);
+    // Catalog deletion is only valid after both project memberships are unregistered.
+    // Preserve the FK guard: never bypass or disable foreign-key checks for this fixture.
+    const removedMemberships = f.db.prepare(
+      "DELETE FROM project_resource_memberships WHERE resource_id = (SELECT id FROM resources WHERE public_id = ?)"
+    ).run(resource.publicId);
+    expect(removedMemberships.changes).toBe(2);
+    expect(f.db.prepare("DELETE FROM resources WHERE public_id=?").run(resource.publicId).changes).toBe(1);
     const list = f.service.list(f.a.publicId, parseProjectIssueQuery(new URLSearchParams())).data.issues;
     expect(list[0]).toMatchObject({ relatedTaskId: null, relatedTaskText: "A 전용",
       reporterResourceId: null, assigneeResourceId: null, reporterName: "김개발" });
