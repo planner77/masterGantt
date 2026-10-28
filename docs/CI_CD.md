@@ -1,7 +1,7 @@
 ## Issue #836 — OCI Build-once PR→Main 조건부 재사용 (#438/#773와 별개, 2026-10-28)
 
 ### 실행 계약
-| 단계 | 기본 SHADOW / Owner Stage1 opt-in | 불변 검증 |
+| 단계 | 기본 ON(검증 조건부) / 명시적 false(Shadow/rollback) | 불변 검증 |
 | --- | --- | --- |
 | PR `pr_docker_smoke` | Buildx `type=oci` + provenance/SBOM→`mastergantt-verified.oci.tar`; `ci-oci-pr-<run>-<attempt>` + `ci-pr-build-contract` 저장 | non-draft Ready Full Fast Gate 이후 실제 image policy, Docker/HTTP(S)/SQLite/Compose/조건부 size baseline을 거친 동일 OCI config ID |
 | Main `docker_smoke` | OFF: 기존 Main 새 OCI build+Smoke; ON + 독립 source/Buildx/Tree 검증: PR OCI 그대로 load+Smoke; 불일치: Main 새 OCI build+Smoke; 위조·무결성 실패: BLOCKED | Main Quality/E2E8/Docker Required는 PR PASS 대체 불가 |
@@ -10,7 +10,7 @@
 
 **OCI 증거:** `scripts/verified_oci.py`는 SHA256 index/child/config/layers, BuildKit in-toto SBOM/provenance 및 child manifest subject를 재계산한다. OCI로 export하고 `skopeo`로 Linux/AMD64 load한 실행 이미지의 Docker ImageID == config digest를 확인하여 단순 `docker save/load`로 SBOM을 잃는 문제를 방지한다. `scripts/ci_image_contract.py`는 runner ImageVersion/buildx/Docker server, Git Tree, pinned Dockerfile base, ignore/package+lock/Next config, SemVer ARG, archive/index sha를 결부한다. 인증된 ZIP/Run/Attempt와 신뢰된 Main 결정 없이 이 metadata는 self-asserted 불가.
 
-**이상 처리:** stale PR, 다른 Main Tree, Git two-parent 불명, 빌드 입력 drift, SHA-verified artifact의 안전한 만료/부재는 Main 확정 SHA에서 새 이미지 빌드. 무결성 위반, 출처 위조, registry/digest 충돌 또는 권한 UNKNOWN은 `BLOCKED`로 남기고 실패를 이전 Green으로 덮지 않는다. GHCR ci-tag 이미 존재 시 덮어쓰지 않는다. Stage1 변수 `PR_IMAGE_REUSE_ENABLED=true`는 Owner 분리 승인/본 PR Full 검증·실패 사례 실증 후 적용하며 기본은 OFF. 통계 10 distinct success Run 미만 `INSUFFICIENT_DATA`; 시험 전 정책 신뢰성 `NOT TESTED`.
+**이상 처리:** stale PR, 다른 Main Tree, Git two-parent 불명, 빌드 입력 drift, SHA-verified artifact의 안전한 만료/부재는 Main 확정 SHA에서 새 이미지 빌드. 무결성 위반, 출처 위조, registry/digest 충돌 또는 권한 UNKNOWN은 `BLOCKED`로 남기고 실패를 이전 Green으로 덮지 않는다. GHCR ci-tag 이미 존재 시 덮어쓰지 않는다. Owner가 2026-10-28 기본 ON을 승인: `PR_IMAGE_REUSE_ENABLED` 미설정/true는 활성, false는 SHADOW·안전 재빌드 롤백이다. 출처·OCI 무결성 부적격/실패, 기존 Required3/QA/Owner merge·Release 승인은 이 플래그로 우회할 수 없다. 통계 10 distinct success Run 미만 `INSUFFICIENT_DATA`; 시험 전 정책 신뢰성 `NOT TESTED`.
 
 [Work Packet](exec-plans/active/ISSUE_836.md) · [누적 실패 원장](ISSUE_836_FAILURE_ANALYSIS.md) · [Runbook](GITHUB_OPERATIONS.md) · [Test Plan](TEST_PLAN.md)
 
