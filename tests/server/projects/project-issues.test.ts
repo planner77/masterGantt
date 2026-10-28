@@ -192,11 +192,11 @@ describe("#838-#840 project Issue persistence and API", () => {
     const get = await f.handle(f.request("GET", undefined, { query: "?limit=10" }));
     expect(get.status).toBe(200);
     expect(((await get.json()) as { data: { summary: { total: number } } }).data.summary.total).toBe(1);
-    const forbidden = await f.handle(f.request("POST", input(), { origin: "https://evil.example" }));
+    const forbidden = await f.handle(f.request("POST", createBody(), { origin: "https://evil.example" }));
     expect(forbidden.status).toBe(403);
-    const missingSession = await f.handle(f.request("POST", input(), { token: "no-session" }));
+    const missingSession = await f.handle(f.request("POST", createBody(), { token: "no-session" }));
     expect(missingSession.status).toBe(401);
-    const stale = await f.handle(f.request("POST", input(), { revision: 1 }));
+    const stale = await f.handle(f.request("POST", createBody(), { revision: 1 }));
     expect(stale.status).toBe(412);
     const patch = await f.handle(f.request("PATCH", updateBody({ completed: true, completedOn: "2026-10-28" }), {
       issueId: created.data.issue.issueId,
@@ -217,6 +217,18 @@ describe("#838-#840 project Issue persistence and API", () => {
     expect(() => parseIssueDeleteRequest({ issuePassword, extra: 1 })).toThrow();
     expect(() => parseIssueCredentialRequest({ operation: "reset", projectPassword: "test",
       newPassword: issuePassword, confirmPassword: issuePassword })).not.toThrow();
+    // #848 P2: project edit-passwords accept well-formed Unicode including control
+    // characters under the existing unlock API contract; only new Issue passwords
+    // are subject to the stricter 8–128 no-control rule.
+    for (const existingProjectPassword of ["test\tpassword", "test\npassword", "한글\t\n비밀번호"]) {
+      expect(parseIssueCredentialRequest({ operation: "reset",
+        projectPassword: existingProjectPassword, newPassword: issuePassword,
+        confirmPassword: issuePassword }).projectPassword).toBe(existingProjectPassword);
+    }
+    expect(() => parseIssueCredentialRequest({ operation: "reset", projectPassword: "\ud800",
+      newPassword: issuePassword, confirmPassword: issuePassword })).toThrow();
+    expect(() => parseIssueCreateRequest({ ...input(), issuePassword: "bad\ud800pass",
+      confirmIssuePassword: "bad\ud800pass" })).toThrow();
   });
 
   it("#846 allows correct per-Issue password without edit session, never editor bypass, and tombstones list/KPI", async () => {
