@@ -48,7 +48,7 @@ risk_level: HIGH; qa_method: OWNER_MANAGED; qa_required: true; independent_qa: N
 - `docs/SECURITY.md`: UPDATED
 - `docs/PROJECT_ISSUES_USER_GUIDE.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_849.md`: UPDATED
-- `docs/TEST_PLAN.md`: N/A(access): 이 GitHub 커넥터에서 원문 본문이 빈 값으로 반환되어 무손실 갱신 불가. TEST_LIFECYCLE_REVIEW/AC_TEST_COVERAGE를 본 Work Packet에 상세 기록했으며 checkout 가능한 구현자가 후속 보완해야 함.
+- `docs/TEST_PLAN.md`: UPDATED: Git Blob 조회로 810KB 전체 원문을 획득해 기존 내용 삭제 없이 #849 변경 영향·중복/음성/실행 판단을 추가.
 - `docs/UI_UX_GUIDELINES.md`: N/A(reuse): 기존 compact/state/scroll/focus 계약 그대로
 - `docs/ISSUE_LIFECYCLE.md`: N/A(policy): 기존 단계·QA/CI·릴리스 규정 그대로
 - `docs/CI_CD.md`: N/A(workflow): CI/Release 설정 자체 변경 없음
