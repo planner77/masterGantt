@@ -98,6 +98,7 @@ def validate_archive(path: str, *, repository: str, revision: str,
         require(isinstance(manifests, list) and len(manifests) >= 1,
                 "OCI index lacks manifests")
         images = []
+        attestation_subjects = []
         predicates = set()
         for descriptor in manifests:
             require(descriptor.get("mediaType") == IMAGE_MANIFEST,
@@ -133,11 +134,27 @@ def validate_archive(path: str, *, repository: str, revision: str,
             elif (platform.get("os") == "unknown" and
                   platform.get("architecture") == "unknown" and
                   annotations.get("vnd.docker.reference.type") == ATTESTATION):
+                bound_digest = annotations.get("vnd.docker.reference.digest")
+                require(isinstance(bound_digest, str) and SHA.fullmatch(bound_digest),
+                        "attestation index descriptor lacks subject digest")
+                manifest_subject = manifest.get("subject")
+                if manifest_subject is not None:
+                    require(manifest_subject.get("digest") == bound_digest,
+                            "OCI attestation manifest subject mismatch")
+                attest_config = manifest.get("config")
+                descriptor_path(attest_config)
+                attestation_subjects.append(bound_digest)
                 for layer in manifest.get("layers") or []:
                     descriptor_path(layer)
                     if "in-toto" in layer.get("mediaType", ""):
                         statement = load(layer)
                         predicate_type = statement.get("predicateType", "")
+                        stmt_subjects = statement.get("subject")
+                        require(isinstance(stmt_subjects, list) and
+                                any(isinstance(item, dict) and
+                                    (item.get("digest") or {}).get("sha256") == bound_digest[7:]
+                                    for item in stmt_subjects),
+                                "BuildKit statement subject not bound to image manifest")
                         if predicate_type.startswith("https://slsa.dev/provenance/"):
                             predicates.add("provenance")
                         if ("spdx" in predicate_type.lower() or
@@ -146,6 +163,9 @@ def validate_archive(path: str, *, repository: str, revision: str,
             else:
                 raise OciError("unexpected OCI manifest platform or unattached descriptor")
         require(len(images) == 1, "expected exactly one linux/amd64 image")
+        require(all(subject == images[0]["manifest_digest"]
+                    for subject in attestation_subjects),
+                "BuildKit attestation does not refer to the tested image manifest")
         if require_attestations:
             require({"provenance", "sbom"} <= predicates,
                     "BuildKit provenance/SBOM not present in OCI attestation manifests")
@@ -156,9 +176,14 @@ def validate_archive(path: str, *, repository: str, revision: str,
             "config_digest": images[0]["config_digest"],
             "labels": images[0]["labels"],
             "attestations": sorted(predicates),
-            "archive_sha256": hashlib.file_digest(open(path, "rb"), "sha256").hexdigest(),
+            "archive_sha256": hash_archive(path),
             "archive_bytes": pathlib.Path(path).stat().st_size,
         }
+
+
+def hash_archive(path: str) -> str:
+    with open(path, "rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
 def main() -> int:
