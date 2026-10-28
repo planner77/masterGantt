@@ -86,6 +86,6 @@ describe("#623 actual schema migration and non-destructive recovery acceptance",
     expect(() => runMigrations(db, corrupt)).toThrow("Checksum mismatch");
     const gap = migrations(join(dir, "gap"), 27); rmSync(join(gap, "0025_process_catalog.sql"));
     expect(() => runMigrations(db, gap)).toThrow("expected version 25"); expect(evidence(db)).toEqual(before);
-    expect(runMigrations(db, migrationDir).applied).toHaveLength(8); assertLedger(db); expect(evidence(db)).toEqual(before);
+    expect(runMigrations(db, migrationDir).applied).toHaveLength(9); assertLedger(db); expect(evidence(db)).toEqual(before);
   });
 });
