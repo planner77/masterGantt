@@ -76,7 +76,7 @@ def validate_archive(path: str, *, repository: str, revision: str,
         require(index.get("schemaVersion") == 2 and
                 index.get("mediaType", IMAGE_INDEX) == IMAGE_INDEX,
                 "OCI top-level index unsupported")
-        index_digest = "sha256:" + hashlib.sha256(index_bytes).hexdigest()
+        layout_index_digest = "sha256:" + hashlib.sha256(index_bytes).hexdigest()
         for name, member in entries.items():
             if not name.startswith("blobs/sha256/"):
                 continue
@@ -97,6 +97,21 @@ def validate_archive(path: str, *, repository: str, revision: str,
         manifests = index.get("manifests")
         require(isinstance(manifests, list) and len(manifests) >= 1,
                 "OCI index lacks manifests")
+        # Buildx OCI archive may wrap the actual (attested) image index in a
+        # layout-level named ref. The registry subject is the NESTED index,
+        # never the archive index.json wrapper digest. Do not accept a
+        # forged extra tag/index or any implicit mediaType conversion.
+        index_digest = layout_index_digest
+        if len(manifests) == 1 and manifests[0].get("mediaType") == IMAGE_INDEX:
+            subject_descriptor = manifests[0]
+            subject_index = load(subject_descriptor)
+            require(subject_index.get("schemaVersion") == 2 and
+                    subject_index.get("mediaType", IMAGE_INDEX) == IMAGE_INDEX,
+                    "nested OCI subject index unsupported")
+            index_digest = subject_descriptor["digest"]
+            manifests = subject_index.get("manifests")
+            require(isinstance(manifests, list) and bool(manifests),
+                    "nested OCI subject lacks manifests")
         images = []
         attestation_subjects = []
         predicates = set()
@@ -172,6 +187,7 @@ def validate_archive(path: str, *, repository: str, revision: str,
         return {
             "schema": "mastergantt-oci-subject-v1",
             "index_digest": index_digest,
+            "layout_index_digest": layout_index_digest,
             "image_manifest_digest": images[0]["manifest_digest"],
             "config_digest": images[0]["config_digest"],
             "labels": images[0]["labels"],
