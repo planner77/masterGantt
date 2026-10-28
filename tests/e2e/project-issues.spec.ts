@@ -111,7 +111,7 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   const kpis = workspace.getByRole("status", { name: "전체 Issue 상태별 현황" });
   await expect(kpis).toContainText("전체0건");
   await expect(kpis).toContainText("등록0건");
-  await expect(workspace.getByLabel("Issue 상태")).toHaveValue("open");
+  await expect(workspace.locator("#project-issue-status")).toHaveValue("open");
   await workspace.getByRole("button", { name: "Issue 등록", exact: true }).click();
   const editor = workspace.getByRole("dialog", { name: "Issue 등록" });
   await editor.getByLabel("Issue 명").fill("장비 점검 요청");
@@ -137,7 +137,7 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await expect(kpis).toContainText("전체1건");
   expect(postCount).toBe(1);
   await expect(workspace.getByText("검색 결과 0건")).toBeVisible();
-  await workspace.getByLabel("Issue 상태").selectOption("completed");
+  await workspace.locator("#project-issue-status").selectOption("completed");
   await expect(workspace.getByRole("row", { name: /장비 점검 요청/ })).toBeVisible();
   await workspace.getByRole("button", { name: "장비 점검 요청" }).click();
   const detail = workspace.getByRole("dialog", { name: "Issue 상세 및 수정" });
@@ -151,7 +151,7 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await detail.getByRole("button", { name: "수정 저장" }).click();
   await expect(kpis).toContainText("완료0건");
   await expect(kpis).toContainText("등록1건");
-  await workspace.getByLabel("Issue 상태").selectOption("open");
+  await workspace.locator("#project-issue-status").selectOption("open");
   await expect(workspace.getByText("검색 결과 1건")).toBeVisible();
 
   await workspace.getByLabel("검색", { exact: true }).fill("미존재");
@@ -163,7 +163,7 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await expect(workspace.getByText("1 / 1 페이지")).toBeVisible();
   await workspace.getByRole("button", { name: "초기화" }).click();
   await expect(workspace.getByText("검색 결과 1건")).toBeVisible();
-  await expect(workspace.getByLabel("Issue 상태")).toHaveValue("open");
+  await expect(workspace.locator("#project-issue-status")).toHaveValue("open");
   await workspace.getByRole("button", { name: "장비 점검 요청" }).click();
   const progressing = workspace.getByRole("dialog", { name: "Issue 상세 및 수정" });
   await progressing.getByLabel("상태", { exact: true }).selectOption("in_progress");
