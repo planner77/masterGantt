@@ -93,6 +93,14 @@ describe("#838-#840 project Issue persistence and API", () => {
     expect(projectIssueToday(clock())).toBe("2026-10-28");
     expect(() => parseProjectIssueInput(input({ occurredOn: "2026-02-30" }))).toThrow();
     expect(() => parseProjectIssueInput(input({ completed: true }))).toThrow();
+    expect(parseProjectIssueInput(input()).status).toBe("registered");
+    expect(parseProjectIssueInput(input({ status: "in_progress" })).status).toBe("in_progress");
+    expect(parseProjectIssueInput(input({ status: "completed", completed: true, completedOn: "2026-10-28" })).status)
+      .toBe("completed");
+    expect(() => parseProjectIssueInput(input({ status: "in_progress", completed: true, completedOn: "2026-10-28" }))).toThrow();
+    expect(() => parseProjectIssueInput(input({ status: "unknown" }))).toThrow();
+    expect(() => parseProjectIssueQuery(new URLSearchParams("status=deleted"))).toThrow();
+    expect(parseProjectIssueQuery(new URLSearchParams("status=registered")).status).toBe("registered");
     expect(() => parseProjectIssueInput(input({ completedOn: "2026-10-28" }))).toThrow();
     expect(() => parseProjectIssueInput(input({ reporterResourceId: "not-a-uuid" }))).toThrow();
     expect(() => parseProjectIssueInput({ ...input(), surprising: true })).toThrow();
@@ -115,7 +123,7 @@ describe("#838-#840 project Issue persistence and API", () => {
     }
     const list = (query: string) => f.service.list(f.a.publicId, parseProjectIssueQuery(new URLSearchParams(query))).data;
     const firstPage = list("limit=10&page=1");
-    expect(firstPage.summary).toEqual({ total: 23, completed: 11 });
+    expect(firstPage.summary).toEqual({ total: 23, completed: 11, inProgress: 0, registered: 12 });
     expect(firstPage.total).toBe(23);
     expect(firstPage.issues).toHaveLength(10);
     expect(list("limit=10&page=2").issues).toHaveLength(10);
@@ -363,8 +371,8 @@ describe("#838-#840 project Issue persistence and API", () => {
         .get(id);
       const checksum = db.prepare("SELECT checksum FROM schema_migrations WHERE version=32").pluck().get();
       expect(db.prepare("SELECT MAX(version) FROM schema_migrations").pluck().get()).toBe(32);
-      expect(runMigrations(db, migrationsDirectory).applied).toEqual(["0033_project_issue_credentials_soft_delete.sql"]);
-      expect(db.prepare("SELECT MAX(version) FROM schema_migrations").pluck().get()).toBe(33);
+      expect(runMigrations(db, migrationsDirectory).applied).toEqual(["0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql"]);
+      expect(db.prepare("SELECT MAX(version) FROM schema_migrations").pluck().get()).toBe(34);
       expect(db.prepare("SELECT checksum FROM schema_migrations WHERE version=32").pluck().get()).toBe(checksum);
       expect(db.prepare("SELECT public_id, title, description, completed, completed_on, related_task_text, created_at, updated_at FROM project_issues WHERE public_id=?")
         .get(id)).toEqual(original);
@@ -376,6 +384,85 @@ describe("#838-#840 project Issue persistence and API", () => {
     } finally {
       rmSync(oldDir, { recursive: true, force: true });
     }
+  });
+
+
+  it("#849 persists all states, scopes filters/KPI and enforces password and SQL guards", async () => {
+    const f = await fixture();
+    const create = (status: "registered" | "in_progress" | "completed") =>
+      f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
+        title: status, status, completed: status === "completed",
+        completedOn: status === "completed" ? "2026-10-28" : null,
+      })), issuePassword);
+    const r = await create("registered");
+    const p = await create("in_progress");
+    const c = await create("completed");
+    const list = (status = "all") => f.service.list(f.a.publicId,
+      parseProjectIssueQuery(new URLSearchParams("status=" + status))).data;
+    expect(list().summary).toEqual({ total: 3, completed: 1, inProgress: 1, registered: 1 });
+    expect(list("open").issues.map(i => i.status).sort()).toEqual(["in_progress", "registered"]);
+    expect(list("registered").issues.map(i => i.issueId)).toEqual([r.data.issue.issueId]);
+    expect(list("in_progress").issues.map(i => i.issueId)).toEqual([p.data.issue.issueId]);
+    expect(list("completed").issues.map(i => i.issueId)).toEqual([c.data.issue.issueId]);
+    await expect(f.service.update(f.a.publicId, p.data.issue.issueId, f.a.revision(),
+      parseProjectIssueInput(input({ status: "completed", completed: true, completedOn: "2026-10-28" })),
+      "WrongPassword")).rejects.toThrow("비밀번호");
+    const changed = await f.service.update(f.a.publicId, p.data.issue.issueId, f.a.revision(),
+      parseProjectIssueInput(input({ status: "completed", completed: true, completedOn: "2026-10-28" })),
+      issuePassword);
+    expect(changed.data.issue).toMatchObject({ status: "completed", completed: true, completedOn: "2026-10-28" });
+    expect(list("open").total).toBe(1);
+    expect(list().summary).toEqual({ total: 3, completed: 2, inProgress: 0, registered: 1 });
+    await expect(f.service.update(f.a.publicId, p.data.issue.issueId, f.a.revision() - 1,
+      parseProjectIssueInput(input()), issuePassword)).rejects.toThrow("프로젝트가 변경");
+    expect(() => f.db.prepare("UPDATE project_issues SET issue_status='registered' WHERE public_id=?")
+      .run(p.data.issue.issueId)).toThrow("invalid project issue business status");
+    expect(() => f.db.prepare("UPDATE project_issues SET completed=0, completed_on=NULL WHERE public_id=?")
+      .run(p.data.issue.issueId)).toThrow("invalid project issue business status");
+    await f.service.softDelete(f.a.publicId, c.data.issue.issueId, f.a.revision(), issuePassword);
+    expect(list().summary).toEqual({ total: 2, completed: 1, inProgress: 0, registered: 1 });
+    expect(f.db.prepare("SELECT lifecycle_state,issue_status FROM project_issues WHERE public_id=?")
+      .get(c.data.issue.issueId)).toEqual({ lifecycle_state: "DELETED", issue_status: "completed" });
+  });
+
+  it("#849 upgrades legacy 0033 file to 0034 with exact row preservation and schema guard", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "issue-849-before-0034-"));
+    try {
+      for (const name of readdirSync(migrationsDirectory)) {
+        if (name.endsWith(".sql") && Number(name.slice(0, 4)) <= 33)
+          copyFileSync(join(migrationsDirectory, name), join(directory, name));
+      }
+      const filename = join(directory, "legacy.sqlite3");
+      const legacy = openDatabase({ filename, migrationsDirectory: directory }).database;
+      const projects = new TaskFieldProjectService(legacy, { clock, hashPassword });
+      const project = await projects.create({ name: "Legacy Issue State", description: "", editPassword: "test" });
+      const projectId = (legacy.prepare("SELECT id FROM projects WHERE public_id=?")
+        .get(project.response.data.project.publicId) as { id: number }).id;
+      const ids = [randomUUID(), randomUUID(), randomUUID()];
+      const insert = legacy.prepare("INSERT INTO project_issues (public_id,project_id,title,occurred_on,completed,completed_on,created_at,updated_at) VALUES (?,?,?,'2026-10-28',?,?,?,?)");
+      insert.run(ids[0], projectId, "등록", 0, null, now, now);
+      insert.run(ids[1], projectId, "완료", 1, "2026-10-28", now, now);
+      insert.run(ids[2], projectId, "삭제", 1, "2026-10-28", now, now);
+      legacy.prepare("UPDATE project_issues SET lifecycle_state='DELETED', deleted_at=? WHERE public_id=?")
+        .run(now, ids[2]);
+      const before = legacy.prepare("SELECT * FROM project_issues ORDER BY id").all();
+      const checksum = legacy.prepare("SELECT checksum FROM schema_migrations WHERE version=33").pluck().get();
+      legacy.close();
+      const upgraded = openDatabase({ filename, migrationsDirectory });
+      try {
+        expect(upgraded.migrations.applied).toEqual(["0034_project_issue_business_status.sql"]);
+        const db = upgraded.database;
+        expect(db.prepare("SELECT checksum FROM schema_migrations WHERE version=33").pluck().get()).toBe(checksum);
+        const after = db.prepare("SELECT * FROM project_issues ORDER BY id").all() as Array<Record<string, unknown>>;
+        expect(after.map(({ issue_status, ...oldFields }) => oldFields)).toEqual(before);
+        expect(after.map(row => row.issue_status)).toEqual(["registered", "completed", "completed"]);
+        expect(db.prepare("SELECT COUNT(*) FROM project_issues WHERE lifecycle_state='DELETED'").pluck().get()).toBe(1);
+        expect(db.pragma("foreign_key_check")).toEqual([]);
+        expect(runMigrations(db, migrationsDirectory).applied).toEqual([]);
+        expect(() => db.prepare("INSERT INTO project_issues(public_id,project_id,title,occurred_on,completed,completed_on,issue_status,created_at,updated_at) VALUES (?,?,?,'2026-10-28',1,'2026-10-28','in_progress',?,?)")
+          .run(randomUUID(), projectId, "모순", now, now)).toThrow("invalid project issue business status");
+      } finally { upgraded.database.close(); }
+    } finally { rmSync(directory, { recursive: true, force: true }); }
   });
 
   it("#846 legacy password initialization and reset require project session plus actual project password", async () => {
