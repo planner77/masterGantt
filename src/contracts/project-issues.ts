@@ -2,7 +2,10 @@
 export type IssueStatusFilter = "all" | "open" | "completed";
 export type IssuePageSize = 10 | 20 | 50 | 100;
 
+export type IssueCredentialState = "unconfigured" | "protected";
+
 export interface ProjectIssueDto {
+  credentialState: IssueCredentialState;
   issueId: string;
   title: string;
   description: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { ProjectTaskDto } from "@/contracts/projects";
 import type {
   IssuePageSize, IssueStatusFilter, ProjectIssueDto, ProjectIssueInput,
@@ -45,21 +45,6 @@ function projectIssueError(value: unknown, fallback: string): string {
   return fallback;
 }
 
-function issueDescription(text: string) {
-  return text.split(/(https?:\/\/[^\s<>"']+)/g).map((part, index) => {
-    if (!/^https?:\/\//i.test(part)) return <Fragment key={index}>{part}</Fragment>;
-    const url = part.replace(/[.,!?);]+$/, "");
-    const tail = part.slice(url.length);
-    try {
-      const parsed = new URL(url);
-      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("protocol");
-      return <Fragment key={index}><a href={url} target="_blank" rel="noopener noreferrer">{url}</a>{tail}</Fragment>;
-    } catch {
-      return <Fragment key={index}>{part}</Fragment>;
-    }
-  });
-}
-
 export function ProjectIssueWorkspace({
   publicId, revision, tasks, active, editable, busy, onChanged, onUnauthorized,
 }: Props) {
@@ -76,6 +61,13 @@ export function ProjectIssueWorkspace({
   const [editingIssue, setEditingIssue] = useState<ProjectIssueDto | null>(null);
   const [form, setForm] = useState<ProjectIssueInput>(blankIssue);
   const [saving, setSaving] = useState(false);
+  const [issuePassword, setIssuePassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [projectPassword, setProjectPassword] = useState("");
+  const [newIssuePassword, setNewIssuePassword] = useState("");
+  const [newIssuePasswordConfirmation, setNewIssuePasswordConfirmation] = useState("");
+  const [showRecovery, setShowRecovery] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [personPicker, setPersonPicker] = useState<PersonKind | null>(null);
   const [resources, setResources] = useState<ResourceOption[]>([]);
@@ -85,7 +77,11 @@ export function ProjectIssueWorkspace({
   const createTrigger = useRef<HTMLButtonElement>(null);
   const lastIssueTrigger = useRef<HTMLElement | null>(null);
   const rootPath = "/api/projects/" + encodeURIComponent(publicId) + "/issues";
-  const locked = !editable || busy || saving;
+  const locked = busy || saving || (editingIssue ? editingIssue.credentialState === "unconfigured" : !editable);
+  const createLocked = !editable || busy || saving;
+  const expectedRevision = () => Math.max(revision, list?.data.projectRevision ?? 0);
+  const passwordValid = (password: string) => Array.from(password).length >= 8 &&
+    Array.from(password).length <= 128 && !/[\u0000-\u001f\u007f]/.test(password);
 
   useEffect(() => {
     if (!active) return;
@@ -156,7 +152,7 @@ export function ProjectIssueWorkspace({
   }
 
   function openEditor(issue: ProjectIssueDto | null, trigger?: HTMLElement) {
-    if (issue === null && locked) return;
+    if (issue === null && createLocked) return;
     setEditingIssue(issue);
     setForm(issue ? {
       title: issue.title, description: issue.description,
@@ -168,6 +164,9 @@ export function ProjectIssueWorkspace({
     setPersonPicker(null);
     setTaskPicker(false);
     setFormError(null);
+    setIssuePassword(""); setPasswordConfirmation("");
+    setProjectPassword(""); setNewIssuePassword(""); setNewIssuePasswordConfirmation("");
+    setShowRecovery(false); setConfirmDelete(false);
     setEditorOpen(true);
     lastIssueTrigger.current = trigger ?? createTrigger.current;
     requestAnimationFrame(() => titleInput.current?.focus({ preventScroll: true }));
@@ -176,6 +175,9 @@ export function ProjectIssueWorkspace({
   function closeEditor() {
     if (saving) return;
     setEditorOpen(false);
+    setIssuePassword(""); setPasswordConfirmation(""); setProjectPassword("");
+    setNewIssuePassword(""); setNewIssuePasswordConfirmation("");
+    setShowRecovery(false); setConfirmDelete(false);
     setPersonPicker(null);
     setTaskPicker(false);
     requestAnimationFrame(() => lastIssueTrigger.current?.isConnected
@@ -183,43 +185,117 @@ export function ProjectIssueWorkspace({
       : createTrigger.current?.focus({ preventScroll: true }));
   }
 
+  function editorKeys(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape" && !saving) { event.stopPropagation(); closeEditor(); return; }
+    if (event.key !== "Tab") return;
+    const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(
+      'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])'
+    )).filter(element => element.getClientRects().length > 0);
+    const first = controls[0], last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first && last) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last && first) {
+      event.preventDefault(); first.focus();
+    }
+  }
+
+  function failed(response: Response, body: unknown): Error {
+    const code = body && typeof body === "object" && "error" in body
+      ? (body.error as { code?: string })?.code : undefined;
+    if (response.status === 401 && (code === "EDIT_SESSION_REQUIRED" || code === "PROJECT_LOCKED"))
+      onUnauthorized();
+    if (response.status === 412) onChanged();
+    return new Error(projectIssueError(body, "Issue 요청에 실패했습니다."));
+  }
+
+  function finishMutation() {
+    setIssuePassword(""); setPasswordConfirmation(""); setProjectPassword("");
+    setNewIssuePassword(""); setNewIssuePasswordConfirmation("");
+    setShowRecovery(false); setConfirmDelete(false);
+    setEditorOpen(false); setPersonPicker(null); setTaskPicker(false);
+    setRefresh(value => value + 1); onChanged();
+    requestAnimationFrame(() => lastIssueTrigger.current?.isConnected
+      ? lastIssueTrigger.current.focus({ preventScroll: true })
+      : createTrigger.current?.focus({ preventScroll: true }));
+  }
+
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (locked || !form.title.trim()) return;
-    setSaving(true);
-    setFormError(null);
-    const expected = Math.max(revision, list?.data.projectRevision ?? 0);
+    if (locked || !form.title.trim() || !passwordValid(issuePassword)) {
+      setFormError("Issue 비밀번호는 제어문자 없이 8~128자로 입력해 주세요."); return;
+    }
+    if (!editingIssue && issuePassword !== passwordConfirmation) {
+      setFormError("Issue 비밀번호 확인이 일치하지 않습니다."); return;
+    }
+    setSaving(true); setFormError(null);
     try {
-      const url = rootPath + (editingIssue ? "/" + encodeURIComponent(editingIssue.issueId) : "");
-      const response = await fetch(url, {
+      const response = await fetch(rootPath + (editingIssue ? "/" + encodeURIComponent(editingIssue.issueId) : ""), {
         method: editingIssue ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json", "If-Match": '"' + expected + '"' },
-        credentials: "same-origin", body: JSON.stringify(form),
+        headers: { "Content-Type": "application/json", "If-Match": '"' + expectedRevision() + '"' },
+        credentials: "same-origin",
+        body: JSON.stringify({ ...form, issuePassword,
+          ...(!editingIssue ? { confirmIssuePassword: passwordConfirmation } : {}) }),
       });
-      const data: unknown = await response.json();
-      if (!response.ok) {
-        if (response.status === 401) onUnauthorized();
-        if (response.status === 412) onChanged();
-        throw new Error(projectIssueError(data, "Issue 저장에 실패했습니다."));
-      }
-      const result = data as ProjectIssueMutationResponse;
+      const body: unknown = await response.json();
+      if (!response.ok) throw failed(response, body);
+      const result = body as ProjectIssueMutationResponse;
       if (!result.data?.issue || !Number.isSafeInteger(result.data.projectRevision))
         throw new Error("저장 결과를 확인할 수 없습니다. 목록을 다시 조회해 주세요.");
       setList(current => current && { data: { ...current.data, projectRevision: result.data.projectRevision } });
-      setEditorOpen(false);
-      setPersonPicker(null);
-      setTaskPicker(false);
-      setRefresh(value => value + 1);
-      onChanged();
-      requestAnimationFrame(() => lastIssueTrigger.current?.isConnected
-        ? lastIssueTrigger.current.focus({ preventScroll: true })
-        : createTrigger.current?.focus({ preventScroll: true }));
+      finishMutation();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Issue 저장에 실패했습니다.");
       setRefresh(value => value + 1);
-    } finally {
-      setSaving(false);
+    } finally { setSaving(false); }
+  }
+
+  async function deleteIssue() {
+    if (!editingIssue || saving || !confirmDelete || !passwordValid(issuePassword)) {
+      setFormError("삭제하려면 해당 Issue 비밀번호를 입력해 주세요."); return;
     }
+    setSaving(true); setFormError(null);
+    try {
+      const response = await fetch(rootPath + "/" + encodeURIComponent(editingIssue.issueId), {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", "If-Match": '"' + expectedRevision() + '"' },
+        credentials: "same-origin", body: JSON.stringify({ issuePassword }),
+      });
+      const body: unknown = await response.json();
+      if (!response.ok) throw failed(response, body);
+      if (!(body as { data?: { deleted?: boolean } }).data?.deleted)
+        throw new Error("삭제 결과를 확인하지 못했습니다. 다시 조회해 주세요.");
+      finishMutation();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "Issue 삭제에 실패했습니다.");
+      setRefresh(value => value + 1);
+    } finally { setSaving(false); }
+  }
+
+  async function recoverCredential() {
+    if (!editingIssue || !editable || saving || !showRecovery ||
+      !passwordValid(newIssuePassword) || newIssuePassword !== newIssuePasswordConfirmation || !projectPassword) {
+      setFormError("프로젝트 비밀번호와 새 Issue 비밀번호·확인을 입력해 주세요."); return;
+    }
+    setSaving(true); setFormError(null);
+    try {
+      const response = await fetch(rootPath + "/" + encodeURIComponent(editingIssue.issueId) + "/credential", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "If-Match": '"' + expectedRevision() + '"' },
+        credentials: "same-origin",
+        body: JSON.stringify({ operation: editingIssue.credentialState === "unconfigured" ? "initialize" : "reset",
+          projectPassword, newPassword: newIssuePassword, confirmPassword: newIssuePasswordConfirmation }),
+      });
+      const body: unknown = await response.json();
+      if (!response.ok) throw failed(response, body);
+      const result = body as ProjectIssueMutationResponse;
+      if (!result.data?.issue) throw new Error("비밀번호 설정 결과를 확인할 수 없습니다.");
+      setEditingIssue(result.data.issue);
+      setList(current => current && { data: { ...current.data, projectRevision: result.data.projectRevision } });
+      setShowRecovery(false); setProjectPassword(""); setNewIssuePassword(""); setNewIssuePasswordConfirmation("");
+      setIssuePassword(""); setRefresh(value => value + 1); onChanged();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "비밀번호 설정에 실패했습니다.");
+      setRefresh(value => value + 1);
+    } finally { setSaving(false); }
   }
 
   function personField(kind: PersonKind, label: string) {
@@ -263,7 +339,7 @@ export function ProjectIssueWorkspace({
           <span>({summary.total ? (100 * summary.completed / summary.total).toFixed(1) : "0.0"}%)</span></>
           : <span>전체 Issue 집계 조회 중</span>}
       </div>
-      <button ref={createTrigger} className="primary-button" type="button" disabled={locked}
+      <button ref={createTrigger} className="primary-button" type="button" disabled={createLocked}
         onClick={event => openEditor(null, event.currentTarget)}>Issue 등록</button>
     </div>
     <form className={styles.filters} onSubmit={event => {
@@ -319,7 +395,7 @@ export function ProjectIssueWorkspace({
     </div>
 
     {editorOpen ? <div className={styles.editor} role="dialog" aria-modal="true"
-      aria-label={editingIssue ? "Issue 상세 및 수정" : "Issue 등록"}>
+      aria-label={editingIssue ? "Issue 상세 및 수정" : "Issue 등록"} onKeyDown={editorKeys}>
       <div className={styles.editorHeader}>
         <h2>{editingIssue ? "Issue 상세 및 수정" : "Issue 등록"}</h2>
         <button type="button" className="secondary-button" disabled={saving}
@@ -356,14 +432,6 @@ export function ProjectIssueWorkspace({
           <input id="project-issue-completed-on" type="date" disabled={locked || !form.completed}
             value={form.completedOn ?? ""} onChange={event => updateForm({ completedOn: event.target.value || null })} />
         </div>
-        <div className={styles.field}><label htmlFor="project-issue-description">Issue 내용</label>
-          <textarea id="project-issue-description" rows={4} maxLength={4000}
-            value={form.description} disabled={locked}
-            onChange={event => updateForm({ description: event.target.value })} />
-          {form.description ? <div className={styles.preview}><span className={styles.hint}>링크 미리보기</span>
-            <div className={styles.previewText}>{issueDescription(form.description)}</div>
-          </div> : null}
-        </div>
         <div className={styles.field}><label htmlFor="project-issue-task">관련 Task</label>
           <div className={styles.inline}>
             <input id="project-issue-task" type="text" maxLength={200} disabled={locked}
@@ -382,10 +450,70 @@ export function ProjectIssueWorkspace({
             </button></li>)}</ul> : <p>일치하는 Task가 없습니다. 직접 입력할 수도 있습니다.</p>}
           </div> : null}
         </div>
+        <div className={styles.field}><label htmlFor="project-issue-description">Issue 내용</label>
+          <textarea id="project-issue-description" rows={4} maxLength={4000}
+            value={form.description} disabled={locked}
+            onChange={event => updateForm({ description: event.target.value })} />
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="project-issue-password">
+            {editingIssue ? "Issue 비밀번호 (수정·삭제 시 필요)" : "Issue 비밀번호 *"}
+          </label>
+          <input id="project-issue-password" type="password" minLength={8} maxLength={128}
+            autoComplete="off" value={issuePassword} required={editingIssue?.credentialState !== "unconfigured"}
+            disabled={busy || saving || editingIssue?.credentialState === "unconfigured"}
+            onChange={event => { setIssuePassword(event.target.value); setFormError(null); }} />
+          <span className={styles.hint}>프로젝트 비밀번호와 별개로 Issue별 8~128자를 사용합니다.</span>
+        </div>
+        {!editingIssue ? <div className={styles.field}>
+          <label htmlFor="project-issue-password-confirmation">Issue 비밀번호 확인 *</label>
+          <input id="project-issue-password-confirmation" type="password" minLength={8} maxLength={128}
+            autoComplete="new-password" required value={passwordConfirmation} disabled={busy || saving}
+            onChange={event => { setPasswordConfirmation(event.target.value); setFormError(null); }} />
+        </div> : null}
+        {editingIssue?.credentialState === "unconfigured" ? <p className={styles.hint} role="status">
+          기존 Issue의 비밀번호가 아직 설정되지 않았습니다. 프로젝트 편집 권한자가 먼저 설정해야 수정·삭제할 수 있습니다.
+        </p> : null}
+        {editingIssue && editable ? <div className={styles.field}>
+          <button type="button" className="secondary-button" aria-expanded={showRecovery}
+            disabled={busy || saving} onClick={() => { setShowRecovery(value => !value); setFormError(null); }}>
+            {editingIssue.credentialState === "unconfigured" ? "Issue 비밀번호 최초 설정" : "Issue 비밀번호 재설정"}
+          </button>
+          {showRecovery ? <div className={styles.securityPanel}>
+            <span className={styles.hint}>현재 프로젝트 편집 세션과 프로젝트 비밀번호를 함께 확인합니다.</span>
+            <label htmlFor="project-issue-project-password">프로젝트 비밀번호</label>
+            <input id="project-issue-project-password" type="password" autoComplete="off" value={projectPassword}
+              disabled={saving} onChange={event => setProjectPassword(event.target.value)} />
+            <label htmlFor="project-issue-new-password">새 Issue 비밀번호</label>
+            <input id="project-issue-new-password" type="password" autoComplete="new-password"
+              minLength={8} maxLength={128} value={newIssuePassword}
+              disabled={saving} onChange={event => setNewIssuePassword(event.target.value)} />
+            <label htmlFor="project-issue-new-password-confirmation">새 Issue 비밀번호 확인</label>
+            <input id="project-issue-new-password-confirmation" type="password" autoComplete="new-password"
+              minLength={8} maxLength={128} value={newIssuePasswordConfirmation}
+              disabled={saving} onChange={event => setNewIssuePasswordConfirmation(event.target.value)} />
+            <button type="button" className="secondary-button" disabled={busy || saving || !projectPassword}
+              onClick={() => void recoverCredential()}>{saving ? "설정 중…" : "비밀번호 설정/재설정"}</button>
+          </div> : null}
+        </div> : null}
+        {editingIssue?.credentialState === "protected" ? <div className={styles.securityPanel}>
+          {!confirmDelete ? <button type="button" className="secondary-button" disabled={busy || saving}
+            onClick={() => { setConfirmDelete(true); setFormError(null); }}>Issue 삭제…</button> :
+            <div className={styles.deletePanel} role="group" aria-label="Issue 삭제 확인">
+              <p>Issue를 목록에서 숨기며 데이터는 보존됩니다. 이 화면에서 복구할 수 없습니다.</p>
+              <div className={styles.editorActions}>
+                <button type="button" className="secondary-button" disabled={saving}
+                  onClick={() => setConfirmDelete(false)}>삭제 취소</button>
+                <button type="button" className="secondary-button" disabled={saving || !passwordValid(issuePassword)}
+                  onClick={() => void deleteIssue()}>{saving ? "삭제 중…" : "삭제 확인"}</button>
+              </div>
+            </div>}
+        </div> : null}
         {formError ? <p className={styles.error} role="alert">{formError}</p> : null}
         <div className={styles.editorActions}>
           <button type="button" className="secondary-button" disabled={saving} onClick={closeEditor}>취소</button>
-          <button type="submit" className="primary-button" disabled={locked || !form.title.trim()}>
+          <button type="submit" className="primary-button" disabled={locked || !form.title.trim() || !passwordValid(issuePassword) ||
+              (!editingIssue && passwordConfirmation !== issuePassword)}>
             {saving ? "저장 중…" : editingIssue ? "수정 저장" : "등록"}
           </button>
         </div>

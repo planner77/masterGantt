@@ -543,8 +543,16 @@ readonly/401/409/412·pending/dirty·응답역전에서 기존 Editor 초안·�
 과거 SVAR/Gantt의 `package-original.snapshot.txt`와 `package-lock-original.snapshot.txt`는 수정하지 않는다. `capture-install.ts`가 기존 정확 Next security 예외 외에 `approved-zod-4.6.7-lock.json`의 정확 Zod metadata만 메모리에서 원본으로 정규화하고 모든 다른 차이를 거부한다. 새 HEAD의 실제 npm ci/audit, 원본 Zod parser/보안·history capture/전체 Vitest, E2E8, Docker/QA/Owner는 별도 검증 대상이며 CI 시작 전 NOT TESTED.
 
 
-## Project Issues 권한·링크 (#838–#840)
+## Project Issues 권한·논리 삭제 (#838–#840 / #846)
 
-Project Issue GET는 공개 Project에만 무인증 허용하며 비공개 Project는 해당 edit session을 요구한다. POST/PATCH는 기존 프로젝트 edit session + 정확 허용 Origin + If-Match revision + transactional session/권한 재검사로 보호된다. 전역 리소스/Task ID를 외부 입력 그대로 신뢰하지 않고 존재/프로젝트 일치 여부를 검증한다. 입력/검색/응답 본문 크기 제한과 no-store 응답을 사용하며 기존 감사 request ID를 유지한다.
+**권한 변경 (#846)**: POST(신규 등록)은 기존 Project edit session + Origin + strong If-Match 및 transaction session 재확인 필요. PATCH/DELETE(보호된 Issue 변경·삭제)는 **각 Issue의 개별 scrypt 비밀번호**가 기준이므로 해당 Project 편집 세션만으로 우회할 수 없다. 공개 Project의 읽기 전용 방문자는 정확한 Issue 비밀번호로 해당 Issue만 편집 가능하고 다른 Task·Resource·Project 데이터는 변경 불가. 비공개 Project는 Issue 비밀번호 전에 기존 read gate를 통과해야 하며, 변동 중 잠김 전환도 mutation transaction에서 검증한다.
 
-Issue 내용은 HTML로 해석하지 않는다. 사용자 입력은 React의 기본 이스케이프 텍스트로 렌더링하고, 유효 HTTP(S) 링크만 안전한 rel=noopener noreferrer와 target=_blank로 표시한다. 완료일/date/ID 참조 무결성과 프로젝트 경계·취소된 세션 재사용 방지 테스트를 유지한다. 원본 Task·Resource 삭제 시 타 프로젝트 data 혼동 없이 nullable FK를 해제하고 텍스트 스냅샷을 보존한다.
+신규 Issue의 verifier는 랜덤 16-byte salt + scrypt(N=32768,r=8,p=3,32-byte) KDF 저장; 원문/복호화 가능한 암호를 저장하지 않고 시점 안전 비교와 서버 KDF 동시성 제한을 사용한다. 8~128자/512-byte 제한, strict input allowlist, JSON 16KiB, Origin/CSRF, rate-limit(인스턴스별 global 100/15분, Issue별 10/15분), requestId/보안 에러 감사(No secrets)를 적용한다. 다중 App replica 배포 시 in-memory limiter는 별도 인스턴스 간 공유하지 않으므로 프록시/중앙 제한 또는 single-writer 배치를 권장한다.
+
+현재 프로젝트 비밀번호 입력은 신규 Issue 비밀번호의 제어문자·512-byte 제한을 적용하지 않는다. 기존 `parseUnlockProjectInput`의 well-formed Unicode/최대 1024-byte 계약을 재사용하므로 이전에 허용된 탭·줄바꿈/다국어 프로젝트 비밀번호도 인증 가능하다. 오직 **신규 Issue 암호**에 강화된 no-control 정책을 적용한다.
+
+레거시 `credential_state=UNSET` Issue는 default password/claim 허용 금지, 관리자 명시적 `/credential` 초기 설정만 가능. Project edit session + 실제 Project 비밀번호(별도 KDF 재검증) + revision 일치 필요. 분실 시 RESET도 동일 수단만 제공하며 `project_issue_credential_audit`에 action/sessionId/requestId/time을 기록한다. 관리자라 해도 Issue 내용 PATCH/DELETE bypass는 불가. credential version/비밀값 snapshot을 KDF 후 transaction에서 다시 확인해 재설정/삭제 경합을 막는다.
+
+`DELETE`는 `project_issues` 행을 삭제하지 않고 lifecycle_state='DELETED', deleted_at·updated_at을 설정. 전체 목록/검색/summary/KPI에서 삭제 상태 필터를 공통 적용한다. Task·Resource 원본 FK 삭제는 해당 Issue 연결만 NULL, 이름/설명 보존. Project 자체 삭제/백업은 이전처럼 ON DELETE CASCADE를 따른다. 삭제 Issue 재열람/일반 복구/credential reset 경로는 제공하지 않는다.
+
+Issue 내용 텍스트는 HTML 실행 없이 React escape하며 본문 raw URL은 그대로 저장한다. 폼에서 별도 링크 미리보기는 제거했다. 일반 링크 렌더링을 다시 도입할 경우 http(s) 프로토콜/rel=noopener noreferrer 및 XSS 음성 검증 필수. no-store, scoped project read grant, If-Match CAS, DTO에 salt/hash 미포함, 로그에 원문/해시/입력 body 미기록을 유지한다.

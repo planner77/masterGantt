@@ -1863,16 +1863,20 @@ exact 모드의 잘못된 Assignment/Task/resource 조합·Group·일반 Task가
 사용자 경로는 Resource–Target 상세의 정확한 개인 배정 편집이다. 조회 selector/path는 저장 대상 ID가 아니며 변경 후 report는 새 canonical revision으로 재조회하거나 stale로 잠근다. [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 실제 server/HTTP/Chromium 검증과 미검증을 기록한다.
 
 
-## Project Issues API — #838–#840
+## Project Issues API — #838–#840 / #846
 
-기존 /api/projects/[publicId] 범위의 projectReadAccess/편집 세션 정책을 따른다. 캐시 금지(Cache-Control: private, no-store), mutation Origin·HttpOnly session cookie·strong If-Match: "revision" 필수. API는 GitHub Issue와 별개다.
+별도의 프로젝트 Issue(현장 이슈) API. 프로젝트 read gate는 기존 정책을 유지한다. GET는 공개 Project만 무인증 허용, 비공개는 유효 Project edit session 요구. 모든 쓰기는 정확 Origin, bounded UTF-8 JSON, strong If-Match: "projectRevision", Cache-Control: private, no-store 및 request ID를 사용한다.
 
-| Method | Endpoint | 내용 |
+| Method | Endpoint | 요청·권한 / 결과 |
 |---|---|---|
-| GET | /api/projects/{publicId}/issues?q=&status=all/open/completed&page=1&limit=10/20/50/100 | 전체 KPI summary.total/completed와 필터 결과 total, page, limit, issues[] |
-| POST | /api/projects/{publicId}/issues | ProjectIssueInput 11개 필드 저장, 201 및 새 revision+issue |
-| PATCH | /api/projects/{publicId}/issues/{issueId} | 같은 ProjectIssueInput 전체 업데이트, 200 및 revision+issue |
+| GET | /api/projects/{publicId}/issues?q=&status=all/open/completed&page=1&limit=10/20/50/100 | 조회 가능한 프로젝트의 삭제되지 않은 Issue 검색·page/summary; `ProjectIssueDto.credentialState`는 `protected`/`unconfigured`만 노출 |
+| POST | /api/projects/{publicId}/issues | Project edit session 필수; 기존 `ProjectIssueInput` 11필드 + `issuePassword`/ `confirmIssuePassword`(8~128자), 201 반환 |
+| PATCH | /api/projects/{publicId}/issues/{issueId} | 기존 `ProjectIssueInput` 11필드 + `issuePassword`; **해당 Issue 비밀번호 필수** (Project edit session 불필요, 단 비공개 프로젝트 read gate 유지). 200 |
+| DELETE | /api/projects/{publicId}/issues/{issueId} | JSON `{ "issuePassword": "..." }` + 해당 Issue 인증, 서버 `lifecycle_state=DELETED/deleted_at`, 200 `{data:{projectRevision,deleted:true}}`. 이미 삭제/다른 Project ID는 404 |
+| PATCH | /api/projects/{publicId}/issues/{issueId}/credential | Project edit session **및 현재 프로젝트 편집 비밀번호** 모두 필요; `{operation:"initialize"|"reset",projectPassword,newPassword,confirmPassword}`, 200. 기존 무비밀번호 Issue는 initialize만, 보호 Issue는 reset만 가능. 본문 쓰기 권한 대체 불가 |
 
-ProjectIssueInput = title, description, reporterName, reporterResourceId (UUID|null), assigneeName, assigneeResourceId (UUID|null), occurredOn(YYYY-MM-DD), completed(boolean), completedOn(YYYY-MM-DD|null), relatedTaskId(UUID|null), relatedTaskText. UUID의 참조 대상은 실제 resources 및 해당 Project tasks여야 한다. 선택한 리소스/Task는 서버 정규 이름을 스냅샷 텍스트에 보존한다. 생성일 createdAt/수정일 updatedAt/Issue issueId는 서버 소유다. 완료여부와 완료일은 일치해야 한다.
+`ProjectIssueInput` = title, description, reporterName, reporterResourceId(UUID|null), assigneeName, assigneeResourceId(UUID|null), occurredOn(YYYY-MM-DD), completed(boolean), completedOn(YYYY-MM-DD|null), relatedTaskId(UUID|null), relatedTaskText. 생성/수정시각·Issue UUID는 서버 소유. Task·Resource ID는 프로젝트 범위 검증. 완료↔완료일 CHECK 유지. Issue별 password 원문·hash/salt/kdf는 **DTO/GET 응답과 로그에서 제외**되며 서버 DB 전용이다.
 
-오류: 400 INVALID_ISSUE(형식/잘못된 FK, 검색 오류), 401 PROJECT_LOCKED/EDIT_SESSION_REQUIRED, 403 ORIGIN_NOT_ALLOWED, 404 PROJECT_NOT_FOUND/ISSUE_NOT_FOUND, 412 REVISION_MISMATCH, 428 PRECONDITION_REQUIRED, 405 METHOD_NOT_ALLOWED. 전체 내용/등록자/담당자/관련 Task 검색 + 상태 필터, created_at DESC,id DESC 안정 페이지. Issue DELETE는 이 버전에서 미지원.
+- 모든 Issue 변경은 SQLite IMMEDIATE transaction에서 credentials 상태/프로젝트 revision 및 project-private read grant를 다시 확인하고 `projects.revision`을 CAS advance한다. Project edit session은 POST/credential-management에만 수정 권한을 부여한다. Issue Password는 Task, Resource, WBS 등의 mutation 권한이 아니다.
+- 삭제된 Issue는 전체 KPI COUNT, 완료 numerator, 검색, 전체/미완료/완료, pagination, 수정 응답에서 제외. 삭제 상태 필터는 추가하지 않는다. 동일 DELETE 반복은 일반 경계의 404이며 DB 레코드는 보존한다.
+- 400 INVALID_ISSUE (입력/비밀번호 형식), 401 PROJECT_LOCKED/EDIT_SESSION_REQUIRED/ISSUE_PASSWORD_INVALID/ISSUE_MANAGER_PASSWORD_INVALID, 403 ORIGIN_NOT_ALLOWED, 404 PROJECT_NOT_FOUND/ISSUE_NOT_FOUND, 409 ISSUE_PASSWORD_NOT_SET/ISSUE_CREDENTIAL_STATE_CONFLICT, 412 REVISION_MISMATCH, 413 REQUEST_TOO_LARGE, 415 UNSUPPORTED_MEDIA_TYPE, 428 PRECONDITION_REQUIRED, 429 ISSUE_PASSWORD_RATE_LIMITED(Retry-After), 503 ISSUE_AUTH_BUSY 등을 구분한다. Error requestId는 제공하되 비밀번호 값은 제외한다.

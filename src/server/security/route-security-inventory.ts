@@ -7,6 +7,8 @@ export type RouteSecurityPolicy =
   | "origin-and-target-logout"
   | "origin-session"
   | "origin-session-if-match"
+  | "origin-issue-password-if-match"
+  | "origin-manager-recovery-if-match"
   | "origin-if-match-read"
   | "resource-admin-read"
   | "origin-resource-admin-auth"
@@ -78,7 +80,9 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/issues", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/issues", method: "POST", policy: "origin-session-if-match", mutatesState: true },
-  { template: "/api/projects/{publicId}/issues/{issueId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/issues/{issueId}", method: "PATCH", policy: "origin-issue-password-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/issues/{issueId}", method: "DELETE", policy: "origin-issue-password-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/issues/{issueId}/credential", method: "PATCH", policy: "origin-manager-recovery-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/resource-memberships", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-memberships", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/resource-memberships/{resourceId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },

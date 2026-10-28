@@ -796,3 +796,24 @@ project_issues: id PK, public_id UUID unique, project_id -> projects ON DELETE C
 - STRICT, CHECK 제목/내용/사용자 텍스트 최대치 및 (미완료↔완료일 NULL / 완료↔완료일 NOT NULL).
 - 프로젝트별 안정 정렬 인덱스 (project_id,created_at DESC,id DESC)와 (project_id,completed,id DESC); Task/Resource 원본 삭제 시 FK는 NULL이지만 당시 표시 텍스트는 남아 기록 보존.
 - 서버는 Task public ID가 같은 프로젝트에 속하는지 mutation transaction에서 검증한다. issue CRUD는 기존 projects.revision CAS로 일관성을 유지한다. 프로젝트 복제/JSON 내보내기에 Issue를 자동 포함시키지 않으며 별도 호환 이슈가 필요하다.
+
+## Migration 0033 — Issue별 인증·논리 삭제 (#846, additive)
+
+`db/migrations/0032_project_issues.sql` 원본은 체크섬/운영 migration ledger 보존을 위해 수정하지 않는다. `0033_project_issue_credentials_soft_delete.sql`은 기존 행을 하나도 삭제하지 않고 새 컬럼·인덱스·audit table/트리거만 추가한다.
+
+| 컬럼/테이블 | 의미·제약 |
+|---|---|
+| `project_issues.credential_state` | `UNSET`(migration 이전 legacy의 DEFAULT) / `ACTIVE`(개별 비밀번호 설정 완료) |
+| `password_kdf/salt/hash`, `scrypt_n/r/p/key_length` | nullable; ACTIVE는 scrypt/16-byte salt/32-byte hash/(32768,8,3,32)만 유효, UNSET는 전부 NULL |
+| `credential_version` | UNSET는 0, 신규 생성은 1, reset 때 +1; KDF 이후 txn credential 재검증 |
+| `lifecycle_state`, `deleted_at` | `ACTIVE` + NULL / `DELETED` + ISO 시각. 삭제 시 원래 Issue payload/created_at/수정시각(`updated_at`) 모두 보존 |
+| `project_issue_credential_audit` | project FK CASCADE, issue FK CASCADE, action INITIALIZE/RESET, edit_session_id, request_id, created_at. 비밀번호·hash/salt는 기록하지 않음 |
+
+- 기존 Issue는 migration 후 `credential_state=UNSET, credential_version=0, lifecycle_state=ACTIVE, deleted_at=NULL`로 남고 **암묵적 비밀번호 부여 금지**. Project 세션+프로젝트 비밀번호 재인증 후 명시적으로 최초 설정/재설정한다.
+- `project_issues_visible_idx(project_id,lifecycle_state,created_at DESC,id DESC)`와 `project_issues_visible_status_idx(project_id,lifecycle_state,completed,id DESC)`, `project_issue_credential_audit_issue_idx(issue_id,created_at DESC)` 신규.
+- INSERT/UPDATE credential/lifecycle 조합 trigger가 NULL verifier가 ACTIVE로 오염되거나 DELETED 시각 미기록을 차단한다. 기존 `completed↔completed_on` CHECK와 Task/Resource ON DELETE SET NULL 및 표시 이름 스냅샷은 불변.
+- SELECT 요약 COUNT/SUM, 상태/문자열/페이지 쿼리에 모두 `lifecycle_state='ACTIVE'` 조건; 삭제된 Issue는 일반 API 조회/수정 불가.
+- Issue 논리 삭제는 `UPDATE project_issues`이고, `DELETE FROM project_issues` 사용 금지. **Project 자체 삭제**는 기존 FK `ON DELETE CASCADE`로 처리되므로 `project_issues` 및 인증 감사 레코드도 프로젝트 삭제 복구/백업 정책에 종속된다.
+- schema_migrations 신규 version 33; 기존 32 checksum은 불변. backup/export/restore 시 credentials BLOB, tombstone 상태 및 audit table 포함하는 원본 SQLite byte backup/restore가 필요하다. 운영 Migration/Rollback 검증은 별도 수행하고 새 PR CI 성공만으로 운영 증명을 대체하지 않는다.
+
+참조: [Issue #846 Work Packet](exec-plans/active/ISSUE_846.md), [API](API.md), [Security](SECURITY.md).

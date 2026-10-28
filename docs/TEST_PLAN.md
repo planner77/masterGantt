@@ -5614,3 +5614,23 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 - ADD: tests/e2e/project-issues.spec.ts — Issue UI 등록/리소스/Task 검색, 완료일 체크·해제·수정, http(s) 링크 escape, 검색/결과/페이지 크기, 일정 복귀.
 - KEEP_UNIQUE: 기존 프로젝트 auth/Task/Gantt와 Resource·Milestone 회귀. 이들은 독립 보안 및 브라우저 관찰 증거이므로 삭제/skip하지 않는다.
 - 현행 PR/Main 8 Chromium shards와 Required Quality/E2E/Docker, trusted QA·Owner Managed·Finalizer 게이트는 그대로 적용한다. 로컬 검증이 실행되지 않았다면 NOT EXECUTED, Remote는 인증된 Run/Attempt에 따라 기록한다. [통합 실행](exec-plans/active/ISSUE_838_840.md).
+
+---
+
+## Issue #846 — Issue별 비밀번호·논리 삭제의 변경 영향 검증 (2026-10-28)
+
+변경 생산자: migration 0033(기존 0032 checksum 불변), ProjectIssueService/HTTP handler, ProjectIssueWorkspace, route security inventory, Issue별 rate limiter. 주요 소비자: SQLite upgrade/backup, auth/개인별 CRUD, 전체 KPI, 검색·pagination, 브라우저 read-only Task 선택/삭제 및 E2E mock.
+
+| AC / 검증 | 기존 테스트 발견 및 처리 | 독립 관찰 계약 |
+|---|---|---|
+| AC1 신규 Issue 비밀번호·확인 + POST Project edit session | EXTEND `tests/server/projects/project-issues.test.ts` 및 `tests/e2e/project-issues.spec.ts` | 8~128자/확인/Origin/If-Match, scrypt salt/blob, 무세션 POST 401 |
+| AC2 보호 Issue PATCH/DELETE 자체 비밀번호 | EXTEND 동일 서버·브라우저 테스트 | 무 프로젝트 편집 세션+정답 200, 편집 세션+오답 401, private read gate, 삭제된 Issue 404 |
+| AC3 legacy UNSET 명시적 initialize/reset | EXTEND 서버 Issue 테스트 | 기존 row 무손실, 수정 409, project session+project password 필수, 감사 INITIALIZE/RESET, 고아 default password 없음 |
+| AC4 soft delete 검색/완료 KPI/복원 배제 | EXTEND 서버 Issue SQL·handler·E2E | lifecycle DELETED/시각 보존, 全 상태/검색/페이지/summary 제외, 완료 여부 상태필터 확장 금지, FK check |
+| AC5 compact UI 순서·삭제 확인·preview 제거 | EXTEND 기존 `tests/e2e/project-issues.spec.ts` | Task before Issue 내용, multiline 유지, 링크 미리보기 없음, Escape/Tab, confirm/error/focus |
+| AC6 schema/version/security route inventory | EXTEND `tests/server/db/database.test.ts`, `tests/server/migration-cli.test.ts`, `tests/server/db/issue-623-target-migration.test.ts`, `tests/server/projects/edit-authorization-handlers.test.ts` 및 0025~0032 upgrade consumers | 33 migrations, sorted schema/index, GET/POST/PATCH/DELETE/credential exact method mapping, 기존 before/after/FK/rollback |
+| AC7 정상 WBS/Gantt/private/read-only 회귀 | KEEP_UNIQUE 기존 Project auth, Resource/Task, `tests/e2e/project-workspace-tabs-518.spec.ts`, `tests/e2e/project-task-editor-persistence.spec.ts` | Issue credentials는 Project edit/Task 권한을 부여하지 않고 Gantt 인스턴스·스크롤을 변경하지 않음 |
+
+- **TEST_LIFECYCLE_REVIEW**: 위 EXTEND는 기존 #838–#840 보안·DB·UI 관찰 지점에 신규 AC를 추가하며 기존 assertion/skip/retries/timeout/Required를 줄이지 않는다. 독립 Project auth/Task/Gantt는 KEEP_UNIQUE, RETIRE 없음.
+- Local npm/SQLite/Playwright 실행은 현 GitHub API 연결 환경에서 **NOT EXECUTED**. 정확한 PR HEAD의 Quality, Chromium8, Docker, Trusted QA가 실제 통과하기 전 PASS 선언 금지. 기존 #838–#840 실패 원장은 #846 새 실패로 오인하지 않으며 새 실행의 실패는 `docs/ISSUE_846_FAILURE_ANALYSIS.md`에 전체 누적한다.
+- 변경 후 파일은 PR CI에서 동일 exact HEAD로 검증하며 Main/GHCR/Issue 종료와 현장 운영 DB migration/rollback은 이번 요청 범위 밖이다. [#846 Work Packet](exec-plans/active/ISSUE_846.md).

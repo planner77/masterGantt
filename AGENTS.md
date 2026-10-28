@@ -2,7 +2,8 @@
 ## Issues #838–#840 — Project Issue 탭 및 Issue 원장 (2026-10-28)
 
 - Project Issue는 GitHub 개발 Issue 및 WBS Task/Milestone과 다른 **프로젝트 범위의 독립 원장**이다. 일정 옆 네 번째 상위 peer 순서는 **일정 / Issue / 대시보드 / 기준정보**다. WBS 원본·Task 상태·Gantt scroll/selection/scale은 탭 전환만으로 변경하지 않는다.
-- 사용자가 Issue를 등록/수정할 때는 기존 Project edit session·Origin·정확 strong If-Match/revision을 검사하고 SQLite transaction에서 session을 다시 검증한다. 공개 Project만 무인증 조회가 가능하고 비공개 조회는 기존 project read gate를 따른다. 별도 권한이나 임의 Resource 등록을 만들지 않는다.
+- **#838–#840 최초 계약(역사 기록):** 등록/수정 모두 Project edit session을 요구했으며 #846의 후속 변경에 따라 수정/삭제의 현재 기준은 아래 항목을 따른다.
+- **#846 변경(신규 표준)**: Issue **등록(POST)** 만 Project edit session 필요; 보호된 Issue **수정/논리 삭제(PATCH/DELETE)** 는 해당 Issue 비밀번호로 인증하고 Project edit session을 우회 자격으로 사용하지 않는다. 읽기는 공개/비공개 Project 기존 read gate를 유지한다. 신규 비밀번호는 검증된 개별 salt·scrypt 저장, 원문은 URL/GET/로그/Local Storage에 기록하지 않는다. 기존 무비밀번호 Issue는 Project edit session+현재 Project 편집 비밀번호로 명시적 최초 설정/재설정 후에만 쓰기 가능하며 감사한다. Origin·strong If-Match·transaction credential/revision 재확인·rate limit·조회/KPI DELETED 제외를 강제한다. 참조: [#846 Work Packet](docs/exec-plans/active/ISSUE_846.md).
 - 서버가 등록/수정 시간을 소유한다. 발생일 기본값/완료 체크 시 자동 일자는 Asia/Seoul이며 완료 체크·완료일은 불변식으로 처리한다. Task·Resource 선택 시 프로젝트·원본 ID를 검사한다. 삭제 시 FK 연결 해제와 작성 당시 이름/텍스트 보존을 구분한다.
 - 조회는 전체 분모 기반 KPI와 검색 결과 수를 구분하며 페이지당 10/20/50/100; 내용의 HTTP(S) 링크는 React 이스케이프와 프로토콜 검사로만 렌더링한다. 기존 DESIGN.md compact controls/name-first/focus/scroll-owner와 Project Workspace 상태 계약을 상속한다.
 - 통합 구현 #838/#839/#840, 동일 PR, **정식 GHCR 최종 1회 및 일괄 종료**. QA OWNER_MANAGED는 독립 인간 리뷰 의무를 대체할 뿐 실제 Required Quality/E2E8/Docker·Trusted QA·P1/P2 미해결 thread 0·strict main·원본 Main CI/OCI/Release Finalizer·Owner exact-version 승인·버그 수정은 우회하지 않는다. 세부 계약 [통합 Work Packet](docs/exec-plans/active/ISSUE_838_840.md), [사용자 가이드](docs/PROJECT_ISSUES_USER_GUIDE.md), [QA](docs/QA_REVIEW_POLICY.md).

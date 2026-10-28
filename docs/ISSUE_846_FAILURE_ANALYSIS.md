@@ -1,0 +1,88 @@
+# Issue #846 — 누적 PR CI 실패 원장
+
+Primary Issue [#846](https://github.com/planner77/masterGantt/issues/846). **2026-10-28 최초 제출 이전 기록에서 시작하며 Run #3383.1 실제 실패 및 재작업 중 superseded 실행을 누적 기록.**  
+Source of truth: [PR_CI_FAILURE_TRIAGE](PR_CI_FAILURE_TRIAGE.md), [Work Packet](exec-plans/active/ISSUE_846.md).
+
+## 1. Run/Attempt 전체 목록
+
+| PR | Run URL/ID·Attempt | event/workflow/head/base | Required / shard | 실제 FAIL·취소·미실행 | 원본 증거 |
+|---|---|---|---|---|---|
+| 최초 제출 이전 | N/A | 새 PR CI 실행 이전 | 모두 NOT TESTED | **해당 Issue의 관측된 실제 실패 없음** | — |
+| #848 | [#3383.1 · 40667716755](https://github.com/planner77/masterGantt/actions/runs/40667716755) | pull_request FINAL_FULL; HEAD `dcb240562bc32ab2d503b2ff368990bc17b4dc9d`; base `9b3be65eaf2bf8d0b5de28377b7a347f8bfce16e`; merge `1e2378489ff4d68c3e8c5e8b0528b46021c0a788` | QA Preflight FAIL; required 3종 파생 FAIL | 실제 TYPECHECK/Vitest/E2E8/Docker build 모두 SKIPPED | [Preflight Job #122746527763](https://github.com/planner77/masterGantt/actions/runs/40667716755/job/122746527763) |
+| #848 | [#3387.1 · 40695293920](https://github.com/planner77/masterGantt/actions/runs/40695293920) | pull_request FINAL_FULL; HEAD `f0755314067daa957a535fc8252a9c3bcbb46e09`; base `9b3be65eaf2bf8d0b5de28377b7a347f8bfce16e` | QA Preflight/TypeScript/ESLint/Vitest SUCCESS; 정책 링크 검사 직접 FAIL | Production build/E2E8/Docker SKIPPED, Required3 파생 FAIL | [Policy Job #122840837153](https://github.com/planner77/masterGantt/actions/runs/40695293920/job/122840837153) |
+| #848 | #3384.1 · 40694937211; #3385.1 · 40695008031; #3386.1 · 40695191365 | pull_request synchronize, 순차 재작업 HEAD `7b22507d...` / `8b41a8b3...` / `fc332600...` | 모두 CANCELLED | 진행 중 HEAD 교체; completed success 증거 없음 | Actions API 2026-10-28 13:22 UTC 조회 |
+| #848 | [#3388.1 · 40696244473](https://github.com/planner77/masterGantt/actions/runs/40696244473) | pull_request synchronize; HEAD `b103b0a47aab2c01978a7dcf478bb301d0730495` | Run CANCELLED, 정책 Job 122844057339 직접 FAIL (F-002) | Preflight/TS/ESLint/Vitest PASS; Build/E2E8/Docker 미완료, Required3 파생 FAIL | [Policy Job](https://github.com/planner77/masterGantt/actions/runs/40696244473/job/122844057339) |
+| #848 | [#3389.1 · 40696478448](https://github.com/planner77/masterGantt/actions/runs/40696478448) | pull_request synchronize; HEAD `d75b2d49b3a3befbe2d42c6f26a644056dc17663` | Run CANCELLED, 정책 Job 122846061122 직접 FAIL (F-002) | Preflight/TS/ESLint/Vitest PASS; Build/E2E8/Docker 미완료, Required3 파생 FAIL | [Policy Job](https://github.com/planner77/masterGantt/actions/runs/40696478448/job/122846061122) |
+| #848 | [#3390.1 · 40696957804](https://github.com/planner77/masterGantt/actions/runs/40696957804) | pull_request FINAL_FULL; HEAD `9e2a3b5cd1dfefd0828484a923f99e62293d3f60`; base `9b3be65eaf2bf8d0b5de28377b7a347f8bfce16e` | Preflight/TS/ESLint/Vitest PASS, Policy Job 122847935296 직접 FAIL (F-003) | 5개 Markdown 오탐; Build/Chromium8/Docker SKIPPED, Required3 파생 FAIL | [Policy Job](https://github.com/planner77/masterGantt/actions/runs/40696957804/job/122847935296) |
+
+**주의:** 관측된 실패가 없다는 뜻은 테스트 PASS가 아니라 **NOT EXECUTED/NOT TESTED**다. PR CI 시작 뒤 사용자가 모니터링 생략을 요청했으므로 결과를 추측해 소급 PASS로 남기지 않는다. 다음 재진입 시 실제 모든 Run/Attempt를 조회해 FAIL/취소/미실행을 구분하여 누적한다.
+
+## 2. 이전 Issue 실패 이력과의 Cross-run 관계 (독립 원장)
+#838–#840 통합 [원장](ISSUE_838_840_FAILURE_ANALYSIS.md): 기존 PR #841에서 migration 0032 도입 시 31→32 DB version/table/index/route inventory와 E2E 상위 탭 키보드, Resource FK 테스트 fixture가 직접 실패. #846의 신규 0033/DELETE/credential 정책 변경이 **동일한 전수 인벤토리**에 영향을 주므로 전체 위험 소비자 교차 보완. 원본 #841 Run 실패는 **#846 PR 실패 ID로 복사하지 않음**.
+
+## 3. #846 누적 실패 파일·Cross-run 매트릭스
+| 실패 ID | 당시 Run/Attempt/Job 및 직접 파일 | 원인·반례 | 해당 HEAD 재검증 / 잔여 위험 |
+|---|---|---|---|
+| F-003 | #3390.1 / Policy Job #122847935296 / docs/ISSUE_846_FAILURE_ANALYSIS.md 4건 및 docs/exec-plans/active/ISSUE_846.md 1건 | F-002를 설명하면서 같은 bracket+parenthesis 패턴 5건을 원장·계획에 재기록하여 `check-markdown-links.mjs`가 inline code도 로컬 링크로 해석 | 두 문서 전체 raw pattern 치환; 검증기 및 Required Gate 유지, 새 HEAD NOT TESTED |
+| F-002 | #3387.1 / Policy Job #122840837153 / docs/ARCHITECTURE.md | 링크 검사에서 `/issues/{issueId} (PATCH/DELETE)`의 `{issueId} (PATCH/DELETE)`를 로컬 Markdown 링크로 잘못 파싱하여 `PATCH/DELETE` 경로 미존재 판정 | API 경로를 코드 인용(`{issueId}`)으로 변경, 정책 스크립트 자체 수정 없음; 최신 Head NOT TESTED |
+| F-001 | #3383.1 / Preflight Job #122746527763 / docs/exec-plans/active/ISSUE_846.md | 정확 `## DOCUMENTATION_SYNC`·`## AC_TEST_COVERAGE` 섹션 및 기록 문법 부재, QA Preflight 직접 FAIL | rework에 exact heading / bullet 항목·AC1~AC7 추가; 원격 새 Head NOT TESTED |
+| R-001 · Review P1 | [#4399156235](https://github.com/planner77/masterGantt/pull/848#discussion_r4399156235) / tests/server/projects/project-issues.test.ts | stale POST에서 비밀번호 누락으로 body 400, 412 기대 계약 충돌 (코드 리뷰, **당시 Vitest 미실행**) | createBody() 사용·음성 입력 경계 교정, 리뷰 reply/resolve; 새 Head NOT TESTED |
+| R-002 · Review P2 | [#4399156238](https://github.com/planner77/masterGantt/pull/848#discussion_r4399156238) / project-issue-service-core.ts | Project 비밀번호에 기존 unlock 정책에 허용된 tab/newline 거부 | parseUnlockProjectInput 재사용·Unicode 음성/양성 회귀, 리뷰 reply/resolve; 새 Head NOT TESTED |
+
+## 4. 변경 영향 + 기존 실패 교차 테스트 합집합
+- 직접: `tests/server/projects/project-issues.test.ts`, `tests/e2e/project-issues.spec.ts`, `src/server/projects/project-issue-service-core.ts`, `src/server/projects/project-issue-handlers-core.ts`.
+- DB exact: `tests/server/db/database.test.ts`, `tests/server/migration-cli.test.ts`, `tests/server/db/issue-623-target-migration.test.ts`, `tests/server/logistics/logistics-targets-acceptance.test.ts`, `tests/server/logistics/task-target-bindings.test.ts`, `tests/server/process-catalog/process-catalog-service.test.ts`, `tests/server/process-catalog/process-context-service.test.ts`, `tests/server/resources/project-resource-memberships.test.ts`.
+- Security inventory: `tests/server/projects/edit-authorization-handlers.test.ts`의 정확한 API method/policy inventory.
+- 음성/indirect KEEP_UNIQUE: Project edit auth, private project read gate, Task/Resource FK, Workspace navigation/Gantt instance, old 0032 checksum, 32→33 upgrade rollback.
+- Browser widths/실기기/운영 SQLite migration·restore는 별도 검증; 사내 현장 데이터 접근하지 않음.
+
+## 5. 동일 후보 source 검증
+- `origin/main=9b3be65eaf2bf8d0b5de28377b7a347f8bfce16e` 기반 신규 branch. local Node/npm/SQLite/Playwright 환경 사용 불가로 **NOT EXECUTED**; 원격 Full PR CI로 검증 요청.
+- `docs/TEST_PLAN.md` 기존 807,952자/5,617행 Blob 전체를 읽고 append만 적용, 기존 원본을 0행으로 덮는 #838 실패 유형을 사전 차단.
+- 모든 migration 원본(#0032 등)은 수정하지 않았고 additive 0033만 추가; 인증 hash/비밀번호·Project read gate는 HIGH security로 Owner Managed 위험 수용과 Required PASS를 별개로 취급한다.
+- F-001(#3383.1 Preflight), F-002(#3387.1 Policy), F-003(#3390.1 Policy) 직접 실패 3종. #3384~3386은 synchronize CANCELLED, #3388~3389도 전체 Run은 CANCELLED이지만 각 Policy Job은 F-002 직접 FAIL을 남겼다. 최신 HEAD 검증 전 NOT TESTED.
+
+## 6. F-001 원본 실패 — PR #848 / Full PR Run #3383.1 / 40667716755 (attempt=1)
+
+- **Source:** 2026-10-28 09:53:01Z, pull_request FINAL_FULL, PR #848, head `dcb240562bc32ab2d503b2ff368990bc17b4dc9d`, base `9b3be65eaf2bf8d0b5de28377b7a347f8bfce16e`, test-merge `1e2378489ff4d68c3e8c5e8b0528b46021c0a788`. 원본 [Run #3383.1](https://github.com/planner77/masterGantt/actions/runs/40667716755).
+- **직접 실패:** Job `122746527763` QA Preflight, step `python3 scripts/qa_preflight.py` (원본 base 검증기, 09:53:41Z). `DOCUMENTATION_SYNC` **FAIL 1**, 5개 최종 항목 DEFERRED. 오류: `docs/exec-plans/active/ISSUE_846.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE — Work Packet ## DOCUMENTATION_SYNC 누락`. 당시 계획서는 `## 5. DOCUMENTATION_SYNC`+표와 `## 3. AC_TEST_COVERAGE / TEST_LIFECYCLE_REVIEW`여서 검증기 `section(plan,"DOCUMENTATION_SYNC")`의 **exact heading** 및 `- \`path\`: UPDATED|N/A(reason)`/ `- AC#: ...` 구문과 맞지 않았다. 문서 형식 직접 오류이며 앱/런타임 검증 실패 증거는 아님.
+- **선행 상태:** 변경 경로 판정 Job `122746358052` 성공, QA Final 신뢰 경계 Job `122746357468` 성공, ISSUE_AC/PATH_POLICY 통과.
+- **파생 FAIL:** PR 빠른 검사 `122746665840`, Quality Required `122746801521`, E2E Required `122746801848`, Docker Required `122746801709`, QA Final — Automated `122746848233`는 Preflight FAIL/선행 SKIPPED에 종속되어 FAIL. **실제 앱 코드/검사 직접 실패로 분류 금지**.
+- **미실행:** TypeScript `122746666515`, ESLint `122746666996`, Vitest `122746666418`, Next production build `122746803102`, Docker 구현 `122746802950`, Chromium8 E2E `122746803871`은 SKIPPED/NOT RUN. Fast Development Run #181.1 `40667716724`의 SKIPPED는 non-authoritative. E2E 8개 샤드 완료 성공이 아니다.
+- **보완:** Work Packet에 정확 `## DOCUMENTATION_SYNC`, `## AC_TEST_COVERAGE` 제목 및 명시적인 path/UPDATED/N/A, AC1~AC7 전부 기록. 주어진 PR 변경 파일과 base `qa_final_automated.py::docs_gate` 문법을 대조해 **로컬 문서 구조 검사 PASS**(원격 Preflight PASS 주장 금지). 같은 원인 재발 방지를 위해 기존 #838–#840 완전한 원장/문서 보존.
+- **신규 리뷰 위험:** Codex review HEAD 동일 시점 P1 stale POST fixture `input()`(password 없음 → 400), P2 Project password validator가 newline/tab을 금지. 해당 직접 위험은 **리뷰 증거로 발견**, Full CI에서 아직 실행되지 않았으므로 F-001 테스트 실패와 구별. 정상 본문 `createBody()`로 412 검증, 기존 canonical `parseUnlockProjectInput`(well-formed/1024-byte)로 Project 암호 인증, Issue 암호 별도 8~128/no-control 유지. 테스트에 Project control Unicode 허용/invalid surrogate 거부, 역사적 schema 0032→0033 기존 row 보존 추가. 두 review thread에 수정 설명을 답변하고 resolved 처리.
+- **재작업 후속 CI:** #3384~3386 CANCELLED. #3387.1 FAIL(F-002). #3388.1·#3389.1 Run CANCELLED, 다만 정책 Job 선행 직접 FAIL(F-002). #3390.1 FAIL(F-003). 과거 HEAD의 타입/단위 PASS를 새 HEAD로 소급하지 않는다.
+
+## 6.1 F-002 원본 실패 — PR #848 / Full PR Run #3387.1 / 40695293920 (attempt=1)
+
+- **Source:** 2026-10-28 13:18:57Z, pull_request FINAL_FULL, PR #848, HEAD `f0755314067daa957a535fc8252a9c3bcbb46e09`, base `9b3be65eaf2bf8d0b5de28377b7a347f8bfce16e`, [원본 Run](https://github.com/planner77/masterGantt/actions/runs/40695293920).
+- **직접 실패:** 정책·저장소 계약 검사 Job `122840837153`에서 `node scripts/check-markdown-links.mjs` exit 1. 원본: `Broken local Markdown links: /home/runner/work/masterGantt/masterGantt/docs/ARCHITECTURE.md: PATCH/DELETE`. 같은 라인의 `/issues/{issueId} (PATCH/DELETE)` Markdown이 `{issueId} (PATCH/DELETE)` 형식 로컬 링크로 해석되어 파일 미존재로 실패함. 실제 Issue API 엔드포인트 경로나 권한 버그가 아니라 **문서의 Markdown 링크 구문 오류**다.
+- **동일 Run 성공:** QA Preflight Job `122840627715` SUCCESS (F-001 문서 섹션 형식 보완 실증), TypeScript `122840836822` SUCCESS, ESLint `122840836879` SUCCESS, Vitest `122840837258` SUCCESS. 이 성공은 **HEAD `f075...`/Run #3387.1에만 귀속**하며 이후 HEAD에 소급하지 않는다.
+- **파생 실패:** PR Fast Gate Job `122841833260`, Quality Required `122841978784`, E2E Required `122841978997`, Docker Required `122841978600`, QA Final — Automated `122842031177` FAILURE. Quality는 Policy FAIL을 포함해 파생, Chrome8/Docker/Next build는 실제 **SKIPPED**.
+- **보완:** `docs/ARCHITECTURE.md`의 세 endpoint/method 조합을 전체 코드 표기 `GET/POST /api/projects/{publicId}/issues`, `PATCH/DELETE /api/projects/{publicId}/issues/{issueId}`, `PATCH /api/projects/{publicId}/issues/{issueId}/credential`로 바꾸어 Markdown 파서가 경로를 링크로 오인하지 않게 했다. 기존 `scripts/check-markdown-links.mjs`/policy gate/assertion은 수정/완화하지 않음.
+- **후속 새 Head:** F-001/F-002 및 리뷰 보완을 합친 최신 Head의 실제 정책/Vitest/8-shard E2E/Docker는 새 PR CI 이전 **NOT TESTED**, 독립 현장·SQLite backup/restore도 NOT TESTED.
+
+## 6.2 F-003 원본 실패 — PR #848 / Run #3390.1 / 40696957804 (attempt 1)
+
+- **실제 원본:** [Run #3390.1](https://github.com/planner77/masterGantt/actions/runs/40696957804), event `pull_request` FINAL_FULL, 시작 2026-10-28 13:29:58 UTC, HEAD `9e2a3b5cd1dfefd0828484a923f99e62293d3f60`, base `9b3be65eaf2bf8d0b5de28377b7a347f8bfce16e`. Test-merge SHA는 이번 조회에서 **미검증**으로 유지.
+- **직접 실패:** Policy Job `122847935296`, `node scripts/check-markdown-links.mjs`, 13:33:55 UTC: `Broken local Markdown links`의 target `PATCH/DELETE` 5건(`docs/ISSUE_846_FAILURE_ANALYSIS.md` 4건, `docs/exec-plans/active/ISSUE_846.md` 1건). F-002 원본의 bracketed issue identifier와 parenthesized HTTP methods를 인접해 기술한 문장이 inline code 안에서도 링크로 탐지됐다. 문서 오류이며 실제 API routing·앱 실행 실패 증거는 아님.
+- **같은 HEAD 성공:** QA Preflight `122847732205`, TypeScript `122847934977`, ESLint `122847935060`, Vitest `122847935288`가 SUCCESS. 이후 HEAD의 성공은 별도 증거를 요구한다.
+- **파생 FAIL / 미실행:** PR Fast Gate `122848766322`, Required Quality `122848934945`, E2E `122848935179`, Docker `122848934769`, QA Automated `122848990261`가 FAILURE. 빌드·Chromium E2E8·Docker 구현은 SKIPPED이며 테스트 PASS로 계산 금지. FAST_DEVELOPMENT #188.1도 SKIPPED(non-authoritative).
+- **보완:** 두 문서의 인접 bracket-parenthesis 문자열을 `{issueId}`와 괄호 사이 공백으로 정규화, 회귀 설명을 동일 오류 문자열 그대로 되풀이하지 않는다. Markdown 검사기의 regex는 code span/fence를 별도로 제외하지 않으므로 장문의 원장에서도 해당 문법을 재현하지 않아야 한다. `scripts/check-markdown-links.mjs`와 CI/QA 정책, 이전 #838~#840 실패 원장은 변경하지 않음. 원격 새 HEAD의 Required 3종/Trusted는 **NOT TESTED**.
+
+## 7. Cross-run 실패 집합 및 재검증 계획
+
+| 분류 | 전체 이력/재발 위험 | 현 코드 수정/검증 계획 |
+|---|---|---|
+| F-003 실패 원장/계획 링크 재발 | #3390.1 5건, F-002 설명 문서가 동일 parser 오류를 재도입 | 해당 패턴 전수 치환, 원장 작성 규칙에 link-free 표현 사용, 새 HEAD 정책 확인 전 NOT TESTED |
+| F-002 Markdown 링크 | #3387.1 `docs/ARCHITECTURE.md` raw bracket endpoint가 Markdown link로 파싱됨, Policy 직접 FAIL | method/path 전체를 inline code로 변경; 동일 script 유지, 새 HEAD POLICY 결과 NOT TESTED |
+| F-001 신규 문서 Preflight | #838–840에서 DOCUMENTATION_SYNC/AC mapping 문제 선례, 현재 #846 Run #3383.1 재발 | exact heading/line format 보강, Base validator 규칙 정적 검사 및 새 Full PR Preflight 재검증 |
+| R-001 stale negative test | 직접 `tests/server/projects/project-issues.test.ts`; 기존 #838–840 fixture/권한 우선순위 이력 | P1 수정, 정상 요청의 stale 412, no session 401, Origin 403 개별 관찰 |
+| R-002 recovery 암호 정책 | canonical `project-contract.ts`의 1–12 well-formed Project 비밀번호, unlock 1024 UTF-8-byte와 신규 Issue 8–128 제어문자 거부 충돌 | canonical parser 재사용, tab/newline/한글 및 malformed Unicode 경계 긍정·음성 테스트 |
+| prior #841 DB/schema/route/UX | migration 31→32/route count/index/fixtures/cross-project FK/상위 4탭 E2E | migration 32→33 체크섬·legacy row·FK, DB/schema/index exact, security route, project-workspace-ux E2E KEEP_UNIQUE |
+| SQLite atomic auth/delete/security | credential state race, reset/update/delete 경합, private read/Project revision CAS | 기존 Issue SQL/HTTP 테스트 EXTEND, backend transaction in source review; 실제 동시성/운영 restore는 NOT TESTED |
+| browser/timeouts | Task 순서, preview 삭제, URL 원문, 5 widths, Escape/Tab/focus | 기존 `tests/e2e/project-issues.spec.ts` EXTEND, 기존 Gantt/Task E2E KEEP_UNIQUE, 현 Run에서는 NOT RUN |
+
+**누적 실제 실패 파일**(범위 #846 원본 Run): 직접 실패 문서 합집합: `docs/exec-plans/active/ISSUE_846.md`(F-001/F-003), `docs/ARCHITECTURE.md`(F-002), `docs/ISSUE_846_FAILURE_ANALYSIS.md`(F-003), 총 3개. Chromium E2E8/Docker는 현재까지 SKIPPED(성공 미확인). TypeScript/Vitest에서 **직접 실제 FAIL 0개 관측**(#3387.1 한 HEAD 성공); E2E8/Docker는 SKIPPED, PASS 아님. 리뷰 지적은 별도 미검증 잠재 실패로 구분한다. 과거 #841 직접 이력에는 `tests/server/db/database.test.ts`, `tests/server/migration-cli.test.ts`, `tests/server/projects/edit-authorization-handlers.test.ts`, `tests/scripts/e2e-shard-planner.test.ts`, `tests/server/projects/project-issues.test.ts`, `tests/e2e/project-workspace-ux.spec.ts`, migrations 관련 DB/Resource/Logistics tests가 포함되어 #846 영향 선정에서 배제하지 않았다.
+
+**동결 이후 보류:** 코드·문서 새 HEAD의 TypeScript/ESLint/Vitest/Build/Chromium8/Docker/Trusted QA, PR exact current main/test-merge 및 운영 SQLite migration/restore/rollback은 실제 실행 전 NOT TESTED. Owner Managed는 Required FAIL을 통과로 간주하지 않는다. 새 HEAD PR CI를 시작한 뒤 본 작업은 CI 모니터링/병합/Main/GHCR 없이 종료한다.
