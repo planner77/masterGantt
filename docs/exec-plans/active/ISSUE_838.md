@@ -53,6 +53,10 @@ GitHub Issue 동기화, 다중 Task 연결, 첨부·댓글, JSON/Excel 파이프
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/PROJECT_ISSUES_USER_GUIDE.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_838.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(Owner Managed method and Trusted QA requirements remain unchanged.)
+- `docs/CI_CD.md`: N/A(The existing Full CI workflows and required checks are unchanged.)
+- `docs/GITHUB_OPERATIONS.md`: N/A(Existing release and issue closure procedures are reused unchanged.)
+- `docs/REMOTE_VALIDATION.md`: N/A(Existing remote evidence and provenance requirements remain unchanged.)
 - `docs/SCHEDULING_ENGINE.md`: N/A(The Issue module does not change schedule calculation or dependencies.)
 
 ## AC_TEST_COVERAGE
