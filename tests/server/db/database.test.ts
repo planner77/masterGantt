@@ -291,6 +291,8 @@ describe("SQLite connection and schema", () => {
         "project_equipment_resource_roles_resource_idx",
         "project_equipment_systems_equipment_idx",
         "project_equipment_systems_system_idx",
+        "project_issues_created_idx",
+        "project_issues_status_idx",
         "project_master_admin_sessions_expiry_idx",
         "project_master_items_category_active_sort_idx",
         "project_process_occurrence_mappings_occurrence_idx",

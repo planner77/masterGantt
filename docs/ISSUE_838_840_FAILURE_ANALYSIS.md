@@ -35,6 +35,13 @@
 - 조치: 기존 원장/인덱스/보안 테스트를 보존하고 명시적으로 0032, project_issues, 3 route 추가. 무관한 인증·스케줄링 테스트 수정·제외 없음. 다음 최신 HEAD의 PR Quality 전체 재검증 필요.
 - Required Quality 실패에 따라 E2E/Docker 집계 실패 및 QA Final FAIL은 이 run의 실제 실패이며 회귀 성공으로 바꾸지 않는다.
 
+## Run #3371.1 / 40623629808 — DB index inventory 정확성 1건
+- HEAD: 1df3377458276a897ada5a4711695265f3b90cd7.
+- QA preflight/TypeScript/ESLint/policy PASS; Vitest 3369 PASS, 1 FAIL, 3 SKIP.
+- 단일 FAIL: tests/server/db/database.test.ts 269번의 인덱스 전수 목록에 migration 0032의 project_issues_created_idx, project_issues_status_idx 누락 (실제 SQL index 72개 vs 명시 기대70).
+- 해결: 정확한 두 index 이름을 기존 전수 assert 목록에 추가; assertion 완화·제거 없음. 최신 HEAD의 PR required CI 재검증.
+- 이번 run의 E2E/Docker/QA 최종 결과는 Quality 실패에 종속되므로 성공으로 소급하지 않는다.
+
 ## release_state
 - qa_method: OWNER_MANAGED; risk: HIGH; independent_qa: N/A. 최신 성공 Full PR required 3종 + Trusted 및 exact Owner final ACCEPT 전 merge 불가.
 - Main CI, OCI immutable candidate, Generic Finalizer와 정식 GHCR은 NOT EXECUTED; #838/#839/#840 OPEN 유지.
