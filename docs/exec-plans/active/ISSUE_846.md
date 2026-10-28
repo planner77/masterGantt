@@ -9,7 +9,7 @@ Primary Issue: [#846](https://github.com/planner77/masterGantt/issues/846)
 - POST Issue 등록은 Project edit session, Origin, If-Match가 필요. 신규 비밀번호 `issuePassword`+확인, 8~128 Unicode 문자/512 UTF8 byte·제어문자 금지, 랜덤 16-byte salt + 고정 scrypt(32768,8,3,32). Server KDF bounded. raw password/credential hashes는 응답/브라우저 저장/로그에 포함하지 않는다.
 - 보호된 Issue PATCH/DELETE는 각 Issue 비밀번호가 authority이며 Project edit session만으로 우회할 수 없다. 공개 Project 조회 사용자도 자체 Issue credential로 변경 가능. 비공개 프로젝트는 별도로 기존 read gate를 통과하여야 하고 transaction에서 사후 재확인한다. Issue 비밀번호는 Gantt·Task/Resource 수정 권한과 무관.
 - 기존 migration-0032 레코드는 비밀번호 미설정 `UNSET`. 무비밀번호 legacy 쓰기는 409; Project **현재** edit session+Project **현재** 비밀번호를 모두 검증하는 명시적 /credential initialize/reset만 허용; credential_version·requestId audit. 관리자라도 본문 PATCH/DELETE 우회 불가.
-- 삭제는 `lifecycle_state=DELETED`, `deleted_at`와 `updated_at` 원자적 수정. SQL row/필드/created_at 보존, 일반 GET/검색/요약/KPI/완료 상태 필터에서 제외, 삭제 복구/삭제 필터 신규 UI 없음. 기존 Project 삭제 CASCADE는 별도 계약.
+- 삭제는 `lifecycle_state=DELETED`, `deleted_at` 원자적 수정(기존 `updated_at` 보존). SQL row/필드/created_at 보존, 일반 GET/검색/요약/KPI/완료 상태 필터에서 제외, 삭제 복구/삭제 필터 신규 UI 없음. 기존 Project 삭제 CASCADE는 별도 계약.
 - Server state/revision/credential snapshot 재검증: KDF는 트랜잭션 외부, 변경은 단일 SQLite immediate transaction + project revision CAS. 클라이언트는 필수 strong If-Match 및 stale 412 처리.
 - UI 순서: 관련 Task → Issue 내용 multiline, 별도 링크 미리보기 삭제, Issue 암호/확인 및 읽기 전용 legacy 관리자 명시적 설정, 삭제 경고+2차 확인, dialog keyboard/Escape/Tab, 완료일·Task 검색 그대로.
 - Rate limiter는 현재 app instance별 Issue 10/15min 및 global 100/15min; 다중 인스턴스 환경에서 추가 shared ingress protection 필요. ERROR 429 Retry-After; Origin 403, mismatch 401, legacy 409, stale 412, missing/deleted 404, KDF capacity 503.
