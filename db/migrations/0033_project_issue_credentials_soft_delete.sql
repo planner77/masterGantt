@@ -33,10 +33,10 @@ CREATE INDEX project_issue_credential_audit_issue_idx
 CREATE TRIGGER project_issues_846_insert_guard BEFORE INSERT ON project_issues
 WHEN (NEW.lifecycle_state = 'DELETED') != (NEW.deleted_at IS NOT NULL)
   OR (NEW.credential_state = 'ACTIVE') !=
-    (NEW.password_kdf = 'scrypt' AND NEW.password_salt IS NOT NULL AND
+    COALESCE((NEW.password_kdf = 'scrypt' AND NEW.password_salt IS NOT NULL AND
      NEW.password_hash IS NOT NULL AND NEW.scrypt_n = 32768 AND
      NEW.scrypt_r = 8 AND NEW.scrypt_p = 3 AND NEW.scrypt_key_length = 32 AND
-     NEW.credential_version >= 1)
+     NEW.credential_version >= 1), 0)
   OR (NEW.credential_state = 'UNSET' AND
      (NEW.password_kdf IS NOT NULL OR NEW.password_salt IS NOT NULL OR
       NEW.password_hash IS NOT NULL OR NEW.scrypt_n IS NOT NULL OR
@@ -46,10 +46,10 @@ BEGIN SELECT RAISE(ABORT, 'invalid project issue credential/lifecycle'); END;
 CREATE TRIGGER project_issues_846_update_guard BEFORE UPDATE ON project_issues
 WHEN (NEW.lifecycle_state = 'DELETED') != (NEW.deleted_at IS NOT NULL)
   OR (NEW.credential_state = 'ACTIVE') !=
-    (NEW.password_kdf = 'scrypt' AND NEW.password_salt IS NOT NULL AND
+    COALESCE((NEW.password_kdf = 'scrypt' AND NEW.password_salt IS NOT NULL AND
      NEW.password_hash IS NOT NULL AND NEW.scrypt_n = 32768 AND
      NEW.scrypt_r = 8 AND NEW.scrypt_p = 3 AND NEW.scrypt_key_length = 32 AND
-     NEW.credential_version >= 1)
+     NEW.credential_version >= 1), 0)
   OR (NEW.credential_state = 'UNSET' AND
      (NEW.password_kdf IS NOT NULL OR NEW.password_salt IS NOT NULL OR
       NEW.password_hash IS NOT NULL OR NEW.scrypt_n IS NOT NULL OR
