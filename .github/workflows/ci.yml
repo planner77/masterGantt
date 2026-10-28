@@ -61,7 +61,7 @@ jobs:
       transport: ${{ github.event_name != 'pull_request' || steps.filter.outputs.transport == 'true' }}
       docs_only: ${{ steps.classify.outputs.docs_only }}
       version_changed: ${{ steps.release_candidate.outputs.changed || 'false' }}
-      current_version: ${{ steps.recovery.outputs.version || steps.release_candidate.outputs.current_version }}
+      current_version: ${{ steps.recovery.outputs.version || steps.release_candidate.outputs.current_version || steps.package_version.outputs.version }}
       checkout_sha: ${{ steps.recovery.outputs.target_sha || github.sha }}
       recovery_authorized: ${{ steps.recovery.outputs.authorized || 'false' }}
       metadata_only: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' }}
@@ -116,6 +116,20 @@ jobs:
       - name: checkout 시간 기록
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
+
+      # PR does not execute release_candidate; every image path still needs
+      # immutable checked-out package SemVer (never an empty Build ARG).
+      - name: 공통 PR/Main exact-source package SemVer 계산 (#836)
+        id: package_version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p 'require("./package.json").version')"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.+][A-Za-z0-9.-]+)?$ ]] || {
+            echo "BLOCKED: missing or invalid package SemVer" >&2
+            exit 1
+          }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: CI 실행 추적 메타데이터 검증
         run: python3 scripts/verify-ci-run-trace.py
@@ -1139,7 +1153,7 @@ jobs:
           MAIN_SOURCE_SHA: ${{ needs.changes.outputs.checkout_sha }}
           MAIN_VERSION: ${{ needs.changes.outputs.current_version }}
           MAIN_RECOVERY_AUTHORIZED: ${{ needs.changes.outputs.recovery_authorized }}
-          PR_IMAGE_REUSE_ENABLED: ${{ vars.PR_IMAGE_REUSE_ENABLED }}
+          PR_IMAGE_REUSE_ENABLED: ${{ vars.PR_IMAGE_REUSE_ENABLED == '' || vars.PR_IMAGE_REUSE_ENABLED == 'true' }}
           GH_TOKEN: ${{ github.token }}
         run: python3 scripts/ci_image_reuse.py
       - name: Docker build/cache 계측 시작
@@ -1770,13 +1784,13 @@ jobs:
       # explicitly Owner-enabled feature flag. Shadow/default retains the
       # prior trusted Main build/push and every Main/Release gate unchanged.
       - name: 검증된 Main OCI archive 다운로드 (Issue #836 opt-in)
-        if: vars.PR_IMAGE_REUSE_ENABLED == 'true' && needs.docker_smoke.result == 'success'
+        if: (vars.PR_IMAGE_REUSE_ENABLED == '' || vars.PR_IMAGE_REUSE_ENABLED == 'true') && needs.docker_smoke.result == 'success'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: ci-oci-main-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/mastergantt-verified-main
       - name: Main OCI source job outputs/byte-level digest 교차 검사
-        if: vars.PR_IMAGE_REUSE_ENABLED == 'true' && needs.docker_smoke.result == 'success'
+        if: (vars.PR_IMAGE_REUSE_ENABLED == '' || vars.PR_IMAGE_REUSE_ENABLED == 'true') && needs.docker_smoke.result == 'success'
         env:
           IMAGE_REVISION: ${{ needs.docker_smoke.outputs.revision }}
           OCI_EXPECTED_INDEX: ${{ needs.docker_smoke.outputs.index_digest }}
@@ -1804,7 +1818,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - name: 임시 commit 이미지 빌드·게시 (legacy SHADOW or no-image)
         id: legacy_push
-        if: vars.PR_IMAGE_REUSE_ENABLED != 'true' || needs.docker_smoke.result != 'success'
+        if: (vars.PR_IMAGE_REUSE_ENABLED != '' && vars.PR_IMAGE_REUSE_ENABLED != 'true') || needs.docker_smoke.result != 'success'
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
         with:
           context: .
@@ -1823,7 +1837,7 @@ jobs:
           sbom: true
       - name: Same-run verified OCI index digest 보존 게시 (Issue #836 opt-in)
         id: oci_push
-        if: vars.PR_IMAGE_REUSE_ENABLED == 'true' && needs.docker_smoke.result == 'success'
+        if: (vars.PR_IMAGE_REUSE_ENABLED == '' || vars.PR_IMAGE_REUSE_ENABLED == 'true') && needs.docker_smoke.result == 'success'
         shell: bash
         env:
           IMAGE_REFERENCE: ${{ steps.image.outputs.reference }}
