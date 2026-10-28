@@ -229,9 +229,17 @@ export class ProjectIssueService {
       throw new PublicApiError(412, "REVISION_MISMATCH", "프로젝트가 변경되었습니다. 새로고침해 주세요.");
     return project;
   }
-  private currentReadProject(publicId: string, revision: number) {
+  private currentReadProject(
+    publicId: string, revision: number, readAuthorization?: AuthorizedEditSession,
+  ) {
     const project = this.projects.findByPublicId(publicId);
     if (!project) throw new PublicApiError(404, "PROJECT_NOT_FOUND", "프로젝트를 찾을 수 없습니다.");
+    if (project.visibility !== "public") {
+      if (project.visibility !== "private" || !readAuthorization)
+        throw new PublicApiError(401, "PROJECT_LOCKED", "이 프로젝트는 잠겨 있습니다.");
+      // A private project still requires its own current read grant after the KDF.
+      return this.current(readAuthorization, revision, (this.options.clock ?? (() => new Date()))());
+    }
     if (project.revision !== revision)
       throw new PublicApiError(412, "REVISION_MISMATCH", "프로젝트가 변경되었습니다. 새로고침해 주세요.");
     return project;
@@ -310,11 +318,12 @@ export class ProjectIssueService {
     return current;
   }
   async update(publicId: string, issueId: string, expectedRevision: number,
-    rawInput: ProjectIssueInput, password: string): Promise<ProjectIssueMutationResponse> {
+    rawInput: ProjectIssueInput, password: string,
+    readAuthorization?: AuthorizedEditSession): Promise<ProjectIssueMutationResponse> {
     const initial = await this.requireIssuePassword(publicId, issueId, password);
     return this.database.transaction(() => {
       const nowText = (this.options.clock ?? (() => new Date()))().toISOString();
-      const project = this.currentReadProject(publicId, expectedRevision);
+      const project = this.currentReadProject(publicId, expectedRevision, readAuthorization);
       this.requireUnchangedIssue(project.id, issueId, initial);
       const input = this.resolveInput(project.id, rawInput);
       const params = this.issueParams(project.id, input, issueId, nowText);
@@ -327,11 +336,11 @@ export class ProjectIssueService {
     }).immediate();
   }
   async softDelete(publicId: string, issueId: string, expectedRevision: number,
-    password: string): Promise<{ data: { projectRevision: number; deleted: true } }> {
+    password: string, readAuthorization?: AuthorizedEditSession): Promise<{ data: { projectRevision: number; deleted: true } }> {
     const initial = await this.requireIssuePassword(publicId, issueId, password);
     return this.database.transaction(() => {
       const nowText = (this.options.clock ?? (() => new Date()))().toISOString();
-      const project = this.currentReadProject(publicId, expectedRevision);
+      const project = this.currentReadProject(publicId, expectedRevision, readAuthorization);
       this.requireUnchangedIssue(project.id, issueId, initial);
       const result = this.database.prepare(
         "UPDATE project_issues SET lifecycle_state='DELETED', deleted_at=?, updated_at=? WHERE project_id=? AND public_id=? AND lifecycle_state='ACTIVE'"
