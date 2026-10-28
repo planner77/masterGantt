@@ -1,3 +1,9 @@
+## Issue #836 — PR-origin OCI Digest를 채택한 Main 후보의 Finalizer 출처 계약 (2026-10-28)
+
+Main `ci-<SHA>` candidate가 PR smoke의 OCI index를 **그대로** 사용하여 `org.opencontainers.image.revision=PR Test-Merge SHA`인 경우, Release 검증기가 별도 `verify_ci_image_release.py`에서 PR Full Run/Attempt/Docker 실제 success, PR source artifact/base/head/test-merge/Tree, 신뢰된 immutable OCI index+attestation subject/build fingerprint, **별개 Main push Full Required3 및 Main Docker/publish 성공**과 동일 registry digest를 입증하지 못하면 후보를 BLOCKED 처리한다. PR label을 Main SHA로 바꾸거나 자기 주장 원장만으로 Release/Finalizer를 통과시키지 않는다. 기존 `revision==MainSHA` verification은 그대로 유지한다.
+
+이 재사용은 #438 Main exact digest→immutable SemVer promotion만 지원하며, #773 Release static/E2E evidence reuse와 무관하다. Generic Finalizer는 source 변경으로 새로운 승인 marker를 합성하지 않고 existing first-parent/Issue/PR/Owner exact-version acceptance, Main/Release 성공 Run, GHCR exact digest/tag/metadata, oldest-first debt/cleanup 및 immutable tag 규칙을 계속 독립 검증한다. `PR_IMAGE_REUSE_ENABLED` default ON (미설정/true), false는 명시적 SHADOW·롤백이다. 본 기본값 승인만으로 Full PR/Main/Release/Finalizer 성공 또는 정식 GHCR 발행 승인이 생성되지 않는다. 본 #836 자체는 `release_required=false`, `release_authorized=false`, **본 PR에서 실제 Release/Finalizer 실행 없음**. [Work Packet](exec-plans/active/ISSUE_836.md).
+
 ## Issue #773 — Release reuse 증거의 Generic Finalizer 경계 (2026-10-22)
 
 - `REUSED_VERIFIED`는 Main 정확 SHA의 **독립 인증된 Full 원본 성공**을 가리키는 Release 검증 모드이며, Release의 static/E2E는 해당 Run에서 **NOT EXECUTED**다. 기존 Main/PR 소스/Owner 승인/정식 Release 성공 조건을 바꾸거나 `FULL_PASS`로 간주하지 않는다. `REUSE_INELIGIBLE`/UNKNOWN은 Full Release 또는 BLOCKED로 처리하고 실패한 원본 Run을 소급 승인하지 않는다.

@@ -61,7 +61,7 @@ jobs:
       transport: ${{ github.event_name != 'pull_request' || steps.filter.outputs.transport == 'true' }}
       docs_only: ${{ steps.classify.outputs.docs_only }}
       version_changed: ${{ steps.release_candidate.outputs.changed || 'false' }}
-      current_version: ${{ steps.recovery.outputs.version || steps.release_candidate.outputs.current_version }}
+      current_version: ${{ steps.recovery.outputs.version || steps.release_candidate.outputs.current_version || steps.package_version.outputs.version }}
       checkout_sha: ${{ steps.recovery.outputs.target_sha || github.sha }}
       recovery_authorized: ${{ steps.recovery.outputs.authorized || 'false' }}
       metadata_only: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' }}
@@ -116,6 +116,20 @@ jobs:
       - name: checkout 시간 기록
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
+
+      # PR does not execute release_candidate; every image path still needs
+      # immutable checked-out package SemVer (never an empty Build ARG).
+      - name: 공통 PR/Main exact-source package SemVer 계산 (#836)
+        id: package_version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p 'require("./package.json").version')"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.+][A-Za-z0-9.-]+)?$ ]] || {
+            echo "BLOCKED: missing or invalid package SemVer" >&2
+            exit 1
+          }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: CI 실행 추적 메타데이터 검증
         run: python3 scripts/verify-ci-run-trace.py
@@ -482,6 +496,8 @@ jobs:
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_low_*.py' -v
       - name: Issue #773 Release reuse fail-closed 출처·샤드·Owner 회귀
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_release_reuse_evidence.py' -v
+      - name: Issue #836 PR→Main→Release OCI Subject/출처/변조 보호 단위 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_image_*.py' -v
       - name: Issue #703 Preview 배포 권한·워크플로 단위 회귀
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_preview_publish.py' -v
       - name: Issue #751 source-matched P50/P95 comparison and missing-artifact regression
@@ -1095,6 +1111,15 @@ jobs:
       needs.changes.outputs.docker == 'true'
     needs: [changes, preflight]
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    outputs:
+      archive_sha256: ${{ steps.oci_verified.outputs.archive_sha256 }}
+      index_digest: ${{ steps.oci_verified.outputs.index_digest }}
+      revision: ${{ steps.reuse_decision.outputs.source_revision || needs.changes.outputs.checkout_sha }}
+      decision: ${{ steps.reuse_decision.outputs.decision || 'REBUILD_MAIN_VERIFIED' }}
     # Bounded Playwright OS dependency retries plus full transport/Compose smoke.
     timeout-minutes: 40
     steps: &docker_smoke_steps
@@ -1118,22 +1143,90 @@ jobs:
       - name: Docker Buildx setup 시간 기록
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric docker-buildx-setup --started-ms "${{ steps.buildx-start.outputs.started_ms }}"
+      # Trusted main verifier reads GitHub-sourced PR/attempt/job/tree/OCI metadata.
+      # Shadow (flag OFF) records evidence but ALWAYS rebuilds main.
+      - name: Issue #836 PR OCI source decision (Main trusted checkout)
+        id: reuse_decision
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          MAIN_SOURCE_SHA: ${{ needs.changes.outputs.checkout_sha }}
+          MAIN_VERSION: ${{ needs.changes.outputs.current_version }}
+          MAIN_RECOVERY_AUTHORIZED: ${{ needs.changes.outputs.recovery_authorized }}
+          PR_IMAGE_REUSE_ENABLED: ${{ vars.PR_IMAGE_REUSE_ENABLED == '' || vars.PR_IMAGE_REUSE_ENABLED == 'true' }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/ci_image_reuse.py
       - name: Docker build/cache 계측 시작
         id: docker-build-start
         shell: bash
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
-      - name: Docker image build
+      # Single OCI export retains the index + BuildKit attestations. Loading a
+      # classic Docker daemon directly cannot retain an OCI multi-manifest index.
+      - name: OCI archive runtime transport 설치
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes skopeo
+      - name: Docker image build (single attested OCI export)
         id: docker-build
+        if: steps.reuse_decision.outputs.decision != 'PR_REUSE_VERIFIED'
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
         with:
           context: .
           file: deploy/docker/Dockerfile
-          load: true
-          tags: mastergantt:ci
-          build-args: VERSION=ci-${{ needs.changes.outputs.checkout_sha }}
+          outputs: type=oci,dest=/tmp/mastergantt-verified.oci.tar
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ needs.changes.outputs.checkout_sha }}
+            org.opencontainers.image.version=${{ needs.changes.outputs.current_version }}
+          build-args: VERSION=${{ needs.changes.outputs.current_version }}
           platforms: linux/amd64
+          provenance: mode=max
+          sbom: true
           cache-from: type=gha,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
           cache-to: ${{ github.event_name == 'push' && format('type=gha,mode=max,scope=mastergantt-docker-{0}-{1}', runner.os, runner.arch) || '' }}
+      - name: 인증된 PR OCI Subject 채택 (opt-in 전용)
+        if: steps.reuse_decision.outputs.decision == 'PR_REUSE_VERIFIED'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp "$RUNNER_TEMP/mastergantt-ci-oci/mastergantt-verified.oci.tar" /tmp/mastergantt-verified.oci.tar
+      - name: OCI blob/digest/SBOM/provenance·런타임 config 동일성 검증
+        id: oci_verified
+        shell: bash
+        env:
+          IMAGE_REVISION: ${{ steps.reuse_decision.outputs.source_revision || needs.changes.outputs.checkout_sha }}
+          BUILD_VERSION: ${{ needs.changes.outputs.current_version }}
+        run: |
+          set -euo pipefail
+          python3 scripts/verified_oci.py \
+            --archive /tmp/mastergantt-verified.oci.tar \
+            --repository "$GITHUB_REPOSITORY" \
+            --revision "$IMAGE_REVISION" --version "$BUILD_VERSION" \
+            --output "$RUNNER_TEMP/ci-image-inspection.json"
+          skopeo copy --override-os linux --override-arch amd64 \
+            oci-archive:/tmp/mastergantt-verified.oci.tar docker-daemon:mastergantt:ci
+          # Docker's daemon transport may normalize the image ID. The OCI
+          # registry subject remains byte-identical; compare actual RUNNABLE
+          # daemon semantics and full uncompressed RootFS layer IDs instead.
+          # Missing/mismatched labels, user, entrypoint, env or layers BLOCK.
+          python3 scripts/ci_image_runtime.py \
+            --archive /tmp/mastergantt-verified.oci.tar \
+            --report "$RUNNER_TEMP/ci-image-inspection.json" \
+            --image mastergantt:ci \
+            --output "$RUNNER_TEMP/ci-image-runtime-verification.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = json.loads((Path(os.environ['RUNNER_TEMP']) / 'ci-image-inspection.json').read_text())
+          proof = json.loads((Path(os.environ['RUNNER_TEMP']) / 'ci-image-runtime-verification.json').read_text())
+          if not (proof['runtime_config_equivalent'] and proof['rootfs_diff_ids_equivalent']):
+              raise SystemExit('BLOCKED: Docker runtime proof incomplete')
+          if os.environ.get('GITHUB_OUTPUT'):
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
+                  stream.write(f"archive_sha256={report['archive_sha256']}\n")
+                  stream.write(f"index_digest={report['index_digest']}\n")
+          PY
       - name: Docker build/cache 시간 기록
         if: always()
         shell: bash
@@ -1266,6 +1359,37 @@ jobs:
       - name: 실패 시 container logs
         if: failure()
         run: docker logs mastergantt-ci || true
+      - name: Issue #836 build context + builder/OCI contract capture
+        if: success()
+        shell: bash
+        env:
+          OCI_DIGEST: ${{ steps.oci_verified.outputs.index_digest }}
+          ARCHIVE_SHA: ${{ steps.oci_verified.outputs.archive_sha256 }}
+          SOURCE_REVISION: ${{ steps.reuse_decision.outputs.source_revision || needs.changes.outputs.checkout_sha }}
+          BUILD_VERSION: ${{ needs.changes.outputs.current_version }}
+        run: |
+          python3 scripts/ci_image_contract.py write \
+            --version "$BUILD_VERSION" --revision "$SOURCE_REVISION" \
+            --digest "$OCI_DIGEST" --archive-sha256 "$ARCHIVE_SHA" \
+            --output "$RUNNER_TEMP/ci-image-build-contract.json"
+      - name: Issue #836 immutable PR build contract receipt
+        if: success() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-pr-build-contract-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ci-image-build-contract.json
+          if-no-files-found: error
+          retention-days: 30
+      # Upload only after the EXACT exported image passed policy and runtime
+      # smoke; the independent trusted Main job checks Run/Attempt + ZIP hash.
+      - name: Issue #836 verified OCI archive (same source Run/Attempt)
+        if: success()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-oci-${{ github.event_name == 'pull_request' && 'pr' || 'main' }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/mastergantt-verified.oci.tar
+          if-no-files-found: error
+          retention-days: 30
       - name: Docker setup 계측 artifact 업로드
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -1591,7 +1715,7 @@ jobs:
     # Shared Playwright setup may perform two bounded 360s OS-deps installs.
     # Allow enough budget for image build/push, digest pull and transport smoke.
     timeout-minutes: 50
-    needs: [changes, quality, e2e, docker]
+    needs: [changes, quality, e2e, docker, docker_smoke]
     permissions:
       contents: read
       actions: read
@@ -1664,12 +1788,45 @@ jobs:
             echo "Refusing to overwrite temporary commit image: ${{ steps.image.outputs.reference }}" >&2
             exit 1
           fi
+      # The verified same-run Main artifact is authoritative ONLY with an
+      # explicitly Owner-enabled feature flag. Shadow/default retains the
+      # prior trusted Main build/push and every Main/Release gate unchanged.
+      - name: 검증된 Main OCI archive 다운로드 (Issue #836 opt-in)
+        if: (vars.PR_IMAGE_REUSE_ENABLED == '' || vars.PR_IMAGE_REUSE_ENABLED == 'true') && needs.docker_smoke.result == 'success'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: ci-oci-main-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mastergantt-verified-main
+      - name: Main OCI source job outputs/byte-level digest 교차 검사
+        if: (vars.PR_IMAGE_REUSE_ENABLED == '' || vars.PR_IMAGE_REUSE_ENABLED == 'true') && needs.docker_smoke.result == 'success'
+        env:
+          IMAGE_REVISION: ${{ needs.docker_smoke.outputs.revision }}
+          OCI_EXPECTED_INDEX: ${{ needs.docker_smoke.outputs.index_digest }}
+          OCI_EXPECTED_ARCHIVE_SHA: ${{ needs.docker_smoke.outputs.archive_sha256 }}
+          BUILD_VERSION: ${{ needs.changes.outputs.current_version }}
+          OCI_DECISION: ${{ needs.docker_smoke.outputs.decision }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$IMAGE_REVISION" = "$SOURCE_SHA" || test "$OCI_DECISION" = PR_REUSE_VERIFIED
+          python3 scripts/verified_oci.py \
+            --archive "$RUNNER_TEMP/mastergantt-verified-main/mastergantt-verified.oci.tar" \
+            --repository "$GITHUB_REPOSITORY" --revision "$IMAGE_REVISION" \
+            --version "$BUILD_VERSION" --output "$RUNNER_TEMP/oci-publisher-inspection.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          p = json.loads((Path(os.environ['RUNNER_TEMP']) / 'oci-publisher-inspection.json').read_text())
+          if p['index_digest'] != os.environ['OCI_EXPECTED_INDEX'] or p['archive_sha256'] != os.environ['OCI_EXPECTED_ARCHIVE_SHA']:
+              raise SystemExit('BLOCKED: producer Main smoke image differs from publish artifact')
+          PY
       - name: Main image build/push 계측 시작
         id: main-image-start
         shell: bash
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
-      - name: 임시 commit 이미지 빌드·게시
-        id: push
+      - name: 임시 commit 이미지 빌드·게시 (legacy SHADOW or no-image)
+        id: legacy_push
+        if: (vars.PR_IMAGE_REUSE_ENABLED != '' && vars.PR_IMAGE_REUSE_ENABLED != 'true') || needs.docker_smoke.result != 'success'
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
         with:
           context: .
@@ -1686,6 +1843,45 @@ jobs:
           cache-to: type=gha,mode=max,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
           provenance: mode=max
           sbom: true
+      - name: Same-run verified OCI index digest 보존 게시 (Issue #836 opt-in)
+        id: oci_push
+        if: (vars.PR_IMAGE_REUSE_ENABLED == '' || vars.PR_IMAGE_REUSE_ENABLED == 'true') && needs.docker_smoke.result == 'success'
+        shell: bash
+        env:
+          IMAGE_REFERENCE: ${{ steps.image.outputs.reference }}
+          OCI_SUBJECT: ${{ needs.docker_smoke.outputs.index_digest }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes skopeo
+          skopeo copy --all --preserve-digests \
+            --digestfile "$RUNNER_TEMP/oci-push-digest" \
+            "oci-archive:$RUNNER_TEMP/mastergantt-verified-main/mastergantt-verified.oci.tar" \
+            "docker://$IMAGE_REFERENCE"
+          digest="$(cat "$RUNNER_TEMP/oci-push-digest")"
+          test "$digest" = "$OCI_SUBJECT" || {
+            echo "BLOCKED: published OCI digest differs from the Main-smoked subject" >&2
+            exit 1
+          }
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+      - name: 게시 digest 출처 단일화
+        id: push
+        shell: bash
+        env:
+          LEGACY_DIGEST: ${{ steps.legacy_push.outputs.digest }}
+          OCI_DIGEST: ${{ steps.oci_push.outputs.digest }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$LEGACY_DIGEST" && -z "$OCI_DIGEST" ]]; then
+            digest="$LEGACY_DIGEST"
+          elif [[ -z "$LEGACY_DIGEST" && -n "$OCI_DIGEST" ]]; then
+            digest="$OCI_DIGEST"
+          else
+            echo 'BLOCKED: zero or multiple Main publish digests' >&2
+            exit 1
+          fi
+          [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]] || exit 1
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
       - name: Main image build/push 시간 기록
         if: always()
         shell: bash
