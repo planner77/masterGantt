@@ -8,6 +8,8 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   const state = await installStatefulProjectFixture(page);
   state.sessionEditable = true;
   const records: ProjectIssueDto[] = [];
+  const passwords = new Map<string, string>();
+  const issuePassword = "IssuePassword#123";
   const resourceId = randomUUID();
   let postCount = 0;
   await page.route("**" + projectPath + "/resource-memberships?*", async route => {
@@ -41,7 +43,11 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
       } } });
       return;
     }
-    const input = request.postDataJSON() as ProjectIssueInput;
+    const body = request.postDataJSON() as ProjectIssueInput & {
+      issuePassword?: string; confirmIssuePassword?: string;
+    };
+    const { issuePassword: candidate, confirmIssuePassword: ignoredConfirmation, ...input } = body;
+    void ignoredConfirmation;
     const expected = '"' + state.project.revision + '"';
     if (request.headers()["if-match"] !== expected) {
       await route.fulfill({ status: 412, json: { error: { code: "REVISION_MISMATCH", message: "stale" } } });
@@ -50,9 +56,13 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
     if (request.method() === "POST" && path === projectPath + "/issues") {
       postCount++;
       const timestamp = "2026-10-28T03:00:00.000Z";
-      const created: ProjectIssueDto = { ...input,
+      if (candidate !== issuePassword || body.confirmIssuePassword !== issuePassword) {
+        await route.fulfill({ status: 400, json: { error: { code: "INVALID_ISSUE" } } }); return;
+      }
+      const created: ProjectIssueDto = { ...input, credentialState: "protected",
         issueId: randomUUID(), createdAt: timestamp, updatedAt: timestamp,
       };
+      passwords.set(created.issueId, candidate);
       records.unshift(created);
       state.project.revision++;
       await route.fulfill({ status: 201, json: { data: { projectRevision: state.project.revision, issue: created } } });
@@ -62,10 +72,24 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
       const id = path.split("/").at(-1);
       const index = records.findIndex(record => record.issueId === id);
       if (index < 0) { await route.fulfill({ status: 404 }); return; }
+      if (candidate !== passwords.get(id!)) {
+        await route.fulfill({ status: 401, json: { error: { code: "ISSUE_PASSWORD_INVALID", message: "password" } } }); return;
+      }
       const updated = { ...records[index], ...input, updatedAt: "2026-10-28T03:02:00.000Z" };
       records[index] = updated;
       state.project.revision++;
       await route.fulfill({ json: { data: { projectRevision: state.project.revision, issue: updated } } });
+      return;
+    }
+    if (request.method() === "DELETE" && path.startsWith(projectPath + "/issues/")) {
+      const id = path.split("/").at(-1) ?? "";
+      const index = records.findIndex(record => record.issueId === id);
+      if (index < 0) { await route.fulfill({ status: 404 }); return; }
+      if (candidate !== passwords.get(id)) {
+        await route.fulfill({ status: 401, json: { error: { code: "ISSUE_PASSWORD_INVALID", message: "password" } } }); return;
+      }
+      records.splice(index, 1); state.project.revision++;
+      await route.fulfill({ json: { data: { deleted: true, projectRevision: state.project.revision } } });
       return;
     }
     await route.fulfill({ status: 405 });
@@ -90,12 +114,17 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await editor.getByRole("button", { name: "리소스 검색" }).last().click();
   await editor.getByRole("button", { name: "김개발 · DEV" }).click();
   await expect(editor.getByText("선택한 리소스: 김개발")).toBeVisible();
-  await editor.getByLabel("Issue 내용").fill("로그: https://example.com/issues/123");
-  await expect(editor.getByRole("link", { name: "https://example.com/issues/123" })).toHaveAttribute("rel", "noopener noreferrer");
+  await editor.getByLabel("Issue 내용").fill("로그: https://example.com/issues/123\n추적 완료");
+  await expect(editor.getByText("링크 미리보기")).toHaveCount(0);
+  expect(await editor.locator("#project-issue-task").evaluate(element =>
+    element.compareDocumentPosition(document.getElementById("project-issue-description")) &
+    Node.DOCUMENT_POSITION_FOLLOWING)).toBeTruthy();
   await editor.getByRole("button", { name: "Task 검색" }).click();
   await editor.locator("#project-issue-task-picker button").first().click();
   await editor.getByLabel("완료", { exact: true }).check();
   await expect(editor.getByLabel("완료일")).not.toHaveValue("");
+  await editor.getByLabel("Issue 비밀번호 *").fill(issuePassword);
+  await editor.getByLabel("Issue 비밀번호 확인 *").fill(issuePassword);
   await editor.getByRole("button", { name: "등록", exact: true }).click();
   await expect(workspace.getByText("완료 1 / 전체 1")).toBeVisible();
   expect(postCount).toBe(1);
@@ -105,6 +134,10 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await expect(detail.getByLabel("등록일")).toHaveValue("2026-10-28");
   await detail.getByLabel("완료", { exact: true }).uncheck();
   await expect(detail.getByLabel("완료일")).toBeDisabled();
+  await detail.getByLabel("Issue 비밀번호 (수정·삭제 시 필요)").fill("WrongPassword123");
+  await detail.getByRole("button", { name: "수정 저장" }).click();
+  await expect(detail.getByRole("alert")).toContainText("password");
+  await detail.getByLabel("Issue 비밀번호 (수정·삭제 시 필요)").fill(issuePassword);
   await detail.getByRole("button", { name: "수정 저장" }).click();
   await expect(workspace.getByText("완료 0 / 전체 1")).toBeVisible();
 
@@ -116,6 +149,13 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await expect(workspace.getByText("1 / 1 페이지")).toBeVisible();
   await workspace.getByRole("button", { name: "초기화" }).click();
   await expect(workspace.getByText("검색 결과 1건")).toBeVisible();
+  await workspace.getByRole("button", { name: "장비 점검 요청" }).click();
+  const deletion = workspace.getByRole("dialog", { name: "Issue 상세 및 수정" });
+  await deletion.getByLabel("Issue 비밀번호 (수정·삭제 시 필요)").fill(issuePassword);
+  await deletion.getByRole("button", { name: "Issue 삭제…" }).click();
+  await deletion.getByRole("button", { name: "삭제 확인" }).click();
+  await expect(workspace.getByText("완료 0 / 전체 0")).toBeVisible();
+  await expect(workspace.getByRole("button", { name: "장비 점검 요청" })).toHaveCount(0);
   await tabs.getByRole("tab", { name: "일정", exact: true }).click();
   await expect(gantt).toHaveAttribute("data-project-gantt-api-instance", originalInstance!);
 });
