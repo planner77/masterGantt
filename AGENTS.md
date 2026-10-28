@@ -1,3 +1,11 @@
+## Issue #836 — 검증된 PR OCI 이미지를 Main/Release에서 조건부 재사용 (2026-10-28)
+
+- 목적: 동일 원본/빌드 입력 증명이 있는 **Full PR Docker-smoked OCI archive** 하나를 Main Docker 구현 Smoke와 임시 GHCR `ci-<MainSHA>` 게시로 조건부 승계하고, Release에서 **동일 OCI top index Digest**를 최종 SemVer로 승격한다. 이미지 Artifact/CI 성공 자체가 merge, Main Full, QA 또는 release 권한이 아니다.
+- PR은 `packages:write` 없이 OCI `type=oci` archive, BuildKit provenance/SBOM과 exact source run/attempt/job·Git Tree·byte SHA256/build fingerprint receipt만 생성한다. 별도 Main 검증기는 PR의 코드·댓글을 신뢰하지 않고 실제 Git two-parent first-parent/PR Test-Merge Tree, PR Full Required3/Docker 실제 성공, provenance subject/source label, archived SHA, Buildx/Runner/pinned Base/Next/Lock 빌드 계약을 직접 검산한다. 미확인은 재사용 승인 아님.
+- Stage0 기본 `PR_IMAGE_REUSE_ENABLED` **unset/false**(SHADOW): Main 재빌드/기존 Gate 유지. Stage1 Owner의 **별도 명시 승인**으로만 true; `PR_REUSE_VERIFIED`→실제 PR OCI Main Smoke 후 동일 Digest 게시, 정상 소스/빌드 drift·만료→`REBUILD_MAIN_VERIFIED`(Main 새 빌드·전 검증), artifact 변조/위조/불명 출처→`BLOCKED`. Squash/Rebase/두 Parent 아닌 merge는 Tree 동등을 독립 증명하지 못하면 재빌드. metadata-only/Fast/no-image는 기존 filter 보존.
+- PR revision은 Test-Merge SHA, Release source는 Main SHA이므로 **재Label·재빌드 없이** `scripts/verify_ci_image_release.py`의 별도 독립 PR Full + Main Full + OCI digest 매핑이 유효할 때만 이중 출처를 허용한다. 기존 `revision==MainSHA` 경로 및 #438 exact Digest/immutable tag, #773 Release static/E2E 승인, #711 Test Lifecycle, Required3/Chromium8/8, QA/Owner/Finalizer/Issue 종료 규정은 불변.
+- 필수 기록: [Work Packet](docs/exec-plans/active/ISSUE_836.md), [누적 실패 원장](docs/ISSUE_836_FAILURE_ANALYSIS.md), [CI/CD](docs/CI_CD.md), [운영 Runbook](docs/GITHUB_OPERATIONS.md). 성공 Full PR/Main/Release Run·Attempt 10개 이상 확보하기 전 전환 효과/절감률 `INSUFFICIENT_DATA`. 현재 사용자 요청은 PR CI 시작까지; 모니터링/병합/GHCR 정식 게시 금지.
+
 ## Issue #711 — Test Suite Lifecycle 사전 검색·중복/폐기 방지 (2026-10-23)
 
 모든 Issue/PR 구현자는 변경할 AC/입출력·음성·보안·SQLite/경합·브라우저 위험을 식별한 다음 **기존 Vitest/Playwright/Policy 테스트의 시나리오와 assertion을 먼저 검색**하고, Work Packet/PR의 `TEST_LIFECYCLE_REVIEW`에 `ADD/EXTEND/KEEP_UNIQUE/PARTIAL_OVERLAP/CONSOLIDATE_CANDIDATE/RETIRE_CANDIDATE` 판단·검색 경로·근거·실행/미실행과 잔여 위험을 기록한다. 기존 `AC_TEST_COVERAGE`와 연결하고 중복 표를 만들지 않는다. **정책 Source of Truth는 [Test Lifecycle](docs/TEST_PLAN.md)**, 최초 후보·수집기/시범 감사는 [Issue #711 Inventory](docs/TEST_LIFECYCLE_INVENTORY_711.md), 단계·QA gate는 [Issue Lifecycle](docs/ISSUE_LIFECYCLE.md)다.
