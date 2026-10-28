@@ -4,10 +4,20 @@ Primary: [Issue #836](https://github.com/planner77/masterGantt/issues/836) | Wor
 
 ## Run/Attempt 원본 및 이력
 
-- 본 구현 브랜치 `issue-836-verified-oci-reuse`는 PR 생성 전이므로 확인된 PR Full CI Run/Attempt **없음**.
-- 직접 실패 0건 **관측 전 상태**. 0건 관측은 CI PASS가 아니며 `NOT TESTED`.
+- 본 구현 브랜치 `issue-836-verified-oci-reuse`는 원본 Full #3348.1 FAIL 확인; 신규 교정 HEAD의 PR Full CI 검증 전.
+- 누적 직접 실패 **2건(D836-001, D836-002)**, Required3 및 QA 파생 FAIL; 신규 Head 결과 `NOT TESTED`.
 - 필수 Quality/Chromium E2E8/Docker aggregate, Main GHCR build, Release/Finalizer의 신규 HEAD 결과는 현재 **NOT TESTED**.
 - PR Full CI 시작 시 실행한 Run/Attempt·HEAD/BASE/TestMerge·작업/Job ID·재시도·실패 원인·직접 vs 파생 여부를 이 파일에 순차 추가한다. 이전 다른 이슈 실패를 #836의 직접 실패로 오인하지 않는다.
+
+## F836-001 — 첫 Full PR CI #3348.1 직접 실패 두 건 및 파생 실패 (2026-10-28)
+
+- 원본: [Full PR CI #3348.1, Run 40614685816](https://github.com/planner77/masterGantt/actions/runs/40614685816), PR #837, Head `f3e71892e8a886157767421b649aefcda6780272`, Base `a4c52b9ba2499a95045a7d85a2c62164210672e6`, synthetic Test-Merge `9b17635ba8f118ba63fb4421a8cbe9dbd2bc4307`. 원본 Full Run `failure`, 기존 READY/non-draft, attempt 1. 별도 FAST_DEVELOPMENT #152.1/`40614685887.1`은 SKIPPED로 승인 증거 아님.
+- 직접 **D836-001 / Docker Smoke Job `122575229544` Step13 `OCI blob/digest/SBOM/provenance·런타임 config 동일성 검증` FAIL**: 빌드는 실제 OCI manifest list `sha256:8227f210a428b736375742b57ece73ef2e9b421054e4b62206dd91423150a886`, child image `sha256:5e19460694d48019bf9af1b7fb1cecafce01c88367b411d716f2f2f22683dd9f`, attestation manifest `sha256:967d1e116bffa442aed90223d30717f2db6d5ea778e76b2e4e8160679fbb26a8`까지 export SUCCESS. 그러나 PR `changes.outputs.current_version`이 비어 Docker action의 `build-args: VERSION=`, OCI `org.opencontainers.image.version=`, 검증기 `BUILD_VERSION: `이 되었고 `BLOCKED: invalid OCI image evidence: package version invalid`로 차단. 원인: `changes.release_candidate`는 Main push 전용인데 #836 PR image가 그 출력에 의존하도록 신규 변경됨. **Image integrity 자체가 깨졌다고 오인하지 않음**. 하위 smoke/OCI Archive upload는 미실행이므로 PASS 주장 금지.
+- 직접 **D836-002 / PR Chromium E2E shard 6/8 Job `122575229736` Step7 `E2E shard 실행` FAIL**: `tests/e2e/project-transfer-layout-491.spec.ts:148`의 프로젝트 복사 시나리오 최종 `page.request.get(source.path)`(line159)에서 `apiRequestContext.get: read ECONNRESET`; HTTP 127.0.0.1:39343 local test server 연결 종료. `77 passed, 1 failed, 1 skipped, 21 not run` (해당 shard, 20.1분); Playwright Trace Artifact `playwright-report-shard-6`(ID `12785681814`). 본 PR은 테스트/제품 파일을 변경하지 않았으므로 일시적 서버 종료·메모리/네트워크 경합 **가능성**만 있으며 **원인 확정 아님**. assertion/skip/retry/timeout 임의 완화 없이 새 Full8 실행으로 재검증, 재발 시 Trace/server logs와 원본 GitHub Run을 교차 분석.
+- 직접 Quality 정책·TypeScript·Lint·Vitest·PR build·Preflight·FastGate **SUCCESS**. Required Docker job `122575918941` FAIL은 D836-001의 **파생**, Required E2E `122582073446` FAIL은 D836-002(다른 5개 샤드 cancel, 7·8 성공, 1~5 중 cancel) **파생**, Automated QA `122582105130` FAIL은 `required e2e 미성공` **파생**. 기존 Full FAIL/미실행을 PASS로 변경하지 않는다.
+- Codex 코드 리뷰는 별도 사용량 한도에 의해 review state `failed`, [PR #837 Codex 댓글](https://github.com/planner77/masterGantt/pull/837#issuecomment-6458124889). 변경 Head에 대한 completed 리뷰가 아님. 사용자 Owner는 본 작업의 Codex/QA Review **리스크 관리를 Owner Managed로 명시**했으나 실제 Required3 통과·Trusted QA·strict ruleset은 여전히 필수. 미해결 inline 리뷰 스레드 **0**, PR initial `mergeable=true`로 확인; 이후 Head 변경 시 재확인.
+- 복구 교정: PR/Main 공통 exact-checkout `package.json.version`을 independent `changes.package_version`으로 생성하고 `current_version`에 PR fallback 연결. OCI layout wrapper/registry Subject SHA 정합 검증 추가. Owner 요청에 따라 `PR_IMAGE_REUSE_ENABLED`은 **미설정=기본 ON**, `true`=ON, `false`=OFF/롤백; 단 source/digest/Full/Runtime gate 실패 시 재사용 승인 불가. 테스트/관련 문서 갱신 후 **새 Head Full CI 시작(결과 NOT TESTED)**.
+- 본 원장에 입증되지 않은 가정: Buildx archive top `index.json` wrapper가 manifest list descriptor를 감싸는 경우 index digest 식별; OCI 변조 없이 검증/게시 digest가 같은지는 신규 실제 Docker Smoke/Publish/Release before activation 검사에서만 확정. 일시적 E2E 환경 문제는 새 Full 결과로 판별.
 
 ## 사전 실패 위험 / 예방 조치 (실행 실패로 계수하지 않음)
 
@@ -18,7 +28,7 @@ Primary: [Issue #836](https://github.com/planner77/masterGantt/issues/836) | Wor
 | R836-03 | 다른 PR/Run/Attempt, 합성 merge Tree·버전 변경 | Git Tree equality, two parents, exact `ci-pr-source`, immutable ZIP SHA256 + Work contract | NOT TESTED |
 | R836-04 | 구버전 Runner/Buildx/lock/Base 이미지·Next 환경 차이 | `ci_image_contract` fingerprint drift→새 Main 빌드, 위조 receipt→BLOCKED | NOT TESTED |
 | R836-05 | GHCR 재게시 시 Manifest index 재인코딩/태그 충돌 | `skopeo --all --preserve-digests`, publish 단계 digest 동치 요구, 기존 immutable ci-SHA tag overwrite guard | NOT TESTED |
-| R836-06 | 아직 승인되지 않은 feature 활성화로 증명 없는 PR 이미지 게시 | `PR_IMAGE_REUSE_ENABLED` default OFF/SHADOW. Owner Stage1 독립 승인 전 ON 금지 | NOT TESTED |
+| R836-06 | 아직 승인되지 않은 feature 활성화로 증명 없는 PR 이미지 게시 | `PR_IMAGE_REUSE_ENABLED` unset=ON/true=ON/false=OFF, Owner가 기본 활성화를 지시했으나 모든 출처/무결성/Required gate 불변 | NOT TESTED |
 | R836-07 | 기존 #773의 Release static/E2E 증거 재사용과 #836 이미지 재사용 혼동 | `RELEASE_REUSE_ENABLED`와 별도 flag 및 별도의 immutable Main Full 증명 | NOT TESTED |
 
 ## 실패 분석/교정 절차
@@ -27,4 +37,4 @@ Primary: [Issue #836](https://github.com/planner77/masterGantt/issues/836) | Wor
 3. `AGENTS.md`, `docs/PR_CI_FAILURE_TRIAGE.md`, `docs/GITHUB_OPERATIONS.md`, `docs/TEST_PLAN.md`, Work Packet와 본 원장 근거로 수정 후 신규 Head PR CI 실행.
 4. 절대 이미 실패한 Run을 PASS로 수정하거나 기존 tag/source/실패 로그를 변조하지 않는다. 미해결 Review/merge conflict와 Owner 위험 승인도 별도다.
 
-현재 이슈 `OPEN`, PR CI 미시작, 원격 OCI 소스/릴리스 검증 `NOT TESTED`. 요청 범위: PR CI 시작까지, **모니터링·병합·GHCR Release/Issue 종료 없음**.
+현재 이슈 `OPEN`, 이전 Full #3348.1 실패/새 Full 미시작, 원격 OCI 소스/릴리스 검증 `NOT TESTED`. 요청 범위: PR CI 시작까지, **모니터링·병합·GHCR Release/Issue 종료 없음**.
