@@ -3,13 +3,16 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { ProjectTaskDto } from "@/contracts/projects";
 import type {
-  IssuePageSize, IssueStatusFilter, ProjectIssueDto, ProjectIssueInput,
+  IssuePageSize, IssueStatusFilter, ProjectIssueStatus, ProjectIssueDto, ProjectIssueInput,
   ProjectIssueListResponse, ProjectIssueMutationResponse,
 } from "@/contracts/project-issues";
 import styles from "./project-issue-workspace.module.css";
 
 type ResourceOption = { id: string; name: string; code: string | null };
 type PersonKind = "reporter" | "assignee";
+const issueStatusLabel: Record<ProjectIssueStatus, string> = {
+  registered: "등록", in_progress: "진행 중", completed: "완료",
+};
 type Props = Readonly<{
   publicId: string;
   revision: number;
@@ -33,7 +36,7 @@ function blankIssue(): ProjectIssueInput {
   return {
     title: "", description: "", reporterName: "", reporterResourceId: null,
     assigneeName: "", assigneeResourceId: null, occurredOn: todayInProjectTimezone(),
-    completed: false, completedOn: null, relatedTaskId: null, relatedTaskText: "",
+    status: "registered", completed: false, completedOn: null, relatedTaskId: null, relatedTaskText: "",
   };
 }
 
@@ -50,7 +53,7 @@ export function ProjectIssueWorkspace({
 }: Props) {
   const [filterDraft, setFilterDraft] = useState("");
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<IssueStatusFilter>("all");
+  const [status, setStatus] = useState<IssueStatusFilter>("open");
   const [limit, setLimit] = useState<IssuePageSize>(20);
   const [page, setPage] = useState(1);
   const [refresh, setRefresh] = useState(0);
@@ -158,7 +161,8 @@ export function ProjectIssueWorkspace({
       title: issue.title, description: issue.description,
       reporterName: issue.reporterName, reporterResourceId: issue.reporterResourceId,
       assigneeName: issue.assigneeName, assigneeResourceId: issue.assigneeResourceId,
-      occurredOn: issue.occurredOn, completed: issue.completed, completedOn: issue.completedOn,
+      occurredOn: issue.occurredOn, status: issue.status,
+      completed: issue.completed, completedOn: issue.completedOn,
       relatedTaskId: issue.relatedTaskId, relatedTaskText: issue.relatedTaskText,
     } : blankIssue());
     setPersonPicker(null);
@@ -334,10 +338,18 @@ export function ProjectIssueWorkspace({
 
   return <div className={styles.workspace} data-testid="project-issue-workspace">
     <div className={styles.toolbar}>
-      <div className={styles.progress} role="status" aria-live="polite">
-        {summary ? <><strong>완료 {summary.completed} / 전체 {summary.total}</strong>
-          <span>({summary.total ? (100 * summary.completed / summary.total).toFixed(1) : "0.0"}%)</span></>
-          : <span>전체 Issue 집계 조회 중</span>}
+      <div className={styles.progress} role="status" aria-live="polite" aria-label="전체 Issue 상태별 현황">
+        {summary ? <>
+          <span className={styles.metric}><span>전체</span><strong>{summary.total}건</strong></span>
+          {([
+            ["완료", summary.completed], ["진행 중", summary.inProgress], ["등록", summary.registered],
+          ] as const).map(([label, count]) => (
+            <span key={label} className={styles.metric}>
+              <span>{label}</span><strong>{count}건</strong>
+              <span>({summary.total ? (count / summary.total * 100).toFixed(1) : "0.0"}%)</span>
+            </span>
+          ))}
+        </> : <span>전체 Issue 집계 조회 중</span>}
       </div>
       <button ref={createTrigger} className="primary-button" type="button" disabled={createLocked}
         onClick={event => openEditor(null, event.currentTarget)}>Issue 등록</button>
@@ -349,15 +361,17 @@ export function ProjectIssueWorkspace({
       <input id="project-issue-query" type="search" maxLength={160}
         placeholder="제목·내용·등록자·담당자·관련 Task" value={filterDraft}
         onChange={event => setFilterDraft(event.target.value)} />
-      <label htmlFor="project-issue-status">완료 상태</label>
+      <label htmlFor="project-issue-status">Issue 상태</label>
       <select id="project-issue-status" value={status} onChange={event => {
         setStatus(event.target.value as IssueStatusFilter); setPage(1);
       }}>
-        <option value="all">전체</option><option value="open">미완료</option><option value="completed">완료</option>
+        <option value="open">미완료 (등록·진행 중)</option><option value="all">전체</option>
+        <option value="registered">등록</option><option value="in_progress">진행 중</option>
+        <option value="completed">완료</option>
       </select>
       <button className="secondary-button" type="submit">검색</button>
-      {(query || status !== "all") ? <button className="secondary-button" type="button"
-        onClick={() => { setFilterDraft(""); setQuery(""); setStatus("all"); setPage(1); }}>초기화</button> : null}
+      {(query || status !== "open") ? <button className="secondary-button" type="button"
+        onClick={() => { setFilterDraft(""); setQuery(""); setStatus("open"); setPage(1); }}>초기화</button> : null}
     </form>
     <div className={styles.listMeta}>
       <span role="status">{loadError ? "목록 조회 실패" : loading ? "목록 조회 중…" :
@@ -368,11 +382,11 @@ export function ProjectIssueWorkspace({
     </div> : null}
     <div className={styles.tableScroller} role="region" aria-label="Issue 목록 가로 스크롤" tabIndex={0}>
       <table className={styles.table}>
-        <thead><tr><th scope="col">Issue명</th><th scope="col">완료 여부</th><th scope="col">담당자</th><th scope="col">발생일</th><th scope="col">완료일</th></tr></thead>
+        <thead><tr><th scope="col">Issue명</th><th scope="col">상태</th><th scope="col">담당자</th><th scope="col">발생일</th><th scope="col">완료일</th></tr></thead>
         <tbody>
           {data?.issues.map(issue => <tr key={issue.issueId}>
             <td><button className={styles.titleButton} type="button" onClick={event => openEditor(issue, event.currentTarget)}>{issue.title}</button></td>
-            <td>{issue.completed ? "완료" : "미완료"}</td>
+            <td>{issueStatusLabel[issue.status]}</td>
             <td>{issue.assigneeName || "미지정"}</td>
             <td>{issue.occurredOn}</td>
             <td>{issue.completedOn ?? "—"}</td>
@@ -420,16 +434,19 @@ export function ProjectIssueWorkspace({
           {personField("assignee", "담당자")}
         </div>
         <div className={styles.completion}>
-          <label className={styles.checkLabel} htmlFor="project-issue-completed">
-            <input id="project-issue-completed" type="checkbox" checked={form.completed} disabled={locked}
-              onChange={event => updateForm({
-                completed: event.target.checked,
-                completedOn: event.target.checked ? todayInProjectTimezone() : null,
-              })} />
-            완료
-          </label>
+          <label htmlFor="project-issue-lifecycle-status">상태</label>
+          <select id="project-issue-lifecycle-status" value={form.status ?? "registered"} disabled={locked}
+            onChange={event => {
+              const next = event.target.value as ProjectIssueStatus;
+              updateForm({ status: next, completed: next === "completed",
+                completedOn: next === "completed" ? (form.completedOn ?? todayInProjectTimezone()) : null });
+            }}>
+            <option value="registered">등록</option><option value="in_progress">진행 중</option>
+            <option value="completed">완료</option>
+          </select>
           <label htmlFor="project-issue-completed-on">완료일</label>
-          <input id="project-issue-completed-on" type="date" disabled={locked || !form.completed}
+          <input id="project-issue-completed-on" type="date" disabled={locked || form.status !== "completed"}
+            required={form.status === "completed"}
             value={form.completedOn ?? ""} onChange={event => updateForm({ completedOn: event.target.value || null })} />
         </div>
         <div className={styles.field}><label htmlFor="project-issue-task">관련 Task</label>
