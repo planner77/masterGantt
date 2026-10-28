@@ -106,3 +106,7 @@ export const projectMasterAdminUnlockRateLimiter = new FixedWindowRateLimiter(
 );
 
 export const UNATTRIBUTED_PROJECT_MASTER_ADMIN_RATE_KEY = "project-master-admin-unattributed";
+
+/** #846: single-instance per-Issue and global KDF budgets (not an authentication cache). */
+export const issuePasswordGlobalRateLimiter = new FixedWindowRateLimiter(100, 15 * 60_000, 1);
+export const issuePasswordPerIssueRateLimiter = new FixedWindowRateLimiter(10, 15 * 60_000, 4_096);
