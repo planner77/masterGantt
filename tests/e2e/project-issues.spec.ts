@@ -117,7 +117,7 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await editor.getByLabel("Issue 내용").fill("로그: https://example.com/issues/123\n추적 완료");
   await expect(editor.getByText("링크 미리보기")).toHaveCount(0);
   expect(await editor.locator("#project-issue-task").evaluate(element =>
-    element.compareDocumentPosition(document.getElementById("project-issue-description")) &
+    element.compareDocumentPosition(document.getElementById("project-issue-description")!) &
     Node.DOCUMENT_POSITION_FOLLOWING)).toBeTruthy();
   await editor.getByRole("button", { name: "Task 검색" }).click();
   await editor.locator("#project-issue-task-picker button").first().click();
