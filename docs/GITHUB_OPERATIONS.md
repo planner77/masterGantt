@@ -1,3 +1,13 @@
+## Issue #836 — PR OCI Main Conditional Reuse 운영 Runbook (2026-10-28)
+
+1. **초기 상태:** Repository variable `PR_IMAGE_REUSE_ENABLED`은 **unset/false**(Stage0 SHADOW). `RELEASE_REUSE_ENABLED`(#773)와 별개다. 이슈 자체 `release_required=false`, `release_authorized=false`; GHCR 정식 게시/태그 변경 권한 없음.
+2. **PR 확인:** 최신 non-draft `CI pull_request` Full의 exact PR/Run ID·Attempt/HEAD·BASE·test-merge/source artifact와 3개 필수 aggregate + 실제 `Docker smoke 구현` 성공을 확인한다. 같은 Run/Attempt `ci-oci-pr-<run>-<attempt>`와 `ci-pr-build-contract-<run>-<attempt>` 둘 모두 SHA256/Builder provenance 검증 대상이다. Fast/edited/Targeted/별도 수동 workflow/이전 head는 아님.
+3. **Main 확인:** 정식 two-parent merge에 대해 Git Tree/Build Context/runner ImageVersion/Buildx/lock/Dockerfile/base digest/OCI attestation 동등성. `ci-image-selection.json`과 Step Summary에 `PR_REUSE_VERIFIED`, `REBUILD_MAIN_VERIFIED`, `BLOCKED` 중 결과·reason_code 기록. ON에서 source verifier trust UNKNOWN이면 FAIL, 의도된 환경·입력 불일치면 **Main 재빌드 후** Docker policy/SQLite/HTTP(S)/Compose 및 Main 필수 Gate 재검증. Main exact Run에서 `ci-oci-main-<run>-<attempt>`/index/ZIP SHA 검증하여 publish, 다른 이미지로 조용히 대체 금지.
+4. **Release 확인:** PR revision Test-Merge SHA로 존재해도 재라벨하지 않는다. `verify_ci_image_release.py`가 immutable First Parent Main, 원본 PR Full 및 별도의 Main push Full required/docker/publisher의 실제 성공+같은 OCI index와 source mapping을 검증한 경우에만 기존 Main SHA label 경로의 **대체 증거** 인정. 이후 Release static/E2E·Candidate HTTP(S)/DB/API·immutable tag·GHCR digest promotion·Generic Finalizer는 기존 정책 그대로 필수. 원본 Artifact 만료 또는 Main 불명확이면 **BLOCKED**.
+5. **전환/롤백:** Owner의 명시 Stage1 승인 전 flag ON 금지. 10개 이상 동일 workload distinct Full PR/Main/Release 성공 Run에서 build 횟수/Runner-min/P50/P90/digest/GB/artifact/network 비용, source drift fallback·tampered BLOCKED를 확인한 뒤에만 ADOPT 평가. 실패/성능 악화/증명 빈틈이면 Owner가 flag OFF, Main 원래 안전 재빌드로 즉시 롤백. 기존 ci-태그/버전 tag 이동이나 실패 Run 삭제/소급 PASS 금지.
+
+Source: [#836](https://github.com/planner77/masterGantt/issues/836) · [Work Packet](exec-plans/active/ISSUE_836.md) · [누적 원장](ISSUE_836_FAILURE_ANALYSIS.md) · [Docker OCI 공식](https://docs.docker.com/build/metadata/attestations/) · [skopeo copy 옵션](https://github.com/containers/skopeo/blob/main/docs/skopeo-copy.1.md).
+
 ## Issue #772 — 승인형 LOW E2E 전환과 Ruleset 원복 (2026-10-22)
 
 Owner 전용: `LOW_TARGETED_POLICY_ENABLED`는 최초 미설정/false → 기존 Ready PR Full8. 인증된 10개 이상의 서로 다른 LOW Full8 성공 Shadow Run/Attempt/Head/Base/test-merge와 negative regression, 보호 전용 시험 PR OFF/ON 실측, QA·Lifecycle·metadata source 정합성과 rollback 리허설을 기록한 후 **별도 Owner 명시 승인**으로 true 전환한다. 이를 Agent/PR 변수나 PR body가 자체 승인하지 못한다. 이상 징후(Main-only regression, 선택 누락, 허위 PASS) 즉시 false → 원래 Full8. Full 검증이 정정되기 전의 기존 성공 Run 소급 재지정 금지.
