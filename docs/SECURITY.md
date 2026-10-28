@@ -541,3 +541,10 @@ readonly/401/409/412·pending/dirty·응답역전에서 기존 Editor 초안·�
 [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)는 Zod의 과도한 컬렉션 검증 시 메모리 고갈 위험(High, 취약 <4.6.6, 최초 패치4.6.6)을 기술한다. PR #787 [Full #3192.1](https://github.com/planner77/masterGantt/actions/runs/40028478592)에서 기존 정확 `zod@4.6.2`로 `npm audit --omit=dev` 실패. 실행 환경이 제시한 안정 패치 `4.6.7`을 정확 production dependency와 npm lock registry/SRI에만 적용한다. `npm audit fix --force`, 검사 skip/Ruleset 약화 금지.
 
 과거 SVAR/Gantt의 `package-original.snapshot.txt`와 `package-lock-original.snapshot.txt`는 수정하지 않는다. `capture-install.ts`가 기존 정확 Next security 예외 외에 `approved-zod-4.6.7-lock.json`의 정확 Zod metadata만 메모리에서 원본으로 정규화하고 모든 다른 차이를 거부한다. 새 HEAD의 실제 npm ci/audit, 원본 Zod parser/보안·history capture/전체 Vitest, E2E8, Docker/QA/Owner는 별도 검증 대상이며 CI 시작 전 NOT TESTED.
+
+
+## Project Issues 권한·링크 (#838–#840)
+
+Project Issue GET는 공개 Project에만 무인증 허용하며 비공개 Project는 해당 edit session을 요구한다. POST/PATCH는 기존 프로젝트 edit session + 정확 허용 Origin + If-Match revision + transactional session/권한 재검사로 보호된다. 전역 리소스/Task ID를 외부 입력 그대로 신뢰하지 않고 존재/프로젝트 일치 여부를 검증한다. 입력/검색/응답 본문 크기 제한과 no-store 응답을 사용하며 기존 감사 request ID를 유지한다.
+
+Issue 내용은 HTML로 해석하지 않는다. 사용자 입력은 React의 기본 이스케이프 텍스트로 렌더링하고, 유효 HTTP(S) 링크만 안전한 rel=noopener noreferrer와 target=_blank로 표시한다. 완료일/date/ID 참조 무결성과 프로젝트 경계·취소된 세션 재사용 방지 테스트를 유지한다. 원본 Task·Resource 삭제 시 타 프로젝트 data 혼동 없이 nullable FK를 해제하고 텍스트 스냅샷을 보존한다.

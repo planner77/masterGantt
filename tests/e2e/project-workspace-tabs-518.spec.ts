@@ -27,7 +27,7 @@ test("#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5
   const chartHeight = await gantt.locator(".wx-chart").evaluate(element => element.getBoundingClientRect().height);
   expect(chartHeight).toBeGreaterThan(0);
 
-  await expect(tabs.getByRole("tab")).toHaveText(["일정", "대시보드", "기준정보"]);
+  await expect(tabs.getByRole("tab")).toHaveText(["일정", "Issue", "대시보드", "기준정보"]);
 
   await expect(schedule).toHaveAttribute("aria-controls", "project-panel-schedule");
   await expect(page.getByRole("tab", { name: "Gantt", exact: true })).toHaveCount(0);
@@ -79,6 +79,8 @@ test("#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5
     // Dashboard section must not resurrect a previously visited subview.
     await schedule.focus();
     await expect(schedule).toBeFocused();
+    await page.keyboard.press("ArrowRight");
+    await expect(tabs.getByRole("tab", { name: "Issue", exact: true })).toHaveAttribute("aria-selected", "true");
     await page.keyboard.press("ArrowRight");
     await expect(dashboardTab).toHaveAttribute("aria-selected", "true");
     // Preserve a screenshot-independent focus diagnostic on any future failure.

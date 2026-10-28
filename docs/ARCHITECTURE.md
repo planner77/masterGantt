@@ -622,3 +622,13 @@ main #667(`bdaed6bd`)의 Workspace canonical read generation/U2 actual-Core reco
 공개 controlled projection은 native Summary/Task만 표시하지만 full canonical Task/Link/Membership과 Summary 파생·Ready/Completed·Resource/Target·Export를 보존한다. native M row/bar/대체 endpoint는0이며 관계 선을 다른 행에 재연결하지 않는다. 운영 lane/marker/guide/예약 높이·marker-only observer/listener/RAF/date-axis/scroll은0이다. #551 개발 opt-in capability는 운영 preference와 분리해 유지하며 Toolbar toggle/default ON/temporary ON authority는 제거한다.
 
 Milestone 날짜는 Dashboard 상세/정확한 소속 Task 경로로 안내하고 숨은 M select·날짜축 확장 요청은 내지 않는다. 일반 Task 날짜축·viewport는 기존 #667 port가 처리한다. 별도 WBS build-time gate `NEXT_PUBLIC_GANTT_WBS_MODE=legacy`는 재빌드/재배포가 필요한 명시 비상 복구이고 marker gate와 독립이다. API/DB/auth/Scheduling engine 계약 변경은 N/A다. 최신 검증 및 미검증은 [#552 Work Packet](exec-plans/active/ISSUE_552.md)을 따른다.
+
+
+## Project Issue Module (#838–#840)
+
+프로젝트 뷰 Host(project-readonly-view)는 상위 schedule/issue/dashboard/master navigation을 소유한다. 새 ProjectIssueWorkspace는 상위 canonical ProjectTaskDto를 **검색 후보로만** 읽고, Issue 목록/필터/폼은 별도 fetch를 사용해 Project Gantt 상태를 변경하지 않는다. taskId/resourceId와 자유입력 문구를 분리한다.
+
+- DB: 0032_project_issues.sql. 새로운 ProjectIssueService는 ProjectRepository/EditSessionRepository를 재사용한다. 전역 Resource id/프로젝트 Task id는 서버에서 검증하고 FK 삭제 시 참조만 NULL로 지운다.
+- HTTP: project-issue-handlers-core + /api/projects/[publicId]/issues route; 기존 withApiRequestLogging과 project-scoped read guard, Origin + If-Match + mutation transaction 권한 재확인을 따른다.
+- 조회 전체 Issue 완료 건수는 필터/페이지에 무관한 SQL 별도 aggregate, 검색/목록은 독립 LIMIT/OFFSET. 해당 Issue 생성·수정으로 Project revision이 변경되며 기존 canonical reload를 요청한다.
+- QA/통합/문서 링크: [Work Packet](exec-plans/active/ISSUE_838_840.md) 및 [사용자 가이드](PROJECT_ISSUES_USER_GUIDE.md).

@@ -74,6 +74,7 @@
         "tests/e2e/project-gantt-fullscreen.spec.ts",
         "tests/e2e/project-gantt-scale.spec.ts",
         "tests/e2e/project-gantt-stability.spec.ts",
+        "tests/e2e/project-issues.spec.ts",
         "tests/e2e/project-links-persistence.spec.ts",
         "tests/e2e/project-master-relations.spec.ts",
         "tests/e2e/project-resource-calendar-persistence.spec.ts",
