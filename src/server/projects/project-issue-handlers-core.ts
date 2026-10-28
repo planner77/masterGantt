@@ -14,15 +14,13 @@ import { PasswordHashCapacityError } from "../security/password-core";
 import { issuePasswordGlobalRateLimiter, issuePasswordPerIssueRateLimiter } from "../security/rate-limit-core";
 import type { AuthorizationResult } from "./project-service-core";
 
+type ProjectGateService = {
+  authorize(publicId: string, token: string | undefined): AuthorizationResult;
+  projectReadAccess(publicId: string, token?: string): "allowed" | "locked" | "notFound";
+};
 interface Dependencies {
   service: ProjectIssueService | (() => ProjectIssueService);
-  projectService: {
-    authorize(publicId: string, token: string | undefined): AuthorizationResult;
-    projectReadAccess(publicId: string, token?: string): "allowed" | "locked" | "notFound";
-  } | (() => {
-    authorize(publicId: string, token: string | undefined): AuthorizationResult;
-    projectReadAccess(publicId: string, token?: string): "allowed" | "locked" | "notFound";
-  });
+  projectService: ProjectGateService | (() => ProjectGateService);
   applicationBaseUrl?: string;
   environment?: string;
   allowInsecureHttp?: string;
@@ -34,7 +32,7 @@ function resolved<T>(service: T | (() => T)): T {
 }
 
 function requireProjectEditSession(
-  projectService: ReturnType<typeof resolved<Dependencies["projectService"]>>,
+  projectService: ProjectGateService,
   publicId: string, rawToken: string | undefined,
 ) {
   const authorization = projectService.authorize(publicId, rawToken);
