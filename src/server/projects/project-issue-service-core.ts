@@ -5,7 +5,7 @@ import type {
   ProjectIssueMutationResponse, ProjectIssueQuery,
 } from "../../contracts/project-issues";
 import { PublicApiError } from "../http/api-error-core";
-import { isCanonicalUuidV4 } from "../projects/project-contract";
+import { isCanonicalUuidV4, parseUnlockProjectInput } from "../projects/project-contract";
 import type { AuthorizedEditSession } from "../projects/project-service-core";
 import { EditSessionRepository, ProjectRepository } from "../repositories/project-repository-core";
 import {
@@ -95,7 +95,10 @@ export function parseProjectIssueInput(raw: unknown): ProjectIssueInput {
   };
 }
 function passwordField(raw: unknown): string {
-  if (typeof raw !== "string" || Array.from(raw).length < 8 ||
+  // Reuse the existing well-formed Unicode check before KDF; reject lone
+  // surrogates so replacement-character encoding cannot alias credentials.
+  const parsed = parseUnlockProjectInput({ editPassword: raw });
+  if (!parsed.success || typeof raw !== "string" || Array.from(raw).length < 8 ||
     Array.from(raw).length > 128 || Buffer.byteLength(raw, "utf8") > 512 ||
     /[\u0000-\u001f\u007f]/.test(raw)) {
     invalid("비밀번호는 제어문자 없이 8~128자로 입력해 주세요.");
@@ -103,9 +106,12 @@ function passwordField(raw: unknown): string {
   return raw;
 }
 function projectPasswordField(raw: unknown): string {
-  if (typeof raw !== "string" || raw.length < 1 || Buffer.byteLength(raw, "utf8") > 512 ||
-    /[\u0000-\u001f\u007f]/.test(raw)) invalid("프로젝트 비밀번호를 확인해 주세요.");
-  return raw;
+  // Existing Project credentials (1–12 code points) may contain tabs/newlines.
+  // Match the canonical unlock parser, not the stricter new Issue password policy.
+  const parsed = parseUnlockProjectInput({ editPassword: raw });
+  if (!parsed.success || !parsed.data.editPassword)
+    invalid("프로젝트 비밀번호를 확인해 주세요.");
+  return parsed.data.editPassword;
 }
 function passwordConfirmation(password: string, confirmation: unknown): void {
   if (typeof confirmation !== "string" || confirmation !== password)
