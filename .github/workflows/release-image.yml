@@ -178,6 +178,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          fetch-depth: 0 #836 PR source first-parent proof
       - name: checkout 시간 기록
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
@@ -345,6 +346,7 @@ jobs:
     # transport/runtime/digest smoke; do not cancel a healthy release candidate.
     timeout-minutes: 40
     permissions:
+      actions: read
       contents: read
       packages: read
     outputs:
@@ -378,6 +380,7 @@ jobs:
           EXPECTED_VERSION: ${{ needs.prepare.outputs.version }}
           REUSE_MODE: ${{ needs.prepare.outputs.reuse_mode }}
           REUSE_VERIFIED_DIGEST: ${{ needs.prepare.outputs.reuse_digest }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
@@ -403,10 +406,16 @@ jobs:
           revision="$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$exact")"
           version="$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' "$exact")"
           source="$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.source" }}' "$exact")"
-          [[ "$revision" == "$EXPECTED_SHA" ]] || {
-            echo "Candidate revision label mismatch: $revision != $EXPECTED_SHA" >&2
-            exit 1
-          }
+          if [[ "$revision" != "$EXPECTED_SHA" ]]; then
+            # Issue #836 dual-source: PR test-merge revision != Main.
+            # Never trust self-asserted labels; independently verify the exact
+            # PR Full + Main Full job attempts, Git source Tree and OCI bytes.
+            EXPECTED_MAIN_SHA="$EXPECTED_SHA" \
+              EXPECTED_VERSION="$EXPECTED_VERSION" \
+              CANDIDATE_REVISION="$revision" \
+              CANDIDATE_DIGEST="$digest" \
+              python3 scripts/verify_ci_image_release.py
+          fi
           [[ "$version" == "$EXPECTED_VERSION" ]] || {
             echo "Candidate version label mismatch: $version != $EXPECTED_VERSION" >&2
             exit 1
