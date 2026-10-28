@@ -104,7 +104,7 @@ function passwordField(raw: unknown): string {
 }
 function projectPasswordField(raw: unknown): string {
   if (typeof raw !== "string" || raw.length < 1 || Buffer.byteLength(raw, "utf8") > 512 ||
-    /[\\u0000-\\u001f\\u007f]/.test(raw)) invalid("프로젝트 비밀번호를 확인해 주세요.");
+    /[\u0000-\u001f\u007f]/.test(raw)) invalid("프로젝트 비밀번호를 확인해 주세요.");
   return raw;
 }
 function passwordConfirmation(password: string, confirmation: unknown): void {
