@@ -1,3 +1,11 @@
+## Issue #836 — 원격 OCI Source/Build/Runtime 증거 검증 (2026-10-28)
+
+- `PR_IMAGE_REUSE_ENABLED` 기본값 OFF/SHADOW이며 본 HIGH 정책 작업의 새 PR Full 실증 전 후보는 `NOT TESTED`. 정확 PR/latest HEAD/BASE/TestMerge, CI Run/Attempt, 3 Required + PR 실제 Docker 구현 Job SUCCESS 및 두 `ci-oci-pr`/`ci-pr-build-contract` artifact의 SHA256/OCI index/child/config/attestation subject를 확인한다. PR source/event receipt만으로 Merge/Trusted/Owner 권한 발생하지 않는다.
+- Stage1 Owner ON은 별도 승인 뒤 검증: **정상 동일** PR 원본 OCI Subject=Main Smoke=GHCR ci-mergeSHA=Release immutable SemVer; **정상 불일치** Main Git Tree/Lock/Dockerfile/.dockerignore/Buildx/Runner ImageVersion/base digest/버전 drift→새 Main OCI 1회 빌드+모든 Smoke; **적대 증거** mismatched Run/Attempt, duplicate ZIP/invalid SHA, SBOM/provenance missing/wrong child subject, wrong platform/config, registry digest conflict→BLOCKED. 각 결과 `ci-image-selection.json`/Run Summary/원본 Run ID 기록.
+- Main Main Quality/Chromium E2E8/8/Docker, post-publish HTTP·HTTPS/browser/SQLite restart persistence/Project·Task API/Compose와 strict Ready Full/Trusted QA/Owner/Ruleset을 항상 검증한다. PR PASS는 Main evidence가 아니며 Release #773 static/E2E 재사용과 독립.
+- Release의 PR-origin OCI `revision=TestMergeSHA`는 immutable Main SHA/Tree/PR Full/Main push Full/OCI index 재증명 없으면 차단; `revision==MainSHA` 기존 경로 불변. Release Run의 Owner exact SemVer marker, finalizer 승인, digest/attestation, tag immutability 별도로 판정한다. SHA mismatch를 image relabel로 덮지 않는다.
+- Before/After 최소 10개 distinct Full successes 기록 없이 시간·빌드/저장소 비용 개선 주장은 `INSUFFICIENT_DATA`; 본 요청은 PR CI **시작만** 포함, 원격 결과 모니터링/Issue 종료·GHCR 정식 게시 제외. [Work Packet](exec-plans/active/ISSUE_836.md) / [원장](ISSUE_836_FAILURE_ANALYSIS.md).
+
 ## Issue #479 — private Project read security 원격 검증 안내 (2026-10-24)
 
 **근거/범위:** [Issue #479](https://github.com/planner77/masterGantt/issues/479)와 [Work Packet](exec-plans/active/ISSUE_479.md), [F-001~F-003 누적 CI 실패 원장](ISSUE_479_FAILURE_ANALYSIS.md). 현 원격 Full #3223.1/#3228.1/#3230.1은 각각 PR trace/QA/문서 Preflight에서 종료되어 **실제 TypeScript·Vitest·E2E8·Docker는 모두 미실행**. 이 문서는 신규 CI 결과가 아니라 검증 절차 및 상태 기준이다.
