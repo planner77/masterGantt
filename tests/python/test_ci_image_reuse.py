@@ -144,7 +144,17 @@ class OciSubjectContract(unittest.TestCase):
 
 
 class MainDecisionContract(unittest.TestCase):
-    def test_default_shadow_never_uses_pr_even_when_proven(self):
+    def test_workflow_enables_safe_reuse_by_default_and_preserves_false_rollback(self):
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+        self.assertIn('steps.package_version.outputs.version', workflow)
+        self.assertIn('id: package_version', workflow)
+        self.assertIn("vars.PR_IMAGE_REUSE_ENABLED == '' || vars.PR_IMAGE_REUSE_ENABLED == 'true'", workflow)
+        self.assertIn("vars.PR_IMAGE_REUSE_ENABLED != '' && vars.PR_IMAGE_REUSE_ENABLED != 'true'", workflow)
+        self.assertIn('needs.quality.result == \'success\'', workflow)
+        self.assertIn('needs.e2e.result == \'success\'', workflow)
+        self.assertIn('needs.docker.result == \'success\'', workflow)
+
+    def test_explicit_false_shadow_never_uses_pr_even_when_proven(self):
         source = {"source_run_id": 1}
         self.assertEqual(selection.decide(active=False, recover=False, source=source),
                          ("REBUILD_MAIN_VERIFIED", "SHADOW_PR_REUSE_ELIGIBLE"))
