@@ -361,6 +361,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          fetch-depth: 0 # Issue #836 independent Main source/parents proof
       - name: checkout 시간 기록
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
