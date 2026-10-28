@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { ProjectTaskDto } from "@/contracts/projects";
 import type {
   IssuePageSize, IssueStatusFilter, ProjectIssueDto, ProjectIssueInput,
@@ -45,21 +45,6 @@ function projectIssueError(value: unknown, fallback: string): string {
   return fallback;
 }
 
-function issueDescription(text: string) {
-  return text.split(/(https?:\/\/[^\s<>"']+)/g).map((part, index) => {
-    if (!/^https?:\/\//i.test(part)) return <Fragment key={index}>{part}</Fragment>;
-    const url = part.replace(/[.,!?);]+$/, "");
-    const tail = part.slice(url.length);
-    try {
-      const parsed = new URL(url);
-      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("protocol");
-      return <Fragment key={index}><a href={url} target="_blank" rel="noopener noreferrer">{url}</a>{tail}</Fragment>;
-    } catch {
-      return <Fragment key={index}>{part}</Fragment>;
-    }
-  });
-}
-
 export function ProjectIssueWorkspace({
   publicId, revision, tasks, active, editable, busy, onChanged, onUnauthorized,
 }: Props) {
@@ -76,6 +61,13 @@ export function ProjectIssueWorkspace({
   const [editingIssue, setEditingIssue] = useState<ProjectIssueDto | null>(null);
   const [form, setForm] = useState<ProjectIssueInput>(blankIssue);
   const [saving, setSaving] = useState(false);
+  const [issuePassword, setIssuePassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [projectPassword, setProjectPassword] = useState("");
+  const [newIssuePassword, setNewIssuePassword] = useState("");
+  const [newIssuePasswordConfirmation, setNewIssuePasswordConfirmation] = useState("");
+  const [showRecovery, setShowRecovery] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [personPicker, setPersonPicker] = useState<PersonKind | null>(null);
   const [resources, setResources] = useState<ResourceOption[]>([]);
@@ -85,7 +77,11 @@ export function ProjectIssueWorkspace({
   const createTrigger = useRef<HTMLButtonElement>(null);
   const lastIssueTrigger = useRef<HTMLElement | null>(null);
   const rootPath = "/api/projects/" + encodeURIComponent(publicId) + "/issues";
-  const locked = !editable || busy || saving;
+  const locked = busy || saving || (editingIssue ? editingIssue.credentialState === "unconfigured" : !editable);
+  const createLocked = !editable || busy || saving;
+  const expectedRevision = () => Math.max(revision, list?.data.projectRevision ?? 0);
+  const passwordValid = (password: string) => Array.from(password).length >= 8 &&
+    Array.from(password).length <= 128 && !/[\\u0000-\\u001f\\u007f]/.test(password);
 
   useEffect(() => {
     if (!active) return;
@@ -156,7 +152,7 @@ export function ProjectIssueWorkspace({
   }
 
   function openEditor(issue: ProjectIssueDto | null, trigger?: HTMLElement) {
-    if (issue === null && locked) return;
+    if (issue === null && createLocked) return;
     setEditingIssue(issue);
     setForm(issue ? {
       title: issue.title, description: issue.description,
@@ -168,6 +164,9 @@ export function ProjectIssueWorkspace({
     setPersonPicker(null);
     setTaskPicker(false);
     setFormError(null);
+    setIssuePassword(""); setPasswordConfirmation("");
+    setProjectPassword(""); setNewIssuePassword(""); setNewIssuePasswordConfirmation("");
+    setShowRecovery(false); setConfirmDelete(false);
     setEditorOpen(true);
     lastIssueTrigger.current = trigger ?? createTrigger.current;
     requestAnimationFrame(() => titleInput.current?.focus({ preventScroll: true }));
@@ -176,6 +175,9 @@ export function ProjectIssueWorkspace({
   function closeEditor() {
     if (saving) return;
     setEditorOpen(false);
+    setIssuePassword(""); setPasswordConfirmation(""); setProjectPassword("");
+    setNewIssuePassword(""); setNewIssuePasswordConfirmation("");
+    setShowRecovery(false); setConfirmDelete(false);
     setPersonPicker(null);
     setTaskPicker(false);
     requestAnimationFrame(() => lastIssueTrigger.current?.isConnected
@@ -263,7 +265,7 @@ export function ProjectIssueWorkspace({
           <span>({summary.total ? (100 * summary.completed / summary.total).toFixed(1) : "0.0"}%)</span></>
           : <span>전체 Issue 집계 조회 중</span>}
       </div>
-      <button ref={createTrigger} className="primary-button" type="button" disabled={locked}
+      <button ref={createTrigger} className="primary-button" type="button" disabled={createLocked}
         onClick={event => openEditor(null, event.currentTarget)}>Issue 등록</button>
     </div>
     <form className={styles.filters} onSubmit={event => {
