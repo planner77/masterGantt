@@ -1,7 +1,7 @@
 # Issue #849 — Project Issue 3상태 업무 수명주기 실행 계획
 
 Primary Issue: https://github.com/planner77/masterGantt/issues/849
-기준: main d7f41dbf7252b378c4eccc49642ac9978c58c57d (v0.137.0), branch feat/issue-849-project-issue-three-state.
+기준: main d7f41dbf7252b378c4eccc49642ac9978c58c57d (v0.137.0), target candidate v0.138.0 (MINOR feature), branch feat/issue-849-project-issue-three-state.
 관련: #838/#839/#840 최초 Issue 모듈 및 #846 인증·삭제, AGENTS.md, DESIGN.md, PROJECT_ISSUES_USER_GUIDE, API/DB_SCHEMA/ARCHITECTURE/SECURITY/PROJECT_UX, ISSUE_LIFECYCLE, UI_UX_GUIDELINES.
 risk_level: HIGH; qa_method: OWNER_MANAGED; qa_required: true; independent_qa: N/A (Owner-managed); manager_decision: NOT TESTED; release_required: true; release_authorized: false.
 승인 범위: 설계·구현·문서·리뷰/충돌 확인·**PR CI 시작까지만**. CI 모니터링/병합/Main/GHCR/실운영 migration·release/Issue 종료는 수행하지 않는다.
@@ -56,8 +56,8 @@ risk_level: HIGH; qa_method: OWNER_MANAGED; qa_required: true; independent_qa: N
 - `docs/PR_CI_FAILURE_TRIAGE.md`: N/A(no failure yet): 최초 원격 CI 실패부터 별도 849 누적 원장 생성 의무
 - `docs/GITHUB_OPERATIONS.md`: N/A(workflow): PR/병합/GHCR 정책 유지
 - `docs/SCHEDULING_ENGINE.md`: N/A(scope): WBS/Task 및 Gantt core 엔진 변경 없음
-- `CHANGELOG.md`: N/A(release pending): 정식 릴리스 승인 전 버전·배포 기록하지 않음
-- `package.json`: N/A(release pending): 버전 변경은 사용자 정확 버전·정식 GHCR 승인 이후 분리 검토
+- `CHANGELOG.md`: UPDATED: 0.138.0 후보 변경 이력과 NOT TESTED/정식 릴리스 미승인 명시
+- `package.json`, `package-lock.json`: UPDATED: 신규 Issue 업무 상태 기능 MINOR 0.138.0으로 통일. 정식 GHCR 권한은 release_authorized=false로 미승인
 
 ## 실패 원장 / 리뷰 / PR 인계
 - 이 Issue의 **원격 PR CI 최초 실행 결과는 아직 NOT TESTED**. 과거 #838–#840/#846 실패를 #849의 신규 실패로 오인하지 않는다. 첫 실패 시 docs/ISSUE_849_FAILURE_ANALYSIS.md를 만들고 모든 Run/Attempt·직접/파생 실패를 누적 기록한다.
