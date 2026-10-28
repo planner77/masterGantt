@@ -255,6 +255,11 @@ describe("#838-#840 project Issue persistence and API", () => {
       .get(issueId) as { lifecycle_state: string; deleted_at: string | null; title: string; completed: number };
     expect(tombstone).toMatchObject({ lifecycle_state: "DELETED", title: "차량 정지", completed: 1 });
     expect(tombstone.deleted_at).not.toBeNull();
+    const retained = f.db.prepare("SELECT created_at, updated_at FROM project_issues WHERE public_id = ?")
+      .get(issueId) as { created_at: string; updated_at: string };
+    expect(retained.created_at).toBe(now);
+    // Logical deletion must preserve the last content modification timestamp.
+    expect(retained.updated_at).toBe(now);
     for (const query of ["", "status=open", "status=completed", "q=차량", "page=2&limit=10"]) {
       const result = f.service.list(f.a.publicId, parseProjectIssueQuery(new URLSearchParams(query))).data;
       expect(result.summary).toEqual({ total: 0, completed: 0 });
