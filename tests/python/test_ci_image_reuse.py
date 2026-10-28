@@ -36,7 +36,7 @@ def blob(contents: bytes, entries: dict[str, bytes]) -> dict:
     return {"digest": digest, "size": len(contents)}
 
 
-def fixture(*, attested: bool = True, revision: str = MAIN) -> bytes:
+def fixture(*, attested: bool = True, revision: str = MAIN, wrapped: bool = False) -> bytes:
     entries: dict[str, bytes] = {"oci-layout": packed({"imageLayoutVersion": "1.0.0"})}
     layer = blob(b"layer", entries) | {"mediaType": "application/vnd.oci.image.layer.v1.tar+gzip"}
     config = blob(packed({"os": "linux", "architecture": "amd64",
@@ -72,8 +72,16 @@ def fixture(*, attested: bool = True, revision: str = MAIN) -> bytes:
             "vnd.docker.reference.digest": main_desc["digest"],
         }
         manifests.append(attestation)
-    entries["index.json"] = packed({"schemaVersion": 2, "mediaType": oci.IMAGE_INDEX,
-                                     "manifests": manifests})
+    subject_index = packed({"schemaVersion": 2, "mediaType": oci.IMAGE_INDEX,
+                            "manifests": manifests})
+    if wrapped:
+        descriptor = blob(subject_index, entries)
+        descriptor["mediaType"] = oci.IMAGE_INDEX
+        descriptor["annotations"] = {"org.opencontainers.image.ref.name": "latest"}
+        entries["index.json"] = packed({"schemaVersion": 2, "mediaType": oci.IMAGE_INDEX,
+                                         "manifests": [descriptor]})
+    else:
+        entries["index.json"] = subject_index
     output = io.BytesIO()
     with tarfile.open(fileobj=output, mode="w") as tar:
         for name, contents in entries.items():
@@ -97,6 +105,12 @@ class OciSubjectContract(unittest.TestCase):
         self.assertRegex(report["index_digest"], r"^sha256:[a-f0-9]{64}$")
         self.assertNotEqual(report["index_digest"], report["image_manifest_digest"])
         self.assertNotEqual(report["config_digest"], report["image_manifest_digest"])
+
+    def test_buildx_oci_layout_wrapper_has_distinct_subject_digest(self):
+        report = self.check(fixture(wrapped=True))
+        self.assertNotEqual(report["index_digest"], report["layout_index_digest"])
+        self.assertNotEqual(report["index_digest"], report["image_manifest_digest"])
+        self.assertEqual(report["attestations"], ["provenance", "sbom"])
 
     def test_wrong_revision_cannot_relabel_same_digest(self):
         with self.assertRaisesRegex(oci.OciError, "revision"):
