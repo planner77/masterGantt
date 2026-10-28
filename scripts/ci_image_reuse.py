@@ -30,7 +30,7 @@ SHA_RE = re.compile(r"^[a-f0-9]{40}$")
 MAX_ZIP = 3 * 1024**3
 SENSITIVE_INPUTS = (
     ".github/workflows/ci.yml", ".github/workflows/release-image.yml",
-    "scripts/verified_oci.py", "scripts/ci_image_contract.py",
+    "scripts/verified_oci.py", "scripts/ci_image_runtime.py", "scripts/ci_image_contract.py",
     "scripts/ci_image_reuse.py", "scripts/verify_ci_image_release.py",
     "scripts/verify-image-policy.sh", "scripts/verify-transport-smoke.sh",
     "scripts/verify-compose-smoke.sh", "scripts/qa_final_automated.py",

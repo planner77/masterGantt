@@ -4,10 +4,18 @@ Primary: [Issue #836](https://github.com/planner77/masterGantt/issues/836) | Wor
 
 ## Run/Attempt 원본 및 이력
 
-- 본 구현 브랜치 `issue-836-verified-oci-reuse`는 원본 Full #3348.1과 #3365.1 모두 FAIL을 보존한다. Main 정렬 후 신규 Head의 PR CI는 별도 판정.
-- 누적 직접 실패 **3건(D836-001/D836-002/D836-003, 서로 다른 두 Full Run)**. #3365.1 Quality+E2E8/8 성공, Docker 직접 FAIL 및 Required Docker/QA 파생; 새 Main 정렬 후 Full CI 결과 `NOT TESTED`.
+- 본 구현 브랜치 `issue-836-verified-oci-reuse`는 원본 Full #3348.1/#3365.1/#3377.1 모두 FAIL을 보존하며 원인을 각각 누적한다. 이번 신규 Head의 Full CI는 별도 판정.
+- 누적 직접 실패 **4건(D836-001/D836-002/D836-003/D836-004, 서로 다른 세 Full Run)**. #3377.1 Quality+Chromium8/8 성공, Docker daemon ID 직접 FAIL 및 Required Docker/QA 파생. 보완 후 새 Head Full CI 결과 `NOT TESTED`.
 - 필수 Quality/Chromium E2E8/Docker aggregate, Main GHCR build, Release/Finalizer의 신규 HEAD 결과는 현재 **NOT TESTED**.
 - PR Full CI 시작 시 실행한 Run/Attempt·HEAD/BASE/TestMerge·작업/Job ID·재시도·실패 원인·직접 vs 파생 여부를 이 파일에 순차 추가한다. 이전 다른 이슈 실패를 #836의 직접 실패로 오인하지 않는다.
+
+## F836-003 — Full #3377.1 Docker daemon Image ID/OCI config 불일치 (2026-10-28)
+
+- 원본: [PR #837 Full CI Run #3377.1 / 40645362176 Attempt1](https://github.com/planner77/masterGantt/actions/runs/40645362176), Head `1ecc7dcc2761e91bfd2fb6c178d6f638d8fbc326`, Main Base `2a8cf424ac6d892c641e9cdb01aba0096eaf0356`, PR TestMerge `e4e6f1c044033fed5e945a2b5876fd98410a62c9`. Full status=completed/failure.
+- **D836-004 / 직접 Docker smoke 구현 Job `122673720271`**: OCI `verified_oci.py` SHA256(index/child/config/layers)·BuildKit provenance/SBOM 성공. Buildx OCI index=`sha256:4012a581885331f90ea35e9ede02b4676aad3a4a521909c6a8f2a5d0f27aee30`, child manifest=`sha256:c6345d9ed01f74dbcf129630e3c3558b5bc9570ef657e5c388e8d4238dd62aa1`, config=`sha256:2a4242b723a8d5cd0995a21ed92ca74a20417944af2c25d696292996ef40c836`, `BUILD_VERSION=0.137.0`. Skopeo copy logs show **same** config sha256:2a4242…, but Docker daemon `inspect --format {{.Id}}` returned a different value (actual ID not logged), triggering `BLOCKED: OCI archive config differs from tested Docker image` before policy/HTTP/SQLite/Compose. 원인 구분: transport/daemon metadata normalization은 추정이고 runtime config 변경 여부 **NOT TESTED**; 원본 OCI SHA 불일치 **확인되지 않음**. ImageID 차이만으로 내용 변경을 단정하거나 원본 OCI Digest를 재라벨하지 않는다.
+- **파생 실패:** Required Docker aggregate Job `122674427687` FAIL (actual Docker Job FAIL), Automated QA Final `122684463214` FAIL (`required docker 미성공`). Quality Required `122674285497` SUCCESS, Chromium E2E shards 1..8 Job `122673720327/381/442/331/460/328/388/333` 모두 SUCCESS, E2E aggregate `122684437006` SUCCESS. PR Main commit image publish SKIPPED 정상. 이전 D836-001/002/003은 고유 이력으로 유지하며 본 실행에서는 재발하지 않았다.
+- 교정: source `verified_oci.py`의 OCI archive/index/config/layers/attestation SHA 검사 유지. `scripts/ci_image_runtime.py`가 *같은 OCI source blob*의 Config SHA 및 archive SHA를 재계산하고, 적재된 Docker inspect의 RootFS uncompressed DiffID 전체와 실행 설정(User/Env/Entrypoint/Cmd/Labels/WorkingDir/Healthcheck/ExposedPorts/Volumes 등)을 엄격 비교하여 semantic parity를 보증한다. 원본 OCI archive/Registry index digest 자체는 변경 금지; daemon ID 값은 기록만 한다. mismatch/누락은 BLOCKED로 남기며 Image ID 다름만으로 무조건 PASS도 FAIL도 아님. negative 단위/고객형 런타임 테스트 추가; PR Full 최신 HEAD 재시작 후 결과 **NOT TESTED**.
+- Main drift **0**, PR mergeable=true, 미해결 review thread 0, Codex quota review 미완료/독립 QA 리스크 Owner Managed. Required3/Trusted/Ruleset, GHCR/Release/Finalizer 승인은 변경하지 않음.
 
 ## F836-002 — Full PR CI #3365.1 단일 직접 Docker 실패 및 E2E 8/8 성공 (2026-10-28)
 
@@ -47,4 +55,4 @@ Primary: [Issue #836](https://github.com/planner77/masterGantt/issues/836) | Wor
 3. `AGENTS.md`, `docs/PR_CI_FAILURE_TRIAGE.md`, `docs/GITHUB_OPERATIONS.md`, `docs/TEST_PLAN.md`, Work Packet와 본 원장 근거로 수정 후 신규 Head PR CI 실행.
 4. 절대 이미 실패한 Run을 PASS로 수정하거나 기존 tag/source/실패 로그를 변조하지 않는다. 미해결 Review/merge conflict와 Owner 위험 승인도 별도다.
 
-현재 이슈 `OPEN`, 이전 Full #3348.1/#3365.1 실패; Main 정렬 후 신규 Full 결과 미확정, 원격 OCI 소스/릴리스 검증 `NOT TESTED`. 요청 범위: PR CI 시작까지, **모니터링·병합·GHCR Release/Issue 종료 없음**.
+현재 이슈 `OPEN`, 이전 Full #3348.1/#3365.1/#3377.1 실패; 보완 신규 Full 결과 미확정, 원격 OCI 소스/릴리스 검증 `NOT TESTED`. 요청 범위: PR CI 시작까지, **모니터링·병합·GHCR Release/Issue 종료 없음**.

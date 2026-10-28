@@ -1206,14 +1206,22 @@ jobs:
             --output "$RUNNER_TEMP/ci-image-inspection.json"
           skopeo copy --override-os linux --override-arch amd64 \
             oci-archive:/tmp/mastergantt-verified.oci.tar docker-daemon:mastergantt:ci
+          # Docker's daemon transport may normalize the image ID. The OCI
+          # registry subject remains byte-identical; compare actual RUNNABLE
+          # daemon semantics and full uncompressed RootFS layer IDs instead.
+          # Missing/mismatched labels, user, entrypoint, env or layers BLOCK.
+          python3 scripts/ci_image_runtime.py \
+            --archive /tmp/mastergantt-verified.oci.tar \
+            --report "$RUNNER_TEMP/ci-image-inspection.json" \
+            --image mastergantt:ci \
+            --output "$RUNNER_TEMP/ci-image-runtime-verification.json"
           python3 - <<'PY'
-          import json, os, subprocess
+          import json, os
           from pathlib import Path
           report = json.loads((Path(os.environ['RUNNER_TEMP']) / 'ci-image-inspection.json').read_text())
-          image_id = subprocess.check_output(
-              ['docker', 'image', 'inspect', '--format', '{{.Id}}', 'mastergantt:ci'], text=True).strip()
-          if image_id != report['config_digest']:
-              raise SystemExit('BLOCKED: OCI archive config differs from tested Docker image')
+          proof = json.loads((Path(os.environ['RUNNER_TEMP']) / 'ci-image-runtime-verification.json').read_text())
+          if not (proof['runtime_config_equivalent'] and proof['rootfs_diff_ids_equivalent']):
+              raise SystemExit('BLOCKED: Docker runtime proof incomplete')
           if os.environ.get('GITHUB_OUTPUT'):
               with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
                   stream.write(f"archive_sha256={report['archive_sha256']}\n")

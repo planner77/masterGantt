@@ -15,6 +15,7 @@ from unittest import mock
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
 import ci_image_reuse as selection
+import ci_image_runtime as runtime
 import verified_oci as oci
 
 REPO = "planner77/masterGantt"
@@ -40,11 +41,21 @@ def fixture(*, attested: bool = True, revision: str = MAIN, wrapped: bool = Fals
             include_dirs: bool = False, subject_mode: str = "bound") -> bytes:
     entries: dict[str, bytes] = {"oci-layout": packed({"imageLayoutVersion": "1.0.0"})}
     layer = blob(b"layer", entries) | {"mediaType": "application/vnd.oci.image.layer.v1.tar+gzip"}
-    config = blob(packed({"os": "linux", "architecture": "amd64",
-                          "config": {"Labels": {
-                              "org.opencontainers.image.source": "https://github.com/" + REPO,
-                              "org.opencontainers.image.revision": revision,
-                              "org.opencontainers.image.version": VERSION}}}), entries)
+    config = blob(packed({
+        "os": "linux", "architecture": "amd64",
+        "rootfs": {"type": "layers", "diff_ids": [
+            "sha256:" + hashlib.sha256(b"uncompressed runtime layer").hexdigest()]},
+        "config": {
+            "User": "mastergantt",
+            "WorkingDir": "/app",
+            "Entrypoint": ["/usr/local/bin/container-entrypoint"],
+            "Env": ["NODE_ENV=production", "PORT=3000"],
+            "Healthcheck": {"Test": ["CMD-SHELL", "node -v"], "Interval": 10000000000},
+            "Labels": {
+                "org.opencontainers.image.source": "https://github.com/" + REPO,
+                "org.opencontainers.image.revision": revision,
+                "org.opencontainers.image.version": VERSION}
+        }}), entries)
     config["mediaType"] = oci.IMAGE_CONFIG
     main_desc = blob(packed({"schemaVersion": 2, "config": config, "layers": [layer]}), entries)
     main_desc["mediaType"] = oci.IMAGE_MANIFEST
@@ -170,6 +181,71 @@ class OciSubjectContract(unittest.TestCase):
             out.addfile(member, io.BytesIO(data))
         with self.assertRaisesRegex(oci.OciError, "unexpected OCI archive path"):
             self.check(malicious.getvalue())
+
+
+class RuntimeDaemonEquivalence(unittest.TestCase):
+    """OCI runtime must match loaded Docker RootFS and config, not just the ID."""
+
+    @staticmethod
+    def evidence(directory):
+        archive = pathlib.Path(directory) / "image.tar"
+        archive.write_bytes(fixture())
+        report = oci.validate_archive(
+            str(archive), repository=REPO, revision=MAIN, version=VERSION)
+        original = runtime.load_original_config(archive, report)
+        docker = {
+            "Id": "sha256:" + "9" * 64,
+            "Os": "linux", "Architecture": "amd64",
+            "RootFS": {"Type": "layers",
+                       "Layers": list(original["rootfs"]["diff_ids"])},
+            "Config": dict(original["config"]),
+        }
+        return archive, report, original, docker
+
+    def test_daemon_transport_reencoding_id_is_allowed_only_with_exact_runtime(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _, report, original, docker = self.evidence(tmp)
+            proof = runtime.verify_loaded_image(report, original, docker)
+            self.assertFalse(proof["docker_image_id_equal_source_config"])
+            self.assertTrue(proof["rootfs_diff_ids_equivalent"])
+            self.assertTrue(proof["runtime_config_equivalent"])
+            docker["Id"] = report["config_digest"]
+            self.assertTrue(runtime.verify_loaded_image(
+                report, original, docker)["docker_image_id_equal_source_config"])
+
+    def test_runtime_config_user_env_labels_entrypoint_healthcheck_mismatches_block(self):
+        for key, changed in (
+            ("User", "root"),
+            ("WorkingDir", "/tmp"),
+            ("Entrypoint", ["/bin/sh"]),
+            ("Env", ["NODE_ENV=development"]),
+            ("Labels", {"org.opencontainers.image.version": "0.0.0"}),
+            ("Healthcheck", {"Test": ["NONE"]}),
+        ):
+            with self.subTest(field=key), tempfile.TemporaryDirectory() as tmp:
+                _, report, original, docker = self.evidence(tmp)
+                docker["Config"][key] = changed
+                with self.assertRaisesRegex(runtime.RuntimeImageError, key):
+                    runtime.verify_loaded_image(report, original, docker)
+
+    def test_rootfs_platform_source_receipt_and_archive_hash_mismatches_block(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            archive, report, original, docker = self.evidence(tmp)
+            docker["RootFS"]["Layers"] = ["sha256:" + "e" * 64]
+            with self.assertRaisesRegex(runtime.RuntimeImageError, "RootFS"):
+                runtime.verify_loaded_image(report, original, docker)
+            docker["RootFS"]["Layers"] = list(original["rootfs"]["diff_ids"])
+            docker["Architecture"] = "arm64"
+            with self.assertRaisesRegex(runtime.RuntimeImageError, "platform"):
+                runtime.verify_loaded_image(report, original, docker)
+            docker["Architecture"] = "amd64"
+            report["labels"] = {}
+            with self.assertRaisesRegex(runtime.RuntimeImageError, "label"):
+                runtime.verify_loaded_image(report, original, docker)
+            report["labels"] = dict(original["config"]["Labels"])
+            archive.write_bytes(archive.read_bytes() + b"tamper")
+            with self.assertRaisesRegex(runtime.RuntimeImageError, "archive changed"):
+                runtime.load_original_config(archive, report)
 
 
 class MainDecisionContract(unittest.TestCase):
