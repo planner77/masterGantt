@@ -28,8 +28,17 @@ risk_level: HIGH; qa_method: OWNER_MANAGED; qa_required: true; independent_qa: N
 | AC4 | 기본 open, 5개 상태 검색/페이지/초기화와 전체 요약 범위 분리 | tests/e2e/project-issues.spec.ts, tests/server/projects/project-issues.test.ts | EXTEND, NOT EXECUTED |
 | AC5 | 상태 5열, 390~1920 width, 키보드/focus/Gantt 상태 보존 | tests/e2e/project-issues.spec.ts 및 기존 Project Workspace peer specs | EXTEND/KEEP_UNIQUE, NOT EXECUTED |
 | AC6 | T=C+P+R, filter-independent summary, tombstones 제외, 0건, 비율 표시 | tests/server/projects/project-issues.test.ts, tests/e2e/project-issues.spec.ts | EXTEND, NOT EXECUTED |
-| AC7 | TEST_LIFECYCLE_REVIEW 및 누적 실패 원장 정책 | Work Packet, ISSUE_LIFECYCLE, PR_CI_FAILURE_TRIAGE | 기록 / 신규 CI 실패 미확인 |
+| AC7 | TEST_LIFECYCLE_REVIEW 및 누적 실패 원장 정책 | Work Packet, ISSUE_LIFECYCLE, PR_CI_FAILURE_TRIAGE | 기록 / #3396.1 원본 직접 FAIL 및 과거 Draft·Cancelled 구분 |
 | AC8 | AGENTS/DESIGN/UX/API/DB/ARCHITECTURE/SECURITY/Issue 사용자 가이드 동기화 | 하단 DOCUMENTATION_SYNC | 변경 준비 |
+
+- AC1: 등록·수정의 등록/진행 중/완료 상태와 완료일 입력·DB 일관성을 검증하며 서버와 E2E 회귀는 기존 테스트 확장
+- AC2: 0033→0034 SQLite migration 기존 필드/credentials/tombstone 보존·체크섬·FK·SQL trigger 음성 케이스 검증
+- AC3: Issue 비밀번호·Origin·private read gate·strong If-Match·revision/412/429 등 인증 경계 기존 테스트 보존
+- AC4: UI 기본 open, 검색 초기화 및 전체·등록·진행 중·완료 필터와 서버 페이지네이션 검증
+- AC5: 목록 상태 5열·응답 상태 표시·390~1920px·키보드 포커스 및 Gantt 탭 상태 보존 검증
+- AC6: 전체 T=C+P+R, 삭제 제외, 0건과 진행률 계산 및 검색/페이지 독립 KPI의 서버와 브라우저 검증
+- AC7: TEST_LIFECYCLE_REVIEW와 이슈별 누적 실패 원장, Required3/Chrome8 경계 및 미실행 범위 기록
+- AC8: AGENTS, DESIGN, API, DB_SCHEMA, SECURITY, PROJECT_UX, TEST_PLAN 및 사용자 가이드와 Work Packet 동기화
 
 ## TEST_LIFECYCLE_REVIEW
 - 검색: 기존 test-file test scenarios in tests/server/projects/project-issues.test.ts (API, credential, deleted/KPI, 0032→33), tests/e2e/project-issues.spec.ts (Issue 생성→완료→수정→삭제/키보드·5폭), database/migration-cli/issue-623/target/process/resource 테스트의 0033 exact-applied 목록을 확인.
@@ -41,24 +50,33 @@ risk_level: HIGH; qa_method: OWNER_MANAGED; qa_required: true; independent_qa: N
 ## DOCUMENTATION_SYNC
 - `AGENTS.md`: UPDATED
 - `DESIGN.md`: UPDATED
-- `docs/PROJECT_UX.md`: UPDATED
 - `docs/API.md`: UPDATED
-- `docs/DB_SCHEMA.md`: UPDATED
 - `docs/ARCHITECTURE.md`: UPDATED
+- `docs/DB_SCHEMA.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
 - `docs/SECURITY.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
 - `docs/PROJECT_ISSUES_USER_GUIDE.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_849.md`: UPDATED
-- `docs/TEST_PLAN.md`: UPDATED: Git Blob 조회로 810KB 전체 원문을 획득해 기존 내용 삭제 없이 #849 변경 영향·중복/음성/실행 판단을 추가.
-- `docs/UI_UX_GUIDELINES.md`: N/A(reuse): 기존 compact/state/scroll/focus 계약 그대로
-- `docs/ISSUE_LIFECYCLE.md`: N/A(policy): 기존 단계·QA/CI·릴리스 규정 그대로
-- `docs/CI_CD.md`: N/A(workflow): CI/Release 설정 자체 변경 없음
-- `docs/QA_REVIEW_POLICY.md`: N/A(policy): Owner Managed 정책 변경 없음
-- `docs/PR_CI_FAILURE_TRIAGE.md`: N/A(no failure yet): 최초 원격 CI 실패부터 별도 849 누적 원장 생성 의무
-- `docs/GITHUB_OPERATIONS.md`: N/A(workflow): PR/병합/GHCR 정책 유지
-- `docs/SCHEDULING_ENGINE.md`: N/A(scope): WBS/Task 및 Gantt core 엔진 변경 없음
-- `CHANGELOG.md`: UPDATED: 0.138.0 후보 변경 이력과 NOT TESTED/정식 릴리스 미승인 명시
-- `package.json`, `package-lock.json`: UPDATED: 신규 Issue 업무 상태 기능 MINOR 0.138.0으로 통일. 정식 GHCR 권한은 release_authorized=false로 미승인
+- `docs/ISSUE_849_FAILURE_ANALYSIS.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `package.json`: UPDATED
+- `package-lock.json`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(Owner Managed와 필수 검증 게이트의 기존 정책을 그대로 유지)
+- `docs/CI_CD.md`: N/A(PR CI 세 Required 및 Main Release workflow 구성을 변경하지 않음)
+- `docs/GITHUB_OPERATIONS.md`: N/A(PR CI 재실행 및 원격 커밋 운영 절차를 변경하지 않음)
+- `docs/REMOTE_VALIDATION.md`: N/A(원격 증거와 검증 단계의 기존 계약을 변경하지 않음)
+- `docs/UI_UX_GUIDELINES.md`: N/A(기존 compact 디자인과 focus 접근성 규칙을 재사용)
+- `docs/ISSUE_LIFECYCLE.md`: N/A(기존 Issue 단계와 검증 승인 경계가 변경되지 않음)
+- `docs/PR_CI_FAILURE_TRIAGE.md`: N/A(원장 작성 지침은 유지하고 이슈별 누적 원장만 생성)
+- `docs/SCHEDULING_ENGINE.md`: N/A(Project Issue 상태는 WBS 일정 알고리즘과 독립)
+
+### 문서 반영 판단
+관련 API·DB·상태·UI·보안 계약은 변경된 문서와 비교했고, QA/CI/운영 정책은 변경하지 않으므로 각 N/A 근거를 별도 기록했다. 설명을 문서별 한 줄 끝에 붙이면 기본 브랜치 검증기의 엄격한 DOCUMENTATION_SYNC 정규식에서 누락되므로 변경 여부와 근거를 정확한 단일 상태 표기만으로 기록한다.
 
 ## 실패 원장 / 리뷰 / PR 인계
-- 이 Issue의 **원격 PR CI 최초 실행 결과는 아직 NOT TESTED**. 과거 #838–#840/#846 실패를 #849의 신규 실패로 오인하지 않는다. 첫 실패 시 docs/ISSUE_849_FAILURE_ANALYSIS.md를 만들고 모든 Run/Attempt·직접/파생 실패를 누적 기록한다.
-- 최신 main/base drift와 미해결 review thread, mergeable 여부를 PR 생성 후 조회하며, 중간 SHA에서 PASS를 재사용하지 않는다. Owner Managed는 독립 QA 면책이 아닌 사용자 위험 수용 절차다.
+
+- 2026-10-29 확인: PR #850 Full [Run #3396.1](https://github.com/planner77/masterGantt/actions/runs/40785203891), Head `913c4e3b96c18bc408c54298e149e5d5598b94f8` Base `d7f41dbf7252b378c4eccc49642ac9978c58c57d`, Test merge `8b890ed0c07a05cabc44c2f8acb3a4f20dc11213`. 원본 QA Preflight Job `123156729878` 직접 `DOCUMENTATION_SYNC FAIL`: `docs/CI_CD.md` 영향 기록이 검증 정규식으로 식별되지 않음. Ready 이전 #3393/#3394 Draft 정책 차단, #3395 취소는 원본 FAIL과 별도 분류.
+- 선행 누락까지 동시 보완: `docs_gate`는 `- \`path\`: UPDATED` 또는 `- \`path\`: N/A(reason)`으로 끝나는 단일 행만 인식하며, AC_TEST_COVERAGE에서는 `- AC1:` … `- AC8:` 구조의 증거 매핑을 요구한다. 과거 기록은 설명을 상태와 같은 행에 붙였고 AC 표만 작성해서 2차 차단 위험이 존재했다. 전체 DOCUMENTATION_SYNC 행을 형식에 맞추고 표는 보존하며 AC1~AC8 bullet을 추가했다.
+- [누적 실패 원장](../../ISSUE_849_FAILURE_ANALYSIS.md): #3393~#3396, Fast #190~#193의 Run/Attempt/직접·파생·미실행 및 Source 보존. 최초 실패는 제품 직접 검사 전에 발생; TypeScript/Lint/Vitest/E2E8/Docker 구현 Job은 NOT RUN, 새 Head 결과는 NOT TESTED. 과거 #846 실패를 #849 실패로 계산하지 않는다.
+- 요구된 QA/리뷰/충돌 점검 후 새 Full PR CI 시작까지만 수행. CI 결과 모니터링, Main merge/CI, GHCR, 운영 DB migration, Issue close는 별도 지시 없이는 실행하지 않는다. HIGH/OWNER_MANAGED 및 Required3/Trusted QA는 유지한다.
