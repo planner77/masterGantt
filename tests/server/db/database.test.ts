@@ -293,6 +293,7 @@ describe("SQLite connection and schema", () => {
         "project_equipment_systems_equipment_idx",
         "project_equipment_systems_system_idx",
         "project_issue_credential_audit_issue_idx",
+        "project_issues_business_status_idx",
         "project_issues_created_idx",
         "project_issues_status_idx",
         "project_issues_visible_idx",
