@@ -52,8 +52,16 @@ def validate_archive(path: str, *, repository: str, revision: str,
     require(bool(re.fullmatch(r"[\w.-]+/[\w.-]+", repository)), "repository invalid")
     with tarfile.open(path, "r:*") as archive:
         entries = {}
+        directories = set()
         for member in archive:
             name = member.name.removeprefix("./")
+            if member.isdir():
+                # BuildKit exporters may include these two ordinary OCI layout
+                # directory entries; never follow links or arbitrary paths.
+                require(name.rstrip("/") in {"blobs", "blobs/sha256"} and
+                        name not in directories, "unsafe/duplicate OCI archive directory")
+                directories.add(name)
+                continue
             require(member.isfile() and name not in entries, "unsafe/duplicate OCI archive entry")
             require(name in {"index.json", "oci-layout"} or
                     re.fullmatch(r"blobs/sha256/[a-f0-9]{64}", name) is not None,
