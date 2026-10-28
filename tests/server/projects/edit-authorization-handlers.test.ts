@@ -453,6 +453,8 @@ describe("route security inventory", () => {
       "GET /api/projects/{publicId}/issues",
       "POST /api/projects/{publicId}/issues",
       "PATCH /api/projects/{publicId}/issues/{issueId}",
+      "DELETE /api/projects/{publicId}/issues/{issueId}",
+      "PATCH /api/projects/{publicId}/issues/{issueId}/credential",
       "GET /api/projects/{publicId}/resource-memberships",
       "POST /api/projects/{publicId}/resource-memberships",
       "DELETE /api/projects/{publicId}/resource-memberships/{resourceId}",
