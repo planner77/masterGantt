@@ -181,7 +181,10 @@ def verify_source(repo: str, main_sha: str, token: str, tempdir: pathlib.Path,
         (pr.get("head") or {}).get("sha") != second or
         (pr.get("head") or {}).get("repo", {}).get("full_name") != repo):
         raise Ineligible("PR_MERGE_PARENTS_OR_ORIGIN_MISMATCH")
-    runs = page_items(repo, "actions/workflows/ci.yml/runs?event=pull_request",
+    # Narrow by immutable PR Head: a busy repository can exceed the newest
+    # 300 Full runs before an annotated SemVer Release is requested.
+    runs = page_items(repo,
+                      f"actions/workflows/ci.yml/runs?event=pull_request&head_sha={second}",
                       "workflow_runs", token, pages=3)
     exact = [r for r in runs
              if r.get("event") == "pull_request" and
