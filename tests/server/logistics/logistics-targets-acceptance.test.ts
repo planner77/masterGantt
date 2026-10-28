@@ -476,7 +476,7 @@ describe("Issue #672 — #616 F2 acceptance: SQLite migration persistence", () =
       expect(saved.code).toBe("PERSIST");
       expect(second.database.pragma("foreign_key_check")).toEqual([]);
       expect((second.database.prepare("SELECT MAX(version) AS v FROM schema_migrations")
-        .get() as {v:number}).v).toBe(31);
+        .get() as {v:number}).v).toBe(32);
       expect(second.database.prepare("SELECT visibility FROM projects WHERE public_id=?").pluck().get(sourceId)).toBe("public");
     } finally { second.database.close(); }
   });

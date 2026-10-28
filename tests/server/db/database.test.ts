@@ -220,6 +220,7 @@ describe("SQLite connection and schema", () => {
         "project_equipment",
         "project_equipment_resource_roles",
         "project_equipment_systems",
+        "project_issues",
         "project_logistics_systems",
         "project_master_admin_credentials",
         "project_master_admin_sessions",

@@ -27,6 +27,14 @@
 - 보완: React effect에서 네트워크 비동기 결과에만 상태 업데이트, 신규 마이그레이션(32번째) 계약을 모든 해당 회귀에 정확 반영, shard2에 신규 Issue browser spec 배치(8-shard 모든 파일 exactly once), 기존 route security inventory에 세 신규 메서드 보안 정책 등록, 검색 fixture description 분리. 테스트 삭제·skip·assertion 완화 없음.
 - 다음 Head의 새 Full PR CI에서 재검증 필요. 현 실패의 수치·상태를 이전 PASS로 소급 표시하지 않는다.
 
+
+## Run #3370.1 / 40623302735 — 고정 기대값 잔여 4건
+- HEAD: eb2a4a6bd07ba85d7a632f59e85e3ed8d99f4bc3.
+- Preflight/정책/TypeScript/ESLint PASS. Vitest: 4 failed, 3366 passed, 3 skipped.
+- Failing cases: migration-cli.schema_migrations COUNT expected31 actual32; database.sqlite_schema expected 56 tables actual 57 (project_issues); logistics-targets-acceptance MAX(version) expected31 actual32; edit-authorization-handlers exact route security inventory list expected 139 vs actual 142 (GET/POST/PATCH Issue).
+- 조치: 기존 원장/인덱스/보안 테스트를 보존하고 명시적으로 0032, project_issues, 3 route 추가. 무관한 인증·스케줄링 테스트 수정·제외 없음. 다음 최신 HEAD의 PR Quality 전체 재검증 필요.
+- Required Quality 실패에 따라 E2E/Docker 집계 실패 및 QA Final FAIL은 이 run의 실제 실패이며 회귀 성공으로 바꾸지 않는다.
+
 ## release_state
 - qa_method: OWNER_MANAGED; risk: HIGH; independent_qa: N/A. 최신 성공 Full PR required 3종 + Trusted 및 exact Owner final ACCEPT 전 merge 불가.
 - Main CI, OCI immutable candidate, Generic Finalizer와 정식 GHCR은 NOT EXECUTED; #838/#839/#840 OPEN 유지.
