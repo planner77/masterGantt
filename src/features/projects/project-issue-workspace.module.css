@@ -57,6 +57,7 @@
 .footer span { font-variant-numeric: tabular-nums; margin-inline: 0.25rem; }
 .error { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; color: var(--text-danger, #a12424); font-size: 0.8125rem; }
 .editor {
+  box-sizing: border-box;
   position: fixed;
   inset: 0;
   z-index: 200;
