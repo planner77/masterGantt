@@ -806,7 +806,7 @@ project_issues: id PK, public_id UUID unique, project_id -> projects ON DELETE C
 | `project_issues.credential_state` | `UNSET`(migration 이전 legacy의 DEFAULT) / `ACTIVE`(개별 비밀번호 설정 완료) |
 | `password_kdf/salt/hash`, `scrypt_n/r/p/key_length` | nullable; ACTIVE는 scrypt/16-byte salt/32-byte hash/(32768,8,3,32)만 유효, UNSET는 전부 NULL |
 | `credential_version` | UNSET는 0, 신규 생성은 1, reset 때 +1; KDF 이후 txn credential 재검증 |
-| `lifecycle_state`, `deleted_at` | `ACTIVE` + NULL / `DELETED` + ISO 시각. 삭제 시 `updated_at`만 추가 변경, 원래 Issue payload/created_at 보존 |
+| `lifecycle_state`, `deleted_at` | `ACTIVE` + NULL / `DELETED` + ISO 시각. 삭제 시 원래 Issue payload/created_at/수정시각(`updated_at`) 모두 보존 |
 | `project_issue_credential_audit` | project FK CASCADE, issue FK CASCADE, action INITIALIZE/RESET, edit_session_id, request_id, created_at. 비밀번호·hash/salt는 기록하지 않음 |
 
 - 기존 Issue는 migration 후 `credential_state=UNSET, credential_version=0, lifecycle_state=ACTIVE, deleted_at=NULL`로 남고 **암묵적 비밀번호 부여 금지**. Project 세션+프로젝트 비밀번호 재인증 후 명시적으로 최초 설정/재설정한다.
