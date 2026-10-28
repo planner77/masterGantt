@@ -36,7 +36,8 @@ def blob(contents: bytes, entries: dict[str, bytes]) -> dict:
     return {"digest": digest, "size": len(contents)}
 
 
-def fixture(*, attested: bool = True, revision: str = MAIN, wrapped: bool = False) -> bytes:
+def fixture(*, attested: bool = True, revision: str = MAIN, wrapped: bool = False,
+            include_dirs: bool = False) -> bytes:
     entries: dict[str, bytes] = {"oci-layout": packed({"imageLayoutVersion": "1.0.0"})}
     layer = blob(b"layer", entries) | {"mediaType": "application/vnd.oci.image.layer.v1.tar+gzip"}
     config = blob(packed({"os": "linux", "architecture": "amd64",
@@ -84,6 +85,11 @@ def fixture(*, attested: bool = True, revision: str = MAIN, wrapped: bool = Fals
         entries["index.json"] = subject_index
     output = io.BytesIO()
     with tarfile.open(fileobj=output, mode="w") as tar:
+        if include_dirs:
+            for directory in ("blobs/", "blobs/sha256/"):
+                member = tarfile.TarInfo(directory)
+                member.type = tarfile.DIRTYPE
+                tar.addfile(member)
         for name, contents in entries.items():
             info = tarfile.TarInfo(name=name)
             info.size = len(contents)
@@ -110,6 +116,10 @@ class OciSubjectContract(unittest.TestCase):
         report = self.check(fixture(wrapped=True))
         self.assertNotEqual(report["index_digest"], report["layout_index_digest"])
         self.assertNotEqual(report["index_digest"], report["image_manifest_digest"])
+        self.assertEqual(report["attestations"], ["provenance", "sbom"])
+
+    def test_oci_exporter_directory_entries_are_not_attack_paths(self):
+        report = self.check(fixture(include_dirs=True, wrapped=True))
         self.assertEqual(report["attestations"], ["provenance", "sbom"])
 
     def test_wrong_revision_cannot_relabel_same_digest(self):
