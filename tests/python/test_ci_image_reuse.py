@@ -57,7 +57,8 @@ def fixture(*, attested: bool = True, revision: str = MAIN) -> bytes:
         attestation_layers = []
         for predicate_type, name in preds:
             layer = blob(packed({"predicateType": predicate_type,
-                                 "subject": [{"name": name}]}), entries)
+                                 "subject": [{"name": name,
+                                              "digest": {"sha256": main_desc["digest"][7:]}}]}), entries)
             layer["mediaType"] = "application/vnd.in-toto+json"
             attestation_layers.append(layer)
         attest_config = blob(packed({"architecture": "unknown", "os": "unknown"}), entries)
