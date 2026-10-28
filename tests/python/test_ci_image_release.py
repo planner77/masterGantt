@@ -48,7 +48,7 @@ class MainCandidateMappingTest(unittest.TestCase):
             self.run_verifier(source_digest="sha256:" + "e" * 64)
 
     def test_no_main_full_success_blocks(self):
-        with self.assertRaisesRegex(Blocked, "MAIN_PUBLISH"):
+        with self.assertRaisesRegex(Blocked, "VERIFIED_MAIN_PUSH_CI_NOT_FOUND"):
             self.run_verifier(run_status="failure")
 
     def test_missing_publisher_job_blocks(self):
