@@ -1095,6 +1095,14 @@ jobs:
       needs.changes.outputs.docker == 'true'
     needs: [changes, preflight]
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    outputs:
+      archive_sha256: ${{ steps.oci_verified.outputs.archive_sha256 }}
+      index_digest: ${{ steps.oci_verified.outputs.index_digest }}
+      revision: ${{ steps.reuse_decision.outputs.source_revision || needs.changes.outputs.checkout_sha }}
     # Bounded Playwright OS dependency retries plus full transport/Compose smoke.
     timeout-minutes: 40
     steps: &docker_smoke_steps
@@ -1110,6 +1118,19 @@ jobs:
       - name: checkout 시간 기록
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
+      # Trusted main verifier reads GitHub-sourced PR/attempt/job/tree/OCI metadata.
+      # Shadow (flag OFF) records evidence but ALWAYS rebuilds main.
+      - name: Issue #836 PR OCI source decision (Main trusted checkout)
+        id: reuse_decision
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          MAIN_SOURCE_SHA: ${{ needs.changes.outputs.checkout_sha }}
+          MAIN_VERSION: ${{ needs.changes.outputs.current_version }}
+          MAIN_RECOVERY_AUTHORIZED: ${{ needs.changes.outputs.recovery_authorized }}
+          PR_IMAGE_REUSE_ENABLED: ${{ vars.PR_IMAGE_REUSE_ENABLED }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/ci_image_reuse.py
       - name: Docker Buildx setup 계측 시작
         id: buildx-start
         shell: bash
@@ -1122,18 +1143,65 @@ jobs:
         id: docker-build-start
         shell: bash
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
-      - name: Docker image build
+      # Single OCI export retains the index + BuildKit attestations. Loading a
+      # classic Docker daemon directly cannot retain an OCI multi-manifest index.
+      - name: OCI archive runtime transport 설치
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes skopeo
+      - name: Docker image build (single attested OCI export)
         id: docker-build
+        if: steps.reuse_decision.outputs.decision != 'PR_REUSE_VERIFIED'
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
         with:
           context: .
           file: deploy/docker/Dockerfile
-          load: true
-          tags: mastergantt:ci
-          build-args: VERSION=ci-${{ needs.changes.outputs.checkout_sha }}
+          outputs: type=oci,dest=/tmp/mastergantt-verified.oci.tar
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ needs.changes.outputs.checkout_sha }}
+            org.opencontainers.image.version=${{ needs.changes.outputs.current_version }}
+          build-args: VERSION=${{ needs.changes.outputs.current_version }}
           platforms: linux/amd64
+          provenance: mode=max
+          sbom: true
           cache-from: type=gha,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
           cache-to: ${{ github.event_name == 'push' && format('type=gha,mode=max,scope=mastergantt-docker-{0}-{1}', runner.os, runner.arch) || '' }}
+      - name: 인증된 PR OCI Subject 채택 (opt-in 전용)
+        if: steps.reuse_decision.outputs.decision == 'PR_REUSE_VERIFIED'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp "$RUNNER_TEMP/mastergantt-ci-oci/mastergantt-verified.oci.tar" /tmp/mastergantt-verified.oci.tar
+      - name: OCI blob/digest/SBOM/provenance·런타임 config 동일성 검증
+        id: oci_verified
+        shell: bash
+        env:
+          IMAGE_REVISION: ${{ steps.reuse_decision.outputs.source_revision || needs.changes.outputs.checkout_sha }}
+          BUILD_VERSION: ${{ needs.changes.outputs.current_version }}
+        run: |
+          set -euo pipefail
+          python3 scripts/verified_oci.py \
+            --archive /tmp/mastergantt-verified.oci.tar \
+            --repository "$GITHUB_REPOSITORY" \
+            --revision "$IMAGE_REVISION" --version "$BUILD_VERSION" \
+            --output "$RUNNER_TEMP/ci-image-inspection.json"
+          skopeo copy --override-os linux --override-arch amd64 \
+            oci-archive:/tmp/mastergantt-verified.oci.tar docker-daemon:mastergantt:ci
+          python3 - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          report = json.loads((Path(os.environ['RUNNER_TEMP']) / 'ci-image-inspection.json').read_text())
+          image_id = subprocess.check_output(
+              ['docker', 'image', 'inspect', '--format', '{{.Id}}', 'mastergantt:ci'], text=True).strip()
+          if image_id != report['config_digest']:
+              raise SystemExit('BLOCKED: OCI archive config differs from tested Docker image')
+          if os.environ.get('GITHUB_OUTPUT'):
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
+                  stream.write(f"archive_sha256={report['archive_sha256']}\n")
+                  stream.write(f"index_digest={report['index_digest']}\n")
+          PY
       - name: Docker build/cache 시간 기록
         if: always()
         shell: bash
@@ -1266,6 +1334,16 @@ jobs:
       - name: 실패 시 container logs
         if: failure()
         run: docker logs mastergantt-ci || true
+      # Upload only after the EXACT exported image passed policy and runtime
+      # smoke; the independent trusted Main job checks Run/Attempt + ZIP hash.
+      - name: Issue #836 verified OCI archive (same source Run/Attempt)
+        if: success()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-oci-${{ github.event_name == 'pull_request' && 'pr' || 'main' }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/mastergantt-verified.oci.tar
+          if-no-files-found: error
+          retention-days: 30
       - name: Docker setup 계측 artifact 업로드
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -1591,7 +1669,7 @@ jobs:
     # Shared Playwright setup may perform two bounded 360s OS-deps installs.
     # Allow enough budget for image build/push, digest pull and transport smoke.
     timeout-minutes: 50
-    needs: [changes, quality, e2e, docker]
+    needs: [changes, quality, e2e, docker, docker_smoke]
     permissions:
       contents: read
       actions: read
