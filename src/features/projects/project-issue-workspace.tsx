@@ -395,7 +395,7 @@ export function ProjectIssueWorkspace({
     </div>
 
     {editorOpen ? <div className={styles.editor} role="dialog" aria-modal="true"
-      aria-label={editingIssue ? "Issue 상세 및 수정" : "Issue 등록"}>
+      aria-label={editingIssue ? "Issue 상세 및 수정" : "Issue 등록"} onKeyDown={editorKeys}>
       <div className={styles.editorHeader}>
         <h2>{editingIssue ? "Issue 상세 및 수정" : "Issue 등록"}</h2>
         <button type="button" className="secondary-button" disabled={saving}
@@ -432,14 +432,6 @@ export function ProjectIssueWorkspace({
           <input id="project-issue-completed-on" type="date" disabled={locked || !form.completed}
             value={form.completedOn ?? ""} onChange={event => updateForm({ completedOn: event.target.value || null })} />
         </div>
-        <div className={styles.field}><label htmlFor="project-issue-description">Issue 내용</label>
-          <textarea id="project-issue-description" rows={4} maxLength={4000}
-            value={form.description} disabled={locked}
-            onChange={event => updateForm({ description: event.target.value })} />
-          {form.description ? <div className={styles.preview}><span className={styles.hint}>링크 미리보기</span>
-            <div className={styles.previewText}>{issueDescription(form.description)}</div>
-          </div> : null}
-        </div>
         <div className={styles.field}><label htmlFor="project-issue-task">관련 Task</label>
           <div className={styles.inline}>
             <input id="project-issue-task" type="text" maxLength={200} disabled={locked}
@@ -458,10 +450,70 @@ export function ProjectIssueWorkspace({
             </button></li>)}</ul> : <p>일치하는 Task가 없습니다. 직접 입력할 수도 있습니다.</p>}
           </div> : null}
         </div>
+        <div className={styles.field}><label htmlFor="project-issue-description">Issue 내용</label>
+          <textarea id="project-issue-description" rows={4} maxLength={4000}
+            value={form.description} disabled={locked}
+            onChange={event => updateForm({ description: event.target.value })} />
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="project-issue-password">
+            {editingIssue ? "Issue 비밀번호 (수정·삭제 시 필요)" : "Issue 비밀번호 *"}
+          </label>
+          <input id="project-issue-password" type="password" minLength={8} maxLength={128}
+            autoComplete="off" value={issuePassword} required={editingIssue?.credentialState !== "unconfigured"}
+            disabled={busy || saving || editingIssue?.credentialState === "unconfigured"}
+            onChange={event => { setIssuePassword(event.target.value); setFormError(null); }} />
+          <span className={styles.hint}>프로젝트 비밀번호와 별개로 Issue별 8~128자를 사용합니다.</span>
+        </div>
+        {!editingIssue ? <div className={styles.field}>
+          <label htmlFor="project-issue-password-confirmation">Issue 비밀번호 확인 *</label>
+          <input id="project-issue-password-confirmation" type="password" minLength={8} maxLength={128}
+            autoComplete="new-password" required value={passwordConfirmation} disabled={busy || saving}
+            onChange={event => { setPasswordConfirmation(event.target.value); setFormError(null); }} />
+        </div> : null}
+        {editingIssue?.credentialState === "unconfigured" ? <p className={styles.hint} role="status">
+          기존 Issue의 비밀번호가 아직 설정되지 않았습니다. 프로젝트 편집 권한자가 먼저 설정해야 수정·삭제할 수 있습니다.
+        </p> : null}
+        {editingIssue && editable ? <div className={styles.field}>
+          <button type="button" className="secondary-button" aria-expanded={showRecovery}
+            disabled={busy || saving} onClick={() => { setShowRecovery(value => !value); setFormError(null); }}>
+            {editingIssue.credentialState === "unconfigured" ? "Issue 비밀번호 최초 설정" : "Issue 비밀번호 재설정"}
+          </button>
+          {showRecovery ? <div className={styles.securityPanel}>
+            <span className={styles.hint}>현재 프로젝트 편집 세션과 프로젝트 비밀번호를 함께 확인합니다.</span>
+            <label htmlFor="project-issue-project-password">프로젝트 비밀번호</label>
+            <input id="project-issue-project-password" type="password" autoComplete="off" value={projectPassword}
+              disabled={saving} onChange={event => setProjectPassword(event.target.value)} />
+            <label htmlFor="project-issue-new-password">새 Issue 비밀번호</label>
+            <input id="project-issue-new-password" type="password" autoComplete="new-password"
+              minLength={8} maxLength={128} value={newIssuePassword}
+              disabled={saving} onChange={event => setNewIssuePassword(event.target.value)} />
+            <label htmlFor="project-issue-new-password-confirmation">새 Issue 비밀번호 확인</label>
+            <input id="project-issue-new-password-confirmation" type="password" autoComplete="new-password"
+              minLength={8} maxLength={128} value={newIssuePasswordConfirmation}
+              disabled={saving} onChange={event => setNewIssuePasswordConfirmation(event.target.value)} />
+            <button type="button" className="secondary-button" disabled={busy || saving || !projectPassword}
+              onClick={() => void recoverCredential()}>{saving ? "설정 중…" : "비밀번호 설정/재설정"}</button>
+          </div> : null}
+        </div> : null}
+        {editingIssue?.credentialState === "protected" ? <div className={styles.securityPanel}>
+          {!confirmDelete ? <button type="button" className="secondary-button" disabled={busy || saving}
+            onClick={() => { setConfirmDelete(true); setFormError(null); }}>Issue 삭제…</button> :
+            <div className={styles.deletePanel} role="group" aria-label="Issue 삭제 확인">
+              <p>Issue를 목록에서 숨기며 데이터는 보존됩니다. 이 화면에서 복구할 수 없습니다.</p>
+              <div className={styles.editorActions}>
+                <button type="button" className="secondary-button" disabled={saving}
+                  onClick={() => setConfirmDelete(false)}>삭제 취소</button>
+                <button type="button" className="secondary-button" disabled={saving || !passwordValid(issuePassword)}
+                  onClick={() => void deleteIssue()}>{saving ? "삭제 중…" : "삭제 확인"}</button>
+              </div>
+            </div>}
+        </div> : null}
         {formError ? <p className={styles.error} role="alert">{formError}</p> : null}
         <div className={styles.editorActions}>
           <button type="button" className="secondary-button" disabled={saving} onClick={closeEditor}>취소</button>
-          <button type="submit" className="primary-button" disabled={locked || !form.title.trim()}>
+          <button type="submit" className="primary-button" disabled={locked || !form.title.trim() || !passwordValid(issuePassword) ||
+              (!editingIssue && passwordConfirmation !== issuePassword)}>
             {saving ? "저장 중…" : editingIssue ? "수정 저장" : "등록"}
           </button>
         </div>
