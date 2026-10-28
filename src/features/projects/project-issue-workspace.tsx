@@ -185,43 +185,117 @@ export function ProjectIssueWorkspace({
       : createTrigger.current?.focus({ preventScroll: true }));
   }
 
+  function editorKeys(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape" && !saving) { event.stopPropagation(); closeEditor(); return; }
+    if (event.key !== "Tab") return;
+    const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(
+      'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])'
+    )).filter(element => element.getClientRects().length > 0);
+    const first = controls[0], last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first && last) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last && first) {
+      event.preventDefault(); first.focus();
+    }
+  }
+
+  function failed(response: Response, body: unknown): Error {
+    const code = body && typeof body === "object" && "error" in body
+      ? (body.error as { code?: string })?.code : undefined;
+    if (response.status === 401 && (code === "EDIT_SESSION_REQUIRED" || code === "PROJECT_LOCKED"))
+      onUnauthorized();
+    if (response.status === 412) onChanged();
+    return new Error(projectIssueError(body, "Issue 요청에 실패했습니다."));
+  }
+
+  function finishMutation() {
+    setIssuePassword(""); setPasswordConfirmation(""); setProjectPassword("");
+    setNewIssuePassword(""); setNewIssuePasswordConfirmation("");
+    setShowRecovery(false); setConfirmDelete(false);
+    setEditorOpen(false); setPersonPicker(null); setTaskPicker(false);
+    setRefresh(value => value + 1); onChanged();
+    requestAnimationFrame(() => lastIssueTrigger.current?.isConnected
+      ? lastIssueTrigger.current.focus({ preventScroll: true })
+      : createTrigger.current?.focus({ preventScroll: true }));
+  }
+
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (locked || !form.title.trim()) return;
-    setSaving(true);
-    setFormError(null);
-    const expected = Math.max(revision, list?.data.projectRevision ?? 0);
+    if (locked || !form.title.trim() || !passwordValid(issuePassword)) {
+      setFormError("Issue 비밀번호는 제어문자 없이 8~128자로 입력해 주세요."); return;
+    }
+    if (!editingIssue && issuePassword !== passwordConfirmation) {
+      setFormError("Issue 비밀번호 확인이 일치하지 않습니다."); return;
+    }
+    setSaving(true); setFormError(null);
     try {
-      const url = rootPath + (editingIssue ? "/" + encodeURIComponent(editingIssue.issueId) : "");
-      const response = await fetch(url, {
+      const response = await fetch(rootPath + (editingIssue ? "/" + encodeURIComponent(editingIssue.issueId) : ""), {
         method: editingIssue ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json", "If-Match": '"' + expected + '"' },
-        credentials: "same-origin", body: JSON.stringify(form),
+        headers: { "Content-Type": "application/json", "If-Match": '"' + expectedRevision() + '"' },
+        credentials: "same-origin",
+        body: JSON.stringify({ ...form, issuePassword,
+          ...(!editingIssue ? { confirmIssuePassword: passwordConfirmation } : {}) }),
       });
-      const data: unknown = await response.json();
-      if (!response.ok) {
-        if (response.status === 401) onUnauthorized();
-        if (response.status === 412) onChanged();
-        throw new Error(projectIssueError(data, "Issue 저장에 실패했습니다."));
-      }
-      const result = data as ProjectIssueMutationResponse;
+      const body: unknown = await response.json();
+      if (!response.ok) throw failed(response, body);
+      const result = body as ProjectIssueMutationResponse;
       if (!result.data?.issue || !Number.isSafeInteger(result.data.projectRevision))
         throw new Error("저장 결과를 확인할 수 없습니다. 목록을 다시 조회해 주세요.");
       setList(current => current && { data: { ...current.data, projectRevision: result.data.projectRevision } });
-      setEditorOpen(false);
-      setPersonPicker(null);
-      setTaskPicker(false);
-      setRefresh(value => value + 1);
-      onChanged();
-      requestAnimationFrame(() => lastIssueTrigger.current?.isConnected
-        ? lastIssueTrigger.current.focus({ preventScroll: true })
-        : createTrigger.current?.focus({ preventScroll: true }));
+      finishMutation();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Issue 저장에 실패했습니다.");
       setRefresh(value => value + 1);
-    } finally {
-      setSaving(false);
+    } finally { setSaving(false); }
+  }
+
+  async function deleteIssue() {
+    if (!editingIssue || saving || !confirmDelete || !passwordValid(issuePassword)) {
+      setFormError("삭제하려면 해당 Issue 비밀번호를 입력해 주세요."); return;
     }
+    setSaving(true); setFormError(null);
+    try {
+      const response = await fetch(rootPath + "/" + encodeURIComponent(editingIssue.issueId), {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", "If-Match": '"' + expectedRevision() + '"' },
+        credentials: "same-origin", body: JSON.stringify({ issuePassword }),
+      });
+      const body: unknown = await response.json();
+      if (!response.ok) throw failed(response, body);
+      if (!(body as { data?: { deleted?: boolean } }).data?.deleted)
+        throw new Error("삭제 결과를 확인하지 못했습니다. 다시 조회해 주세요.");
+      finishMutation();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "Issue 삭제에 실패했습니다.");
+      setRefresh(value => value + 1);
+    } finally { setSaving(false); }
+  }
+
+  async function recoverCredential() {
+    if (!editingIssue || !editable || saving || !showRecovery ||
+      !passwordValid(newIssuePassword) || newIssuePassword !== newIssuePasswordConfirmation || !projectPassword) {
+      setFormError("프로젝트 비밀번호와 새 Issue 비밀번호·확인을 입력해 주세요."); return;
+    }
+    setSaving(true); setFormError(null);
+    try {
+      const response = await fetch(rootPath + "/" + encodeURIComponent(editingIssue.issueId) + "/credential", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "If-Match": '"' + expectedRevision() + '"' },
+        credentials: "same-origin",
+        body: JSON.stringify({ operation: editingIssue.credentialState === "unconfigured" ? "initialize" : "reset",
+          projectPassword, newPassword: newIssuePassword, confirmPassword: newIssuePasswordConfirmation }),
+      });
+      const body: unknown = await response.json();
+      if (!response.ok) throw failed(response, body);
+      const result = body as ProjectIssueMutationResponse;
+      if (!result.data?.issue) throw new Error("비밀번호 설정 결과를 확인할 수 없습니다.");
+      setEditingIssue(result.data.issue);
+      setList(current => current && { data: { ...current.data, projectRevision: result.data.projectRevision } });
+      setShowRecovery(false); setProjectPassword(""); setNewIssuePassword(""); setNewIssuePasswordConfirmation("");
+      setIssuePassword(""); setRefresh(value => value + 1); onChanged();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "비밀번호 설정에 실패했습니다.");
+      setRefresh(value => value + 1);
+    } finally { setSaving(false); }
   }
 
   function personField(kind: PersonKind, label: string) {
