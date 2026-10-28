@@ -35,10 +35,12 @@ test.describe("Issue #76 Project Workspace UX", () => {
 
     const tabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
     const scheduleTab = tabs.getByRole("tab", { name: "일정", exact: true });
+    const issueTab = tabs.getByRole("tab", { name: "Issue", exact: true });
     const dashboardTab = tabs.getByRole("tab", { name: "대시보드", exact: true });
 
     const logisticsTab = tabs.getByRole("tab", { name: "기준정보", exact: true });
     await expect(scheduleTab).toHaveAttribute("aria-selected", "true");
+    await expect(issueTab).toHaveAttribute("aria-selected", "false");
     await expect(dashboardTab).toHaveAttribute("aria-selected", "false");
     await expect(logisticsTab).toHaveAttribute("aria-selected", "false");
 
@@ -48,6 +50,9 @@ test.describe("Issue #76 Project Workspace UX", () => {
     const scrollLeft = await chart.evaluate((element) => element.scrollLeft);
 
     await scheduleTab.focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(issueTab).toBeFocused();
+    await expect(issueTab).toHaveAttribute("aria-selected", "true");
     await page.keyboard.press("ArrowRight");
     await expect(dashboardTab).toBeFocused();
     await expect(dashboardTab).toHaveAttribute("aria-selected", "true");
@@ -74,6 +79,8 @@ test.describe("Issue #76 Project Workspace UX", () => {
     await expect(logisticsTab).toBeFocused();
     await page.keyboard.press("ArrowLeft");
     await expect(dashboardTab).toBeFocused();
+    await page.keyboard.press("ArrowLeft");
+    await expect(issueTab).toBeFocused();
     await page.keyboard.press("ArrowLeft");
     await expect(scheduleTab).toBeFocused();
     await expectSameGanttRoot(page, identity);
@@ -279,14 +286,19 @@ for (const [width, height] of [[390, 844], [768, 900], [1024, 900], [1440, 900],
 
       const tabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
       const schedule = tabs.getByRole("tab", { name: "일정" });
+      const issue = tabs.getByRole("tab", { name: "Issue", exact: true });
       const dashboard = tabs.getByRole("tab", { name: "대시보드", exact: true });
       const master = tabs.getByRole("tab", { name: "기준정보", exact: true });
       await expect(schedule).toHaveAttribute("aria-controls", "project-panel-schedule");
+      await expect(issue).toHaveAttribute("aria-controls", "project-panel-issue");
       await expect(dashboard).toHaveAttribute("aria-controls", "project-navigation-dashboard");
       await expect(master).toHaveAttribute("aria-controls", "project-navigation-master");
-      await expect(tabs.getByRole("tab")).toHaveText(["일정", "대시보드", "기준정보"]);
+      await expect(tabs.getByRole("tab")).toHaveText(["일정", "Issue", "대시보드", "기준정보"]);
       await expect(page.getByRole("tab", { name: "Gantt", exact: true })).toHaveCount(0);
       await schedule.focus();
+      await page.keyboard.press("ArrowRight");
+      await expect(issue).toBeFocused();
+      await expect(issue).toHaveAttribute("aria-selected", "true");
       await page.keyboard.press("ArrowRight");
       await expect(dashboard).toBeFocused();
       await expect(page.getByRole("tablist", { name: "대시보드 보기" })).toBeVisible();
@@ -297,6 +309,8 @@ for (const [width, height] of [[390, 844], [768, 900], [1024, 900], [1440, 900],
       await expect(page.getByRole("tablist", { name: "기준정보 보기" })).toBeVisible();
       await page.keyboard.press("ArrowLeft");
       await expect(dashboard).toBeFocused();
+      await page.keyboard.press("ArrowLeft");
+      await expect(issue).toBeFocused();
       await page.keyboard.press("Home");
       await expect(schedule).toBeFocused();
       await expect(page.getByRole("tabpanel", { name: "일정", exact: true })).toBeVisible();

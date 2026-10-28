@@ -145,9 +145,17 @@ export class ProjectIssueService {
   private resolveInput(projectId: number, input: ProjectIssueInput): ProjectIssueInput {
     const resolvePerson = (resourceId: string | null, typed: string): string => {
       if (!resourceId) return typed;
-      const row = this.database.prepare("SELECT name FROM resources WHERE public_id = ?")
-        .get(resourceId) as { name: string } | undefined;
-      if (!row) invalid("선택한 리소스가 존재하지 않습니다.");
+      // Reuse the project-visible resource population, not the entire global catalog.
+      // Foreign-project or unattached resource IDs must not bypass the picker boundary.
+      const row = this.database.prepare(`
+        SELECT r.name FROM resources r WHERE r.public_id = ? AND (
+          EXISTS(SELECT 1 FROM project_resource_memberships m WHERE m.project_id = ? AND m.resource_id = r.id)
+          OR EXISTS(SELECT 1 FROM task_assignments a WHERE a.project_id = ? AND a.resource_id = r.id)
+          OR EXISTS(SELECT 1 FROM project_equipment_resource_roles e WHERE e.project_id = ? AND e.resource_id = r.id)
+          OR EXISTS(SELECT 1 FROM project_system_resource_roles s WHERE s.project_id = ? AND s.resource_id = r.id)
+        )
+      `).get(resourceId, projectId, projectId, projectId, projectId) as { name: string } | undefined;
+      if (!row) invalid("선택한 리소스는 현재 프로젝트에서 사용할 수 없습니다.");
       return row.name;
     };
     let relatedTaskText = input.relatedTaskText;

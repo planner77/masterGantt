@@ -45,3 +45,12 @@
 ## release_state
 - qa_method: OWNER_MANAGED; risk: HIGH; independent_qa: N/A. 최신 성공 Full PR required 3종 + Trusted 및 exact Owner final ACCEPT 전 merge 불가.
 - Main CI, OCI immutable candidate, Generic Finalizer와 정식 GHCR은 NOT EXECUTED; #838/#839/#840 OPEN 유지.
+
+## Run #3373.1 / 40624753542 — Chromium 6/8 직접 실패 및 보호 보완 (2026-10-28)
+- 원본: [PR #841 Run #3373.1](https://github.com/planner77/masterGantt/actions/runs/40624753542), Head `b39c9e0866126b1900074d34d93ab2875bb592e7`, base `a4c52b9ba2499a95045a7d85a2c62164210672e6`.
+- 직접 실패: Chromium E2E **shard 6/8**, `tests/e2e/project-workspace-ux.spec.ts:52`의 #76 키보드 테스트 `expect(dashboardTab).toBeFocused()`: 새 peer `Issue`가 일정과 대시보드 사이에 배치됐지만 구 테스트가 `일정 → 대시보드` 3탭 이동을 단언. 수정되지 않은 구 테스트와 실제 의도대로 변경된 상위 탭 동작 간 계약 불일치. 단일 직접 실패로 E2E `maxFailures=1` 조기 중단; 1/3/5 샤드는 취소, 2/4/7/8 샤드는 성공. 실패 샤드가 실행하지 못한 잔여 테스트는 PASS가 아니다.
+- 독립 판정: TypeScript, ESLint, Vitest, Policy, Build, Docker Smoke, Quality aggregate는 PASS. `Chromium end-to-end tests` Required FAIL과 `QA Final — Automated` FAIL은 실제 E2E shard 실패에 **파생**; `qa_method=OWNER_MANAGED`로 대체 불가. 실패 직접 증거: Job `122614219336`; 집계 `122622609809`; QA `122622633082`.
+- 보완: 기존 `project-workspace-ux.spec.ts`에서 실제 4-peer 이동(ArrowRight/ArrowLeft/Home/End)을 보존·확장하고 #130의 5폭 × 읽기/편집 기존 검증도 동일 계약으로 교정. Gantt Core 동일성·scroll·mutation0 단언은 유지하며 skip/timeout/retries/Required Check 완화 없음.
+- 별도 리뷰에서 발견한 보호 위험: `docs/TEST_PLAN.md`의 기존 약 5,592행이 신규 10행으로 **잘못 대체**됨. 원본 main blob `3f45a410cc6fd077f92ca03a7a934d285dd08851` 전체를 복원하고 #838–#840 ADD/EXTEND/KEEP_UNIQUE만 추가하여 누적 테스트 정책을 보존한다. 문서 삭제 회귀는 E2E 직접 실패 원인과 분리한다.
+- 보안/AC 재검토: 전역 `resources` 존재 여부만 검사한 Issue 수정 경로는 타 프로젝트/미등록 Resource UUID를 허용할 수 있었다. 기존 Project Resource 검색의 project population(등록 또는 Task/설비/시스템 연계)과 동일 범위의 서버 검증으로 강화하고 다른 프로젝트만 속한 Resource/양 프로젝트 등록 통과 음성·양성 SQLite 회귀를 추가한다.
+- 리뷰 스레드 0건, 코드 리뷰 서비스의 초기 quota 오류는 비오류성 OWNER_MANAGED 별도 위험이다. 기존 review/P1/P2를 자의적으로 PASS로 전환하지 않는다. base/main ahead7 behind0·mergeable true로 확인했으며 업데이트 후 정확 Head Full PR CI를 새로 실행한다. 코드 수정 로컬 실행은 NOT EXECUTED, 원격 결과 확인 전 NOT VERIFIED; Main/GHCR/이슈 종료는 이번 작업 범위 밖.

@@ -129,6 +129,17 @@ describe("#838-#840 project Issue persistence and API", () => {
     const resource = catalog.insertResource({
       publicId: randomUUID(), name: "김개발", code: "DEV", description: "", now,
     });
+    // A valid global Resource UUID belonging only to another project is still forbidden.
+    const selectForeignResource = () => f.service.mutate(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
+      reporterResourceId: resource.publicId, reporterName: "조작된 이름",
+    })));
+    expect(selectForeignResource).toThrow("현재 프로젝트");
+    const registerResource = (projectId: number) => f.db.prepare(
+      "INSERT INTO project_resource_memberships(project_id, resource_id, created_at) SELECT ?, id, ? FROM resources WHERE public_id = ?"
+    ).run(projectId, now, resource.publicId);
+    expect(registerResource(f.b.authorization.projectId).changes).toBe(1);
+    expect(selectForeignResource).toThrow("현재 프로젝트");
+    expect(registerResource(f.a.authorization.projectId).changes).toBe(1);
     const created = f.service.mutate(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
       reporterResourceId: resource.publicId, reporterName: "조작된 이름",
       assigneeResourceId: resource.publicId, assigneeName: "조작된 이름",
