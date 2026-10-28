@@ -173,11 +173,25 @@ def validate_archive(path: str, *, repository: str, revision: str,
                         statement = load(layer)
                         predicate_type = statement.get("predicateType", "")
                         stmt_subjects = statement.get("subject")
-                        require(isinstance(stmt_subjects, list) and
-                                any(isinstance(item, dict) and
-                                    (item.get("digest") or {}).get("sha256") == bound_digest[7:]
-                                    for item in stmt_subjects),
-                                "BuildKit statement subject not bound to image manifest")
+                        require(isinstance(stmt_subjects, list),
+                                "BuildKit statement subject must be a list")
+                        if stmt_subjects:
+                            # Named OCI exports include an in-toto digest subject.
+                            # A nonempty, mismatched subject is always BLOCKED.
+                            require(any(isinstance(item, dict) and
+                                        (item.get("digest") or {}).get("sha256") == bound_digest[7:]
+                                        for item in stmt_subjects),
+                                    "BuildKit statement subject not bound to image manifest")
+                        else:
+                            # BuildKit may omit default in-toto subjects when
+                            # OCI export has no image name. Never accept an
+                            # unbound empty statement: its OCI artifact manifest
+                            # must independently name the exact tested child.
+                            require(isinstance(manifest_subject, dict) and
+                                    manifest_subject.get("digest") == bound_digest and
+                                    manifest.get("artifactType") ==
+                                      "application/vnd.docker.attestation.manifest.v1+json",
+                                    "empty in-toto subject lacks OCI artifact binding")
                         if predicate_type.startswith("https://slsa.dev/provenance/"):
                             predicates.add("provenance")
                         if ("spdx" in predicate_type.lower() or

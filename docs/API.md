@@ -1861,3 +1861,18 @@ F4는 기존 Target POST/PATCH/DELETE, read-only impact POST, Task target-bindin
 exact 모드의 잘못된 Assignment/Task/resource 조합·Group·일반 Task가 아닌 대상·혼합/추가 payload 필드·날짜/투입률 입력 오류는400이다. 편집 대상이 비활성이면 기존409, Project revision 불일치는412 `REVISION_MISMATCH`, catalog revision 불일치는412 `CATALOG_REVISION_MISMATCH`다. 잘못된 Project read/mutation 권한·Origin·If-Match 오류는 기존 route 정책을 따른다.
 
 사용자 경로는 Resource–Target 상세의 정확한 개인 배정 편집이다. 조회 selector/path는 저장 대상 ID가 아니며 변경 후 report는 새 canonical revision으로 재조회하거나 stale로 잠근다. [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 실제 server/HTTP/Chromium 검증과 미검증을 기록한다.
+
+
+## Project Issues API — #838–#840
+
+기존 /api/projects/[publicId] 범위의 projectReadAccess/편집 세션 정책을 따른다. 캐시 금지(Cache-Control: private, no-store), mutation Origin·HttpOnly session cookie·strong If-Match: "revision" 필수. API는 GitHub Issue와 별개다.
+
+| Method | Endpoint | 내용 |
+|---|---|---|
+| GET | /api/projects/{publicId}/issues?q=&status=all/open/completed&page=1&limit=10/20/50/100 | 전체 KPI summary.total/completed와 필터 결과 total, page, limit, issues[] |
+| POST | /api/projects/{publicId}/issues | ProjectIssueInput 11개 필드 저장, 201 및 새 revision+issue |
+| PATCH | /api/projects/{publicId}/issues/{issueId} | 같은 ProjectIssueInput 전체 업데이트, 200 및 revision+issue |
+
+ProjectIssueInput = title, description, reporterName, reporterResourceId (UUID|null), assigneeName, assigneeResourceId (UUID|null), occurredOn(YYYY-MM-DD), completed(boolean), completedOn(YYYY-MM-DD|null), relatedTaskId(UUID|null), relatedTaskText. UUID의 참조 대상은 실제 resources 및 해당 Project tasks여야 한다. 선택한 리소스/Task는 서버 정규 이름을 스냅샷 텍스트에 보존한다. 생성일 createdAt/수정일 updatedAt/Issue issueId는 서버 소유다. 완료여부와 완료일은 일치해야 한다.
+
+오류: 400 INVALID_ISSUE(형식/잘못된 FK, 검색 오류), 401 PROJECT_LOCKED/EDIT_SESSION_REQUIRED, 403 ORIGIN_NOT_ALLOWED, 404 PROJECT_NOT_FOUND/ISSUE_NOT_FOUND, 412 REVISION_MISMATCH, 428 PRECONDITION_REQUIRED, 405 METHOD_NOT_ALLOWED. 전체 내용/등록자/담당자/관련 Task 검색 + 상태 필터, created_at DESC,id DESC 안정 페이지. Issue DELETE는 이 버전에서 미지원.

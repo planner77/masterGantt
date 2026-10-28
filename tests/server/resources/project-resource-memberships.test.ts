@@ -325,7 +325,7 @@ describe("Issue727 persisted Project participation", () => {
         : rows };
     });
     const legacyRows = snapshotRows();
-    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql"]);
+    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql"]);
     expect(snapshotRows()).toEqual(legacyRows);
     expect(initial.prepare("SELECT visibility FROM projects WHERE id = ?").pluck().get(legacyProject.id)).toBe("public");
     expect(new ProjectResourceMembershipService(initial, { clock }).get(legacyProject.publicId).data.resources).toMatchObject([{ id: legacyResource.publicId, registered: false, usage: { taskAssignments: 1, systemRoles: 1 } }]);

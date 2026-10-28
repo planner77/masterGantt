@@ -10,6 +10,13 @@
 - 추가 교정: Buildx OCI archive가 중첩 `index.json` wrapper를 가진 경우 레이아웃 digest와 실 Registry subject index digest를 구분해 반환·검증, no-digest relabel 금지; immutable PR Head로 Full run 조회. Regression `test_ci_image_reuse.py`에 wrapped-index/PR SemVer/default ON·false 롤백을 추가.
 - 누적 직접/파생 실패·원본 출처·실제 미검증 범위: [Issue #836 Failure Ledger](../../ISSUE_836_FAILURE_ANALYSIS.md). **새 HEAD Full PR CI 전 아직 NOT TESTED**, Main merge/GHCR/Finalizer/Issue 종료 금지.
 
+## REWORK #2 — Main 10 commits 정렬과 BuildKit OCI attestation 경계 (2026-10-28)
+
+- 최근 원본 [PR CI #3365.1](https://github.com/planner77/masterGantt/actions/runs/40621683119)에서 Quality Required=SUCCESS, Chromium E2E 8/8 및 집계 SUCCESS; Docker actual Smoke 실패: `BuildKit statement subject not bound to image manifest`. #3348.1 직접 PR Version 누락은 해결되었으며 E2E `ECONNRESET`은 이번 실행 재발 없음. Required Docker/자동 QA 실패는 Docker의 파생이다. [누적 원장](../../ISSUE_836_FAILURE_ANALYSIS.md) 참조.
+- [BuildKit attestation storage](https://github.com/moby/buildkit/blob/master/docs/attestations/attestation-storage.md): 빈 `subject=[]`만을 이유로 거부하면 unnamed OCI exporter의 유효한 진술을 과도하게 차단할 수 있다. 이를 허용할 때에도 OCI artifact `artifactType`, manifest `subject` 및 index `vnd.docker.reference.digest` 모두 실제 tested child manifest SHA에 결부한다. 잘못된 nonempty statement subject·blob hash·Config/Layer·빌드 출처는 기존 fail-closed.
+- Main `2a8cf424ac6d892c641e9cdb01aba0096eaf0356`의 #838–#840 Project Issue 기능/API/DB migration, `package.json`/lock version, E2E shard plan/Tests, Main `AGENTS.md` 및 `docs/TEST_PLAN.md`를 원본 손실 없이 보존하는 PR 브랜치 merge를 수행한다. 해당 Main 변경을 #836 PR 범위로 재구현/덮어쓰지 않는다.
+- 미해결 review thread=0; Codex 한도 초과는 User `OWNER_MANAGED`로 관리하며 Required3·Trusted QA/strict Main/Owner 최종 병합 승인은 여전히 별개다. 최신 Head Full PR CI 시작까지만 수행하고 모니터링/병합/GHCR/Finalizer/Issue 종료 없음.
+
 ## SOURCE / SCOPE
 - 제품 동작/UI/API/DB/앱 SemVer 불변. 구현은 PR OCI evidence, Main source/build contract, Main same-run immutable OCI subject, GHCR exact digest, Release dual-source proof에 한정한다.
 - 기준 문서: `AGENTS.md`, `DESIGN.md` (UI 비적용), `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`, `docs/TEST_PLAN.md`, `docs/GENERIC_RELEASE_FINALIZER.md`, `docs/ISSUE_836_FAILURE_ANALYSIS.md`, `docs/PR_CI_FAILURE_TRIAGE.md`, `docs/ISSUE_LIFECYCLE.md`.

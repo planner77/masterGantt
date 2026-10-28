@@ -37,7 +37,7 @@ def blob(contents: bytes, entries: dict[str, bytes]) -> dict:
 
 
 def fixture(*, attested: bool = True, revision: str = MAIN, wrapped: bool = False,
-            include_dirs: bool = False) -> bytes:
+            include_dirs: bool = False, subject_mode: str = "bound") -> bytes:
     entries: dict[str, bytes] = {"oci-layout": packed({"imageLayoutVersion": "1.0.0"})}
     layer = blob(b"layer", entries) | {"mediaType": "application/vnd.oci.image.layer.v1.tar+gzip"}
     config = blob(packed({"os": "linux", "architecture": "amd64",
@@ -57,15 +57,26 @@ def fixture(*, attested: bool = True, revision: str = MAIN, wrapped: bool = Fals
         ]
         attestation_layers = []
         for predicate_type, name in preds:
+            subject = [{"name": name,
+                        "digest": {"sha256": main_desc["digest"][7:]}}]
+            if subject_mode == "empty":
+                subject = []
+            elif subject_mode == "wrong":
+                subject = [{"name": name, "digest": {"sha256": "f" * 64}}]
             layer = blob(packed({"predicateType": predicate_type,
-                                 "subject": [{"name": name,
-                                              "digest": {"sha256": main_desc["digest"][7:]}}]}), entries)
+                                 "subject": subject}), entries)
             layer["mediaType"] = "application/vnd.in-toto+json"
             attestation_layers.append(layer)
         attest_config = blob(packed({"architecture": "unknown", "os": "unknown"}), entries)
         attest_config["mediaType"] = oci.IMAGE_CONFIG
-        attestation = blob(packed({"schemaVersion": 2, "config": attest_config,
-                                   "layers": attestation_layers}), entries)
+        attestation_body = {"schemaVersion": 2, "config": attest_config,
+                            "layers": attestation_layers}
+        if subject_mode == "empty":
+            attestation_body["artifactType"] = "application/vnd.docker.attestation.manifest.v1+json"
+            attestation_body["subject"] = {
+                "mediaType": oci.IMAGE_MANIFEST,
+                "digest": main_desc["digest"], "size": main_desc["size"]}
+        attestation = blob(packed(attestation_body), entries)
         attestation["mediaType"] = oci.IMAGE_MANIFEST
         attestation["platform"] = {"os": "unknown", "architecture": "unknown"}
         attestation["annotations"] = {
@@ -121,6 +132,14 @@ class OciSubjectContract(unittest.TestCase):
     def test_oci_exporter_directory_entries_are_not_attack_paths(self):
         report = self.check(fixture(include_dirs=True, wrapped=True))
         self.assertEqual(report["attestations"], ["provenance", "sbom"])
+
+    def test_unnamed_buildkit_oci_export_empty_statement_requires_manifest_subject(self):
+        report = self.check(fixture(subject_mode="empty", wrapped=True))
+        self.assertEqual(report["attestations"], ["provenance", "sbom"])
+
+    def test_wrong_nonempty_statement_subject_blocks(self):
+        with self.assertRaisesRegex(oci.OciError, "not bound"):
+            self.check(fixture(subject_mode="wrong"))
 
     def test_wrong_revision_cannot_relabel_same_digest(self):
         with self.assertRaisesRegex(oci.OciError, "revision"):

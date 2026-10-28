@@ -1,5 +1,6 @@
 "use client";
 import { ProjectProcessManagement } from "@/features/logistics/project-process-management";
+import { ProjectIssueWorkspace } from "./project-issue-workspace";
 import { captureCopyViewport, type CanonicalMutationRequest, type CopyViewportContinuity } from "../gantt/viewport/copy-viewport-continuity";
 import type {
   ResourceDrillScopeDto,
@@ -305,7 +306,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const lastSectionScreens = useRef<Record<"dashboard" | "master", WorkspaceScreen>>({ dashboard: "dashboard.kpi", master: "master.processes" });
   // Direct drill/view navigation also changes the active screen; preserve that screen for parent-tab return.
   useEffect(() => {
-    if (activeSection !== "schedule") lastSectionScreens.current[activeSection] = activeScreen;
+    if (activeSection === "dashboard" || activeSection === "master") lastSectionScreens.current[activeSection] = activeScreen;
   }, [activeScreen, activeSection]);
   const screenTabReferences = useRef(new Map<string, HTMLButtonElement>());
   const [workspaceStorageProject, setWorkspaceStorageProject] = useState<string | null>(null);
@@ -316,7 +317,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (navigationPending.current || navigationConfirmation.current) cancelNavigationConfirmation();
     if (activeView === "schedule" && screen !== "schedule") capturePeerViewport();
     const section = workspaceSection(screen);
-    if (section !== "schedule") lastSectionScreens.current[section] = screen;
+    if (section === "dashboard" || section === "master") lastSectionScreens.current[section] = screen;
     setActiveScreen(screen);
     if (focus) requestAnimationFrame(() => {
       const tab = screenTabReferences.current.get(screen);
@@ -340,7 +341,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     // A keyboard user can focus a primary tab without activating it. If its
     // section is already active, keep the current subview instead of restoring
     // a possibly stale saved subview and remounting the focus owner.
-    const destination = section === "schedule" ? "schedule"
+    const destination = section === "schedule" || section === "issue" ? section
       : activeSection === section ? activeScreen : lastSectionScreens.current[section];
     const previousTab = screenTabReferences.current.get(section);
     // Focus the persistent primary tab before React hides the old panel:
@@ -524,7 +525,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   useEffect(() => {
     if (workspaceStorageProject !== publicId) return;
     const section = workspaceSection(activeScreen);
-    if (section !== "schedule") lastSectionScreens.current[section] = activeScreen;
+    if (section === "dashboard" || section === "master") lastSectionScreens.current[section] = activeScreen;
     const target = new URL(window.location.href);
     target.searchParams.delete("view");
     if (activeScreen === "schedule") target.searchParams.delete("screen");
@@ -2076,7 +2077,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const restoredScreen = target.screenKey && workspaceView(target.screenKey) === target.view ? target.screenKey : legacyWorkspaceScreen(target.view);
     setActiveScreen(restoredScreen);
     const restoredSection = workspaceSection(restoredScreen);
-    if (restoredSection !== "schedule") lastSectionScreens.current[restoredSection] = restoredScreen;
+    if (restoredSection === "dashboard" || restoredSection === "master") lastSectionScreens.current[restoredSection] = restoredScreen;
     setSelectionRestore({
       generation: ++navigationSequence.current,
       ids: target.selection,
@@ -3104,11 +3105,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
 
     {workspaceMigrationNotice ? <p role="status" className="field-help">이전 조회 구성을 현재 보기로 전환했습니다. 기존 작업과 배정은 유지됩니다.</p> : null}
     <div className="project-workspace-tabs project-primary-tabs" role="tablist" aria-label="프로젝트 작업공간">
-      {([{ key: "schedule", label: "일정" }, { key: "dashboard", label: "대시보드" }, { key: "master", label: "기준정보" }] as const).map(({ key, label }) => <button
+      {([{ key: "schedule", label: "일정" }, { key: "issue", label: "Issue" }, { key: "dashboard", label: "대시보드" }, { key: "master", label: "기준정보" }] as const).map(({ key, label }) => <button
         key={key} ref={node => { if (node) screenTabReferences.current.set(key, node); else screenTabReferences.current.delete(key); if (key === "schedule") scheduleTabReference.current = node; }}
-        id={`project-tab-${key}`} role="tab" type="button" aria-controls={key === "schedule" ? "project-panel-schedule" : `project-navigation-${key}`}
+        id={`project-tab-${key}`} role="tab" type="button" aria-controls={key === "schedule" || key === "issue" ? `project-panel-${key}` : `project-navigation-${key}`}
         aria-selected={activeSection === key} tabIndex={activeSection === key ? 0 : -1}
-        onClick={() => selectSection(key)} onKeyDown={event => handleNavigationKey(event, key, ["schedule", "dashboard", "master"], value => selectSection(value as WorkspaceSection))}>{label}</button>)}
+        onClick={() => selectSection(key)} onKeyDown={event => handleNavigationKey(event, key, ["schedule", "issue", "dashboard", "master"], value => selectSection(value as WorkspaceSection))}>{label}</button>)}
     </div>
     {(["dashboard", "master"] as const).map(section => <div key={section} id={`project-navigation-${section}`} role="tabpanel" aria-labelledby={`project-tab-${section}`} hidden={activeSection !== section}>
       <div className="project-workspace-tabs project-primary-tabs project-secondary-tabs" role="tablist" aria-label={section === "dashboard" ? "대시보드 보기" : "기준정보 보기"}>
@@ -3252,6 +3253,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         />
       ) : null}
       <div className="project-workspace-panels">
+      <section id="project-panel-issue" role="tabpanel" aria-labelledby="project-tab-issue"
+        className="project-workspace-panel project-issue-panel" hidden={activeView !== "issue"}>
+        <ProjectIssueWorkspace publicId={publicId} revision={project.revision} tasks={tasks}
+          active={activeView === "issue"} editable={editing}
+          busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
+          onChanged={() => { void reloadCanonicalSnapshot(); }}
+          onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }} />
+      </section>
       <section
         ref={scheduleGanttPanel}
         id="project-panel-schedule"

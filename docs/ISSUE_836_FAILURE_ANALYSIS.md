@@ -4,10 +4,20 @@ Primary: [Issue #836](https://github.com/planner77/masterGantt/issues/836) | Wor
 
 ## Run/Attempt 원본 및 이력
 
-- 본 구현 브랜치 `issue-836-verified-oci-reuse`는 원본 Full #3348.1 FAIL 확인; 신규 교정 HEAD의 PR Full CI 검증 전.
-- 누적 직접 실패 **2건(D836-001, D836-002)**, Required3 및 QA 파생 FAIL; 신규 Head 결과 `NOT TESTED`.
+- 본 구현 브랜치 `issue-836-verified-oci-reuse`는 원본 Full #3348.1과 #3365.1 모두 FAIL을 보존한다. Main 정렬 후 신규 Head의 PR CI는 별도 판정.
+- 누적 직접 실패 **3건(D836-001/D836-002/D836-003, 서로 다른 두 Full Run)**. #3365.1 Quality+E2E8/8 성공, Docker 직접 FAIL 및 Required Docker/QA 파생; 새 Main 정렬 후 Full CI 결과 `NOT TESTED`.
 - 필수 Quality/Chromium E2E8/Docker aggregate, Main GHCR build, Release/Finalizer의 신규 HEAD 결과는 현재 **NOT TESTED**.
 - PR Full CI 시작 시 실행한 Run/Attempt·HEAD/BASE/TestMerge·작업/Job ID·재시도·실패 원인·직접 vs 파생 여부를 이 파일에 순차 추가한다. 이전 다른 이슈 실패를 #836의 직접 실패로 오인하지 않는다.
+
+## F836-002 — Full PR CI #3365.1 단일 직접 Docker 실패 및 E2E 8/8 성공 (2026-10-28)
+
+- 원본: [PR #837 / CI Run 40621683119 Attempt 1](https://github.com/planner77/masterGantt/actions/runs/40621683119), Head `b387738fff6c462aa3db8672ab56875743e057fe`, 원래 Base `a4c52b9ba2499a95045a7d85a2c62164210672e6`, test-merge `a0bc32519031d1ab1482680538286cae7adea903`; 최종 `completed/failure` (2026-10-28T03:32:53Z). 원본 #3348.1 실패는 변경·삭제하거나 PASS로 소급하지 않는다.
+- **D836-003 / 직접 Docker Smoke Job `122605484859` Step 'OCI blob/digest/SBOM/provenance·런타임 config 동일성 검증'**: OCI build/export 성공, PR `BUILD_VERSION=0.136.0`으로 이전 D836-001의 빈 Version 문제는 해소. 신규 `BLOCKED: invalid OCI image evidence: BuildKit statement subject not bound to image manifest`로 Docker Smoke 미완료. [BuildKit attestation storage 공식](https://github.com/moby/buildkit/blob/master/docs/attestations/attestation-storage.md) 및 [BuildKit writer 구현](https://github.com/moby/buildkit/blob/master/exporter/containerimage/writer.go)에 따르면 export image name이 없는 경우 기본 in-toto statement subject가 빈 배열일 수 있으나, OCI artifact manifest의 `subject` descriptor와 index `vnd.docker.reference.digest`의 정확 child digest 연결은 필수다. 현재 검증기가 빈 statement subject를 무조건 거부하는 **형식 검증 과잉 가능성**이며 실 OCI tar 내부 subject 구조는 아직 별도 Artifact로 확보하지 못했으므로 원인에 대한 직접 관측·추론을 구분한다.
+- 교정: nonempty in-toto subject가 있으면 정확 child digest 일치 강제(불일치는 계속 BLOCKED), **빈 배열인 경우에 한해** OCI artifact `artifactType=application/vnd.docker.attestation.manifest.v1+json`, manifest `subject.digest`와 index annotation의 동일 child SHA-256을 모두 요구. OCI blob SHA/index/attestation/Buildx Job·Run 독립 귀속 및 원래 Runtime Smoke 검증을 유지한다. `test_ci_image_reuse.py`에 unnamed export 빈 subject 긍정과 잘못된 nonempty subject 거부 추가.
+- **이번 실행의 독립 성공:** Quality Required `122606143099` SUCCESS; Policy/Typecheck/Lint/Vitest/PR Build 전부 SUCCESS. Chromium 8 shards `122605484988/122605484909/122605484902/122605484938/122605484947/122605484930/122605484886/122605484895` 모두 SUCCESS, E2E Required `122615084734` SUCCESS. 원본 D836-002 `ECONNRESET`의 이번 Run 재발 **없음**; 이전 실패 원본은 역사적으로 유지.
+- **파생:** Docker Required `122606214501` FAILURE는 직접 D836-003 파생; QA Final Automated `122615109122` FAILURE는 required Docker 미성공 파생; Main image publish는 PR에서 SKIPPED 정상. Owner-managed QA 위험 수용은 이 직접 FAIL을 PASS 처리하지 않는다.
+- Main drift: 최초 base `a4c52b9`→새 Main `2a8cf424ac6d892c641e9cdb01aba0096eaf0356` **10 commits**. #838/#839/#840 프로젝트 Issue UI/API/DB SQL Migration/관련 테스트 및 `package.json`·lock version 변경을 보존해야 한다. 겹치는 `AGENTS.md`는 Main #838–#840 접두 지침과 #836 접두 지침을 각각 유지, `docs/TEST_PLAN.md`은 기존 #836 접두와 Main의 #838–#840 끝 추가 시험 계약을 합성한다. 나머지 Main 변경 파일은 source tree에서 손실 없이 보존한다.
+- Reviewer: PR #837 unresolved inline thread **0**, Codex 사용량 한도에 의한 review 미완료는 Owner Managed로 수용; 리뷰 성공 주장 금지. Main strict/current and Required3/Trusted QA 계속 필수. Main 정렬 후 새 PR Head의 Full CI 시작(결과는 별도 미확정)까지 진행, CI 모니터링·Main merge·GHCR/Release/Issue 종료는 제외.
 
 ## F836-001 — 첫 Full PR CI #3348.1 직접 실패 두 건 및 파생 실패 (2026-10-28)
 
@@ -37,4 +47,4 @@ Primary: [Issue #836](https://github.com/planner77/masterGantt/issues/836) | Wor
 3. `AGENTS.md`, `docs/PR_CI_FAILURE_TRIAGE.md`, `docs/GITHUB_OPERATIONS.md`, `docs/TEST_PLAN.md`, Work Packet와 본 원장 근거로 수정 후 신규 Head PR CI 실행.
 4. 절대 이미 실패한 Run을 PASS로 수정하거나 기존 tag/source/실패 로그를 변조하지 않는다. 미해결 Review/merge conflict와 Owner 위험 승인도 별도다.
 
-현재 이슈 `OPEN`, 이전 Full #3348.1 실패/새 Full 미시작, 원격 OCI 소스/릴리스 검증 `NOT TESTED`. 요청 범위: PR CI 시작까지, **모니터링·병합·GHCR Release/Issue 종료 없음**.
+현재 이슈 `OPEN`, 이전 Full #3348.1/#3365.1 실패; Main 정렬 후 신규 Full 결과 미확정, 원격 OCI 소스/릴리스 검증 `NOT TESTED`. 요청 범위: PR CI 시작까지, **모니터링·병합·GHCR Release/Issue 종료 없음**.

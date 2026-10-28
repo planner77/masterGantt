@@ -787,3 +787,12 @@ subset binding의 required anchor는 자신의 subset row로 `DEFERRABLE INITIAL
 subtree insert/update 및 Task type-change trigger는 Summary-only를 강제한다. coverage는 NULL 또는 양의 INTEGER이며 trigger가 같은 Target의 Equipment에만 현재 quantity 이하 값을 허용한다. System의 nonnull coverage와 shared Equipment quantity를 live coverage보다 작게 축소하는 변경은 DB에서도 거부한다. Service는 전체 binding/subset/활성/영향 및 Project revision을 IMMEDIATE transaction에서 다시 검증한다. 조회는 row/revision을 바꾸지 않는다. Project 삭제는 local graph만 삭제하고 글로벌 공정/Resource를 보존한다.
 
 새 DB·0026 upgrade·FK 위반·실패 rollback·persisted restart는 #617 전용 SQLite 검증 대상이다. 로컬 실행 및 PR CI 증거는 [Work Packet](exec-plans/active/ISSUE_617.md)에서 구분하며 운영 DB migration/backup-restore 성공은 별도 NOT TESTED다.
+
+
+## Migration 0032 — Project Issue ledger (#838–#840)
+
+project_issues: id PK, public_id UUID unique, project_id -> projects ON DELETE CASCADE, title, description, reporter_name + nullable reporter_resource_public_id -> resources(public_id) ON DELETE SET NULL, assignee_name + nullable assignee_resource_public_id -> resources(public_id) ON DELETE SET NULL, occurred_on(YYYY-MM-DD), completed 0/1, completed_on(nullable), related_task_public_id -> tasks(public_id) ON DELETE SET NULL, related_task_text, created_at/updated_at.
+
+- STRICT, CHECK 제목/내용/사용자 텍스트 최대치 및 (미완료↔완료일 NULL / 완료↔완료일 NOT NULL).
+- 프로젝트별 안정 정렬 인덱스 (project_id,created_at DESC,id DESC)와 (project_id,completed,id DESC); Task/Resource 원본 삭제 시 FK는 NULL이지만 당시 표시 텍스트는 남아 기록 보존.
+- 서버는 Task public ID가 같은 프로젝트에 속하는지 mutation transaction에서 검증한다. issue CRUD는 기존 projects.revision CAS로 일관성을 유지한다. 프로젝트 복제/JSON 내보내기에 Issue를 자동 포함시키지 않으며 별도 호환 이슈가 필요하다.
