@@ -1103,6 +1103,7 @@ jobs:
       archive_sha256: ${{ steps.oci_verified.outputs.archive_sha256 }}
       index_digest: ${{ steps.oci_verified.outputs.index_digest }}
       revision: ${{ steps.reuse_decision.outputs.source_revision || needs.changes.outputs.checkout_sha }}
+      decision: ${{ steps.reuse_decision.outputs.decision || 'REBUILD_MAIN_VERIFIED' }}
     # Bounded Playwright OS dependency retries plus full transport/Compose smoke.
     timeout-minutes: 40
     steps: &docker_smoke_steps
@@ -1742,12 +1743,45 @@ jobs:
             echo "Refusing to overwrite temporary commit image: ${{ steps.image.outputs.reference }}" >&2
             exit 1
           fi
+      # The verified same-run Main artifact is authoritative ONLY with an
+      # explicitly Owner-enabled feature flag. Shadow/default retains the
+      # prior trusted Main build/push and every Main/Release gate unchanged.
+      - name: 검증된 Main OCI archive 다운로드 (Issue #836 opt-in)
+        if: vars.PR_IMAGE_REUSE_ENABLED == 'true' && needs.docker_smoke.result == 'success'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: ci-oci-main-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mastergantt-verified-main
+      - name: Main OCI source job outputs/byte-level digest 교차 검사
+        if: vars.PR_IMAGE_REUSE_ENABLED == 'true' && needs.docker_smoke.result == 'success'
+        env:
+          IMAGE_REVISION: ${{ needs.docker_smoke.outputs.revision }}
+          OCI_EXPECTED_INDEX: ${{ needs.docker_smoke.outputs.index_digest }}
+          OCI_EXPECTED_ARCHIVE_SHA: ${{ needs.docker_smoke.outputs.archive_sha256 }}
+          BUILD_VERSION: ${{ needs.changes.outputs.current_version }}
+          OCI_DECISION: ${{ needs.docker_smoke.outputs.decision }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$IMAGE_REVISION" = "$SOURCE_SHA" || test "$OCI_DECISION" = PR_REUSE_VERIFIED
+          python3 scripts/verified_oci.py \
+            --archive "$RUNNER_TEMP/mastergantt-verified-main/mastergantt-verified.oci.tar" \
+            --repository "$GITHUB_REPOSITORY" --revision "$IMAGE_REVISION" \
+            --version "$BUILD_VERSION" --output "$RUNNER_TEMP/oci-publisher-inspection.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          p = json.loads((Path(os.environ['RUNNER_TEMP']) / 'oci-publisher-inspection.json').read_text())
+          if p['index_digest'] != os.environ['OCI_EXPECTED_INDEX'] or p['archive_sha256'] != os.environ['OCI_EXPECTED_ARCHIVE_SHA']:
+              raise SystemExit('BLOCKED: producer Main smoke image differs from publish artifact')
+          PY
       - name: Main image build/push 계측 시작
         id: main-image-start
         shell: bash
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
-      - name: 임시 commit 이미지 빌드·게시
-        id: push
+      - name: 임시 commit 이미지 빌드·게시 (legacy SHADOW or no-image)
+        id: legacy_push
+        if: vars.PR_IMAGE_REUSE_ENABLED != 'true' || needs.docker_smoke.result != 'success'
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
         with:
           context: .
@@ -1764,6 +1798,45 @@ jobs:
           cache-to: type=gha,mode=max,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
           provenance: mode=max
           sbom: true
+      - name: Same-run verified OCI index digest 보존 게시 (Issue #836 opt-in)
+        id: oci_push
+        if: vars.PR_IMAGE_REUSE_ENABLED == 'true' && needs.docker_smoke.result == 'success'
+        shell: bash
+        env:
+          IMAGE_REFERENCE: ${{ steps.image.outputs.reference }}
+          OCI_SUBJECT: ${{ needs.docker_smoke.outputs.index_digest }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes skopeo
+          skopeo copy --all --preserve-digests \
+            --digestfile "$RUNNER_TEMP/oci-push-digest" \
+            "oci-archive:$RUNNER_TEMP/mastergantt-verified-main/mastergantt-verified.oci.tar" \
+            "docker://$IMAGE_REFERENCE"
+          digest="$(cat "$RUNNER_TEMP/oci-push-digest")"
+          test "$digest" = "$OCI_SUBJECT" || {
+            echo "BLOCKED: published OCI digest differs from the Main-smoked subject" >&2
+            exit 1
+          }
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+      - name: 게시 digest 출처 단일화
+        id: push
+        shell: bash
+        env:
+          LEGACY_DIGEST: ${{ steps.legacy_push.outputs.digest }}
+          OCI_DIGEST: ${{ steps.oci_push.outputs.digest }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$LEGACY_DIGEST" && -z "$OCI_DIGEST" ]]; then
+            digest="$LEGACY_DIGEST"
+          elif [[ -z "$LEGACY_DIGEST" && -n "$OCI_DIGEST" ]]; then
+            digest="$OCI_DIGEST"
+          else
+            echo 'BLOCKED: zero or multiple Main publish digests' >&2
+            exit 1
+          fi
+          [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]] || exit 1
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
       - name: Main image build/push 시간 기록
         if: always()
         shell: bash
