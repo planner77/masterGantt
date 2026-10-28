@@ -156,6 +156,22 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await deletion.getByRole("button", { name: "삭제 확인" }).click();
   await expect(workspace.getByText("완료 0 / 전체 0")).toBeVisible();
   await expect(workspace.getByRole("button", { name: "장비 점검 요청" })).toHaveCount(0);
+  // #846: real viewport geometry (including 390px content-box overflow regression),
+  // keyboard accessibility and focus restoration on close.
+  for (const width of [390, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    await workspace.getByRole("button", { name: "Issue 등록", exact: true }).click();
+    const responsiveDialog = workspace.getByRole("dialog", { name: "Issue 등록" });
+    await expect(responsiveDialog).toBeVisible();
+    const box = await responsiveDialog.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(width + 1);
+    await expect(responsiveDialog.getByLabel("Issue 명")).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(responsiveDialog).toHaveCount(0);
+    await expect(workspace.getByRole("button", { name: "Issue 등록", exact: true })).toBeFocused();
+  }
   await tabs.getByRole("tab", { name: "일정", exact: true }).click();
   await expect(gantt).toHaveAttribute("data-project-gantt-api-instance", originalInstance!);
 });
