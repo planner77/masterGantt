@@ -174,7 +174,6 @@ def verify_source(repo: str, main_sha: str, token: str, tempdir: pathlib.Path,
     pr = github(f"repos/{repo}/pulls/{number}", token)
     if (pr.get("merged_at") is None or pr.get("merge_commit_sha") != main_sha or
         (pr.get("base") or {}).get("ref") != "main" or
-        (pr.get("base") or {}).get("sha") != first or
         (pr.get("head") or {}).get("sha") != second or
         (pr.get("head") or {}).get("repo", {}).get("full_name") != repo):
         raise Ineligible("PR_MERGE_PARENTS_OR_ORIGIN_MISMATCH")
@@ -217,7 +216,8 @@ def verify_source(repo: str, main_sha: str, token: str, tempdir: pathlib.Path,
         source.get("head_sha") != second or
         source.get("base_sha") != first or
         source.get("base_ref") != "main" or
-        source.get("head_repository") != repo):
+        source.get("head_repository") != repo or
+        source.get("base_repository") != repo):
         raise Blocked("PR_SOURCE_ATTESTATION_MISMATCH")
     test_merge = source.get("test_merge_sha")
     if not isinstance(test_merge, str) or not SHA_RE.fullmatch(test_merge):
