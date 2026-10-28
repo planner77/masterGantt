@@ -1121,6 +1121,14 @@ jobs:
       - name: checkout 시간 기록
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
+      - name: Docker Buildx setup 계측 시작
+        id: buildx-start
+        shell: bash
+        run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003
+      - name: Docker Buildx setup 시간 기록
+        shell: bash
+        run: node scripts/record-ci-setup-metric.mjs --metric docker-buildx-setup --started-ms "${{ steps.buildx-start.outputs.started_ms }}"
       # Trusted main verifier reads GitHub-sourced PR/attempt/job/tree/OCI metadata.
       # Shadow (flag OFF) records evidence but ALWAYS rebuilds main.
       - name: Issue #836 PR OCI source decision (Main trusted checkout)
@@ -1134,14 +1142,6 @@ jobs:
           PR_IMAGE_REUSE_ENABLED: ${{ vars.PR_IMAGE_REUSE_ENABLED }}
           GH_TOKEN: ${{ github.token }}
         run: python3 scripts/ci_image_reuse.py
-      - name: Docker Buildx setup 계측 시작
-        id: buildx-start
-        shell: bash
-        run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003
-      - name: Docker Buildx setup 시간 기록
-        shell: bash
-        run: node scripts/record-ci-setup-metric.mjs --metric docker-buildx-setup --started-ms "${{ steps.buildx-start.outputs.started_ms }}"
       - name: Docker build/cache 계측 시작
         id: docker-build-start
         shell: bash
@@ -1337,6 +1337,27 @@ jobs:
       - name: 실패 시 container logs
         if: failure()
         run: docker logs mastergantt-ci || true
+      - name: Issue #836 build context + builder/OCI contract capture
+        if: success()
+        shell: bash
+        env:
+          OCI_DIGEST: ${{ steps.oci_verified.outputs.index_digest }}
+          ARCHIVE_SHA: ${{ steps.oci_verified.outputs.archive_sha256 }}
+          SOURCE_REVISION: ${{ steps.reuse_decision.outputs.source_revision || needs.changes.outputs.checkout_sha }}
+          BUILD_VERSION: ${{ needs.changes.outputs.current_version }}
+        run: |
+          python3 scripts/ci_image_contract.py write \
+            --version "$BUILD_VERSION" --revision "$SOURCE_REVISION" \
+            --digest "$OCI_DIGEST" --archive-sha256 "$ARCHIVE_SHA" \
+            --output "$RUNNER_TEMP/ci-image-build-contract.json"
+      - name: Issue #836 immutable PR build contract receipt
+        if: success() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-pr-build-contract-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ci-image-build-contract.json
+          if-no-files-found: error
+          retention-days: 30
       # Upload only after the EXACT exported image passed policy and runtime
       # smoke; the independent trusted Main job checks Run/Attempt + ZIP hash.
       - name: Issue #836 verified OCI archive (same source Run/Attempt)
