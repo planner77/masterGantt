@@ -1,3 +1,13 @@
+## [0.138.1] — Unreleased / Issue #849 GHCR Release 출처 검증 보완 (2026-10-29)
+
+### Fixed
+- Main CI가 동명 `Docker smoke 구현` Job을 성공 1개와 PR 전용 건너뜀 1개로 기록할 때, Release가 출처 증명 `MAIN_PUBLISH_RUN_ATTEMPT_NOT_UNIQUE_OR_INCOMPLETE`을 잘못 반환하는 문제를 수정한다. Main Docker는 단일 SUCCESS 또는 정확 SUCCESS+SKIPPED 쌍만 허용한다.
+- Required Quality/E2E/Docker 집계와 Main 이미지 게시 Job은 여전히 각각 **유일한 SUCCESS**를 요구한다. Docker 동명 중복 성공·실패·취소·미확인·누락, 복수 Main 성공 Run, digest/source 불일치 등은 계속 BLOCKED. 검증 테스트에 실패/음성 경계를 추가한다.
+
+### Release 경계
+- Annotated `v0.138.0` tag는 보존한다. Main CI #3399.1 SUCCESS/Release #207.1 정적·Chromium8 성공에도 정식 GHCR 승격 Job이 스킵돼 **미게시**다. 이 버전의 이전 승인으로 새 PATCH `v0.138.1`을 게시하지 않는다.
+- 0.138.1은 교정 후보로서 새 PR Full/Trusted QA/Main/GHCR/Release/Finalizer의 정확한 검증·Owner 별도 게시 승인을 요구한다. CI 및 Release 게이트를 축소하지 않는다.
+
 ## [0.138.0] — Unreleased / Issue #849 Project Issue 상태 3단계 (2026-10-29)
 
 ### Added

@@ -20,6 +20,31 @@ MAIN_IMAGE_JOB = "Main 임시 commit 이미지 게시·검증·정리"
 MAIN_DOCKER_JOB = "Docker smoke 구현"
 
 
+def main_job_evidence(jobs: list[dict]) -> bool:
+    """Require unique Main publish evidence and an actual Main Docker SUCCESS.
+
+    Main CI also lists a PR-only, skipped job under the same Docker smoke
+    display name. Accept only one SUCCESS or exactly one SUCCESS plus one
+    SKIPPED for that name. Every Required aggregate and Main publisher must
+    remain uniquely successful; other duplicate statuses fail closed.
+    """
+    by_name: dict[str, list[dict]] = {}
+    for job in jobs:
+        by_name.setdefault(job.get("name") or "", []).append(job)
+    for name in (*REQUIRED, MAIN_IMAGE_JOB):
+        found = by_name.get(name, [])
+        if len(found) != 1 or found[0].get("conclusion") != "success":
+            return False
+    smoke = by_name.get(MAIN_DOCKER_JOB, [])
+    if len(smoke) == 1:
+        return smoke[0].get("conclusion") == "success"
+    if len(smoke) == 2:
+        return sorted(job.get("conclusion") or "" for job in smoke) == [
+            "skipped", "success",
+        ]
+    return False
+
+
 def validate_release_source(repo: str, sha: str, version: str, revision: str,
                             digest: str, token: str, tempdir: pathlib.Path) -> dict:
     if (not re.fullmatch(r"[a-f0-9]{40}", sha) or
@@ -58,12 +83,7 @@ def validate_release_source(repo: str, sha: str, version: str, revision: str,
         jobs = page_items(repo,
             f"actions/runs/{run_id}/attempts/{attempt}/jobs",
             "jobs", token, pages=2)
-        by_name = {}
-        for job in jobs:
-            by_name.setdefault(job.get("name") or "", []).append(job)
-        if all(len(by_name.get(name) or []) == 1 and
-               by_name[name][0].get("conclusion") == "success"
-               for name in (*REQUIRED, MAIN_DOCKER_JOB, MAIN_IMAGE_JOB)):
+        if main_job_evidence(jobs):
             main_evidence.append((run_id, attempt))
     if len(main_evidence) != 1:
         # Multiple successful attempts are not necessarily malicious, but
