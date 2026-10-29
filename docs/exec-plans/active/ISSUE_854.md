@@ -39,24 +39,28 @@
 | Password reset/soft-delete, status/KPI, SQLite migration | `tests/server/projects/project-issues.test.ts`, `tests/server/db/database.test.ts` | KEEP_UNIQUE | Separate authentication and migration boundaries. |
 
 ## DOCUMENTATION_SYNC
-- `AGENTS.md`: UPDATED
-- `DESIGN.md`: UPDATED
-- `docs/API.md`: UPDATED
-- `docs/SECURITY.md`: UPDATED
-- `docs/ARCHITECTURE.md`: UPDATED
-- `docs/PROJECT_ISSUES_USER_GUIDE.md`: UPDATED
-- `docs/PROJECT_UX.md`: UPDATED
-- `docs/TASK_EDITOR.md`: UPDATED
+현재 적용 범위: #854 Main CI #3431.1 실패를 복구하는 동일 Issue 비문서 보정 PR. 아래 UPDATED는 **이번 PR의 실제 diff**만 가리키며, 원래 #855의 문서 업데이트는 Git history 및 후속 MAIN-854-001 절의 역사로 보존한다.
+
+- `scripts/verify-issue-lifecycle.py`: UPDATED
 - `docs/exec-plans/active/ISSUE_854.md`: UPDATED
 - `docs/ISSUE_854_FAILURE_ANALYSIS.md`: UPDATED
-- `docs/TEST_PLAN.md`: N/A(existing blob not readable via connector; original retained, exact AC mapping in this Work Packet; update safely only with verified raw file contents)
-- `docs/DB_SCHEMA.md`: N/A(no schema, index or migration change)
-- `docs/CI_CD.md`: N/A(no workflows, gate, policy or release changes)
-- `docs/QA_REVIEW_POLICY.md`: N/A(Owner-managed QA and trusted gate unchanged)
-- `docs/GITHUB_OPERATIONS.md`: N/A(PR lifecycle procedures unchanged)
-- `docs/REMOTE_VALIDATION.md`: N/A(existing exact Head/Run/Attempt remote evidence and validation process unchanged; only PR metadata and Product Issue creation are revised)
-- `docs/IMPORT_EXPORT.md`: N/A(Issue ledger still separate from project import/export)
-- `docs/SCHEDULING_ENGINE.md`: N/A(Task schedule engine unchanged)
+- `AGENTS.md`: N/A(existing canonical merge title and empty-body rule unchanged; operator must follow it)
+- `DESIGN.md`: N/A(no Project Issue or Task Editor UX change in this corrective PR)
+- `docs/API.md`: N/A(existing public Issue POST and authorization contract unchanged)
+- `docs/SECURITY.md`: N/A(no auth or rate-limit source changes since the tested original PR)
+- `docs/ARCHITECTURE.md`: N/A(no application boundary or service change)
+- `docs/PROJECT_ISSUES_USER_GUIDE.md`: N/A(no new end-user behavior)
+- `docs/PROJECT_UX.md`: N/A(no layout or interaction source changes)
+- `docs/TASK_EDITOR.md`: N/A(no editor source changes)
+- `docs/TEST_PLAN.md`: N/A(no new app test contract; existing historical policy regression is extended and mapped below)
+- `docs/DB_SCHEMA.md`: N/A(no schema migration or index changes)
+- `docs/CI_CD.md`: N/A(existing Main trace verification and required gates remain intact)
+- `docs/QA_REVIEW_POLICY.md`: N/A(existing Owner-managed and Trusted QA approval gates unchanged)
+- `docs/GITHUB_OPERATIONS.md`: N/A(existing one-line empty-body merge payload procedure is reused without edits)
+- `docs/REMOTE_VALIDATION.md`: N/A(exact Run Attempt Head Base test merge evidence rules unchanged)
+- `docs/IMPORT_EXPORT.md`: N/A(no import or export change)
+- `docs/SCHEDULING_ENGINE.md`: N/A(no task scheduling or dependency change)
+- `CHANGELOG.md`: N/A(package version and delivered product behavior unchanged)
 
 ## AC_TEST_COVERAGE
 - AC1: Public non-edit POST, valid password and persistence in `tests/server/projects/project-issues.test.ts`; E2E readonly Issue button in `tests/e2e/project-issues.spec.ts`. Pending remote evidence.
@@ -97,3 +101,34 @@
 - PR [#855](https://github.com/planner77/masterGantt/pull/855) initial Head `4c7ef263ef40a5b7a0a2f2e9d0542afad7481f32` after first implementation ledger commit, base `5ba0c275669a3521be120751ab260099df2c40aa`. Full Run [#3408.1](https://github.com/planner77/masterGantt/actions/runs/40885313560), metadata-only Run [#3409.1](https://github.com/planner77/masterGantt/actions/runs/40885338058) FAILED due independent missing canonical `Refs #854` and exact-line PR `qa_method` field; PR body corrected without changing validators, Required aggregates remain historical failures.
 - Latest Codex review identified a P1 race in `finishTaskIssueCreate`, [thread](https://github.com/planner77/masterGantt/pull/855#discussion_r4413142769). Fix retains the handoff guard across asynchronous canonical GET, with a browser negative test that delays GET and verifies no newer Task Editor/Project navigation. Review thread reply/resolve and main conflict verification must be recorded in [#854 cumulative failure ledger](../../ISSUE_854_FAILURE_ANALYSIS.md).
 - No execution of TypeScript/Vitest/Playwright/Docker has been verified on this new Head. Do not label skip as PASS or merge without owner-directed gate.
+
+## MAIN-854-001 — Merge 메시지 규칙 위반으로 실패한 Main CI 복구 (2026-10-30 KST)
+
+### 불변 원본 및 직접 원인
+
+- 사용자 최신 요청에는 "Issue 809"라고 표기되었으나 #809의 Main #3306.1/#3310.1은 **SUCCESS**, Issue는 CLOSED이다. 직전 병합 대상인 #854 / [PR #855](https://github.com/planner77/masterGantt/pull/855)의 최신 Main Run이 실제 실패했으므로 #809 기록과 코드는 변경하지 않는다.
+- 원본 PR #855 정확 Head `865b181bb7cf955ba4d7ee3b476020180123b894`, base `5ba0c275669a3521be120751ab260099df2c40aa`: [Full PR CI #3430.1](https://github.com/planner77/masterGantt/actions/runs/40941906286) Run `40941906286` attempt 1, Quality/E2E8/Docker/QA Automated **SUCCESS**. [Trusted QA #1078.1](https://github.com/planner77/masterGantt/actions/runs/40947547564), Run `40947547564` attempt 1 **SUCCESS**. Codex P1 was answered/resolved, unresolved threads 0, strict base/main aligned; Owner-managed authorization to merge was given. Original failure records F-001–F-005 remain unchanged.
+- Merged two-parent commit `b99598bfbd8afd4a47a13744ac9e33617ed283ec`, first parent `5ba0c275669a3521be120751ab260099df2c40aa`, second parent `865b181bb7cf955ba4d7ee3b476020180123b894`. Original title `Issue #854 · PR #855 · 공개 Project Issue 등록 및 Task Editor 연계` has a **36-character summary** rather than the maximum **30** in `scripts/main_ci_run_name.py`; the merge API also received a nonempty **multi-line commit_message** containing `Refs #854` and approval prose. Either flaw independently fails `parse_merge_title`. The prior squash attempt was rejected by the repository and no rewrite of the resulting protected Main history is permitted.
+- [Main CI #3431.1](https://github.com/planner77/masterGantt/actions/runs/40949526050), Run `40949526050` attempt 1, `push` main exact SHA above: **FAILURE**. Direct first error in [Changes Job 123713644216](https://github.com/planner77/masterGantt/actions/runs/40949526050/job/123713644216) Step 8 `CI 실행 추적 메타데이터 검증`: `python3 scripts/verify-ci-run-trace.py` exited 1 with `Issue # 접두어는 정확한 단일 행 표준 Merge 제목만 허용합니다`.
+- Required Quality Job `123713756617`, Chromium E2E Job `123713756663`, Docker Job `123713756499` **FAILURE are derivatives** of the first Changes job; all actual TypeScript/ESLint/Vitest/Next build/Chromium8/Docker implementation jobs are **SKIPPED/NOT RUN**, GHCR candidate job `123713815288` **SKIPPED**. Shadow advisory success does not compensate. Actual application regression **NOT TESTED**, not proven. Classification: `POLICY_CI / MERGE_METADATA`, caused by the merge API invocation, not by application code or CI validator.
+- The `main_ci_recovery.py` path is for missing original push workflows, not this completed failed source. Retrying Run #3431 without a new commit repeats the immutable bad message. Do not loosen parser/Required3, force-push Main, overwrite old Run, forge a GHCR success, or close the Issue without verified Main and Finalizer.
+
+### 제한적 보완·영향 검사
+
+- Latest Main `b99598bfbd8afd4a47a13744ac9e33617ed283ec`에서 `fix/issue-854-main-trace-recovery` 분기, 기존 `scripts/verify-issue-lifecycle.py` 정책 회귀를 **EXTEND**: 실제 #3431 title의 overlong Korean summary 및 원본 multi-line message 두 가지 각각 `parse_merge_title`와 `validate_push` **negative**, 기존 `merge_api_payload`의 1행 short Korean summary + `commit_message=""` + expected HEAD SHA **positive**. 기존 #586/#603/#639/#808/#825의 고유 회귀는 KEEP_UNIQUE. 테스트 삭제/skip/timeout·기존 QA/CI 도구의 검증 로직 변경 없음.
+- 동일 Issue 비문서 교정 PR의 Main CI가 독립 SUCCESS로 완료되어야 `scripts/auto_release_finalizer.py::supersede_failed_issue_retries`가 원본 실패 #3431을 역사적 **SUPERSEDED ATTEMPT**로 기록할 수 있다. Docs-only PR은 원본 비문서 작업의 검증 범위를 대체하지 못한다. `package.json` 및 lockfile 버전 `0.138.2` 불변; `release_required=false`, `release_authorized=false`. 새로운 annotated SemVer tag/정식 GHCR 발행 승인이 아니며 임시 Main ci-SHA 후보의 게시·검증은 새 Main Full gates 후 판단한다.
+- **TEST_LIFECYCLE_REVIEW:** 기존 정책 하나만 EXTEND; 원래 Project Issue/Task Editor/HTTP/SQLite/Chromium 및 보안/Revision/Rate Limit 검증은 KEEP_UNIQUE. 원래 이슈 AC1–AC7 기능은 [#3430.1](https://github.com/planner77/masterGantt/actions/runs/40941906286)의 검증 source에서 유지되지만 새 corrective Head의 실제 Run/Attempt 결과는 아직 NOT TESTED.
+- **AC_TEST_COVERAGE:** AC1–AC6 기존 회귀 경계 유지, 변경된 제품 동작 없음. AC7의 새로운 확인 항목은 원본 실패→신규 정상 one-line payload의 정책 회귀 검증과 이 누적 원장/Work Packet의 provenance이다.
+- **DOCUMENTATION_SYNC:** 위 **첫 `## DOCUMENTATION_SYNC`**에 이번 corrective diff의 UPDATED/N/A를 정확히 재선언한다. 지난 #855에서 AGENTS/DESIGN/API/SECURITY/UI 문서가 바뀐 사실은 과거 Git 기록으로 보존하되 이번 diff에서 변경됐다고 허위 표기하지 않는다. `docs/TEST_PLAN.md`은 이번 제품 테스트 변경이 없고 별도 기존 정책 파일만 EXTEND하므로 N/A; 원본 blob을 삭제·초기화하지 않는다.
+- **검증 경계:** GitHub 연결에서 실제 Node/Playwright/Docker·보호 Main Git 리라이트 실행 권한 없음. 제품 소스·Migration·CI workflow·required check 이름·QA checker·test assertion 완화 0. 신규 PR은 HIGH/OWNER_MANAGED/qa_required=true, exact Head Full Quality/Chromium8/Docker+default Main Trusted+review0/strict main + Owner의 후속 별도 병합 승인이 필요하다. 이번 요청은 **신규 PR CI 시작까지**; CI 시작을 성공으로 보고하지 않는다.
+- **미래 병합 필수 입력:** GitHub가 부여한 실제 PR 번호로 `python3 scripts/main_ci_run_name.py --issue 854 --pr <PR> --summary "프로젝트 Issue Main CI 복구" --as-merge-payload --expected-head-sha <HEAD>` 실행에 상응하는 payload 전체를 사용한다. `merge_method=merge`, `commit_title` 표준 1행, `commit_message=""`, `expected_head_sha` 정확 HEAD. 원래 #3431 실패 기록은 불변이며 새 Main CI/GHCR/Finalizer 검증 전 Issue #854는 OPEN 유지.
+
+
+## PR-854-002 — PR #856 #3433.1 QA 리뷰 차단과 한글 메시지 교정 (2026-10-30 KST)
+
+- 최초 #854 Main #3431.1의 Merge 메시지 직접 실패(F854-MAIN-001), 이전 F-001~F-005의 독립 이력은 유지. [PR #856](https://github.com/planner77/masterGantt/pull/856) Draft Full [#3432.1](https://github.com/planner77/masterGantt/actions/runs/40951421230)은 CANCELLED로서 Ready Full 검증이 아니다. Ready [#3433.1 / 40951476877.1](https://github.com/planner77/masterGantt/actions/runs/40951476877)의 Head `ae1a94ca8073ac4f8b1b7c213e74e4fe7a745b63`, Base `b99598bfbd8afd4a47a13744ac9e33617ed283ec`, Test Merge `96728b60190f6eeec4b6188de926d12e09184fa2`.
+- QA Preflight/Policy/TypeScript/ESLint/Vitest/Next/Docker 및 Required Quality/E2E/Docker aggregates SUCCESS. **Chromium actual E2E shards는 이번 PR 변경 분류상 E2E_REQUIRED=false로 SKIPPED**이며 Full8 실제 실행 성공과 구분. 원본 직접 실패는 `QA Final — Automated` Job `123723359399`: `BLOCKED / 미해결 review thread`; [Trusted #1081.1 / 40952406207.1](https://github.com/planner77/masterGantt/actions/runs/40952406207) `원본 PR CI run 자체가 성공하지 않았습니다`는 파생 차단.
+- Codex P1 [#4417690977](https://github.com/planner77/masterGantt/pull/856#discussion_r4417690977)의 원인: 기존 CI 정책 회귀 테스트에 새로 삽입한 `require`/`SystemExit` 실패 설명 3곳의 영문 문구는 AGENTS.md의 한글 CI/CD 보고 계약을 위반한다. **원본 영어 Merge fixture는 역사적 사실이므로 변경하지 않고**, 실패 시 실제 로그에 출력되는 세 문자열만 한글로 수정한다. 코드 동작·검증 assertion·원본 #3431 fail-closed·helper 양성/음성 테스트·CI/QA 정책 불변.
+- **TEST_LIFECYCLE_REVIEW:** 기존 `scripts/verify-issue-lifecycle.py`의 #854 policy 회귀만 EXTEND(오류 메시지 언어), 다른 #582/#586/#603/#639/#808/#825 고유 정책과 Project Issue API·Task Editor·인증·E2E KEEP_UNIQUE. 새 suite·test skip·assertion 완화 없음.
+- **AC_TEST_COVERAGE:** AC1–AC6 원래 검증 계약 변동 없음, AC7은 실패 메시지 한글 및 Codex P1 응답·해결과 새 Full/Trusted 원격 출처로 확인한다. **DOCUMENTATION_SYNC:** 최초 `## DOCUMENTATION_SYNC`의 `scripts/verify-issue-lifecycle.py`, Work Packet 및 단일 누적 실패 원장 3개 `UPDATED`가 그대로 현재 diff와 일치한다. `AGENTS.md`, `docs/CI_CD.md`, `docs/QA_REVIEW_POLICY.md`, `docs/TEST_PLAN.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`는 계약 변경 없음에 따라 기존 N/A(reason) 유지.
+- 한글 메시지 수정 후 새 커밋·PR review reply/resolve·latest main strict/mergeability 재확인과 새 PR CI 시작까지 수행한다. 새 Head의 정책/QA/Trusted 결과는 원격 실행 전 **NOT TESTED**이며 CI 모니터링·병합/Main/GHCR·이슈 종료는 범위 밖이다.

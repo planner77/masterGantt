@@ -82,5 +82,63 @@
 - **보완**: Modify only existing `tests/e2e/issue-730-view-composer.spec.ts`, extending the old unique #730 scenario, not deleting it. Start the matching new `projection.kind=details` response subscription **before releasing delayed report gate**; on report receipt require detail HTTP 200, new report snapshotId match, **taskId + renamed taskName in canonical server response**, `data-detail-state=ready` and positive `data-detail-confirmation-id`. Retain all original original-row/selection/focus/DB revision/snapshot/writer assertions; no skip, no tests removed, no weakened assertion, no CI policy changes. Bounded 30s remote detail wait measures independent asynchronous response rather than assuming that report-ready implies detail-ready. A genuinely broken detail fetch/identity or lost focus still fails deterministically.
 - **Review/conflict/approval**: PR #855 Codex P1 thread `PRRT_kwDOUUB7Bc6xlJTc` resolved with reply 4413557813; no unresolved thread observed at initial check. `main` was strict ancestor at `ahead=37/behind=0` at initial F-005 source check. QA=OWNER_MANAGED/HIGH, Trusted, review, docs, Owner approval and formal release are separate; no merge/Main/GHCR/issue-close authorization. The new exact HEAD Quality/E2E/Docker QA status is **NOT TESTED** until a distinct full PR CI concludes. [Updated Work Packet](exec-plans/active/ISSUE_854.md) records new test lifecycle and AC6 mapping.
 
+
+## F854-MAIN-001 — Main #3431.1 / immutable Merge 메타데이터 직접 실패 (2026-10-30 KST)
+
+### A. 이슈 귀속과 정규 Run/Attempt
+
+- **정정된 대상 식별:** 사용자의 이번 문구는 "Issue 809 Main CI"이나 #809 Main [#3306.1](https://github.com/planner77/masterGantt/actions/runs/40242715595)과 [#3310.1](https://github.com/planner77/masterGantt/actions/runs/40260277035)은 모두 SUCCESS이고 #809는 2026-10-26 CLOSED 상태다. 이번 최신 FAILED main은 **Issue #854 / PR #855**, 다른 이슈의 FAIL을 #809 원장으로 전용하지 않는다.
+- **원본 독립 성공:** PR [#855](https://github.com/planner77/masterGantt/pull/855), Head `865b181bb7cf955ba4d7ee3b476020180123b894`, base `5ba0c275669a3521be120751ab260099df2c40aa`, Full [#3430.1 / 40941906286.1](https://github.com/planner77/masterGantt/actions/runs/40941906286) Quality/E2E 8/8/Docker/QA Automated SUCCESS. Default-main [Trusted #1078.1 / 40947547564.1](https://github.com/planner77/masterGantt/actions/runs/40947547564) SUCCESS. Review P1 `PRRT_kwDOUUB7Bc6xlJTc` resolved, 미해결0; 당시 최신 main behind0/mergeable clean. HIGH Owner-managed 병합 승인을 별도 PR 댓글로 기록한 뒤 Merge 실행.
+- **원본 병합:** merge method `merge`, SHA `b99598bfbd8afd4a47a13744ac9e33617ed283ec`, 부모1 `5ba0c275669a3521be120751ab260099df2c40aa`, 부모2 `865b181bb7cf955ba4d7ee3b476020180123b894`; package version `0.138.2` 변동 없음, release_required=false/authorized=false. 검증된 PR HEAD/Test-Merge 인증과 Main push trace 메시지 검증은 다른 게이트이다.
+- **실패:** [Main CI #3431.1 / Run 40949526050 · Attempt 1](https://github.com/planner77/masterGantt/actions/runs/40949526050), event `push`, branch main, exact SHA 위, completed/FAILURE. 최초 실제 실패 Job은 [변경 경로 판정 / 123713644216](https://github.com/planner77/masterGantt/actions/runs/40949526050/job/123713644216), Step 8 `CI 실행 추적 메타데이터 검증`. `python3 scripts/verify-ci-run-trace.py` → exit1: **`CI 실행 추적 오류: Issue # 접두어는 정확한 단일 행 표준 Merge 제목만 허용합니다 (번호·PR·한글 요약 형식 확인)`**.
+- **실제 불변 Merge commit message:** `Issue #854 · PR #855 · 공개 Project Issue 등록 및 Task Editor 연계` 아래 공백 1행, `Refs #854`, 공백 1행, `Owner-managed merge authorized after exact PR Full CI #3430.1 and Trusted QA #1078.1 PASS. Independent Main CI / GHCR candidate / Finalizer gates remain required.`가 존재한다. 요약 `공개 Project Issue 등록 및 Task Editor 연계`는 Python/Unicode 기준 **36자**, canonical 최대 **30자**를 초과한다. 게다가 `commit_message`를 빈 문자열로 보내야 하는데 여러 줄을 넣었다. **두 오류는 각각 독립적으로** `scripts/main_ci_run_name.py::parse_merge_title` 거부 조건이다. 정확 원인은 병합 실행 호출의 `commit_title/commit_message` 계약 미준수, 분류 `POLICY_CI / MERGE_METADATA`; 제품·CI validator 결함의 관측 증거 아님.
+- **파생/미실행:** Required Quality Job `123713756617` **FAILURE**, E2E aggregate `123713756663` **FAILURE**, Docker aggregate `123713756499` **FAILURE**는 전부 Changes `failure`에서 파생. Policy/TypeScript/ESLint/Vitest/Next production build/Chromium8 실제 shards/Docker build+smoke는 **SKIPPED/NOT RUN**. Main candidate GHCR publish `123713815288`도 SKIPPED. Shadow advisory만 success이며 Required3 성공을 뜻하지 않는다. **Main 애플리케이션 회귀·OCI 결과는 NOT TESTED**. 기존 F-001/F-002/F-003/F-004/F-005 PR 이력은 PASS로 수정하지 않고 보존한다.
+
+### B. 전체 실패 이력의 Cross-run 영향 판단
+
+| 근거와 원본 실패 | 본 이슈에서 보존할 직접 원인 | 새 보정 경계 |
+| --- | --- | --- |
+| F-001/F-002, PR #3408/#3409 | PR 추적·QA route 입력 불충족 | 이후 #3430 성공해도 원본 FAIL 불변 |
+| F-003, PR #3420 | DOCUMENTATION_SYNC Remote Validation 누락 | 차기 Work Packet 첫 DOC_SYNC를 실제 diff 기준 재선언 |
+| F-004, PR #3423 | Github API 503 / QA BLOCKED | 신규 Main 실패의 원인 아님; 이전 Full Required3 PASS 이력 보존 |
+| F-005, PR #3425 | 기존 #730 detail 응답 미도착 때 성급한 assertion | 이미 #3430 exact Head Chromium 8/8 PASS; 원본 cancellation/trace 불변 |
+| **F854-MAIN-001, Main #3431.1** | **길이 36 초과 및 multi-line Merge 본문, POLICY_CI** | **새 #854 비문서 corrective PR·정확 one-line empty-body·Main Full 성공 필요** |
+
+실패한 원본이 존재하므로 `main_ci_recovery.py`를 누락 Run 복구처럼 적용하지 않는다. 기존 merge commit/branch를 force-update하거나 validator, 필수 aggregate, fail-fast, timeout, E2E8/8 정책을 수정하지 않는다. 단순 같은 Main SHA rerun은 immutable 메타데이터를 고치지 못한다.
+
+### C. 동일 이슈의 한정 교정과 검증·리뷰·충돌 인계
+
+- **수정 범위:** 최신 main `b99598bfbd8afd4a47a13744ac9e33617ed283ec`에서 `fix/issue-854-main-trace-recovery` branch를 만들고 기존 `scripts/verify-issue-lifecycle.py`의 역사적 #808/#825 등 one-line 정책 fixture를 **EXTEND**. #3431의 **실제 overlong 단일 제목과 multi-line 메시지 각각** fail-closed negative, 새 `merge_api_payload(854, <new PR>, "프로젝트 Issue Main CI 복구", <exact Head SHA>)`의 `merge_method=merge / commit_title=한글 단일행 30자 이하 / commit_message="" / expected_head_sha=정확 SHA` positive. 기존 fixture 삭제·skip/retry/timeout/assertion 완화0.
+- **원인 제거 방법:** 코드나 버전이 아니라 **새 병합 시점의 API 입력**을 올바르게 생성하는 것이다. 이번 테스트는 같은 작업자의 입력 오류가 다시 발생하지 않도록 source 계약을 검증한다. 기존 `scripts/main_ci_run_name.py`, `scripts/verify-ci-run-trace.py`, GH Actions workflow, 보안·제품 수정0. app `0.138.2`/DB/Project Issue 인증·Task Editor·E2E 원본 불변.
+- **GENERIC FINALIZER 범위:** 이전 #855 Main은 제품 소스를 포함한 non-docs FAILURE. 차기 같은 Issue corrective PR도 non-docs 실제 정책 테스트 변경을 포함하고 Main Full CI/정확 GHCR 임시 후보가 독립 성공한 뒤에만 `supersede_failed_issue_retries`의 validation scope가 원본 Main을 역사적 `SUPERSEDED ATTEMPT`로 처리할 가능성이 있다. **새 Run 시작은 성공 증거가 아니며**, 이전 실패 SHA를 변경하거나 새 정식 SemVer tag를 생성할 권한은 없다.
+- **TEST_LIFECYCLE_REVIEW:** 기존 정책 테스트 EXTEND, #586/#603/#639/#808/#825 고유 regression KEEP_UNIQUE, Project Issue Server/Chromium/SQLite·Task Editor/readonly/보안·기존 E2E KEEP_UNIQUE. 새 파일/테스트 suite0. `docs/TEST_PLAN.md` 이번 PR 의미적 제품 테스트 변경 없음 N/A; `docs/exec-plans/active/ISSUE_854.md`의 **최초** `## DOCUMENTATION_SYNC` 항목은 새 실제 diff에 맞춰 모두 갱신.
+- **AC_TEST_COVERAGE:** 원래 AC1–AC6 기능/보안/연계는 PR #855 exact Full #3430 성공 출처와 연결; AC7 교정 관측은 이 원장과 신규 merge 제목 음성·양성 테스트로 검증한다. 신뢰된 remote CI 전에는 새 Head 결과 `NOT TESTED` 유지.
+- **위험/인계:** HIGH / OWNER_MANAGED / qa_required=true; 기존 공개 익명 Issue POST의 single-instance limiter 위험은 유지하며 operator invalid merge 재발 방지가 별도 운영 위험. Owner의 새 corrective merge 승인은 현재 작업에서 자동 성립하지 않음. 최신 Main/Base/Test-Merge, 미해결 review 0·충돌0, 정확 Head Full Required3/Trusted 검증 후에만 새 `merge_method=merge`와 **빈** `commit_message`를 사용할 수 있다. 이번 사용자의 범위는 **새 PR Full CI 시작까지**이며 병합/GHCR/Issue 종료·CI 모니터링은 명령하지 않았다.
+- **처리 결과 상태:** 보정 PR 미생성 단계의 최초 원장 기록이다. 원격 신규 PR/Run ID/Attempt는 실제 생성 후에만 기록하며, 원본 Main #3431.1은 영구 FAILURE로 보존한다.
+
+
+## F854-PR-001 — #856 Full #3433.1: 미해결 리뷰 P1으로 QA Final 차단 (2026-10-30 KST)
+
+### 원본 CI/Trusted 전체 실행과 귀속
+- [보정 PR #856](https://github.com/planner77/masterGantt/pull/856) · Head `ae1a94ca8073ac4f8b1b7c213e74e4fe7a745b63` · Base main `b99598bfbd8afd4a47a13744ac9e33617ed283ec` · test merge `96728b60190f6eeec4b6188de926d12e09184fa2`.
+- Draft Full [#3432.1 / Run 40951421230·Attempt 1](https://github.com/planner77/masterGantt/actions/runs/40951421230)은 Draft→Ready 전환 중 **CANCELLED**. 실행되지 않은 Quality/E2E/Docker 실제 구현 Job은 **SKIPPED / NOT RUN**, 집계의 차단 또는 취소는 Ready 검증의 직접 실패로 계산하지 않는다. FAST_DEVELOPMENT #221은 별도 non-authoritative.
+- 실제 Ready Full [#3433.1 / Run 40951476877·Attempt 1](https://github.com/planner77/masterGantt/actions/runs/40951476877)은 **completed/FAILURE**. 직접 실패는 [QA Final — Automated Job 123723359399](https://github.com/planner77/masterGantt/actions/runs/40951476877/job/123723359399) `최신 PR 증거·문서·리뷰 확인 (read-only)`에서 **`BLOCKED / 미해결 review thread`**. 원본 정책 스크립트나 제품 테스트 오류가 아니라 병합 게이트의 적법한 차단이다.
+- **성공한 서로 다른 실제 검사:** `변경 경로 판정` Job 123720487751, `QA Preflight` 123720681531, 정책·저장소 회귀 123720854181 (기존 #854의 새 policy 테스트도 실제 PASS), TypeScript 123720854053, ESLint 123720854078, Vitest 123720854337, Next production build 123722045324, Docker smoke 구현 123722045205, Required Quality 123722785255, Required Docker 123723304862 전부 **SUCCESS**. Required E2E aggregate 123722045946은 **SUCCESS이지만 `E2E_REQUIRED=false`이므로 Chromium 8개 실제 shard가 SKIPPED**되었다. E2E 8/8 실행 성공으로 표기하지 않는다. 이 성공은 해당 정확 HEAD에서만 유효하다.
+- [Trusted QA #1081.1 / Run 40952406207·Attempt 1](https://github.com/planner77/masterGantt/actions/runs/40952406207), Job 123723657087 **FAILURE**의 메시지 `원본 PR CI run 자체가 성공하지 않았습니다`는 위 QA Final 차단에서 파생된 신뢰 경계 판정이며 독립 제품 회귀가 아니다.
+- 동시 리뷰 [Codex P1 #4417690977](https://github.com/planner77/masterGantt/pull/856#discussion_r4417690977), thread `PRRT_kwDOUUB7Bc6xvxoT`: `scripts/verify-issue-lifecycle.py`에 새로 작성한 세 개의 `require`/`SystemExit` **실패 설명 문자열이 영어**로 기재되어 [AGENTS.md 한글 CI/CD 출력 계약](../AGENTS.md) 위반. `qa_method=OWNER_MANAGED`라도 실제 P1 해소와 unresolved thread=0은 필수이며 단순 수동 승인으로 자동 우회 불가.
+
+### 누적 원인 교차·최소 보완·다음 Gate
+| 기록 | 직접 원인 및 원본 분리 | 현재 처리 |
+| --- | --- | --- |
+| F-001~F-005 / PR #855 과거 | PR metadata, QA docs/API503, #730 상세 지연; 각각의 역사 불변 | #3430.1 원본 성공도 개별 실패를 삭제하지 않음 |
+| F854-MAIN-001 / Main #3431.1 | 사용자 승인 후 GitHub Merge API가 36자 요약과 다중행 본문을 전달하여 trace 거부 | protected main SHA 불변; 같은 #854 보정 PR과 새 Main 필요 |
+| **F854-PR-001 / PR #856 Full #3433.1** | **Codex P1 미해결 → QA Automated BLOCKED; Trusted는 파생 FAIL** | 한글 실패 설명 보완 → 리뷰 reply/resolve → 새 HEAD Full PR CI 시작 |
+
+- 교정은 **기존 테스트의 오류 설명 3개만 영문→한글로 변경**한다. #3431.1 실제 실패 message fixture, 양성/음성 assertion, 기존 역사 테스트 및 policy parser, Required3·QA/Trusted workflow, CI shard/skip/timeout/보안/DB/제품 기능은 그대로 보존한다. 테스트 파일 `scripts/verify-issue-lifecycle.py`의 추가 고유 규칙은 동일; 새 테스트 파일 생성·기존 테스트 삭제/완화 없음.
+- **TEST_LIFECYCLE_REVIEW:** 해당 기존 정책 테스트를 EXTEND (메시지 언어 교정), 고유 #586/#603/#639/#808/#825 검증 및 Project Issue·Task Editor·SQLite/Chromium 검증 KEEP_UNIQUE. 원본 CI에서 실제 E2E 실행이 없었으므로 성공인 것처럼 추정하지 않는다.
+- **AC_TEST_COVERAGE:** 기존 AC1–AC6 불변/위험 그대로, AC7에 CI 메시지 언어·정확 HEAD 검증·review thread 해결을 추가 기록한다. 첫 `## DOCUMENTATION_SYNC`의 기존 세 UPDATED 경로 외 새 문서·소스 영향 없음. `docs/TEST_PLAN.md` 내용은 변형하지 않으며 원래 #855 요구사항과 브라우저 수용 기준을 보존한다.
+- **승인 및 검증 경계:** 해당 원본 review thread는 이 원장 작성 시점에 unresolved 1건이다. 보완 커밋 푸시 후 답변과 resolve 상태를 GitHub에서 별도 확인한다. 새 HEAD의 Quality/E2E/Docker/QA/Trusted 결과는 아직 **NOT TESTED**이며 CI 시작을 PASS로 보고하지 않는다. `main` 강제 rewrite/기존 실행 재시도/보정 PR 조기 Merge/GHCR/이슈 종료는 금지한다.
+
+
 ## Future append policy
 Keep every original run/attempt and direct/derived failure, original log and fixes; do not overwrite older failures when the latest CI fails. Review threads and branch conflicts must be checked on exact PR HEAD, and outstanding issues recorded.
