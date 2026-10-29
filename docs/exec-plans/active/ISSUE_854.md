@@ -5,7 +5,7 @@
 - Base: main `5ba0c275669a3521be120751ab260099df2c40aa` (branch created 2026-10-29).
 - Branch: `feat/issue-854-public-issue-create-task-editor`
 - `risk_level: HIGH`; `qa_method: OWNER_MANAGED`; `qa_required: true`; `release_required: false`; `release_authorized: false`.
-- Current authorization: implementation + review/conflict audit + PR CI start **only**; do not monitor, merge, publish GHCR, run Main CI or close Issue without a separate Owner request. Exact-head remote CI/QA **NOT TESTED** at initial PR handoff.
+- Current authorization: implementation + review/conflict audit + PR CI start **only**; do not monitor, merge, publish GHCR, run Main CI or close Issue without a separate Owner request. The initial exact-head PR #855 Full #3408.1 and metadata-only #3409.1 failed in the run trace and QA routing **before** TypeScript/Vitest/Playwright/Docker could execute. See cumulative failure ledger; the updated HEAD remains NOT TESTED.
 
 ## 1. Problem / expected contract
 - Prior POST uses Project edit session and `service.current(authorizedEditSession)`, excluding read-only public visitors. #846's PATCH/DELETE individual password and private read gate stay as is.
@@ -13,6 +13,7 @@
 - Server: `project-issue-handlers-core` distinguishes POST/read authority from credential-management/edit authority. `ProjectIssueService.create(publicId,revision,input,password,readAuthorization)` hashes outside SQLite, checks project visibility/read authorization + revision again inside IMMEDIATE transaction and canonical Task/Resource scope before insert/CAS revision. Origin/CSRF, bounded JSON, If-Match, no-store and request IDs remain.
 - Anonymous misuse: in-memory, per-instance global 120/15min and Project 20/15min. No trustworthy client identity at this layer; reject spoofable XFF as rate key. For multi-instance production, shared ingress rate limiting and Owner risk acceptance are prerequisites for a stronger guarantee. Failure `ISSUE_CREATE_RATE_LIMITED` is HTTP 429 + `Retry-After`.
 - UI: Issue tab `Issue 등록` no longer requires Project editable. Task Editor '작업 정보' footer offers `Issue 등록` even when Task is read-only. Dirty/pending/stale Task cannot hand off. On clean handoff the native Task dialog closes before Issue dialog opens; the single Issue form starts with current taskId/name. Users can clear ID+text, search another ID, or type label (null ID). General Issue tab starts empty; saving/canceling Task-origin Issue returns to the canonical Task Editor after reload on saved case. No WBS/Task mutation, viewport or Gantt remount.
+- **P1 review remediation (#4413142769)**: Task Editor handoff holds the synchronous editor-opening ownership guard **from the first Issue dialog until the successful/canceled return completes**. On Issue POST success, `taskIssueRestoring` remains true throughout the awaited canonical GET; other Task editors, Issue forms, Project navigation and Project unlock are disabled until completion. Original Task editor reopening occurs only after confirmed current task/Project/sequence equality; failure releases guards and shows recovery error without reopening stale drafts. The old flow cleared the request and switched panels before awaiting the GET, allowing a second Task editor to be overwritten.
 - If Issue succeeds but canonical reload fails, provide error and do not show a stale Task Editor. Existing #846 credential-recovery method and Issue PATCH/DELETE, #849 status and KPI remain unchanged.
 
 ## 2. Change impact / test design
@@ -32,7 +33,7 @@
 |---|---|---|---|
 | Public POST without edit, private reject, Origin/stale/Task | `tests/server/projects/project-issues.test.ts` | EXTEND | Existing #846 expected unauthorized public POST; policy intentionally changes. |
 | Scoped unauthenticated POST rate budget | Same server file | EXTEND | New denial branch 429 with unchanged password limits. |
-| readonly Task Editor prefill, clear, alternate/free-text, dirty protection | `tests/e2e/project-issues.spec.ts` | EXTEND | Existing Issue Workspace browser source already verifies form, status, resize/keyboard; add cross-screen handoff. |
+| readonly Task Editor prefill, clear, alternate/free-text, dirty protection and delayed GET return race | `tests/e2e/project-issues.spec.ts` | EXTEND | Existing Issue Workspace browser source already verifies form, status, resize/keyboard; add cross-screen handoff and deferred canonical read with locked navigation. |
 | Project mutation/readonly, original task context menu | `tests/e2e/project-task-editor.spec.ts`, `tests/e2e/helpers/task-context-menu.ts` | KEEP_UNIQUE | Task/WBS writer, native dialog and context menu are independent risks, not replaced. |
 | Password reset/soft-delete, status/KPI, SQLite migration | `tests/server/projects/project-issues.test.ts`, `tests/server/db/database.test.ts` | KEEP_UNIQUE | Separate authentication and migration boundaries. |
 
@@ -47,7 +48,7 @@
 - `docs/TASK_EDITOR.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_854.md`: UPDATED
 - `docs/ISSUE_854_FAILURE_ANALYSIS.md`: UPDATED
-- `docs/TEST_PLAN.md`: BLOCKED(nonempty Git blob inaccessible via connector; source must be preserved; this Work Packet owns current AC mapping)
+- `docs/TEST_PLAN.md`: N/A(existing blob not readable via connector; original retained, exact AC mapping in this Work Packet; update safely only with verified raw file contents)
 - `docs/DB_SCHEMA.md`: N/A(no schema, index or migration change)
 - `docs/CI_CD.md`: N/A(no workflows, gate, policy or release changes)
 - `docs/QA_REVIEW_POLICY.md`: N/A(Owner-managed QA and trusted gate unchanged)
@@ -61,9 +62,10 @@
 - AC3: Existing Issue individual password PATCH/DELETE/legacy reset, 3 statuses/KPI/DB CHECK/FK regression retained. Existing server and E2E tests; pending remote evidence.
 - AC4: Task Editor read-only click prefill canonical Task UUID/name, exact persisted ID via Browser `project-issues.spec.ts`; pending remote evidence.
 - AC5: Linked Task clear, another Task choose, free text null-ID, general Issue tab empty and no stale prefill; `project-issues.spec.ts`; pending remote evidence.
-- AC6: Dirty guard, modal handoff, focus return, revision reload failure protection and Gantt instance unchanged; browser tests, existing Task Editor/Gantt independent specs; pending remote evidence.
+- AC6: Dirty guard, modal handoff and focus return, deferred canonical GET race (navigation/second editor blocked), revision reload failure protection and Gantt instance unchanged; browser tests, existing Task Editor/Gantt independent specs; pending remote evidence.
 - AC7: Docs above, no DDL/migration changes; accumulated failure analysis this packet, required CI/QA pending.
 
 ## PR / Review / Conflict / Failure ledger
-- Exact PR number, Head SHA, unaddressed threads and mergeability: pending PR creation. Review resolutions and conflict audit must be recorded in [#854 failure ledger](../../ISSUE_854_FAILURE_ANALYSIS.md) without claiming a tool-absent PASS.
-- Existing pre-existing failing CI attempts for this new Issue: **none known at issue implementation start**. Refer to original Run ID/Attempt for any new failure, distinguish directly failing job from downstream aggregates; do not replace previous entries.
+- PR [#855](https://github.com/planner77/masterGantt/pull/855) initial Head `4c7ef263ef40a5b7a0a2f2e9d0542afad7481f32` after first implementation ledger commit, base `5ba0c275669a3521be120751ab260099df2c40aa`. Full Run [#3408.1](https://github.com/planner77/masterGantt/actions/runs/40885313560), metadata-only Run [#3409.1](https://github.com/planner77/masterGantt/actions/runs/40885338058) FAILED due independent missing canonical `Refs #854` and exact-line PR `qa_method` field; PR body corrected without changing validators, Required aggregates remain historical failures.
+- Latest Codex review identified a P1 race in `finishTaskIssueCreate`, [thread](https://github.com/planner77/masterGantt/pull/855#discussion_r4413142769). Fix retains the handoff guard across asynchronous canonical GET, with a browser negative test that delays GET and verifies no newer Task Editor/Project navigation. Review thread reply/resolve and main conflict verification must be recorded in [#854 cumulative failure ledger](../../ISSUE_854_FAILURE_ANALYSIS.md).
+- No execution of TypeScript/Vitest/Playwright/Docker has been verified on this new Head. Do not label skip as PASS or merge without owner-directed gate.
