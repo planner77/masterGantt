@@ -61,6 +61,8 @@ interface Props {
   readonly onReload: (taskId: string) => Promise<TaskEditorSession | null>;
   readonly onRelationEditorOpen: (request: TaskRelationEditorRequest, trigger: HTMLElement) => void;
   readonly onRelationDelete: (linkId: string) => Promise<boolean>;
+  /** New Issue uses the Project Issue ledger, never a Task mutation. */
+  readonly onIssueCreate?: (taskId: string) => void;
   readonly onClose: () => void;
 }
 
@@ -135,6 +137,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
   onReload,
   onRelationEditorOpen,
   onRelationDelete,
+  onIssueCreate,
   onClose,
 }, ref) {
   const [membershipDraft, setMembershipDraft] = useState<Record<string, string | null>>({});
@@ -758,6 +761,12 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
           <span aria-hidden="true">↻</span><span>최신 정보 다시 불러오기</span>
         </button>
         <div className={styles.footerActions}>
+          {activeTab === "task" && onIssueCreate ? (
+            <button className="secondary-button" type="button"
+              disabled={locked || awaitingDecision || dirty || stale || !latestTask}
+              title={dirty ? "작업 변경사항을 먼저 저장하거나 취소해 주세요." : "이 작업을 관련 Task로 지정하여 Issue를 등록합니다."}
+              onClick={() => onIssueCreate(base.task.taskId)}>Issue 등록</button>
+          ) : null}
           <button className="secondary-button" type="button" disabled={locked || awaitingDecision} onClick={close}>{"취소"}</button>
           {activeTab === "memberships" ? <button className={"primary-button " + styles.stableAction} type="button" disabled={locked || awaitingDecision || readOnly || basicDirty || resourceDirty || logisticsDirty || base.task.status === "completed" || !changes.length} onClick={() => void applyMemberships()}><span aria-hidden="true" className={styles.actionSizer}>소속 변경 적용 중…</span><span className={styles.actionLabel}>{operation === "membership" ? "소속 변경 적용 중…" : "소속 변경 적용"}</span></button> : !restriction ? <button className={"primary-button " + styles.stableAction} type="submit" disabled={locked || stale || awaitingDecision || membershipDirty || resourceDirty || logisticsDirty}><span aria-hidden="true" className={styles.actionSizer}>저장 중…</span><span className={styles.actionLabel}>{operation === "save" ? "저장 중…" : "저장"}</span></button> : null}
         </div>
