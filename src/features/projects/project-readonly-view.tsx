@@ -416,6 +416,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     return () => { context.generation++; };
   }, [publicId]);
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
+  const [taskIssueCreateRequest, setTaskIssueCreateRequest] =
+    useState<{ sequence: number; taskId: string } | null>(null);
+  const taskIssueSequence = useRef(0);
   const [relationEditorRequest, setRelationEditorRequest] = useState<TaskRelationEditorRequest | null>(null);
   const [editorInitialTab, setEditorInitialTab] = useState<"task" | "memberships" | "relations" | "resources">("task");
   const [editorAssignment, setEditorAssignment] = useState<{assignmentId:string; resourceId:string} | undefined>();
@@ -1359,6 +1362,37 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     }
     if (command === "copy") { void saveTaskHierarchyCommand({ kind: "copy", taskId, anchorTaskId: taskId, placement: "after" }, trigger); return; }
     if (task.status !== "completed") requestTaskDelete(taskId, trigger, true);
+  }
+  function createIssueFromTask(taskId: string) {
+    if (state.status !== "ready" || editorSession?.task.taskId !== taskId ||
+      busy || canonicalRecoveryBlocked || taskIssueCreateRequest) return;
+    // The Task Editor requires a clean draft before calling this callback.
+    // Unmount the native modal before displaying the Issue workspace dialog.
+    setEditorSession(null);
+    editorOpeningReference.current = false;
+    setTaskIssueCreateRequest({ sequence: ++taskIssueSequence.current, taskId });
+    selectScreen("issue", false);
+  }
+  async function finishTaskIssueCreate(saved: boolean) {
+    const request = taskIssueCreateRequest;
+    if (!request) return;
+    setTaskIssueCreateRequest(null);
+    setActiveScreen(editorOriginScreenReference.current);
+    if (saved && !(await reloadCanonicalSnapshot())) {
+      notify("error", "Issue는 저장되었지만 최신 프로젝트 조회에 실패했습니다. 작업 정보를 다시 열어 주세요.", "Issue 등록");
+      return;
+    }
+    const snapshot = confirmedSnapshotReference.current;
+    const task = snapshot?.data.tasks.find(item => item.taskId === request.taskId);
+    if (!snapshot || !task) {
+      notify("error", "원래 Task를 찾지 못했습니다. 일정에서 다시 선택해 주세요.", "Issue 등록");
+      return;
+    }
+    setEditorInitialTab("task");
+    setEditorAssignment(undefined);
+    editorOpeningReference.current = true;
+    setEditorSession({ task: { ...task }, calendar: snapshot.data.project.calendar,
+      revision: snapshot.data.project.revision });
   }
   function closeTaskEditor() {
     finishTaskEditor(true);
@@ -3249,6 +3283,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           onRelationDelete={(id) =>
             saveLink("DELETE", undefined, undefined, id)
           }
+          onIssueCreate={createIssueFromTask}
           onClose={closeTaskEditor}
         />
       ) : null}
@@ -3257,6 +3292,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         className="project-workspace-panel project-issue-panel" hidden={activeView !== "issue"}>
         <ProjectIssueWorkspace publicId={publicId} revision={project.revision} tasks={tasks}
           active={activeView === "issue"} editable={editing}
+          createRequest={taskIssueCreateRequest}
+          onCreateFinished={saved => { void finishTaskIssueCreate(saved); }}
           busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
           onChanged={() => { void reloadCanonicalSnapshot(); }}
           onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }} />
