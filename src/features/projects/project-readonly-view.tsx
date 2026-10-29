@@ -3141,7 +3141,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           ref={unlockTriggerReference}
           type="button"
           className="secondary-button"
-          disabled={isUnlocking || permissionCheckState === "checking"}
+          disabled={isUnlocking || permissionCheckState === "checking" || taskIssueRestoring}
           onClick={() => setUnlockOpen(true)}
         >{permissionCheckState === "checking" ? "권한 확인 중…" : "편집 잠금 해제"}</button>)}
         <details
