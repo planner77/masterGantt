@@ -316,7 +316,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   function selectScreen(screen: WorkspaceScreen, focus = true) {
     // #854 P1: do not change the focus/view owner while a saved Issue is
     // reconciling and preparing to restore its original Task Editor.
-    if (taskIssueRestoringReference.current) return;
+    if (taskIssueRestoringReference.current ||
+        (taskIssueRequestReference.current !== null && screen !== "issue")) return;
     if (navigationPending.current || navigationConfirmation.current) cancelNavigationConfirmation();
     if (activeView === "schedule" && screen !== "schedule") capturePeerViewport();
     const section = workspaceSection(screen);
@@ -3171,7 +3172,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         key={key} ref={node => { if (node) screenTabReferences.current.set(key, node); else screenTabReferences.current.delete(key); if (key === "schedule") scheduleTabReference.current = node; }}
         id={`project-tab-${key}`} role="tab" type="button" aria-controls={key === "schedule" || key === "issue" ? `project-panel-${key}` : `project-navigation-${key}`}
         aria-selected={activeSection === key} tabIndex={activeSection === key ? 0 : -1}
-        disabled={taskIssueRestoring}
+        disabled={taskIssueRestoring || taskIssueCreateRequest !== null}
         onClick={() => selectSection(key)} onKeyDown={event => handleNavigationKey(event, key, ["schedule", "issue", "dashboard", "master"], value => selectSection(value as WorkspaceSection))}>{label}</button>)}
     </div>
     {(["dashboard", "master"] as const).map(section => <div key={section} id={`project-navigation-${section}`} role="tabpanel" aria-labelledby={`project-tab-${section}`} hidden={activeSection !== section}>
@@ -3181,7 +3182,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           id={key === "dashboard.milestones" ? "project-tab-milestones" : key === "dashboard.resources" ? "project-tab-resources" : key === "master.processes" ? "project-tab-logistics" : `project-tab-${key}`}
           role="tab" type="button" aria-controls={workspaceView(key) === "milestones" ? "project-panel-milestones" : workspaceView(key) === "resources" ? "project-panel-resources" : workspaceView(key) === "resource-master" ? "project-panel-resource-master" : "project-panel-logistics"}
           aria-selected={activeScreen === key || (section === "master" && activeScreen === "master.relations" && key === "master.processes")} tabIndex={activeScreen === key || (section === "master" && activeScreen === "master.relations" && key === "master.processes") ? 0 : -1}
-          disabled={taskIssueRestoring}
+          disabled={taskIssueRestoring || taskIssueCreateRequest !== null}
           onClick={() => selectScreen(key)} onKeyDown={event => handleNavigationKey(event, key, (section === "dashboard" ? DASHBOARD_SCREENS : MASTER_SCREENS).map(item => item.key), value => selectScreen(value as WorkspaceScreen))}>{label}</button>)}
       </div>
       {section === "master" ? <div className="project-workspace-auxiliary" aria-label="기준정보 보조 도구">
