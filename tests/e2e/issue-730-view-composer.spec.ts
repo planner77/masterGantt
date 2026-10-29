@@ -10,7 +10,7 @@ import { targetMasterPassword } from "./fixtures/target-project";
 import { seedWbsViewComposer, viewResourcePassword } from "./fixtures/wbs-view-composer";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { isWbsViewReadQuery } from "./helpers/read-only-requests";
-import type { WbsViewQueryInput, WbsViewReportDto, WbsViewSpec } from "../../src/contracts/wbs-dashboard-views";
+import type { WbsViewDetailsDto, WbsViewQueryInput, WbsViewReportDto, WbsViewSpec } from "../../src/contracts/wbs-dashboard-views";
 
 test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword, isolatedResourceAdminPassword: viewResourcePassword, viewport: { width: 1440, height: 1000 } });
 const roots = ["process", "equipment", "system", "resource", "milestone"] as const;
@@ -593,6 +593,9 @@ test("#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관
   // ran; require the exact new projection's 200 receipt and committed DOM.
   const detailsResponse = await refreshedDetails;
   expect(detailsResponse.status(), await detailsResponse.text()).toBe(200);
+  const canonicalDetails = (await detailsResponse.json()).data as WbsViewDetailsDto;
+  expect(canonicalDetails.projection).toBe("details");
+  expect(canonicalDetails.rows.some(row => row.taskId === f.task.taskId && row.taskName === renamed)).toBe(true);
   const detailsInput = detailsResponse.request().postDataJSON() as WbsViewQueryInput;
   expect(detailsInput.projection?.kind).toBe("details");
   if (detailsInput.projection?.kind === "details") {
