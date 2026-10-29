@@ -60,6 +60,22 @@ async function settle(page: Page) {
   }));
 }
 
+/** Wait for the real viewport receipt; an aligned Grid reveal may grow the
+ * axis under the same lease before the Core/native scroll settles. */
+async function expectTaskStartSettled(page: Page, start: string) {
+  await expect.poll(async () => {
+    const sample = await observe(page, start);
+    const history = sample.coordinator as Array<{ kind?: string; outcome?: string }>;
+    const reveal = history.filter(entry => entry.kind === "TASK_REVEAL").at(-1);
+    return {
+      outcome: reveal?.outcome ?? null,
+      startVisible: sample.startVisible,
+      aligned: Math.abs(sample.startX - sample.public.left) <= 1,
+      coreNative: Math.abs(sample.public.left - sample.dom.left) <= 1,
+    };
+  }).toEqual({ outcome: "SETTLED", startVisible: true, aligned: true, coreNative: true });
+}
+
 async function saveEvidence(info: TestInfo, name: string, data: object) {
   const paths = ["src/features/gantt/viewport/task-reveal-target.ts", "src/features/gantt/viewport/svar-viewport-port.ts", "src/features/gantt/viewport/viewport-coordinator.ts", "src/features/gantt/project-gantt.tsx", "src/features/projects/project-readonly-view.tsx", "tests/e2e/grid-task-start-reveal.spec.ts"];
   const evidence = { capturedAt: new Date().toISOString(), ...data,
@@ -212,6 +228,7 @@ test("#514 reveal retains context-menu, modifier and keyboard selection semantic
   expect(contextBeforeReveal.dom.left).toBe(before.dom.left);
   await page.keyboard.press("Escape"); await expect(menu).toHaveCount(0);
   await row(future.taskId).locator('[data-col-id=":projectDuration"]').click(); await settle(page);
+  await expectTaskStartSettled(page, future.start!);
   const revealed = await observe(page, future.start!); expect(revealed.startVisible).toBe(true);
   await row(past.taskId).locator(".wx-text").click({ button: "right" });
   await expect(menu).toBeVisible(); await settle(page);
@@ -320,7 +337,7 @@ test("#514 native Grid pointer reveals canonical Task start in both horizontal d
     expect(beforeFuture.startVisible).toBe(false);
     await frame.locator(`.wx-table-container .wx-row[data-id=":${future.taskId}"] [data-col-id=":projectDuration"]`).click();
     await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${future.taskId}"]`)).toHaveClass(/wx-selected/);
-    await frame.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expectTaskStartSettled(page, future.start!);
     const afterFuture = await observe(page, future.start!);
     observations.push({ direction: "future", target: { taskId: future.taskId, start: future.start }, before: beforeFuture, after: afterFuture });
     expect.soft(afterFuture.startVisible).toBe(true);
@@ -332,7 +349,7 @@ test("#514 native Grid pointer reveals canonical Task start in both horizontal d
     expect(beforePast.startVisible).toBe(false);
     await frame.locator(`.wx-table-container .wx-row[data-id=":${past.taskId}"] .wx-text`).click();
     await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${past.taskId}"]`)).toHaveClass(/wx-selected/);
-    await frame.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expectTaskStartSettled(page, past.start!);
     const afterPast = await observe(page, past.start!);
     observations.push({ direction: "past", target: { taskId: past.taskId, start: past.start }, before: beforePast, after: afterPast });
     expect.soft(afterPast.startVisible).toBe(true);
@@ -350,7 +367,7 @@ test("#514 native Grid pointer reveals canonical Task start in both horizontal d
     }, long.taskId);
     await frame.locator(`.wx-table-container .wx-row[data-id=":${long.taskId}"] [data-col-id=":projectDuration"]`).click();
     await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${long.taskId}"]`)).toHaveClass(/wx-selected/);
-    await frame.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expectTaskStartSettled(page, long.start!);
     const afterLong = await observe(page, long.start!);
     observations.push({ direction: "long-overlap", target: { taskId: long.taskId, start: long.start, end: long.end }, overlap, before: beforeLong, after: afterLong });
     expect.soft(afterLong.startVisible).toBe(true);
@@ -378,7 +395,7 @@ test("#514 before editable name pointer observes native selection and inline edi
   expect(before.startVisible).toBe(false);
   await frame.locator(`.wx-table-container .wx-row[data-id=":${task.taskId}"] .wx-text`).click();
   await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${task.taskId}"]`)).toHaveClass(/wx-selected/);
-  await frame.evaluate(() => new Promise<void>(resolve => { let remaining = 8; const next = () => --remaining ? requestAnimationFrame(next) : resolve(); requestAnimationFrame(next); }));
+  await expectTaskStartSettled(page, task.start!);
   const after = await observe(page, task.start!);
   const evidence = { capturedAt: new Date().toISOString(), before, after, target: { taskId: task.taskId, start: task.start },
     sourceHashes: Object.fromEntries(await Promise.all(["src/features/gantt/project-gantt.tsx", "tests/e2e/grid-task-start-reveal.spec.ts"].map(async path => [path, createHash("sha256").update(await readFile(path)).digest("hex")]))),
@@ -403,9 +420,11 @@ test("#514 before Week fullscreen nested reveal and null Summary selection", asy
   expect(beforeNested.startVisible).toBe(false);
   await frame.locator(`.wx-table-container .wx-row[data-id=":${nested.taskId}"] [data-col-id=":projectDuration"]`).click();
   await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${nested.taskId}"]`)).toHaveClass(/wx-selected/);
-  await frame.evaluate(() => new Promise<void>(resolve => { let remaining = 8; const next = () => --remaining ? requestAnimationFrame(next) : resolve(); requestAnimationFrame(next); }));
+  await expectTaskStartSettled(page, nested.start!);
   const afterNested = await observe(page, nested.start!);
   expect.soft(afterNested.startVisible).toBe(true);
+  expect.soft(Math.abs(afterNested.startX - afterNested.public.left)).toBeLessThanOrEqual(1);
+  expect.soft(Math.abs(afterNested.public.left - afterNested.dom.left)).toBeLessThanOrEqual(1);
   const empty = state.tasks[5], beforeEmpty = await observe(page, state.tasks[0].start!);
   expect(beforeEmpty.public.left).toBeGreaterThan(0);
   await frame.locator(`.wx-table-container .wx-row[data-id=":${empty.taskId}"] [data-col-id=":projectDuration"]`).click();

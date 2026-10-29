@@ -9,12 +9,24 @@ Source of truth: [PR CI 실패 지침](PR_CI_FAILURE_TRIAGE.md), [Work Packet](e
 
 ## 1. 원격 Run/Attempt 전체 목록
 
+### 원격 PR #853 첫 Full 실행 — #3402.1 (실제 확인 2026-10-29)
+
+| PR/워크플로 | Run/Attempt · 출처 | Head / Base / Test merge | 원본 결과 |
+| --- | --- | --- | --- |
+| [#853](https://github.com/planner77/masterGantt/pull/853) · Full CI `pull_request` | [#3402.1 · 40844744482.1](https://github.com/planner77/masterGantt/actions/runs/40844744482), 2026-10-29 08:50~08:53 UTC | Head `72ddbb2349cb26f5a571f3f5469cad8070403ff0`; base `de36ff9f3192f47f79a67f8fccc617df9bd024dd`; test merge `53ee1d2a34224146aeae5b5824feade263af0132` | **E2E shard 3 직접 FAIL 1**; 16 PASS·132 NOT RUN; shard 1/2/4/5/6/7/8 CANCELLED; Quality·Docker PASS; E2E aggregate·QA Final 파생 FAIL |
+| #853 · FAST_DEVELOPMENT non-authoritative | [#197.1 · 40844744461.1](https://github.com/planner77/masterGantt/actions/runs/40844744461) · same Head | 동일 Head, 실제 구현 검증 미수행 | SKIPPED, Full PASS 아님 |
+
+아래의 기존 “PR CI 시작 전” 서술은 원본 초안 작성 **당시**의 역사 기록이다. 현재 원격 관측은 위 표 및 F852-CI-001을 우선한다. 접근 가능한 동일 Head의 Full 실행은 #3402.1 1건이며 다른 원격 실패 attempt는 확인되지 않았다.
+
+
+
 착수 시 #852는 OPEN, 댓글0·연결 PR 없음이며 열린 PR 목록에도 #852 구현 PR이 없었다. 이 Issue의 PR CI는 아직 시작하지 않았으므로 Run/Attempt/Head/Base/Test merge 및 Required3는 NOT TESTED다. 조회하지 않은 로그를 성공으로 해석하지 않는다. CI 시작 후 생성된 실제 Run URL을 Issue 인계 댓글에 기록하며 이 요청에서는 결과를 모니터링하지 않는다.
 
 ## 2. 누적 실패 파일 및 Cross-run 매트릭스
 
 | 실패 ID | 환경·파일·case | 원본 실제 결과 | 분류·원인 판단 | 보완·최종 source 검증 |
 | --- | --- | --- | --- | --- |
+| F852-CI-001 · PR #853 #3402.1, Shard3 | `tests/e2e/grid-task-start-reveal.spec.ts:396/408`, Week fullscreen nested 후 null Summary | `afterNested.startVisible` expected true / actual false; 16PASS·1FAIL·132NOT RUN | TEST_CONTRACT; 고정 8 RAF 시점에 `TASK_REVEAL`이 `WAIT_GEOMETRY`, 이어서 원본 증거에 실제 left=5984와 `SETTLED` 확인. F852-TEST-002와 동일 비동기 완료 가정의 남은 소비자 | 기존 Grid E2E의 실제 `TASK_REVEAL SETTLED` + start 좌측 정렬 ±1px + Core/native 일치 poll; 동일 source 원격 재검증은 다음 Full에서 NOT TESTED |
 | F852-ENV-001 | `gh issue view 852` 및 git push dry-run | HTTP401 Bad credentials / Invalid username or token | ENVIRONMENT; 로컬 GitHub 자격증명 실패 | 연결된 GitHub 도구로 읽기/게시; 토큰 복사·권한 확대 없음 |
 | F852-LOCAL-001 | `grid-task-start-reveal.spec.ts` 신규 visible-right alignment Day·Week | 시작점 Chart 상대 X452px 유지, expected≤1px; 두 case FAIL | PRODUCT; 기존 가시성-only 정책은 화면 내부 오른쪽의 좌측 배치를 검증하지 못함 | 최종 Day/Week 실제bar452→0px 및23case PASS |
 | F852-LOCAL-002 | 같은 E2E의 새 확장 끝까지 연속 wheel 후 무입력 대기 Week | 실제 width4148px에서 정지, expected>4148px; 기존5초 poll FAIL | PRODUCT; 확장 중 새 edge 입력 후 재예약 누락 가설을 제한 trace로 재검증 | 최종23case와3case×3반복9 PASS; 원래FAIL·동일sourcePASS 보존 |
@@ -91,3 +103,29 @@ node scripts/check-markdown-links.mjs
 별도 `/root/review`의 사전 검토 PASS/미해결 차단지적0, 독립 관련Unit194PASS 및6개source지문 대조 완료. QA_FINAL/인간 GitHub APPROVED/Owner ACCEPT는 아니다. Next가 만든 AGENTS/next-env 변경은 복원하여 최종diff0이고 제품/test지문은 유지했다. Markdown376파일 링크 및 docs_gate의 DOC_SYNC/AC1~10 구조PASS는 의미/원격 검증PASS를 대체하지 않는다.
 
 최신main은 기준 `de36ff9f3192f47f79a67f8fccc617df9bd024dd`와 같고 사전 충돌0이다. 원격 PR 생성 후 review thread·mergeability·testmerge와 CI 시작을 확인해 Issue에 인계한다. 새 Head Required3/Trusted QA·Owner HIGH위험 수용/Manager ACCEPT는 NOT TESTED다. 실제운영/HTTP SQLite·Shift-wheel/scrollbar drag/touch 동일경합도 NOT TESTED이며 병합·main/GHCR·Release·Issue 종료는 범위 밖이다.
+
+## 6. F852-CI-001 — PR #853 Full #3402.1 단일 직접 실패 및 REWORK #1 (2026-10-29)
+
+### 불변 원본/귀속
+
+- [Run 40844744482 attempt 1](https://github.com/planner77/masterGantt/actions/runs/40844744482), `pull_request` FINAL_FULL #3402.1, HEAD `72ddbb2349cb26f5a571f3f5469cad8070403ff0`, base `de36ff9f3192f47f79a67f8fccc617df9bd024dd`, test merge `53ee1d2a34224146aeae5b5824feade263af0132`, branch `fix/issue-852-gantt-navigation`, app `0.138.2` candidate / Core2.7.3 / Chromium.
+- **직접 FAIL:** [Chromium shard3 Job 123350462098](https://github.com/planner77/masterGantt/actions/runs/40844744482/job/123350462098), `tests/e2e/grid-task-start-reveal.spec.ts:396` case `#514 before Week fullscreen nested reveal and null Summary selection`, line408 `expect.soft(afterNested.startVisible).toBe(true)` → `Received: false`. 149건 중 16 PASS·1 FAIL·132 NOT RUN (`--max-failures=1`). `GitCommitInfo` fetch 3초 warning은 별도 보조 Git origin 네트워크 측정이며 이 assertion 실패의 직접 원인으로 확인되지 않았다.
+- **다른 7개 실제 E2E:** shard1 `123350462116`, shard2 `123350462142`, shard4 `123350462046`, shard5 `123350462152`, shard6 `123350462122`, shard7 `123350462091`, shard8 `123350462071` 모두 CANCELLED. 그 실행 내부 이미 수행된 독립 실패는 이번 수집 범위에서 확인되지 않았으나 CANCELLED를 PASS로 판정하지 않는다.
+- **Required 구현/집계:** Quality `123351083476` SUCCESS (Policy/TypeScript/ESLint/Vitest/Build 포함), Docker `123351612742` SUCCESS, E2E aggregate `123351404080` FAILURE(Shard3에서 파생), QA Final Automated `123351646203` FAILURE(Required E2E 실패에서 파생, independent QA NOT TESTED). QA Preflight `123349512829` SUCCESS. 별도 FAST `40844744461.1`은 SKIPPED.
+- **원본 증거:** [Shard3 Job 로그](https://github.com/planner77/masterGantt/actions/runs/40844744482/job/123350462098), [Playwright report+Trace](https://github.com/planner77/masterGantt/actions/runs/40844744482/artifacts/12884418890). 대용량 raw trace/로그/DB/민감정보는 저장소에 복사하지 않고 아래 정제 수치만 기록한다.
+
+### 원인 교차 검증 — 기존 F852-TEST-002의 미보완 소비자
+
+원본 Chromium 첨부 `week-nested-null-reveal`(같은 **실패 CI attempt** 내 before/after)에서:
+1. Nested 선택 직후 **고정 8 RAF 종료 시점**: `afterNested.startX=5984`, Core/native left `0/0`, `startVisible=false`. Axis Transaction 자체는 width `7004`, physical horizontal capacity `6075`로 `SETTLED`; 그러나 선택 `TASK_REVEAL`은 아직 `WAIT_GEOMETRY` 단계다.
+2. **같은 테스트의 다음 관측(beforeEmpty)**: null Summary 클릭 **전** Core/native left `5984/5984`가 되어 실제 중첩 Task의 시작 좌측 정렬이 이뤄진다. `afterEmpty` history에는 이 nested reveal의 `SETTLED` 영수증과 null Summary reveal의 `SETTLED` 영수증이 둘 다 있다. null Summary 이후에도 left `5984/5984` 유지.
+3. 따라서 원본 **제품의 영구적인 시작점 이동 실패는 관측되지 않았다**. 새 같은-lease 축 확장/영수증 정착은 동기 Core show보다 여러 프레임 소요되는데, 과거 #514 테스트가 임의 `8*requestAnimationFrame`만으로 완료 판정한 **TEST_CONTRACT** 직접 실패다. 초기 F852-LOCAL-003/004의 제품 준비 보완은 그대로 유지된다. F852-TEST-002에서 이미 일부 시나리오를 실제 완료 poll로 교정했으나 이 오래된 fullscreen consumer가 남아 있었다는 커버리지 결손이다.
+
+### 제한 교정·불변 계약·검증 경계
+
+- 유일한 실행 소스 수정은 `tests/e2e/grid-task-start-reveal.spec.ts` (`TEST_LIFECYCLE_REVIEW: EXTEND`). 실제 Coordinator history의 **최신 `TASK_REVEAL` 결과 `SETTLED`**와 실제 Core/native 일치 ±1px, 날짜 시작점이 Chart 왼쪽 ±1px에 보이는지를 기존 Playwright `expect.poll` **기본 제한 내** 관측하는 공통 helper를 추가한다. 결과가 끝내 정착하지 않으면 기존보다 강화된 assertion으로 실패한다.
+- 직접 문제인 Week/fullscreen/nested뿐 아니라 같은 fixed-frame 전제를 가진 #514 editable 이름 클릭, 과거/미래/긴 Task 양방향 reveal 및 Context Menu 후 일반 선택도 해당 helper로 변경한다. **null canonical start** 선택에서는 기존 무이동 strict `beforeEmpty/afterEmpty` 비교를 보존한다. #852 Day/Week 3회 연속 확장·선택 우선권·상세 Grid matrix와 #514 modifier/keyboard/peer/filter 음성 검증은 유지한다.
+- 없음: 제품/API/SQLite/세션/권한, SVAR/Coordinator/Axis Transaction 로직 변경, UI 스타일/공통 DESIGN 및 AGENTS 원칙 변경, CI/shard/timeout/retry/skip/느슨한 assertion 변경.
+- 정적 원격 source 감사를 통해 원본 spec blob `7b643dcd6e784eed49a811d850c3439a75c07f4a`에서 수정 spec blob `f00b810f16fedbf244249b3cdc643cc7386c4e49`으로 변경 확인. 이 연결 환경에서는 실제 Node/Playwright repo checkout 및 browser 실행이 확인되지 않았으므로 **수정 후 로컬 typecheck/Unit/Chromium = NOT TESTED**. 이전 로컬23/23·194/194와 최초 Full Quality/Docker PASS는 **이 새 후보의 결과가 아니다**. 동일 새 Head의 Full Quality/E2E8/Docker, Trusted QA, Owner 위험 수용은 후속 원격 실행 전 **NOT TESTED**; 결과 모니터링은 요청 범위 밖.
+- **리뷰/충돌(교정 직전):** PR #853 미해결 inline review thread **0** / 원본 Codex Code Review `72ddbb2` no findings(새 후보 재리뷰로 자동 승격 금지). branch 대비 main **behind=0**, PR mergeable=true, base `de36ff9`; 현재 관측에서 충돌 없음. 새 HEAD의 리뷰/strict-main 및 병합 gate는 실제 재확인해야 한다. OWNER_MANAGED는 Required3/Trusted QA/Owner HIGH 위험 수용을 면제하지 않는다.
+- **다음 조치:** 같은 PR branch에 이 단일 보완·불변 실패 원장·Work Packet·PLAN을 동기 커밋하고 새로운 Ready Full CI를 **시작만** 한다. 새 Run ID/Attempt/HEAD는 PR #853 인계 댓글에서 연결하며 이 실패 이력은 보존한다. GHCR/병합/Main/Issue 종료는 금지; `MERGE_READY=BLOCKED`, `release_authorized=false`.
