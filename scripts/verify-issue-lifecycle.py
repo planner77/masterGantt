@@ -601,7 +601,7 @@ require(
     len(failed_854_summary) > main_run_name.MAX_SUMMARY_LENGTH
     and main_run_name.parse_merge_title(failed_854_title) is None
     and main_run_name.parse_merge_title(failed_854_message) is None,
-    "the historical #854 merge has both overlong summary and multiline body",
+    "#854 원본 병합에는 요약 길이 초과와 여러 줄 본문이 모두 있어야 합니다",
 )
 for failed_854_input in (failed_854_title, failed_854_message):
     try:
@@ -612,7 +612,7 @@ for failed_854_input in (failed_854_title, failed_854_message):
     except trace.TraceError:
         pass
     else:
-        raise SystemExit("Main #3431.1 malformed merge must stay blocked")
+        raise SystemExit("Main #3431.1의 잘못된 병합 메시지는 계속 차단되어야 합니다")
 
 # A subsequent same-Issue, non-docs corrective PR must use the existing
 # trusted helper's *entire* lease-bound payload, including empty body.
@@ -636,7 +636,7 @@ require(
             + corrective_854_payload["commit_message"],
         },
     }) == (854, 999),
-    "corrective #854 must have a short one-line Korean title, empty body and exact Head lease",
+    "#854 보정 병합은 짧은 한글 제목 한 줄, 빈 본문, 정확한 HEAD SHA를 사용해야 합니다",
 )
 
 
