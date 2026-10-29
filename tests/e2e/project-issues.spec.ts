@@ -316,3 +316,94 @@ test("#854 dirty Task draft cannot be discarded by Issue registration", async ({
   await expect(dialog.getByLabel("작업명", { exact: true })).toHaveValue("미저장 작업 초안");
   expect(state.patchRequests).toHaveLength(0);
 });
+
+
+test("#854 P1 slow canonical restore keeps Task Editor ownership until latest GET completes", async ({ page }) => {
+  test.setTimeout(120_000);
+  const state = await installStatefulProjectFixture(page);
+  state.sessionEditable = false;
+  const records: ProjectIssueDto[] = [];
+  let holdCanonicalRead = false;
+  let notifyReadStarted!: () => void;
+  const readStarted = new Promise<void>(resolve => { notifyReadStarted = resolve; });
+  let releaseCanonicalRead!: () => void;
+  const readGate = new Promise<void>(resolve => { releaseCanonicalRead = resolve; });
+
+  // Register after the stateful fixture so the pending project GET is
+  // interceptable without replacing its canonical read/snapshot contract.
+  await page.route("**" + projectPath, async route => {
+    if (route.request().method() === "GET" && holdCanonicalRead) {
+      notifyReadStarted();
+      await readGate;
+    }
+    await route.fallback();
+  });
+  await page.route("**" + projectPath + "/issues**", async route => {
+    const req = route.request();
+    if (req.method() === "GET") {
+      await route.fulfill({ json: { data: {
+        projectRevision: state.project.revision,
+        summary: { total: records.length, registered: records.length, inProgress: 0, completed: 0 },
+        total: records.length, page: 1, limit: 20, issues: records,
+      } } });
+      return;
+    }
+    if (req.method() !== "POST" ||
+        req.headers()["if-match"] !== '"' + state.project.revision + '"') {
+      await route.fulfill({ status: 412, json: { error: { code: "REVISION_MISMATCH" } } });
+      return;
+    }
+    const body = req.postDataJSON() as ProjectIssueInput & { issuePassword: string; confirmIssuePassword: string };
+    const { issuePassword, confirmIssuePassword, ...fields } = body;
+    if (!issuePassword || issuePassword !== confirmIssuePassword) {
+      await route.fulfill({ status: 400, json: { error: { code: "INVALID_ISSUE" } } });
+      return;
+    }
+    const issue: ProjectIssueDto = {
+      ...fields, status: fields.status ?? "registered", issueId: randomUUID(),
+      credentialState: "protected", createdAt: "2026-10-29T02:00:00.000Z",
+      updatedAt: "2026-10-29T02:00:00.000Z",
+    };
+    records.push(issue);
+    state.project.revision++;
+    await route.fulfill({ status: 201, json: { data: {
+      issue, projectRevision: state.project.revision,
+    } } });
+  });
+
+  await page.goto("/projects/" + publicId);
+  const gantt = page.locator(".project-gantt-frame");
+  await expect(gantt).toHaveAttribute("data-project-gantt-api-instance", /.+/);
+  const initialInstance = await gantt.getAttribute("data-project-gantt-api-instance");
+  const row = page.locator(".project-gantt-widget .wx-row", { hasText: "Stable leaf" }).first();
+  await expect(row).toBeVisible();
+  await row.getByText("Stable leaf", { exact: true }).click({ button: "right" });
+  await chooseTaskInformation(page);
+
+  const taskEditor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await taskEditor.getByRole("button", { name: "Issue 등록" }).click();
+  const issueForm = page.getByRole("dialog", { name: "Issue 등록" });
+  await expect(issueForm.getByLabel("관련 Task")).toHaveValue("Stable leaf");
+  await issueForm.getByLabel("Issue 명").fill("지연 재조회 보호");
+  await issueForm.getByLabel("Issue 비밀번호 *").fill("IssuePassword#123");
+  await issueForm.getByLabel("Issue 비밀번호 확인 *").fill("IssuePassword#123");
+
+  holdCanonicalRead = true;
+  await issueForm.getByRole("button", { name: "등록", exact: true }).click();
+  await readStarted;
+  await expect(page.getByText("Issue 등록 후 작업 정보 복귀 중…", { exact: true })).toBeVisible();
+  const primaryTabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
+  await expect(primaryTabs.getByRole("tab", { name: "일정" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "편집 잠금 해제" })).toBeDisabled();
+  await expect(taskEditor).toHaveCount(0);
+  await expect(page.getByTestId("project-issue-workspace")
+    .getByRole("button", { name: "Issue 등록", exact: true })).toBeDisabled();
+
+  releaseCanonicalRead();
+  await expect(taskEditor).toBeVisible();
+  await expect(taskEditor.getByLabel("작업명", { exact: true })).toHaveValue("Stable leaf");
+  await expect(taskEditor).toContainText("Revision " + state.project.revision);
+  await expect(gantt).toHaveAttribute("data-project-gantt-api-instance", initialInstance!);
+  expect(state.patchRequests).toHaveLength(0);
+  expect(state.posts).toHaveLength(0);
+});
