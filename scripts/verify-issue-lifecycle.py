@@ -582,6 +582,64 @@ require(
 )
 
 
+
+# MAIN-854-001: PR #855 Full #3430.1 and Trusted #1078.1 PASS, but
+# Main #3431.1 stopped in verify-ci-run-trace before executing product tests.
+# The immutable merge subject's summary exceeds 30 Unicode characters AND
+# the operator passed a nonempty multiline commit_message.  Do not weaken
+# the validator or misreport the original push failure as a successful retry.
+failed_854_summary = "공개 Project Issue 등록 및 Task Editor 연계"
+failed_854_title = f"Issue #854 · PR #855 · {failed_854_summary}"
+failed_854_message = (
+    failed_854_title
+    + "\n\nRefs #854\n\n"
+    + "Owner-managed merge authorized after exact PR Full CI #3430.1 and "
+    "Trusted QA #1078.1 PASS. Independent Main CI / GHCR candidate / "
+    "Finalizer gates remain required."
+)
+require(
+    len(failed_854_summary) > main_run_name.MAX_SUMMARY_LENGTH
+    and main_run_name.parse_merge_title(failed_854_title) is None
+    and main_run_name.parse_merge_title(failed_854_message) is None,
+    "the historical #854 merge has both overlong summary and multiline body",
+)
+for failed_854_input in (failed_854_title, failed_854_message):
+    try:
+        trace.validate_push({
+            "ref": "refs/heads/main",
+            "head_commit": {"message": failed_854_input},
+        })
+    except trace.TraceError:
+        pass
+    else:
+        raise SystemExit("Main #3431.1 malformed merge must stay blocked")
+
+# A subsequent same-Issue, non-docs corrective PR must use the existing
+# trusted helper's *entire* lease-bound payload, including empty body.
+corrective_854_summary = "프로젝트 Issue Main CI 복구"
+corrective_854_payload = main_run_name.merge_api_payload(
+    854, 999, corrective_854_summary, "c" * 40
+)
+require(
+    corrective_854_payload == {
+        "merge_method": "merge",
+        "commit_title": "Issue #854 · PR #999 · 프로젝트 Issue Main CI 복구",
+        "commit_message": "",
+        "expected_head_sha": "c" * 40,
+    }
+    and main_run_name.parse_merge_title(corrective_854_payload["commit_title"])
+        == (854, 999, corrective_854_summary)
+    and trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {
+            "message": corrective_854_payload["commit_title"]
+            + corrective_854_payload["commit_message"],
+        },
+    }) == (854, 999),
+    "corrective #854 must have a short one-line Korean title, empty body and exact Head lease",
+)
+
+
 # Issue #603 / PR #604: a *one-line* English-only merge title was invalid.
 # This exact historical main SHA cannot be rewritten; a later same-Issue PR
 # with full-scope CI and a Korean canonical title must supersede its failed CI.
