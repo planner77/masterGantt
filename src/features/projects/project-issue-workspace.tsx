@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { ProjectTaskDto } from "@/contracts/projects";
 import type {
   IssuePageSize, IssueStatusFilter, ProjectIssueStatus, ProjectIssueDto, ProjectIssueInput,
@@ -159,7 +159,7 @@ export function ProjectIssueWorkspace({
     setFormError(null);
   }
 
-  function openEditor(issue: ProjectIssueDto | null, trigger?: HTMLElement, initialTask?: ProjectTaskDto) {
+  const openEditor = useCallback((issue: ProjectIssueDto | null, trigger?: HTMLElement, initialTask?: ProjectTaskDto) => {
     if (issue === null && createLocked) return;
     setEditingIssue(issue);
     setForm(issue ? {
@@ -182,7 +182,7 @@ export function ProjectIssueWorkspace({
     setEditorOpen(true);
     lastIssueTrigger.current = trigger ?? createTrigger.current;
     requestAnimationFrame(() => titleInput.current?.focus({ preventScroll: true }));
-  }
+  }, [createLocked]);
 
   useEffect(() => {
     if (!active || !createRequest || createLocked ||
@@ -194,7 +194,7 @@ export function ProjectIssueWorkspace({
       if (!currentTask) { onCreateFinished?.(false); return; }
       openEditor(null, undefined, currentTask);
     });
-  }, [active, createRequest, createLocked, tasks, onCreateFinished]);
+  }, [active, createRequest, createLocked, tasks, onCreateFinished, openEditor]);
 
   function closeEditor() {
     if (saving) return;
