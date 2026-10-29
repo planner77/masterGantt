@@ -120,7 +120,7 @@ describe("#838-#840 project Issue persistence and API", () => {
     expect(first.data.issue).toMatchObject({ title: "차량 정지", completed: false, reporterName: "등록자" });
     expect(first.data.projectRevision).toBe(2);
     for (let index = 0; index < 22; index++) {
-      await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
+      await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({
         title: "문제 " + String(index).padStart(2, "0"),
         description: "재발 상황 " + index,
         completed: index < 11, completedOn: index < 11 ? "2026-10-28" : null,
@@ -152,7 +152,7 @@ describe("#838-#840 project Issue persistence and API", () => {
     const otherTask = f.projects.createTask(f.b.authorization, f.b.revision(), {
       type: "task", name: "B 전용", externalId: "B", start: "2026-10-29", duration: 1, progress: 0,
     }).data.tasks.find(item => item.externalId === "B")!;
-    await expect(f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
+    await expect(f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({
       relatedTaskId: otherTask.taskId,
     })), issuePassword)).rejects.toThrow("Task");
     const ownTask = f.projects.createTask(f.a.authorization, f.a.revision(), {
@@ -163,7 +163,7 @@ describe("#838-#840 project Issue persistence and API", () => {
       publicId: randomUUID(), name: "김개발", code: "DEV", description: "", now,
     });
     // A valid global Resource UUID belonging only to another project is still forbidden.
-    const selectForeignResource = () => f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
+    const selectForeignResource = () => f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({
       reporterResourceId: resource.publicId, reporterName: "조작된 이름",
     })), issuePassword);
     await expect(selectForeignResource()).rejects.toThrow("현재 프로젝트");
@@ -173,7 +173,7 @@ describe("#838-#840 project Issue persistence and API", () => {
     expect(registerResource(f.b.authorization.projectId).changes).toBe(1);
     await expect(selectForeignResource()).rejects.toThrow("현재 프로젝트");
     expect(registerResource(f.a.authorization.projectId).changes).toBe(1);
-    const created = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
+    const created = await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({
       reporterResourceId: resource.publicId, reporterName: "조작된 이름",
       assigneeResourceId: resource.publicId, assigneeName: "조작된 이름",
       relatedTaskId: ownTask.taskId, relatedTaskText: "조작된 Task",
@@ -182,7 +182,7 @@ describe("#838-#840 project Issue persistence and API", () => {
       reporterName: "김개발", assigneeName: "김개발",
       relatedTaskText: "A 전용", relatedTaskId: ownTask.taskId,
     });
-    await expect(f.service.create(f.a.authorization, f.a.revision() - 1,
+    await expect(f.service.create(f.a.publicId, f.a.revision() - 1,
       parseProjectIssueInput(input()), issuePassword)).rejects.toThrow("프로젝트가 변경");
     f.db.prepare("DELETE FROM tasks WHERE project_id=? AND public_id=?").run(f.a.authorization.projectId, ownTask.taskId);
     // Catalog deletion is only valid after both project memberships are unregistered.
@@ -292,7 +292,7 @@ describe("#838-#840 project Issue persistence and API", () => {
 
   it("#846 allows correct per-Issue password without edit session, never editor bypass, and tombstones list/KPI", async () => {
     const f = await fixture();
-    const created = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input()), issuePassword);
+    const created = await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input()), issuePassword);
     const issueId = created.data.issue.issueId;
     expect(created.data.issue.credentialState).toBe("protected");
     const stored = f.db.prepare("SELECT * FROM project_issues WHERE public_id = ?").get(issueId) as {
@@ -345,8 +345,8 @@ describe("#838-#840 project Issue persistence and API", () => {
 
   it("#846 isolates every Issue credential and rejects invalid Origin or private access", async () => {
     const f = await fixture();
-    const a = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({ title: "A Issue" })), issuePassword);
-    const b = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({ title: "B Issue" })), "IssuePassword#OTHER");
+    const a = await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({ title: "A Issue" })), issuePassword);
+    const b = await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({ title: "B Issue" })), "IssuePassword#OTHER");
     const wrongOnA = await f.handle(f.request("PATCH", { ...updateBody(), issuePassword: "IssuePassword#OTHER" },
       { issueId: a.data.issue.issueId }), f.a, a.data.issue.issueId);
     expect(wrongOnA.status).toBe(401);
@@ -379,7 +379,7 @@ describe("#838-#840 project Issue persistence and API", () => {
     issuePasswordGlobalRateLimiter.clear(); issuePasswordPerIssueRateLimiter.clear();
     try {
       const f = await fixture();
-      const created = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input()), issuePassword);
+      const created = await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input()), issuePassword);
       const id = created.data.issue.issueId;
       for (let n = 0; n < 10; n++) {
         const result = await f.handle(f.request("PATCH",
@@ -438,7 +438,7 @@ describe("#838-#840 project Issue persistence and API", () => {
   it("#849 persists all states, scopes filters/KPI and enforces password and SQL guards", async () => {
     const f = await fixture();
     const create = (status: "registered" | "in_progress" | "completed") =>
-      f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
+      f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({
         title: status, status, completed: status === "completed",
         completedOn: status === "completed" ? "2026-10-28" : null,
       })), issuePassword);
