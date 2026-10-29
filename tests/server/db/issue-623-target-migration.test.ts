@@ -36,14 +36,14 @@ const preservedTables = ["tasks", "task_assignments", "project_processes", "proj
 function evidence(db: Database.Database) { return preservedTables.map(table => ({ table, rows: db.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all() })); }
 function assertLedger(db: Database.Database) {
   const rows = db.prepare("SELECT version,name,checksum FROM schema_migrations ORDER BY version").all() as {version:number;name:string;checksum:string}[];
-  expect(rows.map(row => row.version)).toEqual(Array.from({ length: 33 }, (_, i) => i + 1));
+  expect(rows.map(row => row.version)).toEqual(Array.from({ length: 34 }, (_, i) => i + 1));
   for (const row of rows) expect(row.checksum).toBe(createHash("sha256").update(readFileSync(join(migrationDir, row.name))).digest("hex"));
   expect(db.pragma("foreign_key_check")).toEqual([]); expect(db.pragma("foreign_keys", { simple: true })).toBe(1);
 }
 describe("#623 actual schema migration and non-destructive recovery acceptance", () => {
-  it("creates a fresh 33-version DB with exact checksums and stable restart", () => {
+  it("creates a fresh 34-version DB with exact checksums and stable restart", () => {
     const filename = join(directory(), "fresh.sqlite3"), first = open(filename);
-    expect(first.migrations.applied).toHaveLength(33); assertLedger(first.database); first.database.close();
+    expect(first.migrations.applied).toHaveLength(34); assertLedger(first.database); first.database.close();
     const next = open(filename); expect(next.migrations.applied).toEqual([]); assertLedger(next.database);
     for (const table of ["process_types", "site_product_processes", "work_areas", "logistics_targets", "task_target_bindings"]) expect(next.database.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name=?").get(table)).toEqual({ name: table });
   });
@@ -86,6 +86,6 @@ describe("#623 actual schema migration and non-destructive recovery acceptance",
     expect(() => runMigrations(db, corrupt)).toThrow("Checksum mismatch");
     const gap = migrations(join(dir, "gap"), 27); rmSync(join(gap, "0025_process_catalog.sql"));
     expect(() => runMigrations(db, gap)).toThrow("expected version 25"); expect(evidence(db)).toEqual(before);
-    expect(runMigrations(db, migrationDir).applied).toHaveLength(9); assertLedger(db); expect(evidence(db)).toEqual(before);
+    expect(runMigrations(db, migrationDir).applied).toHaveLength(10); assertLedger(db); expect(evidence(db)).toEqual(before);
   });
 });

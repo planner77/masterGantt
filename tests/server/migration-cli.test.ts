@@ -94,7 +94,9 @@ describe("migration CLI", () => {
     const database = new Database(filename, { readonly: true });
     try {
       expect(database.prepare("SELECT count(*) AS count FROM schema_migrations").get())
-        .toEqual({ count: 33 });
+        .toEqual({ count: 34 });
+      expect(database.prepare("SELECT name FROM schema_migrations WHERE version=34").pluck().get())
+        .toBe("0034_project_issue_business_status.sql");
       expect(database.prepare("SELECT count(*) AS count FROM projects").get())
         .toEqual({ count: 0 });
       expect(database.prepare("SELECT revision FROM resource_catalog_state WHERE id = 1").get())

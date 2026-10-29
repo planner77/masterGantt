@@ -283,9 +283,9 @@ describe("#838-#840 project Issue persistence and API", () => {
     expect(retained.created_at).toBe(now);
     // Logical deletion must preserve the last content modification timestamp.
     expect(retained.updated_at).toBe(now);
-    for (const query of ["", "status=open", "status=completed", "q=차량", "page=2&limit=10"]) {
+    for (const query of ["", "status=open", "status=registered", "status=in_progress", "status=completed", "q=차량", "page=2&limit=10"]) {
       const result = f.service.list(f.a.publicId, parseProjectIssueQuery(new URLSearchParams(query))).data;
-      expect(result.summary).toEqual({ total: 0, completed: 0 });
+      expect(result.summary).toEqual({ total: 0, completed: 0, inProgress: 0, registered: 0 });
       expect(result.total).toBe(0);
       expect(result.issues).toHaveLength(0);
     }
