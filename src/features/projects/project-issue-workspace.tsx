@@ -160,7 +160,8 @@ export function ProjectIssueWorkspace({
   }
 
   const openEditor = useCallback((issue: ProjectIssueDto | null, trigger?: HTMLElement, initialTask?: ProjectTaskDto) => {
-    if (issue === null && createLocked) return;
+    // Do not open a second Issue dialog during the Task-origin return/reload.
+    if (createLocked || editorOpen) return;
     setEditingIssue(issue);
     setForm(issue ? {
       title: issue.title, description: issue.description,
@@ -182,7 +183,7 @@ export function ProjectIssueWorkspace({
     setEditorOpen(true);
     lastIssueTrigger.current = trigger ?? createTrigger.current;
     requestAnimationFrame(() => titleInput.current?.focus({ preventScroll: true }));
-  }, [createLocked]);
+  }, [createLocked, editorOpen]);
 
   useEffect(() => {
     if (!active || !createRequest || createLocked ||
@@ -408,7 +409,8 @@ export function ProjectIssueWorkspace({
         <thead><tr><th scope="col">Issue명</th><th scope="col">상태</th><th scope="col">담당자</th><th scope="col">발생일</th><th scope="col">완료일</th></tr></thead>
         <tbody>
           {data?.issues.map(issue => <tr key={issue.issueId}>
-            <td><button className={styles.titleButton} type="button" onClick={event => openEditor(issue, event.currentTarget)}>{issue.title}</button></td>
+            <td><button className={styles.titleButton} type="button" disabled={createLocked}
+              onClick={event => openEditor(issue, event.currentTarget)}>{issue.title}</button></td>
             <td>{issueStatusLabel[issue.status]}</td>
             <td>{issue.assigneeName || "미지정"}</td>
             <td>{issue.occurredOn}</td>
