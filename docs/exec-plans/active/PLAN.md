@@ -1,3 +1,9 @@
+## Issue #852 — Gantt 날짜축 반복 확장·Grid 시작점 좌측 탐색 회귀 (2026-10-29)
+
+main `de36ff9f3192f47f79a67f8fccc617df9bd024dd`/app `0.138.1`/Core `2.7.3`에서 별도 `fix/issue-852-gantt-navigation`으로 진행한다. [Work Packet](ISSUE_852.md)에 두 회귀의 개별 재현·단일 Coordinator/public API 설계·기존 테스트 확장·문서/실패 원장·검증 경계를 기록한다. PATCH 후보 `0.138.2`, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false다.
+
+ui_ux 읽기 전용 설계·frontend 구현·Manager 문서/원격 인계·별도 qa_docs 사전 검토를 분리한다. 요청 종료점은 리뷰/충돌 처리 후 Ready PR Full CI 시작이며 CI 모니터링·병합·Main/GHCR·Release·Issue 종료는 수행하지 않는다. 원격 Required3/Trusted QA·Owner HIGH 위험 수용 및 Manager ACCEPT는 NOT TESTED다. 실제 실패·재현/비재현·새 Head 검증은 [단일 원장](../../ISSUE_852_FAILURE_ANALYSIS.md)에 누적한다. 최종 로컬 관련Unit194/194·Grid Chromium23/23·연속입력반복9/9·typecheck PASS, 관련lint오류0/기존경고3개 및 별도 qa_docs 사전검토 PASS/차단지적0을 확보했다. 실제bar452→0px와 관측end 보존·같은lease capacity준비·한 번의 유효edge 재평가를 [정제증거](../../evidence/issue-852/manifest.json)에 보존했다. 원격PASS·Manager ACCEPT로 확대하지 않는다.
+
 ## Issue #822 — Ctrl+휠 세로 밀도 구현
 
 main `dc8543f390616c0d5aca90a4f91899f3cf7ac5da`/app0.135.4에서 전용 `feat/issue-822-gantt-density`로 진행한다. #81634/44px·#818 progress pointer·#637 정렬을 보존하고 공유 local density·Grid typography·공개 cellHeight·단일 viewport anchor를 추가한다. [Work Packet](ISSUE_822.md)의 AC1~8·TEST_LIFECYCLE_REVIEW·문서/실제 검증 증거를 따른다.

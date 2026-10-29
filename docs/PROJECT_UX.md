@@ -391,7 +391,9 @@ metadata 저장 전후 표시 집합·일정 geometry가 같으면 public/DOM �
 
 ## Issue #514 — Grid 시작 위치와 지연된 peer 복원
 
-일반 Grid pointer 선택의 native Core `show:xy`를 유지한다. canonical Task start가 있는 작업은 기존 양축 reveal을 사용하며, renderer가 임시 anchor를 가진 canonical start=null 작업은 `show:y`로 제한해 선택·focus·수직 이동을 유지하고 임의 수평 날짜 이동을 방지한다. Context Menu의 `show:false`, 앱 소유 modifier/checkbox/keyboard 선택과 canonical mirror의 기존 의미는 변경하지 않는다. Week에서 이미 보이는 시작을 재클릭할 때 Core의 작은 padding 조정은 허용하되 시작 가시성과 큰 왕복 이동 없음으로 판단한다.
+Issue #852에서 일반 Grid 좌클릭의 목표를 단순 시작 가시성에서 **Grid에 가까운 Chart 왼쪽 시작점 배치**로 구체화한다. canonical start가 있는 Task는 단일 Viewport Coordinator의 명시적 `TASK_REVEAL` 시작점 정렬을 사용한다. 시작점이 현재 viewport 안 오른쪽에 있어도 이동하며, 이미 Chart 왼쪽 한 셀 이내이면 큰 왕복 이동 없이 유지한다. 기준 셀 폭은 Day36px/Week68px이며 새 정렬의 실제 시작점과 Chart edge 차이는 물리 capacity가 허용하는 경우1 CSSpx 이내로 검증한다. 서버 start/end나 오늘을 바꾸지 않는다.
+
+일반 클릭의 선택·focus와 필요한 수직 reveal은 유지하며 좌표 적용은 Coordinator가 소유한다. 동일 gesture의 native show를 구별하여 수평·수직 scroll이 Coordinator와 경쟁하지 않도록 한다. renderer가 임시 anchor를 가진 canonical start=null 작업에는 가짜 날짜 수평 이동을 적용하지 않는다. Context Menu `show:false`, Ctrl/Meta/Shift·checkbox·keyboard 선택과 canonical mirror는 일반 클릭 정렬로 오인하지 않으며 Task Editor의 명시 locate는 기존 별도 의미를 유지한다. 구현·실제 실행 증거와 미검증 조합은 [#852 Work Packet](exec-plans/active/ISSUE_852.md) 및 [단일 실패 원장](ISSUE_852_FAILURE_ANALYSIS.md)을 따른다.
 
 일정에서 상위 peer로 떠날 때 보이는 Gantt의 snapshot·scope/filter·instance·동기화 세대와 viewport를 저장한다. 복귀의 DOM/Public Core 복원은 실제 Grid/Chart pointerdown·wheel·keydown 뒤 취소하며, source·instance·세대·visibility·scale·column/grid 조건이 달라진 오래된 복원을 적용하지 않는다. 양쪽 복원 경로가 같은 경계를 지켜야 하며 Core 진단 marker가 없어지는 것만으로 입력 위치 보존을 판정하지 않는다. 공개 viewport와 native DOM의 실제 값은 각각 확인한다. Production DOM 복원은 snapshot/reset generation/instance/input/geometry를 검사하고 Core 복원은 실제 canonicalSyncVersion ref를 검사한다. DOM sync marker는 기존 개발/test 전용 추가 검사이며 개발 browser 증거를 production marker PASS로 해석하지 않는다. #518의 상위 일정/Milestone 탭 구조와 무입력 복귀·선택/tree/열/scale/인스턴스 보존은 유지한다.
 
@@ -466,6 +468,8 @@ Relation Editor의 관계 추가 검색은 `작업명 / 외부 ID / 작업 ID`�
 Project Gantt의 Day Header/timeline cell은 숫자-only 표현에 맞춰 36px를 사용하고 Week는 68px를 유지한다. 오른쪽 Chart 탐색은 최초 Task 범위에서 끝나지 않으며 공개 `scroll-chart.left`와 `resize-chart.width`를 기준으로 남은 timeline 폭이 작아지면 viewport 단위로 미래 scale을 확장한다. React `start/end` prop을 반복 변경하지 않고 Core가 Task 날짜에서 계산하는 start/open end의 SVAR public resize path를 사용한다. #667 CI #2812 보완부터 고정 left bound를 생략하여 과거의 첫 Task/Milestone도 유효한 날짜축에 포함한다. 초기 오늘 기준 왼쪽 여백은 강제하지 않으며 기존 초기 right extent의 보존 하한은 유지한다.
 
 동적 확장은 UI 전용 상태다. Task/Link/Calendar, Scheduling 결과, revision, DB/API, edit permission을 변경하거나 서버 요청을 만들지 않는다. 사용자가 확보한 미래 end는 단조 증가시키며 canonical sync나 Day/Week 전환 뒤에도 이전 end 이상을 public resize path로 복구한다. range extension 자체가 Core store를 re-init하지 않으므로 Gantt/API instance, horizontal/vertical scroll, tree, column, filter, selection 상태를 불필요하게 초기화하지 않는다.
+
+Issue #852에서 확장 중 연속 수평 wheel로 새 edge까지 도달한 입력을 유실하지 않도록 보완한다. 해당 사용자 입력의 유효 stamp를 한 개만 보류하고 기존 axis transaction이 종료될 때 실제 edge를 한 번 재평가한다. 새 gesture·Task reveal·filter·context가 그 권한을 취소하면 이전 입력을 재생하지 않는다. 보존 end는 실제 Core 관측으로만 증가시키고 승인·정착 전 요청 end를 확보된 범위로 선반영하지 않는다. 실제 end·헤더·native capacity를 Day/Week3회 이상 확인하며 요청 width나 명령 반환만으로 확장 성공을 판단하지 않는다. Shift+세로 wheel의 브라우저별 수평 변환·scrollbar drag·touch 기기의 동일 경합과 실운영 프로젝트는 별도 실행 증거 전 NOT TESTED다.
 
 ## Issue #390 작업 ID 복사
 

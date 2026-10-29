@@ -1,3 +1,9 @@
+## Issue #852 — 탐색 회귀의 추가 관측 (2026-10-29)
+
+SC-09는 Day/Week 각각 Task 없는 미래 구간에서 실제 end와 native scroll capacity가3회 이상 증가하는지 확인한다. 확장 요청/명령 반환과 정착을 구분하고 최신 사용자 입력 이후 오래된 X/Y replay가 없어야 한다. SC-11/12는 기존 peer/scale/scope/filter/fullscreen 상태 보존에 일반 Grid 클릭의 시작점 좌측 배치를 추가한다. 앞/뒤·화면 내부 오른쪽의 실제 시작점 X를 Chart edge와 비교하고 이미 왼쪽 한 셀 이내인 재클릭은 큰 이동이 없어야 한다.
+
+Context Menu `show:false`, modifier/checkbox/keyboard, Editor locate 및 canonical null start는 별도 음성 경계다. 단일 Coordinator·실제 Core/native 허용오차·capacity/hidden/취소 결과는 그대로 유지한다. 이 매핑 자체는 PASS가 아니며 [#852 Work Packet](exec-plans/active/ISSUE_852.md)과 [실패 원장](ISSUE_852_FAILURE_ANALYSIS.md)에 실제 실행 범위·source·미검증 조합을 남긴다.
+
 ## #548 Milestone marker-OFF 기준선/선택 marker-ON 검증 프로파일 (2026-10-15)
 
 [Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)의 **두 단계**를 분리한다. marker-OFF baseline #552/#553/#574에서 SC-01~14의 데이터·Viewport·0행·Instance·Editor·Copy·Resource/Target 보호는 그대로 필수다. 단, SC-12/SC-13의 **상단 lane tick/roving marker focus/마커 날짜 reveal**은 marker OFF에서 '기능 미활성'을 확인하며 marker ON 기술 검증은 후속 #573/#693에서 별도 실행·서명한다. 기초선 테스트에서 마커 ON을 요구하는 오래된 테스트는 삭제/skip으로 감추지 않고, OFF의 DOM/observer/쓰기0·Dashboard 대체 진입·full canonical 보호를 가진 대응 테스트로 전환한다.

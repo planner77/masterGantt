@@ -549,6 +549,7 @@ export function ProjectGantt({
   const inlineNameCauseReference = useRef<InlineNameSubmitCause>("blur");
   const inlineNameVerificationReference = useRef<(() => void) | null>(null);
   const inlineNameIdentityReference = useRef("");
+  const gridStartRevealReference = useRef<string | null>(null);
   const namePointerIntentReference = useRef<{ taskId: string; x: number; y: number } | null>(null);
   const startDatePointerIntentReference = useRef<{ taskId: string; x: number; y: number; cell: HTMLElement } | null>(null);
   const contextPointerTaskIdReference = useRef<string | null>(null);
@@ -1598,6 +1599,8 @@ export function ProjectGantt({
   const [timelineEndMs, setTimelineEndMs] = useState(initialRange.end.getTime());
   const timelineEndReference = useRef(initialRange.end);
   const timelineExtensionFrameReference = useRef<number | null>(null);
+  const timelineExtensionInputReference = useRef<ViewportStamp | undefined>(undefined);
+  const deferredTimelineInputReference = useRef<ViewportStamp | null>(null);
 
   type TimelineState = Readonly<{
     _start?: Date;
@@ -1635,12 +1638,8 @@ export function ProjectGantt({
       return false;
     }
 
-    if (state._end instanceof Date) {
-      const extraCells = Math.ceil((minimumScaleWidth - scaleWidth) / GANTT_CELL_WIDTH[scaleModeReference.current]);
-      const requested = new Date(state._end);
-      requested.setDate(requested.getDate() + extraCells * (scaleModeReference.current === "week" ? 7 : 1));
-      if (requested > timelineEndReference.current) timelineEndReference.current = requested;
-    }
+    // Retain observed coverage only. A rejected or superseded request must
+    // not create a future end that Core never rendered.
     void viewportCoordinatorReference.current?.request({ kind: "RANGE_EXTENSION", width: minimumScaleWidth }, source);
     recordTimelineEnd(api);
     return true;
@@ -1664,11 +1663,20 @@ export function ProjectGantt({
     }));
   }, [expandTimelineScale, recordTimelineEnd]);
 
-  const scheduleTimelineExtension = useCallback((api: IApi): void => {
+  const scheduleTimelineExtension = useCallback((api: IApi, source?: ViewportStamp): void => {
+    if (source) timelineExtensionInputReference.current = source;
     if (timelineExtensionFrameReference.current !== null) return;
     timelineExtensionFrameReference.current = requestAnimationFrame(() => {
       timelineExtensionFrameReference.current = null;
-      if (apiReference.current !== api || viewportPortReference.current?.resizing()) return;
+      const input = timelineExtensionInputReference.current;
+      timelineExtensionInputReference.current = undefined;
+      if (apiReference.current !== api || (input && !viewportCoordinatorReference.current?.isCurrent(input))) return;
+      if (viewportPortReference.current?.resizing()) {
+        // Only a captured forward wheel can defer one edge check. Do not mint
+        // authority or retry a passive/stale resize callback after completion.
+        if (input) deferredTimelineInputReference.current = input;
+        return;
+      }
       const state = api.getState() as TimelineState;
       const retainedWidth = state._start instanceof Date && state._end instanceof Date && state._end < timelineEndReference.current
         ? minimumTimelineScaleWidthForEnd({ start: state._start, end: timelineEndReference.current, scaleMode: scaleModeReference.current }) : 0;
@@ -1682,7 +1690,7 @@ export function ProjectGantt({
       // A second request in this frame would cancel asynchronous recovery of
       // the first request before its geometry observation could complete.
       const minimumWidth = Math.max(retainedWidth, edgeWidth);
-      if (minimumWidth) expandTimelineScale(api, minimumWidth);
+      if (minimumWidth) expandTimelineScale(api, minimumWidth, input);
       else recordTimelineEnd(api);
     });
   }, [expandTimelineScale, recordTimelineEnd]);
@@ -2042,6 +2050,11 @@ export function ProjectGantt({
         columns: JSON.stringify((api.getState().columns ?? []).map(column => [column.id, column.width, column.hidden])) }),
       receipt: () => consistencyReference.current?.dataReady() ? projectionReceiptReference.current : null,
       requestedEnd: () => timelineEndReference.current, recordEnd: () => recordTimelineEnd(api),
+      axisIdle: () => {
+        const source = deferredTimelineInputReference.current;
+        deferredTimelineInputReference.current = null;
+        if (source && viewportCoordinatorReference.current?.isCurrent(source)) scheduleTimelineExtension(api, source);
+      },
       axisSettled: () => {
         // Ordering only: never await projection/viewport completion inside the data queue.
         void canonicalSyncQueueReference.current.then(() => {
@@ -2076,10 +2089,11 @@ export function ProjectGantt({
     for (const action of ["add-task", "update-task", "move-task", "delete-task", "add-link", "update-link", "delete-link"] as const)
       api.on(action, () => { if (canonicalSyncDepthReference.current === 0) { consistency.invalidate(); projectionReceiptReference.current = null; } }, { tag: dirtyTag });
     onViewportController?.({ stamp: coordinator.stamp, isCurrent: coordinator.isCurrent, filterInput: () => { nativeAddContinuityReference.current = null; coordinator.filterInput(); metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null; }, capture: () => { const sample = port.read(); return sample.measurable ? sample : null; }, request: command => {
-      if (command.kind === "TASK_REVEAL" || command.kind === "DATE_REVEAL") { nativeAddContinuityReference.current = null; metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null; }
+      if (command.kind === "TASK_REVEAL" || command.kind === "DATE_REVEAL") { gridStartRevealReference.current = null; nativeAddContinuityReference.current = null; metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null; }
       return coordinator.request(command);
     } });
     const input = (event: Event) => {
+      gridStartRevealReference.current = null;
       if (!(event.target instanceof Element)) return;
       const filter = (event.type === "input" || event.type === "change") && event.target.closest(".project-schedule-filter-toolbar, .project-task-filter-panel");
       if (filter) coordinator.filterInput();
@@ -2087,6 +2101,8 @@ export function ProjectGantt({
         // Density owns one wheel-burst lease. Sub-threshold tail events must
         // not revoke its in-flight anchor; unrelated native input still wins.
         if (!(event instanceof WheelEvent && event.ctrlKey && !event.altKey && !event.metaKey && event.cancelable && isDensityWheelTarget(event.target, root))) coordinator.userInput();
+        if (event instanceof WheelEvent && event.deltaX > 0 && !event.ctrlKey && event.target.closest(".wx-chart"))
+          scheduleTimelineExtension(api, coordinator.stamp());
       }
       else return;
       metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null;
@@ -2106,6 +2122,8 @@ export function ProjectGantt({
       consistency.dispose(); api.detach(dirtyTag);
       if (consistencyReference.current === consistency) consistencyReference.current = null;
       coordinator.dispose(); port.dispose();
+      deferredTimelineInputReference.current = null;
+      timelineExtensionInputReference.current = undefined;
       if (viewportCoordinatorReference.current === coordinator) viewportCoordinatorReference.current = null;
       if (viewportPortReference.current === port) viewportPortReference.current = null;
       for (const event of events) document.removeEventListener(event, input, true);
@@ -3308,6 +3326,12 @@ export function ProjectGantt({
     );
     api.detach("project-null-start-reveal");
     api.intercept("select-task", (event) => {
+      // Ordinary Grid clicks have one coordinator-owned reveal. Keep Core's
+      // native selection, but suppress its independent horizontal show action.
+      if (event.id === gridStartRevealReference.current && event.eventSource !== "project-owned-selection") {
+        event.show = false;
+        gridStartRevealReference.current = null;
+      }
       // A date-less Summary has renderer coordinates, not a schedule start.
       // Preserve native selection/vertical reveal without navigating to that anchor.
       if (event.show === "xy" && typeof event.id === "string" && tasksByIdReference.current.get(event.id)?.start === null) event.show = "y";
@@ -3531,6 +3555,7 @@ export function ProjectGantt({
   }
 
   function handleSelectionPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    gridStartRevealReference.current = null;
     namePointerIntentReference.current = null;
     startDatePointerIntentReference.current = null;
     if (event.button === 2) {
@@ -3576,7 +3601,12 @@ export function ProjectGantt({
     const taskId = match?.taskId ?? nameIntentTaskId ?? startIntentTaskId;
     if (!taskId) return;
     const modifier = event.ctrlKey || event.metaKey;
-    applySelectionGesture(taskId, event.shiftKey ? "range" : modifier ? "toggle" : "single", modifier || event.shiftKey, false);
+    const ordinaryGrid = !modifier && !event.shiftKey && event.target instanceof Element && Boolean(event.target.closest(".wx-table-container"));
+    if (ordinaryGrid) {
+      gridStartRevealReference.current = taskId;
+    }
+    applySelectionGesture(taskId, event.shiftKey ? "range" : modifier ? "toggle" : "single", ordinaryGrid || modifier || event.shiftKey, false);
+    if (ordinaryGrid) void viewportCoordinatorReference.current?.request({ kind: "TASK_REVEAL", taskId, align: "start" });
     if (!modifier && !event.shiftKey) {
       const directCell = startDateCellFrom(event.target);
       const intendedStartClick = directCell !== null || startIntentTaskId === taskId;
