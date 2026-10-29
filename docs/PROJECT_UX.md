@@ -1768,8 +1768,8 @@ KPI 진단에서 공정·WorkArea→owner 공정·설비·물류 시스템 원�
 세부 보존표·검증 상태·문서 영향은 [#732 Work Packet](exec-plans/active/ISSUE_732.md)을 따른다.
 
 
-## Project Issue 상위 탭 (#838–#840, 2026-10-28)
+## Project Issue 상위 탭 (#838–#840, #846, #849, 2026-10-29)
 
 프로젝트 상위 탭은 일정 / **Issue** / 대시보드 / 기준정보다. Issue는 일정/Gantt의 새 Task 유형이 아니라 프로젝트별 독립 문제 원장이다. 생성/상세 편집과 필터·페이지·조회 결과는 Issue 탭 자체가 소유한다. 다른 탭으로 이동해도 기존 Gantt instance와 뷰포트 상태를 보존한다.
 
-Issue 탭: 삭제되지 않은 전체 Issue KPI(필터/페이지와 독립), 제목·내용·등록자·담당자·Task 문자열 검색, 완료 상태 전체/미완료/완료(삭제 옵션 없음), 최신순 5열 목록, 10/20/50/100 페이지 크기. 검색 조건/limit 변경 시 페이지=1. #846: 관련 Task는 Issue 내용보다 위, 별도 링크 미리보기 없음. 신규 등록 시 비밀번호+확인/프로젝트 편집 세션, 보호된 Issue 변경·삭제 시 개별 비밀번호 확인; 레거시 무비밀번호 Issue는 관리자 명시적 초기 설정/재설정 경로 제공. 삭제 confirmation·readonly/pending/error·412/429·Escape/Tab/focus restore, 멀티라인·Task 검색 유지. Gantt 내용·선택·scroll은 변경하지 않는다. [Issue 가이드](PROJECT_ISSUES_USER_GUIDE.md).
+Issue 탭: 삭제되지 않은 전체 Issue 총건수·완료/진행 중/등록 건수·비율(필터/페이지와 독립), 제목·내용·등록자·담당자·Task 문자열 검색, 상태 필터 기본 미완료(등록+진행 중) / 전체 / 등록 / 진행 중 / 완료(삭제 옵션 없음), 최신순 Issue명/상태/담당자/발생일/완료일 5열 목록, 10/20/50/100 페이지 크기. 검색 조건/limit 변경 시 페이지=1. #849: 신규/수정 상태 선택(등록 기본), 완료일은 완료 상태에서만 요구한다. #846: 관련 Task는 Issue 내용보다 위, 별도 링크 미리보기 없음. 신규 등록 시 비밀번호+확인/프로젝트 편집 세션, 보호된 Issue 변경·삭제 시 개별 비밀번호 확인; 레거시 무비밀번호 Issue는 관리자 명시적 초기 설정/재설정 경로 제공. 삭제 confirmation·readonly/pending/error·412/429·Escape/Tab/focus restore, 멀티라인·Task 검색 유지. Gantt 내용·선택·scroll은 변경하지 않는다. [Issue 가이드](PROJECT_ISSUES_USER_GUIDE.md).

@@ -1,10 +1,17 @@
 
+## Issue #849 — Project Issue 업무 상태 3단계 (2026-10-29)
+
+- **현재 Issue 상태 Source of Truth**: 업무 `issue_status=registered|in_progress|completed`(화면: 등록/진행 중/완료), 별도 논리 삭제 `lifecycle_state=ACTIVE|DELETED`(#846). 삭제는 업무 상태의 4번째 값이 아니며 통상 조회·집계/필터·페이지에서 제외한다. DB migration 0034는 이전 completed=1 → completed, completed=0 → registered(진행 추정 금지); 0032/0033 checksum 및 원본·인증/감사 보존.
+- 등록/수정 폼은 완료 체크박스 대신 3상태 선택(신규 기본 등록), 완료일은 completed에서만 필수·Asia/Seoul 기본값/수동 수정이며 나머지는 NULL. 구 completed boolean/완료일과 상태는 API 검증+SQLite trigger로 동기화; 기존 완료 API 소비자에 한해 상태 입력 생략을 호환 지원한다.
+- Issue 목록 최초/초기화 필터는 **open=등록+진행 중**, 서버 API status 생략은 기존 **all** 유지. 명시 상태 필터 `open|all|registered|in_progress|completed`, 상태 열, 상태별 전체/완료/진행 중/등록 건수·비율(검색·페이지 무관 동일 read snapshot, T=C+P+R, 0건 0.0%)을 제공한다. GitHub 이슈/Task/Milestone status에는 적용하지 않는다.
+- #846의 POST Project 편집 세션, PATCH/DELETE 개별 Issue 비밀번호, private read gate·Origin/If-Match·revision/로그/Rate Limit·기존 Project/Gantt 무변경 규정은 그대로 유지. [#849 Work Packet](docs/exec-plans/active/ISSUE_849.md), [Issue 가이드](docs/PROJECT_ISSUES_USER_GUIDE.md), DESIGN.md를 적용하며 실제 PR CI 검증 전은 NOT TESTED.
+
 ## Issues #838–#840 — Project Issue 탭 및 Issue 원장 (2026-10-28)
 
 - Project Issue는 GitHub 개발 Issue 및 WBS Task/Milestone과 다른 **프로젝트 범위의 독립 원장**이다. 일정 옆 네 번째 상위 peer 순서는 **일정 / Issue / 대시보드 / 기준정보**다. WBS 원본·Task 상태·Gantt scroll/selection/scale은 탭 전환만으로 변경하지 않는다.
 - **#838–#840 최초 계약(역사 기록):** 등록/수정 모두 Project edit session을 요구했으며 #846의 후속 변경에 따라 수정/삭제의 현재 기준은 아래 항목을 따른다.
 - **#846 변경(신규 표준)**: Issue **등록(POST)** 만 Project edit session 필요; 보호된 Issue **수정/논리 삭제(PATCH/DELETE)** 는 해당 Issue 비밀번호로 인증하고 Project edit session을 우회 자격으로 사용하지 않는다. 읽기는 공개/비공개 Project 기존 read gate를 유지한다. 신규 비밀번호는 검증된 개별 salt·scrypt 저장, 원문은 URL/GET/로그/Local Storage에 기록하지 않는다. 기존 무비밀번호 Issue는 Project edit session+현재 Project 편집 비밀번호로 명시적 최초 설정/재설정 후에만 쓰기 가능하며 감사한다. Origin·strong If-Match·transaction credential/revision 재확인·rate limit·조회/KPI DELETED 제외를 강제한다. 참조: [#846 Work Packet](docs/exec-plans/active/ISSUE_846.md).
-- 서버가 등록/수정 시간을 소유한다. 발생일 기본값/완료 체크 시 자동 일자는 Asia/Seoul이며 완료 체크·완료일은 불변식으로 처리한다. Task·Resource 선택 시 프로젝트·원본 ID를 검사한다. 삭제 시 FK 연결 해제와 작성 당시 이름/텍스트 보존을 구분한다.
+- 서버가 등록/수정 시간을 소유한다. 발생일 기본값/완료 상태 선택 시 완료일 기본값은 Asia/Seoul이며 신규 3상태와 완료일의 불변식을 서버에서 검증한다. Task·Resource 선택 시 프로젝트·원본 ID를 검사한다. 삭제 시 FK 연결 해제와 작성 당시 이름/텍스트 보존을 구분한다.
 - 조회는 전체 분모 기반 KPI와 검색 결과 수를 구분하며 페이지당 10/20/50/100; 내용의 HTTP(S) 링크는 React 이스케이프와 프로토콜 검사로만 렌더링한다. 기존 DESIGN.md compact controls/name-first/focus/scroll-owner와 Project Workspace 상태 계약을 상속한다.
 - 통합 구현 #838/#839/#840, 동일 PR, **정식 GHCR 최종 1회 및 일괄 종료**. QA OWNER_MANAGED는 독립 인간 리뷰 의무를 대체할 뿐 실제 Required Quality/E2E8/Docker·Trusted QA·P1/P2 미해결 thread 0·strict main·원본 Main CI/OCI/Release Finalizer·Owner exact-version 승인·버그 수정은 우회하지 않는다. 세부 계약 [통합 Work Packet](docs/exec-plans/active/ISSUE_838_840.md), [사용자 가이드](docs/PROJECT_ISSUES_USER_GUIDE.md), [QA](docs/QA_REVIEW_POLICY.md).
 

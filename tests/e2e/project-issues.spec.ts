@@ -31,13 +31,15 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
       const size = Number(url.searchParams.get("limit") ?? 20);
       const targetPage = Number(url.searchParams.get("page") ?? 1);
       const matching = records.filter(record =>
-        (status === "all" || (status === "completed" ? record.completed : !record.completed)) &&
+        (status === "all" || (status === "open" ? record.status !== "completed" : record.status === status)) &&
         [record.title, record.description, record.reporterName, record.assigneeName, record.relatedTaskText]
           .some(text => text.toLocaleLowerCase().includes(query)));
       const total = records.length;
       await route.fulfill({ json: { data: {
         projectRevision: state.project.revision,
-        summary: { total, completed: records.filter(record => record.completed).length },
+        summary: { total, completed: records.filter(record => record.status === "completed").length,
+          inProgress: records.filter(record => record.status === "in_progress").length,
+          registered: records.filter(record => record.status === "registered").length },
         total: matching.length, page: targetPage, limit: size,
         issues: matching.slice((targetPage - 1) * size, targetPage * size),
       } } });
@@ -59,7 +61,8 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
       if (candidate !== issuePassword || body.confirmIssuePassword !== issuePassword) {
         await route.fulfill({ status: 400, json: { error: { code: "INVALID_ISSUE" } } }); return;
       }
-      const created: ProjectIssueDto = { ...input, credentialState: "protected",
+      const created: ProjectIssueDto = { ...input,
+        status: input.status ?? (input.completed ? "completed" : "registered"), credentialState: "protected",
         issueId: randomUUID(), createdAt: timestamp, updatedAt: timestamp,
       };
       passwords.set(created.issueId, candidate);
@@ -105,7 +108,10 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await tabs.getByRole("tab", { name: "Issue", exact: true }).click();
   const workspace = page.getByTestId("project-issue-workspace");
   await expect(workspace).toBeVisible();
-  await expect(workspace.getByText("완료 0 / 전체 0")).toBeVisible();
+  const kpis = workspace.getByRole("status", { name: "전체 Issue 상태별 현황" });
+  await expect(kpis).toContainText("전체0건");
+  await expect(kpis).toContainText("등록0건");
+  await expect(workspace.locator("#project-issue-status")).toHaveValue("open");
   await workspace.getByRole("button", { name: "Issue 등록", exact: true }).click();
   const editor = workspace.getByRole("dialog", { name: "Issue 등록" });
   await editor.getByLabel("Issue 명").fill("장비 점검 요청");
@@ -121,40 +127,57 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
     Node.DOCUMENT_POSITION_FOLLOWING)).toBeTruthy();
   await editor.getByRole("button", { name: "Task 검색" }).click();
   await editor.locator("#project-issue-task-picker button").first().click();
-  await editor.getByLabel("완료", { exact: true }).check();
+  await expect(editor.getByLabel("상태", { exact: true })).toHaveValue("registered");
+  await editor.getByLabel("상태", { exact: true }).selectOption("completed");
   await expect(editor.getByLabel("완료일")).not.toHaveValue("");
   await editor.getByLabel("Issue 비밀번호 *").fill(issuePassword);
   await editor.getByLabel("Issue 비밀번호 확인 *").fill(issuePassword);
   await editor.getByRole("button", { name: "등록", exact: true }).click();
-  await expect(workspace.getByText("완료 1 / 전체 1")).toBeVisible();
+  await expect(kpis).toContainText("완료1건");
+  await expect(kpis).toContainText("전체1건");
   expect(postCount).toBe(1);
+  await expect(workspace.getByText("검색 결과 0건")).toBeVisible();
+  await workspace.locator("#project-issue-status").selectOption("completed");
   await expect(workspace.getByRole("row", { name: /장비 점검 요청/ })).toBeVisible();
   await workspace.getByRole("button", { name: "장비 점검 요청" }).click();
   const detail = workspace.getByRole("dialog", { name: "Issue 상세 및 수정" });
   await expect(detail.getByLabel("등록일")).toHaveValue("2026-10-28");
-  await detail.getByLabel("완료", { exact: true }).uncheck();
+  await detail.getByLabel("상태", { exact: true }).selectOption("registered");
   await expect(detail.getByLabel("완료일")).toBeDisabled();
   await detail.getByLabel("Issue 비밀번호 (수정·삭제 시 필요)").fill("WrongPassword123");
   await detail.getByRole("button", { name: "수정 저장" }).click();
   await expect(detail.getByRole("alert")).toContainText("password");
   await detail.getByLabel("Issue 비밀번호 (수정·삭제 시 필요)").fill(issuePassword);
   await detail.getByRole("button", { name: "수정 저장" }).click();
-  await expect(workspace.getByText("완료 0 / 전체 1")).toBeVisible();
+  await expect(kpis).toContainText("완료0건");
+  await expect(kpis).toContainText("등록1건");
+  await workspace.locator("#project-issue-status").selectOption("open");
+  await expect(workspace.getByText("검색 결과 1건")).toBeVisible();
 
   await workspace.getByLabel("검색", { exact: true }).fill("미존재");
   await workspace.getByRole("button", { name: "검색", exact: true }).click();
   await expect(workspace.getByText("검색 결과 0건")).toBeVisible();
-  await expect(workspace.getByText("완료 0 / 전체 1")).toBeVisible();
+  await expect(kpis).toContainText("완료0건");
+  await expect(kpis).toContainText("전체1건");
   await workspace.getByLabel("페이지당").selectOption("10");
   await expect(workspace.getByText("1 / 1 페이지")).toBeVisible();
   await workspace.getByRole("button", { name: "초기화" }).click();
   await expect(workspace.getByText("검색 결과 1건")).toBeVisible();
+  await expect(workspace.locator("#project-issue-status")).toHaveValue("open");
+  await workspace.getByRole("button", { name: "장비 점검 요청" }).click();
+  const progressing = workspace.getByRole("dialog", { name: "Issue 상세 및 수정" });
+  await progressing.getByLabel("상태", { exact: true }).selectOption("in_progress");
+  await progressing.getByLabel("Issue 비밀번호 (수정·삭제 시 필요)").fill(issuePassword);
+  await progressing.getByRole("button", { name: "수정 저장" }).click();
+  await expect(kpis).toContainText("진행 중1건");
+  await expect(kpis).toContainText("등록0건");
+  await expect(workspace.getByRole("row", { name: /장비 점검 요청/ })).toContainText("진행 중");
   await workspace.getByRole("button", { name: "장비 점검 요청" }).click();
   const deletion = workspace.getByRole("dialog", { name: "Issue 상세 및 수정" });
   await deletion.getByLabel("Issue 비밀번호 (수정·삭제 시 필요)").fill(issuePassword);
   await deletion.getByRole("button", { name: "Issue 삭제…" }).click();
   await deletion.getByRole("button", { name: "삭제 확인" }).click();
-  await expect(workspace.getByText("완료 0 / 전체 0")).toBeVisible();
+  await expect(kpis).toContainText("전체0건");
   await expect(workspace.getByRole("button", { name: "장비 점검 요청" })).toHaveCount(0);
   // #846: real viewport geometry (including 390px content-box overflow regression),
   // keyboard accessibility and focus restoration on close.

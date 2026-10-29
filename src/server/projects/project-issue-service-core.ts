@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 import type {
   ProjectIssueDto, ProjectIssueInput, ProjectIssueListResponse,
-  ProjectIssueMutationResponse, ProjectIssueQuery,
+  ProjectIssueMutationResponse, ProjectIssueQuery, ProjectIssueStatus,
 } from "../../contracts/project-issues";
 import { PublicApiError } from "../http/api-error-core";
 import { isCanonicalUuidV4, parseUnlockProjectInput } from "../projects/project-contract";
@@ -18,6 +18,7 @@ interface IssueRow {
   assignee_resource_public_id: string | null; occurred_on: string; completed: number;
   completed_on: string | null; related_task_public_id: string | null;
   related_task_text: string; created_at: string; updated_at: string;
+  issue_status: ProjectIssueStatus;
   lifecycle_state: "ACTIVE" | "DELETED"; deleted_at: string | null;
   credential_state: "UNSET" | "ACTIVE"; credential_version: number;
   password_kdf: string | null; password_salt: Buffer | null; password_hash: Buffer | null;
@@ -34,7 +35,8 @@ function dto(row: IssueRow): ProjectIssueDto {
     credentialState: row.credential_state === "ACTIVE" ? "protected" : "unconfigured",
     reporterName: row.reporter_name, reporterResourceId: row.reporter_resource_public_id,
     assigneeName: row.assignee_name, assigneeResourceId: row.assignee_resource_public_id,
-    occurredOn: row.occurred_on, completed: row.completed === 1, completedOn: row.completed_on,
+    occurredOn: row.occurred_on, status: row.issue_status,
+    completed: row.completed === 1, completedOn: row.completed_on,
     relatedTaskId: row.related_task_public_id, relatedTaskText: row.related_task_text,
     createdAt: row.created_at, updatedAt: row.updated_at,
   };
@@ -76,10 +78,17 @@ export function parseProjectIssueInput(raw: unknown): ProjectIssueInput {
   const data = objectBody(raw);
   const keys = ["title", "description", "reporterName", "reporterResourceId", "assigneeName",
     "assigneeResourceId", "occurredOn", "completed", "completedOn", "relatedTaskId", "relatedTaskText"];
-  if (Object.keys(data).length !== keys.length || Object.keys(data).some(key => !keys.includes(key))) invalid();
+  const hasStatus = Object.prototype.hasOwnProperty.call(data, "status");
+  if (Object.keys(data).length !== keys.length + (hasStatus ? 1 : 0) ||
+      Object.keys(data).some(key => !keys.includes(key) && key !== "status")) invalid();
   if (typeof data.completed !== "boolean") invalid();
+  const status: ProjectIssueStatus = hasStatus ? data.status as ProjectIssueStatus :
+    (data.completed ? "completed" : "registered");
+  if (!["registered", "in_progress", "completed"].includes(status))
+    invalid("Issue 상태를 확인해 주세요.");
   const completedOn = data.completedOn === null ? null : dateField(data.completedOn);
-  if (data.completed !== (completedOn !== null)) invalid("완료 여부와 완료일을 함께 지정해 주세요.");
+  if ((status === "completed") !== data.completed || data.completed !== (completedOn !== null))
+    invalid("Issue 상태·완료 여부·완료일을 함께 지정해 주세요.");
   return {
     title: textField(data.title, 160, true),
     description: textField(data.description, 4000),
@@ -88,6 +97,7 @@ export function parseProjectIssueInput(raw: unknown): ProjectIssueInput {
     assigneeName: textField(data.assigneeName, 120),
     assigneeResourceId: reference(data.assigneeResourceId),
     occurredOn: dateField(data.occurredOn),
+    status,
     completed: data.completed,
     completedOn,
     relatedTaskId: reference(data.relatedTaskId),
@@ -150,7 +160,7 @@ export function parseProjectIssueQuery(params: URLSearchParams): ProjectIssueQue
   for (const key of params.keys()) if (!allowed.has(key) || params.getAll(key).length !== 1) invalid("검색 조건이 올바르지 않습니다.");
   const q = params.get("q") ?? "", status = params.get("status") ?? "all";
   const p = params.get("page") ?? "1", l = params.get("limit") ?? "20";
-  if (Array.from(q).length > 160 || !["all", "open", "completed"].includes(status) ||
+  if (Array.from(q).length > 160 || !["all", "open", "registered", "in_progress", "completed"].includes(status) ||
     !/^[1-9]\d*$/.test(p) || !["10", "20", "50", "100"].includes(l) ||
     !Number.isSafeInteger(Number(p)) || Number(p) > 100000) invalid("검색 조건이 올바르지 않습니다.");
   return { q: q.trim(), status: status as ProjectIssueQuery["status"],
@@ -201,12 +211,17 @@ export class ProjectIssueService {
     return this.database.transaction(() => {
       const project = this.projects.findByPublicId(publicId);
       if (!project) throw new PublicApiError(404, "PROJECT_NOT_FOUND", "프로젝트를 찾을 수 없습니다.");
-      const summary = this.database.prepare(
-        "SELECT COUNT(*) AS total, COALESCE(SUM(completed), 0) AS completed FROM project_issues WHERE project_id = ? AND lifecycle_state = 'ACTIVE'"
-      ).get(project.id) as { total: number; completed: number };
+      const summary = this.database.prepare(`
+        SELECT COUNT(*) AS total,
+          COALESCE(SUM(CASE WHEN issue_status='completed' THEN 1 ELSE 0 END), 0) AS completed,
+          COALESCE(SUM(CASE WHEN issue_status='in_progress' THEN 1 ELSE 0 END), 0) AS inProgress,
+          COALESCE(SUM(CASE WHEN issue_status='registered' THEN 1 ELSE 0 END), 0) AS registered
+        FROM project_issues WHERE project_id = ? AND lifecycle_state = 'ACTIVE'
+      `).get(project.id) as ProjectIssueListResponse["data"]["summary"];
       const where = ["project_id = @projectId", "lifecycle_state = 'ACTIVE'"];
       const params: Record<string, unknown> = { projectId: project.id };
-      if (query.status !== "all") where.push("completed = " + (query.status === "completed" ? "1" : "0"));
+      if (query.status === "open") where.push("issue_status != 'completed'");
+      else if (query.status !== "all") { where.push("issue_status = @issueStatus"); params.issueStatus = query.status; }
       if (query.q) { params.q = query.q; where.push("(instr(lower(title),lower(@q)) > 0 OR instr(lower(description),lower(@q)) > 0 OR instr(lower(reporter_name),lower(@q)) > 0 OR instr(lower(assignee_name),lower(@q)) > 0 OR instr(lower(related_task_text),lower(@q)) > 0)"); }
       const predicate = where.join(" AND ");
       const total = (this.database.prepare("SELECT COUNT(*) AS count FROM project_issues WHERE " + predicate)
@@ -279,8 +294,12 @@ export class ProjectIssueService {
     };
   }
   private issueParams(projectId: number, input: ProjectIssueInput, issueId: string, nowText: string) {
+    // Keep the new status in a single SQL parameter, without passing the
+    // transport-only "status" key to better-sqlite3's strict named binding.
+    const { status, ...fields } = input;
     return {
-      projectId, ...input, completed: input.completed ? 1 : 0,
+      projectId, ...fields, issueStatus: status ?? (input.completed ? "completed" : "registered"),
+      completed: input.completed ? 1 : 0,
       issueId, createdAt: nowText, updatedAt: nowText,
     };
   }
@@ -296,12 +315,12 @@ export class ProjectIssueService {
       const now = (this.options.clock ?? (() => new Date()))();
       const nowText = now.toISOString();
       const project = this.current(authorization, expectedRevision, now);
-      const input = this.resolveInput(project.id, rawInput);
+      const input = this.resolveInput(project.id, parseProjectIssueInput(rawInput));
       const issueId = (this.options.generateId ?? randomUUID)();
       if (!isCanonicalUuidV4(issueId)) invalid("Issue ID가 올바르지 않습니다.");
       const params = { ...this.issueParams(project.id, input, issueId, nowText), ...passwordSql(hashed) };
       this.database.prepare(
-        "INSERT INTO project_issues(public_id, project_id, title, description, reporter_name, reporter_resource_public_id, assignee_name, assignee_resource_public_id, occurred_on, completed, completed_on, related_task_public_id, related_task_text, created_at, updated_at, credential_state, credential_version, password_kdf, password_salt, password_hash, scrypt_n, scrypt_r, scrypt_p, scrypt_key_length) VALUES(@issueId,@projectId,@title,@description,@reporterName,@reporterResourceId,@assigneeName,@assigneeResourceId,@occurredOn,@completed,@completedOn,@relatedTaskId,@relatedTaskText,@createdAt,@updatedAt,'ACTIVE',1,@passwordKdf,@passwordSalt,@passwordHash,@scryptN,@scryptR,@scryptP,@scryptKeyLength)"
+        "INSERT INTO project_issues(public_id, project_id, title, description, reporter_name, reporter_resource_public_id, assignee_name, assignee_resource_public_id, occurred_on, issue_status, completed, completed_on, related_task_public_id, related_task_text, created_at, updated_at, credential_state, credential_version, password_kdf, password_salt, password_hash, scrypt_n, scrypt_r, scrypt_p, scrypt_key_length) VALUES(@issueId,@projectId,@title,@description,@reporterName,@reporterResourceId,@assigneeName,@assigneeResourceId,@occurredOn,@issueStatus,@completed,@completedOn,@relatedTaskId,@relatedTaskText,@createdAt,@updatedAt,'ACTIVE',1,@passwordKdf,@passwordSalt,@passwordHash,@scryptN,@scryptR,@scryptP,@scryptKeyLength)"
       ).run(params);
       return { data: { projectRevision: this.advance(project.id, expectedRevision, nowText),
         issue: dto(this.findIssue(project.id, issueId)) } };
@@ -331,10 +350,10 @@ export class ProjectIssueService {
       const nowText = (this.options.clock ?? (() => new Date()))().toISOString();
       const project = this.currentReadProject(publicId, expectedRevision, readAuthorization);
       this.requireUnchangedIssue(project.id, issueId, initial);
-      const input = this.resolveInput(project.id, rawInput);
+      const input = this.resolveInput(project.id, parseProjectIssueInput(rawInput));
       const params = this.issueParams(project.id, input, issueId, nowText);
       const result = this.database.prepare(
-        "UPDATE project_issues SET title=@title, description=@description, reporter_name=@reporterName, reporter_resource_public_id=@reporterResourceId, assignee_name=@assigneeName, assignee_resource_public_id=@assigneeResourceId, occurred_on=@occurredOn, completed=@completed, completed_on=@completedOn, related_task_public_id=@relatedTaskId, related_task_text=@relatedTaskText, updated_at=@updatedAt WHERE public_id=@issueId AND project_id=@projectId AND lifecycle_state='ACTIVE'"
+        "UPDATE project_issues SET title=@title, description=@description, reporter_name=@reporterName, reporter_resource_public_id=@reporterResourceId, assignee_name=@assigneeName, assignee_resource_public_id=@assigneeResourceId, occurred_on=@occurredOn, issue_status=@issueStatus, completed=@completed, completed_on=@completedOn, related_task_public_id=@relatedTaskId, related_task_text=@relatedTaskText, updated_at=@updatedAt WHERE public_id=@issueId AND project_id=@projectId AND lifecycle_state='ACTIVE'"
       ).run(params);
       if (result.changes !== 1) throw new PublicApiError(404, "ISSUE_NOT_FOUND", missingMessage);
       return { data: { projectRevision: this.advance(project.id, expectedRevision, nowText),

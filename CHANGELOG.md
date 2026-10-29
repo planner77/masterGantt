@@ -1,3 +1,13 @@
+## [0.138.0] — Unreleased / Issue #849 Project Issue 상태 3단계 (2026-10-29)
+
+### Added
+- 프로젝트 Issue의 업무 상태를 등록/진행 중/완료로 관리한다. 등록 시 상태를 선택하고 수정 시 전환할 수 있으며, 완료일은 완료 상태에서만 유지된다.
+- Issue 목록 기본 필터는 등록+진행 중이며 전체/각 상태 필터, 상태 열, 전체/완료/진행 중/등록 건수·비율 KPI를 제공한다. 전체 집계는 검색/페이지와 분리하고 논리 삭제 데이터를 제외한다.
+
+### Compatibility / Migration
+- SQLite forward-only migration 0034는 0032/0033 원장을 유지하고 기존 미완료→등록, 완료→완료로 무손실 이관한다. 기존 Issue 인증·논리 삭제, 레거시 completed/completed_on API 호환과 SQLite invariant guard를 보존한다.
+- 변경 범위의 서버·SQLite·브라우저 테스트와 version-0034 migration 소비자 검증을 보강한다. **PR CI·Trusted QA/Main/GHCR/Release는 실제 원격 증거 전 NOT TESTED**; 정식 GHCR 출시는 별도 Owner 승인 필요.
+
 ## [0.137.0] — Unreleased / Issues #838–#840 Project Issue 모듈 (2026-10-28)
 
 ### Added

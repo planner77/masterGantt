@@ -817,3 +817,9 @@ project_issues: id PK, public_id UUID unique, project_id -> projects ON DELETE C
 - schema_migrations 신규 version 33; 기존 32 checksum은 불변. backup/export/restore 시 credentials BLOB, tombstone 상태 및 audit table 포함하는 원본 SQLite byte backup/restore가 필요하다. 운영 Migration/Rollback 검증은 별도 수행하고 새 PR CI 성공만으로 운영 증명을 대체하지 않는다.
 
 참조: [Issue #846 Work Packet](exec-plans/active/ISSUE_846.md), [API](API.md), [Security](SECURITY.md).
+
+## Migration 0034 — Project Issue 업무 상태 3단계 (#849, additive)
+
+`0034_project_issue_business_status.sql`은 기존 0032/0033 체크섬을 변경하지 않고 `project_issues.issue_status TEXT NOT NULL DEFAULT 'registered'` 및 `CHECK (registered|in_progress|completed)`, 상태별 조회 index, INSERT/UPDATE 검증 trigger를 추가한다. 데이터 이관은 `completed=1 → completed`, `completed=0 → registered`; 업무 진행 여부는 이전 DB에 없으므로 임의로 진행 중으로 추정하지 않는다. DELETED row에도 동일하게 backfill하되 deleted_at, credential_state/hash/salt/audit·작성/수정 시각·Issue/Task/Resource 연결은 유지한다.
+
+신규/수정 SQL은 `issue_status`와 레거시 `completed`, `completed_on`을 같은 transaction에서 기록한다. `status=completed ↔ completed=1 ↔ completed_on IS NOT NULL`를 trigger와 기존 CHECK로 강제하고 등록/진행 중은 completed=0/완료일 NULL이다. 서버 조회는 `lifecycle_state='ACTIVE'`만 모집단으로 삼고 전체/상태별 COUNT와 검색·page count/rows를 단일 deferred SQLite read transaction에서 계산한다. `open` 필터는 registered+in_progress; API status 생략은 기존 all로 남긴다. 원본 파일 reopen, 0033 checksum·DB payload 무손실 비교, FK, 중복 migration 실행 및 guard 음성 케이스는 #849 테스트에 추가한다. 운영 Migration과 rollback/복구는 배포 승인을 받은 뒤 별도 검증한다.
