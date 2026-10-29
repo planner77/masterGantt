@@ -1,3 +1,11 @@
+## Issue #854 — Project Issue read-authorized POST와 Task Editor handoff
+
+현행 Issue 등록의 서버 권한은 Project **read gate**이며 Project edit session을 요구하지 않는다. 공개 Project 조회자는 개별 비밀번호를 지정해 등록할 수 있고, 비공개 Project는 기존 세션 조회 권한이 필요하다. Route `project-issue-handlers-core`의 Origin·strong If-Match·JSON 제한 다음에 전체/Project별 Issue POST limiter를 적용한다. `ProjectIssueService.create(publicId,...,readAuthorization)`는 비동기 scrypt 해싱 후 SQLite IMMEDIATE transaction에서 현재 프로젝트 visibility·비공개 read-session·revision 및 Task/Resource FK 소속을 재확인한다. Project CAS revision 전진은 유지한다. 별도의 Project edit 우회 기능은 없다.
+
+프런트엔드 `project-readonly-view`가 Task Editor → Issue 등록 form → 원래 Task Editor 복귀를 중재한다. 현재 Task canonical UUID/name을 단일 기존 `project-issue-workspace`의 생성 폼에 초기 지정하고 변경·연결해제·자유입력을 허용한다. 새 Task/Issue 저장소를 만들지 않으며 dirty/pending 초안은 이동 중 삭제하지 않는다. Task Editor native dialog를 닫은 후 Issue form을 여는 단일 modal owner 정책, 성공 후 canonical refresh 및 Task Editor 재개, SVAR API/viewport 불변을 적용한다. 별도 migration 없음. #846 보호 PATCH/DELETE/credential recovery, #849 상태/KPI는 동일하다.
+
+검증 계약과 남은 운영 제한: [#854 Work Packet](exec-plans/active/ISSUE_854.md).
+
 ## Issue #809 — 서버 분석 seam과 차트 consumer
 
 기존 WBS query의 opt-in Resource 분석은 canonical snapshot을 읽는 동일 transaction에서 #808 `buildResourceAnalysis`를 호출한다. 정규 필터·현재 projection의 Task/Assignment와 개인 조건 이전 T0 진단·task identity를 sourceScope에 넣고 sourceContext/snapshot/revision/fetch generation을 결속한다. 기존 요청의 기본 응답은 유지하며 client에서 원장을 재구성하거나 별도 DB/route/공수·Calendar 엔진을 만들지 않는다.
@@ -628,7 +636,7 @@ Milestone 날짜는 Dashboard 상세/정확한 소속 Task 경로로 안내하�
 
 프로젝트 뷰 Host(project-readonly-view)는 상위 schedule/issue/dashboard/master navigation을 소유한다. 새 ProjectIssueWorkspace는 상위 canonical ProjectTaskDto를 **검색 후보로만** 읽고, Issue 목록/필터/폼은 별도 fetch를 사용해 Project Gantt 상태를 변경하지 않는다. taskId/resourceId와 자유입력 문구를 분리한다.
 
-- DB: 0032_project_issues.sql 원장 유지 + additive **0033_project_issue_credentials_soft_delete.sql**: legacy UNSET 또는 scrypt ACTIVE credential, credential_version, lifecycle_state ACTIVE/DELETED, deleted_at, visible 인덱스, 검증 trigger, 별도 project_issue_credential_audit. Project delete FK CASCADE와 Issue tombstone은 독립. ProjectIssueService는 기존 ProjectRepository/EditSessionRepository를 POST 및 credential recovery 재확인에만 사용하며, Issue-only PATCH/DELETE는 별도 per-Issue KDF+credential fingerprint 및 프로젝트 read grant+revision CAS를 재검증한다. Resource/Task의 원본 FK 삭제는 ID만 NULL.
+- DB: 0032_project_issues.sql 원장 유지 + additive **0033_project_issue_credentials_soft_delete.sql**: legacy UNSET 또는 scrypt ACTIVE credential, credential_version, lifecycle_state ACTIVE/DELETED, deleted_at, visible 인덱스, 검증 trigger, 별도 project_issue_credential_audit. Project delete FK CASCADE와 Issue tombstone은 독립. ProjectIssueService는 POST에 Project read-grant/revision 재확인을 사용하고 ProjectRepository/EditSessionRepository의 edit-session 검증은 credential recovery에만 사용하며, Issue-only PATCH/DELETE는 별도 per-Issue KDF+credential fingerprint 및 프로젝트 read grant+revision CAS를 재검증한다. Resource/Task의 원본 FK 삭제는 ID만 NULL.
 - HTTP: `project-issue-handlers-core` + `GET/POST /api/projects/{publicId}/issues`, `PATCH/DELETE /api/projects/{publicId}/issues/{issueId}`, `PATCH /api/projects/{publicId}/issues/{issueId}/credential` route. withApiRequestLogging/project-scoped read guard·Origin·bounded JSON·strong If-Match 유지. KDF는 SQLite transaction 이전 비동기로 계산하고 직후 IMMEDIATE transaction에서 credential version과 project revision/비공개 read authorization을 재확인한다. 변경 시 Project revision은 WBS와 공유하므로 서로 충돌 412 가능하지만 Issue 전용 암호로 WBS mutation은 불가.
 - #849: additive 0034 issue_status(registered/in_progress/completed), 기존 completed/완료일 일치 trigger 및 상태별 index 추가. GET 전체/완료/진행 중/등록 요약은 삭제 제외 동일 SQLite read transaction; 검색/목록은 독립 조건·LIMIT/OFFSET. 클라이언트는 기본 status=open(등록+진행 중) 명시, 서버 status 미지정 기본 all 유지. 해당 Issue 생성·수정으로 Project revision이 변경되며 기존 canonical reload를 요청한다.
 - QA/통합/문서 링크: [Work Packet](exec-plans/active/ISSUE_838_840.md) 및 [사용자 가이드](PROJECT_ISSUES_USER_GUIDE.md).
