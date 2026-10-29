@@ -2,6 +2,12 @@
 
 Milestone은 native WBS Grid 행/inline 편집에 존재하지 않는다. 독립 Dashboard 관리/소속 Task에서 **같은 canonical Editor**로 상세·관계·완료/재개를 수행하며 readiness, 전체 소속·완료 잠금·If-Match·readonly와 origin/revision 정책은 동일하다. Export는 현재 화면 모양과 원본 데이터 출력이 다를 수 있다. [사용자 가이드](MILESTONE_USER_GUIDE.md) / [#553 추적표](MILESTONE_TIMELINE_TRACEABILITY.md).
 
+## Issue #854 — Task Editor에서 프로젝트 Issue 등록
+
+공통 Task Editor의 **작업 정보** footer에 읽기 전용 모드에서도 `Issue 등록`을 제공한다. Task 초안이 dirty/awaiting/pending/stale면 해당 이동 명령을 잠그고 미저장 값을 자동 폐기하지 않는다. 정상이면 현재 Task의 canonical taskId와 이름을 Project Workspace의 기존 Issue 등록 폼에 초깃값으로 전달한다. `관련 Task`는 연결 해제·다른 Task 검색·수동 자유 텍스트로 언제든 바꿀 수 있으며, Task PATCH·resource assignment·Gantt 원본 수정 없이 Issue POST만 수행한다.
+
+두 modal을 동시에 쌓지 않는다. 원래 Task Editor native dialog를 닫고 Issue 등록 작업면의 기존 form을 열며 등록·취소 후 Task Editor를 현재 canonical revision으로 재개한다. **#854 P1 교정**: 새 Issue 저장 후 GET의 비동기 처리 전/중에 handoff 소유권을 해제하면 다른 Task 편집을 시작한 사용자의 미저장 초안을 덮어쓰므로, GET 결과와 정확 작업/프로젝트/세대 확인이 끝날 때까지 다른 Editor·탭·Issue 입력을 잠근다. 지연 안내는 role=status로 표시하고 GET 실패 시 소유권을 해제하되 이전 Editor 자동 재개는 하지 않는다. Issue 저장 성공 뒤 원본 project snapshot 갱신이 실패했다면 자동으로 오래된 Task Editor를 열지 않고 안내한다. 390/768/1024/1440/1920px·readonly·dirty·focus/Escape·Task UUID/이름 스냅샷 회귀는 [#854 검증 매핑](exec-plans/active/ISSUE_854.md)을 따른다.
+
 ## Issue #792 F792-001 — Legacy scope PATCH 동안 Task Editor 전역 잠금
 
 첫 PR #795의 P1 코드 리뷰는 legacy 직접 source PATCH의 로컬 `busy`가 상위 Task Editor 잠금에 반영되지 않아 사용자 Task 이름·Resource/직접 설비/System 초안과 탭 탐색을 새 `reload(true)`가 무확인 폐기할 수 있다는 위험을 지적했다. `LegacyBindingScopeEditor`가 **PATCH 시작 이전부터 응답 검증과 `onApplied()/canonical reload` 완료까지** `onPendingChange(true)`를 전파하며 finally에서 false로 해제한다. `TaskLogisticsLinkEditor`는 원래 직접 writer `saving`과 새 `legacyScopePending`의 논리합으로 기존 상위 `ProjectTaskEditor.locked`/잠금 상태를 유지한다.

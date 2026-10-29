@@ -11,7 +11,8 @@ import { parseEditSessionCookie } from "../security/cookie-core";
 import { projectSessionFromCookie } from "../security/project-read-access-core";
 import { ConfigurationError, isExactAllowedOrigin, parseApplicationBaseUrl } from "../security/origin-core";
 import { PasswordHashCapacityError } from "../security/password-core";
-import { issuePasswordGlobalRateLimiter, issuePasswordPerIssueRateLimiter } from "../security/rate-limit-core";
+import { issuePasswordGlobalRateLimiter, issuePasswordPerIssueRateLimiter,
+  issueCreateGlobalRateLimiter, issueCreateProjectRateLimiter } from "../security/rate-limit-core";
 import type { AuthorizationResult } from "./project-service-core";
 
 type ProjectGateService = {
@@ -50,6 +51,18 @@ function consumePasswordBudget(publicId: string, issueId: string): void {
   if (!global.allowed || !scoped.allowed)
     throw new PublicApiError(429, "ISSUE_PASSWORD_RATE_LIMITED",
       "비밀번호 인증 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.", [],
+      { "Retry-After": String(wait) });
+}
+
+function consumeCreateBudget(publicId: string): void {
+  // No trusted client-IP primitive is available here. Use a global unattributed
+  // budget plus an isolated per-Project budget instead of spoofable XFF headers.
+  const global = issueCreateGlobalRateLimiter.consume("unattributed");
+  const project = issueCreateProjectRateLimiter.consume(publicId);
+  const wait = Math.max(global.retryAfterSeconds, project.retryAfterSeconds);
+  if (!global.allowed || !project.allowed)
+    throw new PublicApiError(429, "ISSUE_CREATE_RATE_LIMITED",
+      "Issue 등록 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.", [],
       { "Retry-After": String(wait) });
 }
 
@@ -101,17 +114,19 @@ export async function handleProjectIssues(
     if (readAccess === "notFound")
       throw new PublicApiError(404, "PROJECT_NOT_FOUND", "프로젝트를 찾을 수 없습니다.");
 
-    // Creation and credential recovery need project-level authority; normal edits never use it.
-    const authorization = isCreate || isManage
+    // Only credential recovery needs Project edit authority. Creating an Issue
+    // requires project read access, never WBS/Task edit permission.
+    const authorization = isManage
       ? requireProjectEditSession(projectService, publicId, token) : null;
-    const readGrant = !isCreate && !isManage ? projectService.authorize(publicId, token) : null;
+    const readGrant = !isManage ? projectService.authorize(publicId, token) : null;
     const readAuthorization = readGrant?.kind === "authorized" ? readGrant.authorization : undefined;
     const revision = parseRequiredIfMatch(request);
     const body = await readBoundedJson(request, 16384);
     let result;
     if (isCreate) {
       const { input, password } = parseIssueCreateRequest(body);
-      result = await service.create(authorization!, revision, input, password);
+      consumeCreateBudget(publicId);
+      result = await service.create(publicId, revision, input, password, readAuthorization);
     } else if (isManage) {
       const data = parseIssueCredentialRequest(body);
       consumePasswordBudget(publicId, issueId!);

@@ -314,6 +314,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setActiveScreen(current => workspaceView(current) === view ? current : legacyWorkspaceScreen(view));
   }
   function selectScreen(screen: WorkspaceScreen, focus = true) {
+    // #854 P1: do not change the focus/view owner while a saved Issue is
+    // reconciling and preparing to restore its original Task Editor.
+    if (taskIssueRestoringReference.current ||
+        (taskIssueRequestReference.current !== null && screen !== "issue")) return;
     if (navigationPending.current || navigationConfirmation.current) cancelNavigationConfirmation();
     if (activeView === "schedule" && screen !== "schedule") capturePeerViewport();
     const section = workspaceSection(screen);
@@ -416,6 +420,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     return () => { context.generation++; };
   }, [publicId]);
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
+  const [taskIssueCreateRequest, setTaskIssueCreateRequest] =
+    useState<{ sequence: number; taskId: string } | null>(null);
+  const taskIssueSequence = useRef(0);
+  // Synchronous ownership guards survive state batching and slow canonical GETs.
+  const taskIssueRequestReference = useRef<typeof taskIssueCreateRequest>(null);
+  const taskIssueRestoringReference = useRef(false);
+  const [taskIssueRestoring, setTaskIssueRestoring] = useState(false);
   const [relationEditorRequest, setRelationEditorRequest] = useState<TaskRelationEditorRequest | null>(null);
   const [editorInitialTab, setEditorInitialTab] = useState<"task" | "memberships" | "relations" | "resources">("task");
   const [editorAssignment, setEditorAssignment] = useState<{assignmentId:string; resourceId:string} | undefined>();
@@ -1359,6 +1370,58 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     }
     if (command === "copy") { void saveTaskHierarchyCommand({ kind: "copy", taskId, anchorTaskId: taskId, placement: "after" }, trigger); return; }
     if (task.status !== "completed") requestTaskDelete(taskId, trigger, true);
+  }
+  function createIssueFromTask(taskId: string) {
+    if (state.status !== "ready" || editorSession?.task.taskId !== taskId ||
+      busy || canonicalRecoveryBlocked || taskIssueCreateRequest ||
+      taskIssueRequestReference.current) return;
+    // The Task Editor requires a clean draft. Retain its opening guard until
+    // the Issue dialog closes AND any canonical reload has completed.
+    const request = { sequence: ++taskIssueSequence.current, taskId };
+    taskIssueRequestReference.current = request;
+    editorOpeningReference.current = true;
+    setEditorSession(null);
+    setTaskIssueCreateRequest(request);
+    selectScreen("issue", false);
+  }
+  async function finishTaskIssueCreate(saved: boolean) {
+    const request = taskIssueRequestReference.current;
+    if (!request || taskIssueRestoringReference.current) return;
+    // #854 P1: never expose the old Task to a new editor while GET is pending.
+    // Keep the Issue peer visible and all mutation/navigation controls blocked.
+    taskIssueRestoringReference.current = true;
+    setTaskIssueRestoring(true);
+    let reopened = false;
+    try {
+      if (saved && !(await reloadCanonicalSnapshot())) {
+        notify("error", "Issue는 저장되었지만 최신 프로젝트 조회에 실패했습니다. 작업 정보를 다시 열어 주세요.", "Issue 등록");
+        return;
+      }
+      // An outdated async completion must not overwrite a newer owner.
+      if (taskIssueRequestReference.current !== request ||
+          taskIssueSequence.current !== request.sequence) return;
+      const snapshot = confirmedSnapshotReference.current;
+      const task = snapshot?.data.tasks.find(item => item.taskId === request.taskId);
+      if (!snapshot || snapshot.data.project.publicId !== publicId || !task) {
+        notify("error", "원래 Task를 찾지 못했습니다. 일정에서 다시 선택해 주세요.", "Issue 등록");
+        return;
+      }
+      setEditorInitialTab("task");
+      setEditorAssignment(undefined);
+      setActiveScreen(editorOriginScreenReference.current);
+      setEditorSession({ task: { ...task }, calendar: snapshot.data.project.calendar,
+        revision: snapshot.data.project.revision });
+      reopened = true;
+    } finally {
+      if (taskIssueRequestReference.current === request) {
+        taskIssueRequestReference.current = null;
+        setTaskIssueCreateRequest(null);
+        taskIssueRestoringReference.current = false;
+        setTaskIssueRestoring(false);
+        // A newly opened Task Editor owns the guard until its normal close.
+        if (!reopened) editorOpeningReference.current = false;
+      }
+    }
   }
   function closeTaskEditor() {
     finishTaskEditor(true);
@@ -2941,7 +3004,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     (!normalizedTargetQuery || [target.name, target.code ?? ""].some((value) => value.toLocaleLowerCase().includes(normalizedTargetQuery)))
   );
   const editing = permission === "edit" && permissionCheckState === "complete";
-  const busy = canonicalRecoveryBlocked || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask || importPending || copyReview !== null || milestoneCreate !== null;
+  const busy = canonicalRecoveryBlocked || taskIssueRestoring || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask || importPending || copyReview !== null || milestoneCreate !== null;
   // #556 F-003: a modal must not resize the background Gantt merely by
   // replacing an inline selection hint with a much longer dialog-blocked hint.
   // Keep the underlying selection/scope hint in flow while the top-layer
@@ -3079,7 +3142,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           ref={unlockTriggerReference}
           type="button"
           className="secondary-button"
-          disabled={isUnlocking || permissionCheckState === "checking"}
+          disabled={isUnlocking || permissionCheckState === "checking" || taskIssueRestoring}
           onClick={() => setUnlockOpen(true)}
         >{permissionCheckState === "checking" ? "권한 확인 중…" : "편집 잠금 해제"}</button>)}
         <details
@@ -3109,6 +3172,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         key={key} ref={node => { if (node) screenTabReferences.current.set(key, node); else screenTabReferences.current.delete(key); if (key === "schedule") scheduleTabReference.current = node; }}
         id={`project-tab-${key}`} role="tab" type="button" aria-controls={key === "schedule" || key === "issue" ? `project-panel-${key}` : `project-navigation-${key}`}
         aria-selected={activeSection === key} tabIndex={activeSection === key ? 0 : -1}
+        disabled={taskIssueRestoring || taskIssueCreateRequest !== null}
         onClick={() => selectSection(key)} onKeyDown={event => handleNavigationKey(event, key, ["schedule", "issue", "dashboard", "master"], value => selectSection(value as WorkspaceSection))}>{label}</button>)}
     </div>
     {(["dashboard", "master"] as const).map(section => <div key={section} id={`project-navigation-${section}`} role="tabpanel" aria-labelledby={`project-tab-${section}`} hidden={activeSection !== section}>
@@ -3118,12 +3182,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           id={key === "dashboard.milestones" ? "project-tab-milestones" : key === "dashboard.resources" ? "project-tab-resources" : key === "master.processes" ? "project-tab-logistics" : `project-tab-${key}`}
           role="tab" type="button" aria-controls={workspaceView(key) === "milestones" ? "project-panel-milestones" : workspaceView(key) === "resources" ? "project-panel-resources" : workspaceView(key) === "resource-master" ? "project-panel-resource-master" : "project-panel-logistics"}
           aria-selected={activeScreen === key || (section === "master" && activeScreen === "master.relations" && key === "master.processes")} tabIndex={activeScreen === key || (section === "master" && activeScreen === "master.relations" && key === "master.processes") ? 0 : -1}
+          disabled={taskIssueRestoring || taskIssueCreateRequest !== null}
           onClick={() => selectScreen(key)} onKeyDown={event => handleNavigationKey(event, key, (section === "dashboard" ? DASHBOARD_SCREENS : MASTER_SCREENS).map(item => item.key), value => selectScreen(value as WorkspaceScreen))}>{label}</button>)}
       </div>
       {section === "master" ? <div className="project-workspace-auxiliary" aria-label="기준정보 보조 도구">
         <button type="button" className="secondary-button" aria-pressed={activeScreen === "master.relations"} onClick={() => selectScreen("master.relations", false)}>제어·조율 관계</button>
       </div> : null}
     </div>)}
+    {taskIssueRestoring ? <p role="status" aria-live="polite">Issue 등록 후 작업 정보 복귀 중…</p> : null}
     <div className="resource-drill-strip"
         role="region"
         aria-label="임시 조회 범위"
@@ -3249,6 +3315,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           onRelationDelete={(id) =>
             saveLink("DELETE", undefined, undefined, id)
           }
+          onIssueCreate={createIssueFromTask}
           onClose={closeTaskEditor}
         />
       ) : null}
@@ -3257,6 +3324,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         className="project-workspace-panel project-issue-panel" hidden={activeView !== "issue"}>
         <ProjectIssueWorkspace publicId={publicId} revision={project.revision} tasks={tasks}
           active={activeView === "issue"} editable={editing}
+          createRequest={taskIssueCreateRequest}
+          onCreateFinished={saved => { void finishTaskIssueCreate(saved); }}
           busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
           onChanged={() => { void reloadCanonicalSnapshot(); }}
           onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }} />

@@ -15,6 +15,7 @@ import {
 import { handleProjectIssues } from "../../../src/server/projects/project-issue-handlers-core";
 import { ResourceCatalogRepository } from "../../../src/server/repositories/resource-catalog-repository-core";
 import { editSessionCookieName } from "../../../src/server/security/cookie-core";
+import { issueCreateGlobalRateLimiter, issueCreateProjectRateLimiter } from "../../../src/server/security/rate-limit-core";
 
 const now = "2026-10-28T01:00:00.000Z";
 const clock = () => new Date(now);
@@ -36,7 +37,11 @@ const createBody = (override: Record<string, unknown> = {}) =>
 const updateBody = (override: Record<string, unknown> = {}) =>
   ({ ...input(override), issuePassword });
 const databases: Database.Database[] = [];
-afterEach(() => { for (const db of databases.splice(0)) db.close(); });
+afterEach(() => {
+  for (const db of databases.splice(0)) db.close();
+  issueCreateGlobalRateLimiter.clear();
+  issueCreateProjectRateLimiter.clear();
+});
 
 async function fixture() {
   const db = openDatabase({ filename: ":memory:", migrationsDirectory }).database;
@@ -111,11 +116,11 @@ describe("#838-#840 project Issue persistence and API", () => {
 
   it("persists 23 searchable issues, paginates, and keeps the global numerator/denominator", async () => {
     const f = await fixture();
-    const first = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input()), issuePassword);
+    const first = await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input()), issuePassword);
     expect(first.data.issue).toMatchObject({ title: "차량 정지", completed: false, reporterName: "등록자" });
     expect(first.data.projectRevision).toBe(2);
     for (let index = 0; index < 22; index++) {
-      await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
+      await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({
         title: "문제 " + String(index).padStart(2, "0"),
         description: "재발 상황 " + index,
         completed: index < 11, completedOn: index < 11 ? "2026-10-28" : null,
@@ -147,7 +152,7 @@ describe("#838-#840 project Issue persistence and API", () => {
     const otherTask = f.projects.createTask(f.b.authorization, f.b.revision(), {
       type: "task", name: "B 전용", externalId: "B", start: "2026-10-29", duration: 1, progress: 0,
     }).data.tasks.find(item => item.externalId === "B")!;
-    await expect(f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
+    await expect(f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({
       relatedTaskId: otherTask.taskId,
     })), issuePassword)).rejects.toThrow("Task");
     const ownTask = f.projects.createTask(f.a.authorization, f.a.revision(), {
@@ -158,7 +163,7 @@ describe("#838-#840 project Issue persistence and API", () => {
       publicId: randomUUID(), name: "김개발", code: "DEV", description: "", now,
     });
     // A valid global Resource UUID belonging only to another project is still forbidden.
-    const selectForeignResource = () => f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
+    const selectForeignResource = () => f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({
       reporterResourceId: resource.publicId, reporterName: "조작된 이름",
     })), issuePassword);
     await expect(selectForeignResource()).rejects.toThrow("현재 프로젝트");
@@ -168,7 +173,7 @@ describe("#838-#840 project Issue persistence and API", () => {
     expect(registerResource(f.b.authorization.projectId).changes).toBe(1);
     await expect(selectForeignResource()).rejects.toThrow("현재 프로젝트");
     expect(registerResource(f.a.authorization.projectId).changes).toBe(1);
-    const created = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
+    const created = await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({
       reporterResourceId: resource.publicId, reporterName: "조작된 이름",
       assigneeResourceId: resource.publicId, assigneeName: "조작된 이름",
       relatedTaskId: ownTask.taskId, relatedTaskText: "조작된 Task",
@@ -177,7 +182,7 @@ describe("#838-#840 project Issue persistence and API", () => {
       reporterName: "김개발", assigneeName: "김개발",
       relatedTaskText: "A 전용", relatedTaskId: ownTask.taskId,
     });
-    await expect(f.service.create(f.a.authorization, f.a.revision() - 1,
+    await expect(f.service.create(f.a.publicId, f.a.revision() - 1,
       parseProjectIssueInput(input()), issuePassword)).rejects.toThrow("프로젝트가 변경");
     f.db.prepare("DELETE FROM tasks WHERE project_id=? AND public_id=?").run(f.a.authorization.projectId, ownTask.taskId);
     // Catalog deletion is only valid after both project memberships are unregistered.
@@ -190,11 +195,13 @@ describe("#838-#840 project Issue persistence and API", () => {
     const list = f.service.list(f.a.publicId, parseProjectIssueQuery(new URLSearchParams())).data.issues;
     expect(list[0]).toMatchObject({ relatedTaskId: null, relatedTaskText: "A 전용",
       reporterResourceId: null, assigneeResourceId: null, reporterName: "김개발" });
-    const unauthorized = { ...f.a.authorization, projectAuthVersion: -1 };
-    await expect(f.service.create(unauthorized, f.a.revision(), parseProjectIssueInput(input()), issuePassword)).rejects.toThrow("편집 세션");
+    // Creating Issues must not require an EditSession or grant Task editing.
+    const readOnlyCreated = await f.service.create(f.a.publicId, f.a.revision(),
+      parseProjectIssueInput(input({ title: "읽기 전용 등록" })), issuePassword);
+    expect(readOnlyCreated.data.issue.title).toBe("읽기 전용 등록");
   });
 
-  it("enforces Origin, If-Match, edit session, repeatable read, and no-store HTTP", async () => {
+  it("enforces Origin, If-Match, read access, repeatable read, and no-store HTTP", async () => {
     const f = await fixture();
     const post = await f.handle(f.request("POST", createBody()));
     expect(post.status).toBe(201);
@@ -205,8 +212,10 @@ describe("#838-#840 project Issue persistence and API", () => {
     expect(((await get.json()) as { data: { summary: { total: number } } }).data.summary.total).toBe(1);
     const forbidden = await f.handle(f.request("POST", createBody(), { origin: "https://evil.example" }));
     expect(forbidden.status).toBe(403);
-    const missingSession = await f.handle(f.request("POST", createBody(), { token: "no-session" }));
-    expect(missingSession.status).toBe(401);
+    const withoutEditSession = await f.handle(f.request("POST", createBody({ title: "공개 조회자 Issue" }), { token: "no-session" }));
+    expect(withoutEditSession.status).toBe(201);
+    const noSessionPayload = await withoutEditSession.json() as { data: { issue: { title: string } } };
+    expect(noSessionPayload.data.issue.title).toBe("공개 조회자 Issue");
     const stale = await f.handle(f.request("POST", createBody(), { revision: 1 }));
     expect(stale.status).toBe(412);
     const patch = await f.handle(f.request("PATCH", updateBody({ completed: true, completedOn: "2026-10-28" }), {
@@ -220,6 +229,45 @@ describe("#838-#840 project Issue persistence and API", () => {
     const invalid = await f.handle(f.request("POST", { ...createBody(), complete: true }));
     expect(invalid.status).toBe(400);
   });
+  it("#854 allows public Issue POST without editing, but still blocks private unauthorized reads/writes", async () => {
+    const f = await fixture();
+    const task = f.projects.createTask(f.a.authorization, f.a.revision(), {
+      type: "task", name: "현재 작업", externalId: "CURRENT", start: "2026-10-29", duration: 1, progress: 0,
+    }).data.tasks.find(item => item.externalId === "CURRENT")!;
+    const created = await f.handle(f.request("POST", createBody({
+      title: "Task 연결 생성", relatedTaskId: task.taskId, relatedTaskText: "조작된 레이블",
+    }), { token: "invalid" }));
+    expect(created.status).toBe(201);
+    const posted = await created.json() as { data: { issue: { relatedTaskId: string; relatedTaskText: string } } };
+    expect(posted.data.issue).toMatchObject({ relatedTaskId: task.taskId, relatedTaskText: task.name });
+    // A protected project must not become public through Issue creation.
+    f.db.prepare("UPDATE projects SET visibility = 'private' WHERE public_id = ?").run(f.a.publicId);
+    const noRead = await f.handle(f.request("GET", undefined, { token: "invalid" }));
+    expect(noRead.status).toBe(401);
+    const noWrite = await f.handle(f.request("POST", createBody(), { token: "invalid" }));
+    expect(noWrite.status).toBe(401);
+    const authorized = await f.handle(f.request("POST", createBody()));
+    expect(authorized.status).toBe(201);
+  });
+
+  it("#854 rate-limits public Issue POST independently of edit-session privileges", async () => {
+    const f = await fixture();
+    const results: number[] = [];
+    for (let i = 0; i < 21; i++) {
+      const response = await f.handle(f.request("POST", createBody({ title: "익명 신고 " + i }), { token: "invalid" }));
+      results.push(response.status);
+      if (i === 20) {
+        expect(response.headers.get("Retry-After")).toMatch(/^[0-9]+$/);
+        expect((await response.json()) as unknown).toMatchObject({
+          error: { code: "ISSUE_CREATE_RATE_LIMITED" },
+        });
+      }
+    }
+    expect(results.slice(0, 20).every(status => status === 201)).toBe(true);
+    expect(results[20]).toBe(429);
+    expect(f.service.list(f.a.publicId, parseProjectIssueQuery(new URLSearchParams())).data.summary.total).toBe(20);
+  });
+
   it("#846 rejects malformed password payloads before mutation", () => {
     expect(() => parseIssueCreateRequest({ ...input(), issuePassword: "short", confirmIssuePassword: "short" })).toThrow();
     expect(() => parseIssueCreateRequest({ ...input(), issuePassword, confirmIssuePassword: "mismatch" })).toThrow();
@@ -244,7 +292,7 @@ describe("#838-#840 project Issue persistence and API", () => {
 
   it("#846 allows correct per-Issue password without edit session, never editor bypass, and tombstones list/KPI", async () => {
     const f = await fixture();
-    const created = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input()), issuePassword);
+    const created = await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input()), issuePassword);
     const issueId = created.data.issue.issueId;
     expect(created.data.issue.credentialState).toBe("protected");
     const stored = f.db.prepare("SELECT * FROM project_issues WHERE public_id = ?").get(issueId) as {
@@ -297,8 +345,8 @@ describe("#838-#840 project Issue persistence and API", () => {
 
   it("#846 isolates every Issue credential and rejects invalid Origin or private access", async () => {
     const f = await fixture();
-    const a = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({ title: "A Issue" })), issuePassword);
-    const b = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({ title: "B Issue" })), "IssuePassword#OTHER");
+    const a = await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({ title: "A Issue" })), issuePassword);
+    const b = await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({ title: "B Issue" })), "IssuePassword#OTHER");
     const wrongOnA = await f.handle(f.request("PATCH", { ...updateBody(), issuePassword: "IssuePassword#OTHER" },
       { issueId: a.data.issue.issueId }), f.a, a.data.issue.issueId);
     expect(wrongOnA.status).toBe(401);
@@ -331,7 +379,7 @@ describe("#838-#840 project Issue persistence and API", () => {
     issuePasswordGlobalRateLimiter.clear(); issuePasswordPerIssueRateLimiter.clear();
     try {
       const f = await fixture();
-      const created = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input()), issuePassword);
+      const created = await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input()), issuePassword);
       const id = created.data.issue.issueId;
       for (let n = 0; n < 10; n++) {
         const result = await f.handle(f.request("PATCH",
@@ -390,7 +438,7 @@ describe("#838-#840 project Issue persistence and API", () => {
   it("#849 persists all states, scopes filters/KPI and enforces password and SQL guards", async () => {
     const f = await fixture();
     const create = (status: "registered" | "in_progress" | "completed") =>
-      f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input({
+      f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input({
         title: status, status, completed: status === "completed",
         completedOn: status === "completed" ? "2026-10-28" : null,
       })), issuePassword);

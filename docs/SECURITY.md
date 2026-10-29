@@ -545,7 +545,7 @@ readonly/401/409/412·pending/dirty·응답역전에서 기존 Editor 초안·�
 
 ## Project Issues 권한·논리 삭제 (#838–#840 / #846)
 
-**권한 변경 (#846)**: POST(신규 등록)은 기존 Project edit session + Origin + strong If-Match 및 transaction session 재확인 필요. PATCH/DELETE(보호된 Issue 변경·삭제)는 **각 Issue의 개별 scrypt 비밀번호**가 기준이므로 해당 Project 편집 세션만으로 우회할 수 없다. 공개 Project의 읽기 전용 방문자는 정확한 Issue 비밀번호로 해당 Issue만 편집 가능하고 다른 Task·Resource·Project 데이터는 변경 불가. 비공개 Project는 Issue 비밀번호 전에 기존 read gate를 통과해야 하며, 변동 중 잠김 전환도 mutation transaction에서 검증한다.
+**현재 권한 변경 (#854; #846 당시 POST edit session 정책 대체)**: POST(신규 등록)은 **Project 조회 권한**만 필요하며 edit session은 요구하지 않는다. 공개 Project의 읽기 전용 방문자도 등록할 수 있고 비공개 Project는 기존 session-based read gate가 필요하다. Origin + strong If-Match 및 transaction read-grant/revision 재확인은 유지한다. PATCH/DELETE(보호된 Issue 변경·삭제)는 **각 Issue의 개별 scrypt 비밀번호**가 기준이므로 해당 Project 편집 세션만으로 우회할 수 없다. 공개 Project의 읽기 전용 방문자는 정확한 Issue 비밀번호로 해당 Issue만 편집 가능하고 다른 Task·Resource·Project 데이터는 변경 불가. 비공개 Project는 Issue 비밀번호 전에 기존 read gate를 통과해야 하며, 변동 중 잠김 전환도 mutation transaction에서 검증한다.
 
 신규 Issue의 verifier는 랜덤 16-byte salt + scrypt(N=32768,r=8,p=3,32-byte) KDF 저장; 원문/복호화 가능한 암호를 저장하지 않고 시점 안전 비교와 서버 KDF 동시성 제한을 사용한다. 8~128자/512-byte 제한, strict input allowlist, JSON 16KiB, Origin/CSRF, rate-limit(인스턴스별 global 100/15분, Issue별 10/15분), requestId/보안 에러 감사(No secrets)를 적용한다. 다중 App replica 배포 시 in-memory limiter는 별도 인스턴스 간 공유하지 않으므로 프록시/중앙 제한 또는 single-writer 배치를 권장한다.
 
@@ -560,3 +560,10 @@ Issue 내용 텍스트는 HTML 실행 없이 React escape하며 본문 raw URL�
 ### #849 업무 상태 변경의 인증·삭제 보호
 
 상태 변경(등록/진행 중/완료)은 다른 Issue 본문 변경과 동일한 보안 mutation이다. #846 개별 Issue 비밀번호(또는 Project 편집 권한자의 별도 credential initialize/reset)·private Project read gate·Origin·strong If-Match·credential 재검증·request ID/rate limit을 우회하지 않는다. 업무 `issue_status`와 논리 `lifecycle_state`는 완전히 독립이고 DELETED는 모든 보통 조회·상태별 KPI에서 제외된다. 구 `completed`와 완료일을 호환 유지하되 API 입력 모순은 400, DB 직접 쓰기 모순은 0034 trigger에서 실패한다. 새로운 상태 선택으로 Task/Gantt 또는 Project 수정 권한을 부여하지 않는다.
+
+
+### #854 공개 조회자 Issue 등록 보호
+
+- 새 Issue는 등록 시 비밀번호+확인이 필수이며, 개별 salted scrypt verifier만 보관한다. 등록만으로 Task/WBS/Resource 편집 세션이나 보호 Issue의 PATCH/DELETE 권한을 취득하지 않는다. 기존 Issue 비밀번호 초기 설정/재설정은 Project 편집 세션과 현재 프로젝트 비밀번호 모두 요구한다.
+- POST는 정확 Origin/CSRF, 16KiB bounded JSON, 입력 allowlist, strong If-Match, 프로젝트 read gate 및 SQLite IMMEDIATE transaction에서 Project visibility/revision/Task·Resource scope를 재검증한다. 공개/비공개 전환 경합에서도 등록 권한을 재검증한다.
+- 단일 앱 인스턴스 기준 공개 Issue 등록은 global 120/15분 및 Project별 20/15분 공유 budget. Rate Limit은 조회 권한 검증 이후 인증 비용 이전에 소비하고 429 ISSUE_CREATE_RATE_LIMITED/Retry-After를 돌려준다. IP attribution 신뢰 경로가 확보되지 않아 클라이언트별 분리를 가장하지 않으며, 위조 가능한 X-Forwarded-For는 거부한다. 다중 인스턴스·reverse proxy 환경의 추가 보호는 신뢰된 ingress 공통 limiter/운영 권한 승인 과제로 남긴다. [작업 계획](exec-plans/active/ISSUE_854.md).

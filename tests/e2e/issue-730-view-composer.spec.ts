@@ -10,7 +10,7 @@ import { targetMasterPassword } from "./fixtures/target-project";
 import { seedWbsViewComposer, viewResourcePassword } from "./fixtures/wbs-view-composer";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { isWbsViewReadQuery } from "./helpers/read-only-requests";
-import type { WbsViewQueryInput, WbsViewReportDto, WbsViewSpec } from "../../src/contracts/wbs-dashboard-views";
+import type { WbsViewDetailsDto, WbsViewQueryInput, WbsViewReportDto, WbsViewSpec } from "../../src/contracts/wbs-dashboard-views";
 
 test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword, isolatedResourceAdminPassword: viewResourcePassword, viewport: { width: 1440, height: 1000 } });
 const roots = ["process", "equipment", "system", "resource", "milestone"] as const;
@@ -559,6 +559,16 @@ test("#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관
   });
   const mutation = page.waitForResponse(response => response.request().method() === "PATCH" && new URL(response.url()).pathname === `/api/projects/${f.publicId}/tasks/${f.task.taskId}`);
   const refreshed = nextReport(page, { spec: beforeReport.spec, filters: beforeReport.filters, scope: beforeReport.sourceContext.scope });
+  // #854 F-005 / #730: after the refreshed *report* receipt, the WBS
+  // original-detail projection fetches separately. Subscribe before release
+  // so a rapid response cannot be missed, and verify the new snapshot identity.
+  const refreshedDetails = page.waitForResponse(response => {
+    if (response.request().method() !== "POST" ||
+        new URL(response.url()).pathname !== `/api/projects/${f.publicId}/resource-dashboard/views`) return false;
+    const projection = (response.request().postDataJSON() as WbsViewQueryInput).projection;
+    return projection?.kind === "details" && projection.snapshotId !== beforeReport.snapshotId &&
+      projection.path.some(item => item.dimension === "equipment" && item.id === f.equipment.id);
+  }, { timeout: 30_000 });
   await editor.getByRole("button", { name: "저장", exact: true }).click();
   const write = await mutation;
   expect(write.status(), await write.text()).toBe(200);
@@ -578,6 +588,21 @@ test("#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관
   await expect(page.getByRole("tablist", { name: "대시보드 보기", exact: true }).getByRole("tab", { name: "설비", exact: true })).toHaveAttribute("aria-selected", "true");
   await expect(selectedRow).toHaveAttribute("aria-selected", "true");
   await expect(detail.getByRole("button", { name: `${f.task.name} Task 원본`, exact: true })).toHaveCount(0);
+  // Report data-ready=true is NOT detail data-detail-state=ready. The failed
+  // #3425.1 trace had an in-flight details POST when the 5s button assertion
+  // ran; require the exact new projection's 200 receipt and committed DOM.
+  const detailsResponse = await refreshedDetails;
+  expect(detailsResponse.status(), await detailsResponse.text()).toBe(200);
+  const canonicalDetails = (await detailsResponse.json()).data as WbsViewDetailsDto;
+  expect(canonicalDetails.projection).toBe("details");
+  expect(canonicalDetails.rows.some(row => row.taskId === f.task.taskId && row.taskName === renamed)).toBe(true);
+  const detailsInput = detailsResponse.request().postDataJSON() as WbsViewQueryInput;
+  expect(detailsInput.projection?.kind).toBe("details");
+  if (detailsInput.projection?.kind === "details") {
+    expect(detailsInput.projection.snapshotId).toBe(afterReport.snapshotId);
+  }
+  await expect(detail).toHaveAttribute("data-detail-state", "ready", { timeout: 10_000 });
+  expect(Number(await detail.getAttribute("data-detail-confirmation-id"))).toBeGreaterThan(0);
   const restoredTaskOriginal = detail.getByRole("button", { name: `${renamed} Task 원본`, exact: true });
   await expect(restoredTaskOriginal).toBeVisible();
   try { await expect(restoredTaskOriginal).toBeFocused(); }

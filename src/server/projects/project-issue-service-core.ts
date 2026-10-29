@@ -308,13 +308,14 @@ export class ProjectIssueService {
     if (!updated) throw new PublicApiError(412, "REVISION_MISMATCH", "프로젝트가 변경되었습니다.");
     return updated.revision;
   }
-  async create(authorization: AuthorizedEditSession, expectedRevision: number,
-    rawInput: ProjectIssueInput, password: string): Promise<ProjectIssueMutationResponse> {
+  async create(publicId: string, expectedRevision: number,
+    rawInput: ProjectIssueInput, password: string,
+    readAuthorization?: AuthorizedEditSession): Promise<ProjectIssueMutationResponse> {
     const hashed = await (this.options.hashPassword ?? hashEditPassword)(password);
     return this.database.transaction(() => {
       const now = (this.options.clock ?? (() => new Date()))();
       const nowText = now.toISOString();
-      const project = this.current(authorization, expectedRevision, now);
+      const project = this.currentReadProject(publicId, expectedRevision, readAuthorization);
       const input = this.resolveInput(project.id, parseProjectIssueInput(rawInput));
       const issueId = (this.options.generateId ?? randomUUID)();
       if (!isCanonicalUuidV4(issueId)) invalid("Issue ID가 올바르지 않습니다.");

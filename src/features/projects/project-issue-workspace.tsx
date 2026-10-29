@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { ProjectTaskDto } from "@/contracts/projects";
 import type {
   IssuePageSize, IssueStatusFilter, ProjectIssueStatus, ProjectIssueDto, ProjectIssueInput,
@@ -20,6 +20,9 @@ type Props = Readonly<{
   active: boolean;
   editable: boolean;
   busy: boolean;
+  /** Exactly one Task Editor initiated request; sequence prevents stale reopen. */
+  createRequest?: { sequence: number; taskId: string } | null;
+  onCreateFinished?: (saved: boolean) => void;
   onChanged: () => void;
   onUnauthorized: () => void;
 }>;
@@ -49,7 +52,8 @@ function projectIssueError(value: unknown, fallback: string): string {
 }
 
 export function ProjectIssueWorkspace({
-  publicId, revision, tasks, active, editable, busy, onChanged, onUnauthorized,
+  publicId, revision, tasks, active, editable, busy,
+  createRequest, onCreateFinished, onChanged, onUnauthorized,
 }: Props) {
   const [filterDraft, setFilterDraft] = useState("");
   const [query, setQuery] = useState("");
@@ -79,9 +83,10 @@ export function ProjectIssueWorkspace({
   const titleInput = useRef<HTMLInputElement>(null);
   const createTrigger = useRef<HTMLButtonElement>(null);
   const lastIssueTrigger = useRef<HTMLElement | null>(null);
+  const lastHandledRequest = useRef<number | null>(null);
   const rootPath = "/api/projects/" + encodeURIComponent(publicId) + "/issues";
-  const locked = busy || saving || (editingIssue ? editingIssue.credentialState === "unconfigured" : !editable);
-  const createLocked = !editable || busy || saving;
+  const locked = busy || saving || (editingIssue ? editingIssue.credentialState === "unconfigured" : false);
+  const createLocked = busy || saving;
   const expectedRevision = () => Math.max(revision, list?.data.projectRevision ?? 0);
   const passwordValid = (password: string) => Array.from(password).length >= 8 &&
     Array.from(password).length <= 128 && !/[\u0000-\u001f\u007f]/.test(password);
@@ -154,8 +159,9 @@ export function ProjectIssueWorkspace({
     setFormError(null);
   }
 
-  function openEditor(issue: ProjectIssueDto | null, trigger?: HTMLElement) {
-    if (issue === null && createLocked) return;
+  const openEditor = useCallback((issue: ProjectIssueDto | null, trigger?: HTMLElement, initialTask?: ProjectTaskDto) => {
+    // Do not open a second Issue dialog during the Task-origin return/reload.
+    if (createLocked || editorOpen) return;
     setEditingIssue(issue);
     setForm(issue ? {
       title: issue.title, description: issue.description,
@@ -164,7 +170,10 @@ export function ProjectIssueWorkspace({
       occurredOn: issue.occurredOn, status: issue.status,
       completed: issue.completed, completedOn: issue.completedOn,
       relatedTaskId: issue.relatedTaskId, relatedTaskText: issue.relatedTaskText,
-    } : blankIssue());
+    } : { ...blankIssue(),
+      relatedTaskId: initialTask?.taskId ?? null,
+      relatedTaskText: initialTask?.name ?? "",
+    });
     setPersonPicker(null);
     setTaskPicker(false);
     setFormError(null);
@@ -174,7 +183,19 @@ export function ProjectIssueWorkspace({
     setEditorOpen(true);
     lastIssueTrigger.current = trigger ?? createTrigger.current;
     requestAnimationFrame(() => titleInput.current?.focus({ preventScroll: true }));
-  }
+  }, [createLocked, editorOpen]);
+
+  useEffect(() => {
+    if (!active || !createRequest || createLocked ||
+      lastHandledRequest.current === createRequest.sequence) return;
+    lastHandledRequest.current = createRequest.sequence;
+    // Keep Issue form opening out of the effect's synchronous React commit.
+    void Promise.resolve().then(() => {
+      const currentTask = tasks.find(task => task.taskId === createRequest.taskId);
+      if (!currentTask) { onCreateFinished?.(false); return; }
+      openEditor(null, undefined, currentTask);
+    });
+  }, [active, createRequest, createLocked, tasks, onCreateFinished, openEditor]);
 
   function closeEditor() {
     if (saving) return;
@@ -184,6 +205,7 @@ export function ProjectIssueWorkspace({
     setShowRecovery(false); setConfirmDelete(false);
     setPersonPicker(null);
     setTaskPicker(false);
+    if (createRequest && !editingIssue) { onCreateFinished?.(false); return; }
     requestAnimationFrame(() => lastIssueTrigger.current?.isConnected
       ? lastIssueTrigger.current.focus({ preventScroll: true })
       : createTrigger.current?.focus({ preventScroll: true }));
@@ -216,7 +238,9 @@ export function ProjectIssueWorkspace({
     setNewIssuePassword(""); setNewIssuePasswordConfirmation("");
     setShowRecovery(false); setConfirmDelete(false);
     setEditorOpen(false); setPersonPicker(null); setTaskPicker(false);
-    setRefresh(value => value + 1); onChanged();
+    setRefresh(value => value + 1);
+    if (createRequest && !editingIssue) { onCreateFinished?.(true); return; }
+    onChanged();
     requestAnimationFrame(() => lastIssueTrigger.current?.isConnected
       ? lastIssueTrigger.current.focus({ preventScroll: true })
       : createTrigger.current?.focus({ preventScroll: true }));
@@ -385,7 +409,8 @@ export function ProjectIssueWorkspace({
         <thead><tr><th scope="col">Issue명</th><th scope="col">상태</th><th scope="col">담당자</th><th scope="col">발생일</th><th scope="col">완료일</th></tr></thead>
         <tbody>
           {data?.issues.map(issue => <tr key={issue.issueId}>
-            <td><button className={styles.titleButton} type="button" onClick={event => openEditor(issue, event.currentTarget)}>{issue.title}</button></td>
+            <td><button className={styles.titleButton} type="button" disabled={createLocked}
+              onClick={event => openEditor(issue, event.currentTarget)}>{issue.title}</button></td>
             <td>{issueStatusLabel[issue.status]}</td>
             <td>{issue.assigneeName || "미지정"}</td>
             <td>{issue.occurredOn}</td>
@@ -459,7 +484,11 @@ export function ProjectIssueWorkspace({
               aria-expanded={taskPicker} aria-controls="project-issue-task-picker"
               onClick={() => setTaskPicker(current => !current)}>Task 검색</button>
           </div>
-          {form.relatedTaskId ? <span className={styles.hint}>연결된 Task: {form.relatedTaskText}</span> : null}
+          {form.relatedTaskId ? <div className={styles.inline}>
+            <span className={styles.hint}>연결된 Task: {form.relatedTaskText}</span>
+            <button className="secondary-button" type="button" disabled={locked}
+              onClick={() => updateForm({ relatedTaskId: null, relatedTaskText: "" })}>연결 해제</button>
+          </div> : null}
           {taskPicker ? <div className={styles.picker} id="project-issue-task-picker" aria-label="관련 Task 검색 결과">
             {relatedTasks.length ? <ul>{relatedTasks.map(task => <li key={task.taskId}><button type="button"
               onClick={() => { updateForm({ relatedTaskText: task.name, relatedTaskId: task.taskId }); setTaskPicker(false); }}>
