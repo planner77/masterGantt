@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { installStatefulProjectFixture, projectPath, publicId } from "../fixtures/stateful-project";
+import { chooseTaskInformation } from "./helpers/task-context-menu";
 import type { ProjectIssueDto, ProjectIssueInput } from "../../src/contracts/project-issues";
 
 test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secure link, filter and Gantt return", async ({ page }) => {
@@ -197,4 +198,121 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   }
   await tabs.getByRole("tab", { name: "일정", exact: true }).click();
   await expect(gantt).toHaveAttribute("data-project-gantt-api-instance", originalInstance!);
+});
+
+
+test("#854 public readonly Issue registration and Task Editor prefill/clear/reselect", async ({ page }) => {
+  test.setTimeout(120_000);
+  const state = await installStatefulProjectFixture(page);
+  state.sessionEditable = false;
+  const records: ProjectIssueDto[] = [];
+  const posted: Array<ProjectIssueInput> = [];
+  await page.route("**" + projectPath + "/issues**", async route => {
+    const request = route.request();
+    if (request.method() === "GET") {
+      const status = new URL(request.url()).searchParams.get("status") ?? "all";
+      const visible = records.filter(i => status === "all" ||
+        (status === "open" ? i.status !== "completed" : i.status === status));
+      await route.fulfill({ json: { data: {
+        projectRevision: state.project.revision,
+        summary: { total: records.length,
+          registered: records.filter(i => i.status === "registered").length,
+          inProgress: records.filter(i => i.status === "in_progress").length,
+          completed: records.filter(i => i.status === "completed").length },
+        total: visible.length, page: 1, limit: 20, issues: visible,
+      } } }); return;
+    }
+    if (request.method() !== "POST") { await route.fulfill({ status: 405 }); return; }
+    if (request.headers()["if-match"] !== '"' + state.project.revision + '"') {
+      await route.fulfill({ status: 412, json: { error: { code: "REVISION_MISMATCH", message: "stale" } } }); return;
+    }
+    const body = request.postDataJSON() as ProjectIssueInput & { issuePassword: string; confirmIssuePassword: string };
+    const { issuePassword, confirmIssuePassword, ...fields } = body;
+    if (!issuePassword || issuePassword !== confirmIssuePassword) {
+      await route.fulfill({ status: 400 }); return;
+    }
+    posted.push(fields);
+    const timestamp = "2026-10-29T01:00:00.000Z";
+    const issue: ProjectIssueDto = { ...fields, status: fields.status ?? "registered",
+      issueId: randomUUID(), credentialState: "protected", createdAt: timestamp, updatedAt: timestamp };
+    records.unshift(issue);
+    state.project.revision += 1;
+    await route.fulfill({ status: 201, json: { data: { issue, projectRevision: state.project.revision } } });
+  });
+
+  await page.goto("/projects/" + publicId);
+  const gantt = page.locator(".project-gantt-frame");
+  await expect(gantt).toHaveAttribute("data-project-gantt-api-instance", /.+/);
+  const instance = await gantt.getAttribute("data-project-gantt-api-instance");
+  const tabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
+  await tabs.getByRole("tab", { name: "Issue", exact: true }).click();
+  const workspace = page.getByTestId("project-issue-workspace");
+  const issueButton = workspace.getByRole("button", { name: "Issue 등록", exact: true });
+  await expect(issueButton).toBeEnabled();
+  await issueButton.click();
+  let form = workspace.getByRole("dialog", { name: "Issue 등록" });
+  await expect(form.getByLabel("관련 Task")).toHaveValue("");
+  await form.getByRole("button", { name: "취소" }).click();
+  await tabs.getByRole("tab", { name: "일정", exact: true }).click();
+  const row = page.locator(".project-gantt-widget .wx-row", { hasText: "Stable leaf" }).first();
+  await expect(row).toBeVisible();
+  await row.getByText("Stable leaf", { exact: true }).click({ button: "right" });
+  await chooseTaskInformation(page);
+  const taskEditor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await expect(taskEditor.getByRole("button", { name: "Issue 등록" })).toBeEnabled();
+  await taskEditor.getByRole("button", { name: "Issue 등록" }).click();
+  form = workspace.getByRole("dialog", { name: "Issue 등록" });
+  await expect(form).toBeVisible();
+  await expect(form.getByLabel("관련 Task")).toHaveValue("Stable leaf");
+  await expect(form.getByText("연결된 Task: Stable leaf")).toBeVisible();
+  await form.getByLabel("Issue 명").fill("자동 연결 등록");
+  await form.getByLabel("Issue 비밀번호 *").fill("IssuePassword#123");
+  await form.getByLabel("Issue 비밀번호 확인 *").fill("IssuePassword#123");
+  await form.getByRole("button", { name: "등록", exact: true }).click();
+  await expect(taskEditor).toBeVisible();
+  expect(posted.at(-1)).toMatchObject({
+    title: "자동 연결 등록", relatedTaskId: state.tasks[2].taskId, relatedTaskText: "Stable leaf",
+  });
+  await taskEditor.getByRole("button", { name: "Issue 등록" }).click();
+  form = workspace.getByRole("dialog", { name: "Issue 등록" });
+  await form.getByRole("button", { name: "연결 해제" }).click();
+  await expect(form.getByLabel("관련 Task")).toHaveValue("");
+  await form.getByRole("button", { name: "Task 검색" }).click();
+  await form.locator("#project-issue-task-picker").getByRole("button", { name: /Existing summary child/ }).click();
+  await expect(form.getByLabel("관련 Task")).toHaveValue("Existing summary child");
+  await form.getByLabel("Issue 명").fill("수동 변경 등록");
+  await form.getByLabel("Issue 비밀번호 *").fill("IssuePassword#123");
+  await form.getByLabel("Issue 비밀번호 확인 *").fill("IssuePassword#123");
+  await form.getByRole("button", { name: "등록", exact: true }).click();
+  await expect(taskEditor).toBeVisible();
+  expect(posted.at(-1)).toMatchObject({
+    relatedTaskId: state.tasks[1].taskId, relatedTaskText: "Existing summary child",
+  });
+  await taskEditor.getByRole("button", { name: "Issue 등록" }).click();
+  form = workspace.getByRole("dialog", { name: "Issue 등록" });
+  await form.getByLabel("관련 Task").fill("문자로 입력한 작업");
+  await form.getByLabel("Issue 명").fill("자유 입력 등록");
+  await form.getByLabel("Issue 비밀번호 *").fill("IssuePassword#123");
+  await form.getByLabel("Issue 비밀번호 확인 *").fill("IssuePassword#123");
+  await form.getByRole("button", { name: "등록", exact: true }).click();
+  await expect(taskEditor).toBeVisible();
+  expect(posted.at(-1)).toMatchObject({ relatedTaskId: null, relatedTaskText: "문자로 입력한 작업" });
+  expect(state.patchRequests).toHaveLength(0);
+  expect(state.posts).toHaveLength(0);
+  await expect(gantt).toHaveAttribute("data-project-gantt-api-instance", instance!);
+});
+
+test("#854 dirty Task draft cannot be discarded by Issue registration", async ({ page }) => {
+  const state = await installStatefulProjectFixture(page);
+  state.sessionEditable = true;
+  await page.goto("/projects/" + publicId);
+  const row = page.locator(".project-gantt-widget .wx-row", { hasText: "Stable leaf" }).first();
+  await expect(row).toBeVisible();
+  await row.getByText("Stable leaf", { exact: true }).click({ button: "right" });
+  await chooseTaskInformation(page);
+  const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await dialog.getByLabel("작업명", { exact: true }).fill("미저장 작업 초안");
+  await expect(dialog.getByRole("button", { name: "Issue 등록" })).toBeDisabled();
+  await expect(dialog.getByLabel("작업명", { exact: true })).toHaveValue("미저장 작업 초안");
+  expect(state.patchRequests).toHaveLength(0);
 });
