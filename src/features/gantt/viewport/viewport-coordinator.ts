@@ -9,7 +9,7 @@ export type ViewportContext = Readonly<{
 export type ViewportStamp = Readonly<{ context: string; contextEpoch: number; gesture: number; intent: number }>;
 export type ViewportCommand =
   | { kind: "PEER_RETURN" | "PASSIVE_RESTORE" | "FILTER_RETURN"; position: ViewportPosition; positions?: readonly NativeViewportPosition[]; compatibility?: boolean; protect?: boolean; sourceCurrent?: () => boolean }
-  | { kind: "TASK_REVEAL"; taskId: string }
+  | { kind: "TASK_REVEAL"; taskId: string; align?: "start" }
   | { kind: "DATE_REVEAL"; date: Date }
   | { kind: "DIAGNOSTIC_DATE_REVEAL"; date: Date }
   | { kind: "DIAGNOSTIC_SCROLL"; left: number }

@@ -1,0 +1,5138 @@
+{
+  "issue": 852,
+  "baseSha": "de36ff9f3192f47f79a67f8fccc617df9bd024dd",
+  "candidateVersion": "0.138.2",
+  "environment": {
+    "node": "22.14.0",
+    "next": "16.4.2",
+    "svarCore": "2.7.3",
+    "playwright": "1.63.0",
+    "browser": "Playwright-managed Chromium",
+    "transport": "actual Core/native DOM with mocked canonical API; not operational Project/SQLite evidence"
+  },
+  "frozenSourceSha256": {
+    "src/features/gantt/project-gantt.tsx": "b030212e7cca29e9baf9173fd7721b484170d7281b0bf943d1f6f0ad45677837",
+    "src/features/gantt/viewport/svar-viewport-port.ts": "57bac6efa9c9ad5f4fe7a3e722333b6b615c6e902cfa26bbe7d2f74309782c3e",
+    "src/features/gantt/viewport/task-reveal-target.ts": "ffc36990225d01313df6c065ede426f235f300ae2d94978b598a8805a8803ab6",
+    "src/features/gantt/viewport/viewport-coordinator.ts": "73a12490028306421f1b47e05527d6191d9652288d731434e1c8defecaef72ec",
+    "tests/e2e/grid-task-start-reveal.spec.ts": "f0810b25f833ddc002b8be49a1ff3bc1b5fa56bb5789ece7bcdb9f3fe499670a",
+    "tests/features/gantt/svar-viewport-port.test.ts": "557152e9fe2492ddbb7c76e4830ef24e6f5ffab7185a846910410461a899b6fa"
+  },
+  "results": {
+    "gridSpec": {
+      "passed": 23,
+      "failed": 0
+    },
+    "burstRepeat": {
+      "cases": 3,
+      "repeatEach": 3,
+      "executionsPassed": 9,
+      "failed": 0
+    },
+    "relatedUnit": {
+      "files": 4,
+      "passed": 194,
+      "failed": 0
+    },
+    "typecheck": "PASS",
+    "focusedLint": {
+      "errors": 0,
+      "existingWarnings": 3
+    },
+    "remoteRequired3": "NOT TESTED",
+    "trustedQA": "NOT TESTED",
+    "managerDecision": "NOT TESTED"
+  },
+  "screenshots": {
+    "meaning": "Same frozen candidate before Grid click vs after click; original unmodified-product RED retained separately in before JSON.",
+    "files": [
+      "issue-852-aligned-week.png",
+      "issue-852-aligned-day.png",
+      "issue-852-before-click-day.png",
+      "issue-852-before-click-week.png"
+    ]
+  },
+  "limitations": [
+    "Race reproduced FAIL once then same-source PASS; timing-sensitive evidence, not deterministic reproduction.",
+    "Shift+vertical wheel, scrollbar drag during resize, touch device, actual operating Project and manual UX NOT TESTED.",
+    "Task/Link/Calendar mutations absent; mocked peer view requests do not prove every HTTP mutation count is zero.",
+    "Same-name burst-day is overwritten by override=true negative case. Repeat-folder files hold last repetition only; CLI result proves 3 cases x 3 executions, not nine unique artifacts."
+  ],
+  "observations": [
+    {
+      "phase": "before",
+      "localSource": "output/playwright/issue-514/issue852-before/issue-852-align-day.json",
+      "artifactSha256": "339dceb7b7ee222dd530add599a80e1a02179f8ea4b2829a56ba0bec29e2662e",
+      "recordedSourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "1b7ec8c211119f0edf839dc0811ba186424194ecee026028a16515d5f97659f0",
+        "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "652abd332049e90ef9f4820666b6eafea3b3f0450525de8c38e3e2e38d307345"
+      },
+      "observation": {
+        "capturedAt": "2026-10-29T08:27:09.396Z",
+        "before": {
+          "public": {
+            "left": 0,
+            "top": 0
+          },
+          "dom": {
+            "left": 0,
+            "top": 0
+          },
+          "startX": 36,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "visibleRight": {
+          "public": {
+            "left": 20248,
+            "top": 0
+          },
+          "dom": {
+            "left": 20248,
+            "top": 0
+          },
+          "startX": 20700,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": [
+              "00000000-0000-4000-8000-000000000102"
+            ]
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "after": {
+          "public": {
+            "left": 20248,
+            "top": 0
+          },
+          "dom": {
+            "left": 20248,
+            "top": 0
+          },
+          "startX": 20700,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": [
+              "00000000-0000-4000-8000-000000000102"
+            ]
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "environment": "Next16.3.8/Core2.7.3; mocked canonical API, native browser pointer"
+      }
+    },
+    {
+      "phase": "before",
+      "localSource": "output/playwright/issue-514/issue852-before/issue-852-align-week.json",
+      "artifactSha256": "f72f02a7c27096aa86724d4d87e4a9285fa4fd0e8bf0cb6c46a5807058a797ef",
+      "recordedSourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "1b7ec8c211119f0edf839dc0811ba186424194ecee026028a16515d5f97659f0",
+        "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "652abd332049e90ef9f4820666b6eafea3b3f0450525de8c38e3e2e38d307345"
+      },
+      "observation": {
+        "capturedAt": "2026-10-29T08:27:16.098Z",
+        "before": {
+          "public": {
+            "left": 0,
+            "top": 0
+          },
+          "dom": {
+            "left": 0,
+            "top": 0
+          },
+          "startX": 68,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2025-12-28T15:00:00.000Z",
+            "cellWidth": 68,
+            "scaleUnit": "week",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "4"
+        },
+        "visibleRight": {
+          "public": {
+            "left": 5192,
+            "top": 0
+          },
+          "dom": {
+            "left": 5192,
+            "top": 0
+          },
+          "startX": 5644,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2025-12-28T15:00:00.000Z",
+            "cellWidth": 68,
+            "scaleUnit": "week",
+            "selected": [
+              "00000000-0000-4000-8000-000000000102"
+            ]
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "4"
+        },
+        "after": {
+          "public": {
+            "left": 5192,
+            "top": 0
+          },
+          "dom": {
+            "left": 5192,
+            "top": 0
+          },
+          "startX": 5644,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2025-12-28T15:00:00.000Z",
+            "cellWidth": 68,
+            "scaleUnit": "week",
+            "selected": [
+              "00000000-0000-4000-8000-000000000102"
+            ]
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "4"
+        },
+        "environment": "Next16.3.8/Core2.7.3; mocked canonical API, native browser pointer"
+      }
+    },
+    {
+      "phase": "before",
+      "localSource": "output/playwright/issue-514/issue852-before/issue-852-range-day.json",
+      "artifactSha256": "e1c3f01997f342cc299617f21a038ab8d0d0a6f5019beced3874435eebe07701",
+      "recordedSourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "1b7ec8c211119f0edf839dc0811ba186424194ecee026028a16515d5f97659f0",
+        "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "62aac89cd0f658b31d91be914d4e9196b2d38f043a603e376cfe915f9892c136"
+      },
+      "observation": {
+        "capturedAt": "2026-10-29T08:28:39.403Z",
+        "initial": {
+          "public": {
+            "left": 0,
+            "top": 0
+          },
+          "dom": {
+            "left": 0,
+            "top": 0
+          },
+          "startX": 36,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "ranges": [
+          {
+            "before": {
+              "left": 0,
+              "width": 11268,
+              "capacity": 10363
+            },
+            "end": 1794495600000,
+            "after": {
+              "public": {
+                "left": 10362,
+                "top": 0
+              },
+              "dom": {
+                "left": 10363,
+                "top": 0
+              },
+              "startX": 36,
+              "startVisible": false,
+              "chartWidth": 905,
+              "scale": {
+                "start": "2026-01-03T15:00:00.000Z",
+                "cellWidth": 36,
+                "scaleUnit": "day",
+                "selected": []
+              },
+              "geometry": {
+                "chart": {
+                  "left": 510,
+                  "right": 1415
+                },
+                "grid": {
+                  "left": 25,
+                  "right": 506
+                },
+                "viewportWidth": 1440,
+                "documentOverflow": 0
+              },
+              "instance": "svar-api-1",
+              "syncGeneration": "3"
+            },
+            "nextEnd": 1796742000000
+          },
+          {
+            "before": {
+              "left": 10363,
+              "width": 12204,
+              "capacity": 11299
+            },
+            "end": 1796742000000,
+            "after": {
+              "public": {
+                "left": 11298,
+                "top": 0
+              },
+              "dom": {
+                "left": 11299,
+                "top": 0
+              },
+              "startX": 36,
+              "startVisible": false,
+              "chartWidth": 905,
+              "scale": {
+                "start": "2026-01-03T15:00:00.000Z",
+                "cellWidth": 36,
+                "scaleUnit": "day",
+                "selected": []
+              },
+              "geometry": {
+                "chart": {
+                  "left": 510,
+                  "right": 1415
+                },
+                "grid": {
+                  "left": 25,
+                  "right": 506
+                },
+                "viewportWidth": 1440,
+                "documentOverflow": 0
+              },
+              "instance": "svar-api-1",
+              "syncGeneration": "3"
+            },
+            "nextEnd": 1798988400000
+          },
+          {
+            "before": {
+              "left": 11299,
+              "width": 13140,
+              "capacity": 12235
+            },
+            "end": 1798988400000,
+            "after": {
+              "public": {
+                "left": 12234,
+                "top": 0
+              },
+              "dom": {
+                "left": 12235,
+                "top": 0
+              },
+              "startX": 36,
+              "startVisible": false,
+              "chartWidth": 905,
+              "scale": {
+                "start": "2026-01-03T15:00:00.000Z",
+                "cellWidth": 36,
+                "scaleUnit": "day",
+                "selected": []
+              },
+              "geometry": {
+                "chart": {
+                  "left": 510,
+                  "right": 1415
+                },
+                "grid": {
+                  "left": 25,
+                  "right": 506
+                },
+                "viewportWidth": 1440,
+                "documentOverflow": 0
+              },
+              "instance": "svar-api-1",
+              "syncGeneration": "3"
+            },
+            "nextEnd": 1801234800000
+          }
+        ],
+        "environment": "Next16.3.8/Core2.7.3; mocked canonical API, native browser pointer"
+      }
+    },
+    {
+      "phase": "before",
+      "localSource": "output/playwright/issue-514/issue852-before/issue-852-range-week.json",
+      "artifactSha256": "431b76a0df0665a1f3c30f1bcb46328e8b6c747c605d0d6dff4f0dab8948dfaf",
+      "recordedSourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "1b7ec8c211119f0edf839dc0811ba186424194ecee026028a16515d5f97659f0",
+        "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "62aac89cd0f658b31d91be914d4e9196b2d38f043a603e376cfe915f9892c136"
+      },
+      "observation": {
+        "capturedAt": "2026-10-29T08:28:42.403Z",
+        "initial": {
+          "public": {
+            "left": 0,
+            "top": 0
+          },
+          "dom": {
+            "left": 0,
+            "top": 0
+          },
+          "startX": 68,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2025-12-28T15:00:00.000Z",
+            "cellWidth": 68,
+            "scaleUnit": "week",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "4"
+        },
+        "ranges": [
+          {
+            "before": {
+              "left": 0,
+              "width": 3196,
+              "capacity": 2291
+            },
+            "end": 1794927600000,
+            "after": {
+              "public": {
+                "left": 2290,
+                "top": 0
+              },
+              "dom": {
+                "left": 2291,
+                "top": 0
+              },
+              "startX": 68,
+              "startVisible": false,
+              "chartWidth": 905,
+              "scale": {
+                "start": "2025-12-28T15:00:00.000Z",
+                "cellWidth": 68,
+                "scaleUnit": "week",
+                "selected": []
+              },
+              "geometry": {
+                "chart": {
+                  "left": 510,
+                  "right": 1415
+                },
+                "grid": {
+                  "left": 25,
+                  "right": 506
+                },
+                "viewportWidth": 1440,
+                "documentOverflow": 0
+              },
+              "instance": "svar-api-1",
+              "syncGeneration": "4"
+            },
+            "nextEnd": 1803394800000
+          },
+          {
+            "before": {
+              "left": 2291,
+              "width": 4148,
+              "capacity": 3243
+            },
+            "end": 1803394800000,
+            "after": {
+              "public": {
+                "left": 3242,
+                "top": 0
+              },
+              "dom": {
+                "left": 3243,
+                "top": 0
+              },
+              "startX": 68,
+              "startVisible": false,
+              "chartWidth": 905,
+              "scale": {
+                "start": "2025-12-28T15:00:00.000Z",
+                "cellWidth": 68,
+                "scaleUnit": "week",
+                "selected": []
+              },
+              "geometry": {
+                "chart": {
+                  "left": 510,
+                  "right": 1415
+                },
+                "grid": {
+                  "left": 25,
+                  "right": 506
+                },
+                "viewportWidth": 1440,
+                "documentOverflow": 0
+              },
+              "instance": "svar-api-1",
+              "syncGeneration": "4"
+            },
+            "nextEnd": 1811862000000
+          },
+          {
+            "before": {
+              "left": 3243,
+              "width": 5100,
+              "capacity": 4195
+            },
+            "end": 1811862000000,
+            "after": {
+              "public": {
+                "left": 4194,
+                "top": 0
+              },
+              "dom": {
+                "left": 4195,
+                "top": 0
+              },
+              "startX": 68,
+              "startVisible": false,
+              "chartWidth": 905,
+              "scale": {
+                "start": "2025-12-28T15:00:00.000Z",
+                "cellWidth": 68,
+                "scaleUnit": "week",
+                "selected": []
+              },
+              "geometry": {
+                "chart": {
+                  "left": 510,
+                  "right": 1415
+                },
+                "grid": {
+                  "left": 25,
+                  "right": 506
+                },
+                "viewportWidth": 1440,
+                "documentOverflow": 0
+              },
+              "instance": "svar-api-1",
+              "syncGeneration": "4"
+            },
+            "nextEnd": 1820329200000
+          }
+        ],
+        "environment": "Next16.3.8/Core2.7.3; mocked canonical API, native browser pointer"
+      }
+    },
+    {
+      "phase": "final",
+      "localSource": "output/playwright/issue-514/issue852-final/issue-852-align-day.json",
+      "artifactSha256": "feaa21997e36f7b9ef143ae1150bfaefe0ac5edffbd2814ad8b694a06be92f65",
+      "recordedSourceHashes": {
+        "src/features/gantt/viewport/task-reveal-target.ts": "ffc36990225d01313df6c065ede426f235f300ae2d94978b598a8805a8803ab6",
+        "src/features/gantt/viewport/svar-viewport-port.ts": "57bac6efa9c9ad5f4fe7a3e722333b6b615c6e902cfa26bbe7d2f74309782c3e",
+        "src/features/gantt/viewport/viewport-coordinator.ts": "73a12490028306421f1b47e05527d6191d9652288d731434e1c8defecaef72ec",
+        "src/features/gantt/project-gantt.tsx": "b030212e7cca29e9baf9173fd7721b484170d7281b0bf943d1f6f0ad45677837",
+        "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "f0810b25f833ddc002b8be49a1ff3bc1b5fa56bb5789ece7bcdb9f3fe499670a"
+      },
+      "observation": {
+        "capturedAt": "2026-10-29T08:41:51.726Z",
+        "before": {
+          "public": {
+            "left": 0,
+            "top": 0
+          },
+          "dom": {
+            "left": 0,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 36,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [],
+          "axis": null,
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "visibleRight": {
+          "public": {
+            "left": 20248,
+            "top": 0
+          },
+          "dom": {
+            "left": 20248,
+            "top": 0
+          },
+          "actualBarOffset": 452,
+          "startX": 20700,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": [
+              "00000000-0000-4000-8000-000000000102"
+            ]
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "PREPARING_GEOMETRY",
+              "kind": "TASK_REVEAL",
+              "writes": 0,
+              "intentEpoch": 2,
+              "contextEpoch": 0,
+              "gesture": 1,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "PREPARING_GEOMETRY",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,22068,607]"
+            },
+            {
+              "phase": "WAIT_PROJECTION",
+              "kind": "TASK_REVEAL",
+              "writes": 0,
+              "intentEpoch": 2,
+              "contextEpoch": 0,
+              "gesture": 1,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_PROJECTION",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,22068,607]"
+            },
+            {
+              "phase": "WAIT_GEOMETRY",
+              "kind": "TASK_REVEAL",
+              "writes": 0,
+              "intentEpoch": 2,
+              "contextEpoch": 0,
+              "gesture": 1,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_GEOMETRY",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,22068,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "TASK_REVEAL",
+              "writes": 0,
+              "intentEpoch": 2,
+              "contextEpoch": 0,
+              "gesture": 1,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,22068,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "TASK_REVEAL",
+              "writes": 1,
+              "intentEpoch": 2,
+              "contextEpoch": 0,
+              "gesture": 1,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 20700,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,22068,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "TASK_REVEAL",
+              "outcome": "SETTLED",
+              "writes": 2,
+              "intentEpoch": 2,
+              "contextEpoch": 0,
+              "gesture": 1,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 20700,
+                "top": 0
+              },
+              "native": {
+                "left": 20700,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,22068,607]"
+            }
+          ],
+          "axis": null,
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "after": {
+          "public": {
+            "left": 20700,
+            "top": 0
+          },
+          "dom": {
+            "left": 20700,
+            "top": 0
+          },
+          "actualBarOffset": 0,
+          "startX": 20700,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": [
+              "00000000-0000-4000-8000-000000000102"
+            ]
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "PREPARING_GEOMETRY",
+              "kind": "TASK_REVEAL",
+              "writes": 2,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 3,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "PREPARING_GEOMETRY",
+              "core": {
+                "left": 20248,
+                "top": 0
+              },
+              "native": {
+                "left": 20248,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,22068,607]"
+            },
+            {
+              "phase": "WAIT_PROJECTION",
+              "kind": "TASK_REVEAL",
+              "writes": 2,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 3,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_PROJECTION",
+              "core": {
+                "left": 20248,
+                "top": 0
+              },
+              "native": {
+                "left": 20248,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,22068,607]"
+            },
+            {
+              "phase": "WAIT_GEOMETRY",
+              "kind": "TASK_REVEAL",
+              "writes": 2,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 3,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_GEOMETRY",
+              "core": {
+                "left": 20248,
+                "top": 0
+              },
+              "native": {
+                "left": 20248,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,22068,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "TASK_REVEAL",
+              "writes": 2,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 3,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 20248,
+                "top": 0
+              },
+              "native": {
+                "left": 20248,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,22068,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "TASK_REVEAL",
+              "writes": 3,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 3,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 20700,
+                "top": 0
+              },
+              "native": {
+                "left": 20248,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,22068,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "TASK_REVEAL",
+              "outcome": "SETTLED",
+              "writes": 4,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 3,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 20700,
+                "top": 0
+              },
+              "native": {
+                "left": 20700,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,22068,607]"
+            }
+          ],
+          "axis": null,
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "environment": "Next16.4.2/Core2.7.3; mocked canonical API, native browser pointer"
+      }
+    },
+    {
+      "phase": "final",
+      "localSource": "output/playwright/issue-514/issue852-final/issue-852-align-week.json",
+      "artifactSha256": "e1b2f82fe6740d7f0ecbdadd42e2bc449fc27d8551ecf46609c3968ec7b3d043",
+      "recordedSourceHashes": {
+        "src/features/gantt/viewport/task-reveal-target.ts": "ffc36990225d01313df6c065ede426f235f300ae2d94978b598a8805a8803ab6",
+        "src/features/gantt/viewport/svar-viewport-port.ts": "57bac6efa9c9ad5f4fe7a3e722333b6b615c6e902cfa26bbe7d2f74309782c3e",
+        "src/features/gantt/viewport/viewport-coordinator.ts": "73a12490028306421f1b47e05527d6191d9652288d731434e1c8defecaef72ec",
+        "src/features/gantt/project-gantt.tsx": "b030212e7cca29e9baf9173fd7721b484170d7281b0bf943d1f6f0ad45677837",
+        "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "f0810b25f833ddc002b8be49a1ff3bc1b5fa56bb5789ece7bcdb9f3fe499670a"
+      },
+      "observation": {
+        "capturedAt": "2026-10-29T08:41:57.543Z",
+        "before": {
+          "public": {
+            "left": 0,
+            "top": 0
+          },
+          "dom": {
+            "left": 0,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 68,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2025-12-28T15:00:00.000Z",
+            "cellWidth": 68,
+            "scaleUnit": "week",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [],
+          "axis": null,
+          "instance": "svar-api-1",
+          "syncGeneration": "4"
+        },
+        "visibleRight": {
+          "public": {
+            "left": 5192,
+            "top": 0
+          },
+          "dom": {
+            "left": 5192,
+            "top": 0
+          },
+          "actualBarOffset": 452,
+          "startX": 5644,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2025-12-28T15:00:00.000Z",
+            "cellWidth": 68,
+            "scaleUnit": "week",
+            "selected": [
+              "00000000-0000-4000-8000-000000000102"
+            ]
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "WAIT_PROJECTION",
+              "kind": "TASK_REVEAL",
+              "writes": 3,
+              "intentEpoch": 2,
+              "contextEpoch": 1,
+              "gesture": 1,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_PROJECTION",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,6664,607]"
+            },
+            {
+              "phase": "WAIT_GEOMETRY",
+              "kind": "TASK_REVEAL",
+              "writes": 3,
+              "intentEpoch": 2,
+              "contextEpoch": 1,
+              "gesture": 1,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_GEOMETRY",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,6664,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "TASK_REVEAL",
+              "writes": 3,
+              "intentEpoch": 2,
+              "contextEpoch": 1,
+              "gesture": 1,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,6664,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "TASK_REVEAL",
+              "writes": 4,
+              "intentEpoch": 2,
+              "contextEpoch": 1,
+              "gesture": 1,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 5644,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,6664,607]"
+            },
+            {
+              "phase": "SUPERSEDED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SUPERSEDED",
+              "writes": 5,
+              "intentEpoch": 2,
+              "contextEpoch": 1,
+              "gesture": 1,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "LOWER_PRIORITY",
+              "core": {
+                "left": 5644,
+                "top": 0
+              },
+              "native": {
+                "left": 5644,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,6664,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "TASK_REVEAL",
+              "outcome": "SETTLED",
+              "writes": 5,
+              "intentEpoch": 2,
+              "contextEpoch": 1,
+              "gesture": 1,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 5644,
+                "top": 0
+              },
+              "native": {
+                "left": 5644,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,6664,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 0,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 0,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1766934000000,
+              "endMs": 1825772400000,
+              "scaleWidth": 6664
+            },
+            "capacity": {
+              "left": 5759,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "4"
+        },
+        "after": {
+          "public": {
+            "left": 5644,
+            "top": 0
+          },
+          "dom": {
+            "left": 5644,
+            "top": 0
+          },
+          "actualBarOffset": 0,
+          "startX": 5644,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2025-12-28T15:00:00.000Z",
+            "cellWidth": 68,
+            "scaleUnit": "week",
+            "selected": [
+              "00000000-0000-4000-8000-000000000102"
+            ]
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "WAIT_PROJECTION",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 1,
+              "gesture": 3,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_PROJECTION",
+              "core": {
+                "left": 5192,
+                "top": 0
+              },
+              "native": {
+                "left": 5192,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,6664,607]"
+            },
+            {
+              "phase": "WAIT_GEOMETRY",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 1,
+              "gesture": 3,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_GEOMETRY",
+              "core": {
+                "left": 5192,
+                "top": 0
+              },
+              "native": {
+                "left": 5192,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,6664,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 1,
+              "gesture": 3,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 5192,
+                "top": 0
+              },
+              "native": {
+                "left": 5192,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,6664,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "TASK_REVEAL",
+              "writes": 6,
+              "intentEpoch": 5,
+              "contextEpoch": 1,
+              "gesture": 3,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 5644,
+                "top": 0
+              },
+              "native": {
+                "left": 5192,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,6664,607]"
+            },
+            {
+              "phase": "SUPERSEDED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SUPERSEDED",
+              "writes": 7,
+              "intentEpoch": 5,
+              "contextEpoch": 1,
+              "gesture": 3,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "LOWER_PRIORITY",
+              "core": {
+                "left": 5644,
+                "top": 0
+              },
+              "native": {
+                "left": 5644,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,6664,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "TASK_REVEAL",
+              "outcome": "SETTLED",
+              "writes": 7,
+              "intentEpoch": 5,
+              "contextEpoch": 1,
+              "gesture": 3,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 5644,
+                "top": 0
+              },
+              "native": {
+                "left": 5644,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,6664,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 0,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 0,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1766934000000,
+              "endMs": 1825772400000,
+              "scaleWidth": 6664
+            },
+            "capacity": {
+              "left": 5759,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "4"
+        },
+        "environment": "Next16.4.2/Core2.7.3; mocked canonical API, native browser pointer"
+      }
+    },
+    {
+      "phase": "final",
+      "localSource": "output/playwright/issue-514/issue852-final/issue-852-range-day.json",
+      "artifactSha256": "52f8c538e1b408d493260429a314bad0375b668122e226873ff9b03a007b2229",
+      "recordedSourceHashes": {
+        "src/features/gantt/viewport/task-reveal-target.ts": "ffc36990225d01313df6c065ede426f235f300ae2d94978b598a8805a8803ab6",
+        "src/features/gantt/viewport/svar-viewport-port.ts": "57bac6efa9c9ad5f4fe7a3e722333b6b615c6e902cfa26bbe7d2f74309782c3e",
+        "src/features/gantt/viewport/viewport-coordinator.ts": "73a12490028306421f1b47e05527d6191d9652288d731434e1c8defecaef72ec",
+        "src/features/gantt/project-gantt.tsx": "b030212e7cca29e9baf9173fd7721b484170d7281b0bf943d1f6f0ad45677837",
+        "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "f0810b25f833ddc002b8be49a1ff3bc1b5fa56bb5789ece7bcdb9f3fe499670a"
+      },
+      "observation": {
+        "capturedAt": "2026-10-29T08:41:48.760Z",
+        "initial": {
+          "public": {
+            "left": 0,
+            "top": 0
+          },
+          "dom": {
+            "left": 0,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 36,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 0,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,936,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 0,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 0,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1767452400000,
+              "endMs": 1794495600000,
+              "scaleWidth": 11268
+            },
+            "capacity": {
+              "left": 10363,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "ranges": [
+          {
+            "before": {
+              "left": 0,
+              "width": 11268,
+              "capacity": 10363
+            },
+            "end": 1794495600000,
+            "after": {
+              "public": {
+                "left": 10362,
+                "top": 0
+              },
+              "dom": {
+                "left": 10363,
+                "top": 0
+              },
+              "actualBarOffset": null,
+              "startX": 36,
+              "startVisible": false,
+              "chartWidth": 905,
+              "scale": {
+                "start": "2026-01-03T15:00:00.000Z",
+                "cellWidth": 36,
+                "scaleUnit": "day",
+                "selected": []
+              },
+              "geometry": {
+                "chart": {
+                  "left": 510,
+                  "right": 1415
+                },
+                "grid": {
+                  "left": 25,
+                  "right": 506
+                },
+                "viewportWidth": 1440,
+                "documentOverflow": 0
+              },
+              "coordinator": [
+                {
+                  "phase": "APPLYING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 0,
+                  "intentEpoch": 0,
+                  "contextEpoch": 0,
+                  "gesture": 0,
+                  "projectionEpoch": 0,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "APPLYING",
+                  "core": {
+                    "left": 0,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 0,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,936,607]"
+                },
+                {
+                  "phase": "SETTLING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 3,
+                  "intentEpoch": 0,
+                  "contextEpoch": 0,
+                  "gesture": 0,
+                  "projectionEpoch": 0,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLING",
+                  "core": {
+                    "left": 0,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 0,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,11268,607]"
+                },
+                {
+                  "phase": "SETTLED",
+                  "kind": "RANGE_EXTENSION",
+                  "outcome": "SETTLED",
+                  "writes": 3,
+                  "intentEpoch": 0,
+                  "contextEpoch": 0,
+                  "gesture": 0,
+                  "projectionEpoch": 1,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLED",
+                  "core": {
+                    "left": 0,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 0,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,11268,607]"
+                },
+                {
+                  "phase": "APPLYING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 3,
+                  "intentEpoch": 1,
+                  "contextEpoch": 0,
+                  "gesture": 1,
+                  "projectionEpoch": 1,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "APPLYING",
+                  "core": {
+                    "left": 10362,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 10363,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,11268,607]"
+                },
+                {
+                  "phase": "SETTLING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 6,
+                  "intentEpoch": 1,
+                  "contextEpoch": 0,
+                  "gesture": 1,
+                  "projectionEpoch": 1,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLING",
+                  "core": {
+                    "left": 10362,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 10363,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,12204,607]"
+                },
+                {
+                  "phase": "SETTLED",
+                  "kind": "RANGE_EXTENSION",
+                  "outcome": "SETTLED",
+                  "writes": 6,
+                  "intentEpoch": 1,
+                  "contextEpoch": 0,
+                  "gesture": 1,
+                  "projectionEpoch": 1,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLED",
+                  "core": {
+                    "left": 10362,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 10363,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,12204,607]"
+                }
+              ],
+              "axis": {
+                "outcome": "SETTLED",
+                "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+                "viewport": "PRESERVED",
+                "position": {
+                  "left": 10362,
+                  "top": 0
+                },
+                "requestedPosition": {
+                  "left": 10362,
+                  "top": 0
+                },
+                "axis": {
+                  "startMs": 1767452400000,
+                  "endMs": 1796742000000,
+                  "scaleWidth": 12204
+                },
+                "capacity": {
+                  "left": 11299,
+                  "top": 0
+                }
+              },
+              "instance": "svar-api-1",
+              "syncGeneration": "3"
+            },
+            "nextEnd": 1796742000000
+          },
+          {
+            "before": {
+              "left": 10363,
+              "width": 12204,
+              "capacity": 11299
+            },
+            "end": 1796742000000,
+            "after": {
+              "public": {
+                "left": 11298,
+                "top": 0
+              },
+              "dom": {
+                "left": 11299,
+                "top": 0
+              },
+              "actualBarOffset": null,
+              "startX": 36,
+              "startVisible": false,
+              "chartWidth": 905,
+              "scale": {
+                "start": "2026-01-03T15:00:00.000Z",
+                "cellWidth": 36,
+                "scaleUnit": "day",
+                "selected": []
+              },
+              "geometry": {
+                "chart": {
+                  "left": 510,
+                  "right": 1415
+                },
+                "grid": {
+                  "left": 25,
+                  "right": 506
+                },
+                "viewportWidth": 1440,
+                "documentOverflow": 0
+              },
+              "coordinator": [
+                {
+                  "phase": "APPLYING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 3,
+                  "intentEpoch": 1,
+                  "contextEpoch": 0,
+                  "gesture": 1,
+                  "projectionEpoch": 1,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "APPLYING",
+                  "core": {
+                    "left": 10362,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 10363,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,11268,607]"
+                },
+                {
+                  "phase": "SETTLING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 6,
+                  "intentEpoch": 1,
+                  "contextEpoch": 0,
+                  "gesture": 1,
+                  "projectionEpoch": 1,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLING",
+                  "core": {
+                    "left": 10362,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 10363,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,12204,607]"
+                },
+                {
+                  "phase": "SETTLED",
+                  "kind": "RANGE_EXTENSION",
+                  "outcome": "SETTLED",
+                  "writes": 6,
+                  "intentEpoch": 1,
+                  "contextEpoch": 0,
+                  "gesture": 1,
+                  "projectionEpoch": 1,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLED",
+                  "core": {
+                    "left": 10362,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 10363,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,12204,607]"
+                },
+                {
+                  "phase": "APPLYING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 6,
+                  "intentEpoch": 2,
+                  "contextEpoch": 0,
+                  "gesture": 2,
+                  "projectionEpoch": 2,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "APPLYING",
+                  "core": {
+                    "left": 11298,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 11299,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,12204,607]"
+                },
+                {
+                  "phase": "SETTLING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 9,
+                  "intentEpoch": 2,
+                  "contextEpoch": 0,
+                  "gesture": 2,
+                  "projectionEpoch": 2,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLING",
+                  "core": {
+                    "left": 11298,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 11299,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,13140,607]"
+                },
+                {
+                  "phase": "SETTLED",
+                  "kind": "RANGE_EXTENSION",
+                  "outcome": "SETTLED",
+                  "writes": 9,
+                  "intentEpoch": 2,
+                  "contextEpoch": 0,
+                  "gesture": 2,
+                  "projectionEpoch": 2,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLED",
+                  "core": {
+                    "left": 11298,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 11299,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,13140,607]"
+                }
+              ],
+              "axis": {
+                "outcome": "SETTLED",
+                "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+                "viewport": "PRESERVED",
+                "position": {
+                  "left": 11298,
+                  "top": 0
+                },
+                "requestedPosition": {
+                  "left": 11298,
+                  "top": 0
+                },
+                "axis": {
+                  "startMs": 1767452400000,
+                  "endMs": 1798988400000,
+                  "scaleWidth": 13140
+                },
+                "capacity": {
+                  "left": 12235,
+                  "top": 0
+                }
+              },
+              "instance": "svar-api-1",
+              "syncGeneration": "3"
+            },
+            "nextEnd": 1798988400000
+          },
+          {
+            "before": {
+              "left": 11299,
+              "width": 13140,
+              "capacity": 12235
+            },
+            "end": 1798988400000,
+            "after": {
+              "public": {
+                "left": 12234,
+                "top": 0
+              },
+              "dom": {
+                "left": 12235,
+                "top": 0
+              },
+              "actualBarOffset": null,
+              "startX": 36,
+              "startVisible": false,
+              "chartWidth": 905,
+              "scale": {
+                "start": "2026-01-03T15:00:00.000Z",
+                "cellWidth": 36,
+                "scaleUnit": "day",
+                "selected": []
+              },
+              "geometry": {
+                "chart": {
+                  "left": 510,
+                  "right": 1415
+                },
+                "grid": {
+                  "left": 25,
+                  "right": 506
+                },
+                "viewportWidth": 1440,
+                "documentOverflow": 0
+              },
+              "coordinator": [
+                {
+                  "phase": "APPLYING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 6,
+                  "intentEpoch": 2,
+                  "contextEpoch": 0,
+                  "gesture": 2,
+                  "projectionEpoch": 2,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "APPLYING",
+                  "core": {
+                    "left": 11298,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 11299,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,12204,607]"
+                },
+                {
+                  "phase": "SETTLING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 9,
+                  "intentEpoch": 2,
+                  "contextEpoch": 0,
+                  "gesture": 2,
+                  "projectionEpoch": 2,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLING",
+                  "core": {
+                    "left": 11298,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 11299,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,13140,607]"
+                },
+                {
+                  "phase": "SETTLED",
+                  "kind": "RANGE_EXTENSION",
+                  "outcome": "SETTLED",
+                  "writes": 9,
+                  "intentEpoch": 2,
+                  "contextEpoch": 0,
+                  "gesture": 2,
+                  "projectionEpoch": 2,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLED",
+                  "core": {
+                    "left": 11298,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 11299,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,13140,607]"
+                },
+                {
+                  "phase": "APPLYING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 9,
+                  "intentEpoch": 3,
+                  "contextEpoch": 0,
+                  "gesture": 3,
+                  "projectionEpoch": 3,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "APPLYING",
+                  "core": {
+                    "left": 12234,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 12235,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,13140,607]"
+                },
+                {
+                  "phase": "SETTLING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 12,
+                  "intentEpoch": 3,
+                  "contextEpoch": 0,
+                  "gesture": 3,
+                  "projectionEpoch": 3,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLING",
+                  "core": {
+                    "left": 12234,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 12235,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,14076,607]"
+                },
+                {
+                  "phase": "SETTLED",
+                  "kind": "RANGE_EXTENSION",
+                  "outcome": "SETTLED",
+                  "writes": 12,
+                  "intentEpoch": 3,
+                  "contextEpoch": 0,
+                  "gesture": 3,
+                  "projectionEpoch": 3,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLED",
+                  "core": {
+                    "left": 12234,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 12235,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,14076,607]"
+                }
+              ],
+              "axis": {
+                "outcome": "SETTLED",
+                "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+                "viewport": "PRESERVED",
+                "position": {
+                  "left": 12234,
+                  "top": 0
+                },
+                "requestedPosition": {
+                  "left": 12234,
+                  "top": 0
+                },
+                "axis": {
+                  "startMs": 1767452400000,
+                  "endMs": 1801234800000,
+                  "scaleWidth": 14076
+                },
+                "capacity": {
+                  "left": 13171,
+                  "top": 0
+                }
+              },
+              "instance": "svar-api-1",
+              "syncGeneration": "3"
+            },
+            "nextEnd": 1801234800000
+          }
+        ],
+        "environment": "Next16.4.2/Core2.7.3; mocked canonical API, native browser pointer"
+      }
+    },
+    {
+      "phase": "final",
+      "localSource": "output/playwright/issue-514/issue852-final/issue-852-range-week.json",
+      "artifactSha256": "2c714ec5633c2bb24a9016a65ae29cfedb2cf094ee03b1a0367741afb09ed109",
+      "recordedSourceHashes": {
+        "src/features/gantt/viewport/task-reveal-target.ts": "ffc36990225d01313df6c065ede426f235f300ae2d94978b598a8805a8803ab6",
+        "src/features/gantt/viewport/svar-viewport-port.ts": "57bac6efa9c9ad5f4fe7a3e722333b6b615c6e902cfa26bbe7d2f74309782c3e",
+        "src/features/gantt/viewport/viewport-coordinator.ts": "73a12490028306421f1b47e05527d6191d9652288d731434e1c8defecaef72ec",
+        "src/features/gantt/project-gantt.tsx": "b030212e7cca29e9baf9173fd7721b484170d7281b0bf943d1f6f0ad45677837",
+        "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "f0810b25f833ddc002b8be49a1ff3bc1b5fa56bb5789ece7bcdb9f3fe499670a"
+      },
+      "observation": {
+        "capturedAt": "2026-10-29T08:41:54.608Z",
+        "initial": {
+          "public": {
+            "left": 0,
+            "top": 0
+          },
+          "dom": {
+            "left": 0,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 68,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2025-12-28T15:00:00.000Z",
+            "cellWidth": 68,
+            "scaleUnit": "week",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 0,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,936,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "SUPERSEDED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SUPERSEDED",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "CONTEXT_CHANGED",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 1,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 7,
+              "intentEpoch": 0,
+              "contextEpoch": 1,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,3196,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 7,
+              "intentEpoch": 0,
+              "contextEpoch": 1,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,3196,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 0,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 0,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1766934000000,
+              "endMs": 1794927600000,
+              "scaleWidth": 3196
+            },
+            "capacity": {
+              "left": 2291,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "4"
+        },
+        "ranges": [
+          {
+            "before": {
+              "left": 0,
+              "width": 3196,
+              "capacity": 2291
+            },
+            "end": 1794927600000,
+            "after": {
+              "public": {
+                "left": 2290,
+                "top": 0
+              },
+              "dom": {
+                "left": 2291,
+                "top": 0
+              },
+              "actualBarOffset": null,
+              "startX": 68,
+              "startVisible": false,
+              "chartWidth": 905,
+              "scale": {
+                "start": "2025-12-28T15:00:00.000Z",
+                "cellWidth": 68,
+                "scaleUnit": "week",
+                "selected": []
+              },
+              "geometry": {
+                "chart": {
+                  "left": 510,
+                  "right": 1415
+                },
+                "grid": {
+                  "left": 25,
+                  "right": 506
+                },
+                "viewportWidth": 1440,
+                "documentOverflow": 0
+              },
+              "coordinator": [
+                {
+                  "phase": "APPLYING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 3,
+                  "intentEpoch": 0,
+                  "contextEpoch": 1,
+                  "gesture": 0,
+                  "projectionEpoch": 0,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "APPLYING",
+                  "core": {
+                    "left": 0,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 0,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,11268,607]"
+                },
+                {
+                  "phase": "SETTLING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 7,
+                  "intentEpoch": 0,
+                  "contextEpoch": 1,
+                  "gesture": 0,
+                  "projectionEpoch": 0,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLING",
+                  "core": {
+                    "left": 0,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 0,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,3196,607]"
+                },
+                {
+                  "phase": "SETTLED",
+                  "kind": "RANGE_EXTENSION",
+                  "outcome": "SETTLED",
+                  "writes": 7,
+                  "intentEpoch": 0,
+                  "contextEpoch": 1,
+                  "gesture": 0,
+                  "projectionEpoch": 0,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLED",
+                  "core": {
+                    "left": 0,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 0,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,3196,607]"
+                },
+                {
+                  "phase": "APPLYING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 7,
+                  "intentEpoch": 1,
+                  "contextEpoch": 1,
+                  "gesture": 1,
+                  "projectionEpoch": 2,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "APPLYING",
+                  "core": {
+                    "left": 2290,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 2291,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,3196,607]"
+                },
+                {
+                  "phase": "SETTLING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 10,
+                  "intentEpoch": 1,
+                  "contextEpoch": 1,
+                  "gesture": 1,
+                  "projectionEpoch": 2,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLING",
+                  "core": {
+                    "left": 2290,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 2291,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,4148,607]"
+                },
+                {
+                  "phase": "SETTLED",
+                  "kind": "RANGE_EXTENSION",
+                  "outcome": "SETTLED",
+                  "writes": 10,
+                  "intentEpoch": 1,
+                  "contextEpoch": 1,
+                  "gesture": 1,
+                  "projectionEpoch": 2,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLED",
+                  "core": {
+                    "left": 2290,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 2291,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,4148,607]"
+                }
+              ],
+              "axis": {
+                "outcome": "SETTLED",
+                "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+                "viewport": "PRESERVED",
+                "position": {
+                  "left": 2290,
+                  "top": 0
+                },
+                "requestedPosition": {
+                  "left": 2290,
+                  "top": 0
+                },
+                "axis": {
+                  "startMs": 1766934000000,
+                  "endMs": 1803394800000,
+                  "scaleWidth": 4148
+                },
+                "capacity": {
+                  "left": 3243,
+                  "top": 0
+                }
+              },
+              "instance": "svar-api-1",
+              "syncGeneration": "4"
+            },
+            "nextEnd": 1803394800000
+          },
+          {
+            "before": {
+              "left": 2291,
+              "width": 4148,
+              "capacity": 3243
+            },
+            "end": 1803394800000,
+            "after": {
+              "public": {
+                "left": 3242,
+                "top": 0
+              },
+              "dom": {
+                "left": 3243,
+                "top": 0
+              },
+              "actualBarOffset": null,
+              "startX": 68,
+              "startVisible": false,
+              "chartWidth": 905,
+              "scale": {
+                "start": "2025-12-28T15:00:00.000Z",
+                "cellWidth": 68,
+                "scaleUnit": "week",
+                "selected": []
+              },
+              "geometry": {
+                "chart": {
+                  "left": 510,
+                  "right": 1415
+                },
+                "grid": {
+                  "left": 25,
+                  "right": 506
+                },
+                "viewportWidth": 1440,
+                "documentOverflow": 0
+              },
+              "coordinator": [
+                {
+                  "phase": "APPLYING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 7,
+                  "intentEpoch": 1,
+                  "contextEpoch": 1,
+                  "gesture": 1,
+                  "projectionEpoch": 2,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "APPLYING",
+                  "core": {
+                    "left": 2290,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 2291,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,3196,607]"
+                },
+                {
+                  "phase": "SETTLING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 10,
+                  "intentEpoch": 1,
+                  "contextEpoch": 1,
+                  "gesture": 1,
+                  "projectionEpoch": 2,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLING",
+                  "core": {
+                    "left": 2290,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 2291,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,4148,607]"
+                },
+                {
+                  "phase": "SETTLED",
+                  "kind": "RANGE_EXTENSION",
+                  "outcome": "SETTLED",
+                  "writes": 10,
+                  "intentEpoch": 1,
+                  "contextEpoch": 1,
+                  "gesture": 1,
+                  "projectionEpoch": 2,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLED",
+                  "core": {
+                    "left": 2290,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 2291,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,4148,607]"
+                },
+                {
+                  "phase": "APPLYING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 10,
+                  "intentEpoch": 2,
+                  "contextEpoch": 1,
+                  "gesture": 2,
+                  "projectionEpoch": 3,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "APPLYING",
+                  "core": {
+                    "left": 3242,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 3243,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,4148,607]"
+                },
+                {
+                  "phase": "SETTLING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 13,
+                  "intentEpoch": 2,
+                  "contextEpoch": 1,
+                  "gesture": 2,
+                  "projectionEpoch": 3,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLING",
+                  "core": {
+                    "left": 3242,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 3243,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,5100,607]"
+                },
+                {
+                  "phase": "SETTLED",
+                  "kind": "RANGE_EXTENSION",
+                  "outcome": "SETTLED",
+                  "writes": 13,
+                  "intentEpoch": 2,
+                  "contextEpoch": 1,
+                  "gesture": 2,
+                  "projectionEpoch": 3,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLED",
+                  "core": {
+                    "left": 3242,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 3243,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,5100,607]"
+                }
+              ],
+              "axis": {
+                "outcome": "SETTLED",
+                "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+                "viewport": "PRESERVED",
+                "position": {
+                  "left": 3242,
+                  "top": 0
+                },
+                "requestedPosition": {
+                  "left": 3242,
+                  "top": 0
+                },
+                "axis": {
+                  "startMs": 1766934000000,
+                  "endMs": 1811862000000,
+                  "scaleWidth": 5100
+                },
+                "capacity": {
+                  "left": 4195,
+                  "top": 0
+                }
+              },
+              "instance": "svar-api-1",
+              "syncGeneration": "4"
+            },
+            "nextEnd": 1811862000000
+          },
+          {
+            "before": {
+              "left": 3243,
+              "width": 5100,
+              "capacity": 4195
+            },
+            "end": 1811862000000,
+            "after": {
+              "public": {
+                "left": 4194,
+                "top": 0
+              },
+              "dom": {
+                "left": 4195,
+                "top": 0
+              },
+              "actualBarOffset": null,
+              "startX": 68,
+              "startVisible": false,
+              "chartWidth": 905,
+              "scale": {
+                "start": "2025-12-28T15:00:00.000Z",
+                "cellWidth": 68,
+                "scaleUnit": "week",
+                "selected": []
+              },
+              "geometry": {
+                "chart": {
+                  "left": 510,
+                  "right": 1415
+                },
+                "grid": {
+                  "left": 25,
+                  "right": 506
+                },
+                "viewportWidth": 1440,
+                "documentOverflow": 0
+              },
+              "coordinator": [
+                {
+                  "phase": "APPLYING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 10,
+                  "intentEpoch": 2,
+                  "contextEpoch": 1,
+                  "gesture": 2,
+                  "projectionEpoch": 3,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "APPLYING",
+                  "core": {
+                    "left": 3242,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 3243,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,4148,607]"
+                },
+                {
+                  "phase": "SETTLING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 13,
+                  "intentEpoch": 2,
+                  "contextEpoch": 1,
+                  "gesture": 2,
+                  "projectionEpoch": 3,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLING",
+                  "core": {
+                    "left": 3242,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 3243,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,5100,607]"
+                },
+                {
+                  "phase": "SETTLED",
+                  "kind": "RANGE_EXTENSION",
+                  "outcome": "SETTLED",
+                  "writes": 13,
+                  "intentEpoch": 2,
+                  "contextEpoch": 1,
+                  "gesture": 2,
+                  "projectionEpoch": 3,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLED",
+                  "core": {
+                    "left": 3242,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 3243,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,5100,607]"
+                },
+                {
+                  "phase": "APPLYING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 13,
+                  "intentEpoch": 3,
+                  "contextEpoch": 1,
+                  "gesture": 3,
+                  "projectionEpoch": 4,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "APPLYING",
+                  "core": {
+                    "left": 4194,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 4195,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,5100,607]"
+                },
+                {
+                  "phase": "SETTLING",
+                  "kind": "RANGE_EXTENSION",
+                  "writes": 16,
+                  "intentEpoch": 3,
+                  "contextEpoch": 1,
+                  "gesture": 3,
+                  "projectionEpoch": 4,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLING",
+                  "core": {
+                    "left": 4194,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 4195,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,6052,607]"
+                },
+                {
+                  "phase": "SETTLED",
+                  "kind": "RANGE_EXTENSION",
+                  "outcome": "SETTLED",
+                  "writes": 16,
+                  "intentEpoch": 3,
+                  "contextEpoch": 1,
+                  "gesture": 3,
+                  "projectionEpoch": 4,
+                  "apiInstance": "svar-api-1",
+                  "decisionReason": "SETTLED",
+                  "core": {
+                    "left": 4194,
+                    "top": 0
+                  },
+                  "native": {
+                    "left": 4195,
+                    "top": 0
+                  },
+                  "geometry": "[1390,607,905,607,6052,607]"
+                }
+              ],
+              "axis": {
+                "outcome": "SETTLED",
+                "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+                "viewport": "PRESERVED",
+                "position": {
+                  "left": 4194,
+                  "top": 0
+                },
+                "requestedPosition": {
+                  "left": 4194,
+                  "top": 0
+                },
+                "axis": {
+                  "startMs": 1766934000000,
+                  "endMs": 1820329200000,
+                  "scaleWidth": 6052
+                },
+                "capacity": {
+                  "left": 5147,
+                  "top": 0
+                }
+              },
+              "instance": "svar-api-1",
+              "syncGeneration": "4"
+            },
+            "nextEnd": 1820329200000
+          }
+        ],
+        "environment": "Next16.4.2/Core2.7.3; mocked canonical API, native browser pointer"
+      }
+    },
+    {
+      "phase": "final",
+      "localSource": "output/playwright/issue-514/issue852-final/issue-852-wheel-day.json",
+      "artifactSha256": "55dfd19bf408fc1093dc76ed4145902be0b5f21fd97cd387aaec317397a618b5",
+      "recordedSourceHashes": {
+        "src/features/gantt/viewport/task-reveal-target.ts": "ffc36990225d01313df6c065ede426f235f300ae2d94978b598a8805a8803ab6",
+        "src/features/gantt/viewport/svar-viewport-port.ts": "57bac6efa9c9ad5f4fe7a3e722333b6b615c6e902cfa26bbe7d2f74309782c3e",
+        "src/features/gantt/viewport/viewport-coordinator.ts": "73a12490028306421f1b47e05527d6191d9652288d731434e1c8defecaef72ec",
+        "src/features/gantt/project-gantt.tsx": "b030212e7cca29e9baf9173fd7721b484170d7281b0bf943d1f6f0ad45677837",
+        "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "f0810b25f833ddc002b8be49a1ff3bc1b5fa56bb5789ece7bcdb9f3fe499670a"
+      },
+      "observation": {
+        "capturedAt": "2026-10-29T08:42:00.457Z",
+        "initial": {
+          "public": {
+            "left": 0,
+            "top": 0
+          },
+          "dom": {
+            "left": 0,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 36,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 0,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,936,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 0,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 0,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1767452400000,
+              "endMs": 1794495600000,
+              "scaleWidth": 11268
+            },
+            "capacity": {
+              "left": 10363,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "interrupted": {
+          "public": {
+            "left": 11298,
+            "top": 0
+          },
+          "dom": {
+            "left": 11299,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 36,
+          "startVisible": false,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 3,
+              "intentEpoch": 1,
+              "contextEpoch": 0,
+              "gesture": 1,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 10362,
+                "top": 0
+              },
+              "native": {
+                "left": 10363,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "SUPERSEDED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SUPERSEDED",
+              "writes": 5,
+              "intentEpoch": 1,
+              "contextEpoch": 0,
+              "gesture": 1,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "USER_GESTURE",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 5,
+              "intentEpoch": 3,
+              "contextEpoch": 0,
+              "gesture": 3,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 8,
+              "intentEpoch": 3,
+              "contextEpoch": 0,
+              "gesture": 3,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,13140,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 8,
+              "intentEpoch": 3,
+              "contextEpoch": 0,
+              "gesture": 3,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,13140,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 11298,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 11298,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1767452400000,
+              "endMs": 1798988400000,
+              "scaleWidth": 13140
+            },
+            "capacity": {
+              "left": 12235,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "widths": [
+          14076,
+          15012,
+          15948
+        ],
+        "final": {
+          "public": {
+            "left": 14106,
+            "top": 0
+          },
+          "dom": {
+            "left": 14107,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 36,
+          "startVisible": false,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 11,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 5,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 13170,
+                "top": 0
+              },
+              "native": {
+                "left": 13171,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,14076,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 14,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 5,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 13170,
+                "top": 0
+              },
+              "native": {
+                "left": 13171,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,15012,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 14,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 5,
+              "projectionEpoch": 3,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 13170,
+                "top": 0
+              },
+              "native": {
+                "left": 13171,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,15012,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 14,
+              "intentEpoch": 6,
+              "contextEpoch": 0,
+              "gesture": 6,
+              "projectionEpoch": 4,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 14106,
+                "top": 0
+              },
+              "native": {
+                "left": 14107,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,15012,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 17,
+              "intentEpoch": 6,
+              "contextEpoch": 0,
+              "gesture": 6,
+              "projectionEpoch": 4,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 14106,
+                "top": 0
+              },
+              "native": {
+                "left": 14107,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,15948,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 17,
+              "intentEpoch": 6,
+              "contextEpoch": 0,
+              "gesture": 6,
+              "projectionEpoch": 4,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 14106,
+                "top": 0
+              },
+              "native": {
+                "left": 14107,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,15948,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 14106,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 14106,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1767452400000,
+              "endMs": 1805727600000,
+              "scaleWidth": 15948
+            },
+            "capacity": {
+              "left": 15043,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "environment": "Next16.4.2/Core2.7.3; mocked canonical API, native browser pointer"
+      }
+    },
+    {
+      "phase": "final",
+      "localSource": "output/playwright/issue-514/issue852-final/issue-852-wheel-week.json",
+      "artifactSha256": "400b137660d7020ea64b35f5f746562963060ff1ef8ad347801de4136a3bee5a",
+      "recordedSourceHashes": {
+        "src/features/gantt/viewport/task-reveal-target.ts": "ffc36990225d01313df6c065ede426f235f300ae2d94978b598a8805a8803ab6",
+        "src/features/gantt/viewport/svar-viewport-port.ts": "57bac6efa9c9ad5f4fe7a3e722333b6b615c6e902cfa26bbe7d2f74309782c3e",
+        "src/features/gantt/viewport/viewport-coordinator.ts": "73a12490028306421f1b47e05527d6191d9652288d731434e1c8defecaef72ec",
+        "src/features/gantt/project-gantt.tsx": "b030212e7cca29e9baf9173fd7721b484170d7281b0bf943d1f6f0ad45677837",
+        "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "f0810b25f833ddc002b8be49a1ff3bc1b5fa56bb5789ece7bcdb9f3fe499670a"
+      },
+      "observation": {
+        "capturedAt": "2026-10-29T08:42:03.704Z",
+        "initial": {
+          "public": {
+            "left": 0,
+            "top": 0
+          },
+          "dom": {
+            "left": 0,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 68,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2025-12-28T15:00:00.000Z",
+            "cellWidth": 68,
+            "scaleUnit": "week",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 0,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,936,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "SUPERSEDED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SUPERSEDED",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "CONTEXT_CHANGED",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 1,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 7,
+              "intentEpoch": 0,
+              "contextEpoch": 1,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,3196,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 7,
+              "intentEpoch": 0,
+              "contextEpoch": 1,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,3196,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 0,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 0,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1766934000000,
+              "endMs": 1794927600000,
+              "scaleWidth": 3196
+            },
+            "capacity": {
+              "left": 2291,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "4"
+        },
+        "interrupted": {
+          "public": {
+            "left": 3242,
+            "top": 0
+          },
+          "dom": {
+            "left": 3243,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 68,
+          "startVisible": false,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2025-12-28T15:00:00.000Z",
+            "cellWidth": 68,
+            "scaleUnit": "week",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 7,
+              "intentEpoch": 0,
+              "contextEpoch": 1,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,3196,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 7,
+              "intentEpoch": 1,
+              "contextEpoch": 1,
+              "gesture": 1,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 2290,
+                "top": 0
+              },
+              "native": {
+                "left": 2291,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,3196,607]"
+            },
+            {
+              "phase": "SUPERSEDED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SUPERSEDED",
+              "writes": 9,
+              "intentEpoch": 1,
+              "contextEpoch": 1,
+              "gesture": 1,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "USER_GESTURE",
+              "core": {
+                "left": 3242,
+                "top": 0
+              },
+              "native": {
+                "left": 3243,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,4148,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 9,
+              "intentEpoch": 3,
+              "contextEpoch": 1,
+              "gesture": 3,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 3242,
+                "top": 0
+              },
+              "native": {
+                "left": 3243,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,4148,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 12,
+              "intentEpoch": 3,
+              "contextEpoch": 1,
+              "gesture": 3,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 3242,
+                "top": 0
+              },
+              "native": {
+                "left": 3243,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,5100,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 12,
+              "intentEpoch": 3,
+              "contextEpoch": 1,
+              "gesture": 3,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 3242,
+                "top": 0
+              },
+              "native": {
+                "left": 3243,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,5100,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 3242,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 3242,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1766934000000,
+              "endMs": 1811862000000,
+              "scaleWidth": 5100
+            },
+            "capacity": {
+              "left": 4195,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "4"
+        },
+        "widths": [
+          6052,
+          7004,
+          7956
+        ],
+        "final": {
+          "public": {
+            "left": 6098,
+            "top": 0
+          },
+          "dom": {
+            "left": 6099,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 68,
+          "startVisible": false,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2025-12-28T15:00:00.000Z",
+            "cellWidth": 68,
+            "scaleUnit": "week",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 15,
+              "intentEpoch": 5,
+              "contextEpoch": 1,
+              "gesture": 5,
+              "projectionEpoch": 4,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 5146,
+                "top": 0
+              },
+              "native": {
+                "left": 5147,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,6052,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 18,
+              "intentEpoch": 5,
+              "contextEpoch": 1,
+              "gesture": 5,
+              "projectionEpoch": 4,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 5146,
+                "top": 0
+              },
+              "native": {
+                "left": 5147,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,7004,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 18,
+              "intentEpoch": 5,
+              "contextEpoch": 1,
+              "gesture": 5,
+              "projectionEpoch": 4,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 5146,
+                "top": 0
+              },
+              "native": {
+                "left": 5147,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,7004,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 18,
+              "intentEpoch": 6,
+              "contextEpoch": 1,
+              "gesture": 6,
+              "projectionEpoch": 5,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 6098,
+                "top": 0
+              },
+              "native": {
+                "left": 6099,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,7004,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 21,
+              "intentEpoch": 6,
+              "contextEpoch": 1,
+              "gesture": 6,
+              "projectionEpoch": 5,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 6098,
+                "top": 0
+              },
+              "native": {
+                "left": 6099,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,7956,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 21,
+              "intentEpoch": 6,
+              "contextEpoch": 1,
+              "gesture": 6,
+              "projectionEpoch": 5,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 6098,
+                "top": 0
+              },
+              "native": {
+                "left": 6099,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,7956,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 6098,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 6098,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1766934000000,
+              "endMs": 1837263600000,
+              "scaleWidth": 7956
+            },
+            "capacity": {
+              "left": 7051,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "4"
+        },
+        "environment": "Next16.4.2/Core2.7.3; mocked canonical API, native browser pointer"
+      }
+    },
+    {
+      "phase": "final",
+      "localSource": "output/playwright/issue-514/issue852-final/issue-852-burst-day.json",
+      "artifactSha256": "ef29bf43f162faacf1df077a7327c79882aa5199d60888e56f42e0bb5210679f",
+      "recordedSourceHashes": {
+        "src/features/gantt/viewport/task-reveal-target.ts": "ffc36990225d01313df6c065ede426f235f300ae2d94978b598a8805a8803ab6",
+        "src/features/gantt/viewport/svar-viewport-port.ts": "57bac6efa9c9ad5f4fe7a3e722333b6b615c6e902cfa26bbe7d2f74309782c3e",
+        "src/features/gantt/viewport/viewport-coordinator.ts": "73a12490028306421f1b47e05527d6191d9652288d731434e1c8defecaef72ec",
+        "src/features/gantt/project-gantt.tsx": "b030212e7cca29e9baf9173fd7721b484170d7281b0bf943d1f6f0ad45677837",
+        "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "f0810b25f833ddc002b8be49a1ff3bc1b5fa56bb5789ece7bcdb9f3fe499670a"
+      },
+      "observation": {
+        "capturedAt": "2026-10-29T08:42:05.827Z",
+        "initial": {
+          "public": {
+            "left": 0,
+            "top": 0
+          },
+          "dom": {
+            "left": 0,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 36,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 0,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,936,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 0,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 0,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1767452400000,
+              "endMs": 1794495600000,
+              "scaleWidth": 11268
+            },
+            "capacity": {
+              "left": 10363,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "burstWidth": 12204,
+        "state": {
+          "public": {
+            "left": 36,
+            "top": 0
+          },
+          "dom": {
+            "left": 36,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 36,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": [
+              "00000000-0000-4000-8000-000000000101"
+            ]
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "PREPARING_GEOMETRY",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "PREPARING_GEOMETRY",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "WAIT_PROJECTION",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_PROJECTION",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "WAIT_GEOMETRY",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_GEOMETRY",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "TASK_REVEAL",
+              "writes": 6,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 36,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "TASK_REVEAL",
+              "outcome": "SETTLED",
+              "writes": 7,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 36,
+                "top": 0
+              },
+              "native": {
+                "left": 36,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SUPERSEDED",
+            "reason": "SUPERSEDED",
+            "viewport": "UNAVAILABLE",
+            "requestedPosition": {
+              "left": 10362,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "environment": "Next16.4.2/Core2.7.3; mocked canonical API, native browser pointer"
+      },
+      "meaning": "Latest override=true negative case; ordinary positive Day sample uses issue-852-wheel-day.json."
+    },
+    {
+      "phase": "final",
+      "localSource": "output/playwright/issue-514/issue852-final/issue-852-burst-week.json",
+      "artifactSha256": "8fcbabb3482986e21c24bc9431e2b1d65d680d117be144e07d6c84df7d1bed14",
+      "recordedSourceHashes": {
+        "src/features/gantt/viewport/task-reveal-target.ts": "ffc36990225d01313df6c065ede426f235f300ae2d94978b598a8805a8803ab6",
+        "src/features/gantt/viewport/svar-viewport-port.ts": "57bac6efa9c9ad5f4fe7a3e722333b6b615c6e902cfa26bbe7d2f74309782c3e",
+        "src/features/gantt/viewport/viewport-coordinator.ts": "73a12490028306421f1b47e05527d6191d9652288d731434e1c8defecaef72ec",
+        "src/features/gantt/project-gantt.tsx": "b030212e7cca29e9baf9173fd7721b484170d7281b0bf943d1f6f0ad45677837",
+        "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "f0810b25f833ddc002b8be49a1ff3bc1b5fa56bb5789ece7bcdb9f3fe499670a"
+      },
+      "observation": {
+        "capturedAt": "2026-10-29T08:42:02.594Z",
+        "initial": {
+          "public": {
+            "left": 0,
+            "top": 0
+          },
+          "dom": {
+            "left": 0,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 68,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2025-12-28T15:00:00.000Z",
+            "cellWidth": 68,
+            "scaleUnit": "week",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 0,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,936,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "SUPERSEDED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SUPERSEDED",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "CONTEXT_CHANGED",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 1,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 7,
+              "intentEpoch": 0,
+              "contextEpoch": 1,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,3196,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 7,
+              "intentEpoch": 0,
+              "contextEpoch": 1,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,3196,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 0,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 0,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1766934000000,
+              "endMs": 1794927600000,
+              "scaleWidth": 3196
+            },
+            "capacity": {
+              "left": 2291,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "4"
+        },
+        "burstWidth": 4148,
+        "state": {
+          "public": {
+            "left": 3242,
+            "top": 0
+          },
+          "dom": {
+            "left": 3243,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 68,
+          "startVisible": false,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2025-12-28T15:00:00.000Z",
+            "cellWidth": 68,
+            "scaleUnit": "week",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 7,
+              "intentEpoch": 0,
+              "contextEpoch": 1,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,3196,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 7,
+              "intentEpoch": 0,
+              "contextEpoch": 1,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,3196,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 7,
+              "intentEpoch": 1,
+              "contextEpoch": 1,
+              "gesture": 1,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 2290,
+                "top": 0
+              },
+              "native": {
+                "left": 2291,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,3196,607]"
+            },
+            {
+              "phase": "SUPERSEDED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SUPERSEDED",
+              "writes": 9,
+              "intentEpoch": 1,
+              "contextEpoch": 1,
+              "gesture": 1,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "USER_GESTURE",
+              "core": {
+                "left": 3242,
+                "top": 0
+              },
+              "native": {
+                "left": 3243,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,4148,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 9,
+              "intentEpoch": 3,
+              "contextEpoch": 1,
+              "gesture": 3,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 3242,
+                "top": 0
+              },
+              "native": {
+                "left": 3243,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,4148,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 12,
+              "intentEpoch": 3,
+              "contextEpoch": 1,
+              "gesture": 3,
+              "projectionEpoch": 2,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 3242,
+                "top": 0
+              },
+              "native": {
+                "left": 3243,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,5100,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 3242,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 3242,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1766934000000,
+              "endMs": 1811862000000,
+              "scaleWidth": 5100
+            },
+            "capacity": {
+              "left": 4195,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "4"
+        },
+        "environment": "Next16.4.2/Core2.7.3; mocked canonical API, native browser pointer"
+      }
+    },
+    {
+      "phase": "final",
+      "localSource": "output/playwright/issue-514/issue852-final/issue-852-wheel-superseded.json",
+      "artifactSha256": "d02287e125bbb5ccd644bf28bdefc9476cfb64ce1d2fe4b70967c98cd008b400",
+      "recordedSourceHashes": {
+        "src/features/gantt/viewport/task-reveal-target.ts": "ffc36990225d01313df6c065ede426f235f300ae2d94978b598a8805a8803ab6",
+        "src/features/gantt/viewport/svar-viewport-port.ts": "57bac6efa9c9ad5f4fe7a3e722333b6b615c6e902cfa26bbe7d2f74309782c3e",
+        "src/features/gantt/viewport/viewport-coordinator.ts": "73a12490028306421f1b47e05527d6191d9652288d731434e1c8defecaef72ec",
+        "src/features/gantt/project-gantt.tsx": "b030212e7cca29e9baf9173fd7721b484170d7281b0bf943d1f6f0ad45677837",
+        "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "f0810b25f833ddc002b8be49a1ff3bc1b5fa56bb5789ece7bcdb9f3fe499670a"
+      },
+      "observation": {
+        "capturedAt": "2026-10-29T08:42:06.007Z",
+        "initial": {
+          "public": {
+            "left": 0,
+            "top": 0
+          },
+          "dom": {
+            "left": 0,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 36,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": []
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "APPLYING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 0,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,936,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "RANGE_EXTENSION",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 0,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "RANGE_EXTENSION",
+              "outcome": "SETTLED",
+              "writes": 3,
+              "intentEpoch": 0,
+              "contextEpoch": 0,
+              "gesture": 0,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 0,
+                "top": 0
+              },
+              "native": {
+                "left": 0,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,11268,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 0,
+              "top": 0
+            },
+            "requestedPosition": {
+              "left": 0,
+              "top": 0
+            },
+            "axis": {
+              "startMs": 1767452400000,
+              "endMs": 1794495600000,
+              "scaleWidth": 11268
+            },
+            "capacity": {
+              "left": 10363,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "chosen": {
+          "public": {
+            "left": 36,
+            "top": 0
+          },
+          "dom": {
+            "left": 36,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 36,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": [
+              "00000000-0000-4000-8000-000000000101"
+            ]
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "PREPARING_GEOMETRY",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "PREPARING_GEOMETRY",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "WAIT_PROJECTION",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_PROJECTION",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "WAIT_GEOMETRY",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_GEOMETRY",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "TASK_REVEAL",
+              "writes": 6,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 36,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "TASK_REVEAL",
+              "outcome": "SETTLED",
+              "writes": 7,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 36,
+                "top": 0
+              },
+              "native": {
+                "left": 36,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SUPERSEDED",
+            "reason": "SUPERSEDED",
+            "viewport": "UNAVAILABLE",
+            "requestedPosition": {
+              "left": 10362,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "final": {
+          "public": {
+            "left": 36,
+            "top": 0
+          },
+          "dom": {
+            "left": 36,
+            "top": 0
+          },
+          "actualBarOffset": null,
+          "startX": 36,
+          "startVisible": true,
+          "chartWidth": 905,
+          "scale": {
+            "start": "2026-01-03T15:00:00.000Z",
+            "cellWidth": 36,
+            "scaleUnit": "day",
+            "selected": [
+              "00000000-0000-4000-8000-000000000101"
+            ]
+          },
+          "geometry": {
+            "chart": {
+              "left": 510,
+              "right": 1415
+            },
+            "grid": {
+              "left": 25,
+              "right": 506
+            },
+            "viewportWidth": 1440,
+            "documentOverflow": 0
+          },
+          "coordinator": [
+            {
+              "phase": "PREPARING_GEOMETRY",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "PREPARING_GEOMETRY",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "WAIT_PROJECTION",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_PROJECTION",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "WAIT_GEOMETRY",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "WAIT_GEOMETRY",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "APPLYING",
+              "kind": "TASK_REVEAL",
+              "writes": 5,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "APPLYING",
+              "core": {
+                "left": 11298,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "SETTLING",
+              "kind": "TASK_REVEAL",
+              "writes": 6,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLING",
+              "core": {
+                "left": 36,
+                "top": 0
+              },
+              "native": {
+                "left": 11299,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            },
+            {
+              "phase": "SETTLED",
+              "kind": "TASK_REVEAL",
+              "outcome": "SETTLED",
+              "writes": 7,
+              "intentEpoch": 5,
+              "contextEpoch": 0,
+              "gesture": 4,
+              "projectionEpoch": 1,
+              "apiInstance": "svar-api-1",
+              "decisionReason": "SETTLED",
+              "core": {
+                "left": 36,
+                "top": 0
+              },
+              "native": {
+                "left": 36,
+                "top": 0
+              },
+              "geometry": "[1390,607,905,607,12204,607]"
+            }
+          ],
+          "axis": {
+            "outcome": "SUPERSEDED",
+            "reason": "SUPERSEDED",
+            "viewport": "UNAVAILABLE",
+            "requestedPosition": {
+              "left": 10362,
+              "top": 0
+            }
+          },
+          "instance": "svar-api-1",
+          "syncGeneration": "3"
+        },
+        "sourceHashes": {
+          "src/features/gantt/viewport/task-reveal-target.ts": "ffc36990225d01313df6c065ede426f235f300ae2d94978b598a8805a8803ab6",
+          "src/features/gantt/viewport/svar-viewport-port.ts": "57bac6efa9c9ad5f4fe7a3e722333b6b615c6e902cfa26bbe7d2f74309782c3e",
+          "src/features/gantt/viewport/viewport-coordinator.ts": "73a12490028306421f1b47e05527d6191d9652288d731434e1c8defecaef72ec",
+          "src/features/gantt/project-gantt.tsx": "b030212e7cca29e9baf9173fd7721b484170d7281b0bf943d1f6f0ad45677837",
+          "src/features/projects/project-readonly-view.tsx": "945cc90d8ef7b601832f1158c9ba02e36f1c0d3adc6fb5ada52ae24c4a3738cc",
+          "tests/e2e/grid-task-start-reveal.spec.ts": "f0810b25f833ddc002b8be49a1ff3bc1b5fa56bb5789ece7bcdb9f3fe499670a"
+        },
+        "environment": "Next16.4.2/Core2.7.3; mocked canonical API, native browser pointer"
+      },
+      "meaning": "New Grid click supersedes old held range"
+    }
+  ]
+}

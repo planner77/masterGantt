@@ -1,3 +1,11 @@
+## Issue #852 — 일반 Grid 클릭의 시작점 정렬 의도
+
+일반 Grid 좌클릭만 기존 `TASK_REVEAL`에 시작점 정렬 의도를 명시한다. port는 canonical start가 실제 Core 날짜축 안에 있는지와 실제 Task geometry/native capacity를 확인한 후 같은 단일 Coordinator에서 적용한다. 화면 안 오른쪽에 보이는 시작점도 Chart 왼쪽으로 배치하되 왼쪽 한 셀 이내이면 유지한다. Editor locate·Context Menu `show:false`·modifier/checkbox/keyboard·canonical mirror를 정렬 요청으로 일반화하지 않는다. native와 app이 같은 클릭의 수평 scroll을 중복 쓰지 않으며 별도 DOM writer/private store/remount를 도입하지 않는다.
+
+마지막 Task의 시작점 정렬에 capacity가 부족하면 같은 `TASK_REVEAL` lease의 준비 단계에서 기존 extent transaction으로 미래 폭을 확보한 다음 새 projection/geometry를 관측한다. 별도 range 요청으로 명시 선택을 취소하지 않는다. 확장 중 실제 forward wheel의 edge 검사는 원래 stamp를 보류해 port의 axis-idle 통지에서 한 번만 재예약하고 유효성이 사라지면 버린다. 새 권한을 발급하거나 passive resize의 자기 재시도 루프를 만들지 않는다.
+
+공식 [select-task](https://docs.svar.dev/react/gantt/api/actions/select-task/), [scroll-chart](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/), [resize-chart](https://docs.svar.dev/react/gantt/api/actions/resize-chart/) 문서는2026-10-29 조회했다. URL 조회는 demo 조작이나 설치 Core2.7.3 정착 증거가 아니며 기존 synthetic resize 예외와 실제 Core/native 측정 원칙을 유지한다. [#852 실행·실패·미검증](exec-plans/active/ISSUE_852.md)을 따른다.
+
 ## Issue #665 — 의미 관측 facade와 완료 증거 경계
 
 U3는 U1의 공개 읽기/검증 포트를 사용하는 opt-in `createProjectionObservation`을 추가한다. Core tasks/tree/links의 실제 정합·dirty/recovery·API·desired query/scope와 layout/axis·원래 user intent lease를 관측 attempt와 구별한다. 재관측만으로 새 복원 권한을 주지 않으며 현재 proof/행/실측 문맥이 유효할 때만 semantic completion을 유지한다. missing/stale proof·Core drift·새 문맥은 fail-closed한다.

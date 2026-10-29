@@ -22,6 +22,14 @@ describe("SVAR observed Task reveal admission", () => {
     expect(taskRevealTarget({ ...input(), x: NaN })).toBeNull();
     expect(taskRevealTarget({ ...input(), capacity: { left: 200, top: 500 } })).toBeNull();
   });
+  it("aligns a visible right-side start for an ordinary Grid request only", () => {
+    expect(taskRevealTarget({ ...input(), x: 190, startAlignmentTolerance: 36 })).toEqual({ left: 190, top: 20 });
+    expect(taskRevealTarget({ ...input(), x: 190 })).toEqual({ left: 120, top: 20 });
+  });
+  it.each([36, 68])("keeps a start within one %spx left cell steady", tolerance => {
+    expect(taskRevealTarget({ ...input(), x: 120 + tolerance, startAlignmentTolerance: tolerance })).toEqual({ left: 120, top: 20 });
+    expect(taskRevealTarget({ ...input(), x: 119, startAlignmentTolerance: tolerance })).toEqual({ left: 119, top: 20 });
+  });
   it("reveals an undated Summary row without using its artificial x or date", () => {
     expect(taskRevealTarget({ ...input(), type: "summary-container", start: null, x: 0 })).toEqual({ left: 120, top: 20 });
   });
@@ -46,10 +54,12 @@ describe("SVAR visibility admission", () => {
     let dataReady = true;
     const nativeForwardInput = vi.fn();
     const axisSettled = vi.fn();
+    const axisIdle = vi.fn();
     const commands: string[] = [];
     const interceptors: Array<(event: { left?: number; top?: number; eventSource?: string }) => boolean | void> = [];
-    const state = { scrollLeft: 0, scrollTop: 0, _scales: { width: horizontal.scrollWidth }, _chartWidth: 100, _chartHeight: 100, _start: new Date("2026-10-01"), _end: new Date("2026-11-01") };
-    const api = { getState: () => state, intercept: vi.fn((_action: string, listener: (event: { left?: number; top?: number; eventSource?: string }) => boolean | void) => { interceptors.push(listener); }), detach: vi.fn(), exec: (action: string, position: { left?: number; top?: number }) => {
+    const state = { _tasks: [] as Array<{ id: string }>, scrollLeft: 0, scrollTop: 0, _scales: { width: horizontal.scrollWidth }, _chartWidth: 100, _chartHeight: 100, _start: new Date("2026-10-01"), _end: new Date("2026-11-01") };
+    const taskById = new Map<string, object>();
+    const api = { getTask: (id: string) => taskById.get(id), getState: () => state, intercept: vi.fn((_action: string, listener: (event: { left?: number; top?: number; eventSource?: string }) => boolean | void) => { interceptors.push(listener); }), detach: vi.fn(), exec: (action: string, position: { left?: number; top?: number }) => {
       commands.push(action);
       if (action === "resize-chart") { horizontal.scrollWidth = 200; state._scales.width = 200; state._end = new Date(Math.max(requestedEnd.getTime(), new Date("2026-12-01").getTime())); }
       if (action === "scroll-chart") { state.scrollLeft = Math.min(position.left ?? 0, Math.max(0, state._scales.width - state._chartWidth)); state.scrollTop = position.top ?? 0; }
@@ -57,11 +67,34 @@ describe("SVAR visibility admission", () => {
     const port = createSvarViewportPort({ api, root: root as unknown as HTMLElement, frame: { dataset: {} } as unknown as HTMLElement,
       context: () => ({ visible: true, projectionEpoch: 7, apiInstance: "api-test", scale: "day" } as ViewportContext), receipt: () => null, requestedEnd: () => requestedEnd, recordEnd: vi.fn(),
       canChangeAxis: () => dataReady,
-      nativeForwardInput, axisSettled,
+      nativeForwardInput, axisSettled, axisIdle,
       lease: () => ({ stamp: { context: "test", contextEpoch: 0, gesture: 0, intent: 0 }, priority: 1 }) });
     if (mode === "disposed") port.dispose();
-    return Object.assign(port, { commands, nativeForwardInput, axisSettled, setCoreGeometry: (width: number, chartWidth: number) => { state._scales.width = width; state._chartWidth = chartWidth; }, setAxisEnd: (end: Date) => { state._end = end; requestedEnd = end; }, setNativeClientWidth: (width: number) => { horizontal.clientWidth = width; }, setNativeWidth: (width: number) => { horizontal.scrollWidth = width; }, setCoreLeft: (left: number) => { state.scrollLeft = left; }, setNativeLeft: (left: number) => { horizontal.scrollLeft = left; }, setDataReady: (value: boolean) => { dataReady = value; }, setRequestedEnd: (value: Date) => { requestedEnd = value; }, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
+    return Object.assign(port, { setTask: (task: { id: string; type?: string; start?: Date | null; $x: number }) => { taskById.set(task.id, task); state._tasks.push({ id: task.id }); }, commands, nativeForwardInput, axisSettled, axisIdle, setCoreGeometry: (width: number, chartWidth: number) => { state._scales.width = width; state._chartWidth = chartWidth; }, setAxisEnd: (end: Date) => { state._end = end; requestedEnd = end; }, setNativeClientWidth: (width: number) => { horizontal.clientWidth = width; }, setNativeWidth: (width: number) => { horizontal.scrollWidth = width; }, setCoreLeft: (left: number) => { state.scrollLeft = left; }, setNativeLeft: (left: number) => { horizontal.scrollLeft = left; }, setDataReady: (value: boolean) => { dataReady = value; }, setRequestedEnd: (value: Date) => { requestedEnd = value; }, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
   }
+  it("rejects a stale or invisible Grid reveal preparation without Core commands", async () => {
+    const command = { kind: "TASK_REVEAL" as const, taskId: "task", align: "start" as const };
+    const ready = portFor("ready");
+    ready.setTask({ id: "task", start: new Date("2026-10-10"), $x: 1000 });
+    expect(await ready.prepare!(command, () => false)).toEqual({ ready: false });
+    expect(ready.commands).toEqual([]);
+    ready.dispose();
+    const hidden = portFor("hidden");
+    hidden.setTask({ id: "task", start: new Date("2026-10-10"), $x: 1000 });
+    expect(await hidden.prepare!(command, () => true)).toEqual({ ready: false });
+    expect(hidden.commands).toEqual([]);
+    hidden.dispose();
+  });
+  it("does not resize an invisible Task, a null-start Summary or already sufficient Grid capacity", async () => {
+    const port = portFor("ready"), command = { kind: "TASK_REVEAL" as const, taskId: "task", align: "start" as const };
+    expect(await port.prepare!(command, () => true)).toEqual({ ready: false });
+    port.setTask({ id: "task", start: new Date("2026-10-10"), $x: 50 });
+    expect(await port.prepare!(command, () => true)).toEqual({ ready: true });
+    port.setTask({ id: "summary", type: "summary-container", start: null, $x: 1000 });
+    expect(await port.prepare!({ ...command, taskId: "summary" }, () => true)).toEqual({ ready: true });
+    expect(port.commands).toEqual([]);
+    port.dispose();
+  });
   it.each([
     { coreCapacity: 140, nativeCapacity: 140, admitted: true },
     { coreCapacity: 119, nativeCapacity: 140, admitted: false },
@@ -82,6 +115,7 @@ describe("SVAR visibility admission", () => {
     expect(await port.prepare!(command, () => true)).toEqual({ ready: true, projectionAfter: 7 });
     expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart"]);
     expect(port.axisSettled).toHaveBeenCalledExactlyOnceWith();
+    expect(port.axisIdle).toHaveBeenCalledExactlyOnceWith();
     expect(await port.apply(command, () => true)).toEqual({ left: 50, top: 0 });
     expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart", "scroll-chart"]);
   });

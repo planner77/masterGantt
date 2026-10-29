@@ -1,4 +1,5 @@
 import { selectResourceReportView } from "./helpers/resource-workspace";
+import { prepareSelectedGanttPeerViewport } from "./helpers/selected-peer-viewport";
 import { toResourcePublicV2 } from "../../src/contracts/resource-public-v2";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
@@ -14,7 +15,7 @@ async function setup(page: import("@playwright/test").Page, manyGroups = false) 
   await page.route(`**${projectPath}/resource-dashboard?*`, route => route.fulfill({ json: toResourcePublicV2({ data: reportFixture(state, new URL(route.request().url()).searchParams) }) }));
   await page.route(`**${projectPath}/resource-dashboard/group-children?*`, route => { const q = new URL(route.request().url()).searchParams, filters = new URLSearchParams(q); for (const k of ["groupId", "milestoneTaskId", "snapshotId", "offset", "limit"]) filters.delete(k); return route.fulfill({ json: toResourcePublicV2({ data: childrenUiFixture(reportFixture(state, filters), q) }) }); });
   await page.route(`**${projectPath}/resource-dashboard/details?*`, route => route.fulfill({ json: toResourcePublicV2({ data: longResourceDashboardDetailUiFixture(state, new URL(route.request().url()).searchParams) }) }));
-  await page.setViewportSize({ width: 1440, height: 900 }); await page.goto(`/projects/${publicId}`); const identity = await rememberGanttRoot(page); await page.getByRole("button", { name: "주", exact: true }).click(); const frame = page.locator(".project-gantt-frame"); await frame.locator('.wx-row[data-id=":00000000-0000-4000-8000-000000000003"]').first().click(); await expect(frame.locator(".wx-row.wx-selected")).toHaveCount(1);
+  await page.setViewportSize({ width: 1440, height: 900 }); await page.goto(`/projects/${publicId}`); const identity = await rememberGanttRoot(page); await page.getByRole("button", { name: "주", exact: true }).click(); const frame = page.locator(".project-gantt-frame"); await prepareSelectedGanttPeerViewport(page, frame, "00000000-0000-4000-8000-000000000003");
   await frame.locator(".wx-gantt").evaluate(el => { el.scrollTop = 96; });
   await expect.poll(() => frame.getAttribute("data-gantt-canonical-sync-depth")).toBe("0");
   await frame.evaluate(async el => {
@@ -32,9 +33,13 @@ async function setup(page: import("@playwright/test").Page, manyGroups = false) 
   });
   await expect.poll(async () => {
     const current = await ganttState(page);
-    return current.dom.left > 0 && current.dom.top === 96 &&
-      current.public?.left === current.dom.left && current.public?.top === current.dom.top;
-  }).toBe(true); const before = await ganttState(page); expect(before.columns.length).toBeGreaterThan(0); expect(before.selection.length).toBeGreaterThan(0); await openWorkspaceView(page, "resources"); await expect(root(page)).toHaveAttribute("data-ready", "true"); return { state, identity, before };
+    return {
+      nonzeroX: current.dom.left > 0,
+      exactY96: current.dom.top === 96,
+      coreNativeX: current.public?.left === current.dom.left,
+      coreNativeY: current.public?.top === current.dom.top,
+    };
+  }).toEqual({ nonzeroX: true, exactY96: true, coreNativeX: true, coreNativeY: true }); const before = await ganttState(page); expect(before.columns.length).toBeGreaterThan(0); expect(before.selection.length).toBeGreaterThan(0); await openWorkspaceView(page, "resources"); await expect(root(page)).toHaveAttribute("data-ready", "true"); return { state, identity, before };
 }
 test("#526 populated Group/Resource matrix 5폭·bounded cells·순서·단위·focus·Gantt", async ({ page }, testInfo) => {
   test.setTimeout(120_000); const { identity, before } = await setup(page); const r = root(page); await selectResourceReportView(r, "matrix"); const evidence = []; mkdirSync("output/playwright/issue-526", { recursive: true });

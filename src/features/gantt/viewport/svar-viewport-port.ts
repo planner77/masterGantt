@@ -13,6 +13,7 @@ interface PortOptions {
   requestedEnd(): Date;
   recordEnd(): void;
   axisSettled?(): void;
+  axisIdle?(): void;
   lease(): UserIntentLease;
   canChangeAxis?(): boolean;
   nativeForwardInput?(left: number): void;
@@ -203,7 +204,7 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
       return result;
     } finally {
       controller.abort(); transaction.dispose();
-      if (axisTransaction === transaction) { resizing = false; axisTransaction = null; axisAuthority = null; }
+      if (axisTransaction === transaction) { resizing = false; axisTransaction = null; axisAuthority = null; options.axisIdle?.(); }
     }
   };
   const coreHorizontalCapacity = (): number | null => {
@@ -220,6 +221,22 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
       sample.capacity.left >= target.left - 1 && sample.capacity.top >= target.top - 1;
   };
   const prepare = async (command: ViewportCommand, current: () => boolean, source?: ViewportStamp): Promise<{ ready: boolean; projectionAfter?: number }> => {
+    if (command.kind === "TASK_REVEAL" && command.align === "start") {
+      const sample = read();
+      if (!current() || !sample.measurable) return { ready: false };
+      const state = api.getState(), task = api.getTask(command.taskId);
+      if (!task || !state._tasks.some(candidate => String(candidate.id) === command.taskId)) return { ready: false };
+      // A last Task can be visible while its start has no left-alignment
+      // capacity. Grow under this same explicit lease before pinning a receipt.
+      if (task.type !== "summary-container" && task.start instanceof Date && Number.isFinite(task.$x) &&
+        task.$x > Math.min(sample.capacity.left, coreHorizontalCapacity() ?? 0)) {
+        const projectionBefore = sample.context.projectionEpoch;
+        const width = task.$x + (state._chartWidth ?? 0) + GANTT_CELL_WIDTH[options.context().scale as "day" | "week"];
+        const result = await extentTransaction(current, source, width);
+        return result?.outcome === "SETTLED" ? { ready: true, projectionAfter: projectionBefore } : { ready: false };
+      }
+      return { ready: true };
+    }
     if (!("position" in command)) return { ready: true };
     if (!current() || !read().measurable) return { ready: false };
     const admission = new AbortController();
@@ -281,7 +298,8 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
         x: task.$x, y: task.$y, width: task.$w, height: task.$h,
         axisStart: state._scales?.start ?? state._start, axisEnd: state._scales?.end ?? state._end,
         viewportWidth: chart()?.clientWidth ?? 0, viewportHeight: state._chartHeight ?? vertical()?.clientHeight ?? 0,
-        current: sample.core, capacity: sample.capacity });
+        current: sample.core, capacity: sample.capacity,
+        startAlignmentTolerance: command.align === "start" ? GANTT_CELL_WIDTH[options.context().scale as "day" | "week"] : undefined });
       if (!target) return null;
       await exec("scroll-chart", { ...target, eventSource: tag }); return target;
     }

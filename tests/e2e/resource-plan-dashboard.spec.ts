@@ -1,4 +1,5 @@
 import { selectResourceReportView } from "./helpers/resource-workspace";
+import { prepareSelectedGanttPeerViewport } from "./helpers/selected-peer-viewport";
 import { toResourcePublicV2 } from "../../src/contracts/resource-public-v2";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
@@ -74,15 +75,8 @@ async function setup(page: import("@playwright/test").Page) {
   const identity = await rememberGanttRoot(page);
   await page.getByRole("button", { name: "주", exact: true }).click();
   const frame = page.locator(".project-gantt-frame");
-  await frame
-    .locator('.wx-row[data-id=":00000000-0000-4000-8000-000000000003"]')
-    .first()
-    .click();
-  await expect(frame.locator(".wx-row.wx-selected")).toHaveCount(1);
-  // Selecting a Task may legitimately reveal it at a nonzero chart offset
-  // (1581px on CI #2144). Directly assigning chart.scrollLeft=120 during that
-  // Core reveal creates a competing DOM-only position that Core overwrites.
-  // Verify peer navigation against the settled public+DOM viewport instead.
+  // #852 real Task reveal must settle first; X>0 is a separate user bookmark.
+  await prepareSelectedGanttPeerViewport(page, frame, "00000000-0000-4000-8000-000000000003");
   await frame.locator(".wx-gantt").evaluate((el) => {
     el.scrollTop = 96;
   });
@@ -104,9 +98,13 @@ async function setup(page: import("@playwright/test").Page) {
     const current = await viewport(page);
     // Both axes must be meaningfully scrolled and the public Core viewport
     // must agree with the DOM; a reset-to-origin cannot pass this assertion.
-    return current.dom.left > 0 && current.dom.top === 96 &&
-      current.public?.left === current.dom.left && current.public?.top === current.dom.top;
-  }).toBe(true);
+    return {
+      nonzeroX: current.dom.left > 0,
+      exactY96: current.dom.top === 96,
+      coreNativeX: current.public?.left === current.dom.left,
+      coreNativeY: current.public?.top === current.dom.top,
+    };
+  }).toEqual({ nonzeroX: true, exactY96: true, coreNativeX: true, coreNativeY: true });
   const before = await viewport(page);
   await openWorkspaceView(page, "resources");
   await expect(root(page)).toHaveAttribute("data-ready", "true");

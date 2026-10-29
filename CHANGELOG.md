@@ -1,3 +1,14 @@
+## [0.138.2] — Unreleased / Issue #852 Gantt 시작점 탐색 회귀 (2026-10-29)
+
+### Fixed
+
+- 일반 Grid 좌클릭 시 Task 시작점이 화면 내부 오른쪽에 있다는 이유로 이동하지 않던 동작을 교정한다. 기존 단일 Viewport Coordinator에서 시작점을 Chart 왼쪽에 배치하고, 이미 왼쪽 한 셀 이내인 경우 현재 위치를 유지한다. canonical null start·Context Menu·modifier/keyboard·Editor locate의 별도 의미와 서버 저장 계약을 보존한다.
+- 기존 실제 Core Chromium 회귀에 Day/Week 반복 미래 날짜 확장과 선택 정렬·실제 bar geometry 검사를 추가한다. 확장 중 연속 wheel로 새 오른쪽 끝에 도달하면 후속 edge 검사가 유실되는 경합을 보완한다. 새 사용자 입력이 소유한 유효 stamp의 한 번의 edge 재평가만 수행하고 오래된 입력의 복원이나 무한 재시도는 하지 않는다. before/after·실패·비재현 및 미검증은 [#852 Work Packet](docs/exec-plans/active/ISSUE_852.md)과 [원장](docs/ISSUE_852_FAILURE_ANALYSIS.md)을 따른다.
+
+### 검증·릴리스 경계
+
+- 하위 호환 버그 수정 PATCH 후보다. PR Full Quality/E2E8/Docker·Trusted QA·Owner HIGH 위험 수용·Manager ACCEPT는 별도 NOT TESTED이며 이번 요청은 PR CI 시작에서 종료한다. `release_required=true`, `release_authorized=false`; Main/GHCR·tag/Release·Issue 종료는 수행하지 않는다.
+
 ## [0.138.1] — Unreleased / Issue #849 GHCR Release 출처 검증 보완 (2026-10-29)
 
 ### Fixed
