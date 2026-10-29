@@ -53,6 +53,7 @@
 - `docs/CI_CD.md`: N/A(no workflows, gate, policy or release changes)
 - `docs/QA_REVIEW_POLICY.md`: N/A(Owner-managed QA and trusted gate unchanged)
 - `docs/GITHUB_OPERATIONS.md`: N/A(PR lifecycle procedures unchanged)
+- `docs/REMOTE_VALIDATION.md`: N/A(existing exact Head/Run/Attempt remote evidence and validation process unchanged; only PR metadata and Product Issue creation are revised)
 - `docs/IMPORT_EXPORT.md`: N/A(Issue ledger still separate from project import/export)
 - `docs/SCHEDULING_ENGINE.md`: N/A(Task schedule engine unchanged)
 
@@ -64,6 +65,14 @@
 - AC5: Linked Task clear, another Task choose, free text null-ID, general Issue tab empty and no stale prefill; `project-issues.spec.ts`; pending remote evidence.
 - AC6: Dirty guard, modal handoff and focus return, deferred canonical GET race (navigation/second editor blocked), revision reload failure protection and Gantt instance unchanged; browser tests, existing Task Editor/Gantt independent specs; pending remote evidence.
 - AC7: Docs above, no DDL/migration changes; accumulated failure analysis this packet, required CI/QA pending.
+
+## CI #3420.1 new failure and source verification (2026-10-29)
+
+- [Full #3420.1](https://github.com/planner77/masterGantt/actions/runs/40891672575), **Run ID 40891672575 / Attempt 1**, HEAD `8824d26c4002a527c19b46a10630d8c915a30600`, base `5ba0c275669a3521be120751ab260099df2c40aa`.
+- The Changes/trace and trusted QA routing jobs **SUCCESS** (previous #3408/#3409 metadata errors did not recur). QA Preflight job **123510474606** directly failed `DOCUMENTATION_SYNC` because **`docs/REMOTE_VALIDATION.md` was not listed** in this Work Packet. The base validator's `docs_required(paths)` unions six QA source documents whenever `AGENTS.md` or `docs/SECURITY.md` is changed, even when the missing document itself is not modified.
+- Corrective change adds an explicit `N/A(reason)` for unchanged `docs/REMOTE_VALIDATION.md` rather than claiming document updates not made. Verified required paths against all 18 changed paths and base validator's `docs_required` contract: exactly eight required documents, with existing seven and new Remote Validation entry. No validation policy/CI gate/test skip was relaxed.
+- Downstream PR Fast Gate `123510720791` and required Quality/E2E/Docker aggregates fail due to failed preflight; actual TypeScript, ESLint, Vitest, Next build, Chromium8 and Docker implementation **SKIPPED / NOT RUN**, not regression PASS/FAIL. QA Final `123510968406` derives FAIL from required quality, not another independent application error.
+- Codex P1 thread `PRRT_kwDOUUB7Bc6xlJTc` is **resolved**, no new open threads observed as of this audit. `main` compare: ahead=33, behind=0, merge-base exactly base SHA; code merge conflict absent at audit. New HEAD Full CI outcome remains NOT TESTED. [Cumulative analysis](../../ISSUE_854_FAILURE_ANALYSIS.md).
 
 ## PR / Review / Conflict / Failure ledger
 - PR [#855](https://github.com/planner77/masterGantt/pull/855) initial Head `4c7ef263ef40a5b7a0a2f2e9d0542afad7481f32` after first implementation ledger commit, base `5ba0c275669a3521be120751ab260099df2c40aa`. Full Run [#3408.1](https://github.com/planner77/masterGantt/actions/runs/40885313560), metadata-only Run [#3409.1](https://github.com/planner77/masterGantt/actions/runs/40885338058) FAILED due independent missing canonical `Refs #854` and exact-line PR `qa_method` field; PR body corrected without changing validators, Required aggregates remain historical failures.
