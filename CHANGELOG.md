@@ -1,3 +1,18 @@
+## [0.138.3] — Unreleased / Issue #857 · Issue #854 정식 GHCR 후속 릴리스 (2026-10-30)
+
+### Release
+
+- Issue #854의 공개 프로젝트 Issue 등록·Task Editor 관련 Task 자동 지정 기능은 기존 `main` Merge `3dd20ff3da5f3b3f8a6c337bdc61593c81c4daae`에 포함되어 있으며, 이번 Issue #857은 그 기능의 코드를 수정하지 않고 정식 GHCR 게시를 위한 새 패치 버전만 부여한다.
+- 이전 annotated Git tag `v0.138.2`는 SHA `5ba0c275669a3521be120751ab260099df2c40aa`에 고정되어 있다. 이미 발행된 태그를 이동/재사용하지 않고 `0.138.3` 새 버전으로 릴리스한다.
+- 원 Issue #854 Main CI [40957911031.1](https://github.com/planner77/masterGantt/actions/runs/40957911031)는 성공했고 verified OCI artifact `ci-oci-main-40957911031-1`이 보존되어 있으나, 해당 이미지는 `0.138.2` source/config이므로 새 SemVer `0.138.3` 정식 이미지로 변경 없이 승격하지 않는다.
+- 새 버전의 PR/Main CI에서 원본 source/OCI 검사와 Docker smoke를 다시 실행하고, 통과한 새 Main 후보를 `release-image.yml`에서 immutable `v0.138.3` 및 GHCR `0.138.3`으로 승격한다. 해당 검증/게시 결과는 실행 완료 전까지 `NOT TESTED`이다.
+
+### Validation / Gate
+
+- `package.json` / `package-lock.json` version 정합성 및 Release SemVer 검증.
+- PR Required Quality·Chromium8·Docker, Trusted QA/Owner, latest Main 병합, Main exact-SHA CI 및 GHCR digest smoke, 승인된 정식 Release workflow/digest 검증을 변경 없이 유지한다.
+- Owner의 version-scoped 승인 근거: [#857 댓글](https://github.com/planner77/masterGantt/issues/857#issuecomment-6509116199). 원본 #854의 FINAL 및 과거 CI 실패 원장은 수정하지 않는다.
+
 ## [0.138.2] — Unreleased / Issue #852 Gantt 시작점 탐색 회귀 (2026-10-29)
 
 ### Fixed
