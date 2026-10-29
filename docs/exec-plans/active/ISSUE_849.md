@@ -80,3 +80,12 @@ risk_level: HIGH; qa_method: OWNER_MANAGED; qa_required: true; independent_qa: N
 - 선행 누락까지 동시 보완: `docs_gate`는 `- \`path\`: UPDATED` 또는 `- \`path\`: N/A(reason)`으로 끝나는 단일 행만 인식하며, AC_TEST_COVERAGE에서는 `- AC1:` … `- AC8:` 구조의 증거 매핑을 요구한다. 과거 기록은 설명을 상태와 같은 행에 붙였고 AC 표만 작성해서 2차 차단 위험이 존재했다. 전체 DOCUMENTATION_SYNC 행을 형식에 맞추고 표는 보존하며 AC1~AC8 bullet을 추가했다.
 - [누적 실패 원장](../../ISSUE_849_FAILURE_ANALYSIS.md): #3393~#3396, Fast #190~#193의 Run/Attempt/직접·파생·미실행 및 Source 보존. 최초 실패는 제품 직접 검사 전에 발생; TypeScript/Lint/Vitest/E2E8/Docker 구현 Job은 NOT RUN, 새 Head 결과는 NOT TESTED. 과거 #846 실패를 #849 실패로 계산하지 않는다.
 - 요구된 QA/리뷰/충돌 점검 후 새 Full PR CI 시작까지만 수행. CI 결과 모니터링, Main merge/CI, GHCR, 운영 DB migration, Issue close는 별도 지시 없이는 실행하지 않는다. HIGH/OWNER_MANAGED 및 Required3/Trusted QA는 유지한다.
+
+
+## REWORK #2 — 2026-10-29 / PR #850 #3397.1
+
+- 원본 Run [#3397.1](https://github.com/planner77/masterGantt/actions/runs/40789357833) / Attempt 1 / HEAD `c64897b0a23ae9378b38f70b04f9730e40f4954f` / Test merge `49265a2fdaa83dc7dbdadf393d6c89e7b93bcb1b`.
+- 이전 F-001 문서 Preflight와 Policy, TypeScript, ESLint는 PASS. 신규 Vitest 직접 실패 6건: 0034 Migration 예상 33/9개 미갱신 5건, #846 tombstone 2필드 KPI 기대값 1건. 3372 PASS/3 SKIPPED, E2E8·Docker 구현 NOT RUN. Required3/자동 QA는 파생 FAIL.
+- 수정: `tests/server/migration-cli.test.ts`, `tests/server/db/issue-623-target-migration.test.ts`, `tests/server/logistics/logistics-targets-acceptance.test.ts`, `tests/server/projects/project-issues.test.ts`의 전체 원장 버전·체크섬/복구/상태 KPI 단언을 최신 명세로 보완하고 0034 정확 이름 및 삭제 상태별 필터 음성 검증 추가.
+- [누적 실패 원장](../../ISSUE_849_FAILURE_ANALYSIS.md)에 #3393~#3397 직접/파생·취소·미실행과 전체 6건의 F-002/F-003 매트릭스 기록. TEST_LIFECYCLE_REVIEW는 EXTEND/KEEP_UNIQUE, 테스트 삭제/완화/CI 정책 변경 없음. 새 Head 테스트 NOT TESTED; 로컬 실제 npm/SQLite/Browser/Docker NOT EXECUTED.
+- DOCUMENTATION_SYNC: 본 문서 및 #849 원장 UPDATED, 기존 필수 AGENTS/DESIGN/API/DB/SECURITY/TEST_PLAN 및 QA/CI 정책은 범위·의미 변경 없음. 리뷰·Main 충돌 검사 후 새 Full PR CI 시작까지만 진행.
