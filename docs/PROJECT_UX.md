@@ -1,3 +1,9 @@
+## Issue #854 — 조회 가능한 프로젝트 Issue 등록·Task 연계 편집
+
+공개 프로젝트는 편집 잠금 해제 없이도 **Issue 탭 → Issue 등록**을 허용한다. 비공개 프로젝트는 기존 조회 세션을 유지하고 Issue 등록만으로 일정 수정 권한이 생기지 않는다. Issue 비밀번호/확인·발생일/상태/완료일·Task/리소스 정확 ID·논리 삭제/KPI 계약은 이전과 같다.
+
+Task Editor 작업 정보 탭 하단의 `Issue 등록` 명령은 readonly에서도 노출되나 Task 초안 변경/서버 mutation/Revision 충돌이면 비활성화한다. clean 상태로 호출하면 같은 Issue 등록 폼으로 이동하고 `관련 Task`를 현재 원본 Task ID/이름으로 초깃값 지정한다. `연결 해제`는 ID와 텍스트를 함께 비우며, 검색해 다른 Task ID 선택 또는 수동 텍스트 연결이 가능하다. 일반 Issue 탭 생성에는 자동 연결을 남기지 않는다. 성공/취소는 최신 canonical Task Editor와 focus로 복귀하며 SVAR 인스턴스/scroll/scale/selection을 리셋하지 않는다. 390/768/1024/1440/1920px·키보드·dirty/pending 보호를 검증한다.
+
 ## Issue #822 — Ctrl+휠 세로 밀도 조절
 
 일정의 Grid 또는 Chart **본문**에 포인터를 놓고 `Ctrl+휠 아래`로 행·본문 글꼴·Task bar를 함께 축소하고, `Ctrl+휠 위`로 기본 크기까지 확대한다. fine pointer의 행은34/32/30/28px, Grid 본문 글꼴은14/13.3/12.6/12.04px이며 기존 명시12px 보조 제어는 최소 크기를 유지한다. 최초 진입은34px, 터치 가능한 coarse·혼합 포인터는44px 단일 프로파일로 조작 목표를 보존한다. 최종 단계별 실측과 검증 범위는 [#822 Work Packet](exec-plans/active/ISSUE_822.md)에 기록한다.
