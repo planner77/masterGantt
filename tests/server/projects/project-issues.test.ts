@@ -257,7 +257,7 @@ describe("#838-#840 project Issue persistence and API", () => {
       const response = await f.handle(f.request("POST", createBody({ title: "익명 신고 " + i }), { token: "invalid" }));
       results.push(response.status);
       if (i === 20) {
-        expect(response.headers.get("Retry-After")).toMatch(/^\\d+$/);
+        expect(response.headers.get("Retry-After")).toMatch(/^[0-9]+$/);
         expect((await response.json()) as unknown).toMatchObject({
           error: { code: "ISSUE_CREATE_RATE_LIMITED" },
         });
