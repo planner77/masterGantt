@@ -15,6 +15,7 @@ import {
 import { handleProjectIssues } from "../../../src/server/projects/project-issue-handlers-core";
 import { ResourceCatalogRepository } from "../../../src/server/repositories/resource-catalog-repository-core";
 import { editSessionCookieName } from "../../../src/server/security/cookie-core";
+import { issueCreateGlobalRateLimiter, issueCreateProjectRateLimiter } from "../../../src/server/security/rate-limit-core";
 
 const now = "2026-10-28T01:00:00.000Z";
 const clock = () => new Date(now);
@@ -36,7 +37,11 @@ const createBody = (override: Record<string, unknown> = {}) =>
 const updateBody = (override: Record<string, unknown> = {}) =>
   ({ ...input(override), issuePassword });
 const databases: Database.Database[] = [];
-afterEach(() => { for (const db of databases.splice(0)) db.close(); });
+afterEach(() => {
+  for (const db of databases.splice(0)) db.close();
+  issueCreateGlobalRateLimiter.clear();
+  issueCreateProjectRateLimiter.clear();
+});
 
 async function fixture() {
   const db = openDatabase({ filename: ":memory:", migrationsDirectory }).database;
@@ -111,7 +116,7 @@ describe("#838-#840 project Issue persistence and API", () => {
 
   it("persists 23 searchable issues, paginates, and keeps the global numerator/denominator", async () => {
     const f = await fixture();
-    const first = await f.service.create(f.a.authorization, f.a.revision(), parseProjectIssueInput(input()), issuePassword);
+    const first = await f.service.create(f.a.publicId, f.a.revision(), parseProjectIssueInput(input()), issuePassword);
     expect(first.data.issue).toMatchObject({ title: "차량 정지", completed: false, reporterName: "등록자" });
     expect(first.data.projectRevision).toBe(2);
     for (let index = 0; index < 22; index++) {
@@ -190,11 +195,13 @@ describe("#838-#840 project Issue persistence and API", () => {
     const list = f.service.list(f.a.publicId, parseProjectIssueQuery(new URLSearchParams())).data.issues;
     expect(list[0]).toMatchObject({ relatedTaskId: null, relatedTaskText: "A 전용",
       reporterResourceId: null, assigneeResourceId: null, reporterName: "김개발" });
-    const unauthorized = { ...f.a.authorization, projectAuthVersion: -1 };
-    await expect(f.service.create(unauthorized, f.a.revision(), parseProjectIssueInput(input()), issuePassword)).rejects.toThrow("편집 세션");
+    // Creating Issues must not require an EditSession or grant Task editing.
+    const readOnlyCreated = await f.service.create(f.a.publicId, f.a.revision(),
+      parseProjectIssueInput(input({ title: "읽기 전용 등록" })), issuePassword);
+    expect(readOnlyCreated.data.issue.title).toBe("읽기 전용 등록");
   });
 
-  it("enforces Origin, If-Match, edit session, repeatable read, and no-store HTTP", async () => {
+  it("enforces Origin, If-Match, read access, repeatable read, and no-store HTTP", async () => {
     const f = await fixture();
     const post = await f.handle(f.request("POST", createBody()));
     expect(post.status).toBe(201);
@@ -205,8 +212,10 @@ describe("#838-#840 project Issue persistence and API", () => {
     expect(((await get.json()) as { data: { summary: { total: number } } }).data.summary.total).toBe(1);
     const forbidden = await f.handle(f.request("POST", createBody(), { origin: "https://evil.example" }));
     expect(forbidden.status).toBe(403);
-    const missingSession = await f.handle(f.request("POST", createBody(), { token: "no-session" }));
-    expect(missingSession.status).toBe(401);
+    const withoutEditSession = await f.handle(f.request("POST", createBody({ title: "공개 조회자 Issue" }), { token: "no-session" }));
+    expect(withoutEditSession.status).toBe(201);
+    const noSessionPayload = await withoutEditSession.json() as { data: { issue: { title: string } } };
+    expect(noSessionPayload.data.issue.title).toBe("공개 조회자 Issue");
     const stale = await f.handle(f.request("POST", createBody(), { revision: 1 }));
     expect(stale.status).toBe(412);
     const patch = await f.handle(f.request("PATCH", updateBody({ completed: true, completedOn: "2026-10-28" }), {
@@ -220,6 +229,45 @@ describe("#838-#840 project Issue persistence and API", () => {
     const invalid = await f.handle(f.request("POST", { ...createBody(), complete: true }));
     expect(invalid.status).toBe(400);
   });
+  it("#854 allows public Issue POST without editing, but still blocks private unauthorized reads/writes", async () => {
+    const f = await fixture();
+    const task = f.projects.createTask(f.a.authorization, f.a.revision(), {
+      type: "task", name: "현재 작업", externalId: "CURRENT", start: "2026-10-29", duration: 1, progress: 0,
+    }).data.tasks.find(item => item.externalId === "CURRENT")!;
+    const created = await f.handle(f.request("POST", createBody({
+      title: "Task 연결 생성", relatedTaskId: task.taskId, relatedTaskText: "조작된 레이블",
+    }), { token: "invalid" }));
+    expect(created.status).toBe(201);
+    const posted = await created.json() as { data: { issue: { relatedTaskId: string; relatedTaskText: string } } };
+    expect(posted.data.issue).toMatchObject({ relatedTaskId: task.taskId, relatedTaskText: task.name });
+    // A protected project must not become public through Issue creation.
+    f.db.prepare("UPDATE projects SET visibility = 'private' WHERE public_id = ?").run(f.a.publicId);
+    const noRead = await f.handle(f.request("GET", undefined, { token: "invalid" }));
+    expect(noRead.status).toBe(401);
+    const noWrite = await f.handle(f.request("POST", createBody(), { token: "invalid" }));
+    expect(noWrite.status).toBe(401);
+    const authorized = await f.handle(f.request("POST", createBody()));
+    expect(authorized.status).toBe(201);
+  });
+
+  it("#854 rate-limits public Issue POST independently of edit-session privileges", async () => {
+    const f = await fixture();
+    const results: number[] = [];
+    for (let i = 0; i < 21; i++) {
+      const response = await f.handle(f.request("POST", createBody({ title: "익명 신고 " + i }), { token: "invalid" }));
+      results.push(response.status);
+      if (i === 20) {
+        expect(response.headers.get("Retry-After")).toMatch(/^\\d+$/);
+        expect((await response.json()) as unknown).toMatchObject({
+          error: { code: "ISSUE_CREATE_RATE_LIMITED" },
+        });
+      }
+    }
+    expect(results.slice(0, 20).every(status => status === 201)).toBe(true);
+    expect(results[20]).toBe(429);
+    expect(f.service.list(f.a.publicId, parseProjectIssueQuery(new URLSearchParams())).data.summary.total).toBe(20);
+  });
+
   it("#846 rejects malformed password payloads before mutation", () => {
     expect(() => parseIssueCreateRequest({ ...input(), issuePassword: "short", confirmIssuePassword: "short" })).toThrow();
     expect(() => parseIssueCreateRequest({ ...input(), issuePassword, confirmIssuePassword: "mismatch" })).toThrow();
