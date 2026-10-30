@@ -49,6 +49,7 @@ import milestoneWbsStyles from "@/features/milestones/milestone-wbs-dashboard.mo
 import { MilestoneWbsDashboard } from "@/features/milestones/milestone-wbs-dashboard";
 import { ProjectMilestoneDashboard } from "@/features/milestones/project-milestone-dashboard";
 import { MilestoneCreateDialog } from "@/features/milestones/milestone-create-dialog";
+import { MilestoneConversionConfirm, MilestoneConversionNotice } from "@/features/milestones/milestone-conversion-feedback";
 import { milestoneRootPayload, resolveCreatedMilestone, isVisibleFocusTarget, type MilestoneManagementCommand } from "@/features/milestones/milestone-management-model";
 import { copyTextWithLegacyCommand, writeTextWithCompatibility } from "@/components/clipboard-write";
 import { activeResourceEditorReceipts, resourceEditorFocusDecision } from "./resource-editor-focus-return";
@@ -447,6 +448,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const editorOriginScreenReference = useRef<WorkspaceScreen>("schedule");
   const editorOpeningReference = useRef(false);
   const [createdMilestoneNotice, setCreatedMilestoneNotice] = useState<{ publicId: string; taskId: string; name: string } | null>(null);
+  const [milestoneConversion, setMilestoneConversion] = useState<{ publicId: string; revision: number; taskId: string; name: string } | null>(null);
+  const milestoneConversionReference = useRef<typeof milestoneConversion>(null);
+  const milestoneConversionSubmitting = useRef(false);
+  const milestoneConversionSucceeded = useRef(false);
+  const convertedMilestoneOpening = useRef(false);
+  const [isOpeningConvertedMilestone, setIsOpeningConvertedMilestone] = useState(false);
+  const milestoneConversionTrigger = useRef<HTMLElement | null>(null);
+  const [milestoneConversionError, setMilestoneConversionError] = useState<string | null>(null);
+  const [convertedMilestoneNotice, setConvertedMilestoneNotice] = useState<{ publicId: string; taskId: string; name: string } | null>(null);
+  useEffect(() => () => { milestoneConversionReference.current = null; }, [publicId]);
   const [milestoneCreate, setMilestoneCreate] = useState<{ revision: number; publicId: string } | null>(null);
   const milestoneCreateReference = useRef<typeof milestoneCreate>(null);
   const milestoneCreateTriggerReference = useRef<HTMLElement | null>(null);
@@ -1181,7 +1192,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     } finally { taskMutationReference.current = false; setIsSavingTask(false); }
   }
 
-  async function performTaskHierarchyCommand(command: TaskHierarchyCommandRequest, expectedRevision: number): Promise<{ ok: boolean; error?: string }> {
+  async function performTaskHierarchyCommand(command: TaskHierarchyCommandRequest, expectedRevision: number, successFeedback: "immediate" | "deferred" = "immediate"): Promise<{ ok: boolean; error?: string }> {
     if (state.status !== "ready" || canonicalRecoveryBlockedReference.current || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen || importPending || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut) return { ok:false, error:"편집 권한 또는 다른 작업의 초안·저장 상태를 확인해 주세요." };
     if (state.snapshot.data.project.revision !== expectedRevision) return { ok:false, error:"검토 이후 프로젝트가 변경되었습니다. 최신 일정에서 다시 복사해 주세요." };
     const controller = viewportController.current;
@@ -1199,7 +1210,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       const body: unknown = await response.json().catch(() => null), snapshot = snapshotFromTaskMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
         completeCanonicalMutation(mutationRequest, "SUCCESS", snapshot.data.project.revision);
-        notify("success", "작업 구조를 변경했습니다.", "작업 메뉴"); return { ok:true };
+        if (successFeedback === "immediate") notify("success", "작업 구조를 변경했습니다.", "작업 메뉴");
+        return { ok:true };
       }
       const error = await handleTaskFailure(response.status, body, "작업 구조를 변경할 수 없습니다.", "작업 메뉴");
       return { ok:false, error };
@@ -1211,8 +1223,18 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   }
 
   async function saveTaskHierarchyCommand(command: TaskHierarchyCommandRequest, trigger?: HTMLElement): Promise<void> {
-    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || busy || editorSession || settingsOpen || copyReview) return;
+    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || busy || editorSession || settingsOpen || copyReview || milestoneConversionReference.current) return;
     const revision = state.snapshot.data.project.revision;
+    if (command.kind === "convert" && command.targetType === "milestone") {
+      const task = state.snapshot.data.tasks.find(entry => entry.taskId === command.taskId);
+      if (!task || !taskContextCapabilities(state.snapshot.data.tasks, command.taskId, true, false, state.snapshot.data.links, null, activeRootTaskId).canConvertToMilestone) return;
+      milestoneConversionTrigger.current = trigger ?? findTaskContextElement(document.body, task.taskId);
+      const request = { publicId, revision, taskId: task.taskId, name: task.name };
+      milestoneConversionReference.current = request;
+      milestoneConversionSucceeded.current = false;
+      setMilestoneConversionError(null); setMilestoneConversion(request);
+      return;
+    }
     if (command.kind === "copy") {
       try {
         const plan = previewMembershipCopy(state.snapshot.data.tasks, state.snapshot.data.links, command);
@@ -1226,6 +1248,71 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       }
     }
     await performTaskHierarchyCommand(command, revision);
+  }
+
+  function closeMilestoneConversion() {
+    if (milestoneConversionSubmitting.current || taskMutationReference.current) return;
+    milestoneConversionReference.current = null;
+    setMilestoneConversion(null); setMilestoneConversionError(null);
+  }
+
+  function restoreMilestoneConversionFocus() {
+    // Native dialog cleanup owns the timing. Its trigger may disappear after
+    // the type commit; an event-time RAF can run while the modal is still open.
+    if (milestoneConversionReference.current || document.querySelector("dialog:modal")) return;
+    const succeeded = milestoneConversionSucceeded.current;
+    milestoneConversionSucceeded.current = false;
+    const trigger = milestoneConversionTrigger.current;
+    if (document.activeElement !== document.body && document.activeElement !== trigger) return;
+    if (!succeeded && isVisibleFocusTarget(trigger)) return;
+    const target = document.fullscreenElement?.querySelector<HTMLElement>(".project-gantt-scroll") ?? taskSearchReference.current;
+    if (isVisibleFocusTarget(target)) target.focus({ preventScroll: true });
+  }
+
+  async function confirmMilestoneConversion() {
+    const request = milestoneConversionReference.current;
+    if (!request || milestoneConversionSubmitting.current || milestoneConversionError || state.status !== "ready") return;
+    const current = confirmedSnapshotReference.current;
+    if (request.publicId !== publicId || current?.data.project.publicId !== request.publicId || current.data.project.revision !== request.revision ||
+        !taskContextCapabilities(current.data.tasks, request.taskId, permission === "edit" && permissionCheckState === "complete", false, current.data.links, null, activeRootTaskId).canConvertToMilestone) {
+      setMilestoneConversionError("변경 조건 또는 편집 권한이 달라졌습니다."); return;
+    }
+    milestoneConversionSubmitting.current = true;
+    try {
+      const result = await performTaskHierarchyCommand({ kind: "convert", taskId: request.taskId, targetType: "milestone" }, request.revision, "deferred");
+      if (milestoneConversionReference.current !== request) return;
+      const confirmed = confirmedSnapshotReference.current;
+      const milestone = confirmed?.data.tasks.find(task => task.taskId === request.taskId && task.type === "milestone");
+      if (!result.ok || confirmed?.data.project.publicId !== request.publicId || !milestone || confirmed.data.project.revision <= request.revision) {
+        setMilestoneConversionError(result.error ?? "변경 결과를 확인하지 못했습니다."); return;
+      }
+      setConvertedMilestoneNotice({ publicId: request.publicId, taskId: milestone.taskId, name: milestone.name });
+      milestoneConversionSucceeded.current = true;
+      milestoneConversionReference.current = null; setMilestoneConversion(null); setMilestoneConversionError(null);
+      notify("success", "Milestone으로 변경했습니다.", "Milestone 변경");
+    } finally { milestoneConversionSubmitting.current = false; }
+  }
+
+  async function openConvertedMilestone(trigger: HTMLElement) {
+    const notice = convertedMilestoneNotice;
+    if (!notice || notice.publicId !== publicId || busy || editorSession || relationEditorRequest || pendingTaskDelete || navigationLoading || convertedMilestoneOpening.current) return;
+    const milestone = confirmedSnapshotReference.current?.data.tasks.find(task => task.taskId === notice.taskId && task.type === "milestone");
+    if (!milestone) { notify("info", "변경한 Milestone을 현재 원본에서 찾을 수 없습니다. 최신 상태를 다시 조회해 주세요.", "Milestone 조회"); return; }
+    // Peer navigation is explicit. Existing dashboard filters remain intact;
+    // the same-ID Editor is independent of their current visible rows.
+    convertedMilestoneOpening.current = true;
+    setIsOpeningConvertedMilestone(true);
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen().catch(() => undefined);
+      const current = confirmedSnapshotReference.current;
+      if (document.fullscreenElement || current?.data.project.publicId !== notice.publicId || current.data.tasks.find(task => task.taskId === notice.taskId)?.type !== "milestone" ||
+          taskMutationReference.current || canonicalRecoveryBlockedReference.current || editorOpeningReference.current || document.querySelector("dialog:modal")) return;
+      if (!openTaskEditor(notice.taskId, "task", trigger, undefined, current)) return;
+      capturePeerViewport(); setActiveView("milestones");
+      editorOriginViewReference.current = "milestones";
+      editorOriginScreenReference.current = "dashboard.milestones";
+      editorTriggerReference.current = milestoneTabReference.current;
+    } finally { convertedMilestoneOpening.current = false; setIsOpeningConvertedMilestone(false); }
   }
 
   function closeCopyReview() {
@@ -1244,10 +1331,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     finally { copyConfirmationReference.current = false; }
   }
 
-  function openTaskEditor(taskId: string, initialTab: "task" | "memberships" | "relations" | "resources" = "task", actualTrigger?: HTMLElement, assignment?: {assignmentId:string;resourceId:string}) {
-    if (state.status !== "ready" || busy || editorSession || editorOpeningReference.current || settingsOpen || pendingTaskDelete) return;
-    const task = state.snapshot.data.tasks.find((entry) => entry.taskId === taskId);
-    if (!task) return;
+  function openTaskEditor(taskId: string, initialTab: "task" | "memberships" | "relations" | "resources" = "task", actualTrigger?: HTMLElement, assignment?: {assignmentId:string;resourceId:string}, currentSnapshot?: ProjectSnapshotResponse): boolean {
+    if (state.status !== "ready" || busy || editorSession || editorOpeningReference.current || settingsOpen || pendingTaskDelete) return false;
+    const snapshot = currentSnapshot ?? state.snapshot;
+    if (currentSnapshot && (currentSnapshot !== confirmedSnapshotReference.current || currentSnapshot.data.project.publicId !== publicId)) return false;
+    const task = snapshot.data.tasks.find((entry) => entry.taskId === taskId);
+    if (!task) return false;
     const trigger = actualTrigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     editorWbsOriginReference.current = trigger?.closest("[data-wbs-view]")
       ? {navigation:captureNavigation(trigger),revision:state.snapshot.data.project.revision} : null;
@@ -1260,7 +1349,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     editorTriggerReference.current = trigger;
     editorResourceDetailKey.current = trigger?.closest<HTMLElement>("[data-projection-detail-key]")?.dataset.projectionDetailKey ?? null;
     editorLaneOriginReference.current = Boolean(trigger?.closest(".project-milestone-lane"));
-    setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
+    setEditorSession({ task: { ...task }, calendar: snapshot.data.project.calendar, revision: snapshot.data.project.revision });
+    return true;
   }
   function closeTaskDelete() {
     if (taskMutationReference.current) return;
@@ -3004,13 +3094,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     (!normalizedTargetQuery || [target.name, target.code ?? ""].some((value) => value.toLocaleLowerCase().includes(normalizedTargetQuery)))
   );
   const editing = permission === "edit" && permissionCheckState === "complete";
-  const busy = canonicalRecoveryBlocked || taskIssueRestoring || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask || importPending || copyReview !== null || milestoneCreate !== null;
+  const busy = canonicalRecoveryBlocked || taskIssueRestoring || isOpeningConvertedMilestone || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask || importPending || copyReview !== null || milestoneCreate !== null || milestoneConversion !== null;
   // #556 F-003: a modal must not resize the background Gantt merely by
   // replacing an inline selection hint with a much longer dialog-blocked hint.
   // Keep the underlying selection/scope hint in flow while the top-layer
   // dialog is open; expose the actual disabled reason via title/ARIA instead.
   const resourceOverlayOpen = editorSession !== null || relationEditorRequest !== null ||
-    settingsOpen || pendingTaskDelete !== null || copyReview !== null || milestoneCreate !== null;
+    settingsOpen || pendingTaskDelete !== null || copyReview !== null || milestoneCreate !== null || milestoneConversion !== null;
   const resourceNavigationBlockedReason = canonicalRecoveryBlocked
     ? "최신 저장 결과를 확인한 뒤 조회할 수 있습니다."
     : navigationLoading
@@ -3569,10 +3659,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                     <button className="secondary-button" type="button" onClick={() => void reloadCanonicalSnapshot()}>최신 상태 다시 조회</button>
                   </div> : null}
                   <ProjectGantt mutationRequest={canonicalMutationRequest} mutationPending={isSavingTask} canonicalRecoveryBlocked={canonicalRecoveryBlocked} onViewportController={registerViewportController} viewVisible={activeView === "schedule" && !subtreeScopeInvalid} onPublicViewportReader={registerPublicGanttViewportReader} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore?.snapshot === state.snapshot && peerChartRestore.generation === ganttResetGeneration ? peerChartRestore : null} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
+          operationNotice={convertedMilestoneNotice?.publicId === publicId && activeView === "schedule" && !milestoneConversion ? <MilestoneConversionNotice name={convertedMilestoneNotice.name} disabled={busy || navigationLoading || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} onOpen={trigger => void openConvertedMilestone(trigger)} onDismiss={() => { setConvertedMilestoneNotice(null); (document.fullscreenElement?.querySelector<HTMLElement>(".project-gantt-scroll") ?? taskSearchReference.current)?.focus({ preventScroll: true }); }} /> : null}
           milestoneTimeline={milestoneTimelineModel ? { enabled: false, timelineModel: milestoneTimelineModel, onOpenMilestone: (taskId, trigger) => openTaskEditor(taskId, "task", trigger), onOpenDashboard: () => activateWorkspaceView("milestones") } : undefined}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
-          onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
+          onTaskHierarchyCommand={(command, trigger) => void saveTaskHierarchyCommand(command, trigger)} projectRevision={project.revision}
           onTaskEditorOpen={openTaskEditor} onTaskOpenAsRoot={openTaskAsRoot} onRelationEditorOpen={openRelationEditor} onTaskDeleteRequest={requestTaskDelete} onLinkCreate={(source, target) => void saveLink("POST", source, target)} onLinkUpdate={(linkId, patch) => saveLink("PATCH", undefined, undefined, linkId, patch)} onLinkDelete={(linkId) => void saveLink("DELETE", undefined, undefined, linkId)} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
             const visibleColumnCount = Object.values(current).filter(Boolean).length;
             if (current[columnId] && visibleColumnCount === 1) return current;
@@ -3774,6 +3865,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         <button className="primary-button" disabled={isUnlocking || permissionCheckState === "checking"} type="submit">{isUnlocking ? "확인 중…" : "편집 활성화"}</button>
       </form>
     </WorkspaceDialog> ) : null}
+    {milestoneConversion ? <MilestoneConversionConfirm name={milestoneConversion.name} pending={isSavingTask} editable={editing} current={milestoneConversion.publicId === publicId && milestoneConversion.revision === project.revision} legacy={wbsLegacy} error={milestoneConversionError} restoreFocusRef={milestoneConversionTrigger} onClose={closeMilestoneConversion} onAfterClose={restoreMilestoneConversionFocus} onConfirm={() => void confirmMilestoneConversion()} /> : null}
     {milestoneCreate ? <MilestoneCreateDialog pending={isSavingTask} editable={editing} stale={milestoneCreate.publicId !== publicId || milestoneCreate.revision !== project.revision} restoreFocusRef={milestoneCreateTriggerReference} onClose={closeMilestoneCreate} onCreate={createRootMilestone} /> : null}
     {pendingTaskDelete ? (
         <WorkspaceDialog title="작업 삭제" restoreFocusRef={deleteTriggerReference} busy={isSavingTask}

@@ -1,0 +1,60 @@
+{
+  "run": {
+    "result": "PASS",
+    "cases": 7,
+    "total": "3.5m",
+    "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/task-context-menu-hierarchy.spec.ts tests/e2e/project-task-context-menu.spec.ts --project=chromium --grep 'Issue #860|Issue #407/#418|Issue #72 hierarchy commands persist across reload|Issue #390 Copy ID copies canonical|Issue #72 Context Menu hierarchy commands persist' --retries=0 --max-failures=0",
+    "environment": "Chromium / Next dev / Core2.7.3 / isolated real HTTP+SQLite / default browser timezone"
+  },
+  "cases": [
+    {
+      "file": "tests/e2e/project-task-context-menu.spec.ts",
+      "line": 396,
+      "title": "Issue #390 Copy ID copies canonical taskId without changing TaskClipboard or revision",
+      "seconds": 19.4,
+      "status": "PASS"
+    },
+    {
+      "file": "tests/e2e/project-task-context-menu.spec.ts",
+      "line": 529,
+      "title": "Issue #72 Context Menu hierarchy commands persist canonical state without remounting",
+      "seconds": 10.7,
+      "status": "PASS"
+    },
+    {
+      "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+      "line": 277,
+      "title": "Issue #407/#418 keeps scoped Header and Row additions canonical and continuous",
+      "seconds": 10.5,
+      "status": "PASS"
+    },
+    {
+      "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+      "line": 810,
+      "title": "Issue #72 hierarchy commands persist across reload without remounting the Gantt",
+      "seconds": 14.1,
+      "status": "PASS"
+    },
+    {
+      "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+      "line": 901,
+      "title": "Issue #860 confirms before conversion and opens the same Milestone only on explicit request",
+      "seconds": 10.5,
+      "status": "PASS"
+    },
+    {
+      "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+      "line": 1027,
+      "title": "Issue #860 conversion failures never claim success or submit twice",
+      "seconds": 8.9,
+      "status": "PASS"
+    },
+    {
+      "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+      "line": 1069,
+      "title": "Issue #860 converted Milestone stays excluded after fullscreen density and five-width Day/Week reentry",
+      "seconds": 9.5,
+      "status": "PASS"
+    }
+  ]
+}

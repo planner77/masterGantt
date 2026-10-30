@@ -194,11 +194,11 @@ export interface DiagnosticResponse { status(): number; headers(): Record<string
 export type ObserveIsolatedApi = <T extends DiagnosticResponse>(route: string, method: string, operation: () => Promise<T>) => Promise<T>;
 
 /**
- * #703: one bounded recovery of an ECONNRESET on a read-only canonical GET.
- * The trusted observer records the first error and captures health/process/cgroup
- * before this helper calls the original GET once more. No retries on POST/PUT/
- * PATCH/DELETE, HTTP errors, timeouts or malformed responses. Callers must still
- * assert exact status, revision and persisted identity.
+ * #703/#860: one bounded recovery of an ECONNRESET or Playwright's "socket hang up"
+ * on a read-only canonical GET. The trusted observer captures the first error
+ * and health/process/cgroup before this helper makes at most one second GET.
+ * No retries on writes, HTTP failures, timeouts or malformed responses.
+ * Callers still assert the exact status, revision and persisted identity.
  */
 export async function observedReadOnlyGet<T extends DiagnosticResponse>(
   observer: ObserveIsolatedApi,
@@ -208,7 +208,10 @@ export async function observedReadOnlyGet<T extends DiagnosticResponse>(
   try {
     return await observer(route, "GET", get);
   } catch (error) {
-    if (!(error instanceof Error) || !/\bECONNRESET\b/.test(error.message)) throw error;
+    // Playwright may render Node's ECONNRESET as "apiRequestContext.get: socket hang up".
+    // Reuse the existing sanitized classifier so both forms have the same GET-only limit.
+    const failure = transportFailureKind(error);
+    if (failure !== "ECONNRESET" && failure !== "SOCKET_HANG_UP") throw error;
     return observer(route, "GET", get);
   }
 }

@@ -5656,3 +5656,10 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 - 같은 실제 Core Chromium에서 Task가 없는 미래 날짜까지 Day/Week 각각3회 연속 native 수평 wheel·실제 end/capacity/헤더 증가와 X/Y·선택·동일 API 인스턴스를 관측한다. 초기 fixture 비재현과 보고된 실제 운영 회귀를 구별한다.
 - 직접 단위 seam은 reveal target/port와 기존 timeline-range/axis/Coordinator다. Context Menu `show:false`, modifier/keyboard/checkbox/null start, Editor locate, peer/scope/filter/scale/fullscreen·최신 사용자 입력 우선·mutation0의 고유 검증은 KEEP_UNIQUE한다. timeout/retry/skip/기존 엄격한 허용오차를 완화하지 않는다.
 - 실제5폭·상태 조합과 실행/미실행, 최초 RED→교정 source 재검증은 [Work Packet](exec-plans/active/ISSUE_852.md) 및 [단일 실패 원장](ISSUE_852_FAILURE_ANALYSIS.md)에 기록한다. 로컬 선별 테스트는 GitHub Full Quality/E2E8/Docker·Trusted QA·Owner 최종 승인을 대체하지 않는다. 이번 요청은 PR CI 시작에서 종료하고 결과 모니터링은 수행하지 않는다.
+
+
+## Issue #860 — Milestone 변환 확인·표시·관리 회귀
+
+TEST_LIFECYCLE_REVIEW는 기존 실제 HTTP·SQLite `task-context-menu-hierarchy.spec.ts`와 mock 명령 `project-task-context-menu.spec.ts`를 EXTEND한다. 확인 dialog·취소/Escape·초점/POST0·revision0·중복 제출/실패·성공 action과 같은 canonical ID의 Core/Grid/Chart0을 기존 변환/왕복에 연결한다. `milestone-visibility.spec.ts` 및 persistence/dashboard/workspace-tabs의 marker OFF·native 표시·peer·필터·instance·mutation0은 KEEP_UNIQUE다. 기존 hierarchy server의 권한/If-Match·관계·완료 잠금/소속 및 #553 Export/Copy/Template 무손실을 UI 확인 테스트로 대체하지 않는다. 새 중복 spec·skip·timeout/retry/샤드·assertion 완화는 없다.
+
+기준 변환 fixture에서 잔류가 재현되지 않아도 운영 원인 해소를 단정하지 않는다. 변환 직후/settle·reload·peer/행 높이·scale/filter 재진입을 같은 source·ID로 대조하고 공개 Core 상태와 실제 native DOM을 구분한다. AC1~6·#574 V1~8 매핑, 실제 실행·음성/인접·미실행 및 원본 실패는 [#860 Work Packet](exec-plans/active/ISSUE_860.md)과 [누적 원장](ISSUE_860_FAILURE_ANALYSIS.md)을 따른다. 전체 원격 Quality/Chromium8/Docker·Trusted QA·Owner HIGH 수용/Manager ACCEPT 및 운영·수동 UX는 별도이며 CI 시작을 PASS로 표시하지 않는다.

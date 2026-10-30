@@ -1589,3 +1589,10 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 ## Issue #750 — #623 독립 경계·결합 smoke 보존
 
 main `d2a82b66`/app0.130.0 기준 #623 분할 및 #463 팝업의0.5px native scroll clipping 교정으로 기존 #623 7→11case,독립4경계와6-write결합·정확ID/revision+6·집계Excel·geometry를 유지한다. [Work Packet](ISSUE_750.md)에서 AC mapping/역순·격리/전후비용 및 #730 실패합집합9파일+#624 교차검증을 추적하고 [실패원장](../../ISSUE_750_FAILURE_ANALYSIS.md)에 리뷰/충돌·실행결과를 기록한다. 후보PATCH0.130.1,HIGH/OWNER_MANAGED,release_required=true/release_authorized=false. 새 PR Full CI 시작까지만 진행하며 Required3/Trusted/Manager ACCEPT·Actions비용은NOT TESTED,병합/Main/GHCR/종료는범위밖이다.
+
+
+## Issue #860 — Milestone 변환 표시 정합과 관리 경로
+
+기준 main `fe56cc6b97f0850c316fcbf6bbc2e1ccdfca79bc`/app0.138.3에서 `fix/issue-860-milestone-conversion`으로 기존 변환/표시 계약을 점검한다. 확인 dialog·동일 canonical ID의 Grid/Chart 정합·명시 Dashboard 상세를 기존 gateway/단일 Gantt로 구현한다. [Work Packet](ISSUE_860.md), [실패 원장](../../ISSUE_860_FAILURE_ANALYSIS.md)에 AC1~6·Test Lifecycle·문서·#574 V1~8 인계를 기록한다. 후보PATCH0.138.4/HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false.
+
+사용자 범위는 구현·문서·미해결 리뷰/충돌·원장 후 Ready PR Full CI 시작까지다. CI 모니터링·병합·Main/GHCR·정식 tag/Release·Issue 종료는 하지 않는다. 기존 실제 HTTP/SQLite 변환 baseline은 같은 ID Core/Grid/Chart0 PASS로 사용자 행 잔류를 재현하지 못했으며 운영 build/mode·최종 수동 UX는 NOT TESTED다. 필수 원격3종/Trusted/Owner/Manager 최종 수용은 별도 NOT TESTED다.

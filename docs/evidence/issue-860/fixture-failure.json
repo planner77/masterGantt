@@ -1,0 +1,11 @@
+{
+  "scenario": "Issue860 confirms before conversion",
+  "result": "FAIL",
+  "environment": "local Chromium Nextdev isolated HTTP SQLite",
+  "failure": "Project create waitForResponse timeout30000ms; browser rejected13char fixture password against max12",
+  "actualBusinessPostCount": 0,
+  "classification": "TEST_FIXTURE",
+  "correction": "valid8char synthetic password",
+  "source": "MIXED_PRODUCT_EDIT_OVERLAP; not original-source confirmationRED",
+  "originalDisplayBaseline": "separate unchanged fe56cc6b baselinePASS retained"
+}

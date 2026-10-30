@@ -1,0 +1,102 @@
+{
+  "issue": 860,
+  "baselineSha": "fe56cc6b97f0850c316fcbf6bbc2e1ccdfca79bc",
+  "version": "0.138.4",
+  "status": "LOCAL_PASS_REMOTE_NOT_TESTED",
+  "originalOperationalDisplaySymptom": "NOT_REPRODUCED_IN_BASELINE_FIXTURE; operational deployment NOT_TESTED",
+  "originalBaselineRevision": "NOT_CAPTURED",
+  "nativeObservations": {
+    "revision": 4,
+    "convertedTaskId": "582538f9-5446-42af-b6a6-a0a2299cd5ce",
+    "ordinaryTaskId": "f7df1485-2940-4f8f-adc5-f233c6d92a5f",
+    "widths": [
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ],
+    "scales": [
+      "day",
+      "week"
+    ],
+    "cases": 10,
+    "ordinaryYAlignment": "nativeGrid/nativeChart <=1px each of10, asserted",
+    "convertedNativeGridCount": 0,
+    "convertedNativeChartBarCount": 0,
+    "afterDensitySearchPeer": "native/core M0; revision unchanged after viewonlyactions; same svar-api-1"
+  },
+  "artifacts": {
+    "baseline-display.json": {
+      "sha256": "c61e98966f7962d68469b80aefdf8152d490d9de46f72126ec845a848bbf6d94",
+      "bytes": 4117
+    },
+    "baseline-receipt.json": {
+      "sha256": "d1ff277036d619ee4bf1f428b731949d7640db6bfaea2cb80814a5e8db77772e",
+      "bytes": 1091
+    },
+    "browser-receipt.json": {
+      "sha256": "187608a52dc2b3f357280bead4582c19f81ff0a7b375918c39ced1b5507c88ff",
+      "bytes": 2418
+    },
+    "chromium-summary.json": {
+      "sha256": "da34aba9dc296ebc50181945fb57bf378da33a0a6ca81af11f3afc87b3798c49",
+      "bytes": 2296
+    },
+    "confirmation-390.png": {
+      "sha256": "e565c9bfa8b4b0428cc1870f350b7b8861e209043b3ec57ae4a4f37633dc8f96",
+      "bytes": 68347
+    },
+    "detail-1440.png": {
+      "sha256": "f5e7b150fe8a9f67eb1b955dbced18d69b7ce1f511bda1d0d845daef30dee330",
+      "bytes": 146200
+    },
+    "final-display.json": {
+      "sha256": "d537827b3a22eeb6af163226332a3ea0fd373812ea8e2bd7ab7af8d83b2589d9",
+      "bytes": 3888
+    },
+    "fixture-failure.json": {
+      "sha256": "2636b5f29d76fd101a7bf9bde8ee18185e5f115ffc5d71b547660f3f954ab1e8",
+      "bytes": 535
+    },
+    "legacy-wbs.json": {
+      "sha256": "b200835da4979fc3b958a8a56d284da151360a2ea3ebc566ea5d956e2dd0aba3",
+      "bytes": 379
+    },
+    "notice-before.png": {
+      "sha256": "1cd5ea4999955661ddf77f5fdcb970263d8f6eff92771c48a780a8e88b0f9d0b",
+      "bytes": 85120
+    },
+    "reentry.json": {
+      "sha256": "097c6c72dfdae693cd93a4280c4f97303ffcc8196a480eaa801012bd0146430a",
+      "bytes": 1442
+    },
+    "scoped-failure.json": {
+      "sha256": "1d966acae25f950267e0b77f20f3484d4ca196993b4656625579eb9dc377daa1",
+      "bytes": 4022
+    },
+    "source-freeze.json": {
+      "sha256": "4f07149acb6bd96362f695901d6087216acdd9965c11f2528e38792db30f3e0f",
+      "bytes": 1014
+    },
+    "success-1440.png": {
+      "sha256": "d709965625fd982934dc320db19793b6b78b7dce80c458d8a1d34e80825d78cf",
+      "bytes": 100065
+    },
+    "success-390.png": {
+      "sha256": "b9bb98e53b68c593f26ca5e8cdd030c47b76dbfbd2ff62d7d55cdfa0d0b2acb9",
+      "bytes": 79737
+    }
+  },
+  "rawTraces": "kept locally only; not published because traces may contain credentials",
+  "beforeNoticeScreenshotScope": "intermediate fixed overlay defect, not a pristine original product screenshot; source fingerprint NOT_CAPTURED",
+  "notTested": [
+    "original user deployment and exact deployedSHA/environment",
+    "server committed but response lost recovery; route.abort here before server write",
+    "separate browser tab revision race during confirmation/explicit-action fullscreen await",
+    "explicit Grid-only/Chart-only split and columnresize postconversion",
+    "manual UX/screenreader/native device zoom",
+    "remote Quality/E2E8/Docker/Trusted/Owner acceptance",
+    "full Export/Copy/Template and #574 V1~V8 acceptance on new Head"
+  ]
+}

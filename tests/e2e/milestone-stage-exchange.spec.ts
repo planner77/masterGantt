@@ -1,4 +1,5 @@
 import { openWorkspaceView } from "./helpers/workspace-navigation";
+import { evaluateGanttReadiness, waitForGanttReadiness, type GanttReadinessExpectation } from "./helpers/gantt-readiness";
 import { inflateRawSync } from "node:zlib";
 import type { Page, Download } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
@@ -259,9 +260,48 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
     await peer.getByRole("button", { name: "주", exact: true }).click(); const toggle = row(peer, summary.taskId).locator('[data-action="open-task"]'); await toggle.click(); await expect(toggle).toHaveClass(/wxi-menu-right/);
     const selected = row(peer, free.taskId); await selected.locator('[data-col-id=":text"]').click(); await expect(selected).toHaveClass(/wx-selected/);
     const chart = peer.locator(".project-gantt-widget .wx-chart");
+    // #860 F860-PR-002 / #667/#624: native scrollWidth alone does not
+    // prove that the current Core scale, projection and viewport command have
+    // finished. A delayed task reveal or axis operation may replay an older X
+    // after the setup's raw scrollLeft write. Keep the exact 120/96 oracle.
+    const axisContext: GanttReadinessExpectation = {
+      operation: "scroll",
+      api: apiInstance,
+      revision: project.snapshot.data.project.revision,
+      scale: "week",
+      scope: null,
+      query: "",
+      queryWitness: { kind: "unchanged" },
+      allowCancelledPriorWork: true,
+      targetLeft: 120,
+      requireRenderedRows: true,
+    };
+    const axisBefore = await waitForGanttReadiness(frame, { ...axisContext, operation: "observe" });
+    const beforeAdmission = evaluateGanttReadiness(axisBefore, axisContext).admission;
+    if (!beforeAdmission.accepted) {
+      expect(beforeAdmission.coreCapacity, "Week Core must have positive pre-extension capacity").toBeGreaterThan(0);
+      expect(beforeAdmission.nativeCapacity, "Week native chart must have positive pre-extension capacity").toBeGreaterThan(0);
+      // One explicit, real pointer input can request the existing public
+      // right-edge extension; never silently force a private store or remount.
+      await chart.hover();
+      await peer.mouse.wheel(120, 0);
+    }
+    const axisReady = await waitForGanttReadiness(frame, axisContext);
+    const readyAdmission = evaluateGanttReadiness(axisReady, axisContext).admission;
+    expect(readyAdmission.accepted, "exact 120px must fit the settled Core and native axis").toBe(true);
+    await testInfo.attach("actual-464-week-axis-admission", {
+      body: JSON.stringify({ beforeAdmission, readyAdmission, beforeWork: axisBefore.currentWork, readyWork: axisReady.currentWork }),
+      contentType: "application/json",
+    });
     expect(await chart.evaluate((element) => element.scrollWidth - element.clientWidth), "Week timeline has a real horizontal buffer").toBeGreaterThanOrEqual(120);
     const verticalRange = await peer.locator(".project-gantt-widget .wx-gantt").evaluate((element) => element.scrollHeight - element.clientHeight); expect(verticalRange, "Real task rows have a nonzero vertical buffer").toBeGreaterThanOrEqual(96);
-    await chart.evaluate((element) => { element.scrollLeft = 120; }); const vertical = peer.locator(".project-gantt-widget .wx-gantt"); await vertical.evaluate((element) => { element.scrollTop = 96; });
+    await chart.evaluate((element) => { element.scrollLeft = 120; });
+    await expect.poll(() => frame.evaluate(element => ({
+      left: element.querySelector(".wx-chart")!.scrollLeft,
+      publicLeft: (Reflect.get(element, "__masterganttPublicViewport") as { left?: number } | undefined)?.left,
+    }))).toEqual({ left: 120, publicLeft: 120 });
+    const vertical = peer.locator(".project-gantt-widget .wx-gantt");
+    await vertical.evaluate((element) => { element.scrollTop = 96; });
     const live = () => frame.evaluate((element) => { const owner = element as HTMLElement & { readonly __masterganttPublicViewport?: { left: number; top: number } }; return { left: element.querySelector(".wx-chart")!.scrollLeft, top: element.querySelector(".wx-gantt")!.scrollTop, publicLeft: owner.__masterganttPublicViewport?.left, publicTop: owner.__masterganttPublicViewport?.top }; });
     await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 });
     const checkpoint = async (phase: string) => ({ phase, ...(await live()), ...(await frame.evaluate((element) => ({ gridWidth: element.querySelector(".wx-table-container")!.getBoundingClientRect().width, chartWidth: element.querySelector(".wx-chart")!.clientWidth, chartScrollWidth: element.querySelector(".wx-chart")!.scrollWidth, verticalClientHeight: element.querySelector(".wx-gantt")!.clientHeight, verticalScrollHeight: element.querySelector(".wx-gantt")!.scrollHeight, fullscreen: Boolean(document.fullscreenElement) }))) });
