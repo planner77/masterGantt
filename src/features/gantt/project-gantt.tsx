@@ -1,5 +1,7 @@
 "use client";
 
+import { observeScaleDecoration } from "./scale-decoration-observer";
+
 import { createDensityWheel, densityHeight, densityFontScale, nextDensityLevel, isDensityWheelTarget } from "./gantt-density";
 
 import { createInlineNameSession, type InlineNameSubmitCause } from "./inline-name-session";
@@ -618,6 +620,8 @@ export function ProjectGantt({
   const [taskSubmenu, setTaskSubmenu] = useState<TaskSubmenuState | null>(null);
   const [relationMenu, setRelationMenu] = useState<{ linkId: string; left: number; top: number } | null>(null);
   const [taskClipboard, setTaskClipboard] = useState<TaskClipboard | null>(null);
+  const taskClipboardReference = useRef<TaskClipboard | null>(null);
+  useLayoutEffect(() => { taskClipboardReference.current = taskClipboard; }, [taskClipboard]);
   const [copyTaskIdFallback, setCopyTaskIdFallback] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<readonly string[]>([]);
   const selectedTaskIdsReference = useRef<readonly string[]>([]);
@@ -1936,7 +1940,10 @@ export function ProjectGantt({
         const state = api.getState();
         const serialized = api.serialize({ data: "tasks" });
         const coreTasks = Array.isArray(serialized) ? serialized as ITask[] : null;
-        return { selected: (state.selected ?? []).map(String), appSelection: [...selectedTaskIdsReference.current], canonicalTaskCount: tasksReference.current.length, coreTaskCount: coreTasks?.length ?? null,
+        return { selected: (state.selected ?? []).map(String), appSelection: [...selectedTaskIdsReference.current],
+          clipboardIds: taskClipboardReference.current === null ? [] : taskClipboardReference.current.mode === "cut"
+            ? [taskClipboardReference.current.taskId] : [...taskClipboardReference.current.taskIds],
+          canonicalTaskCount: tasksReference.current.length, coreTaskCount: coreTasks?.length ?? null,
           coreOrdinaryTaskCount: coreTasks?.filter(task => task.type === "task").length ?? null,
           coreMilestoneCount: coreTasks?.filter(task => task.type === "milestone").length ?? null, instance: instanceId, left: state.scrollLeft, top: state.scrollTop, gridWidth: state.gridWidth,
           start: state._scales?.start, end: state._scales?.end, width: state._scales?.width, chartWidth: state._chartWidth,
@@ -2915,9 +2922,7 @@ export function ProjectGantt({
       });
     };
 
-    markCells();
-    const observer = new MutationObserver(markCells);
-    observer.observe(root, { childList: true, subtree: true });
+    const stopScaleDecoration = observeScaleDecoration(root, selector, markCells);
     root.addEventListener("pointerover", onPointerOver);
     root.addEventListener("pointerout", onPointerOut);
     root.addEventListener("focusin", onFocusIn);
@@ -2926,7 +2931,7 @@ export function ProjectGantt({
     window.addEventListener("resize", onViewportChange);
     window.addEventListener("scroll", onViewportChange, true);
     return () => {
-      observer.disconnect();
+      stopScaleDecoration();
       root.removeEventListener("pointerover", onPointerOver);
       root.removeEventListener("pointerout", onPointerOut);
       root.removeEventListener("focusin", onFocusIn);
@@ -3082,14 +3087,8 @@ export function ProjectGantt({
       });
     };
 
-    markCells();
-    const observer = new MutationObserver(markCells);
-    observer.observe(root, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["class"],
-    });
+    const stopScaleDecoration = observeScaleDecoration(root,
+      `${selector}, .project-gantt-week-calendar-scale`, markCells, true);
     root.addEventListener("pointerover", onPointerOver);
     root.addEventListener("pointerout", onPointerOut);
     root.addEventListener("focusin", onFocusIn);
@@ -3098,7 +3097,7 @@ export function ProjectGantt({
     window.addEventListener("resize", onViewportChange);
     window.addEventListener("scroll", onViewportChange, true);
     return () => {
-      observer.disconnect();
+      stopScaleDecoration();
       root.removeEventListener("pointerover", onPointerOver);
       root.removeEventListener("pointerout", onPointerOut);
       root.removeEventListener("focusin", onFocusIn);

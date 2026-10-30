@@ -1596,3 +1596,9 @@ main `d2a82b66`/app0.130.0 기준 #623 분할 및 #463 팝업의0.5px native scr
 기준 main `fe56cc6b97f0850c316fcbf6bbc2e1ccdfca79bc`/app0.138.3에서 `fix/issue-860-milestone-conversion`으로 기존 변환/표시 계약을 점검한다. 확인 dialog·동일 canonical ID의 Grid/Chart 정합·명시 Dashboard 상세를 기존 gateway/단일 Gantt로 구현한다. [Work Packet](ISSUE_860.md), [실패 원장](../../ISSUE_860_FAILURE_ANALYSIS.md)에 AC1~6·Test Lifecycle·문서·#574 V1~8 인계를 기록한다. 후보PATCH0.138.4/HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false.
 
 사용자 범위는 구현·문서·미해결 리뷰/충돌·원장 후 Ready PR Full CI 시작까지다. CI 모니터링·병합·Main/GHCR·정식 tag/Release·Issue 종료는 하지 않는다. 기존 실제 HTTP/SQLite 변환 baseline은 같은 ID Core/Grid/Chart0 PASS로 사용자 행 잔류를 재현하지 못했으며 운영 build/mode·최종 수동 UX는 NOT TESTED다. 필수 원격3종/Trusted/Owner/Manager 최종 수용은 별도 NOT TESTED다.
+
+## Issue #507 · #574 — 단일 PR 진단·통합 검증
+
+기준 main `8d6d3ba7a47e6df08c509baad6eedcc2adee1407`/0.138.4/Core2.7.3에서 `test/issue-507-574-gantt-acceptance`를 만들었다. #507은 실제 세로 wheel 계측·최소 Core 비교 후 근거 있는 observer 보완, #574는 기존 marker-OFF V1~V8 assertion의 clipboard·filter0/최신 명시 선택·일반 inline401 공백 보강을 수행한다. #852/#860은 배포 기준선, #573/#693 ON은 비차단이다.
+
+[Primary Work Packet](ISSUE_507.md)·[Related Packet](ISSUE_574.md)·[단일 원장](../../ISSUE_507_FAILURE_ANALYSIS.md)에 분리 Agent의 역할·source별 실행·문서·남은 범위를 기록한다. HIGH/OWNER_MANAGED/qa_required=true; 에이전트 사전 검토는 Trusted QA·Owner 위험 수용·Manager ACCEPT 대체가 아니다. 사용자 종료점은 리뷰/충돌 처리와 원장 기록 후 하나의 Ready PR Full CI 시작이다. CI 모니터링·병합·Main/GHCR·정식 릴리스·Issue 종료는 범위 밖이며 원격 최종 gate는 NOT TESTED다.

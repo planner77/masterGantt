@@ -1,0 +1,564 @@
+{
+  "schemaVersion": 1,
+  "scope": "Issue507/574 local selected browser validation; not full remote CI or Manager ACCEPT",
+  "groups": [
+    {
+      "name": "mock-final",
+      "capturedBefore": "2026-10-30T22:38:30.245875+00:00",
+      "capturedAfter": "2026-10-30T22:39:28.988194+00:00",
+      "applicationVersion": "0.138.5",
+      "baselineHead": "8d6d3ba7a47e6df08c509baad6eedcc2adee1407",
+      "sourceFingerprint": "2c6b906f3e6aaafc293f09abb4308be62bfc7bc2fe48670f1affad3925f93577",
+      "appSourceFingerprint": "a08e9483a5610b88ae2fc269e722df76599c802eaebac3ab2453fafc1268dbe7",
+      "sourceUnchanged": true,
+      "stats": {
+        "startTime": "2026-10-30T22:38:31.683Z",
+        "duration": 58173.075,
+        "expected": 11,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "tests": [
+        {
+          "file": "grid-task-start-reveal.spec.ts",
+          "line": 188,
+          "title": "#574 V3 zero-result bookmark yields to the latest explicit Task selection",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 9862,
+              "retry": 0,
+              "attachments": [
+                "issue-574-zero-result-latest-selection",
+                "issue-574-filter-gate-final"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "grid-task-start-reveal.spec.ts",
+          "line": 568,
+          "title": "#852 day repeats future extent three times with no future Task",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 4299,
+              "retry": 0,
+              "attachments": [
+                "issue-852-range-day",
+                "issue-852-range-day",
+                "issue-852-range-day"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "grid-task-start-reveal.spec.ts",
+          "line": 568,
+          "title": "#852 week repeats future extent three times with no future Task",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 4601,
+              "retry": 0,
+              "attachments": [
+                "issue-852-range-week",
+                "issue-852-range-week",
+                "issue-852-range-week"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "grid-task-start-reveal.spec.ts",
+          "line": 637,
+          "title": "#852 day continuous native wheel cancels an in-flight extent and resumes at the edge",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 4363,
+              "retry": 0,
+              "attachments": [
+                "issue-852-burst-day",
+                "issue-852-wheel-day"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "grid-task-start-reveal.spec.ts",
+          "line": 637,
+          "title": "#852 week continuous native wheel cancels an in-flight extent and resumes at the edge",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 3707,
+              "retry": 0,
+              "attachments": [
+                "issue-852-burst-week",
+                "issue-852-wheel-week"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "grid-task-start-reveal.spec.ts",
+          "line": 637,
+          "title": "#852 day continuous native wheel yields to a newer Grid click",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2818,
+              "retry": 0,
+              "attachments": [
+                "issue-852-burst-day",
+                "issue-852-wheel-superseded"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "project-gantt-inline-name.spec.ts",
+          "line": 181,
+          "title": "#574 V5 ordinary inline 401 preserves canonical names and revokes further writes",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2872,
+              "retry": 0,
+              "attachments": [
+                "issue-574-inline-401"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "project-gantt-inline-name.spec.ts",
+          "line": 232,
+          "title": "#572 412 뒤 명시 재조회는 보존 초안을 새 Revision으로 자동 승인하지 않는다",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 5245,
+              "retry": 0,
+              "attachments": []
+            }
+          ]
+        },
+        {
+          "file": "project-gantt-inline-name.spec.ts",
+          "line": 266,
+          "title": "#572 합성 composition blur는 Core clickOutside에서도 PATCH 없이 원문을 유지한다",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 3117,
+              "retry": 0,
+              "attachments": []
+            }
+          ]
+        },
+        {
+          "file": "viewport-coordinator.spec.ts",
+          "line": 6,
+          "title": "#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 8699,
+              "retry": 0,
+              "attachments": [
+                "locate-metadata-viewport"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "viewport-coordinator.spec.ts",
+          "line": 151,
+          "title": "#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 6692,
+              "retry": 0,
+              "attachments": [
+                "scoped-filter-bookmark"
+              ]
+            }
+          ]
+        }
+      ],
+      "relevantSourceUnchanged": true,
+      "relevantSourceFingerprint": "25411df2f2879c54d28d3526ca0f449fd3d69255d441a30793e71a8a7fec73c1",
+      "broadChangedPaths": [],
+      "sourceScopeMethod": "All app source, package metadata, official test config, and recursive relative/@ static imports of selected specs; unrelated shared helpers excluded. Package external dependency content is represented by frozen lockfile."
+    },
+    {
+      "name": "isolated-final",
+      "capturedBefore": "2026-10-30T22:37:13.751797+00:00",
+      "capturedAfter": "2026-10-30T22:42:24.248976+00:00",
+      "applicationVersion": "0.138.5",
+      "baselineHead": "8d6d3ba7a47e6df08c509baad6eedcc2adee1407",
+      "sourceFingerprint": "e4b6fff1ffa2de8dd645ac30664d074823bc62dc9153c61cbcb2e6147989707f",
+      "appSourceFingerprint": "a08e9483a5610b88ae2fc269e722df76599c802eaebac3ab2453fafc1268dbe7",
+      "sourceUnchanged": false,
+      "stats": {
+        "startTime": "2026-10-30T22:37:14.877Z",
+        "duration": 314692.14,
+        "expected": 8,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "tests": [
+        {
+          "file": "inline-name-persistence.spec.ts",
+          "line": 40,
+          "title": "#572 실제 SQLite Enter·Tab·Task Editor 이름 저장은 reload 후 일치한다",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 14766,
+              "retry": 0,
+              "attachments": [
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "inline-name-persistence.spec.ts",
+          "line": 111,
+          "title": "#572 실제 SQLite inline 이름 저장은 프로세스 재시작 후 유지된다",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 27752,
+              "retry": 0,
+              "attachments": [
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "milestone-timeline-interchange-http.spec.ts",
+          "line": 49,
+          "title": "#553 actual HTTP JSON/Excel/Resource/logistics source invariance and process restart",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 39646,
+              "retry": 0,
+              "attachments": [
+                "actual-http-export-import-restart",
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "milestone-timeline-interchange-http.spec.ts",
+          "line": 111,
+          "title": "#553 actual HTTP Copy/Template/multi-root Copy/Cut and external membership policy",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 7360,
+              "retry": 0,
+              "attachments": [
+                "actual-http-copy-template-cut",
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "milestone-timeline-interchange-http.spec.ts",
+          "line": 137,
+          "title": "#553 actual HTTP supported SVG variant and closed/import/session/revision atomic guards",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 16556,
+              "retry": 0,
+              "attachments": [
+                "actual-browser-off-search-collapsed-downloads",
+                "actual-http-svg-and-atomic-guards",
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "task-context-menu-hierarchy.spec.ts",
+          "line": 903,
+          "title": "Issue #860 confirms before conversion and opens the same Milestone only on explicit request",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 19961,
+              "retry": 0,
+              "attachments": [
+                "issue-574-conversion-clipboard",
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "task-context-menu-hierarchy.spec.ts",
+          "line": 1052,
+          "title": "Issue #860 conversion failures never claim success or submit twice",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 10237,
+              "retry": 0,
+              "attachments": [
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "task-context-menu-hierarchy.spec.ts",
+          "line": 1094,
+          "title": "Issue #860 converted Milestone stays excluded after fullscreen density and five-width Day/Week reentry",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 12790,
+              "retry": 0,
+              "attachments": [
+                "issue-860-conversion-reentry",
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        }
+      ],
+      "relevantSourceUnchanged": true,
+      "relevantSourceFingerprint": "5fee49706e9ac0fd102886c31c1a98d5b7614a0709f195d864eb41fa0291bbd6",
+      "broadChangedPaths": [
+        "tests/e2e/helpers/vertical-scroll-diagnostics.ts"
+      ],
+      "sourceScopeMethod": "All app source, package metadata, official test config, and recursive relative/@ static imports of selected specs; unrelated shared helpers excluded. Package external dependency content is represented by frozen lockfile."
+    },
+    {
+      "name": "cross-feature-final",
+      "capturedBefore": "2026-10-30T22:42:39.511479+00:00",
+      "capturedAfter": "2026-10-30T22:45:48.447743+00:00",
+      "applicationVersion": "0.138.5",
+      "baselineHead": "8d6d3ba7a47e6df08c509baad6eedcc2adee1407",
+      "sourceFingerprint": "542eb691e6aa5879cfef0896dc0c59045964af1c0cdc870eedf14e876fc10924",
+      "appSourceFingerprint": "a08e9483a5610b88ae2fc269e722df76599c802eaebac3ab2453fafc1268dbe7",
+      "sourceUnchanged": true,
+      "stats": {
+        "startTime": "2026-10-30T22:42:40.229Z",
+        "duration": 191475.12800000003,
+        "expected": 7,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "tests": [
+        {
+          "file": "gantt-state-product-integration.spec.ts",
+          "line": 16,
+          "title": "SC-05 서버 commit 뒤 응답 500과 조회 실패: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 6872,
+              "retry": 0,
+              "attachments": [
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "milestone-management-persistence.spec.ts",
+          "line": 192,
+          "title": "#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (past)",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 14668,
+              "retry": 0,
+              "attachments": [
+                "issue-550-empty-milestone-only",
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "milestone-management-persistence.spec.ts",
+          "line": 192,
+          "title": "#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (future)",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 13303,
+              "retry": 0,
+              "attachments": [
+                "issue-550-empty-milestone-only",
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "project-task-delete-context.spec.ts",
+          "line": 109,
+          "title": "keeps confirmed deletions after repeated mutation rejection (401)",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 10376,
+              "retry": 0,
+              "attachments": [
+                "canonical-delete-recovery-trace",
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "project-task-delete-context.spec.ts",
+          "line": 109,
+          "title": "keeps confirmed deletions after repeated mutation rejection (412)",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 8964,
+              "retry": 0,
+              "attachments": [
+                "canonical-delete-recovery-trace",
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "project-task-delete-context.spec.ts",
+          "line": 109,
+          "title": "keeps confirmed deletions after repeated mutation rejection (network)",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 8282,
+              "retry": 0,
+              "attachments": [
+                "canonical-delete-recovery-trace",
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "resource-kpi-integration-ui.spec.ts",
+          "line": 528,
+          "title": "#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/native 사용자 위치를 유지",
+          "expectedStatus": "passed",
+          "projectName": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 12070,
+              "retry": 0,
+              "attachments": [
+                "explicit-return-native-input-cancel",
+                "issue-751-isolated-performance"
+              ]
+            }
+          ]
+        }
+      ],
+      "relevantSourceUnchanged": true,
+      "relevantSourceFingerprint": "36abb65d0e81afb1a042f79c45582983b44b6bb66d00b079488856368cc9c05c",
+      "broadChangedPaths": [],
+      "sourceScopeMethod": "All app source, package metadata, official test config, and recursive relative/@ static imports of selected specs; unrelated shared helpers excluded. Package external dependency content is represented by frozen lockfile."
+    }
+  ]
+}

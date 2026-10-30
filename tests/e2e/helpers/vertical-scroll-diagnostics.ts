@@ -1,0 +1,219 @@
+import { expect, type Page, type TestInfo } from "@playwright/test";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { createHash } from "node:crypto";
+import { openWorkspaceView } from "./workspace-navigation";
+import { installStatefulProjectFixture, publicId } from "../../fixtures/stateful-project";
+
+// Test-only observation: no product callback, clock, position or render is replaced.
+async function instrument(page: Page) {
+  await page.addInitScript(() => {
+    const counters = { commits: 0, observers: {} as Record<string, { calls: number; ms: number; records: number }>, scaleWrites: 0, longTasks: [] as number[] };
+    const nativeSetAttribute = Element.prototype.setAttribute;
+    Element.prototype.setAttribute = function(name, value) {
+      if (name === "aria-label" && this.matches(".project-gantt-day-scale, .project-gantt-week-scale, .project-gantt-week-calendar-scale")) counters.scaleWrites++;
+      return nativeSetAttribute.call(this, name, value);
+    };
+    const NativeObserver = window.MutationObserver;
+    window.MutationObserver = class extends NativeObserver {
+      constructor(callback: MutationCallback) {
+        const name = callback.name || new Error().stack?.split("\n")[2]?.trim() || "anonymous";
+        super((records, observer) => {
+          const start = performance.now();
+          callback(records, observer);
+          const entry = counters.observers[name] ??= { calls: 0, ms: 0, records: 0 };
+          entry.calls++; entry.records += records.length; entry.ms += performance.now() - start;
+        });
+      }
+    };
+    Reflect.set(window, "__issue507", counters);
+    Reflect.set(window, "__REACT_DEVTOOLS_GLOBAL_HOOK__", { supportsFiber: true, renderers: new Map(), inject() { return 1; }, onCommitFiberRoot() { counters.commits++; }, onCommitFiberUnmount() {}, onPostCommitFiberRoot() {} });
+    new PerformanceObserver(list => { counters.longTasks.push(...list.getEntries().map(entry => entry.duration)); }).observe({ type: "longtask", buffered: false });
+  });
+}
+
+async function sample(page: Page, label: string, direction: number, sourceSha256: string, surface: "grid" | "chart" = "grid") {
+  const frame = page.locator(".project-gantt-frame");
+  const scroller = frame.locator(".wx-gantt");
+  const grid = frame.locator(surface === "grid" ? ".wx-table-container" : ".wx-chart");
+  const bounds = await grid.boundingBox();
+  if (!bounds) throw new Error("Grid must be measurable");
+  await page.mouse.move(bounds.x + Math.min(140, bounds.width / 2), Math.min(bounds.y + 180, 800));
+  await frame.evaluate((node, source) => {
+    const stats = Reflect.get(window, "__issue507");
+    stats.commits = 0; stats.observers = {}; stats.longTasks = []; stats.scaleWrites = 0;
+    Reflect.get(node, "__issue568Trace")?.configure("issue507", source, "vertical-wheel");
+    const owner = node.querySelector<HTMLElement>(".wx-gantt")!;
+    const root = node.querySelector(".wx-gantt");
+    const frames: Array<{ dt: number; top: number; rows: number; sameRoot: boolean }> = [];
+    let last = performance.now(), active = true;
+    const capture = (now: number) => {
+      const rows = [...node.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]")];
+      frames.push({ dt: now - last, top: owner.scrollTop, rows: rows.length, sameRoot: node.querySelector(".wx-gantt") === root });
+      last = now;
+      if (active) requestAnimationFrame(capture);
+    };
+    requestAnimationFrame(capture);
+    Reflect.set(window, "__issue507Stop", () => { active = false; return { ...stats, frames }; });
+  }, sourceSha256);
+  const before = await scroller.evaluate(node => node.scrollTop);
+  const started = Date.now();
+  // A minimum three-second native input segment, independent of runner speed.
+  for (let index = 0; index < 30 || Date.now() - started < 3000; index++) {
+    await page.mouse.wheel(0, direction * 60);
+    await page.evaluate(() => new Promise<void>(done => requestAnimationFrame(() => requestAnimationFrame(() => done()))));
+  }
+  await frame.evaluate(async node => { await Reflect.get(node, "__issue568Trace")?.settle(); });
+  // Variable frame rates can produce different directional input counts.
+  // Finish the upward user gesture at the actual native origin so the initial
+  // virtual Summary row is present for the state-preservation comparison.
+  if (direction < 0) {
+    const remaining = await scroller.evaluate(node => node.scrollTop);
+    if (remaining > 0) await page.mouse.wheel(0, -remaining);
+    await expect.poll(() => scroller.evaluate(node => node.scrollTop)).toBe(0);
+    await frame.evaluate(async node => { await Reflect.get(node, "__issue568Trace")?.settle(); });
+  }
+  const after = await scroller.evaluate(node => node.scrollTop);
+  const alignment = await frame.evaluate(node => [...node.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]")].flatMap(row => {
+    const bar = node.querySelector<HTMLElement>(`.wx-bar[data-task-id="${row.getAttribute("data-id")}"]`);
+    if (!bar) return [];
+    const rowBox = row.getBoundingClientRect(), barBox = bar.getBoundingClientRect();
+    return [Math.abs(rowBox.top + rowBox.height / 2 - barBox.top - barBox.height / 2)];
+  }));
+  const observation = await page.evaluate(() => Reflect.get(window, "__issue507Stop")()) as {
+    commits: number; scaleWrites: number; observers: Record<string, unknown>; longTasks: number[];
+    frames: Array<{ dt: number; top: number; rows: number; sameRoot: boolean }>;
+  };
+  const trace = await frame.evaluate(node => Reflect.get(node, "__issue568Trace")?.snapshot());
+  const evidence = { label, sourceSha256, before, after, settledAlignment: alignment, trace, ...observation };
+  await mkdir(resolve("output/playwright/issue-507"), { recursive: true });
+  await writeFile(resolve(`output/playwright/issue-507/${label}.json`), JSON.stringify(evidence, null, 2));
+  await page.screenshot({ path: resolve(`output/playwright/issue-507/${label}.png`) });
+  expect(direction > 0 ? after > before : after < before).toBe(true);
+  expect(observation.frames.length).toBeGreaterThan(1);
+  expect(observation.frames.every(value => value.sameRoot && value.rows > 0)).toBe(true);
+  expect(alignment.length).toBeGreaterThan(0);
+  expect(Math.max(...alignment)).toBeLessThanOrEqual(1);
+  expect(observation.scaleWrites).toBe(0);
+  expect(trace.entries.filter((entry: { event: string }) => entry.event === "react-commit")).toHaveLength(0);
+  const moved = observation.frames.map(value => value.top).filter((top, i, values) => i === 0 || top !== values[i - 1]);
+  expect(moved.length).toBeGreaterThan(1);
+  expect(moved.every((top, i) => i === 0 || direction * (top - moved[i - 1]) >= 0)).toBe(true);
+  return evidence;
+}
+
+export async function verifyVerticalScroll(page: Page, info: TestInfo, count: number) {
+  const sourceSha256 = createHash("sha256").update(await readFile(resolve("src/features/gantt/project-gantt.tsx"))).update(await readFile(resolve("src/features/gantt/scale-decoration-observer.ts"))).digest("hex");
+  const measurementSha256 = createHash("sha256").update(await readFile(resolve("tests/e2e/helpers/vertical-scroll-diagnostics.ts"))).digest("hex");
+  const version = JSON.parse(await readFile(resolve("package.json"), "utf8")).version as string;
+  await instrument(page);
+  await page.setViewportSize({ width: count === 50 ? 1024 : 1440, height: 1000 });
+  const fixture = await installStatefulProjectFixture(page);
+  fixture.sessionEditable = count !== 1000;
+  const template = fixture.tasks[2];
+  fixture.tasks.push(...Array.from({ length: count - fixture.tasks.length }, (_, index) => ({ ...template,
+    taskId: `50700000-0000-4000-8000-${String(index + 10).padStart(12, "0")}`,
+    externalId: `SCROLL-${index}`, name: `Scroll task ${index}`, siblingOrder: index + 5,
+    requestedStart: "2026-01-05", start: "2026-01-05", end: "2026-01-05",
+    parentExternalId: index < 20 ? "SUMMARY-1" : null,
+  })));
+  await page.goto(`/projects/${publicId}?__coreTrace=1`);
+  const frame = page.locator(".project-gantt-frame");
+  await expect(frame).toHaveAttribute("data-project-gantt-api-instance", /.+/);
+  await expect(frame.locator(".wx-table-container .wx-row[data-id]").first()).toBeVisible();
+  await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline")?.ready)).toBe(true);
+  await frame.evaluate(async node => { await Reflect.get(node, "__issue568Trace")?.settle(); });
+  const identity = await frame.getAttribute("data-project-gantt-api-instance");
+  const summary = frame.locator('.wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000001"]');
+  if (count === 1000) await summary.locator('[data-action="open-task"]').click();
+  await summary.locator('input[data-copy-selection]').check();
+  await frame.evaluate(async node => { await Reflect.get(node, "__issue568Trace")?.settle(); });
+  const preserved = await frame.evaluate(node => {
+    Reflect.set(node, "__issue507Root", node.querySelector(".wx-gantt"));
+    const state = Reflect.get(node, "__masterganttMilestoneTimeline").read();
+    return { selected: state.selected, appSelection: state.appSelection, gridWidth: state.gridWidth,
+      columns: [...node.querySelectorAll('.wx-table-container .wx-header [data-header-id]')].map(cell => cell.getAttribute("data-header-id")),
+      summaryClass: node.querySelector('[data-id=":00000000-0000-4000-8000-000000000001"] [data-action="open-task"]')?.className };
+  });
+  expect(preserved.columns).toEqual(expect.arrayContaining([":text", ":projectStart"]));
+  const observations = [];
+  for (const scale of ["day", "week"] as const) {
+    await page.getByRole("group", { name: "Gantt 표시 단위" }).getByRole("button", { name: scale === "day" ? "일" : "주", exact: true }).click();
+    await expect(frame).toHaveAttribute("data-gantt-scale-mode", scale);
+    await frame.evaluate(async node => { await Reflect.get(node, "__issue568Trace")?.settle(); });
+    observations.push(await sample(page, `${count}-${scale}-down`, 1, sourceSha256));
+    observations.push(await sample(page, `${count}-${scale}-up`, -1, sourceSha256));
+  }
+  const additional: Record<string, unknown> = {};
+  if (count === 50) {
+    observations.push(await sample(page, `${count}-chart-down`, 1, sourceSha256, "chart"));
+    const beforePeer = await frame.locator(".wx-gantt").evaluate(node => node.scrollTop);
+    await openWorkspaceView(page, "resources");
+    await openWorkspaceView(page, "schedule");
+    await expect(frame).toBeVisible();
+    await frame.evaluate(async node => { await Reflect.get(node, "__issue568Trace")?.settle(); });
+    await expect.poll(() => frame.locator(".wx-gantt").evaluate(node => node.scrollTop)).toBe(beforePeer);
+    additional.peerReturnTop = beforePeer;
+    observations.push(await sample(page, `${count}-chart-up-after-peer`, -1, sourceSha256, "chart"));
+    const row = frame.locator('.wx-table-container .wx-row[data-id]').first();
+    const box = await row.boundingBox();
+    if (!box) throw new Error("Visible native row required for density gesture");
+    const beforeHeight = Number(await frame.getAttribute("data-gantt-cell-height"));
+    await page.mouse.move(box.x + 100, box.y + box.height / 2);
+    await page.keyboard.down("Control"); await page.mouse.wheel(0, 120); await page.keyboard.up("Control");
+    await expect(frame).toHaveAttribute("data-gantt-cell-height", String(beforeHeight - 2));
+    await page.keyboard.down("Control"); await page.mouse.wheel(0, -120); await page.keyboard.up("Control");
+    await expect(frame).toHaveAttribute("data-gantt-cell-height", String(beforeHeight));
+    await frame.evaluate(async node => { await Reflect.get(node, "__issue568Trace")?.settle(); });
+    additional.density = { beforeHeight, restoredHeight: Number(await frame.getAttribute("data-gantt-cell-height")) };
+    const scrollbar = await frame.locator(".wx-gantt").evaluate(node => {
+      const rect = node.getBoundingClientRect();
+      return { right: rect.right, top: rect.top, height: node.clientHeight, gutter: (node as HTMLElement).offsetWidth - node.clientWidth,
+        thumbHeight: node.clientHeight * node.clientHeight / node.scrollHeight, topBefore: node.scrollTop };
+    });
+    if (scrollbar.gutter > 4) {
+      const x = scrollbar.right - scrollbar.gutter / 2, y = scrollbar.top + scrollbar.thumbHeight / 2;
+      await page.mouse.move(x, y); await page.mouse.down();
+      await page.mouse.move(x, y + 60, { steps: 10 }); await page.mouse.up();
+      await expect.poll(() => frame.locator(".wx-gantt").evaluate(node => node.scrollTop)).toBeGreaterThan(scrollbar.topBefore);
+      additional.thumbDrag = { ...scrollbar, topAfter: await frame.locator(".wx-gantt").evaluate(node => node.scrollTop), status: "PASS" };
+      await frame.locator(".wx-gantt").evaluate(node => { node.scrollTop = 0; });
+      await frame.evaluate(async node => { await Reflect.get(node, "__issue568Trace")?.settle(); });
+    } else additional.thumbDrag = { ...scrollbar, status: "NOT TESTED", reason: "Chromium overlay scrollbar has no measurable native thumb gutter" };
+  }
+  await frame.getByRole("button", { name: "Gantt 전체 화면", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(true);
+  observations.push(await sample(page, `${count}-fullscreen-down`, 1, sourceSha256));
+  observations.push(await sample(page, `${count}-fullscreen-up`, -1, sourceSha256));
+  await page.evaluate(() => document.exitFullscreen());
+  await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
+  const afterState = await frame.evaluate(node => {
+    const state = Reflect.get(node, "__masterganttMilestoneTimeline").read();
+    return { selected: state.selected, appSelection: state.appSelection, gridWidth: state.gridWidth,
+      columns: [...node.querySelectorAll('.wx-table-container .wx-header [data-header-id]')].map(cell => cell.getAttribute("data-header-id")),
+      summaryClass: node.querySelector('[data-id=":00000000-0000-4000-8000-000000000001"] [data-action="open-task"]')?.className };
+  });
+  expect(afterState).toEqual(preserved);
+  expect(await frame.evaluate(node => Reflect.get(node, "__issue507Root") === node.querySelector(".wx-gantt"))).toBe(true);
+  const layouts = [];
+  if (count === 300) for (const width of [390, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await frame.evaluate(async node => { await Reflect.get(node, "__issue568Trace")?.settle(); });
+    const layout = await frame.evaluate(node => {
+      const owner = node.querySelector<HTMLElement>(".wx-gantt")!;
+      return { viewport: innerWidth, documentWidth: document.documentElement.scrollWidth, capacity: owner.scrollHeight - owner.clientHeight,
+        nativeTop: owner.scrollTop, api: node.getAttribute("data-project-gantt-api-instance") };
+    });
+    expect(layout.documentWidth).toBeLessThanOrEqual(width);
+    expect(layout.capacity).toBeGreaterThan(0);
+    expect(layout.api).toBe(identity);
+    layouts.push(layout);
+  }
+  expect(fixture.project.revision).toBe(fixture.initialRevision);
+  expect(fixture.posts).toHaveLength(0); expect(fixture.patchRequests).toHaveLength(0);
+  const path = resolve("output/playwright/issue-507");
+  await mkdir(path, { recursive: true });
+  await writeFile(resolve(path, `wheel-${count}.json`), JSON.stringify({ sourceSha256, measurementSha256, version, additional, editable: fixture.sessionEditable, hierarchy: count === 1000 ? "collapsed" : "expanded", preserved, afterState, layouts, browser: page.context().browser()?.version(), viewport: page.viewportSize(), count, observations }, null, 2));
+  await info.attach(`vertical-scroll-${count}`, { body: JSON.stringify(observations), contentType: "application/json" });
+  await page.screenshot({ path: resolve(path, `wheel-${count}.png`) });
+}

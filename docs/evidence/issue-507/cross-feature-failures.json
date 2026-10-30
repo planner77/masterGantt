@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "scope": "Local intermediate failures preserved separately from final26/26PASS; no remote CI failure claims",
+  "entries": [
+    {
+      "id": "F574-LFF-001",
+      "status": "FAIL",
+      "scope": "intermediate conversion case on external disposable Next/SQLite server, not fixture-isolated",
+      "evidence": [
+        "conversion-first.log",
+        "results-conversion/task-context-menu-hierarch-4a189-ne-only-on-explicit-request-chromium/trace.zip"
+      ],
+      "failure": "Existing final GET crossed the unchanged 30000ms total test timeout after cold compilation. Cold compilation/load is a hypothesis, not a proven product defect.",
+      "resolution": "Same intermediate source warm run passed16.5s; final isolated conversion passed20.0s without timeout/retry/assertion changes.",
+      "followupEvidence": [
+        "conversion-warm.log",
+        "isolated-final-eight.log"
+      ]
+    },
+    {
+      "id": "F574-LFF-002",
+      "status": "FAIL",
+      "scope": "new deterministic FILTER_RETURN race fixture admission",
+      "evidence": [
+        "selection-pending.log",
+        "selection-pending2.log"
+      ],
+      "failure": "Expected real FILTER_RETURN APPLYING was absent. Original broad-date fixture emitted FILTER_EMPTY_RESET and did not establish the required pending restore lease. Original sequential PASS was insufficient for the race claim.",
+      "resolution": "Reused the existing scoped bookmark fixture and explicit date-capacity witness; retained the APPLYING gate and SUPERSEDED assertion.",
+      "followupEvidence": [
+        "selection-scoped2.log",
+        "mock-final.log",
+        "assertion-receipts/issue-574-zero-result-latest-selection.json"
+      ]
+    },
+    {
+      "id": "F574-LFF-003",
+      "status": "FAIL",
+      "scope": "scoped capacity witness native row visibility",
+      "evidence": [
+        "selection-scoped.log"
+      ],
+      "failure": "Changing siblingOrder alone did not put the witness into the rendered canonical array order. Positive native visibility assertion correctly failed.",
+      "resolution": "Reordered the synthetic canonical array as well as siblingOrder before reload, preserving ID/date and the positive visibility/hit-test assertions. No product behavior change.",
+      "followupEvidence": [
+        "selection-scoped2.log",
+        "mock-final.log"
+      ]
+    }
+  ]
+}

@@ -54,3 +54,16 @@ Project Copy와 지원 Template v5는 로컬 엔터티의 새 ID와 Global Resou
 ## 사용자 안내와 #720 인계
 
 현재 제공 문서는 [기준정보·동적 조회 사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md)다. 새 상위 메뉴와 업무 순서는 [실물 연결 종단 사용 흐름](TARGET_RESOURCE_USER_GUIDE.md#종단-사용-흐름)에서 설명한다. `screenKey`는 가이드의 기존 표와 anchor를 재사용한다. #720의 전역 매뉴얼 버튼·앱 `/manual` 페이지·registry를 새로 구현했다고 보고하지 않는다. 화면 제품·문서 계약의 최종 판정은 새 Head Required3와 Owner 승인 이후다.
+
+## Issue #574 — Marker-OFF 교차 검증의 최신 source 연결 (2026-10-31)
+
+main `8d6d3ba7a47e6df08c509baad6eedcc2adee1407` / application `0.138.4`에서 #507과 단일 PR로 V1~V8을 검증한다. 기존 #737의5root/KPI 수용표와 모집단·snapshot 계약은 그대로 유지한다. Gantt 상태·숨은 Milestone·교환 검증을5root 수치 전체 PASS 또는 운영 storage/Excel 환경 PASS로 확대하지 않는다.
+
+| 교차 경계 | 원본 assertion과 검증 책임 |
+| --- | --- |
+| Task/metadata 저장·실패·unknown 결과와 단일 Gantt | #574 V1 / `gantt-state-product-integration`, `project-task-delete-context` / SC-05·기존 canonical 복구 |
+| Resource·Export·Dashboard 복귀와 wheel/selection 경합 | V2/V3/V4/V7 / `resource-kpi-integration-ui`, `resource-excel-export-ui`, `viewport-coordinator`, `grid-task-start-reveal` / SC-09~12 |
+| Marker OFF·변환·Dashboard/Editor·clipboard | V5/V6 / `task-context-menu-hierarchy`, `project-gantt-inline-name`, `inline-name-persistence`, `milestone-visibility` / same ID·권한·view-only mutation0 |
+| M-only/empty·Summary·Export·Copy/Template·권한 | V8 / `milestone-timeline-interchange-http`, `milestone-timeline-interchange.test.ts` / full canonical UUID/FK·revision·실제 SQLite/HTTP |
+
+상세 V1~V8 매핑은 [Gantt 정합 표](GANTT_STATE_CONFORMANCE.md), Milestone/교환 범위는 [추적표](MILESTONE_TIMELINE_TRACEABILITY.md), source별 실제 실행과 남은 검증은 [Work Packet](exec-plans/active/ISSUE_507.md)·[누적 원장](ISSUE_507_FAILURE_ANALYSIS.md)을 따른다. 이번 테스트 보강은 새 Coordinator/marker/Export 구현이나 UI/업무 정책 변경이 아니다. 최신 Head 원격 Required3/Trusted QA·Owner·Manager 최종 수용은 별도 NOT TESTED다.

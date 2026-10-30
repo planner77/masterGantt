@@ -1,0 +1,17 @@
+"use client";
+import { Gantt, Willow, type ITask } from "@svar-ui/react-gantt";
+import "@svar-ui/react-gantt/all.css";
+import { useMemo } from "react";
+export default function Widget({ count }: { count: number }) {
+  const tasks = useMemo<ITask[]>(() => Array.from({ length: count }, (_, index) => ({
+    id: `core-${index}`, text: `Core task ${index}`, type: "task", parent: 0,
+    start: new Date(2026, 0, 5), end: new Date(2026, 0, 6), duration: 1,
+  })), [count]);
+  return <main style={{ margin: 24 }}><h1>SVAR Core 2.7.3 temporary vertical-scroll control</h1>
+    <Willow><div className="issue507-core" style={{ height: 710, width: "100%" }}>
+      <Gantt tasks={tasks} links={[]} readonly cellHeight={34} cellWidth={36} gridWidth={480}
+        start={new Date(2026, 0, 4)} end={new Date(2026, 11, 19)}
+        scales={[{ unit: "month", step: 1, format: "%F %Y" }, { unit: "day", step: 1, format: "%j" }]}
+        init={api => { Reflect.set(window, "__issue507CoreApi", api); }} />
+    </div></Willow></main>;
+}

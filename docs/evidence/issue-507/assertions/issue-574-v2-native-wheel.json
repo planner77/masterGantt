@@ -1,0 +1,58 @@
+{
+  "user": {
+    "instance": "project-gantt-f76ktfs4ctq",
+    "apiInstance": "svar-api-1",
+    "publicViewport": {
+      "left": 30,
+      "top": 0
+    },
+    "left": 31,
+    "top": 0,
+    "columns": [
+      56,
+      227,
+      104,
+      56,
+      37
+    ],
+    "selection": [],
+    "tree": [
+      ":2b1334b8-f913-4479-9972-e13d114d1f2a",
+      ":86b5e78f-7063-40cf-9720-22defe1d72ef",
+      ":f70f2844-fd5a-4b7a-8b6c-82af23b6fc2e",
+      ":eb40459e-f36e-4b80-8c06-dc2d60815d15",
+      ":35d79094-0756-4a62-a410-74e174469843",
+      ":8bd89adb-bc00-4076-92e1-bcc041572687",
+      null,
+      null
+    ]
+  },
+  "settled": {
+    "instance": "project-gantt-f76ktfs4ctq",
+    "apiInstance": "svar-api-1",
+    "publicViewport": {
+      "left": 30,
+      "top": 0
+    },
+    "left": 31,
+    "top": 0,
+    "columns": [
+      56,
+      227,
+      104,
+      56,
+      37
+    ],
+    "selection": [],
+    "tree": [
+      ":2b1334b8-f913-4479-9972-e13d114d1f2a",
+      ":86b5e78f-7063-40cf-9720-22defe1d72ef",
+      ":f70f2844-fd5a-4b7a-8b6c-82af23b6fc2e",
+      ":eb40459e-f36e-4b80-8c06-dc2d60815d15",
+      ":35d79094-0756-4a62-a410-74e174469843",
+      ":8bd89adb-bc00-4076-92e1-bcc041572687",
+      null,
+      null
+    ]
+  }
+}

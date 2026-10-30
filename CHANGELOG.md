@@ -1,3 +1,14 @@
+## [0.138.5] — Unreleased / Issue #507 · #574 스크롤 장식 처리·통합 검증 (2026-10-31)
+
+### Fixed
+
+- Grid 세로 스크롤의 행 가상화가 변경되지 않은 Day/Week 날짜축을 반복 장식하지 않도록 observer의 반응 범위를 실제 날짜축 변경으로 제한한다. native 스크롤·단일 Gantt·헤더 접근성과 날짜/Calendar 갱신은 유지한다. 실제 수동 wheel/trackpad 체감·운영 증상 전체 해소는 별도 검증 대상이다.
+- 기존 Marker-OFF 통합 테스트에 Milestone 변환 전 clipboard 채움/취소 보존/성공 후 제외, 검색 결과0 뒤 최신 명시 선택 우선, 일반 inline401의 readonly·원본 유지 회귀를 추가한다. 기존 HTTP·SQLite·Export·권한 assertion은 보존한다.
+
+### 검증·릴리스 경계
+
+- 후보 PATCH0.138.5, release_required=true/release_authorized=false. [분석·검증 계획](docs/exec-plans/active/ISSUE_507.md), [실패 원장](docs/ISSUE_507_FAILURE_ANALYSIS.md)에 실측·source별 로컬 결과·미검증을 구분한다. 이번 범위는 하나의 PR Full CI 시작까지이며 원격 Required3/Trusted QA·Owner·Manager 최종 수용은 NOT TESTED다.
+
 ## [0.138.4] — Unreleased / Issue #860 Milestone 변환 확인·관리 경로 (2026-10-30)
 
 ### Fixed

@@ -1,0 +1,599 @@
+{
+  "capturedAt": "2026-10-30T22:38:43.064Z",
+  "observation": {
+    "public": {
+      "left": 2040,
+      "top": 0
+    },
+    "dom": {
+      "left": 2040,
+      "top": 0
+    },
+    "actualBarOffset": 0,
+    "startX": 2040,
+    "startVisible": true,
+    "chartWidth": 905,
+    "scale": {
+      "start": "2026-09-06T15:00:00.000Z",
+      "cellWidth": 68,
+      "scaleUnit": "week",
+      "selected": [
+        "00000000-0000-4000-8000-000000000076"
+      ]
+    },
+    "geometry": {
+      "chart": {
+        "left": 510,
+        "right": 1415
+      },
+      "grid": {
+        "left": 25,
+        "right": 506
+      },
+      "viewportWidth": 1440,
+      "documentOverflow": 0
+    },
+    "events": [
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0,
+        "visible": true,
+        "width": -484,
+        "height": -72
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0,
+        "visible": true,
+        "width": 906,
+        "height": 535
+      },
+      {
+        "action": "select-task",
+        "left": 0,
+        "top": 0,
+        "visible": true,
+        "taskId": "00000000-0000-4000-8000-000000000001",
+        "show": false,
+        "eventSource": "project-owned-selection"
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0,
+        "visible": true,
+        "width": 906,
+        "height": 459
+      },
+      {
+        "action": "scroll-chart",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "requestedLeft": 120
+      },
+      {
+        "action": "select-task",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "taskId": "00000000-0000-4000-8000-000000000001",
+        "show": false,
+        "eventSource": "project-owned-selection"
+      },
+      {
+        "action": "resize-chart",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "width": 906,
+        "height": 459
+      },
+      {
+        "action": "scroll-chart",
+        "left": 0,
+        "top": 0,
+        "visible": true,
+        "requestedLeft": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0,
+        "visible": true,
+        "width": 906,
+        "height": 432
+      },
+      {
+        "action": "scroll-chart",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "requestedLeft": 120
+      },
+      {
+        "action": "select-task",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "taskId": "00000000-0000-4000-8000-000000000076",
+        "show": false,
+        "eventSource": "project-owned-selection"
+      },
+      {
+        "action": "resize-chart",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "width": 3014,
+        "height": 432
+      },
+      {
+        "action": "resize-chart",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "width": 906,
+        "height": 432
+      },
+      {
+        "action": "scroll-chart",
+        "left": 120,
+        "top": 0,
+        "visible": true
+      },
+      {
+        "action": "select-task",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "taskId": "00000000-0000-4000-8000-000000000076",
+        "show": false
+      },
+      {
+        "action": "resize-chart",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "width": 906,
+        "height": 487
+      },
+      {
+        "action": "scroll-chart",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "requestedLeft": 120
+      },
+      {
+        "action": "scroll-chart",
+        "left": 2040,
+        "top": 0,
+        "visible": true,
+        "requestedLeft": 2040
+      }
+    ],
+    "coordinator": [
+      {
+        "phase": "WAIT_GEOMETRY",
+        "kind": "FILTER_EMPTY_RESET",
+        "writes": 0,
+        "intentEpoch": 5,
+        "contextEpoch": 6,
+        "gesture": 2,
+        "projectionEpoch": 3,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "WAIT_GEOMETRY",
+        "core": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "geometry": "[1390,504,905,504,2176,504]"
+      },
+      {
+        "phase": "APPLYING",
+        "kind": "FILTER_EMPTY_RESET",
+        "writes": 0,
+        "intentEpoch": 5,
+        "contextEpoch": 6,
+        "gesture": 2,
+        "projectionEpoch": 3,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "APPLYING",
+        "core": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "geometry": "[1390,504,905,504,2176,504]"
+      },
+      {
+        "phase": "SETTLING",
+        "kind": "FILTER_EMPTY_RESET",
+        "writes": 1,
+        "intentEpoch": 5,
+        "contextEpoch": 6,
+        "gesture": 2,
+        "projectionEpoch": 3,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "SETTLING",
+        "core": {
+          "left": 0,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "geometry": "[1390,504,905,504,2176,504]"
+      },
+      {
+        "phase": "SETTLED",
+        "kind": "FILTER_EMPTY_RESET",
+        "outcome": "SETTLED",
+        "writes": 1,
+        "intentEpoch": 5,
+        "contextEpoch": 6,
+        "gesture": 2,
+        "projectionEpoch": 3,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "SETTLED",
+        "core": {
+          "left": 0,
+          "top": 0
+        },
+        "native": {
+          "left": 0,
+          "top": 0
+        },
+        "geometry": "[1390,504,905,504,2176,504]"
+      },
+      {
+        "phase": "WAIT_PROJECTION",
+        "kind": "FILTER_RETURN",
+        "writes": 1,
+        "intentEpoch": 8,
+        "contextEpoch": 9,
+        "gesture": 2,
+        "projectionEpoch": 4,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "WAIT_PROJECTION",
+        "core": {
+          "left": 0,
+          "top": 0
+        },
+        "native": {
+          "left": 0,
+          "top": 0
+        },
+        "geometry": "[1390,504,905,504,2176,504]"
+      },
+      {
+        "phase": "PREPARING_GEOMETRY",
+        "kind": "FILTER_RETURN",
+        "writes": 1,
+        "intentEpoch": 8,
+        "contextEpoch": 9,
+        "gesture": 2,
+        "projectionEpoch": 5,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "PREPARING_GEOMETRY",
+        "core": {
+          "left": 0,
+          "top": 0
+        },
+        "native": {
+          "left": 0,
+          "top": 0
+        },
+        "geometry": "[1390,504,905,504,2176,1092]"
+      },
+      {
+        "phase": "WAIT_PROJECTION",
+        "kind": "FILTER_RETURN",
+        "writes": 1,
+        "intentEpoch": 8,
+        "contextEpoch": 9,
+        "gesture": 2,
+        "projectionEpoch": 5,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "WAIT_PROJECTION",
+        "core": {
+          "left": 0,
+          "top": 0
+        },
+        "native": {
+          "left": 0,
+          "top": 0
+        },
+        "geometry": "[1390,504,905,504,2176,1092]"
+      },
+      {
+        "phase": "WAIT_GEOMETRY",
+        "kind": "FILTER_RETURN",
+        "writes": 1,
+        "intentEpoch": 8,
+        "contextEpoch": 9,
+        "gesture": 2,
+        "projectionEpoch": 5,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "WAIT_GEOMETRY",
+        "core": {
+          "left": 0,
+          "top": 0
+        },
+        "native": {
+          "left": 0,
+          "top": 0
+        },
+        "geometry": "[1390,504,905,504,2176,1092]"
+      },
+      {
+        "phase": "APPLYING",
+        "kind": "FILTER_RETURN",
+        "writes": 1,
+        "intentEpoch": 8,
+        "contextEpoch": 9,
+        "gesture": 2,
+        "projectionEpoch": 5,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "APPLYING",
+        "core": {
+          "left": 0,
+          "top": 0
+        },
+        "native": {
+          "left": 0,
+          "top": 0
+        },
+        "geometry": "[1390,504,905,504,2176,1092]"
+      },
+      {
+        "phase": "SETTLING",
+        "kind": "FILTER_RETURN",
+        "writes": 2,
+        "intentEpoch": 8,
+        "contextEpoch": 9,
+        "gesture": 2,
+        "projectionEpoch": 5,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "SETTLING",
+        "core": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 0,
+          "top": 0
+        },
+        "geometry": "[1390,504,905,504,2176,1092]"
+      },
+      {
+        "phase": "SUPERSEDED",
+        "kind": "FILTER_RETURN",
+        "outcome": "SUPERSEDED",
+        "writes": 2,
+        "intentEpoch": 8,
+        "contextEpoch": 9,
+        "gesture": 2,
+        "projectionEpoch": 5,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "USER_GESTURE",
+        "core": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "geometry": "[1390,504,905,504,2176,1092]"
+      },
+      {
+        "phase": "WAIT_PROJECTION",
+        "kind": "TASK_REVEAL",
+        "writes": 2,
+        "intentEpoch": 10,
+        "contextEpoch": 9,
+        "gesture": 3,
+        "projectionEpoch": 5,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "WAIT_PROJECTION",
+        "core": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "geometry": "[1390,504,905,504,2176,1092]"
+      },
+      {
+        "phase": "PREPARING_GEOMETRY",
+        "kind": "TASK_REVEAL",
+        "writes": 2,
+        "intentEpoch": 10,
+        "contextEpoch": 9,
+        "gesture": 3,
+        "projectionEpoch": 5,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "PREPARING_GEOMETRY",
+        "core": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "geometry": "[1390,504,905,504,2176,1092]"
+      },
+      {
+        "phase": "WAIT_PROJECTION",
+        "kind": "TASK_REVEAL",
+        "writes": 5,
+        "intentEpoch": 10,
+        "contextEpoch": 9,
+        "gesture": 3,
+        "projectionEpoch": 5,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "WAIT_PROJECTION",
+        "core": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "geometry": "[1390,559,905,559,3060,1092]"
+      },
+      {
+        "phase": "WAIT_GEOMETRY",
+        "kind": "TASK_REVEAL",
+        "writes": 5,
+        "intentEpoch": 10,
+        "contextEpoch": 9,
+        "gesture": 3,
+        "projectionEpoch": 6,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "WAIT_GEOMETRY",
+        "core": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "geometry": "[1390,559,905,559,3060,1092]"
+      },
+      {
+        "phase": "APPLYING",
+        "kind": "TASK_REVEAL",
+        "writes": 5,
+        "intentEpoch": 10,
+        "contextEpoch": 9,
+        "gesture": 3,
+        "projectionEpoch": 6,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "APPLYING",
+        "core": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "geometry": "[1390,559,905,559,3060,1092]"
+      },
+      {
+        "phase": "SETTLING",
+        "kind": "TASK_REVEAL",
+        "writes": 6,
+        "intentEpoch": 10,
+        "contextEpoch": 9,
+        "gesture": 3,
+        "projectionEpoch": 6,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "SETTLING",
+        "core": {
+          "left": 2040,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "geometry": "[1390,559,905,559,3060,1092]"
+      },
+      {
+        "phase": "SUPERSEDED",
+        "kind": "RANGE_EXTENSION",
+        "outcome": "SUPERSEDED",
+        "writes": 7,
+        "intentEpoch": 10,
+        "contextEpoch": 9,
+        "gesture": 3,
+        "projectionEpoch": 6,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "LOWER_PRIORITY",
+        "core": {
+          "left": 2040,
+          "top": 0
+        },
+        "native": {
+          "left": 2040,
+          "top": 0
+        },
+        "geometry": "[1390,559,905,559,3060,1092]"
+      },
+      {
+        "phase": "SETTLED",
+        "kind": "TASK_REVEAL",
+        "outcome": "SETTLED",
+        "writes": 7,
+        "intentEpoch": 10,
+        "contextEpoch": 9,
+        "gesture": 3,
+        "projectionEpoch": 6,
+        "apiInstance": "svar-api-1",
+        "decisionReason": "SETTLED",
+        "core": {
+          "left": 2040,
+          "top": 0
+        },
+        "native": {
+          "left": 2040,
+          "top": 0
+        },
+        "geometry": "[1390,559,905,559,3060,1092]"
+      }
+    ],
+    "axis": {
+      "outcome": "SETTLED",
+      "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+      "viewport": "PRESERVED",
+      "position": {
+        "left": 120,
+        "top": 0
+      },
+      "requestedPosition": {
+        "left": 120,
+        "top": 0
+      },
+      "axis": {
+        "startMs": 1788706800000,
+        "endMs": 1815404400000,
+        "scaleWidth": 3060
+      },
+      "capacity": {
+        "left": 2155,
+        "top": 533
+      }
+    },
+    "instance": "svar-api-1",
+    "syncGeneration": "9"
+  },
+  "gateHeld": false,
+  "sourceHashes": {
+    "src/features/gantt/viewport/task-reveal-target.ts": "ffc36990225d01313df6c065ede426f235f300ae2d94978b598a8805a8803ab6",
+    "src/features/gantt/viewport/svar-viewport-port.ts": "57bac6efa9c9ad5f4fe7a3e722333b6b615c6e902cfa26bbe7d2f74309782c3e",
+    "src/features/gantt/viewport/viewport-coordinator.ts": "73a12490028306421f1b47e05527d6191d9652288d731434e1c8defecaef72ec",
+    "src/features/gantt/project-gantt.tsx": "08c2633a9a3f68f262cb1cd3b7545f7ffcef32fe996001f244c19da51840d080",
+    "src/features/projects/project-readonly-view.tsx": "9532bb2d897a3f831161b2e18ca6eadbfdc823123009248362f47c8342fa2074",
+    "tests/e2e/grid-task-start-reveal.spec.ts": "1983bc7a1188d4eeb1d1dd398b26bd300e7b070db9eda574fd766788023eaf06"
+  },
+  "environment": "Next16.4.2/Core2.7.3; mocked canonical API, native browser pointer"
+}

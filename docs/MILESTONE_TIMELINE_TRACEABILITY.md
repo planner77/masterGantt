@@ -64,3 +64,14 @@ TEST_LIFECYCLE_REVIEW: 기존 `milestone-visibility.spec.ts`, `project-gantt-ima
 | 간접 경계 | V5/V7 | 기존 inline·날짜축 Coordinator 고유 검사 보존 | #860 직접 수정 아님, 새 Head 전체 CI·#574 통합 QA는 별도 |
 
 최신 main의 최초 실제 변환 fixture는 Core/Grid/Chart0으로 PASS했고 사용자 행 잔류는 재현되지 않았다. 보고를 폐기하지 않고 peer/config/응답 경합과 운영 source/mode 확인을 분리한다. 정확 source와 최종 로컬 결과·미검증은 [Work Packet](exec-plans/active/ISSUE_860.md)과 [원장](ISSUE_860_FAILURE_ANALYSIS.md)에 연결한다. Required3/Trusted/Owner/Manager·#574 통합 최종 수용은 NOT TESTED이며 #573/#693 선택 marker ON과 기존 #553 원본 증거는 변경하지 않는다.
+
+## Issue #574 — Marker-OFF 최신 통합 증거 연결 (2026-10-31)
+
+#507과 하나의 PR에서 기존 V1~V8의 공백을 보강한다. 기본선은 main `8d6d3ba7a47e6df08c509baad6eedcc2adee1407` / `0.138.4` / Core `2.7.3`이다. 아래 #553 및 #860 원장은 원래 source·시점의 증거로 보존하며, #852/#860 정식 릴리스를 #574 전체 PASS로 확대하지 않는다. #573/#693 marker ON은 비차단이며 OFF의 native 행/bar/marker 부수효과0·Dashboard 대체 진입이 oracle이다.
+
+- V1~V8 assertion ↔ owner issue ↔ SC ↔ 실행 경계의 단일 표: [Gantt 정합 표](GANTT_STATE_CONFORMANCE.md).
+- V4/V6/V8: 기존 #860 실제 변환 전 확인·취소/Escape mutation0, 확정 후 동일 ID Core/native Grid·Chart0·app selection0·동명 ordinary 유지, 동일 ID Dashboard·reload/peer·5폭 Day/Week/fullscreen을 유지한다. 실제 Copy로 source를 채운 후 취소 시 Paste 유지·변환 뒤 Paste 비활성을 추가하여 빈 clipboard의 공허한 음성 검증을 막는다.
+- V8: #553 실제 HTTP·SQLite JSON/Excel/SVG/PNG·Copy/Template·revision/권한·원자 거부 원본을 유지하고 이번 source 실행 범위만 [단일 원장](ISSUE_507_FAILURE_ANALYSIS.md)에 추가한다. SVG/PNG download·바이트 검증을 Windows Excel/VBA/DRM 실사용 승인으로 확대하지 않는다.
+- V2/V3/V5/V7: peer/wheel·filter0/최신 선택·일반 inline401·미래축 탐색의 서로 다른 mock/HTTP·SQLite 근거를 구분한다. 테스트가 존재한다는 사실은 최신 source 실행 성공이 아니다.
+
+[Work Packet](exec-plans/active/ISSUE_507.md)에 후보 source 지문·명령·실제 결과·미검증/잔여 위험을 기록한다. Full PR Quality/E2E8/Docker·Trusted QA·Owner·Manager 통합 최종 수용과 수동 체감은 결과 전 NOT TESTED이며, 이번 승인 범위는 PR CI 시작까지다.
