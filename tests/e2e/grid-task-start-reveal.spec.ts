@@ -5,6 +5,7 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import type { ProjectTaskDto } from "../../src/contracts/projects";
 import { dashboardFixture } from "../fixtures/milestone-dashboard";
 import { projectPath } from "../fixtures/stateful-project";
+import { setup as setupEditorDensity } from "./fixtures/task-editor-density";
 import { installStatefulProjectFixture, publicId } from "../fixtures/stateful-project";
 
 async function fixture(page: Page, editable = false, sparse = false) {
@@ -182,6 +183,88 @@ test("#514 pending peer wheel and rapid selections preserve latest actual user i
   await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${state.tasks[4].taskId}"]`)).toHaveClass(/wx-selected/);
   await page.clock.resume();
   await saveEvidence(info, "pending-input", { wheel, afterWheel, pending, latest, settled });
+});
+
+test("#574 V3 zero-result bookmark yields to the latest explicit Task selection", async ({ page }, info) => {
+  const state = await setupEditorDensity(page, { longList: true, editable: false, scrollCapacityWitness: true });
+  const selected = state.tasks.find(task => task.externalId === "EDITOR-76")!;
+  // Keep the real date-capacity witness inside the visible virtual Grid while
+  // the restore observation frames are held. The server fixture keeps its ID.
+  selected.siblingOrder = 1;
+  state.tasks.splice(state.tasks.indexOf(selected), 1);
+  state.tasks.splice(1, 0, selected);
+  await page.reload();
+  const initialRevision = state.project.revision, mutations: string[] = [];
+  page.on("request", request => { if (!["GET", "HEAD"].includes(request.method())) mutations.push(request.method()); });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const frame = page.locator(".project-gantt-frame");
+  await frame.locator(`.wx-table-container .wx-row[data-id=":${state.tasks[0].taskId}"]`).click({ button: "right", position: { x: 12, y: 19 } });
+  await page.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click();
+  await frame.getByRole("button", { name: "주", exact: true }).click();
+  await settle(page);
+  const chart = frame.locator(".wx-chart");
+  const instance = await frame.getAttribute("data-project-gantt-api-instance");
+  const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색", exact: true });
+  await chart.hover(); await page.mouse.wheel(120, 0);
+  await expect.poll(async () => (await observe(page, selected.start!)).dom.left).toBe(120);
+  await settle(page);
+  const bookmark = await observe(page, selected.start!);
+  await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${selected.taskId}"]`)).toBeVisible();
+  await search.fill("#574 no matching Task");
+  await expect(frame.locator(".wx-table-container .wx-row[data-id]")).toHaveCount(0);
+  await expect.poll(async () => (await observe(page, selected.start!)).dom.left).toBe(0);
+  const empty = await observe(page, selected.start!);
+  // Observe a real FILTER_RETURN in flight; locator actionability waiting alone
+  // could allow the old bookmark to finish before the newer Task selection.
+  await frame.evaluate(node => {
+    const raf = window.requestAnimationFrame.bind(window);
+    const gate = { held: false, callbacks: [] as Array<() => void> };
+    const onReceipt = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (detail.kind === "FILTER_RETURN" && detail.phase === "APPLYING") gate.held = true;
+    };
+    window.requestAnimationFrame = callback => raf(time => { if (gate.held) gate.callbacks.push(() => callback(time)); else callback(time); });
+    node.addEventListener("mastergantt:viewport-coordinator", onReceipt);
+    Reflect.set(window, "__issue574FilterGate", gate);
+    Reflect.set(window, "__releaseIssue574FilterGate", () => {
+      gate.held = false; window.requestAnimationFrame = raf;
+      node.removeEventListener("mastergantt:viewport-coordinator", onReceipt);
+      gate.callbacks.splice(0).forEach(callback => callback());
+    });
+  });
+  try {
+    await search.fill("");
+    await expect.poll(() => page.evaluate(() => Reflect.get(window, "__issue574FilterGate").held)).toBe(true);
+    const pending = await observe(page, selected.start!);
+    expect(pending.coordinator.some((entry: { kind: string; phase: string }) => entry.kind === "FILTER_RETURN" && entry.phase === "APPLYING")).toBe(true);
+    const target = frame.locator(`.wx-table-container .wx-row[data-id=":${selected.taskId}"]`);
+    const targetCell = target.locator('[data-col-id=":projectDuration"]');
+    expect(await targetCell.evaluate(node => {
+      const box = node.getBoundingClientRect();
+      return document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)?.closest(".wx-row")?.getAttribute("data-id");
+    })).toBe(`:${selected.taskId}`);
+    await targetCell.click({ force: true });
+    await frame.evaluate((node, id) => { (node as HTMLElement).dataset.issue852ObservedTask = id; }, selected.taskId);
+    await page.evaluate(() => Reflect.get(window, "__releaseIssue574FilterGate")());
+    await expectTaskStartSettled(page, selected.start!);
+    const latest = await observe(page, selected.start!);
+    expect(latest.dom.left).not.toBe(bookmark.dom.left);
+    expect(latest.actualBarOffset).not.toBeNull();
+    expect(Math.abs(latest.actualBarOffset!)).toBeLessThanOrEqual(1);
+    await settle(page); await settle(page);
+    const final = await observe(page, selected.start!);
+    expect(final.public).toEqual(latest.public); expect(final.dom).toEqual(latest.dom);
+    expect(final.coordinator.some((entry: { kind: string; outcome: string }) => entry.kind === "FILTER_RETURN" && entry.outcome === "SUPERSEDED")).toBe(true);
+    await expect(target).toHaveClass(/wx-selected/);
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", instance!);
+    expect(state.project.revision).toBe(initialRevision);
+    expect(state.patches).toHaveLength(0); expect(mutations).toHaveLength(0);
+    await saveEvidence(info, "issue-574-zero-result-latest-selection", { bookmark, empty, pending, latest, final,
+      selectedTaskId: selected.taskId, revision: state.project.revision, mutationCount: 0 });
+  } finally {
+    await saveEvidence(info, "issue-574-filter-gate-final", { observation: await observe(page, selected.start!), gateHeld: await page.evaluate(() => Reflect.get(window, "__issue574FilterGate").held) });
+    await page.evaluate(() => Reflect.get(window, "__releaseIssue574FilterGate")());
+  }
 });
 
 test("#514 pending peer restore expires when the Task filter source changes", async ({ page }, info) => {

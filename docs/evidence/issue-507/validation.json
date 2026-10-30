@@ -1,0 +1,98 @@
+{
+  "schema": "mastergantt-issue507-574-local-validation:v1",
+  "baselineHead": "8d6d3ba7a47e6df08c509baad6eedcc2adee1407",
+  "applicationVersion": "0.138.5",
+  "scope": "선별 Local Fast Feedback. 원격 Full CI·Trusted QA·Owner 승인·Manager ACCEPT와 수동 체감은 별도 NOT TESTED.",
+  "sourceFiles": {
+    "src/features/gantt/project-gantt.tsx": "08c2633a9a3f68f262cb1cd3b7545f7ffcef32fe996001f244c19da51840d080",
+    "src/features/gantt/scale-decoration-observer.ts": "9f25994b6421280abe4bd624617ddcb63439eeaf4b7d4f311fc8785c045e6697",
+    "tests/e2e/helpers/vertical-scroll-diagnostics.ts": "dbcc1228e573bff32d74ea9e4576ed779ee78cc1829e1d9c7a8a0c2d2ce525ae",
+    "tests/e2e/project-gantt-stability.spec.ts": "d1254db7960b8147b95e5a23e38a9789c9b75381db73bb8e3eb9a7b2b78c251f",
+    "tests/e2e/grid-task-start-reveal.spec.ts": "1983bc7a1188d4eeb1d1dd398b26bd300e7b070db9eda574fd766788023eaf06",
+    "tests/e2e/project-gantt-inline-name.spec.ts": "d5b1c8a0189d5c3c5d65ca3a1bb4ea76e03995e6e7468f7fc366b032f1e4fd19",
+    "tests/e2e/task-context-menu-hierarchy.spec.ts": "97b822a88041c267ca16228efd80c382b8ed4569e5cbbf188c550a95aae7c8e4",
+    "tests/features/scale-decoration-observer.test.ts": "5fbc84c1d90f7624baf04774e95ce679c129fd8a30f2438d3c3c31af715d30de"
+  },
+  "unit": {
+    "uniqueCases": 61,
+    "uniqueFiles": 8,
+    "groups": [
+      {
+        "files": [
+          "tests/features/scale-decoration-observer.test.ts",
+          "tests/features/gantt/week-calendar-interval.test.ts",
+          "tests/features/gantt/task-hover-tooltip.test.ts",
+          "tests/integration/milestone-timeline-interchange.test.ts",
+          "tests/features/gantt/state-consistency-manifest.test.ts",
+          "tests/scripts/e2e-shard-planner.test.ts"
+        ],
+        "passed": 48,
+        "durationSeconds": 7.36
+      },
+      {
+        "files": [
+          "tests/features/scale-decoration-observer.test.ts",
+          "tests/features/day-header-tooltip.test.ts",
+          "tests/features/week-header-tooltip.test.ts"
+        ],
+        "passed": 15
+      }
+    ],
+    "overlapCases": 2
+  },
+  "chromium": {
+    "uniqueCases": 32,
+    "groups": {
+      "verticalScroll": 4,
+      "existingDensityAndHeader": 2,
+      "crossFeature": 26
+    },
+    "remoteFullRegression": false
+  },
+  "checks": [
+    {
+      "command": "npm run typecheck",
+      "status": "PASS"
+    },
+    {
+      "command": "npx eslint <changed code and tests>",
+      "status": "PASS",
+      "errors": 0,
+      "existingWarnings": 3
+    },
+    {
+      "command": "node scripts/verify-test-discovery.mjs",
+      "status": "PASS",
+      "unitFiles": 285,
+      "browserTests": 861,
+      "rootAndExternalCwdEqual": true
+    },
+    {
+      "command": "node scripts/verify-release-version.mjs",
+      "status": "PASS",
+      "version": "0.138.5"
+    },
+    {
+      "command": "node scripts/check-markdown-links.mjs",
+      "status": "PASS",
+      "markdownFiles": 385
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS"
+    },
+    {
+      "command": "npm run verify:prepr -- --mode=fast --base=origin/main --issue=507 --risk=HIGH",
+      "status": "BLOCKED",
+      "reason": "신규 helper2개의 producer→consumer 매핑 UNKNOWN; 직접 source 매핑과 검사 근거는 별도 기록",
+      "cliUnitAndProductionBuild": "NOT RUN"
+    }
+  ],
+  "boundaries": [
+    "물리 wheel/trackpad·사람의 flicker 판정은 NOT TESTED",
+    "native thumb drag는 headless overlay gutter0으로 NOT TESTED",
+    "모든 조건의 전체 곱·운영 storage/TLS·Windows Excel/VBA/DRM은 NOT TESTED",
+    "Core/전체 React commit·일부 long task 및 다른 row observer는 남음",
+    "새 Head 원격 Quality/E2E8/Docker·Trusted QA·Owner·Manager ACCEPT는 NOT TESTED"
+  ]
+}

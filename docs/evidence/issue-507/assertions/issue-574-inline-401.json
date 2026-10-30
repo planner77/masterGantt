@@ -1,0 +1,26 @@
+{
+  "environment": "Chromium / native inline input / mocked HTTP401",
+  "revision": 40,
+  "patchCount": 1,
+  "canonicalNames": [
+    {
+      "taskId": "00000000-0000-4000-8000-000000000001",
+      "name": "Stable summary"
+    },
+    {
+      "taskId": "00000000-0000-4000-8000-000000000002",
+      "name": "Existing summary child"
+    },
+    {
+      "taskId": "00000000-0000-4000-8000-000000000003",
+      "name": "Stable leaf"
+    },
+    {
+      "taskId": "00000000-0000-4000-8000-000000000004",
+      "name": "Stable milestone"
+    }
+  ],
+  "apiInstance": "svar-api-1",
+  "readonly": true,
+  "unchangedCanonical": true
+}

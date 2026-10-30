@@ -178,6 +178,36 @@ for (const tab of ["resources", "milestones"] as const) {
   });
 }
 
+test("#574 V5 ordinary inline 401 preserves canonical names and revokes further writes", async ({ page }, info) => {
+  const fixture = await installStatefulProjectFixture(page);
+  const route = await routeRenames(page, fixture);
+  await page.goto(`/projects/${publicId}`);
+  const rootIdentity = await rememberGanttRoot(page);
+  const frame = page.locator(".project-gantt-frame");
+  const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
+  const canonicalTasks = structuredClone(fixture.tasks), revision = fixture.project.revision;
+  route.failOnce(401);
+  const input = await openName(page, "Stable leaf");
+  await input.fill("Unauthorized inline draft"); await input.press("Enter");
+  await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+  await expect(nameCell(page, "Stable leaf")).toBeVisible();
+  await expect(frame.locator(`.wx-bar[data-task-id=":${id(3)}"]`)).toContainText("Stable leaf");
+  await expect(inlineInput(page)).toHaveCount(0);
+  expect(route.patches).toHaveLength(1);
+  expect(route.patches[0].postDataJSON()).toEqual({ name: "Unauthorized inline draft" });
+  expect(fixture.tasks).toEqual(canonicalTasks); expect(fixture.project.revision).toBe(revision);
+  await nameCell(page, "Stable leaf").locator(".wx-content > .wx-text").click();
+  await expect(inlineInput(page)).toHaveCount(0);
+  await expectSameGanttRoot(page, rootIdentity);
+  await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+  expect(route.patches).toHaveLength(1);
+  await info.attach("issue-574-inline-401", { contentType: "application/json", body: JSON.stringify({
+    environment: "Chromium / native inline input / mocked HTTP401", revision, patchCount: route.patches.length,
+    canonicalNames: fixture.tasks.map(task => ({ taskId: task.taskId, name: task.name })), apiInstance,
+    readonly: true, unchangedCanonical: true,
+  }) });
+});
+
 test("#572 실패한 이름 초안은 같은 작업을 명시적으로 다시 열 때 복원된다", async ({ page }) => {
   await installStatefulProjectFixture(page);
   let patches = 0;

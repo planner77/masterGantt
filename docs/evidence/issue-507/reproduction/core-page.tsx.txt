@@ -1,0 +1,5 @@
+import { CoreProbe } from "./probe";
+export default async function Page({ searchParams }: { searchParams: Promise<{ count?: string }> }) {
+  const params = await searchParams;
+  return <CoreProbe count={[300, 1000, 3000].includes(Number(params.count)) ? Number(params.count) : 300} />;
+}

@@ -1,3 +1,4 @@
+import { verifyVerticalScroll } from "./helpers/vertical-scroll-diagnostics";
 import { expect, test, type Frame, type Request } from "@playwright/test";
 import { submitProjectUnlock } from "./fixtures/isolated-application";
 import { deferred, expectSameGanttRoot, ganttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot, rootAdd, rowNamed, taskPath, waitForAnimationFrame, type PostOutcome } from "../fixtures/stateful-project";
@@ -193,4 +194,10 @@ test.describe("Issue #3 stable Gantt instance", () => {
     await expect(page.locator(".project-gantt-scroll")).toBeFocused();
     expect(documentRequests).toEqual([]); expect(navigations).toEqual([]);
   });
+});
+
+// #507 keeps the existing stability boundary and adds native wheel observation.
+for (const count of [50, 300, 1000, 3000]) test(`#507 ${count}행 native vertical wheel의 위치·행 정합·수명주기 계측`, async ({ page }, info) => {
+  test.setTimeout(120_000);
+  await verifyVerticalScroll(page, info, count);
 });

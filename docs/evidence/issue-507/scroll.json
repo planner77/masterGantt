@@ -1,0 +1,941 @@
+{
+  "schema": "mastergantt-issue507-scroll-evidence:v1",
+  "scope": "Local Fast Feedback; not remote CI, subjective manual UX, Manager ACCEPT or issue closure",
+  "baseline": {
+    "head": "8d6d3ba7a47e6df08c509baad6eedcc2adee1407",
+    "version": "0.138.4",
+    "projectGanttSha256": "6dffccf9b113abc85707a5710651bd340e54df9d84ee84570a5b2792ca26baa9",
+    "measurementHelperSha256": "abb4ae47e5eee899c31038a4e5ec150597a77a5fb52aefd2cd5288cf16bbc29e",
+    "testResult": "PASS 1 case / 22.4 s; Day down+up only; expected historical redundant writes positive"
+  },
+  "candidate": {
+    "baseHead": "8d6d3ba7a47e6df08c509baad6eedcc2adee1407",
+    "version": "0.138.5",
+    "sourceFingerprint": "55b4de91c73e2cfa2560a9cdf19b59e4ec15ac61c27faf6e73f56c402b167383",
+    "files": {
+      "src/features/gantt/project-gantt.tsx": "08c2633a9a3f68f262cb1cd3b7545f7ffcef32fe996001f244c19da51840d080",
+      "src/features/gantt/scale-decoration-observer.ts": "9f25994b6421280abe4bd624617ddcb63439eeaf4b7d4f311fc8785c045e6697"
+    },
+    "quietMeasurementHelperSha256": "a49bb0590a897ab77faf597d3bbeaa37a65e72b0534125e2ed66c53cc5174ae7",
+    "finalMeasurementHelperSha256": "dbcc1228e573bff32d74ea9e4576ed779ee78cc1829e1d9c7a8a0c2d2ce525ae",
+    "sourceFrozen": true,
+    "appSourceChangeAfterMeasurements": false
+  },
+  "environment": {
+    "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "node": "v22.14.0",
+    "react": "19.3.0 development",
+    "next": "16.4.2 Turbopack development",
+    "svar": "2.7.3 Core",
+    "browser": "153.0.8010.12",
+    "headless": true,
+    "timezone": "Asia/Seoul (verified native Chromium Intl.DateTimeFormat default context)",
+    "quietWindow": "574 worker held isolated-app builds for baseline/minimum-Core/candidate300 comparison; same machine sequential; timing not a general benchmark",
+    "input": "Playwright mouse.wheel(0,60) at least30 calls and3 seconds each directional segment; two rAF observations between inputs; no product timeout/throttle/remount added",
+    "browserLocale": "en-US",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36"
+  },
+  "controlledComparison": [
+    {
+      "direction": "down",
+      "baseline": {
+        "file": "output/playwright/issue-507/baseline-control/300-day-down.json",
+        "sha256": "72cc9b276da483327c46f9c329483bee60f87c42c3652481a13c12b6f5916ebc",
+        "sourceSha256": "6dffccf9b113abc85707a5710651bd340e54df9d84ee84570a5b2792ca26baa9",
+        "label": "300-day-down",
+        "before": 0,
+        "after": 1800,
+        "scaleWrites": 1593,
+        "scaleObserver": {
+          "ProjectGantt.useEffect.markCells": {
+            "calls": 59,
+            "ms": 179.39999996870756,
+            "records": 205
+          }
+        },
+        "allObserverMs": 240.39999997615814,
+        "longTaskCount": 10,
+        "longTaskDurationsMs": [
+          56,
+          57,
+          53,
+          57,
+          51,
+          58,
+          62,
+          68,
+          57,
+          51
+        ],
+        "reactAllCommits": 92,
+        "reactProjectGanttCommits": 0,
+        "frameCount": 273,
+        "rAFp95Ms": 33.399999999999636,
+        "maxFrameMs": 66.60000000000036,
+        "rowsNeverEmpty": true,
+        "sameNativeRootAllFrames": true,
+        "settledAlignmentMaxPx": 0.5,
+        "screenshotViewport": [
+          1440,
+          1000
+        ]
+      },
+      "candidate": {
+        "file": "output/playwright/issue-507/quiet-candidate/300-day-down.json",
+        "sha256": "1639f249bdb10d8c93b25c2f58d95f22d38d201088a8ea99744c23ea095bb7c9",
+        "sourceSha256": "55b4de91c73e2cfa2560a9cdf19b59e4ec15ac61c27faf6e73f56c402b167383",
+        "label": "300-day-down",
+        "before": 0,
+        "after": 1800,
+        "scaleWrites": 0,
+        "scaleObserver": {
+          "onScaleMutation": {
+            "calls": 59,
+            "ms": 0.5,
+            "records": 205
+          }
+        },
+        "allObserverMs": 37.399999998509884,
+        "longTaskCount": 0,
+        "longTaskDurationsMs": [],
+        "reactAllCommits": 92,
+        "reactProjectGanttCommits": 0,
+        "frameCount": 210,
+        "rAFp95Ms": 16.800000000000182,
+        "maxFrameMs": 33.400000000000546,
+        "rowsNeverEmpty": true,
+        "sameNativeRootAllFrames": true,
+        "settledAlignmentMaxPx": 0.5,
+        "screenshotViewport": [
+          1440,
+          1000
+        ]
+      }
+    },
+    {
+      "direction": "up",
+      "baseline": {
+        "file": "output/playwright/issue-507/baseline-control/300-day-up.json",
+        "sha256": "8fb93cf3b0e8840ec61ca2ac65685a5c7aca606ac21d94031e8ec7c2bd3c3fe2",
+        "sourceSha256": "6dffccf9b113abc85707a5710651bd340e54df9d84ee84570a5b2792ca26baa9",
+        "label": "300-day-up",
+        "before": 1800,
+        "after": 0,
+        "scaleWrites": 1593,
+        "scaleObserver": {
+          "ProjectGantt.useEffect.markCells": {
+            "calls": 59,
+            "ms": 116.59999999403954,
+            "records": 205
+          }
+        },
+        "allObserverMs": 161.10000003874302,
+        "longTaskCount": 3,
+        "longTaskDurationsMs": [
+          51,
+          53,
+          56
+        ],
+        "reactAllCommits": 98,
+        "reactProjectGanttCommits": 0,
+        "frameCount": 241,
+        "rAFp95Ms": 33.29999999999927,
+        "maxFrameMs": 83.40000000000146,
+        "rowsNeverEmpty": true,
+        "sameNativeRootAllFrames": true,
+        "settledAlignmentMaxPx": 0.5,
+        "screenshotViewport": [
+          1440,
+          1000
+        ]
+      },
+      "candidate": {
+        "file": "output/playwright/issue-507/quiet-candidate/300-day-up.json",
+        "sha256": "f8e5634cbbd9d8bb3c9b80f72e676fa01884f3a5e66068b6df8812a09bcd2db4",
+        "sourceSha256": "55b4de91c73e2cfa2560a9cdf19b59e4ec15ac61c27faf6e73f56c402b167383",
+        "label": "300-day-up",
+        "before": 1800,
+        "after": 0,
+        "scaleWrites": 0,
+        "scaleObserver": {
+          "onScaleMutation": {
+            "calls": 59,
+            "ms": 1.1999999806284904,
+            "records": 205
+          }
+        },
+        "allObserverMs": 37.89999997615814,
+        "longTaskCount": 2,
+        "longTaskDurationsMs": [
+          50,
+          69
+        ],
+        "reactAllCommits": 92,
+        "reactProjectGanttCommits": 0,
+        "frameCount": 221,
+        "rAFp95Ms": 16.80000000000109,
+        "maxFrameMs": 66.70000000000073,
+        "rowsNeverEmpty": true,
+        "sameNativeRootAllFrames": true,
+        "settledAlignmentMaxPx": 0.5,
+        "screenshotViewport": [
+          1440,
+          1000
+        ]
+      }
+    }
+  ],
+  "candidateFunctional": [
+    {
+      "count": 50,
+      "file": "output/playwright/issue-507/wheel-50.json",
+      "sha256": "9d3f30576b236a2d3ae08c949a1d5c28f814f914bc10fa3f34a34e453b75be98",
+      "version": "0.138.5",
+      "sourceSha256": "55b4de91c73e2cfa2560a9cdf19b59e4ec15ac61c27faf6e73f56c402b167383",
+      "measurementSha256": "dbcc1228e573bff32d74ea9e4576ed779ee78cc1829e1d9c7a8a0c2d2ce525ae",
+      "editable": true,
+      "hierarchy": "expanded",
+      "preserved": {
+        "selected": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "appSelection": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "gridWidth": 480,
+        "columns": [
+          ":copySelection",
+          ":text",
+          ":projectStart",
+          ":projectDuration",
+          ":add-task"
+        ],
+        "summaryClass": "wx-pqc08MHU wx-toggle-icon wxi-menu-down"
+      },
+      "afterState": {
+        "selected": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "appSelection": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "gridWidth": 480,
+        "columns": [
+          ":copySelection",
+          ":text",
+          ":projectStart",
+          ":projectDuration",
+          ":add-task"
+        ],
+        "summaryClass": "wx-pqc08MHU wx-toggle-icon wxi-menu-down"
+      },
+      "layouts": [],
+      "additional": {
+        "peerReturnTop": 1202,
+        "density": {
+          "beforeHeight": 34,
+          "restoredHeight": 34
+        },
+        "thumbDrag": {
+          "right": 999,
+          "top": 452.5,
+          "height": 536,
+          "gutter": 0,
+          "thumbHeight": 165.30264672036824,
+          "topBefore": 1,
+          "status": "NOT TESTED",
+          "reason": "Chromium overlay scrollbar has no measurable native thumb gutter"
+        }
+      },
+      "segments": [
+        "50-day-down",
+        "50-day-up",
+        "50-week-down",
+        "50-week-up",
+        "50-chart-down",
+        "50-chart-up-after-peer",
+        "50-fullscreen-down",
+        "50-fullscreen-up"
+      ]
+    },
+    {
+      "count": 300,
+      "file": "output/playwright/issue-507/wheel-300.json",
+      "sha256": "207b7003c2b8f748d1e4aa0773587aea13c8a761651e6d14c8fb03a63c171e30",
+      "version": "0.138.5",
+      "sourceSha256": "55b4de91c73e2cfa2560a9cdf19b59e4ec15ac61c27faf6e73f56c402b167383",
+      "measurementSha256": "dbcc1228e573bff32d74ea9e4576ed779ee78cc1829e1d9c7a8a0c2d2ce525ae",
+      "editable": true,
+      "hierarchy": "expanded",
+      "preserved": {
+        "selected": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "appSelection": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "gridWidth": 480,
+        "columns": [
+          ":copySelection",
+          ":text",
+          ":projectStart",
+          ":projectDuration",
+          ":add-task"
+        ],
+        "summaryClass": "wx-pqc08MHU wx-toggle-icon wxi-menu-down"
+      },
+      "afterState": {
+        "selected": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "appSelection": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "gridWidth": 480,
+        "columns": [
+          ":copySelection",
+          ":text",
+          ":projectStart",
+          ":projectDuration",
+          ":add-task"
+        ],
+        "summaryClass": "wx-pqc08MHU wx-toggle-icon wxi-menu-down"
+      },
+      "layouts": [
+        {
+          "viewport": 390,
+          "documentWidth": 390,
+          "capacity": 9758,
+          "nativeTop": 0,
+          "api": "svar-api-1"
+        },
+        {
+          "viewport": 768,
+          "documentWidth": 768,
+          "capacity": 9750,
+          "nativeTop": 0,
+          "api": "svar-api-1"
+        },
+        {
+          "viewport": 1024,
+          "documentWidth": 1024,
+          "capacity": 9702,
+          "nativeTop": 0,
+          "api": "svar-api-1"
+        },
+        {
+          "viewport": 1440,
+          "documentWidth": 1440,
+          "capacity": 9531,
+          "nativeTop": 0,
+          "api": "svar-api-1"
+        },
+        {
+          "viewport": 1920,
+          "documentWidth": 1920,
+          "capacity": 9531,
+          "nativeTop": 0,
+          "api": "svar-api-1"
+        }
+      ],
+      "additional": {},
+      "segments": [
+        "300-day-down",
+        "300-day-up",
+        "300-week-down",
+        "300-week-up",
+        "300-fullscreen-down",
+        "300-fullscreen-up"
+      ]
+    },
+    {
+      "count": 1000,
+      "file": "output/playwright/issue-507/wheel-1000.json",
+      "sha256": "9edb7e33b3b67a0798b606c5de36657330359933b61036c68278a555410f2be2",
+      "version": "0.138.5",
+      "sourceSha256": "55b4de91c73e2cfa2560a9cdf19b59e4ec15ac61c27faf6e73f56c402b167383",
+      "measurementSha256": "dbcc1228e573bff32d74ea9e4576ed779ee78cc1829e1d9c7a8a0c2d2ce525ae",
+      "editable": false,
+      "hierarchy": "collapsed",
+      "preserved": {
+        "selected": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "appSelection": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "gridWidth": 480,
+        "columns": [
+          ":copySelection",
+          ":text",
+          ":projectStart",
+          ":projectDuration"
+        ],
+        "summaryClass": "wx-pqc08MHU wx-toggle-icon wxi-menu-right"
+      },
+      "afterState": {
+        "selected": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "appSelection": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "gridWidth": 480,
+        "columns": [
+          ":copySelection",
+          ":text",
+          ":projectStart",
+          ":projectDuration"
+        ],
+        "summaryClass": "wx-pqc08MHU wx-toggle-icon wxi-menu-right"
+      },
+      "layouts": [],
+      "additional": {},
+      "segments": [
+        "1000-day-down",
+        "1000-day-up",
+        "1000-week-down",
+        "1000-week-up",
+        "1000-fullscreen-down",
+        "1000-fullscreen-up"
+      ]
+    },
+    {
+      "count": 3000,
+      "file": "output/playwright/issue-507/wheel-3000.json",
+      "sha256": "c997a417d300aa4546de46575f1208c7e06f425775a76f42ebeb4a9f9440e782",
+      "version": "0.138.5",
+      "sourceSha256": "55b4de91c73e2cfa2560a9cdf19b59e4ec15ac61c27faf6e73f56c402b167383",
+      "measurementSha256": "dbcc1228e573bff32d74ea9e4576ed779ee78cc1829e1d9c7a8a0c2d2ce525ae",
+      "editable": true,
+      "hierarchy": "expanded",
+      "preserved": {
+        "selected": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "appSelection": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "gridWidth": 480,
+        "columns": [
+          ":copySelection",
+          ":text",
+          ":projectStart",
+          ":projectDuration",
+          ":add-task"
+        ],
+        "summaryClass": "wx-pqc08MHU wx-toggle-icon wxi-menu-down"
+      },
+      "afterState": {
+        "selected": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "appSelection": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "gridWidth": 480,
+        "columns": [
+          ":copySelection",
+          ":text",
+          ":projectStart",
+          ":projectDuration",
+          ":add-task"
+        ],
+        "summaryClass": "wx-pqc08MHU wx-toggle-icon wxi-menu-down"
+      },
+      "layouts": [],
+      "additional": {},
+      "segments": [
+        "3000-day-down",
+        "3000-day-up",
+        "3000-week-down",
+        "3000-week-up",
+        "3000-fullscreen-down",
+        "3000-fullscreen-up"
+      ]
+    }
+  ],
+  "minimumCore": [
+    {
+      "count": 300,
+      "file": "output/playwright/issue-507/core-control/300.json",
+      "sha256": "d2cb370c04acd4fe03c31aad7262cdbefb6a4aa901e66d157844f51a96d5cce3",
+      "sourceSha256": "563396d3fbd81cde2316016845782eb6cd57767176060d734d61267e0881356d",
+      "commits": 159,
+      "longTaskCount": 0,
+      "frameCount": 185,
+      "maxFrameMs": 16.800000000000182,
+      "coreTop": 3180,
+      "nativeTop": 3180,
+      "browser": "153.0.8010.12",
+      "rowHeightWitness": {
+        "coreCellHeight": 34,
+        "nativeRowHeights": [
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34
+        ],
+        "nativeRowIds": [
+          ":core-0",
+          ":core-1",
+          ":core-2",
+          ":core-3",
+          ":core-4",
+          ":core-5",
+          ":core-6",
+          ":core-7",
+          ":core-8",
+          ":core-9",
+          ":core-10",
+          ":core-11",
+          ":core-12",
+          ":core-13",
+          ":core-14",
+          ":core-15",
+          ":core-16",
+          ":core-17",
+          ":core-18",
+          ":core-19",
+          ":core-20",
+          ":core-21",
+          ":core-22"
+        ],
+        "browserViewport": {
+          "width": 1440,
+          "height": 1000
+        }
+      },
+      "rowHeightAssertion": "PASS: Core cellHeight=34 and all23 independently measured native Grid rows=34px"
+    },
+    {
+      "count": 1000,
+      "file": "output/playwright/issue-507/core-control/1000.json",
+      "sha256": "475ee51dbf2ea9537e71a4c542737c43c5b0076c1366cb5245c9952ecd6869b8",
+      "sourceSha256": "563396d3fbd81cde2316016845782eb6cd57767176060d734d61267e0881356d",
+      "commits": 162,
+      "longTaskCount": 0,
+      "frameCount": 185,
+      "maxFrameMs": 16.800000000000182,
+      "coreTop": 3240,
+      "nativeTop": 3240,
+      "browser": "153.0.8010.12",
+      "rowHeightWitness": {
+        "coreCellHeight": 34,
+        "nativeRowHeights": [
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34
+        ],
+        "nativeRowIds": [
+          ":core-0",
+          ":core-1",
+          ":core-2",
+          ":core-3",
+          ":core-4",
+          ":core-5",
+          ":core-6",
+          ":core-7",
+          ":core-8",
+          ":core-9",
+          ":core-10",
+          ":core-11",
+          ":core-12",
+          ":core-13",
+          ":core-14",
+          ":core-15",
+          ":core-16",
+          ":core-17",
+          ":core-18",
+          ":core-19",
+          ":core-20",
+          ":core-21",
+          ":core-22"
+        ],
+        "browserViewport": {
+          "width": 1440,
+          "height": 1000
+        }
+      },
+      "rowHeightAssertion": "PASS: Core cellHeight=34 and all23 independently measured native Grid rows=34px"
+    },
+    {
+      "count": 3000,
+      "file": "output/playwright/issue-507/core-control/3000.json",
+      "sha256": "6eb48f8c5d08e60f4a8d217cf2b764344737675a85e9adda4bff8007f71ddf96",
+      "sourceSha256": "563396d3fbd81cde2316016845782eb6cd57767176060d734d61267e0881356d",
+      "commits": 162,
+      "longTaskCount": 0,
+      "frameCount": 184,
+      "maxFrameMs": 16.800000000000182,
+      "coreTop": 3240,
+      "nativeTop": 3240,
+      "browser": "153.0.8010.12",
+      "rowHeightWitness": {
+        "coreCellHeight": 34,
+        "nativeRowHeights": [
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34
+        ],
+        "nativeRowIds": [
+          ":core-0",
+          ":core-1",
+          ":core-2",
+          ":core-3",
+          ":core-4",
+          ":core-5",
+          ":core-6",
+          ":core-7",
+          ":core-8",
+          ":core-9",
+          ":core-10",
+          ":core-11",
+          ":core-12",
+          ":core-13",
+          ":core-14",
+          ":core-15",
+          ":core-16",
+          ":core-17",
+          ":core-18",
+          ":core-19",
+          ":core-20",
+          ":core-21",
+          ":core-22"
+        ],
+        "browserViewport": {
+          "width": 1440,
+          "height": 1000
+        }
+      },
+      "rowHeightAssertion": "PASS: Core cellHeight=34 and all23 independently measured native Grid rows=34px"
+    }
+  ],
+  "sourceSnapshots": {
+    "output/playwright/issue-507/source/core-page.tsx.txt": "9a3414d62b98137a7d4744a328db1146ba4a6b341dea921f00a84c26d0b31b4f",
+    "output/playwright/issue-507/source/core-control-corrected.cjs.txt": "77e380b025f2a294709342ef1ae0933bd8236a057a225426834eb91153a1e273",
+    "output/playwright/issue-507/source/baseline-measurement-helper.ts.txt": "abb4ae47e5eee899c31038a4e5ec150597a77a5fb52aefd2cd5288cf16bbc29e",
+    "output/playwright/issue-507/source/core-probe.tsx.txt": "d155f12d1894c2011a68ba5c912045246acddabb0e7d46bbb3a0c9dfd127361a",
+    "output/playwright/issue-507/source/core-widget.tsx.txt": "58d4c4e67233c702465850840abc1477c8814e291b7c46ce4381c3ed15326a73",
+    "output/playwright/issue-507/source/quiet-candidate-measurement-helper.ts.txt": "a49bb0590a897ab77faf597d3bbeaa37a65e72b0534125e2ed66c53cc5174ae7",
+    "output/playwright/issue-507/source/final-measurement-helper.ts.txt": "dbcc1228e573bff32d74ea9e4576ed779ee78cc1829e1d9c7a8a0c2d2ce525ae"
+  },
+  "targetedValidation": [
+    {
+      "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/scale-decoration-observer.test.ts tests/features/day-header-tooltip.test.ts tests/features/week-header-tooltip.test.ts",
+      "result": "PASS 15/15 in3 files"
+    },
+    {
+      "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3170 npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-gantt-stability.spec.ts --grep #507",
+      "result": "PASS300/1000/3000;2.0m; measurements before final positive-column assertion"
+    },
+    {
+      "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3170 npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-gantt-stability.spec.ts --grep #507.*300행",
+      "result": "PASS1/1 quiet candidate30.8s; positive five column IDs"
+    },
+    {
+      "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3170 npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-gantt-stability.spec.ts tests/e2e/project-gantt-scale.spec.ts --grep #507.*50행|switches the Gantt timeline|Issue #822",
+      "result": "PASS3/3 in1.1m;50-case52.9s, density5.8s, DayWeek8.0s"
+    },
+    {
+      "command": "npx eslint tests/e2e/helpers/vertical-scroll-diagnostics.ts tests/features/scale-decoration-observer.test.ts tests/e2e/project-gantt-stability.spec.ts && npm run typecheck",
+      "result": "PASS; original session96263 exit0 after explicit HTMLElement narrowing"
+    },
+    {
+      "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3170 npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-gantt-stability.spec.ts --grep #507 --reporter=list --output=output/playwright/issue-507/final-native-return",
+      "result": "PASS4/4; final helper dbcc1228...;50/300/1000/3000; actualpositivecolumns;43.7/35.6/30.9/46.4s;2.6min"
+    },
+    {
+      "command": "node output/playwright/issue-507/core-control.cjs > output/playwright/issue-507/core-control-corrected.log 2>&1",
+      "result": "PASS3minimumCorecontrols exit0 (session30428); corrected cellHeight34 with actual23nativeGridrow/CorecellHeight witnesses;300/1000/3000 longtask0 each;maxrAF16.8ms each;Core/native3180/3240/3240"
+    }
+  ],
+  "failures": [
+    {
+      "id": "F507-PROBE-001",
+      "result": "FAIL",
+      "firstCaseSeconds": 16.8,
+      "repeatSeconds": 23.8,
+      "assertion": "every rAF row/bar center gap<=1; observed68.5px",
+      "classification": "measurement-method flaw: rAF before React DOM commit is not a presented compositor frame; expensive per-row layout/query sampling perturbs results",
+      "preserved": "initial-intrusive/300-day-down.json and initial traces; NOT evidence of presented flicker, and NOT silently converted to product PASS",
+      "correction": "separate lightweight native top/row count/identity from post-settle geometry; no timing threshold weakened in product"
+    },
+    {
+      "id": "F507-PROBE-001-REPEAT",
+      "result": "FAIL",
+      "seconds": 23.8,
+      "classification": "same initial intrusive rAF-geometry assertion68.5px; trace-enabled repeat retains originalfailure",
+      "evidence": "test-results-second/.../trace.zip; original .spec file before EXTEND rename"
+    },
+    {
+      "id": "F507-PROBE-002",
+      "result": "FAIL",
+      "seconds": 0.785,
+      "classification": "Playwright CJS dynamic import helper transpilation; SyntaxError Cannot use import statement outside a module",
+      "correction": "static helper import; next actual300case PASS34.5s"
+    },
+    {
+      "id": "F507-ENV-001",
+      "result": "FAIL",
+      "seconds": 5.2,
+      "classification": "separate baseline Next/Turbopack rejected symlink node_modules outside hermetic root;500 Internal Server Error, no Gantt created",
+      "correction": "copied worktree-owned unchanged dependency installation, restarted3171; same baselinecasePASS22.4s"
+    },
+    {
+      "id": "F507-TYPECHECK-001",
+      "result": "FAIL",
+      "classification": "testhelper TypeScript HTMLElement|SVGElement.offsetWidth narrowing",
+      "error": "tests/e2e/helpers/vertical-scroll-diagnostics.ts(162,90): error TS2339: Property offsetWidth does not exist on type HTMLElement | SVGElement. Property offsetWidth does not exist on type SVGElement.",
+      "evidence": "original exec session75759, exit2; no log file was redirected",
+      "correction": "narrow scroller node to HTMLElement; same final npm run typecheck PASS session96263 exit0"
+    },
+    {
+      "id": "F507-MEASUREMENT-CONFIG-001",
+      "classification": "TEST_MEASUREMENT_CONFIGURATION",
+      "result": "FAIL",
+      "foundBy": "independent coverage_audit final review",
+      "originalExit": 0,
+      "invalidatedClaim": "Original minimum Core source used rowHeight={34}, which is not SVAR Core2.7.3 Gantt cellHeight prop; equal34px-row comparison was unsupported",
+      "evidence": {
+        "source": "output/playwright/issue-507/core-control-original-unsupported-rowHeight/core-widget.tsx.txt",
+        "sourceSha256": "2b6212179aaf4d83764324f12c175813a2fca40400246e5a085ace8d9672323f",
+        "originalReceipts": "output/playwright/issue-507/core-control-original-unsupported-rowHeight",
+        "originalSummarySha256": "2379812c2ffeec1a14d0e97b0fce51b8a04a805c5c214bbb988215d21c888dca"
+      },
+      "correction": "Separate baseline worktree route corrected to cellHeight={34}; only3minimumCorecontrols rerun. Core state and all23nativeGridrows assert34px; shared frozen application and test files unchanged.",
+      "correctedResult": "PASS3/3 controls, exit0",
+      "correctedLog": "output/playwright/issue-507/core-control-corrected.log",
+      "correctedLogSha256": "15488272d6d5defd01867e1048b97165f3a0d59da8235574b03d5d18da3d310d"
+    }
+  ],
+  "boundaries": [
+    "Header decoration work is isolated and removed from unrelated row mutations. This demonstrates a specific app integration cost, not complete physical-device flicker resolution.",
+    "The corrected minimum Core fixture shares browser, explicitly measured34px native rows via public cellHeight=34,36px Day columns,480px Grid and long Jan-Dec date range; it omits app-owned renderers, hierarchy, state/projection listeners and all editing. It is an explanatory control, not full app equivalence.",
+    "All-React counts include expected SVAR virtualization. ProjectGantt own commit0 is recorded separately via existing development trace.",
+    "Lightweight sampling still runs instrumentation wrappers and development React; no production smoothness or human perception PASS is inferred.",
+    "Settled geometry<=1px does not assert every presented frame during active scroll; physical wheel/trackpad and independent visual review remain NOT TESTED.",
+    "Native scrollbar gutter0 in headless Chromium prevented measurable thumb drag; recorded NOT TESTED without altering scrollbar CSS or simulating a false drag PASS.",
+    "Full cross-product of count/width/editability/hierarchy/scale/fullscreen is not claimed.300/3000 editable expanded;1000 readonly collapsed;50 ordinary1024 plus Chart/peer/density.390/768/1024/1440/1920 are layout smoke.",
+    "No remote Quality/E2E/Docker, Trusted QA, Manager ACCEPT or release evidence is represented by this local manifest."
+  ],
+  "executionHistory": [
+    {
+      "path": "test-results",
+      "result": "FAIL",
+      "caseSeconds": 16.8,
+      "method": "intrusive per-RAF row geometry; first68.5pxassertion"
+    },
+    {
+      "path": "test-results-second",
+      "result": "FAIL",
+      "caseSeconds": 23.8,
+      "method": "same68.5pxassertion; coretrace enabled"
+    },
+    {
+      "path": "after-first",
+      "result": "FAIL",
+      "caseSeconds": 0.785,
+      "method": "renamed existing stabilityspec; dynamicimport CJS error"
+    },
+    {
+      "path": "after-second",
+      "result": "PASS",
+      "caseSeconds": 34.5,
+      "method": "300 three-second segments; settledgeometry; dates stilloffviewportSep; no completevisible-barclaim"
+    },
+    {
+      "path": "final-tests",
+      "result": "PASS3/3",
+      "caseSeconds": [
+        49.8,
+        31.5,
+        36.5
+      ],
+      "method": "300/1000/3000 Jan5 visiblebars, selection/tree/width/revision/API/root checks, columns[]vacuous latercorrected; not finalcolumn-proof"
+    },
+    {
+      "path": "baseline-control/baseline-native-tests",
+      "result": "FAIL",
+      "caseSeconds": 5.2,
+      "method": "500baselineenvironment symlinkdependency failure"
+    },
+    {
+      "path": "baseline-control/baseline-native-tests-recovered",
+      "result": "PASS1/1",
+      "caseSeconds": 22.4,
+      "method": "actualbaseline source Day down/up, expectedpositiveheaderwrites1593 each"
+    },
+    {
+      "path": "core-control",
+      "result": "PASScontrol3counts",
+      "method": "temporaryminimalCore route; no app-equivalenceclaim"
+    },
+    {
+      "path": "quiet-candidate",
+      "result": "PASS1/1",
+      "caseSeconds": 30.8,
+      "method": "quiet300 visiblebarfivepositivecolumns; source+helperhashsnapshots frozen"
+    },
+    {
+      "path": "final-related",
+      "result": "PASS3/3",
+      "caseSeconds": [
+        5.8,
+        8,
+        52.9
+      ],
+      "method": "existing #822density, DayWeekheader, ordinary50 Chartwheel/peer/density/thumbNOTTESTED"
+    },
+    {
+      "path": "positive-columns / final-positive-columns",
+      "result": "PASS2/2",
+      "caseSeconds": [
+        35.2,
+        44.7
+      ],
+      "method": "1000readonlycollapsed and3000expanded fivepositivecolumns"
+    },
+    {
+      "path": "final-native-return",
+      "result": "PASS4/4",
+      "method": "finalhelper adds deterministic nativeupwheel origin and HTMLElementtype-onlycast; all4counts",
+      "caseSeconds": [
+        43.7,
+        35.6,
+        30.9,
+        46.4
+      ],
+      "duration": "2.6min"
+    },
+    {
+      "path": "core-control-corrected.log / core-control/*.json",
+      "result": "PASS3controls",
+      "method": "corrected installed public cellHeight prop34; actualCorestate34 and23nativeDOMrowheight34 assertions before each3sec segment; independentQAconfigurationfailurepreserved"
+    }
+  ],
+  "minimumCoreLifecycle": {
+    "temporaryRoute": "not included in PR; archived source/core-*.tsx.txt; removed from baseline worktree after capture",
+    "server3171": "corrected3controls completed; server26764 stopped via controlled Ctrl-C exit130; temporaryroute removed afterward",
+    "server3170": "stopped after final4cases (exec37683 exit130 via controlled Ctrl-C)"
+  },
+  "finalizedAtUtc": "2026-10-30T22:53:57.373558+00:00",
+  "finalOwnedFileSha256": {
+    "src/features/gantt/project-gantt.tsx": "08c2633a9a3f68f262cb1cd3b7545f7ffcef32fe996001f244c19da51840d080",
+    "src/features/gantt/scale-decoration-observer.ts": "9f25994b6421280abe4bd624617ddcb63439eeaf4b7d4f311fc8785c045e6697",
+    "tests/features/scale-decoration-observer.test.ts": "5fbc84c1d90f7624baf04774e95ce679c129fd8a30f2438d3c3c31af715d30de",
+    "tests/e2e/helpers/vertical-scroll-diagnostics.ts": "dbcc1228e573bff32d74ea9e4576ed779ee78cc1829e1d9c7a8a0c2d2ce525ae",
+    "tests/e2e/project-gantt-stability.spec.ts": "d1254db7960b8147b95e5a23e38a9789c9b75381db73bb8e3eb9a7b2b78c251f"
+  },
+  "minimumCoreHistory": {
+    "classification": "TEST_MEASUREMENT_CONFIGURATION",
+    "status": "FAIL",
+    "scope": "Unsupported rowHeight prop in original minimal Core control; equivalent 34px row-height claim withdrawn. Original runs completed but no actual row-height witness was collected. Installed Core default38 is inferred from API/source, not retrospectively measured. Baseline-vs-candidate full-application comparison is unaffected.",
+    "retainedOriginals": "output/playwright/issue-507/core-control-original-unsupported-rowHeight",
+    "originalSummarySha256": "2379812c2ffeec1a14d0e97b0fce51b8a04a805c5c214bbb988215d21c888dca",
+    "originalWidgetSha256": "2b6212179aaf4d83764324f12c175813a2fca40400246e5a085ace8d9672323f",
+    "originalReceipts": [
+      {
+        "count": 300,
+        "file": "output/playwright/issue-507/core-control-original-unsupported-rowHeight/300.json",
+        "sha256": "a5c0bf70038343bd06410bdb174336125e76a4d9ef1b02a9befe1cd9b1f9e5fd",
+        "sourceSha256": "91e5b38784f0364c61cd9f3c185bab15b3db8beb32f2b4ec6fa59f45d65dddbd",
+        "commits": 165,
+        "longTaskCount": 0,
+        "frameCount": 184,
+        "maxFrameMs": 16.800000000000182,
+        "coreTop": 3300,
+        "nativeTop": 3300,
+        "browser": "153.0.8010.12",
+        "originalPath": "output/playwright/issue-507/core-control/300.json"
+      },
+      {
+        "count": 1000,
+        "file": "output/playwright/issue-507/core-control-original-unsupported-rowHeight/1000.json",
+        "sha256": "c4de757f61ad074c811097f0ddbac9be344d3f0c98c76a58d82d58466f1b9cc4",
+        "sourceSha256": "91e5b38784f0364c61cd9f3c185bab15b3db8beb32f2b4ec6fa59f45d65dddbd",
+        "commits": 167,
+        "longTaskCount": 0,
+        "frameCount": 185,
+        "maxFrameMs": 16.800000000000182,
+        "coreTop": 3360,
+        "nativeTop": 3360,
+        "browser": "153.0.8010.12",
+        "originalPath": "output/playwright/issue-507/core-control/1000.json"
+      },
+      {
+        "count": 3000,
+        "file": "output/playwright/issue-507/core-control-original-unsupported-rowHeight/3000.json",
+        "sha256": "cde61b7200aeccbdea3b64083d869e374cef8c211e7984be18706880bd1366e2",
+        "sourceSha256": "91e5b38784f0364c61cd9f3c185bab15b3db8beb32f2b4ec6fa59f45d65dddbd",
+        "commits": 174,
+        "longTaskCount": 0,
+        "frameCount": 185,
+        "maxFrameMs": 16.800000000000182,
+        "coreTop": 3480,
+        "nativeTop": 3480,
+        "browser": "153.0.8010.12",
+        "originalPath": "output/playwright/issue-507/core-control/3000.json"
+      }
+    ]
+  }
+}

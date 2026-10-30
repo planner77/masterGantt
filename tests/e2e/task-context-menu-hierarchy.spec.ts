@@ -75,8 +75,10 @@ async function expectMilestoneExcluded(page: import("@playwright/test").Page, ta
     return {
       visible: state.rows.some((task: { id: string | number }) => String(task.id) === id),
       selected: state.selected.includes(id),
+      appSelected: state.appSelection.includes(id),
+      clipboard: state.clipboardIds.includes(id),
     };
-  }, taskId)).toEqual({ visible: false, selected: false });
+  }, taskId)).toEqual({ visible: false, selected: false, appSelected: false, clipboard: false });
 }
 
 async function chooseCommand(
@@ -917,6 +919,14 @@ test("Issue #860 confirms before conversion and opens the same Milestone only on
   const dashboard = page.locator("#project-panel-milestones"), dashboardSearch = dashboard.getByLabel("Milestone 검색", { exact: true });
   await dashboardSearch.fill("unmatched-dashboard-filter");
   await openWorkspaceView(page, "schedule");
+  // #574 V6/V8: seed the real TaskClipboard before converting its source.
+  // Empty clipboard assertions without this positive control would be vacuous.
+  await openMenuByTaskId(page, task.taskId);
+  await menu(page).getByRole("menuitem", { name: "Copy", exact: true }).click();
+  await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().clipboardIds)).toEqual([task.taskId]);
+  await openMenuByTaskId(page, duplicate.taskId);
+  await expect(menu(page).getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
+  await page.keyboard.press("Escape");
   const posts: string[] = [];
   page.on("request", request => { if (request.method() === "POST" && new URL(request.url()).pathname.endsWith("/task-commands")) posts.push(request.postData() ?? ""); });
   const openConfirmation = async (chart = false) => {
@@ -951,7 +961,11 @@ test("Issue #860 confirms before conversion and opens the same Milestone only on
   await page.keyboard.press("Escape"); await expect(dialog).toHaveCount(0);
   expect(posts).toEqual([]);
   expect(await page.evaluate(id => document.activeElement?.closest(".wx-bar")?.getAttribute("data-task-id") === `:${id}`, task.taskId)).toBe(true);
+  await openMenuByTaskId(page, duplicate.taskId);
+  await expect(menu(page).getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
+  await page.keyboard.press("Escape");
   const before = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
+  expect(before.clipboardIds).toEqual([task.taskId]);
   let release!: () => void;
   const responseGate = new Promise<void>(resolve => { release = resolve; });
   await page.route(`**${api}/task-commands`, async route => {
@@ -985,6 +999,17 @@ test("Issue #860 confirms before conversion and opens the same Milestone only on
   expect(saved.data.tasks.find(entry => entry.taskId === duplicate.taskId)).toEqual(duplicate);
   const after = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
   expect(after.instance).toBe(before.instance); expect(after.left).toBe(before.left); expect(after.top).toBe(before.top);
+  expect(after.clipboardIds).toEqual([]);
+  await openMenuByTaskId(page, duplicate.taskId);
+  await expect(menu(page).getByRole("menuitem", { name: "Paste", exact: true })).toBeDisabled();
+  await page.keyboard.press("Escape");
+  expect(posts).toHaveLength(1);
+  await test.info().attach("issue-574-conversion-clipboard", { contentType: "application/json", body: JSON.stringify({
+    environment: "Chromium / real HTTP and SQLite", convertedTaskId: task.taskId,
+    ordinaryTaskId: duplicate.taskId, revision: saved.data.project.revision,
+    copiedSourceBeforeConversion: true, clipboardPreservedAfterCancel: true, pasteDisabledAfterConversion: true,
+    commandCount: posts.length, before, after,
+  }) });
   await page.screenshot({ path: "output/playwright/issue-860/conversion-success.png" });
   for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 1000 });

@@ -1,0 +1,118 @@
+{
+  "environment": "Chromium / Next dev / isolated real HTTP SQLite",
+  "revision": 4,
+  "taskId": "f5172a21-101f-40d1-8f3a-1aeb825f9324",
+  "ordinaryTaskId": "b4421873-4786-4d59-bfbc-226aceb4e2b8",
+  "geometry": [
+    {
+      "width": 390,
+      "scale": "일",
+      "state": {
+        "instance": "svar-api-1",
+        "rows": [
+          "b4421873-4786-4d59-bfbc-226aceb4e2b8"
+        ],
+        "selected": []
+      }
+    },
+    {
+      "width": 390,
+      "scale": "주",
+      "state": {
+        "instance": "svar-api-1",
+        "rows": [
+          "b4421873-4786-4d59-bfbc-226aceb4e2b8"
+        ],
+        "selected": []
+      }
+    },
+    {
+      "width": 768,
+      "scale": "일",
+      "state": {
+        "instance": "svar-api-1",
+        "rows": [
+          "b4421873-4786-4d59-bfbc-226aceb4e2b8"
+        ],
+        "selected": []
+      }
+    },
+    {
+      "width": 768,
+      "scale": "주",
+      "state": {
+        "instance": "svar-api-1",
+        "rows": [
+          "b4421873-4786-4d59-bfbc-226aceb4e2b8"
+        ],
+        "selected": []
+      }
+    },
+    {
+      "width": 1024,
+      "scale": "일",
+      "state": {
+        "instance": "svar-api-1",
+        "rows": [
+          "b4421873-4786-4d59-bfbc-226aceb4e2b8"
+        ],
+        "selected": []
+      }
+    },
+    {
+      "width": 1024,
+      "scale": "주",
+      "state": {
+        "instance": "svar-api-1",
+        "rows": [
+          "b4421873-4786-4d59-bfbc-226aceb4e2b8"
+        ],
+        "selected": []
+      }
+    },
+    {
+      "width": 1440,
+      "scale": "일",
+      "state": {
+        "instance": "svar-api-1",
+        "rows": [
+          "b4421873-4786-4d59-bfbc-226aceb4e2b8"
+        ],
+        "selected": []
+      }
+    },
+    {
+      "width": 1440,
+      "scale": "주",
+      "state": {
+        "instance": "svar-api-1",
+        "rows": [
+          "b4421873-4786-4d59-bfbc-226aceb4e2b8"
+        ],
+        "selected": []
+      }
+    },
+    {
+      "width": 1920,
+      "scale": "일",
+      "state": {
+        "instance": "svar-api-1",
+        "rows": [
+          "b4421873-4786-4d59-bfbc-226aceb4e2b8"
+        ],
+        "selected": []
+      }
+    },
+    {
+      "width": 1920,
+      "scale": "주",
+      "state": {
+        "instance": "svar-api-1",
+        "rows": [
+          "b4421873-4786-4d59-bfbc-226aceb4e2b8"
+        ],
+        "selected": []
+      }
+    }
+  ]
+}

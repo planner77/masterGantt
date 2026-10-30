@@ -1,0 +1,48 @@
+const { chromium } = require('/home/planner/Dev/masterGantt-507-574/node_modules/playwright');
+const { mkdirSync, writeFileSync, readFileSync } = require('node:fs');
+const { createHash } = require('node:crypto');
+(async () => {
+ const out = '/home/planner/Dev/masterGantt-507-574/output/playwright/issue-507/core-control'; mkdirSync(out,{recursive:true});
+ const browser=await chromium.launch({headless:true});
+ for(const count of [300,1000,3000]){
+  const page=await browser.newPage({viewport:{width:1440,height:1000}});
+  await page.addInitScript(()=>{
+   const stats={commits:0,longTasks:[],observers:{}};
+   const Native=window.MutationObserver;
+   window.MutationObserver=class extends Native{constructor(callback){const name=callback.name||'anonymous';super((records,observer)=>{const start=performance.now();callback(records,observer);const item=stats.observers[name]??={calls:0,ms:0};item.calls++;item.ms+=performance.now()-start;});}};
+   window.__REACT_DEVTOOLS_GLOBAL_HOOK__={supportsFiber:true,renderers:new Map(),inject(){return 1;},onCommitFiberRoot(){stats.commits++;},onCommitFiberUnmount(){},onPostCommitFiberRoot(){}};
+   new PerformanceObserver(list=>stats.longTasks.push(...list.getEntries().map(entry=>entry.duration))).observe({type:'longtask'});
+   window.__issue507Stats=stats;
+  });
+  await page.goto(`http://127.0.0.1:3171/issue507-core?count=${count}`);
+  await page.locator('.issue507-core .wx-row[data-id]').first().waitFor();
+  await page.waitForFunction(()=>!!window.__issue507CoreApi?.getState()._chartWidth);
+  const rowHeightWitness = await page.evaluate(() => {
+    const state = window.__issue507CoreApi.getState();
+    const rows = [...document.querySelectorAll('.issue507-core .wx-table-container .wx-row[data-id]')];
+    return { coreCellHeight: state.cellHeight, nativeRowHeights: rows.map(row => row.getBoundingClientRect().height),
+      nativeRowIds: rows.map(row => row.getAttribute('data-id')), browserViewport: { width:innerWidth,height:innerHeight } };
+  });
+  if (rowHeightWitness.coreCellHeight !== 34 || !rowHeightWitness.nativeRowHeights.length || rowHeightWitness.nativeRowHeights.some(height => height !== 34))
+    throw new Error('Minimum Core row height witness must be 34px: '+JSON.stringify(rowHeightWitness));
+  await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(done)))));
+  const owner=page.locator('.issue507-core .wx-gantt');
+  const box=await page.locator('.issue507-core .wx-table-container').boundingBox();
+  await page.mouse.move(box.x+140,box.y+180);
+  await page.evaluate(()=>{
+   const stats=window.__issue507Stats; stats.commits=0;stats.longTasks=[];stats.observers={};
+   const frames=[],owner=document.querySelector('.issue507-core .wx-gantt');let active=true,last=performance.now();
+   const tick=now=>{frames.push({dt:now-last,top:owner.scrollTop,rows:document.querySelectorAll('.issue507-core .wx-table-container .wx-row[data-id]').length});last=now;if(active)requestAnimationFrame(tick);};requestAnimationFrame(tick);
+   window.__issue507Stop=()=>{active=false;return{...stats,frames,coreTop:window.__issue507CoreApi.getState().scrollTop,nativeTop:owner.scrollTop};};
+  });
+  const started=Date.now();
+  for(let i=0;i<30||Date.now()-started<3000;i++){await page.mouse.wheel(0,60);await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));}
+  await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(done)))));
+  const result=await page.evaluate(()=>window.__issue507Stop());
+  result.layer='SVAR_2.7.3_MINIMAL_CORE';result.count=count;result.browser=browser.version();result.rowHeightWitness=rowHeightWitness;
+  result.sourceSha256=createHash('sha256').update(readFileSync('/home/planner/Dev/masterGantt-507-baseline/src/app/issue507-core/page.tsx')).update(readFileSync('/home/planner/Dev/masterGantt-507-baseline/src/app/issue507-core/probe.tsx')).update(readFileSync('/home/planner/Dev/masterGantt-507-baseline/src/app/issue507-core/widget.tsx')).digest('hex');
+  writeFileSync(`${out}/${count}.json`,JSON.stringify(result,null,2));await page.screenshot({path:`${out}/${count}.png`});console.log(JSON.stringify({count,commits:result.commits,longTasks:result.longTasks.length,frameCount:result.frames.length,maxFrameMs:Math.max(...result.frames.map(frame=>frame.dt)),coreTop:result.coreTop,nativeTop:result.nativeTop,rowHeightWitness:result.rowHeightWitness}));
+  await page.close();
+ }
+ await browser.close();
+})().catch(error=>{console.error(error);process.exit(1)});

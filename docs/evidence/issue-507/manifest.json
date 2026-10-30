@@ -1,0 +1,120 @@
+{
+  "schema": "mastergantt-issue507-574-evidence-manifest:v1",
+  "files": [
+    {
+      "path": "docs/evidence/issue-507/after-day.png",
+      "bytes": 133986,
+      "sha256": "406dc0a825e035bdfb0fe0caf5c6d549d056878b1c81edb433b21eaf7460c7cd"
+    },
+    {
+      "path": "docs/evidence/issue-507/application-source.json",
+      "bytes": 69848,
+      "sha256": "dcc77b7ae4a3bcf59076ca01d8d65042df746ea365691f4cc53259b37fb88195"
+    },
+    {
+      "path": "docs/evidence/issue-507/assertions/issue-574-conversion-clipboard.json",
+      "bytes": 8662,
+      "sha256": "ca534db5cfe32aa0c1060085490414242a1806e3dae4ff60639a0257ca541aed"
+    },
+    {
+      "path": "docs/evidence/issue-507/assertions/issue-574-filter-gate-final.json",
+      "bytes": 14405,
+      "sha256": "f5534449a287ebc898c4fbca579c220ed4d48148fc84b9363dd59f1a112b7541"
+    },
+    {
+      "path": "docs/evidence/issue-507/assertions/issue-574-inline-401.json",
+      "bytes": 622,
+      "sha256": "9a2c4ea59c1889d094eab8b6cca69e9512e6460bc799ec9d7343cb9ac2dc561e"
+    },
+    {
+      "path": "docs/evidence/issue-507/assertions/issue-574-v2-native-wheel.json",
+      "bytes": 1226,
+      "sha256": "ecf2e9cfadd4ba2cd68761a504f27bcad4de9c4ddee9e6a718877ec868a08c5e"
+    },
+    {
+      "path": "docs/evidence/issue-507/assertions/issue-574-zero-result-latest-selection.json",
+      "bytes": 40876,
+      "sha256": "c68021172ba2917ba4e2e15cf356882a970531a0b53c1537d8fb7dfc6fc01edf"
+    },
+    {
+      "path": "docs/evidence/issue-507/assertions/issue-860-conversion-reentry.json",
+      "bytes": 2376,
+      "sha256": "e33dfd1e41e2ecced3b2426c45d170f1b02335e95fa635db68ff95a505aff1c0"
+    },
+    {
+      "path": "docs/evidence/issue-507/before-day.png",
+      "bytes": 133959,
+      "sha256": "c22394eb92943e8767483cbe72c33dc102ce88d66dfdbd052a33359acc102f65"
+    },
+    {
+      "path": "docs/evidence/issue-507/cross-feature-failures.json",
+      "bytes": 2383,
+      "sha256": "d70464d65a979a5e39814fc0e33653ed88cba84d3743712e0991c238193a8de9"
+    },
+    {
+      "path": "docs/evidence/issue-507/cross-feature-final-relevant-source.json",
+      "bytes": 33525,
+      "sha256": "ad60a63f236dd9aa72b673c1f7968765cb63145cea0faff6c4f6ce21d6e54861"
+    },
+    {
+      "path": "docs/evidence/issue-507/cross-feature.json",
+      "bytes": 19164,
+      "sha256": "37d7c6d9b152fc5fcbaaad0625bcca60a910e4cef543449fb421e6862efb192e"
+    },
+    {
+      "path": "docs/evidence/issue-507/isolated-final-relevant-source.json",
+      "bytes": 33175,
+      "sha256": "c8138a9bfa3b0a884de498e79e1a604391011c468fd9def250f9983eca0f5543"
+    },
+    {
+      "path": "docs/evidence/issue-507/mock-final-relevant-source.json",
+      "bytes": 33119,
+      "sha256": "0f465c6e237967fa00ccc580fdff8feb8b6a6bb643db24a65a886e985ee11ade"
+    },
+    {
+      "path": "docs/evidence/issue-507/reproduction/baseline-measurement-helper.ts.txt",
+      "bytes": 11254,
+      "sha256": "abb4ae47e5eee899c31038a4e5ec150597a77a5fb52aefd2cd5288cf16bbc29e"
+    },
+    {
+      "path": "docs/evidence/issue-507/reproduction/core-control-corrected.cjs.txt",
+      "bytes": 4613,
+      "sha256": "77e380b025f2a294709342ef1ae0933bd8236a057a225426834eb91153a1e273"
+    },
+    {
+      "path": "docs/evidence/issue-507/reproduction/core-page.tsx.txt",
+      "bytes": 288,
+      "sha256": "9a3414d62b98137a7d4744a328db1146ba4a6b341dea921f00a84c26d0b31b4f"
+    },
+    {
+      "path": "docs/evidence/issue-507/reproduction/core-probe.tsx.txt",
+      "bytes": 205,
+      "sha256": "d155f12d1894c2011a68ba5c912045246acddabb0e7d46bbb3a0c9dfd127361a"
+    },
+    {
+      "path": "docs/evidence/issue-507/reproduction/core-widget.initial-unsupported-rowHeight.tsx.txt",
+      "bytes": 1017,
+      "sha256": "2b6212179aaf4d83764324f12c175813a2fca40400246e5a085ace8d9672323f"
+    },
+    {
+      "path": "docs/evidence/issue-507/reproduction/core-widget.tsx.txt",
+      "bytes": 1018,
+      "sha256": "58d4c4e67233c702465850840abc1477c8814e291b7c46ce4381c3ed15326a73"
+    },
+    {
+      "path": "docs/evidence/issue-507/reproduction/quiet-candidate-measurement-helper.ts.txt",
+      "bytes": 12191,
+      "sha256": "a49bb0590a897ab77faf597d3bbeaa37a65e72b0534125e2ed66c53cc5174ae7"
+    },
+    {
+      "path": "docs/evidence/issue-507/scroll.json",
+      "bytes": 33968,
+      "sha256": "b9085f169326223f4f6eec6ef655a0efd39b795a13be1015a6fd3af39d7bca0a"
+    },
+    {
+      "path": "docs/evidence/issue-507/validation.json",
+      "bytes": 3773,
+      "sha256": "d38ba25ef577eaa983d3d1edc5dc6784252f0ec326c540c715207251ff0b62ab"
+    }
+  ]
+}
