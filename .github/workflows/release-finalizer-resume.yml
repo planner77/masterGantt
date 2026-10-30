@@ -106,7 +106,7 @@ jobs:
       - name: GHCR 버전 원장 조회 도구 준비
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
       - name: 비공개 GHCR 인증 (감사 + 신규 릴리스 확인)
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
