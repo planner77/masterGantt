@@ -65,7 +65,7 @@ jobs:
           PY
       - name: 권고 진단 증거 보존
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: issue-752-observation-${{ github.run_id }}-${{ github.run_attempt }}
           path: issue-752-output/diagnosis.*
@@ -88,7 +88,7 @@ jobs:
         with:
           ref: ${{ github.workflow_sha }}
           persist-credentials: false
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: issue-752-observation-${{ github.run_id }}-${{ github.run_attempt }}
           path: issue-752-output
@@ -127,7 +127,7 @@ jobs:
           python3 scripts/issue_752_diagnostics.py prepare --pr "$TARGET_PR" --issue "$TARGET_ISSUE" --expected-head "$EXPECTED_HEAD" --report-dir issue-752-output
       - name: 차단된 준비 단계도 증거 보존
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: issue-752-plan-${{ github.run_id }}
           path: issue-752-output/plan.json
@@ -151,7 +151,7 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.head_sha }}
           persist-credentials: false
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: issue-752-plan-${{ github.run_id }}
           path: control
@@ -280,7 +280,7 @@ jobs:
           fi
       - name: 진단 Runner 산출물 보존 (Git 기록 금지)
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: issue-752-part-${{ matrix.part }}
           path: part-${{ matrix.part }}/
@@ -304,13 +304,13 @@ jobs:
           persist-credentials: false
       - name: 원본 동결 계획 다운로드 (존재 시)
         continue-on-error: true
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: issue-752-plan-${{ github.run_id }}
           path: control
       - name: 제한 진단 Worker 산출물 다운로드 (존재 시)
         continue-on-error: true
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           pattern: issue-752-part-*
           path: issue-752-output
@@ -336,7 +336,7 @@ jobs:
           fi
       - name: 정제 보고서 14일 보존 (불완전 포함)
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: issue-752-diagnosis-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
@@ -363,7 +363,7 @@ jobs:
           persist-credentials: false
       - name: 정제 보고서 조회 (존재 시)
         continue-on-error: true
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: issue-752-diagnosis-${{ github.run_id }}-${{ github.run_attempt }}
           path: issue-752-output
