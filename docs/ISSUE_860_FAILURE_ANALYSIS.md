@@ -72,3 +72,32 @@ HIGH / OWNER_MANAGED / qa_required=true. 사용자 범위는 구현·문서·리
 
 - 최종 독립 read-only Reviewer `/root/review`: **PRE_QA PASS**, 미해결 차단 지적0. 최종 source7/7 및 정제 산출물15/15 byte/hash 일치, 문서/AC/실패·원래 증상 미재현/미실행 경계까지 대조했다. UI/UX 검토·구현·browser 검증과 Reviewer를 실제 분리했다. 인간 GitHub review·QA_FINAL·Manager ACCEPT 아님.
 - 게시 직전 main 재조회는 기준 SHA와 동일해 충돌0이며, 원격 #860 branch/PR은 아직 없어 기존 미해결 리뷰 thread는 없다. PR 생성 직후 thread와 test merge를 재확인한다. GitHub Required3와 Trusted/Owner/Manager 판정은 NOT TESTED로 남기고 새 CI 등록 provenance만 Issue STATUS에 한 번 기록한다.
+
+
+## 8. 최초 원격 Full PR CI 실패·동일 source 제한 보완 (2026-10-30 KST)
+
+### F860-PR-001 — PR #861 / #3441.1 / 41037374219.1
+
+| 출처 | 정확한 기록 |
+| --- | --- |
+| 원본 Run | [Full PR CI #3441.1](https://github.com/planner77/masterGantt/actions/runs/41037374219), ID `41037374219`, attempt `1`, `pull_request`, `.github/workflows/ci.yml`, `FINAL_FULL` |
+| Head / Base / Test-Merge | `e5c9e29eaf004de8bfa516695e741bc58bd33fe7` / `fe56cc6b97f0850c316fcbf6bbc2e1ccdfca79bc` / `f05d0551a3fffb4bb337c92952eea0385b99ca1a` |
+| 최초 직접 FAIL | [Shard 5/8 Job 124002442022](https://github.com/planner77/masterGantt/actions/runs/41037374219/job/124002442022), Step `E2E shard 실행`, `tests/e2e/issue-730-view-composer.spec.ts:221`의 기존 실제 HTTP 5관점/복귀 테스트. `f.snapshot()` 호출(당시 line 284) → `tests/e2e/fixtures/target-project.ts:57`의 읽기 전용 `page.request.get`에서 `apiRequestContext.get: socket hang up` (10:05:55 UTC); HTTP status 미수신 |
+| Shard 5 결과 | 고유 케이스 21 PASS, 1 FAIL, 86 NOT RUN (해당 job 로그 출력). 실패 뒤 `--max-failures=1`로 중단. 별도 `GitCommitInfo: timeout of 3000ms exceeded`는 Git fetch 계측 오류 메시지로 E2E assertions 실패와 구분. |
+| 취소 | E2E Shard 1/2/3/4/6/7/8 Job 124002442052 / 124002442028 / 124002441890 / 124002441946 / 124002442009 / 124002442148 / 124002442175 = CANCELLED. 이들 샤드는 전체 PASS도 전체 미실행도 아님; 개별 취소 Job 안의 테스트 성공을 Full PASS로 승격하지 않음. |
+| 직접 성공 | QA Preflight 124001589698, TypeScript 124001700714, ESLint 124001700767, Vitest 124001700670, PR production build 124002441747, Docker smoke 구현 124002441783, Required Quality 124003205021, Required Docker 124003331452 = SUCCESS. |
+| 파생 | Required E2E 집계 Job 124004423089 FAILURE(Shard5 직접 FAIL), QA Final Automated Job 124004453789 FAILURE(`required e2e 미성공`); 독립 제품 실패 2건으로 중복 계수하지 않음. QA Final 신뢰 경계 확인 124001447335 SUCCESS는 Owner/Manager ACCEPT가 아님. |
+| 원본 Artifact | [Playwright report / trace, ID 12969301117](https://github.com/planner77/masterGantt/actions/runs/41037374219/artifacts/12969301117), [Shard5 timing, ID 12968588832](https://github.com/planner77/masterGantt/actions/runs/41037374219/artifacts/12968588832). 원시 trace/credential·request URL을 Git 원장에 복사하지 않음. |
+
+**누적 원격 직접 실패 파일 합집합:** `tests/e2e/issue-730-view-composer.spec.ts` 1건(F860-PR-001). 이전 F860-LOCAL-002/003/FIXTURE-004 및 사전 UI P2는 독립적인 *로컬* 원본 이력이며 원격 두 번째 실패로 세지 않는다. 최초 작성 당시 §1의 '원격 실패 없음'은 PR 생성 *전* 시점 기록이며, 지금은 본 절이 추가된 원격 실패 이력이다.
+
+### C: 관측/가설/반례와 최소 보완
+
+- **관측 사실:** 실패는 서버의 JSON/HTTP 401·409·500이나 화면 assertion이 아니라 GET의 응답 이전 전송 종료. #860 변경 제품5파일/E2E2파일을 실행하는 별도 shard에서 #730의 기존 test가 실패했다. 서버 SIGKILL/OOM/Next dev process 종료·keep-alive 인과는 Job 로그만으로 확정되지 않으며, 첨부 내부 진단 및 같은 source 재현은 이번 작업 환경에서 **NOT TESTED/UNKNOWN**이다. 제품 회귀라고 단정하거나 기존 사용자 Grid 잔류 원인과 결부하지 않는다.
+- **확인 가능한 테스트 fixture 불일치:** 공통 `transportFailureKind`는 같은 메시지를 `SOCKET_HANG_UP`으로 분류하지만, `observedReadOnlyGet`는 메시지 `ECONNRESET`에만 두 번째 GET을 허용하여 첫 진단 이후 바로 전파했다. 과거 [#703 누적 원장](ISSUE_703_FAILURE_ANALYSIS.md)의 *정확한 GET-only 1회* 정책과 [#538 선례](exec-plans/active/ISSUE_538.md)의 동일한 전송 메시지 계약을 대조한다.
+- **보완:** `tests/e2e/fixtures/isolated-application-diagnostics.ts`에서 이미 존재하는 sanitize classifier의 `ECONNRESET | SOCKET_HANG_UP` 두 값에만 기존 단발 read-only GET 복구를 적용한다. 첫 실패 관측·진단 capture를 삭제하지 않는다. `tests/scripts/isolated-readonly-get.test.ts`에 (1) 첫 socket hang up 후 정확 2회 + 진단 캡처 (2) 재차 socket hang up 시 2회로 FAIL하는 직접 regression을 추가한다. 기존 ECONNRESET 및 HTTP status/timeouts/비 Error·쓰기 재시도 금지 보호는 그대로 유지. 테스트나 workflow의 retry count/timeout/skip/assertion/8Shard/Required3 완화 없음.
+- **근본 물리 원인과 계약 구분:** 두 번째 GET이 성공할지는 새로운 source의 시험 사항이며, 실제 서버가 죽어 있거나 반복 종료된다면 그대로 FAIL해야 한다. 소스의 분기 누락은 정적으로 확인했으나 transport의 발생 원인은 **UNKNOWN**이다.
+- **Cross-run 실행 경계:** 이번 실패 유일 파일 `issue-730-view-composer.spec.ts`, 새 직접 unit `isolated-readonly-get.test.ts`, 동일 helper의 다른 canonical GET 소비자(예: `target-project.ts`, `milestone-stage-exchange.spec.ts`), 직접 #860 기존 `task-context-menu-hierarchy.spec.ts`·`project-task-context-menu.spec.ts`, hidden Milestone visibility와 서버 도메인은 공식 Full CI에서 검증. GitHub 연결로 읽기/쓰기 가능하지만 현재 실행환경에서 repository checkout, Node dependencies, HTTP/SQLite/Chromium은 **NOT TESTED**, 모든 케이스의 새 Head 원격 결과 역시 시작 전 NOT TESTED로 기재한다.
+- **리뷰·충돌:** 첫 Head `e5c9e29`의 GitHub review threads `[]`, Codex 완료/미해결 findings 없음, 비교 `main` 대비 ahead1/behind0·`mergeable=true`. 새 push 전후 최신 Head/base·thread·mergeable을 재조회하고 달라지면 재판정한다. 코드나 서류의 원격 PASS는 본 section으로 대체하지 않는다. 배포·Main CI·GHCR·Issue 종료는 미승인.
+
+**다음 CI:** 리뷰/충돌 재확인 후 이 원장 및 Work Packet과 테스트 fixture+unit을 단일 commit에 넣어 PR #861 Head synchronize로 새로운 `pull_request` Full CI를 시작한다. Run ID/Attempt는 실제 등록 확인 후 Issue STATUS에 따로 기록하고, 모니터링·Main/GHCR·정식 게시·Issue 종료는 수행하지 않는다.

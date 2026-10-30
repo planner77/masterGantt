@@ -103,3 +103,12 @@ AGENTS.md 차이는 Next가 재생성하는 기존 block의 제목 수준뿐이�
 독립 read-only `/root/review` **PRE_QA: PASS**, 최종 source의 미해결 차단 지적0. 제품5/E2E2 SHA256은동결7/7일치, manifest 산출물15/15의 byte수·SHA256 일치, 문서 의미/AC·실패 보존·보호경계와 실제 screenshot·실행 증거를 대조했다. 별도 ui_ux 설계/구현 정적 검토와 frontend/browser_tests 실행도 수행했다. 이 사전검토는 인간 GitHub review나 QA_FINAL·Owner 위험 수용·Manager ACCEPT가 아니다.
 
 게시 직전 재조회한 main은 기준 `fe56cc6b97f0850c316fcbf6bbc2e1ccdfca79bc`와 같으며 기존 #860 원격 작업 branch/PR이 없어 새 branch/Ready PR로 인계한다. 충돌0의 최신 main을 부모로 게시하고 생성 직후 PR thread/test merge·Full CI 등록을 한 번 확인해 Issue STATUS에 exact Head/base/test merge/Run Attempt를 남긴다. 이후 모니터링하지 않는다.
+
+ 
+## 2026-10-30 #3441.1 실패 보완 / 재검증 인계
+
+- [원본 PR #861 Full CI Run 41037374219.1](https://github.com/planner77/masterGantt/actions/runs/41037374219)에서 Required Quality/Docker SUCCESS, Chromium Shard5 기존 #730 실제 HTTP `f.snapshot()`가 `socket hang up` 전송 예외로 FAIL. Shard 1/2/3/4/6/7/8 CANCELLED, Required E2E/QA Final은 파생 FAIL. 소스·시각·Job과 누적 매트릭스는 [Issue 단일 실패 원장](../../ISSUE_860_FAILURE_ANALYSIS.md#8-최초-원격-full-pr-ci-실패동일-source-제한-보완-2026-10-30-kst)에 기록했다.
+- 대상 직접 변경은 read-only `observedReadOnlyGet`의 기존 관측 이후 정확 1회 복구 guard가 `ECONNRESET`만 받아, 이미 정제 분류하는 `SOCKET_HANG_UP` 메시지를 누락한 **fixture 계약 불일치**이다. E2E 전역 retry·timeout 변경이나 제품 UI/서버 수정이 아니라 `tests/e2e/fixtures/isolated-application-diagnostics.ts`의 guard 한 곳만 확장하고 `tests/scripts/isolated-readonly-get.test.ts`에 정확 2회/재차 실패/기존 negative 보호 단언을 추가한다.
+- TEST_LIFECYCLE_REVIEW: 기존 `isolated-readonly-get.test.ts` EXTEND(새 중복 spec 없음), 기존 #730 및 #860 E2E KEEP_UNIQUE/교차 재검증. Unit 직접·#730 실제 HTTP·#860 native Gantt 및 기존 snapshot 소비자·403/409/500/timeout 같은 음성 조건을 Full8/Quality에서 확인한다. 이 환경의 새 후보 local Vitest/Chromium, 원본 Artifacts 내부 PID/OOM 분석은 NOT TESTED; 원본 transport 근인 UNKNOWN.
+- DOCUMENTATION_SYNC 추가: `tests/e2e/fixtures/isolated-application-diagnostics.ts`: UPDATED; `tests/scripts/isolated-readonly-get.test.ts`: UPDATED; `docs/ISSUE_860_FAILURE_ANALYSIS.md`: UPDATED; `docs/exec-plans/active/ISSUE_860.md`: UPDATED. AGENTS/DESIGN/API/DB/CI/QA/Release 변경 N/A(기존 source 계약 재사용).
+- 최신 Head PR CI가 시작되어도 Required3·Trusted QA·Owner HIGH 위험 승인·Manager ACCEPT는 결과 확인 전 NOT TESTED, merge/Main/GHCR/Issue 종료는 수행하지 않는다.

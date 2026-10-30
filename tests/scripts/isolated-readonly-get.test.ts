@@ -56,6 +56,29 @@ describe("Issue #703: observe canonical GET before one bounded ECONNRESET recove
     expect(events).toEqual(["start", "captured", "start", "completed"]);
   });
 
+  it("observes Playwright's socket hang up before one bounded read-only recovery (#860)", async () => {
+    const { observe, events } = harness();
+    let calls = 0;
+    const result = await observedReadOnlyGet(observe, route, async () => {
+      if (++calls === 1) throw new Error("apiRequestContext.get: socket hang up");
+      return response(200);
+    });
+    expect(result.status()).toBe(200);
+    expect(calls).toBe(2);
+    expect(events).toEqual(["start", "captured", "start", "completed"]);
+  });
+
+  it("fails on a second socket hang up without a third GET (#860)", async () => {
+    const { observe, events } = harness();
+    let calls = 0;
+    await expect(observedReadOnlyGet(observe, route, async () => {
+      calls++;
+      throw new Error("apiRequestContext.get: socket hang up");
+    })).rejects.toThrow("socket hang up");
+    expect(calls).toBe(2);
+    expect(events).toEqual(["start", "captured", "start", "captured"]);
+  });
+
   it("preserves the second error without a third attempt", async () => {
     const { observe, events } = harness();
     let calls = 0;
