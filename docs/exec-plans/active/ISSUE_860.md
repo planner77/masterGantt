@@ -112,3 +112,12 @@ AGENTS.md 차이는 Next가 재생성하는 기존 block의 제목 수준뿐이�
 - TEST_LIFECYCLE_REVIEW: 기존 `isolated-readonly-get.test.ts` EXTEND(새 중복 spec 없음), 기존 #730 및 #860 E2E KEEP_UNIQUE/교차 재검증. Unit 직접·#730 실제 HTTP·#860 native Gantt 및 기존 snapshot 소비자·403/409/500/timeout 같은 음성 조건을 Full8/Quality에서 확인한다. 이 환경의 새 후보 local Vitest/Chromium, 원본 Artifacts 내부 PID/OOM 분석은 NOT TESTED; 원본 transport 근인 UNKNOWN.
 - DOCUMENTATION_SYNC 추가: `tests/e2e/fixtures/isolated-application-diagnostics.ts`: UPDATED; `tests/scripts/isolated-readonly-get.test.ts`: UPDATED; `docs/ISSUE_860_FAILURE_ANALYSIS.md`: UPDATED; `docs/exec-plans/active/ISSUE_860.md`: UPDATED. AGENTS/DESIGN/API/DB/CI/QA/Release 변경 N/A(기존 source 계약 재사용).
 - 최신 Head PR CI가 시작되어도 Required3·Trusted QA·Owner HIGH 위험 승인·Manager ACCEPT는 결과 확인 전 NOT TESTED, merge/Main/GHCR/Issue 종료는 수행하지 않는다.
+
+ 
+## 2026-10-30 #3442.1 2회차 실패 보완 — #464 Gantt viewport 정착 전제
+
+- 원본 [PR Full #3442.1 / Run 41039953621.1](https://github.com/planner77/masterGantt/actions/runs/41039953621), Head `0e7c1d6f2f8a1855ad4e1b415ba91682955d412b`에서 기존 #464 `milestone-stage-exchange.spec.ts:149` readonly Week/Fullscreen 보존 준비 중 X120 기대·Core/native 실제78, Y96 정상. Shard3 39 PASS/1 FAIL/1 SKIP/111 NOT RUN, 다른7 CANCELLED, Required Quality/Docker PASS 및 E2E/QA 파생FAIL. 앞선 F860-PR-001 #730 직접 case는 이번 취소된 Shard5에서 PASS했으나 그 Shard 전체는 미완료다. 정확 원본 Job/Artifact·누적 교차 매트릭스는 [단일 원장](../../ISSUE_860_FAILURE_ANALYSIS.md#9-두-번째-원격-full-pr-ci-실패--viewport-정착-전-설정-가능성-2026-10-30-kst)에 추가했다.
+- TEST_LIFECYCLE_REVIEW: 기존 #464 통합 시나리오 **EXTEND**만 수행. #667/#624 후속과 이미 있는 `gantt-readiness` 공용 READ-ONLY 3RAF 관측을 사용해 API/revision/Week/scope·U2/U3·현재 viewport 작업과 Core/native X120 capacity를 먼저 검증. 부족하면 양 capacity>0 guard 후 실제 horizontal wheel1회, 다시 검증. 이후 기존 strict X120/Y96 및 fullscreen/peer-return/layout/selector/selection/무mutation을 완화 없이 보존. 새로운 spec 중복·global timeout/retry·CI policy 변경 없음.
+- 교차 coverage: 원격 신규 변경 직접 #464, 누적 첫 실패 #730, 기존 #860 변환/모달 E2E, `viewport-coordinator.spec.ts`, `task-editor-form-density.spec.ts` 및 native Milestone visibility/peer protected flows. 최신 제품 source는 불변. 본 연결 환경에서 새 후보 browser/Node/SQLite 직접 재실행 **NOT TESTED**, 가설과 불확실성은 원장에 분리했다.
+- DOCUMENTATION_SYNC 추가: `tests/e2e/milestone-stage-exchange.spec.ts`: UPDATED; `docs/ISSUE_860_FAILURE_ANALYSIS.md`: UPDATED; `docs/exec-plans/active/ISSUE_860.md`: UPDATED. AGENTS/DESIGN/TEST_PLAN/QA/CI/API/DB N/A(기존 테스트 준비 계약 재사용, 제품·정책 변경 없음).
+- 새로운 PR CI 시작 이후에도 Required Full8·Trusted QA/Owner HIGH·Manager ACCEPT는 검증 전 NOT TESTED; merge/Main/GHCR/Issue 종료하지 않음.

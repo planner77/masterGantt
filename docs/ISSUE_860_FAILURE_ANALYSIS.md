@@ -101,3 +101,31 @@ HIGH / OWNER_MANAGED / qa_required=true. 사용자 범위는 구현·문서·리
 - **리뷰·충돌:** 첫 Head `e5c9e29`의 GitHub review threads `[]`, Codex 완료/미해결 findings 없음, 비교 `main` 대비 ahead1/behind0·`mergeable=true`. 새 push 전후 최신 Head/base·thread·mergeable을 재조회하고 달라지면 재판정한다. 코드나 서류의 원격 PASS는 본 section으로 대체하지 않는다. 배포·Main CI·GHCR·Issue 종료는 미승인.
 
 **다음 CI:** 리뷰/충돌 재확인 후 이 원장 및 Work Packet과 테스트 fixture+unit을 단일 commit에 넣어 PR #861 Head synchronize로 새로운 `pull_request` Full CI를 시작한다. Run ID/Attempt는 실제 등록 확인 후 Issue STATUS에 따로 기록하고, 모니터링·Main/GHCR·정식 게시·Issue 종료는 수행하지 않는다.
+
+
+## 9. 두 번째 원격 Full PR CI 실패 — viewport 정착 전 설정 가능성 (2026-10-30 KST)
+
+### F860-PR-002 — PR #861 / Full #3442.1 / Run 41039953621.1
+
+| 분류 | 원본 GitHub 증거 |
+| --- | --- |
+| Run | [Full #3442.1](https://github.com/planner77/masterGantt/actions/runs/41039953621), ID `41039953621`, attempt `1`, `pull_request`, `.github/workflows/ci.yml`, FINAL_FULL (2026-10-30 10:19:57–10:27:55 UTC) |
+| 동결 source | Head `0e7c1d6f2f8a1855ad4e1b415ba91682955d412b`, Base `fe56cc6b97f0850c316fcbf6bbc2e1ccdfca79bc`, Test merge `90b3efb685bb10d3445ff1508f4733bd38d4cc57`, 8-shard Full Required |
+| 최초 직접 실패 | [Chromium 3/8 Job 124011041673](https://github.com/planner77/masterGantt/actions/runs/41039953621/job/124011041673) Step `E2E shard 실행`, `tests/e2e/milestone-stage-exchange.spec.ts:149`의 기존 #464 실제 HTTP Editor/Stage/JSON/Excel/Copy/Template/readonly viewport 통합 시나리오. 10:26:58 UTC 실패 출력, line 266의 `expect.poll(live).toEqual({left:120,top:96,publicLeft:120,publicTop:96})`: 실제 `{left:78,top:96,publicLeft:78,publicTop:96}`; 5,000ms 내 120 미복귀. |
+| 동일 실패 Shard 결과 | 39 PASS, 1 FAIL, 1 SKIPPED, 111 NOT RUN (`--max-failures=1` 뒤 중단). 원격 HTTP/SQLite mutation 데이터 오류나 Milestone Grid 잔류의 직접 증거가 아니라 정확한 Gantt viewport 보존 setup 실패다. |
+| 7개 중도 취소 | 1/2/4/5/6/7/8: Job 124011041829 / 124011041756 / 124011041861 / 124011041726 / 124011041702 / 124011041675 / 124011041747 = CANCELLED. 개별 로그에서 취소 전 `✓`는 각각 37/4/5/22/29/20/5건이고 별도 `✘`는 관측되지 않았으나 전체 샤드 PASS를 뜻하지 않음. |
+| 과거 실패 교차 | [첫 실패 F860-PR-001](https://github.com/planner77/masterGantt/actions/runs/41037374219)는 Shard5 `issue-730-view-composer.spec.ts:221`의 GET `socket hang up`. 이번 #3442.1의 *중도 취소된* Shard5 Job124011041726에서는 해당 정확 시나리오 `✓ 22` (39.9s) 통과. 이전 transport 오류 재발의 증거는 없지만 Shard5 전체 완료는 CANCELLED이며, 새 Head 이후 Full PASS도 아님. |
+| 성공·파생 | QA Preflight 124010180614 SUCCESS; TypeScript 124010310094, ESLint 124010310108, Vitest 124010310182, Policy 124010310158, Build 124011041491, Docker smoke 124011041412 SUCCESS. Required Quality 124011599522 / Required Docker 124012190236 SUCCESS. Required E2E Job 124013069583 FAILURE 및 QA Final Job 124013109126 FAILURE(`required e2e 미성공`)는 파생, 독립 직접 실패 2건 아님. |
+| 보조 증거 | [Shard3 Playwright report/trace Artifact ID 12970007265](https://github.com/planner77/masterGantt/actions/runs/41039953621/artifacts/12970007265), [Shard3 timing ID12969697878](https://github.com/planner77/masterGantt/actions/runs/41039953621/artifacts/12969697878), [run-scoped source ID12969263367](https://github.com/planner77/masterGantt/actions/runs/41039953621/artifacts/12969263367). Git에는 raw trace/인증 데이터 저장하지 않음. |
+
+### A–F: 누적 실패 종합·정착 전제 보완
+
+- **전 이력 합집합:** 원격 직접 FAIL은 서로 다른 2개: `tests/e2e/issue-730-view-composer.spec.ts:221`(F860-PR-001 GET transport), `tests/e2e/milestone-stage-exchange.spec.ts:149`(F860-PR-002 viewport X). 첫 실패 로컬 보고·사전 UI 검증 사건은 역사 보존, 원격 직접 FAIL과 합산하지 않음. 최신 #3442.1에서 #730 개별 case PASS는 첫 오류의 무조건 해소를 증명하지 않음.
+- **관측:** DOM `.wx-chart`와 공개 `__masterganttPublicViewport`가 모두 X78/Y96에 일치했다. Grid-only DOM 오류/HTTP 저장 오류/단순 Core-vs-DOM 비동기가 아니라 *서로 동기화된 다른 좌표*다. 시험은 현재 Week native scrollWidth−clientWidth≥120만 확인하고 첫 X120 입력 직전 최신 Core capacity·RANGE_EXTENSION/TASK_REVEAL·canonical/projection SETTLED를 기다리지 않았다. X120이 처음엔 실제 적용됐는지, 누가 78로 후행 기록했는지, snapshot 시점의 Core width는 **원본 상세 trace 직접 미분석 → UNKNOWN**.
+- **선행 검증된 위험 계약:** [#667 누적 실패 원장](ISSUE_667_FAILURE_ANALYSIS.md)에서 native capacity만 충분한 상태에도 `RANGE_EXTENSION/APPLYING` 및 `U3 rows/PENDING`에서 원시 X120 저장 뒤 Core가 다른 X를 기록했던 실패를 다뤘다. [#624 #456 Week 준비](ISSUE_624_CI_FAILURE_ANALYSIS.md) 및 기존 `tests/e2e/task-editor-form-density.spec.ts`/ `viewport-coordinator.spec.ts`는 `waitForGanttReadiness` 3RAF/read-only latest Core+projection+viewport/physical capacity admission 후 원본 X120를 입력한다. 이번 사건과 동일 근인이라고 확정하지 않고 **TEST_VIEWPORT_CONTRACT / setup missing settled-admission 후보**, 제품의 후행 잘못된 writer 가능성도 열린 상태다.
+- **한정 보완:** 기존 `tests/e2e/milestone-stage-exchange.spec.ts`에 공용 read-only `waitForGanttReadiness`를 직접 재사용한다. 정확 API instance·revision·Week·scope null·검색0, 최신 canonical/projection·Core/DOM/viewport 상태를 3RAF 안정 확인하고 **Core/native 모두 X120 수용**을 요구한다. 미수용이면서 양쪽 유효 capacity>0일 때만 실제 chart hover + horizontal wheel **1회**로 기존 공개 date extension을 요청하고 다시 동일 strict admission을 확인한다. 그 후 원래 raw X120 입력 후 X/공개Core=120을 별도 확인하며 원본 Y96·fullscreen·peer·layout·Grid width·selection·tree·column·no mutation/원본 통합 assertions는 그대로 유지한다. `allowCancelledPriorWork`는 이미 취소된 이전 작업의 terminal `SUPERSEDED`에만 적용; 진행 중/실패/미측정은 계속 차단한다. 최초 Core/native 준비 지표를 정제 attachment로 남긴다.
+- **근본 원인 경계:** 이 준비 절차로도 X78이 재현되면 곧바로 FAIL하여 실제 제품 viewport overwrite를 조사한다. 원인 미관측 상태에서 제품 writer·SVAR private Store를 수정하거나 `120→78` 값 기대를 수정하지 않는다. 테스트 timeout/retry/skip/assertion/Full8/Required3/QA gate 변경0.
+- **교차 검증 선택:** 기존 F860-PR-001 `issue-730-view-composer.spec.ts`, 이번 #464 `milestone-stage-exchange.spec.ts`, 직접 #860 `task-context-menu-hierarchy.spec.ts`/`project-task-context-menu.spec.ts`, viewport 관련 `viewport-coordinator.spec.ts`/`task-editor-form-density.spec.ts`, Milestone native visibility/Project resource peer negative 검증을 선택. 코드 checkout·Node modules/Chromium/HTTP·SQLite 재현 실행은 현재 GitHub connector 환경에서 **NOT TESTED**. 새 remote Full8이 exact Head의 공식 회귀이며 실패한다면 보완 원인 재분류한다.
+- **리뷰/충돌:** 기존 Head `0e7c1d6` 기준 PR #861 review threads `[]`, Codex 사전 지적 없음, `main` ahead2/behind0 `mergeable=true`. 새 Head 후 다시 조회. QA OWNER_MANAGED는 Required/원본 증거·Owner 수용을 생략하지 않음.
+
+**다음 Run 시작 경계:** 문서 원장·Work Packet·기존 E2E 1파일만 묶은 새 commit으로 PR #861를 synchronize하고, HEAD/base/test-merge/Run ID/attempt의 실제 `pull_request` Full CI 시작을 확인한다. 이후 CI 모니터링·병합·Main/GHCR/Issue 종료는 진행하지 않는다.
