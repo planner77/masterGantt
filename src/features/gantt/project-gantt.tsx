@@ -36,6 +36,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
 } from "react";
 
 import { createTaskMoveGateway } from "./task-move-gateway";
@@ -332,6 +333,7 @@ function fullscreenShortcutBlocked(target: EventTarget | null): boolean {
 
 
 interface ProjectGanttProps {
+  readonly operationNotice?: ReactNode;
   readonly milestoneTimeline?: MilestoneTimelineCapability;
   readonly onSelectionChange?: (ids: readonly string[]) => void;
   readonly selectionRestore?: {
@@ -355,7 +357,7 @@ interface ProjectGanttProps {
   readonly onTaskAddRejected: (reason: NativeTaskAddRejectReason) => void;
   readonly onTaskCreate: (command: ProjectTaskCreateCommand) => void;
   readonly onTaskCommand: (command: ProjectTaskUpdateCommand, expectedRevision?: number, options?: { readonly successFeedback: "deferred" }) => Promise<TaskEditorSaveResult>;
-  readonly onTaskHierarchyCommand: (command: TaskHierarchyCommandRequest) => void;
+  readonly onTaskHierarchyCommand: (command: TaskHierarchyCommandRequest, trigger?: HTMLElement) => void;
   readonly onTaskEditorOpen: (taskId: string, initialTab?: "task" | "memberships") => void;
   readonly onTaskOpenAsRoot: (taskId: string) => void;
   readonly onTaskDeleteRequest: (taskId: string, trigger: HTMLElement | null) => void;
@@ -428,6 +430,7 @@ function clampMenuPosition(left: number, top: number, width: number, height: num
 
 /** Browser-only renderer; normal canonical snapshots keep this SVAR instance mounted. */
 export function ProjectGantt({
+  operationNotice,
   viewVisible = true, viewportContinuityKey = "", peerViewportRestore = null,
   onPublicViewportReader,
   milestoneTimeline,
@@ -3504,8 +3507,9 @@ export function ProjectGantt({
       closeTaskMenu();
       return;
     }
+    const trigger = taskMenuTriggerReference.current ?? undefined;
     setTaskMenu(null);
-    onTaskHierarchyCommandReference.current(command);
+    onTaskHierarchyCommandReference.current(command, trigger);
   }
 
   function createTaskFromMenu(placement: "before" | "after" | "child") {
@@ -4495,6 +4499,7 @@ export function ProjectGantt({
 
   return (
     <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-cell-height={ganttCellHeight} data-gantt-density-level={density.level} style={{ "--project-gantt-density-font": `${Math.max(12, 14 * densityFontScale(density.level, density.coarse))}px` } as React.CSSProperties} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={(editable && !mutationLocked ) || undefined}>
+      {operationNotice}
       <CopySelectionContext.Provider value={selectionContext}><Willow>
       <div className="project-gantt-scale-toolbar">
         {process.env.NODE_ENV !== "production" && milestoneTimeline ? <button type="button" aria-pressed={timelinePreview} onClick={() => setTimelinePreview(value => !value)}>Milestone Timeline 기술 미리보기</button> : null}

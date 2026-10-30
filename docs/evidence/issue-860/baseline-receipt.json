@@ -1,0 +1,25 @@
+{
+  "source": "fe56cc6b97f0850c316fcbf6bbc2e1ccdfca79bc",
+  "productFiles": {
+    "src/features/gantt/project-gantt.tsx": "b030212e7cca29e9baf9173fd7721b484170d7281b0bf943d1f6f0ad45677837",
+    "src/features/projects/project-readonly-view.tsx": "f0c706a0c8dd480b0428e676a949816f7fa243dd070e7cea8c15e3c02eebeaf9"
+  },
+  "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/task-context-menu-hierarchy.spec.ts --project=chromium --grep 'hierarchy commands persist across reload' --retries=0 --max-failures=0",
+  "environment": "Next dev / Chromium / Core2.7.3 / isolated real HTTP SQLite",
+  "result": "PASS",
+  "count": 1,
+  "bodySeconds": 14.2,
+  "totalSeconds": 42.0,
+  "originalDisplaySymptom": "NOT REPRODUCED",
+  "convertedTaskId": [
+    "0326d755-36a5-4243-a2dc-bad865f49aff"
+  ],
+  "revision": "NOT_CAPTURED",
+  "nativeGridCount": 0,
+  "nativeChartBarCount": 0,
+  "coreVisibleCount": 5,
+  "canonicalTaskCount": 6,
+  "selected": [],
+  "instance": "svar-api-1",
+  "nativeCountsEvidence": "strict Playwright exact-ID assertions before attached snapshot"
+}

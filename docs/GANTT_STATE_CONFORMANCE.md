@@ -116,3 +116,10 @@ SC-05는 `gantt-state-product-integration.spec.ts`에서 actual SQLite commit �
 추가 SC-05 역전 조회 사례는 Resource에서 시작한 실제 이전 GET을 지연하고, Task commit/500·최신 조회 실패 뒤 전달해도 UNKNOWN을 해제하지 않음을 확인한다. 명시 최신 조회 전 추가 PATCH 0과 같은 Core 인스턴스를 요구한다.
 
 #667 CI #2812 보완 프로파일은 Core 계산 left bound/open end/autoScale=false다. 빈 프로젝트의 첫 과거·미래 Milestone과 Day/Week·연속3회 우측 확장 후 날짜 coverage·같은 API·조회 mutation0을 별도 correction 증거에 기록한다. 이전 fixed-start 합성 fixture PASS·#666390px NOT_MEASURABLE/clamp FAIL은 그대로 보존하고 새 제품 프로파일의 전체 PASS로 전용하지 않는다. 반복 삭제 stale/unavailable은 UNKNOWN 차단 검증 뒤 UI 명시 최신 조회로만 회복한다.
+
+
+## Issue #860 — 변환 canonical과 native 표시 대조
+
+변환은 같은 taskId와 revision의 서버 snapshot/SQLite → React canonical → public projection/filter → Core logical visible IDs → 실제 Grid/Chart를 대조한다. SUCCESS 응답만으로 DOM 정착을 PASS로 두지 않는다. 기본 marker OFF에서는 대상 M row/bar·선택/clipboard0, 나머지 Task/Summary ID·순서·Y 정렬과 instance를 검사한다. peer 왕복·행 높이/열·scale/filter0·scope 및 저장 실패/중복 요청·readonly 음성은 별도 경계다. 기존 SC-03/04/05/07/08/10/11/12/13과 #574 V1/V2/V3/V4/V6/V8에 연결한다.
+
+기준 main 변환의 최초 실제 HTTP·SQLite Chromium은 동일 ID Core/Grid/Chart0으로 PASS하여 사용자 잔류는 재현되지 않았다. 이 결과를 운영 재현 해소나 #574 전체 PASS로 확대하지 않는다. source/명령/첫 실패·수정·미실행은 [#860 단일 원장](ISSUE_860_FAILURE_ANALYSIS.md), AC와 문서는 [Work Packet](exec-plans/active/ISSUE_860.md)에 기록한다.

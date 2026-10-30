@@ -1,0 +1,11 @@
+.name { white-space: pre-wrap; overflow-wrap: anywhere; }
+.notice {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+  flex: 0 0 auto; min-width: 0; max-height: 40dvh;
+  box-sizing: border-box; overflow: auto; overflow-wrap: anywhere;
+  padding: 0.5rem; border: 1px solid var(--border-default); border-radius: 0.5rem;
+  background: var(--surface-panel); color: var(--text-default);
+}
+.summary { flex: 1 1 20rem; min-width: 0; margin: 0; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.notice button { min-height: 44px; max-width: 100%; white-space: normal; }

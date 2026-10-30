@@ -1,0 +1,15 @@
+{
+  "baselineSha": "fe56cc6b97f0850c316fcbf6bbc2e1ccdfca79bc",
+  "sourceHashes": {
+    "src/components/workspace-dialog.tsx": "e9d61ca0cfc0b0f3732756f79787de3316b5ae9fb76b000dfc7d1bc9d099afaf",
+    "src/features/gantt/project-gantt.tsx": "6dffccf9b113abc85707a5710651bd340e54df9d84ee84570a5b2792ca26baa9",
+    "src/features/projects/project-readonly-view.tsx": "9532bb2d897a3f831161b2e18ca6eadbfdc823123009248362f47c8342fa2074",
+    "src/features/milestones/milestone-conversion-feedback.tsx": "46a475d129ed0b350b6ac0a7d68c6ba3070feb05199f078b7ee7e1e2ef51790c",
+    "src/features/milestones/milestone-conversion-feedback.module.css": "c41fbd456e26525e28e084b2ca71823c999164fec9bc477aa23c2b42e1645819",
+    "tests/e2e/task-context-menu-hierarchy.spec.ts": "94166983826f5cab7a779161705a2c160bfcbb0f0afac9e3f8539a87bd3ad40f",
+    "tests/e2e/project-task-context-menu.spec.ts": "02805e81f6ca8c86c31c3a58afb29ab35201a58c3253282cf1eab52c6a281396"
+  },
+  "node": "v22.14.0",
+  "playwright": "1.63.0",
+  "core": "2.7.3"
+}

@@ -21,3 +21,12 @@ Milestone 검색/소속 필터는 **표시할 일반 Task의 조건**이며 실�
 Export/Import/Copy/Cut은 서버의 Origin, session, revision, 읽기 transaction, 파일/행/픽셀 상한, UTF-8·XML escaping을 유지한다. 취소/권한 만료/409·412·422·500 및 통신 불확실 시 성공으로 간주하지 말고 원본 재조회 및 재시도 정책을 따른다. 숨은 Milestone 데이터는 삭제 전 영향 확인 대상이다. 실제 Windows Excel/DRM, 운영 reverse proxy, 외부 소비자 복원 실증은 이 문서만으로 검증 완료가 아니다.
 
 기술 계약: [표시 정책](MILESTONE_PRESENTATION_POLICY.md), [Milestone Stage Gate](MILESTONE_STAGE_GATES.md), [JSON 교환](IMPORT_EXPORT.md), [Excel](EXCEL_EXPORT.md), [이미지](IMAGE_EXPORT.md). 통합 증거: [#553 추적표](MILESTONE_TIMELINE_TRACEABILITY.md).
+
+
+## Task에서 Milestone으로 변경 (Issue #860)
+
+편집 가능한 일정의 Grid 행 또는 Chart 막대를 우클릭하고 `Convert to → Milestone`을 선택한다. 확인창에서 이름·기간0과 표시 영향을 확인한 뒤 `Milestone으로 변경`을 누른다. `취소`나 Escape는 저장하지 않는다. 연결/자식·기존 소속·완료 잠금 등 서버 제약으로 변환을 지원하지 않는 작업은 먼저 제약을 해소해야 하며 확인창이 권한이나 제약을 우회하지 않는다.
+
+운영 기본 모드에서는 성공한 항목이 일정 Grid와 Chart에서 함께 사라져도 원본은 삭제되지 않는다. 같은 항목을 `대시보드 → Milestone`에서 관리하며 성공 안내의 `Milestone 대시보드에서 보기`를 눌러 상세를 연다. 누르기 전 일정 보기는 자동으로 바뀌지 않는다. 목록 검색·표시/날짜 조건으로 보이지 않으면 상세에서 확인하거나 목록 조건을 바꾼다. 동명 항목으로 대체해 열지 않는다. 비상 legacy mode에서는 native Milestone 표시가 유지된다. 실패나 통신 결과가 불확실하면 성공 안내를 근거 없이 표시하지 않고 최신 정보를 확인한다.
+
+문서의 행동 계약과 실제 환경별 수용은 구분한다. 현재 변경의 원격 전체 검증·운영 재현/최종 수동 UX 상태는 [#860 Work Packet](exec-plans/active/ISSUE_860.md)을 따른다.

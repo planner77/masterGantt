@@ -1,0 +1,167 @@
+{
+  "failure": "existing407/418 last expected ordinary row missing nativeDOM after inline notice reserves viewport",
+  "expectedTaskId": "30659960-f327-4666-aab8-24f8d8052f2a",
+  "projection": {
+    "apiInstance": "svar-api-1",
+    "generation": 22,
+    "reasons": [
+      "structure",
+      "membership",
+      "layout"
+    ],
+    "scale": "day",
+    "scope": null,
+    "filterKey": "f36fea27c",
+    "taskSelectionChanged": false,
+    "queryConditionsChanged": true,
+    "expectedColumns": [
+      {
+        "id": "copySelection",
+        "hidden": false
+      },
+      {
+        "id": "text",
+        "hidden": false
+      },
+      {
+        "id": "externalId",
+        "hidden": true
+      },
+      {
+        "id": "projectStart",
+        "hidden": false
+      },
+      {
+        "id": "projectDuration",
+        "hidden": false
+      },
+      {
+        "id": "baselineStart",
+        "hidden": true
+      },
+      {
+        "id": "milestoneStage",
+        "hidden": true
+      },
+      {
+        "id": "baselineEnd",
+        "hidden": true
+      },
+      {
+        "id": "add-task",
+        "hidden": false
+      }
+    ],
+    "revision": 10,
+    "outcome": "SETTLED",
+    "logicalVisibleIds": [
+      "51d8ecf5-7436-4ffa-afb2-1edca0ae9344",
+      "62d0e59c-398f-4a40-8f22-d987e42746b0",
+      "ea167c03-c86d-4242-bba8-6889db19f451",
+      "b0ad3d9e-a5a7-4cb1-817a-b66b318e1399",
+      "bc0e946a-8fac-4cf3-a2e7-cd11dd12240a",
+      "0ee17152-f163-4a94-b677-c128f779881b",
+      "30659960-f327-4666-aab8-24f8d8052f2a"
+    ],
+    "coreVisibleIds": [
+      "51d8ecf5-7436-4ffa-afb2-1edca0ae9344",
+      "62d0e59c-398f-4a40-8f22-d987e42746b0",
+      "ea167c03-c86d-4242-bba8-6889db19f451",
+      "b0ad3d9e-a5a7-4cb1-817a-b66b318e1399",
+      "bc0e946a-8fac-4cf3-a2e7-cd11dd12240a",
+      "0ee17152-f163-4a94-b677-c128f779881b",
+      "30659960-f327-4666-aab8-24f8d8052f2a"
+    ],
+    "domIds": [
+      "51d8ecf5-7436-4ffa-afb2-1edca0ae9344",
+      "62d0e59c-398f-4a40-8f22-d987e42746b0",
+      "ea167c03-c86d-4242-bba8-6889db19f451",
+      "b0ad3d9e-a5a7-4cb1-817a-b66b318e1399",
+      "bc0e946a-8fac-4cf3-a2e7-cd11dd12240a",
+      "0ee17152-f163-4a94-b677-c128f779881b"
+    ],
+    "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+    "selectedIds": []
+  },
+  "lastPublicGeometry": [
+    {
+      "action": "resize-chart",
+      "left": 0,
+      "top": 0,
+      "visible": true,
+      "width": 746,
+      "height": 102
+    },
+    {
+      "action": "resize-chart",
+      "left": 0,
+      "top": 0,
+      "visible": true,
+      "width": 746,
+      "height": 102
+    },
+    {
+      "action": "resize-chart",
+      "left": 0,
+      "top": 0,
+      "visible": true,
+      "width": 1800,
+      "height": 102
+    },
+    {
+      "action": "resize-chart",
+      "left": 0,
+      "top": 0,
+      "visible": true,
+      "width": 746,
+      "height": 102
+    },
+    {
+      "action": "scroll-chart",
+      "left": 0,
+      "top": 0,
+      "visible": true,
+      "requestedLeft": 0
+    },
+    {
+      "action": "resize-chart",
+      "left": 0,
+      "top": 0,
+      "visible": true,
+      "width": 746,
+      "height": 102
+    },
+    {
+      "action": "resize-chart",
+      "left": 0,
+      "top": 0,
+      "visible": true,
+      "width": 1836,
+      "height": 102
+    },
+    {
+      "action": "resize-chart",
+      "left": 0,
+      "top": 0,
+      "visible": true,
+      "width": 746,
+      "height": 102
+    },
+    {
+      "action": "resize-chart",
+      "left": 0,
+      "top": 0,
+      "visible": true,
+      "width": 746,
+      "height": 102
+    },
+    {
+      "action": "scroll-chart",
+      "left": 0,
+      "top": 0,
+      "visible": true,
+      "requestedLeft": 0
+    }
+  ],
+  "classification": "TEST_VIEWPORT_CONTRACT: logical/core7 but DOM6; last child virtualized after chart height102px, no canonical/Core loss"
+}

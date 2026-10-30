@@ -4,13 +4,17 @@ import { useContext, useEffect, useId, useLayoutEffect, useRef, type ReactNode, 
 import { WorkspaceMessageContext } from "./workspace-message-context";
 import styles from "./workspace-feedback.module.css";
 
-export function WorkspaceDialog({ title, children, onClose, onEscape, busy = false, feedback = true, restoreFocusRef, size = "standard", controlledEscape = false }: Readonly<{
+export function WorkspaceDialog({ title, children, onClose, onEscape, onAfterClose, busy = false, feedback = true, restoreFocusRef, size = "standard", controlledEscape = false }: Readonly<{
   title: string; children: ReactNode; onClose: () => void; onEscape?: () => void; busy?: boolean; feedback?: boolean;
+  /** Runs after native close and trigger restoration, including effect cleanup. */
+  onAfterClose?: () => void;
   restoreFocusRef?: RefObject<HTMLElement | null>;
   size?: "standard" | "wide";
   controlledEscape?: boolean;
 }>) {
   const reference = useRef<HTMLDialogElement>(null);
+  const afterCloseReference = useRef(onAfterClose);
+  useLayoutEffect(() => { afterCloseReference.current = onAfterClose; }, [onAfterClose]);
   const titleId = useId();
   const message = useContext(WorkspaceMessageContext);
   useEffect(() => {
@@ -26,6 +30,7 @@ export function WorkspaceDialog({ title, children, onClose, onEscape, busy = fal
     return () => {
       dialog.close();
       if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+      afterCloseReference.current?.();
     };
   }, [restoreFocusRef]);
   useLayoutEffect(() => {

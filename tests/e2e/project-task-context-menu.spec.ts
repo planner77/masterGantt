@@ -64,6 +64,9 @@ async function runSubmenu(
   const submenu = page.getByRole("menu", { name: menuName, exact: true });
   await expect(submenu).toBeVisible();
   await submenu.getByRole("menuitem", { name: itemName, exact: true }).click();
+  if (menuName === "Convert to" && itemName === "Milestone") {
+    await page.getByRole("dialog", { name: "Milestone으로 변경", exact: true }).getByRole("button", { name: "Milestone으로 변경", exact: true }).click();
+  }
 }
 
 async function expectStructureToast(page: import("@playwright/test").Page) {
@@ -416,7 +419,7 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
   await expectStructureToast(page);
   menu = await openTaskMenu(page, "Copy ID Milestone");
   await runSubmenu(page, "Convert to", "Milestone");
-  await expectStructureToast(page);
+  await expect(page.getByTestId("workspace-toast")).toContainText("Milestone으로 변경했습니다");
 
   current = await snapshot(page, api, observeIsolatedApi);
   const task = current.data.tasks.find((entry) => entry.name === "Copy ID Task")!;
@@ -606,7 +609,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
 
   menu = await openTaskMenu(page, "Context A");
   await runSubmenu(page, "Convert to", "Milestone");
-  await expectStructureToast(page);
+  await expect(page.getByTestId("workspace-toast")).toContainText("Milestone으로 변경했습니다");
   current = await snapshot(page, api, observeIsolatedApi);
   expect(current.data.tasks.find((task) => task.taskId === a.taskId)).toMatchObject({
     type: "milestone",

@@ -51,3 +51,16 @@ TEST_LIFECYCLE_REVIEW: 기존 `milestone-visibility.spec.ts`, `project-gantt-ima
 - [Full #3277.1 / Run 40165691579](https://github.com/planner77/masterGantt/actions/runs/40165691579) exact HEAD `f190b639daf775a95fbd382d62f27bace5400030`, old Base `22144ce3844ab50ac0f22a715742c9df82e072e8`, test merge `149a44b91abccdc239617d8a154773fef6d7d9f5`: Quality, TypeScript, Vitest (3294 PASS/3 existing SKIP), Docker, **Chromium shards1~8 모두 SUCCESS**, #553 actual HTTP/SQLite/restart·Copy/Template·JSON/Excel/SVG/PNG·401/412/422 3cases **32.1/6.8/13.7초 PASS**. 이 성공은 old Head+Base 범위에만 유효.
 - QA Final [Job121091214522](https://github.com/planner77/masterGantt/actions/runs/40165691579/job/121091214522) `mergeability 또는 test merge 불일치` BLOCKED. Run 중 새 main [Issue797/#3280.1](https://github.com/planner77/masterGantt/actions/runs/40166327552) `f431806329dd3af492e1eb6ce67bb73c1262d61e`로 진입. 당시 GitHub API predicate의 정확 어느 값이 달랐는지는 UNKNOWN, [F553-J 원장](ISSUE_553_FAILURE_ANALYSIS.md) 참조.
 - **AC1~AC10**의 원본 데이터·Marker-OFF/편집·교환/내보내기/보안/Resource acceptance 테스트는 old Head에서 PASS, 새 latest-main aligned Head는 **NOT TESTED**. #797 UI audit/TEST_PLAN 등 새 Main 변경 227경로를 지키면서 양측 `docs/exec-plans/active/PLAN.md`만 원문 결합한다. QA/Owner/Release/Windows Excel/DRM 별도 승인·검증 미완료.
+
+
+## Issue #860 → #574 V1~V8 인계 (2026-10-30)
+
+| #860 AC | #574 시나리오 | 직접·고유 근거 | 수용 경계 |
+| --- | --- | --- | --- |
+| AC1/5 확인·취소·저장/실패 | V1 | 기존 `task-context-menu-hierarchy.spec.ts` 실제 HTTP/SQLite 및 `project-task-context-menu.spec.ts` 명령 UI/오류 | 확인 전 쓰기0, 같은 ID/revision·중복/unknown·권한 검사는 별도 판정 |
+| AC2/3 Core/Grid/Chart·재진입 | V2/V3/V4 | hierarchy 변환과 기존 `milestone-visibility.spec.ts`/persistence·peer/scale/filter oracle | 같은 source의 settle·native DOM/instance, 전체5폭 조합은 실제 실행분만 PASS |
+| AC4 명시 dashboard/상세 | V6 | 기존 Milestone Dashboard/Editor의 exact-ID gateway와 변환 성공 action | 자동 이동0·필터/동명/소속0 오대상0, marker ON 승인과 무관 |
+| AC6 무손실 | V8 | 기존 #553 교환·JSON/Excel/Copy/Template 및 완료/관계 guard KEEP_UNIQUE | 기능 미변경과 실제 재실행을 구분; #860의 부분 검증으로 Export 전체 PASS 금지 |
+| 간접 경계 | V5/V7 | 기존 inline·날짜축 Coordinator 고유 검사 보존 | #860 직접 수정 아님, 새 Head 전체 CI·#574 통합 QA는 별도 |
+
+최신 main의 최초 실제 변환 fixture는 Core/Grid/Chart0으로 PASS했고 사용자 행 잔류는 재현되지 않았다. 보고를 폐기하지 않고 peer/config/응답 경합과 운영 source/mode 확인을 분리한다. 정확 source와 최종 로컬 결과·미검증은 [Work Packet](exec-plans/active/ISSUE_860.md)과 [원장](ISSUE_860_FAILURE_ANALYSIS.md)에 연결한다. Required3/Trusted/Owner/Manager·#574 통합 최종 수용은 NOT TESTED이며 #573/#693 선택 marker ON과 기존 #553 원본 증거는 변경하지 않는다.

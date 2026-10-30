@@ -1,3 +1,14 @@
+## [0.138.4] — Unreleased / Issue #860 Milestone 변환 확인·관리 경로 (2026-10-30)
+
+### Fixed
+
+- Grid/Chart의 `Convert to → Milestone`에 이름·기간0·표시 영향 확인과 취소/초점 복원을 추가하고, 확정 성공 후 같은 ID의 Milestone 상세를 여는 명시적 Dashboard 동작을 제공한다. 클릭 전 자동 탭/날짜 이동은 없다. 기존 변환 권한·If-Match·canonical 재조회·legacy 표시 계약을 유지한다.
+- 같은 ID의 실제 Core/Grid/Chart 표시·peer 재진입과 중복/실패·필터/동명 상세 회귀를 기존 테스트에서 보강한다. 원래 사용자 잔류는 baseline 실제 HTTP/SQLite fixture에서 재현되지 않아 원인/운영 해소를 단정하지 않는다. [#860 Work Packet](docs/exec-plans/active/ISSUE_860.md), [원장](docs/ISSUE_860_FAILURE_ANALYSIS.md)을 따른다.
+
+### 검증·릴리스 경계
+
+- 후보 PATCH0.138.4, release_required=true/release_authorized=false. 승인 범위는 PR Full CI 시작까지이며 Quality/E2E8/Docker·Trusted/Owner/Manager 최종 수용은 별도 NOT TESTED다. 병합·Main/GHCR·정식 게시·Issue 종료는 수행하지 않는다.
+
 ## [0.138.3] — Unreleased / Issue #857 · Issue #854 정식 GHCR 후속 릴리스 (2026-10-30)
 
 ### Release

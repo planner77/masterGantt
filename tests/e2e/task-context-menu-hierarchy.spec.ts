@@ -54,11 +54,29 @@ async function chooseSubmenu(
       candidate.request().method() === "POST" &&
       new URL(candidate.url()).pathname.endsWith("/task-commands"),
     ),
-    action.click(),
+    (async () => {
+      await action.click();
+      if (parent === "Convert to" && item === "Milestone") {
+        await page.getByRole("dialog", { name: "Milestone으로 변경", exact: true }).getByRole("button", { name: "Milestone으로 변경", exact: true }).click();
+      }
+    })(),
   ]);
   expect(response.ok(), `task command ${parent} > ${item}: HTTP ${response.status()}`).toBe(true);
   await expect(root).toHaveCount(0);
   return await response.json() as TaskMutationResponse;
+}
+
+async function expectMilestoneExcluded(page: import("@playwright/test").Page, taskId: string) {
+  const frame = page.locator(".project-gantt-frame");
+  await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${taskId}"]`)).toHaveCount(0);
+  await expect(frame.locator(`.wx-chart .wx-bar[data-task-id=":${taskId}"]`)).toHaveCount(0);
+  await expect.poll(() => frame.evaluate((node, id) => {
+    const state = Reflect.get(node, "__masterganttMilestoneTimeline").read();
+    return {
+      visible: state.rows.some((task: { id: string | number }) => String(task.id) === id),
+      selected: state.selected.includes(id),
+    };
+  }, taskId)).toEqual({ visible: false, selected: false });
 }
 
 async function chooseCommand(
@@ -453,7 +471,7 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
   await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveAttribute("data-copy-selected", "true");
   const milestoneSnapshot = await chooseSubmenu(page, "Convert to", "Milestone");
   expect(milestoneSnapshot.data.tasks.find((task) => task.taskId === headerLeaf!.taskId)?.type).toBe("milestone");
-  await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveCount(0);
+  await expectMilestoneExcluded(page, headerLeaf!.taskId);
   const rejected = await page.request.post(`${api}/tasks`, {
     headers: { Origin: origin, "If-Match": `"${milestoneSnapshot.data.project.revision}"` },
     data: { name: "Forbidden milestone child", type: "task", parentTaskId: headerLeaf!.taskId, start: "2026-09-18", duration: 1, progress: 0 },
@@ -467,9 +485,12 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
   await expect(scopeTab).toHaveAttribute("aria-selected", "true");
 
+  // The success notice reserves normal-flow viewport space. Dismiss it before
+  // asserting unrelated low rows are rendered rather than virtualized below it.
+  await page.getByTestId("milestone-conversion-notice").getByRole("button", { name: "변경 안내 닫기", exact: true }).click();
   await allTab.click();
   await expect(allTab).toHaveAttribute("aria-pressed", "true");
-  await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveCount(0);
+  await expectMilestoneExcluded(page, headerLeaf!.taskId);
   for (const taskId of [keyboardLeaf!.taskId, nativeLeaf!.taskId, emptySummary!.taskId, summaryChild!.taskId, convertedChild!.taskId]) {
     await expect(rowByTaskId(page, taskId)).toBeVisible();
   }
@@ -848,6 +869,8 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   await expect(row(page, "Beta")).toHaveCount(1); // Only the separately copied Task remains visible.
 
   const convertedMilestone = milestone.data.tasks.find(task => task.name === "Beta")!;
+  await expectMilestoneExcluded(page, convertedMilestone.taskId);
+  await test.info().attach("issue-860-baseline-display", { contentType: "application/json", body: JSON.stringify(await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read())) });
   await openWorkspaceView(page, "milestones");
   await page.locator("#project-panel-milestones").getByLabel("Milestone 검색", { exact: true }).fill(convertedMilestone.taskId);
   await page.locator(`[data-milestone-task-id="${convertedMilestone.taskId}"]`).getByRole("button", { name: / 관리$/ }).click();
@@ -873,4 +896,236 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   expect(persisted.data.tasks.filter((task) => task.name === "Beta")).toHaveLength(2);
   expect(persisted.data.tasks.find((task) => task.name === "Gamma")!.parentExternalId).toBeNull();
   expect(persisted.data.tasks.some((task) => task.name === "새 작업")).toBe(true);
+});
+
+test("Issue #860 confirms before conversion and opens the same Milestone only on explicit request", async ({ page }) => {
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Milestone confirmation ${Date.now()}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("M860Pwd!");
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
+  const path = new URL(page.url()).pathname, api = `/api${path}`, origin = new URL(page.url()).origin;
+  const initial = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  const created = await createRootTask(page, api, origin, initial.data.project.revision, "Convert exact ID " + "긴이름".repeat(24));
+  const task = created.data.tasks.find(task => task.name.startsWith("Convert exact ID "))!;
+  const withDuplicate = await createRootTask(page, api, origin, created.data.project.revision, task.name);
+  const duplicate = withDuplicate.data.tasks.find(entry => entry.taskId !== task.taskId && entry.name === task.name)!;
+  await page.reload();
+  await expect(rowByTaskId(page, task.taskId)).toBeVisible();
+  const frame = page.locator(".project-gantt-frame"), instance = await frame.getAttribute("data-project-gantt-api-instance");
+  await openWorkspaceView(page, "milestones");
+  const dashboard = page.locator("#project-panel-milestones"), dashboardSearch = dashboard.getByLabel("Milestone 검색", { exact: true });
+  await dashboardSearch.fill("unmatched-dashboard-filter");
+  await openWorkspaceView(page, "schedule");
+  const posts: string[] = [];
+  page.on("request", request => { if (request.method() === "POST" && new URL(request.url()).pathname.endsWith("/task-commands")) posts.push(request.postData() ?? ""); });
+  const openConfirmation = async (chart = false) => {
+    if (chart) {
+      const bar = frame.locator(`.wx-chart .wx-bar[data-task-id=":${task.taskId}"]`);
+      await bar.scrollIntoViewIfNeeded(); await bar.click({ button: "right" });
+      await expect(menu(page)).toBeVisible();
+    } else await openMenuByTaskId(page, task.taskId);
+    await menu(page).getByRole("menuitem", { name: "Convert to", exact: true }).hover();
+    await page.getByRole("menu", { name: "Convert to", exact: true }).getByRole("menuitem", { name: "Milestone", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Milestone으로 변경", exact: true });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(task.name);
+    await expect(dialog).toContainText("Grid와 Chart에서 숨겨지며 대시보드 → Milestone");
+    await expect(dialog).toContainText("기간은 0일");
+    await expect(dialog.getByRole("button", { name: "취소", exact: true })).toBeFocused();
+    return dialog;
+  };
+  let dialog = await openConfirmation();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: "output/playwright/issue-860/confirmation-390.png" });
+  expect(await dialog.evaluate(node => { const box = node.getBoundingClientRect(); return box.left >= 0 && box.right <= innerWidth && box.top >= 0 && box.bottom <= innerHeight; })).toBe(true);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.keyboard.press("Tab");
+  await expect(dialog.getByRole("button", { name: "Milestone으로 변경", exact: true })).toBeFocused();
+  await page.keyboard.press("Shift+Tab"); await page.keyboard.press(" ");
+  await expect(dialog).toHaveCount(0);
+  expect(posts).toEqual([]);
+  expect((await (await page.request.get(api)).json() as ProjectSnapshotResponse).data.project.revision).toBe(withDuplicate.data.project.revision);
+  expect(await page.evaluate(id => document.activeElement?.closest(".wx-row")?.getAttribute("data-id") === `:${id}`, task.taskId)).toBe(true);
+  dialog = await openConfirmation(true);
+  await page.keyboard.press("Escape"); await expect(dialog).toHaveCount(0);
+  expect(posts).toEqual([]);
+  expect(await page.evaluate(id => document.activeElement?.closest(".wx-bar")?.getAttribute("data-task-id") === `:${id}`, task.taskId)).toBe(true);
+  const before = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
+  let release!: () => void;
+  const responseGate = new Promise<void>(resolve => { release = resolve; });
+  await page.route(`**${api}/task-commands`, async route => {
+    const response = await route.fetch();
+    await responseGate;
+    await route.fulfill({ response });
+  });
+  dialog = await openConfirmation();
+  await dialog.getByRole("button", { name: "Milestone으로 변경", exact: true }).press("Enter");
+  await expect(dialog.getByRole("button", { name: "변경 중…", exact: true })).toBeDisabled();
+  await expect(dialog.getByRole("button", { name: "취소", exact: true })).toBeDisabled();
+  await page.keyboard.press("Enter"); await page.keyboard.press("Escape");
+  await expect(dialog).toBeVisible();
+  expect(posts).toHaveLength(1);
+  expect(JSON.parse(posts[0])).toEqual({ kind: "convert", taskId: task.taskId, targetType: "milestone" });
+  release(); await expect(dialog).toHaveCount(0);
+  const notice = page.getByTestId("milestone-conversion-notice");
+  await expect.poll(() => page.evaluate(() => {
+    const active = document.activeElement;
+    return active instanceof HTMLElement && active !== document.body && active.getClientRects().length > 0 && !active.closest("[inert],[hidden]");
+  })).toBe(true);
+  await expect(notice).toContainText("Milestone으로 변경했습니다");
+  await expect(page.getByRole("tablist", { name: "프로젝트 작업공간" }).getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expectMilestoneExcluded(page, task.taskId);
+  await expect(rowByTaskId(page, duplicate.taskId)).toBeVisible();
+  const saved = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  expect(saved.data.project.revision).toBe(withDuplicate.data.project.revision + 1);
+  const converted = saved.data.tasks.find(entry => entry.taskId === task.taskId)!;
+  expect(converted).toMatchObject({ taskId: task.taskId, externalId: task.externalId, parentExternalId: task.parentExternalId, siblingOrder: task.siblingOrder, type: "milestone", duration: 0 });
+  expect(converted.membership).toEqual(task.membership);
+  expect(saved.data.tasks.find(entry => entry.taskId === duplicate.taskId)).toEqual(duplicate);
+  const after = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
+  expect(after.instance).toBe(before.instance); expect(after.left).toBe(before.left); expect(after.top).toBe(before.top);
+  await page.screenshot({ path: "output/playwright/issue-860/conversion-success.png" });
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const search = page.getByLabel("작업명, 설명, External ID 검색", { exact: true });
+    await search.focus();
+    for (let step = 0; step < 8; step++) {
+      await page.keyboard.press("Tab");
+      await expect.poll(() => page.evaluate(() => {
+        const active = document.activeElement;
+        if (!(active instanceof HTMLElement) || active === document.body) return false;
+        const rect = active.getBoundingClientRect();
+        const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+        return rect.width > 0 && rect.height > 0 && Boolean(hit && active.contains(hit));
+      })).toBe(true);
+    }
+    await notice.getByRole("button", { name: "Milestone 대시보드에서 보기", exact: true }).focus();
+    expect(await notice.evaluate(node => {
+      const action = node.querySelector("button")!, rect = action.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+      return Boolean(hit && action.contains(hit));
+    })).toBe(true);
+    if (width === 390) await page.screenshot({ path: "output/playwright/issue-860/conversion-success-390.png" });
+  }
+  await notice.getByRole("button", { name: "Milestone 대시보드에서 보기", exact: true }).click();
+  const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await expect(editor.getByRole("textbox", { name: "작업명", exact: true })).toHaveValue(task.name);
+  await editor.getByText(`${task.name} 식별 정보`, { exact: true }).click();
+  await expect(editor).toContainText(task.taskId);
+  await page.screenshot({ path: "output/playwright/issue-860/conversion-detail.png" });
+  await page.keyboard.press("Escape");
+  await expect(dashboardSearch).toHaveValue("unmatched-dashboard-filter");
+  await openWorkspaceView(page, "resources"); await openWorkspaceView(page, "schedule");
+  await expectMilestoneExcluded(page, task.taskId);
+  await expect(frame).toHaveAttribute("data-project-gantt-api-instance", instance!);
+  await page.reload(); await expect(rowByTaskId(page, duplicate.taskId)).toBeVisible(); await expectMilestoneExcluded(page, task.taskId);
+  expect((await (await page.request.get(api)).json() as ProjectSnapshotResponse).data.tasks.find(entry => entry.taskId === task.taskId)?.type).toBe("milestone");
+});
+
+
+test("Issue #860 conversion failures never claim success or submit twice", async ({ page }) => {
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Milestone negatives ${Date.now()}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("M860Pwd!");
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
+  const api = `/api${new URL(page.url()).pathname}`, origin = new URL(page.url()).origin;
+  const initial = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  const created = await createRootTask(page, api, origin, initial.data.project.revision, "Preserve on failure");
+  const task = created.data.tasks.find(task => task.name === "Preserve on failure")!;
+  await page.reload();
+  const frame = page.locator(".project-gantt-frame"), instance = await frame.getAttribute("data-project-gantt-api-instance");
+  let posts = 0;
+  for (const failure of [409, 412, 422, 500, "network", 401] as const) {
+    await page.route(`**${api}/task-commands`, async route => {
+      posts++;
+      if (failure === "network") await route.abort("connectionfailed");
+      else await route.fulfill({ status: failure, json: { error: { code: failure === 412 ? "REVISION_CONFLICT" : failure === 401 ? "UNAUTHORIZED" : "INVALID_TASK_COMMAND", message: `Controlled ${failure}` } } });
+    });
+    await openMenuByTaskId(page, task.taskId);
+    await menu(page).getByRole("menuitem", { name: "Convert to", exact: true }).hover();
+    await page.getByRole("menu", { name: "Convert to", exact: true }).getByRole("menuitem", { name: "Milestone", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Milestone으로 변경", exact: true });
+    await dialog.getByRole("button", { name: "Milestone으로 변경", exact: true }).click();
+    await expect(dialog.getByRole("alert").filter({ hasText: "자동으로 다시 보내지 않습니다" })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Milestone으로 변경", exact: true })).toBeDisabled();
+    const submitted = posts;
+    await page.keyboard.press("Enter");
+    expect(posts).toBe(submitted);
+    await expect(page.getByTestId("milestone-conversion-notice")).toHaveCount(0);
+    await dialog.getByRole("button", { name: "취소", exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(rowByTaskId(page, task.taskId)).toBeVisible();
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", instance!);
+    const current = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+    expect(current.data.project.revision).toBe(created.data.project.revision);
+    expect(current.data.tasks.find(entry => entry.taskId === task.taskId)).toEqual(task);
+    await page.unroute(`**${api}/task-commands`);
+  }
+  expect(posts).toBe(6);
+});
+
+test("Issue #860 converted Milestone stays excluded after fullscreen density and five-width Day/Week reentry", async ({ page }) => {
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Milestone geometry ${Date.now()}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("M860Pwd!");
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
+  const api = `/api${new URL(page.url()).pathname}`, origin = new URL(page.url()).origin;
+  const initial = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  const created = await createRootTask(page, api, origin, initial.data.project.revision, "Geometry milestone");
+  const task = created.data.tasks.find(task => task.name === "Geometry milestone")!;
+  const ordinary = await createRootTask(page, api, origin, created.data.project.revision, "Geometry ordinary");
+  const ordinaryTask = ordinary.data.tasks.find(task => task.name === "Geometry ordinary")!;
+  await page.reload(); await expect(rowByTaskId(page, task.taskId)).toBeVisible();
+  const frame = page.locator(".project-gantt-frame"), instance = await frame.getAttribute("data-project-gantt-api-instance");
+  await frame.getByRole("button", { name: "Gantt 전체 화면", exact: true }).click();
+  await expect.poll(() => frame.evaluate(node => document.fullscreenElement === node)).toBe(true);
+  await openMenuByTaskId(page, task.taskId);
+  await menu(page).getByRole("menuitem", { name: "Convert to", exact: true }).hover();
+  await page.getByRole("menu", { name: "Convert to", exact: true }).getByRole("menuitem", { name: "Milestone", exact: true }).click();
+  const confirm = page.getByRole("dialog", { name: "Milestone으로 변경", exact: true });
+  await expect(confirm.getByRole("button", { name: "취소", exact: true })).toBeFocused();
+  await page.keyboard.press("Escape"); await expect(confirm).toHaveCount(0);
+  await expect.poll(() => frame.evaluate(node => document.fullscreenElement === node)).toBe(true);
+  await openMenuByTaskId(page, task.taskId);
+  const converted = await chooseSubmenu(page, "Convert to", "Milestone");
+  await expectMilestoneExcluded(page, task.taskId);
+  const notice = page.getByTestId("milestone-conversion-notice");
+  await expect(notice).toBeVisible();
+  expect(await notice.evaluate(node => document.fullscreenElement?.contains(node))).toBe(true);
+  await notice.getByRole("button", { name: "변경 안내 닫기", exact: true }).click();
+  await frame.getByRole("button", { name: "Gantt 전체 화면 종료", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
+  const geometry: unknown[] = [];
+  for (const width of [390, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 1000 });
+    for (const scale of ["일", "주"]) {
+      await frame.getByRole("button", { name: scale, exact: true }).click();
+      await expectMilestoneExcluded(page, task.taskId);
+      await expect.poll(() => frame.evaluate((node, id) => {
+        const row = node.querySelector(`.wx-table-container .wx-row[data-id=":${id}"]`)?.getBoundingClientRect();
+        const bar = node.querySelector(`.wx-chart .wx-bar[data-task-id=":${id}"]`)?.getBoundingClientRect();
+        return row && bar ? Math.abs(row.y + row.height / 2 - bar.y - bar.height / 2) : null;
+      }, ordinaryTask.taskId)).toBeLessThanOrEqual(1);
+      geometry.push({ width, scale, state: await frame.evaluate(node => {
+        const state = Reflect.get(node, "__masterganttMilestoneTimeline").read();
+        return { instance: state.instance, rows: state.rows.map((row: { id: string }) => row.id), selected: state.selected };
+      }) });
+    }
+  }
+  await rowByTaskId(page, ordinaryTask.taskId).hover();
+  const height = await frame.getAttribute("data-gantt-cell-height");
+  await page.keyboard.down("Control"); await page.mouse.wheel(0, 120); await page.keyboard.up("Control");
+  await expect(frame).not.toHaveAttribute("data-gantt-cell-height", height!);
+  await expectMilestoneExcluded(page, task.taskId);
+  const search = page.getByLabel("작업명, 설명, External ID 검색", { exact: true });
+  await search.fill("no-such-row"); await expect(frame.locator(".wx-table-container .wx-row[data-id]")).toHaveCount(0);
+  await search.fill(""); await expect(rowByTaskId(page, ordinaryTask.taskId)).toBeVisible(); await expectMilestoneExcluded(page, task.taskId);
+  await openWorkspaceView(page, "resources"); await openWorkspaceView(page, "schedule"); await expectMilestoneExcluded(page, task.taskId);
+  await expect(frame).toHaveAttribute("data-project-gantt-api-instance", instance!);
+  const persisted = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  expect(persisted.data.project.revision).toBe(converted.data.project.revision);
+  await test.info().attach("issue-860-conversion-reentry", { contentType: "application/json", body: JSON.stringify({ environment: "Chromium / Next dev / isolated real HTTP SQLite", revision: persisted.data.project.revision, taskId: task.taskId, ordinaryTaskId: ordinaryTask.taskId, geometry }) });
 });

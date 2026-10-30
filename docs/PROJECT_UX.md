@@ -1783,3 +1783,12 @@ KPI 진단에서 공정·WorkArea→owner 공정·설비·물류 시스템 원�
 프로젝트 상위 탭은 일정 / **Issue** / 대시보드 / 기준정보다. Issue는 일정/Gantt의 새 Task 유형이 아니라 프로젝트별 독립 문제 원장이다. 생성/상세 편집과 필터·페이지·조회 결과는 Issue 탭 자체가 소유한다. 다른 탭으로 이동해도 기존 Gantt instance와 뷰포트 상태를 보존한다.
 
 Issue 탭: 삭제되지 않은 전체 Issue 총건수·완료/진행 중/등록 건수·비율(필터/페이지와 독립), 제목·내용·등록자·담당자·Task 문자열 검색, 상태 필터 기본 미완료(등록+진행 중) / 전체 / 등록 / 진행 중 / 완료(삭제 옵션 없음), 최신순 Issue명/상태/담당자/발생일/완료일 5열 목록, 10/20/50/100 페이지 크기. 검색 조건/limit 변경 시 페이지=1. #849: 신규/수정 상태 선택(등록 기본), 완료일은 완료 상태에서만 요구한다. #846: 관련 Task는 Issue 내용보다 위, 별도 링크 미리보기 없음. 신규 등록 시 비밀번호+확인/프로젝트 편집 세션, 보호된 Issue 변경·삭제 시 개별 비밀번호 확인; 레거시 무비밀번호 Issue는 관리자 명시적 초기 설정/재설정 경로 제공. 삭제 confirmation·readonly/pending/error·412/429·Escape/Tab/focus restore, 멀티라인·Task 검색 유지. Gantt 내용·선택·scroll은 변경하지 않는다. [Issue 가이드](PROJECT_ISSUES_USER_GUIDE.md).
+
+
+## Issue #860 — Task를 Milestone으로 변경
+
+Grid 행과 Chart Bar의 같은 `Convert to → Milestone` 명령은 서버 요청 전에 기존 확인 dialog를 연다. 대상 이름·기간0·운영 기본 모드의 일정 Grid/Chart 숨김과 `대시보드 → Milestone` 관리 경로를 안내한다. 확인 전 POST/revision 변경은 없고 취소·Escape는 원 trigger focus를 복원한다. readonly/linked/non-leaf·dirty/pending/변환 불가 제약은 기존 규칙을 유지하며 확인 시점의 Project/Task/revision과 잠금을 재검사한다. 저장 중 중복 요청·취소를 막고 기존 Origin/session/If-Match·task-command gateway로만 변환한다.
+
+확정 canonical의 같은 ID가 Milestone이면 공개 projection/filter로 native Core visible rows·Grid 행·Chart Bar/숨은 선택을 함께 제외한다. legacy emergency mode는 기존 native M 표시를 유지한다. API success와 실제 DOM 정착은 별도 검증하며 무조건 remount·CSS-only 숨김·private Store/DOM patch를 사용하지 않는다. 나머지 Task/Summary의 순서·계층/파생 결과, 일반 관계·열·scale/scroll 및 Gantt instance를 보존한다.
+
+성공 후 `Milestone으로 변경했습니다`와 `Milestone 대시보드에서 보기`를 표시한다. 클릭 전 자동 이동은 없으며 클릭 시 현재 canonical의 같은 ID/type을 확인해 기존 Milestone Editor로 연결한다. 동명/소속0·검색/날짜 조건으로 목록에 없어도 첫 검색 결과로 대체하지 않는다. 목록 조건 유지와 상세 확인/조건 변경 안내를 구분한다. 실패·401/409/412/422/500·통신 불확실은 성공으로 표시하거나 자동 재전송하지 않고 기존 canonical 재조회·복구를 따른다. 서버 날짜/소속/관계 제약을 우회하지 않는다. [검증/미검증·원장](exec-plans/active/ISSUE_860.md).

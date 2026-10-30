@@ -1,0 +1,59 @@
+{
+  "sourceHashChangesAfterBothRuns": [],
+  "sourceFreeze": "source-freeze.json",
+  "finalBounded": {
+    "result": "PASS",
+    "cases": 7,
+    "total": "3.5m",
+    "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/task-context-menu-hierarchy.spec.ts tests/e2e/project-task-context-menu.spec.ts --project=chromium --grep 'Issue #860|Issue #407/#418|Issue #72 hierarchy commands persist across reload|Issue #390 Copy ID copies canonical|Issue #72 Context Menu hierarchy commands persist' --retries=0 --max-failures=0",
+    "environment": "Chromium / Next dev / Core2.7.3 / isolated real HTTP+SQLite / default browser timezone"
+  },
+  "legacySmoke": {
+    "result": "PASS",
+    "cases": 1,
+    "bodySeconds": 4.5,
+    "totalSeconds": 7.8,
+    "environment": "NEXT_PUBLIC_GANTT_WBS_MODE=legacy / Next dev / Chromium / mocked HTTP fixture; incidental unmatchedKPI404 not scenariofailure",
+    "command": "NEXT_PUBLIC_GANTT_WBS_MODE=legacy npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-wbs-mode.spec.ts --project=chromium --retries=0 --max-failures=0"
+  },
+  "finalCoreSnapshot": {
+    "canonicalTaskCount": 6,
+    "coreTaskCount": 6,
+    "visibleCoreCount": 5,
+    "hiddenCanonicalIds": [
+      "cffe3afe-b348-46c7-aea7-bc0e17c9c82c"
+    ],
+    "selected": [],
+    "appSelection": [],
+    "instance": "svar-api-1"
+  },
+  "matrix": {
+    "revision": 4,
+    "convertedTaskId": "582538f9-5446-42af-b6a6-a0a2299cd5ce",
+    "ordinaryTaskId": "f7df1485-2940-4f8f-adc5-f233c6d92a5f",
+    "widths": [
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ],
+    "scales": [
+      "day",
+      "week"
+    ],
+    "cases": 10,
+    "ordinaryYAlignment": "nativeGrid/nativeChart <=1px each of10, asserted",
+    "convertedNativeGridCount": 0,
+    "convertedNativeChartBarCount": 0,
+    "afterDensitySearchPeer": "native/core M0; revision unchanged after viewonlyactions; same svar-api-1"
+  },
+  "remainingNotTested": [
+    "original user deployment and exact deployedSHA/environment",
+    "server committed but response lost recovery; route.abort here before server write",
+    "separate browser tab revision race during confirmation/explicit-action fullscreen await",
+    "explicit Grid-only/Chart-only split and columnresize postconversion",
+    "manual UX/screenreader/native device zoom",
+    "remote Quality/E2E8/Docker/Trusted/Owner acceptance"
+  ]
+}
