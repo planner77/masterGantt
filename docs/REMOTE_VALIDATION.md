@@ -1,3 +1,14 @@
+## Issue #790 — focused cache audit and Full PR source separation (2026-10-31)
+
+- New source: Main 0.138.5/SHA `3c73737968dfdbd6817657f3a17bed07c209a528`, new branch `ci/issue-790-cache-audit-current-main`. Exact PR/Head/Base/Test-Merge, Run ID/Attempt and live implementation Job conclusions are required; old PR #791 at 0.130.2 is NOT TESTED for current Main.
+- Local smoke: Node22 `node scripts/compare-ci-setup-metrics.mjs` with both trusted `analysis.json` samples; test explicit PR job rename (Docker `docker_smoke`→`pr_docker_smoke`), same-job positive that remains `REVIEW_REQUIRED` until independent provenance/workload audit, missing/invalid run data, duplicate metric groups, invalid runner-minutes, event/workflow mismatch and incomplete scope. Also run Vitest `tests/scripts/ci-cache-phase2.test.ts` and existing provenance/readiness/cache contract suites. Do not claim successful execution until observed.
+- Full PR includes Required Quality/Chromium E2E8/Docker, QA Automated/Trusted and Owner Managed ACCEPT after review threads0; no skip/timeout/gate weakening. Main and temporary OCI digest/Finalizer apply only to Primary #790, with `release_required=false` unless changed by explicit Owner decision. Do not close #444 from the same PR.
+- [Latest readiness 41149264718](https://github.com/planner77/masterGantt/actions/runs/41149264718) is COLLECTING (PR 14/19, min5/10; Main20/10; Release25/10). Candidate adoption, Main Docker cost regression attribution and cache miss/stale/secret audit remain UNVERIFIED and are tracked in [#444](https://github.com/planner77/masterGantt/issues/444).
+
+[Plan](exec-plans/active/ISSUE_790.md) · [Test evidence](CI_CACHE_PHASE2_EVIDENCE_444.md) · [Failure ledger](ISSUE_790_FAILURE_ANALYSIS.md).
+
+---
+
 ## Issue #836 — 원격 OCI Source/Build/Runtime 증거 검증 (2026-10-28)
 
 - Owner 지시로 `PR_IMAGE_REUSE_ENABLED` 미설정/true = 기본 ON, false = SHADOW/rollback. Full #3348.1의 Docker Version 누락과 E2E shard6 ECONNRESET 직접 FAIL을 새 Head 결과와 구분하며 교정 CI는 여전히 `NOT TESTED`. Full #3365.1의 BuildKit statement 문제는 다음 Run에서 해소되었으며, #3377.1 Docker `OCI archive config differs from tested Docker image`가 새 직접 실패로 확인됐다. OCI 원본 config SHA와 skopeo 전송 config SHA는 일치했고 runtime ID만 달라 이를 통과로 임의 처리하지 않는다. 새 `ci-image-runtime-verification.json`의 RootFS diffIDs+runtime fields 비교, 기존 HTTP(S)/SQLite/Compose, 원본 index/config/archive digest 보존이 모두 성공해야 한다. 정확 PR/latest HEAD/BASE/TestMerge, CI Run/Attempt, 3 Required + PR 실제 Docker 구현 Job SUCCESS 및 두 `ci-oci-pr`/`ci-pr-build-contract` artifact의 SHA256/OCI index/child/config/attestation subject를 확인한다. PR source/event receipt만으로 Merge/Trusted/Owner 권한 발생하지 않는다.
