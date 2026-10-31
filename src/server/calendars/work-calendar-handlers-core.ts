@@ -70,7 +70,7 @@ function mapped(error:unknown):unknown {
   if(error instanceof WorkCalendarProjectNotFoundError) return new PublicApiError(404,"PROJECT_NOT_FOUND","Project not found.");
   if(error instanceof WorkCalendarInvalidInputError) return new PublicApiError(400,"INVALID_WORK_CALENDAR","Work calendar input is invalid.");
   if(error instanceof WorkCalendarCountryUnavailableError) return new PublicApiError(
-    422,"COUNTRY_CALENDAR_UNAVAILABLE","Country calendar data is unavailable for the requested year.",
+    422,"COUNTRY_CALENDAR_UNAVAILABLE",`${error.countryCode} ${error.year} 공식 국가 캘린더 데이터가 등록되어 있지 않습니다.`,
     [{path:"countryRules",code:"COUNTRY_CALENDAR_UNAVAILABLE",message:`${error.countryCode} ${error.year}`}],
   );
   if(error instanceof WorkCalendarConflictError) return new PublicApiError(
@@ -135,7 +135,7 @@ export async function handlePreviewProjectWorkCalendar(request:Request,publicId:
     const expected=parseRequiredIfMatch(request);
     if(authorization.projectRevision!==expected) throw new WorkCalendarRevisionMismatchError();
     const input=await readBoundedJson(request) as ReplaceProjectWorkCalendarRequest;
-    const result=calendarService(deps).preview(publicId,input);
+    const result=calendarService(deps).preview(publicId,input,authorization,expected);
     if(result.data.projectRevision!==expected) throw new WorkCalendarRevisionMismatchError();
     return json(result,200,result.data.projectRevision);
   } catch(error) { return fail(error,requestId); }

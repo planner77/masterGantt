@@ -1602,3 +1602,26 @@ main `d2a82b66`/app0.130.0 기준 #623 분할 및 #463 팝업의0.5px native scr
 기준 main `8d6d3ba7a47e6df08c509baad6eedcc2adee1407`/0.138.4/Core2.7.3에서 `test/issue-507-574-gantt-acceptance`를 만들었다. #507은 실제 세로 wheel 계측·최소 Core 비교 후 근거 있는 observer 보완, #574는 기존 marker-OFF V1~V8 assertion의 clipboard·filter0/최신 명시 선택·일반 inline401 공백 보강을 수행한다. #852/#860은 배포 기준선, #573/#693 ON은 비차단이다.
 
 [Primary Work Packet](ISSUE_507.md)·[Related Packet](ISSUE_574.md)·[단일 원장](../../ISSUE_507_FAILURE_ANALYSIS.md)에 분리 Agent의 역할·source별 실행·문서·남은 범위를 기록한다. HIGH/OWNER_MANAGED/qa_required=true; 에이전트 사전 검토는 Trusted QA·Owner 위험 수용·Manager ACCEPT 대체가 아니다. 사용자 종료점은 리뷰/충돌 처리와 원장 기록 후 하나의 Ready PR Full CI 시작이다. CI 모니터링·병합·Main/GHCR·정식 릴리스·Issue 종료는 범위 밖이며 원격 최종 gate는 NOT TESTED다.
+
+
+## Issue #342 — 최신 main 국가 Calendar Catalog 재구성 (2026-10-31)
+
+main ce8ca4ec /0.138.5에서 MINOR0.139.0으로84슬롯·공식자료·관리자JSON/CSV Preview→원자Apply·CRUD를 새PR로 구성한다. 기존PR346 직접병합은 금지하며 미해결6개리뷰와 전체과거실패를 [Work Packet](ISSUE_342.md)·[누적 실패 원장](../../ISSUE_342_FAILURE_ANALYSIS.md)에 보존한다. HIGH/AGENT, release_required=true/release_authorized=false. 승인범위는 구현·문서·리뷰/충돌정리 후Full PR CI 시작이며Required3/Trusted/QA_FINAL/Manager ACCEPT는NOT TESTED다.
+
+### Issue #342 — PR864 첫 Preflight 실패 보완 (2026-10-31)
+
+Full3455.1의직접실패는PR본문 `qa_required` 선언누락이다. PATH_POLICY/집계/Trusted는파생,제품검증은NOT RUN이다. 동일제품bytes를유지하고본문에 `qa_required: true`를명시한다. 실제main Preflight 전체를본문교정전후로재생해FAIL2→PASS0을확인하고기존Preflight/FinalQA48개·문서/AC/리뷰/충돌을검사한다. [실패 원장](../../ISSUE_342_FAILURE_ANALYSIS.md)과[Packet](ISSUE_342.md)에전체원격이력과재현·교정·인계를누적한뒤같은PR864의새FullCI시작까지만수행한다. 버전0.139.0·HIGH/AGENT·릴리스미승인·Required3/8shard/보호gate는그대로다.
+
+### Issue #342 — PR864 Full3457 Unit 실행계획 누락 보완 (2026-10-31)
+
+이전qa_required보완후Preflight는PASS했다. 현재Unit의142plan/143실제spec불일치에서새country-calendar-admin명시배치누락을확인했다. 기존142배치를유지해Shard1에1개등록하고exactcoverage/unique/8runner/Required3을보존한다. plan/test2파일과CI_CD/REMOTE_VALIDATION/TEST_PLAN/Packet/실패원장을갱신한다. 실제selector8개·독자parser·발견/전체Vitest·독립검토뒤같은PR새FullCI시작까지만수행하며모니터링하지않는다. 전체PRHIGH/AGENT/qa_requiredtrue·0.139.0·릴리스미승인은유지한다. [Work Packet](ISSUE_342.md)과[누적 원장](../../ISSUE_342_FAILURE_ANALYSIS.md)을따른다.
+
+
+### Issue #342 — PR864 Full3458 관리자 인증 배치 보완 (2026-10-31)
+
+quality/Docker는SUCCESS이고E2EShard1의master인증간격16→56px가직접FAIL이다. 국가링크독립row가원인이므로기존16px계약을유지해heading작업영역으로옮기고기존case를확장한다. 누적13실패파일합집합·직접/간접/음성소비자와별도PRE_QA·문서/리뷰/충돌을확인한뒤같은PR864에단일게시로새FullCI를등록한다. [Packet](ISSUE_342.md)·[단일원장14절](../../ISSUE_342_FAILURE_ANALYSIS.md)에원본/재현/동결검증과취소·미검증을기록한다. HIGH/AGENT·0.139.0·릴리스미승인·Required3/8shard는유지하며CI결과모니터링/병합은범위밖이다.
+
+
+### Issue #342 — PR864 Full3459 진입 focus 경합 보완 (2026-10-31)
+
+이전간격교정은공통auth3개원격PASS로확인됐으나신규country진입helper의focused검사가실패했다. 원본로컬비재현과원격passwordfocus관측을분리하고초기화순서를제어재현해제품/테스트준비계약을판정한다. 기존13파일합집합·nativekeyboard/guard를보존해보완·bounded교차검증·별도PRE_QA·원장/문서·리뷰/충돌을확인한뒤같은PR864에새FullCI를등록한다. [Packet](ISSUE_342.md)·[단일원장15절](../../ISSUE_342_FAILURE_ANALYSIS.md)을따른다. HIGH/AGENT·0.139.0·릴리스미승인·Required3/8shard를유지하며모니터링/병합은범위밖이다.

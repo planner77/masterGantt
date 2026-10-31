@@ -678,3 +678,7 @@ Project Template은 공정 occurrence/선택 WorkArea와 Target/typed members를
 ## Issue #732 — Milestone 전용 관점과 기존 관리 보존
 
 대시보드의 Milestone root 단독·사용자 동적 하위 축을 공통 versioned 조회로 제공하고 기존 추가·편집·소속·관계·전체 Gate·필터·삭제 보호를 보존한다. Target0 직접 연결, selected Task/Assignment와 full Gate 분리, 조건 밖 생성 성공 안내·동일 원본 Editor/복귀, 날짜미정/member0/selected0·미배정·미연결 구분과 marker OFF·조회 mutation0이 요구된다. 기존 단일 effective 소속·Gate/공수 계산 authority는 그대로다. [Work Packet](exec-plans/active/ISSUE_732.md)의 보존표·AC별 실제 증거로 판정한다.
+
+## Issue #342 — 국가 캘린더 관리
+
+KR/CN/VN/PH/TH/MX/US의2026~2037을84개 슬롯으로 관리한다. 검증된 공식 자료만 Scheduling에 사용하고 미확보/부분 자료는 UNAVAILABLE로 유지한다. 관리자 JSON/CSV Preview→전체 연도 원자적 교체와 날짜/출처 CRUD를 제공하며, 수동 날짜 변경은 공식 출처를 무효화한다. 국가 원본 갱신은 기존 Project Calendar/Task/revision을 바꾸지 않는다. 자세한 계약은 [국가 데이터 운영](COUNTRY_CALENDAR_DATA.md) 및 [API](API.md)의 #342 절을 따른다.

@@ -392,3 +392,7 @@ resource-day200000, full Assignment-day1000000, 전체 projection cell5000의 �
 고정 5근무일 fixture의 T1은 A50%와 B100%로7.5 M/D, T2는 A60%로3 M/D, T3는 B20%로1 M/D, T6의 A는 allocation=null이다. T4는 완전 미할당, T5는 Group만 지정이다. 개인 A5.5/B6, Grand11.5이며 G1/G2 중첩 소계17을 Grand로 더하지 않는다. Capacity는 고유 개인×근무일10이고 명시20 M/D 기준에서만0.575 M/M다.
 
 KPI의11.5와 일별 반복 합산 Plan의11.499999999999998, 개인 초과 합1.5000000000000002는 raw 연산 순서 차이다. 통합 테스트는 `toBeCloseTo(..., 14)`로 수치 오차를 검사하며 저장/출력 계산에 반올림을 추가하지 않는다. ID·count·null/state는 정확히 비교한다. 원장은 복사본으로 파생하며 Calendar 우선순위, hidden incomplete member/full predecessor Blocked, 미설정/설정0/empty와150% peak를 별도로 검증한다. 기존 Plan/ISO 기간/예산 회귀를 함께 선택 실행하며 Scheduling mutation 알고리즘은 변경하지 않는다.
+
+## Issue #342 — 국가 자료 갱신 경계
+
+국가 Catalog 수정은 기존 Project의 materialized work_calendar_rules/work_calendar_dates·Task 일정·revision을 자동 수정하지 않는다. 명시적 Project Calendar Preview/Save는 최신 OFFICIAL만 resolver로 가져온다. UNAVAILABLE/SUPERSEDED는 국가/연도를 명시한422이며 Preview 후 catalog 변경은412로 재검토한다. WORKING 보충 근무일과 NON_WORKING 휴일을 보존한다. pure scheduling 알고리즘 및 기존 Resource 우선순위는 그대로이며 Copy/Template는 materialized snapshot 계약을 유지한다.

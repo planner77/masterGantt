@@ -1,3 +1,14 @@
+## [0.139.0] — Unreleased / Issue #342 국가 Calendar Catalog (2026-10-31)
+
+### Added
+
+- 7개 국가×2026~2037 관리 슬롯과 builtin+SQLite override, 관리자 JSON/CSV Preview→원자적 Apply 및 metadata/date CRUD를 추가한다. 공식 검증된 US2027~2030·TH2027을 제공하고 미래 미확보 연도를 추정하지 않는다.
+- VN2026의 공공부문 연초 교환휴무·보충근무와 문화의날 누락3행을 공식 공고에 따라 정정하고 출처 버전을 갱신한다. 기존 Project 일정 자동 갱신 없이 명시적 Calendar Preview/Save에서 최신 공식 원본을 반영한다. session/Origin/strong revision·Preview binding·출처 무효화와 동시 수정 복구를 적용한다.
+
+### 검증·릴리스 경계
+
+- [Work Packet](docs/exec-plans/active/ISSUE_342.md)과 [누적 실패 원장](docs/ISSUE_342_FAILURE_ANALYSIS.md)에 실제 로컬 검증을 기록한다. 최신 main에서 재구성한 새 PR Full CI 시작까지만 수행하며 Required3/Trusted/QA_FINAL·Manager ACCEPT는 NOT TESTED다. release_required=true/release_authorized=false.
+
 ## [0.138.5] — Unreleased / Issue #507 · #574 스크롤 장식 처리·통합 검증 (2026-10-31)
 
 ### Fixed

@@ -6,6 +6,7 @@ import type Database from "better-sqlite3";
 import { afterEach, describe, expect, it } from "vitest";
 import { openDatabase } from "../../../src/server/db/core";
 import { runMigrations } from "../../../src/server/db/migrations";
+import { insertHistoricalPublicProject } from "../../fixtures/legacy-project";
 import { TaskFieldProjectService } from "../../../src/server/projects/task-field-project-service";
 import {
   ProjectIssueService, parseProjectIssueInput, parseProjectIssueQuery,
@@ -407,11 +408,8 @@ describe("#838-#840 project Issue persistence and API", () => {
       }
       const db = openDatabase({ filename: ":memory:", migrationsDirectory: oldDir }).database;
       databases.push(db);
-      const projects = new TaskFieldProjectService(db, { clock, hashPassword });
-      const made = await projects.create({ name: "Legacy Issue Upgrade", description: "",
-        editPassword: "test" });
-      const projectId = (db.prepare("SELECT id FROM projects WHERE public_id = ?")
-        .get(made.response.data.project.publicId) as { id: number }).id;
+      const made = insertHistoricalPublicProject(db, { publicId: randomUUID(), name: "Legacy Issue Upgrade", description: "", passwordKdf: "scrypt", passwordSalt: Buffer.alloc(16, 1), passwordHash: Buffer.alloc(32, 2), scryptN: 32768, scryptR: 8, scryptP: 3, scryptKeyLength: 32, calendarTimezone: "Asia/Seoul", createdAt: now, updatedAt: now });
+      const projectId = made.id;
       const id = randomUUID();
       db.prepare("INSERT INTO project_issues(public_id, project_id, title, occurred_on, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)")
         .run(id, projectId, "0032 원본 유지", "2026-10-28", now, now);
@@ -419,8 +417,8 @@ describe("#838-#840 project Issue persistence and API", () => {
         .get(id);
       const checksum = db.prepare("SELECT checksum FROM schema_migrations WHERE version=32").pluck().get();
       expect(db.prepare("SELECT MAX(version) FROM schema_migrations").pluck().get()).toBe(32);
-      expect(runMigrations(db, migrationsDirectory).applied).toEqual(["0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql"]);
-      expect(db.prepare("SELECT MAX(version) FROM schema_migrations").pluck().get()).toBe(34);
+      expect(runMigrations(db, migrationsDirectory).applied).toEqual(["0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql"]);
+      expect(db.prepare("SELECT MAX(version) FROM schema_migrations").pluck().get()).toBe(35);
       expect(db.prepare("SELECT checksum FROM schema_migrations WHERE version=32").pluck().get()).toBe(checksum);
       expect(db.prepare("SELECT public_id, title, description, completed, completed_on, related_task_text, created_at, updated_at FROM project_issues WHERE public_id=?")
         .get(id)).toEqual(original);
@@ -482,10 +480,8 @@ describe("#838-#840 project Issue persistence and API", () => {
       }
       const filename = join(directory, "legacy.sqlite3");
       const legacy = openDatabase({ filename, migrationsDirectory: directory }).database;
-      const projects = new TaskFieldProjectService(legacy, { clock, hashPassword });
-      const project = await projects.create({ name: "Legacy Issue State", description: "", editPassword: "test" });
-      const projectId = (legacy.prepare("SELECT id FROM projects WHERE public_id=?")
-        .get(project.response.data.project.publicId) as { id: number }).id;
+      const project = insertHistoricalPublicProject(legacy, { publicId: randomUUID(), name: "Legacy Issue State", description: "", passwordKdf: "scrypt", passwordSalt: Buffer.alloc(16, 1), passwordHash: Buffer.alloc(32, 2), scryptN: 32768, scryptR: 8, scryptP: 3, scryptKeyLength: 32, calendarTimezone: "Asia/Seoul", createdAt: now, updatedAt: now });
+      const projectId = project.id;
       const ids = [randomUUID(), randomUUID(), randomUUID()];
       const insert = legacy.prepare("INSERT INTO project_issues (public_id,project_id,title,occurred_on,completed,completed_on,created_at,updated_at) VALUES (?,?,?,'2026-10-28',?,?,?,?)");
       insert.run(ids[0], projectId, "등록", 0, null, now, now);
@@ -498,7 +494,7 @@ describe("#838-#840 project Issue persistence and API", () => {
       legacy.close();
       const upgraded = openDatabase({ filename, migrationsDirectory });
       try {
-        expect(upgraded.migrations.applied).toEqual(["0034_project_issue_business_status.sql"]);
+        expect(upgraded.migrations.applied).toEqual(["0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql"]);
         const db = upgraded.database;
         expect(db.prepare("SELECT checksum FROM schema_migrations WHERE version=33").pluck().get()).toBe(checksum);
         const after = db.prepare("SELECT * FROM project_issues ORDER BY id").all() as Array<Record<string, unknown>>;

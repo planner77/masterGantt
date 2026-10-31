@@ -77,15 +77,17 @@ export interface CountryCalendarDescriptorDto {
   code: WorkCalendarCountryCode;
   name: string;
   supportedYears: number[];
-  sourceVersion: string;
-  sourceUrl: string;
+  sourceVersion: string | null;
+  sourceUrl: string | null;
+  datasets?: import("./country-calendar-admin").CountryCalendarDatasetDto[];
 }
 
 export interface CountryCalendarListResponse {
-  data: { countries: CountryCalendarDescriptorDto[] };
+  data: { countries: CountryCalendarDescriptorDto[]; catalogRevision?: number };
 }
 
 export interface ReplaceProjectWorkCalendarRequest {
+  countryCatalogRevision?: number;
   countryRules: Array<{
     id?: string;
     countryCode: WorkCalendarCountryCode;
@@ -128,6 +130,7 @@ export interface CalendarManualConflictDto {
 
 export interface PreviewProjectWorkCalendarResponse {
   data: {
+    countryCatalogRevision: number;
     projectRevision: number;
     calendar: ProjectWorkCalendarResponse["data"];
     changedTasks: CalendarTaskChangeDto[];

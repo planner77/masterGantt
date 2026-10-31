@@ -46,9 +46,13 @@ test("KR→US 재계산과 저장이 현재 초안을 사용하고 저장 결과
   const saved = await saveResponse;
   expect(saved.status()).toBe(200);
   expect((await saved.request().postDataJSON()).countryRules[0].countryCode).toBe("US");
+  expect((await saved.request().postDataJSON()).countryCatalogRevision).toBe((await response.json()).data.countryCatalogRevision);
   await expect(calendarStatus(dialog)).toHaveText("입력이 변경되었습니다. 미리보기를 다시 계산하세요.");
   await expect(dialog.getByText("적용 날짜 미리보기")).toHaveCount(0);
   await country.selectOption("KR");
+  await expect(dialog.getByRole("button", { name: "작업 캘린더 저장" })).toBeDisabled();
+  await preview.click();
+  await expect(calendarStatus(dialog)).toContainText("미리보기 계산 완료");
   const directSaveResponse = page.waitForResponse((candidate) => candidate.request().method() === "PUT" && new URL(candidate.url()).pathname === `/api/projects/${publicId}/work-calendar`);
   await dialog.getByRole("button", { name: "작업 캘린더 저장" }).click();
   const directSaved = await directSaveResponse;
@@ -70,15 +74,16 @@ test("모든 초안 변경은 결과를 무효화하고 실패·재시도·늦�
   const status = calendarStatus(dialog);
   const original = await (await page.request.get(`/api/projects/${publicId}/work-calendar`)).json();
   const previewBody = {
-    data: { projectRevision: original.data.projectRevision,
+    data: { countryCatalogRevision: 1, projectRevision: original.data.projectRevision,
       calendar: { projectRevision: original.data.projectRevision, rules: original.data.rules, customDates: [], projectDates: [] },
       changedTasks: [], manualConflicts: [], resourceExceptionEffects: [] },
   };
-  let mode: "normal"|"fail"|"malformed"|"hold"|"conflict"|"unauthorized" = "normal";
+  let mode: "normal"|"fail"|"malformed"|"missingCatalog"|"fractionalCatalog"|"hold"|"conflict"|"unauthorized" = "normal";
   let releaseHeld: (()=>void)|undefined;
   await page.route(`**${path}`, async (route) => {
     if(mode==="fail") { await route.fulfill({ status: 500, json: { error: { code: "PREVIEW_ERROR" } } }); return; }
     if(mode==="malformed") { await route.fulfill({ json: { data: null } }); return; }
+    if(mode==="missingCatalog" || mode==="fractionalCatalog") { await route.fulfill({ json: { ...previewBody, data: { ...previewBody.data, countryCatalogRevision: mode==="missingCatalog"?undefined:1.5 } } }); return; }
     if(mode==="conflict") { await route.fulfill({ status: 412, json: { error: { code: "REVISION_MISMATCH" } } }); return; }
     if(mode==="unauthorized") { await route.fulfill({ status: 401, json: { error: { code: "EDIT_SESSION_INVALID" } } }); return; }
     if(mode==="hold") await new Promise<void>((resolve)=>{ releaseHeld=resolve; });
@@ -120,6 +125,10 @@ test("모든 초안 변경은 결과를 무효화하고 실패·재시도·늦�
   mode="malformed";
   await preview.click();
   await expect(status).toContainText("계산하지 못했습니다");
+  for(const invalidMode of ["missingCatalog","fractionalCatalog"] as const) {
+    mode=invalidMode; await preview.click(); await expect(status).toContainText("계산하지 못했습니다");
+    await expect(dialog.getByRole("button", {name:"작업 캘린더 저장"})).toBeDisabled();
+  }
   mode="normal";
   await calculate();
 

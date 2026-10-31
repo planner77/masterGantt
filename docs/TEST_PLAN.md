@@ -5670,3 +5670,57 @@ TEST_LIFECYCLE_REVIEW는 기존 실제 HTTP·SQLite `task-context-menu-hierarchy
 - EXTEND #574: 기존 `task-context-menu-hierarchy.spec.ts`의 실제 #860 확인·취소 mutation0/동일 ID Dashboard/5폭×DayWeek/fullscreen·native M0에 seeded clipboard 보존→변환 뒤 Paste 비활성을 연결한다. `grid-task-start-reveal.spec.ts`에 filter0→최신 명시 선택 우선, `project-gantt-inline-name.spec.ts`에 일반 inline401→readonly/원본 유지/추가쓰기0을 추가한다.
 - KEEP_UNIQUE: V1 unknown outcome·삭제401/412/network, V2 실제 Resource peer-wheel, V5 실제 name-only PATCH·SQLite reload/재시작·IME, V7 Task 없는 미래축3회 증가, V8 실제 JSON/Excel/SVG/PNG/Copy/Template·권한·revision·원자 rollback을 기존 assertion으로 유지한다. 삭제·skip·retry/timeout 증가·Required3/8-shard 완화 없음.
 - AC ↔ 원본 assertion ↔ owner/SC ↔ 환경의 단일 매핑은 [Gantt 정합 표](GANTT_STATE_CONFORMANCE.md); source 지문·명령·실제 결과·실패와 미검증은 [Work Packet](exec-plans/active/ISSUE_507.md)·[단일 실패 원장](ISSUE_507_FAILURE_ANALYSIS.md). baseline `8d6d3ba7a47e6df08c509baad6eedcc2adee1407`/0.138.4의 과거 성공과 새 후보를 구분한다. Full PR Quality/E2E8/Docker·Trusted QA·Owner HIGH 수용·Manager ACCEPT는 별도 NOT TESTED이며 이번 범위는 CI 시작까지다.
+
+
+## Issue #342 — 국가 Catalog 재구성 검증 (2026-10-31)
+
+7국가×2026~2037의84슬롯, 공식12·미확보72, WORKING/NON_WORKING, immutable builtin+override masking, source/version roundtrip, strict JSON/CSV(duplicate/null/unknown/date/year/quote/UTF-8/BOM), Preview binding/expiry, session 회수·지연 body, transaction 중간 실패 rollback, no-op, catalog revision 경쟁을 검사한다. migration0035의 신규/기존0034 upgrade·재시작 및 기존 Project/Task/권한 row 보존을 포함한다. 기존 Project materialized Calendar/Task/revision은 원본 변경으로 달라지지 않으며 명시적 Preview/Save만 최신 OFFICIAL을 반영한다.
+
+최종 Local Fast Feedback은 VN 공식 정정 후 backend16파일210tests PASS다(`/tmp/issue342-backend-vn-final-tests-2.log`). 별도 qa_docs의최종3파일55tests도PASS이며210개와중복합산하지않는다. 이실행전 migration count/누락예제 실패와 VN정정미검증제거→공식원표독립대조후3행재반영·golden직렬화실패이력은 [단일 실패 원장](ISSUE_342_FAILURE_ANALYSIS.md)에 보존한다. 공식2027+ 자료는 researcher가US OPM2027~2030 및TH BOT2027 원표와 대조했고,KR2027 전체 원표 미확보는UNAVAILABLE로 유지한다.
+
+브라우저는 `country-calendar-admin.spec.ts`의 실제 인증/SQLite JSON+CSV·CRUD·출처무효화·no-op·기존Project 불변·Project Preview/Save와 제어mock의응답역전/401/412·파일읽기/만료/UTF-8·pendingEscape·모달오류/초점복원을 구분한다.390/768/1024/1440/1920px geometry와nativekeyboard를 검사한다. 기존 `project-work-calendar-preview.spec.ts`와 `project-resource-calendar-exceptions.spec.ts`는새Preview catalog revision/명시저장 계약에 맞춘다. 과거PR346 실패파일합집합·직접/간접/음성소비자 선정과최종실행수/지문은원장과[Work Packet](exec-plans/active/ISSUE_342.md)에 기록한다.
+
+`verify:prepr --mode=targeted --dry-run`은테스트실행없이NOT TESTED/선정BLOCKED(UNKNOWN6)다. 수동검증은이자동선정의PASS가아니다. 새Head Requiredquality/e2e8shard/docker, TrustedQA·인간Reviewer영수증/Manager ACCEPT는PR CI 시작시NOT TESTED다. 로컬Docker전체검사·실제운영/native125%·WindowsExcel/DRM은이번실행증거가없다.
+
+### Issue #342 / PR864 REWORK1 — QA_REQUIRED 누락
+
+Full3455.1은 제품테스트 이전에 PR 본문의 독립행 `qa_required`가 없어 Preflight에서 실패했다. 타입/Unit/build/E2E/Docker는NOT RUN이며 과거 로컬PASS와 구별한다. 실제본문·Issue AC1~15·69파일diff/Packet을 main의 `qa_preflight.check`에 로컬재생한 결과 교정전 QA_REQUIRED/PATH_POLICY FAIL2, `qa_required: true` 추가후 deterministic FAIL0/PASS다. 원격source/CI/최종승인 검증은DEFERRED다.
+
+기존 `scripts/test_qa_preflight.py` 11개와 `scripts/test_qa_final_automated.py` 37개를 실행해 **48PASS**다. 두 suite는필드/경로/source/독립QA·문서·Owner의 서로다른위험경계를유지한다(KEEP_UNIQUE). 새제품/테스트/CI코드나의존성변경은없다. backend34/frontend12의기존지문이동일함을확인했고기존실패합집합을폐기하지않는다. 원장에명령·source·미실행·게시순서와edited이벤트를기록하며새Head Required3·Trusted/인간QA_FINAL·Manager는NOT TESTED다.
+
+### Issue #342 / PR864 REWORK2 — 신규 E2E의 명시8shard 등록
+
+원본Full3457.1은Preflight PASS/전체Unit3447PASS·1FAIL·3SKIP이며 `e2e-shard-planner.test.ts`의명시142/실제143불일치가직접실패다. 신규country-calendar-admin만누락됐다. 실제기존planner6개로5PASS/1FAIL을재현한뒤plan의Shard1에1개등록하고기존countvector를19/18/18/18/17/18/17/18로맞춘다. 기존142위치·8shard·exactcoverage·중복거부와음성변형을유지한다. 새testcase추가/skip/단언완화는없다(EXTEND/KEEP_UNIQUE).
+
+직접planner/config-layout/optimizer3파일,실제selector8개합집합143·중복0·country→1,root/external cwd발견,독자release-reuse/ci_impact_plan parser와전체Vitest를동결source에서검증한다. 나머지제품46파일bytes는동일하므로이전UI/서버한정증거의재사용범위를원장에기록하고브라우저/전체Docker반복은하지않는다. historicalmetrics와신규143개원격실측·현재Head성공을섞지않으며새Full8/Required3·Trusted/인간QA_FINAL·Manager는NOT TESTED다. 실제명령·실행수·최초오류/재검증은[누적 원장](ISSUE_342_FAILURE_ANALYSIS.md)의REWORK2에보존한다.
+
+REWORK2 실제결과: 기존관련3파일26PASS는전체Vitest **3448PASS/기존3SKIP**에포함된다(총3451,286파일PASS/기존1파일SKIP). 별도Python정책은impact27/release-reuse10/Fast11/Low10=58PASS다. 독립qa_docs의26/37은중복범위이므로합산하지않는다. 실제CLI8개143정확1회/중복0·기존142위치불변·누락/중복음성거부와root/external발견이PASS다. typecheck·변경lint/version/391링크/diff·독립PRE_QA도PASS이며자동prepr의UNKNOWN1/BLOCKED는그대로남긴다. 원격8runner·새Head Required3/Trusted/인간QA_FINAL/Manager는NOT TESTED다.
+
+
+### Issue #342 / PR864 REWORK3 — 관리자 인증 heading 간격 회귀
+
+Full3458.1은quality/Docker SUCCESS이나master인증 `admin-auth-layout.spec.ts:68`에서heading→card16px기대/56px실제로실패했다. 다른7Shard취소와E2E파생FAIL을독립제품오류로합산하지않는다. 기존실패case를변경없이RED재현한뒤추가국가링크를heading작업영역으로옮긴다. 기존정확16px·5폭·인증상태assert를유지하고링크scope/href/keyboard/비겹침만기존case에확장한다(EXTEND). 공통인증3소비자·master인접입력/CRUD·국가6개·global메뉴/notifications및기존8실패E2Ebounded교차·음성을fail-fast없이검증한다(KEEP_UNIQUE).
+
+누적실패합집합은기존12파일+admin-auth-layout=13개다. backend34/infra2의미변경source지문범위는이전서버210/전체Unit3448의로컬증거를재사용하고, 새page영향브라우저는최종동결source로실행한다. 원본FAIL·준비실패·실행중소스변경·미실행을PASS로덮지않는다. 실제명령/고유수/지문·한계와별도PRE_QA는[원장14절](ISSUE_342_FAILURE_ANALYSIS.md)·[Work Packet](exec-plans/active/ISSUE_342.md)에누적한다. 새Head Required3/Full8/Trusted·보호인간QA_FINAL/Manager는NOT TESTED다.
+
+
+REWORK3 실제브라우저결과는 **33고유사례PASS/0FAIL**,5.1분이다. 별도5폭로그인전후기하probe는관측영수증이며고유수에합산하지않는다. 변경4파일명시manifest `04f5154af44010c3d114873b25431fe4547f4e1b647924dbcee115fa7b9e7447`의동일bytes에서실행했고신규CSS도포함한다. 전체50소스경로의통합지문은Packet/원장에보존한다. dry-run자동선정UNKNOWN2/BLOCKED를실제33수동소비자검증과구별하고,최종stage후전체78예정PR경로Preflight 입력검사는PASS0/DEFERRED5로기록한다. 로컬PASS는새Head원격GatePASS가아니다.
+
+
+REWORK3 clean-config typecheck·변경ESLint·diff도exit0/PASS다. 생성출력/Next임시타입경로만기준bytes로복원했으며검증한제품source를바꾸지않았다. 391Markdown링크와AC1~15/DOCUMENTATION_SYNC구조를확인했고별도사전검토는보호인간QA_FINAL/새Head원격PASS/Manager ACCEPT가아니다.
+
+
+### Issue #342 / PR864 REWORK4 — 진입 링크의 초기 focus 경합
+
+Full3459.1의직접FAIL은country관리첫실제SQLite사례에서openAdmin의프로그램focus뒤focused기대/실제inactive다. 공통auth3개는원격PASS하여이전간격오류와구별한다. 원본로컬1PASS(사례13.7초/전체28.2초)는비재현관측이며원격FAIL을덮지않는다. 동일링크가정상해석된원격trace와초기password focus effect를근거로준비시점가설을제어재현한다. 임의sleep/반복focus/timeout·retry증가/assertion삭제는허용하지않는다.
+
+직접helper호출자는첫happycase1개,인접국가5개는다른직접진입이다. 누적13파일합집합·공통인증3개·master인접·과거실패bounded33의고유책임을유지하고동결후fail-fast없이재검증한다(EXTEND/KEEP_UNIQUE). 통제변형과원본·실제HTTP/SQLite와합성응답,기존동일제품bytes의서버/기하/계획증거재사용을분리한다. 명령·지문·최초오류·미실행은[원장15절](ISSUE_342_FAILURE_ANALYSIS.md)·[Work Packet](exec-plans/active/ISSUE_342.md)에기록한다. 새Head Required3/Full8/Trusted·보호인간QA_FINAL·Manager ACCEPT는NOT TESTED다.
+
+
+수정전동일source제어재현에서Next JS16응답보류→SSR링크focus→해제후password focus가발생했고같은링크DOM이유지된채기존focused assertion이inactive로실패했다. 이후password초기focus확인→Shift+Tab help→Shift+Tab link→nativeEnter는통과했다. 분류는TEST_CONTRACT/준비성경합이며test-only helper의실제초기focus조건/keyboard순서를정합화한다. 원격정확이벤트시점을제어관찰로대체하지않고원격/원본비재현/제어음성/수정후동결검증을구분한다.
+
+
+[정제 제어 영수증](evidence/issue342/rework4/focus-readiness.json)은동일원본1PASS와통제음성FAIL,현재helper실제본문의양성PASS,helpTab순서제거음성FAIL을각각기록한다. 동일goto(commit)wrapper는probe에만적용하고실제브라우저33개는기본load를유지한다. guard도달관측으로실제초기focus대기와goto대기를구별하며초기probe준비timeout/비교조건미충족은INCONCLUSIVE로보존한다. 원격locator반복해석은DOM동일성증명이아니고sameNode는제어probe에서만직접확인했다.
+
+
+REWORK4 같은후보의기본goto(load) bounded33개는 **33PASS/0FAIL**,5.3분이며직접실제SQLite happycase는18.7초PASS다. clean-config typecheck·변경ESLint·diff도exit0/PASS다. 수정test1파일과나머지49미변경경로를지문으로결속하고,probe합성응답/의도된음성FAIL은고유33개나실제서버권한PASS로합산하지않는다. 실제targeted Pre-PR1회는기존DB/출력보호로 **BLOCKED/exit1,step0/NOT TESTED**였고선정은READY1/UNKNOWN0다. 작업폴더481경로·해당시도sourceStable와최종예정PR79경로를분리하며실제브라우저/정적PASS로도구BLOCKED를소급변경하지않는다.

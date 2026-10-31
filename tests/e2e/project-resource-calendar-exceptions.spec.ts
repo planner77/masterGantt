@@ -26,14 +26,14 @@ test("리소스 근무일 예외의 효과·저장·재열기·충돌·프로젝
     const request=route.request().postDataJSON();
     savedDayType=request.customDates[0].dayType;
     customDates=request.customDates.map((entry:WorkCalendarCustomDateDto,index:number)=>({...entry,name:entry.name.trim(),id:`exception-${index}`}));
-    await route.fulfill({json:{data:{projectRevision:original.projectRevision,calendar:{...original,customDates},changedTasks:[],manualConflicts:[],resourceExceptionEffects:[]}}});
+    await route.fulfill({json:{data:{countryCatalogRevision:1,projectRevision:original.projectRevision,calendar:{...original,customDates},changedTasks:[],manualConflicts:[],resourceExceptionEffects:[]}}});
   });
   await page.route(`**/api/projects/${publicId}/work-calendar/preview`,async(route)=>{
     if(conflict) {await route.fulfill({status:409,json:{error:{code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",details:[{path:"date",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:"2026-10-02"},{path:"resourceId",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:resourceId},{path:"groupIds",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:groupId},{path:"rules.rule-a",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:"2026-10-02 · 홍길동 · 설계팀 / 지원팀 · 근무일 규칙 / 휴무일 규칙"}]}}});return;}
     const request=route.request().postDataJSON();
     const entry=request.customDates[0];
     const noEffect=entry.date==="2026-10-02";
-    await route.fulfill({json:{data:{projectRevision:original.projectRevision,calendar:{...original,customDates:[]},changedTasks:[],manualConflicts:[],resourceExceptionEffects:[{
+    await route.fulfill({json:{data:{countryCatalogRevision:1,projectRevision:original.projectRevision,calendar:{...original,customDates:[]},changedTasks:[],manualConflicts:[],resourceExceptionEffects:entry.targetType==="PROJECT"?[]:[{
       ruleId:"draft-rule",customDateIndex:0,...entry,effect:noEffect?"NO_EFFECT":"CHANGED",warningCode:noEffect?"REDUNDANT_WORKING_EXCEPTION":null,
       affectedResources:[{resourceId,resourceName:"홍길동",beforeDayType:noEffect?"WORKING":"NON_WORKING",effectiveDayType:entry.dayType,effect:noEffect?"NO_EFFECT":"CHANGED",winningLayer:entry.targetType,winningSources:[{ruleId:"draft-rule",ruleName:entry.name,kind:"CUSTOM",countryCode:null,targetType:entry.targetType,targetId:entry.targetId,sourceVersion:null}]}],
     }]}}});
@@ -106,7 +106,7 @@ test("리소스 근무일 예외의 효과·저장·재열기·충돌·프로젝
   await summary.getByRole("button",{name:/날짜 예외 1 수정/}).click();
   await expect(dialog.getByLabel("예외 날짜 1")).toBeFocused();
   await dialog.getByLabel("날짜 예외 1 이름").fill("토요일 특별 근무 수정");
-  await expect(dialog.getByRole("button",{name:"작업 캘린더 저장"})).toBeEnabled();
+  await expect(dialog.getByRole("button",{name:"작업 캘린더 저장"})).toBeDisabled();
   await dialog.getByRole("button",{name:"미리보기 계산"}).click();
   await expect(summary).toBeFocused();
   await dialog.getByLabel("예외 대상 1").selectOption("PROJECT");
@@ -115,6 +115,7 @@ test("리소스 근무일 예외의 효과·저장·재열기·충돌·프로젝
   await expect(dialog.getByText("프로젝트 전체에는 근무일 예외를 지정할 수 없어 휴무일로 변경했습니다.")).toBeVisible();
   await expect(summary).toHaveCount(0);
   conflict=false;
+  await calculate();
   rejectCanonical=true;
   await dialog.getByRole("button",{name:"작업 캘린더 저장"}).click();
   await expect(dialog).toHaveCount(0);

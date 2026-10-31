@@ -640,3 +640,7 @@ Milestone 날짜는 Dashboard 상세/정확한 소속 Task 경로로 안내하�
 - HTTP: `project-issue-handlers-core` + `GET/POST /api/projects/{publicId}/issues`, `PATCH/DELETE /api/projects/{publicId}/issues/{issueId}`, `PATCH /api/projects/{publicId}/issues/{issueId}/credential` route. withApiRequestLogging/project-scoped read guard·Origin·bounded JSON·strong If-Match 유지. KDF는 SQLite transaction 이전 비동기로 계산하고 직후 IMMEDIATE transaction에서 credential version과 project revision/비공개 read authorization을 재확인한다. 변경 시 Project revision은 WBS와 공유하므로 서로 충돌 412 가능하지만 Issue 전용 암호로 WBS mutation은 불가.
 - #849: additive 0034 issue_status(registered/in_progress/completed), 기존 completed/완료일 일치 trigger 및 상태별 index 추가. GET 전체/완료/진행 중/등록 요약은 삭제 제외 동일 SQLite read transaction; 검색/목록은 독립 조건·LIMIT/OFFSET. 클라이언트는 기본 status=open(등록+진행 중) 명시, 서버 status 미지정 기본 all 유지. 해당 Issue 생성·수정으로 Project revision이 변경되며 기존 canonical reload를 요청한다.
 - QA/통합/문서 링크: [Work Packet](exec-plans/active/ISSUE_838_840.md) 및 [사용자 가이드](PROJECT_ISSUES_USER_GUIDE.md).
+
+## Issue #342 — builtin과 DB override
+
+국가 Catalog는 immutable builtin + SQLite override를 결합하며 UNAVAILABLE/SUPERSEDED override도 builtin을 차단한다. HTTP handler→admin service→Catalog service→CountryCalendarRepository→SQLite 경계를 사용한다. 서버 검증/Preview HMAC/session·revision과 IMMEDIATE transaction은 공유 service에서 수행한다. 기존 Scheduling pure domain을 수정하지 않고 Project의 명시적 Preview/Save에서만 최신 dataset을 materialize한다. 기본 Project 생성은 effective KR가 없으면 월~금 주간 규칙으로 생성하여 비공식 자료를 되살리지 않는다.

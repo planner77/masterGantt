@@ -567,3 +567,7 @@ Issue 내용 텍스트는 HTML 실행 없이 React escape하며 본문 raw URL�
 - 새 Issue는 등록 시 비밀번호+확인이 필수이며, 개별 salted scrypt verifier만 보관한다. 등록만으로 Task/WBS/Resource 편집 세션이나 보호 Issue의 PATCH/DELETE 권한을 취득하지 않는다. 기존 Issue 비밀번호 초기 설정/재설정은 Project 편집 세션과 현재 프로젝트 비밀번호 모두 요구한다.
 - POST는 정확 Origin/CSRF, 16KiB bounded JSON, 입력 allowlist, strong If-Match, 프로젝트 read gate 및 SQLite IMMEDIATE transaction에서 Project visibility/revision/Task·Resource scope를 재검증한다. 공개/비공개 전환 경합에서도 등록 권한을 재검증한다.
 - 단일 앱 인스턴스 기준 공개 Issue 등록은 global 120/15분 및 Project별 20/15분 공유 budget. Rate Limit은 조회 권한 검증 이후 인증 비용 이전에 소비하고 429 ISSUE_CREATE_RATE_LIMITED/Retry-After를 돌려준다. IP attribution 신뢰 경로가 확보되지 않아 클라이언트별 분리를 가장하지 않으며, 위조 가능한 X-Forwarded-For는 거부한다. 다중 인스턴스·reverse proxy 환경의 추가 보호는 신뢰된 ingress 공통 limiter/운영 권한 승인 과제로 남긴다. [작업 계획](exec-plans/active/ISSUE_854.md).
+
+## Issue #342 — 국가 Catalog 관리자
+
+기존 Project Master admin session을 재사용하며 Project edit-session은 Catalog 권한이 아니다. Preview를 포함한 POST/PATCH/DELETE는 exact Origin·strong If-Match를 요구한다. body 읽기 후 transaction에서 session expiry/회수/revision을 재검사한다. JSON duplicate keys·잘못된UTF-8·CSV closing quote 뒤 문자·unknown/null 필드를 전체 거부한다. Preview token은 파일 원문/format/대상/catalog revision/session/최대10분 만료를 결속하며 Apply 시 재검증한다. 출처 URL은 credentials 없는HTTP(S) 문자열만 저장하고 runtime fetch/명령·수식 실행은 하지 않는다. 상세 한도는 [API](API.md)의 #342 계약을 따른다.

@@ -1,0 +1,490 @@
+{
+  "scope": "초기 포커스 준비 경계의 통제 관측이다. 원격 실행의 정확한 hydration 시점·실제 관리자 인증·DB 변경을 증명하지 않으며 추가 고유 테스트 사례로 합산하지 않는다.",
+  "originalHead": "f95cdce9e70a5bd4bb416141dc78d9949b721b45",
+  "normalOriginalLocal": {
+    "status": "PASS",
+    "caseSeconds": 13.7,
+    "totalSeconds": 28.2,
+    "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/country-calendar-admin.spec.ts --grep '실제 SQLite 관리자' --project chromium --workers 1 --retries 0 --max-failures 0 --output output/playwright/issue342-rework4-red",
+    "boundary": "수정 전 원본의 일반 로컬 실행에서는 원격 실패가 재현되지 않았다. 이를 원격 성공이나 원인 없는 불안정성으로 판정하지 않는다."
+  },
+  "originalControlled": {
+    "command": "node /tmp/issue342-rework4-focus-probe.cjs",
+    "scriptSha256": "64be75b2177dc393eece16d8ece049438321c61eab78f2df2b80fe757bd1dcea",
+    "heldNextJsResponses": 16,
+    "gotoWaitUntil": "commit",
+    "sourceBefore": [
+      {
+        "path": "src/features/project-master/project-master-admin.tsx",
+        "sha256": "bd32c3aa99fe7187157ad17686b6ea4100ceb7e6ad00574ee4706c2c457fb880"
+      },
+      {
+        "path": "src/app/project-master-admin/page.tsx",
+        "sha256": "edabad1c6e99a00615ce7fdc10318e38a822527ef5145eae8cabebfa0d34f5c6"
+      },
+      {
+        "path": "tests/e2e/country-calendar-admin.spec.ts",
+        "sha256": "5a8f0c096d226ae8673cc7c3720481666499d0d2ef3513a450bedb71dc6d2910"
+      }
+    ],
+    "sourceAfter": [
+      {
+        "path": "src/features/project-master/project-master-admin.tsx",
+        "sha256": "bd32c3aa99fe7187157ad17686b6ea4100ceb7e6ad00574ee4706c2c457fb880"
+      },
+      {
+        "path": "src/app/project-master-admin/page.tsx",
+        "sha256": "edabad1c6e99a00615ce7fdc10318e38a822527ef5145eae8cabebfa0d34f5c6"
+      },
+      {
+        "path": "tests/e2e/country-calendar-admin.spec.ts",
+        "sha256": "5a8f0c096d226ae8673cc7c3720481666499d0d2ef3513a450bedb71dc6d2910"
+      }
+    ],
+    "beforeRelease": {
+      "active": {
+        "node": 1,
+        "tag": "A",
+        "type": null,
+        "href": "/country-calendar-admin",
+        "label": "국가 캘린더 관리",
+        "connected": true
+      },
+      "ssrNodeConnected": true,
+      "events": [
+        {
+          "event": "ssr-entry-ready",
+          "at": 1927.6000000014901,
+          "target": {
+            "node": 1,
+            "tag": "A",
+            "type": null,
+            "href": "/country-calendar-admin",
+            "label": "국가 캘린더 관리",
+            "connected": true
+          }
+        },
+        {
+          "event": "focusin",
+          "at": 1934.199999999255,
+          "target": {
+            "node": 1,
+            "tag": "A",
+            "type": null,
+            "href": "/country-calendar-admin",
+            "label": "국가 캘린더 관리",
+            "connected": true
+          }
+        }
+      ]
+    },
+    "afterRelease": {
+      "active": {
+        "node": 2,
+        "tag": "INPUT",
+        "type": "password",
+        "href": null,
+        "label": null,
+        "connected": true
+      },
+      "sameEntryNode": true,
+      "ssrNodeConnected": true,
+      "events": [
+        {
+          "event": "ssr-entry-ready",
+          "at": 1927.6000000014901,
+          "target": {
+            "node": 1,
+            "tag": "A",
+            "type": null,
+            "href": "/country-calendar-admin",
+            "label": "국가 캘린더 관리",
+            "connected": true
+          }
+        },
+        {
+          "event": "focusin",
+          "at": 1934.199999999255,
+          "target": {
+            "node": 1,
+            "tag": "A",
+            "type": null,
+            "href": "/country-calendar-admin",
+            "label": "국가 캘린더 관리",
+            "connected": true
+          }
+        },
+        {
+          "event": "focus-call",
+          "at": 2108.699999999255,
+          "target": {
+            "node": 2,
+            "tag": "INPUT",
+            "type": "password",
+            "href": null,
+            "label": null,
+            "connected": true
+          },
+          "activeBefore": {
+            "node": 1,
+            "tag": "A",
+            "type": null,
+            "href": "/country-calendar-admin",
+            "label": "국가 캘린더 관리",
+            "connected": true
+          }
+        },
+        {
+          "event": "focusin",
+          "at": 2109.699999999255,
+          "target": {
+            "node": 2,
+            "tag": "INPUT",
+            "type": "password",
+            "href": null,
+            "label": null,
+            "connected": true
+          }
+        },
+        {
+          "event": "focus-call",
+          "at": 2110.199999999255,
+          "target": {
+            "node": 2,
+            "tag": "INPUT",
+            "type": "password",
+            "href": null,
+            "label": null,
+            "connected": true
+          },
+          "activeBefore": {
+            "node": 2,
+            "tag": "INPUT",
+            "type": "password",
+            "href": null,
+            "label": null,
+            "connected": true
+          }
+        }
+      ]
+    },
+    "entryStillConnected": true,
+    "sameEntryNode": true,
+    "originalFocusAssertion": {
+      "status": "FAIL",
+      "expected": "focused",
+      "actual": "inactive",
+      "timeoutMs": 5000
+    },
+    "afterInitializationNativeSegment": {
+      "status": "PASS",
+      "sequence": [
+        "password",
+        "help",
+        "entry",
+        "Enter"
+      ],
+      "urlPath": "/country-calendar-admin",
+      "events": [
+        {
+          "event": "ssr-entry-ready",
+          "at": 1927.6000000014901,
+          "target": {
+            "node": 1,
+            "tag": "A",
+            "type": null,
+            "href": "/country-calendar-admin",
+            "label": "국가 캘린더 관리",
+            "connected": true
+          }
+        },
+        {
+          "event": "focusin",
+          "at": 1934.199999999255,
+          "target": {
+            "node": 1,
+            "tag": "A",
+            "type": null,
+            "href": "/country-calendar-admin",
+            "label": "국가 캘린더 관리",
+            "connected": true
+          }
+        },
+        {
+          "event": "focus-call",
+          "at": 2108.699999999255,
+          "target": {
+            "node": 2,
+            "tag": "INPUT",
+            "type": "password",
+            "href": null,
+            "label": null,
+            "connected": true
+          },
+          "activeBefore": {
+            "node": 1,
+            "tag": "A",
+            "type": null,
+            "href": "/country-calendar-admin",
+            "label": "국가 캘린더 관리",
+            "connected": true
+          }
+        },
+        {
+          "event": "focusin",
+          "at": 2109.699999999255,
+          "target": {
+            "node": 2,
+            "tag": "INPUT",
+            "type": "password",
+            "href": null,
+            "label": null,
+            "connected": true
+          }
+        },
+        {
+          "event": "focus-call",
+          "at": 2110.199999999255,
+          "target": {
+            "node": 2,
+            "tag": "INPUT",
+            "type": "password",
+            "href": null,
+            "label": null,
+            "connected": true
+          },
+          "activeBefore": {
+            "node": 2,
+            "tag": "INPUT",
+            "type": "password",
+            "href": null,
+            "label": null,
+            "connected": true
+          }
+        },
+        {
+          "event": "focusin",
+          "at": 7164.5,
+          "target": {
+            "node": 3,
+            "tag": "BUTTON",
+            "type": "button",
+            "href": null,
+            "label": "프로젝트 기준정보 관리 도움말",
+            "connected": true
+          }
+        },
+        {
+          "event": "focusin",
+          "at": 7175.400000002235,
+          "target": {
+            "node": 1,
+            "tag": "A",
+            "type": null,
+            "href": "/country-calendar-admin",
+            "label": "국가 캘린더 관리",
+            "connected": true
+          }
+        }
+      ]
+    }
+  },
+  "candidateActualHelper": {
+    "command": "node /tmp/issue342-rework4-candidate-probe.cjs",
+    "scriptSha256": "a3bc77c4268c7a48707fc9f537c898fc074f272c7ed0b5e1faf218c66b0a4cd1",
+    "candidateFile": "tests/e2e/country-calendar-admin.spec.ts",
+    "candidateFileSha256": "cb5b66721985634f06b8ae59d2332462882fb2f7ffb231128141b296c65b613e",
+    "actualHelperSha256": "7ffdc76b3e4e82c8037ffc5abe7f33f770ae12b6ba60dcd96b7d968528a786f7",
+    "compiledHelperSha256": "1fbd4652aee6900b37187f84c61e118351dce159b195e79bbf248f40b4c9ef4c",
+    "execution": "현재 후보 파일의 openAdmin 본문을 직접 추출·TypeScript 변환하여 실제 함수 전체를 호출했다. 준비·키보드 구간을 수작업으로 복제한 함수가 아니다.",
+    "controlBoundary": "원본·후보 제어 비교에서만 page.goto를 commit 반환으로 맞췄다. 실제 후보 helper 본문과 일반33개 E2E는 기본 load 반환을 유지한다. assertion 관측 wrapper는 원래 expect를 그대로 호출하며 timeout을 변경하지 않는다.",
+    "heldNextJsResponses": 16,
+    "passwordGuardReachedBeforeRelease": true,
+    "guardEvents": [
+      {
+        "assertion": "toBeFocused",
+        "locator": "getByLabel('관리자 비밀번호', { exact: true })",
+        "beforeRelease": true
+      },
+      {
+        "assertion": "toBeFocused",
+        "locator": "getByRole('button', { name: '프로젝트 기준정보 관리 도움말', exact: true })",
+        "beforeRelease": false
+      },
+      {
+        "assertion": "toBeFocused",
+        "locator": "getByRole('link', { name: '국가 캘린더 관리', exact: true })",
+        "beforeRelease": false
+      }
+    ],
+    "beforeRelease": {
+      "active": {
+        "node": 1,
+        "tag": "BODY",
+        "type": null,
+        "href": null,
+        "label": null,
+        "connected": true
+      },
+      "entry": {
+        "node": 2,
+        "tag": "A",
+        "type": null,
+        "href": "/country-calendar-admin",
+        "label": "국가 캘린더 관리",
+        "connected": true
+      }
+    },
+    "status": "PASS",
+    "urlPath": "/country-calendar-admin",
+    "events": [
+      {
+        "event": "focusin",
+        "at": 865.3999999985099,
+        "target": {
+          "node": 3,
+          "tag": "INPUT",
+          "type": "password",
+          "href": null,
+          "label": null,
+          "connected": true
+        },
+        "sameEntryNode": true
+      },
+      {
+        "event": "keydown",
+        "key": "Shift",
+        "shift": true,
+        "at": 923.6000000014901,
+        "target": {
+          "node": 3,
+          "tag": "INPUT",
+          "type": "password",
+          "href": null,
+          "label": null,
+          "connected": true
+        }
+      },
+      {
+        "event": "keydown",
+        "key": "Tab",
+        "shift": true,
+        "at": 925.1999999992549,
+        "target": {
+          "node": 3,
+          "tag": "INPUT",
+          "type": "password",
+          "href": null,
+          "label": null,
+          "connected": true
+        }
+      },
+      {
+        "event": "focusin",
+        "at": 925.6999999992549,
+        "target": {
+          "node": 4,
+          "tag": "BUTTON",
+          "type": "button",
+          "href": null,
+          "label": "프로젝트 기준정보 관리 도움말",
+          "connected": true
+        },
+        "sameEntryNode": true
+      },
+      {
+        "event": "keydown",
+        "key": "Shift",
+        "shift": true,
+        "at": 937.3999999985099,
+        "target": {
+          "node": 4,
+          "tag": "BUTTON",
+          "type": "button",
+          "href": null,
+          "label": "프로젝트 기준정보 관리 도움말",
+          "connected": true
+        }
+      },
+      {
+        "event": "keydown",
+        "key": "Tab",
+        "shift": true,
+        "at": 938.3999999985099,
+        "target": {
+          "node": 4,
+          "tag": "BUTTON",
+          "type": "button",
+          "href": null,
+          "label": "프로젝트 기준정보 관리 도움말",
+          "connected": true
+        }
+      },
+      {
+        "event": "focusin",
+        "at": 940.5,
+        "target": {
+          "node": 2,
+          "tag": "A",
+          "type": null,
+          "href": "/country-calendar-admin",
+          "label": "국가 캘린더 관리",
+          "connected": true
+        },
+        "sameEntryNode": true
+      },
+      {
+        "event": "keydown",
+        "key": "Enter",
+        "shift": false,
+        "at": 949.1999999992549,
+        "target": {
+          "node": 2,
+          "tag": "A",
+          "type": null,
+          "href": "/country-calendar-admin",
+          "label": "국가 캘린더 관리",
+          "connected": true
+        }
+      }
+    ],
+    "candidateFileSha256After": "cb5b66721985634f06b8ae59d2332462882fb2f7ffb231128141b296c65b613e",
+    "countryReadResponse": "이 통제 관측의 국가 조회 응답만 합성 자료이며 실제 SQLite·서버 권한은 별도의 수정 후 E2E에서 검증한다."
+  },
+  "keyboardNegativeControl": {
+    "mutation": "별도 브라우저에서 초기 비밀번호 focusin 때 도움말 tabIndex만 -1로 바꿨다. 제품·후보 파일은 변경하지 않았다.",
+    "executedHelperSha256": "7ffdc76b3e4e82c8037ffc5abe7f33f770ae12b6ba60dcd96b7d968528a786f7",
+    "status": "FAIL",
+    "guard": "프로젝트 기준정보 관리 도움말 toBeFocused",
+    "expected": "focused",
+    "actual": "inactive",
+    "boundary": "같은 실제 후보 helper의 양성 초점 단언이 잘못된 키보드 순서를 거부함을 확인했다. 원격 제품 실패가 아닌 의도한 음성 변형이다."
+  },
+  "judgment": {
+    "classification": "TEST_CONTRACT",
+    "confirmed": "초기 비밀번호 포커스 준비를 관측하지 않은 programmatic 링크 focus가 기존 초기화의 비밀번호 focus와 경쟁했다. 후보는 기존 초기 비밀번호 초점을 기다린 뒤 native Shift+Tab으로 도움말→링크에 도달하고 긍정적 초점·href·Enter·URL 단언을 보존한다.",
+    "domReplacement": "같은 SSR 링크 노드가 연결된 채 유지되어 이 제어 재현의 DOM 교체 가설은 기각한다.",
+    "productFocusOwnership": "초기화 후에는 같은 링크의 native 키보드 초점과 Enter가 유지됐다. 기존 초기화 계약을 제품 결함으로 바꾸거나 제품 포커스 hook을 수정하지 않는다.",
+    "remoteLimit": "원격 trace의 최종 화면은 비밀번호 초점을 보이지만 초점 이벤트 순서가 없으므로 정확한 원격 hydration 타이밍은 미확인이다."
+  },
+  "preparationObservations": {
+    "database": "처음 새 진단 전용 DB가 준비되지 않아 readiness 503이었고 해당 새 DB에만 기존35 migration을 적용해 같은 probe 프로세스가 복구됐다. 운영 DB·runtime 내용은 보존 문서에 포함하지 않는다.",
+    "initialCandidateHarness": "첫 후보 probe는 baseURL이 없는 준비 오류로 SSR 링크 대기가 만료됐다. 기본 goto(load) 대기와 password 단언 대기를 구분하지 못한 비교안도 확정 증거로 사용하지 않는다. 올바른 baseURL과 양쪽 commit 반환·단언 진입 관측으로 정정했다. 제품 실패·후보 성공에 합산하지 않는다."
+  },
+  "candidateManifest": {
+    "path": "/tmp/issue342-rework4-frontend-manifest.json",
+    "sha256": "c7e0fb721e86fc8b53fdf2b8a6d2fdbd37084188946d696ca7417ccb333524ef",
+    "files": [
+      {
+        "path": "tests/e2e/country-calendar-admin.spec.ts",
+        "bytes": 31262,
+        "sha256": "cb5b66721985634f06b8ae59d2332462882fb2f7ffb231128141b296c65b613e"
+      }
+    ]
+  },
+  "notTested": [
+    "실제 원격 초점 이벤트 시간 순서",
+    "새 Head 전체 원격 CI",
+    "실제 기기·네이티브 125% 확대·스크린리더"
+  ]
+}
