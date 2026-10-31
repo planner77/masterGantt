@@ -278,3 +278,117 @@ Manager는게시commit의교정소스·서버210/브라우저고유30한정증�
 이절과Work Packet의처리결과를동일branch의문서전용후속commit에반영한뒤ReadyPR을생성하여FullCI를시작한다. 정확한최종Head/PR/Run/Attempt는Issue와PR댓글에남긴다. 시작시quality/e2e/docker·Trusted/보호인간QA_FINAL/Manager ACCEPT는 **NOT TESTED**이며CI결과를모니터링하지않는다.
 
 CSV예제는원본CRLF를유지하므로기본staged diff-check는CR을trailing-whitespace로보고했다. 형식계약에맞춰 `git -c core.whitespace=cr-at-eol diff --cached --check`로검사해PASS이며파일bytes나CSV검증정책을변경하지않았다.
+
+## 12. PR #864 Full #3455.1 — 필수 QA 선언 누락과 파생 실패 (2026-10-31)
+
+### 전체 이력 재대조와 원본 출처
+
+이번 REWORK는 위 1~11절과 [공통 실패 처리 순서](PR_CI_FAILURE_TRIAGE.md)를 먼저 전부 읽고 시작했다. 옛 #346의54CI Run/36FAIL Job/109취소Job/11실패테스트파일·선행보완을 유지했다. 신규 branch 전체 Actions 조회는 total_count=2/목록2로, **Full CI1개와 참고용 FAST1개**, 모두 attempt1이다. #3455 이후 추가 Full/metadata rerun은 이 조사 시점에 없다. 별도 기본브랜치 workflow_run4개를 분리했다. 정제 원격 영수증은 `/tmp/issue342-rework1-ci.json`, 검증한4개 artifact 내용·지문은 `/tmp/issue342-rework1-artifacts.json`이다.
+
+- PR: [#864](https://github.com/planner77/masterGantt/pull/864), branch `feat/issue-342-country-catalog-current`.
+- 원본 Head: `cf9458c15bceb2dddadc3a40903feeede39707e8`; base/validator: `ce8ca4ec7f0eb2ba63d883b7c22786c5d033aa14`; test-merge: `978a89b2f4eda1c7501370c98909febe032a83f8`.
+- [Full #3455.1](https://github.com/planner77/masterGantt/actions/runs/41169048995), Run `41169048995`, attempt `1`, `pull_request/opened`, 생성 `2026-10-31T04:33:23Z`, 결론 **FAIL**. schema/repository/PR/Run/attempt/Head/base/test-merge가 원본 source artifact와 API 보고에 일치한다. ZIP은 JSON으로만 읽었고 실행·PR코드 checkout을 하지 않았다.
+- 전체23Job: **SUCCESS3 / FAIL5 / SKIPPED15 / CANCELLED0**. 실제 E2E shard가 실행된 뒤 취소된 Job은 없고 새 실패 테스트파일도 **0개**다. 비용 차단에 따른 skipped를 검증 PASS로 바꾸지 않는다.
+
+| 실행 | event·source | 결과와 실제 의미 |
+| --- | --- | --- |
+| [Full #3455.1 / 41169048995](https://github.com/planner77/masterGantt/actions/runs/41169048995) | pull_request · Head cf9458c1 | FAIL; QA Preflight 실제 실패, Required3 파생 FAIL; 실제 품질·E2E·Docker NOT RUN |
+| [FAST #235.1 / 41169048982](https://github.com/planner77/masterGantt/actions/runs/41169048982) | pull_request · 같은 Head | SKIPPED1Job; Ready PR의 비권위 참고 경로이며 PASS 아님 |
+| [Trusted #1101.1 / 41169147423](https://github.com/planner77/masterGantt/actions/runs/41169147423) | workflow_run · default SHA ce8ca4ec | FAIL1Job; 원본 CI 자체 미성공의 파생. 독립 인간 QA/Owner 영수증을 검증하기 전 차단 |
+| [진단 #296.1 / 41169144957](https://github.com/planner77/masterGantt/actions/runs/41169144957) | workflow_run · default SHA ce8ca4ec | 권고 출처확인1Job SUCCESS/나머지5Job SKIPPED; 실제 별도 E2E 진단·댓글 미실행, Required PASS 아님 |
+| [메타데이터 복구 #1001.1 / 41169144927](https://github.com/planner77/masterGantt/actions/runs/41169144927) | workflow_run · default SHA ce8ca4ec | SUCCESS1Job은 복구 Controller의 결과이며 Full CI 실패를 복구한 증거 아님 |
+| [준비도 #1042.1 / 41169144896](https://github.com/planner77/masterGantt/actions/runs/41169144896) | workflow_run · default SHA ce8ca4ec | SKIPPED1Job; 새 캐시/실행 성공 근거 아님 |
+
+### F342-015 — PR metadata의 qa_required 선언 누락
+
+첫 실제 오류는 [QA Preflight Job124442902691](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442902691)의 `원본 base SHA의 QA Preflight 실행 (read-only)` Step에서 2026-10-31T04:34:03Z에 발생했다. 기본브랜치 검증기는 정확한 base SHA의 코드를 실행했다. 관측된 결정적 실패2개는 다음과 같고, 독립 근본원인은 선언 누락 **1개**다.
+
+```text
+FAIL / QA_REQUIRED: PR body: qa_required — qa_required: 정확히 한 개의 선언 필요
+FAIL / PATH_POLICY: PR diff (rename 원본 포함), risk_level/qa_required/release 플래그 — 위험도/QA 선언 오류를 먼저 수정
+```
+
+PRIMARY_ISSUE/RISK_LEVEL/QA_METHOD/ISSUE_AC/DOCUMENTATION_SYNC는 PASS였다. `qa_required=true`는 Work Packet에 있었지만 **PR 본문 독립행 선언**이 없었다. HIGH/AGENT를 유지한 상태로 단 한 개의 `qa_required: true` 행을 추가해야 한다. **분류는 POLICY_CI/게시 준비 절차 누락**이며 새 Calendar 제품·서버·브라우저 오류를 입증한 결과가 아니다.
+
+이전 게시 전 docs_gate/AC 매핑은 확인했지만 현재 base의 실제 `qa_preflight.check` 필수 metadata 선언까지 재현하지 않은 것이 준비 절차의 누락이다. 문서 구조 PASS를 Preflight 전체 PASS로 과대 사용한 경계를 교정한다. 검증기의 fail-closed 동작은 정상이며 validator/권한/CI/Required Gate를 수정하거나 AGENT를 다른 경로로 바꿔 통과시키지 않는다.
+
+### 실제 Job·Step 전체 행렬
+
+| Job ID·원본 | 표시 이름 | 결론 | 실제 실패 Step 또는 미실행 |
+| --- | --- | --- | --- |
+| [124442820397](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442820397) | 변경 경로 판정 | PASS | 실제 완료; Required/업무 QA 권한과 별개 |
+| [124442821093](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442821093) | QA Final 신뢰 경계 확인 | PASS | 실제 완료; Required/업무 QA 권한과 별개 |
+| [124442902691](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442902691) | QA Preflight — 정책·문서 사전 검사 | FAIL | 원본 base SHA의 QA Preflight 실행 (read-only) |
+| [124442903972](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442903972) | Low E2E policy plan (trusted base) | SKIPPED | NOT RUN |
+| [124442903998](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442903998) | PR metadata가 기존 전체 CI 증거를 보존하는지 검증 | SKIPPED | NOT RUN |
+| [124442974569](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442974569) | PR 빠른 검사 판정 | FAIL | PR 필수 빠른 검사 결과 검증 |
+| [124442974853](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442974853) | ESLint | SKIPPED | NOT RUN |
+| [124442975144](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442975144) | Chromium E2E shard ${{ matrix.shard }}/8 | SKIPPED | NOT RUN |
+| [124442975186](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442975186) | Vitest 단위·통합 테스트 | SKIPPED | NOT RUN |
+| [124442975271](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442975271) | github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현' | SKIPPED | NOT RUN |
+| [124442975292](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442975292) | TypeScript 타입 검사 | SKIPPED | NOT RUN |
+| [124442975397](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442975397) | Next.js production build | SKIPPED | NOT RUN |
+| [124442975590](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124442975590) | 정책·저장소 계약 검사 | SKIPPED | NOT RUN |
+| [124443032078](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124443032078) | Build, static checks, and unit tests | FAIL | 병렬 quality 결과 집계 |
+| [124443032090](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124443032090) | Docker build and runtime smoke test | FAIL | Docker smoke 결과 집계 |
+| [124443032135](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124443032135) | Chromium end-to-end tests | FAIL | E2E shard 결과 집계 |
+| [124443032606](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124443032606) | Chromium E2E shard ${{ matrix.shard }}/8 · PR | SKIPPED | NOT RUN |
+| [124443032729](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124443032729) | PR Next.js production build | SKIPPED | NOT RUN |
+| [124443032752](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124443032752) | Low E2E targeted execution | SKIPPED | NOT RUN |
+| [124443033034](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124443033034) | Docker smoke 구현 | SKIPPED | NOT RUN |
+| [124443047382](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124443047382) | 변경 영향 Shadow 계획 · advisory only (#770) | PASS | 실제 완료; Required/업무 QA 권한과 별개 |
+| [124443048235](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124443048235) | QA Final — Automated | SKIPPED | NOT RUN |
+| [124443048254](https://github.com/planner77/masterGantt/actions/runs/41169048995/job/124443048254) | Main 임시 commit 이미지 게시·검증·정리 | SKIPPED | NOT RUN |
+
+- PR Fast Gate `124442974569`는 PREFLIGHT_RESULT=failure와 필수 구현Job skipped를 보고 FAIL했다. Required quality `124443032078`/E2E `124443032135`/Docker `124443032090`은 모두 **QA Preflight 미성공**을 보고 FAIL했다. 4개의 파생 실패를 독립 제품 결함4개로 세지 않는다.
+- 정책 검사/typecheck/lint/Vitest/Next build와 PR E2E/Docker 구현은 전부 **NOT RUN**이다. matrix 확장 이전 placeholder가 SKIPPED라서 8Shard 테스트 성공·실패 건수를 추정할 수 없다.
+- Trusted Job `124443120430` 원문 사유는 **원본 PR CI run 자체가 성공하지 않았습니다**다. `validator_sha=ce8ca4ec...`, independent_qa/manager_decision은 NOT TESTED. 이번 실패를 신뢰된 인간 Reviewer 부재 차단으로 잘못 분류하지 않는다. 다만 보호 경로 AGENT 최종 영수증 의무는 이후에도 유지된다.
+
+### 원본 Artifact 무결성과 보존
+
+아래4개 ZIP을 읽기 전용 다운로드하여 API digest와 직접 계산한 SHA256가 일치함을 확인했다. archive를 추출·실행하지 않고 크기가 제한된 JSON 멤버만 읽었다. signed 다운로드 URL·인증정보·원시 runtime 로그는 원장이나 Git에 저장하지 않는다.
+
+| Artifact ID·이름 | ZIP bytes·SHA256 | 실제 내용·판정 |
+| --- | --- | --- |
+| 13029749285 · qa-preflight-41169048995-1 | 1318 · `351b231416c207a4fac3d7020047f87f27ed593eedd3c3db4eb57cdca6a3a8d2` | Preflight FAIL2/DEFERRED5; QA_REQUIRED 누락과 PATH_POLICY 파생 |
+| 13029634287 · ci-pr-source-41169048995-1 | 419 · `fd8d37b79ae36ff97db8667698157bb71bba1004f4d78f3ae600a93bf88a46ca` | PR864/Run41169048995/attempt1 및 Head/base/test-merge 출처 일치 |
+| 13029614618 · ci-impact-shadow-41169048995-1 | 326 · `d13e7e59caadf641423304db7bd39aeeaffe8705c6354f63b70629b22a54737d` | ADVISORY_NOT_REQUIRED_NOT_QA_NOT_RELEASE; UNSAFE_DIFF_PATH/UNKNOWN/FULL_REQUIRED. 참고 경로 성공을 검증 PASS로 사용하지 않음 |
+| 13030730049 · qa-final-trusted-41169048995-41169147423-1 | 461 · `7d928c0221a89cf2cd3606b8ddda08f0592aaaa783c4757c9f751e7db502551e` | 자동 QA FAIL: 원본 PR CI run 자체가 성공하지 않았습니다; 독립 QA/Manager NOT TESTED |
+
+Preflight JSON 멤버 SHA256는 `29daf39b0223a0fbd0146752687fdbbf04074a8d92929ac17de3dffad642bafb`, source JSON 멤버는 `34a48c103393d015600b4aeef5cdb4aa397909f8d9b8871932196e56fcfdf2cd`다. source artifact 자체는 PR 측 비신뢰 데이터이며 원본 API/commit 출처와 교차 확인한 범위만 사용한다.
+
+### 원격 FAIL 재현과 metadata 보완 검증
+
+Manager는 실제 연결된 PR/Issue/69개 변경파일 API snapshot과 현재 Work Packet을 사용하여 **현재 base와 동일한** `qa_preflight.check`를 로컬에서 재현했다. API를 기록된 snapshot으로 공급한 **로컬 결정적 정책 replay**이며 새로운 원격 CI/독립 QA/Owner 승인을 실행한 것이 아니다. 원래 body와 한 줄 추가 body를 각각 비교했다.
+
+```sh
+python3 /tmp/issue342-rework1-preflight-replay.py
+```
+
+```text
+before FAIL deterministic_failures=2 [('QA_REQUIRED', 'qa_required: 정확히 한 개의 선언 필요'), ('PATH_POLICY', '위험도/QA 선언 오류를 먼저 수정')]
+after PASS deterministic_failures=0 []
+PASS: only qa_required:true changes; HIGH/AGENT and all existing deterministic checks retained; final CI/QA/Owner deferred
+```
+
+- 최초 최소 재현은 실제 저장 body에 `_unique_field(body, "qa_required", {"true", "false"})`를 실행해 같은 메시지/exit1을 관측한 것이다. 위 full replay가 전체 결정적 검사를 추가 확인했다. stdout `/tmp/issue342-rework1-preflight-replay.log`, 결과 `/tmp/issue342-rework1-preflight-replay.json`, 원본 snapshot `/tmp/issue342-rework1-preflight-snapshot.json`을 보존한다.
+- 기존 Preflight 단위검사 **11PASS**(`/tmp/issue342-rework1-preflight-tests.log`)와 Final QA 단위검사 **37PASS**(`/tmp/issue342-rework1-final-qa-tests.log`)를 확인했다. 후자의 예상 음성 case `API 부재 → BLOCKED` 출력은 suite 실패가 아니며 `Ran 37 tests / OK`와 구분했다. 기존 테스트는 KEEP_UNIQUE, assertion/skip/timeout/retry 변경0이다.
+- backend34+frontend12개 경로의 저장된 최종 source 지문을 모두 재대조해 일치를 확인했다. 이번 보완은 PR metadata와 원장/계획/검증 문서만 변경한다. 새 실제 제품 실패파일이 없으므로 이전11개 합집합·직접 Calendar/API/DB·간접 Project/헤더/Gantt·음성권한/경합 경계를 유지하고, source가 같은 한정 Local Fast Feedback 영수증을 재사용한다. 이 재사용은 새 Head의 원격 Required3 전체 실행을 면제하지 않는다.
+- Protected 인간 QA_FINAL/Owner 영수증·최신Head/base Full8/Required3·Trusted QA는 계속 별도 필수 Gate다. 여기서 `qa_method=AGENT`, `risk_level=HIGH`, `qa_required=true`, version0.139.0, release_required=true/release_authorized=false를 유지한다.
+
+### 원장 갱신 후 다음 Full CI 인계
+
+같은 PR864/branch를 재사용한다. 문서 동기화·별도 사전 검토 후 변경 원장의 새 후보 commit을 만들되 아직 ref는 이동하지 않는다. 완성 PR 본문에 필수 한 줄과 정확한 새 Head를 **한 번** 반영한 다음 현재 Head를 lease로 지정한 **한 번의 비강제 ref 갱신**으로 새 synchronize Full CI를 시작한다. 이미 게시된 #3455 FAIL은 그대로 보존한다.
+
+PR body edited 이벤트는 자동 metadata-only Run을 만들 수 있다. 이를 숨기거나 승인/성공으로 간주하지 않고 원래 Head의 metadata 사건으로 보존한다. 이어 새 Head가 게시되면 옛 Head 사건은 SUPERSEDED/N/A이며 새 Full CI의 PASS 증거가 아니다. Draft 왕복·기존 Run 무조건 rerun·gate 우회는 사용하지 않는다.
+
+종료점은 **원장/문서/리뷰/충돌 확인 뒤 새 정확 Head Full PR CI 등록까지**다. 새 Run/Attempt는 등록 직후 운영 댓글에 연결하고 결과는 모니터링하지 않는다. 신규 Required3/Trusted/인간 QA_FINAL/Manager ACCEPT는 NOT TESTED이며 병합·Main/GHCR·Release·Issue 종료는 승인 범위 밖이다.
+
+### REWORK1 로컬 검증·도구 한계와 독립 검토
+
+- `npm run verify:prepr -- --mode=targeted --base=cf9458c15bceb2dddadc3a40903feeede39707e8 --issue=342 --pr=864 --risk=HIGH`를 실제 실행했다. 이 delta의 자동선정은READY/selected0/UNKNOWN0이며 명령이 없어 결과는 **NOT TESTED / exit1**이다. `.prepr-reports/2026-10-31T04-44-39.253Z-445246-f290704f/{SUMMARY.md,report.json}`, sourceStable=true/working fingerprint `1666ab1ab5b7b361e9c441614a8c924d7ab2ef718c51d2de150428a471087606`. 이 보고서를 LOCAL_VALIDATED/PASS로표시하지않는다. PR본문은Git diff 밖의입력이므로 별도실제snapshot replay와기존48개정책테스트가그경계를검증한다. 선택기/CI코드는변경하지않는다.
+- 별도qa_docs가 실제API에서PR본문/Issue342 AC15/69파일을독립적으로읽고, 원격동일gitshow cf9458 Packet을사용해동일검증기를직접재생했다. BEFORE2FAIL/AFTER0deterministicFAIL·5개최종검증DEFERRED를확인했고기존11+37개도직접실행해48PASS(`/tmp/issue342-rework1-independent-qa-policy.log`)다. Manager48개와고유수에중복합산하지않는다.
+- 독립재현준비의첫본문동일성guard는저장파일추가마지막newline1개때문에차이를보고했다. 최종newline만정규화한뒤API원본문직접재생을수행했으며선언·내용차이를숨기지않았다. 실제제품/정책실패가아닌재현입력준비관측으로구분한다. Manager의source지문검사준비에서도list/dict분기누락TypeError를고친뒤backend34/frontend12의모든hash일치를재확인했다.
+- 링크검사391파일PASS(`/tmp/issue342-rework1-links.log`). 새docdelta를포함한문서/AC구조·버전·리뷰/충돌은게시직전에다시확인하며, 새Head의Required3/Trusted/인간QA_FINAL/Manager는NOT TESTED로남긴다.
+
+- REWORK1 독립 `/root/qa_docs` PRE_QA **PASS**: 원격원본로그, 별도API snapshot의before2FAIL/after0deterministicFAIL, 기존48개실행, 현재46파일동일성, 4문서동기화/391링크를직접검토했다. 남은사전지적은없다. 두주체의동일suite48개를96개로합산하지않는다. 이는보호경로의인간QA_FINAL/Owner·새Head원격게이트PASS가아니다.

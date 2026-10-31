@@ -94,3 +94,24 @@ UI는 현재4개 전역 메뉴를 보존하고 기준정보에서 국가 캘린�
 원격게시1단계는검토한tree/branch만생성한다. 그commit을인용해옛PR346미해결6개thread를실제해결하고원장에기록한뒤, 문서delta를게시하고새ReadyPR을생성해FullCI를시작한다. CI등록만확인하며진행/결과모니터링·병합·Main/GHCR·릴리스는진행하지않는다.
 
 원격1단계153c58fb/tree1573e91b에교정소스를게시했고Manager가구PR346의6개미해결리뷰를실제답변·resolve했다(전체25/미해결0재조회). 구PR은병합하지않고대체CLOSED로전환했으며Issue342는OPEN이다. 현재main ce8ca4ec 직접기반/충돌파일0이다. 이결과를실패원장에기록한문서delta를게시한뒤새PR FullCI를시작한다. finalHead/PR/Run은Issue댓글에보존한다.
+
+## REWORK 1 — PR864 Full3455 QA Preflight 선언 누락 (2026-10-31)
+
+- 재개 기준: PR864/open/Ready, Head `cf9458c15bceb2dddadc3a40903feeede39707e8`, main/base `ce8ca4ec7f0eb2ba63d883b7c22786c5d033aa14`, test-merge `978a89b2f4eda1c7501370c98909febe032a83f8`. 최신 main/Head는 그대로이며 충돌·미해결 스레드0이다.
+- 원본 [Full3455.1](https://github.com/planner77/masterGantt/actions/runs/41169048995)은 QA Preflight의 `qa_required` 선언 누락으로 FAIL이다. `PATH_POLICY`와 후속 집계는 파생 실패이며 타입/Unit/build/Chromium/Docker는 **NOT RUN**이다. 제품 회귀가 실행돼 실패한 것으로 해석하지 않는다. Trusted1101의 원본CI미성공 사유도 별도로 구별한다.
+- 원인: 이전 게시에서 PR 본문에 `risk_level`·`qa_method`만 선언하고 필수 독립행 `qa_required: true`를 빠뜨렸다. 문서/AC 구조 검사만 확인하고 실제 Preflight 전체 계약을 재생하지 않은 게시 준비 누락이다. Work Packet의 qa_required 문구가 PR 본문 선언을 대신하지 않는다.
+- 최소 보완: PR 본문에 정확히1개 `qa_required: true`를 추가한다. 기존 HIGH/AGENT·독립 QA 의무·보호 validator·Required3·Origin/session/revision 및 release 권한은 바꾸지 않는다. 제품·테스트·CI코드 변경 근거가 없어 그대로 둔다. 버전0.139.0 유지, release_required=true/release_authorized=false.
+- 실제 역할/소유권: Manager=분석·교정본문·Packet/TEST_PLAN/PLAN, infra=전체 원격 이력·원장12절·허용된 단일 API Ref 게시, 별도 qa_docs=read-only 독립 사전 검토. 본 REWORK에 backend/frontend 제품 수정을 배정하지 않는다. Issue 댓글 작성은 Manager다.
+- 결정적 재현: 실제 연결 API로 읽은 PR/Issue/69파일 snapshot과 현재 Work Packet을 main의 `qa_preflight.check`에 재생한다. 교정전 QA_REQUIRED/PATH_POLICY2개 FAIL, 단일 선언 추가후 deterministic failure0/PASS이며 HIGH/AGENT·최종 gate DEFERRED를 보존한다. `/tmp/issue342-rework1-preflight-replay.py`와 log/json에 입력·결과를 보존한다. 이는 실제원격출처 인증/공식CI PASS가 아닌 로컬 데이터 재생이다. 단일 필드 누락을 직접 재현했으므로 추측성 제품 가설·임시제품계측·새회귀test 추가를 생략한다.
+
+### TEST_LIFECYCLE_REVIEW — REWORK delta
+
+- 검색: `scripts/qa_preflight.py`, `scripts/test_qa_preflight.py`, `scripts/test_qa_final_automated.py`, 원장의 모든 기존 실패11파일/8E2E 및 현재 PR diff69파일을 대조했다.
+- KEEP_UNIQUE: 기존 Preflight11개는 필드 enum/중복·위험도·AGENT·경로·source·문서 검사를 소유한다. FinalQA37개는 독립승인·정확Head/base/원본CI·문서·미해결리뷰 계약을 소유한다. 현행 두 suite를 실제 실행해 총48개 PASS이며 새테스트/삭제/skip/단언완화는 없다.
+- 기존 실패합집합/간접/음성: 이번 새 실패에 실제 테스트파일은0개다. 기존 11파일 합집합은 보존한다. 현재backend34/frontend12 파일hash가 이전 로컬 검증manifest와 전부 일치하고 runtime/fixture/의존성/설정도 그대로다. 따라서 기존210Unit/고유30브라우저 한정 증거는 해당동일제품bytes의 과거Local증거로 재사용하며 새Head의원격PASS로표시하지않는다. docs/PR본문만교정하는데제품E2E 전체를추가반복하지않는다. 원격Full8/Required3는새Head에서모두실행해야한다.
+- 문서 영향: 본 Packet·단일 실패원장·TEST_PLAN·active PLAN UPDATED. API/DB/보안/UX/운영/버전·CI정책은 직전 구현계약과 동일하므로 추가수정 N/A다. 기존 DOCUMENTATION_SYNC/AC_TEST_COVERAGE는 그대로 유지하고 실제추가경로를 다시 검사한다.
+- 게시: 실제본문계약 교정으로 `edited` 이벤트1회는 불가피하다. 모든 문서·본문·로컬검증·리뷰/충돌을 먼저 동결하고 API candidate commit/tree/부모를 검증한 뒤, 본문1회교정과 expected oldHead를 지정한 branch Ref1회갱신을 이어 수행한다. 이전Head의 metadata가새Head로SUPERSEDED될수있으며 이를Required3의PASS로사용하지않는다. Draft왕복/반복본문수정/정책우회 없이 같은PR864의 synchronize FullCI 등록만 확인하고 이후 모니터링하지 않는다.
+
+REWORK1의별도 `/root/qa_docs` 독립PRE_QA는 **PASS**다. 원본Job124442902691직접로그·독립API본문/Issue AC15/69파일/원본Packet 재생·기존48개정책테스트·backend34/frontend12지문·4문서delta를직접대조했고추가지적없음이다. Manager48개와독립48개는같은suite이므로96개로합산하지않는다. 새Head 원격Required3/Trusted/인간QA_FINAL·Manager ACCEPT는NOT TESTED다.
+
+실제targeted prepr는delta선정READY/0tests/UNKNOWN0이며실행명령없음으로NOT TESTED(exit1)였다. 해당보고서는 `.prepr-reports/2026-10-31T04-44-39.253Z-445246-f290704f`에보존하며PASS로주장하지않는다. 원격PR본문입력의검증은별도실제snapshot 전체재생과기존정책48개로보완했다. 자동선정기/CI를교정해무조건PASS로바꾸지않는다.

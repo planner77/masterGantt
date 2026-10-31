@@ -1607,3 +1607,7 @@ main `d2a82b66`/app0.130.0 기준 #623 분할 및 #463 팝업의0.5px native scr
 ## Issue #342 — 최신 main 국가 Calendar Catalog 재구성 (2026-10-31)
 
 main ce8ca4ec /0.138.5에서 MINOR0.139.0으로84슬롯·공식자료·관리자JSON/CSV Preview→원자Apply·CRUD를 새PR로 구성한다. 기존PR346 직접병합은 금지하며 미해결6개리뷰와 전체과거실패를 [Work Packet](ISSUE_342.md)·[누적 실패 원장](../../ISSUE_342_FAILURE_ANALYSIS.md)에 보존한다. HIGH/AGENT, release_required=true/release_authorized=false. 승인범위는 구현·문서·리뷰/충돌정리 후Full PR CI 시작이며Required3/Trusted/QA_FINAL/Manager ACCEPT는NOT TESTED다.
+
+### Issue #342 — PR864 첫 Preflight 실패 보완 (2026-10-31)
+
+Full3455.1의직접실패는PR본문 `qa_required` 선언누락이다. PATH_POLICY/집계/Trusted는파생,제품검증은NOT RUN이다. 동일제품bytes를유지하고본문에 `qa_required: true`를명시한다. 실제main Preflight 전체를본문교정전후로재생해FAIL2→PASS0을확인하고기존Preflight/FinalQA48개·문서/AC/리뷰/충돌을검사한다. [실패 원장](../../ISSUE_342_FAILURE_ANALYSIS.md)과[Packet](ISSUE_342.md)에전체원격이력과재현·교정·인계를누적한뒤같은PR864의새FullCI시작까지만수행한다. 버전0.139.0·HIGH/AGENT·릴리스미승인·Required3/8shard/보호gate는그대로다.

@@ -5681,3 +5681,9 @@ TEST_LIFECYCLE_REVIEW는 기존 실제 HTTP·SQLite `task-context-menu-hierarchy
 브라우저는 `country-calendar-admin.spec.ts`의 실제 인증/SQLite JSON+CSV·CRUD·출처무효화·no-op·기존Project 불변·Project Preview/Save와 제어mock의응답역전/401/412·파일읽기/만료/UTF-8·pendingEscape·모달오류/초점복원을 구분한다.390/768/1024/1440/1920px geometry와nativekeyboard를 검사한다. 기존 `project-work-calendar-preview.spec.ts`와 `project-resource-calendar-exceptions.spec.ts`는새Preview catalog revision/명시저장 계약에 맞춘다. 과거PR346 실패파일합집합·직접/간접/음성소비자 선정과최종실행수/지문은원장과[Work Packet](exec-plans/active/ISSUE_342.md)에 기록한다.
 
 `verify:prepr --mode=targeted --dry-run`은테스트실행없이NOT TESTED/선정BLOCKED(UNKNOWN6)다. 수동검증은이자동선정의PASS가아니다. 새Head Requiredquality/e2e8shard/docker, TrustedQA·인간Reviewer영수증/Manager ACCEPT는PR CI 시작시NOT TESTED다. 로컬Docker전체검사·실제운영/native125%·WindowsExcel/DRM은이번실행증거가없다.
+
+### Issue #342 / PR864 REWORK1 — QA_REQUIRED 누락
+
+Full3455.1은 제품테스트 이전에 PR 본문의 독립행 `qa_required`가 없어 Preflight에서 실패했다. 타입/Unit/build/E2E/Docker는NOT RUN이며 과거 로컬PASS와 구별한다. 실제본문·Issue AC1~15·69파일diff/Packet을 main의 `qa_preflight.check`에 로컬재생한 결과 교정전 QA_REQUIRED/PATH_POLICY FAIL2, `qa_required: true` 추가후 deterministic FAIL0/PASS다. 원격source/CI/최종승인 검증은DEFERRED다.
+
+기존 `scripts/test_qa_preflight.py` 11개와 `scripts/test_qa_final_automated.py` 37개를 실행해 **48PASS**다. 두 suite는필드/경로/source/독립QA·문서·Owner의 서로다른위험경계를유지한다(KEEP_UNIQUE). 새제품/테스트/CI코드나의존성변경은없다. backend34/frontend12의기존지문이동일함을확인했고기존실패합집합을폐기하지않는다. 원장에명령·source·미실행·게시순서와edited이벤트를기록하며새Head Required3·Trusted/인간QA_FINAL·Manager는NOT TESTED다.
