@@ -98,7 +98,8 @@ for (const width of [390, 768, 1024, 1440]) {
     await page.keyboard.press("Enter");
     await expect(secondDate).toBeFocused();
     const save = dialog.getByRole("button", { name: "작업 캘린더 저장" });
-    await save.focus();
+    await expect(save).toBeDisabled();
+    await dialog.getByRole("button", { name: "미리보기 계산" }).focus();
     await page.keyboard.press("Enter");
     await expect(summary).toBeFocused();
     expect(writes).toHaveLength(0);

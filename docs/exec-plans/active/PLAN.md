@@ -1602,3 +1602,8 @@ main `d2a82b66`/app0.130.0 기준 #623 분할 및 #463 팝업의0.5px native scr
 기준 main `8d6d3ba7a47e6df08c509baad6eedcc2adee1407`/0.138.4/Core2.7.3에서 `test/issue-507-574-gantt-acceptance`를 만들었다. #507은 실제 세로 wheel 계측·최소 Core 비교 후 근거 있는 observer 보완, #574는 기존 marker-OFF V1~V8 assertion의 clipboard·filter0/최신 명시 선택·일반 inline401 공백 보강을 수행한다. #852/#860은 배포 기준선, #573/#693 ON은 비차단이다.
 
 [Primary Work Packet](ISSUE_507.md)·[Related Packet](ISSUE_574.md)·[단일 원장](../../ISSUE_507_FAILURE_ANALYSIS.md)에 분리 Agent의 역할·source별 실행·문서·남은 범위를 기록한다. HIGH/OWNER_MANAGED/qa_required=true; 에이전트 사전 검토는 Trusted QA·Owner 위험 수용·Manager ACCEPT 대체가 아니다. 사용자 종료점은 리뷰/충돌 처리와 원장 기록 후 하나의 Ready PR Full CI 시작이다. CI 모니터링·병합·Main/GHCR·정식 릴리스·Issue 종료는 범위 밖이며 원격 최종 gate는 NOT TESTED다.
+
+
+## Issue #342 — 최신 main 국가 Calendar Catalog 재구성 (2026-10-31)
+
+main ce8ca4ec /0.138.5에서 MINOR0.139.0으로84슬롯·공식자료·관리자JSON/CSV Preview→원자Apply·CRUD를 새PR로 구성한다. 기존PR346 직접병합은 금지하며 미해결6개리뷰와 전체과거실패를 [Work Packet](ISSUE_342.md)·[누적 실패 원장](../../ISSUE_342_FAILURE_ANALYSIS.md)에 보존한다. HIGH/AGENT, release_required=true/release_authorized=false. 승인범위는 구현·문서·리뷰/충돌정리 후Full PR CI 시작이며Required3/Trusted/QA_FINAL/Manager ACCEPT는NOT TESTED다.

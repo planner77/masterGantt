@@ -8,7 +8,7 @@ export function WorkspaceNavigation() {
   const projectActive = pathname === "/" || pathname.startsWith("/projects");
   const resourceActive = pathname.startsWith("/resources");
   const logisticsAdminActive = pathname.startsWith("/logistics-admin");
-  const projectMasterActive = pathname.startsWith("/project-master-admin");
+  const projectMasterActive = pathname.startsWith("/project-master-admin") || pathname.startsWith("/country-calendar-admin");
 
   return (
     <nav aria-label="주요 메뉴">

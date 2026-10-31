@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 import { WorkCalendarRepository } from "../repositories/work-calendar-repository-core";
-import { getCountryCalendarDataset } from "./country-calendar-data";
+import { CountryCalendarCatalog } from "./country-calendar-catalog-core";
 
 export function seedDefaultProjectCalendar(
   database:Database.Database,
@@ -10,8 +10,9 @@ export function seedDefaultProjectCalendar(
   year:number,
   generatePublicId:()=>string=randomUUID,
 ):void {
-  const dataset=getCountryCalendarDataset("KR",year);
-  if(!dataset) throw new Error(`Default Korean calendar is unavailable for ${year}.`);
+  // New projects remain available before official data is published; no dates are guessed.
+  const dataset=new CountryCalendarCatalog(database).effectiveDataset("KR",year);
+  if(!dataset) return;
   const repo=new WorkCalendarRepository(database);
   const rule=repo.insertRule({
     publicId:generatePublicId(),

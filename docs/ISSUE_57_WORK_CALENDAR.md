@@ -242,3 +242,7 @@ Project 설정의 Calendar 국가/기간/날짜 예외 input/select에 기존 se
 이 변경은 Calendar 계산·국가 fixture·COUNTRY/CUSTOM precedence·Resource 정책·API/DB schema를 변경하지 않는다. 401/412 뒤 설정이 닫힌 화면은 page-level 관측이며 Calendar 초안이 모두 보존된다는 의미가 아니다. 실제 5폭 상태/geometry와 계산 계약 N/A 근거는 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
 
 #490 독립 검토 후390px에서 새 .field 적용 범위 select와 시작일 input을 실제 native Tab로 이동해 직접 focus를 관측한다. 기존 국가 select의 UA outline과 구분하고 visible bbox/outline3px+offset3px/clip owner를 검증한다. 현재 제품 CSS bytes는0.93.1 구현과 같으며 최신main/0.94.1 재검증의 source/spec/helper provenance를 새 파일에 기록한다. 과거 focused date가 viewport 아래에 있었던 사진을 가시성 PASS로 사용하지 않는다.
+
+## Issue #342 — 국가 원본 운영 확장
+
+코드 fixture만의2026 지원을 [국가 Catalog 운영](COUNTRY_CALENDAR_DATA.md)으로 확장한다.2026~2037은 관리 범위이고 실제 지원은 effective OFFICIAL의 supportedYears다. 미래 날짜를 규칙으로 추정하지 않는다. sourceVersion/URL은 연도 dataset별로 추적하고 effective 연도가 없으면 공개 descriptor 출처는null이다. 원본 수정 후 Project 반영은 명시적 Calendar Preview/Save로 분리한다.

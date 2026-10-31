@@ -5670,3 +5670,14 @@ TEST_LIFECYCLE_REVIEW는 기존 실제 HTTP·SQLite `task-context-menu-hierarchy
 - EXTEND #574: 기존 `task-context-menu-hierarchy.spec.ts`의 실제 #860 확인·취소 mutation0/동일 ID Dashboard/5폭×DayWeek/fullscreen·native M0에 seeded clipboard 보존→변환 뒤 Paste 비활성을 연결한다. `grid-task-start-reveal.spec.ts`에 filter0→최신 명시 선택 우선, `project-gantt-inline-name.spec.ts`에 일반 inline401→readonly/원본 유지/추가쓰기0을 추가한다.
 - KEEP_UNIQUE: V1 unknown outcome·삭제401/412/network, V2 실제 Resource peer-wheel, V5 실제 name-only PATCH·SQLite reload/재시작·IME, V7 Task 없는 미래축3회 증가, V8 실제 JSON/Excel/SVG/PNG/Copy/Template·권한·revision·원자 rollback을 기존 assertion으로 유지한다. 삭제·skip·retry/timeout 증가·Required3/8-shard 완화 없음.
 - AC ↔ 원본 assertion ↔ owner/SC ↔ 환경의 단일 매핑은 [Gantt 정합 표](GANTT_STATE_CONFORMANCE.md); source 지문·명령·실제 결과·실패와 미검증은 [Work Packet](exec-plans/active/ISSUE_507.md)·[단일 실패 원장](ISSUE_507_FAILURE_ANALYSIS.md). baseline `8d6d3ba7a47e6df08c509baad6eedcc2adee1407`/0.138.4의 과거 성공과 새 후보를 구분한다. Full PR Quality/E2E8/Docker·Trusted QA·Owner HIGH 수용·Manager ACCEPT는 별도 NOT TESTED이며 이번 범위는 CI 시작까지다.
+
+
+## Issue #342 — 국가 Catalog 재구성 검증 (2026-10-31)
+
+7국가×2026~2037의84슬롯, 공식12·미확보72, WORKING/NON_WORKING, immutable builtin+override masking, source/version roundtrip, strict JSON/CSV(duplicate/null/unknown/date/year/quote/UTF-8/BOM), Preview binding/expiry, session 회수·지연 body, transaction 중간 실패 rollback, no-op, catalog revision 경쟁을 검사한다. migration0035의 신규/기존0034 upgrade·재시작 및 기존 Project/Task/권한 row 보존을 포함한다. 기존 Project materialized Calendar/Task/revision은 원본 변경으로 달라지지 않으며 명시적 Preview/Save만 최신 OFFICIAL을 반영한다.
+
+최종 Local Fast Feedback은 VN 공식 정정 후 backend16파일210tests PASS다(`/tmp/issue342-backend-vn-final-tests-2.log`). 별도 qa_docs의최종3파일55tests도PASS이며210개와중복합산하지않는다. 이실행전 migration count/누락예제 실패와 VN정정미검증제거→공식원표독립대조후3행재반영·golden직렬화실패이력은 [단일 실패 원장](ISSUE_342_FAILURE_ANALYSIS.md)에 보존한다. 공식2027+ 자료는 researcher가US OPM2027~2030 및TH BOT2027 원표와 대조했고,KR2027 전체 원표 미확보는UNAVAILABLE로 유지한다.
+
+브라우저는 `country-calendar-admin.spec.ts`의 실제 인증/SQLite JSON+CSV·CRUD·출처무효화·no-op·기존Project 불변·Project Preview/Save와 제어mock의응답역전/401/412·파일읽기/만료/UTF-8·pendingEscape·모달오류/초점복원을 구분한다.390/768/1024/1440/1920px geometry와nativekeyboard를 검사한다. 기존 `project-work-calendar-preview.spec.ts`와 `project-resource-calendar-exceptions.spec.ts`는새Preview catalog revision/명시저장 계약에 맞춘다. 과거PR346 실패파일합집합·직접/간접/음성소비자 선정과최종실행수/지문은원장과[Work Packet](exec-plans/active/ISSUE_342.md)에 기록한다.
+
+`verify:prepr --mode=targeted --dry-run`은테스트실행없이NOT TESTED/선정BLOCKED(UNKNOWN6)다. 수동검증은이자동선정의PASS가아니다. 새Head Requiredquality/e2e8shard/docker, TrustedQA·인간Reviewer영수증/Manager ACCEPT는PR CI 시작시NOT TESTED다. 로컬Docker전체검사·실제운영/native125%·WindowsExcel/DRM은이번실행증거가없다.
