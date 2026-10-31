@@ -57,6 +57,19 @@ for (const admin of admins) {
         const main = document.querySelector("main")!;
         return { main: rect(main), heading: rect(document.querySelector("h1")!), card: rect(form.closest(".admin-auth") ?? (form.parentElement?.closest("section[aria-labelledby=project-master-auth-title]") ?? form)), input: rect(input), submit: rect(form.querySelector('[type="submit"]')!), padding: getComputedStyle(main).paddingTop, headerBottom: document.querySelector(".site-header")!.getBoundingClientRect().bottom, cardPadding: getComputedStyle(form.closest(".admin-auth") ?? form).paddingTop, cardGap: getComputedStyle(form.closest(".admin-auth") ?? form).gap, headingFont: getComputedStyle(document.querySelector("h1")!).fontSize, headingBottom: document.querySelector(".section-heading")!.getBoundingClientRect().bottom, border: style.borderTopWidth, focus: style.outlineWidth, overflow: document.documentElement.scrollWidth > innerWidth + 1 };
       });
+      if (admin.name === "master") {
+        const link = page.locator(".section-heading").getByRole("link", { name: "국가 캘린더 관리", exact: true });
+        const help = page.getByRole("button", { name: "프로젝트 기준정보 관리 도움말", exact: true });
+        await expect(link).toBeVisible(); await expect(link).toHaveAttribute("href", "/country-calendar-admin");
+        const bounds = await link.boundingBox(); expect(bounds!.height).toBe(40);
+        assertSiblingControls(shared.controls.filter(control => ["국가 캘린더 관리", "프로젝트 기준정보 관리 도움말"].includes(control.label ?? "")));
+        await input.press("Shift+Tab"); await expect(help).toBeFocused();
+        await page.keyboard.press("Shift+Tab"); await expect(link).toBeFocused();
+        const linkFocus = await captureUi(page, testInfo, `master-country-link-focus-${width}`);
+        assertFocusVisible(linkFocus.controls.find(control => control.label === "국가 캘린더 관리")!);
+        await page.keyboard.press("Tab"); await expect(help).toBeFocused();
+        await page.keyboard.press("Tab"); await expect(input).toBeFocused();
+      }
       measurements.push({ state: "before-auth", width, ...metrics });
       if (!baseline) {
         await expect(page.locator(".admin-page")).toBeVisible();
@@ -153,6 +166,10 @@ for (const admin of admins) {
       const box = await heading.boundingBox();
       const previous = headingBefore.find(item => item.width === width)!;
       if (!baseline) { expect(box!.x).toBe(previous.heading.x); expect(box!.y).toBe(previous.heading.y); }
+      if (admin.name === "master") {
+        await expect(page.locator(".section-heading").getByRole("link", { name: "국가 캘린더 관리", exact: true })).toBeVisible();
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      }
       if (!baseline) {
         const actionButtons = await page.getByRole("button", { name: /^(관리자 비밀번호 변경|새로고침|로그아웃)$/ }).evaluateAll(nodes => nodes.map(node => { const r = node.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height, margin: getComputedStyle(node).marginTop }; }));
         for (const a of actionButtons) {
@@ -167,6 +184,17 @@ for (const admin of admins) {
       }
       measurements.push({ state: "after-auth", width, heading: box, buttons: await page.locator(".secondary-button").evaluateAll(buttons => buttons.map(button => ({ margin: getComputedStyle(button).marginTop, height: button.getBoundingClientRect().height }))) });
       if (evidence) await page.screenshot({ path: resolve(evidence, `${baseline ? "before" : "after"}-${admin.name}-${width}-authenticated.png`), fullPage: true });
+    }
+    if (admin.name === "master") {
+      const touchContext = await page.context().browser()!.newContext({ viewport: { width: 390, height: 900 }, hasTouch: true, locale: "ko-KR", timezoneId: "Asia/Seoul" });
+      try {
+        const touchPage = await touchContext.newPage(); await touchPage.goto(new URL(admin.page, page.url()).href);
+        const link = touchPage.getByRole("link", { name: "국가 캘린더 관리", exact: true });
+        await expect(link).toBeVisible(); expect(await touchPage.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(true);
+        const bounds = await link.boundingBox(); expect(bounds!.height).toBe(44);
+        const coarse = await captureUi(touchPage, testInfo, "master-country-link-coarse-390");
+        assertSiblingControls(coarse.controls.filter(control => ["국가 캘린더 관리", "프로젝트 기준정보 관리 도움말"].includes(control.label ?? "")));
+      } finally { await touchContext.close(); }
     }
     await page.getByRole("button", { name: "새로고침", exact: true }).click();
     await expect(page.getByRole("button", { name: "로그인", exact: true })).toBeVisible();

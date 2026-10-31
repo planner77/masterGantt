@@ -1,0 +1,686 @@
+{
+  "scope": "동결된 UI의 추가 읽기 전용 형상 관측이다. 이 브라우저의 인증·목록 응답은 합성 자료로 가로챘으며 실제 관리자 인증이나 DB 변경을 수행하지 않았다. 실제 상태·권한 검증은 별도 E2E 증거를 따른다.",
+  "source": {
+    "baseline": "ee3a0f1404c1748b18455ad6234b4d948ced0121",
+    "manifestSha256": "04f5154af44010c3d114873b25431fe4547f4e1b647924dbcee115fa7b9e7447",
+    "files": [
+      {
+        "path": "src/app/project-master-admin/page.tsx",
+        "bytes": 1133,
+        "sha256": "edabad1c6e99a00615ce7fdc10318e38a822527ef5145eae8cabebfa0d34f5c6"
+      },
+      {
+        "path": "src/app/project-master-admin/page.module.css",
+        "bytes": 316,
+        "sha256": "1ead61b27b5ec3f599e530b9cf66ee497fb9ded5673dc9bd1214ae46301b4925"
+      },
+      {
+        "path": "tests/e2e/admin-auth-layout.spec.ts",
+        "bytes": 15055,
+        "sha256": "7b4f859ea3f4965d0b568a75db6b7d8ad7b5d739f84763df753c91f567b8c8fc"
+      },
+      {
+        "path": "tests/e2e/country-calendar-admin.spec.ts",
+        "bytes": 30886,
+        "sha256": "5a8f0c096d226ae8673cc7c3720481666499d0d2ef3513a450bedb71dc6d2910"
+      }
+    ],
+    "helperBoundary": "captureUi의 추적 소스 집계에는 새 미추적 page.module.css가 빠진다. 이 명시적 4파일 manifest는 해당 CSS를 포함한다."
+  },
+  "originalRed": {
+    "head": "ee3a0f1404c1748b18455ad6234b4d948ced0121",
+    "test": "admin-auth-layout master authentication geometry and states",
+    "viewportWidth": 390,
+    "gap": 56,
+    "cardY": 223,
+    "linkActualHeight": 34,
+    "h1Y": 103,
+    "log": "/tmp/issue342-rework3-frontend-red.log"
+  },
+  "browserVersion": "153.0.8010.12",
+  "measurements": [
+    {
+      "phase": "before-auth",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "heading": {
+        "x": 16,
+        "y": 77,
+        "right": 374,
+        "bottom": 215,
+        "width": 358,
+        "height": 138
+      },
+      "h1": {
+        "x": 16,
+        "y": 103,
+        "right": 374,
+        "bottom": 133,
+        "width": 358,
+        "height": 30
+      },
+      "content": {
+        "x": 16,
+        "y": 231,
+        "right": 374,
+        "bottom": 466.625,
+        "width": 358,
+        "height": 235.625
+      },
+      "gap": 16,
+      "link": {
+        "x": 16,
+        "y": 175,
+        "right": 151.78125,
+        "bottom": 215,
+        "width": 135.78125,
+        "height": 40
+      },
+      "help": {
+        "x": 163.78125,
+        "y": 179,
+        "right": 195.78125,
+        "bottom": 211,
+        "width": 32,
+        "height": 32
+      },
+      "overlap": false,
+      "documentWidth": 390,
+      "coarse": false,
+      "environment": {
+        "locale": "ko-KR",
+        "timezone": "Asia/Seoul",
+        "dpr": 1,
+        "rootFont": "16px",
+        "visualScale": 1
+      }
+    },
+    {
+      "phase": "before-auth",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "heading": {
+        "x": 24,
+        "y": 77,
+        "right": 744,
+        "bottom": 167,
+        "width": 720,
+        "height": 90
+      },
+      "h1": {
+        "x": 24,
+        "y": 103,
+        "right": 556.21875,
+        "bottom": 133,
+        "width": 532.21875,
+        "height": 30
+      },
+      "content": {
+        "x": 24,
+        "y": 183,
+        "right": 544,
+        "bottom": 345.015625,
+        "width": 520,
+        "height": 162.015625
+      },
+      "gap": 16,
+      "link": {
+        "x": 564.21875,
+        "y": 77,
+        "right": 700,
+        "bottom": 117,
+        "width": 135.78125,
+        "height": 40
+      },
+      "help": {
+        "x": 712,
+        "y": 81,
+        "right": 744,
+        "bottom": 113,
+        "width": 32,
+        "height": 32
+      },
+      "overlap": false,
+      "documentWidth": 768,
+      "coarse": false,
+      "environment": {
+        "locale": "ko-KR",
+        "timezone": "Asia/Seoul",
+        "dpr": 1,
+        "rootFont": "16px",
+        "visualScale": 1
+      }
+    },
+    {
+      "phase": "before-auth",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "heading": {
+        "x": 24,
+        "y": 77,
+        "right": 1000,
+        "bottom": 167,
+        "width": 976,
+        "height": 90
+      },
+      "h1": {
+        "x": 24,
+        "y": 103,
+        "right": 812.21875,
+        "bottom": 133,
+        "width": 788.21875,
+        "height": 30
+      },
+      "content": {
+        "x": 24,
+        "y": 183,
+        "right": 544,
+        "bottom": 345.015625,
+        "width": 520,
+        "height": 162.015625
+      },
+      "gap": 16,
+      "link": {
+        "x": 820.21875,
+        "y": 77,
+        "right": 956,
+        "bottom": 117,
+        "width": 135.78125,
+        "height": 40
+      },
+      "help": {
+        "x": 968,
+        "y": 81,
+        "right": 1000,
+        "bottom": 113,
+        "width": 32,
+        "height": 32
+      },
+      "overlap": false,
+      "documentWidth": 1024,
+      "coarse": false,
+      "environment": {
+        "locale": "ko-KR",
+        "timezone": "Asia/Seoul",
+        "dpr": 1,
+        "rootFont": "16px",
+        "visualScale": 1
+      }
+    },
+    {
+      "phase": "before-auth",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heading": {
+        "x": 24,
+        "y": 77,
+        "right": 1416,
+        "bottom": 167,
+        "width": 1392,
+        "height": 90
+      },
+      "h1": {
+        "x": 24,
+        "y": 103,
+        "right": 1228.21875,
+        "bottom": 133,
+        "width": 1204.21875,
+        "height": 30
+      },
+      "content": {
+        "x": 24,
+        "y": 183,
+        "right": 544,
+        "bottom": 345.015625,
+        "width": 520,
+        "height": 162.015625
+      },
+      "gap": 16,
+      "link": {
+        "x": 1236.21875,
+        "y": 77,
+        "right": 1372,
+        "bottom": 117,
+        "width": 135.78125,
+        "height": 40
+      },
+      "help": {
+        "x": 1384,
+        "y": 81,
+        "right": 1416,
+        "bottom": 113,
+        "width": 32,
+        "height": 32
+      },
+      "overlap": false,
+      "documentWidth": 1440,
+      "coarse": false,
+      "environment": {
+        "locale": "ko-KR",
+        "timezone": "Asia/Seoul",
+        "dpr": 1,
+        "rootFont": "16px",
+        "visualScale": 1
+      }
+    },
+    {
+      "phase": "before-auth",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "heading": {
+        "x": 160,
+        "y": 77,
+        "right": 1760,
+        "bottom": 167,
+        "width": 1600,
+        "height": 90
+      },
+      "h1": {
+        "x": 160,
+        "y": 103,
+        "right": 1572.21875,
+        "bottom": 133,
+        "width": 1412.21875,
+        "height": 30
+      },
+      "content": {
+        "x": 160,
+        "y": 183,
+        "right": 680,
+        "bottom": 345.015625,
+        "width": 520,
+        "height": 162.015625
+      },
+      "gap": 16,
+      "link": {
+        "x": 1580.21875,
+        "y": 77,
+        "right": 1716,
+        "bottom": 117,
+        "width": 135.78125,
+        "height": 40
+      },
+      "help": {
+        "x": 1728,
+        "y": 81,
+        "right": 1760,
+        "bottom": 113,
+        "width": 32,
+        "height": 32
+      },
+      "overlap": false,
+      "documentWidth": 1920,
+      "coarse": false,
+      "environment": {
+        "locale": "ko-KR",
+        "timezone": "Asia/Seoul",
+        "dpr": 1,
+        "rootFont": "16px",
+        "visualScale": 1
+      }
+    },
+    {
+      "phase": "after-auth",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "heading": {
+        "x": 16,
+        "y": 77,
+        "right": 374,
+        "bottom": 215,
+        "width": 358,
+        "height": 138
+      },
+      "h1": {
+        "x": 16,
+        "y": 103,
+        "right": 374,
+        "bottom": 133,
+        "width": 358,
+        "height": 30
+      },
+      "content": {
+        "x": 16,
+        "y": 231,
+        "right": 374,
+        "bottom": 1734.171875,
+        "width": 358,
+        "height": 1503.171875
+      },
+      "gap": 16,
+      "link": {
+        "x": 16,
+        "y": 175,
+        "right": 151.78125,
+        "bottom": 215,
+        "width": 135.78125,
+        "height": 40
+      },
+      "help": {
+        "x": 163.78125,
+        "y": 179,
+        "right": 195.78125,
+        "bottom": 211,
+        "width": 32,
+        "height": 32
+      },
+      "overlap": false,
+      "documentWidth": 390,
+      "coarse": false,
+      "environment": {
+        "locale": "ko-KR",
+        "timezone": "Asia/Seoul",
+        "dpr": 1,
+        "rootFont": "16px",
+        "visualScale": 1
+      }
+    },
+    {
+      "phase": "after-auth",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "heading": {
+        "x": 24,
+        "y": 77,
+        "right": 744,
+        "bottom": 167,
+        "width": 720,
+        "height": 90
+      },
+      "h1": {
+        "x": 24,
+        "y": 103,
+        "right": 556.21875,
+        "bottom": 133,
+        "width": 532.21875,
+        "height": 30
+      },
+      "content": {
+        "x": 24,
+        "y": 183,
+        "right": 744,
+        "bottom": 1149.59375,
+        "width": 720,
+        "height": 966.59375
+      },
+      "gap": 16,
+      "link": {
+        "x": 564.21875,
+        "y": 77,
+        "right": 700,
+        "bottom": 117,
+        "width": 135.78125,
+        "height": 40
+      },
+      "help": {
+        "x": 712,
+        "y": 81,
+        "right": 744,
+        "bottom": 113,
+        "width": 32,
+        "height": 32
+      },
+      "overlap": false,
+      "documentWidth": 768,
+      "coarse": false,
+      "environment": {
+        "locale": "ko-KR",
+        "timezone": "Asia/Seoul",
+        "dpr": 1,
+        "rootFont": "16px",
+        "visualScale": 1
+      }
+    },
+    {
+      "phase": "after-auth",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "heading": {
+        "x": 24,
+        "y": 77,
+        "right": 1000,
+        "bottom": 167,
+        "width": 976,
+        "height": 90
+      },
+      "h1": {
+        "x": 24,
+        "y": 103,
+        "right": 812.21875,
+        "bottom": 133,
+        "width": 788.21875,
+        "height": 30
+      },
+      "content": {
+        "x": 24,
+        "y": 183,
+        "right": 1000,
+        "bottom": 945.40625,
+        "width": 976,
+        "height": 762.40625
+      },
+      "gap": 16,
+      "link": {
+        "x": 820.21875,
+        "y": 77,
+        "right": 956,
+        "bottom": 117,
+        "width": 135.78125,
+        "height": 40
+      },
+      "help": {
+        "x": 968,
+        "y": 81,
+        "right": 1000,
+        "bottom": 113,
+        "width": 32,
+        "height": 32
+      },
+      "overlap": false,
+      "documentWidth": 1024,
+      "coarse": false,
+      "environment": {
+        "locale": "ko-KR",
+        "timezone": "Asia/Seoul",
+        "dpr": 1,
+        "rootFont": "16px",
+        "visualScale": 1
+      }
+    },
+    {
+      "phase": "after-auth",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "heading": {
+        "x": 24,
+        "y": 77,
+        "right": 1416,
+        "bottom": 167,
+        "width": 1392,
+        "height": 90
+      },
+      "h1": {
+        "x": 24,
+        "y": 103,
+        "right": 1228.21875,
+        "bottom": 133,
+        "width": 1204.21875,
+        "height": 30
+      },
+      "content": {
+        "x": 24,
+        "y": 183,
+        "right": 1416,
+        "bottom": 945.40625,
+        "width": 1392,
+        "height": 762.40625
+      },
+      "gap": 16,
+      "link": {
+        "x": 1236.21875,
+        "y": 77,
+        "right": 1372,
+        "bottom": 117,
+        "width": 135.78125,
+        "height": 40
+      },
+      "help": {
+        "x": 1384,
+        "y": 81,
+        "right": 1416,
+        "bottom": 113,
+        "width": 32,
+        "height": 32
+      },
+      "overlap": false,
+      "documentWidth": 1440,
+      "coarse": false,
+      "environment": {
+        "locale": "ko-KR",
+        "timezone": "Asia/Seoul",
+        "dpr": 1,
+        "rootFont": "16px",
+        "visualScale": 1
+      }
+    },
+    {
+      "phase": "after-auth",
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "heading": {
+        "x": 160,
+        "y": 77,
+        "right": 1760,
+        "bottom": 167,
+        "width": 1600,
+        "height": 90
+      },
+      "h1": {
+        "x": 160,
+        "y": 103,
+        "right": 1572.21875,
+        "bottom": 133,
+        "width": 1412.21875,
+        "height": 30
+      },
+      "content": {
+        "x": 160,
+        "y": 183,
+        "right": 1760,
+        "bottom": 945.40625,
+        "width": 1600,
+        "height": 762.40625
+      },
+      "gap": 16,
+      "link": {
+        "x": 1580.21875,
+        "y": 77,
+        "right": 1716,
+        "bottom": 117,
+        "width": 135.78125,
+        "height": 40
+      },
+      "help": {
+        "x": 1728,
+        "y": 81,
+        "right": 1760,
+        "bottom": 113,
+        "width": 32,
+        "height": 32
+      },
+      "overlap": false,
+      "documentWidth": 1920,
+      "coarse": false,
+      "environment": {
+        "locale": "ko-KR",
+        "timezone": "Asia/Seoul",
+        "dpr": 1,
+        "rootFont": "16px",
+        "visualScale": 1
+      }
+    }
+  ],
+  "coarse": {
+    "phase": "coarse-before-auth",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "heading": {
+      "x": 16,
+      "y": 77,
+      "right": 374,
+      "bottom": 219,
+      "width": 358,
+      "height": 142
+    },
+    "h1": {
+      "x": 16,
+      "y": 103,
+      "right": 374,
+      "bottom": 133,
+      "width": 358,
+      "height": 30
+    },
+    "content": {
+      "x": 16,
+      "y": 235,
+      "right": 374,
+      "bottom": 470.625,
+      "width": 358,
+      "height": 235.625
+    },
+    "gap": 16,
+    "link": {
+      "x": 16,
+      "y": 175,
+      "right": 151.78125,
+      "bottom": 219,
+      "width": 135.78125,
+      "height": 44
+    },
+    "help": {
+      "x": 163.78125,
+      "y": 175,
+      "right": 207.78125,
+      "bottom": 219,
+      "width": 44,
+      "height": 44
+    },
+    "overlap": false,
+    "documentWidth": 390,
+    "coarse": true,
+    "environment": {
+      "locale": "ko-KR",
+      "timezone": "Asia/Seoul",
+      "dpr": 1,
+      "rootFont": "16px",
+      "visualScale": 1
+    }
+  },
+  "notTested": [
+    "네이티브 125% 확대",
+    "실제 기기",
+    "스크린리더"
+  ]
+}

@@ -560,3 +560,211 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p test_c
 - 기존AC1~14의동일제품로컬증거와이번AC15 Unit보완을구별한다. 새Head의원격quality/e2e/docker·Full8/Trusted·보호된인간QA_FINAL/Manager ACCEPT는 **NOT TESTED**이며실제최종병합승인을만들지않는다. 게시직전미해결리뷰/충돌과main/Head를재조회하고이번8파일묶음Ref1회갱신으로새FullCI를등록한다. 새Head/Run/Attempt는운영댓글로연결하고결과를모니터링하지않는다.
 
 최종게시직전Manager의원격재조회는Head `fb93818a7decea0bfc92d131381f663bb5f10bda` / base `ce8ca4ec7f0eb2ba63d883b7c22786c5d033aa14` 유지, PR864 Ready/open·mergeable=true·미해결thread0·qa_required:true 선언1개다. fetch한최신main도동일하다. 이번묶음은plan/test2개와문서6개이며그밖의tracked변경은없다. 최종본문은편집하지않고검증한같은branch를한번갱신하도록infra에인계한다.
+
+## 14. PR #864 Full #3458.1 — 기준정보 인증 geometry 통합 회귀 (2026-10-31)
+
+### 전체 누적 이력과 현재 출처
+
+조사 전에 이 원장1~13절·현재 Work Packet·AGENTS·[공통 REWORK 지침](PR_CI_FAILURE_TRIAGE.md)을 전부 읽었다. 옛 PR346의54CI Run/36실패Job/109취소Job·11실패파일과 REWORK1 metadata누락/F342-015·REWORK2 명시계획누락/F342-016을 유지한다. 원본 옛 trace 만료 구간은 여전히 INCOMPLETE이며 재수집했다고 주장하지 않는다.
+
+- 이번 branch API는 total_count=7/목록7로 Full3개(#3455/#3457/#3458), metadata1개(#3456), 참고용FAST3개(#235~237)다. 별도 default-branch workflow_run16개를 포함해 총23Run의 모든 Job을 다시 읽었고 전부 attempt1이다. per_page100보다 작고 목록 누락/추가 attempt는 없다.
+- 구 branch도 이번에 다시 조회해 total_count=61/목록61·CI54개·attempt전부1·최신Run2086 동일을 확인했다. 원장에 없는 추가 옛 실행은 없으며 과거 trace 만료 제한은 유지한다.
+- 현재 PR864 Ready/open, Head `ee3a0f1404c1748b18455ad6234b4d948ced0121`, main/base/validator `ce8ca4ec7f0eb2ba63d883b7c22786c5d033aa14`, test-merge `870d7d2e91287f88aefeb6153e5969a2c94157c3`. source artifact schema/repository/Run41171285334/attempt1/PR864/head/ref/base/test-merge와 API를 대조했고 commit→PR API도 유일한 PR864를 반환했다. 제목/Refs342/HIGH/AGENT/qa_required:true는 유효하다. 조사 시 mergeable=true이며 리뷰 thread0은 Manager의 최신 별도 조회를 따른다.
+- [Full #3458.1](https://github.com/planner77/masterGantt/actions/runs/41171285334)은 2026-10-31T05:07:03Z 생성된 pull_request/synchronize이며 최종 FAIL이다. **전체30Job: SUCCESS13/FAIL2/CANCELLED7/SKIPPED8**다. 2FAIL 중 실제 구현 실패는 Shard1의1개이고 E2E aggregate1개는 파생이다.
+- 정제 전체 보고서 `/tmp/issue342-rework3-ci.json`, 검증한 소형 Artifact `/tmp/issue342-rework3-artifacts.json`, 직접 실패 정제 로그 `/tmp/issue342-rework3-shard1-sanitized.log`를 보존한다. raw browser/runtime 로그·trace·signed URL/인증정보는 Git에 넣지 않는다.
+
+| 현재 branch 및 후속 Run·attempt | workflow·Head | Job S/F/C/K | 실제 의미 |
+| --- | --- | --- | --- |
+| [#3458.1 / 41171285334](https://github.com/planner77/masterGantt/actions/runs/41171285334) | ci.yml · ee3a0f14 | 13/2/7/8 | FAIL; 인증 geometry1FAIL, quality/Docker PASS |
+| [#237.1 / 41171285270](https://github.com/planner77/masterGantt/actions/runs/41171285270) | pr-fast-development.yml · ee3a0f14 | 0/0/0/1 | SKIPPED; Ready PR 참고 경로, Full 검증 아님 |
+| [#236.1 / 41170081587](https://github.com/planner77/masterGantt/actions/runs/41170081587) | pr-fast-development.yml · fb93818a | 0/0/0/1 | SKIPPED; Ready PR 참고 경로, Full 검증 아님 |
+| [#3457.1 / 41170081603](https://github.com/planner77/masterGantt/actions/runs/41170081603) | ci.yml · fb93818a | 7/5/0/11 | FAIL; 명시143/142 Unit, 중량 검사 NOT RUN |
+| [#3456.1 / 41170078618](https://github.com/planner77/masterGantt/actions/runs/41170078618) | ci.yml · cf9458c1 | 5/1/0/17 | FAIL; stale metadata SUPERSEDED/N/A |
+| [#235.1 / 41169048982](https://github.com/planner77/masterGantt/actions/runs/41169048982) | pr-fast-development.yml · cf9458c1 | 0/0/0/1 | SKIPPED; Ready PR 참고 경로, Full 검증 아님 |
+| [#3455.1 / 41169048995](https://github.com/planner77/masterGantt/actions/runs/41169048995) | ci.yml · cf9458c1 | 3/5/0/15 | FAIL; qa_required 누락, 실제 제품 검사 NOT RUN |
+| [#1045.1 / 41171744243](https://github.com/planner77/masterGantt/actions/runs/41171744243) | ci-setup-readiness.yml · ce8ca4ec | 0/0/0/1 | SKIPPED; 준비도 미실행 |
+| [#1104.1 / 41171744255](https://github.com/planner77/masterGantt/actions/runs/41171744255) | qa-final-trusted.yml · ce8ca4ec | 0/1/0/0 | FAIL; 원본 CI 자체 미성공 |
+| [#1004.1 / 41171744295](https://github.com/planner77/masterGantt/actions/runs/41171744295) | pr-metadata-reconcile.yml · ce8ca4ec | 1/0/0/0 | SUCCESS; 복구 Controller, 원본 Full PASS 아님 |
+| [#299.1 / 41171744206](https://github.com/planner77/masterGantt/actions/runs/41171744206) | issue-752-diagnostics.yml · ce8ca4ec | 2/0/0/4 | SUCCESS; 비차단 권고, 실제 수동 E2E 진단 미실행 |
+| [#1044.1 / 41170302038](https://github.com/planner77/masterGantt/actions/runs/41170302038) | ci-setup-readiness.yml · ce8ca4ec | 0/0/0/1 | SKIPPED; 준비도 미실행 |
+| [#298.1 / 41170302084](https://github.com/planner77/masterGantt/actions/runs/41170302084) | issue-752-diagnostics.yml · ce8ca4ec | 2/0/0/4 | SUCCESS; 비차단 권고, 실제 수동 E2E 진단 미실행 |
+| [#1103.1 / 41170302070](https://github.com/planner77/masterGantt/actions/runs/41170302070) | qa-final-trusted.yml · ce8ca4ec | 0/1/0/0 | FAIL; 원본 CI 자체 미성공 |
+| [#1003.1 / 41170302048](https://github.com/planner77/masterGantt/actions/runs/41170302048) | pr-metadata-reconcile.yml · ce8ca4ec | 1/0/0/0 | SUCCESS; 복구 Controller, 원본 Full PASS 아님 |
+| [#1102.1 / 41170130965](https://github.com/planner77/masterGantt/actions/runs/41170130965) | qa-final-trusted.yml · ce8ca4ec | 0/1/0/0 | BLOCKED; 원본 artifact/API 귀속 불일치 |
+| [#1043.1 / 41170131008](https://github.com/planner77/masterGantt/actions/runs/41170131008) | ci-setup-readiness.yml · ce8ca4ec | 0/0/0/1 | SKIPPED; 준비도 미실행 |
+| [#297.1 / 41170130969](https://github.com/planner77/masterGantt/actions/runs/41170130969) | issue-752-diagnostics.yml · ce8ca4ec | 1/0/0/5 | SUCCESS; 비차단 권고, 실제 수동 E2E 진단 미실행 |
+| [#1002.1 / 41170130963](https://github.com/planner77/masterGantt/actions/runs/41170130963) | pr-metadata-reconcile.yml · ce8ca4ec | 1/0/0/0 | SUCCESS; 복구 Controller, 원본 Full PASS 아님 |
+| [#1101.1 / 41169147423](https://github.com/planner77/masterGantt/actions/runs/41169147423) | qa-final-trusted.yml · ce8ca4ec | 0/1/0/0 | FAIL; 원본 CI 자체 미성공 |
+| [#1042.1 / 41169144896](https://github.com/planner77/masterGantt/actions/runs/41169144896) | ci-setup-readiness.yml · ce8ca4ec | 0/0/0/1 | SKIPPED; 준비도 미실행 |
+| [#296.1 / 41169144957](https://github.com/planner77/masterGantt/actions/runs/41169144957) | issue-752-diagnostics.yml · ce8ca4ec | 1/0/0/5 | SUCCESS; 비차단 권고, 실제 수동 E2E 진단 미실행 |
+| [#1001.1 / 41169144927](https://github.com/planner77/masterGantt/actions/runs/41169144927) | pr-metadata-reconcile.yml · ce8ca4ec | 1/0/0/0 | SUCCESS; 복구 Controller, 원본 Full PASS 아님 |
+
+### F342-017 — 기준정보 제목과 로그인 카드 사이에 추가된 링크
+
+최초 직접 오류는 [Shard1 Job124450161450](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450161450)의 E2E shard 실행 Step, 2026-10-31T05:11:06Z다.
+
+```text
+tests/e2e/admin-auth-layout.spec.ts:17:7
+Issue #452: master authentication geometry and states
+at tests/e2e/admin-auth-layout.spec.ts:68:56
+expect(metrics.card.y - metrics.headingBottom).toBe(16)
+Expected: 16
+Received: 56
+1 failed / 2 passed / 126 did not run (24.3s)
+```
+
+이는 cardPadding 자체가56px라는 뜻이 아니다. 앞의 cardPadding16px/cardGap12px 단언은 통과했고, 제목 블록 하단과 인증 카드 상단의 간격이40px 증가했다. 실제 실패 snapshot은 제목 다음에 국가 캘린더 관리 링크, 다음에 관리자 로그인 region이 놓인 순서를 보인다. resource/logistics 인증2사례는 PASS였고 master에서 최초 실패했다. **PRODUCT/통합 geometry 회귀**로 진단을 frontend에 배정하며 실제 RED·수정·동결 재검증은 후속 영수증으로 기록한다. 기준정보 탐색 진입 추가의 인증 화면 간접 소비자를 이전 한정 브라우저 검증에서 빠뜨린 범위 누락도 별도로 보완한다.
+
+실제 Playwright report의 stats는 total129/expected2/unexpected1/flaky0/skipped126이다. 전역 errors의 `Testing stopped early after 1 maximum allowed failures.`는 기존 PR fail-fast 중단 통지이며 별도 제품 결함으로 중복 계산하지 않는다. country-calendar-admin은 계획에 포함됐지만 앞의 master 실패로 **NOT RUN**이며 이번 원격 country 전체 PASS를 주장하지 않는다.
+
+### Full #3458 실제 Job 전체 행렬
+
+| Job·표시 이름 | 결론 | 직접·파생/미실행 구분 |
+| --- | --- | --- |
+| [124449580873](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124449580873) · 변경 경로 판정 | SUCCESS | 실제 완료; 개별 역할 범위의 결과 |
+| [124449581497](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124449581497) · QA Final 신뢰 경계 확인 | SUCCESS | 실제 완료; 개별 역할 범위의 결과 |
+| [124449665778](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124449665778) · QA Preflight — 정책·문서 사전 검사 | SUCCESS | 실제 완료; 개별 역할 범위의 결과 |
+| [124449667180](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124449667180) · PR metadata가 기존 전체 CI 증거를 보존하는지 검증 | SKIPPED | NOT RUN; 정당한 분기 skip도 실제 검증 PASS 아님 |
+| [124449667298](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124449667298) · Low E2E policy plan (trusted base) | SKIPPED | NOT RUN; 정당한 분기 skip도 실제 검증 PASS 아님 |
+| [124449735750](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124449735750) · Vitest 단위·통합 테스트 | SUCCESS | 실제 완료; 개별 역할 범위의 결과 |
+| [124449735803](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124449735803) · TypeScript 타입 검사 | SUCCESS | 실제 완료; 개별 역할 범위의 결과 |
+| [124449735804](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124449735804) · 정책·저장소 계약 검사 | SUCCESS | 실제 완료; 개별 역할 범위의 결과 |
+| [124449735841](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124449735841) · ESLint | SUCCESS | 실제 완료; 개별 역할 범위의 결과 |
+| [124449736819](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124449736819) · Chromium E2E shard ${{ matrix.shard }}/8 | SKIPPED | NOT RUN; 정당한 분기 skip도 실제 검증 PASS 아님 |
+| [124449736855](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124449736855) · Next.js production build | SKIPPED | NOT RUN; 정당한 분기 skip도 실제 검증 PASS 아님 |
+| [124449736877](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124449736877) · github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' \|\| 'Docker smoke 구현' | SKIPPED | NOT RUN; 정당한 분기 skip도 실제 검증 PASS 아님 |
+| [124450103230](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450103230) · PR 빠른 검사 판정 | SUCCESS | 실제 완료; 개별 역할 범위의 결과 |
+| [124450161401](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450161401) · Docker smoke 구현 | SUCCESS | 실제 완료; 개별 역할 범위의 결과 |
+| [124450161424](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450161424) · PR Next.js production build | SUCCESS | 실제 완료; 개별 역할 범위의 결과 |
+| [124450161450](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450161450) · Chromium E2E shard 1/8 · PR | FAILURE | 직접 FAIL: master 인증 geometry 기대16/실제56 |
+| [124450161470](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450161470) · Chromium E2E shard 7/8 · PR | CANCELLED | E2E 실행 중 취소; 내부 실제 FAIL 미관측, 전체 PASS 아님 |
+| [124450161485](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450161485) · Chromium E2E shard 2/8 · PR | CANCELLED | E2E 실행 중 취소; 내부 실제 FAIL 미관측, 전체 PASS 아님 |
+| [124450161487](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450161487) · Chromium E2E shard 6/8 · PR | CANCELLED | E2E 실행 중 취소; 내부 실제 FAIL 미관측, 전체 PASS 아님 |
+| [124450161489](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450161489) · Chromium E2E shard 3/8 · PR | CANCELLED | E2E 실행 중 취소; 내부 실제 FAIL 미관측, 전체 PASS 아님 |
+| [124450161508](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450161508) · Chromium E2E shard 8/8 · PR | CANCELLED | E2E 실행 중 취소; 내부 실제 FAIL 미관측, 전체 PASS 아님 |
+| [124450161515](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450161515) · Chromium E2E shard 4/8 · PR | CANCELLED | E2E 실행 중 취소; 내부 실제 FAIL 미관측, 전체 PASS 아님 |
+| [124450161529](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450161529) · Chromium E2E shard 5/8 · PR | CANCELLED | E2E 실행 중 취소; 내부 실제 FAIL 미관측, 전체 PASS 아님 |
+| [124450162180](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450162180) · Low E2E targeted execution | SKIPPED | NOT RUN; 정당한 분기 skip도 실제 검증 PASS 아님 |
+| [124450525405](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450525405) · Chromium end-to-end tests | FAILURE | 파생 FAIL: Shard1실패/나머지취소 집계 |
+| [124450562959](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450562959) · Build, static checks, and unit tests | SUCCESS | Required quality 실제 PASS |
+| [124450898948](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450898948) · Docker build and runtime smoke test | SUCCESS | Required Docker 실제 PASS |
+| [124450913775](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450913775) · 변경 영향 Shadow 계획 · advisory only (#770) | SUCCESS | 실제 완료; 개별 역할 범위의 결과 |
+| [124450914642](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450914642) · QA Final — Automated | SKIPPED | NOT RUN; 정당한 분기 skip도 실제 검증 PASS 아님 |
+| [124450914846](https://github.com/planner77/masterGantt/actions/runs/41171285334/job/124450914846) · Main 임시 commit 이미지 게시·검증·정리 | SKIPPED | NOT RUN; 정당한 분기 skip도 실제 검증 PASS 아님 |
+
+### 취소7Shard 내부 실제 실패 검사
+
+7개 취소 Job의 원문 로그를 모두 읽었다. 아래 관측 PASS는 최종 suite PASS가 아니며 실행 중 취소/미완료/미실행을 성공0건으로 대체하지 않는다. ✘/실패 assertion/예외로 보고된 추가 실제 실패는0이다. 일부 정상 음성404 로그와 React key 경고를 실제 테스트 실패로 오분류하지 않는다.
+
+| Shard·Job | 발견된 계획 case 수 | 관측 완료 PASS | 실제 FAIL 관측 | 최종 상태 |
+| --- | --- | --- | --- | --- |
+| Chromium E2E shard 2/8 · PR · 124450161485 | 102 | 0 | 0 | CANCELLED; 나머지 실행/완료 범위 INCOMPLETE |
+| Chromium E2E shard 3/8 · PR · 124450161489 | 153 | 6 | 0 | CANCELLED; 나머지 실행/완료 범위 INCOMPLETE |
+| Chromium E2E shard 4/8 · PR · 124450161515 | 93 | 1 | 0 | CANCELLED; 나머지 실행/완료 범위 INCOMPLETE |
+| Chromium E2E shard 5/8 · PR · 124450161529 | 108 | 1 | 0 | CANCELLED; 나머지 실행/완료 범위 INCOMPLETE |
+| Chromium E2E shard 6/8 · PR · 124450161487 | 100 | 6 | 0 | CANCELLED; 나머지 실행/완료 범위 INCOMPLETE |
+| Chromium E2E shard 7/8 · PR · 124450161470 | 78 | 5 | 0 | CANCELLED; 나머지 실행/완료 범위 INCOMPLETE |
+| Chromium E2E shard 8/8 · PR · 124450161508 | 104 | 1 | 0 | CANCELLED; 나머지 실행/완료 범위 INCOMPLETE |
+
+총8Shard의 수집 예정 case는867개다. 이번 중단 Run 전체를867PASS나 실패1개 외 나머지PASS로 계산하지 않는다. Shard1의126NOT RUN과 취소Shard의진행중/미실행을 구분한다.
+
+### 이전 보완과 Required/Trusted 분리
+
+- F342-015의 qa_required 교정은 현재 Preflight Job124449665778 및 artifact에서 **PASS/결정FAIL0/최종DEFERRED5**로 다시 확인했다. HIGH/AGENT·보호 경로·독립 인간 QA/Owner 의무는 유지된다.
+- F342-016의 누락 계획 교정은 Unit Job124449735750에서 **286파일PASS/기존1파일SKIP,3448PASS/기존3SKIP(총3451)**로 실제 확인됐다. 143개 명시 등록 assertion을 완화하지 않고 정상 통과했다. 이번 새 geometry실패와 이전 Unit 실패를 같은 원인으로 합치지 않는다.
+- 정책/typecheck/lint/PR Fast Gate/Next build는 SUCCESS, Required quality124450562959와 Required Docker124450898948도 SUCCESS다. Docker 구현124450161401은 build 및 production HTTP/HTTPS Chromium2개·설정거부·Compose 관리자 인증/로그·재시작/재생성·SQLite volume영속성 검사를 실제 완료했다. PR read-only OCI build artifact가 있다는 사실은 GHCR 게시/main exact digest PASS가 아니다.
+- [Trusted #1104.1](https://github.com/planner77/masterGantt/actions/runs/41171744255)/Job124450972558은 **FAIL: 원본 PR CI run 자체가 성공하지 않았습니다**다. validator는main ce8ca4ec이며 independent_qa/manager_decision은NOT TESTED다. 보호 인간 QA 영수증 검증단계에 도달하지 않았으므로 이번 직접 원인을 인간 승인 부재로 대체하지 않는다. 해당 최종 승인 의무는 이후에도 유지한다.
+
+### Artifact 무결성·최초 실패 trace
+
+| Artifact ID·이름 | ZIP bytes·SHA256 | 실제 확인 범위 |
+| --- | --- | --- |
+| 13030649031 · ci-pr-source.json | 419 · `761bf97a676992559e3e30b637cb0ddb42169a61d09d7659cf0b0d4622fc6e0d` | Run/attempt/PR/head/base/test-merge 대조 |
+| 13031102911 · qa-preflight-report.json | 1288 · `5e13c9de2eb7c5ea5aa67d69aa266ef6699657606d06ec6a42bdb99e004f2c8f` | PASS/결정FAIL0/DEFERRED5 |
+| 13031317578 · ci-impact-shadow.json | 326 · `e038fee5ac6d2a61546a0530b0481912c5e181ec781a1ad55bb16b2b15138dea` | UNKNOWN/FULL_REQUIRED, advisory |
+| 13031342671 · qa-final-automated-report.json | 461 · `65b8c7ec4c0be1fc2abdf1543399fab13c190719c93a72566b4d7f4b7ca0f552` | 원본CI미성공 FAIL; 독립/Manager NOT TESTED |
+| 13031038392 · e2e-timing-shard-1.json | 532 · `4973f59a7a45fdb2066a8115975ed2752f8db783d863f68eda52bf83806f50ff` | failed/앞2개 timing만; 전체143비용실측 아님 |
+| 13031138479 · ci-image-build-contract.json | 1024 · `dce259787b76a4bb11224e5da3253efd7351749bc3f944fd29a2ba7096f43c0a` | test-merge source/tree/version0.139.0/OCI index 계약 |
+| 13031382076 · playwright-report-shard-1 | 1518809 · `242e9895b7b32b05eeb0cf29e5b27666cdc33d4978328aafbd8444a23f131db7` | report 및 nested trace의 같은16/56실패 확인 |
+
+모든 위 ZIP은 API digest와 직접SHA256가 일치한다. Playwright nested trace `data/43ffc04b9c749c8ac45ececac16984efb6418791.zip`은255076bytes이며 JSON trace/stack/snapshot을 읽었고 HTML/JS를 실행하거나 네트워크 요청/인증정보를 Git에 복사하지 않았다. 소형 artifact6개 외 전체 artifact18개의 ID/name/bytes/API digest도 정제JSON에 보존했다. 대형OCI117,060,921bytes는 재다운로드하지 않았고 API목록/build contract와 실제Docker Job결과 범위만 확인했다.
+
+### 누적 실패 파일 합집합과 동결 검증 인계
+
+기존12개에 tests/e2e/admin-auth-layout.spec.ts를 추가해 **13파일**이다. 전체 논리적 합집합을 자동 도구12파일 제한 때문에 축소하지 않는다.
+
+- `tests/e2e/country-calendar-admin.spec.ts`
+- `tests/e2e/project-gantt-stability.spec.ts`
+- `tests/e2e/project-grid-reorder-persistence.spec.ts`
+- `tests/e2e/project-notifications.spec.ts`
+- `tests/e2e/project-repeated-input-accessibility.spec.ts`
+- `tests/e2e/project-status.spec.ts`
+- `tests/e2e/task-editor-form-density.spec.ts`
+- `tests/e2e/workspace-header-version.spec.ts`
+- `tests/server/calendars/country-calendar-catalog.test.ts`
+- `tests/server/calendars/country-calendar-integration.test.ts`
+- `tests/server/db/database.test.ts`
+- `tests/scripts/e2e-shard-planner.test.ts`
+- `tests/e2e/admin-auth-layout.spec.ts`
+
+직접 소비자는 기준정보 제목/진입링크/인증카드, 간접 소비자는 resource/logistics/master 공용 인증화면·모바일/PC geometry·공통 header4nav와 관리자 로그인/권한·국가Catalog 진입이다. 기존 과거8E2E와 Calendar/DB/명시planner 회귀를 유지하고, 새로운 제품 변경의 직접/간접/음성 소비자 범위를 frontend/Manager가 정한 뒤 같은동결source에서 검증한다. 기존 Calendar210Unit·브라우저고유30·명시계획/전체3448PASS를 새 geometry수정까지 무조건유효하다고 확대하지 않는다.
+
+현재 frontend는 최초RED와제품/기존assertion보존수정을 담당한다. infra는 본절과원격증거만, Manager는Packet/TEST_PLAN/PLAN과최종통합/승인을 소유한다. 실제Local Fast Feedback·후보지문·독립사전검토영수증은 확정후아래에 추가한다. 초기원격수집시점의새후보검증은 **NOT TESTED**였으며 당시게시/본문편집/재실행은수행하지않았다. 이후실제결과는아래동결검증영수증으로구별한다. 리뷰/충돌·문서동기화·원장/검증후같은PR864에한번게시해새FullCI를등록할때도 Required3/Trusted/보호인간QA_FINAL/Owner승인은NOT TESTED다. CI결과모니터링·병합/Main/GHCR/tag/release/Issue종료는범위밖이다.
+
+### REWORK3 실제 RED·제품 보완·동결 검증 영수증
+
+frontend는 원격과 같은 기존 master 인증 case를 **수정 전 그대로 실행해 1FAIL**을 재현했다(`/tmp/issue342-rework3-frontend-red.log`, 기대16/실제56,390px). 기존 간격 계약은 유효하며 cardpadding오류·오래된assertion·환경flaky로 돌릴 근거가 없었다. 독립 링크row가 heading과 인증카드 사이에 들어가 gap16+row24+gap16=56이 된 **PRODUCT/페이지통합 회귀**로 확정했다.
+
+- 제품: 국가 캘린더 진입링크를 기존 heading 내부 action영역으로 옮기고 route-local CSS module의 자연 줄바꿈·fine40px/coarse44px를 적용했다. 전역CSS/AdminAuth·4global메뉴·서버권한/API/DB/공식자료·8shard/Required/timeout/retry/skip/concurrency는 바꾸지 않았다.
+- 기존테스트 확장: admin-auth-layout의 mastercase에 heading내링크/href·keyboard/focus·도움말비겹침·coarse44px를 추가했고 원래16px/인증실패·만료/중복제출·5폭 단언은 보존했다. country관리 기존openAdmin경로는 링크 keyboard Enter로 진입한다. 새고유case나테스트skip은 추가하지 않았다.
+- 동결source4경로는 아래명시manifest에 포함된다. 새 CSS가 당시untracked였으므로 captureUi의 git-ls-files 기반 aggregate만으로 전체source결속을 주장하지 않는다. 직접manifest의개별bytes/hash가 GREEN 실행전후와최종대조에서동일했다.
+
+| 동결 source | bytes | SHA256 |
+| --- | --- | --- |
+| src/app/project-master-admin/page.tsx | 1133 | `edabad1c6e99a00615ce7fdc10318e38a822527ef5145eae8cabebfa0d34f5c6` |
+| src/app/project-master-admin/page.module.css | 316 | `1ead61b27b5ec3f599e530b9cf66ee497fb9ded5673dc9bd1214ae46301b4925` |
+| tests/e2e/admin-auth-layout.spec.ts | 15055 | `7b4f859ea3f4965d0b568a75db6b7d8ad7b5d739f84763df753c91f567b8c8fc` |
+| tests/e2e/country-calendar-admin.spec.ts | 30886 | `5a8f0c096d226ae8673cc7c3720481666499d0d2ef3513a450bedb71dc6d2910` |
+
+manifest파일 `/tmp/issue342-rework3-frontend-manifest.json` SHA256는 `04f5154af44010c3d114873b25431fe4547f4e1b647924dbcee115fa7b9e7447`다. Manager의기존backend34/기존frontend12/infra2+새auth/CSS를포함한50경로 path+NUL+bytes 지문은 `8bed01fba9d00bdfe2773594d6291799ad01d7641a3e88428756e9d6815a41cb`(`/tmp/issue342-rework3-final-source-manifest.json`)다. 수정되지않은backend34·infra2개별hash는이전manifest와모두같다.
+
+| Local Fast Feedback | 실제 결과·범위 | 증거 |
+| --- | --- | --- |
+| 수정전 master 기존case | 1FAIL; 원격과 같은16/56 | /tmp/issue342-rework3-frontend-red.log |
+| 동결후 bounded 실제Chromium | **33PASS/0FAIL,5.1분**,12spec,workers1/retries0/max-failures0 | /tmp/issue342-rework3-frontend-green.log; selection.log |
+| 최종 clean-config TypeScript·변경경로ESLint·diff | PASS/terminal30675 exit0 | /tmp/issue342-rework3-frontend-typecheck.log; frontend-eslint-final.log |
+| Manager version·Markdown·diff | version0.139.0/391파일링크/CRLF-aware diff PASS | Manager 최종실행 영수증 |
+| main Preflight 로컬예정후보재생 | 최종78경로 PASS/결정FAIL0/최종DEFERRED5 | /tmp/issue342-rework3-preflight-final.log |
+
+33개는기존과거실패8E2E의bounded26+공통인증3(resource/logistics/master)+master입력밀도/분류CRUD2+관계1+legacy버튼간격1이다. 국가6개는26개안에포함되며 중복합산하지않는다. 기존13파일합집합 중옛서버3파일/새planner는소스가동일한기존서버210·전체Vitest3448/계획26로연결하고 이번새geometry까지전체Unit을다시실행했다고주장하지않는다. 33개실제Chromium사례에는국가관리happyflow의실제인증/HTTP/SQLite와공통인증·오류사례의route제어응답검증이함께포함된다. 인증3case의제어응답을실제서버권한검증으로확대하지않고각case의기존경계를유지한다. 별도기하probe는이33개밖의보조관찰이다. 전체로컬E2E/Docker는반복하지않았으며새Head Full8·Required3가여전히필수다.
+
+### 보조 기하 증거의 환경·한계와 정제 파일
+
+별도probe는합성session/catalog응답을intercept한읽기전용geometry관찰이며실제관리자로그인/DB mutation증거가아니다. 5폭390/768/1024/1440/1920px에서로그인전후 heading→content간격16px·H1위치보존·documentoverflow0·링크/도움말비겹침,390pxcoarse44px를확인했다. 390px는heading자연줄바꿈으로카드y223→231(+8px),768px이상은223→183(-40px)다. 모든폭의카드절대y/세로높이가감소했다고확대하지않는다. native125%/물리기기/스크린리더는NOT TESTED다.
+
+| 게시하는 정제 증거 | bytes | 최종 SHA256 |
+| --- | --- | --- |
+| [390px 화면](evidence/issue342/rework3/master-auth-390.png) | 35792 | `c22c73f780db806049c8b174a09a1038c9cfe20e0341d91504e8fc87eaf0a511` |
+| [1440px 화면](evidence/issue342/rework3/master-auth-1440.png) | 43323 | `564f0661a7268fdca3af920d6902433da0e75938fb0d1aa298727abcf53e76a3` |
+| [기하 영수증](evidence/issue342/rework3/master-auth-geometry.json) | 14464 | `c6af9f0d0eff472462ddd28f5b0fbb87ebd216098e0a9d56701032fb4f9d134b` |
+
+최초기하JSON지문f7b621757ebc35f19a0171c99f20f25846f7d818402ba70725aa86be87ff6d11은수동설명문구만한글로정합화하며위최종지문으로바뀌었다. 수치/키/브라우저원문/4source지문·PNG는동일하고geometry를재실행/새case로합산하지않는다. 원시trace/log/runtimeDB와전체자동생성화면은게시하지않는다. 생성된tracked Issue455/456출력30개는 `/tmp/issue342-rework3-generated-output`에보존후기준Head bytes로복원했고 next-env/tsconfig의dev생성차이도복원했다.
+
+### 사전 도구의 미매핑·최종 인계 경계
+
+- Pre-PR dry-run `.prepr-reports/2026-10-31T06-09-07.047Z-651557-f2153b26`은 **NOT TESTED/선정BLOCKED,selected2/UNKNOWN2**(pageTSX/newrouteCSS)이며실행명령0이다. 위실제33브라우저의직접·간접·음성수동매핑으로미매핑을보완했으며도구정책을바꿔녹색으로만들지않았다. 누적13파일이도구12파일제한을넘어도논리합집합을축소하지않는다.
+- 처음74tracked경로의main Preflight재생PASS0/DEFERRED5는새untrackedCSS/증거가빠진중간후보검사였다(`/tmp/issue342-rework3-preflight.py/log/json`). 최종예정12파일(source4/docs5/evidence3)을stage한뒤 **전체예정PR78경로**로다시재생한위최종PASS를구별한다. 어느로컬재생도새Head원격출처인증/독립QA_FINAL·Owner승인이아니다.
+- 독립문서검사준비에서 docs_gate harness의list인수를set으로교정한뒤구조PASS를확인했다. 도구호출TypeError준비관측이며제품/gate수정이나음성단언삭제가아니다.
+- 조사원장1~13절의기존98490bytes는HEAD대비strict equality다. 원래지문 `6557d88ec1a5adb78b99ee2d32adb6c396f761ca7f93c76c65306d3b7bf65b04`를보존했다. 본14절의API표시명 `||`를표처리중 `//`로바꿨던P2는원문연산자와Markdownescape로바로잡았다.
+- Manager의게시전최신PR재조회는Head ee3a0f14/basece8ca4ec/testmerge870d7d2e/Ready/open/mergeable=true/thread0/qa_required:true1개다. 독립PRE_QA최종판정·문서동결후원장소유권을Manager에게반환하며한번의GitData commit/ref게시를별도허가받는다. PR본문/제목상태편집·Draft왕복·이전FAILrerun은수행하지않는다. 새FullRun/attempt는등록까지만확인하고이후quality/E2E/Docker/Trusted/보호인간QA_FINAL/Manager는 **NOT TESTED**로남긴다.
+
+실제최종33개명령(위실행영수증과동일):
+
+```sh
+npx playwright test --config tests/config/playwright.config.ts tests/e2e/admin-auth-layout.spec.ts tests/e2e/admin-legacy-button-spacing.spec.ts tests/e2e/master-controls-density.spec.ts tests/e2e/project-master-relations.spec.ts tests/e2e/country-calendar-admin.spec.ts tests/e2e/project-gantt-stability.spec.ts tests/e2e/project-grid-reorder-persistence.spec.ts tests/e2e/project-notifications.spec.ts tests/e2e/project-repeated-input-accessibility.spec.ts tests/e2e/project-status.spec.ts tests/e2e/task-editor-form-density.spec.ts tests/e2e/workspace-header-version.spec.ts --grep 'authentication geometry|empty project CTA|after 세 범주|category/filter 전환|관리자 관계 연결|SQLite 관리자|첫 조회 오류|412와 401|파일 UTF|412 후 canonical|날짜 편집 중 401|keeps the instance|첫 하위 작업|Grid DnD 확정|hit area|캘린더 반복|생성 기본값과 설정 변경|비기본 WBS fullscreen|공통 헤더' --project chromium --workers 1 --retries 0 --max-failures 0 --output output/playwright/issue342-rework3-green
+```
+
+frontend최종영수증 `/tmp/issue342-rework3-frontend-result.json` SHA256는 `340c1ad61fcf8f8a338a4b175bc329bb852858ca5a3289c23b704f06761925d6`다. RED/GREEN/static의실제명령·선정/지문·증거/복원경계를포함하며제품추가수정은없다.
+
+
+REWORK3 별도 `/root/qa_docs`의최종독립 Agent **PRE_QA PASS**를확인했다. 원본직접FAIL·취소7로그·기존원장98490bytes보존,동결33PASS/정적검사·혼합실제/합성검증범위·5폭기하·source4/전체50지문·최종78경로DOCSYNC/AC/391링크를직접대조했고남은사전지적은없다. 이판정은보호인간QA_FINAL/새Head Required3·Trusted/Owner/Manager ACCEPT가아니다. 최신main ce8ca4ec와기준Head ee3a0f14는유지되고Ready/open·mergeable=true·미해결thread0이며canonical Refs342/qa_required:true1개다. 검토한12파일(source4/docs5/evidence3)을같은branch Ref1회갱신으로게시해새FullCI를등록한다. 새Head/Run/attempt는Issue/PR운영댓글에연결하고결과는모니터링하지않는다. MERGE_READY는BLOCKED다.

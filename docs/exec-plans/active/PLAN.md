@@ -1615,3 +1615,8 @@ Full3455.1의직접실패는PR본문 `qa_required` 선언누락이다. PATH_POLI
 ### Issue #342 — PR864 Full3457 Unit 실행계획 누락 보완 (2026-10-31)
 
 이전qa_required보완후Preflight는PASS했다. 현재Unit의142plan/143실제spec불일치에서새country-calendar-admin명시배치누락을확인했다. 기존142배치를유지해Shard1에1개등록하고exactcoverage/unique/8runner/Required3을보존한다. plan/test2파일과CI_CD/REMOTE_VALIDATION/TEST_PLAN/Packet/실패원장을갱신한다. 실제selector8개·독자parser·발견/전체Vitest·독립검토뒤같은PR새FullCI시작까지만수행하며모니터링하지않는다. 전체PRHIGH/AGENT/qa_requiredtrue·0.139.0·릴리스미승인은유지한다. [Work Packet](ISSUE_342.md)과[누적 원장](../../ISSUE_342_FAILURE_ANALYSIS.md)을따른다.
+
+
+### Issue #342 — PR864 Full3458 관리자 인증 배치 보완 (2026-10-31)
+
+quality/Docker는SUCCESS이고E2EShard1의master인증간격16→56px가직접FAIL이다. 국가링크독립row가원인이므로기존16px계약을유지해heading작업영역으로옮기고기존case를확장한다. 누적13실패파일합집합·직접/간접/음성소비자와별도PRE_QA·문서/리뷰/충돌을확인한뒤같은PR864에단일게시로새FullCI를등록한다. [Packet](ISSUE_342.md)·[단일원장14절](../../ISSUE_342_FAILURE_ANALYSIS.md)에원본/재현/동결검증과취소·미검증을기록한다. HIGH/AGENT·0.139.0·릴리스미승인·Required3/8shard는유지하며CI결과모니터링/병합은범위밖이다.

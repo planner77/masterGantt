@@ -20,7 +20,9 @@ async function authenticate(page: Page, baseURL: string) {
 }
 async function openAdmin(page: Page) {
   await page.goto("/project-master-admin");
-  await page.getByRole("link", { name: "국가 캘린더 관리", exact: true }).click();
+  const entry = page.getByRole("link", { name: "국가 캘린더 관리", exact: true });
+  await entry.focus(); await expect(entry).toBeFocused(); await entry.press("Enter");
+  await expect(page).toHaveURL(/\/country-calendar-admin$/);
   await expect(page.getByRole("navigation", { name: "주요 메뉴" }).getByRole("link")).toHaveCount(4);
   await expect(page.getByRole("navigation", { name: "주요 메뉴" }).getByRole("link", { name: "프로젝트 기준정보", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("combobox", { name: "국가", exact: true })).toBeVisible();

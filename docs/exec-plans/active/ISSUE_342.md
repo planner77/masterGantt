@@ -139,3 +139,39 @@ REWORK1의별도 `/root/qa_docs` 독립PRE_QA는 **PASS**다. 원본Job124442902
 REWORK2 최종 Local Fast Feedback: planner/optimizer/config 기존3파일26PASS, 실제8selector143개정확1회/중복0, root/external cwd발견287Unit파일/867browsercase, 전체Vitest3448PASS/기존3SKIP(286파일PASS/1파일SKIP), 별도정책Python58PASS, typecheck/변경lint/version0.139.0/391Markdown링크/diff검사PASS다. 관련26개는3448개에포함되며qa_docs의독립26개·Python37개를동일suite에중복합산하지않는다. source2파일manifest는 `3eae929a6c662c231a018398c45e280d40b78f1994f4422976d78e554932a0f1`이고명령·source경계·최초오류는단일원장에보존한다.
 
 별도 `/root/qa_docs`의REWORK2 독립PRE_QA는 **PASS**다. 원본3457로그·RED·수정2파일·과거142배치/history불변·selector8개·누락/중복음성·독자policy·실제전체Unit로그·6문서정합성을직접비교했고추가사전지적은없다. 기존AC1~14의로컬구현/관련증거는동일제품bytes범위에서재사용하며AC15의로컬Unit범위만새로보완했다. AC15의새Head Required3/Full8·Trusted/인간QA_FINAL·Manager ACCEPT는 **NOT TESTED**다.
+
+
+## REWORK 3 — Full3458 관리자 인증 간격 회귀 (2026-10-31)
+
+- 기준: PR864 Ready/open, Head `ee3a0f1404c1748b18455ad6234b4d948ced0121`, main/base `ce8ca4ec7f0eb2ba63d883b7c22786c5d033aa14`, test-merge `870d7d2e91287f88aefeb6153e5969a2c94157c3`. 재조회 시 충돌·미해결 리뷰0이다. 이전PR346/신규Full3455·3457/metadata3456 및보완결과를 단일원장1~13절과대조한다.
+- 원본 [Full3458.1](https://github.com/planner77/masterGantt/actions/runs/41171285334)의직접실패는Shard1 Job124450161450 `admin-auth-layout.spec.ts:68`의master제목하단→인증카드 기대16px/실제56px다. quality124450562959/Docker124450898948는SUCCESS, E2E aggregate124450525405는파생FAIL이다. 나머지7Shard는CANCELLED이며로그내추가실제FAIL0을미완료PASS로해석하지않는다. 전체30Job은13SUCCESS/2FAIL/7CANCELLED/8SKIPPED다.
+- 진단: 기존실패mastercase를수정없이실행해같은16→56 FAIL을재현했다. 국가링크를heading과인증카드사이독립row로추가해 gap16+row24+gap16=56이됐다. DESIGN/Project UX의16px계약은유효하며cardpadding16/cardgap12도통과해오래된테스트·인증패딩오류가설을기각했다. 분류PRODUCT/페이지통합회귀다. 이전metadata·8shard명시계획보완은이번실제Preflight/Vitest PASS로구별한다.
+- 소유권: frontend는해당page/route-local CSS의heading내링크배치와직접관련기존E2E확장·정제화면증거·LFF, infra는전체원격이력·원장14절과승인후단일게시, Manager는Packet/TEST_PLAN/PROJECT_UX/PLAN·버전·통합,별도qa_docs는read-only사전독립검토를담당한다. Issue댓글은Manager다. 동일파일동시쓰기는금지한다.
+- 범위: 기존4개global메뉴·국가관리진입을유지하고독립spacer를제거한다. 전역CSS/AdminAuth·인증권한/API/DB/Calendar자료·8shard/Required3·timeout/retry/skip/concurrency는변경하지않는다. 전체PR HIGH/AGENT/qa_required=true, version0.139.0·release_required=true/release_authorized=false유지다.
+
+### TEST_LIFECYCLE_REVIEW — REWORK3 delta
+
+- 검색/합집합: 과거12파일합집합에새실제실패 `tests/e2e/admin-auth-layout.spec.ts`를추가해13개로유지한다. 기존country/Project8E2E,3서버Unit,planner1개를빠뜨리지않고생산자→소비자를대조한다.
+- EXTEND: 기존admin-auth-layout의mastercase에새링크heading내포함·정확href·keyboard/focus·비겹침을추가한다. 기존16px·5폭·인증실패/만료·중복제출assert는보존한다. 동일책임의별도test를추가하거나assert/timeout을완화하지않는다.
+- KEEP_UNIQUE: resource/logistics/master의서로다른session·권한오류, master입력/CRUD·relations와기존버튼간격, country의실제SQLite/파일/권한·응답역전,globalheader/notifications의메뉴4개와hitarea,기존Gantt/상태/반복입력/폼밀도는각책임을유지한다.
+- 검증선정: 기존실패8E2E의bounded26case에공통인증3case·master입력밀도/분류CRUD2case·관계1case·legacy버튼간격1case를더해33고유사례를선정한다. 국가6case는기존26에포함되며중복합산하지않는다. workers1/retries0/max-failures0으로실행해직접/간접/음성을수집한다. 390/768/1024/1440/1920px에서gap·overflow·링크와도움말·keyboard를확인한다. 고유수/실행별source·첫실패/재실행은원장14절에기록하며동일case중복을합산하지않는다.
+- 미변경소비자: backend34/기존infra2파일의최종지문을재검사한다. 제품server/fixture/의존성/명시계획이같은범위에서기존210서버·3448Unit/26plannerPASS의로컬증거를재사용하며새Head원격RequiredPASS를주장하지않는다. bounded브라우저를수행하고전체로컬E2E/cleanDocker반복은하지않는다.
+- DOCUMENTATION_SYNC delta: 본Packet·단일실패원장·TEST_PLAN·PROJECT_UX·active PLAN UPDATED. CI_CD/REMOTE_VALIDATION은REWORK2갱신유지이며이번workflow/원격증거계약추가변경N/A다. DESIGN/UI_UX는기존16px/token/interaction원칙을준수해추가변경N/A,API/DB/보안/공식자료/운영·Release계약도추가변경N/A다.
+- 인계: 소스·문서·동결지문·별도PRE_QA·리뷰/충돌을확인한뒤같은PR/branch를한번갱신해새FullCI등록까지만수행한다. 정확한새Head/Run/Attempt는운영댓글에기록한다. PR본문진행상태편집·이전FAILrerun숨김은없다. 새Required3/Trusted/보호인간QA_FINAL·Owner/Manager ACCEPT는NOT TESTED이며모니터링·병합·Main/GHCR/Issue종료는진행하지않는다.
+
+
+REWORK3 사전도구 dry-run은 **NOT TESTED/선정BLOCKED**다. `.prepr-reports/2026-10-31T06-09-07.047Z-651557-f2153b26`에selected2/UNKNOWN2(page.tsx·route CSS module)를보존한다. 자동선정기매핑미등록을이번제품수정으로완화하지않고위33개실제브라우저선정으로수동생산자→소비자를검증한다. dry-run은테스트실행PASS가아니며13파일합집합이도구12파일진단제약을넘어도전체논리범위를축소하지않는다. 새실제API snapshot+현재Packet/예정diff의main Preflight 로컬재생은결정FAIL0/PASS·최종DEFERRED5이며실제원격source/승인을실행한것이아니다. backend34/infra2파일은이전manifest SHA256와전부동일함을Manager가확인했다.
+
+
+REWORK3 별도기하probe는5폭로그인전후 heading→card16px·H1위치보존·document overflow0과390px coarse44px를확인했다. 화면은[390px](../../evidence/issue342/rework3/master-auth-390.png)·[1440px](../../evidence/issue342/rework3/master-auth-1440.png),수치는[기하영수증](../../evidence/issue342/rework3/master-auth-geometry.json)이다. probe는합성인증/목록응답이며DB쓰기0·추가고유testcase0이고실제국가관리SQLite경로와구별한다. 390px는제목안자연줄바꿈으로카드y223→231(+8px),768px이상은223→183(-40px)다. 모든폭의세로높이가줄었다고일반화하지않는다.
+
+
+REWORK3 최종브라우저는선정33고유사례 **33PASS/0FAIL**,5.1분이다(`/tmp/issue342-rework3-frontend-green.log`). 명령과source한계는원장14절에보존한다. 기존26·인증3·master인접4의합계이며별도기하probe를추가testcase로합산하지않는다. source4파일manifest SHA256 `04f5154af44010c3d114873b25431fe4547f4e1b647924dbcee115fa7b9e7447`가실행전후같고새CSS를명시포함한다. captureUi의trackedaggregate만으로새untrackedCSS까지결속됐다고주장하지않는다. Manager의기존backend34/frontend12/infra2+신규auth/CSS를합친50경로path+NUL+bytes 지문은 `8bed01fba9d00bdfe2773594d6291799ad01d7641a3e88428756e9d6815a41cb`다.
+
+최종예정12파일을stage한뒤새CSS·정제증거를포함한PR예정78경로로main Preflight 로컬재생을다시수행해 **PASS/결정FAIL0/DEFERRED5**를확인했다(`/tmp/issue342-rework3-preflight-final.log`). 앞74경로는당시tracked후보의중간검사로만보존하며78경로검사와구별한다. 새Head원격source검증·Required/Trusted/인간QA_FINAL·Manager ACCEPT는계속NOT TESTED다.
+
+
+최종clean-config `tsc --noEmit`·변경경로ESLint·diff는frontend의실제terminal exit0/PASS(session30675)다. 생성된tracked Issue455/456출력30개는 `/tmp/issue342-rework3-generated-output`에보존후기준Head bytes로복원했고next-env/tsconfig의dev생성차이도복원했다. 제품4경로지문은동일하다. 기하JSON의수동설명값만한글화한최종SHA256는 `c6af9f0d0eff472462ddd28f5b0fbb87ebd216098e0a9d56701032fb4f9d134b`이며수치/키/브라우저원문/제품지문·PNG는동일하다.
+
+
+REWORK3 별도 `/root/qa_docs`의최종독립 Agent **PRE_QA PASS**를확인했다. 원본직접FAIL·취소7로그·기존원장98490bytes보존,동결33PASS/정적검사·혼합실제/합성검증범위·5폭기하·source4/전체50지문·최종78경로DOCSYNC/AC/391링크를직접대조했고남은사전지적은없다. 이판정은보호인간QA_FINAL/새Head Required3·Trusted/Owner/Manager ACCEPT가아니다. 최신main ce8ca4ec와기준Head ee3a0f14는유지되고Ready/open·mergeable=true·미해결thread0이며canonical Refs342/qa_required:true1개다. 검토한12파일(source4/docs5/evidence3)을같은branch Ref1회갱신으로게시해새FullCI를등록한다. 새Head/Run/attempt는Issue/PR운영댓글에연결하고결과는모니터링하지않는다. MERGE_READY는BLOCKED다.

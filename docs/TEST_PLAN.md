@@ -5695,3 +5695,16 @@ Full3455.1은 제품테스트 이전에 PR 본문의 독립행 `qa_required`가 
 직접planner/config-layout/optimizer3파일,실제selector8개합집합143·중복0·country→1,root/external cwd발견,독자release-reuse/ci_impact_plan parser와전체Vitest를동결source에서검증한다. 나머지제품46파일bytes는동일하므로이전UI/서버한정증거의재사용범위를원장에기록하고브라우저/전체Docker반복은하지않는다. historicalmetrics와신규143개원격실측·현재Head성공을섞지않으며새Full8/Required3·Trusted/인간QA_FINAL·Manager는NOT TESTED다. 실제명령·실행수·최초오류/재검증은[누적 원장](ISSUE_342_FAILURE_ANALYSIS.md)의REWORK2에보존한다.
 
 REWORK2 실제결과: 기존관련3파일26PASS는전체Vitest **3448PASS/기존3SKIP**에포함된다(총3451,286파일PASS/기존1파일SKIP). 별도Python정책은impact27/release-reuse10/Fast11/Low10=58PASS다. 독립qa_docs의26/37은중복범위이므로합산하지않는다. 실제CLI8개143정확1회/중복0·기존142위치불변·누락/중복음성거부와root/external발견이PASS다. typecheck·변경lint/version/391링크/diff·독립PRE_QA도PASS이며자동prepr의UNKNOWN1/BLOCKED는그대로남긴다. 원격8runner·새Head Required3/Trusted/인간QA_FINAL/Manager는NOT TESTED다.
+
+
+### Issue #342 / PR864 REWORK3 — 관리자 인증 heading 간격 회귀
+
+Full3458.1은quality/Docker SUCCESS이나master인증 `admin-auth-layout.spec.ts:68`에서heading→card16px기대/56px실제로실패했다. 다른7Shard취소와E2E파생FAIL을독립제품오류로합산하지않는다. 기존실패case를변경없이RED재현한뒤추가국가링크를heading작업영역으로옮긴다. 기존정확16px·5폭·인증상태assert를유지하고링크scope/href/keyboard/비겹침만기존case에확장한다(EXTEND). 공통인증3소비자·master인접입력/CRUD·국가6개·global메뉴/notifications및기존8실패E2Ebounded교차·음성을fail-fast없이검증한다(KEEP_UNIQUE).
+
+누적실패합집합은기존12파일+admin-auth-layout=13개다. backend34/infra2의미변경source지문범위는이전서버210/전체Unit3448의로컬증거를재사용하고, 새page영향브라우저는최종동결source로실행한다. 원본FAIL·준비실패·실행중소스변경·미실행을PASS로덮지않는다. 실제명령/고유수/지문·한계와별도PRE_QA는[원장14절](ISSUE_342_FAILURE_ANALYSIS.md)·[Work Packet](exec-plans/active/ISSUE_342.md)에누적한다. 새Head Required3/Full8/Trusted·보호인간QA_FINAL/Manager는NOT TESTED다.
+
+
+REWORK3 실제브라우저결과는 **33고유사례PASS/0FAIL**,5.1분이다. 별도5폭로그인전후기하probe는관측영수증이며고유수에합산하지않는다. 변경4파일명시manifest `04f5154af44010c3d114873b25431fe4547f4e1b647924dbcee115fa7b9e7447`의동일bytes에서실행했고신규CSS도포함한다. 전체50소스경로의통합지문은Packet/원장에보존한다. dry-run자동선정UNKNOWN2/BLOCKED를실제33수동소비자검증과구별하고,최종stage후전체78예정PR경로Preflight 입력검사는PASS0/DEFERRED5로기록한다. 로컬PASS는새Head원격GatePASS가아니다.
+
+
+REWORK3 clean-config typecheck·변경ESLint·diff도exit0/PASS다. 생성출력/Next임시타입경로만기준bytes로복원했으며검증한제품source를바꾸지않았다. 391Markdown링크와AC1~15/DOCUMENTATION_SYNC구조를확인했고별도사전검토는보호인간QA_FINAL/새Head원격PASS/Manager ACCEPT가아니다.

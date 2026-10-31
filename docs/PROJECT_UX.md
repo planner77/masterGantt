@@ -1795,4 +1795,7 @@ Grid 행과 Chart Bar의 같은 `Convert to → Milestone` 명령은 서버 요�
 
 ## Issue #342 — 국가 캘린더 관리
 
-기준정보 화면의 국가 캘린더 링크로 /country-calendar-admin을 연다. 기존4개 전역 메뉴를 유지하고 국가/연도 compact toolbar·상태/출처·날짜 표를 제공한다. 파일 Preview에서 추가/변경/삭제와출처를 확인한 뒤 전체 교체를 확정한다. 날짜 수정은 공식 상태를 해제하므로 metadata 재확인이 필요하다. 대상 변경 시 dirty 확인·이전 snapshot/파일/초안 무효화, 오래된 요청/파일 응답 무시, pending 중 반복 mutation/Escape 차단을 적용한다.401은 날짜·파일 초안을 폐기하고 재인증하며 metadata 초안은 최신값 비교 전 저장을 잠근다.,412는 canonical 재조회·실패 시 잠금이다. 모달 내 오류를 표시하고 날짜 변경/삭제로 trigger가 없어지면 안전한 추가 버튼/목록에 초점을 복원한다. Project Calendar 오류에는 부족한 국가·연도를 표시하며 기존 일정이 자동 갱신된 것으로 안내하지 않는다.
+기준정보 화면 제목의 작업 영역에 있는 국가 캘린더 링크로 /country-calendar-admin을 연다. 링크는 제목과 인증 카드 사이의 별도 행을 만들지 않으며 공통 관리자 shell의 heading→content 16px 간격을 유지한다. 작은 폭에서는 제목 안에서 자연스럽게 줄바꿈하고 링크·도움말·키보드 초점이 겹치거나 잘리지 않아야 한다. 기존4개 전역 메뉴를 유지하고 국가/연도 compact toolbar·상태/출처·날짜 표를 제공한다. 파일 Preview에서 추가/변경/삭제와출처를 확인한 뒤 전체 교체를 확정한다. 날짜 수정은 공식 상태를 해제하므로 metadata 재확인이 필요하다. 대상 변경 시 dirty 확인·이전 snapshot/파일/초안 무효화, 오래된 요청/파일 응답 무시, pending 중 반복 mutation/Escape 차단을 적용한다.401은 날짜·파일 초안을 폐기하고 재인증하며 metadata 초안은 최신값 비교 전 저장을 잠근다.,412는 canonical 재조회·실패 시 잠금이다. 모달 내 오류를 표시하고 날짜 변경/삭제로 trigger가 없어지면 안전한 추가 버튼/목록에 초점을 복원한다. Project Calendar 오류에는 부족한 국가·연도를 표시하며 기존 일정이 자동 갱신된 것으로 안내하지 않는다.
+
+
+PR864 REWORK3의 관리자 제목 배치는 [390px](evidence/issue342/rework3/master-auth-390.png)·[1440px](evidence/issue342/rework3/master-auth-1440.png) 및 [5폭 실측](evidence/issue342/rework3/master-auth-geometry.json)에 기록한다. 이 화면/기하 probe의 인증·목록 응답은 제어된 합성 자료이며 실제 권한·SQLite 검증을 대체하지 않는다. 실제 국가관리 인증/저장은 별도 E2E다.
