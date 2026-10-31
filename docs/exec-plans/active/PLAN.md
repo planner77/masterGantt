@@ -1611,3 +1611,7 @@ main ce8ca4ec /0.138.5에서 MINOR0.139.0으로84슬롯·공식자료·관리자
 ### Issue #342 — PR864 첫 Preflight 실패 보완 (2026-10-31)
 
 Full3455.1의직접실패는PR본문 `qa_required` 선언누락이다. PATH_POLICY/집계/Trusted는파생,제품검증은NOT RUN이다. 동일제품bytes를유지하고본문에 `qa_required: true`를명시한다. 실제main Preflight 전체를본문교정전후로재생해FAIL2→PASS0을확인하고기존Preflight/FinalQA48개·문서/AC/리뷰/충돌을검사한다. [실패 원장](../../ISSUE_342_FAILURE_ANALYSIS.md)과[Packet](ISSUE_342.md)에전체원격이력과재현·교정·인계를누적한뒤같은PR864의새FullCI시작까지만수행한다. 버전0.139.0·HIGH/AGENT·릴리스미승인·Required3/8shard/보호gate는그대로다.
+
+### Issue #342 — PR864 Full3457 Unit 실행계획 누락 보완 (2026-10-31)
+
+이전qa_required보완후Preflight는PASS했다. 현재Unit의142plan/143실제spec불일치에서새country-calendar-admin명시배치누락을확인했다. 기존142배치를유지해Shard1에1개등록하고exactcoverage/unique/8runner/Required3을보존한다. plan/test2파일과CI_CD/REMOTE_VALIDATION/TEST_PLAN/Packet/실패원장을갱신한다. 실제selector8개·독자parser·발견/전체Vitest·독립검토뒤같은PR새FullCI시작까지만수행하며모니터링하지않는다. 전체PRHIGH/AGENT/qa_requiredtrue·0.139.0·릴리스미승인은유지한다. [Work Packet](ISSUE_342.md)과[누적 원장](../../ISSUE_342_FAILURE_ANALYSIS.md)을따른다.

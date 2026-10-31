@@ -5687,3 +5687,11 @@ TEST_LIFECYCLE_REVIEW는 기존 실제 HTTP·SQLite `task-context-menu-hierarchy
 Full3455.1은 제품테스트 이전에 PR 본문의 독립행 `qa_required`가 없어 Preflight에서 실패했다. 타입/Unit/build/E2E/Docker는NOT RUN이며 과거 로컬PASS와 구별한다. 실제본문·Issue AC1~15·69파일diff/Packet을 main의 `qa_preflight.check`에 로컬재생한 결과 교정전 QA_REQUIRED/PATH_POLICY FAIL2, `qa_required: true` 추가후 deterministic FAIL0/PASS다. 원격source/CI/최종승인 검증은DEFERRED다.
 
 기존 `scripts/test_qa_preflight.py` 11개와 `scripts/test_qa_final_automated.py` 37개를 실행해 **48PASS**다. 두 suite는필드/경로/source/독립QA·문서·Owner의 서로다른위험경계를유지한다(KEEP_UNIQUE). 새제품/테스트/CI코드나의존성변경은없다. backend34/frontend12의기존지문이동일함을확인했고기존실패합집합을폐기하지않는다. 원장에명령·source·미실행·게시순서와edited이벤트를기록하며새Head Required3·Trusted/인간QA_FINAL·Manager는NOT TESTED다.
+
+### Issue #342 / PR864 REWORK2 — 신규 E2E의 명시8shard 등록
+
+원본Full3457.1은Preflight PASS/전체Unit3447PASS·1FAIL·3SKIP이며 `e2e-shard-planner.test.ts`의명시142/실제143불일치가직접실패다. 신규country-calendar-admin만누락됐다. 실제기존planner6개로5PASS/1FAIL을재현한뒤plan의Shard1에1개등록하고기존countvector를19/18/18/18/17/18/17/18로맞춘다. 기존142위치·8shard·exactcoverage·중복거부와음성변형을유지한다. 새testcase추가/skip/단언완화는없다(EXTEND/KEEP_UNIQUE).
+
+직접planner/config-layout/optimizer3파일,실제selector8개합집합143·중복0·country→1,root/external cwd발견,독자release-reuse/ci_impact_plan parser와전체Vitest를동결source에서검증한다. 나머지제품46파일bytes는동일하므로이전UI/서버한정증거의재사용범위를원장에기록하고브라우저/전체Docker반복은하지않는다. historicalmetrics와신규143개원격실측·현재Head성공을섞지않으며새Full8/Required3·Trusted/인간QA_FINAL·Manager는NOT TESTED다. 실제명령·실행수·최초오류/재검증은[누적 원장](ISSUE_342_FAILURE_ANALYSIS.md)의REWORK2에보존한다.
+
+REWORK2 실제결과: 기존관련3파일26PASS는전체Vitest **3448PASS/기존3SKIP**에포함된다(총3451,286파일PASS/기존1파일SKIP). 별도Python정책은impact27/release-reuse10/Fast11/Low10=58PASS다. 독립qa_docs의26/37은중복범위이므로합산하지않는다. 실제CLI8개143정확1회/중복0·기존142위치불변·누락/중복음성거부와root/external발견이PASS다. typecheck·변경lint/version/391링크/diff·독립PRE_QA도PASS이며자동prepr의UNKNOWN1/BLOCKED는그대로남긴다. 원격8runner·새Head Required3/Trusted/인간QA_FINAL/Manager는NOT TESTED다.

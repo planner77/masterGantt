@@ -392,3 +392,171 @@ PR body edited 이벤트는 자동 metadata-only Run을 만들 수 있다. 이�
 - 링크검사391파일PASS(`/tmp/issue342-rework1-links.log`). 새docdelta를포함한문서/AC구조·버전·리뷰/충돌은게시직전에다시확인하며, 새Head의Required3/Trusted/인간QA_FINAL/Manager는NOT TESTED로남긴다.
 
 - REWORK1 독립 `/root/qa_docs` PRE_QA **PASS**: 원격원본로그, 별도API snapshot의before2FAIL/after0deterministicFAIL, 기존48개실행, 현재46파일동일성, 4문서동기화/391링크를직접검토했다. 남은사전지적은없다. 두주체의동일suite48개를96개로합산하지않는다. 이는보호경로의인간QA_FINAL/Owner·새Head원격게이트PASS가아니다.
+
+## 13. PR #864 Full #3457.1 — 신규 관리자 spec의 명시 샤드 등록 누락 (2026-10-31)
+
+### 누적 이력과 원본 실행 재수집
+
+조사 전에 이 원장1~12절과 [PR CI 실패 처리 지침](PR_CI_FAILURE_TRIAGE.md)을 전부 읽었다. 옛 PR346의54CI Run/36실패Job/109취소Job/11실패테스트파일과 REWORK1의 metadata 누락 이력을 그대로 유지한다. 이번에는 PR864 branch 전체조회 total_count=5/목록5와 모든 Run의 attempt1 Job을 다시 회수했다. **Full2개(#3455/#3457), metadata1개(#3456), 비권위 FAST2개(#235/#236)**이며 추가 attempt는 없다. 별도 default-branch workflow_run12개도 각 Job 목록을 조회했다.
+
+- 신규 실패 Head `fb93818a7decea0bfc92d131381f663bb5f10bda`; base/validator `ce8ca4ec7f0eb2ba63d883b7c22786c5d033aa14`; test-merge `95edd95818930c3df9e1816332f8c87fc253aa86`.
+- [Full #3457.1](https://github.com/planner77/masterGantt/actions/runs/41170081603), Run41170081603/attempt1, pull_request/synchronize, 생성2026-10-31T04:49:01Z, 전체23Job **SUCCESS7/FAIL5/SKIPPED11/CANCELLED0**. 이전 qa_required 선언 교정은 실제 원격 QA Preflight PASS로 확인됐다.
+- 정제 전체 영수증 `/tmp/issue342-rework2-ci.json`, 실제 읽은6개 Artifact JSON·지문 `/tmp/issue342-rework2-artifacts.json`. Runtime DB·signed URL·인증정보·raw trace/log는 Git에 추가하지 않는다.
+
+| PR864 실행 | Head·구분 | Job S/F/C/K | 결과·해석 |
+| --- | --- | --- | --- |
+| [#235.1 / 41169048982](https://github.com/planner77/masterGantt/actions/runs/41169048982) | `cf9458c15bceb2dddadc3a40903feeede39707e8` · FAST | 0/0/0/1 | SKIPPED; 참고용 미실행; Full PASS 아님 |
+| [#3455.1 / 41169048995](https://github.com/planner77/masterGantt/actions/runs/41169048995) | `cf9458c15bceb2dddadc3a40903feeede39707e8` · FULL | 3/5/0/15 | FAILURE; REWORK1 필수선언 누락/Preflight 실패 보존 |
+| [#3456.1 / 41170078618](https://github.com/planner77/masterGantt/actions/runs/41170078618) | `cf9458c15bceb2dddadc3a40903feeede39707e8` · METADATA | 5/1/0/17 | FAILURE; 옛 Head metadata SUPERSEDED/N/A; 전체Run FAIL 보존 |
+| [#236.1 / 41170081587](https://github.com/planner77/masterGantt/actions/runs/41170081587) | `fb93818a7decea0bfc92d131381f663bb5f10bda` · FAST | 0/0/0/1 | SKIPPED; 참고용 미실행; Full PASS 아님 |
+| [#3457.1 / 41170081603](https://github.com/planner77/masterGantt/actions/runs/41170081603) | `fb93818a7decea0bfc92d131381f663bb5f10bda` · FULL | 7/5/0/11 | FAILURE; Unit 실제1FAIL, Fast Gate/Required3 파생FAIL |
+
+### #3456 metadata 사건과 Trusted 판정 분리
+
+- [metadata #3456.1](https://github.com/planner77/masterGantt/actions/runs/41170078618)는 REWORK1에서 PR 본문을1회 고친 뒤 ref를1회 갱신하는 사이의 edited 사건이다. event Head cf9458c1과 current Head fb93818a가 다르다. QA Final 신뢰 경계 Job124445941278은 **최신 PR/head/base 귀속 검증 실패**로 BLOCKED했다.
+- metadata evidence Job124446013565의 실제 출력은 **SUPERSEDED · event_sha=cf9458c15bceb2dddadc3a40903feeede39707e8 · current_sha=fb93818a7decea0bfc92d131381f663bb5f10bda · full_run=N/A · 이벤트 Head가 현재 PR Head와 달라 비권위/N/A 종료**다. Required aggregate3개 SUCCESS는 이 stale-event 종료의 표시이며 Full 테스트 성공이 아니다. 전체 #3456 Run은 FAIL로 보존한다.
+- [Trusted #1102.1](https://github.com/planner77/masterGantt/actions/runs/41170130965)/Job124446099726은 **API pull_requests와 원본 artifact 불일치 → BLOCKED**다. 옛 source artifact의 Head cf9458c1과 갱신된 API PR 귀속을 억지로 같다고 만들지 않는다. 현재 Head의 Full 실패로 중복 계산하지 않는다.
+- [Trusted #1103.1](https://github.com/planner77/masterGantt/actions/runs/41170302070)/Job124446618719은 **원본 PR CI run 자체가 성공하지 않았습니다 → FAIL**이다. #3457 Unit 실패의 파생이며 보호 인간 QA 영수증 검사 단계에 도달한 실패가 아니다. Independent QA/Manager는 NOT TESTED로 남는다.
+
+| 후속 default-branch Run | workflow | Job S/F/C/K | 의미 |
+| --- | --- | --- | --- |
+| [#1042.1 / 41169144896](https://github.com/planner77/masterGantt/actions/runs/41169144896) | `.github/workflows/ci-setup-readiness.yml` | 0/0/0/1 | SKIPPED; 캐시 준비도 미실행 |
+| [#296.1 / 41169144957](https://github.com/planner77/masterGantt/actions/runs/41169144957) | `.github/workflows/issue-752-diagnostics.yml` | 1/0/0/5 | SUCCESS; 비차단 진단 권고; 실제 E2E 진단 미실행 |
+| [#1001.1 / 41169144927](https://github.com/planner77/masterGantt/actions/runs/41169144927) | `.github/workflows/pr-metadata-reconcile.yml` | 1/0/0/0 | SUCCESS; metadata 복구 Controller 결과; Full PASS 아님 |
+| [#1101.1 / 41169147423](https://github.com/planner77/masterGantt/actions/runs/41169147423) | `.github/workflows/qa-final-trusted.yml` | 0/1/0/0 | FAILURE; 원본FAIL 또는 stale 출처 차단; 독립 QA/승인 아님 |
+| [#1102.1 / 41170130965](https://github.com/planner77/masterGantt/actions/runs/41170130965) | `.github/workflows/qa-final-trusted.yml` | 0/1/0/0 | FAILURE; 원본FAIL 또는 stale 출처 차단; 독립 QA/승인 아님 |
+| [#1043.1 / 41170131008](https://github.com/planner77/masterGantt/actions/runs/41170131008) | `.github/workflows/ci-setup-readiness.yml` | 0/0/0/1 | SKIPPED; 캐시 준비도 미실행 |
+| [#297.1 / 41170130969](https://github.com/planner77/masterGantt/actions/runs/41170130969) | `.github/workflows/issue-752-diagnostics.yml` | 1/0/0/5 | SUCCESS; 비차단 진단 권고; 실제 E2E 진단 미실행 |
+| [#1002.1 / 41170130963](https://github.com/planner77/masterGantt/actions/runs/41170130963) | `.github/workflows/pr-metadata-reconcile.yml` | 1/0/0/0 | SUCCESS; metadata 복구 Controller 결과; Full PASS 아님 |
+| [#1044.1 / 41170302038](https://github.com/planner77/masterGantt/actions/runs/41170302038) | `.github/workflows/ci-setup-readiness.yml` | 0/0/0/1 | SKIPPED; 캐시 준비도 미실행 |
+| [#298.1 / 41170302084](https://github.com/planner77/masterGantt/actions/runs/41170302084) | `.github/workflows/issue-752-diagnostics.yml` | 2/0/0/4 | SUCCESS; 비차단 진단 권고; 실제 E2E 진단 미실행 |
+| [#1103.1 / 41170302070](https://github.com/planner77/masterGantt/actions/runs/41170302070) | `.github/workflows/qa-final-trusted.yml` | 0/1/0/0 | FAILURE; 원본FAIL 또는 stale 출처 차단; 독립 QA/승인 아님 |
+| [#1003.1 / 41170302048](https://github.com/planner77/masterGantt/actions/runs/41170302048) | `.github/workflows/pr-metadata-reconcile.yml` | 1/0/0/0 | SUCCESS; metadata 복구 Controller 결과; Full PASS 아님 |
+
+진단 #298.1은 출처확인과 비차단 권고 댓글2Job만 SUCCESS이고 실제 수동 진단/E2E/정제/필수검사 변경4Job은 SKIPPED다. 이 자동 권고를 actual E2E·QA·Owner 승인으로 사용하지 않는다. 모든 관련 Run의 취소Job은0이므로 숨은 취소Shard 내부 테스트 FAIL은 이번 이력에 없다.
+
+### F342-016 — country-calendar-admin spec 명시 배치 누락
+
+첫 실제 오류는 [Vitest Job124446062488](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446062488)의 Run npm test Step, 2026-10-31T04:51:36Z이다.
+
+```text
+FAIL tests/scripts/e2e-shard-planner.test.ts:109
+historical E2E shard planner > covers all current specs exactly once after #767 eight-shard escalation
+AssertionError: expected [ …(142) ] to deeply equal [ …(143) ]
+- "tests/e2e/country-calendar-admin.spec.ts"
+Test Files 1 failed | 285 passed | 1 skipped (287)
+Tests 1 failed | 3447 passed | 3 skipped (3451)
+```
+
+**분류 TEST_CONTRACT/명시 계획 등록 누락**: 신규6사례 관리자 E2E 파일은 존재하지만 기존 committed8-shard plan에 등록하지 않았다. 정확한 파일 집합/중복/샤드 수를 검사하는 기존 assertion이 의도대로 오류를 찾았다. source fallback으로누락을숨기거나exact-once assertion을삭제하지않는다. Calendar 제품 자체가새로실패했다는근거는없다.
+
+| #3457 실제 Job | 결론 | 직접·파생 구분 |
+| --- | --- | --- |
+| [124445951199](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124445951199) · QA Final 신뢰 경계 확인 | SUCCESS | 실제 완료; 전체 CI/승인과 별개 |
+| [124445951385](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124445951385) · 변경 경로 판정 | SUCCESS | 실제 완료; 전체 CI/승인과 별개 |
+| [124446009186](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446009186) · QA Preflight — 정책·문서 사전 검사 | SUCCESS | 실제 완료; 전체 CI/승인과 별개 |
+| [124446010061](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446010061) · PR metadata가 기존 전체 CI 증거를 보존하는지 검증 | SKIPPED | 실제 검증 NOT RUN |
+| [124446010244](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446010244) · Low E2E policy plan (trusted base) | SKIPPED | 실제 검증 NOT RUN |
+| [124446062457](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446062457) · TypeScript 타입 검사 | SUCCESS | 실제 완료; 전체 CI/승인과 별개 |
+| [124446062459](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446062459) · ESLint | SUCCESS | 실제 완료; 전체 CI/승인과 별개 |
+| [124446062471](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446062471) · 정책·저장소 계약 검사 | SUCCESS | 실제 완료; 전체 CI/승인과 별개 |
+| [124446062488](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446062488) · Vitest 단위·통합 테스트 | FAILURE | 직접 원인: 명시 계획142/실제143 불일치 |
+| [124446063396](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446063396) · github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현' | SKIPPED | 실제 검증 NOT RUN |
+| [124446063429](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446063429) · Chromium E2E shard ${{ matrix.shard }}/8 | SKIPPED | 실제 검증 NOT RUN |
+| [124446063811](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446063811) · Next.js production build | SKIPPED | 실제 검증 NOT RUN |
+| [124446473564](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446473564) · PR 빠른 검사 판정 | FAILURE | Unit실패 뒤 파생 차단 |
+| [124446530998](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446530998) · Chromium end-to-end tests | FAILURE | Unit실패 뒤 파생 차단 |
+| [124446531006](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446531006) · Docker build and runtime smoke test | FAILURE | Unit실패 뒤 파생 차단 |
+| [124446531044](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446531044) · Build, static checks, and unit tests | FAILURE | Unit실패 뒤 파생 차단 |
+| [124446531437](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446531437) · Chromium E2E shard ${{ matrix.shard }}/8 · PR | SKIPPED | 실제 검증 NOT RUN |
+| [124446531619](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446531619) · Low E2E targeted execution | SKIPPED | 실제 검증 NOT RUN |
+| [124446531904](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446531904) · Docker smoke 구현 | SKIPPED | 실제 검증 NOT RUN |
+| [124446532037](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446532037) · PR Next.js production build | SKIPPED | 실제 검증 NOT RUN |
+| [124446551483](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446551483) · 변경 영향 Shadow 계획 · advisory only (#770) | SUCCESS | 실제 완료; 전체 CI/승인과 별개 |
+| [124446552715](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446552715) · Main 임시 commit 이미지 게시·검증·정리 | SKIPPED | 실제 검증 NOT RUN |
+| [124446552782](https://github.com/planner77/masterGantt/actions/runs/41170081603/job/124446552782) · QA Final — Automated | SKIPPED | 실제 검증 NOT RUN |
+
+정책/typecheck/lint 및 Preflight는 PASS다. Unit 실패 뒤 PR Fast Gate124446473564와 quality124446531044/E2E124446530998/Docker124446531006 aggregate가 FAIL했다. 실제 PR production build/8Shard E2E/Docker smoke는 **NOT RUN**이다. Full E2E/Docker가 실행되어 제품 결함을 냈다고 해석하지 않는다.
+
+누적 실패파일 합집합은 기존11개에 **tests/scripts/e2e-shard-planner.test.ts 1개**를 추가해12개다. 과거 E2E 실패파일8개는 그대로이고 새 application E2E 실패파일은 없다. 직접 plan/CLI selector/정적수집, 간접 PR/Main/Release 공용 plan·optimizer·trusted8-shard parser·release-reuse coverage, 음성 누락/중복/범위외샤드/권한·기존고유테스트 경계를 함께 검토했다.
+
+### 명시 배치 결정과 불변 조건
+
+Local RED를 먼저 실행해 실제 **5PASS/1FAIL**을 동일 spec에서 재현했다(`/tmp/issue342-rework2-planner-before.log`). 이후 Infra가 소유한2파일만 고쳤다.
+
+- tests/config/e2e-shard-plan.json: country-calendar-admin.spec.ts를 **Shard1에1회** 추가했다. 기존142개 파일의 위치/순서·schemaVersion1·8샤드·generatedAt/sourceRunIds14/metrics/projectedMs와 기존 수동 배치 기록을 모두 보존했다.
+- tests/scripts/e2e-shard-planner.test.ts: 파일 수 벡터만 **[18,18,18,18,17,18,17,18] → [19,18,18,18,17,18,17,18]**로 고치고 기존 destination 표에 country→1 단언을 추가했다. 기존 exact-once/duplicate/8샤드 단언은 유지했고 새 테스트 case는 만들지 않았다.
+- Manager는 보존된 historical projectedMs 전체최소 **Shard1=1,265,283ms**를 선택했다(Shard3=1,265,366, Shard5=1,265,505). qa_docs의 파일개수 우선 대안 Shard5(17파일)도 검토했지만 이번은 전체 보존 historical 값 최소 기준을 택했다. 222ms 같은 미세 차이를 통계적 개선·실제 runner 시간·35분 이내 보장으로 주장하지 않는다.
+- 신규 파일 비용은 **REMOTE_UNMEASURED**다. 기존 수치에 가짜 weight를 더하거나 과거 metrics를143개 최신 실측으로 바꾸지 않는다. plan의 issue342ExplicitPlacement에 실패 Run/Head·근거·범위·미검증을 기록한다.
+- 실행 selector fallback/algorithm, workflow/events, PR/Main/Release8샤드, concurrency, workers1, timeout35분, PR fail-fast/Main 전체 수집, retry/skip/Required3/Trusted/보호 인간 QA·Owner/릴리스 권한은 변경하지 않는다.
+
+### 보완 후 같은 후보 source 검증
+
+동결2파일의 지문은 `/tmp/issue342-rework2-infra-manifest.json`에 보존했다. 모든 로컬 검증 후 다시 대조해 변동0을 확인했다.
+
+| 파일 | bytes | SHA256 |
+| --- | --- | --- |
+| `tests/config/e2e-shard-plan.json` | 54508 | `5a9db6c0b7d35ca776c14f3283a43c63877d0b94b79d4e6b1b488856fa0fa528` |
+| `tests/scripts/e2e-shard-planner.test.ts` | 6946 | `959662e5a2b004096e49133064611d0af994ba91265c71f4c6d0907fdbf00f98` |
+
+| Local Fast Feedback | 실제 결과·범위 | 증거 |
+| --- | --- | --- |
+| 수정 전 planner 기존6case | 5PASS/1FAIL, 원격과 같은 신규spec누락 | /tmp/issue342-rework2-planner-before.log |
+| 수정 후 planner/optimizer/config 기존3파일 | 26PASS/0FAIL | /tmp/issue342-rework2-planner-after.log |
+| 공용 실제 selector CLI8회 | 현재143개 정확1회/중복0, country→1, 위count벡터, 기존142위치보존 | /tmp/issue342-rework2-selector-evidence.json |
+| 실제 root/external cwd 수집 | 287Unit파일·867browsercase, Playwright143파일 동등 발견 PASS | /tmp/issue342-rework2-test-discovery.log |
+| 전체 npm test 1회 | 286파일PASS/기존1파일SKIP; 3448PASS/기존3SKIP(총3451),30.19초,exit0 | /tmp/issue342-rework2-full-vitest.log |
+| trusted8-shard 영향계획 Python | ci_impact_plan 27PASS | /tmp/issue342-rework2-impact-policy.log |
+| 인접 release reuse coverage Python | 10PASS | /tmp/issue342-rework2-release-reuse-policy.log |
+| Fast·Low 정책 Python | 11PASS+10PASS, 독립2suite | /tmp/issue342-rework2-fast-policy.log; /tmp/issue342-rework2-low-policy.log |
+| 변경 TypeScript test lint·diff | PASS/exit0, 코드/guard완화 없음 | /tmp/issue342-rework2-infra-eslint.log |
+
+선택26개는 전체Vitest3448개에 포함되므로3474개로 합산하지 않는다. Python58개는 별도 정책suite이며 원격 Required PASS를 대신하지 않는다. 전체 Unit 로그의 compare-ci-setup-metrics 중복 workload키 Error는 기존 음성 CLI case의 예상 출력이고 최종 suite exit0/3448PASS와 구분한다. 이번 실패가 실제 전체 Unit에서 발생했고 기존142개/신규plan의 소비자 회귀를 확인하기 위해 저비용 전체 Unit을1회 수행했다. plan등록만 바뀌어 원래 UI/서버 source는 동일하므로 전체 로컬 E2E/Docker를 반복하지 않는다. 이전 한정30개 UI·서버210개 영수증은 source 지문 동일성을 확인한 범위만 재사용하며 새 원격Head Gate는 다시 실행해야 한다.
+
+수정후 주요 실제 명령:
+
+```sh
+npx vitest run --config tests/config/vitest.config.ts tests/scripts/e2e-shard-planner.test.ts tests/scripts/e2e-shard-optimizer-pr.test.ts tests/scripts/test-config-layout.test.ts
+node scripts/verify-test-discovery.mjs
+node scripts/e2e-shard-planner.mjs select --plan tests/config/e2e-shard-plan.json --shard <1..8> --total 8
+npm test
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p test_ci_impact_plan.py
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p test_release_reuse_evidence.py
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p test_ci_fast_development.py
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p test_ci_low_policy.py
+```
+
+위 selector의 <1..8>은 실제로 정수1부터8까지 각8회 실행했다는 명령 표기다. shell에서 그대로 실행할 placeholder가 아니다.
+
+### Artifact 무결성 및 다음 인계
+
+새 Full과 metadata/Trusted의6개 ZIP을 읽기 전용 다운로드해 API digest와 직접SHA256 일치를 확인했다. 실행·무제한추출 없이 작은JSON만 읽었다.
+
+| Artifact ID·이름 | ZIP bytes·SHA256 | 내용 |
+| --- | --- | --- |
+| 13030602700 · qa-preflight-41170081603-1 | 1245 · `7a788980ffbe9a960cade9b23e6b2eafce838a7068c39de4e22927158f1069a2` | Preflight 실제PASS/결정FAIL0/최종검증DEFERRED5. qa_required 교정 확인 |
+| 13030447794 · ci-pr-source-41170081603-1 | 420 · `30e6023b6754c341ac5c54b738e412dd9545ee12344b17b1f5d3141bb4ca0db8` | Run3457/attempt1/PR864/Headfb93818a/basece8/testmerge95edd958 |
+| 13031285186 · ci-impact-shadow-41170081603-1 | 326 · `c2475465d5f0379b535df5c45d53d9e75a5f21186776d2c1bd5156e1adfc00cf` | Shadow UNKNOWN/UNSAFE_DIFF_PATH/FULL_REQUIRED, 비권위참고 |
+| 13030073187 · ci-pr-source-41170078618-1 | 419 · `c3cc211a890b36ee8ba7b6ad5146202c9b04e430d111eddb4665eee1c13691fd` | metadata3456 옛Headcf9458c1/testmerge978a89b2 출처 보존 |
+| 13031006016 · qa-final-trusted-41170078618-41170130965-1 | 445 · `7e794a381848b1e5d956da00844cfaf0bde75d957635f03834ae8db96da821c8` | Trusted1102 BLOCKED: API pull_requests와 원본 artifact 불일치 |
+| 13030771849 · qa-final-trusted-41170081603-41170302070-1 | 462 · `425387abdcd8de980af725c71be7b5499e40debb58766525b7876ed0370c8f56` | Trusted1103 FAIL: 원본 PR CI run 자체 미성공 |
+
+이후 동일 branch/PR864에서 DOCUMENTATION_SYNC·별도사전검토·리뷰0/최신main 충돌 확인 후 **한 번의 commit/ref갱신으로 새 Full PR CI 시작**까지 진행한다. qa_required:true/HIGH/AGENT와 canonical Refs342는 이미 유효하므로 진행상태만을 위한 PR 본문 edited를 추가하지 않는다. #3455/#3456/#3457 및 Trusted의 기존 FAIL/BLOCKED를 덮거나 rerun으로 숨기지 않는다.
+
+다음 정확 Head의 quality/e2e/docker·Full8 runtime·Trusted/보호 인간 QA_FINAL·Owner/Manager 승인은 **NOT TESTED**다. 새CI는 등록까지만 확인하고 결과를 모니터링하지 않는다. 병합·Main/GHCR·tag/release·Issue 종료는 범위 밖이며 version0.139.0/release_required=true/release_authorized=false를 유지한다.
+
+### REWORK2 사전 도구의 BLOCKED와 수동 소비자 연결
+
+- Manager의 새 실제 API PR/Issue snapshot·예정73변경경로·최신 Packet을 main과 동일한 qa_preflight.check로 replay한 결과는 **PASS/결정FAIL0/최종검증DEFERRED5**다. 실행 `/tmp/issue342-rework2-preflight.py`, stdout/result `/tmp/issue342-rework2-preflight.log`·`/tmp/issue342-rework2-preflight.json`에 보존한다. 원격 QA_FINAL/Required/Owner PASS가 아니다.
+- Pre-PR dry-run `.prepr-reports/2026-10-31T05-00-24.264Z-490281-31d1160f`은 **NOT TESTED/BLOCKED, selected1/UNKNOWN1**이다. 실제 targeted `.prepr-reports/2026-10-31T05-00-43.753Z-491190-0b89984d`도 **BLOCKED/exit1**이며 tests/config/e2e-shard-plan.json 생산자의 자동 소비자 매핑이 UNKNOWN이다. LOCAL_VALIDATED/PASS로 보고하지 않는다.
+- 이 미매핑에는 현재 planner/optimizer/config26개, 실제8CLI selector, root/external 수집, release coverage10/impact27 및 인접 Fast11/Low10, 전체Unit3448PASS의 수동 소비자 연결을 사용한다. Advisory 선택기를 바꾸거나 UNKNOWN을 성공으로 덮어 비용·QA gate를 낮추지 않는다. 기존48개 QA 정책 검사와 이번 인접58개 정책 suite의 역할을 구분하고 실제 실행한 범위만 기록한다.
+- CI_CD/REMOTE_VALIDATION은 이번 공용 샤드 계획 변경의 required 문서이므로 초기 N/A를 그대로 재사용하지 않고 UPDATED로 갱신한다. 최종 문서/소스동결·독립 검토 영수증과 새 Run/Head는 Manager가 인계 후 추가한다.
+
+### REWORK2 최종 동결·독립 검토
+
+- Manager가backend34/frontend12와신규infra2파일의개별SHA256를모두재검사해일치를확인했다. 기존제품46경로지문은 `bdf3e91cf5a2672ee093fa78d667bedae09f2f997c9dfe45a74e374f4fb12b21`로동일하며, 48개검토경로의path+NUL+bytes 통합지문은 `53dcf8c8badada4c3eafc1e88259f8345a0949a850b5581e41ce6bcdffb5870f`다. infra2파일manifest SHA256는 `3eae929a6c662c231a018398c45e280d40b78f1994f4422976d78e554932a0f1`이다.
+- Manager가 `npm run typecheck`를추가실행해exit0/PASS를확인했다(`/tmp/issue342-rework2-typecheck.log`). 최종391Markdown링크(`/tmp/issue342-rework2-links.log`), version0.139.0·CRLF-aware diff검사도PASS다. raw브라우저출력·기존artifact는추가게시하지않는다.
+- 별도qa_docs의독립PRE_QA **PASS**: 원격Unit원문, 로컬RED5/6와수정2파일, 정확143/중복0/8CLI/기존142불변, history metadata deep-equality, 직접실행26Vitest·37Pythonconsumer 및누락/중복음성, 전체3448PASS/기존3SKIP로그와6문서정합성을대조했다. 중복테스트수를더하지않고자동prepr BLOCKED도그대로보존했다. 추가P1/P2사전지적은없다.
+- 기존AC1~14의동일제품로컬증거와이번AC15 Unit보완을구별한다. 새Head의원격quality/e2e/docker·Full8/Trusted·보호된인간QA_FINAL/Manager ACCEPT는 **NOT TESTED**이며실제최종병합승인을만들지않는다. 게시직전미해결리뷰/충돌과main/Head를재조회하고이번8파일묶음Ref1회갱신으로새FullCI를등록한다. 새Head/Run/Attempt는운영댓글로연결하고결과를모니터링하지않는다.
+
+최종게시직전Manager의원격재조회는Head `fb93818a7decea0bfc92d131381f663bb5f10bda` / base `ce8ca4ec7f0eb2ba63d883b7c22786c5d033aa14` 유지, PR864 Ready/open·mergeable=true·미해결thread0·qa_required:true 선언1개다. fetch한최신main도동일하다. 이번묶음은plan/test2개와문서6개이며그밖의tracked변경은없다. 최종본문은편집하지않고검증한같은branch를한번갱신하도록infra에인계한다.

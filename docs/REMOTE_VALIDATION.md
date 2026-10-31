@@ -1145,3 +1145,11 @@ PR 생성 후 Full run의 URL·run_attempt·Head/base/test merge를 단일 조�
 
 - [Main Run #3183.1](https://github.com/planner77/masterGantt/actions/runs/39910342165): event push, merge HEAD `fb43e70a41229d71026f5ffeb9e05424a124d43c`, Shard8 Job120271708367의 #490 Settings mock-native Chromium scroll expectedY38/actual0(101PASS/1FAIL), 나머지7 E2E Shard·Quality/Docker PASS. Required E2E FAIL, GHCR 후보 SKIPPED, 자동 Finalizer 미진입. [Original trace artifact12483641531](https://github.com/planner77/masterGantt/actions/runs/39910342165/artifacts/12483641531), [Issue 전용 F750-003](ISSUE_750_FAILURE_ANALYSIS.md) 참고.
 - 검증할 교정: X=9 내부 스크롤과 실제 용량이 19→903으로 변하는 시점에서 native scroll 초기화가 앞서지 않도록 X 확인→프레임 정착→Y capacity>38 확인→Y=38 직접 할당→2 RAF 후 Y=38 엄격 일치 및 기존 전체 상태 snapshot equality. 부족 용량/후행 reset/프로젝트 변경이면 FAIL이며 테스트 skip/timeout/retry 추가 금지. 새 PR exact HEAD PR Full 8-shard + Trusted QA 및 별도 merge/Main CI가 요구됨. 기존 실패를 이전 성공 PR CI로 소급 PASS하지 않는다.
+
+## Issue #342 — Full3457 실행계획 실패와 새 Head 검증 경계
+
+[PR864 Full3457.1](https://github.com/planner77/masterGantt/actions/runs/41170081603)은QA Preflight PASS후Vitest의신규E2E spec 명시계획누락으로FAIL했다. Unit3447PASS/1FAIL/3SKIP를RequiredQuality전체PASS로표시하지않는다. 그뒤build/Chromium/Docker는NOT RUN이며집계/Trusted파생FAIL과구분한다. 이전3455의QA_REQUIRED누락은해결됐지만원본실패를삭제하지않는다.
+
+보완은기존142개배치와8shard를유지하고country-calendar-admin을Shard1에추가하는것이다. 정적selector CLI8개가143개를정확히한번선택한다는로컬증거와원격8runner실행성공은서로다르다. source별전체Vitest/독자release·영향parser·root/external발견/독립검토를[실패 원장](ISSUE_342_FAILURE_ANALYSIS.md)에기록한다. historicalprojectedMs는신규143spec의실측비용이아니다.
+
+원장/문서/리뷰·충돌확인후동일PR새Head의FullCI등록만확인한다. 새Head Required3/Trusted/인간QA_FINAL·Manager ACCEPT는시작시NOT TESTED이며모니터링·병합/Main/GHCR·Issue종료는수행하지않는다. PR본문은상태보고용으로반복편집하지않고실행근거는운영댓글로연결한다.

@@ -1197,3 +1197,9 @@ Required PR aggregate quality/e2e/docker must now cover Template v2 graph persis
 - Release [#207.1](https://github.com/planner77/masterGantt/actions/runs/40806571540), Attempt 1, `v0.138.0`: Static quality·Chromium8·quality aggregate SUCCESS, Main verified candidate digest `sha256:53ad1af4bfd9de8c1b9ef618ae2800ab99407c81895283ad41f82d4d4abc77d1` pull 성공. Job `123236428921`에서 Source verifier가 동명 Docker Job 두 건을 모두 실패 증거로 간주해 `MAIN_PUBLISH_RUN_ATTEMPT_NOT_UNIQUE_OR_INCOMPLETE` 발생. Final GHCR promotion은 SKIPPED. 실패 후 컨테이너 제거 경고는 파생이고 root cause 아님.
 - `scripts/verify_ci_image_release.py`의 Main 출처 검증은 Main Docker 이름에 한해 정확 단일 SUCCESS 또는 SUCCESS 1개 + PR 전용 SKIPPED 1개만 허용한다. Required3와 Main Publisher는 계속 각각 하나의 SUCCESS만 인정하고, 성공 없음·복수 성공·FAILED/CANCELLED/UNKNOWN·기타 중복·다중 유효 Main Run은 거부한다. 원본 OCI subject, PR/Main SHA·Git tree, attestation/SBOM, digest/runtime/approval 계약은 그대로다.
 - 기존 `v0.138.0` annotated tag/원본 Main candidate/Release FAIL은 불변 기록으로 보존하고 이동·삭제·덮어쓰기하지 않는다. 태그가 가리키는 기존 source에서 **같은 Release Run 재실행만으로는 결정론적 원인 교정이 불가능**하므로, [#439 유사 회복 규칙](#issue-439-v0832-release-candidate-api-smoke-correction)을 따라 동일 Issue #849의 교정 PR과 PATCH 후보 `v0.138.1`을 준비한다. 새 버전 Owner 승인 및 Main/Release 검증 전 게이트 우회·정식 게시·이슈 종료 금지.
+
+## Issue #342 — 국가 캘린더 관리자 E2E 명시 등록 (2026-10-31)
+
+PR864 Full3457.1의Unit exactly-once계획검사가현재발견143spec/명시142spec불일치를검출했다. `tests/config/e2e-shard-plan.json`에누락된 `country-calendar-admin.spec.ts`만Shard1에등록하고기존142개배치를보존한다. 8shard의파일수는19/18/18/18/17/18/17/18이다. 전체집합일치·중복0·8개selector합집합·기존고정위치를검증하며fallback으로누락을숨기지않는다.
+
+Shard1선택은보존된과거projectedMs최소값기준이다. 현재143spec의측정/비용절감이나35분이내완료보장이아니며generatedAt/sourceRunIds/metrics/모든projectedMs를갱신하지않는다. 신규spec비용은REMOTE_UNMEASURED로기록한다. 기존workflow/8runner·workers1/timeout/retry/fail-fast/concurrency·Required3·Trusted/Owner·Main/GHCR/릴리스권한은그대로다. 원인/명령/원격미실행은[누적 원장](ISSUE_342_FAILURE_ANALYSIS.md)의REWORK2를따른다.

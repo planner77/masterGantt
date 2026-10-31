@@ -42,8 +42,8 @@ UI는 현재4개 전역 메뉴를 보존하고 기준정보에서 국가 캘린�
 - `DESIGN.md`: N/A(기존 light/system font/token·Product Terminology와 table 원칙을 그대로 적용한다)
 - `docs/IMPORT_EXPORT.md`: N/A(기존 Project 교환 기능은 유지하며 국가 Catalog 별도 계약을 API와 전용 운영 문서에 명시한다)
 - `docs/IMPORT_SCHEMA.md`: N/A(Project JSON1.0/1.1·VBA 교환 schema는 변경하지 않으며 국가 JSON/CSV는 별도 계약이다)
-- `docs/CI_CD.md`: N/A(기존 Required3·8shard·Main/GHCR 및 CI 설정은 변경하지 않는다)
-- `docs/REMOTE_VALIDATION.md`: N/A(로컬과 공식 원격 gate 분리·CI 시작 종료점의 기존 정책을 그대로 적용한다)
+- `docs/CI_CD.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: N/A(기존권한·canonical Refs·리뷰/충돌 처리 운영 계약을 변경하지 않는다)
 - `docs/QA_REVIEW_POLICY.md`: N/A(HIGH/AGENT와 보호 경로의 별도 인간승인·Manager gate를 완화하지 않는다)
 - `AGENTS.md`: N/A(실행 지침·역할·권한 정책은 변경하지 않는다)
@@ -115,3 +115,27 @@ UI는 현재4개 전역 메뉴를 보존하고 기준정보에서 국가 캘린�
 REWORK1의별도 `/root/qa_docs` 독립PRE_QA는 **PASS**다. 원본Job124442902691직접로그·독립API본문/Issue AC15/69파일/원본Packet 재생·기존48개정책테스트·backend34/frontend12지문·4문서delta를직접대조했고추가지적없음이다. Manager48개와독립48개는같은suite이므로96개로합산하지않는다. 새Head 원격Required3/Trusted/인간QA_FINAL·Manager ACCEPT는NOT TESTED다.
 
 실제targeted prepr는delta선정READY/0tests/UNKNOWN0이며실행명령없음으로NOT TESTED(exit1)였다. 해당보고서는 `.prepr-reports/2026-10-31T04-44-39.253Z-445246-f290704f`에보존하며PASS로주장하지않는다. 원격PR본문입력의검증은별도실제snapshot 전체재생과기존정책48개로보완했다. 자동선정기/CI를교정해무조건PASS로바꾸지않는다.
+
+## REWORK 2 — Full3457의 신규 E2E spec 명시 등록 (2026-10-31)
+
+- 기준: PR864 Ready/open, Head `fb93818a7decea0bfc92d131381f663bb5f10bda`, main/base `ce8ca4ec7f0eb2ba63d883b7c22786c5d033aa14`, test-merge `95edd95818930c3df9e1816332f8c87fc253aa86`. 현재 충돌·미해결 리뷰0이다. 기존PR346/3455/3456 실패와후속workflow를원장전체에대조한다.
+- 직접 원인: [Full3457.1](https://github.com/planner77/masterGantt/actions/runs/41170081603)의 QA Preflight는PASS이고 Vitest Job124446062488의현재spec명시계획검사만FAIL이다. 실제143개/명시142개로 신규 `tests/e2e/country-calendar-admin.spec.ts`가누락됐다. 원본3447PASS/1FAIL/3SKIP이며build/E2E/Docker는NOT RUN이다. 이전metadata누락과새계획등록누락을구별한다.
+- 보완 소유권: infra는 `tests/config/e2e-shard-plan.json` 및 `tests/scripts/e2e-shard-planner.test.ts` 두파일과관련LFF, Manager는문서6개/버전판단·통합, 별도qa_docs는read-only 독립검토다. 같은파일동시쓰기는금지하고Issue댓글은Manager가작성한다.
+- 설계: 기존142개위치·8shard/schemaVersion1을그대로보존하고신규파일을Shard1에1회명시한다. countvector는 `[19,18,18,18,17,18,17,18]`이며기존exactcoverage·중복0·기존destinationassert를유지하고country→1을추가한다. hash fallback으로명시누락검사를대체하거나제외·skip·timeout/retry·workers·concurrency/Required3·권한을변경하지않는다.
+- 선택 근거: Manager는기존계획의historical projectedMs 최소Shard1=1265283ms로신규1개만등록하도록승인했다. qa_docs의파일수우선Shard5(17개/1265505ms)대안도검토했으나정확성blocker가아닌선택기준차이다. 222ms를실제성능차이/새143spec비용개선근거로쓰지않는다. historical generatedAt/sourceRunIds/metrics/모든projectedMs는보존하고신규비용은REMOTE_UNMEASURED다.
+- 위험도/범위: 전체PR HIGH/AGENT/qa_required=true 유지. 이번delta는실행계획등록·기존테스트·문서이며제품/API/DB/Calendar자료/화면/의존성은변경하지않는다. application version0.139.0 유지; 원래기능release_required=true/release_authorized=false. 게시승인은같은PR의새FullCI시작까지만이며모니터링/병합/Main/GHCR/Issue종료를포함하지않는다.
+
+### TEST_LIFECYCLE_REVIEW — REWORK2 delta
+
+- 검색: 누적11실패파일합집합·신규실패 `tests/scripts/e2e-shard-planner.test.ts`와 `scripts/e2e-shard-planner.mjs`, 현행8shard JSON, `test-config-layout`·PR optimizer 및release-image reuse/ci_impact_plan의독자계획parser를대조했다.
+- EXTEND: 기존planner의현재전체집합=명시전체집합·unique·8개CLI선택합집합·고정위치case에서countvector와country명시위치만정합화한다. 새testcase를중복추가하거나누락/중복assert를완화하지않는다. 기존누락을허용하는selectorfallback은그대로이지만이를명시계획완료의근거로쓰지않는다.
+- KEEP_UNIQUE: config-layout/optimizer는workflow연동·test발견/비용제안을, release-reuse는실제8shard실행증거·이미지권한을, ci_impact_plan은신뢰된영향선정을각각소유한다. 독립소비자를통합·삭제하지않고누락·중복음성변형도거부돼야한다.
+- 재현/확대: 원본기존planner6개에서5PASS/1FAIL을실제재현한뒤고쳤다. 같은plan의실제selectorCLI8회가합집합143/중복0/country→1·기존142위치불변이어야한다. root/external cwd의test발견도대조한다. 실제전체Unit실패였으므로동결source에서전체Vitest를1회수행해숨은Unit실패를확인한다. 원장의옛Unit실패파일도전체실행에포함된다.
+- 브라우저/제품재사용: backend34/frontend12의기존지문이일치하고UI·fixture·runtime코드는변하지않는다. 이전E2E8파일/고유30의한정증거는동일제품bytes에재사용하며이번plan이원격8runner에서실제로성공했다는증거가아니다. 로컬전체브라우저/cleanDocker를추가반복하지않으며새Head Full8/Required3를필수로남긴다.
+- DOCUMENTATION_SYNC delta: 본Packet·단일실패원장·TEST_PLAN·CI_CD·REMOTE_VALIDATION·active PLAN UPDATED. API/DB/보안/UX/공식자료·Release/배포계약추가변경은N/A다. 기존DOC_SYNC와AC1~15 mapping은유지하고실제새경로를재검증한다.
+- 게시: PR본문필수선언은현재정확하므로단순Head/상태전달목적으로본문을다시수정하지않는다. 모든코드·문서·원장을동결·검토한후같은branch Ref1회갱신으로새synchronize FullCI를시작한다. 실제새Head/Run/Attempt는운영댓글에기록하고결과를모니터링하지않는다.
+
+
+REWORK2 최종 Local Fast Feedback: planner/optimizer/config 기존3파일26PASS, 실제8selector143개정확1회/중복0, root/external cwd발견287Unit파일/867browsercase, 전체Vitest3448PASS/기존3SKIP(286파일PASS/1파일SKIP), 별도정책Python58PASS, typecheck/변경lint/version0.139.0/391Markdown링크/diff검사PASS다. 관련26개는3448개에포함되며qa_docs의독립26개·Python37개를동일suite에중복합산하지않는다. source2파일manifest는 `3eae929a6c662c231a018398c45e280d40b78f1994f4422976d78e554932a0f1`이고명령·source경계·최초오류는단일원장에보존한다.
+
+별도 `/root/qa_docs`의REWORK2 독립PRE_QA는 **PASS**다. 원본3457로그·RED·수정2파일·과거142배치/history불변·selector8개·누락/중복음성·독자policy·실제전체Unit로그·6문서정합성을직접비교했고추가사전지적은없다. 기존AC1~14의로컬구현/관련증거는동일제품bytes범위에서재사용하며AC15의로컬Unit범위만새로보완했다. AC15의새Head Required3/Full8·Trusted/인간QA_FINAL·Manager ACCEPT는 **NOT TESTED**다.
