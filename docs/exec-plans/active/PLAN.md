@@ -1620,3 +1620,8 @@ Full3455.1의직접실패는PR본문 `qa_required` 선언누락이다. PATH_POLI
 ### Issue #342 — PR864 Full3458 관리자 인증 배치 보완 (2026-10-31)
 
 quality/Docker는SUCCESS이고E2EShard1의master인증간격16→56px가직접FAIL이다. 국가링크독립row가원인이므로기존16px계약을유지해heading작업영역으로옮기고기존case를확장한다. 누적13실패파일합집합·직접/간접/음성소비자와별도PRE_QA·문서/리뷰/충돌을확인한뒤같은PR864에단일게시로새FullCI를등록한다. [Packet](ISSUE_342.md)·[단일원장14절](../../ISSUE_342_FAILURE_ANALYSIS.md)에원본/재현/동결검증과취소·미검증을기록한다. HIGH/AGENT·0.139.0·릴리스미승인·Required3/8shard는유지하며CI결과모니터링/병합은범위밖이다.
+
+
+### Issue #342 — PR864 Full3459 진입 focus 경합 보완 (2026-10-31)
+
+이전간격교정은공통auth3개원격PASS로확인됐으나신규country진입helper의focused검사가실패했다. 원본로컬비재현과원격passwordfocus관측을분리하고초기화순서를제어재현해제품/테스트준비계약을판정한다. 기존13파일합집합·nativekeyboard/guard를보존해보완·bounded교차검증·별도PRE_QA·원장/문서·리뷰/충돌을확인한뒤같은PR864에새FullCI를등록한다. [Packet](ISSUE_342.md)·[단일원장15절](../../ISSUE_342_FAILURE_ANALYSIS.md)을따른다. HIGH/AGENT·0.139.0·릴리스미승인·Required3/8shard를유지하며모니터링/병합은범위밖이다.

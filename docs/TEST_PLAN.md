@@ -5708,3 +5708,19 @@ REWORK3 실제브라우저결과는 **33고유사례PASS/0FAIL**,5.1분이다. �
 
 
 REWORK3 clean-config typecheck·변경ESLint·diff도exit0/PASS다. 생성출력/Next임시타입경로만기준bytes로복원했으며검증한제품source를바꾸지않았다. 391Markdown링크와AC1~15/DOCUMENTATION_SYNC구조를확인했고별도사전검토는보호인간QA_FINAL/새Head원격PASS/Manager ACCEPT가아니다.
+
+
+### Issue #342 / PR864 REWORK4 — 진입 링크의 초기 focus 경합
+
+Full3459.1의직접FAIL은country관리첫실제SQLite사례에서openAdmin의프로그램focus뒤focused기대/실제inactive다. 공통auth3개는원격PASS하여이전간격오류와구별한다. 원본로컬1PASS(사례13.7초/전체28.2초)는비재현관측이며원격FAIL을덮지않는다. 동일링크가정상해석된원격trace와초기password focus effect를근거로준비시점가설을제어재현한다. 임의sleep/반복focus/timeout·retry증가/assertion삭제는허용하지않는다.
+
+직접helper호출자는첫happycase1개,인접국가5개는다른직접진입이다. 누적13파일합집합·공통인증3개·master인접·과거실패bounded33의고유책임을유지하고동결후fail-fast없이재검증한다(EXTEND/KEEP_UNIQUE). 통제변형과원본·실제HTTP/SQLite와합성응답,기존동일제품bytes의서버/기하/계획증거재사용을분리한다. 명령·지문·최초오류·미실행은[원장15절](ISSUE_342_FAILURE_ANALYSIS.md)·[Work Packet](exec-plans/active/ISSUE_342.md)에기록한다. 새Head Required3/Full8/Trusted·보호인간QA_FINAL·Manager ACCEPT는NOT TESTED다.
+
+
+수정전동일source제어재현에서Next JS16응답보류→SSR링크focus→해제후password focus가발생했고같은링크DOM이유지된채기존focused assertion이inactive로실패했다. 이후password초기focus확인→Shift+Tab help→Shift+Tab link→nativeEnter는통과했다. 분류는TEST_CONTRACT/준비성경합이며test-only helper의실제초기focus조건/keyboard순서를정합화한다. 원격정확이벤트시점을제어관찰로대체하지않고원격/원본비재현/제어음성/수정후동결검증을구분한다.
+
+
+[정제 제어 영수증](evidence/issue342/rework4/focus-readiness.json)은동일원본1PASS와통제음성FAIL,현재helper실제본문의양성PASS,helpTab순서제거음성FAIL을각각기록한다. 동일goto(commit)wrapper는probe에만적용하고실제브라우저33개는기본load를유지한다. guard도달관측으로실제초기focus대기와goto대기를구별하며초기probe준비timeout/비교조건미충족은INCONCLUSIVE로보존한다. 원격locator반복해석은DOM동일성증명이아니고sameNode는제어probe에서만직접확인했다.
+
+
+REWORK4 같은후보의기본goto(load) bounded33개는 **33PASS/0FAIL**,5.3분이며직접실제SQLite happycase는18.7초PASS다. clean-config typecheck·변경ESLint·diff도exit0/PASS다. 수정test1파일과나머지49미변경경로를지문으로결속하고,probe합성응답/의도된음성FAIL은고유33개나실제서버권한PASS로합산하지않는다. 실제targeted Pre-PR1회는기존DB/출력보호로 **BLOCKED/exit1,step0/NOT TESTED**였고선정은READY1/UNKNOWN0다. 작업폴더481경로·해당시도sourceStable와최종예정PR79경로를분리하며실제브라우저/정적PASS로도구BLOCKED를소급변경하지않는다.

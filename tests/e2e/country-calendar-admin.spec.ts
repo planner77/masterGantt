@@ -21,7 +21,13 @@ async function authenticate(page: Page, baseURL: string) {
 async function openAdmin(page: Page) {
   await page.goto("/project-master-admin");
   const entry = page.getByRole("link", { name: "국가 캘린더 관리", exact: true });
-  await entry.focus(); await expect(entry).toBeFocused(); await entry.press("Enter");
+  await expect(entry).toHaveAttribute("href", "/country-calendar-admin");
+  const password = page.getByLabel("관리자 비밀번호", { exact: true });
+  await expect(password).toBeFocused();
+  await password.press("Shift+Tab");
+  await expect(page.getByRole("button", { name: "프로젝트 기준정보 관리 도움말", exact: true })).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(entry).toBeFocused(); await entry.press("Enter");
   await expect(page).toHaveURL(/\/country-calendar-admin$/);
   await expect(page.getByRole("navigation", { name: "주요 메뉴" }).getByRole("link")).toHaveCount(4);
   await expect(page.getByRole("navigation", { name: "주요 메뉴" }).getByRole("link", { name: "프로젝트 기준정보", exact: true })).toHaveAttribute("aria-current", "page");

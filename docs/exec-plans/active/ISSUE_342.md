@@ -38,6 +38,7 @@ UI는 현재4개 전역 메뉴를 보존하고 기준정보에서 국가 캘린�
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/ISSUE_342_FAILURE_ANALYSIS.md`: UPDATED
+- `docs/evidence/issue342/rework4/focus-readiness.json`: UPDATED
 - `CHANGELOG.md`: UPDATED
 - `DESIGN.md`: N/A(기존 light/system font/token·Product Terminology와 table 원칙을 그대로 적용한다)
 - `docs/IMPORT_EXPORT.md`: N/A(기존 Project 교환 기능은 유지하며 국가 Catalog 별도 계약을 API와 전용 운영 문서에 명시한다)
@@ -175,3 +176,42 @@ REWORK3 최종브라우저는선정33고유사례 **33PASS/0FAIL**,5.1분이다(
 
 
 REWORK3 별도 `/root/qa_docs`의최종독립 Agent **PRE_QA PASS**를확인했다. 원본직접FAIL·취소7로그·기존원장98490bytes보존,동결33PASS/정적검사·혼합실제/합성검증범위·5폭기하·source4/전체50지문·최종78경로DOCSYNC/AC/391링크를직접대조했고남은사전지적은없다. 이판정은보호인간QA_FINAL/새Head Required3·Trusted/Owner/Manager ACCEPT가아니다. 최신main ce8ca4ec와기준Head ee3a0f14는유지되고Ready/open·mergeable=true·미해결thread0이며canonical Refs342/qa_required:true1개다. 검토한12파일(source4/docs5/evidence3)을같은branch Ref1회갱신으로게시해새FullCI를등록한다. 새Head/Run/attempt는Issue/PR운영댓글에연결하고결과는모니터링하지않는다. MERGE_READY는BLOCKED다.
+
+
+## REWORK 4 — Full3459 국가관리 진입 초점 경합 진단 (2026-10-31)
+
+- 기준: PR864 Ready/open, Head `f95cdce9e70a5bd4bb416141dc78d9949b721b45`, main/base `ce8ca4ec7f0eb2ba63d883b7c22786c5d033aa14`, test-merge `cf8fc71bed1f6604c333709044405d6e16342508`. 현재main·Head는유지되고미해결thread0/mergeable=true다. 기존단일원장1~14절과모든선행Run/attempt·보완·미검증을대조한다.
+- [Full3459.1](https://github.com/planner77/masterGantt/actions/runs/41176109491)의직접FAIL은Shard1 Job124464549374, country-calendar-admin.spec.ts의첫실제SQLite관리자사례→openAdmin:24의link focus 기대focused/실제inactive다. 앞공통auth3사례는PASS하여F342-017간격교정이실제원격통과했음을구별한다. Requiredquality124464823998/Docker124465376255는SUCCESS, E2E aggregate124464997643는파생FAIL,7다른Shard는CANCELLED다. 취소로그내추가실제FAIL0은미완료PASS가아니다. 전체30Job13SUCCESS/2FAIL/7CANCELLED/8SKIPPED,최신branch9/dependent20Run모두attempt1이다.
+- 진단경계: 원격trace는동일링크locator의정상해석과최종password focus를보여주지만정확한초점이벤트순서는없다. 원래helper의로컬실행은 **1PASS(사례13.7초/전체28.2초)**로비재현이었다(`/tmp/issue342-rework4-frontend-red.log`;파일이름RED가판정FAIL을뜻하지않음). 초기로그인input focus effect와이른프로그램focus의경합가설을제어재현해확인한다. 제품문제/테스트준비계약을확정하기전환경flaky나DOM교체를원인으로단정하지않는다.
+- 소유권: frontend는직접초점재현·필요한UI/기존E2E보완과LFF,infra는전체원격증거·원장15절과최종허가후게시,Manager는Packet/TEST_PLAN/PLAN·버전·통합,별도qa_docs는read-only독립사전검토다. Issue댓글은Manager이며같은파일동시쓰기는금지한다.
+- 범위/위험: 전체PR HIGH/AGENT/qa_required=true,version0.139.0·release_required=true/release_authorized=false유지다. 원격Required3/Full8/Trusted·인간QA_FINAL/Owner/Manager를로컬PASS로대체하지않고게시종료점은새CI등록이다. 본문상태편집·Draft왕복·기존FAILrerun·모니터링·병합/Main/GHCR/Issue종료는수행하지않는다.
+
+### TEST_LIFECYCLE_REVIEW — REWORK4 delta
+
+- 검색: 누적13실패파일과country관리openAdmin/helper·공통admin-auth·ProjectMasterAdmin초기focus effect·keyboard helper를대조했다. 새실패파일추가없이13개논리합집합을유지하며F342-018을이전간격실패와구별한다.
+- 직접/인접: openAdmin의호출자는첫국가관리실제SQLite happycase **1개**다. 나머지국가5개는직접country진입의인접회귀이며6개가모두같은helper를호출한다고주장하지않는다. 기존공통인증3개는초기focus/Tab·인증오류·만료를소유하고master인접4개/legacyGantt·헤더·상태·Calendar는고유책임을보존한다.
+- EXTEND/KEEP_UNIQUE: 기존진입helper의초기화준비·native keyboard/focused/href/URL·메뉴4개계약을검토한다. 고정sleep/반복focus·force·focused단언삭제·retry/timeout/skip증가로회피하지않는다. 필요한준비성검증은실제기존UX의초기password focus와사용자키보드이동을관측한다. 새중복case/제품test hook은근거없이추가하지않는다.
+- 검증계획: 원본비재현과통제변형을분리하고동결된후보에서기존bounded33개(기존8E2E의26개+공통auth3+master인접4;국가직접1·인접5는26개안에포함)를workers1/retries0/max-failures0으로검증한다. 원본실패와음성제어가각각무엇을증명하는지원장에명시한다. 이전과동일한33사례목록을사용하며부분실행을전체PASS로표시하지않는다.
+- 변경영향/문서: 본Packet·원장·TEST_PLAN·active PLAN UPDATED. helper만바뀌는경우미변경검토49경로지문을확인해기존UI기하/서버/샤드한정증거를동일bytes범위에서재사용하고새Head공식RequiredPASS는다시실행해야한다. 제품계약/화면/CI/권한변경이증명되지않은현재API/DB/UX/CI_CD/REMOTE_VALIDATION/배포/공식자료는추가변경N/A이며기존DOCSYNC/AC1~15는유지한다. 실제수정이확정되면영향판정을재평가한다.
+
+
+제어재현은수정전동일source에서Next외부JS응답16개를보류하고SSR링크focus뒤해제했다. 기존password focus-call/focusin이발생하며 **같은링크node가연결된채유지**됐고원래focused assertion이동일inactive로실패했다. 이후초기password focus를관측하고native Shift+Tab(help→link)·Enter를사용하면국가관리URL로이동했다. 따라서 **TEST_CONTRACT/초기화준비경합**으로분류하며DOM교체가설은제어재현에서기각한다. 원격trace에는정확focus이벤트순서가없어원격발생순간의hydration시점까지직접관측했다고주장하지않는다. 원본로컬PASS·제어음성FAIL·수정후positive를분리한다.
+
+보완은기존openAdmin한곳에서정상초기password focus를먼저확인하고keyboard Shift+Tab으로help→링크에이동한뒤기존focused·nativeEnter/URL/메뉴검사를유지하는test-only정합화다. 제품초기focus effect/페이지/CSS/API/서버/DB/CI는변경하지않는다. 기존helper가다룬동일사용자경로의준비조건을강화하며새고유testcase/제품hook·assert삭제·retry/timeout증가는없다. 제어probe는관찰/음성대조이며별도신규제품테스트고유수로합산하지않는다.
+
+
+[제어재현 정제 영수증](../../evidence/issue342/rework4/focus-readiness.json)은원본비재현·원본제어음성·수정된실제helper의제어양성·도움말Tab순서음성을구분한다. 동일조건비교를위해probe에서만양쪽goto(commit)wrapper를쓰며실제helper의기본goto(load)는유지한다. 후보의password focused guard에JS해제전에실제도달했다는관측으로단순goto대기와구별한다. 실제helper함수본문을추출/TypeScript변환하여실행했고별도복제helper를통과시킨것이아니다. help의tabIndex=-1 통제변형에서는양성focused guard가실패해키보드검증이살아있음을확인했다. 초기후보probe의baseURL누락/locator준비timeout과비교조건불충분은INCONCLUSIVE/준비관측으로보존하며제품FAIL·검증PASS로계산하지않는다.
+
+
+REWORK4 최종normal-goto(기본load) 브라우저는기존12spec의 **33고유사례PASS/0FAIL**,5.3분이다(`/tmp/issue342-rework4-frontend-green.log`,terminal9487 exit0). 직접실제SQLite happycase1개는18.7초PASS이며국가인접5개·auth3·기존교차소비자를포함한다. probe의합성country GET이나의도된음성FAIL을실제서버권한/새고유testcase로합산하지않는다. 수정1파일 SHA256는 `cb5b66721985634f06b8ae59d2332462882fb2f7ffb231128141b296c65b613e`,manifest SHA256는 `c7e0fb721e86fc8b53fdf2b8a6d2fdbd37084188946d696ca7417ccb333524ef`다. 50검토경로 path+NUL+bytes 지문은 `f7d904d737d4e0fb1548790c9b802859d506f33ab7890178e5078f510a15b867`이며이전후보대비바뀐경로는그test1개뿐이고49개는개별hash동일이다. 정제JSON16192bytes SHA256 `6cb80b92dd7149e833725ebea820f30d6dead8377a9a119f670d6de40383ae70`도동결했다.
+
+clean-config typecheck·변경ESLint·diff는terminal98376 exit0/PASS다. 실제 `verify:prepr --mode=targeted --base=f95cdce9e70a5bd4bb416141dc78d9949b721b45 --issue=342 --pr=864 --risk=HIGH`는한번실행해 **BLOCKED/exit1**이다. 보고서 `.prepr-reports/2026-10-31T08-49-14.473Z-1047079-01c32259/{SUMMARY.md,report.json}`의선정은READY1/UNKNOWN0/missing0이나실행step0/NOT TESTED다. 기존 `.data/playwright.sqlite3`·wal/shm·`.next-e2e`·`test-results`·`playwright-report`보호가차단했고기존자료를지우거나검증기를완화하지않았다. 당시481working경로에는이번임시진단dist등raw산출물이포함되므로예정PR79경로와동일하지않다. 실행중sourceStable=true는해당시도경계이며그뒤새로생성한본인진단dist/DB만/tmp로이동한정리와최종문서반영을전체LOCAL_VALIDATED로확대하지않는다. 실제33수동소비자/정적PASS와도구BLOCKED를분리해원장에보존한다.
+
+
+REWORK4 frontend 최종영수증 `/tmp/issue342-rework4-frontend-result.json` SHA256는 `0298b885e81348d066154b60b8784ae8a6e8c6b2651e78a2d9707ebe77dac4b3`다. 실제33명령·원본비재현/제어양음성·1파일동결·정적/자동도구차단·원본보존정리를포함한다. Pre-PR 시도중 fingerprint는 `d65bdd0cb605e8b5f02e5e607220b2f6b05fdaf1d1e173aacbf42ac39478ac3b`로시작/끝동일하며해당경계만인정한다. 생성tracked출력30개는 `/tmp/issue342-rework4-generated-output`에보존후f95기준bytes로복원했고dev생성next-env/tsconfig도복원했다. 기존차단자원은유지하고이번새소유진단dist/DB만 `/tmp/issue342-rework4-diagnosis-runtime`으로이동보존했다. 최종제품/테스트/증거는변하지않았다.
+
+
+최종예정6파일(test1/docs4/evidence1)을stage하고신규정제JSON을포함한전체예정PR **79경로**로main과동일한 Preflight를로컬재생했다. 결과는 **PASS/결정FAIL0/최종DEFERRED5**(`/tmp/issue342-rework4-preflight-final.log`)다. 실제원격source/Required/QA_FINAL·Owner승인이아니며별도도구의BLOCKED도유지한다. version0.139.0/391Markdown링크/CRLF-aware diff도PASS다. 최신main `ce8ca4ec7f0eb2ba63d883b7c22786c5d033aa14`,Head `f95cdce9e70a5bd4bb416141dc78d9949b721b45`,testmerge `cf8fc71bed1f6604c333709044405d6e16342508` 유지와Ready/open·mergeable=true·미해결thread0·본문동일을최신API/fetch로확인했다. 별도최종PRE_QA후한번의commit/ref갱신으로같은PR의새FullCI등록까지만진행한다. 새Required3/Full8·Trusted·보호인간QA_FINAL·Manager ACCEPT는NOT TESTED이며MERGE_READY=BLOCKED다.
+
+
+REWORK4 별도 `/root/qa_docs` 독립 Agent **PRE_QA 최종PASS**를확인했다. 실제원격/7취소·원본비재현/통제양음성·실제동결33/정적·미변경49경로·정제영수증과최종79경로DOCSYNC/AC/391링크를직접대조했고추가사전지적은없다. actual Pre-PR BLOCKED와원격정확focus이벤트미관측은유지한다. 이판정은보호인간QA_FINAL·새Head Required3/Trusted·Owner/Manager ACCEPT가아니다. 검토한6파일(test1/docs4/evidence1)을같은PR864에단일commit/ref로게시해새FullCI등록까지만확인한다. 새Head/Run/Attempt는운영댓글에연결하고결과는모니터링하지않는다. MERGE_READY는BLOCKED다.
