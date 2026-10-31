@@ -1,3 +1,14 @@
+## Issue #790 / Parent #444 — 2026-10-31 single-PR source and finalization protocol
+
+1. Primary is **Issue #790** with only `Refs #790` in the Ready PR. Related #444 remains OPEN until independently approved performance/cache safety evidence; do not close #444 through #790 Generic Finalizer. Original [PR #791](https://github.com/planner77/masterGantt/pull/791) at 0.130.2 is a historical superseded candidate; do not merge or reuse its stale CI authority.
+2. New branch `ci/issue-790-cache-audit-current-main` starts from exact main `3c73737968dfdbd6817657f3a17bed07c209a528` (0.138.5). Re-fetch source and confirm strict latest main, no review threads/conflicts and exact PR Head/Base/Test-Merge before Owner-managed merge.
+3. The new comparer accepts explicit scope and optional GitHub job-rename evidence link; the link and JSON's `requireBoundProvenance` flag are **not independent authentication**. Numeric improvement in focused mode is `REVIEW_REQUIRED`, not automatic ADOPT. Historical [Docker before/after evidence](CI_CACHE_PHASE2_EVIDENCE_444.md) is subject to current Job/runner/version normalization and [trusted readiness](https://github.com/planner77/masterGantt/actions/runs/41149264718) PR sample collection.
+4. Validate existing `tests/scripts/ci-cache-phase2.test.ts` plus provenance/readiness/CI-cache-contract tests, Full PR Required Quality/Chromium8/Docker, trusted QA/Owner. New Head PASS and Main CI/OCI smoke/Finalizer must be verified independently of old [#791 run 40056085324](https://github.com/planner77/masterGantt/actions/runs/40056085324). No formal SemVer/GHCR Release authority for #790. Keep #444 pending cache miss/stale/secret validation and ROI decision.
+
+[Work Packet](exec-plans/active/ISSUE_790.md) · [Evidence](CI_CACHE_PHASE2_EVIDENCE_444.md) · [Cumulative ledger](ISSUE_790_FAILURE_ANALYSIS.md).
+
+---
+
 ## Issue #836 — PR OCI Main Conditional Reuse 운영 Runbook (2026-10-28)
 
 1. **초기 상태:** Repository variable `PR_IMAGE_REUSE_ENABLED`은 **미설정/true = 기본 ON**, **false = SHADOW/기존 Build 안전 롤백**이다. `RELEASE_REUSE_ENABLED`(#773)와 별개다. 이슈 자체 `release_required=false`, `release_authorized=false`; GHCR 정식 게시/태그 변경 권한 없음.
