@@ -1,3 +1,12 @@
+## Issue #790 / #444 — focused cache comparison on current Main (2026-10-31)
+
+- **Primary #790 / Related #444 (parent remains OPEN):** port the historical PR #791 focused setup-cache comparer and negative tests onto `0.138.5` / Main `3c73737968dfdbd6817657f3a17bed07c209a528` without reverting newer CI/QA/OCI contracts. The old PR at `0.130.2` and its Full CI are stale. New canonical PR must use **exactly one** `Refs #790`; referencing #444 does **not** authorize its Finalizer closure.
+- Focused mode requires workflow/event/metric and before/after jobs; rename needs a GitHub PR/commit source link and emits **REVIEW_REQUIRED**, never automatic ADOPT. The JSON `requireBoundProvenance` flag is self-reported and not a GitHub authentication receipt; even an unchanged focused job with improved metrics requires independent provenance/workload evidence before any cache-adoption decision. Missing/malformed source, 10 distinct successful samples per group, duplicate keys, invalid costs and wrong events fail closed. Existing global comparison remains backward-compatible.
+- [Latest #444 readiness Run 41149264718](https://github.com/planner77/masterGantt/actions/runs/41149264718): PR 14/19 groups / min 5 successful distinct runs vs minimum 10; Main 27/27/min20, Release17/17/min25. **Overall COLLECTING / cache ADOPT HOLD.** Older PR Docker −7.14% and Main Docker +28.55% are historical non-controlled observations, not current speed improvements or causes.
+- Implementation files: `scripts/compare-ci-setup-metrics.mjs`, `tests/scripts/ci-cache-phase2.test.ts`, [#790 Work Packet](docs/exec-plans/active/ISSUE_790.md), [#444 Evidence](docs/CI_CACHE_PHASE2_EVIDENCE_444.md), [#790 Ledger](docs/ISSUE_790_FAILURE_ANALYSIS.md). No workflow, cache writer, security gate, package version, UI/API/DB or GHCR release changes. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `release_required=false`, `release_authorized=false`. Required Quality/E2E8/Docker, Trusted QA, Owner accept, latest Main and Finalizer remain mandatory for #790 completion; test outcomes **NOT TESTED** before the new exact PR CI completes.
+
+---
+
 
 ## Issue #854 — Project Issue 공개 조회자 신규 등록·Task Editor 연결 (2026-10-29)
 
