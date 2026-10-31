@@ -257,3 +257,24 @@ npx playwright test --config tests/config/playwright.config.ts tests/e2e/country
 - 과거형상검증이생성한tracked `output/playwright/issue-456/after/gantt-state.json/png`는본작업원본을 `/tmp/issue342-generated-issue456`에보존하고baselinebytes로복원했다. #342정제화면4파일외raw출력·trace는게시하지않는다.
 
 - 실제별도 `/root/qa_docs` 독립PRE_QA **PASS**. 최종46개제품·테스트경로검토지문 `bdf3e91cf5a2672ee093fa78d667bedae09f2f997c9dfe45a74e374f4fb12b21`. AC1~14의로컬구현/관련증거/문서범위와미해결6개코드교정을대조했고새P1/P2없음. AC15/Required3·Trusted/보호인간QA_FINAL·Manager ACCEPT는 **NOT TESTED**다.
+
+## 11. 원격 게시·실제 리뷰 해결 후 PR CI 인계
+
+2026-10-31 원격1단계는 [commit153c58fb](https://github.com/planner77/masterGantt/commit/153c58fba28e39eb9b22f922a1ca955569247b22), tree `1573e91b2e18f3738a9360472624517bfa21f12b`, parent/base `ce8ca4ec7f0eb2ba63d883b7c22786c5d033aa14`다. GitData tree가동결localtree와일치하고원격fetch로commit/tree/parent를검증했다. branch만게시했으므로CI가실행되지않았다. 기존CI의non-mainpush미수신/PRopened전체검증계약을유지한다.
+
+Manager는게시commit의교정소스·서버210/브라우저고유30한정증거·PRE_QA와원격미검증경계를인용하여PR346의아래6개에실제답변하고resolve했다. GraphQL재조회는전체25스레드/미해결0이다.
+
+| thread | 지적 | 실제처리 |
+| --- | --- | --- |
+| PRRT_kwDOUUB7Bc6pudAc | 지연body후admin재검사 | reply4430508687·resolved |
+| PRRT_kwDOUUB7Bc6pudAf | 412재조회실패mutation잠금 | reply4430508986·resolved |
+| PRRT_kwDOUUB7Bc6pudAh | 열린모달오류전달 | reply4430509298·resolved |
+| PRRT_kwDOUUB7Bc6pudAl | 날짜rename후초점 | reply4430509506·resolved |
+| PRRT_kwDOUUB7Bc6pudAo | metadata status:null거부 | reply4430509768·resolved |
+| PRRT_kwDOUUB7Bc6pudAr | CSV닫힌따옴표suffix거부 | reply4430509971·resolved |
+
+최신Issue의'새PR재구성/구PR단독병합금지'지시에따라구PR346은2026-10-31T04:32:15Z에 **CLOSED / merged=false**로대체종료했다. 원래branch/103commit·리뷰·실패이력은삭제하지않았다. Issue342는OPEN이며새branch는현재main직접기반으로충돌파일0이다. 새PR의mergeability·review상태는생성직후별도확인한다.
+
+이절과Work Packet의처리결과를동일branch의문서전용후속commit에반영한뒤ReadyPR을생성하여FullCI를시작한다. 정확한최종Head/PR/Run/Attempt는Issue와PR댓글에남긴다. 시작시quality/e2e/docker·Trusted/보호인간QA_FINAL/Manager ACCEPT는 **NOT TESTED**이며CI결과를모니터링하지않는다.
+
+CSV예제는원본CRLF를유지하므로기본staged diff-check는CR을trailing-whitespace로보고했다. 형식계약에맞춰 `git -c core.whitespace=cr-at-eol diff --cached --check`로검사해PASS이며파일bytes나CSV검증정책을변경하지않았다.
