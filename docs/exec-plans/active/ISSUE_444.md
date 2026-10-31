@@ -81,3 +81,10 @@ Issue #444의 실제 cache 최적화 채택 Acceptance Criteria는 10-run baseli
   - PR shared cache write 제거, Main writer 유지 후 동일 metric successful PR >=10으로 after 판정
 - Candidate 3 npm ci: Docker after 판정 뒤 진행
 
+
+
+## 2026-10-31 — 상위 #444 준비도 및 후속 실증 보류
+
+- [#790 작업 계획](ISSUE_790.md), [캐시 비교 근거](../../CI_CACHE_PHASE2_EVIDENCE_444.md), [#790 누적 원장](../../ISSUE_790_FAILURE_ANALYSIS.md)을 참조한다. #790은 출처를 확인하는 범위 지정 비교기·음성 테스트 배포에 한정하며 **캐시 채택을 승인하지 않는다**.
+- [준비도 Run 41149264718](https://github.com/planner77/masterGantt/actions/runs/41149264718) 기준 PR 14/19·최소 5/10, Main 27/27·20/10, Release 17/17·25/10이다. 현재 전체 `COLLECTING`이며 2026-10-24의 과거 PR Docker −7.14%와 Main Docker +28.55%를 통제된 성능 개선/악화 원인으로 단정하지 않는다.
+- #790 이후 서로 다른 성공 PR Run 10개 이상의 신뢰된 비교 표본, 소스/runner/runtime/OCI 조건 정규화, cache miss/stale/secret 실증, Main 비용 원인 분석, `ADOPT / DO_NOT_ADOPT / INSUFFICIENT_DATA` 명시 결정을 수행한다. #790 Finalizer 후에도 #444는 `OPEN` 유지한다.

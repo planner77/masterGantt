@@ -1,3 +1,12 @@
+## Issue #790 / #444 — 최신 Main 캐시 비교기 통합 (2026-10-31)
+
+- **구현 #790 / 상위 #444:** 구버전 [PR #791](https://github.com/planner77/masterGantt/pull/791)의 범위 지정 비교기·음성 테스트를 앱 `0.138.5`, Main `3c73737968dfdbd6817657f3a17bed07c209a528`로 선택 이식했다. 기존 CI/QA/OCI 계약은 유지한다. 이전 앱 `0.130.2`의 성공은 신규 소스의 PASS가 아니며 PR의 canonical 참조는 `Refs #790` 한 건이다. #444는 별도 검증 전까지 `OPEN`이다.
+- **안전 계약:** 범위 지정 비교에는 workflow/event/metric과 전후 Job을 필수로 지정한다. 명칭 변경 시 GitHub PR/commit 출처를 요구하되 URL이나 JSON `requireBoundProvenance` 자기 신고만으로 출처·작업 부하의 동등성이 인증되지 않는다. 같은 Job의 수치상 개선도 `REVIEW_REQUIRED`(자동 `ADOPT=0`)다. 양쪽 각각 서로 다른 성공 Run 10개 미만, 출처 누락·오류, 중복 키, 비정상 비용과 event 불일치는 안전 우선으로 거부한다. 기존 전역 비교 출력은 유지한다.
+- **현재 근거:** [준비도 Run 41149264718](https://github.com/planner77/masterGantt/actions/runs/41149264718)은 PR 14/19 그룹·최소 5/10 성공 Run, Main 27/27·20/10, Release 17/17·25/10이다. 전체 `COLLECTING`, 캐시 채택 `HOLD`다. 과거 PR Docker −7.14%와 Main Docker +28.55%는 통제되지 않은 역사적 관측이며 현행 채택 또는 인과적 효과의 증거가 아니다.
+- **변경 범위:** `scripts/compare-ci-setup-metrics.mjs`, `tests/scripts/ci-cache-phase2.test.ts`, [#790 작업 계획](exec-plans/active/ISSUE_790.md), [#444 실측](CI_CACHE_PHASE2_EVIDENCE_444.md), [#790 누적 원장](ISSUE_790_FAILURE_ANALYSIS.md). CI workflow/캐시 writer/제품 버전/UI/API/DB/GHCR 정식 릴리스는 불변이다. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `release_required=false`, `release_authorized=false`를 적용한다.
+- **PR #863 첫 검증:** [Full #3452.1 / Run 41162179454](https://github.com/planner77/masterGantt/actions/runs/41162179454)의 Required Quality·Chromium E2E 집계·Docker는 `SUCCESS`, QA Final은 미해결 P1 한글 문서 리뷰로 `BLOCKED`다. 테스트 실패로 오인하지 않고 원본 실패를 보존한다. 문서·리뷰를 교정한 새 Head의 PR CI, 최신 Main 충돌, Trusted QA, Owner 수용 및 Finalizer를 별도로 검증해야 한다.
+---
+
 ## Issue #836 — OCI Build-once PR→Main 조건부 재사용 (#438/#773와 별개, 2026-10-28)
 
 ### 실행 계약

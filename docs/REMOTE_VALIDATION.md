@@ -1,3 +1,14 @@
+## Issue #790 — 캐시 비교기 원격 검증 및 PR 출처 분리 (2026-10-31)
+
+- **소스:** Main `3c73737968dfdbd6817657f3a17bed07c209a528`/앱 `0.138.5`에서 브랜치 `ci/issue-790-cache-audit-current-main`를 생성했다. PR Head/Base/Test-Merge와 Run ID/Attempt 및 실제 Job 결론을 같이 확인한다. #791의 앱 `0.130.2` 결과는 현재 소스의 검증이 아니다.
+- **국소 검증:** Node 22에서 두 신뢰 `analysis.json`으로 `node scripts/compare-ci-setup-metrics.mjs`를 사용한다. `docker_smoke`→`pr_docker_smoke` 명칭 변경, 동일 Job 개선이지만 `REVIEW_REQUIRED`여야 하는 경우, 누락·비정상 Run/중복 metric·runner 비용 오류·event/workflow 불일치·범위 누락을 검증한다. `tests/scripts/ci-cache-phase2.test.ts`와 기존 provenance/readiness/cache 계약도 확인한다. 미실행 명령을 PASS로 기록하지 않는다.
+- **원격 기준:** 정확 Head의 Required Quality/Chromium E2E/Docker, QA Automated/Trusted, Owner Managed 수용과 미해결 리뷰 0건을 구분한다. 테스트 skip/timeout 및 게이트는 완화하지 않는다. Main CI·필요한 임시 OCI 검증·Finalizer는 Primary #790에만 적용하고 `release_required=false`를 유지한다.
+- **첫 실패:** [PR #863 Run 41162179454.1](https://github.com/planner77/masterGantt/actions/runs/41162179454)의 Required 집계 3종은 `SUCCESS`였으나 QA Final이 미해결 P1 한글 문서 리뷰로 `BLOCKED`됐다. 실제 Chromium 8개 shard 전부 실행한 성공으로 과장하지 않는다. 신규 Head CI는 시작·관측 전 `NOT TESTED`다.
+- **상위 이슈:** [준비도 Run 41149264718](https://github.com/planner77/masterGantt/actions/runs/41149264718)은 `COLLECTING`(PR 14/19·최소 5/10, Main 20/10, Release 25/10)이다. 실제 캐시 채택·Main Docker 비용 원인·cache miss/stale/secret 검사는 [#444](https://github.com/planner77/masterGantt/issues/444)에서 `UNVERIFIED`로 유지한다.
+
+[작업 계획](exec-plans/active/ISSUE_790.md) · [실측](CI_CACHE_PHASE2_EVIDENCE_444.md) · [실패 원장](ISSUE_790_FAILURE_ANALYSIS.md).
+---
+
 ## Issue #836 — 원격 OCI Source/Build/Runtime 증거 검증 (2026-10-28)
 
 - Owner 지시로 `PR_IMAGE_REUSE_ENABLED` 미설정/true = 기본 ON, false = SHADOW/rollback. Full #3348.1의 Docker Version 누락과 E2E shard6 ECONNRESET 직접 FAIL을 새 Head 결과와 구분하며 교정 CI는 여전히 `NOT TESTED`. Full #3365.1의 BuildKit statement 문제는 다음 Run에서 해소되었으며, #3377.1 Docker `OCI archive config differs from tested Docker image`가 새 직접 실패로 확인됐다. OCI 원본 config SHA와 skopeo 전송 config SHA는 일치했고 runtime ID만 달라 이를 통과로 임의 처리하지 않는다. 새 `ci-image-runtime-verification.json`의 RootFS diffIDs+runtime fields 비교, 기존 HTTP(S)/SQLite/Compose, 원본 index/config/archive digest 보존이 모두 성공해야 한다. 정확 PR/latest HEAD/BASE/TestMerge, CI Run/Attempt, 3 Required + PR 실제 Docker 구현 Job SUCCESS 및 두 `ci-oci-pr`/`ci-pr-build-contract` artifact의 SHA256/OCI index/child/config/attestation subject를 확인한다. PR source/event receipt만으로 Merge/Trusted/Owner 권한 발생하지 않는다.
