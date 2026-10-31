@@ -1,12 +1,12 @@
-## Issue #790 / Parent #444 — 2026-10-31 single-PR source and finalization protocol
+## Issue #790 / 상위 #444 — PR 출처 검증과 종료 기준 (2026-10-31)
 
-1. Primary is **Issue #790** with only `Refs #790` in the Ready PR. Related #444 remains OPEN until independently approved performance/cache safety evidence; do not close #444 through #790 Generic Finalizer. Original [PR #791](https://github.com/planner77/masterGantt/pull/791) at 0.130.2 is a historical superseded candidate; do not merge or reuse its stale CI authority.
-2. New branch `ci/issue-790-cache-audit-current-main` starts from exact main `3c73737968dfdbd6817657f3a17bed07c209a528` (0.138.5). Re-fetch source and confirm strict latest main, no review threads/conflicts and exact PR Head/Base/Test-Merge before Owner-managed merge.
-3. The new comparer accepts explicit scope and optional GitHub job-rename evidence link; the link and JSON's `requireBoundProvenance` flag are **not independent authentication**. Numeric improvement in focused mode is `REVIEW_REQUIRED`, not automatic ADOPT. Historical [Docker before/after evidence](CI_CACHE_PHASE2_EVIDENCE_444.md) is subject to current Job/runner/version normalization and [trusted readiness](https://github.com/planner77/masterGantt/actions/runs/41149264718) PR sample collection.
-4. Validate existing `tests/scripts/ci-cache-phase2.test.ts` plus provenance/readiness/CI-cache-contract tests, Full PR Required Quality/Chromium8/Docker, trusted QA/Owner. New Head PASS and Main CI/OCI smoke/Finalizer must be verified independently of old [#791 run 40056085324](https://github.com/planner77/masterGantt/actions/runs/40056085324). No formal SemVer/GHCR Release authority for #790. Keep #444 pending cache miss/stale/secret validation and ROI decision.
+1. 신규 Ready PR은 **Primary #790**, canonical `Refs #790` 한 건을 사용한다. 상위 #444는 실측 성능·캐시 안전성을 별도 승인하기 전까지 `OPEN`이고 #790 Generic Finalizer로 조기 종료하지 않는다. [PR #791](https://github.com/planner77/masterGantt/pull/791)은 앱 `0.130.2`의 대체된 이력으로 병합하지 않는다.
+2. 브랜치 `ci/issue-790-cache-audit-current-main`는 Main `3c73737968dfdbd6817657f3a17bed07c209a528`(앱 `0.138.5`)에서 생성했다. 병합 전에 최신 Main·리뷰 미해결 0건·충돌 없음·정확한 Head/Base/Test-Merge를 재확인한다.
+3. 범위 지정 비교기에서 Job 이름 변경 출처 URL 및 JSON `requireBoundProvenance`는 **독립적 인증이 아니다**. 수치상 개선도 `REVIEW_REQUIRED`이며 `ADOPT`를 자동 승인하지 않는다. [과거 비교 근거](CI_CACHE_PHASE2_EVIDENCE_444.md)는 Job/runner/런타임 정규화 및 [현행 준비도](https://github.com/planner77/masterGantt/actions/runs/41149264718) 충족 후에만 판단한다.
+4. 기존 `tests/scripts/ci-cache-phase2.test.ts`·provenance/readiness/cache 계약, 신규 Head의 Required Quality/Chromium E2E/Docker 및 Trusted QA·Owner 승인을 검증한다. [#791 과거 CI](https://github.com/planner77/masterGantt/actions/runs/40056085324)는 현행 PASS가 아니다. 병합 이후 Main CI·임시 OCI·Finalizer를 별도 검증하며 #790에서 SemVer 정식 GHCR 게시를 승인하지 않는다.
+5. [PR #863 Full #3452.1](https://github.com/planner77/masterGantt/actions/runs/41162179454)은 Required 집계 3종 `SUCCESS`, QA Final만 P1 한글 문서 리뷰 스레드 때문에 `BLOCKED`다. 한글화·스레드 해결 후 새 Head 검증이 필요하며 #444의 cache miss/stale/secret·ROI 작업은 남는다.
 
-[Work Packet](exec-plans/active/ISSUE_790.md) · [Evidence](CI_CACHE_PHASE2_EVIDENCE_444.md) · [Cumulative ledger](ISSUE_790_FAILURE_ANALYSIS.md).
-
+[작업 계획](exec-plans/active/ISSUE_790.md) · [실측 근거](CI_CACHE_PHASE2_EVIDENCE_444.md) · [실패 원장](ISSUE_790_FAILURE_ANALYSIS.md).
 ---
 
 ## Issue #836 — PR OCI Main Conditional Reuse 운영 Runbook (2026-10-28)

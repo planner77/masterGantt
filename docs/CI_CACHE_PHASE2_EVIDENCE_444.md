@@ -1,5 +1,4 @@
-> **Current review (2026-10-31, masterGantt 0.138.5):** the latest [trusted readiness Run 41149264718](https://github.com/planner77/masterGantt/actions/runs/41149264718) reports PR **14/19 ready** (minimum **5/10**), Main 27/27 (20/10), Release 17/17 (25/10). **Overall readiness = COLLECTING**. The 2026-10-24 dataset below is retained as a historical comparison, **not** a current normalized A/B result or authorization to ADOPT a cache. The older job rename evidence is advisory only and its source must be rechecked against current workflow/runtime. New focused comparisons return `REVIEW_REQUIRED` rather than an automatic ADOPT verdict until independent evidence is accepted. No cache/workflow changes in #790.
-
+> **2026-10-31 현행 준비도 재점검 (masterGantt 0.138.5):** [신뢰 Run 41149264718](https://github.com/planner77/masterGantt/actions/runs/41149264718) 기준 PR 19개 중 14개 그룹 준비·서로 다른 성공 Run 최소 **5/10**, Main 27/27·20/10, Release 17/17·25/10으로 전체 `COLLECTING`이다. 2026-10-24의 아래 표본은 **역사적 관측**이며 현행 동일 조건 A/B 실험 또는 캐시 `ADOPT` 승인 근거가 아니다. Job 명칭 변경 출처는 현행 workflow·런타임 동등성 검토가 필요하다. 새 범위 지정 비교의 수치 개선은 독립 출처 수용 전 자동 채택 대신 `REVIEW_REQUIRED`로 판정하며 #790은 캐시 workflow를 수정하지 않는다.
 ---
 
 # Issue #444 — setup/cache Phase 2 Docker 전후 실측 및 채택 보류 (2026-10-24)
