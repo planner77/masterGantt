@@ -2,7 +2,7 @@ import { test, expect } from "./fixtures/isolated-application";
 
 test.use({ isolatedProjectMasterAdminPassword: "I18n-test-only-866" });
 
-test("Issue #866: 실제 마스터 표시명 저장·새로고침·해제·동명 ID 선택과 5폭 입력 geometry", async ({ page, isolatedApplication }) => {
+test("Issue #866: 실제 마스터 표시명 저장·새로고침·해제·동명 ID 선택과 5폭 입력 geometry", async ({ page, browser, isolatedApplication }, testInfo) => {
   test.setTimeout(180_000);
   const origin = isolatedApplication;
   const denied = await page.request.get(`${origin}/api/project-master/admin/items`);
@@ -98,15 +98,53 @@ test("Issue #866: 실제 마스터 표시명 저장·새로고침·해제·동�
   await expect(units.locator(`option[value="${items[1]!.id}"]`)).toHaveText("Nhóm chung (I18N-1)");
   await page.goto(`${origin}/project-master-admin`);
   await ensureAdmin();
-  for (const width of [390, 768, 1024, 1440, 1920]) {
-    await page.setViewportSize({ width, height: 1000 });
-    const form = page.locator("form").filter({ has: page.getByRole("button", { name: "Thêm mục", exact: true }) });
-    const fields = form.getByRole("group", { name: "Tên hiển thị theo ngôn ngữ (tùy chọn)", exact: true });
-    const sizes = await fields.locator("input").evaluateAll(inputs => inputs.map(input => ({ height:input.getBoundingClientRect().height,width:input.getBoundingClientRect().width,client:input.clientWidth,scroll:input.scrollWidth })));
-    expect(sizes).toHaveLength(3);
-    for (const size of sizes) { expect(size.height).toBeGreaterThanOrEqual(44);expect(size.width).toBeGreaterThan(0); }
-    const geometry=await page.evaluate(() => ({width:innerWidth,documentWidth:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll("body *")].filter(element=>{if(element.getBoundingClientRect().right<=innerWidth+1)return false;let parent=element.parentElement;while(parent&&parent!==document.body){if(["auto","scroll","hidden"].includes(getComputedStyle(parent).overflowX))return false;parent=parent.parentElement;}return true;}).slice(0,16).map(element=>({tag:element.tagName,className:element.className,right:element.getBoundingClientRect().right,text:element.textContent?.slice(0,80)}))}));
-    await page.screenshot({ path:`output/playwright/issue-866-master-${width}.png`, fullPage:true });
-    expect(geometry.documentWidth,JSON.stringify(geometry)).toBeLessThanOrEqual(geometry.width+1);
+  const density: Array<{locale:string;width:number;rowHeights:number[]}> = [];
+  const addLabels = { ko:"항목 추가", en:"Add item", vi:"Thêm mục" } as const;
+  for (const locale of ["ko", "en", "vi"] as const) {
+    await page.locator(".site-header select").selectOption(locale);
+    for (const width of [390, 768, 1024, 1440, 1920]) {
+      await page.setViewportSize({ width, height: 1000 });
+      const form = page.locator("form").filter({ has: page.getByRole("button", { name: addLabels[locale], exact: true }) });
+      const fields = form.locator("fieldset");
+      const sizes = await fields.locator("input").evaluateAll(inputs => inputs.map(input => ({ height:input.getBoundingClientRect().height,width:input.getBoundingClientRect().width })));
+      expect(sizes).toHaveLength(3);
+      for (const size of sizes) { expect(size.height).toBeGreaterThanOrEqual(44);expect(size.width).toBeGreaterThan(0); }
+      const rows = await table.locator("tbody tr").evaluateAll(rows=>rows.map(row=>({height:row.getBoundingClientRect().height,cells:[...row.children].map(cell=>({right:cell.getBoundingClientRect().right,left:cell.getBoundingClientRect().left,controls:[...cell.querySelectorAll("input,button")].map(control=>({right:control.getBoundingClientRect().right,left:control.getBoundingClientRect().left,height:control.getBoundingClientRect().height}))}))})));
+      expect(rows).toHaveLength(2);
+      density.push({locale,width,rowHeights:rows.map(row=>row.height)});
+      for (const row of rows) {
+        expect(row.height).toBeLessThanOrEqual(48);
+        for (const cell of row.cells) for (const control of cell.controls) {
+          expect(control.left).toBeGreaterThanOrEqual(cell.left);
+          expect(control.right).toBeLessThanOrEqual(cell.right);
+        }
+      }
+      const geometry=await page.evaluate(() => ({width:innerWidth,documentWidth:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll("body *")].filter(element=>{if(element.getBoundingClientRect().right<=innerWidth+1)return false;let parent=element.parentElement;while(parent&&parent!==document.body){if(["auto","scroll","hidden"].includes(getComputedStyle(parent).overflowX))return false;parent=parent.parentElement;}return true;}).slice(0,16).map(element=>({tag:element.tagName,className:element.className,right:element.getBoundingClientRect().right,text:element.textContent?.slice(0,80)}))}));
+      await page.screenshot({ path:`output/playwright/issue-866-master-${locale}-${width}.png`, fullPage:true });
+      expect(geometry.documentWidth,JSON.stringify(geometry)).toBeLessThanOrEqual(geometry.width+1);
+    }
   }
+  const coarse = await browser.newContext({ storageState:await page.context().storageState(), viewport:{width:390,height:1000}, hasTouch:true, isMobile:true });
+  try {
+    const touch = await coarse.newPage();
+    await touch.goto(`${origin}/project-master-admin`);
+    const login = touch.locator("form").filter({ has:touch.locator('input[autocomplete="current-password"]') });
+    await login.locator('input[type="password"]').fill("I18n-test-only-866");
+    await login.locator('button[type="submit"]').click();
+    const touchTable=touch.locator('[data-testid="project-master-table-scroll"] table');
+    await expect(touchTable.locator("tbody tr")).toHaveCount(2);
+    const controls=await touchTable.locator('input,button').evaluateAll(controls=>controls.map(control=>({height:control.getBoundingClientRect().height,width:control.getBoundingClientRect().width,compact:control.getAttribute("aria-haspopup")==="dialog"})));
+    for (const control of controls) { expect(control.height).toBeGreaterThanOrEqual(44); if(control.compact)expect(control.width).toBeGreaterThanOrEqual(44); }
+    const coarseRows=await touchTable.locator("tbody tr").evaluateAll(rows=>rows.map(row=>row.getBoundingClientRect().height));
+    for(const height of coarseRows)expect(height).toBeLessThanOrEqual(52);
+    density.push({locale:"vi-coarse",width:390,rowHeights:coarseRows});
+    await touch.screenshot({path:"output/playwright/issue-866-master-coarse-390.png",fullPage:true});
+    await touchTable.locator('button[aria-haspopup="dialog"]').first().click();
+    const dialog=touch.getByRole("dialog");
+    await expect(dialog.getByLabel("한국어",{exact:true})).toBeFocused();
+    await touch.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(touchTable.locator('button[aria-haspopup="dialog"]').first()).toBeFocused();
+  } finally { await coarse.close(); }
+  await testInfo.attach("master-row-density",{body:JSON.stringify(density),contentType:"application/json"});
 });

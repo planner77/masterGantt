@@ -10,6 +10,10 @@
 - Issue 목록의 데스크톱 수직 스크롤을 목록에 한정하고 등록/수정 공용 폼의 제목/Issue명 고정·날짜3열·사람/상태3열·비밀번호2열·내용8행과 반응형 stack을 적용한다.
 - Copy/Template6은 수동 표시명을 보존하고 지원하지 않는 schedule JSON/Excel export는 명시 거부하여 번역 손실을 방지한다.
 
+### Fixed
+
+- 도움말 접근성 이름 중복, 기준정보 번역 편집에 따른 기본 행 높이 증가, 관리자 서버 화면의 미번역 문구와 프로젝트 미발견 안전 오류 안내를 보완한다. 별도 production HTTP/HTTPS 검사도 명시적 한국어 locale를 사용한다.
+
 ### 검증·릴리스 경계
 
 - 실제 로컬 결과·최초 실패/보완·운영 미검증은 [Work Packet](docs/exec-plans/active/ISSUE_866.md)과 [누적 원장](docs/ISSUE_866_FAILURE_ANALYSIS.md)을 따른다. 신규 Head의 Quality/E2E/Docker·Trusted·Owner/Manager 최종 승인은 NOT TESTED. release_required=true/release_authorized=false이며 PR CI 시작까지만 수행한다.

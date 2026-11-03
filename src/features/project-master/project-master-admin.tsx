@@ -404,9 +404,9 @@ export function ProjectMasterAdmin() {
                     const draft = drafts[item.id] ?? { name: item.name, code: item.code, sortOrder: item.sortOrder };
                     return <tr key={item.id} className={item.active ? undefined : styles.inactive}>
                       <td>
-                        <input aria-invalid={fieldErrors[`${item.id}-name`] ? true : undefined} aria-describedby={fieldErrors[`${item.id}-name`] ? `${item.id}-name-error` : undefined} aria-label={t("{value0} 이름", {value0: displayName(item, locale)})} value={draft.name} title={draft.name} maxLength={200} disabled={busy || state !== "ready"}
+                        <div className={styles.nameControl}><input aria-invalid={fieldErrors[`${item.id}-name`] ? true : undefined} aria-describedby={fieldErrors[`${item.id}-name`] ? `${item.id}-name-error` : undefined} aria-label={t("{value0} 이름", {value0: displayName(item, locale)})} value={draft.name} title={draft.name} maxLength={200} disabled={busy || state !== "ready"}
                           onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, name: event.target.value } }))} />
-                        <TranslationEditor item={item} cachedDraft={translationDrafts[`project-master:${item.id}`]} onDraftChange={value=>updateTranslationDraft(`project-master:${item.id}`,value)} disabled={busy || state !== "ready"} onSave={(translations) => mutate(`/api/project-master/admin/items/${encodeURIComponent(item.id)}`, "PATCH", { translations })} />
+                        <TranslationEditor item={item} presentation="dialog" compactTrigger cachedDraft={translationDrafts[`project-master:${item.id}`]} onDraftChange={value=>updateTranslationDraft(`project-master:${item.id}`,value)} disabled={busy || state !== "ready"} onSave={(translations) => mutate(`/api/project-master/admin/items/${encodeURIComponent(item.id)}`, "PATCH", { translations })} /></div>
                         {fieldErrors[`${item.id}-name`] ? <p id={`${item.id}-name-error`} className={styles.error}>{fieldErrors[`${item.id}-name`]}</p> : null}
                       </td>
                       <td>
@@ -426,7 +426,7 @@ export function ProjectMasterAdmin() {
                           <span className={`${styles.statusBadge} ${item.active ? styles.statusActive : styles.statusInactive}`}>
                             {item.active ? t("활성") : t("비활성")}
                           </span>
-                          <span className={styles.usage}>{t("사용 프로젝트")}{" "}{item.usageCount ?? 0}</span>
+                          <span className={styles.usage} title={`${t("사용 프로젝트")} ${item.usageCount ?? 0}`}><span className={styles.usageLabel}>{t("사용 프로젝트")}</span>{" "}<span>{item.usageCount ?? 0}</span></span>
                         </div>
                       </td>
                       <td>

@@ -40,6 +40,7 @@ export function formatLocaleNumber(value: number, locale: AppLocale, options?: I
 const safeErrors: Readonly<Record<string, string>> = {
   VALIDATION_ERROR: "입력값을 확인해 주세요.", INVALID_REQUEST: "입력값을 확인해 주세요.",
   UNAUTHORIZED: "인증이 필요합니다.", FORBIDDEN: "이 작업을 수행할 권한이 없습니다.",
+  PROJECT_NOT_FOUND: "프로젝트를 찾을 수 없습니다.",
   NOT_FOUND: "요청한 항목을 찾을 수 없습니다.", REVISION_CONFLICT: "다른 변경사항이 있습니다. 최신 정보를 확인해 주세요.",
   PRECONDITION_FAILED: "다른 변경사항이 있습니다. 최신 정보를 확인해 주세요.", RATE_LIMITED: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
 };

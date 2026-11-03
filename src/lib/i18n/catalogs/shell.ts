@@ -6263,5 +6263,77 @@ export const shellMessages = {
   "현재 물리 화면 밖 · 프로젝트 전체 목록은 유지": {
     "en": "Outside the visible area · Full project list preserved",
     "vi": "Ngoài vùng hiển thị · Giữ danh sách toàn dự án"
+  },
+  "프로젝트 기준정보 관리": {
+    "en": "Project master data management",
+    "vi": "Quản lý danh mục dự án"
+  },
+  "전 프로젝트 공통 기준정보": {
+    "en": "Shared master data for all projects",
+    "vi": "Dữ liệu danh mục dùng chung cho mọi dự án"
+  },
+  "프로젝트 기준정보 관리 도움말": {
+    "en": "Project master data management help",
+    "vi": "Trợ giúp quản lý danh mục dự án"
+  },
+  "사업부, 제품, 사업장/법인을 전 프로젝트 공통 기준정보로 관리합니다.": {
+    "en": "Manage divisions, products and sites/companies as shared master data across all projects.",
+    "vi": "Quản lý bộ phận, sản phẩm và địa điểm/pháp nhân dưới dạng danh mục dùng chung cho mọi dự án."
+  },
+  "리소스 관리": {
+    "en": "Resource management",
+    "vi": "Quản lý nguồn lực"
+  },
+  "리소스 관리 도움말": {
+    "en": "Resource management help",
+    "vi": "Trợ giúp quản lý nguồn lực"
+  },
+  "프로젝트와 독립적인 리소스와 리소스 그룹을 관리합니다.": {
+    "en": "Manage resources and resource groups independently of projects.",
+    "vi": "Quản lý nguồn lực và nhóm nguồn lực độc lập với dự án."
+  },
+  "물류 유형 관리": {
+    "en": "Logistics type management",
+    "vi": "Quản lý loại logistics"
+  },
+  "전 프로젝트 공통 유형": {
+    "en": "Shared types for all projects",
+    "vi": "Loại dùng chung cho mọi dự án"
+  },
+  "물류 유형 관리 도움말": {
+    "en": "Logistics type management help",
+    "vi": "Trợ giúp quản lý loại logistics"
+  },
+  "설비 유형과 시스템 유형을 전 프로젝트 공통 기준정보로 관리합니다.": {
+    "en": "Manage equipment and system types as shared master data across all projects.",
+    "vi": "Quản lý loại thiết bị và hệ thống dưới dạng danh mục dùng chung cho mọi dự án."
+  },
+  "2026~2037년 국가별 공식 자료": {
+    "en": "Official country data for 2026–2037",
+    "vi": "Dữ liệu quốc gia chính thức cho năm 2026–2037"
+  },
+  "국가 캘린더 관리 도움말": {
+    "en": "Country calendar management help",
+    "vi": "Trợ giúp quản lý lịch quốc gia"
+  },
+  "공식 원본과 업종별 적용 범위를 확인한 자료만 등록하세요. 날짜를 직접 변경하면 자료 상태가 미확보로 바뀌며, 기존 프로젝트 일정에는 자동 반영되지 않습니다.": {
+    "en": "Register only verified official sources and their industry scope. Editing dates marks the source as unavailable and does not automatically change existing projects.",
+    "vi": "Chỉ đăng ký dữ liệu đã xác minh nguồn chính thức và phạm vi ngành áp dụng. Sửa ngày sẽ chuyển nguồn sang chưa có dữ liệu và không tự động thay đổi dự án hiện có."
+  },
+  "프로젝트 기준정보로 돌아가기": {
+    "en": "Back to project master data",
+    "vi": "Trở lại danh mục dự án"
+  },
+  "전역 기준정보": {
+    "en": "Global master data",
+    "vi": "Danh mục toàn cục"
+  },
+  "전역 카탈로그": {
+    "en": "Global catalog",
+    "vi": "Danh mục toàn cục"
+  },
+  "전역 캘린더 데이터": {
+    "en": "Global calendar data",
+    "vi": "Dữ liệu lịch toàn cục"
   }
 } as const;

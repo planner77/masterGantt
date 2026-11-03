@@ -36,6 +36,15 @@ test("#457 기준정보 populated table은 공통 observer로 밀도와 열 경�
     expect(facts.tables[0].rowHeightMax).toBeLessThanOrEqual(48);
     // Observation scrolling above is preparation, not keyboard reachability proof.
     await page.getByLabel("사업부 A 이름", { exact: true }).focus();
+    await page.keyboard.press("Tab");
+    const translation = page.getByRole("button", { name: "표시명 번역", exact: true }).first();
+    await expect(translation).toBeFocused();
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog", { name: "표시명 번역", exact: true });
+    await expect(dialog.getByLabel("한국어", { exact: true })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(translation).toBeFocused();
     for (let step = 0; step < 3; step++) await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: "비활성화", exact: true }).first()).toBeFocused();
     const keyboard = await captureUi(page, testInfo, `master-last-action-${width}`);

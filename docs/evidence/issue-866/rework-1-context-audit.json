@@ -1,0 +1,596 @@
+{
+  "issue": 866,
+  "pr": 870,
+  "playwrightVersion": "1.63.0",
+  "decision": "NO_BLANKET_CHANGE",
+  "reason": "runBeforeCreateBrowserContext merges combined options; production transport has a separate config",
+  "calls": [
+    {
+      "file": "tests/e2e/admin-auth-layout.spec.ts",
+      "line": 189,
+      "receiver": "page.context().browser()!",
+      "method": "newContext",
+      "variable": "touchContext",
+      "category": "explicit-ko-KR",
+      "explicit": "ko-KR"
+    },
+    {
+      "file": "tests/e2e/country-calendar-admin.spec.ts",
+      "line": 60,
+      "receiver": "page.context().browser()!",
+      "method": "newContext",
+      "variable": "touchContext",
+      "category": "explicit-ko-KR",
+      "explicit": "ko-KR"
+    },
+    {
+      "file": "tests/e2e/gantt-demo.spec.ts",
+      "line": 40,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/i18n-master-data.spec.ts",
+      "line": 125,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "coarse",
+      "category": "stored-locale-intentional"
+    },
+    {
+      "file": "tests/e2e/i18n.spec.ts",
+      "line": 48,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "independentContext",
+      "category": "explicit-en-US",
+      "explicit": "en-US"
+    },
+    {
+      "file": "tests/e2e/issue-621-resource-target.spec.ts",
+      "line": 77,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-fetch-api-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-717-identity-persistence.spec.ts",
+      "line": 108,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+      "line": 154,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-725-process-workareas.spec.ts",
+      "line": 344,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonlyContext",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+      "line": 145,
+      "receiver": "page.context().browser()!",
+      "method": "newContext",
+      "variable": "unauthenticated",
+      "category": "browser-api-only-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+      "line": 223,
+      "receiver": "page.context().browser()!",
+      "method": "newContext",
+      "variable": "readonlyContext",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+      "line": 532,
+      "receiver": "page.context().browser()!",
+      "method": "newContext",
+      "variable": "readonlyContext",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-730-view-composer.spec.ts",
+      "line": 443,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-730-view-composer.spec.ts",
+      "line": 737,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "touchContext",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+      "line": 92,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+      "line": 168,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+      "line": 290,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-735-system-dashboard.spec.ts",
+      "line": 242,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-736-resource-dashboard.spec.ts",
+      "line": 160,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/issue-762-process-workareas.spec.ts",
+      "line": 102,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonlyContext",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/logistics-table-density.spec.ts",
+      "line": 125,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "coarse",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/logistics-target-authoring.spec.ts",
+      "line": 52,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/master-controls-density.spec.ts",
+      "line": 87,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "coarse",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/milestone-management-persistence.spec.ts",
+      "line": 164,
+      "receiver": "page.context().browser()!",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-api-only-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/milestone-management-persistence.spec.ts",
+      "line": 326,
+      "receiver": "page.context().browser()!",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/milestone-stage-dashboard.spec.ts",
+      "line": 143,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/milestone-stage-exchange.spec.ts",
+      "line": 255,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/milestone-stage-exchange.spec.ts",
+      "line": 354,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/milestone-stage-gates.spec.ts",
+      "line": 56,
+      "receiver": "page.context().browser()!",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-api-only-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/milestone-timeline-interchange-http.spec.ts",
+      "line": 217,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-api-only-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-create-and-read.spec.ts",
+      "line": 138,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonlyContext",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-create-isolation.spec.ts",
+      "line": 24,
+      "receiver": "playwright.request",
+      "method": "newContext",
+      "variable": "otherClient",
+      "category": "request-context"
+    },
+    {
+      "file": "tests/e2e/project-edit-authorization.spec.ts",
+      "line": 70,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "retainedSessionContext",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-edit-authorization.spec.ts",
+      "line": 154,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "otherContext",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-edit-authorization.spec.ts",
+      "line": 188,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "oldPasswordContext",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-links-persistence.spec.ts",
+      "line": 123,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonlyContext",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-master-relations.spec.ts",
+      "line": 99,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "coarse",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-resource-memberships-ui.spec.ts",
+      "line": 79,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "coarse",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-settings-layout-490.spec.ts",
+      "line": 241,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "peer",
+      "category": "browser-api-only-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-status.spec.ts",
+      "line": 174,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonlyContext",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-status.spec.ts",
+      "line": 224,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonlyContext",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-summary-bar-visual.spec.ts",
+      "line": 156,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-summary-bar-visual.spec.ts",
+      "line": 206,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-summary-bar-visual.spec.ts",
+      "line": 276,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+      "line": 100,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/project-visibility.spec.ts",
+      "line": 17,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "guestContext",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-dashboard-api.spec.ts",
+      "line": 15,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-fetch-api-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-dashboard-ui.spec.ts",
+      "line": 33,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-drill-api.spec.ts",
+      "line": 28,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-fetch-api-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-drill-ui.spec.ts",
+      "line": 222,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-drill-ui.spec.ts",
+      "line": 547,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-excel-export-api.spec.ts",
+      "line": 25,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-api-only-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-kpi-integration-api.spec.ts",
+      "line": 15,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-api-only-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-kpi-integration-api.spec.ts",
+      "line": 57,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "foreignContext",
+      "category": "browser-api-only-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+      "line": 304,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-milestone-ui.spec.ts",
+      "line": 40,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-plan-api.spec.ts",
+      "line": 28,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-fetch-api-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-plan-ui.spec.ts",
+      "line": 217,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-tabs.spec.ts",
+      "line": 199,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "coarse",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-target-dashboard-api.spec.ts",
+      "line": 67,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "readonly",
+      "category": "browser-fetch-api-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/resource-target-dashboard-api.spec.ts",
+      "line": 171,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "foreign",
+      "category": "browser-api-only-inherits-ko"
+    },
+    {
+      "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+      "line": 193,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "context",
+      "category": "browser-ui-inherits-ko"
+    },
+    {
+      "file": "tests/transport/production-transport.spec.ts",
+      "line": 190,
+      "receiver": "browser",
+      "method": "newContext",
+      "variable": "otherContext",
+      "category": "separate-transport-config"
+    },
+    {
+      "file": "tests/manual/issue-799-read-only-supplement.mjs",
+      "line": 26,
+      "receiver": "originalPage.context().browser()",
+      "method": "newContext",
+      "category": "manual-cli-explicit-ko-KR",
+      "explicit": "ko-KR"
+    },
+    {
+      "file": "tests/manual/issue-824-ui-density.mjs",
+      "line": 37,
+      "receiver": "originalPage.context().browser()",
+      "method": "newContext",
+      "category": "manual-cli-explicit-ko-KR",
+      "explicit": "ko-KR"
+    },
+    {
+      "file": "tests/manual/issue-799-metric-details.mjs",
+      "line": 28,
+      "receiver": "originalPage.context().browser()",
+      "method": "newContext",
+      "category": "manual-cli-explicit-ko-KR",
+      "explicit": "ko-KR"
+    },
+    {
+      "file": "tests/manual/issue-797-ui-audit.mjs",
+      "line": 73,
+      "receiver": "originalPage.context().browser()",
+      "method": "newContext",
+      "category": "manual-cli-explicit-ko-KR",
+      "explicit": "ko-KR"
+    },
+    {
+      "file": "tests/manual/issue-797-ui-audit.mjs",
+      "line": 120,
+      "receiver": "originalPage.context().browser()",
+      "method": "newContext",
+      "category": "manual-cli-explicit-ko-KR",
+      "explicit": "ko-KR"
+    },
+    {
+      "file": "tests/manual/issue-799-dashboard-metrics.mjs",
+      "line": 73,
+      "receiver": "originalPage.context().browser()",
+      "method": "newContext",
+      "category": "manual-cli-explicit-ko-KR",
+      "explicit": "ko-KR"
+    },
+    {
+      "file": "tests/manual/issue-798-dashboard-density.mjs",
+      "line": 73,
+      "receiver": "originalPage.context().browser()",
+      "method": "newContext",
+      "category": "manual-cli-explicit-ko-KR",
+      "explicit": "ko-KR"
+    },
+    {
+      "file": "tests/manual/issue-825-dashboard-metrics.mjs",
+      "line": 73,
+      "receiver": "originalPage.context().browser()",
+      "method": "newContext",
+      "category": "manual-cli-explicit-ko-KR",
+      "explicit": "ko-KR"
+    },
+    {
+      "file": "tests/manual/issue-807-resource-workspace.mjs",
+      "line": 73,
+      "receiver": "originalPage.context().browser()",
+      "method": "newContext",
+      "category": "manual-cli-explicit-ko-KR",
+      "explicit": "ko-KR"
+    },
+    {
+      "file": "tests/manual/issue-809-resource-charts.mjs",
+      "line": 77,
+      "receiver": "originalPage.context().browser()",
+      "method": "newContext",
+      "category": "manual-cli-explicit-ko-KR",
+      "explicit": "ko-KR"
+    }
+  ]
+}

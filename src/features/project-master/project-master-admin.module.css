@@ -342,3 +342,13 @@
 .tabs { min-width: 0; }
 .sessionSection .actions { max-width: 100%; }
 .sessionSection .actions > button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+
+/* A closed translation action shares the 40px name-control row; editing uses a dialog. */
+.nameControl { display: flex; min-width: 0; align-items: center; gap: 8px; }
+.nameControl > input { flex: 1 1 0; width: 0; min-width: 0; }
+
+/* Keep translated usage context compact while the numeric count always remains visible. */
+.statusMeta { flex-wrap: nowrap; }
+.usage { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
+.usageLabel { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.usage > span:last-child { flex: 0 0 auto; }

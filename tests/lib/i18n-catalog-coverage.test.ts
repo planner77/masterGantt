@@ -39,3 +39,48 @@ it("registers every static Korean translation key used by UI consumers", () => {
   scan(resolve(process.cwd(), "src"));
   expect(missing).toEqual([]);
 });
+
+/** Server pages must not escape coverage merely because they do not yet import i18n. */
+it("localizes fixed Korean JSX in every application Server Component", () => {
+  const unlocalized: string[] = [];
+  const adminPages = new Set([
+    "src/app/project-master-admin/page.tsx", "src/app/resources/page.tsx",
+    "src/app/logistics-admin/page.tsx", "src/app/country-calendar-admin/page.tsx",
+  ]);
+  const technicalTerm = /^(?:masterGantt|SVAR|Task|Summary|Milestone|WBS|API|ID|JSON|CSV|Excel)$/;
+  function scan(directory: string) {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        if (entry.name !== "api") scan(resolve(directory, entry.name));
+        continue;
+      }
+      if (!entry.name.endsWith(".tsx")) continue;
+      const file = resolve(directory, entry.name);
+      const source = readFileSync(file, "utf8");
+      const syntax = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+      if (syntax.statements.some(statement => ts.isExpressionStatement(statement) &&
+        ts.isStringLiteral(statement.expression) && statement.expression.text === "use client")) continue;
+      const report = (node: ts.Node, text: string) => unlocalized.push(
+        `${file.replace(`${process.cwd()}/`, "")}:${syntax.getLineAndCharacterOfPosition(node.getStart(syntax)).line + 1}: ${text.trim()}`,
+      );
+      function visit(node: ts.Node) {
+        if (ts.isJsxText(node) && (/[가-힣]/.test(node.text) ||
+          (adminPages.has(file.replace(`${process.cwd()}/`, "")) && /[A-Za-z]/.test(node.text) && !technicalTerm.test(node.text.trim())))) report(node, node.text);
+        if (ts.isJsxExpression(node) && ts.isJsxElement(node.parent) && node.expression &&
+          ts.isStringLiteralLike(node.expression) && /[가-힣]/.test(node.expression.text)) report(node, node.expression.text);
+        if (ts.isJsxAttribute(node) && node.initializer && ts.isStringLiteral(node.initializer) &&
+          /^(?:aria-label|title|placeholder|alt|label)$/.test(node.name.getText(syntax)) && /[가-힣]/.test(node.initializer.text)) {
+          const owner = node.parent.parent;
+          const completeHelpLabel = (ts.isJsxOpeningElement(owner) || ts.isJsxSelfClosingElement(owner)) &&
+            owner.tagName.getText(syntax) === "ContextHelp" && node.name.getText(syntax) === "label" &&
+            Object.hasOwn(messages, node.initializer.text);
+          if (!completeHelpLabel) report(node, node.initializer.text);
+        }
+        ts.forEachChild(node, visit);
+      }
+      visit(syntax);
+    }
+  }
+  scan(resolve(process.cwd(), "src/app"));
+  expect(unlocalized).toEqual([]);
+});

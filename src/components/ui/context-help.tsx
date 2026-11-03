@@ -1,5 +1,6 @@
 "use client";
 
+import { contextHelpLabel } from "./context-help-label";
 import { useI18n } from "../../lib/i18n/provider";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -7,7 +8,7 @@ import styles from "./context-help.module.css";
 
 /** Read-only help stays in the top layer, including inside a modal or scroll owner. */
 export function ContextHelp({ label, children, disabled = false }: { label: string; children: ReactNode; disabled?: boolean }) {
-  const { t } = useI18n();
+  const { locale } = useI18n();
   const id = useId();
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -16,7 +17,7 @@ export function ContextHelp({ label, children, disabled = false }: { label: stri
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [open, setOpen] = useState(false);
   const [host, setHost] = useState<HTMLElement | null>(null);
-  const name = t("{name} 도움말", { name: t(label) });
+  const name = contextHelpLabel(label, locale);
   const cancelLeave = () => {
     if (leaveTimer.current) clearTimeout(leaveTimer.current);
   };

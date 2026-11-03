@@ -1,3 +1,7 @@
+## Issue #866 REWORK1 — 원본 실패와 로컬 전송 증거 구분 (2026-11-03)
+
+원본 Full3468.1/Run41618392066.1은 quality PASS/e2e FAIL/docker FAIL이며 CANCELLED Shard7 안의 실제행높이FAIL도보존한다. Trusted1114.1은 원본FAIL파생이다. 별도 production transport의 테스트locale 누락은 HTTP/HTTPS에서KOlabel0/ENlabel1로재현하고 ko-KR 명시후원래2case전체보안smoke로검증한다. 로컬 격리runner의CA/hosts·container/volume을운영host환경과분리하며 tested source/tree/imageID를 [Issue866 원장](ISSUE_866_FAILURE_ANALYSIS.md)에기록한다. 실패Headimage재검증과최종candidateimage재검증을구별하고 어느쪽도새PRCI/Main/GHCR/Owner승인으로대체하지않는다.
+
 ## Issue #866 — 신규 국제화 E2E 인벤토리 등록 (2026-11-03)
 
 `tests/config/e2e-shard-plan.json`에 신규 `i18n-master-data.spec.ts`는 Shard5, `i18n.spec.ts`는 Shard7로 각각1회 추가한다. 기존143개 배치와8샤드는 그대로이며 총145개, 분포19/18/18/18/18/18/18/18이다. 과거 projectedMs/성능 표본은 갱신하지 않고 신규 spec의 실제 원격 실행시간은 NOT TESTED다. 기존 Required3·Full/metadata·Trusted/Owner·main/GHCR/Finalizer·권한·skip/retry 정책은 변경하지 않는다. [Work Packet](exec-plans/active/ISSUE_866.md)과 [실패 원장](ISSUE_866_FAILURE_ANALYSIS.md)에 최초 인벤토리 누락·교정·실행 경계를 기록한다.

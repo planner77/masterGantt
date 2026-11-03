@@ -1,3 +1,9 @@
+## Issue #866 REWORK1 — 관리자 표시명 밀도와 도움말 이름 (2026-11-03)
+
+Project Master의 닫힌 행은 이름 입력과 번역 명령을 같은 행에 두어 기존 기본 행 높이48px 이하·5열/960px 표 예산을 유지한다. 번역 명령은 전체 accessible name을 가진40px 아이콘(coarse44px)이며 별도 WorkspaceDialog에서 원본 이름과 ko/en/vi 표시명을 편집한다. 번역폼을 모든 이름셀 아래에 쌓아 전체 행을 늘리지 않는다. Resource Group의 기존 inline 편집은 유지한다. 새 Tab 정지점 뒤 원래 code/sort/마지막 action 순서를 보존하고 dialog 초기focus·Escape/취소·trigger복원·pending·401/412 초안 보호를 검증한다.
+
+상황형 도움말은 topic 또는 이미 완성된 번역 label을 받을 수 있다. 완성된 한국어 label과 등록된 English/Tiếng Việt의 전체 이름에 도움말 접두/접미어를 다시 붙이지 않는다. 실제 관리자 서버 페이지의 제목·설명·help 본문도 정적 번역에 포함하며 import 유무와 무관한 raw JSX 누락 검사를 적용한다. 상세 실패·재검증은 [누적 원장](docs/ISSUE_866_FAILURE_ANALYSIS.md)을 따른다.
+
 ## Issue #866 — 표시 언어와 기준정보 이름 (2026-11-03)
 
 기존 파란색 Light UI·system font·semantic token을 유지한다. 한국어/English/Tiếng Việt 선택은 공통 shell에서 키보드로 접근하고 html lang을 동기화한다. 장문 영문/베트남어는 intrinsic 폭과 wrap을 사용하고 기술 식별자·사용자 자유 입력은 번역하지 않는다. 기준정보는 현재 언어 수동 표시명 우선·없으면 정확한 원본 name이며 ID/code는 선택/확인 메타데이터로 보존한다. 언어 전환으로 Gantt remount/scroll·초안 초기화를 하지 않는다. Issue의 국소 배치는 아래 Project Issue 계약과 [UX 가이드](docs/UI_UX_GUIDELINES.md)를 따른다.

@@ -112,3 +112,69 @@ test("Issue #866 language change in another tab preserves the open task draft, s
   expect(JSON.stringify(fixture.tasks)).toBe(originalTasks);
   await otherTab.close();
 });
+
+test("Issue #866 Server Component admin headings and help follow English and Vietnamese", async ({ page }, testInfo) => {
+  const mutations: string[] = [];
+  await page.route("**/api/**", async route => {
+    if (route.request().method() !== "GET") mutations.push(`${route.request().method()} ${new URL(route.request().url()).pathname}`);
+    await route.fulfill({ status: 401, json: { error: { code: "UNAUTHORIZED" } } });
+  });
+  const surfaces = [
+    {
+      path: "/project-master-admin",
+      eyebrow: { en: "Global master data", vi: "Danh mục toàn cục" },
+      subtitle: { en: "Shared master data for all projects", vi: "Dữ liệu danh mục dùng chung cho mọi dự án" },
+      link: { en: "Country calendar management", vi: "Quản lý lịch quốc gia" },
+      heading: { en: "Project master data management", vi: "Quản lý danh mục dự án" },
+      help: { en: "Project master data management help", vi: "Trợ giúp quản lý danh mục dự án" },
+      content: { en: "Manage divisions, products and sites/companies as shared master data across all projects.", vi: "Quản lý bộ phận, sản phẩm và địa điểm/pháp nhân dưới dạng danh mục dùng chung cho mọi dự án." },
+    },
+    {
+      path: "/resources",
+      eyebrow: { en: "Global catalog", vi: "Danh mục toàn cục" },
+      heading: { en: "Resource management", vi: "Quản lý nguồn lực" },
+      help: { en: "Resource management help", vi: "Trợ giúp quản lý nguồn lực" },
+      content: { en: "Manage resources and resource groups independently of projects.", vi: "Quản lý nguồn lực và nhóm nguồn lực độc lập với dự án." },
+    },
+    {
+      path: "/logistics-admin",
+      eyebrow: { en: "Global catalog", vi: "Danh mục toàn cục" },
+      subtitle: { en: "Shared types for all projects", vi: "Loại dùng chung cho mọi dự án" },
+      heading: { en: "Logistics type management", vi: "Quản lý loại logistics" },
+      help: { en: "Logistics type management help", vi: "Trợ giúp quản lý loại logistics" },
+      content: { en: "Manage equipment and system types as shared master data across all projects.", vi: "Quản lý loại thiết bị và hệ thống dưới dạng danh mục dùng chung cho mọi dự án." },
+    },
+    {
+      path: "/country-calendar-admin",
+      eyebrow: { en: "Global calendar data", vi: "Dữ liệu lịch toàn cục" },
+      subtitle: { en: "Official country data for 2026–2037", vi: "Dữ liệu quốc gia chính thức cho năm 2026–2037" },
+      link: { en: "Back to project master data", vi: "Trở lại danh mục dự án" },
+      heading: { en: "Country calendar management", vi: "Quản lý lịch quốc gia" },
+      help: { en: "Country calendar management help", vi: "Trợ giúp quản lý lịch quốc gia" },
+      content: { en: "Register only verified official sources and their industry scope. Editing dates marks the source as unavailable and does not automatically change existing projects.", vi: "Chỉ đăng ký dữ liệu đã xác minh nguồn chính thức và phạm vi ngành áp dụng. Sửa ngày sẽ chuyển nguồn sang chưa có dữ liệu và không tự động thay đổi dự án hiện có." },
+    },
+  ] as const;
+  for (const locale of ["en", "vi"] as const) {
+    await page.setViewportSize({ width: locale === "vi" ? 390 : 1440, height: 900 });
+    for (const surface of surfaces) {
+      await page.goto(surface.path);
+      await localeSelector(page).selectOption(locale);
+      await expect(page.locator("html")).toHaveAttribute("lang", locale);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(surface.heading[locale]);
+      await expect(page.locator("main .eyebrow")).toHaveText(surface.eyebrow[locale]);
+      if ("subtitle" in surface) await expect(page.locator("main").getByText(surface.subtitle[locale], { exact: true })).toBeVisible();
+      if ("link" in surface) await expect(page.getByRole("link", { name: surface.link[locale], exact: true })).toBeVisible();
+      // The embedded catalog remains behind its normal authentication gate.
+      await expect(page.locator('main input[type="password"]')).toBeVisible();
+      const help = page.getByRole("button", { name: surface.help[locale], exact: true });
+      await help.click();
+      await expect(page.getByRole("tooltip")).toHaveText(surface.content[locale]);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+      if (locale === "vi") await page.screenshot({ path: testInfo.outputPath(`issue-866-${surface.path.slice(1)}-vi-390.png`), fullPage: true });
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("tooltip")).toBeHidden();
+      await expect(help).toBeFocused();
+    }
+  }
+  expect(mutations).toEqual([]);
+});

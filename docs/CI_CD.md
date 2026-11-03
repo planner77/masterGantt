@@ -1,3 +1,7 @@
+## Issue #866 REWORK1 — production transport의 테스트 언어 (2026-11-03)
+
+별도 `tests/config/transport.config.ts`에도 legacy 한국어 단언용 `locale: ko-KR`를 명시한다. 기존 공통E2E설정만 변경하면 별도 HTTP/HTTPS runner는기본en-US가되어 언어자동감지로 영문UI를 표시할 수 있다. 앱의 실제 언어선택/자동감지 정책은 바꾸지 않고 별도 i18n case로 검증한다. 수동 browser.newContext의 옵션은 설치Playwright1.63 runner에서 상속됨을 실제검증했다. 원래180초·재시도0·TLS검증/쿠키·Origin/revision·재시작·비밀번호/로그아웃·민감artifact비수집과 Required3/8Shard는 유지한다.
+
 ## Issue #866 — 신규 국제화 E2E 인벤토리 등록 (2026-11-03)
 
 `tests/config/e2e-shard-plan.json`에 신규 `i18n-master-data.spec.ts`는 Shard5, `i18n.spec.ts`는 Shard7로 각각1회 추가한다. 기존143개 배치와8샤드는 그대로이며 총145개, 분포19/18/18/18/18/18/18/18이다. 과거 projectedMs/성능 표본은 갱신하지 않고 신규 spec의 실제 원격 실행시간은 NOT TESTED다. 기존 Required3·Full/metadata·Trusted/Owner·main/GHCR/Finalizer·권한·skip/retry 정책은 변경하지 않는다. [Work Packet](exec-plans/active/ISSUE_866.md)과 [실패 원장](ISSUE_866_FAILURE_ANALYSIS.md)에 최초 인벤토리 누락·교정·실행 경계를 기록한다.

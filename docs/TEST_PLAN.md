@@ -1,3 +1,14 @@
+## Issue #866 REWORK1 — 누적 실패·직접/인접/음성 소비자 (2026-11-03)
+
+Full3468.1의직접실패합집합은 `admin-auth-layout.spec.ts`(help accessible name), `cross-screen-regression.spec.ts`(기준정보닫힌행87>48), `production-transport.spec.ts`(HTTP/HTTPSKOlabel180초대기)다. 취소된Shard7의실제FAIL을제외하지않는다. 기존local원장의LLM/번역snapshot/parser·원문/alias/공백 실패도보존하고 관련계약회귀를함께검사한다.
+
+- ADD: 순수 ContextHelp label 회귀(이미완성된KO/EN/VI와prefix형등록문구·미등록fallback), 기존serverpage모든고정raw JSX의누락탐지. 기존callsitecatalog검사와서버raw누락검사는서로다른계약이다.
+- EXTEND: 기존cross-screen48px/원래마지막actionfocus를유지하고새translationtriggerTab·Enter·firstKOinput·Escape/restore추가. 기존realSQLitei18n-master-data의CRUD/collision/401재인증/412초안·cancelclear에3locale×5폭닫힌행/containment/coarse44를추가. globaladmin SSR표제/help는기존i18n spec에서실제언어변경으로검증한다.
+- KEEP_UNIQUE: adminauth3범주·#719keyboard/touch/modal초안, productionHTTP/HTTPS의실제쿠키/Origin/revision/restart/rotation/logout. testtimeout/retry/assertions나CIgate를완화하지않는다.
+- N/A(일괄locale수정): 설치Playwright1.63이combined contextoptions를상속하므로일반수동browser.newContext는KO설정을따른다. 59경로73호출을감사했고 별도transport설정만원인범위다. nativeGantt의기존영어action선택자소비자누락은독립AST감사에서0건이다.
+
+실제Run/Attempt·분류/기각·동결source와검증결과는 [누적원장](ISSUE_866_FAILURE_ANALYSIS.md), 관련AC는 [WorkPacket](exec-plans/active/ISSUE_866.md)을따른다.
+
 ## Issue #866 — #865/#869 통합 계약과 Test Lifecycle (2026-11-03)
 
 기존 날짜/Gantt 상태·Issue fixture·Project/Process/Logistics/Resource CRUD·SQLite migration·Copy/Template·Origin/revision/인증 테스트를 먼저 검색한다. 새 locale registry/사전·보간/언어 선택·storage 실패와 새 LLM 구성/protocol/SSRF/secret/bounds·12 owner 표시명 계약은 ADD다. 기존 Issue100건 fixture의 page size10/20/50/100·wheel/geometry·고정 제목·3/3/2열·textarea 높이·5폭/3언어/coarse/zoom은 EXTEND하고 기존 보안/Task복귀/상태/비밀번호 회귀는 KEEP_UNIQUE다. 기존 한국어 UI suite는 browser locale ko-KR을 명시하고 탐지 테스트는 en/vi/미지원 locale을 개별 지정한다. native SVAR menu는 실제 ko 사전의 현행 label을 사용하며 권한/부정 사례를 삭제하지 않는다.

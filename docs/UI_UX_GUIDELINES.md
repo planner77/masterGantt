@@ -1,3 +1,9 @@
+## Issue #866 REWORK1 — 닫힌 행과 번역 dialog 검증 (2026-11-03)
+
+Project Master는 이름 입력 옆40×40px 번역 trigger(coarse44×44px)로 별도 WorkspaceDialog를 연다. 닫힌 fine-pointer 기본행은48px 이하, coarse는52px 이하의 기존입력/44px hit-area 예산을 검증한다. Resource Group inline은 유지한다. 이름·상태/usage의 긴 EN/VI 문구가 행을 다시 늘리지 않게 하되 숫자 count는 항상 보이고 생략 문구의 전체정보를 title/접근명으로 유지한다. 기존5열/960px 표 내부X scroll과 문서overflow0,3언어×5폭, keyboard 새정지점과 원래 마지막action, firstinput/Escape·restore 및401/412초안·cancelclear를 함께 검증한다.
+
+상황형 도움말의 완성 accessible label은 ko/en/vi에서 접두/접미어를 중복하지 않는다. 서버페이지의 raw JSX 고정 문구도 번역 인벤토리에 포함하고 client hook import가 없다는 이유로 검사에서 누락하지 않는다.
+
 ## Issue #866/#869 — 표시 언어·고정 필드·scroll 검증 (2026-11-03)
 
 언어 선택은 native select와 연결 label/키보드 접근을 사용한다. ko/en/vi 장문과 베트남어 성조를 기존 system font/semantic token으로 표시하고 html lang·ARIA를 동기화한다. locale switch가 component key/remount·초안 폐기·canonical write를 일으키면 안 된다. 기준정보 편집은 원본 name과 선택 언어별 표시명을 분리하고 명시 저장/취소·오류/경합 시 초안을 유지한다.

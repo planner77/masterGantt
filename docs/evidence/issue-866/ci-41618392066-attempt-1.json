@@ -1,0 +1,474 @@
+{
+  "schemaVersion": 1,
+  "issue": 866,
+  "pr": 870,
+  "headSha": "98272e108095e841b22e5433a5d91639ff7c4a8f",
+  "baseSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+  "testMergeSha": "244ec7e7f99463f54edd3dbd4699922646e9c4f1",
+  "sourceArtifact": {
+    "id": 13221977612,
+    "name": "ci-pr-source-41618392066-1",
+    "expired": false,
+    "schema": "mastergantt-ci-pr-source-v1",
+    "readOnlyZip": true
+  },
+  "fullRun": {
+    "id": 41618392066,
+    "number": 3468,
+    "attempt": 1,
+    "url": "https://github.com/planner77/masterGantt/actions/runs/41618392066",
+    "event": "pull_request",
+    "createdAt": "2026-11-03T10:20:07Z",
+    "conclusion": "failure",
+    "previousAttempt": null
+  },
+  "runs": [
+    {
+      "id": 41618392195,
+      "runNumber": 243,
+      "runAttempt": 1,
+      "path": ".github/workflows/pr-fast-development.yml",
+      "event": "pull_request",
+      "headSha": "98272e108095e841b22e5433a5d91639ff7c4a8f",
+      "conclusion": "skipped",
+      "createdAt": "2026-11-03T10:20:07Z"
+    },
+    {
+      "id": 41618392066,
+      "runNumber": 3468,
+      "runAttempt": 1,
+      "path": ".github/workflows/ci.yml",
+      "event": "pull_request",
+      "headSha": "98272e108095e841b22e5433a5d91639ff7c4a8f",
+      "conclusion": "failure",
+      "createdAt": "2026-11-03T10:20:07Z"
+    }
+  ],
+  "trusted": {
+    "id": 41620253310,
+    "number": 1114,
+    "attempt": 1,
+    "event": "workflow_run",
+    "jobId": 125863864044,
+    "validatorSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+    "conclusion": "failure",
+    "sourceRunId": 41618392066,
+    "classification": "원본 CI 실패의 파생 FAIL; 독립 제품 실패 아님",
+    "reason": "원본 PR CI run 자체가 성공하지 않았습니다"
+  },
+  "jobs": [
+    {
+      "id": 125857510225,
+      "name": "QA Final 신뢰 경계 확인",
+      "conclusion": "success",
+      "failedSteps": []
+    },
+    {
+      "id": 125857510827,
+      "name": "변경 경로 판정",
+      "conclusion": "success",
+      "failedSteps": []
+    },
+    {
+      "id": 125857673893,
+      "name": "QA Preflight — 정책·문서 사전 검사",
+      "conclusion": "success",
+      "failedSteps": []
+    },
+    {
+      "id": 125857676155,
+      "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+      "conclusion": "skipped",
+      "failedSteps": []
+    },
+    {
+      "id": 125857676243,
+      "name": "Low E2E policy plan (trusted base)",
+      "conclusion": "skipped",
+      "failedSteps": []
+    },
+    {
+      "id": 125857828246,
+      "name": "ESLint",
+      "conclusion": "success",
+      "failedSteps": []
+    },
+    {
+      "id": 125857828366,
+      "name": "정책·저장소 계약 검사",
+      "conclusion": "success",
+      "failedSteps": []
+    },
+    {
+      "id": 125857828441,
+      "name": "TypeScript 타입 검사",
+      "conclusion": "success",
+      "failedSteps": []
+    },
+    {
+      "id": 125857828484,
+      "name": "Vitest 단위·통합 테스트",
+      "conclusion": "success",
+      "failedSteps": []
+    },
+    {
+      "id": 125857830550,
+      "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+      "conclusion": "skipped",
+      "failedSteps": []
+    },
+    {
+      "id": 125857830603,
+      "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+      "conclusion": "skipped",
+      "failedSteps": []
+    },
+    {
+      "id": 125857831099,
+      "name": "Next.js production build",
+      "conclusion": "skipped",
+      "failedSteps": []
+    },
+    {
+      "id": 125858717644,
+      "name": "PR 빠른 검사 판정",
+      "conclusion": "success",
+      "failedSteps": []
+    },
+    {
+      "id": 125858916726,
+      "name": "Docker smoke 구현",
+      "conclusion": "failure",
+      "failedSteps": [
+        {
+          "number": 22,
+          "name": "production HTTP·HTTPS 전송 정책 검증"
+        }
+      ]
+    },
+    {
+      "id": 125858916826,
+      "name": "Chromium E2E shard 3/8 · PR",
+      "conclusion": "cancelled",
+      "failedSteps": []
+    },
+    {
+      "id": 125858916869,
+      "name": "Chromium E2E shard 4/8 · PR",
+      "conclusion": "cancelled",
+      "failedSteps": []
+    },
+    {
+      "id": 125858916871,
+      "name": "PR Next.js production build",
+      "conclusion": "success",
+      "failedSteps": []
+    },
+    {
+      "id": 125858916888,
+      "name": "Chromium E2E shard 7/8 · PR",
+      "conclusion": "cancelled",
+      "failedSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행"
+        }
+      ]
+    },
+    {
+      "id": 125858916955,
+      "name": "Chromium E2E shard 6/8 · PR",
+      "conclusion": "cancelled",
+      "failedSteps": []
+    },
+    {
+      "id": 125858917014,
+      "name": "Chromium E2E shard 1/8 · PR",
+      "conclusion": "failure",
+      "failedSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행"
+        }
+      ]
+    },
+    {
+      "id": 125858917050,
+      "name": "Chromium E2E shard 5/8 · PR",
+      "conclusion": "cancelled",
+      "failedSteps": []
+    },
+    {
+      "id": 125858917085,
+      "name": "Chromium E2E shard 8/8 · PR",
+      "conclusion": "cancelled",
+      "failedSteps": []
+    },
+    {
+      "id": 125858917166,
+      "name": "Chromium E2E shard 2/8 · PR",
+      "conclusion": "cancelled",
+      "failedSteps": []
+    },
+    {
+      "id": 125858918783,
+      "name": "Low E2E targeted execution",
+      "conclusion": "skipped",
+      "failedSteps": []
+    },
+    {
+      "id": 125859682564,
+      "name": "Chromium end-to-end tests",
+      "conclusion": "failure",
+      "failedSteps": [
+        {
+          "number": 2,
+          "name": "E2E shard 결과 집계"
+        }
+      ]
+    },
+    {
+      "id": 125859887448,
+      "name": "Build, static checks, and unit tests",
+      "conclusion": "success",
+      "failedSteps": []
+    },
+    {
+      "id": 125863608457,
+      "name": "Docker build and runtime smoke test",
+      "conclusion": "failure",
+      "failedSteps": [
+        {
+          "number": 2,
+          "name": "Docker smoke 결과 집계"
+        }
+      ]
+    },
+    {
+      "id": 125863652095,
+      "name": "QA Final — Automated",
+      "conclusion": "failure",
+      "failedSteps": [
+        {
+          "number": 3,
+          "name": "최신 PR 증거·문서·리뷰 확인 (read-only)"
+        }
+      ]
+    },
+    {
+      "id": 125863652313,
+      "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+      "conclusion": "success",
+      "failedSteps": []
+    },
+    {
+      "id": 125863654475,
+      "name": "Main 임시 commit 이미지 게시·검증·정리",
+      "conclusion": "skipped",
+      "failedSteps": []
+    }
+  ],
+  "shards": [
+    {
+      "id": 125858916826,
+      "name": "Chromium E2E shard 3/8 · PR",
+      "conclusion": "cancelled",
+      "logRetrieved": true,
+      "observedPassedCases": 8,
+      "observedFailedCases": 0,
+      "caseFailures": [],
+      "summaryLines": [],
+      "plannedCases": 153,
+      "incompleteCases": 145
+    },
+    {
+      "id": 125858916869,
+      "name": "Chromium E2E shard 4/8 · PR",
+      "conclusion": "cancelled",
+      "logRetrieved": true,
+      "observedPassedCases": 1,
+      "observedFailedCases": 0,
+      "caseFailures": [],
+      "summaryLines": [],
+      "plannedCases": 93,
+      "incompleteCases": 92
+    },
+    {
+      "id": 125858916888,
+      "name": "Chromium E2E shard 7/8 · PR",
+      "conclusion": "cancelled",
+      "logRetrieved": true,
+      "observedPassedCases": 1,
+      "observedFailedCases": 1,
+      "caseFailures": [
+        "✘   2 [chromium] › tests/e2e/cross-screen-regression.spec.ts:28:5 › #457 기준정보 populated table은 공통 observer로 밀도와 열 경계를 확인한다 (1.3s)"
+      ],
+      "summaryLines": [
+        "1 failed",
+        "80 did not run",
+        "1 passed (23.8s)"
+      ],
+      "plannedCases": 82,
+      "incompleteCases": 80
+    },
+    {
+      "id": 125858916955,
+      "name": "Chromium E2E shard 6/8 · PR",
+      "conclusion": "cancelled",
+      "logRetrieved": true,
+      "observedPassedCases": 9,
+      "observedFailedCases": 0,
+      "caseFailures": [],
+      "summaryLines": [],
+      "plannedCases": 100,
+      "incompleteCases": 91
+    },
+    {
+      "id": 125858917014,
+      "name": "Chromium E2E shard 1/8 · PR",
+      "conclusion": "failure",
+      "logRetrieved": true,
+      "observedPassedCases": 2,
+      "observedFailedCases": 1,
+      "caseFailures": [
+        "✘    3 [chromium] › tests/e2e/admin-auth-layout.spec.ts:17:7 › Issue #452: master authentication geometry and states (904ms)"
+      ],
+      "summaryLines": [
+        "1 failed",
+        "126 did not run",
+        "2 passed (17.3s)"
+      ],
+      "plannedCases": 129,
+      "incompleteCases": 126
+    },
+    {
+      "id": 125858917050,
+      "name": "Chromium E2E shard 5/8 · PR",
+      "conclusion": "cancelled",
+      "logRetrieved": true,
+      "observedPassedCases": 2,
+      "observedFailedCases": 0,
+      "caseFailures": [],
+      "summaryLines": [],
+      "plannedCases": 109,
+      "incompleteCases": 107
+    },
+    {
+      "id": 125858917085,
+      "name": "Chromium E2E shard 8/8 · PR",
+      "conclusion": "cancelled",
+      "logRetrieved": true,
+      "observedPassedCases": 1,
+      "observedFailedCases": 0,
+      "caseFailures": [],
+      "summaryLines": [],
+      "plannedCases": 104,
+      "incompleteCases": 103
+    },
+    {
+      "id": 125858917166,
+      "name": "Chromium E2E shard 2/8 · PR",
+      "conclusion": "cancelled",
+      "logRetrieved": true,
+      "observedPassedCases": 0,
+      "observedFailedCases": 0,
+      "caseFailures": [],
+      "summaryLines": [],
+      "plannedCases": 103,
+      "incompleteCases": 103
+    }
+  ],
+  "directFailures": [
+    {
+      "kind": "Chromium",
+      "jobId": 125858917014,
+      "shard": 1,
+      "file": "tests/e2e/admin-auth-layout.spec.ts",
+      "caseLine": 17,
+      "assertionLine": 65,
+      "case": "Issue #452: master authentication geometry and states",
+      "expected": ">= 2",
+      "actual": "1",
+      "message": "expect(received).toBeGreaterThanOrEqual(expected)"
+    },
+    {
+      "kind": "Chromium",
+      "jobId": 125858916888,
+      "shard": 7,
+      "jobConclusion": "cancelled",
+      "stepConclusion": "failure",
+      "file": "tests/e2e/cross-screen-regression.spec.ts",
+      "caseLine": 28,
+      "assertionLine": 36,
+      "case": "#457 기준정보 populated table은 공통 observer로 밀도와 열 경계를 확인한다",
+      "expected": "rowHeightMax <= 48",
+      "actual": "87",
+      "message": "expect(received).toBeLessThanOrEqual(expected)"
+    },
+    {
+      "kind": "Docker transport",
+      "jobId": 125858916726,
+      "step": 22,
+      "project": "production-http",
+      "file": "tests/transport/production-transport.spec.ts",
+      "caseLine": 114,
+      "assertionLine": 55,
+      "case": "실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀번호 변경·로그아웃",
+      "expected": "프로젝트 이름 exact label fill",
+      "actual": "locator.fill waiting until 180000ms test timeout",
+      "message": "waiting for getByLabel('프로젝트 이름', { exact: true })"
+    },
+    {
+      "kind": "Docker transport",
+      "jobId": 125858916726,
+      "step": 22,
+      "project": "production-https",
+      "file": "tests/transport/production-transport.spec.ts",
+      "caseLine": 114,
+      "assertionLine": 55,
+      "case": "실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀번호 변경·로그아웃",
+      "expected": "프로젝트 이름 exact label fill",
+      "actual": "locator.fill waiting until 180000ms test timeout",
+      "message": "waiting for getByLabel('프로젝트 이름', { exact: true })"
+    }
+  ],
+  "evidenceGaps": [
+    "Docker transport는 정책상 trace/screenshot/video off; 미수집은 누락 오류 아님",
+    "Shard7 실패 보고서 업로드는 취소되어 artifact 없음; raw job log로 직접 실패 보존",
+    "다른6취소 shard는 전체 결과 미완료; observed pass 수는 전체 shard PASS가 아님",
+    "workflow_run 전체2500건 중 최근100건은2026-10-30까지 포함하여 이 branch 최초CI 생성2026-11-03 이전까지 포괄; 원본생성이후4candidate중 Trusted1은 로그로 원본run 귀속확인"
+  ],
+  "provenanceCrossChecks": {
+    "prCurrentHeadMatches": true,
+    "prCurrentBaseMatches": true,
+    "prCurrentTestMergeMatches": true,
+    "commitToPrAttribution": [
+      870
+    ],
+    "sourceArtifactReadBeforeAnySourceMutation": true,
+    "sourceZipMember": "ci-pr-source.json"
+  },
+  "remoteQuality": {
+    "jobId": 125859887448,
+    "conclusion": "success",
+    "vitestJobId": 125857828484,
+    "vitestPassedFiles": 294,
+    "vitestSkippedFiles": 1,
+    "vitestPassedTests": 3548,
+    "vitestSkippedTests": 3,
+    "durationSeconds": 76.97
+  },
+  "historyCoverage": {
+    "branchRunsTotal": 2,
+    "branchRunsPageCount": 1,
+    "exactHeadRunsTotal": 2,
+    "originalRunAttempt": 1,
+    "trustedRecentPageCount": 100,
+    "trustedOldestCreatedAt": "2026-10-30T19:26:58Z",
+    "originalRunCreatedAt": "2026-11-03T10:20:07Z",
+    "newerWorkflowRunCandidates": 4,
+    "originalSourceCandidateMatchedByLog": 41620253310,
+    "metadataOnlyRuns": 0,
+    "rerunAttempts": 0
+  }
+}

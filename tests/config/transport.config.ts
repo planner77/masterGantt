@@ -19,6 +19,9 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   use: {
     ...devices["Desktop Chrome"],
+    // 기존 한글 UI 단언은 브라우저 기본 언어와 분리하여 고정한다.
+    // 사용자 언어 자동 감지는 별도 국제화 E2E에서 검증한다.
+    locale: "ko-KR",
     viewport: { width: 1440, height: 1000 },
     ignoreHTTPSErrors: false,
     // 인증 테스트에서는 비밀번호·쿠키가 trace/artifact에 저장되지 않게 한다.

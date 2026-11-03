@@ -124,3 +124,23 @@ source SHA256 `3e9a96ec4b940dff934c9788f37ff17c7b56d77ff93c56acf501469b3f3dc47c`
 [정제 검증 명세](../../evidence/issue-866/local-validation.json)에 환경/명령/건수·동결지문·실환경 및 원격미검증을 보존한다. [목록 이전](../../../output/playwright/issue-869/before-list.png), [목록 이후](../../../output/playwright/issue-869/after-list.png), [영문390 폼](../../../output/playwright/issue-869/after-en-390-editor.png), [베트남어 Gantt](../../../output/playwright/issue866/vietnamese-gantt.png), [기준정보390](../../../output/playwright/issue-866-master-390.png)에서 실제 합성fixture 화면을 확인할 수 있다. 전체화면/다른도메인 전수·실기native125%·AT/운영LLM 검증으로 확대하지 않는다.
 
 DOCUMENTATION_SYNC는 코드·DB/API·계약·가이드·실제변경경로와 재대조했으며 로컬docs_gate 구조/AC01~09 매핑 검사 PASS다. 이 구조적 성공은 원격 Trusted QA나 Owner 위험 수용/Manager ACCEPT를 뜻하지 않는다.
+
+## REWORK1 — PR870 Full3468.1 실패 재개 (2026-11-03)
+
+[누적원장 PR870-FULL-001](../../ISSUE_866_FAILURE_ANALYSIS.md#pr870-full-001--full-34681의-첫-원격-실패-및-재개-2026-11-03)에원본Run41618392066/attempt1·전체8Shard/Quality·Docker·Trusted와정확Head/Base/test-merge를추가했다. 직접실패는ContextHelp완성label중복, ProjectMaster기본행87px(상한48), production HTTP/HTTPS의한국어프로젝트label대기다. CANCELLED Shard7의실제FAIL도포함했다.
+
+소유권: frontend공유help/helperunit/기존admin·#719소비자, domainfrontend+ui_ux의compact번역trigger/WorkspaceDialog·밀도/초안, infra의전송언어재현/HTTPHTTPS와원본출처, Manager의문서/원장/검토·통합/새Full시작이다. 테스트assertion/gate를완화하지않고먼저각RED를확인한다. 추가된Tabstop은실제접근순서로반영하되48px·마지막actionfocus·권한/dirty/401/412는유지한다. 별도browsercontext의locale상속은설치버전에서실증전일괄변경하지않는다.
+
+기존0.140.0/HIGH/OWNER_MANAGED/qa_required=true/release_authorized=false유지. 원본QualityPASS도새Head승인으로재사용하지않는다. 새Full시작까지진행하며완료모니터링/병합/Main·GHCR/Issue종료는제외한다.
+
+## REWORK1 동결 source의 재검증과 인계
+
+공유ContextHelp완성label중복, ProjectMaster기본행87px, 별도transport의locale누락을수정했다. 추가SSR관리화면4개미번역과안전한PROJECT_NOT_FOUND코드매핑누락도보완했다. 새번역편집은compact버튼/WorkspaceDialog를사용하며48px기본행·44pxcoarse·focus/Escape·401/412초안보존을유지한다. API/DB/권한·일정계산·LLM계약은재작업에서변경하지않았다.
+
+동결source1209파일SHA256 `1b339a914781f565f496800808a6d38bc898cc01bdccb5ba7a204f70fb916d72`에서전체Unit295files3563tests PASS/기존1file3tests skipped(114.73초, `npm test -- --maxWorkers=2`), boundedChromium24/24 PASS(2.8분), typecheck/전체lint0errors18warnings/발견296Unit·874browsercase/Markdown397파일PASS다. 부하중Unit2회실패와중간browser21PASS/3FAIL을 [누적원장](../../ISSUE_866_FAILURE_ANALYSIS.md)에보존했다. assertion/timeout/retry/skip/Required검증은완화하지않았다.
+
+[정제재검증](../../evidence/issue-866/rework-1-local-validation.json), [완성된VI관리화면390](../../../output/playwright/issue-866-ssr-admin/issue-866-project-master-admin-vi-390.png), [VI기준정보390](../../../output/playwright/issue-866-master-vi-390.png), [EN기본행1440](../../../output/playwright/issue-866-master-en-1440.png), [coarse390](../../../output/playwright/issue-866-master-coarse-390.png)에현재source의실제합성fixture근거가있다. 기존#719/최초구현캡처는덮어쓰지않았다.
+
+분리된qa_docs의추가검토P1/P2미해결0이며사전Agent검토를인간최종QA/Owner승인으로사용하지않는다. 최신main352a43e74c7b34c72d952f67783a53463f8b519d/PR870은현재충돌없음·review threads0이다. 최종Head와시작Full Run/Attempt는STATUS댓글에기록하고완료결과를모니터링하지않는다. 새HeadRequired3/Trusted/Owner·Manager ACCEPT=NOT TESTED, MERGE_READY=BLOCKED, release_authorized=false이며병합/mainGHCR/Release/Issue종료는범위밖이다.
+
+같은source의격리Dockerimage `sha256:ddccd3883ad2d125a2f162fbbfaf832f7882301eea740cb072e542033f764a83`에서productionbuild/설정거부6·잘못된설정의migration쓰기0/실제HTTPHTTPS2/2 PASS21.7초다. TLS·쿠키/Origin/revision/재시작·자격증명보호를유지했고5055Gitblob/1209sourceSHA가검사전후동일했다. ownedcontainer/volume잔여0·hostCA/hosts불변이다. [전송검증](../../evidence/issue-866/rework-1-final-transport.json)은로컬증거이며새원격Required3/MainGHCR성공이아니다. DOCUMENTATION_SYNC는추가코드·테스트·문서와다시대조했다. 최종CI시작과Head/Run정보는STATUS댓글을따른다.
