@@ -577,3 +577,9 @@ Issue 내용 텍스트는 HTML 실행 없이 React escape하며 본문 raw URL�
 ## Issue #342 — 국가 Catalog 관리자
 
 기존 Project Master admin session을 재사용하며 Project edit-session은 Catalog 권한이 아니다. Preview를 포함한 POST/PATCH/DELETE는 exact Origin·strong If-Match를 요구한다. body 읽기 후 transaction에서 session expiry/회수/revision을 재검사한다. JSON duplicate keys·잘못된UTF-8·CSV closing quote 뒤 문자·unknown/null 필드를 전체 거부한다. Preview token은 파일 원문/format/대상/catalog revision/session/최대10분 만료를 결속하며 Apply 시 재검증한다. 출처 URL은 credentials 없는HTTP(S) 문자열만 저장하고 runtime fetch/명령·수식 실행은 하지 않는다. 상세 한도는 [API](API.md)의 #342 계약을 따른다.
+
+## Issue #866 — 클라이언트 오류 표시의 문맥 보존
+
+서버 오류의 임의 설명과 JSON/네트워크 예외 문자열은 UI에 직접 노출하지 않는다. WBS 전송은 비JSON 성공/실패 응답과 fetch 거절을 고정된 typed 오류로 처리하고 dashboard/details는 알 수 없는 예외에 고정 안내를 사용한다. 원본 AbortError 취소·stale/status·응답 출처 검증은 그대로 적용한다.
+
+국가 캘린더 미확보의 `details`는 임의 설명 대신 기존 계약의 정확한 국가 코드·4자리 연도 식별자만 제한적으로 사용한다. 등록된 국가, 유효한1900~2199연도, 제출된 국가 규칙·DATE_RANGE 연도 범위와 일치해야 하며 잘못된 code/path/형식·설명 추가·중복은 제외한다. ID/연도는 React 텍스트로 표시하고 고정 안내만 현재 언어로 번역한다. 응답을 표시하는 검증은 쓰기 권한이나 국가 원본의 공식성 근거가 아니다.

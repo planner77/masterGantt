@@ -84,6 +84,7 @@
 - `docs/IMPORT_SCHEMA.md`: UPDATED
 - `docs/EXCEL_EXPORT.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
+- `docs/ISSUE_261_RESOURCE_CALENDAR.md`: UPDATED
 - `docs/SCHEDULING_ENGINE.md`: N/A(언어는 표시에만 적용; 순수 일정·공수 계산과 저장값 불변)
 - `docs/QA_REVIEW_POLICY.md`: N/A(기존 Owner-managed/Trusted/Required3 및 HIGH 잔여 위험 승인 유지)
 - `docs/REMOTE_VALIDATION.md`: UPDATED
@@ -144,3 +145,15 @@ DOCUMENTATION_SYNC는 코드·DB/API·계약·가이드·실제변경경로와 �
 분리된qa_docs의추가검토P1/P2미해결0이며사전Agent검토를인간최종QA/Owner승인으로사용하지않는다. 최신main352a43e74c7b34c72d952f67783a53463f8b519d/PR870은현재충돌없음·review threads0이다. 최종Head와시작Full Run/Attempt는STATUS댓글에기록하고완료결과를모니터링하지않는다. 새HeadRequired3/Trusted/Owner·Manager ACCEPT=NOT TESTED, MERGE_READY=BLOCKED, release_authorized=false이며병합/mainGHCR/Release/Issue종료는범위밖이다.
 
 같은source의격리Dockerimage `sha256:ddccd3883ad2d125a2f162fbbfaf832f7882301eea740cb072e542033f764a83`에서productionbuild/설정거부6·잘못된설정의migration쓰기0/실제HTTPHTTPS2/2 PASS21.7초다. TLS·쿠키/Origin/revision/재시작·자격증명보호를유지했고5055Gitblob/1209sourceSHA가검사전후동일했다. ownedcontainer/volume잔여0·hostCA/hosts불변이다. [전송검증](../../evidence/issue-866/rework-1-final-transport.json)은로컬증거이며새원격Required3/MainGHCR성공이아니다. DOCUMENTATION_SYNC는추가코드·테스트·문서와다시대조했다. 최종CI시작과Head/Run정보는STATUS댓글을따른다.
+
+## REWORK2 — Full3469.1 후속
+
+Run41640034518/attempt1·Heada2b4766651f0a4fe9fbc2cf9f887f03e78ed1a19/Base352a43e74c7b34c72d952f67783a53463f8b519d/test-merge3260201076458249ab8e599c672cfca852634727에서quality/DockerPASS·E2EFAIL을확인했다. 원격실제1실패는미확보국가US2032문맥손실이며이전부터잠복해있던제품오류다. 기존도움말·행높이·전송오류는해당실행에서통과했다. [누적원장](../../ISSUE_866_FAILURE_ANALYSIS.md#pr870-full-002--full-34691-실패와-rework2-2026-11-03)에전체8Shard·출처·반례를보존한다.
+
+국가·연도식별자를제출규칙/범위에대조하고고정안내·Preview상태를현재언어로표시한다. raw오류문구를기대하는3case4assertion은실제안전표시계약과비노출검증으로동기화한다. 추가보안감사에서확인한WBS비JSON/fetch예외는transport와dashboard/details에서함께안전오류로처리하며AbortError·stale/readiness·출처·권한·초안경계를유지한다. API응답/schema/DB/엔진알고리즘/CI정책변경없음, 버전0.140.0/HIGH/OWNER_MANAGED/qa_required=true/release_authorized=false유지다. 최종source동결후누적실패합집합+인접/음성소비자를검증하고PR870새Full을시작한다. 원격결과모니터링·병합·Main/GHCR/Release·Issue종료는범위밖이다.
+
+REWORK2확대49진단은46PASS/3FAIL이었다. 신규locale테스트KO고정locator,충돌fixture의rawdetails기대,큰숫자표시의nogroup기대를교정했다. 추가QA의충돌label언어stale P2를구조화state/렌더시번역으로보완했다. server규칙UUID↔draftkey정확상관미지원한계와모든초안수정경로유지는[원장](../../ISSUE_866_FAILURE_ANALYSIS.md)에기록하며정확한충돌규칙특정을PASS로주장하지않는다.
+
+B동결1211파일SHA256`b715f14349c42d05636f6bfbfbd14723c9558ac49195b31a126208e32166d83f`,snapshot`e1b41e1b6248f2422ee981fd35f4e4b575c5ee4b`에서전체Unit/35선별browser/동일image전송검증을진행한다. Bbrowser는A49중30+추가Issue5이며제외19case는A진단근거에만한정한다. Required3/874case/8Shard·모든기존보안/도메인/상태조건은유지한다. 실제최종결과와새Head/FullRun은후속정제명세·STATUS를따른다.
+
+B최종Local Fast Feedback는전체Unit3632PASS/기존3skip145.16초·선별browser35/35PASS9.3분·typecheck/전체lint0errors18warnings PASS다. 동일Bimage `sha256:7c0365429908a4063785371bcb3133b79dc7363bfd67b3084f5bdc4c30080a64`의productionbuild/기존HTTPHTTPS2/2PASS23.0초·설정거부6·invalid migration writes0·5082blob/1211source불변/ownedcontainer·volume잔여0을확인했다. [B명세](../../evidence/issue-866/rework-2-local-validation.json)·[전송명세](../../evidence/issue-866/rework-2-final-transport.json)·[선정35목록](../../evidence/issue-866/rework-2-browser-selection.txt)을따른다. [영문미확보](../../../output/playwright/issue-866-rework2/unavailable-en.png)·[베트남어충돌](../../../output/playwright/issue-866-rework2/calendar-conflict-vi.png)에서안전한문맥·현재언어/원문이름보존을확인할수있다. 원장·Security/I18N/TestPlan/Calendar지침/Changelog·DOCUMENTATION_SYNC를실제변경에맞춰갱신했다. 새Head원격quality/e2e/docker/Trusted·Owner/Manager승인은NOT TESTED이며새Full시작과출처는STATUS댓글을따른다.

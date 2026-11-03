@@ -73,3 +73,9 @@ native select·순번 fieldset·고유 accessible name·summary/inline errors를
 실제 스크린리더·운영 배포·공식 SVAR JavaScript demo 조작은 NOT TESTED다.
 
 변경 전 화면 캡처는 NOT TESTED다. 기준 SHA `6a383a0b376f5357625305a8ec0a9ff62e00b367`의 별도 `/tmp` source와 합성 SQLite를 준비했으나, localhost 서버 시작이 sandbox `listen EPERM`으로 차단되었다. 권한 요청은 승인 대기 중 중단되어 실행되지 않았다. 기존 작업 서버·DB에는 영향을 주지 않았으며, 변경 후 화면과 별도 E2E 검증을 PR 증거로 사용한다.
+
+## #866 오류 표시의 안전 경계
+
+충돌 요약은 실제 구조화 날짜·layer·Resource/Group ID를 검증하고 현재 로컬 catalog의 이름을 표시한다. 라벨은 언어 전환 시 재번역하며 이름·날짜는 보존한다. 요약 focus, 해당 날짜의 aria-invalid/describedby, Save 차단과 현재 규칙 이름·날짜 수정 버튼을 유지한다. 서버의 자유 설명을 그대로 표시하지 않는다.
+
+서버가 제출마다 생성하는 규칙 UUID와 로컬 draft key의 정확한 대응 계약은 없다. 따라서 충돌 규칙만 특정하는 표시를 검증 완료로 취급하지 않는다. 현재 모든 초안 규칙의 수정 경로를 제공하며 정확한 correlation 개선은 별도 범위다.

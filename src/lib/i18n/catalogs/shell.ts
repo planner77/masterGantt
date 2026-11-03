@@ -5024,6 +5024,10 @@ export const shellMessages = {
     "en": "Could not load work calendar settings.",
     "vi": "Không thể tải thiết lập lịch làm việc."
   },
+  "현재 입력 기준 미리보기 계산 완료. 일정 변경 작업 {value0}개, 수동 작업 충돌 {value1}개. 리소스 예외 적용 {value2}개, 현재 효과 없음 {value3}개.": {
+    "en": "Preview calculated for the current input. Schedule changes: {value0} tasks, manual task conflicts: {value1}. Resource exceptions applied: {value2}, no current effect: {value3}.",
+    "vi": "Đã tính bản xem trước theo dữ liệu nhập hiện tại. Thay đổi lịch trình: {value0} công việc, xung đột công việc thủ công: {value1}. Ngoại lệ nguồn lực được áp dụng: {value2}, hiện không có tác động: {value3}."
+  },
   "미리보기를 계산하는 중…": {
     "en": "Calculating preview…",
     "vi": "Đang tính bản xem trước…"

@@ -71,10 +71,31 @@ export function readWbsViewResponse(body:unknown, expected:WbsViewFetchOptions):
   return bodyData(body);
 }
 function bodyData(body:unknown):WbsViewResponseDto { return (body as {data:WbsViewResponseDto}).data; }
+const requestFailureMessage = "조회 요청에 실패했습니다. 다시 시도해 주세요.";
+const invalidResponseMessage = "조회 응답의 출처가 일치하지 않습니다. 다시 조회해 주세요.";
+
+/** Only errors produced by this validated boundary may provide UI message text. */
+export function wbsViewErrorMessage(cause: unknown, fallback = requestFailureMessage): string {
+  return cause instanceof WbsViewTransportError ? cause.message : fallback;
+}
+
 export async function fetchWbsView(options:WbsViewFetchOptions):Promise<WbsViewResponseDto> {
-  const response=await fetch(`/api/projects/${encodeURIComponent(options.projectPublicId)}/resource-dashboard/views`,{method:"POST",credentials:"same-origin",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify(options.input),signal:options.signal});
-  const body:unknown=await response.json();
-  if(!response.ok) { const error=z.object({error:z.object({code:z.string(),message:z.string()})}).safeParse(body);throw new WbsViewTransportError(error.success?error.data.error.code:"REQUEST_FAILED",safeApiError(body,"조회 요청에 실패했습니다. 다시 시도해 주세요."),response.status); }
-  if (!(body && typeof body === "object" && "data" in body && body.data && typeof body.data === "object" && "schema" in body.data && body.data.schema === "wbs-view-report/2")) throw new WbsViewTransportError("INVALID_RESPONSE","조회 응답 버전이 일치하지 않습니다.");
-  return readWbsViewResponse(body,options);
+  let response: Response | undefined;
+  try {
+    options.signal?.throwIfAborted();
+    response=await fetch(`/api/projects/${encodeURIComponent(options.projectPublicId)}/resource-dashboard/views`,{method:"POST",credentials:"same-origin",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify(options.input),signal:options.signal});
+    options.signal?.throwIfAborted();
+    const body:unknown=await response.json();
+    options.signal?.throwIfAborted();
+    if(!response.ok) { const error=z.object({error:z.object({code:z.string(),message:z.string()})}).safeParse(body);throw new WbsViewTransportError(error.success?error.data.error.code:"REQUEST_FAILED",safeApiError(body,requestFailureMessage),response.status); }
+    if (!(body && typeof body === "object" && "data" in body && body.data && typeof body.data === "object" && "schema" in body.data && body.data.schema === "wbs-view-report/2")) throw new WbsViewTransportError("INVALID_RESPONSE","조회 응답 버전이 일치하지 않습니다.");
+    return readWbsViewResponse(body,options);
+  } catch (cause) {
+    options.signal?.throwIfAborted();
+    if ((cause instanceof Error || typeof DOMException !== "undefined" && cause instanceof DOMException) && cause.name === "AbortError") throw cause;
+    if (cause instanceof WbsViewTransportError) throw cause;
+    // JSON parsers can embed upstream body text in SyntaxError.message.
+    // Never retain the original exception or its nested cause in this error.
+    throw new WbsViewTransportError(response?.ok ? "INVALID_RESPONSE" : "REQUEST_FAILED", response?.ok ? invalidResponseMessage : requestFailureMessage, response?.status ?? 0);
+  }
 }

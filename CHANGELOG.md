@@ -14,6 +14,8 @@
 
 - 도움말 접근성 이름 중복, 기준정보 번역 편집에 따른 기본 행 높이 증가, 관리자 서버 화면의 미번역 문구와 프로젝트 미발견 안전 오류 안내를 보완한다. 별도 production HTTP/HTTPS 검사도 명시적 한국어 locale를 사용한다.
 
+- 국가 캘린더 미확보 안내의 국가·연도와 Preview 상태 번역을 보존하고, WBS의 비JSON·네트워크 오류 본문이 dashboard/details에 노출되지 않도록 보완한다.
+
 ### 검증·릴리스 경계
 
 - 실제 로컬 결과·최초 실패/보완·운영 미검증은 [Work Packet](docs/exec-plans/active/ISSUE_866.md)과 [누적 원장](docs/ISSUE_866_FAILURE_ANALYSIS.md)을 따른다. 신규 Head의 Quality/E2E/Docker·Trusted·Owner/Manager 최종 승인은 NOT TESTED. release_required=true/release_authorized=false이며 PR CI 시작까지만 수행한다.

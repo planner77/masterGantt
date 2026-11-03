@@ -100,3 +100,7 @@ KR2027 월력요항은2026-06-29 발표됐으나 첨부 다운로드가 오류 H
 - [정부 공지12729/VPCP-KGVX](https://baochinhphu.vn/cong-chuc-vien-chuc-duoc-nghi-4-ngay-dip-tet-duong-lich-2026-102251225111845247.htm)(2025-12-25)는공공부문주5일기관의2026-01-02휴무와2026-01-10보충근무를명시한다. 민간기업에는권장사항이므로전국민간근무일로확대하지않는다.
 - [Resolution28/2026/QH16 전문](https://xaydungchinhsach.chinhphu.vn/toan-van-nghi-quyet-so-28-2026-qh16-ve-phat-trien-van-hoa-viet-nam-119260508142130402.htm)은11월24일문화의날유급휴무를규정하며2026-07-01시행이다. [정부문서10065/VPCP-KGVX 최종승인](https://xaydungchinhsach.chinhphu.vn/de-xuat-2-phuong-an-nghi-tet-nguyen-dan-2027-tet-dinh-mui-11926080513033257.htm)(2026-10-02)은2026-11-24공공부문하루휴무를확정한다. 제안단계의11월23일휴무/28일보충근무는추가하지않는다.
 - 두별도Agent가원문을대조해2026-01-02 NON_WORKING·2026-01-10 WORKING·2026-11-24 NON_WORKING을확정했다. 날짜17개·WORKING2개이며공식자료확보연도수12는변하지않는다. 초기원본보존계획에서새공식증거를확보한뒤정정한결정과재검증을실패원장에남긴다.
+
+## 미확보 Preview 안내
+
+Project Preview가 `COUNTRY_CALENDAR_UNAVAILABLE`로 거부되면 현재 언어의 고정 안내와 해당 국가·연도 식별자를 표시한다. 식별자는 서버의 자유 설명을 복사하지 않고 제출 국가·날짜 범위와 검증해 사용한다. 예를 들어 미국2032년을 선택한 경우 `US 2032`를 유지하며 언어 전환만으로 Preview/Save하지 않는다. 미확보 Preview 뒤 Save는 비활성 상태이며 초안을 바꾸면 이전 안내를 지우고 다시 Preview한다. 이는 기존422 오류·관리자 등록·공식 자료 검증·Project 명시 저장 계약을 변경하지 않는다.

@@ -1,0 +1,340 @@
+{
+  "schemaVersion": 1,
+  "sourceHead": "a2b4766651f0a4fe9fbc2cf9f887f03e78ed1a19",
+  "scope": "read-only audit before REWORK2 edits; line numbers refer to that Head",
+  "directConsumerFiles": 8,
+  "syntheticErrorMessageEntries": 54,
+  "rawProsePositiveExpectations": 4,
+  "positiveExpectationCases": 3,
+  "findings": [
+    "country/calendar error context lost after removing upstream prose",
+    "country initial error; WBS stale/unavailable; template500 fixtures expected raw upstream prose",
+    "non-JSON fetchWbsView rejection contains body snippet, dashboard/details rendered unknown Error.message"
+  ],
+  "entries": [
+    {
+      "file": "tests/e2e/country-calendar-admin.spec.ts",
+      "line": 164,
+      "message": "제어된 최초 조회 오류",
+      "exactAsserted": true
+    },
+    {
+      "file": "tests/e2e/country-calendar-admin.spec.ts",
+      "line": 202,
+      "message": "제어된 충돌",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/country-calendar-admin.spec.ts",
+      "line": 241,
+      "message": "최신 원본 조회 실패",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/country-calendar-admin.spec.ts",
+      "line": 245,
+      "message": "다른 관리자가 변경했습니다.",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/country-calendar-admin.spec.ts",
+      "line": 272,
+      "message": "세션 만료",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/derived-dialog-recovery.spec.ts",
+      "line": 52,
+      "message": "fixture rejection",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/i18n-master-data.spec.ts",
+      "line": 57,
+      "message": "unsafe-upstream-marker",
+      "exactAsserted": true
+    },
+    {
+      "file": "tests/e2e/i18n-master-data.spec.ts",
+      "line": 64,
+      "message": "unsafe-upstream-marker",
+      "exactAsserted": true
+    },
+    {
+      "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+      "line": 40,
+      "message": "프로젝트를 찾을 수 없습니다.",
+      "exactAsserted": true
+    },
+    {
+      "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+      "line": 345,
+      "message": "검증 오류",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/issue-730-view-composer.spec.ts",
+      "line": 336,
+      "message": "일정 복귀 원본이 변경되었습니다.",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/issue-730-view-composer.spec.ts",
+      "line": 392,
+      "message": "원본 snapshot이 변경되었습니다.",
+      "exactAsserted": true
+    },
+    {
+      "file": "tests/e2e/issue-730-view-composer.spec.ts",
+      "line": 400,
+      "message": "조회 서비스를 사용할 수 없습니다.",
+      "exactAsserted": true
+    },
+    {
+      "file": "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+      "line": 123,
+      "message": "의도한 stale 음성 검증",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+      "line": 131,
+      "message": "의도한 조회 오류 검증",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+      "line": 199,
+      "message": "의도한 stale 음성 검증",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
+      "line": 207,
+      "message": "의도한 조회 오류 검증",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+      "line": 317,
+      "message": "의도한 stale 음성 검증",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/issue-735-system-dashboard.spec.ts",
+      "line": 196,
+      "message": "의도한 stale 음성 검증",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/issue-735-system-dashboard.spec.ts",
+      "line": 199,
+      "message": "의도한 조회 오류 검증",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/issue-736-resource-dashboard.spec.ts",
+      "line": 110,
+      "message": "stale 검증",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/issue-736-resource-dashboard.spec.ts",
+      "line": 112,
+      "message": "조회 오류 검증",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/issue-736-resource-dashboard.spec.ts",
+      "line": 453,
+      "message": "원본 충돌 검증",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/issue-736-resource-dashboard.spec.ts",
+      "line": 456,
+      "message": "조회 권한 검증",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/milestone-exchange-state.spec.ts",
+      "line": 24,
+      "message": "changed",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/milestone-exchange-state.spec.ts",
+      "line": 36,
+      "message": "expired",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/milestone-exchange-state.spec.ts",
+      "line": 44,
+      "message": "preserve review",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/milestone-exchange-state.spec.ts",
+      "line": 58,
+      "message": "Changed after review",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/milestone-exchange-state.spec.ts",
+      "line": 120,
+      "message": "concurrent change",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/new-project-draft-preservation.spec.ts",
+      "line": 99,
+      "message": "생성에 실패했습니다.",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-gantt-inline-name.spec.ts",
+      "line": 66,
+      "message": "Rejected by inline-name fixture.",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-gantt-inline-name.spec.ts",
+      "line": 217,
+      "message": "Rejected rename",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-gantt-inline-start-date.spec.ts",
+      "line": 38,
+      "message": "Rejected by Issue #370 fixture.",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-issues.spec.ts",
+      "line": 59,
+      "message": "stale",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-issues.spec.ts",
+      "line": 83,
+      "message": "UPSTREAM_PRIVATE_EXCEPTION_DO_NOT_EXPOSE",
+      "exactAsserted": true
+    },
+    {
+      "file": "tests/e2e/project-issues.spec.ts",
+      "line": 96,
+      "message": "UPSTREAM_PRIVATE_EXCEPTION_DO_NOT_EXPOSE",
+      "exactAsserted": true
+    },
+    {
+      "file": "tests/e2e/project-issues.spec.ts",
+      "line": 239,
+      "message": "stale",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-logistics-management.spec.ts",
+      "line": 674,
+      "message": "stale",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-logistics-management.spec.ts",
+      "line": 678,
+      "message": "expired",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-logistics-management.spec.ts",
+      "line": 754,
+      "message": "expired",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-logistics-management.spec.ts",
+      "line": 783,
+      "message": "in use",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+      "line": 25,
+      "message": "2026-10-02",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+      "line": 25,
+      "message": "2026-10-02 · 홍길동 · 설계팀 / 지원팀 · 근무일 규칙 / 휴무일 규칙",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+      "line": 32,
+      "message": "2026-10-02",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+      "line": 32,
+      "message": "2026-10-02 · 홍길동 · 설계팀 / 지원팀 · 근무일 규칙 / 휴무일 규칙",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-task-delete-context.spec.ts",
+      "line": 179,
+      "message": "Injected recovery rejection",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-task-editor.spec.ts",
+      "line": 105,
+      "message": "Fixture rejection.",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-task-persistence.spec.ts",
+      "line": 28,
+      "message": "Rejected by E2E fixture.",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-task-persistence.spec.ts",
+      "line": 146,
+      "message": "Unavailable.",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/project-transfer-layout-491.spec.ts",
+      "line": 88,
+      "message": "통제된 검증 오류",
+      "exactAsserted": true
+    },
+    {
+      "file": "tests/e2e/relation-dialog-ux.spec.ts",
+      "line": 162,
+      "message": "관계 변경 실패",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/resource-catalog-delete.spec.ts",
+      "line": 218,
+      "message": "in use",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/resource-catalog-delete.spec.ts",
+      "line": 226,
+      "message": "stale",
+      "exactAsserted": false
+    },
+    {
+      "file": "tests/e2e/task-link-load-safety.spec.ts",
+      "line": 287,
+      "message": "합성 저장 오류",
+      "exactAsserted": false
+    }
+  ]
+}

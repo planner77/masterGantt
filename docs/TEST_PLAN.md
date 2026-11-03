@@ -1,3 +1,13 @@
+## Issue #866 REWORK2 — 오류의 안전 표시와 업무 문맥 (2026-11-03)
+
+- **ADD:** `project-work-calendar-errors.test.ts`는 실제422형식의 exact국가·연도를 제출규칙·범위에교차검증하고1900~2199·중복·Unicode/prose/잘못된path/code·미선택국가·범위밖연도를검증한다. 고정문구만KO/EN/VI로번역하고opaque연도2032를보존한다.
+- **EXTEND:** country관리자실제SQLite의기존US2032단언과Save차단유지, 다른탭의EN/VI/KO선택중alert/status재번역·Project쓰기0·privateprose/미선택country/다른year비노출. 기존초기조회오류·#730stale503·#491template500은임의서버문구대신정확한안전안내와원문비노출을검증하며기존복구/dirty/pending/401/412를유지한다.
+- **EXTEND:** WBStransport비JSON200/409/412/503·fetch예외·본문읽기실패·signal취소·nestedcause의고정안전경계와dashboard/details의unknown예외비노출. #730은비JSONreport오류뒤detail차단·재시도복구를검증하고details소비자도같은typed오류formatter를사용하는지독립검토한다.
+- **EXTEND:** 충돌 요약은 실제API date/layer/resourceId/groupIds와로컬2그룹이름을각각검증하고live EN/VI/KO전환·쓰기0·rawdetails비노출을확인한다. serverUUID를draftkey에맞추지않고정확규칙correlation의미검증한계를기록한다. #491큰공수는ko-KR그룹핑999,999.99/50,000.00과기존반올림을검증하며연도/ID/원본숫자는변경하지않는다.
+- **KEEP_UNIQUE:** 이전원격admin/help·기본행48px·HTTPHTTPS, #719지연WBS/준비경계, 언어전환Gantt상태·실제SQLite번역초안, Project Calendar preview·resource예외/충돌/늦은응답·권한·출처/revision을교차검증한다. 새skip/timeout/retry·gate완화없음.
+
+원격Full3469.1의67PASS/1FAIL/806미완료와로컬추가실패는 [누적원장](ISSUE_866_FAILURE_ANALYSIS.md)에보존한다. 현재source검증과새Head원격Required3·Trusted/Owner승인은구분한다.
+
 ## Issue #866 REWORK1 — 누적 실패·직접/인접/음성 소비자 (2026-11-03)
 
 Full3468.1의직접실패합집합은 `admin-auth-layout.spec.ts`(help accessible name), `cross-screen-regression.spec.ts`(기준정보닫힌행87>48), `production-transport.spec.ts`(HTTP/HTTPSKOlabel180초대기)다. 취소된Shard7의실제FAIL을제외하지않는다. 기존local원장의LLM/번역snapshot/parser·원문/alias/공백 실패도보존하고 관련계약회귀를함께검사한다.

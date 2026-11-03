@@ -10,7 +10,7 @@ import { WbsViewTable } from "./wbs-view-table";
 import { WbsViewDetails } from "./wbs-view-details";
 import { defaultWbsViewSpec, WBS_VIEW_LABELS } from "./wbs-view-model";
 import { loadWbsViewState, saveWbsViewState, type WbsViewStoredState } from "./wbs-view-storage";
-import { fetchWbsView } from "./wbs-view-transport";
+import { wbsViewErrorMessage, fetchWbsView } from "./wbs-view-transport";
 import type { ResourceDrillBinding } from "./resource-drill-transport";
 import { useResourceDrill, type WbsViewScheduleRequest } from "./resource-drill-context";
 import { plannedEffort } from "./resource-dashboard-model";
@@ -91,7 +91,7 @@ function WbsViewDashboardRoot({consumer,publicId,revision,root,active,busy,bindi
     const controller=new AbortController();const current=++reportGeneration.current;queueMicrotask(()=>{if(!controller.signal.aborted){setPending(true);setError(null);}});
     fetchWbsView({projectPublicId:publicId,projectRevision:revision,input:{spec:state.spec,filters:state.filters,scope,projection:{kind:"report"}},signal:controller.signal})
       .then(data => {if(!controller.signal.aborted && current===reportGeneration.current && data.projection==="report") {setReport({key:queryKey,data,confirmationId:++nextWbsReportConfirmation});setStaleSnapshot(null);}})
-      .catch(cause => {if(!controller.signal.aborted && current===reportGeneration.current) setError(cause instanceof Error ? cause.message : "조회하지 못했습니다.");})
+      .catch(cause => {if(!controller.signal.aborted && current===reportGeneration.current) setError(wbsViewErrorMessage(cause, "조회하지 못했습니다."));})
       .finally(() => {if(!controller.signal.aborted && current===reportGeneration.current) setPending(false);});
     return () => controller.abort();
   },[active,hydrated,validRange,queryKey,refresh,publicId,revision,state.spec,state.filters,scope]);

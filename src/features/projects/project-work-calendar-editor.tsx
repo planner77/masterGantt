@@ -19,6 +19,7 @@ import type {
 import type { AssignmentTargetDto, AssignmentTargetsResponse } from "../../contracts/resources";
 import { createClientLocalId } from "../../lib/client-local-id";
 import styles from "./project-work-calendar-editor.module.css";
+import { readUnavailableCountryCalendarError, type UnavailableCountryCalendarError, readResourceCalendarConflict, formatResourceCalendarConflictEntry, type ResourceCalendarConflictEntry } from "./project-work-calendar-errors";
 
 interface Props {
   publicId:string;
@@ -121,8 +122,8 @@ export function ProjectWorkCalendarEditor({
   const validationSummary=useRef<HTMLDivElement|null>(null);
   const [showValidation,setShowValidation]=useState(false);
   const [normalizationNotice,setNormalizationNotice]=useState("");
-  const [unavailableMessage,setUnavailableMessage]=useState("");
-  const [serverConflict,setServerConflict]=useState<string[]|null>(null);
+  const [unavailableError,setUnavailableError]=useState<UnavailableCountryCalendarError | null>(null);
+  const [serverConflict,setServerConflict]=useState<ResourceCalendarConflictEntry[]|null>(null);
   const conflictSummary=useRef<HTMLDivElement|null>(null);
   const [serverConflictDates,setServerConflictDates]=useState<string[]>([]);
   const restorePreviewFocus=useRef<number|null>(null);
@@ -180,11 +181,15 @@ export function ProjectWorkCalendarEditor({
   useEffect(()=>{currentOrigin.current=origin;},[origin]);
   const preview=previewState.kind==="ready" && sameOrigin(previewState.origin,origin)?previewState.result:null;
   const statusKind=previewState.origin && !sameOrigin(previewState.origin,origin)?"stale":previewState.kind;
-  const previewStatus=statusKind==="pending"?"미리보기를 계산하는 중…":
-    statusKind==="error"?"미리보기를 계산하지 못했습니다. 입력을 확인하고 다시 계산하세요.":
-    statusKind==="ready" && preview?`현재 입력 기준 미리보기 계산 완료. 일정 변경 작업 ${preview.data.changedTasks.length}개, 수동 작업 충돌 ${preview.data.manualConflicts.length}개. 리소스 예외 적용 ${preview.data.resourceExceptionEffects.filter((effect)=>effect.effect==="CHANGED").length}개, 현재 효과 없음 ${preview.data.resourceExceptionEffects.filter((effect)=>effect.effect==="NO_EFFECT").length}개.`:
-    statusKind==="stale"?"입력이 변경되었습니다. 미리보기를 다시 계산하세요.":
-    "저장하려면 현재 국가 원본과 일정 변경을 미리보기로 확인하세요.";
+  const previewStatus=statusKind==="pending"?t("미리보기를 계산하는 중…"):
+    statusKind==="error"?t("미리보기를 계산하지 못했습니다. 입력을 확인하고 다시 계산하세요."):
+    statusKind==="ready" && preview?t("현재 입력 기준 미리보기 계산 완료. 일정 변경 작업 {value0}개, 수동 작업 충돌 {value1}개. 리소스 예외 적용 {value2}개, 현재 효과 없음 {value3}개.",{
+      value0:preview.data.changedTasks.length,value1:preview.data.manualConflicts.length,
+      value2:preview.data.resourceExceptionEffects.filter((effect)=>effect.effect==="CHANGED").length,
+      value3:preview.data.resourceExceptionEffects.filter((effect)=>effect.effect==="NO_EFFECT").length,
+    }):
+    statusKind==="stale"?t("입력이 변경되었습니다. 미리보기를 다시 계산하세요."):
+    t("저장하려면 현재 국가 원본과 일정 변경을 미리보기로 확인하세요.");
   useEffect(()=>{
     if(!serverConflict) return;
     conflictSummary.current?.focus({preventScroll:true});
@@ -193,7 +198,7 @@ export function ProjectWorkCalendarEditor({
   useEffect(()=>{
     if(previousProject.current.publicId===publicId && previousProject.current.revision===revision) return;
     previousProject.current={publicId,revision};
-    setUnavailableMessage("");
+    setUnavailableError(null);
     setServerConflict(null);
     setServerConflictDates([]);
     requestSequence.current+=1;
@@ -211,7 +216,7 @@ export function ProjectWorkCalendarEditor({
     }
   },[working]);
   function invalidatePreview() {
-    setUnavailableMessage("");
+    setUnavailableError(null);
     requestSequence.current+=1;
     setServerConflict(null);
     setServerConflictDates([]);
@@ -245,32 +250,10 @@ export function ProjectWorkCalendarEditor({
   }
 
   function reportExceptionConflict(body:unknown) {
-    if(!body || typeof body!=="object" || !("error" in body)) return false;
-    const error=(body as {error?:{code?:string;details?:Array<{path?:string;message?:string}>}}).error;
-    if(error?.code!=="RESOURCE_CALENDAR_EXCEPTION_CONFLICT") return false;
-    const details = error.details ?? [];
-    const safeDates = details.filter(detail => detail.path === "date" && typeof detail.message === "string" && /^\d{4}-\d{2}-\d{2}$/.test(detail.message)).map(detail => detail.message!);
-    setServerConflictDates(safeDates);
-    const labels: Record<string, string> = { date: "날짜", layer: "충돌 단계", resourceId: "영향받는 리소스", groupIds: "충돌 대상 그룹", ruleIds: "충돌 규칙" };
-    // Error prose is untrusted. Resolve display values from the current local snapshot.
-    setServerConflict(details.flatMap(detail => {
-      const value = detail.message;
-      if (detail.path === "date" && safeDates.includes(value ?? "")) return [`${t("날짜")}: ${value}`];
-      if (detail.path === "layer" && ["RESOURCE_GROUP", "RESOURCE", "PROJECT"].includes(value ?? "")) {
-        const label = value === "RESOURCE_GROUP" ? "리소스 그룹" : value === "RESOURCE" ? "리소스" : "프로젝트 전체";
-        return [`${t("충돌 단계")}: ${t(label)}`];
-      }
-      if (detail.path === "resourceId" || detail.path === "groupIds") {
-        const target = targets.find(target => target.id === value);
-        return target ? [`${t(labels[detail.path])}: ${target.name}`] : [];
-      }
-      if (detail.path?.startsWith("rules.")) {
-        const entry = customDates.find(entry => entry.key === detail.path!.slice(6));
-        if (!entry) return [];
-        return [`${t("충돌 규칙")}: ${entry.name} · ${entry.date} · ${t(entry.dayType === "WORKING" ? "근무일" : "휴무일")}`];
-      }
-      return [];
-    }));
+    const conflict=readResourceCalendarConflict(body,targets,customDates);
+    if(!conflict) return false;
+    setServerConflictDates(conflict.dates);
+    setServerConflict(conflict.entries);
     return true;
   }
 
@@ -281,7 +264,7 @@ export function ProjectWorkCalendarEditor({
     const submittedOrigin=origin;
     const isCurrent=()=>mounted.current && operation===requestSequence.current && sameOrigin(submittedOrigin,currentOrigin.current);
     restorePreviewFocus.current=document.activeElement===previewButton.current?operation:null;
-    setUnavailableMessage("");
+    setUnavailableError(null);
     setPreviewState({kind:"pending",origin:submittedOrigin});
     setWorking("preview");
     try {
@@ -296,10 +279,7 @@ export function ProjectWorkCalendarEditor({
       if(response.status===412){onConflict(body);return;}
       if(response.status===409 && reportExceptionConflict(body)){setPreviewState({kind:"error",origin:submittedOrigin});return;}
       if(response.status===422) {
-        const error=(body as {error?:{code?:string;message?:string;details?:Array<{message?:string}>}}|null)?.error;
-        if(error?.code==="COUNTRY_CALENDAR_UNAVAILABLE") {
-          setUnavailableMessage("해당 국가·연도 공식 자료가 미확보입니다.");
-        }
+        setUnavailableError(readUnavailableCountryCalendarError(body,request.countryRules));
       }
 
       if(!response.ok || !validPreview(body,revision)){setPreviewState({kind:"error",origin:submittedOrigin});notify("error","작업 캘린더 미리보기를 계산하지 못했습니다.","작업 캘린더 Preview",body);return;}
@@ -413,7 +393,7 @@ export function ProjectWorkCalendarEditor({
     <p role="status" aria-live="polite">{normalizationNotice}</p>
     {serverConflict?<div id="calendar-exception-conflict" className={styles.validationSummary} role="alert" tabIndex={-1} ref={conflictSummary}>
       <strong>{t("같은 날짜의 리소스 캘린더 예외가 충돌합니다.")}</strong>
-      <ul>{serverConflict.map((message,index)=><li key={index}>{t(message)}</li>)}</ul>
+      <ul>{serverConflict.map((entry,index)=><li key={index}>{formatResourceCalendarConflictEntry(entry,t)}</li>)}</ul>
       <p>{t("날짜·대상·규칙과 영향받는 리소스를 확인하고 다시 계산하거나 저장하세요.")}</p>
       {customDates.map((entry,index)=><button key={entry.key} type="button" onClick={()=>document.getElementById(`calendar-date-${entry.key}-date`)?.focus()}>{t("날짜 예외 ")}{index+1} {t(" 수정 · ")}{entry.date} · {entry.name}</button>)}
     </div>:null}
@@ -426,7 +406,8 @@ export function ProjectWorkCalendarEditor({
       <button className="primary-button" disabled={disabled||working!==null||serverConflict!==null||!preview} type="button" onClick={()=>void saveCalendar()}>{working==="save"?t("저장 중…"):t("작업 캘린더 저장")}</button>
     </div>
     <p role="status" aria-live="polite" aria-atomic="true">{previewStatus}</p>
-    {unavailableMessage?<p role="alert">{t(unavailableMessage)}</p>:null}
+    {unavailableError?<p role="alert">{t(unavailableError.messageKey)}{unavailableError.identifiers.length
+      ? ` (${unavailableError.identifiers.map(({countryCode,year})=>`${countryCode} ${year}`).join(", ")})` : null}</p>:null}
     {preview?<div>
       <h4>{t("프로젝트 일정 영향")}</h4>
       <p>{t("일정 변경 작업 ")}{preview.data.changedTasks.length}{t("개 · 수동 작업 충돌 ")}{preview.data.manualConflicts.length}{t("개")}</p>

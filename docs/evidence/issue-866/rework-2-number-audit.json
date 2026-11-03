@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "scope": "Read-only supplementary REWORK2 diagnosis before final B freeze; locations refer to audit time",
+  "entries": [
+    {
+      "file": "tests/e2e/country-calendar-admin.spec.ts",
+      "line": 151,
+      "method": "toContainText",
+      "expected": "\"US 2032\"",
+      "subject": "expect(dialog.getByRole(\"alert\"))"
+    },
+    {
+      "file": "tests/e2e/country-calendar-admin.spec.ts",
+      "line": 169,
+      "method": "toContainText",
+      "expected": "\"US 2032\"",
+      "subject": "expect(dialog.getByRole(\"alert\"))"
+    },
+    {
+      "file": "tests/e2e/country-calendar-admin.spec.ts",
+      "line": 188,
+      "method": "toContainText",
+      "expected": "\"US 2032\"",
+      "subject": "expect(safeUnavailable)"
+    },
+    {
+      "file": "tests/e2e/country-calendar-admin.spec.ts",
+      "line": 189,
+      "method": "toContainText",
+      "expected": "/private-|CN 2032|US 2031/",
+      "subject": "expect(safeUnavailable).not"
+    },
+    {
+      "file": "tests/e2e/issue-736-resource-dashboard.spec.ts",
+      "line": 251,
+      "method": "toContainText",
+      "expected": "\"보고서 마지막 확정: 2026-10-14 ~ 2026-10-16\"",
+      "subject": "expect(transfer)"
+    },
+    {
+      "file": "tests/e2e/milestone-timeline-lane.spec.ts",
+      "line": 135,
+      "method": "toContainText",
+      "expected": "\"2199.12→2200.01\"",
+      "subject": "expect(upper)"
+    },
+    {
+      "file": "tests/e2e/milestone-timeline-lane.spec.ts",
+      "line": 140,
+      "method": "toContainText",
+      "expected": "\"ISO 2200-W01\"",
+      "subject": "expect(page.getByRole(\"tooltip\"))"
+    },
+    {
+      "file": "tests/e2e/milestone-timeline-lane.spec.ts",
+      "line": 202,
+      "method": "toContainText",
+      "expected": "\"2026-10-06\"",
+      "subject": "expect(item)"
+    },
+    {
+      "file": "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+      "line": 64,
+      "method": "getByText",
+      "expected": "/2026-10-03 · 리소스 그룹 설계팀/",
+      "subject": "dialog"
+    },
+    {
+      "file": "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+      "line": 74,
+      "method": "getByText",
+      "expected": "/2026-10-02 · 리소스 그룹/",
+      "subject": "dialog"
+    },
+    {
+      "file": "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+      "line": 105,
+      "method": "toContainText",
+      "expected": "\"2026-10-02 · 홍길동 · 설계팀 / 지원팀\"",
+      "subject": "expect(summary)"
+    },
+    {
+      "file": "tests/e2e/project-resource-calendar-persistence.spec.ts",
+      "line": 56,
+      "method": "getByText",
+      "expected": "/2026-10-03 · 리소스 그룹 설계팀/",
+      "subject": "dialog"
+    },
+    {
+      "file": "tests/e2e/project-resource-calendar-persistence.spec.ts",
+      "line": 57,
+      "method": "getByText",
+      "expected": "/2026-10-03 · 리소스 홍길동/",
+      "subject": "dialog"
+    },
+    {
+      "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+      "line": 243,
+      "method": "toHaveText",
+      "expected": "\"2026-09-17\"",
+      "subject": "expect(editor.getByLabel(\"적용 시작일\", { exact: true }))"
+    },
+    {
+      "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+      "line": 244,
+      "method": "toHaveText",
+      "expected": "\"2026-09-18\"",
+      "subject": "expect(editor.getByLabel(\"적용 종료일\", { exact: true }))"
+    },
+    {
+      "file": "tests/e2e/project-task-editor.spec.ts",
+      "line": 400,
+      "method": "toHaveText",
+      "expected": "\"2026-09-18\"",
+      "subject": "expect(editor(page).getByLabel(\"적용 시작일\", { exact: true }))"
+    },
+    {
+      "file": "tests/e2e/project-task-editor.spec.ts",
+      "line": 1116,
+      "method": "toContainText",
+      "expected": "\"2026-09-18\"",
+      "subject": "expect(summaryOption)"
+    },
+    {
+      "file": "tests/e2e/project-transfer-layout-491.spec.ts",
+      "line": 52,
+      "method": "toContainText",
+      "expected": "\"999999.99 M/D\"",
+      "subject": "expect(panel.locator('dl[aria-label=\"선택 범위 KPI\"]'))"
+    },
+    {
+      "file": "tests/e2e/project-transfer-layout-491.spec.ts",
+      "line": 57,
+      "method": "toContainText",
+      "expected": "\"50000.00 M/M\"",
+      "subject": "expect(panel.locator('dl[aria-label=\"선택 범위 KPI\"]'))"
+    },
+    {
+      "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+      "line": 161,
+      "method": "toContainText",
+      "expected": "\"2026-10-05\"",
+      "subject": "expect(planDetail)"
+    }
+  ]
+}

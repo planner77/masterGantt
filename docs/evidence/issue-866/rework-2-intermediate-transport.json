@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "issue": 866,
+  "pr": 870,
+  "scope": "LOCAL_REWORK2_FINAL_FROZEN_CANDIDATE_TRANSPORT_ONLY",
+  "status": "PASS",
+  "candidate": {
+    "gitTree": "3cc1f5b11b088190a62158b46e91d166f84682d9",
+    "applicationSourceFingerprint": "da05a70603a1fbf82e42f03756168ff23cbdd25ba03edff0773e3977794fb54c",
+    "fingerprintFiles": 1211,
+    "fingerprintOrigin": "Manager frozen snapshotTree manifest; independently checked all1211archivefileSHA256 and5081Gitblobhashes before and after smoke",
+    "archivedGitBlobsVerified": 5081,
+    "allTrackedArchiveBlobsUnchangedAfterSmoke": true,
+    "formalCommit": "NOT_CREATED_AT_TEST_TIME",
+    "applicationVersion": "0.140.0"
+  },
+  "image": {
+    "localTag": "mastergantt:ci",
+    "imageId": "sha256:ea79e50714533f2fd1e6ca2846293f1179a7b36aee0d350e5138504d90b52447",
+    "build": "PASS",
+    "source": "git archive exact stagedtree3cc1f5b11b088190a62158b46e91d166f84682d9; standard pinned deploy/docker/Dockerfile; local cache reuse only; version0.140.0 label, no oldHead/revision label",
+    "runtimeNode": "v26.8.2",
+    "next": "16.4.2",
+    "betterSqlite3": "13.0.3",
+    "ociRevisionLabel": null,
+    "metadataPolicy": "version label only; no previous Head SHA or formal release authority assigned",
+    "ghcrPublish": "NOT PERFORMED"
+  },
+  "environment": {
+    "execution": "Local isolated Docker runner; explicitly emulates CI harness environment only inside disposable container, not GitHub-hosted evidence",
+    "runnerImageId": "sha256:77189c34e9608d8ad0c1164aeddd537754a51c815ce62bf52d5b52f4ef0a979b",
+    "runnerNode": "v26.8.2",
+    "platform": "linux/x64",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "chromiumVersion": "153.0.8010.12",
+    "hostCaOrHostsModified": false,
+    "certificateValidationBypassed": false,
+    "tlsProxy": "actual Nginx with isolated trusted test CA/NSS; no ignoreHTTPSErrors",
+    "network": "host network connects owned test app containers only; host Docker socket used only for unique test names/volumes"
+  },
+  "tests": {
+    "productionHttp": "PASS",
+    "productionHttps": "PASS",
+    "passedCases": 2,
+    "durationSeconds": 16.7,
+    "httpSeconds": 7.4,
+    "httpsSeconds": 8.3,
+    "existingSpec": "tests/transport/production-transport.spec.ts:114",
+    "existingSpecUnchanged": true,
+    "scope": [
+      "real HTTP insecure-context and HTTPS secure-context",
+      "project create/edit and actual cookies",
+      "Origin and strong revision protections",
+      "readonly/incorrect password",
+      "exact owned-container restart and SQLite persistence",
+      "password rotation and session revocation",
+      "cross-project isolation and logout"
+    ],
+    "negativeRuntimeConfigurations": [
+      "missing",
+      "false",
+      "empty",
+      "typo",
+      "path",
+      "database"
+    ],
+    "negativeConfigurationCasesPassed": 6,
+    "invalidConfigurationMigrationWrites": 0,
+    "timeoutMs": 180000,
+    "retries": 0,
+    "trace": "off",
+    "screenshots": "off",
+    "video": "off"
+  },
+  "localeProbe": {
+    "http": {
+      "configuredLocale": "ko-KR",
+      "navigatorLocale": "ko-KR",
+      "htmlLang": "ko",
+      "koreanProjectNameLabels": 1,
+      "englishProjectNameLabels": 0,
+      "secureContext": false,
+      "pageErrors": []
+    },
+    "https": {
+      "configuredLocale": "ko-KR",
+      "navigatorLocale": "ko-KR",
+      "htmlLang": "ko",
+      "koreanProjectNameLabels": 1,
+      "englishProjectNameLabels": 0,
+      "secureContext": true,
+      "pageErrors": []
+    },
+    "manualBrowserNewContext": "existing unmodified test inherited configured locale and passed"
+  },
+  "cleanup": {
+    "ownedLocalRunId": "2026110386606",
+    "ownedContainerPrefix": "mastergantt-transport-2026110386606-1-",
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "artifactOwnership": "only archived test-results/transport and playwright-report/transport subtree UID/GID1000 restored; repository untouched"
+  },
+  "commands": [
+    "git archive 3cc1f5b11b088190a62158b46e91d166f84682d9 | tar -x -C <isolated archive>",
+    "docker build --build-arg VERSION=0.140.0 -f <archive>/deploy/docker/Dockerfile -t mastergantt:ci <archive>",
+    "/tmp/issue866-run-rework2-transport-local.sh 2026110386606"
+  ],
+  "logs": {
+    "build": "/tmp/issue866-rework2-transport-image-build.log",
+    "smoke": "/tmp/issue866-rework2-transport-smoke.log",
+    "launcher": "/tmp/issue866-run-rework2-transport-local.sh",
+    "harness": "/tmp/issue866-local-transport-full.sh",
+    "sourceManifest": "/tmp/issue866-rework2-frozen-source.json"
+  },
+  "previousProof": {
+    "sourceHead": "98272e108095e841b22e5433a5d91639ff7c4a8f",
+    "imageId": "sha256:0910cab958d7ac7d1e220925af1b3f230e772583043db4641f132e9b278813f1",
+    "passedCases": 2,
+    "durationSeconds": 16.8,
+    "classification": "separate historical old-source proof, not reused as final candidate PASS"
+  },
+  "boundaries": {
+    "prQuality": "NOT TESTED on new Head",
+    "prE2E": "NOT TESTED on new Head",
+    "prDocker": "NOT TESTED on new Head",
+    "trustedQa": "NOT TESTED on new Head",
+    "mainGhcrDigestSmoke": "NOT TESTED",
+    "formalRelease": "NOT AUTHORIZED",
+    "realInternalLlmCaAccess": "NOT TESTED"
+  },
+  "completedAt": "2026-11-03T13:28:57.757055+00:00",
+  "intermediateCandidateProof": {
+    "gitTree": "4388d27ab30932c467319b6c528f01d15689f2dc",
+    "applicationSourceFingerprint": "39103e836e5a0a80ca70c29e6f8e91c119f3cc6ed58621c65bd20ff7473f7e1e",
+    "imageId": "sha256:72d7ed652b8c4aa2867d8b9441994183ef03a5f152cf1a4874e8377e69fad2f3",
+    "passedCases": 2,
+    "durationSeconds": 18.3,
+    "classification": "SUPERSEDED_INTERMEDIATE_CANDIDATE_LOCAL_PASS; not finalV2source evidence"
+  },
+  "workloadCoordination": "Dockerbuild began only after Manager signalled sequentialfullUnit296files3619PASS completed; source and archived tests immutable; no originalworkingtree edit.",
+  "previousRework1FinalProof": {
+    "gitTree": "8cf310abb6f50571e413e171ba739d9c00414584",
+    "applicationSourceFingerprint": "1b339a914781f565f496800808a6d38bc898cc01bdccb5ba7a204f70fb916d72",
+    "imageId": "sha256:ddccd3883ad2d125a2f162fbbfaf832f7882301eea740cb072e542033f764a83",
+    "passedCases": 2,
+    "durationSeconds": 21.7,
+    "classification": "Historical REWORK1 localfinalproof; not reused as newREWORK2source PASS"
+  },
+  "remoteBaselineTransport": {
+    "runId": 41640034518,
+    "runNumber": 3469,
+    "runAttempt": 1,
+    "headSha": "a2b4766651f0a4fe9fbc2cf9f887f03e78ed1a19",
+    "implementationJobId": 125932521432,
+    "requiredAggregateJobId": 125934860814,
+    "dockerStatus": "SUCCESS",
+    "httpHttpsPassedCases": 2,
+    "durationSeconds": 16.6,
+    "classification": "Existing completedRemoteDockerPASS, not newHeadCI evidence"
+  }
+}

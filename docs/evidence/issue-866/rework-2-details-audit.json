@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "scope": "Read-only supplementary REWORK2 diagnosis before final B freeze; locations refer to audit time",
+  "entries": [
+    {
+      "file": "tests/e2e/country-calendar-admin.spec.ts",
+      "line": 178,
+      "raw": "details: [\n      { path: \"countryRules\", code: \"COUNTRY_CALENDAR_UNAVAILABLE\", message: \"US 2032\" },\n      { path: \"countryRules\", code: \"COUNTRY_CALENDAR_UNAVAILABLE\", message: \"US 2032\" },\n      { path: \"countryRules\",",
+      "messages": [
+        {
+          "field": "countryRules",
+          "message": "US 2032",
+          "literal": true,
+          "positiveAssertions": [
+            {
+              "line": 151,
+              "value": "US 2032",
+              "negative": false,
+              "method": "toContainText"
+            },
+            {
+              "line": 169,
+              "value": "US 2032",
+              "negative": false,
+              "method": "toContainText"
+            },
+            {
+              "line": 188,
+              "value": "US 2032",
+              "negative": false,
+              "method": "toContainText"
+            }
+          ],
+          "negativeAssertions": []
+        },
+        {
+          "field": "countryRules",
+          "message": "US 2032",
+          "literal": true,
+          "positiveAssertions": [
+            {
+              "line": 151,
+              "value": "US 2032",
+              "negative": false,
+              "method": "toContainText"
+            },
+            {
+              "line": 169,
+              "value": "US 2032",
+              "negative": false,
+              "method": "toContainText"
+            },
+            {
+              "line": 188,
+              "value": "US 2032",
+              "negative": false,
+              "method": "toContainText"
+            }
+          ],
+          "negativeAssertions": []
+        },
+        {
+          "field": "countryRules",
+          "message": "CN 2032",
+          "literal": true,
+          "positiveAssertions": [],
+          "negativeAssertions": []
+        },
+        {
+          "field": "countryRules",
+          "message": "US 2031",
+          "literal": true,
+          "positiveAssertions": [],
+          "negativeAssertions": []
+        },
+        {
+          "field": "countryRules",
+          "message": "US 2032 private-detail-prose",
+          "literal": true,
+          "positiveAssertions": [
+            {
+              "line": 151,
+              "value": "US 2032",
+              "negative": false,
+              "method": "toContainText"
+            },
+            {
+              "line": 169,
+              "value": "US 2032",
+              "negative": false,
+              "method": "toContainText"
+            },
+            {
+              "line": 188,
+              "value": "US 2032",
+              "negative": false,
+              "method": "toContainText"
+            }
+          ],
+          "negativeAssertions": []
+        }
+      ]
+    },
+    {
+      "file": "tests/e2e/milestone-exchange-state.spec.ts",
+      "line": 24,
+      "raw": "details:[]",
+      "messages": []
+    },
+    {
+      "file": "tests/e2e/milestone-exchange-state.spec.ts",
+      "line": 44,
+      "raw": "details:[]",
+      "messages": []
+    },
+    {
+      "file": "tests/e2e/project-gantt-inline-start-date.spec.ts",
+      "line": 39,
+      "raw": "details: []",
+      "messages": []
+    },
+    {
+      "file": "tests/e2e/project-logistics-management.spec.ts",
+      "line": 754,
+      "raw": "details: []",
+      "messages": []
+    },
+    {
+      "file": "tests/e2e/project-logistics-management.spec.ts",
+      "line": 783,
+      "raw": "details: []",
+      "messages": []
+    },
+    {
+      "file": "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+      "line": 25,
+      "raw": "details:[{path:\"date\",message:\"2026-10-02\"},{path:\"rules.rule-a\",message:\"2026-10-02 · 홍길동 · 설계팀 / 지원팀 · 근무일 규칙 / 휴무일 규칙\"}]",
+      "messages": [
+        {
+          "field": "date",
+          "message": "2026-10-02",
+          "literal": true,
+          "positiveAssertions": [],
+          "negativeAssertions": []
+        },
+        {
+          "field": "rules.rule-a",
+          "message": "2026-10-02 · 홍길동 · 설계팀 / 지원팀 · 근무일 규칙 / 휴무일 규칙",
+          "literal": true,
+          "positiveAssertions": [
+            {
+              "line": 105,
+              "value": "2026-10-02 · 홍길동 · 설계팀 / 지원팀",
+              "negative": false,
+              "method": "toContainText"
+            }
+          ],
+          "negativeAssertions": []
+        }
+      ]
+    },
+    {
+      "file": "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+      "line": 32,
+      "raw": "details:[{path:\"date\",code:\"RESOURCE_CALENDAR_EXCEPTION_CONFLICT\",message:\"2026-10-02\"},{path:\"resourceId\",code:\"RESOURCE_CALENDAR_EXCEPTION_CONFLICT\",message:resourceId},{path:\"groupIds\",code:\"RESOURCE_CALENDAR_EXCEPTIO",
+      "messages": [
+        {
+          "field": "date",
+          "message": "2026-10-02",
+          "literal": true,
+          "positiveAssertions": [],
+          "negativeAssertions": []
+        },
+        {
+          "field": "resourceId",
+          "message": "resourceId",
+          "literal": false,
+          "positiveAssertions": [],
+          "negativeAssertions": []
+        },
+        {
+          "field": "groupIds",
+          "message": "groupId",
+          "literal": false,
+          "positiveAssertions": [],
+          "negativeAssertions": []
+        },
+        {
+          "field": "rules.rule-a",
+          "message": "2026-10-02 · 홍길동 · 설계팀 / 지원팀 · 근무일 규칙 / 휴무일 규칙",
+          "literal": true,
+          "positiveAssertions": [
+            {
+              "line": 105,
+              "value": "2026-10-02 · 홍길동 · 설계팀 / 지원팀",
+              "negative": false,
+              "method": "toContainText"
+            }
+          ],
+          "negativeAssertions": []
+        }
+      ]
+    },
+    {
+      "file": "tests/e2e/project-task-delete-context.spec.ts",
+      "line": 179,
+      "raw": "details: []",
+      "messages": []
+    },
+    {
+      "file": "tests/e2e/resource-catalog-delete.spec.ts",
+      "line": 218,
+      "raw": "details: []",
+      "messages": []
+    },
+    {
+      "file": "tests/e2e/resource-catalog-delete.spec.ts",
+      "line": 226,
+      "raw": "details: []",
+      "messages": []
+    }
+  ]
+}

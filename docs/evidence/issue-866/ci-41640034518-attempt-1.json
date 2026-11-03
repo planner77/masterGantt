@@ -1,0 +1,981 @@
+{
+  "schemaVersion": 1,
+  "issue": 866,
+  "relatedIssues": [
+    865,
+    869
+  ],
+  "pr": 870,
+  "mode": "READ_ONLY_REWORK2_REMOTE_HISTORY_AND_PROVENANCE",
+  "collectedFromCompletedExistingRunsOnly": true,
+  "noNewCiMonitoring": true,
+  "fullRun": {
+    "id": 41640034518,
+    "number": 3469,
+    "attempt": 1,
+    "event": "pull_request",
+    "workflowPath": ".github/workflows/ci.yml",
+    "status": "completed",
+    "conclusion": "failure",
+    "headSha": "a2b4766651f0a4fe9fbc2cf9f887f03e78ed1a19",
+    "baseSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+    "testMergeSha": "3260201076458249ab8e599c672cfca852634727",
+    "createdAt": "2026-11-03T12:57:09Z",
+    "updatedAt": "2026-11-03T13:05:40Z",
+    "previousAttempt": null,
+    "url": "https://github.com/planner77/masterGantt/actions/runs/41640034518"
+  },
+  "currentPr": {
+    "headSha": "a2b4766651f0a4fe9fbc2cf9f887f03e78ed1a19",
+    "baseSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+    "testMergeSha": "3260201076458249ab8e599c672cfca852634727",
+    "state": "open",
+    "draft": false,
+    "merged": false,
+    "mergeable": true,
+    "conflictObserved": false,
+    "githubMergeableState": "Not exposed by normalized response; generic REST fetch returned internal error once",
+    "baseBranchLatestSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+    "strictBaseMatchesLatestMain": true,
+    "unresolvedReviewThreads": 0,
+    "reviewThreadsSource": "github_list_pull_request_review_threads returned empty review_threads",
+    "managerDecision": "NOT TESTED",
+    "reviewApprovalNotInferred": true
+  },
+  "provenance": {
+    "artifactId": 13232426940,
+    "name": "ci-pr-source-41640034518-1",
+    "artifactBytes": 417,
+    "expired": false,
+    "schema": "mastergantt-ci-pr-source-v1",
+    "zipMember": "ci-pr-source.json",
+    "zipReadOnly": true,
+    "executed": false,
+    "strictDuplicateKeysRejected": true,
+    "exactFieldSetAndTypesValidated": true,
+    "repository": "planner77/masterGantt",
+    "runId": 41640034518,
+    "runAttempt": 1,
+    "prNumber": 870,
+    "headSha": "a2b4766651f0a4fe9fbc2cf9f887f03e78ed1a19",
+    "headRef": "feat/issue-866-i18n-llm-issue-layout",
+    "baseSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+    "baseRef": "main",
+    "testMergeSha": "3260201076458249ab8e599c672cfca852634727",
+    "commitToPrApiAttribution": [
+      870
+    ],
+    "prApiMatchesArtifact": true,
+    "primaryAttributionNotGuessedFromTitle": true,
+    "url": "https://github.com/planner77/masterGantt/actions/runs/41640034518/artifacts/13232426940",
+    "localZip": "/tmp/issue866-rework2-source.zip"
+  },
+  "history": {
+    "relatedBranchRuns": [
+      {
+        "id": 41640034405,
+        "number": 244,
+        "attempt": 1,
+        "event": "pull_request",
+        "workflowPath": ".github/workflows/pr-fast-development.yml",
+        "headSha": "a2b4766651f0a4fe9fbc2cf9f887f03e78ed1a19",
+        "status": "completed",
+        "conclusion": "skipped",
+        "createdAt": "2026-11-03T12:57:09Z",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/41640034405"
+      },
+      {
+        "id": 41640034518,
+        "number": 3469,
+        "attempt": 1,
+        "event": "pull_request",
+        "workflowPath": ".github/workflows/ci.yml",
+        "headSha": "a2b4766651f0a4fe9fbc2cf9f887f03e78ed1a19",
+        "status": "completed",
+        "conclusion": "failure",
+        "createdAt": "2026-11-03T12:57:09Z",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/41640034518"
+      },
+      {
+        "id": 41618392195,
+        "number": 243,
+        "attempt": 1,
+        "event": "pull_request",
+        "workflowPath": ".github/workflows/pr-fast-development.yml",
+        "headSha": "98272e108095e841b22e5433a5d91639ff7c4a8f",
+        "status": "completed",
+        "conclusion": "skipped",
+        "createdAt": "2026-11-03T10:20:07Z",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/41618392195"
+      },
+      {
+        "id": 41618392066,
+        "number": 3468,
+        "attempt": 1,
+        "event": "pull_request",
+        "workflowPath": ".github/workflows/ci.yml",
+        "headSha": "98272e108095e841b22e5433a5d91639ff7c4a8f",
+        "status": "completed",
+        "conclusion": "failure",
+        "createdAt": "2026-11-03T10:20:07Z",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/41618392066"
+      }
+    ],
+    "branchRunsTotal": 4,
+    "branchListPageCount": 1,
+    "currentExactHeadRunCount": 2,
+    "currentExactHeadFullRuns": 1,
+    "currentExactHeadFastRuns": 1,
+    "metadataOnlyRuns": 0,
+    "allObservedRunAttempts": [
+      {
+        "runId": 41618392066,
+        "attempt": 1
+      },
+      {
+        "runId": 41640034518,
+        "attempt": 1
+      }
+    ],
+    "rerunAttempts": 0,
+    "trustedRuns": [
+      {
+        "id": 41641270830,
+        "number": 1115,
+        "attempt": 1,
+        "event": "workflow_run",
+        "workflowPath": ".github/workflows/qa-final-trusted.yml",
+        "validatorSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+        "status": "completed",
+        "conclusion": "failure",
+        "createdAt": "2026-11-03T13:05:42Z",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/41641270830",
+        "sourceRunId": 41640034518
+      },
+      {
+        "id": 41620253310,
+        "number": 1114,
+        "attempt": 1,
+        "event": "workflow_run",
+        "workflowPath": ".github/workflows/qa-final-trusted.yml",
+        "validatorSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+        "status": "completed",
+        "conclusion": "failure",
+        "createdAt": "2026-11-03T10:33:29Z",
+        "url": "https://github.com/planner77/masterGantt/actions/runs/41620253310",
+        "sourceRunId": 41618392066
+      }
+    ],
+    "workflowRunQuery": {
+      "totalRepositoryWorkflowRuns": 2500,
+      "readRecentCount": 100,
+      "oldestReadCreatedAt": "2026-10-30T19:27:58Z",
+      "coverage": "Recent page predates both originalPRRun creation times; not a claim to read all2500 repository workflows"
+    },
+    "helperCandidates": [
+      {
+        "id": 41641270858,
+        "number": 1059,
+        "attempt": 1,
+        "workflowPath": ".github/workflows/ci-setup-readiness.yml",
+        "status": "completed",
+        "conclusion": "skipped",
+        "createdAt": "2026-11-03T13:05:42Z",
+        "sourceBinding": "Candidate by creation window; not treated as independent CI or approval evidence"
+      },
+      {
+        "id": 41641270867,
+        "number": 1015,
+        "attempt": 1,
+        "workflowPath": ".github/workflows/pr-metadata-reconcile.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "createdAt": "2026-11-03T13:05:42Z",
+        "sourceBinding": "Candidate by creation window; not treated as independent CI or approval evidence"
+      },
+      {
+        "id": 41641270828,
+        "number": 310,
+        "attempt": 1,
+        "workflowPath": ".github/workflows/issue-752-diagnostics.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "createdAt": "2026-11-03T13:05:42Z",
+        "sourceBinding": "Candidate by creation window; not treated as independent CI or approval evidence"
+      }
+    ]
+  },
+  "aggregates": {
+    "quality": {
+      "jobId": 125933359482,
+      "conclusion": "success"
+    },
+    "e2e": {
+      "jobId": 125933998758,
+      "conclusion": "failure",
+      "classification": "derived from actual countryCalendar case FAIL and seven cancelled shards"
+    },
+    "docker": {
+      "jobId": 125934860814,
+      "conclusion": "success"
+    },
+    "qaAutomated": {
+      "jobId": 125934913355,
+      "conclusion": "failure",
+      "classification": "derived from requiredE2E notsuccess"
+    },
+    "mainImage": {
+      "jobId": 125934916112,
+      "conclusion": "skipped",
+      "classification": "PR not applicable; not Main/GHCR proof"
+    }
+  },
+  "jobs": [
+    {
+      "id": 125930920472,
+      "name": "변경 경로 판정",
+      "status": "completed",
+      "conclusion": "success",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125930920627,
+      "name": "QA Final 신뢰 경계 확인",
+      "status": "completed",
+      "conclusion": "success",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125931168665,
+      "name": "QA Preflight — 정책·문서 사전 검사",
+      "status": "completed",
+      "conclusion": "success",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125931170756,
+      "name": "Low E2E policy plan (trusted base)",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125931171951,
+      "name": "PR metadata가 기존 전체 CI 증거를 보존하는지 검증",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125931324709,
+      "name": "ESLint",
+      "status": "completed",
+      "conclusion": "success",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125931324735,
+      "name": "정책·저장소 계약 검사",
+      "status": "completed",
+      "conclusion": "success",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125931324739,
+      "name": "TypeScript 타입 검사",
+      "status": "completed",
+      "conclusion": "success",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125931324889,
+      "name": "Vitest 단위·통합 테스트",
+      "status": "completed",
+      "conclusion": "success",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125931326587,
+      "name": "Next.js production build",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125931326696,
+      "name": "Chromium E2E shard ${{ matrix.shard }}/8",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125931327683,
+      "name": "github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현'",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125932378206,
+      "name": "PR 빠른 검사 판정",
+      "status": "completed",
+      "conclusion": "success",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125932521107,
+      "name": "PR Next.js production build",
+      "status": "completed",
+      "conclusion": "success",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125932521303,
+      "name": "Chromium E2E shard 2/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "failedSteps": [],
+      "cancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행"
+        }
+      ]
+    },
+    {
+      "id": 125932521325,
+      "name": "Chromium E2E shard 7/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "failedSteps": [],
+      "cancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행"
+        }
+      ]
+    },
+    {
+      "id": 125932521351,
+      "name": "Chromium E2E shard 1/8 · PR",
+      "status": "completed",
+      "conclusion": "failure",
+      "failedSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행"
+        }
+      ],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125932521387,
+      "name": "Chromium E2E shard 4/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "failedSteps": [],
+      "cancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행"
+        }
+      ]
+    },
+    {
+      "id": 125932521390,
+      "name": "Chromium E2E shard 6/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "failedSteps": [],
+      "cancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행"
+        }
+      ]
+    },
+    {
+      "id": 125932521432,
+      "name": "Docker smoke 구현",
+      "status": "completed",
+      "conclusion": "success",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125932521529,
+      "name": "Chromium E2E shard 8/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "failedSteps": [],
+      "cancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행"
+        }
+      ]
+    },
+    {
+      "id": 125932521549,
+      "name": "Chromium E2E shard 5/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "failedSteps": [],
+      "cancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행"
+        }
+      ]
+    },
+    {
+      "id": 125932521646,
+      "name": "Chromium E2E shard 3/8 · PR",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "failedSteps": [],
+      "cancelledSteps": [
+        {
+          "number": 7,
+          "name": "E2E shard 실행"
+        }
+      ]
+    },
+    {
+      "id": 125932524692,
+      "name": "Low E2E targeted execution",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125933359482,
+      "name": "Build, static checks, and unit tests",
+      "status": "completed",
+      "conclusion": "success",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125933998758,
+      "name": "Chromium end-to-end tests",
+      "status": "completed",
+      "conclusion": "failure",
+      "failedSteps": [
+        {
+          "number": 2,
+          "name": "E2E shard 결과 집계"
+        }
+      ],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125934860814,
+      "name": "Docker build and runtime smoke test",
+      "status": "completed",
+      "conclusion": "success",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125934913281,
+      "name": "변경 영향 Shadow 계획 · advisory only (#770)",
+      "status": "completed",
+      "conclusion": "success",
+      "failedSteps": [],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125934913355,
+      "name": "QA Final — Automated",
+      "status": "completed",
+      "conclusion": "failure",
+      "failedSteps": [
+        {
+          "number": 3,
+          "name": "최신 PR 증거·문서·리뷰 확인 (read-only)"
+        }
+      ],
+      "cancelledSteps": []
+    },
+    {
+      "id": 125934916112,
+      "name": "Main 임시 commit 이미지 게시·검증·정리",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failedSteps": [],
+      "cancelledSteps": []
+    }
+  ],
+  "shards": [
+    {
+      "shard": 1,
+      "jobId": 125932521351,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41640034518/job/125932521351",
+      "jobConclusion": "failure",
+      "e2eStepConclusion": "failure",
+      "plannedCases": 129,
+      "observedPassedCases": 3,
+      "observedFailedCases": 1,
+      "incompleteOrNotRunCases": 125,
+      "reportedSummary": [
+        "1 failed",
+        "125 did not run",
+        "3 passed (1.2m)"
+      ],
+      "observedFailedCaseLines": [
+        "✘    4 [chromium] › tests/e2e/country-calendar-admin.spec.ts:76:5 › 실제 SQLite 관리자 JSON/CSV 전체 교체·metadata·날짜 rename/delete와 Project Preview Save를 검증한다 (24.8s)"
+      ],
+      "logPath": "/tmp/issue866-rework2-logs/job-125932521351.log",
+      "logRetrieved": true
+    },
+    {
+      "shard": 2,
+      "jobId": 125932521303,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41640034518/job/125932521303",
+      "jobConclusion": "cancelled",
+      "e2eStepConclusion": "cancelled",
+      "plannedCases": 103,
+      "observedPassedCases": 1,
+      "observedFailedCases": 0,
+      "incompleteOrNotRunCases": 102,
+      "reportedSummary": [],
+      "observedFailedCaseLines": [],
+      "logPath": "/tmp/issue866-rework2-logs/job-125932521303.log",
+      "logRetrieved": true
+    },
+    {
+      "shard": 3,
+      "jobId": 125932521646,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41640034518/job/125932521646",
+      "jobConclusion": "cancelled",
+      "e2eStepConclusion": "cancelled",
+      "plannedCases": 153,
+      "observedPassedCases": 17,
+      "observedFailedCases": 0,
+      "incompleteOrNotRunCases": 136,
+      "reportedSummary": [],
+      "observedFailedCaseLines": [],
+      "logPath": "/tmp/issue866-rework2-logs/job-125932521646.log",
+      "logRetrieved": true
+    },
+    {
+      "shard": 4,
+      "jobId": 125932521387,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41640034518/job/125932521387",
+      "jobConclusion": "cancelled",
+      "e2eStepConclusion": "cancelled",
+      "plannedCases": 93,
+      "observedPassedCases": 3,
+      "observedFailedCases": 0,
+      "incompleteOrNotRunCases": 90,
+      "reportedSummary": [],
+      "observedFailedCaseLines": [],
+      "logPath": "/tmp/issue866-rework2-logs/job-125932521387.log",
+      "logRetrieved": true
+    },
+    {
+      "shard": 5,
+      "jobId": 125932521549,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41640034518/job/125932521549",
+      "jobConclusion": "cancelled",
+      "e2eStepConclusion": "cancelled",
+      "plannedCases": 109,
+      "observedPassedCases": 5,
+      "observedFailedCases": 0,
+      "incompleteOrNotRunCases": 104,
+      "reportedSummary": [],
+      "observedFailedCaseLines": [],
+      "logPath": "/tmp/issue866-rework2-logs/job-125932521549.log",
+      "logRetrieved": true
+    },
+    {
+      "shard": 6,
+      "jobId": 125932521390,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41640034518/job/125932521390",
+      "jobConclusion": "cancelled",
+      "e2eStepConclusion": "cancelled",
+      "plannedCases": 100,
+      "observedPassedCases": 21,
+      "observedFailedCases": 0,
+      "incompleteOrNotRunCases": 79,
+      "reportedSummary": [],
+      "observedFailedCaseLines": [],
+      "logPath": "/tmp/issue866-rework2-logs/job-125932521390.log",
+      "logRetrieved": true
+    },
+    {
+      "shard": 7,
+      "jobId": 125932521325,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41640034518/job/125932521325",
+      "jobConclusion": "cancelled",
+      "e2eStepConclusion": "cancelled",
+      "plannedCases": 83,
+      "observedPassedCases": 15,
+      "observedFailedCases": 0,
+      "incompleteOrNotRunCases": 68,
+      "reportedSummary": [],
+      "observedFailedCaseLines": [],
+      "logPath": "/tmp/issue866-rework2-logs/job-125932521325.log",
+      "logRetrieved": true
+    },
+    {
+      "shard": 8,
+      "jobId": 125932521529,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41640034518/job/125932521529",
+      "jobConclusion": "cancelled",
+      "e2eStepConclusion": "cancelled",
+      "plannedCases": 104,
+      "observedPassedCases": 2,
+      "observedFailedCases": 0,
+      "incompleteOrNotRunCases": 102,
+      "reportedSummary": [],
+      "observedFailedCaseLines": [],
+      "logPath": "/tmp/issue866-rework2-logs/job-125932521529.log",
+      "logRetrieved": true
+    }
+  ],
+  "totals": {
+    "plannedChromiumCases": 874,
+    "observedPassedChromiumCases": 67,
+    "observedDirectFailedChromiumCases": 1,
+    "incompleteOrNotRunChromiumCases": 806,
+    "directFailuresInCancelledShards": 0,
+    "completedSuccessfulWholeShards": 0
+  },
+  "directFailures": [
+    {
+      "classification": "PRODUCT_CONTEXT_LOSS_IN_SAFE_LOCALIZED_ERROR",
+      "file": "tests/e2e/country-calendar-admin.spec.ts",
+      "caseLine": 76,
+      "assertionLine": 151,
+      "assertionColumn": 316,
+      "caseName": "실제 SQLite 관리자 JSON/CSV 전체 교체·metadata·날짜 rename/delete와 Project Preview Save를 검증한다",
+      "jobId": 125932521351,
+      "shard": 1,
+      "stepNumber": 7,
+      "stepName": "E2E shard 실행",
+      "durationSeconds": 24.8,
+      "locator": "getByRole('dialog', { name: '프로젝트 설정', exact: true }).getByRole('alert')",
+      "expectedSubstring": "US 2032",
+      "actualText": "해당 국가·연도 공식 자료가 미확보입니다.",
+      "assertionTimeoutMs": 5000,
+      "message": "expect(locator).toContainText(expected) failed",
+      "upstreamResponseStatus": 422,
+      "upstream422AssertionAlreadyPassed": true,
+      "followingSaveDisabledAssertion": "NOT REACHED; do not report PASS",
+      "testReportArtifactId": 13233031309,
+      "traceAvailable": true,
+      "errorContextPath": "/tmp/issue866-rework2-country-calendar-error-context.md",
+      "logPath": "/tmp/issue866-rework2-logs/job-125932521351.log",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41640034518/job/125932521351"
+    }
+  ],
+  "transportRegressionCheck": {
+    "implementationJobId": 125932521432,
+    "implementationConclusion": "success",
+    "aggregateJobId": 125934860814,
+    "aggregateConclusion": "success",
+    "productionHttp": {
+      "status": "PASS",
+      "durationSeconds": 7.5
+    },
+    "productionHttps": {
+      "status": "PASS",
+      "durationSeconds": 7.4
+    },
+    "passedCases": 2,
+    "totalSeconds": 16.6,
+    "invalidRuntimeConfigurationCases": 6,
+    "invalidConfigMigrationGuard": "PASS",
+    "composeConfiguration": "PASS",
+    "composePasswordMissingFailClosed": "PASS",
+    "composeAdminAuthAndNoSecretLogging": "PASS",
+    "composeRestartForceRecreateSqlitePersistence": "PASS",
+    "trace": "off by existing policy",
+    "logPath": "/tmp/issue866-rework2-logs/docker-125932521432.log",
+    "classification": "Previous F866-CI-003 fixed on exact newHead; no recurrence",
+    "mainOrFormalGhcrEvidence": false
+  },
+  "remoteUnit": {
+    "jobId": 125931324889,
+    "conclusion": "success",
+    "passedFiles": 295,
+    "skippedFiles": 1,
+    "passedTests": 3563,
+    "skippedTests": 3,
+    "durationSeconds": 93.27,
+    "existingSkipsOnly": true
+  },
+  "trusted": {
+    "runId": 41641270830,
+    "number": 1115,
+    "attempt": 1,
+    "jobId": 125935104752,
+    "conclusion": "failure",
+    "automatedQa": "FAIL",
+    "independentQa": "NOT TESTED",
+    "managerDecision": "NOT TESTED",
+    "validatorSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+    "reportArtifactId": 13233246922,
+    "reportArtifactExpired": false,
+    "reportPrHeadSha": null,
+    "reportBaseOrTestMergeSha": null,
+    "decisionReason": "원본 PR CI run 자체가 성공하지 않았습니다",
+    "sourceRunId": 41640034518,
+    "sourceBinding": "Protected main workflow artifact name directly uses github.event.workflow_run.id (qa-final-trusted.yml at validatorSHA line49), not PR-title inference",
+    "classification": "Early derivative FAIL from original Full failure; null PRfields show no completed Trusted provenance or independent QA approval",
+    "localReportZip": "/tmp/issue866-rework2-trusted.zip",
+    "logPath": "/tmp/issue866-rework2-logs/trusted-125935104752.log"
+  },
+  "crossRunAnalysis": {
+    "priorFullRunId": 41618392066,
+    "priorFullNumber": 3468,
+    "priorAttempt": 1,
+    "previousFailureSet": [
+      {
+        "id": "F866-CI-001",
+        "file": "tests/e2e/admin-auth-layout.spec.ts",
+        "oldFailure": "Expected sibling controls>=2 actual1 caused duplicate help suffix",
+        "currentEvidence": "All3adminauth casesPASS inShard1; master5.5s",
+        "currentClassification": "FIXED_ON_NEW_REMOTE_HEAD"
+      },
+      {
+        "id": "F866-CI-002",
+        "file": "tests/e2e/cross-screen-regression.spec.ts",
+        "oldFailure": "Expected rowheight<=48 actual87",
+        "currentEvidence": "PopulatedtablecasePASS1.6s plus other2crossScreen casesPASS",
+        "currentClassification": "FIXED_ON_NEW_REMOTE_HEAD"
+      },
+      {
+        "id": "F866-CI-003",
+        "file": "tests/transport/production-transport.spec.ts",
+        "oldFailure": "Bothprotocol Koreanselectorwait180s",
+        "currentEvidence": "OriginalHTTPHTTPS2/2PASS16.6s; requiredDockerSUCCESS",
+        "currentClassification": "FIXED_ON_NEW_REMOTE_HEAD"
+      }
+    ],
+    "newlyExposedFailure": {
+      "file": "tests/e2e/country-calendar-admin.spec.ts",
+      "consumer": "COUNTRY_CALENDAR_UNAVAILABLE calendarpreview alert",
+      "sameRootTheme": "Safeerrorlocalization removed required country/year context",
+      "calendarProductSourceUnchangedBetweenFailureHeads": true,
+      "safeUiErrorSourceUnchangedBetweenFailureHeads": true,
+      "firstRunReachability": "Original3468Shard1 stopped at preceding masterauth case, so countryCalendar caseNOTRUN; do not call newlyintroducedREWORK1 regression",
+      "rework1ProjectNotFoundMapping": "Separate adjacent errorcodeconsumer was fixed; this structured country/yearconsumer remained untested remotely",
+      "intentional422": "Officialdata unavailability is expected fixture validation, not an externalavailability/environmentblocker"
+    },
+    "requiredRevalidationUnion": [
+      "tests/e2e/admin-auth-layout.spec.ts",
+      "tests/e2e/cross-screen-regression.spec.ts",
+      "tests/transport/production-transport.spec.ts",
+      "tests/e2e/country-calendar-admin.spec.ts"
+    ],
+    "localHistoricalLedger": "docs/ISSUE_866_FAILURE_ANALYSIS.md read in full before analysis; old local failures/corrections preserved",
+    "immutableSourceBlobComparison": [
+      {
+        "path": "src/features/projects/project-work-calendar-editor.tsx",
+        "oldBlob": "69ec4de4f2a7de2651d9db4709250b2aef2c9712",
+        "newBlob": "69ec4de4f2a7de2651d9db4709250b2aef2c9712",
+        "unchanged": true
+      },
+      {
+        "path": "src/components/safe-ui-error.ts",
+        "oldBlob": "24299023f370b05a93f91ca41add923cd9263dd9",
+        "newBlob": "24299023f370b05a93f91ca41add923cd9263dd9",
+        "unchanged": true
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "id": 13233395664,
+      "name": "e2e-timing-ci-shard-1",
+      "sizeBytes": 2304,
+      "expired": false
+    },
+    {
+      "id": 13233225817,
+      "name": "ci-setup-metrics-build",
+      "sizeBytes": 510,
+      "expired": false
+    },
+    {
+      "id": 13233031309,
+      "name": "playwright-report-shard-1",
+      "sizeBytes": 7757057,
+      "expired": false
+    },
+    {
+      "id": 13232842070,
+      "name": "ci-impact-shadow-41640034518-1",
+      "sizeBytes": 326,
+      "expired": false
+    },
+    {
+      "id": 13232746828,
+      "name": "qa-final-automated-41640034518-1",
+      "sizeBytes": 432,
+      "expired": false
+    },
+    {
+      "id": 13232702039,
+      "name": "ci-setup-metrics-e2e-shard-7",
+      "sizeBytes": 556,
+      "expired": false
+    },
+    {
+      "id": 13232667251,
+      "name": "ci-pr-build-contract-41640034518-1",
+      "sizeBytes": 1022,
+      "expired": false
+    },
+    {
+      "id": 13232666967,
+      "name": "ci-setup-metrics-e2e-shard-2",
+      "sizeBytes": 553,
+      "expired": false
+    },
+    {
+      "id": 13232607646,
+      "name": "ci-setup-metrics-e2e-shard-1",
+      "sizeBytes": 555,
+      "expired": false
+    },
+    {
+      "id": 13232591615,
+      "name": "ci-setup-metrics-e2e-shard-6",
+      "sizeBytes": 553,
+      "expired": false
+    },
+    {
+      "id": 13232426940,
+      "name": "ci-pr-source-41640034518-1",
+      "sizeBytes": 417,
+      "expired": false
+    },
+    {
+      "id": 13232387742,
+      "name": "ci-setup-metrics-e2e-shard-5",
+      "sizeBytes": 555,
+      "expired": false
+    },
+    {
+      "id": 13232366981,
+      "name": "qa-preflight-41640034518-1",
+      "sizeBytes": 1333,
+      "expired": false
+    },
+    {
+      "id": 13232327921,
+      "name": "ci-setup-metrics-e2e-shard-8",
+      "sizeBytes": 555,
+      "expired": false
+    },
+    {
+      "id": 13232322402,
+      "name": "ci-setup-metrics-e2e-shard-3",
+      "sizeBytes": 558,
+      "expired": false
+    },
+    {
+      "id": 13232004283,
+      "name": "ci-setup-metrics-docker",
+      "sizeBytes": 619,
+      "expired": false
+    },
+    {
+      "id": 13231984098,
+      "name": "ci-setup-metrics-e2e-shard-4",
+      "sizeBytes": 557,
+      "expired": false
+    },
+    {
+      "id": 13231934537,
+      "name": "planner77~masterGantt~YX233Y.dockerbuild",
+      "sizeBytes": 54263,
+      "expired": false
+    },
+    {
+      "id": 13231929405,
+      "name": "ci-oci-pr-41640034518-1",
+      "sizeBytes": 117359397,
+      "expired": false
+    }
+  ],
+  "evidenceGaps": [
+    "Seven cancelled shards are incomplete, despite67observedpassingcases overall; no wholeShardPASS claimed",
+    "Transporttrace/screenshot/video intentionallyoff; no missingartifact failure inferred",
+    "GenericRESTPR fetch returned internal error once; normalizedget_pr_info supplied actual currentrefs andmergeability",
+    "Repository workflow_run history total2500 is not whollyread; latest100page spansbeforebothPRFullcreationtimes and includes bothTrustedruns",
+    "New source/CI fixes not performed by this read-only task; new exactHead RequiredCI/Trusted/Owner remainNOTTESTED"
+  ],
+  "operationBoundaries": {
+    "sourceWrites": false,
+    "docsWrites": false,
+    "remoteComments": false,
+    "ciDispatch": false,
+    "newRunMonitoring": false,
+    "secretsPrinted": false,
+    "downloadedZipsExecuted": false,
+    "rawArtifactsNotForGit": true,
+    "sanitizedJobLogsDirectory": "/tmp/issue866-rework2-logs"
+  },
+  "sanitizedLogChecksums": [
+    {
+      "path": "/tmp/issue866-rework2-logs/docker-125932521432.log",
+      "sha256": "293b49c9051a7352a68c52fd154f7c8fc3daf866fdb7518c242bce6a028db75b"
+    },
+    {
+      "path": "/tmp/issue866-rework2-logs/job-125932521303.log",
+      "sha256": "11041ef158a96667b9ad4bdea0a5f5ac3951ae6832ab9ca85d540290e2624bd7"
+    },
+    {
+      "path": "/tmp/issue866-rework2-logs/job-125932521325.log",
+      "sha256": "2c8480f54d4c853be75646ed816b142ebb14345df1ab79b8f2e69b645dbb242f"
+    },
+    {
+      "path": "/tmp/issue866-rework2-logs/job-125932521351.log",
+      "sha256": "e0c300e7b48dcd28e20b7807ec51f04e544c112647498bfbf30435a932cbac9f"
+    },
+    {
+      "path": "/tmp/issue866-rework2-logs/job-125932521387.log",
+      "sha256": "985450e0f2fe206f2fbee10e402e90d7c985dc9715a307624af228627b2d6351"
+    },
+    {
+      "path": "/tmp/issue866-rework2-logs/job-125932521390.log",
+      "sha256": "befd124c720e63fc5adfb089b468eacb8c8ab62e96b915ff02441bb2f7afdd1c"
+    },
+    {
+      "path": "/tmp/issue866-rework2-logs/job-125932521529.log",
+      "sha256": "ce2f5cce5448183a203679c89d7a7b73b6456b9780ce41a05c26cb758471ab3f"
+    },
+    {
+      "path": "/tmp/issue866-rework2-logs/job-125932521549.log",
+      "sha256": "65d549c8be4aab660b9d7f13dc9f159a42a1ab27d5c9b6a103064b436442f2d4"
+    },
+    {
+      "path": "/tmp/issue866-rework2-logs/job-125932521646.log",
+      "sha256": "c68b0acff9bb154b96cfe4dc680243dde398103eae858af9b9f8247c3072bbfb"
+    },
+    {
+      "path": "/tmp/issue866-rework2-logs/trusted-125935104752.log",
+      "sha256": "5f7149cd777f5fb17cc99f19a101c5b40f3fd8a57a5bdf8e103eab13219ef5a8"
+    }
+  ]
+}

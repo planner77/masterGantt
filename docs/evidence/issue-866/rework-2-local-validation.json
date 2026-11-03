@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 1,
+  "primaryIssue": 866,
+  "relatedIssues": [
+    865,
+    869
+  ],
+  "pr": 870,
+  "previousHead": "a2b4766651f0a4fe9fbc2cf9f887f03e78ed1a19",
+  "baseSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+  "candidateVersion": "0.140.0",
+  "sourceFingerprint": "b715f14349c42d05636f6bfbfbd14723c9558ac49195b31a126208e32166d83f",
+  "sourceFileCount": 1211,
+  "applicationSnapshotTree": "e1b41e1b6248f2422ee981fd35f4e4b575c5ee4b",
+  "snapshotBoundary": "application/tests frozen; final documentation/evidence appended later; formal commit not yet created",
+  "fingerprintMethod": "SHA256 of sorted JSON [{path,sha256}], sort_keys=True,separators=(comma,colon); src/tests/db/deploy and package.json/package-lock.json/.env.example/next.config.ts/tsconfig.json/next-env.d.ts",
+  "environment": {
+    "execution": "LOCAL; not GitHub-hosted",
+    "node": "22.14.0",
+    "npm": "11.10.0",
+    "next": "16.4.2",
+    "playwright": "1.63.0"
+  },
+  "local": {
+    "vitest": {
+      "status": "PASS",
+      "command": "npm test -- --maxWorkers=2",
+      "passedFiles": 296,
+      "skippedFiles": 1,
+      "passedTests": 3632,
+      "skippedTests": 3,
+      "durationSeconds": 145.16,
+      "newSkips": 0,
+      "assertionsTimeoutsRetriesCiUnchanged": true
+    },
+    "typecheck": {
+      "status": "PASS",
+      "command": "npm run typecheck"
+    },
+    "lint": {
+      "status": "PASS",
+      "command": "npm run lint",
+      "errors": 0,
+      "warnings": 18
+    },
+    "discovery": {
+      "status": "PASS",
+      "unitFiles": 297,
+      "browserCases": 874,
+      "rootAndExternalCwdEqual": true
+    },
+    "boundedChromium": {
+      "status": "PASS",
+      "plannedCases": 35,
+      "specFiles": [
+        "admin-auth-layout.spec.ts",
+        "cross-screen-regression.spec.ts",
+        "country-calendar-admin.spec.ts",
+        "i18n-master-data.spec.ts",
+        "i18n.spec.ts",
+        "issue-719-contextual-help.spec.ts",
+        "issue-730-view-composer.spec.ts",
+        "project-issues.spec.ts",
+        "project-resource-calendar-exceptions.spec.ts",
+        "project-transfer-layout-491.spec.ts",
+        "project-work-calendar-preview.spec.ts"
+      ],
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 0,
+      "selection": "Original49diagnostic30cases + ProjectIssues5cases; excluded19nonfailurecases retained as prior diagnostic proof only; all actual remote/local browser failures and new P2 included",
+      "selectionPlan": "rework-2-browser-selection.txt",
+      "passedCases": 35,
+      "duration": "9.3m",
+      "outputFolder": "test-results/rework2-final-b",
+      "commandScope": "11 listed specs with grep-selected35cases; workers1/retries0/maxFailures0; allactualfailures plus direct/indirect/negative consumers",
+      "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/admin-auth-layout.spec.ts tests/e2e/cross-screen-regression.spec.ts tests/e2e/country-calendar-admin.spec.ts tests/e2e/i18n-master-data.spec.ts tests/e2e/i18n.spec.ts tests/e2e/issue-719-contextual-help.spec.ts tests/e2e/issue-730-view-composer.spec.ts tests/e2e/project-issues.spec.ts tests/e2e/project-resource-calendar-exceptions.spec.ts tests/e2e/project-transfer-layout-491.spec.ts tests/e2e/project-work-calendar-preview.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --grep 'admin-auth-layout\\.spec|cross-screen-regression\\.spec|i18n(-master-data)?\\.spec|country-calendar-admin\\.spec|project-work-calendar-preview\\.spec|project-resource-calendar-exceptions\\.spec|project-issues\\.spec|#719 milestone 동일|#719 (milestone|resource) 도움말 fixture|#719 focus 유지|#719 긴 도움말|#730 실제 HTTP 원본 Task·Assignment 복귀|Issue #491: (Resource Dashboard 실제 공수|템플릿 저장의 긴 초안)' --output=test-results/rework2-final-b"
+    },
+    "productionBuildAndTransport": {
+      "status": "PASS",
+      "snapshotTree": "e1b41e1b6248f2422ee981fd35f4e4b575c5ee4b",
+      "sourceFingerprint": "b715f14349c42d05636f6bfbfbd14723c9558ac49195b31a126208e32166d83f",
+      "imageId": "sha256:7c0365429908a4063785371bcb3133b79dc7363bfd67b3084f5bdc4c30080a64",
+      "httpHttpsCases": 2,
+      "durationSeconds": 23.0,
+      "negativeConfigurationCases": 6,
+      "invalidConfigurationMigrationWrites": 0,
+      "gitBlobsUnchanged": 5082,
+      "sourceFilesUnchanged": 1211,
+      "ownedContainersAndVolumesRemaining": 0,
+      "report": "rework-2-final-transport.json",
+      "execution": "LOCAL isolated runner with validated test CA, Node26.8.2; not GitHub-hosted or GHCR"
+    },
+    "markdown": {
+      "status": "PASS",
+      "checkedFiles": 397
+    },
+    "documentationStructure": {
+      "documentationSync": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING",
+      "acTestCoverage": "MAPPING_PASS_SEMANTIC_REVIEW_PENDING"
+    }
+  },
+  "preservedFailures": [
+    {
+      "stage": "original exact country spec",
+      "passed": 4,
+      "failed": 2,
+      "duration": "2.8m",
+      "meaning": "actual missing US2032 identifier and stale raw-prose fixture expectation"
+    },
+    {
+      "stage": "original focused WBS and template browser cases",
+      "failed": 2,
+      "seconds": [
+        29.2,
+        16.8
+      ],
+      "meaning": "safe generic text vs stale raw-prose assertions; no product raw-leak fix by weakening tests"
+    },
+    {
+      "stage": "expanded transport negative Unit before fix",
+      "passed": 9,
+      "failed": 8,
+      "durationSeconds": 2.26,
+      "meaning": "nonJSON/network raw exceptions and cancellation boundaries"
+    },
+    {
+      "stage": "first transport fix",
+      "passed": 17,
+      "failed": 1,
+      "meaning": "new test read signal.reason before async abort; assertion evaluation order fixed without product timeout/cancellation weakening"
+    },
+    {
+      "stage": "first frozen 49case bounded diagnosis",
+      "sourceFingerprint": "da05a70603a1fbf82e42f03756168ff23cbdd25ba03edff0773e3977794fb54c",
+      "passed": 46,
+      "failed": 3,
+      "duration": "15.8m",
+      "failures": [
+        "new locale dialog locator bound to Korean title",
+        "resource calendar mock omitted real structured IDs and expected raw prose",
+        "large effort display expected no locale grouping"
+      ],
+      "response": "fix test contracts, add actual conflict-label locale P2 product correction, re-freeze B and revalidate failure union + direct/indirect/negative consumers"
+    }
+  ],
+  "independentAgentReview": {
+    "reviewerTask": "qa_review",
+    "unresolvedP1P2": 0,
+    "calendarTests": 58,
+    "wbsTransportTests": 18,
+    "status": "PASS for read-only Agent prereview only",
+    "notHumanFinalQa": true,
+    "limitations": [
+      "details-specific nonJSON browser injection not added; shared transport/formatter Unit plus consumer code review only"
+    ],
+    "knownLimitations": [
+      "Server generates new rule UUIDs per submit; precise local-draft correlation unsupported; all current rule edit actions preserved; not counted as rule-specific correlation PASS"
+    ]
+  },
+  "boundaries": {
+    "riskLevel": "HIGH",
+    "qaMethod": "OWNER_MANAGED",
+    "qaRequired": true,
+    "newPrQuality": "NOT TESTED",
+    "newPrE2e": "NOT TESTED",
+    "newPrDocker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "managerAccept": "NOT TESTED",
+    "mergeReady": "BLOCKED",
+    "releaseRequired": true,
+    "releaseAuthorized": false,
+    "mainGhcr": "NOT TESTED",
+    "productionInternalLlmDnsCaModels": "NOT TESTED",
+    "realNative125PercentAndAssistiveTech": "NOT TESTED"
+  },
+  "updatedAt": "2026-11-03T13:58:36.092840+00:00",
+  "firstRework2SourceFingerprint": "da05a70603a1fbf82e42f03756168ff23cbdd25ba03edff0773e3977794fb54c",
+  "changesSinceFirstRework2Freeze": [
+    "src/features/projects/project-work-calendar-editor.tsx",
+    "src/features/projects/project-work-calendar-errors.ts",
+    "tests/components/project-work-calendar-errors.test.ts",
+    "tests/e2e/country-calendar-admin.spec.ts",
+    "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+    "tests/e2e/project-transfer-layout-491.spec.ts"
+  ],
+  "sourceStableAfterChecks": true,
+  "screenshots": [
+    "output/playwright/issue-866-rework2/unavailable-en.png",
+    "output/playwright/issue-866-rework2/unavailable-ko.png",
+    "output/playwright/issue-866-rework2/unavailable-vi.png",
+    "output/playwright/issue-866-rework2/calendar-conflict-ko.png",
+    "output/playwright/issue-866-rework2/calendar-conflict-en.png",
+    "output/playwright/issue-866-rework2/calendar-conflict-vi.png"
+  ],
+  "completedAt": "2026-11-03T14:02:10.353654+00:00"
+}

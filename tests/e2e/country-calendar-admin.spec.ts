@@ -150,6 +150,49 @@ test("실제 SQLite 관리자 JSON/CSV 전체 교체·metadata·날짜 rename/de
   await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click(); await dialog.getByRole("tab", { name: "작업 캘린더" }).click(); await dialog.getByLabel("국가 규칙 1 시작일").fill("2032-01-01"); await dialog.getByLabel("국가 규칙 1 종료일").fill("2032-12-31");
   const unavailable = page.waitForResponse((r) => r.request().method() === "POST" && r.url().endsWith(`/projects/${publicId}/work-calendar/preview`)); await dialog.getByRole("button", { name: "미리보기 계산", exact: true }).click(); expect((await unavailable).status()).toBe(422); await expect(dialog.getByRole("alert")).toContainText("US 2032"); await expect(dialog.getByRole("button", { name: "작업 캘린더 저장", exact: true })).toBeDisabled();
 
+  const localizedDialog = page.getByRole("dialog");
+  await expect(localizedDialog).toHaveCount(1);
+  const languageWrites: string[] = [];
+  const trackLanguageWrites = (request: import("@playwright/test").Request) => {
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && new URL(request.url()).pathname.startsWith(`/api/projects/${publicId}`)) languageWrites.push(request.method());
+  };
+  page.on("request", trackLanguageWrites);
+  const languageTab = await page.context().newPage();
+  try {
+    await languageTab.goto("/");
+    for (const [locale, text, saveLabel, statusText] of [
+      ["en", "Official data for this country and year is not available.", "Save work calendar", "Could not calculate the preview. Check the input and recalculate."],
+      ["vi", "Chưa có dữ liệu chính thức cho quốc gia và năm này.", "Lưu lịch làm việc", "Không thể tính bản xem trước. Hãy kiểm tra dữ liệu nhập và tính lại."],
+      ["ko", "해당 국가·연도 공식 자료가 미확보입니다.", "작업 캘린더 저장", "미리보기를 계산하지 못했습니다. 입력을 확인하고 다시 계산하세요."],
+    ]) {
+      await languageTab.getByRole("combobox", { name: /^(표시 언어|Display language|Ngôn ngữ hiển thị)$/ }).first().selectOption(locale);
+      await expect(localizedDialog.getByRole("alert")).toContainText(text);
+      await expect(localizedDialog.locator('p[role="status"][aria-atomic="true"]')).toHaveText(statusText);
+      await expect(localizedDialog.getByRole("alert")).toContainText("US 2032");
+      await expect(localizedDialog.getByRole("button", { name: saveLabel, exact: true })).toBeDisabled();
+      await page.screenshot({ path: info.outputPath(`unavailable-${locale}.png`), fullPage: true });
+    }
+  } finally { await languageTab.close(); page.off("request", trackLanguageWrites); }
+  expect(languageWrites).toEqual([]);
+
+  await page.route(`**/api/projects/${publicId}/work-calendar/preview`, route => route.fulfill({ status: 422, json: { error: {
+    code: "COUNTRY_CALENDAR_UNAVAILABLE", message: "private-calendar-prose",
+    details: [
+      { path: "countryRules", code: "COUNTRY_CALENDAR_UNAVAILABLE", message: "US 2032" },
+      { path: "countryRules", code: "COUNTRY_CALENDAR_UNAVAILABLE", message: "US 2032" },
+      { path: "countryRules", code: "COUNTRY_CALENDAR_UNAVAILABLE", message: "CN 2032" },
+      { path: "countryRules", code: "COUNTRY_CALENDAR_UNAVAILABLE", message: "US 2031" },
+      { path: "countryRules", code: "COUNTRY_CALENDAR_UNAVAILABLE", message: "US 2032 private-detail-prose" },
+    ],
+  } } }));
+  const safeErrorResponse = page.waitForResponse(response => response.request().method() === "POST" && response.url().endsWith(`/projects/${publicId}/work-calendar/preview`));
+  await dialog.getByRole("button", { name: "미리보기 계산", exact: true }).click();
+  expect((await safeErrorResponse).status()).toBe(422);
+  const safeUnavailable = dialog.getByRole("alert");
+  await expect(safeUnavailable).toContainText("US 2032");
+  await expect(safeUnavailable).not.toContainText(/private-|CN 2032|US 2031/);
+  await expect(page.locator("body")).not.toContainText(/private-calendar-prose|private-detail-prose/);
+  await expect(dialog.getByRole("button", { name: "작업 캘린더 저장", exact: true })).toBeDisabled();
 });
 
 function snapshot(countryCode = "KR", year = 2026, revision = 1): CountryCalendarAdminResponse {
@@ -167,7 +210,9 @@ test("첫 조회 오류에도 metadata/toolbar DOM을 유지하며 native 국가
     await route.fulfill({ json: snapshot(country, year) });
   });
   await page.goto("/country-calendar-admin"); await page.getByLabel("관리자 비밀번호").fill("mock-admin"); await page.getByRole("button", { name: "로그인", exact: true }).click();
-  await expect(page.getByRole("region", { name: "국가 캘린더 관리", exact: true }).getByRole("alert")).toContainText("제어된 최초 조회 오류");
+  const initialError = page.getByRole("region", { name: "국가 캘린더 관리", exact: true }).getByRole("alert");
+  await expect(initialError).toHaveText("최신 국가 캘린더를 불러오지 못했습니다.");
+  await expect(initialError).not.toContainText("제어된 최초 조회 오류");
   await expect(page.getByRole("combobox", { name: "국가", exact: true })).toBeEnabled(); await expect(page.getByLabel("출처 버전")).toBeVisible(); await expect(page.getByRole("button", { name: "출처 정보 저장", exact: true })).toBeDisabled();
   const select = page.getByRole("combobox", { name: "국가", exact: true });
   expect(await select.evaluate((element) => ({ id: element.id, label: (element as HTMLSelectElement).labels?.[0]?.textContent }))).toEqual({ id: "country-calendar-country", label: "국가" });

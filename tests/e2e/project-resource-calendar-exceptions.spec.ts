@@ -12,24 +12,34 @@ test("리소스 근무일 예외의 효과·저장·재열기·충돌·프로젝
   const original=(await (await page.request.get(`/api/projects/${publicId}/work-calendar`)).json()).data;
   const resourceId="22222222-2222-4222-8222-222222222222";
   const groupId="11111111-1111-4111-8111-111111111111";
+  const supportGroupId="33333333-3333-4333-8333-333333333333";
+  const privateConflictProse="PRIVATE_RESOURCE_CONFLICT_PROSE_DO_NOT_RENDER";
+  const conflictResponse=()=>({error:{code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:privateConflictProse,details:[
+    {path:"date",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:"2026-10-02"},
+    {path:"layer",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:"RESOURCE_GROUP"},
+    {path:"resourceId",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:resourceId},
+    {path:"groupIds",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:groupId},
+    {path:"groupIds",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:supportGroupId},
+    {path:"rules.server-generated-id",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:privateConflictProse},
+  ]}});
   let customDates:WorkCalendarCustomDateDto[]=[];
   let conflict=false;
   let rejectCanonical=false;
   let savedDayType:string|undefined;
   await page.route((url)=>url.pathname.endsWith("/assignment-targets") && url.searchParams.has("kind"),async(route)=>{
     const kind=new URL(route.request().url()).searchParams.get("kind");
-    await route.fulfill({json:{data:{catalogRevision:1,targets:[{kind,id:kind==="group"?groupId:resourceId,name:kind==="group"?"설계팀":"홍길동",code:null,active:true}]}}});
+    await route.fulfill({json:{data:{catalogRevision:1,targets:kind==="group"?[{kind,id:groupId,name:"설계팀",code:null,active:true},{kind,id:supportGroupId,name:"지원팀",code:null,active:true}]:[{kind,id:resourceId,name:"홍길동",code:null,active:true}]}}});
   });
   await page.route(`**/api/projects/${publicId}/work-calendar`,async(route)=>{
     if(route.request().method()==="GET") {if(rejectCanonical){await route.fulfill({status:401,json:{error:{code:"EDIT_SESSION_INVALID"}}});return;}await route.fulfill({json:{data:{...original,customDates}}});return;}
-    if(conflict){await route.fulfill({status:409,json:{error:{code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",details:[{path:"date",message:"2026-10-02"},{path:"rules.rule-a",message:"2026-10-02 · 홍길동 · 설계팀 / 지원팀 · 근무일 규칙 / 휴무일 규칙"}]}}});return;}
+    if(conflict){await route.fulfill({status:409,json:conflictResponse()});return;}
     const request=route.request().postDataJSON();
     savedDayType=request.customDates[0].dayType;
     customDates=request.customDates.map((entry:WorkCalendarCustomDateDto,index:number)=>({...entry,name:entry.name.trim(),id:`exception-${index}`}));
     await route.fulfill({json:{data:{countryCatalogRevision:1,projectRevision:original.projectRevision,calendar:{...original,customDates},changedTasks:[],manualConflicts:[],resourceExceptionEffects:[]}}});
   });
   await page.route(`**/api/projects/${publicId}/work-calendar/preview`,async(route)=>{
-    if(conflict) {await route.fulfill({status:409,json:{error:{code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",details:[{path:"date",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:"2026-10-02"},{path:"resourceId",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:resourceId},{path:"groupIds",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:groupId},{path:"rules.rule-a",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:"2026-10-02 · 홍길동 · 설계팀 / 지원팀 · 근무일 규칙 / 휴무일 규칙"}]}}});return;}
+    if(conflict){await route.fulfill({status:409,json:conflictResponse()});return;}
     const request=route.request().postDataJSON();
     const entry=request.customDates[0];
     const noEffect=entry.date==="2026-10-02";
@@ -97,12 +107,35 @@ test("리소스 근무일 예외의 효과·저장·재열기·충돌·프로젝
   conflict=true;
   await dialog.getByRole("button",{name:"작업 캘린더 저장"}).click();
   await expect(dialog.getByRole("heading",{name:"리소스 날짜 예외 영향"})).toHaveCount(0);
-  const summary=dialog.locator("[role='alert'][tabindex='-1']").filter({hasText:"같은 날짜"});
+  const summary=page.locator("#calendar-exception-conflict");
   await expect(summary).toBeFocused();
   await expect(dialog.getByLabel("예외 날짜 1")).toHaveAttribute("aria-invalid","true");
   await expect(dialog.getByLabel("예외 날짜 1")).toHaveAttribute("aria-describedby","calendar-exception-conflict");
   await expect(dialog.getByRole("button",{name:"작업 캘린더 저장"})).toBeDisabled();
-  await expect(summary).toContainText("2026-10-02 · 홍길동 · 설계팀 / 지원팀");
+  await expect(summary.getByRole("listitem").filter({hasText:"날짜:"})).toContainText("2026-10-02");
+  await expect(summary.getByRole("listitem").filter({hasText:"영향받는 리소스:"})).toContainText("홍길동");
+  await expect(summary.getByRole("listitem").filter({hasText:"충돌 대상 그룹:"})).toContainText(["설계팀", "지원팀"]);
+  await expect(summary).not.toContainText(privateConflictProse);
+  const languageTab=await page.context().newPage();
+  const languageWrites:string[]=[];
+  const trackWrites=(request:import("@playwright/test").Request)=>{if(["POST","PUT","PATCH","DELETE"].includes(request.method())&&new URL(request.url()).pathname.startsWith(`/api/projects/${publicId}`))languageWrites.push(request.method());};
+  page.on("request",trackWrites);
+  try{
+    await languageTab.goto("/");
+    for(const [locale,dateLabel,resourceLabel,groupLabel] of [
+      ["en","Date:","Affected resource:","Conflicting group:"],
+      ["vi","Ngày:","Nguồn lực bị ảnh hưởng:","Nhóm xung đột:"],
+      ["ko","날짜:","영향받는 리소스:","충돌 대상 그룹:"],
+    ]){
+      await languageTab.getByRole("combobox",{name:/^(표시 언어|Display language|Ngôn ngữ hiển thị)$/}).first().selectOption(locale);
+      await expect(summary.getByRole("listitem").filter({hasText:dateLabel})).toContainText("2026-10-02");
+      await expect(summary.getByRole("listitem").filter({hasText:resourceLabel})).toContainText("홍길동");
+      await expect(summary.getByRole("listitem").filter({hasText:groupLabel})).toContainText(["설계팀","지원팀"]);
+      await expect(summary).not.toContainText(privateConflictProse);
+      await page.screenshot({path:testInfo.outputPath(`calendar-conflict-${locale}.png`),fullPage:true});
+    }
+  }finally{await languageTab.close();page.off("request",trackWrites);}
+  expect(languageWrites).toEqual([]);
   await summary.getByRole("button",{name:/날짜 예외 1 수정/}).click();
   await expect(dialog.getByLabel("예외 날짜 1")).toBeFocused();
   await dialog.getByLabel("날짜 예외 1 이름").fill("토요일 특별 근무 수정");

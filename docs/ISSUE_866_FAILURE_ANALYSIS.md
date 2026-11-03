@@ -175,3 +175,69 @@ source1209파일 SHA256은 `1b339a914781f565f496800808a6d38bc898cc01bdccb5ba7a20
 DOCUMENTATION_SYNC와AC01~09구조검사PASS, 문서·코드·테스트의의미정합성사전검토를마쳤다. 관련문서DESIGN/I18N/UI_UX/TEST_PLAN/CI_CD/REMOTE_VALIDATION/CHANGELOG/WorkPacket을갱신했다. 재작업API/DB/LLM/권한/일정계약변경은없어그문서의기존통합PR변경만유지했다. 최신main352a43e74c7b34c72d952f67783a53463f8b519d에충돌없음·원격review threads0을조회했다.
 
 새Head/Full Run·attempt·당시Base/test-merge는PR/Issue STATUS댓글에기록한다. 새quality/e2e/docker/Trusted/Owner·Manager ACCEPT=NOT TESTED, MERGE_READY=BLOCKED다. CI완료모니터링·병합·Main/GHCR/tag/Release·branch정리·Issue종료는수행하지않는다. HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false를유지한다.
+
+## PR870-FULL-002 — Full #3469.1 실패와 REWORK2 (2026-11-03)
+
+이전 Full3468.1·REWORK1의 원격/로컬 실패와 중간·최종 후보 증거를 유지한다. 두 번째 원격 Full의 정제 전체 증거는 [CI41640034518 attempt1](evidence/issue-866/ci-41640034518-attempt-1.json)이다. 원본 run·artifact·로그만 읽었으며 새 CI 결과를 모니터링하지 않았다.
+
+| 원본 실행 | 출처 및 판정 |
+| --- | --- |
+| [Full3469.1](https://github.com/planner77/masterGantt/actions/runs/41640034518) | Run41640034518/attempt1, pull_request/CI, Head`a2b4766651f0a4fe9fbc2cf9f887f03e78ed1a19`, Base`352a43e74c7b34c72d952f67783a53463f8b519d`, test-merge`3260201076458249ab8e599c672cfca852634727`; source artifact와 현재PR·commit→PR 단일 귀속 교차 검증 |
+| Quality aggregate125933359482 | SUCCESS. TypeScript/ESLint/Vitest/정책/PR production build 실행 성공. 새 Head 성공으로 재사용하지 않음 |
+| E2E aggregate125933998758 | FAILURE. Shard1 Job125932521351 실제3PASS/1FAIL/125NOT RUN. 나머지7Shard CANCELLED; 전체 로그의 추가 실제FAIL0. 계획874case 중 관측67PASS/1FAIL/806미완료·미실행 |
+| Docker 구현125932521432 / aggregate125934860814 | SUCCESS. 원래HTTP/HTTPS2/2 PASS16.6초, 설정거부6·Compose/SQLite영속성 PASS. 이전 transport 오류 재발 없음 |
+| [Trusted1115.1](https://github.com/planner77/masterGantt/actions/runs/41641270830) / Job125935104752 | 원본Full 실패의 파생 FAIL. validator352a43e7, automated_qa=FAIL, PR Head/base/test-merge 필드null인 조기 차단. Trusted 출처검증·독립 QA·Owner 승인 완료를 뜻하지 않음 |
+
+원본 첫 실패는13:02:45Z의 `country-calendar-admin.spec.ts:76` → assertion151:316이다. 실제SQLite Import/metadata/rename/delete/Project Preview·Save 및412 경계 뒤, 422 미확보 응답은 확인했지만 alert의 `US 2032`가 `해당 국가·연도 공식 자료가 미확보입니다.`로 바뀌어5000ms에 FAIL했다. 이후 Save disabled 단언은 원본에서 미도달이므로 PASS로 세지 않는다. 이전 admin auth3case/cross-screen3case 및 populated행·HTTP/HTTPS 보완은 이번 원격의 해당 실행 범위에서 통과했다.
+
+### Cross-run 원인과 제한적 확대 재현
+
+| 실패 ID·분류 | 원인·반례·보완 경계 |
+| --- | --- |
+| F866-CALENDAR-001 / PRODUCT | 최초 i18n/안전 오류 교정에서 미확보 상세 국가·연도를 제거했다. 해당 editor/safe-ui-error는REWORK1에서변경0이므로 새 매핑 때문에 생긴 회귀가 아니라3468조기중단으로 미실행된 잠복 오류다. 로컬 country전체6case는2FAIL/4PASS(2.8분)로 동일 US2032 손실을 재현했다. 응답422는정상이라 네트워크/권한/서버coverage오판 가설을기각했다. rawprose를복원하지 않고 exact국가·연도 식별자만제출countryRules/range와대조해 구조화state·React텍스트로 표시한다. 일반 고정문구와previewStatus는렌더시현재언어로번역한다. |
+| F866-FIXTURE-002 / TEST_CONTRACT | country초기조회오류170, #730 stale395/503403, #491 template500111의4assertion(3case)이 임의서버문구노출을기대한다. 최초safeApiError의보안계약과불일치다. 두번째countrycase는expected제어된원문/actual고정조회실패로RED. #730/#491 직접case도각RED를확인했다. 고정안내와rawmarker비노출을검증하고기존409/503readiness·retry·detaildisabled·pending/dirty/401/412를유지한다. 가짜code를제품allowlist에추가하지않는다. |
+| F866-WBS-ERROR-003 / PRODUCT_SECURITY | 8직접소비자/54합성error.message감사에서 WBS의response.json예외가safeApiError를우회하고dashboard/details가unknownError.message를표시하는누락을재현했다. nonJSON503의PRIVATE_UP본문조각이SyntaxError에포함됨을확인했다. transport의fetch/JSON경계를고정typed오류로감싸고두consumer는typed안전메시지외unknown예외를고정fallback으로표시한다. AbortError·stale/status·origin/provenance·음성응답과재시도복구를보존한다. |
+
+[사전 소비자 감사](evidence/issue-866/rework-2-safe-errors-audit.json)의 위치는실패Head기준이다. 첫실패부터의누적파일합집합에 country-calendar-admin, issue-730-view-composer, project-transfer-layout-491, WBStransport unit 및country오류helper unit을추가한다. project-work-calendar-preview·project-resource-calendar-exceptions와이전admin/cross-screen/#719/i18n/실제SQLite, 전송보안을직접/간접/음성검증으로선정했다. 임의메시지복원·assertion/timeout/retry/skip·Required3/8Shard변경은하지않는다.
+
+국가helper의최초일반안내동작 RED1/1 뒤45case와catalog2case47/47 PASS를확보했다. 이는최종통합source의원격또는전체브라우저PASS가아니다. 사용자선택국가·날짜범위, 유효연도1900~2199, 중복제거·잘못된path/code/Unicode/설명문자열거부와opaque연도2032를확인했다. 숫자보간Intl그룹핑으로2,032를만들지않는다. 별도QA가같은화면의preview상태안내한국어고정도발견해기존4key+새완료template로번역하며원래KO문장·상태/저장경계를유지했다.
+
+### REWORK2 보완 중 추가 관측과 검증 범위 동결
+
+WBS 기존두브라우저case는수정전각각안전한일반문구가표시되어rawprose기대값으로FAIL했다. transport확대unit은9PASS/8FAIL(2.26초)로nonJSON200/409/412/503·fetch원문/nestedcause·취소경계를재현했다. 첫보완후17PASS/1FAIL은bodyread중abort fixture가비동기abort전 `signal.reason`을읽어undefined를기대하는새테스트오류였다. Promise거절을먼저받은뒤현재reason과identity를대조하도록바로잡았고제품취소가드를완화하지않았다. 최종transport18/18 PASS(2.34초)다. 모든실패로그는/tmp에정제보관하고원본실패를PASS로덮지않는다.
+
+최종후보source1211파일SHA256 `da05a70603a1fbf82e42f03756168ff23cbdd25ba03edff0773e3977794fb54c`, 앱/테스트snapshot tree`3cc1f5b11b088190a62158b46e91d166f84682d9`를동결했다. 전체 `npm test -- --maxWorkers=2`는296files/3619tests PASS, 기존1file/3tests skipped,118.87초였고source지문은불변이다. 새skip/timeout/retry·CI설정변경없음. 297Unit파일/874browsercase는root/외부cwd동일발견PASS다. 이후제품/테스트변경이생기면이증거의유효범위를재평가한다.
+
+동결전독립검토는country45/45·WBS18/18 PASS, 현재미해결P1/P2=0이다. 업무명/원문오류를번역키로넣지않고국가/연도·technicalcode를보존하며known-provenance검증과data-ready차단·요청취소를유지했다. 이는신뢰된인간QA·Owner위험수용·최신Head원격Required3/Trusted·Manager ACCEPT가아니다.
+
+보조archive검증 첫 호출은 이전manifest의tree필드를참조해KeyError였다. 이번snapshotTree필드에로컬검증기를맞춰5081Gitblob·1211source개별SHA를재확인했다. 제품source·gate·assertion은변경하지않았다.
+
+### 동일 후보 image·전체 이력의 transport 재검증
+
+동일snapshot3cc1f5b11b088190a62158b46e91d166f84682d9를표준Dockerfile로build한image `sha256:ea79e50714533f2fd1e6ca2846293f1179a7b36aee0d350e5138504d90b52447`는productionbuild와기존HTTP/HTTPS2/2 PASS(16.7초),설정거부6종·잘못된설정의migration쓰기0을확인했다. 원래180초timeout/0retry/TLS CA·Cookie/Origin/revision/restart/SQLite/rotation/logout을유지했고5081Gitblob/1211source전후SHA불변·ownedcontainer/volume잔여0·hostCA/hosts불변을확인했다. LOCAL이며새PRCI/MainGHCR성공이아니다.
+
+### REWORK2 확대49case의 결과와 추가 수렴
+
+첫동결후10spec49case를fail-fast없이끝까지수집한결과46PASS/3FAIL(15.8분)이다. country의원래US2032/Save차단은통과했으나새EN전환검사가KO고정dialog이름을계속조회해elementnotfound였다. 실제snapshot은Project settings/정상English안내(US2032)를포함했다. 언어무관dialog단일성검증으로새locator를교정하고synthetic422완료·전역privateprose비노출을추가했다. 이새테스트오류를제품미해결로분류하지않는다.
+
+추가2FAIL은resource-calendar-exceptions의rawdetails문구기대와#491큰공수999999.99/50000.00의그룹핑없는기대다. 전자는실제API의구조화date/layer/resourceId/groupIds와두로컬그룹catalog로fixture를맞추고날짜/리소스/각그룹을따로검증한다. raw rules문장을복원하거나가짜ruleID를localkey로맞추지않는다. 후자는#866의ko-KR Intl표시계약대로999,999.99 M/D와50,000.00 M/M를독립literal로검증한다. 원래API숫자·M/D→M/M변환·두자리반올림·입력/연도/ID/CSV값은변경하지않았다. 추가감사는error.details11곳/7파일에서위한곳외새rawprose기대없음, 큰숫자20곳에서위2곳외현재불일치없음을확인했다. [details감사](evidence/issue-866/rework-2-details-audit.json)·[숫자감사](evidence/issue-866/rework-2-number-audit.json)를보존한다.
+
+별도독립QA가같은충돌화면의고정라벨을번역된문자열상태에저장해언어전환후이전언어로남는**F866-CONFLICT-LOCALE-004/P2**를확인했다. 현재로컬target의ID+kind·날짜·enum을검증해typedentry를보관하고렌더시고정label/enum만번역하도록수정했다. 사용자이름/날짜는opaque보존한다. 최초helper45PASS/1FAIL RED뒤58helper+2coverage60PASS다. 중간TypeScript TS18046은callback안detail.path narrowing손실로stable path변수로교정했다. 기존401/412/isCurrent/dirty/초기화·요약focus/aria-invalid/describedby·Save차단·현재모든규칙수정버튼을유지했다.
+
+**규칙상관한계:** server는요청마다새규칙UUID를생성하고clientdraft.key는전송하지않으므로server rules.UUID↔localkey의정확한매칭은실제계약에서성립하지않는다. rawfallback을허용하지않고현재모든초안규칙의이름/날짜/수정버튼을유지한다. QA는이번범위필수P1/P2제품보완으로보지않았으며정확한충돌규칙만특정하는기능은PASS로주장하지않는다. 구조화correlation계약추가는별도범위다.
+
+### 최종 B 동결과 검증 선정
+
+추가보완후1211파일SHA256 `b715f14349c42d05636f6bfbfbd14723c9558ac49195b31a126208e32166d83f`, snapshot tree`e1b41e1b6248f2422ee981fd35f4e4b575c5ee4b`로다시동결했다. A대비변경은calendar editor/helper/unit과country/resource-calendar/#491의E2E3파일뿐이다. A의image/단위/49case증거는별도로유지하고B성공으로치환하지않는다.
+
+최종B는실제원격·로컬실패case합집합과변경직접/인접·음성경로35case/11spec로수렴했다. 기존49중30case와기존Issue5case를선정했다. 제외19개의비실패고급관점·전송등은A진단성공에한정하며B브라우저PASS에합산하지않는다. `--grep`은로컬진단범위선정이며CI의874case/8Shard·assertion/skip/timeout/retry/Required gate는그대로다. 과거alias/DB/LLM/사전/typedparser 등Unit실패는전체Unit으로, HTTP/HTTPS실패는동일B의전송full2case로검증한다. B독립helper58/58 PASS·읽기전용diff검토미해결P1/P2=0이며공식원격승인과구별한다.
+
+### B 최종 Local Fast Feedback와 제출
+
+동결B source1211파일SHA256`b715f14349c42d05636f6bfbfbd14723c9558ac49195b31a126208e32166d83f`는검사전후불변이다. 전체Unit296files/3632tests PASS·기존1file/3tests skipped(145.16초), 선별Chromium35/35 PASS(9.3분), 전체typecheck/ESLint0errors18warnings PASS다. 원격originalcountry422US2032와Save차단, EN/VI/KOalert/status·충돌label전환/쓰기0·rawprose비노출, typedWBS JSON/비JSON오류와재시도·stale/provenance, #491그룹핑/반올림·template초안/권한, 이전admin/행높이/#719·Gantt/번역초안·Issue869focus/scroll을확인했다.
+
+같은Bsnapshot e1b41e1b6248f2422ee981fd35f4e4b575c5ee4b를표준Dockerfile로빌드한image`sha256:7c0365429908a4063785371bcb3133b79dc7363bfd67b3084f5bdc4c30080a64`에서productionbuild/HTTPHTTPS2/2 PASS23.0초(10.1/11.4초), 설정거부6·잘못된설정migration쓰기0을확인했다. 5082Gitblob/1211source전후일치·ownedcontainer/volume잔여0·hostCA/hosts불변이다. Node26.8.2격리runner이며원래180초timeout/0retry/TLS실제CA·Cookie/Origin/revision/restart/SQLite/rotation/logout을보존했다. A imageea79/3cc1snapshot의16.7초PASS는중간증거로따로보존했다.
+
+[최종명세](evidence/issue-866/rework-2-local-validation.json), [B전송검증](evidence/issue-866/rework-2-final-transport.json), [중간A전송](evidence/issue-866/rework-2-intermediate-transport.json), [최종35선정목록](evidence/issue-866/rework-2-browser-selection.txt)을따른다. 이전보조증거와기존tracked캡처는덮어쓰지않았고신규합성캡처는output/playwright/issue-866-rework2에분리했다. details비JSON의별도브라우저주입은이번범위에서미실시이며공유transport/formatterUnit·소비자정적검토의증거로한정한다.
+
+최종문서영향과AC01~09구조검사를재대조한다. riskHIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false유지. 실제독립Agent검토미해결P1/P2=0은인간최종QA/Owner위험수용이아니다. 최신PRHead/Base/test-merge·threads/충돌·새Full Run/attempt는STATUS댓글에기록한다. 새Required3/Trusted/Manager ACCEPT=NOT TESTED, MERGE_READY=BLOCKED다. 요청대로CI시작만확인하고완료모니터링·병합·Main/GHCR/Release/Issue종료는수행하지않는다.

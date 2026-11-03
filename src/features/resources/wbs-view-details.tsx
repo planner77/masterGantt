@@ -6,7 +6,7 @@ import { PhysicalConnectionSources } from "./physical-connection-sources";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { WbsViewDetailsDto, WbsViewNode, WbsViewReportDto } from "@/contracts/wbs-dashboard-views";
 import type { WbsViewScheduleRequest } from "./resource-drill-context";
-import { fetchWbsView } from "./wbs-view-transport";
+import { fetchWbsView, wbsViewErrorMessage } from "./wbs-view-transport";
 import { wbsViewNodeLabel } from "./wbs-view-model";
 import styles from "./wbs-view.module.css";
 let nextWbsDetailConfirmation = 0;
@@ -32,7 +32,7 @@ export function WbsViewDetails({ data, node, locked, onStale, onClose, onIntent,
     queueMicrotask(()=>{if(!controller.signal.aborted){setPending(true); setError(null);}});
     fetchWbsView({projectPublicId:data.projectPublicId, projectRevision:data.projectRevision, input:{spec:data.spec, filters:data.filters, scope:data.sourceContext.scope, projection:{kind:"details",snapshotId:data.snapshotId,path:node.path,view,offset,limit:50}},signal:controller.signal})
       .then(response => { if (!controller.signal.aborted && current === generation.current && response.projection === "details") setResult({key,data:response,owner:data,confirmationId:++nextWbsDetailConfirmation}); })
-      .catch(cause => { if (!controller.signal.aborted && current === generation.current) { setError(cause instanceof Error ? cause.message : "상세 조회에 실패했습니다."); onStale(); } })
+      .catch(cause => { if (!controller.signal.aborted && current === generation.current) { setError(wbsViewErrorMessage(cause, "상세 조회에 실패했습니다.")); onStale(); } })
       .finally(() => { if (!controller.signal.aborted && current === generation.current) setPending(false); });
     return () => controller.abort();
   }, [key, data, node.path, view, offset, onStale]);

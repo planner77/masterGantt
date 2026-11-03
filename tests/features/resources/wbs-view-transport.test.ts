@@ -2,7 +2,7 @@ import { toResourcePublicV2 } from "../../../src/contracts/resource-public-v2";
 import {describe,it,expect,vi,afterEach} from "vitest";
 import {wbsDashboardViewsFixture} from "../../fixtures/wbs-dashboard-views";
 import {defaultWbsViewSpec} from "../../../src/features/resources/wbs-view-model";
-import {readWbsViewResponse,fetchWbsView,type WbsViewFetchOptions} from "../../../src/features/resources/wbs-view-transport";
+import {readWbsViewResponse,fetchWbsView,WbsViewTransportError,wbsViewErrorMessage,type WbsViewFetchOptions} from "../../../src/features/resources/wbs-view-transport";
 import type {WbsViewQueryInput} from "../../../src/contracts/wbs-dashboard-views";
 afterEach(()=>vi.unstubAllGlobals());
 describe("WBS transport production contract",()=>{
@@ -137,4 +137,86 @@ describe("#809 chart analysis transport binding",()=>{
    expect(readWbsViewResponse({data},options)).toBe(data);
   }finally{f.database.close();}
  });
+});
+
+
+describe("WBS transport private upstream failure boundary", () => {
+ const privateProse = "PRIVATE_UPSTREAM_PROSE_866_TRANSPORT_DO_NOT_RENDER";
+ const requestFailure = "조회 요청에 실패했습니다. 다시 시도해 주세요.";
+ const invalidResponse = "조회 응답의 출처가 일치하지 않습니다. 다시 조회해 주세요.";
+ const options: WbsViewFetchOptions = { projectPublicId: "00000000-0000-4000-8000-000000000001", projectRevision: 1, input: { spec: defaultWbsViewSpec("equipment") } };
+
+ it.each([200, 409, 412, 503])("normalizes non-JSON HTTP %i without exposing parser/body prose", async status => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(privateProse, { status })));
+  const error = await fetchWbsView(options).catch(cause => cause);
+  expect(error).toBeInstanceOf(WbsViewTransportError);
+  expect(error).toMatchObject({ code: status === 200 ? "INVALID_RESPONSE" : "REQUEST_FAILED", status, message: status === 200 ? invalidResponse : requestFailure });
+  expect(error.message).not.toContain("PRIVATE_UPSTREAM");
+  expect(error.stack).not.toContain("PRIVATE_UPSTREAM");
+  expect(error).not.toHaveProperty("cause");
+  expect(error.isStale).toBe(status === 409);
+ });
+
+ it("normalizes rejected fetch errors without retaining a nested private cause", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error(privateProse, { cause: { privateBody: privateProse } })));
+  const error = await fetchWbsView(options).catch(cause => cause);
+  expect(error).toBeInstanceOf(WbsViewTransportError);
+  expect(error).toMatchObject({ code: "REQUEST_FAILED", status: 0, message: requestFailure });
+  expect(error.stack).not.toContain(privateProse);
+  expect(error).not.toHaveProperty("cause");
+ });
+
+ it("retains a stale JSON error's code/status while replacing its private prose", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ error: { code: "STALE_SNAPSHOT", message: privateProse } }, { status: 409 })));
+  const error = await fetchWbsView(options).catch(cause => cause);
+  expect(error).toBeInstanceOf(WbsViewTransportError);
+  expect(error).toMatchObject({ code: "STALE_SNAPSHOT", status: 409, isStale: true, message: "요청을 처리하지 못했습니다. 다시 시도해 주세요." });
+  expect(error.message).not.toContain(privateProse);
+ });
+
+ it("preserves a native AbortError rejection", async () => {
+  const abort = new DOMException("Operation aborted", "AbortError");
+  vi.stubGlobal("fetch", vi.fn().mockRejectedValue(abort));
+  await expect(fetchWbsView(options)).rejects.toBe(abort);
+ });
+
+ it("does not fetch when the original signal is already cancelled", async () => {
+  const controller = new AbortController();
+  controller.abort();
+  const fetcher = vi.fn().mockResolvedValue(Response.json({}));
+  vi.stubGlobal("fetch", fetcher);
+  await expect(fetchWbsView({ ...options, signal: controller.signal })).rejects.toBe(controller.signal.reason);
+  expect(fetcher).not.toHaveBeenCalled();
+ });
+
+ it("preserves cancellation when a late non-JSON response arrives", async () => {
+  const controller = new AbortController();
+  let release!: (response: Response) => void;
+  vi.stubGlobal("fetch", vi.fn().mockImplementation(() => new Promise<Response>(resolve => { release = resolve; })));
+  const pending = fetchWbsView({ ...options, signal: controller.signal });
+  controller.abort();
+  release(new Response(privateProse, { status: 503 }));
+  await expect(pending).rejects.toBe(controller.signal.reason);
+ });
+
+ it("preserves cancellation while the response body is being read", async () => {
+  const controller = new AbortController();
+  const response = new Response("{}");
+  vi.spyOn(response, "json").mockImplementation(async () => { controller.abort(); return {}; });
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
+  const error = await fetchWbsView({ ...options, signal: controller.signal }).catch(cause => cause);
+  expect(controller.signal.aborted).toBe(true);
+  expect(error).toBe(controller.signal.reason);
+ });
+});
+
+
+it("uses typed WBS messages only and never exposes unknown UI errors or nested causes", () => {
+ const safe = new WbsViewTransportError("INVALID_RESPONSE", "조회 응답 버전이 일치하지 않습니다.");
+ expect(wbsViewErrorMessage(safe)).toBe("조회 응답 버전이 일치하지 않습니다.");
+ const privateMessage = "PRIVATE_UPSTREAM_PROSE_866_UNKNOWN_UI_DO_NOT_RENDER";
+ for (const cause of [new Error(privateMessage, { cause: new Error(privateMessage) }), new SyntaxError(privateMessage), new DOMException(privateMessage, "AbortError"), { name: "WbsViewTransportError", message: privateMessage }, privateMessage, null, undefined]) {
+  expect(wbsViewErrorMessage(cause)).toBe("조회 요청에 실패했습니다. 다시 시도해 주세요.");
+  expect(wbsViewErrorMessage(cause, "상세 조회에 실패했습니다.")).toBe("상세 조회에 실패했습니다.");
+ }
 });
