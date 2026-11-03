@@ -1,3 +1,7 @@
+## Issue #867 — Project Issue 목록 초기 필터 (2026-11-03)
+
+Project Workspace의 Issue 탭은 환경변수 `PROJECT_ISSUE_DEFAULT_STATUS_FILTER`로 최초/초기화 선택값을 구성한다. `all/open/registered/in_progress/completed` 이외 값과 미설정·빈 값은 `all`(전체)이다. 사용자가 바꾼 필터는 검색·탭 전환으로 자동 초기화하지 않으며 기존 Issue read gate·KPI/삭제 제외 규칙은 유지한다. [Issue 사용자 가이드](PROJECT_ISSUES_USER_GUIDE.md)를 따른다.
+
 ## Issue #854 — 조회 가능한 프로젝트 Issue 등록·Task 연계 편집
 
 공개 프로젝트는 편집 잠금 해제 없이도 **Issue 탭 → Issue 등록**을 허용한다. 비공개 프로젝트는 기존 조회 세션을 유지하고 Issue 등록만으로 일정 수정 권한이 생기지 않는다. Issue 비밀번호/확인·발생일/상태/완료일·Task/리소스 정확 ID·논리 삭제/KPI 계약은 이전과 같다.

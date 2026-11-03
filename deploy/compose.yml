@@ -18,6 +18,8 @@ services:
       ALLOW_INSECURE_HTTP: ${ALLOW_INSECURE_HTTP-false}
       TRUST_PROXY: ${TRUST_PROXY:-false}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Issue 목록의 최초/초기화 필터. 미설정·빈 값은 전체(all). 서버 런타임에서 검사한다.
+      PROJECT_ISSUE_DEFAULT_STATUS_FILTER: "${PROJECT_ISSUE_DEFAULT_STATUS_FILTER:-}"
       # 리소스 카탈로그 관리자 비밀번호는 Docker 배포에서도 필수이며 누락 시 Compose config 단계에서 실패한다.
       RESOURCE_CATALOG_ADMIN_PASSWORD: ${RESOURCE_CATALOG_ADMIN_PASSWORD:?Set RESOURCE_CATALOG_ADMIN_PASSWORD}
       # 물류 유형 글로벌 카탈로그 관리자 bootstrap 비밀번호. 런타임 변경 후에는 DB credential이 우선한다.

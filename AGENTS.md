@@ -1,3 +1,9 @@
+## Issue #867 — .env 기반 프로젝트 Issue 목록 기본 표시 (2026-11-03)
+
+- **현행 후속 계약 (#849의 과거 기본 open 대체):** 서버 런타임 `PROJECT_ISSUE_DEFAULT_STATUS_FILTER`의 허용 값은 `all|open|registered|in_progress|completed`, 미설정·빈 값은 `all`(전체), 잘못된 값도 경고 후 `all` fallback. `open`은 등록+진행 중, `all`은 삭제 제외 전체 ACTIVE(등록/진행 중/완료)다. 이 값은 Project Issue **UI 첫 진입·초기화 기본값**만 제어하며 API에서 status 생략 시 `all`, 업무 상태 3단계/논리 삭제/KPI·권한은 그대로 유지한다.
+- 설정은 `.env.example`과 `deploy/compose.yml`의 선택형 app 환경변수로 제공하며, 서버에서 검증한 enum을 dynamic Project 페이지 → Workspace → Issue 목록에 전달한다. `NEXT_PUBLIC_*` 빌드 고정/클라이언트 `process.env` 직접 읽기를 금지하고, 환경값 변경은 같은 이미지의 컨테이너 재생성 후 적용한다. 수동으로 고른 필터는 일반 검색·탭 전환으로 덮어쓰지 않는다.
+- 구현/테스트/미검증 범위와 문서 동기화는 [#867 Work Packet](docs/exec-plans/active/ISSUE_867.md)을 따른다.
+
 ## Issue #790 / #444 — 최신 Main 캐시 비교기 통합 (2026-10-31)
 
 - **구현 #790 / 상위 #444:** 구버전 [PR #791](https://github.com/planner77/masterGantt/pull/791)의 범위 지정 비교기·음성 테스트를 앱 `0.138.5`, Main `3c73737968dfdbd6817657f3a17bed07c209a528`로 선택 이식했다. 기존 CI/QA/OCI 계약은 유지한다. 이전 앱 `0.130.2`의 성공은 신규 소스의 PASS가 아니며 PR의 canonical 참조는 `Refs #790` 한 건이다. #444는 별도 검증 전까지 `OPEN`이다.

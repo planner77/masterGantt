@@ -1,6 +1,7 @@
 "use client";
 import { ProjectProcessManagement } from "@/features/logistics/project-process-management";
 import { ProjectIssueWorkspace } from "./project-issue-workspace";
+import type { IssueStatusFilter } from "@/contracts/project-issues";
 import { captureCopyViewport, type CanonicalMutationRequest, type CopyViewportContinuity } from "../gantt/viewport/copy-viewport-continuity";
 import type {
   ResourceDrillScopeDto,
@@ -240,15 +241,20 @@ function snapshotFromLinkMutation(value: unknown): ProjectSnapshotResponse | nul
 }
 
 
-type ProjectViewProps = Readonly<{ publicId: string; projectUrl?: string | null; ownerName: string ;
+type ProjectViewProps = Readonly<{
+  publicId: string;
+  projectUrl?: string | null;
+  ownerName: string;
+  issueDefaultStatusFilter: IssueStatusFilter;
 }>;
-export function ProjectReadonlyView({ publicId, projectUrl = null, ownerName }: ProjectViewProps) {
+export function ProjectReadonlyView({ publicId, projectUrl = null, ownerName, issueDefaultStatusFilter }: ProjectViewProps) {
   return <WorkspaceNotifications key={publicId} scope={`프로젝트 ${publicId}`}>
-    <ProjectWorkspace publicId={publicId} projectUrl={projectUrl} ownerName={ownerName} />
+    <ProjectWorkspace publicId={publicId} projectUrl={projectUrl} ownerName={ownerName}
+      issueDefaultStatusFilter={issueDefaultStatusFilter} />
   </WorkspaceNotifications>;
 }
 
-function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectViewProps) {
+function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefaultStatusFilter }: ProjectViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialRootTaskId = searchParams.get("rootTask")?.trim() || null;
@@ -3413,6 +3419,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       <section id="project-panel-issue" role="tabpanel" aria-labelledby="project-tab-issue"
         className="project-workspace-panel project-issue-panel" hidden={activeView !== "issue"}>
         <ProjectIssueWorkspace publicId={publicId} revision={project.revision} tasks={tasks}
+          defaultStatusFilter={issueDefaultStatusFilter}
           active={activeView === "issue"} editable={editing}
           createRequest={taskIssueCreateRequest}
           onCreateFinished={saved => { void finishTaskIssueCreate(saved); }}

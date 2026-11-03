@@ -5,6 +5,7 @@ import { PrivateProjectUnlock } from "@/features/projects/private-project-unlock
 import { ProjectPermissionRecheckBoundary } from "@/features/projects/project-permission-recheck-boundary";
 import { ProjectReadonlyView } from "@/features/projects/project-readonly-view";
 import { getProjectService } from "@/server/projects/project-service";
+import { getProjectIssueDefaultStatusFilter } from "@/server/projects/project-issue-default-filter";
 import { buildProjectShareUrl } from "@/server/projects/project-share-url-core";
 import { projectSessionFromCookie } from "@/server/security/project-read-access-core";
 
@@ -40,7 +41,8 @@ export default async function ProjectPage({ params }: Readonly<{ params: Promise
   const ownerName = snapshot?.data.project.ownerName ?? "미지정";
   return <div className="project-page-shell">
     <ProjectPermissionRecheckBoundary publicId={publicId}>
-      <ProjectReadonlyView key={publicId} publicId={publicId} projectUrl={projectUrl} ownerName={ownerName} />
+      <ProjectReadonlyView key={publicId} publicId={publicId} projectUrl={projectUrl} ownerName={ownerName}
+        issueDefaultStatusFilter={getProjectIssueDefaultStatusFilter()} />
     </ProjectPermissionRecheckBoundary>
   </div>;
 }
