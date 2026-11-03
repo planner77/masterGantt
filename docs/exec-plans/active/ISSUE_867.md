@@ -39,7 +39,7 @@
 - **EXTEND**: 기존 Issue E2E 최초/초기화 단언을 `all`로 전환하고 `open` 수동 필터를 같은 fixture에서 검증. #838–#854의 다른 assertions는 보존.
 - **ADD**: 환경변수 순수 파서와 Compose 런타임 전달 Unit. 기존 Issue 상태/KPI DB 테스트는 변경하지 않는다.
 - **KEEP_UNIQUE**: HTTP/Chromium·SQLite·인증·로그/배포의 독립 위험을 로컬 Unit 성공으로 대체하지 않는다. 테스트 삭제/skip/required gate 완화 금지.
-- 로컬 Node 22/npm/Playwright/Docker 실행 환경 없음: `npm run verify:prepr -- --mode=fast --issue=867 --risk=MEDIUM`, typecheck, lint, Vitest, E2E, compose config 모두 **NOT TESTED**. GitHub CI 결과와 배포 수용을 혼동하지 않는다.
+- 최초 구현 환경에서는 로컬 Node 22/npm/Playwright/Docker 실행 환경이 없어 당시 계획 명령 `npm run verify:prepr -- --mode=fast --issue=867 --risk=MEDIUM`, typecheck, lint, Vitest, E2E, compose config 모두 **NOT TESTED**였다. 위 MEDIUM은 당시 이력이며 현재 위험도는 HIGH다. 재개 환경의 실제 실행 결과와 의존성 차이는 아래 F867-003 절을 따른다.
 
 ## DOCUMENTATION_SYNC
 
@@ -77,5 +77,18 @@
 ## 실행 및 잔여 위험
 
 - API/DB 변화 없이 UI 기본값 구성에 한정. 새 서버용 기본값 파서는 Next 서버 요청에서 평가한다.
-- 코드·테스트·문서의 Git Data API 게시 전에는 로컬 actual Node/Browser 검증 부재를 `NOT TESTED`로 유지한다.
+- 최초 Git Data API 게시 당시 로컬 actual Node/Browser 검증은 `NOT TESTED`였다. 현재 재개 환경의 로컬 실행 여부는 아래 F867-003 절과 원장에 분리한다.
 - PR CI 시작 후 원격 정확 Head/Run/Attempt 확인은 수행하되 **완료 모니터링하지 않는다**. 실패 발생 시 #704에 따라 `docs/ISSUE_867_FAILURE_ANALYSIS.md` 누적 원장을 첫 실패 시 작성한다.
+
+## F867-003 REWORK — 테스트 구문 교정과 최신 검증 (2026-11-03)
+
+- 기준 실패: PR #868 / Head `410de003248c77a53a2520d87944b8a69516c141`, Base `43e97c3a4fd284b09d4c900ff8ab25e7a778c74b`, Test-Merge `8006bd13a62340acbefe8f5b4e481fc983a575f7`, [Full #3465.1 / Run 41583505545.1](https://github.com/planner77/masterGantt/actions/runs/41583505545). 누적 전체 이력·직접/파생 FAIL·SKIPPED·가설/반증은 [동일 실패 원장](../../ISSUE_867_FAILURE_ANALYSIS.md#6-f867-003--full-34651-재실패와-통합-보완-2026-11-03)에 보존한다.
+- 이전 메타데이터 교정은 #3465 Preflight/QA 경로/정책 SUCCESS로 확인했다. 이번 직접 오류는 `tests/server/projects/project-issue-default-filter.test.ts` EOF의 `describe` 호출 종료 누락 하나이며 TypeScript·ESLint·Vitest에 함께 나타났다. 마지막 `}`→`});` 한 줄 수정, 기존 4개 테스트/단언/제품 코드·CI 정책 불변. 기존 suite가 오류를 검출하므로 중복 테스트는 추가하지 않는다(#711).
+- 실제 실행 분담: backend Agent가 위 테스트 파일만 구현·검증, Manager가 원장/본 Packet·GitHub 기록·통합 게시, 별도 qa_docs Agent가 코드/문서/원격 실패를 읽기 전용 사전검토. `issue_comment_writer=manager`; Sub-Agent GitHub 쓰기 없음. 최종 독립 인간 QA나 Owner 수용으로 확대하지 않는다.
+- 동결 source: 수정 테스트 SHA256 `8f30296bfbc9dde70ffd6ba3961fc07b756f9f2f5effbf7a80c4311a7f570034`; 기준 Head에 구문 한 줄을 적용한 제품/테스트는 고정하고 이후 원장/본 Packet만 갱신한다.
+- 로컬 재현 **FAIL**: 직접 Vitest는 수정 전 원격과 동일 `Expected ')' but found EOF`, suite 수집 전 실패. 최소 수정 후 직접 4테스트 **PASS**. 직접+기존 `project-issues.test.ts`/`logging.test.ts`/`deployment-layout.test.ts` **4파일/33테스트 PASS**, 전체 `npm run typecheck` **PASS**, 직접 ESLint **PASS**, 버전 v0.139.1·Markdown393파일 링크·diff 검사 **PASS**. 명령과 선정/음성/제외는 원장 6절 참조.
+- 환경 경계: 현재 Node22.14.0/npm11.10.0, 기존 root 의존성을 worktree symlink로 재사용(커밋 제외). Vitest5.0.0/TS5.8.3/ESLint9.39.5이며 Next16.3.4는 lock16.4.2와 다르다. CI Node22.23.4/npm10.9.9와 구분하고 정확 lock/frozen install·Build/E2E/Docker PASS로 사용하지 않는다. `verify:prepr` fast/diagnose는 미실행이며 로컬 전체 Unit/전체 ESLint·브라우저·컨테이너는 **NOT TESTED**다. 이번 구문 교정 영향에 맞춰 직접/인접/음성 4파일과 전체 TS로 제한했다.
+- 현재 AC 검증 공백: AC1/2의 파서5종/공백·AC3의 원문 미반환·AC6의 Compose 정적 전달은 직접 Unit PASS. 실제 서버 로거 경고(AC3), `open/completed` 구성별 SSR→첫 요청/초기화·선택 유지(AC4/5), 동일 이미지 재생성·SQLite 볼륨 보존(AC6)은 **NOT TESTED**이고 일부는 테스트 미작성이다. 기존 E2E의 `all` 경로만으로 전체 환경 변형 PASS를 주장하지 않는다. AC7 API/삭제/KPI의 로컬 인접 회귀 PASS도 새 exact-head 원격 Required3를 대체하지 않는다.
+- DOCUMENTATION_SYNC: 이번 delta는 테스트 구문과 원장/본 Packet이며 API/DB/아키텍처/보안/UI/운영 설정 계약은 추가 변경 없음. 위 최초 DOCUMENTATION_SYNC는 전체 PR diff의 분류를 유지하며 최신 원장/본 Packet을 함께 게시한다.
+- 운영: PR #868 조사 시 충돌 없음(`mergeable=true`), unresolved review=0; 게시 직전 최신 Head/main/스레드를 재조회한다. Git/gh 로컬 인증 실패로 연결된 Git Data API 방식 B를 사용해 전체 tree·부모와 expected Head를 확인하고 Ref를 한 번 갱신한다. 새 Run/Attempt/Head/Base/Test-Merge는 Issue STATUS에 기록한다.
+- 현재 `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `release_required=true`, `release_authorized=false` 유지. 새 Head Quality/E2E/Docker·Trusted·Manager ACCEPT=**NOT TESTED**, `MERGE_READY=BLOCKED`. 종료점은 새 PR CI 시작이며 모니터링·merge/Main/GHCR/Release/Issue 종료를 수행하지 않는다.

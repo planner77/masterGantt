@@ -31,4 +31,4 @@ describe("Issue #867 운영환경의 UI 기본 상태 필터", () => {
     expect(example).toContain("# PROJECT_ISSUE_DEFAULT_STATUS_FILTER=open");
     expect(compose).not.toContain("NEXT_PUBLIC_PROJECT_ISSUE_DEFAULT_STATUS_FILTER");
   });
-}
+});
