@@ -26,3 +26,34 @@
 - `docs/LLM_CONFIGURATION.md` 신규, Architecture/API/Deployment/Security/Requirements/README/별도 LLM Test Plan/Changelog UPDATED, `.env.example`/Compose UPDATED. DESIGN.md=N/A(LLM UI 없음), DB_SCHEMA=N/A(DB schema 없음), i18n/Issue 가이드=N/A(타 이슈).
 - GitHub connector에서 파일/blob 및 부모 Main/Head를 정적 대조해 분리하나, 실제 독립 소스의 로컬 Vitest/typecheck/Playwright/Docker는 **NOT TESTED**. 원격 PR CI/Trusted/Owner는 이후 exact-Head 결과로만 판정.
 - 기존 #866 누적 실패 원장 `docs/ISSUE_866_FAILURE_ANALYSIS.md`는 #866 PR에 그대로 남기고 #865 독립 PR에 복사하지 않는다. #865에서 별도 CI 실패가 발생할 경우 전용 `docs/ISSUE_865_FAILURE_ANALYSIS.md`를 생성한다.
+
+## TEST_LIFECYCLE_REVIEW
+
+- `tests/server/llm/llm-config.test.ts`, `llm-client.test.ts`, `llm-boundary.test.ts`은 동일 #865 기능의 기존 PR #870 사례를 재사용(KEEP_UNIQUE/ADD). 별도 중복 파일 없이 Config·Client mock·SSRF/보안 경계를 검증한다.
+- 타입/린트/전체 Vitest, E2E8Shard, Docker smoke, 운영 runtime/Compose 및 Gantt/Project 영향은 기존 공식 CI 대상. #871 첫 Full #3476.1은 metadata Preflight에서 차단돼 실행되지 않았으므로 테스트 PASS 0; 후속 exact Head CI에서 직접 검증해야 한다.
+
+## DOCUMENTATION_SYNC
+
+| 대상 | 판정 | 이유 |
+| --- | --- | --- |
+| `.env.example`, `deploy/compose.yml`, `docs/LLM_CONFIGURATION.md` | UPDATED/ADD | runtime provider/model·secret·Compose 연결 |
+| `docs/LLM_TEST_PLAN.md`, 본 Work Packet | ADD/UPDATED | #865 직접/인접/음성 수용 테스트·분리 인계 |
+| `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/SECURITY.md`, `docs/DEPLOYMENT.md` | UPDATED | server-only 경계·비밀정보·no-public-endpoint·운영 |
+| `docs/REQUIREMENTS.md`, `README.md`, `CHANGELOG.md` | UPDATED | #865 기능·버전·사용 안내 |
+| `docs/TEST_PLAN.md` | N/A | 대용량 공통 계획 원문 변경 없이 #865 전용 LLM Test Plan과 본 Work Packet에 coverage 기록 |
+| `DESIGN.md`, `docs/DB_SCHEMA.md`, `docs/PROJECT_UX.md` | N/A | UI·DB·Project 화면 비변경 |
+| `docs/ISSUE_865_FAILURE_ANALYSIS.md` | ADD | #871 Full #3476.1 사전 정책 실패부터 누적 기록 |
+
+## AC_TEST_COVERAGE
+
+| 이슈 #865 AC | 이식한 구현 및 검증 파일 | 신규 독립 원격 증거 |
+| --- | --- | --- |
+| AC1 다중 provider · AC2 provider 내 복수 model · AC3 defaults/override/unknown | `config-core.ts`, `llm-config.test.ts`, `llm-client.test.ts` | #3476.1 Preflight 조기 FAIL, 직접 테스트 NOT TESTED |
+| AC4 OpenAI-compatible HTTP mock·timeout/abort · AC5 기본 OFF/연결0 | `client-core.ts`, `transport-core.ts`, `llm-client.test.ts` | NOT TESTED |
+| AC6 DNS/사설망/redirect/secret/client import 차단 | `transport-core.ts`, `types.ts`, `llm-boundary.test.ts`, `llm-client.test.ts` | NOT TESTED |
+| AC7 Compose runtime·no DB disruption | `.env.example`, `deploy/compose.yml`, `docs/LLM_CONFIGURATION.md` | NOT TESTED |
+| AC8 문서·성능·기존 Quality/E2E/Docker · AC9 공개 AI UI/API 없음 | `index.ts`, 전용문서와 파일 경계 감사, 기존 CI 필수 Job | #3476.1 metadata PASS 전 막힘, 재검증 예정 |
+
+## PR #871 / 첫 Full #3476.1 — 메타데이터 재작업
+
+[Run41741295176](https://github.com/planner77/masterGantt/actions/runs/41741295176) attempt1, Head `b3c693c895f9452dd35ac19920e593b23b1fdcb6`, Base `352a43e74c7b34c72d952f67783a53463f8b519d`. QA Preflight Job126283300587와 QA Trust Job126283170236가 PR 본문 `risk_level/qa_method/qa_required`의 파서 허용 구문 누락, Work Packet `## DOCUMENTATION_SYNC` 누락으로 실제 FAIL. Quality/E2E/Docker 집계 실패는 Preflight가 선행 Job을 SKIP한 파생이며 LLM 코드·네트워크·제품 테스트가 실패했다는 뜻이 아니다. 원본은 [별도 누적 원장](../../ISSUE_865_FAILURE_ANALYSIS.md)에 보존한다. 안전하게 PR metadata 형식을 정정하고 이 Work Packet·원장을 갱신하되 gate/승인 정책 완화 없음.
