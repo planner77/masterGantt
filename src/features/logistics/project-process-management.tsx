@@ -86,7 +86,7 @@ export function LegacyProjectProcessManagement({ publicId, revision, editable, a
     finally { pending.current = false; setBusy(false); }
   }
   return <section className={styles.section} aria-labelledby="project-process-mapping-title" aria-busy={busy} hidden={!active}>
-    <div className={styles.heading}><h2 id="project-process-mapping-title">{t("공정 &amp; 작업 구역 관리")}</h2><button type="button" className="secondary-button" disabled={busy || externalBusy} onClick={() => { setError(null); setNotice(null); void loadContext().catch(() => setError("현장 공정 정보를 불러오지 못했습니다.")); }}>{t("현장 공정 다시 불러오기")}</button></div>
+    <div className={styles.heading}><h2 id="project-process-mapping-title">{t("공정 & 작업 구역 관리")}</h2><button type="button" className="secondary-button" disabled={busy || externalBusy} onClick={() => { setError(null); setNotice(null); void loadContext().catch(() => setError("현장 공정 정보를 불러오지 못했습니다.")); }}>{t("현장 공정 다시 불러오기")}</button></div>
     <p className={styles.note}>{t("프로젝트 공정은 아래 목록에서 관리합니다. 현장 공정 연결은 프로젝트 편집 권한으로, 공용 기준정보는 별도 관리자 권한으로 저장합니다.")}</p>
     {error ? <p role="alert" className={styles.error}>{t(error ?? "")}</p> : null}{notice ? <p role="status">{t(notice ?? "")}</p> : null}
     {!context ? <p role="status">{t("현장 공정 정보를 불러오는 중이거나 사용할 수 없습니다.")}</p> : <>

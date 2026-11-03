@@ -1,0 +1,343 @@
+{
+  "schema": "mastergantt-entity-audit:v1",
+  "reviewedHead": "bfe2362a9b0d79128c4fd7e2e97a69f3e699f2d9",
+  "baselineMain": "352a43e74c7b34c72d952f67783a53463f8b519d",
+  "readOnly": true,
+  "counts": {
+    "translation-js-string": 5,
+    "catalog-key": 7,
+    "catalog-value": 4,
+    "intentional-xml-serializer": 14
+  },
+  "findings": [
+    {
+      "file": "src/features/logistics/project-logistics-management.tsx",
+      "line": 569,
+      "category": "translation-js-string",
+      "text": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.",
+      "decoded": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요."
+    },
+    {
+      "file": "src/features/logistics/project-logistics-management.tsx",
+      "line": 644,
+      "category": "translation-js-string",
+      "text": "공정 &amp; 작업 구역 관리",
+      "decoded": "공정 & 작업 구역 관리"
+    },
+    {
+      "file": "src/features/logistics/project-logistics-management.tsx",
+      "line": 646,
+      "category": "translation-js-string",
+      "text": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.",
+      "decoded": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요."
+    },
+    {
+      "file": "src/features/logistics/project-logistics-management.tsx",
+      "line": 725,
+      "category": "translation-js-string",
+      "text": "설비를 추가하려면 기준정보의 공정&amp;WorkArea에서 주 관리 공정을 먼저 등록해 주세요.",
+      "decoded": "설비를 추가하려면 기준정보의 공정&WorkArea에서 주 관리 공정을 먼저 등록해 주세요."
+    },
+    {
+      "file": "src/features/logistics/project-process-management.tsx",
+      "line": 89,
+      "category": "translation-js-string",
+      "text": "공정 &amp; 작업 구역 관리",
+      "decoded": "공정 & 작업 구역 관리"
+    },
+    {
+      "file": "src/lib/i18n/catalogs/domains.ts",
+      "line": 971,
+      "category": "catalog-key",
+      "text": "공정 &amp; 작업 구역 관리",
+      "decoded": "공정 & 작업 구역 관리",
+      "catalogKey": "공정 &amp; 작업 구역 관리",
+      "hasDecodedSibling": true,
+      "sameTranslationAsDecodedSibling": true
+    },
+    {
+      "file": "src/lib/i18n/catalogs/domains.ts",
+      "line": 5431,
+      "category": "catalog-key",
+      "text": "설비를 추가하려면 기준정보의 공정&amp;WorkArea에서 주 관리 공정을 먼저 등록해 주세요.",
+      "decoded": "설비를 추가하려면 기준정보의 공정&WorkArea에서 주 관리 공정을 먼저 등록해 주세요.",
+      "catalogKey": "설비를 추가하려면 기준정보의 공정&amp;WorkArea에서 주 관리 공정을 먼저 등록해 주세요.",
+      "hasDecodedSibling": false,
+      "sameTranslationAsDecodedSibling": null
+    },
+    {
+      "file": "src/lib/i18n/catalogs/domains.ts",
+      "line": 5623,
+      "category": "catalog-key",
+      "text": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.",
+      "decoded": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요.",
+      "catalogKey": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.",
+      "hasDecodedSibling": false,
+      "sameTranslationAsDecodedSibling": null
+    },
+    {
+      "file": "src/lib/i18n/catalogs/shell.ts",
+      "line": 2863,
+      "category": "catalog-key",
+      "text": " &gt; Milestone 예정 ",
+      "decoded": " > Milestone 예정 ",
+      "catalogKey": " &gt; Milestone 예정 ",
+      "hasDecodedSibling": true,
+      "sameTranslationAsDecodedSibling": true
+    },
+    {
+      "file": "src/lib/i18n/catalogs/shell.ts",
+      "line": 3455,
+      "category": "catalog-key",
+      "text": "등록된 공정이 없습니다. 기준정보 → 공정&amp;WorkArea에서 공정을 등록해 주세요.",
+      "decoded": "등록된 공정이 없습니다. 기준정보 → 공정&WorkArea에서 공정을 등록해 주세요.",
+      "catalogKey": "등록된 공정이 없습니다. 기준정보 → 공정&amp;WorkArea에서 공정을 등록해 주세요.",
+      "hasDecodedSibling": true,
+      "sameTranslationAsDecodedSibling": false
+    },
+    {
+      "file": "src/lib/i18n/catalogs/shell.ts",
+      "line": 3456,
+      "category": "catalog-value",
+      "text": "No processes are registered. Register processes under Master data → Processes &amp; WorkArea.",
+      "decoded": "No processes are registered. Register processes under Master data → Processes & WorkArea.",
+      "catalogKey": "등록된 공정이 없습니다. 기준정보 → 공정&amp;WorkArea에서 공정을 등록해 주세요."
+    },
+    {
+      "file": "src/lib/i18n/catalogs/shell.ts",
+      "line": 3457,
+      "category": "catalog-value",
+      "text": "Chưa có công đoạn nào được đăng ký. Hãy đăng ký tại Dữ liệu danh mục → Công đoạn &amp; WorkArea.",
+      "decoded": "Chưa có công đoạn nào được đăng ký. Hãy đăng ký tại Dữ liệu danh mục → Công đoạn & WorkArea.",
+      "catalogKey": "등록된 공정이 없습니다. 기준정보 → 공정&amp;WorkArea에서 공정을 등록해 주세요."
+    },
+    {
+      "file": "src/lib/i18n/catalogs/shell.ts",
+      "line": 3467,
+      "category": "catalog-key",
+      "text": "등록된 작업 구역이 없습니다. 구역 없이 공정을 선택하거나 기준정보 → 공정&amp;WorkArea에서 구역을 등록해 주세요.",
+      "decoded": "등록된 작업 구역이 없습니다. 구역 없이 공정을 선택하거나 기준정보 → 공정&WorkArea에서 구역을 등록해 주세요.",
+      "catalogKey": "등록된 작업 구역이 없습니다. 구역 없이 공정을 선택하거나 기준정보 → 공정&amp;WorkArea에서 구역을 등록해 주세요.",
+      "hasDecodedSibling": true,
+      "sameTranslationAsDecodedSibling": false
+    },
+    {
+      "file": "src/lib/i18n/catalogs/shell.ts",
+      "line": 3468,
+      "category": "catalog-value",
+      "text": "No work areas are registered. Select processes without an area, or register an area under Master data → Processes &amp; WorkArea.",
+      "decoded": "No work areas are registered. Select processes without an area, or register an area under Master data → Processes & WorkArea.",
+      "catalogKey": "등록된 작업 구역이 없습니다. 구역 없이 공정을 선택하거나 기준정보 → 공정&amp;WorkArea에서 구역을 등록해 주세요."
+    },
+    {
+      "file": "src/lib/i18n/catalogs/shell.ts",
+      "line": 3469,
+      "category": "catalog-value",
+      "text": "Chưa có khu vực làm việc nào được đăng ký. Hãy chọn công đoạn không kèm khu vực hoặc đăng ký khu vực tại Dữ liệu danh mục → Công đoạn &amp; WorkArea.",
+      "decoded": "Chưa có khu vực làm việc nào được đăng ký. Hãy chọn công đoạn không kèm khu vực hoặc đăng ký khu vực tại Dữ liệu danh mục → Công đoạn & WorkArea.",
+      "catalogKey": "등록된 작업 구역이 없습니다. 구역 없이 공정을 선택하거나 기준정보 → 공정&amp;WorkArea에서 구역을 등록해 주세요."
+    },
+    {
+      "file": "src/lib/i18n/catalogs/shell.ts",
+      "line": 4651,
+      "category": "catalog-key",
+      "text": "&gt; Milestone 예정",
+      "decoded": "> Milestone 예정",
+      "catalogKey": "&gt; Milestone 예정",
+      "hasDecodedSibling": true,
+      "sameTranslationAsDecodedSibling": true
+    },
+    {
+      "file": "src/server/exports/project-excel-export-core.ts",
+      "line": 95,
+      "category": "intentional-xml-serializer",
+      "text": "&amp;",
+      "decoded": "&"
+    },
+    {
+      "file": "src/server/exports/project-excel-export-core.ts",
+      "line": 96,
+      "category": "intentional-xml-serializer",
+      "text": "&lt;",
+      "decoded": "<"
+    },
+    {
+      "file": "src/server/exports/project-excel-export-core.ts",
+      "line": 97,
+      "category": "intentional-xml-serializer",
+      "text": "&gt;",
+      "decoded": ">"
+    },
+    {
+      "file": "src/server/exports/project-excel-export-core.ts",
+      "line": 98,
+      "category": "intentional-xml-serializer",
+      "text": "&quot;",
+      "decoded": "\""
+    },
+    {
+      "file": "src/server/exports/project-excel-export-core.ts",
+      "line": 99,
+      "category": "intentional-xml-serializer",
+      "text": "&apos;",
+      "decoded": "'"
+    },
+    {
+      "file": "src/server/exports/project-svg-export-core.ts",
+      "line": 51,
+      "category": "intentional-xml-serializer",
+      "text": "&amp;",
+      "decoded": "&"
+    },
+    {
+      "file": "src/server/exports/project-svg-export-core.ts",
+      "line": 52,
+      "category": "intentional-xml-serializer",
+      "text": "&lt;",
+      "decoded": "<"
+    },
+    {
+      "file": "src/server/exports/project-svg-export-core.ts",
+      "line": 53,
+      "category": "intentional-xml-serializer",
+      "text": "&gt;",
+      "decoded": ">"
+    },
+    {
+      "file": "src/server/exports/project-svg-export-core.ts",
+      "line": 54,
+      "category": "intentional-xml-serializer",
+      "text": "&quot;",
+      "decoded": "\""
+    },
+    {
+      "file": "src/server/exports/project-svg-export-core.ts",
+      "line": 55,
+      "category": "intentional-xml-serializer",
+      "text": "&apos;",
+      "decoded": "'"
+    },
+    {
+      "file": "src/server/exports/resource-excel-export-core.ts",
+      "line": 165,
+      "category": "intentional-xml-serializer",
+      "text": "&amp;",
+      "decoded": "&"
+    },
+    {
+      "file": "src/server/exports/resource-excel-export-core.ts",
+      "line": 165,
+      "category": "intentional-xml-serializer",
+      "text": "&quot;",
+      "decoded": "\""
+    },
+    {
+      "file": "src/server/exports/resource-excel-export-core.ts",
+      "line": 165,
+      "category": "intentional-xml-serializer",
+      "text": "&lt;",
+      "decoded": "<"
+    },
+    {
+      "file": "src/server/exports/resource-excel-export-core.ts",
+      "line": 165,
+      "category": "intentional-xml-serializer",
+      "text": "&gt;",
+      "decoded": ">"
+    }
+  ],
+  "baselineComparison": [
+    {
+      "file": "src/features/logistics/project-process-management.tsx",
+      "line": 83,
+      "category": "valid-original-jsx-entity",
+      "source": "<div className={styles.heading}><h2 id=\"project-process-mapping-title\">공정 &amp; 작업 구역 관리</h2><button type=\"button\" className=\"secondary-button\" disabled={busy || externalBusy} onClick={() => { setError(null); setNotice(null); void loadContext().catch(() => setError(\"현장 공정 정보를 불러오지 못했습니다.\")); }}>현장 공정 다시 불러오기</button></div>"
+    },
+    {
+      "file": "src/features/logistics/project-logistics-management.tsx",
+      "line": 563,
+      "category": "valid-original-jsx-entity",
+      "source": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요."
+    },
+    {
+      "file": "src/features/logistics/project-logistics-management.tsx",
+      "line": 645,
+      "category": "valid-original-jsx-entity",
+      "source": "{activeSubTab === \"processes\" ? <h2>공정 &amp; 작업 구역 관리</h2> : null}"
+    },
+    {
+      "file": "src/features/logistics/project-logistics-management.tsx",
+      "line": 647,
+      "category": "valid-original-jsx-entity",
+      "source": "{embeddedMaster && !editable ? <p className={styles.readonlyNotice}>조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.</p> : null}"
+    },
+    {
+      "file": "src/features/logistics/project-logistics-management.tsx",
+      "line": 730,
+      "category": "valid-original-jsx-entity",
+      "source": "{editable && activeSubTab === \"equipment\" && logistics.processes.length === 0 ? <p className={styles.workAreaHint}>설비를 추가하려면 기준정보의 공정&amp;WorkArea에서 주 관리 공정을 먼저 등록해 주세요.</p> : null}"
+    },
+    {
+      "file": "src/features/gantt/task-process-context-editor.tsx",
+      "line": 108,
+      "category": "valid-original-jsx-entity",
+      "source": "{!snapshot.logistics.processes.length ? <p className={styles.emptyRelation}>등록된 공정이 없습니다. 기준정보 → 공정&amp;WorkArea에서 공정을 등록해 주세요.</p> : null}"
+    },
+    {
+      "file": "src/features/gantt/task-process-context-editor.tsx",
+      "line": 117,
+      "category": "valid-original-jsx-entity",
+      "source": "{selected ? <div className={styles.contextAreas}>{!ownerAreas.length ? <p className={styles.note}>등록된 작업 구역이 없습니다. 구역 없이 공정을 선택하거나 기준정보 → 공정&amp;WorkArea에서 구역을 등록해 주세요.</p> : null}{ownerAreas.map(area => { const chosen = areas?.find(row => row.processId === process.id && row.workAreaId === area.id); return <div className={styles.contextRow} key={area.id}><label><input type=\"checkbox\" disabled={!canEdit || (!chosen && (!area.active || !areaEligible))} checked={!!chosen} onChange={() => change(processes ?? [], chosen ? (areas ?? []).filter(row => row !== chosen) : [...(areas ?? []), { processId: process.id, workAreaId: area.id, scope: \"self\" }])}/><span>{area.name}{area.source === \"legacy\" ? \" · 기존 공유 구역\" : \"\"} <small>{area.code}</small>{!area.active ? \" · 비활성\" : \"\"}</span></label>{chosen && taskType === \"summary\" ? <label><input type=\"checkbox\" aria-label={`${process.name} ${area.name} 작업 구역 하위 작업 포함`} disabled={!canEdit || (chosen.scope !== \"subtree\" && selected.scope !== \"subtree\")} checked={chosen.scope === \"subtree\"} onChange={() => change(processes ?? [], (areas ?? []).map(row => row === chosen ? { ...row, scope: row.scope === \"self\" ? \"subtree\" : \"self\" } : row))}/>하위 작업 포함 (공정도 하위 적용 필요)</label> : null}</div>; })}</div> : null}"
+    },
+    {
+      "file": "src/features/milestones/project-milestone-stage-table.tsx",
+      "line": 106,
+      "category": "valid-original-jsx-entity",
+      "source": "{row.risks.length ? <ul>{row.risks.map((risk) => <li key={risk.taskId}>{risk.name}: 작업 종료 {risk.end} &gt; Milestone 예정 {risk.scheduledDate}</li>)}</ul> : null}"
+    }
+  ],
+  "coverageGap": "The existing source coverage test checks exact raw key registration, not JSX/JavaScript decoding semantics; encoded keys are registered alongside decoded aliases and pass. Catalog bodies are skipped during source recursion.",
+  "compilerSemantics": {
+    "originalJsx": "\"use strict\";\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar jsx_runtime_1 = require(\"react/jsx-runtime\");\n(0, jsx_runtime_1.jsx)(\"h2\", { children: \"\\uACF5\\uC815 & \\uC791\\uC5C5 \\uAD6C\\uC5ED \\uAD00\\uB9AC\" });",
+    "convertedJsString": "\"use strict\";\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar jsx_runtime_1 = require(\"react/jsx-runtime\");\n(0, jsx_runtime_1.jsx)(\"h2\", { children: t(\"공정 &amp; 작업 구역 관리\") });",
+    "validLocalizedJsxAttribute": "\"use strict\";\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar jsx_runtime_1 = require(\"react/jsx-runtime\");\n(0, jsx_runtime_1.jsx)(LocalizedText, { text: \"A & B\" });",
+    "invalidLocalizedJsExpression": "\"use strict\";\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar jsx_runtime_1 = require(\"react/jsx-runtime\");\n(0, jsx_runtime_1.jsx)(LocalizedText, { text: \"A &amp; B\" });"
+  },
+  "directE2eConsumers": [
+    {
+      "file": "tests/e2e/issue-725-process-workareas.spec.ts",
+      "lines": [
+        119
+      ],
+      "reason": "Decoded process/work-area heading expected in first integration case."
+    },
+    {
+      "file": "tests/e2e/project-logistics-management.spec.ts",
+      "lines": [
+        294,
+        461,
+        813
+      ],
+      "reason": "Decoded apostrophe readonly notices and process/work-area heading."
+    }
+  ],
+  "adjacentE2eConsumers": [
+    {
+      "file": "tests/e2e/issue-762-process-workareas.spec.ts",
+      "reason": "Same process/work-area management host and authorization layout."
+    },
+    {
+      "file": "tests/e2e/project-task-editor.spec.ts",
+      "reason": "Already decoded empty process/work-area help calls; ensure catalog alias cleanup retains current outputs."
+    },
+    {
+      "file": "tests/e2e/milestone-stage-dashboard.spec.ts",
+      "reason": "Stage risk summary already uses decoded greater-than text; remove only stale encoded catalog aliases."
+    }
+  ],
+  "recommendedNegativeBoundary": [
+    "Do not decode arbitrary user-provided names/descriptions at runtime.",
+    "Preserve legitimate JSXText/JSX attribute entity compilation.",
+    "Preserve XML export replacement strings and escaping tests."
+  ]
+}

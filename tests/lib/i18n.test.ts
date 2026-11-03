@@ -74,6 +74,30 @@ describe("display language registry and catalogs", () => {
     expect(translate("en", "{name} 복사 대상으로 선택", { name: "<script>alert(1)</script>" })).toBe("Select <script>alert(1)</script> for copying");
   });
 
+  it("uses plain process headings, readonly apostrophes and setup hints in all display languages", () => {
+    const heading = "공정 & 작업 구역 관리";
+    const readonly = "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요.";
+    const hint = "설비를 추가하려면 기준정보의 공정&WorkArea에서 주 관리 공정을 먼저 등록해 주세요.";
+    const expected = {
+      ko: [heading, readonly, hint],
+      en: ["Process & WorkArea management", "Read-only mode. Unlock editing at the top of the workspace to make changes.", "Before adding equipment, register its primary process under Master data → Process & WorkArea."],
+      vi: ["Quản lý công đoạn và khu vực làm việc", "Chế độ chỉ đọc. Mở khóa chỉnh sửa ở đầu không gian làm việc để thay đổi.", "Trước khi thêm thiết bị, đăng ký công đoạn chính tại Danh mục → Công đoạn & Khu vực."],
+    };
+    for (const locale of SUPPORTED_LOCALES) {
+      expect([heading, readonly, hint].map(key => translate(locale, key))).toEqual(expected[locale]);
+    }
+  });
+
+  it("preserves authored entity spelling in unknown text, display names and interpolation", () => {
+    const authored = "Tên &amp; 사용자 &gt; literal &apos; unchanged";
+    for (const locale of SUPPORTED_LOCALES) {
+      expect(translate(locale, authored)).toBe(authored);
+      expect(displayName({ name: authored }, locale)).toBe(authored);
+      expect(displayName({ name: "Original", translations: { [locale]: authored } }, locale)).toBe(authored);
+      expect(translate(locale, "{name} 복사 대상으로 선택", { name: authored })).toContain(authored);
+    }
+  });
+
   it("uses only the selected name translation and otherwise preserves the exact original", () => {
     const item = { name: "  조립 & Assembly  ", translations: { en: "Assembly", vi: "" } };
     expect(displayName(item, "en")).toBe("Assembly");

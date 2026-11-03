@@ -968,10 +968,6 @@ export const domainsMessages = {
     "en": "Global logistics administrator authority is required, separate from project editing.",
     "vi": "Cần quyền quản trị logistics toàn cục, độc lập với quyền chỉnh sửa dự án."
   },
-  "공정 &amp; 작업 구역 관리": {
-    "en": "Process & WorkArea management",
-    "vi": "Quản lý công đoạn và khu vực làm việc"
-  },
   "공정 & 작업 구역 관리": {
     "en": "Process & WorkArea management",
     "vi": "Quản lý công đoạn và khu vực làm việc"
@@ -5428,10 +5424,6 @@ export const domainsMessages = {
     "en": "Opens the selected WorkArea source. Shared master-data changes require separate administrator authentication.",
     "vi": "Mở nguồn khu vực đã chọn. Sửa danh mục dùng chung cần xác thực quản trị riêng."
   },
-  "설비를 추가하려면 기준정보의 공정&amp;WorkArea에서 주 관리 공정을 먼저 등록해 주세요.": {
-    "en": "Before adding equipment, register its primary process under Master data → Process & WorkArea.",
-    "vi": "Trước khi thêm thiết bị, đăng ký công đoạn chính tại Danh mục → Công đoạn & Khu vực."
-  },
   "속성은 필터 초안입니다. 적용하면 서버의 Task·공수 조회 범위도 변경됩니다. 저장·복원은 선택된 시스템을 유지하며, 초안은 다시 선택할 수 있습니다.": {
     "en": "Attributes are filter drafts. Applying also changes server Task/effort query scope. Saving/restoring retains selected systems; draft selections can be changed again.",
     "vi": "Thuộc tính là bản nháp bộ lọc. Áp dụng cũng đổi phạm vi truy vấn Task/công sức máy chủ. Lưu/khôi phục giữ hệ thống đã chọn; có thể chọn lại bản nháp."
@@ -5619,10 +5611,6 @@ export const domainsMessages = {
   "조회 snapshot이 바뀌어 이전 진단 이동을 차단했습니다. 현재 목록에서 다시 선택하세요.": {
     "en": "Query snapshot changed; previous diagnostic navigation was blocked. Select again from the current list.",
     "vi": "Snapshot truy vấn đã đổi; chặn chuyển theo chẩn đoán trước. Chọn lại từ danh sách hiện tại."
-  },
-  "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.": {
-    "en": "Read-only mode. Unlock editing at the top of the workspace to make changes.",
-    "vi": "Chế độ chỉ đọc. Mở khóa chỉnh sửa ở đầu không gian làm việc để thay đổi."
   },
   "조회 조건 또는 원본 snapshot이 바뀌었습니다. 새로고침 후 다시 선택하세요.": {
     "en": "Filters or source snapshot changed. Refresh and select again.",
@@ -5831,5 +5819,13 @@ export const domainsMessages = {
   "선택 할당 작업 진척": {
     "en": "Selected assignment Task progress",
     "vi": "Tiến độ Task theo phân công đã chọn"
+  },
+  "설비를 추가하려면 기준정보의 공정&WorkArea에서 주 관리 공정을 먼저 등록해 주세요.": {
+    "en": "Before adding equipment, register its primary process under Master data → Process & WorkArea.",
+    "vi": "Trước khi thêm thiết bị, đăng ký công đoạn chính tại Danh mục → Công đoạn & Khu vực."
+  },
+  "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요.": {
+    "en": "Read-only mode. Unlock editing at the top of the workspace to make changes.",
+    "vi": "Chế độ chỉ đọc. Mở khóa chỉnh sửa ở đầu không gian làm việc để thay đổi."
   }
 } as const;

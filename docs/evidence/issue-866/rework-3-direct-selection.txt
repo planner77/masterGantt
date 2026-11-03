@@ -1,0 +1,8 @@
+Listing tests:
+  [chromium] › issue-725-process-workareas.spec.ts:98:5 › #725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연결·재조회·해제·재시작
+  [chromium] › issue-725-process-workareas.spec.ts:374:5 › #725 비활성 기본 구역과 중복 occurrence 매핑에서도 활성 구역 단일 owner 선택·저장
+  [chromium] › project-logistics-management.spec.ts:222:7 › Issue #186 물류 구성 탭 및 관리 화면 (LG-03) › #726 설비 유형 조회 중·실패·빈 목록은 이유와 초안을 유지하고 readonly는 추가를 숨긴다
+  [chromium] › project-logistics-management.spec.ts:302:7 › Issue #186 물류 구성 탭 및 관리 화면 (LG-03) › 물류 구성 탭 전환 시 Gantt 인스턴스가 유지되고 공정/설비/시스템/연계 화면이 표시된다
+  [chromium] › project-logistics-management.spec.ts:450:7 › Issue #186 물류 구성 탭 및 관리 화면 (LG-03) › Readonly 모드에서는 생성/수정/삭제 버튼을 숨기고 좁은 화면의 안내·도움말·표 스크롤을 유지한다
+  [chromium] › project-logistics-management.spec.ts:836:7 › Issue #186 물류 구성 탭 및 관리 화면 (LG-03) › 반응형 5개 폭(390, 768, 1024, 1440, 1920px)에서 공용 shell·공정 추가 모달과 문서에 가로 overflow가 없다
+Total: 6 tests in 2 files

@@ -477,6 +477,40 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     expect(geometry.tableWidth).toBeGreaterThan(geometry.ownerWidth);
     expect(geometry.scrollWidth).toBeGreaterThan(geometry.ownerWidth);
 
+    const languageWrites: string[] = [];
+    const trackLanguageWrites = (request: import("@playwright/test").Request) => {
+      if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && new URL(request.url()).pathname.startsWith(`/api/projects/${publicId}`)) languageWrites.push(request.method());
+    };
+    const retainedGantt = page.locator(".project-gantt-frame[data-project-gantt-instance]");
+    await expect(retainedGantt).toHaveCount(1);
+    await expect(retainedGantt).toHaveAttribute("data-project-gantt-instance", /\S+/);
+    await expect(retainedGantt).toHaveAttribute("data-project-gantt-api-instance", /\S+/);
+    const ganttElement = await retainedGantt.elementHandle();
+    const identity = {
+      instanceId: await retainedGantt.getAttribute("data-project-gantt-instance"),
+      apiId: await retainedGantt.getAttribute("data-project-gantt-api-instance"),
+    };
+    const revision = fixture.project.revision;
+    page.on("request", trackLanguageWrites);
+    for (const [locale, notice] of [
+      ["en", "Read-only mode. Unlock editing at the top of the workspace to make changes."],
+      ["vi", "Chế độ chỉ đọc. Mở khóa chỉnh sửa ở đầu không gian làm việc để thay đổi."],
+      ["ko", "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요."],
+    ]) {
+      await page.getByRole("combobox", { name: /^(표시 언어|Display language|Ngôn ngữ hiển thị)$/ }).first().selectOption(locale);
+      await expect(page.getByText(notice, { exact: true })).toBeVisible();
+      await expect(page.getByText(notice, { exact: true })).not.toContainText("&apos;");
+      await expect(retainedGantt).toHaveAttribute("data-project-gantt-instance", identity.instanceId!);
+      await expect(retainedGantt).toHaveAttribute("data-project-gantt-api-instance", identity.apiId!);
+      expect(await retainedGantt.evaluate((element, original) => element === original, ganttElement)).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+      await page.screenshot({ path: test.info().outputPath(`readonly-notice-${locale}.png`), fullPage: true });
+    }
+    page.off("request", trackLanguageWrites);
+    expect(languageWrites).toEqual([]);
+    expect(fixture.project.revision).toBe(revision);
+    expect(fixture.sessionEditable).toBe(false);
+
     // Ensure + 공정 추가 button is not rendered
     await expect(page.getByRole("button", { name: "+ 공정 추가" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "+ 설비 추가" })).toHaveCount(0);

@@ -16,6 +16,8 @@
 
 - 국가 캘린더 미확보 안내의 국가·연도와 Preview 상태 번역을 보존하고, WBS의 비JSON·네트워크 오류 본문이 dashboard/details에 노출되지 않도록 보완한다.
 
+- 정적 국제화 문자열의 HTML entity 잔존으로 공정 제목·조회 전용 안내가 원문과 다르게 표시되던 문제를 교정하고, 사전 alias와 실제 표시 의미의 회귀 검사를 강화한다.
+
 ### 검증·릴리스 경계
 
 - 실제 로컬 결과·최초 실패/보완·운영 미검증은 [Work Packet](docs/exec-plans/active/ISSUE_866.md)과 [누적 원장](docs/ISSUE_866_FAILURE_ANALYSIS.md)을 따른다. 신규 Head의 Quality/E2E/Docker·Trusted·Owner/Manager 최종 승인은 NOT TESTED. release_required=true/release_authorized=false이며 PR CI 시작까지만 수행한다.

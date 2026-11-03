@@ -2860,10 +2860,6 @@ export const shellMessages = {
     "en": ": Task end ",
     "vi": ": Ngày kết thúc công việc "
   },
-  " &gt; Milestone 예정 ": {
-    "en": " > Milestone scheduled ",
-    "vi": " > Ngày dự kiến Milestone "
-  },
   "Milestone으로 변경": {
     "en": "Convert to Milestone",
     "vi": "Chuyển thành Milestone"
@@ -3452,10 +3448,6 @@ export const shellMessages = {
     "en": "Explicitly set zero processes",
     "vi": "Đặt rõ ràng không có công đoạn"
   },
-  "등록된 공정이 없습니다. 기준정보 → 공정&amp;WorkArea에서 공정을 등록해 주세요.": {
-    "en": "No processes are registered. Register processes under Master data → Processes &amp; WorkArea.",
-    "vi": "Chưa có công đoạn nào được đăng ký. Hãy đăng ký tại Dữ liệu danh mục → Công đoạn &amp; WorkArea."
-  },
   "{value0} 공정 하위 작업 포함": {
     "en": "Include descendants for {value0} process",
     "vi": "Bao gồm tác vụ con cho công đoạn {value0}"
@@ -3463,10 +3455,6 @@ export const shellMessages = {
   "이 작업만": {
     "en": "This task only",
     "vi": "Chỉ tác vụ này"
-  },
-  "등록된 작업 구역이 없습니다. 구역 없이 공정을 선택하거나 기준정보 → 공정&amp;WorkArea에서 구역을 등록해 주세요.": {
-    "en": "No work areas are registered. Select processes without an area, or register an area under Master data → Processes &amp; WorkArea.",
-    "vi": "Chưa có khu vực làm việc nào được đăng ký. Hãy chọn công đoạn không kèm khu vực hoặc đăng ký khu vực tại Dữ liệu danh mục → Công đoạn &amp; WorkArea."
   },
   " · 기존 공유 구역": {
     "en": " · Existing shared area",
@@ -4647,10 +4635,6 @@ export const shellMessages = {
   ": 작업 종료": {
     "en": ": Task end ",
     "vi": ": Ngày kết thúc công việc "
-  },
-  "&gt; Milestone 예정": {
-    "en": " > Milestone scheduled ",
-    "vi": " > Ngày dự kiến Milestone "
   },
   " > Milestone 예정 ": {
     "en": " > Milestone scheduled ",

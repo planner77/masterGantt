@@ -566,7 +566,7 @@ export function ProjectLogisticsManagement({
         </div>
         {!editable ? (
           <div className={styles.readonlyNotice}>
-            {t("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.")}</div>
+            {t("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요.")}</div>
         ) : null}
       </div> : null}
 
@@ -641,9 +641,9 @@ export function ProjectLogisticsManagement({
           {t("제어·조율 관계")}</button>
       </div>
 
-      {activeSubTab === "processes" ? <h2>{t("공정 &amp; 작업 구역 관리")}</h2> : null}
+      {activeSubTab === "processes" ? <h2>{t("공정 & 작업 구역 관리")}</h2> : null}
       {/* Toolbar (Filters & Actions) - Only for management subtabs */}
-      {embeddedMaster && !editable ? <p className={styles.readonlyNotice}>{t("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.")}</p> : null}
+      {embeddedMaster && !editable ? <p className={styles.readonlyNotice}>{t("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요.")}</p> : null}
       {activeSubTab !== "dashboard" && activeSubTab !== "unified" ? (
         <div className={styles.toolbar} role="toolbar" aria-label={t("물류 필터 및 도구")}>
           <div className={styles.filtersGroup}>
@@ -722,7 +722,7 @@ export function ProjectLogisticsManagement({
                 {t("+ 시스템 추가")}</button>
             ) : null}
           </div>
-          {editable && activeSubTab === "equipment" && logistics.processes.length === 0 ? <p className={styles.workAreaHint}>{t("설비를 추가하려면 기준정보의 공정&amp;WorkArea에서 주 관리 공정을 먼저 등록해 주세요.")}</p> : null}
+          {editable && activeSubTab === "equipment" && logistics.processes.length === 0 ? <p className={styles.workAreaHint}>{t("설비를 추가하려면 기준정보의 공정&WorkArea에서 주 관리 공정을 먼저 등록해 주세요.")}</p> : null}
         </div>
       ) : null}
 

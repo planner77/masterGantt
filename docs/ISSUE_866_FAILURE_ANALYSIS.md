@@ -241,3 +241,45 @@ WBS 기존두브라우저case는수정전각각안전한일반문구가표시되
 [최종명세](evidence/issue-866/rework-2-local-validation.json), [B전송검증](evidence/issue-866/rework-2-final-transport.json), [중간A전송](evidence/issue-866/rework-2-intermediate-transport.json), [최종35선정목록](evidence/issue-866/rework-2-browser-selection.txt)을따른다. 이전보조증거와기존tracked캡처는덮어쓰지않았고신규합성캡처는output/playwright/issue-866-rework2에분리했다. details비JSON의별도브라우저주입은이번범위에서미실시이며공유transport/formatterUnit·소비자정적검토의증거로한정한다.
 
 최종문서영향과AC01~09구조검사를재대조한다. riskHIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false유지. 실제독립Agent검토미해결P1/P2=0은인간최종QA/Owner위험수용이아니다. 최신PRHead/Base/test-merge·threads/충돌·새Full Run/attempt는STATUS댓글에기록한다. 새Required3/Trusted/Manager ACCEPT=NOT TESTED, MERGE_READY=BLOCKED다. 요청대로CI시작만확인하고완료모니터링·병합·Main/GHCR/Release/Issue종료는수행하지않는다.
+
+## PR870-FULL-003 — Full #3470.1 실패와 REWORK3 (2026-11-04)
+
+이전Full3468.1/3469.1과모든로컬실패·교정·선정제외의근거를보존한다. [새원본명세](evidence/issue-866/ci-41650170956-attempt-1.json)는3Full/3FAST·각attempt1/metadata-only0·rerun0/Trusted1114~1116및8Shard모든로그를대조했다. sourceartifact13235814297의정확schema/중복키·타입·PR870단일귀속/Head/base/test-merge/attempt와실제ZIP/API digest를읽기전용검증했으며PR코드나ZIP을실행하지않았다.
+
+| 원본 실행 | 실제 결과와 출처 |
+| --- | --- |
+| [Full3470.1](https://github.com/planner77/masterGantt/actions/runs/41650170956), Run41650170956/attempt1, pull_request/CI | Head`bfe2362a9b0d79128c4fd7e2e97a69f3e699f2d9`, Base`352a43e74c7b34c72d952f67783a53463f8b519d`, test-merge`74739b5a83ef1aec258b492e4a2e01c4674279d8`; FAILURE |
+| Quality125968879044 | SUCCESS. 원본전체Unit296files/3632testsPASS·기존1file/3tests skipped93.74초; 타입/린트/정책/PRproductionbuildPASS. 새Head근거로재사용하지않음 |
+| E2E125970209318 | FAILURE. Shard4 Job125967791231은5PASS/1FAIL/87NOT RUN; 다른7Shard CANCELLED 실제추가FAIL0. 전체874case중150PASS/1FAIL/723미완료·미실행 |
+| Docker구현125967790891 / aggregate125970407199 | SUCCESS. 원래HTTPHTTPS2/2PASS16.7초, 설정오류6/invalid migration writes0/Compose영속성PASS. 원본registry write없음 |
+| [Trusted1116.1](https://github.com/planner77/masterGantt/actions/runs/41651545207), Job125970714715 | 원본Full 실패의파생FAIL; 독립QA·Manager NOT TESTED. 새제품오류·정상Trusted출처완료로합산하지않음 |
+
+원본첫직접오류는2026-11-03T14:11:21Z의`issue-725-process-workareas.spec.ts:98`→119:83이다. expectedheading `공정 & 작업 구역 관리`, actualheading `공정 &amp; 작업 구역 관리`로5000ms elementnotfound였다. auth/context부족·EN선택·로딩미완료가아니며snapshot의실제KO제목으로확인했다. 해당spec·두heading소비자·catalog는982/a2/bfe사이같은blob이므로REWORK2신규회귀가아닌첫i18n변환의잠복오류다. 이전admin3/crossscreen3/country6/HTTPHTTPS2는이번원격실행에서통과했다.
+
+### Cross-run 분석·제한적 확대·보완
+
+- **F866-ENTITY-005 / PRODUCT:** JSXText의HTMLentity는React컴파일이해석하지만이를JS번역리터럴로옮기면`&amp;`/`&apos;`가그대로표시된다. KO는키원문을반환하고encoded/decoded사전alias가동시에있어기존key존재검사를통과했다. sourcebfe기존i18n검사2files10/10PASS(1.31초)는교정성공이아닌탐지사각의근거다.
+- 원본#725전체2case를로컬 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-725-process-workareas.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --output=test-results/rework3-red`로재현해1FAIL/1PASS(1분)를확인했다. 첫caseheading에서실패했으며두번째기존owner선택case는그대로PASS였다.
+- [정적entity감사](evidence/issue-866/rework-3-entity-audit.json)에서활성JS번역리터럴5곳(두heading·readonly안내2·설비등록안내1), encodedcatalogkey7개/번역값4개를확인했다. 정확한정적표시문자와canonical사전을맞추고동등한alias를정리한다. XMLserializer의정상escape14곳은유지한다. 이미decoded인TaskContext안내/Milestone표문구는기존소비자와의정합성만대조한다.
+- 사용자입력·displayName·runtime translate에일반HTMLdecoder를넣거나innerHTML로렌더하지않는다. 정상JSXText/quotedJSXattribute의entity해석과JS-expression문자열의미해석을회귀로구별한다. en/vi에도entity문자열이표시되지않아야하며자유원문의literal `&amp;`는그대로보존한다.
+- 직접인접소비자 `project-logistics-management.spec.ts`의readonly따옴표안내294/461과같은제목813도함께선정한다. #725실제SQLite/타공정E10/재시작·legacy410·Gantt보존·관리자auth/Revision기존단언과readonly버튼부재·도움말/Escape/가로overflow를유지하고KO/EN/VI전환·프로젝트쓰기0검증을확장한다.
+
+기존원장의실제실패합집합(도움말/기본행/국가및충돌문맥/WBS안전오류/숫자표시/Issuefocus/HTTPHTTPS·Unit전체)을최종source에서선정·재검증한다. version0.140.0/HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false와Required3/8Shard·권한·Full/metadata·Trusted/Owner정책을유지한다. 새Full시작은후속STATUS에기록하고결과모니터링·병합·Main/GHCR/Release·Issue종료는수행하지않는다.
+
+### REWORK3 단위·직접 검증 중 관측
+
+첫동결1211파일SHA256`5b12aee110c164d5dc1390fee7aabd415fce24d5d746833ac46a90efc6ea8358`/snapshot`85a66cfac02e46872bf4d310f4974f52a3d69def`에서전체Unit296files/3636tests PASS·기존1file/3tests skipped156.73초를확보했다. 직접6case는4PASS/2FAIL(3.1분)였다. 원래원격실패#725첫case의모든업무/E10/restart는1.3분PASS했고, typed설비상태·탭전환·5폭도PASS였다.
+
+두FAIL은새locale검증의TEST_CONTRACT다. #725에서legacy공정pane에는없는`project-process-mapping-title` ID를가정했고, readonly물류pane에서는정상적으로숨겨보존한Gantt에공유visible전제helper를사용했다. locale별정확한heading접근성name과숨겨진Gantt의동일DOM/API/instance식별자보존을검증하도록신규probe를교정한다. 원래기존단언이나공유helper의visibility조건을변경하지않으며새timeout/retry를주지않는다. 최종source를다시동결해직접6case와이전실패합집합35case를같은source의두part로검증한다.
+
+새guard는최초3PASS/1FAIL에서16관측(활성5+사전7+값4)을실제로잡았다. 첫교정중catalogshell항목이남은검사11PASS/1FAIL도보존하며정규화완료뒤i18n14/14PASS1.26초다. 독립qa_review14/14PASS1.94초·미해결P1/P2=0은이정적교정/사전검토범위이며최종브라우저·원격QA성공이아니다. canonical영수증은 [rework-3-static-canonical-receipt.json](evidence/issue-866/rework-3-static-canonical-receipt.json)에alias삭제5/key변경2의동등값·placeholder보존을기록한다.
+
+### REWORK3 B 동결 교차 검증과 인계
+
+B동결1211파일SHA256`fb8aef37f15108c26761ad1bf26331cfd04371bd906217932a495843f322c387`, snapshot`d025c60976e184d424cd642f0852c7e7b46f21df`는A대비E2E2파일만다르며production은동일했다. B에서전체Unit296files/3636tests PASS·기존1file/3tests skipped111.65초, 직접6/6 PASS2.4분 및과거실패/직접·간접/음성35/35 PASS8.3분으로고유41case/13spec을확인했다. 두part전후같은Bsource를검증했고생성된Next config와기존tracked캡처는원복했다. 전체typecheck·ESLint0errors18warnings·발견297Unit파일/874browsercase PASS다. 새skip/timeout/retry/CI8Shard변경은없다.
+
+같은B tree를표준Dockerfile로build한image`sha256:4b533dad06eaf16770fccb2f3155457ebe43f71494327d1383ee12b74062db08`에서productionbuild/기존HTTPHTTPS2/2 PASS21.2초(10.5/9.1초),설정거부6종/invalid migration writes0을확인했다. Node26.8.2/Next16.4.2/SQLite13.0.3로컬격리runner이며원래180초timeout/0retry/TLS실제CA·Cookie/Origin/revision/restartSQLite/rotation/revocation/crossproject/logout을유지했다. 5096Gitblob/1211source전후동일·ownedcontainer/volume잔여0·hostCA/hosts불변이다. A archive는build미실시중간증거로보존했으며새Head/GHCR성공을뜻하지않는다.
+
+[Local검증명세](evidence/issue-866/rework-3-local-validation.json)·[B전송명세](evidence/issue-866/rework-3-final-transport.json)·[직접6선정](evidence/issue-866/rework-3-direct-selection.txt)·[과거35선정](evidence/issue-866/rework-3-history-selection.txt)에명령·환경·수치·범위를보존한다. 새합성KO/EN/VI캡처는output/playwright/issue-866-rework3에분리했다. 이전source/canonical/CI/실패증거는덮어쓰지않았다.
+
+정적교정과수정된E2E에대한독립qa_review검토미해결P1/P2=0·독립i18n14/14PASS는사전검토이며인간최종QA/Owner승인이아니다. RiskHIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false 유지. 최신Head/Base/test-merge·review threads/충돌·시작FullRun/attempt는STATUS댓글에기록한다. 새Required3/Trusted·Owner/Manager ACCEPT=NOT TESTED, MERGE_READY=BLOCKED다. 요청범위는CI시작까지만이며완료모니터링·병합·Main/GHCR/tag/Release/Issue종료는수행하지않는다.

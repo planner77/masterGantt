@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "primaryIssue": 866,
+  "relatedIssues": [
+    865,
+    869
+  ],
+  "pr": 870,
+  "previousHead": "bfe2362a9b0d79128c4fd7e2e97a69f3e699f2d9",
+  "baseSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+  "candidateVersion": "0.140.0",
+  "sourceFingerprint": "fb8aef37f15108c26761ad1bf26331cfd04371bd906217932a495843f322c387",
+  "sourceFileCount": 1211,
+  "applicationSnapshotTree": "d025c60976e184d424cd642f0852c7e7b46f21df",
+  "sourceStableBeforeAfterEachPartAndChecks": true,
+  "fingerprintMethod": "SHA256 of sorted JSON [{path,sha256}], sort_keys=True,separators=(comma,colon); src/tests/db/deploy and package.json/package-lock.json/.env.example/next.config.ts/tsconfig.json/next-env.d.ts; generated Next config restored",
+  "snapshotBoundary": "application/tests frozen; final docs/evidence added later; no formal commit existed at test time",
+  "environment": {
+    "execution": "LOCAL, not GitHub-hosted",
+    "node": "22.14.0",
+    "npm": "11.10.0",
+    "next": "16.4.2",
+    "playwright": "1.63.0"
+  },
+  "local": {
+    "vitest": {
+      "status": "PASS",
+      "command": "npm test -- --maxWorkers=2",
+      "passedFiles": 296,
+      "skippedFiles": 1,
+      "passedTests": 3636,
+      "skippedTests": 3,
+      "durationSeconds": 111.65,
+      "newSkips": 0
+    },
+    "boundedChromium": {
+      "status": "PASS",
+      "uniquePassedCases": 41,
+      "files": 13,
+      "sameFrozenSource": true,
+      "parts": [
+        {
+          "scope": "newdirect and adjacent consumers",
+          "passed": 6,
+          "duration": "2.4m",
+          "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-725-process-workareas.spec.ts tests/e2e/project-logistics-management.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --grep 'issue-725-process-workareas\\.spec|#726 설비 유형 조회|물류 구성 탭 전환 시|Readonly 모드에서는|반응형 5개 폭' --output=test-results/rework3-direct-b"
+        },
+        {
+          "scope": "all prior actual failures plus direct/indirect/negative paths",
+          "passed": 35,
+          "duration": "8.3m",
+          "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/admin-auth-layout.spec.ts tests/e2e/cross-screen-regression.spec.ts tests/e2e/country-calendar-admin.spec.ts tests/e2e/i18n-master-data.spec.ts tests/e2e/i18n.spec.ts tests/e2e/issue-719-contextual-help.spec.ts tests/e2e/issue-730-view-composer.spec.ts tests/e2e/project-issues.spec.ts tests/e2e/project-resource-calendar-exceptions.spec.ts tests/e2e/project-transfer-layout-491.spec.ts tests/e2e/project-work-calendar-preview.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --grep 'admin-auth-layout\\.spec|cross-screen-regression\\.spec|i18n(-master-data)?\\.spec|country-calendar-admin\\.spec|project-work-calendar-preview\\.spec|project-resource-calendar-exceptions\\.spec|project-issues\\.spec|#719 milestone 동일|#719 (milestone|resource) 도움말 fixture|#719 focus 유지|#719 긴 도움말|#730 실제 HTTP 원본 Task·Assignment 복귀|Issue #491: (Resource Dashboard 실제 공수|템플릿 저장의 긴 초안)' --output=test-results/rework3-history-final"
+        }
+      ],
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 0,
+      "ci874Cases8ShardsUnchanged": true
+    },
+    "typecheck": {
+      "status": "PASS",
+      "command": "npm run typecheck"
+    },
+    "lint": {
+      "status": "PASS",
+      "command": "npm run lint",
+      "errors": 0,
+      "warnings": 18
+    },
+    "discovery": {
+      "status": "PASS",
+      "unitFiles": 297,
+      "browserCases": 874,
+      "rootAndExternalCwdEqual": true
+    },
+    "documentationStructure": {
+      "documentationSync": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING",
+      "acTestCoverage": "MAPPING_PASS_SEMANTIC_REVIEW_PENDING"
+    },
+    "productionBuildAndTransport": {
+      "status": "PASS",
+      "report": "rework-3-final-transport.json",
+      "snapshotTree": "d025c60976e184d424cd642f0852c7e7b46f21df",
+      "sourceFingerprint": "fb8aef37f15108c26761ad1bf26331cfd04371bd906217932a495843f322c387",
+      "imageId": "sha256:4b533dad06eaf16770fccb2f3155457ebe43f71494327d1383ee12b74062db08",
+      "passedCases": 2,
+      "durationSeconds": 21.2,
+      "negativeConfigurationCases": 6,
+      "invalidConfigurationMigrationWrites": 0,
+      "gitBlobsUnchanged": 5096,
+      "sourceFilesUnchanged": 1211,
+      "ownedContainersAndVolumesRemaining": 0,
+      "hostCaOrHostsChanged": false,
+      "boundary": "LOCAL isolated Node26.8.2 runner with real Nginx/test CA; not GitHub-hosted or GHCR"
+    }
+  },
+  "preservedFailures": [
+    {
+      "stage": "exact failed-Head725wholefile",
+      "failed": 1,
+      "passed": 1,
+      "duration": "1.0m",
+      "cause": "literal &amp; heading from migrated JSX, not locale/authorization"
+    },
+    {
+      "stage": "new entity guard before correction",
+      "failed": 1,
+      "passed": 3,
+      "observations": 16,
+      "cause": "active5/catalogkeys7/catalogvalues4"
+    },
+    {
+      "stage": "partial correction with shell aliases remaining",
+      "failed": 1,
+      "passed": 11
+    },
+    {
+      "stage": "firstfreezeA directconsumer expansion",
+      "failed": 2,
+      "passed": 4,
+      "duration": "3.1m",
+      "sourceFingerprint": "5b12aee110c164d5dc1390fee7aabd415fce24d5d746833ac46a90efc6ea8358",
+      "snapshotTree": "85a66cfac02e46872bf4d310f4974f52a3d69def",
+      "cause": "new test assumptions: nonexistent heading ID and visible-only helper on intentionally hidden retained Gantt; original full725business/restart passed",
+      "response": "only new E2E probes corrected; production same, no shared helper/assertion/timeout/retry weakening"
+    }
+  ],
+  "independentAgentPrereview": {
+    "reviewer": "qa_review",
+    "unresolvedP1P2": 0,
+    "independentUnitPassed": 14,
+    "unitDurationSeconds": 1.94,
+    "correctedE2EDiffReviewed": true,
+    "notHumanFinalQaOrOwnerApproval": true
+  },
+  "screenshots": [
+    "output/playwright/issue-866-rework3/process-heading-en.png",
+    "output/playwright/issue-866-rework3/process-heading-ko.png",
+    "output/playwright/issue-866-rework3/process-heading-vi.png",
+    "output/playwright/issue-866-rework3/readonly-notice-vi.png",
+    "output/playwright/issue-866-rework3/readonly-notice-ko.png",
+    "output/playwright/issue-866-rework3/readonly-notice-en.png"
+  ],
+  "boundaries": {
+    "riskLevel": "HIGH",
+    "qaMethod": "OWNER_MANAGED",
+    "qaRequired": true,
+    "newHeadQuality": "NOT TESTED",
+    "newHeadE2e": "NOT TESTED",
+    "newHeadDocker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "managerAccept": "NOT TESTED",
+    "mergeReady": "BLOCKED",
+    "releaseRequired": true,
+    "releaseAuthorized": false,
+    "mainGhcr": "NOT TESTED",
+    "internalLlmDnsCaModelsAndRealAt": "NOT TESTED"
+  },
+  "completedAt": "2026-11-03T19:29:28.480842+00:00"
+}

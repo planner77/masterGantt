@@ -373,6 +373,31 @@ test("#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연�
 
 test("#725 비활성 기본 구역과 중복 occurrence 매핑에서도 활성 구역 단일 owner 선택·저장", async ({ page, isolatedApplication: origin, observeIsolatedApi }) => {
   const f = await createTargetProject(page, origin, observeIsolatedApi);
+  await openWorkspaceView(page, "processes");
+  const languageSnapshot = await f.snapshot();
+  await expect(page.locator(".project-gantt-frame")).toHaveAttribute("data-project-gantt-instance", /\S+/);
+  const instance = await page.locator(".project-gantt-frame").getAttribute("data-project-gantt-instance");
+  const languageWrites: string[] = [];
+  const trackLanguageWrites = (request: import("@playwright/test").Request) => {
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && new URL(request.url()).pathname.startsWith(new URL(f.api).pathname)) languageWrites.push(request.method());
+  };
+  page.on("request", trackLanguageWrites);
+  for (const [locale, label] of [
+    ["en", "Process & WorkArea management"],
+    ["vi", "Quản lý công đoạn và khu vực làm việc"],
+    ["ko", "공정 & 작업 구역 관리"],
+  ]) {
+    await page.getByRole("combobox", { name: /^(표시 언어|Display language|Ngôn ngữ hiển thị)$/ }).first().selectOption(locale);
+    const heading = page.getByRole("heading", { name: label, exact: true });
+    await expect(heading).toBeVisible();
+    await expect(heading).toHaveText(label);
+    await expect(heading).not.toContainText("&amp;");
+    await expect(page.locator(".project-gantt-frame")).toHaveAttribute("data-project-gantt-instance", instance!);
+    await page.screenshot({ path: test.info().outputPath(`process-heading-${locale}.png`), fullPage: true });
+  }
+  page.off("request", trackLanguageWrites);
+  expect(languageWrites).toEqual([]);
+  expect(await f.snapshot()).toEqual(languageSnapshot);
   const occurrence = f.catalog.data.occurrences.find(row => row.code === "A")!;
   const defaultArea = f.catalog.data.workAreas.find(row => row.code === "WA-A")!;
   const areaResponse = await page.request.post(`${origin}/api/process-catalog/admin/work-areas`, {

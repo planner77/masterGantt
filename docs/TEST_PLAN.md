@@ -1,3 +1,12 @@
+## Issue #866 REWORK3 — 정적 entity의 실제 표시 의미 (2026-11-04)
+
+- **EXTEND:** 기존 i18n coverage에 정적 t/translate·LocalizedText JS expression·catalog key/value의 encoded entity 잔존 검사를 추가한다. 정상 JSXText/quoted attribute는 설치 TypeScript의 실제 컴파일 의미로 대조한다. encoded alias가 등록돼도 잘못된 표시 의미를 통과시키지 않는다.
+- **EXTEND:** 기존 i18n Unit에서 ko/en/vi canonical heading/readonly/hint와 사용자 원문·수동표시명·보간값/미등록 fallback의 literal entity 보존을 검증한다. production translate/provider와 XML/SVG/Excel escape는 KEEP_UNIQUE다.
+- **EXTEND:** #725 기존2case의 실제SQLite/E10/재조회·해제·재시작/legacy410/권한/Revision/Gantt 유지와 KO/EN/VI제목·쓰기0/snapshot보존을 확인한다. 물류 #726 loading/failure/empty/readonly, 탭 전환, readonly390안내·help/Escape·표scroll 및5폭모달 geometry를 인접 검증으로 선정한다. 기존 원문 selector와 assertion/timeout/retry/skip을 완화하지 않는다.
+- **KEEP_UNIQUE:** 최초부터의 실제 원격·로컬 실패 합집합은 이전 선별35case·전체Unit·동일source HTTP/HTTPS2case와 함께 교차 검증한다. 이번직접6case와이전35case는동일동결source의두로컬part로구분한다. CI의874case/8Shard/Required3는변경하지않는다.
+
+실제원본·RED/보완/미검증·최종지문과고유case수는 [누적원장](ISSUE_866_FAILURE_ANALYSIS.md)·[WorkPacket](exec-plans/active/ISSUE_866.md)을따른다.
+
 ## Issue #866 REWORK2 — 오류의 안전 표시와 업무 문맥 (2026-11-03)
 
 - **ADD:** `project-work-calendar-errors.test.ts`는 실제422형식의 exact국가·연도를 제출규칙·범위에교차검증하고1900~2199·중복·Unicode/prose/잘못된path/code·미선택국가·범위밖연도를검증한다. 고정문구만KO/EN/VI로번역하고opaque연도2032를보존한다.

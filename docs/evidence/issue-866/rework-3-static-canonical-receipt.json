@@ -1,0 +1,86 @@
+[
+  {
+    "file": "src/lib/i18n/catalogs/domains.ts",
+    "kind": "remove-equivalent-alias",
+    "key": "공정 &amp; 작업 구역 관리",
+    "canonicalKey": "공정 & 작업 구역 관리",
+    "valuesEquivalent": true,
+    "placeholdersEquivalent": true
+  },
+  {
+    "file": "src/lib/i18n/catalogs/domains.ts",
+    "kind": "rename-key",
+    "key": "설비를 추가하려면 기준정보의 공정&amp;WorkArea에서 주 관리 공정을 먼저 등록해 주세요.",
+    "canonicalKey": "설비를 추가하려면 기준정보의 공정&WorkArea에서 주 관리 공정을 먼저 등록해 주세요.",
+    "placeholdersEquivalent": true
+  },
+  {
+    "file": "src/lib/i18n/catalogs/domains.ts",
+    "kind": "rename-key",
+    "key": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.",
+    "canonicalKey": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요.",
+    "placeholdersEquivalent": true
+  },
+  {
+    "file": "src/lib/i18n/catalogs/shell.ts",
+    "kind": "remove-equivalent-alias",
+    "key": " &gt; Milestone 예정 ",
+    "canonicalKey": " > Milestone 예정 ",
+    "valuesEquivalent": true,
+    "placeholdersEquivalent": true
+  },
+  {
+    "file": "src/lib/i18n/catalogs/shell.ts",
+    "kind": "remove-equivalent-alias",
+    "key": "등록된 공정이 없습니다. 기준정보 → 공정&amp;WorkArea에서 공정을 등록해 주세요.",
+    "canonicalKey": "등록된 공정이 없습니다. 기준정보 → 공정&WorkArea에서 공정을 등록해 주세요.",
+    "valuesEquivalent": true,
+    "placeholdersEquivalent": true
+  },
+  {
+    "file": "src/lib/i18n/catalogs/shell.ts",
+    "kind": "remove-equivalent-alias",
+    "key": "등록된 작업 구역이 없습니다. 구역 없이 공정을 선택하거나 기준정보 → 공정&amp;WorkArea에서 구역을 등록해 주세요.",
+    "canonicalKey": "등록된 작업 구역이 없습니다. 구역 없이 공정을 선택하거나 기준정보 → 공정&WorkArea에서 구역을 등록해 주세요.",
+    "valuesEquivalent": true,
+    "placeholdersEquivalent": true
+  },
+  {
+    "file": "src/lib/i18n/catalogs/shell.ts",
+    "kind": "remove-equivalent-alias",
+    "key": "&gt; Milestone 예정",
+    "canonicalKey": "> Milestone 예정",
+    "valuesEquivalent": true,
+    "placeholdersEquivalent": true
+  },
+  {
+    "file": "src/features/logistics/project-process-management.tsx",
+    "kind": "translation-js-literal",
+    "key": "공정 &amp; 작업 구역 관리",
+    "canonicalKey": "공정 & 작업 구역 관리"
+  },
+  {
+    "file": "src/features/logistics/project-logistics-management.tsx",
+    "kind": "translation-js-literal",
+    "key": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.",
+    "canonicalKey": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요."
+  },
+  {
+    "file": "src/features/logistics/project-logistics-management.tsx",
+    "kind": "translation-js-literal",
+    "key": "공정 &amp; 작업 구역 관리",
+    "canonicalKey": "공정 & 작업 구역 관리"
+  },
+  {
+    "file": "src/features/logistics/project-logistics-management.tsx",
+    "kind": "translation-js-literal",
+    "key": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.",
+    "canonicalKey": "조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 잠금 해제'를 진행해 주세요."
+  },
+  {
+    "file": "src/features/logistics/project-logistics-management.tsx",
+    "kind": "translation-js-literal",
+    "key": "설비를 추가하려면 기준정보의 공정&amp;WorkArea에서 주 관리 공정을 먼저 등록해 주세요.",
+    "canonicalKey": "설비를 추가하려면 기준정보의 공정&WorkArea에서 주 관리 공정을 먼저 등록해 주세요."
+  }
+]

@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "issue": 866,
+  "pr": 870,
+  "scope": "LOCAL_REWORK3_FINAL_FROZEN_CANDIDATE_B_TRANSPORT_ONLY",
+  "status": "PASS",
+  "candidate": {
+    "gitTree": "d025c60976e184d424cd642f0852c7e7b46f21df",
+    "applicationSourceFingerprint": "fb8aef37f15108c26761ad1bf26331cfd04371bd906217932a495843f322c387",
+    "fingerprintFiles": 1211,
+    "fingerprintOrigin": "Manager frozenB manifest; independently checked all1211archivefileSHA256 and5096Gitblobhashes before and after smoke",
+    "archivedGitBlobsVerified": 5096,
+    "allTrackedArchiveBlobsUnchangedAfterSmoke": true,
+    "formalCommit": "NOT_CREATED_AT_TEST_TIME",
+    "applicationVersion": "0.140.0"
+  },
+  "image": {
+    "localTag": "mastergantt:ci",
+    "imageId": "sha256:4b533dad06eaf16770fccb2f3155457ebe43f71494327d1383ee12b74062db08",
+    "build": "PASS",
+    "source": "git archive exact staged tree d025c60976e184d424cd642f0852c7e7b46f21df; standard pinned deploy/docker/Dockerfile; local cache reuse only; version0.140.0 label, no oldHead/revision label",
+    "runtimeNode": "v26.8.2",
+    "next": "16.4.2",
+    "betterSqlite3": "13.0.3",
+    "ociRevisionLabel": null,
+    "metadataPolicy": "version label only; no previous Head SHA or formal release authority assigned",
+    "ghcrPublish": "NOT PERFORMED"
+  },
+  "environment": {
+    "execution": "Local isolated Docker runner; explicitly emulates CI harness environment only inside disposable container, not GitHub-hosted evidence",
+    "runnerImageId": "sha256:77189c34e9608d8ad0c1164aeddd537754a51c815ce62bf52d5b52f4ef0a979b",
+    "runnerNode": "v26.8.2",
+    "platform": "linux/x64",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "chromiumVersion": "153.0.8010.12",
+    "hostCaOrHostsModified": false,
+    "certificateValidationBypassed": false,
+    "tlsProxy": "actual Nginx with isolated trusted test CA/NSS; no ignoreHTTPSErrors",
+    "network": "host network connects owned test app containers only; host Docker socket used only for unique test names/volumes"
+  },
+  "tests": {
+    "productionHttp": "PASS",
+    "productionHttps": "PASS",
+    "passedCases": 2,
+    "durationSeconds": 21.2,
+    "httpSeconds": 10.5,
+    "httpsSeconds": 9.1,
+    "existingSpec": "tests/transport/production-transport.spec.ts:114",
+    "existingSpecUnchanged": true,
+    "scope": [
+      "real HTTP insecure-context and HTTPS secure-context",
+      "project create/edit and actual cookies",
+      "Origin and strong revision protections",
+      "readonly/incorrect password",
+      "exact owned-container restart and SQLite persistence",
+      "password rotation and session revocation",
+      "cross-project isolation and logout"
+    ],
+    "negativeRuntimeConfigurations": [
+      "missing",
+      "false",
+      "empty",
+      "typo",
+      "path",
+      "database"
+    ],
+    "negativeConfigurationCasesPassed": 6,
+    "invalidConfigurationMigrationWrites": 0,
+    "timeoutMs": 180000,
+    "retries": 0,
+    "trace": "off",
+    "screenshots": "off",
+    "video": "off"
+  },
+  "localeProbe": {
+    "http": {
+      "configuredLocale": "ko-KR",
+      "navigatorLocale": "ko-KR",
+      "htmlLang": "ko",
+      "koreanProjectNameLabels": 1,
+      "englishProjectNameLabels": 0,
+      "secureContext": false,
+      "pageErrors": []
+    },
+    "https": {
+      "configuredLocale": "ko-KR",
+      "navigatorLocale": "ko-KR",
+      "htmlLang": "ko",
+      "koreanProjectNameLabels": 1,
+      "englishProjectNameLabels": 0,
+      "secureContext": true,
+      "pageErrors": []
+    },
+    "manualBrowserNewContext": "existing unmodified test inherited configured locale and passed"
+  },
+  "cleanup": {
+    "ownedLocalRunId": "2026110486608",
+    "ownedContainerPrefix": "mastergantt-transport-2026110486608-1-",
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "artifactOwnership": "Only own archive test-results/transport / playwright-report/transport artifacts restored UID/GID1000; recursively verified existing subtree; repository untouched",
+    "verifiedOwnership": {
+      "test-results/transport": {
+        "uid": 1000,
+        "gid": 1000,
+        "recursiveVerified": true
+      }
+    }
+  },
+  "commands": [
+    "git archive d025c60976e184d424cd642f0852c7e7b46f21df | tar -x -C <isolated archive>",
+    "docker build --build-arg VERSION=0.140.0 -f <archive>/deploy/docker/Dockerfile -t mastergantt:ci <archive>",
+    "/tmp/issue866-run-rework3-b-transport-local.sh 2026110486608"
+  ],
+  "logs": {
+    "build": "/tmp/issue866-rework3-b-transport-image-build.log",
+    "smoke": "/tmp/issue866-rework3-b-transport-smoke.log",
+    "launcher": "/tmp/issue866-run-rework3-b-transport-local.sh",
+    "harness": "/tmp/issue866-local-transport-full.sh",
+    "sourceManifest": "/tmp/issue866-rework3-final-source.json",
+    "archiveProof": "/tmp/issue866-rework3-b-transport-archive-proof.json"
+  },
+  "previousProof": {
+    "sourceHead": "98272e108095e841b22e5433a5d91639ff7c4a8f",
+    "imageId": "sha256:0910cab958d7ac7d1e220925af1b3f230e772583043db4641f132e9b278813f1",
+    "passedCases": 2,
+    "durationSeconds": 16.8,
+    "classification": "separate historical old-source proof, not reused as final candidate PASS"
+  },
+  "boundaries": {
+    "prQuality": "NOT TESTED on new Head",
+    "prE2E": "NOT TESTED on new Head",
+    "prDocker": "NOT TESTED on new Head",
+    "trustedQa": "NOT TESTED on new Head",
+    "mainGhcrDigestSmoke": "NOT TESTED",
+    "formalRelease": "NOT AUTHORIZED",
+    "realInternalLlmCaAccess": "NOT TESTED"
+  },
+  "completedAt": "2026-11-03T19:23:07.169343+00:00",
+  "intermediateCandidateProof": {
+    "gitTree": "4388d27ab30932c467319b6c528f01d15689f2dc",
+    "applicationSourceFingerprint": "39103e836e5a0a80ca70c29e6f8e91c119f3cc6ed58621c65bd20ff7473f7e1e",
+    "imageId": "sha256:72d7ed652b8c4aa2867d8b9441994183ef03a5f152cf1a4874e8377e69fad2f3",
+    "passedCases": 2,
+    "durationSeconds": 18.3,
+    "classification": "SUPERSEDED_INTERMEDIATE_CANDIDATE_LOCAL_PASS; not finalV2source evidence"
+  },
+  "workloadCoordination": "Build began after ManagerGO followingB fullUnit3636PASS/3existingSkip111.65s and direct6browserPASS; bounded oldfailureunion35browser and lighttype/lint ran concurrently by Managerapproval; immutablearchiveonly.",
+  "previousRework1FinalProof": {
+    "gitTree": "8cf310abb6f50571e413e171ba739d9c00414584",
+    "applicationSourceFingerprint": "1b339a914781f565f496800808a6d38bc898cc01bdccb5ba7a204f70fb916d72",
+    "imageId": "sha256:ddccd3883ad2d125a2f162fbbfaf832f7882301eea740cb072e542033f764a83",
+    "passedCases": 2,
+    "durationSeconds": 21.7,
+    "classification": "Historical REWORK1 localfinalproof; not reused as newREWORK2source PASS"
+  },
+  "remoteBaselineTransport": {
+    "runId": 41650170956,
+    "runNumber": 3470,
+    "runAttempt": 1,
+    "headSha": "bfe2362a9b0d79128c4fd7e2e97a69f3e699f2d9",
+    "implementationJobId": 125967790891,
+    "requiredAggregateJobId": 125970407199,
+    "dockerStatus": "SUCCESS",
+    "httpHttpsPassedCases": 2,
+    "durationSeconds": 16.7,
+    "classification": "ExistingcompletedRemoteDockerPASS, not newHeadCIevidence"
+  },
+  "rework3IntermediateCandidateA": {
+    "tree": "85a66cfac02e46872bf4d310f4974f52a3d69def",
+    "sourceFingerprint": "5b12aee110c164d5dc1390fee7aabd415fce24d5d746833ac46a90efc6ea8358",
+    "archiveProof": "/tmp/issue866-rework3-transport-archive-proof.json",
+    "changedSourceFiles": [
+      "tests/e2e/issue-725-process-workareas.spec.ts",
+      "tests/e2e/project-logistics-management.spec.ts"
+    ],
+    "productionSourceUnchanged": true,
+    "classification": "INTERMEDIATE_ARCHIVE_ONLY_NO_BUILD_OR_SMOKE"
+  },
+  "previousRework2FinalProof": {
+    "gitTree": "e1b41e1b6248f2422ee981fd35f4e4b575c5ee4b",
+    "sourceFingerprint": "b715f14349c42d05636f6bfbfbd14723c9558ac49195b31a126208e32166d83f",
+    "imageId": "sha256:7c0365429908a4063785371bcb3133b79dc7363bfd67b3084f5bdc4c30080a64",
+    "passedCases": 2,
+    "durationSeconds": 23.0,
+    "classification": "HistoricalREWORK2localfinalproof; not reused asREWORK3PASS",
+    "report": "/tmp/issue866-rework2-final-transport-b.json"
+  }
+}
