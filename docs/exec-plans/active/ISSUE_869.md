@@ -3,7 +3,7 @@
 - Primary: https://github.com/planner77/masterGantt/issues/869
 - 출처: 원 통합 PR https://github.com/planner77/masterGantt/pull/870, source Head `ca58e987fd68261d9e9db97b4e931651350d6e4a`; #866 번역과 #865 LLM을 제외한 레이아웃만 재구성한다.
 - Base/Main: `352a43e74c7b34c72d952f67783a53463f8b519d`; 독립 후보 버전 `0.140.0` (다른 #865 PR도 같은 Main/version에서 출발하므로 선행 병합 뒤 후속 버전을 재정렬).
-- risk_level: MEDIUM; qa_method: OWNER_MANAGED; qa_required: true; release_required: true; release_authorized: false; MERGE_READY: BLOCKED.
+- risk_level: HIGH; qa_method: OWNER_MANAGED; qa_required: true; release_required: true; release_authorized: false; MERGE_READY: BLOCKED.
 
 ## 구현 및 보호 계약
 
@@ -27,6 +27,7 @@
 - `CHANGELOG.md`: UPDATED
 - `docs/ISSUE_869_TEST_PLAN.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_869.md`: UPDATED
+- `docs/ISSUE_869_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/API.md`: N/A(DB/API/Origin/If-Match/Project Issue 저장 계약 변경 없음)
 - `docs/SECURITY.md`: N/A(비밀번호/복구/삭제/조회 세션/입력 정책 변경 없음)
 - `docs/DB_SCHEMA.md`: N/A(기존 DB 컬럼·상태·migration 변경 없음)
@@ -47,3 +48,7 @@
 - 의존성 없음: #865 LLM·#866 수동번역/Locale/DB를 참조하지 않는 독립 Main baseline. 실제 코딩 변경은 Issue 화면·관련 CSS/scroll/test·문서로 한정.
 - 독립 PR의 exact Head Quality/E2E/Docker·Trusted QA/Owner ACCEPT·검토/merge 충돌은 CI 시작 이후 별도 확인해야 하며 이전 PR #870의 PASS를 재사용하지 않는다. 새 CI 실패 시 `docs/ISSUE_869_FAILURE_ANALYSIS.md` 전용 누적 원장 생성.
 - 사용자는 분리 후 다음 작업 요청. 요청 범위는 분리·새 PR Full CI 시작이며, 실패 검사 완료 전 merge/Main/GHCR/Release/Issue 종료는 진행하지 않는다.
+
+## PR872-FULL-001 — Initial Full #3480.1 보호 경로 위험도 수정 (2026-11-04)
+
+[Run41742966171](https://github.com/planner77/masterGantt/actions/runs/41742966171) attempt1, Head `151675c8b7c3c48aa742c690f8a267ab6a1326bd`, Base `352a43e74c7b34c72d952f67783a53463f8b519d`. 신뢰된 QA Job126288805856와 Preflight Job126288955622가 **PATH_POLICY: 변경 경로 기반 최소 위험도 HIGH, 기존 선언 MEDIUM**을 직접 FAIL로 보고했다. Package version/lockfile은 UI 기능 자체는 중위험이어도 저장소 실행/릴리스 보호 경로로 HIGH이므로 고정 위험도를 HIGH로 상향한다. 다른 Preflight primary/QA/Issue AC/DOC_SYNC는 PASS했으며 Quality/TypeScript/E2E/Docker 구현 작업은 정책 차단으로 NOT RUN이다. 신규 독립 제품 결함으로 분류하지 않는다. 코드·테스트·version/CI 게이트 변경 없이 메타데이터와 전용 원장만 동기화하여 새 Full을 시작한다.
