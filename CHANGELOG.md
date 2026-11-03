@@ -1,3 +1,10 @@
+## [0.140.0] — Unreleased / Issue #865 (2026-11-04)
+
+### Added
+- 선택형 서버 전용 사내 LLM 공통 모듈: 다중 OpenAI 호환 provider·각 provider 복수 model·명시적 모델 선택/기본 선택, 기본 OFF.
+- 허용된 사설망 IP로만 연결하고 DNS 검증·redirect 거부·timeout/abort/요청 크기·동시 실행 한도·runtime token 분리 등 방어 경계와 mock 서버/음성 테스트를 추가.
+- 배포 Compose의 명시적인 환경변수 전달과 [LLM 운영 가이드](docs/LLM_CONFIGURATION.md)를 추가. 공개 AI API·UI 또는 프로젝트 데이터 자동 전송 없음.
+
 ## [0.139.1] — Unreleased / Issue #867 환경설정 기반 Issue 기본 표시 (2026-11-03)
 
 ### Changed

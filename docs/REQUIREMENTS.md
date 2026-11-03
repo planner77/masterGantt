@@ -1,3 +1,7 @@
+## Issue #865 — 명시적 사내 LLM 공급자·모델 선택 (2026-11-04)
+
+OpenAI 호환 서버 전용 호출 기반을 제공한다. 하나 이상의 사설망 provider를 등록하고 각 provider에 여러 model을 명시, `(providerId,modelId)` 쌍으로 선택한다. 기본 OFF, runtime secret 격리, 허용 대상/모델 검증 실패는 fail-closed, 비스트리밍·bounded 호출/표준 오류·timeout/abort, 자동 외부 연결·데이터 전송·AI UI/공개 API 없음. 모델 자동 탐색, 서비스/DB 자동 차단 또는 임의 provider failover 없음. [#865 요구사항](https://github.com/planner77/masterGantt/issues/865)과 [운영 가이드](LLM_CONFIGURATION.md)를 따른다.
+
 ## Issue #867 — 프로젝트 Issue 초기 조회의 운영 환경 기본값 (2026-11-03)
 
 프로젝트 Issue 목록 최초 표시와 검색 초기화는 서버 런타임 `PROJECT_ISSUE_DEFAULT_STATUS_FILTER` 설정을 따른다. 유효 값은 `all|open|registered|in_progress|completed`; 미설정/빈 값·잘못된 값의 기본은 `all`이다. 운영자가 지정한 기본값은 UI 초기/초기화에서만 사용하며 사용자의 수동 선택, 조회 API의 미지정 status=all, 기존 업무 상태/논리 삭제·전체 KPI를 변경하지 않는다. Docker Compose에서 app 환경으로 전달한다. 세부 계약 [#867](https://github.com/planner77/masterGantt/issues/867).
