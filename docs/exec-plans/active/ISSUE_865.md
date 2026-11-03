@@ -33,6 +33,11 @@
 - 타입/린트/전체 Vitest, E2E8Shard, Docker smoke, 운영 runtime/Compose 및 Gantt/Project 영향은 기존 공식 CI 대상. #871 첫 Full #3476.1은 metadata Preflight에서 차단돼 실행되지 않았으므로 테스트 PASS 0; 후속 exact Head CI에서 직접 검증해야 한다.
 
 ## DOCUMENTATION_SYNC
+- `AGENTS.md`: N/A(기존 CI·QA·Owner Managed 절차와 AGENT 실행 가이드를 변경하지 않음)
+- `docs/QA_REVIEW_POLICY.md`: N/A(위험도 HIGH와 Trusted QA/Owner/Manager 검증 정책을 변경하지 않음)
+- `docs/CI_CD.md`: N/A(8Shard·Quality/E2E/Docker required·workflow 설정을 변경하지 않음)
+- `docs/GITHUB_OPERATIONS.md`: N/A(브랜치 분리 및 Git Data API 게시에도 기존 GitHub 원격 정책 그대로 적용)
+- `docs/REMOTE_VALIDATION.md`: N/A(독립 PR의 최신 Head 검증 및 기존 remote gate를 변경하지 않음)
 
 - `docs/API.md`: UPDATED
 - `DESIGN.md`: N/A(기능은 서버 전용이며 신규 화면 및 공통 시각 디자인 변경 없음)
@@ -86,3 +91,7 @@
 ## REWORK2 — DOC_SYNC 구조 및 AC Test Mapping 수정 (2026-11-04)
 
 [Full #3477.1](https://github.com/planner77/masterGantt/actions/runs/41742099717)의 직접 QA Preflight 실패는 Work Packet 테이블만으로 구조화된 문서 영향 등록이 되지 않는 문제였다. 이 문서의 ## DOCUMENTATION_SYNC 목록을 canonical `- \`path\`: UPDATED|N/A(reason)` 형식으로 보강하고 ## AC_TEST_COVERAGE에 AC1~9 항목을 각각 기록했다. #3478 metadata-only 실패는 #3477 선행 full 오류의 파생이다. [원장](../../ISSUE_865_FAILURE_ANALYSIS.md)을 따른다.
+
+## REWORK3 — Full #3479.1 정책 영향 문서 Union (2026-11-04)
+
+[Full #3479.1 / Run41742545244](https://github.com/planner77/masterGantt/actions/runs/41742545244), Head `d70a803667f9a8945be9723f070c8711a110f1b8`, QA Preflight Job126287542927: DOC_SYNC 필수 경로 `docs/GITHUB_OPERATIONS.md` 누락 1건. `docs/SECURITY.md`는 보호 정책 문서이므로 base 검증기 `docs_required(paths)`에서 `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`의 Union을 요구한다. 변경 없는 5개에 대해 `N/A(reason)`을 명시하고 기존 `docs/TEST_PLAN.md` N/A(reason)을 유지했다. 기존 코드/CI 게이트는 변경하지 않고 새 정확한 Head Full에서 이 입력을 재검증한다.

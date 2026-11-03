@@ -19,3 +19,9 @@ PR: https://github.com/planner77/masterGantt/pull/871
 - [Metadata-only #3478.1 Run41742116522](https://github.com/planner77/masterGantt/actions/runs/41742116522)는 동일 Head의 선행 Full 실패를 재사용하는 read-only 검증에서 FAILURE. 새로운 LLM/DB/E2E/CI 구현의 독립 실패로 계수하지 않으며 새 Full 성공으로 메꿀 수 없는 증거를 소급 승격하지 않는다.
 - **보완:** 신뢰된 base `scripts/qa_final_automated.py`의 `docs_gate`를 확인한 뒤 Work Packet에 정확한 `- \`docs/API.md\`: UPDATED`, `- \`DESIGN.md\`: N/A(reason)`, `- \`docs/TEST_PLAN.md\`: N/A(reason)` 등을 추가. `## AC_TEST_COVERAGE` 아래에 Issue AC1~AC9 각각 `- ACn: 증거/테스트 경로`를 넣어 구조 검증을 만족하도록 한다. TEST_PLAN 원문 변경 없는 이유와 별도 전용 문서의 검증 범위를 기록. QA Required·Trusted/Owner 정책과 위험 분류는 불변.
 - **검증:** PR/Run/Job/Step 원본 확인 및 regex 구조의 독립 정적 검사만 PASS; 새 Head 전체 TypeScript/Vitest/E2E/Docker/Trusted/Owner는 NOT TESTED, 정확한 Git Head Full CI 필요.
+
+## PR871-FULL-003 — #3479.1 보호 경로 Document Union 누락 (2026-11-04)
+
+- 원본 [Full #3479.1 Run41742545244](https://github.com/planner77/masterGantt/actions/runs/41742545244), Head `d70a803667f9a8945be9723f070c8711a110f1b8` Base `352a43e74c7b34c72d952f67783a53463f8b519d`, Attempt1, FAILURE. QA Preflight Job126287542927의 직접 FAIL: `DOCUMENTATION_SYNC — 문서 영향 기록 없음: docs/GITHUB_OPERATIONS.md`. 나머지 메타데이터(Primary/risk/qa/AC/보호 분류)는 PASS; 전체 TypeScript/Vitest/E2E/Docker는 정책 차단으로 NOT RUN. QA·aggregate 실패는 파생이며 제품 직접 오류 아님.
+- Base `scripts/qa_final_automated.py:docs_required`는 정책 경로 `docs/SECURITY.md`를 변경한 PR에서 QA_DOCS의 `AGENTS.md,docs/QA_REVIEW_POLICY.md,docs/CI_CD.md,docs/TEST_PLAN.md,docs/GITHUB_OPERATIONS.md,docs/REMOTE_VALIDATION.md` 전체를 기록하도록 요구한다. 이전 원장에 일부만 기록해 Union 사전 검증에 실패한 것으로 확인했다.
+- 보완: Work Packet `## DOCUMENTATION_SYNC`에 변경 없는 5개 경로의 정식 `N/A(reason)` 기록을 보충하고 동일 Header/AC mapping을 유지한다. 실제 문서/테스트/보안 정책 원문은 수정하지 않는다. 새 exact Head CI만 시작하며 완료 모니터링/병합/정식 릴리스는 수행하지 않는다.
