@@ -46,7 +46,7 @@ Task/Summary의 공정 선택은 공정0..N이며 WorkArea0개인 공정도 선�
 
 상위 Summary의 명시 subtree 출처는 읽기 전용으로 구별한다. 이 출처 목록은 #728의 전체 해석/집계 결과가 아니며 직접 선택을 채우거나 명시0을 덮어쓰지 않는다. 직접 설비/System의 기존 self/subtree·직접/상속 정보도 유지한다. MCS 연결은 관련 시스템 지정이며 공수 배분율이나 자동 controls/coordinates가 아니다.
 
-공정·직접 물류·Target는 각각 별도 저장하며 한 영역에 초안이 있으면 다른 영역의 mutation을 잠근다. 새 공정 편집도 기존 parent dirty/pending·닫기/작업 이동의 폐기 확인·401·stale·최신 정보 다시 불러오기 계약을 공유한다. Project revision과 catalog revision을 별도로 검증하고 조회 실패를0개로 치환하지 않는다. 반복 Escape도 최상위 Task dialog의 keydown에서 기본 닫기를 막고 동일한 dirty/pending·폐기 확인 판단을 거친다. Nested dialog의 Escape를 가로채지 않는다. 직접 문맥과 설비/System은 기본 정보 form의2열 배치 대신 전용1열 내부 흐름을 사용한다. 저장은 기존 canonical 재조회 gateway로 반영하며 Gantt writer를 추가하지 않는다. [실행·검증](exec-plans/active/ISSUE_726.md).
+공정·직접 물류·Target는 각각 별도 저장하며 한 영역에 초안이 있으면 다른 영역의 mutation을 잠근다. 직접 공정·WorkArea 저장의 401/403/409/412는 서로 다른 고정·안전 안내를 표시하며 미저장 초안을 보존하고, 401/412는 최신 인증·Revision 재확인 전 잠근다. 5xx/네트워크 오류/유효하지 않은 성공 영수증은 실제 저장 여부가 불확실하므로 최신 canonical 재조회 전까지 재저장을 잠그고 원시 오류 메시지·예외 정보를 노출하지 않는다. 새 공정 편집도 기존 parent dirty/pending·닫기/작업 이동의 폐기 확인·401·stale·최신 정보 다시 불러오기 계약을 공유한다. Project revision과 catalog revision을 별도로 검증하고 조회 실패를0개로 치환하지 않는다. 반복 Escape도 최상위 Task dialog의 keydown에서 기본 닫기를 막고 동일한 dirty/pending·폐기 확인 판단을 거친다. Nested dialog의 Escape를 가로채지 않는다. 직접 문맥과 설비/System은 기본 정보 form의2열 배치 대신 전용1열 내부 흐름을 사용한다. 저장은 기존 canonical 재조회 gateway로 반영하며 Gantt writer를 추가하지 않는다. [실행·검증](exec-plans/active/ISSUE_726.md).
 
 직접 설비·System 연결은 현재 UI가 편집 상태여도 Task 연결 조회와 Project 물류 원본 조회의 서버 `permission`이 모두 `edit`일 때만 저장한다. 한쪽이 readonly이거나 권한 필드가 누락되면 기존 선택은 보여 주되 변경과 저장을 막고 최신 조회를 안내한다. 조회 성공/선택 복원과 서버 편집 허용은 별도 조건이며 권한을 추정하여 빈 연결을 전송하지 않는다.
 

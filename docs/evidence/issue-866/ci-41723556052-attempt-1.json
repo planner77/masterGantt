@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "primaryIssue": 866,
+  "relatedIssues": [
+    865,
+    869
+  ],
+  "prNumber": 870,
+  "evidenceScope": "Existing completed Full run/read-only GitHub API and all 8 decoded job logs, no automatic CI completion monitoring",
+  "fullRun": {
+    "id": 41723556052,
+    "number": 3474,
+    "attempt": 1,
+    "workflow": ".github/workflows/ci.yml",
+    "event": "pull_request",
+    "headSha": "f95731b59f9cdbbd61d09369d077744886d58572",
+    "baseSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+    "testMergeShaFromPrApi": "3fe59f98ca74df9e0abf9b1ef23f6d733fa865c2",
+    "status": "completed",
+    "conclusion": "failure",
+    "createdUtc": "2026-11-03T21:37:59Z",
+    "updatedUtc": "2026-11-03T21:55:57Z",
+    "url": "https://github.com/planner77/masterGantt/actions/runs/41723556052"
+  },
+  "sourceArtifact": {
+    "id": 13273403835,
+    "name": "ci-pr-source-41723556052-1",
+    "expired": false,
+    "zipContentsInspected": false,
+    "provenanceDigestVerified": false
+  },
+  "aggregates": {
+    "quality": {
+      "jobId": 126226926049,
+      "status": "success"
+    },
+    "docker": {
+      "jobId": 126228321188,
+      "status": "success"
+    },
+    "e2e": {
+      "jobId": 126230928668,
+      "status": "failure",
+      "reason": "Shard6 direct failure"
+    },
+    "qaAutomated": {
+      "jobId": 126230968479,
+      "status": "failure",
+      "reason": "derived Required E2E failure"
+    }
+  },
+  "shards": [
+    {
+      "shard": 1,
+      "jobId": 126225545845,
+      "jobConclusion": "cancelled",
+      "planned": 129,
+      "observedPassed": 50,
+      "observedFailed": 0,
+      "observedSkipped": 0,
+      "notCompleted": 79
+    },
+    {
+      "shard": 2,
+      "jobId": 126225545622,
+      "jobConclusion": "cancelled",
+      "planned": 103,
+      "observedPassed": 12,
+      "observedFailed": 0,
+      "observedSkipped": 0,
+      "notCompleted": 91
+    },
+    {
+      "shard": 3,
+      "jobId": 126225545597,
+      "jobConclusion": "cancelled",
+      "planned": 153,
+      "observedPassed": 58,
+      "observedFailed": 0,
+      "observedSkipped": 1,
+      "notCompleted": 94
+    },
+    {
+      "shard": 4,
+      "jobId": 126225545613,
+      "jobConclusion": "cancelled",
+      "planned": 93,
+      "observedPassed": 11,
+      "observedFailed": 0,
+      "observedSkipped": 0,
+      "notCompleted": 82
+    },
+    {
+      "shard": 5,
+      "jobId": 126225545568,
+      "jobConclusion": "cancelled",
+      "planned": 109,
+      "observedPassed": 26,
+      "observedFailed": 0,
+      "observedSkipped": 0,
+      "notCompleted": 83
+    },
+    {
+      "shard": 6,
+      "jobId": 126225545686,
+      "jobConclusion": "failure",
+      "planned": 100,
+      "observedPassed": 36,
+      "observedFailed": 1,
+      "observedSkipped": 0,
+      "notCompleted": 63
+    },
+    {
+      "shard": 7,
+      "jobId": 126225545600,
+      "jobConclusion": "cancelled",
+      "planned": 83,
+      "observedPassed": 31,
+      "observedFailed": 0,
+      "observedSkipped": 0,
+      "notCompleted": 52
+    },
+    {
+      "shard": 8,
+      "jobId": 126225545593,
+      "jobConclusion": "cancelled",
+      "planned": 104,
+      "observedPassed": 50,
+      "observedFailed": 0,
+      "observedSkipped": 0,
+      "notCompleted": 54
+    }
+  ],
+  "totals": {
+    "planned": 874,
+    "passed": 274,
+    "failed": 1,
+    "skipped": 1,
+    "unfinished": 598
+  },
+  "directFailure": {
+    "shard": 6,
+    "jobId": 126225545686,
+    "jobUrl": "https://github.com/planner77/masterGantt/actions/runs/41723556052/job/126225545686",
+    "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+    "testLine": 240,
+    "assertionLine": 353,
+    "firstFailureUtc": "2026-11-03T21:54:07Z",
+    "expectation": "alert contains '초안' for 403/409/412",
+    "received": "저장 응답을 확인할 수 없습니다. 최신 정보를 다시 조회해 주세요.",
+    "classification": "PRODUCT",
+    "cause": "TaskProcessContextEditor intentionally throws local, fixed safe HTTP failure messages but catch(reason) overwrites all Error instances with generic message before rendering; prior 403/409 status and draft already known",
+    "caseStatusAtFailure": "first injected status 403, inferred from ordered loop; verify trace if exact HTTP response needed"
+  },
+  "priorChecksObserved": {
+    "full3473TaskLogisticsDirect403409412CasePassed": true,
+    "full3473MilestoneOutsideFilterCasePassed": true,
+    "full3474LogisticsTableDensityCasesPassed": true,
+    "full3474MilestoneOutsideFilterCasePassed": true
+  },
+  "correction": {
+    "code": "src/features/gantt/task-process-context-editor.tsx",
+    "test": "tests/e2e/issue-726-task-logistics.spec.ts",
+    "docs": "docs/TASK_EDITOR.md",
+    "strategy": "Handle known HTTP status 401/403/409/412/5xx as direct fixed messages; unknown network/parse/post-commit outcomes use one fixed uncertainty message and stale=true",
+    "preserveStatusAndDraftTests": true,
+    "noRawServerMessage": true,
+    "noErrorMessageLeak": true,
+    "unchangedApiAndDb": true
+  },
+  "validations": {
+    "sourceStaticReadback": "PASS",
+    "fullRepoTypecheck": "NOT TESTED",
+    "appE2e": "NOT TESTED",
+    "appUnit": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "remoteNewHead": "NOT TESTED"
+  },
+  "priorFulls": [
+    41618392066,
+    41640034518,
+    41650170956,
+    41704268626,
+    41710299107,
+    41714769786
+  ],
+  "operational": {
+    "riskLevel": "HIGH",
+    "qaMethod": "OWNER_MANAGED",
+    "qaRequired": true,
+    "releaseRequired": true,
+    "releaseAuthorized": false,
+    "mergeReady": "BLOCKED",
+    "ciRequiredAndShardsUnchanged": true
+  }
+}

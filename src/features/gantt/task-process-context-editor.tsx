@@ -76,22 +76,45 @@ export function TaskProcessContextEditor(props: Props) {
     try {
       const response = await fetch(`/api/projects/${publicId()}/tasks/${encodeURIComponent(taskId)}/process-context`, { method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json", "If-Match": `"${revision}"` }, body: JSON.stringify({ processCatalogRevision: snapshot.context.processCatalogRevision, processLinks: processes ?? [], workAreaLinks: areas ?? [] }) });
       if (generation !== epoch.current) return;
-      if (response.status === 401) { onUnauthorized?.(); setStale(true); throw new Error("편집 권한이 만료되었습니다. 초안은 유지됩니다."); }
-      if (response.status === 412) { setStale(true); throw new Error("프로젝트 또는 공정 기준정보가 변경되었습니다. 초안을 확인하고 최신 정보 다시 불러오기에서 명시적으로 폐기해 주세요."); }
-      if (response.status >= 500) { setStale(true); throw new Error("서버 응답이 불확실합니다. 초안은 유지됩니다. 최신 정보를 다시 불러와 저장 여부를 확인해 주세요."); }
-      if (!response.ok) throw new Error(response.status === 403 ? "공정 문맥 편집 권한이 없습니다. 초안은 유지됩니다." : "공정·작업 구역 저장이 거부되었습니다. 소유 공정·활성 상태와 범위를 확인해 주세요. 초안은 유지됩니다.");
+      // Classify known HTTP statuses before catch; 5xx may be post-commit.
+      // Display only our fixed messages, never untrusted response details.
+      if (response.status === 401) {
+        setStale(true); onUnauthorized?.();
+        setError("편집 권한이 만료되었습니다. 초안은 유지됩니다.");
+        return;
+      }
+      if (response.status === 412) {
+        setStale(true);
+        setError("프로젝트 또는 공정 기준정보가 변경되었습니다. 초안을 확인하고 최신 정보 다시 불러오기에서 명시적으로 폐기해 주세요.");
+        return;
+      }
+      if (response.status >= 500) {
+        setStale(true);
+        setError("서버 응답이 불확실합니다. 초안은 유지됩니다. 최신 정보를 다시 불러와 저장 여부를 확인해 주세요.");
+        return;
+      }
+      if (!response.ok) {
+        setError(response.status === 403
+          ? "공정 문맥 편집 권한이 없습니다. 초안은 유지됩니다."
+          : "공정·작업 구역 저장이 거부되었습니다. 소유 공정·활성 상태와 범위를 확인해 주세요. 초안은 유지됩니다.");
+        return;
+      }
       // A lost/malformed success receipt may already have committed; require a canonical reload.
       setStale(true);
       const body = await response.json();
       if (generation !== epoch.current) return;
-      if (body?.data?.operation?.kind !== "taskProcessContext" || body.data.operation.taskId !== taskId || body.data.context?.taskId !== taskId || !validTaskProcessContext(body.data.context) || processDraftKey(body.data.context.processLinks, body.data.context.workAreaLinks) !== processDraftKey(processes ?? [], areas ?? []) || body.data.permission !== "edit" || body.data.processCatalogRevision !== snapshot.context.processCatalogRevision || typeof body.data.operation.changed !== "boolean" || body.data.project?.revision !== revision + (body.data.operation.changed ? 1 : 0)) { setStale(true); throw new Error("저장 응답을 확인할 수 없습니다. 최신 정보를 다시 조회해 주세요."); }
+      if (body?.data?.operation?.kind !== "taskProcessContext" || body.data.operation.taskId !== taskId || body.data.context?.taskId !== taskId || !validTaskProcessContext(body.data.context) || processDraftKey(body.data.context.processLinks, body.data.context.workAreaLinks) !== processDraftKey(processes ?? [], areas ?? []) || body.data.permission !== "edit" || body.data.processCatalogRevision !== snapshot.context.processCatalogRevision || typeof body.data.operation.changed !== "boolean" || body.data.project?.revision !== revision + (body.data.operation.changed ? 1 : 0)) {
+        setError("저장 응답을 확인할 수 없습니다. 초안은 유지됩니다. 최신 정보를 다시 불러와 저장 여부를 확인해 주세요.");
+        return;
+      }
       setError("저장 응답을 수신했습니다. 최신 정보 조회에 실패하면 다시 불러와 저장 여부를 확인해 주세요.");
       await onApplied();
-    } catch (reason) {
+    } catch {
       if (generation === epoch.current) {
-        const uncertain = reason instanceof TypeError || reason instanceof SyntaxError;
-        if (uncertain) setStale(true);
-        setError(uncertain || !(reason instanceof Error) ? "저장 응답을 확인할 수 없습니다. 초안은 유지됩니다. 최신 정보를 다시 불러와 저장 여부를 확인해 주세요." : "저장 응답을 확인할 수 없습니다. 최신 정보를 다시 조회해 주세요.");
+        // Network loss, malformed JSON, or a failed canonical refresh may be
+        // post-commit. Never display an exception message or retry the write.
+        setStale(true);
+        setError("저장 응답을 확인할 수 없습니다. 초안은 유지됩니다. 최신 정보를 다시 불러와 저장 여부를 확인해 주세요.");
       }
     }
     finally { request.current = false; setSaving(false); }

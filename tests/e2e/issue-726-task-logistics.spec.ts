@@ -350,7 +350,14 @@ test("#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류
       ? route.fulfill({ status, contentType: "application/json", body: JSON.stringify({ error: { code: "TEST_REJECTED", message: "검증 오류" } }) })
       : route.continue());
     await save().click();
+    const expectedError = status === 403
+      ? "공정 문맥 편집 권한이 없습니다. 초안은 유지됩니다."
+      : status === 409
+        ? "공정·작업 구역 저장이 거부되었습니다. 소유 공정·활성 상태와 범위를 확인해 주세요. 초안은 유지됩니다."
+        : "프로젝트 또는 공정 기준정보가 변경되었습니다. 초안을 확인하고 최신 정보 다시 불러오기에서 명시적으로 폐기해 주세요.";
+    await expect(context.getByRole("alert")).toHaveText(expectedError);
     await expect(context.getByRole("alert")).toContainText("초안");
+    await expect(context).not.toContainText("검증 오류");
     await expect(processA()).toBeChecked();
     expect((await readContext()).processLinks).toEqual([]);
     expect((await f.snapshot()).data.project.revision).toBe(revision);
