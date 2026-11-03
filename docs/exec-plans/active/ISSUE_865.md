@@ -34,6 +34,21 @@
 
 ## DOCUMENTATION_SYNC
 
+- `docs/API.md`: UPDATED
+- `DESIGN.md`: N/A(기능은 서버 전용이며 신규 화면 및 공통 시각 디자인 변경 없음)
+- `docs/TEST_PLAN.md`: N/A(기존 대용량 공통 계획을 덮지 않고 LLM 전용 검증 계획에 실제 파일과 범위를 명시)
+- `docs/ARCHITECTURE.md`: UPDATED
+- `docs/DEPLOYMENT.md`: UPDATED
+- `docs/SECURITY.md`: UPDATED
+- `docs/REQUIREMENTS.md`: UPDATED
+- `docs/LLM_CONFIGURATION.md`: UPDATED
+- `docs/LLM_TEST_PLAN.md`: UPDATED
+- `README.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_865.md`: UPDATED
+- `docs/ISSUE_865_FAILURE_ANALYSIS.md`: UPDATED
+
+
 | 대상 | 판정 | 이유 |
 | --- | --- | --- |
 | `.env.example`, `deploy/compose.yml`, `docs/LLM_CONFIGURATION.md` | UPDATED/ADD | runtime provider/model·secret·Compose 연결 |
@@ -45,6 +60,16 @@
 | `docs/ISSUE_865_FAILURE_ANALYSIS.md` | ADD | #871 Full #3476.1 사전 정책 실패부터 누적 기록 |
 
 ## AC_TEST_COVERAGE
+- AC1: #865 제공 모듈·모의 응답·설정/보안/배포 테스트를 docs/LLM_TEST_PLAN.md 및 tests/server/llm에 각각 매핑, 원격 exact-Head 결과는 이후 검증
+- AC2: #865 제공 모듈·모의 응답·설정/보안/배포 테스트를 docs/LLM_TEST_PLAN.md 및 tests/server/llm에 각각 매핑, 원격 exact-Head 결과는 이후 검증
+- AC3: #865 제공 모듈·모의 응답·설정/보안/배포 테스트를 docs/LLM_TEST_PLAN.md 및 tests/server/llm에 각각 매핑, 원격 exact-Head 결과는 이후 검증
+- AC4: #865 제공 모듈·모의 응답·설정/보안/배포 테스트를 docs/LLM_TEST_PLAN.md 및 tests/server/llm에 각각 매핑, 원격 exact-Head 결과는 이후 검증
+- AC5: #865 제공 모듈·모의 응답·설정/보안/배포 테스트를 docs/LLM_TEST_PLAN.md 및 tests/server/llm에 각각 매핑, 원격 exact-Head 결과는 이후 검증
+- AC6: #865 제공 모듈·모의 응답·설정/보안/배포 테스트를 docs/LLM_TEST_PLAN.md 및 tests/server/llm에 각각 매핑, 원격 exact-Head 결과는 이후 검증
+- AC7: #865 제공 모듈·모의 응답·설정/보안/배포 테스트를 docs/LLM_TEST_PLAN.md 및 tests/server/llm에 각각 매핑, 원격 exact-Head 결과는 이후 검증
+- AC8: #865 제공 모듈·모의 응답·설정/보안/배포 테스트를 docs/LLM_TEST_PLAN.md 및 tests/server/llm에 각각 매핑, 원격 exact-Head 결과는 이후 검증
+- AC9: #865 제공 모듈·모의 응답·설정/보안/배포 테스트를 docs/LLM_TEST_PLAN.md 및 tests/server/llm에 각각 매핑, 원격 exact-Head 결과는 이후 검증
+
 
 | 이슈 #865 AC | 이식한 구현 및 검증 파일 | 신규 독립 원격 증거 |
 | --- | --- | --- |
@@ -57,3 +82,7 @@
 ## PR #871 / 첫 Full #3476.1 — 메타데이터 재작업
 
 [Run41741295176](https://github.com/planner77/masterGantt/actions/runs/41741295176) attempt1, Head `b3c693c895f9452dd35ac19920e593b23b1fdcb6`, Base `352a43e74c7b34c72d952f67783a53463f8b519d`. QA Preflight Job126283300587와 QA Trust Job126283170236가 PR 본문 `risk_level/qa_method/qa_required`의 파서 허용 구문 누락, Work Packet `## DOCUMENTATION_SYNC` 누락으로 실제 FAIL. Quality/E2E/Docker 집계 실패는 Preflight가 선행 Job을 SKIP한 파생이며 LLM 코드·네트워크·제품 테스트가 실패했다는 뜻이 아니다. 원본은 [별도 누적 원장](../../ISSUE_865_FAILURE_ANALYSIS.md)에 보존한다. 안전하게 PR metadata 형식을 정정하고 이 Work Packet·원장을 갱신하되 gate/승인 정책 완화 없음.
+
+## REWORK2 — DOC_SYNC 구조 및 AC Test Mapping 수정 (2026-11-04)
+
+[Full #3477.1](https://github.com/planner77/masterGantt/actions/runs/41742099717)의 직접 QA Preflight 실패는 Work Packet 테이블만으로 구조화된 문서 영향 등록이 되지 않는 문제였다. 이 문서의 ## DOCUMENTATION_SYNC 목록을 canonical `- \`path\`: UPDATED|N/A(reason)` 형식으로 보강하고 ## AC_TEST_COVERAGE에 AC1~9 항목을 각각 기록했다. #3478 metadata-only 실패는 #3477 선행 full 오류의 파생이다. [원장](../../ISSUE_865_FAILURE_ANALYSIS.md)을 따른다.
