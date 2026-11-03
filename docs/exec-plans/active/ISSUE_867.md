@@ -3,7 +3,7 @@
 - **Primary Issue:** https://github.com/planner77/masterGantt/issues/867
 - **기준:** main `43e97c3a4fd284b09d4c900ff8ab25e7a778c74b`, app `0.139.0`, 이번 PR 후보 `0.139.1`, 브랜치 `fix/issue-867-default-all-filter`.
 - **Owner 승인 범위:** 분석/설계/구현/문서 갱신/리뷰·충돌 확인 후 **PR CI 시작까지**. CI 결과 모니터링·Merge/Main/GHCR Release/Issue 종료는 금지.
-- **Risk / QA:** risk_level=MEDIUM (Next SSR→Client filter 및 Compose runtime 경계), qa_method=OWNER_MANAGED, qa_required=true, independent_qa=N/A (Owner Managed), Manager ACCEPT=NOT TESTED. release_required=true, release_authorized=false.
+- **Risk / QA:** risk_level=HIGH (AGENTS.md·deploy/compose.yml·package/lockfile 및 src/server 보호 경로 변경; SSR→Client filter 경계), qa_method=OWNER_MANAGED, qa_required=true, independent_qa=N/A (Owner Managed), Manager ACCEPT=NOT TESTED. release_required=true, release_authorized=false.
 
 ## 계획 및 상태
 
@@ -17,20 +17,21 @@
 
 | 수정 지점 | 직접·간접 소비자 / 부정 시나리오 | 위험 | 테스트 / 현재 증거 |
 | --- | --- | --- | --- |
-| 서버 config 파서 + 동적 페이지 | 미설정/잘못된 값·비밀값 로그·Next build-time 고정/SSR 불일치 | MEDIUM | `tests/server/projects/project-issue-default-filter.test.ts`, 작성; 로컬 NOT TESTED |
+| 서버 config 파서 + 동적 페이지 | 미설정/잘못된 값·비밀값 로그·Next build-time 고정/SSR 불일치 | HIGH(보호된 서버 경로) | `tests/server/projects/project-issue-default-filter.test.ts`, 작성; 로컬 NOT TESTED |
 | Project Host → Issue Workspace props | 최초 select와 API 불일치, 수동 상태 덮어쓰기, Task Editor handoff·Gantt 단일 인스턴스 | MEDIUM | `tests/e2e/project-issues.spec.ts` 기존 #838~#854 흐름 확장; Chromium NOT TESTED |
-| Compose app.environment + .env.example | Compose 치환만 되고 앱 ENV 주입 누락, 미설정으로 기동 실패, 런타임 대신 이미지 빌드 고정 | MEDIUM | Unit 정적 계약 + 운영 Compose config/recreate 확인; Docker NOT TESTED |
+| Compose app.environment + .env.example | Compose 치환만 되고 앱 ENV 주입 누락, 미설정으로 기동 실패, 런타임 대신 이미지 빌드 고정 | HIGH(보호된 배포 경로) | Unit 정적 계약 + 운영 Compose config/recreate 확인; Docker NOT TESTED |
 | 기존 Issue API/KPI/DB/read gate | open/all 조회 의미·DELETED 제외·Project 격리·비밀번호·KPI | LOW(불변) | 기존 `tests/server/projects/project-issues.test.ts` 유지; 원격 CI NOT TESTED |
 
 ## AC_TEST_COVERAGE
 
-- AC1: 설정값 5종 및 유효 값 공백 trimming → `tests/server/projects/project-issue-default-filter.test.ts`, 신규 Unit, NOT TESTED.
-- AC2: 미설정/빈 값/잘못된 값 `all` fallback 및 원문 로그 미노출 → 구성 Unit + 서버-only 경계, NOT TESTED.
-- AC3: 최초 필터와 요청 status 일치, 수동 open·all 전환·초기화 → `tests/e2e/project-issues.spec.ts` EXTEND, NOT TESTED.
-- AC4: 초기화 버튼 조건, 검색/페이지 복귀, 전체 ACTIVE 포함·DELETED 제외·KPI 불변 → 기존 Issue 브라우저+서비스 테스트, NOT TESTED.
-- AC5: Compose 변수 전달·이미지 재빌드 없이 재생성·데이터 보존 → Unit 정적 검증 + 운영 수동 검증 필요, NOT TESTED.
-- AC6: AGENTS/DESIGN/사용자 가이드/API/ARCHITECTURE/PROJECT_UX/REQUIREMENTS/CHANGELOG/.env/Compose 및 본 계획 계약 동기화 → DOCUMENTATION_SYNC.
-- AC7: PR 최신 Head Quality/Chromium8/Docker + Trusted/Owner 인수는 원격 별도 확인. 현 범위 PR CI 시작, NOT TESTED.
+- AC1: 환경변수 `all/open/registered/in_progress/completed` 5종 → `tests/server/projects/project-issue-default-filter.test.ts` Unit, 구현됨/실행 NOT TESTED.
+- AC2: 미설정/빈 값/공백 → `all` fallback 및 초기·초기화 값 → 구성 Unit + `tests/e2e/project-issues.spec.ts`, 실행 NOT TESTED.
+- AC3: 미지원값 → `all`, 안전 경고(원문/비밀 출력 없음) → 구성 Unit + 서버 전용 Logger 코드 검토, 실제 로그 테스트 NOT TESTED.
+- AC4: select 상태/첫 요청 status/초기화 대상 일치 → `tests/e2e/project-issues.spec.ts` EXTEND, 실행 NOT TESTED.
+- AC5: 사용자가 수동 선택한 필터가 검색·목록 새로고침·탭 복귀에서 유지 → 기존 `tests/e2e/project-issues.spec.ts` Task Editor 복귀 및 상태 검색 회귀, 실행 NOT TESTED.
+- AC6: Compose app env 전달, 이미지 재빌드 없는 컨테이너 재생성 반영 → 구성 Unit 정적 계약 + 운영 Docker Compose 재생성 수동 시험, 실행 NOT TESTED.
+- AC7: ACTIVE 5종 조회·DELETED 제외·KPI/인증/API 불변 → `tests/server/projects/project-issues.test.ts` KEEP_UNIQUE + E2E, 실행 NOT TESTED.
+- AC8: Unit/E2E/Compose 및 코드·문서 동기화 → 본 DOCUMENTATION_SYNC, CI 품질/Chromium 8/Docker 확인은 신규 PR Head에서 NOT TESTED.
 
 ## TEST_LIFECYCLE_REVIEW (#711)
 
@@ -55,13 +56,23 @@
 - `package.json`: UPDATED
 - `package-lock.json`: UPDATED
 - `docs/exec-plans/active/ISSUE_867.md`: UPDATED
+- `docs/ISSUE_867_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/DB_SCHEMA.md`: N/A(DB/마이그레이션 변경 없음)
 - `docs/SECURITY.md`: N/A(read gate/인증 변경 없음)
 - `docs/SCHEDULING_ENGINE.md`: N/A(Gantt/SVAR/일정 계산 변경 없음)
+- `docs/QA_REVIEW_POLICY.md`: N/A(Owner-managed 위험도 HIGH로 선언하되 기존 독립 QA·Trusted·Owner Gate 완화 없음)
+- `docs/REMOTE_VALIDATION.md`: N/A(로컬/원격 증거 경계·Required3와 Head/Run 검증 정책 불변)
 - `docs/TEST_PLAN.md`: N/A(공통 테스트 정책 불변, 이슈 테스트는 본 Work Packet에서 명시)
 - `docs/CI_CD.md`: N/A(기존 Workflow/Required3/Release policy 불변)
 - `docs/GITHUB_OPERATIONS.md`: N/A(배포 값·재생성은 Issue 사용자 가이드에 설명, GitHub 운영 절차 불변)
 - `docs/ISSUE_LIFECYCLE.md`: N/A(이슈 Lifecycle/QA gate 불변)
+
+## 실패 #3463.1 및 문서·QA 선언 보완 (2026-11-03)
+
+- 원본 Full CI [Run 41582346250.1](https://github.com/planner77/masterGantt/actions/runs/41582346250)는 QA Preflight 5개 metadata FAIL(`RISK_LEVEL, QA_METHOD, QA_REQUIRED, PATH_POLICY, ISSUE_AC`), QA 신뢰 경계에서 `qa_method` 명시 선언 누락으로 FAIL. Fast Gate·Quality/E2E/Docker 집계 FAIL은 **파생**, 실제 TypeScript/Vitest/Chromium/Docker 구현 Job은 SKIPPED.
+- 같은 Head에서 PR 본문 편집으로 발생한 metadata-only [Run 41583036060.1](https://github.com/planner77/masterGantt/actions/runs/41583036060)는 원본 Full CI `FULL_FAILED`를 정확히 승계하여 FAIL. 이를 새 제품 결함/독립 Full 검증 실패로 중복 계수하지 않는다.
+- 보완: PR 본문에 정확한 단일 `risk_level: HIGH`, `qa_method: OWNER_MANAGED`, `qa_required: true` 및 release 두 필드를 선언, Issue #867의 8개 수용 기준에 `AC1..AC8` 부여, 본 Packet의 AC 매핑 정합화 및 QA 필수 문서 6종 영향 판정을 완성함.
+- 누적 실패 원장: [docs/ISSUE_867_FAILURE_ANALYSIS.md](../../ISSUE_867_FAILURE_ANALYSIS.md). 기존 검증기·CI Workflow/Ruleset·테스트 assertion을 수정하거나 약화하지 않는다. 로컬/remote 새 Head PASS는 아직 `NOT TESTED`.
 
 ## 실행 및 잔여 위험
 
