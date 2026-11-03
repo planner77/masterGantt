@@ -17,6 +17,7 @@ type Props = Readonly<{
   publicId: string;
   revision: number;
   tasks: readonly ProjectTaskDto[];
+  defaultStatusFilter: IssueStatusFilter;
   active: boolean;
   editable: boolean;
   busy: boolean;
@@ -52,12 +53,12 @@ function projectIssueError(value: unknown, fallback: string): string {
 }
 
 export function ProjectIssueWorkspace({
-  publicId, revision, tasks, active, editable, busy,
+  publicId, revision, tasks, defaultStatusFilter, active, editable, busy,
   createRequest, onCreateFinished, onChanged, onUnauthorized,
 }: Props) {
   const [filterDraft, setFilterDraft] = useState("");
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<IssueStatusFilter>("open");
+  const [status, setStatus] = useState<IssueStatusFilter>(defaultStatusFilter);
   const [limit, setLimit] = useState<IssuePageSize>(20);
   const [page, setPage] = useState(1);
   const [refresh, setRefresh] = useState(0);
@@ -394,8 +395,8 @@ export function ProjectIssueWorkspace({
         <option value="completed">완료</option>
       </select>
       <button className="secondary-button" type="submit">검색</button>
-      {(query || status !== "open") ? <button className="secondary-button" type="button"
-        onClick={() => { setFilterDraft(""); setQuery(""); setStatus("open"); setPage(1); }}>초기화</button> : null}
+      {(filterDraft || query || status !== defaultStatusFilter) ? <button className="secondary-button" type="button"
+        onClick={() => { setFilterDraft(""); setQuery(""); setStatus(defaultStatusFilter); setPage(1); }}>초기화</button> : null}
     </form>
     <div className={styles.listMeta}>
       <span role="status">{loadError ? "목록 조회 실패" : loading ? "목록 조회 중…" :

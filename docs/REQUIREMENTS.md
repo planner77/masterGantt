@@ -1,3 +1,7 @@
+## Issue #867 — 프로젝트 Issue 초기 조회의 운영 환경 기본값 (2026-11-03)
+
+프로젝트 Issue 목록 최초 표시와 검색 초기화는 서버 런타임 `PROJECT_ISSUE_DEFAULT_STATUS_FILTER` 설정을 따른다. 유효 값은 `all|open|registered|in_progress|completed`; 미설정/빈 값·잘못된 값의 기본은 `all`이다. 운영자가 지정한 기본값은 UI 초기/초기화에서만 사용하며 사용자의 수동 선택, 조회 API의 미지정 status=all, 기존 업무 상태/논리 삭제·전체 KPI를 변경하지 않는다. Docker Compose에서 app 환경으로 전달한다. 세부 계약 [#867](https://github.com/planner77/masterGantt/issues/867).
+
 ## Issue #822 — 일정 본문의 세로 밀도
 
 Project 일정 Grid/Chart 본문의 Ctrl+휠은 행 높이·Grid 본문 글꼴·Task bar를 함께 조절한다. 아래 방향은 축소, 위 방향은 최초 표시 크기까지 확대하며 두 영역은 같은 로컬 상태를 사용한다. 일반 휠·외부 browser zoom·입력/모달을 보호하고 날짜축 단위·가로폭 및 canonical 일정/API/DB/revision·Export를 변경하지 않는다. 같은 Gantt 세션의 view 전환 상태와 기준 Task 위치를 기존 coordinator로 보존하며 터치 가능한 환경은44px 목표를 우선한다. 세부 입력·단계/하한·검증은 [Project UX](PROJECT_UX.md)와 [#822 Work Packet](exec-plans/active/ISSUE_822.md)을 따른다.

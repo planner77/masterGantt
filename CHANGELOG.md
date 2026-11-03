@@ -1,3 +1,14 @@
+## [0.139.1] — Unreleased / Issue #867 환경설정 기반 Issue 기본 표시 (2026-11-03)
+
+### Changed
+
+- Project Issue 목록의 최초·초기화 기본 필터를 `PROJECT_ISSUE_DEFAULT_STATUS_FILTER`의 서버 런타임 값으로 결정한다. 허용값은 `all/open/registered/in_progress/completed`이고, 미설정·빈 값·오타는 `all`이다. 수동 필터 선택·전체 KPI·논리 삭제 제외 및 기존 API 기본값은 유지한다.
+- Compose는 선택형 환경변수를 app에 전달하고, 동일 GHCR 이미지의 컨테이너 재생성으로 운영 설정을 바꿀 수 있다. 빌드 시 공개 상수 주입/DB 변경 없음.
+
+### 검증·릴리스 경계
+
+- [#867 Work Packet](docs/exec-plans/active/ISSUE_867.md)의 Unit/E2E/Compose 계약 및 미검증 범위를 따른다. PR Full CI 시작 전 로컬 Node/Playwright/Docker는 NOT TESTED, Required3/Trusted QA/Owner 수용은 별도 검증한다. `release_required=true`, `release_authorized=false`로 정식 게시하지 않는다.
+
 ## [0.139.0] — Unreleased / Issue #342 국가 Calendar Catalog (2026-10-31)
 
 ### Added

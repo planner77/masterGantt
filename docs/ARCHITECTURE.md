@@ -634,6 +634,8 @@ Milestone 날짜는 Dashboard 상세/정확한 소속 Task 경로로 안내하�
 
 ## Project Issue Module (#838–#840)
 
+**#867 UI 기본 표시 설정:** 서버 `src/server/projects/project-issue-default-filter-core.ts`의 순수 해석기는 운영 환경변수를 5개 enum 중 하나로 검증하고 미설정·오류를 `all`로 처리한다. 서버 전용 래퍼는 잘못된 값에 대해 비밀정보 없는 경고를 남긴다. `dynamic` Project 페이지에서 정규화된 필터를 읽어 `ProjectReadonlyView`→`ProjectIssueWorkspace`로 전달하며 브라우저 빌드 환경변수·별도 공개 설정 API/DB를 사용하지 않는다. 운영 Compose는 `.env` 값을 app 환경으로 명시 전달해야 하며 같은 이미지로 재생성 시 새 기본값을 적용한다.
+
 프로젝트 뷰 Host(project-readonly-view)는 상위 schedule/issue/dashboard/master navigation을 소유한다. 새 ProjectIssueWorkspace는 상위 canonical ProjectTaskDto를 **검색 후보로만** 읽고, Issue 목록/필터/폼은 별도 fetch를 사용해 Project Gantt 상태를 변경하지 않는다. taskId/resourceId와 자유입력 문구를 분리한다.
 
 - DB: 0032_project_issues.sql 원장 유지 + additive **0033_project_issue_credentials_soft_delete.sql**: legacy UNSET 또는 scrypt ACTIVE credential, credential_version, lifecycle_state ACTIVE/DELETED, deleted_at, visible 인덱스, 검증 trigger, 별도 project_issue_credential_audit. Project delete FK CASCADE와 Issue tombstone은 독립. ProjectIssueService는 POST에 Project read-grant/revision 재확인을 사용하고 ProjectRepository/EditSessionRepository의 edit-session 검증은 credential recovery에만 사용하며, Issue-only PATCH/DELETE는 별도 per-Issue KDF+credential fingerprint 및 프로젝트 read grant+revision CAS를 재검증한다. Resource/Task의 원본 FK 삭제는 ID만 NULL.

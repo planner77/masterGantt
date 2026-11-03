@@ -13,6 +13,7 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   const issuePassword = "IssuePassword#123";
   const resourceId = randomUUID();
   let postCount = 0;
+  const queriedStatuses: string[] = [];
   await page.route("**" + projectPath + "/resource-memberships?*", async route => {
     await route.fulfill({ json: { data: {
       projectRevision: state.project.revision, catalogRevision: 1, total: 1,
@@ -28,6 +29,7 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
     const path = url.pathname;
     if (request.method() === "GET") {
       const status = url.searchParams.get("status") ?? "all";
+      queriedStatuses.push(status);
       const query = (url.searchParams.get("q") ?? "").toLocaleLowerCase();
       const size = Number(url.searchParams.get("limit") ?? 20);
       const targetPage = Number(url.searchParams.get("page") ?? 1);
@@ -112,7 +114,9 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   const kpis = workspace.getByRole("status", { name: "전체 Issue 상태별 현황" });
   await expect(kpis).toContainText("전체0건");
   await expect(kpis).toContainText("등록0건");
-  await expect(workspace.locator("#project-issue-status")).toHaveValue("open");
+  await expect(workspace.locator("#project-issue-status")).toHaveValue("all");
+  expect(queriedStatuses[0]).toBe("all");
+  await expect(workspace.getByRole("button", { name: "초기화" })).toHaveCount(0);
   await workspace.getByRole("button", { name: "Issue 등록", exact: true }).click();
   const editor = workspace.getByRole("dialog", { name: "Issue 등록" });
   await editor.getByLabel("Issue 명").fill("장비 점검 요청");
@@ -137,7 +141,11 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await expect(kpis).toContainText("완료1건");
   await expect(kpis).toContainText("전체1건");
   expect(postCount).toBe(1);
+  await expect(workspace.getByText("검색 결과 1건")).toBeVisible();
+  await workspace.locator("#project-issue-status").selectOption("open");
   await expect(workspace.getByText("검색 결과 0건")).toBeVisible();
+  await workspace.locator("#project-issue-status").selectOption("all");
+  await expect(workspace.getByText("검색 결과 1건")).toBeVisible();
   await workspace.locator("#project-issue-status").selectOption("completed");
   await expect(workspace.getByRole("row", { name: /장비 점검 요청/ })).toBeVisible();
   await workspace.getByRole("button", { name: "장비 점검 요청" }).click();
@@ -164,7 +172,8 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await expect(workspace.getByText("1 / 1 페이지")).toBeVisible();
   await workspace.getByRole("button", { name: "초기화" }).click();
   await expect(workspace.getByText("검색 결과 1건")).toBeVisible();
-  await expect(workspace.locator("#project-issue-status")).toHaveValue("open");
+  await expect(workspace.locator("#project-issue-status")).toHaveValue("all");
+  await expect(workspace.getByRole("button", { name: "초기화" })).toHaveCount(0);
   await workspace.getByRole("button", { name: "장비 점검 요청" }).click();
   const progressing = workspace.getByRole("dialog", { name: "Issue 상세 및 수정" });
   await progressing.getByLabel("상태", { exact: true }).selectOption("in_progress");
