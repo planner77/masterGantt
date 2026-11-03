@@ -167,3 +167,11 @@ B최종Local Fast Feedback는전체Unit3632PASS/기존3skip145.16초·선별brow
 REWORK3 B동결1211파일SHA256`fb8aef37f15108c26761ad1bf26331cfd04371bd906217932a495843f322c387`/tree`d025c60976e184d424cd642f0852c7e7b46f21df`에서전체Unit3636PASS/기존3skip111.65초·직접6/6PASS2.4분+과거실패35/35PASS8.3분(고유41case/13spec), typecheck/전체lint0errors18warnings/발견297Unit·874browsercase를확인했다. B image`sha256:4b533dad06eaf16770fccb2f3155457ebe43f71494327d1383ee12b74062db08`의build/HTTPHTTPS2/2PASS21.2초/negative6·invalid migration writes0·5096blob/1211source동일/시험자원정리도PASS다. 이전A의새probe가정실패2건과guard부분교정FAIL을원장에보존했고기존단언/공유helper/timeout/retry를완화하지않았다.
 
 [검증명세](../../evidence/issue-866/rework-3-local-validation.json), [전송명세](../../evidence/issue-866/rework-3-final-transport.json), [영문공정제목](../../../output/playwright/issue-866-rework3/process-heading-en.png), [베트남어readonly](../../../output/playwright/issue-866-rework3/readonly-notice-vi.png)에실행증거와범위를보존한다. 문서I18N/TestPlan/Changelog/WorkPacket·누적원장을동기화하며독립사전검토미해결P1/P2=0은인간QA·Owner·Manager승인을대체하지않는다. 최신PR출처·새Full시작은STATUS댓글에기록하고완료모니터링·병합·릴리스는수행하지않는다.
+
+## REWORK4 — Full3471.1 물류 유형 검색 터치 높이 (2026-11-04)
+
+[Full #3471.1 / Run41704268626](https://github.com/planner77/masterGantt/actions/runs/41704268626)는 Head3ef679d/Base352a43e/test-merge66db3d0의 Quality·Docker SUCCESS, E2E Shard3 직접 FAILURE(기대44px/실제20px), QA 파생 FAILURE였다. 계획874case 중 188 PASS/1 FAIL/1 기존 SKIP/684 미완료·미실행이며 나머지7Shard는 CANCELLED다. [누적 실패 원장](../../ISSUE_866_FAILURE_ANALYSIS.md#pr870-full-004--full-34711-실패와-rework4-2026-11-04) 및 [Run 정제증거](../../evidence/issue-866/ci-41704268626-attempt-1.json)를 따른다.
+
+#866의 이름/코드 검색 input이 .panel 직속 label에 있어 기존 .addRow/.dialog 입력높이 규칙에서 누락됐다. REWORK4는 기존 CSS 공통 높이 var(터치44px)를 해당 label/input에 재사용한다. 기존 tests/e2e/logistics-table-density.spec.ts의 5폭·Keyboard·coarse 검증을 EXTEND해 검색 입력을 정확한 label로 확인하고 범용 컨트롤 높이 assertion을 유지한다. ADD 별도 중복 Spec은 만들지 않으며 이전 원격 실패와 인접·음성 테스트는 KEEP_UNIQUE다. source 계약(검색/번역/권한/DB/API/LLM)과 CI/QA·8Shard·skip/retry/timeout·릴리스 권한은 변경하지 않는다.
+
+실험 증거는 실제 앱 E2E가 아닌 synthetic Chromium144/Playwright390px hasTouch CSS cascade의 RED21px→GREEN44px에 한정한다. GitHub connector-only 환경이므로 새 Head 로컬 Vitest/Playwright/Build/HTTP HTTPS는 NOT TESTED이고 exact Head 공식 Full CI를 시작해 별도 확인한다. 이번 문서 동기화는 원장·Work Packet·보조 Run evidence에 한정하며 설계와 기존 QA/보안 계약 문서는 변경 필요 없음. 최신 리뷰0·PR mergeable/main정렬은 게시 직전후 검토하고 결과 모니터링·병합·Main/GHCR/릴리스·이슈 종료는 수행하지 않는다.

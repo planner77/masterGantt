@@ -123,7 +123,27 @@ test("#454 after 두 유형·dialog 5폭 정렬과 마지막 action keyboard 접
   const environment=await page.evaluate(()=>({locale:navigator.language,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,userAgent:navigator.userAgent}));
   await writeFile(resolve(dir,"environment.json"),JSON.stringify({...environment,browserVersion:browser.version(),capturedAt:new Date().toISOString(),zoom:"100% default; native125% NOT TESTED"},null,2)+"\n");
   const coarse=await browser.newContext({baseURL:new URL(page.url()).origin,viewport:{width:390,height:900},hasTouch:true});
-  try{const touch=await coarse.newPage();await mockLogistics454(touch);await loginLogistics454(touch);expect(await touch.evaluate(()=>matchMedia("(pointer:coarse), (any-pointer:coarse)").matches)).toBe(true);for(const label of ["설비 유형","시스템 유형"]){await touch.getByRole("button",{name:label,exact:true}).tap();const panel=touch.getByRole("group",{name:"물류 유형 종류",exact:true}).locator("../..");const targets=await panel.evaluate(element=>Array.from(element.querySelectorAll("button,input,select")).filter(control=>control.checkVisibility()).map(control=>({name:control.textContent,height:control.getBoundingClientRect().height})));targets.forEach(target=>expect(target.height,String(target.name)).toBeGreaterThanOrEqual(44));}}finally{await coarse.close();}
+  try {
+    const touch = await coarse.newPage();
+    await mockLogistics454(touch);
+    await loginLogistics454(touch);
+    expect(await touch.evaluate(() => matchMedia("(pointer:coarse), (any-pointer:coarse)").matches)).toBe(true);
+    for (const label of ["설비 유형", "시스템 유형"]) {
+      await touch.getByRole("button", { name: label, exact: true }).tap();
+      // The searchable name/code input was added by #866 and must obey the same touch sizing.
+      const searchHeight = await touch.getByLabel("이름 또는 코드 검색", { exact: true })
+        .evaluate(input => input.getBoundingClientRect().height);
+      expect(searchHeight, `${label}: 이름 또는 코드 검색 터치 입력 높이`).toBeGreaterThanOrEqual(44);
+      const panel = touch.getByRole("group", { name: "물류 유형 종류", exact: true }).locator("../..");
+      const targets = await panel.evaluate(element =>
+        Array.from(element.querySelectorAll("button,input,select"))
+          .filter(control => control.checkVisibility())
+          .map(control => ({ name: control.textContent, height: control.getBoundingClientRect().height })));
+      targets.forEach(target => expect(target.height, String(target.name)).toBeGreaterThanOrEqual(44));
+    }
+  } finally {
+    await coarse.close();
+  }
 
 });
 

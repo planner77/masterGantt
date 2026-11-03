@@ -283,3 +283,30 @@ B동결1211파일SHA256`fb8aef37f15108c26761ad1bf26331cfd04371bd906217932a495843
 [Local검증명세](evidence/issue-866/rework-3-local-validation.json)·[B전송명세](evidence/issue-866/rework-3-final-transport.json)·[직접6선정](evidence/issue-866/rework-3-direct-selection.txt)·[과거35선정](evidence/issue-866/rework-3-history-selection.txt)에명령·환경·수치·범위를보존한다. 새합성KO/EN/VI캡처는output/playwright/issue-866-rework3에분리했다. 이전source/canonical/CI/실패증거는덮어쓰지않았다.
 
 정적교정과수정된E2E에대한독립qa_review검토미해결P1/P2=0·독립i18n14/14PASS는사전검토이며인간최종QA/Owner승인이아니다. RiskHIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false 유지. 최신Head/Base/test-merge·review threads/충돌·시작FullRun/attempt는STATUS댓글에기록한다. 새Required3/Trusted·Owner/Manager ACCEPT=NOT TESTED, MERGE_READY=BLOCKED다. 요청범위는CI시작까지만이며완료모니터링·병합·Main/GHCR/tag/Release/Issue종료는수행하지않는다.
+## PR870-FULL-004 — Full #3471.1 실패와 REWORK4 (2026-11-04)
+
+기존 Full3468.1/3469.1/3470.1, 각 1회 Attempt, 세 차례 REWORK의 원본 FAIL·기각 가설·보완·로컬 검증은 위 절에 불변으로 유지한다. 이번 추가 원본은 [Full #3471.1](https://github.com/planner77/masterGantt/actions/runs/41704268626), Run41704268626 / attempt1, event=pull_request, workflow=.github/workflows/ci.yml, Head 3ef679d930d50bf4eb9d597b31a49be795baca74, Base/main 352a43e74c7b34c72d952f67783a53463f8b519d, 조회 시 PR API test-merge 66db3d0e2f215edbab2a5b5810f6bd80b2ad02cc다. Run created 2026-11-03T19:32:55Z, completed FAILURE. 이전 Full 네 개의 Head는 98272e1 → a2b4766 → bfe2362 → 3ef679d이며 각각 다른 소스이므로 과거 PASS는 최신 Head의 PASS가 아니다. 별도 FAST #243~#246은 advisory SKIPPED이고 Full 승인으로 사용하지 않는다.
+
+### 원격 실행·Shard 원본과 파생 판정
+
+| 범위 | 실제 판정·근거 |
+| --- | --- |
+| Quality / Job126160284591 | SUCCESS. Vitest·타입·ESLint·정책·PR production build 경로 성공. |
+| Docker / Job126161816322 | SUCCESS. 첫 Full3468의 transport locale 원인 보완 이후 Docker 3연속 성공. |
+| Chromium E2E aggregate / Job126163181918 | FAILURE. Shard3 Job126158915804의 E2E 실행 step7 직접 FAILURE에서 파생. |
+| QA Final Automated / Job126163231575 | FAILURE. Required E2E 미통과에 따른 파생 차단; 독립 신규 제품 오류로 계수하지 않음. |
+| Shard3 / Job126158915804 | 계획153case 중 28 PASS / 1 FAIL / 1 SKIPPED / 123 NOT RUN. 원본 실패 시각 2026-11-03T19:45:53Z. |
+| Shard1/2/4/5/6/7/8 | 7 Job 모두 CANCELLED. 로그에서 각각 41/7/9/23/29/28/23 PASS를 실제 관측했고 직접 실패 추가 0; 취소된 나머지는 NOT RUN/INCOMPLETE이다. |
+| 8-Shard 전체 / 계획874case | 로그로 관측한 188 PASS / 1 FAIL / 1 SKIPPED / 684 미완료·미실행. 7개 취소 Shard를 완료 PASS로 보지 않는다. |
+
+정제 작업별 Job·계수·Run·출처는 [ci-41704268626-attempt-1.json](evidence/issue-866/ci-41704268626-attempt-1.json)에 추가했다. Source artifact ci-pr-source-41704268626-1은 Run API의 존재·ID13264592408·미만료만 확인했다. ZIP payload 및 digest를 직접 검증하지 않아 provenance 전부 PASS로 주장하지 않는다. 해당 로그의 Node.js20 deprecated 경고는 E2E 직접 실패가 아니다.
+
+### F866-TOUCH-006 — 물류 유형 검색 입력의 터치 높이 계약 누락
+
+- **원본:** [Shard3 Job126158915804](https://github.com/planner77/masterGantt/actions/runs/41704268626/job/126158915804) / tests/e2e/logistics-table-density.spec.ts:79의 기존 #454 after 5폭/keyboard/coarse 사례, assertion126. 기대 높이 >=44px, 실제 20px. 터치390x900의 설비/시스템 유형 화면에서 visible button,input,select 전체를 검사하는 경로이며, assertion·timeout을 느슨하게 해서 해결할 문제가 아니다.
+- **소스 근거/분류 PRODUCT:** i18n 통합 때 물류 유형 관리에 별도 이름 또는 코드 검색 input이 .panel 직속 label로 추가됐다. CSS의 --catalog-control-height는 coarse에서44px이나 높이 스타일은 .addRow input과 .dialog input에만 적용된다. 번역 필드 input은 별도44px, 버튼은 .panel button 44px로 보호되며 신규 검색 입력만 누락됐다. 해당 컴포넌트 Git blob1657c52becf564764feaeb08780ed36187aef79b는 Full3468~3471의 네 Head에서 동일해 최근 REWORK3에 새로 들어온 수정이 아닌 초기 #866 변경의 잠복 회귀다.
+- **관측/반례:** 실제 원격 오류의 20px 입력 원소 식별은 오류 메시지에 기록되지 않았으므로 가장 개연성 높은 원인으로 평가한다. 별도 격리된 Chromium144/Python Playwright의 대표390px hasTouch DOM·동일 관련 CSS selector에서 검색입력 minHeight=0/실측21px를 확인했다. 기존 높이 selector에 .panel>label>input을 포함하면 minHeight=44px/실측44px, addRow input·tabs button은 전후44px였다. 이 실험은 앱 전체 E2E 재현이나 Trace 확인이 아닌 제한적 CSS 인과성 검증이다.
+- **일괄 보완:** src/features/logistics/logistics-type-catalog-admin.module.css의 기존 label/input 스타일에 .panel 직속 검색 label/input을 편입하여 모바일만이 아니라 데스크톱과 키보드 조작에도 동일한 공통 컨트롤 형태를 적용한다. tests/e2e/logistics-table-density.spec.ts의 기존 coarse 경로를 EXTEND하여 설비/시스템 탭 각각 검색 입력 높이를 접근성 label로 명시적으로 확인하고 기존 전체 button/input/select >=44px assertion을 그대로 유지한다. 테스트 skip·retry·timeout·8Shard·Required3·보안/권한/저장 계약은 불변이다.
+- **누적 직접 실패 파일 합집합:** admin-auth-layout.spec.ts, cross-screen-regression.spec.ts, country-calendar-admin.spec.ts, issue-725-process-workareas.spec.ts, logistics-table-density.spec.ts, tests/transport/production-transport.spec.ts. 이전 재작업에서 추가한 #719/context·i18n·Project Issue·WBS/Calendar·Project Logistics·번역 초안/권한 등 직접·인접·음성 소비자 선정은 유지한다. 최신 logistics-table-density.spec.ts는 REWORK3 선별 13spec/41case에 없었다. 반복된 잠복 오류 방지를 위해 최소한 이번 직접 Spec 전체 및 누적 5개 E2E 원본 Spec과 production transport를 후속 실행 대상으로 유지한다.
+- **검증의 정확한 경계:** 동일 실제 저장소 Head의 전체 Vitest, 타입/린트, Chromium E2E, Docker는 이번 수정의 로컬 checkout·GitHub 런타임이 없어 NOT TESTED. 위 격리 CSS 실험만 제한적 PASS이며 과거 REWORK3 41case PASS를 새 후보의 PASS로 전용하지 않는다. 다음 원격 exact-Head Full CI·Trusted QA·Owner/Manager ACCEPT도 시작 전 NOT TESTED다.
+- **리뷰/충돌·안전:** PR API에서 HEAD3ef679d/Base352a43e, mergeable=true, 독립 review threads API에서 unresolved 0, main SHA가 base와 같았다. 현행 risk HIGH / OWNER_MANAGED / qa_required=true / release_required=true / release_authorized=false, MERGE_READY=BLOCKED. 코드·테스트·원장·Work Packet·정제증거를 단일 Git Data batch commit으로 게시하고 Ref를 단 한 번 갱신한다. 게시 후 새 Head/Run을 대조하지만 결과 모니터링/병합/Main·GHCR/Release·Issue 종료는 수행하지 않는다.

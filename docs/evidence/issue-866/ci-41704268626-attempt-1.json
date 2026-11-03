@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "issue": 866,
+  "relatedIssues": [
+    865,
+    869
+  ],
+  "pr": 870,
+  "mode": "READ_ONLY_COMPLETED_FULL_3471_REMOTE_LOG_TRIAGE",
+  "source": "GitHub Actions Run API, jobs API, decoded job logs, current PR API; source ZIP payload NOT inspected",
+  "fullRun": {
+    "id": 41704268626,
+    "number": 3471,
+    "attempt": 1,
+    "event": "pull_request",
+    "workflowPath": ".github/workflows/ci.yml",
+    "headSha": "3ef679d930d50bf4eb9d597b31a49be795baca74",
+    "baseSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+    "testMergeSha": "66db3d0e2f215edbab2a5b5810f6bd80b2ad02cc",
+    "createdAt": "2026-11-03T19:32:55Z",
+    "updatedAt": "2026-11-03T19:50:16Z",
+    "conclusion": "failure",
+    "url": "https://github.com/planner77/masterGantt/actions/runs/41704268626"
+  },
+  "sourceArtifact": {
+    "name": "ci-pr-source-41704268626-1",
+    "artifactId": 13264592408,
+    "expired": false,
+    "zipContentInspected": false,
+    "provenanceBoundByArtifact": false
+  },
+  "aggregates": {
+    "quality": {
+      "jobId": 126160284591,
+      "conclusion": "success"
+    },
+    "e2e": {
+      "jobId": 126163181918,
+      "conclusion": "failure"
+    },
+    "docker": {
+      "jobId": 126161816322,
+      "conclusion": "success"
+    },
+    "qaAutomated": {
+      "jobId": 126163231575,
+      "conclusion": "failure",
+      "cause": "downstream of E2E required failure"
+    }
+  },
+  "shards": [
+    {
+      "shard": 1,
+      "jobId": 126158915826,
+      "status": "cancelled",
+      "observedPass": 41,
+      "observedFail": 0,
+      "observedSkip": 0,
+      "planned": 129
+    },
+    {
+      "shard": 2,
+      "jobId": 126158915897,
+      "status": "cancelled",
+      "observedPass": 7,
+      "observedFail": 0,
+      "observedSkip": 0,
+      "planned": 103
+    },
+    {
+      "shard": 3,
+      "jobId": 126158915804,
+      "status": "failure",
+      "observedPass": 28,
+      "observedFail": 1,
+      "observedSkip": 1,
+      "planned": 153
+    },
+    {
+      "shard": 4,
+      "jobId": 126158915753,
+      "status": "cancelled",
+      "observedPass": 9,
+      "observedFail": 0,
+      "observedSkip": 0,
+      "planned": 93
+    },
+    {
+      "shard": 5,
+      "jobId": 126158915796,
+      "status": "cancelled",
+      "observedPass": 23,
+      "observedFail": 0,
+      "observedSkip": 0,
+      "planned": 109
+    },
+    {
+      "shard": 6,
+      "jobId": 126158916014,
+      "status": "cancelled",
+      "observedPass": 29,
+      "observedFail": 0,
+      "observedSkip": 0,
+      "planned": 100
+    },
+    {
+      "shard": 7,
+      "jobId": 126158916008,
+      "status": "cancelled",
+      "observedPass": 28,
+      "observedFail": 0,
+      "observedSkip": 0,
+      "planned": 83
+    },
+    {
+      "shard": 8,
+      "jobId": 126158915778,
+      "status": "cancelled",
+      "observedPass": 23,
+      "observedFail": 0,
+      "observedSkip": 0,
+      "planned": 104
+    }
+  ],
+  "totals": {
+    "planned": 874,
+    "observedPass": 188,
+    "observedFail": 1,
+    "observedSkip": 1,
+    "notCompleted": 684
+  },
+  "firstDirectFailure": {
+    "jobId": 126158915804,
+    "jobUrl": "https://github.com/planner77/masterGantt/actions/runs/41704268626/job/126158915804",
+    "spec": "tests/e2e/logistics-table-density.spec.ts",
+    "testLine": 79,
+    "assertionLine": 126,
+    "expectedMinimumPx": 44,
+    "receivedPx": 20,
+    "startedUtc": "2026-11-03T19:45:53Z",
+    "classification": "PRODUCT",
+    "diagnosis": "new name-or-code search input is a direct .panel label child; existing min-height selector covered only .addRow/.dialog inputs; touch var was 44 but not applied to search input",
+    "verification": "DOM element identity is inferred from exact source selector audit, not from a downloaded Playwright trace"
+  },
+  "reproduction": {
+    "environment": "isolated synthetic DOM/css, Python Playwright with installed Chromium 144.0.7559.96, 390x900 has_touch=true",
+    "before": {
+      "searchHeightPx": 21,
+      "computedMinHeight": "0px"
+    },
+    "after": {
+      "searchHeightPx": 44,
+      "computedMinHeight": "44px"
+    },
+    "fullApplicationE2e": "NOT TESTED",
+    "unitAndTypecheck": "NOT TESTED",
+    "scope": "CSS cascade hypothesis only, not repository build"
+  },
+  "noRunReattempted": true,
+  "noCiSettingsChanged": true,
+  "releaseAuthorized": false,
+  "historicFullRuns": [
+    41618392066,
+    41640034518,
+    41650170956,
+    41704268626
+  ]
+}
