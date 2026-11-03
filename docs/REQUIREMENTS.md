@@ -1,3 +1,7 @@
+## Issue #869 — Project Issue 목록 및 등록·수정 폼 (2026-11-04)
+
+Issue 목록의 세로 스크롤 소유자는 desktop에서 데이터 목록 하나이며 KPI/검색/페이지네이션은 고정 관찰 가능해야 한다. 표의 가로 스크롤 및 검색·상태·원본 ID·논리 삭제/권한·Task 복귀는 불변이다. 등록/수정 dialog 상단에는 제목/닫기와 sticky Issue 명을 두고, 등록/발생/완료일과 등록자/담당자/상태를 각각 3열로 묶는다. 완료일은 완료 상태에서만 필수·활성으로, 신규 비밀번호/확인은 2열, Issue 내용은 8행/약 2배 높이로 배치한다. 390/768/1024/1440/1920px·keyboard/focus/Escape·반응형은 기존 실제 E2E로 확인한다. [Issue #869](https://github.com/planner77/masterGantt/issues/869).
+
 ## Issue #867 — 프로젝트 Issue 초기 조회의 운영 환경 기본값 (2026-11-03)
 
 프로젝트 Issue 목록 최초 표시와 검색 초기화는 서버 런타임 `PROJECT_ISSUE_DEFAULT_STATUS_FILTER` 설정을 따른다. 유효 값은 `all|open|registered|in_progress|completed`; 미설정/빈 값·잘못된 값의 기본은 `all`이다. 운영자가 지정한 기본값은 UI 초기/초기화에서만 사용하며 사용자의 수동 선택, 조회 API의 미지정 status=all, 기존 업무 상태/논리 삭제·전체 KPI를 변경하지 않는다. Docker Compose에서 app 환경으로 전달한다. 세부 계약 [#867](https://github.com/planner77/masterGantt/issues/867).

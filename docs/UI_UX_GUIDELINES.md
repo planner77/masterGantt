@@ -1,3 +1,7 @@
+## Issue #869 — Issue scroll owner와 편집 폼의 시각적 구분 (2026-11-04)
+
+Project Issue는 목록 데이터만 세로 스크롤하고 KPI/검색/하단 pagination을 동일 스크롤 컨테이너 안에 넣지 않는다. 표의 가로 스크롤과 sticky header를 유지하고 내부 목록이 잘리지 않도록 flex/min-height:0 및 viewport별 안전 fallback을 사용한다. Dialog는 제목/닫기/Issue 명을 독립적으로 고정하고 본문에만 overflow를 준다. 데스크톱 날짜3·등록자/담당자/상태3·비밀번호2열, 내용8행; 작은 폭/낮은 높이·coarse pointer의 focus/Tab/Escape와 숨겨진 저장·오류·보안패널 도달성을 보존한다. Gantt peer 화면의 본문 크기/스크롤 규칙은 수정하지 않는다.
+
 ## Issue #819 — 리소스 하위 화면의 compact 상속과 정보 계층
 
 프로젝트 → 대시보드 → 리소스의 기본 현황·차트·동적 계층 탐색·Milestone 교차·Resource Plan·견적/Excel은 같은 host 밀도 계약을 사용한다. #807/#798의 일괄 44px 기대는 이 리소스 범위에서 fine36px·13px/20px, coarse44px로 교정한다. Native select의 computed line-height는 플랫폼이 소유하므로 높이/font/행 정렬로 검증하고 버튼·텍스트 입력의20px 기준과 구별한다. 다른 dashboard 관점·관리/Task Editor의 기존 명시 계약은 그대로 적용한다. 같은 행 제어의 top/bottom 차이 ≤1px·내용 중앙 정렬, label에 맞는 폭/padding, 긴 값·focus/오류 비잘림을 실제 browser로 확인한다.
