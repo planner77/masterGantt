@@ -1560,7 +1560,7 @@ Summary 작업은 `scope: 'subtree'`를 통해 하위 자손 작업들에 설비
 - `GET/POST /api/logistics-catalog/admin/system-types`
 - `PATCH /api/logistics-catalog/admin/system-types/{code}`
 
-Mutation은 exact Origin과 `If-Match: "<catalog revision>"`을 요구한다. stale revision은 412, 인증 없음은 401, 중복/DB 무결성 충돌은 409 계열로 처리한다. hard delete와 stable code 변경은 제공하지 않는다.
+Mutation은 exact Origin과 `If-Match: "<catalog revision>"`을 요구한다. stale revision은 412, 인증 없음은 401, 중복/DB 무결성 충돌은 409 계열로 처리한다. hard delete와 stable code 변경은 제공하지 않는다. #866의 `translations: { ko?, en?, vi? }`는 선택적 전체 교체 값이다. 생략은 기존 번역 보존, `{}`는 전체 해제이며 번역 변경 없이 이름만 수정할 때는 생략한다.
 
 ## Issue #288 Resource developer grade
 

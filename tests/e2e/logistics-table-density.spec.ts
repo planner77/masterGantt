@@ -154,6 +154,28 @@ for(const [label,code] of [["설비 유형","agv"],["시스템 유형","mcs"]])t
   const dialog=page.getByRole("dialog");await dialog.getByLabel("표시명",{exact:true}).fill("Updated synthetic name");await dialog.getByRole("button",{name:"저장",exact:true}).click();await expect(dialog).toHaveCount(0);await expect(row.getByRole("cell",{name:code,exact:true})).toBeVisible();await expect(row.getByRole("cell",{name:"0",exact:true})).toBeVisible();
   await row.getByRole("button",{name:"비활성화",exact:true}).click();await expect(row.getByRole("button",{name:"재활성화",exact:true})).toBeVisible();await row.getByRole("button",{name:"재활성화",exact:true}).click();await expect(row.getByRole("button",{name:"비활성화",exact:true})).toBeVisible();
   const mutations=mock.requests.filter(r=>r.method!=="GET"&&!r.path.endsWith("admin-sessions"));expect(mutations.map(r=>r.ifMatch)).toEqual(['"7"','"8"','"9"','"10"']);expect(mutations.map(r=>r.body)).toEqual([{code:"new-type",name:"New synthetic type",sortOrder:9},{name:"Updated synthetic name"},{active:false},{active:true}]);
+
+  // #866: name-only edits omit the optional field; translation writes explicitly replace it.
+  const edit=page.getByRole("dialog",{name:"유형 이름 수정",exact:true});
+  await row.getByRole("button",{name:"이름 수정",exact:true}).click();
+  await edit.getByLabel("English",{exact:true}).fill("Translated "+code);
+  await edit.getByRole("button",{name:"저장",exact:true}).click();
+  await expect(edit).toHaveCount(0);
+  const patches=()=>mock.requests.filter(r=>r.method==="PATCH"&&r.path.endsWith("/"+code));
+  expect(patches().at(-1)?.body).toEqual({name:"Updated synthetic name",translations:{en:"Translated "+code}});
+  await row.getByRole("button",{name:"이름 수정",exact:true}).click();
+  await expect(edit.getByLabel("English",{exact:true})).toHaveValue("Translated "+code);
+  await edit.getByRole("button",{name:"저장",exact:true}).click();
+  await expect(edit).toHaveCount(0);
+  expect(patches().at(-1)?.body).toEqual({name:"Updated synthetic name"});
+  await row.getByRole("button",{name:"이름 수정",exact:true}).click();
+  await edit.getByLabel("English",{exact:true}).fill("");
+  await edit.getByRole("button",{name:"저장",exact:true}).click();
+  await expect(edit).toHaveCount(0);
+  expect(patches().at(-1)?.body).toEqual({name:"Updated synthetic name",translations:{}});
+  const stored=mock.catalog.data[label==="설비 유형"?"equipmentTypes":"systemTypes"].find(item=>item.code===code);
+  expect(stored?.name).toBe("Updated synthetic name");
+  expect(stored?.translations).toBeUndefined();
 });
 
 for(const unit of ["rename","password"])test(`#454 ${unit} pending 동기 제출1·반복 Escape와 focus`,async({page})=>{

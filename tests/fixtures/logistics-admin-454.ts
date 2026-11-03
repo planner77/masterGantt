@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import type { LogisticsTypeCatalogResponse } from "../../src/contracts/logistics";
+import type { DisplayNameTranslations } from "../../src/contracts/display-name-translations";
 
 export function logistics454Catalog(): LogisticsTypeCatalogResponse {
   return { data: { revision: 7, equipmentTypes: [
@@ -42,12 +43,25 @@ export async function mockLogistics454(page: Page) {
     if (control.malformedMutation) { control.malformedMutation = false; await route.fulfill({ status: 200, json: { invalid: true } }); return; }
     if (path.endsWith("admin-password")) { await route.fulfill({ status: 200, json: { data: { changed: true } } }); return; }
     const items = path.includes("equipment-types") ? catalog.data.equipmentTypes : catalog.data.systemTypes;
-    const body = req.postDataJSON() as { code?: string; name?: string; sortOrder?: number; active?: boolean };
-    if (req.method() === "POST") items.push({ code: body.code!, name: body.name!, sortOrder: body.sortOrder!, active: true, usageCount: 0 });
-    else {
+    const body = req.postDataJSON() as { code?: string; name?: string; sortOrder?: number; active?: boolean; translations?: DisplayNameTranslations };
+    const writeTranslations = (item: LogisticsTypeCatalogResponse["data"]["equipmentTypes"][number]) => {
+      if (body.translations === undefined) return;
+      const next: DisplayNameTranslations = {};
+      for (const locale of ["ko", "en", "vi"] as const) {
+        const name = body.translations[locale]?.trim().normalize("NFC");
+        if (name) next[locale] = name;
+      }
+      if (Object.keys(next).length) item.translations = next;
+      else delete item.translations;
+    };
+    if (req.method() === "POST") {
+      items.push({ code: body.code!, name: body.name!, sortOrder: body.sortOrder!, active: true, usageCount: 0 });
+      writeTranslations(items.at(-1)!);
+    } else {
       const item = items.find(item => item.code === decodeURIComponent(path.split("/").at(-1)!))!;
       if (body.name !== undefined) item.name = body.name;
       if (body.active !== undefined) item.active = body.active;
+      writeTranslations(item);
     }
     catalog.data.revision += 1;
     await route.fulfill({ status: req.method() === "POST" ? 201 : 200, json: catalog });

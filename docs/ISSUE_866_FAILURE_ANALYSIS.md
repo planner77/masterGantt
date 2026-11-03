@@ -310,3 +310,32 @@ B동결1211파일SHA256`fb8aef37f15108c26761ad1bf26331cfd04371bd906217932a495843
 - **누적 직접 실패 파일 합집합:** admin-auth-layout.spec.ts, cross-screen-regression.spec.ts, country-calendar-admin.spec.ts, issue-725-process-workareas.spec.ts, logistics-table-density.spec.ts, tests/transport/production-transport.spec.ts. 이전 재작업에서 추가한 #719/context·i18n·Project Issue·WBS/Calendar·Project Logistics·번역 초안/권한 등 직접·인접·음성 소비자 선정은 유지한다. 최신 logistics-table-density.spec.ts는 REWORK3 선별 13spec/41case에 없었다. 반복된 잠복 오류 방지를 위해 최소한 이번 직접 Spec 전체 및 누적 5개 E2E 원본 Spec과 production transport를 후속 실행 대상으로 유지한다.
 - **검증의 정확한 경계:** 동일 실제 저장소 Head의 전체 Vitest, 타입/린트, Chromium E2E, Docker는 이번 수정의 로컬 checkout·GitHub 런타임이 없어 NOT TESTED. 위 격리 CSS 실험만 제한적 PASS이며 과거 REWORK3 41case PASS를 새 후보의 PASS로 전용하지 않는다. 다음 원격 exact-Head Full CI·Trusted QA·Owner/Manager ACCEPT도 시작 전 NOT TESTED다.
 - **리뷰/충돌·안전:** PR API에서 HEAD3ef679d/Base352a43e, mergeable=true, 독립 review threads API에서 unresolved 0, main SHA가 base와 같았다. 현행 risk HIGH / OWNER_MANAGED / qa_required=true / release_required=true / release_authorized=false, MERGE_READY=BLOCKED. 코드·테스트·원장·Work Packet·정제증거를 단일 Git Data batch commit으로 게시하고 Ref를 단 한 번 갱신한다. 게시 후 새 Head/Run을 대조하지만 결과 모니터링/병합/Main·GHCR/Release·Issue 종료는 수행하지 않는다.
+
+## PR870-FULL-005 — Full #3472.1 실패와 REWORK5 (2026-11-04)
+
+이 절은 이전 Full #3468.1~#3471.1의 실제 실패·각 보완 및 로컬 증거를 소급 변경하지 않고 누적한다. 현재 접근 가능한 PR870 원본 Full은 **5회 모두 attempt1에서 FAILURE**이며 각각 다른 Head다. 원본 [Full #3472.1 / Run41710299107](https://github.com/planner77/masterGantt/actions/runs/41710299107), workflow `.github/workflows/ci.yml`, event `pull_request`, Head `0f9cc15ac140a19b06e9fe519c0883b3f9d58970`, Base/main `352a43e74c7b34c72d952f67783a53463f8b519d`, 조회 당시 PR test-merge `404e4884f5ea4ac9efdb7cfd4921c5ac511be4b0`, created 2026-11-03T20:11:46Z, completed FAILURE. 해당 Run의 source artifact `ci-pr-source-41710299107-1` ID13266017985는 존재·미만료만 조회했고 ZIP content/digest까지 독립 검증하지 않았으므로 검증된 source receipt라고 주장하지 않는다. FAST #247.1은 advisory SKIPPED다.
+
+### Run/Shard 실제 판정
+
+| 결과 집계 | 원본 Job/판정·근거 |
+| --- | --- |
+| Quality | Job126180959937 SUCCESS, TypeScript/Vitest/ESLint/정책/Next Production Build 성공 |
+| Docker | Job126183101438 SUCCESS, 첫 Full의 언어 설정 transport 실패는 이번 원격에서 재발하지 않음 |
+| E2E | Aggregate126182997462 FAILURE, [Shard3 Job126180157898](https://github.com/planner77/masterGantt/actions/runs/41710299107/job/126180157898) 실행 step7 직접 FAILURE |
+| QA Final Automated | Job126183145112 FAILURE, E2E Required 실패에 따른 파생 |
+| Shard3 원본 | 153중 29 PASS / 1 FAIL / 1 기존 SKIP / 122 NOT RUN. 직전 #3471 터치44px 실패 case `logistics-table-density.spec.ts:79`가 이번 원격에서 PASS |
+| 다른7Shard | Shard1/2/4/5/6/7/8 모두 CANCELLED, 해당 로그의 관측 PASS는 각31/3/5/23/28/26/11, 직접 신규 FAIL 0. 미완료를 PASS로 합산하지 않음 |
+| Full8 874계획 | 156 관측 PASS / 1 직접 FAIL / 1 SKIP / 716 미완료·미실행 |
+
+세부 출처/Job/계수/오류 diff는 [ci-41710299107-attempt-1.json](evidence/issue-866/ci-41710299107-attempt-1.json)에 별도 정제 기록했다. E2E/QA 실패 2개는 Shard3 직접 실패 1개의 파생이고 서로 다른 오류 2건이 아니다.
+
+### F866-PAYLOAD-007 — 다국어 표시명 Optional PATCH/POST 필드의 기본 전송 회귀
+
+- **실제 최초 오류:** 2026-11-03T20:23:46Z, `tests/e2e/logistics-table-density.spec.ts:150` → `156` explicit payload 단언. 기존 #454 설비 유형 create와 name-only PATCH는 `{code,name,sortOrder}` / `{name}`을 기대하나 실제 요청에는 각각 `translations:{}`가 추가됐다. `If-Match` 네 요청의 기존 `"7"/"8"/"9"/"10"` 단언은 통과한 뒤 body deep-equal에서 실패했으므로 revision이나 인증 오류로 전가하지 않는다. 시스템 유형의 다음 같은 테스트와 나머지 E2E는 미실행이며 PASS라고 하지 않는다.
+- **원인 (PRODUCT_CONTRACT + TEST_CONTRACT):** #866 UI의 `add/saveEdit`가 번역 변경 여부와 관계없이 `translations` 상태를 body에 넣는다. 서버 `parseDisplayNameTranslations`·`writeDisplayNameTranslations`의 기존 신규 계약은 생략=보존, 명시 `{}`=전체 해제다. 실제 #454 fixture에는 번역이 없어 데이터 소실이 관측된 것은 아니지만, 기존 번역이 있는 타입의 이름만 수정할 때 의도치 않은 해제가 발생할 수 있는 제품 위험이므로 테스트 기대값을 새 body에 맞추어 무작정 완화하지 않는다.
+- **기존 이력과 관계:** 이전 #3468·#3469·#3470·#3471의 ContextHelp/행밀도/transport/캘린더/HTML entity/터치 입력 높이는 서로 다른 이슈이고 원장/Run에 남긴다. 이번 원본에서 직전 터치 입력 E2E가 실행 PASS했으며 그 다음 payload 단언에 걸려 다른 테스트가 노출되지 않았다. 같은 원인 분류의 후속 소비자(설비·시스템 유형, create/name-only PATCH/기존 번역 수정·전체 해제)를 함께 검토한다.
+- **계약·수정:** 새 순수 `src/lib/i18n/translation-write-field.ts`는 원본과 현재 번역의 trim/NFC 의미 비교를 사용한다. 실변경이 없으면 field를 생략해 기존 API와 데이터 값을 보존하고, 값 추가/부분삭제 시 필요한 전체 번역 집합, 전체 해제 시 명시 `translations:{}`를 전송한다. 원시 nonblank 값은 서버의 허용 문자열·제어문자 검증을 통과하도록 임의 수정 없이 보낸다. `src/features/logistics/logistics-type-catalog-admin.tsx`의 add/saveEdit에 적용하고 기존 활성 토글/코드/If-Match/401/412/권한·원문 이름을 변경하지 않는다.
+- **회귀 테스트:** 기존 `tests/e2e/logistics-table-density.spec.ts`의 정확한 구 legacy body/If-Match assertion을 유지한다. 해당 사례의 설비·시스템 각 경로에 EN 번역 추가→번역 미변경 이름 저장→전체 해제의 제출 body·원본name·기존 번역 보존 검증을 EXTEND한다. `tests/fixtures/logistics-admin-454.ts`의 모의 서버는 선택 번역의 replacement·omission·empty-clear를 실제 백엔드 의미대로 구현한다. `tests/lib/i18n-translation-write-field.test.ts`를 ADD하여 no-op/create/partial/full clear/trim/NFC/raw unsafe 입력을 직접 검증한다. E2E spec 개수·Case 총874·8Shard·assertion 기본치/skip/retry/timeout/권한·QA gates는 변경하지 않는다.
+- **제한 검증:** 동일 helper Git blob `1370fa201453fc867bd4bc5d1c74617f103a2556`를 격리된 Node22.16/TypeScript5.8.3 스텁 환경에서 strict `tsc --noEmit` PASS, JS runtime 직접 11개 단언 PASS로 검사했다. 이 단독 proof는 실제 repo의 전체 Unit, 874 E2E, HTTP/HTTPS, Docker 검증과 다르므로 후자는 **NOT TESTED**다. 이전 Head의 PASS를 새 Head PASS로 승계하지 않는다.
+- **누적 파일 합집합:** 기존 admin-auth-layout / cross-screen-regression / country-calendar-admin / issue-725-process-workareas / logistics-table-density / production-transport 원본에 최신 `logistics-table-density`의 서로 다른 explicit payload case를 추가한다. 이 Spec의 전체 case 및 인접 `logistics-type-catalog-admin.spec.ts`와 `i18n-master-data.spec.ts`, 서버의 managed-display-names·Logistics Catalog contract, 각 401/412·부분삭제 경로가 직접/간접·음성 후보이다. 새 Unit/E2E 범위는 실제 로컬 저장소가 없어 실행하지 못함을 명시한다.
+- **진행 경계:** docs/ISSUE_866_FAILURE_ANALYSIS.md·Work Packet·I18N·API·Run evidence를 기존 본문 삭제 없이 갱신. 최신 main/PR 리뷰 스레드·충돌 재검토 후 단일 Git Data commit으로 게시하고 exact Head PR Full CI 자동 시작 여부를 확인한다. HIGH/OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false, MERGE_READY=BLOCKED 유지; 결과 모니터링/병합/Main/GHCR/Release·Issue 종료 제외.

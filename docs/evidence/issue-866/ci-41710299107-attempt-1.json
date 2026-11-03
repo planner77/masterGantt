@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "issue": 866,
+  "relatedIssues": [
+    865,
+    869
+  ],
+  "pr": 870,
+  "mode": "READ_ONLY_COMPLETED_FULL_3472_REMOTE_REWORK5",
+  "originalRuns": [
+    41618392066,
+    41640034518,
+    41650170956,
+    41704268626,
+    41710299107
+  ],
+  "collectedFrom": "connected GitHub Run/PR/Job/Artifact APIs and decoded 8 Shard job logs, not from local CI",
+  "originalRun": {
+    "id": 41710299107,
+    "number": 3472,
+    "attempt": 1,
+    "workflow": ".github/workflows/ci.yml",
+    "event": "pull_request",
+    "headSha": "0f9cc15ac140a19b06e9fe519c0883b3f9d58970",
+    "baseSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+    "testMergeShaFromPrApi": "404e4884f5ea4ac9efdb7cfd4921c5ac511be4b0",
+    "sourceZipNotInspected": true,
+    "createdUtc": "2026-11-03T20:11:46Z",
+    "updatedUtc": "2026-11-03T20:25:27Z",
+    "conclusion": "failure",
+    "url": "https://github.com/planner77/masterGantt/actions/runs/41710299107"
+  },
+  "sourceArtifact": {
+    "id": 13266017985,
+    "name": "ci-pr-source-41710299107-1",
+    "expired": false,
+    "zipInspected": false,
+    "identityValidatedOnlyByPrAndRunApi": true
+  },
+  "required": {
+    "quality": {
+      "jobId": 126180959937,
+      "conclusion": "success"
+    },
+    "e2e": {
+      "jobId": 126182997462,
+      "conclusion": "failure",
+      "downstream": true
+    },
+    "docker": {
+      "jobId": 126183101438,
+      "conclusion": "success"
+    },
+    "qaAutomated": {
+      "jobId": 126183145112,
+      "conclusion": "failure",
+      "derivedFromRequiredE2e": true
+    }
+  },
+  "shards": [
+    {
+      "shard": 1,
+      "jobId": 126180157835,
+      "conclusion": "cancelled",
+      "planned": 129,
+      "passObserved": 31,
+      "failObserved": 0,
+      "skipObserved": 0,
+      "unfinished": 98
+    },
+    {
+      "shard": 2,
+      "jobId": 126180157818,
+      "conclusion": "cancelled",
+      "planned": 103,
+      "passObserved": 3,
+      "failObserved": 0,
+      "skipObserved": 0,
+      "unfinished": 100
+    },
+    {
+      "shard": 3,
+      "jobId": 126180157898,
+      "conclusion": "failure",
+      "planned": 153,
+      "passObserved": 29,
+      "failObserved": 1,
+      "skipObserved": 1,
+      "unfinished": 122
+    },
+    {
+      "shard": 4,
+      "jobId": 126180157679,
+      "conclusion": "cancelled",
+      "planned": 93,
+      "passObserved": 5,
+      "failObserved": 0,
+      "skipObserved": 0,
+      "unfinished": 88
+    },
+    {
+      "shard": 5,
+      "jobId": 126180157646,
+      "conclusion": "cancelled",
+      "planned": 109,
+      "passObserved": 23,
+      "failObserved": 0,
+      "skipObserved": 0,
+      "unfinished": 86
+    },
+    {
+      "shard": 6,
+      "jobId": 126180157752,
+      "conclusion": "cancelled",
+      "planned": 100,
+      "passObserved": 28,
+      "failObserved": 0,
+      "skipObserved": 0,
+      "unfinished": 72
+    },
+    {
+      "shard": 7,
+      "jobId": 126180157722,
+      "conclusion": "cancelled",
+      "planned": 83,
+      "passObserved": 26,
+      "failObserved": 0,
+      "skipObserved": 0,
+      "unfinished": 57
+    },
+    {
+      "shard": 8,
+      "jobId": 126180157892,
+      "conclusion": "cancelled",
+      "planned": 104,
+      "passObserved": 11,
+      "failObserved": 0,
+      "skipObserved": 0,
+      "unfinished": 93
+    }
+  ],
+  "totals": {
+    "planned": 874,
+    "observedPassed": 156,
+    "observedFailed": 1,
+    "observedSkipped": 1,
+    "unfinished": 716
+  },
+  "firstActualFailure": {
+    "shard": 3,
+    "jobId": 126180157898,
+    "url": "https://github.com/planner77/masterGantt/actions/runs/41710299107/job/126180157898",
+    "timeUtc": "2026-11-03T20:23:46Z",
+    "file": "tests/e2e/logistics-table-density.spec.ts",
+    "testStartLine": 150,
+    "assertionLine": 156,
+    "case": "설비 유형 추가·이름·활성 변경 explicit payload와 If-Match",
+    "expectedCreate": {
+      "code": "new-type",
+      "name": "New synthetic type",
+      "sortOrder": 9
+    },
+    "receivedExtraPropertyAtCreate": {
+      "translations": {}
+    },
+    "expectedRename": {
+      "name": "Updated synthetic name"
+    },
+    "receivedExtraPropertyAtRename": {
+      "translations": {}
+    },
+    "observedIfMatchStillPassed": true,
+    "previousTouchSizingTestPassed": true
+  },
+  "cause": {
+    "type": "PRODUCT_CONTRACT_AND_OBSOLETE_TEST_EXPECTATION",
+    "fact": "UI always passes translations:{} for untouched create/name-only edit; service parseDisplayNameTranslations allows undefined to preserve and {} to clear existing",
+    "risk": "unintended translation removal by name-only PATCH even when E2E fixture had no translation",
+    "otherHypotheses": "origin/401/412/HTTP transport/If-Match not implicated by direct diff",
+    "priorSource": "initial #866 i18n UI; previous Full run stopped at earlier test"
+  },
+  "remediation": {
+    "newPureHelper": "src/lib/i18n/translation-write-field.ts",
+    "ui": "src/features/logistics/logistics-type-catalog-admin.tsx",
+    "fixture": "tests/fixtures/logistics-admin-454.ts",
+    "existingE2e": "tests/e2e/logistics-table-density.spec.ts",
+    "addedUnit": "tests/lib/i18n-translation-write-field.test.ts",
+    "design": "omit if semantically unchanged, explicit normalized locale replacement when modified, explicit {} clears all",
+    "previousAssertionsRetained": true,
+    "shardCountUnchanged": 8,
+    "e2eCaseCountUnchanged": 874
+  },
+  "standaloneValidation": {
+    "type": "ISOLATED_HELPER_ONLY",
+    "environment": "Node22.16.0, TypeScript5.8.3, synthetic type-only DisplayNameTranslations and supported locale stub",
+    "exactHelperGitBlob": "1370fa201453fc867bd4bc5d1c74617f103a2556",
+    "gitHashObjectMatched": true,
+    "strictTscNoEmit": "PASS",
+    "nodeAssertions": {
+      "passed": 11,
+      "failed": 0
+    },
+    "repositoryWideVitest": "NOT TESTED",
+    "browserE2e": "NOT TESTED",
+    "containerSmoke": "NOT TESTED"
+  },
+  "risk": {
+    "riskLevel": "HIGH",
+    "qaMethod": "OWNER_MANAGED",
+    "qaRequired": true,
+    "releaseRequired": true,
+    "releaseAuthorized": false,
+    "mergeReady": "BLOCKED"
+  }
+}
