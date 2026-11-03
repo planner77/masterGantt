@@ -154,6 +154,12 @@ test("#732 조건 밖 생성 성공은 필터를 유지하고 정확한 원본 �
   await editor.press("Escape");await expect(editor).toHaveCount(0);
   await expect(management.getByLabel("Milestone 검색",{exact:true})).toHaveValue("필터에 일치하지 않는 기존 조건");
   await expect(page.getByText(/조건 밖 새 Milestone Milestone을 추가했습니다/)).toBeVisible();
+  const notice = page.getByRole("status").filter({ has: page.getByRole("button", { name: "추가한 Milestone 상세", exact: true }) });
+  await expect(notice).toBeVisible();
+  // The localized message already starts with one space. Do not add another JSXText space.
+  const actualNotice = await notice.locator("p").textContent();
+  expect(actualNotice).toContain("조건 밖 새 Milestone Milestone을 추가했습니다.");
+  expect(actualNotice).not.toMatch(/ {2,}/);
   const reopen=page.getByRole("button",{name:"추가한 Milestone 상세",exact:true});await reopen.focus();await reopen.press("Enter");
   await expect(editor.getByLabel("작업명",{exact:true})).toHaveValue("조건 밖 새 Milestone");
   await editor.press("Escape");await expect(reopen).toBeFocused();

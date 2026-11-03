@@ -197,7 +197,12 @@ test("#726 직접 연결 5폭·긴 이름·키보드·초안 폐기와 HTTP 403/
       ? route.fulfill({ status, contentType: "application/json", body: JSON.stringify({ message: `검증 오류 ${status}` }) })
       : route.continue());
     await editor.getByRole("button", { name: "물류 연결 저장", exact: true }).click();
-    await expect(editor.getByRole("alert").filter({ hasText: status === 412 ? /Revision/ : status === 403 ? "물류 연결 편집 권한이 없습니다." : `검증 오류 ${status}` })).toBeVisible();
+    const safeMessage = status === 412 ? /Revision/
+      : status === 403 ? "물류 연결 편집 권한이 없습니다."
+      : "물류 연결 저장에 실패했습니다.";
+    await expect(editor.getByRole("alert").filter({ hasText: safeMessage })).toBeVisible();
+    // An unstructured upstream message is not a trusted presentation contract.
+    await expect(editor.getByText(`검증 오류 ${status}`, { exact: false })).toHaveCount(0);
     await expect(equipment().getByRole("checkbox", { name: /AMR-A/ })).toBeChecked();
     expect((await readLinks(f.task.taskId)).directEquipmentLinks).toEqual([]);
     expect((await f.snapshot()).data.project.revision).toBe(revision);

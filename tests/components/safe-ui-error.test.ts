@@ -17,6 +17,10 @@ describe("safe UI API error boundary", () => {
   it("uses safe defaults for unknown codes and malformed bodies", () => {
     expect(safeApiError({ error: { code: "secret-key", message: "private" } }, "작업 실패")).toBe("요청을 처리하지 못했습니다. 다시 시도해 주세요.");
     expect(safeApiError({ message: "private" }, "작업 실패")).toBe("작업 실패");
+    expect(safeApiError({ message: "검증 오류 409" }, "물류 연결 저장에 실패했습니다."))
+      .toBe("물류 연결 저장에 실패했습니다.");
+    expect(safeApiError({ error: { code: "REVISION_CONFLICT", message: "private-409-marker" } }, "물류 연결 저장에 실패했습니다."))
+      .toBe("다른 변경사항이 있습니다. 최신 정보를 확인해 주세요.");
   });
   it("retains bounded technical validation identifiers but drops detail prose", () => {
     expect(safeDiagnosticIdentifiers([{ path: "tasks[0].name", code: "INVALID_INPUT", message: "private" }, { path: "https://secret", code: "PRIVATE" }, { code: "secret value" }])).toEqual(["tasks[0].name · INVALID_INPUT", "PRIVATE"]);

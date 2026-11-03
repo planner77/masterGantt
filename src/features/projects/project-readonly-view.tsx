@@ -3303,9 +3303,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
               {navigationFrames.at(-1)!.destination.view !== activeView
                 ? t("최근 임시 이동 ({value0}) · ", { value0: navigationFrames.at(-1)!.destination.view === "resources" ? "리소스" : "일정" })
                 : t("현재 임시 범위 · ")}
-              {navigationFrames.at(-1)!.label} {t(" · 고유 Task")}{" "}
+              {navigationFrames.at(-1)!.label}{t(" · 고유 Task")}{" "}
               {navigationFrames.at(-1)!.scope.taskCount} · Assignment{" "}
-              {navigationFrames.at(-1)!.scope.assignmentCount} {t(" · 조상 문맥")}{" "}
+              {navigationFrames.at(-1)!.scope.assignmentCount}{t(" · 조상 문맥")}{" "}
               {navigationFrames.at(-1)!.scope.ancestorSummaryIds.length} ·{" "}
               {navigationFrames.at(-1)!.source.kpiSource ? t("일정은 출발 KPI의 정확 작업 목록") : <>{navigationFrames.at(-1)!.scope.sourceContext.range.from}–{navigationFrames.at(-1)!.scope.sourceContext.range.to}</>}
             </span>
@@ -3685,7 +3685,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
       <section id="project-panel-milestones" role="tabpanel" aria-labelledby="project-tab-milestones"
         hidden={activeView !== "milestones"} className="project-workspace-panel project-milestone-panel">
         {createdMilestoneNotice?.publicId === publicId ? <div role="status" className={milestoneWbsStyles.notice}>
-          <p>{createdMilestoneNotice.name} {t(" Milestone을 추가했습니다. 조회 조건에 따라 목록에 보이지 않을 수 있습니다. 상세에서 확인하거나 아래 전체 상태·관리의 검색·표시 조건을 변경해 주세요.")}</p>
+          <p>{createdMilestoneNotice.name}{t(" Milestone을 추가했습니다. 조회 조건에 따라 목록에 보이지 않을 수 있습니다. 상세에서 확인하거나 아래 전체 상태·관리의 검색·표시 조건을 변경해 주세요.")}</p>
           <button type="button" className="secondary-button" disabled={busy || navigationLoading || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null || !tasks.some(task => task.taskId === createdMilestoneNotice.taskId)} onClick={event => openTaskEditor(createdMilestoneNotice.taskId, "task", event.currentTarget)}>{t("추가한 Milestone 상세")}</button>
           <button type="button" className="secondary-button" onClick={() => { setCreatedMilestoneNotice(null); focusMilestoneDashboard(); }}>{t("추가 안내 닫기")}</button>
         </div> : null}
@@ -3876,7 +3876,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
         <WorkspaceDialog title={t("작업 삭제")} restoreFocusRef={deleteTriggerReference} busy={isSavingTask}
       onClose={closeTaskDelete}>
       <div className="project-form compact-form">
-        <p><strong>{pendingTaskDelete.taskName}</strong> {t(" 작업과 하위 작업 ")}{" "}
+        <p><strong>{pendingTaskDelete.taskName}</strong>{t(" 작업과 하위 작업 ")}{" "}
               {pendingTaskDelete.descendantTaskIds.length}{t("개, 총 ")}{" "}
               {pendingTaskDelete.descendantTaskIds.length + 1}{t("개 작업을 삭제하시겠습니까?")}</p>
         <p>{t("WBS에서 숨긴 Milestone ")}{tasks.filter(task => task.type === "milestone" && (task.taskId === pendingTaskDelete.taskId || pendingTaskDelete.descendantTaskIds.includes(task.taskId))).length}{t("개도 삭제 대상에 포함됩니다.")}</p>

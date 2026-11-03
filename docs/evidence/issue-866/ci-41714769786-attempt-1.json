@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "primaryIssue": 866,
+  "relatedIssues": [
+    865,
+    869
+  ],
+  "pr": 870,
+  "mode": "READ_ONLY_REMOTE_ORIGINAL_FULL_3473_TRIAGE_REWORK6",
+  "run": {
+    "id": 41714769786,
+    "number": 3473,
+    "attempt": 1,
+    "event": "pull_request",
+    "workflow": ".github/workflows/ci.yml",
+    "headSha": "60259f66e7e8830ecf3f29603f50f659c4631439",
+    "baseSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+    "testMergeShaFromPrApi": "665aebbad97267b2bce5294897dd536ce8ca1138",
+    "branch": "feat/issue-866-i18n-llm-issue-layout",
+    "createdUtc": "2026-11-03T20:40:44Z",
+    "updatedUtc": "2026-11-03T20:57:56Z",
+    "conclusion": "failure",
+    "url": "https://github.com/planner77/masterGantt/actions/runs/41714769786"
+  },
+  "provenance": {
+    "sourceArtifactId": 13268503801,
+    "sourceArtifactName": "ci-pr-source-41714769786-1",
+    "expired": false,
+    "zipPayloadInspected": false,
+    "runAndPrApiCrossChecked": true,
+    "sourceZipDigestVerified": false
+  },
+  "aggregates": {
+    "quality": {
+      "job": 126196505247,
+      "conclusion": "success"
+    },
+    "e2e": {
+      "job": 126199741859,
+      "conclusion": "failure",
+      "derived": true
+    },
+    "docker": {
+      "job": 126198777104,
+      "conclusion": "success"
+    },
+    "qaFinal": {
+      "job": 126199795945,
+      "conclusion": "failure",
+      "derived": true
+    }
+  },
+  "shards": [
+    {
+      "shard": 1,
+      "jobId": 126195489437,
+      "jobConclusion": "cancelled",
+      "planned": 129,
+      "observedPass": 46,
+      "observedFail": 0,
+      "observedSkip": 0,
+      "unfinished": 83
+    },
+    {
+      "shard": 2,
+      "jobId": 126195489496,
+      "jobConclusion": "cancelled",
+      "planned": 103,
+      "observedPass": 6,
+      "observedFail": 0,
+      "observedSkip": 0,
+      "unfinished": 97
+    },
+    {
+      "shard": 3,
+      "jobId": 126195489544,
+      "jobConclusion": "cancelled",
+      "planned": 153,
+      "observedPass": 56,
+      "observedFail": 0,
+      "observedSkip": 1,
+      "unfinished": 96
+    },
+    {
+      "shard": 4,
+      "jobId": 126195489460,
+      "jobConclusion": "cancelled",
+      "planned": 93,
+      "observedPass": 9,
+      "observedFail": 0,
+      "observedSkip": 0,
+      "unfinished": 84
+    },
+    {
+      "shard": 5,
+      "jobId": 126195489456,
+      "jobConclusion": "cancelled",
+      "planned": 109,
+      "observedPass": 23,
+      "observedFail": 0,
+      "observedSkip": 0,
+      "unfinished": 86
+    },
+    {
+      "shard": 6,
+      "jobId": 126195489464,
+      "jobConclusion": "cancelled",
+      "planned": 100,
+      "observedPass": 35,
+      "observedFail": 1,
+      "observedSkip": 0,
+      "unfinished": 64
+    },
+    {
+      "shard": 7,
+      "jobId": 126195489579,
+      "jobConclusion": "failure",
+      "planned": 83,
+      "observedPass": 28,
+      "observedFail": 1,
+      "observedSkip": 0,
+      "unfinished": 54
+    },
+    {
+      "shard": 8,
+      "jobId": 126195489614,
+      "jobConclusion": "cancelled",
+      "planned": 104,
+      "observedPass": 50,
+      "observedFail": 0,
+      "observedSkip": 0,
+      "unfinished": 54
+    }
+  ],
+  "total": {
+    "planned": 874,
+    "passed": 253,
+    "failed": 2,
+    "skipped": 1,
+    "unfinished": 618
+  },
+  "directFailures": [
+    {
+      "type": "PRODUCT_UI_TEXT",
+      "shard": 7,
+      "job": 126195489579,
+      "jobConclusion": "failure",
+      "step": "E2E shard 실행",
+      "observedAtUtc": "2026-11-03T20:54:32Z",
+      "file": "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+      "testLine": 138,
+      "assertionLine": 156,
+      "expected": "조건 밖 새 Milestone Milestone을 추가했습니다",
+      "actual": "JSXText extra space plus leading-space translation results in two spaces in full text",
+      "actualBrowserTextInspected": false,
+      "reason": "preexisting localized source joins {name} + JSXText space + t(' leading-space message')",
+      "fix": "remove duplicate JSXText spaces in milestone notice and three adjacent same-structure consumers without changing locale dictionary or authored names",
+      "artifactId": 13270685946
+    },
+    {
+      "type": "TEST_CONTRACT",
+      "shard": 6,
+      "job": 126195489464,
+      "jobConclusion": "cancelled_with_actual_failed_step",
+      "step": "E2E shard 실행",
+      "observedAtUtc": "2026-11-03T20:54:49Z",
+      "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+      "testLine": 167,
+      "assertionLine": 200,
+      "expected": "검증 오류 409",
+      "actual": "fixed safe fallback from safeApiError for response {message:'검증 오류 409'} without allowlisted error.code",
+      "browserRenderedMessageInspected": false,
+      "reason": "test expects unsafe raw upstream prose after #866 safeApiError change",
+      "fix": "preserve 403/412 and draft/revision assertions; 409 must display safe fallback and not leak raw marker",
+      "artifactId": 13269333521
+    }
+  ],
+  "previousFullRunIds": [
+    41618392066,
+    41640034518,
+    41650170956,
+    41704268626,
+    41710299107
+  ],
+  "previousFixConfirmation": {
+    "priorFull3472TouchCssCasePassed": true,
+    "priorFull3472PayloadCasePassed": true,
+    "shard3PassedTests": [
+      "#454 after",
+      "설비 유형 explicit payload",
+      "시스템 유형 explicit payload"
+    ],
+    "full8Complete": false
+  },
+  "diagnosisIsolation": {
+    "jsxProof": "Typescript transpileModule classic JSX with stub React.createElement: current notice children [name,' ',' Milestone...'] => double-space; after children [name,' Milestone...'] => single-space",
+    "browserE2e": "NOT TESTED",
+    "fullUnit": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "securityMapping": "safeApiError with body.message only uses fixed fallback by source",
+    "postChangePrCi": "NOT TESTED"
+  },
+  "safeguards": {
+    "requiredChecksUnchanged": true,
+    "eightShardsUnchanged": true,
+    "failFastUnchanged": true,
+    "originalAssertionsKept": true,
+    "securityMessageRedactionKept": true,
+    "ownerManaged": true,
+    "qaRequired": true,
+    "releaseRequired": true,
+    "releaseAuthorized": false
+  }
+}
