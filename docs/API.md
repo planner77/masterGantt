@@ -1,3 +1,11 @@
+## Issue #866 — 수동 표시명 및 내부 LLM 계약 (2026-11-03)
+
+기존 기준정보 CRUD DTO에 선택적 `translations: Partial<Record<"ko"|"en"|"vi",string>>`를 추가한다. 원래 name/ID/code/owner/enum과 URL 의미는 유지한다. 사업부/제품/사업장, 유형·공정 catalog·WorkArea·Project 공정/설비/시스템·Resource Group 모두 기존 해당 writer와 Origin/If-Match/revision을 따른다. 생략은 기존 번역 보존, `{}`는 전체 해제이며 각 빈 입력은 해당 언어 해제다. 입력은 trim/NFC·최대200자·제어문자 거부, 미지원 언어/형식 거부다. 조회는 번역이 없을 때 기존 DTO와 호환되며 UI가 현재 언어 표시명을 선택한다. 권한 밖 owner를 translation ID만으로 쓰는 새 범용 endpoint는 없다.
+
+Template 번역 보존은 schemaVersion6, 기존2~5 읽기 호환을 유지한다. 표현할 수 없는 schedule JSON/Excel export는 `DISPLAY_NAME_TRANSLATIONS_EXPORT_UNSUPPORTED`로 손실 없이 거부한다. 상세 [i18n](I18N.md), [Import/Export](IMPORT_EXPORT.md).
+
+`invokeLLM`은 [서버 내부 타입 계약](LLM_CONFIGURATION.md#내부-호출)이며 공개 `/api/llm`은 생성하지 않는다. 기본 provider/model 또는 명시 등록 쌍, bounded messages/options만 받으며 caller baseUrl/token은 받지 않는다. 비활성/설정/허용 대상/인증/timeout/취소/한도/upstream/응답 오류를 안전한 code/message로 구별하고 외부 body·nested exception은 반환하지 않는다.
+
 ## Issue #809 — WBS report의 opt-in Resource 분석
 
 기존 `POST /api/projects/{publicId}/resource-dashboard/views`에 report 전용 `analysis`를 추가한다. 생략하면 기존 응답과 계산 경계를 유지한다. 새 route·mutation·DB는 없고 public/private read grant·exact Origin·JSON/body 제한·no-store·Resource wire v2와 명시 v1 호환 경계를 유지한다.

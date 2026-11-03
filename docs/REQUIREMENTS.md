@@ -1,3 +1,7 @@
+## Issue #865/#866/#869 — 사내 LLM·표시 언어·Issue 레이아웃 (2026-11-03)
+
+R34의 표시 언어는 유효한 브라우저 저장 선택 > 브라우저 첫 지원 언어 > 한국어로 갱신한다. ko/en/vi UI와 수동 기준정보 표시명을 지원하되 원본 name/ID/code·자유 입력·일정 계산은 불변이다. 원본별 관리자/Project 권한과 revision을 재사용한다. Issue는 데스크톱 목록만 수직 스크롤하고 폼의 제목/Issue명은 고정한다. LLM은 별도 서버 전용 기반 모듈이며 기본 OFF, 등록한 사내 provider/model만 명시 호출한다. 국제화는 LLM을 호출하지 않고 실제 업무 AI 기능은 추가하지 않는다. 상세 [국제화 계약](I18N.md), [LLM 계약](LLM_CONFIGURATION.md), [통합 AC/미검증](exec-plans/active/ISSUE_866.md)을 따른다.
+
 ## Issue #867 — 프로젝트 Issue 초기 조회의 운영 환경 기본값 (2026-11-03)
 
 프로젝트 Issue 목록 최초 표시와 검색 초기화는 서버 런타임 `PROJECT_ISSUE_DEFAULT_STATUS_FILTER` 설정을 따른다. 유효 값은 `all|open|registered|in_progress|completed`; 미설정/빈 값·잘못된 값의 기본은 `all`이다. 운영자가 지정한 기본값은 UI 초기/초기화에서만 사용하며 사용자의 수동 선택, 조회 API의 미지정 status=all, 기존 업무 상태/논리 삭제·전체 KPI를 변경하지 않는다. Docker Compose에서 app 환경으로 전달한다. 세부 계약 [#867](https://github.com/planner77/masterGantt/issues/867).

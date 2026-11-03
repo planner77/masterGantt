@@ -1,3 +1,4 @@
+import type { DisplayNameTranslations } from "./display-name-translations";
 import type { EquipmentWorkAreaInput, EquipmentWorkAreaDto, TaskProcessContextDto } from "./process-context";
 import type { ProjectDto, ProjectPermission } from "./projects";
 
@@ -10,6 +11,7 @@ export type LogisticsSystemType = string;
 export type LogisticsTypeKind = "equipment" | "system";
 
 export interface LogisticsTypeCatalogItemDto {
+  translations?: DisplayNameTranslations;
   code: string;
   name: string;
   active: boolean;
@@ -27,12 +29,13 @@ export interface LogisticsTypeCatalogResponse {
 
 export interface LogisticsActiveTypeCatalogResponse {
   data: {
-    equipmentTypes: Array<Pick<LogisticsTypeCatalogItemDto, "code" | "name">>;
-    systemTypes: Array<Pick<LogisticsTypeCatalogItemDto, "code" | "name">>;
+    equipmentTypes: Array<Pick<LogisticsTypeCatalogItemDto, "code" | "name" | "translations">>;
+    systemTypes: Array<Pick<LogisticsTypeCatalogItemDto, "code" | "name" | "translations">>;
   };
 }
 
 export interface CreateLogisticsTypeRequest {
+  translations?: DisplayNameTranslations;
   code: string;
   name: string;
   active?: boolean;
@@ -40,6 +43,7 @@ export interface CreateLogisticsTypeRequest {
 }
 
 export interface UpdateLogisticsTypeRequest {
+  translations?: DisplayNameTranslations;
   name?: string;
   active?: boolean;
   sortOrder?: number;
@@ -73,6 +77,7 @@ export interface SystemResourceRoleDto {
 }
 
 export interface ProcessDto {
+  translations?: DisplayNameTranslations;
   usageCount?: number;
   id: string; // public_id
   code: string;
@@ -90,6 +95,7 @@ export interface EquipmentControlSystemDto {
 }
 
 export interface EquipmentDto {
+  translations?: DisplayNameTranslations;
   id: string; // public_id
   processId: string; // process public_id
   code: string;
@@ -110,6 +116,7 @@ export interface EquipmentDto {
 }
 
 export interface LogisticsSystemDto {
+  translations?: DisplayNameTranslations;
   id: string; // public_id
   code: string;
   name: string;
@@ -231,6 +238,7 @@ export interface ProjectLogisticsResponse {
 }
 
 export interface CreateProcessRequest {
+  translations?: DisplayNameTranslations;
   /** Optional legacy/business code. Omit to let the server generate a stable internal code. */
   code?: string;
   name: string;
@@ -242,6 +250,7 @@ export interface CreateProcessRequest {
 }
 
 export interface UpdateProcessRequest {
+  translations?: DisplayNameTranslations;
   code?: string;
   name?: string;
   parentId?: string | null;
@@ -252,12 +261,15 @@ export interface UpdateProcessRequest {
 }
 
 export interface CreateWorkAreaRequest {
+  translations?: DisplayNameTranslations;
   name: string; code?: string; active?: boolean; sortOrder?: number;
 }
 export interface UpdateWorkAreaRequest {
+  translations?: DisplayNameTranslations;
   name?: string; code?: string; active?: boolean; sortOrder?: number;
 }
 export interface CreateEquipmentRequest {
+  translations?: DisplayNameTranslations;
   workAreaLinks?: EquipmentWorkAreaInput[];
   workAreaIds?: string[];
   processCatalogRevision?: number;
@@ -274,6 +286,7 @@ export interface CreateEquipmentRequest {
 }
 
 export interface UpdateEquipmentRequest {
+  translations?: DisplayNameTranslations;
   workAreaLinks?: EquipmentWorkAreaInput[];
   workAreaIds?: string[];
   processCatalogRevision?: number;
@@ -297,6 +310,7 @@ export interface SetEquipmentSystemsRequest {
 }
 
 export interface CreateLogisticsSystemRequest {
+  translations?: DisplayNameTranslations;
   code: string;
   name: string;
   systemType: LogisticsSystemType;
@@ -309,6 +323,7 @@ export interface CreateLogisticsSystemRequest {
 }
 
 export interface UpdateLogisticsSystemRequest {
+  translations?: DisplayNameTranslations;
   code?: string;
   name?: string;
   systemType?: LogisticsSystemType;

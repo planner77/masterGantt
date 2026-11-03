@@ -330,3 +330,15 @@
 @media (pointer: coarse), (any-pointer: coarse) {
   .panel button, .field input, .table input, .passwordForm input, .passwordForm button { min-height: 44px; }
 }
+
+/* Translated tabs and form legends must not size an implicit grid track beyond its viewport. */
+.catalogSection,
+.categoryPanel,
+.editorSection,
+.listSection { grid-template-columns: minmax(0, 1fr); }
+.catalogHeader,
+.listToolbar,
+.formGrid,
+.tabs { min-width: 0; }
+.sessionSection .actions { max-width: 100%; }
+.sessionSection .actions > button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }

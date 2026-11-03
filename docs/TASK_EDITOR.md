@@ -1,3 +1,7 @@
+## Issue #866/#869 — 언어와 Issue 공용 폼 (2026-11-03)
+
+Task Editor의 고정 label/message·ARIA는 선택한 ko/en/vi로 표시한다. Task 이름/설명/URL·원본 taskId·상태 enum과 저장/dirty/stale/revision 계약은 불변이다. 언어 전환으로 미저장 입력·탭·Gantt 인스턴스/viewport를 초기화하지 않는다. #854의 Issue 등록은 같은 공용 폼을 사용하며 고정 Issue 명·날짜/담당자 배치·본문 scroll이 바뀌어도 clean 전환/정확 prefill·취소/저장 후 원본 Editor 복귀를 유지한다. 상세 [Issue 가이드](PROJECT_ISSUES_USER_GUIDE.md).
+
 ## Issue #553 — 운영 marker OFF와 Milestone 편집 경로 (2026-10-25)
 
 Milestone은 native WBS Grid 행/inline 편집에 존재하지 않는다. 독립 Dashboard 관리/소속 Task에서 **같은 canonical Editor**로 상세·관계·완료/재개를 수행하며 readiness, 전체 소속·완료 잠금·If-Match·readonly와 origin/revision 정책은 동일하다. Export는 현재 화면 모양과 원본 데이터 출력이 다를 수 있다. [사용자 가이드](MILESTONE_USER_GUIDE.md) / [#553 추적표](MILESTONE_TIMELINE_TRACEABILITY.md).

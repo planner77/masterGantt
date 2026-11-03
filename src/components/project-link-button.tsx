@@ -1,5 +1,8 @@
 "use client";
 
+import { useI18n } from "../lib/i18n/provider";
+
+
 import { useRef, useState } from "react";
 import { copyTextWithLegacyCommand, writeTextWithCompatibility } from "./clipboard-write";
 import { WorkspaceDialog } from "./workspace-dialog";
@@ -14,6 +17,7 @@ export function ProjectLinkButton({ projectName, projectUrl, className, role, ta
   tabIndex?: number;
   onActionComplete?: () => void;
 }>) {
+  const { t } = useI18n();
   const { notify } = useWorkspaceNotifications();
   const [fallback, setFallback] = useState(false);
   const pending = useRef(false);
@@ -44,13 +48,13 @@ export function ProjectLinkButton({ projectName, projectUrl, className, role, ta
   return <>
     <button type="button" className={className ?? `secondary-button ${styles.linkButton}`}
       role={role} tabIndex={tabIndex}
-      aria-label={`${projectName} 프로젝트 링크 복사`}
-      onClick={(event) => { event.stopPropagation(); void copy(); }}>링크 복사</button>
-    {fallback && projectUrl ? <WorkspaceDialog title="프로젝트 링크 수동 복사" onClose={() => { setFallback(false); onActionComplete?.(); }}>
-      <p>자동 복사를 사용할 수 없습니다. 아래 주소를 선택해 수동으로 복사해 주세요.</p>
-      <input aria-label="프로젝트 바로 가기 URL" className={styles.copyValue} readOnly value={projectUrl}
+      aria-label={t("{value0} 프로젝트 링크 복사", { value0: projectName })}
+      onClick={(event) => { event.stopPropagation(); void copy(); }}>{t("링크 복사")}</button>
+    {fallback && projectUrl ? <WorkspaceDialog title={t("프로젝트 링크 수동 복사")} onClose={() => { setFallback(false); onActionComplete?.(); }}>
+      <p>{t("자동 복사를 사용할 수 없습니다. 아래 주소를 선택해 수동으로 복사해 주세요.")}</p>
+      <input aria-label={t("프로젝트 바로 가기 URL")} className={styles.copyValue} readOnly value={projectUrl}
         onFocus={(event) => event.currentTarget.select()} />
-      <div className="standalone-actions"><button className="secondary-button" type="button" onClick={() => void copy()}>복사 다시 시도</button></div>
+      <div className="standalone-actions"><button className="secondary-button" type="button" onClick={() => void copy()}>{t("복사 다시 시도")}</button></div>
     </WorkspaceDialog> : null}
   </>;
 }

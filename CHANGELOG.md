@@ -1,3 +1,19 @@
+## [0.140.0] — Unreleased / Issue #866 · #865 · #869 (2026-11-03)
+
+### Added
+
+- 한국어/영어/베트남어 선택·브라우저 저장·정적 UI/SVAR 사전과 사용자 선택 우선 표시 formatter를 추가한다. 원본 name/ID·자유 입력·일정 계산을 보존하며 기준정보에 수동 표시명과 owner별 추가형 migration0036을 제공한다.
+- 서버 전용 사내 LLM 공통 모듈에 runtime 다중 provider/복수 model·기본 비활성·개별 secret 매핑·사설 DNS 고정 연결·HTTP opt-in·bounded 비스트리밍 호출·안전 오류를 추가한다. 공개 endpoint/실제 업무 AI·자동 번역은 추가하지 않는다.
+
+### Changed
+
+- Issue 목록의 데스크톱 수직 스크롤을 목록에 한정하고 등록/수정 공용 폼의 제목/Issue명 고정·날짜3열·사람/상태3열·비밀번호2열·내용8행과 반응형 stack을 적용한다.
+- Copy/Template6은 수동 표시명을 보존하고 지원하지 않는 schedule JSON/Excel export는 명시 거부하여 번역 손실을 방지한다.
+
+### 검증·릴리스 경계
+
+- 실제 로컬 결과·최초 실패/보완·운영 미검증은 [Work Packet](docs/exec-plans/active/ISSUE_866.md)과 [누적 원장](docs/ISSUE_866_FAILURE_ANALYSIS.md)을 따른다. 신규 Head의 Quality/E2E/Docker·Trusted·Owner/Manager 최종 승인은 NOT TESTED. release_required=true/release_authorized=false이며 PR CI 시작까지만 수행한다.
+
 ## [0.139.1] — Unreleased / Issue #867 환경설정 기반 Issue 기본 표시 (2026-11-03)
 
 ### Changed

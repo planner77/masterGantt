@@ -20,11 +20,11 @@ export function membershipImpact(tasks: readonly ProjectTaskDto[], links: readon
   const before = membershipProjection(tasks, links), after = membershipProjection(tasks, links, changes);
   return tasks.filter((task) => task.type === "task" && before.membership.get(task.taskId)?.effectiveMilestoneTaskId !== after.membership.get(task.taskId)?.effectiveMilestoneTaskId).length;
 }
-export function membershipDescription(task: ProjectTaskDto, tasks: readonly ProjectTaskDto[], membership = task.membership): string {
-  if (!membership?.effectiveMilestoneTaskId) return "미지정";
+export function membershipDescription(task: ProjectTaskDto, tasks: readonly ProjectTaskDto[], membership = task.membership, t: (key: string) => string = key => key): string {
+  if (!membership?.effectiveMilestoneTaskId) return t("미지정");
   const target = tasks.find((row) => row.taskId === membership.effectiveMilestoneTaskId);
   const source = tasks.find((row) => row.taskId === membership.inheritedFromTaskId);
-  return `${target?.name ?? membership.effectiveMilestoneTaskId} · ${source ? `${source.name}에서 상속` : "직접 지정"}`;
+  return `${target?.name ?? membership.effectiveMilestoneTaskId} · ${source ? `${source.name}${t("에서 상속")}` : t("직접 지정")}`;
 }
 
 /** WBS labels are presentation only. Legacy undated canonical records remain

@@ -1,5 +1,8 @@
 "use client";
 
+import { useI18n } from "../lib/i18n/provider";
+
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, useSyncExternalStore, type FormEvent, type KeyboardEvent } from "react";
@@ -25,10 +28,10 @@ import {
   type ProjectDateOperator,
   type ProjectFilterState,
 } from "@/features/projects/project-list-filter";
-import { browserLocales, browserTimeZone, formatLocaleDateTime, SSR_DATE_LOCALE, SSR_TIME_ZONE, type DisplayLocales } from "@/lib/date-display";
+import { browserLocales, browserTimeZone, subscribeToDisplayLocale, formatLocaleDateTime, SSR_DATE_LOCALE, SSR_TIME_ZONE, type DisplayLocales } from "@/lib/date-display";
 import styles from "./project-list.module.css";
 
-function subscribeToLocaleChanges(): () => void { return () => {}; }
+const subscribeToLocaleChanges = subscribeToDisplayLocale;
 function projectPath(publicId: string): string { return `/projects/${encodeURIComponent(publicId)}`; }
 type DeleteTarget = { publicId: string; name: string; revision: number };
 type StatusTarget = { publicId: string; name: string; revision: number; nextStatus: ProjectStatus };
@@ -55,61 +58,62 @@ function DateFilterFields({ prefix, label, operator, from, to, onChange, onClear
   onClear: () => void;
   error: string | null;
 }>) {
+  const { t } = useI18n();
   const operatorKey = `${prefix}Operator` as const;
   const fromKey = `${prefix}From` as const;
   const toKey = `${prefix}To` as const;
   return <fieldset className={styles.filterGroup}>
-    <legend>{label}</legend>
+    <legend>{t(label)}</legend>
     <div className={styles.dateFilterRow}>
-      <label>{label} 조건
-        <select value={operator} onChange={(event) => onChange({ [operatorKey]: event.target.value as ProjectDateOperator })}>
-          <option value="any">전체</option>
-          <option value="equals">날짜가 같음</option>
-          <option value="before">이전</option>
-          <option value="after">이후</option>
-          <option value="range">범위</option>
+      <label>{t(label)} {t(" 조건")}<select value={operator} onChange={(event) => onChange({ [operatorKey]: event.target.value as ProjectDateOperator })}>
+          <option value="any">{t("전체")}</option>
+          <option value="equals">{t("날짜가 같음")}</option>
+          <option value="before">{t("이전")}</option>
+          <option value="after">{t("이후")}</option>
+          <option value="range">{t("범위")}</option>
         </select>
       </label>
       {operator !== "any" ? <div className={styles.dateInputsGroup}>
-        <label>{operator === "range" ? "From" : "날짜"}
+        <label>{operator === "range" ? "From" : t("날짜")}
           <input type="date" value={from} onChange={(event) => onChange({ [fromKey]: event.target.value })} />
         </label>
         {operator === "range" ? <label>To
           <input type="date" value={to} onChange={(event) => onChange({ [toKey]: event.target.value })} />
         </label> : null}
       </div> : null}
-      {operator !== "any" ? <button className="secondary-button" type="button" onClick={onClear}>{label} 조건 삭제</button> : null}
+      {operator !== "any" ? <button className="secondary-button" type="button" onClick={onClear}>{t(label)} {t(" 조건 삭제")}</button> : null}
     </div>
-    {error ? <p className={styles.filterError} role="alert">{error}</p> : null}
+    {error ? <p className={styles.filterError} role="alert">{t(error)}</p> : null}
   </fieldset>;
 }
 
-function infoFilterSummary(filter: ProjectFilterState): string {
+function infoFilterSummary(filter: ProjectFilterState, t: (key: string) => string): string {
   const parts: string[] = [];
-  if (filter.nameQuery.trim()) parts.push(`프로젝트명 “${filter.nameQuery.trim()}”`);
-  if (filter.ownerQuery.trim()) parts.push(`소유자 “${filter.ownerQuery.trim()}”`);
-  if (filter.descriptionQuery.trim()) parts.push(`설명 “${filter.descriptionQuery.trim()}”`);
-  if (filter.ownerState !== "all") parts.push(`소유자 ${filter.ownerState === "assigned" ? "지정됨" : "미지정"}`);
-  return parts.length ? parts.join(" · ") : "조건 없음";
+  if (filter.nameQuery.trim()) parts.push(`${t("프로젝트명")} “${filter.nameQuery.trim()}”`);
+  if (filter.ownerQuery.trim()) parts.push(`${t("소유자")} “${filter.ownerQuery.trim()}”`);
+  if (filter.descriptionQuery.trim()) parts.push(`${t("설명")} “${filter.descriptionQuery.trim()}”`);
+  if (filter.ownerState !== "all") parts.push(`${t("소유자")} ${t(filter.ownerState === "assigned" ? "지정됨" : "미지정")}`);
+  return parts.length ? parts.join(" · ") : t("조건 없음");
 }
 
-function dateConditionSummary(label: string, operator: ProjectDateOperator, from: string, to: string): string | null {
+function dateConditionSummary(label: string, operator: ProjectDateOperator, from: string, to: string, t: (key: string) => string): string | null {
   if (operator === "any") return null;
-  if (operator === "range") return `${label} ${from || "미입력"} ~ ${to || "미입력"}`;
+  if (operator === "range") return `${t(label)} ${from || t("미입력")} ~ ${to || t("미입력")}`;
   const suffix = operator === "equals" ? "같음" : operator === "before" ? "이전" : "이후";
-  return `${label} ${from || "미입력"} ${suffix}`;
+  return `${t(label)} ${from || t("미입력")} ${t(suffix)}`;
 }
 
-function dateFilterSummary(filter: ProjectFilterState): string {
+function dateFilterSummary(filter: ProjectFilterState, t: (key: string) => string): string {
   return [
-    dateConditionSummary("생성일", filter.createdOperator, filter.createdFrom, filter.createdTo),
-    dateConditionSummary("최근 변경일", filter.updatedOperator, filter.updatedFrom, filter.updatedTo),
-  ].filter((value): value is string => Boolean(value)).join(" · ") || "조건 없음";
+    dateConditionSummary("생성일", filter.createdOperator, filter.createdFrom, filter.createdTo, t),
+    dateConditionSummary("최근 변경일", filter.updatedOperator, filter.updatedFrom, filter.updatedTo, t),
+  ].filter((value): value is string => Boolean(value)).join(" · ") || t("조건 없음");
 }
 
 export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   projects: readonly ProjectListItemDto[]; projectUrls?: Readonly<Record<string, string | null>>;
 }>) {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const { notify, clearToast } = useWorkspaceNotifications();
   const [deletedIds, setDeletedIds] = useState<ReadonlySet<string>>(() => new Set());
@@ -421,112 +425,105 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   }
 
   return <>
-    {availableProjects.length === 0 ? <EmptyProjects /> : <div className={styles.list} aria-label="프로젝트 목록">
-      <div className={`project-filter-toolbar ${styles.filterToolbar}`} role="search" aria-label="프로젝트 검색과 필터">
+    {availableProjects.length === 0 ? <EmptyProjects /> : <div className={styles.list} aria-label={t("프로젝트 목록")}>
+      <div className={`project-filter-toolbar ${styles.filterToolbar}`} role="search" aria-label={t("프로젝트 검색과 필터")}>
         <label className="project-filter-search">
-          <span className="sr-only">프로젝트 검색</span>
-          <input ref={searchInput} aria-label="프로젝트명, 소유자 또는 설명 검색" placeholder="프로젝트 검색" type="search"
+          <span className="sr-only">{t("프로젝트 검색")}</span>
+          <input ref={searchInput} aria-label={t("프로젝트명, 소유자 또는 설명 검색")} placeholder={t("프로젝트 검색")} type="search"
             value={filter.query} onChange={(event) => updateFilter({ query: event.target.value })} />
         </label>
         <button ref={filterTrigger} className={`secondary-button ${styles.filterTrigger}`} type="button" aria-expanded={filterOpen}
           aria-controls="project-list-advanced-filter" onClick={toggleFilterPanel}>
-          필터{activeFilters ? ` ${activeFilters}` : ""}
+          {t("필터")}{activeFilters ? ` ${activeFilters}` : ""}
         </button>
-        {filterApplied ? <button className={`secondary-button ${styles.filterReset}`} type="button" onClick={resetFilter}>초기화</button> : null}
+        {filterApplied ? <button className={`secondary-button ${styles.filterReset}`} type="button" onClick={resetFilter}>{t("초기화")}</button> : null}
         <span className={`project-filter-result ${styles.filterResult}`} role="status">
-          {`${visibleProjects.length} / ${availableProjects.length}개 프로젝트`}
+          {t("{value0} / {value1}개 프로젝트", { value0: visibleProjects.length, value1: availableProjects.length })}
         </span>
       </div>
 
-      {filterOpen ? <div id="project-list-advanced-filter" className={`project-filter-panel ${styles.advancedFilterPanel}`} aria-label="프로젝트 고급 필터" onKeyDown={onFilterKeyDown}>
+      {filterOpen ? <div id="project-list-advanced-filter" className={`project-filter-panel ${styles.advancedFilterPanel}`} aria-label={t("프로젝트 고급 필터")} onKeyDown={onFilterKeyDown}>
         <fieldset className={styles.statusFilter}>
-          <legend>프로젝트 상태</legend>
+          <legend>{t("프로젝트 상태")}</legend>
           <div className={styles.statusOptions}>
             {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <label key={value}>
               <input type="checkbox" checked={filter.statuses.includes(value)} onChange={(event) => toggleStatus(value, event.target.checked)} />
-              {label}
+              {t(label)}
             </label>)}
           </div>
-          <p>처음에는 예정과 진행 중 프로젝트만 표시합니다. 완료 프로젝트는 선택하면 목록에 표시됩니다.</p>
+          <p>{t("처음에는 예정과 진행 중 프로젝트만 표시합니다. 완료 프로젝트는 선택하면 목록에 표시됩니다.")}</p>
         </fieldset>
 
         <details className={styles.filterDisclosure} open={infoFilterOpen} onToggle={(event) => setInfoFilterOpen(event.currentTarget.open)}>
           <summary>
-            <span>프로젝트 정보</span>
-            <span className={styles.filterSummary}>{infoFilters ? `${infoFilters}개 · ${infoFilterSummary(filter)}` : "조건 없음"}</span>
+            <span>{t("프로젝트 정보")}</span>
+            <span className={styles.filterSummary}>{infoFilters ? t("{value0}개 · {value1}", { value0: infoFilters, value1: infoFilterSummary(filter, t) }) : t("조건 없음")}</span>
           </summary>
           <div className={styles.infoFilterGrid}>
             <div className={styles.filterConditionRow}>
-              <label>프로젝트명 조건
-                <select value={filter.nameOperator} onChange={(event) => updateFilter({ nameOperator: event.target.value as ProjectFilterState["nameOperator"] })}>
-                  <option value="contains">포함</option><option value="not-contains">포함하지 않음</option><option value="equals">같음</option>
+              <label>{t("프로젝트명 조건")}<select value={filter.nameOperator} onChange={(event) => updateFilter({ nameOperator: event.target.value as ProjectFilterState["nameOperator"] })}>
+                  <option value="contains">{t("포함")}</option><option value="not-contains">{t("포함하지 않음")}</option><option value="equals">{t("같음")}</option>
                 </select>
               </label>
-              <label>프로젝트명
-                <input type="text" value={filter.nameQuery} onChange={(event) => updateFilter({ nameQuery: event.target.value })} />
+              <label>{t("프로젝트명")}<input type="text" value={filter.nameQuery} onChange={(event) => updateFilter({ nameQuery: event.target.value })} />
               </label>
-              {filter.nameQuery.trim() ? <button className="secondary-button" type="button" onClick={() => updateFilter({ nameQuery: "", nameOperator: "contains" })}>프로젝트명 조건 삭제</button> : null}
+              {filter.nameQuery.trim() ? <button className="secondary-button" type="button" onClick={() => updateFilter({ nameQuery: "", nameOperator: "contains" })}>{t("프로젝트명 조건 삭제")}</button> : null}
             </div>
             <div className={styles.filterConditionRow}>
-              <label>소유자 조건
-                <select value={filter.ownerOperator} onChange={(event) => updateFilter({ ownerOperator: event.target.value as ProjectFilterState["ownerOperator"] })}>
-                  <option value="contains">포함</option><option value="not-contains">포함하지 않음</option><option value="equals">같음</option>
+              <label>{t("소유자 조건")}<select value={filter.ownerOperator} onChange={(event) => updateFilter({ ownerOperator: event.target.value as ProjectFilterState["ownerOperator"] })}>
+                  <option value="contains">{t("포함")}</option><option value="not-contains">{t("포함하지 않음")}</option><option value="equals">{t("같음")}</option>
                 </select>
               </label>
-              <label>소유자
-                <input type="text" value={filter.ownerQuery} onChange={(event) => updateFilter({ ownerQuery: event.target.value })} />
+              <label>{t("소유자")}<input type="text" value={filter.ownerQuery} onChange={(event) => updateFilter({ ownerQuery: event.target.value })} />
               </label>
-              {filter.ownerQuery.trim() ? <button className="secondary-button" type="button" onClick={() => updateFilter({ ownerQuery: "", ownerOperator: "contains" })}>소유자 조건 삭제</button> : null}
+              {filter.ownerQuery.trim() ? <button className="secondary-button" type="button" onClick={() => updateFilter({ ownerQuery: "", ownerOperator: "contains" })}>{t("소유자 조건 삭제")}</button> : null}
             </div>
             <div className={styles.filterConditionRow}>
-              <label>설명 조건
-                <select value={filter.descriptionOperator} onChange={(event) => updateFilter({ descriptionOperator: event.target.value as ProjectFilterState["descriptionOperator"] })}>
-                  <option value="contains">포함</option><option value="not-contains">포함하지 않음</option>
+              <label>{t("설명 조건")}<select value={filter.descriptionOperator} onChange={(event) => updateFilter({ descriptionOperator: event.target.value as ProjectFilterState["descriptionOperator"] })}>
+                  <option value="contains">{t("포함")}</option><option value="not-contains">{t("포함하지 않음")}</option>
                 </select>
               </label>
-              <label>설명
-                <input type="text" value={filter.descriptionQuery} onChange={(event) => updateFilter({ descriptionQuery: event.target.value })} />
+              <label>{t("설명")}<input type="text" value={filter.descriptionQuery} onChange={(event) => updateFilter({ descriptionQuery: event.target.value })} />
               </label>
-              {filter.descriptionQuery.trim() ? <button className="secondary-button" type="button" onClick={() => updateFilter({ descriptionQuery: "", descriptionOperator: "contains" })}>설명 조건 삭제</button> : null}
+              {filter.descriptionQuery.trim() ? <button className="secondary-button" type="button" onClick={() => updateFilter({ descriptionQuery: "", descriptionOperator: "contains" })}>{t("설명 조건 삭제")}</button> : null}
             </div>
             <div className={styles.filterConditionRow}>
-              <label>소유자 지정 여부
-                <select value={filter.ownerState} onChange={(event) => updateFilter({ ownerState: event.target.value as ProjectFilterState["ownerState"] })}>
-                  <option value="all">전체</option><option value="assigned">지정됨</option><option value="unassigned">미지정</option>
+              <label>{t("소유자 지정 여부")}<select value={filter.ownerState} onChange={(event) => updateFilter({ ownerState: event.target.value as ProjectFilterState["ownerState"] })}>
+                  <option value="all">{t("전체")}</option><option value="assigned">{t("지정됨")}</option><option value="unassigned">{t("미지정")}</option>
                 </select>
               </label>
-              {filter.ownerState !== "all" ? <button className="secondary-button" type="button" onClick={() => updateFilter({ ownerState: "all" })}>소유자 지정 조건 삭제</button> : null}
+              {filter.ownerState !== "all" ? <button className="secondary-button" type="button" onClick={() => updateFilter({ ownerState: "all" })}>{t("소유자 지정 조건 삭제")}</button> : null}
             </div>
           </div>
         </details>
 
         <details className={styles.filterDisclosure} open={dateFilterOpen} onToggle={(event) => setDateFilterOpen(event.currentTarget.open)}>
           <summary>
-            <span>날짜</span>
-            <span className={styles.filterSummary}>{dateFilters ? `${dateFilters}개 · ${dateFilterSummary(filter)}` : "조건 없음"}</span>
+            <span>{t("날짜")}</span>
+            <span className={styles.filterSummary}>{dateFilters ? t("{value0}개 · {value1}", { value0: dateFilters, value1: dateFilterSummary(filter, t) }) : t("조건 없음")}</span>
           </summary>
           <div className={styles.dateFilterGrid}>
-            <DateFilterFields prefix="created" label="생성일" operator={filter.createdOperator} from={filter.createdFrom} to={filter.createdTo}
+            <DateFilterFields prefix="created" label={t("생성일")} operator={filter.createdOperator} from={filter.createdFrom} to={filter.createdTo}
               onChange={updateFilter} onClear={() => updateFilter({ createdOperator: "any", createdFrom: "", createdTo: "" })} error={validation.created} />
-            <DateFilterFields prefix="updated" label="최근 변경일" operator={filter.updatedOperator} from={filter.updatedFrom} to={filter.updatedTo}
+            <DateFilterFields prefix="updated" label={t("최근 변경일")} operator={filter.updatedOperator} from={filter.updatedFrom} to={filter.updatedTo}
               onChange={updateFilter} onClear={() => updateFilter({ updatedOperator: "any", updatedFrom: "", updatedTo: "" })} error={validation.updated} />
           </div>
         </details>
 
         <div className={styles.filterFooter}>
-          <span>{activeFilters}개 조건 적용 중{hasValidationError ? " · 날짜 조건을 확인해 주세요." : ""}</span>
-          <button className="secondary-button" type="button" onClick={closeFilterWithFocus}>필터 닫기</button>
+          <span>{activeFilters}{t("개 조건 적용 중")}{hasValidationError ? t(" · 날짜 조건을 확인해 주세요.") : ""}</span>
+          <button className="secondary-button" type="button" onClick={closeFilterWithFocus}>{t("필터 닫기")}</button>
         </div>
       </div> : null}
 
       {visibleProjects.length === 0 ? <div className={styles.noResults} role="status">
-        <h2>조건에 맞는 프로젝트가 없습니다.</h2>
+        <h2>{t("조건에 맞는 프로젝트가 없습니다.")}</h2>
         <p>{filter.statuses.length === 0
-          ? "선택한 상태가 없습니다. 프로젝트 상태를 선택하거나 초기화해 주세요."
-          : "검색어나 필터 조건을 변경하거나 초기화해 주세요. 완료 프로젝트는 상태 필터에서 선택할 수 있습니다."}</p>
-        <button className="secondary-button" type="button" onClick={resetFilter}>검색/필터 초기화</button>
+          ? t("선택한 상태가 없습니다. 프로젝트 상태를 선택하거나 초기화해 주세요.")
+          : t("검색어나 필터 조건을 변경하거나 초기화해 주세요. 완료 프로젝트는 상태 필터에서 선택할 수 있습니다.")}</p>
+        <button className="secondary-button" type="button" onClick={resetFilter}>{t("검색/필터 초기화")}</button>
       </div> : <div className={styles.tableWrap}>
-        <table aria-label="프로젝트 목록" className={styles.table}>
+        <table aria-label={t("프로젝트 목록")} className={styles.table}>
           <colgroup>
             <col className={styles.projectColumn} />
             <col className={styles.businessUnitColumn} />
@@ -540,39 +537,39 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
             <col className={styles.actionsColumn} />
           </colgroup>
           <thead><tr>
-            <th scope="col" data-column="project">프로젝트</th>
-            <th scope="col" data-column="business-unit">사업부</th>
-            <th scope="col" data-column="product">제품</th>
-            <th scope="col" data-column="site-entity">법인/사업장</th>
-            <th scope="col" data-column="status">상태</th>
-            <th scope="col" data-column="owner">소유자</th>
-            <th scope="col" data-column="description">설명</th>
-            <th scope="col" data-column="created">생성</th>
-            <th scope="col" data-column="updated">최근 변경</th>
-            <th scope="col" data-column="actions">작업</th>
+            <th scope="col" data-column="project">{t("프로젝트")}</th>
+            <th scope="col" data-column="business-unit">{t("사업부")}</th>
+            <th scope="col" data-column="product">{t("제품")}</th>
+            <th scope="col" data-column="site-entity">{t("법인/사업장")}</th>
+            <th scope="col" data-column="status">{t("상태")}</th>
+            <th scope="col" data-column="owner">{t("소유자")}</th>
+            <th scope="col" data-column="description">{t("설명")}</th>
+            <th scope="col" data-column="created">{t("생성")}</th>
+            <th scope="col" data-column="updated">{t("최근 변경")}</th>
+            <th scope="col" data-column="actions">{t("작업")}</th>
           </tr></thead>
           <tbody>{visibleProjects.map((project) => <tr key={project.publicId} data-project-id={project.publicId}>
             <td className={styles.nameCell} data-column="project">{project.visibility === "private"
               ? <button className={`${styles.nameLink} ${styles.privateLink}`} type="button" onClick={event => openPrivate(project, event.currentTarget)}
-                  aria-label={`${project.name} 비공개 프로젝트 열기`}>{project.name} <span className={styles.privateBadge}>🔒 비공개</span></button>
+                  aria-label={t("{value0} 비공개 프로젝트 열기", { value0: project.name })}>{project.name} <span className={styles.privateBadge}>{t("🔒 비공개")}</span></button>
               : <Link className={styles.nameLink} href={projectPath(project.publicId)} onNavigate={() => { setFilter(EMPTY_PROJECT_FILTER); setFilterOpen(false); }}>{project.name}</Link>}</td>
-            <td className={styles.masterCell} data-column="business-unit"><span className={styles.masterValue} title={projectMasterListLabel(project.businessUnit)}>{projectMasterListLabel(project.businessUnit)}</span></td>
-            <td className={styles.masterCell} data-column="product"><span className={styles.masterValue} title={projectMasterListLabel(project.product)}>{projectMasterListLabel(project.product)}</span></td>
-            <td className={styles.masterCell} data-column="site-entity"><span className={styles.masterValue} title={projectMasterListLabel(project.siteEntity)}>{projectMasterListLabel(project.siteEntity)}</span></td>
+            <td className={styles.masterCell} data-column="business-unit"><span className={styles.masterValue} title={projectMasterListLabel(project.businessUnit, locale)}>{projectMasterListLabel(project.businessUnit, locale)}</span></td>
+            <td className={styles.masterCell} data-column="product"><span className={styles.masterValue} title={projectMasterListLabel(project.product, locale)}>{projectMasterListLabel(project.product, locale)}</span></td>
+            <td className={styles.masterCell} data-column="site-entity"><span className={styles.masterValue} title={projectMasterListLabel(project.siteEntity, locale)}>{projectMasterListLabel(project.siteEntity, locale)}</span></td>
             <td className={styles.statusCell} data-column="status">
               <select
-                aria-label={`${project.name} 프로젝트 상태`}
+                aria-label={t("{value0} 프로젝트 상태", { value0: project.name })}
                 className={`${styles.statusBadge} ${styles.statusSelect}`}
                 data-status={project.status}
                 disabled={!isHydrated || statusBusyId === project.publicId || submitting}
                 value={project.status}
                 onChange={(event) => void prepareStatusChange(project, event.target.value as ProjectStatus)}
               >
-                {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+                {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{t(label)}</option>)}
               </select>
             </td>
-            <td className={styles.ownerCell} data-column="owner"><span className={styles.ownerValue} title={project.ownerName ?? "미지정"}>{project.ownerName ?? "미지정"}</span></td>
-            <td className={styles.descriptionCell} data-column="description"><span className={styles.description}>{project.description || "설명이 없습니다."}</span></td>
+            <td className={styles.ownerCell} data-column="owner"><span className={styles.ownerValue} title={project.ownerName ?? t("미지정")}>{project.ownerName ?? t("미지정")}</span></td>
+            <td className={styles.descriptionCell} data-column="description"><span className={styles.description}>{project.description || t("설명이 없습니다.")}</span></td>
             <td className={styles.dateCell} data-column="created">{formatLocaleDateTime(project.createdAt, locales, timeZone)}</td>
             <td className={styles.dateCell} data-column="updated">{formatLocaleDateTime(project.updatedAt, locales, timeZone)}</td>
             <td className={styles.actions} data-column="actions">
@@ -585,41 +582,41 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
         </table>
       </div>}
     </div>}
-    {privateTarget ? <WorkspaceDialog title="비공개 프로젝트 열기" onClose={closePrivate} busy={privateBusy} restoreFocusRef={privateTrigger}>
-      <p>“{privateTarget.project.name}” 프로젝트는 비공개입니다. 열면 편집 권한도 활성화됩니다.</p>
+    {privateTarget ? <WorkspaceDialog title={t("비공개 프로젝트 열기")} onClose={closePrivate} busy={privateBusy} restoreFocusRef={privateTrigger}>
+      <p>“{privateTarget.project.name}{t("” 프로젝트는 비공개입니다. 열면 편집 권한도 활성화됩니다.")}</p>
       <form className="project-form compact-form" onSubmit={submitPrivate}>
-        <div className="form-field"><label htmlFor="private-list-password">프로젝트 비밀번호</label>
+        <div className="form-field"><label htmlFor="private-list-password">{t("프로젝트 비밀번호")}</label>
           <input id="private-list-password" type="password" autoComplete="current-password" required
             disabled={privateBusy} value={privatePassword} onChange={event => setPrivatePassword(event.target.value)}
             aria-describedby={privateError ? "private-list-error" : undefined} aria-invalid={Boolean(privateError)} /></div>
-        {privateError ? <p id="private-list-error" role="alert">{privateError}</p> : null}
+        {privateError ? <p id="private-list-error" role="alert">{t(privateError)}</p> : null}
         <button className="primary-button" type="submit" disabled={privateBusy}>
-          {privateBusy ? "인증 중…" : "비밀번호 확인 후 열기"}
+          {privateBusy ? t("인증 중…") : t("비밀번호 확인 후 열기")}
         </button>
       </form>
     </WorkspaceDialog> : null}
-    {statusTarget ? <WorkspaceDialog title="프로젝트 상태 변경" onClose={closeStatusChange} busy={statusBusyId === statusTarget.publicId}>
-      <p>“{statusTarget.name}” 프로젝트 상태를 <strong>{projectStatusLabel(statusTarget.nextStatus)}</strong>(으)로 변경하려면 편집 비밀번호를 입력해 주세요.</p>
-      {statusError ? <p role="alert">{statusError}</p> : null}
+    {statusTarget ? <WorkspaceDialog title={t("프로젝트 상태 변경")} onClose={closeStatusChange} busy={statusBusyId === statusTarget.publicId}>
+      <p>“{statusTarget.name}{t("” 프로젝트 상태를 ")}<strong>{t(projectStatusLabel(statusTarget.nextStatus))}</strong>{t("(으)로 변경하려면 편집 비밀번호를 입력해 주세요.")}</p>
+      {statusError ? <p role="alert">{t(statusError)}</p> : null}
       <form className="project-form compact-form" noValidate onSubmit={authorizeStatusChange}>
-        <div className="form-field"><label htmlFor="status-project-password">편집 비밀번호</label>
+        <div className="form-field"><label htmlFor="status-project-password">{t("편집 비밀번호")}</label>
           <input id="status-project-password" type="password" autoComplete="current-password"
             disabled={statusBusyId === statusTarget.publicId} value={statusPassword}
             onChange={(event) => setStatusPassword(event.target.value)} /></div>
         <button className="primary-button" type="submit" disabled={statusBusyId === statusTarget.publicId}>
-          {statusBusyId === statusTarget.publicId ? "변경 중…" : "비밀번호 확인 후 상태 변경"}
+          {statusBusyId === statusTarget.publicId ? t("변경 중…") : t("비밀번호 확인 후 상태 변경")}
         </button>
       </form>
     </WorkspaceDialog> : null}
-    {target ? <WorkspaceDialog title="프로젝트 삭제" onClose={closeDelete} busy={submitting} restoreFocusRef={deleteTrigger}>
-      <p>“{target.name}” 프로젝트와 포함된 모든 일정이 삭제됩니다. 이 작업은 복구할 수 없습니다.</p>
-      <p>삭제하려면 이 프로젝트의 편집 비밀번호를 입력해 주세요.</p>
-      {deleteError ? <p role="alert">{deleteError}</p> : null}
+    {target ? <WorkspaceDialog title={t("프로젝트 삭제")} onClose={closeDelete} busy={submitting} restoreFocusRef={deleteTrigger}>
+      <p>“{target.name}{t("” 프로젝트와 포함된 모든 일정이 삭제됩니다. 이 작업은 복구할 수 없습니다.")}</p>
+      <p>{t("삭제하려면 이 프로젝트의 편집 비밀번호를 입력해 주세요.")}</p>
+      {deleteError ? <p role="alert">{t(deleteError)}</p> : null}
       <form className="project-form compact-form" noValidate onSubmit={deleteProject}>
-        <div className="form-field"><label htmlFor="delete-project-password">삭제 확인 비밀번호</label>
+        <div className="form-field"><label htmlFor="delete-project-password">{t("삭제 확인 비밀번호")}</label>
           <input id="delete-project-password" type="password" autoComplete="current-password" disabled={submitting}
             value={password} onChange={(event) => setPassword(event.target.value)} /></div>
-        <button className="primary-button" type="submit" disabled={submitting}>{submitting ? "삭제 중…" : "비밀번호 확인 후 삭제"}</button>
+        <button className="primary-button" type="submit" disabled={submitting}>{submitting ? t("삭제 중…") : t("비밀번호 확인 후 삭제")}</button>
       </form>
     </WorkspaceDialog> : null}
   </>;

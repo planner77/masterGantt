@@ -1,3 +1,5 @@
+import { parseDisplayNameTranslations } from "../repositories/display-name-translations-repository-core";
+import type { DisplayNameTranslations } from "../../contracts/display-name-translations";
 import type {
   ControlRole,
   CreateEquipmentRequest,
@@ -32,6 +34,17 @@ export interface ValidationFailure {
 
 export type ValidationResult<T> = ValidationSuccess<T> | ValidationFailure;
 
+
+function translationFields(body: Record<string, unknown>, details: string[]): { translations?: DisplayNameTranslations } {
+  try {
+    const translations = parseDisplayNameTranslations(body.translations, () => { throw new Error("INVALID_TRANSLATIONS"); });
+    return translations === undefined ? {} : { translations };
+  } catch {
+    details.push("Display-name translations must contain only valid ko/en/vi names of at most 200 characters.");
+    return {};
+  }
+}
+
 const VALID_MANAGEMENT_UNITS: Set<ManagementUnit> = new Set(["unit", "fleet"]);
 
 const VALID_SYSTEM_LAYERS: Set<SystemLayer> = new Set(["controller", "coordinator"]);
@@ -52,6 +65,7 @@ export function parseCreateProcessInput(
   }
   const body = raw as Record<string, unknown>;
   const details: string[] = [];
+  const localized = translationFields(body, details);
 
   let code: string | undefined;
   if (body.code !== undefined) {
@@ -109,6 +123,7 @@ export function parseCreateProcessInput(
   return {
     success: true,
     data: {
+      ...localized,
       code,
       name,
       parentProcessId,
@@ -126,7 +141,8 @@ export function parseUpdateProcessInput(
   }
   const body = raw as Record<string, unknown>;
   const details: string[] = [];
-  const result: UpdateProcessRequest = {};
+  const localized = translationFields(body, details);
+  const result: UpdateProcessRequest = { ...localized };
 
   if (body.code !== undefined) {
     if (typeof body.code === "string" && body.code.trim().length > 0 && body.code.trim().length <= 64) {
@@ -186,6 +202,7 @@ export function parseCreateEquipmentInput(
   }
   const body = raw as Record<string, unknown>;
   const details: string[] = [];
+  const localized = translationFields(body, details);
 
   const context = equipmentContextFields(body, details);
   const processId = typeof body.processId === "string" ? body.processId.trim() : "";
@@ -249,6 +266,7 @@ export function parseCreateEquipmentInput(
   return {
     success: true,
     data: {
+      ...localized,
       ...context,
       processId,
       code,
@@ -272,7 +290,8 @@ export function parseUpdateEquipmentRequest(
   }
   const body = raw as Record<string, unknown>;
   const details: string[] = [];
-  const result: UpdateEquipmentRequest = equipmentContextFields(body, details);
+  const localized = translationFields(body, details);
+  const result: UpdateEquipmentRequest = { ...localized, ...equipmentContextFields(body, details) };
 
   if (body.processId !== undefined) {
     if (typeof body.processId === "string" && body.processId.trim().length > 0) {
@@ -418,6 +437,7 @@ export function parseCreateLogisticsSystemInput(
   }
   const body = raw as Record<string, unknown>;
   const details: string[] = [];
+  const localized = translationFields(body, details);
 
   const code = typeof body.code === "string" ? body.code.trim() : "";
   if (!code || code.length > 64) {
@@ -477,6 +497,7 @@ export function parseCreateLogisticsSystemInput(
   return {
     success: true,
     data: {
+      ...localized,
       code,
       name,
       systemType,
@@ -498,7 +519,8 @@ export function parseUpdateLogisticsSystemInput(
   }
   const body = raw as Record<string, unknown>;
   const details: string[] = [];
-  const result: UpdateLogisticsSystemRequest = {};
+  const localized = translationFields(body, details);
+  const result: UpdateLogisticsSystemRequest = { ...localized };
 
   if (body.code !== undefined) {
     if (typeof body.code === "string" && body.code.trim().length > 0 && body.code.trim().length <= 64) {

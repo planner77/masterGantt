@@ -1,4 +1,6 @@
 "use client";
+import { useI18n } from "../../lib/i18n/provider";
+
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type ComponentType } from "react";
 import type { WbsViewDimension, WbsViewNode, WbsViewReportDto, WbsViewSpec } from "@/contracts/wbs-dashboard-views";
 import type { ResourceDashboardFilterInput } from "@/contracts/resource-dashboard";
@@ -41,6 +43,7 @@ export function WbsViewDashboard(props: WbsViewDashboardProps) {
   return <WbsViewDashboardRoot key={`${props.publicId}:${props.root}`} {...props}/>;
 }
 function WbsViewDashboardRoot({consumer,publicId,revision,root,active,busy,binding,onOpenTask,onOpenAssignment,onOpenEntity,onSchedule}:WbsViewDashboardProps) {
+  const { t, locale } = useI18n();
   const drill = useResourceDrill();
   const [controlsOpen, setControlsOpen] = useState(false);
   const controlsId = useId();
@@ -160,18 +163,18 @@ function WbsViewDashboardRoot({consumer,publicId,revision,root,active,busy,bindi
     controlsTrigger.current?.focus();
   }
   const ConsumerFilters = consumer?.renderFilters;
-  return <section className={styles.root} data-testid="wbs-view-dashboard" data-root={root} data-wbs-view={root} data-project-public-id={publicId} data-wbs-state={error ? "error" : !validRange ? "invalid" : data&&staleSnapshot===data.snapshotId ? "stale" : locked ? "pending" : "ready"} data-ready={!!data&&!locked} data-wbs-ready={!!data&&!locked} data-report-confirmation-id={currentReport ? report?.confirmationId : 0} aria-label="공통 계층 조회">
-    <div className={styles.header}><h3 ref={fallback} tabIndex={-1}>{consumer?.title ?? `${WBS_VIEW_LABELS[root]} 계층 조회`}</h3><p className={styles.subtle}>현재 경로: {[root,...(state.spec.levels??[]).map(level=>typeof level==="string" ? level : level.dimensions)].map(level=>Array.isArray(level)?level.map(d=>WBS_VIEW_LABELS[d]).join(" / "):WBS_VIEW_LABELS[level]).join(" → ")} · 이름 {state.sort === "name-desc" ? "내림차순" : "오름차순"}</p><ContextHelp label="공통 계층 조회">하위 축은 개인 조회 설정입니다. 원본 WBS·배정·실물 연결을 변경하지 않습니다. 중복 경로의 소계를 더하지 않고 서버의 고유 총계를 표시합니다. 등록 구성 수량과 Task·Assignment·계획공수 및 전체 Gate는 각각 다른 범위입니다.</ContextHelp></div>
-    {warning ? <p role="alert">{warning} <button type="button" onClick={reset}>저장된 조회 초기화</button></p> : null}
-    <div className={styles.toolbar} aria-label="빠른 조회 조건"><label className={styles.taskSearch}><span>작업 검색</span><input type="search" maxLength={200} value={state.filters.taskSearch??""} onChange={event=>changeFilters({taskSearch:event.target.value})}/></label>
-      <label className={styles.taskStatus}><span>작업 상태</span><select value={state.filters.statuses?.[0]??""} onChange={event=>changeFilters({statuses:event.target.value?[event.target.value as "completed"|"not_started"|"in_progress"]:[]})}><option value="">전체</option><option value="not_started">시작 전</option><option value="in_progress">진행 중</option><option value="completed">완료</option></select></label>
-      <label className={styles.dateFrom}><span>조회 시작일</span><input type="date" value={state.filters.from??""} onChange={event=>changeFilters({from:event.target.value||undefined})}/></label><label className={styles.dateTo}><span>조회 종료일</span><input type="date" value={state.filters.to??""} onChange={event=>changeFilters({to:event.target.value||undefined})}/></label>
+  return <section className={styles.root} data-testid="wbs-view-dashboard" data-root={root} data-wbs-view={root} data-project-public-id={publicId} data-wbs-state={error ? "error" : !validRange ? "invalid" : data&&staleSnapshot===data.snapshotId ? "stale" : locked ? "pending" : "ready"} data-ready={!!data&&!locked} data-wbs-ready={!!data&&!locked} data-report-confirmation-id={currentReport ? report?.confirmationId : 0} aria-label={t("공통 계층 조회")}>
+    <div className={styles.header}><h3 ref={fallback} tabIndex={-1}>{consumer?.title ? t(consumer.title) : t("{value0} 계층 조회", {value0: t(WBS_VIEW_LABELS[root])})}</h3><p className={styles.subtle}>{t("현재 경로:")}{" "}{[root,...(state.spec.levels??[]).map(level=>typeof level==="string" ? level : level.dimensions)].map(level=>Array.isArray(level)?level.map(d=>t(WBS_VIEW_LABELS[d])).join(" / "):t(WBS_VIEW_LABELS[level])).join(" → ")} {t("· 이름")}{" "}{state.sort === "name-desc" ? t("내림차순") : t("오름차순")}</p><ContextHelp label={t("공통 계층 조회")}>{t("하위 축은 개인 조회 설정입니다. 원본 WBS·배정·실물 연결을 변경하지 않습니다. 중복 경로의 소계를 더하지 않고 서버의 고유 총계를 표시합니다. 등록 구성 수량과 Task·Assignment·계획공수 및 전체 Gate는 각각 다른 범위입니다.")}</ContextHelp></div>
+    {warning ? <p role="alert">{warning} <button type="button" onClick={reset}>{t("저장된 조회 초기화")}</button></p> : null}
+    <div className={styles.toolbar} aria-label={t("빠른 조회 조건")}><label className={styles.taskSearch}><span>{t("작업 검색")}</span><input type="search" maxLength={200} value={state.filters.taskSearch??""} onChange={event=>changeFilters({taskSearch:event.target.value})}/></label>
+      <label className={styles.taskStatus}><span>{t("작업 상태")}</span><select value={state.filters.statuses?.[0]??""} onChange={event=>changeFilters({statuses:event.target.value?[event.target.value as "completed"|"not_started"|"in_progress"]:[]})}><option value="">{t("전체")}</option><option value="not_started">{t("시작 전")}</option><option value="in_progress">{t("진행 중")}</option><option value="completed">{t("완료")}</option></select></label>
+      <label className={styles.dateFrom}><span>{t("조회 시작일")}</span><input type="date" value={state.filters.from??""} onChange={event=>changeFilters({from:event.target.value||undefined})}/></label><label className={styles.dateTo}><span>{t("조회 종료일")}</span><input type="date" value={state.filters.to??""} onChange={event=>changeFilters({to:event.target.value||undefined})}/></label>
 
-      <button ref={controlsTrigger} className={styles.controlsTrigger} type="button" aria-expanded={controlsOpen} aria-controls={controlsId} onClick={() => setControlsOpen(open => !open)}>필터·조회 구성{advancedConditions.length ? ` (${advancedConditions.length})` : ""}</button>
-      <span className={styles.refresh}><button type="button" disabled={pending} onClick={()=>{cancelOriginal();setRefresh(value=>value+1);setSelection(null);}}>계층 새로고침</button></span>
+      <button ref={controlsTrigger} className={styles.controlsTrigger} type="button" aria-expanded={controlsOpen} aria-controls={controlsId} onClick={() => setControlsOpen(open => !open)}>{t("필터·조회 구성")}{advancedConditions.length ? ` (${advancedConditions.length})` : ""}</button>
+      <span className={styles.refresh}><button type="button" disabled={pending} onClick={()=>{cancelOriginal();setRefresh(value=>value+1);setSelection(null);}}>{t("계층 새로고침")}</button></span>
     </div>
-    {advancedConditions.length ? <div className={styles.filterSummary} aria-label="적용된 고급 조건"><p className={styles.subtle}>{advancedConditions.join(" · ")}{state.rowSearch?.trim() ? " · 표 이름만 좁히며 서버 고유 총계는 유지합니다." : ""}</p><button type="button" onClick={clearAdvancedConditions}>고급 조건 초기화</button></div> : null}
-    {root === "system" ? <p className={styles.subtle}>시스템 연결 범위: {state.spec.systemView === undefined && state.spec.systemIds === undefined ? "기존 전체 작업 (호환)" : state.spec.systemView === "coordination" ? "조율 범위 포함" : "직접 연결만"} · 시스템 선택: {state.spec.systemIds === undefined ? "전체" : `${state.spec.systemIds.length}식`}</p> : null}
+    {advancedConditions.length ? <div className={styles.filterSummary} aria-label={t("적용된 고급 조건")}><p className={styles.subtle}>{advancedConditions.join(" · ")}{state.rowSearch?.trim() ? t(" · 표 이름만 좁히며 서버 고유 총계는 유지합니다.") : ""}</p><button type="button" onClick={clearAdvancedConditions}>{t("고급 조건 초기화")}</button></div> : null}
+    {root === "system" ? <p className={styles.subtle}>{t("시스템 연결 범위:")}{" "}{state.spec.systemView === undefined && state.spec.systemIds === undefined ? t("기존 전체 작업 (호환)") : state.spec.systemView === "coordination" ? t("조율 범위 포함") : t("직접 연결만")} {t("· 시스템 선택:")}{" "}{state.spec.systemIds === undefined ? t("전체") : t("{value0}식", {value0: state.spec.systemIds.length})}</p> : null}
     <div id={controlsId} data-wbs-controls className={styles.advancedPanel} hidden={!controlsOpen} onKeyDown={event => {
       if (event.key !== "Escape" || event.defaultPrevented) return;
       event.preventDefault(); event.stopPropagation();
@@ -179,18 +182,18 @@ function WbsViewDashboardRoot({consumer,publicId,revision,root,active,busy,bindi
       if (inner && event.currentTarget.contains(inner)) { inner.open = false; inner.querySelector<HTMLElement>(":scope > summary")?.focus(); return; }
       setControlsOpen(false); controlsTrigger.current?.focus();
     }}>
-      <div className={styles.controls}><label>표의 이름 찾기<input type="search" maxLength={200} value={state.rowSearch??""} onChange={event=>{cancelOriginal();setSelection(null);setState(previous=>({...previous,rowSearch:event.target.value,selected:null}));}}/></label><label>이름 정렬<select value={state.sort??"name-asc"} onChange={event=>{cancelOriginal();setState(previous=>({...previous,sort:event.target.value as "name-asc"|"name-desc"}));}}><option value="name-asc">오름차순</option><option value="name-desc">내림차순</option></select></label></div>
+      <div className={styles.controls}><label>{t("표의 이름 찾기")}<input type="search" maxLength={200} value={state.rowSearch??""} onChange={event=>{cancelOriginal();setSelection(null);setState(previous=>({...previous,rowSearch:event.target.value,selected:null}));}}/></label><label>{t("이름 정렬")}<select value={state.sort??"name-asc"} onChange={event=>{cancelOriginal();setState(previous=>({...previous,sort:event.target.value as "name-asc"|"name-desc"}));}}><option value="name-asc">{t("오름차순")}</option><option value="name-desc">{t("내림차순")}</option></select></label></div>
       {ConsumerControls ? <ConsumerControls spec={state.spec} onApply={apply} disabled={busy || !!drill.locked}/> : null}
       {ConsumerFilters ? <ConsumerFilters data={data} filters={state.filters} onChange={changeFilters}/> : null}
       {consumer?.Controls ? <consumer.Controls data={data} filters={state.filters} onChange={changeFilters}/> : null}
       <WbsViewComposer spec={state.spec} onApply={apply} onReset={reset} presets={consumer?.presets}/>
     </div>
-    {!validRange ? <p role="alert">종료일은 시작일보다 빠를 수 없습니다.</p> : null}{pending ? <p role="status">계층 조회 중…</p>:null}{error ? <p role="alert">{error} <button type="button" onClick={()=>{cancelOriginal();setRefresh(value=>value+1);}}>다시 시도</button></p>:null}
-    {selection&&!currentSelection || data&&(!currentReport || staleSnapshot===data.snapshotId) ? <p role="status">조회 조건 또는 원본 snapshot이 바뀌었습니다. 새로고침 후 다시 선택하세요.</p>:null}
-    {data && (!currentReport || pending || !!error || staleSnapshot===data.snapshotId) ? <p role="status">이전 조회 결과입니다. 최신 조회를 확인한 뒤 상세·원본 이동을 사용할 수 있습니다.</p> : null}
-    {data ? <><p className={styles.subtle}>조회 기간 {data.range.from}–{data.range.to} · 기준일 {data.asOfDate} · 명시적 Task 문맥 기준</p>{state.rowSearch?.trim()?<p role="status" className={styles.subtle}>이름이 일치하는 행만 표시합니다. 고유 총계는 전체 서버 조회 결과를 유지합니다.</p>:null}{consumer ? consumer.renderSummary(data) : <dl className={styles.summary} aria-label="고유 총계"><div><dt>구성 설비 수량</dt><dd>{data.totals.configurationReference.equipmentQuantity}대</dd></div><div><dt>구성 시스템</dt><dd>{data.totals.configurationReference.systemCount}식</dd></div><div><dt>Task</dt><dd>{data.totals.tasks.taskCount}</dd></div><div><dt>Assignment</dt><dd>{data.totals.assignments.assignmentCount}</dd></div><div><dt>계획공수 M/D</dt><dd>{plannedEffort(data.totals.assignments.effort,"md")}</dd></div></dl>}
+    {!validRange ? <p role="alert">{t("종료일은 시작일보다 빠를 수 없습니다.")}</p> : null}{pending ? <p role="status">{t("계층 조회 중…")}</p>:null}{error ? <p role="alert">{t(error ?? "")} <button type="button" onClick={()=>{cancelOriginal();setRefresh(value=>value+1);}}>{t("다시 시도")}</button></p>:null}
+    {selection&&!currentSelection || data&&(!currentReport || staleSnapshot===data.snapshotId) ? <p role="status">{t("조회 조건 또는 원본 snapshot이 바뀌었습니다. 새로고침 후 다시 선택하세요.")}</p>:null}
+    {data && (!currentReport || pending || !!error || staleSnapshot===data.snapshotId) ? <p role="status">{t("이전 조회 결과입니다. 최신 조회를 확인한 뒤 상세·원본 이동을 사용할 수 있습니다.")}</p> : null}
+    {data ? <><p className={styles.subtle}>{t("조회 기간")}{" "}{data.range.from}–{data.range.to} {t("· 기준일")}{" "}{data.asOfDate} {t("· 명시적 Task 문맥 기준")}</p>{state.rowSearch?.trim()?<p role="status" className={styles.subtle}>{t("이름이 일치하는 행만 표시합니다. 고유 총계는 전체 서버 조회 결과를 유지합니다.")}</p>:null}{consumer ? consumer.renderSummary(data) : <dl className={styles.summary} aria-label={t("고유 총계")}><div><dt>{t("구성 설비 수량")}</dt><dd>{data.totals.configurationReference.equipmentQuantity}{t("대")}</dd></div><div><dt>{t("구성 시스템")}</dt><dd>{data.totals.configurationReference.systemCount}{t("식")}</dd></div><div><dt>Task</dt><dd>{data.totals.tasks.taskCount}</dd></div><div><dt>Assignment</dt><dd>{data.totals.assignments.assignmentCount}</dd></div><div><dt>{t("계획공수 M/D")}</dt><dd>{plannedEffort(data.totals.assignments.effort,"md", locale)}</dd></div></dl>}
       {consumer?.renderExtra?.(data,{locked,active,onStale:markStale})}
-      <div ref={scroll} data-wbs-scroll className={styles.scroll} role="region" tabIndex={0} aria-label="공통 계층 표 스크롤" onScroll={event=>{const target=event.currentTarget;setState(previous=>({...previous,scroll:{top:target.scrollTop,left:target.scrollLeft}}));}} onFocusCapture={event=>{
+      <div ref={scroll} data-wbs-scroll className={styles.scroll} role="region" tabIndex={0} aria-label={t("공통 계층 표 스크롤")} onScroll={event=>{const target=event.currentTarget;setState(previous=>({...previous,scroll:{top:target.scrollTop,left:target.scrollLeft}}));}} onFocusCapture={event=>{
         const row=event.target.closest<HTMLElement>("[data-view-row-key]");
         if(row)setState(previous=>({...previous,focus:row.dataset.viewRowKey??null}));
         if (!(event.target instanceof HTMLButtonElement) || !event.target.matches(":focus-visible")) return;
@@ -202,9 +205,9 @@ function WbsViewDashboardRoot({consumer,publicId,revision,root,active,busy,bindi
         if(button.left<left)owner.scrollLeft=clamp(owner.scrollLeft+button.left-left);
         else if(button.right>right)owner.scrollLeft=clamp(owner.scrollLeft+button.right-right);
       }}><WbsViewTable rowAnnotation={consumer?.rowAnnotation ? node => consumer.rowAnnotation!(data,node) : undefined} data={data} expanded={new Set(state.expanded)} sort={state.sort??"name-asc"} locked={locked} selected={state.selected?.viewRowKey??null} rowSearch={state.rowSearch} onToggle={key=>{cancelOriginal();setState(previous=>({...previous,expanded:previous.expanded.includes(key)?previous.expanded.filter(item=>item!==key):[...previous.expanded,key]}));}} onDetails={(node,element)=>{cancelOriginal();trigger.current=element;setSelection({node,snapshot:data.snapshotId,key:queryKey});setState(previous=>({...previous,selected:{viewRowKey:node.viewRowKey,path:node.path}}));}} onOriginal={onOpenEntity?openOriginal:undefined}/></div>
-      {!data.children.length?<p>현재 조건에 해당하는 결과가 없습니다.</p>:null}
+      {!data.children.length?<p>{t("현재 조건에 해당하는 결과가 없습니다.")}</p>:null}
       {consumer?.renderSupplement?.(data,{locked,active,onStale:markStale})}
-      <details><summary>조회 snapshot·원본 출처</summary><p className={styles.subtle}>snapshot {data.snapshotId} · Project revision {data.projectRevision}</p><pre className={styles.subtle}>{JSON.stringify(data.sourceContext,null,2)}</pre></details>
+      <details><summary>{t("조회 snapshot·원본 출처")}</summary><p className={styles.subtle}>snapshot {data.snapshotId} · Project revision {data.projectRevision}</p><pre className={styles.subtle}>{JSON.stringify(data.sourceContext,null,2)}</pre></details>
       {currentSelection?<div hidden={!currentReport || staleSnapshot===data.snapshotId} inert={!currentReport || staleSnapshot===data.snapshotId}><WbsViewDetails key={currentSelection.node.viewRowKey} data={data} node={currentSelection.node} locked={locked||!active} onStale={markStale} onClose={close} onIntent={cancelOriginal} onOpenTask={onOpenTask??drill.onOpenTask} onOpenAssignment={onOpenAssignment??drill.onOpenAssignment} onSchedule={onSchedule??drill.onWbsSchedule}/></div>:null}
     </>:null}
   </section>;

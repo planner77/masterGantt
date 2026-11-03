@@ -1,3 +1,4 @@
+import { parseDisplayNameTranslations, writeDisplayNameTranslations, sameDisplayNameTranslations } from "../repositories/display-name-translations-repository-core";
 import { randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 
 import type Database from "better-sqlite3";
@@ -105,9 +106,10 @@ function canonicalCreate(input: CreateCatalogTargetRequest): { name: string; cod
 }
 function canonicalUpdate(input: UpdateCatalogTargetRequest): UpdateCatalogTargetRequest {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new ResourceCatalogInvalidInputError();
-  const allowed = new Set(["name", "code", "description", "active", "developerGrade", "roles"]);
+  const allowed = new Set(["name", "code", "description", "active", "developerGrade", "roles", "translations"]);
   if (Object.keys(input).some((key) => !allowed.has(key)) || Object.keys(input).length === 0) throw new ResourceCatalogInvalidInputError();
   const result: UpdateCatalogTargetRequest = {};
+  if (input.translations !== undefined) result.translations = parseDisplayNameTranslations(input.translations, () => { throw new ResourceCatalogInvalidInputError(); });
   if (input.name !== undefined) { const name = normalizedText(input.name, 200); if (name === undefined) throw new ResourceCatalogInvalidInputError(); result.name = name; }
   if (input.code !== undefined) { const code = normalizeCode(input.code); if (code === undefined) throw new ResourceCatalogInvalidInputError(); result.code = code; }
   if (input.description !== undefined) { const description = normalizedText(input.description, 2000, true); if (description === undefined) throw new ResourceCatalogInvalidInputError(); result.description = description; }
@@ -117,7 +119,7 @@ function canonicalUpdate(input: UpdateCatalogTargetRequest): UpdateCatalogTarget
   return result;
 }
 function sameTarget(current: CatalogTargetRecord, update: UpdateCatalogTargetRequest): boolean {
-  return (update.name === undefined || update.name === current.name) && (update.code === undefined || update.code === current.code) &&
+  return (update.translations === undefined || sameDisplayNameTranslations(update.translations, current.translations)) && (update.name === undefined || update.name === current.name) && (update.code === undefined || update.code === current.code) &&
     (update.description === undefined || update.description === current.description) && (update.active === undefined || update.active === current.active) &&
     (update.developerGrade === undefined || update.developerGrade === current.developerGrade) &&
     (update.roles === undefined || (update.roles.length === current.roles.length && update.roles.every((role, index) => role === current.roles[index])));
@@ -127,6 +129,7 @@ function targetDto(kind: "resource" | "group", target: CatalogTargetRecord): Ass
     kind,
     id: target.publicId,
     name: target.name,
+    ...(kind === "group" && target.translations ? { translations: target.translations } : {}),
     code: target.code,
     description: target.description,
     active: target.active,
@@ -247,44 +250,50 @@ export class ResourceCatalogService {
   }
 
   getCatalog(rawAdminToken: string | undefined): ResourceCatalogResponse {
-    this.requireAdmin(rawAdminToken);
-    const resourceUsage = this.catalog.listResourceProjectUsage();
-    const groupUsage = this.catalog.listGroupProjectUsage();
-    return {
-      data: {
-        revision: this.catalog.getRevision(),
-        resources: this.catalog.listResources().map((resource) => {
-          const projectUsageCount = resourceUsage.get(resource.id)?.projectCount ?? 0;
-          return {
-            id: resource.publicId,
-            name: resource.name,
-            code: resource.code,
-            description: resource.description,
-            active: resource.active,
-            developerGrade: resource.developerGrade,
-            roles: resource.roles,
-            projectUsageCount,
-            deletable: projectUsageCount === 0,
-          };
-        }),
-        groups: this.catalog.listGroups().map((group) => {
-          const projectUsageCount = groupUsage.get(group.id)?.projectCount ?? 0;
-          return {
-            id: group.publicId,
-            name: group.name,
-            code: group.code,
-            description: group.description,
-            active: group.active,
-            memberResourceIds: group.memberResourceIds,
-            projectUsageCount,
-            deletable: projectUsageCount === 0,
-          };
-        }),
-      },
-    };
+    return this.database.transaction(() => {
+      this.requireAdmin(rawAdminToken);
+      const resourceUsage = this.catalog.listResourceProjectUsage();
+      const groupUsage = this.catalog.listGroupProjectUsage();
+      return {
+        data: {
+          revision: this.catalog.getRevision(),
+          resources: this.catalog.listResources().map((resource) => {
+            const projectUsageCount = resourceUsage.get(resource.id)?.projectCount ?? 0;
+            return {
+              id: resource.publicId,
+              name: resource.name,
+              code: resource.code,
+              description: resource.description,
+              active: resource.active,
+              developerGrade: resource.developerGrade,
+              roles: resource.roles,
+              projectUsageCount,
+              deletable: projectUsageCount === 0,
+            };
+          }),
+          groups: this.catalog.listGroups().map((group) => {
+            const projectUsageCount = groupUsage.get(group.id)?.projectCount ?? 0;
+            return {
+              id: group.publicId,
+              name: group.name,
+              ...(group.translations ? { translations: group.translations } : {}),
+              code: group.code,
+              description: group.description,
+              active: group.active,
+              memberResourceIds: group.memberResourceIds,
+              projectUsageCount,
+              deletable: projectUsageCount === 0,
+            };
+          }),
+        },
+      };
+    })();
   }
+
   createTarget(kind: "resource" | "group", rawAdminToken: string | undefined, expectedRevision: number, input: CreateCatalogTargetRequest): ResourceCatalogResponse {
     if (kind === "group" && (input?.developerGrade !== undefined || input?.roles !== undefined)) throw new ResourceCatalogInvalidInputError();
+    if (kind === "resource" && input?.translations !== undefined) throw new ResourceCatalogInvalidInputError();
+    const translations = parseDisplayNameTranslations(input?.translations, () => { throw new ResourceCatalogInvalidInputError(); });
     const canonical = canonicalCreate(input); const mutate = this.database.transaction(() => {
       this.requireAdmin(rawAdminToken); if (this.catalog.getRevision() !== expectedRevision) throw new ResourceCatalogRevisionMismatchError();
       const publicId = this.generatePublicId(); if (!isCanonicalUuidV4(publicId)) throw new ResourceCatalogInvalidInputError(); const now = this.clock().toISOString();
@@ -292,13 +301,15 @@ export class ResourceCatalogService {
         const resource = this.catalog.insertResource({ publicId, name: canonical.name, code: canonical.code, description: canonical.description, developerGrade: canonical.developerGrade, now });
         this.catalog.replaceResourceRoles(resource.id, canonical.roles, now);
       } else {
-        this.catalog.insertGroup({ publicId, name: canonical.name, code: canonical.code, description: canonical.description, now });
+        const group = this.catalog.insertGroup({ publicId, name: canonical.name, code: canonical.code, description: canonical.description, now });
+        writeDisplayNameTranslations(this.database, "resource_groups", group.id, translations);
       }
       if (!this.catalog.advanceRevision(expectedRevision, now)) throw new ResourceCatalogRevisionMismatchError(); return this.getCatalog(rawAdminToken);
     }); return mutate.immediate();
   }
   updateTarget(kind: "resource" | "group", publicId: string, rawAdminToken: string | undefined, expectedRevision: number, input: UpdateCatalogTargetRequest): ResourceCatalogResponse {
     if (kind === "group" && (input?.developerGrade !== undefined || input?.roles !== undefined)) throw new ResourceCatalogInvalidInputError();
+    if (kind === "resource" && input?.translations !== undefined) throw new ResourceCatalogInvalidInputError();
     const canonical = canonicalUpdate(input); const mutate = this.database.transaction(() => {
       this.requireAdmin(rawAdminToken); if (this.catalog.getRevision() !== expectedRevision) throw new ResourceCatalogRevisionMismatchError();
       const current = kind === "resource" ? this.catalog.findResourceByPublicId(publicId) : this.catalog.findGroupByPublicId(publicId);
@@ -308,6 +319,7 @@ export class ResourceCatalogService {
         if (canonical.roles !== undefined) this.catalog.replaceResourceRoles(current.id, canonical.roles, now);
       } else {
         this.catalog.updateGroup(current.id, canonical, now);
+        writeDisplayNameTranslations(this.database, "resource_groups", current.id, canonical.translations);
       }
       if (!this.catalog.advanceRevision(expectedRevision, now)) throw new ResourceCatalogRevisionMismatchError(); return this.getCatalog(rawAdminToken);
     }); return mutate.immediate();
@@ -390,7 +402,7 @@ export class ResourceCatalogService {
       ? []
       : this.catalog.listGroups(true).map((target) => targetDto("group", target));
     const targets = [...resources, ...groups]
-      .filter((target) => !q || target.name.toLocaleLowerCase().includes(q) || (target.code ?? "").toLocaleLowerCase().includes(q))
+      .filter((target) => !q || target.name.toLocaleLowerCase().includes(q) || (target.code ?? "").toLocaleLowerCase().includes(q) || Object.values(target.translations ?? {}).some(name => name.toLocaleLowerCase().includes(q)))
       .slice(0, MAX_SEARCH_RESULTS);
     return { data: { catalogRevision: this.catalog.getRevision(), targets } };
   }

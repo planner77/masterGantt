@@ -1,3 +1,5 @@
+import { formatLocaleNumber, translate } from "../../lib/i18n";
+import type { AppLocale } from "../../lib/i18n/locales";
 import { fromResourcePublicV2 } from "../../contracts/resource-public-v2";
 import {
   resourceSourceContextSchema,
@@ -14,6 +16,7 @@ import type {
   ResourceDashboardGroupChildrenDto,
 } from "../../contracts/resource-dashboard";
 
+const translations = z.object({ko:z.string().max(200).optional(),en:z.string().max(200).optional(),vi:z.string().max(200).optional()}).strict().optional();
 const count = z.number().int().nonnegative();
 const finite = z.number().finite();
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -77,6 +80,7 @@ const summary = z.object({
 const row = z.object({
   id: z.string().nullable(),
   name: z.string(),
+  translations,
   code: z.string().nullable(),
   active: z.boolean(),
   summary,
@@ -125,7 +129,7 @@ const revisions = {
 };
 const diagnostic = z.object({ count, selector });
 const targetNode: z.ZodType<ResourceDashboardTargetNode> = z.lazy(() => z.object({
-  dimension: z.enum(RESOURCE_TARGET_DIMENSIONS), id: z.string().nullable(), name: z.string().nullable(), active: z.boolean().nullable(),
+  dimension: z.enum(RESOURCE_TARGET_DIMENSIONS), id: z.string().nullable(), name: z.string().nullable(), translations, active: z.boolean().nullable(),
   summary, sourceKinds: z.array(z.enum(["target_binding", "legacy_direct", "target_unlinked"])),
   equipmentQuantity: finite, systemCount: count, children: z.array(targetNode),
 }));
@@ -134,7 +138,7 @@ const targetProjection = z.object({
   relatedMembers: z.object({}).passthrough(),
   diagnostics: z.object({ targetUnlinkedTaskCount: count, legacyOnlyTaskCount: count, unusedTargetIds: z.array(z.string()), projectCommonTargetIds: z.array(z.string()), noWorkAreaTargetIds: z.array(z.string()), unmappedProjectProcessIds: z.array(z.string()) }),
   metadata: z.object({ subtotalsAdditive: z.literal(false), assignmentScope: z.literal("A"), memberScope: z.literal("T0") }).passthrough(),
-  catalog: z.array(z.object({ dimension: z.enum([...RESOURCE_TARGET_DIMENSIONS, "projectProcess"]), id: z.string(), name: z.string(), active: z.boolean(), code: z.string().nullable() })),
+  catalog: z.array(z.object({ dimension: z.enum([...RESOURCE_TARGET_DIMENSIONS, "projectProcess"]), id: z.string(), name: z.string(), translations, active: z.boolean(), code: z.string().nullable() })),
 });
 const report = z.object({
   targetProjection: targetProjection.optional(),
@@ -218,6 +222,7 @@ const report = z.object({
       z.object({
         id: z.string(),
         name: z.string(),
+        translations,
         code: z.string().nullable(),
         active: z.boolean(),
       }),
@@ -506,11 +511,12 @@ export function readDetails(
 export function plannedEffort(
   effort: ResourceDashboardDto["summary"]["effort"],
   unit: "md" | "mm",
+  locale: AppLocale = "ko",
 ): string {
-  if (effort.state === "unset") return "산정 불가 · 공수 미설정";
-  if (effort.state === "empty") return "할당 없음";
+  if (effort.state === "unset") return translate(locale,"산정 불가 · 공수 미설정");
+  if (effort.state === "empty") return translate(locale,"할당 없음");
   const amount = unit === "md" ? effort.plannedMd : effort.plannedMm;
-  return `${amount === null ? "—" : amount.toFixed(2)} ${unit === "md" ? "M/D" : "M/M"}${effort.partial ? " · 알려진 부분합" : ""}`;
+  return `${amount === null ? "—" : formatLocaleNumber(amount,locale,{minimumFractionDigits:2,maximumFractionDigits:2})} ${unit === "md" ? "M/D" : "M/M"}${effort.partial ? translate(locale," · 알려진 부분합") : ""}`;
 }
 
 export function sameSelector(

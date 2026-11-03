@@ -1,3 +1,9 @@
+## Issue #865/#866 — 선택형 LLM runtime 및 표시명 migration (2026-11-03)
+
+LLM 기본 OFF로 기존 Gantt/readiness·단일 app·Compose project/SQLite volume을 유지한다. `.env.example`과 `deploy/compose.yml`의 명시적 runtime 환경 전달 및 [LLM 운영 가이드](LLM_CONFIGURATION.md)를 따른다. 설정 점검은 `docker compose --env-file .env -f deploy/compose.yml config --quiet`로 비밀값을 출력하지 않고 수행한다. 변경 반영은 동일 image의 컨테이너 재생성이 필요하며 .env 주입만으로 실행 중 process가 바뀌지 않는다. CA는 별도 읽기 전용 mount/Node runtime 설정이며 TLS 검증을 끄지 않는다.
+
+새 버전 기동 시 additive migration0036이 owner별 표시명 테이블을 만든다. 기존 name/ID/수량은 유지되고 번역 없는 DB도 그대로 조회한다. 배포 전 기존 절차대로 SQLite backup과 복원 가능성을 확보한다. rollback은 해당 backup과 대응 앱 버전을 함께 사용한다. 표시 언어는 브라우저 선호이며 server account/DB locale 설정은 추가하지 않는다. 실제 사내 DNS/토큰/HTTP 정책·CA/endpoint 및 운영 DB restore는 환경별 별도 검증이다.
+
 # Deployment
 
 ## Issue #737 — 직접 문맥·다관점 운영 인계

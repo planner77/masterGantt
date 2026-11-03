@@ -140,6 +140,7 @@
       "projectedMs": 1265505,
       "files": [
         "tests/e2e/browser-project-resource-data.spec.ts",
+        "tests/e2e/i18n-master-data.spec.ts",
         "tests/e2e/issue-624-logistics-unified.spec.ts",
         "tests/e2e/issue-717-name-first.spec.ts",
         "tests/e2e/issue-719-contextual-help.spec.ts",
@@ -189,6 +190,7 @@
         "tests/e2e/cross-screen-regression.spec.ts",
         "tests/e2e/gantt-adapter-poc.spec.ts",
         "tests/e2e/gantt-demo.spec.ts",
+        "tests/e2e/i18n.spec.ts",
         "tests/e2e/inline-name-persistence.spec.ts",
         "tests/e2e/issue-732-milestone-dashboard.spec.ts",
         "tests/e2e/logistics-target-authoring.spec.ts",
@@ -1655,5 +1657,21 @@
     "historicalMetadata": "generatedAt/sourceRunIds/metrics와 모든 projectedMs·기존 수동 배치 기록을 보존한다. 신규 spec의 미측정 비용을 과거 추정값에 더하거나 새 실측으로 표시하지 않는다.",
     "validation": "STATIC_PLAN_INVENTORY_VERIFIED; NEW_HEAD_FULL_E2E_8_SHARDS_NOT_TESTED",
     "scope": "기존142개 배치·8샤드·workers=1·35분 timeout·PR 첫 실패 차단/Main 전체 수집·Required3·Trusted QA·Owner 승인·Release 권한을 유지한다. 테스트 제외·skip·fallback·retry 정책 변경은 없다."
+  },
+  "issue866ExplicitPlacement": {
+    "issue": 866,
+    "files": [
+      { "file": "tests/e2e/i18n-master-data.spec.ts", "shard": 5 },
+      { "file": "tests/e2e/i18n.spec.ts", "shard": 7 }
+    ],
+    "basis": "현재 명시 배치가 각각 17개로 가장 적은 Shard 5와 7에 신규 국제화 spec을 1개씩 추가한다. 기존 143개 배치는 이동하지 않고 과거 실행시간 추정값도 갱신하지 않는다.",
+    "newSpecDuration": "REMOTE_UNMEASURED",
+    "originalExplicitSpecs": 143,
+    "newExplicitSpecs": 145,
+    "beforeShardFileCounts": [19, 18, 18, 18, 17, 18, 17, 18],
+    "afterShardFileCounts": [19, 18, 18, 18, 18, 18, 18, 18],
+    "historicalMetadata": "generatedAt/sourceRunIds/metrics와 모든 projectedMs·기존 수동 배치 기록은 역사적 기준으로 보존한다. 신규 spec의 원격 실측이나 성능 개선을 주장하지 않는다.",
+    "validation": "STATIC_PLAN_INVENTORY_VERIFIED; NEW_HEAD_FULL_E2E_8_SHARDS_NOT_TESTED",
+    "scope": "8샤드·workers=1·timeout·Required3·Trusted QA·Owner 승인·Release 권한과 기존 143개 배치를 유지한다. 테스트 제외·skip·fallback·retry 정책 변경은 없다."
   }
 }

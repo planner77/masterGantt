@@ -1,4 +1,6 @@
 "use client";
+import { useI18n } from "../../lib/i18n/provider";
+
 
 import { PhysicalConnectionSources } from "./physical-connection-sources";
 import { IdentifierDetails } from "@/components/identifier-details";
@@ -42,6 +44,7 @@ export function ResourcePlanDetails({
   onClose: () => void;
   unit: "md" | "mm";
 }) {
+  const { t, formatNumber, locale } = useI18n();
   const { binding, onSchedule, onOpenTask, onOpenAssignment, locked } = useResourceDrill();
   const [steps, setSteps] = useState([initial]),
     [result, setResult] = useState<ResourcePlanDetailsDto | null>(null),
@@ -139,7 +142,7 @@ export function ResourcePlanDetails({
   return (
     <section
       className="resource-plan-detail"
-      aria-label="기간 부하 상세"
+      aria-label={t("기간 부하 상세")}
       data-detail-state={stale ? "stale" : error ? "error" : loading || loadedQuery !== query ? "loading" : "ready"}
       data-detail-confirmation-id={!stale && !loading && !error && loadedQuery === query ? confirmationId : "0"}
       data-projection-detail-key={JSON.stringify({ ...current.input, snapshotId: undefined })}
@@ -156,20 +159,17 @@ export function ResourcePlanDetails({
       </h3>
       <p className="resource-dashboard-hint">
         {current.input.demandScope === "project"
-          ? "동일 개인의 현재 Project 전체 참고"
-          : "선택 실물·Milestone·Task 기여"}{" "}
-        · {current.input.periodId} · Capacity는 유효 근무일1 M/D
-      </p>
-      <p className="resource-dashboard-hint">현재 근거: {current.input.demandScope === "project" ? "같은 Capacity 개인·기간의 Project 전체 (선택 실물 밖 배정 포함)" : "출발 선택 조건"} · 기준 revision {data.projectRevision}</p>
+          ? t("동일 개인의 현재 Project 전체 참고")
+          : t("선택 실물·Milestone·Task 기여")}{" "}
+        · {current.input.periodId} {t("· Capacity는 유효 근무일1 M/D")}</p>
+      <p className="resource-dashboard-hint">{t("현재 근거:")}{" "}{current.input.demandScope === "project" ? t("같은 Capacity 개인·기간의 Project 전체 (선택 실물 밖 배정 포함)") : t("출발 선택 조건")} {t("· 기준 revision")}{" "}{data.projectRevision}</p>
       <div className="resource-dashboard-pagination">
         {steps.length > 1 ? (
           <button type="button" onClick={back}>
-            이전 근거
-          </button>
+            {t("이전 근거")}</button>
         ) : null}
         <button type="button" onClick={onClose}>
-          기간 상세 닫기
-        </button>
+          {t("기간 상세 닫기")}</button>
         <button
           type="button"
           disabled={stale || loading}
@@ -179,17 +179,15 @@ export function ResourcePlanDetails({
             setRetry((r) => r + 1);
           }}
         >
-          상세 다시 시도
-        </button>
+          {t("상세 다시 시도")}</button>
       </div>
       {stale ? (
         <p role="alert">
-          데이터가 변경되었습니다. 새로고침한 뒤 다시 열어 주세요.
-        </p>
+          {t("데이터가 변경되었습니다. 새로고침한 뒤 다시 열어 주세요.")}</p>
       ) : error ? (
-        <p role="alert">{error}</p>
+        <p role="alert">{t(error ?? "")}</p>
       ) : loading ? (
-        <p role="status">기간 상세 조회 중…</p>
+        <p role="status">{t("기간 상세 조회 중…")}</p>
       ) : null}
       <button
         type="button"
@@ -207,36 +205,35 @@ export function ResourcePlanDetails({
           })
         }
       >
-        전체 범위 일정 보기
-      </button>
+        {t("전체 범위 일정 보기")}</button>
       {result && !error && loadedQuery === query && !loading ? (
         <>
           <div
             className="resource-dashboard-table-scroll"
             role="region"
             tabIndex={0}
-            aria-label="기간 상세 표"
+            aria-label={t("기간 상세 표")}
           >
             <table className="resource-plan-detail-table">
               <thead>
                 <tr>
                   <th>
                     {result.view === "daily"
-                      ? "날짜"
+                      ? t("날짜")
                       : result.view === "day-resources"
-                        ? "개인"
+                        ? t("개인")
                         : "Task / Assignment"}
                   </th>
-                  <th>계획 공수</th>
+                  <th>{t("계획 공수")}</th>
                   <th>
                     {result.view === "day-assignments"
-                      ? "배정률 / 근무"
-                      : "Capacity M/D / 평균 Load"}
+                      ? t("배정률 / 근무")
+                      : t("Capacity M/D / 평균 Load")}
                   </th>
                   <th>
                     {result.view === "day-assignments"
                       ? "Milestone / WBS"
-                      : "개인 최대 Peak / 초과"}
+                      : t("개인 최대 Peak / 초과")}
                   </th>
                 </tr>
               </thead>
@@ -272,27 +269,25 @@ export function ResourcePlanDetails({
                               })
                             }
                           >
-                            이 Task 일정
-                          </button>
-                          <button type="button" data-resource-assignment-edit disabled={stale || locked || !onOpenAssignment || row.resourceActive !== true} title={row.resourceActive !== true ? "비활성 또는 상태 미확인 개인 배정은 조회 전용입니다." : undefined} onClick={event => onOpenAssignment?.(row.taskId, row.assignmentId, row.resourceId, event.currentTarget)}>배정 편집: {data.catalog.resources.find(resource => resource.id === row.resourceId)?.name ?? "리소스 정보 없음"}</button>
+                            {t("이 Task 일정")}</button>
+                          <button type="button" data-resource-assignment-edit disabled={stale || locked || !onOpenAssignment || row.resourceActive !== true} title={row.resourceActive !== true ? t("비활성 또는 상태 미확인 개인 배정은 조회 전용입니다.") : undefined} onClick={event => onOpenAssignment?.(row.taskId, row.assignmentId, row.resourceId, event.currentTarget)}>{t("배정 편집:")}{" "}{data.catalog.resources.find(resource => resource.id === row.resourceId)?.name ?? t("리소스 정보 없음")}</button>
                           <PhysicalConnectionSources sources={row.targetSources} catalog={data.catalog.targetOptions} />
-                          <IdentifierDetails label={`${row.taskName} 식별 정보`} identifiers={[{label: "외부 ID", value: row.externalId}, {label: "작업 ID", value: row.taskId}, {label: "Assignment ID", value: row.assignmentId}, {label: "Resource ID", value: row.resourceId}]} />
+                          <IdentifierDetails label={t("{value0} 식별 정보", {value0: row.taskName})} identifiers={[{label: "외부 ID", value: row.externalId}, {label: "작업 ID", value: row.taskId}, {label: "Assignment ID", value: row.assignmentId}, {label: "Resource ID", value: row.resourceId}]} />
                           <small>
-                            작업 {row.taskStart ?? "—"}–{row.taskEnd ?? "—"} /
-                            배정 {row.assignmentStart ?? "상속"}–
-                            {row.assignmentEnd ?? "상속"}
+                            {t("작업")}{" "}{row.taskStart ?? "—"}–{row.taskEnd ?? "—"} {t("/ 배정")}{" "}{row.assignmentStart ?? t("상속")}–
+                            {row.assignmentEnd ?? t("상속")}
                           </small>
                         </th>
                         <td>
                           {row.plannedMd === null
-                            ? "공수 미설정"
-                            : `${(unit === "mm" && data.mdPerMm ? row.plannedMd / data.mdPerMm : row.plannedMd).toFixed(2)} ${unit === "mm" ? "M/M" : "M/D"}`}
+                            ? t("공수 미설정")
+                            : `${formatNumber((unit === "mm" && data.mdPerMm ? row.plannedMd / data.mdPerMm : row.plannedMd),{minimumFractionDigits:2,maximumFractionDigits:2})} ${unit === "mm" ? "M/M" : "M/D"}`}
                         </td>
                         <td>
                           {row.allocationPercent === null
-                            ? "미설정"
+                            ? t("미설정")
                             : `${row.allocationPercent}%`}{" "}
-                          · {row.working ? "근무일" : "비근무일"}
+                          · {row.working ? t("근무일") : t("비근무일")}
                         </td>
                         <td>
                           {row.milestoneName}
@@ -320,32 +315,31 @@ export function ResourcePlanDetails({
                           >
                             {"name" in row ? row.name : row.date}
                           </button>
-                          {"code" in row ? <IdentifierDetails label={`${row.name} 식별 정보`} identifiers={[{label:"Resource ID",value:row.resourceId},...(row.code?[{label:"코드",value:row.code}]:[])]}/> : null}
+                          {"code" in row ? <IdentifierDetails label={t("{value0} 식별 정보", {value0: row.name})} identifiers={[{label:"Resource ID",value:row.resourceId},...(row.code?[{label:"코드",value:row.code}]:[])]}/> : null}
                           {"code" in row ? (
                             <small>
-                              {row.active ? "활성" : "비활성"} ·{" "}
-                              {row.roles.join(", ") || "Role 미지정"} ·{" "}
-                              {row.developerGrade ?? "등급 미지정"}
+                              {row.active ? t("활성") : t("비활성")} ·{" "}
+                              {row.roles.join(", ") || t("Role 미지정")} ·{" "}
+                              {row.developerGrade ?? t("등급 미지정")}
                             </small>
                           ) : null}
                         </th>
-                        <td>{planMetric(row.metrics, "effort", unit)}</td>
+                        <td>{planMetric(row.metrics, "effort", unit, locale)}</td>
                         <td>
-                          {row.metrics.capacityMd.toFixed(2)} M/D ·{" "}
-                          {planMetric(row.metrics, "load", unit)}
+                          {formatNumber(row.metrics.capacityMd,{minimumFractionDigits:2,maximumFractionDigits:2})} M/D ·{" "}
+                          {planMetric(row.metrics, "load", unit, locale)}
                         </td>
                         <td>
                           {row.metrics.knownPeakResourceDailyLoadPercent ===
                           null
-                            ? "Peak 미산정"
-                            : `${row.metrics.knownPeakResourceDailyLoadPercent.toFixed(2)}%`}{" "}
-                          · 초과 {row.metrics.excessMd.toFixed(2)} M/D
+                            ? t("Peak 미산정")
+                            : `${formatNumber(row.metrics.knownPeakResourceDailyLoadPercent,{minimumFractionDigits:2,maximumFractionDigits:2})}%`}{" "}
+                          {t("· 초과")}{" "}{formatNumber(row.metrics.excessMd,{minimumFractionDigits:2,maximumFractionDigits:2})} M/D
                           <small>
-                            미설정 {row.metrics.unknownAssignmentCount}{" "}
+                            {t("미설정")}{" "}{row.metrics.unknownAssignmentCount}{" "}
                             Assignment / {row.metrics.unknownResourceDayCount}{" "}
-                            개인일 · 과투입{" "}
-                            {row.metrics.overAllocatedResourceCount}명
-                          </small>
+                            {t("개인일 · 과투입")}{" "}
+                            {row.metrics.overAllocatedResourceCount}{t("명")}</small>
                         </td>
                       </tr>
                     ))}
@@ -353,7 +347,7 @@ export function ResourcePlanDetails({
             </table>
           </div>
           {!result.rows.length ? (
-            <p>이 날짜·범위의 Assignment가 없습니다.</p>
+            <p>{t("이 날짜·범위의 Assignment가 없습니다.")}</p>
           ) : null}
         </>
       ) : null}
@@ -368,12 +362,12 @@ export function ResourcePlanDetails({
           {result && loadedQuery === query
             ? Math.min(result.offset + result.limit, result.totalCount)
             : 0}{" "}
-          / {result && loadedQuery === query ? result.totalCount : "조회 중"}
+          / {result && loadedQuery === query ? result.totalCount : t("조회 중")}
         </span>
         {(
           [
-            [-1, "이전"],
-            [1, "다음"],
+            [-1, t("이전")],
+            [1, t("다음")],
           ] as const
         ).map(([direction, label]) => (
           <button

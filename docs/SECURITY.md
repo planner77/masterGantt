@@ -1,3 +1,9 @@
+## Issue #865/#866 — runtime secret·outbound·표시명 경계 (2026-11-03)
+
+LLM은 기본 OFF이며 server-only index를 통해 등록 provider/model만 명시적으로 호출한다. runtime token JSON은 secret 전체로 취급하고 NEXT_PUBLIC/build arg/image/log/telemetry/브라우저·URL에 넣지 않는다. 실제 Prompt/응답/upstream 오류 body·Authorization·nested cause를 로깅하지 않는다. 모든 DNS 결과를 사설 RFC1918/ULA로 검사하고 검증 IP 직접 연결+Host/SNI/TLS 검증으로 rebinding을 막는다. public/loopback/link-local/metadata/혼합 DNS/redirect 거부, 별도 HTTP·tokenless opt-in, 요청64KiB/응답1MiB·timeout/abort·동시4 한도를 적용한다. 내부 CA와 실환경 검증은 [운영 계약](LLM_CONFIGURATION.md)을 따른다. 사설망 등록은 운영자의 허용 endpoint 신뢰 책임을 대체하지 않는다.
+
+표시 언어 localStorage는 비민감 UI 선호값이며 권한 근거로 쓰지 않는다. 번역은 원본 owner별 기존 글로벌 관리자 또는 Project edit session과 Origin/revision transaction을 그대로 따른다. Project 편집자가 전역 원본을 번역할 권한은 생기지 않는다. 정적 사전·수동 표시명은 React text로 렌더링하고 원본/표시 문자열을 FK/ID 대신 쓰지 않는다. 사용자 자유 입력은 자동 전송/번역하지 않는다. 언어 전환은 DB write0이며 API 오류는 허용 code의 안전한 사용자 문구로 지역화한다.
+
 ## Issue #479 PR #794 F-001 — 외부 Private read와 내부 신뢰 Snapshot 구분 (2026-10-24)
 
 [Codex P1 review #1](https://github.com/planner77/masterGantt/pull/794#discussion_r4366096194)의 percent-encoding 우회를 막기 위해 `URL.pathname`의 raw segment를 Next route parameter와 동일한 단일 `decodeURIComponent` 후 canonical UUIDv4로 검사한다. 잘못된 percent sequence, encoded slash/double-encoded/noncanonical ID는 데이터를 조회하지 않고404 거부한다. 정상 encoded UUID는 동일한 Project session으로 authorization한다.

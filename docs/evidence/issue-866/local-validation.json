@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "primaryIssue": 866,
+  "relatedIssues": [
+    865,
+    869
+  ],
+  "baselineSha": "352a43e74c7b34c72d952f67783a53463f8b519d",
+  "candidateVersion": "0.140.0",
+  "sourceFingerprint": "3e9a96ec4b940dff934c9788f37ff17c7b56d77ff93c56acf501469b3f3dc47c",
+  "sourceFileCount": 1207,
+  "sourceFingerprintMethod": "SHA256 of sorted JSON [{path,sha256}], sort_keys=True,separators=(comma,colon); git tracked+untracked nonignored src/tests/db/deploy and package.json/package-lock.json/.env.example/next.config.ts/tsconfig.json/next-env.d.ts",
+  "sourceStableAfterChecks": true,
+  "environment": {
+    "node": "22.14.0",
+    "npm": "11.10.0",
+    "next": "16.4.2",
+    "svarGantt": "2.7.3",
+    "docker": "29.8.0",
+    "compose": "5.5.1"
+  },
+  "local": {
+    "vitest": {
+      "status": "PASS",
+      "passedFiles": 294,
+      "skippedFiles": 1,
+      "passedTests": 3548,
+      "skippedTests": 3,
+      "durationSeconds": 22.93,
+      "command": "npm test",
+      "newSkips": 0
+    },
+    "typecheck": {
+      "status": "PASS",
+      "command": "npm run typecheck"
+    },
+    "lint": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 18,
+      "command": "npm run lint"
+    },
+    "build": {
+      "status": "PASS",
+      "command": "npm run build"
+    },
+    "clientBundle": {
+      "status": "PASS",
+      "check": "No LLM_API_KEYS_JSON/LLM_PROVIDERS_JSON/LLM_DEFAULT_PROVIDER in .next/static files; no real secret used"
+    },
+    "llmTargeted": {
+      "status": "PASS",
+      "tests": 70,
+      "upstream": "Synthetic loopback mocks behind internal transport test seam; real endpoint NOT TESTED"
+    },
+    "i18nChromium": {
+      "status": "PASS",
+      "tests": 4,
+      "durationSeconds": 12.6
+    },
+    "nativeMenuChromium": {
+      "status": "PASS",
+      "tests": 1
+    },
+    "issueChromium": {
+      "status": "PASS",
+      "tests": 5,
+      "durationSeconds": 28.7,
+      "note": "Before final deletion-focus improvement; final modified geometry/detail scenario separately revalidated"
+    },
+    "issueFinalChromium": {
+      "status": "PASS",
+      "tests": 1,
+      "durationSeconds": 15.6
+    },
+    "masterFinalChromium": {
+      "status": "PASS",
+      "tests": 1,
+      "durationSeconds": 24.6,
+      "source": "Real SQLite isolated app, auth/401/412/draft/collision/5-width"
+    },
+    "composeEnv": {
+      "status": "PASS",
+      "variables": 7,
+      "source": "Synthetic dotenv -> Compose quiet config -> isolated actual container. No network/DB/ports mounted. Existing local image used only for environment propagation.",
+      "existingImageId": "sha256:83c08bcafc62df05e983a65c1a7c2a49d3b5a4bdc516392e5103d53a70428e98"
+    },
+    "productionAudit": {
+      "status": "PASS",
+      "vulnerabilities": 0
+    }
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "managerDecision": "NOT TESTED",
+    "mainGhcr": "NOT TESTED",
+    "releaseAuthorized": false,
+    "mergeReady": "BLOCKED",
+    "monitoring": "User excluded CI completion monitoring"
+  },
+  "environmentSpecificNotTested": [
+    "Internal LLM endpoints/DNS/TLS/CA and real runtime credentials",
+    "Production DB backup/restore",
+    "Native browser125% zoom",
+    "Real touch device and screen reader",
+    "All 12 domain screen/locale/browser combinations"
+  ],
+  "screenshots": [
+    "output/playwright/issue-869/before-list.png",
+    "output/playwright/issue-869/before-editor.png",
+    "output/playwright/issue-869/after-list.png",
+    "output/playwright/issue-869/after-en-390-editor.png",
+    "output/playwright/issue-869/after-vi-1440-editor.png",
+    "output/playwright/issue866/vietnamese-gantt.png",
+    "output/playwright/issue-866-master-390.png"
+  ]
+}

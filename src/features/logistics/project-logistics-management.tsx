@@ -1,4 +1,9 @@
 "use client";
+import { safeApiError } from "../../components/safe-ui-error";
+import { useI18n } from "../../lib/i18n/provider";
+import { displayName } from "../../lib/i18n";
+
+import { TranslationFields, type DisplayNameTranslations } from "@/components/translation-fields";
 import { ContextHelp } from "@/components/ui/context-help";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react";
@@ -120,6 +125,7 @@ export function ProjectLogisticsManagement({
   onNavigateToSchedule,
   onUnauthorized,
 }: ProjectLogisticsManagementProps) {
+  const { t, locale } = useI18n();
   const [workareaContext,setWorkareaContext] = useState<ProcessContextResponse["data"]|null>(null);
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
   const [workareaLocked,setWorkareaLocked] = useState(false);
@@ -206,8 +212,8 @@ export function ProjectLogisticsManagement({
     return () => controller.abort();
   }, [requestTypeCatalog]);
 
-  const equipmentTypeLabels = useMemo(() => new Map(typeCatalog?.equipmentTypes.map((item) => [item.code, item.name]) ?? []), [typeCatalog]);
-  const systemTypeLabels = useMemo(() => new Map(typeCatalog?.systemTypes.map((item) => [item.code, item.name]) ?? []), [typeCatalog]);
+  const equipmentTypeLabels = useMemo(() => new Map(typeCatalog?.equipmentTypes.map((item) => [item.code, displayName(item, locale)]) ?? []), [typeCatalog, locale]);
+  const systemTypeLabels = useMemo(() => new Map(typeCatalog?.systemTypes.map((item) => [item.code, displayName(item, locale)]) ?? []), [typeCatalog, locale]);
 
   // Catalog resources for assignment picker
   const [catalogResources, setCatalogResources] = useState<ResourceDto[]>([]);
@@ -321,9 +327,9 @@ export function ProjectLogisticsManagement({
       if (!includeInactive && !p.active) return false;
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
-      return p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
+      return (p.name.toLowerCase().includes(q) || displayName(p, locale).toLowerCase().includes(q)) || p.code.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
     });
-  }, [logistics.processes, includeInactive, searchQuery, kpiOrigin, revision]);
+  }, [logistics.processes, includeInactive, searchQuery, kpiOrigin, revision, locale]);
 
   const filteredEquipment = useMemo(() => {
     return logistics.equipment.filter((e) => {
@@ -333,14 +339,14 @@ export function ProjectLogisticsManagement({
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
   return (
-        e.name.toLowerCase().includes(q) ||
+        (e.name.toLowerCase().includes(q) || displayName(e, locale).toLowerCase().includes(q)) ||
         e.code.toLowerCase().includes(q) ||
         e.id.toLowerCase().includes(q) ||
         e.model.toLowerCase().includes(q) ||
         e.manufacturer.toLowerCase().includes(q)
       );
     });
-  }, [logistics.equipment, includeInactive, processFilter, searchQuery, kpiOrigin, revision]);
+  }, [logistics.equipment, includeInactive, processFilter, searchQuery, kpiOrigin, revision, locale]);
 
   const filteredSystems = useMemo(() => {
     return logistics.systems.filter((s) => {
@@ -351,9 +357,9 @@ export function ProjectLogisticsManagement({
       }
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
-      return s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q) || s.id.toLowerCase().includes(q);
+      return (s.name.toLowerCase().includes(q) || displayName(s, locale).toLowerCase().includes(q)) || s.code.toLowerCase().includes(q) || s.id.toLowerCase().includes(q);
     });
-  }, [logistics.systems, includeInactive, processFilter, searchQuery, kpiOrigin, revision]);
+  }, [logistics.systems, includeInactive, processFilter, searchQuery, kpiOrigin, revision, locale]);
 
   // Navigation changes the visible panel in a parent component. The click-time
   // rAF can fire before that parent's commit, and focus() on a hidden row is a
@@ -464,12 +470,12 @@ export function ProjectLogisticsManagement({
         } else if (code === "CYCLE_DETECTED") {
           setErrorMessage("시스템 조율 관계에서 순환(사이클)이 감지되었습니다. 방향성 연계(DAG) 규칙을 확인해 주세요.");
         } else {
-          setErrorMessage(err?.error?.message ?? "요청을 처리할 수 없습니다 (충돌 발생).");
+          setErrorMessage(safeApiError(err,"요청을 처리할 수 없습니다 (충돌 발생)."));
         }
       } else {
         if(res.status>=500)onUncertain?.();
         const err = json as { error?: { message?: string } };
-        setErrorMessage(err?.error?.message ?? "서버 처리 중 오류가 발생했습니다.");
+        setErrorMessage(safeApiError(err,"서버 처리 중 오류가 발생했습니다."));
       }
       return false;
     } catch {
@@ -551,22 +557,21 @@ export function ProjectLogisticsManagement({
       {!embeddedDashboard && !embeddedMaster ? <div className={styles.headerSection}>
         <div className={styles.headerTitleGroup}>
           <div className={styles.headingRow}>
-            <h2 className={styles.headerTitle}>물류 구성</h2><span className={styles.wbsNotice}>Gantt WBS와 독립</span>
-            <ContextHelp label="물류 구성 도움말">
-              <p>프로젝트 내 공정, 설비, 제어 및 조율 시스템과 담당자 배정 관계를 관리합니다.</p>
-              <p>물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다.</p>
+            <h2 className={styles.headerTitle}>{t("물류 구성")}</h2><span className={styles.wbsNotice}>{t("Gantt WBS와 독립")}</span>
+            <ContextHelp label={t("물류 구성 도움말")}>
+              <p>{t("프로젝트 내 공정, 설비, 제어 및 조율 시스템과 담당자 배정 관계를 관리합니다.")}</p>
+              <p>{t("물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다.")}</p>
             </ContextHelp>
           </div>
         </div>
         {!editable ? (
           <div className={styles.readonlyNotice}>
-            조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.
-          </div>
+            {t("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.")}</div>
         ) : null}
       </div> : null}
 
       {/* Sub Navigation */}
-      <div style={hideSubviewNavigation ? { display: "none" } : undefined} hidden={hideSubviewNavigation} className={styles.subTabList} role="tablist" aria-label="물류 구성 세부 영역">
+      <div style={hideSubviewNavigation ? { display: "none" } : undefined} hidden={hideSubviewNavigation} className={styles.subTabList} role="tablist" aria-label={t("물류 구성 세부 영역")}>
         <button
           id="subtab-dashboard"
           className={styles.subTabButton}
@@ -578,13 +583,11 @@ export function ProjectLogisticsManagement({
           onClick={() => setActiveSubTab("dashboard")}
           onKeyDown={(e) => handleTabKeyDown(e, "dashboard")}
         >
-          KPI 대시보드
-        </button>
+          {t("KPI 대시보드")}</button>
         <button id="subtab-unified" className={styles.subTabButton} role="tab" type="button"
           aria-selected={activeSubTab === "unified"} aria-controls="panel-unified" tabIndex={activeSubTab === "unified" ? 0 : -1}
           onClick={() => setActiveSubTab("unified")} onKeyDown={e => handleTabKeyDown(e, "unified")}>
-          통합 조회
-        </button>
+          {t("통합 조회")}</button>
         <button
           id="subtab-processes"
           className={styles.subTabButton}
@@ -596,8 +599,7 @@ export function ProjectLogisticsManagement({
           onClick={() => setActiveSubTab("processes")}
           onKeyDown={(e) => handleTabKeyDown(e, "processes")}
         >
-          공정 관리
-          <span className={styles.countBadge}>{logistics.processes.length}</span>
+          {t("공정 관리")}<span className={styles.countBadge}>{logistics.processes.length}</span>
         </button>
         <button
           id="subtab-equipment"
@@ -610,8 +612,7 @@ export function ProjectLogisticsManagement({
           onClick={() => setActiveSubTab("equipment")}
           onKeyDown={(e) => handleTabKeyDown(e, "equipment")}
         >
-          설비 관리
-          <span className={styles.countBadge}>{logistics.equipment.length}</span>
+          {t("설비 관리")}<span className={styles.countBadge}>{logistics.equipment.length}</span>
         </button>
         <button
           id="subtab-systems"
@@ -624,8 +625,7 @@ export function ProjectLogisticsManagement({
           onClick={() => setActiveSubTab("systems")}
           onKeyDown={(e) => handleTabKeyDown(e, "systems")}
         >
-          물류 시스템
-          <span className={styles.countBadge}>{logistics.systems.length}</span>
+          {t("물류 시스템")}<span className={styles.countBadge}>{logistics.systems.length}</span>
         </button>
         <button
           id="subtab-relations"
@@ -638,35 +638,34 @@ export function ProjectLogisticsManagement({
           onClick={() => setActiveSubTab("relations")}
           onKeyDown={(e) => handleTabKeyDown(e, "relations")}
         >
-          제어·조율 관계
-        </button>
+          {t("제어·조율 관계")}</button>
       </div>
 
-      {activeSubTab === "processes" ? <h2>공정 &amp; 작업 구역 관리</h2> : null}
+      {activeSubTab === "processes" ? <h2>{t("공정 &amp; 작업 구역 관리")}</h2> : null}
       {/* Toolbar (Filters & Actions) - Only for management subtabs */}
-      {embeddedMaster && !editable ? <p className={styles.readonlyNotice}>조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.</p> : null}
+      {embeddedMaster && !editable ? <p className={styles.readonlyNotice}>{t("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 &apos;편집 잠금 해제&apos;를 진행해 주세요.")}</p> : null}
       {activeSubTab !== "dashboard" && activeSubTab !== "unified" ? (
-        <div className={styles.toolbar} role="toolbar" aria-label="물류 필터 및 도구">
+        <div className={styles.toolbar} role="toolbar" aria-label={t("물류 필터 및 도구")}>
           <div className={styles.filtersGroup}>
-            <label className={styles.masterSearch}><span>검색</span><input
+            <label className={styles.masterSearch}><span>{t("검색")}</span><input
               className={styles.searchInput}
               type="search"
-              placeholder="이름, 코드 또는 ID 검색"
+              placeholder={t("이름, 코드 또는 ID 검색")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="물류 항목 검색"
+              aria-label={t("물류 항목 검색")}
             /></label>
             {activeSubTab === "equipment" || activeSubTab === "systems" ? (
               <select
                 className={styles.selectInput}
                 value={processFilter}
                 onChange={(e) => setProcessFilter(e.target.value)}
-                aria-label="공정 필터"
+                aria-label={t("공정 필터")}
               >
-                <option value="all">전체 공정</option>
+                <option value="all">{t("전체 공정")}</option>
                 {logistics.processes.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {logisticsName(p, logistics.processes)}
+                    {logisticsName(p, logistics.processes, locale)}
                   </option>
                 ))}
               </select>
@@ -677,13 +676,12 @@ export function ProjectLogisticsManagement({
                 checked={includeInactive}
                 onChange={(e) => setIncludeInactive(e.target.checked)}
               />
-              비활성 항목 포함
-            </label>
+              {t("비활성 항목 포함")}</label>
           </div>
 
           <div className={styles.actionsGroup}>
-            {embeddedMaster ? <ContextHelp label="물류 구성 도움말"><p>프로젝트 내 공정, 설비, 제어 및 조율 시스템과 담당자 배정 관계를 관리합니다.</p><p>물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다.</p></ContextHelp> : null}
-            {activeSubTab === "processes" ? <button type="button" className="secondary-button" disabled={busy || isSubmitting || workareaLocked} onClick={onRequireRefresh}>공정 새로고침</button> : null}
+            {embeddedMaster ? <ContextHelp label={t("물류 구성 도움말")}><p>{t("프로젝트 내 공정, 설비, 제어 및 조율 시스템과 담당자 배정 관계를 관리합니다.")}</p><p>{t("물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다.")}</p></ContextHelp> : null}
+            {activeSubTab === "processes" ? <button type="button" className="secondary-button" disabled={busy || isSubmitting || workareaLocked} onClick={onRequireRefresh}>{t("공정 새로고침")}</button> : null}
             {editable && activeSubTab === "processes" ? (
               <button
                 className="primary-button"
@@ -693,8 +691,7 @@ export function ProjectLogisticsManagement({
                   setProcessModal({ open: true, mode: "create" });
                 }}
               >
-                + 공정 추가
-              </button>
+                {t("+ 공정 추가")}</button>
             ) : null}
             {editable && activeSubTab === "equipment" ? (
               <button
@@ -710,8 +707,7 @@ export function ProjectLogisticsManagement({
                   setEquipmentModal({ open: true, mode: "create" });
                 }}
               >
-                + 설비 추가
-              </button>
+                {t("+ 설비 추가")}</button>
             ) : null}
             {editable && activeSubTab === "systems" ? (
               <button
@@ -723,29 +719,27 @@ export function ProjectLogisticsManagement({
                   setSystemModal({ open: true, mode: "create" });
                 }}
               >
-                + 시스템 추가
-              </button>
+                {t("+ 시스템 추가")}</button>
             ) : null}
           </div>
-          {editable && activeSubTab === "equipment" && logistics.processes.length === 0 ? <p className={styles.workAreaHint}>설비를 추가하려면 기준정보의 공정&amp;WorkArea에서 주 관리 공정을 먼저 등록해 주세요.</p> : null}
+          {editable && activeSubTab === "equipment" && logistics.processes.length === 0 ? <p className={styles.workAreaHint}>{t("설비를 추가하려면 기준정보의 공정&amp;WorkArea에서 주 관리 공정을 먼저 등록해 주세요.")}</p> : null}
         </div>
       ) : null}
 
       {typeCatalogState === "error" ? (
         <div className={styles.errorBanner} role="alert">
-          물류 유형 목록을 불러오지 못했습니다. 유형을 확인하기 전에는 설비/시스템 유형을 저장할 수 없습니다.
-          <button className="secondary-button" type="button" onClick={() => void retryTypeCatalog()}>유형 목록 다시 시도</button>
+          {t("물류 유형 목록을 불러오지 못했습니다. 유형을 확인하기 전에는 설비/시스템 유형을 저장할 수 없습니다.")}<button className="secondary-button" type="button" onClick={() => void retryTypeCatalog()}>{t("유형 목록 다시 시도")}</button>
         </div>
       ) : null}
 
       {/* Error Message banner if any */}
       {errorMessage ? (
         <div className={styles.errorBanner} role="alert">
-          {errorMessage}
+          {t(errorMessage ?? "")}
         </div>
       ) : null}
 
-      {kpiOrigin && activeSubTab !== "dashboard" ? <button type="button" className={styles.subTabButton} onClick={returnToKpi}>KPI로 돌아가기</button> : null}
+      {kpiOrigin && activeSubTab !== "dashboard" ? <button type="button" className={styles.subTabButton} onClick={returnToKpi}>{t("KPI로 돌아가기")}</button> : null}
 
       {/* Sub-panel 0: Dashboard */}
       <div
@@ -784,19 +778,19 @@ export function ProjectLogisticsManagement({
           <table className={`${styles.dataTable} ${styles.processTable}`}>
             <thead>
               <tr>
-                <th>공정명</th>
-                <th>작업 구역</th>
-                <th>상위 공정</th>
-                <th>정렬 순서</th>
-                <th>상태</th>
-                {editable ? <th>관리</th> : null}
+                <th>{t("공정명")}</th>
+                <th>{t("작업 구역")}</th>
+                <th>{t("상위 공정")}</th>
+                <th>{t("정렬 순서")}</th>
+                <th>{t("상태")}</th>
+                {editable ? <th>{t("관리")}</th> : null}
               </tr>
             </thead>
             <tbody>
               {filteredProcesses.length === 0 ? (
                 <tr>
                   <td colSpan={editable ? 6 : 5} className={styles.emptyState}>
-                    <div className={styles.emptyStateTitle}>{logistics.processes.length ? "조건에 맞는 공정이 없습니다." : "등록된 공정이 없습니다."}<ContextHelp label="공정 등록 도움말">공정을 등록하여 물류 설비 및 시스템을 체계적으로 분류하세요.</ContextHelp></div>
+                    <div className={styles.emptyStateTitle}>{logistics.processes.length ? t("조건에 맞는 공정이 없습니다.") : t("등록된 공정이 없습니다.")}<ContextHelp label={t("공정 등록 도움말")}>{t("공정을 등록하여 물류 설비 및 시스템을 체계적으로 분류하세요.")}</ContextHelp></div>
                   </td>
                 </tr>
               ) : (
@@ -807,12 +801,12 @@ export function ProjectLogisticsManagement({
                       <td>
                         <span className={parent ? styles.treeItemLevel1 : styles.treeItemLevel0}>
                           {parent ? "└ " : ""}
-                          <strong>{p.name.trim() || "이름 확인 필요"}</strong>
+                          <strong>{displayName(p, locale).trim() || t("이름 확인 필요")}</strong>
                         </span>
                         <IdentifierDetails identifiers={[{ label: "공정 코드", value: p.code }, { label: "공정 ID", value: p.id }]} />
                       </td>
-                      <td><button type="button" className="secondary-button" aria-pressed={selectedProcessId === p.id} disabled={busy || isSubmitting || workareaLocked} onClick={()=>setSelectedProcessId(p.id)}>작업 구역 {workareaContext?.projectRevision === revision ? workareaContext.projectWorkAreas?.filter(a=>a.processId===p.id).length ?? "—" : "—"}<span className={styles.srOnly}> {p.name}</span></button></td>
-                      <td>{parent ? logisticsName(parent, logistics.processes) : "-"}</td>
+                      <td><button type="button" className="secondary-button" aria-pressed={selectedProcessId === p.id} disabled={busy || isSubmitting || workareaLocked} onClick={()=>setSelectedProcessId(p.id)}>{t("작업 구역")}{" "}{workareaContext?.projectRevision === revision ? workareaContext.projectWorkAreas?.filter(a=>a.processId===p.id).length ?? "—" : "—"}<span className={styles.srOnly}> {displayName(p, locale)}</span></button></td>
+                      <td>{parent ? logisticsName(parent, logistics.processes, locale) : "-"}</td>
                       <td>{p.sortOrder}</td>
                       <td>
                         <span
@@ -820,7 +814,7 @@ export function ProjectLogisticsManagement({
                             p.active ? styles.badgeSuccess : styles.badgeInactive
                           }`}
                         >
-                          {p.active ? "활성" : "비활성"}
+                          {p.active ? t("활성") : t("비활성")}
                         </span>
                       </td>
                       {editable ? (
@@ -834,8 +828,7 @@ export function ProjectLogisticsManagement({
                                 setProcessModal({ open: true, mode: "edit", target: p });
                               }}
                             >
-                              수정
-                            </button>
+                              {t("수정")}</button>
                             <button
                               className="secondary-button"
                               type="button"
@@ -849,8 +842,7 @@ export function ProjectLogisticsManagement({
                                 });
                               }}
                             >
-                              삭제
-                            </button>
+                              {t("삭제")}</button>
                           </div>
                         </td>
                       ) : null}
@@ -861,7 +853,7 @@ export function ProjectLogisticsManagement({
             </tbody>
           </table>
         </div>
-        {selectedProcessId && !logistics.processes.some(p=>p.id===selectedProcessId)?<p role="status">선택한 공정이 최신 목록에 없습니다. 다른 공정을 선택해 주세요.</p>:null}
+        {selectedProcessId && !logistics.processes.some(p=>p.id===selectedProcessId)?<p role="status">{t("선택한 공정이 최신 목록에 없습니다. 다른 공정을 선택해 주세요.")}</p>:null}
         <ProjectWorkareaManagement publicId={publicId} revision={revision} editable={editable} active={active && activeSubTab === "processes"} busy={busy || isSubmitting}
           process={logistics.processes.find(p=>p.id===selectedProcessId)} onMutated={onLogisticsMutated} onUnauthorized={onUnauthorized} onRequireRefresh={onRequireRefresh} onInteractionLocked={setWorkareaLocked} onContextLoaded={setWorkareaContext} onSelectProcess={setSelectedProcessId} onLegacyRequest={onLegacyWorkAreaRequest} openRequest={workAreaOpenRequest} onRequestHandled={onWbsEntityRequestHandled}/>
       </div>
@@ -877,22 +869,22 @@ export function ProjectLogisticsManagement({
           <table className={`${styles.dataTable} ${styles.equipmentTable}`}>
             <thead>
               <tr>
-                <th>주 관리 공정</th>
-                <th>연결 WorkArea</th>
-                <th>설비명</th>
-                <th>유형</th>
-                <th>단위/수량</th>
-                <th>주 담당자 / 공동 담당자</th>
-                <th>제어 시스템</th>
-                <th>상태</th>
-                {editable ? <th>관리</th> : null}
+                <th>{t("주 관리 공정")}</th>
+                <th>{t("연결 WorkArea")}</th>
+                <th>{t("설비명")}</th>
+                <th>{t("유형")}</th>
+                <th>{t("단위/수량")}</th>
+                <th>{t("주 담당자 / 공동 담당자")}</th>
+                <th>{t("제어 시스템")}</th>
+                <th>{t("상태")}</th>
+                {editable ? <th>{t("관리")}</th> : null}
               </tr>
             </thead>
             <tbody>
               {filteredEquipment.length === 0 ? (
                 <tr>
                   <td colSpan={editable ? 9 : 8} className={styles.emptyState}>
-                    <div className={styles.emptyStateTitle}>등록된 설비가 없습니다.<ContextHelp label="설비 등록 도움말">공정에 물류 설비(Stocker, AGV, AMR 등)를 등록하고 제어 시스템을 연결하세요.</ContextHelp></div>
+                    <div className={styles.emptyStateTitle}>{t("등록된 설비가 없습니다.")}<ContextHelp label={t("설비 등록 도움말")}>{t("공정에 물류 설비(Stocker, AGV, AMR 등)를 등록하고 제어 시스템을 연결하세요.")}</ContextHelp></div>
                   </td>
                 </tr>
               ) : (
@@ -906,32 +898,31 @@ export function ProjectLogisticsManagement({
 
                   return (
                     <tr key={eq.id} id={`logistics-master-equipment-${eq.id}`} tabIndex={-1} className={!eq.active ? styles.inactiveRow : undefined}>
-                      <td>{proc ? logisticsName(proc, logistics.processes) : "공정 참조 확인 필요"}</td>
-                      <td>{eq.workAreaLinks?.length ? `${eq.workAreaLinks.length}개` : "미연결"}</td>
-                      <td><strong>{eq.name.trim() || "이름 확인 필요"}</strong><IdentifierDetails identifiers={[{ label: "설비 코드", value: eq.code }, { label: "설비 ID", value: eq.id }]} /></td>
+                      <td>{proc ? logisticsName(proc, logistics.processes, locale) : t("공정 참조 확인 필요")}</td>
+                      <td>{eq.workAreaLinks?.length ? t("{value0}개", {value0: eq.workAreaLinks.length}) : t("미연결")}</td>
+                      <td><strong>{displayName(eq, locale).trim() || t("이름 확인 필요")}</strong><IdentifierDetails identifiers={[{ label: "설비 코드", value: eq.code }, { label: "설비 ID", value: eq.id }]} /></td>
                       <td>
                         <span className={`${styles.badge} ${styles.badgeNeutral}`}>
                           {equipmentTypeLabels.get(eq.equipmentType) ?? eq.equipmentType}
                         </span>
                       </td>
                       <td>
-                        {eq.managementUnit === "fleet" ? "Fleet" : "Unit"} ({eq.quantity}대)
-                      </td>
+                        {eq.managementUnit === "fleet" ? "Fleet" : "Unit"} ({eq.quantity}{t("대)")}</td>
                       <td>
                         {primaryRole ? (
                           <span className={`${styles.roleTag} ${styles.roleTagPrimary}`}>
                             ★ {primaryRole.resourceName} ({primaryRole.role})
-                            {!primaryRole.active ? " · 비활성" : ""}
+                            {!primaryRole.active ? t(" · 비활성") : ""}
                           </span>
                         ) : null}
                         {otherRoles.map((r) => (
                           <span key={r.resourceId} className={styles.roleTag}>
                             {r.resourceName} ({r.role})
-                            {!r.active ? " · 비활성" : ""}
+                            {!r.active ? t(" · 비활성") : ""}
                           </span>
                         ))}
                         {eq.resourceRoles.length === 0 ? (
-                          <span style={{ color: "var(--text-muted)" }}>미지정</span>
+                          <span style={{ color: "var(--text-muted)" }}>{t("미지정")}</span>
                         ) : null}
                       </td>
                       <td>
@@ -946,7 +937,7 @@ export function ProjectLogisticsManagement({
                           </span>
                         ) : null}
                         {!primarySys && supportingSysCount === 0 ? (
-                          <span style={{ color: "var(--text-muted)" }}>미연결</span>
+                          <span style={{ color: "var(--text-muted)" }}>{t("미연결")}</span>
                         ) : null}
                       </td>
                       <td>
@@ -955,7 +946,7 @@ export function ProjectLogisticsManagement({
                             eq.active ? styles.badgeSuccess : styles.badgeInactive
                           }`}
                         >
-                          {eq.active ? "활성" : "비활성"}
+                          {eq.active ? t("활성") : t("비활성")}
                         </span>
                       </td>
                       {editable ? (
@@ -969,8 +960,7 @@ export function ProjectLogisticsManagement({
                                 setEquipmentModal({ open: true, mode: "edit", target: eq });
                               }}
                             >
-                              수정
-                            </button>
+                              {t("수정")}</button>
                             <button
                               className="secondary-button"
                               type="button"
@@ -979,8 +969,7 @@ export function ProjectLogisticsManagement({
                                 setEquipmentSystemsModal({ open: true, equipment: eq });
                               }}
                             >
-                              제어시스템
-                            </button>
+                              {t("제어시스템")}</button>
                             <button
                               className="secondary-button"
                               type="button"
@@ -990,8 +979,7 @@ export function ProjectLogisticsManagement({
                                 setEquipmentRolesModal({ open: true, equipment: eq, revision });
                               }}
                             >
-                              담당자
-                            </button>
+                              {t("담당자")}</button>
                             <button
                               className="secondary-button"
                               type="button"
@@ -1005,8 +993,7 @@ export function ProjectLogisticsManagement({
                                 });
                               }}
                             >
-                              삭제
-                            </button>
+                              {t("삭제")}</button>
                           </div>
                         </td>
                       ) : null}
@@ -1030,21 +1017,21 @@ export function ProjectLogisticsManagement({
           <table className={`${styles.dataTable} ${styles.systemTable}`}>
             <thead>
               <tr>
-                <th>시스템명</th>
-                <th>유형</th>
-                <th>계층</th>
-                <th>적용 범위</th>
-                <th>주 책임자(PI) / 개발자</th>
-                <th>연계 현황</th>
-                <th>상태</th>
-                {editable ? <th>관리</th> : null}
+                <th>{t("시스템명")}</th>
+                <th>{t("유형")}</th>
+                <th>{t("계층")}</th>
+                <th>{t("적용 범위")}</th>
+                <th>{t("주 책임자(PI) / 개발자")}</th>
+                <th>{t("연계 현황")}</th>
+                <th>{t("상태")}</th>
+                {editable ? <th>{t("관리")}</th> : null}
               </tr>
             </thead>
             <tbody>
               {filteredSystems.length === 0 ? (
                 <tr>
                   <td colSpan={editable ? 8 : 7} className={styles.emptyState}>
-                    <div className={styles.emptyStateTitle}>등록된 물류 시스템이 없습니다.<ContextHelp label="시스템 등록 도움말">제어 시스템(SCS, ACS 등) 및 상위 조율 시스템(MCS)을 등록하세요.</ContextHelp></div>
+                    <div className={styles.emptyStateTitle}>{t("등록된 물류 시스템이 없습니다.")}<ContextHelp label={t("시스템 등록 도움말")}>{t("제어 시스템(SCS, ACS 등) 및 상위 조율 시스템(MCS)을 등록하세요.")}</ContextHelp></div>
                   </td>
                 </tr>
               ) : (
@@ -1057,7 +1044,7 @@ export function ProjectLogisticsManagement({
 
                   return (
                     <tr key={sys.id} id={`logistics-master-system-${sys.id}`} tabIndex={-1} className={!sys.active ? styles.inactiveRow : undefined}>
-                      <td><strong>{sys.name.trim() || "이름 확인 필요"}</strong><IdentifierDetails identifiers={[{ label: "시스템 코드", value: sys.code }, { label: "시스템 ID", value: sys.id }]} /></td>
+                      <td><strong>{displayName(sys, locale).trim() || t("이름 확인 필요")}</strong><IdentifierDetails identifiers={[{ label: "시스템 코드", value: sys.code }, { label: "시스템 ID", value: sys.id }]} /></td>
                       <td>
                         <span className={`${styles.badge} ${styles.badgeNeutral}`}>
                           {systemTypeLabels.get(sys.systemType) ?? sys.systemType}
@@ -1069,24 +1056,24 @@ export function ProjectLogisticsManagement({
                             sys.layer === "coordinator" ? styles.badgePrimary : styles.badgeNeutral
                           }`}
                         >
-                          {sys.layer === "coordinator" ? "조율 (Coordinator)" : "제어 (Controller)"}
+                          {sys.layer === "coordinator" ? t("조율 (Coordinator)") : t("제어 (Controller)")}
                         </span>
                       </td>
                       <td>
                         {sys.scope === "project" ? (
-                          <span className={`${styles.badge} ${styles.badgeSuccess}`}>프로젝트 공통</span>
+                          <span className={`${styles.badge} ${styles.badgeSuccess}`}>{t("프로젝트 공통")}</span>
                         ) : (
                           <span>
                             {sys.processIds.map((pid) => {
                               const p = processById.get(pid);
                               return (
                                 <span key={pid} className={styles.roleTag}>
-                                  {p ? logisticsName(p, logistics.processes) : "공정 참조 확인 필요"}
+                                  {p ? logisticsName(p, logistics.processes, locale) : t("공정 참조 확인 필요")}
                                 </span>
                               );
                             })}
                             {sys.processIds.length === 0 ? (
-                              <span style={{ color: "var(--text-muted)" }}>미지정</span>
+                              <span style={{ color: "var(--text-muted)" }}>{t("미지정")}</span>
                             ) : null}
                           </span>
                         )}
@@ -1095,24 +1082,24 @@ export function ProjectLogisticsManagement({
                         {primaryRole ? (
                           <span className={`${styles.roleTag} ${styles.roleTagPrimary}`}>
                             ★ {primaryRole.resourceName} ({primaryRole.role})
-                            {!primaryRole.active ? " · 비활성" : ""}
+                            {!primaryRole.active ? t(" · 비활성") : ""}
                           </span>
                         ) : null}
                         {otherRoles.map((r) => (
                           <span key={r.resourceId} className={styles.roleTag}>
                             {r.resourceName} ({r.role})
-                            {!r.active ? " · 비활성" : ""}
+                            {!r.active ? t(" · 비활성") : ""}
                           </span>
                         ))}
                         {sys.resourceRoles.length === 0 ? (
-                          <span style={{ color: "var(--text-muted)" }}>미지정</span>
+                          <span style={{ color: "var(--text-muted)" }}>{t("미지정")}</span>
                         ) : null}
                       </td>
                       <td>
                         {sys.layer === "coordinator" ? (
-                          <span>하위 조율: {sys.coordinatedSystemIds.length}개 시스템</span>
+                          <span>{t("하위 조율:")}{" "}{sys.coordinatedSystemIds.length}{t("개 시스템")}</span>
                         ) : (
-                          <span>제어 설비: {controlledEqCount}대</span>
+                          <span>{t("제어 설비:")}{" "}{controlledEqCount}{t("대")}</span>
                         )}
                       </td>
                       <td>
@@ -1121,7 +1108,7 @@ export function ProjectLogisticsManagement({
                             sys.active ? styles.badgeSuccess : styles.badgeInactive
                           }`}
                         >
-                          {sys.active ? "활성" : "비활성"}
+                          {sys.active ? t("활성") : t("비활성")}
                         </span>
                       </td>
                       {editable ? (
@@ -1135,8 +1122,7 @@ export function ProjectLogisticsManagement({
                                 setSystemModal({ open: true, mode: "edit", target: sys });
                               }}
                             >
-                              수정
-                            </button>
+                              {t("수정")}</button>
                             {sys.scope === "processes" ? (
                               <button
                                 className="secondary-button"
@@ -1146,8 +1132,7 @@ export function ProjectLogisticsManagement({
                                   setSystemProcessesModal({ open: true, system: sys });
                                 }}
                               >
-                                공정매핑
-                              </button>
+                                {t("공정매핑")}</button>
                             ) : null}
                             {sys.layer === "coordinator" ? (
                               <button
@@ -1158,8 +1143,7 @@ export function ProjectLogisticsManagement({
                                   setSystemChildrenModal({ open: true, system: sys });
                                 }}
                               >
-                                하위연계
-                              </button>
+                                {t("하위연계")}</button>
                             ) : null}
                             <button
                               className="secondary-button"
@@ -1170,8 +1154,7 @@ export function ProjectLogisticsManagement({
                                 setSystemRolesModal({ open: true, system: sys, revision });
                               }}
                             >
-                              PI/개발자
-                            </button>
+                              {t("PI/개발자")}</button>
                             <button
                               className="secondary-button"
                               type="button"
@@ -1185,8 +1168,7 @@ export function ProjectLogisticsManagement({
                                 });
                               }}
                             >
-                              삭제
-                            </button>
+                              {t("삭제")}</button>
                           </div>
                         </td>
                       ) : null}
@@ -1210,10 +1192,10 @@ export function ProjectLogisticsManagement({
           <table className={styles.dataTable}>
             <thead>
               <tr>
-                <th>상위 조율 시스템 (Coordinator)</th>
-                <th>하위 제어 시스템 (Controller)</th>
-                <th>제어 대상 설비 (Equipment)</th>
-                <th>주 담당자 (PI / Owner)</th>
+                <th>{t("상위 조율 시스템 (Coordinator)")}</th>
+                <th>{t("하위 제어 시스템 (Controller)")}</th>
+                <th>{t("제어 대상 설비 (Equipment)")}</th>
+                <th>{t("주 담당자 (PI / Owner)")}</th>
               </tr>
             </thead>
             <tbody>
@@ -1221,7 +1203,7 @@ export function ProjectLogisticsManagement({
               logistics.systems.filter((s) => s.layer === "controller").length === 0 ? (
                 <tr>
                   <td colSpan={4} className={styles.emptyState}>
-                    <div className={styles.emptyStateTitle}>연계된 제어·조율 관계가 없습니다.<ContextHelp label="제어·조율 관계 도움말">조율 시스템(MCS)과 제어 시스템(ACS, SCS 등), 그리고 제어 설비를 연결하세요.</ContextHelp></div>
+                    <div className={styles.emptyStateTitle}>{t("연계된 제어·조율 관계가 없습니다.")}<ContextHelp label={t("제어·조율 관계 도움말")}>{t("조율 시스템(MCS)과 제어 시스템(ACS, SCS 등), 그리고 제어 설비를 연결하세요.")}</ContextHelp></div>
                   </td>
                 </tr>
               ) : (
@@ -1237,9 +1219,9 @@ export function ProjectLogisticsManagement({
                       return (
                         <tr key={coordSys.id}>
                           <td>
-                            <strong>{logisticsName(coordSys, logistics.systems)}</strong>
+                            <strong>{logisticsName(coordSys, logistics.systems, locale)}</strong>
                           </td>
-                          <td style={{ color: "var(--text-muted)" }}>연계된 하위 시스템 없음</td>
+                          <td style={{ color: "var(--text-muted)" }}>{t("연계된 하위 시스템 없음")}</td>
                           <td>-</td>
                           <td>{pi ? `★ ${pi.resourceName} (PI)` : "-"}</td>
                         </tr>
@@ -1256,15 +1238,15 @@ export function ProjectLogisticsManagement({
                         <tr key={`${coordSys.id}-${ctrlSys.id}`}>
                           {idx === 0 ? (
                             <td rowSpan={childSys.length}>
-                              <strong>{logisticsName(coordSys, logistics.systems)}</strong>
+                              <strong>{logisticsName(coordSys, logistics.systems, locale)}</strong>
                               <br />
                               <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                                {pi ? `★ PI: ${pi.resourceName}` : "PI 미지정"}
+                                {pi ? `★ PI: ${pi.resourceName}` : t("PI 미지정")}
                               </span>
                             </td>
                           ) : null}
                           <td>
-                            <strong>{logisticsName(ctrlSys, logistics.systems)}</strong>
+                            <strong>{logisticsName(ctrlSys, logistics.systems, locale)}</strong>
                             {ctrlPi ? ` [PI: ${ctrlPi.resourceName}]` : ""}
                           </td>
                           <td>
@@ -1282,13 +1264,13 @@ export function ProjectLogisticsManagement({
                                       style={{ marginRight: "0.25rem", marginBottom: "0.2rem" }}
                                     >
                                       {isPrimaryCtrl ? "★ " : ""}
-                                      {logisticsName(e, logistics.equipment)}
+                                      {logisticsName(e, logistics.equipment, locale)}
                                     </span>
                                   );
                                 })}
                               </div>
                             ) : (
-                              <span style={{ color: "var(--text-muted)" }}>제어 설비 없음</span>
+                              <span style={{ color: "var(--text-muted)" }}>{t("제어 설비 없음")}</span>
                             )}
                           </td>
                           <td>
@@ -1497,31 +1479,29 @@ export function ProjectLogisticsManagement({
         />
       ) : null}
 
-      {sourceImpact?<WorkspaceDialog title="공유 인스턴스 변경 확인" onClose={()=>{if(!isSubmitting)setSourceImpact(null);}} busy={isSubmitting}>
-        <div className={styles.dialogForm}><p>{sourceImpact.name} · 원본 인스턴스를 변경하면 아래 관련 작업에서 같은 변경을 읽습니다. 작업 연결 해제와 원본 수정은 별개입니다.</p>
-        <IdentifierDetails label="변경 대상 식별 정보" identifiers={[{label:sourceImpact.kind==="equipment"?"설비 원본 ID":"물류 시스템 원본 ID",value:sourceImpact.id}]}/>
-        <p>관련 작업 {sourceImpact.taskIds.length}개 · 직접 연결 작업 {sourceImpact.directTaskCount}개 · 기존 연결 작업 {sourceImpact.compatibilityTaskCount}개</p>
-        <ul>{sourceImpact.taskIds.map(id=><li key={id}>{taskContextLabels(tasks)[id]??"작업 이름 확인 필요"}<IdentifierDetails identifiers={[{label:"작업 ID",value:id}]}/></li>)}</ul>
-        {sourceImpact.revision!==revision?<p role="alert">기준 정보가 변경되었습니다. 취소 후 사용처를 다시 확인하세요.</p>:null}
-        {errorMessage?<p role="alert">{errorMessage}</p>:null}
-        <div className={styles.dialogActions}><button type="button" className="secondary-button" disabled={isSubmitting} onClick={()=>setSourceImpact(null)}>원본 변경 취소</button><button type="button" className="primary-button" disabled={isSubmitting||!editable||busy||sourceImpact.revision!==revision} onClick={()=>void sourceImpact.apply()}>공유 사용처 확인 후 원본 저장</button></div></div>
+      {sourceImpact?<WorkspaceDialog title={t("공유 인스턴스 변경 확인")} onClose={()=>{if(!isSubmitting)setSourceImpact(null);}} busy={isSubmitting}>
+        <div className={styles.dialogForm}><p>{sourceImpact.name} {t("· 원본 인스턴스를 변경하면 아래 관련 작업에서 같은 변경을 읽습니다. 작업 연결 해제와 원본 수정은 별개입니다.")}</p>
+        <IdentifierDetails label={t("변경 대상 식별 정보")} identifiers={[{label:sourceImpact.kind==="equipment"?"설비 원본 ID":"물류 시스템 원본 ID",value:sourceImpact.id}]}/>
+        <p>{t("관련 작업")}{" "}{sourceImpact.taskIds.length}{t("개 · 직접 연결 작업")}{" "}{sourceImpact.directTaskCount}{t("개 · 기존 연결 작업")}{" "}{sourceImpact.compatibilityTaskCount}{t("개")}</p>
+        <ul>{sourceImpact.taskIds.map(id=><li key={id}>{taskContextLabels(tasks)[id]??t("작업 이름 확인 필요")}<IdentifierDetails identifiers={[{label:"작업 ID",value:id}]}/></li>)}</ul>
+        {sourceImpact.revision!==revision?<p role="alert">{t("기준 정보가 변경되었습니다. 취소 후 사용처를 다시 확인하세요.")}</p>:null}
+        {errorMessage?<p role="alert">{t(errorMessage ?? "")}</p>:null}
+        <div className={styles.dialogActions}><button type="button" className="secondary-button" disabled={isSubmitting} onClick={()=>setSourceImpact(null)}>{t("원본 변경 취소")}</button><button type="button" className="primary-button" disabled={isSubmitting||!editable||busy||sourceImpact.revision!==revision} onClick={()=>void sourceImpact.apply()}>{t("공유 사용처 확인 후 원본 저장")}</button></div></div>
       </WorkspaceDialog>:null}
       {/* 9. Delete Confirmation Dialog */}
       {deleteConfirmModal.open ? (
         <WorkspaceDialog
-          title="삭제 확인"
+          title={t("삭제 확인")}
           busy={isSubmitting}
           onClose={() => setDeleteConfirmModal({ open: false, entityKind: "process", id: "", name: "" })}
         >
           <div className={styles.dialogForm}>
             <p>
-              다음 항목을 삭제하시겠습니까?
-              <br />
+              {t("다음 항목을 삭제하시겠습니까?")}<br />
               <strong>{deleteConfirmModal.name}</strong>
             </p>
             <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-              이 작업은 원본 항목을 삭제합니다. 작업 연결 해제와는 다릅니다. 다른 항목과 연계되어 있거나 사용 중이면 삭제할 수 없으며, 대신 비활성화를 사용해 주세요.
-            </p>
+              {t("이 작업은 원본 항목을 삭제합니다. 작업 연결 해제와는 다릅니다. 다른 항목과 연계되어 있거나 사용 중이면 삭제할 수 없으며, 대신 비활성화를 사용해 주세요.")}</p>
             <div className={styles.dialogActions}>
               <button
                 className="secondary-button"
@@ -1529,8 +1509,7 @@ export function ProjectLogisticsManagement({
                 disabled={isSubmitting}
                 onClick={() => setDeleteConfirmModal({ open: false, entityKind: "process", id: "", name: "" })}
               >
-                취소
-              </button>
+                {t("취소")}</button>
               <button
                 className="primary-button"
                 type="button"
@@ -1557,7 +1536,7 @@ export function ProjectLogisticsManagement({
                   }
                 }}
               >
-                {isSubmitting ? "삭제 중…" : "삭제"}
+                {isSubmitting ? t("삭제 중…") : t("삭제")}
               </button>
             </div>
           </div>
@@ -1588,17 +1567,19 @@ function ProcessDialog({
   onClose: () => void;
   onSubmit: (data: CreateProcessRequest | UpdateProcessRequest, markUncertain:()=>void) => Promise<void>;
 }) {
+  const { t, locale } = useI18n();
   const [code, setCode] = useState(process?.code ?? "");
   const [name, setName] = useState(process?.name ?? "");
+  const [translations, setTranslations] = useState<DisplayNameTranslations>({...process?.translations});
   const [parentProcessId, setParentProcessId] = useState<string>(process?.parentProcessId ?? "");
   const [sortOrder, setSortOrder] = useState<number>(process?.sortOrder ?? 0);
   const [active, setActive] = useState<boolean>(process ? process.active : true);
   const [uncertain,setUncertain] = useState(false);
   const [draftRevision] = useState(revision);
   const [discardPrompt,setDiscardPrompt] = useState(false);
-  const [initialDraft] = useState(()=>JSON.stringify([code,name,parentProcessId,sortOrder,active]));
+  const [initialDraft] = useState(()=>JSON.stringify([code,name,parentProcessId,sortOrder,active,translations]));
   const busy = pending || uncertain || !editable || revision!==draftRevision;
-  function requestClose(){if(pending)return;if(JSON.stringify([code,name,parentProcessId,sortOrder,active])!==initialDraft)setDiscardPrompt(true);else onClose();}
+  function requestClose(){if(pending)return;if(JSON.stringify([code,name,parentProcessId,sortOrder,active,translations])!==initialDraft)setDiscardPrompt(true);else onClose();}
   const codeInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -1613,6 +1594,7 @@ function ProcessDialog({
 
     const common = {
       name: name.trim(),
+      translations,
       parentProcessId: parentProcessId || null,
       sortOrder,
       active,
@@ -1625,57 +1607,54 @@ function ProcessDialog({
   return (
     <>
     <WorkspaceDialog
-      title={mode === "create" ? "공정 추가" : "공정 수정"}
+      title={mode === "create" ? t("공정 추가") : t("공정 수정")}
       busy={pending}
       onClose={requestClose}
     >
       <form className={styles.dialogForm} onSubmit={handleSubmit}>
         <div className={styles.formGrid}>
+          <TranslationFields value={translations} onChange={setTranslations} disabled={busy} />
           {mode === "edit" ? (
             <label className={styles.fieldLabel}>
-              공정 코드 *
-              <input
+              {t("공정 코드 *")}<input
                 ref={codeInputRef}
                 className={styles.fieldInput}
                 required
                 disabled={busy}
-                placeholder="예: PROC-01"
+                placeholder={t("예: PROC-01")}
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
               />
             </label>
           ) : null}
           <label className={styles.fieldLabel}>
-            공정명 *
-            <input
+            {t("공정명 *")}<input
               ref={nameInputRef}
               className={styles.fieldInput}
               required
               disabled={busy}
-              placeholder="예: 입고 공정"
+              placeholder={t("예: 입고 공정")}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </label>
           <label className={styles.fieldLabel}>
-            상위 공정
-            <select
+            {t("상위 공정")}<select
               className={styles.fieldSelect}
               disabled={busy}
               value={parentProcessId}
               onChange={(e) => setParentProcessId(e.target.value)}
             >
-              <option value="">(최상위 공정)</option>
+              <option value="">{t("(최상위 공정)")}</option>
               {eligibleParents.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {logisticsName(p, allProcesses)}
+                  {logisticsName(p, allProcesses, locale)}
                 </option>
               ))}
             </select>
           </label>
           <label className={styles.fieldLabel}>
-            정렬 순서
-            <input
+            {t("정렬 순서")}<input
               className={styles.fieldInput}
               type="number"
               disabled={busy}
@@ -1691,27 +1670,25 @@ function ProcessDialog({
                 checked={active}
                 onChange={(e) => setActive(e.target.checked)}
               />
-              활성 상태 (체크 해제 시 비활성화)
-            </span>
+              {t("활성 상태 (체크 해제 시 비활성화)")}</span>
           </label>
         </div>
-        {errorMessage ? <p role="alert">{errorMessage}</p>:null}
-        {revision!==draftRevision || !editable || uncertain ? <p role="alert">최신 정보 또는 편집 권한을 확인해야 합니다. 초안을 보존했으며 저장을 잠갔습니다. 취소한 뒤 다시 열어 주세요.</p>:null}
+        {errorMessage ? <p role="alert">{t(errorMessage ?? "")}</p>:null}
+        {revision!==draftRevision || !editable || uncertain ? <p role="alert">{t("최신 정보 또는 편집 권한을 확인해야 합니다. 초안을 보존했으며 저장을 잠갔습니다. 취소한 뒤 다시 열어 주세요.")}</p>:null}
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={pending} onClick={requestClose}>
-            취소
-          </button>
+            {t("취소")}</button>
           <button
             className="primary-button"
             type="submit"
             disabled={busy || !name.trim() || (mode === "edit" && !code.trim())}
           >
-            {busy ? "저장 중…" : "저장"}
+            {busy ? t("저장 중…") : t("저장")}
           </button>
         </div>
       </form>
     </WorkspaceDialog>
-    {discardPrompt?<WorkspaceDialog title="공정 변경 내용 버리기" onClose={()=>setDiscardPrompt(false)}><p>저장하지 않은 변경 내용이 있습니다.</p><div className={styles.dialogActions}><button type="button" className="secondary-button" onClick={()=>setDiscardPrompt(false)}>계속 편집</button><button type="button" className="danger-button" onClick={onClose}>변경 내용 버리기</button></div></WorkspaceDialog>:null}
+    {discardPrompt?<WorkspaceDialog title={t("공정 변경 내용 버리기")} onClose={()=>setDiscardPrompt(false)}><p>{t("저장하지 않은 변경 내용이 있습니다.")}</p><div className={styles.dialogActions}><button type="button" className="secondary-button" onClick={()=>setDiscardPrompt(false)}>{t("계속 편집")}</button><button type="button" className="danger-button" onClick={onClose}>{t("변경 내용 버리기")}</button></div></WorkspaceDialog>:null}
     </>
   );
 }
@@ -1743,9 +1720,11 @@ function EquipmentDialog({
   onClose: () => void;
   onSubmit: (data: CreateEquipmentRequest | UpdateEquipmentRequest) => Promise<void>;
 }) {
+  const { t, locale } = useI18n();
   const [processId, setProcessId] = useState(equipment?.processId ?? allProcesses[0]?.id ?? "");
   const [code, setCode] = useState(equipment?.code ?? "");
   const [name, setName] = useState(equipment?.name ?? "");
+  const [translations, setTranslations] = useState<DisplayNameTranslations>({...equipment?.translations});
   const [equipmentType, setEquipmentType] = useState<EquipmentType>(equipment?.equipmentType ?? typeOptions[0]?.code ?? "");
   const [managementUnit, setManagementUnit] = useState<ManagementUnit>(equipment?.managementUnit ?? "unit");
   const [quantity, setQuantity] = useState(equipment?.quantity ?? 1);
@@ -1762,8 +1741,8 @@ function EquipmentDialog({
   const [contextState, setContextState] = useState<"loading" | "ready" | "error">("loading");
   const [retry, setRetry] = useState(0);
   const [discardPrompt, setDiscardPrompt] = useState(false);
-  const [initialDraft] = useState(() => JSON.stringify({ processId, code, name, equipmentType, managementUnit, quantity, manufacturer, model, description, active, workAreaLinks: [...selectedLinkKeys].sort() }));
-  const dirty = initialDraft !== JSON.stringify({ processId, code, name, equipmentType, managementUnit, quantity, manufacturer, model, description, active, workAreaLinks: [...selectedLinkKeys].sort() });
+  const [initialDraft] = useState(() => JSON.stringify({ processId, code, name, translations, equipmentType, managementUnit, quantity, manufacturer, model, description, active, workAreaLinks: [...selectedLinkKeys].sort() }));
+  const dirty = initialDraft !== JSON.stringify({ processId, code, name, translations, equipmentType, managementUnit, quantity, manufacturer, model, description, active, workAreaLinks: [...selectedLinkKeys].sort() });
   const stale = draftRevision !== revision;
   const busy = pending || !editable || stale;
   useEffect(() => {
@@ -1796,6 +1775,7 @@ function EquipmentDialog({
       processCatalogRevision: context.processCatalogRevision,
       code: code.trim(),
       name: name.trim(),
+      translations,
       equipmentType,
       managementUnit,
       quantity,
@@ -1808,20 +1788,20 @@ function EquipmentDialog({
 
   return (
     <WorkspaceDialog
-      title={mode === "create" ? "설비 추가" : "설비 수정"}
+      title={mode === "create" ? t("설비 추가") : t("설비 수정")}
       controlledEscape
       busy={pending}
       onClose={requestClose}
       onEscape={() => discardPrompt ? setDiscardPrompt(false) : requestClose()}
     >
       <form className={`${styles.dialogForm} ${styles.equipmentForm}`} onSubmit={handleSubmit}>
-        {errorMessage ? <p role="alert">{errorMessage}</p> : null}
-        {stale ? <p role="alert">프로젝트 정보가 변경되었습니다. 초안을 보존하고 있습니다. 취소 후 다시 열어 최신 정보를 확인해 주세요.</p> : !editable ? <p role="alert">편집 권한을 확인해 주세요. 입력한 초안은 유지됩니다.</p> : null}
-        {discardPrompt ? <div role="alert" className={styles.errorBanner}><p>저장하지 않은 설비 변경을 폐기할까요?</p><button className="secondary-button" type="button" autoFocus disabled={pending} onClick={() => setDiscardPrompt(false)}>계속 편집</button><button className="secondary-button" type="button" disabled={pending} onClick={onClose}>변경 폐기</button></div> : null}
+        {errorMessage ? <p role="alert">{t(errorMessage ?? "")}</p> : null}
+        {stale ? <p role="alert">{t("프로젝트 정보가 변경되었습니다. 초안을 보존하고 있습니다. 취소 후 다시 열어 최신 정보를 확인해 주세요.")}</p> : !editable ? <p role="alert">{t("편집 권한을 확인해 주세요. 입력한 초안은 유지됩니다.")}</p> : null}
+        {discardPrompt ? <div role="alert" className={styles.errorBanner}><p>{t("저장하지 않은 설비 변경을 폐기할까요?")}</p><button className="secondary-button" type="button" autoFocus disabled={pending} onClick={() => setDiscardPrompt(false)}>{t("계속 편집")}</button><button className="secondary-button" type="button" disabled={pending} onClick={onClose}>{t("변경 폐기")}</button></div> : null}
         <div className={styles.formGrid}>
+          <TranslationFields value={translations} onChange={setTranslations} disabled={busy} />
           <label className={styles.fieldLabel}>
-            주 관리 공정 *
-            <select
+            {t("주 관리 공정 *")}<select
               className={styles.fieldSelect}
               required
               disabled={busy}
@@ -1830,70 +1810,66 @@ function EquipmentDialog({
             >
               {allProcesses.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {logisticsName(p, allProcesses)}
+                  {logisticsName(p, allProcesses, locale)}
                 </option>
               ))}
             </select>
           </label>
           <fieldset className={`${styles.workAreaPicker} ${styles.formFieldFull}`} disabled={busy || contextState !== "ready"}>
-            <legend>연결 WorkArea (선택)</legend>
-            <p className={styles.workAreaHint}>선택 {workAreaLinks.length}개 · 미연결도 정상입니다. 주 관리 공정과 다른 공정의 구역도 연결할 수 있습니다.</p>
-            <p className={styles.workAreaHint}>연결 해제는 설비 원본이나 수량을 삭제하지 않습니다.</p>
-            {contextState === "loading" ? <p role="status">WorkArea 목록을 불러오는 중…</p> : null}
-            {contextState === "error" ? <p role="alert">WorkArea 목록을 확인할 수 없어 저장할 수 없습니다. 초안은 유지됩니다.</p> : null}
+            <legend>{t("연결 WorkArea (선택)")}</legend>
+            <p className={styles.workAreaHint}>{t("선택")}{" "}{workAreaLinks.length}{t("개 · 미연결도 정상입니다. 주 관리 공정과 다른 공정의 구역도 연결할 수 있습니다.")}</p>
+            <p className={styles.workAreaHint}>{t("연결 해제는 설비 원본이나 수량을 삭제하지 않습니다.")}</p>
+            {contextState === "loading" ? <p role="status">{t("WorkArea 목록을 불러오는 중…")}</p> : null}
+            {contextState === "error" ? <p role="alert">{t("WorkArea 목록을 확인할 수 없어 저장할 수 없습니다. 초안은 유지됩니다.")}</p> : null}
             {contextState === "ready" ? <>
-              <button type="button" className="secondary-button" disabled={busy || !workAreaLinks.length} onClick={() => setWorkAreaLinks([])}>전체 연결 해제</button>
+              <button type="button" className="secondary-button" disabled={busy || !workAreaLinks.length} onClick={() => setWorkAreaLinks([])}>{t("전체 연결 해제")}</button>
               <div className={styles.workAreaOptions}>
                 {workAreaOptions.filter(area => area.active || selectedLinkKeys.includes(linkKey(area))).map(area => <label key={linkKey(area)} className={styles.workAreaOption}>
                   <input type="checkbox" checked={selectedLinkKeys.includes(linkKey(area))} disabled={busy || (!area.active && !selectedLinkKeys.includes(linkKey(area)))} onChange={event => setWorkAreaLinks(links => event.target.checked ? [...links.filter(link => link.workAreaId !== area.workAreaId), { processId: area.processId, workAreaId: area.workAreaId }] : links.filter(link => linkKey(link) !== linkKey(area)))} />
-                  <span>{area.name} — {area.owner} · {area.code}{area.active ? "" : " (비활성)"}</span>
+                  <span>{displayName(area, locale)} — {area.owner} · {area.code}{area.active ? "" : t(" (비활성)")}</span>
                 </label>)}
-                {workAreaLinks.filter(link => !workAreaOptions.some(area => linkKey(area) === linkKey(link))).map(link => <label key={linkKey(link)} className={styles.workAreaOption}><input type="checkbox" checked disabled={busy} onChange={() => setWorkAreaLinks(links => links.filter(value => linkKey(value) !== linkKey(link)))} /><span>확인할 수 없는 WorkArea · {link.workAreaId} · {link.processId}</span></label>)}
+                {workAreaLinks.filter(link => !workAreaOptions.some(area => linkKey(area) === linkKey(link))).map(link => <label key={linkKey(link)} className={styles.workAreaOption}><input type="checkbox" checked disabled={busy} onChange={() => setWorkAreaLinks(links => links.filter(value => linkKey(value) !== linkKey(link)))} /><span>{t("확인할 수 없는 WorkArea ·")}{" "}{link.workAreaId} · {link.processId}</span></label>)}
               </div>
-              {!workAreaOptions.length && !workAreaLinks.length ? <p>등록된 WorkArea가 없습니다. 미연결 상태로 저장할 수 있습니다.</p> : null}
+              {!workAreaOptions.length && !workAreaLinks.length ? <p>{t("등록된 WorkArea가 없습니다. 미연결 상태로 저장할 수 있습니다.")}</p> : null}
             </> : null}
           </fieldset>
-          <button type="button" className="secondary-button" disabled={busy || contextState === "loading"} onClick={() => { setContextState("loading"); setRetry(value => value + 1); }}>WorkArea 목록 다시 조회</button>
+          <button type="button" className="secondary-button" disabled={busy || contextState === "loading"} onClick={() => { setContextState("loading"); setRetry(value => value + 1); }}>{t("WorkArea 목록 다시 조회")}</button>
           <LogisticsTypeField kind="설비" value={equipmentType} existingValue={equipment?.equipmentType} options={typeOptions} state={catalogState} busy={busy} onChange={setEquipmentType} onRetry={onRetryTypes} />
           <label className={styles.fieldLabel}>
-            설비 코드 *
-            <input
+            {t("설비 코드 *")}<input
               className={styles.fieldInput}
               required
               autoFocus
               ref={input => { input?.setAttribute("autofocus", ""); }}
               disabled={busy}
-              placeholder="예: STK-01, AGV-F1"
+              placeholder={t("예: STK-01, AGV-F1")}
               value={code}
               onChange={(e) => setCode(e.target.value)}
             />
           </label>
           <label className={styles.fieldLabel}>
-            설비명 *
-            <input
+            {t("설비명 *")}<input
               className={styles.fieldInput}
               required
               disabled={busy}
-              placeholder="예: 1번 스토커"
+              placeholder={t("예: 1번 스토커")}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </label>
           <label className={styles.fieldLabel}>
-            관리 단위
-            <select
+            {t("관리 단위")}<select
               className={styles.fieldSelect}
               disabled={busy}
               value={managementUnit}
               onChange={(e) => { const unit = e.target.value as ManagementUnit; setManagementUnit(unit); if (unit === "unit") setQuantity(1); }}
             >
-              <option value="unit">단품 (Unit)</option>
-              <option value="fleet">군집 (Fleet)</option>
+              <option value="unit">{t("단품 (Unit)")}</option>
+              <option value="fleet">{t("군집 (Fleet)")}</option>
             </select>
           </label>
           <label className={styles.fieldLabel}>
-            수량 (대) · 단품은 1대
-            <input
+            {t("수량 (대) · 단품은 1대")}<input
               className={styles.fieldInput}
               type="number"
               min={1}
@@ -1905,31 +1881,28 @@ function EquipmentDialog({
             />
           </label>
           <label className={styles.fieldLabel}>
-            제조사
-            <input
+            {t("제조사")}<input
               className={styles.fieldInput}
               disabled={busy}
-              placeholder="제조사명"
+              placeholder={t("제조사명")}
               value={manufacturer}
               onChange={(e) => setManufacturer(e.target.value)}
             />
           </label>
           <label className={styles.fieldLabel}>
-            모델명
-            <input
+            {t("모델명")}<input
               className={styles.fieldInput}
               disabled={busy}
-              placeholder="모델명"
+              placeholder={t("모델명")}
               value={model}
               onChange={(e) => setModel(e.target.value)}
             />
           </label>
           <label className={`${styles.fieldLabel} ${styles.formFieldFull}`}>
-            설명
-            <textarea
+            {t("설명")}<textarea
               className={styles.fieldTextarea}
               disabled={busy}
-              placeholder="설비 상세 설명"
+              placeholder={t("설비 상세 설명")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -1942,17 +1915,15 @@ function EquipmentDialog({
                 checked={active}
                 onChange={(e) => setActive(e.target.checked)}
               />
-              활성 상태 (체크 해제 시 비활성화)
-            </span>
+              {t("활성 상태 (체크 해제 시 비활성화)")}</span>
           </label>
         </div>
-        {!code.trim() || !name.trim() || !processId ? <p className={styles.workAreaHint}>저장하려면 주 관리 공정, 설비 코드와 설비명을 입력해 주세요.</p> : null}
+        {!code.trim() || !name.trim() || !processId ? <p className={styles.workAreaHint}>{t("저장하려면 주 관리 공정, 설비 코드와 설비명을 입력해 주세요.")}</p> : null}
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={pending} onClick={requestClose}>
-            취소
-          </button>
+            {t("취소")}</button>
           <button className="primary-button" type="submit" disabled={busy || contextState !== "ready" || catalogState !== "ready" || !equipmentType || !code.trim() || !name.trim() || !processId}>
-            {pending ? "저장 중…" : catalogState === "error" ? "유형 조회 실패" : "저장"}
+            {pending ? t("저장 중…") : catalogState === "error" ? t("유형 조회 실패") : t("저장")}
           </button>
         </div>
       </form>
@@ -1973,6 +1944,7 @@ function EquipmentSystemsDialog({
   onClose: () => void;
   onSubmit: (systems: { systemId: string; controlRole: ControlRole }[]) => Promise<void>;
 }) {
+  const { t, locale } = useI18n();
   const [mappings, setMappings] = useState<Map<string, ControlRole>>(() => {
     const map = new Map<string, ControlRole>();
     for (const item of equipment.controlSystems) {
@@ -2016,17 +1988,16 @@ function EquipmentSystemsDialog({
 
   return (
     <WorkspaceDialog
-      title={`제어 시스템 설정 - ${equipment.name}`}
+      title={t("제어 시스템 설정 - {value0}", {value0: displayName(equipment, locale)})}
       busy={busy}
       onClose={onClose}
     >
       <form className={styles.dialogForm} onSubmit={handleSubmit}>
         <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--text-muted)" }}>
-          설비를 제어하는 제어 시스템(Controller)을 선택하고 주 제어 시스템(Primary, 최대 1개)을 지정합니다.
-        </p>
+          {t("설비를 제어하는 제어 시스템(Controller)을 선택하고 주 제어 시스템(Primary, 최대 1개)을 지정합니다.")}</p>
         <div style={{ display: "grid", gap: "0.5rem", maxHeight: "320px", overflowY: "auto" }}>
           {allSystems.length === 0 ? (
-            <p style={{ color: "var(--text-muted)" }}>등록된 제어 시스템이 없습니다.</p>
+            <p style={{ color: "var(--text-muted)" }}>{t("등록된 제어 시스템이 없습니다.")}</p>
           ) : (
             allSystems.map((s) => {
               const isSelected = mappings.has(s.id);
@@ -2052,7 +2023,7 @@ function EquipmentSystemsDialog({
                       onChange={(e) => toggleSystem(s.id, e.target.checked)}
                     />
                     <span>
-                      <strong>{logisticsName(s, allSystems)}</strong> - {s.systemType.toUpperCase()}
+                      <strong>{logisticsName(s, allSystems, locale)}</strong> - {s.systemType.toUpperCase()}
                     </span>
                   </label>
                   {isSelected ? (
@@ -2065,8 +2036,7 @@ function EquipmentSystemsDialog({
                           checked={currentRole === "primary"}
                           onChange={() => setRole(s.id, "primary")}
                         />
-                        주 제어 (Primary)
-                      </label>
+                        {t("주 제어 (Primary)")}</label>
                       <label style={{ fontSize: "0.8rem", display: "flex", alignItems: "center", gap: "0.25rem" }}>
                         <input
                           type="radio"
@@ -2075,8 +2045,7 @@ function EquipmentSystemsDialog({
                           checked={currentRole === "supporting"}
                           onChange={() => setRole(s.id, "supporting")}
                         />
-                        보조 (Supporting)
-                      </label>
+                        {t("보조 (Supporting)")}</label>
                     </div>
                   ) : null}
                 </div>
@@ -2086,10 +2055,9 @@ function EquipmentSystemsDialog({
         </div>
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
-            취소
-          </button>
+            {t("취소")}</button>
           <button className="primary-button" type="submit" disabled={busy}>
-            {busy ? "저장 중…" : "저장"}
+            {busy ? t("저장 중…") : t("저장")}
           </button>
         </div>
       </form>
@@ -2116,6 +2084,7 @@ function EquipmentRolesDialog({
   onClose: () => void;
   onSubmit: (roles: { resourceId: string; role: EquipmentRole; isPrimary?: boolean }[]) => Promise<void>;
 }) {
+  const { t, locale } = useI18n();
   const [selectedRoles, setSelectedRoles] = useState<
     Array<{
       resourceId: string;
@@ -2210,28 +2179,26 @@ function EquipmentRolesDialog({
 
   return (
     <WorkspaceDialog
-      title={`설비 담당자 배정 - ${equipment.name}`}
+      title={t("설비 담당자 배정 - {value0}", {value0: displayName(equipment, locale)})}
       busy={busy}
       onClose={onClose}
     >
       <form className={styles.dialogForm} onSubmit={handleSubmit}>
         {!catalogReady ? <div>
           <p role={catalogState === "error" || catalogState === "stale" ? "alert" : "status"}>
-            {catalogState === "stale" ? "프로젝트 정보가 변경되어 이전 배정을 저장할 수 없습니다. 취소 후 담당자 배정을 다시 열어 최신 정보를 확인해 주세요." : catalogState === "error" ? "리소스 목록을 불러오지 못했습니다. 기존 배정은 유지되며 최신 목록 확인 전에는 저장할 수 없습니다." : "리소스 목록을 불러오는 중…"}
+            {catalogState === "stale" ? t("프로젝트 정보가 변경되어 이전 배정을 저장할 수 없습니다. 취소 후 담당자 배정을 다시 열어 최신 정보를 확인해 주세요.") : catalogState === "error" ? t("리소스 목록을 불러오지 못했습니다. 기존 배정은 유지되며 최신 목록 확인 전에는 저장할 수 없습니다.") : t("리소스 목록을 불러오는 중…")}
           </p>
-          {catalogState === "error" ? <button type="button" className="secondary-button" onClick={onRetry}>리소스 목록 다시 시도</button> : null}
+          {catalogState === "error" ? <button type="button" className="secondary-button" onClick={onRetry}>{t("리소스 목록 다시 시도")}</button> : null}
         </div> : null}
         <fieldset disabled={busy || !catalogReady} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
         <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>
-          리소스 카탈로그에서 인력을 선택하여 설비 담당자(Owner) 또는 참여자(Contributor)로 배정합니다.
-          <br />
-          주 담당자(★ Primary)는 최대 1명의 Owner에만 지정 가능합니다.
-        </p>
+          {t("리소스 카탈로그에서 인력을 선택하여 설비 담당자(Owner) 또는 참여자(Contributor)로 배정합니다.")}<br />
+          {t("주 담당자(★ Primary)는 최대 1명의 Owner에만 지정 가능합니다.")}</p>
 
         {/* Existing assigned roles */}
         <div style={{ display: "grid", gap: "0.4rem", maxHeight: "200px", overflowY: "auto" }}>
           {selectedRoles.length === 0 ? (
-            <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>배정된 담당자가 없습니다.</p>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>{t("배정된 담당자가 없습니다.")}</p>
           ) : (
             selectedRoles.map((item, idx) => {
               const res = resourceById.get(item.resourceId);
@@ -2255,10 +2222,10 @@ function EquipmentRolesDialog({
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <span>
                       {item.isPrimary ? "★ " : ""}
-                      <strong>{displayName}</strong> - {item.role === "owner" ? "설비 담당(Owner)" : "참여(Contributor)"}
+                      <strong>{displayName}</strong> - {item.role === "owner" ? t("설비 담당(Owner)") : t("참여(Contributor)")}
                     </span>
                     {isInactive ? (
-                      <span className={`${styles.badge} ${styles.badgeInactive}`}>비활성</span>
+                      <span className={`${styles.badge} ${styles.badgeInactive}`}>{t("비활성")}</span>
                     ) : null}
                   </div>
                   <div style={{ display: "flex", gap: "0.4rem" }}>
@@ -2269,7 +2236,7 @@ function EquipmentRolesDialog({
                         style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}
                         onClick={() => handleSetPrimary(idx)}
                       >
-                        {item.isPrimary ? "주 담당 해제" : "주 담당 지정"}
+                        {item.isPrimary ? t("주 담당 해제") : t("주 담당 지정")}
                       </button>
                     ) : null}
                     <button
@@ -2278,8 +2245,7 @@ function EquipmentRolesDialog({
                       style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem", color: "var(--status-error)" }}
                       onClick={() => handleRemove(idx)}
                     >
-                      삭제
-                    </button>
+                      {t("삭제")}</button>
                   </div>
                 </div>
               );
@@ -2296,7 +2262,7 @@ function EquipmentRolesDialog({
             gap: "0.5rem",
           }}
         >
-          <strong style={{ fontSize: "0.85rem" }}>새 담당자 추가</strong>
+          <strong style={{ fontSize: "0.85rem" }}>{t("새 담당자 추가")}</strong>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
             <select
               className={styles.fieldSelect}
@@ -2304,10 +2270,10 @@ function EquipmentRolesDialog({
               value={addResourceId}
               onChange={(e) => setAddResourceId(e.target.value)}
             >
-              <option value="">(리소스 선택)</option>
+              <option value="">{t("(리소스 선택)")}</option>
               {catalogResources.map((r) => (
                 <option key={r.id} value={r.id} disabled={!r.active}>
-                  {catalogResources.filter(item => item.name === r.name).length > 1 ? `${r.name} (${r.code ?? r.id})` : r.name} · {developerGradeLabel(r.developerGrade)} {!r.active ? " · 비활성" : ""}
+                  {catalogResources.filter(item => item.name === r.name).length > 1 ? `${r.name} (${r.code ?? r.id})` : r.name} · {developerGradeLabel(r.developerGrade)} {!r.active ? t(" · 비활성") : ""}
                 </option>
               ))}
             </select>
@@ -2320,8 +2286,8 @@ function EquipmentRolesDialog({
                 if (r !== "owner") setAddIsPrimary(false);
               }}
             >
-              <option value="owner">설비 담당 (Owner)</option>
-              <option value="contributor">참여 (Contributor)</option>
+              <option value="owner">{t("설비 담당 (Owner)")}</option>
+              <option value="contributor">{t("참여 (Contributor)")}</option>
             </select>
             {addRole === "owner" ? (
               <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
@@ -2330,8 +2296,7 @@ function EquipmentRolesDialog({
                   checked={addIsPrimary}
                   onChange={(e) => setAddIsPrimary(e.target.checked)}
                 />
-                주 담당자 (Primary)
-              </label>
+                {t("주 담당자 (Primary)")}</label>
             ) : null}
             <button
               className="secondary-button"
@@ -2339,19 +2304,17 @@ function EquipmentRolesDialog({
               disabled={!addResourceId}
               onClick={handleAdd}
             >
-              추가
-            </button>
+              {t("추가")}</button>
           </div>
           <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
-            ※ 카탈로그에 없는 인력은 리소스 관리 메뉴에서 먼저 등록해야 합니다. Developer는 개발자 등급이 지정된 리소스만 새로 배정할 수 있습니다.
-          </span>
+            {t("※ 카탈로그에 없는 인력은 리소스 관리 메뉴에서 먼저 등록해야 합니다. Developer는 개발자 등급이 지정된 리소스만 새로 배정할 수 있습니다.")}</span>
         </div>
 
         </fieldset>
-        <section aria-label="배정된 인력 식별 정보" style={{ display: "grid", gap: "0.4rem", minWidth: 0 }}>
+        <section aria-label={t("배정된 인력 식별 정보")} style={{ display: "grid", gap: "0.4rem", minWidth: 0 }}>
           {selectedRoles.map(item => {
             const { name, code } = selectedIdentity(item.resourceId);
-            return <IdentifierDetails key={`${item.resourceId}-${item.role}`} label={`${name} 식별 정보`} identifiers={[
+            return <IdentifierDetails key={`${item.resourceId}-${item.role}`} label={t("{value0} 식별 정보", {value0: name})} identifiers={[
               { label: "리소스 ID", value: item.resourceId },
               ...(code ? [{ label: "리소스 코드", value: code }] : []),
             ]} />;
@@ -2359,10 +2322,9 @@ function EquipmentRolesDialog({
         </section>
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
-            취소
-          </button>
+            {t("취소")}</button>
           <button className="primary-button" type="submit" disabled={busy || !catalogReady}>
-            {busy ? "저장 중…" : "저장"}
+            {busy ? t("저장 중…") : t("저장")}
           </button>
         </div>
       </form>
@@ -2395,8 +2357,10 @@ function SystemDialog({
   onClose: () => void;
   onSubmit: (data: CreateLogisticsSystemRequest | UpdateLogisticsSystemRequest) => Promise<void>;
 }) {
+  const { t, locale } = useI18n();
   const [code, setCode] = useState(system?.code ?? "");
   const [name, setName] = useState(system?.name ?? "");
+  const [translations, setTranslations] = useState<DisplayNameTranslations>({...system?.translations});
   const [systemType, setSystemType] = useState<LogisticsSystemType>(system?.systemType ?? typeOptions[0]?.code ?? "");
   const [layer, setLayer] = useState<SystemLayer>(system?.layer ?? "coordinator");
   const [scope, setScope] = useState<SystemScope>(system?.scope ?? "project");
@@ -2414,8 +2378,8 @@ function SystemDialog({
       if (isVisibleFocusTarget(discardTrigger.current)) discardTrigger.current.focus({ preventScroll: true });
     });
   }
-  const [initialDraft] = useState(() => JSON.stringify({ code, name, systemType, layer, scope, processIds: [...processIds].sort(), vendor, description, active }));
-  const dirty = initialDraft !== JSON.stringify({ code, name, systemType, layer, scope, processIds: [...processIds].sort(), vendor, description, active });
+  const [initialDraft] = useState(() => JSON.stringify({ code, name, translations, systemType, layer, scope, processIds: [...processIds].sort(), vendor, description, active }));
+  const dirty = initialDraft !== JSON.stringify({ code, name, translations, systemType, layer, scope, processIds: [...processIds].sort(), vendor, description, active });
   const stale = draftRevision !== revision;
   const busy = pending || !editable || stale;
   const needsProcesses = scope === "processes" && processIds.length === 0;
@@ -2434,6 +2398,7 @@ function SystemDialog({
     void onSubmit({
       code: code.trim(),
       name: name.trim(),
+      translations,
       systemType,
       layer,
       scope,
@@ -2446,94 +2411,89 @@ function SystemDialog({
 
   return (
     <WorkspaceDialog
-      title={mode === "create" ? "시스템 추가" : "시스템 수정"}
+      title={mode === "create" ? t("시스템 추가") : t("시스템 수정")}
       controlledEscape
       busy={pending}
       onClose={requestClose}
       onEscape={() => discardPrompt ? continueEditing() : requestClose()}
     >
       <form className={styles.dialogForm} onSubmit={handleSubmit}>
-        {errorMessage ? <p role="alert">{errorMessage}</p> : null}
-        {stale ? <p role="alert">프로젝트 정보가 변경되었습니다. 초안을 보존하고 있습니다. 취소 후 다시 열어 최신 정보를 확인해 주세요.</p> : !editable ? <p role="alert">편집 권한을 확인해 주세요. 입력한 초안은 유지됩니다.</p> : null}
-        {discardPrompt ? <div role="alert" className={styles.errorBanner}><p>저장하지 않은 시스템 변경을 폐기할까요?</p><button className="secondary-button" type="button" autoFocus ref={button => { button?.focus({ preventScroll: true }); }} disabled={pending} onClick={continueEditing}>계속 편집</button><button className="secondary-button" type="button" disabled={pending} onClick={onClose}>변경 폐기</button></div> : null}
+        {errorMessage ? <p role="alert">{t(errorMessage ?? "")}</p> : null}
+        {stale ? <p role="alert">{t("프로젝트 정보가 변경되었습니다. 초안을 보존하고 있습니다. 취소 후 다시 열어 최신 정보를 확인해 주세요.")}</p> : !editable ? <p role="alert">{t("편집 권한을 확인해 주세요. 입력한 초안은 유지됩니다.")}</p> : null}
+        {discardPrompt ? <div role="alert" className={styles.errorBanner}><p>{t("저장하지 않은 시스템 변경을 폐기할까요?")}</p><button className="secondary-button" type="button" autoFocus ref={button => { button?.focus({ preventScroll: true }); }} disabled={pending} onClick={continueEditing}>{t("계속 편집")}</button><button className="secondary-button" type="button" disabled={pending} onClick={onClose}>{t("변경 폐기")}</button></div> : null}
         <div className={styles.formGrid}>
+          <TranslationFields value={translations} onChange={setTranslations} disabled={busy} />
           <label className={styles.fieldLabel}>
-            시스템 코드 *
-            <input
+            {t("시스템 코드 *")}<input
               className={styles.fieldInput}
               required
               autoFocus
               disabled={busy}
-              placeholder="예: MCS-01, ACS-01"
+              placeholder={t("예: MCS-01, ACS-01")}
               value={code}
               onChange={(e) => setCode(e.target.value)}
             />
           </label>
           <label className={styles.fieldLabel}>
-            시스템명 *
-            <input
+            {t("시스템명 *")}<input
               className={styles.fieldInput}
               required
               disabled={busy}
-              placeholder="예: 통합 반송 조율 시스템"
+              placeholder={t("예: 통합 반송 조율 시스템")}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </label>
           <LogisticsTypeField kind="시스템" value={systemType} existingValue={system?.systemType} options={typeOptions} state={catalogState} busy={busy} onChange={setSystemType} onRetry={onRetryTypes} />
           <label className={styles.fieldLabel}>
-            계층 (Layer) *
-            <select
+            {t("계층 (Layer) *")}<select
               className={styles.fieldSelect}
               required
               disabled={busy}
               value={layer}
               onChange={(e) => setLayer(e.target.value as SystemLayer)}
             >
-              <option value="coordinator">조율 계층 (Coordinator - e.g. MCS)</option>
-              <option value="controller">제어 계층 (Controller - e.g. ACS, SCS)</option>
+              <option value="coordinator">{t("조율 계층 (Coordinator - e.g. MCS)")}</option>
+              <option value="controller">{t("제어 계층 (Controller - e.g. ACS, SCS)")}</option>
             </select>
           </label>
           <label className={styles.fieldLabel}>
-            적용 범위 (Scope) *
-            <select
+            {t("적용 범위 (Scope) *")}<select
               className={styles.fieldSelect}
               required
               disabled={busy}
               value={scope}
               onChange={(e) => setScope(e.target.value as SystemScope)}
             >
-              <option value="project">프로젝트 공통 (Project)</option>
-              <option value="processes">복수 공정 한정 (Processes)</option>
+              <option value="project">{t("프로젝트 공통 (Project)")}</option>
+              <option value="processes">{t("복수 공정 한정 (Processes)")}</option>
             </select>
           </label>
           {scope === "processes" ? <fieldset className={`${styles.workAreaPicker} ${styles.formFieldFull}`} disabled={busy} aria-describedby="system-process-selection-status">
-            <legend>담당 공정 (1개 이상 필수)</legend>
-            <p id="system-process-selection-status" className={styles.workAreaHint}>{allProcesses.length ? `선택 ${processIds.length}개 · 시스템 관할 범위만 설정하며 Task의 공정은 변경하지 않습니다.` : "등록된 공정이 없습니다. 주 관리 공정을 먼저 등록하거나 프로젝트 공통 범위를 선택해 주세요."}</p>
+            <legend>{t("담당 공정 (1개 이상 필수)")}</legend>
+            <p id="system-process-selection-status" className={styles.workAreaHint}>{allProcesses.length ? t("선택 {value0}개 · 시스템 관할 범위만 설정하며 Task의 공정은 변경하지 않습니다.", {value0: processIds.length}) : t("등록된 공정이 없습니다. 주 관리 공정을 먼저 등록하거나 프로젝트 공통 범위를 선택해 주세요.")}</p>
             <div className={styles.workAreaOptions}>
               {allProcesses.filter(process => process.active || processIds.includes(process.id)).map(process => <label key={process.id} className={styles.workAreaOption}>
                 <input type="checkbox" checked={processIds.includes(process.id)} onChange={event => setProcessIds(ids => event.target.checked ? [...ids, process.id] : ids.filter(id => id !== process.id))} />
-                <span>{process.code} — {process.name}{process.active ? "" : " (비활성 기존 공정)"}</span>
+                <span>{process.code} — {displayName(process, locale)}{process.active ? "" : t(" (비활성 기존 공정)")}</span>
               </label>)}
             </div>
-            {needsProcesses && allProcesses.length > 0 ? <p className={styles.workAreaHint}>복수 공정 한정 범위로 저장하려면 담당 공정을 1개 이상 선택해 주세요.</p> : null}
+            {needsProcesses && allProcesses.length > 0 ? <p className={styles.workAreaHint}>{t("복수 공정 한정 범위로 저장하려면 담당 공정을 1개 이상 선택해 주세요.")}</p> : null}
           </fieldset> : null}
           <label className={styles.fieldLabel}>
-            벤더사
-            <input
+            {t("벤더사")}<input
               className={styles.fieldInput}
               disabled={busy}
-              placeholder="공급/개발 벤더사"
+              placeholder={t("공급/개발 벤더사")}
               value={vendor}
               onChange={(e) => setVendor(e.target.value)}
             />
           </label>
           <label className={`${styles.fieldLabel} ${styles.formFieldFull}`}>
-            설명
-            <textarea
+            {t("설명")}<textarea
               className={styles.fieldTextarea}
               disabled={busy}
-              placeholder="시스템 상세 설명"
+              placeholder={t("시스템 상세 설명")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -2546,17 +2506,15 @@ function SystemDialog({
                 checked={active}
                 onChange={(e) => setActive(e.target.checked)}
               />
-              활성 상태 (체크 해제 시 비활성화)
-            </span>
+              {t("활성 상태 (체크 해제 시 비활성화)")}</span>
           </label>
         </div>
-        {!code.trim() || !name.trim() ? <p className={styles.workAreaHint}>저장하려면 시스템 코드와 시스템명을 입력해 주세요.</p> : null}
+        {!code.trim() || !name.trim() ? <p className={styles.workAreaHint}>{t("저장하려면 시스템 코드와 시스템명을 입력해 주세요.")}</p> : null}
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={pending} onClick={requestClose}>
-            취소
-          </button>
+            {t("취소")}</button>
           <button className="primary-button" type="submit" disabled={busy || catalogState !== "ready" || !systemType || !code.trim() || !name.trim() || needsProcesses}>
-            {pending ? "저장 중…" : catalogState === "error" ? "유형 조회 실패" : "저장"}
+            {pending ? t("저장 중…") : catalogState === "error" ? t("유형 조회 실패") : t("저장")}
           </button>
         </div>
       </form>
@@ -2577,6 +2535,7 @@ function SystemProcessesDialog({
   onClose: () => void;
   onSubmit: (processIds: string[]) => Promise<void>;
 }) {
+  const { t, locale } = useI18n();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(system.processIds));
 
   const toggle = (id: string, checked: boolean) => {
@@ -2593,17 +2552,16 @@ function SystemProcessesDialog({
 
   return (
     <WorkspaceDialog
-      title={`담당 공정 설정 - ${system.name}`}
+      title={t("담당 공정 설정 - {value0}", {value0: displayName(system, locale)})}
       busy={busy}
       onClose={onClose}
     >
       <form className={styles.dialogForm} onSubmit={handleSubmit}>
         <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--text-muted)" }}>
-          이 시스템이 관할하는 공정을 다중 선택합니다.
-        </p>
+          {t("이 시스템이 관할하는 공정을 다중 선택합니다.")}</p>
         <div style={{ display: "grid", gap: "0.5rem", maxHeight: "280px", overflowY: "auto" }}>
           {allProcesses.length === 0 ? (
-            <p style={{ color: "var(--text-muted)" }}>등록된 공정이 없습니다.</p>
+            <p style={{ color: "var(--text-muted)" }}>{t("등록된 공정이 없습니다.")}</p>
           ) : (
             allProcesses.map((p) => (
               <label
@@ -2625,7 +2583,7 @@ function SystemProcessesDialog({
                   onChange={(e) => toggle(p.id, e.target.checked)}
                 />
                 <span>
-                  <strong>{logisticsName(p, allProcesses)}</strong>
+                  <strong>{logisticsName(p, allProcesses, locale)}</strong>
                 </span>
               </label>
             ))
@@ -2633,10 +2591,9 @@ function SystemProcessesDialog({
         </div>
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
-            취소
-          </button>
+            {t("취소")}</button>
           <button className="primary-button" type="submit" disabled={busy}>
-            {busy ? "저장 중…" : "저장"}
+            {busy ? t("저장 중…") : t("저장")}
           </button>
         </div>
       </form>
@@ -2657,6 +2614,7 @@ function SystemChildrenDialog({
   onClose: () => void;
   onSubmit: (childSystemIds: string[]) => Promise<void>;
 }) {
+  const { t, locale } = useI18n();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(system.coordinatedSystemIds));
 
   const toggle = (id: string, checked: boolean) => {
@@ -2673,19 +2631,17 @@ function SystemChildrenDialog({
 
   return (
     <WorkspaceDialog
-      title={`하위 조율 시스템 연계 - ${system.name}`}
+      title={t("하위 조율 시스템 연계 - {value0}", {value0: displayName(system, locale)})}
       busy={busy}
       onClose={onClose}
     >
       <form className={styles.dialogForm} onSubmit={handleSubmit}>
         <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--text-muted)" }}>
-          상위 조율 시스템({system.name})이 명령/작업을 조율할 하위 제어/조율 시스템을 선택합니다.
-          <br />
-          순환 연계(DAG cycle)는 서버에서 자동으로 검증 및 방지됩니다.
-        </p>
+          {t("상위 조율 시스템(")}{displayName(system, locale)}{t(")이 명령/작업을 조율할 하위 제어/조율 시스템을 선택합니다.")}<br />
+          {t("순환 연계(DAG cycle)는 서버에서 자동으로 검증 및 방지됩니다.")}</p>
         <div style={{ display: "grid", gap: "0.5rem", maxHeight: "280px", overflowY: "auto" }}>
           {allSystems.length === 0 ? (
-            <p style={{ color: "var(--text-muted)" }}>연계 가능한 다른 시스템이 없습니다.</p>
+            <p style={{ color: "var(--text-muted)" }}>{t("연계 가능한 다른 시스템이 없습니다.")}</p>
           ) : (
             allSystems.map((s) => (
               <label
@@ -2707,7 +2663,7 @@ function SystemChildrenDialog({
                   onChange={(e) => toggle(s.id, e.target.checked)}
                 />
                 <span>
-                  <strong>{logisticsName(s, allSystems)}</strong> ({s.layer === "coordinator" ? "조율" : "제어"})
+                  <strong>{logisticsName(s, allSystems, locale)}</strong> ({s.layer === "coordinator" ? t("조율") : t("제어")})
                 </span>
               </label>
             ))
@@ -2715,10 +2671,9 @@ function SystemChildrenDialog({
         </div>
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
-            취소
-          </button>
+            {t("취소")}</button>
           <button className="primary-button" type="submit" disabled={busy}>
-            {busy ? "저장 중…" : "저장"}
+            {busy ? t("저장 중…") : t("저장")}
           </button>
         </div>
       </form>
@@ -2745,6 +2700,7 @@ function SystemRolesDialog({
   onClose: () => void;
   onSubmit: (roles: { resourceId: string; role: SystemRole; isPrimary?: boolean }[]) => Promise<void>;
 }) {
+  const { t, locale } = useI18n();
   const [selectedRoles, setSelectedRoles] = useState<
     Array<{
       resourceId: string;
@@ -2842,28 +2798,26 @@ function SystemRolesDialog({
 
   return (
     <WorkspaceDialog
-      title={`시스템 PI/개발자 배정 - ${system.name}`}
+      title={t("시스템 PI/개발자 배정 - {value0}", {value0: displayName(system, locale)})}
       busy={busy}
       onClose={onClose}
     >
       <form className={styles.dialogForm} onSubmit={handleSubmit}>
         {!catalogReady ? <div>
           <p role={catalogState === "error" || catalogState === "stale" ? "alert" : "status"}>
-            {catalogState === "stale" ? "프로젝트 정보가 변경되어 이전 배정을 저장할 수 없습니다. 취소 후 담당자 배정을 다시 열어 최신 정보를 확인해 주세요." : catalogState === "error" ? "리소스 목록을 불러오지 못했습니다. 기존 배정은 유지되며 최신 목록 확인 전에는 저장할 수 없습니다." : "리소스 목록을 불러오는 중…"}
+            {catalogState === "stale" ? t("프로젝트 정보가 변경되어 이전 배정을 저장할 수 없습니다. 취소 후 담당자 배정을 다시 열어 최신 정보를 확인해 주세요.") : catalogState === "error" ? t("리소스 목록을 불러오지 못했습니다. 기존 배정은 유지되며 최신 목록 확인 전에는 저장할 수 없습니다.") : t("리소스 목록을 불러오는 중…")}
           </p>
-          {catalogState === "error" ? <button type="button" className="secondary-button" onClick={onRetry}>리소스 목록 다시 시도</button> : null}
+          {catalogState === "error" ? <button type="button" className="secondary-button" onClick={onRetry}>{t("리소스 목록 다시 시도")}</button> : null}
         </div> : null}
         <fieldset disabled={busy || !catalogReady} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
         <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>
-          리소스 카탈로그에서 인력을 선택하여 시스템 책임자(PI) 또는 개발자(Developer)로 배정합니다.
-          <br />
-          주 책임자(★ Primary)는 최대 1명의 PI에만 지정 가능합니다.
-        </p>
+          {t("리소스 카탈로그에서 인력을 선택하여 시스템 책임자(PI) 또는 개발자(Developer)로 배정합니다.")}<br />
+          {t("주 책임자(★ Primary)는 최대 1명의 PI에만 지정 가능합니다.")}</p>
 
         {/* Existing roles */}
         <div style={{ display: "grid", gap: "0.4rem", maxHeight: "200px", overflowY: "auto" }}>
           {selectedRoles.length === 0 ? (
-            <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>배정된 인력이 없습니다.</p>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>{t("배정된 인력이 없습니다.")}</p>
           ) : (
             selectedRoles.map((item, idx) => {
               const res = resourceById.get(item.resourceId);
@@ -2888,10 +2842,10 @@ function SystemRolesDialog({
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <span>
                       {item.isPrimary ? "★ " : ""}
-                      <strong>{displayName}</strong> - {item.role === "pi" ? "책임자 (PI)" : `개발자 (Developer) · ${gradeText}`}
+                      <strong>{displayName}</strong> - {item.role === "pi" ? t("책임자 (PI)") : t("개발자 (Developer) · {value0}", {value0: gradeText})}
                     </span>
                     {isInactive ? (
-                      <span className={`${styles.badge} ${styles.badgeInactive}`}>비활성</span>
+                      <span className={`${styles.badge} ${styles.badgeInactive}`}>{t("비활성")}</span>
                     ) : null}
                   </div>
                   <div style={{ display: "flex", gap: "0.4rem" }}>
@@ -2902,7 +2856,7 @@ function SystemRolesDialog({
                         style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}
                         onClick={() => handleSetPrimary(idx)}
                       >
-                        {item.isPrimary ? "주 책임 해제" : "주 책임 지정"}
+                        {item.isPrimary ? t("주 책임 해제") : t("주 책임 지정")}
                       </button>
                     ) : null}
                     <button
@@ -2911,8 +2865,7 @@ function SystemRolesDialog({
                       style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem", color: "var(--status-error)" }}
                       onClick={() => handleRemove(idx)}
                     >
-                      삭제
-                    </button>
+                      {t("삭제")}</button>
                   </div>
                 </div>
               );
@@ -2929,7 +2882,7 @@ function SystemRolesDialog({
             gap: "0.5rem",
           }}
         >
-          <strong style={{ fontSize: "0.85rem" }}>새 인력 추가</strong>
+          <strong style={{ fontSize: "0.85rem" }}>{t("새 인력 추가")}</strong>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
             <select
               className={styles.fieldSelect}
@@ -2937,10 +2890,10 @@ function SystemRolesDialog({
               value={addResourceId}
               onChange={(e) => setAddResourceId(e.target.value)}
             >
-              <option value="">(리소스 선택)</option>
+              <option value="">{t("(리소스 선택)")}</option>
               {catalogResources.map((r) => (
                 <option key={r.id} value={r.id} disabled={!r.active}>
-                  {catalogResources.filter(item => item.name === r.name).length > 1 ? `${r.name} (${r.code ?? r.id})` : r.name} {!r.active ? " · 비활성" : ""}
+                  {catalogResources.filter(item => item.name === r.name).length > 1 ? `${r.name} (${r.code ?? r.id})` : r.name} {!r.active ? t(" · 비활성") : ""}
                 </option>
               ))}
             </select>
@@ -2953,8 +2906,8 @@ function SystemRolesDialog({
                 if (r !== "pi") setAddIsPrimary(false);
               }}
             >
-              <option value="pi">책임자 (PI)</option>
-              <option value="developer">개발자 (Developer)</option>
+              <option value="pi">{t("책임자 (PI)")}</option>
+              <option value="developer">{t("개발자 (Developer)")}</option>
             </select>
             {addRole === "pi" ? (
               <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
@@ -2963,8 +2916,7 @@ function SystemRolesDialog({
                   checked={addIsPrimary}
                   onChange={(e) => setAddIsPrimary(e.target.checked)}
                 />
-                주 책임자 (Primary)
-              </label>
+                {t("주 책임자 (Primary)")}</label>
             ) : null}
             <button
               className="secondary-button"
@@ -2972,19 +2924,17 @@ function SystemRolesDialog({
               disabled={!addResourceId}
               onClick={handleAdd}
             >
-              추가
-            </button>
+              {t("추가")}</button>
           </div>
           <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
-            ※ 카탈로그에 없는 인력은 리소스 관리 메뉴에서 먼저 등록해야 합니다.
-          </span>
+            {t("※ 카탈로그에 없는 인력은 리소스 관리 메뉴에서 먼저 등록해야 합니다.")}</span>
         </div>
 
         </fieldset>
-        <section aria-label="배정된 인력 식별 정보" style={{ display: "grid", gap: "0.4rem", minWidth: 0 }}>
+        <section aria-label={t("배정된 인력 식별 정보")} style={{ display: "grid", gap: "0.4rem", minWidth: 0 }}>
           {selectedRoles.map(item => {
             const { name, code } = selectedIdentity(item.resourceId);
-            return <IdentifierDetails key={`${item.resourceId}-${item.role}`} label={`${name} 식별 정보`} identifiers={[
+            return <IdentifierDetails key={`${item.resourceId}-${item.role}`} label={t("{value0} 식별 정보", {value0: name})} identifiers={[
               { label: "리소스 ID", value: item.resourceId },
               ...(code ? [{ label: "리소스 코드", value: code }] : []),
             ]} />;
@@ -2992,10 +2942,9 @@ function SystemRolesDialog({
         </section>
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
-            취소
-          </button>
+            {t("취소")}</button>
           <button className="primary-button" type="submit" disabled={busy || !catalogReady}>
-            {busy ? "저장 중…" : "저장"}
+            {busy ? t("저장 중…") : t("저장")}
           </button>
         </div>
       </form>

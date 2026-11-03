@@ -1,3 +1,9 @@
+## Issue #866 — 표시 언어와 사내 LLM의 독립 경계 (2026-11-03)
+
+`src/lib/i18n`의 registry·정적 catalog·클라이언트 store/provider가 고정 UI 언어와 formatter를 제공한다. SSR ko→mount 저장/브라우저 언어 동기화이며 locale 변경으로 원본 mutation/Gantt remount를 하지 않는다. 기준정보는 기존 Route→Service→Repository 경계에 선택적 translations를 추가하고 owner별 FK 테이블에서 조회한다. 번역은 동일 권한/revision transaction에서 명시 저장하며 도메인 원본 name을 대체하지 않는다.
+
+`src/server/llm/index.ts`는 server-only `invokeLLM` 진입점이다. 구성 파서/selection·strict bounded Chat Completions·DNS 검증 및 IP 고정 HTTP transport·typed result/error를 분리한다. 호출 시 runtime env를 읽고 startup/readiness/모델 탐색·공개 API·프로젝트 데이터 조회를 하지 않는다. 호출자는 후속 기능에서 명시 사용자 요청·기존 Project 읽기 권한·최소 데이터 범위를 검증해야 한다. [LLM 상세](LLM_CONFIGURATION.md)와 [i18n 상세](I18N.md)를 참조한다.
+
 ## Issue #854 — Project Issue read-authorized POST와 Task Editor handoff
 
 현행 Issue 등록의 서버 권한은 Project **read gate**이며 Project edit session을 요구하지 않는다. 공개 Project 조회자는 개별 비밀번호를 지정해 등록할 수 있고, 비공개 Project는 기존 세션 조회 권한이 필요하다. Route `project-issue-handlers-core`의 Origin·strong If-Match·JSON 제한 다음에 전체/Project별 Issue POST limiter를 적용한다. `ProjectIssueService.create(publicId,...,readAuthorization)`는 비동기 scrypt 해싱 후 SQLite IMMEDIATE transaction에서 현재 프로젝트 visibility·비공개 read-session·revision 및 Task/Resource FK 소속을 재확인한다. Project CAS revision 전진은 유지한다. 별도의 Project edit 우회 기능은 없다.

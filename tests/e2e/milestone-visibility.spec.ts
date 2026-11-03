@@ -126,7 +126,7 @@ test("#552 legacy native M selection is removed by public toggle while the ordin
   const before = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
   expect(before.selected).toEqual(expect.arrayContaining([taskId, milestoneId])); expect(before.appSelection).toEqual([taskId]);
   await page.getByRole("button", { name: "필터", exact: true }).click();
-  await page.getByRole("group", { name: "Task type", exact: true }).getByRole("checkbox", { name: "task", exact: true }).check(); await page.keyboard.press("Escape");
+  await page.getByRole("group", { name: "작업 유형", exact: true }).getByRole("checkbox", { name: "일반 작업", exact: true }).check(); await page.keyboard.press("Escape");
   await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().selected)).toEqual([taskId]);
   await expect(rowNamed(page, "Existing summary child").locator("input[data-copy-selection]")).toBeChecked();
   expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);

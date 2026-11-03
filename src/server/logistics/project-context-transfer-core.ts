@@ -1,3 +1,4 @@
+import { displayNameTranslationFields, parseDisplayNameTranslations, writeDisplayNameTranslations } from "../repositories/display-name-translations-repository-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 import type { TemplateEquipmentWorkAreasSnapshotItem, TemplateTaskContextSnapshotItem, TemplateProjectWorkAreaSnapshotItem } from "../../contracts/project-templates";
@@ -18,7 +19,7 @@ function validateTransfer<T>(validate: () => T): T {
 /** All owned areas cross projects, even when no Task or Equipment references them. */
 export function snapshotProjectWorkAreas(db: Database.Database, projectId: number): TemplateProjectWorkAreaSnapshotItem[] {
   const rows = db.prepare("SELECT w.public_id workAreaId,p.code processCode,w.code,w.name,w.active,w.sort_order sortOrder FROM project_work_areas w JOIN project_processes p ON p.project_id=w.project_id AND p.id=w.process_id WHERE w.project_id=? ORDER BY p.code,w.sort_order,w.code,w.public_id").all(projectId) as Array<Omit<TemplateProjectWorkAreaSnapshotItem,"active"> & {active:number}>;
-  return rows.map(row=>({...row,active:row.active===1}));
+  return rows.map(row=>({...row,...displayNameTranslationFields(db,"project_work_areas",db.prepare("SELECT id FROM project_work_areas WHERE project_id=? AND public_id=?").pluck().get(projectId,row.workAreaId) as number),active:row.active===1}));
 }
 
 /** Caller owns the transaction. Source UUIDs are keys, never restored as live identities. */
@@ -29,7 +30,7 @@ export function restoreProjectWorkAreas(db: Database.Database, projectId: number
   const remap = new Map<string,string>(), seenCodes = new Set<string>();
   const insert = db.prepare("INSERT INTO project_work_areas(public_id,project_id,process_id,code,name,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)");
   for (const row of rows) {
-    if (!row || typeof row!=="object" || Object.keys(row).some(key=>!["workAreaId","processCode","code","name","active","sortOrder"].includes(key)) ||
+    if (!row || typeof row!=="object" || Object.keys(row).some(key=>!["workAreaId","processCode","code","name","active","sortOrder","translations"].includes(key)) ||
       typeof row.workAreaId!=="string" || !isCanonicalUuidV4(row.workAreaId) || remap.has(row.workAreaId) ||
       typeof row.processCode!=="string" || typeof row.code!=="string" || row.code.length<1 || row.code.length>64 ||
       typeof row.name!=="string" || row.name.length<1 || row.name.length>200 || typeof row.active!=="boolean" ||
@@ -38,7 +39,8 @@ export function restoreProjectWorkAreas(db: Database.Database, projectId: number
     if (!process || seenCodes.has(key)) invalid();
     seenCodes.add(key);
     const publicId = randomUUID();
-    insert.run(publicId,projectId,process.id,row.code,row.name,row.active?1:0,row.sortOrder,now,now);
+    const inserted = insert.run(publicId,projectId,process.id,row.code,row.name,row.active?1:0,row.sortOrder,now,now);
+    writeDisplayNameTranslations(db,"project_work_areas",Number(inserted.lastInsertRowid),parseDisplayNameTranslations(row.translations,invalid));
     remap.set(row.workAreaId,publicId);
   }
   // Reuse the reader limits for both local identities and legacy mapping aliases.

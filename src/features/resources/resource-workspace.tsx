@@ -1,4 +1,6 @@
 "use client";
+import { useI18n } from "../../lib/i18n/provider";
+
 import { createContext, useCallback, useContext, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import styles from "./resource-workspace.module.css";
 
@@ -31,6 +33,7 @@ export function ResourceWorkspace({ active, viewId, liveViewIds, revision, rende
   renderCharts?: (active: boolean) => ReactNode;
   renderReport: (active: boolean, views: Readonly<Record<string, ResourceWorkspaceView>>) => ReactNode;
 }) {
+  const { t } = useI18n();
   const id = useId();
   const host = useRef<HTMLDivElement>(null);
   const navigation = useRef<HTMLDivElement>(null);
@@ -75,11 +78,11 @@ export function ResourceWorkspace({ active, viewId, liveViewIds, revision, rende
   const periods = Object.fromEntries(Object.entries(current[key].periods).filter(([, period]) => period.revision === revision));
   return <ResourceWorkspaceContext.Provider value={{ periods, publishPeriod }}>
     <div ref={host} className={styles.workspace} data-resource-workspace data-resource-peer={view}>
-      <div ref={navigation} className={styles.views} role="group" aria-label="리소스 분석 보기" onFocusCapture={event => {
+      <div ref={navigation} className={styles.views} role="group" aria-label={t("리소스 분석 보기")} onFocusCapture={event => {
         if (event.target instanceof HTMLButtonElement) revealResourceView(event.currentTarget, event.target);
       }}>
         {VIEWS.map(([value, label]) => <button key={value} type="button" aria-pressed={view === value}
-          aria-controls={`${id}-${value === "dynamic" ? "dynamic" : value === "charts" ? "charts" : "report"}`} onClick={() => select(value)}>{label}</button>)}
+          aria-controls={`${id}-${value === "dynamic" ? "dynamic" : value === "charts" ? "charts" : "report"}`} onClick={() => select(value)}>{t(label)}</button>)}
       </div>
       <div id={`${id}-report`} hidden={view === "dynamic" || view === "charts"} inert={view === "dynamic" || view === "charts"}>
         {renderReport(active && view !== "dynamic" && view !== "charts", Object.fromEntries(Object.entries(current).map(([visit, state]) => [visit, state.view === "charts" ? state.reportView : state.view])))}

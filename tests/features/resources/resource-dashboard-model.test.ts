@@ -62,3 +62,30 @@ describe("Resource dashboard client contracts", () => {
   });
 
 });
+
+describe("managed display-name translation parse boundary", () => {
+  it("retains optional group/catalog/Target translations and rejects invalid locale maps", () => {
+    const query = new URLSearchParams("mode=group");
+    const data = resourceDashboardUiFixture(fixture, query);
+    const translations = { en: "Assembly team", vi: "Đội lắp ráp" };
+    data.groups[0]!.translations = translations;
+    data.catalog.groups[0]!.translations = translations;
+    data.catalog.targetOptions = [{ dimension:"projectProcess",id:"translated-process",name:"조립",code:"P-1",active:true,translations }];
+    const parsed = readDashboard({data},fixture.project.publicId,query);
+    expect(parsed).not.toBeNull();
+    expect(parsed!.groups[0]!.translations).toEqual(translations);
+    expect(parsed!.catalog.groups[0]!.translations).toEqual(translations);
+    expect(parsed!.catalog.targetOptions![0]!.translations).toEqual(translations);
+    expect(parsed!.groups[0]!.name).toBe(data.groups[0]!.name);
+    const malformed = { ...data, groups:[{...data.groups[0],translations:{de:"not supported"}}] };
+    expect(readDashboard({data:malformed},fixture.project.publicId,query)).toBeNull();
+  });
+
+  it("formats effort by the selected locale without changing amount or zero/unset semantics", () => {
+    const effort=resourceDashboardUiFixture(fixture).summary.effort;
+    const configured={...effort,state:"configured" as const,partial:false,plannedMd:1.25};
+    expect(plannedEffort(configured,"md","en")).toBe("1.25 M/D");
+    expect(plannedEffort(configured,"md","vi")).toBe("1,25 M/D");
+    expect(configured.plannedMd).toBe(1.25);
+  });
+});

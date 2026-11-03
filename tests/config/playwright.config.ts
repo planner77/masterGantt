@@ -30,6 +30,9 @@ export default defineConfig({
   workers: 1,
   use: {
     baseURL,
+    // Existing Korean UI assertions use a deterministic browser language.
+    // i18n scenarios override locale explicitly to verify first-visit detection.
+    locale: "ko-KR",
     trace: "retain-on-failure",
   },
   webServer: externalBaseURL

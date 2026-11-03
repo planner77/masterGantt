@@ -1,5 +1,9 @@
 "use client";
 
+import { safeApiError, safeDiagnosticIdentifiers } from "../../components/safe-ui-error";
+import { useI18n } from "../../lib/i18n/provider";
+
+
 import { IdentifierDetails } from "../../components/identifier-details";
 import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent } from "react";
 import { useWorkspaceNotifications } from "@/components/workspace-notifications";
@@ -14,9 +18,10 @@ type ImportError = { message:string; details:string[] };
 function responseError(value: unknown, fallback: string): ImportError {
   if (!value || typeof value !== "object" || !("error" in value) || !value.error || typeof value.error !== "object") return { message:fallback, details:[] };
   const e=value.error as Record<string,unknown>;
-  return { message:typeof e.message === "string" ? e.message : fallback, details:Array.isArray(e.details) ? e.details.flatMap((detail) => detail && typeof detail === "object" ? [`${String(detail.path ?? "")} · ${String(detail.code ?? "")} · ${String(detail.message ?? "")}`] : []) : [] };
+  return { message: safeApiError(value, fallback), details: safeDiagnosticIdentifiers(e.details) };
 }
 export function ProjectImportButton({ publicId, expectedRevision, onImportSuccess, disabled=false, editable=false, onAuthorizationExpired, onRequestUnlock, onPendingChange, onRefreshProject }: Readonly<{ publicId:string; expectedRevision:number; onImportSuccess:(snapshot:ProjectSnapshotResponse)=>boolean | Promise<boolean>; disabled?:boolean; editable?:boolean; onAuthorizationExpired:()=>void; onRequestUnlock:()=>void; onPendingChange:(pending:boolean)=>void; onRefreshProject:(signal:AbortSignal)=>Promise<boolean> }>) {
+  const { t } = useI18n();
   const { notify }=useWorkspaceNotifications(), fileInput=useRef<HTMLInputElement>(null), trigger=useRef<HTMLButtonElement>(null), generation=useRef(0), controller=useRef<AbortController | null>(null), pending=useRef(false), committing=useRef(false), previewFile=useRef<File | null>(null);
   const errorFocus=useRef<HTMLParagraphElement>(null);
   const current=useRef({publicId,expectedRevision,editable});
@@ -76,15 +81,15 @@ export function ProjectImportButton({ publicId, expectedRevision, onImportSucces
     }catch{if(!request.signal.aborted&&generation.current===id)setError({message:"네트워크 오류가 발생했습니다. 파일은 유지되며 자동으로 다시 보내지 않습니다.",details:[]});}
     finally{if(generation.current===id){pending.current=false;committing.current=false;setStatus("idle");onPendingChange(false);}}
   }
-  return <><input type="file" accept=".json,application/json" ref={fileInput} hidden onChange={changeFile}/><button ref={trigger} type="button" className="secondary-button" disabled={disabled||!editable} onClick={()=>fileInput.current?.click()}>가져오기 (JSON)</button>
-    {open?<WorkspaceDialog title="JSON 파일 가져오기" size="wide" busy={status==="commit"} restoreFocusRef={trigger} onClose={close}><div className={styles.content}><div className={styles.body}>
-      <p>파일: {file?.name} · 현재 revision {expectedRevision}</p><IdentifierDetails label="가져오기 대상 식별 정보" identifiers={[{ label: "Project ID", value: publicId }]} />
-      {status==="preview"?<p role="status">파일을 검증하는 중… 취소하면 이 조회를 중단합니다.</p>:null}
-      {status==="refresh"?<p role="status">최신 일정을 조회하는 중… 파일을 유지하고 미리보기는 별도로 실행합니다.</p>:null}
-      {stale?<p role="alert">프로젝트 revision이 변경되어 미리보기가 만료되었습니다. 파일을 유지한 채 다시 미리봐 주세요.</p>:null}
-      {error?<div><p ref={errorFocus} role="alert" tabIndex={-1}>{error.message}</p>{error.details.length?<ul className={styles.diagnostics}>{error.details.map((detail,i)=><li key={i}>{detail}</li>)}</ul>:null}</div>:null}
-      {!editable?<button className="secondary-button" type="button" disabled={status!=="idle"} onClick={()=>{setPreview(null);setReviewedFile(null);previewFile.current=null;onRequestUnlock();}}>편집 잠금 해제 후 검토</button>:null}
+  return <><input type="file" accept=".json,application/json" ref={fileInput} hidden onChange={changeFile}/><button ref={trigger} type="button" className="secondary-button" disabled={disabled||!editable} onClick={()=>fileInput.current?.click()}>{t("가져오기 (JSON)")}</button>
+    {open?<WorkspaceDialog title={t("JSON 파일 가져오기")} size="wide" busy={status==="commit"} restoreFocusRef={trigger} onClose={close}><div className={styles.content}><div className={styles.body}>
+      <p>{t("파일: ")}{file?.name} {t(" · 현재 revision ")}{expectedRevision}</p><IdentifierDetails label={t("가져오기 대상 식별 정보")} identifiers={[{ label: "Project ID", value: publicId }]} />
+      {status==="preview"?<p role="status">{t("파일을 검증하는 중… 취소하면 이 조회를 중단합니다.")}</p>:null}
+      {status==="refresh"?<p role="status">{t("최신 일정을 조회하는 중… 파일을 유지하고 미리보기는 별도로 실행합니다.")}</p>:null}
+      {stale?<p role="alert">{t("프로젝트 revision이 변경되어 미리보기가 만료되었습니다. 파일을 유지한 채 다시 미리봐 주세요.")}</p>:null}
+      {error?<div><p ref={errorFocus} role="alert" tabIndex={-1}>{t(error.message)}</p>{error.details.length?<ul className={styles.diagnostics}>{error.details.map((detail,i)=><li key={i}>{detail}</li>)}</ul>:null}</div>:null}
+      {!editable?<button className="secondary-button" type="button" disabled={status!=="idle"} onClick={()=>{setPreview(null);setReviewedFile(null);previewFile.current=null;onRequestUnlock();}}>{t("편집 잠금 해제 후 검토")}</button>:null}
       {preview?<ProjectImportPreview preview={preview}/>:null}
-      </div><div className={styles.actions}><button type="button" className="secondary-button" disabled={status==="commit"} onClick={close}>취소</button><button type="button" className="secondary-button" disabled={!file||status!=="idle"} onClick={()=>void refreshProject()}>최신 일정 조회</button><button type="button" className="secondary-button" disabled={!file||status!=="idle"||!editable} onClick={()=>{if(file)void loadPreview(file);}}>다시 미리보기</button><button type="button" className="primary-button" disabled={!canCommitImport(preview,publicId,expectedRevision,reviewedFile===file,editable,status!=="idle")} onClick={()=>void commit()}>{status==="commit"?"추가 중…":"기존 일정에 추가"}</button></div>
+      </div><div className={styles.actions}><button type="button" className="secondary-button" disabled={status==="commit"} onClick={close}>{t("취소")}</button><button type="button" className="secondary-button" disabled={!file||status!=="idle"} onClick={()=>void refreshProject()}>{t("최신 일정 조회")}</button><button type="button" className="secondary-button" disabled={!file||status!=="idle"||!editable} onClick={()=>{if(file)void loadPreview(file);}}>{t("다시 미리보기")}</button><button type="button" className="primary-button" disabled={!canCommitImport(preview,publicId,expectedRevision,reviewedFile===file,editable,status!=="idle")} onClick={()=>void commit()}>{status==="commit"?t("추가 중…"):t("기존 일정에 추가")}</button></div>
     </div></WorkspaceDialog>:null}</>;
 }

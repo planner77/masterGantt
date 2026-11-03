@@ -1,3 +1,9 @@
+## Issue #866/#869 — 표시 언어·고정 필드·scroll 검증 (2026-11-03)
+
+언어 선택은 native select와 연결 label/키보드 접근을 사용한다. ko/en/vi 장문과 베트남어 성조를 기존 system font/semantic token으로 표시하고 html lang·ARIA를 동기화한다. locale switch가 component key/remount·초안 폐기·canonical write를 일으키면 안 된다. 기준정보 편집은 원본 name과 선택 언어별 표시명을 분리하고 명시 저장/취소·오류/경합 시 초안을 유지한다.
+
+Issue 목록은 데스크톱의 flex/min-height0 경계를 따라 table scroller 하나가 수직 scroll owner다. pagination/필터를 overflow:hidden으로 잘라 해결하지 않는다. dialog의 제목/Issue 명은 scroll 본문 밖에 두어 focus를 가리지 않고 오류·보안 패널·저장 명령까지 접근 가능해야 한다. 390/768/1024/1440/1920px·한국어/영어/베트남어·keyboard/Escape/focus·coarse 및125%를 구분 검증한다. viewport를 줄인 zoom 대용 관측은 브라우저 native125% 실증과 구별한다. 상세 [화면 계약](PROJECT_UX.md), [검증 원장](ISSUE_866_FAILURE_ANALYSIS.md).
+
 ## Issue #819 — 리소스 하위 화면의 compact 상속과 정보 계층
 
 프로젝트 → 대시보드 → 리소스의 기본 현황·차트·동적 계층 탐색·Milestone 교차·Resource Plan·견적/Excel은 같은 host 밀도 계약을 사용한다. #807/#798의 일괄 44px 기대는 이 리소스 범위에서 fine36px·13px/20px, coarse44px로 교정한다. Native select의 computed line-height는 플랫폼이 소유하므로 높이/font/행 정렬로 검증하고 버튼·텍스트 입력의20px 기준과 구별한다. 다른 dashboard 관점·관리/Task Editor의 기존 명시 계약은 그대로 적용한다. 같은 행 제어의 top/bottom 차이 ≤1px·내용 중앙 정렬, label에 맞는 폭/padding, 긴 값·focus/오류 비잘림을 실제 browser로 확인한다.

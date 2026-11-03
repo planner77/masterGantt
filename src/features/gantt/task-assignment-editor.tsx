@@ -1,5 +1,9 @@
 "use client";
 
+import { displayName } from "../../lib/i18n";
+import { useI18n } from "../../lib/i18n/provider";
+
+
 import { IdentifierDetails } from "../../components/identifier-details";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -90,6 +94,7 @@ function assignmentDraftSnapshot(
 }
 
 export function TaskAssignmentEditor({ initialAssignment, taskId, revision, editable, disabled, onApplied, onSelectionCountChange, onDirtyChange, onPendingChange, onUnauthorized, discardGeneration = 0 }: Props) {
+  const { t, locale } = useI18n();
   const initialDraft = useRef<string | null>(null);
   const dirtyReference = useRef(false);
   const loadedDiscardGeneration = useRef(discardGeneration);
@@ -228,13 +233,14 @@ export function TaskAssignmentEditor({ initialAssignment, taskId, revision, edit
       .filter((target) => {
         if (!normalizedQuery) return true;
         return target.name.toLocaleLowerCase("ko").includes(normalizedQuery) ||
+          (target.kind === "group" && displayName(target, locale).toLocaleLowerCase("ko").includes(normalizedQuery)) ||
           (target.code ?? "").toLocaleLowerCase("ko").includes(normalizedQuery) || target.id.toLocaleLowerCase("ko").includes(normalizedQuery);
       })
       .sort((left, right) => {
         const selectedDifference = Number(selected.has(targetKey(right))) - Number(selected.has(targetKey(left)));
         return selectedDifference || left.name.localeCompare(right.name, "ko");
       });
-  }, [assignedOnly, eligibleTargets, kindFilter, query, roleFilter, selected, initialAssignment]);
+  }, [assignedOnly, eligibleTargets, kindFilter, query, roleFilter, selected, initialAssignment, locale]);
   const visibleResources = useMemo(() => visibleTargets.filter((target) => target.kind === "resource"), [visibleTargets]);
   const visibleGroups = useMemo(() => visibleTargets.filter((target) => target.kind === "group"), [visibleTargets]);
   const showResources = kindFilter !== "group";
@@ -318,57 +324,57 @@ export function TaskAssignmentEditor({ initialAssignment, taskId, revision, edit
   return <section className={styles.assignmentPanel} aria-labelledby="task-assignment-title">
     <div className={styles.sectionHeading}>
       <div>
-        <h3 id="task-assignment-title">담당 리소스 / 그룹</h3>
-        <p className={styles.sectionDescription}>작업 저장과 리소스 할당 저장은 별도 계약입니다. 작업 필드 변경이 있으면 먼저 작업을 저장하거나 취소해 주세요.</p>
+        <h3 id="task-assignment-title">{t("담당 리소스 / 그룹")}</h3>
+        <p className={styles.sectionDescription}>{t("작업 저장과 리소스 할당 저장은 별도 계약입니다. 작업 필드 변경이 있으면 먼저 작업을 저장하거나 취소해 주세요.")}</p>
       </div>
-      <span className={styles.sectionCount}>할당 {selectedTargets.length}개</span>
+      <span className={styles.sectionCount}>{t("할당 ")}{selectedTargets.length}{t("개")}</span>
     </div>
 
-    {loading ? <p className={styles.caption} role="status">할당 정보를 불러오는 중…</p> : null}
-    {error ? <p className={styles.relationError} role="alert">{error}</p> : null}
-    {initialAssignment ? <p role="status">선택한 개인의 배정만 편집합니다. Assignment ID {initialAssignment.assignmentId} · Resource ID {initialAssignment.resourceId}. 다른 개인의 배정은 유지됩니다.</p> : null}
-    {!ready && error ? <button type="button" className="secondary-button" onClick={() => setRetry((value) => value + 1)}>할당 정보 다시 시도</button> : null}
+    {loading ? <p className={styles.caption} role="status">{t("할당 정보를 불러오는 중…")}</p> : null}
+    {error ? <p className={styles.relationError} role="alert">{t(error)}</p> : null}
+    {initialAssignment ? <p role="status">{t("선택한 개인의 배정만 편집합니다. Assignment ID ")}{initialAssignment.assignmentId} · Resource ID {initialAssignment.resourceId}{t(". 다른 개인의 배정은 유지됩니다.")}</p> : null}
+    {!ready && error ? <button type="button" className="secondary-button" onClick={() => setRetry((value) => value + 1)}>{t("할당 정보 다시 시도")}</button> : null}
     {allocationIssues.length > 0 ? <div className={styles.validationSummary} role="alert" tabIndex={-1} ref={issueSummary}>
-      <strong>할당 입력 {allocationIssues.length}곳을 확인해 주세요.</strong>
-      <ul>{allocationIssues.map((issue) => <li key={`${issue.key}-${issue.field}`}><button type="button" onClick={() => focusAllocationIssue(issue)}>{issue.label}: {issue.message}</button></li>)}</ul>
+      <strong>{t("할당 입력 ")}{allocationIssues.length}{t("곳을 확인해 주세요.")}</strong>
+      <ul>{allocationIssues.map((issue) => <li key={`${issue.key}-${issue.field}`}><button type="button" onClick={() => focusAllocationIssue(issue)}>{t(issue.label)}: {t(issue.message)}</button></li>)}</ul>
     </div> : null}
-    {disabled && editable ? <p className={styles.assignmentNotice}>작업 필드 변경 또는 최신 정보 확인이 필요하여 할당 편집이 잠겨 있습니다.</p> : null}
+    {disabled && editable ? <p className={styles.assignmentNotice}>{t("작업 필드 변경 또는 최신 정보 확인이 필요하여 할당 편집이 잠겨 있습니다.")}</p> : null}
 
     {!loading && eligibleTargets.length > 0 ? <div className={styles.assignmentFilters}>
       <label className={styles.searchField}>
-        <span>검색</span>
-        <input type="search" value={query} placeholder="이름 또는 코드" onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }} />
+        <span>{t("검색")}</span>
+        <input type="search" value={query} placeholder={t("이름 또는 코드")} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }} />
       </label>
       <label className={styles.filterField}>
-        <span>유형</span>
+        <span>{t("유형")}</span>
         <select value={kindFilter} onChange={(event) => setKindFilter(event.target.value as "all" | "resource" | "group")}>
-          <option value="all">전체</option>
-          <option value="resource">리소스</option>
-          <option value="group">그룹</option>
+          <option value="all">{t("전체")}</option>
+          <option value="resource">{t("리소스")}</option>
+          <option value="group">{t("그룹")}</option>
         </select>
       </label>
       <label className={styles.filterField}>
         <span>Global Role</span>
         <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as "all" | ResourceRole)}>
-          <option value="all">전체 역할</option>
+          <option value="all">{t("전체 역할")}</option>
           {RESOURCE_ROLES.map((role) => <option value={role} key={role}>{ROLE_LABEL[role]}</option>)}
         </select>
       </label>
       <label className={styles.assignedOnly}>
         <input type="checkbox" checked={assignedOnly} onChange={(event) => setAssignedOnly(event.target.checked)} />
-        <span>할당됨만</span>
+        <span>{t("할당됨만")}</span>
       </label>
     </div> : null}
 
-    {ready && eligibleTargets.length === 0 ? <p className={styles.emptyRelation}>{editable ? "등록된 할당 대상이 없습니다." : "이 작업에 할당된 리소스/그룹이 없습니다."}</p> : null}
-    {roleFilter !== "all" && roleCandidatesLoading ? <p className={styles.caption} role="status">Global Role별 리소스 후보를 불러오는 중…</p> : null}
+    {ready && eligibleTargets.length === 0 ? <p className={styles.emptyRelation}>{editable ? t("등록된 할당 대상이 없습니다.") : t("이 작업에 할당된 리소스/그룹이 없습니다.")}</p> : null}
+    {roleFilter !== "all" && roleCandidatesLoading ? <p className={styles.caption} role="status">{t("Global Role별 리소스 후보를 불러오는 중…")}</p> : null}
 
     {!loading && (roleFilter === "all" || !roleCandidatesLoading) && eligibleTargets.length > 0 ? <div
       className={styles.assignmentSections}
       data-single-pane={kindFilter === "all" && roleFilter === "all" ? undefined : "true"}
     >
       {showResources ? <AssignmentSection
-        title="담당 리소스"
+        title={t("담당 리소스")}
         kindLabel="리소스"
         targets={visibleResources}
         allTargets={eligibleTargets.filter((target) => target.kind === "resource")}
@@ -385,7 +391,7 @@ export function TaskAssignmentEditor({ initialAssignment, taskId, revision, edit
         onChangeAllocation={changeAllocation}
       /> : null}
       {showGroups ? <AssignmentSection
-        title="리소스 그룹"
+        title={t("리소스 그룹")}
         kindLabel="그룹"
         targets={visibleGroups}
         allTargets={eligibleTargets.filter((target) => target.kind === "group")}
@@ -403,10 +409,10 @@ export function TaskAssignmentEditor({ initialAssignment, taskId, revision, edit
       /> : null}
     </div> : null}
 
-    <p className={styles.caption}>개인 리소스의 역할은 리소스 관리에서 설정한 Global Role을 그대로 사용하며 이 화면에서는 별도로 선택하지 않습니다. 투입 시작/종료를 비우면 작업의 확정 일정이 적용되며 그룹 할당은 담당 팀 참조로 유지됩니다.</p>
+    <p className={styles.caption}>{t("개인 리소스의 역할은 리소스 관리에서 설정한 Global Role을 그대로 사용하며 이 화면에서는 별도로 선택하지 않습니다. 투입 시작/종료를 비우면 작업의 확정 일정이 적용되며 그룹 할당은 담당 팀 참조로 유지됩니다.")}</p>
     {editable ? <div className={styles.assignmentFooter}>
-      <span className={styles.assignmentScope}>이 버튼은 리소스/그룹 할당만 저장합니다.</span>
-      <button className="secondary-button" type="button" disabled={disabled || saving || !ready} onClick={() => void save()}>{saving ? "할당 저장 중…" : "할당 저장 (" + selectedTargets.length + ")"}</button>
+      <span className={styles.assignmentScope}>{t("이 버튼은 리소스/그룹 할당만 저장합니다.")}</span>
+      <button className="secondary-button" type="button" disabled={disabled || saving || !ready} onClick={() => void save()}>{saving ? t("할당 저장 중…") : t("할당 저장 (") + selectedTargets.length + ")"}</button>
     </div> : null}
   </section>;
 }
@@ -434,6 +440,7 @@ function AssignmentSection({
   title, kindLabel, targets, allTargets, selected, allocations, allocationIssues,
   editable, disabled, saving, ready, exact, filtered, onToggle, onChangeAllocation,
 }: AssignmentSectionProps) {
+  const { t, locale } = useI18n();
   return <section className={styles.assignmentSection} aria-label={title}>
     <div className={styles.assignmentSectionHeading}>
       <h4>{title}</h4>
@@ -441,15 +448,16 @@ function AssignmentSection({
     </div>
     {targets.length === 0 ? <p className={styles.assignmentEmpty}>
       {allTargets.length === 0
-        ? (kindLabel === "그룹" ? "등록된 그룹이 없습니다." : "등록된 리소스가 없습니다.")
-        : filtered ? "현재 필터와 일치하는 결과가 없습니다." : `표시할 ${kindLabel}가 없습니다.`}
+        ? (kindLabel === "그룹" ? t("등록된 그룹이 없습니다.") : t("등록된 리소스가 없습니다."))
+        : filtered ? t("현재 필터와 일치하는 결과가 없습니다.") : t("표시할 {value0}가 없습니다.", { value0: kindLabel })}
     </p> : <div className={styles.assignmentList}>
       {targets.map((target, index) => {
         const key = targetKey(target);
         const checked = selected.has(key);
         const allocation = allocations[key] ?? { start: "", end: "", percent: "" };
-        const duplicate = allTargets.some(other => other.id !== target.id && other.name === target.name);
-        const identity = `${kindLabel} ${index + 1} ${target.name}${duplicate ? ` (${target.code || target.id})` : ""}`;
+        const duplicate = allTargets.some(other => other.id !== target.id && (other.kind === "group" ? displayName(other, locale) : other.name) === (target.kind === "group" ? displayName(target, locale) : target.name));
+        const targetName = target.kind === "group" ? displayName(target, locale) : target.name;
+        const identity = `${t(kindLabel)} ${index + 1} ${targetName}${duplicate ? ` (${target.code || target.id})` : ""}`;
         const percentIssue = allocationIssues.find((issue) => issue.key === key && issue.field === "percent");
         const endIssue = allocationIssues.find((issue) => issue.key === key && issue.field === "end");
         return <article key={key} className={styles.assignmentRow} data-selected={checked || undefined}>
@@ -461,19 +469,19 @@ function AssignmentSection({
               onChange={() => onToggle(target)}
             />
             <span className={styles.assignmentIdentity}>
-              <strong>{target.name}</strong>
+              <strong>{targetName}</strong>
               {duplicate ? <code>{target.code || target.id}</code> : null}
-              {target.kind === "resource" ? (target.roles ?? []).map((item) => <span className={styles.roleBadge} key={item}>{ROLE_LABEL[item]}</span>) : null}
-              {!target.active ? <span className={styles.inactiveBadge}>비활성</span> : null}
+              {target.kind === "resource" ? (target.roles ?? []).map((item) => <span className={styles.roleBadge} key={item}>{t(ROLE_LABEL[item])}</span>) : null}
+              {!target.active ? <span className={styles.inactiveBadge}>{t("비활성")}</span> : null}
             </span>
           </label>
-          <IdentifierDetails label={`${target.name} 식별 정보`} identifiers={[{label:"ID",value:target.id},...(target.code?[{label:"코드",value:target.code}]:[])]}/>
+          <IdentifierDetails label={t("{value0} 식별 정보", { value0: targetName })} identifiers={[{label:"ID",value:target.id},...(target.code?[{label:t("코드"),value:target.code}]:[])]}/>
           {checked && target.kind === "resource" ? <fieldset className={styles.allocationFieldset}>
-            <legend>{identity} 투입 정보</legend>
+            <legend>{identity} {t(" 투입 정보")}</legend>
             <div className={styles.allocationGrid}>
-              <label className={styles.field}>투입 시작<input id={`allocation-${key}-start`} aria-label={`${identity} 투입 시작`} type="date" value={allocation.start} disabled={!editable || disabled || saving || !ready} onChange={(event) => onChangeAllocation(key, "start", event.target.value)} /></label>
-              <label className={styles.field}>투입 종료<input id={`allocation-${key}-end`} aria-label={`${identity} 투입 종료`} aria-invalid={Boolean(endIssue)} aria-describedby={endIssue ? `allocation-${key}-end-error` : undefined} type="date" value={allocation.end} disabled={!editable || disabled || saving || !ready} onChange={(event) => onChangeAllocation(key, "end", event.target.value)} />{endIssue ? <span className={styles.fieldError} id={`allocation-${key}-end-error`}>{endIssue.message}</span> : null}</label>
-              <label className={styles.field}>투입률 (%)<input id={`allocation-${key}-percent`} aria-label={`${identity} 투입률 (%)`} aria-invalid={Boolean(percentIssue)} aria-describedby={percentIssue ? `allocation-${key}-percent-error` : undefined} type="number" min="0.01" max="100" step="0.01" value={allocation.percent} disabled={!editable || disabled || saving || !ready} onChange={(event) => onChangeAllocation(key, "percent", event.target.value)} />{percentIssue ? <span className={styles.fieldError} id={`allocation-${key}-percent-error`}>{percentIssue.message}</span> : null}</label>
+              <label className={styles.field}>{t("투입 시작")}<input id={`allocation-${key}-start`} aria-label={t("{value0} 투입 시작", { value0: identity })} type="date" value={allocation.start} disabled={!editable || disabled || saving || !ready} onChange={(event) => onChangeAllocation(key, "start", event.target.value)} /></label>
+              <label className={styles.field}>{t("투입 종료")}<input id={`allocation-${key}-end`} aria-label={t("{value0} 투입 종료", { value0: identity })} aria-invalid={Boolean(endIssue)} aria-describedby={endIssue ? `allocation-${key}-end-error` : undefined} type="date" value={allocation.end} disabled={!editable || disabled || saving || !ready} onChange={(event) => onChangeAllocation(key, "end", event.target.value)} />{endIssue ? <span className={styles.fieldError} id={`allocation-${key}-end-error`}>{t(endIssue.message)}</span> : null}</label>
+              <label className={styles.field}>{t("투입률 (%)")}<input id={`allocation-${key}-percent`} aria-label={t("{value0} 투입률 (%)", { value0: identity })} aria-invalid={Boolean(percentIssue)} aria-describedby={percentIssue ? `allocation-${key}-percent-error` : undefined} type="number" min="0.01" max="100" step="0.01" value={allocation.percent} disabled={!editable || disabled || saving || !ready} onChange={(event) => onChangeAllocation(key, "percent", event.target.value)} />{percentIssue ? <span className={styles.fieldError} id={`allocation-${key}-percent-error`}>{t(percentIssue.message)}</span> : null}</label>
             </div>
           </fieldset> : null}
         </article>;

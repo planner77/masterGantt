@@ -1,3 +1,4 @@
+import { readDisplayNameTranslations, writeDisplayNameTranslations } from "../repositories/display-name-translations-repository-core";
 import { ProjectResourceMembershipRepository } from "../repositories/project-resource-membership-repository-core";
 import { copyTaskTargetBindings } from "../logistics/task-target-transfer-core";
 import { copyProjectContexts } from "../logistics/project-context-transfer-core";
@@ -454,6 +455,7 @@ export class ProjectCopyService {
               active: sp.active,
               now: nowText,
             });
+            writeDisplayNameTranslations(this.database, "project_processes", newProcess.id, readDisplayNameTranslations(this.database, "project_processes", sp.id));
             newBySourceProcessId.set(sp.id, newProcess);
             pendingProcesses.splice(i, 1);
             insertedCount += 1;
@@ -497,7 +499,8 @@ export class ProjectCopyService {
             active: ss.active,
             now: nowText,
           });
-          newBySourceSystemId.set(ss.id, newSystem);
+          writeDisplayNameTranslations(this.database, "project_logistics_systems", newSystem.id, readDisplayNameTranslations(this.database, "project_logistics_systems", ss.id));
+            newBySourceSystemId.set(ss.id, newSystem);
 
           // 시스템 담당 공정 복사
           const sourceProcessIds: number[] = this.logistics.listSystemProcesses(source.id, ss.id);
@@ -564,7 +567,8 @@ export class ProjectCopyService {
             active: se.active,
             now: nowText,
           });
-          newBySourceEquipmentId.set(se.id, newEquipment);
+          writeDisplayNameTranslations(this.database, "project_equipment", newEquipment.id, readDisplayNameTranslations(this.database, "project_equipment", se.id));
+            newBySourceEquipmentId.set(se.id, newEquipment);
 
           // 설비-시스템 매핑 복사
           const sourceEqSystems = this.logistics.listEquipmentSystems(source.id, se.id);

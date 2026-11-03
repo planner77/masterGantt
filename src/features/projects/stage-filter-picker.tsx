@@ -1,4 +1,7 @@
 "use client";
+
+import { useI18n } from "../../lib/i18n/provider";
+
 import { IdentifierDetails } from "../../components/identifier-details";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import type { ProjectTaskDto } from "@/contracts/projects";
@@ -27,11 +30,12 @@ export function stageCandidateContext(task: ProjectTaskDto, tasks: readonly Proj
 }
 
 export function StageFilterPicker({ tasks, value, onChange, allowUnassigned = true }: { tasks: readonly ProjectTaskDto[]; value: string; onChange: (value: string) => void; allowUnassigned?: boolean }) {
+  const { t } = useI18n();
   const id = useId(), input = useRef<HTMLInputElement>(null), trigger = useRef<HTMLButtonElement>(null), popup = useRef<HTMLDivElement>(null), list = useRef<HTMLUListElement>(null);
   const [open, setOpen] = useState(false), [query, setQuery] = useState(""), [active, setActive] = useState(0);
-  const options = [{ id: "all", label: "전체", task: undefined }, ...(allowUnassigned ? [{ id: "unassigned", label: "미지정", task: undefined }] : []), ...stageFilterCandidates(tasks, query).map((task) => ({ id: task.taskId, label: task.name.trim() || "이름 확인 필요", task }))];
+  const options = [{ id: "all", label: t("전체"), task: undefined }, ...(allowUnassigned ? [{ id: "unassigned", label: t("미지정"), task: undefined }] : []), ...stageFilterCandidates(tasks, query).map((task) => ({ id: task.taskId, label: task.name.trim() || "이름 확인 필요", task }))];
   const chosen = tasks.find((task) => task.taskId === value);
-  const label = value === "all" ? "전체" : value === "unassigned" ? "미지정" : (chosen ? chosen.name.trim() || "이름 확인 필요" : "Milestone 없음");
+  const label = value === "all" ? t("전체") : value === "unassigned" ? t("미지정") : (chosen ? chosen.name || t("이름 확인 필요") : t("Milestone 없음"));
   useLayoutEffect(() => {
     if (!open) return;
     const fit = () => {
@@ -75,11 +79,11 @@ export function StageFilterPicker({ tasks, value, onChange, allowUnassigned = tr
   return <div className="project-stage-filter" onKeyDown={(event) => { if (open && event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); } }}>
     <button ref={trigger} type="button" className="secondary-button project-stage-filter-trigger" aria-label={`Milestone: ${label}`} aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? `${id}-list` : undefined} title={label} onClick={() => { if (open) close(); else { setOpen(true); setQuery(""); setActive(0); requestAnimationFrame(() => input.current?.focus()); } }}><span>Milestone: {label}</span><span aria-hidden="true">▾</span></button>
     {open ? <div ref={popup} className="project-stage-filter-popup" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null) && event.relatedTarget !== trigger.current) setOpen(false); }}>
-      <label htmlFor={`${id}-input`}>Milestone 이름·외부 ID·작업 ID 검색</label>
+      <label htmlFor={`${id}-input`}>{t("Milestone 이름·외부 ID·작업 ID 검색")}</label>
       <input id={`${id}-input`} ref={input} role="combobox" aria-autocomplete="list" aria-expanded="true" aria-controls={`${id}-list`} aria-activedescendant={`${id}-option-${active}`} value={query} onChange={(event) => { setQuery(event.target.value); setActive(0); }} onKeyDown={(event) => { if (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "Home" || event.key === "End") { event.preventDefault(); event.stopPropagation(); move(event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : active + (event.key === "ArrowDown" ? 1 : -1)); } else if (event.key === "Enter") { event.preventDefault(); event.stopPropagation(); choose(active); } else if (event.key === "Tab") setOpen(false); }} />
-      <ul ref={list} id={`${id}-list`} role="listbox" aria-label="Milestone 조회 조건">{options.map((option, index) => <li id={`${id}-option-${index}`} role="option" aria-selected={value === option.id} data-active={active === index} key={option.id} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(index)}><strong>{option.label}</strong>{option.task ? <small>{stageCandidateContext(option.task, tasks)}</small> : null}</li>)}</ul>
+      <ul ref={list} id={`${id}-list`} role="listbox" aria-label={t("Milestone 조회 조건")}>{options.map((option, index) => <li id={`${id}-option-${index}`} role="option" aria-selected={value === option.id} data-active={active === index} key={option.id} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(index)}><strong>{option.label}</strong>{option.task ? <small>{stageCandidateContext(option.task, tasks)}</small> : null}</li>)}</ul>
     </div> : null}
-    {chosen ? <IdentifierDetails label={`${label} 식별 정보`} identifiers={[{label:"외부 ID",value:chosen.externalId},{label:"작업 ID",value:chosen.taskId}]}/> : null}
-    {value !== "all" ? <button className="secondary-button project-stage-clear" type="button" onClick={() => onChange("all")}>Milestone 조건 해제</button> : null}
+    {chosen ? <IdentifierDetails label={t("{value0} 식별 정보", { value0: label })} identifiers={[{label:t("외부 ID"),value:chosen.externalId},{label:t("작업 ID"),value:chosen.taskId}]}/> : null}
+    {value !== "all" ? <button className="secondary-button project-stage-clear" type="button" onClick={() => onChange("all")}>{t("Milestone 조건 해제")}</button> : null}
   </div>;
 }

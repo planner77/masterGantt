@@ -37,4 +37,12 @@ describe("Issue #343 Project List 기준정보 표시", () => {
     const longName = "글로벌 물류자동화 및 스마트팩토리 통합 사업부";
     expect(projectMasterListLabel(item({ name: longName }))).toBe(longName);
   });
+  it("selects only the requested translation and keeps canonical names as exact fallback", () => {
+    const translated = item({ name: " 원문 ", translations: { en: "Logistics", vi: "Logistics Việt" } });
+    expect(projectMasterListLabel(translated, "en")).toBe("Logistics");
+    expect(projectMasterListLabel(translated, "vi")).toBe("Logistics Việt");
+    expect(projectMasterListLabel(translated, "ko")).toBe(" 원문 ");
+    expect(translated.name).toBe(" 원문 ");
+  });
+
 });

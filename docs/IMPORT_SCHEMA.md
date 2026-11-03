@@ -1,3 +1,7 @@
+## Issue #866 — Template6와 schedule import 원본 불변 (2026-11-03)
+
+기존 schedule JSON/CSV의 versioned 원본 name/code/ID와 strict 입력은 유지한다. 선택 언어 표시명을 원본으로 저장하지 않는다. Project Template은 별도 snapshot 계약으로 local 수동 표시명이 있을 때 schemaVersion6에 optional translations를 포함하고 기존2~5 읽기 호환을 유지한다. schedule JSON/Excel은 번역을 표현하지 못하므로 수동 번역이 있는 해당 export는 `DISPLAY_NAME_TRANSLATIONS_EXPORT_UNSUPPORTED`로 거부한다. 지원하지 않는 필드를 삭제하거나 번역 없이 성공한 것처럼 처리하지 않는다. 상세 [Import/Export](IMPORT_EXPORT.md).
+
 ## Issue #785 — 공개 폐기와 일정 교환 범위 불변
 
 Logistics Target 사용자 도메인 폐기로 일정 JSON1.0/1.1 schema를 확장하지 않는다. 기존 보존 그래프/직접 실물 문맥을 표현하지 못하는 파일은 명시 오류·전체 rollback이며 호환 key를 조용히 버리지 않는다. 내부 Template snapshot의 legacy graph는 지원 원본 보존용이고 신규 public 작성 계약이 아니다. 일반 dependency source/target 및 AssignmentTarget는 다른 의미로 유지한다. [교환 정책](IMPORT_EXPORT.md), [실행·미검증](exec-plans/active/ISSUE_785.md).

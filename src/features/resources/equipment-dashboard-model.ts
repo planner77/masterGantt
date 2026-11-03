@@ -1,3 +1,5 @@
+import { displayName } from "../../lib/i18n";
+import type { AppLocale } from "../../lib/i18n/locales";
 import type { WbsViewReportDto, WbsViewSpec } from "../../contracts/wbs-dashboard-views";
 
 export const EQUIPMENT_DEFAULT_SPEC: WbsViewSpec = {
@@ -10,17 +12,17 @@ export const EQUIPMENT_PRESETS: Array<{ label: string; levels: NonNullable<WbsVi
 ];
 
 /** Presentation only; Task, Assignment, effort and full Gate retain server authority. */
-export function equipmentPresentation(data: WbsViewReportDto) {
+export function equipmentPresentation(data: WbsViewReportDto, locale:AppLocale="ko") {
   const equipment = data.configurationCatalog.equipment;
   const equipmentRows = data.children.filter(row => row.selector.dimension === "equipment" && row.selector.id !== null);
   const milestoneIds = new Set(data.taskSources.flatMap(row => row.type === "task" && row.milestoneTaskId ? [row.milestoneTaskId] : []));
-  const typeOptions = [...new Map(equipment.map(row => [row.equipmentType, { code: row.equipmentType, name: row.equipmentTypeName }])).values()];
+  const typeOptions = [...new Map(equipment.map(row => [row.equipmentType, { code: row.equipmentType, name: row.equipmentTypeName, translations: row.equipmentTypeTranslations }])).values()];
   const nameCounts = new Map<string, number>();
-  for (const type of typeOptions) nameCounts.set(type.name, (nameCounts.get(type.name) ?? 0) + 1);
+  for (const type of typeOptions) nameCounts.set(displayName(type,locale), (nameCounts.get(displayName(type,locale)) ?? 0) + 1);
   return {
     equipment,
     equipmentRows,
-    types: typeOptions.map(type => ({ ...type, label: (nameCounts.get(type.name) ?? 0) > 1 ? `${type.name} (${type.code})` : type.name }))
+    types: typeOptions.map(type => ({ ...type, label: (nameCounts.get(displayName(type,locale)) ?? 0) > 1 ? `${displayName(type,locale)} (${type.code})` : displayName(type,locale) }))
       .sort((a,b) => a.name.localeCompare(b.name,"ko") || a.code.localeCompare(b.code)),
     configuration: data.totals.configurationReference,
     tasks: data.totals.tasks,

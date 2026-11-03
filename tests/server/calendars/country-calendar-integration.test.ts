@@ -212,7 +212,7 @@ describe("catalog and materialized calendar boundaries", () => {
     const aggregate = (db: Database.Database) => [new ProjectRepository(db).findById(project.id), new ScheduleRepository(db).listTasks(project.id), new WorkCalendarRepository(db).listRules(project.id), new WorkCalendarRepository(db).listDates(project.id), db.prepare("SELECT * FROM project_master_admin_sessions").all()];
     const before = aggregate(legacy); legacy.close();
     const upgraded = openDatabase({ filename, migrationsDirectory: sourceMigrations });
-    expect(upgraded.migrations.applied).toEqual(["0035_country_calendar_catalog.sql"]);
+    expect(upgraded.migrations.applied).toEqual(["0035_country_calendar_catalog.sql", "0036_display_name_translations.sql"]);
     expect(aggregate(upgraded.database)).toEqual(before);
     expect(upgraded.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     const service = new CountryCalendarAdminService(upgraded.database, { clock: () => new Date("2026-10-07T13:00:00Z") }), file = uploaded("2026-10-07"), preview = service.previewImport(token.rawToken, 1, file);

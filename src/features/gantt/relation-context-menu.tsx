@@ -1,3 +1,6 @@
+"use client";
+
+import { useI18n } from "../../lib/i18n/provider";
 import { linkStructureLocked, COMPLETED_LINK_EXPLANATION } from "./relation-editor-model";
 import React, { useEffect, useId, useRef, useState } from "react";
 import type { DependencyType, ProjectLinkDto, ProjectTaskDto } from "../../contracts/projects";
@@ -32,6 +35,7 @@ export function RelationContextMenu({
   onClose,
   onOpenEditor,
 }: RelationContextMenuProps) {
+  const { t } = useI18n();
   const titleId = useId();
   const menuRef = useRef<HTMLDivElement>(null);
   const typeSelectRef = useRef<HTMLSelectElement>(null);
@@ -82,8 +86,8 @@ export function RelationContextMenu({
     try {
       const saved = await onSave(linkId, { type, lag });
       if (saved) onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "저장에 실패했습니다.");
+    } catch {
+      setError("저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -96,8 +100,8 @@ export function RelationContextMenu({
     try {
       await onDelete(linkId);
       onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "삭제에 실패했습니다.");
+    } catch {
+      setError("삭제에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -120,10 +124,9 @@ export function RelationContextMenu({
     >
       <div className="project-relation-context-menu-header">
         <h3 id={titleId} style={{ margin: 0, fontSize: "0.95rem", fontWeight: 600 }}>
-          작업 관계 설정
-        </h3>
+          {t("작업 관계 설정")}</h3>
         <button
-          aria-label="닫기"
+          aria-label={t("닫기")}
           className="project-relation-context-menu-close"
           onClick={onClose}
           type="button"
@@ -142,22 +145,21 @@ export function RelationContextMenu({
             }}
             type="button"
           >
-            관계 관리... (Relation Editor)
-          </button>
+            {t("관계 관리... (Relation Editor)")}</button>
         </div>
       ) : null}
 
       <div className="project-relation-context-menu-body">
         <div className="project-relation-endpoints">
           <div className="project-relation-endpoint">
-            <span className="project-relation-endpoint-label">선행 작업</span>
+            <span className="project-relation-endpoint-label">{t("선행 작업")}</span>
             <span className="project-relation-endpoint-name" title={predecessor?.name ?? link.predecessorExternalId}>
               {predecessor?.name ?? link.predecessorExternalId}
             </span>
           </div>
           <div className="project-relation-arrow" aria-hidden="true">→</div>
           <div className="project-relation-endpoint">
-            <span className="project-relation-endpoint-label">후행 작업</span>
+            <span className="project-relation-endpoint-label">{t("후행 작업")}</span>
             <span className="project-relation-endpoint-name" title={successor?.name ?? link.successorExternalId}>
               {successor?.name ?? link.successorExternalId}
             </span>
@@ -167,7 +169,7 @@ export function RelationContextMenu({
         {structureLocked ? <p>{COMPLETED_LINK_EXPLANATION}</p> : null}
         <form onSubmit={handleSave}>
           <div className="project-relation-field">
-            <label htmlFor="relation-type-select">관계 종류</label>
+            <label htmlFor="relation-type-select">{t("관계 종류")}</label>
             <select
               disabled={!editable || structureLocked || isSubmitting}
               id="relation-type-select"
@@ -185,8 +187,7 @@ export function RelationContextMenu({
 
           <div className="project-relation-field">
             <label htmlFor="relation-lag-input">
-              Lag (근무일수, 음수는 Lead)
-            </label>
+              {t("Lag (근무일수, 음수는 Lead)")}</label>
             <input
               disabled={!editable || structureLocked || isSubmitting}
               id="relation-lag-input"
@@ -199,7 +200,7 @@ export function RelationContextMenu({
             />
           </div>
 
-          {error && <div className="project-relation-error" role="alert">{error}</div>}
+          {t(error) && <div className="project-relation-error" role="alert">{t(error)}</div>}
 
           <div className="project-relation-actions">
             {editable ? (
@@ -210,8 +211,7 @@ export function RelationContextMenu({
                   onClick={handleDelete}
                   type="button"
                 >
-                  관계 삭제
-                </button>
+                  {t("관계 삭제")}</button>
                 <div style={{ flex: 1 }} />
                 <button
                   className="project-relation-cancel-btn"
@@ -219,27 +219,24 @@ export function RelationContextMenu({
                   onClick={onClose}
                   type="button"
                 >
-                  취소
-                </button>
+                  {t("취소")}</button>
                 <button
                   className="project-relation-save-btn"
                   disabled={structureLocked || !isDirty || isSubmitting}
                   type="submit"
                 >
-                  저장
-                </button>
+                  {t("저장")}</button>
               </>
             ) : (
               <div style={{ width: "100%", textAlign: "right" }}>
-                <span className="project-relation-readonly-badge">읽기 전용</span>
+                <span className="project-relation-readonly-badge">{t("읽기 전용")}</span>
                 <button
                   className="project-relation-cancel-btn"
                   onClick={onClose}
                   style={{ marginLeft: 8 }}
                   type="button"
                 >
-                  닫기
-                </button>
+                  {t("닫기")}</button>
               </div>
             )}
           </div>

@@ -1,3 +1,9 @@
+## 표시 언어와 선택형 사내 LLM (#866/#865)
+
+공통 언어 선택에서 한국어/English/Tiếng Việt를 선택하며 브라우저에 유지합니다. 기준정보는 기존 관리자 권한으로 원본 이름과 별도의 언어별 표시명을 입력합니다. 사용자 자유 입력과 일정 계산은 변경하지 않습니다. [국제화/수동 표시명](docs/I18N.md)을 참조하세요.
+
+사내 LLM은 기본 OFF인 서버 전용 공통 모듈이며 실제 AI 화면·자동 번역을 추가하지 않습니다. [runtime 설정·다중 서버/모델·비밀정보·연결 정책](docs/LLM_CONFIGURATION.md)과 `.env.example`을 확인하세요.
+
 # masterGantt
 
 > Milestone 행·상단 마커 OFF 기준의 교환·출력 의미는 [Milestone 사용자 가이드](docs/MILESTONE_USER_GUIDE.md)를 참고한다. 원본 일정 JSON 1.1·Excel·SVG/PNG의 범위는 현재 Gantt 표시와 다를 수 있다.

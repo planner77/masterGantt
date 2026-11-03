@@ -1,5 +1,8 @@
 "use client";
 
+import { useI18n } from "../lib/i18n/provider";
+
+
 import { useContext, useEffect, useId, useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
 import { WorkspaceMessageContext } from "./workspace-message-context";
 import styles from "./workspace-feedback.module.css";
@@ -12,6 +15,7 @@ export function WorkspaceDialog({ title, children, onClose, onEscape, onAfterClo
   size?: "standard" | "wide";
   controlledEscape?: boolean;
 }>) {
+  const { t } = useI18n();
   const reference = useRef<HTMLDialogElement>(null);
   const afterCloseReference = useRef(onAfterClose);
   useLayoutEffect(() => { afterCloseReference.current = onAfterClose; }, [onAfterClose]);
@@ -72,9 +76,9 @@ export function WorkspaceDialog({ title, children, onClose, onEscape, onAfterClo
     }}>
     <div className={styles.dialogHeading}>
       <h2 id={titleId}>{title}</h2>
-      <button className="secondary-button" type="button" disabled={busy} onClick={onClose} aria-label={`${title} 닫기`}>닫기</button>
+      <button className="secondary-button" type="button" disabled={busy} onClick={onClose} aria-label={t("{value0} 닫기", { value0: title })}>{t("닫기")}</button>
     </div>
     {children}
-    {feedback ? <div className={`${styles.toast} ${message ? styles.toastVisible : ""}`} role="status" aria-live="polite" aria-atomic="true">{message}</div> : null}
+    {feedback ? <div className={`${styles.toast} ${message ? styles.toastVisible : ""}`} role="status" aria-live="polite" aria-atomic="true">{t(message)}</div> : null}
   </dialog>;
 }

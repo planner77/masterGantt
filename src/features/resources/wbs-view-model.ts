@@ -1,3 +1,5 @@
+import { displayName, translate } from "../../lib/i18n";
+import type { AppLocale } from "../../lib/i18n/locales";
 import { WBS_VIEW_DIMENSIONS, WBS_VIEW_LIMITS, type WbsViewDimension, type WbsViewNode, type WbsViewSpec } from "../../contracts/wbs-dashboard-views";
 
 export const WBS_VIEW_ROOTS = ["process", "equipment", "system", "resource", "milestone"] as const;
@@ -33,7 +35,7 @@ export function validateWbsViewSpec(value: unknown): WbsViewValidation {
   }
   return { ok: true, spec: { version: "wbs-view:v1", contextSourceVersion: "explicit-task-context:v1", root: raw.root as WbsViewDimension, levels, ...(raw.systemView !== undefined ? { systemView: raw.systemView as "direct" | "coordination" } : {}), ...(raw.systemIds !== undefined ? { systemIds: [...new Set(raw.systemIds as string[])].sort() } : {}) } };
 }
-export const wbsViewNodeLabel = (node: WbsViewNode) => node.name ?? (node.selector.dimension === "resource" ? "미배정" : `${WBS_VIEW_LABELS[node.selector.dimension]} 없음`);
+export const wbsViewNodeLabel = (node: WbsViewNode, locale: AppLocale = "ko") => node.name !== null ? displayName({ ...node, name: node.name }, locale) : (node.selector.dimension === "resource" ? translate(locale,"미배정") : `${translate(locale,WBS_VIEW_LABELS[node.selector.dimension])} ${translate(locale,"없음")}`);
 /** Keep the exact server node/totals; overlapping child totals must never be added. */
 export function flattenWbsViewNodes(nodes: readonly WbsViewNode[], expanded: ReadonlySet<string>, sort: "name-asc" | "name-desc" = "name-asc"): Array<{ node: WbsViewNode; depth: number }> {
   const rows: Array<{ node: WbsViewNode; depth: number }> = [];

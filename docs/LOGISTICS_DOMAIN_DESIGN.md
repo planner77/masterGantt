@@ -1,3 +1,7 @@
+## Issue #866 — 물류 기준정보 원본과 수동 표시명 (2026-11-03)
+
+글로벌 설비/시스템 유형, Process Type·제품 표준공정·현장공정·공유 WorkArea 및 Project 공정/직접 WorkArea/설비/시스템의 name은 원본을 유지한다. 각 owner별 translations ko/en/vi는 표시만 바꾸며 해당 언어 없으면 정확한 원본 name이다. 전역 원본은 기존 catalog 관리자, Project 원본은 해당 편집 세션만 저장하고 기존 Origin/revision/고유성·사용중 삭제·FK 보호는 유지한다. 조회 검색은 원문+현재 표시명, 선택은 canonical ID/code다. KPI 수량/공정 관계·Task 문맥·계산/권한은 locale과 독립적이다. Copy/Template6·미지원 export 손실 방지는 [i18n 계약](I18N.md)을 따른다.
+
 ## Issue #792 — 기존 관계 적용 범위 안전 편집 (한정)
 
 #785 공개 Target CRUD/Target binding writer의 410은 유지한다. 신규 직접 연결이 권위 원본이지만, 보존된 `task_target_bindings`의 **Summary 직접 관계 한 건**은 별도 source-aware editor로 `self↔subtree` 범위만 안전하게 수정할 수 있다. 원본 binding UUID·target/Task FK·member UUID·subset coverage·whole 동적 해석·공정/WorkArea 원본은 불변이며 기존 Equipment/System/직접 관계·WBS/Resource/Assignment를 자동 추가하거나 분배하지 않는다.

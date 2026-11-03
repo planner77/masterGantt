@@ -1,3 +1,7 @@
+## Issue #866 — 표시 언어와 기준정보 이름 (2026-11-03)
+
+기존 파란색 Light UI·system font·semantic token을 유지한다. 한국어/English/Tiếng Việt 선택은 공통 shell에서 키보드로 접근하고 html lang을 동기화한다. 장문 영문/베트남어는 intrinsic 폭과 wrap을 사용하고 기술 식별자·사용자 자유 입력은 번역하지 않는다. 기준정보는 현재 언어 수동 표시명 우선·없으면 정확한 원본 name이며 ID/code는 선택/확인 메타데이터로 보존한다. 언어 전환으로 Gantt remount/scroll·초안 초기화를 하지 않는다. Issue의 국소 배치는 아래 Project Issue 계약과 [UX 가이드](docs/UI_UX_GUIDELINES.md)를 따른다.
+
 # masterGantt Design System
 
 적용 기준: 2026-09-23.
@@ -390,11 +394,11 @@ Milestone 관리·날짜·소속 Task 탐색은 Gantt marker 없이도 항상 �
 
 Project Workspace 상위 peer 탭은 **일정 / Issue / 대시보드 / 기준정보** 순서를 따른다. Issue는 Task 일정·Milestone·기준정보의 새 하위 탭이 아닌 독립 Project Issue 조회/편집 화면이다. 탭 전환은 기존 SVAR Gantt instance·viewport·scale·selection·dirty 상태를 재생성/변경하지 않는다. 직접 URL screen=issue 복귀·focus·aria-controls/tabpanel·키보드 ArrowRight/Left/Home/End를 제공한다.
 
-Issue는 **compact toolbar(전체/완료/진행 중/등록 건수·비율 + 등록 명령) → 검색 조건(문구/업무 상태) → 목록 → 하단 pagination** 순서로 배치한다. 상태별 건수와 비율은 페이지/검색과 무관한 삭제 제외 전체 프로젝트 분모(T=C+P+R, 0건 0.0%). 목록은 Issue명/상태/담당자/발생일/완료일을 사용하고, 긴 Issue명은 가용 너비를 흡수하며 나머지 metadata는 intrinsic min width와 표 내부 가로 스크롤을 사용한다. 검색·상태·페이지 크기 변경은 첫 페이지로 복귀한다. 상태 기본 검색·초기화는 #867의 서버 런타임 환경변수 `PROJECT_ISSUE_DEFAULT_STATUS_FILTER`로 정하며, 미설정/잘못된 값은 전체(all)다. 수동 선택한 상태는 검색·탭 전환 중 보존하고 전체/미완료/각 상태를 조회할 수 있다.
+Issue는 **compact toolbar(전체/완료/진행 중/등록 건수·비율 + 등록 명령) → 검색 조건(문구/업무 상태) → 목록 → 하단 pagination** 순서로 배치한다. #869부터 일반 데스크톱에서 목록 데이터 영역만 수직 scroll owner이며 KPI/필터/결과 요약/pagination은 밖에 유지한다. 좁거나 낮은 화면은 컨트롤 접근을 위한 안전한 상위 스크롤을 허용한다. 상태별 건수와 비율은 페이지/검색과 무관한 삭제 제외 전체 프로젝트 분모(T=C+P+R, 0건 0.0%). 목록은 Issue명/상태/담당자/발생일/완료일을 사용하고, 긴 Issue명은 가용 너비를 흡수하며 나머지 metadata는 intrinsic min width와 표 내부 가로 스크롤을 사용한다. 검색·상태·페이지 크기 변경은 첫 페이지로 복귀한다. 상태 기본 검색·초기화는 #867의 서버 런타임 환경변수 `PROJECT_ISSUE_DEFAULT_STATUS_FILTER`로 정하며, 미설정/잘못된 값은 전체(all)다. 수동 선택한 상태는 검색·탭 전환 중 보존하고 전체/미완료/각 상태를 조회할 수 있다.
 
 **#854 후속 UI/권한:** Issue 신규 등록은 Project 편집 잠금 상태와 분리하여 조회 가능한 Project에서 제공한다. Task Editor의 작업 정보에 읽기 전용 사용자도 선택 가능한 `Issue 등록`을 추가하며, 기존 Project Issue 등록 폼으로 전환할 때 정확한 Task ID/이름을 초기 지정한다. `연결 해제`는 ID=NULL/텍스트 빈값으로 비우고, 다른 Task 검색/자유 텍스트 입력을 허용한다. 미저장 Task 초안·pending 중에는 전환을 비활성화하고 사용자에게 사유를 안내하며, 완료/취소 시 원래 Task Editor를 최신 canonical 작업으로 다시 연다. 등록 저장 후 최신 Project GET이 끝나기 전에는 `Issue 등록 후 작업 정보 복귀 중…` 상태를 표시하고 다른 Editor/Issue 입력과 상위 탭 이동을 잠가 늦은 응답이 새 초안을 덮어쓰지 못하도록 한다. SVAR modal과 Issue modal을 동시에 활성화하지 않고 하나의 Gantt 인스턴스·기존 viewport/selection을 유지한다. 자세한 내용은 [#854 실행 계획](docs/exec-plans/active/ISSUE_854.md)을 따른다.
 
-등록/수정은 필요할 때 여는 detail form이며 제목/등록일/등록자·담당자/발생일/상태 선택(등록·진행 중·완료)+조건부 완료일/**관련 Task → Issue 내용 multiline** 순서로 표시한다. Issue 내용 원문과 URL을 그대로 보존하되 별도 '링크 미리보기' 영역은 제거한다. 자원/Task 직접 입력과 검색 선택 ID/이름을 구별한다. 신규 등록에는 Issue 비밀번호+확인, 보호 Issue 수정·삭제에는 해당 비밀번호, 기존 레코드 초기화·분실 재설정에는 Project 편집 세션+실제 Project 비밀번호를 명시적으로 요구한다. 삭제는 경고·확인 후 논리 상태 전환이며 목록/상태별 KPI에서 제외한다. 비밀번호·오류·readonly/pending·409/412/429 안내, Escape/Tab/focus restore를 compact UI로 제공한다. 390/768/1024/1440/1920px·키보드·스크린리더 label·coarse pointer 확인을 필요로 한다. 공통 시각 디자인 토큰/전역 Layout 규칙은 변경하지 않는다. 세부 [#846 Issue 가이드](docs/PROJECT_ISSUES_USER_GUIDE.md).
+등록/수정은 필요할 때 여는 detail form이다. #869(2026-11-03)부터 dialog 제목·닫기와 **Issue 명 라벨/입력은 고정**하고 아래 본문만 스크롤한다. 데스크톱은 **등록일/발생일/완료일 3열 → 등록자/담당자/상태 3열 → 관련 Task → Issue 내용 multiline(기본8행/최소11.5rem) → 신규 비밀번호/확인 2열** 순서다. 미완료 완료일도 비활성 입력으로 보여 행을 유지하며 완료 상태일 때만 활성/필수다. 좁은 화면은 필드 단위로 stack한다. Issue 내용 원문과 URL을 그대로 보존하되 별도 '링크 미리보기' 영역은 제거한다. 자원/Task 직접 입력과 검색 선택 ID/이름을 구별한다. 신규 등록에는 Issue 비밀번호+확인, 보호 Issue 수정·삭제에는 해당 비밀번호, 기존 레코드 초기화·분실 재설정에는 Project 편집 세션+실제 Project 비밀번호를 명시적으로 요구한다. 삭제는 경고·확인 후 논리 상태 전환이며 목록/상태별 KPI에서 제외한다. 비밀번호·오류·readonly/pending·409/412/429 안내, Escape/Tab/focus restore를 compact UI로 제공한다. 390/768/1024/1440/1920px·키보드·스크린리더 label·coarse pointer 확인을 필요로 한다. 공통 시각 디자인 토큰/전역 Layout 규칙은 변경하지 않는다. 세부 [#846 Issue 가이드](docs/PROJECT_ISSUES_USER_GUIDE.md).
 
 
 ## Issue #860 — Milestone 변환의 영향 확인과 명시적 관리 이동

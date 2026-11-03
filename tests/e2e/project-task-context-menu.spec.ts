@@ -64,7 +64,7 @@ async function runSubmenu(
   const submenu = page.getByRole("menu", { name: menuName, exact: true });
   await expect(submenu).toBeVisible();
   await submenu.getByRole("menuitem", { name: itemName, exact: true }).click();
-  if (menuName === "Convert to" && itemName === "Milestone") {
+  if (menuName === "유형 변경" && itemName === "Milestone") {
     await page.getByRole("dialog", { name: "Milestone으로 변경", exact: true }).getByRole("button", { name: "Milestone으로 변경", exact: true }).click();
   }
 }
@@ -98,7 +98,7 @@ test("Issue #77 Context Menu opens without activating a submenu", async ({ page,
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
 
   const rootMenu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
-  const addSubmenu = page.getByRole("menu", { name: "Add", exact: true });
+  const addSubmenu = page.getByRole("menu", { name: "추가", exact: true });
 
   // Grid: opening the root menu must not implicitly activate the first submenu.
   await openTaskMenu(page, "Context initial");
@@ -106,7 +106,7 @@ test("Issue #77 Context Menu opens without activating a submenu", async ({ page,
   await expect(rootMenu).toBeFocused();
 
   // Explicit pointer intent opens the submenu.
-  await rootMenu.getByRole("menuitem", { name: "Add", exact: true }).hover();
+  await rootMenu.getByRole("menuitem", { name: "추가", exact: true }).hover();
   await expect(addSubmenu).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(rootMenu).toHaveCount(0);
@@ -118,11 +118,11 @@ test("Issue #77 Context Menu opens without activating a submenu", async ({ page,
 
   // Explicit keyboard navigation selects Add, then ArrowRight enters its submenu.
   await page.keyboard.press("ArrowDown");
-  const add = rootMenu.getByRole("menuitem", { name: "Add", exact: true });
+  const add = rootMenu.getByRole("menuitem", { name: "추가", exact: true });
   await expect(add).toBeFocused();
   await expect(addSubmenu).toBeVisible();
   await page.keyboard.press("ArrowRight");
-  await expect(addSubmenu.getByRole("menuitem", { name: "Child task", exact: true })).toBeFocused();
+  await expect(addSubmenu.getByRole("menuitem", { name: "하위 작업", exact: true })).toBeFocused();
   await page.keyboard.press("Escape");
 
   // Chart: same initial behavior as Grid.
@@ -150,7 +150,7 @@ async function prepareIssue116(page: import("@playwright/test").Page, observeIso
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
 
   const rootMenu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
-  const childMenu = page.getByRole("menu", { name: "Add", exact: true });
+  const childMenu = page.getByRole("menu", { name: "추가", exact: true });
   const target = row(page, "Responsive menu task").getByText("Responsive menu task", { exact: true });
   return { api, rootMenu, childMenu, target };
 }
@@ -166,13 +166,13 @@ test("Issue #116 task submenus stay operable at all viewport corners", async ({ 
       await expect(rootMenu).toBeVisible();
       await expect(rootMenu).toBeFocused();
       await expect(childMenu).toBeHidden();
-      const add = rootMenu.getByRole("menuitem", { name: "Add", exact: true });
+      const add = rootMenu.getByRole("menuitem", { name: "추가", exact: true });
       await expect(add).toHaveAttribute("aria-expanded", "false");
       if (width === 390) {
         await add.focus();
         await expect(childMenu).toBeHidden();
         await page.keyboard.press("ArrowRight");
-        await expect(childMenu.getByRole("menuitem", { name: "Child task", exact: true })).toBeFocused();
+        await expect(childMenu.getByRole("menuitem", { name: "하위 작업", exact: true })).toBeFocused();
         const bounds = await childMenu.boundingBox();
         const rootBounds = await rootMenu.boundingBox();
         expect(bounds).not.toBeNull();
@@ -184,21 +184,21 @@ test("Issue #116 task submenus stay operable at all viewport corners", async ({ 
         if (x === 8 && y === 8) {
           await page.keyboard.press("Enter");
           await expect(childMenu).toBeVisible();
-          await childMenu.getByRole("menuitem", { name: "‹ Back" }).click();
+          await childMenu.getByRole("menuitem", { name: "‹ 뒤로" }).click();
           await expect(add).toBeFocused();
           await page.keyboard.press("Space");
           await expect(childMenu).toBeVisible();
-          await childMenu.getByRole("menuitem", { name: "‹ Back" }).click();
+          await childMenu.getByRole("menuitem", { name: "‹ 뒤로" }).click();
           await expect(add).toBeFocused();
         }
         await add.click();
-        await expect(childMenu.getByRole("menuitem", { name: "‹ Back" })).toBeVisible();
+        await expect(childMenu.getByRole("menuitem", { name: "‹ 뒤로" })).toBeVisible();
       } else {
         await add.hover();
         await expect(childMenu).toBeVisible();
         await expect(add).toHaveAttribute("aria-expanded", "true");
         await expect(add).toHaveAttribute("aria-controls", await childMenu.getAttribute("id") ?? "");
-        const edit = rootMenu.getByRole("menuitem", { name: "Edit", exact: true });
+        const edit = rootMenu.getByRole("menuitem", { name: "수정", exact: true });
         await edit.focus();
         await expect(childMenu).toBeHidden();
         await expect(add).toHaveAttribute("aria-expanded", "false");
@@ -228,7 +228,7 @@ test("Issue #116 task submenus stay operable at all viewport corners", async ({ 
       if (width !== 390) {
         await add.focus();
         await page.keyboard.press("ArrowRight");
-        await expect(childMenu.getByRole("menuitem", { name: "Child task" })).toBeFocused();
+        await expect(childMenu.getByRole("menuitem", { name: "하위 작업" })).toBeFocused();
         await page.keyboard.press("ArrowLeft");
         await expect(add).toBeFocused();
         await expect(childMenu).toBeHidden();
@@ -244,7 +244,7 @@ test("Issue #116 task submenus stay operable at all viewport corners", async ({ 
 test("Issue #116 short viewport scrolling clipboard and summary commands preserve menu contracts", async ({ page, observeIsolatedApi }) => {
   const { api, rootMenu, childMenu, target } = await prepareIssue116(page, observeIsolatedApi);
   await settleViewportBeforeContextMenu(page, target, 390, 844);
-  for (const name of ["Convert to", "Move"] as const) {
+  for (const name of ["유형 변경", "이동"] as const) {
     await dispatchTaskContextMenuAt(page, target, 380, 836);
     const trigger = rootMenu.getByRole("menuitem", { name, exact: true });
     await trigger.focus();
@@ -256,10 +256,10 @@ test("Issue #116 short viewport scrolling clipboard and summary commands preserv
     expect(bounds).not.toBeNull();
     expect(bounds!.x).toBeGreaterThanOrEqual(8);
     expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(382);
-    if (name === "Move") {
-      await expect(submenu.getByRole("menuitem", { name: "Move up" })).toBeDisabled();
-      await expect(submenu.getByRole("menuitem", { name: "Move down" })).toBeDisabled();
-      await expect(submenu.getByRole("menuitem", { name: "‹ Back" })).toBeFocused();
+    if (name === "이동") {
+      await expect(submenu.getByRole("menuitem", { name: "위로 이동" })).toBeDisabled();
+      await expect(submenu.getByRole("menuitem", { name: "아래로 이동" })).toBeDisabled();
+      await expect(submenu.getByRole("menuitem", { name: "‹ 뒤로" })).toBeFocused();
     } else {
       await expect(submenu.locator('button.project-task-context-submenu-command:not(:disabled)').first()).toBeFocused();
     }
@@ -273,23 +273,23 @@ test("Issue #116 short viewport scrolling clipboard and summary commands preserv
   expect(await rootMenu.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
   const documentScroll = await page.evaluate(() => window.scrollY);
   await page.keyboard.press("End");
-  await expect(rootMenu.getByRole("menuitem", { name: "Delete" })).toBeFocused();
+  await expect(rootMenu.getByRole("menuitem", { name: "삭제" })).toBeFocused();
   await expect.poll(() => rootMenu.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(documentScroll);
   await page.keyboard.press("Home");
-  const add = rootMenu.getByRole("menuitem", { name: "Add", exact: true });
+  const add = rootMenu.getByRole("menuitem", { name: "추가", exact: true });
   await expect(add).toBeFocused();
   // Follow the actual enabled root-item order so added commands do not change keyboard semantics.
   const enabledRootItems = rootMenu.locator(':scope > button[role="menuitem"]:not(:disabled), :scope > .project-task-context-submenu-host > button[role="menuitem"]:not(:disabled)');
   const enabledLabels = await enabledRootItems.evaluateAll((items) =>
     items.map((item) => item.getAttribute("aria-label") ?? item.textContent?.trim() ?? ""),
   );
-  const addIndex = enabledLabels.indexOf("Add");
-  const moveIndex = enabledLabels.indexOf("Move");
+  const addIndex = enabledLabels.indexOf("추가");
+  const moveIndex = enabledLabels.indexOf("이동");
   expect(addIndex).toBeGreaterThanOrEqual(0);
   expect(moveIndex).toBeGreaterThan(addIndex);
   for (let index = addIndex; index < moveIndex; index += 1) await page.keyboard.press("ArrowDown");
-  const move = rootMenu.getByRole("menuitem", { name: "Move", exact: true });
+  const move = rootMenu.getByRole("menuitem", { name: "이동", exact: true });
   await expect(move).toBeFocused();
   const moveVisible = await move.evaluate((element) => {
     const item = element.getBoundingClientRect();
@@ -299,12 +299,12 @@ test("Issue #116 short viewport scrolling clipboard and summary commands preserv
   expect(moveVisible).toBe(true);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(documentScroll);
   await page.keyboard.press("ArrowRight");
-  await expect(page.getByRole("menu", { name: "Move", exact: true }).getByRole("menuitem", { name: "‹ Back" })).toBeFocused();
+  await expect(page.getByRole("menu", { name: "이동", exact: true }).getByRole("menuitem", { name: "‹ 뒤로" })).toBeFocused();
   await page.keyboard.press("ArrowLeft");
   await expect(move).toBeFocused();
   await add.click();
-  const back = childMenu.getByRole("menuitem", { name: "‹ Back" });
-  await childMenu.getByRole("menuitem", { name: "Task below" }).scrollIntoViewIfNeeded();
+  const back = childMenu.getByRole("menuitem", { name: "‹ 뒤로" });
+  await childMenu.getByRole("menuitem", { name: "아래에 작업 추가" }).scrollIntoViewIfNeeded();
   await expect(back).toBeVisible();
   const backBounds = await back.boundingBox();
   const shortMenuBounds = await rootMenu.boundingBox();
@@ -316,8 +316,8 @@ test("Issue #116 short viewport scrolling clipboard and summary commands preserv
   await expect(add).toBeFocused();
   const instance = await page.locator(".project-gantt-frame").getAttribute("data-project-gantt-instance");
   await add.click();
-  await childMenu.getByRole("menuitem", { name: "Task below" }).scrollIntoViewIfNeeded();
-  await childMenu.getByRole("menuitem", { name: "Task below" }).click();
+  await childMenu.getByRole("menuitem", { name: "아래에 작업 추가" }).scrollIntoViewIfNeeded();
+  await childMenu.getByRole("menuitem", { name: "아래에 작업 추가" }).click();
   await expectStructureToast(page);
   await expect(page.locator(".project-gantt-frame")).toHaveAttribute("data-project-gantt-instance", instance!);
   await dispatchTaskContextMenuAt(page, target, 380, 150);
@@ -327,21 +327,21 @@ test("Issue #116 short viewport scrolling clipboard and summary commands preserv
   // Copy the new sibling, then inspect Paste on the original task.
   const createdTask = row(page, "새 작업").first();
   await dispatchTaskContextMenuAt(page, createdTask.getByText("새 작업", { exact: true }), 380, 150);
-  await rootMenu.getByRole("menuitem", { name: "Copy", exact: true }).click();
+  await rootMenu.getByRole("menuitem", { name: "복사", exact: true }).click();
   await settleViewportBeforeContextMenu(page, target, 390, 844);
   await dispatchTaskContextMenuAt(page, target, 380, 836);
-  const paste = rootMenu.getByRole("menuitem", { name: "Paste", exact: true });
+  const paste = rootMenu.getByRole("menuitem", { name: "붙여넣기", exact: true });
   await expect(paste).toBeEnabled();
   await paste.focus();
   await page.keyboard.press("ArrowRight");
-  const pasteMenu = page.getByRole("menu", { name: "Paste", exact: true });
+  const pasteMenu = page.getByRole("menu", { name: "붙여넣기", exact: true });
   await expect(pasteMenu.locator('button.project-task-context-submenu-command:not(:disabled)').first()).toBeFocused();
   await expect(pasteMenu).toBeVisible();
   await page.keyboard.press("Escape");
 
   for (const x of [8, 1432]) {
     await settleViewportBeforeContextMenu(page, target, 1440, 844);
-    for (const name of ["Convert to", "Paste", "Move"] as const) {
+    for (const name of ["유형 변경", "붙여넣기", "이동"] as const) {
       await dispatchTaskContextMenuAt(page, target, x, 836);
       const trigger = rootMenu.getByRole("menuitem", { name, exact: true });
       await trigger.hover();
@@ -372,20 +372,20 @@ test("Issue #116 short viewport scrolling clipboard and summary commands preserv
   // A parent converted to Summary has no available Convert-to command.
   await settleViewportBeforeContextMenu(page, target, 390, 844);
   await dispatchTaskContextMenuAt(page, target, 380, 836);
-  await rootMenu.getByRole("menuitem", { name: "Add", exact: true }).click();
-  await childMenu.getByRole("menuitem", { name: "Child task" }).click();
+  await rootMenu.getByRole("menuitem", { name: "추가", exact: true }).click();
+  await childMenu.getByRole("menuitem", { name: "하위 작업" }).click();
   await expectStructureToast(page);
   const summary = (await snapshot(page, api, observeIsolatedApi)).data.tasks.find((task) => task.name === "Responsive menu task");
   expect(summary?.type).toBe("summary");
   await dispatchTaskContextMenuAt(page, target, 380, 836);
-  const convert = rootMenu.getByRole("menuitem", { name: "Convert to", exact: true });
+  const convert = rootMenu.getByRole("menuitem", { name: "유형 변경", exact: true });
   await convert.focus();
   await page.keyboard.press("ArrowRight");
-  const convertMenu = page.getByRole("menu", { name: "Convert to", exact: true });
-  for (const name of ["Task", "Summary task", "Milestone"]) {
+  const convertMenu = page.getByRole("menu", { name: "유형 변경", exact: true });
+  for (const name of ["작업", "요약 작업", "Milestone"]) {
     await expect(convertMenu.getByRole("menuitem", { name, exact: true })).toBeDisabled();
   }
-  await expect(convertMenu.getByRole("menuitem", { name: "‹ Back" })).toBeFocused();
+  await expect(convertMenu.getByRole("menuitem", { name: "‹ 뒤로" })).toBeFocused();
   await page.keyboard.press("ArrowLeft");
   await expect(convert).toBeFocused();
   await expect(convertMenu).toBeHidden();
@@ -415,10 +415,10 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
 
   let menu = await openTaskMenu(page, "Copy ID Summary");
-  await runSubmenu(page, "Add", "Child task");
+  await runSubmenu(page, "추가", "하위 작업");
   await expectStructureToast(page);
   menu = await openTaskMenu(page, "Copy ID Milestone");
-  await runSubmenu(page, "Convert to", "Milestone");
+  await runSubmenu(page, "유형 변경", "Milestone");
   await expect(page.getByTestId("workspace-toast")).toContainText("Milestone으로 변경했습니다");
 
   current = await snapshot(page, api, observeIsolatedApi);
@@ -440,13 +440,13 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
   const revisionBeforeCopyId = (await snapshot(page, api, observeIsolatedApi)).data.project.revision;
 
   menu = await openTaskMenu(page, "Copy ID Task");
-  await expect(menu.getByRole("menuitem", { name: "Copy ID", exact: true })).toBeEnabled();
-  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+  await expect(menu.getByRole("menuitem", { name: "작업 ID 복사", exact: true })).toBeEnabled();
+  await menu.getByRole("menuitem", { name: "작업 ID 복사", exact: true }).click();
   await expect(page.getByTestId("workspace-toast")).toContainText("작업 ID를 복사했습니다.");
   await expectClipboardText(page, task.taskId);
 
   menu = await openTaskMenu(page, "Copy ID Summary");
-  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+  await menu.getByRole("menuitem", { name: "작업 ID 복사", exact: true }).click();
   await expectClipboardText(page, summary.taskId);
 
   await expect(page.locator(`.wx-row[data-id=":${milestone.taskId}"]`)).toHaveCount(0);
@@ -460,9 +460,9 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
   await expectClipboardText(page, milestone.taskId);
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   menu = await openTaskMenu(page, "Copy ID Task");
-  await menu.getByRole("menuitem", { name: "Copy", exact: true }).click();
+  await menu.getByRole("menuitem", { name: "복사", exact: true }).click();
   menu = await openTaskMenu(page, "Copy ID Summary");
-  await expect(menu.getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
+  await expect(menu.getByRole("menuitem", { name: "붙여넣기", exact: true })).toBeEnabled();
   await page.keyboard.press("Escape");
   expect((await snapshot(page, api, observeIsolatedApi)).data.project.revision).toBe(revisionBeforeCopyId);
 
@@ -470,16 +470,16 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
   await page.reload();
   await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
   menu = await openTaskMenu(page, "Copy ID Task");
-  await expect(menu.getByRole("menuitem", { name: "Copy", exact: true })).toBeDisabled();
-  await expect(menu.getByRole("menuitem", { name: "Copy ID", exact: true })).toBeEnabled();
-  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+  await expect(menu.getByRole("menuitem", { name: "복사", exact: true })).toBeDisabled();
+  await expect(menu.getByRole("menuitem", { name: "작업 ID 복사", exact: true })).toBeEnabled();
+  await menu.getByRole("menuitem", { name: "작업 ID 복사", exact: true }).click();
   await expectClipboardText(page, task.taskId);
   expect((await snapshot(page, api, observeIsolatedApi)).data.project.revision).toBe(revisionBeforeCopyId);
 
   await page.goto(`${path}?rootTask=${encodeURIComponent(summary.taskId)}`);
   await expect(row(page, summaryChild.name)).toBeVisible();
   menu = await openTaskMenu(page, summaryChild.name);
-  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+  await menu.getByRole("menuitem", { name: "작업 ID 복사", exact: true }).click();
   await expectClipboardText(page, summaryChild.taskId);
 });
 
@@ -507,7 +507,7 @@ test("Issue #390 Copy ID uses manual fallback when the browser denies clipboard 
   await page.reload();
   const target = row(page, "Fallback ID task");
   const menu = await openTaskMenu(page, "Fallback ID task");
-  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+  await menu.getByRole("menuitem", { name: "작업 ID 복사", exact: true }).click();
 
   const dialog = page.getByRole("dialog", { name: "작업 ID 수동 복사" });
   await expect(dialog).toBeVisible();
@@ -554,15 +554,15 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   const instance = await frame.getAttribute("data-project-gantt-instance");
 
   let menu = await openTaskMenu(page, "Context B");
-  for (const name of ["Add", "Convert to", "Edit", "Copy ID", "Cut", "Copy", "Paste", "Move", "Indent", "Outdent", "Delete"]) {
+  for (const name of ["추가", "유형 변경", "수정", "작업 ID 복사", "잘라내기", "복사", "붙여넣기", "이동", "들여쓰기", "내어쓰기", "삭제"]) {
     await expect(menu.getByRole("menuitem", { name, exact: true })).toBeVisible();
   }
-  await expect(menu.getByRole("menuitem", { name: "Paste", exact: true })).toBeDisabled();
-  await expect(menu.getByRole("menuitem", { name: "Outdent", exact: true })).toBeDisabled();
+  await expect(menu.getByRole("menuitem", { name: "붙여넣기", exact: true })).toBeDisabled();
+  await expect(menu.getByRole("menuitem", { name: "내어쓰기", exact: true })).toBeDisabled();
   await page.keyboard.press("Escape");
 
   menu = await openTaskMenu(page, "Context B");
-  await runSubmenu(page, "Move", "Move up");
+  await runSubmenu(page, "이동", "위로 이동");
   await expectStructureToast(page);
   current = await snapshot(page, api, observeIsolatedApi);
   expect(current.data.tasks
@@ -571,7 +571,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
     .map((task) => task.name)).toEqual(["Context B", "Context A", "Context C"]);
 
   menu = await openTaskMenu(page, "Context A");
-  await menu.getByRole("menuitem", { name: "Indent", exact: true }).click();
+  await menu.getByRole("menuitem", { name: "들여쓰기", exact: true }).click();
   await expectStructureToast(page);
   current = await snapshot(page, api, observeIsolatedApi);
   const afterIndentA = current.data.tasks.find((task) => task.taskId === a.taskId)!;
@@ -582,24 +582,24 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   // A가 B의 유일한 child이면 Outdent는 B를 빈 Summary로 만들기 때문에 금지된다.
   // B 아래에 sibling child를 하나 더 만든 뒤에 허용되는 Outdent 경로를 검증한다.
   menu = await openTaskMenu(page, "Context B");
-  await runSubmenu(page, "Add", "Child task");
+  await runSubmenu(page, "추가", "하위 작업");
   await expectStructureToast(page);
   current = await snapshot(page, api, observeIsolatedApi);
   const bChildren = current.data.tasks.filter((task) => task.parentExternalId === afterIndentB.externalId);
   expect(bChildren).toHaveLength(2);
 
   menu = await openTaskMenu(page, "Context A");
-  await expect(menu.getByRole("menuitem", { name: "Outdent", exact: true })).toBeEnabled();
-  await menu.getByRole("menuitem", { name: "Outdent", exact: true }).click();
+  await expect(menu.getByRole("menuitem", { name: "내어쓰기", exact: true })).toBeEnabled();
+  await menu.getByRole("menuitem", { name: "내어쓰기", exact: true }).click();
   await expectStructureToast(page);
   current = await snapshot(page, api, observeIsolatedApi);
   expect(current.data.tasks.find((task) => task.taskId === a.taskId)?.parentExternalId).toBeNull();
 
   menu = await openTaskMenu(page, "Context C");
-  await menu.getByRole("menuitem", { name: "Copy", exact: true }).click();
+  await menu.getByRole("menuitem", { name: "복사", exact: true }).click();
   menu = await openTaskMenu(page, "Context A");
-  await expect(menu.getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
-  await runSubmenu(page, "Paste", "Below");
+  await expect(menu.getByRole("menuitem", { name: "붙여넣기", exact: true })).toBeEnabled();
+  await runSubmenu(page, "붙여넣기", "아래에 붙여넣기");
   await expectStructureToast(page);
   current = await snapshot(page, api, observeIsolatedApi);
   const copies = current.data.tasks.filter((task) => task.name === "Context C");
@@ -608,7 +608,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   expect(copies.some((task) => task.taskId === c.taskId)).toBe(true);
 
   menu = await openTaskMenu(page, "Context A");
-  await runSubmenu(page, "Convert to", "Milestone");
+  await runSubmenu(page, "유형 변경", "Milestone");
   await expect(page.getByTestId("workspace-toast")).toContainText("Milestone으로 변경했습니다");
   current = await snapshot(page, api, observeIsolatedApi);
   expect(current.data.tasks.find((task) => task.taskId === a.taskId)).toMatchObject({
@@ -619,7 +619,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   const beforeAddRevision = current.data.project.revision;
   await expect(page.locator(`.wx-row[data-id=":${a.taskId}"]`)).toHaveCount(0);
   menu = await openTaskMenu(page, "Context B");
-  await runSubmenu(page, "Add", "Task below");
+  await runSubmenu(page, "추가", "아래에 작업 추가");
   await expectStructureToast(page);
   current = await snapshot(page, api, observeIsolatedApi);
   expect(current.data.project.revision).toBe(beforeAddRevision + 1);
@@ -670,10 +670,10 @@ test("Issues #104/#378 keep unrelated mutations available and allow linked Copy/
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
 
   const unrelatedMenu = await openTaskMenu(page, "Unlinked C");
-  for (const name of ["Add", "Convert to", "Cut", "Copy", "Move", "Delete"]) {
+  for (const name of ["추가", "유형 변경", "잘라내기", "복사", "이동", "삭제"]) {
     await expect(unrelatedMenu.getByRole("menuitem", { name, exact: true })).toBeEnabled();
   }
-  await unrelatedMenu.getByRole("menuitem", { name: "Delete", exact: true }).click();
+  await unrelatedMenu.getByRole("menuitem", { name: "삭제", exact: true }).click();
   await expect(page.locator(".project-gantt-widget .wx-row", { hasText: "Unlinked C" })).toHaveCount(0);
   const afterDelete = await snapshot(page, api, observeIsolatedApi);
   expect(afterDelete.data.links).toHaveLength(1);
@@ -683,18 +683,18 @@ test("Issues #104/#378 keep unrelated mutations available and allow linked Copy/
   });
 
   const linkedMenu = await openTaskMenu(page, "Linked A");
-  await expect(linkedMenu.getByRole("menuitem", { name: "Edit", exact: true })).toBeEnabled();
-  await expect(linkedMenu.getByRole("menuitem", { name: "Copy ID", exact: true })).toBeEnabled();
-  await expect(linkedMenu.getByRole("menuitem", { name: "Copy", exact: true })).toBeEnabled();
-  for (const name of ["Add", "Convert to", "Cut", "Delete"]) {
+  await expect(linkedMenu.getByRole("menuitem", { name: "수정", exact: true })).toBeEnabled();
+  await expect(linkedMenu.getByRole("menuitem", { name: "작업 ID 복사", exact: true })).toBeEnabled();
+  await expect(linkedMenu.getByRole("menuitem", { name: "복사", exact: true })).toBeEnabled();
+  for (const name of ["추가", "유형 변경", "잘라내기", "삭제"]) {
     await expect(linkedMenu.getByRole("menuitem", { name, exact: true })).toBeDisabled();
   }
-  await expect(linkedMenu.getByRole("menuitem", { name: "Move", exact: true })).toBeEnabled();
+  await expect(linkedMenu.getByRole("menuitem", { name: "이동", exact: true })).toBeEnabled();
 
-  await linkedMenu.getByRole("menuitem", { name: "Copy", exact: true }).click();
+  await linkedMenu.getByRole("menuitem", { name: "복사", exact: true }).click();
   const linkedTargetMenu = await openTaskMenu(page, "Linked B");
-  await expect(linkedTargetMenu.getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
-  await runSubmenu(page, "Paste", "Below");
+  await expect(linkedTargetMenu.getByRole("menuitem", { name: "붙여넣기", exact: true })).toBeEnabled();
+  await runSubmenu(page, "붙여넣기", "아래에 붙여넣기");
   await expectStructureToast(page);
 
   const afterCopy = await snapshot(page, api, observeIsolatedApi);
@@ -771,16 +771,16 @@ test("Issue #430 allows Cut for internal subtree dependencies and blocks boundar
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
 
   let sourceMenu = await openTaskMenu(page, source.name);
-  await expect(sourceMenu.getByRole("menuitem", { name: "Cut", exact: true })).toBeEnabled();
-  await expect(sourceMenu.getByRole("menuitem", { name: "Delete", exact: true })).toBeDisabled();
+  await expect(sourceMenu.getByRole("menuitem", { name: "잘라내기", exact: true })).toBeEnabled();
+  await expect(sourceMenu.getByRole("menuitem", { name: "삭제", exact: true })).toBeDisabled();
   await page.keyboard.press("Escape");
 
   await row(page, source.name).focus();
   await page.keyboard.press("Control+x");
 
   const targetMenu = await openTaskMenu(page, target.name);
-  await expect(targetMenu.getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
-  await runSubmenu(page, "Paste", "As child");
+  await expect(targetMenu.getByRole("menuitem", { name: "붙여넣기", exact: true })).toBeEnabled();
+  await runSubmenu(page, "붙여넣기", "하위로 붙여넣기");
   await expectStructureToast(page);
 
   current = await snapshot(page, api, observeIsolatedApi);
@@ -802,8 +802,8 @@ test("Issue #430 allows Cut for internal subtree dependencies and blocks boundar
   await page.reload();
   await expect(row(page, source.name)).toBeVisible();
   sourceMenu = await openTaskMenu(page, source.name);
-  await expect(sourceMenu.getByRole("menuitem", { name: "Cut", exact: true })).toBeDisabled();
-  await expect(sourceMenu.getByRole("menuitem", { name: "Copy", exact: true })).toBeEnabled();
+  await expect(sourceMenu.getByRole("menuitem", { name: "잘라내기", exact: true })).toBeDisabled();
+  await expect(sourceMenu.getByRole("menuitem", { name: "복사", exact: true })).toBeEnabled();
   await page.keyboard.press("Escape");
 
   const persisted = await snapshot(page, api, observeIsolatedApi);

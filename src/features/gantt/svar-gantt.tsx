@@ -3,6 +3,9 @@
 import { Gantt, Willow, type IApi, type ILink, type ITask } from "@svar-ui/react-gantt";
 import "@svar-ui/react-gantt/all.css";
 import { useEffect, useMemo, useRef } from "react";
+import { Locale } from "@svar-ui/react-core";
+import { useI18n } from "@/lib/i18n/provider";
+import { SVAR_LOCALES } from "./svar-locales";
 
 import { createTaskUpdateGateway, type LocalTaskUpdateCommand } from "./command-gateway";
 import { domainDatesToSvarDates, localDateFromDateOnly } from "./date-adapter";
@@ -39,6 +42,7 @@ export function SvarGantt({
   previewUpdateRequest,
   onLocalCommand,
 }: SvarGanttProps) {
+  const { locale, t } = useI18n();
   const apiRef = useRef<IApi | null>(null);
   const handledPreviewRequests = useRef(new Set<number>());
   const onUpdateTask = useMemo(
@@ -57,8 +61,8 @@ export function SvarGantt({
   }, [editablePreview, previewUpdateRequest]);
 
   return (
-    <Willow>
-      <div className="wx-theme gantt-widget" aria-label="SVAR Gantt 데모 일정">
+    <Willow><Locale words={SVAR_LOCALES[locale]}>
+      <div className="wx-theme gantt-widget" aria-label={t("SVAR Gantt 데모 일정")}>
         <Gantt
           tasks={fixtureTasks}
           links={fixtureLinks}
@@ -71,6 +75,6 @@ export function SvarGantt({
           onUpdateTask={onUpdateTask}
         />
       </div>
-    </Willow>
+    </Locale></Willow>
   );
 }

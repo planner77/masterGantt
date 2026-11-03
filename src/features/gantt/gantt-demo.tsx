@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useI18n } from "@/lib/i18n/provider";
 import { useCallback, useEffect, useState } from "react";
 
 import type { LocalTaskUpdateCommand } from "./command-gateway";
@@ -14,18 +15,24 @@ const SvarGantt = dynamic(
   () => import("./svar-gantt").then((module) => module.SvarGantt),
   {
     ssr: false,
-    loading: () => <div className="gantt-loading" role="status">Gantt를 불러오는 중입니다.</div>,
+    loading: GanttLoading,
   },
 );
+
+function GanttLoading() {
+  const { t } = useI18n();
+  return <div className="gantt-loading" role="status">{t("Gantt를 불러오는 중입니다.")}</div>;
+}
 
 interface GanttDemoProps {
   readonly serverSchedulingFixture: SchedulingRuntimeFixtureResult;
 }
 
 export function GanttDemo({ serverSchedulingFixture }: GanttDemoProps) {
+  const { t } = useI18n();
   const [editablePreview, setEditablePreview] = useState(false);
   const [previewUpdateRequest, setPreviewUpdateRequest] = useState(0);
-  const [lastCommand, setLastCommand] = useState<string>("읽기 전용 상태입니다.");
+  const [lastCommand, setLastCommand] = useState<string | null>(null);
   const [browserSchedulingFixture, setBrowserSchedulingFixture] = useState<SchedulingRuntimeFixtureResult | null>(null);
   const serverFixtureText = serializeSchedulingRuntimeFixture(serverSchedulingFixture);
   const browserFixtureText = browserSchedulingFixture === null
@@ -43,17 +50,16 @@ export function GanttDemo({ serverSchedulingFixture }: GanttDemoProps) {
   }, []);
 
   const receiveLocalCommand = useCallback((command: LocalTaskUpdateCommand) => {
-    setLastCommand(`${String(command.taskId)} 변경을 감지했습니다. 이 데모는 저장하지 않습니다.`);
+    setLastCommand(String(command.taskId));
   }, []);
 
   return (
     <section className="gantt-demo" aria-labelledby="gantt-demo-heading">
       <div className="page-heading">
         <p className="eyebrow">SVAR CORE DEMO</p>
-        <h1 id="gantt-demo-heading">Gantt 최소 통합</h1>
+        <h1 id="gantt-demo-heading">{t("Gantt 최소 통합")}</h1>
         <p className="page-description">
-          Summary, 일반 작업, milestone과 Finish-to-Start 연결을 표시하는 브라우저 전용 fixture입니다.
-        </p>
+          {t("Summary, 일반 작업, milestone과 Finish-to-Start 연결을 표시하는 브라우저 전용 fixture입니다.")}</p>
       </div>
 
       <div className="gantt-demo-controls">
@@ -63,7 +69,7 @@ export function GanttDemo({ serverSchedulingFixture }: GanttDemoProps) {
             onChange={(event) => setEditablePreview(event.target.checked)}
             type="checkbox"
           />
-          <span>로컬 편집 미리보기</span>
+          <span>{t("로컬 편집 미리보기")}</span>
         </label>
         <button
           className="secondary-button gantt-preview-action"
@@ -71,23 +77,22 @@ export function GanttDemo({ serverSchedulingFixture }: GanttDemoProps) {
           onClick={() => setPreviewUpdateRequest((request) => request + 1)}
           type="button"
         >
-          fixture 변경 이벤트 실행
-        </button>
-        <p id="gantt-preview-note">기본은 읽기 전용입니다. 미리보기 변경은 서버나 SQLite에 저장되지 않습니다.</p>
+          {t("fixture 변경 이벤트 실행")}</button>
+        <p id="gantt-preview-note">{t("기본은 읽기 전용입니다. 미리보기 변경은 서버나 SQLite에 저장되지 않습니다.")}</p>
       </div>
 
       <p
-        aria-label="일정 엔진 런타임 일치 상태"
+        aria-label={t("일정 엔진 런타임 일치 상태")}
         data-scheduling-browser={browserFixtureText}
         data-scheduling-match={schedulingFixtureMatches}
         data-scheduling-server={serverFixtureText}
         role="status"
       >
         {schedulingFixtureMatches === "pending"
-          ? "브라우저 일정 엔진 결과를 확인하는 중입니다."
+          ? t("브라우저 일정 엔진 결과를 확인하는 중입니다.")
           : schedulingFixtureMatches === "true"
-            ? "일정 엔진 결과가 일치합니다."
-            : "일정 엔진 결과가 일치하지 않습니다."}
+            ? t("일정 엔진 결과가 일치합니다.")
+            : t("일정 엔진 결과가 일치하지 않습니다.")}
       </p>
 
       <div className="gantt-demo-frame" aria-describedby="gantt-preview-note">
@@ -97,7 +102,7 @@ export function GanttDemo({ serverSchedulingFixture }: GanttDemoProps) {
           previewUpdateRequest={previewUpdateRequest}
         />
       </div>
-      <p className="gantt-command-status" aria-live="polite">{lastCommand}</p>
+      <p className="gantt-command-status" aria-live="polite">{lastCommand === null ? t("읽기 전용 상태입니다.") : t("{taskId} 변경을 감지했습니다. 이 데모는 저장하지 않습니다.", { taskId: lastCommand })}</p>
     </section>
   );
 }

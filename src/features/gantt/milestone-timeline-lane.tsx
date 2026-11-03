@@ -1,5 +1,9 @@
 "use client";
 
+import { useI18n } from "../../lib/i18n/provider";
+import { formatLocaleDateOnly } from "../../lib/date-display";
+
+
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { MilestoneTimelineModel } from "../milestones/milestone-timeline-model";
 import { WorkspaceDialog } from "../../components/workspace-dialog";
@@ -19,6 +23,8 @@ export function MilestoneTimelineLane({ capability, points, geometry, contextKey
   capability: MilestoneTimelineCapability; points: readonly MilestoneLanePoint[]; geometry: MilestonePlotGeometry | null;
   contextKey: string; busy: boolean; readOnly: boolean; onGuide: (x: number | null) => void;
 }>) {
+  const { t, formatLocale, formatNumber } = useI18n();
+  const dateLabel = (value: string | null) => value ? formatLocaleDateOnly(value, formatLocale) : "—";
   const clusters = useMemo(() => geometry ? milestoneLaneClusters(points, geometry.visibleLeft, geometry.visibleRight, geometry.controlLeft) : [], [geometry, points]);
   const [roving, setRoving] = useState<string | null>(null);
   const [opened, setOpened] = useState<{ key: string; context: string; page: number } | null>(null);
@@ -59,7 +65,7 @@ export function MilestoneTimelineLane({ capability, points, geometry, contextKey
   const guideX = guidePoint?.viewportX ?? null;
   useEffect(() => { onGuide(guideX); }, [guideX, onGuide]);
   function status(point: MilestoneLanePoint) {
-    return `${readOnly ? "읽기 전용 · " : ""}${point.row.task.status === "completed" ? "완료" : "미완료"} · ${point.row.gate.manualEvent ? "수동 단계" : point.row.gate.blocked ? "Blocked" : point.row.gate.ready ? "Ready" : "진행 중"}${point.row.gate.completionInconsistent ? " · 완료 불일치" : ""}`;
+    return `${readOnly ? `${t("읽기 전용")} · ` : ""}${t(point.row.task.status === "completed" ? "완료" : "미완료")} · ${t(point.row.gate.manualEvent ? "수동 단계" : point.row.gate.blocked ? "Blocked" : point.row.gate.ready ? "Ready" : "진행 중")}${point.row.gate.completionInconsistent ? ` · ${t("완료 불일치")}` : ""}`;
   }
   function openCluster(key: string, button: HTMLButtonElement) { trigger.current = button; setRestore(false); setOpened({ key, context: contextKey, page: 0 }); }
   function moveLane(key: string, command: string) {
@@ -68,31 +74,36 @@ export function MilestoneTimelineLane({ capability, points, geometry, contextKey
     const cluster = clusters[next]; if (cluster) { setRoving(cluster.key); buttons.current.get(cluster.key)?.focus(); }
   }
   const clusterRows = current?.points.slice((opened?.page ?? 0) * 50, ((opened?.page ?? 0) + 1) * 50) ?? [];
-  const reason = milestoneLaneDisplayReason(capability.timelineModel, points, geometry, clusters.length);
+  const rawReason = milestoneLaneDisplayReason(capability.timelineModel, points, geometry, clusters.length);
+  const invalidDates = capability.timelineModel.timeline.undatedMilestones.filter(row => row.dateState === "invalid").length;
+  const reason = rawReason && !capability.timelineModel.timeline.datedMilestones.length && capability.timelineModel.timeline.milestones.length
+    ? t("확정된 날짜 0개 · 날짜 미정 {undated}개 · 잘못된 날짜 {invalid}개", { undated: capability.timelineModel.timeline.undatedMilestones.length - invalidDates, invalid: invalidDates })
+    : rawReason ? t(rawReason) : null;
   return <div ref={laneRoot} className="project-milestone-lane" aria-label="Milestone Timeline" data-context-key={contextKey}>
-    <button ref={list} className="project-milestone-lane-list" data-milestone-lane-focus="list" type="button" disabled={busy} aria-label={`프로젝트 전체 Milestone 목록 ${capability.timelineModel.timeline.milestones.length}개 · Task 필터와 범위에 관계없이 전체 프로젝트`} onClick={capability.onOpenDashboard}>프로젝트 전체<br />Milestone ({capability.timelineModel.timeline.milestones.length})</button>
+    <button ref={list} className="project-milestone-lane-list" data-milestone-lane-focus="list" type="button" disabled={busy} aria-label={t("프로젝트 전체 Milestone 목록 {value0}개 · Task 필터와 범위에 관계없이 전체 프로젝트", { value0: capability.timelineModel.timeline.milestones.length })} onClick={capability.onOpenDashboard}>{t("프로젝트 전체")}<br />Milestone ({capability.timelineModel.timeline.milestones.length})</button>
     {reason ? <span className="project-milestone-lane-state" role="status">{reason}</span> : null}
     {geometry ? <div className="project-milestone-lane-plot" style={{ left: geometry.left, width: geometry.width }}>
       {clusters.flatMap(cluster => cluster.points.map(point => <span key={point.row.task.taskId} className="project-milestone-lane-tick" aria-hidden="true" style={{ left: point.viewportX }} data-milestone-tick={point.row.task.taskId} />))}
       {clusters.map(cluster => {
         const single = cluster.points.length === 1, point = cluster.points[0];
-        const label = single ? `${point.row.task.name} · ${point.row.date} · ${point.row.task.externalId} · ${status(point)}` : `${cluster.firstDate}${cluster.firstDate === cluster.lastDate ? "" : `–${cluster.lastDate}`} · Milestone ${cluster.points.length}개 · 목록에서 이름과 상태 확인`;
+        const range = `${dateLabel(cluster.firstDate)}${cluster.firstDate === cluster.lastDate ? "" : `–${dateLabel(cluster.lastDate)}`}`;
+        const label = single ? `${point.row.task.name} · ${dateLabel(point.row.date)} · ${point.row.task.externalId} · ${status(point)}` : t("{range} · Milestone {count}개 · 목록에서 이름과 상태 확인", { range, count: cluster.points.length });
         return <button key={cluster.key} ref={node => { if (node) buttons.current.set(cluster.key, node); else buttons.current.delete(cluster.key); }}
           className="project-milestone-lane-marker" data-milestone-lane-trigger={single ? point.row.task.taskId : cluster.key} style={{ left: cluster.controlLeft }} type="button" disabled={busy} aria-label={label} title={label}
           tabIndex={tabKey === cluster.key ? 0 : -1} onFocus={() => { focusedMarker.current = { key: cluster.key, controlLeft: cluster.controlLeft }; setRoving(cluster.key); setFocused(point.row.task.taskId); }} onBlur={() => { focusedMarker.current = null; setFocused(null); }} onPointerEnter={() => setHovered(point.row.task.taskId)} onPointerLeave={() => setHovered(null)}
           onKeyDown={event => { if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); moveLane(cluster.key, event.key); } }}
-          onClick={event => { setSelected({ taskId: point.row.task.taskId, context: contextKey }); if (single) capability.onOpenMilestone(point.row.task.taskId, event.currentTarget); else openCluster(cluster.key, event.currentTarget); }}>{single ? <><span className="project-milestone-marker-title"><span aria-hidden="true">{point.row.task.status === "completed" ? "✓" : "◆"}</span><span className="project-milestone-marker-name">{point.row.task.name}</span></span><span className="project-milestone-marker-status">{status(point)}</span></> : <><span className="project-milestone-marker-name">{cluster.points.length}개 Milestone</span><span className="project-milestone-marker-status">{cluster.firstDate === cluster.lastDate ? cluster.firstDate : `${cluster.firstDate}–${cluster.lastDate}`}</span></>}</button>;
+          onClick={event => { setSelected({ taskId: point.row.task.taskId, context: contextKey }); if (single) capability.onOpenMilestone(point.row.task.taskId, event.currentTarget); else openCluster(cluster.key, event.currentTarget); }}>{single ? <><span className="project-milestone-marker-title"><span aria-hidden="true">{point.row.task.status === "completed" ? "✓" : "◆"}</span><span className="project-milestone-marker-name">{point.row.task.name}</span></span><span className="project-milestone-marker-status">{status(point)}</span></> : <><span className="project-milestone-marker-name">{formatNumber(cluster.points.length)}{t("개 Milestone")}</span><span className="project-milestone-marker-status">{cluster.firstDate === cluster.lastDate ? cluster.firstDate : `${cluster.firstDate}–${cluster.lastDate}`}</span></>}</button>;
       })}
     </div> : null}
-    {current && opened ? <WorkspaceDialog title="Milestone 날짜 목록" restoreFocusRef={trigger} onClose={() => { setOpened(null); onGuide(null); }}>
-      <p>{current.firstDate}–{current.lastDate} · {current.points.length}개</p>
+    {current && opened ? <WorkspaceDialog title={t("Milestone 날짜 목록")} restoreFocusRef={trigger} onClose={() => { setOpened(null); onGuide(null); }}>
+      <p>{current.firstDate}–{current.lastDate} · {current.points.length}{t("개")}</p>
       <div className="project-milestone-cluster-items" onKeyDown={event => {
         if (!["ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
         const items = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>("button")), index = items.indexOf(document.activeElement as HTMLButtonElement);
         const next = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : Math.max(0, Math.min(items.length - 1, index + (event.key === "ArrowDown" ? 1 : -1)));
         event.preventDefault(); items[next]?.focus();
-      }}>{clusterRows.map(point => <button key={point.row.task.taskId} data-milestone-lane-trigger={point.row.task.taskId} type="button" disabled={busy} onFocus={() => { setFocused(point.row.task.taskId); setSelected({ taskId: point.row.task.taskId, context: contextKey }); }} onBlur={() => setFocused(null)} onClick={event => { setSelected({ taskId: point.row.task.taskId, context: contextKey }); capability.onOpenMilestone(point.row.task.taskId, event.currentTarget); }}>{point.row.task.name} · {point.row.date} · {point.row.task.externalId} · {status(point)}</button>)}</div>
-      {current.points.length > 50 ? <div><button type="button" disabled={opened.page === 0} onClick={() => setOpened({ ...opened, page: opened.page - 1 })}>이전 50개</button><button type="button" disabled={(opened.page + 1) * 50 >= current.points.length} onClick={() => setOpened({ ...opened, page: opened.page + 1 })}>다음 50개</button></div> : null}
+      }}>{clusterRows.map(point => <button key={point.row.task.taskId} data-milestone-lane-trigger={point.row.task.taskId} type="button" disabled={busy} onFocus={() => { setFocused(point.row.task.taskId); setSelected({ taskId: point.row.task.taskId, context: contextKey }); }} onBlur={() => setFocused(null)} onClick={event => { setSelected({ taskId: point.row.task.taskId, context: contextKey }); capability.onOpenMilestone(point.row.task.taskId, event.currentTarget); }}>{point.row.task.name} · {dateLabel(point.row.date)} · {point.row.task.externalId} · {status(point)}</button>)}</div>
+      {current.points.length > 50 ? <div><button type="button" disabled={opened.page === 0} onClick={() => setOpened({ ...opened, page: opened.page - 1 })}>{t("이전 50개")}</button><button type="button" disabled={(opened.page + 1) * 50 >= current.points.length} onClick={() => setOpened({ ...opened, page: opened.page + 1 })}>{t("다음 50개")}</button></div> : null}
     </WorkspaceDialog> : null}
   </div>;
 }

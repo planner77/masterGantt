@@ -1,3 +1,9 @@
+## Issue #866 — #865/#869 통합 계약과 Test Lifecycle (2026-11-03)
+
+기존 날짜/Gantt 상태·Issue fixture·Project/Process/Logistics/Resource CRUD·SQLite migration·Copy/Template·Origin/revision/인증 테스트를 먼저 검색한다. 새 locale registry/사전·보간/언어 선택·storage 실패와 새 LLM 구성/protocol/SSRF/secret/bounds·12 owner 표시명 계약은 ADD다. 기존 Issue100건 fixture의 page size10/20/50/100·wheel/geometry·고정 제목·3/3/2열·textarea 높이·5폭/3언어/coarse/zoom은 EXTEND하고 기존 보안/Task복귀/상태/비밀번호 회귀는 KEEP_UNIQUE다. 기존 한국어 UI suite는 browser locale ko-KR을 명시하고 탐지 테스트는 en/vi/미지원 locale을 개별 지정한다. native SVAR menu는 실제 ko 사전의 현행 label을 사용하며 권한/부정 사례를 삭제하지 않는다.
+
+표시명은 실제 SQLite의 신규/기존 migration·FK cascade·타 owner/Project 격리·기존 writer/Origin/revision·원본 DTO·Copy/Template6·미지원 export 명시 거부를 검증한다. LLM은 mock A/B에서 한 provider의 두 모델을 별도 검증하고 실제 token/외부 서비스를 요구하지 않는다. 운영 DNS/CA/LLM 접근과 native zoom/AT는 별도 환경으로 둔다. 키 누락/placeholder 검사는 타입/사전 테스트에서 차단한다. 실행 증거·처음 FAIL·보완/미검증은 [Work Packet AC01~09](exec-plans/active/ISSUE_866.md)와 [누적 원장](ISSUE_866_FAILURE_ANALYSIS.md)에 기록하고 Required3/Trusted/Owner·Full CI 정책은 유지한다.
+
 ## Issue #836 — Docker 데몬 로드 시 OCI Config/Runtime 동일성 회귀 (REWORK #3, 2026-10-28)
 
 - 최신 Full PR CI #3377.1: 원본 OCI index/child/config/SBOM·provenance 검증 PASS, Docker daemon ImageID != OCI Config Digest 조건에서 Docker Smoke 직접 FAIL. Quality 및 Chromium 8/8 PASS, Required Docker·자동 QA는 파생 FAIL.

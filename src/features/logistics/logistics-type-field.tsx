@@ -1,3 +1,6 @@
+"use client";
+import { displayName } from "../../lib/i18n";
+import { useI18n } from "../../lib/i18n/provider";
 import { useId } from "react";
 import styles from "./project-logistics-management.module.css";
 
@@ -14,19 +17,19 @@ export function LogisticsTypeField({ kind, value, existingValue, options, state,
   onChange: (value: string) => void;
   onRetry: () => void;
 }) {
+  const { t, locale } = useI18n();
   const id = useId();
   const preserved = existingValue && !options.some(option => option.code === existingValue);
   return <div className={styles.typeField}>
-    <label className={styles.fieldLabel} htmlFor={id}>{kind} 유형 *
-      <select id={id} className={styles.fieldSelect} required value={value} disabled={busy || state !== "ready"} aria-describedby={`${id}-status`} onChange={event => onChange(event.target.value)}>
-        <option value="">유형 선택</option>
-        {preserved ? <option value={existingValue}>{existingValue} (비활성 기존 유형)</option> : null}
-        {options.map(option => <option key={option.code} value={option.code}>{option.name}</option>)}
+    <label className={styles.fieldLabel} htmlFor={id}>{t(kind)} {t("유형 *")}<select id={id} className={styles.fieldSelect} required value={value} disabled={busy || state !== "ready"} aria-describedby={`${id}-status`} onChange={event => onChange(event.target.value)}>
+        <option value="">{t("유형 선택")}</option>
+        {preserved ? <option value={existingValue}>{existingValue} {t("(비활성 기존 유형)")}</option> : null}
+        {options.map(option => <option key={option.code} value={option.code}>{displayName(option, locale)}</option>)}
       </select>
     </label>
     <div id={`${id}-status`} className={styles.workAreaHint}>
-      {state === "loading" ? <p role="status">{kind} 유형 목록을 불러오는 중…</p> : state === "error" ? <p role="alert">{kind} 유형 조회에 실패해 저장할 수 없습니다. 입력한 초안은 유지됩니다.</p> : !options.length ? <p role="status">활성 {kind} 유형이 없습니다. 공통 기준정보 관리자가 유형을 등록·활성화한 뒤 다시 조회해 주세요.{preserved ? " 기존 비활성 유형은 유지할 수 있습니다." : ""}</p> : !value ? <p>{kind} 유형을 선택해 주세요.</p> : null}
-      {state !== "loading" && (state === "error" || !options.length) ? <button type="button" className="secondary-button" disabled={busy} onClick={onRetry}>유형 목록 다시 시도</button> : null}
+      {state === "loading" ? <p role="status">{t(kind)} {t("유형 목록을 불러오는 중…")}</p> : state === "error" ? <p role="alert">{t(kind)} {t("유형 조회에 실패해 저장할 수 없습니다. 입력한 초안은 유지됩니다.")}</p> : !options.length ? <p role="status">{t("활성")}{" "}{t(kind)} {t("유형이 없습니다. 공통 기준정보 관리자가 유형을 등록·활성화한 뒤 다시 조회해 주세요.")}{preserved ? t(" 기존 비활성 유형은 유지할 수 있습니다.") : ""}</p> : !value ? <p>{t(kind)} {t("유형을 선택해 주세요.")}</p> : null}
+      {state !== "loading" && (state === "error" || !options.length) ? <button type="button" className="secondary-button" disabled={busy} onClick={onRetry}>{t("유형 목록 다시 시도")}</button> : null}
     </div>
   </div>;
 }

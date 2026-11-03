@@ -1,3 +1,7 @@
+## Issue #866 — 수동 표시명의 무손실 경계 (2026-11-03)
+
+UI 언어를 바꾸어도 기존 JSON/Excel/CSV의 name/code/ID를 지역화 문자열로 바꾸지 않는다. Project Copy는 local owner 번역을 remap하여 보존하고 전역 원본은 기존 참조를 재사용한다. 번역을 포함하는 Template은 schemaVersion6을 사용하며 기존2~5는 계속 읽는다. 아직 번역을 표현하지 못하는 schedule JSON/Excel export는 `DISPLAY_NAME_TRANSLATIONS_EXPORT_UNSUPPORTED`로 명시 거부하여 침묵 손실을 방지한다. 번역 필드를 기존 schedule import envelope에 임의 삽입하는 자동 변환은 제공하지 않는다. [표시명 계약](I18N.md) 및 기존 [Import schema](IMPORT_SCHEMA.md)를 함께 따른다.
+
 ## Issue #553 — marker OFF 운영에서 JSON 교환 원본 보존 (2026-10-25)
 
 화면 Grid/Chart의 Milestone 행 제거·검색/접힘/필터는 JSON 1.1 **프로젝트 전체 원본**의 Task·Milestone·Link·명시 Membership을 줄이지 않는다. 신규 Project Import는 원본→신규 UUID/FK 매핑으로 의미를 비교하며 유효·상속 소속은 재계산한다. 혼합 endpoint legacy Link의 Export는 원형 기록 가능하나 재Import는 기존 원자 거부 정책이고 Resource/Logistics 전체 백업으로 취급하지 않는다. 실제 회귀 경계는 [#553 가이드](MILESTONE_USER_GUIDE.md)와 [추적표](MILESTONE_TIMELINE_TRACEABILITY.md)를 따른다. API/schema/권한·If-Match 계약은 변경하지 않는다.

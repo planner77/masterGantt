@@ -1,3 +1,7 @@
+## Issue #866 — 신규 국제화 E2E 인벤토리 등록 (2026-11-03)
+
+`tests/config/e2e-shard-plan.json`에 신규 `i18n-master-data.spec.ts`는 Shard5, `i18n.spec.ts`는 Shard7로 각각1회 추가한다. 기존143개 배치와8샤드는 그대로이며 총145개, 분포19/18/18/18/18/18/18/18이다. 과거 projectedMs/성능 표본은 갱신하지 않고 신규 spec의 실제 원격 실행시간은 NOT TESTED다. 기존 Required3·Full/metadata·Trusted/Owner·main/GHCR/Finalizer·권한·skip/retry 정책은 변경하지 않는다. [Work Packet](exec-plans/active/ISSUE_866.md)과 [실패 원장](ISSUE_866_FAILURE_ANALYSIS.md)에 최초 인벤토리 누락·교정·실행 경계를 기록한다.
+
 ## Issue #790 — 캐시 비교기 원격 검증 및 PR 출처 분리 (2026-10-31)
 
 - **소스:** Main `3c73737968dfdbd6817657f3a17bed07c209a528`/앱 `0.138.5`에서 브랜치 `ci/issue-790-cache-audit-current-main`를 생성했다. PR Head/Base/Test-Merge와 Run ID/Attempt 및 실제 Job 결론을 같이 확인한다. #791의 앱 `0.130.2` 결과는 현재 소스의 검증이 아니다.

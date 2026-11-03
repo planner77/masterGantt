@@ -1,3 +1,4 @@
+import type { DisplayNameTranslations } from "../../contracts/display-name-translations";
 import { workAreaBelongsToProcess } from "../../domain/resources/resource-kpi-targets";
 import type Database from "better-sqlite3";
 import type { LogisticsDashboardDto, LogisticsDashboardFilterInput, LogisticsIntegratedKpiDto } from "../../contracts/logistics-dashboard";
@@ -68,7 +69,7 @@ export function calculateLogisticsIntegratedKpi(input: CalculateDashboardInput, 
       assignments: input.assignments.filter(assignment => taskSet.has(assignment.taskId)),
       logistics: { ...integratedLogistics, processes: [], equipment: [], systems: [], taskEquipmentLinks: [], taskSystemLinks: [] },
       filter: { asOfDate: result.asOfDate, horizonDays: result.horizonDays, mdPerMm: filter.mdPerMm } });
-    return { id: process.id, code: process.code, name: process.name, active: process.active, taskIds, taskCount: scoped.kpi.taskCount,
+    return { id: process.id, code: process.code, name: process.name, ...(process.translations?{translations:process.translations}:{}), active: process.active, taskIds, taskCount: scoped.kpi.taskCount,
       progressPercent: scoped.kpi.progressPercent, overdueTaskCount: scoped.kpi.overdueTaskCount, plannedMd: scoped.effort.plannedMd };
   });
   const commonSelection = selectWbsTaskLedger(ledger);
@@ -122,7 +123,8 @@ export function calculateLogisticsIntegratedKpi(input: CalculateDashboardInput, 
         // KPI-selected `included` is reserved for the headline and its breakdowns.
         const taskIds = ordinaryRows.filter(task => task.workAreaIds.includes(row.id)).map(task => task.taskId), selected = new Set(taskIds);
         const equipmentIds = sorted(ledger.configuration.equipmentWorkAreas.filter(link => link.workAreaId === row.id && equipment.some(item => item.id === link.equipmentId)).map(link => link.equipmentId));
-        return { id: row.id, name: (row as typeof row & { name?: string }).name ?? row.id, active: ledger.input.workAreaActivity?.find(item => item.id === row.id)?.active !== false, processIds: ledger.prepared.logistics!.processes.filter(process => workAreaBelongsToProcess(row,process)).map(process => process.id), taskIds,
+        const translations = (row as typeof row & {translations?:DisplayNameTranslations}).translations;
+        return { id: row.id, name: (row as typeof row & { name?: string }).name ?? row.id, ...(translations?{translations}:{}), active: ledger.input.workAreaActivity?.find(item => item.id === row.id)?.active !== false, processIds: ledger.prepared.logistics!.processes.filter(process => workAreaBelongsToProcess(row,process)).map(process => process.id), taskIds,
           assignmentIds: sorted(personal.filter(assignment => selected.has(assignment.taskId)).map(assignment => assignment.id)), equipmentIds,
           equipmentQuantity: equipment.filter(item => equipmentIds.includes(item.id)).reduce((sum, item) => sum + item.quantity, 0) };
       }),

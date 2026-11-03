@@ -53,3 +53,28 @@ describe("logistics instance search", () => {
     expect(instance.code).toBe("EQ-Canonical");
   });
 });
+
+describe("localized logistics identity", () => {
+  it("indexes equal translated names by locale and preserves canonical sources", () => {
+    const rows = [
+      { id: "a", name: "반송", code: "A", sortOrder: 1, translations: { en: "Transfer", vi: "Vận chuyển" } },
+      { id: "b", name: "조립", code: "B", sortOrder: 2, translations: { en: "Transfer" } },
+    ];
+    const before = JSON.stringify(rows);
+    expect(rows.map(row => logisticsName(row, rows, "en"))).toEqual(["Transfer (Order 1)", "Transfer (Order 2)"]);
+    expect(logisticsName(rows[0]!, rows, "ko")).toBe("반송");
+    expect(logisticsName(rows[1]!, rows, "vi")).toBe("조립");
+    expect(logisticsName(rows[0]!, rows, "en")).toBe("Transfer (Order 1)");
+    expect(JSON.stringify(rows)).toBe(before);
+  });
+
+  it("searches exact original/current-language names and canonical IDs but not another language", () => {
+    const item = { id: "original-id", code: "P-1", name: "조립", translations: { en: "Assembly", vi: "Lắp ráp" } };
+    expect(logisticsMatchesQuery(item, "assembly", "en")).toBe(true);
+    expect(logisticsMatchesQuery(item, "조립", "en")).toBe(true);
+    expect(logisticsMatchesQuery(item, "Lắp ráp", "en")).toBe(false);
+    expect(logisticsMatchesQuery(item, "Lắp ráp", "vi")).toBe(true);
+    expect(logisticsMatchesQuery(item, "original-id", "vi")).toBe(true);
+    expect(logisticsMatchesQuery(item, "P-1", "vi")).toBe(true);
+  });
+});

@@ -1,3 +1,9 @@
+## Issue #866 — #865/#869 통합 구현 (2026-11-03)
+
+최신 main `352a43e7` / app `0.139.1`에서 [통합 Work Packet](ISSUE_866.md)에 따라 `feat/issue-866-i18n-llm-issue-layout`, 후보 MINOR `0.140.0`으로 진행한다. #865 서버 LLM은 독립 모듈이며 #866 번역은 LLM을 사용하지 않는다. #869는 같은 Issue 화면 레이아웃·국제화를 단일 작성자가 통합한다. 기준정보 원본 name/ID/FK·권한/revision 및 단일 Gantt 인스턴스 보존, 실제 스크롤 RED 재현과 additive 번역 migration을 개별 검증한다. 구현은 backend2/frontend4 실제 Agent로 분담하고 Manager가 공유 문서·Compose·통합을 담당한다.
+
+HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. [누적 실패 원장](../../ISSUE_866_FAILURE_ANALYSIS.md)에 로컬/원격·미실행을 분리한다. 종료점은 문서·리뷰/충돌 처리 후 Ready PR Full CI 시작이며, 완료 모니터링·병합/Main/GHCR/Release·Issue 종료를 하지 않는다. Required3/Trusted/strict/리뷰0/Owner HIGH 수용·Manager ACCEPT는 새 exact Head에서 NOT TESTED다.
+
 ## Issue #852 — Gantt 날짜축 반복 확장·Grid 시작점 좌측 탐색 회귀 (2026-10-29)
 
 **REWORK #2 — [Full #3403.1](https://github.com/planner77/masterGantt/actions/runs/40849080627):** Shard5 #527 `resource-plan-dashboard.spec.ts:109` second case 103PASS/1FAIL/4 NOT RUN (X>0, Y96, Core-native X/Y conjunction failed; exact axis UNKNOWN), Shard1/7 PASS, 2/3/4/6/8 CANCELLED, Quality/Docker PASS, E2E/QA derivative FAIL. Prior #514 fix Shard3 CANCELLED=NOT TESTED. [Issue852 cumulative ledger](../../ISSUE_852_FAILURE_ANALYSIS.md) F852-CI-002 preserves all old runs and cross-run TEST_CONTRACT. #527 and structurally identical #526 common setup extension: real Grid task reveal SETTLED→native wheel only if left0→Y96/8 stable frames/4 explicit Core-native conditions + strict peer roundtrip. Product/API/DB/CI/QA unchanged; tests not locally executed; latest remote Full/Trusted/Owner pending. Review/merge check then new Ready PR CI **start only**, no monitor/merge/GHCR/Issue close. `release_authorized=false`.

@@ -1,3 +1,9 @@
+## Issue #866/#869 — 언어 유지·Issue 단일 스크롤 (2026-11-03)
+
+사용자는 공통 언어 선택에서 한국어/English/Tiếng Việt를 고르며 유효한 저장값 > 첫 지원 브라우저 언어 > 한국어다. 언어 전환·페이지 복귀는 원본 Task/Issue/Project 자유 입력·권한·Gantt 인스턴스·선택/viewport·미저장 draft를 유지한다. 기준정보는 해당 언어의 수동 표시명 또는 정확한 원본 name을 표시하며 ID/code 선택은 불변이다.
+
+Issue는 데스크톱에서 상위 패널이 아닌 목록 데이터 영역 하나만 수직 스크롤한다. KPI/검색/결과 요약/pagination은 목록 밖에 유지하고 표 내부 가로 스크롤·header를 보존한다. 좁거나 낮은 화면은 컨트롤 접근을 위해 상위 안전 스크롤을 허용한다. 등록/수정 dialog는 제목·닫기·Issue 명을 고정하고 본문만 스크롤한다. 날짜3개 한 행, 등록자/담당자/상태 한 행, 신규 비밀번호/확인 한 행, 내용8행을 기본으로 하며 좁으면 stack한다. 미완료 완료일도 정렬용 비활성 입력으로 표시하고 저장 NULL/완료 조건부 필수는 유지한다. #854 Task Editor 복귀와 #867 초기 필터·보안/dirty/pending 계약은 불변이다.
+
 ## Issue #867 — Project Issue 목록 초기 필터 (2026-11-03)
 
 Project Workspace의 Issue 탭은 환경변수 `PROJECT_ISSUE_DEFAULT_STATUS_FILTER`로 최초/초기화 선택값을 구성한다. `all/open/registered/in_progress/completed` 이외 값과 미설정·빈 값은 `all`(전체)이다. 사용자가 바꾼 필터는 검색·탭 전환으로 자동 초기화하지 않으며 기존 Issue read gate·KPI/삭제 제외 규칙은 유지한다. [Issue 사용자 가이드](PROJECT_ISSUES_USER_GUIDE.md)를 따른다.

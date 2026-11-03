@@ -1,5 +1,9 @@
 "use client";
 
+import { displayName } from "../../lib/i18n";
+import { useI18n } from "../../lib/i18n/provider";
+
+
 import { useEffect, useRef, useState } from "react";
 import type { ProjectTaskDto } from "../../contracts/projects";
 import type { ProjectLogisticsResponse } from "../../contracts/logistics";
@@ -17,6 +21,7 @@ interface Props {
 }
 interface Snapshot { context: TaskProcessContextResponse["data"]; catalog: ProcessContextResponse["data"]; logistics: ProjectLogisticsResponse["data"]["logistics"] }
 export function TaskProcessContextEditor(props: Props) {
+  const { t, locale } = useI18n();
   const { taskId, taskType, tasks, revision, editable, disabled, discardGeneration, onDirtyChange, onPendingChange, onUnauthorized, onApplied } = props;
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [processes, setProcesses] = useState<TaskProcessLink[] | null>(null);
@@ -86,41 +91,41 @@ export function TaskProcessContextEditor(props: Props) {
       if (generation === epoch.current) {
         const uncertain = reason instanceof TypeError || reason instanceof SyntaxError;
         if (uncertain) setStale(true);
-        setError(uncertain || !(reason instanceof Error) ? "저장 응답을 확인할 수 없습니다. 초안은 유지됩니다. 최신 정보를 다시 불러와 저장 여부를 확인해 주세요." : reason.message);
+        setError(uncertain || !(reason instanceof Error) ? "저장 응답을 확인할 수 없습니다. 초안은 유지됩니다. 최신 정보를 다시 불러와 저장 여부를 확인해 주세요." : "저장 응답을 확인할 수 없습니다. 최신 정보를 다시 조회해 주세요.");
       }
     }
     finally { request.current = false; setSaving(false); }
   }
-  const processName = (id: string) => snapshot?.logistics.processes.find(row => row.id === id)?.name ?? `기존 공정 참조 ${id}`;
-  const areaName = (id: string) => (snapshot ? projectWorkareaOptions(snapshot.catalog, snapshot.logistics.processes).find(row => row.id === id)?.name : undefined) ?? `기존 작업 구역 참조 ${id}`;
+  const processName = (id: string) => (() => { const row = snapshot?.logistics.processes.find(row => row.id === id); return row ? displayName(row, locale) : t("기존 공정 참조 {id}", { id }); })();
+  const areaName = (id: string) => (() => { const row = snapshot ? projectWorkareaOptions(snapshot.catalog, snapshot.logistics.processes).find(row => row.id === id) : undefined; return row ? displayName(row, locale) : t("기존 작업 구역 참조 {id}", { id }); })();
   const sources = ancestorProcessSources(taskId, tasks, snapshot?.logistics.taskProcessContexts ?? []);
-  return <section className={styles.contextEditor} aria-label="직접 공정·작업 구역">
-    <h3>직접 공정·작업 구역</h3>
-    <p className={styles.note}>공정은 0개 이상 직접 선택합니다. 설비·시스템에서 자동 지정하지 않습니다. 각 영역은 별도로 저장합니다.</p>
-    {error ? <p className={styles.error} role="alert">{error}</p> : null}
-    {!ready && !error ? <p role="status">공정·작업 구역을 불러오는 중…</p> : null}
-    {!ready && error && !isDirty ? <button type="button" className="secondary-button" onClick={() => setRetry(value => value + 1)}>공정 문맥 다시 시도</button> : null}
+  return <section className={styles.contextEditor} aria-label={t("직접 공정·작업 구역")}>
+    <h3>{t("직접 공정·작업 구역")}</h3>
+    <p className={styles.note}>{t("공정은 0개 이상 직접 선택합니다. 설비·시스템에서 자동 지정하지 않습니다. 각 영역은 별도로 저장합니다.")}</p>
+    {error ? <p className={styles.error} role="alert">{t(error)}</p> : null}
+    {!ready && !error ? <p role="status">{t("공정·작업 구역을 불러오는 중…")}</p> : null}
+    {!ready && error && !isDirty ? <button type="button" className="secondary-button" onClick={() => setRetry(value => value + 1)}>{t("공정 문맥 다시 시도")}</button> : null}
     {notice ? <p role="status">{notice}</p> : null}
     {snapshot ? <>
-      <p className={styles.note}>{processes === null ? "직접 공정 미설정 (기존 데이터)" : `직접 공정 ${processes.length}개 · 직접 작업 구역 ${areas?.length ?? 0}개`}</p>
-      {!editable ? <p className={styles.note}>읽기 전용입니다.</p> : snapshot.context.permission !== "edit" || snapshot.catalog.permission !== "edit" ? <p className={styles.note}>서버에서 읽기 전용으로 확인되었습니다. 편집 권한을 다시 인증한 뒤 최신 정보를 불러와 주세요.</p> : disabled ? <p className={styles.note}>다른 영역의 변경을 저장하거나 폐기한 뒤 편집해 주세요.</p> : null}
-      {processes === null && editable ? <button type="button" className="secondary-button" disabled={!canEdit} onClick={() => change([], [])}>공정 0개로 명시 설정</button> : null}
-      {!snapshot.logistics.processes.length ? <p className={styles.emptyRelation}>등록된 공정이 없습니다. 기준정보 → 공정&amp;WorkArea에서 공정을 등록해 주세요.</p> : null}
+      <p className={styles.note}>{processes === null ? t("직접 공정 미설정 (기존 데이터)") : t("직접 공정 {value0}개 · 직접 작업 구역 {value1}개", { value0: processes.length, value1: areas?.length ?? 0 })}</p>
+      {!editable ? <p className={styles.note}>{t("읽기 전용입니다.")}</p> : snapshot.context.permission !== "edit" || snapshot.catalog.permission !== "edit" ? <p className={styles.note}>{t("서버에서 읽기 전용으로 확인되었습니다. 편집 권한을 다시 인증한 뒤 최신 정보를 불러와 주세요.")}</p> : disabled ? <p className={styles.note}>{t("다른 영역의 변경을 저장하거나 폐기한 뒤 편집해 주세요.")}</p> : null}
+      {processes === null && editable ? <button type="button" className="secondary-button" disabled={!canEdit} onClick={() => change([], [])}>{t("공정 0개로 명시 설정")}</button> : null}
+      {!snapshot.logistics.processes.length ? <p className={styles.emptyRelation}>{t("등록된 공정이 없습니다. 기준정보 → 공정&WorkArea에서 공정을 등록해 주세요.")}</p> : null}
       {snapshot.logistics.processes.map(process => {
         const selected = processes?.find(row => row.processId === process.id);
         const eligible = process.active;
         const areaEligible = eligible;
         const ownerAreas = projectWorkareaOptions(snapshot.catalog,snapshot.logistics.processes).filter(row => row.processId === process.id);
         return <fieldset className={styles.contextGroup} key={process.id}>
-          <div className={styles.contextRow}><label><input type="checkbox" checked={!!selected} disabled={!canEdit || (!selected && !eligible)} onChange={() => change(selected ? (processes ?? []).filter(row => row.processId !== process.id) : [...(processes ?? []), { processId: process.id, scope: "self" }], areas ?? [])}/><span>{process.name} <small>{process.code}</small>{!eligible ? " · 비활성 (새 연결 불가)" : ""}</span></label>
-          {selected && taskType === "summary" ? <label><input type="checkbox" aria-label={`${process.name} 공정 하위 작업 포함`} checked={selected.scope === "subtree"} disabled={!canEdit} onChange={() => change((processes ?? []).map(row => row.processId === process.id ? { ...row, scope: row.scope === "self" ? "subtree" : "self" } : row), areas ?? [])}/>하위 작업 포함 (파생)</label> : selected ? <span>이 작업만</span> : null}</div>
-          {selected ? <div className={styles.contextAreas}>{!ownerAreas.length ? <p className={styles.note}>등록된 작업 구역이 없습니다. 구역 없이 공정을 선택하거나 기준정보 → 공정&amp;WorkArea에서 구역을 등록해 주세요.</p> : null}{ownerAreas.map(area => { const chosen = areas?.find(row => row.processId === process.id && row.workAreaId === area.id); return <div className={styles.contextRow} key={area.id}><label><input type="checkbox" disabled={!canEdit || (!chosen && (!area.active || !areaEligible))} checked={!!chosen} onChange={() => change(processes ?? [], chosen ? (areas ?? []).filter(row => row !== chosen) : [...(areas ?? []), { processId: process.id, workAreaId: area.id, scope: "self" }])}/><span>{area.name}{area.source === "legacy" ? " · 기존 공유 구역" : ""} <small>{area.code}</small>{!area.active ? " · 비활성" : ""}</span></label>{chosen && taskType === "summary" ? <label><input type="checkbox" aria-label={`${process.name} ${area.name} 작업 구역 하위 작업 포함`} disabled={!canEdit || (chosen.scope !== "subtree" && selected.scope !== "subtree")} checked={chosen.scope === "subtree"} onChange={() => change(processes ?? [], (areas ?? []).map(row => row === chosen ? { ...row, scope: row.scope === "self" ? "subtree" : "self" } : row))}/>하위 작업 포함 (공정도 하위 적용 필요)</label> : null}</div>; })}</div> : null}
+          <div className={styles.contextRow}><label><input type="checkbox" checked={!!selected} disabled={!canEdit || (!selected && !eligible)} onChange={() => change(selected ? (processes ?? []).filter(row => row.processId !== process.id) : [...(processes ?? []), { processId: process.id, scope: "self" }], areas ?? [])}/><span>{displayName(process, locale)} <small>{process.code}</small>{!eligible ? t(" · 비활성 (새 연결 불가)") : ""}</span></label>
+          {selected && taskType === "summary" ? <label><input type="checkbox" aria-label={t("{value0} 공정 하위 작업 포함", { value0: displayName(process, locale) })} checked={selected.scope === "subtree"} disabled={!canEdit} onChange={() => change((processes ?? []).map(row => row.processId === process.id ? { ...row, scope: row.scope === "self" ? "subtree" : "self" } : row), areas ?? [])}/>{t("하위 작업 포함 (파생)")}</label> : selected ? <span>{t("이 작업만")}</span> : null}</div>
+          {selected ? <div className={styles.contextAreas}>{!ownerAreas.length ? <p className={styles.note}>{t("등록된 작업 구역이 없습니다. 구역 없이 공정을 선택하거나 기준정보 → 공정&WorkArea에서 구역을 등록해 주세요.")}</p> : null}{ownerAreas.map(area => { const chosen = areas?.find(row => row.processId === process.id && row.workAreaId === area.id); return <div className={styles.contextRow} key={area.id}><label><input type="checkbox" disabled={!canEdit || (!chosen && (!area.active || !areaEligible))} checked={!!chosen} onChange={() => change(processes ?? [], chosen ? (areas ?? []).filter(row => row !== chosen) : [...(areas ?? []), { processId: process.id, workAreaId: area.id, scope: "self" }])}/><span>{displayName(area, locale)}{area.source === "legacy" ? t(" · 기존 공유 구역") : ""} <small>{area.code}</small>{!area.active ? t(" · 비활성") : ""}</span></label>{chosen && taskType === "summary" ? <label><input type="checkbox" aria-label={t("{value0} {value1} 작업 구역 하위 작업 포함", { value0: displayName(process, locale), value1: displayName(area, locale) })} disabled={!canEdit || (chosen.scope !== "subtree" && selected.scope !== "subtree")} checked={chosen.scope === "subtree"} onChange={() => change(processes ?? [], (areas ?? []).map(row => row === chosen ? { ...row, scope: row.scope === "self" ? "subtree" : "self" } : row))}/>{t("하위 작업 포함 (공정도 하위 적용 필요)")}</label> : null}</div>; })}</div> : null}
         </fieldset>;
       })}
-      {(areas ?? []).filter(area => !projectWorkareaOptions(snapshot.catalog,snapshot.logistics.processes).some(row => row.id === area.workAreaId && row.processId === area.processId)).map(area => <div key={`${area.processId}:${area.workAreaId}`} className={styles.contextRow}><span>{processName(area.processId)} · {areaName(area.workAreaId)} · 현재 분류 밖</span><button type="button" className="secondary-button" disabled={!canEdit} onClick={() => change(processes ?? [], (areas ?? []).filter(row => row !== area))}>기존 작업 구역 해제</button></div>)}
-      {sources.length ? <div className={styles.contextGroup}><h4>상위 작업의 subtree 설정 (참고·읽기 전용)</h4>{sources.map(row => <p className={styles.note} key={row.source.taskId}>{row.source.name} → {row.processLinks.map(link => processName(link.processId)).join(", ")}{row.workAreaLinks.length ? ` · 작업 구역: ${row.workAreaLinks.map(link => areaName(link.workAreaId)).join(", ")}` : ""}</p>)}<p className={styles.note}>상위 원본 설정을 보여 주며 현재 Task의 공정 선택·유효 범위를 자동 추가하지 않습니다. 명시 0개는 그대로 유지됩니다.</p></div> : null}
-      {taskType === "summary" ? <p className={styles.note}>하위 작업 포함은 현재 자손 {descendantTaskCount(taskId, tasks)}개에 대한 설정이며 각 Task의 명시 선택을 자동 채우지 않습니다.</p> : null}
-      {editable ? <button type="button" className="primary-button" disabled={!canEdit || !isDirty} onClick={() => void save()}>{saving ? "직접 공정·작업 구역 저장 중…" : "직접 공정·작업 구역 저장"}</button> : null}
+      {(areas ?? []).filter(area => !projectWorkareaOptions(snapshot.catalog,snapshot.logistics.processes).some(row => row.id === area.workAreaId && row.processId === area.processId)).map(area => <div key={`${area.processId}:${area.workAreaId}`} className={styles.contextRow}><span>{processName(area.processId)} · {areaName(area.workAreaId)} {t(" · 현재 분류 밖")}</span><button type="button" className="secondary-button" disabled={!canEdit} onClick={() => change(processes ?? [], (areas ?? []).filter(row => row !== area))}>{t("기존 작업 구역 해제")}</button></div>)}
+      {sources.length ? <div className={styles.contextGroup}><h4>{t("상위 작업의 subtree 설정 (참고·읽기 전용)")}</h4>{sources.map(row => <p className={styles.note} key={row.source.taskId}>{row.source.name} → {row.processLinks.map(link => processName(link.processId)).join(", ")}{row.workAreaLinks.length ? t(" · 작업 구역: {value0}", { value0: row.workAreaLinks.map(link => areaName(link.workAreaId)).join(", ") }) : ""}</p>)}<p className={styles.note}>{t("상위 원본 설정을 보여 주며 현재 Task의 공정 선택·유효 범위를 자동 추가하지 않습니다. 명시 0개는 그대로 유지됩니다.")}</p></div> : null}
+      {taskType === "summary" ? <p className={styles.note}>{t("하위 작업 포함은 현재 자손 ")}{descendantTaskCount(taskId, tasks)}{t("개에 대한 설정이며 각 Task의 명시 선택을 자동 채우지 않습니다.")}</p> : null}
+      {editable ? <button type="button" className="primary-button" disabled={!canEdit || !isDirty} onClick={() => void save()}>{saving ? t("직접 공정·작업 구역 저장 중…") : t("직접 공정·작업 구역 저장")}</button> : null}
     </> : null}
   </section>;
 }

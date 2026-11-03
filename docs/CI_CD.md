@@ -1,3 +1,7 @@
+## Issue #866 — 신규 국제화 E2E 인벤토리 등록 (2026-11-03)
+
+`tests/config/e2e-shard-plan.json`에 신규 `i18n-master-data.spec.ts`는 Shard5, `i18n.spec.ts`는 Shard7로 각각1회 추가한다. 기존143개 배치와8샤드는 그대로이며 총145개, 분포19/18/18/18/18/18/18/18이다. 과거 projectedMs/성능 표본은 갱신하지 않고 신규 spec의 실제 원격 실행시간은 NOT TESTED다. 기존 Required3·Full/metadata·Trusted/Owner·main/GHCR/Finalizer·권한·skip/retry 정책은 변경하지 않는다. [Work Packet](exec-plans/active/ISSUE_866.md)과 [실패 원장](ISSUE_866_FAILURE_ANALYSIS.md)에 최초 인벤토리 누락·교정·실행 경계를 기록한다.
+
 ## Issue #790 / #444 — 최신 Main 캐시 비교기 통합 (2026-10-31)
 
 - **구현 #790 / 상위 #444:** 구버전 [PR #791](https://github.com/planner77/masterGantt/pull/791)의 범위 지정 비교기·음성 테스트를 앱 `0.138.5`, Main `3c73737968dfdbd6817657f3a17bed07c209a528`로 선택 이식했다. 기존 CI/QA/OCI 계약은 유지한다. 이전 앱 `0.130.2`의 성공은 신규 소스의 PASS가 아니며 PR의 canonical 참조는 `Refs #790` 한 건이다. #444는 별도 검증 전까지 `OPEN`이다.

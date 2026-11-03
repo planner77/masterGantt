@@ -255,7 +255,7 @@ for (const coarse of [false, true]) test(`Issue #816 keeps inactive progress han
       // locator.click() may scroll and conceal this wrong-target regression.
       await page.mouse.move(childCenter.x, childCenter.y);
       await page.mouse.click(childCenter.x, childCenter.y, { button: "right" });
-      await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
+      await page.getByRole("menuitem", { name: "수정", exact: true }).click();
       const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
       await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue("Existing summary child");
       await page.keyboard.press("Escape");
@@ -319,7 +319,7 @@ for (const coarse of [false, true]) for (const scale of ["일", "주"] as const)
           expect(receipt.hit).toBe(`:${id(target)}`);
           expect(receipt.centerError).toBeLessThanOrEqual(1);
           await page.mouse.click(center.x, center.y, { button: "right" });
-          await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
+          await page.getByRole("menuitem", { name: "수정", exact: true }).click();
           const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
           await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(name);
           if (!coarse && scale === "주" && !fullscreen && progress === 0 && target === 2) {
@@ -487,7 +487,7 @@ test("Issue #822 synchronizes native Grid/Chart density, preserves geometry and 
   const child = await taskBar(page, 2).boundingBox();
   await page.mouse.click(child!.x + child!.width / 2, child!.y + child!.height / 2, { button: 'right' });
   await expect(page.getByRole('menu', { name: '작업 메뉴' })).toBeVisible();
-  await page.getByRole('menuitem', { name: 'Edit', exact: true }).click();
+  await page.getByRole('menuitem', { name: "수정", exact: true }).click();
   const editor = page.getByRole('dialog', { name: '작업 정보', exact: true });
   await expect(editor.getByLabel('작업명', { exact: true })).toHaveValue('Existing summary child');
   await densityWheel(page, editor.getByLabel('작업명', { exact: true }), -120);

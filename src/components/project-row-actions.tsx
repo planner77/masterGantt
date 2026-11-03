@@ -1,5 +1,8 @@
 "use client";
 
+import { useI18n } from "../lib/i18n/provider";
+
+
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
@@ -22,6 +25,7 @@ export function ProjectRowActions({ project, projectUrl, disabled, onDelete, onP
   onDelete: (project: ProjectListItemDto, restoreTarget: HTMLElement) => void | Promise<void>;
   onPrivateOpen?: (project: ProjectListItemDto, restoreTarget: HTMLElement, copy: boolean) => void;
 }>) {
+  const { t } = useI18n();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const triggerRectAtOpenRef = useRef<TriggerRect | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -110,22 +114,22 @@ export function ProjectRowActions({ project, projectUrl, disabled, onDelete, onP
 
   return <div className={styles.root}>
     <button ref={triggerRef} type="button" className={styles.trigger}
-      aria-label={`${project.name} 프로젝트 작업`}
+      aria-label={t("{value0} 프로젝트 작업", { value0: project.name })}
       aria-haspopup="menu" aria-expanded={open} aria-controls={open ? menuId : undefined}
       disabled={disabled}
       onClick={() => open ? closeMenu(true) : openMenu()}>
       <span aria-hidden="true">•••</span>
     </button>
     {open ? createPortal(
-      <div id={menuId} ref={menuRef} role="menu" aria-label={`${project.name} 프로젝트 작업`}
+      <div id={menuId} ref={menuRef} role="menu" aria-label={t("{value0} 프로젝트 작업", { value0: project.name })}
         className={styles.menu} style={{ top: position.top, left: position.left }}
         onKeyDown={handleMenuKeyDown}>
         {project.visibility === "private"
           ? <button role="menuitem" type="button" tabIndex={-1} className={styles.menuItem}
-              onClick={() => { const trigger = triggerRef.current; closeMenu(true); if (trigger) onPrivateOpen?.(project, trigger, true); }}>프로젝트 복사</button>
+              onClick={() => { const trigger = triggerRef.current; closeMenu(true); if (trigger) onPrivateOpen?.(project, trigger, true); }}>{t("프로젝트 복사")}</button>
           : <Link role="menuitem" tabIndex={-1} className={styles.menuItem}
               href={`${projectPath(project.publicId)}?copy=1`}
-              onClick={() => closeMenu(false)}>프로젝트 복사</Link>}
+              onClick={() => closeMenu(false)}>{t("프로젝트 복사")}</Link>}
         <ProjectLinkButton projectName={project.name} projectUrl={projectUrl}
           className={styles.menuItem} role="menuitem" tabIndex={-1} onActionComplete={() => closeMenu(true)} />
         <div className={styles.separator} role="separator" />
@@ -134,7 +138,7 @@ export function ProjectRowActions({ project, projectUrl, disabled, onDelete, onP
             const restoreTarget = triggerRef.current;
             closeMenu(true);
             if (restoreTarget) void onDelete(project, restoreTarget);
-          }}>삭제</button>
+          }}>{t("삭제")}</button>
       </div>,
       document.body,
     ) : null}

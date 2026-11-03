@@ -1,3 +1,5 @@
+import { translate } from "../lib/i18n";
+import { LOCALE_FORMATS, type AppLocale } from "../lib/i18n/locales";
 export const MAX_NOTIFICATIONS = 50;
 export const TOAST_DURATION_MS = 5_000;
 export type NoticeKind = "success" | "info" | "error";
@@ -66,13 +68,13 @@ export function safeNotificationMetadata(value: unknown): { code?: string; reque
   return { ...(code ? { code } : {}), ...(requestId ? { requestId } : {}) };
 }
 
-export function formatNotification(notice: WorkspaceNotice, scope: string): string {
+export function formatNotification(notice: WorkspaceNotice, scope: string, locale: AppLocale = "ko"): string {
   return [
-    `대상: ${scope}`,
-    `발생 시각: ${new Date(notice.occurredAt).toLocaleString()}`,
-    `작업: ${notice.operation}`,
-    `내용: ${notice.message}`,
-    ...(notice.code ? [`오류 코드: ${notice.code}`] : []),
-    ...(notice.requestId ? [`요청 ID: ${notice.requestId}`] : []),
+    `${translate(locale, "대상")}: ${scope}`,
+    `${translate(locale, "발생 시각")}: ${new Date(notice.occurredAt).toLocaleString(LOCALE_FORMATS[locale])}`,
+    `${translate(locale, "작업")}: ${notice.operation}`,
+    `${translate(locale, "내용")}: ${notice.message}`,
+    ...(notice.code ? [`${translate(locale, "오류 코드")}: ${notice.code}`] : []),
+    ...(notice.requestId ? [`${translate(locale, "요청 ID")}: ${notice.requestId}`] : []),
   ].join("\n");
 }

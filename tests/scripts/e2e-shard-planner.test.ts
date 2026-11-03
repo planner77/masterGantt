@@ -104,7 +104,7 @@ describe("historical E2E shard planner", () => {
     expect(plan.shards.map(group => group.shard).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     // The #479 private read security spec is deliberately assigned to shard 8, not silently dropped.
     // 누락·중복은 계속 실패해야 하며 hash fallback으로 대체하지 않는다.
-    expect(plan.shards.map(group => group.files.length)).toEqual([19, 18, 18, 18, 17, 18, 17, 18]);
+    expect(plan.shards.map(group => group.files.length)).toEqual([19, 18, 18, 18, 18, 18, 18, 18]);
     expect(new Set(entries).size).toBe(entries.length);
     expect([...entries].sort()).toEqual(discovered); // New specs require deliberate plan slots.
     const selected = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(shard =>
@@ -135,6 +135,8 @@ describe("historical E2E shard planner", () => {
       ["issue-730-view-composer.spec.ts", 5],
       ["issue-733-process-workarea-dashboard.spec.ts", 4],
       ["issue-726-task-logistics.spec.ts", 6],
+      ["i18n-master-data.spec.ts", 5],
+      ["i18n.spec.ts", 7],
     ] as const) {
       expect(plan.shards.filter(group => group.files.includes(`tests/e2e/${file}`)).map(group => group.shard)).toEqual([assignedShard]);
     }

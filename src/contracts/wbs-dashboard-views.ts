@@ -1,3 +1,4 @@
+import type { DisplayNameTranslations } from "./display-name-translations";
 import type { ResourceDashboardFilterInput } from "./resource-dashboard";
 import type { ResourceDrillScope } from "./resource-drill";
 import type { EquipmentDto } from "./logistics";
@@ -31,6 +32,7 @@ import type { ResourceDashboardDetailRow, ResourceDashboardPlanDto } from "./res
 import type { WbsTaskLedgerSnapshot, WbsTaskLedgerRow, WbsTaskLedgerSource, summarizeWbsTaskLedger } from "../domain/resources/wbs-task-ledger";
 export type WbsViewTotals = Omit<ReturnType<typeof summarizeWbsTaskLedger>, "fullMilestones">;
 export interface WbsViewNode {
+  translations?: DisplayNameTranslations;
   selector: WbsViewPathEntry; path: WbsViewPathEntry[]; viewRowKey: string; name: string | null;
   taskIds: string[]; assignmentIds: string[]; totals: WbsViewTotals;
   provenance: Array<{ taskId: string; sources: WbsTaskLedgerSource[] }>;
@@ -61,17 +63,18 @@ export interface WbsViewResponseContext {
   metadata: WbsTaskLedgerSnapshot["metadata"] & { systemSelection?: { systemView: "direct" | "coordination"; systemIds: string[] }; limits: typeof WBS_VIEW_LIMITS; excel: { supported: boolean; code?: "WBS_VIEW_EXPORT_UNSUPPORTED"; reason: string } };
 }
 /** Display metadata from the report's own read snapshot, never a separate UI prop. */
-export interface WbsViewEquipmentCatalogItem extends Pick<EquipmentDto, "id" | "name" | "equipmentType" | "managementUnit" | "quantity" | "active"> {
+export interface WbsViewEquipmentCatalogItem extends Pick<EquipmentDto, "id" | "name" | "translations" | "equipmentType" | "managementUnit" | "quantity" | "active"> {
   equipmentTypeName: string;
+  equipmentTypeTranslations?: DisplayNameTranslations;
   primaryProcessId: string;
   workAreaLinks: Array<{ processId: string; occurrenceId: string | null; workAreaId: string }>;
   resourceRoles: Array<Pick<EquipmentDto["resourceRoles"][number], "resourceId" | "resourceName" | "role" | "isPrimary" | "active">>;
-  controlSystems: Array<EquipmentDto["controlSystems"][number] & { systemName: string }>;
+  controlSystems: Array<EquipmentDto["controlSystems"][number] & { systemName: string; systemTranslations?: DisplayNameTranslations }>;
 }
 export interface WbsViewConfigurationCatalog {
-  processes: Array<{ id: string; name: string; occurrenceId: string | null }>;
-  workAreas: Array<{ id: string; name: string; occurrenceId: string | null; processIds: string[] }>;
-  instances: Array<{ kind: "equipment" | "system"; id: string; name: string }>;
+  processes: Array<{ id: string; name: string; translations?: DisplayNameTranslations; occurrenceId: string | null }>;
+  workAreas: Array<{ id: string; name: string; translations?: DisplayNameTranslations; occurrenceId: string | null; processIds: string[] }>;
+  instances: Array<{ kind: "equipment" | "system"; id: string; name: string; translations?: DisplayNameTranslations; }>;
   equipment: WbsViewEquipmentCatalogItem[];
   milestones: Array<{ id: string; name: string }>;
 }

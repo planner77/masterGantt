@@ -1,3 +1,9 @@
+## Issue #866 — owner별 표시명 추가형 migration0036 (2026-11-03)
+
+`db/migrations/0036_display_name_translations.sql`은 기존12개 원본 각각에 `<원본>_translations` STRICT 테이블을 추가한다: project_master_items, logistics_equipment_types, logistics_system_types, process_types, product_standard_processes, site_product_processes, work_areas, project_work_areas, project_processes, project_equipment, project_logistics_systems, resource_groups. 유형 catalog2개는 owner_code→code, 나머지는 owner_id→id FK다. PK(owner,locale), locale CHECK(ko/en/vi), name 길이1~200, ON DELETE CASCADE다.
+
+기존 원본 row/ID/name·고유성·참조·revision은 수정하지 않고 backfill도 없다. 같은 숫자ID/code가 다른 테이블에 있어도 충돌하지 않는다. owner의 기존 write transaction 안에서 검증 후 전체 번역 교체를 수행하며 omission은 보존한다. 권한/삭제-in-use는 기존 owning service가 검사한다. 목록은 owner 집합을 batch 조회하여 N+1을 피한다. Copy는 새 Project owner로 재매핑, Template6은 local 번역을 포함한다. migration ledger/checksum·FK·reopen/rollback 검증은 유지한다. 운영 rollback은 사전 backup+대응 앱 버전 복원이며 테이블 삭제만으로 번역 무손실을 주장하지 않는다.
+
 ## Issue #479 — migration 0031 Project visibility
 
 `db/migrations/0031_project_visibility.sql` adds `projects.visibility TEXT NOT NULL DEFAULT 'public' CHECK (visibility IN ('public','private'))`. Existing projects receive the safe backward-compatible public default; SQLite CHECK protects direct DB writes against null/unknown. Create and Template instantiate default public, Copy preserves source visibility. Metadata PATCH updates visibility in the existing transaction with exactly one project revision increment, without changing password KDF/hash/session auth_version. Existing migration ledger/checksum/pending-batch atomicity and backup+matching-image rollback policy remain. Restart/migration failure injection and Copy/Template round-trip require remote evidence. [Work Packet](exec-plans/active/ISSUE_479.md).

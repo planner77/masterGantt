@@ -6,6 +6,7 @@ import type { ProjectIssueDto, ProjectIssueInput } from "../../src/contracts/pro
 
 test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secure link, filter and Gantt return", async ({ page }) => {
   test.setTimeout(120_000);
+  await page.addInitScript(() => localStorage.setItem("mastergantt.ui.locale", "ko"));
   const state = await installStatefulProjectFixture(page);
   state.sessionEditable = true;
   const records: ProjectIssueDto[] = [];
@@ -79,7 +80,7 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
       const index = records.findIndex(record => record.issueId === id);
       if (index < 0) { await route.fulfill({ status: 404 }); return; }
       if (candidate !== passwords.get(id!)) {
-        await route.fulfill({ status: 401, json: { error: { code: "ISSUE_PASSWORD_INVALID", message: "password" } } }); return;
+        await route.fulfill({ status: 401, json: { error: { code: "ISSUE_PASSWORD_INVALID", message: "UPSTREAM_PRIVATE_EXCEPTION_DO_NOT_EXPOSE" } } }); return;
       }
       const updated = { ...records[index], ...input, updatedAt: "2026-10-28T03:02:00.000Z" };
       records[index] = updated;
@@ -92,7 +93,7 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
       const index = records.findIndex(record => record.issueId === id);
       if (index < 0) { await route.fulfill({ status: 404 }); return; }
       if (candidate !== passwords.get(id)) {
-        await route.fulfill({ status: 401, json: { error: { code: "ISSUE_PASSWORD_INVALID", message: "password" } } }); return;
+        await route.fulfill({ status: 401, json: { error: { code: "ISSUE_PASSWORD_INVALID", message: "UPSTREAM_PRIVATE_EXCEPTION_DO_NOT_EXPOSE" } } }); return;
       }
       records.splice(index, 1); state.project.revision++;
       await route.fulfill({ json: { data: { deleted: true, projectRevision: state.project.revision } } });
@@ -137,7 +138,7 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await expect(editor.getByLabel("완료일")).not.toHaveValue("");
   await editor.getByLabel("Issue 비밀번호 *").fill(issuePassword);
   await editor.getByLabel("Issue 비밀번호 확인 *").fill(issuePassword);
-  await editor.getByRole("button", { name: "등록", exact: true }).click();
+  await editor.getByRole("button", { name: "등록하기", exact: true }).click();
   await expect(kpis).toContainText("완료1건");
   await expect(kpis).toContainText("전체1건");
   expect(postCount).toBe(1);
@@ -155,7 +156,8 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await expect(detail.getByLabel("완료일")).toBeDisabled();
   await detail.getByLabel("Issue 비밀번호 (수정·삭제 시 필요)").fill("WrongPassword123");
   await detail.getByRole("button", { name: "수정 저장" }).click();
-  await expect(detail.getByRole("alert")).toContainText("password");
+  await expect(detail.getByRole("alert")).toContainText("Issue 비밀번호를 확인해 주세요.");
+  await expect(detail).not.toContainText("UPSTREAM_PRIVATE_EXCEPTION_DO_NOT_EXPOSE");
   await detail.getByLabel("Issue 비밀번호 (수정·삭제 시 필요)").fill(issuePassword);
   await detail.getByRole("button", { name: "수정 저장" }).click();
   await expect(kpis).toContainText("완료0건");
@@ -212,6 +214,7 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
 
 test("#854 public readonly Issue registration and Task Editor prefill/clear/reselect", async ({ page }) => {
   test.setTimeout(120_000);
+  await page.addInitScript(() => localStorage.setItem("mastergantt.ui.locale", "ko"));
   const state = await installStatefulProjectFixture(page);
   state.sessionEditable = false;
   const records: ProjectIssueDto[] = [];
@@ -277,7 +280,7 @@ test("#854 public readonly Issue registration and Task Editor prefill/clear/rese
   await form.getByLabel("Issue 명").fill("자동 연결 등록");
   await form.getByLabel("Issue 비밀번호 *").fill("IssuePassword#123");
   await form.getByLabel("Issue 비밀번호 확인 *").fill("IssuePassword#123");
-  await form.getByRole("button", { name: "등록", exact: true }).click();
+  await form.getByRole("button", { name: "등록하기", exact: true }).click();
   await expect(taskEditor).toBeVisible();
   expect(posted.at(-1)).toMatchObject({
     title: "자동 연결 등록", relatedTaskId: state.tasks[2].taskId, relatedTaskText: "Stable leaf",
@@ -292,7 +295,7 @@ test("#854 public readonly Issue registration and Task Editor prefill/clear/rese
   await form.getByLabel("Issue 명").fill("수동 변경 등록");
   await form.getByLabel("Issue 비밀번호 *").fill("IssuePassword#123");
   await form.getByLabel("Issue 비밀번호 확인 *").fill("IssuePassword#123");
-  await form.getByRole("button", { name: "등록", exact: true }).click();
+  await form.getByRole("button", { name: "등록하기", exact: true }).click();
   await expect(taskEditor).toBeVisible();
   expect(posted.at(-1)).toMatchObject({
     relatedTaskId: state.tasks[1].taskId, relatedTaskText: "Existing summary child",
@@ -303,7 +306,7 @@ test("#854 public readonly Issue registration and Task Editor prefill/clear/rese
   await form.getByLabel("Issue 명").fill("자유 입력 등록");
   await form.getByLabel("Issue 비밀번호 *").fill("IssuePassword#123");
   await form.getByLabel("Issue 비밀번호 확인 *").fill("IssuePassword#123");
-  await form.getByRole("button", { name: "등록", exact: true }).click();
+  await form.getByRole("button", { name: "등록하기", exact: true }).click();
   await expect(taskEditor).toBeVisible();
   expect(posted.at(-1)).toMatchObject({ relatedTaskId: null, relatedTaskText: "문자로 입력한 작업" });
   expect(state.patchRequests).toHaveLength(0);
@@ -312,6 +315,7 @@ test("#854 public readonly Issue registration and Task Editor prefill/clear/rese
 });
 
 test("#854 dirty Task draft cannot be discarded by Issue registration", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("mastergantt.ui.locale", "ko"));
   const state = await installStatefulProjectFixture(page);
   state.sessionEditable = true;
   await page.goto("/projects/" + publicId);
@@ -329,6 +333,7 @@ test("#854 dirty Task draft cannot be discarded by Issue registration", async ({
 
 test("#854 P1 slow canonical restore keeps Task Editor ownership until latest GET completes", async ({ page }) => {
   test.setTimeout(120_000);
+  await page.addInitScript(() => localStorage.setItem("mastergantt.ui.locale", "ko"));
   const state = await installStatefulProjectFixture(page);
   state.sessionEditable = false;
   const records: ProjectIssueDto[] = [];
@@ -398,7 +403,7 @@ test("#854 P1 slow canonical restore keeps Task Editor ownership until latest GE
   await issueForm.getByLabel("Issue 비밀번호 확인 *").fill("IssuePassword#123");
 
   holdCanonicalRead = true;
-  await issueForm.getByRole("button", { name: "등록", exact: true }).click();
+  await issueForm.getByRole("button", { name: "등록하기", exact: true }).click();
   await readStarted;
   await expect(page.getByText("Issue 등록 후 작업 정보 복귀 중…", { exact: true })).toBeVisible();
   const primaryTabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
@@ -415,4 +420,188 @@ test("#854 P1 slow canonical restore keeps Task Editor ownership until latest GE
   await expect(gantt).toHaveAttribute("data-project-gantt-api-instance", initialInstance!);
   expect(state.patchRequests).toHaveLength(0);
   expect(state.posts).toHaveLength(0);
+});
+
+test("#869 Issue list owns vertical scrolling and editor keeps title above the scrolling body", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.addInitScript(() => localStorage.setItem("mastergantt.ui.locale", "ko"));
+  const state = await installStatefulProjectFixture(page);
+  state.sessionEditable = true;
+  const records: ProjectIssueDto[] = Array.from({ length: 100 }, (_, index) => ({
+    issueId: randomUUID(), title: `현장 확인 ${index + 1} · Long issue title · Nội dung kiểm tra`,
+    description: "사용자가 입력한 원문\nhttps://example.com/issue", reporterName: "현장 담당자", reporterResourceId: null,
+    assigneeName: "Nguyễn Văn An", assigneeResourceId: null, occurredOn: "2026-11-03",
+    status: "registered", completed: false, completedOn: null, relatedTaskId: null, relatedTaskText: "",
+    credentialState: "protected", createdAt: "2026-11-03T00:00:00.000Z", updatedAt: "2026-11-03T00:00:00.000Z",
+  }));
+  await page.route("**" + projectPath + "/issues**", async route => {
+    const url = new URL(route.request().url());
+    const limit = Number(url.searchParams.get("limit") ?? 20);
+    const current = Number(url.searchParams.get("page") ?? 1);
+    await route.fulfill({ json: { data: {
+      projectRevision: state.project.revision, summary: { total: 100, completed: 0, inProgress: 0, registered: 100 },
+      total: 100, page: current, limit,
+      issues: records.slice((current - 1) * limit, current * limit),
+    } } });
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/projects/" + publicId);
+  const gantt = page.locator(".project-gantt-frame");
+  await expect(gantt).toHaveAttribute("data-project-gantt-api-instance", /.+/);
+  const instance = await gantt.getAttribute("data-project-gantt-api-instance");
+  await page.getByRole("tab", { name: "Issue", exact: true }).click();
+  const workspace = page.getByTestId("project-issue-workspace");
+  await expect(workspace.getByRole("row")).toHaveCount(21);
+  if (process.env.CAPTURE_ISSUE_869) {
+    await page.screenshot({ path: `output/playwright/issue-869/${process.env.CAPTURE_ISSUE_869}-list.png`, fullPage: true });
+  }
+  const scroller = workspace.getByRole("region", { name: /Issue 목록/ });
+  for (const size of [20, 50, 100, 10]) {
+    await workspace.locator("#project-issue-page-size").selectOption(String(size));
+    await expect(workspace.getByRole("row")).toHaveCount(size + 1);
+    const geometry = await scroller.evaluate(element => ({
+      overflow: getComputedStyle(element).overflowY, height: element.clientHeight, content: element.scrollHeight,
+      panel: document.getElementById("project-panel-issue")!.scrollHeight - document.getElementById("project-panel-issue")!.clientHeight,
+      document: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+    }));
+    await test.info().attach(`issue-list-${size}-geometry`, { body: JSON.stringify(geometry), contentType: "application/json" });
+    expect(geometry.overflow).toBe("auto");
+    expect(geometry.height).toBeGreaterThan(80);
+    if (size >= 20) expect(geometry.content).toBeGreaterThan(geometry.height);
+    expect(geometry.panel).toBeLessThanOrEqual(1);
+    expect(geometry.document).toBeLessThanOrEqual(1);
+    const toolbarBefore = await workspace.locator("#project-issue-query").boundingBox();
+    const footerBefore = await workspace.locator("#project-issue-page-size").boundingBox();
+    if (geometry.content > geometry.height) {
+      await scroller.hover();
+      await page.mouse.wheel(0, 300);
+      await expect.poll(() => scroller.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+    }
+    expect((await workspace.locator("#project-issue-query").boundingBox())!.y).toBe(toolbarBefore!.y);
+    expect((await workspace.locator("#project-issue-page-size").boundingBox())!.y).toBe(footerBefore!.y);
+  }
+  await workspace.getByRole("button", { name: "Issue 등록", exact: true }).click();
+  const editor = workspace.getByRole("dialog");
+  await expect(editor.getByLabel("Issue 명")).toBeFocused();
+  const description = editor.locator("#project-issue-description");
+  expect((await description.boundingBox())!.height).toBeGreaterThanOrEqual(180);
+  const sameRow = async (ids: string[]) => {
+    const boxes = await Promise.all(ids.map(id => editor.locator("#" + id).boundingBox()));
+    expect(Math.max(...boxes.map(box => box!.y)) - Math.min(...boxes.map(box => box!.y))).toBeLessThanOrEqual(1);
+    for (let index = 1; index < boxes.length; index++) expect(boxes[index]!.x).toBeGreaterThanOrEqual(boxes[index - 1]!.x + boxes[index - 1]!.width);
+  };
+  await sameRow(["project-issue-created", "project-issue-occurred", "project-issue-completed-on"]);
+  await sameRow(["project-issue-reporterName", "project-issue-assigneeName", "project-issue-lifecycle-status"]);
+  await sameRow(["project-issue-password", "project-issue-password-confirmation"]);
+  const titleBefore = await editor.locator("#project-issue-title").boundingBox();
+  const closeBefore = await editor.getByRole("button", { name: "Issue 편집 닫기" }).boundingBox();
+  await editor.locator("#project-issue-password-confirmation").scrollIntoViewIfNeeded();
+  expect((await editor.locator("#project-issue-title").boundingBox())!.y).toBe(titleBefore!.y);
+  expect((await editor.getByRole("button", { name: "Issue 편집 닫기" }).boundingBox())!.y).toBe(closeBefore!.y);
+  await editor.getByLabel("Issue 명").fill("Draft stays unchanged Nguyễn");
+  const originalTitleElement = await editor.locator("#project-issue-title").elementHandle();
+  for (const locale of ["en", "vi", "ko"]) {
+    // Another same-browser preference update must not recreate the Issue/Gantt or lose a draft.
+    await page.evaluate(value => {
+      localStorage.setItem("mastergantt.ui.locale", value);
+      window.dispatchEvent(new StorageEvent("storage", { key: "mastergantt.ui.locale", newValue: value }));
+    }, locale);
+    await expect(page.locator("html")).toHaveAttribute("lang", locale);
+    for (const width of [390, 768, 1024, 1440, 1920]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(editor.locator("#project-issue-title")).toHaveValue("Draft stays unchanged Nguyễn");
+      expect(await originalTitleElement!.evaluate(element => element === document.getElementById("project-issue-title"))).toBe(true);
+      const geometry = await editor.evaluate(element => {
+        const bounds = element.getBoundingClientRect();
+        const title = document.getElementById("project-issue-title")!.getBoundingClientRect();
+        const content = element.querySelector<HTMLElement>('[data-testid="project-issue-editor-body"]')!;
+        const controls = Array.from(content.querySelectorAll<HTMLElement>("input,select,textarea,button"));
+        return { left: bounds.left, right: bounds.right, top: bounds.top, bottom: bounds.bottom,
+          titleTop: title.top, titleBottom: title.bottom, bodyTop: content.getBoundingClientRect().top,
+          bodyXOverflow: content.scrollWidth - content.clientWidth,
+          documentOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          escapedControls: controls.filter(control => { const b = control.getBoundingClientRect(); return b.left < bounds.left || b.right > bounds.right + 1; }).length };
+      });
+      expect(geometry.left).toBeGreaterThanOrEqual(0);
+      expect(geometry.right).toBeLessThanOrEqual(width + 1);
+      expect(geometry.top).toBeGreaterThanOrEqual(0);
+      expect(geometry.bottom).toBeLessThanOrEqual(901);
+      expect(geometry.titleTop).toBeGreaterThan(geometry.top);
+      expect(geometry.titleBottom).toBeLessThanOrEqual(geometry.bodyTop);
+      expect(geometry.bodyXOverflow).toBeLessThanOrEqual(1);
+      expect(geometry.documentOverflow, `${locale}/${width}`).toBeLessThanOrEqual(1);
+      expect(geometry.escapedControls).toBe(0);
+      // Keyboard reveal scrolls the body while leaving the title available.
+      await editor.locator("#project-issue-title").focus();
+      for (let step = 0; step < 20; step++) {
+        await page.keyboard.press("Tab");
+        if (await editor.locator("#project-issue-password-confirmation").evaluate(element => element === document.activeElement)) break;
+      }
+      await expect(editor.locator("#project-issue-password-confirmation"), `${locale}/${width} keyboard reveal`).toBeFocused();
+      await expect(editor.locator("#project-issue-password-confirmation"), `${locale}/${width} keyboard reveal`).toBeInViewport();
+      const ring = await editor.locator("#project-issue-password-confirmation").evaluate(element => {
+        const bounds = element.getBoundingClientRect();
+        const body = element.closest('[data-testid="project-issue-editor-body"]')!.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        const outset = Number.parseFloat(style.outlineWidth) + Number.parseFloat(style.outlineOffset);
+        return { top: bounds.top - outset, bottom: bounds.bottom + outset, left: bounds.left - outset, right: bounds.right + outset,
+          bodyTop: body.top, bodyBottom: body.bottom, bodyLeft: body.left, bodyRight: body.right };
+      });
+      expect(ring.top).toBeGreaterThanOrEqual(ring.bodyTop);
+      expect(ring.bottom).toBeLessThanOrEqual(ring.bodyBottom);
+      expect(ring.left).toBeGreaterThanOrEqual(ring.bodyLeft);
+      expect(ring.right).toBeLessThanOrEqual(ring.bodyRight);
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Shift+Tab");
+      await expect(editor.locator("#project-issue-title")).toBeInViewport();
+      if (width >= 768) await sameRow(["project-issue-created", "project-issue-occurred", "project-issue-completed-on"]);
+      if (process.env.CAPTURE_ISSUE_869 && (width === 390 || width === 1440)) {
+        await page.screenshot({ path: `output/playwright/issue-869/${process.env.CAPTURE_ISSUE_869}-${locale}-${width}-editor.png` });
+      }
+    }
+  }
+  // Effective CSS viewport at 125% desktop zoom (1440/1.25 × 900/1.25).
+  // Native browser-chrome zoom is a separate manual environment check.
+  await page.setViewportSize({ width: 1152, height: 720 });
+  await expect(editor.locator("#project-issue-title")).toBeInViewport();
+  await editor.locator("#project-issue-title").focus();
+  await editor.locator("#project-issue-password-confirmation").focus();
+  await expect(editor.locator("#project-issue-password-confirmation")).toBeInViewport();
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 });
+  expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(true);
+  await page.setViewportSize({ width: 390, height: 900 });
+  const coarseHeights = await editor.locator("input,select,button").evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
+  expect(coarseHeights.every(height => height >= 44)).toBe(true);
+  await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: false });
+  await cdp.detach();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  if (process.env.CAPTURE_ISSUE_869) {
+    await page.screenshot({ path: `output/playwright/issue-869/${process.env.CAPTURE_ISSUE_869}-editor.png` });
+  }
+  await page.keyboard.press("Escape");
+  await expect(editor).toHaveCount(0);
+  await expect(workspace.getByRole("button", { name: "Issue 등록", exact: true })).toBeFocused();
+  await workspace.getByRole("button", { name: records[0].title, exact: true }).click();
+  const detail = workspace.getByRole("dialog", { name: "Issue 상세 및 수정" });
+  await expect(detail.locator("#project-issue-title")).toHaveValue(records[0].title);
+  await expect(detail.locator("#project-issue-password-confirmation")).toHaveCount(0);
+  const detailTitle = await detail.locator("#project-issue-title").boundingBox();
+  await detail.getByRole("button", { name: "Issue 비밀번호 재설정", exact: true }).click();
+  await detail.locator("#project-issue-new-password-confirmation").scrollIntoViewIfNeeded();
+  await expect(detail.locator("#project-issue-new-password-confirmation")).toBeInViewport();
+  expect((await detail.locator("#project-issue-title").boundingBox())!.y).toBe(detailTitle!.y);
+  await expect(detail.getByRole("button", { name: "Issue 편집 닫기" })).toBeInViewport();
+  await detail.getByRole("button", { name: "Issue 삭제…", exact: true }).click();
+  await expect(detail.getByRole("group", { name: "Issue 삭제 확인" })).toBeVisible();
+  await expect(detail.getByRole("button", { name: "삭제 취소", exact: true })).toBeFocused();
+  await detail.getByRole("button", { name: "삭제 취소", exact: true }).click();
+  await expect(detail.getByRole("button", { name: "Issue 삭제…", exact: true })).toBeFocused();
+  await detail.getByRole("button", { name: "Issue 삭제…", exact: true }).click();
+  await expect(detail.getByRole("button", { name: "삭제 취소", exact: true })).toBeFocused();
+  await expect(detail.locator("#project-issue-title")).toBeInViewport();
+  await page.keyboard.press("Escape");
+  await expect(detail).toHaveCount(0);
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await expect(gantt).toHaveAttribute("data-project-gantt-api-instance", instance!);
 });

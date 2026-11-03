@@ -1,3 +1,7 @@
+## Issue #866 — 표시 언어와 Excel 손실 방지 (2026-11-03)
+
+기존 Excel 열/원본 name/code/ID·날짜 저장 의미는 언어 선택과 무관하다. 수동 master 표시명을 표현하지 못하는 export는 `DISPLAY_NAME_TRANSLATIONS_EXPORT_UNSUPPORTED`로 명시 거부한다. 표시명으로 원본 셀을 암묵 치환하거나 번역을 조용히 누락하지 않는다. Template6/Copy로 보존 가능한 범위는 [Import/Export](IMPORT_EXPORT.md)를 따른다.
+
 ## Issue #808 — 분석 모델과 지원 Excel의 동등성 범위
 
 새 Resource 분석 read model은 기존 WBS/KPI/Plan 원장의 selector를 재사용하며 workbook writer·HTTP export descriptor·시트와 지원 spec을 변경하지 않는다. chart/pivot의 top N이나 중복 Group/Role/Milestone/실물 소계를 합산해 Excel 총계로 쓰지 않는다. 동등성 비교는 같은 canonical Task/Assignment/Resource ID집합·선택 scope·기간/기준일·effective Calendar·mdPerMm에서 raw M/D/M/M·null/partial/configured0·Task 수·Plan을 대상으로 한다.

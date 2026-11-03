@@ -12,10 +12,10 @@ async function selectFile(page:Page){const more=page.locator('summary[aria-label
 async function start(page:Page){await page.goto(`/projects/${publicId}`);await expect(page.getByText("편집 중",{exact:true})).toBeVisible();}
 async function pasteSummary(page:Page,sourceId:string,anchorId:string){
  const row=(id:string)=>page.locator(`.wx-table-container .wx-row[data-id=":${id}"]`).first();
- await row(sourceId).click({button:"right"});await page.getByRole("menu",{name:"작업 메뉴",exact:true}).getByRole("menuitem",{name:"Copy",exact:true}).click();
+ await row(sourceId).click({button:"right"});await page.getByRole("menu",{name:"작업 메뉴",exact:true}).getByRole("menuitem",{name:"복사",exact:true}).click();
  if(await row(anchorId).count()===0){const toggle=row(sourceId).locator('[data-action="open-task"]');if(await toggle.count())await toggle.click();}
- await row(anchorId).click({button:"right"});await page.getByRole("menu",{name:"작업 메뉴",exact:true}).getByRole("menuitem",{name:"Paste",exact:true}).click();
- await page.getByRole("menu",{name:"Paste",exact:true}).getByRole("menuitem",{name:"Below",exact:true}).click();
+ await row(anchorId).click({button:"right"});await page.getByRole("menu",{name:"작업 메뉴",exact:true}).getByRole("menuitem",{name:"붙여넣기",exact:true}).click();
+ await page.getByRole("menu",{name:"붙여넣기",exact:true}).getByRole("menuitem",{name:"아래에 붙여넣기",exact:true}).click();
 }
 
 test("#464 Import commit is bound to original file/digest/revision; pending locks and 412 retains file",async({page})=>{

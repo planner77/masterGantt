@@ -1,3 +1,5 @@
+import { displayName } from "../../lib/i18n";
+import type { AppLocale } from "../../lib/i18n/locales";
 import type { ResourceDto, ResourceGroupDto } from "@/contracts/resources";
 
 export function filterResources(resources: readonly ResourceDto[], query: string): ResourceDto[] {
@@ -10,11 +12,11 @@ export function filterResources(resources: readonly ResourceDto[], query: string
   });
 }
 
-export function filterGroups(groups: readonly ResourceGroupDto[], query: string): ResourceGroupDto[] {
+export function filterGroups(groups: readonly ResourceGroupDto[], query: string, locale: AppLocale = "ko"): ResourceGroupDto[] {
   const term = query.trim().toLowerCase();
   if (!term) return [...groups];
   return groups.filter((group) => {
-    const nameMatch = group.name.toLowerCase().includes(term);
+    const nameMatch = group.name.toLowerCase().includes(term) || displayName(group,locale).toLowerCase().includes(term);
     const codeMatch = typeof group.code === "string" && group.code.toLowerCase().includes(term);
     return nameMatch || codeMatch || group.id.toLowerCase().includes(term);
   });

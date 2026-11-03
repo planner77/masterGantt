@@ -244,3 +244,18 @@ describe("Resource Plan UI scope and snapshot contract", () => {
   });
 
 });
+
+describe("localized managed Plan group display", () => {
+  it("preserves group translations through response validation and hierarchy flattening", () => {
+    const query=new URLSearchParams("granularity=week");
+    const {data}=planUiFixture(state,query);
+    const group=data.plan!.groups[0]!;
+    group.translations={en:"Translated team",vi:"Nhóm đã dịch"};
+    const parsed=readDashboard({data},state.project.publicId,query);
+    expect(parsed).not.toBeNull();
+    expect(parsed!.plan!.groups[0]!.translations).toEqual(group.translations);
+    const row=flattenPlanRows(parsed!.plan!,"group",new Set()).find(row=>row.selector.kind==="group"&&row.selector.groupId===group.groupId)!;
+    expect(row.translations).toEqual(group.translations);
+    expect(row.name).toBe(group.name);
+  });
+});

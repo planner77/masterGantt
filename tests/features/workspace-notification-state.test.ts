@@ -50,7 +50,9 @@ describe("작업공간 알림 정책", () => {
   it("locale 시각과 안전한 내용을 출력하며 없는 요청 ID를 만들지 않는다", () => {
     const text = formatNotification(notice(1), "프로젝트 A");
     expect(text).toContain("대상: 프로젝트 A");
-    expect(text).toContain(new Date(notice(1).occurredAt).toLocaleString());
+    expect(text).toContain(new Date(notice(1).occurredAt).toLocaleString("ko-KR"));
+    expect(formatNotification(notice(1), "Project A", "en")).toContain("Target: Project A");
+    expect(formatNotification(notice(1), "Dự án A", "vi")).toContain("Đối tượng: Dự án A");
     expect(text).toContain("작업: 작업 저장"); expect(text).not.toContain("요청 ID:");
   });
 });

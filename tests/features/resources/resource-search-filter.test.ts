@@ -73,3 +73,19 @@ describe("resource-search-filter", () => {
     });
   });
 });
+
+describe("managed group translation search", () => {
+  it("searches original and selected-language display name while retaining exact IDs", () => {
+    const groups: ResourceGroupDto[] = [
+      { id: "g1", name: "조립팀", code: "A", description: "", active: true, memberResourceIds: [], translations: { en: "Team", vi: "Đội lắp ráp" } },
+      { id: "g2", name: "검사팀", code: "B", description: "", active: true, memberResourceIds: [], translations: { en: "Team" } },
+    ];
+    const before = JSON.stringify(groups);
+    expect(filterGroups(groups, "Team", "en").map(group => group.id)).toEqual(["g1", "g2"]);
+    expect(filterGroups(groups, "조립", "en").map(group => group.id)).toEqual(["g1"]);
+    expect(filterGroups(groups, "Đội", "en")).toEqual([]);
+    expect(filterGroups(groups, "Đội", "vi").map(group => group.id)).toEqual(["g1"]);
+    expect(filterGroups(groups, "검사", "vi").map(group => group.id)).toEqual(["g2"]);
+    expect(JSON.stringify(groups)).toBe(before);
+  });
+});

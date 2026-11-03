@@ -1,4 +1,5 @@
 "use client";
+import { safeApiError } from "../../components/safe-ui-error";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CountryCalendarAdminResponse, CountryCalendarImportEnvelope, CountryCalendarImportPreviewResponse, UpdateCountryCalendarMetadataRequest } from "@/contracts/country-calendar-admin";
@@ -16,8 +17,7 @@ function validDataset(value: unknown, target: CalendarTarget): value is CountryC
   return !!data && Number.isSafeInteger(data.revision) && data.revision > 0 && data.dataset?.countryCode === target.countryCode && data.dataset?.year === target.year && ["OFFICIAL", "UNAVAILABLE", "SUPERSEDED"].includes(data.dataset.status) && Array.isArray(data.dates);
 }
 function serverMessage(body: unknown, fallback: string): string {
-  const error = (body as { error?: { message?: string; details?: Array<{ path?: string; message?: string }> } } | null)?.error;
-  return [error?.message ?? fallback, ...(error?.details ?? []).map((detail) => `${detail.path ?? "입력"}: ${detail.message ?? "확인해 주세요."}`)].join("\n");
+  return safeApiError(body, fallback);
 }
 
 export function useCountryCalendarAdmin() {

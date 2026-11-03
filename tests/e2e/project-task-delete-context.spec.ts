@@ -66,8 +66,8 @@ test("confirms and atomically deletes the right-clicked task subtree without rem
 
   await row.getByText("Delete branch", { exact: true }).click({ button: "right" });
   const menu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
-  await expect(menu.getByRole("menuitem", { name: "Delete", exact: true })).toBeVisible();
-  await menu.getByRole("menuitem", { name: "Delete", exact: true }).click();
+  await expect(menu.getByRole("menuitem", { name: "삭제", exact: true })).toBeVisible();
+  await menu.getByRole("menuitem", { name: "삭제", exact: true }).click();
 
   const dialog = page.getByRole("dialog", { name: "작업 삭제", exact: true });
   await expect(dialog).toContainText("Delete branch");
@@ -80,7 +80,7 @@ test("confirms and atomically deletes the right-clicked task subtree without rem
 
   await row.getByText("Delete branch", { exact: true }).click({ button: "right" });
   await page.getByRole("menu", { name: "작업 메뉴", exact: true })
-    .getByRole("menuitem", { name: "Delete", exact: true }).click();
+    .getByRole("menuitem", { name: "삭제", exact: true }).click();
   const confirm = page.getByRole("dialog", { name: "작업 삭제", exact: true });
   await confirm.getByRole("button", { name: "하위 작업 포함 삭제", exact: true }).click();
   await expect(confirm).toHaveCount(0);
@@ -157,7 +157,7 @@ for (const recovery of ["normal", "stale", "unavailable", "401", "412", "network
     const target = name === "Delete D" ? page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${task.taskId}"]`) : page.getByRole("grid").getByText(name, { exact: true });
     if (name === "Delete D") await chart.evaluate((element) => { element.scrollLeft = 0; });
     await target.click({ button: "right" });
-    await page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "Delete", exact: true }).click();
+    await page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "삭제", exact: true }).click();
   }
   try {
     for (const name of ["Delete C", "Delete D"]) {
@@ -199,7 +199,7 @@ for (const recovery of ["normal", "stale", "unavailable", "401", "412", "network
         await expect(frame).toHaveAttribute("data-task-mutation-locked", "true");
         const beforeBlockedAttempt = deleteRequests;
         await page.getByRole("grid").getByText("Keep last child", { exact: true }).click({ button: "right" });
-        const blockedDelete = page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "Delete", exact: true });
+        const blockedDelete = page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "삭제", exact: true });
         await expect(blockedDelete).toBeDisabled();
         await page.keyboard.press("Escape");
         expect(deleteRequests).toBe(beforeBlockedAttempt);

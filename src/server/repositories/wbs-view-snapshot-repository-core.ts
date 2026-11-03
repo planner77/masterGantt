@@ -1,3 +1,4 @@
+import { displayNameTranslationPublicIdMap } from "./display-name-translations-repository-core";
 import type Database from "better-sqlite3";
 import type { ProjectResourceMembershipDto } from "../../contracts/project-resource-memberships";
 import type { DashboardResourceRecord, DashboardGroupRecord } from "./resource-dashboard-repository-core";
@@ -15,9 +16,11 @@ export function readWbsViewContext(db: Database.Database, projectId: number, res
   }
   const logistics = new LogisticsService(db).getLogisticsDto(projectId);
   // Only types referenced by this Project belong to its display snapshot.
-  const equipmentTypes = db.prepare(`SELECT DISTINCT t.code,t.name FROM logistics_equipment_types t
+  const equipmentTypeRows = db.prepare(`SELECT DISTINCT t.code,t.name FROM logistics_equipment_types t
     JOIN project_equipment e ON e.equipment_type=t.code WHERE e.project_id=? ORDER BY t.code`)
     .all(projectId) as Array<{ code: string; name: string }>;
+  const equipmentTypeTranslations = displayNameTranslationPublicIdMap(db,"logistics_equipment_types",equipmentTypeRows.map(row=>row.code));
+  const equipmentTypes = equipmentTypeRows.map(row=>({...row,...equipmentTypeTranslations.get(row.code)}));
   const usage = db.prepare(`WITH usage AS (
     SELECT resource_id,CASE WHEN t.type='task' THEN 'assignment' ELSE 'responsibility' END kind FROM task_assignments a JOIN tasks t ON t.id=a.task_id AND t.project_id=a.project_id WHERE a.project_id=? AND resource_id IS NOT NULL
     UNION ALL SELECT resource_id,'equipment' FROM project_equipment_resource_roles WHERE project_id=?
@@ -30,7 +33,7 @@ export function readWbsViewContext(db: Database.Database, projectId: number, res
     const used = byUsage.get(resource.publicId), membership = registered.has(resource.publicId);
     const usage = { taskAssignments: used?.assignments ?? 0, responsibilityAssignments: used?.responsibilities ?? 0, equipmentRoles: used?.equipment ?? 0, systemRoles: used?.systems ?? 0 };
     return { id: resource.publicId, name: resource.name, code: resource.code, description: "", active: resource.active, roles: resource.roles.filter((role): role is Exclude<typeof role, "UNSPECIFIED"> => role !== "UNSPECIFIED"), developerGrade: resource.developerGrade,
-      groups: groups.filter(group => group.memberResourceIds.includes(resource.publicId)).map(group => ({ id: group.publicId, name: group.name, active: group.active })), registered: membership,
+      groups: groups.filter(group => group.memberResourceIds.includes(resource.publicId)).map(group => ({ id: group.publicId, name: group.name, ...(group.translations?{translations:group.translations}:{}), active: group.active })), registered: membership,
       usage, sources: { membership, taskAssignments: usage.taskAssignments > 0, responsibilityAssignments: usage.responsibilityAssignments > 0, equipmentRoles: usage.equipmentRoles > 0, systemRoles: usage.systemRoles > 0 } };
   });
   return { taskContexts: logistics.taskProcessContexts!, equipmentWorkAreas: logistics.equipmentWorkAreas!, equipment: logistics.equipment, equipmentTypes, systems: logistics.systems, resourceMemberships };

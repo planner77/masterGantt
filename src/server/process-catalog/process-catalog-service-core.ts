@@ -1,3 +1,5 @@
+import { parseDisplayNameTranslations, writeDisplayNameTranslations, sameDisplayNameTranslations } from "../repositories/display-name-translations-repository-core";
+import { PROCESS_CATALOG_TABLES } from "../repositories/process-catalog-repository-core";
 import { ProjectWorkAreaRepository } from "../repositories/project-work-area-repository-core";
 import { ProcessContextRepository, ProcessContextError } from "../repositories/process-context-repository-core";
 import { randomUUID } from "node:crypto";
@@ -47,7 +49,7 @@ const text = (value: unknown, max: number): string => {
   }
   return normalized;
 };
-const commonKeys = ["code", "name", "active", "sortOrder"];
+const commonKeys = ["code", "name", "active", "sortOrder", "translations"];
 const parentKeys: Record<ProcessCatalogKind, string[]> = {
   types: [], standards: ["productId", "processTypeId"], occurrences: ["businessUnitId", "productId", "siteEntityId", "processTypeId", "standardProcessId"], workAreas: ["occurrenceId"]
 };
@@ -55,7 +57,7 @@ const parentColumns: Record<string, string> = {
   productId: "product_id", processTypeId: "process_type_id", businessUnitId: "business_unit_id", siteEntityId: "site_entity_id", standardProcessId: "standard_process_id", occurrenceId: "occurrence_id"
 };
 const dtoCommon = (row: ProcessCatalogRecord) => ({
-  id: row.public_id, code: row.code, name: row.name, active: row.active === 1, sortOrder: row.sort_order, usageCount: row.usage_count
+  id: row.public_id, code: row.code, name: row.name, ...(row.translations ? { translations: row.translations } : {}), active: row.active === 1, sortOrder: row.sort_order, usageCount: row.usage_count
 });
 export class ProcessCatalogService {
   private readonly repository: ProcessCatalogRepository;
@@ -310,15 +312,19 @@ export class ProcessCatalogService {
         if (current && !Object.keys(parsed).length) {
           fail(400, "INVALID_REQUEST");
         }
+        const translations = parseDisplayNameTranslations(parsed.translations, () => fail(400, "INVALID_REQUEST"));
         const values = this.values(kind, parsed, current);
-        if (current && Object.entries(values).every(([key, value]) => current[key as keyof ProcessCatalogRecord] === value)) {
+        if (current && (translations === undefined || sameDisplayNameTranslations(translations, current.translations)) && Object.entries(values).every(([key, value]) => current[key as keyof ProcessCatalogRecord] === value)) {
           return this.getCatalog(rawToken);
         }
         if (current) {
           this.repository.update(kind, current.id, values, this.clock().toISOString());
+          writeDisplayNameTranslations(this.database, PROCESS_CATALOG_TABLES[kind], current.id, translations);
         }
         else {
-          this.repository.insert(kind, uuid(this.generatePublicId()), values, this.clock().toISOString());
+          const publicId = uuid(this.generatePublicId());
+          this.repository.insert(kind, publicId, values, this.clock().toISOString());
+          writeDisplayNameTranslations(this.database, PROCESS_CATALOG_TABLES[kind], this.repository.find(kind, publicId)!.id, translations);
         }
       }
       if (!this.repository.advance(expected, this.clock().toISOString())) {

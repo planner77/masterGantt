@@ -180,7 +180,7 @@ test("Summary Description and URL persist while derived schedule stays readonly"
   const childRow = page.locator('.project-gantt-widget .wx-row[data-id=":' + child.taskId + '"]').first();
   await expect(childRow).toBeVisible();
   await childRow.getByText("Summary child", { exact: true }).click({ button: "right" });
-  await page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "Delete", exact: true }).click();
+  await page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "삭제", exact: true }).click();
   await expect(childRow).toHaveCount(0);
   const emptied = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi);
   expect(emptied.data.project.revision).toBe(snapshot.data.project.revision + 2);

@@ -32,7 +32,7 @@ export function readLogisticsKpiSnapshot(database: Database.Database, publicId: 
     assignments: assignments.map(a => ({ id: a.publicId, taskId: a.taskPublicId, target: { kind: a.kind, id: a.targetPublicId }, role: null,
       allocation: { start: a.assignmentStart, end: a.assignmentEnd, percent: a.allocationPercent } })),
     resources: resources.map(resource => ({ id: resource.publicId, name: resource.name, code: resource.code, description: "", active: resource.active, developerGrade: resource.developerGrade })),
-    groups: groups.map(group => ({ id: group.publicId, name: group.name, code: group.code, description: "", active: group.active, memberResourceIds: group.memberResourceIds })),
+    groups: groups.map(group => ({ id: group.publicId, name: group.name, ...(group.translations?{translations:group.translations}:{}), code: group.code, description: "", active: group.active, memberResourceIds: group.memberResourceIds })),
     calendarForResource, filter, now };
   const asOfDate = filter.asOfDate ?? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
   const dates = storedTasks.filter(task => task.type === "task").flatMap(task => [task.startDate, task.endDate]).filter((date): date is string => date !== null).sort();

@@ -1,3 +1,5 @@
+import { displayName, formatLocaleNumber, translate } from "../../lib/i18n";
+import type { AppLocale } from "../../lib/i18n/locales";
 import { fromResourcePublicV2 } from "../../contracts/resource-public-v2";
 import { z } from "zod";
 import type {
@@ -99,6 +101,7 @@ export const resourcePlanSchema = z.object({
     series.extend({
       groupId: id.nullable(),
       name: id,
+      translations: z.object({ko:z.string().max(200).optional(),en:z.string().max(200).optional(),vi:z.string().max(200).optional()}).strict().optional(),
       code: id.nullable(),
       active: z.boolean(),
       resourceIds: z.array(id),
@@ -119,6 +122,7 @@ export const resourcePlanSchema = z.object({
 export type PlanRow = {
   key: string;
   name: string;
+  translations?: Partial<Record<AppLocale,string>>;
   selector: ResourcePlanRowSelector;
   series: ResourcePlanSeries;
   level: number;
@@ -131,6 +135,7 @@ export function flattenPlanRows(
   plan: NonNullable<ResourceDashboardDto["plan"]>,
   mode: "group" | "resource",
   expanded: Set<string>,
+  locale: AppLocale = "ko",
 ): PlanRow[] {
   const result: PlanRow[] = [],
     byId = new Map(plan.resources.map((r) => [r.resourceId, r]));
@@ -184,6 +189,7 @@ export function flattenPlanRows(
       result.push({
         key,
         name: g.name,
+        translations: g.translations,
         selector: { kind: "group", groupId: g.groupId },
         series: g,
         level: 0,
@@ -193,7 +199,7 @@ export function flattenPlanRows(
       if (expanded.has(key))
         g.resourceIds.forEach((id) => {
           const r = byId.get(id);
-          if (r) resource(r, key, 1, [g.name]);
+          if (r) resource(r, key, 1, [displayName(g,locale)]);
         });
     }
   return result;
@@ -202,6 +208,7 @@ export function planMetric(
   m: ResourcePlanMetrics,
   metric: "effort" | "load" | "excess",
   unit: "md" | "mm",
+  locale: AppLocale = "ko",
 ): string {
   const value =
     metric === "effort"
@@ -213,9 +220,9 @@ export function planMetric(
         : m.excessMd;
   const text =
     value === null
-      ? "미산정"
-      : `${value.toFixed(2)} ${metric === "load" ? "%" : metric === "excess" || unit === "md" ? "M/D" : "M/M"}`;
-  return `${text}${m.partial ? " · 미설정 포함" : ""}${m.capacityMd === 0 ? " · 비근무기간" : m.state === "empty" ? " · 기간 배정 없음(0부하)" : ""}`;
+      ? translate(locale,"미산정")
+      : `${formatLocaleNumber(value,locale,{minimumFractionDigits:2,maximumFractionDigits:2})} ${metric === "load" ? "%" : metric === "excess" || unit === "md" ? "M/D" : "M/M"}`;
+  return `${text}${m.partial ? translate(locale," · 미설정 포함") : ""}${m.capacityMd === 0 ? translate(locale," · 비근무기간") : m.state === "empty" ? translate(locale," · 기간 배정 없음(0부하)") : ""}`;
 }
 /** #622: a Plan without a Target projection still needs canonical names for
  * selected and Project-reference Assignments, including Targets outside the filter. */

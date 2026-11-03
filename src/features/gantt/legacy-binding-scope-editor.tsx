@@ -1,4 +1,7 @@
 "use client";
+
+import { useI18n } from "../../lib/i18n/provider";
+
 import { useEffect, useRef, useState } from "react";
 import styles from "./project-task-editor.module.css";
 
@@ -41,6 +44,7 @@ export function LegacyBindingScopeEditor(props: Props) {
 }
 
 function LegacyBindingScopeSession({taskId, revision, editable, disabled, sourceNames, onApplied, onUnauthorized, onPendingChange}: Props) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [sources, setSources] = useState<Source[]>([]);
   const [selectedId, setSelectedId] = useState("");
@@ -132,38 +136,35 @@ function LegacyBindingScopeSession({taskId, revision, editable, disabled, source
   return <div className={styles.contextRow}>
     {!open ? <button type="button" className="secondary-button"
       disabled={!editable || disabled || busy} onClick={() => void refresh()}>
-      기존 관계 적용 범위 수정
-    </button> : null}
-    {error ? <p role="alert" className={styles.error}>{error}</p> : null}
-    {open ? <section aria-label="기존 관계 범위 안전 편집">
-      <p className={styles.note}>원본 UUID·whole/subset·coverage·출처 공정/구역은 변경하지 않습니다. 상위 Summary의 적용 범위만 변경하며, 영향 확인 후 저장합니다.</p>
+      {t("기존 관계 적용 범위 수정")}</button> : null}
+    {error ? <p role="alert" className={styles.error}>{t(error)}</p> : null}
+    {open ? <section aria-label={t("기존 관계 범위 안전 편집")}>
+      <p className={styles.note}>{t("원본 UUID·whole/subset·coverage·출처 공정/구역은 변경하지 않습니다. 상위 Summary의 적용 범위만 변경하며, 영향 확인 후 저장합니다.")}</p>
       <div style={{display:"flex",flexWrap:"wrap",gap:"0.5rem",alignItems:"center"}}>
-        <label>원본 관계
-          <select value={selectedId} disabled={busy} onChange={event=>{
+        <label>{t("원본 관계")}<select value={selectedId} disabled={busy} onChange={event=>{
             const id=event.target.value, source=sources.find(item=>item.sourceId===id);
             setSelectedId(id); setScope(source?.scope ?? "self"); setPreview(null);
           }}>
             {sources.map((source,index)=><option key={source.sourceId} value={source.sourceId}>
-              {sourceNamesById.get(source.sourceId)?.trim() || "기존 연결"} {index+1} · {source.selection === "whole" ? "전체 구성" : "선택 구성"}
+              {sourceNamesById.get(source.sourceId)?.trim() || t("기존 연결")} {index+1} · {source.selection === "whole" ? t("전체 구성") : t("선택 구성")}
             </option>)}
           </select>
         </label>
-        <label>적용 범위
-          <select value={scope} disabled={busy} onChange={event=>{
+        <label>{t("적용 범위")}<select value={scope} disabled={busy} onChange={event=>{
             setScope(event.target.value as "self" | "subtree"); setPreview(null);
           }}>
-            <option value="self">이 작업만</option><option value="subtree">하위 작업 포함</option>
+            <option value="self">{t("이 작업만")}</option><option value="subtree">{t("하위 작업 포함")}</option>
           </select>
         </label>
         <button type="button" className="secondary-button" disabled={busy || disabled || scope === selected?.scope}
-          onClick={()=>void mutate("preview")}>영향 미리보기</button>
+          onClick={()=>void mutate("preview")}>{t("영향 미리보기")}</button>
         <button type="button" className="secondary-button" disabled={busy}
-          onClick={()=>{ epoch.current+=1; setBusy(false); setOpen(false);setPreview(null);setError(null);}}>취소</button>
+          onClick={()=>{ epoch.current+=1; setBusy(false); setOpen(false);setPreview(null);setError(null);}}>{t("취소")}</button>
       </div>
       {preview ? <div role="status" aria-live="polite">
-        <p className={styles.note}>영향 작업 {preview.affectedTaskIds.length}개 · 구성원 {preview.memberCount}개 · {preview.beforeScope === "self" ? "자체" : "하위 포함"} → {preview.afterScope === "self" ? "자체" : "하위 포함"}. 직접 연결·coverage 및 원본 식별자는 보존됩니다.</p>
+        <p className={styles.note}>{t("영향 작업 ")}{preview.affectedTaskIds.length}{t("개 · 구성원 ")}{preview.memberCount}{t("개 · ")}{preview.beforeScope === "self" ? t("자체") : t("하위 포함")} → {preview.afterScope === "self" ? t("자체") : t("하위 포함")}{t(". 직접 연결·coverage 및 원본 식별자는 보존됩니다.")}</p>
         <button type="button" className="primary-button" disabled={busy || disabled || scope !== preview.afterScope}
-          onClick={()=>void mutate("apply")}>영향을 확인하고 적용</button>
+          onClick={()=>void mutate("apply")}>{t("영향을 확인하고 적용")}</button>
       </div> : null}
     </section> : null}
   </div>;

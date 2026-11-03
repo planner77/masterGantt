@@ -1,4 +1,9 @@
 "use client";
+import { displayName } from "../../lib/i18n";
+import { formatLocaleNumber } from "../../lib/i18n";
+import { type AppLocale } from "../../lib/i18n/locales";
+import { useI18n } from "../../lib/i18n/provider";
+
 import { ContextHelp } from "@/components/ui/context-help";
 
 import { IdentifierDetails } from "@/components/identifier-details";
@@ -27,8 +32,8 @@ import {
 } from "./resource-dashboard-model";
 import { dashboardError } from "./use-resource-dashboard";
 
-function pct(value: number | null) {
-  return value === null ? "진척 미산정" : `${value.toFixed(1)}%`;
+function pct(value: number | null, locale: AppLocale = "ko") {
+  return value === null ? "진척 미산정" : `${formatLocaleNumber(value,locale,{minimumFractionDigits:1,maximumFractionDigits:1})}%`;
 }
 type Open = (
   summary: ResourceDashboardSummary,
@@ -51,23 +56,23 @@ export function MilestoneScopeSummaries({
   stale,
   onOpen,
 }: Omit<Props, "mode" | "active" | "onStale">) {
+  const { t, locale } = useI18n();
   if (data.milestoneSelection && !data.milestoneSelection.applied)
     return (
       <p className="resource-dashboard-hint">
-        Milestone 조건 없음 · 기준=선택 · 제외된 배정 0
-      </p>
+        {t("Milestone 조건 없음 · 기준=선택 · 제외된 배정 0")}</p>
     );
   return (
     <>
       <dl
         className="resource-milestone-scope"
-        aria-label="Milestone 선택과 기준 범위"
+        aria-label={t("Milestone 선택과 기준 범위")}
       >
         {(
           [
-            ["선택 Milestone 범위", data.summary],
-            ["Milestone 조건 제외 기준", data.reference],
-            ["선택에서 제외된 배정", data.excluded],
+            [t("선택 Milestone 범위"), data.summary],
+            [t("Milestone 조건 제외 기준"), data.reference],
+            [t("선택에서 제외된 배정"), data.excluded],
           ] as const
         ).map(([label, summary]) =>
           summary ? (
@@ -76,11 +81,11 @@ export function MilestoneScopeSummaries({
               <dd>
                 <button
                   type="button"
-                  aria-label={`${label} · 계획 공수 ${plannedEffort(summary.effort, unit)} · ${summary.assignmentCount} Assignment 상세`}
+                  aria-label={`${label} · 계획 공수 ${plannedEffort(summary.effort, unit, locale)} · ${summary.assignmentCount} Assignment 상세`}
                   disabled={stale || !summary.assignmentCount}
                   onClick={(event) => onOpen(summary, label, "assignments", event.currentTarget)}
                 >
-                  {plannedEffort(summary.effort, unit)} · {summary.assignmentCount} Assignment
+                  {plannedEffort(summary.effort, unit, locale)} · {summary.assignmentCount} Assignment
                 </button>
               </dd>
               <button
@@ -93,8 +98,8 @@ export function MilestoneScopeSummaries({
                 {summary.taskCount} Task
               </button>
               <small>
-                선택 할당 작업 진척{" "}
-                {pct(summary.assignedTaskProgress.percent)}
+                {t("선택 할당 작업 진척")}{" "}
+                {pct(summary.assignedTaskProgress.percent, locale)}
               </small>
             </div>
           ) : null,
@@ -102,8 +107,7 @@ export function MilestoneScopeSummaries({
       </dl>
       {data.milestoneSelection && !data.milestoneSelection.applied ? (
         <p className="resource-dashboard-hint">
-          Milestone 조건이 없어 기준과 선택은 같습니다. 제외된 배정은 없습니다.
-        </p>
+          {t("Milestone 조건이 없어 기준과 선택은 같습니다. 제외된 배정은 없습니다.")}</p>
       ) : null}
     </>
   );
@@ -123,6 +127,7 @@ function Pager({
   onPage: (value: number) => void;
   disabled: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <div className="resource-dashboard-pagination">
       <span>
@@ -132,25 +137,24 @@ function Pager({
       <button
         type="button"
         className="secondary-button"
-        aria-label={`${label} 이전`}
+        aria-label={t("{value0} 이전", {value0: label})}
         disabled={disabled || offset === 0}
         onClick={() => onPage(Math.max(0, offset - size))}
       >
-        이전
-      </button>
+        {t("이전")}</button>
       <button
         type="button"
         className="secondary-button"
-        aria-label={`${label} 다음`}
+        aria-label={t("{value0} 다음", {value0: label})}
         disabled={disabled || offset + size >= total}
         onClick={() => onPage(offset + size)}
       >
-        다음
-      </button>
+        {t("다음")}</button>
     </div>
   );
 }
 export function ResourceMilestoneMatrix(props: Props) {
+  const { t, locale } = useI18n();
   const { data, mode, unit, stale, onOpen } = props;
   const [rowOffset, setRowOffset] = useState(0),
     [columnOffset, setColumnOffset] = useState(0),
@@ -168,11 +172,11 @@ export function ResourceMilestoneMatrix(props: Props) {
           : "지연 Task";
   const render = (s: ResourceDashboardSummary | undefined, label: string) =>
     !s || !s.assignmentCount || s.effort.state === "empty" ? (
-      <span>대상 없음</span>
+      <span>{t("대상 없음")}</span>
     ) : (
       <button
         type="button"
-        aria-label={`${label} · ${metricLabel} 상세`}
+        aria-label={t("{value0} · {value1} 상세", {value0: label, value1: metricLabel})}
         disabled={stale || !s.assignmentCount}
         onClick={(e) =>
           onOpen(
@@ -186,33 +190,32 @@ export function ResourceMilestoneMatrix(props: Props) {
         }
       >
         {metric === "effort"
-          ? plannedEffort(s.effort, unit)
+          ? plannedEffort(s.effort, unit, locale)
           : metric === "tasks"
             ? s.taskCount
             : metric === "completion"
               ? s.completion.percent === null
-                ? "완료율 미산정"
-                : pct(s.completion.percent)
+                ? t("완료율 미산정")
+                : pct(s.completion.percent, locale)
               : s.delayed}
       </button>
     );
   return (
-    <section aria-label="Milestone 비교표">
+    <section aria-label={t("Milestone 비교표")}>
       <label>
-        셀 지표
-        <select
-          aria-label="셀 지표"
+        {t("셀 지표")}<select
+          aria-label={t("셀 지표")}
           value={metric}
           onChange={(e) => setMetric(e.target.value)}
         >
-          <option value="effort">계획 공수</option>
-          <option value="tasks">고유 Task</option>
-          <option value="completion">완료율</option>
-          <option value="delayed">지연 Task</option>
+          <option value="effort">{t("계획 공수")}</option>
+          <option value="tasks">{t("고유 Task")}</option>
+          <option value="completion">{t("완료율")}</option>
+          <option value="delayed">{t("지연 Task")}</option>
         </select>
       </label>
       <Pager
-        label="행"
+        label={t("행")}
         offset={rowOffset}
         size={50}
         total={rows.length}
@@ -228,14 +231,12 @@ export function ResourceMilestoneMatrix(props: Props) {
         disabled={stale}
       />
       <p className="resource-dashboard-hint">
-        전체는 선택 범위 전체입니다. 표시 페이지·열과 무관하며 그룹·Role 소계를
-        더하지 않습니다.
-      </p>
+        {t("전체는 선택 범위 전체입니다. 표시 페이지·열과 무관하며 그룹·Role 소계를 더하지 않습니다.")}</p>
       <div
         className="resource-dashboard-table-scroll"
         role="region"
         tabIndex={0}
-        aria-label={`${mode === "group" ? "그룹" : "개인"} Milestone 비교표`}
+        aria-label={t("{value0} Milestone 비교표", {value0: mode === "group" ? t("그룹") : t("개인")})}
       >
         <table
           className="resource-dashboard-matrix"
@@ -243,18 +244,18 @@ export function ResourceMilestoneMatrix(props: Props) {
         >
           <thead>
             <tr>
-              <th scope="col">{mode === "group" ? "그룹" : "개인"}</th>
+              <th scope="col">{mode === "group" ? t("그룹") : t("개인")}</th>
               {visible.map((m) => (
                 <th scope="col" key={m.id ?? "unassigned"}>
                   <span className="resource-milestone-identity" title={m.name}>
                     {m.name}
                   </span>
                   <small className="resource-dashboard-date">
-                    {m.date ?? "예정일 없음"}
+                    {m.date ?? t("예정일 없음")}
                   </small>
                 </th>
               ))}
-              <th scope="col">전체</th>
+              <th scope="col">{t("전체")}</th>
             </tr>
           </thead>
           <tbody>
@@ -262,29 +263,29 @@ export function ResourceMilestoneMatrix(props: Props) {
               <tr key={row.id ?? "ungrouped"}>
                 <th scope="row">
                   <div className="resource-milestone-matrix-identity">
-                    <span className="resource-milestone-identity" title={row.name}>
-                      {row.name}
+                    <span className="resource-milestone-identity" title={displayName(row, locale)}>
+                      {displayName(row, locale)}
                     </span>
-                    {row.id ? <IdentifierDetails label="식별 정보" identifiers={[{label: "ID", value: row.id}, ...(row.code ? [{label: "코드", value: row.code}] : [])]} /> : null}
+                    {row.id ? <IdentifierDetails label={t("식별 정보")} identifiers={[{label: "ID", value: row.id}, ...(row.code ? [{label: "코드", value: row.code}] : [])]} /> : null}
                   </div>
-                  {!row.active ? <small>비활성</small> : null}
+                  {!row.active ? <small>{t("비활성")}</small> : null}
                 </th>
                 {visible.map((m) => (
                   <td key={m.id ?? "unassigned"}>
                     {render(
                       row.milestones.find((c) => c.milestoneTaskId === m.id)
                         ?.summary,
-                      `${row.name} · ${m.name}`,
+                      `${displayName(row, locale)} · ${m.name}`,
                     )}
                   </td>
                 ))}
-                <td>{render(row.summary, `${row.name} · 전체`)}</td>
+                <td>{render(row.summary, t("{value0} · 전체", {value0: displayName(row, locale)}))}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {!rows.length ? <p>선택 범위에 행이 없습니다.</p> : null}
+      {!rows.length ? <p>{t("선택 범위에 행이 없습니다.")}</p> : null}
     </section>
   );
 }
@@ -300,6 +301,7 @@ const TreeExpansion = createContext<{
 export function ResourceMilestoneTree(
   props: Props & { order: "milestone" | "resource" },
 ) {
+  const { t, locale } = useI18n();
   const [keys, setKeys] = useState<Set<string>>(() => new Set()),
     [visibleKeys, setVisibleKeys] = useState<Set<string>>(() => new Set()),
     [pages, setPages] = useState<Map<string, number>>(() => new Map());
@@ -334,17 +336,16 @@ export function ResourceMilestoneTree(
           }),
       }}
     >
-      <section aria-label="Milestone 계층 현황">
+      <section aria-label={t("Milestone 계층 현황")}>
         <button
           type="button"
           className="secondary-button"
           onClick={() => setKeys(new Set())}
         >
-          계층 모두 접기
-        </button>
-        <ContextHelp label="Milestone 계층 도움말"><p>현재 표시에서 최대 12개 계층을 펼칩니다. 페이지 밖 펼침과 페이지 위치는 보존되며 집계 범위는 바뀌지 않습니다.</p></ContextHelp>
+          {t("계층 모두 접기")}</button>
+        <ContextHelp label={t("Milestone 계층 도움말")}><p>{t("현재 표시에서 최대 12개 계층을 펼칩니다. 페이지 밖 펼침과 페이지 위치는 보존되며 집계 범위는 바뀌지 않습니다.")}</p></ContextHelp>
         <Pager
-          label="상위 행"
+          label={t("상위 행")}
           offset={offset}
           size={50}
           total={rows.length}
@@ -355,10 +356,10 @@ export function ResourceMilestoneTree(
           <TreeNode
             nodeKey={`${props.mode}:${props.order}:${row.id ?? "ungrouped"}`}
             key={row.id ?? "ungrouped"}
-            label={row.name}
+            label={displayName(row, locale)}
             stale={props.stale}
           >
-            <SummaryLine summary={row.summary} label={row.name} {...props} />
+            <SummaryLine summary={row.summary} label={displayName(row, locale)} {...props} />
             {props.mode === "group" && props.order === "resource" ? (
               <GroupChildren {...props} groupId={row.id} />
             ) : (
@@ -366,7 +367,7 @@ export function ResourceMilestoneTree(
             )}
           </TreeNode>
         ))}
-        {!rows.length ? <p>선택 범위에 행이 없습니다.</p> : null}
+        {!rows.length ? <p>{t("선택 범위에 행이 없습니다.")}</p> : null}
       </section>
     </TreeExpansion.Provider>
   );
@@ -425,6 +426,7 @@ function SummaryLine({
   Props,
   "unit" | "stale" | "onOpen"
 >) {
+  const { t, locale } = useI18n();
   return (
     <div className="resource-milestone-summary">
       <button
@@ -435,15 +437,15 @@ function SummaryLine({
         {s.taskCount} Task
       </button>
       <span>
-        완료 {s.completed} · 지연 {s.delayed} · 선택 할당 작업 진척{" "}
-        {pct(s.assignedTaskProgress.percent)}
+        {t("완료")}{" "}{s.completed} {t("· 지연")}{" "}{s.delayed} {t("· 선택 할당 작업 진척")}{" "}
+        {pct(s.assignedTaskProgress.percent, locale)}
       </span>
       <button
         type="button"
         disabled={stale || !s.assignmentCount}
         onClick={(e) => onOpen(s, label, "assignments", e.currentTarget)}
       >
-        {plannedEffort(s.effort, unit)}
+        {plannedEffort(s.effort, unit, locale)}
       </button>
     </div>
   );
@@ -451,6 +453,7 @@ function SummaryLine({
 function MilestoneNodes(
   props: Props & { row: ResourceDashboardRow; order: "milestone" | "resource" },
 ) {
+  const { t, locale } = useI18n();
   const state = useContext(TreeExpansion),
     pageKey = `milestones:${props.row.summary.selector.dimension}:${props.row.summary.selector.id}:${props.row.summary.selector.resourceId ?? ""}`;
   const offset = state?.pages.get(pageKey) ?? 0,
@@ -459,7 +462,7 @@ function MilestoneNodes(
   return (
     <>
       <Pager
-        label="Milestone 계층"
+        label={t("Milestone 계층")}
         offset={offset}
         size={6}
         total={stages.length}
@@ -480,20 +483,20 @@ function MilestoneNodes(
           >
             <SummaryLine
               summary={cell.summary}
-              label={`${props.row.name} · ${m.name}`}
+              label={`${displayName(props.row, locale)} · ${m.name}`}
               {...props}
             />
             {stage ? (
               <p>
-                Milestone 전체 소속 {stage.full.completedMemberCount}/
+                {t("Milestone 전체 소속")}{" "}{stage.full.completedMemberCount}/
                 {stage.full.memberCount} ·{" "}
                 {stage.full.ready === null
-                  ? "준비 판정 해당 없음"
+                  ? t("준비 판정 해당 없음")
                   : stage.full.ready
-                    ? "준비 완료"
-                    : "준비 전"}{" "}
-                · 선행 차단 {stage.full.blocked ? "있음" : "없음"}
-                {stage.full.manualEvent ? " · 수동 이벤트" : ""}
+                    ? t("준비 완료")
+                    : t("준비 전")}{" "}
+                {t("· 선행 차단")}{" "}{stage.full.blocked ? t("있음") : t("없음")}
+                {stage.full.manualEvent ? t(" · 수동 이벤트") : ""}
               </p>
             ) : null}
             {props.mode === "group" && props.order === "milestone" ? (
@@ -505,7 +508,7 @@ function MilestoneNodes(
             ) : null}
           </TreeNode>
         ) : (
-          <p key={m.id ?? "unassigned"}>{m.name} · 대상 없음</p>
+          <p key={m.id ?? "unassigned"}>{m.name} {t("· 대상 없음")}</p>
         );
       })}
     </>
@@ -518,6 +521,7 @@ function GroupChildren(
     order: "milestone" | "resource";
   },
 ) {
+  const { t, locale } = useI18n();
   const { binding } = useResourceDrill();
   const tree = useContext(TreeExpansion),
     pageKey = `children:${props.groupId}:${props.milestoneTaskId === undefined ? "all" : (props.milestoneTaskId ?? "unassigned")}`;
@@ -599,25 +603,24 @@ function GroupChildren(
     binding,
   ]);
   return (
-    <div aria-label="그룹 교차 개인 현황">
+    <div aria-label={t("그룹 교차 개인 현황")}>
       {error ? (
         <p role="alert">
-          {error}
+          {t(error ?? "")}
           <button
             type="button"
             disabled={props.stale}
             onClick={() => setRetry((v) => v + 1)}
           >
-            개인 다시 시도
-          </button>
+            {t("개인 다시 시도")}</button>
         </p>
       ) : !value ? (
-        <p role="status">개인 조회 중…</p>
+        <p role="status">{t("개인 조회 중…")}</p>
       ) : null}
       {value ? (
         <>
           <Pager
-            label="그룹 개인"
+            label={t("그룹 개인")}
             offset={offset}
             size={50}
             total={value.totalCount}
@@ -628,17 +631,17 @@ function GroupChildren(
             <TreeNode
               nodeKey={`group:${props.groupId}:${props.milestoneTaskId ?? "all"}:resource:${row.id}`}
               key={row.id}
-              label={row.name}
+              label={displayName(row, locale)}
               stale={props.stale}
             >
-              <SummaryLine summary={row.summary} label={row.name} {...props} />
+              <SummaryLine summary={row.summary} label={displayName(row, locale)} {...props} />
               {props.milestoneTaskId === undefined ? (
                 <MilestoneNodes {...props} mode="resource" row={row} />
               ) : null}
             </TreeNode>
           ))}
           {!value.rows.length ? (
-            <p>이 교차 범위에 개인 배정이 없습니다.</p>
+            <p>{t("이 교차 범위에 개인 배정이 없습니다.")}</p>
           ) : null}
         </>
       ) : null}
