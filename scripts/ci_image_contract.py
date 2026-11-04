@@ -43,7 +43,7 @@ def source_fingerprint(root: pathlib.Path) -> dict:
             raise ContractError(f"required build file absent: {relative}")
         files[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
     dockerfile = (root / CONTEXT_INPUTS[0]).read_text(encoding="utf-8")
-    base_images = re.findall(r"(?im)^FROM\\s+node:[^\\s@]+@sha256:([a-f0-9]{64})\\s+AS\\s+\\S+", dockerfile)
+    base_images = re.findall(r"(?im)^FROM\s+node:[^\s@]+@sha256:([a-f0-9]{64})\s+AS\s+\S+", dockerfile)
     if len(base_images) != 2 or base_images[0] != base_images[1]:
         raise ContractError("base image immutable digest not uniquely pinned across stages")
     return {
