@@ -632,3 +632,11 @@ PR은 default/base branch의 GHA BuildKit cache를 `cache-from`으로 재사용�
 게시 담당 infra/Manager는 최신 main·expected remote Head·전체 tree·후보 commit 부모를 전후 조회한다. API candidate Head와 local Head는 달라도 tree 동등성을 검증하고 새 Head의 원격 CI를 별도로 확인한다. 읽기 전용 `verify-pr-batch.mjs`의 PASS는 입력 비교 결과이며 인증된 GitHub 관측이나 Required/Trusted/Owner 승인 자체가 아니다. 응답 유실·거부·제3 Head는 read-back으로 분리하고 추가 write 전에 재통합·검증한다.
 
 최초 PR metadata를 완성하고 상태 보고에는 댓글을 사용한다. 정당한 내용 수정 외 제목/본문 반복 편집을 줄이며, metadata 정책·Full/metadata concurrency·필수 검사·보호 규칙을 변경하지 않는다. 계획된 중간 CI가 필요하면 목적/Head를 기록한다. Run/Attempt 및 Job 시간은 청구 비용과 분리하며 미측정 절감률을 제시하지 않는다.
+
+## Issue #874 — Release Runner ImageVersion 교차 실행 운영 조치
+
+- [Release #216.1](https://github.com/planner77/masterGantt/actions/runs/41779185247) candidate Job 126417402392의 PR_MAIN_BUILDER_OR_INPUT_DRIFT는 PR/Main ImageVersion 20261101.186.1과 Release 20261025.179.1 차이에서 기인. Finalizer #1346.1 dispatch SUCCESS는 Release 게시가 아니다.
+- 새 Main push의 Docker smoke 구현 PASS 때 Main 동일 Run ID+Attempt에 build contract JSON artifact를 추가한다. Release 검증기는 이 Run/Attempt+Required3/Docker/publisher SUCCESS, GitHub artifact ZIP digest/만료/유일성과 PR 원본 archive/receipt를 검증. Release 신규 runner builder fingerprint는 사용하지 않는다.
+- Main receipt 또는 PR source 누락·만료·중복, job/attempt/tree/builder/OCI/label/version mismatch, GHCR publisher 또는 live digest 불일치는 BLOCKED. 구 v0.141.0 태그 이동/과거 실패 PASS 소급/Release 재빌드/무단 rerun 금지. 별도 PATCH 복구 및 Owner exact-version 승인이 필요하며 #865는 정식 게시 전 OPEN.
+- [Work Packet](exec-plans/active/ISSUE_874.md), [실패 원장](ISSUE_874_FAILURE_ANALYSIS.md).
+
