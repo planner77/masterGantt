@@ -1380,6 +1380,16 @@ jobs:
           path: ${{ runner.temp }}/ci-image-build-contract.json
           if-no-files-found: error
           retention-days: 30
+      # Issue #874: independent Main Docker builder witness for Release.
+      # PR/Main builder equality was checked BEFORE this trusted Main receipt.
+      - name: Main verified build contract (Release runner-independent)
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-main-build-contract-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ci-image-build-contract.json
+          if-no-files-found: error
+          retention-days: 30
       # Upload only after the EXACT exported image passed policy and runtime
       # smoke; the independent trusted Main job checks Run/Attempt + ZIP hash.
       - name: Issue #836 verified OCI archive (same source Run/Attempt)
