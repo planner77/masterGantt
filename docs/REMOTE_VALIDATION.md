@@ -1153,3 +1153,10 @@ PR 생성 후 Full run의 URL·run_attempt·Head/base/test merge를 단일 조�
 보완은기존142개배치와8shard를유지하고country-calendar-admin을Shard1에추가하는것이다. 정적selector CLI8개가143개를정확히한번선택한다는로컬증거와원격8runner실행성공은서로다르다. source별전체Vitest/독자release·영향parser·root/external발견/독립검토를[실패 원장](ISSUE_342_FAILURE_ANALYSIS.md)에기록한다. historicalprojectedMs는신규143spec의실측비용이아니다.
 
 원장/문서/리뷰·충돌확인후동일PR새Head의FullCI등록만확인한다. 새Head Required3/Trusted/인간QA_FINAL·Manager ACCEPT는시작시NOT TESTED이며모니터링·병합/Main/GHCR·Issue종료는수행하지않는다. PR본문은상태보고용으로반복편집하지않고실행근거는운영댓글로연결한다.
+
+## Issue #873 — Metadata-only Attempt Source 원격 판정 (2026-11-05)
+
+- 검증 입력: `/actions/runs/<id>`의 정확한 event/path/repository/status/head/attempt, `/actions/runs/<id>/attempts/1/jobs` 및 각 시도의 Job 이름·conclusion·실제 started/completed, `/actions/runs/<id>/artifacts`(만료 및 동일명 전체 포함), `/pulls/<number>`, commit→PR, 정확 Full source Run·Required3 Job 원장. 워크플로 표시명만으로 모드/승인하지 않는다.
+- **수용 가능한 재시도 예외:** Metadata-only가 성공하고 Preflight/전체 구현 Job은 미실행이며, 새 Attempt ZIP이 실제 없고 최초 성공 changes Job과 승계 결과의 Run/Head/started/completed가 일치하는 경우에만 **원래 Attempt 1 ZIP**을 검증한다. `verified_source`의 PR/base/test-merge/Git Tree 포함 기존 source 확인을 통과하고 최신 성공 Full의 같은 base·정확 artifact·3 Required를 독립 인증해야 `METADATA_ONLY_RECOVERY_NON_AUTHORITATIVE` 감사 N/A이다.
+- **즉시 BLOCKED/FAIL:** Full Run의 source ZIP 결손, metadata 최초 실패·진행 중, expired/doubled/tampered ZIP, 변경 경로 Job 재실행/원본 없음, Run/PR/Head/Base/Test merge drift, Full Required3 미성공·CANCELLED·stale, 암묵적 Owner 승인. 보고에는 `source_ci_run_id`/`source_ci_run_attempt`와 실제 `source_event_artifact_attempt`, `prior_full_run_id`를 분리한다.
+- 안전한 재현은 read-only 모의 GitHub API 테스트 및 원본 실제 Run/Artifact 조회. 새 #873 Full PR CI 및 Trusted QA가 검증을 통과하기 전 본 기능 완료 선언 금지. [원장](ISSUE_873_FAILURE_ANALYSIS.md), [Work Packet](exec-plans/active/ISSUE_873.md).

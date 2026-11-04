@@ -743,6 +743,75 @@ def effective_run_jobs(gh, run_id, run_attempt):
     return selected
 
 
+def trusted_metadata_mode(run, source_jobs):
+    """Identify metadata-only CI by immutable job topology, not run-name alone.
+
+    GitHub rerun-failed-jobs can carry successful jobs forward from attempt 1
+    while rewriting their run_attempt field to the latest attempt. Display
+    titles are merely an additional consistency check, never authority.
+    """
+    title = str(run.get("display_title") or "")
+    metadata_name = "PR metadata가 기존 전체 CI 증거를 보존하는지 검증"
+    metadata_result = (source_jobs.get(metadata_name) or {}).get("conclusion")
+    marked_metadata = "[메타데이터 검증]" in title
+    if not marked_metadata:
+        require(metadata_result == "skipped" and "[전체 검증]" in title,
+                "전체 CI 모드/metadata Job 결과 불일치")
+        return False
+    require(metadata_result == "success" and
+            (source_jobs.get("변경 경로 판정") or {}).get("conclusion") == "success" and
+            (source_jobs.get("QA Preflight — 정책·문서 사전 검사") or {}).get("conclusion") == "skipped",
+            "metadata-only 모드/실제 Job topology 불일치")
+    for name in ("TypeScript 타입 검사", "Vitest 단위·통합 테스트",
+                 "Docker smoke 구현", "PR Next.js production build"):
+        require((source_jobs.get(name) or {}).get("conclusion") == "skipped",
+                "metadata-only 실행에서 Full 구현 Job이 실행됨: " + name)
+    return True
+
+
+def carried_metadata_event_source(gh, run, source_jobs):
+    """Use attempt-1 event evidence ONLY for a proven carried-over changes job.
+
+    Never backfill a missing Full artifact, an expired/tampered current artifact
+    or an actually rerun changes job. Historical failure remains immutable.
+    """
+    run_id, attempt = run.get("id"), run.get("run_attempt")
+    require(type(run_id) is int and run_id > 0 and
+            type(attempt) is int and 2 <= attempt <= 10 and
+            run.get("status") == "completed" and run.get("conclusion") == "success",
+            "metadata 전 단계 출처 복구 대상 Run/Attempt 불일치")
+    name = f"ci-pr-source-{run_id}-{attempt}"
+    inventory = gh.collection(
+        f"{gh.prefix}/actions/runs/{run_id}/artifacts", "artifacts")
+    require(not any(item.get("name") == name for item in inventory),
+            "현재 Attempt Artifact 누락이 아닌 만료·중복·손상; 승계 불허")
+    original_jobs = gh.collection(
+        f"{gh.prefix}/actions/runs/{run_id}/attempts/1/jobs", "jobs")
+    originals = [job for job in original_jobs
+                 if job.get("name") == "변경 경로 판정"]
+    require(len(originals) == 1 and
+            originals[0].get("conclusion") == "success",
+            "최초 Attempt 변경 경로 Job 원본 누락/중복/실패")
+    initial = originals[0]
+    carried = source_jobs.get("변경 경로 판정") or {}
+    # GitHub's attempt-2 API may relabel a carried-over Job's id/attempt,
+    # while its actual started_at/completed_at remain those of attempt 1.
+    # A newly executed changes job has a different execution window.
+    require(carried.get("conclusion") == "success" and
+            all(isinstance(initial.get(field), str) and initial[field] and
+                initial.get(field) == carried.get(field)
+                for field in ("started_at", "completed_at")) and
+            all(initial.get(field) == carried.get(field) == expected
+                for field, expected in (("run_id", run_id),
+                                        ("head_sha", run.get("head_sha")))),
+            "변경 경로 Job이 원본 Attempt에서 승계된 증거 불충분")
+    payload = source_artifact(gh, run_id, 1)
+    # Bind the actual immutable event JSON to its own attempt, not the copied
+    # attempt-2 job metadata. verified_source authenticates PR/head/base/merge.
+    source = verified_source(gh, {**run, "run_attempt": 1}, payload)
+    return source, 1
+
+
 def trusted_source(env, event, gh):
     """Official verdict comes only from this default-branch workflow_run, not a PR-editable job.
 
@@ -759,8 +828,24 @@ def trusted_source(env, event, gh):
             "trusted QA 입력이 CI pull_request run이 아닙니다")
     require((run.get("repository") or {}).get("full_name") == gh.repo,
             "CI 검증 원본 repository 불일치")
-    payload = source_artifact(gh, run_id, int(run.get("run_attempt") or 0))
-    number, head, base, merge, live = verified_source(gh, run, payload)
+    attempt = run.get("run_attempt")
+    require(type(attempt) is int and 1 <= attempt <= 10,
+            "trusted CI Attempt 정보 누락/범위 초과")
+    source_jobs = None
+    try:
+        payload = source_artifact(gh, run_id, attempt)
+        number, head, base, merge, live = verified_source(gh, run, payload)
+        event_attempt = attempt
+    except Blocked as error:
+        if (error.reason != "원본 CI PR event artifact 누락/중복/만료" or
+                attempt == 1 or
+                "[메타데이터 검증]" not in str(run.get("display_title") or "")):
+            raise
+        source_jobs = effective_run_jobs(gh, run_id, attempt)
+        require(trusted_metadata_mode(run, source_jobs),
+                "원본 metadata 재시도 Job topology 불일치")
+        (number, head, base, merge, live), event_attempt = (
+            carried_metadata_event_source(gh, run, source_jobs))
     if live.get("merged") is True:
         # A completed merge is immutable history, not a new merge approval.
         # PR edited CI may fail and still must not supersede the older Full QA.
@@ -782,12 +867,10 @@ def trusted_source(env, event, gh):
         }
     require(run.get("status") == "completed" and run.get("conclusion") == "success",
             "원본 PR CI run 자체가 성공하지 않았습니다", "FAIL")
-    source_jobs = effective_run_jobs(gh, run_id, int(run["run_attempt"]))
+    if source_jobs is None:
+        source_jobs = effective_run_jobs(gh, run_id, attempt)
     results = {name: job.get("conclusion") for name, job in source_jobs.items()}
-    metadata_only = "[메타데이터 검증]" in str(run.get("display_title") or "")
-    if not metadata_only:
-        require("[전체 검증]" in str(run.get("display_title") or ""),
-                "전체/메타데이터 CI 실행 유형 식별 불가")
+    metadata_only = trusted_metadata_mode(run, source_jobs)
     vals = {
         "changes": results.get("변경 경로 판정"),
         "quality": results.get("Build, static checks, and unit tests"),
@@ -803,6 +886,32 @@ def trusted_source(env, event, gh):
     }
     # Never promote a spoofed required-check name outside the approved full CI.
     evidence(vals)
+    if metadata_only:
+        # A metadata-only rerun is NEVER a second Full QA verdict. Its own
+        # successful metadata gate and the independently authenticated,
+        # exact-source Full Required3 are prerequisites to a non-authoritative
+        # N/A audit. A failed/pending Full is still BLOCKED/FAIL.
+        full_id = verify_same_base_full_run(
+            gh, number, head, base, run_id, merge)
+        issue = primary_issue(live.get("title") or "", live.get("body") or "")
+        require(re.search(r"(?:^|/)issue-" + str(issue) + r"(?:[-/]|$)",
+                          (live.get("head") or {}).get("ref") or "") is not None,
+                "metadata-only Primary Issue/branch trace 불일치")
+        return {
+            "automated_qa": "N/A",
+            "independent_qa": "N/A(metadata-only 비권위 감사)",
+            "manager_decision": "NOT TESTED",
+            "decision_reason": "METADATA_ONLY_RECOVERY_NON_AUTHORITATIVE",
+            "pr": number, "issue": issue, "pr_head_sha": head,
+            "base_sha": base, "source_ci_test_merge_sha": merge,
+            "source_ci_run_id": run_id, "source_ci_run_attempt": attempt,
+            "source_event_artifact_attempt": event_attempt,
+            "source_event_provenance": "VERIFIED_EVENT_AND_CARRIED_CHANGES_JOB"
+                if event_attempt != attempt else "VERIFIED_EXACT_ATTEMPT_EVENT",
+            "prior_full_run_id": full_id,
+            "full_required_status": "VERIFIED_EXACT_FULL_RUN",
+            "trusted_source": "PROTECTED_DEFAULT_BRANCH_WORKFLOW_RUN",
+        }
     ctx = dict(env)
     ctx.update({
         "GITHUB_EVENT_NAME": "pull_request",
