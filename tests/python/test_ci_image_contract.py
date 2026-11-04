@@ -134,6 +134,7 @@ class ReleaseBuilderProvenanceTest(unittest.TestCase):
                     ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
         name = "ci-main-build-contract-" + chr(36) + "{{ github.run_id }}-" + chr(36) + "{{ github.run_attempt }}"
         self.assertIn(name, workflow)
+        self.assertIn("Main 검증 빌드 계약 증거 보존 (Release Runner 환경 독립)", workflow)
         self.assertIn("if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'", workflow)
         self.assertIn("if-no-files-found: error", workflow)
 
