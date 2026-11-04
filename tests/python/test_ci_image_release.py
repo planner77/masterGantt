@@ -25,8 +25,8 @@ def good_jobs():
 
 class MainCandidateMappingTest(unittest.TestCase):
     def run_verifier(self, *, source_digest=DIGEST, run_status="success",
-                     main_jobs=None, runs=1, receipt=None, artifact_error=None,
-                     contract_error=None):
+                     main_jobs=None, runs=1, receipt=None, raw_receipt=None,
+                     artifact_error=None, contract_error=None):
         # Main original builder is independently recorded on its own Run/Attempt.
         builder = {"git_tree": "c" * 40, "runner_image_version": "20261101.186.1"}
         source = {"index_digest": source_digest, "source_revision": REVISION,
@@ -45,7 +45,8 @@ class MainCandidateMappingTest(unittest.TestCase):
         with mock.patch.object(release, "verify_source", return_value=source) as origin, \
              mock.patch.object(release, "download_artifact",
                  side_effect=artifact_error,
-                 return_value=json.dumps(main_receipt).encode()) as artifact, \
+                 return_value=(raw_receipt if raw_receipt is not None else
+                               json.dumps(main_receipt).encode())) as artifact, \
              mock.patch.object(release, "verify_build_contract",
                  side_effect=contract_error) as main_contract, \
              mock.patch.object(release, "page_items", side_effect=responses):
@@ -150,11 +151,8 @@ class MainCandidateMappingTest(unittest.TestCase):
             self.run_verifier(artifact_error=Ineligible("ARTIFACT_MISSING_OR_EXPIRED"))
 
     def test_main_receipt_malformed_json_blocks(self):
-        with mock.patch.object(release, "download_artifact", return_value=b"not-json"):
-            # Directly exercise the JSON check instead of monkeypatching the
-            # harness's own artifact stub.
-            with self.assertRaises((ValueError, Blocked)):
-                json.loads(b"not-json")
+        with self.assertRaisesRegex(Blocked, "MAIN_BUILDER_RECEIPT_INVALID_JSON"):
+            self.run_verifier(raw_receipt=b"not-json")
 
     def test_main_receipt_nonobject_blocks(self):
         with self.assertRaisesRegex(Blocked, "MAIN_BUILDER_RECEIPT_INVALID"):
