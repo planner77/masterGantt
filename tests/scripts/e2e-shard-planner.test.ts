@@ -104,7 +104,8 @@ describe("historical E2E shard planner", () => {
     expect(plan.shards.map(group => group.shard).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     // The #479 private read security spec is deliberately assigned to shard 8, not silently dropped.
     // 누락·중복은 계속 실패해야 하며 hash fallback으로 대체하지 않는다.
-    expect(plan.shards.map(group => group.files.length)).toEqual([19, 18, 18, 18, 17, 18, 17, 18]);
+    // #866 Phase A adds exactly one language-shell spec to shard 5.
+    expect(plan.shards.map(group => group.files.length)).toEqual([19, 18, 18, 18, 18, 18, 17, 18]);
     expect(new Set(entries).size).toBe(entries.length);
     expect([...entries].sort()).toEqual(discovered); // New specs require deliberate plan slots.
     const selected = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(shard =>
@@ -128,6 +129,7 @@ describe("historical E2E shard planner", () => {
       ["issue-621-resource-target.spec.ts", 8],
       ["gantt-state-recovery-editor.spec.ts", 4],
       ["issue-736-resource-dashboard.spec.ts", 5],
+      ["issue-866-language-shell.spec.ts", 5],
       ["project-transfer-layout-491.spec.ts", 6],
       ["canonical-projection.spec.ts", 6],
       ["logistics-target-authoring.spec.ts", 7],

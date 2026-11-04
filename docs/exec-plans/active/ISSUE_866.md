@@ -99,3 +99,10 @@
 ## IMPLEMENTATION_HANDOFF
 
 - 이 단계의 끝점은 Phase A의 분리 PR과 **Full PR CI 시작**까지만. Owner는 Phase A만 병합·릴리스 승인한 적 없음; `release_authorized=false`. 코드 리뷰/충돌/실패 원장 보완 및 성공한 Full·Trusted QA를 확보한 뒤에도 Phase B/C 기능 완료/발행 여부를 별도 결정한다.
+
+## REWORK1 — PR #878 Full #3507.1 Vitest E2E shard-count 테스트 동기화 (2026-11-05)
+
+- **원본** [Run 41921474942.1](https://github.com/planner77/masterGantt/actions/runs/41921474942), Head `ccf39510441a447d3df8f9f85ee3c9b1e22008ce`, Base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, Unit Job `126895162188`: `tests/scripts/e2e-shard-planner.test.ts:107` 기대 `[19,18,18,18,17,18,17,18]` vs 실제 `[19,18,18,18,18,18,17,18]`. **직접 TEST_CONTRACT 실패 1건**, Vitest 3527 PASS/1 FAIL/3 SKIPPED, 기존 i18n 6 Unit PASS. Policy/Typecheck/Lint/Preflight PASS, Fast Gate/Required3·QA 파생 FAIL, Chromium8/Docker/Next build 실제 실행은 SKIPPED. 상세 [누적 원장](../../ISSUE_866_FAILURE_ANALYSIS.md).
+- **보완** `tests/scripts/e2e-shard-planner.test.ts`의 기존 count assertion은 유지하고 Shard5의 신규 파일 1개만 17→18로 정확히 변경, `issue-866-language-shell.spec.ts`→Shard5 매핑을 **추가 검증**. 테스트 삭제·skip·hash fallback·shard 이동·retry/timeout 완화 없이 144개 spec 1:1 배치/과거 143개 보존. `tests/config/e2e-shard-plan.json`의 원본 불변.
+- **TEST_LIFECYCLE_REVIEW**: 기존 `tests/scripts/e2e-shard-planner.test.ts`를 EXTEND; `scripts/e2e-shard-planner.mjs`, `tests/config/e2e-shard-plan.json`, 나머지 Gantt/E2E/Locale 6 Unit/Date6/CI tests는 KEEP_UNIQUE. 직접 영향/인접/음성 소비자 합집합과 미실행 범위는 원장 기재. 새 정확 HEAD Full PR CI 전 원격 검증 NOT TESTED.
+- **DOCUMENTATION_SYNC 추가:** `tests/scripts/e2e-shard-planner.test.ts`: UPDATED. 실패 원장 및 Work Packet, `docs/TEST_PLAN.md`는 UPDATED 유지. 기존 Issue AC01~09와 미구현 Phase B/C 경계, `release_authorized=false` 보존.

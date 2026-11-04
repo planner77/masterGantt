@@ -5749,3 +5749,9 @@ REWORK4 같은후보의기본goto(load) bounded33개는 **33PASS/0FAIL**,5.3분�
 ## Issue #866 Phase A — E2E 명시 Shard 할당 보완 (2026-11-05)
 
 신규 `tests/e2e/issue-866-language-shell.spec.ts`는 명시 계획 `tests/config/e2e-shard-plan.json`의 **Shard5**에 1개만 추가한다. 기존 143개 spec·8샤드·historical projectedMs/이전 수동 재균형 기록은 변경하지 않고 144개 계획으로 확장하며 새 spec 비용은 REMOTE_UNMEASURED. 기존 E2E 탐색·Required3·35분 제한/skip/retry/fail-fast 계약 완화 없음.
+
+## Issue #866 Phase A REWORK1 — 명시 E2E 샤드 계획의 테스트 계약 실패 교정 (2026-11-05)
+
+- PR #878 Full [#3507.1](https://github.com/planner77/masterGantt/actions/runs/41921474942) Vitest 실패: `tests/scripts/e2e-shard-planner.test.ts:107`가 예전 143-spec 샤드 개수 기대 `[19,18,18,18,17,18,17,18]`를 유지한 반면, 새 i18n spec가 shard5에 등록되어 실제 `[19,18,18,18,18,18,17,18]`이다. 개수 assertion과 신규 spec→shard5 고정 매핑을 **함께** 최신화하고, 전체 계획 1:1/중복·누락 거부 단언 및 기존 8개 샤드 그대로 유지한다.
+- 3527 통과·1 직접 실패·3 건너뜀, 새 `tests/lib/i18n-phase-a.test.ts` 6 PASS; E2E8/Docker/Next build는 Fast Gate 차단으로 미실행. 본 수정만으로 다른 미실행 경계나 새 Head PASS를 선언할 수 없으므로 동일 새 HEAD Full CI 재실행이 필요하다.
+- `TEST_LIFECYCLE_REVIEW=EXTEND`: 기존 `tests/scripts/e2e-shard-planner.test.ts`에 count+explicit placement, `KEEP_UNIQUE`: `tests/config/e2e-shard-plan.json`, 144개 명시 스펙·기존 143개·provenance source runs·실행 시간 이력, 기본 Guard/Required3/Trusted. 원본 실패 이력은 [#866 원장](ISSUE_866_FAILURE_ANALYSIS.md)을 따른다.
