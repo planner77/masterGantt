@@ -25,3 +25,10 @@ PR: https://github.com/planner77/masterGantt/pull/871
 - 원본 [Full #3479.1 Run41742545244](https://github.com/planner77/masterGantt/actions/runs/41742545244), Head `d70a803667f9a8945be9723f070c8711a110f1b8` Base `352a43e74c7b34c72d952f67783a53463f8b519d`, Attempt1, FAILURE. QA Preflight Job126287542927의 직접 FAIL: `DOCUMENTATION_SYNC — 문서 영향 기록 없음: docs/GITHUB_OPERATIONS.md`. 나머지 메타데이터(Primary/risk/qa/AC/보호 분류)는 PASS; 전체 TypeScript/Vitest/E2E/Docker는 정책 차단으로 NOT RUN. QA·aggregate 실패는 파생이며 제품 직접 오류 아님.
 - Base `scripts/qa_final_automated.py:docs_required`는 정책 경로 `docs/SECURITY.md`를 변경한 PR에서 QA_DOCS의 `AGENTS.md,docs/QA_REVIEW_POLICY.md,docs/CI_CD.md,docs/TEST_PLAN.md,docs/GITHUB_OPERATIONS.md,docs/REMOTE_VALIDATION.md` 전체를 기록하도록 요구한다. 이전 원장에 일부만 기록해 Union 사전 검증에 실패한 것으로 확인했다.
 - 보완: Work Packet `## DOCUMENTATION_SYNC`에 변경 없는 5개 경로의 정식 `N/A(reason)` 기록을 보충하고 동일 Header/AC mapping을 유지한다. 실제 문서/테스트/보안 정책 원문은 수정하지 않는다. 새 exact Head CI만 시작하며 완료 모니터링/병합/정식 릴리스는 수행하지 않는다.
+
+## PR871-FULL-004 — Full #3481.1 Markdown 링크 검사 실패 (2026-11-04)
+
+- [Full #3481.1 / Run41743239291](https://github.com/planner77/masterGantt/actions/runs/41743239291), attempt1, Head `a800f7f039d37caf0c5a8b61d4c549ca1fd2b01b`, Main `352a43e74c7b34c72d952f67783a53463f8b519d`는 QA Preflight/신뢰경계 PASS 후 Unit/Vitest·ESLint·TypeScript PASS. 직접 실패는 `정책·저장소 계약 검사` Job126289994973의 `node scripts/check-markdown-links.mjs`: `docs/LLM_CONFIGURATION.md`에서 분리 후 없는 두 상대 경로 `exec-plans/active/ISSUE_866.md`, `ISSUE_866_FAILURE_ANALYSIS.md`를 참조. 이 오류가 PR 빠른 검사 및 Quality/E2E/Docker aggregate 실패로 파생되며 신규 LLM API/Runtime/SSRF 직접 FAIL은 확인되지 않았다.
+- 원인: 통합 PR #870 원본 설정 가이드 마지막 줄의 #866 참조를 #865 분리시 교체하지 않아 독립 branch에 없는 문서를 지시했다.
+- 교정: #865 문서 원문을 보존하고 마지막 참조만 실재하는 `docs/exec-plans/active/ISSUE_865.md` 및 `docs/ISSUE_865_FAILURE_ANALYSIS.md`로 정정. 원래 통합 PR의 누적 이력을 이 독립 PR의 PASS로 전용하지 않는 점을 명시.
+- 테스트 수용: markdown 경로·파일 존재와 정확 Git blob을 GitHub API로 검토. 최종 독립 Head에서 full Unit/E2E/Docker 및 Trusted/Owner는 아직 NOT TESTED. 기존 QA/보안/CI 정책 불변.

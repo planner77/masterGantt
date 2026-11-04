@@ -95,3 +95,7 @@
 ## REWORK3 — Full #3479.1 정책 영향 문서 Union (2026-11-04)
 
 [Full #3479.1 / Run41742545244](https://github.com/planner77/masterGantt/actions/runs/41742545244), Head `d70a803667f9a8945be9723f070c8711a110f1b8`, QA Preflight Job126287542927: DOC_SYNC 필수 경로 `docs/GITHUB_OPERATIONS.md` 누락 1건. `docs/SECURITY.md`는 보호 정책 문서이므로 base 검증기 `docs_required(paths)`에서 `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`의 Union을 요구한다. 변경 없는 5개에 대해 `N/A(reason)`을 명시하고 기존 `docs/TEST_PLAN.md` N/A(reason)을 유지했다. 기존 코드/CI 게이트는 변경하지 않고 새 정확한 Head Full에서 이 입력을 재검증한다.
+
+## REWORK4 — Full #3481.1 Markdown links (2026-11-04)
+
+[Run41743239291](https://github.com/planner77/masterGantt/actions/runs/41743239291): #865 분리본의 `docs/LLM_CONFIGURATION.md` 마지막 줄이 존재하지 않는 #866 Work Packet/원장을 상대 링크로 가리켜 Markdown link job이 직접 FAIL했다. 이 두 링크를 #865 실제 문서와 원장으로 교체했다. QA Preflight·Unit·TypeScript·ESLint PASS는 이전 Head 한정이며 새로운 Head E2E/Docker/전체 Quality 결과로 승계하지 않는다. 상세 [누적 원장](../../ISSUE_865_FAILURE_ANALYSIS.md).

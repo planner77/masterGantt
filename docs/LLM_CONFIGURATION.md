@@ -44,7 +44,7 @@ provider/model 생략은 검증한 기본값을 사용한다. provider만 지정
 
 HTTPS 인증서 검증은 항상 유지한다. 내부 CA는 운영 환경에서 읽기 전용으로 마운트하고 Node의 `NODE_EXTRA_CA_CERTS`로 별도 주입한다. 기본 Compose가 CA 경로를 자동 마운트한다고 가정하지 않는다. `NODE_TLS_REJECT_UNAUTHORIZED=0`을 사용하지 않는다. 사설 DNS·내부 CA·실제 모델/토큰·조직 HTTP 허용과 endpoint별 접근성은 운영 환경 별도 검증이며 mock CI로 PASS를 주장하지 않는다.
 
-검증·실패 이력은 [통합 Work Packet](exec-plans/active/ISSUE_866.md) 및 [누적 원장](ISSUE_866_FAILURE_ANALYSIS.md)을 따른다.
+검증·실패 이력은 [#865 독립 Work Packet](exec-plans/active/ISSUE_865.md) 및 [#865 누적 실패 원장](ISSUE_865_FAILURE_ANALYSIS.md)을 따른다. 원 통합 PR #870의 #866 국제화 기록은 이 독립 구현의 검증 증거가 아니다.
 
 ## 호환 프로토콜 확인 (2026-11-03)
 
