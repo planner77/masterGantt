@@ -1,0 +1,50 @@
+# Issue #874 — Release Runner 이미지 차이 / 인증된 PR→Main OCI digest promotion Work Packet
+
+- Issue: https://github.com/planner77/masterGantt/issues/874
+- 2026-11-04; risk_level: HIGH; qa_method: OWNER_MANAGED; qa_required: true
+- release_required: false; release_authorized: false; Owner approval for merging and any old-release recovery: NOT GIVEN
+- Scope: release verifier / build-provenance boundary + existing CI receipt artifact and regression tests; application/UI/API/DB/package version unchanged.
+
+## SOURCE / 직접 실패와 근거
+
+- Issue #865, PR #871, two-parent Main SHA 78a48b29f3a6e5ec1a0a9817ffa1976dc4de74aa, immutable annotated v0.141.0.
+- Main Full #3489.1 (41776085393): Required3/E2E8/Docker/Main GHCR candidate PASS; Finalizer #1346.1 (41779125648) dispatch success only.
+- Release #216.1 (41779185247), candidate Job 126417402392: Main verified exact candidate step FAIL with PR_ORIGIN_RELEASE_SOURCE_UNAVAILABLE:PR_MAIN_BUILDER_OR_INPUT_DRIFT; digest sha256:a6a2b658f440280eca66a218b83ec5eb8b86c80d657d8082a7cabb794dcce842 pull PASS, promotion NOT RUN.
+- PR Job 126371984402/Main Job 126396726096 ImageVersion=20261101.186.1; Release Job ImageVersion=20261025.179.1. Same Docker 29.4.2/Buildx 0.38.1/BuildKit 0.34.2 observed. Cross-run host rollout must not reclassify already proven PR/Main source.
+
+## Design / authority chain
+
+1. PR producer retains original Full PR run/attempt, actual Docker smoke, PR source Git tree/parents, signed-by-GitHub artifact ZIP digest, OCI archive + index/child/config+SBOM/provenance + build contract. PR workflow cannot publish to registry.
+2. Main selector **unchanged**: source/OCI evidence and original PR builder receipt must match actual Main checkout's full Git tree, file digests, pinned base, and current Main runner Buildx/Docker/ImageVersion/platform. Genuine drift → verified Main rebuild, trust conflict → BLOCKED.
+3. After Main Docker implementation successfully validates/smokes its exact OCI archive, persist independent Main Run/Attempt-scoped build-contract artifact (same script, same 11-field builder schema). Publisher still requires new Main Quality/E2E8/Docker and publishes only verified exact digest to ci-<SHA>; no PR artifact authorizes publishing alone.
+4. Release resolves **unique successful** Main push Run/Attempt with Required3, actual Docker job (one SUCCESS plus optional PR-only SKIPPED twin) and Main publisher SUCCESS. It downloads the exact Main contract artifact via GitHub API, checks artifact ZIP digest, unique name and expiry, then separately authenticates the exact original PR Full source and OCI digest/attestation.
+5. PR builder fingerprint == independently evidenced Main builder fingerprint, both Git tree/pinned base/files independently rehashed against immutable Release checkout. Release runner's newly provisioned ImageVersion/Buildx/Docker are never substituted for a previous build; Main receipt schema/version/revision/archive bytes/OCI subject/Run/Attempt must all match. Live GHCR digest is already pulled and passed by protected Release workflow before calling the verifier.
+6. Missing/expired/duplicate/wrong attempt/incorrect source or fingerprint or digest is BLOCKED (no Release fallback). Main's previous rebuild fallback stays exclusively in Main selector. Runtime/persistence/transport/SBOM/GHCR/Finalizer/Owner exact version approval and immutable tags unchanged.
+
+## Implementation
+
+- scripts/ci_image_contract.py: extract static source fingerprint; retain existing strict Main builder verification; add Release-only independent certified-Main-builder comparison with direct checkout hash and canonical builder fields.
+- scripts/ci_image_reuse.py: accept certified Main builder only when explicitly passed by Release verifier; default Main strict verification unchanged.
+- scripts/verify_ci_image_release.py: authenticate Main CI job/publisher and exact Main build receipt before re-authenticating PR source; compare two original builders instead of the Release host; verify both contracts, archive sha256, OCI index, labels and attempt. Main receipt SHA-256 included in summary.
+- .github/workflows/ci.yml: emit ci-main-build-contract-<run>-<attempt> only from successful main push Docker implementation.
+- Tests: extend tests/python/test_ci_image_release.py, add tests/python/test_ci_image_contract.py. Keep existing tests/python/test_ci_image_reuse.py and original security/OCI validation unchanged.
+
+## TEST_LIFECYCLE_REVIEW / AC_TEST_COVERAGE
+
+Search existing code/tests before implementation: scripts/{ci_image_contract,ci_image_reuse,verify_ci_image_release,verified_oci}.py, tests/python/{test_ci_image_release,test_ci_image_reuse}.py, .github/workflows/{ci,release-image}.yml.
+- **EXTEND** release verifier original mapping/unique success/skipped duplicate test with exact Main contract artifact, expired/unavailable, invalid JSON, missing publisher, digest mismatch and wrong Main source.
+- **ADD** contract positive test PR/Main ImageVersion=20261101.186.1 versus Release=20261025.179.1; negatives for PR↔Main ImageVersion/Buildx/Docker/platform/base/files/Tree/OCI digest/Run+Attempt/version/receipt malformation. Ensure no Release host Docker fingerprint probe.
+- **KEEP_UNIQUE** existing OCI index/child/attestation/archive and daemon runtime/RootFS, PR Full source and Main fallback, other CI protection tests. No skip/retry/timeout, Ready-Full/8-shard/QA/workflow/Ruleset change.
+- AC1: positive certified two-receipt comparison; AC2: builder/source change negative; AC3: Main job/receipt/OCI source/attempt negative; AC4: existing tests retained; AC5: docs + dedicated ledger; AC6: Owner-managed and no release authorization.
+
+## DOCUMENTATION_SYNC
+
+- UPDATED: AGENTS.md; docs/CI_CD.md; docs/GITHUB_OPERATIONS.md; docs/GENERIC_RELEASE_FINALIZER.md; docs/QA_REVIEW_POLICY.md; docs/TEST_PLAN.md; this Work Packet; docs/ISSUE_874_FAILURE_ANALYSIS.md.
+- UPDATED: scripts/ci_image_contract.py, scripts/ci_image_reuse.py, scripts/verify_ci_image_release.py, .github/workflows/ci.yml, tests/python/test_ci_image_release.py, tests/python/test_ci_image_contract.py.
+- N/A: DESIGN.md, UI_UX, API, DB, SECURITY, product CHANGELOG, package.json. No user-facing feature, API, DB migration, product revision or release-authorized change. Existing docs/exec-plans/active/ISSUE_836.md retains its original accepted record.
+
+## Verification / limits
+
+- Static source/code review: structural changes and inherited tests inspected in GitHub. Local source checkout, Docker-based OCI end-to-end test, and remote Full CI result are **NOT TESTED** before PR CI start. No claim of passing local or remote tests without execution.
+- First non-draft PR opened only when all changes/docs/ledger are committed; that event starts existing Full PR CI. No CI monitoring, merge, Main/GHCR publish, tag movement, Finalizer or Issue close in this task.
+- v0.141.0 annotated tag + previous failed #216.1 history and its old source verifier remain unchanged. This patch cannot repair old tag by rerunning the same workflow. Recovery/next PATCH and Issue #865 closure require separate Owner decision.
