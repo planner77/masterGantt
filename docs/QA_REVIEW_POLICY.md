@@ -248,3 +248,10 @@ PR #583은 merge SHA `1ed682dd062012f3d04c2517110835bf7c28ac13`로 main에 반�
 
 - `qa_method=AGENT`가 base의 신뢰된 검증기로 확인될 때에만 자동 QA Job을 비적용(SKIPPED)으로 두고 `QA Final — AGENT: NOT TESTED`, `MERGE_READY=BLOCKED`를 표시한다. 별도 독립 Reviewer PASS와 Manager exact Head 승인 없이는 병합하지 않는다.
 - `AUTOMATED_MANAGER` 보호 파일 변경 또는 PR/head/base/API 검증 실패는 fail-closed. 보호 검증을 자동 PASS로 우회하지 않는다.
+
+## Issue #874 — Release 출처 검증기 변경 QA
+
+- HIGH/OWNER_MANAGED, qa_required=true, release_required=false, release_authorized=false. 기존 Trusted QA/Owner 최종 수용, Full Quality/E2E8/Docker, strict latest main, unresolved review thread 0는 변경 없음.
+- PR/Main builder fingerprint 비교의 실제 runner ImageVersion/Buildx/Docker/source/base/lock 강제 보존, Release 독립 Main receipt, PR OCI/source/attestation/live GHCR Fail Closed, Main publisher Run+Attempt 및 ZIP provenance와 기존 annotated tag 불변을 검증한다.
+- Positive: 인증된 PR/Main builder=20261101.186.1, Release host=20261025.179.1에서 false BLOCKED 없음. Negative: PR↔Main mismatch/receipt 위조·결손/Publisher 부재는 BLOCKED. 새 PR Full + Trusted/Owner 승인 전 병합 금지. [Work Packet](exec-plans/active/ISSUE_874.md).
+

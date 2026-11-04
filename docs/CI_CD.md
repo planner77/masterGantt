@@ -1203,3 +1203,12 @@ Required PR aggregate quality/e2e/docker must now cover Template v2 graph persis
 PR864 Full3457.1의Unit exactly-once계획검사가현재발견143spec/명시142spec불일치를검출했다. `tests/config/e2e-shard-plan.json`에누락된 `country-calendar-admin.spec.ts`만Shard1에등록하고기존142개배치를보존한다. 8shard의파일수는19/18/18/18/17/18/17/18이다. 전체집합일치·중복0·8개selector합집합·기존고정위치를검증하며fallback으로누락을숨기지않는다.
 
 Shard1선택은보존된과거projectedMs최소값기준이다. 현재143spec의측정/비용절감이나35분이내완료보장이아니며generatedAt/sourceRunIds/metrics/모든projectedMs를갱신하지않는다. 신규spec비용은REMOTE_UNMEASURED로기록한다. 기존workflow/8runner·workers1/timeout/retry/fail-fast/concurrency·Required3·Trusted/Owner·Main/GHCR/릴리스권한은그대로다. 원인/명령/원격미실행은[누적 원장](ISSUE_342_FAILURE_ANALYSIS.md)의REWORK2를따른다.
+
+## Issue #874 — 원본 빌더 인증과 Release 검증 호스트 분리 (2026-11-04)
+
+- PR/Main builder ImageVersion 20261101.186.1, Release host 20261025.179.1. Main Full #3489.1/OCI digest pull 성공을 Release 신규 호스트와 비교해 #216.1에서 false BLOCKED시킨 교정. PR/Main 원본 drift 검증은 완화하지 않는다.
+- Main Docker smoke 성공 후 원본 Main Run/Attempt-scoped 이름 ci-main-build-contract-<run>-<attempt>에 동일 OCI/build fingerprint receipt를 추가 보존한다. Main quality/E2E8/Docker 필수 게이트, 이미지 게시 원본 및 OCI digest 검증 불변.
+- Release는 정확 단일 성공 Main Push Run/Attempt의 Required3, 실제 Docker, Main publisher, Main artifact ZIP digest/유효기간/중복 여부를 인증한다. PR Full source/OCI index/child/config/attestation·receipt와 독립 Main builder receipt의 fingerprint/파일/Tree/base/OCI archive SHA256를 대조한다. Release host Docker/Buildx/ImageVersion은 원본 빌더가 아니다.
+- 누락·만료·중복·잘못된 attempt·PR↔Main mismatch·GHCR digest/label 오류에는 Release BLOCKED, 무검증/재빌드/재라벨 금지. 기존 v0.141.0 annotated tag/실패 불변, 새 검증기는 이전 tag에 소급 적용되지 않는다. HIGH/OWNER_MANAGED; QA required, release_required=false/release_authorized=false.
+- [Work Packet](exec-plans/active/ISSUE_874.md), [원장](ISSUE_874_FAILURE_ANALYSIS.md).
+

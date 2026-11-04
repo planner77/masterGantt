@@ -1,3 +1,11 @@
+## Issue #874 — Release Runner 이미지 차이에서 PR/Main builder 출처 분리 (2026-11-04)
+
+- Release #216.1(41779185247, candidate Job 126417402392)는 PR/Main ImageVersion 20261101.186.1과 Release ImageVersion 20261025.179.1 차이를 잘못 빌드 입력 drift로 판정하여 BLOCKED. Main #3489.1/Finalizer #1346.1 PASS는 게시 성공이 아니며 v0.141.0 annotated tag/실패 이력은 불변이다.
+- Main selector의 PR→Main 실제 builder/ImageVersion/Buildx/Docker/Tree/base/lock 검증, Main 드리프트 시 안전 재빌드/위조 시 BLOCKED 계약을 유지한다. Release는 독립적인 Main 성공 Run/Attempt+Required3/실제 Docker smoke/publisher와 Main 빌드 receipt artifact ZIP SHA256를 확인한 다음 PR OCI source/receipt+Main builder와 원본 소스·digest/attestation을 비교한다. 새로운 Release 호스트를 과거 Builder로 오인하지 않는다.
+- Main receipt 누락·만료·중복/잘못된 attempt 또는 PR/Main mismatch·Main Publisher 미성공·GHCR drift는 Release BLOCKED. Release 재빌드, label/태그 재작성 금지. #836/#438/#773, E2E8/Required3/Trusted QA/Ruleset/Finalizer/Owner 게이트 불변.
+- [#874 Work Packet](docs/exec-plans/active/ISSUE_874.md), [실패 원장](docs/ISSUE_874_FAILURE_ANALYSIS.md). HIGH/OWNER_MANAGED/qa_required=true/release_required=false/release_authorized=false. 변경 범위는 새 PR Full CI 시작까지, 이후 검증·병합·게시·종료 미승인.
+
+
 ## Issue #867 — .env 기반 프로젝트 Issue 목록 기본 표시 (2026-11-03)
 
 - **현행 후속 계약 (#849의 과거 기본 open 대체):** 서버 런타임 `PROJECT_ISSUE_DEFAULT_STATUS_FILTER`의 허용 값은 `all|open|registered|in_progress|completed`, 미설정·빈 값은 `all`(전체), 잘못된 값도 경고 후 `all` fallback. `open`은 등록+진행 중, `all`은 삭제 제외 전체 ACTIVE(등록/진행 중/완료)다. 이 값은 Project Issue **UI 첫 진입·초기화 기본값**만 제어하며 API에서 status 생략 시 `all`, 업무 상태 3단계/논리 삭제/KPI·권한은 그대로 유지한다.

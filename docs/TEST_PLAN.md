@@ -5724,3 +5724,9 @@ Full3459.1의직접FAIL은country관리첫실제SQLite사례에서openAdmin의�
 
 
 REWORK4 같은후보의기본goto(load) bounded33개는 **33PASS/0FAIL**,5.3분이며직접실제SQLite happycase는18.7초PASS다. clean-config typecheck·변경ESLint·diff도exit0/PASS다. 수정test1파일과나머지49미변경경로를지문으로결속하고,probe합성응답/의도된음성FAIL은고유33개나실제서버권한PASS로합산하지않는다. 실제targeted Pre-PR1회는기존DB/출력보호로 **BLOCKED/exit1,step0/NOT TESTED**였고선정은READY1/UNKNOWN0다. 작업폴더481경로·해당시도sourceStable와최종예정PR79경로를분리하며실제브라우저/정적PASS로도구BLOCKED를소급변경하지않는다.
+
+## Issue #874 — PR/Main Builder와 Release runner 분리 회귀
+
+- 검색 후 EXTEND: tests/python/test_ci_image_release.py 기존 Main Run/Job uniqueness, digest mapping에 exact Main contract artifact/invalid/expired 및 publisher 결손 회귀 추가. ADD: tests/python/test_ci_image_contract.py 의 PR/Main builder와 Release runner 비교 양성/음성. KEEP_UNIQUE: test_ci_image_reuse.py의 OCI index/child/attestation/archive/runtime/PR source/Main fallback; 삭제·skip/retry/timeout 완화 금지.
+- Positive: PR/Main ImageVersion=20261101.186.1, Release=20261025.179.1이라도 원본 두 빌더 영수증/OCI subject/Run+Attempt/Publisher가 유효하면 승인. Negative: PR/Main builder or files/base/Tree drift, artifact/Run+Attempt/version/digest/missing Main publisher 모두 BLOCKED.
+- Python CI 기존 test discovery 및 Full8 required gates 그대로. 본 요청 결과 원격 새 Head PR CI는 시작 전 NOT TESTED. [Work Packet](exec-plans/active/ISSUE_874.md), [원장](ISSUE_874_FAILURE_ANALYSIS.md).

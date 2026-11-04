@@ -34,8 +34,8 @@ def capture(*args: str) -> str:
         raise ContractError(f"builder unavailable: {args[0]}") from error
 
 
-def fingerprint(root: pathlib.Path) -> dict:
-    """Identical Git Tree is mandatory; the visible effective builder also matches."""
+def source_fingerprint(root: pathlib.Path) -> dict:
+    """Recheck immutable Git/tree/build inputs without reading this runner's Docker."""
     files: dict[str, str] = {}
     for relative in CONTEXT_INPUTS:
         path = root / relative
@@ -46,15 +46,33 @@ def fingerprint(root: pathlib.Path) -> dict:
     base_images = re.findall(r"(?im)^FROM\s+node:[^\s@]+@sha256:([a-f0-9]{64})\s+AS\s+\S+", dockerfile)
     if len(base_images) != 2 or base_images[0] != base_images[1]:
         raise ContractError("base image immutable digest not uniquely pinned across stages")
+    return {
+        "git_tree": capture("git", "rev-parse", "HEAD^{tree}"),
+        "files_sha256": files,
+        "base_image_digest": "sha256:" + base_images[0],
+    }
+
+
+# Both PR and Main produce this exact builder schema on their build runners.
+# Release is a verifier, not a builder; it must never substitute its host
+# ImageVersion, Buildx or Docker version for these immutable receipts.
+BUILDER_FIELDS = frozenset((
+    "git_tree", "files_sha256", "base_image_digest", "platform",
+    "buildx_version", "docker_version", "runner_image_version",
+    "runner_os", "runner_arch", "provenance", "sbom",
+))
+
+
+def fingerprint(root: pathlib.Path) -> dict:
+    """Strict PR↔Main builder match (not the Release runner environment)."""
+    source = source_fingerprint(root)
     runner_image = os.getenv("ImageVersion")
     if not runner_image:
         raise ContractError("GitHub runner image version unavailable")
     if os.getenv("RUNNER_OS") != "Linux" or os.getenv("RUNNER_ARCH") != "X64":
         raise ContractError("unexpected runner platform")
     return {
-        "git_tree": capture("git", "rev-parse", "HEAD^{tree}"),
-        "files_sha256": files,
-        "base_image_digest": "sha256:" + base_images[0],
+        **source,
         "platform": "linux/amd64",
         "buildx_version": capture("docker", "buildx", "version"),
         "docker_version": capture("docker", "version", "--format", "{{.Server.Version}}"),
@@ -64,7 +82,6 @@ def fingerprint(root: pathlib.Path) -> dict:
         "provenance": "mode=max",
         "sbom": True,
     }
-
 
 def produce(root: pathlib.Path, *, revision: str, version: str,
             index_digest: str, archive_sha256: str, run_id: str,
@@ -91,7 +108,8 @@ def produce(root: pathlib.Path, *, revision: str, version: str,
 
 def verify(receipt: dict, *, root: pathlib.Path, repository: str, run_id: int,
            attempt: int, revision: str, version: str,
-           digest: str, archive_sha256: str, main_tree: str) -> None:
+           digest: str, archive_sha256: str, main_tree: str,
+           certified_main_builder: dict | None = None) -> None:
     expected = {
         "schema": SOURCE_VERSION,
         "repository": repository,
@@ -109,7 +127,28 @@ def verify(receipt: dict, *, root: pathlib.Path, repository: str, run_id: int,
     observed = receipt.get("build")
     if not isinstance(observed, dict) or observed.get("git_tree") != main_tree:
         raise ContractError("PR_BUILD_GIT_TREE_MISMATCH")
-    current = fingerprint(root)
+    if certified_main_builder is None:
+        # Main selection: compare PR receipt with this actual Main build runner.
+        current = fingerprint(root)
+    else:
+        # Release: the independently authenticated Main Docker job receipt
+        # supplies the original builder. Never compare a NEW release host.
+        current = certified_main_builder
+        if (not isinstance(current, dict) or set(current) != BUILDER_FIELDS or
+            current.get("platform") != "linux/amd64" or
+            current.get("runner_os") != "Linux" or
+            current.get("runner_arch") != "X64" or
+            current.get("provenance") != "mode=max" or
+            current.get("sbom") is not True or
+            any(not isinstance(current.get(k), str) or not current[k]
+                for k in ("buildx_version", "docker_version", "runner_image_version"))):
+            raise ContractError("TRUSTED_MAIN_BUILD_FINGERPRINT_INVALID")
+        # Release checkout still independently hashes every build input,
+        # Git tree and pinned base; the Main receipt alone cannot bypass them.
+        source = source_fingerprint(root)
+        if any(current.get(key) != value or observed.get(key) != value
+               for key, value in source.items()):
+            raise ContractError("BUILD_SOURCE_INPUT_DRIFT")
     if current != observed:
         raise ContractError("BUILD_INPUT_OR_BUILDER_DRIFT")
 

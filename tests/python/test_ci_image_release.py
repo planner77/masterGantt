@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Issue #836: exact Main Full publication is required for PR-origin Release."""
+import json
 import pathlib
 import sys
 import tempfile
@@ -8,7 +9,8 @@ from unittest import mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts"))
 import verify_ci_image_release as release
-from ci_image_reuse import Blocked
+from ci_image_reuse import Blocked, Ineligible
+from ci_image_contract import ContractError
 
 MAIN = "a" * 40
 REVISION = "b" * 40
@@ -23,9 +25,14 @@ def good_jobs():
 
 class MainCandidateMappingTest(unittest.TestCase):
     def run_verifier(self, *, source_digest=DIGEST, run_status="success",
-                     main_jobs=None, runs=1):
+                     main_jobs=None, runs=1, receipt=None, raw_receipt=None,
+                     artifact_error=None, contract_error=None):
+        # Main original builder is independently recorded on its own Run/Attempt.
+        builder = {"git_tree": "c" * 40, "runner_image_version": "20261101.186.1"}
         source = {"index_digest": source_digest, "source_revision": REVISION,
-                  "main_sha": MAIN, "source_run_id": 123, "source_run_attempt": 2}
+                  "main_sha": MAIN, "main_tree": builder["git_tree"],
+                  "archive_sha256": "e" * 64,
+                  "source_run_id": 123, "source_run_attempt": 2}
         workflow_runs = [
             {"id": 44+i, "run_attempt": 1, "head_sha": MAIN, "event": "push",
              "path": ".github/workflows/ci.yml", "status": "completed",
@@ -34,12 +41,30 @@ class MainCandidateMappingTest(unittest.TestCase):
             main_jobs if main_jobs is not None else good_jobs()
             for _ in workflow_runs
         ]
-        with mock.patch.object(release, "verify_source", return_value=source), \
+        main_receipt = receipt if receipt is not None else {"build": builder}
+        with mock.patch.object(release, "verify_source", return_value=source) as origin, \
+             mock.patch.object(release, "download_artifact",
+                 side_effect=artifact_error,
+                 return_value=(raw_receipt if raw_receipt is not None else
+                               json.dumps(main_receipt).encode())) as artifact, \
+             mock.patch.object(release, "verify_build_contract",
+                 side_effect=contract_error) as main_contract, \
              mock.patch.object(release, "page_items", side_effect=responses):
             with tempfile.TemporaryDirectory() as tmp:
-                return release.validate_release_source(
+                result = release.validate_release_source(
                     "planner77/masterGantt", MAIN, "0.136.0", REVISION,
                     DIGEST, "token", pathlib.Path(tmp))
+        origin.assert_called_once()
+        self.assertEqual(origin.call_args.kwargs["certified_main_builder"],
+                         main_receipt["build"])
+        artifact.assert_called_once()
+        self.assertEqual(artifact.call_args.args[1], 44)
+        self.assertEqual(artifact.call_args.args[2], "ci-main-build-contract-44-1")
+        main_contract.assert_called_once()
+        self.assertEqual(main_contract.call_args.kwargs["certified_main_builder"],
+                         main_receipt["build"])
+        self.assertEqual(main_contract.call_args.kwargs["archive_sha256"], "e" * 64)
+        return result
 
     def test_positive_all_required_and_main_publish_success(self):
         report = self.run_verifier()
@@ -109,6 +134,33 @@ class MainCandidateMappingTest(unittest.TestCase):
     def test_two_successful_main_run_proofs_are_not_unique(self):
         with self.assertRaisesRegex(Blocked, "MAIN_PUBLISH"):
             self.run_verifier(runs=2)
+
+    def test_release_different_runner_host_uses_main_builder_witness(self):
+        # Release ImageVersion=20261025.179.1 must not replace the Main
+        # 20261101.186.1 witness. Verification is delegated to the two receipts.
+        with mock.patch.dict("os.environ", {"ImageVersion": "20261025.179.1"}):
+            report = self.run_verifier()
+        self.assertEqual(report["main_build_contract_sha256"],
+                         __import__("hashlib").sha256(json.dumps({
+                            "build": {"git_tree": "c" * 40,
+                                      "runner_image_version": "20261101.186.1"}
+                         }).encode()).hexdigest())
+
+    def test_no_main_builder_artifact_blocks_not_fallback(self):
+        with self.assertRaisesRegex(Blocked, "MAIN_BUILDER_RECEIPT_UNAVAILABLE"):
+            self.run_verifier(artifact_error=Ineligible("ARTIFACT_MISSING_OR_EXPIRED"))
+
+    def test_main_receipt_malformed_json_blocks(self):
+        with self.assertRaisesRegex(Blocked, "MAIN_BUILDER_RECEIPT_INVALID_JSON"):
+            self.run_verifier(raw_receipt=b"not-json")
+
+    def test_main_receipt_nonobject_blocks(self):
+        with self.assertRaisesRegex(Blocked, "MAIN_BUILDER_RECEIPT_INVALID"):
+            self.run_verifier(receipt=["not", "a", "contract"])
+
+    def test_main_receipt_conflict_blocks(self):
+        with self.assertRaisesRegex(Blocked, "MAIN_BUILD_CONTRACT_CONFLICT"):
+            self.run_verifier(contract_error=ContractError("PR_BUILD_RECEIPT_run_attempt_MISMATCH"))
 
     def test_invalid_main_sha_cannot_be_passed(self):
         with tempfile.TemporaryDirectory() as tmp:

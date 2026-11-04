@@ -158,7 +158,7 @@ def download_artifact(repo: str, run_id: int, name: str, token: str,
 
 
 def verify_source(repo: str, main_sha: str, token: str, tempdir: pathlib.Path,
-                  version: str) -> dict:
+                  version: str, *, certified_main_builder: dict | None = None) -> dict:
     if not SHA_RE.fullmatch(main_sha):
         raise Blocked("MAIN_SHA_INVALID")
     if git("rev-parse", "HEAD") != main_sha:
@@ -256,7 +256,8 @@ def verify_source(repo: str, main_sha: str, token: str, tempdir: pathlib.Path,
         verify_build_contract(receipt, root=pathlib.Path.cwd(), repository=repo,
             run_id=run_id, attempt=attempt, revision=test_merge,
             version=version, digest=inspected["index_digest"],
-            archive_sha256=inspected["archive_sha256"], main_tree=main_tree)
+            archive_sha256=inspected["archive_sha256"], main_tree=main_tree,
+            certified_main_builder=certified_main_builder)
     except ContractError as error:
         if str(error) in ("BUILD_INPUT_OR_BUILDER_DRIFT",
                           "GitHub runner image version unavailable",
