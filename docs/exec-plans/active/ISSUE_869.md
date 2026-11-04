@@ -52,3 +52,7 @@
 ## PR872-FULL-001 — Initial Full #3480.1 보호 경로 위험도 수정 (2026-11-04)
 
 [Run41742966171](https://github.com/planner77/masterGantt/actions/runs/41742966171) attempt1, Head `151675c8b7c3c48aa742c690f8a267ab6a1326bd`, Base `352a43e74c7b34c72d952f67783a53463f8b519d`. 신뢰된 QA Job126288805856와 Preflight Job126288955622가 **PATH_POLICY: 변경 경로 기반 최소 위험도 HIGH, 기존 선언 MEDIUM**을 직접 FAIL로 보고했다. Package version/lockfile은 UI 기능 자체는 중위험이어도 저장소 실행/릴리스 보호 경로로 HIGH이므로 고정 위험도를 HIGH로 상향한다. 다른 Preflight primary/QA/Issue AC/DOC_SYNC는 PASS했으며 Quality/TypeScript/E2E/Docker 구현 작업은 정책 차단으로 NOT RUN이다. 신규 독립 제품 결함으로 분류하지 않는다. 코드·테스트·version/CI 게이트 변경 없이 메타데이터와 전용 원장만 동기화하여 새 Full을 시작한다.
+
+## REWORK2 — Full 증거 재검증 준비 (2026-11-04)
+
+#872의 #3482 초기 Full은 위험도 MEDIUM 선언으로 정책 실패했고, 위험도 HIGH 반영 후 같은 Head에서 발생한 #3483 metadata-only는 선행 Full 검증 성공을 대신할 수 없으므로 실패했다. 사용자 요구의 독립 QA를 확보하기 위해 정책 선언과 Work Packet을 정렬한 새 Head에서 Full Quality/E2E/Docker를 다시 시작한다. 원본 [누적 원장](../../ISSUE_869_FAILURE_ANALYSIS.md) 보존, 새 검증 전 PASS 아님.

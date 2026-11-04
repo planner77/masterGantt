@@ -11,3 +11,7 @@ Primary Issue: https://github.com/planner77/masterGantt/issues/869
 - PASS: Preflight의 PRIMARY_ISSUE/RISK_LEVEL(field 문법)/QA_METHOD/QA_REQUIRED/RELEASE_REQUIRED/RELEASE_AUTHORIZED/ISSUE_AC/DOCUMENTATION_SYNC. 실패는 메타 정책 충돌 하나이고 다른 Job의 Quality/E2E/Docker aggregate 실패는 구현 Job SKIPPED의 파생이다. 웹 화면·TypeScript/Playwright/SQLite/Docker 제품 동작을 실행하지 않았으므로 **NOT TESTED**.
 - 보완: PR 본문과 Work Packet의 `risk_level: HIGH`로 상향하고 QA 방법 `OWNER_MANAGED`·`qa_required=true`, `release_required=true`, `release_authorized=false`를 유지. 기존 코드/E2E/Compose/DB/CI workflow/skip·retry·timeout/8Shard 설정 변경 없음.
 - 새 PR CI 시작과 Head/attempt를 확인하되 결과 모니터링·병합/Main CI/GHCR/Release·Issue 종료는 수행하지 않는다. 기존 통합 PR #870의 성공/실패 이력은 새 독립 PR의 PASS 증거로 승계하지 않는다.
+
+## PR872-METADATA-001 — #3483.1 선행 Full 증거 부재 (2026-11-04)
+
+[Metadata #3483.1 Run41743519768](https://github.com/planner77/masterGantt/actions/runs/41743519768)은 Head `ae917469a588070ce39e9f164879bdd22274034d`, 원래 Full #3482.1의 위험도 MEDIUM 정책 실패 상태에서 PR 본문의 위험도를 HIGH로 고친 뒤 발생한 metadata-only 재평가다. Job126290854771은 동일 Head에서 성공한 선행 Full Quality/E2E/Docker 증거가 없는 상태로 불합격. 이는 실제 브라우저·LLM·Docker 테스트를 새로 실행한 직접 실패가 아니며, 초깃값 정책 정정 후 새로운 **전체 Full** 실행이 필요하다. 현재 본문 risk_level HIGH/Work Packet HIGH, qa_method OWNER_MANAGED, QA/Release/Owner gate 불변. 원장에 파생 실패를 남기고 새 문서 commit으로 Full을 시작한다.
