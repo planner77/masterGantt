@@ -397,6 +397,8 @@ Issue는 **compact toolbar(전체/완료/진행 중/등록 건수·비율 + 등�
 등록/수정은 필요할 때 여는 detail form이며 제목/등록일/등록자·담당자/발생일/상태 선택(등록·진행 중·완료)+조건부 완료일/**관련 Task → Issue 내용 multiline** 순서로 표시한다. Issue 내용 원문과 URL을 그대로 보존하되 별도 '링크 미리보기' 영역은 제거한다. 자원/Task 직접 입력과 검색 선택 ID/이름을 구별한다. 신규 등록에는 Issue 비밀번호+확인, 보호 Issue 수정·삭제에는 해당 비밀번호, 기존 레코드 초기화·분실 재설정에는 Project 편집 세션+실제 Project 비밀번호를 명시적으로 요구한다. 삭제는 경고·확인 후 논리 상태 전환이며 목록/상태별 KPI에서 제외한다. 비밀번호·오류·readonly/pending·409/412/429 안내, Escape/Tab/focus restore를 compact UI로 제공한다. 390/768/1024/1440/1920px·키보드·스크린리더 label·coarse pointer 확인을 필요로 한다. 공통 시각 디자인 토큰/전역 Layout 규칙은 변경하지 않는다. 세부 [#846 Issue 가이드](docs/PROJECT_ISSUES_USER_GUIDE.md).
 
 
+**#869 Issue 화면 레이아웃 추가:** desktop의 수직 스크롤은 Issue 목록 데이터 영역만 소유한다. 상위 Project 패널과 목록이 동시에 세로 스크롤하지 않으며 KPI·필터·pagination은 목록 밖에 둔다. 표 가로 스크롤/헤더 sticky, 좁거나 낮은 화면의 안전한 상위 스크롤을 병행한다. 공용 등록·수정 dialog의 제목·닫기/Issue 명은 고정하고 본문만 스크롤한다. 날짜(등록일·발생일·완료일) 3열, 등록자·담당자·상태 3열, 신규 비밀번호·확인 2열을 사용하고 작은 화면에서는 stack한다. 미완료 완료일은 비활성 유지·저장 NULL이고 완료일만 필수, Issue 내용은 8행 및 최소 11.5rem이다. 기존 Task·Resource 검색/선택/권한·민감 정보 보호/미저장 초안/Escape/포커스 복원·Task Editor 연계는 불변이다. [사용 가이드](docs/PROJECT_ISSUES_USER_GUIDE.md).
+
 ## Issue #860 — Milestone 변환의 영향 확인과 명시적 관리 이동
 
 일정 Grid/Chart의 `Convert to → Milestone`은 같은 대상 이름과 기간0·표시 변화를 기존 dialog로 확인한 뒤 실행한다. 운영 기본 모드에서는 일정 행·막대가 함께 숨겨지고 `대시보드 → Milestone`에서 관리함을 알린다. legacy 응급 모드의 native 표시 안내는 별도로 유지한다. 취소·Escape는 쓰기 없이 출발 focus를 복원하고 저장 중에는 중복 제출·닫기를 막는다. 성공으로 원 행이 없어지면 일반 보기의 작업 검색 또는 Fullscreen의 Gantt 영역에 focus를 복원한다.

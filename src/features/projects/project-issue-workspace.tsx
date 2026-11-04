@@ -82,6 +82,8 @@ export function ProjectIssueWorkspace({
   const [resourceError, setResourceError] = useState<string | null>(null);
   const [taskPicker, setTaskPicker] = useState(false);
   const titleInput = useRef<HTMLInputElement>(null);
+  const deleteTrigger = useRef<HTMLButtonElement>(null);
+  const deleteCancel = useRef<HTMLButtonElement>(null);
   const createTrigger = useRef<HTMLButtonElement>(null);
   const lastIssueTrigger = useRef<HTMLElement | null>(null);
   const lastHandledRequest = useRef<number | null>(null);
@@ -442,38 +444,40 @@ export function ProjectIssueWorkspace({
           onClick={closeEditor} aria-label="Issue 편집 닫기">닫기</button>
       </div>
       <form onSubmit={event => void save(event)} className={styles.editorForm}>
-        <div className={styles.field}>
+        <div className={`${styles.field} ${styles.titleField}`}>
           <label htmlFor="project-issue-title">Issue 명 *</label>
           <input ref={titleInput} id="project-issue-title" required type="text" maxLength={160}
             value={form.title} onChange={event => updateForm({ title: event.target.value })} disabled={locked} />
         </div>
-        <div className={styles.twoColumns}>
+        <div className={styles.editorBody} data-testid="project-issue-editor-body">
+        <div className={styles.threeColumns}>
           <div className={styles.field}><label htmlFor="project-issue-created">등록일</label>
             <input id="project-issue-created" type="date" readOnly
               value={editingIssue ? todayInProjectTimezone(new Date(editingIssue.createdAt)) : todayInProjectTimezone()} /></div>
           <div className={styles.field}><label htmlFor="project-issue-occurred">발생일</label>
             <input id="project-issue-occurred" type="date" required value={form.occurredOn}
               onChange={event => updateForm({ occurredOn: event.target.value })} disabled={locked} /></div>
+          <div className={styles.field}><label htmlFor="project-issue-completed-on">완료일</label>
+            <input id="project-issue-completed-on" type="date" disabled={locked || form.status !== "completed"}
+              required={form.status === "completed"}
+              value={form.completedOn ?? ""} onChange={event => updateForm({ completedOn: event.target.value || null })} />
+          </div>
         </div>
-        <div className={styles.twoColumns}>
+        <div className={styles.threeColumns}>
           {personField("reporter", "등록자")}
           {personField("assignee", "담당자")}
-        </div>
-        <div className={styles.completion}>
-          <label htmlFor="project-issue-lifecycle-status">상태</label>
-          <select id="project-issue-lifecycle-status" value={form.status ?? "registered"} disabled={locked}
-            onChange={event => {
-              const next = event.target.value as ProjectIssueStatus;
-              updateForm({ status: next, completed: next === "completed",
-                completedOn: next === "completed" ? (form.completedOn ?? todayInProjectTimezone()) : null });
-            }}>
-            <option value="registered">등록</option><option value="in_progress">진행 중</option>
-            <option value="completed">완료</option>
-          </select>
-          <label htmlFor="project-issue-completed-on">완료일</label>
-          <input id="project-issue-completed-on" type="date" disabled={locked || form.status !== "completed"}
-            required={form.status === "completed"}
-            value={form.completedOn ?? ""} onChange={event => updateForm({ completedOn: event.target.value || null })} />
+          <div className={styles.field}>
+            <label htmlFor="project-issue-lifecycle-status">상태</label>
+            <select id="project-issue-lifecycle-status" value={form.status ?? "registered"} disabled={locked}
+              onChange={event => {
+                const next = event.target.value as ProjectIssueStatus;
+                updateForm({ status: next, completed: next === "completed",
+                  completedOn: next === "completed" ? (form.completedOn ?? todayInProjectTimezone()) : null });
+              }}>
+              <option value="registered">등록</option><option value="in_progress">진행 중</option>
+              <option value="completed">완료</option>
+            </select>
+          </div>
         </div>
         <div className={styles.field}><label htmlFor="project-issue-task">관련 Task</label>
           <div className={styles.inline}>
@@ -498,10 +502,11 @@ export function ProjectIssueWorkspace({
           </div> : null}
         </div>
         <div className={styles.field}><label htmlFor="project-issue-description">Issue 내용</label>
-          <textarea id="project-issue-description" rows={4} maxLength={4000}
+          <textarea id="project-issue-description" rows={8} maxLength={4000}
             value={form.description} disabled={locked}
             onChange={event => updateForm({ description: event.target.value })} />
         </div>
+        <div className={!editingIssue ? styles.twoColumns : undefined}>
         <div className={styles.field}>
           <label htmlFor="project-issue-password">
             {editingIssue ? "Issue 비밀번호 (수정·삭제 시 필요)" : "Issue 비밀번호 *"}
@@ -518,6 +523,7 @@ export function ProjectIssueWorkspace({
             autoComplete="new-password" required value={passwordConfirmation} disabled={busy || saving}
             onChange={event => { setPasswordConfirmation(event.target.value); setFormError(null); }} />
         </div> : null}
+        </div>
         {editingIssue?.credentialState === "unconfigured" ? <p className={styles.hint} role="status">
           기존 Issue의 비밀번호가 아직 설정되지 않았습니다. 프로젝트 편집 권한자가 먼저 설정해야 수정·삭제할 수 있습니다.
         </p> : null}
@@ -544,19 +550,20 @@ export function ProjectIssueWorkspace({
           </div> : null}
         </div> : null}
         {editingIssue?.credentialState === "protected" ? <div className={styles.securityPanel}>
-          {!confirmDelete ? <button type="button" className="secondary-button" disabled={busy || saving}
-            onClick={() => { setConfirmDelete(true); setFormError(null); }}>Issue 삭제…</button> :
+          {!confirmDelete ? <button ref={deleteTrigger} type="button" className="secondary-button" disabled={busy || saving}
+            onClick={() => { setConfirmDelete(true); setFormError(null); requestAnimationFrame(() => deleteCancel.current?.focus()); }}>Issue 삭제…</button> :
             <div className={styles.deletePanel} role="group" aria-label="Issue 삭제 확인">
               <p>Issue를 목록에서 숨기며 데이터는 보존됩니다. 이 화면에서 복구할 수 없습니다.</p>
               <div className={styles.editorActions}>
-                <button type="button" className="secondary-button" disabled={saving}
-                  onClick={() => setConfirmDelete(false)}>삭제 취소</button>
+                <button ref={deleteCancel} type="button" className="secondary-button" disabled={saving}
+                  onClick={() => { setConfirmDelete(false); requestAnimationFrame(() => deleteTrigger.current?.focus()); }}>삭제 취소</button>
                 <button type="button" className="secondary-button" disabled={saving || !passwordValid(issuePassword)}
                   onClick={() => void deleteIssue()}>{saving ? "삭제 중…" : "삭제 확인"}</button>
               </div>
             </div>}
         </div> : null}
         {formError ? <p className={styles.error} role="alert">{formError}</p> : null}
+        </div>
         <div className={styles.editorActions}>
           <button type="button" className="secondary-button" disabled={saving} onClick={closeEditor}>취소</button>
           <button type="submit" className="primary-button" disabled={locked || !form.title.trim() || !passwordValid(issuePassword) ||

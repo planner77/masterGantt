@@ -1,3 +1,9 @@
+## Issue #869 — Project Issue 목록 수직 스크롤·고정 등록 폼 (2026-11-04)
+
+데스크톱에서는 Project Issue 목록 데이터 영역만 독립적으로 수직 스크롤하고, Project 상위 패널의 중복 수직 스크롤을 제거한다. KPI·검색·페이지네이션은 목록 바깥에 고정하고 표 안 가로 스크롤·sticky 헤더·검색/기본 상태 필터(#867)를 유지한다. 낮거나 좁은 화면은 컨트롤 접근을 위해 상위 안전 스크롤과 폼 열 분리를 허용한다.
+
+등록/수정 dialog의 헤더와 `Issue 명` 필드는 본문 스크롤 밖에 두고, 날짜(등록일/발생일/완료일)·등록자/담당자/상태는 각각 데스크톱 3열, 신규 비밀번호/확인만 2열이다. 내용 입력 8행·최소 11.5rem. 완료일은 미완료에서도 열을 차지하지만 비활성·저장 null, 완료 시만 편집/필수다. 관련 Task가 Issue 내용보다 앞에 있고, 미저장/비밀번호/readonly/Task Editor 복귀·정확 원본 ID 보존은 #854/기존 계약 그대로다.
+
 ## Issue #867 — Project Issue 목록 초기 필터 (2026-11-03)
 
 Project Workspace의 Issue 탭은 환경변수 `PROJECT_ISSUE_DEFAULT_STATUS_FILTER`로 최초/초기화 선택값을 구성한다. `all/open/registered/in_progress/completed` 이외 값과 미설정·빈 값은 `all`(전체)이다. 사용자가 바꾼 필터는 검색·탭 전환으로 자동 초기화하지 않으며 기존 Issue read gate·KPI/삭제 제외 규칙은 유지한다. [Issue 사용자 가이드](PROJECT_ISSUES_USER_GUIDE.md)를 따른다.

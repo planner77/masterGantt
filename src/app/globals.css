@@ -1402,7 +1402,11 @@ h2 {
   display: none;
 }
 
-.project-issue-panel { overflow-x: hidden; overflow-y: auto; padding: 0.25rem 0; }
+.project-issue-panel { display: flex; min-height: 0; flex-direction: column; overflow: hidden; padding: 0.25rem 0; }
+
+@media (max-width: 42rem), (max-height: 38rem) {
+  .project-issue-panel { overflow-y: auto; }
+}
 
 .project-resource-panel {
   overflow-x: hidden;
