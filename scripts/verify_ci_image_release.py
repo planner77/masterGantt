@@ -99,6 +99,8 @@ def validate_release_source(repo: str, sha: str, version: str, revision: str,
     if not isinstance(main_receipt, dict):
         raise Blocked("MAIN_BUILDER_RECEIPT_INVALID")
     main_builder = main_receipt.get("build")
+    if not isinstance(main_builder, dict):
+        raise Blocked("MAIN_BUILDER_RECEIPT_INVALID")
     # Revalidate immutable Git parents/tree, exact PR Full jobs and the
     # archive ZIP/index/child/SBOM/provenance and original PR receipt.
     # The PR builder is compared to the certified MAIN builder, never to
