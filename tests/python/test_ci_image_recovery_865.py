@@ -77,14 +77,18 @@ class ReleaseRecovery865Test(unittest.TestCase):
         self.assertTrue(finalizer.select_authorization(
             [comment], expected_version="0.141.0").authorized)
 
-    def test_new_release_is_not_yet_authorized_by_repository_files(self):
+    def test_live_manifest_and_lockfile_versions_remain_synchronized(self):
+        # This repository-wide test must survive future legitimate releases.
+        # Historical 0.141.0 -> 0.141.1 is covered independently by PATCH.
         root = pathlib.Path(__file__).resolve().parents[2]
         manifest = json.loads((root / "package.json").read_text(encoding="utf-8"))
         lock = json.loads((root / "package-lock.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["version"], "0.141.1")
-        self.assertEqual(lock["version"], "0.141.1")
-        self.assertEqual(lock["packages"][""]["version"], "0.141.1")
-        # A future Owner marker is never created by this unit test or by CI.
+        version = manifest["version"]
+        self.assertIsInstance(version, str)
+        self.assertRegex(version, r"^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$")
+        self.assertEqual(lock["version"], version)
+        self.assertEqual(lock["packages"][""]["version"], version)
+        # The original recovery uses distinct immutable source and PATCH SHAs.
         self.assertNotEqual(SOURCE.target_sha, PATCH.target_sha)
 
 

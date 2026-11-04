@@ -146,3 +146,9 @@
 | `DESIGN.md`, `docs/DB_SCHEMA.md`, `docs/PROJECT_UX.md` | N/A | UI·DB·Project 화면 비변경 |
 | `docs/ISSUE_865_FAILURE_ANALYSIS.md` | ADD | #871 Full #3476.1 사전 정책 실패부터 누적 기록 |
 
+## PR #876 REWORK #1 — Full #3502.1 Artifact Create 연결 리셋 및 P2 미래 버전 회귀 (2026-11-04)
+
+- [원본 Full #3502.1 / Run 41829703969](https://github.com/planner77/masterGantt/actions/runs/41829703969), Attempt1 Head `e620d9931c0ded1150c6e1805cca2aaf5ed20ab5`, base `8994d615fb5683c2a0d4aac973bf0fd04cf35278`, test merge `2e0c059c1abd693005d627cfa57bf824b04c5e92`. 직접 FAIL: E2E shard2 Job126574992523가 **103 Playwright PASS** 후 `e2e-timing-ci-shard-2` CreateArtifact upload `ECONNRESET`. 타 Artifact upload 정상, Shard5/6 SUCCESS, 1/3/4/7/8 CANCELLED, E2E aggregate/QA 파생 FAIL. Quality·Docker aggregate SUCCESS, Preflight PASS. 세부 시간·결과와 기존 #871/#216 누적 이력은 [단일 실패 원장](../../ISSUE_865_FAILURE_ANALYSIS.md)의 PR876-FULL-001 참조.
+- Codex P2 thread `PRRT_kwDOUUB7Bc6zlvos` comment `4467493366`: `tests/python/test_ci_image_recovery_865.py`의 live manifest/lock 버전 고정 단언이 다음 정식 버전으로 증가할 때 false FAIL 발생. 기존 `test_new_release_is_not_yet_authorized_by_repository_files`를 `test_live_manifest_and_lockfile_versions_remain_synchronized`로 교정하여 **live 세 경로 동등성+SemVer 검사**로 바꾼다. 과거 실패 `0.141.0` 및 교정 `0.141.1` fixture의 고정 역사값은 유지. 테스트 assertion 약화가 아니라 영구 회귀의 올바른 불변식 정의이다.
+- TEST_LIFECYCLE_REVIEW: 원본 E2E 8-shard·세 Required aggregate·artifact 의무·Trusted QA·보안 정책과 기존 LLM/OCI 테스트 전부 KEEP_UNIQUE. 직접 교정은 Python `tests/python/test_ci_image_recovery_865.py` 기존 테스트 **EXTEND/REPAIR**, Artifact 네트워크 오류는 CI 코드·timeout/retry 변경 없이 새로운 Full에서 재확인. 이전 FAIL Run을 PASS로 변환하지 않는다.
+- DOCUMENTATION_SYNC: 현재 PR diff의 `docs/ISSUE_865_FAILURE_ANALYSIS.md`, 본 Work Packet, `tests/python/test_ci_image_recovery_865.py`는 UPDATED 유지. `AGENTS.md`와 모든 기존 정책 문서는 참조만/N/A 사유 유지. 새 정확 Head Full/Trusted·실운영 LLM 및 정식 v0.141.1 Release는 새 결과 전 **NOT TESTED**. `release_authorized=false`이므로 병합/Main/GHCR/정식 Release/Issue 종료 단계는 이번 CI 보완에 포함하지 않는다.
