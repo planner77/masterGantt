@@ -318,3 +318,10 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 ## Issue #649 — 신규 SHA 릴리스 승계 준비 (2026-10-13)
 
 원본 #616 v0.107.0 SHA 및 실패 CI는 불변이며, #647 교정의 성공 기록은 #616 정식 게시 증거가 아니다. HIGH/OWNER_MANAGED, 신규 버전 게시 승인 없음. 읽기 전용 준비 검증은 [Issue #649 실행 원장](exec-plans/active/ISSUE_649.md)을 따르며 Git/GitHub Release/GHCR 인증 감사 UNKNOWN·중복 태그·불분명한 Owner 승인은 BLOCKED로 유지한다. 신규 v0.108.0은 제안일 뿐이며 정확한 SHA·버전 범위 신규 Owner 승인이 없는 자동 승계·발행·부채 폐기·#616 종료를 금지한다. 기존 workflow, CI required 3종, Trusted QA, first-parent, release Finalizer 정책은 변경하지 않는다.
+
+## Issue #874 — PR-built release candidate의 원본 Builder 검증
+
+- Release #216.1(41779185247)에서 digest pull은 성공했지만 신규 Release runner ImageVersion이 원본 PR/Main builder와 달라 provenance false BLOCKED. Finalizer #1346.1 SUCCESS는 release dispatch 성공일 뿐 정식 게시 성공이 아니다.
+- 원본 PR Full과 정확 Main Push Run/Attempt/Required3/Docker/publisher, Main builder artifact·archive/Tree/OCI/attestation 일치가 검증되면 Release runner의 host ImageVersion과 무관하게 같은 immutable OCI digest promotion을 판단한다. Live GHCR/OCI labels/SBOM/runtime/Owner 승인/immutable SemVer/Finalizer 완료 게이트는 그대로 필수.
+- 이 교정은 기존 annotated v0.141.0이나 실패 이력에 소급 적용되지 않는다. #874 수정 자체는 release_required=false/release_authorized=false이며 복구 승인은 별도. [원장](ISSUE_874_FAILURE_ANALYSIS.md).
+
