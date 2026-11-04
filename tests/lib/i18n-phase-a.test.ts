@@ -108,6 +108,11 @@ describe("Issue #866 Phase A locale foundation", () => {
     }
     expect(SVAR_LOCALES.vi.gantt["Task name"]).toBe("Tên công việc");
     expect(SVAR_LOCALES.ko.gantt["Add task"]).toBe("작업 추가");
+    // Native Grid column source keys are localized; custom menu labels are
+    // intentionally unchanged in Phase A and handled separately in Phase C.
+    expect(SVAR_LOCALES.ko.gantt["외부 ID"]).toBe("외부 ID");
+    expect(SVAR_LOCALES.en.gantt["외부 ID"]).toBe("External ID");
+    expect(SVAR_LOCALES.vi.gantt["외부 ID"]).toBe("ID bên ngoài");
     expect(SSR_DATE_LOCALE).toBe("ko-KR");
     for (const locale of ["ko-KR", "en-US", "vi-VN"]) {
       const text = formatLocaleDateOnly("2026-01-05", locale);

@@ -25,3 +25,8 @@
 `tests/lib/i18n-phase-a.test.ts`: registry/store/static catalog, storage-denial, SSR, 안전한 User Input, SVAR, date-only. `tests/e2e/issue-866-language-shell.spec.ts`: browser ko/en/vi 선택·영속·HTML lang·잘못된 저장값 fallback. 현 한국어 UI E2E legacy assertion은 Playwright/Transport default locale ko-KR 고정하고 신규 언어 테스트만 별도 en-US로 실행한다. 이는 기존 QA assertion 약화나 E2E skip이 아니다.
 
 No Owner release approval. Existing `v0.141.1` annotated tag/OCI fingerprint 및 #865/#869 제품 기능은 불변. `release_required=true`, `release_authorized=false`. Phase A PR CI/Trusted를 통과해도 전체 #866 CLOSED/정식 게시 근거가 아니다.
+## REWORK2 — Native Gantt Header와 Custom Column Menu의 Locale 경계 (2026-11-05)
+
+- `SVAR_LOCALES[locale].gantt`는 설치된 SVAR 2.7.3의 **native Grid 헤더** 사전이다. Phase A에서 source key `외부 ID`의 화면 표시값은 ko=`외부 ID`, en=`External ID`, vi=`ID bên ngoài`. `<Locale words={SVAR_LOCALES[locale]}>`는 Task ID/원본 이름·일정·권한을 변경하지 않고 텍스트만 로컬라이즈한다.
+- 반면 별도 React **사용자 Column Menu**의 `외부 ID` checkbox 문구는 Phase C의 전 화면 UI 번역 전까지 한국어다. 따라서 영어 첫 진입 E2E에서도 checkbox는 현재 한국어로 접근하고, 켜고 나서 검증하는 **native 헤더는 영어**여야 한다. 이 두 대상을 동일한 번역 적용 범위로 잘못 가정하지 않는다.
+- 실제 [PR #878 #3508.1](https://github.com/planner77/masterGantt/actions/runs/41924914789) en-US E2E 기존 고정 문자열 FAIL을 반영하여 원문/영어 헤더의 정확한 교차 단언·잘못된 언어 부재, HTML lang, 기존 헤더 위치/스크롤/설정/컬럼 표시·숨김/로컬 데이터 불변을 유지한다. 6개의 다른 샤드는 fail-fast로 CANCELLED이며 단독 성공 검증이 아니다. 새 Head의 Chromium 결과까지 **NOT TESTED**.

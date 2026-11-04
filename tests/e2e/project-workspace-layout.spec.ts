@@ -17,8 +17,8 @@ const tasks = Array.from({ length: 60 }, (_, index) => ({
 }));
 
 for (const variant of [
-  { locale: "ko-KR", timezoneId: "Asia/Seoul" },
-  { locale: "en-US", timezoneId: "America/New_York" },
+  { locale: "ko-KR", timezoneId: "Asia/Seoul", nativeExternalIdHeader: "외부 ID" },
+  { locale: "en-US", timezoneId: "America/New_York", nativeExternalIdHeader: "External ID" },
 ]) {
   test.describe(variant.locale, () => {
     test.use({ locale: variant.locale, timezoneId: variant.timezoneId, viewport: { width: 1440, height: 900 } });
@@ -41,10 +41,16 @@ for (const variant of [
       const gridHeaders = page.locator(".project-gantt-widget .wx-table-container .wx-header");
       const gridHeader = gridHeaders.first();
       const chartHeader = page.locator(".project-gantt-widget .wx-scale").first();
-      const externalIdHeader = gridHeaders.getByText("외부 ID", { exact: true });
+      // Phase A localizes native SVAR Grid words, while the custom column menu
+      // retains its Korean label until the Phase C screen-wide translation.
+      const externalIdHeader = gridHeaders.getByText(variant.nativeExternalIdHeader, { exact: true });
+      const wrongLocaleHeader = gridHeaders.getByText(
+        variant.locale === "en-US" ? "외부 ID" : "External ID", { exact: true },
+      );
       const columnMenu = page.locator(".project-column-menu");
       const externalIdOption = columnMenu.getByRole("checkbox", { name: "외부 ID", exact: true });
       await expect(gantt).toBeVisible();
+      await expect(page.locator("html")).toHaveAttribute("lang", variant.locale.slice(0, 2));
       await expect(gridHeader).toBeVisible();
       await expect(chartHeader).toBeVisible();
       // #9: 하단 요약/설정 영역은 없어야 하며 설정 기능은 헤더의 모달로 보존한다.
@@ -81,6 +87,8 @@ for (const variant of [
       await expect(externalIdOption).not.toBeChecked();
       await externalIdOption.check();
       await expect(externalIdHeader).toBeVisible();
+      // Both locales must show their exact native label, never a stale prior language.
+      await expect(wrongLocaleHeader).toHaveCount(0);
       await page.keyboard.press("Escape");
       await expect(columnMenu).toBeHidden();
       await gridHeader.click({ button: "right" });

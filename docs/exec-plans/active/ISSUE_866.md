@@ -78,6 +78,7 @@
 - `src/features/gantt/svar-gantt.tsx`: UPDATED
 - `tests/lib/i18n-phase-a.test.ts`: UPDATED
 - `tests/e2e/issue-866-language-shell.spec.ts`: UPDATED
+- `tests/e2e/project-workspace-layout.spec.ts`: UPDATED(REWORK2 native Gantt en-US/ko-KR header contract)
 - `tests/config/playwright.config.ts`: UPDATED
 - `tests/config/e2e-shard-plan.json`: UPDATED
 - `tests/config/transport.config.ts`: UPDATED
@@ -106,3 +107,12 @@
 - **보완** `tests/scripts/e2e-shard-planner.test.ts`의 기존 count assertion은 유지하고 Shard5의 신규 파일 1개만 17→18로 정확히 변경, `issue-866-language-shell.spec.ts`→Shard5 매핑을 **추가 검증**. 테스트 삭제·skip·hash fallback·shard 이동·retry/timeout 완화 없이 144개 spec 1:1 배치/과거 143개 보존. `tests/config/e2e-shard-plan.json`의 원본 불변.
 - **TEST_LIFECYCLE_REVIEW**: 기존 `tests/scripts/e2e-shard-planner.test.ts`를 EXTEND; `scripts/e2e-shard-planner.mjs`, `tests/config/e2e-shard-plan.json`, 나머지 Gantt/E2E/Locale 6 Unit/Date6/CI tests는 KEEP_UNIQUE. 직접 영향/인접/음성 소비자 합집합과 미실행 범위는 원장 기재. 새 정확 HEAD Full PR CI 전 원격 검증 NOT TESTED.
 - **DOCUMENTATION_SYNC 추가:** `tests/scripts/e2e-shard-planner.test.ts`: UPDATED. 실패 원장 및 Work Packet, `docs/TEST_PLAN.md`는 UPDATED 유지. 기존 Issue AC01~09와 미구현 Phase B/C 경계, `release_authorized=false` 보존.
+## REWORK2 — PR #878 Full #3508.1 native Grid en-US 헤더 검증 계약 교정 (2026-11-05)
+
+- **원본 실행:** [Full #3508.1 / Run 41924914789](https://github.com/planner77/masterGantt/actions/runs/41924914789), HEAD `cd3f0c57953a0bd50a0ac74c0303211e08b20e68`, base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `6eef294a77b93b30dd0d90184a51b44035a8d014`. Shard4 Job `126908178973`의 `tests/e2e/project-workspace-layout.spec.ts:83` **en-US** 사례가 Gantt native Grid 헤더 `외부 ID`를 찾다 FAIL(번역 후 실제 `External ID`, 5s). ko-KR 같은 spec PASS, shard4 33 PASS/1 FAIL/59 미실행. Shard7 SUCCESS, 1/2/3/5/6/8 취소; QA·Required E2E 파생 FAIL, Quality·Docker·Vitest 3528 PASS. GitCommitInfo fetch 3초 경고는 이어지는 33 PASS와 직접 UI assertion 실패를 고려할 때 비차단 진단 메시지다.
+- **원인:** 기존 E2E는 `en-US`로 강제한 날짜·고정 헤더 검증에서도 SVAR native 헤더만 `외부 ID` 한국어를 고정 기대했다. Phase A `SVAR_LOCALES.en.gantt["외부 ID"]="External ID"`가 정상 적용되면서 기존 테스트만 낡은 **TEST_CONTRACT**가 됨. Custom Column Menu checkbox `외부 ID`는 Phase C 이전 미번역이므로 Gantt 원본 텍스트와 독립적이다.
+- **보완/수용:** `tests/e2e/project-workspace-layout.spec.ts`를 **EXTEND**해 ko-KR→`외부 ID`, en-US→`External ID` 정확한 헤더·잘못된 언어 부재 및 `<html lang>`를 단언. 기존 Column Menu checkbox 원문·날짜/스크롤/Project 설정·헤더 고정/동일 Gantt instance/API/선택/60 rows·문서 overflow/JS 에러·Escape/focus 검사 삭제 없음. `tests/lib/i18n-phase-a.test.ts` SVAR native 3언어 표시명 단언을 **EXTEND**해 ko/en/vi 사용 여부를 스펙에 고정. 필요 테스트·CI skip/timeout/retry/8-Shard 스케줄/제품 코드/DB/API는 불변.
+- **전체 실패 원장:** [#866 누적 원장](../../ISSUE_866_FAILURE_ANALYSIS.md) `FULL-001`(샤드 숫자 회귀, 이번 #3508.1 Vitest 성공으로 재검증) 및 `FULL-002`(영어 Grid UI 원문 기대 실패) 모두 보존. 다른 취소 샤드, Phase B/C 검증은 **NOT TESTED**.
+- **TEST_LIFECYCLE_REVIEW:** 기존 E2E `project-workspace-layout` 및 i18n Vitest를 EXTEND; `issue-866-language-shell.spec.ts`, `tests/lib/date-display.test.ts`, SVAR locale provider, 144개 Shard plan, 기존 권한·Gantt·Project/SQLite 테스트는 KEEP_UNIQUE. 단언 완화·제품 기능 롤백 금지.
+- **DOCUMENTATION_SYNC:** `tests/e2e/project-workspace-layout.spec.ts`: UPDATED; `tests/lib/i18n-phase-a.test.ts`: UPDATED(기존); `docs/I18N_PHASE_A.md`: UPDATED, `docs/TEST_PLAN.md`: UPDATED, `docs/REMOTE_VALIDATION.md`: UPDATED, 원장/본 Work Packet: UPDATED. 나머지는 앞의 N/A/UPDATED 사유 그대로. AC03(번역 native Gantt)/AC07(날짜)/AC08(레이아웃) 테스트를 직접 보강했지만 #866 Phase B/C 미구현은 여전함.
+- **승인/검증 경계:** 로컬 TS/Vitest/Playwright/SQLite/Docker 실행은 이번 교정에서 **NOT TESTED**; 새 정확 HEAD Full Quality/E2E8/Docker/Trusted 성공·Main strict·Owner 위험 수용 전 병합 금지. `HIGH/OWNER_MANAGED`, `release_required=true`, `release_authorized=false`, Version 후보 `0.142.0`/Issue #866 OPEN 유지.
