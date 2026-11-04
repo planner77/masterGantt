@@ -694,3 +694,9 @@ Project Template은 공정 occurrence/선택 WorkArea와 Target/typed members를
 ## Issue #342 — 국가 캘린더 관리
 
 KR/CN/VN/PH/TH/MX/US의2026~2037을84개 슬롯으로 관리한다. 검증된 공식 자료만 Scheduling에 사용하고 미확보/부분 자료는 UNAVAILABLE로 유지한다. 관리자 JSON/CSV Preview→전체 연도 원자적 교체와 날짜/출처 CRUD를 제공하며, 수동 날짜 변경은 공식 출처를 무효화한다. 국가 원본 갱신은 기존 Project Calendar/Task/revision을 바꾸지 않는다. 자세한 계약은 [국가 데이터 운영](COUNTRY_CALENDAR_DATA.md) 및 [API](API.md)의 #342 절을 따른다.
+
+## Issue #866 — i18n Phase A (ko/en/vi) / 전체 적용 전제 (2026-11-05)
+
+- **R34 현행:** 브라우저에 저장된 유효한 선택 `ko/en/vi` 우선, 없으면 브라우저 선호의 첫 지원 언어, 지원되지 않으면 `ko`; 선택은 탭 이동·새로고침에 지속. `<html lang>`/SSR 첫 렌더/ARIA와 static locale/숫자·날짜 표시를 동기화한다.
+- Phase A는 앱 Shell/Header/상단 주요 메뉴·SVAR Gantt static locale의 적용과 안전한 오류 코드 처리만 제공한다. 저장되는 date-only/UTC, Project/task/Issue 이름·사용자 자유 입력, 근무일·W##, ID/name/code/enum/SQLite/API 권한·revision은 불변이다.
+- 사용자 요구 완성은 **Phase B/C**의 관리형 기준정보 표시명 별도 저장·수동 관리·원문 fallback 및 Project/Editor/Issue/Dashboard/Administrator 모든 화면 3언어·실제 DB/HTTP/화면 E2E까지 포함한다. Phase A 이행만으로 Issue #866 AC02~09 전체 완료/정식 release 승인으로 취급하지 않는다. [세부 계획](exec-plans/active/ISSUE_866.md).

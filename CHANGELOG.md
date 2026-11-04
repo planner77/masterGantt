@@ -1,3 +1,18 @@
+## [0.142.0] — Unreleased / Issue #866 i18n Phase A only (2026-11-05)
+
+### Added (Phase A)
+
+- 한국어·영어·베트남어를 선택하는 공통 헤더 UI, 브라우저 저장·SSR 한국어 fallback, 정적 core/shell 메시지 및 Gantt SVAR 2.7.3 Locale words 확장.
+- 상단 Navigation·안전한 ARIA/Skip Link·기본 숫자/날짜 표시 언어 선택, 기존 알림 포털·Gantt 인스턴스/요일·ISO W##/데이터/권한 불변.
+- 기존 한국어 UI E2E의 결정적 ko-KR browser locale과 신규 en-US/ko/en/vi 브라우저 전환·저장·Source/Plaintext Unit/Playwright 테스트.
+
+### Pending
+
+- **Phase B**: 기존 관리형 기준정보의 owner별 ko/en/vi 표시명 별도 저장·수동 수정/읽기·스키마/보안/호환/이관/검색/복제.
+- **Phase C**: Project/Workspace/Issue/Dashboard/TaskEditor/관리자/Calendar/전 영역 3개 언어 및 5폭·SVAR native/SQLite/HTTP 완성 검증.
+- 위 AC의 미구현을 인수 완료로 취급하지 않는다. `release_required=true` / **`release_authorized=false`**. 이전 `v0.141.1` 정식 태그/이미지는 그대로 보존하며 Phase A만으로 정식 GHCR 게시·Issue 종료 금지.
+- 원본 혼합 [PR #870](https://github.com/planner77/masterGantt/pull/870)은 이미 병합된 #865 LLM/#869 Issue UI까지 포함하므로 현재 Main에 직접 병합하지 않는다. [Phase A 설계](docs/I18N_PHASE_A.md) / [#866 Work Packet](docs/exec-plans/active/ISSUE_866.md).
+
 ## [0.141.1] — Unreleased / Issue #865 · 실패 v0.141.0 릴리스 안전 복구 (2026-11-04)
 
 ### Fixed

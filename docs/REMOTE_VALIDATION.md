@@ -1160,3 +1160,9 @@ PR 생성 후 Full run의 URL·run_attempt·Head/base/test merge를 단일 조�
 - **수용 가능한 재시도 예외:** Metadata-only가 성공하고 Preflight/전체 구현 Job은 미실행이며, 새 Attempt ZIP이 실제 없고 최초 성공 changes Job과 승계 결과의 Run/Head/started/completed가 일치하는 경우에만 **원래 Attempt 1 ZIP**을 검증한다. `verified_source`의 PR/base/test-merge/Git Tree 포함 기존 source 확인을 통과하고 최신 성공 Full의 같은 base·정확 artifact·3 Required를 독립 인증해야 `METADATA_ONLY_RECOVERY_NON_AUTHORITATIVE` 감사 N/A이다.
 - **즉시 BLOCKED/FAIL:** Full Run의 source ZIP 결손, metadata 최초 실패·진행 중, expired/doubled/tampered ZIP, 변경 경로 Job 재실행/원본 없음, Run/PR/Head/Base/Test merge drift, Full Required3 미성공·CANCELLED·stale, 암묵적 Owner 승인. 보고에는 `source_ci_run_id`/`source_ci_run_attempt`와 실제 `source_event_artifact_attempt`, `prior_full_run_id`를 분리한다.
 - 안전한 재현은 read-only 모의 GitHub API 테스트 및 원본 실제 Run/Artifact 조회. 새 #873 Full PR CI 및 Trusted QA가 검증을 통과하기 전 본 기능 완료 선언 금지. [원장](ISSUE_873_FAILURE_ANALYSIS.md), [Work Packet](exec-plans/active/ISSUE_873.md).
+
+## Issue #866 Phase A — 실제 브라우저 3언어 원격 검증 (2026-11-05)
+
+- 새 GitHub PR의 exact Head/Base/Test merge와 Full Quality/E2E8/Docker·Trusted QA를 독립 확인한다. 기본 ko-KR E2E는 한국어 기존 화면을 검증하고, 신규 en-US 선택 E2E/ko→en→vi 화면 전환은 `<html lang>`, `mastergantt.ui.locale` 저장, URL 불변, 언어 selector ARIA와 navigation의 정확한 label을 확인한다. 잘못된 저장값·storage 거부 시 fallback은 Vitest/Playwright로 검증한다.
+- SVAR 2.7.3 `Locale words`는 `weekStart=1`을 유지하며 Gantt의 원본 Task/Link/기간·프로젝트 저장과 무관해야 한다. 네이티브 실제 인스턴스/viewport·기준정보 Translation/복수 소유자 DB/HTTP 보안 회귀는 Phase B/C에서 별도 필수 검증한다.
+- 현재 Phase A 원격 CI **NOT TESTED**(시작 전), Phase B/C **NOT IMPLEMENTED**. 이전 PR #870 혼합 브랜치와 #865/#869 별도 Main 승인/이미지는 동일 source의 증거가 아니다. Full 검증 성공·Owner HIGH 수용·정확 버전 Release 승인 없이 병합/GHCR/Issue 종료 금지. [계획](exec-plans/active/ISSUE_866.md).

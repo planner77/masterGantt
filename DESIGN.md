@@ -404,3 +404,10 @@ Issue는 **compact toolbar(전체/완료/진행 중/등록 건수·비율 + 등�
 일정 Grid/Chart의 `Convert to → Milestone`은 같은 대상 이름과 기간0·표시 변화를 기존 dialog로 확인한 뒤 실행한다. 운영 기본 모드에서는 일정 행·막대가 함께 숨겨지고 `대시보드 → Milestone`에서 관리함을 알린다. legacy 응급 모드의 native 표시 안내는 별도로 유지한다. 취소·Escape는 쓰기 없이 출발 focus를 복원하고 저장 중에는 중복 제출·닫기를 막는다. 성공으로 원 행이 없어지면 일반 보기의 작업 검색 또는 Fullscreen의 Gantt 영역에 focus를 복원한다.
 
 성공 안내와 `Milestone 대시보드에서 보기`는 이름 검색 대신 같은 canonical ID의 기존 상세로 연결한다. 클릭 전 일정 보기·scope·scroll을 유지하고 자동 탭 전환·marker 활성화·날짜 이동을 하지 않는다. 목록 조건이 대상을 가리면 상세와 조건 변경 안내로 구분한다. 기존 semantic token·WorkspaceDialog·단일 Gantt를 재사용하는 Design Delta B이며 실제 실행·잔여 위험은 [#860 Work Packet](docs/exec-plans/active/ISSUE_860.md)을 따른다.
+
+## Issue #866 Phase A — 공통 언어 선택·Gantt Locale·헤더 밀도 (2026-11-05)
+
+- 사용자 화면 표시 언어는 ko/en/vi이며, 최초 SSR/첫 hydration은 ko, 클라이언트는 유효한 브라우저 저장 선택 > 지원되는 브라우저 선호 언어 > ko 순서로 적용한다. 선택한 언어는 localStorage에 저장하지만 저장이 금지되면 현재 탭의 명시 선택을 유지한다. 사용자 자유 입력·DB 식별자/API enum·Task name·서버 error code 원문은 자동 번역·변경하지 않는다.
+- 3열 Header(브랜드/내비게이션/언어·알림)를 유지한다. 오른쪽 `header-actions`의 Locale selector는 기본 7.5rem·좁은 화면 5.5rem 최대폭, focus outline, 명시 label/ARIA를 제공한다. 기존 알림 Portal `workspace-notification-slot`를 별도 안쪽 DOM에 보존한다. 좁은 화면에서 메뉴의 **내부 가로 스크롤**만 허용하고 바깥 문서 overflow를 금지한다.
+- SVAR Gantt/Core/Calendar의 사용자 정의 ko/en/vi `Locale words`는 같은 Gantt 인스턴스를 재사용한다. `weekStart=1`, ISO W##, 일정·기간·Working Calendar·scroll/selection·Task ID/원본 DB는 언어만 바꾸어 수정하지 않는다. Phase A는 Shell/Gantt static words만 구현하며 Dashboard/Issue/기준정보/TaskEditor 및 모든 domain 메시지는 Phase C 전까지 일부 한국어 fallback이다.
+- 기준정보 언어별 번역명 **DB 등록/편집/검색/권한/Copy·Template**는 이번 UI/클라이언트 작업에 포함되지 않으며 Issue #866 Phase B/C 완료 전 전체 다국어 기능 완료 또는 배포를 선언하지 않는다. [Phase A 계약](docs/I18N_PHASE_A.md) 및 [Work Packet](docs/exec-plans/active/ISSUE_866.md).

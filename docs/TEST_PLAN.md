@@ -5738,3 +5738,14 @@ REWORK4 같은후보의기본goto(load) bounded33개는 **33PASS/0FAIL**,5.3분�
 - KEEP_UNIQUE: `scripts/test_qa_final_automated.py` 원본 source ZIP/redirect, `scripts/test-pr-metadata-evidence.py`, `scripts/test-pr-metadata-reconcile.py`, #593/#595/#600/#712 고유 보안 회귀 및 E2E8/Quality/Docker Required3. 기존 Policy Job `python3 scripts/test_qa_final_automated.py` 그대로 실행한다. 새 Head 공식 PR CI 및 Trusted 완료 전 결과 NOT TESTED.
 - [Work Packet](exec-plans/active/ISSUE_873.md) / [원장](ISSUE_873_FAILURE_ANALYSIS.md).
 
+## Issue #866 Phase A — i18n Registry/Choice/Locale/Date의 신규 회귀 (2026-11-05)
+
+- **ADD** `tests/lib/i18n-phase-a.test.ts`: 현재 Shell catalog의 en/vi 번역/보간 일치, 지원 언어 Registry·브라우저 우선순위, storage 접근 거부/저장 후 module reload, Korean SSR, 이름 원문/원시 에러 비노출, SVAR Locale 3개 dictionary·Monday weekStart=1, date-only 음성을 검증한다.
+- **ADD** `tests/e2e/issue-866-language-shell.spec.ts`: 실제 첫 사용자 ko-KR → en/vi 선택·localStorage·HTML lang/내비게이션·새로고침·잘못된 저장값 및 최초 en-US 브라우저 시나리오.
+- **KEEP_UNIQUE** `tests/lib/date-display.test.ts`의 UTC date-only/미국 타임존 음성, 기존 Project/Gantt/Task Editor/Calendar/Permission/SQLite E2E 및 transport/8Shard/Required3 테스트. 테스트 전 기존 #870의 `tests/lib/i18n.test.ts`, `tests/e2e/{i18n,i18n-master-data}.spec.ts`를 검토하였고, domain/admin/DB가 미이식인 Phase A에 그 전수 결과를 전용하지 않는다.
+- Phase B는 별도 owner translation FK/권한·CSRF/412/revision/Copy·Template·Import/Export loss guard/SQLite migration 테스트, Phase C는 Gantt instance/scale/scroll/5폭 화면·모든 도메인 label/key fallback·SSR hydration/ARIA tests를 **추가로** 실행한다. 이번 Phase A만으로 #866 최종 AC 충족 판정 금지.
+- 새 PR exact frozen source의 원격 Full/Trusted 결과 전 실제 테스트 결과 **NOT TESTED**. [계획](exec-plans/active/ISSUE_866.md) / [누적 원장](ISSUE_866_FAILURE_ANALYSIS.md).
+
+## Issue #866 Phase A — E2E 명시 Shard 할당 보완 (2026-11-05)
+
+신규 `tests/e2e/issue-866-language-shell.spec.ts`는 명시 계획 `tests/config/e2e-shard-plan.json`의 **Shard5**에 1개만 추가한다. 기존 143개 spec·8샤드·historical projectedMs/이전 수동 재균형 기록은 변경하지 않고 144개 계획으로 확장하며 새 spec 비용은 REMOTE_UNMEASURED. 기존 E2E 탐색·Required3·35분 제한/skip/retry/fail-fast 계약 완화 없음.

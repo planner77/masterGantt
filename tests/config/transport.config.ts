@@ -19,6 +19,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   use: {
     ...devices["Desktop Chrome"],
+    locale: "ko-KR",
     viewport: { width: 1440, height: 1000 },
     ignoreHTTPSErrors: false,
     // 인증 테스트에서는 비밀번호·쿠키가 trace/artifact에 저장되지 않게 한다.

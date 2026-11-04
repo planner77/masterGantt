@@ -30,6 +30,8 @@ export default defineConfig({
   workers: 1,
   use: {
     baseURL,
+    // Keep existing Korean assertions deterministic; dedicated i18n cases override locale.
+    locale: "ko-KR",
     trace: "retain-on-failure",
   },
   webServer: externalBaseURL

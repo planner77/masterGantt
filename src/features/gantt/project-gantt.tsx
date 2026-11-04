@@ -23,9 +23,10 @@ import {
 } from "@svar-ui/react-gantt";
 import "@svar-ui/react-gantt/all.css";
 import { Locale } from "@svar-ui/react-core";
+import { useI18n } from "@/lib/i18n/provider";
+import { SVAR_LOCALES } from "./svar-locales";
 import { weekCalendarInterval, weekCalendarScaleClass, weekCalendarIntervalFromClass, weekTimelineScaleClass } from "./week-calendar-interval";
 import { weekTimelineTooltip, type WeekTimelineTooltipData } from "./week-timeline-tooltip";
-const ganttIsoLocale = { calendar: { weekStart: 1 } };
 import {
   createContext,
   useContext,
@@ -466,6 +467,7 @@ export function ProjectGantt({
   viewRootTaskId = null,
   projectPublicId,
 }: ProjectGanttProps) {
+  const { locale } = useI18n();
   const { notify } = useWorkspaceNotifications();
   const [density, setDensity] = useState({ level: 0, coarse: false });
   const ganttCellHeight = densityHeight(density.level, density.coarse);
@@ -4587,7 +4589,7 @@ export function ProjectGantt({
               geometry={viewVisible && laneSource?.model === milestoneTimeline.timelineModel && laneSource.context === viewportContinuityKey && laneSource.scale === scaleMode && laneSource.api === apiInstanceId && laneSource.display === timelinePreviewDisplay ? laneGeometry : null}
               points={viewVisible && laneSource?.model === milestoneTimeline.timelineModel && laneSource.context === viewportContinuityKey && laneSource.scale === scaleMode && laneSource.api === apiInstanceId && laneSource.display === timelinePreviewDisplay ? lanePoints : []}
               contextKey={`${viewportContinuityKey}:${viewVisible}`} busy={mutationLocked} readOnly={!editable} onGuide={setLaneGuide} /> : null}
-            <div className="project-gantt-native-owner"><Locale words={ganttIsoLocale}><Gantt
+            <div className="project-gantt-native-owner"><Locale words={SVAR_LOCALES[locale]}><Gantt
               cellHeight={ganttCellHeight}
               cellWidth={GANTT_CELL_WIDTH[scaleMode]}
               columns={initialConfig.columns}
