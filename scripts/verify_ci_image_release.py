@@ -138,13 +138,13 @@ def main() -> int:
             tempdir=pathlib.Path(env["RUNNER_TEMP"]))
         with open(env["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
             stream.write(
-                "\n## Issue #836 independently authenticated PR-origin release image\n"
-                f"- Exact immutable subject: {report['index_digest']}\n"
-                f"- PR Full run/attempt: {report['source_run_id']}.{report['source_run_attempt']}\n"
-                f"- Main Full run/attempt: {report['main_run_id']}.{report['main_run_attempt']}\n"
-                f"- Main builder receipt SHA256: {report['main_build_contract_sha256']}\n"
-                f"- Main source SHA: {report['main_sha']}; PR build revision: {report['source_revision']}\n"
-                "- Release Main verified candidate still undergoes unchanged runtime gates.\n")
+                "\n## Issue #836/#874 PR 출처 Release 이미지 독립 인증\n"
+                f"- 불변 OCI subject digest: {report['index_digest']}\n"
+                f"- PR 전체 검증 Run/Attempt: {report['source_run_id']}.{report['source_run_attempt']}\n"
+                f"- Main 전체 검증 Run/Attempt: {report['main_run_id']}.{report['main_run_attempt']}\n"
+                f"- Main 빌드 출처 영수증 SHA256: {report['main_build_contract_sha256']}\n"
+                f"- Main 원본 SHA: {report['main_sha']}; PR 빌드 revision: {report['source_revision']}\n"
+                "- Release 후보 이미지의 기존 런타임 검증은 별도로 계속 수행합니다.\n")
     except (Blocked, Ineligible, OSError, KeyError, TypeError, ValueError) as error:
         print("BLOCKED: cannot authenticate a PR-built Main release candidate: "
               + str(error), file=sys.stderr)
