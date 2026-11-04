@@ -99,3 +99,10 @@
 ## REWORK4 — Full #3481.1 Markdown links (2026-11-04)
 
 [Run41743239291](https://github.com/planner77/masterGantt/actions/runs/41743239291): #865 분리본의 `docs/LLM_CONFIGURATION.md` 마지막 줄이 존재하지 않는 #866 Work Packet/원장을 상대 링크로 가리켜 Markdown link job이 직접 FAIL했다. 이 두 링크를 #865 실제 문서와 원장으로 교체했다. QA Preflight·Unit·TypeScript·ESLint PASS는 이전 Head 한정이며 새로운 Head E2E/Docker/전체 Quality 결과로 승계하지 않는다. 상세 [누적 원장](../../ISSUE_865_FAILURE_ANALYSIS.md).
+
+## MAIN_SYNC — #869 선행 병합 이후 #865 정렬 (2026-11-04 KST)
+
+- 최초 Main 기준 `352a43e74c7b34c72d952f67783a53463f8b519d`는 이식 당시 역사이며 현재는 #869 PR #872 병합 Main `c048461c0dafc1e7fa89786b6abb7a322788ea60`을 수용한다.
+- #865 독립 LLM 구현/테스트와 #869 Issue 화면은 논리적으로 독립이다. 최신 main Tree에 변경된 #865 경로를 반영하고, 중첩된 `docs/REQUIREMENTS.md`·`CHANGELOG.md`는 각 이슈의 절을 모두 보존했다. 이 브랜치의 버전은 #869 `0.140.0` 이후 **MINOR `0.141.0`**으로 변경하며 `package.json`/lock root 두 버전을 동일하게 맞췄다. 원래 이식한 npm dependency graph/lock 외부 버전은 불변이다.
+- 신규 코드/LLM 공개 API/UI/DB/CI/QA 정책 변경 없음. #865 누적 실패는 [단일 원장](../../ISSUE_865_FAILURE_ANALYSIS.md)에 불변 기록하고 기존 #870/#869 별도 원장과 합산하지 않는다. 문서 변경 영향은 본 Work Packet `## DOCUMENTATION_SYNC`의 해당 UPDATED 항목으로 추적한다.
+- 새 Head의 Full PR CI Required3 및 Trusted QA/실제 현장 LLM 연결은 **NOT TESTED**, Owner 승인·Main/GHCR/Issue 종료는 이번 요청 범위 밖이다. 리뷰 스레드0·Git tree·PR mergeability는 새 push 뒤 다시 확인한다.

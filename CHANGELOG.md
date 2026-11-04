@@ -1,9 +1,15 @@
-## [0.140.0] — Unreleased / Issue #865 (2026-11-04)
+## [0.141.0] — Unreleased / Issue #865 (2026-11-04)
 
 ### Added
 - 선택형 서버 전용 사내 LLM 공통 모듈: 다중 OpenAI 호환 provider·각 provider 복수 model·명시적 모델 선택/기본 선택, 기본 OFF.
 - 허용된 사설망 IP로만 연결하고 DNS 검증·redirect 거부·timeout/abort/요청 크기·동시 실행 한도·runtime token 분리 등 방어 경계와 mock 서버/음성 테스트를 추가.
 - 배포 Compose의 명시적인 환경변수 전달과 [LLM 운영 가이드](docs/LLM_CONFIGURATION.md)를 추가. 공개 AI API·UI 또는 프로젝트 데이터 자동 전송 없음.
+
+## [0.140.0] — Unreleased / Issue #869 (2026-11-04)
+
+### Changed
+- Project Issue 목록이 desktop에서 단일 수직 스크롤 소유자가 되도록 구조화하고, KPI/필터/페이지네이션과 표 sticky 헤더를 분리했습니다.
+- Issue 등록/수정 폼의 제목 및 Issue 명을 고정하고, 날짜3열·사람/상태3열·신규 비밀번호2열·내용8행 및 작은 화면 대응을 반영했습니다. 저장 계약·일정/Gantt·권한/원본은 변경하지 않았습니다.
 
 ## [0.139.1] — Unreleased / Issue #867 환경설정 기반 Issue 기본 표시 (2026-11-03)
 

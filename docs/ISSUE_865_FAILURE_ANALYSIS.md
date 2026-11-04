@@ -32,3 +32,13 @@ PR: https://github.com/planner77/masterGantt/pull/871
 - 원인: 통합 PR #870 원본 설정 가이드 마지막 줄의 #866 참조를 #865 분리시 교체하지 않아 독립 branch에 없는 문서를 지시했다.
 - 교정: #865 문서 원문을 보존하고 마지막 참조만 실재하는 `docs/exec-plans/active/ISSUE_865.md` 및 `docs/ISSUE_865_FAILURE_ANALYSIS.md`로 정정. 원래 통합 PR의 누적 이력을 이 독립 PR의 PASS로 전용하지 않는 점을 명시.
 - 테스트 수용: markdown 경로·파일 존재와 정확 Git blob을 GitHub API로 검토. 최종 독립 Head에서 full Unit/E2E/Docker 및 Trusted/Owner는 아직 NOT TESTED. 기존 QA/보안/CI 정책 불변.
+
+## PR871-MAIN-SYNC-001 — 최신 main 정렬·리뷰/충돌/버전 정책 (2026-11-04 KST)
+
+- 원격 전체 PR #871 이력(11 runs, FIRST PAGE·branch/PR 귀속 확인): 원본 Full 실패 #3476.1 Run41741295176, #3477.1 Run41742099717, #3479.1 Run41742545244, #3481.1 Run41743239291은 위 불변 사건에 각각 기록되어 있으며, metadata-only #3478.1 Run41742116522는 #3477 실패의 파생이다. 5개 FAST_DEVELOPMENT advisory #251/#252/#253/#255/#257은 SKIPPED이며 Required PASS로 계수하지 않는다. 최초 Run부터 정제한 증거는 원본 Action 링크를 따른다.
+- [Full #3484.1 / Run41743950901](https://github.com/planner77/masterGantt/actions/runs/41743950901)은 이전 HEAD `0f8af9fe5438c7ce705cb863c3ea99575e5089c6`, 이전 base `352a43e74c7b34c72d952f67783a53463f8b519d`에서 workflow 최종 SUCCESS. 해당 성공은 최신 main 반영 전 증거이며 신규 정렬 Head의 CI 성공으로 승계하지 않는다. 별도 재시도 실패로 기록할 새 사건 없음.
+- 최신 main [`c048461c0dafc1e7fa89786b6abb7a322788ea60`](https://github.com/planner77/masterGantt/commit/c048461c0dafc1e7fa89786b6abb7a322788ea60)은 #869 PR #872의 UI/문서/앱 `0.140.0`을 포함하며, #865 브랜치는 당시 4 behind/5 ahead, PR mergeable=false였다. common base `352a43e74c7b34c72d952f67783a53463f8b519d`를 확인했다.
+- 해결 전략: **기존 #865 Head + 최신 main의 2-parent merge commit**. 최신 main의 전체 Git Tree를 기준으로 #865의 변경된 파일/테스트만 무손실 이식한다. #869의 Issue UI/CSS/E2E/문서·권한/SQLite 계약은 보존한다. `CHANGELOG.md`는 #865 `0.141.0` 신규 절 + #869 `0.140.0` 기존 절을 모두 유지, `docs/REQUIREMENTS.md`는 두 Issue 절을 유지, `package.json`/lock root version 두 군데를 `0.141.0`으로 동기화한다. 다른 의존성/lock bytes/CI 정책은 불변.
+- 리뷰 사전 확인: PR #871 GraphQL inline review thread **0건**, review submissions **0건**, Codex summary의 최초 HEAD 지적 없음(새 Head 검증 근거 아님). 신규 merge commit push 이후 review/mergeability를 재조회한다. 해결 전 충돌은 위 문서·버전 중첩에서 발생했으며 수동 원본 내용 보존으로 해소한다.
+- 보안/제품: `src/server/llm/**`, `tests/server/llm/**`, `.env.example` 및 Compose의 #865 contract 변경 없음. 사내망 실서버/실제 토큰 검증은 NOT TESTED; 권한·CI QA/Trusted·Owner 위험 승인/Issue 종료/정식 GHCR은 별도.
+- 이 정렬의 로컬 TypeScript/Vitest/E2E/Docker 실행은 **NOT TESTED**. 새 HEAD로 Full PR CI 시작하되 완료 결과는 사용자 요청에 따라 모니터링하지 않는다. 새 Head의 Required3·Trusted QA·Owner ACCEPT는 시작 시점 **NOT TESTED**.
