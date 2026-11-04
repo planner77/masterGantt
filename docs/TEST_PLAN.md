@@ -5730,3 +5730,11 @@ REWORK4 같은후보의기본goto(load) bounded33개는 **33PASS/0FAIL**,5.3분�
 - 검색 후 EXTEND: tests/python/test_ci_image_release.py 기존 Main Run/Job uniqueness, digest mapping에 exact Main contract artifact/invalid/expired 및 publisher 결손 회귀 추가. ADD: tests/python/test_ci_image_contract.py 의 PR/Main builder와 Release runner 비교 양성/음성. KEEP_UNIQUE: test_ci_image_reuse.py의 OCI index/child/attestation/archive/runtime/PR source/Main fallback; 삭제·skip/retry/timeout 완화 금지.
 - Positive: PR/Main ImageVersion=20261101.186.1, Release=20261025.179.1이라도 원본 두 빌더 영수증/OCI subject/Run+Attempt/Publisher가 유효하면 승인. Negative: PR/Main builder or files/base/Tree drift, artifact/Run+Attempt/version/digest/missing Main publisher 모두 BLOCKED.
 - Python CI 기존 test discovery 및 Full8 required gates 그대로. 본 요청 결과 원격 새 Head PR CI는 시작 전 NOT TESTED. [Work Packet](exec-plans/active/ISSUE_874.md), [원장](ISSUE_874_FAILURE_ANALYSIS.md).
+
+## Issue #873 — metadata-only Trusted QA 원본 Attempt 선별 복구 테스트 (2026-11-05)
+
+- [Issue #873](https://github.com/planner77/masterGantt/issues/873) AC1~AC6은 기존 `scripts/test_qa_final_automated.py`의 `Issue873MetadataAttemptTests` 5건에 매핑한다. #3488.1→#3488.2 changes 승계 Job의 실행 시작/완료 시각·Run/Head 일치, 최초 Attempt ZIP만 존재하는 성공 경로와 `METADATA_ONLY_RECOVERY_NON_AUTHORITATIVE` N/A 판정을 확인한다.
+- 음성: 새로운 changes Job 실행시간·Head drift, 최초 Job 실패/중복/누락, 현재 Artifact 만료, metadata/Full 모드 불일치, 원본 PR/head/base/merge 위조, 독립 Full Required3 실패·취소, ZIP 손상·HTTP 접근불가. Full latest-attempt source artifact 규칙은 완화하지 않는다.
+- KEEP_UNIQUE: `scripts/test_qa_final_automated.py` 원본 source ZIP/redirect, `scripts/test-pr-metadata-evidence.py`, `scripts/test-pr-metadata-reconcile.py`, #593/#595/#600/#712 고유 보안 회귀 및 E2E8/Quality/Docker Required3. 기존 Policy Job `python3 scripts/test_qa_final_automated.py` 그대로 실행한다. 새 Head 공식 PR CI 및 Trusted 완료 전 결과 NOT TESTED.
+- [Work Packet](exec-plans/active/ISSUE_873.md) / [원장](ISSUE_873_FAILURE_ANALYSIS.md).
+

@@ -255,3 +255,9 @@ PR #583은 merge SHA `1ed682dd062012f3d04c2517110835bf7c28ac13`로 main에 반�
 - PR/Main builder fingerprint 비교의 실제 runner ImageVersion/Buildx/Docker/source/base/lock 강제 보존, Release 독립 Main receipt, PR OCI/source/attestation/live GHCR Fail Closed, Main publisher Run+Attempt 및 ZIP provenance와 기존 annotated tag 불변을 검증한다.
 - Positive: 인증된 PR/Main builder=20261101.186.1, Release host=20261025.179.1에서 false BLOCKED 없음. Negative: PR↔Main mismatch/receipt 위조·결손/Publisher 부재는 BLOCKED. 새 PR Full + Trusted/Owner 승인 전 병합 금지. [Work Packet](exec-plans/active/ISSUE_874.md).
 
+## Issue #873 — Metadata-only Trusted QA 비권위 감사와 원본 Job 승계 (2026-11-05)
+
+- 기존 Full `FINAL_FULL` 원본은 **같은 PR/head/base/test-merge·Git tree·현재 정확 Attempt ZIP·세 Required/QA·리뷰·Owner 수동 ACCEPT**를 그대로 요구한다. Metadata-only 뒤의 새로운 Trusted 워크플로 FAILURE가 기존 정확 Full Trusted PASS를 지우는 것은 아니지만, 불확실한 Artifact/Job 출처를 PASS로 바꾸는 것도 아니다.
+- Metadata-only의 `rerun-failed-jobs`에서 **실제로 재실행되지 않은** 성공 changes Job은 최초 Attempt의 시작/완료 시간이 후속 Attempt의 읽기 전용 API 증거와 일치할 때만 최초 이벤트 출처 Artifact를 재사용한다. 최초 ZIP을 원래 attempt로 바인딩하고 `verified_source`를 통과해야 하며, metadata Job SUCCESS/Full 구현 SKIPPED와 별도 인증된 성공 Full CI Required3 모두 필수이다.
+- 이 조건을 만족한 Metadata-only는 `automated_qa=N/A`, `decision_reason=METADATA_ONLY_RECOVERY_NON_AUTHORITATIVE`로 기록한다. 이것은 **독립 QA PASS도 Full QA PASS도 Merge 권한도 아니며** 새 Head/다른 PR의 Required3 근거가 될 수 없다. 위조·만료·다른 Run/Head/Base/재실행 changes/Full 실패·취소 및 불완전 API는 기존 FAIL/BLOCKED.
+- `AGENTS.md`, 인증된 원본 default-main checkout, GitHub Ruleset·Required Quality/E2E8/Docker, `OWNER_MANAGED` 위험·수동 승인/릴리스 보호 기준은 유지된다. [Work Packet](exec-plans/active/ISSUE_873.md) / [원본 감사](ISSUE_873_FAILURE_ANALYSIS.md).

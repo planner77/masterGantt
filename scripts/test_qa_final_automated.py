@@ -923,5 +923,159 @@ class Cases(unittest.TestCase):
         self.assertIn("python3 scripts/test_qa_final_automated.py",policy)
 
 
+
+class Issue873MetadataAttemptTests(unittest.TestCase):
+    """Run #3488.1 -> #3488.2: carried changes job, missing attempt-2 ZIP.
+
+    The fake API distinguishes the original execution time from GitHub's
+    attempt-2 relabeling. All requests are read-only; no workflow rerun.
+    """
+
+    def setUp(self):
+        self.repo = "planner77/masterGantt"
+        self.prefix = "/repos/" + self.repo
+        self.head, self.base, self.merge = "a"*40, "b"*40, "c"*40
+        self.original = {
+            "name": "변경 경로 판정", "conclusion": "success",
+            "started_at": "2026-11-04T03:35:54Z",
+            "completed_at": "2026-11-04T03:36:10Z",
+            "head_sha": self.head, "run_id": 88,
+        }
+        self.latest = dict(self.original)
+        self.run = {
+            "id": 88, "event": "pull_request", "status": "completed",
+            "conclusion": "success", "path": ".github/workflows/ci.yml",
+            "repository": {"full_name": self.repo}, "head_sha": self.head,
+            "head_branch": "fix/issue-873-metadata-provenance",
+            "run_attempt": 2, "display_title": "PR CI [메타데이터 검증]",
+        }
+        self.live = {
+            "state": "open", "merged": False, "title": "[Issue #873] qa",
+            "body": "Refs #873",
+            "head": {"sha": self.head, "ref": self.run["head_branch"]},
+            "base": {"sha": self.base, "ref": "main"},
+        }
+        self.metadata = "PR metadata가 기존 전체 CI 증거를 보존하는지 검증"
+        self.jobs1 = [
+            self.original, {"name": self.metadata, "conclusion": "failure"},
+        ]
+        self.jobs2 = [
+            dict(self.latest),
+            {"name": self.metadata, "conclusion": "success"},
+            {"name": "QA Preflight — 정책·문서 사전 검사", "conclusion": "skipped"},
+            {"name": "TypeScript 타입 검사", "conclusion": "skipped"},
+            {"name": "Vitest 단위·통합 테스트", "conclusion": "skipped"},
+            {"name": "Docker smoke 구현", "conclusion": "skipped"},
+            {"name": "PR Next.js production build", "conclusion": "skipped"},
+            {"name": "Build, static checks, and unit tests", "conclusion": "success"},
+            {"name": "Chromium end-to-end tests", "conclusion": "success"},
+            {"name": "Docker build and runtime smoke test", "conclusion": "success"},
+        ]
+        self.artifacts = [{"name": "ci-pr-source-88-1",
+                           "id": 901, "expired": False}]
+        self.reads = []
+
+    def get(self, url):
+        assert url == self.prefix + "/actions/runs/88", url
+        return self.run
+
+    def collection(self, url, key):
+        self.reads.append((url, key))
+        if key == "artifacts":
+            assert url == self.prefix + "/actions/runs/88/artifacts", url
+            return self.artifacts
+        assert key == "jobs", (url, key)
+        if url == self.prefix + "/actions/runs/88/attempts/1/jobs":
+            return self.jobs1
+        if url == self.prefix + "/actions/runs/88/attempts/2/jobs":
+            return self.jobs2
+        raise AssertionError("Foreign job source: " + url)
+
+    def source(self, gh, run_id, attempt):
+        self.assertEqual(run_id, 88)
+        if attempt == 2:
+            raise qa.Blocked("BLOCKED", "원본 CI PR event artifact 누락/중복/만료")
+        self.assertEqual(attempt, 1)
+        return {"run_id": 88, "run_attempt": 1}
+
+    def verify(self, gh, run, payload):
+        self.assertEqual(run["run_attempt"], 1)
+        self.assertEqual(payload, {"run_id": 88, "run_attempt": 1})
+        return 873, self.head, self.base, self.merge, self.live
+
+    def validate(self, verify=None, full_id=77):
+        with patch.object(qa, "source_artifact", side_effect=self.source), \
+             patch.object(qa, "verified_source",
+                          side_effect=verify or self.verify), \
+             patch.object(qa, "verify_same_base_full_run",
+                          return_value=full_id) as full, \
+             patch.object(qa, "check",
+                          side_effect=AssertionError("metadata N/A cannot claim Full QA")):
+            result = qa.trusted_source(
+                {"GITHUB_RUN_ID": "999"}, {"workflow_run": {"id": 88}}, self)
+            return result, full.call_args
+
+    def test_carried_original_source_and_exact_full_required3_yield_nonauthoritative_na(self):
+        result, full = self.validate()
+        self.assertEqual(result["automated_qa"], "N/A")
+        self.assertEqual(result["decision_reason"],
+                         "METADATA_ONLY_RECOVERY_NON_AUTHORITATIVE")
+        self.assertEqual(result["source_ci_run_attempt"], 2)
+        self.assertEqual(result["source_event_artifact_attempt"], 1)
+        self.assertEqual(result["prior_full_run_id"], 77)
+        self.assertEqual(result["manager_decision"], "NOT TESTED")
+        self.assertIn("CARRIED_CHANGES_JOB", result["source_event_provenance"])
+        self.assertEqual(full.args[1:], (873, self.head, self.base, 88, self.merge))
+
+    def test_source_carried_execution_must_not_have_rerun_or_changed_sha(self):
+        for field, value in (("started_at", "2026-11-04T04:11:30Z"),
+                             ("completed_at", "2026-11-04T04:11:50Z"),
+                             ("head_sha", "d"*40), ("conclusion", "failure")):
+            with self.subTest(field=field):
+                self.jobs2[0][field] = value
+                with self.assertRaises(qa.Blocked):
+                    self.validate()
+                self.jobs2[0][field] = self.original[field]
+
+    def test_missing_attempt_two_is_the_only_allowed_fallback(self):
+        self.artifacts.append({"name": "ci-pr-source-88-2",
+                               "id": 902, "expired": True})
+        with self.assertRaises(qa.Blocked):
+            self.validate()
+        self.artifacts.pop()
+        self.run["display_title"] = "PR CI [전체 검증]"
+        with self.assertRaises(qa.Blocked):
+            self.validate()
+        self.run["display_title"] = "PR CI [메타데이터 검증]"
+        self.jobs2[1]["conclusion"] = "skipped"
+        with self.assertRaises(qa.Blocked):
+            self.validate()
+        self.jobs2[1]["conclusion"] = "success"
+        self.run["conclusion"] = "failure"
+        with self.assertRaises(qa.Blocked):
+            self.validate()
+
+    def test_original_event_and_full_source_mismatch_fail_closed(self):
+        with self.assertRaisesRegex(qa.Blocked, "원본"):
+            self.validate(verify=lambda *args: (_ for _ in ()).throw(
+                qa.Blocked("BLOCKED", "원본 event PR/head/base 불일치")))
+        with patch.object(qa, "verify_same_base_full_run",
+                          side_effect=qa.Blocked("BLOCKED", "Full source 불일치")), \
+             patch.object(qa, "source_artifact", side_effect=self.source), \
+             patch.object(qa, "verified_source", side_effect=self.verify):
+            with self.assertRaisesRegex(qa.Blocked, "Full source"):
+                qa.trusted_source(
+                    {"GITHUB_RUN_ID": "999"},
+                    {"workflow_run": {"id": 88}}, self)
+
+    def test_bad_original_job_duplicate_or_missing_is_never_accepted(self):
+        for jobs in ([], [dict(self.original), dict(self.original)],
+                     [{"name": "변경 경로 판정", "conclusion": "failure"}]):
+            with self.subTest(jobs=jobs):
+                self.jobs1 = jobs
+                with self.assertRaises(qa.Blocked):
+                    self.validate()
+
+
 if __name__=="__main__":
     unittest.main(verbosity=2)

@@ -640,3 +640,8 @@ PR은 default/base branch의 GHA BuildKit cache를 `cache-from`으로 재사용�
 - Main receipt 또는 PR source 누락·만료·중복, job/attempt/tree/builder/OCI/label/version mismatch, GHCR publisher 또는 live digest 불일치는 BLOCKED. 구 v0.141.0 태그 이동/과거 실패 PASS 소급/Release 재빌드/무단 rerun 금지. 별도 PATCH 복구 및 Owner exact-version 승인이 필요하며 #865는 정식 게시 전 OPEN.
 - [Work Packet](exec-plans/active/ISSUE_874.md), [실패 원장](ISSUE_874_FAILURE_ANALYSIS.md).
 
+## Issue #873 — GitHub rerun-failed-jobs의 Job 귀속과 Artifact Attempt 구분 (2026-11-05)
+
+- GitHub Actions `attempts/{n}/jobs`는 선택적 재실행에서 처음 성공한 Job을 새 `run_attempt`·Job ID로 표시할 수 있다. **Run Attempt 라벨만으로 Job이 실제 재실행됐다고 간주하지 않는다.** 원본 #3488.1의 changes `126371165945`과 #3488.2 표시 changes `126382614107`은 각각 별도 조회됐지만 started/completed `2026-11-04T03:35:54Z/03:36:10Z`가 일치한다. source ZIP은 `ci-pr-source-41768107279-1` 1개뿐이다.
+- Metadata-only의 성공한 재시도에는 신규 출처 ZIP이 없을 수 있다. 신뢰된 기본 브랜치의 QA에서만 (1) Mode-Job topology, (2) original/current source changes Job의 Run/Head/실행 시간 동일, (3) 원본 ZIP 유일·미만료 및 안전한 ZIP 다운로드, (4) `verified_source`와 동일 PR/head/base/test merge/commit 귀속, (5) 별도 정확 Full Required3 SUCCESS를 모두 독립 검증한 경우 `N/A(metadata-only 비권위 감사)`로 종료한다. 새 Attempt에 **만료/위조/중복 Artifact가 있으면** 최초 ZIP으로 대체하지 않는다.
+- Metadata CI 최초 실패 #3488.1과 해당 Trusted 실패, 완성 후 Trusted #1135.1 BLOCKED 이력은 불변이다. 정확 Full Run의 최신 source Artifact 필수·오래된 PASS 전용 금지. 기존 `reconcile-pr-metadata.py` 재시도/권한/워크플로 이벤트/동시성은 변경하지 않는다. 원본 Run/Job/API/코드 링크는 [#873 원장](ISSUE_873_FAILURE_ANALYSIS.md)을 따른다.
