@@ -108,7 +108,8 @@ def produce(root: pathlib.Path, *, revision: str, version: str,
 
 def verify(receipt: dict, *, root: pathlib.Path, repository: str, run_id: int,
            attempt: int, revision: str, version: str,
-           digest: str, archive_sha256: str, main_tree: str,\n           certified_main_builder: dict | None = None) -> None:
+           digest: str, archive_sha256: str, main_tree: str,
+           certified_main_builder: dict | None = None) -> None:
     expected = {
         "schema": SOURCE_VERSION,
         "repository": repository,
