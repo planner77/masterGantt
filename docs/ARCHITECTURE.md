@@ -1,3 +1,7 @@
+## Issue #865 — 선택형 사내 LLM 서버 모듈 (2026-11-04)
+
+`src/server/llm`은 서버 전용 entrypoint(`index.ts`), runtime 설정 및 provider/model resolver, bounded Chat Completions client, 사설망 DNS/HTTP(S) transport, typed result/error로 구성한다. `LLM_ENABLED` 미설정/false는 비활성이며 시작·readiness·기본 Gantt/DB 경로에서는 호출하지 않는다. 소비 기능은 별도 승인 Issue에서 사용자 명시 동작과 기존 프로젝트 조회 권한을 검사한 뒤 내부 모듈을 호출한다. 공개 범용 prompt API/LLM UI·Gantt 일정/DB 스키마 변경 없음. [설정/보안 문서](LLM_CONFIGURATION.md).
+
 ## Issue #854 — Project Issue read-authorized POST와 Task Editor handoff
 
 현행 Issue 등록의 서버 권한은 Project **read gate**이며 Project edit session을 요구하지 않는다. 공개 Project 조회자는 개별 비밀번호를 지정해 등록할 수 있고, 비공개 Project는 기존 세션 조회 권한이 필요하다. Route `project-issue-handlers-core`의 Origin·strong If-Match·JSON 제한 다음에 전체/Project별 Issue POST limiter를 적용한다. `ProjectIssueService.create(publicId,...,readAuthorization)`는 비동기 scrypt 해싱 후 SQLite IMMEDIATE transaction에서 현재 프로젝트 visibility·비공개 read-session·revision 및 Task/Resource FK 소속을 재확인한다. Project CAS revision 전진은 유지한다. 별도의 Project edit 우회 기능은 없다.

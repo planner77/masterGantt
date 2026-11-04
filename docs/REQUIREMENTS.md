@@ -1,3 +1,7 @@
+## Issue #865 — 명시적 사내 LLM 공급자·모델 선택 (2026-11-04)
+
+OpenAI 호환 서버 전용 호출 기반을 제공한다. 하나 이상의 사설망 provider를 등록하고 각 provider에 여러 model을 명시, `(providerId,modelId)` 쌍으로 선택한다. 기본 OFF, runtime secret 격리, 허용 대상/모델 검증 실패는 fail-closed, 비스트리밍·bounded 호출/표준 오류·timeout/abort, 자동 외부 연결·데이터 전송·AI UI/공개 API 없음. 모델 자동 탐색, 서비스/DB 자동 차단 또는 임의 provider failover 없음. [#865 요구사항](https://github.com/planner77/masterGantt/issues/865)과 [운영 가이드](LLM_CONFIGURATION.md)를 따른다.
+
 ## Issue #869 — Project Issue 목록 및 등록·수정 폼 (2026-11-04)
 
 Issue 목록의 세로 스크롤 소유자는 desktop에서 데이터 목록 하나이며 KPI/검색/페이지네이션은 고정 관찰 가능해야 한다. 표의 가로 스크롤 및 검색·상태·원본 ID·논리 삭제/권한·Task 복귀는 불변이다. 등록/수정 dialog 상단에는 제목/닫기와 sticky Issue 명을 두고, 등록/발생/완료일과 등록자/담당자/상태를 각각 3열로 묶는다. 완료일은 완료 상태에서만 필수·활성으로, 신규 비밀번호/확인은 2열, Issue 내용은 8행/약 2배 높이로 배치한다. 390/768/1024/1440/1920px·keyboard/focus/Escape·반응형은 기존 실제 E2E로 확인한다. [Issue #869](https://github.com/planner77/masterGantt/issues/869).

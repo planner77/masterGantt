@@ -1,5 +1,10 @@
 # masterGantt
 
+## 사내 LLM 공통 호출 기반 — #865
+
+서버 전용 OpenAI 호환 Chat Completions 클라이언트에 복수 provider·복수 모델을 runtime 설정으로 등록할 수 있습니다. 기본 비활성(OFF)이며 아직 채팅 UI·자동 요약/번역·공개 호출 API는 제공하지 않습니다. 모델·서버 선택과 사설망 연결·secret·배포 방법은 [운영 가이드](docs/LLM_CONFIGURATION.md)를 참조하세요.
+
+
 > Milestone 행·상단 마커 OFF 기준의 교환·출력 의미는 [Milestone 사용자 가이드](docs/MILESTONE_USER_GUIDE.md)를 참고한다. 원본 일정 JSON 1.1·Excel·SVG/PNG의 범위는 현재 Gantt 표시와 다를 수 있다.
 
 소규모 프로젝트의 일정과 진행 상황을 관리하는 웹 애플리케이션이다. SVAR React Gantt Core로 일정을 표시·편집하고, 일정 계산은 독립적인 Scheduling Engine에서 수행하는 구조를 목표로 한다.

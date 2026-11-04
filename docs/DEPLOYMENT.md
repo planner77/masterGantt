@@ -1,5 +1,10 @@
 # Deployment
 
+## Issue #865 — LLM runtime 설정 전달 (2026-11-04)
+
+`.env.example`의 `LLM_ENABLED`, `LLM_PROVIDERS_JSON`, `LLM_DEFAULT_PROVIDER`, `LLM_DEFAULT_MODEL`, `LLM_API_KEYS_JSON`, `LLM_ALLOW_INSECURE_HTTP`, `LLM_ALLOW_UNAUTHENTICATED`를 서버에서만 사용한다. `deploy/compose.yml`의 environment에 각각 명시적으로 전달하므로 `docker compose --env-file .env -f deploy/compose.yml config --quiet`로 비밀값 출력 없이 설정 유효성만 점검한다. 설정 변경은 app 컨테이너 재생성이 필요하며 기존 Compose project·SQLite volume·healthcheck/DB readiness는 유지한다. 토큰 포함 `compose config` 원문/로그·이미지는 게시하지 않는다. [운영 가이드](LLM_CONFIGURATION.md).
+
+
 ## Issue #737 — 직접 문맥·다관점 운영 인계
 
 현재 #762의 Project 소유 공정/WorkArea·다중 관계·Template v5까지 포함한 복원 확인 항목은 [WBS 통합 수용표](WBS_CROSS_FEATURE_ACCEPTANCE.md)와 [운영 절차](TARGET_RESOURCE_OPERATIONS.md#issue-737--wbs-다관점직접-workarea-복원-범위)에 있다. 합성 파일 SQLite backup/restore/restart와 운영/off-host 검증을 구분한다. UI view fallback은 DB schema rollback이 아니며, 새 schema에 구 image를 연결하는 대신 검증된 backup+대응 exact release digest의 격리 복원 절차를 따른다. 배포 파일·Compose project/volume·운영 DB·UID/GID·entrypoint·릴리스 권한은 변경하지 않는다.

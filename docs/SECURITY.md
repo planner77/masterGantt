@@ -1,3 +1,7 @@
+## Issue #865 — 사내 LLM outbound 및 secret 격리 (2026-11-04)
+
+LLM은 기본 OFF의 Node.js server-only 모듈이며 등록된 provider/model만 명시적으로 호출한다. API key 전체 JSON은 runtime secret으로 취급하며 `NEXT_PUBLIC_*`, 이미지 layer/build arg, URL, 사용자 응답/로그/telemetry·CI artifact에 노출하지 않는다. 로컬/사설망 endpoint만 허용하도록 DNS 결과·연결 주소를 검증하고 외부 IP/메타데이터/link-local/redirect를 차단한다. HTTPS를 기본으로 사용하고 사내 HTTP 및 무인증 접속은 각각 별도 opt-in 정책을 적용한다. Prompt/응답 원문과 upstream 예외 메시지는 출력하지 않고 고정 오류 코드로 처리한다. Project 데이터 자동 수집/전송 및 신규 공개 LLM route 없음. 실제 운영망 DNS·CA·인증서 승인은 운영자 검증이 필요하다. [설정 문서](LLM_CONFIGURATION.md).
+
 ## Issue #479 PR #794 F-001 — 외부 Private read와 내부 신뢰 Snapshot 구분 (2026-10-24)
 
 [Codex P1 review #1](https://github.com/planner77/masterGantt/pull/794#discussion_r4366096194)의 percent-encoding 우회를 막기 위해 `URL.pathname`의 raw segment를 Next route parameter와 동일한 단일 `decodeURIComponent` 후 canonical UUIDv4로 검사한다. 잘못된 percent sequence, encoded slash/double-encoded/noncanonical ID는 데이터를 조회하지 않고404 거부한다. 정상 encoded UUID는 동일한 Project session으로 authorization한다.

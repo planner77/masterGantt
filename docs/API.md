@@ -1,3 +1,7 @@
+## Issue #865 — LLM 내부 호출 계약, 공개 API 추가 없음 (2026-11-04)
+
+`src/server/llm/index.ts`의 서버 전용 `invokeLLM({ providerId?, modelId?, messages, ...boundedOptions })`는 runtime에서 미리 등록한 provider+model 쌍만 허용하며, 설정 오류/미등록 대상·SSRF/timeout/auth/rate/upstream 실패를 타입화한다. API 호출자의 임의 URL/token 또는 모델 자동 fallback은 허용하지 않는다. 이번 이슈에서 `/api/llm` 등 공개 일반 목적 endpoint를 추가하지 않는다. 승인된 내부 소비 기능이 사용자 명시 요청 및 Project 권한/전송 범위 검증을 수행하는 것은 별도 Issue. [LLM 설정](LLM_CONFIGURATION.md).
+
 ## Issue #809 — WBS report의 opt-in Resource 분석
 
 기존 `POST /api/projects/{publicId}/resource-dashboard/views`에 report 전용 `analysis`를 추가한다. 생략하면 기존 응답과 계산 경계를 유지한다. 새 route·mutation·DB는 없고 public/private read grant·exact Origin·JSON/body 제한·no-store·Resource wire v2와 명시 v1 호환 경계를 유지한다.
