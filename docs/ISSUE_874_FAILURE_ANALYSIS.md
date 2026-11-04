@@ -42,3 +42,14 @@ POLICY_CI / RUNNER_ENVIRONMENT_CROSS_RUN. Existing scripts/verify_ci_image_relea
 - https://github.com/planner77/masterGantt/actions/runs/41776085393
 - https://github.com/planner77/masterGantt/actions/runs/41779125648
 - docs/exec-plans/active/ISSUE_874.md and original docs/ISSUE_836_FAILURE_ANALYSIS.md.
+
+## F874-003 — PR #875 최초 Full PR CI #3490.1: PR 출처·QA 메타데이터 직접 차단 (2026-11-04)
+
+- **원본:** [PR #875](https://github.com/planner77/masterGantt/pull/875), 실패 Head `2aac0397dac3cb0ab1f9222f7f62ebc5d5c58cca`, base `78a48b29f3a6e5ec1a0a9817ffa1976dc4de74aa`; [Full #3490.1 / Run 41802463033](https://github.com/planner77/masterGantt/actions/runs/41802463033) FAILURE.
+- **직접 실패 A:** `변경 경로 판정` Job `126481300326`, Step `CI 실행 추적 메타데이터 검증`(8). `scripts/verify-ci-run-trace.py`의 REF_RE는 PR 본문에 정확히 독립 한 행 `Refs #874`를 요구하나, 최초 PR 본문의 `Refs #874. Release ...`는 매칭 안 됨. 원본 오류: `PR 본문에는 canonical 'Refs #<Primary Issue>'가 정확히 1개 필요합니다: []`.
+- **직접 실패 B:** `QA Final 신뢰 경계 확인` Job `126481300894`, Step `보호 변경·AGENT 경로 판정`(4). 신뢰된 `scripts/qa_final_automated.py::pr_field`는 독립 `qa_method: OWNER_MANAGED` 선언을 요구하는데 최초 PR 본문은 bullet 한 행에 다수 필드를 병기해 인식 실패. 실제 로그: `QA 경로 BLOCKED: PR 본문 qa_method의 명시값 필요`.
+- **파생:** `PR 빠른 검사 판정` Job `126481447890`은 CHANGES_RESULT=failure/PREFLIGHT_RESULT=skipped로 FAIL. Quality aggregate `126481553907`, Chromium E2E aggregate `126481553915`, Docker aggregate `126481553752`는 선행 차단의 파생 FAIL. 실제 TypeScript/Python/Playwright8/Docker 구현 검증은 SKIPPED/NOT RUN으로 코드나 이미지 원본의 직접 실패 증거 없음.
+- **Codex P1 리뷰:** thread `PRRT_kwDOUUB7Bc6zhIlt`, comment `4465524798`, workflow 1385행. AGENTS.md CI/CD 한글 작성 원칙 위반: 새 Main builder receipt upload step 표시 이름과 Release의 신규 Main builder receipt 요약이 영문. artifact 이름/Run·Attempt/Required Job 연동 이름 보존하며 표시 설명만 한글로 수정.
+- **시정 조치:** PR 본문을 정확한 `Refs #874` 독립 행과 `risk_level: HIGH`, `qa_method: OWNER_MANAGED`, `qa_required: true`, `release_required: false`, `release_authorized: false` 독립 행으로 정규화; PR 제목 설명 한글화. 새 workflow step `Main 검증 빌드 계약 증거 보존 (Release Runner 환경 독립)`으로 변경. Release Job Summary에 한글 설명 적용, `tests/python/test_ci_image_contract.py`에 표시명 회귀 추가. Policy/QA parser와 CI Required3/Chromium8/timeout/skip/Owner 승인 경계는 불변.
+- **TEST_LIFECYCLE_REVIEW:** 기존 `scripts/verify-ci-run-trace.py`와 `scripts/qa_final_automated.py`를 찾아 파싱 계약 확인. 정책 코드는 변경하지 않으며 기존 회귀 KEEP_UNIQUE, 표시명 테스트 EXTEND.
+- **후속 검증:** 변경된 정확 PR Head synchronize로 새 Full PR CI 시작; #3490.1 FAIL 기록 불변. 새 Run/Attempt 결과는 요청에 따라 모니터링하지 않음(NOT TESTED). 기존 v0.141.0/Release #216 불변. Owner 병합/정식 게시 승인 없음.
