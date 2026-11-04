@@ -29,7 +29,16 @@
 - .github/workflows/ci.yml: emit ci-main-build-contract-<run>-<attempt> only from successful main push Docker implementation.
 - Tests: extend tests/python/test_ci_image_release.py, add tests/python/test_ci_image_contract.py. Keep existing tests/python/test_ci_image_reuse.py and original security/OCI validation unchanged.
 
-## TEST_LIFECYCLE_REVIEW / AC_TEST_COVERAGE
+## AC_TEST_COVERAGE
+
+- AC1: PR/Main ImageVersion 20261101.186.1과 Release 20261025.179.1 안전 양성은 tests/python/test_ci_image_contract.py와 test_ci_image_release.py fixture로 검증 (새 CI 전 NOT TESTED).
+- AC2: PR↔Main Buildx/Docker/Runner·Tree·파일·Base·OCI 불일치 음성은 test_ci_image_contract.py 및 기존 test_ci_image_reuse.py의 fail-closed·Main 재빌드 보존.
+- AC3: Publisher 비성공·다른 Run/Attempt·위조/누락 receipt·OCI digest/버전 차이는 test_ci_image_release.py와 test_ci_image_contract.py 부정 회귀 확인.
+- AC4: 기존 scripts/ci_image_contract.py, ci_image_reuse.py, verify_ci_image_release.py와 OCI/reuse/release 테스트 검색 후 EXTEND/ADD/KEEP_UNIQUE, CI 게이트 약화 없음.
+- AC5: AGENTS.md와 docs/CI_CD.md, GITHUB_OPERATIONS, GENERIC_RELEASE_FINALIZER, QA_REVIEW_POLICY, TEST_PLAN 및 ISSUE_874_FAILURE_ANALYSIS.md를 Work Packet DOCUMENTATION_SYNC로 연결.
+- AC6: 위험 HIGH·OWNER_MANAGED, qa_required=true, release_required=false, release_authorized=false 유지; 정확 Head Full/Trusted/Owner 승인 전 병합·정식 Release 금지.
+
+## TEST_LIFECYCLE_REVIEW
 
 Search existing code/tests before implementation: scripts/{ci_image_contract,ci_image_reuse,verify_ci_image_release,verified_oci}.py, tests/python/{test_ci_image_release,test_ci_image_reuse}.py, .github/workflows/{ci,release-image}.yml.
 - **EXTEND** release verifier original mapping/unique success/skipped duplicate test with exact Main contract artifact, expired/unavailable, invalid JSON, missing publisher, digest mismatch and wrong Main source.
@@ -39,9 +48,25 @@ Search existing code/tests before implementation: scripts/{ci_image_contract,ci_
 
 ## DOCUMENTATION_SYNC
 
-- UPDATED: AGENTS.md; docs/CI_CD.md; docs/GITHUB_OPERATIONS.md; docs/GENERIC_RELEASE_FINALIZER.md; docs/QA_REVIEW_POLICY.md; docs/TEST_PLAN.md; this Work Packet; docs/ISSUE_874_FAILURE_ANALYSIS.md.
-- UPDATED: scripts/ci_image_contract.py, scripts/ci_image_reuse.py, scripts/verify_ci_image_release.py, .github/workflows/ci.yml, tests/python/test_ci_image_release.py, tests/python/test_ci_image_contract.py.
-- N/A: DESIGN.md, UI_UX, API, DB, SECURITY, product CHANGELOG, package.json. No user-facing feature, API, DB migration, product revision or release-authorized change. Existing docs/exec-plans/active/ISSUE_836.md retains its original accepted record.
+- `AGENTS.md`: UPDATED
+- `docs/CI_CD.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: UPDATED
+- `docs/GENERIC_RELEASE_FINALIZER.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_874.md`: UPDATED
+- `docs/ISSUE_874_FAILURE_ANALYSIS.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: N/A(원격 검증과 CI 원본 증거 Gate 정책 변경 없음)
+- `docs/API.md`: N/A(REST API/DTO 기능 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(SQLite Schema 및 migration 변경 없음)
+- `DESIGN.md`: N/A(UI 시각 언어 변경 없음)
+- `docs/SECURITY.md`: N/A(원본 OCI 인증 보안 계약 유지)
+- `.github/workflows/ci.yml`: UPDATED
+- `scripts/ci_image_contract.py`: UPDATED
+- `scripts/ci_image_reuse.py`: UPDATED
+- `scripts/verify_ci_image_release.py`: UPDATED
+- `tests/python/test_ci_image_contract.py`: UPDATED
+- `tests/python/test_ci_image_release.py`: UPDATED
 
 ## Verification / limits
 
