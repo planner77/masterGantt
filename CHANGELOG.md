@@ -1,3 +1,11 @@
+## [0.141.1] — Unreleased / Issue #865 · 실패 v0.141.0 릴리스 안전 복구 (2026-11-04)
+
+### Fixed
+- #874에서 검증·Main 병합한 Release Runner 독립 빌더 출처 검증 교정을 새 **불변 PATCH 후보 v0.141.1**에 적용합니다. 과거 v0.141.0의 태그·실패 Run·OCI 원본은 소급 변경하지 않습니다.
+- 제품 기능, LLM API, DB/마이그레이션, 패키지 의존성·빌드 입력은 동일하며 `package.json` 및 `package-lock.json`의 정식 버전만 0.141.1로 맞춥니다.
+- 새 PR/새 Main 성공 및 Main 빌더 영수증·OCI digest/attestation, Owner의 정확한 `v0.141.1` 승인 이후에만 Release 발행을 검토합니다. `release_authorized=false` 동안 태그/정식 GHCR 게시 및 Issue 종료를 금지합니다. 기존 #865·#874 First-parent 부채를 독립 검증합니다.
+- 상세: [복구 설계·검증 계획](docs/ISSUE_865_RELEASE_RECOVERY.md) / [Issue #865 원장](docs/ISSUE_865_FAILURE_ANALYSIS.md).
+
 ## [0.141.0] — Unreleased / Issue #865 (2026-11-04)
 
 ### Added
