@@ -8,13 +8,16 @@ Any absent or conflicting evidence rejects release. No GHCR writes.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import pathlib
 import re
 import sys
 
-from ci_image_reuse import (Blocked, Ineligible, REQUIRED, git, github,
-                            page_items, verify_source)
+from ci_image_reuse import (Blocked, Ineligible, REQUIRED, download_artifact,
+                            git, page_items, verify_source)
+from ci_image_contract import ContractError, verify as verify_build_contract
 
 MAIN_IMAGE_JOB = "Main 임시 commit 이미지 게시·검증·정리"
 MAIN_DOCKER_JOB = "Docker smoke 구현"
@@ -53,17 +56,8 @@ def validate_release_source(repo: str, sha: str, version: str, revision: str,
         raise Blocked("INVALID_RELEASE_SOURCE_INPUT")
     if revision == sha:
         raise Blocked("DIRECT_MAIN_LABEL_DOES_NOT_REQUIRE_PR_MAPPING")
-    # Revalidate Git object, exact PR Full, PR origin/two parents, strict Tree,
-    # OCI index+child+config/SBOM/provenance, artifact ZIP signature/run attempt.
-    try:
-        source = verify_source(repo, sha, token, tempdir, version)
-    except Ineligible as error:
-        raise Blocked(f"PR_ORIGIN_RELEASE_SOURCE_UNAVAILABLE:{error}") from error
-    if source["index_digest"] != digest or source["source_revision"] != revision:
-        raise Blocked("GHCR_AND_PR_OCI_SUBJECT_OR_LABEL_MISMATCH")
-    # A PR Full success is not a Main success. Only a separate immutable Main
-    # push run can authorize the exact source candidate. Both Main Docker
-    # implementation + GHCR publish job must have completed SUCCESS.
+    # First establish the original Main push authority. Release's runner
+    # ImageVersion is NOT an input to PR/Main image equality.
     runs = page_items(repo,
         f"actions/workflows/ci.yml/runs?event=push&head_sha={sha}",
         "workflow_runs", token, pages=3)
@@ -86,14 +80,49 @@ def validate_release_source(repo: str, sha: str, version: str, revision: str,
         if main_job_evidence(jobs):
             main_evidence.append((run_id, attempt))
     if len(main_evidence) != 1:
-        # Multiple successful attempts are not necessarily malicious, but
-        # none has a cryptographic bound to the live digest yet. Block until
-        # the specific publishing attempt is independently authenticated.
         raise Blocked("MAIN_PUBLISH_RUN_ATTEMPT_NOT_UNIQUE_OR_INCOMPLETE")
-    source.update({"main_run_id": main_evidence[0][0],
-                   "main_run_attempt": main_evidence[0][1]})
+    run_id, attempt = main_evidence[0]
+    # This artifact is emitted only after the actual Main Docker smoke of the
+    # exact OCI subject, by a trusted Main checkout. A successful Main publish
+    # job from this same Run/Attempt separately proves registry publication;
+    # Release has already pulled the live digest from GHCR before invoking us.
+    try:
+        receipt_bytes = download_artifact(repo, run_id,
+            f"ci-main-build-contract-{run_id}-{attempt}", token,
+            "ci-image-build-contract.json", 120_000)
+    except Ineligible as error:
+        raise Blocked(f"MAIN_BUILDER_RECEIPT_UNAVAILABLE:{error}") from error
+    try:
+        main_receipt = json.loads(receipt_bytes)
+    except (ValueError, UnicodeError, TypeError) as error:
+        raise Blocked("MAIN_BUILDER_RECEIPT_INVALID_JSON") from error
+    if not isinstance(main_receipt, dict):
+        raise Blocked("MAIN_BUILDER_RECEIPT_INVALID")
+    main_builder = main_receipt.get("build")
+    # Revalidate immutable Git parents/tree, exact PR Full jobs and the
+    # archive ZIP/index/child/SBOM/provenance and original PR receipt.
+    # The PR builder is compared to the certified MAIN builder, never to
+    # tools or host ImageVersion on this independent Release runner.
+    try:
+        source = verify_source(repo, sha, token, tempdir, version,
+                               certified_main_builder=main_builder)
+    except Ineligible as error:
+        raise Blocked(f"PR_ORIGIN_RELEASE_SOURCE_UNAVAILABLE:{error}") from error
+    if source["index_digest"] != digest or source["source_revision"] != revision:
+        raise Blocked("GHCR_AND_PR_OCI_SUBJECT_OR_LABEL_MISMATCH")
+    # Independently bind the Main build contract to this exact Run/Attempt,
+    # Main Git tree, same immutable archive bytes, version and GHCR index.
+    try:
+        verify_build_contract(main_receipt, root=pathlib.Path.cwd(),
+            repository=repo, run_id=run_id, attempt=attempt, revision=revision,
+            version=version, digest=digest,
+            archive_sha256=source["archive_sha256"], main_tree=source["main_tree"],
+            certified_main_builder=main_builder)
+    except ContractError as error:
+        raise Blocked(f"MAIN_BUILD_CONTRACT_CONFLICT:{error}") from error
+    source.update({"main_run_id": run_id, "main_run_attempt": attempt,
+                   "main_build_contract_sha256": hashlib.sha256(receipt_bytes).hexdigest()})
     return source
-
 
 def main() -> int:
     try:
@@ -111,6 +140,7 @@ def main() -> int:
                 f"- Exact immutable subject: {report['index_digest']}\n"
                 f"- PR Full run/attempt: {report['source_run_id']}.{report['source_run_attempt']}\n"
                 f"- Main Full run/attempt: {report['main_run_id']}.{report['main_run_attempt']}\n"
+                f"- Main builder receipt SHA256: {report['main_build_contract_sha256']}\n"
                 f"- Main source SHA: {report['main_sha']}; PR build revision: {report['source_revision']}\n"
                 "- Release Main verified candidate still undergoes unchanged runtime gates.\n")
     except (Blocked, Ineligible, OSError, KeyError, TypeError, ValueError) as error:
