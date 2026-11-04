@@ -48,3 +48,10 @@ Search existing code/tests before implementation: scripts/{ci_image_contract,ci_
 - Static source/code review: structural changes and inherited tests inspected in GitHub. Local source checkout, Docker-based OCI end-to-end test, and remote Full CI result are **NOT TESTED** before PR CI start. No claim of passing local or remote tests without execution.
 - First non-draft PR opened only when all changes/docs/ledger are committed; that event starts existing Full PR CI. No CI monitoring, merge, Main/GHCR publish, tag movement, Finalizer or Issue close in this task.
 - v0.141.0 annotated tag + previous failed #216.1 history and its old source verifier remain unchanged. This patch cannot repair old tag by rerunning the same workflow. Recovery/next PATCH and Issue #865 closure require separate Owner decision.
+
+## REWORK #1 — PR #875 Full #3490.1 메타데이터 실패·Codex P1 처리 (2026-11-04)
+
+- [Full #3490.1 / Run 41802463033](https://github.com/planner77/masterGantt/actions/runs/41802463033), 원래 Head `2aac0397dac3cb0ab1f9222f7f62ebc5d5c58cca`: 변경 경로 Job 126481300326에서 독립 `Refs #874` 누락, QA 경로 Job 126481300894에서 독립 `qa_method: OWNER_MANAGED` 누락으로 직접 FAIL. Fast Gate/Required3 파생 실패, 구현 테스트/E2E8/Docker NOT RUN.
+- PR body의 canonical Refs 및 5개 위험·QA·Release 선언을 독립 행으로 수정하고 PR 제목 설명 한글화; GitHub 추적/Trusted QA 파서는 변경하지 않는다.
+- Codex P1 thread PRRT_kwDOUUB7Bc6zhIlt (comment 4465524798): 새 Main receipt workflow step과 Release summary의 사용자-facing 영문 설명을 한글화. Artifact/Run·Attempt/기존 Required Check 식별자는 유지. 회귀 단언 EXTEND.
+- 실패 시각/Jobs/직접·파생 분리와 조치 기록은 [전용 실패 원장](../../ISSUE_874_FAILURE_ANALYSIS.md) F874-003 참조. 이전 Full #3490.1은 FAILURE로 불변; 새로운 Head에서 Full PR CI 재시작, 모니터링·병합·Main/GHCR·종료 제외.
