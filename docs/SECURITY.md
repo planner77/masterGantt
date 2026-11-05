@@ -587,3 +587,8 @@ Issue 내용 텍스트는 HTML 실행 없이 React escape하며 본문 raw URL�
 locale과 화면 번역은 authorization이 아니다. Project edit session, 공용 관리자 세션, private read grant, Origin/CSRF, strong If-Match·revision/CAS 및 Issue별 credential 검증을 그대로 사용한다. 관리형 translations는 기존 owner CRUD 안에서 검증하고 시작 revision과 함께 보존한 초안은 401/412·목록 갱신 뒤 stale 저장을 허용하지 않는다.
 
 사전 key는 앱 소유 고정 문구·고정 label에 제한한다. 사용자 이름·Issue 본문·URL·사람 이름은 opaque parameter로 React text escape하며 자동 번역/HTML 실행하지 않는다. 오류는 검토된 key/code와 기존 계약상 안전한 domain detail를 보존하고 unknown 예외는 화면별 fallback으로 처리한다. 임의 server message를 신뢰된 고정 문구로 승격하거나 validation detail를 일괄 generic 처리하지 않는다. 알림 descriptor·복사에도 code/requestId allowlist를 유지하고 password/session/token·원본 요청 body를 추가하지 않는다. 언어 저장용 localStorage는 비밀 저장소가 아니다. [Phase C 설계](I18N_PHASE_C.md) 및 기존 보안 정책을 함께 따른다. HIGH / OWNER_MANAGED의 로컬 Agent PASS는 독립 인간 QA 또는 Owner ACCEPT가 아니며 새 Head 원격 검증은 NOT TESTED다.
+
+
+## #866 — Localized error-message provenance (C004)
+
+Never promote unknown API `error.message` to an internationalization key merely because it matches a static dictionary string. Country-calendar preserves opaque server messages and validation row/path context as escaped React text while translating only app-authored feedback. WBS transport maps approved error codes and HTTP statuses to fixed display strings; `safeApiError` uses an exact approved code/message pair for domain-specific text and generic known-code/context fallback otherwise. No change to Origin/CSRF, authorization, revision CAS, 401/412 recovery, DB, transport, logs or request bodies. See docs/I18N_PHASE_C.md and provenance tests.

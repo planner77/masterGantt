@@ -23,6 +23,13 @@ describe("safe UI error presentation", () => {
     expect(safeApiError(value, fallback)).toBe(fallback);
   });
 
+  it("never maps an untrusted catalog-shaped error message to an unrelated UI action", () => {
+    expect(safeApiError({ error: { code: "SQLITE_ERROR", message: "저장" } }, fallback)).toBe(fallback);
+    expect(safeApiError({ error: { code: "REVISION_CONFLICT", message: "저장" } }, fallback)).toBe("다른 변경사항이 있습니다. 최신 정보를 확인해 주세요.");
+    expect(safeApiError({ error: { code: "UNAUTHORIZED", message: "저장" } }, fallback)).toBe("인증이 필요합니다.");
+    expect(safeApiError({ error: { code: "VALIDATION_ERROR", message: "저장" } }, fallback)).toBe(fallback);
+  });
+
   it("exposes only bounded diagnostic codes and paths, without raw messages", () => {
     const details = [
       { code: "INVALID_DATE", path: "tasks[12].start", message: "SQL: SELECT password", value: "PRIVATE" },

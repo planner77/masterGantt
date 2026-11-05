@@ -1,5 +1,6 @@
 "use client";
 import { useI18n } from "../../lib/i18n/provider";
+import { presentCountryCalendarError } from "./error-presentation";
 
 
 import { useEffect, useRef, useState, type FormEvent, type FocusEvent } from "react";
@@ -107,7 +108,7 @@ export function CountryCalendarAdmin() {
     {model.checking ? <p role="status">{t("관리자 인증 상태를 확인하는 중…")}</p> : null}
     {!model.authenticated && !model.checking ? <AdminAuth title={t("국가 캘린더 관리자 로그인")} titleId="country-calendar-auth-title" description={t("프로젝트 기준정보 관리자 권한을 함께 사용합니다. 프로젝트 편집 비밀번호와는 별개입니다.")}>
       <form className={adminAuthStyles.form} onSubmit={(event) => void login(event)}>
-        {model.error ? <p className={adminAuthStyles.error} id="country-calendar-login-error" role="alert">{model.error.split("\n").map(line => t(line)).join("\n")}</p> : null}
+        {model.error ? <p className={adminAuthStyles.error} id="country-calendar-login-error" role="alert">{presentCountryCalendarError(model.error, model.errorOpaque, t)}</p> : null}
         <div className={adminAuthStyles.controls}>
           <label className={adminAuthStyles.field}>{t("관리자 비밀번호")}<input ref={loginInput} autoComplete="current-password" type="password" value={password} disabled={model.busy} aria-describedby={model.error ? "country-calendar-login-error" : undefined} onChange={(event) => setPassword(event.target.value)} /></label>
           <button className={`primary-button ${adminAuthStyles.submit}`} type="submit" disabled={model.busy || !password}>{model.busy ? t("확인 중…") : t("로그인")}</button>
@@ -123,7 +124,7 @@ export function CountryCalendarAdmin() {
       <p className={styles.note}>{t("자료 적용 범위:")}{" "}{t(scopes[model.target.countryCode])}{t(". 실제 프로젝트의 업종·근무 조건은 프로젝트 날짜 예외로 확인하세요.")}</p>
       <div className={styles.feedback}>
         <p role="status" aria-live="polite" aria-atomic="true">{model.loadState === "loading" ? t("{value0} 최신 데이터를 불러오는 중…", {value0: targetLabel}) : model.loadState === "error" ? t("최신 데이터를 확인하기 전에는 변경할 수 없습니다.") : snapshot ? t("{value0} · {value1} · 날짜 {value2}개", {value0: targetLabel, value1: t(statusNames[snapshot.dataset.status]), value2: snapshot.dates.length}) : t("선택한 국가·연도 데이터를 확인하세요.")}</p>
-        {model.error ? <p className={styles.error} role="alert">{model.error.split("\n").map(line => t(line)).join("\n")}</p> : null}
+        {model.error ? <p className={styles.error} role="alert">{presentCountryCalendarError(model.error, model.errorOpaque, t)}</p> : null}
         {model.loadState === "error" ? <button className="secondary-button" type="button" disabled={model.busy} onClick={() => void model.reload()}>{t("다시 조회")}</button> : null}
         {model.notice ? <p role="status">{t(model.notice)}</p> : null}
         {model.comparison ? <div className={styles.comparison}><p>{t("최신 데이터와 보존된 초안을 비교하세요. 검토 확인 전에는 저장할 수 없습니다.")}</p><p>{t("서버 상태:")}{" "}{snapshot ? t(statusNames[snapshot.dataset.status]) : t("미확인")} {t("· 출처 버전:")}{" "}{snapshot?.dataset.sourceVersion ?? t("없음")} {t("· 출처 URL:")}{" "}{snapshot?.dataset.sourceUrl ?? t("없음")}</p><div className={styles.actions}><button className="secondary-button" disabled={model.busy || model.loadState !== "ready"} type="button" onClick={model.restoreMetadata}>{t("서버 값으로 초안 복원")}</button><button className="secondary-button" disabled={model.busy || model.loadState !== "ready"} type="button" onClick={model.reviewLatest}>{t("최신 데이터 검토 완료")}</button></div></div> : null}
@@ -156,7 +157,7 @@ export function CountryCalendarAdmin() {
     </section>
     {model.authenticated && dateDialog ? <WorkspaceDialog title={dateDialog.deleting ? t("날짜 삭제 확인") : dateDialog.originalDate ? t("국가 캘린더 날짜 수정") : t("국가 캘린더 날짜 추가")} restoreFocusRef={dialogTrigger} busy={model.busy} onClose={() => { if (!model.busy) setDateDialog(null); }}>
       <form className={styles.dialogBody} onSubmit={(event) => void saveDate(event)}>
-        <p>{targetLabel}</p><p className={styles.note}>{t("취소·닫기 또는 Escape를 누르면 저장하지 않은 날짜 초안을 버립니다.")}</p>{model.error ? <p className={styles.error} role="alert">{model.error.split("\n").map(line => t(line)).join("\n")}</p> : null}
+        <p>{targetLabel}</p><p className={styles.note}>{t("취소·닫기 또는 Escape를 누르면 저장하지 않은 날짜 초안을 버립니다.")}</p>{model.error ? <p className={styles.error} role="alert">{presentCountryCalendarError(model.error, model.errorOpaque, t)}</p> : null}
         {model.comparison ? <div className={styles.comparison}><p>{t("최신 목록과 보존된 날짜 초안을 비교하세요. 서버 날짜:")}{" "}{snapshot?.dates.find((entry) => entry.date === dateDialog.originalDate)?.name ?? t("해당 날짜 없음")}{t(". 현재 초안:")}{" "}{dateDialog.draft.date} · {dateDialog.draft.name}</p><button className="secondary-button" type="button" disabled={model.busy || model.loadState !== "ready"} onClick={model.reviewLatest}>{t("최신 데이터 검토 완료")}</button></div> : null}
         {dateDialog.deleting ? <p>{dateDialog.draft.date} · {dateDialog.draft.name} {t("날짜를 삭제하시겠습니까? 공식 출처 확인 상태도 미확보로 바뀝니다.")}</p> : <fieldset className={styles.dateForm} disabled={model.busy || model.comparison || model.loadState !== "ready"}>
           <legend>{t("날짜 정보")}</legend>
@@ -175,7 +176,7 @@ export function CountryCalendarAdmin() {
           <label className={styles.field}>{t("UTF-8 파일")}<input key={`${format}:${targetKey(model.target)}`} type="file" accept={format === "json" ? ".json,application/json" : ".csv,text/csv"} disabled={model.busy} onChange={(event) => void model.readFile(event.target.files?.[0], format)} /></label></div>
         <p className={styles.note}>{t("최대 1 MiB, 날짜 1~366개. JSON에는 countryCode/year/status(OFFICIAL)/sourceVersion/sourceUrl/dates가 필요합니다. CSV header: countryCode,year,date,name,dayType,sourceKey,sourceVersion,sourceUrl.")}</p>
         <p role="status">{model.fileReading ? t("파일을 읽는 중…") : model.fileName || t("파일을 선택하세요.")}</p>
-        {model.error ? <p className={styles.error} role="alert">{model.error.split("\n").map(line => t(line)).join("\n")}</p> : null}
+        {model.error ? <p className={styles.error} role="alert">{presentCountryCalendarError(model.error, model.errorOpaque, t)}</p> : null}
         <button className="secondary-button" type="button" disabled={locked || !model.envelope || model.fileReading} onClick={() => void model.calculatePreview()}>{model.busy ? t("확인 중…") : t("가져오기 미리보기")}</button>
         {model.preview ? <section aria-label={t("가져오기 미리보기 결과")}><h3>{t("전체 교체 미리보기")}</h3><dl className={styles.counts}>{Object.entries({ 추가: model.preview.data.summary.additions, 변경: model.preview.data.summary.changes, 삭제: model.preview.data.summary.deletions, 동일: model.preview.data.summary.unchanged }).map(([label, value]) => <div key={label}><dt>{t(label)}</dt><dd>{value}</dd></div>)}</dl><p>{t("출처 정보 변경:")}{" "}{model.preview.data.summary.metadataChanged ? t("있음") : t("없음")}</p><details><summary>{t("검증 기준 상세")}</summary><p>{t("기준 revision:")}{" "}{model.preview.data.revision}</p></details><p>{t("출처 버전:")}{" "}{model.preview.data.importDataset.sourceVersion} {t("· 날짜")}{" "}{model.preview.data.importDataset.dateCount}{t("개")}</p><p className={styles.urlText}>{t("출처 URL:")}{" "}{model.preview.data.importDataset.sourceUrl}</p>
           {model.previewExpired ? <p role="alert">{t("미리보기가 만료되었습니다. 다시 확인하세요.")}</p> : <label className={styles.confirm}><input type="checkbox" checked={confirmed} disabled={model.busy} onChange={(event) => setConfirmedPreview(event.target.checked ? model.preview : null)} />{t("삭제")}{" "}{model.preview.data.summary.deletions}{t("개를 포함한 전체 교체와 공식 출처를 확인했습니다.")}</label>}

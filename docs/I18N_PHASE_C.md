@@ -57,3 +57,8 @@ SVAR Core의 공식 Locale와 기존 Gantt 상태 경계를 사용한다. 표시
 Resource Plan descriptor의 현재 언어 inner 설명을 그리기 전에 host가 검증된 projection의 Project 근거 여부를 따로 보존한다. Project 전체 부하 근거 wrapper도 현재 언어로 렌더하며 selected 범위와 사용자 원문에는 적용하지 않는다. Issue 오류는 전용code allowlist의key를표시하며 backend rawmessage를 UI기대값으로삼지않는다. 별도국가캘린더/WBS의opaque-error 경계관찰은 이번CI직접회귀와구분해원장C002 E에DEFERRED로남겼으며전역오류신뢰검증완료로주장하지않는다.
 
 [Project 전체 부하 근거 실제 한국어 화면](evidence/issue-866/ci3523-project-load-evidence-ko.png)은로컬working sourceeaa90be1bb19d08db2091017caf61e45e4bc52d2bf8ba0f3a45c370f1640d99b의보완을보여준다. 고유29spec/174PASS와별도로기존차트case를한번더실행해캡처했으며중복합산하지않았다. 보조캡처의첫시도는임시config의상대reporter경로오류로NOT RUN이었고, 해당로컬경로를교정한실제1casePASS를사용했다. 새Head원격CI/독립QA증거가아니다.
+
+
+## #866 C004 — Opaque error localization follow-up (2026-11-06)
+
+The deferred C002 E P2 is addressed in the current branch. Country-calendar API failures keep opaque server provenance and render the original country/year/field/row detail as React text. Only local, statically authored feedback is translated. WBS uses trusted HTTP status/error-code mappings rather than upstream `error.message` as a translation key. `safeApiError` recognizes an approved domain message only for its explicit matching error code; unknown messages fall back to existing caller context. Untrusted text `저장` must not turn into the English Save action. API, SQLite, Origin/CAS, Draft restoration, Gantt, all eight E2E shards and CI policy remain unchanged. Negative and positive unit tests cover these boundaries. Earlier Full #3525.1 and Trusted #1172.1 PASS apply to the preceding HEAD only: fresh exact-HEAD CI/Trusted and Owner HIGH residual review are required. Operational backup/restore, Windows Excel and native screen-reader/125% tests remain NOT TESTED; release_authorized=false.

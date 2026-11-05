@@ -469,3 +469,11 @@ Manager와 별도qa_docs가 #572/TASK_EDITOR의 계약을 대조했다. 제품 �
 후처리의 첫 생성물 복구는 ignored 백업의 Issue528 하위 디렉터리가 없어 FileNotFoundError로 FAIL했다. 브라우저 실패가 아니며 최초로그/결과를 보존하고 부모디렉터리 생성 후 복구 도우미만 재실행했다. 제품/spec는 변경하지 않고 동일 source 및 최종 type/lint를 다시 대조한다.
 
 새Head Required quality/e2e/docker·Trusted·독립인간QA·Owner/Manager NOT TESTED/MERGE_READY BLOCKED, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false/#866OPEN을 유지한다. C002 E절의 country-calendar/WBS/safeApiError opaque-error 경계P2는 인과가 다른 DEFERRED다. 전역P1/P2=0을 주장하지 않는다. Main/GHCR/Release/실제AT/native125%/WindowsExcel/운영환경은 미실행이다. 한 번의 batch Ref 게시 뒤 새 Full CI Run/Attempt·Head/base/testmerge 시작만 확인하고 모니터링·병합·Issue종료하지 않는다.
+
+
+## PR #879 C004 — Deferred P2 opaque-error provenance remediation (2026-11-06)
+
+- **Previous evidence:** C002 E documented country-calendar `serverMessage→t(line)`, WBS `error.message→t(error)` and shared `safeApiError` membership in the entire UI catalog. A server-origin `저장` could be rendered as a Save control label in English. This is a P2 misleading-presentation risk, not proof of XSS or authorization bypass.
+- **Remediation:** country-calendar model distinguishes opaque upstream error lines from local static messages; keep country/year/field/row details literal via escaped React text. WBS returns fixed code/status messages; `safeApiError` allows the exact approved (code,message) pair and otherwise a known-code/context fallback. Existing 401/412, CAS, Origin, stale draft, file/DB/API contracts unchanged.
+- **Test Lifecycle:** ADD country-calendar provenance unit, EXTEND safe-ui-error and WBS transport error tests, KEEP_UNIQUE all existing E2E 8-shard/SQLite/HTTP tests; no skip/retry/timeout expansion. New exact HEAD local TypeScript/Vitest/Chromium/Docker and Full/Trusted QA NOT TESTED on publication. The older #3525.1 and Trusted #1172.1 SUCCESS are preserved historical results only, not inherited by C004.
+- **Review/Risk:** HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false; MERGE_READY BLOCKED until new Full/Trusted PASS and Owner review. Operational backup/restore, Windows Excel, native screen reader/125% unverified. No main merge, GHCR formal release, Finalizer or Issue close authorized at this step.

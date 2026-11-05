@@ -32,8 +32,24 @@ const scoped = base.extend({projection:z.literal("scope"),...identity.shape,path
 const responseSchema = z.discriminatedUnion("projection",[report,details,scoped]);
 export const stableWbsValue = (value:unknown):string => Array.isArray(value) ? `[${value.map(stableWbsValue).join(",")}]` : value && typeof value === "object" ? `{${Object.entries(value).filter(([,v])=>v!==undefined).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>`${JSON.stringify(k)}:${stableWbsValue(v)}`).join(",")}}` : JSON.stringify(value) ?? "null";
 const normalizeScope=(value:WbsViewQueryInput["scope"])=>!value?null:value.kind==="summarySubtree"?value:value.kind==="scheduleSelection"?{kind:value.kind,nodeIds:[...new Set(value.nodeIds)].sort()}:{kind:value.kind,assignmentIds:[...new Set(value.assignmentIds)].sort()};
+const publicWbsErrors: Readonly<Record<string, string>> = {
+  INVALID_RESPONSE: "조회 응답의 출처가 일치하지 않습니다. 다시 조회해 주세요.",
+  STALE_SNAPSHOT: "데이터가 변경되었습니다. 새로고침한 뒤 상세를 다시 열어 주세요.",
+  STALE_RESPONSE: "데이터가 변경되었습니다. 새로고침한 뒤 상세를 다시 열어 주세요.",
+  UNAUTHORIZED: "인증이 필요합니다.",
+  FORBIDDEN: "이 작업을 수행할 권한이 없습니다.",
+  PROJECT_NOT_FOUND: "프로젝트를 찾을 수 없습니다.",
+  REVISION_CONFLICT: "다른 변경사항이 있습니다. 최신 정보를 확인해 주세요.",
+  PRECONDITION_FAILED: "다른 변경사항이 있습니다. 최신 정보를 확인해 주세요.",
+};
+/** Upstream error.message is not a UI translation key; only trusted codes are localized. */
 export function wbsViewErrorMessage(cause: unknown, fallback = "조회 요청에 실패했습니다. 다시 시도해 주세요."): string {
-  return cause instanceof WbsViewTransportError ? cause.message : fallback;
+  if (!(cause instanceof WbsViewTransportError)) return fallback;
+  if (cause.status === 401) return "인증이 필요합니다.";
+  if (cause.status === 403) return "이 작업을 수행할 권한이 없습니다.";
+  if (cause.status === 409) return "데이터가 변경되었습니다. 새로고침한 뒤 상세를 다시 열어 주세요.";
+  if (cause.status === 412) return "다른 변경사항이 있습니다. 최신 정보를 확인해 주세요.";
+  return publicWbsErrors[cause.code] ?? fallback;
 }
 export class WbsViewTransportError extends Error {
   constructor(readonly code:string,message:string,readonly status:number=0) { super(message); this.name="WbsViewTransportError"; }

@@ -2,7 +2,7 @@ import { toResourcePublicV2 } from "../../../src/contracts/resource-public-v2";
 import {describe,it,expect,vi,afterEach} from "vitest";
 import {wbsDashboardViewsFixture} from "../../fixtures/wbs-dashboard-views";
 import {defaultWbsViewSpec} from "../../../src/features/resources/wbs-view-model";
-import {readWbsViewResponse,fetchWbsView,type WbsViewFetchOptions} from "../../../src/features/resources/wbs-view-transport";
+import {readWbsViewResponse,fetchWbsView,wbsViewErrorMessage,WbsViewTransportError,type WbsViewFetchOptions} from "../../../src/features/resources/wbs-view-transport";
 import type {WbsViewQueryInput} from "../../../src/contracts/wbs-dashboard-views";
 afterEach(()=>vi.unstubAllGlobals());
 describe("WBS transport production contract",()=>{
@@ -137,4 +137,16 @@ describe("#809 chart analysis transport binding",()=>{
    expect(readWbsViewResponse({data},options)).toBe(data);
   }finally{f.database.close();}
  });
+});
+
+
+describe("WBS localized-error provenance", () => {
+  it("maps trusted error status/code and rejects opaque message-as-key", () => {
+    const fallback = "상세 조회에 실패했습니다.";
+    expect(wbsViewErrorMessage(new WbsViewTransportError("SQLITE_ERROR", "저장", 500), fallback)).toBe(fallback);
+    expect(wbsViewErrorMessage(new WbsViewTransportError("REVISION_CONFLICT", "저장", 409), fallback)).toBe("데이터가 변경되었습니다. 새로고침한 뒤 상세를 다시 열어 주세요.");
+    expect(wbsViewErrorMessage(new WbsViewTransportError("INVALID_RESPONSE", "저장"), fallback)).toBe("조회 응답의 출처가 일치하지 않습니다. 다시 조회해 주세요.");
+    expect(wbsViewErrorMessage(new WbsViewTransportError("UNAUTHORIZED", "저장", 401), fallback)).toBe("인증이 필요합니다.");
+    expect(wbsViewErrorMessage(new Error("저장"), fallback)).toBe(fallback);
+  });
 });
