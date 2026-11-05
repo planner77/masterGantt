@@ -1205,3 +1205,9 @@ Full #3519.1 / Run `41970024640`, Head `a7cbef53bd0c89f4f3a7a3c3ed5a76ba7cb2266e
 원본Shard8 milestone-visibility:129의 Task type/task timeout을30.2초로재현했고현재ko작업유형/일반작업과불일치하는TEST_CONTRACT로분리했다. 같은유형4spec와Resource관리자heading1spec를정확표시로고치고기존선택/Data/ID/인스턴스/무mutation·geometry를보존한다. ko/en/vi2사례추가로146spec/882browsercases가되며8shard배치·기존skip/retry/timeout/Required3는불변이다. 전체24회CI목록과취소7샤드를포함한원본8로그, metadata3521 SUPERSEDED/N/A 및기존실패합집합/인접/음성동결검증은 [Work Packet](exec-plans/active/ISSUE_866.md)과 [단일원장](ISSUE_866_FAILURE_ANALYSIS.md)의현재절을따른다. 새exactHead의공식전체CI·Trusted·인간QA/Owner판정은NOT TESTED이며새Full시작만확인하고모니터링하지않는다.
 
 최종 동일 source55c4fbc65ebe9414efa2a608dc3362566a2d5661ef4d1b50465fdb91a2556e97에서 수동25spec의153PASS/기존2SKIP/FAIL0, 관련Unit197PASS와 원본설정 typecheck/5spec lint/탐색882·정책·문서구조를 확인했다. 자동Pre-PR UNKNOWN94/missing0는BLOCKED이며 수동 증거와 구별한다. [최종 명령·선정·지문·결과](evidence/issue-866/ci3522-local-validation-20261105.json)를 참조한다. 새Head Required3·Trusted·인간QA/Owner/Manager는NOT TESTED이며 CI 시작 뒤 모니터링하지 않는다.
+
+## Issue #866 REWORK-C002 — #3523.1 Issue 오류·Project 근거 표시
+
+누적 원장C002는CI25회와새8shard의454관측PASS/2직접FAIL/기존SKIP2/424미완료를구별한다. Issue전용code allowlist의정확3언어안내·wrongPATCH불변/정상재시도와 Resource검증된Project Plan근거wrapper·정확scope/Assignment/조상문맥·80/140/복귀를보완한다. 이전실패25spec+신규직접2/간접2=29고유spec/5수동parts·workers1/retries0/max-failures0/각20분상한으로동일source교차검증한다. Actions진단24spec/4parts정책과기존Full8/Required3/권한은변경하지않는다. 실행결과는후행증거로기록하며이절의존재는PASS가아니다. 별도opaque-error P2는DEFERRED, 새HeadCI/Trusted·Owner/Manager는NOT TESTED를유지한다.
+
+C002 최종동결sourceeaa90be1bb19d08db2091017caf61e45e4bc52d2bf8ba0f3a45c370f1640d99b/1319파일시작=종료에서29고유spec174PASS/기존2SKIP/FAIL0, 전체Unit3666PASS/기존3SKIP·build/type/lint·탐색299/882·정책·문서구조를확인했다. 자동Pre-PR UNKNOWN94/missing0는BLOCKED로보존하고수동실행과구별한다. [정제 최종 증거](evidence/issue-866/ci3523-local-validation-20261105.json)를참조한다. 별도오류경계P2 DEFERRED, 새Head Required3/Trusted/Owner/Manager NOT TESTED이며FullCI시작뒤모니터링하지않는다.

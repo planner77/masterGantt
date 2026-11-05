@@ -14,6 +14,7 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   const resourceId = randomUUID();
   let postCount = 0;
   const queriedStatuses: string[] = [];
+  const patchAttempts: { status: number; ifMatch: string; issueId: string }[] = [];
   await page.route("**" + projectPath + "/resource-memberships?*", async route => {
     await route.fulfill({ json: { data: {
       projectRevision: state.project.revision, catalogRevision: 1, total: 1,
@@ -79,8 +80,10 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
       const index = records.findIndex(record => record.issueId === id);
       if (index < 0) { await route.fulfill({ status: 404 }); return; }
       if (candidate !== passwords.get(id!)) {
+        patchAttempts.push({ status: 401, ifMatch: request.headers()["if-match"], issueId: id! });
         await route.fulfill({ status: 401, json: { error: { code: "ISSUE_PASSWORD_INVALID", message: "password" } } }); return;
       }
+      patchAttempts.push({ status: 200, ifMatch: request.headers()["if-match"], issueId: id! });
       const updated = { ...records[index], ...input, updatedAt: "2026-10-28T03:02:00.000Z" };
       records[index] = updated;
       state.project.revision++;
@@ -153,13 +156,45 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await expect(detail.getByLabel("등록일")).toHaveValue("2026-10-28");
   await detail.getByLabel("상태", { exact: true }).selectOption("registered");
   await expect(detail.getByLabel("완료일")).toBeDisabled();
+  const revisionBeforeRejectedEdit = state.project.revision;
+  const recordsBeforeRejectedEdit = JSON.stringify(records);
+  const issueBeforeRejectedEdit = { ...records[0] };
   await detail.getByLabel("Issue 비밀번호 (수정·삭제 시 필요)").fill("WrongPassword123");
   await detail.getByRole("button", { name: "수정 저장" }).click();
-  await expect(detail.getByRole("alert")).toContainText("password");
+  const passwordError = detail.getByRole("alert");
+  await expect(passwordError).toHaveText("Issue 비밀번호를 확인해 주세요.");
+  await expect(passwordError).not.toContainText("password");
+  await expect(detail.getByLabel("상태", { exact: true })).toHaveValue("registered");
+  expect(patchAttempts).toEqual([{ status: 401,
+    ifMatch: '"' + revisionBeforeRejectedEdit + '"', issueId: issueBeforeRejectedEdit.issueId }]);
+  expect(state.project.revision).toBe(revisionBeforeRejectedEdit);
+  expect(JSON.stringify(records)).toBe(recordsBeforeRejectedEdit);
+  // The open Issue editor translates its allowlisted error without resubmitting the rejected edit.
+  for (const { locale, dialogName, error } of [
+    { locale: "en", dialogName: "Issue details and editing", error: "Check the issue password." },
+    { locale: "vi", dialogName: "Chi tiết và chỉnh sửa vấn đề", error: "Kiểm tra mật khẩu vấn đề." },
+    { locale: "ko", dialogName: "Issue 상세 및 수정", error: "Issue 비밀번호를 확인해 주세요." },
+  ]) {
+    await page.getByRole("combobox", { name: /^(표시 언어|Display language|Ngôn ngữ hiển thị)$/ }).first().selectOption(locale);
+    await expect(page.locator("html")).toHaveAttribute("lang", locale);
+    const localizedDetail = workspace.getByRole("dialog", { name: dialogName, exact: true });
+    await expect(localizedDetail.getByRole("alert")).toHaveText(error);
+    await expect(localizedDetail.getByRole("alert")).not.toHaveText("password");
+    await expect(localizedDetail.locator("#project-issue-lifecycle-status")).toHaveValue("registered");
+    expect(patchAttempts).toHaveLength(1);
+    expect(state.project.revision).toBe(revisionBeforeRejectedEdit);
+    expect(JSON.stringify(records)).toBe(recordsBeforeRejectedEdit);
+  }
   await detail.getByLabel("Issue 비밀번호 (수정·삭제 시 필요)").fill(issuePassword);
   await detail.getByRole("button", { name: "수정 저장" }).click();
   await expect(kpis).toContainText("완료0건");
   await expect(kpis).toContainText("등록1건");
+  await expect(detail).toBeHidden();
+  expect(patchAttempts).toEqual([401, 200].map(status => ({ status,
+    ifMatch: '"' + revisionBeforeRejectedEdit + '"', issueId: issueBeforeRejectedEdit.issueId })));
+  expect(state.project.revision).toBe(revisionBeforeRejectedEdit + 1);
+  expect(records).toEqual([{ ...issueBeforeRejectedEdit, status: "registered", completed: false,
+    completedOn: null, updatedAt: "2026-10-28T03:02:00.000Z" }]);
   await workspace.locator("#project-issue-status").selectOption("open");
   await expect(workspace.getByText("검색 결과 1건")).toBeVisible();
 

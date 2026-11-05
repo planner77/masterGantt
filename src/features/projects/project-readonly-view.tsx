@@ -1,6 +1,6 @@
 "use client";
 
-import { renderResourcePlanLabel, type ResourcePlanLabelPresentation } from "../resources/resource-plan-model";
+import { renderNavigationLabel, type ResourceNavigationLabel } from "./project-resource-navigation-label";
 
 import { LocalizedText } from "../../components/localized-text";
 import { displayName } from "../../lib/i18n";
@@ -144,11 +144,6 @@ type ResourceNavigationState = {
   positions: { element: HTMLElement; left: number; top: number }[];
   viewport?: ResourceNavigationViewport | null;
 };
-type ResourceNavigationLabel = string | { kind: "resourcePlan"; presentation: ResourcePlanLabelPresentation } | {
-  key: string;
-  values: Record<string, string | number>;
-  labels?: Record<string, string>;
-};
 type ResourceNavigationFrame = ResourceDrillFrame<ResourceNavigationState> & {
   scope: ResourceDrillScopeDto;
   wbsRequest?: WbsViewScheduleRequest;
@@ -269,7 +264,6 @@ export function ProjectReadonlyView({ publicId, projectUrl = null, ownerName, is
 
 function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefaultStatusFilter }: ProjectViewProps) {
   const { t, locale } = useI18n();
-  const renderNavigationLabel = (label: ResourceNavigationLabel): string => typeof label === "string" ? label : "kind" in label ? renderResourcePlanLabel(label.presentation, locale) : t(label.key, { ...label.values, ...Object.fromEntries(Object.entries(label.labels ?? {}).map(([key, value]) => [key, t(value)])) });
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialRootTaskId = searchParams.get("rootTask")?.trim() || null;
@@ -2671,7 +2665,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
       source.trigger = request.trigger;
       return {
         scope,
-        label: request.planLabel ? { kind: "resourcePlan", presentation: request.planLabel } :
+        label: request.planLabel ? { kind: "resourcePlan", presentation: request.planLabel,
+          projectEvidence: projection.target === "plan" && projection.demandScope === "project" } :
           projection.target === "plan" && projection.demandScope === "project"
             ? { key: "Project 전체 부하 근거 · {label}", values: { label: request.label } }
             : request.label,
@@ -3321,7 +3316,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
               {navigationFrames.at(-1)!.destination.view !== activeView
                 ? t("최근 임시 이동 ({value0}) · ", { value0: t(navigationFrames.at(-1)!.destination.view === "resources" ? "리소스" : "일정") })
                 : t("현재 임시 범위 · ")}
-              {renderNavigationLabel(navigationFrames.at(-1)!.label)}{t(" · 고유 Task")}{" "}
+              {renderNavigationLabel(navigationFrames.at(-1)!.label, locale)}{t(" · 고유 Task")}{" "}
               {navigationFrames.at(-1)!.scope.taskCount} · Assignment{" "}
               {navigationFrames.at(-1)!.scope.assignmentCount}{t(" · 조상 문맥")}{" "}
               {navigationFrames.at(-1)!.scope.ancestorSummaryIds.length} ·{" "}

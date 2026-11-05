@@ -631,3 +631,9 @@ Milestone 전용 consumer는 #729의 같은 read report와 #730 구성기/표/�
 전체 Gate는 canonical 전체 E(M)/직접 P(M)의 기존 projection이며 계층 선택·검색·공정/설비/Resource 조건으로 축소하지 않는다. selected Task0은 전체 소속0과 다르고, 선택 Task가 모두 완료된 것과 Ready 및 명시 Completed는 서로 다르다. 원본 날짜/상태·전체 소속과 선택 지표를 함께 읽으며 부분 결과로 완료를 저장하지 않는다. 동일 Task/Assignment가 여러 WorkArea/공정/표 경로에 보이면 소계를 합산하지 않고 상위 원시 합집합을 사용한다. 현행 effective Milestone은 Task당0..1로 유지한다.
 
 Task·Assignment 상세와 원본 이동은 report snapshot/spec/filter/path를 다시 검증하고 stale이면 재조회한다. 기존 Resource/Target API·Capacity R·Calendar·Milestone 관리/공수 bucket은 변경하지 않는다. [사용 절차](TARGET_RESOURCE_USER_GUIDE.md#milestone-추가와-동적-관점), [구현·테스트 경계](exec-plans/active/ISSUE_732.md)를 따른다.
+
+## Issue #866 C002 — Project 부하 근거의 국제화
+
+Plan/Chart에서 검증한 Project 전체 부하 범위를 일정으로 인계할 때는 번역 descriptor와 별개로 Project 전체 부하 근거 구분을 유지한다. selected contribution과 Project load80/140의 분모·Task/Assignment 범위를 caption만으로 대체하지 않는다. Summary는 조상 문맥으로 별도 세고, 원래 필터·부하 범위·focus 복귀를 유지한다.
+
+[Project 전체 부하 근거 실제 한국어 화면](evidence/issue-866/ci3523-project-load-evidence-ko.png)은로컬working sourceeaa90be1bb19d08db2091017caf61e45e4bc52d2bf8ba0f3a45c370f1640d99b의보완을보여준다. 고유29spec/174PASS와별도로기존차트case를한번더실행해캡처했으며중복합산하지않았다. 보조캡처의첫시도는임시config의상대reporter경로오류로NOT RUN이었고, 해당로컬경로를교정한실제1casePASS를사용했다. 새Head원격CI/독립QA증거가아니다.

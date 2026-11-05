@@ -1,0 +1,322 @@
+{
+  "schema": "issue866-ci3523-failure-matrix-v1",
+  "repository": "planner77/masterGantt",
+  "issue": 866,
+  "pr": 879,
+  "run_id": 42012950520,
+  "run_number": 3523,
+  "attempt": 1,
+  "event": "pull_request",
+  "head": "c9a19bff307d5d889a1d353a674d9d5fb7d96da7",
+  "base": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+  "test_merge": "460fc993ff2d9ce6d36ee9d7b56c61f00d278d76",
+  "source_evidence": {
+    "job_id": 127196290738,
+    "source": "infra가 원본changes Job로그·checkout전artifact·인증Run API·불변merge부모·commit→PR단일귀속을직접조회하여동일3SHA/runattempt1을후행확인",
+    "proof": "ci3523-source-proof-20261105.json",
+    "artifact_id": 13407856994,
+    "status": "PASS",
+    "scope": "원본3523의역사적출처필드에대한읽기전용대조. PR측artifact자체는비신뢰자료이며단독근거로사용하지않음.",
+    "correction_note": "이전 matrix의 Manager가 source Job으로 확인했다는 표현은 당시 current PR/Run 및 지난 게시 merge정보까지만 확인한 상태를 과대해석했다. 지금 infra가 원본 source Job·pre-checkout artifact·Run/immutable merge/commit→PR API를 후행 직접 조회하여 증거를 보완했다.",
+    "separate_timing_artifacts_head": "timing2/timing5의headSha는checkout test-merge이며PRHead와혼동하지않는다."
+  },
+  "required": {
+    "quality": {
+      "job_id": 127198348483,
+      "result": "success"
+    },
+    "e2e": {
+      "job_id": 127205496354,
+      "result": "failure"
+    },
+    "docker": {
+      "job_id": 127199924536,
+      "result": "success"
+    }
+  },
+  "other_actual": {
+    "unit": {
+      "job_id": 127196660485,
+      "result": "success",
+      "passed": 3658,
+      "existing_skipped": 3,
+      "files_passed": 297,
+      "files_existing_skipped": 1,
+      "duration_seconds": 98
+    },
+    "build": {
+      "job_id": 127197822093,
+      "result": "success"
+    },
+    "automated_qa": {
+      "job_id": 127205539951,
+      "result": "failure",
+      "reason": "Required E2E failure의파생"
+    }
+  },
+  "shards": [
+    {
+      "shard": 1,
+      "job_id": 127197822331,
+      "conclusion": "cancelled",
+      "planned": 129,
+      "observed_pass": 56,
+      "observed_existing_skip": 0,
+      "observed_fail": 0,
+      "remaining": 73,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN",
+      "raw_log": "shard-1-job-127197822331.log",
+      "failure_lines": [],
+      "existing_skip_lines": [],
+      "terminal_lines": [
+        "2026-11-05T11:02:36.2800623Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "shard": 2,
+      "job_id": 127197822214,
+      "conclusion": "failure",
+      "planned": 104,
+      "observed_pass": 30,
+      "observed_existing_skip": 0,
+      "observed_fail": 1,
+      "remaining": 73,
+      "remaining_classification": "DID_NOT_RUN",
+      "raw_log": "shard-2-job-127197822214.log",
+      "failure_lines": [
+        "2026-11-05T11:01:38.4864880Z   ✘   31 [chromium] › tests/e2e/project-issues.spec.ts:7:5 › #838-#840 Issue tab: register, resource/Task lookup, completion date, secure link, filter and Gantt return (9.0s)",
+        "2026-11-05T11:01:38.6884506Z     Error: expect(locator).toContainText(expected) failed"
+      ],
+      "existing_skip_lines": [],
+      "terminal_lines": [
+        "2026-11-05T11:01:38.6915042Z   1 failed",
+        "2026-11-05T11:01:38.6917705Z   73 did not run",
+        "2026-11-05T11:01:38.6918118Z   30 passed (14.9m)",
+        "2026-11-05T11:01:38.6918692Z   1 error was not a part of any test, see above for details"
+      ]
+    },
+    {
+      "shard": 3,
+      "job_id": 127197822199,
+      "conclusion": "cancelled",
+      "planned": 153,
+      "observed_pass": 82,
+      "observed_existing_skip": 1,
+      "observed_fail": 0,
+      "remaining": 70,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN",
+      "raw_log": "shard-3-job-127197822199.log",
+      "failure_lines": [],
+      "existing_skip_lines": [
+        "2026-11-05T10:50:33.4083965Z   -   29 [chromium] › tests/e2e/logistics-table-density.spec.ts:41:5 › #454 before 두 유형과 이름·비밀번호 dialog 5폭 실제 geometry"
+      ],
+      "terminal_lines": [
+        "2026-11-05T11:02:27.3942116Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "shard": 4,
+      "job_id": 127197822255,
+      "conclusion": "cancelled",
+      "planned": 94,
+      "observed_pass": 40,
+      "observed_existing_skip": 0,
+      "observed_fail": 0,
+      "remaining": 54,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN",
+      "raw_log": "shard-4-job-127197822255.log",
+      "failure_lines": [],
+      "existing_skip_lines": [],
+      "terminal_lines": [
+        "2026-11-05T11:02:28.0337497Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "shard": 5,
+      "job_id": 127197822412,
+      "conclusion": "cancelled",
+      "planned": 111,
+      "observed_pass": 33,
+      "observed_existing_skip": 0,
+      "observed_fail": 1,
+      "remaining": 77,
+      "remaining_classification": "DID_NOT_RUN",
+      "raw_log": "shard-5-job-127197822412.log",
+      "failure_lines": [
+        "2026-11-05T11:02:21.9053422Z   ✘   34 [chromium] › tests/e2e/issue-736-resource-dashboard.spec.ts:372:6 › #809 chart interaction › #809 차트3유형 동일원본·개인80/Project140·정확상세·지연명령취소·일정복귀 (42.6s)",
+        "2026-11-05T11:02:22.1176160Z     Error: expect(locator).toContainText(expected) failed"
+      ],
+      "existing_skip_lines": [],
+      "terminal_lines": [
+        "2026-11-05T11:02:22.1263643Z   1 failed",
+        "2026-11-05T11:02:22.1266353Z   77 did not run",
+        "2026-11-05T11:02:22.1266714Z   33 passed (15.5m)",
+        "2026-11-05T11:02:22.1267238Z   1 error was not a part of any test, see above for details",
+        "2026-11-05T11:02:23.4086201Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "shard": 6,
+      "job_id": 127197822372,
+      "conclusion": "cancelled",
+      "planned": 100,
+      "observed_pass": 52,
+      "observed_existing_skip": 1,
+      "observed_fail": 0,
+      "remaining": 47,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN",
+      "raw_log": "shard-6-job-127197822372.log",
+      "failure_lines": [],
+      "existing_skip_lines": [
+        "2026-11-05T11:02:11.3628763Z   -   45 [chromium] › tests/e2e/master-controls-density.spec.ts:30:5 › #455 before 세 범주와 password dialog 5폭 computed geometry"
+      ],
+      "terminal_lines": [
+        "2026-11-05T11:02:28.2070004Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "shard": 7,
+      "job_id": 127197822376,
+      "conclusion": "cancelled",
+      "planned": 79,
+      "observed_pass": 79,
+      "observed_existing_skip": 0,
+      "observed_fail": 0,
+      "remaining": 0,
+      "remaining_classification": "NONE_TEST_COMMAND_COMPLETED",
+      "raw_log": "shard-7-job-127197822376.log",
+      "failure_lines": [],
+      "existing_skip_lines": [],
+      "terminal_lines": [
+        "2026-11-05T11:02:27.3677573Z   79 passed (15.8m)",
+        "2026-11-05T11:02:27.4153016Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "shard": 8,
+      "job_id": 127197822217,
+      "conclusion": "cancelled",
+      "planned": 112,
+      "observed_pass": 82,
+      "observed_existing_skip": 0,
+      "observed_fail": 0,
+      "remaining": 30,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN",
+      "raw_log": "shard-8-job-127197822217.log",
+      "failure_lines": [],
+      "existing_skip_lines": [],
+      "terminal_lines": [
+        "2026-11-05T11:02:27.1966912Z ##[error]The operation was canceled."
+      ]
+    }
+  ],
+  "totals": {
+    "planned": 882,
+    "observed_pass": 454,
+    "direct_fail": 2,
+    "observed_existing_skip": 2,
+    "remaining_incomplete": 424,
+    "explicit_did_not_run": 150,
+    "cancelled_interrupted_or_not_run": 274
+  },
+  "direct_failures": [
+    {
+      "shard": 2,
+      "job_id": 127197822214,
+      "step": 7,
+      "file": "tests/e2e/project-issues.spec.ts",
+      "test_line": 7,
+      "assert_line": 158,
+      "title": "#838-#840 Issue tab: register, resource/Task lookup, completion date, secure link, filter and Gantt return",
+      "duration_seconds": 9,
+      "timestamp": "2026-11-05T11:01:38.4864880Z",
+      "error": "expect(locator).toContainText(expected) failed",
+      "locator": "project-issue-workspace→dialog Issue 상세 및 수정→alert",
+      "expected": "password",
+      "actual": "Issue 비밀번호를 확인해 주세요.",
+      "timeout_ms": 5000,
+      "classification": "TEST_CONTRACT_CANDIDATE",
+      "reason": "잘못된Issuepassword제출뒤앱소유한국어안내가표시되나영어substring기대. 최종분류는Managerpristine재현/semantic검토로확정.",
+      "report_artifact": 13408618451,
+      "extra_non_test_error": "Testing stopped early after 1 maximum allowed failures. (HTML report.errors exact 확인)"
+    },
+    {
+      "shard": 5,
+      "job_id": 127197822412,
+      "step": 7,
+      "file": "tests/e2e/issue-736-resource-dashboard.spec.ts",
+      "test_line": 372,
+      "assert_line": 421,
+      "title": "#809 chart interaction → #809 차트3유형 동일원본·개인80/Project140·정확상세·지연명령취소·일정복귀",
+      "duration_seconds": 42.6,
+      "timestamp": "2026-11-05T11:02:21.9053422Z",
+      "error": "expect(locator).toContainText(expected) failed",
+      "locator": "region 임시 조회 범위",
+      "expected": "Project 전체 부하 근거",
+      "actual": "현재 임시 범위 · 공동 담당 인력 · 개인/Project 전체 참고 · 현재 기간 · 고유 Task 2 · Assignment 2 · 조상 문맥 1 · 2026-10-14–2026-10-14원래 보기 (리소스)임시 이동 범위 전체 해제 (일정 유지)",
+      "timeout_ms": 5000,
+      "classification": "UNKNOWN",
+      "reason": "PhaseC의구조화Plan/Chart설명 label과기존scope문구간차이. Project scope/140공수/outsideTask 포함이실제로유지되는지의미검토·재현필요.",
+      "report_artifact": null,
+      "report_unavailable_reason": "실제테스트FAIL뒤job취소되어playwright-report-shard5업로드없음",
+      "timing_artifact": 13409330954,
+      "timing_status": "failed",
+      "extra_non_test_error": "원문에 fail-fast stop 및 1 non-test error가 보인다. HTML5는미회수이므로 report2와동일한errors 배열을직접검증했다는주장은하지않음"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13408618451,
+      "name": "playwright-report-shard-2",
+      "expired": false,
+      "local": "report2.zip"
+    },
+    {
+      "id": 13408274489,
+      "name": "e2e-timing-ci-shard-2",
+      "expired": false,
+      "local": "timing2.zip"
+    },
+    {
+      "id": 13409330954,
+      "name": "e2e-timing-ci-shard-5",
+      "expired": false,
+      "local": "timing5.zip"
+    }
+  ],
+  "boundaries": [
+    "Shard7테스트79PASS종결은jobSUCCESS가아님(jobcancelled)",
+    "취소Shard5의실제FAIL을반드시포함",
+    "총잔여424는explicit미실행150과취소중단/미실행274로구별",
+    "Shard6 controlled E2E error boundary probe 로그는예상오류시험이며추가실패근거아님",
+    "이전Head원격/로컬PASS를현재또는다음HeadPASS로승계하지않음",
+    "새CI·Trusted·Owner·Manager NOT TESTED"
+  ],
+  "manager_semantic_review": {
+    "scope": "아래 최종분류는 원격관측 당시 임시 CANDIDATE/UNKNOWN과 구별한다. 원문 이력은 유지한다.",
+    "baseline_head": "c9a19bff307d5d889a1d353a674d9d5fb7d96da7",
+    "reproduction": {
+      "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-issues.spec.ts tests/e2e/issue-736-resource-dashboard.spec.ts --grep '#838-#840 Issue tab:|#809 차트3유형' --workers=1 --retries=0 --max-failures=0",
+      "result": "FAIL",
+      "failed": 2,
+      "observed_same_as_remote": true
+    },
+    "final_semantic_classification": [
+      {
+        "shard": 2,
+        "classification": "TEST_CONTRACT",
+        "reason": "Issue전용projectIssueError code allowlist의안전한app-owned 한국어안내에기존UI테스트가backend raw password를기대했다."
+      },
+      {
+        "shard": 5,
+        "classification": "PRODUCT",
+        "subtype": "PRESENTATION_SEMANTICS",
+        "reason": "request.planLabel의descriptor우선분기가검증된Project projection의기존부하근거wrapper를가렸다. 원본200 scopeTask2/Assignment2/outsideTask 및80/140단언은유지되어산식/범위손실근거는없다."
+      }
+    ],
+    "independent_agent_technical": "PASS",
+    "trusted_qa": "NOT TESTED",
+    "manager_decision": "NOT TESTED",
+    "separate_error_trust_boundary_P2": "DEFERRED"
+  }
+}

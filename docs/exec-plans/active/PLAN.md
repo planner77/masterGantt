@@ -1,3 +1,7 @@
+## Issue #866 — PR #879 Full #3523.1 누적 실패 보완 (2026-11-05)
+
+[Work Packet](ISSUE_866.md)의REWORK-C002를따른다. 전CI25회·8shard를대조해Issue안전오류E2E기대누락과취소Shard5의Resource Project근거표시의미회귀를구분·보완한다. 이전25spec+직접2/간접2=29고유spec를동결검증하며새Full CI시작확인까지만진행한다. 별도opaque-error경계P2는미보완으로추적하고새Head Required3/Trusted·Owner/Manager NOT TESTED/MERGE_READY BLOCKED·release_authorized=false를유지한다.
+
 ## Issue #866 — PR #879 Full #3522.1 누적 실패 보완 (2026-11-05)
 
 [Work Packet](ISSUE_866.md)의 REWORK-C001과 [누적 실패 원장](../../ISSUE_866_FAILURE_ANALYSIS.md)을 기준으로 전체 CI24회/전8샤드를 대조하고, 번역된 유형 필터·관리자 heading을 소비하는 E2E5파일을 보완한다. 이전 실패 합집합과 인접 소비자를 동일 동결 source의 수동25spec/4parts로 검증한 뒤 한 묶음으로 게시한다. 종료점은 새 Full PR CI 시작 확인이며 모니터링·병합·GHCR/Release·Issue 종료는 하지 않는다. HIGH/OWNER_MANAGED/qa_required=true, release_authorized=false 및 새Head Required3/Trusted·인간QA/Owner/Manager NOT TESTED/MERGE_READY BLOCKED를 유지한다.

@@ -1,3 +1,39 @@
+## REWORK-C002 — Full #3523.1 두 직접 실패와 Project 근거 표시 복구 (현재 단계)
+
+사용자 요청에 따라 누적 원장 전체·관련CI25회와 새 전8shard를 대조하고 분석·설계·구현·리뷰/충돌·문서를 함께 갱신한다. 끝점은 새 Full PR CI 시작 확인이며 모니터링·병합·Main/GHCR/Release·Issue 종료는 하지 않는다. 아래 C001/Phase C의 이전Head 결과는 역사적 증거다.
+
+- 기준 Head `c9a19bff307d5d889a1d353a674d9d5fb7d96da7`, base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `460fc993ff2d9ce6d36ee9d7b56c61f00d278d76`. [Run42012950520.1](https://github.com/planner77/masterGantt/actions/runs/42012950520)는 Quality/Docker SUCCESS, E2E FAIL. 실제454PASS/2FAIL/기존SKIP2/424미완료를 구별한다. 취소Shard5도실제FAIL이있다. [동일 누적 원장](../../ISSUE_866_FAILURE_ANALYSIS.md)의C002 및 새정제JSON을따른다.
+- 역할: root Manager 재현/설계·선정/동결/문서/통합/게시, infra 전25회·8shard원문/report/timing, frontend 별도2명 Issue/Resource파일소유, qa_docs/error소비자·GSC독립read-only/추가backend경계검토. 실제Agent기술검토는최종인간QA/Owner판정이아니다.
+- Issue TEST_CONTRACT는전용code allowlist의정확ko오류로교정하고같은오류에서EN/VI/KO·raw전체불일치·초안/record/revision·추가PATCH0·정상재시도성공을검증한다. backend rawmessage/password/code/enum/keyboard는유지한다.
+- UI/UX Pro Max의범위표시관련검색2회는이특정계약에일치하는검증된결과가없었다. 일반권고는fallback으로만보고저장소의기존Project근거표시/UX계약을우선하며새시각체계는적용하지않는다.
+- Resource PRODUCT/PRESENTATION은검증된Plan/Project projection에서만projectEvidence를만들어현재locale의Plan inner설명에기존Project전체부하근거wrapper를적용한다. pure renderer/type추출과집중8Unit, 기존scope/IDs/Assignmentgateway/lease/revision·사용자원문을유지한다. 기존421기대는그대로고정한다.
+- 처음추가범위단언은Summary조상을누락해1FAIL/Issue1PASS였고실행중E2E수정으로STALE진단이다. 원문/zip capture2오류를보존한다. 새 source `eaa90be1bb19d08db2091017caf61e45e4bc52d2bf8ba0f3a45c370f1640d99b`/1319파일을다시동결했다. Source파일변경·Agent검증프로세스는root승인전중지한다.
+
+### C002 영향·교차·음성 선정
+
+| 생산자/계약 | 직접·간접·음성 소비자와 실행 |
+| --- | --- |
+| Issue 전용error allowlist·locale-reactive 표시 | project-issues전체case/ko-en-vi·raw비노출·wrongPATCH실패불변·정상재시도, 기존Issue HTTP·SQLite/auth Unit |
+| ResourceNavigationLabel descriptor·verifiedProject wrapper | issue-736전체7case·Project/selected 정확Task/Assignment·Summary문맥·Load80/140·focus/filter복귀; 신규navigation8Unit/기존Plan9Unit |
+| generic string/key/labels/Plan 현재locale renderer 추출 | issue-730-view-composer/resource-drill-ui·Milestone/Gantt i18n/Stage/ContextMenu 및원문label/no-wrapper 음성 |
+| 과거#870/#878/#879 모든실제실패 | 이전동결25spec를포함해검색/밀도/관리형번역/stale/HTTP/공정/물류/복사/전송/locale/marker·기술Delete 보호 |
+| Whole product host compile·기존정책 | 전체Vitest/type/lint/build·탐색299Unit/882browser·버전/cache·Markdown/main docs_gate/AC 구조 |
+
+수동29고유spec/5parts(E4+A13+B4+C7+D1), workers1/retries0/max-failures0/각20분상한이다. #752 Actions 진단의24spec/4parts 자동상한을변경/실행하지않는다. 선택/제외·명령·지문·최종실행결과는아래LOCAL_VALIDATED와새정제증거에기록한다. 자동Pre-PR UNKNOWN/BLOCKED와수동실행은분리한다.
+
+### C002 LOCAL_VALIDATED 증거
+
+- source `eaa90be1bb19d08db2091017caf61e45e4bc52d2bf8ba0f3a45c370f1640d99b`/1319파일 시작=종료. 수동29spec/176계획=174PASS/기존2SKIP/FAIL0(E21+A66+B20+C59+D8), 전체Unit3666PASS/기존3SKIP, build/standalone/runtime-tools·원본설정typecheck·5파일lint0errors/기존경고1·탐색299/882·버전/cache/Markdown410·base문서구조PASS.
+- 자동Pre-PR UNKNOWN94/missing0는BLOCKED/sourceStabletrue, 최종 report/SUMMARY `.prepr-reports/ci3523/prepr-publish-final/`에보존. [실제 명령·선정·지문](../../evidence/issue-866/ci3523-local-validation-20261105.json), [원장C002 F](../../ISSUE_866_FAILURE_ANALYSIS.md)를따른다. 이전Head/중간green/시각증거용재실행을고유사례에가산하지않는다.
+- 직접2회귀정적Agent검토PASS와별도오류경계P2 DEFERRED를구별한다. GitHub미해결thread0/충돌없음·새Head Required3/Trusted/Owner/Manager NOT TESTED/MERGE_READY BLOCKED. API전체tree/부모와expectedHead를대조한한번게시뒤FullCI시작만확인하고모니터링하지않는다.
+
+### C002 Test Lifecycle·문서·잔여 위험
+
+- EXTEND project-issues/issue-736-resource-dashboard, ADD pure navigation renderer Unit8; 기존146E2E파일/882case/8shard·기능/접근성/허용오차/timeout/retry/skip/버전0.142.0은유지한다. 기존2캡처SKIP·3UnitSKIP은없애거나가산하지않는다.
+- UPDATED: 본packet/PLAN/원장/TEST_PLAN/REMOTE_VALIDATION/DESIGN/I18N_PHASE_C/RESOURCE_KPI_DASHBOARD 및새정제history/matrix/후행실행증거. 정규DOCUMENTATION_SYNC/AC01~09의전체A+B+C범위는유지한다. 이번API/DB/일정산식/배포/CI권한/Ruleset은N/A(표시의미와검증만수정).
+- DEFERRED: country-calendar serverMessage→t(line), WBS error.message→t(error), safeApiError의catalog포함검사에대한별도opaque-error 경계P2. 현재CI2직접오류와무관하며known-domain 국가/연도/row detail·STALE복구보존을별도설계/회귀해야한다. 미보완을숨기거나전역P1/P2=0으로보고하지않는다. 원장C002 E참조.
+- HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 새Head Required3/Trusted·Owner/Manager NOT TESTED/MERGE_READY BLOCKED/#866OPEN. 실제AT/native125%/WindowsExcel/운영환경·Main/GHCR/Release는NOT TESTED유지.
+
 ## REWORK-C001 — Full #3522.1 전체 실패 대조 및 접근성 오라클 보완 (현재 단계)
 
 사용자 요청에 따라 기존 PR #879에서 실패 현상 확인·원인별 보완·리뷰/충돌 검사·원장 갱신을 마치고 새 Full CI를 시작한다. 시작 뒤 모니터링·병합·Main/GHCR/Release·Issue 종료는 하지 않는다. 아래 Phase C DELIVERY의 이전 실행/Head는 역사적 증거이며 새 판정으로 승계하지 않는다.

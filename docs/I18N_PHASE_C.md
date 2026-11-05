@@ -51,3 +51,9 @@ SVAR Core의 공식 Locale와 기존 Gantt 상태 경계를 사용한다. 표시
 ## 대표 로컬 화면과 검증 한계
 
 [베트남어Gantt](evidence/issue-866/phasec-gantt-vi.png)와 [390px관리자](evidence/issue-866/phasec-master-vi-390.png)는 현재 소스의 실제 브라우저 캡처다. 입력·focus·상태·권한 검증은 별도 테스트 결과를 따른다. 프로젝트 Equipment/System 번역입력의 omission/clear/stale 전용브라우저 조합은 별도로 실행하지 않았으며, 공용translation helper·12-owner HTTP/SQLite와 기존CRUD 검사와 구분한다. 새 exact Head의 공식 전체CI·독립인간QA·Owner판정과 운영/Windows/실제AT검증은 별도다.
+
+## C002 보완 — 복합 설명의 의미와 오류 소비자
+
+Resource Plan descriptor의 현재 언어 inner 설명을 그리기 전에 host가 검증된 projection의 Project 근거 여부를 따로 보존한다. Project 전체 부하 근거 wrapper도 현재 언어로 렌더하며 selected 범위와 사용자 원문에는 적용하지 않는다. Issue 오류는 전용code allowlist의key를표시하며 backend rawmessage를 UI기대값으로삼지않는다. 별도국가캘린더/WBS의opaque-error 경계관찰은 이번CI직접회귀와구분해원장C002 E에DEFERRED로남겼으며전역오류신뢰검증완료로주장하지않는다.
+
+[Project 전체 부하 근거 실제 한국어 화면](evidence/issue-866/ci3523-project-load-evidence-ko.png)은로컬working sourceeaa90be1bb19d08db2091017caf61e45e4bc52d2bf8ba0f3a45c370f1640d99b의보완을보여준다. 고유29spec/174PASS와별도로기존차트case를한번더실행해캡처했으며중복합산하지않았다. 보조캡처의첫시도는임시config의상대reporter경로오류로NOT RUN이었고, 해당로컬경로를교정한실제1casePASS를사용했다. 새Head원격CI/독립QA증거가아니다.

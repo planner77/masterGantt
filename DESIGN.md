@@ -424,3 +424,7 @@ Issue는 **compact toolbar(전체/완료/진행 중/등록 건수·비율 + 등�
 - 3열 Header(브랜드/내비게이션/언어·알림)를 유지한다. 오른쪽 `header-actions`의 Locale selector는 기본 7.5rem·좁은 화면 5.5rem 최대폭, focus outline, 명시 label/ARIA를 제공한다. 기존 알림 Portal `workspace-notification-slot`를 별도 안쪽 DOM에 보존한다. 좁은 화면에서 메뉴의 **내부 가로 스크롤**만 허용하고 바깥 문서 overflow를 금지한다.
 - SVAR Gantt/Core/Calendar의 사용자 정의 ko/en/vi `Locale words`는 같은 Gantt 인스턴스를 재사용한다. `weekStart=1`, ISO W##, 일정·기간·Working Calendar·scroll/selection·Task ID/원본 DB는 언어만 바꾸어 수정하지 않는다. Phase A는 Shell/Gantt static words만 구현하며 Dashboard/Issue/기준정보/TaskEditor 및 모든 domain 메시지는 Phase C 전까지 일부 한국어 fallback이다.
 - 기준정보 언어별 번역명 **DB 등록/편집/검색/권한/Copy·Template**는 이번 UI/클라이언트 작업에 포함되지 않으며 Issue #866 Phase B/C 완료 전 전체 다국어 기능 완료 또는 배포를 선언하지 않는다. [Phase A 계약](docs/I18N_PHASE_A.md) 및 [Work Packet](docs/exec-plans/active/ISSUE_866.md).
+
+## Issue #866 C002 — Resource Project 부하 근거 표시 보존
+
+검증된 Plan projection의 demandScope=project 일정 이동은 현재 언어의 Plan 설명에 기존 Project 전체 부하 근거 구분을 함께 표시한다. descriptor가 있어도 이 의미를 생략하지 않는다. 개인/Project 참고 caption은 권한·범위의 근거가 아니며 Task·Assignment ID와 Summary 문맥·복귀 동작은 기존 검증 경계를 유지한다.
