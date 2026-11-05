@@ -1,8 +1,15 @@
+## REWORK-B001 — Main 대상 검증/번역 초안 보호 (2026-11-05)
+
+- 최초 #879 stacked PR은 base.ref=main 필수 신뢰된 QA Preflight에서 차단되었다. PR 대상만 main으로 변경해 Main 대비 Phase A+B 변경을 검증한다. 이 조치는 #878 병합·릴리스 승인이 아니다.
+- Code Review P1의 TEST_PLAN 원문 정책 유실은 Phase A Git Blob SHA 990eee5e...로 복원하고 본 Phase B 문서와 Work Packet에 새 테스트 소유권을 기록한다.
+- Code Review P2는 TranslationEditor 초안 revision을 값과 함께 보존하고 다른 관리 변경으로 catalog revision이 갱신되면 저장을 막아 해결한다. 기존 초안은 alert와 함께 보존하고 취소 후 최신 항목을 다시 열어야 저장된다. 401/412 복구, 기존 전역/프로젝트 권한 및 저장 revision CAS는 유지.
+- 기존 tests/e2e/resource-catalog-delete.spec.ts에 동시 수정 lost-update 방지 회귀를 추가한다. 145 E2E spec, 8 shard, Required3 및 이전 이력 모두 보존. 신규 HEAD Full CI 이전 테스트 상태 NOT TESTED.
+
 # Issue #866 — Phase B: 관리형 기준정보 번역 저장·소유권·UI
 
 ## 기준·변경 경계 (2026-11-05)
 
-- 선행 PR: #878 Phase A, Head 8fca83bbc12cf516cd7f22438fa16c6b596d80fb, 기준 Main 364aa3bdfde16fd3ca79add61c35a1cde21f6395. 본 단계는 Phase A 위에 쌓은 종속 PR이며 Main에 직접 병합하지 않는다.
+- 선행 PR: #878 Phase A, Head 8fca83bbc12cf516cd7f22438fa16c6b596d80fb, 기준 Main 364aa3bdfde16fd3ca79add61c35a1cde21f6395. 본 단계는 Phase A 위에서 구현했으며, 첫 CI 차단 후 PR #879 target을 main으로 정렬하여 Phase A+B diff를 검증한다. 병합은 Phase C 및 Owner 최종 인수까지 금지한다.
 - 원본 통합 PR #870은 역사적 구현 참고 자료로만 사용한다. #865 LLM, #869 Issue UI 및 이전 0.140.0 트리를 이식하지 않으며, 실제 충돌 검사 후 #866 관련 변경만 선택 적용한다.
 - 범위: migration 0036, 12개 owner별 번역 저장, API/DTO 추가형 필드, 글로벌/프로젝트 도메인 서비스 기존 인증 및 revision 트랜잭션, Copy/Template v6 번역 보존, 손실 있는 일정 JSON/Excel export 명시 거부, 관리자 입력 UI 및 관련 회귀 검증.
 - 이 PR 자체는 정식 릴리스가 아니며 Phase C 전체 화면 문자열·Gantt 상태·5폭/전체 권한 실증 전 #866 완료, 병합, GHCR 게시 금지. HIGH / OWNER_MANAGED / qa_required=true / release_required=true / release_authorized=false.

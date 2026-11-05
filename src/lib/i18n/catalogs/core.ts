@@ -1,5 +1,9 @@
 /** Static source-controlled UI messages. Korean source keys are the safe fallback. */
 export const coreMessages = {
+  "기준정보가 변경되었습니다. 보존된 번역 초안은 저장할 수 없습니다. 취소한 뒤 최신 목록에서 다시 편집하세요.": {
+    en: "The catalog has changed. This preserved translation draft cannot be saved. Cancel and reopen the latest item.",
+    vi: "Danh mục đã thay đổi. Không thể lưu bản nháp bản dịch đã giữ. Hãy hủy và mở lại mục mới nhất.",
+  },
   "언어": { en: "Language", vi: "Ngôn ngữ" },
   "표시 언어": { en: "Display language", vi: "Ngôn ngữ hiển thị" },
   "저장": { en: "Save", vi: "Lưu" },

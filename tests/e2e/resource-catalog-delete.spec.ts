@@ -245,3 +245,57 @@ test("Issue #329: DELETE revalidation closes stale confirmation dialogs", async 
   await expect(page.getByText("다른 관리자 삭제 리소스", { exact: true })).toHaveCount(0);
   await expect(page.getByText("다른 관리 변경이 먼저 저장되었습니다. 최신 목록을 불러왔습니다. 초안을 확인한 후 다시 저장해 주세요.", { exact: true })).toBeVisible();
 });
+
+
+test("Issue #866: refreshed Resource Group revision blocks stale translation draft without overwriting another editor", async ({ page }) => {
+  let revision = 7;
+  let attemptedWrites = 0;
+  const group = {
+    id: "33333333-3333-4333-8333-333333333333",
+    name: "원본 그룹", code: "GRP", description: "", active: true,
+    memberResourceIds: [], projectUsageCount: 0, deletable: true,
+    translations: { en: "Original team", vi: "Đội cũ" },
+  };
+  const catalog = () => ({ data: { revision, resources: [], groups: [group] } });
+  await page.route("**/api/resource-catalog/admin-sessions", route =>
+    route.fulfill({ status: 204 }));
+  await page.route("**/api/resources", route =>
+    route.fulfill({ status: 200, json: catalog() }));
+  await page.route("**/api/resource-groups/**", async route => {
+    if (route.request().method() !== "PATCH") { await route.continue(); return; }
+    attemptedWrites++;
+    expect(route.request().headers()["if-match"]).toBe('"8"');
+    expect(route.request().postDataJSON()).toEqual({ translations: { en: "Fresh English", vi: "Đội mới" } });
+    revision = 9;
+    group.translations.en = "Fresh English";
+    await route.fulfill({ status: 200, json: catalog() });
+  });
+
+  await page.goto("/resources");
+  await page.getByLabel("관리자 비밀번호", { exact: true }).fill("resource-admin");
+  await page.getByRole("button", { name: "로그인", exact: true }).click();
+  await page.getByRole("tab", { name: /^리소스 그룹/ }).click();
+  await page.getByRole("button", { name: "표시명 번역", exact: true }).click();
+  const translations = page.getByRole("group", { name: "언어별 표시명 (선택)" });
+  await translations.getByLabel("English", { exact: true }).fill("Stale English");
+
+  // Simulate another administrator committing Vietnamese while this draft is open.
+  revision = 8;
+  group.translations.vi = "Đội mới";
+  await page.getByRole("button", { name: "새로고침", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("기준정보가 변경되었습니다");
+  await expect(translations.getByLabel("English", { exact: true })).toHaveValue("Stale English");
+  await expect(translations.getByLabel("Tiếng Việt", { exact: true })).toHaveValue("Đội cũ");
+  await expect(page.getByRole("button", { name: "번역 저장", exact: true })).toBeDisabled();
+  expect(attemptedWrites).toBe(0);
+
+  // Explicit cancellation discards the stale snapshot, reopening gets newest Vietnamese.
+  await page.getByRole("button", { name: "취소", exact: true }).click();
+  await page.getByRole("button", { name: "표시명 번역", exact: true }).click();
+  await expect(translations.getByLabel("Tiếng Việt", { exact: true })).toHaveValue("Đội mới");
+  await translations.getByLabel("English", { exact: true }).fill("Fresh English");
+  await page.getByRole("button", { name: "번역 저장", exact: true }).click();
+  await expect.poll(() => attemptedWrites).toBe(1);
+  await expect(page.getByText("변경사항을 저장했습니다.", { exact: true })).toBeVisible();
+  expect(group.translations.vi).toBe("Đội mới");
+});

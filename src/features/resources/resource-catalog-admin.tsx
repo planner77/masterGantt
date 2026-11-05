@@ -2,7 +2,7 @@
 import { displayName } from "../../lib/i18n";
 import { useI18n } from "../../lib/i18n/provider";
 
-import { TranslationFields, TranslationEditor, type DisplayNameTranslations } from "@/components/translation-fields";
+import { TranslationFields, TranslationEditor, type DisplayNameTranslations, type TranslationDraftSnapshot } from "@/components/translation-fields";
 import { ContextHelp } from "@/components/ui/context-help";
 
 import { IdentifierDetails } from "@/components/identifier-details";
@@ -106,8 +106,8 @@ export function ResourceCatalogAdmin() {
   const [authenticated, setAuthenticated] = useState(false);
   const [catalogState, setCatalogState] = useState<"loading" | "ready" | "error">("error");
   const [notice, setNotice] = useState<string | null>(null);
-  const [translationDrafts,setTranslationDrafts] = useState<Record<string,DisplayNameTranslations>>({});
-  function updateTranslationDraft(key:string,value:DisplayNameTranslations|undefined) {
+  const [translationDrafts,setTranslationDrafts] = useState<Record<string,TranslationDraftSnapshot>>({});
+  function updateTranslationDraft(key:string,value:TranslationDraftSnapshot|undefined) {
     setTranslationDrafts(previous=>{const next={...previous};if(value===undefined)delete next[key];else next[key]=value;return next;});
   }
   const pending = useRef(false);
@@ -680,7 +680,7 @@ export function ResourceCatalogAdmin() {
           <tbody>{filteredGroups.map((group) => <tr key={group.id} className={group.active ? undefined : styles.inactive}>
             <td><strong title={displayName(group, locale)}>{displayName(group, locale)}</strong><IdentifierDetails label={t("{value0} 식별 정보", {value0: displayName(group, locale)})} identifiers={[{label:"그룹 ID",value:group.id},...(group.code?[{label:"코드",value:group.code}]:[])]}/></td><td>{group.memberResourceIds.length}{t("명")}</td>
             <td>{group.active ? t("활성") : t("비활성")}<span id={`group-usage-${group.id}`} className={styles.usageNote}>{projectUsageReason(group)}</span></td>
-            <td><div className={styles.rowActions}><TranslationEditor item={group} cachedDraft={translationDrafts[`resource-group:${group.id}`]} onDraftChange={value=>updateTranslationDraft(`resource-group:${group.id}`,value)} disabled={locked} onSave={translations => mutate(`/api/resource-groups/${encodeURIComponent(group.id)}`, "PATCH", {translations})}/><button className="secondary-button" type="button" disabled={locked} onClick={() => requestGroup(group)}>{t("구성원")}</button><button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resource-groups/${encodeURIComponent(group.id)}`, "PATCH", { active: !group.active })}>{group.active ? t("비활성화") : t("재활성화")}</button><button className={group.deletable === true ? "danger-button" : "secondary-button"} type="button" disabled={locked} aria-disabled={group.deletable !== true} aria-describedby={`group-usage-${group.id}`} aria-label={`${displayName(group, locale)} ${group.deletable === true ? "삭제" : "삭제 불가"}`} onClick={(e) => requestDelete("group", group, e)}>{group.deletable === true ? t("삭제") : t("삭제 불가")}</button></div></td>
+            <td><div className={styles.rowActions}><TranslationEditor item={group} revision={catalog.data.revision} cachedDraft={translationDrafts[`resource-group:${group.id}`]} onDraftChange={value=>updateTranslationDraft(`resource-group:${group.id}`,value)} disabled={locked} onSave={translations => mutate(`/api/resource-groups/${encodeURIComponent(group.id)}`, "PATCH", {translations})}/><button className="secondary-button" type="button" disabled={locked} onClick={() => requestGroup(group)}>{t("구성원")}</button><button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resource-groups/${encodeURIComponent(group.id)}`, "PATCH", { active: !group.active })}>{group.active ? t("비활성화") : t("재활성화")}</button><button className={group.deletable === true ? "danger-button" : "secondary-button"} type="button" disabled={locked} aria-disabled={group.deletable !== true} aria-describedby={`group-usage-${group.id}`} aria-label={`${displayName(group, locale)} ${group.deletable === true ? "삭제" : "삭제 불가"}`} onClick={(e) => requestDelete("group", group, e)}>{group.deletable === true ? t("삭제") : t("삭제 불가")}</button></div></td>
           </tr>)}</tbody>
         </table>
       </div>

@@ -2,7 +2,7 @@
 import { displayName } from "../../lib/i18n";
 import { useI18n } from "../../lib/i18n/provider";
 
-import { TranslationFields, TranslationEditor, type DisplayNameTranslations } from "@/components/translation-fields";
+import { TranslationFields, TranslationEditor, type DisplayNameTranslations, type TranslationDraftSnapshot } from "@/components/translation-fields";
 
 import { useEffect, useMemo, useRef, useState, type FocusEvent, type FormEvent, type KeyboardEvent } from "react";
 import type {
@@ -64,8 +64,8 @@ export function ProjectMasterAdmin() {
   const passwordTrigger = useRef<HTMLButtonElement>(null);
   const loginInput = useRef<HTMLInputElement>(null);
   const categoryTabs = useRef<HTMLDivElement>(null);
-  const [translationDrafts,setTranslationDrafts] = useState<Record<string,DisplayNameTranslations>>({});
-  function updateTranslationDraft(key:string,value:DisplayNameTranslations|undefined) {
+  const [translationDrafts,setTranslationDrafts] = useState<Record<string,TranslationDraftSnapshot>>({});
+  function updateTranslationDraft(key:string,value:TranslationDraftSnapshot|undefined) {
     setTranslationDrafts(previous=>{const next={...previous};if(value===undefined)delete next[key];else next[key]=value;return next;});
   }
   const pending = useRef(false);
@@ -406,7 +406,7 @@ export function ProjectMasterAdmin() {
                       <td>
                         <div className={styles.nameControl}><input aria-invalid={fieldErrors[`${item.id}-name`] ? true : undefined} aria-describedby={fieldErrors[`${item.id}-name`] ? `${item.id}-name-error` : undefined} aria-label={t("{value0} 이름", {value0: displayName(item, locale)})} value={draft.name} title={draft.name} maxLength={200} disabled={busy || state !== "ready"}
                           onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, name: event.target.value } }))} />
-                        <TranslationEditor item={item} presentation="dialog" compactTrigger cachedDraft={translationDrafts[`project-master:${item.id}`]} onDraftChange={value=>updateTranslationDraft(`project-master:${item.id}`,value)} disabled={busy || state !== "ready"} onSave={(translations) => mutate(`/api/project-master/admin/items/${encodeURIComponent(item.id)}`, "PATCH", { translations })} /></div>
+                        <TranslationEditor item={item} revision={catalog!.data.revision} presentation="dialog" compactTrigger cachedDraft={translationDrafts[`project-master:${item.id}`]} onDraftChange={value=>updateTranslationDraft(`project-master:${item.id}`,value)} disabled={busy || state !== "ready"} onSave={(translations) => mutate(`/api/project-master/admin/items/${encodeURIComponent(item.id)}`, "PATCH", { translations })} /></div>
                         {fieldErrors[`${item.id}-name`] ? <p id={`${item.id}-name-error`} className={styles.error}>{fieldErrors[`${item.id}-name`]}</p> : null}
                       </td>
                       <td>

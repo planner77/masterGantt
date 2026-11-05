@@ -1,3 +1,20 @@
+## REWORK-B001 — PR #879 Full #3510.1 Preflight BLOCKED 및 Codex P1/P2 보완 (2026-11-05)
+
+- 원본 Full #3510.1 / Run 41941093006.1, HEAD dfc967258f5fa0cc8e188d116cdccd734f49c771, Base #878 HEAD 8fca83bbc12cf516cd7f22438fa16c6b596d80fb, test-merge 28d4bb5ece15503393808ecbcc5410168264fe02. 직접 QA Preflight 126961958453 POLICY_CI FAIL (base.ref != main), Fast Gate/Required3/QA Final은 파생. Vitest/TypeScript/E2E8/Docker NOT RUN.
+- 설계 변경: 신뢰된 main-base QA 정책은 유지하고 PR #879의 GitHub 대상만 main으로 변경. Main diff에는 Phase A+B가 포함되나 선행 #878은 그대로 OPEN, 병합/정식 GHCR/Issue #866 종료는 승인되지 않음.
+- Codex P1: Phase B 작성 시 docs/TEST_PLAN.md가 빈 fetch content로 덮인 결함. Phase A 원본 Git Blob 990eee5eb1e21cbffcd091b1331dba315d5990ee로 복원. 기존 5762줄 정책 source 보존, Phase B 테스트 내역은 본 Work Packet/별도 설계·실패 원장에서 추적.
+- Codex P2: TranslationEditor는 snapshot(revision, translations)을 캐시하고 현재 catalog revision 변화 시 저장을 막고 경고를 표시. 리소스 그룹과 프로젝트 마스터 양쪽 적용. 서버 If-Match 변경 없이 stale silent overwrite 방지.
+
+### TEST_LIFECYCLE_REVIEW (REWORK-B001)
+- EXTEND tests/e2e/resource-catalog-delete.spec.ts: 2명 관리자 동시 갱신(모의), refresh revision 갱신, stale draft 저장0/초안 보존/경고, 취소 후 재열기, 최신 vi 유지 및 en 저장 확인.
+- KEEP_UNIQUE #866 기존 관리형 마스터 SQLite/HTTP 테스트, Phase A locale shell, 145개 E2E spec/8 shards/Required3 및 QA 원본 검증. 신규 E2E 파일 없음. 전체 신규 source의 원격 테스트 결과는 NOT TESTED.
+- AC04/AC05 revision 경쟁 회귀 방어, AC06 원본 migration/Copy/Template 불변; AC02/03/07/08/09 Phase C 미완료.
+
+### DOCUMENTATION_SYNC (REWORK-B001)
+- UPDATED docs/ISSUE_866_FAILURE_ANALYSIS.md, docs/exec-plans/active/ISSUE_866.md, docs/I18N_PHASE_B.md, docs/REMOTE_VALIDATION.md, PR #879 및 component/consumer/E2E.
+- RESTORED docs/TEST_PLAN.md to exact Phase A source Blob; 정책 내용/원본 line 손실 없이 기존 Test Lifecycle source of truth 유지.
+- N/A AGENTS.md, scripts/qa_preflight.py, CI workflow, QA/Trusted/Owner, packages, DB migration/권한 정책 수정 없음.
+
 ## PHASE_B_DELIVERY — 2026-11-05 (종속 PR / 최신 상태)
 
 - Phase A Full PR #878 [#3509.1](https://github.com/planner77/masterGantt/actions/runs/41930396372) 성공 확인. 병합 및 정식 릴리스 미승인.
@@ -20,7 +37,7 @@
 
 ### DOCUMENTATION_SYNC (Phase B 추가)
 
-- UPDATED: docs/I18N_PHASE_B.md, docs/exec-plans/active/ISSUE_866.md, docs/ISSUE_866_FAILURE_ANALYSIS.md, docs/DB_SCHEMA.md, docs/API.md, docs/TEST_PLAN.md, docs/REMOTE_VALIDATION.md, docs/SECURITY.md, docs/IMPORT_EXPORT.md, docs/UI_UX_GUIDELINES.md, docs/PROJECT_UX.md, docs/LOGISTICS_DOMAIN_DESIGN.md, DESIGN.md, CHANGELOG.md, docs/REQUIREMENTS.md.
+- UPDATED: docs/I18N_PHASE_B.md, docs/exec-plans/active/ISSUE_866.md, docs/ISSUE_866_FAILURE_ANALYSIS.md, docs/DB_SCHEMA.md, docs/API.md, docs/TEST_PLAN.md (원본 복원), docs/REMOTE_VALIDATION.md, docs/SECURITY.md, docs/IMPORT_EXPORT.md, docs/UI_UX_GUIDELINES.md, docs/PROJECT_UX.md, docs/LOGISTICS_DOMAIN_DESIGN.md, DESIGN.md, CHANGELOG.md, docs/REQUIREMENTS.md.
 - N/A: AGENTS.md (기존 QA/보안/독립 Owner 규칙 준수, 정책 변경 없음), docs/ARCHITECTURE.md (서버·배포 토폴로지 불변), CI workflow/Runner/Required3/GHCR 운영 변경 없음.
 
 # Issue #866 — 한국어·영어·베트남어 국제화 / 최신 Main 분리 실행 계획

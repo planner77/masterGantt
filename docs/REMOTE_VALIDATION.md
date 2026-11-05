@@ -1,3 +1,10 @@
+## Issue #866 Phase B #879 CI #3510.1 후속 검증 (2026-11-05)
+
+- 최초 Full 41941093006.1: trusted Preflight BLOCKED(base ref가 main 아님) 1건 직접. Fast Gate/Required Quality/E2E/Docker/QA Final은 파생; 실제 TypeScript/Vitest/E2E8/Docker NOT RUN.
+- 다음 Full은 base=main과 새 정확 Head/Test-Merge SHA 및 원본 GitHub run/attempt를 확인한다. Main 대비 Phase A+B를 검증하며 기존 #878 PASS와 이전 #879 FAIL을 서로 섞지 않는다.
+- 위반 경계 교정: TEST_PLAN Phase A Git Blob 보존, Resource Group/Project Master stale revision 번역 초안 저장 거부 테스트, 12 owner SQLite 및 HTTP, Copy/Template/Export 보호. 운영 data backup/restore 및 전 영역 Phase C는 별도.
+- 이번 보완까지 신규 source 실제 실행 NOT TESTED. release_authorized=false, 병합/정식 GHCR/Issue 종료 보류.
+
 ## Issue #866 Phase B 종속 PR — 정확 Head 검증 계획 (2026-11-05)
 
 - Phase A PR #878 성공 Full CI #3509.1은 Phase B 검증 근거가 아니다. Phase B는 Phase A HEAD 기반 별도 브랜치의 test-merge SHA·Head/Base를 확인해야 하며, Trusted QA strict main 정책/Owner 수용을 우회하지 않는다.

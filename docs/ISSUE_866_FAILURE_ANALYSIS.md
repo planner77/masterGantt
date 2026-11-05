@@ -1,3 +1,21 @@
+## PR #879 FULL-B001 — #3510.1 QA Preflight의 non-main base 정책 차단 (2026-11-05 KST)
+
+### A. 원본 실행 및 직접·파생 구분
+
+- Primary Issue #866 / PR #879. Full PR CI #3510.1: https://github.com/planner77/masterGantt/actions/runs/41941093006 (Run 41941093006, Attempt 1, pull_request.opened, FAILURE). HEAD dfc967258f5fa0cc8e188d116cdccd734f49c771; 이벤트 Base 8fca83bbc12cf516cd7f22438fa16c6b596d80fb (Phase A PR #878); Checkout test-merge 28d4bb5ece15503393808ecbcc5410168264fe02. 추후 PR base 갱신이 과거 이벤트 출처를 소급 변경하지 않는다.
+- **직접 차단:** QA Preflight Job 126961958453 / step 4, 원본 base SHA의 scripts/qa_preflight.py 실행. 정책 코드 71행은 live pull request base.ref == main을 필수로 검사한다. 실제 PR base.ref=feat/issue-866-i18n-phase-a-main이므로 BLOCKED. 원본 출력: 'PR 최신 Head/base 변경·대상 저장소 불일치 (새 full CI 필요)'; deterministic FAIL=0, DEFERRED=0. 출처 API 오류/제품·SQLite 오류라는 증거는 없음. 분류 POLICY_CI / PR_BASE_CONTRACT.
+- **파생:** PR Fast Gate Job 126962081626 FAILURE (PREFLIGHT_RESULT=failure, Policy/TypeScript/Lint/Vitest 모두 SKIPPED), Required Quality 126962207510 / E2E 126962207560 / Docker 126962207386 FAILURE 집계, QA Final 126962252068 FAILURE (required quality 미성공). Policy, ESLint, TypeScript, Vitest, Next Build, Chromium 8 shards, 실제 Docker implementation 전부 SKIPPED/NOT RUN. changes 126961782052 및 impact shadow 126962252220 SUCCESS는 구현 PASS 근거 아님.
+- 독립 리뷰: Codex top-level comment https://github.com/planner77/masterGantt/pull/879#issuecomment-6646137991 (P1 Test Plan 의도치 않은 5762줄 삭제, P2 오래된 TranslationEditor draft가 최신 revision을 차용해 다른 관리자 vi 변경을 덮을 수 있는 silent lost update). 별도 리뷰 스레드 목록 최초 0건; 두 리뷰 지적은 #3510.1 Preflight의 직접 실패 원인이 아니며 보완 범위로 분리한다.
+
+### B. 전체 실패 이력 교차·설계·보완
+
+- #878의 FULL-001 shard count TEST_CONTRACT, FULL-002 SVAR 영어 header TEST_CONTRACT 원본 기록 불변. 성공한 #878 Full #3509.1 (Run 41930396372)는 Phase A HEAD 8fca83...에만 유효하며 #879 신규 코드의 PASS 근거 아님. 이전 통합 #870의 LLM/Issue UI 및 HTTP failures 역시 별도 source.
+- POLICY_CI: scripts/qa_preflight.py, workflows/ci.yml, Required3, Trusted/Owner 정책을 변경하지 않는다. PR #879의 대상만 main으로 전환하여 Phase A+B 합산 diff를 올바른 Main-target Full CI로 검증한다. PR #878/879 병합, GHCR, Issue #866 종료는 여전히 HOLD.
+- P1 DOCUMENT_INTEGRITY: 이전 코드 작성 시 대용량 docs/TEST_PLAN.md의 fetch_file content가 빈 문자열로 돌아와 6줄 요약으로 잘못 대체했다. Phase A base의 원본 Blob SHA 990eee5eb1e21cbffcd091b1331dba315d5990ee (829625 UTF-8 chars, 5765 LF 포함 줄수)를 별도 fetch_blob으로 확인하고 Git Tree에 SHA 원본으로 복원. Main 원본이 아니라 Phase A에서 갱신된 문구까지 보존. #711 Test Lifecycle/#697 정책 삭제 방지. Phase B 계획은 Work Packet/원장 및 별도 설계에 문서화한다.
+- P2 CONCURRENT_EDIT: TranslationEditor 캐시 초안을 값만 저장하는 방식에서 revision+translations snapshot으로 변경, 처음 열 때의 catalogRevision을 고정한다. Project Master/Resource Group 양쪽에서 revision 전달, 401 재인증과 412 재조회 후에도 draft의 원래 revision 유지. 현재 revision이 다르면 role=alert, save disabled와 클릭 가드, 원본 초안 보존. 사용자는 취소 후 최신 row를 다시 열어 명시적으로 새 번역을 확인한다. 서버 If-Match/권한/Origin/CAS는 변경하지 않음.
+- TEST_LIFECYCLE_REVIEW: 기존 tests/e2e/resource-catalog-delete.spec.ts에 다른 관리자 Vietnamese 갱신과 카탈로그 새로고침, 기존 English draft 보존, stale PATCH=0, 안내, 취소/다시 열기, 최신 revision PATCH와 Vietnamese 유지 assertion 추가. KEEP_UNIQUE 원래 145개 spec file/8-shard 계획, #866 Unit/SQLite/HTTP/Gantt, Required3. 추가 spec 파일/샤드 변경 없음.
+- 검증 경계: 정적 Git Blob/Tree source 검토만 완료, 새로운 Head의 TypeScript/Vitest/SQLite/HTTP/Playwright/Docker/Trusted 실제 실행은 NOT TESTED. #866 Phase C 및 운영 backup/restore·12 owner 동시쓰기 검증 미완료. HIGH / OWNER_MANAGED / qa_required=true / release_required=true / release_authorized=false; GHCR/merge/issue close 보류.
+
 ## Phase B 분리 착수 (2026-11-05) — 원격 실패 미확인
 
 - #878 정확 HEAD `8fca83bbc12cf516cd7f22438fa16c6b596d80fb`의 Full CI #3509.1 성공은 Phase A 범위만 증명한다. Phase B는 별도 Head/트리, 최초 PR CI 전 **NOT TESTED**.
