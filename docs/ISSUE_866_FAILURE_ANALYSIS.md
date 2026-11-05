@@ -1,3 +1,63 @@
+## PR #879 B008 — 전체 이력 대조와 취소 샤드 실제 오류 (2026-11-05 KST)
+
+기준 Head `a7cbef53bd0c89f4f3a7a3c3ed5a76ba7cb2266e`, main/base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`. Manager·별도 infra가 원장 전체와 PR #879의 접근 가능한 CI 10회/각 attempt 1을 대조했다. Full 8회와 metadata 2회이며 #3511은 Full이 아닌 metadata 취소다. 실제 job 이름을 기준으로 세 Required aggregate를 아래 순서에 대응시켰다. [정제 원격 증거](evidence/issue-866/pr879-ci-cumulative-20261105.json).
+
+| Run/Attempt · 모드·원본 결론 | Head / base / test-merge | 직접 Job·증상 | Required quality / e2e / docker Job:결론 |
+| --- | --- | --- | --- |
+| [#3510.1](https://github.com/planner77/masterGantt/actions/runs/41941093006) · FINAL_FULL · FAILURE | `dfc967258f5fa0cc8e188d116cdccd734f49c771` / `8fca83bbc12cf516cd7f22438fa16c6b596d80fb` / `28d4bb5ece15503393808ecbcc5410168264fe02` | 126961958453: non-main base 정책 BLOCKED; 제품 검증 미실행 | 126962207510:FAILURE / 126962207560:FAILURE / 126962207386:FAILURE |
+| [#3511.1](https://github.com/planner77/masterGantt/actions/runs/41942375933) · METADATA_ONLY · CANCELLED | `dfc967258f5fa0cc8e188d116cdccd734f49c771` / `NOT AVAILABLE` / `NOT AVAILABLE` | N/A: METADATA_ONLY CANCELLED; changes job 로그404 BlobNotFound, 상세 취소원인 불명; Required3는 파생FAIL | 126966126464:FAILURE / 126966126616:FAILURE / 126966126553:FAILURE |
+| [#3512.1](https://github.com/planner77/masterGantt/actions/runs/41942377243) · METADATA_ONLY · FAILURE | `dfc967258f5fa0cc8e188d116cdccd734f49c771` / `364aa3bdfde16fd3ca79add61c35a1cde21f6395` / `019efd0152987b3886287b5a88ac59c0549f7b24` | 126966322719: METADATA_ONLY FULL_FAILED: full_run41941093006.1 failure, 새 제품 오류 아님 | 126966461402:FAILURE / 126966461558:FAILURE / 126966461459:FAILURE |
+| [#3513.1](https://github.com/planner77/masterGantt/actions/runs/41943199412) · FINAL_FULL · FAILURE | `20f106f39f90d838193234c5bb0320977fe4af91` / `364aa3bdfde16fd3ca79add61c35a1cde21f6395` / `1645f96490dc08e09efbe082c38b4de4f84213f4` | 126968984659: DOC_SYNC: docs/IMPORT_SCHEMA.md 기록 누락 | 126969223864:FAILURE / 126969223984:FAILURE / 126969223914:FAILURE |
+| [#3514.1](https://github.com/planner77/masterGantt/actions/runs/41946308147) · FINAL_FULL · FAILURE | `420781ac039e75adbc4143525a848c5e6bb2ca68` / `364aa3bdfde16fd3ca79add61c35a1cde21f6395` / `765f10ba4696cad4b269741eb57f563d18fdb94a` | 126979392129: 동일 DOC_SYNC canonical section 누락 재발 | 126979630276:FAILURE / 126979630213:FAILURE / 126979630198:FAILURE |
+| [#3515.1](https://github.com/planner77/masterGantt/actions/runs/41947822098) · FINAL_FULL · FAILURE | `7e861e458135f6fe35e88394ed376b152420c688` / `364aa3bdfde16fd3ca79add61c35a1cde21f6395` / `0830598ae1250fbfcdec1686046caa3c86a793fb` | 126984569355, 126984569338: TypeScript10건(TS2554=1/TS2339=8/TS2352=1), Vitest migration 기대3건 | 126985342802:FAILURE / 126985343007:FAILURE / 126985342931:FAILURE |
+| [#3516.1](https://github.com/planner77/masterGantt/actions/runs/41956539012) · FINAL_FULL · FAILURE | `7bce2814ee96bdb168ad1e7556792183b4f5f8fd` / `364aa3bdfde16fd3ca79add61c35a1cde21f6395` / `6dabd4bce384bb7c56a45981016824eecdb674dd` | 127012793287: DOC_SYNC: docs/SCHEDULING_ENGINE.md 영향 기록 누락 | 127012998149:FAILURE / 127012998121:FAILURE / 127012998128:FAILURE |
+| [#3517.1](https://github.com/planner77/masterGantt/actions/runs/41960950080) · FINAL_FULL · FAILURE | `1dfc5d7f5ec0ee0252773ba3900971ec977a2d90` / `364aa3bdfde16fd3ca79add61c35a1cde21f6395` / `2264f3ae06ae6a3461b7b68b60c01d2ef7f8fca3` | 127027137923: TypeScript TS2339 2건: mixed catalog translations optional field 추론 | 127027853794:FAILURE / 127027853908:FAILURE / 127027853727:FAILURE |
+| [#3518.1](https://github.com/planner77/masterGantt/actions/runs/41965727570) · FINAL_FULL · FAILURE | `b8a90a709fa126efbad5bff8dcd1acd45449a50c` / `364aa3bdfde16fd3ca79add61c35a1cde21f6395` / `d7cda7b58a284f3e5b200e6bec2a8d17a703460f` | 127043119334: Shard7 populated row 기대<=48px,실제87px; 나머지7 CANCELLED 로그 추가assertion없음 | 127043898809:SUCCESS / 127044095560:FAILURE / 127044497168:SUCCESS |
+| [#3519.1](https://github.com/planner77/masterGantt/actions/runs/41970024640) · FINAL_FULL · FAILURE | `a7cbef53bd0c89f4f3a7a3c3ed5a76ba7cb2266e` / `364aa3bdfde16fd3ca79add61c35a1cde21f6395` / `dbe1ffcb15791c997a974c3bf55479298c8495a0` | 127056885009, 127056885015: Shard3 coarse search 기대>=44px,실제20px; CANCELLED Shard7에서도 번역option 실제FAIL | 127057217560:SUCCESS / 127058207828:FAILURE / 127058288034:SUCCESS |
+
+### 원본 증거 보완·정정
+
+- #3511.1 metadata 취소는 changes 로그가 404 BlobNotFound여서 당시 base/test-merge 및 상세 취소 사유는 NOT AVAILABLE이다. 현재 PR 상태에서 추정하지 않는다. #3512.1 metadata Job `126966322719`의 `FULL_FAILED`는 원본 Full `41941093006.1` FAILURE를 참조한 결과이며 새 제품 오류가 아니다.
+- 역사적 B004의 TypeScript 9건 표기는 원본 로그 재대조 결과 **10건**(TS2554=1, TS2339=8, TS2352=1)으로 정정한다. 당시 기록은 보존하고 본 정정을 추가한다. Vitest migration 기대 실패는 기존 기록대로3건이다.
+- #3519.1 Shard3 Job `127056885009`, step `E2E shard 실행`, `tests/e2e/logistics-table-density.spec.ts:126`: coarse390의 검색 input 예상>=44px / 실제20px. 28 PASS /1 FAIL /1 기존 SKIP /123 NOT RUN. [원본 report](https://github.com/planner77/masterGantt/actions/runs/41970024640/artifacts/13388873732).
+- #3519.1 **CANCELLED Shard7 Job `127056885015`에도 실제 FAIL**이 있다. `tests/e2e/i18n-master-data.spec.ts:91`: `#project-business-unit` option 기대 `Assembly Team (I18N-0)` / 실제 `조립팀 A`, 5000ms. 18 PASS /1 실제 FAIL /60 NOT RUN. 취소로 report artifact는 없고 timing artifact `13388499567`과 원본 job 로그가 남는다. 취소를 오류 없음·PASS로 해석하지 않는다.
+- #3519 8샤드 계획874건 = 관측138 PASS /2 실제 FAIL /1 기존 SKIP /733 미완료·미실행이다. Shard3만 job FAILURE이고 나머지7개는 CANCELLED다. Shard7 이외6개 취소 로그에는 별도 assertion FAIL이 없었다. Shard7 `cross-screen-regression`3개는 실제 PASS여서 B007의87px 교정은 해당 원본에서 재검증됐지만 전체 샤드 성공은 아니다.
+- #3519 Preflight `127055970142`, Policy `127056066511`, TypeScript `127056066467`, ESLint `127056066469`, Vitest `127056066445`(293 files PASS/1 SKIP,3540 tests PASS/3 SKIP), Build `127056884903`, 실제 Docker `127056885005` SUCCESS. Required E2E `127058207828`와 QA Automated `127058312950` FAILURE는 위 직접 오류의 파생이다. GitCommitInfo3000ms 경고는 직접 assertion 실패와 구별한다.
+
+### 선행 PR #878/#870과 누적 원인 매트릭스
+
+- 추가 branch 전체 목록 조회에서 #878 CI3회(#3507/#3508 FAILURE, #3509 SUCCESS) 및 #870 CI8회(#3468~#3475 모두 FAILURE), 각 attempt1을 확인했다. 원본 #870 원장 마지막 기록 뒤 Full #3475.1 / Run `41728256911`, Head `ca58e987fd68261d9e9db97b4e931651350d6e4a`가 더 있어 해당 실패·취소 로그를 추가 대조한다. 기존 원장의7회 요약을 전체8회 원격 목록으로 정정하며 과거 기록은 보존한다.
+- #878 FULL-001/002는 아래 기존 원장의 exact Run/Head·샤드 수/영문 native Grid 헤더 교정 코드를 대조했다. 이번 재작업에서 #878 과거 원본 job 로그를 다시 수집한 것은 아니다. #3509.1 Phase A 성공을 Phase B 성공으로 합산하지 않는다.
+- #870의 원본 Head `ca58e987fd68261d9e9db97b4e931651350d6e4a`, 원장 blob `cb698e1d8443f23fa35ce610d63f44e2953cbaa6` 전체391행을 읽고 과거7회 실패 출처와 현재 코드를 비교했다. 과거7회 원격 run 로그 자체는 이번에 재수집하지 않았다. 도움말 중복·행87px·transport locale, country422 정보 손실, HTML entity, coarse20px, translations{} 전송, Milestone 공백, Task logistics raw409·process-context catch는 서로 다른 원인이며 #865/#869 전체 구 트리를 재이식하지 않는다.
+- 최신 물류20px는 #870 F866-TOUCH-006 / Full #3471.1 Run `41704268626`, Job `126158915804`의 검색 selector 교정이 Phase B 분리에서 누락된 **재발**이다. 번역 payload helper는 현재 이미 이식되어 있다. 물류 fixture의 translation 생략/해제 범위와 실제 DB/helper Unit 검증을 구별한다.
+
+| 누적 실패/검토 계약 | 현재 보완 및 같은 후보에서 재검증할 소비자 |
+| --- | --- |
+| #878 FULL-001 shard count / FULL-002 translated native header | shard planner Unit, Phase A i18n/date Unit, project-workspace-layout 및 language-shell |
+| #879 B001 main base / B002·B003 canonical DOC_SYNC / B005 Scheduling DOC_SYNC | main 대상·base validator docs_gate로 정규 DOCUMENTATION_SYNC 현재12문서 및 AC01~09 매핑 |
+| #879 B004 TS10·migration3 / B006 optional DTO TS2 | 전체 TypeScript·Vitest로 검색/DTO/SQLite·Calendar/Issue·Copy/Template/Export·권한 음성 |
+| #879 B007 master row87 / P2 stale draft | cross-screen/i18n-master-data/resource-catalog-delete/logistics-type-catalog-admin |
+| #879 B008 coarse search20 / translated option 누락 | searchField40/44, displayName(locale) label+동명 판정; 기존 직접 E2E 및 실제 선택기 렌더 Unit |
+| #870 역사적 관리자/공정/물류/Milestone 실패8파일 | 현재 존재 확인 후 관련15spec 한정 진단. production-transport는 기존 원격 Docker 환경에서 별도 검증 |
+
+### 원장 미기록 #870 Full #3475.1 추가 대조
+
+- [Run41728256911.1](https://github.com/planner77/masterGantt/actions/runs/41728256911), Head `ca58e987fd68261d9e9db97b4e931651350d6e4a`, Base `352a43e74c7b34c72d952f67783a53463f8b519d`, test-merge `66b0e01d46cf2037d5dbc11bcb5d9f1b4905c353`(changes Job `126238598081`). [정제 증거](evidence/issue-866/legacy-pr870-run3475-20261105.json), [전체 관련 PR 실행 목록](evidence/issue-866/related-pr-ci-inventory-20261105.json).
+- Shard8 Job `126241764149`: `project-multi-task-copy-paste.spec.ts:212`의 `press("삭제")`가 `Unknown key`로 직접 FAIL했다. 현재 Phase B는 main과 같은 `press("Delete")`를 유지한다. 제품 키보드 핸들러를 수정하지 않고 해당 기존 spec을 최종 진단에 추가한다.
+- **CANCELLED Shard6 Job `126241763988`도 실제 FAIL**: `master-controls-density.spec.ts:69` 전체 입력에 기존 padding8px/minHeight40px을 기대했으나 신규 TranslationFields는 설계대로6px 8px/44px이다. 현재 Phase B에도 같은 관측/단언이 남아 있어 번역 입력3개를 별도 정확 oracle로 검사하고 기존 원본 입력40px/8px 단언을 보존한다. Name→번역 trigger→Sort→Save→Deactivate의 추가 Tab 정지점도 기존3Tab 계약과 함께 보강한다. 스타일을 낮추거나 테스트를 제외하지 않는다.
+- #3475 전체874 = 관측348 PASS /2 FAIL /1 기존SKIP /523 미완료·미실행. Shard6 44 PASS/1 FAIL/1 SKIP/54 NOT RUN, Shard8 69 PASS/1 FAIL/34 NOT RUN이며 나머지6개 취소 로그에는 추가 assertion FAIL이 없었다. Quality `126242585716`, Docker `126244669558` SUCCESS; E2E `126248279139`, QA `126248323747` FAILURE는 위 오류의 파생이다. 원본 report artifact Shard6 `13276381868`/Shard8 `13276182404`는 별도 보존되며 PR #879 성공 근거로 전용하지 않는다.
+- #870 과거 실패 파일 합집합은8개가 아닌 **10개**로 확대한다. 추가된 `master-controls-density`와 `project-multi-task-copy-paste`를 포함해 현재 최종 bounded17spec을 새로 동결한다. 먼저 시작한15spec 진단과 새 최종source 결과를 구별하고 최종 source에서 과거/직접/인접·음성을 재검증한다.
+
+### 보완·로컬 재현 및 최종 source 검증
+
+- 첫15spec 중간 진단은61 PASS /3 FAIL /1기존SKIP,8.9분이다. fail-fast/retries 없이 끝까지 실행해 #454 412→GET200/GET500의 낡은 재저장 기대2건과 Resource Group stale 회귀의 전역alert strict locator 충돌1건을 추가로 확인했다. #454의 원인 alert와 stale-draft alert는 함께 존재하며 저장은 처음 revision과 다르면 계속 차단되는 것이 B002 정책이다. 최신 목록 재조회가 성공해도 오래된 초안을 새 revision으로 재전송하지 않는다. 테스트는 초안·두 원인·PATCH1 보존과 명시 취소/재열기 후 사용자 재입력·정확 If-Match7→8 저장을 검증하도록 교정한다. Resource Group 경고는 해당 번역 편집기 범위에서 검증하며 Next route announcer를 제거하거나 임의 첫 alert로 통과시키지 않는다. 제품의 경합 차단 코드는 변경하지 않는다.
+- 원본 `logistics-table-density` after 사례는 수정 전9.7초에서 coarse44px 기대/실제20px로 RED, 실제HTTP/SQLite `i18n-master-data`는 수정 전9.5초에서 영어option 기대/원문 표시로 RED를 재현했다. 선택기 실제 컴포넌트 렌더 회귀도 수정 전 RED를 확인했다. locale/browser/SSR 경계를 구분해 기존 선택기3개 Unit에 실제 render seam 회귀1개만 추가했다.
+- option 수정 후 기존 i18n E2E가 새 오류를 더 노출했다. ko5폭은 row47px PASS였지만 en390의 사용 건수 설명이 줄바꿈되어56.5px(기준<=48px)이었다. 기존 사전의 짧은 가시 Projects/Dự án 단위와 전체 title로 교정했다. 이어서 영어 category tabs의 intrinsic min-width로 문서398px(기준<=391px) overflow가 드러나 header/tabs의 min-width:0을 보강했다. 숨김·클리핑·행 높이/문서 폭 단언 완화 없이 기존3언어×5폭·coarse·Escape/focus/401/412 원본 E2E가 최종 단독 PASS했다. 단독 이전-source PASS와 아래 최종 동일-source 통합 결과는 합산하지 않는다.
+- 코드/테스트/설정1283파일의 frozen SHA256은 `b0b631baa30f9c6455908a71ae66b0d62f201bc3a7aae682bc472746d075e371`이다. Node22.14.0/npm11.10.0, frozen `npm ci --prefer-offline --no-audit`, Playwright1.63.0의 고정 Chromium 환경이다. 실제 최종 source의 TypeScript PASS, ESLint exit0(기존18 warning/0 error), 전체 Vitest293파일 PASS/1기존SKIP·3541 tests PASS/3기존SKIP(117.09s), production build+runtime-tools PASS. 로컬 결과는 GitHub Required3 성공이 아니다.
+- `verify:prepr --mode=fast --base=origin/main --issue=866 --risk=HIGH`는 UNKNOWN37/missing0으로 **BLOCKED**, sourceStable=true였다. 자동 영향 매핑을 추가하거나 우회 PASS하지 않았다. Work Packet에서 실제 producer→consumer를 수동 선정하여 동일 코드 source의 정적·전체Unit/build 및15spec/65계획 E2E를 별도 실행한다. 자동 dry-run은 NOT TESTED다. 최종 브라우저 결과·source 재대조·게시 근거를 아래 추가하며 원본 #3510~#3519의 FAIL/CANCELLED는 불변이다. 새 PR Full CI의 Quality/E2E/Docker·Trusted는 시작 시 NOT TESTED다.
+- 최종 후보 코드/테스트/설정1283파일의 SHA256은 `4ffddace573d3504b165c2212fc52f1dc177e045df849ce3709479ce0e75d068`이다. 최종 Vitest3541 PASS/3기존SKIP(84.99초), production build/runtime-tools 및 원본설정 복구 후 TypeScript PASS. 초기15spec source와 최종17spec source를 구분한다. 로컬 캡처 정리 중 경로 quoting/동시 lint ENOENT와 생성 빌드 코드의 전체폴더 lint 탐색은 Work Packet 환경 예외로 보존하고 fresh-checkout 추적 TS/JS1118파일을 같은 ESLint 설정으로 재검증한다. 원격 CI/ESLint 설정을 바꾸지 않는다. 최종 Chromium 결과와 종료 지문을 확인한 뒤 추가한다.
+- 위험 HIGH / OWNER_MANAGED / qa_required=true / release_required=true / release_authorized=false. 별도 Agent 사전검토는 독립 인간 QA나 Owner 병합/릴리스 승인이 아니다. manager_decision=NOT TESTED / MERGE_READY=BLOCKED, #866 OPEN. CI 모니터링·병합·Main/GHCR/Release/Finalizer·Issue 종료는 수행하지 않는다.
+
 ## PR #879 FULL-B007 — #3518.1 Shard7 populated Project Master row geometry (2026-11-05 KST)
 
 ### Original Full Run, primary failure and propagation
@@ -160,3 +220,16 @@
 - **EXTEND** `tests/lib/i18n-phase-a.test.ts`의 static SVAR words 검증에 `["외부 ID"]`의 `ko="외부 ID"`, `en="External ID"`, `vi="ID bên ngoài"` 3언어 매핑 단언을 추가한다. **KEEP_UNIQUE** `tests/config/{playwright,transport}.config.ts` 기본 ko-KR, `tests/config/e2e-shard-plan.json`의 정확 144개 배치, `tests/scripts/e2e-shard-planner.test.ts` 최신 count, `tests/lib/date-display.test.ts` 및 모든 API/DB/LLM/권한/보안/E2E. 단언 삭제/완화·timeout/retry/Shard 갱신 없음.
 - **문서 동기화**: `docs/exec-plans/active/ISSUE_866.md` REWORK2, `docs/TEST_PLAN.md`, `docs/I18N_PHASE_A.md`, `docs/REMOTE_VALIDATION.md`, 이 **동일 누적 실패 원장**에 추가. `AGENTS.md`, 제품 Locale·앱 버전 `0.142.0`/CI/QA/Required3/Owner 관리 정책 변경 없음.
 - **검증 상태**: GitHub Run/Job/Step 로그 및 source/기존 E2E/사전 코드 교차 확인 완료. 새 코드가 생성된 후 실제 Chromium/TypeScript/Vitest/Next/Docker를 로컬에서 재실행하지 않았으므로 **NOT TESTED**; 새로운 HEAD Full PR CI + Trusted QA의 결과가 나올 때까지 PASS 선언 금지. `release_required=true`, `release_authorized=false`, #866 Phase B/C 미완료, Main merge/GHCR/Issue close 금지. 원본 #3507.1/#3508.1 실패/취소 상태와 실패 원인 기록 유지.
+
+
+### B008 최종 UI 실행 캡처
+
+같은4ffddace... source의 부분A(66 PASS/기존2 SKIP)에서 실제 저장·3언어×5폭 및 기존 물류밀도 테스트가 만든 대표 화면이다. 캡처만으로 keyboard·CAS·권한 검증을 대체하지 않는다: [영어390px 마스터](evidence/issue-866/pr879-master-en-390.png), [물류 검색·표390px](evidence/issue-866/pr879-logistics-390.png). raw trace와 실제 실행 DB는 게시하지 않는다.
+
+
+### B008 최종 검증·게시 인계
+
+- 최종 code/test/config1283파일 SHA256 `4ffddace573d3504b165c2212fc52f1dc177e045df849ce3709479ce0e75d068`, 생성물 복구 뒤 종료 비교 변경0개. 같은 source에서 A13파일66PASS/기존2SKIP(5.1분), B2파일6PASS(5.7분), C1파일4PASS(3.2분), D1파일10PASS(4.6분): 중복 없는17파일88계획 = **86 PASS / 0 FAIL / 기존 캡처용2 SKIP**다. 테스트 자체 timeout/retry/skip/원격8샤드 정책 변경은 없다. 서버 재시작 중단12개 관측 PASS 및 이전15spec 결과를 이 합계에 더하지 않는다.
+- 최종 전체 Vitest3541PASS/3기존SKIP(84.99초), 원본설정 TypeScript PASS, production build/runtime-tools PASS. 같은 ESLint 설정의 fresh-checkout 추적 JS/TS1118파일은 exit0/기존18warning/0error다. 자동Pre-PR 매핑은 BLOCKED로 남기며 수동 영향선정/실제 진단과 구분한다. 정제 증거 `docs/evidence/issue-866/pr879-local-validation-20261105.json`, 원본 명령·trace는 ignored `.prepr-reports/pr879-final/`에 보존한다.
+- 별도 Agent 정적 사전검토 PASS는 인간 독립 QA/Owner ACCEPT가 아니다. HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false, manager_decision=NOT TESTED/MERGE_READY=BLOCKED 유지. 새 Head Quality/E2E/Docker·Trusted 결과는 NOT TESTED이며 CI 시작만 확인한다. Phase C·운영 백업복원·Main/GHCR/Release·Issue 종료는 수행하지 않는다.
+- Git CLI의 만료된 인증을 추출·재설정하지 않고 허용된 Git Data API 배치 게시(B)를 사용한다. committed clean local tree와 API 전체 tree/부모를 대조하고, 원격 expected Head·main을 재조회한 뒤 Ref를 한 번만 갱신한다. 실제 candidate Head/새 Full Run·Attempt·base/test-merge 및 캡처 링크는 PR/Primary Issue STATUS 댓글에 후행 기록한다. PR 제목/본문 STATUS 편집으로 metadata CI를 추가하지 않는다.

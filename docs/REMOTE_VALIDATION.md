@@ -1184,3 +1184,8 @@ PR 생성 후 Full run의 URL·run_attempt·Head/base/test merge를 단일 조�
 - [PR #878 Full #3508.1](https://github.com/planner77/masterGantt/actions/runs/41924914789)의 Shard4 en-US 원본 `project-workspace-layout.spec.ts:83`은 컬럼 표시 직후 native `외부 ID`를 찾다가 실패했다. `SVAR_LOCALES.en.gantt["외부 ID"]`가 `External ID`로 매핑되어 있는데 기존 E2E가 localized native Grid와 미번역 앱 Column Menu의 문구를 같은 것으로 오인한 **TEST_CONTRACT**다. 날짜/세션/Gantt renderer 결함으로 확대하지 않는다.
 - 전후 실측은 ko-KR native `외부 ID`/en-US native `External ID`를 각각 정확히 확인하고, 두 언어에서 custom menu checkbox `외부 ID` 조작·헤더 표시/숨김/잘못된 언어 부재, `html lang`, 화면 좌표(고정 Header), 동일 DOM/API 인스턴스·scroll 60 Task, date-only의 시간대 표기, pageerror 없음/문서 overflow 제한을 **독립** 검증한다. 스크린리더/베트남어 전체 화면은 Phase C에서 별도 인수한다.
 - 새 Head의 Full Chromium E2E8/8, Quality/Docker/Trusted/Owner 구분: 원본 Shard4 33 PASS/1 FAIL/59 미실행, Shard7만 SUCCESS, 나머지 6 CANCELLED. 과거 Run 결과와 새 수정을 합산하지 않는다. [실패 원장](ISSUE_866_FAILURE_ANALYSIS.md) `FULL-001` + `FULL-002` 확인 후 새 정확 HEAD PR Full을 다시 시작한다.
+## Issue #866 PR #879 — 취소 샤드의 실제 실패와 누적 보완 (2026-11-05)
+
+Full #3519.1 / Run `41970024640`, Head `a7cbef53bd0c89f4f3a7a3c3ed5a76ba7cb2266e`, base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `dbe1ffcb15791c997a974c3bf55479298c8495a0`는 FAILURE다. Shard3 Job `127056885009` 물류 검색 coarse 20px과 **CANCELLED shard7 Job `127056885015`의 프로젝트 생성 option 번역 누락 assertion FAIL**을 모두 직접 오류로 기록한다. Quality·Docker 성공과 이전 마스터 표 교정의 3개 E2E 성공은 해당 원본에만 유효하며 전체 E2E 성공이 아니다.
+
+전체 #3510~#3519 및 선행 #878/#870 원장·수정 코드를 대조한 뒤 검색 높이와 공유 선택 소비자를 함께 보완한다. 새 Head Full CI는 기존 8샤드와 Required3/Trusted 정책으로 시작하며 결과는 시작 시 NOT TESTED다. CI 모니터링·병합·Main/GHCR/Release·Issue 종료는 이번 작업 범위에 포함하지 않는다. [누적 원장](ISSUE_866_FAILURE_ANALYSIS.md).

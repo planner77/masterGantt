@@ -283,7 +283,7 @@ test("Issue #866: refreshed Resource Group revision blocks stale translation dra
   revision = 8;
   group.translations.vi = "Đội mới";
   await page.getByRole("button", { name: "새로고침", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("기준정보가 변경되었습니다");
+  await expect(translations.locator("..").getByRole("alert")).toContainText("기준정보가 변경되었습니다");
   await expect(translations.getByLabel("English", { exact: true })).toHaveValue("Stale English");
   await expect(translations.getByLabel("Tiếng Việt", { exact: true })).toHaveValue("Đội cũ");
   await expect(page.getByRole("button", { name: "번역 저장", exact: true })).toBeDisabled();

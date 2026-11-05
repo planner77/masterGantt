@@ -426,7 +426,7 @@ export function ProjectMasterAdmin() {
                           <span className={`${styles.statusBadge} ${item.active ? styles.statusActive : styles.statusInactive}`}>
                             {item.active ? t("활성") : t("비활성")}
                           </span>
-                          <span className={styles.usage} title={`${t("사용 프로젝트")} ${item.usageCount ?? 0}`}><span className={styles.usageLabel}>{t("사용 프로젝트")}</span>{" "}<span>{item.usageCount ?? 0}</span></span>
+                          <span className={styles.usage} title={`${t("사용 프로젝트")} ${item.usageCount ?? 0}`}><span>{t("프로젝트")}</span>{" "}<span>{item.usageCount ?? 0}</span></span>
                         </div>
                       </td>
                       <td>

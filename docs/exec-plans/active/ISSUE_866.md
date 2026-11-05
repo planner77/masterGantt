@@ -220,12 +220,12 @@
 
 ## AC_TEST_COVERAGE
 
-Full #3515.1에서 Phase B의 TypeScript·Vitest 직접 FAIL을 확인하고 REWORK-B004 보완했으나, 보완 후 새 exact HEAD 전체 원격 PASS는 미확인이다. 기존 AC01 Phase A 성공을 Phase B/Phase C로 승계하지 않는다.
+Full #3519.1에서 TypeScript·Vitest·Quality/Docker는 성공했지만 E2E에는 검색 높이와 번역 선택지 직접 FAIL 두 건이 있다. B008 보완의 새 exact Head 원격 결과는 NOT TESTED다. 기존 AC01 Phase A 성공이나 일부 source의 성공을 Phase B/Phase C 전체로 승계하지 않는다.
 
 - AC01: Phase A Full #3509.1 PASS (exact Head 8fca83b)로 공통 언어 선택·storage·SVAR header 검증. Phase B 현재 Head의 전체 검증은 별도.
 - AC02: `src/components/{workspace-shell,workspace-navigation}.tsx` + test shell only; all other screen localization **Phase C TODO**.
 - AC03: `src/features/gantt/svar-locales.ts`, native `project-gantt.tsx` and demo `svar-gantt.tsx`, locale words/weekStart unit; native instance E2E **Phase C TODO**.
-- AC04: Phase B migration 0036/12 owner, 수동 표시명 API/관리 UI 및 SQLite·브라우저 테스트를 구현했으나 신규 Head 원격 실행은 Preflight 차단으로 NOT TESTED.
+- AC04: Phase B migration 0036/12 owner·API/관리 UI 및 SQLite·브라우저 테스트 구현. #3519 원본 Unit 성공과 두 E2E 실패를 구분하며 B008 새 Head의 전체 원격 검증은 NOT TESTED.
 - AC05: 기존 global admin/Project edit·Origin/If-Match CAS·격리 및 ResourceGroup/ProjectMaster/Logistics Type의 412·stale draft 경합 보호 구현, 신규 CI 아직 NOT TESTED.
 - AC06: SQLite 0035→0036, Project Copy·Template v6 번역 보존, 일정 JSON/Excel 409 손실 방어 및 Import 1.0/1.1 strict schema 불변, 신규 CI/운영 백업복원 NOT TESTED.
 - AC07: `src/lib/date-display.ts` UTC/locales and `tests/lib/date-display.test.ts` existing, screen-wide formatting **Phase C TODO**.
@@ -251,3 +251,89 @@ Full #3515.1에서 Phase B의 TypeScript·Vitest 직접 FAIL을 확인하고 REW
 - **TEST_LIFECYCLE_REVIEW:** 기존 E2E `project-workspace-layout` 및 i18n Vitest를 EXTEND; `issue-866-language-shell.spec.ts`, `tests/lib/date-display.test.ts`, SVAR locale provider, 144개 Shard plan, 기존 권한·Gantt·Project/SQLite 테스트는 KEEP_UNIQUE. 단언 완화·제품 기능 롤백 금지.
 - **DOCUMENTATION_SYNC:** `tests/e2e/project-workspace-layout.spec.ts`: UPDATED; `tests/lib/i18n-phase-a.test.ts`: UPDATED(기존); `docs/I18N_PHASE_A.md`: UPDATED, `docs/TEST_PLAN.md`: UPDATED, `docs/REMOTE_VALIDATION.md`: UPDATED, 원장/본 Work Packet: UPDATED. 나머지는 앞의 N/A/UPDATED 사유 그대로. AC03(번역 native Gantt)/AC07(날짜)/AC08(레이아웃) 테스트를 직접 보강했지만 #866 Phase B/C 미구현은 여전함.
 - **승인/검증 경계:** 로컬 TS/Vitest/Playwright/SQLite/Docker 실행은 이번 교정에서 **NOT TESTED**; 새 정확 HEAD Full Quality/E2E8/Docker/Trusted 성공·Main strict·Owner 위험 수용 전 병합 금지. `HIGH/OWNER_MANAGED`, `release_required=true`, `release_authorized=false`, Version 후보 `0.142.0`/Issue #866 OPEN 유지.
+
+
+## REWORK-B008 — PR #879 전체 실패 이력 기반 통합 보완 (2026-11-05)
+
+### 기준·실제 역할·승인 경계
+
+- Primary Issue #866, PR #879, 원격 작업 브랜치 `feat/issue-866-i18n-phase-b-owner-data` 재사용. 별도 로컬 worktree `/home/planner/Dev/masterGantt-879`, 작업 시작 Head `a7cbef53bd0c89f4f3a7a3c3ed5a76ba7cb2266e`, main/base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, 원본 #3519 test-merge `dbe1ffcb15791c997a974c3bf55479298c8495a0`.
+- Manager: 누적 원장·영향 선정·문서·최종 검증/게시. 실제 별도 infra Agent: 전체 Run/Attempt/취소 로그 read-only 분석. frontend Agent: 지정 UI/기존 테스트 보완. ui_ux Agent: 생성/설정 공유 선택·검색 밀도 계약 read-only 검토. 별도 qa_docs의 사전 검토는 Owner 최종 승인이나 인간 독립 QA가 아니다.
+- `HIGH / OWNER_MANAGED / qa_required=true`, 후보 0.142.0 유지, `release_required=true / release_authorized=false`. 승인 범위는 보완 후 기존 PR의 새 Full CI 시작까지다. `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`, #866 OPEN. CI 모니터링·병합·Main/GHCR/Finalizer/Release·Issue 종료는 수행하지 않는다.
+
+### 누적 이력·가설 및 확정 원인
+
+- PR #879의 CI #3510~#3519는 Full 8회와 metadata 2회(#3511 CANCELLED, #3512 FULL_FAILED), 모두 attempt 1이다. B001~B007과 선행 #878 FULL-001/002 및 #870 원본 원장 전체를 대조한다. #3519 취소된 shard7에도 실제 assertion FAIL이 있으므로 취소를 오류 없음으로 분류하지 않는다.
+- 1순위 검색 CSS 누락 가설: 물류 목록 검색 입력은 `.addRow`/`.dialog` 밖에 있어 높이20px이다. 기존 #454 원본에서 로컬 RED로 확인했다. 번역 입력은 이미44px이므로 공유 번역 CSS 자체가 원인이라는 가설은 기각한다. 원본 #870 F866-TOUCH-006 교정이 Phase B 분리 때 빠진 재발이다.
+- 2순위 공용 선택 소비 누락 가설: 생성·설정 공유 `ProjectMasterSelectFields`가 option 및 동명 비교에서 `item.name`만 사용한다. 실제 i18n-master-data 원본에서도 번역 저장 성공 후 영어 선택지가 원문인 RED를 확인했다. 데이터 쓰기 실패와 locale 선택 실패는 해당 재현의 원인이 아니다.
+- 검색은 전용 `searchField`를 기존 40px fine/44px coarse token에 연결한다. 로컬 i18n 진단에서 추가 노출된 영어 상태/사용 건수의 행56.5px은 가시 단위를 Projects/Dự án으로 간결하게 표시하고 전체 설명 title을 유지해 교정한다. 영어 category tabs의 문서398px overflow는 header/tab flex child의 min-width:0·최대폭으로 내부 스크롤 소유권을 복구한다. 표시·버튼을 숨기거나 행/overflow 단언을 완화하지 않는다. 선택기는 `displayName(item, locale)`를 표시와 동명 판정에 함께 사용한다. ID/code·상위/하위 관계·비활성 기존 선택·자유 입력·revision/권한·DB/API는 불변이다. 동일 원인의 직접/간접 소비자를 함께 검증한다.
+
+### 변경 영향·선정·비용 범위
+
+| 수정 또는 이전 실패 계약 | 직접·간접·음성 소비자 | 선정한 실제 검증 | 제외·미검증 경계 |
+| --- | --- | --- | --- |
+| 물류 목록 검색 높이·번역 검색 | 장비/시스템 두 유형, fine/coarse, 5폭, focus·이름/활성/401/412 | `logistics-table-density.spec.ts`, `logistics-type-catalog-admin.spec.ts`, `admin-auth-layout.spec.ts` | 다른 관리자 전역 control 밀도는 변경하지 않음 |
+| 공용 기준정보 선택 표시·동명 | 생성+설정, ko/en/vi·원문 fallback·선택 ID/하위 관계·기존 비활성 선택·초안 | 선택기 Unit, `i18n-master-data.spec.ts`, `project-master-relations.spec.ts`, `project-create-layout.spec.ts`, `new-project-draft-preservation.spec.ts` | 관계 편집기 등 전수 고정문구 번역은 Phase C |
+| #878 샤드 수·영어 native Grid 헤더 | Phase A 언어 선택/storage/date-only/SVAR·전체 샤드 등록 | shard planner/i18n/date Unit, `project-workspace-layout.spec.ts`, `issue-866-language-shell.spec.ts` | 나머지 전체 Gantt 편집/스크롤은 기존 Full8에서 재검증 |
+| #879 B004/B006 타입·검색·0036 migration | DTO·SQLite owner별 데이터/권한·Copy/Template/Export 및 Calendar/Issue 기대 | TypeScript 및 전체 Vitest 한 번 | 운영 DB 백업/복원과 Windows Excel은 NOT TESTED |
+| #879 B007 및 B008 마스터 표·다국어 폭/밀도·번역 draft 경합 | 390/1440·fine/coarse·keyboard/Escape·401/412/stale·동시 쓰기 | `cross-screen-regression.spec.ts`, `i18n-master-data.spec.ts`, `resource-catalog-delete.spec.ts`, `logistics-type-catalog-admin.spec.ts` | 원격 취소 샤드 전체 PASS를 주장하지 않음 |
+| #870 원본 관리자/공정/물류/Milestone 실패 | 실제 현 Main API·공정문맥·Task dialog·조회 권한/빈값·달력 | `country-calendar-admin.spec.ts`, `issue-725-process-workareas.spec.ts`, `issue-726-task-logistics.spec.ts`, `issue-732-milestone-dashboard.spec.ts` | 이전 #865 LLM/#869 코드 혼합 금지. transport/production-transport는 해당 Docker 환경 및 새 원격 Docker에서 검증 |
+| Preflight base·정규 DOC_SYNC·metadata | main 대상·현재 필수12문서·AC01~09·전체 정책 원문 | base의 기존 `docs_gate` 구조 검사, Markdown link 및 버전/탐색/정책 검사 | GitHub 원격 귀속·Trusted/Owner는 로컬 구조 PASS로 대체하지 않음 |
+
+로컬 진단은 기존 15개 Chromium spec, worker1/retries0/max-failures0, 최대20분의 한정 범위로 시작한다. 추가 실패가 있으면 원인별 보완 후 영향받은 집합을 같은 최종 source에서 재검증한다. 전체 Vitest/TypeScript/lint/build는 한 번 수행하고, 필요 없는 전체 로컬 Chromium/Docker 반복은 하지 않는다. 자동 Pre-PR의 UNKNOWN 매핑은 그대로 기록하고 정책/선정기를 완화하지 않는다. 수동 매핑·실제 명령·source 지문과 최종 결과는 누적 원장의 B008 검증 절에 기록한다.
+
+### TEST_LIFECYCLE_REVIEW / DOCUMENTATION_SYNC 추가
+
+- EXTEND: `tests/e2e/logistics-table-density.spec.ts`, `tests/features/projects/project-master-select-fields.test.ts`. `tests/e2e/i18n-master-data.spec.ts`는 KEEP_UNIQUE(기존 실제HTTP/SQLite·3언어×5폭·coarse·focus 단언이 새 오류도 탐지함). 기존 테스트의 실제 consumer seam에서 재현·번역명 충돌/원문 fallback·ID 보존·search geometry를 추가한다. 새 spec/샤드 이동/RETIRE/SKIP·retry/timeout 완화 없음.
+- KEEP_UNIQUE: 전체 실패 파일 합집합과 위 15개 인접/음성 spec, migration/SQLite·HTTP·locale/SVAR·권한·Copy/Template/Export 기존 Unit. `docs/TEST_PLAN.md` 전체 정책 원문 보존.
+- UPDATED: `DESIGN.md`, `docs/UI_UX_GUIDELINES.md`, `docs/PROJECT_UX.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/I18N_PHASE_B.md`, 본 Work Packet 및 단일 실패 원장. 제품 파일은 물류 유형 UI/CSS, 생성·설정 공유 선택기 및 마스터 표 사용량 표시·header/tabs CSS다. 기존 테스트 실제 변경 범위는 최종 검증 절에 기록한다.
+- N/A(이번 보완 자체): API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/IMPORT_SCHEMA/IMPORT_EXPORT는 저장·권한·일정·교환 계약 변경 없음. 기존 PR 전체의 정규 DOCUMENTATION_SYNC UPDATED/N/A 및 AC_TEST_COVERAGE를 유지한다. CI workflow/Required3/Trusted/Ruleset/Runner/캐시·릴리스 정책, AGENTS.md는 변경하지 않는다.
+
+
+### B008 동결 검증·미검증 인계
+
+- 소스 동결: 코드/테스트/설정1283파일 SHA256 `b0b631baa30f9c6455908a71ae66b0d62f201bc3a7aae682bc472746d075e371`. 생성된 Next 설정·추적 캡처는 별도 보존 후 원본 복구하고 최종 fingerprint를 다시 비교한다. 문서 결과 기록과 제품/test source를 구별한다.
+- 로컬 정적/Unit/build: TypeScript PASS, lint exit0(기존18warning/0error), Vitest3541 PASS/3기존SKIP·293files PASS/1기존SKIP(117.09초), production build와 runtime-tools PASS. 로컬 QA fixture11개 PASS, cache contract·버전·테스트 탐색 PASS. 베이스 validator의 정규 DOC_SYNC12문서 및 AC01~09 매핑은 STRUCTURAL_PASS, 의미 검토는 별도 Agent 사전 검토로 확인한다.
+- `verify:prepr --mode=fast`는 UNKNOWN37/missing0으로 BLOCKED/sourceStable=true. 자동 매핑 공백은 유지하고 본 Work Packet의 수동 생산자→소비자 매핑에 따른 실제 검증을 별도 수행한다. 이 도구 BLOCKED를 PASS로 바꾸거나 원격 Gate를 완화하지 않는다.
+- 기존15개 E2E 파일65계획 사례의 한정 실행 결과, 최종 source 비교·문서 링크 재검사와 실제 게시 증거는 아래 최종 결과 절에 추가한다. Playwright1.63.0 고정 Chromium headless-shell revision1243/browser153.0.8010.12, workers1/retries0/max-failures0. 최초 진단의 이전source PASS는 최종 결과에 합산하지 않는다.
+- 실제 별도 frontend/infra/ui_ux/backend/qa_docs Agent가 구현·분석·읽기 전용 사전검토를 담당했다. Agent 정적 사전검토 PASS는 독립 인간 QA가 아니며 `independent_qa=N/A(Owner-managed, 독립 인간 검토 없음)`이다. 신규 원격 Required3/Trusted 결과 및 Owner/Manager 최종 ACCEPT는 NOT TESTED/MERGE_READY=BLOCKED다. Phase C·운영 backup/restore·Windows Excel·Main/GHCR/Release는 미검증이다.
+
+
+### B008 추가 원격 목록 대조 — 원장 누락 #3475
+
+#870의 실제 branch 목록은 Full8회(#3468~#3475)이고 #878는CI3회(#3507~#3509), PR #879는CI10회다. 모든 attempt1이며21회 실행 목록과 직접 실패 증거는 원장/정제 JSON에 연결한다. 원장 마지막 기록 뒤 #3475의 `master-controls-density`(신규 번역 입력에도 기존 padding8px/40px 기대) 및 `project-multi-task-copy-paste`(기술 키 Delete의 오역) 실패2개를 발견했다. 현재 Copy/Paste 키는 main과 같아 재발 검증만 추가하고, #455는 기존 원본 입력 검증을 유지한 채 번역3개44px/6px8px·추가Tab stop의 정확 테스트 계약을 보완한다.
+
+기존15spec 진단을 중간 결과로 보존하고 **17spec 최종 동결 source**에서 전체 합집합을 재검증한다. 추가17spec 한정 실행도 worker1/retries0/max-failures0, 시간 상한20분이다. 같은 source의 정적/Unit 및 필요한 build를 갱신하고 이전 source PASS를 최종에 합산하지 않는다. `tests/e2e/master-controls-density.spec.ts`는 EXTEND, `project-multi-task-copy-paste.spec.ts`는 KEEP_UNIQUE다. 과거 production-transport는 원격 Docker 환경의 별도 검증으로 남긴다.
+
+
+### B008 첫 확대 진단의 추가 오류와 테스트 계약 보완
+
+첫15spec은61PASS/3FAIL/1기존SKIP(8.9분)이다. #454 412→GET200에서는 원인/번역 stale 경고2개를 단일alert로 조회했고, GET500 뒤 목록 재조회 성공시 오래된 초안의 저장을 허용한다고 기대했다. B002의 고정revision 정책에 맞게 초안·원인·추가 PATCH0·저장잠금 유지 후 명시 취소/재편집/사용자 재입력에서만 최신revision 저장을 검증한다. Resource Group stale 경고는 전역 Next route announcer와 구분해 해당 편집기 범위로 조회한다. 제품 경합 보호나 role=alert를 제거하지 않는다.
+
+`tests/e2e/resource-catalog-delete.spec.ts`도 EXTEND한다. 초기65계획 진단의 PASS를 최종 결과로 승계하지 않고 이 보완과 #455를 포함한 새 source17spec/88계획 사례에서 재검증한다. 처음 소스의 b0b631b... 지문은 중간 진단용으로 보존하고 최종 지문은 별도 기록한다.
+
+
+### B008 최종 소스 동결과 로컬 환경 예외
+
+- 최종 코드/테스트/설정1283파일 SHA256 `4ffddace573d3504b165c2212fc52f1dc177e045df849ce3709479ce0e75d068`. 제품5파일·기존 테스트4파일만 B008에서 보완하며 최종17spec/88계획 Chromium 시작 전 원본설정으로 복구한 실제 파일의 변경 경로0개를 확인했다. 중간 b0b631b...는 이전15spec 진단의 지문이다.
+- 최종 전체 Vitest3541 PASS/3기존SKIP·293files PASS/1기존SKIP(84.99초), production build/runtime-tools PASS, 원본 Next 설정 복구 후 TypeScript PASS. 최종 Chromium과 lint 및 source 종료 비교는 결과 확인 후 추가한다.
+- 로컬 생성물 정리의 첫 스크립트가 Git 한글 경로 quoting을 일반 줄 단위로 처리해 중단됐다. NUL 구분 경로로 수정해 보존·복구했고 제품/test source 손상은 없다. 캡처 이동과 동시에 실행한 lint 한 번은 해당 이동 파일 ENOENT로 exit2였으므로 환경/정리 경합으로 별도 기록한다. 정리가 끝난 뒤 같은 제품/test source에서 lint를 재실행하며 해당 실패를 삭제하거나 제품 PASS로 소급하지 않는다.
+- Next가 자동 생성한 next-env/tsconfig 추가 include와 추적 캡처는 원본 bytes로 복구해 게시하지 않는다. 최초/최종의 지문 비교는 생성물 보존 뒤 수행하며 raw trace/실행DB는 Git에 추가하지 않는다.
+
+
+전체 작업 폴더 lint의 두 번째 실행은 로컬 빌드 산출물 `.next-prepr-final` 및 격리 Next 출력까지 탐색해 생성 코드에 대한 비정상적인 검사 범위를 만들었으므로 종료했다. CI/ESLint 설정을 바꾸지 않고 fresh checkout의 Git 추적 TS/JS 전체 파일을 동일 ESLint 설정으로 명시 전달해 재검증한다. 새 미추적 코드 파일은 없으며 새 JSON 증거 외 모든 제품/test 변경은 기존 추적 파일이다. 생성 코드 제외는 원격 Required lint 범위나 정책 변경이 아니다. 해당 로컬 환경 예외와 최종 exit를 구분한다.
+
+
+### 서버 재시작 이후 B008 재개
+
+서버 재시작으로 최종 단일17spec 실행이 exit143으로 중단됐다. 실제 계획은 초기 수동 합산86이 아니라 **88개**이며 해당 실행은12개 관측 PASS 이후 종료됐으므로 전체 성공으로 계산하지 않는다. 원격 PR Head는 여전히 a7cbef53...이고 commit/Ref 게시·새 CI 시작은 아직 없음을 재조회했다. 종료된 로컬 서버를 재사용하지 않고 source1283파일의 최종4ffddace... 지문 변경0개를 확인했다.
+
+재개 검증은 같은 동결 source와 workers1/retries0/max-failures0으로17파일 전체를4개 부분으로 나눠 완료 여부를 영속 기록한다. A는13개 관리/UI·locale/생성/설정 관련파일, B는#725/#726 두파일, C는#732, D는다중Copy/Paste다. 단일 실행의 미완료를 PASS로 삼거나 이전 source 결과를 합산하지 않는다. 각 부분의 source·명령·exit·고유case와 전체합계를 최종 정제보고서에 저장한다. 부품화는 로컬 재개/실행환경 관리이며 원격 CI의8샤드/Required3/timeout/retry/정책을 바꾸지 않는다.
+
+
+### B008 최종 검증·게시 인계
+
+- 최종 code/test/config1283파일 SHA256 `4ffddace573d3504b165c2212fc52f1dc177e045df849ce3709479ce0e75d068`, 생성물 복구 뒤 종료 비교 변경0개. 같은 source에서 A13파일66PASS/기존2SKIP(5.1분), B2파일6PASS(5.7분), C1파일4PASS(3.2분), D1파일10PASS(4.6분): 중복 없는17파일88계획 = **86 PASS / 0 FAIL / 기존 캡처용2 SKIP**다. 테스트 자체 timeout/retry/skip/원격8샤드 정책 변경은 없다. 서버 재시작 중단12개 관측 PASS 및 이전15spec 결과를 이 합계에 더하지 않는다.
+- 최종 전체 Vitest3541PASS/3기존SKIP(84.99초), 원본설정 TypeScript PASS, production build/runtime-tools PASS. 같은 ESLint 설정의 fresh-checkout 추적 JS/TS1118파일은 exit0/기존18warning/0error다. 자동Pre-PR 매핑은 BLOCKED로 남기며 수동 영향선정/실제 진단과 구분한다. 정제 증거 `docs/evidence/issue-866/pr879-local-validation-20261105.json`, 원본 명령·trace는 ignored `.prepr-reports/pr879-final/`에 보존한다.
+- 별도 Agent 정적 사전검토 PASS는 인간 독립 QA/Owner ACCEPT가 아니다. HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false, manager_decision=NOT TESTED/MERGE_READY=BLOCKED 유지. 새 Head Quality/E2E/Docker·Trusted 결과는 NOT TESTED이며 CI 시작만 확인한다. Phase C·운영 백업복원·Main/GHCR/Release·Issue 종료는 수행하지 않는다.
+- Git CLI의 만료된 인증을 추출·재설정하지 않고 허용된 Git Data API 배치 게시(B)를 사용한다. committed clean local tree와 API 전체 tree/부모를 대조하고, 원격 expected Head·main을 재조회한 뒤 Ref를 한 번만 갱신한다. 실제 candidate Head/새 Full Run·Attempt·base/test-merge 및 캡처 링크는 PR/Primary Issue STATUS 댓글에 후행 기록한다. PR 제목/본문 STATUS 편집으로 metadata CI를 추가하지 않는다.

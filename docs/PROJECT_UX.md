@@ -1814,3 +1814,6 @@ Grid 행과 Chart Bar의 같은 `Convert to → Milestone` 명령은 서버 요�
 
 
 PR864 REWORK3의 관리자 제목 배치는 [390px](evidence/issue342/rework3/master-auth-390.png)·[1440px](evidence/issue342/rework3/master-auth-1440.png) 및 [5폭 실측](evidence/issue342/rework3/master-auth-geometry.json)에 기록한다. 이 화면/기하 probe의 인증·목록 응답은 제어된 합성 자료이며 실제 권한·SQLite 검증을 대체하지 않는다. 실제 국가관리 인증/저장은 별도 E2E다.
+## Issue #866 Phase B — 프로젝트 기준정보 선택 표시 (2026-11-05)
+
+프로젝트 생성과 설정은 같은 선택 컴포넌트에서 현재 언어의 관리형 표시명을 사용한다. 표시명이 같은 후보는 기존 코드로 구별하며 번역이 없으면 원문 이름을 표시한다. 원본 ID·상위/하위 관계·비활성 기존 선택·폼 초안은 언어 전환과 무관하게 유지한다. 나머지 화면의 고정 문구와 관계 편집기 전수 번역은 Phase C 미완료 범위다. 실행 증거는 [#866 누적 원장](ISSUE_866_FAILURE_ANALYSIS.md)에 구분한다.

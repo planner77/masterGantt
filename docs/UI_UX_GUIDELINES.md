@@ -1,5 +1,8 @@
 ## Issue #866 Phase B — 번역 관리 입력·검색 (2026-11-05)
 
+- 기준정보 표의 사용 건수는 현재 언어의 짧은 프로젝트 단위와 숫자를 가시 표시하고 전체 사용 관계 설명을 title로 유지한다. category header/tabs는 min-width:0과 기존 내부 가로 스크롤을 사용해 영어·베트남어390px에서 문서를 확장하지 않는다. 표 열/행의 기존 밀도 단언과 버튼 접근성은 보존한다.
+- 물류 유형의 목록 검색은 기존 `--catalog-control-height`를 적용해 fine 40px / coarse 44px을 유지한다. 번역 필드의 최소 44px을 축소하지 않으며 검색·추가·표·대화상자의 폭과 focus-visible을 함께 확인한다.
+- 프로젝트 생성·설정의 공유 선택기에서 표시명과 동명 판정은 같은 `displayName(item, locale)` 결과를 사용한다. 같은 표시명이면 `(code)`를 병기하고 `option value/key`는 원본 ID다. 해당 언어 미등록 시 정확한 원문으로 복귀하며 언어만 바꿔 선택·종속 후보·초안을 변경하지 않는다.
 - Project Master table name input and translation dialog icon share a single flex-nowrap row, with 40px fine / 44px coarse controls and row max 48px fine / 52px coarse. At viewport390px the existing horizontal table scroll owns overflow; shrink the input instead of wrapping, clipping, hiding or excluding the translation button from Tab order. Keyboard flow name -> translation dialog -> sort -> Save -> Deactivate, Escape restores trigger focus. Retain strict #457 populated table and #866 i18n-master-data E2E geometry assertions; see Work Packet B007.
 
 - 화면별 관리형 원본 name과 수동 ko/en/vi 표시명 입력을 분리한다. 번역 필드 공백/미설정은 원본 fallback이며, 목록·선택값 검색에는 번역과 canonical 원문을 병행하지만 편집/관계는 항상 ID/code를 사용한다. 동명이름 혼동 시 기술 ID는 보조 메타로 제공한다.

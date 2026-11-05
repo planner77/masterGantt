@@ -19,7 +19,7 @@ async function masterGeometry(page: Page) {
       headerBodyAligned:rows.every(row=>Array.from(row.children).every((cell,i)=>Math.abs(box(cell).x-box(headers[i]).x)<=1&&Math.abs(box(cell).width-box(headers[i]).width)<=1)),
       firstRowHeaderGap:rows.length?box(rows[0]).y-box(table!.querySelector("thead")!).bottom:null,
       headers:headers.map(box),rows:rows.map(row=>({rect:box(row),controls:Array.from(row.querySelectorAll("input,button")).map(e=>({tag:e.tagName,label:e.getAttribute("aria-label")??e.textContent,rect:box(e),style:style(e),disabled:e.matches(":disabled"),marginTop:getComputedStyle(e).marginTop})),cells:Array.from(row.children).map(e=>({rect:box(e),paddingTop:getComputedStyle(e).paddingTop,paddingBottom:getComputedStyle(e).paddingBottom}))})),
-      inputs:controls.filter(e=>e instanceof HTMLInputElement).map(e=>({label:e.getAttribute("aria-label")??e.closest("label")?.textContent??e.getAttribute("id"),rect:box(e),style:style(e),disabled:e.matches(":disabled"),focused:e===document.activeElement,invalid:e.getAttribute("aria-invalid"),describedBy:e.getAttribute("aria-describedby"),valueLength:(e as HTMLInputElement).type==="password"?null:Array.from((e as HTMLInputElement).value).length})),
+      inputs:controls.filter(e=>e instanceof HTMLInputElement).map(e=>({label:e.getAttribute("aria-label")??e.closest("label")?.textContent??e.getAttribute("id"),rect:box(e),style:style(e),disabled:e.matches(":disabled"),translation:e.matches('input[lang="ko"],input[lang="en"],input[lang="vi"]'),focused:e===document.activeElement,invalid:e.getAttribute("aria-invalid"),describedBy:e.getAttribute("aria-describedby"),valueLength:(e as HTMLInputElement).type==="password"?null:Array.from((e as HTMLInputElement).value).length})),
       allControlsContained:controls.every(e=>contains(e.closest("td,label,form,[role=group],[role=tablist]")??e.parentElement!,e)),
       allControlsNonoverlapping:controls.every((a,i)=>controls.slice(i+1).every(b=>{const x=box(a),y=box(b);return !(x.x<y.right&&x.right>y.x&&x.y<y.bottom&&x.bottom>y.y);})),
       dialog:dialog?{rect:box(dialog),controls:controls.map(e=>({tag:e.tagName,label:e.getAttribute("aria-label")??e.textContent,rect:box(e),style:style(e)}))}:null,
@@ -66,12 +66,19 @@ test("#455 after 세 범주 5폭 입력·행·표·focus 및 dialog geometry",as
       expect(normal.allControlsContained).toBe(true);expect(normal.allControlsNonoverlapping).toBe(true);
       expect(normal.rows[0].rect.height).toBeGreaterThanOrEqual(40);expect(normal.rows[0].rect.height).toBeLessThanOrEqual(48);
       for(const row of normal.rows){for(const control of row.controls){expect(control.rect.height).toBe(40);expect(control.marginTop).toBe("0px");}expect(Math.max(...row.controls.map(c=>c.rect.y))-Math.min(...row.controls.map(c=>c.rect.y))).toBeLessThanOrEqual(1);expect(row.cells.every(c=>c.paddingTop==="3px"&&c.paddingBottom==="3px")).toBe(true);}
-      for(const input of normal.inputs){expect(input.style.borderWidth).toBe("1px");expect(input.style.padding).toBe("8px");expect(input.style.minHeight).toBe("40px");expect(input.style.background).not.toBe("rgba(0, 0, 0, 0)");}
+      for(const input of normal.inputs){expect(input.style.borderWidth).toBe("1px");expect(input.style.background).not.toBe("rgba(0, 0, 0, 0)");}
+      // Keep the original control contract separate from the new translation fields.
+      for(const input of normal.inputs.filter(input=>!input.translation)){expect(input.style.padding).toBe("8px");expect(input.style.minHeight).toBe("40px");}
+      const translationInputs=normal.inputs.filter(input=>input.translation);expect(translationInputs).toHaveLength(3);
+      for(const input of translationInputs){expect(input.style.padding).toBe("6px 8px");expect(input.style.minHeight).toBe("44px");expect(input.rect.height).toBe(44);}
       expect(focused.inputs.some(i=>i.focused&&i.style.outline.includes("3px"))).toBe(true);
       await writeFile(resolve(dir,`${category.value}-${width}.json`),JSON.stringify({normal,focused,browserVersion:browser.version()},null,2)+"\n");
       if(category.value==="BUSINESS_UNIT")await page.screenshot({path:resolve(dir,`catalog-${width}.png`),fullPage:true});
       // Native Tab exposes the last action without test-driven horizontal scrolling.
       const first=page.getByLabel(`${category.label} A 이름`,{exact:true});await first.focus();
+      await page.keyboard.press("Tab");
+      const translationTrigger=first.locator("..").getByRole("button",{name:"표시명 번역",exact:true});
+      await expect(translationTrigger).toBeFocused();await expect(translationTrigger).toHaveAttribute("aria-haspopup","dialog");
       for(let step=0;step<3;step++)await page.keyboard.press("Tab");
       await expect(page.getByRole("button",{name:"비활성화",exact:true}).first()).toBeFocused();
       await expect.poll(()=>page.evaluate(()=>{const e=document.activeElement!,owner=e.closest('[data-testid="project-master-table-scroll"]')!,r=e.getBoundingClientRect(),o=owner.getBoundingClientRect();return r.left>=o.left+5&&r.right<=o.right-5;})).toBe(true);

@@ -1,0 +1,477 @@
+{
+  "scope": "PR #879 원본10회/각attempt1 Job·로그, #878는현원장출처, #870는원본원장전체대조; 새CI모니터링없음",
+  "repo": "planner77/masterGantt",
+  "runs": [
+    {
+      "run_number": 3510,
+      "run_id": 41941093006,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41941093006",
+      "event": "pull_request",
+      "mode": "FINAL_FULL",
+      "conclusion": "failure",
+      "head_sha": "dfc967258f5fa0cc8e188d116cdccd734f49c771",
+      "base_sha": "8fca83bbc12cf516cd7f22438fa16c6b596d80fb",
+      "test_merge_sha": "28d4bb5ece15503393808ecbcc5410168264fe02",
+      "direct_job_ids": [
+        126961958453
+      ],
+      "symptom": "non-main base 정책 BLOCKED; 제품 검증 미실행",
+      "required": [
+        {
+          "job_id": 126962207510,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 126962207560,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 126962207386,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "run_number": 3511,
+      "run_id": 41942375933,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41942375933",
+      "event": "pull_request",
+      "mode": "METADATA_ONLY",
+      "conclusion": "cancelled",
+      "head_sha": "dfc967258f5fa0cc8e188d116cdccd734f49c771",
+      "base_sha": null,
+      "test_merge_sha": null,
+      "direct_job_ids": [],
+      "symptom": "METADATA_ONLY CANCELLED; changes job 로그404 BlobNotFound, 상세 취소원인 불명; Required3는 파생FAIL",
+      "required": [
+        {
+          "job_id": 126966126464,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 126966126616,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 126966126553,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "run_number": 3512,
+      "run_id": 41942377243,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41942377243",
+      "event": "pull_request",
+      "mode": "METADATA_ONLY",
+      "conclusion": "failure",
+      "head_sha": "dfc967258f5fa0cc8e188d116cdccd734f49c771",
+      "base_sha": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+      "test_merge_sha": "019efd0152987b3886287b5a88ac59c0549f7b24",
+      "direct_job_ids": [
+        126966322719
+      ],
+      "symptom": "METADATA_ONLY FULL_FAILED: full_run41941093006.1 failure, 새 제품 오류 아님",
+      "required": [
+        {
+          "job_id": 126966461402,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 126966461558,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 126966461459,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "run_number": 3513,
+      "run_id": 41943199412,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41943199412",
+      "event": "pull_request",
+      "mode": "FINAL_FULL",
+      "conclusion": "failure",
+      "head_sha": "20f106f39f90d838193234c5bb0320977fe4af91",
+      "base_sha": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+      "test_merge_sha": "1645f96490dc08e09efbe082c38b4de4f84213f4",
+      "direct_job_ids": [
+        126968984659
+      ],
+      "symptom": "DOC_SYNC: docs/IMPORT_SCHEMA.md 기록 누락",
+      "required": [
+        {
+          "job_id": 126969223864,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 126969223984,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 126969223914,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "run_number": 3514,
+      "run_id": 41946308147,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41946308147",
+      "event": "pull_request",
+      "mode": "FINAL_FULL",
+      "conclusion": "failure",
+      "head_sha": "420781ac039e75adbc4143525a848c5e6bb2ca68",
+      "base_sha": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+      "test_merge_sha": "765f10ba4696cad4b269741eb57f563d18fdb94a",
+      "direct_job_ids": [
+        126979392129
+      ],
+      "symptom": "동일 DOC_SYNC canonical section 누락 재발",
+      "required": [
+        {
+          "job_id": 126979630276,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 126979630213,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 126979630198,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "run_number": 3515,
+      "run_id": 41947822098,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41947822098",
+      "event": "pull_request",
+      "mode": "FINAL_FULL",
+      "conclusion": "failure",
+      "head_sha": "7e861e458135f6fe35e88394ed376b152420c688",
+      "base_sha": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+      "test_merge_sha": "0830598ae1250fbfcdec1686046caa3c86a793fb",
+      "direct_job_ids": [
+        126984569355,
+        126984569338
+      ],
+      "symptom": "TypeScript10건(TS2554=1/TS2339=8/TS2352=1), Vitest migration 기대3건",
+      "required": [
+        {
+          "job_id": 126985342802,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 126985343007,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 126985342931,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "run_number": 3516,
+      "run_id": 41956539012,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41956539012",
+      "event": "pull_request",
+      "mode": "FINAL_FULL",
+      "conclusion": "failure",
+      "head_sha": "7bce2814ee96bdb168ad1e7556792183b4f5f8fd",
+      "base_sha": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+      "test_merge_sha": "6dabd4bce384bb7c56a45981016824eecdb674dd",
+      "direct_job_ids": [
+        127012793287
+      ],
+      "symptom": "DOC_SYNC: docs/SCHEDULING_ENGINE.md 영향 기록 누락",
+      "required": [
+        {
+          "job_id": 127012998149,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 127012998121,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 127012998128,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "run_number": 3517,
+      "run_id": 41960950080,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41960950080",
+      "event": "pull_request",
+      "mode": "FINAL_FULL",
+      "conclusion": "failure",
+      "head_sha": "1dfc5d7f5ec0ee0252773ba3900971ec977a2d90",
+      "base_sha": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+      "test_merge_sha": "2264f3ae06ae6a3461b7b68b60c01d2ef7f8fca3",
+      "direct_job_ids": [
+        127027137923
+      ],
+      "symptom": "TypeScript TS2339 2건: mixed catalog translations optional field 추론",
+      "required": [
+        {
+          "job_id": 127027853794,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 127027853908,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 127027853727,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "run_number": 3518,
+      "run_id": 41965727570,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41965727570",
+      "event": "pull_request",
+      "mode": "FINAL_FULL",
+      "conclusion": "failure",
+      "head_sha": "b8a90a709fa126efbad5bff8dcd1acd45449a50c",
+      "base_sha": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+      "test_merge_sha": "d7cda7b58a284f3e5b200e6bec2a8d17a703460f",
+      "direct_job_ids": [
+        127043119334
+      ],
+      "symptom": "Shard7 populated row 기대<=48px,실제87px; 나머지7 CANCELLED 로그 추가assertion없음",
+      "required": [
+        {
+          "job_id": 127043898809,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success"
+        },
+        {
+          "job_id": 127044095560,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 127044497168,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "run_number": 3519,
+      "run_id": 41970024640,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41970024640",
+      "event": "pull_request",
+      "mode": "FINAL_FULL",
+      "conclusion": "failure",
+      "head_sha": "a7cbef53bd0c89f4f3a7a3c3ed5a76ba7cb2266e",
+      "base_sha": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+      "test_merge_sha": "dbe1ffcb15791c997a974c3bf55479298c8495a0",
+      "direct_job_ids": [
+        127056885009,
+        127056885015
+      ],
+      "symptom": "Shard3 coarse search 기대>=44px,실제20px; CANCELLED Shard7에서도 번역option 실제FAIL",
+      "required": [
+        {
+          "job_id": 127057217560,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success"
+        },
+        {
+          "job_id": 127058207828,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure"
+        },
+        {
+          "job_id": 127058288034,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "latest": {
+    "required_quality_job": 127057217560,
+    "required_e2e_job": 127058207828,
+    "required_docker_job": 127058288034,
+    "qa_automated_job": 127058312950,
+    "unit": {
+      "job_id": 127056066445,
+      "files_pass": 293,
+      "files_skip": 1,
+      "tests_pass": 3540,
+      "tests_skip": 3
+    },
+    "e2e": {
+      "planned": 874,
+      "observed_pass": 138,
+      "observed_failure": 2,
+      "existing_skip": 1,
+      "incomplete_or_not_run": 733,
+      "shards": [
+        {
+          "job_id": 127056885009,
+          "name": "Chromium E2E shard 3/8 · PR",
+          "conclusion": "failure",
+          "planned": 153,
+          "observed_pass": 28,
+          "observed_failure": 1,
+          "observed_skip": 1,
+          "assertion_signals": [
+            "2026-11-05T04:54:49.9487454Z     Expected: >= 44",
+            "2026-11-05T04:54:49.9487676Z     Received:    20"
+          ]
+        },
+        {
+          "job_id": 127056885015,
+          "name": "Chromium E2E shard 7/8 · PR",
+          "conclusion": "cancelled",
+          "planned": 79,
+          "observed_pass": 18,
+          "observed_failure": 1,
+          "observed_skip": 0,
+          "assertion_signals": [
+            "2026-11-05T04:55:10.1401188Z     Expected: \"Assembly Team (I18N-0)\"",
+            "2026-11-05T04:55:10.1402090Z     Received: \"조립팀 A\""
+          ]
+        },
+        {
+          "job_id": 127056885026,
+          "name": "Chromium E2E shard 2/8 · PR",
+          "conclusion": "cancelled",
+          "planned": 104,
+          "observed_pass": 3,
+          "observed_failure": 0,
+          "observed_skip": 0,
+          "assertion_signals": []
+        },
+        {
+          "job_id": 127056885055,
+          "name": "Chromium E2E shard 5/8 · PR",
+          "conclusion": "cancelled",
+          "planned": 111,
+          "observed_pass": 22,
+          "observed_failure": 0,
+          "observed_skip": 0,
+          "assertion_signals": []
+        },
+        {
+          "job_id": 127056885076,
+          "name": "Chromium E2E shard 8/8 · PR",
+          "conclusion": "cancelled",
+          "planned": 104,
+          "observed_pass": 5,
+          "observed_failure": 0,
+          "observed_skip": 0,
+          "assertion_signals": []
+        },
+        {
+          "job_id": 127056885132,
+          "name": "Chromium E2E shard 4/8 · PR",
+          "conclusion": "cancelled",
+          "planned": 94,
+          "observed_pass": 5,
+          "observed_failure": 0,
+          "observed_skip": 0,
+          "assertion_signals": []
+        },
+        {
+          "job_id": 127056885134,
+          "name": "Chromium E2E shard 6/8 · PR",
+          "conclusion": "cancelled",
+          "planned": 100,
+          "observed_pass": 28,
+          "observed_failure": 0,
+          "observed_skip": 0,
+          "assertion_signals": []
+        },
+        {
+          "job_id": 127056885194,
+          "name": "Chromium E2E shard 1/8 · PR",
+          "conclusion": "cancelled",
+          "planned": 129,
+          "observed_pass": 29,
+          "observed_failure": 0,
+          "observed_skip": 0,
+          "assertion_signals": []
+        }
+      ]
+    },
+    "source_job": 127055839844,
+    "report_shard3_artifact_id": 13388873732,
+    "report_shard7": "MISSING due cancellation; original logs contain failure, timing artifact13388499567 remains",
+    "previous_B007_revalidated": "cross-screen-regression3 cases PASS in cancelled shard7; not whole-shard PASS"
+  },
+  "ledger_correction": {
+    "run_id": 41947822098,
+    "typescript_job_id": 126984569355,
+    "previous_record": 9,
+    "actual_count": 10,
+    "codes": {
+      "TS2554": 1,
+      "TS2339": 8,
+      "TS2352": 1
+    }
+  },
+  "previous870": {
+    "ref": "ca58e987fd68261d9e9db97b4e931651350d6e4a",
+    "ledger_blob_sha": "cb698e1d8443f23fa35ce610d63f44e2953cbaa6",
+    "ledger_lines": 392,
+    "ledger_read": "FULL_CONTENT_READ",
+    "remote_jobs_reread": "NOT TESTED for PR870 in this child task; historical ledger source only",
+    "direct_remote_failure_file_union": [
+      "tests/e2e/admin-auth-layout.spec.ts",
+      "tests/e2e/cross-screen-regression.spec.ts",
+      "tests/e2e/country-calendar-admin.spec.ts",
+      "tests/e2e/issue-725-process-workareas.spec.ts",
+      "tests/e2e/logistics-table-density.spec.ts",
+      "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+      "tests/e2e/issue-726-task-logistics.spec.ts",
+      "tests/transport/production-transport.spec.ts"
+    ],
+    "same_reintroduced_bug": "F866-TOUCH-006 / Full3471.1 run41704268626 job126158915804 coarse20px; missing .panel>label>input CSS port"
+  }
+}

@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ProjectMasterItemDto, ProjectMasterSelectionResponse } from "@/contracts/project-master";
+import { displayName } from "../../lib/i18n";
+import { useI18n } from "../../lib/i18n/provider";
 
 export interface ProjectMasterSelectionValue {
   businessUnitId: string;
@@ -89,6 +91,7 @@ export function ProjectMasterSelectFields({
     siteEntity?: ProjectMasterItemDto | null;
   };
 }>) {
+  const { locale } = useI18n();
   const [notice, setNotice] = useState<string | null>(null);
   const linkedProducts = new Set(catalog.data.relations.filter((r) =>
     r.businessUnitId === value.businessUnitId && r.siteEntityId === null).map((r) => r.productId));
@@ -161,7 +164,7 @@ export function ProjectMasterSelectFields({
           <option value="">미지정</option>
           {field.items.map((item) => (
             <option key={item.id} value={item.id}>
-              {item.name || "이름 확인 필요"}{field.items.some(peer => peer.id !== item.id && peer.name === item.name) ? ` (${item.code})` : ""}{item.active ? "" : " · 비활성"}
+              {displayName(item, locale) || "이름 확인 필요"}{field.items.some(peer => peer.id !== item.id && displayName(peer, locale) === displayName(item, locale)) ? ` (${item.code})` : ""}{item.active ? "" : " · 비활성"}
             </option>
           ))}
         </select>
