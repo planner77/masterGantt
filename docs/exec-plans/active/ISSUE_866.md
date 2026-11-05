@@ -1,3 +1,11 @@
+## REWORK-B005 — PR #879 Full #3516.1 DOCUMENTATION_SYNC 일정 계약 영향 기록 보완 (2026-11-05)
+
+- 원본 Full [Run 41956539012.1](https://github.com/planner77/masterGantt/actions/runs/41956539012), `pull_request.synchronize`, HEAD `7bce2814ee96bdb168ad1e7556792183b4f5f8fd`, Main `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `6dabd4bce384bb7c56a45981016824eecdb674dd`는 원본 Job 로그의 checkout ref. QA Preflight Job `127012793287`은 단일 `DOCUMENTATION_SYNC` 직접 FAIL(문서 영향 기록 없음: `docs/SCHEDULING_ENGINE.md`), `FAIL=1/DEFERRED=5`; 다른 정책/필수 항목은 PASS. Fast Gate/Required3/QA Final은 파생 FAIL이며 TypeScript/Vitest/ESLint/Chromium8/Next Build/Docker 구현은 SKIPPED, 결과 NOT TESTED.
+- 원인: REWORK-B004에서 migration 0036의 전진 적용 경로를 검증하도록 `tests/server/calendars/country-calendar-integration.test.ts`를 수정한 순간, 신뢰된 Main `scripts/qa_final_automated.py::docs_required`의 `calendar|schedul|dependency|duration|milestone` 경로 규칙이 `docs/SCHEDULING_ENGINE.md`의 영향 판단을 요구했으나 정규 `## DOCUMENTATION_SYNC`에 기록하지 않았다. 문서 자체 Blob SHA `96ca4156ae976168432cdffe7c2cdc785eb4df41`는 Main/HEAD가 같고 기존 Scheduling Engine, Working Calendar, Dependency, Resource Plan 계산 알고리즘은 변경되지 않았다.
+- **보완:** 현재 정규 `## DOCUMENTATION_SYNC`에 `docs/SCHEDULING_ENGINE.md: N/A(reason)`를 추가한다. 실제 변경의 의미는 `0034→0035→0036` 적용 목록을 확인하도록 과거 테스트 기대값을 수정하는 것으로 기존 Country Calendar data/이력/스냅샷·근무일 산식·date-only/FS/SS/FF/SF 정책 변경이 아니다. 신뢰된 검사기/CI workflow/원본 Scheduling Engine 문서를 변경하거나 영향 기록 조건을 완화하지 않는다.
+- **TEST_LIFECYCLE_REVIEW:** 이번 단계 테스트 코드 ADD/EXTEND/RETIRE 0. 직전 REWORK-B004의 기존 country calendar migration 보존 테스트, Project Issue migration regression, locale group search Vitest 및 신규 i18n snapshot, Phase A/B Playwright 145 spec/8 shards를 KEEP_UNIQUE. 이전 실행 미검증 영역은 PASS로 승격하지 않는다.
+- **DOCUMENTATION_SYNC:** Work Packet 현재 `## DOCUMENTATION_SYNC` 수정, 누적 실패 원장 보존 갱신; 문서 `docs/SCHEDULING_ENGINE.md` 자체는 N/A(계산 불변). 해당 DOC_SYNC 규칙의 Main 대비 108개 changed file 합집합 7문서 재대조 결과 기존 6개 UPDATED와 이번 1개 N/A가 모두 충족. `## AC_TEST_COVERAGE` AC01~09·HIGH OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false 유지. 리뷰 thread 이전 P2 resolved, unresolved 0, branch main 대상 및 mergeable=true, #866 OPEN; CI 시작 이후 모니터링/병합/GHCR/Issue 종료 없음.
+
 ## REWORK-B004 — PR #879 Full #3515.1 직접 TS 9건·Vitest 3건 (2026-11-05)
 
 - 원본 [Run 41947822098.1](https://github.com/planner77/masterGantt/actions/runs/41947822098), HEAD `7e861e458135f6fe35e88394ed376b152420c688`, main `364aa3bdfde16fd3ca79add61c35a1cde21f6395`. Preflight/Policy/ESLint PASS; TypeScript Job126984569355 TS2554/TS2339/TS2352 총9, Vitest Job126984569338 migration 적용 목록 3 FAIL(3536 PASS/3 SKIP), Required3/FastGate/QA는 파생 FAIL, E2E8·Docker·Next Build SKIPPED.
@@ -136,6 +144,7 @@
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/ISSUE_LIFECYCLE.md`: N/A(phase 기반 부분 구현은 Issue open을 유지하며 기존 lifecycle 규칙 변경 없음)
 - `docs/IMPORT_EXPORT.md`: UPDATED
+- `docs/SCHEDULING_ENGINE.md`: N/A(0036 migration 추가에 따라 Country Calendar 회귀 테스트의 적용 목록만 갱신했으며 Working Calendar 및 일정 계산 계약과 Scheduling Engine 문서 자체는 불변)
 - `docs/IMPORT_SCHEMA.md`: UPDATED
 - `docs/UI_UX_GUIDELINES.md`: UPDATED
 - `docs/TASK_EDITOR.md`: N/A(Task Editor 사용자 텍스트·상태/드래프트 불변)
