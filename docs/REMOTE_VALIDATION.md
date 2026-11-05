@@ -1,3 +1,9 @@
+## Issue #866 Phase B 종속 PR — 정확 Head 검증 계획 (2026-11-05)
+
+- Phase A PR #878 성공 Full CI #3509.1은 Phase B 검증 근거가 아니다. Phase B는 Phase A HEAD 기반 별도 브랜치의 test-merge SHA·Head/Base를 확인해야 하며, Trusted QA strict main 정책/Owner 수용을 우회하지 않는다.
+- 요구: TypeScript/ESLint/Vitest/SQLite 0035→0036/reopen/FK/권한·stale revision·변조, 실제 E2E8 모두(신규 i18n-master-data shard7), Docker/Compose Smoke, Trusted QA 및 unresolved thread 0. 테스트 미실행은 NOT TESTED.
+- 릴리스 전 운영 DB 사전 백업+복구 리허설, Copy/Template6·Old Consumer 호환, 390~1920px와 베트남어 입력·성조, 프로젝트간 데이터 격리·권한 회수를 별도 인수. HIGH OWNER_MANAGED, release_authorized=false, Issue OPEN.
+
 ## Issue #790 — 캐시 비교기 원격 검증 및 PR 출처 분리 (2026-10-31)
 
 - **소스:** Main `3c73737968dfdbd6817657f3a17bed07c209a528`/앱 `0.138.5`에서 브랜치 `ci/issue-790-cache-audit-current-main`를 생성했다. PR Head/Base/Test-Merge와 Run ID/Attempt 및 실제 Job 결론을 같이 확인한다. #791의 앱 `0.130.2` 결과는 현재 소스의 검증이 아니다.

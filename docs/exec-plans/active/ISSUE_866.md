@@ -20,7 +20,7 @@
 
 ### DOCUMENTATION_SYNC (Phase B 추가)
 
-- UPDATED: docs/I18N_PHASE_B.md, docs/exec-plans/active/ISSUE_866.md, docs/ISSUE_866_FAILURE_ANALYSIS.md, docs/DB_SCHEMA.md, docs/API.md, docs/TEST_PLAN.md, docs/SECURITY.md, docs/IMPORT_EXPORT.md, DESIGN.md, CHANGELOG.md, docs/REQUIREMENTS.md.
+- UPDATED: docs/I18N_PHASE_B.md, docs/exec-plans/active/ISSUE_866.md, docs/ISSUE_866_FAILURE_ANALYSIS.md, docs/DB_SCHEMA.md, docs/API.md, docs/TEST_PLAN.md, docs/REMOTE_VALIDATION.md, docs/SECURITY.md, docs/IMPORT_EXPORT.md, docs/UI_UX_GUIDELINES.md, docs/PROJECT_UX.md, docs/LOGISTICS_DOMAIN_DESIGN.md, DESIGN.md, CHANGELOG.md, docs/REQUIREMENTS.md.
 - N/A: AGENTS.md (기존 QA/보안/독립 Owner 규칙 준수, 정책 변경 없음), docs/ARCHITECTURE.md (서버·배포 토폴로지 불변), CI workflow/Runner/Required3/GHCR 운영 변경 없음.
 
 # Issue #866 — 한국어·영어·베트남어 국제화 / 최신 Main 분리 실행 계획
