@@ -36,6 +36,12 @@ test("#457 기준정보 populated table은 공통 observer로 밀도와 열 경�
     expect(facts.tables[0].rowHeightMax).toBeLessThanOrEqual(48);
     // Observation scrolling above is preparation, not keyboard reachability proof.
     await page.getByLabel("사업부 A 이름", { exact: true }).focus();
+    // #866 adds a keyboard-reachable translation dialog trigger in the name cell.
+    await page.keyboard.press("Tab");
+    const translationTrigger = page.locator('[data-testid="project-master-table-scroll"] tbody tr').first()
+      .getByRole("button", { name: "표시명 번역", exact: true });
+    await expect(translationTrigger).toBeFocused();
+    await expect(translationTrigger).toHaveAttribute("aria-haspopup", "dialog");
     for (let step = 0; step < 3; step++) await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: "비활성화", exact: true }).first()).toBeFocused();
     const keyboard = await captureUi(page, testInfo, `master-last-action-${width}`);

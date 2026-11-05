@@ -195,6 +195,21 @@
   min-width: 0;
 }
 
+/* #866: Keep the native name input and accessible translation trigger
+   within the existing compact table-row height budget. */
+.nameControl {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.table .nameControl > input {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+}
+
 /* 240 + 192 + 120 + 216 + 192px; 이름은 넓은 작업면을 사용한다. */
 .codeColumn { width: 192px; }
 .sortColumn { width: 120px; }

@@ -1,5 +1,7 @@
 ## Issue #866 Phase B — 번역 관리 입력·검색 (2026-11-05)
 
+- Project Master table name input and translation dialog icon share a single flex-nowrap row, with 40px fine / 44px coarse controls and row max 48px fine / 52px coarse. At viewport390px the existing horizontal table scroll owns overflow; shrink the input instead of wrapping, clipping, hiding or excluding the translation button from Tab order. Keyboard flow name -> translation dialog -> sort -> Save -> Deactivate, Escape restores trigger focus. Retain strict #457 populated table and #866 i18n-master-data E2E geometry assertions; see Work Packet B007.
+
 - 화면별 관리형 원본 name과 수동 ko/en/vi 표시명 입력을 분리한다. 번역 필드 공백/미설정은 원본 fallback이며, 목록·선택값 검색에는 번역과 canonical 원문을 병행하지만 편집/관계는 항상 ID/code를 사용한다. 동명이름 혼동 시 기술 ID는 보조 메타로 제공한다.
 - 390/768/1024/1440/1920px, 영어 장문/베트남어 성조, 포커스 복원/Escape/키보드/44px touch target/모달 scroll-owner 등 Phase B E2E 대상으로 지정. 이 검증은 신규 원격 PR Head에서 아직 NOT TESTED. [Phase B](I18N_PHASE_B.md).
 

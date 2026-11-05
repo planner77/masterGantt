@@ -1,3 +1,9 @@
+## REWORK-B007 — 기준정보 테이블 이름+번역 버튼 밀도 (2026-11-05)
+
+- In Full #3518.1 Chromium shard7, #457 Master populated table row maximum was 87px vs strict <=48px. Existing input occupied 100% width and new translation dialog trigger wrapped below because Project Master CSS Module omitted the referenced .nameControl class.
+- Define .nameControl display:flex/nowrap, gap6/min-width0, centered controls and a shrinkable name input (flex:1 1 0, width0, min-width0). Retain 240px name column within 960px horizontally scrollable table, 40px fine and 44px coarse controls; no forced row heights, clipped text/error, or hidden button. Original name/ID/code and session/CAS untouched.
+- Keyboard order: Name -> accessible translation dialog trigger -> Sort -> Save -> Deactivate for used rows. Existing #457 observer asserts row<=48 at 390/1440, focus visibility and scroll owners; add first Tab/aria-haspopup assertion without weakening. Existing Phase B i18n-master-data tests enforce 5 widths x three locales and coarse row<=52. New source browser PASS remains NOT TESTED.
+
 ## REWORK-B006 — Resource Target 카탈로그의 선택적 번역 타입 계약 (2026-11-05)
 
 - Resource Dashboard `renderTargets`는 원본 target 카탈로그, Global resource group(선택적 `translations`) 및 resource(번역 미지원)를 동일 표기용 카탈로그로 통합한다. 각 요소의 정규 타입은 `ResourceDashboardTargetProjection["catalog"][number]`이며 `translations?: DisplayNameTranslations`가 선택적으로 존재한다.

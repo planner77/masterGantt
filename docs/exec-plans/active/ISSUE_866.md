@@ -1,3 +1,18 @@
+## REWORK-B007 — PR #879 Full #3518.1 Project Master geometry + keyboard (2026-11-05)
+
+- Source: Full Run 41965727570.1 https://github.com/planner77/masterGantt/actions/runs/41965727570, HEAD b8a90a709fa126efbad5bff8dcd1acd45449a50c, main base 364aa3bdfde16fd3ca79add61c35a1cde21f6395, test-merge d7cda7b58a284f3e5b200e6bec2a8d17a703460f. Preflight, Policy, ESLint, TypeScript, Unit 3540 PASS/3 SKIP, Next build, Quality and Docker PASS. Chromium shard7 Job 127043119334 direct FAIL: #457 populated master row 87px vs strict 48px; 1 PASS, 1 FAIL, 77 NOT RUN. Other7 shards CANCELLED; E2E aggregate and QA Final derived FAIL.
+- Root cause PRODUCT/UI_LAYOUT: JSX styles.nameControl wrapped native name input and new translation button, but CSS Module had no .nameControl rule. Input width100% pushed 40px button below, doubling row. Add horizontal flex-nowrap/gap6 and input flex-basis0/min-width0; preserve original name/ID, scroll owner, fine40px/coarse44px controls, no clipping/fixed row height/hiding.
+- Cross-feature keyboard sequence: name input -> translation dialog trigger -> sort -> Save -> Deactivate (Code disabled for used item). EXTEND original #457 E2E to check first Tab focus and aria-haspopup=dialog, then three Tabs and existing focus-visible; keep strict row<=48 and column geometry. No spec/shard additions or weakening.
+
+### TEST_LIFECYCLE_REVIEW (REWORK-B007)
+
+- EXTEND tests/e2e/cross-screen-regression.spec.ts; KEEP_UNIQUE tests/e2e/i18n-master-data.spec.ts 5 widths/3 languages/coarse/401/412 and existing Project Master, security, database, SVAR/Gantt, Copy/Template tests. Original Chromium8/Required3 and fail-fast, retry/timeout, assertions preserved. Exact new HEAD Playwright/CI: NOT TESTED.
+
+### DOCUMENTATION_SYNC (REWORK-B007)
+
+- UPDATED CSS Module, existing cross-screen E2E, this Issue Work Packet, Issue failure ledger, docs/I18N_PHASE_B.md and docs/UI_UX_GUIDELINES.md.
+- N/A AGENTS.md, original docs/TEST_PLAN.md, API/DB schema/migration, CI trusted verifier/workflow, product version, Release/Owner policy. Existing canonical DOCUMENTATION_SYNC and AC_TEST_COVERAGE sections preserved. Phase C acceptance and GHCR/merge remain HOLD.
+
 ## REWORK-B006 — PR #879 Full #3517.1 선택적 translations TypeScript 컴파일 실패 (2026-11-05)
 
 - [Run 41960950080.1](https://github.com/planner77/masterGantt/actions/runs/41960950080), source HEAD `1dfc5d7f5ec0ee0252773ba3900971ec977a2d90`, base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `2264f3ae06ae6a3461b7b68b60c01d2ef7f8fca3`; QA Preflight, Policy, ESLint PASS; Vitest 3540 PASS/3 SKIP. TypeScript Job127027137923 `resource-dashboard-service-core.ts:805` TS2339 두 건 직접 실패; Fast Gate/Required3/QA Final 파생 실패. Next/E2E8/Docker NOT RUN. 이전 #3515 TypeScript 9건·Vitest 3건, #3516 DOC_SYNC 차단을 누적 원장과 대조했다.
