@@ -1,3 +1,9 @@
+## Issue #866 Phase B — 소유자 분리된 물류 기준정보 번역 (2026-11-05)
+
+- 물류 Equipment Type/System Type의 owner는 글로벌 code, Project Process/Equipment/System/WorkArea owner는 프로젝트별 행 ID. Process Type/Standard/Site Occurrence/공유 WorkArea 및 Resource Group 역시 각각 독립 owner를 갖는 translation table을 사용한다.
+- canonical name/code/원본 관계, 프로젝트 공정·설비 및 Task 링크·KPI/용량 산식은 불변이다. Global Type 관리자·Process Master 관리자·Resource 관리자와 Project 편집자는 현재의 서로 다른 인증을 그대로 유지한다.
+- Copy/Template version 6의 번역 재연결과 export 손실 차단, 동명 번역 ID 구별/원문 fallback은 [Phase B](I18N_PHASE_B.md). 실제 대량 SQLite·프로젝트간 권한 회수 검증 전 NOT TESTED.
+
 ## Issue #792 — 기존 관계 적용 범위 안전 편집 (한정)
 
 #785 공개 Target CRUD/Target binding writer의 410은 유지한다. 신규 직접 연결이 권위 원본이지만, 보존된 `task_target_bindings`의 **Summary 직접 관계 한 건**은 별도 source-aware editor로 `self↔subtree` 범위만 안전하게 수정할 수 있다. 원본 binding UUID·target/Task FK·member UUID·subset coverage·whole 동적 해석·공정/WorkArea 원본은 불변이며 기존 Equipment/System/직접 관계·WBS/Resource/Assignment를 자동 추가하거나 분배하지 않는다.

@@ -1,3 +1,9 @@
+## Issue #866 Phase B — 원본 owner별 번역 쓰기 경계 (2026-11-05)
+
+- translations는 기존 CRUD DTO의 선택 필드이고 별도 공개 writer 없음. Global master/logistics type/process/resource group 쓰기에는 해당 글로벌 관리자 인증, project logistics/workarea에는 해당 Project edit session을 재사용하며 기존 Origin/CSRF, If-Match/Revision CAS, project isolation, password/session/KDF와 감사 계약을 변경하지 않는다.
+- 한 owner×locale 한 행, 고정 테이블 allowlist 및 FK CASCADE. 번역 입력은 NFC+trim, 비어 있으면 해제, 미지원 locale·제어문자·유효하지 않은 surrogate·200 codepoint 초과 거부한다. 프런트는 text만 렌더하며 HTML 삽입 안 함.
+- Project Copy/Template은 source owner identity를 새 owner로 재매핑하여 누출 방지하고 Export에서 표현 불가능한 번역은 명시 거부(409). 보안·경합 검증의 새 PR HEAD는 CI 전 NOT TESTED이며 실제 세션 만료/권한 회수/DB backup-restore가 추가로 필요하다. [Phase B](I18N_PHASE_B.md).
+
 ## Issue #865 — 사내 LLM outbound 및 secret 격리 (2026-11-04)
 
 LLM은 기본 OFF의 Node.js server-only 모듈이며 등록된 provider/model만 명시적으로 호출한다. API key 전체 JSON은 runtime secret으로 취급하며 `NEXT_PUBLIC_*`, 이미지 layer/build arg, URL, 사용자 응답/로그/telemetry·CI artifact에 노출하지 않는다. 로컬/사설망 endpoint만 허용하도록 DNS 결과·연결 주소를 검증하고 외부 IP/메타데이터/link-local/redirect를 차단한다. HTTPS를 기본으로 사용하고 사내 HTTP 및 무인증 접속은 각각 별도 opt-in 정책을 적용한다. Prompt/응답 원문과 upstream 예외 메시지는 출력하지 않고 고정 오류 코드로 처리한다. Project 데이터 자동 수집/전송 및 신규 공개 LLM route 없음. 실제 운영망 DNS·CA·인증서 승인은 운영자 검증이 필요하다. [설정 문서](LLM_CONFIGURATION.md).

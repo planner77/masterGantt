@@ -1,3 +1,8 @@
+## Issue #866 Phase B — 프로젝트별 공정/WorkArea 표시명 (2026-11-05)
+
+- Project Process, Project WorkArea의 수동 표시명 번역값은 해당 Project 범위의 owner row에 부착한다. 다른 Project의 이름·번역을 복제 연결하거나 원본 name/ID를 변경하지 않는다. Global Process Type/표준/현장 공정 원본과 프로젝트 사본의 소유권·권한을 구별한다.
+- Locale 변경은 프로젝트 편집 세션/작업 원본·Gantt 상태를 변경하지 않으며 조회 목록은 현재 언어 번역(없으면 원문)을 표시한다. 모든 화면 전환·미저장 Draft 비회귀 전수는 Phase C에서 계속 검증. [Phase B](I18N_PHASE_B.md).
+
 ## Issue #869 — Project Issue 목록 수직 스크롤·고정 등록 폼 (2026-11-04)
 
 데스크톱에서는 Project Issue 목록 데이터 영역만 독립적으로 수직 스크롤하고, Project 상위 패널의 중복 수직 스크롤을 제거한다. KPI·검색·페이지네이션은 목록 바깥에 고정하고 표 안 가로 스크롤·sticky 헤더·검색/기본 상태 필터(#867)를 유지한다. 낮거나 좁은 화면은 컨트롤 접근을 위해 상위 안전 스크롤과 폼 열 분리를 허용한다.

@@ -1,3 +1,8 @@
+## Issue #866 Phase B — 번역 관리 입력·검색 (2026-11-05)
+
+- 화면별 관리형 원본 name과 수동 ko/en/vi 표시명 입력을 분리한다. 번역 필드 공백/미설정은 원본 fallback이며, 목록·선택값 검색에는 번역과 canonical 원문을 병행하지만 편집/관계는 항상 ID/code를 사용한다. 동명이름 혼동 시 기술 ID는 보조 메타로 제공한다.
+- 390/768/1024/1440/1920px, 영어 장문/베트남어 성조, 포커스 복원/Escape/키보드/44px touch target/모달 scroll-owner 등 Phase B E2E 대상으로 지정. 이 검증은 신규 원격 PR Head에서 아직 NOT TESTED. [Phase B](I18N_PHASE_B.md).
+
 ## Issue #869 — Issue scroll owner와 편집 폼의 시각적 구분 (2026-11-04)
 
 Project Issue는 목록 데이터만 세로 스크롤하고 KPI/검색/하단 pagination을 동일 스크롤 컨테이너 안에 넣지 않는다. 표의 가로 스크롤과 sticky header를 유지하고 내부 목록이 잘리지 않도록 flex/min-height:0 및 viewport별 안전 fallback을 사용한다. Dialog는 제목/닫기/Issue 명을 독립적으로 고정하고 본문에만 overflow를 준다. 데스크톱 날짜3·등록자/담당자/상태3·비밀번호2열, 내용8행; 작은 폭/낮은 높이·coarse pointer의 focus/Tab/Escape와 숨겨진 저장·오류·보안패널 도달성을 보존한다. Gantt peer 화면의 본문 크기/스크롤 규칙은 수정하지 않는다.

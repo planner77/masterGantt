@@ -1,3 +1,9 @@
+## Issue #866 Phase B — 관리형 번역 저장 및 UI (2026-11-05)
+
+- FR-I18N-03: global/project별 기존 owner ID+locale에 귀속되는 ko/en/vi 표시명 저장; 기존 id/code/name/UNIQUE/참조·수량/권한·Free Text 불변. 관리자 수동 CRUD, 원본 fallback, ID 선택, Owner/Project Edit 권한 및 revision CAS 유지. migration 0036/Copy/Template6/Export guard를 구현한다.
+- AC04/05/06의 정적 구현과 관련 unit/SQLite/E2E 후보를 Phase B에 연결했으나 정확 Head Full CI/HTTP/실제 DB/5폭 테스트 전 NOT TESTED. AC02/03/07/08/09 및 전체 제품 현지화는 Phase C 잔여, Issue #866 OPEN/release_authorized=false.
+- UI 키·원문 값과 기술 식별자를 구별하고 외부 번역 서버/LLM 자동 호출은 금지한다. [Phase B](I18N_PHASE_B.md).
+
 ## Issue #865 — 명시적 사내 LLM 공급자·모델 선택 (2026-11-04)
 
 OpenAI 호환 서버 전용 호출 기반을 제공한다. 하나 이상의 사설망 provider를 등록하고 각 provider에 여러 model을 명시, `(providerId,modelId)` 쌍으로 선택한다. 기본 OFF, runtime secret 격리, 허용 대상/모델 검증 실패는 fail-closed, 비스트리밍·bounded 호출/표준 오류·timeout/abort, 자동 외부 연결·데이터 전송·AI UI/공개 API 없음. 모델 자동 탐색, 서비스/DB 자동 차단 또는 임의 provider failover 없음. [#865 요구사항](https://github.com/planner77/masterGantt/issues/865)과 [운영 가이드](LLM_CONFIGURATION.md)를 따른다.

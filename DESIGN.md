@@ -1,3 +1,9 @@
+## Issue #866 Phase B — 다국어 기준정보 표시명 UI 계약 (2026-11-05)
+
+- 공통 언어 선택(Phase A)과 관리형 기준정보 원본 name·code·ID 필드를 분리한다. 원본 이름은 그대로 편집·저장하고, ko/en/vi 수동 표시명은 별도 TranslationFields/TranslationEditor에서 저장한다. 언어별 번역 미등록 시 정확히 원본 name 표시, 자유 입력 프로젝트/Task/사람 이름은 변경하지 않는다.
+- 관리자 CRUD는 기존 권한·revision·focus/scroll/취소/초안 보존 기준을 따른다. 검색은 원본 및 선택 언어 번역을 대상에 포함하되 선택은 canonical ID/code, 같은 번역명 충돌도 ID로 구별한다. 장문 베트남어와 390/768/1024/1440/1920px 실 브라우저 검증 전 NOT TESTED.
+- 변경된 화면: Project Master, Logistics Type, Process Catalog/Project Process, Project WorkArea, Resource Group. 나머지 Project Equipment/System 입력/전체 UI 일관성은 Phase C 전수 검증 대상으로 보존한다. [Phase B](docs/I18N_PHASE_B.md).
+
 # masterGantt Design System
 
 적용 기준: 2026-09-23.
