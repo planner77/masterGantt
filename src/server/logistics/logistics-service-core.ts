@@ -1,3 +1,4 @@
+import { displayNameTranslationFieldMap, parseDisplayNameTranslations, writeDisplayNameTranslations } from "../repositories/display-name-translations-repository-core";
 import { loadTaskLogisticsCompatibility, LogisticsCompatibilityError } from "./task-logistics-compatibility-core";
 import { ProjectWorkAreaRepository } from "../repositories/project-work-area-repository-core";
 import { ProcessContextRepository, ProcessContextError } from "../repositories/process-context-repository-core";
@@ -149,156 +150,164 @@ export class LogisticsService {
   }
 
   getLogisticsDto(projectId: number): ProjectLogisticsDto {
-    const processes = this.logisticsRepo.listProcesses(projectId);
-    const equipment = this.logisticsRepo.listEquipment(projectId);
-    const systems = this.logisticsRepo.listSystems(projectId);
-    const allEqSystems = this.logisticsRepo.listAllEquipmentSystems(projectId);
-    const allSysProcesses = this.logisticsRepo.listAllSystemProcesses(projectId);
-    const systemLinks = this.logisticsRepo.listSystemLinks(projectId);
-    const allEqRoles = this.logisticsRepo.listEquipmentResourceRoles(projectId);
-    const allSysRoles = this.logisticsRepo.listSystemResourceRoles(projectId);
+    return this.database.transaction(() => {
+      const processes = this.logisticsRepo.listProcesses(projectId);
+      const equipment = this.logisticsRepo.listEquipment(projectId);
+      const systems = this.logisticsRepo.listSystems(projectId);
+      const processTranslations = displayNameTranslationFieldMap(this.database,"project_processes",processes.map(row=>row.id));
+      const equipmentTranslations = displayNameTranslationFieldMap(this.database,"project_equipment",equipment.map(row=>row.id));
+      const systemTranslations = displayNameTranslationFieldMap(this.database,"project_logistics_systems",systems.map(row=>row.id));
+      const allEqSystems = this.logisticsRepo.listAllEquipmentSystems(projectId);
+      const allSysProcesses = this.logisticsRepo.listAllSystemProcesses(projectId);
+      const systemLinks = this.logisticsRepo.listSystemLinks(projectId);
+      const allEqRoles = this.logisticsRepo.listEquipmentResourceRoles(projectId);
+      const allSysRoles = this.logisticsRepo.listSystemResourceRoles(projectId);
 
-    const processPublicIdById = new Map<number, string>(
-      processes.map((p) => [p.id, p.publicId]),
-    );
-    const systemPublicIdById = new Map<number, string>(
-      systems.map((s) => [s.id, s.publicId]),
-    );
+      const processPublicIdById = new Map<number, string>(
+        processes.map((p) => [p.id, p.publicId]),
+      );
+      const systemPublicIdById = new Map<number, string>(
+        systems.map((s) => [s.id, s.publicId]),
+      );
 
-    const eqSystemsByEqId = new Map<number, { systemId: string; controlRole: ControlRole }[]>();
-    for (const row of allEqSystems) {
-      const sysPub = systemPublicIdById.get(row.systemId);
-      if (!sysPub) continue;
-      const list = eqSystemsByEqId.get(row.equipmentId) ?? [];
-      list.push({ systemId: sysPub, controlRole: row.controlRole });
-      eqSystemsByEqId.set(row.equipmentId, list);
-    }
+      const eqSystemsByEqId = new Map<number, { systemId: string; controlRole: ControlRole }[]>();
+      for (const row of allEqSystems) {
+        const sysPub = systemPublicIdById.get(row.systemId);
+        if (!sysPub) continue;
+        const list = eqSystemsByEqId.get(row.equipmentId) ?? [];
+        list.push({ systemId: sysPub, controlRole: row.controlRole });
+        eqSystemsByEqId.set(row.equipmentId, list);
+      }
 
-    const sysProcessesBySysId = new Map<number, string[]>();
-    for (const row of allSysProcesses) {
-      const procPub = processPublicIdById.get(row.processId);
-      if (!procPub) continue;
-      const list = sysProcessesBySysId.get(row.systemId) ?? [];
-      list.push(procPub);
-      sysProcessesBySysId.set(row.systemId, list);
-    }
+      const sysProcessesBySysId = new Map<number, string[]>();
+      for (const row of allSysProcesses) {
+        const procPub = processPublicIdById.get(row.processId);
+        if (!procPub) continue;
+        const list = sysProcessesBySysId.get(row.systemId) ?? [];
+        list.push(procPub);
+        sysProcessesBySysId.set(row.systemId, list);
+      }
 
-    const coordinatedBySysId = new Map<number, string[]>();
-    for (const link of systemLinks) {
-      const targetPub = systemPublicIdById.get(link.targetSystemId);
-      if (!targetPub) continue;
-      const list = coordinatedBySysId.get(link.sourceSystemId) ?? [];
-      list.push(targetPub);
-      coordinatedBySysId.set(link.sourceSystemId, list);
-    }
+      const coordinatedBySysId = new Map<number, string[]>();
+      for (const link of systemLinks) {
+        const targetPub = systemPublicIdById.get(link.targetSystemId);
+        if (!targetPub) continue;
+        const list = coordinatedBySysId.get(link.sourceSystemId) ?? [];
+        list.push(targetPub);
+        coordinatedBySysId.set(link.sourceSystemId, list);
+      }
 
-    const eqRolesByEqId = new Map<number, EquipmentResourceRoleDto[]>();
-    for (const row of allEqRoles) {
-      const list = eqRolesByEqId.get(row.equipmentId) ?? [];
-      list.push({
-        resourceId: row.resourcePublicId,
-        resourceCode: row.resourceCode ?? "",
-        resourceName: row.resourceName,
-        role: row.role,
-        isPrimary: row.isPrimary === 1,
-        active: row.resourceActive === 1,
-      });
-      eqRolesByEqId.set(row.equipmentId, list);
-    }
+      const eqRolesByEqId = new Map<number, EquipmentResourceRoleDto[]>();
+      for (const row of allEqRoles) {
+        const list = eqRolesByEqId.get(row.equipmentId) ?? [];
+        list.push({
+          resourceId: row.resourcePublicId,
+          resourceCode: row.resourceCode ?? "",
+          resourceName: row.resourceName,
+          role: row.role,
+          isPrimary: row.isPrimary === 1,
+          active: row.resourceActive === 1,
+        });
+        eqRolesByEqId.set(row.equipmentId, list);
+      }
 
-    const sysRolesBySysId = new Map<number, SystemResourceRoleDto[]>();
-    for (const row of allSysRoles) {
-      const list = sysRolesBySysId.get(row.systemId) ?? [];
-      list.push({
-        resourceId: row.resourcePublicId,
-        resourceCode: row.resourceCode ?? "",
-        resourceName: row.resourceName,
-        role: row.role,
-        isPrimary: row.isPrimary === 1,
-        active: row.resourceActive === 1,
-      });
-      sysRolesBySysId.set(row.systemId, list);
-    }
+      const sysRolesBySysId = new Map<number, SystemResourceRoleDto[]>();
+      for (const row of allSysRoles) {
+        const list = sysRolesBySysId.get(row.systemId) ?? [];
+        list.push({
+          resourceId: row.resourcePublicId,
+          resourceCode: row.resourceCode ?? "",
+          resourceName: row.resourceName,
+          role: row.role,
+          isPrimary: row.isPrimary === 1,
+          active: row.resourceActive === 1,
+        });
+        sysRolesBySysId.set(row.systemId, list);
+      }
 
-    const contextProcessUsage = new Map((this.database.prepare("SELECT process_id processId,COUNT(*) count FROM (SELECT process_id FROM task_process_links WHERE project_id=? UNION ALL SELECT process_id FROM equipment_work_areas WHERE project_id=? UNION ALL SELECT process_id FROM equipment_project_work_areas WHERE project_id=? UNION ALL SELECT process_id FROM project_work_areas WHERE project_id=?) GROUP BY process_id").all(projectId,projectId,projectId,projectId) as Array<{processId:number;count:number}>).map(row=>[row.processId,row.count]));
-    const processDtos: ProcessDto[] = processes.map((p) => ({
-      id: p.publicId,
-      code: p.code,
-      name: p.name,
-      usageCount: (contextProcessUsage.get(p.id) ?? 0) + equipment.filter(e=>e.processId===p.id).length + allSysProcesses.filter(link=>link.processId===p.id).length,
-      parentProcessId: p.parentId !== null ? (processPublicIdById.get(p.parentId) ?? null) : null,
-      sortOrder: p.sortOrder,
-      active: p.active === 1,
-      createdAt: p.createdAt,
-      updatedAt: p.updatedAt,
-    }));
+      const contextProcessUsage = new Map((this.database.prepare("SELECT process_id processId,COUNT(*) count FROM (SELECT process_id FROM task_process_links WHERE project_id=? UNION ALL SELECT process_id FROM equipment_work_areas WHERE project_id=? UNION ALL SELECT process_id FROM equipment_project_work_areas WHERE project_id=? UNION ALL SELECT process_id FROM project_work_areas WHERE project_id=?) GROUP BY process_id").all(projectId,projectId,projectId,projectId) as Array<{processId:number;count:number}>).map(row=>[row.processId,row.count]));
+      const processDtos: ProcessDto[] = processes.map((p) => ({
+        id: p.publicId,
+        code: p.code,
+        name: p.name,
+        ...processTranslations.get(String(p.id)),
+        usageCount: (contextProcessUsage.get(p.id) ?? 0) + equipment.filter(e=>e.processId===p.id).length + allSysProcesses.filter(link=>link.processId===p.id).length,
+        parentProcessId: p.parentId !== null ? (processPublicIdById.get(p.parentId) ?? null) : null,
+        sortOrder: p.sortOrder,
+        active: p.active === 1,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+      }));
 
-    const equipmentWorkAreas = new ProcessContextRepository(this.database).equipmentLinks(projectId);
-    const taskProcessContexts = new ProcessContextRepository(this.database).taskContexts(projectId);
-    const equipmentDtos: EquipmentDto[] = equipment.map((e) => ({
-      id: e.publicId,
-      processId: processPublicIdById.get(e.processId) ?? "",
-      code: e.code,
-      name: e.name,
-      equipmentType: e.equipmentType,
-      managementUnit: e.managementUnit,
-      quantity: e.quantity,
-      manufacturer: e.manufacturer,
-      model: e.model,
-      description: e.description,
-      active: e.active === 1,
-      workAreaIds: equipmentWorkAreas.filter(link => link.equipmentId === e.publicId).map(link => link.workAreaId),
-      workAreaLinks: equipmentWorkAreas.filter(link => link.equipmentId === e.publicId).map(({ processId, workAreaId }) => ({ processId, workAreaId })),
-      controlSystems: eqSystemsByEqId.get(e.id) ?? [],
-      resourceRoles: eqRolesByEqId.get(e.id) ?? [],
-      createdAt: e.createdAt,
-      updatedAt: e.updatedAt,
-    }));
+      const equipmentWorkAreas = new ProcessContextRepository(this.database).equipmentLinks(projectId);
+      const taskProcessContexts = new ProcessContextRepository(this.database).taskContexts(projectId);
+      const equipmentDtos: EquipmentDto[] = equipment.map((e) => ({
+        id: e.publicId,
+        processId: processPublicIdById.get(e.processId) ?? "",
+        code: e.code,
+        name: e.name,
+        ...equipmentTranslations.get(String(e.id)),
+        equipmentType: e.equipmentType,
+        managementUnit: e.managementUnit,
+        quantity: e.quantity,
+        manufacturer: e.manufacturer,
+        model: e.model,
+        description: e.description,
+        active: e.active === 1,
+        workAreaIds: equipmentWorkAreas.filter(link => link.equipmentId === e.publicId).map(link => link.workAreaId),
+        workAreaLinks: equipmentWorkAreas.filter(link => link.equipmentId === e.publicId).map(({ processId, workAreaId }) => ({ processId, workAreaId })),
+        controlSystems: eqSystemsByEqId.get(e.id) ?? [],
+        resourceRoles: eqRolesByEqId.get(e.id) ?? [],
+        createdAt: e.createdAt,
+        updatedAt: e.updatedAt,
+      }));
 
-    const systemDtos: LogisticsSystemDto[] = systems.map((s) => ({
-      id: s.publicId,
-      code: s.code,
-      name: s.name,
-      systemType: s.systemType,
-      layer: s.layer,
-      scope: s.scope,
-      processIds: sysProcessesBySysId.get(s.id) ?? [],
-      coordinatedSystemIds: coordinatedBySysId.get(s.id) ?? [],
-      resourceRoles: sysRolesBySysId.get(s.id) ?? [],
-      vendor: s.vendor,
-      description: s.description,
-      active: s.active === 1,
-      createdAt: s.createdAt,
-      updatedAt: s.updatedAt,
-    }));
+      const systemDtos: LogisticsSystemDto[] = systems.map((s) => ({
+        id: s.publicId,
+        code: s.code,
+        name: s.name,
+        ...systemTranslations.get(String(s.id)),
+        systemType: s.systemType,
+        layer: s.layer,
+        scope: s.scope,
+        processIds: sysProcessesBySysId.get(s.id) ?? [],
+        coordinatedSystemIds: coordinatedBySysId.get(s.id) ?? [],
+        resourceRoles: sysRolesBySysId.get(s.id) ?? [],
+        vendor: s.vendor,
+        description: s.description,
+        active: s.active === 1,
+        createdAt: s.createdAt,
+        updatedAt: s.updatedAt,
+      }));
 
-    const systemLinkDtos: SystemLinkDto[] = systemLinks.map((link) => ({
-      sourceSystemId: systemPublicIdById.get(link.sourceSystemId) ?? "",
-      targetSystemId: systemPublicIdById.get(link.targetSystemId) ?? "",
-      relationType: "coordinates",
-    }));
+      const systemLinkDtos: SystemLinkDto[] = systemLinks.map((link) => ({
+        sourceSystemId: systemPublicIdById.get(link.sourceSystemId) ?? "",
+        targetSystemId: systemPublicIdById.get(link.targetSystemId) ?? "",
+        relationType: "coordinates",
+      }));
 
-    const allTaskEquipmentLinks = this.logisticsRepo.listAllTaskEquipmentLinks(projectId);
-    const allTaskSystemLinks = this.logisticsRepo.listAllTaskSystemLinks(projectId);
+      const allTaskEquipmentLinks = this.logisticsRepo.listAllTaskEquipmentLinks(projectId);
+      const allTaskSystemLinks = this.logisticsRepo.listAllTaskSystemLinks(projectId);
 
-    return {
-      equipmentWorkAreas,
-      taskProcessContexts,
-      processes: processDtos,
-      equipment: equipmentDtos,
-      systems: systemDtos,
-      systemLinks: systemLinkDtos,
-      taskEquipmentLinks: allTaskEquipmentLinks.map((l) => ({
-        taskId: l.taskPublicId,
-        equipmentId: l.equipmentPublicId,
-        scope: l.scope,
-      })),
-      taskSystemLinks: allTaskSystemLinks.map((l) => ({
-        taskId: l.taskPublicId,
-        systemId: l.systemPublicId,
-        scope: l.scope,
-      })),
-    };
+      return {
+        equipmentWorkAreas,
+        taskProcessContexts,
+        processes: processDtos,
+        equipment: equipmentDtos,
+        systems: systemDtos,
+        systemLinks: systemLinkDtos,
+        taskEquipmentLinks: allTaskEquipmentLinks.map((l) => ({
+          taskId: l.taskPublicId,
+          equipmentId: l.equipmentPublicId,
+          scope: l.scope,
+        })),
+        taskSystemLinks: allTaskSystemLinks.map((l) => ({
+          taskId: l.taskPublicId,
+          systemId: l.systemPublicId,
+          scope: l.scope,
+        })),
+      };
+    })();
   }
 
   getProjectDto(projectId: number): ProjectDto {
@@ -358,8 +367,9 @@ export class LogisticsService {
       const projectId = authorization.projectId, repo = new ProjectWorkAreaRepository(this.database);
       if (!input || typeof input !== "object" || Array.isArray(input)) throw new ProcessContextError(400,"INVALID_WORK_AREA");
       const raw = input as Record<string, unknown>;
-      if (Object.keys(raw).some(key=>!["name","code","active","sortOrder"].includes(key))) throw new ProcessContextError(400,"INVALID_WORK_AREA");
+      if (Object.keys(raw).some(key=>!["name","code","active","sortOrder","translations"].includes(key))) throw new ProcessContextError(400,"INVALID_WORK_AREA");
       const fields: UpdateWorkAreaRequest = {};
+      const translations = parseDisplayNameTranslations(raw.translations, () => { throw new ProcessContextError(400,"INVALID_WORK_AREA"); });
       for (const field of ["name","code"] as const) if (field in raw) {
         const value=raw[field];
         if (typeof value!=="string" || !value.trim() || value.trim().length>(field==="code"?64:200)) throw new ProcessContextError(400,"INVALID_WORK_AREA");
@@ -388,11 +398,12 @@ export class LogisticsService {
           if(repo.usage(projectId,current.id)>0) throw new ProcessContextError(409,"WORK_AREA_IN_USE");
           repo.remove(projectId,current.id);
         } else {
-          if(!Object.keys(fields).length) throw new ProcessContextError(400,"INVALID_WORK_AREA");
+          if(!Object.keys(fields).length && translations === undefined) throw new ProcessContextError(400,"INVALID_WORK_AREA");
           if(fields.code&&this.database.prepare("SELECT 1 FROM project_work_areas WHERE project_id=? AND process_id=? AND code=? AND id<>?").get(projectId,current.process_id,fields.code,current.id)) throw new ProcessContextError(409,"WORK_AREA_CODE_ALREADY_EXISTS");
           repo.update(projectId,current.id,fields,nowText);
         }
       }
+      if (action !== "delete") writeDisplayNameTranslations(this.database, "project_work_areas", repo.find(projectId, targetPublicId)!.id, translations);
       repo.list(projectId); // overflow rolls back the mutation, never returns a truncated graph
       if(!this.projectRepo.advanceRevision(projectId,expectedRevision,nowText)) throw new RevisionMismatchError();
       return this.buildMutationResponse(projectId,{kind:"logisticsMutation",entity:"workArea",action,targetPublicId});
@@ -445,6 +456,7 @@ export class LogisticsService {
         now: nowText,
       });
 
+      writeDisplayNameTranslations(this.database, "project_processes", inserted.id, parseDisplayNameTranslations(input.translations, () => { throw new LogisticsValidationError(["Invalid display-name translations."]); }));
       const updatedProject = this.projectRepo.advanceRevision(projectId, expectedRevision, nowText);
       if (!updatedProject) {
         throw new RevisionMismatchError();
@@ -517,6 +529,7 @@ export class LogisticsService {
         now: nowText,
       });
 
+      writeDisplayNameTranslations(this.database, "project_processes", current.id, parseDisplayNameTranslations(input.translations, () => { throw new LogisticsValidationError(["Invalid display-name translations."]); }));
       const updatedProject = this.projectRepo.advanceRevision(projectId, expectedRevision, nowText);
       if (!updatedProject) {
         throw new RevisionMismatchError();
@@ -669,6 +682,7 @@ export class LogisticsService {
         contexts.requireRevision(input.processCatalogRevision);
         contexts.replaceEquipment(projectId, inserted.id, contexts.validateEquipmentWorkAreas(projectId, input.workAreaLinks ?? input.workAreaIds));
       }
+      writeDisplayNameTranslations(this.database, "project_equipment", inserted.id, parseDisplayNameTranslations(input.translations, () => { throw new LogisticsValidationError(["Invalid display-name translations."]); }));
       const updatedProject = this.projectRepo.advanceRevision(projectId, expectedRevision, nowText);
       if (!updatedProject) {
         throw new RevisionMismatchError();
@@ -764,6 +778,7 @@ export class LogisticsService {
         if (changed && (this.logisticsRepo.countTaskEquipmentLinks(projectId,current.id) > 0 || this.database.prepare("SELECT 1 FROM logistics_target_members WHERE project_id=? AND equipment_id=? LIMIT 1").get(projectId,current.id))) throw new ProcessContextError(409,"EQUIPMENT_WORK_AREA_IN_USE");
         contexts.replaceEquipment(projectId, current.id, resolved);
       }
+      writeDisplayNameTranslations(this.database, "project_equipment", current.id, parseDisplayNameTranslations(input.translations, () => { throw new LogisticsValidationError(["Invalid display-name translations."]); }));
       const updatedProject = this.projectRepo.advanceRevision(projectId, expectedRevision, nowText);
       if (!updatedProject) {
         throw new RevisionMismatchError();
@@ -962,6 +977,7 @@ export class LogisticsService {
         this.logisticsRepo.setSystemProcesses(projectId, inserted.id, processIds, nowText);
       }
 
+      writeDisplayNameTranslations(this.database, "project_logistics_systems", inserted.id, parseDisplayNameTranslations(input.translations, () => { throw new LogisticsValidationError(["Invalid display-name translations."]); }));
       const updatedProject = this.projectRepo.advanceRevision(projectId, expectedRevision, nowText);
       if (!updatedProject) {
         throw new RevisionMismatchError();
@@ -1072,6 +1088,7 @@ export class LogisticsService {
       });
       this.logisticsRepo.setSystemProcesses(projectId, current.id, finalProcessIds, nowText);
 
+      writeDisplayNameTranslations(this.database, "project_logistics_systems", current.id, parseDisplayNameTranslations(input.translations, () => { throw new LogisticsValidationError(["Invalid display-name translations."]); }));
       const updatedProject = this.projectRepo.advanceRevision(projectId, expectedRevision, nowText);
       if (!updatedProject) {
         throw new RevisionMismatchError();

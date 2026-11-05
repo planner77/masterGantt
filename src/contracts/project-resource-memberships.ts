@@ -1,3 +1,4 @@
+import type { DisplayNameTranslations } from "./display-name-translations";
 import type { DeveloperGrade, ResourceRole } from "./resources";
 /** Project participation is independent from Task effort and edit authorization. */
 export interface ProjectResourceMembershipDto {
@@ -9,6 +10,7 @@ export interface ProjectResourceMembershipDto {
   roles: ResourceRole[];
   developerGrade: DeveloperGrade | null;
   groups: Array<{
+    translations?: DisplayNameTranslations;
     id: string;
     name: string;
     active: boolean;
@@ -56,6 +58,7 @@ export interface ProjectResourceMembershipResponse {
     };
     resources: ProjectResourceMembershipDto[];
     groups: Array<{
+    translations?: DisplayNameTranslations;
       id: string;
       name: string;
       active: boolean;

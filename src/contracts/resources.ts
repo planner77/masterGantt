@@ -1,3 +1,4 @@
+import type { DisplayNameTranslations } from "./display-name-translations";
 import type { ProjectDto, ProjectLinkDto, ProjectTaskDto } from "./projects";
 
 export type AssignmentTargetKind = "resource" | "group";
@@ -21,6 +22,7 @@ export interface ResourceDto {
 }
 
 export interface ResourceGroupDto {
+  translations?: DisplayNameTranslations;
   id: string;
   name: string;
   code: string | null;
@@ -53,6 +55,7 @@ export interface UnlockResourceCatalogRequest {
 }
 
 export interface CreateCatalogTargetRequest {
+  translations?: DisplayNameTranslations;
   name: string;
   code?: string | null;
   description?: string;
@@ -61,6 +64,7 @@ export interface CreateCatalogTargetRequest {
 }
 
 export interface UpdateCatalogTargetRequest {
+  translations?: DisplayNameTranslations;
   name?: string;
   code?: string | null;
   description?: string;
@@ -95,6 +99,7 @@ export interface ProjectAssignmentDto {
 }
 
 export interface AssignmentTargetDto {
+  translations?: DisplayNameTranslations;
   kind: AssignmentTargetKind;
   id: string;
   name: string;
@@ -192,6 +197,7 @@ export interface ResourceWorkloadRoleTotalDto {
 }
 
 export interface ResourceWorkloadGroupDto {
+  translations?: DisplayNameTranslations;
   id: string | null;
   name: string;
   active: boolean;
