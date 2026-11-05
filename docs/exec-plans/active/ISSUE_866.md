@@ -1,3 +1,28 @@
+## PHASE_B_DELIVERY — 2026-11-05 (종속 PR / 최신 상태)
+
+- Phase A Full PR #878 [#3509.1](https://github.com/planner77/masterGantt/actions/runs/41930396372) 성공 확인. 병합 및 정식 릴리스 미승인.
+- 이번 Phase B는 Phase A Head 기반 브랜치 feat/issue-866-i18n-phase-b-owner-data로 구현한 **종속 PR**. 저장·권한·UI/12 owner, Copy/Template6/Exporter 및 E2E를 추가하되 Phase C 최종 AC가 남으므로 #866 OPEN / release_authorized=false. 과거 Phase A 단락의 NOT IMPLEMENTED는 당시 역사적 상태이며 현재 상태는 본 단락을 우선한다.
+- 구현 설계: [Phase B 기술문서](../../I18N_PHASE_B.md). 신규 정확 Head 원격 Full CI/Trusted 및 실환경 백업·권한·5폭 검증 전 NOT TESTED. #870 원본 전체 PR 재사용·병합 금지.
+
+### TEST_LIFECYCLE_REVIEW (Phase B)
+
+- ADD: tests/server/i18n/managed-display-names.test.ts, tests/lib/i18n-translation-write-field.test.ts, tests/e2e/i18n-master-data.spec.ts.
+- EXTEND: tests/server/db/database.test.ts, tests/server/migration-cli.test.ts, 기존 공정/물류/리소스/Template/Copy 관련 서비스 tests, tests/scripts/e2e-shard-planner.test.ts.
+- KEEP_UNIQUE: Phase A tests/lib/i18n-phase-a.test.ts 및 tests/e2e/issue-866-language-shell.spec.ts, DB/HTTP/권한/Task/Gantt/Calendar/Chromium8 기존 사례.
+- Remote new Head test 결과는 NOT TESTED. Shard7 신규 1개(17→18), 145개 spec 1:1, 기존 144개 이동 0.
+
+### AC_TEST_COVERAGE (Phase B 추가)
+
+- AC04: migration 0036/owner 12/DisplayNameTranslations/CRUD service/관리 UI + unit/SQLite/E2E. 전 owner 브라우저 실증 필요.
+- AC05: 기존 global admin 및 project edit 세션 + revision/Origin/If-Match 재사용·음성 사례, 새 exact HEAD 원격 검증 필요.
+- AC06: 0035→0036, copy/template6, export 명시거부, 신규 DB/reopen/FK/백업 복원 추가 검증 필요.
+- AC02/03/07/08/09: Phase C 전 화면·Gantt 상태·장문/접근성·전수 검증 미완료.
+
+### DOCUMENTATION_SYNC (Phase B 추가)
+
+- UPDATED: docs/I18N_PHASE_B.md, docs/exec-plans/active/ISSUE_866.md, docs/ISSUE_866_FAILURE_ANALYSIS.md, docs/DB_SCHEMA.md, docs/API.md, docs/TEST_PLAN.md, docs/SECURITY.md, docs/IMPORT_EXPORT.md, DESIGN.md, CHANGELOG.md, docs/REQUIREMENTS.md.
+- N/A: AGENTS.md (기존 QA/보안/독립 Owner 규칙 준수, 정책 변경 없음), docs/ARCHITECTURE.md (서버·배포 토폴로지 불변), CI workflow/Runner/Required3/GHCR 운영 변경 없음.
+
 # Issue #866 — 한국어·영어·베트남어 국제화 / 최신 Main 분리 실행 계획
 
 - Primary: https://github.com/planner77/masterGantt/issues/866

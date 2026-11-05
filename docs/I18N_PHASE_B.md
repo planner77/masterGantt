@@ -1,0 +1,41 @@
+# Issue #866 — Phase B: 관리형 기준정보 번역 저장·소유권·UI
+
+## 기준·변경 경계 (2026-11-05)
+
+- 선행 PR: #878 Phase A, Head 8fca83bbc12cf516cd7f22438fa16c6b596d80fb, 기준 Main 364aa3bdfde16fd3ca79add61c35a1cde21f6395. 본 단계는 Phase A 위에 쌓은 종속 PR이며 Main에 직접 병합하지 않는다.
+- 원본 통합 PR #870은 역사적 구현 참고 자료로만 사용한다. #865 LLM, #869 Issue UI 및 이전 0.140.0 트리를 이식하지 않으며, 실제 충돌 검사 후 #866 관련 변경만 선택 적용한다.
+- 범위: migration 0036, 12개 owner별 번역 저장, API/DTO 추가형 필드, 글로벌/프로젝트 도메인 서비스 기존 인증 및 revision 트랜잭션, Copy/Template v6 번역 보존, 손실 있는 일정 JSON/Excel export 명시 거부, 관리자 입력 UI 및 관련 회귀 검증.
+- 이 PR 자체는 정식 릴리스가 아니며 Phase C 전체 화면 문자열·Gantt 상태·5폭/전체 권한 실증 전 #866 완료, 병합, GHCR 게시 금지. HIGH / OWNER_MANAGED / qa_required=true / release_required=true / release_authorized=false.
+
+## 저장·계약
+
+- db/migrations/0036_display_name_translations.sql: project_master_items, logistics_equipment_types, logistics_system_types, process_types, product_standard_processes, site_product_processes, work_areas, project_work_areas, project_processes, project_equipment, project_logistics_systems, resource_groups 각각 독립 번역 테이블. owner_id INTEGER 또는 owner_code TEXT FK + (owner,locale) 복합 PK, CASCADE. 저장 원본 ID/code/name/UNIQUE/FK와 0001~0035 migration checksum은 변경하지 않는다.
+- 지원 locale은 ko/en/vi. 서버 입력 translations 필드를 생략하면 기존 값을 보존하고, {}는 전체 해제, 빈 값은 개별 해제. NFC/trim, 200 codepoint, 제어문자/유효하지 않은 UTF-16/지원하지 않는 locale 거부. 임의 SQL table 입력을 허용하지 않는 고정 owner map.
+- 기존 API name은 원본 값이며 선택적 translations만 추가. 화면 표시 시 선택 언어 번역이 있으면 사용, 없으면 정확한 원본 name; 다른 언어 번역을 연쇄 대체하지 않는다. 수정·선택·관계는 언제나 ID/code 기반. 서로 다른 owner가 같은 숫자 ID나 번역명을 갖더라도 연결하지 않는다.
+- 번역 쓰기는 별도 무인증 API가 아니라 기존 도메인 서비스 CRUD 안에서 처리한다. 글로벌 마스터·공정·유형·리소스 그룹은 해당 전역 관리자 세션, 프로젝트 공정/설비/시스템/WorkArea는 해당 프로젝트 edit session 및 현재 revision 검사를 통과해야 한다. 기존 Origin/CSRF, If-Match, 삭제보호, rollback, 세션 재검증을 우회하지 않는다.
+- 조회 단위는 각 서비스의 SQLite 스냅샷과 일치하도록 하고, 일괄 조회 시 owner별 번역 map 사용. 기존 수량/KPI/업무 상태·원문/일정 산식은 불변.
+
+## 복제·호환·손실 방어
+
+- Project Copy는 복제된 owner ID로 번역값을 연결하고, 다른 Project ID에 누출하지 않는다. Template version 6는 필요한 번역 metadata를 보존하고 구버전 스냅샷과의 호환성 검사를 수행한다.
+- 일정 JSON/Excel export가 owner 번역·연관 공정 문맥을 표현하지 못하면 경고 없는 유실을 금지하고 명시적으로 409를 반환한다. 원본 소스가 무조건 export 가능하다고 안내하지 않는다.
+- 기존 0035 SQLite→0036은 원본 데이터 backfill이 없는 추가형 변경. 재오픈, 무결성 검사, 기존 name 보존을 테스트해야 한다. 역마이그레이션 시 번역 손실 없이 단순 0036 테이블 삭제만으로 복구됐다고 주장하지 않으며 백업/동일 이미지 복원을 별도 운영 검증한다.
+
+## UI · 테스트 소유권
+
+- 등록/수정: Project Master, 물류 유형, 공정 카탈로그·프로젝트 공정/WorkArea, 리소스 그룹의 원본 name과 ko/en/vi 표시명을 분리 관리한다. TranslationFields/TranslationEditor는 별도 컴포넌트. 정식 Domain dictionaries는 코드에 포함되며 자유 입력 name/description/task는 번역하지 않는다.
+- TEST_LIFECYCLE_REVIEW — ADD: tests/server/i18n/managed-display-names.test.ts, tests/lib/i18n-translation-write-field.test.ts, tests/e2e/i18n-master-data.spec.ts. EXTEND: tests/server/db/database.test.ts, migration-cli 및 공정·복제·템플릿·리소스·물류 경계 테스트, tests/scripts/e2e-shard-planner.test.ts. KEEP_UNIQUE: 원본 권한·CSRF/If-Match, Project/WorkArea/SQLite·기존 Gantt/Task/Calendar·Phase A language-shell·Chromium8/Required3.
+- 신규 E2E i18n-master-data.spec.ts 1개만 Shard 7의 기존 17→18에 추가(전체 144→145). 기존 144개 배치·과거 projectedMs 및 실제 성공 출처를 보존한다. 새 duration은 REMOTE_UNMEASURED; 테스트·CI skipped/timeout/retry 완화 없음.
+- 코드/Git 패치의 컨텍스트 매칭은 검토했으나 로컬 TypeScript·Vitest·Playwright·실제 SQLite·Docker 실행은 NOT TESTED. Phase B 새 Head Full PR CI와 Trusted/Owner, 실제 관리 화면·권한 검증 필요.
+
+## 후속 잔여 위험 / AC 연결
+
+- AC04: 12 owner 저장·조회 서비스와 대표 관리 UI/검색의 정적 구현. Project별 Equipment/System 원문 대비 수동 편집 UI 전수와 전 영역 표시·검색/동명이름 선택 실제 브라우저 확인은 추가 검증.
+- AC05: 기존 owner 서비스 트랜잭션 재사용 및 테스트 추가; 각 HTTP 권한·stale revision·동시쓰기·세션 취소·전역/프로젝트 격리의 새 Head 실증 필요.
+- AC06: migration 0036/Copy/Template6/Export 409 추가. 기존/신규 DB 및 실제 restore·롤백, 모든 이전 API/양식 호환은 새 CI·운영 환경에서 확인.
+- AC02/03/07/08/09: 전 화면 다국어·SVAR instance/스크롤/일정/Task 미저장 Draft, 장문·접근성·Gantt/Project Issue/Resource Dashboard 포맷 등 Phase C 범위, 현재 미완료.
+
+## 배포 및 승인
+
+- 기본 버전 후보 0.142.0(Phase A), 이번 종속 PR 자체로 새 GHCR SemVer·OCI 정식 게시 안 함. PR #878 및 #870, 기존 Main, Issue #866 OPEN 유지.
+- 고위험 DB 변경이므로 사전 백업, 새 빈 DB와 기존 DB 양쪽의 migration, FK check/reopen/rollback, Owner 최종 수용은 필수. CI 성공만으로 운영 데이터 안전이나 릴리스 승인 간주 금지.

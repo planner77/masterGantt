@@ -1,3 +1,10 @@
+## Phase B 분리 착수 (2026-11-05) — 원격 실패 미확인
+
+- #878 정확 HEAD `8fca83bbc12cf516cd7f22438fa16c6b596d80fb`의 Full CI #3509.1 성공은 Phase A 범위만 증명한다. Phase B는 별도 Head/트리, 최초 PR CI 전 **NOT TESTED**.
+- #870 이전 혼합 PR의 구현과 테스트는 참고 자료이며 그 당시 PASS/FAIL, 도메인/LLM/Issue 변경, 구버전 0.140.0을 Phase B 새 HEAD의 검증으로 승격하지 않는다. 기존 Full-001/002 및 역사적 실패 원문 유지.
+- Branch: feat/issue-866-i18n-phase-b-owner-data, base는 #878 Phase A HEAD(최신 Main 364aa3.. 상속), 정확 PR/CI Run은 생성 이후에 기록한다. 신규 E2E shard 7, 145개 spec. 로컬 TypeScript/Vitest/브라우저/DB/Docker 실행: NOT TESTED.
+- 현재 미실행/위험: Phase B 신규 원격 Quality/E2E8/Docker/Trusted, 프로젝트 Equipment/System UI 전수, 소유자별 HTTP 세션/경합, DB 백업/복원, Copy/Template6 실환경. release_authorized=false, 병합·게시·이슈 종료 HOLD.
+
 # Issue #866 — 국제화 분리 PR 누적 실패 원장
 
 기준 Main: `364aa3bdfde16fd3ca79add61c35a1cde21f6395` / `v0.141.1`. #866 전용 원장은 이 파일을 사용하며 이전 #870 원본(PR/Run/리뷰/실패)은 https://github.com/planner77/masterGantt/pull/870 와 해당 원본 브랜치 `docs/ISSUE_866_FAILURE_ANALYSIS.md`에서 독립 추적한다. 기존 CI 실패와 구현 중 원인은 덮어쓰거나 성공으로 소급하지 않는다.

@@ -1,3 +1,10 @@
+## Issue #866 Phase B — 수동 번역 DTO/API 호환 (2026-11-05)
+
+- 기존 Project Master, Logistics Type, Process Catalog, Project Logistics, Project WorkArea, Resource Group API의 원래 `name`/ID/code/enum 필드는 하위호환 불변. 선택적 `translations: { ko?: string; en?: string; vi?: string }`만 DTO/요청에 추가.
+- POST/PATCH의 translations 생략=보존, 빈 개체={} 전체 삭제, 개별 공백=그 언어 해제. 한 언어 최대 200 codepoint, NFC/trim/제어문자·잘못된 locale 거부. UI 읽기는 해당 언어 번역값 또는 원본 name(다른 언어 fallback 금지).
+- 글로벌 기준정보는 기존 관리자 권한·session, 프로젝트 소유 데이터는 기존 Project edit session·Origin/If-Match revision으로 처리; 별도의 무인증 translation API나 자동 번역 API 없음. 수정·선택은 ID/code를 사용한다. 손실 있는 Schedule JSON/Excel은 409 DISPLAY_NAME_TRANSLATIONS_EXPORT_UNSUPPORTED 등으로 명시 거부.
+- 전체 전역/프로젝트 실제 HTTP 권한·경합 및 Old Consumer 호환은 새 PR CI와 운영 안전 검증이 필요. 상세 [Phase B](I18N_PHASE_B.md).
+
 ## Issue #865 — LLM 내부 호출 계약, 공개 API 추가 없음 (2026-11-04)
 
 `src/server/llm/index.ts`의 서버 전용 `invokeLLM({ providerId?, modelId?, messages, ...boundedOptions })`는 runtime에서 미리 등록한 provider+model 쌍만 허용하며, 설정 오류/미등록 대상·SSRF/timeout/auth/rate/upstream 실패를 타입화한다. API 호출자의 임의 URL/token 또는 모델 자동 fallback은 허용하지 않는다. 이번 이슈에서 `/api/llm` 등 공개 일반 목적 endpoint를 추가하지 않는다. 승인된 내부 소비 기능이 사용자 명시 요청 및 Project 권한/전송 범위 검증을 수행하는 것은 별도 Issue. [LLM 설정](LLM_CONFIGURATION.md).

@@ -1,3 +1,8 @@
+## Unreleased — Issue #866 Phase B (staged, not published)
+
+- Phase A #878 기반: 12-owner 번역 migration 0036, 관리형 원본 name·ID 보존/언어별 표시명, Admin/Project owner revision 경계, Copy/Template6 보존, 손실 Export 차단, 관리자 수동 편집 및 새 i18n-master-data E2E 샤드7 추가.
+- 본 종속 PR은 Phase C 전체 UI/실환경 검증 이전이므로 정식 v0.142.0 GHCR 게시나 #866 종료의 근거가 아니다. 정확 Source PR CI 미실행 상태로 NOT TESTED.
+
 ## [0.142.0] — Unreleased / Issue #866 i18n Phase A only (2026-11-05)
 
 ### Added (Phase A)
