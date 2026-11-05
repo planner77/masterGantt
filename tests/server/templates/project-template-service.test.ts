@@ -186,6 +186,9 @@ describe("ProjectTemplateService (Issue #195)", () => {
         systemLinks: [{ systemId: sys1PublicId, scope: "self" }],
       });
 
+      for (const table of ["project_processes", "project_equipment", "project_logistics_systems"]) {
+        database.prepare(`INSERT INTO ${table}_translations(owner_id,locale,name) SELECT id,'vi',code||' hiển thị' FROM ${table} WHERE project_id=?`).run(sourceProjectId);
+      }
       // 4. 프로젝트로부터 템플릿 생성 테스트
       const template = templateService.createTemplateFromProject(
         sourceAuth.authorization,
@@ -324,6 +327,8 @@ describe("ProjectTemplateService (Issue #195)", () => {
       expect(newLogistics.systems[0].code).toBe("WMS");
       expect(newLogistics.equipment.length).toBe(1);
       expect(newLogistics.equipment[0].code).toBe("CONV-01");
+      for (const row of [...newLogistics.processes, ...newLogistics.equipment, ...newLogistics.systems]) expect(row.translations?.vi).toBe(row.code + " hiển thị");
+
 
       const newTaskEquipLinks = database.prepare("SELECT * FROM task_equipment_links WHERE project_id = ?").all(newProjectId);
       expect(newTaskEquipLinks.length).toBe(1);

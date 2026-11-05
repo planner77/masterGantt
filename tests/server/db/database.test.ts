@@ -142,7 +142,7 @@ describe("SQLite connection and schema", () => {
     const before = state(original); original.close();
     const migrated = openDatabase({ filename, migrationsDirectory: sourceMigrations });
     try {
-      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql"]);
+      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql"]);
       expect(state(migrated.database)).toEqual(before);
       expect(migrated.database.prepare("SELECT visibility FROM projects WHERE id = ?").pluck().get(projectId)).toBe("public");
       expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
@@ -187,7 +187,7 @@ describe("SQLite connection and schema", () => {
         "0025_process_catalog.sql",
         "0026_logistics_targets.sql",
         "0027_task_target_bindings.sql",
-        "0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql",
+        "0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -213,41 +213,52 @@ describe("SQLite connection and schema", () => {
         "logistics_catalog_admin_credentials",
         "logistics_catalog_admin_sessions",
         "logistics_equipment_types",
+        "logistics_equipment_types_translations",
         "logistics_system_types",
+        "logistics_system_types_translations",
         "logistics_target_members",
         "logistics_targets",
         "logistics_type_catalog_state",
         "process_catalog_state",
         "process_types",
+        "process_types_translations",
         "product_standard_processes",
+        "product_standard_processes_translations",
         "project_equipment",
         "project_equipment_resource_roles",
         "project_equipment_systems",
+        "project_equipment_translations",
         "project_issue_credential_audit",
         "project_issues",
         "project_logistics_systems",
+        "project_logistics_systems_translations",
         "project_master_admin_credentials",
         "project_master_admin_sessions",
         "project_master_catalog_state",
         "project_master_items",
+        "project_master_items_translations",
         "project_process_occurrence_mappings",
         "project_processes",
+        "project_processes_translations",
         "project_resource_memberships",
         "project_system_links",
         "project_system_processes",
         "project_system_resource_roles",
         "project_templates",
         "project_work_areas",
+        "project_work_areas_translations",
         "projects",
         "resource_catalog_admin_credentials",
         "resource_catalog_admin_sessions",
         "resource_catalog_state",
         "resource_group_members",
         "resource_groups",
+        "resource_groups_translations",
         "resource_roles",
         "resources",
         "schema_migrations",
         "site_product_processes",
+        "site_product_processes_translations",
         "task_assignments",
         "task_equipment_links",
         "task_milestone_memberships",
@@ -260,6 +271,7 @@ describe("SQLite connection and schema", () => {
         "task_work_area_links",
         "tasks",
         "work_areas",
+        "work_areas_translations",
         "work_calendar_dates",
         "work_calendar_rules",
       ]);

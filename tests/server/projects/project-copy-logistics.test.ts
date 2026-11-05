@@ -294,6 +294,10 @@ describe("ProjectCopyService with Logistics (Issue #189 LG-06)", () => {
         systemLinks: [{ systemId: mcsPublicId, scope: "self" }],
       });
 
+      // Manual display names are copied to new local owner IDs, never into canonical name.
+      for (const table of ["project_processes", "project_equipment", "project_logistics_systems"]) {
+        database.prepare(`INSERT INTO ${table}_translations(owner_id,locale,name) SELECT id,'en',code||' translated' FROM ${table} WHERE project_id=?`).run(sourceProjectId);
+      }
       const sourceLatestSnapshot = sourceService.getReadonlySnapshot(sourcePublicId);
       const sourceLatestRev = sourceLatestSnapshot!.data.project.revision; // 17
 
@@ -382,6 +386,8 @@ describe("ProjectCopyService with Logistics (Issue #189 LG-06)", () => {
       expect(copiedLogistics.processes).toHaveLength(2);
       expect(copiedLogistics.systems).toHaveLength(3);
       expect(copiedLogistics.equipment).toHaveLength(2);
+      for (const row of [...copiedLogistics.processes, ...copiedLogistics.equipment, ...copiedLogistics.systems]) expect(row.translations?.en).toBe(row.code + " translated");
+
 
       // 공정 계층 검증: P2의 부모가 P1
       const copiedP1 = copiedLogistics.processes.find((p) => p.code === "P1")!;
