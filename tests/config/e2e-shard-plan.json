@@ -190,6 +190,7 @@
         "tests/e2e/cross-screen-regression.spec.ts",
         "tests/e2e/gantt-adapter-poc.spec.ts",
         "tests/e2e/gantt-demo.spec.ts",
+        "tests/e2e/i18n-master-data.spec.ts",
         "tests/e2e/inline-name-persistence.spec.ts",
         "tests/e2e/issue-732-milestone-dashboard.spec.ts",
         "tests/e2e/logistics-target-authoring.spec.ts",
@@ -1707,5 +1708,26 @@
     "historicalMetadata": "generatedAt/sourceRunIds/metrics/projectedMs/기존 배치와 과거 실패 원장 원문 불변",
     "validation": "STATIC_ASSIGNMENT_PENDING_REMOTE_CI",
     "scope": "Required Quality/E2E8/Docker/Trusted/Owner, workers=1, 35m, fail-fast/skip/retry/보안 계약 불변"
+  },
+  "issue866PhaseBExplicitPlacement": {
+    "issue": 866,
+    "phase": "B",
+    "file": "tests/e2e/i18n-master-data.spec.ts",
+    "shard": 7,
+    "basis": "기존 144 spec 중 shard 7이 17개로 최소 count. 기존 배치와 이력 측정값을 보존하고 새 spec 1개를 명시적으로 추가.",
+    "newSpecDuration": "REMOTE_UNMEASURED",
+    "previousExplicitSpecs": 144,
+    "currentExplicitSpecs": 145,
+    "afterCounts": [
+      19,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18
+    ],
+    "validation": "REMOTE_PENDING"
   }
 }
