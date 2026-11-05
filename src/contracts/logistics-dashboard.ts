@@ -1,3 +1,4 @@
+import type { DisplayNameTranslations } from "./display-name-translations";
 import type { MdPerMmSource, MilestoneDashboardStageDto } from "./milestone-dashboard";
 
 export interface LogisticsDashboardFilterInput {
@@ -51,6 +52,7 @@ export interface LogisticsDashboardQualityDiagnosticsDto {
 }
 
 export interface LogisticsDashboardProcessRowDto {
+  translations?: DisplayNameTranslations;
   id: string;
   code: string;
   name: string;
@@ -63,6 +65,7 @@ export interface LogisticsDashboardProcessRowDto {
 }
 
 export interface LogisticsDashboardEquipmentRowDto {
+  translations?: DisplayNameTranslations;
   id: string;
   code: string;
   name: string;
@@ -70,7 +73,9 @@ export interface LogisticsDashboardEquipmentRowDto {
   quantity: number;
   processId: string;
   processName: string | null;
+  processTranslations?: DisplayNameTranslations;
   primaryControllerName: string | null;
+  primaryControllerTranslations?: DisplayNameTranslations;
   ownerName: string | null;
   active: boolean;
   taskCount: number;
@@ -81,6 +86,7 @@ export interface LogisticsDashboardEquipmentRowDto {
 }
 
 export interface LogisticsDashboardSystemRowDto {
+  translations?: DisplayNameTranslations;
   id: string;
   code: string;
   name: string;

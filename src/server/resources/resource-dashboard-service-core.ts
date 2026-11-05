@@ -802,7 +802,7 @@ export class ResourceDashboardService {
     const labels = new Map(catalog.map(row => [JSON.stringify([row.dimension, row.id]), row]));
     const nodes = (values: typeof raw.children, parent: ResourceTargetPathEntry[]): ResourceDashboardTargetNode[] => values.map(node => {
       const path = [...parent, { dimension: node.dimension, id: node.id }], label = labels.get(JSON.stringify([node.dimension, node.id]));
-      return { dimension: node.dimension, id: node.id, name: label?.name ?? (node.dimension === "scope" ? node.id : null), ...((label as {translations?:DisplayNameTranslations}|undefined)?.translations?{translations:(label as {translations:DisplayNameTranslations}).translations}:{}), active: label?.active ?? null,
+      return { dimension: node.dimension, id: node.id, name: label?.name ?? (node.dimension === "scope" ? node.id : null), ...(label?.translations ? { translations: label.translations } : {}), active: label?.active ?? null,
         summary: compact(node.totals, { dimension: "targetProjection", id: null, targetPath: path, metric: "all" }), sourceKinds: node.sourceKinds,
         equipmentQuantity: node.relatedMembers.equipmentQuantity, systemCount: node.relatedMembers.systemCount, children: nodes(node.children, path) };
     });

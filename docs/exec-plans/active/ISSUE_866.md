@@ -1,3 +1,10 @@
+## REWORK-B004 — PR #879 Full #3515.1 직접 TS 9건·Vitest 3건 (2026-11-05)
+
+- 원본 [Run 41947822098.1](https://github.com/planner77/masterGantt/actions/runs/41947822098), HEAD `7e861e458135f6fe35e88394ed376b152420c688`, main `364aa3bdfde16fd3ca79add61c35a1cde21f6395`. Preflight/Policy/ESLint PASS; TypeScript Job126984569355 TS2554/TS2339/TS2352 총9, Vitest Job126984569338 migration 적용 목록 3 FAIL(3536 PASS/3 SKIP), Required3/FastGate/QA는 파생 FAIL, E2E8·Docker·Next Build SKIPPED.
+- **원인·구현:** Phase B 언어별 그룹 필터 UI는 `filterGroups(groups,query,locale)`을 호출하나 검색 helper가 기존 2인자만 허용. canonical name/code/id 검색을 보존하면서 현재 locale 표시명 검색과 다른 언어 매칭 격리를 추가. 런타임 snapshot의 `translations` 데이터는 존재하나 Resource Dashboard/WBS/Logistics public DTO 타입 선언이 누락; 선택적 DisplayNameTranslations 메타데이터를 DTO에 표현하고 cast를 제거. 신규 migration 0036이 정상 추가된 상태에서 구 테스트의 hardcoded 적용 목록·최고 버전 35 계약만 stale; 새 이력 0036 및 version36을 포함하되 원본 레코드/checksum/foreign-key/idempotent 단언은 그대로 유지.
+- **TEST_LIFECYCLE_REVIEW:** EXTEND 기존 `tests/features/resources/resource-search-filter.test.ts` ko/en/vi/원본-ID/언어 격리, `tests/server/projects/project-issues.test.ts` 0032·0033→0036 보존 회귀, `tests/server/calendars/country-calendar-integration.test.ts` 0034→0036 보존 회귀. KEEP_UNIQUE 번역 snapshot·KPI와 145 Playwright spec/Chromium8, Phase A/B DB·HTTP·권한·동시수정·Copy/Template/Import/Export 회귀. ADD/DELETE/SKIP 없음, QA·CI 정책/마이그레이션 본문·릴리스 권한 불변.
+- **DOCUMENTATION_SYNC (REWORK-B004):** 정규 `## DOCUMENTATION_SYNC`에 아래 영향 파일을 UPDATED로 추가하고 본 Work Packet·누적 실패 원장을 갱신한다. 신규 Head의 원격 TypeScript/Vitest/E2E8/Docker/Trusted 결과는 PR CI 전 NOT TESTED. 미해결 inline thread 0, 이전 P2 resolved, mergeable=true; #866 OPEN, release_authorized=false.
+
 ## REWORK-B003 — #3514.1 문서 영향 반복 실패 원인 및 교정 (2026-11-05)
 
 - 원본 [Full #3514.1 Run 41946308147.1](https://github.com/planner77/masterGantt/actions/runs/41946308147), Head 420781ac039e75adbc4143525a848c5e6bb2ca68 / Main 364aa3bdfde16fd3ca79add61c35a1cde21f6395 / test-merge 765f10ba4696cad4b269741eb57f563d18fdb94a. QA Preflight Job126979392129 직접 DOCUMENTATION_SYNC FAIL (docs/IMPORT_SCHEMA.md missing), 세 Required 집계·QA Final은 파생, Node/E2E8/Docker NOT RUN.
@@ -140,6 +147,14 @@
 - `docs/I18N_PHASE_A.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_866.md`: UPDATED
 - `docs/ISSUE_866_FAILURE_ANALYSIS.md`: UPDATED
+- `src/features/resources/resource-search-filter.ts`: UPDATED
+- `src/contracts/resource-dashboard.ts`: UPDATED
+- `src/contracts/wbs-dashboard-views.ts`: UPDATED
+- `src/contracts/logistics-dashboard.ts`: UPDATED
+- `src/server/resources/resource-dashboard-service-core.ts`: UPDATED
+- `tests/features/resources/resource-search-filter.test.ts`: UPDATED
+- `tests/server/projects/project-issues.test.ts`: UPDATED
+- `tests/server/calendars/country-calendar-integration.test.ts`: UPDATED
 - `src/app/layout.tsx`: UPDATED
 - `src/app/globals.css`: UPDATED
 - `src/components/workspace-shell.tsx`: UPDATED
@@ -165,6 +180,8 @@
 - `package-lock.json`: UPDATED
 
 ## AC_TEST_COVERAGE
+
+Full #3515.1에서 Phase B의 TypeScript·Vitest 직접 FAIL을 확인하고 REWORK-B004 보완했으나, 보완 후 새 exact HEAD 전체 원격 PASS는 미확인이다. 기존 AC01 Phase A 성공을 Phase B/Phase C로 승계하지 않는다.
 
 - AC01: Phase A Full #3509.1 PASS (exact Head 8fca83b)로 공통 언어 선택·storage·SVAR header 검증. Phase B 현재 Head의 전체 검증은 별도.
 - AC02: `src/components/{workspace-shell,workspace-navigation}.tsx` + test shell only; all other screen localization **Phase C TODO**.
