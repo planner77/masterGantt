@@ -1,0 +1,308 @@
+{
+  "schema": "issue866-ci3524-failure-matrix-v1",
+  "repository": "planner77/masterGantt",
+  "issue": 866,
+  "pr": 879,
+  "run_id": 42035505119,
+  "run_number": 3524,
+  "attempt": 1,
+  "event": "pull_request",
+  "head": "0323caf8c8b9319cd85606815a47eea2fdee34eb",
+  "base": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+  "test_merge": "25d42c6a38bc85d364f98627897f2d1f430106de",
+  "run_conclusion": "failure",
+  "source_evidence": {
+    "job_id": 127272491154,
+    "source": "infra가 원본 changes Job·checkout 전 artifact·인증 Run API·불변 merge 부모·commit→PR 단일 귀속을 직접 읽기 전용 대조",
+    "proof": "source-proof.json",
+    "artifact_id": 13417139286,
+    "status": "PASS",
+    "scope": "원본3524의 역사적 출처 필드에 대한 infra 직접 읽기 전용 대조. PR 측 artifact는 비신뢰 자료이며 단독 근거로 사용하지 않는다.",
+    "timing_head_note": "timing7.headSha는 checkout test merge이며 PR Head가 아니다."
+  },
+  "required": {
+    "quality": {
+      "job_id": 127274745365,
+      "result": "success"
+    },
+    "e2e": {
+      "job_id": 127277339993,
+      "result": "failure"
+    },
+    "docker": {
+      "job_id": 127276326391,
+      "result": "success"
+    }
+  },
+  "other_actual": {
+    "unit": {
+      "job_id": 127272935250,
+      "result": "success",
+      "passed": 3666,
+      "existing_skipped": 3,
+      "files_passed": 298,
+      "files_existing_skipped": 1,
+      "duration_seconds": 59.69
+    },
+    "build": {
+      "job_id": 127273965222,
+      "result": "success"
+    },
+    "automated_qa": {
+      "job_id": 127277395441,
+      "result": "failure",
+      "reason": "required e2e 미성공"
+    }
+  },
+  "shards": [
+    {
+      "shard": 1,
+      "job_id": 127273965490,
+      "conclusion": "cancelled",
+      "e2e_step": 7,
+      "planned": 129,
+      "observed_pass": 40,
+      "observed_existing_skip": 0,
+      "observed_fail": 0,
+      "remaining": 89,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN",
+      "raw_log": "shard-1-job-127273965490.log",
+      "failure_lines": [],
+      "existing_skip_lines": [],
+      "terminal_lines": [
+        "2026-11-05T13:34:04.3150502Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "shard": 2,
+      "job_id": 127273965640,
+      "conclusion": "cancelled",
+      "e2e_step": 7,
+      "planned": 104,
+      "observed_pass": 12,
+      "observed_existing_skip": 0,
+      "observed_fail": 0,
+      "remaining": 92,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN",
+      "raw_log": "shard-2-job-127273965640.log",
+      "failure_lines": [],
+      "existing_skip_lines": [],
+      "terminal_lines": [
+        "2026-11-05T13:34:05.0222580Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "shard": 3,
+      "job_id": 127273965457,
+      "conclusion": "cancelled",
+      "e2e_step": 7,
+      "planned": 153,
+      "observed_pass": 50,
+      "observed_existing_skip": 1,
+      "observed_fail": 0,
+      "remaining": 102,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN",
+      "raw_log": "shard-3-job-127273965457.log",
+      "failure_lines": [],
+      "existing_skip_lines": [
+        "2026-11-05T13:31:42.2823156Z   -   29 [chromium] › tests/e2e/logistics-table-density.spec.ts:41:5 › #454 before 두 유형과 이름·비밀번호 dialog 5폭 실제 geometry"
+      ],
+      "terminal_lines": [
+        "2026-11-05T13:34:04.8848440Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "shard": 4,
+      "job_id": 127273965314,
+      "conclusion": "cancelled",
+      "e2e_step": 7,
+      "planned": 94,
+      "observed_pass": 9,
+      "observed_existing_skip": 0,
+      "observed_fail": 0,
+      "remaining": 85,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN",
+      "raw_log": "shard-4-job-127273965314.log",
+      "failure_lines": [],
+      "existing_skip_lines": [],
+      "terminal_lines": [
+        "2026-11-05T13:34:05.6168405Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "shard": 5,
+      "job_id": 127273965444,
+      "conclusion": "cancelled",
+      "e2e_step": 7,
+      "planned": 111,
+      "observed_pass": 22,
+      "observed_existing_skip": 0,
+      "observed_fail": 0,
+      "remaining": 89,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN",
+      "raw_log": "shard-5-job-127273965444.log",
+      "failure_lines": [],
+      "existing_skip_lines": [],
+      "terminal_lines": [
+        "2026-11-05T13:34:04.8005895Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "shard": 6,
+      "job_id": 127273965395,
+      "conclusion": "cancelled",
+      "e2e_step": 7,
+      "planned": 100,
+      "observed_pass": 31,
+      "observed_existing_skip": 0,
+      "observed_fail": 0,
+      "remaining": 69,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN",
+      "raw_log": "shard-6-job-127273965395.log",
+      "failure_lines": [],
+      "existing_skip_lines": [],
+      "terminal_lines": [
+        "2026-11-05T13:34:05.1505006Z ##[error]The operation was canceled."
+      ]
+    },
+    {
+      "shard": 7,
+      "job_id": 127273965580,
+      "conclusion": "failure",
+      "e2e_step": 7,
+      "planned": 79,
+      "observed_pass": 20,
+      "observed_existing_skip": 0,
+      "observed_fail": 1,
+      "remaining": 58,
+      "remaining_classification": "DID_NOT_RUN",
+      "raw_log": "shard-7-job-127273965580.log",
+      "failure_lines": [
+        "2026-11-05T13:32:57.2624682Z   ✘  21 [chromium] › tests/e2e/inline-name-persistence.spec.ts:111:5 › #572 실제 SQLite inline 이름 저장은 프로세스 재시작 후 유지된다 (30.9s)"
+      ],
+      "existing_skip_lines": [],
+      "terminal_lines": [
+        "2026-11-05T13:32:57.3716290Z   1 failed",
+        "2026-11-05T13:32:57.3719406Z   58 did not run",
+        "2026-11-05T13:32:57.3719831Z   20 passed (4.5m)",
+        "2026-11-05T13:32:58.0387401Z ##[error]Process completed with exit code 1."
+      ]
+    },
+    {
+      "shard": 8,
+      "job_id": 127273965753,
+      "conclusion": "cancelled",
+      "e2e_step": 7,
+      "planned": 112,
+      "observed_pass": 12,
+      "observed_existing_skip": 0,
+      "observed_fail": 0,
+      "remaining": 100,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN",
+      "raw_log": "shard-8-job-127273965753.log",
+      "failure_lines": [],
+      "existing_skip_lines": [],
+      "terminal_lines": [
+        "2026-11-05T13:34:05.0695748Z ##[error]The operation was canceled."
+      ]
+    }
+  ],
+  "totals": {
+    "planned": 882,
+    "observed_pass": 196,
+    "direct_fail": 1,
+    "observed_existing_skip": 1,
+    "remaining_incomplete": 684,
+    "explicit_did_not_run": 58,
+    "cancelled_interrupted_or_not_run": 626
+  },
+  "direct_failures": [
+    {
+      "shard": 7,
+      "job_id": 127273965580,
+      "step": 7,
+      "file": "tests/e2e/inline-name-persistence.spec.ts",
+      "test_line": 111,
+      "title": "#572 실제 SQLite inline 이름 저장은 프로세스 재시작 후 유지된다",
+      "duration_seconds": 30.87,
+      "timestamp": "2026-11-05T13:32:57.2624682Z",
+      "error": "Test timeout of 30000ms exceeded.",
+      "classification": "UNKNOWN",
+      "classification_boundary": "원격 report/trace에 근거한 후보. Manager pristine 재현 및 관련 fixture 정책 검토로 최종 분류한다.",
+      "report_artifact": 13419410005,
+      "timing_artifact": 13419390223,
+      "retry": 0,
+      "timeout_budgets": {
+        "testMs": 30000,
+        "isolatedFixtureMs": 120000
+      },
+      "isolated_fixture_setup_ms": 19491,
+      "server_restart_ms": 18876.52,
+      "restart_server_readiness_ms": 2990.01,
+      "restart_route_warmup_ms": 15877.86,
+      "observed_contracts_completed": [
+        "프로젝트 POST201/Task POST201",
+        "inline 이름 PATCH200 1회·정확 payload·If-Match·revision+1",
+        "재시작 전 Grid/bar 저장 이름",
+        "실제 새 Next 프로세스 재시작 완료",
+        "재시작 뒤 GET200·동일 revision·Task 이름/일정/진척·links 동일",
+        "재시작 뒤 reload 및 Grid/bar 저장 이름",
+        "context menu 열기/수정 활성·click·menu 닫힘"
+      ],
+      "incomplete_contracts": [
+        "chooseTaskInformation의 dialog visible/count 후처리(예산 만료/cleanup과 겹침)",
+        "작업 정보 dialog 이름 값 toHaveValue (151행)",
+        "최종 PATCH count 1 (152행)"
+      ],
+      "last_step": {
+        "file": "tests/e2e/helpers/task-context-menu.ts",
+        "line": 33,
+        "description": "dialog 작업 정보 toBeVisible가 cleanup 시작과 겹친다. 전체 테스트 또는 마지막 assertion PASS로 취급하지 않는다.",
+        "trace_expect_start_ms": 266024.438,
+        "trace_cleanup_start_ms": 266041.302,
+        "trace_expect_end_ms": 266084.594
+      },
+      "extra_non_test_error": "Testing stopped early after 1 maximum allowed failures.",
+      "raw_report": "report7-804409cc2551bcdee565.json",
+      "raw_trace": "failure7-trace.zip",
+      "raw_context": "failure7-error-context.md",
+      "raw_performance": "issue-751-isolated-performance.json",
+      "candidate_classification": "FIXTURE_OBSERVABILITY"
+    }
+  ],
+  "derivative_failures": [
+    {
+      "job_id": 127277339993,
+      "reason": "하나 이상의 Chromium E2E shard가 실패하거나 취소되었습니다: failure"
+    },
+    {
+      "job_id": 127277395441,
+      "reason": "required e2e 미성공"
+    }
+  ],
+  "scope_limits": [
+    "취소 7개 shard의 원문에서 별도 test assertion FAIL은 없었으나 미실행/중단을 성공으로 해석하지 않는다.",
+    "report7 skipped58은 fail-fast DID_NOT_RUN이며 실제 기존SKIP1과 구별한다.",
+    "기존 원장/correction 및 CI25회를 목록과 대조했다. 과거 모든 원본 로그를 이번에 재수집했다는 주장은 하지 않는다.",
+    "공식 전체회귀는 원본3524에서FAIL. 로컬 재현/수정/새 CI는 Manager 소유이며 본 분석에서 NOT TESTED다.",
+    "Shard6의 Controlled E2E error boundary probe 4줄은 해당 통제 회귀 PASS 원문이며 별도 직접 실패가 아니다."
+  ],
+  "approvals": {
+    "trusted_qa": "NOT TESTED",
+    "independent_human_qa": "NOT TESTED",
+    "owner_manager_accept": "NOT TESTED",
+    "merge_ready": "BLOCKED"
+  },
+  "manager_semantic_review": {
+    "classification": "FIXTURE_OBSERVABILITY",
+    "reason": "dev서버실제restart·coldroutewarmup과업무영속성단언이같은본문30초를소비.원본실제저장/재시작후데이터는관측되고최종Editor/PATCH1미완료.",
+    "evidence": "원장C003B~E 및 ci3524-local-validation.json",
+    "initial_classification_preserved": "원본direct_failures.UNKNOWN/candidate는수집시점기록으로보존",
+    "scope_change": "전체여정30초→전용준비120초+검증본문30초.전체시간gate유지주장없음.",
+    "pristine_local": "unconstrained1PASS25.4s/twoCPU1FAIL33.3s",
+    "rejected_first_candidate": "13→6경로3FAIL후4파일원복",
+    "revised_control": "같은SQLite/실제PATCH/새프로세스/전체13warmup/동일단언2CPU3PASS.준비38.590/40.201/38.210s·본문4.714/6.657/5.105s.고유회귀합계에가산하지않음",
+    "remote_new_head": "NOT TESTED",
+    "approval": "NOT TESTED"
+  }
+}

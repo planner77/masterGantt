@@ -407,3 +407,65 @@ qa_docs/backend의읽기전용감사에서 국가캘린더 `serverMessage→t(li
 Committed clean source의 로컬 전체tree/API 전체tree·부모·최신main·expected Head를 게시 전후 대조하고 Ref를 한 번만 갱신한다. 기존 Phase A+B+C PR metadata는 반복 편집하지 않는다. 실제게시 Head/base/test-merge/FullRun·Attempt는 PR #879와 Issue #866 STATUS에 후행기록하며 새Full CI 시작 확인 뒤 모니터링하지 않는다.
 
 [Project 전체 부하 근거 실제 한국어 화면](evidence/issue-866/ci3523-project-load-evidence-ko.png)은로컬working sourceeaa90be1bb19d08db2091017caf61e45e4bc52d2bf8ba0f3a45c370f1640d99b의보완을보여준다. 고유29spec/174PASS와별도로기존차트case를한번더실행해캡처했으며중복합산하지않았다. 보조캡처의첫시도는임시config의상대reporter경로오류로NOT RUN이었고, 해당로컬경로를교정한실제1casePASS를사용했다. 새Head원격CI/독립QA증거가아니다.
+
+## PR #879 REWORK-C003 — Full #3524.1 실제 재시작 준비와 영속성 검증 예산 분리 (2026-11-05)
+
+### A. 전체 이력과 원본 실패
+
+[Full #3524.1 / Run42035505119](https://github.com/planner77/masterGantt/actions/runs/42035505119), attempt1/pull_request/FINAL_FULL은 Head `0323caf8c8b9319cd85606815a47eea2fdee34eb`, base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `25d42c6a38bc85d364f98627897f2d1f430106de`에서 FAILURE다. 누적 원장 전체와 PR #870/#878/#879의 CI26회(Full23+metadata3, 전 attempt1), 별도 FAST23회(SKIPPED), 전체 workflow49개를 대조했다. branch total_count16/6/27은 첫100개 페이지에 모두 포함된다. 과거 모든 raw 로그를 이번에 재다운로드했다는 뜻은 아니다. [전체 목록](evidence/issue-866/ci3524-history-20261105.json), [원격 매트릭스](evidence/issue-866/ci3524-failure-matrix-20261105.json), [원본 출처](evidence/issue-866/ci3524-source-proof-20261105.json)를 참조한다.
+
+changes Job127272491154의 checkout 전 artifact13417139286 업로드13:24:47.385Z(87행)→checkout13:25:05.275Z(217행)→1643~1645행3SHA, artifact 스키마/repository/run/attempt/branch·불변 merge부모·단일commit→PR879를 읽기 전용 대조했다. PR artifact는 비신뢰 자료이며 단독 근거가 아니다. 출처 PASS는 Trusted QA/Owner 승인 PASS가 아니다. Quality127274745365/Docker127276326391 SUCCESS, E2E127277339993/Automated127277395441 FAILURE다. 원본 Unit127272935250은3666PASS/기존3SKIP(298filesPASS/1기존SKIP,59.69초), Build127273965222·실제Docker127273965765 SUCCESS이며 원본 Head에만 귀속한다.
+
+| Shard / Job | 결론 | 계획 | 관측PASS | 직접FAIL | 기존SKIP | 미완료 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| 1 / 127273965490 | CANCELLED | 129 | 40 | 0 | 0 | 89 |
+| 2 / 127273965640 | CANCELLED | 104 | 12 | 0 | 0 | 92 |
+| 3 / 127273965457 | CANCELLED | 153 | 50 | 0 | 1 | 102 |
+| 4 / 127273965314 | CANCELLED | 94 | 9 | 0 | 0 | 85 |
+| 5 / 127273965444 | CANCELLED | 111 | 22 | 0 | 0 | 89 |
+| 6 / 127273965395 | CANCELLED | 100 | 31 | 0 | 0 | 69 |
+| 7 / 127273965580 | FAILURE | 79 | 20 | 1 | 0 | 58 |
+| 8 / 127273965753 | CANCELLED | 112 | 12 | 0 | 0 | 100 |
+
+전체882계획=196관측PASS+직접FAIL1+기존SKIP1+미완료684다. Shard7의58은 DID_NOT_RUN, 나머지626은 INTERRUPTED_OR_NOT_RUN이다. 취소7shard의 전체 원문에서 추가 실제 assertion FAIL은 없지만 미완료를 PASS로 바꾸지 않는다. 기존SKIP1은 logistics-table-density:41 before캡처다.
+
+### B. 원인 분석과 기각한 후보
+
+Shard7/Job127273965580/step7 `inline-name-persistence.spec.ts:111`의 #572 실제 SQLite inline 이름 저장은 프로세스 재시작 후 유지된다가13:32:57.2624682Z에 기본 본문30000ms를 초과했다(case30.9초). 초기 공용 fixture 준비19.491초는 별도120초 예산이므로 본문30초에 더하지 않는다. 본문 안의 실제 restart18.87652초=readiness2.99001+전체route warmup15.87786초다. 실제 inline PATCH200/1회·payload·If-Match·revision+1, 재시작 뒤 GET200/동일Task 이름·일정·진척·links 및 Grid/bar 이름은 관측됐다. 마지막 dialog expect는 trace266024.438ms에 시작해 cleanup266041.302ms와 겹치고266084.594ms에 끝나므로 PASS로 간주하지 않는다. 최종 Task Editor 이름/추가PATCH없음은 원본에서 미완료다. SQLite 데이터 소실의 근거는 없다.
+
+가설 우선순위는 불필요한 재시작 경로 준비, cold compile/자원 비용, 최종 Editor 준비 상태였다. pristine 같은 단일case는 로컬1PASS25.4초(비재현), process-only `taskset -c 0,1` 동일명령은1FAIL33.3초/본문30초였다. 이 제약은 통제 진단이며 GitHub CPU/hardware나 동일한 최종 정지점을 재현했다는 주장은 아니다. 첫13→6경로 restart 프로필 후보는 관련 Unit5PASS/연관24PASS/type/lintPASS였지만 동일2CPU 반복3회가34.0/31.1/30.4초로 모두FAIL했다. 실제 필요경로 compile비용이 남고 Editor 이전에도 deadline을 소진해 후보를 기각했다. 수정4파일·원문로그·trace를 ignored 보고서에 보존한 뒤 공용 fixture/route helper/Unit/spec를 시작Head로 복구했다. 원격·로컬 실패와 첫후보FAIL을 숨기지 않는다.
+
+### C. 설계와 구현 결정
+
+Manager와 별도qa_docs가 #572/TASK_EDITOR의 계약을 대조했다. 제품 요구사항은 실제 inline 저장의 same-SQLite 새 프로세스 영속성과 revision/If-Match/Grid/bar/Editor 일치이며, dev compile을 포함한 전체 여정30초의 제품SLO는 없다. 단일spec에 test-scoped 준비 fixture120초를 두어 실제UI생성→inline PATCH1/모든 기존 사전단언→같은SQLite/origin/cookies/page/context의 실제 새 프로세스→기존전체13경로 GET warmup을 수행한다. 같은Task/revision과 살아있는PATCH 관측배열을 기본30초 본문으로 인계해 원래의 postrestart HTTP/data/Grid/bar/Task Editor/PATCH1 단언을 모두 실행한다.
+
+**예산 범위 변경:** 종전 전체 여정30초 제한은 준비120초+재시작 후 검증본문30초로 바뀐다. 기존 공용 초기기동 fixture120초와 teardown 정책은 별도 유지하며 새 전용 준비 예산120초가 추가된다. 전체 실행 wall 상한이150초라는 뜻은 아니다. 숫자30/120/90 유지가 전체 시간 gate 불변을 의미하지 않는다. 준비 중 page action/navigation/API30초·expect5초와 restartstartup90초를 명시하고 실패는 그대로 전파한다. 준비완료 영수증은 전체PASS가 아니다. 기존 모든 단언(정적 expect 호출38개·이름검증 helper 호출8개)·첫case본문·공용fixture/기본13경로/다른process별15경로·PATCH405/TaskContext200회귀는 유지한다. mocks/DBrestore/추가mutation/skip/retry/timer보상/전역timeout 변경은 없다. JSON attachment는 준비/restart/body 시간과 budget을 구분하고 비밀/URL/ID를 포함하지 않는다. 최종 분류는 FIXTURE_OBSERVABILITY(개발서버 재시작 준비와 업무 검증이 한 예산을 공유)이며 제품 결함을 배제하는 전역 주장이 아니다.
+
+### D. 동결 검증과 영향 선정
+
+최종 source `c7484317ed4eb4e66242f7b3c8c7b8ae207e7b186cb98acec58e3d4711392228`/1319파일로 동결했다. 2CPU 단일case3반복은3PASS/3.6분, 본문4.9/6.8/5.4초이며 준비 포함 총시간과 구분한다. 최초비재현PASS·원격FAIL·기각후보FAIL·통제반복은 아래 고유 회귀합계에 가산하지 않는다.
+
+| 변경·이력 | 직접/간접/음성 소비자·선정 |
+| --- | --- |
+| 실제 inline/restart 준비 예산 | inline-name-persistence 전체2case, project-gantt-inline-name 전체: Enter/Tab/Editor/reload/restart/같은instance·PATCH/revision/원문명 |
+| 공용fixture·route warmup 불변 | 기존process/TaskContext/동적PATCH negative와원래13경로 유지, discovery Unit/전체882case 확인 |
+| 누적 #870/#878/#879 실패 전체 | C002의29spec(E4+A13+B4+C7+D1) 전체 재실행, i18n/검색/밀도/STALE/공정/물류/Milestone/복사/전송·Resource scope·Issue 오류 |
+| 제외 | 앱/src/db/공용설정·Unit/의존성/빌드/Docker 입력 불변을 byte대조; 전체Vitest/build/Docker 로컬중복은 생략. 원본3524 PASS는 새Head PASS로 승계하지 않음 |
+
+수동31고유spec/6parts(F2+E4+A13+B4+C7+D1), workers1/retries0/max-failures0/각20분상한이다. #752 수동Actions의24spec/4parts상한을 변경/실행하지 않는다. 최종 실제 결과는 후행 증거로 기록하며 미완료를 PASS로 채우지 않는다.
+
+### E. 검증·리뷰·게시 후행 기록
+
+동결 source `c7484317ed4eb4e66242f7b3c8c7b8ae207e7b186cb98acec58e3d4711392228`/1319파일 시작/종료 map 동일. 수동31고유spec/192계획=**190PASS/기존2SKIP/FAIL0**(F16+E21+A66+B20+C59+D8), workers1/retries0/max-failures0/6parts각20분. 기존SKIP2는 logistics-table-density:41 및 master-controls-density:30 before캡처다. 2CPU3반복·최초비재현·기각후보·이전Head 결과는 중복 가산하지 않았다.
+
+원본설정복구후 TypeScript·단일spec ESLint·탐색299Unit파일/882browser·버전0.142.0·CIcache·Markdown410파일·main validator DOCSYNC/AC01~09 구조 PASS. 구조 PASS는 의미QA/승인이 아니다. 앱/DB/Unit/공용fixture·의존성/빌드/Docker 입력은 시작Head와 byte동일(1318입력), 전체Vitest/build/Docker 로컬중복은 N/A이며 원본3524의 성공은 새Head로 승계하지 않는다. TEST_PLAN의 기존1,172,715bytes/SHA256 dfccf76797300bdb5ec2fec64931347bbdd87e7784bb0bae4f51dc8ae5ae4367 전체를 보존하고 뒤에 추가했다.
+
+자동Pre-PR **UNKNOWN94/missing0/BLOCKED/sourceStable=true**는 수동회귀와 분리한다. 최종 report/SUMMARY는 `.prepr-reports/ci3524/prepr-publish-final/`, [정제 명령·선정·시간·결과](evidence/issue-866/ci3524-local-validation.json)를 참조한다. Next생성설정2개와 현재테스트출력/이전Issue528캡처2개는 현재worktree에서 생성한 것만 ignored 보고서에 보존 후 시작Head원본으로 복구했다. 기본worktree의 사용자변경은 건드리지 않았다.
+
+별도qa_docs `/root/ci3522_consumer_review`가 기존모든단언(정적expect38·helper호출8)/전체13warmup/실제SQLite재시작·2CPU3회 마지막단언완료·문서 byte보존을 read-only 기술검토하여 직접보완 새P1/P2=0을 확인했다. Agent검토는 독립인간QA/Owner ACCEPT가 아니다. GitHub전체대화·정규리뷰스레드 조회에서 미해결0, 현재base와 충돌없음을 확인하며 게시 직전에 재조회한다. 별도opaque-error P2는 DEFERRED로 보존한다. 새Head Required3/Trusted/Owner/Manager NOT TESTED/MERGE_READY BLOCKED다.
+
+코드/문서/원장/정제근거를 committed clean source로 준비한 뒤 expected Head·최신main·부모와 로컬/API전체tree를 게시전후 대조하고 비강제Ref를 한 번 갱신한다. 실제 새Head/base/testmerge/FullRun·Attempt는 PR #879와 Issue #866 STATUS에 후행기록한다. 시작확인 뒤 새CI 결과를 조회하지 않는다.
+
+후처리의 첫 생성물 복구는 ignored 백업의 Issue528 하위 디렉터리가 없어 FileNotFoundError로 FAIL했다. 브라우저 실패가 아니며 최초로그/결과를 보존하고 부모디렉터리 생성 후 복구 도우미만 재실행했다. 제품/spec는 변경하지 않고 동일 source 및 최종 type/lint를 다시 대조한다.
+
+새Head Required quality/e2e/docker·Trusted·독립인간QA·Owner/Manager NOT TESTED/MERGE_READY BLOCKED, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false/#866OPEN을 유지한다. C002 E절의 country-calendar/WBS/safeApiError opaque-error 경계P2는 인과가 다른 DEFERRED다. 전역P1/P2=0을 주장하지 않는다. Main/GHCR/Release/실제AT/native125%/WindowsExcel/운영환경은 미실행이다. 한 번의 batch Ref 게시 뒤 새 Full CI Run/Attempt·Head/base/testmerge 시작만 확인하고 모니터링·병합·Issue종료하지 않는다.

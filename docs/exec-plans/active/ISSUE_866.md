@@ -1,3 +1,20 @@
+## REWORK-C003 — Full #3524.1 재시작 준비 예산 분리 (현재 단계)
+
+C002 이후 새 Full #3524.1/Run42035505119의 전체8shard와 누적CI26회(Full23+metadata3)를 대조했다. 기준Head0323caf8c8b9319cd85606815a47eea2fdee34eb/base364aa3bdfde16fd3ca79add61c35a1cde21f6395/testmerge25d42c6a38bc85d364f98627897f2d1f430106de. Quality/Docker SUCCESS·E2E FAIL, 196관측PASS/직접1FAIL/기존1SKIP/미완료684다. 원본3524와 이전Head PASS를 새Head에 승계하지 않는다. [원장C003](../../ISSUE_866_FAILURE_ANALYSIS.md), 정제history/matrix/source proof를 따른다.
+
+- 원인: inline 실제재시작18.87652초가 기본본문30초 안의 dev compile13경로 준비와 영속성단언 예산을 함께 소비. pristine1PASS/2CPU1FAIL 및 13→6경로 후보3FAIL을 보존하고 후보4파일은 복구했다.
+- 설계결정: 단일spec의 실제UI저장·PATCH1/If-Match/revision·같은SQLite의 실제새프로세스/원래13경로를 준비fixture120초, 이후HTTP/data/Grid/bar/Task Editor/PATCH1을 기본본문30초로 분리. **종전 전체여정30초에서 준비120초+검증30초로 예산범위가 변경된다.** 기존 모든 단언(정적 expect 호출38개·이름검증 helper 호출8개)/첫case본문·공용fixture/제품/권한/retry0/skip·CI8shard/Required3는유지한다. 준비완료는전체PASS가아니다.
+- 실제역할: Manager 가설/재현·설계선정/동결/검증/문서/통합게시, infra 전체원격증거와통제trace, 별도infra 단일spec구현, qa_docs read-only 독립기술검토. Agent검토는인간QA/Owner승인이아니다.
+- source c7484317ed4eb4e66242f7b3c8c7b8ae207e7b186cb98acec58e3d4711392228/1319 동결. 2CPU3반복PASS(3.6분), 본문4.9/6.8/5.4초는준비포함시간과구분. 수동31고유spec=기존누적29+직접/인접2, F2/E4/A13/B4/C7/D1 각20분상한/workers1/retries0/max-failures0로검증한다. #752 Actions자동24spec/4parts 정책은변경하지않는다. 상세producer/소비자/음성/제외는원장C003 D를따른다.
+
+### C003 검증·문서·위험
+
+- LOCAL_VALIDATED: source c7484317ed4eb4e66242f7b3c8c7b8ae207e7b186cb98acec58e3d4711392228/1319 시작=종료,31spec/192계획=190PASS/기존2SKIP/FAIL0(F16/E21/A66/B20/C59/D8). 2CPU3repeat는별도이며중복가산없음. 원본설정typecheck/단일lint/탐색299·882/버전/cache/Markdown410/main DOCSYNC·AC구조PASS. 제품/DB/Unit/빌드입력1318개불변으로전체Unit/build/Docker로컬중복N/A·원격PASS승계없음.
+- 자동Pre-PR UNKNOWN94/missing0/BLOCKED/sourceStabletrue, 최종report `.prepr-reports/ci3524/prepr-publish-final/`. [정제실행증거](../../evidence/issue-866/ci3524-local-validation.json), [원장C003 E](../../ISSUE_866_FAILURE_ANALYSIS.md)를따른다. 별도Agent직접보완기술검토PASS/새직접P1·P2=0과기존별도P2DEFERRED를구별한다. GitHub미해결thread0/충돌없음·게시직전재확인. 새Head Required3/Trusted/Owner/Manager NOT TESTED.
+
+- EXTEND inline-name-persistence 전용fixture/관측영수증; 새case/skip/retry/삭제0. UPDATED 본packet/PLAN/원장/TEST_PLAN/REMOTE_VALIDATION/CI_CD/TASK_EDITOR 및정제evidence. API/DB/일정/보안/배포/제품UI·AGENTS/QA정책변경N/A(제품·공용구현불변). 정규DOCUMENTATION_SYNC/AC01~09의전체PR범위를보존한다.
+- HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false, 새Head Required3/Trusted/독립인간QA/Owner/Manager NOT TESTED/MERGE_READY BLOCKED/#866OPEN. 별도opaque-error P2 DEFERRED는보존한다. 새Full CI시작만확인하고모니터링·병합·GHCR/Release·Issue종료없음.
+
 ## REWORK-C002 — Full #3523.1 두 직접 실패와 Project 근거 표시 복구 (현재 단계)
 
 사용자 요청에 따라 누적 원장 전체·관련CI25회와 새 전8shard를 대조하고 분석·설계·구현·리뷰/충돌·문서를 함께 갱신한다. 끝점은 새 Full PR CI 시작 확인이며 모니터링·병합·Main/GHCR/Release·Issue 종료는 하지 않는다. 아래 C001/Phase C의 이전Head 결과는 역사적 증거다.

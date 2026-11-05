@@ -5791,3 +5791,11 @@ REWORK4 같은후보의기본goto(load) bounded33개는 **33PASS/0FAIL**,5.3분�
 누적 원장C002는CI25회와새8shard의454관측PASS/2직접FAIL/기존SKIP2/424미완료를구별한다. Issue전용code allowlist의정확3언어안내·wrongPATCH불변/정상재시도와 Resource검증된Project Plan근거wrapper·정확scope/Assignment/조상문맥·80/140/복귀를보완한다. 이전실패25spec+신규직접2/간접2=29고유spec/5수동parts·workers1/retries0/max-failures0/각20분상한으로동일source교차검증한다. Actions진단24spec/4parts정책과기존Full8/Required3/권한은변경하지않는다. 실행결과는후행증거로기록하며이절의존재는PASS가아니다. 별도opaque-error P2는DEFERRED, 새HeadCI/Trusted·Owner/Manager는NOT TESTED를유지한다.
 
 C002 최종동결sourceeaa90be1bb19d08db2091017caf61e45e4bc52d2bf8ba0f3a45c370f1640d99b/1319파일시작=종료에서29고유spec174PASS/기존2SKIP/FAIL0, 전체Unit3666PASS/기존3SKIP·build/type/lint·탐색299/882·정책·문서구조를확인했다. 자동Pre-PR UNKNOWN94/missing0는BLOCKED로보존하고수동실행과구별한다. [정제 최종 증거](evidence/issue-866/ci3523-local-validation-20261105.json)를참조한다. 별도오류경계P2 DEFERRED, 새Head Required3/Trusted/Owner/Manager NOT TESTED이며FullCI시작뒤모니터링하지않는다.
+
+## Issue #866 C003 — 실제 inline 재시작 회귀의 준비/본문 예산
+
+Full #3524.1의 실제 inline 이름 저장 재시작case가 본문30초를 초과했다. 실제PATCH1·revision/If-Match·같은SQLite와새프로세스·기존13경로warmup을전용test-scoped준비fixture120초에서수행하고, 재시작후HTTP/data/Grid/bar/Task Editor/추가PATCH없음은기본30초본문에서검증한다. 이는전체여정30초에서준비120초+검증30초로예산범위를변경한다. 준비중action/navigation/API30초·expect5초·restartstartup90초를명시하며준비완료는전체PASS가아니다. 단언/제품동작/공용fixture/CI권한·Required3/8shard/retry/skip은유지한다. 최초실패·기각후보·통제2CPU반복은최종31spec고유회귀와분리한다. [단일실패원장C003](ISSUE_866_FAILURE_ANALYSIS.md)과[Work Packet](exec-plans/active/ISSUE_866.md)을따른다. 새Head원격Required3/Trusted/Owner/Manager NOT TESTED이며새CI시작뒤모니터링하지않는다.
+
+C003 성능 해석: 분리된 fixture 예산 때문에 Playwright reporter duration은 준비를 제외한 본문 시간이다. 실제 전체 비용은 inline-name-restart-preparation과 isolated-application performance의 준비/restart/전체elapsed를 함께 읽는다. 짧아진 본문 duration을 dev compile 개선·전체여정단축·10개성공run baseline으로 해석하지 않는다. 기존 shard 성능원장/projectedMs/sourceRunIds와 정책은 변경하지 않는다.
+
+C003 최종 동일동결source의31spec/192계획=190PASS/기존2SKIP/FAIL0, 별도2CPU3반복PASS(고유합계미가산), 최종type/lint/탐색/정책/문서구조PASS다. 자동Pre-PR UNKNOWN94는BLOCKED로유지하고원격/Owner/Manager NOT TESTED와구별한다. [최종정제증거](evidence/issue-866/ci3524-local-validation.json), 단일원장C003 E를따른다.

@@ -1,3 +1,7 @@
+## #866 REWORK-C003 진행 기준
+
+PR #879의 C002 이후 Full #3524.1 실패를 누적CI26회와 전8shard까지 대조한다. [Work Packet](ISSUE_866.md)의 C003/단일실패원장이 현재 기준이다. 실제저장·재시작준비120초와재시작후검증30초의예산범위변경을명시하고31spec동결회귀·리뷰/충돌·문서/원장을통합해새FullCI시작만확인한다. 모니터링·병합·Main/GHCR/Release·Issue종료없음. HIGH/OWNER_MANAGED/Owner·Manager NOT TESTED/MERGE_READY BLOCKED/별도P2 DEFERRED 유지.
+
 ## Issue #866 — PR #879 Full #3523.1 누적 실패 보완 (2026-11-05)
 
 [Work Packet](ISSUE_866.md)의REWORK-C002를따른다. 전CI25회·8shard를대조해Issue안전오류E2E기대누락과취소Shard5의Resource Project근거표시의미회귀를구분·보완한다. 이전25spec+직접2/간접2=29고유spec를동결검증하며새Full CI시작확인까지만진행한다. 별도opaque-error경계P2는미보완으로추적하고새Head Required3/Trusted·Owner/Manager NOT TESTED/MERGE_READY BLOCKED·release_authorized=false를유지한다.

@@ -1232,3 +1232,11 @@ Shard1선택은보존된과거projectedMs최소값기준이다. 현재143spec의
 ## Issue #866 Phase C — A+B+C 통합 PR 검증
 
 PR #879에 Phase C를 통합하되 Required Quality/E2E/Docker, Chromium8, Main/GHCR/Finalizer/Trusted와 Owner 승인 경계는 유지한다. 신규 `tests/e2e/i18n.spec.ts`만 기존 Shard8에 명시 추가하여 146개 spec counts `[19,18,18,18,18,18,18,19]`를 정확히 검증한다. 과거145개 배치·기존 projectedMs·sourceRunIds·metrics는 그대로이며 새 duration은 REMOTE_UNMEASURED다. 한 번의 #3520 baseline을 10-run 성능 표본으로 확대하지 않는다. 로컬 Fast Feedback·정적 검토는 새 exact Head의 공식 원격 전체 PASS가 아니며 이번 사용자 요청은 Full CI 시작까지만이다. 후보0.142.0 및 release_authorized=false를 유지한다.
+
+## Issue #866 C003 — 실제 inline 재시작 회귀의 준비/본문 예산
+
+Full #3524.1의 실제 inline 이름 저장 재시작case가 본문30초를 초과했다. 실제PATCH1·revision/If-Match·같은SQLite와새프로세스·기존13경로warmup을전용test-scoped준비fixture120초에서수행하고, 재시작후HTTP/data/Grid/bar/Task Editor/추가PATCH없음은기본30초본문에서검증한다. 이는전체여정30초에서준비120초+검증30초로예산범위를변경한다. 준비중action/navigation/API30초·expect5초·restartstartup90초를명시하며준비완료는전체PASS가아니다. 단언/제품동작/공용fixture/CI권한·Required3/8shard/retry/skip은유지한다. 최초실패·기각후보·통제2CPU반복은최종31spec고유회귀와분리한다. [단일실패원장C003](ISSUE_866_FAILURE_ANALYSIS.md)과[Work Packet](exec-plans/active/ISSUE_866.md)을따른다. 새Head원격Required3/Trusted/Owner/Manager NOT TESTED이며새CI시작뒤모니터링하지않는다.
+
+C003 성능 해석: 분리된 fixture 예산 때문에 Playwright reporter duration은 준비를 제외한 본문 시간이다. 실제 전체 비용은 inline-name-restart-preparation과 isolated-application performance의 준비/restart/전체elapsed를 함께 읽는다. 짧아진 본문 duration을 dev compile 개선·전체여정단축·10개성공run baseline으로 해석하지 않는다. 기존 shard 성능원장/projectedMs/sourceRunIds와 정책은 변경하지 않는다.
+
+C003 최종 동일동결source의31spec/192계획=190PASS/기존2SKIP/FAIL0, 별도2CPU3반복PASS(고유합계미가산), 최종type/lint/탐색/정책/문서구조PASS다. 자동Pre-PR UNKNOWN94는BLOCKED로유지하고원격/Owner/Manager NOT TESTED와구별한다. [최종정제증거](evidence/issue-866/ci3524-local-validation.json), 단일원장C003 E를따른다.
