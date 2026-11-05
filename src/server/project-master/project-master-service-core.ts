@@ -1,3 +1,4 @@
+import { parseDisplayNameTranslations, writeDisplayNameTranslations, sameDisplayNameTranslations } from "../repositories/display-name-translations-repository-core";
 import { randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import type Database from "better-sqlite3";
 
@@ -82,6 +83,7 @@ function itemDto(record: ProjectMasterRecord, usageCount?: number): ProjectMaste
     category: record.category,
     code: record.code,
     name: record.name,
+    ...(record.translations ? { translations: record.translations } : {}),
     active: record.active,
     sortOrder: record.sortOrder,
     ...(usageCount === undefined ? {} : { usageCount }),
@@ -159,35 +161,40 @@ export class ProjectMasterService {
   }
 
   getSelectionCatalog(): ProjectMasterSelectionResponse {
-    const items = this.repository.listItems(true).map((item) => itemDto(item));
-    return {
-      data: {
-        revision: this.repository.getRevision(),
-        businessUnits: items.filter((item) => item.category === "BUSINESS_UNIT"),
-        products: items.filter((item) => item.category === "PRODUCT"),
-        siteEntities: items.filter((item) => item.category === "SITE_ENTITY"),
-        relations: this.repository.listRelations(),
-      },
-    };
+    return this.database.transaction(() => {
+      const items = this.repository.listItems(true).map((item) => itemDto(item));
+      return {
+        data: {
+          revision: this.repository.getRevision(),
+          businessUnits: items.filter((item) => item.category === "BUSINESS_UNIT"),
+          products: items.filter((item) => item.category === "PRODUCT"),
+          siteEntities: items.filter((item) => item.category === "SITE_ENTITY"),
+          relations: this.repository.listRelations(),
+        },
+      };
+    })();
   }
 
   getAdminCatalog(rawToken: string | undefined): ProjectMasterAdminResponse {
-    if (!this.authorizeAdmin(rawToken)) throw new ProjectMasterAuthorizationError();
-    const items = this.repository.listItems().map((item) => itemDto(item, this.repository.usageCount(item.id)));
-    const active = items.filter((item) => item.active);
-    return {
-      data: {
-        revision: this.repository.getRevision(),
-        businessUnits: active.filter((item) => item.category === "BUSINESS_UNIT"),
-        products: active.filter((item) => item.category === "PRODUCT"),
-        siteEntities: active.filter((item) => item.category === "SITE_ENTITY"),
-        relations: this.repository.listRelations(),
-        items,
-      },
-    };
+    return this.database.transaction(() => {
+      if (!this.authorizeAdmin(rawToken)) throw new ProjectMasterAuthorizationError();
+      const items = this.repository.listItems().map((item) => itemDto(item, this.repository.usageCount(item.id)));
+      const active = items.filter((item) => item.active);
+      return {
+        data: {
+          revision: this.repository.getRevision(),
+          businessUnits: active.filter((item) => item.category === "BUSINESS_UNIT"),
+          products: active.filter((item) => item.category === "PRODUCT"),
+          siteEntities: active.filter((item) => item.category === "SITE_ENTITY"),
+          relations: this.repository.listRelations(),
+          items,
+        },
+      };
+    })();
   }
 
   createItem(rawToken: string | undefined, expectedRevision: number, input: CreateProjectMasterItemRequest): ProjectMasterAdminResponse {
+    const translations = parseDisplayNameTranslations(input?.translations, () => { throw new ProjectMasterInvalidInputError(); });
     const category = input && validCategory(input.category) ? input.category : undefined;
     const code = normalized(input?.code, 64);
     const name = normalized(input?.name, 200);
@@ -203,7 +210,8 @@ export class ProjectMasterService {
       if (!isCanonicalUuidV4(publicId)) throw new ProjectMasterInvalidInputError();
       const now = this.clock().toISOString();
       try {
-        this.repository.insertItem({ publicId, category, code, name, active, sortOrder, now });
+        const inserted = this.repository.insertItem({ publicId, category, code, name, active, sortOrder, now });
+        writeDisplayNameTranslations(this.database, "project_master_items", inserted.id, translations);
       } catch (error) {
         if (error instanceof Error && /UNIQUE constraint failed/.test(error.message)) throw new ProjectMasterInvalidInputError();
         throw error;
@@ -217,7 +225,8 @@ export class ProjectMasterService {
   updateItem(itemPublicId: string, rawToken: string | undefined, expectedRevision: number, input: UpdateProjectMasterItemRequest): ProjectMasterAdminResponse {
     if (!input || typeof input !== "object" || Array.isArray(input)) throw new ProjectMasterInvalidInputError();
     const keys = Object.keys(input);
-    if (keys.length === 0 || keys.some((key) => !["code", "name", "active", "sortOrder"].includes(key))) throw new ProjectMasterInvalidInputError();
+    if (keys.length === 0 || keys.some((key) => !["code", "name", "active", "sortOrder", "translations"].includes(key))) throw new ProjectMasterInvalidInputError();
+    const translations = parseDisplayNameTranslations(input.translations, () => { throw new ProjectMasterInvalidInputError(); });
     const update: UpdateProjectMasterItemRequest = {};
     if (input.code !== undefined) { const code = normalized(input.code, 64); if (!code) throw new ProjectMasterInvalidInputError(); update.code = code; }
     if (input.name !== undefined) { const name = normalized(input.name, 200); if (!name) throw new ProjectMasterInvalidInputError(); update.name = name; }
@@ -234,7 +243,7 @@ export class ProjectMasterService {
       if (update.code !== undefined && update.code !== current.code && this.repository.usageCount(current.id) > 0) {
         throw new ProjectMasterItemInUseError();
       }
-      const unchanged = (update.code === undefined || update.code === current.code) &&
+      const unchanged = (translations === undefined || sameDisplayNameTranslations(translations, current.translations)) && (update.code === undefined || update.code === current.code) &&
         (update.name === undefined || update.name === current.name) &&
         (update.active === undefined || update.active === current.active) &&
         (update.sortOrder === undefined || update.sortOrder === current.sortOrder);
@@ -242,6 +251,7 @@ export class ProjectMasterService {
       const now = this.clock().toISOString();
       try {
         this.repository.updateItem(current.id, update, now);
+        writeDisplayNameTranslations(this.database, "project_master_items", current.id, translations);
       } catch (error) {
         if (error instanceof Error && /UNIQUE constraint failed/.test(error.message)) throw new ProjectMasterInvalidInputError();
         throw error;

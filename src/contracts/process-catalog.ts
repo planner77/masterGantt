@@ -1,3 +1,4 @@
+import type { DisplayNameTranslations } from "./display-name-translations";
 import type { ProjectDto } from "./projects";
 import type { ProjectLogisticsDto } from "./logistics";
 export type ProcessCatalogKind = "types" | "standards" | "occurrences" | "workAreas";
@@ -12,6 +13,7 @@ export interface ProcessCatalogTriple {
   siteEntityId: string;
 }
 export interface ProcessCatalogItemDto {
+  translations?: DisplayNameTranslations;
   id: string;
   code: string;
   name: string;

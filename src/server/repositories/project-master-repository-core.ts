@@ -1,7 +1,10 @@
+import type { DisplayNameTranslations } from "../../contracts/display-name-translations";
+import { displayNameTranslationFields, displayNameTranslationFieldMap } from "./display-name-translations-repository-core";
 import type Database from "better-sqlite3";
 import type { ProjectMasterCategory } from "../../contracts/project-master";
 
 export interface ProjectMasterRecord {
+  translations?: DisplayNameTranslations;
   id: number;
   publicId: string;
   category: ProjectMasterCategory;
@@ -55,21 +58,22 @@ export class ProjectMasterRepository {
       ${activeOnly ? "WHERE active = 1" : ""}
       ORDER BY category, sort_order, lower(name), public_id
     `).all() as ItemRow[];
-    return rows.map(mapItem);
+    const fields = displayNameTranslationFieldMap(this.database, "project_master_items", rows.map(row => row.id));
+    return rows.map(row => ({ ...mapItem(row), ...fields.get(String(row.id)) }));
   }
 
   findItemByPublicId(publicId: string): ProjectMasterRecord | undefined {
     const row = this.database.prepare(
       "SELECT id, public_id, category, code, name, active, sort_order FROM project_master_items WHERE public_id = ?",
     ).get(publicId) as ItemRow | undefined;
-    return row ? mapItem(row) : undefined;
+    return row ? { ...mapItem(row), ...displayNameTranslationFields(this.database, "project_master_items", row.id) } : undefined;
   }
 
   findItemById(id: number): ProjectMasterRecord | undefined {
     const row = this.database.prepare(
       "SELECT id, public_id, category, code, name, active, sort_order FROM project_master_items WHERE id = ?",
     ).get(id) as ItemRow | undefined;
-    return row ? mapItem(row) : undefined;
+    return row ? { ...mapItem(row), ...displayNameTranslationFields(this.database, "project_master_items", row.id) } : undefined;
   }
 
   insertItem(input: {
@@ -81,9 +85,9 @@ export class ProjectMasterRepository {
         (public_id, category, code, name, active, sort_order, created_at, updated_at)
       VALUES (@publicId, @category, @code, @name, @active, @sortOrder, @now, @now)
     `).run({ ...input, active: input.active ? 1 : 0 });
-    const item = this.findItemById(Number(result.lastInsertRowid));
-    if (!item) throw new Error("Inserted project master item could not be read back.");
-    return item;
+    const row = this.database.prepare("SELECT id, public_id, category, code, name, active, sort_order FROM project_master_items WHERE id=?").get(Number(result.lastInsertRowid)) as ItemRow | undefined;
+    if (!row) throw new Error("Inserted project master item could not be read back.");
+    return mapItem(row);
   }
 
   updateItem(id: number, input: { code?: string; name?: string; active?: boolean; sortOrder?: number }, now: string): void {

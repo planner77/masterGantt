@@ -1,6 +1,8 @@
+import type { DisplayNameTranslations } from "./display-name-translations";
 export type ProjectMasterCategory = "BUSINESS_UNIT" | "PRODUCT" | "SITE_ENTITY";
 
 export interface ProjectMasterItemDto {
+  translations?: DisplayNameTranslations;
   id: string;
   category: ProjectMasterCategory;
   code: string;
@@ -38,6 +40,7 @@ export interface ProjectMasterAdminResponse extends ProjectMasterSelectionRespon
 }
 
 export interface CreateProjectMasterItemRequest {
+  translations?: DisplayNameTranslations;
   category: ProjectMasterCategory;
   code: string;
   name: string;
@@ -46,6 +49,7 @@ export interface CreateProjectMasterItemRequest {
 }
 
 export interface UpdateProjectMasterItemRequest {
+  translations?: DisplayNameTranslations;
   code?: string;
   name?: string;
   active?: boolean;
