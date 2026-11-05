@@ -1,3 +1,17 @@
+## REWORK-B003 — #3514.1 문서 영향 반복 실패 원인 및 교정 (2026-11-05)
+
+- 원본 [Full #3514.1 Run 41946308147.1](https://github.com/planner77/masterGantt/actions/runs/41946308147), Head 420781ac039e75adbc4143525a848c5e6bb2ca68 / Main 364aa3bdfde16fd3ca79add61c35a1cde21f6395 / test-merge 765f10ba4696cad4b269741eb57f563d18fdb94a. QA Preflight Job126979392129 직접 DOCUMENTATION_SYNC FAIL (docs/IMPORT_SCHEMA.md missing), 세 Required 집계·QA Final은 파생, Node/E2E8/Docker NOT RUN.
+- B002에서 갱신한 문서 본문과 ### DOCUMENTATION_SYNC (REWORK-B002)는 base의 검증기가 읽는 정규 `## DOCUMENTATION_SYNC`가 아니었다. 신뢰된 `scripts/qa_final_automated.py::section` 및 `docs_gate`는 정확한 2단계 heading 내부 `- `path`: UPDATED|N/A(reason)`만 인식한다. 검증기를 완화하지 않고 해당 **단일 정규 절**을 통합 변경 범위(Phase A+B)에 맞게 수정했다.
+- 전체 Main diff와 docs_required를 대조한 필수 6문서: DESIGN.md, docs/TEST_PLAN.md, docs/DB_SCHEMA.md, docs/API.md, docs/IMPORT_EXPORT.md, docs/IMPORT_SCHEMA.md. 전부 실제 변경되었으므로 UPDATED. 함께 SECURITY/UI_UX/PROJECT_UX/LOGISTICS_DOMAIN_DESIGN/I18N_PHASE_B 등 영향 문서도 정합화. 정규 `## AC_TEST_COVERAGE`의 현재 구현·미검증 상태 수정.
+
+### TEST_LIFECYCLE_REVIEW (REWORK-B003)
+
+- ADD/RETIRE 없음. KEEP_UNIQUE: 기존 Test Lifecycle/Required3/Chromium8, Phase A language-shell/SVAR, Phase B SQLite/HTTP·Import/Export/Copy/Template·412 경합/145 E2E spec. 제품/테스트/정책/skip/retry/timeout 수정 없음. Remote new Head NOT TESTED.
+
+### DOCUMENTATION_SYNC (REWORK-B003)
+
+- UPDATED: docs/exec-plans/active/ISSUE_866.md의 exact `## DOCUMENTATION_SYNC`와 `## AC_TEST_COVERAGE`, docs/ISSUE_866_FAILURE_ANALYSIS.md, docs/I18N_PHASE_B.md.
+- N/A: AGENTS.md, CI/CD workflow, scripts/qa_preflight.py, scripts/qa_final_automated.py, DB migrations/제품/Release 변경 없음. 기존 docs/IMPORT_SCHEMA.md 본문은 B002 갱신 그대로 보존.
 ## REWORK-B002 — PR #879 Full #3513.1 문서 영향과 물류 유형 동시 편집 교정 (2026-11-05)
 
 - 원본 [Full #3513.1 / Run 41943199412.1](https://github.com/planner77/masterGantt/actions/runs/41943199412), HEAD `20f106f39f90d838193234c5bb0320977fe4af91`, base main `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `1645f96490dc08e09efbe082c38b4de4f84213f4`. 최초 QA Preflight Job126968984659의 **DOCUMENTATION_SYNC FAIL: docs/IMPORT_SCHEMA.md 미기록** (FAIL1/DEFERRED5); FastGate/Required Quality·E2E·Docker/QA Final은 파생, 실제 TS/Vitest/Chromium8/Docker SKIPPED.
@@ -99,24 +113,30 @@
 
 ## DOCUMENTATION_SYNC
 
+현재 원장은 Main 대비 PR #879의 Phase A+B 통합 diff 기준이다. 아래 역사적 Phase A 시점 N/A 기록보다 본 정규 절의 UPDATED/N/A가 최신 검증 기준이다. 테스트 정책 원문 docs/TEST_PLAN.md는 이전 오류에서 복원해 보존했으며 Main 대비 Phase A 변경분이 있어 UPDATED이다.
+
 - `AGENTS.md`: N/A(기존 테스트 검색, Owner Managed QA·변경 영향/릴리스 정책 준수; 본 PR에서 정책 자체를 바꾸지 않음)
 - `DESIGN.md`: UPDATED
 - `docs/REQUIREMENTS.md`: UPDATED
 - `docs/ARCHITECTURE.md`: N/A(국제화 기반은 컴포넌트 단위 별도 설계에 기록, 서버·경로 토폴로지 불변)
-- `docs/API.md`: N/A(Phase A에서 API/DTO/server validation·HTTP 변경 없음)
-- `docs/DB_SCHEMA.md`: N/A(Phase A에서 DB·migration 전혀 변경 없음; Phase B에서 추가형 이관 예정)
-- `docs/SECURITY.md`: N/A(Phase A 보안·권한 정책 불변, client static catalog만 추가)
+- `docs/API.md`: UPDATED
+- `docs/DB_SCHEMA.md`: UPDATED
+- `docs/SECURITY.md`: UPDATED
 - `docs/QA_REVIEW_POLICY.md`: N/A(고위험 Owner Managed·Trusted 검증 규칙 그대로 적용)
 - `docs/CI_CD.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: N/A(기존 CI Finalizer·Owner 승인·PR Head lease 규정 보존)
 - `docs/REMOTE_VALIDATION.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/ISSUE_LIFECYCLE.md`: N/A(phase 기반 부분 구현은 Issue open을 유지하며 기존 lifecycle 규칙 변경 없음)
-- `docs/IMPORT_EXPORT.md`: N/A(Phase A는 import/export schema/원본 식별자 불변)
-- `docs/UI_UX_GUIDELINES.md`: N/A(상단 select/3열 헤더는 이 계획과 DESIGN.md에 수치 명시, 기존 UI 원칙 불변)
+- `docs/IMPORT_EXPORT.md`: UPDATED
+- `docs/IMPORT_SCHEMA.md`: UPDATED
+- `docs/UI_UX_GUIDELINES.md`: UPDATED
 - `docs/TASK_EDITOR.md`: N/A(Task Editor 사용자 텍스트·상태/드래프트 불변)
 - `docs/PROJECT_ISSUES_USER_GUIDE.md`: N/A(Project Issue 레이아웃과 업무상태·개별 비밀번호 UI 현재 단계 비번역, #869 완료 내용 유지)
 - `CHANGELOG.md`: UPDATED
+- `docs/I18N_PHASE_B.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/LOGISTICS_DOMAIN_DESIGN.md`: UPDATED
 - `docs/I18N_PHASE_A.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_866.md`: UPDATED
 - `docs/ISSUE_866_FAILURE_ANALYSIS.md`: UPDATED
@@ -146,15 +166,15 @@
 
 ## AC_TEST_COVERAGE
 
-- AC01: `tests/lib/i18n-phase-a.test.ts` selected/browser/invalid/SSR/storage 및 `tests/e2e/issue-866-language-shell.spec.ts`; Phase A implementation, remote pending.
+- AC01: Phase A Full #3509.1 PASS (exact Head 8fca83b)로 공통 언어 선택·storage·SVAR header 검증. Phase B 현재 Head의 전체 검증은 별도.
 - AC02: `src/components/{workspace-shell,workspace-navigation}.tsx` + test shell only; all other screen localization **Phase C TODO**.
 - AC03: `src/features/gantt/svar-locales.ts`, native `project-gantt.tsx` and demo `svar-gantt.tsx`, locale words/weekStart unit; native instance E2E **Phase C TODO**.
-- AC04: Domain master-data translation **Phase B NOT TESTED/NOT IMPLEMENTED**; planned SQLite/admin API/owner isolation tests.
-- AC05: Role/CSRF/revision/owner migration security **Phase B NOT TESTED/NOT IMPLEMENTED**; existing permission tests KEEP_UNIQUE.
-- AC06: SQLite additive migration/old DTO/Copy/Template/Export **Phase B NOT TESTED/NOT IMPLEMENTED**.
+- AC04: Phase B migration 0036/12 owner, 수동 표시명 API/관리 UI 및 SQLite·브라우저 테스트를 구현했으나 신규 Head 원격 실행은 Preflight 차단으로 NOT TESTED.
+- AC05: 기존 global admin/Project edit·Origin/If-Match CAS·격리 및 ResourceGroup/ProjectMaster/Logistics Type의 412·stale draft 경합 보호 구현, 신규 CI 아직 NOT TESTED.
+- AC06: SQLite 0035→0036, Project Copy·Template v6 번역 보존, 일정 JSON/Excel 409 손실 방어 및 Import 1.0/1.1 strict schema 불변, 신규 CI/운영 백업복원 NOT TESTED.
 - AC07: `src/lib/date-display.ts` UTC/locales and `tests/lib/date-display.test.ts` existing, screen-wide formatting **Phase C TODO**.
 - AC08: header select CSS/accessibility new E2E; full screen/5 widths/hydration **Phase C TODO**.
-- AC09: test lifecycle search new partial suites and keep unique, full production source/DB/E2E **Phases B/C TODO**.
+- AC09: Test Lifecycle ADD/EXTEND/KEEP_UNIQUE 기록과 145 spec·8-shard 배치·기존 test policy 원문 보존, 신규 전체 CI·Trusted 검증 NOT TESTED.
 
 ## IMPLEMENTATION_HANDOFF
 

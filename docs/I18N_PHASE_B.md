@@ -1,3 +1,7 @@
+## REWORK-B003 — 문서 검증기 정규 heading 및 Phase A+B 최신 영향 (2026-11-05)
+
+- Full #3514.1도 앞선 #3513.1과 동일한 문서 누락으로 Preflight 단계에서 차단. 실제 docs/IMPORT_SCHEMA.md 본문 갱신은 되었으나 Work Packet의 `### DOCUMENTATION_SYNC (REWORK-B002)`는 정책이 요구하는 `## DOCUMENTATION_SYNC` 정규 절이 아님. 검증기 코드가 아닌 작업 문서의 정규 절과 6 Required 경로의 실제 changed-files/UPDATED 여부를 교정.
+- Phase A 완료 근거/Phase B 코드 구현과 신규 Head 검증 미실행을 `## AC_TEST_COVERAGE`에 구분하여 기록하고 원본 테스트 정책·DB/API·일정 JSON schema/CI workflow는 불변. 새 Full CI·Trusted 이후 별도 판단.
 ## REWORK-B002 — 관리형 번역과 일정 교환 계약 및 물류 유형 edit race (2026-11-05)
 
 - 일정 Import JSON 1.0/1.1은 번역 표시명 owner 메타데이터를 표현하지 않으며 machine schema를 변경하지 않는다. 자세한 확정 계약/거부·Copy/Template v6 경계는 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md) 상단에 추가했다. 기존 Export 409 손실 거부 유지.
