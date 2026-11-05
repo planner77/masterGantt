@@ -796,7 +796,9 @@ export class ResourceDashboardService {
       if (sourceRows > RESOURCE_TARGET_LIMITS.responseSourceRows) resourceDashboardLimit("projection.targetSources");
     }
     const raw = targetCall(() => projectResourceKpiTargets(domain, selection, order));
-    const catalog = [...snapshot.targetSnapshot.catalog,
+    // Explicit public projection shape: group labels may carry optional translations,
+    // while resource labels and pre-existing target rows omit them.
+    const catalog: ResourceDashboardTargetProjection["catalog"] = [...snapshot.targetSnapshot.catalog,
       ...snapshot.groups.map(row => ({ dimension: "group" as const, id: row.publicId, name: row.name, ...(row.translations?{translations:row.translations}:{}), code: row.code, active: row.active })),
       ...snapshot.resources.map(row => ({ dimension: "resource" as const, id: row.publicId, name: row.name, code: row.code, active: row.active }))];
     const labels = new Map(catalog.map(row => [JSON.stringify([row.dimension, row.id]), row]));

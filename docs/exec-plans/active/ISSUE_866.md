@@ -1,3 +1,18 @@
+## REWORK-B006 — PR #879 Full #3517.1 선택적 translations TypeScript 컴파일 실패 (2026-11-05)
+
+- [Run 41960950080.1](https://github.com/planner77/masterGantt/actions/runs/41960950080), source HEAD `1dfc5d7f5ec0ee0252773ba3900971ec977a2d90`, base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `2264f3ae06ae6a3461b7b68b60c01d2ef7f8fca3`; QA Preflight, Policy, ESLint PASS; Vitest 3540 PASS/3 SKIP. TypeScript Job127027137923 `resource-dashboard-service-core.ts:805` TS2339 두 건 직접 실패; Fast Gate/Required3/QA Final 파생 실패. Next/E2E8/Docker NOT RUN. 이전 #3515 TypeScript 9건·Vitest 3건, #3516 DOC_SYNC 차단을 누적 원장과 대조했다.
+- **설계/보완:** Target 카탈로그는 Public DTO `ResourceDashboardTargetProjection["catalog"]` 타입으로 반환하도록 설계되어 있으나 `renderTargets`의 무타입 spread array가 group(선택적 번역)/resource(번역 없음)/target 원본 행을 좁은 union으로 추론. `catalog` 배열에 공용 DTO element의 `translations?` 필드를 명시하는 **컴파일 전용** 선언을 추가. 기존 런타임 값, 순서, Map, KPI 계산·원본 이름/ID·DB/HTTP 및 권한 무변경.
+- **AC_TEST_COVERAGE:** AC04·AC05 언어별 관리형 name/owner DTO를 Resource target projection에서 안전하게 소비하는 타입 계약; AC06 migration/Copy/Template 보존, AC09 기존 managed-display-names server/SQLite assertions/Resource Dashboard/Gantt 등 유지. 전체 Phase C AC02·03·07·08·09 검증은 여전히 미완료.
+
+### TEST_LIFECYCLE_REVIEW (REWORK-B006)
+
+- KEEP_UNIQUE: `tests/server/i18n/managed-display-names.test.ts`의 snapshot/target/group 번역·KPI 불변, Resource Dashboard/WBS 호출 소비자, 기존 Vitest 3,540 PASS와 지난 이력의 Test/CI/HTTP/SQLite/E2E8/권한·경합 안전 테스트. 새 spec·skip·retry·timeout/coverage 완화 0. 변경 소스의 정적 DTO 호환 근거만 확인했으며 새 exact HEAD TypeScript/Full CI 이전 실제 결과는 **NOT TESTED**.
+
+### DOCUMENTATION_SYNC (REWORK-B006)
+
+- UPDATED: `docs/exec-plans/active/ISSUE_866.md`, `docs/ISSUE_866_FAILURE_ANALYSIS.md`, `docs/I18N_PHASE_B.md`, `src/server/resources/resource-dashboard-service-core.ts`.
+- N/A: AGENTS.md, docs/TEST_PLAN.md(원본 정책 보존), docs/API.md·docs/DB_SCHEMA.md(기존 Phase B DTO/owner 설명 불변), docs/SCHEDULING_ENGINE.md(산식 불변), CI workflow/QA verifier·Required3·Chrome8·GHCR·운영 DB 변경 없음.
+
 ## REWORK-B005 — PR #879 Full #3516.1 DOCUMENTATION_SYNC 일정 계약 영향 기록 보완 (2026-11-05)
 
 - 원본 Full [Run 41956539012.1](https://github.com/planner77/masterGantt/actions/runs/41956539012), `pull_request.synchronize`, HEAD `7bce2814ee96bdb168ad1e7556792183b4f5f8fd`, Main `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `6dabd4bce384bb7c56a45981016824eecdb674dd`는 원본 Job 로그의 checkout ref. QA Preflight Job `127012793287`은 단일 `DOCUMENTATION_SYNC` 직접 FAIL(문서 영향 기록 없음: `docs/SCHEDULING_ENGINE.md`), `FAIL=1/DEFERRED=5`; 다른 정책/필수 항목은 PASS. Fast Gate/Required3/QA Final은 파생 FAIL이며 TypeScript/Vitest/ESLint/Chromium8/Next Build/Docker 구현은 SKIPPED, 결과 NOT TESTED.

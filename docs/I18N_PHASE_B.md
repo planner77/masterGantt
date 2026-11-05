@@ -1,3 +1,9 @@
+## REWORK-B006 — Resource Target 카탈로그의 선택적 번역 타입 계약 (2026-11-05)
+
+- Resource Dashboard `renderTargets`는 원본 target 카탈로그, Global resource group(선택적 `translations`) 및 resource(번역 미지원)를 동일 표기용 카탈로그로 통합한다. 각 요소의 정규 타입은 `ResourceDashboardTargetProjection["catalog"][number]`이며 `translations?: DisplayNameTranslations`가 선택적으로 존재한다.
+- 기존 TypeScript 무주석 배열 spread는 혼합 유니언으로 추론하여 `label?.translations` 접근 시 TS2339 2건을 발생시켰다(Full #3517.1). 명시적 DTO catalog 타입을 선언해 기존 조회값·선택적 속성·fallback 원문·ID/코드·정렬/수량 및 실제 KPI 산식을 보존한다. unsafe cast나 강제 번역 backfill 없음.
+- 기존 managed-display-names와 target snapshot/Resource Dashboard tests가 실행된 #3517.1 Vitest 3540 PASS/3 SKIP는 교정 이전 소스의 근거이며, 새 HEAD TS/E2E8/Docker/Trusted PASS 근거가 아니다. Test Lifecycle / 원본 Fail Ledger는 Work Packet과 누적 원장에 보존한다.
+
 ## REWORK-B003 — 문서 검증기 정규 heading 및 Phase A+B 최신 영향 (2026-11-05)
 
 - Full #3514.1도 앞선 #3513.1과 동일한 문서 누락으로 Preflight 단계에서 차단. 실제 docs/IMPORT_SCHEMA.md 본문 갱신은 되었으나 Work Packet의 `### DOCUMENTATION_SYNC (REWORK-B002)`는 정책이 요구하는 `## DOCUMENTATION_SYNC` 정규 절이 아님. 검증기 코드가 아닌 작업 문서의 정규 절과 6 Required 경로의 실제 changed-files/UPDATED 여부를 교정.
