@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CountryCalendarAdminResponse, CountryCalendarImportEnvelope, CountryCalendarImportPreviewResponse, UpdateCountryCalendarMetadataRequest } from "@/contracts/country-calendar-admin";
 import { COUNTRY_CALENDAR_IMPORT_LIMIT_BYTES } from "@/contracts/country-calendar-admin";
+import { resolveCountryCalendarError, type CountryCalendarError } from "./error-presentation";
 import type { WorkCalendarCountryCode } from "@/contracts/work-calendar";
 
 export type CalendarTarget = { countryCode: WorkCalendarCountryCode; year: number };
@@ -14,10 +15,6 @@ function validDataset(value: unknown, target: CalendarTarget): value is CountryC
   if (!value || typeof value !== "object" || !("data" in value)) return false;
   const data = (value as CountryCalendarAdminResponse).data;
   return !!data && Number.isSafeInteger(data.revision) && data.revision > 0 && data.dataset?.countryCode === target.countryCode && data.dataset?.year === target.year && ["OFFICIAL", "UNAVAILABLE", "SUPERSEDED"].includes(data.dataset.status) && Array.isArray(data.dates);
-}
-function serverMessage(body: unknown, fallback: string): string {
-  const error = (body as { error?: { message?: string; details?: Array<{ path?: string; message?: string }> } } | null)?.error;
-  return [error?.message ?? fallback, ...(error?.details ?? []).map((detail) => `${detail.path ?? "입력"}: ${detail.message ?? "확인해 주세요."}`)].join("\n");
 }
 
 export function useCountryCalendarAdmin() {
@@ -31,10 +28,10 @@ export function useCountryCalendarAdmin() {
   const [comparison, setComparison] = useState(false);
   const [busy, setBusy] = useState(false);
   // The source of an error is explicit: upstream text may match a translation key.
-  const [errorState, setErrorState] = useState({ text: "", opaque: false });
+  const [errorState, setErrorState] = useState<CountryCalendarError>({ text: "", opaque: false });
   const error = errorState.text;
   const setError = useCallback((text: string) => setErrorState({ text, opaque: false }), []);
-  const setOpaqueError = useCallback((text: string) => setErrorState({ text, opaque: true }), []);
+  const setServerError = useCallback((body: unknown, fallback: string) => setErrorState(resolveCountryCalendarError(body, fallback)), []);
   const [notice, setNotice] = useState("");
   const [fileName, setFileName] = useState("");
   const [envelope, setEnvelope] = useState<CountryCalendarImportEnvelope | null>(null);
@@ -74,13 +71,13 @@ export function useCountryCalendarAdmin() {
       const value: unknown = await response.json().catch(() => null);
       if (!current()) return false;
       if (response.status === 401) { invalidateAuth(); return false; }
-      if (!response.ok || !validDataset(value, selected)) { setLoadState("error"); setOpaqueError(serverMessage(value, "최신 국가 캘린더를 불러오지 못했습니다.")); return false; }
+      if (!response.ok || !validDataset(value, selected)) { setLoadState("error"); setServerError(value, "최신 국가 캘린더를 불러오지 못했습니다."); return false; }
       setAuthenticated(true); accept(value, preserveDraft); return true;
     } catch {
       if (current()) { setLoadState("error"); setError("국가 캘린더 서버에 연결할 수 없습니다."); }
       return false;
     } finally { if (current()) setChecking(false); }
-  }, [accept, invalidateAuth, setError, setOpaqueError]);
+  }, [accept, invalidateAuth, setError, setServerError]);
   useEffect(() => {
     mounted.current = true; void load(targetRef.current);
     return () => { mounted.current = false; requestEpoch.current += 1; authEpoch.current += 1; fileEpoch.current += 1; readController.current?.abort(); operationController.current?.abort(); };
@@ -102,7 +99,7 @@ export function useCountryCalendarAdmin() {
       const response = await fetch("/api/project-master/admin-sessions", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
       const body: unknown = await response.json().catch(() => null);
       if (!mounted.current || authentication !== authEpoch.current) return;
-      if (!response.ok) { setOpaqueError(serverMessage(body, "관리자 인증에 실패했습니다.")); return; }
+      if (!response.ok) { setServerError(body, "관리자 인증에 실패했습니다."); return; }
       setAuthenticated(true); void load(targetRef.current);
     } catch { if (mounted.current && authentication === authEpoch.current) setError("관리자 인증 서버에 연결할 수 없습니다."); }
     finally { if (mounted.current && authentication === authEpoch.current) { pending.current = false; setBusy(false); } }
@@ -129,7 +126,7 @@ export function useCountryCalendarAdmin() {
       if (response.status === 401) { invalidateAuth(); return false; }
       if (response.status === 412) { invalidateImport(); await load(selected, true); if (current()) { setComparison(true); setError("다른 변경이 먼저 저장되었습니다. 최신 데이터와 초안을 비교한 뒤 다시 저장하세요."); } return false; }
       if (!response.ok || !validDataset(value, selected)) {
-        setOpaqueError(serverMessage(value, "변경을 저장하지 못했습니다."));
+        setServerError(value, "변경을 저장하지 못했습니다.");
         if (response.status >= 500 || response.ok) setLoadState("error");
         return false;
       }
@@ -168,7 +165,7 @@ export function useCountryCalendarAdmin() {
       if (!current()) return;
       if (response.status === 401) { invalidateAuth(); return; }
       if (response.status === 412) { setPreview(null); await load(selected, true); if (current()) setError("최신 데이터로 갱신했습니다. 내용을 확인하고 새 미리보기를 계산하세요."); return; }
-      if (!response.ok || !value?.data || value.data.revision !== baseline.data.revision || value.data.importDataset.countryCode !== selected.countryCode || value.data.importDataset.year !== selected.year || !Number.isFinite(Date.parse(value.data.expiresAt))) { setOpaqueError(serverMessage(value, "파일 검증에 실패했습니다.")); return; }
+      if (!response.ok || !value?.data || value.data.revision !== baseline.data.revision || value.data.importDataset.countryCode !== selected.countryCode || value.data.importDataset.year !== selected.year || !Number.isFinite(Date.parse(value.data.expiresAt))) { setServerError(value, "파일 검증에 실패했습니다."); return; }
       setPreview(value); setPreviewExpired(Date.parse(value.data.expiresAt) <= Date.now());
     } catch { if (current()) setError("파일 검증 서버에 연결할 수 없습니다."); }
     finally { if (current()) { pending.current = false; setBusy(false); } }

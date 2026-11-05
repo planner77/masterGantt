@@ -1219,3 +1219,14 @@ Full #3524.1의 실제 inline 이름 저장 재시작case가 본문30초를 초�
 C003 성능 해석: 분리된 fixture 예산 때문에 Playwright reporter duration은 준비를 제외한 본문 시간이다. 실제 전체 비용은 inline-name-restart-preparation과 isolated-application performance의 준비/restart/전체elapsed를 함께 읽는다. 짧아진 본문 duration을 dev compile 개선·전체여정단축·10개성공run baseline으로 해석하지 않는다. 기존 shard 성능원장/projectedMs/sourceRunIds와 정책은 변경하지 않는다.
 
 C003 최종 동일동결source의31spec/192계획=190PASS/기존2SKIP/FAIL0, 별도2CPU3반복PASS(고유합계미가산), 최종type/lint/탐색/정책/문서구조PASS다. 자동Pre-PR UNKNOWN94는BLOCKED로유지하고원격/Owner/Manager NOT TESTED와구별한다. [최종정제증거](evidence/issue-866/ci3524-local-validation.json), 단일원장C003 E를따른다.
+
+
+## Issue #866 C005 — Full #3526.1 직접 실패와 미실행 구별 (2026-11-06)
+
+[Run42100064413.1](https://github.com/planner77/masterGantt/actions/runs/42100064413)의 Head8f1335cf96d1de8bb3dc767e72683bb8d0148a05/base364aa3bdfde16fd3ca79add61c35a1cde21f6395/testmergee0e77f06469e978c53fb55cc103b7f0b8fa07175에서 Unit Job127500852712/step6 직접3FAIL·3667PASS·기존3SKIP이다. Fast Gate/Required3/Automated QA FAIL은 파생이며 실제 Build/E2E/Docker는 SKIPPED/NOT RUN이다. 확장 전 matrix placeholder를 8shard의 실행 결과로 세지 않는다.
+
+전체53workflow=CI28회(Full25+metadata3, 모두 attempt1)+FAST25SKIPPED를 대조했다. #3525의 이전 Head SUCCESS와 원본 #3526 FAIL은 불변이다. checkout 전 artifact와 API/불변 merge 부모/단일 PR 귀속의 교차 확인은 Trusted QA·의미 검토·Owner 승인과 다르다. [정제 원본 출처](evidence/issue-866/ci3526-source-proof.json), [전체 이력](evidence/issue-866/ci3526-history.json), [실패 매트릭스](evidence/issue-866/ci3526-failure-matrix.json) 참조.
+
+보완 후 로컬 회귀·문서·기술검토는 새 Head Required3를 대체하지 않는다. 새 Full CI Run/Attempt·Head/base/testmerge의 시작만 확인하고 이후 모니터링하지 않는다. HIGH/OWNER_MANAGED/qa_required=true/release_authorized=false, 새 quality/e2e/docker·Trusted·Owner/Manager NOT TESTED/MERGE_READY BLOCKED, main/GHCR/운영환경 별도다.
+
+C005 최종동결source1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046/1322입력의31고유spec/194계획=192PASS/기존2SKIP/FAIL0,전체Unit3714PASS/기존3SKIP·build/runtime-tools·원본설정typecheck/13파일lint·탐색301/884·문서구조PASS다. 자동Pre-PR UNKNOWN94/missing0/BLOCKED와원격새Head/Trusted·Owner NOT TESTED를구별한다. [정제최종증거](evidence/issue-866/ci3526-local-validation.json)·단일원장C005 D를따르며이전원격/중간/중단관측은보존하고중복가산하지않는다.

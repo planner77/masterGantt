@@ -1,3 +1,7 @@
+## Issue #866 — PR #879 Full #3526.1 실패 보완 (2026-11-06)
+
+현재 단계는 [Work Packet C005](ISSUE_866.md)다. Unit의 prototype-key 직접3실패를 재현했고 같은 C004 WBS/Phase C Import의 상속 조회 및 국가 캘린더 local fallback 출처를 함께 보완한다. 누적 CI28회/전체53workflow와 이전 실패 전체를 대조하고 최종 source31spec·Unit/type/docs 및 별도 Agent 기술검토 뒤 새 Full CI 시작까지만 진행한다. 기존 성공의 새 Head 승계·assertion/skip/retry/timeout·Required3/Chromium8 완화 없음. 최종source1cdd6e.../1322동일입력의31spec=192PASS/기존2SKIP/FAIL0,Unit3714PASS/기존3SKIP·build/type/lint/문서구조PASS이며자동Pre-PR UNKNOWN94는BLOCKED를유지한다. HIGH/OWNER_MANAGED/qa_required=true/release_authorized=false, 새 원격 gate·Owner/Manager NOT TESTED/MERGE_READY BLOCKED. 시작 뒤 모니터링·병합·GHCR·Issue 종료 없음.
+
 ## #866 REWORK-C003 진행 기준
 
 PR #879의 C002 이후 Full #3524.1 실패를 누적CI26회와 전8shard까지 대조한다. [Work Packet](ISSUE_866.md)의 C003/단일실패원장이 현재 기준이다. 실제저장·재시작준비120초와재시작후검증30초의예산범위변경을명시하고31spec동결회귀·리뷰/충돌·문서/원장을통합해새FullCI시작만확인한다. 모니터링·병합·Main/GHCR/Release·Issue종료없음. HIGH/OWNER_MANAGED/Owner·Manager NOT TESTED/MERGE_READY BLOCKED/별도P2 DEFERRED 유지.

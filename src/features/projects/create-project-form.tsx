@@ -42,8 +42,7 @@ function errorMessage(response: unknown): string {
     "code" in response.error &&
     typeof response.error.code === "string"
   ) {
-    return API_ERROR_MESSAGES[response.error.code] ??
-      "프로젝트를 만들 수 없습니다. 잠시 후 다시 시도해 주세요.";
+    if (Object.hasOwn(API_ERROR_MESSAGES, response.error.code)) return API_ERROR_MESSAGES[response.error.code]!;
   }
   return "프로젝트를 만들 수 없습니다. 잠시 후 다시 시도해 주세요.";
 }

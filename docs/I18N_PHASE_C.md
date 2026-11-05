@@ -62,3 +62,10 @@ Resource Plan descriptor의 현재 언어 inner 설명을 그리기 전에 host�
 ## #866 C004 — Opaque error localization follow-up (2026-11-06)
 
 The deferred C002 E P2 is addressed in the current branch. Country-calendar API failures keep opaque server provenance and render the original country/year/field/row detail as React text. Only local, statically authored feedback is translated. WBS uses trusted HTTP status/error-code mappings rather than upstream `error.message` as a translation key. `safeApiError` recognizes an approved domain message only for its explicit matching error code; unknown messages fall back to existing caller context. Untrusted text `저장` must not turn into the English Save action. API, SQLite, Origin/CAS, Draft restoration, Gantt, all eight E2E shards and CI policy remain unchanged. Negative and positive unit tests cover these boundaries. Earlier Full #3525.1 and Trusted #1172.1 PASS apply to the preceding HEAD only: fresh exact-HEAD CI/Trusted and Owner HIGH residual review are required. Operational backup/restore, Windows Excel and native screen-reader/125% tests remain NOT TESTED; release_authorized=false.
+
+
+## C005 보완 — 상속 키 차단과 로컬 fallback의 언어
+
+C004 이후 Full #3526.1의 직접 Unit3실패는 승인 메시지 사전의 상속 속성 조회에서 발생했다. `safeApiError`와 WBS 고정 code 안내, Phase C Import warning 안내는 직접 소유한 키만 사용한다. 기존 exact code/message·known code/status 우선순위와 fallback을 보존하며 unknown prototype-name을 번역 key로 전달하지 않는다.
+
+국가 캘린더는 실제 서버 문자열과 앱이 만든 기본 안내를 구별한다. 서버 문자열이 UI key와 같아도 원문을 유지하고, 메시지가 없으면 로컬 fallback을 현재 ko/en/vi로 번역한다. row/field/country/year 상세와 열린 오류·초안·요청 상태는 locale 변경으로 다시 쓰지 않는다. 실제 회귀 결과·미검증·별도 발견한 기존 Project 생성 코드 사전 보완은 [누적 원장 C005](ISSUE_866_FAILURE_ANALYSIS.md)에 기록한다. 과거 C004의 보완 표현과 #3525 성공은 당시 Head의 기록이며 신규 Head 승인 근거가 아니다.

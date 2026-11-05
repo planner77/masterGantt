@@ -20,7 +20,8 @@ export function safeApiError(value: unknown, fallback: string): string {
   const error = value.error;
   if ("code" in error && typeof error.code === "string") {
     const code = error.code;
-    if ("message" in error && typeof error.message === "string" && approvedDomainMessages[code]?.includes(error.message)) return error.message;
+    if (Object.hasOwn(approvedDomainMessages, code) && "message" in error &&
+        typeof error.message === "string" && approvedDomainMessages[code]!.includes(error.message)) return error.message;
     if (Object.hasOwn(errorMessages, code)) return errorMessages[code]!;
   }
   return fallback;

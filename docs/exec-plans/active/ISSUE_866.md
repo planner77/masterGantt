@@ -1,3 +1,37 @@
+## REWORK-C005 — Full #3526.1 상속 키 차단과 오류 출처 보완 (2026-11-06, 현재 단계)
+
+사용자 요청의 종료점은 PR #879의 새 Full CI 시작 확인이다. 이후 모니터링·병합·Main/GHCR/Release/Finalizer·Issue 종료는 수행하지 않는다. 아래 C001~C004의 현재 단계·검증 표현은 해당 시점의 역사이며 이 절과 [누적 원장 C005](../../ISSUE_866_FAILURE_ANALYSIS.md)의 최종 기록을 우선한다.
+
+- 시작 Head `8f1335cf96d1de8bb3dc767e72683bb8d0148a05`, main/base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, 원본 test-merge `e0e77f06469e978c53fb55cc103b7f0b8fa07175`. [Full #3526.1 / Run42100064413](https://github.com/planner77/masterGantt/actions/runs/42100064413), attempt1/pull_request/FINAL_FULL은 FAIL. Unit127500852712/step6의 기존 prototype-key 음성3건이 직접 실패이며 Required3/Fast/QA는 파생이다. 실제 Build/Chromium/Docker는 SKIPPED/NOT RUN이다.
+- 역할·소유: Manager는 원장 전체 대조·재현·가설·영향 선정·동결·문서·통합, frontend는 공용 오류/WBS/국가 캘린더/Import·Project 생성 표시 및 지정 회귀, infra는 원격 출처·전체 이력/정제 증거와 Manager 인계 후 배치 게시, qa_docs는 읽기 전용 별도 기술검토. `issue_comment_writer=Manager`; Agent 검토는 독립 인간 QA/Owner ACCEPT가 아니다.
+- 범위: `safeApiError` 승인 메시지와 WBS code 사전은 직접 소유한 키만 읽는다. 정확한 code/message 쌍·알려진 code 및 HTTP401/403/409/412 우선순위·화면별 fallback을 유지한다. 같은 Phase C 신규 Import 경고 사전과 기존 main의 Project 생성 오류 사전도 상속 키를 승인하지 않는다. 국가 캘린더는 실제 서버 문자열만 opaque로 보존하며 메시지 부재 시 앱 소유 fallback을 현재 언어로 번역한다. 국가/연도/field/row detail와 초안·401/412/CAS를 보존한다.
+- 전체 CI28회(Full25+metadata3, 모두 attempt1)와 FAST25회(SKIPPED)를 대조했다. 누적 이전26회에 #3525.1 성공과 #3526.1 실패를 추가했다. #3525.1의 Head `e4b267348f27acf4d6059c202f62a867d93a4c69` 성공은 새 Head에 승계하지 않는다. [전체 이력](../../evidence/issue-866/ci3526-history.json), [원본 출처](../../evidence/issue-866/ci3526-source-proof.json), [실패 매트릭스](../../evidence/issue-866/ci3526-failure-matrix.json)를 따른다.
+
+### C005 Gantt 표준 적용
+
+`gantt_standard_version=GSC 1.0.0-candidate`. 읽은 문서 기준 commit은 `8f1335cf96d1de8bb3dc767e72683bb8d0148a05`이며 [GSC](../../GANTT_STATE_CONSISTENCY.md), [Conformance](../../GANTT_STATE_CONFORMANCE.md), [Adapter ADR](../../GANTT_ADAPTER_ADR.md), [Sync Trace](../../GANTT_SYNC_TRACE.md)를 적용한다. GSC-01/03/08/09/11/12에 따라 오류 표시와 WBS test oracle만 보완하며 canonical·Core·viewport·lease·쓰기 소유권은 변경하지 않는다. 설치 Core2.7.3/package/lock을 유지한다. 새 API/private write·예외 ADR은 N/A(기존 계약·단언 보존)다.
+
+누적 SC-11/13의 Resource 원본/일정 왕복·focus/같은instance·조회0/쓰기0은 issue730 기존case를 보강해 검증하고, SC-08~13의 locale/필터/행·열·날짜·선택·Geometry는 선정된 i18n/Milestone/Resource/Gantt31spec의 기존 엄격한 단언을 유지한다. SC-02~07의 DnD 거부·Calendar writer/대규모 SC-14 전용 전체 여정은 이번 표시/오라클 delta에서 구현이 바뀌지 않아 전용 로컬 중복 실행을 제외하며 공식 Full8/Required3에서 전체 회귀한다. 실제 새 Head 원격·독립 인간 QA·Owner 승인은 NOT TESTED다. GSC 참조를 쓴 사실만으로 준수 PASS를 선언하지 않고 별도 Reviewer가 diff/실행 증거를 확인한다.
+
+### C005 TEST_LIFECYCLE_REVIEW / AC_TEST_COVERAGE 보완
+
+기존 전체 AC01~09 매핑을 유지하며 AC02/05/09의 오류 신뢰·표시·회귀 경계를 확장한다. EXTEND 기존 `safe-ui-error`/WBS transport/국가 캘린더 오류 Unit과 국가 캘린더·WBS 오류 브라우저 사례, ADD Import 실제 renderer Unit, EXTEND 기존 Project 생성 오류 브라우저, KEEP_UNIQUE 기존 누적31spec·SQLite/HTTP/마이그레이션/언어·날짜·Gantt 상태·8-shard 및 Required3다. 직접 실패와 기존 prototype-name 음성 테스트를 제거하거나 완화하지 않는다.
+
+| 생산자·위험 | 직접·간접·음성 검증 |
+| --- | --- |
+| 승인 code/message와 WBS code 조회 | 기존3음성+전체 Object.prototype 키·상속 matcher 미호출·unknown code/승인 message 불일치·known code/status 우선순위 Unit |
+| 국가 캘린더 오류 출처 | 실제 resolver→presenter의 서버 원문/앱 fallback·누락/비문자열·field/row detail; 기존 브라우저 파일의 locale 전환·초안/요청 수·401/412 회귀 |
+| Import 경고 사전 | 실제 component renderer의 prototype key/unknown/known code·EN/VI 표시·원문 ID/path/name 및 기존 전송8case |
+| 이전 #870/#878/#879 전체 실패 | C003의31고유spec(F2/E4/A13/B4/C7/D1) 전체와 전체 Vitest/원본설정 TypeScript·base docs_gate/AC 구조 |
+| 기존 main의 Project 생성 오류 사전 | 기존 브라우저의 prototype code·정확 fallback·초안 보존·재시도 가능; 신규 C004 회귀와 구분해 같은 own-key 경계로 보완 |
+| 제외·별도 | production HTTP/HTTPS transport·Docker 전체는 원격 gate; 운영 backup/restore·Windows Excel·실제AT/native125%는 별도 NOT TESTED |
+
+동결된 최종 source에서 수동31spec을 workers1/retries0/max-failures0, 각 part20분 상한으로 검증한다. 최초 로컬2part 시도의 추가 실패와 중단을 원장에 보존했으며 WBS 오류 오라클 교정 후 최종검증은 공식 config로 각묶음을 순차 실행한다. 로컬 두 part를 병행할 때 서버 port/SQLite/dist/report를 분리하고 이를 원격8runner 동등성이나 성능 개선으로 해석하지 않는다. #752 Actions 진단24spec/4parts 정책은 변경/실행하지 않는다. 자동 Pre-PR의 UNKNOWN/BLOCKED와 수동 실제 회귀를 분리한다. 최종source `1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046`/1322입력은시작=종료다. 31고유spec/194계획=192PASS/기존2SKIP/FAIL0(E21/B20/C59/D8/A68/F16), 전체Unit3714PASS/기존3SKIP·build/runtime-tools·원본설정typecheck·변경13파일lint·탐색301/884·버전/cache/Markdown·base DOC_SYNC/AC구조PASS다. 자동Pre-PR UNKNOWN94/missing0/BLOCKED/sourceStabletrue는그대로유지한다. [최종실행증거](../../evidence/issue-866/ci3526-local-validation.json)와단일원장C005를따르며중간/단독/병행결과를합산하지않는다. 초기로딩의병행실패인과는미확정·최종순차실행비재현이고별도qa_docs `/root/ci3526_review`의범위한정PRE_QA기술검토PASS/새직접P1·P2=0이며미해결GitHub thread0/충돌없음을독립재확인했다. 인간QA/Owner승인이아니며게시직전lease재확인후새CI시작으로인계한다.
+
+DOCUMENTATION_SYNC: UPDATED 본 Work Packet/PLAN/단일 원장/TEST_PLAN/REMOTE_VALIDATION/SECURITY/I18N_PHASE_C 및 정제 증거. 기존 정규 문서 영향 표를 유지한다. N/A API/DB/일정/배포/CI_CD 실행 정책: 응답 계약·마이그레이션·산식·권한·의존성·Workflow·Required3/8-shard/skip/retry/timeout은 변경하지 않는다. 버전0.142.0/release_required=true/release_authorized=false 유지.
+
+HIGH/OWNER_MANAGED/qa_required=true, 새 Head Required3·Trusted·독립 인간 QA·Owner/Manager NOT TESTED/MERGE_READY BLOCKED/#866 OPEN. 최종 사전검토는 기술검토이며 병합 승인이 아니다.
+
 ## REWORK-C004 — #866 deferred P2 opaque-error provenance fix (2026-11-06)
 
 The C002 E deferred P2 is addressed via explicit country-calendar error origin, trusted WBS code/status mapping, and paired exact code/message matching for `safeApiError`. Server-origin message `저장` must not be interpreted as a localization key; original field/row/country/year diagnostics stay literal, and local UI errors still translate. AC02/AC05/AC09 coverage extends; AC01–AC09 historical evidence and migration remain intact. TEST_LIFECYCLE_REVIEW: ADD country-calendar provenance unit, EXTEND safe UI/WBS error unit tests; KEEP_UNIQUE old E2E8/SQLite/HTTP and Required3. DOCUMENTATION_SYNC: UPDATED this Work Packet, docs/I18N_PHASE_C.md, docs/ISSUE_866_FAILURE_ANALYSIS.md, docs/SECURITY.md. N/A API/DB schema (no contract modification), docs/CI_CD.md and docs/TEST_PLAN.md policy (no gate/shard/timeout changes). Prior Full #3525.1 and Trusted #1172.1 PASS applied to older HEAD; new exact HEAD Full CI, trusted QA and Owner HIGH risk acceptance pending. HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false, MERGE_READY=BLOCKED; #866 remains OPEN. Do not merge/GHCR/Finalizer/close before approval.

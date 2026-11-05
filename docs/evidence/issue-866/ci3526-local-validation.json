@@ -1,0 +1,727 @@
+{
+  "schema": "issue866-ci3526-local-validation-v1",
+  "updated_at": "2026-11-05T21:29:58.181040+00:00",
+  "issue": 866,
+  "pr": 879,
+  "status": "LOCAL_VALIDATED_PREPR_BLOCKED",
+  "description": "동일한 최종 입력의 로컬 회귀·원본 실패·중단·미실행을 구분한다. 새 원격 Required/Trusted/Owner 승인의 대체 근거가 아니다.",
+  "baseline_head": "8f1335cf96d1de8bb3dc767e72683bb8d0148a05",
+  "base": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+  "original_ci": {
+    "run_id": 42100064413,
+    "number": 3526,
+    "attempt": 1,
+    "test_merge": "e0e77f06469e978c53fb55cc103b7f0b8fa07175",
+    "status": "FAIL",
+    "direct_unit_failed": 3,
+    "unit_passed": 3667,
+    "unit_existing_skipped": 3,
+    "actual_build_e2e_docker": "NOT RUN"
+  },
+  "source": {
+    "fingerprint": "1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046",
+    "files": 1322,
+    "start_end_identical": true,
+    "owned_file_sha256": {
+      "src/components/safe-ui-error.ts": "f60e7d8fef7f6aa2cb638ef4520471cb563b337132e4748cb71e8e525afc8878",
+      "src/features/resources/wbs-view-transport.ts": "7fc3e438443fc8f75361ba125cdd243d322b8cf03812bba1fb92f1652b9c82d6",
+      "src/features/country-calendars/error-presentation.ts": "fbd56c808548c74a293e249955a6244258a9900ed72c21772c4d5be70800c217",
+      "src/features/country-calendars/use-country-calendar-admin.ts": "48c3872908a74b5a13c29ad32cd883a8c0d2d4b25ffa9e2403bd3bb68289a8f2",
+      "src/features/projects/project-import-preview.tsx": "83e15ace6abe71e9267febea744b09e253ffecc764c46ccda006dd4e4a4aaa1d",
+      "src/features/projects/create-project-form.tsx": "6eb9611feee33dce2d7a004388f6fa5792f310e704093ae867a386c91b5a3fc5",
+      "tests/components/safe-ui-error.test.ts": "306206f09402f40c38370504485c59a60d760c91e09e21d842820139b31c9410",
+      "tests/features/resources/wbs-view-transport.test.ts": "d25894e8d4ebbe6a6594a0b559034290b0ce61629adf7bd06c5882268dd253af",
+      "tests/features/country-calendars/error-presentation.test.ts": "db32d5e51eb7672bdea9ee9b48a4c6c7aa12ee78c3356204057f18086823a7d8",
+      "tests/features/projects/project-import-preview.test.ts": "e6acc22821718dcde00c1b4c8fb429c73352aba7484cd5cbdbcef8e0fb9bfd04",
+      "tests/e2e/country-calendar-admin.spec.ts": "3312ddda0118c3b4d44fd4d1c26ded8e547b91ffbbdabfa641fb92024ca6dad6",
+      "tests/e2e/project-create-layout.spec.ts": "54329dae0e2e686d1bd45207f6a4ebc941e86dfd6763b4c5e83f6874f767a4b7",
+      "tests/e2e/issue-730-view-composer.spec.ts": "50b4060d6b0786c7afe477181ba856acf4607b9cf77d15d0b7a1fa25204a5a53"
+    },
+    "generated_configs": "next-env.d.ts/tsconfig.json은 시작 Head bytes로 정규화하여 비교하고 생성 사본 보존 후 실제 파일도 원복한다.",
+    "initial_fingerprint": "3f8668f834a337d83e1249204a830a714058f1c250ecaee53a0a1f9f44bb3c02",
+    "initial_to_final_change": [
+      "tests/e2e/issue-730-view-composer.spec.ts"
+    ]
+  },
+  "local_environment": {
+    "os": "linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "cpuCount": 16,
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "packageVersion": "0.142.0",
+    "lockVersion": "0.142.0",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)"
+  },
+  "local_quality": {
+    "unit": {
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 43.01
+    },
+    "build": {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 50.52
+    },
+    "restore": {
+      "command": [
+        "python3",
+        ".prepr-reports/ci3526/restore-generated.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.12
+    },
+    "typecheck": {
+      "command": [
+        "npx",
+        "tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 35.68
+    },
+    "lint": {
+      "command": [
+        "npx",
+        "eslint",
+        "src/components/safe-ui-error.ts",
+        "src/features/resources/wbs-view-transport.ts",
+        "src/features/country-calendars/error-presentation.ts",
+        "src/features/country-calendars/use-country-calendar-admin.ts",
+        "src/features/projects/project-import-preview.tsx",
+        "src/features/projects/create-project-form.tsx",
+        "tests/components/safe-ui-error.test.ts",
+        "tests/features/resources/wbs-view-transport.test.ts",
+        "tests/features/country-calendars/error-presentation.test.ts",
+        "tests/features/projects/project-import-preview.test.ts",
+        "tests/e2e/country-calendar-admin.spec.ts",
+        "tests/e2e/project-create-layout.spec.ts",
+        "tests/e2e/issue-730-view-composer.spec.ts"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 3.79
+    },
+    "discovery": {
+      "command": [
+        "node",
+        "scripts/verify-test-discovery.mjs"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 6.57
+    },
+    "version": {
+      "command": [
+        "node",
+        "scripts/verify-release-version.mjs"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.08
+    },
+    "cache": {
+      "command": [
+        "node",
+        "scripts/verify-ci-cache-contract.mjs"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.07
+    },
+    "markdown": {
+      "command": [
+        "node",
+        "scripts/check-markdown-links.mjs"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.22
+    },
+    "prepr": {
+      "command": [
+        "npm",
+        "run",
+        "verify:prepr",
+        "--",
+        "--mode=fast",
+        "--base=origin/main",
+        "--issue=866",
+        "--risk=HIGH",
+        "--report-dir=.prepr-reports/ci3526/prepr-final"
+      ],
+      "exit_code": 1,
+      "duration_seconds": 1.07
+    }
+  },
+  "unit": {
+    "counts": {
+      "passed": 3714,
+      "failed": 0,
+      "skipped": 3
+    },
+    "bytes": 1936,
+    "sha256": "71efac24e6b987e9416b6f6ef1cb6ff5ba2d90a69bc335d5ac8204e34e4d0b9c"
+  },
+  "unit_file_counts": {
+    "passed": 300,
+    "existing_skipped": 1,
+    "total": 301
+  },
+  "e2e": {
+    "planned_unique_files": 31,
+    "planned_unique_cases": 194,
+    "completed_unique_counts": {
+      "passed": 192,
+      "failed": 0,
+      "skipped": 2
+    },
+    "config": "tests/config/playwright.config.ts",
+    "workers": 1,
+    "retries": 0,
+    "max_failures": 0,
+    "concurrent_parts": 1,
+    "part_wall_limit_seconds": 1200,
+    "parts": {
+      "f": {
+        "spec_files": [
+          "tests/e2e/inline-name-persistence.spec.ts",
+          "tests/e2e/project-gantt-inline-name.spec.ts"
+        ],
+        "status": "PASS",
+        "execution": {
+          "exit_code": 0,
+          "duration_seconds": 159.32,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/inline-name-persistence.spec.ts",
+            "tests/e2e/project-gantt-inline-name.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3526/part-f-results"
+          ],
+          "source_fingerprint": "1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046"
+        },
+        "log": {
+          "counts": {
+            "passed": 16,
+            "failed": 0,
+            "skipped": 0
+          },
+          "bytes": 50388,
+          "sha256": "0ae1ed4eb0becbebaee45807138fc809ba13f01cfb85848b91247048b61d09eb"
+        }
+      },
+      "e": {
+        "spec_files": [
+          "tests/e2e/project-issues.spec.ts",
+          "tests/e2e/issue-736-resource-dashboard.spec.ts",
+          "tests/e2e/issue-730-view-composer.spec.ts",
+          "tests/e2e/resource-drill-ui.spec.ts"
+        ],
+        "status": "PASS",
+        "execution": {
+          "exit_code": 0,
+          "duration_seconds": 747.87,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-issues.spec.ts",
+            "tests/e2e/issue-736-resource-dashboard.spec.ts",
+            "tests/e2e/issue-730-view-composer.spec.ts",
+            "tests/e2e/resource-drill-ui.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3526/part-e-results"
+          ],
+          "source_fingerprint": "1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046"
+        },
+        "log": {
+          "counts": {
+            "passed": 21,
+            "failed": 0,
+            "skipped": 0
+          },
+          "bytes": 31894,
+          "sha256": "a267af475714a9aa604e5c5cb59b958995f48c00d2976b31c98d952d80f1176d"
+        }
+      },
+      "a": {
+        "spec_files": [
+          "tests/e2e/admin-auth-layout.spec.ts",
+          "tests/e2e/country-calendar-admin.spec.ts",
+          "tests/e2e/cross-screen-regression.spec.ts",
+          "tests/e2e/i18n-master-data.spec.ts",
+          "tests/e2e/issue-866-language-shell.spec.ts",
+          "tests/e2e/logistics-table-density.spec.ts",
+          "tests/e2e/logistics-type-catalog-admin.spec.ts",
+          "tests/e2e/master-controls-density.spec.ts",
+          "tests/e2e/new-project-draft-preservation.spec.ts",
+          "tests/e2e/project-create-layout.spec.ts",
+          "tests/e2e/project-master-relations.spec.ts",
+          "tests/e2e/project-workspace-layout.spec.ts",
+          "tests/e2e/resource-catalog-delete.spec.ts"
+        ],
+        "status": "PASS",
+        "execution": {
+          "exit_code": 0,
+          "duration_seconds": 281.4,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/admin-auth-layout.spec.ts",
+            "tests/e2e/country-calendar-admin.spec.ts",
+            "tests/e2e/cross-screen-regression.spec.ts",
+            "tests/e2e/i18n-master-data.spec.ts",
+            "tests/e2e/issue-866-language-shell.spec.ts",
+            "tests/e2e/logistics-table-density.spec.ts",
+            "tests/e2e/logistics-type-catalog-admin.spec.ts",
+            "tests/e2e/master-controls-density.spec.ts",
+            "tests/e2e/new-project-draft-preservation.spec.ts",
+            "tests/e2e/project-create-layout.spec.ts",
+            "tests/e2e/project-master-relations.spec.ts",
+            "tests/e2e/project-workspace-layout.spec.ts",
+            "tests/e2e/resource-catalog-delete.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3526/part-a-results"
+          ],
+          "source_fingerprint": "1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046"
+        },
+        "log": {
+          "counts": {
+            "passed": 68,
+            "failed": 0,
+            "skipped": 2
+          },
+          "bytes": 20676,
+          "sha256": "e1a25291950b909d533d3678399f205504f6d3185b984238e67b30cebc174f87"
+        }
+      },
+      "b": {
+        "spec_files": [
+          "tests/e2e/issue-725-process-workareas.spec.ts",
+          "tests/e2e/issue-726-task-logistics.spec.ts",
+          "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+          "tests/e2e/project-multi-task-copy-paste.spec.ts"
+        ],
+        "status": "PASS",
+        "execution": {
+          "exit_code": 0,
+          "duration_seconds": 725.08,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/issue-725-process-workareas.spec.ts",
+            "tests/e2e/issue-726-task-logistics.spec.ts",
+            "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+            "tests/e2e/project-multi-task-copy-paste.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3526/part-b-results"
+          ],
+          "source_fingerprint": "1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046"
+        },
+        "log": {
+          "counts": {
+            "passed": 20,
+            "failed": 0,
+            "skipped": 0
+          },
+          "bytes": 4648,
+          "sha256": "4b9c00b4d2f86635566a13cf3c35c35728cfdae069049153171d0829dbcf234f"
+        }
+      },
+      "c": {
+        "spec_files": [
+          "tests/e2e/milestone-visibility.spec.ts",
+          "tests/e2e/project-task-quick-view.spec.ts",
+          "tests/e2e/milestone-timeline-lane.spec.ts",
+          "tests/e2e/milestone-stage-grid.spec.ts",
+          "tests/e2e/resource-admin-layout.spec.ts",
+          "tests/e2e/i18n.spec.ts",
+          "tests/e2e/project-task-context-menu.spec.ts"
+        ],
+        "status": "PASS",
+        "execution": {
+          "exit_code": 0,
+          "duration_seconds": 518.24,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/milestone-visibility.spec.ts",
+            "tests/e2e/project-task-quick-view.spec.ts",
+            "tests/e2e/milestone-timeline-lane.spec.ts",
+            "tests/e2e/milestone-stage-grid.spec.ts",
+            "tests/e2e/resource-admin-layout.spec.ts",
+            "tests/e2e/i18n.spec.ts",
+            "tests/e2e/project-task-context-menu.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3526/part-c-results"
+          ],
+          "source_fingerprint": "1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046"
+        },
+        "log": {
+          "counts": {
+            "passed": 59,
+            "failed": 0,
+            "skipped": 0
+          },
+          "bytes": 72778,
+          "sha256": "45b664dee2aa2e2de277b480e643aad931261d946e7f27b6bfbd244df6190c45"
+        }
+      },
+      "d": {
+        "spec_files": [
+          "tests/e2e/project-transfer-layout-491.spec.ts"
+        ],
+        "status": "PASS",
+        "execution": {
+          "exit_code": 0,
+          "duration_seconds": 288.6,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-transfer-layout-491.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3526/part-d-results"
+          ],
+          "source_fingerprint": "1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046"
+        },
+        "log": {
+          "counts": {
+            "passed": 8,
+            "failed": 0,
+            "skipped": 0
+          },
+          "bytes": 2472,
+          "sha256": "c76bd17897f8f62328af307f547c2ebd99b8e4c4e9e11015399e1569394e8b97"
+        }
+      }
+    },
+    "existing_skip_cases": [
+      "logistics-table-density.spec.ts:41 before",
+      "master-controls-density.spec.ts:30 before"
+    ],
+    "separate_red_green_and_partial_runs_not_added": true
+  },
+  "diagnosis": {
+    "red": [
+      {
+        "command": "npx vitest run --config tests/config/vitest.config.ts tests/components/safe-ui-error.test.ts",
+        "passed": 11,
+        "failed": 3,
+        "duration_ms": 442
+      },
+      {
+        "command": "npx vitest run --config tests/config/vitest.config.ts tests/components/safe-ui-error.test.ts",
+        "passed": 12,
+        "failed": 13,
+        "duration_ms": 398
+      },
+      {
+        "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/resources/wbs-view-transport.test.ts --testNamePattern='WBS localized-error provenance'",
+        "passed": 5,
+        "failed": 12,
+        "filtered_not_run": 7,
+        "duration_ms": 2790
+      },
+      {
+        "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/country-calendars/error-presentation.test.ts",
+        "passed": 2,
+        "failed": 2,
+        "duration_ms": 824
+      },
+      {
+        "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/projects/project-import-preview.test.ts",
+        "passed": 3,
+        "failed": 12,
+        "duration_ms": 925
+      },
+      {
+        "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-create-layout.spec.ts --grep '프로젝트 생성 오류의 상속 코드' --workers=1 --retries=0 --max-failures=0 --output=.prepr-reports/ci3526/create-red-actual-results",
+        "passed": 0,
+        "failed": 1,
+        "case_seconds": 7.2,
+        "log": ".prepr-reports/ci3526/create-red-actual.log"
+      }
+    ],
+    "initial_quality": "initial-quality/에 첫 동결 Unit3714PASS·build/type 등 성공을 보존한다. 최종 새 동결의 결과와 합산하지 않는다.",
+    "first_parallel_setup": {
+      "classification": "LOCAL_HARNESS_SETUP",
+      "first_five_parts": "기본 webServer3100이 복수 인자 defineConfig 병합에 남아 B/C/D/A/F는 브라우저 본문 전 NOT RUN이었다.",
+      "part_e": "당시 E는 의도한 baseURL3121에서 진행 중으로 관측했다. 후속 실제 1PASS/2FAIL/1CANCELLED/17NOT_RUN은 partial_parallel에 분리 보존한다.",
+      "fix": "나머지 part는 단일 인자 defineConfig({...base,...overrides})로 교정했다. 이후 소유한 병행 실행을 중단·보존하고 최종31spec는 공식 config로 순차 실행했다.",
+      "original_logs": "initial-parallel-setup/",
+      "source_unchanged": true
+    },
+    "partial_parallel": {
+      "remaining_owned_processes": [],
+      "reports": {
+        "e": {
+          "stats": {
+            "startTime": "2026-11-05T20:25:03.249Z",
+            "duration": 372006.47,
+            "expected": 1,
+            "skipped": 18,
+            "unexpected": 2,
+            "flaky": 0
+          },
+          "raw_result_statuses": {
+            "passed": 1,
+            "failed": 2,
+            "interrupted": 1
+          },
+          "logical_statuses": {
+            "PASS": 1,
+            "FAIL": 2,
+            "CANCELLED": 1,
+            "NOT_RUN": 17
+          },
+          "failure_or_interrupted_cases": [
+            {
+              "file": "issue-730-view-composer.spec.ts",
+              "line": 221,
+              "status": "FAIL",
+              "result_statuses": [
+                "failed"
+              ]
+            },
+            {
+              "file": "issue-730-view-composer.spec.ts",
+              "line": 299,
+              "status": "FAIL",
+              "result_statuses": [
+                "failed"
+              ]
+            },
+            {
+              "file": "issue-730-view-composer.spec.ts",
+              "line": 429,
+              "status": "CANCELLED",
+              "result_statuses": [
+                "interrupted"
+              ]
+            }
+          ]
+        },
+        "b": {
+          "stats": {
+            "startTime": "2026-11-05T20:26:42.443Z",
+            "duration": 259000.82200000001,
+            "expected": 1,
+            "skipped": 19,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "raw_result_statuses": {
+            "passed": 1,
+            "interrupted": 1
+          },
+          "logical_statuses": {
+            "PASS": 1,
+            "CANCELLED": 1,
+            "NOT_RUN": 18
+          },
+          "failure_or_interrupted_cases": [
+            {
+              "file": "issue-725-process-workareas.spec.ts",
+              "line": 374,
+              "status": "CANCELLED",
+              "result_statuses": [
+                "interrupted"
+              ]
+            }
+          ]
+        }
+      },
+      "new_ci": "NOT STARTED",
+      "environment_cause": "UNKNOWN",
+      "scope": "중단시점관측값;동일source최종회귀PASS근거아님"
+    },
+    "controlled_original_two_cases": {
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        ".prepr-reports/ci3526/controlled.config.ts",
+        "tests/e2e/issue-730-view-composer.spec.ts",
+        "--grep",
+        "실제 HTTP 다섯 고정 관점|실제 HTTP 원본 Task",
+        "--workers=1",
+        "--retries=0",
+        "--max-failures=0",
+        "--output=.prepr-reports/ci3526/controlled-serial-results"
+      ],
+      "status": "FAIL",
+      "passed": 1,
+      "failed": 1,
+      "case221_seconds": 31.6,
+      "total_minutes": 1.7,
+      "interpretation": "초기 로딩 실패는 비재현, raw409 기대 불일치는 재현. 병행·컴파일·환경의 인과는 확정하지 않는다.",
+      "log": {
+        "counts": {
+          "passed": 1,
+          "failed": 1,
+          "skipped": 0
+        },
+        "bytes": 4775,
+        "sha256": "7ae34cf29890e43ed882863496c8ad2488c2bbd2f7f4c8956931be95d2b514e0"
+      }
+    },
+    "wbs_oracle_green": {
+      "passed": 1,
+      "case_seconds": 28.3,
+      "total_seconds": 50.6,
+      "log": {
+        "counts": {
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        "bytes": 1331,
+        "sha256": "0220d4cb9668e05daa19f588e555cac291c07e01b52507f7339c90e8aaa6884f"
+      },
+      "scope": "정확409/503 caller 안내·3언어·원문비노출·추가조회0·기존잠금/복구/원본/instance단언"
+    },
+    "first_create_fixture_error": {
+      "status": "FAIL_NOT_EXACT_BUG",
+      "reason": "13자 비밀번호가 기존 상한12자를 넘어 API에 도달하지 않음. 9자로 교정 후 실제 결함 RED를 별도 확인."
+    },
+    "wbs_consumer_audit": {
+      "spec_inventory": 146,
+      "related_files": 11,
+      "literal_fixture_matcher_links": 10,
+      "new_raw_positive_oracle_mismatches": 2,
+      "locations": [
+        "tests/e2e/issue-730-view-composer.spec.ts:395",
+        "tests/e2e/issue-730-view-composer.spec.ts:403"
+      ],
+      "limit": "정적 literal·수동 연결 검토 범위이며 전체 AST 또는 모든 화면 PASS를 뜻하지 않는다."
+    }
+  },
+  "automatic_prepr": {
+    "status": "BLOCKED",
+    "unknown": 94,
+    "missing": 0,
+    "sourceStable": true,
+    "report": ".prepr-reports/ci3526/prepr-final/report.json",
+    "reason": "자동 매핑 공백 BLOCKED와 수동 producer/consumer 선정·실제 회귀를 분리한다."
+  },
+  "documentation": {
+    "base_gate": {
+      "validator_sha": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+      "changed_paths": 309,
+      "required": [
+        "AGENTS.md",
+        "DESIGN.md",
+        "docs/API.md",
+        "docs/CI_CD.md",
+        "docs/DB_SCHEMA.md",
+        "docs/EXCEL_EXPORT.md",
+        "docs/GITHUB_OPERATIONS.md",
+        "docs/IMPORT_EXPORT.md",
+        "docs/IMPORT_SCHEMA.md",
+        "docs/QA_REVIEW_POLICY.md",
+        "docs/REMOTE_VALIDATION.md",
+        "docs/SCHEDULING_ENGINE.md",
+        "docs/TEST_PLAN.md"
+      ],
+      "result": {
+        "documentation_sync": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING",
+        "ac_test_coverage": "MAPPING_PASS_SEMANTIC_REVIEW_PENDING"
+      }
+    },
+    "original_prefix_proof": {
+      "docs/ISSUE_866_FAILURE_ANALYSIS.md": {
+        "baseline_bytes": 111586,
+        "baseline_sha256": "df864c4cb0ed49e66f4fa6b29b73c67361c22401f8e72ac854841f53ada28646",
+        "original_prefix_identical": true
+      },
+      "docs/TEST_PLAN.md": {
+        "baseline_bytes": 1174591,
+        "baseline_sha256": "f7494bf01702c68dac359d1ed01651e44e275db3f0bf07c71cd52d2f4747745d",
+        "original_prefix_identical": true
+      },
+      "docs/REMOTE_VALIDATION.md": {
+        "baseline_bytes": 217037,
+        "baseline_sha256": "7b161968effe1ef6b3de46b09343ecff3f2c6f6b0a1a4777681340d5cd075e24",
+        "original_prefix_identical": true
+      },
+      "docs/SECURITY.md": {
+        "baseline_bytes": 81486,
+        "baseline_sha256": "33157b251331bf509ea7a3d974fd100234e9baa5970fd53934021f1f19b97dc2",
+        "original_prefix_identical": true
+      },
+      "docs/I18N_PHASE_C.md": {
+        "baseline_bytes": 12169,
+        "baseline_sha256": "d21af9c7c474b49b90a701982b5b92e97c0f64b8843b2a24465efe60eddb31ab",
+        "original_prefix_identical": true
+      }
+    }
+  },
+  "review": {
+    "technical_agent": "/root/ci3526_review",
+    "status": "PASS",
+    "scope": "이번 C005 delta의 별도 읽기 전용 PRE_QA 기술검토",
+    "new_direct_p1_p2": 0,
+    "source_fingerprint": "1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046",
+    "input_files": 1322,
+    "unresolved_github_threads": 0,
+    "merge_conflicts": "NONE",
+    "baseline_head": "8f1335cf96d1de8bb3dc767e72683bb8d0148a05",
+    "base": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+    "human_independent_qa": "NOT TESTED",
+    "owner_manager_accept": "NOT TESTED",
+    "reviewed_at": "2026-11-05T21:29:58.034172+00:00",
+    "limit": "Agent 기술검토는 인간 QA·QA_FINAL·Owner/Manager ACCEPT·새 원격 gate 성공이 아니다."
+  },
+  "delivery": {
+    "new_head_required_quality_e2e_docker": "NOT TESTED",
+    "trusted_qa": "NOT TESTED",
+    "merge_ready": "BLOCKED",
+    "risk_level": "HIGH",
+    "qa_method": "OWNER_MANAGED",
+    "qa_required": true,
+    "release_required": true,
+    "release_authorized": false,
+    "issue_status": "OPEN",
+    "scope_end": "새 Full PR CI 시작 확인. 이후 모니터링·병합·Main/GHCR/Release/Finalizer·Issue 종료 없음.",
+    "environment_specific": "Windows Excel·실제 AT/native125%·운영 backup/restore는 NOT TESTED"
+  }
+}

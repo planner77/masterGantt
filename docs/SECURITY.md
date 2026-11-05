@@ -592,3 +592,10 @@ locale과 화면 번역은 authorization이 아니다. Project edit session, 공
 ## #866 — Localized error-message provenance (C004)
 
 Never promote unknown API `error.message` to an internationalization key merely because it matches a static dictionary string. Country-calendar preserves opaque server messages and validation row/path context as escaped React text while translating only app-authored feedback. WBS transport maps approved error codes and HTTP statuses to fixed display strings; `safeApiError` uses an exact approved code/message pair for domain-specific text and generic known-code/context fallback otherwise. No change to Origin/CSRF, authorization, revision CAS, 401/412 recovery, DB, transport, logs or request bodies. See docs/I18N_PHASE_C.md and provenance tests.
+
+
+## Issue #866 C005 — 오류 코드 사전의 직접 소유 키와 출처
+
+신뢰되지 않은 응답 code를 고정 안내 사전에 매핑할 때는 `Object.hasOwn`으로 명시 등록한 키인지 확인한다. `__proto__`/`constructor`/`toString` 등 상속 속성을 승인 메시지 배열·번역 key로 사용하지 않는다. 승인 domain message는 정확한 code/message 쌍에만 허용하며 알 수 없는 code는 화면별 고정 fallback을 사용한다. WBS의 HTTP401/403/409/412 우선순위와 Import warning 원문 code/path는 유지한다.
+
+국가 캘린더는 서버에서 실제 받은 문자열·검토된 field/row 상세를 opaque React text로 보존한다. 메시지가 없는 오류의 앱 소유 fallback은 현재 언어로 번역하며, 동일한 글자라는 이유로 서버 원문을 번역 key로 승격하지 않는다. 이 경계 검증은 인증·Origin·CAS·전체 오류 소비자의 보안 감사 또는 새 Head Trusted/Owner 승인 PASS가 아니다. [실패·보완 근거](ISSUE_866_FAILURE_ANALYSIS.md)의 C005를 따른다.

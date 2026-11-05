@@ -156,6 +156,73 @@ function snapshot(countryCode = "KR", year = 2026, revision = 1): CountryCalenda
   return { data: { revision, dataset: { countryCode: countryCode as "KR", countryName: countryCode, year, status: "OFFICIAL", origin: "BUILT_IN", sourceVersion: "E2E-1", sourceUrl: "https://example.com/calendar", dateCount: 1, updatedAt: null }, dates: [{ date: `${year}-01-01`, name: `${countryCode} 원본`, dayType: "NON_WORKING", sourceKey: "new-year" }] } };
 }
 
+test("오류 출처를 보존하며 열린 오류의 언어만 바꾸고 초안이나 요청을 재실행하지 않는다", async ({ page }) => {
+  let authenticated = false, loginRequests = 0, previews = 0, mutations = 0, reads = 0, failRead = false;
+  const upstream = "저장\nrow[2].name: 관리자 인증에 실패했습니다.\nUS 2032: 원본 상세";
+  await page.route("**/api/project-master/admin-sessions", async route => {
+    loginRequests++;
+    if (loginRequests === 1) { await route.fulfill({ status: 503, json: { error: {} } }); return; }
+    authenticated = true; await route.fulfill({ status: 201, json: { data: {} } });
+  });
+  await page.route(`**${root}/countries/KR/years/2026`, async route => {
+    if (route.request().method() === "GET") {
+      reads++;
+      await route.fulfill({ status: !authenticated ? 401 : failRead ? 503 : 200, json: !authenticated ? { error: {} } : failRead ? { error: { message: 42, details: "invalid" } } : snapshot() });
+      return;
+    }
+    mutations++; await route.fulfill({ status: 422, json: { error: { message: "" } } });
+  });
+  await page.route(`**${root}/import/preview`, async route => {
+    previews++;
+    await route.fulfill({ status: 422, json: { error: previews === 1 ? {} : { message: "저장", details: [{ path: "row[2].name", message: "관리자 인증에 실패했습니다." }, { path: "US 2032", message: "원본 상세" }] } } });
+  });
+  const peer = await page.context().newPage();
+  await peer.goto("/");
+  const picker = peer.locator(".header-locale-selector select");
+  const languageError = async (alert: import("@playwright/test").Locator, english: string, vietnamese: string, korean: string) => {
+    const before = { loginRequests, previews, mutations, reads };
+    for (const [locale, expected] of [["en", english], ["vi", vietnamese], ["ko", korean]]) {
+      await picker.selectOption(locale);
+      await expect(page.locator("html")).toHaveAttribute("lang", locale);
+      await expect(alert).toHaveText(expected);
+      expect({ loginRequests, previews, mutations, reads }).toEqual(before);
+    }
+  };
+  await page.goto("/country-calendar-admin");
+  await page.getByLabel("관리자 비밀번호").fill("mock-admin"); await page.getByRole("button", { name: "로그인", exact: true }).click();
+  await expect(page.locator("#country-calendar-login-error")).toHaveText("관리자 인증에 실패했습니다.");
+  await languageError(page.locator("#country-calendar-login-error"), "Administrator authentication failed.", "Xác thực quản trị viên thất bại.", "관리자 인증에 실패했습니다.");
+  await expect(page.getByLabel("관리자 비밀번호")).toHaveValue("");
+  await page.getByLabel("관리자 비밀번호").fill("mock-admin"); await page.getByRole("button", { name: "로그인", exact: true }).click();
+  await page.getByRole("button", { name: "JSON/CSV 가져오기", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("UTF-8 파일").setInputFiles({ name: "opaque-source.json", mimeType: "application/json", buffer: Buffer.from("retained-file-content") });
+  await dialog.getByRole("button", { name: "가져오기 미리보기", exact: true }).click();
+  await expect(dialog.getByRole("alert")).toHaveText("파일 검증에 실패했습니다.");
+  await languageError(dialog.getByRole("alert"), "File validation failed.", "Kiểm tra tệp thất bại.", "파일 검증에 실패했습니다.");
+  await expect(dialog.locator('p[role="status"]')).toHaveText("opaque-source.json");
+  expect(await dialog.locator('input[type="file"]').evaluate(input => (input as HTMLInputElement).files?.[0]?.name)).toBe("opaque-source.json");
+  await dialog.getByRole("button", { name: "가져오기 미리보기", exact: true }).click();
+  await expect(dialog.getByRole("alert")).toHaveText(upstream);
+  await languageError(dialog.getByRole("alert"), upstream, upstream, upstream);
+  await expect(dialog.locator('p[role="status"]')).toHaveText("opaque-source.json");
+  await page.keyboard.press("Escape"); await expect(dialog).toHaveCount(0);
+  const workspace = page.locator("section[aria-label]").filter({ has: page.locator("#country-calendar-country") });
+  const feedback = workspace.getByRole("alert");
+  await page.getByLabel("출처 버전").fill("보존된 provenance 초안");
+  await page.getByRole("button", { name: "출처 정보 저장", exact: true }).click();
+  await expect(feedback).toHaveText("변경을 저장하지 못했습니다.");
+  await languageError(feedback, "Could not save the changes.", "Không thể lưu thay đổi.", "변경을 저장하지 못했습니다.");
+  await expect(page.getByLabel("출처 버전")).toHaveValue("보존된 provenance 초안");
+  failRead = true; await page.getByRole("button", { name: "새로고침", exact: true }).click();
+  await expect(feedback).toHaveText("최신 국가 캘린더를 불러오지 못했습니다.");
+  await languageError(feedback, "Could not load the latest country calendar.", "Không thể tải lịch quốc gia mới nhất.", "최신 국가 캘린더를 불러오지 못했습니다.");
+  await expect(page.getByLabel("출처 버전")).toHaveValue("보존된 provenance 초안");
+  await expect(page.getByRole("button", { name: "출처 정보 저장", exact: true })).toBeDisabled();
+  expect({ loginRequests, previews, mutations }).toEqual({ loginRequests: 2, previews: 2, mutations: 1 });
+  await peer.close();
+});
+
 test("첫 조회 오류에도 metadata/toolbar DOM을 유지하며 native 국가 변경과 역순 응답을 처리한다", async ({ page }) => {
   let authorized = false, fail = true; let releaseKR: (() => void) | undefined;
   await page.route("**/api/project-master/admin-sessions", async (route) => { authorized = true; await route.fulfill({ status: 201, json: { data: {} } }); });

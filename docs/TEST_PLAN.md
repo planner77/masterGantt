@@ -5799,3 +5799,12 @@ Full #3524.1의 실제 inline 이름 저장 재시작case가 본문30초를 초�
 C003 성능 해석: 분리된 fixture 예산 때문에 Playwright reporter duration은 준비를 제외한 본문 시간이다. 실제 전체 비용은 inline-name-restart-preparation과 isolated-application performance의 준비/restart/전체elapsed를 함께 읽는다. 짧아진 본문 duration을 dev compile 개선·전체여정단축·10개성공run baseline으로 해석하지 않는다. 기존 shard 성능원장/projectedMs/sourceRunIds와 정책은 변경하지 않는다.
 
 C003 최종 동일동결source의31spec/192계획=190PASS/기존2SKIP/FAIL0, 별도2CPU3반복PASS(고유합계미가산), 최종type/lint/탐색/정책/문서구조PASS다. 자동Pre-PR UNKNOWN94는BLOCKED로유지하고원격/Owner/Manager NOT TESTED와구별한다. [최종정제증거](evidence/issue-866/ci3524-local-validation.json), 단일원장C003 E를따른다.
+
+
+## Issue #866 C005 — Full #3526.1 상속 코드와 오류 출처 회귀 (2026-11-06)
+
+원본 Run42100064413.1의 Unit3FAIL을 기존 `safe-ui-error.test.ts`에서 재현한다. 승인 메시지/고정 WBS code/Import warning은 직접 소유한 키만 승인하며 전체 Object.prototype 키·상속 matcher 미호출·unknown code+승인 message 불일치·known code/status 우선순위를 정확히 검증한다. Import는 실제 renderer, 국가 캘린더는 오류 resolver→presenter와 기존 브라우저의 opaque 서버 원문/앱 fallback·EN/VI/KO·초안/요청 수·401/412를 검증한다.
+
+TEST_LIFECYCLE_REVIEW는 기존 Unit/국가 캘린더·Project 생성·WBS 오류 spec EXTEND, Import renderer Unit ADD, 누적31spec·SQLite/HTTP/언어/Gantt·Required3/Chromium8 KEEP_UNIQUE다. 동결 source의 수동31spec(F2/E4/A13/B4/C7/D1, 각20분·workers1/retries0/max-failures0)과 전체Unit/type/문서 gate를 사용한다. 두 part를 병행할 때 로컬 서버/DB/dist/report를 분리하며 #752 자동24spec/4parts나 원격정책을 바꾸지 않는다. [Work Packet C005](exec-plans/active/ISSUE_866.md), [단일 원장](ISSUE_866_FAILURE_ANALYSIS.md)과 정제 실행 증거를 따른다. 실행 전/미실행은 NOT TESTED, 자동Pre-PR UNKNOWN은 BLOCKED로 유지한다. 기존 문서/실패 이력은 보존한다.
+
+C005 최종동결source1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046/1322입력의31고유spec/194계획=192PASS/기존2SKIP/FAIL0,전체Unit3714PASS/기존3SKIP·build/runtime-tools·원본설정typecheck/13파일lint·탐색301/884·문서구조PASS다. 자동Pre-PR UNKNOWN94/missing0/BLOCKED와원격새Head/Trusted·Owner NOT TESTED를구별한다. [정제최종증거](evidence/issue-866/ci3526-local-validation.json)·단일원장C005 D를따르며이전원격/중간/중단관측은보존하고중복가산하지않는다.

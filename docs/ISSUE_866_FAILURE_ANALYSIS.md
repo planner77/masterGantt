@@ -477,3 +477,88 @@ Manager와 별도qa_docs가 #572/TASK_EDITOR의 계약을 대조했다. 제품 �
 - **Remediation:** country-calendar model distinguishes opaque upstream error lines from local static messages; keep country/year/field/row details literal via escaped React text. WBS returns fixed code/status messages; `safeApiError` allows the exact approved (code,message) pair and otherwise a known-code/context fallback. Existing 401/412, CAS, Origin, stale draft, file/DB/API contracts unchanged.
 - **Test Lifecycle:** ADD country-calendar provenance unit, EXTEND safe-ui-error and WBS transport error tests, KEEP_UNIQUE all existing E2E 8-shard/SQLite/HTTP tests; no skip/retry/timeout expansion. New exact HEAD local TypeScript/Vitest/Chromium/Docker and Full/Trusted QA NOT TESTED on publication. The older #3525.1 and Trusted #1172.1 SUCCESS are preserved historical results only, not inherited by C004.
 - **Review/Risk:** HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false; MERGE_READY BLOCKED until new Full/Trusted PASS and Owner review. Operational backup/restore, Windows Excel, native screen reader/125% unverified. No main merge, GHCR formal release, Finalizer or Issue close authorized at this step.
+
+## PR #879 REWORK-C005 — Full #3526.1 상속 속성 조회와 오류 출처 교정 (2026-11-06)
+
+### A. 원격 전체 이력·원본 출처·실제 실패
+
+[Full #3526.1 / Run42100064413](https://github.com/planner77/masterGantt/actions/runs/42100064413), attempt1/pull_request/FINAL_FULL은 Head `8f1335cf96d1de8bb3dc767e72683bb8d0148a05`, base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `e0e77f06469e978c53fb55cc103b7f0b8fa07175`에서 FAILURE다. 원장 전체·선행 correction/evidence·Work Packet·PR 대화와 #870/#878/#879 branch 전량을 대조했다. 전체53workflow=CI28회(Full25+metadata3, 모두 attempt1)+FAST25회(SKIPPED)다. C003의기존26CI 이후 #3525.1과 #3526.1이 추가되었고 기존 Run/Attempt 누락0이다. 과거 raw 로그 전부를 이번에 재다운로드했다는 뜻은 아니다. [전체 이력](evidence/issue-866/ci3526-history.json)을 따른다.
+
+#3525.1/Run42053023686의 Head `e4b267348f27acf4d6059c202f62a867d93a4c69`에서는 Required quality127336677964/e2e127353487051/docker127340151186 SUCCESS였다. 이 원본 성공과 이전 Trusted 성공은 C004 이후 새 Head의 성공으로 승계하지 않는다. C004는 당시 로컬 TypeScript/Vitest/브라우저 미실행을 NOT TESTED로 명시했으며 이번에 기존 음성 테스트의 실패가 실제 드러났다. 기존 FAIL/CANCELLED/SKIPPED 기록을 바꾸지 않는다.
+
+원본 changes Job127500200971의 artifact13449701384 업로드20:05:30.8508225Z(line87)가 checkout20:05:32.1864126Z(line96)보다 앞선다. ZIP SHA256 `47bc64d0dc05d5ca4ba2379a88d501ed0288cb31f93fffb9a3ef0492032b4ace`와 schema/repository/run/attempt/PR/branch·3SHA·GitHub 원본 API·불변 merge 부모·commit→PR 단일879 귀속을 읽기 전용 대조했다. ZIP은 데이터로만 읽었고 실행하지 않았다. PR측 artifact 단독 또는 제목에서 PR을 추정하지 않았다. 출처 교차 확인 PASS는 Trusted QA/Owner 승인 PASS가 아니다. [원본 출처](evidence/issue-866/ci3526-source-proof.json) 참조.
+
+| 종류 / Job | 실제 결과 | 근거·해석 |
+| --- | --- | --- |
+| Unit / 127500852712 / step6 `Run npm test` | 직접 FAIL | 3667PASS/3FAIL/기존3SKIP, 300files=298PASS/1FAIL/1SKIP,61.06초 |
+| Policy127500852727 / ESLint127500852846 / TypeScript127500853118 / Preflight127500664904 | SUCCESS | 원본 Head의 실제 정적 검사만 의미 |
+| PR Fast Gate127501708370 | 파생 FAIL | Unit 직접 실패가 선행 gate를 차단 |
+| Required quality127501871129 / e2e127501871513 / docker127501871375 | 파생 FAIL | 실제 Build/Chromium/Docker 구현의 직접 실패와 구별 |
+| Automated QA127501932268 | 파생 FAIL | 필수 gate 미성공; 독립 의미/인간 QA가 아님 |
+| PR Build127501872879 / PR E2E127501872545 / Docker127501874140 | SKIPPED / NOT RUN | E2E matrix 확장 전 placeholder1개이며 8개 shard 성공/실패 수로 계산하지 않음 |
+
+전체23Job=7SUCCESS/6FAILURE/10SKIPPED다. Main/비PR/LOW/metadata placeholder도 포함한 수치이며 실제 Chromium 사례0PASS 또는 Docker smoke PASS라고 해석하지 않는다. [실패 매트릭스](evidence/issue-866/ci3526-failure-matrix.json) 참조.
+
+직접 실패는 `tests/components/safe-ui-error.test.ts`의 `retains caller context for unapproved upstream data` 중 code/message가 각각 `__proto__`, `constructor`, `toString`인3건이다. 예상은 caller context fallback, 실제는 `TypeError: approvedDomainMessages[code]?.includes is not a function`, `src/components/safe-ui-error.ts:23:98`다. 원본 summary20:08:01.574Z와 로컬 기존 테스트의 같은 오류를 대조했다. fixture·제품 데이터·DB 소실이나 권한 우회 증거는 아니다.
+
+### B. 재현·가설·원인 및 같은 계열 감사
+
+Manager는 시작 Head에서 아래 기존 회귀를 먼저 실행하여11PASS/3FAIL(442ms,exit1)을 확인했다. 이후 frontend의 확장 음성 테스트는 safe25건 중13FAIL/12PASS(398ms), WBS 오류군17건 중12FAIL/5PASS(다른7건 필터 제외/NOT RUN,2.79초)였다. 원래3실패는 삭제하지 않았다.
+
+```sh
+npx vitest run --config tests/config/vitest.config.ts tests/components/safe-ui-error.test.ts
+```
+
+가설은 ① Object.prototype의 상속 속성을 allowlist에서 읽음 ② 명시 allowlist 값의 타입 오류 ③ 실행 환경 차이 순으로 사용자에게 먼저 제시했다. 실제 명시 항목 REVISION_CONFLICT 배열은 정상이고 원격/로컬 모두 같은 실패다. 직접 소유한 키인지 검사하면 원래3음성·다른 prototype 키와 상속 matcher 반례가 모두 정상 fallback이 되며 approved pair/known code 양성은 유지된다. 첫 가설을 확정했고 단순 optional chaining이 상속 속성 또는 값 타입을 인증하지 않음을 확인했다. 분류 PRODUCT/PRESENTATION이다. prototype 오염이 실제 운영에서 발생했다는 주장은 아니다.
+
+같은 오류 표시 생산자/소비자를 별도 qa_docs와 감사해 아래를 구분했다.
+
+| 계약 | 발견·반례·보완 | 이전 이력과 관계 |
+| --- | --- | --- |
+| safeApiError 승인 메시지 | own-key 확인 전 `.includes` 호출로 예외. `Object.hasOwn` 후 exact code/message 쌍만 승인, known code/context fallback 유지 | #3526 실제3FAIL; C004 신규 회귀 |
+| WBS 고정 code 안내 | prototype code에서 객체/함수를 반환. own-key fallback으로 보완, HTTP401/403/409/412 우선순위 유지 | C004 신규 동일 계열; 원본 CI의 추가 직접 실패라고 세지 않음 |
+| Import 경고 사전 | `ImportDiagnosticDto.code`와 수신 validator는 string만 확인. valid preview의 prototype warning이 `t(object/function)`으로 들어가 `message.replace` 예외. 실제 수신parser→renderer Unit에서15건 중12FAIL/3PASS(925ms)을 재현한 뒤 own-key fallback | Phase C 신규 계열. 기존 main은 warning.message를 그대로 표시했으므로 기존 main 결함으로 오인하지 않음 |
+| 국가 캘린더 오류 출처 | C004의 `serverMessage(body, localFallback)` 전체를 opaque로 저장하여 서버 message가 없는 오류의 로컬 한국어 fallback도 EN/VI에서 번역되지 않음. 실제 resolver→presenter RED4건 중2FAIL/2PASS(824ms) | C004 별도 신규 P2. 기존 두Unit만으로 실제 producer 연결을 검증하지 못했음 |
+| Project 생성 오류 사전 | prototype code의 비문자열 렌더 오류. 기존 main에도 있던 own-key 누락을 동일 안전 경계와 기존 브라우저 회귀로 보완 | 별도 발견한 기존 결함이며 C004가 새로 만든 오류와 구분 |
+
+국가 캘린더는 load/login/mutate/import-preview4경로가 공통 resolver를 사용한다. 실제 받은 nonblank 서버 message와 row/field detail은 각 줄의 opaque 출처를 보존하고 앱 fallback만 현재 언어로 번역한다. multiline detail로 줄 수가 변해도 출처 배열을 같은 줄 단위로 확장하며 누락된 provenance는 opaque로 처리한다. 비정상/부재 응답을 임의 `t()` key로 승격하지 않는다. 서버 문자열 `저장`과 국가/연도/field/row 원문, 초안·파일·401/412·요청 수·revision/Origin/CAS를 유지한다. 새 문자열 사전이나 외부 번역 호출은 추가하지 않는다.
+
+### C. Cross-run 매트릭스·선정·실패 보존
+
+| 누적 실패·교정 | 최종 후보에서 재검증할 소비자 |
+| --- | --- |
+| #870 관리자/물류/공정/밀도·원문오류/technicalDelete, #878 nativeheader/shard count | 이전31spec의 A13/B4/C7/D1 및 전체Vitest의 shard/i18n/date/DTO·SQLite/Calendar/Copy/Template·권한 음성 |
+| #879 B001 main base, B002/003/005 DOC_SYNC, B004/006 TS·migration | 현재main/base·base validator의 정규 docs_gate/AC01~09 구조, 원본 Next설정 TypeScript와 전체Vitest |
+| #879 B007/008 행87px/검색20px/번역option·stale draft | cross-screen/i18n-master/logistics/catalogdelete/Project 생성·설정·번역·401/412 기존 전체 |
+| C001 유형 필터 이름, C002 Issue 오류/Project근거, C003 실제 inline 재시작 | C7/E4/F2의 전체 사례·원래 ID/scope/focus/instance/PATCH/revision/SQLite 재시작 단언 |
+| C004/C005 공용 오류/WBS/Import/캘린더·Project 생성 | 직접 Unit 및 실제 renderer, A의 Calendar/create·E의WBS/Resource·D의전송8case, 알려진 code/status·원문/초안·3언어 음성 |
+
+최종 수동 범위는 누적31고유spec(F2/E4/A13/B4/C7/D1)을 유지하며 기존 Calendar/create 파일에 사례를 보강한다. 각 part20분·workers1/retries0/max-failures0, 로컬2part 병행 시 port/SQLite/dist/report를 분리한다. 로컬 병행은 원격8runner 동일 조건 또는 성능 개선 증거가 아니다. #752 Actions 진단workflow의24spec/4parts/권한 정책은 변경/실행하지 않는다. production HTTP/HTTPS transport/Docker 전체는 기존 원격 gate, 실제AT/native125%·WindowsExcel·운영backup/restore는 별도 NOT TESTED다.
+
+Project 생성의 첫 RED 시도는 fixture 비밀번호13자가 기존 최대12자를 넘어 API까지 도달하지 못했다. 잠정 영어 기대도 실제 catalog와 달랐다. `create-red.log`를 보존하며 정확 제품 결함 재현으로 사용하지 않는다. 9자 fixture/정확 문구로 수정한 별도 `create-red-actual.log`에서 실제 prototype 응답 경로를 다시 검증한다. 중간 진단·과거 Head 성공·통제 반복은 최종 고유 사례 수에 가산하지 않는다.
+
+### D. 최종 동결 검증·문서·검토·게시
+
+최종 동결 source `1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046`/1322입력의 시작/종료 file map이 같다. 제품6파일·테스트7파일을 보완했으며 중간동결3f866... 이후 차이는 WBS E2E 한 파일뿐이다. 마지막source에서 전체quality와31spec를다시검증했으므로 중간·단독·병행 관측을 최종 고유 합계에 중복 가산하지 않는다.
+
+공식 `tests/config/playwright.config.ts`의 순차6parts(E4/B4/C7/D1/A13/F2), 각20분·workers1/retries0/max-failures0로 **31고유파일/194계획=192PASS/기존2SKIP/FAIL0**이다. E21/B20/C59/D8/A68/F16 PASS이며 기존SKIP2는 logistics-table-density:41/master-controls-density:30 before캡처다. 실제 inline SQLite 새프로세스 재시작·PATCH/revision/Grid/bar/Editor 마지막 단언을 포함한다. 과거 #870/#878/#879 실패 전체와 새 오류/간접/음성 소비자를 같은 최종 입력으로 검증했다. skip/허용오차/timeout·Required3/Chromium8·CI정책을 바꾸지 않았다.
+
+최종 전체Vitest **3714PASS/기존3SKIP**, 300filesPASS/기존1fileSKIP(301), 명령43.01초/내부Vitest42.38초다. production build/standalone/runtime-tools50.52초, 원본Next설정의TypeScript35.68초, 변경13파일동일ESLint3.79초·테스트탐색301Unit/884browser·버전0.142.0·CIcache·Markdown연결검사도PASS다. Docker/production HTTP·HTTPS transport는로컬중복하지않고새원격gate와별도환경검증을구별한다. [정제최종명령·source·부분실패·실행결과](evidence/issue-866/ci3526-local-validation.json)를따른다. 로컬명령/Playwright보고서의시간측정범위를분리하며성능개선·10successful-run baseline·Actions runner비용절감을주장하지않는다.
+
+자동 Pre-PR는 **UNKNOWN94/missing0/BLOCKED/sourceStable=true**다. `.prepr-reports/ci3526/prepr-final/report.json`과SUMMARY를보존하고 수동producer/consumer선정·실제회귀와자동매핑공백을구분한다. base364aa...의실제validator docs_gate는정규DOCUMENTATION_SYNC/AC01~09 구조PASS이며의미QA/승인PASS가아니다. GSC1.0.0-candidate/문서기준commit8f1335cf·적용규칙/SC범위·제외근거/예외N/A를Work Packet에기록했다.
+
+원장·TEST_PLAN·REMOTE_VALIDATION·SECURITY·I18N_PHASE_C의시작Head원문prefix를전부보존했다. TEST_PLAN의시작1,174,591bytes/SHA256 `f7494bf01702c68dac359d1ed01651e44e275db3f0bf07c71cd52d2f4747745d` 뒤에만추가했다. 최종생성물복구는현재worktree에서만tracked100개원복/untracked28개ignored보존,비표준Nextdist2개도ignored이동했고next-env/tsconfig실제bytes와최종source지문을재대조했다. 기본worktree의사용자deploy/compose/output변경은건드리지않았다. 잔여로컬초기로딩실패의인과는미확정이고최종순차회귀에서는비재현이다. 최초실패·중단·미실행·무효fixture진단과원본원격FAIL을삭제하지않는다.
+
+현재 GitHub미해결review thread0(기존1건resolved/outdated), mergeable=true/main변경없음을확인했다. 별도 qa_docs `/root/ci3526_review`의최종읽기전용PRE_QA기술검토는소스1322입력·13개소유파일해시·전체회귀로그/수치·문서원문보존을대조하여PASS/이번delta새직접P1·P2=0을확인했다. 인간QA/QA_FINAL/Owner승인과분리한다. 새Head quality/e2e/docker·Trusted·Owner/Manager NOT TESTED/MERGE_READY BLOCKED다. 새 Full CI는한번게시후시작만확인한다.
+
+이번 delta의 source/test와 정규 문서 영향은 Work Packet C005에 연결한다. TEST_PLAN·원장·REMOTE_VALIDATION·SECURITY·I18N_PHASE_C는 원본 bytes를 보존하고 뒤에 추가하며 PLAN/Work Packet의 현재 단계를 C005로 기록한다. 기존 C004 영문/당시 미검증 및 C002의 DEFERRED 기록은 역사로 남긴다. 새보완과 실제 회귀가 확인되기 전 전역 P1/P2=0이나 완료를 주장하지 않는다.
+
+HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false, 새 Head Required3/Trusted·독립 인간 QA·Owner/Manager NOT TESTED/MERGE_READY BLOCKED/#866 OPEN을 유지한다. 별도 Agent 기술검토는 인간 독립 QA 또는 Owner 승인과 다르다. committed clean local tree/API 전체tree·정확 부모·최신main·expected Head를 대조한 한 번의 비강제 Ref 게시 뒤 Full Run/Attempt·Head/base/testmerge의 시작만 확인하고 PR/Issue STATUS에 기록한다. 이후 CI모니터링·병합·Main/GHCR/Release/Finalizer·Issue종료는 수행하지 않는다.
+
+C005 로컬 실행 예외: 최초 병행용 임시 `defineConfig(base, overrides)`가 기존 webServer와 override를 함께 유지하여 첫 E묶음이3121 외 기본3100서버도 기동했다. 나머지 B/C/D/A/F는1~3초의 EADDRINUSE3100으로 브라우저 본문 전 NOT RUN(제품 직접 FAIL 아님)이다. 원본 config/log/report/complete JSON은 ignored `initial-parallel-setup/`에 보존했다. E는 의도한 baseURL3121에서 그대로 실행하고, 나머지는 임시config를 단일 인자의 `defineConfig({...base,...overrides})`로 바꿔 정확히 한 개의 분리서버를 사용한다. 실행중 E의 config/소스는 바꾸지 않았으며 새 묶음과 합쳐 동시에 최대2part로 제한한다. 제품·test 소스지문은교정전후동일하다. 첫실행exit1과본문미실행을최종PASS로덮어쓰지않는다. 해당 예외는 정책·제품·CI workflow 변경이 아니다.
+
+C005 추가 교차 진단: 병행 E의 실제 결과는1PASS/2FAIL/1CANCELLED/17NOT_RUN, B는1PASS/1CANCELLED/18NOT_RUN이다. Playwright JSON의skipped에는중단·미실행도포함되므로기존의의도적SKIP와구분했다. E의 `issue-730-view-composer.spec.ts:221`은 Project 준비 API25개가전부2xx/문서200 뒤 canonical/assigned-targets 재조회가약14.2초pending이고health1503ms도timeout이었다. pageerror/4xx/5xx/재시작근거는없으나자원·컴파일·deadlock의인과는trace만으로확정할수없다. 자기소유coordinator를먼저정지하여다음묶음을막고Playwright에SIGINT를보내trace/report를보존한뒤소유PGID잔존0을확인했다. 타서버/운영DB/소스는건드리지않았다. [로컬정제실행증거](evidence/issue-866/ci3526-local-validation.json)에부분관측과미실행을따로기록한다.
+
+동일 제품·testsource를 수정하지 않고 동일한 E의 임시config와workers1/retries0/max-failures0에서두실패case만단독실행했다. `:221`은31.6초PASS(초기로딩실패비재현), `:299`는원래409원문기대에서동일FAIL, 총1PASS/1FAIL·1.7분이다. 초기로딩의원인확정또는무조건flaky판정은하지않는다. `:299`의actual은 `데이터가 변경되었습니다. 새로고침한 뒤 상세를 다시 열어 주세요. 다시 시도`로C004의고정409안내와일치한다. 같은case후속503/QUERY_UNAVAILABLE도caller가명시한 `조회하지 못했습니다.` fallback 대신서버원문을기대하는잠재TEST_CONTRACT불일치다. 두raw양성기대만현재안전표시계약에교정하고,같은열린오류에서정확EN/VI/KO·원문부재·추가조회0·초안/상태와원래stale잠금/재시도/Task·Assignment원본·응답역전·focus·provenance보호단언을보강한다. 다른146spec literal연결검색과11개WBS관련파일/10개fixture↔matcher대조에서같은raw양성은이두곳이며,정적검색의범위를전역완전감사로확대하지않는다.
+
+이 E2E추가교정으로최초source지문/전체Unit·build성공은역사적중간검증으로보존한다. 새로운최종source를다시동결하고전체Unit/build/type·해당lint/탐색및31spec를기존공식config로각묶음순차실행한다. 병행환경의오류를시간/단언/retry확대나제품변경으로덮지않는다.

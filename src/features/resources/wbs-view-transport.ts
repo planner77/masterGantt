@@ -49,7 +49,7 @@ export function wbsViewErrorMessage(cause: unknown, fallback = "조회 요청에
   if (cause.status === 403) return "이 작업을 수행할 권한이 없습니다.";
   if (cause.status === 409) return "데이터가 변경되었습니다. 새로고침한 뒤 상세를 다시 열어 주세요.";
   if (cause.status === 412) return "다른 변경사항이 있습니다. 최신 정보를 확인해 주세요.";
-  return publicWbsErrors[cause.code] ?? fallback;
+  return Object.hasOwn(publicWbsErrors, cause.code) ? publicWbsErrors[cause.code]! : fallback;
 }
 export class WbsViewTransportError extends Error {
   constructor(readonly code:string,message:string,readonly status:number=0) { super(message); this.name="WbsViewTransportError"; }
