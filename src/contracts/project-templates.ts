@@ -1,3 +1,4 @@
+import type { DisplayNameTranslations } from "./display-name-translations";
 import type { ControlRole, EquipmentRole, EquipmentType, LogisticsSystemType, ManagementUnit, SystemLayer, SystemRole, SystemScope } from "./logistics";
 import type { DependencyType, ProjectDto, ProjectLinkDto, ProjectTaskDto } from "./projects";
 import type { ProjectAssignmentDto } from "./resources";
@@ -69,6 +70,7 @@ export interface TemplateAssignmentSnapshotItem {
 }
 
 export interface TemplateProcessSnapshotItem {
+  translations?: DisplayNameTranslations;
   code: string;
   name: string;
   parentCode: string | null;
@@ -77,6 +79,7 @@ export interface TemplateProcessSnapshotItem {
 }
 
 export interface TemplateEquipmentSnapshotItem {
+  translations?: DisplayNameTranslations;
   code: string;
   name: string;
   equipmentType: EquipmentType;
@@ -92,6 +95,7 @@ export interface TemplateEquipmentSnapshotItem {
 }
 
 export interface TemplateSystemSnapshotItem {
+  translations?: DisplayNameTranslations;
   code: string;
   name: string;
   systemType: LogisticsSystemType;
@@ -143,6 +147,7 @@ export interface TemplateMembershipSnapshotItem {
 
 /** Project-owned WorkAreas use source UUIDs as snapshot-local keys, then receive new IDs. */
 export interface TemplateProjectWorkAreaSnapshotItem {
+  translations?: DisplayNameTranslations;
   workAreaId: string;
   processCode: string;
   code: string;
@@ -190,7 +195,7 @@ export interface ProjectTemplateSnapshot {
     taskEquipmentLinks: TemplateTaskEquipmentLinkSnapshotItem[];
     taskSystemLinks: TemplateTaskSystemLinkSnapshotItem[];
     /** Omitted for historical (pre-F2) snapshots. F2 snapshots must use version 2. */
-    schemaVersion?: 2 | 3 | 4 | 5;
+    schemaVersion?: 2 | 3 | 4 | 5 | 6;
     /** Version 5 preserves all project-owned areas, including unused areas. */
     projectWorkAreas?: TemplateProjectWorkAreaSnapshotItem[];
     /** Version 4 preserves explicit Equipment locations and Task contexts, including empty selections. */

@@ -1,9 +1,11 @@
+import type { DisplayNameTranslations } from "../../contracts/display-name-translations";
+import { displayNameTranslationPublicIdMap } from "./display-name-translations-repository-core";
 import { PublicApiError } from "../http/api-error-core";
 import type Database from "better-sqlite3";
 import type { DeveloperGrade, ResourceWorkloadRole } from "../../contracts/resources";
 
 export interface DashboardResourceRecord { publicId: string; name: string; code: string | null; active: boolean; developerGrade: DeveloperGrade | null; roles: ResourceWorkloadRole[] }
-export interface DashboardGroupRecord { publicId: string; name: string; code: string | null; active: boolean; memberResourceIds: string[] }
+export interface DashboardGroupRecord { translations?: DisplayNameTranslations; publicId: string; name: string; code: string | null; active: boolean; memberResourceIds: string[] }
 
 /** Bulk, Project-connected public catalog projection. Never reads unassigned Group members. */
 export class ResourceDashboardRepository {
@@ -32,10 +34,11 @@ export class ResourceDashboardRepository {
     const roles = this.database.prepare(`SELECT r.public_id AS resourceId,rr.role FROM resource_roles rr JOIN resources r ON r.id=rr.resource_id WHERE r.id IN (${connected}) ORDER BY r.public_id,rr.role`).all(...parameters) as { resourceId: string; role: ResourceWorkloadRole }[];
     const members = this.database.prepare(`SELECT g.public_id AS groupId,r.public_id AS resourceId FROM resource_group_members gm JOIN resources r ON r.id=gm.resource_id JOIN resource_groups g ON g.id=gm.group_id WHERE r.id IN (${connected}) ORDER BY g.public_id,r.public_id`).all(...parameters) as { groupId: string; resourceId: string }[];
     const groups = this.database.prepare(`SELECT public_id AS publicId,name,code,active FROM resource_groups WHERE id IN (SELECT DISTINCT group_id FROM resource_group_members WHERE resource_id IN (${connected})) OR id IN (SELECT group_id FROM task_assignments WHERE project_id=? AND group_id IS NOT NULL) ORDER BY public_id`).all(...parameters, projectId) as { publicId: string; name: string; code: string | null; active: number }[];
+    const groupTranslations = displayNameTranslationPublicIdMap(this.database,"resource_groups",groups.map(row=>row.publicId));
     const roleMap = new Map<string, ResourceWorkloadRole[]>(), memberMap = new Map<string, string[]>();
     for (const row of roles) { const values = roleMap.get(row.resourceId) ?? []; values.push(row.role); roleMap.set(row.resourceId, values); }
     for (const row of members) { const values = memberMap.get(row.groupId) ?? []; values.push(row.resourceId); memberMap.set(row.groupId, values); }
     return { resources: resources.map((row) => ({ ...row, active: row.active === 1, roles: roleMap.get(row.publicId) ?? [] })),
-      groups: groups.map((row) => ({ ...row, active: row.active === 1, memberResourceIds: memberMap.get(row.publicId) ?? [] })) };
+      groups: groups.map((row) => ({ ...row, ...groupTranslations.get(row.publicId), active: row.active === 1, memberResourceIds: memberMap.get(row.publicId) ?? [] })) };
   }
 }

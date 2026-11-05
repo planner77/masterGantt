@@ -1,3 +1,5 @@
+import { PublicApiError } from "../http/api-error-core";
+import { parseDisplayNameTranslations, writeDisplayNameTranslations } from "../repositories/display-name-translations-repository-core";
 import { ProjectResourceMembershipRepository, MEMBERSHIP_LIMITS } from "../repositories/project-resource-membership-repository-core";
 import { projectStageGates } from "../../domain/milestones/stage-gates";
 import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
@@ -283,6 +285,7 @@ export class ProjectTemplateService {
       const processSnapshots: TemplateProcessSnapshotItem[] = logisticsDto.processes.map((p) => ({
         code: p.code,
         name: p.name,
+        ...(p.translations ? { translations: p.translations } : {}),
         parentCode: p.parentProcessId ? (processCodeById.get(p.parentProcessId) ?? null) : null,
         sortOrder: p.sortOrder,
         active: p.active,
@@ -291,6 +294,7 @@ export class ProjectTemplateService {
       const systemSnapshots: TemplateSystemSnapshotItem[] = logisticsDto.systems.map((s) => ({
         code: s.code,
         name: s.name,
+        ...(s.translations ? { translations: s.translations } : {}),
         systemType: s.systemType,
         layer: s.layer,
         scope: s.scope,
@@ -309,6 +313,7 @@ export class ProjectTemplateService {
       const equipmentSnapshots: TemplateEquipmentSnapshotItem[] = logisticsDto.equipment.map((e) => ({
         code: e.code,
         name: e.name,
+        ...(e.translations ? { translations: e.translations } : {}),
         equipmentType: e.equipmentType,
         managementUnit: e.managementUnit,
         quantity: e.quantity,
@@ -817,6 +822,8 @@ export class ProjectTemplateService {
               active: p.active ? 1 : 0,
               now: nowText,
             });
+            if (p.translations !== undefined && logisticsSnapshot.schemaVersion !== 6) throw new PublicApiError(409,"TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED","표시명 번역은 Template version 6에서만 지원합니다.");
+            writeDisplayNameTranslations(this.database,"project_processes",newProc.id,parseDisplayNameTranslations(p.translations,()=>{throw new PublicApiError(409,"TEMPLATE_LOGISTICS_REFERENCE_INVALID","표시명 번역을 복원할 수 없습니다.");}));
             processByCode.set(p.code, { id: newProc.id, publicId: newProc.publicId });
             pendingProcs.splice(i, 1);
             insertedProc += 1;
@@ -840,7 +847,9 @@ export class ProjectTemplateService {
             active: s.active ? 1 : 0,
             now: nowText,
           });
-          systemByCode.set(s.code, { id: newSys.id, publicId: newSys.publicId });
+          if (s.translations !== undefined && logisticsSnapshot.schemaVersion !== 6) throw new PublicApiError(409,"TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED","표시명 번역은 Template version 6에서만 지원합니다.");
+            writeDisplayNameTranslations(this.database,"project_logistics_systems",newSys.id,parseDisplayNameTranslations(s.translations,()=>{throw new PublicApiError(409,"TEMPLATE_LOGISTICS_REFERENCE_INVALID","표시명 번역을 복원할 수 없습니다.");}));
+            systemByCode.set(s.code, { id: newSys.id, publicId: newSys.publicId });
 
           // 담당 공정
           const procIds = s.processCodes
@@ -900,7 +909,9 @@ export class ProjectTemplateService {
             active: e.active ? 1 : 0,
             now: nowText,
           });
-          equipmentByCode.set(e.code, { id: newEq.id, publicId: newEq.publicId });
+          if (e.translations !== undefined && logisticsSnapshot.schemaVersion !== 6) throw new PublicApiError(409,"TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED","표시명 번역은 Template version 6에서만 지원합니다.");
+            writeDisplayNameTranslations(this.database,"project_equipment",newEq.id,parseDisplayNameTranslations(e.translations,()=>{throw new PublicApiError(409,"TEMPLATE_LOGISTICS_REFERENCE_INVALID","표시명 번역을 복원할 수 없습니다.");}));
+            equipmentByCode.set(e.code, { id: newEq.id, publicId: newEq.publicId });
 
           // 제어 시스템
           const controlSystems = e.controlSystems.map((cs) => {
