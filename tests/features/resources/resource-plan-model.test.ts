@@ -6,6 +6,8 @@ import {
 } from "../../fixtures/resource-plan-ui";
 import {
   flattenPlanRows,
+  resourcePlanLabel,
+  renderResourcePlanLabel,
   planDetailQuery,
   planMetric,
   planTargetLabel,
@@ -26,6 +28,25 @@ const state = {
   ],
 } as StatefulProjectFixture;
 describe("Resource Plan UI scope and snapshot contract", () => {
+  it("re-renders saved Plan labels with managed owners while preserving personal names and selection", () => {
+    const {data}=planUiFixture(state,new URLSearchParams("mode=group&granularity=week"));
+    const group=data.plan!.groups.find(row=>row.resourceIds.length>0)!;
+    group.translations={en:"Managed group",vi:"Nhóm quản lý"};
+    const expanded=new Set([`group:${group.groupId ?? "ungrouped"}`]);
+    const rows=flattenPlanRows(data.plan!,"group",expanded,"ko");
+    const row=rows.find(row=>row.selector.kind==="resource"&&row.contextOwners?.length)!;
+    const presentation=resourcePlanLabel(row,"all",true);
+    presentation.trail.push({date:"2026-10-12",name:"{count} 사용자 리소스"});
+    const before=JSON.stringify({presentation,selector:row.selector,filters:data.filters,snapshot:data.snapshotId});
+    const ko=renderResourcePlanLabel(presentation,"ko"),en=renderResourcePlanLabel(presentation,"en"),vi=renderResourcePlanLabel(presentation,"vi");
+    expect(en).toContain("Managed group");
+    expect(vi).toContain("Nhóm quản lý");
+    for(const label of [ko,en,vi]){expect(label).toContain(row.name);expect(label).toContain("{count} 사용자 리소스");}
+    expect(renderResourcePlanLabel({owners:[{name:"주요 메뉴",translations:{en:" "}}],periodId:"all",projectReference:false,trail:[]},"en")).toContain("주요 메뉴");
+    expect(en).not.toContain("개인/Project 전체 참고");
+    expect(vi).not.toContain("현재 기간");
+    expect(JSON.stringify({presentation,selector:row.selector,filters:data.filters,snapshot:data.snapshotId})).toBe(before);
+  });
   it("accepts opt-in plan with 0load capacity R independent of Milestone and keeps 54 clipped weeks", () => {
     const query = new URLSearchParams(
         `mode=group&granularity=week&milestoneIds=${planId(4, 0)}`,

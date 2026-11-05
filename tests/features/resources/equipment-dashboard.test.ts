@@ -31,6 +31,23 @@ describe("#734 equipment consumer", () => {
     } finally { f.database.close(); }
   });
 
+  it("changes managed type labels without changing selectors, totals or source data", () => {
+    const f = wbsDashboardViewsFixture("direct");
+    try {
+      const data = f.service.queryWbsView(f.project.publicId, {spec:EQUIPMENT_DEFAULT_SPEC,filters}) as WbsViewReportDto;
+      data.configurationCatalog.equipment.forEach(item => { item.equipmentTypeTranslations = { en:"Managed equipment", vi:"Thiết bị quản lý" }; });
+      const before = JSON.stringify(data);
+      for (const locale of ["en","vi"] as const) {
+        const view = equipmentPresentation(data,locale);
+        expect(view.types.map(item=>item.code)).toEqual(equipmentPresentation(data).types.map(item=>item.code));
+        expect(view.types.every(item=>item.label.startsWith(locale==="en"?"Managed equipment":"Thiết bị quản lý"))).toBe(true);
+        expect(view.tasks).toBe(data.totals.tasks);
+        expect(view.assignments).toBe(data.totals.assignments);
+      }
+      expect(JSON.stringify(data)).toBe(before);
+    } finally { f.database.close(); }
+  });
+
   it("keeps the equipment's exact Task intersection through a shared Milestone", () => {
     const f = wbsDashboardViewsFixture("direct");
     try {

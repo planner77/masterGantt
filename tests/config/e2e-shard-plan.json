@@ -212,6 +212,7 @@
       "projectedMs": 1265700,
       "files": [
         "tests/e2e/admin-legacy-button-spacing.spec.ts",
+        "tests/e2e/i18n.spec.ts",
         "tests/e2e/issue-621-resource-target.spec.ts",
         "tests/e2e/milestone-dashboard-state.spec.ts",
         "tests/e2e/milestone-stage-grid-mock.spec.ts",

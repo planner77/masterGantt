@@ -22,6 +22,16 @@ describe("Gregorian months in ISO week calendar intervals", () => {
   it.each(["project-gantt-week-calendar-20260230", "project-gantt-week-calendar-21990229", "unrelated"])('invalid Gregorian class %s fails closed', value => {
     expect(weekCalendarIntervalFromClass(value)).toBeNull();
   });
+  it.each(["ko", "en", "vi"] as const)("%s presentation preserves calendar dates, counts, and canonical holiday names", locale => {
+    const calendar: ProjectCalendarDto = { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [], exceptions: [{ date: "2026-03-10", dayType: "NON_WORKING", name: "원본 휴일 holiday" }] };
+    const source = weekTimelineTooltip("2026-03-11", calendar);
+    const localized = weekTimelineTooltip("2026-03-11", calendar, locale);
+    expect(localized).toMatchObject({ start: source.start, end: source.end, workingDays: source.workingDays, holidays: source.holidays });
+    expect(localized.ariaLabel).toContain("원본 휴일 holiday");
+    expect(localized.ariaLabel).toContain("ISO 2026-W11");
+    expect(weekCalendarIntervalFromClass(weekCalendarScaleClass(new Date(2026, 2, 11)), locale)).toEqual(weekCalendarInterval(new Date(2026, 2, 11), locale));
+    if (locale !== "ko") expect(localized.ariaLabel).not.toBe(source.ariaLabel);
+  });
   it("upper-bound presentation retains full metadata and reports working days as uncalculated", () => {
     const calendar: ProjectCalendarDto = { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [], exceptions: [] };
     expect(() => buildGanttWeekHeaderTooltipDataForDateOnly("2199-12-30", calendar)).toThrow();

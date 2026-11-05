@@ -142,3 +142,9 @@ SC-05는 `gantt-state-product-integration.spec.ts`에서 actual SQLite commit �
 #507은 SC-14 readiness와 별개로 native vertical wheel·observer/React/frame·Grid/Chart geometry를 진단한다. 가상화 row recycling 자체를 결함으로 분류하지 않고 root/API identity·데이터 불변과 실제 렌더 비용을 분리한다. 자동 계측의 매-frame layout read는 관측 비용을 발생시키므로 경량 성능 구간과 geometry 구간을 구별한다. 수동 wheel/trackpad 체감·새 Head 원격 Required3/Trusted QA·Owner 위험 수용·Manager ACCEPT는 별도 NOT TESTED다.
 
 위 PASS는 [실행 원본별26case·시간·source·환경](evidence/issue-507/cross-feature.json)에 한정한다. common application fingerprint는 `a08e9483a5610b88ae2fc269e722df76599c802eaebac3ab2453fafc1268dbe7`이며 [파일별 지문](evidence/issue-507/application-source.json)으로 게시 tree와 대조했다. 서로 다른 fixture를 같은 canonical snapshot이라고 주장하지 않는다. 기존 과거 NOT TESTED를 소급 PASS하지 않으며 원격 Required3/Trusted/Owner·Manager 통합 최종 수용은 NOT TESTED다.
+
+## Issue #866 Phase C — Locale 전환 추가 소비자
+
+SC-01/07/10/11/12의 locale 소비자를 `tests/e2e/i18n.spec.ts`에서 추가한다. initial mount 이후 최신 canonical Task 추가·삭제를 정상 GET으로 전달한 다음 열·split resize, Summary 접힘, 선택, native X/Y와 Day/Week를 설정하고 ko/en/vi 전환 후 같은 실제 상태·native instance·최신 행/삭제 행 부재·Milestone 분리·mutation0을 검증한다. 별도 교차 탭 사례는 열린 Task 초안도 보존한다. adapter Unit는 분리 row/Date와 최신 renderer 입력을 검증한다. 기존 conformance manifest/원래 SC 사례·엄격한 허용오차는 대체하지 않는다. 정확 source와 실제 실행 상태는 #866 누적 원장에 남기며 파일 존재를 PASS로 취급하지 않는다.
+
+Phase C native locale 사례의 인접 음성은 검색0행의 최초 원점 적용 뒤 실제 사용자 wheel 이동→locale 전환이다. 같은 query/0행/현재 revision receipt와 사용자 위치·mutation0을 확인하여 locale-only 재검사가 이전 query 원점을 재발행하지 않도록 한다.

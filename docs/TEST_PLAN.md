@@ -5769,3 +5769,13 @@ REWORK4 같은후보의기본goto(load) bounded33개는 **33PASS/0FAIL**,5.3분�
 - 누적 샤드 수/영어 Grid 헤더/마이그레이션/타입·검색 실패의 테스트 합집합에 생성·설정·관리자 인증·공정/물류·Milestone의 직접·인접·음성 경로를 추가하여 bounded 진단한다. 같은 후보 source의 명령·지문·실행 결과와 제외 사유는 [원장](ISSUE_866_FAILURE_ANALYSIS.md) 및 [Work Packet](exec-plans/active/ISSUE_866.md)에 기록한다. 로컬 PASS는 새 exact-Head GitHub Required3·Trusted QA·Owner 승인을 대체하지 않는다.
 
 누적 목록 재조회에서 빠져 있던 #870 Full #3475.1을 추가해 `master-controls-density`와 `project-multi-task-copy-paste`를 포함한 최종17spec/88계획으로 확대한다. #455는 기존 원본 입력8px/40px과 신규 번역3개6px8px/44px을 각각 정확히 검사하고 새 Tab 정지점을 확인한다. #454의412 뒤 고정revision·명시 취소/재편집 정책 및 Resource Group 편집기 소유 alert를 기존 테스트에서 강화한다. 중간15spec의61PASS/3FAIL/1기존SKIP는 최종 source의 성공으로 합산하지 않는다.
+
+## Issue #866 Phase C — 화면 국제화 통합 회귀 (2026-11-05)
+
+기존 테스트 정책·누적 원문을 보존하고 Phase C 소비자를 추가한다. `tests/e2e/i18n.spec.ts`는 브라우저 선호/저장·invalid/denied storage, 현재 언어 Server heading/help·focus/Escape/390px overflow, cross-tab Task draft와 실제 Gantt locale init의 최신 행/열·split/필터/selection/open/DayWeek/scroll·write0을 검증한다. 기존 adapter/week/notification/resource/master Unit와 원래 UI·권한·SQLite/HTTP 회귀를 확장한다. 원문 사용자 값과 technical Delete key, 입력 날짜/ID/enum, 기존 density·허용오차·retry/skip/timeout을 보존한다.
+
+신규 spec만 Shard8에 추가해146개를1회씩 배치하고 count와 exact mapping을 기존 planner 테스트에서 검증한다. 과거145개 배치/실측metadata는 불변, 새 duration은 REMOTE_UNMEASURED다. ADD/EXTEND/KEEP_UNIQUE, 과거 실패 전체→수정 producer→직접/인접/음성 consumer 매핑과 동결 source·실제 명령/결과는 [#866 Work Packet](exec-plans/active/ISSUE_866.md), [누적 원장](ISSUE_866_FAILURE_ANALYSIS.md)에 남긴다. 로컬 PASS가 새 exact Head Required3/Trusted/Owner PASS가 아니며 운영 backup/restore·Windows Excel·최종 수동 UX·AT/native125%는 별도 NOT TESTED다.
+
+## Issue #866 Phase C — 최종 로컬 소비자 검증 인계
+
+25개spec158계획 중고유156PASS/기존2SKIP, 전체Unit3658PASS/기존3SKIP·build/type/lint·문서정합 구조검사를 확보했다. 마지막변경은한E2Espec의500 oracle/응답완료순서뿐이며그파일8사례전체를재실행하고, 다른1316개제품·Unit·공용입력/24spec의byte동일성을증명했다. 전역지문변경과과거C73PASS/1FAIL·중간7PASS/1FAIL은숨기거나합산하지않는다. 상세명령/지문·선정과미검증은 [Work Packet](exec-plans/active/ISSUE_866.md)과 [정제 증거](evidence/issue-866/phasec-local-validation-20261105.json)에있다. 자동Pre-PR는UNKNOWN94/missing0으로BLOCKED, 수동실행과구별한다. 새exactHead quality/e2e/docker·Trusted/인간QA·Owner/Manager ACCEPT는NOT TESTED이며CI시작후모니터링하지않는다.

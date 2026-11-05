@@ -1,5 +1,8 @@
 "use client";
 
+import { useI18n } from "../../lib/i18n/provider";
+
+
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { parseCurrentEditPermission } from "@/features/projects/edit-permission";
@@ -29,6 +32,7 @@ export function ProjectPermissionRecheckBoundary({
   publicId,
   children,
 }: ProjectPermissionRecheckBoundaryProps) {
+  const { t } = useI18n();
   const [rechecking, setRechecking] = useState(false);
   const requestGeneration = useRef(0);
   const lastLocation = useRef<{ pathAndSearch: string; hash: string } | null>(null);
@@ -92,7 +96,7 @@ export function ProjectPermissionRecheckBoundary({
     inert={rechecking || undefined}
     style={{ display: "contents" }}
   >
-    {rechecking ? <span className="sr-only" role="status">편집 권한을 다시 확인하는 중입니다.</span> : null}
+    {rechecking ? <span className="sr-only" role="status">{t("편집 권한을 다시 확인하는 중입니다.")}</span> : null}
     {children}
   </div>;
 }

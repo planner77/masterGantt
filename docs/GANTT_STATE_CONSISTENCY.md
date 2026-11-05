@@ -124,3 +124,11 @@ API 반환/Promise resolve, React commit, Core 적용, DOM 표시, viewport/focu
 ## 6. 변경 원장
 
 - 2026-10-13 / #661: GSC-01~12 후보 규범 작성. 기존 #570/#571 구성요소를 폐기하지 않고 actual-Core no-op, indirect viewport write, semantic observation 경계를 보강하는 계획. 제품 구현·검증·main 적용은 별도 gate.
+
+## Issue #866 Phase C — Locale presentation 전환의 적용 경계 (2026-11-05)
+
+GSC-01/04~10을 locale 전환에도 그대로 적용한다. 설치 SVAR React Gantt2.7.3의 source-map Gantt.jsx에서 locale/lCalendar/scales → normalizedConfig → storeConfig → `dataStore.init(storeConfig)` effect를 확인했다. API/DOM 인스턴스가 같아도 init은 오래된 renderer 입력·selection/open/geometry를 재적용할 수 있으므로 같은 인스턴스만으로 정합을 주장하지 않는다.
+
+`project-gantt.tsx`의 layout capture는 최신 canonical DTO에서 분리한 renderer row/Date를 `refreshNativeLocaleInputs`의 안정 배열에 갱신하고, public 현재 column의 width/hidden/flexgrow를 안정 custom column 객체에 보존한다. 설치 prepareColumns가 그 참조를 유지하는 것을 확인했으나, 실제 native init은 hidden=false→undefined와 flex column width 정규화를 추가로 수행한다. 따라서 두 초기 public layout write(set-columns/resize-grid)에만 API·projection·capture 및 epoch/gesture/intent·columns 이외 context 성분의 완전 일치를 확인하는 제한적 admission을 사용한다. 두 write 후에는 기존 원본 strict lease로 즉시 복귀한다. 전역 validSource 규칙은 변경하지 않는다. filter는 기존 Milestone 분리 `membershipIds` 규칙을 유지한다. native passive init 이후 기존 public API queue에서 columns/grid/filter/open/selection을 복원하고 Coordinator의 PASSIVE_RESTORE에 viewport를 요청한다. API·projection·locale·사용자 gesture·원래 source lease를 단계마다 확인한다. locale를 semantic column-preference fingerprint에 섞거나 전역 lease를 느슨하게 바꾸지 않는다. viewport 복구가 새 사용자 의도로 취소되더라도 기존 membership filter effect는 locale에서도 현재 canonical 정합을 재검사하고, 이미 정합하면 no-op한다. 현재 semantic source의 observation을 확보하며 오래된 viewport replay는 하지 않는다.
+
+이 경로는 direct X/Y writer/private store/서버 mutation을 추가하지 않는다. canonical/user text를 번역하거나 DTO를 native Date 객체와 공유하지 않는다. 최신 사용자 의도 또는 실제 canonical/geometry 변경이 있으면 이전 복구를 취소하는 기존 규칙을 유지한다. 정적 Agent 사전검토와 실제 native 브라우저 검증은 별도이며 [Phase C Work Packet](exec-plans/active/ISSUE_866.md) 및 원장의 결과를 따른다. 새 원격 전체 gate·독립 인간 QA·Owner 판정은 NOT TESTED다.

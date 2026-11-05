@@ -1,3 +1,4 @@
+import { translate, type MessageParameters } from "../../../src/lib/i18n";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
@@ -5,7 +6,7 @@ import type { ProjectMasterItemDto } from "../../../src/contracts/project-master
 import { linkedProjectMasterChoices, ProjectMasterSelectFields } from "../../../src/features/projects/project-master-select-fields";
 
 const language = vi.hoisted(() => ({ locale: "ko" as "ko" | "en" | "vi" }));
-vi.mock("../../../src/lib/i18n/provider", () => ({ useI18n: () => ({ locale: language.locale }) }));
+vi.mock("../../../src/lib/i18n/provider", () => ({ useI18n: () => ({ locale: language.locale, t: (key: string, parameters?: MessageParameters) => translate(language.locale, key, parameters) }) }));
 
 const product = (id: string, active = true): ProjectMasterItemDto => ({
   id,

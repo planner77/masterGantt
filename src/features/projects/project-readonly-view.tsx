@@ -1,4 +1,11 @@
 "use client";
+
+import { renderResourcePlanLabel, type ResourcePlanLabelPresentation } from "../resources/resource-plan-model";
+
+import { LocalizedText } from "../../components/localized-text";
+import { displayName } from "../../lib/i18n";
+import { useI18n } from "../../lib/i18n/provider";
+
 import { ProjectProcessManagement } from "@/features/logistics/project-process-management";
 import { ProjectIssueWorkspace } from "./project-issue-workspace";
 import type { IssueStatusFilter } from "@/contracts/project-issues";
@@ -104,7 +111,7 @@ import { captureResourceNavigationViewport, cloneResourceNavigationViewport, can
 
 const ProjectGantt = dynamic(
   () => import("@/features/gantt/project-gantt").then((module) => module.ProjectGantt),
-  { ssr: false, loading: () => <div className="gantt-loading" role="status">일정을 불러오는 중입니다.</div> },
+  { ssr: false, loading: () => <div className="gantt-loading" role="status"><LocalizedText text="일정을 불러오는 중입니다." /></div> },
 );
 type LoadState = | { status: "loading" } | { status: "ready"; snapshot: ProjectSnapshotResponse } | { status: "not-found" } | { status: "error" };
 type Permission = "readonly" | "edit";
@@ -137,10 +144,15 @@ type ResourceNavigationState = {
   positions: { element: HTMLElement; left: number; top: number }[];
   viewport?: ResourceNavigationViewport | null;
 };
+type ResourceNavigationLabel = string | { kind: "resourcePlan"; presentation: ResourcePlanLabelPresentation } | {
+  key: string;
+  values: Record<string, string | number>;
+  labels?: Record<string, string>;
+};
 type ResourceNavigationFrame = ResourceDrillFrame<ResourceNavigationState> & {
   scope: ResourceDrillScopeDto;
   wbsRequest?: WbsViewScheduleRequest;
-  label: string;
+  label: ResourceNavigationLabel;
 };
 const INITIAL_COLUMN_VISIBILITY: ProjectGridColumnVisibility = { text: true, externalId: false, projectStart: true, projectDuration: true, baselineStart: false, baselineEnd: false, milestoneStage: false };
 const ALL_SCOPE_STATE_KEY = "all";
@@ -244,17 +256,20 @@ function snapshotFromLinkMutation(value: unknown): ProjectSnapshotResponse | nul
 type ProjectViewProps = Readonly<{
   publicId: string;
   projectUrl?: string | null;
-  ownerName: string;
+  ownerName: string | null;
   issueDefaultStatusFilter: IssueStatusFilter;
 }>;
 export function ProjectReadonlyView({ publicId, projectUrl = null, ownerName, issueDefaultStatusFilter }: ProjectViewProps) {
-  return <WorkspaceNotifications key={publicId} scope={`프로젝트 ${publicId}`}>
+  const { t } = useI18n();
+  return <WorkspaceNotifications key={publicId} scope={t("프로젝트 {value0}", { value0: publicId })}>
     <ProjectWorkspace publicId={publicId} projectUrl={projectUrl} ownerName={ownerName}
       issueDefaultStatusFilter={issueDefaultStatusFilter} />
   </WorkspaceNotifications>;
 }
 
 function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefaultStatusFilter }: ProjectViewProps) {
+  const { t, locale } = useI18n();
+  const renderNavigationLabel = (label: ResourceNavigationLabel): string => typeof label === "string" ? label : "kind" in label ? renderResourcePlanLabel(label.presentation, locale) : t(label.key, { ...label.values, ...Object.fromEntries(Object.entries(label.labels ?? {}).map(([key, value]) => [key, t(value)])) });
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialRootTaskId = searchParams.get("rootTask")?.trim() || null;
@@ -569,7 +584,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
     scope: ResourceDrillScopeDto;
     wbsRequest?: WbsViewScheduleRequest;
     destination: ResourceNavigationState;
-    label: string;
+    label: ResourceNavigationLabel;
     releaseIntent?: () => void;
   } | null>(null);
   useLayoutEffect(() => {
@@ -1012,7 +1027,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
       );
       if (response.ok && mutation) {
         applySnapshot(projectSnapshotFromStatusMutation(mutation));
-        notify("success", `프로젝트 상태를 ${projectStatusLabel(mutation.data.project.status)}(으)로 변경했습니다.`, "프로젝트 상태 변경");
+        notify("success", "프로젝트 상태를 {status}(으)로 변경했습니다.", "프로젝트 상태 변경", undefined, { labels: { status: projectStatusLabel(mutation.data.project.status) } });
         return;
       }
       if (response.status === 401 || response.status === 403) {
@@ -1171,10 +1186,20 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
             (before.start !== task.start || before.end !== task.end || before.duration !== task.duration);
         });
         const currentTask = snapshot.data.tasks.find((task) => task.taskId === taskId);
-        const adjusted = currentTask?.requestedStart && currentTask.requestedStart !== currentTask.start
-          ? ` 요청 시작일 ${currentTask.requestedStart} → 적용 시작일 ${currentTask.start}.` : "";
-        const changed = successors.length ? ` 후행 작업 ${successors.length}건의 일정이 조정되었습니다: ${successors.slice(0, 3).map((task) => `${task.name} (${task.externalId})`).join(", ")}${successors.length > 3 ? ` 외 ${successors.length - 3}건` : ""}.` : "";
-        if (!deferredSuccess) notify("success", `${success}${shifted ? " 비근무일 시작은 다음 근무일로 조정되었습니다." : ""}${adjusted}${changed}`, operation);
+        const segments: import("../../components/workspace-notification-state").NoticeSegment[] = [];
+        if (shifted) segments.push({ key: " 비근무일 시작은 다음 근무일로 조정되었습니다." });
+        if (currentTask?.requestedStart && currentTask.requestedStart !== currentTask.start) segments.push({
+          key: " 요청 시작일 {requested} → 적용 시작일 {applied}.",
+          parameters: { requested: currentTask.requestedStart, applied: String(currentTask.start) },
+        });
+        if (successors.length) {
+          segments.push({ key: " 후행 작업 {count}건의 일정이 조정되었습니다: {tasks}", parameters: {
+            count: successors.length, tasks: successors.slice(0, 3).map(task => `${task.name} (${task.externalId})`).join(", "),
+          } });
+          if (successors.length > 3) segments.push({ key: " 외 {count}건", parameters: { count: successors.length - 3 } });
+          segments.push({ key: "." });
+        }
+        if (!deferredSuccess) notify("success", success, operation, undefined, { segments });
         onCanonicalSuccess?.(body as TaskMutationResponse, snapshot);
         return { status: "saved", ...(currentTask ? { confirmed: {
           taskId: currentTask.taskId, revision: snapshot.data.project.revision, name: currentTask.name,
@@ -2247,7 +2272,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
     destination: ResourceNavigationState,
     source: ResourceNavigationState,
     scope: ResourceDrillScopeDto,
-    label: string,
+    label: ResourceNavigationLabel,
     wbsRequest?: WbsViewScheduleRequest,
   ) {
     if (wbsRequest?.intentSignal?.aborted) return;
@@ -2337,7 +2362,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
       scope: ResourceDrillScopeDto;
       wbsRequest?: WbsViewScheduleRequest;
       destination: ResourceNavigationState;
-      label: string;
+      label: ResourceNavigationLabel;
     }>,
     sourceTrigger?: HTMLElement,
     kpiSource?: KpiNavigationSource,
@@ -2646,9 +2671,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
       source.trigger = request.trigger;
       return {
         scope,
-        label:
+        label: request.planLabel ? { kind: "resourcePlan", presentation: request.planLabel } :
           projection.target === "plan" && projection.demandScope === "project"
-            ? `Project 전체 부하 근거 · ${request.label}`
+            ? { key: "Project 전체 부하 근거 · {label}", values: { label: request.label } }
             : request.label,
         destination: {
           ...source,
@@ -2751,7 +2776,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
       if (!scope) throw Error("INVALID_RESPONSE");
       return {
         scope,
-        label: "선택 Task의 모든 개인 담당 · 출발 환산 미설정",
+        label: { key: "선택 Task의 모든 개인 담당 · 출발 환산 미설정", values: {} },
         destination: {
           ...captureNavigation(),
           view: "resources",
@@ -2821,7 +2846,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
       if (!scope) throw Error("INVALID_RESPONSE");
       return {
         scope,
-        label: "Milestone 원본의 정확한 배정 범위",
+        label: { key: "Milestone 원본의 정확한 배정 범위", values: {} },
         destination: {
           ...captureNavigation(),
           view: "resources",
@@ -3047,8 +3072,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
     const displayIds = scope.taskIds; return {
         scope,
         label: milestoneIds.length
-          ? `Milestone ${milestoneIds.length}개 일정 · 일반 Task ${scope.taskCount} · 평가일 ${originalSource!.asOfDate} · 원본 환산 ${originalSource!.mdPerMm === null ? "미설정" : originalSource!.mdPerMm + " M/D / 1 M/M"} (${originalSource!.mdPerMmSource === "query" ? "명시 기준" : originalSource!.mdPerMmSource === "environment" ? "환경 기준" : "미설정"})`
-          : kpiSource ? "통합 KPI 출발 · 고유 Task 범위 (출발 KPI 조건·분모 유지)" : "출발 화면의 명시 Task 범위",
+          ? { key: "Milestone {count}개 일정 · 일반 Task {tasks} · 평가일 {date} · 원본 환산 {conversion} ({source})", values: { count: milestoneIds.length, tasks: scope.taskCount, date: originalSource!.asOfDate, ...(originalSource!.mdPerMm === null ? {} : { conversion: originalSource!.mdPerMm + " M/D / 1 M/M" }) }, labels: { ...(originalSource!.mdPerMm === null ? { conversion: "미설정" } : {}), source: originalSource!.mdPerMmSource === "query" ? "명시 기준" : originalSource!.mdPerMmSource === "environment" ? "환경 기준" : "미설정" } }
+          : { key: kpiSource ? "통합 KPI 출발 · 고유 Task 범위 (출발 KPI 조건·분모 유지)" : "출발 화면의 명시 Task 범위", values: {} },
         destination: {
           ...captureNavigation() ,
           view: "schedule",
@@ -3067,9 +3092,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
 
   const milestoneTimelineModel = useMemo(() => state.status === "ready" ? buildMilestoneTimelineModel({ tasks: state.snapshot.data.tasks, links: state.snapshot.data.links }) : null, [state]);
 
-  if (state.status === "loading") return <section className="loading-state" aria-busy="true" aria-live="polite"><span className="loading-indicator" aria-hidden="true" /><p>프로젝트 정보를 불러오는 중입니다.</p></section>;
-  if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
-  if (state.status === "error") return <section className="status-page" aria-labelledby="project-load-error-heading"><p className="eyebrow">PROJECT</p><h1 id="project-load-error-heading">프로젝트를 불러올 수 없습니다.</h1><p>네트워크 또는 서버 상태를 확인한 뒤 다시 시도해 주세요.</p><div className="standalone-actions"><button className="secondary-button" onClick={() => beginRefresh(true)} type="button">다시 시도</button></div></section>;
+  if (state.status === "loading") return <section className="loading-state" aria-busy="true" aria-live="polite"><span className="loading-indicator" aria-hidden="true" /><p>{t("프로젝트 정보를 불러오는 중입니다.")}</p></section>;
+  if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">{t("프로젝트를 찾을 수 없습니다.")}</h1><p>{t("프로젝트 주소를 확인해 주세요.")}</p></section>;
+  if (state.status === "error") return <section className="status-page" aria-labelledby="project-load-error-heading"><p className="eyebrow">PROJECT</p><h1 id="project-load-error-heading">{t("프로젝트를 불러올 수 없습니다.")}</h1><p>{t("네트워크 또는 서버 상태를 확인한 뒤 다시 시도해 주세요.")}</p><div className="standalone-actions"><button className="secondary-button" onClick={() => beginRefresh(true)} type="button">{t("다시 시도")}</button></div></section>;
   const { project, tasks, links, assignments, logistics } = state.snapshot.data;
   const subtreeScope = resolveTaskSubtreeScope(tasks, activeRootTaskId);
   const scopedTaskIdSet = subtreeScope.kind === "valid" ? new Set(subtreeScope.taskIds) : null;
@@ -3097,7 +3122,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
   const normalizedTargetQuery = targetPickerQuery.trim().toLocaleLowerCase();
   const selectableAssignedTargets = assignedTargets.filter((target) =>
     (targetPickerKind === "all" || target.kind === targetPickerKind) &&
-    (!normalizedTargetQuery || [target.name, target.code ?? ""].some((value) => value.toLocaleLowerCase().includes(normalizedTargetQuery)))
+    (!normalizedTargetQuery || [target.name, target.kind === "group" ? displayName(target, locale) : target.name, target.code ?? ""].some((value) => value.toLocaleLowerCase().includes(normalizedTargetQuery)))
   );
   const editing = permission === "edit" && permissionCheckState === "complete";
   const busy = canonicalRecoveryBlocked || taskIssueRestoring || isOpeningConvertedMilestone || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask || importPending || copyReview !== null || milestoneCreate !== null || milestoneConversion !== null;
@@ -3141,8 +3166,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
       : null;
   const scopeTabLabel = (taskId: string): string => {
     const task = tasks.find((candidate) => candidate.taskId === taskId);
-    if (!task) return "선택한 Summary";
-    return task.type === "summary" ? task.name : `${task.name} · 변경됨`;
+    if (!task) return t("선택한 Summary");
+    return task.type === "summary" ? task.name : `${task.name} · ${t("변경됨")}`;
   };
   const closeTaskFilterOnEscape = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Escape" || !taskFilterOpen) return;
@@ -3190,16 +3215,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
               <select
             className="project-lifecycle-badge project-lifecycle-select"
             data-status={project.status}
-            aria-label="프로젝트 상태 변경"
+            aria-label={t("프로젝트 상태 변경")}
             disabled={busy || editorSession !== null || pendingTaskDelete !== null}
             value={project.status}
             onChange={(event) => void changeHeaderStatus(event.target.value as ProjectStatus)}
           >
             {PROJECT_STATUS_OPTIONS.map(({ value, label }) => (
-                  <option key={value} value={value}>{label}</option>))}
+                  <option key={value} value={value}>{t(label)}</option>))}
           </select> ) : (
-              <span className="project-lifecycle-badge" data-status={project.status} aria-label={`프로젝트 상태: ${projectStatusLabel(project.status)}`}>{projectStatusLabel(project.status)}</span>)}
-          <span className={editing ? "edit-badge" : "readonly-badge"}>{editing ? "편집 중" : "읽기 전용"}</span>
+              <span className="project-lifecycle-badge" data-status={project.status} aria-label={t("프로젝트 상태: {value0}", { value0: projectStatusLabel(project.status) })}>{t(projectStatusLabel(project.status))}</span>)}
+          <span className={editing ? "edit-badge" : "readonly-badge"}>{editing ? t("편집 중") : t("읽기 전용")}</span>
           <details
             className="project-info-popover"
             ref={infoPopoverReference}
@@ -3211,11 +3236,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
             }}
             onKeyDown={handleContextDisclosureKeyDown}
           >
-            <summary aria-label="프로젝트 정보 보기">정보</summary>
+            <summary aria-label={t("프로젝트 정보 보기")}>{t("정보")}</summary>
             <div className="project-info-panel">
               <dl>
-                <div><dt>설명</dt><dd>{project.description || "설명이 없습니다."}</dd></div>
-                <div><dt>소유자</dt><dd>{ownerName}</dd></div>
+                <div><dt>{t("설명")}</dt><dd>{project.description || t("설명이 없습니다.")}</dd></div>
+                <div><dt>{t("소유자")}</dt><dd>{ownerName ?? t("미지정")}</dd></div>
                 <div><dt>Revision</dt><dd>{project.revision}</dd></div>
               </dl>
             </div>
@@ -3233,14 +3258,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
           className="secondary-button"
           disabled={busy || editorSession !== null || pendingTaskDelete !== null}
           onClick={() => setSettingsOpen(true)}
-        >프로젝트 설정</button> ) : (
+        >{t("프로젝트 설정")}</button> ) : (
             <button
           ref={unlockTriggerReference}
           type="button"
           className="secondary-button"
           disabled={isUnlocking || permissionCheckState === "checking" || taskIssueRestoring}
           onClick={() => setUnlockOpen(true)}
-        >{permissionCheckState === "checking" ? "권한 확인 중…" : "편집 잠금 해제"}</button>)}
+        >{permissionCheckState === "checking" ? t("권한 확인 중…") : t("편집 잠금 해제")}</button>)}
         <details
           className="project-action-menu"
           ref={actionMenuReference}
@@ -3252,7 +3277,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
           }}
           onKeyDown={handleContextDisclosureKeyDown}
         >
-          <summary aria-label="프로젝트 작업 더보기">더보기</summary>
+          <summary aria-label={t("프로젝트 작업 더보기")}>{t("더보기")}</summary>
           <div className="project-action-menu-panel">
             <ProjectImportButton publicId={publicId} expectedRevision={project.revision} disabled={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null} editable={editing} onPendingChange={setImportPending} onRefreshProject={refreshImportProject} onAuthorizationExpired={() => { setPermission("readonly"); setPermissionCheckState("complete"); }} onRequestUnlock={() => setUnlockOpen(true)} onImportSuccess={applySnapshot} />
             <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} onAutoOpen={() => setActionMenuOpen(true)} />
@@ -3262,62 +3287,61 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
       </div>
     </header>
 
-    {workspaceMigrationNotice ? <p role="status" className="field-help">이전 조회 구성을 현재 보기로 전환했습니다. 기존 작업과 배정은 유지됩니다.</p> : null}
-    <div className="project-workspace-tabs project-primary-tabs" role="tablist" aria-label="프로젝트 작업공간">
+    {workspaceMigrationNotice ? <p role="status" className="field-help">{t("이전 조회 구성을 현재 보기로 전환했습니다. 기존 작업과 배정은 유지됩니다.")}</p> : null}
+    <div className="project-workspace-tabs project-primary-tabs" role="tablist" aria-label={t("프로젝트 작업공간")}>
       {([{ key: "schedule", label: "일정" }, { key: "issue", label: "Issue" }, { key: "dashboard", label: "대시보드" }, { key: "master", label: "기준정보" }] as const).map(({ key, label }) => <button
         key={key} ref={node => { if (node) screenTabReferences.current.set(key, node); else screenTabReferences.current.delete(key); if (key === "schedule") scheduleTabReference.current = node; }}
         id={`project-tab-${key}`} role="tab" type="button" aria-controls={key === "schedule" || key === "issue" ? `project-panel-${key}` : `project-navigation-${key}`}
         aria-selected={activeSection === key} tabIndex={activeSection === key ? 0 : -1}
         disabled={taskIssueRestoring || taskIssueCreateRequest !== null}
-        onClick={() => selectSection(key)} onKeyDown={event => handleNavigationKey(event, key, ["schedule", "issue", "dashboard", "master"], value => selectSection(value as WorkspaceSection))}>{label}</button>)}
+        onClick={() => selectSection(key)} onKeyDown={event => handleNavigationKey(event, key, ["schedule", "issue", "dashboard", "master"], value => selectSection(value as WorkspaceSection))}>{t(label)}</button>)}
     </div>
     {(["dashboard", "master"] as const).map(section => <div key={section} id={`project-navigation-${section}`} role="tabpanel" aria-labelledby={`project-tab-${section}`} hidden={activeSection !== section}>
-      <div className="project-workspace-tabs project-primary-tabs project-secondary-tabs" role="tablist" aria-label={section === "dashboard" ? "대시보드 보기" : "기준정보 보기"}>
+      <div className="project-workspace-tabs project-primary-tabs project-secondary-tabs" role="tablist" aria-label={section === "dashboard" ? t("대시보드 보기") : t("기준정보 보기")}>
         {(section === "dashboard" ? DASHBOARD_SCREENS : MASTER_SCREENS).map(({ key, label }) => <button key={key}
           ref={node => { if (node) screenTabReferences.current.set(key, node); else screenTabReferences.current.delete(key); if (key === "dashboard.milestones") milestoneTabReference.current = node; if (key === "dashboard.resources") resourceTabReference.current = node; if (key === "master.processes") logisticsTabReference.current = node; }}
           id={key === "dashboard.milestones" ? "project-tab-milestones" : key === "dashboard.resources" ? "project-tab-resources" : key === "master.processes" ? "project-tab-logistics" : `project-tab-${key}`}
           role="tab" type="button" aria-controls={workspaceView(key) === "milestones" ? "project-panel-milestones" : workspaceView(key) === "resources" ? "project-panel-resources" : workspaceView(key) === "resource-master" ? "project-panel-resource-master" : "project-panel-logistics"}
           aria-selected={activeScreen === key || (section === "master" && activeScreen === "master.relations" && key === "master.processes")} tabIndex={activeScreen === key || (section === "master" && activeScreen === "master.relations" && key === "master.processes") ? 0 : -1}
           disabled={taskIssueRestoring || taskIssueCreateRequest !== null}
-          onClick={() => selectScreen(key)} onKeyDown={event => handleNavigationKey(event, key, (section === "dashboard" ? DASHBOARD_SCREENS : MASTER_SCREENS).map(item => item.key), value => selectScreen(value as WorkspaceScreen))}>{label}</button>)}
+          onClick={() => selectScreen(key)} onKeyDown={event => handleNavigationKey(event, key, (section === "dashboard" ? DASHBOARD_SCREENS : MASTER_SCREENS).map(item => item.key), value => selectScreen(value as WorkspaceScreen))}>{t(label)}</button>)}
       </div>
-      {section === "master" ? <div className="project-workspace-auxiliary" aria-label="기준정보 보조 도구">
-        <button type="button" className="secondary-button" aria-pressed={activeScreen === "master.relations"} onClick={() => selectScreen("master.relations", false)}>제어·조율 관계</button>
+      {section === "master" ? <div className="project-workspace-auxiliary" aria-label={t("기준정보 보조 도구")}>
+        <button type="button" className="secondary-button" aria-pressed={activeScreen === "master.relations"} onClick={() => selectScreen("master.relations", false)}>{t("제어·조율 관계")}</button>
       </div> : null}
     </div>)}
-    {taskIssueRestoring ? <p role="status" aria-live="polite">Issue 등록 후 작업 정보 복귀 중…</p> : null}
+    {taskIssueRestoring ? <p role="status" aria-live="polite">{t("Issue 등록 후 작업 정보 복귀 중…")}</p> : null}
     <div className="resource-drill-strip"
         role="region"
-        aria-label="임시 조회 범위"
+        aria-label={t("임시 조회 범위")}
       >
         {navigationFrames.at(-1) ? (
           <>
             <span>
               {navigationFrames.at(-1)!.destination.view !== activeView
-                ? `최근 임시 이동 (${navigationFrames.at(-1)!.destination.view === "resources" ? "리소스" : "일정"}) · `
-                : "현재 임시 범위 · "}
-              {navigationFrames.at(-1)!.label} · 고유 Task{" "}
+                ? t("최근 임시 이동 ({value0}) · ", { value0: t(navigationFrames.at(-1)!.destination.view === "resources" ? "리소스" : "일정") })
+                : t("현재 임시 범위 · ")}
+              {renderNavigationLabel(navigationFrames.at(-1)!.label)}{t(" · 고유 Task")}{" "}
               {navigationFrames.at(-1)!.scope.taskCount} · Assignment{" "}
-              {navigationFrames.at(-1)!.scope.assignmentCount} · 조상 문맥{" "}
+              {navigationFrames.at(-1)!.scope.assignmentCount}{t(" · 조상 문맥")}{" "}
               {navigationFrames.at(-1)!.scope.ancestorSummaryIds.length} ·{" "}
-              {navigationFrames.at(-1)!.source.kpiSource ? "일정은 출발 KPI의 정확 작업 목록" : <>{navigationFrames.at(-1)!.scope.sourceContext.range.from}–{navigationFrames.at(-1)!.scope.sourceContext.range.to}</>}
+              {navigationFrames.at(-1)!.source.kpiSource ? t("일정은 출발 KPI의 정확 작업 목록") : <>{navigationFrames.at(-1)!.scope.sourceContext.range.from}–{navigationFrames.at(-1)!.scope.sourceContext.range.to}</>}
             </span>
-            {navigationFrames.at(-1)!.source.kpiSource ? <IdentifierDetails identifiers={[{ label: "출발 KPI snapshot", value: navigationFrames.at(-1)!.source.kpiSource!.snapshotId }]} /> : null}
+            {navigationFrames.at(-1)!.source.kpiSource ? <IdentifierDetails identifiers={[{ label: t("출발 KPI snapshot"), value: navigationFrames.at(-1)!.source.kpiSource!.snapshotId }]} /> : null}
             <button
               className="secondary-button"
               type="button"
               disabled={navigationLoading || busy || editorSession !== null}
               onClick={() => void finishResourceNavigation(false)}
             >
-              원래 보기 (
-              {navigationFrames.at(-1)!.source.view === "resources"
-                ? "리소스"
+              {t("원래 보기 (")}{navigationFrames.at(-1)!.source.view === "resources"
+                ? t("리소스")
                 : navigationFrames.at(-1)!.source.view === "logistics"
-                  ? "물류 구성"
+                  ? t("물류 구성")
                    : navigationFrames.at(-1)!.source.view ===
                       "milestones"
                     ? "Milestone"
-                    : "일정"}
+                    : t("일정")}
               )
             </button>
             <button
@@ -3326,19 +3350,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
               disabled={navigationLoading || busy || editorSession !== null}
               onClick={() => void finishResourceNavigation(true)}
             >
-              임시 이동 범위 전체 해제 (
-              {activeView === "resources"
-                ? "리소스"
+              {t("임시 이동 범위 전체 해제 (")}{activeView === "resources"
+                ? t("리소스")
                 : activeView === "logistics"
-                  ? "물류 구성"
-                  : "일정"}{" "}
-              유지)
-            </button>
+                  ? t("물류 구성")
+                  : t("일정")}{" "}
+              {t("유지)")}</button>
           </>
         ) : null}
         {navigationLoading ? (
           <>
-            <span role="status">이동 범위 확인 중…</span>
+            <span role="status">{t("이동 범위 확인 중…")}</span>
             <button
               className="secondary-button"
               type="button"
@@ -3349,32 +3371,27 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
                 setNavigationLoading(false);
               }}
             >
-              이동 취소
-            </button>
+              {t("이동 취소")}</button>
           </>
         ) : null}
       </div>
       {navigationConflict !== null ? (
         <WorkspaceDialog
-          title="조회 범위 충돌 확인"
+          title={t("조회 범위 충돌 확인")}
           onClose={cancelNavigationConfirmation}
         >
           <p>
-            현재 보기의 WBS·필터·리소스 조건은 대상 {navigationConflict.total}개 중{" "}
-            {navigationConflict.hidden}개를 숨깁니다. 기존 조건을 보존하고 별도
-            범위로 이동합니다.
-          </p>
+            {t("현재 보기의 WBS·필터·리소스 조건은 대상 ")}{navigationConflict.total}{t("개 중")}{" "}
+            {navigationConflict.hidden}{t("개를 숨깁니다. 기존 조건을 보존하고 별도 범위로 이동합니다.")}</p>
           <button
             type="button"
             disabled={navigationLoading}
             aria-busy={navigationLoading}
             onClick={() => void approveNavigationConfirmation()}
           >
-            전체 대상 별도 범위로 보기
-          </button>
+            {t("전체 대상 별도 범위로 보기")}</button>
           <button type="button" onClick={cancelNavigationConfirmation}>
-            취소
-          </button>
+            {t("취소")}</button>
         </WorkspaceDialog>
       ) : null}
       {editorSession ? (
@@ -3391,7 +3408,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
           links={links}
           revision={project.revision}
           editable={editing && !canonicalRecoveryBlocked}
-          blockedReason={editing && canonicalRecoveryBlocked ? "저장 결과를 확인한 뒤 편집할 수 있습니다. 최신 정보를 다시 불러와 주세요." : undefined}
+          blockedReason={editing && canonicalRecoveryBlocked ? t("저장 결과를 확인한 뒤 편집할 수 있습니다. 최신 정보를 다시 불러와 주세요.") : undefined}
           hasLinks={taskHasDependencyLinks(
             tasks,
             editorSession.task.taskId,
@@ -3439,31 +3456,31 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
         aria-busy={isSavingTask || undefined}
         className="project-schedule project-workspace-panel"
       >
-        {openScopeTaskIds.length > 0 || activeRootTaskId !== null ? <div className="project-scope-navigation"><button ref={node => { if (node) scopeTabReferences.current.set(scopeStateKey(null), node); else scopeTabReferences.current.delete(scopeStateKey(null)); }} className="secondary-button" type="button" onClick={showFullSchedule} aria-pressed={activeRootTaskId === null}>전체 일정 보기</button>
-        <div className="project-scope-tabs" role="tablist" aria-label="WBS 범위 탭">
+        {openScopeTaskIds.length > 0 || activeRootTaskId !== null ? <div className="project-scope-navigation"><button ref={node => { if (node) scopeTabReferences.current.set(scopeStateKey(null), node); else scopeTabReferences.current.delete(scopeStateKey(null)); }} className="secondary-button" type="button" onClick={showFullSchedule} aria-pressed={activeRootTaskId === null}>{t("전체 일정 보기")}</button>
+        <div className="project-scope-tabs" role="tablist" aria-label={t("WBS 범위 탭")}>
           {openScopeTaskIds.map((taskId) => {
             const label = scopeTabLabel(taskId);
             const task = tasks.find((candidate) => candidate.taskId === taskId);
             const invalid = !task || task.type !== "summary";
             return <div className="project-scope-tab-item" data-invalid={invalid || undefined} key={taskId} role="presentation">
               <button className="project-scope-tab" id={scopeTabId(taskId)} role="tab" type="button" aria-controls="project-scope-panel" aria-label={label} aria-selected={activeRootTaskId === taskId} tabIndex={activeRootTaskId === taskId || (activeRootTaskId === null && taskId === openScopeTaskIds[0]) ? 0 : -1} title={label} ref={(node) => { if (node) scopeTabReferences.current.set(scopeStateKey(taskId), node); else scopeTabReferences.current.delete(scopeStateKey(taskId)); }} onClick={() => activateScope(taskId)} onKeyDown={(event) => handleScopeTabKeyDown(event, taskId)}><span className="project-scope-tab-label">{label}</span></button>
-              <button className="project-scope-tab-close" type="button" aria-label={`${label} 범위 탭 닫기`} title={`${label} 범위 탭 닫기`} onClick={() => closeScopeTab(taskId)}>×</button>
+              <button className="project-scope-tab-close" type="button" aria-label={t("{value0} 범위 탭 닫기", { value0: label })} title={t("{value0} 범위 탭 닫기", { value0: label })} onClick={() => closeScopeTab(taskId)}>×</button>
             </div>;
           })}
         </div>
         </div> : null}
         <div className="project-scope-panel" id="project-scope-panel" role={activeRootTaskId ? "tabpanel" : "region"} aria-labelledby={activeRootTaskId ? scopeTabId(activeRootTaskId) : "schedule-heading"}>
-        <h2 id="schedule-heading" className="sr-only" tabIndex={-1}>일정</h2>
+        <h2 id="schedule-heading" className="sr-only" tabIndex={-1}>{t("일정")}</h2>
         {scheduleStatus || isSavingTask ? <div className="project-schedule-status">
-          {scheduleStatus ? <p role="status">{scheduleStatus}</p> : null}
-          {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}
+          {scheduleStatus ? <p role="status">{t(scheduleStatus)}</p> : null}
+          {isSavingTask ? <span className="schedule-saving" role="status">{t("일정 저장 중…")}</span> : null}
         </div> : null}
-        <div className="project-filter-toolbar project-schedule-filter-toolbar" role="toolbar" aria-label="작업 검색과 필터" onKeyDown={closeTaskFilterOnEscape}>
+        <div className="project-filter-toolbar project-schedule-filter-toolbar" role="toolbar" aria-label={t("작업 검색과 필터")} onKeyDown={closeTaskFilterOnEscape}>
           <label className="project-filter-search">
-            <span className="sr-only">작업 검색</span>
+            <span className="sr-only">{t("작업 검색")}</span>
             <input
-              aria-label="작업명, 설명, External ID 검색"
-              placeholder="작업명, 설명, External ID 검색"
+              aria-label={t("작업명, 설명, External ID 검색")}
+              placeholder={t("작업명, 설명, External ID 검색")}
               type="search"
               ref={taskSearchReference}
               value={taskFilter.query}
@@ -3471,24 +3488,24 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
             />
           </label>
           <button className="secondary-button project-filter-trigger" type="button" aria-controls="project-task-filter-panel" aria-expanded={taskFilterOpen} ref={taskFilterTriggerReference} onClick={() => setTaskFilterOpen((open) => !open)}>
-            필터{activeFilters ? ` ${activeFilters}` : ""}
+            {t("필터")}{activeFilters ? ` ${activeFilters}` : ""}
           </button>
           <StageFilterPicker tasks={tasks} value={taskFilter.milestoneTaskId} onChange={(milestoneTaskId) => setTaskFilter((current) => ({ ...current, milestoneTaskId }))} />
           {activeFilters > 0 ? (
-                    <button className="secondary-button project-filter-reset" type="button" onClick={resetTaskFilter}>초기화</button> ) : null}
-          <div className="project-schedule-resource-actions" role="group" aria-label="담당자·공수 조회 명령">
+                    <button className="secondary-button project-filter-reset" type="button" onClick={resetTaskFilter}>{t("초기화")}</button> ) : null}
+          <div className="project-schedule-resource-actions" role="group" aria-label={t("담당자·공수 조회 명령")}>
             <button
               className="secondary-button"
               type="button"
               data-schedule-resource-drill="selected"
               disabled={selectedResourceBlockedReason !== null}
               aria-describedby={`schedule-selected-resources-description ${resourceOverlayOpen ? "schedule-selected-resources-overlay-state" : "schedule-selected-resources-state"}`}
-              title={selectedResourceBlockedReason ?? "선택한 Task 및 선택 Summary의 일반 Task 자손에 배정된 모든 개인을 Resource 대시보드에서 조회"}
+              title={t(selectedResourceBlockedReason) || t("선택한 Task 및 선택 Summary의 일반 Task 자손에 배정된 모든 개인을 Resource 대시보드에서 조회")}
               onClick={() => scheduleToResources(ganttSelection.current)}
-            >담당자·공수 조회</button>
-            <span id="schedule-selected-resources-description" className="sr-only">선택한 Task 및 선택 Summary의 일반 Task 자손에 배정된 모든 개인을 Resource 대시보드에서 조회합니다. 개인 배정이 없으면 안내합니다.</span>
-            <span id="schedule-selected-resources-state" className={selectedResourceInlineReason ? "project-schedule-resource-state" : "sr-only"}>{selectedResourceInlineReason}</span>
-            {resourceOverlayOpen ? <span id="schedule-selected-resources-overlay-state" className="sr-only">{selectedResourceBlockedReason}</span> : null}
+            >{t("담당자·공수 조회")}</button>
+            <span id="schedule-selected-resources-description" className="sr-only">{t("선택한 Task 및 선택 Summary의 일반 Task 자손에 배정된 모든 개인을 Resource 대시보드에서 조회합니다. 개인 배정이 없으면 안내합니다.")}</span>
+            <span id="schedule-selected-resources-state" className={selectedResourceInlineReason ? "project-schedule-resource-state" : "sr-only"}>{t(selectedResourceInlineReason)}</span>
+            {resourceOverlayOpen ? <span id="schedule-selected-resources-overlay-state" className="sr-only">{t(selectedResourceBlockedReason)}</span> : null}
             {activeRootTaskId ? <>
               <button
                 className="secondary-button"
@@ -3496,90 +3513,90 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
                 data-schedule-resource-drill="summary"
                 disabled={summaryResourceBlockedReason !== null}
                 aria-describedby={`schedule-summary-resources-description ${resourceOverlayOpen ? "schedule-summary-resources-overlay-state" : "schedule-summary-resources-state"}`}
-                title={summaryResourceBlockedReason ?? "현재 Summary 범위의 일반 Task 자손 전체에 배정된 개인과 공수를 조회"}
+                title={t(summaryResourceBlockedReason) || t("현재 Summary 범위의 일반 Task 자손 전체에 배정된 개인과 공수를 조회")}
                 onClick={() => scheduleToResources([], activeRootTaskId)}
-              >Summary 전체 담당자·공수</button>
-              <span id="schedule-summary-resources-description" className="sr-only">현재 Summary 범위의 일반 Task 자손 전체를 조회합니다. 선택 Task 집합과 다른 범위입니다.</span>
-              <span id="schedule-summary-resources-state" className={summaryResourceInlineReason ? "project-schedule-resource-state" : "sr-only"}>{summaryResourceInlineReason}</span>
-              {resourceOverlayOpen ? <span id="schedule-summary-resources-overlay-state" className="sr-only">{summaryResourceBlockedReason}</span> : null}
+              >{t("Summary 전체 담당자·공수")}</button>
+              <span id="schedule-summary-resources-description" className="sr-only">{t("현재 Summary 범위의 일반 Task 자손 전체를 조회합니다. 선택 Task 집합과 다른 범위입니다.")}</span>
+              <span id="schedule-summary-resources-state" className={summaryResourceInlineReason ? "project-schedule-resource-state" : "sr-only"}>{t(summaryResourceInlineReason)}</span>
+              {resourceOverlayOpen ? <span id="schedule-summary-resources-overlay-state" className="sr-only">{t(summaryResourceBlockedReason)}</span> : null}
             </> : null}
           </div>
-          <span className="project-filter-result" role="status">{taskFilter.milestoneTaskId !== "all" ? `유효 소속 일반 작업 ${filteredTasks.ordinaryMatchCount}개 · ` : ""}{wbsLegacy ? `${filteredTasks.matchCount}개 일치` : `${filteredTasks.ordinaryMatchCount}개 일반 Task 일치 · 직접 Summary ${directSummaryCount}개 · context Summary ${contextSummaryCount}개`} / {" "}
-                    {subtreeScope.kind === "valid" ? "범위" : "전체"}{" "} {wbsTasks.length}개 {wbsLegacy ? "작업" : "WBS 작업"}</span>
+          <span className="project-filter-result" role="status">{taskFilter.milestoneTaskId !== "all" ? t("유효 소속 일반 작업 {value0}개 · ", { value0: filteredTasks.ordinaryMatchCount }) : ""}{wbsLegacy ? t("{value0}개 일치", { value0: filteredTasks.matchCount }) : t("{value0}개 일반 Task 일치 · 직접 Summary {value1}개 · context Summary {value2}개", { value0: filteredTasks.ordinaryMatchCount, value1: directSummaryCount, value2: contextSummaryCount })} / {" "}
+                    {subtreeScope.kind === "valid" ? t("범위") : t("전체")}{" "} {wbsTasks.length}{t("개 ")}{wbsLegacy ? t("작업") : t("WBS 작업")}</span>
         </div>
-        {!wbsLegacy && typeCompatibility.compatibility === "milestone-only" ? <div role="status"><p>Milestone은 일정 행에 표시하지 않습니다. Milestone 대시보드에서 확인하거나 유형 조건을 해제해 주세요.</p><button type="button" onClick={() => activateWorkspaceView("milestones")}>Milestone 대시보드 열기</button><button type="button" onClick={() => { setTaskFilter(current => ({ ...current, types: [] })); queueMicrotask(() => taskFilterTriggerReference.current?.focus({ preventScroll: true })); }}>유형 조건 해제</button></div> : null}
-        <div className="project-filter-panel project-task-filter-panel" id="project-task-filter-panel" hidden={!taskFilterOpen} aria-label="작업 고급 필터" onKeyDown={closeTaskFilterOnEscape}>
+        {!wbsLegacy && typeCompatibility.compatibility === "milestone-only" ? <div role="status"><p>{t("Milestone은 일정 행에 표시하지 않습니다. Milestone 대시보드에서 확인하거나 유형 조건을 해제해 주세요.")}</p><button type="button" onClick={() => activateWorkspaceView("milestones")}>{t("Milestone 대시보드 열기")}</button><button type="button" onClick={() => { setTaskFilter(current => ({ ...current, types: [] })); queueMicrotask(() => taskFilterTriggerReference.current?.focus({ preventScroll: true })); }}>{t("유형 조건 해제")}</button></div> : null}
+        <div className="project-filter-panel project-task-filter-panel" id="project-task-filter-panel" hidden={!taskFilterOpen} aria-label={t("작업 고급 필터")} onKeyDown={closeTaskFilterOnEscape}>
           <section className="project-filter-section" aria-labelledby="project-filter-text-heading">
-            <h3 className="project-filter-section-title" id="project-filter-text-heading">텍스트</h3>
+            <h3 className="project-filter-section-title" id="project-filter-text-heading">{t("텍스트")}</h3>
             <div className="project-filter-section-grid">
               <div className="project-filter-control-group">
-                <label>작업명 조건<select value={taskFilter.nameOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, nameOperator: event.target.value as TaskFilterState["nameOperator"] }))}><option value="contains">포함</option><option value="not-contains">포함하지 않음</option><option value="equals">같음</option></select></label>
-                <label className="project-filter-control-grow">작업명<input type="text" value={taskFilter.nameQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, nameQuery: event.target.value }))} /></label>
+                <label>{t("작업명 조건")}<select value={taskFilter.nameOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, nameOperator: event.target.value as TaskFilterState["nameOperator"] }))}><option value="contains">{t("포함")}</option><option value="not-contains">{t("포함하지 않음")}</option><option value="equals">{t("같음")}</option></select></label>
+                <label className="project-filter-control-grow">{t("작업명")}<input type="text" value={taskFilter.nameQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, nameQuery: event.target.value }))} /></label>
               </div>
               <div className="project-filter-control-group">
-                <label>설명 조건<select value={taskFilter.descriptionOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, descriptionOperator: event.target.value as TaskFilterState["descriptionOperator"] }))}><option value="contains">포함</option><option value="not-contains">포함하지 않음</option></select></label>
-                <label className="project-filter-control-grow">설명<input type="text" value={taskFilter.descriptionQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, descriptionQuery: event.target.value }))} /></label>
+                <label>{t("설명 조건")}<select value={taskFilter.descriptionOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, descriptionOperator: event.target.value as TaskFilterState["descriptionOperator"] }))}><option value="contains">{t("포함")}</option><option value="not-contains">{t("포함하지 않음")}</option></select></label>
+                <label className="project-filter-control-grow">{t("설명")}<input type="text" value={taskFilter.descriptionQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, descriptionQuery: event.target.value }))} /></label>
               </div>
               <div className="project-filter-control-group">
-                <label>External ID 조건<select value={taskFilter.externalIdOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, externalIdOperator: event.target.value as TaskFilterState["externalIdOperator"] }))}><option value="contains">포함</option><option value="equals">같음</option></select></label>
+                <label>{t("External ID 조건")}<select value={taskFilter.externalIdOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, externalIdOperator: event.target.value as TaskFilterState["externalIdOperator"] }))}><option value="contains">{t("포함")}</option><option value="equals">{t("같음")}</option></select></label>
                 <label className="project-filter-control-grow">External ID<input type="text" value={taskFilter.externalIdQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, externalIdQuery: event.target.value }))} /></label>
               </div>
             </div>
           </section>
 
           <section className="project-filter-section" aria-labelledby="project-filter-schedule-heading">
-            <h3 className="project-filter-section-title" id="project-filter-schedule-heading">일정 · 수치</h3>
+            <h3 className="project-filter-section-title" id="project-filter-schedule-heading">{t("일정 · 수치")}</h3>
             <div className="project-filter-section-grid project-filter-section-grid-schedule">
               <div className="project-filter-control-group project-filter-control-group-triple">
-                <label>기간 조건<select value={taskFilter.dateOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, dateOperator: event.target.value as TaskFilterState["dateOperator"] }))}>
-                  <option value="overlap">기간과 겹침</option><option value="contained">기간 안에 완전히 포함</option><option value="start-in">시작일이 기간 안</option><option value="end-in">종료일이 기간 안</option>
+                <label>{t("기간 조건")}<select value={taskFilter.dateOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, dateOperator: event.target.value as TaskFilterState["dateOperator"] }))}>
+                  <option value="overlap">{t("기간과 겹침")}</option><option value="contained">{t("기간 안에 완전히 포함")}</option><option value="start-in">{t("시작일이 기간 안")}</option><option value="end-in">{t("종료일이 기간 안")}</option>
                 </select></label>
-                <label>기간 From<input type="date" value={taskFilter.dateFrom} onChange={(event) => setTaskFilter((current) => ({ ...current, dateFrom: event.target.value }))} /></label>
-                <label>기간 To<input type="date" value={taskFilter.dateTo} onChange={(event) => setTaskFilter((current) => ({ ...current, dateTo: event.target.value }))} /></label>
+                <label>{t("기간 From")}<input type="date" value={taskFilter.dateFrom} onChange={(event) => setTaskFilter((current) => ({ ...current, dateFrom: event.target.value }))} /></label>
+                <label>{t("기간 To")}<input type="date" value={taskFilter.dateTo} onChange={(event) => setTaskFilter((current) => ({ ...current, dateTo: event.target.value }))} /></label>
               </div>
               <div className="project-filter-control-group project-filter-control-group-even">
-                <label>진행률 최소<input min={0} max={100} type="number" value={taskFilter.progressMin ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, progressMin: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
-                <label>진행률 최대<input min={0} max={100} type="number" value={taskFilter.progressMax ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, progressMax: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+                <label>{t("진행률 최소")}<input min={0} max={100} type="number" value={taskFilter.progressMin ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, progressMin: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+                <label>{t("진행률 최대")}<input min={0} max={100} type="number" value={taskFilter.progressMax ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, progressMax: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
               </div>
               <div className="project-filter-control-group project-filter-control-group-even">
-                <label>기간 최소<input min={0} type="number" value={taskFilter.durationMin ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, durationMin: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
-                <label>기간 최대<input min={0} type="number" value={taskFilter.durationMax ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, durationMax: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+                <label>{t("기간 최소")}<input min={0} type="number" value={taskFilter.durationMin ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, durationMin: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+                <label>{t("기간 최대")}<input min={0} type="number" value={taskFilter.durationMax ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, durationMax: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
               </div>
             </div>
           </section>
 
           <section className="project-filter-section" aria-labelledby="project-filter-assignment-heading">
-            <h3 className="project-filter-section-title" id="project-filter-assignment-heading">유형 · 할당</h3>
+            <h3 className="project-filter-section-title" id="project-filter-assignment-heading">{t("유형 · 할당")}</h3>
             <div className="project-filter-section-grid project-filter-section-grid-assignment">
-              <fieldset className="project-filter-choice-fieldset"><legend>Task type</legend>{(["task","summary"] as const).map((type) => (
-                            <label key={type}><input type="checkbox" checked={taskFilter.types.includes(type)} onChange={() => setTaskFilter((current) => ({ ...current, types: current.types.includes(type) ? current.types.filter((item) => item !== type) : [...current.types, type] }))} />{type}</label>),
+              <fieldset className="project-filter-choice-fieldset"><legend>{t("작업 유형")}</legend>{(["task","summary"] as const).map((type) => (
+                            <label key={type}><input type="checkbox" checked={taskFilter.types.includes(type)} onChange={() => setTaskFilter((current) => ({ ...current, types: current.types.includes(type) ? current.types.filter((item) => item !== type) : [...current.types, type] }))} />{t(type === "task" ? "일반 작업" : "요약 작업")}</label>),
                         )}</fieldset>
-              <fieldset className="project-filter-choice-fieldset"><legend>Schedule mode</legend>{(["auto","manual"] as const).map((mode) => (
-                          <label key={mode}><input type="checkbox" checked={taskFilter.scheduleModes.includes(mode)} onChange={() => setTaskFilter((current) => ({ ...current, scheduleModes: current.scheduleModes.includes(mode) ? current.scheduleModes.filter((item) => item !== mode) : [...current.scheduleModes, mode] }))} />{mode}</label>))}</fieldset>
-              <label className="project-filter-compact-control">리소스 할당<select value={taskFilter.assignmentState} onChange={(event) => setTaskFilter((current) => ({ ...current, assignmentState: event.target.value as TaskFilterState["assignmentState"] }))}>
-                <option value="all">전체</option><option value="assigned">할당됨</option><option value="unassigned">미할당</option>
+              <fieldset className="project-filter-choice-fieldset"><legend>{t("일정 모드")}</legend>{(["auto","manual"] as const).map((mode) => (
+                          <label key={mode}><input type="checkbox" checked={taskFilter.scheduleModes.includes(mode)} onChange={() => setTaskFilter((current) => ({ ...current, scheduleModes: current.scheduleModes.includes(mode) ? current.scheduleModes.filter((item) => item !== mode) : [...current.scheduleModes, mode] }))} />{t(mode === "auto" ? "자동" : "수동")}</label>))}</fieldset>
+              <label className="project-filter-compact-control">{t("리소스 할당")}<select value={taskFilter.assignmentState} onChange={(event) => setTaskFilter((current) => ({ ...current, assignmentState: event.target.value as TaskFilterState["assignmentState"] }))}>
+                <option value="all">{t("전체")}</option><option value="assigned">{t("할당됨")}</option><option value="unassigned">{t("미할당")}</option>
               </select></label>
             </div>
             {assignedTargets.length > 0 ? (
-                      <fieldset className="project-filter-target-fieldset"><legend>할당 Resource / Group</legend>
+                      <fieldset className="project-filter-target-fieldset"><legend>{t("할당 Resource / Group")}</legend>
               <div className="project-filter-target-controls">
-                <label>대상 종류<select value={targetPickerKind} onChange={(event) => setTargetPickerKind(event.target.value as "all" | "resource" | "group")}><option value="all">전체</option><option value="resource">Resource</option><option value="group">Group</option></select></label>
-                <label className="project-filter-control-grow">대상 검색<input aria-label="할당 Resource 또는 Group 이름과 code 검색" placeholder="이름 또는 code" type="search" value={targetPickerQuery} onChange={(event) => setTargetPickerQuery(event.target.value)} /></label>
-                <label>다중 조건<select value={taskFilter.targetMode} onChange={(event) => setTaskFilter((current) => ({ ...current, targetMode: event.target.value as "any" | "all" }))}><option value="any">ANY</option><option value="all">ALL</option></select></label>
+                <label>{t("대상 종류")}<select value={targetPickerKind} onChange={(event) => setTargetPickerKind(event.target.value as "all" | "resource" | "group")}><option value="all">{t("전체")}</option><option value="resource">Resource</option><option value="group">Group</option></select></label>
+                <label className="project-filter-control-grow">{t("대상 검색")}<input aria-label={t("할당 Resource 또는 Group 이름과 code 검색")} placeholder={t("이름 또는 code")} type="search" value={targetPickerQuery} onChange={(event) => setTargetPickerQuery(event.target.value)} /></label>
+                <label>{t("다중 조건")}<select value={taskFilter.targetMode} onChange={(event) => setTaskFilter((current) => ({ ...current, targetMode: event.target.value as "any" | "all" }))}><option value="any">ANY</option><option value="all">ALL</option></select></label>
               </div>
               <div className="project-filter-targets">{selectableAssignedTargets.map((target) => {
                 const key = `${target.kind}:${target.id}`;
-                return <label key={key}><input type="checkbox" checked={taskFilter.targetIds.includes(key)} onChange={() => setTaskFilter((current) => ({ ...current, targetIds: current.targetIds.includes(key) ? current.targetIds.filter((item) => item !== key) : [...current.targetIds, key] }))} />{target.name || "이름 확인 필요"}{target.code && assignedTargets.some(peer => peer.id !== target.id && peer.name === target.name) ? ` (${target.code})` : ""}{target.active ? "" : " · 비활성"}</label>;
+                return <label key={key}><input type="checkbox" checked={taskFilter.targetIds.includes(key)} onChange={() => setTaskFilter((current) => ({ ...current, targetIds: current.targetIds.includes(key) ? current.targetIds.filter((item) => item !== key) : [...current.targetIds, key] }))} />{(target.kind === "group" ? displayName(target, locale) : target.name) || t("이름 확인 필요")}{target.code && assignedTargets.some(peer => peer.id !== target.id && (peer.kind === "group" ? displayName(peer, locale) : peer.name) === (target.kind === "group" ? displayName(target, locale) : target.name)) ? ` (${target.code})` : ""}{target.active ? "" : t(" · 비활성")}</label>;
               })}</div>
             </fieldset> ) : null}
           </section>
 
           {logistics && (logistics.processes.length > 0 || logistics.equipment.length > 0 || logistics.systems.length > 0) ? (
             <section className="project-filter-section" aria-labelledby="project-filter-logistics-heading">
-              <h3 className="project-filter-section-title" id="project-filter-logistics-heading">물류</h3>
+              <h3 className="project-filter-section-title" id="project-filter-logistics-heading">{t("물류")}</h3>
               {logistics.processes.length > 0 ? (
                 <fieldset className="project-filter-chip-fieldset">
-                  <legend>공정 필터</legend>
+                  <legend>{t("공정 필터")}</legend>
                   <div className="project-filter-checkbox-list">
                     {logistics.processes.map((proc) => (
                       <label key={proc.id}>
@@ -3595,7 +3612,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
                             }))
                           }
                         />
-                        <span>{logisticsName(proc, logistics.processes)}</span>
+                        <span>{logisticsName(proc, logistics.processes, locale)}</span>
                       </label>
                     ))}
                   </div>
@@ -3603,7 +3620,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
               ) : null}
               {logistics.equipment.length > 0 ? (
                 <fieldset className="project-filter-chip-fieldset">
-                  <legend>설비 필터</legend>
+                  <legend>{t("설비 필터")}</legend>
                   <div className="project-filter-checkbox-list">
                     {logistics.equipment.map((eq) => (
                       <label key={eq.id}>
@@ -3619,7 +3636,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
                             }))
                           }
                         />
-                        <span>{logisticsName(eq, logistics.equipment)}</span>
+                        <span>{logisticsName(eq, logistics.equipment, locale)}</span>
                       </label>
                     ))}
                   </div>
@@ -3627,7 +3644,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
               ) : null}
               {logistics.systems.length > 0 ? (
                 <fieldset className="project-filter-chip-fieldset">
-                  <legend>물류 시스템 필터</legend>
+                  <legend>{t("물류 시스템 필터")}</legend>
                   <div className="project-filter-checkbox-list">
                     {logistics.systems.map((sys) => (
                       <label key={sys.id}>
@@ -3643,7 +3660,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
                             }))
                           }
                         />
-                        <span>{logisticsName(sys, logistics.systems)}</span>
+                        <span>{logisticsName(sys, logistics.systems, locale)}</span>
                       </label>
                     ))}
                   </div>
@@ -3654,16 +3671,15 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
         </div>
         {subtreeScopeInvalid ? (
                   <div className="schedule-scope-note" role="alert">
-          <strong>선택한 Summary 범위를 열 수 없습니다.</strong>{" "}
+          <strong>{t("선택한 Summary 범위를 열 수 없습니다.")}</strong>{" "}
           {subtreeScope.kind === "not-summary"
-            ? tasks.find(task => task.taskId === activeRootTaskId)?.type === "milestone" ? "선택한 범위가 Milestone으로 변경되었습니다. 데이터는 프로젝트 전체 Milestone 목록에 있으며 WBS 범위는 자동으로 넓히지 않습니다." : "선택한 작업이 더 이상 Summary가 아닙니다."
-            : "선택한 Summary가 삭제되었거나 현재 프로젝트에서 찾을 수 없습니다."}{" "}
-          <div className="project-scope-recovery-actions"><button className="secondary-button project-scope-recovery-button" type="button" onClick={showFullSchedule}>전체 일정 보기</button></div>
+            ? tasks.find(task => task.taskId === activeRootTaskId)?.type === "milestone" ? t("선택한 범위가 Milestone으로 변경되었습니다. 데이터는 프로젝트 전체 Milestone 목록에 있으며 WBS 범위는 자동으로 넓히지 않습니다.") : t("선택한 작업이 더 이상 Summary가 아닙니다.")
+            : t("선택한 Summary가 삭제되었거나 현재 프로젝트에서 찾을 수 없습니다.")}{" "}
+          <div className="project-scope-recovery-actions"><button className="secondary-button project-scope-recovery-button" type="button" onClick={showFullSchedule}>{t("전체 일정 보기")}</button></div>
         </div> ) : null}
         <div className="project-gantt-scope-owner" hidden={subtreeScopeInvalid} inert={subtreeScopeInvalid} aria-hidden={subtreeScopeInvalid || undefined}>
                   {canonicalRecoveryBlocked ? <div role="alert">
-                    저장 결과를 확인할 수 없습니다. 초안은 유지되며 저장을 자동으로 다시 보내지 않습니다.
-                    <button className="secondary-button" type="button" onClick={() => void reloadCanonicalSnapshot()}>최신 상태 다시 조회</button>
+                    {t("저장 결과를 확인할 수 없습니다. 초안은 유지되며 저장을 자동으로 다시 보내지 않습니다.")}<button className="secondary-button" type="button" onClick={() => void reloadCanonicalSnapshot()}>{t("최신 상태 다시 조회")}</button>
                   </div> : null}
                   <ProjectGantt mutationRequest={canonicalMutationRequest} mutationPending={isSavingTask} canonicalRecoveryBlocked={canonicalRecoveryBlocked} onViewportController={registerViewportController} viewVisible={activeView === "schedule" && !subtreeScopeInvalid} onPublicViewportReader={registerPublicGanttViewportReader} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore?.snapshot === state.snapshot && peerChartRestore.generation === ganttResetGeneration ? peerChartRestore : null} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
           operationNotice={convertedMilestoneNotice?.publicId === publicId && activeView === "schedule" && !milestoneConversion ? <MilestoneConversionNotice name={convertedMilestoneNotice.name} disabled={busy || navigationLoading || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} onOpen={trigger => void openConvertedMilestone(trigger)} onDismiss={() => { setConvertedMilestoneNotice(null); (document.fullscreenElement?.querySelector<HTMLElement>(".project-gantt-scroll") ?? taskSearchReference.current)?.focus({ preventScroll: true }); }} /> : null}
@@ -3687,9 +3703,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
       <section id="project-panel-milestones" role="tabpanel" aria-labelledby="project-tab-milestones"
         hidden={activeView !== "milestones"} className="project-workspace-panel project-milestone-panel">
         {createdMilestoneNotice?.publicId === publicId ? <div role="status" className={milestoneWbsStyles.notice}>
-          <p>{createdMilestoneNotice.name} Milestone을 추가했습니다. 조회 조건에 따라 목록에 보이지 않을 수 있습니다. 상세에서 확인하거나 아래 전체 상태·관리의 검색·표시 조건을 변경해 주세요.</p>
-          <button type="button" className="secondary-button" disabled={busy || navigationLoading || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null || !tasks.some(task => task.taskId === createdMilestoneNotice.taskId)} onClick={event => openTaskEditor(createdMilestoneNotice.taskId, "task", event.currentTarget)}>추가한 Milestone 상세</button>
-          <button type="button" className="secondary-button" onClick={() => { setCreatedMilestoneNotice(null); focusMilestoneDashboard(); }}>추가 안내 닫기</button>
+          <p>{createdMilestoneNotice.name}{t(" Milestone을 추가했습니다. 조회 조건에 따라 목록에 보이지 않을 수 있습니다. 상세에서 확인하거나 아래 전체 상태·관리의 검색·표시 조건을 변경해 주세요.")}</p>
+          <button type="button" className="secondary-button" disabled={busy || navigationLoading || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null || !tasks.some(task => task.taskId === createdMilestoneNotice.taskId)} onClick={event => openTaskEditor(createdMilestoneNotice.taskId, "task", event.currentTarget)}>{t("추가한 Milestone 상세")}</button>
+          <button type="button" className="secondary-button" onClick={() => { setCreatedMilestoneNotice(null); focusMilestoneDashboard(); }}>{t("추가 안내 닫기")}</button>
         </div> : null}
         <MilestoneWbsDashboard tasks={tasks} publicId={publicId} revision={project.revision} active={activeView === "milestones"}
           busy={busy || navigationLoading || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
@@ -3756,7 +3772,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
       <section
         id="project-panel-logistics"
         role="tabpanel"
-        aria-label={activeScreen === "master.relations" ? "제어·조율 관계" : undefined}
+        aria-label={activeScreen === "master.relations" ? t("제어·조율 관계") : undefined}
         aria-labelledby={activeScreen === "master.relations" ? undefined : activeScreen === "master.processes" ? "project-tab-logistics" : `project-tab-${activeScreen}`}
         hidden={activeView !== "logistics"}
         className="project-workspace-panel project-logistics-panel"
@@ -3826,19 +3842,19 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
         />
       </section>
       <section id="project-panel-resource-master" role="tabpanel" aria-labelledby="project-tab-master.resources" hidden={activeView !== "resource-master"} className="project-workspace-panel project-resource-panel">
-        {kpiResourceOrigin ? <aside aria-label="KPI에서 선택한 리소스">
+        {kpiResourceOrigin ? <aside aria-label={t("KPI에서 선택한 리소스")}>
           <strong>{kpiResourceOrigin.name}</strong>
-          <IdentifierDetails identifiers={[{ label: "리소스 ID", value: kpiResourceOrigin.id }, ...(kpiResourceOrigin.code ? [{ label: "리소스 코드", value: kpiResourceOrigin.code }] : [])]} />
-          <p>KPI에서 선택한 리소스입니다. 아래 프로젝트 전체 참여·배정 목록은 별도 범위입니다.</p>
-          {kpiResourceOrigin.revision !== project.revision ? <p role="status">프로젝트가 변경되었습니다. KPI로 돌아가 최신 결과를 확인하세요.</p> : null}
+          <IdentifierDetails identifiers={[{ label: t("리소스 ID"), value: kpiResourceOrigin.id }, ...(kpiResourceOrigin.code ? [{ label: t("리소스 코드"), value: kpiResourceOrigin.code }] : [])]} />
+          <p>{t("KPI에서 선택한 리소스입니다. 아래 프로젝트 전체 참여·배정 목록은 별도 범위입니다.")}</p>
+          {kpiResourceOrigin.revision !== project.revision ? <p role="status">{t("프로젝트가 변경되었습니다. KPI로 돌아가 최신 결과를 확인하세요.")}</p> : null}
           <button type="button" className="secondary-button" disabled={busy || editorSession !== null} onClick={() => {
             const origin = kpiResourceOrigin;
             setKpiResourceOrigin(null);
             applyNavigation(origin.source, true, true);
-          }}>KPI로 돌아가기</button>
+          }}>{t("KPI로 돌아가기")}</button>
         </aside> : null}
         <ProjectResourceMemberships openResourceRequest={wbsEntityRequest?.dimension === "resource" ? wbsEntityRequest : null} onResourceRequestHandled={finishWbsEntityRequest} recoveryRequired={canonicalRecoveryBlocked} publicId={publicId} revision={project.revision} active={activeView === "resource-master"} editable={editing} disabled={busy || editorSession !== null} onChanged={reloadCanonicalSnapshot} onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }} taskNames={new Map(tasks.map(task => [task.taskId, task.name]))} onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })} />
-        <button type="button" className={`secondary-button ${resourceMembershipStyles.scheduleAction}`} onClick={() => selectScreen("schedule")}>작업 일정에서 배정 관리</button>
+        <button type="button" className={`secondary-button ${resourceMembershipStyles.scheduleAction}`} onClick={() => selectScreen("schedule")}>{t("작업 일정에서 배정 관리")}</button>
       </section>
     </div>
 
@@ -3860,32 +3876,32 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
 
     {unlockOpen && !editing ? (
         <WorkspaceDialog
-      title="편집 활성화"
+      title={t("편집 활성화")}
       restoreFocusRef={unlockTriggerReference}
       busy={isUnlocking}
       onClose={() => { if (!isUnlocking) { setUnlockOpen(false); setUnlockPassword(""); } }}
     >
       <form className="project-form compact-form" noValidate onSubmit={unlock}>
-        <p>편집 비밀번호를 확인한 뒤 현재 브라우저 세션에서 편집 모드를 활성화합니다.</p>
-        <div className="form-field"><label htmlFor="unlock-edit-password">편집 비밀번호</label>
+        <p>{t("편집 비밀번호를 확인한 뒤 현재 브라우저 세션에서 편집 모드를 활성화합니다.")}</p>
+        <div className="form-field"><label htmlFor="unlock-edit-password">{t("편집 비밀번호")}</label>
           <input autoFocus autoComplete="current-password" disabled={isUnlocking || permissionCheckState === "checking"} id="unlock-edit-password" onChange={(event) => setUnlockPassword(event.target.value)} type="password" value={unlockPassword} /></div>
-        <button className="primary-button" disabled={isUnlocking || permissionCheckState === "checking"} type="submit">{isUnlocking ? "확인 중…" : "편집 활성화"}</button>
+        <button className="primary-button" disabled={isUnlocking || permissionCheckState === "checking"} type="submit">{isUnlocking ? t("확인 중…") : t("편집 활성화")}</button>
       </form>
     </WorkspaceDialog> ) : null}
     {milestoneConversion ? <MilestoneConversionConfirm name={milestoneConversion.name} pending={isSavingTask} editable={editing} current={milestoneConversion.publicId === publicId && milestoneConversion.revision === project.revision} legacy={wbsLegacy} error={milestoneConversionError} restoreFocusRef={milestoneConversionTrigger} onClose={closeMilestoneConversion} onAfterClose={restoreMilestoneConversionFocus} onConfirm={() => void confirmMilestoneConversion()} /> : null}
     {milestoneCreate ? <MilestoneCreateDialog pending={isSavingTask} editable={editing} stale={milestoneCreate.publicId !== publicId || milestoneCreate.revision !== project.revision} restoreFocusRef={milestoneCreateTriggerReference} onClose={closeMilestoneCreate} onCreate={createRootMilestone} /> : null}
     {pendingTaskDelete ? (
-        <WorkspaceDialog title="작업 삭제" restoreFocusRef={deleteTriggerReference} busy={isSavingTask}
+        <WorkspaceDialog title={t("작업 삭제")} restoreFocusRef={deleteTriggerReference} busy={isSavingTask}
       onClose={closeTaskDelete}>
       <div className="project-form compact-form">
-        <p><strong>{pendingTaskDelete.taskName}</strong> 작업과 하위 작업 {" "}
-              {pendingTaskDelete.descendantTaskIds.length}개, 총 {" "}
-              {pendingTaskDelete.descendantTaskIds.length + 1}개 작업을 삭제하시겠습니까?</p>
-        <p>WBS에서 숨긴 Milestone {tasks.filter(task => task.type === "milestone" && (task.taskId === pendingTaskDelete.taskId || pendingTaskDelete.descendantTaskIds.includes(task.taskId))).length}개도 삭제 대상에 포함됩니다.</p>
-        <p>접힌 하위 작업을 포함하여 모든 하위 작업이 함께 삭제됩니다. 삭제 후에는 이 화면에서 되돌릴 수 없습니다.</p>
+        <p><strong>{pendingTaskDelete.taskName}</strong>{t(" 작업과 하위 작업 ")}{" "}
+              {pendingTaskDelete.descendantTaskIds.length}{t("개, 총 ")}{" "}
+              {pendingTaskDelete.descendantTaskIds.length + 1}{t("개 작업을 삭제하시겠습니까?")}</p>
+        <p>{t("WBS에서 숨긴 Milestone ")}{tasks.filter(task => task.type === "milestone" && (task.taskId === pendingTaskDelete.taskId || pendingTaskDelete.descendantTaskIds.includes(task.taskId))).length}{t("개도 삭제 대상에 포함됩니다.")}</p>
+        <p>{t("접힌 하위 작업을 포함하여 모든 하위 작업이 함께 삭제됩니다. 삭제 후에는 이 화면에서 되돌릴 수 없습니다.")}</p>
         <div className={feedbackStyles.headingActions}>
-          <button autoFocus className="secondary-button" disabled={isSavingTask} onClick={closeTaskDelete} type="button">취소</button>
-          <button className="danger-button" disabled={isSavingTask} onClick={() => void confirmTaskDelete()} type="button">{isSavingTask ? "삭제 중…" : "하위 작업 포함 삭제"}</button>
+          <button autoFocus className="secondary-button" disabled={isSavingTask} onClick={closeTaskDelete} type="button">{t("취소")}</button>
+          <button className="danger-button" disabled={isSavingTask} onClick={() => void confirmTaskDelete()} type="button">{isSavingTask ? t("삭제 중…") : t("하위 작업 포함 삭제")}</button>
         </div>
       </div>
     </WorkspaceDialog> ) : null}

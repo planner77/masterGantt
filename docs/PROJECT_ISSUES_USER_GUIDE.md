@@ -54,3 +54,9 @@ Issue 탭의 스크롤은 목록에 배치되어, 건수가 많을 때도 KPI·�
 비밀번호는 URL, GET 결과, 로그, 로컬 스토리지에 남기지 않는다. 무편집세션 신규 등록은 전체 120/15분·Project별 20/15분 단일 인스턴스 요청 제한을 적용하며, 다중 App 프로세스에서는 공유 ingress 제한이 추가로 필요하다. 제한 초과는 429와 Retry-After를 반환한다. Origin 검증/CSRF, JSON body 제한, 강한 If-Match, 인증 rate limit, 서버 KDF, 사후 transaction 재검증이 적용된다. 배포 환경이 여러 프로세스인 경우 현재 인메모리 rate limit은 각 프로세스 기준이므로 프록시 공통 인증 제한이 추가로 필요하다. 프로젝트 자체 삭제는 기존 FK CASCADE 및 백업 복구 계약을 따르며 Issue 논리 삭제와 다르다.
 
 참조: [API](API.md), [Security](SECURITY.md), [DB](DB_SCHEMA.md), [UX](PROJECT_UX.md), [#846 실행 계획](exec-plans/active/ISSUE_846.md).
+
+## 표시 언어와 입력 내용 (#866 Phase C)
+
+언어 선택기에서 한국어·English·Tiếng Việt를 선택하면 Issue 화면의 고정 메뉴·상태명·도움말·검증 안내와 읽기용 날짜·숫자가 바뀐다. Issue명·내용·등록자·담당자 이름·관련 Task 원문은 자동 번역하지 않는다. 상태의 저장값과 Issue/Task/Resource 연결 ID, 프로젝트 revision과 개별 Issue 비밀번호 규칙도 유지된다.
+
+언어를 바꾸어도 작성 중인 초안·검색/상태/페이지 선택·열린 dialog가 초기화되거나 저장되지 않는다. 다른 사용자 변경으로 생긴 412 또는 권한 오류는 언어 선택으로 해결되지 않으므로 기존 안내에 따라 최신 정보를 확인한다. 알림과 복사 문구는 현재 언어로 표시하지만 사용자 입력값과 code/requestId는 원문을 보존한다. 세부 계약은 [Phase C 설계](I18N_PHASE_C.md)를 따른다. 현재 새 Head의 원격 E2E·최종 수동 UX는 NOT TESTED다.

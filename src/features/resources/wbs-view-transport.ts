@@ -32,6 +32,9 @@ const scoped = base.extend({projection:z.literal("scope"),...identity.shape,path
 const responseSchema = z.discriminatedUnion("projection",[report,details,scoped]);
 export const stableWbsValue = (value:unknown):string => Array.isArray(value) ? `[${value.map(stableWbsValue).join(",")}]` : value && typeof value === "object" ? `{${Object.entries(value).filter(([,v])=>v!==undefined).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>`${JSON.stringify(k)}:${stableWbsValue(v)}`).join(",")}}` : JSON.stringify(value) ?? "null";
 const normalizeScope=(value:WbsViewQueryInput["scope"])=>!value?null:value.kind==="summarySubtree"?value:value.kind==="scheduleSelection"?{kind:value.kind,nodeIds:[...new Set(value.nodeIds)].sort()}:{kind:value.kind,assignmentIds:[...new Set(value.assignmentIds)].sort()};
+export function wbsViewErrorMessage(cause: unknown, fallback = "조회 요청에 실패했습니다. 다시 시도해 주세요."): string {
+  return cause instanceof WbsViewTransportError ? cause.message : fallback;
+}
 export class WbsViewTransportError extends Error {
   constructor(readonly code:string,message:string,readonly status:number=0) { super(message); this.name="WbsViewTransportError"; }
   get isStale() { return this.code === "STALE_SNAPSHOT" || this.code === "STALE_RESPONSE" || this.status === 409; }

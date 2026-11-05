@@ -25,6 +25,20 @@ describe("logistics display identity", () => {
     expect(peers.map(item => logisticsName(item, peers))).toEqual(["AGV (AGV-A)", "AGV (AGV-B)"]);
     expect(logisticsName({ name: " ", code: "legacy-raw-code" }, [])).toBe("이름 확인 필요 (legacy-raw-code)");
   });
+
+  it("disambiguates translated collisions independently for each locale", () => {
+    const peers = [
+      { name: "반입", code: "IN", sortOrder: 1, translations: { en: "Transfer", vi: "Nhập" } },
+      { name: "반출", code: "OUT", sortOrder: 2, translations: { en: "Transfer" } },
+    ];
+    expect(logisticsName(peers[0], peers, "en")).toBe("Transfer (Order 1)");
+    expect(logisticsName(peers[1], peers, "en")).toBe("Transfer (Order 2)");
+    expect(logisticsName(peers[0], peers, "vi")).toBe("Nhập");
+    expect(logisticsName(peers[1], peers, "vi")).toBe("반출");
+    expect(logisticsName(peers[0], peers, "ko")).toBe("반입");
+    expect(peers[0].code).toBe("IN");
+  });
+
 });
 
 describe("task name paths", () => {
@@ -52,4 +66,14 @@ describe("logistics instance search", () => {
     expect(logisticsMatchesQuery(instance, "unknown-id")).toBe(false);
     expect(instance.code).toBe("EQ-Canonical");
   });
+
+  it("searches raw and current-language names without leaking other translations", () => {
+    const instance = { name: "입고 설비", code: "EQ-1", id: "canonical-id", translations: { en: "Receiving", vi: "Tiếp nhận" } };
+    expect(logisticsMatchesQuery(instance, "receiving", "en")).toBe(true);
+    expect(logisticsMatchesQuery(instance, "입고", "en")).toBe(true);
+    expect(logisticsMatchesQuery(instance, "Tiếp", "en")).toBe(false);
+    expect(logisticsMatchesQuery(instance, "Tiếp", "vi")).toBe(true);
+    expect(instance).toMatchObject({ name: "입고 설비", code: "EQ-1", id: "canonical-id" });
+  });
+
 });

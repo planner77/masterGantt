@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { INITIAL_NOTIFICATION_STATE, MAX_NOTIFICATIONS, TOAST_DURATION_MS, formatNotification, notificationReducer, safeNotificationMetadata, type WorkspaceNotice } from "../../src/components/workspace-notification-state";
+import { localizedNoticeText, INITIAL_NOTIFICATION_STATE, MAX_NOTIFICATIONS, TOAST_DURATION_MS, formatNotification, notificationReducer, safeNotificationMetadata, type WorkspaceNotice } from "../../src/components/workspace-notification-state";
 
 const notice = (id: number, kind: WorkspaceNotice["kind"] = "error"): WorkspaceNotice => ({
   id, kind, message: "안전한 안내", operation: "작업 저장", occurredAt: "2026-09-13T12:00:00Z", read: false,
@@ -50,7 +50,39 @@ describe("작업공간 알림 정책", () => {
   it("locale 시각과 안전한 내용을 출력하며 없는 요청 ID를 만들지 않는다", () => {
     const text = formatNotification(notice(1), "프로젝트 A");
     expect(text).toContain("대상: 프로젝트 A");
-    expect(text).toContain(new Date(notice(1).occurredAt).toLocaleString());
+    expect(text).toContain(new Date(notice(1).occurredAt).toLocaleString("ko-KR"));
     expect(text).toContain("작업: 작업 저장"); expect(text).not.toContain("요청 ID:");
   });
+  it("changes presentation across locales without mutating notification identity or opaque names", () => {
+    const original = { ...notice(42), message: "{name} 상태를 {status}(으)로 변경했습니다.", presentation: { parameters: { name: "설정" }, labels: { status: "완료" } } };
+    const before = JSON.stringify(original);
+    for (const locale of ["ko", "en", "vi"] as const) {
+      const rendered = localizedNoticeText(original, locale);
+      expect(rendered).toContain("설정");
+      expect(formatNotification(original, "Project", locale)).toContain(new Date(original.occurredAt).toLocaleString(locale === "en" ? "en-US" : locale === "vi" ? "vi-VN" : "ko-KR"));
+    }
+    expect(localizedNoticeText(original, "en")).not.toContain("상태를");
+    expect(JSON.stringify(original)).toBe(before);
+    expect(original.id).toBe(42);
+  });
+
+  it("retranslates saved-task segments while preserving names, external IDs, dates and notice state", () => {
+    const original: WorkspaceNotice = { ...notice(43), message: "작업을 저장했습니다.", presentation: { segments: [
+      { key: " 비근무일 시작은 다음 근무일로 조정되었습니다." },
+      { key: " 요청 시작일 {requested} → 적용 시작일 {applied}.", parameters: { requested: "2032-01-01", applied: "2032-01-02" } },
+      { key: " 후행 작업 {count}건의 일정이 조정되었습니다: {tasks}", parameters: { count: 4, tasks: "설정 (TASK-외부), 완료 (TASK-2)" } },
+      { key: " 외 {count}건", parameters: { count: 1 } }, { key: "." },
+    ] } };
+    const before = JSON.stringify(original);
+    expect(localizedNoticeText(original, "ko")).toBe("작업을 저장했습니다. 비근무일 시작은 다음 근무일로 조정되었습니다. 요청 시작일 2032-01-01 → 적용 시작일 2032-01-02. 후행 작업 4건의 일정이 조정되었습니다: 설정 (TASK-외부), 완료 (TASK-2) 외 1건.");
+    for (const locale of ["en", "vi"] as const) {
+      const rendered = localizedNoticeText(original, locale);
+      expect(rendered).toContain("설정 (TASK-외부), 완료 (TASK-2)");
+      expect(rendered).toContain("2032-01-01");
+      expect(rendered).toContain("2032-01-02");
+      expect(rendered).not.toContain("후행 작업");
+    }
+    expect(JSON.stringify(original)).toBe(before);
+  });
+
 });

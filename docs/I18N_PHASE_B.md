@@ -73,3 +73,9 @@
 Full #3519.1에는 물류 검색 입력 coarse 20px과 취소된 shard7의 프로젝트 생성 표시명 누락이라는 직접 오류 두 개가 있다. 이전 #870의 검색 높이 교정이 Phase B 선택 이식에서 빠진 점까지 대조한다. 물류 검색은 기존 40/44px 변수를 상속하고, 생성·설정 공유 선택기는 현재 언어 표시명으로 label과 동명 여부를 함께 계산하되 원본 ID·코드·종속 필터·비활성 기존 선택·초안을 보존한다. 동일 로컬 진단에서 드러난 영어 표 행56.5px은 사용량 단위를 기존 사전의 Projects/Dự án으로 축약하고 전체 title을 보존하며, 영어390px category tabs의 문서398px overflow는 header/tabs의 min-width:0 및 내부 scroll로 교정한다. 번역 저장 서비스·API·DB/권한 및 자유 입력 원문은 변경하지 않는다.
 
 기존 실패 테스트 합집합과 직접·인접·음성 소비자의 동일 source 진단 결과는 [단일 실패 원장](ISSUE_866_FAILURE_ANALYSIS.md)에 기록한다. 원본 취소/미실행과 새 CI NOT TESTED를 구분하며 Phase C 및 운영 백업·복원은 미완료다.
+
+## Phase C 연결과 유지되는 경계 (2026-11-05)
+
+[Phase C 설계](I18N_PHASE_C.md)는 이 문서의 owner별 저장·권한·fallback·생략/명시 삭제 계약을 유지하면서 전체 화면 고정 문구와 날짜·숫자 표시를 연결한다. Equipment/System 및 legacy Process dialog는 원본 name과 수동 ko/en/vi 초안을 분리하고 변경 없는 translations 필드를 생략한다. Project Master의 `TranslationDraftSnapshot`, 물류 유형의 시작 revision 고정·412 stale 잠금, B007/B008의 이름+번역 버튼 밀도·검색 높이 보완은 재적용 과정에서도 유지한다.
+
+Phase B의 “Phase C 예정/후속”은 당시 검증 범위를 설명하는 역사 기록이다. 현재 Phase C 소스 반영만으로 Phase A+B의 원격 성공을 새 Head에 재사용하거나 전체 #866 완료로 승격하지 않는다. HIGH / OWNER_MANAGED / qa_required=true를 유지하며 새 Head의 원격 quality/e2e/docker와 최종 수동 UX는 NOT TESTED다. 독립 인간 QA·Owner ACCEPT·정식 릴리스 승인은 별도다.

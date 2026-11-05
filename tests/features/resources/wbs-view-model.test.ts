@@ -1,7 +1,7 @@
 import { describe,it,expect } from "vitest";
 import { WBS_VIEW_DIMENSIONS } from "../../../src/contracts/wbs-dashboard-views";
 import { parseWbsViewQuery } from "../../../src/server/resources/wbs-dashboard-views-query-core";
-import { WBS_VIEW_ROOTS,defaultWbsViewSpec,validateWbsViewSpec,flattenWbsViewNodes } from "../../../src/features/resources/wbs-view-model";
+import { WBS_VIEW_ROOTS,defaultWbsViewSpec,validateWbsViewSpec,flattenWbsViewNodes,wbsViewNodeLabel } from "../../../src/features/resources/wbs-view-model";
 import { loadWbsViewState,saveWbsViewState,type WbsViewStoredState } from "../../../src/features/resources/wbs-view-storage";
 import { wbsDashboardViewsFixture } from "../../fixtures/wbs-dashboard-views";
 const oracle=(spec:unknown)=>{try{parseWbsViewQuery({spec});return true;}catch{return false;}};
@@ -23,6 +23,18 @@ describe("WBS client spec server-oracle parity",()=>{
   for(const root of WBS_VIEW_DIMENSIONS) for(const dimensions of [["equipment","system"],["system","equipment"],["system","system"],["resource","group"],["equipment"]]) for(const tail of [[],["workArea"],[root]]){
    const value={...defaultWbsViewSpec(root),levels:[{kind:"siblings",dimensions},...tail]};expect(validateWbsViewSpec(value).ok).toBe(oracle(value));
   }
+ });
+ it("localizes only managed labels and leaves exact node identity and totals untouched",()=>{
+  const f=wbsDashboardViewsFixture();
+  try {
+   const report=f.service.queryWbsView(f.project.publicId,{spec:defaultWbsViewSpec("equipment")})!;
+   if(report.projection!=="report")throw Error("report");
+   const base={...report.children[0],name:"User name",translations:{en:"Managed name",vi:"Tên quản lý"}};
+   const before=JSON.stringify(base);
+   expect(wbsViewNodeLabel(base,"en")).toBe("Managed name");
+   for(const dimension of ["resource","milestone"] as const)expect(wbsViewNodeLabel({...base,selector:{dimension,id:"canonical"}},"vi")).toBe("User name");
+   expect(JSON.stringify(base)).toBe(before);
+  }finally{f.database.close();}
  });
  it("rejects obsolete/unknown schema and preserves exact server nodes under flatten sort",()=>{
   for(const value of [null,{}, {...defaultWbsViewSpec("process"),unknown:true},{...defaultWbsViewSpec("equipment"),levels:["equipment"]}]) expect(validateWbsViewSpec(value).ok).toBe(oracle(value));

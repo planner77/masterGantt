@@ -41,7 +41,7 @@ function isAdminCatalog(value: unknown): value is ProjectMasterAdminResponse {
 function revisionTag(revision: number): string { return `"${revision}"`; }
 
 export function ProjectMasterAdmin() {
-  const { t, locale } = useI18n();
+  const { t, locale, formatNumber } = useI18n();
   const [authenticated, setAuthenticated] = useState(false);
   const [catalog, setCatalog] = useState<ProjectMasterAdminResponse | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("error");
@@ -363,7 +363,7 @@ export function ProjectMasterAdmin() {
           <div className={styles.listToolbar}>
             <div className={styles.subsectionHeading}>
               <h3 id="project-master-list-title">{categoryLabel} {t("목록")}</h3>
-              <p className={styles.note}>{t("전체")}{" "}{categoryItems.length}{t("건 · 표시")}{" "}{items.length}{t("건")}</p>
+              <p className={styles.note}>{t("전체")}{" "}{formatNumber(categoryItems.length)}{t("건 · 표시")}{" "}{formatNumber(items.length)}{t("건")}</p>
             </div>
             <label className={styles.field}>{t("이름 또는 코드 검색")}<input value={search} onChange={event => setSearch(event.target.value)} disabled={busy} /></label>
             <div className={styles.statusFilters} role="group" aria-label={t("{value0} 상태 필터", {value0: categoryLabel})}>
@@ -407,26 +407,26 @@ export function ProjectMasterAdmin() {
                         <div className={styles.nameControl}><input aria-invalid={fieldErrors[`${item.id}-name`] ? true : undefined} aria-describedby={fieldErrors[`${item.id}-name`] ? `${item.id}-name-error` : undefined} aria-label={t("{value0} 이름", {value0: displayName(item, locale)})} value={draft.name} title={draft.name} maxLength={200} disabled={busy || state !== "ready"}
                           onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, name: event.target.value } }))} />
                         <TranslationEditor item={item} revision={catalog!.data.revision} presentation="dialog" compactTrigger cachedDraft={translationDrafts[`project-master:${item.id}`]} onDraftChange={value=>updateTranslationDraft(`project-master:${item.id}`,value)} disabled={busy || state !== "ready"} onSave={(translations) => mutate(`/api/project-master/admin/items/${encodeURIComponent(item.id)}`, "PATCH", { translations })} /></div>
-                        {fieldErrors[`${item.id}-name`] ? <p id={`${item.id}-name-error`} className={styles.error}>{fieldErrors[`${item.id}-name`]}</p> : null}
+                        {fieldErrors[`${item.id}-name`] ? <p id={`${item.id}-name-error`} className={styles.error}>{t(fieldErrors[`${item.id}-name`])}</p> : null}
                       </td>
                       <td>
                         <input aria-invalid={fieldErrors[`${item.id}-code`] ? true : undefined} aria-label={t("{value0} 코드", {value0: displayName(item, locale)})} value={draft.code} maxLength={64} disabled={busy || state !== "ready" || (item.usageCount ?? 0) > 0}
                           aria-describedby={(item.usageCount ?? 0) > 0 ? "project-master-used-code-hint" : fieldErrors[`${item.id}-code`] ? `${item.id}-code-error` : undefined}
                           title={(item.usageCount ?? 0) > 0 ? t("사용 중인 안정 코드는 변경할 수 없습니다.") : undefined}
                           onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, code: event.target.value } }))} />
-                        {fieldErrors[`${item.id}-code`] ? <p id={`${item.id}-code-error`} className={styles.error}>{fieldErrors[`${item.id}-code`]}</p> : null}
+                        {fieldErrors[`${item.id}-code`] ? <p id={`${item.id}-code-error`} className={styles.error}>{t(fieldErrors[`${item.id}-code`])}</p> : null}
                       </td>
                       <td className={styles.sortCell}>
                         <input aria-invalid={fieldErrors[`${item.id}-sortOrder`] ? true : undefined} aria-describedby={fieldErrors[`${item.id}-sortOrder`] ? `${item.id}-sortOrder-error` : undefined} aria-label={t("{value0} 정렬 순서", {value0: displayName(item, locale)})} type="number" min={0} max={1000000} value={draft.sortOrder} disabled={busy || state !== "ready"}
                           onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, sortOrder: Number(event.target.value) } }))} />
-                        {fieldErrors[`${item.id}-sortOrder`] ? <p id={`${item.id}-sortOrder-error`} className={styles.error}>{fieldErrors[`${item.id}-sortOrder`]}</p> : null}
+                        {fieldErrors[`${item.id}-sortOrder`] ? <p id={`${item.id}-sortOrder-error`} className={styles.error}>{t(fieldErrors[`${item.id}-sortOrder`])}</p> : null}
                       </td>
                       <td>
                         <div className={styles.statusMeta}>
                           <span className={`${styles.statusBadge} ${item.active ? styles.statusActive : styles.statusInactive}`}>
                             {item.active ? t("활성") : t("비활성")}
                           </span>
-                          <span className={styles.usage} title={`${t("사용 프로젝트")} ${item.usageCount ?? 0}`}><span>{t("프로젝트")}</span>{" "}<span>{item.usageCount ?? 0}</span></span>
+                          <span className={styles.usage} title={`${t("사용 프로젝트")} ${formatNumber(item.usageCount ?? 0)}`}><span>{t("프로젝트")}</span>{" "}<span>{formatNumber(item.usageCount ?? 0)}</span></span>
                         </div>
                       </td>
                       <td>

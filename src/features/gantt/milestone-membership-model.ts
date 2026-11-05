@@ -1,3 +1,4 @@
+import { translate, type MessageParameters } from "../../lib/i18n";
 import type { ProjectTaskDto, ProjectLinkDto, ProjectCalendarDto } from "../../contracts/projects";
 import type { MilestoneMembershipCommand } from "../../contracts/milestones";
 import { previewMilestoneMemberships, stageSnapshotFromProject } from "../../domain/milestones/project-stage-model";
@@ -20,11 +21,11 @@ export function membershipImpact(tasks: readonly ProjectTaskDto[], links: readon
   const before = membershipProjection(tasks, links), after = membershipProjection(tasks, links, changes);
   return tasks.filter((task) => task.type === "task" && before.membership.get(task.taskId)?.effectiveMilestoneTaskId !== after.membership.get(task.taskId)?.effectiveMilestoneTaskId).length;
 }
-export function membershipDescription(task: ProjectTaskDto, tasks: readonly ProjectTaskDto[], membership = task.membership): string {
-  if (!membership?.effectiveMilestoneTaskId) return "미지정";
+export function membershipDescription(task: ProjectTaskDto, tasks: readonly ProjectTaskDto[], membership = task.membership, t: (key: string, parameters?: MessageParameters) => string = (key, parameters) => translate("ko", key, parameters)): string {
+  if (!membership?.effectiveMilestoneTaskId) return t("미지정");
   const target = tasks.find((row) => row.taskId === membership.effectiveMilestoneTaskId);
   const source = tasks.find((row) => row.taskId === membership.inheritedFromTaskId);
-  return `${target?.name ?? membership.effectiveMilestoneTaskId} · ${source ? `${source.name}에서 상속` : "직접 지정"}`;
+  return `${target?.name ?? membership.effectiveMilestoneTaskId} · ${source ? t("{name}에서 상속", { name: source.name }) : t("직접 지정")}`;
 }
 
 /** WBS labels are presentation only. Legacy undated canonical records remain

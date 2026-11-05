@@ -1,3 +1,9 @@
+## Issue #866 Phase C — 전체 화면 표시 언어 (2026-11-05)
+
+[Phase C 설계](docs/I18N_PHASE_C.md)에 따라 고정 문구·ARIA·도움말·상태/검증·읽기용 날짜/수량을 ko/en/vi로 표시한다. 관리형 name은 현재 locale의 표시명→원본 name으로 fallback하며 ID·선택·자유 입력은 보존한다. 언어 전환은 화면 identity가 아니므로 Gantt/Editor를 remount하거나 draft/scroll/filter/selection을 초기화하지 않는다.
+
+기존 surface별 density를 유지한다: 공용 admin fine40/coarse44px, Resource36/44px, Gantt34/44px, Editor44px. 긴 베트남어 때문에 버튼·고정 도움말을 숨기거나 문서 가로 overflow를 허용하지 않는다. 표·탭 자체의 내부 scroll 소유권과 focus/Escape 복원을 따른다. 고정 state나 관리형 이름을 최종 문자열로 저장하는 대신 descriptor를 현재 locale에서 렌더한다. 사용자 값은 재귀 번역하지 않는다. 최종 실제 검증/미검증은 Work Packet을 따른다.
+
 ## Issue #866 Phase B — 다국어 기준정보 표시명 UI 계약 (2026-11-05)
 
 - 프로젝트 생성·설정의 공유 기준정보 선택기는 현재 언어의 표시명을 사용하고, 같은 표시명이 겹칠 때만 기존 코드로 구별한다. 선택값·관계 필터·비활성 기존 선택은 원본 ID를 유지하며 언어 전환으로 초안을 초기화하지 않는다. 물류 유형 검색 입력도 기존 관리 화면의 fine 40px / coarse 44px 높이를 상속한다. 마스터 사용 건수는 짧은 지역화 단위를 가시 표시하고 전체 설명 title을 유지하며, 긴 category tabs의 overflow는 내부 스크롤이 소유한다.

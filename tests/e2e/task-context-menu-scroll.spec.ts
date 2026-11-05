@@ -50,7 +50,7 @@ test("#464 미선택 하단 가상 행 우클릭은 선택을 반영하고 위�
   await expect(taskContextMenu(page)).toHaveCount(0);
   await expect(row).toBeFocused();
   await row.getByText(task.name, { exact: true }).click({ button: "right" });
-  await taskContextMenu(page).getByRole("menuitem", { name: "Copy", exact: true }).click();
+  await taskContextMenu(page).getByRole("menuitem", { name: "복사", exact: true }).click();
   await expect(taskContextMenu(page)).toHaveCount(0);
   await expect.poll(viewport).toEqual({ nativeTop: 192, publicTop: 192 });
   expect(mutations).toHaveLength(0);
@@ -72,9 +72,9 @@ test("#464 미선택 하단 가상 행 우클릭은 선택을 반영하고 위�
   await expect(copyFeedback).toContainText("복사했습니다");
   await expect.poll(geometry).toEqual(beforeDestination);
   await expect.poll(viewport).toEqual({ nativeTop: 192, publicTop: 192 });
-  await expect(taskContextMenu(page).getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
-  await taskContextMenu(page).getByRole("menuitem", { name: "Paste", exact: true }).click();
-  await page.getByRole("menu", { name: "Paste", exact: true }).getByRole("menuitem", { name: "Below", exact: true }).click();
+  await expect(taskContextMenu(page).getByRole("menuitem", { name: "붙여넣기", exact: true })).toBeEnabled();
+  await taskContextMenu(page).getByRole("menuitem", { name: "붙여넣기", exact: true }).click();
+  await page.getByRole("menu", { name: "붙여넣기", exact: true }).getByRole("menuitem", { name: "아래에 붙여넣기", exact: true }).click();
   const confirmation = page.getByRole("dialog", { name: "복사 시 Milestone 소속 변경", exact: true });
   await expect(confirmation).toContainText("외부 명시 연결 제외 1개");
   expect(mutations).toHaveLength(0);

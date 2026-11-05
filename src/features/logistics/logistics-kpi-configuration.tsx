@@ -1,4 +1,8 @@
 "use client";
+import { displayName } from "../../lib/i18n";
+import { formatLocaleDateOnly } from "@/lib/date-display";
+import { useI18n } from "../../lib/i18n/provider";
+
 
 import { useEffect, useRef, useState } from "react";
 import type { LogisticsDashboardDto, LogisticsIntegratedKpiDto } from "@/contracts/logistics-dashboard";
@@ -25,6 +29,7 @@ interface Props {
 
 /** Diagnostics stay bound to one canonical server snapshot, including after an editor round trip. */
 export function LogisticsKpiConfiguration({ data, dashboard, tasks, logistics, enabled, onOpenTask, onOpenAssignment, onOpenMaster, onSchedule }: Props) {
+  const { t, locale, formatNumber, formatLocale } = useI18n();
   const [selection, setSelection] = useState<Selection | null>(null);
   const trigger = useRef<HTMLElement | null>(null);
   const summary = useRef<HTMLElement | null>(null);
@@ -42,7 +47,7 @@ export function LogisticsKpiConfiguration({ data, dashboard, tasks, logistics, e
     if (!enabled) return;
     trigger.current = event.currentTarget;
     setSelection({ label, kind, ids: [...ids], snapshotId: data.snapshotId });
-  }}><span>{label}</span><strong>{ids.length}{suffix}</strong></button>;
+  }}><span>{t(label)}</span><strong>{formatNumber(ids.length)}{t(suffix)}</strong></button>;
   const configuration = data.configuration, diagnostics = data.diagnostics;
   const master = (kind: Kind, id: string) => {
     if (kind === "process") return logistics?.processes.find(row => row.id === id) ?? dashboard.breakdowns.processes.find(row => row.id === id);
@@ -62,21 +67,21 @@ export function LogisticsKpiConfiguration({ data, dashboard, tasks, logistics, e
   };
   const selectedTaskIds = current ? exactTaskIds(current.kind, current.ids) : [];
   return <details className={styles.configuration} data-testid="logistics-kpi-configuration">
-    <summary ref={summary}>구성·연결 진단</summary>
-    <div className={styles.headingRow}><h3>등록 구성과 연결 상태</h3><ContextHelp label="구성·연결 진단 도움말">등록 구성은 관련 일반 Task·Assignment 집계와 별개입니다. 설비는 고유 인스턴스와 수량을 구별합니다. 미배정과 개인 투입률 미설정은 서로 다른 진단이며 설정된 0%는 미설정이 아닙니다. 진단은 전체 프로젝트의 일반 Task 기준이며 Owner·PI·주 제어기는 활성 마스터 기준입니다. 일정 이동은 서버가 반환한 정확한 Task ID로 제한합니다.</ContextHelp></div>
-    <p className={styles.scopeNote}>전체 프로젝트 구성·진단 · 현재 KPI 선택 범위와 별도</p>
-    <div className={styles.configurationGrid} aria-label="등록 구성">
+    <summary ref={summary}>{t("구성·연결 진단")}</summary>
+    <div className={styles.headingRow}><h3>{t("등록 구성과 연결 상태")}</h3><ContextHelp label={t("구성·연결 진단 도움말")}>{t("등록 구성은 관련 일반 Task·Assignment 집계와 별개입니다. 설비는 고유 인스턴스와 수량을 구별합니다. 미배정과 개인 투입률 미설정은 서로 다른 진단이며 설정된 0%는 미설정이 아닙니다. 진단은 전체 프로젝트의 일반 Task 기준이며 Owner·PI·주 제어기는 활성 마스터 기준입니다. 일정 이동은 서버가 반환한 정확한 Task ID로 제한합니다.")}</ContextHelp></div>
+    <p className={styles.scopeNote}>{t("전체 프로젝트 구성·진단 · 현재 KPI 선택 범위와 별도")}</p>
+    <div className={styles.configurationGrid} aria-label={t("등록 구성")}>
       {entry("등록 공정", "process", configuration.processIds)}
       {entry("등록 WorkArea", "workArea", configuration.workAreaIds)}
       {entry("등록 설비", "equipment", configuration.equipmentIds)}
-      <div className={styles.configurationValue}><span>등록 설비 총 수량</span><strong>{configuration.equipmentQuantity}대</strong></div>
+      <div className={styles.configurationValue}><span>{t("등록 설비 총 수량")}</span><strong>{formatNumber(configuration.equipmentQuantity)}{t("대")}</strong></div>
       {entry("등록 시스템", "system", configuration.systemIds)}
       {entry("등록 리소스", "resource", configuration.registeredResourceIds)}
       {entry("참여 리소스", "resource", configuration.participatingResourceIds)}
       {entry("개인 배정 리소스", "resource", configuration.assignedResourceIds)}
     </div>
-    <h4>연결·배정 진단</h4>
-    <div className={styles.configurationGrid} aria-label="연결·배정 진단">
+    <h4>{t("연결·배정 진단")}</h4>
+    <div className={styles.configurationGrid} aria-label={t("연결·배정 진단")}>
       {entry("물류 미연결 일반 Task", "task", diagnostics.unlinkedTaskIds)}
       {entry("물류 미연결 leaf Task", "task", diagnostics.unlinkedLeafTaskIds)}
       {entry("배정 없음", "task", diagnostics.completelyUnassignedTaskIds)}
@@ -93,27 +98,27 @@ export function LogisticsKpiConfiguration({ data, dashboard, tasks, logistics, e
       {entry("legacy 공정 문맥 Task", "task", diagnostics.legacyContextTaskIds)}
       {entry("공정 명시 미선택 Task", "task", diagnostics.explicitEmptyProcessTaskIds)}
     </div>
-    {selection && !current ? <p role="status">조회 snapshot이 바뀌어 이전 진단 이동을 차단했습니다. 현재 목록에서 다시 선택하세요.</p> : null}
-    {current ? <section className={styles.diagnosticDetail} aria-label={`${current.label} 상세`} onKeyDown={event => {
+    {selection && !current ? <p role="status">{t("조회 snapshot이 바뀌어 이전 진단 이동을 차단했습니다. 현재 목록에서 다시 선택하세요.")}</p> : null}
+    {current ? <section className={styles.diagnosticDetail} aria-label={t("{value0} 상세", {value0: t(current.label)})} onKeyDown={event => {
       if (event.key === "Escape" && !event.defaultPrevented && event.target instanceof HTMLElement && !event.target.closest('[role="dialog"]')) { event.preventDefault(); close(); }
     }}>
-      <div className={styles.headingRow}><h4 ref={heading} tabIndex={-1}>{current.label} ({current.ids.length})</h4><button type="button" onClick={close}>진단 목록으로 돌아가기</button></div>
-      <button type="button" disabled={!enabled || selectedTaskIds.length === 0} onClick={() => { if (enabled) onSchedule(selectedTaskIds); }}>일정에서 대상 Task 보기 ({selectedTaskIds.length})</button>
-      {!current.ids.length ? <p>해당 항목이 없습니다.</p> : <ul className={styles.diagnosticList}>{current.ids.map(id => {
+      <div className={styles.headingRow}><h4 ref={heading} tabIndex={-1}>{t(current.label)} ({formatNumber(current.ids.length)})</h4><button type="button" onClick={close}>{t("진단 목록으로 돌아가기")}</button></div>
+      <button type="button" disabled={!enabled || selectedTaskIds.length === 0} onClick={() => { if (enabled) onSchedule(selectedTaskIds); }}>{t("일정에서 대상 Task 보기 (")}{formatNumber(selectedTaskIds.length)})</button>
+      {!current.ids.length ? <p>{t("해당 항목이 없습니다.")}</p> : <ul className={styles.diagnosticList}>{current.ids.map(id => {
         const assignment = current.kind === "assignment" ? data.assignmentRows.find(row => row.id === id) : undefined;
         const task = tasks.find(row => row.taskId === (assignment?.taskId ?? id));
         const row = master(current.kind, id);
-        const name = current.kind === "task" ? task?.name : assignment ? `${task?.name || "작업 이름 확인 필요"} · ${assignment.targetName}` : row?.name;
-        return <li key={id}><div><strong>{name?.trim() || "이름 확인 필요"}</strong>
+        const name = current.kind === "task" ? task?.name : assignment ? `${task?.name || t("작업 이름 확인 필요")} · ${assignment.targetName}` : row ? displayName(row, locale) : undefined;
+        return <li key={id}><div><strong>{name?.trim() || t("이름 확인 필요")}</strong>
           <IdentifierDetails identifiers={[{ label: "원본 ID", value: id }, ...(row && "code" in row && row.code ? [{ label: "코드", value: row.code }] : [])]} />
-          {task && (current.kind === "task" || assignment) ? <span className={styles.scopeNote}>{task.start ?? "시작 미설정"} ~ {task.end ?? "종료 미설정"}</span> : null}
-          {current.kind === "workArea" ? <span className={styles.scopeNote}>관련 설비 {configuration.workAreas.find(area => area.id === id)?.equipmentIds.length ?? 0}개 · {configuration.workAreas.find(area => area.id === id)?.equipmentQuantity ?? 0}대 (그룹 간 공유 수량 비가산)</span> : null}
-          {assignment ? <span className={styles.scopeNote}>개인 투입률 {assignment.allocationPercent === null ? "미설정" : `${assignment.allocationPercent}%`}</span> : null}
+          {task && (current.kind === "task" || assignment) ? <span className={styles.scopeNote}>{task.start ? formatLocaleDateOnly(task.start, formatLocale) : t("시작 미설정")} ~ {task.end ? formatLocaleDateOnly(task.end, formatLocale) : t("종료 미설정")}</span> : null}
+          {current.kind === "workArea" ? <span className={styles.scopeNote}>{t("관련 설비")}{" "}{formatNumber(configuration.workAreas.find(area => area.id === id)?.equipmentIds.length ?? 0)}{t("개 ·")}{" "}{formatNumber(configuration.workAreas.find(area => area.id === id)?.equipmentQuantity ?? 0)}{t("대 (그룹 간 공유 수량 비가산)")}</span> : null}
+          {assignment ? <span className={styles.scopeNote}>{t("개인 투입률")}{" "}{assignment.allocationPercent === null ? t("미설정") : `${formatNumber(assignment.allocationPercent)}%`}</span> : null}
         </div><div className={styles.diagnosticActions}>
-          {(current.kind === "task" || assignment) ? <button type="button" disabled={!enabled || !onOpenTask || !task} onClick={event => { if (enabled && task) onOpenTask?.(task.taskId, event.currentTarget); }}>Task 원본</button> : null}
-          {assignment ? <button type="button" disabled={!enabled || !onOpenAssignment || assignment.targetKind !== "resource"} onClick={event => { if (enabled && assignment.targetKind === "resource") onOpenAssignment?.(assignment.taskId, assignment.id, assignment.targetId, event.currentTarget); }}>Assignment 원본</button> : null}
-          {current.kind === "workArea" ? configuration.workAreas.find(area => area.id === id)?.processIds.map(processId => <button type="button" key={processId} data-process-id={processId} disabled={!enabled || !onOpenMaster} onClick={event => { if (enabled) onOpenMaster?.("workArea", id, event.currentTarget); }}>{logistics?.processes.find(process => process.id === processId)?.name || "공정 이름 확인 필요"} 원본 구성 보기</button>) : null}
-          {!["task", "assignment", "workArea"].includes(current.kind) ? <button type="button" data-process-id={current.kind === "workArea" ? configuration.workAreas.find(area => area.id === id)?.processIds[0] : undefined} disabled={!enabled || !onOpenMaster || !row || (current.kind === "workArea" && !configuration.workAreas.find(area => area.id === id)?.processIds.length)} onClick={event => { if (enabled && row) onOpenMaster?.(current.kind as KpiMasterKind, id, event.currentTarget, current.kind === "resource" ? data.resourceRows.find(resource => resource.id === id) : undefined); }}>원본 구성 보기</button> : null}
+          {(current.kind === "task" || assignment) ? <button type="button" disabled={!enabled || !onOpenTask || !task} onClick={event => { if (enabled && task) onOpenTask?.(task.taskId, event.currentTarget); }}>{t("Task 원본")}</button> : null}
+          {assignment ? <button type="button" disabled={!enabled || !onOpenAssignment || assignment.targetKind !== "resource"} onClick={event => { if (enabled && assignment.targetKind === "resource") onOpenAssignment?.(assignment.taskId, assignment.id, assignment.targetId, event.currentTarget); }}>{t("Assignment 원본")}</button> : null}
+          {current.kind === "workArea" ? configuration.workAreas.find(area => area.id === id)?.processIds.map(processId => <button type="button" key={processId} data-process-id={processId} disabled={!enabled || !onOpenMaster} onClick={event => { if (enabled) onOpenMaster?.("workArea", id, event.currentTarget); }}>{displayName(logistics?.processes.find(process => process.id === processId) ?? { name: t("공정 이름 확인 필요") }, locale)} {t("원본 구성 보기")}</button>) : null}
+          {!["task", "assignment", "workArea"].includes(current.kind) ? <button type="button" data-process-id={current.kind === "workArea" ? configuration.workAreas.find(area => area.id === id)?.processIds[0] : undefined} disabled={!enabled || !onOpenMaster || !row || (current.kind === "workArea" && !configuration.workAreas.find(area => area.id === id)?.processIds.length)} onClick={event => { if (enabled && row) onOpenMaster?.(current.kind as KpiMasterKind, id, event.currentTarget, current.kind === "resource" ? data.resourceRows.find(resource => resource.id === id) : undefined); }}>{t("원본 구성 보기")}</button> : null}
         </div></li>;
       })}</ul>}
     </section> : null}

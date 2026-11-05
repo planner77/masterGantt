@@ -4,7 +4,7 @@ import { LOCALE_FORMATS, type AppLocale } from "../../lib/i18n/locales";
 const ganttTerms: Record<string, readonly [string, string]> = {
   "Task name": ["작업명", "Tên công việc"], "Start date": ["시작일", "Ngày bắt đầu"],
   "Add task": ["작업 추가", "Thêm công việc"], Duration: ["기간", "Thời lượng"],
-  Task: ["작업", "Công việc"], Milestone: ["Milestone", "Mốc"], "Summary task": ["요약 작업", "Công việc tổng hợp"],
+  Task: ["작업", "Công việc"], Milestone: ["Milestone", "Milestone"], "Summary task": ["요약 작업", "Công việc tổng hợp"],
   Resources: ["리소스", "Nguồn lực"], WBS: ["WBS", "WBS"], Hours: ["시간", "Giờ"],
   Save: ["저장", "Lưu"], Delete: ["삭제", "Xóa"], Name: ["이름", "Tên"], Description: ["설명", "Mô tả"],
   "Select type": ["유형 선택", "Chọn loại"], Type: ["유형", "Loại"], "End date": ["종료일", "Ngày kết thúc"],
@@ -29,6 +29,7 @@ const ganttTerms: Record<string, readonly [string, string]> = {
 // Custom Grid headers use stable source keys. The native Locale adapter may
 // reprocess its initial column definitions when words change.
 const appColumnTerms: Record<string, readonly [string, string]> = {
+  "요약 작업 (일정 미산정)": ["Summary task (unscheduled)", "Công việc tổng hợp (chưa lên lịch)"],
   "선택": ["Select", "Chọn"], "작업": ["Task", "Công việc"],
   "외부 ID": ["External ID", "ID bên ngoài"], "시작": ["Start", "Bắt đầu"],
   "기간": ["Duration", "Thời lượng"], "기준 시작": ["Baseline start", "Bắt đầu cơ sở"],

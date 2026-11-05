@@ -1189,3 +1189,13 @@ PR 생성 후 Full run의 URL·run_attempt·Head/base/test merge를 단일 조�
 Full #3519.1 / Run `41970024640`, Head `a7cbef53bd0c89f4f3a7a3c3ed5a76ba7cb2266e`, base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `dbe1ffcb15791c997a974c3bf55479298c8495a0`는 FAILURE다. Shard3 Job `127056885009` 물류 검색 coarse 20px과 **CANCELLED shard7 Job `127056885015`의 프로젝트 생성 option 번역 누락 assertion FAIL**을 모두 직접 오류로 기록한다. Quality·Docker 성공과 이전 마스터 표 교정의 3개 E2E 성공은 해당 원본에만 유효하며 전체 E2E 성공이 아니다.
 
 전체 #3510~#3519 및 선행 #878/#870 원장·수정 코드를 대조한 뒤 검색 높이와 공유 선택 소비자를 함께 보완한다. 새 Head Full CI는 기존 8샤드와 Required3/Trusted 정책으로 시작하며 결과는 시작 시 NOT TESTED다. CI 모니터링·병합·Main/GHCR/Release·Issue 종료는 이번 작업 범위에 포함하지 않는다. [누적 원장](ISSUE_866_FAILURE_ANALYSIS.md).
+
+## Issue #866 Phase C — A+B+C 통합 검증 경계 (2026-11-05)
+
+시작 Head3fb37d77e6b4e80ee1daedf1642b6cfee1c2913b의 [Full #3520.1](https://github.com/planner77/masterGantt/actions/runs/41979842028), Required3/Chromium8 SUCCESS는 A+B baseline이며 Phase C 새 Head에 승계하지 않는다. native locale 전환·전체 화면/ARIA·동적 알림/이동 label·관리형 표시명/입력·날짜/숫자의 변경 영향과 과거 직접 실패 합집합을 Work Packet에서 선정하고 실제 로컬 source 지문·명령·결과를 누적 원장에 남긴다. 자동 Pre-PR UNKNOWN은 수동 실행 결과와 구별한다.
+
+새 exact Head의 Full Quality·E2E8·Docker는 CI 시작 확인 이후 NOT TESTED로 인계하며 모니터링하지 않는다. Trusted source provenance·Owner HIGH 검토·Manager ACCEPT, main/GHCR/Release·운영 backup/restore·Windows Excel·최종 수동 UX와 실제 AT/native125%는 별도 경계다. `release_authorized=false`, #866 OPEN/MERGE_READY=BLOCKED를 유지한다.
+
+## Issue #866 Phase C — 최종 로컬 소비자 검증 인계
+
+25개spec158계획 중고유156PASS/기존2SKIP, 전체Unit3658PASS/기존3SKIP·build/type/lint·문서정합 구조검사를 확보했다. 마지막변경은한E2Espec의500 oracle/응답완료순서뿐이며그파일8사례전체를재실행하고, 다른1316개제품·Unit·공용입력/24spec의byte동일성을증명했다. 전역지문변경과과거C73PASS/1FAIL·중간7PASS/1FAIL은숨기거나합산하지않는다. 상세명령/지문·선정과미검증은 [Work Packet](exec-plans/active/ISSUE_866.md)과 [정제 증거](evidence/issue-866/phasec-local-validation-20261105.json)에있다. 자동Pre-PR는UNKNOWN94/missing0으로BLOCKED, 수동실행과구별한다. 새exactHead quality/e2e/docker·Trusted/인간QA·Owner/Manager ACCEPT는NOT TESTED이며CI시작후모니터링하지않는다.

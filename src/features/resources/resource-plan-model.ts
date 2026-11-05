@@ -1,3 +1,7 @@
+import { formatLocaleDateOnly } from "../../lib/date-display";
+import { LOCALE_FORMATS } from "../../lib/i18n/locales";
+import { displayName, formatLocaleNumber, translate } from "../../lib/i18n";
+import type { AppLocale } from "../../lib/i18n/locales";
 import { fromResourcePublicV2 } from "../../contracts/resource-public-v2";
 import { z } from "zod";
 import type {
@@ -99,6 +103,7 @@ export const resourcePlanSchema = z.object({
     series.extend({
       groupId: id.nullable(),
       name: id,
+      translations: z.object({ko:z.string().max(200).optional(),en:z.string().max(200).optional(),vi:z.string().max(200).optional()}).strict().optional(),
       code: id.nullable(),
       active: z.boolean(),
       resourceIds: z.array(id),
@@ -119,18 +124,37 @@ export const resourcePlanSchema = z.object({
 export type PlanRow = {
   key: string;
   name: string;
+  translations?: Partial<Record<AppLocale,string>>;
   selector: ResourcePlanRowSelector;
   series: ResourcePlanSeries;
   level: number;
   description?: string;
   context?: string[];
+  contextOwners?: ResourcePlanLabelOwner[];
   parentResource?: ResourcePlanSeries;
   expandable: boolean;
 };
+export type ResourcePlanLabelOwner = { messageKey?: string; name: string; translations?: Partial<Record<AppLocale,string>> };
+export type ResourcePlanLabelPresentation = {
+  owners: ResourcePlanLabelOwner[];
+  periodId: string;
+  projectReference: boolean;
+  trail: Array<{date:string;name?:string}>;
+};
+export function renderResourcePlanLabel(label: ResourcePlanLabelPresentation, locale: AppLocale): string {
+  return [label.owners.map(owner=>owner.messageKey ? translate(locale,owner.messageKey) : displayName(owner,locale)).join(" / "),
+    ...(label.projectReference ? [translate(locale,"개인/Project 전체 참고")] : []),
+    label.periodId === "all" ? translate(locale,"현재 기간") : label.periodId,
+    ...label.trail.flatMap(item=>[formatLocaleDateOnly(item.date,LOCALE_FORMATS[locale]),...(item.name?[item.name]:[])])].join(" · ");
+}
+export function resourcePlanLabel(row: PlanRow, periodId: string, projectReference: boolean): ResourcePlanLabelPresentation {
+  return {owners:[...(row.contextOwners??(row.context??[]).map(name=>({name}))),{name:row.name,...(row.selector.kind==="total"?{messageKey:row.name}:{}),...(row.selector.kind==="group"?{translations:row.translations}:{})}],periodId,projectReference,trail:[]};
+}
 export function flattenPlanRows(
   plan: NonNullable<ResourceDashboardDto["plan"]>,
   mode: "group" | "resource",
   expanded: Set<string>,
+  locale: AppLocale = "ko",
 ): PlanRow[] {
   const result: PlanRow[] = [],
     byId = new Map(plan.resources.map((r) => [r.resourceId, r]));
@@ -139,6 +163,7 @@ export function flattenPlanRows(
     prefix: string,
     level: number,
     context: string[] = [],
+    contextOwners: ResourcePlanLabelOwner[] = [],
   ) => {
     const key = `${prefix}:resource:${r.resourceId}`;
     result.push({
@@ -148,7 +173,8 @@ export function flattenPlanRows(
       series: r,
       level,
       context,
-      description: `${r.active ? "활성" : "비활성"} · ${r.roles.join(", ") || "Role 미지정"} · ${r.developerGrade ?? "등급 미지정"}`,
+      contextOwners,
+      description: `${translate(locale,r.active ? "활성" : "비활성")} · ${r.roles.map(role=>translate(locale,({PI:"PI",DEVELOPER:"개발자",EQUIPMENT_OWNER:"설비 담당"} as Record<string,string>)[role]??role)).join(", ") || translate(locale,"Role 미지정")} · ${translate(locale,({BEGINNER:"초급",INTERMEDIATE:"중급",ADVANCED:"고급",EXPERT:"특급"} as Record<string,string>)[r.developerGrade??""]??"등급 미지정")}`,
       expandable: r.milestones.length > 0,
     });
     if (expanded.has(key))
@@ -171,6 +197,7 @@ export function flattenPlanRows(
           },
           series: m,
           context: [...context, r.name],
+          contextOwners: [...contextOwners,{name:r.name}],
           parentResource: r,
           level: level + 1,
           expandable: false,
@@ -184,16 +211,17 @@ export function flattenPlanRows(
       result.push({
         key,
         name: g.name,
+        translations: g.translations,
         selector: { kind: "group", groupId: g.groupId },
         series: g,
         level: 0,
-        description: `${g.active ? "활성" : "비활성"}`,
+        description: translate(locale,g.active ? "활성" : "비활성"),
         expandable: g.resourceIds.length > 0,
       });
       if (expanded.has(key))
         g.resourceIds.forEach((id) => {
           const r = byId.get(id);
-          if (r) resource(r, key, 1, [g.name]);
+          if (r) resource(r, key, 1, [displayName(g,locale)], [{name:g.name,translations:g.translations}]);
         });
     }
   return result;
@@ -202,6 +230,7 @@ export function planMetric(
   m: ResourcePlanMetrics,
   metric: "effort" | "load" | "excess",
   unit: "md" | "mm",
+  locale: AppLocale = "ko",
 ): string {
   const value =
     metric === "effort"
@@ -213,22 +242,23 @@ export function planMetric(
         : m.excessMd;
   const text =
     value === null
-      ? "미산정"
-      : `${value.toFixed(2)} ${metric === "load" ? "%" : metric === "excess" || unit === "md" ? "M/D" : "M/M"}`;
-  return `${text}${m.partial ? " · 미설정 포함" : ""}${m.capacityMd === 0 ? " · 비근무기간" : m.state === "empty" ? " · 기간 배정 없음(0부하)" : ""}`;
+      ? translate(locale,"미산정")
+      : `${formatLocaleNumber(value,locale,{minimumFractionDigits:2,maximumFractionDigits:2})} ${metric === "load" ? "%" : metric === "excess" || unit === "md" ? "M/D" : "M/M"}`;
+  return `${text}${m.partial ? translate(locale," · 미설정 포함") : ""}${m.capacityMd === 0 ? translate(locale," · 비근무기간") : m.state === "empty" ? translate(locale," · 기간 배정 없음(0부하)") : ""}`;
 }
 /** #622: a Plan without a Target projection still needs canonical names for
  * selected and Project-reference Assignments, including Targets outside the filter. */
 export function planTargetLabel(
   data: Pick<ResourceDashboardDto, "catalog" | "targetProjection">,
   targetId: string,
+  locale: AppLocale = "ko",
 ): string {
   const target = data.targetProjection?.catalog.find((row) => row.dimension === "target" && row.id === targetId)
     ?? data.catalog.targetOptions?.find((row) => row.dimension === "target" && row.id === targetId);
-  if (!target) return targetId === "unassigned" ? "Target 미연결" : "Target 정보 없음";
+  if (!target) return translate(locale,targetId === "unassigned" ? "Target 미연결" : "Target 정보 없음");
   const catalog = data.targetProjection?.catalog ?? data.catalog.targetOptions ?? [];
-  const duplicate = catalog.some(row => row.dimension === "target" && row.id !== targetId && row.name === target.name);
-  return duplicate ? `${target.name} (${target.code || targetId})` : target.name;
+  const duplicate = catalog.some(row => row.dimension === "target" && row.id !== targetId && displayName(row,locale) === displayName(target,locale));
+  return duplicate ? `${displayName(target,locale)} (${target.code || targetId})` : displayName(target,locale);
 }
 
 export function planDetailQuery(

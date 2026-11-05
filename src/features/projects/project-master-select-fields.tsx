@@ -1,9 +1,10 @@
 "use client";
+import { useI18n } from "../../lib/i18n/provider";
+import { displayName } from "../../lib/i18n";
+
 
 import { useCallback, useEffect, useState } from "react";
 import type { ProjectMasterItemDto, ProjectMasterSelectionResponse } from "@/contracts/project-master";
-import { displayName } from "../../lib/i18n";
-import { useI18n } from "../../lib/i18n/provider";
 
 export interface ProjectMasterSelectionValue {
   businessUnitId: string;
@@ -91,7 +92,7 @@ export function ProjectMasterSelectFields({
     siteEntity?: ProjectMasterItemDto | null;
   };
 }>) {
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
   const [notice, setNotice] = useState<string | null>(null);
   const linkedProducts = new Set(catalog.data.relations.filter((r) =>
     r.businessUnitId === value.businessUnitId && r.siteEntityId === null).map((r) => r.productId));
@@ -153,7 +154,7 @@ export function ProjectMasterSelectFields({
     <div className="project-master-field-grid">
     {fields.map((field) => (
       <div className="form-field" key={field.key}>
-        <label htmlFor={field.id}>{field.label} <span>(선택)</span></label>
+        <label htmlFor={field.id}>{t(field.label)} <span>{t("(선택)")}</span></label>
         <select
           id={field.id}
           disabled={disabled || (field.key === "productId" && !value.businessUnitId) ||
@@ -161,16 +162,16 @@ export function ProjectMasterSelectFields({
           value={value[field.key]}
           onChange={(event) => handleChange(field.key, event.target.value)}
         >
-          <option value="">미지정</option>
+          <option value="">{t("미지정")}</option>
           {field.items.map((item) => (
             <option key={item.id} value={item.id}>
-              {displayName(item, locale) || "이름 확인 필요"}{field.items.some(peer => peer.id !== item.id && displayName(peer, locale) === displayName(item, locale)) ? ` (${item.code})` : ""}{item.active ? "" : " · 비활성"}
+              {displayName(item, locale) || t("이름 확인 필요")}{field.items.some(peer => peer.id !== item.id && displayName(peer, locale) === displayName(item, locale)) ? ` (${item.code})` : ""}{item.active ? "" : t(" · 비활성")}
             </option>
           ))}
         </select>
       </div>
     ))}
     </div>
-    {notice ? <p role="status" aria-live="polite">{notice}</p> : null}
+    {notice ? <p role="status" aria-live="polite">{t(notice ?? "")}</p> : null}
   </div>;
 }

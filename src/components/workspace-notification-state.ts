@@ -1,6 +1,10 @@
+import { translate, type MessageParameters } from "../lib/i18n";
+import { LOCALE_FORMATS, type AppLocale } from "../lib/i18n/locales";
 export const MAX_NOTIFICATIONS = 50;
 export const TOAST_DURATION_MS = 5_000;
 export type NoticeKind = "success" | "info" | "error";
+export type NoticeSegment = Readonly<{ key: string; parameters?: MessageParameters; labels?: Readonly<Record<string, string>> }>;
+export type NoticePresentation = Readonly<{ parameters?: MessageParameters; labels?: Readonly<Record<string, string>>; segments?: readonly NoticeSegment[] }>;
 export type WorkspaceNotice = Readonly<{
   id: number;
   kind: NoticeKind;
@@ -10,6 +14,7 @@ export type WorkspaceNotice = Readonly<{
   code?: string;
   requestId?: string;
   read: boolean;
+  presentation?: NoticePresentation;
 }>;
 export type NotificationState = Readonly<{
   toast: WorkspaceNotice | null;
@@ -66,13 +71,21 @@ export function safeNotificationMetadata(value: unknown): { code?: string; reque
   return { ...(code ? { code } : {}), ...(requestId ? { requestId } : {}) };
 }
 
-export function formatNotification(notice: WorkspaceNotice, scope: string): string {
+/** Resolve only fixed labels; names and other supplied parameters remain opaque. */
+export function localizedNoticeText(notice: WorkspaceNotice, locale: AppLocale): string {
+  const render = (key: string, presentation?: Pick<NoticePresentation, "parameters" | "labels">) => translate(locale, key, { ...presentation?.parameters,
+    ...Object.fromEntries(Object.entries(presentation?.labels ?? {}).map(([name, label]) => [name, translate(locale, label)])),
+  });
+  return render(notice.message, notice.presentation) + (notice.presentation?.segments ?? []).map(segment => render(segment.key, segment)).join("");
+}
+
+export function formatNotification(notice: WorkspaceNotice, scope: string, locale: AppLocale = "ko"): string {
   return [
-    `대상: ${scope}`,
-    `발생 시각: ${new Date(notice.occurredAt).toLocaleString()}`,
-    `작업: ${notice.operation}`,
-    `내용: ${notice.message}`,
-    ...(notice.code ? [`오류 코드: ${notice.code}`] : []),
-    ...(notice.requestId ? [`요청 ID: ${notice.requestId}`] : []),
+    `${translate(locale, "대상")}: ${scope}`,
+    `${translate(locale, "발생 시각")}: ${new Date(notice.occurredAt).toLocaleString(LOCALE_FORMATS[locale])}`,
+    `${translate(locale, "작업")}: ${translate(locale, notice.operation)}`,
+    `${translate(locale, "내용")}: ${localizedNoticeText(notice, locale)}`,
+    ...(notice.code ? [`${translate(locale, "오류 코드")}: ${notice.code}`] : []),
+    ...(notice.requestId ? [`${translate(locale, "요청 ID")}: ${notice.requestId}`] : []),
   ].join("\n");
 }

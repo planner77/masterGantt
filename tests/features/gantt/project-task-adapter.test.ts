@@ -5,6 +5,7 @@ import { localDateFromDateOnly } from "../../../src/features/gantt/date-adapter"
 import {
   projectLinksToSvarLinks,
   projectTasksToSvarTasks,
+  refreshNativeLocaleInputs,
   normalizeInlineTaskName,
   translateProjectTaskUpdate,
 } from "../../../src/features/gantt/project-task-adapter";
@@ -149,5 +150,24 @@ describe("Project task SVAR adapter", () => {
       kind: "update-task", taskId: "milestone-a", diff: 1,
       changes: { text: "Build", start: localDateFromDateOnly("2026-09-16"), end: localDateFromDateOnly("2026-09-16"), progress: 20, parent: 0 },
     }, milestone, calendar)).toEqual({ taskId: "milestone-a", payload: { start: "2026-09-16" } });
+  });
+});
+
+
+describe("native locale renderer input refresh", () => {
+  it("retains array identity while replacing stale rows with detached latest canonical values", () => {
+    const latest = { ...task, taskId: "task-new", name: "Canonical 이름", type: "summary" as const };
+    const canonical = structuredClone(latest);
+    const inputs = { tasks: projectTasksToSvarTasks([task]), links: projectLinksToSvarLinks([], [task]) };
+    const originalTasks = inputs.tasks, originalLinks = inputs.links;
+    refreshNativeLocaleInputs(inputs, [latest], [], null, new Map([[latest.taskId, false]]));
+    expect(inputs.tasks).toBe(originalTasks);
+    expect(inputs.links).toBe(originalLinks);
+    expect(inputs.tasks.map(row => row.id)).toEqual([latest.taskId]);
+    expect(inputs.tasks[0]).toMatchObject({ text: latest.name, open: false });
+    inputs.tasks[0].text = "Native edit";
+    inputs.tasks[0].start!.setFullYear(2030);
+    expect(latest).toEqual(canonical);
+    expect(projectTasksToSvarTasks([latest])[0].start!.getFullYear()).toBe(2026);
   });
 });

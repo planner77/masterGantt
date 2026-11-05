@@ -1964,3 +1964,9 @@ actual date CRUD는 UNAVAILABLE로 전환하고 sourceVersion/sourceUrl을 null�
 Preview token은 DB secret으로 HMAC 서명하며 원본 UTF-8 content hash/format/선택 country-year/catalog revision/current admin session ID와 token digest/expiry에 묶인다. 유효기간은 min(10분, session expiry)다. raw content의 공백/BOM 변경도 다시 미리보기를 요구한다. token은 권한을 대신하지 않으며 Apply에서 현재 session을 다시 검사한다.
 
 오류는 400 INVALID_COUNTRY_CALENDAR_INPUT(field/row details), 401 PROJECT_MASTER_ADMIN_REQUIRED, 403 ORIGIN_NOT_ALLOWED, 404 COUNTRY_CALENDAR_DATE_NOT_FOUND, 409 COUNTRY_CALENDAR_CONFLICT 또는 COUNTRY_CALENDAR_IMPORT_PREVIEW_MISMATCH, 412 COUNTRY_CALENDAR_REVISION_MISMATCH, 413 IMPORT_TOO_LARGE/REQUEST_TOO_LARGE, 415 UNSUPPORTED_MEDIA_TYPE, 428 PRECONDITION_REQUIRED다. 성공 Apply를 stale revision으로 반복하면 412이며 no-op Preview 반복은 같은 권한·revision·expiry 안에서 write 0이다.
+
+## Issue #866 — Phase C UI 언어와 기존 API 계약 (2026-11-05)
+
+UI locale은 endpoint·route·ID/code·enum·revision/If-Match·날짜·숫자 JSON의 의미를 바꾸지 않는다. locale 변경은 조회나 쓰기 권한이 아니며 새 번역 endpoint를 추가하지 않는다. 관리형 DTO의 name은 원본, translations는 Phase B의 선택 metadata다. 생략은 기존값 보존, 명시적 {}는 전체 해제이며 기존 owner 세션·Origin·CAS 검증이 계속 필요하다. 장비/시스템 편집의 변경 없는 번역은 payload에서 생략하고 사용자 이름·설명·Issue 본문을 자동 변환하지 않는다.
+
+날짜 input과 교환 payload는 기존 date-only/UTC 형식을 유지하고 Intl 포맷 문자열을 API로 전송하지 않는다. 오류 code/requestId·기존 validation field/row detail와 업무 충돌 의미를 보존하며, UI의 allowlisted 번역/context fallback이 서버 응답 계약을 대체하지 않는다. 세부 표시·신뢰 경계는 [Phase C 설계](I18N_PHASE_C.md)를 따른다. 새 Head 원격 회귀는 현재 NOT TESTED다.

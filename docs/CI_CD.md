@@ -1228,3 +1228,7 @@ Shard1선택은보존된과거projectedMs최소값기준이다. 현재143spec의
 ## Issue #866 Phase A — 새로운 i18n E2E Shard 명시 등록 (2026-11-05)
 
 기존 8-shard의 정확한 명시 spec inventory 계약을 유지하기 위해 신규 `issue-866-language-shell.spec.ts`만 Shard5에 등록, 143→144 spec로 변경한다. 역사적 실측치/기존 배치/Shard count/timeout/fail-fast를 변경하지 않았으며 새 테스트의 비용·전체 CI 결과는 미검증이다. [#866 Work Packet](exec-plans/active/ISSUE_866.md).
+
+## Issue #866 Phase C — A+B+C 통합 PR 검증
+
+PR #879에 Phase C를 통합하되 Required Quality/E2E/Docker, Chromium8, Main/GHCR/Finalizer/Trusted와 Owner 승인 경계는 유지한다. 신규 `tests/e2e/i18n.spec.ts`만 기존 Shard8에 명시 추가하여 146개 spec counts `[19,18,18,18,18,18,18,19]`를 정확히 검증한다. 과거145개 배치·기존 projectedMs·sourceRunIds·metrics는 그대로이며 새 duration은 REMOTE_UNMEASURED다. 한 번의 #3520 baseline을 10-run 성능 표본으로 확대하지 않는다. 로컬 Fast Feedback·정적 검토는 새 exact Head의 공식 원격 전체 PASS가 아니며 이번 사용자 요청은 Full CI 시작까지만이다. 후보0.142.0 및 release_authorized=false를 유지한다.

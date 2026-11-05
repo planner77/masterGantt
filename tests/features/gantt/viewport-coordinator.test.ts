@@ -1,3 +1,4 @@
+import { canRestoreLocaleInitColumns } from "../../../src/features/gantt/viewport/locale-presentation";
 import { describe, expect, it, vi } from "vitest";
 import type { ProjectionReceipt } from "../../../src/features/gantt/projection-settled";
 import {
@@ -927,5 +928,26 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     expect(await f.coordinator.request(peer)).toBe("SUPERSEDED");
     expect(f.port.apply).not.toHaveBeenCalled();
     expect(f.port.release).toHaveBeenCalled();
+  });
+});
+
+
+describe("Locale init column restoration admission", () => {
+  const source = { context: JSON.stringify(["api-1", "view", null, "filter", "week", "original-widths", "canonical-geometry"]), contextEpoch: 3, gesture: 7, intent: 9 };
+  const normalized = { ...source, context: JSON.stringify(["api-1", "view", null, "filter", "week", "Core-normalized-widths", "canonical-geometry"]) };
+  it("admits only column normalization under the original gesture and semantic context", () => {
+    expect(canRestoreLocaleInitColumns(source, normalized)).toBe(true);
+    expect(canRestoreLocaleInitColumns(source, source)).toBe(true);
+  });
+  it.each(["contextEpoch", "gesture", "intent"] as const)("rejects a newer %s", field => {
+    expect(canRestoreLocaleInitColumns(source, { ...normalized, [field]: source[field] + 1 })).toBe(false);
+  });
+  it.each([0, 1, 2, 3, 4, 6])("rejects a changed semantic context field %i", index => {
+    const context = JSON.parse(normalized.context); context[index] = "changed";
+    expect(canRestoreLocaleInitColumns(source, { ...normalized, context: JSON.stringify(context) })).toBe(false);
+  });
+  it("fails closed for malformed identity", () => {
+    expect(canRestoreLocaleInitColumns(source, { ...normalized, context: "{}" })).toBe(false);
+    expect(canRestoreLocaleInitColumns(source, { ...normalized, context: "invalid" })).toBe(false);
   });
 });

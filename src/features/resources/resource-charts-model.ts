@@ -1,3 +1,5 @@
+import { displayName, formatLocaleNumber, translate } from "../../lib/i18n";
+import { LOCALE_FORMATS, type AppLocale } from "../../lib/i18n/locales";
 import type { ResourceAnalysisCell, ResourceAnalysisDimension, ResourceAnalysisPlanSelector, ResourceAnalysisQuery, ResourceAnalysisResult } from "../../contracts/resource-analysis";
 import type { WbsViewQueryInput, WbsViewReportDto } from "../../contracts/wbs-dashboard-views";
 import { rankResourceAnalysisCells } from "../../domain/resources/resource-analysis";
@@ -47,21 +49,23 @@ export const RESOURCE_CHART_PERIOD_SIZE = 4;
 export function resourceChartQuery(kind: ResourceChartKind, concentration: ResourceAnalysisDimension, contribution: ResourceAnalysisDimension, granularity: "week" | "month", unit: "M/D" | "M/M"): ResourceAnalysisQuery {
   return { pivot: kind === "period" ? ["resource"] : kind === "concentration" ? [concentration] : ["resource", contribution], granularity, unit };
 }
-export function resourceChartName(data: WbsViewReportDto, dimension: ResourceAnalysisDimension, id: string | null): string {
-  if (id === null || id === "UNSPECIFIED") return `${RESOURCE_CHART_LABELS[dimension]} 미지정`;
+export function resourceChartName(data: WbsViewReportDto, dimension: ResourceAnalysisDimension, id: string | null, locale: AppLocale = "ko"): string {
+  if (id === null || id === "UNSPECIFIED") return `${translate(locale,RESOURCE_CHART_LABELS[dimension])} ${translate(locale,"미지정")}`;
   const memberships = data.configuration.resourceMemberships;
   const catalog = dimension === "resource" ? memberships : dimension === "group" ? memberships.flatMap(row => row.groups) : dimension === "process" ? data.configurationCatalog.processes : dimension === "workArea" ? data.configurationCatalog.workAreas : dimension === "milestone" ? data.configurationCatalog.milestones : dimension === "equipment" || dimension === "system" ? data.configurationCatalog.instances.filter(row => row.kind === dimension) : [];
-  return catalog.find(row => row.id === id)?.name ?? ({ BEGINNER: "초급", INTERMEDIATE: "중급", ADVANCED: "고급", EXPERT: "특급", DEVELOPER: "개발자", PI: "PI", EQUIPMENT_OWNER: "설비 담당" } as Record<string, string>)[id] ?? "원본 이름 확인 필요";
+  const item = catalog.find(row => row.id === id);
+  if (item) return dimension === "resource" || dimension === "milestone" ? item.name : displayName(item,locale);
+  return translate(locale,({ BEGINNER: "초급", INTERMEDIATE: "중급", ADVANCED: "고급", EXPERT: "특급", DEVELOPER: "개발자", PI: "PI", EQUIPMENT_OWNER: "설비 담당" } as Record<string, string>)[id] ?? "원본 이름 확인 필요");
 }
-export function resourceChartCellName(data: WbsViewReportDto, cell: ResourceAnalysisCell): string {
-  return cell.values.map(value => resourceChartName(data, value.dimension, value.id)).join(" · ") || "현재 범위 전체";
+export function resourceChartCellName(data: WbsViewReportDto, cell: ResourceAnalysisCell, locale: AppLocale = "ko"): string {
+  return cell.values.map(value => resourceChartName(data, value.dimension, value.id, locale)).join(" · ") || translate(locale,"현재 범위 전체");
 }
-export function resourceChartEffort(effort: ResourceAnalysisCell["assignments"]["effort"], unit: "M/D" | "M/M", mdPerMm: number | null): string {
-  if (unit === "M/M" && mdPerMm === null) return "환산 기준 미설정";
+export function resourceChartEffort(effort: ResourceAnalysisCell["assignments"]["effort"], unit: "M/D" | "M/M", mdPerMm: number | null, locale: AppLocale = "ko"): string {
+  if (unit === "M/M" && mdPerMm === null) return translate(locale,"환산 기준 미설정");
   const value = unit === "M/M" ? effort.plannedMm : effort.plannedMd;
   const known = unit === "M/M" ? effort.knownMd / mdPerMm! : effort.knownMd;
-  if (effort.state === "unset") return `미설정 ${effort.unsetCount}건`;
-  return `${(value ?? known).toLocaleString("ko-KR", { maximumFractionDigits: 2 })} ${unit}${effort.partial ? ` (부분합 · 미설정 ${effort.unsetCount}건)` : ""}`;
+  if (effort.state === "unset") return translate(locale,"미설정 {value0}건",{value0:effort.unsetCount});
+  return `${(value ?? known).toLocaleString(LOCALE_FORMATS[locale], { maximumFractionDigits: 2 })} ${unit}${effort.partial ? translate(locale," (부분합 · 미설정 {value0}건)",{value0:effort.unsetCount}) : ""}`;
 }
 export function resourceChartMetricValue(cell: ResourceAnalysisCell, metric: ResourceChartMetric, unit: "M/D" | "M/M", mdPerMm: number | null): number | null {
   if (metric === "tasks") return cell.tasks.taskCount;
@@ -79,8 +83,8 @@ export function resourceChartRank(model: ResourceAnalysisResult, metric: Resourc
   const offset = Math.min(Math.max(0,page)*RESOURCE_CHART_PAGE_SIZE,Math.max(0,Math.floor((selected.length-1)/RESOURCE_CHART_PAGE_SIZE)*RESOURCE_CHART_PAGE_SIZE));
   return { rows:selected.slice(offset,offset+RESOURCE_CHART_PAGE_SIZE),offset,total:selected.length,allCount:all.length };
 }
-export const resourceChartPercent = (value: number | null) => value === null ? "미산정" : `${value.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}%`;
-export function resourceChartPlanText(metrics: ResourcePlanMetrics, unit: "M/D" | "M/M", mdPerMm: number | null): string {
-  const effort = resourceChartEffort({ knownMd:metrics.knownMd, plannedMd:metrics.plannedMd, plannedMm:metrics.plannedMm, state:metrics.state, partial:metrics.partial, unsetCount:metrics.unknownAssignmentCount, assignmentIds:[], unsetAssignmentIds:[] },unit,mdPerMm);
-  return `${effort} · Capacity ${metrics.capacityMd.toLocaleString("ko-KR",{maximumFractionDigits:2})} M/D · Load ${metrics.partial?"알려진 부분 ":""}${resourceChartPercent(metrics.loadPercent)}${metrics.loadPercent===null&&metrics.knownLoadPercent!==null?` (알려진 부분 ${resourceChartPercent(metrics.knownLoadPercent)})`:""} · Peak day ${metrics.partial?"알려진 부분 ":""}${resourceChartPercent(metrics.peakResourceDailyLoadPercent)} · 초과 ${metrics.overAllocatedResourceDayCount} 개인·일 / ${metrics.excessMd.toLocaleString("ko-KR",{maximumFractionDigits:2})} M/D${metrics.capacityMd===0&&metrics.knownMd>0?" · Capacity 0의 계획 투입 경고":""}`;
+export const resourceChartPercent = (value: number | null, locale: AppLocale = "ko") => value === null ? translate(locale,"미산정") : `${value.toLocaleString(LOCALE_FORMATS[locale], { maximumFractionDigits: 2 })}%`;
+export function resourceChartPlanText(metrics: ResourcePlanMetrics, unit: "M/D" | "M/M", mdPerMm: number | null, locale: AppLocale = "ko"): string {
+  const effort = resourceChartEffort({ knownMd:metrics.knownMd, plannedMd:metrics.plannedMd, plannedMm:metrics.plannedMm, state:metrics.state, partial:metrics.partial, unsetCount:metrics.unknownAssignmentCount, assignmentIds:[], unsetAssignmentIds:[] },unit,mdPerMm,locale);
+  return `${effort} · Capacity ${metrics.capacityMd.toLocaleString(LOCALE_FORMATS[locale],{maximumFractionDigits:2})} M/D · Load ${metrics.partial?translate(locale,"알려진 부분 "):""}${resourceChartPercent(metrics.loadPercent,locale)}${metrics.loadPercent===null&&metrics.knownLoadPercent!==null?` (${translate(locale,"알려진 부분 ")}${resourceChartPercent(metrics.knownLoadPercent,locale)})`:""} · Peak day ${metrics.partial?translate(locale,"알려진 부분 "):""}${resourceChartPercent(metrics.peakResourceDailyLoadPercent,locale)} · ${translate(locale,"초과")} ${formatLocaleNumber(metrics.overAllocatedResourceDayCount,locale)} ${translate(locale,"개인·일 /")} ${metrics.excessMd.toLocaleString(LOCALE_FORMATS[locale],{maximumFractionDigits:2})} M/D${metrics.capacityMd===0&&metrics.knownMd>0?translate(locale," · Capacity 0의 계획 투입 경고"):""}`;
 }

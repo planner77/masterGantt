@@ -1,4 +1,9 @@
 "use client";
+import { formatLocaleDateOnly } from "../../lib/date-display";
+import { LOCALE_FORMATS } from "../../lib/i18n/locales";
+import { displayName } from "../../lib/i18n";
+import { useI18n } from "../../lib/i18n/provider";
+
 import { ContextHelp } from "@/components/ui/context-help";
 
 import { IdentifierDetails } from "@/components/identifier-details";
@@ -11,6 +16,9 @@ import type {
 } from "@/domain/resources/resource-plan";
 import {
   flattenPlanRows,
+  resourcePlanLabel,
+  renderResourcePlanLabel,
+  type ResourcePlanLabelPresentation,
   planMetric,
   type PlanRow,
 } from "./resource-plan-model";
@@ -33,6 +41,7 @@ export function ResourcePlanView({
   active: boolean;
   onStale: () => void;
 }) {
+  const { t, locale, formatNumber } = useI18n();
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set()),
     [rowOffsets, setRowOffsets] = useState({ group: 0, resource: 0 }),
     [periodOffsets, setPeriodOffsets] = useState({ week: 0, month: 0 }),
@@ -48,14 +57,12 @@ export function ResourcePlanView({
   const trigger = useRef<HTMLElement | null>(null),
     fallback = useRef<HTMLSelectElement>(null);
   const plan = data.plan;
-  if (!plan) return <p role="status">Resource Plan을 조회하는 중입니다.</p>;
+  if (!plan) return <p role="status">{t("Resource Plan을 조회하는 중입니다.")}</p>;
   if (plan.population.resourceCount === 0)
     return (
       <section aria-label="Resource Plan">
         <p role="status">
-          조회 조건에 맞는 Project 개인 할당 이력이 없습니다. 대상 없음이며
-          비근무기간·가용 인력 판정이 아닙니다.
-        </p>
+          {t("조회 조건에 맞는 Project 개인 할당 이력이 없습니다. 대상 없음이며 비근무기간·가용 인력 판정이 아닙니다.")}</p>
       </section>
     );
   const rowOffset = rowOffsets[mode],
@@ -64,7 +71,7 @@ export function ResourcePlanView({
       setRowOffsets((p) => ({ ...p, [mode]: value })),
     setPeriodOffset = (value: number) =>
       setPeriodOffsets((p) => ({ ...p, [plan.granularity]: value }));
-  const rows = flattenPlanRows(plan, mode, expanded),
+  const rows = flattenPlanRows(plan, mode, expanded, locale),
     periods = plan.periods.slice(periodOffset, periodOffset + 4),
     offset = Math.min(
       rowOffset,
@@ -73,7 +80,7 @@ export function ResourcePlanView({
   const open = (
     selector: ResourcePlanRowSelector,
     periodId: string,
-    label: string,
+    planLabel: ResourcePlanLabelPresentation,
     demandScope: ResourcePlanDemandScope,
     button: HTMLElement,
   ) => {
@@ -90,7 +97,8 @@ export function ResourcePlanView({
         offset: 0,
         limit: 50,
       },
-      label,
+      label: renderResourcePlanLabel(planLabel,locale),
+      planLabel,
     });
   };
   const close = () => {
@@ -107,12 +115,12 @@ export function ResourcePlanView({
     });
   };
   const cell = (row: PlanRow, periodId: string) => {
-    const name = [...(row.context ?? []), row.name].join(" / ");
+    const name = [...(row.context ?? []), row.selector.kind === "total" ? t(row.name) : displayName(row, locale)].join(" / ");
     const pair =
       periodId === "all"
         ? row.series.summary
         : row.series.cells.find((c) => c.periodKey === periodId);
-    if (!pair) return <span>대상 없음</span>;
+    if (!pair) return <span>{t("대상 없음")}</span>;
     const selected =
         row.selector.kind === "resourceMilestone" ? pair.selected : pair[scope],
       parent = row.parentResource
@@ -122,31 +130,31 @@ export function ResourcePlanView({
               ?.project
         : pair.project;
     const describe = (m: ResourcePlanMetrics) =>
-      `${planMetric(m, metric, unit)} · 기준 Capacity ${m.capacityMd.toFixed(2)} M/D`;
+      `${planMetric(m, metric, unit, locale)} · 기준 Capacity ${formatNumber(m.capacityMd,{minimumFractionDigits:2,maximumFractionDigits:2})} M/D`;
     return (
       <>
         <button
           type="button"
           disabled={stale}
-          aria-label={`${name} · ${periodId} · ${metric === "effort" ? "계획 공수" : metric === "load" ? "평균 Load" : "과투입"} 상세`}
+          aria-label={t("{value0} · {value1} · {value2} 상세", {value0: name, value1: periodId, value2: metric === "effort" ? t("계획 공수") : metric === "load" ? t("평균 Load") : t("과투입")})}
           onClick={(e) =>
             open(
               row.selector,
               periodId,
-              `${name} · ${periodId}`,
+              resourcePlanLabel(row,periodId,false),
               row.selector.kind === "resourceMilestone" ? "selected" : scope,
               e.currentTarget,
             )
           }
         >
           {row.selector.kind === "resourceMilestone"
-            ? "Milestone 기여(선택) · "
+            ? t("Milestone 기여(선택) · ")
             : ""}
-          {planMetric(selected, metric, unit)}
+          {planMetric(selected, metric, unit, locale)}
         </button>
         <small title={describe(selected)}>
-          Capacity {selected.capacityMd.toFixed(2)} M/D
-          {row.selector.kind === "resourceMilestone" ? " · 비가산 참고" : ""}
+          Capacity {formatNumber(selected.capacityMd,{minimumFractionDigits:2,maximumFractionDigits:2})} M/D
+          {row.selector.kind === "resourceMilestone" ? t(" · 비가산 참고") : ""}
         </small>
         {parent &&
         (parent.excessMd > 0 || parent.unknownAssignmentCount > 0) ? (
@@ -160,23 +168,22 @@ export function ResourcePlanView({
                   ? { kind: "resource", resourceId: row.selector.resourceId }
                   : row.selector,
                 periodId,
-                `${name} · 개인/Project 전체 참고 · ${periodId}`,
+                resourcePlanLabel(row,periodId,true),
                 "project",
                 e.currentTarget,
               )
             }
           >
-            Project 전체 · 초과 {parent.excessMd.toFixed(2)} M/D ·{" "}
-            {parent.overAllocatedResourceCount}명
-            {parent.unknownAssignmentCount
-              ? ` · 미설정 ${parent.unknownAssignmentCount}`
+            {t("Project 전체 · 초과")}{" "}{formatNumber(parent.excessMd,{minimumFractionDigits:2,maximumFractionDigits:2})} M/D ·{" "}
+            {formatNumber(parent.overAllocatedResourceCount)}{t("명")}{parent.unknownAssignmentCount
+              ? t(" · 미설정 {value0}", {value0: parent.unknownAssignmentCount})
               : ""}
           </button>
         ) : null}
         {row.selector.kind === "resourceMilestone" ? (
           <small>
-            개인 전체 참고{" "}
-            {parent ? planMetric(parent, metric, unit) : "미산정"}
+            {t("개인 전체 참고")}{" "}
+            {parent ? planMetric(parent, metric, unit, locale) : t("미산정")}
           </small>
         ) : null}
       </>
@@ -194,94 +201,84 @@ export function ResourcePlanView({
     <section aria-label="Resource Plan">
       <div className="resource-dashboard-view-controls">
         <label>
-          기간 셀 지표
-          <select
+          {t("기간 셀 지표")}<select
             ref={fallback}
-            aria-label="기간 셀 지표"
+            aria-label={t("기간 셀 지표")}
             value={metric}
             onChange={(e) => setMetric(e.target.value as typeof metric)}
           >
-            <option value="effort">계획 공수</option>
-            <option value="load">평균 Load %</option>
-            <option value="excess">과투입 M/D</option>
+            <option value="effort">{t("계획 공수")}</option>
+            <option value="load">{t("평균 Load %")}</option>
+            <option value="excess">{t("과투입 M/D")}</option>
           </select>
         </label>
         <label>
-          부하 범위
-          <select
-            aria-label="부하 범위"
+          {t("부하 범위")}<select
+            aria-label={t("부하 범위")}
             value={scope}
             onChange={(e) =>
               setScope(e.target.value as ResourcePlanDemandScope)
             }
           >
-            <option value="selected">선택 실물·Milestone·Task 기여</option>
-            <option value="project">동일 개인의 Project 전체 참고</option>
+            <option value="selected">{t("선택 실물·Milestone·Task 기여")}</option>
+            <option value="project">{t("동일 개인의 Project 전체 참고")}</option>
           </select>
         </label>
-        <ContextHelp label="Resource Plan Capacity 도움말"><p>공정·WorkArea·설비·시스템·Task·Milestone·기간·검색으로 Capacity 모집단을 줄이지 않습니다. 유효 근무일1 M/D 기준이며 Group·Milestone Capacity는 비가산 참고값입니다. 현재 Project의 개인 배정 이력에 따른 모집단이며 전사 가용 인력이 아닙니다.</p></ContextHelp>
+        <ContextHelp label={t("Resource Plan Capacity 도움말")}><p>{t("공정·WorkArea·설비·시스템·Task·Milestone·기간·검색으로 Capacity 모집단을 줄이지 않습니다. 유효 근무일1 M/D 기준이며 Group·Milestone Capacity는 비가산 참고값입니다. 현재 Project의 개인 배정 이력에 따른 모집단이며 전사 가용 인력이 아닙니다.")}</p></ContextHelp>
       </div>
       <p className="resource-dashboard-hint">
-        현재 Project 개인 {plan.population.resourceCount}명 · Capacity 비가산 참고 · 유효 근무일1 M/D
-      </p>
+        {t("현재 Project 개인")}{" "}{formatNumber(plan.population.resourceCount)}{t("명 · Capacity 비가산 참고 · 유효 근무일1 M/D")}</p>
       <p className="resource-dashboard-hint">
-        조회 전체 {scope === "selected" ? "선택 기여" : "Project 전체 참고"} ·
-        평균 {planMetric(plan.totals.summary[scope], "load", unit)} · 알려진
-        가중 일별 Peak{" "}
+        {t("조회 전체")}{" "}{scope === "selected" ? t("선택 기여") : t("Project 전체 참고")} {t("· 평균")}{" "}{planMetric(plan.totals.summary[scope], "load", unit, locale)} {t("· 알려진 가중 일별 Peak")}{" "}
         {plan.totals.summary[scope].knownPeakDailyLoadPercent === null
-          ? "미산정"
-          : `${plan.totals.summary[scope].knownPeakDailyLoadPercent.toFixed(2)}%`}{" "}
-        / 알려진 개인 최대 Peak{" "}
+          ? t("미산정")
+          : `${formatNumber(plan.totals.summary[scope].knownPeakDailyLoadPercent,{minimumFractionDigits:2,maximumFractionDigits:2})}%`}{" "}
+        {t("/ 알려진 개인 최대 Peak")}{" "}
         {plan.totals.summary[scope].knownPeakResourceDailyLoadPercent === null
-          ? "미산정"
-          : `${plan.totals.summary[scope].knownPeakResourceDailyLoadPercent.toFixed(2)}%`}{" "}
-        · 과투입 {plan.totals.summary[scope].overAllocatedDayCount}일 /{" "}
-        {plan.totals.summary[scope].overAllocatedResourceDayCount}개인일 /{" "}
-        {plan.totals.summary[scope].overAllocatedResourceCount}명 · 초과{" "}
-        {plan.totals.summary[scope].excessMd.toFixed(2)} M/D · 미설정{" "}
-        {plan.totals.summary[scope].unknownAssignmentCount} Assignment
+          ? t("미산정")
+          : `${formatNumber(plan.totals.summary[scope].knownPeakResourceDailyLoadPercent,{minimumFractionDigits:2,maximumFractionDigits:2})}%`}{" "}
+        {t("· 과투입")}{" "}{formatNumber(plan.totals.summary[scope].overAllocatedDayCount)}{t("일 /")}{" "}
+        {formatNumber(plan.totals.summary[scope].overAllocatedResourceDayCount)}{t("개인일 /")}{" "}
+        {formatNumber(plan.totals.summary[scope].overAllocatedResourceCount)}{t("명 · 초과")}{" "}
+        {formatNumber(plan.totals.summary[scope].excessMd,{minimumFractionDigits:2,maximumFractionDigits:2})} {t("M/D · 미설정")}{" "}
+        {formatNumber(plan.totals.summary[scope].unknownAssignmentCount)} Assignment
       </p>
       <div className="resource-dashboard-pagination">
         <span>
-          행 {offset + 1}–{Math.min(offset + 49, rows.length)} / {rows.length} ·
-          기간 {periodOffset + 1}–
+          {t("행")}{" "}{offset + 1}–{Math.min(offset + 49, rows.length)} / {formatNumber(rows.length)} {t("· 기간")}{" "}{periodOffset + 1}–
           {Math.min(periodOffset + 4, plan.periods.length)} /{" "}
-          {plan.periods.length}
+          {formatNumber(plan.periods.length)}
         </span>
         <button
           type="button"
           disabled={stale || offset === 0}
           onClick={() => setRowOffset(Math.max(0, offset - 49))}
         >
-          행 이전
-        </button>
+          {t("행 이전")}</button>
         <button
           type="button"
           disabled={stale || offset + 49 >= rows.length}
           onClick={() => setRowOffset(offset + 49)}
         >
-          행 다음
-        </button>
+          {t("행 다음")}</button>
         <button
           type="button"
           disabled={stale || periodOffset === 0}
           onClick={() => setPeriodOffset(Math.max(0, periodOffset - 4))}
         >
-          기간 이전
-        </button>
+          {t("기간 이전")}</button>
         <button
           type="button"
           disabled={stale || periodOffset + 4 >= plan.periods.length}
           onClick={() => setPeriodOffset(periodOffset + 4)}
         >
-          기간 다음
-        </button>
+          {t("기간 다음")}</button>
       </div>
       <div
         className="resource-dashboard-table-scroll resource-plan-scroll"
         role="region"
         tabIndex={0}
-        aria-label={`${mode === "group" ? "그룹" : "개인"} 기간 계획표`}
+        aria-label={t("{value0} 기간 계획표", {value0: mode === "group" ? t("그룹") : t("개인")})}
       >
         <table
           className="resource-plan-matrix"
@@ -301,19 +298,19 @@ export function ResourcePlanView({
             <tr>
               <th scope="col">
                 {mode === "group"
-                  ? "그룹 → 개인 → Milestone"
-                  : "개인 → Milestone"}
+                  ? t("그룹 → 개인 → Milestone")
+                  : t("개인 → Milestone")}
               </th>
               {periods.map((p) => (
                 <th scope="col" key={p.key}>
                   {p.label}
                   <small>
-                    {p.from}–{p.to}
-                    {p.partial ? " · 부분기간" : ""}
+                    {formatLocaleDateOnly(p.from,LOCALE_FORMATS[locale])}–{formatLocaleDateOnly(p.to,LOCALE_FORMATS[locale])}
+                    {p.partial ? t(" · 부분기간") : ""}
                   </small>
                 </th>
               ))}
-              <th scope="col">전체 조회기간</th>
+              <th scope="col">{t("전체 조회기간")}</th>
             </tr>
           </thead>
           <tbody>
@@ -336,17 +333,17 @@ export function ResourcePlanView({
                     >
                       <span
                         className="resource-milestone-identity"
-                        title={row.name}
+                        title={displayName(row, locale)}
                       >
-                        {row.name}
+                        {displayName(row, locale)}
                       </span>
                     </button>
                   ) : (
                     <span
                       className="resource-milestone-identity"
-                      title={row.name}
+                      title={displayName(row, locale)}
                     >
-                      {row.name}
+                      {displayName(row, locale)}
                     </span>
                   )}
                   {row.context?.length ? (
@@ -365,7 +362,7 @@ export function ResourcePlanView({
                       {row.description}
                     </small>
                   ) : null}
-                  {row.selector.kind === "resource" ? <IdentifierDetails label={`${row.name} 식별 정보`} identifiers={[{label:"리소스 ID",value:row.selector.resourceId}, ...(data.catalog.resources.find(resource=>"resourceId" in row.selector && resource.id===row.selector.resourceId)?.code ? [{label:"코드",value:data.catalog.resources.find(resource=>"resourceId" in row.selector && resource.id===row.selector.resourceId)!.code!}] : [])]}/> : row.selector.kind === "group" && row.selector.groupId ? <IdentifierDetails label={`${row.name} 식별 정보`} identifiers={[{label:"그룹 ID",value:row.selector.groupId},...(data.catalog.groups.find(group=>"groupId" in row.selector&&group.id===row.selector.groupId)?.code?[{label:"코드",value:data.catalog.groups.find(group=>"groupId" in row.selector&&group.id===row.selector.groupId)!.code!}]:[])]}/> : null}
+                  {row.selector.kind === "resource" ? <IdentifierDetails label={t("{value0} 식별 정보", {value0: displayName(row, locale)})} identifiers={[{label:"리소스 ID",value:row.selector.resourceId}, ...(data.catalog.resources.find(resource=>"resourceId" in row.selector && resource.id===row.selector.resourceId)?.code ? [{label:"코드",value:data.catalog.resources.find(resource=>"resourceId" in row.selector && resource.id===row.selector.resourceId)!.code!}] : [])]}/> : row.selector.kind === "group" && row.selector.groupId ? <IdentifierDetails label={t("{value0} 식별 정보", {value0: displayName(row, locale)})} identifiers={[{label:"그룹 ID",value:row.selector.groupId},...(data.catalog.groups.find(group=>"groupId" in row.selector&&group.id===row.selector.groupId)?.code?[{label:"코드",value:data.catalog.groups.find(group=>"groupId" in row.selector&&group.id===row.selector.groupId)!.code!}]:[])]}/> : null}
                 </th>
                 {periods.map((p) => (
                   <td key={p.key}>{cell(row, p.key)}</td>

@@ -1,3 +1,9 @@
+## Unreleased — Issue #866 Phase C 통합 (2026-11-05)
+
+- Project/Issue/Task Editor/Gantt/Resource/Milestone/Logistics/관리·Calendar의 고정 UI·도움말·접근성 이름·검증·날짜/숫자 및 관리형 표시명을 ko/en/vi로 연결합니다. 사용자 내용·ID·일정/권한/revision 계약은 유지합니다.
+- locale 전환 시 SVAR2.7.3 재초기화에 대비해 최신 renderer 입력과 기존 상태 복구 queue/lease를 보존합니다. 알림과 이동 설명은 현재 언어에서 렌더하고 원래 초안·선택·이력을 유지합니다.
+- 기존 PR #879에 A+B+C를 통합하여 새 Full CI를 시작합니다. 아래 Phase A/B 미구현 기록은 당시 상태이며 현재 검증은 Work Packet을 따릅니다. 후보0.142.0·release_authorized=false, 새 원격 결과/Owner ACCEPT·병합·정식 GHCR·Issue 종료는 별도입니다.
+
 ## Unreleased — Issue #866 Phase B (staged, not published)
 
 - Phase A #878 기반: 12-owner 번역 migration 0036, 관리형 원본 name·ID 보존/언어별 표시명, Admin/Project owner revision 경계, Copy/Template6 보존, 손실 Export 차단, 관리자 수동 편집 및 새 i18n-master-data E2E 샤드7 추가.

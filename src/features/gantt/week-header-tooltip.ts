@@ -1,3 +1,5 @@
+import { translate } from "../../lib/i18n";
+import type { AppLocale } from "../../lib/i18n/locales";
 import type { ProjectCalendarDto } from "../../contracts/projects";
 import {
   addCalendarDays,
@@ -60,13 +62,14 @@ function workingCalendarFromProject(calendar: ProjectCalendarDto) {
       });
 }
 
-export function formatGanttWeekWorkingDaysLabel(workingDays: number): string {
-  return `${workingDays}일`;
+export function formatGanttWeekWorkingDaysLabel(workingDays: number, locale: AppLocale = "ko"): string {
+  return translate(locale, "{count}일", { count: workingDays });
 }
 
 export function buildGanttWeekHeaderTooltipDataForDateOnly(
   start: DateOnly,
   calendar: ProjectCalendarDto,
+  locale: AppLocale = "ko",
 ): GanttWeekHeaderTooltipData {
   const end = addCalendarDays(start, 6) as DateOnly;
   const workingDays = workingDaysBetween(start, end, workingCalendarFromProject(calendar));
@@ -88,17 +91,19 @@ export function buildGanttWeekHeaderTooltipDataForDateOnly(
     workingDays,
     holidays,
     ariaLabel: holidayText
-      ? `${start} ~ ${end}, 근무일 ${workingDays}일, 공휴일 ${holidayText}`
-      : `${start} ~ ${end}, 근무일 ${workingDays}일`,
+      ? translate(locale, "{start} ~ {end}, 근무일 {count}일, 공휴일 {holidays}", { start, end, count: workingDays, holidays: holidayText })
+      : translate(locale, "{start} ~ {end}, 근무일 {count}일", { start, end, count: workingDays }),
   };
 }
 
 export function buildGanttWeekHeaderTooltipData(
   date: Date,
   calendar: ProjectCalendarDto,
+  locale: AppLocale = "ko",
 ): GanttWeekHeaderTooltipData {
   return buildGanttWeekHeaderTooltipDataForDateOnly(
     isoWeekStartDateOnly(dateOnlyFromLocalDate(date)),
     calendar,
+    locale,
   );
 }

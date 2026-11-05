@@ -240,7 +240,7 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
     await guardExitFullscreen(page);
     await rowNamed(page, "Stable leaf").getByText("Stable leaf", { exact: true }).click({ button: "right" });
-    await page.getByRole("menu", { name: "작업 메뉴" }).getByRole("menuitem", { name: "Edit" }).click();
+    await page.getByRole("menu", { name: "작업 메뉴" }).getByRole("menuitem", { name: "수정" }).click();
     const editor = taskEditor(page);
     await expect(editor).toBeVisible();
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
@@ -313,11 +313,11 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await expect(taskEditor(page)).toBeVisible();
     await taskEditor(page).getByRole("button", { name: "취소", exact: true }).click();
     await row.getByText("Stable leaf", { exact: true }).click({ button: "right" });
-    await page.getByRole("menu", { name: "작업 메뉴" }).getByRole("menuitem", { name: "Edit" }).click();
+    await page.getByRole("menu", { name: "작업 메뉴" }).getByRole("menuitem", { name: "수정" }).click();
     await expect(taskEditor(page)).toBeVisible();
     await taskEditor(page).getByRole("button", { name: "취소", exact: true }).click();
     await stableLeafBar(page).click({ button: "right" });
-    await page.getByRole("menu", { name: "작업 메뉴" }).getByRole("menuitem", { name: "Edit" }).click();
+    await page.getByRole("menu", { name: "작업 메뉴" }).getByRole("menuitem", { name: "수정" }).click();
     await expect(taskEditor(page)).toBeVisible();
     await taskEditor(page).getByRole("button", { name: "취소", exact: true }).click();
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);

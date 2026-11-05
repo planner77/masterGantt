@@ -1,3 +1,5 @@
+import { displayName, translate } from "../../lib/i18n";
+import type { AppLocale } from "../../lib/i18n/locales";
 import type { WbsViewNode, WbsViewReportDto, WbsViewSpec } from "../../contracts/wbs-dashboard-views";
 
 /** Process IDs are Project-local; these presets never introduce Target ownership. */
@@ -12,7 +14,7 @@ export const PROCESS_WORKAREA_DEFAULT_SPEC: WbsViewSpec = {
 };
 
 /** Presentation selectors only. The server remains the KPI and union authority. */
-export function processWorkareaPresentation(data: WbsViewReportDto) {
+export function processWorkareaPresentation(data: WbsViewReportDto,locale:AppLocale="ko") {
   const processRows = data.children.filter(row => row.selector.dimension === "process" && row.selector.id !== null);
   const collect = (nodes: WbsViewNode[]): WbsViewNode[] => nodes.flatMap(node => [node, ...collect(node.children)]);
   const rows = collect(data.children);
@@ -28,7 +30,7 @@ export function processWorkareaPresentation(data: WbsViewReportDto) {
     unrelatedEquipmentCount: data.totals.configurationReference.equipmentIds.filter(id => !data.totals.relatedMembers.equipmentIds.includes(id)).length,
     unrelatedSystemCount: data.totals.configurationReference.systemIds.filter(id => !data.totals.relatedMembers.systemIds.includes(id)).length,
     relatedMembers: data.totals.relatedMembers,
-    memberName: (kind: "equipment" | "system", id: string) => data.configurationCatalog.instances.find(row => row.kind === kind && row.id === id)?.name ?? (kind === "equipment" ? "관련 설비" : "관련 물류 시스템"),
+    memberName: (kind: "equipment" | "system", id: string) => (() => {const item=data.configurationCatalog.instances.find(row => row.kind === kind && row.id === id);return item?displayName(item,locale):translate(locale,kind === "equipment" ? "관련 설비" : "관련 물류 시스템");})(),
     tasks: data.totals.tasks, assignments: data.totals.assignments,
     diagnostics: data.totals.diagnostics,
     fullMilestones: data.fullMilestones.filter(row => relatedMilestoneIds.has(row.milestoneTaskId)),

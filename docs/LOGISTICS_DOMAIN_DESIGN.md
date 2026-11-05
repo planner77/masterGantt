@@ -285,3 +285,11 @@ F3는 Target/member를 Task/Summary에 whole/subset 및 self/subtree로 연결�
 물류 구성 소개·빈 목록의 생성 학습문구와 관련 Milestone의 상세 정의는 인접 도움말로 이동한다. `Gantt WBS와 독립`, 조회의 평가일·환산·전체 소속/직접 선행 기준 및 물류 KPI 범위 불변은 직접 유지한다. 공정 없는 설비 추가는 mutation 없이 지속 오류로 선행 조건을 알린다.
 
 공유 Target/원본의 수정 영향, 연결 해제와 원본 삭제의 구별, 사용 중 삭제 제한, Primary 역할 제약·readonly·401/412/stale·초안/pending 계약은 기존 UI에 직접 남는다. Domain/API/DB·통합 조회 집계·원본 연결은 변경하지 않는다. [실행 원장](exec-plans/active/ISSUE_719.md)을 따른다.
+
+## Issue #866 Phase C — 물류 표시·번역 초안 (2026-11-05)
+
+물류 구성/KPI/연결 관계의 고정 UI·도움말·ARIA·검증 안내와 읽기용 수량·공수·날짜는 ko/en/vi 표시 계층을 사용한다. 관리형 공정·설비·시스템·유형·WorkArea 이름은 현재 locale 표시명 또는 원본 name을 사용하고 검색은 원본과 현재 표시명을 함께 찾는다. 중복 표시명은 기존 정렬/code 문맥으로 구별하며 ID/code/type enum·관계·Owner/PI/개발자 원본 이름·Task ID·KPI 산식은 바꾸지 않는다.
+
+장비/시스템 및 legacy Process dialog는 원본 이름과 수동 ko/en/vi 번역을 분리한다. 변경 없는 번역 필드는 생략해 기존 값을 보존하고 명시적 해제만 replacement로 전송한다. 기존 프로젝트 edit session·Origin·revision/CAS·dirty/uncertain/stale 잠금과 공용 유형 관리자 권한 경계를 유지한다. locale는 fetch·자동 저장·초안 초기화의 trigger가 아니다. TranslationDraftSnapshot/유형 edit 시작 revision의 동시 수정 방어도 유지한다.
+
+앱 소유 오류와 opaque 서버 업무 detail를 구분하고 기존 안전한 validation/충돌 안내를 generic 문구로 잃지 않는다. 날짜 input/API는 canonical date-only, 화면 표시는 Intl이며 재계산 authority는 서버다. [Phase C 설계](I18N_PHASE_C.md)에 전체 상태·알림·신뢰 경계를 기록한다. 새 Head 원격 E2E/최종 UX는 NOT TESTED이며 HIGH / OWNER_MANAGED의 별도 독립 인간 QA·Owner 결정이 필요하다.

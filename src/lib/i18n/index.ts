@@ -2,16 +2,18 @@ import { shellMessages } from "./catalogs/shell";
 import { domainsMessages } from "./catalogs/domains";
 import { domainErrorsMessages } from "./catalogs/domain-errors";
 import { coreMessages } from "./catalogs/core";
+import { phaseCMessages } from "./catalogs/phase-c";
 import { LOCALE_FORMATS, type AppLocale } from "./locales";
 
 export type MessageParameters = Readonly<Record<string, string | number | null | undefined>>;
 export type MessageEntry = Readonly<{
+  ko?: string;
   en: string;
   vi: string;
   plural?: Partial<Record<AppLocale, Readonly<{ one: string; other: string }>>>;
 }>;
 export type MessageCatalog = Readonly<Record<string, MessageEntry>>;
-const catalogs: MessageCatalog[] = [coreMessages, shellMessages, domainsMessages, domainErrorsMessages];
+const catalogs: MessageCatalog[] = [phaseCMessages, coreMessages, shellMessages, domainsMessages, domainErrorsMessages];
 export const messages: MessageCatalog = Object.assign({}, ...catalogs);
 
 /** Values are plain text. Callers render through React, never as HTML. */
@@ -22,7 +24,7 @@ export function translate(locale: AppLocale, key: string | null | undefined, par
   const plural = variants && typeof parameters.count === "number"
     ? variants[new Intl.PluralRules(LOCALE_FORMATS[locale]).select(parameters.count) === "one" ? "one" : "other"]
     : undefined;
-  const message = locale === "ko" ? source : plural ?? entry?.[locale] ?? source;
+  const message = locale === "ko" ? entry?.ko ?? source : plural ?? entry?.[locale] ?? entry?.ko ?? source;
   return message.replace(/\{([A-Za-z][A-Za-z0-9_]*)\}/g, (placeholder, name: string) =>
     Object.hasOwn(parameters, name) ? (typeof parameters[name] === "number" ? formatLocaleNumber(parameters[name], locale) : String(parameters[name] ?? "")) : placeholder);
 }
@@ -48,4 +50,4 @@ export function translateErrorCode(locale: AppLocale, code: unknown): string {
   return translate(locale, typeof code === "string" && Object.hasOwn(safeErrors, code) ? safeErrors[code] : "요청을 처리하지 못했습니다. 다시 시도해 주세요.");
 }
 
-export type MessageKey = keyof typeof coreMessages | keyof typeof shellMessages;
+export type MessageKey = keyof typeof coreMessages | keyof typeof shellMessages | keyof typeof domainsMessages | keyof typeof domainErrorsMessages | keyof typeof phaseCMessages;

@@ -454,3 +454,9 @@ Dashboard 관리의 `일반 Task로 전환`은 같은 canonical ID에 기존 `sa
 ### #552 날짜 미정 Milestone 상세의 라벨 오류 경계
 
 marker-OFF의 날짜·소속 확인은 날짜 미정 Milestone도 같은 canonical ID로 연다. 소속 목록의 WBS 표시 라벨을 계산할 때 날짜 미정으로 계산할 수 없는 값은 명시적으로 미산정으로 표시하고, 임의 날짜를 보충하거나 저장하지 않는다. 호출에서 실제로 발생한 INVALID_DATE 외의 오류는 다시 전달한다. 라벨의 미산정 fallback은 canonical 유효성 판정이나 서버 hierarchy guard를 대체하지 않는다. 날짜 오류 뒤 아직 평가되지 않은 복합 구조 오류까지 검증했다고 주장하지 않는다. 실제 renderer 실패와 보완 후 Editor/소속 조회 결과는 [#552 Work Packet](exec-plans/active/ISSUE_552.md)에서 source별로 구분한다.
+
+## Issue #866 — Phase C Editor 표시 언어 (2026-11-05)
+
+Editor의 tab·label·도움말·ARIA·validation 안내는 현재 ko/en/vi로 표시하되 Task 이름/설명·원본 externalId·사람 이름을 번역 key로 사용하지 않는다. 공정/WorkArea/Equipment/System/Resource Group 등 지원되는 관리형 이름은 현재 locale 표시명만 사용하고 없으면 원본으로 돌아간다. 선택 payload의 canonical ID·enum은 그대로다. 날짜 input의 YYYY-MM-DD와 duration/수량의 원본 수치는 Intl 표시 문자열로 대체하지 않는다.
+
+언어 변경으로 Editor/Gantt를 remount하거나 draft 초기화·자동 저장·canonical reload를 시작하지 않는다. 기존 dirty 확인, pending/uncertain/readonly 및 시작 revision의 412 저장 잠금·취소/복원 focus를 유지한다. UI 문구 번역은 서버 일정·관계·Assignment·권한 검증 결과를 바꾸지 않는다. [Phase C 설계](I18N_PHASE_C.md)의 상태·오류 신뢰 경계를 따른다. 현재 새 Head 원격 E2E와 최종 수동 UX는 NOT TESTED이며 로컬 구현 PASS는 해당 브라우저 증거를 대신하지 않는다.

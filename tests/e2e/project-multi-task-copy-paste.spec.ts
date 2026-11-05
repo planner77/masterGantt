@@ -62,17 +62,17 @@ test("다중 checkbox Copy의 canonical 순서·내부 Link·instance·reload �
   await expect(page.getByRole("group", { name: "복사 대상 선택" })).toContainText("선택 2개");
   await expect(row(page, a.taskId)).toHaveAttribute("aria-selected", "true");
   await row(page, a.taskId).getByText(a.name, { exact: true }).click({ button: "right" });
-  await menu(page).getByRole("menuitem", { name: "Copy", exact: true }).click();
+  await menu(page).getByRole("menuitem", { name: "복사", exact: true }).click();
   await expect(checkbox(page, a.taskId)).toBeChecked(); await expect(checkbox(page, b.taskId)).toBeChecked(); expect(commands).toHaveLength(0);
   await row(page, tasks["Summary A"].taskId).locator('[data-action="open-task"]').click();
   await expect(row(page, a.taskId)).toHaveCount(0);
   const chart = page.locator('.project-gantt-widget .wx-chart[tabindex="-1"]');
   const scrollBefore = await chart.evaluate((element) => element.scrollLeft);
   await row(page, target.taskId).getByText(target.name, { exact: true }).click({ button: "right" });
-  await menu(page).getByRole("menuitem", { name: "Paste", exact: true }).click();
+  await menu(page).getByRole("menuitem", { name: "붙여넣기", exact: true }).click();
   const beforeCopyIntent = await frame.evaluate(element => Math.max(0, ...(JSON.parse(element.dataset.ganttViewportCoordinatorHistory ?? "[]") as Array<{ intentEpoch?: number }>).map(event => event.intentEpoch ?? 0)));
   const responsePromise = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === `${api}/task-commands`);
-  await page.getByRole("menu", { name: "Paste", exact: true }).getByRole("menuitem", { name: "As child", exact: true }).click();
+  await page.getByRole("menu", { name: "붙여넣기", exact: true }).getByRole("menuitem", { name: "하위로 붙여넣기", exact: true }).click();
   const response = await responsePromise; expect(response.status()).toBe(200);
   const result = await response.json() as TaskMutationResponse;
   expect(commands).toEqual([{ kind: "copy", taskIds: [a.taskId, b.taskId], anchorTaskId: target.taskId, placement: "child" }]);
@@ -136,7 +136,7 @@ for (const interruption of ["wheel", "scale-roundtrip"] as const) test(`pending 
   await page.getByRole("button", { name: "주", exact: true }).click();
   await checkbox(page, b.taskId).check(); await checkbox(page, a.taskId).check();
   await row(page, a.taskId).getByText(a.name, { exact: true }).click({ button: "right" });
-  await menu(page).getByRole("menuitem", { name: "Copy", exact: true }).click();
+  await menu(page).getByRole("menuitem", { name: "복사", exact: true }).click();
   await row(page, tasks["Summary A"].taskId).locator('[data-action="open-task"]').click();
   await expect(row(page, a.taskId)).toHaveCount(0);
   await expect.poll(() => chart.evaluate(element => element.scrollWidth - element.clientWidth)).toBeGreaterThanOrEqual(46);
@@ -150,9 +150,9 @@ for (const interruption of ["wheel", "scale-roundtrip"] as const) test(`pending 
   try {
     const beforeCopyHistory = await frame.evaluate(element => (JSON.parse(element.dataset.ganttViewportCoordinatorHistory ?? "[]") as unknown[]).length);
     await row(page, target.taskId).getByText(target.name, { exact: true }).click({ button: "right" });
-    await menu(page).getByRole("menuitem", { name: "Paste", exact: true }).click();
+    await menu(page).getByRole("menuitem", { name: "붙여넣기", exact: true }).click();
     const responsePromise = page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname === `${api}/task-commands`);
-    await page.getByRole("menu", { name: "Paste", exact: true }).getByRole("menuitem", { name: "As child", exact: true }).click();
+    await page.getByRole("menu", { name: "붙여넣기", exact: true }).getByRole("menuitem", { name: "하위로 붙여넣기", exact: true }).click();
     await expect.poll(() => requests).toBe(1);
     await expect(frame).toHaveAttribute("data-task-mutation-locked", "true");
     await expect.poll(position).toEqual({ core: 46, native: 46 });
@@ -239,7 +239,7 @@ test("접힘은 선택을 보존하고 실제 필터 변경은 선택과 clipboa
   await expect(page.getByText(/선택한 1개 작업을 복사했습니다/)).toHaveCount(0);
   await query.fill(""); await expect(row(page, target.taskId)).toBeVisible();
   await row(page, target.taskId).getByText(target.name, { exact: true }).click({ button: "right" });
-  await expect(menu(page).getByRole("menuitem", { name: "Paste", exact: true })).toBeDisabled();
+  await expect(menu(page).getByRole("menuitem", { name: "붙여넣기", exact: true })).toBeDisabled();
 });
 
 test("URL task의 modifier·checkbox 선택은 링크 실행을 막고 일반 Chart 클릭은 유지한다", async ({ page, baseURL }) => {
@@ -273,9 +273,9 @@ test("pending 다중 Copy는 연속 mutation을 막고 실제 412 후 stale clip
   let release!: () => void, count = 0;
   await page.route(`**${api}/task-commands`, async (route) => { count++; await new Promise<void>((resolve) => { release = resolve; }); await route.continue(); });
   await row(page, target.taskId).getByText(target.name, { exact: true }).click({ button: "right" });
-  await menu(page).getByRole("menuitem", { name: "Paste", exact: true }).click();
+  await menu(page).getByRole("menuitem", { name: "붙여넣기", exact: true }).click();
   const responsePromise = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === `${api}/task-commands`);
-  await page.getByRole("menu", { name: "Paste", exact: true }).getByRole("menuitem", { name: "As child", exact: true }).click();
+  await page.getByRole("menu", { name: "붙여넣기", exact: true }).getByRole("menuitem", { name: "하위로 붙여넣기", exact: true }).click();
   await expect.poll(() => count).toBe(1);
   await expect(page.locator(".project-gantt-frame")).toHaveAttribute("data-task-mutation-locked", "true");
   await expect(page.getByRole("group", { name: "복사 대상 선택" }).getByRole("button", { name: "선택 복사", exact: true })).toBeDisabled();
@@ -284,7 +284,7 @@ test("pending 다중 Copy는 연속 mutation을 막고 실제 412 후 stale clip
   await expect(page.getByTestId("workspace-toast")).toContainText("다른 편집 내용");
   await expect(page.locator(".project-gantt-frame")).not.toHaveAttribute("data-task-mutation-locked", "true");
   await row(page, target.taskId).getByText(target.name, { exact: true }).click({ button: "right" });
-  await expect(menu(page).getByRole("menuitem", { name: "Paste", exact: true })).toBeDisabled();
+  await expect(menu(page).getByRole("menuitem", { name: "붙여넣기", exact: true })).toBeDisabled();
   const stored = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
   expect(stored.data.project.revision).toBe(current.data.project.revision + 1); expect(stored.data.tasks).toHaveLength(current.data.tasks.length + 1); expect(stored.data.links).toEqual(current.data.links);
 });
@@ -300,12 +300,12 @@ test("다중 선택 상태의 Edit·Cut·Delete는 실제 focus 작업 하나만
   await expect(page.getByRole("dialog", { name: "작업 정보", exact: true }).getByLabel("작업명", { exact: true })).toHaveValue(single.name); await page.keyboard.press("Escape");
   await expect(page.getByRole("group", { name: "복사 대상 선택" })).toContainText("선택 2개");
   await row(page, single.taskId).getByText(single.name, { exact: true }).click({ button: "right" });
-  await menu(page).getByRole("menuitem", { name: "Cut", exact: true }).click();
+  await menu(page).getByRole("menuitem", { name: "잘라내기", exact: true }).click();
   const target = tasks["Summary A"];
   await row(page, target.taskId).getByText(target.name, { exact: true }).click({ button: "right" });
-  await menu(page).getByRole("menuitem", { name: "Paste", exact: true }).click();
+  await menu(page).getByRole("menuitem", { name: "붙여넣기", exact: true }).click();
   const responsePromise = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === `${api}/task-commands`);
-  await page.getByRole("menu", { name: "Paste", exact: true }).getByRole("menuitem", { name: "As child", exact: true }).click();
+  await page.getByRole("menu", { name: "붙여넣기", exact: true }).getByRole("menuitem", { name: "하위로 붙여넣기", exact: true }).click();
   const response = await responsePromise; expect(response.status()).toBe(200);
   expect(response.request().postDataJSON()).toEqual({ kind: "reparent", taskId: single.taskId, anchorTaskId: target.taskId, placement: "child" });
   const after = await response.json() as TaskMutationResponse;
@@ -316,7 +316,7 @@ test("다중 선택 상태의 Edit·Cut·Delete는 실제 focus 작업 하나만
   await checkbox(page, single.taskId).check(); await checkbox(page, selectedOther.taskId).check();
   await row(page, single.taskId).getByText(single.name, { exact: true }).click({ button: "right" });
   const removedPromise = page.waitForResponse((response) => response.request().method() === "DELETE" && new URL(response.url()).pathname === `${api}/tasks/${single.taskId}`);
-  await menu(page).getByRole("menuitem", { name: "Delete", exact: true }).click();
+  await menu(page).getByRole("menuitem", { name: "삭제", exact: true }).click();
   expect((await removedPromise).status()).toBe(200);
   const persisted = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
   expect(persisted.data.tasks).toHaveLength(after.data.tasks.length - 1);
@@ -349,7 +349,7 @@ test("Shift 범위는 필터 문맥 Summary를 제외하고 동일 match의 quer
   await query.fill("새");
   await expect(page.getByText("표시 범위가 변경되어 이전 클립보드를 비웠습니다.", { exact: true })).toBeVisible();
   await row(page, context.taskId).getByText(context.name, { exact: true }).click({ button: "right" });
-  await expect(menu(page).getByRole("menuitem", { name: "Paste", exact: true })).toBeDisabled();
+  await expect(menu(page).getByRole("menuitem", { name: "붙여넣기", exact: true })).toBeDisabled();
 });
 
 

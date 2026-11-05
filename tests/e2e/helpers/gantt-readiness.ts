@@ -39,7 +39,7 @@ export async function readGanttReadiness(target: Locator, expected: GanttReadine
         visible: document.visibilityState === "visible", sameOwners: frame.querySelector(".wx-chart") === chart && frame.querySelector(".wx-gantt") === owner,
         api: frame.dataset.projectGanttApiInstance ?? null, scale: frame.dataset.ganttScaleMode ?? null, coreScale: actualScale,
         scope: new URL(location.href).searchParams.get("rootTask")?.trim() || null,
-        query: document.querySelector<HTMLInputElement>('input[aria-label="작업명, 설명, External ID 검색"]')?.value ?? null,
+        query: document.querySelector<HTMLInputElement>('.project-filter-search input[type="search"]')?.value ?? null,
         canonical: { generation: frame.dataset.ganttCanonicalSyncGeneration ?? null, settled: frame.dataset.ganttCanonicalSyncSettledGeneration ?? null,
           depth: Number(frame.dataset.ganttCanonicalSyncDepth ?? -1), recovery: recovery?.outcome ?? null },
         lastSuccess: parse("ganttProjectionReceipt"), latestAttempt: parse("ganttProjectionObservation"), semantic: parse("ganttSemanticProjectionReceipt"), currentWork: parse("ganttViewportCoordinator"),

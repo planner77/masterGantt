@@ -1,17 +1,20 @@
 "use client";
 
+import { useI18n } from "../lib/i18n/provider";
+
+
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { WorkspaceDialog } from "./workspace-dialog";
 import { WorkspaceMessageContext } from "./workspace-message-context";
 import {
   formatNotification, INITIAL_NOTIFICATION_STATE, notificationReducer,
-  safeNotificationMetadata, TOAST_DURATION_MS, type NoticeKind,
+  safeNotificationMetadata, localizedNoticeText, TOAST_DURATION_MS, type NoticeKind, type NoticePresentation,
 } from "./workspace-notification-state";
 import styles from "./workspace-feedback.module.css";
 
 type NotificationApi = {
-  notify: (kind: NoticeKind, message: string, operation: string, serverBody?: unknown) => void;
+  notify: (kind: NoticeKind, message: string, operation: string, serverBody?: unknown, presentation?: NoticePresentation) => void;
   clearToast: () => void;
 };
 const NotificationContext = createContext<NotificationApi | null>(null);
@@ -35,6 +38,7 @@ export function useWorkspaceNotifications(): NotificationApi {
 }
 
 export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: string; children: ReactNode }>) {
+  const { t, locale } = useI18n();
   const [state, dispatch] = useReducer(notificationReducer, INITIAL_NOTIFICATION_STATE);
   const sequence = useRef(0);
   const [copyHint, setCopyHint] = useState("");
@@ -49,10 +53,10 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
     getFullscreenNotificationSlotSnapshot,
     getNotificationSlotServerSnapshot,
   );
-  const notify = useCallback<NotificationApi["notify"]>((kind, message, operation, serverBody) => {
+  const notify = useCallback<NotificationApi["notify"]>((kind, message, operation, serverBody, presentation) => {
     dispatch({ type: "publish", notice: {
       id: ++sequence.current, kind, message, operation,
-      occurredAt: new Date().toISOString(), read: false, ...safeNotificationMetadata(serverBody),
+      occurredAt: new Date().toISOString(), read: false, ...(presentation ? { presentation } : {}), ...safeNotificationMetadata(serverBody),
     } });
   }, []);
   const clearToast = useCallback(() => dispatch({ type: "clear-toast" }), []);
@@ -76,40 +80,40 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
   }
 
   return <NotificationContext.Provider value={api}>
-    <WorkspaceMessageContext.Provider value={state.toast?.message ?? ""}>
+    <WorkspaceMessageContext.Provider value={state.toast ? localizedNoticeText(state.toast, locale) : ""}>
     {children}
     {notificationSlot ? createPortal(<button type="button" className={styles.bell} aria-haspopup="dialog" aria-expanded={state.open}
-      aria-label={unread ? `알림함, 미확인 ${unread}건` : "알림함"}
+      aria-label={unread ? t("알림함, 미확인 {value0}건", { value0: unread }) : t("알림함")}
       onClick={() => { setCopyHint(""); dispatch({ type: "open" }); }}>
       <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M9 21h6" /></svg>
       {unread > 0 ? <span className={styles.badge} aria-hidden="true">{unread}</span> : null}
     </button>, notificationSlot) : null}
     <div className={`${styles.toast} ${state.toast ? styles.toastVisible : ""}`} role="status" aria-live="polite" aria-atomic="true" data-testid="workspace-toast">
-      {state.toast?.message ?? ""}
+      {state.toast ? localizedNoticeText(state.toast, locale) : ""}
     </div>
     {fullscreenNotificationSlot ? createPortal(<>
       <button type="button" className={`${styles.bell} ${styles.fullscreenBell}`} aria-haspopup="dialog" aria-expanded={state.open}
-        aria-label={unread ? `알림함, 미확인 ${unread}건` : "알림함"}
+        aria-label={unread ? t("알림함, 미확인 {value0}건", { value0: unread }) : t("알림함")}
         onClick={() => { setCopyHint(""); dispatch({ type: "open" }); }}>
         <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M9 21h6" /></svg>
         {unread > 0 ? <span className={styles.badge} aria-hidden="true">{unread}</span> : null}
       </button>
       <div className={`${styles.toast} ${styles.fullscreenToast} ${state.toast ? styles.toastVisible : ""}`} role="status" aria-live="polite" aria-atomic="true" data-testid="workspace-toast-fullscreen">
-        {state.toast?.message ?? ""}
+        {state.toast ? localizedNoticeText(state.toast, locale) : ""}
       </div>
     </>, fullscreenNotificationSlot) : null}
-    {state.open ? <WorkspaceDialog title="오류 알림함" feedback={false} onClose={() => dispatch({ type: "close" })}>
-      <p className={styles.scope}>{scope} · 현재 화면에서 발생한 오류를 최대 50건 보관합니다.</p>
-      <p role="status" className={styles.copyHint}>{copyHint}</p>
-      {state.discarded > 0 ? <p>보관 한도로 이전 알림 {state.discarded}건이 제외되었습니다.</p> : null}
-      {state.errors.length === 0 ? <p>확인할 오류가 없습니다.</p> : <>
-        <button className="secondary-button" type="button" onClick={() => dispatch({ type: "clear-read" })}>읽은 알림 지우기</button>
+    {state.open ? <WorkspaceDialog title={t("오류 알림함")} feedback={false} onClose={() => dispatch({ type: "close" })}>
+      <p className={styles.scope}>{t(scope)} {t(" · 현재 화면에서 발생한 오류를 최대 50건 보관합니다.")}</p>
+      <p role="status" className={styles.copyHint}>{t(copyHint)}</p>
+      {state.discarded > 0 ? <p>{t("보관 한도로 이전 알림 ")}{state.discarded}{t("건이 제외되었습니다.")}</p> : null}
+      {state.errors.length === 0 ? <p>{t("확인할 오류가 없습니다.")}</p> : <>
+        <button className="secondary-button" type="button" onClick={() => dispatch({ type: "clear-read" })}>{t("읽은 알림 지우기")}</button>
         <ol className={styles.errorList}>{state.errors.map((notice, index) => {
-          const text = formatNotification(notice, scope);
+          const text = formatNotification(notice, t(scope), locale);
           return <li key={notice.id}>
-            <strong>{notice.operation}</strong>
-            <textarea aria-label={`알림 ${index + 1} 내용`} readOnly rows={6} value={text} />
-            <button className="secondary-button" type="button" onClick={() => void copy(text)}>내용 복사</button>
+            <strong>{t(notice.operation)}</strong>
+            <textarea aria-label={t("알림 {value0} 내용", { value0: index + 1 })} readOnly rows={6} value={text} />
+            <button className="secondary-button" type="button" onClick={() => void copy(text)}>{t("내용 복사")}</button>
           </li>;
         })}</ol>
       </>}

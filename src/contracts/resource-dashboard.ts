@@ -167,7 +167,7 @@ export interface ResourcePlanTargetContext {
 export interface ResourceDashboardPlanDto extends Omit<ResourcePlanResult, "resources" | "groups" | "metadata"> {
   targetContext?: ResourcePlanTargetContext;
   resources: (Omit<ResourcePlanResourceSeries, "milestones"> & ResourcePlanPersonMetadata & { milestones: (ResourcePlanResourceSeries["milestones"][number] & { name: string; scheduledDate: string | null })[] })[];
-  groups: (ResourcePlanGroupSeries & { name: string; code: string | null; active: boolean })[];
+  groups: (ResourcePlanGroupSeries & { name: string; code: string | null; active: boolean; translations?: DisplayNameTranslations })[];
   metadata: ResourcePlanResult["metadata"] & { limits: typeof RESOURCE_PLAN_LIMITS; populationScope: "ordinary-task-personal-assignment-history-classification-only"; groupDisplayScope: "selected-group-and-activity" };
 }
 export type ResourcePlanDetailKind = "daily" | "day-resources" | "day-assignments";

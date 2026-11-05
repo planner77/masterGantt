@@ -233,3 +233,58 @@
 - 최종 전체 Vitest3541PASS/3기존SKIP(84.99초), 원본설정 TypeScript PASS, production build/runtime-tools PASS. 같은 ESLint 설정의 fresh-checkout 추적 JS/TS1118파일은 exit0/기존18warning/0error다. 자동Pre-PR 매핑은 BLOCKED로 남기며 수동 영향선정/실제 진단과 구분한다. 정제 증거 `docs/evidence/issue-866/pr879-local-validation-20261105.json`, 원본 명령·trace는 ignored `.prepr-reports/pr879-final/`에 보존한다.
 - 별도 Agent 정적 사전검토 PASS는 인간 독립 QA/Owner ACCEPT가 아니다. HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false, manager_decision=NOT TESTED/MERGE_READY=BLOCKED 유지. 새 Head Quality/E2E/Docker·Trusted 결과는 NOT TESTED이며 CI 시작만 확인한다. Phase C·운영 백업복원·Main/GHCR/Release·Issue 종료는 수행하지 않는다.
 - Git CLI의 만료된 인증을 추출·재설정하지 않고 허용된 Git Data API 배치 게시(B)를 사용한다. committed clean local tree와 API 전체 tree/부모를 대조하고, 원격 expected Head·main을 재조회한 뒤 Ref를 한 번만 갱신한다. 실제 candidate Head/새 Full Run·Attempt·base/test-merge 및 캡처 링크는 PR/Primary Issue STATUS 댓글에 후행 기록한다. PR 제목/본문 STATUS 편집으로 metadata CI를 추가하지 않는다.
+
+## Phase C 통합 착수 — A+B Full #3520.1 baseline과 과거 전체 이력 (2026-11-05)
+
+- 시작 exact Head `3fb37d77e6b4e80ee1daedf1642b6cfee1c2913b`, main/base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `69fb50e7f3cb12cc0074a1691c69321399eec427`. [Full #3520.1 / Run41979842028](https://github.com/planner77/masterGantt/actions/runs/41979842028) attempt1은 completed/SUCCESS, Required Quality127088871168/E2E127099090837/Docker127089918011 SUCCESS, Chromium8/8·871PASS/기존3SKIP, Vitest3541PASS/기존3SKIP다. [정제 원본 근거](evidence/issue-866/phasec-baseline-ci3520-20261105.json). Trusted artifact schema/provenance는 이 조회에서 NOT AUDITED이며 자동QA/Owner ACCEPT로 확대하지 않는다.
+- 기존21회(#870 Full8·#878 3·#879 10)에 #3520 한 회를 추가한 관련 CI22회, 모두 attempt1. FULL-001/002·B001~008·구#870 직접실패와 fail-fast취소/미실행 원문은 보존한다. 새 Phase C source는 #3520의 PASS를 승계하지 않는다. 기존 실패17spec 합집합에 Phase C 직접·인접·음성 소비자를 추가해 동결 source에서 한정 회귀한다.
+- 구#870의 국제화 hunk만 현재 #865/#869 Main 코드에 선택 이식했다. 버전0.142.0·기존12-owner 번역/권한/CAS·Copy/Template·Export손실가드, 관리UI B008 geometry/stale draft·technical Delete key, CI/QA/릴리스 정책을 보존한다. 위험HIGH/OWNER_MANAGED/qa_required=true, release_authorized=false다.
+
+### C-LOCAL-001 — 신규 t 소비자와 과거 mock 계약 불일치
+
+첫 전체 Vitest 진단은 3626PASS/1FAIL/기존3SKIP, `project-master-select-fields.test.ts`의 기존 useI18n mock이 locale만 반환하여 새 label `t()`에서 TypeError를 발생시켰다. 실제 Provider는 t를 제공한다. 테스트 mock을 실제 `translate(locale,key,params)` 계약에 연결하고 기존 세필드 표시명/동명code/원문fallback/ID 단언을 보존했다. 별도 부분검증에서4testsPASS, 최종전체재검증결과는 아래에 별도 기록한다. 실제제품권한/DB/선택값 문제로 분류하지 않는다.
+
+### C-LOCAL-002 — 실제 Gantt 전환 기술검토·브라우저 fixture와 HMR 관측 분리
+
+- 설치SVAR2.7.3 source-map에서 locale→storeConfig→init을 확인했다. 기술 사전검토의 두 P1(분리Milestone filter에 visibleTaskIds만 적용, user column width 초기화로 원래 lease가 무효화되어 복원중단)을 각각 membershipIds 및 native init 전 안정 custom columns의 현재 width/hidden/flexgrow 보존으로 수정했다. publicAPI/원래 lease/단일Coordinator 사용을 reviewer가 재확인했다. 같은 root/API만 확인하는 시험을 실제 상태 보존 시험으로 강화했다.
+- 첫 신규 native E2E는 locale전환 **이전** latestTask DOM부재에서FAIL. Trace의 revision41 receipt=SETTLED/coreVisibleIds에latest90포함/deleted5부재를 확인했으며 fixture가 latest를 canonical배열 끝에push하여 virtual DOM화면밖에 배치한 TEST_FIXTURE 문제였다. 실제API의 hierarchy-order처럼 화면내위치에 삽입하고 Core receipt의 최신revision/추가/삭제 단언을 더했다. 기존 DOM/너비/스크롤/선택/DayWeek 단언은 유지했다.
+- 개발 중 catalog 변경의 Next Fast Refresh full reload가 native locale 반복 도중 발생해 vi기대/ko관측 FAIL이 한 번 있었다. 해당 initScript는 새문서에서ko를 설정하므로 source변경 중 실행을 최종증거로 사용하지 않는다. 이후 제품/test/config를 동결하고 source지문 전후 비교로 전체선정묶음을 재실행한다. 테스트retry/timeout/skip·언어단언을 완화하지 않는다.
+- 첫 draft E2E의 root작성 helper가 ko Edit를 편집으로 추측해 찾지 못한 TEST_CONTRACT도 기록한다. 실제 SVARko는 수정이며 설치사전/브라우저메뉴에 맞춰 helper와 직접소비자를 정확히 동기화했다. 원문 Task이름과 keyboard Delete는 변경하지 않았다.
+
+### C-REVIEW — 동적 설명의 locale 고정 누락 보완
+
+별도 읽기전용 inventory/qa_docs Agent가 완성한국어 문자열을 나중에t에 넣는 경로를 찾아 보완했다. Project상태·Task저장/후행작업 알림은 fixedkey+opaqueparameters/labels/segments, Plan상세/일정이동은 owner표시명·messageKey·period/trail descriptor를 현재locale에서 렌더한다. Chart metric·WBS고급조건·Resource scope/등록알림/role등급·Milestone horizon·ProcessDialog제목·Project날짜검증6종 및catalog누락을 보완했다. 사용자이름/ID/날짜입력·selection/filter/snapshot/알림ID·시각/read/timer를 유지한다. 최종 정적재검토는 P1/P2잔여0, catalog3442의 placeholder/literal key/인자누락0이다. Agent사전검토PASS는 독립인간QA/Owner판정이 아니다.
+
+### C-LOCAL-003 — 실제 locale init의 column 정규화와 membership 복구 중단
+
+첫 source동결 `7b033e04bd3be67da3d711efd5604eb0c70c9180772ed4acde80d8186f5516ab`에서 PartA는70PASS/2FAIL/기존2SKIP(74계획)이다. 직접실패 하나는 신규 native locale case의 en 전환 후 hidden Milestone4 DOM부활이다. locale전revision40/41의 logical/Core/DOM 모두M4부재였고, 전환후receipt generation은멈췄다. 좁은 DEV 계측의 stamp는 epoch1/gesture5/intent6 그대로이나 columns의 hidden=false→undefined 및 projectStart flex width104→1로 달라져 `current()`의 원래strictsource가 queue시작을 거부한 것을 확인했다. 정적 prepareColumns 참조유지 확인만으로 실제init정규화까지 보존된다고 결론낸 초기 가설을 기각한다.
+
+보완은 전역 validSource/Coordinator·사용자의새gesture보호를 변경하지 않는다. 같은 API/projection/capture 및 epoch/gesture/intent/columns외context가정확히같을 때만 초기public set-columns/resize-grid를허용하고, 즉시원래strictlease로돌아가 filter/open/selection/viewport를보호한다. 기존coordinator Unit에 열변경만허용/새gesture·intent·epoch·다른context변경차단11건을추가했다. DEV계측은원인확정후제거했다. 후속 i18n6+workspaceko/en2=8case actualPASS(39.6초), native6locale(Day/Week각en/vi/ko)에서M행부재·열/split/scroll/선택/summary·최신추가/삭제row·instance/write0을검증했다. 최종전체선정묶음은 추가보완뒤다시동결실행한다.
+
+두번째 PartA실패는en-US workspace가프로젝트설정버튼을한국어로기대한TEST_CONTRACT다. 설정/보안/편집탭/저장·비밀번호변경까지같은variant의고정문구를ko/en정확값으로전수동기화하고원래geometry/focus/instance/date단언을유지했다. 별도146spec정적교차는project-transfer-layout-491의공수두곳(999999.99→999,999.99 및50000.00→50,000.00)을추가로확인했다. 수치계산변경이아닌Intl표시계약에맞게기대값만갱신한다. 원래70PASS/2FAIL은새결과로소급변경하지않는다.
+
+추가설계검토에서oldviewportlease취소시에도canonicalmembership는최신이어야함을확인했다. 새controller없이기존membershipfilter effect가locale전환에서도동일queue와API/revision/projection guard로재검사하도록연결하고, 이미정합하면no-op한다. layout capture가무효화한observation도현재semantic source에귀속해확보한다. 이효과가새gesture의과거viewport복원을허용하지는않는다.
+
+### C-LOCAL-004 — 늦은 SVAR 폰트와 Workspace geometry baseline
+
+두번째 동결 `ac9628a45d4aebaaa615bb0f0f13cda20799a0cd1718314c126623fe37ee6178`의 PartA는71PASS/1FAIL/기존2SKIP(74계획)이다. 신규 native locale/빈 검색음성은PASS였고 en-US workspace의Dialog 전후 exact geometry만FAIL했다. Trace에서Roboto요청328574.974/328840.549ms→329415.523완료, baseline329451~329477의search toolbar2줄→329534 screenshot1줄로27.5px감소, Modal표시329759보다앞선재배치를확인했다. localeen/Projectheader/APIinstance/canonicaldata는같아Dialog가underlay를밀어낸제품결함가설은기각한다. SVAR가등록한외부Roboto와bodyfontfallback교체가baseline측정과겹친TEST_READINESS다.
+
+기존spec에 document.fonts.ready 및 기존 waitForGanttReadiness의revision1/scale/day/60canonicalID/실제Core/DOM/geometry전제를확인한뒤원래baseline을측정하도록연결했다. 공용readiness queryobserver는한국어aria-label대신동일검색input의안정HTMLselector를사용해en/vi에서도실제query를관측한다. 기존exact geometry equality·Focus/Instance/date·허용오차·timeout/retry는유지한다. 다른helper소비자와기존Unit/인접Milestone/Resource/Gantt를최종동결 source에서재검증한다.
+
+화면캡처직접검토에서기존PhaseA core사전3개가베트남어에서제품용어Milestone을mốc로바꾼것도확인했다. Timeline미리보기/연결/데모설명세항목만Milestone을보존하도록교정하고관련Unit을추가했다. 다른anchor의일반단어mốc나사용자원문은일괄치환하지않는다. 사전우선순위/기존공통key의다른의미는변경하지않는다. 최종source는새지문을고정하여앞선관측을재사용합산하지않는다.
+
+### C-LOCAL-005 — 비신뢰 500 원문 기대와 테스트 응답 순서
+
+최종 전체선정 C8파일74사례는73PASS/1FAIL(19.4분)이다. project-transfer-layout-491의 템플릿 저장 테스트는 CONTROLLED_UI_ERROR/HTTP500의 임의 message `통제된 검증 오류`를 그대로 기대했지만 safeApiError는 승인된 메시지/코드 외에는 caller context `템플릿을 저장하지 못했습니다.`를 표시한다. 신뢰되지 않은500을 원문노출시키거나 테스트용메시지를제품사전에추가하지 않고 테스트를 이 경계에 맞췄다. 실제status500·정확한contextfallback·원문부재·이름/설명초안 보존을 검증하고 기존pending/401/412/실제201·focus/source보존 단언을 유지했다.
+
+첫 테스트보완은 gate.release 직후status를 동기적으로 읽어 expected500/undefined FAIL(7PASS/1FAIL)을 만들었다. 실제 route handler의 await 재개보다 앞선 TEST_READINESS이며, 오류 화면의 응답처리완료를 await한 뒤status를 검사하도록 순서를 수정했다. 제품·공용fixture·helper는 변경하지 않았다. 최종 동일한 전송파일 전체8사례 PASS이며 이전7PASS/1FAIL을 중복합산하지 않는다. 제품/공용입력과 나머지24spec는1316파일 byte동일성을 확인하여 소비별 최종입력 근거를 남겼다. 전체지문이 처음과같다는 주장은 하지 않는다.
+
+### Phase C 최종 검증·게시 인계 (2026-11-05)
+
+- 최종 게시 code/test/config1317파일 SHA256 `186f48255deb484699c2fc4e0233be11fc798596d4e0e35f9a73d7239d437ca4`. 전체 실행 묶음의 최초 지문은 `10a1794407eb3d2a10ae784c8908c35095153a206d92159df3408dac26ecd811`이며 **전체 지문이 시작과 같다고 주장하지 않는다**. 마지막 차이는 `project-transfer-layout-491.spec.ts` 한 파일의 unknown500 oracle/검증 순서뿐이다. 나머지1316파일(제품·공용fixture/helper/config·Unit·다른24spec)은 바이트가 동일하고, 수정spec은 최종파일 전체8사례를 재실행했다. 다른spec이 이 모듈을 import하지 않는 것도 확인했다. 소비 입력 동일성 지문과 각 실행 명령·source/결과는 [정제 증거](evidence/issue-866/phasec-local-validation-20261105.json)에 보존한다.
+- 고유 Chromium25파일158계획 = **156 PASS / 0 FAIL / 기존2 SKIP**. A14파일72PASS/2기존SKIP, B3파일10PASS, C의 변경 없는7파일66PASS와 수정 전송파일8PASS다. 원래 C73PASS/1FAIL 및 중간 전송7PASS/1FAIL은 원장에 보존하고 이 합계에 더하지 않는다. workers1/retries0/max-failures0, 각 묶음20분/수정파일10분 상한을 유지했다.
+- 전체 Vitest **3658PASS/기존3SKIP**, 297filesPASS/1기존SKIP(145.67초). 최종 차이는 Unit에서 실행하지 않는 별도E2E assert뿐이고 제품·Unit/공용입력은 동일하다. 수정파일의 typecheck/lint/discovery를 별도 재검증했다. 원본 Next 설정으로 typecheck PASS, production build/runtime-tools PASS. 같은 ESLint설정1124개JS/TS대상0errors/기존18warnings+ignored파일안내1, 마지막수정파일lint PASS. 버전·테스트탐색(298Unit파일/880브라우저사례)·문서링크·CIcache계약·QAfixture11PASS.
+- 자동 `verify:prepr --mode=fast`는 UNKNOWN94/missing0으로 **BLOCKED**를 유지한다. 이 보고서의 실행중sourceStable=true는 자동도구의 짧은 실행 구간에 한정하며 전체E2E 지문변경을 숨기는 근거가 아니다. 실제 수동 소비자 매핑·실행·입력동일성 증거와 자동선정PASS를 구별한다. 최종 `.prepr-reports/phasec/prepr-final/report.json` 및 SUMMARY를 별도 보존한다.
+- 별도Agent 정적 기술 사전검토 PASS/남은P1·P2=0이며 독립인간QA/OwnerACCEPT가 아니다. 새Head Required3/Trusted·Manager판정은 NOT TESTED, MERGE_READY=BLOCKED, #866OPEN/release_authorized=false. Main/GHCR/Release·운영backup/restore·WindowsExcel·실제AT/native125%·최종수동UX는 미실행이다. Equipment/System 번역입력 omission/clear/stale의 전용브라우저 조합은 별도 미실행이며 공용helper/12-owner HTTP·SQLite/기존CRUD 결과와 구별한다.
+- 실제 UI 캡처: [베트남어Gantt](evidence/issue-866/phasec-gantt-vi.png), [베트남어390px관리자](evidence/issue-866/phasec-master-vi-390.png). 캡처는 keyboard/CAS/상태보존 실행증거를 대체하지 않는다. root 기본worktree의 사용자 deploy/compose/output 변경은 건드리지 않았다. 현재worktree의 테스트 생성물만 별도보존 후 원본으로 복구했다.
+- CLI write 인증 만료를 우회·재설정하지 않고 허용된 Git Data API의 blob/tree/commit 및 expectedHead3fb37d77e6b4e80ee1daedf1642b6cfee1c2913b lease로 한 번 게시한다. clean committed local tree와 API 전체tree/부모·최신main을 대조한 뒤 Ref를 갱신한다. 실제 candidateHead/base/test-merge/FullRun·Attempt는 PR/PrimaryIssue STATUS 댓글에 후행기록한다. 실제 PhaseC 통합 범위로 PR제목/본문은 한 번 교정하며 상태표시를 위한 반복편집은 하지 않는다.

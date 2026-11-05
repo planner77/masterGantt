@@ -242,7 +242,7 @@ test("#572 412 뒤 명시 재조회는 보존 초안을 새 Revision으로 자�
   fixture.tasks[2].name = "Other canonical name";
   fixture.project.revision += 1;
   await nameCell(page, "Stable leaf").click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
+  await page.getByRole("menuitem", { name: "수정", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await dialog.getByRole("button", { name: "최신 정보 다시 불러오기" }).click();
   await expect(dialog.getByRole("textbox", { name: "작업명", exact: true })).toHaveValue("Other canonical name");

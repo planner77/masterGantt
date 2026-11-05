@@ -1,3 +1,7 @@
+## Issue #866 — Phase C 통합 및 새 PR CI 시작 (2026-11-05)
+
+[Work Packet](ISSUE_866.md)의 Phase C 분석·설계·구현·문서 갱신을 기존 PR #879에 통합한다. Main의 #865/#869와 이전 A+B 보완을 유지하며 종료점은 새 Full CI 시작 확인이다. CI 모니터링·병합·GHCR/Release·Issue 종료는 수행하지 않는다. `HIGH/OWNER_MANAGED/qa_required=true`, `release_authorized=false`, 새 Head Required3/Trusted·Owner/Manager ACCEPT는 NOT TESTED다. 과거 Phase A/B TODO 기록은 당시 경계이며 현재 AC 매핑은 Work Packet 정규 절을 따른다.
+
 ## Issue #852 — Gantt 날짜축 반복 확장·Grid 시작점 좌측 탐색 회귀 (2026-10-29)
 
 **REWORK #2 — [Full #3403.1](https://github.com/planner77/masterGantt/actions/runs/40849080627):** Shard5 #527 `resource-plan-dashboard.spec.ts:109` second case 103PASS/1FAIL/4 NOT RUN (X>0, Y96, Core-native X/Y conjunction failed; exact axis UNKNOWN), Shard1/7 PASS, 2/3/4/6/8 CANCELLED, Quality/Docker PASS, E2E/QA derivative FAIL. Prior #514 fix Shard3 CANCELLED=NOT TESTED. [Issue852 cumulative ledger](../../ISSUE_852_FAILURE_ANALYSIS.md) F852-CI-002 preserves all old runs and cross-run TEST_CONTRACT. #527 and structurally identical #526 common setup extension: real Grid task reveal SETTLED→native wheel only if left0→Y96/8 stable frames/4 explicit Core-native conditions + strict peer roundtrip. Product/API/DB/CI/QA unchanged; tests not locally executed; latest remote Full/Trusted/Owner pending. Review/merge check then new Ready PR CI **start only**, no monitor/merge/GHCR/Issue close. `release_authorized=false`.

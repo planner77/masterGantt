@@ -56,7 +56,7 @@ async function chooseSubmenu(
     ),
     (async () => {
       await action.click();
-      if (parent === "Convert to" && item === "Milestone") {
+      if (parent === "유형 변경" && item === "Milestone") {
         await page.getByRole("dialog", { name: "Milestone으로 변경", exact: true }).getByRole("button", { name: "Milestone으로 변경", exact: true }).click();
       }
     })(),
@@ -179,15 +179,15 @@ test("Issue #72 menu exposes Willow commands and readonly users cannot mutate", 
   await expect(row(page, "Alpha")).toBeVisible();
 
   const taskMenu = await openMenu(page, "Alpha");
-  for (const label of ["Add", "Convert to", "Edit", "Cut", "Copy", "Paste", "Move", "Indent", "Outdent", "Delete"]) {
+  for (const label of ["추가", "유형 변경", "수정", "잘라내기", "복사", "붙여넣기", "이동", "들여쓰기", "내어쓰기", "삭제"]) {
     await expect(taskMenu.getByRole("menuitem", { name: label, exact: true })).toHaveCount(1);
   }
   await expect(taskMenu.getByText("Ctrl+X", { exact: true })).toBeVisible();
   await expect(taskMenu.getByText("Ctrl+C", { exact: true })).toBeVisible();
   await expect(taskMenu.getByText("Ctrl+D / Backspace", { exact: true })).toBeVisible();
-  await expect(taskMenu.getByRole("menuitem", { name: "Paste", exact: true })).toBeDisabled();
-  await expect(taskMenu.getByRole("menuitem", { name: "Indent", exact: true })).toBeDisabled();
-  await expect(taskMenu.getByRole("menuitem", { name: "Outdent", exact: true })).toBeDisabled();
+  await expect(taskMenu.getByRole("menuitem", { name: "붙여넣기", exact: true })).toBeDisabled();
+  await expect(taskMenu.getByRole("menuitem", { name: "들여쓰기", exact: true })).toBeDisabled();
+  await expect(taskMenu.getByRole("menuitem", { name: "내어쓰기", exact: true })).toBeDisabled();
   await page.keyboard.press("Escape");
 
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -196,8 +196,8 @@ test("Issue #72 menu exposes Willow commands and readonly users cannot mutate", 
     await readonly.goto(`${origin}${path}`);
     await expect(readonly.getByText("읽기 전용", { exact: true })).toBeVisible();
     const readonlyMenu = await openMenu(readonly, "Alpha");
-    await expect(readonlyMenu.getByRole("menuitem", { name: "Edit", exact: true })).toBeEnabled();
-    for (const label of ["Add", "Convert to", "Cut", "Copy", "Paste", "Move", "Indent", "Outdent", "Delete"]) {
+    await expect(readonlyMenu.getByRole("menuitem", { name: "수정", exact: true })).toBeEnabled();
+    for (const label of ["추가", "유형 변경", "잘라내기", "복사", "붙여넣기", "이동", "들여쓰기", "내어쓰기", "삭제"]) {
       await expect(readonlyMenu.getByRole("menuitem", { name: label, exact: true })).toBeDisabled();
     }
   } finally {
@@ -219,9 +219,9 @@ test("Issue #399 opens Summary scopes in Workspace tabs without creating a brows
   const alphaCreated = await createRootTask(page, api, origin, initial.data.project.revision, "Scope Alpha");
   await createRootTask(page, api, origin, alphaCreated.data.project.revision, "Scope Beta");
   await page.reload();
-  await openMenu(page, "Scope Alpha"); const alphaSnapshot = await chooseSubmenu(page, "Add", "Child task");
+  await openMenu(page, "Scope Alpha"); const alphaSnapshot = await chooseSubmenu(page, "추가", "하위 작업");
   const alpha = alphaSnapshot.data.tasks.find((task) => task.name === "Scope Alpha"); expect(alpha?.type).toBe("summary");
-  await openMenu(page, "Scope Beta"); const betaSnapshot = await chooseSubmenu(page, "Add", "Child task");
+  await openMenu(page, "Scope Beta"); const betaSnapshot = await chooseSubmenu(page, "추가", "하위 작업");
   const beta = betaSnapshot.data.tasks.find((task) => task.name === "Scope Beta"); expect(beta?.type).toBe("summary");
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance"), apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
@@ -292,7 +292,7 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
   await page.reload();
 
   await openMenu(page, "Scope Root");
-  const initialChildSnapshot = await chooseSubmenu(page, "Add", "Child task");
+  const initialChildSnapshot = await chooseSubmenu(page, "추가", "하위 작업");
   const rootTask = initialChildSnapshot.data.tasks.find((task) => task.name === "Scope Root");
   const originalLeaf = rootTask
     ? initialChildSnapshot.data.tasks.find((task) => task.parentExternalId === rootTask.externalId)
@@ -417,7 +417,7 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
   await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
 
   await openMenuByTaskId(page, rootTask!.taskId);
-  const emptySummarySnapshot = await chooseSubmenu(page, "Add", "요약 작업 추가");
+  const emptySummarySnapshot = await chooseSubmenu(page, "추가", "요약 작업 추가");
   const rootIds = new Set(rootSnapshot.data.tasks.map((task) => task.taskId));
   const emptySummary = emptySummarySnapshot.data.tasks.find((task) =>
     !rootIds.has(task.taskId) &&
@@ -471,7 +471,7 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
 
   await openMenuByTaskId(page, headerLeaf!.taskId);
   await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveAttribute("data-copy-selected", "true");
-  const milestoneSnapshot = await chooseSubmenu(page, "Convert to", "Milestone");
+  const milestoneSnapshot = await chooseSubmenu(page, "유형 변경", "Milestone");
   expect(milestoneSnapshot.data.tasks.find((task) => task.taskId === headerLeaf!.taskId)?.type).toBe("milestone");
   await expectMilestoneExcluded(page, headerLeaf!.taskId);
   const rejected = await page.request.post(`${api}/tasks`, {
@@ -521,7 +521,7 @@ async function prepareIssue373Subtree(page: import("@playwright/test").Page) {
   await expect(row(page, "Keep sibling")).toBeVisible();
 
   await openMenu(page, "Scope Alpha");
-  const childAdded = await chooseSubmenu(page, "Add", "Child task");
+  const childAdded = await chooseSubmenu(page, "추가", "하위 작업");
   const alpha = childAdded.data.tasks.find((task) => task.name === "Scope Alpha");
   const child = alpha ? childAdded.data.tasks.find((task) => task.parentExternalId === alpha.externalId) : undefined;
   expect(alpha?.type).toBe("summary");
@@ -571,11 +571,11 @@ test("Issue #373 A direct subtree deep link preserves scope and edit permissions
     await expect(rowByTaskId(scopedPage, alpha!.taskId).locator('[data-action="add-task"]')).toHaveAttribute("aria-disabled", "false");
 
     const rootScopedMenu = await openMenu(scopedPage, "Scope Alpha");
-    await rootScopedMenu.getByRole("menuitem", { name: "Add", exact: true }).hover();
-    const addSubmenu = scopedPage.getByRole("menu", { name: "Add", exact: true });
-    await expect(addSubmenu.getByRole("menuitem", { name: "Child task", exact: true })).toBeEnabled();
-    await expect(addSubmenu.getByRole("menuitem", { name: "Task above", exact: true })).toBeDisabled();
-    await expect(addSubmenu.getByRole("menuitem", { name: "Task below", exact: true })).toBeDisabled();
+    await rootScopedMenu.getByRole("menuitem", { name: "추가", exact: true }).hover();
+    const addSubmenu = scopedPage.getByRole("menu", { name: "추가", exact: true });
+    await expect(addSubmenu.getByRole("menuitem", { name: "하위 작업", exact: true })).toBeEnabled();
+    await expect(addSubmenu.getByRole("menuitem", { name: "위에 작업 추가", exact: true })).toBeDisabled();
+    await expect(addSubmenu.getByRole("menuitem", { name: "아래에 작업 추가", exact: true })).toBeDisabled();
     await scopedPage.keyboard.press("Escape");
 
   } finally {
@@ -607,7 +607,7 @@ test("Issue #373 B scoped edits reconcile a delayed cross-tab revision", async (
     });
 
     await openMenu(scopedPage, child!.name);
-    await menu(scopedPage).getByRole("menuitem", { name: "Edit", exact: true }).click();
+    await menu(scopedPage).getByRole("menuitem", { name: "수정", exact: true }).click();
     const editor = scopedPage.getByRole("dialog", { name: "작업 정보", exact: true });
     await expect(editor).toBeVisible();
     await editor.getByLabel("작업명", { exact: true }).fill("Scoped child renamed");
@@ -625,7 +625,7 @@ test("Issue #373 B scoped edits reconcile a delayed cross-tab revision", async (
     await expect(row(scopedPage, "Keep sibling")).toHaveCount(0);
 
     await openMenu(scopedPage, "Scoped child renamed");
-    await menu(scopedPage).getByRole("menuitem", { name: "Edit", exact: true }).click();
+    await menu(scopedPage).getByRole("menuitem", { name: "수정", exact: true }).click();
     await expect(editor).toBeVisible();
     await editor.getByLabel("작업명", { exact: true }).fill("Scoped child renamed twice");
     const [secondSaved] = await Promise.all([
@@ -684,7 +684,7 @@ test("Issue #373 C stale initial GET yields to the latest scoped edit", async ({
 
     await scopedPage.bringToFront();
     await openMenu(scopedPage, child.name);
-    await menu(scopedPage).getByRole("menuitem", { name: "Edit", exact: true }).click();
+    await menu(scopedPage).getByRole("menuitem", { name: "수정", exact: true }).click();
     await expect(editor).toBeVisible();
     await editor.getByLabel("작업명", { exact: true }).fill("Scoped child final");
     const [latestSaved] = await Promise.all([
@@ -750,7 +750,7 @@ test("Issue #506 places root and nested Add Above/Below immediately around the a
   const rootAnchor = snapshot.data.tasks.find(task => task.name === "B")!;
   const rootRequest = page.waitForRequest(request => request.method() === "POST" && new URL(request.url()).pathname.endsWith("/task-commands"));
   await openMenu(page, "B");
-  const above = await chooseSubmenu(page, "Add", "Task above");
+  const above = await chooseSubmenu(page, "추가", "위에 작업 추가");
   expect((await rootRequest).postDataJSON()).toMatchObject({
     kind: "create", anchorTaskId: rootAnchor.taskId, placement: "before",
   });
@@ -762,7 +762,7 @@ test("Issue #506 places root and nested Add Above/Below immediately around the a
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
 
   await openMenu(page, "B");
-  const below = await chooseSubmenu(page, "Add", "Task below");
+  const below = await chooseSubmenu(page, "추가", "아래에 작업 추가");
   const rootOrder = orderedFamily(below.data.tasks, null);
   expect(rootOrder.map((task) => task.taskId)).toEqual([
     ...orderedFamily(above.data.tasks, null).slice(0, 3).map((task) => task.taskId),
@@ -775,20 +775,20 @@ test("Issue #506 places root and nested Add Above/Below immediately around the a
   await menu(page).getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click();
   await expect(page.getByRole("tab", { name: "Summary", exact: true })).toHaveAttribute("aria-selected", "true");
   await openMenu(page, "Child B");
-  const nested = await chooseSubmenu(page, "Add", "Task above");
+  const nested = await chooseSubmenu(page, "추가", "위에 작업 추가");
   const childNames = orderedFamily(nested.data.tasks, summary.externalId).map((task) => task.name);
   expect(childNames).toEqual(["Child A", "새 작업", "Child B", "Child C"]);
   await expectRenderedSiblingOrder(page, nested.data.tasks, summary.externalId);
   const scopedRootMenu = await openMenu(page, "Summary");
-  await scopedRootMenu.getByRole("menuitem", { name: "Add", exact: true }).hover();
-  const scopedAdd = page.getByRole("menu", { name: "Add", exact: true });
-  await expect(scopedAdd.getByRole("menuitem", { name: "Task above", exact: true })).toBeDisabled();
-  await expect(scopedAdd.getByRole("menuitem", { name: "Task below", exact: true })).toBeDisabled();
+  await scopedRootMenu.getByRole("menuitem", { name: "추가", exact: true }).hover();
+  const scopedAdd = page.getByRole("menu", { name: "추가", exact: true });
+  await expect(scopedAdd.getByRole("menuitem", { name: "위에 작업 추가", exact: true })).toBeDisabled();
+  await expect(scopedAdd.getByRole("menuitem", { name: "아래에 작업 추가", exact: true })).toBeDisabled();
   await page.keyboard.press("Escape");
 
   // #506: below the middle anchor must not append to this Summary.
   await openMenu(page, "Child B");
-  const nestedBelow = await chooseSubmenu(page, "Add", "Task below");
+  const nestedBelow = await chooseSubmenu(page, "추가", "아래에 작업 추가");
   const insertedAbove = nested.data.tasks.find(task => task.parentExternalId === summary.externalId && task.name === "새 작업")!;
   const insertedBelow = nestedBelow.data.tasks.find(task =>
     task.parentExternalId === summary.externalId && task.name === "새 작업" && task.taskId !== insertedAbove.taskId)!;
@@ -832,13 +832,13 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
 
   await openMenu(page, "Beta");
-  const moved = await chooseSubmenu(page, "Move", "Move up");
+  const moved = await chooseSubmenu(page, "이동", "위로 이동");
   expect(orderedRootNames(moved.data.tasks)).toEqual(["Beta", "Alpha", "Gamma"]);
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
 
   await openMenu(page, "Gamma");
-  const indented = await chooseCommand(page, "Indent");
+  const indented = await chooseCommand(page, "들여쓰기");
   const gammaIndented = indented.data.tasks.find((task) => task.name === "Gamma")!;
   const alphaSummary = indented.data.tasks.find((task) => task.name === "Alpha")!;
   expect(gammaIndented.parentExternalId).toBe(alphaSummary.externalId);
@@ -847,26 +847,26 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   // 기존 여러-child Outdent 경로를 유지한다. 마지막 child Outdent로 부모가
   // 비는 경우는 #345 empty-summary persistence 시나리오에서 검증한다.
   await openMenu(page, "Alpha");
-  const childAdded = await chooseSubmenu(page, "Add", "Child task");
+  const childAdded = await chooseSubmenu(page, "추가", "하위 작업");
   expect(childAdded.data.tasks.filter((task) => task.parentExternalId === alphaSummary.externalId)).toHaveLength(2);
 
   await openMenu(page, "Gamma");
-  await expect(menu(page).getByRole("menuitem", { name: "Outdent", exact: true })).toBeEnabled();
-  const outdented = await chooseCommand(page, "Outdent");
+  await expect(menu(page).getByRole("menuitem", { name: "내어쓰기", exact: true })).toBeEnabled();
+  const outdented = await chooseCommand(page, "내어쓰기");
   expect(outdented.data.tasks.find((task) => task.name === "Gamma")!.parentExternalId).toBeNull();
 
   await openMenu(page, "Beta");
-  await menu(page).getByRole("menuitem", { name: "Copy", exact: true }).click();
+  await menu(page).getByRole("menuitem", { name: "복사", exact: true }).click();
   await expect(menu(page)).toHaveCount(0);
   await openMenu(page, "Gamma");
-  const copied = await chooseSubmenu(page, "Paste", "Below");
+  const copied = await chooseSubmenu(page, "붙여넣기", "아래에 붙여넣기");
   expect(copied.data.tasks.filter((task) => task.name === "Beta")).toHaveLength(2);
 
   await openMenu(page, "Gamma");
-  const added = await chooseSubmenu(page, "Add", "Task above");
+  const added = await chooseSubmenu(page, "추가", "위에 작업 추가");
   expect(added.data.tasks.some((task) => task.name === "새 작업")).toBe(true);
   await openMenu(page, "Beta");
-  const milestone = await chooseSubmenu(page, "Convert to", "Milestone");
+  const milestone = await chooseSubmenu(page, "유형 변경", "Milestone");
   expect(milestone.data.tasks.find((task) => task.name === "Beta")!.type).toBe("milestone");
   await expect(row(page, "Beta")).toHaveCount(1); // Only the separately copied Task remains visible.
 
@@ -922,10 +922,10 @@ test("Issue #860 confirms before conversion and opens the same Milestone only on
   // #574 V6/V8: seed the real TaskClipboard before converting its source.
   // Empty clipboard assertions without this positive control would be vacuous.
   await openMenuByTaskId(page, task.taskId);
-  await menu(page).getByRole("menuitem", { name: "Copy", exact: true }).click();
+  await menu(page).getByRole("menuitem", { name: "복사", exact: true }).click();
   await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().clipboardIds)).toEqual([task.taskId]);
   await openMenuByTaskId(page, duplicate.taskId);
-  await expect(menu(page).getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
+  await expect(menu(page).getByRole("menuitem", { name: "붙여넣기", exact: true })).toBeEnabled();
   await page.keyboard.press("Escape");
   const posts: string[] = [];
   page.on("request", request => { if (request.method() === "POST" && new URL(request.url()).pathname.endsWith("/task-commands")) posts.push(request.postData() ?? ""); });
@@ -935,8 +935,8 @@ test("Issue #860 confirms before conversion and opens the same Milestone only on
       await bar.scrollIntoViewIfNeeded(); await bar.click({ button: "right" });
       await expect(menu(page)).toBeVisible();
     } else await openMenuByTaskId(page, task.taskId);
-    await menu(page).getByRole("menuitem", { name: "Convert to", exact: true }).hover();
-    await page.getByRole("menu", { name: "Convert to", exact: true }).getByRole("menuitem", { name: "Milestone", exact: true }).click();
+    await menu(page).getByRole("menuitem", { name: "유형 변경", exact: true }).hover();
+    await page.getByRole("menu", { name: "유형 변경", exact: true }).getByRole("menuitem", { name: "Milestone", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Milestone으로 변경", exact: true });
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText(task.name);
@@ -962,7 +962,7 @@ test("Issue #860 confirms before conversion and opens the same Milestone only on
   expect(posts).toEqual([]);
   expect(await page.evaluate(id => document.activeElement?.closest(".wx-bar")?.getAttribute("data-task-id") === `:${id}`, task.taskId)).toBe(true);
   await openMenuByTaskId(page, duplicate.taskId);
-  await expect(menu(page).getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
+  await expect(menu(page).getByRole("menuitem", { name: "붙여넣기", exact: true })).toBeEnabled();
   await page.keyboard.press("Escape");
   const before = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
   expect(before.clipboardIds).toEqual([task.taskId]);
@@ -1001,7 +1001,7 @@ test("Issue #860 confirms before conversion and opens the same Milestone only on
   expect(after.instance).toBe(before.instance); expect(after.left).toBe(before.left); expect(after.top).toBe(before.top);
   expect(after.clipboardIds).toEqual([]);
   await openMenuByTaskId(page, duplicate.taskId);
-  await expect(menu(page).getByRole("menuitem", { name: "Paste", exact: true })).toBeDisabled();
+  await expect(menu(page).getByRole("menuitem", { name: "붙여넣기", exact: true })).toBeDisabled();
   await page.keyboard.press("Escape");
   expect(posts).toHaveLength(1);
   await test.info().attach("issue-574-conversion-clipboard", { contentType: "application/json", body: JSON.stringify({
@@ -1069,8 +1069,8 @@ test("Issue #860 conversion failures never claim success or submit twice", async
       else await route.fulfill({ status: failure, json: { error: { code: failure === 412 ? "REVISION_CONFLICT" : failure === 401 ? "UNAUTHORIZED" : "INVALID_TASK_COMMAND", message: `Controlled ${failure}` } } });
     });
     await openMenuByTaskId(page, task.taskId);
-    await menu(page).getByRole("menuitem", { name: "Convert to", exact: true }).hover();
-    await page.getByRole("menu", { name: "Convert to", exact: true }).getByRole("menuitem", { name: "Milestone", exact: true }).click();
+    await menu(page).getByRole("menuitem", { name: "유형 변경", exact: true }).hover();
+    await page.getByRole("menu", { name: "유형 변경", exact: true }).getByRole("menuitem", { name: "Milestone", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Milestone으로 변경", exact: true });
     await dialog.getByRole("button", { name: "Milestone으로 변경", exact: true }).click();
     await expect(dialog.getByRole("alert").filter({ hasText: "자동으로 다시 보내지 않습니다" })).toBeVisible();
@@ -1108,14 +1108,14 @@ test("Issue #860 converted Milestone stays excluded after fullscreen density and
   await frame.getByRole("button", { name: "Gantt 전체 화면", exact: true }).click();
   await expect.poll(() => frame.evaluate(node => document.fullscreenElement === node)).toBe(true);
   await openMenuByTaskId(page, task.taskId);
-  await menu(page).getByRole("menuitem", { name: "Convert to", exact: true }).hover();
-  await page.getByRole("menu", { name: "Convert to", exact: true }).getByRole("menuitem", { name: "Milestone", exact: true }).click();
+  await menu(page).getByRole("menuitem", { name: "유형 변경", exact: true }).hover();
+  await page.getByRole("menu", { name: "유형 변경", exact: true }).getByRole("menuitem", { name: "Milestone", exact: true }).click();
   const confirm = page.getByRole("dialog", { name: "Milestone으로 변경", exact: true });
   await expect(confirm.getByRole("button", { name: "취소", exact: true })).toBeFocused();
   await page.keyboard.press("Escape"); await expect(confirm).toHaveCount(0);
   await expect.poll(() => frame.evaluate(node => document.fullscreenElement === node)).toBe(true);
   await openMenuByTaskId(page, task.taskId);
-  const converted = await chooseSubmenu(page, "Convert to", "Milestone");
+  const converted = await chooseSubmenu(page, "유형 변경", "Milestone");
   await expectMilestoneExcluded(page, task.taskId);
   const notice = page.getByTestId("milestone-conversion-notice");
   await expect(notice).toBeVisible();

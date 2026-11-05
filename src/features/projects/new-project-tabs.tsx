@@ -1,5 +1,8 @@
 "use client";
 
+import { useI18n } from "../../lib/i18n/provider";
+
+
 import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -7,6 +10,7 @@ import { CreateProjectForm } from "@/features/projects/create-project-form";
 import { CreateFromTemplateForm } from "@/features/templates/create-from-template-form";
 
 export function NewProjectTabs() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const initialMode = searchParams.get("mode") === "template" ? "template" : "blank";
   const [mode, setMode] = useState<"blank" | "template">(initialMode);
@@ -89,7 +93,7 @@ export function NewProjectTabs() {
 
   return (
     <div ref={containerRef} className="new-project-container" onFocusCapture={handleContainerFocus}>
-      <div className="project-workspace-tabs" role="tablist" aria-label="프로젝트 생성 방식">
+      <div className="project-workspace-tabs" role="tablist" aria-label={t("프로젝트 생성 방식")}>
         <button
           ref={blankTabRef}
           type="button"
@@ -103,8 +107,7 @@ export function NewProjectTabs() {
           onClick={() => selectTab("blank")}
           onKeyDown={handleTabKeyDown}
         >
-          빈 프로젝트 만들기
-        </button>
+          {t("빈 프로젝트 만들기")}</button>
         <button
           ref={templateTabRef}
           type="button"
@@ -118,8 +121,7 @@ export function NewProjectTabs() {
           onClick={() => selectTab("template")}
           onKeyDown={handleTabKeyDown}
         >
-          템플릿에서 만들기
-        </button>
+          {t("템플릿에서 만들기")}</button>
       </div>
 
       <div
