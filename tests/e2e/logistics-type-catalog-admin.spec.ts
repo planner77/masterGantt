@@ -120,3 +120,75 @@ test("Issue #330: logistics admin filters status client-side and keeps controls 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   }
 });
+
+
+test("Issue #866: logistics type editor rejects stale translation replacement after 412 and preserves the other administrator's language", async ({ page }) => {
+  let revision = 4;
+  let writes = 0;
+  let translations = { en: "Old English", vi: "Kho cũ" };
+  const catalogNow = () => ({
+    data: {
+      revision,
+      equipmentTypes: [{
+        code: "stocker", name: "보관 설비", active: true, sortOrder: 1, usageCount: 0,
+        translations: { ...translations },
+      }],
+      systemTypes: [],
+    },
+  });
+  await page.route("**/api/logistics-catalog/admin-sessions", route =>
+    route.fulfill({ status: 201, json: { data: { permission: "logistics_catalog_admin" } } }));
+  await page.route("**/api/logistics-catalog/admin/equipment-types**", async route => {
+    const method = route.request().method();
+    if (method === "GET") {
+      await route.fulfill({ status: 200, json: catalogNow() });
+      return;
+    }
+    if (method !== "PATCH") {
+      await route.fulfill({ status: 405, json: { error: { code: "METHOD_NOT_ALLOWED" } } });
+      return;
+    }
+    writes++;
+    if (writes === 1) {
+      expect(route.request().headers()["if-match"]).toBe('"4"');
+      // Another administrator updated Vietnamese before the first request committed.
+      revision = 5;
+      translations = { ...translations, vi: "Kho mới" };
+      await route.fulfill({ status: 412, json: { error: { code: "PRECONDITION_FAILED" } } });
+      return;
+    }
+    expect(writes).toBe(2);
+    expect(route.request().headers()["if-match"]).toBe('"5"');
+    expect(route.request().postDataJSON()).toEqual({
+      name: "보관 설비",
+      translations: { en: "New English", vi: "Kho mới" },
+    });
+    translations = { en: "New English", vi: "Kho mới" };
+    revision = 6;
+    await route.fulfill({ status: 200, json: catalogNow() });
+  });
+
+  await page.goto("/logistics-admin");
+  await page.getByLabel("관리자 비밀번호", { exact: true }).fill("admin");
+  await page.getByRole("button", { name: "로그인", exact: true }).click();
+  await page.getByRole("button", { name: "이름 수정", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "유형 이름 수정", exact: true });
+  await dialog.getByLabel("English", { exact: true }).fill("Stale English");
+  await dialog.getByRole("button", { name: "저장", exact: true }).click();
+
+  await expect(dialog.getByRole("alert").last()).toContainText("기준정보가 변경되었습니다");
+  await expect(dialog.getByLabel("English", { exact: true })).toHaveValue("Stale English");
+  await expect(dialog.getByLabel("Tiếng Việt", { exact: true })).toHaveValue("Kho cũ");
+  await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
+  expect(writes).toBe(1);
+
+  // A deliberate cancel/reopen rebinds the draft to the newest catalog revision.
+  await dialog.getByRole("button", { name: "취소", exact: true }).click();
+  await page.getByRole("button", { name: "이름 수정", exact: true }).click();
+  await expect(dialog.getByLabel("Tiếng Việt", { exact: true })).toHaveValue("Kho mới");
+  await dialog.getByLabel("English", { exact: true }).fill("New English");
+  await dialog.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  expect(writes).toBe(2);
+  expect(translations).toEqual({ en: "New English", vi: "Kho mới" });
+});

@@ -1,3 +1,20 @@
+## REWORK-B002 — PR #879 Full #3513.1 문서 영향과 물류 유형 동시 편집 교정 (2026-11-05)
+
+- 원본 [Full #3513.1 / Run 41943199412.1](https://github.com/planner77/masterGantt/actions/runs/41943199412), HEAD `20f106f39f90d838193234c5bb0320977fe4af91`, base main `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `1645f96490dc08e09efbe082c38b4de4f84213f4`. 최초 QA Preflight Job126968984659의 **DOCUMENTATION_SYNC FAIL: docs/IMPORT_SCHEMA.md 미기록** (FAIL1/DEFERRED5); FastGate/Required Quality·E2E·Docker/QA Final은 파생, 실제 TS/Vitest/Chromium8/Docker SKIPPED.
+- **문서 결정:** 일정 Import schema 1.0/1.1 기계 계약은 변경하지 않음. 관리형 표시명 ko/en/vi와 Project Copy/Template v6의 별도 snapshot 계약, 일정 Export의 `409 DISPLAY_NAME_TRANSLATIONS_EXPORT_UNSUPPORTED` 손실 거부를 `docs/IMPORT_SCHEMA.md` 상단에 명시한다. 기존 JSON schema 및 `src/contracts/import.ts`/validator 변경 없음.
+- **P2 리뷰 [r4475215195](https://github.com/planner77/masterGantt/pull/879#discussion_r4475215195):** LogisticsTypeCatalogAdmin은 기존 TranslationEditor와 달리 독립적인 수정 폼이었다. 첫 수정 당시 global catalog revision을 보존하고 412·갱신 뒤 기존 번역 초안을 다른 언어까지 덮어쓰지 못하도록 저장 버튼/submit 차단 및 alert, 취소 후 재열기 정책을 동일하게 적용.
+- AC04/AC05 번역 동시 수정/권한·기본 이름 불변 보호, AC06 Import 스키마 호환·Copy/Template/Export 손실 방어, AC09 테스트 원장·문서 영향 추적. Phase C AC02/03/07/08/09 전수 검증은 별도.
+
+### TEST_LIFECYCLE_REVIEW (REWORK-B002)
+
+- EXTEND `tests/e2e/logistics-type-catalog-admin.spec.ts` — 412 concurrency/기존 초안·신규 revision/다른 관리자 vi 변경 보존/중복 PATCH 거부/최신 원본 재편집. KEEP_UNIQUE `tests/e2e/resource-catalog-delete.spec.ts`, `tests/e2e/i18n-master-data.spec.ts`, `tests/lib/i18n-translation-write-field.test.ts` 및 기존 SQLite/HTTP/Import/Template/Copy/Gantt/E2E.
+- 기존 145 E2E spec/8-shard 계획, 모든 Required Check/QA, 테스트 assertion·retry/timeout·skip 불변. 새 Head의 실제 테스트 결과는 CI 실행 전 NOT TESTED.
+
+### DOCUMENTATION_SYNC (REWORK-B002)
+
+- UPDATED: `docs/IMPORT_SCHEMA.md` (strict 일정 JSON 1.0/1.1의 번역 비지원과 손실 방어), `docs/exec-plans/active/ISSUE_866.md` (본 기록), `docs/ISSUE_866_FAILURE_ANALYSIS.md` (최초부터 실패 전수), `docs/I18N_PHASE_B.md` (동시 수정 설계). 관련 UI/E2E 최신 수정.
+- N/A: AGENTS.md, docs/TEST_PLAN.md (선행 P1 복원 원본 정책 보존/본 Work Packet에서 Phase B 테스트 상세 추적), docs/IMPORT_EXPORT.md (이미 Export 409, Copy/Template v6 기록되어 있으며 기계 Import 계약은 이 문서에 명시), DB schema/마이그레이션, CI policy/Required3, package/lock, Main 릴리스 경로. 모두 현재 규정 그대로.
+
 ## REWORK-B001 — PR #879 Full #3510.1 Preflight BLOCKED 및 Codex P1/P2 보완 (2026-11-05)
 
 - 원본 Full #3510.1 / Run 41941093006.1, HEAD dfc967258f5fa0cc8e188d116cdccd734f49c771, Base #878 HEAD 8fca83bbc12cf516cd7f22438fa16c6b596d80fb, test-merge 28d4bb5ece15503393808ecbcc5410168264fe02. 직접 QA Preflight 126961958453 POLICY_CI FAIL (base.ref != main), Fast Gate/Required3/QA Final은 파생. Vitest/TypeScript/E2E8/Docker NOT RUN.

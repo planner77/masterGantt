@@ -1,3 +1,9 @@
+## REWORK-B002 — 관리형 번역과 일정 교환 계약 및 물류 유형 edit race (2026-11-05)
+
+- 일정 Import JSON 1.0/1.1은 번역 표시명 owner 메타데이터를 표현하지 않으며 machine schema를 변경하지 않는다. 자세한 확정 계약/거부·Copy/Template v6 경계는 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md) 상단에 추가했다. 기존 Export 409 손실 거부 유지.
+- LogisticsTypeCatalogAdmin의 번역 편집은 시작 revision을 고정하고 412 재조회 및 동시 갱신 후 stale draft 저장을 금지한다. 기존 입력값을 유지·경고하고 취소/재열기를 요구하며, 리소스 그룹·프로젝트 마스터 TranslationEditor와 동일한 동시 수정 정책이다.
+- [Full #3513.1](https://github.com/planner77/masterGantt/actions/runs/41943199412)은 DOCUMENTATION_SYNC 경로 누락으로 preflight 단계에서 실패, 런타임 tests NOT RUN. E2E 물류 유형 race 부정 사례와 문서 영향 기록을 추가하되 실제 새 Head Full CI/Trusted 확인 전 NOT TESTED; Phase C/운영 DB 복구는 별도.
+
 ## REWORK-B001 — Main 대상 검증/번역 초안 보호 (2026-11-05)
 
 - 최초 #879 stacked PR은 base.ref=main 필수 신뢰된 QA Preflight에서 차단되었다. PR 대상만 main으로 변경해 Main 대비 Phase A+B 변경을 검증한다. 이 조치는 #878 병합·릴리스 승인이 아니다.

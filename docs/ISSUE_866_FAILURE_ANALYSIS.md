@@ -1,3 +1,22 @@
+## PR #879 FULL-B002 — #3513.1 QA Preflight 문서 영향 누락 및 물류 유형 편집 P2 (2026-11-05 KST)
+
+### 원본 Run·Job·직접 실패
+
+- [PR #879](https://github.com/planner77/masterGantt/pull/879) Full CI **#3513.1 / [Run 41943199412, Attempt 1](https://github.com/planner77/masterGantt/actions/runs/41943199412)**, pull_request synchronize, HEAD `20f106f39f90d838193234c5bb0320977fe4af91`, base/main `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `1645f96490dc08e09efbe082c38b4de4f84213f4` (changes Job 126968856393 checkout log). Original completed FAILURE, original Fast non-authoritative skipped.
+- **직접 FAIL: QA Preflight Job 126968984659, step 4, DOCUMENTATION_SYNC**: `docs/exec-plans/active/ISSUE_866.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE — 문서 영향 기록 없음: docs/IMPORT_SCHEMA.md`. `FAIL=1, DEFERRED=5`. `PRIMARY_ISSUE, RISK_LEVEL, QA_METHOD, QA_REQUIRED, RELEASE_REQUIRED, RELEASE_AUTHORIZED, PATH_POLICY, ISSUE_AC`는 PASS. PR base=main 정책은 이번에는 PASS이며 #3510.1과 다른 원인이다.
+- **파생 FAIL:** PR Fast Gate Job 126969113413 (PREFLIGHT_RESULT=failure), Required Quality 126969223864, Chromium E2E 126969223984, Docker 126969223914, QA Final 126969265352 (required quality 미성공). Policy/TypeScript/ESLint/Vitest/Next build, Chromium8 실제 실행 및 Docker implementation 전부 SKIPPED/NOT RUN. changes 126968856393 및 영향 Shadow 126969265079 SUCCESS는 제품 테스트 성공 근거 아님. 취소 샤드에서 별도 직접 FAIL을 확인하지 못함.
+- 원인 분류: **POLICY_CI / DOCUMENTATION_SYNC 기록 누락**. Phase B는 Copy/Template version 6과 일정 JSON/Excel 손실 방어 409를 변경했으나 `docs/IMPORT_SCHEMA.md`의 영향 여부를 Work Packet의 현재 Phase B 문서 표에 명시하지 않았다. 스키마/Import 런타임 자체가 실패했다고 해석하지 않음.
+
+### 리뷰 결함과 보완·검증 경계
+
+- 별도 Code Review **P2**, [discussion r4475215195](https://github.com/planner77/masterGantt/pull/879#discussion_r4475215195): `src/features/logistics/logistics-type-catalog-admin.tsx`의 `saveEdit`는 412로 최신 목록을 갱신한 후에도 기존 번역 draft를 새로운 revision의 If-Match로 재전송할 수 있다. 이전 #3510.1 보완은 `TranslationEditor` 공통 컴포넌트(글로벌 Project Master/Resource Group)에만 적용되어 물류 유형 화면이 빠졌다. 이번 P2는 **실제 E2E 미실행 상태에서 발견된 정적 Code Review 결함**이며 직접 CI 오류는 아님.
+- **설계/수정:** `docs/IMPORT_SCHEMA.md`에 schedule JSON 1.0/1.1 스키마 불변, 지원하지 않는 owner 번역 key strict reject, 복제/Template v6 사용, 기존 일정 Export 409 손실 차단 의미를 설명한다. Work Packet `DOCUMENTATION_SYNC`에 UPDATED 경로와 이유를 등록한다. 코드상 Import schema/API/CI 게이트는 변경하지 않는다.
+- 물류 유형 편집의 **start revision**을 draft와 함께 보존하고 `catalog.data.revision`과 불일치하면 role=alert와 저장 disabled + submit 방어로 오래된 다국어 전체 replacement PATCH 차단. 취소 후 최신 항목을 재열어야 새 revision을 사용한다. 401 재인증/412 최신 조회·기존 서버 CAS/Origin 인증/권한은 유지한다.
+- **TEST_LIFECYCLE_REVIEW:** EXTEND `tests/e2e/logistics-type-catalog-admin.spec.ts` mock HTTP: 최초 If-Match revision4→상대방 vi 변경 후412→최신 revision5 조회→기존 en 초안 보존, 두 번째 저장 차단 및 PATCH1회→명시 취소 후 최신 vi 확인→재저장 If-Match5/PATCH2회, vi 값 보존. KEEP_UNIQUE `tests/e2e/resource-catalog-delete.spec.ts` 공통 editor 동시수정 회귀, Phase A/Phase B Unit/SQLite/HTTP/Copy/Template/Import/Export 및 8-shard 145 spec. 신규 E2E 파일 추가/샤드 이동/timeout·retry·gate 완화 없음.
+- **전체 이력 교차:** #878 FULL-001 E2E shard count 계약, FULL-002 SVAR en-US 헤더 계약 → #3509.1 성공은 Phase A Head 범위만; #879 FULL-B001 #3510.1 main 대상 아닌 PR의 Preflight BLOCKED → base main으로 변경되면서 이번 #3513.1에서는 정책 검사 통과; FULL-B002는 `docs/IMPORT_SCHEMA.md` 문서 영향 미기록 신규 원인. 선행 Codex P1 대용량 `TEST_PLAN.md` 유실은 이전 보완 commit 20f106f의 원본 Blob 복원으로 해결했으며 해당 문서는 이번 변경에서 그대로 보존한다. 구 #870/LLM/Issue UI 직접 실패는 독립 Source로 유지.
+- **교차 소비자 합집합:** `docs/IMPORT_SCHEMA.md`, `docs/IMPORT_EXPORT.md`, `docs/exec-plans/active/ISSUE_866.md`, `docs/I18N_PHASE_B.md`, `tests/e2e/logistics-type-catalog-admin.spec.ts`, `src/features/logistics/logistics-type-catalog-admin.tsx`, `src/components/translation-fields.tsx`, `tests/e2e/resource-catalog-delete.spec.ts`, 기존 SQLite/HTTP/Copy/Template/Import/Export/Phase A specs. 새로운 Head의 실제 Node/TypeScript/Vitest/E2E8/Docker/Trusted 테스트는 **NOT TESTED**, 실패 Run #3513.1을 소급 PASS로 전환하지 않는다.
+- 위험: HIGH / OWNER_MANAGED / qa_required=true / release_required=true / release_authorized=false, Issue #866 OPEN, PR #878/#879 미병합. 최신 Main 및 미해결 review/mergeability 재확인 후 신규 Full CI. 운영 DB 0036 백업·복구와 Phase C 전체 현지화는 남아 있음.
+
 ## PR #879 FULL-B001 — #3510.1 QA Preflight의 non-main base 정책 차단 (2026-11-05 KST)
 
 ### A. 원본 실행 및 직접·파생 구분
