@@ -1,4 +1,6 @@
 import { shellMessages } from "./catalogs/shell";
+import { domainsMessages } from "./catalogs/domains";
+import { domainErrorsMessages } from "./catalogs/domain-errors";
 import { coreMessages } from "./catalogs/core";
 import { LOCALE_FORMATS, type AppLocale } from "./locales";
 
@@ -9,7 +11,7 @@ export type MessageEntry = Readonly<{
   plural?: Partial<Record<AppLocale, Readonly<{ one: string; other: string }>>>;
 }>;
 export type MessageCatalog = Readonly<Record<string, MessageEntry>>;
-const catalogs: MessageCatalog[] = [coreMessages, shellMessages];
+const catalogs: MessageCatalog[] = [coreMessages, shellMessages, domainsMessages, domainErrorsMessages];
 export const messages: MessageCatalog = Object.assign({}, ...catalogs);
 
 /** Values are plain text. Callers render through React, never as HTML. */
