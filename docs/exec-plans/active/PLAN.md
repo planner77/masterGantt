@@ -1,3 +1,7 @@
+## Issue #866 — PR #879 Full #3522.1 누적 실패 보완 (2026-11-05)
+
+[Work Packet](ISSUE_866.md)의 REWORK-C001과 [누적 실패 원장](../../ISSUE_866_FAILURE_ANALYSIS.md)을 기준으로 전체 CI24회/전8샤드를 대조하고, 번역된 유형 필터·관리자 heading을 소비하는 E2E5파일을 보완한다. 이전 실패 합집합과 인접 소비자를 동일 동결 source의 수동25spec/4parts로 검증한 뒤 한 묶음으로 게시한다. 종료점은 새 Full PR CI 시작 확인이며 모니터링·병합·GHCR/Release·Issue 종료는 하지 않는다. HIGH/OWNER_MANAGED/qa_required=true, release_authorized=false 및 새Head Required3/Trusted·인간QA/Owner/Manager NOT TESTED/MERGE_READY BLOCKED를 유지한다.
+
 ## Issue #866 — Phase C 통합 및 새 PR CI 시작 (2026-11-05)
 
 [Work Packet](ISSUE_866.md)의 Phase C 분석·설계·구현·문서 갱신을 기존 PR #879에 통합한다. Main의 #865/#869와 이전 A+B 보완을 유지하며 종료점은 새 Full CI 시작 확인이다. CI 모니터링·병합·GHCR/Release·Issue 종료는 수행하지 않는다. `HIGH/OWNER_MANAGED/qa_required=true`, `release_authorized=false`, 새 Head Required3/Trusted·Owner/Manager ACCEPT는 NOT TESTED다. 과거 Phase A/B TODO 기록은 당시 경계이며 현재 AC 매핑은 Work Packet 정규 절을 따른다.

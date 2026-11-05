@@ -1,3 +1,39 @@
+## REWORK-C001 — Full #3522.1 전체 실패 대조 및 접근성 오라클 보완 (현재 단계)
+
+사용자 요청에 따라 기존 PR #879에서 실패 현상 확인·원인별 보완·리뷰/충돌 검사·원장 갱신을 마치고 새 Full CI를 시작한다. 시작 뒤 모니터링·병합·Main/GHCR/Release·Issue 종료는 하지 않는다. 아래 Phase C DELIVERY의 이전 실행/Head는 역사적 증거이며 새 판정으로 승계하지 않는다.
+
+- 시작 Head `2844e0f7d78c7268057d89514a2db0239498dcb0`, main/base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, 원본 test-merge `31bce4daaccab57d15f5ccbeb1d8b4fd2b70c7de`. Full #3522.1/Run42003998824는 Quality/Docker SUCCESS, E2E/QA 파생FAIL, Shard8 직접TEST_CONTRACT 1건이다. 전8로그·원본report/timing 및 전체CI24회/attempt1을 대조했다. 상세는 [단일 실패 원장](../../ISSUE_866_FAILURE_ANALYSIS.md)의 REWORK-C001을 따른다.
+- 실제 역할: Manager 재현·영향선정·문서·회귀/게시, 별도infra 전체24회 목록·8샤드/metadata 원본회수, frontend 지정5spec 수정, 별도qa_docs146spec 소비자감사 및 patch 독립 기술재검토. Agent사전검토는 독립인간QA/Owner ACCEPT가 아니다.
+- 가설은 낡은UI이름→창준비상태→선택정리순으로 검토했고, pristine동일timeout30.2초와 실제DOM의 작업유형/일반작업으로TEST_CONTRACT를확정했다. 제품코드·UI동작/DB/API/enum/권한·revision·의존성/버전은 변경하지 않는다.
+- 보완: 유형필터4spec/5조회 및 Resource관리자positiveheading1개를정확ko이름으로동기화한다. 기존legacy M 선택회귀를ko/en/vi로확장해2개사례만추가(전체880→882), 146개spec/8shard 배치·역사적성능값은불변이다. broadregex·다국어OR조회·rawenum/API/사용자이름·keyboard변경과skip/retry/timeout·허용오차완화는없다. 직접3언어green13.2초는확대검증합계와구별한다.
+- `HIGH/OWNER_MANAGED/qa_required=true`, 0.142.0/release_required=true/release_authorized=false 유지. 새Head Required3/Trusted·독립인간QA/Owner·Manager판정은NOT TESTED, MERGE_READY=BLOCKED/#866OPEN이다.
+
+### REWORK-C001 생산자·소비자·음성 영향 및 선정
+
+| 계약/변경 | 직접·간접·음성 소비자와 검증 |
+| --- | --- |
+| 고정UI caption 현지화/ raw task·summary enum 분리 | 수정5spec 전체, exact3locale Task/summary선택·native/app/canonical ID·full counts/links·숨김 M·동일instance·writes0 |
+| 기존#878 nativeheader/shard·#879 DOCSYNC/타입/migration | 기존shard/i18n/date/adapter/readiness/selection/search Unit9파일, 원본설정TypeScript·동일ESLint·base docs_gate/AC·탐색882·버전/CI정책 |
+| 기존#879/#870 검색/관리형이름/밀도·401/412/stale·Project생성/설정 | 이전실패합집합A13spec(관리/Calendar/crossscreen/i18nmaster/languageShell/밀도/draft/create/masterrelation/workspacelayout/catalogdelete) |
+| 구#870 공정/물류/Milestone·technicalDelete 및후속COPY lease | process-workareas/task-logistics/milestone-dashboard/multi-task-copy-paste4spec |
+| PhaseC locale init/instance·filter·scroll·교차tab초안, 현재typefilter와상호작용 | i18n.spec와TaskContextMenu인접spec을함께선정 |
+| PhaseC unknown500 전송원문·template/copy/import 보존 | 별도D의project-transfer-layout-491 전체8사례, 앞선수정의fallback/원문부재·응답완료순서검증 유지 |
+
+로컬 CLI는동결source에서workers1/retries0/max-failures0, 최대20분의A13/B4/C7와최대10분D1=총25고유spec을수동선정한다. #752 수동Actions 진단workflow의24spec자동상한을바꾸거나그workflow를실행하지않으며이수동선정의추가1파일/4parts/비용을명시한다. 각묶음결과는고유사례로만합산하고원본fail/cancel/midrun/stale를숨기지않는다.
+
+### REWORK-C001 LOCAL_VALIDATED 증거
+
+- source `55c4fbc65ebe9414efa2a608dc3362566a2d5661ef4d1b50465fdb91a2556e97`/1317파일 시작=종료, 생성 Next설정/출력 복구. 수동25spec/155계획=153PASS+기존2캡처SKIP/FAIL0(A66+B20+C59+D8). 직접green3·이전Head는 중복 합산하지 않았다. 관련Unit9파일197PASS, 원본설정typecheck·5spec lint·탐색882·버전/CIcache·Markdown410·base docs_gate/AC구조 PASS.
+- 자동Pre-PR UNKNOWN94/missing0는 BLOCKED, report/SUMMARY `.prepr-reports/ci3522/prepr-publish-final/`에 보존. 자동 공백과 수동 실제 검증을 구별한다. [최종 정제 실행증거](../../evidence/issue-866/ci3522-local-validation-20261105.json), [원장](../../ISSUE_866_FAILURE_ANALYSIS.md)의 REWORK-C001 D 참조.
+- 미해결스레드0/충돌없음·별도Agent 정적검토PASS는 인간QA/Owner ACCEPT가 아니다. 새Head Required3/Trusted·인간QA/Owner·Manager NOT TESTED/MERGE_READY BLOCKED. 한 번 게시한 새 Full CI의 시작 정보만 STATUS 댓글에 후행 기록하고 모니터링하지 않는다.
+
+### REWORK-C001 Test Lifecycle와 문서 영향
+
+- EXTEND: milestone-visibility(기존case→3locale+불변식), project-task-quick-view, milestone-timeline-lane, milestone-stage-grid, resource-admin-layout. ADD/RETIRE/병합/삭제/skip추가0, 원래기능·접근성·geometry·선택/data/API보호단언KEEP_UNIQUE.
+- KEEP_UNIQUE: 이전실패17spec, PhaseC native i18n/전송/메뉴인접 및9개관련Unit, 기존전체Unit/SQLite/HTTP/8-shard·Docker/QA/Owner정책. 자동Pre-PR UNKNOWN은BLOCKED로보존하고수동실행과구별한다.
+- UPDATED: 본WorkPacket·활성 PLAN·단일실패원장·TEST_PLAN·REMOTE_VALIDATION 및정제실행목록/실패매트릭스. 정규DOCUMENTATION_SYNC/AC01~09는현재PR전체A+B+C범위를보존한다. 이번delta의DESIGN/제품UX/API/DB/보안/일정/배포/CI정책본문은N/A(제품변경없이기존번역표시를검증하는오라클만수정).
+- 원격Full #3522의3658Unit/productionbuild/Docker 성공은원본Head에귀속한다. 이번delta에서관련9Unit/type/lint를실행하고실제제품/빌드입력바이트불변을대조하되새Head의Required PASS로승계하지않는다. 코드/의존성/Docker/빌드계약변경이없어불필요한로컬전체Unit/build/Docker반복은생략한다.
+
 ## PHASE_C_DELIVERY — A+B+C 통합 PR #879 (2026-11-05, 현재 단계)
 
 사용자 요청에 따라 Phase C의 분석·설계·구현·문서 갱신을 기존 PR #879에 통합하고 새 Full PR CI를 시작한다. 아래 과거 Phase A/B 단락의 TODO/NOT IMPLEMENTED는 당시 기록이며, 현재 구현 범위와 미검증은 본 절 및 정규 AC_TEST_COVERAGE를 따른다. 종료점은 CI 시작 확인이며 모니터링·병합·Main/GHCR/Finalizer·정식 release·Issue 종료는 포함하지 않는다.

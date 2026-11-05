@@ -271,8 +271,8 @@ test("#551 full population empty vs date viewport and Task-only filter stay inde
   // #552 removed the old [Task] quick-view button. Exercise the actual
   // advanced Task-type filter without changing the independent M population.
   await page.getByRole("button", { name: "필터", exact: true }).click();
-  const ordinaryFilter = page.getByRole("group", { name: "Task type", exact: true })
-    .getByRole("checkbox", { name: "task", exact: true });
+  const ordinaryFilter = page.getByRole("group", { name: "작업 유형", exact: true })
+    .getByRole("checkbox", { name: "일반 작업", exact: true });
   await ordinaryFilter.check();
   await expect(ordinaryFilter).toBeChecked();
   await page.keyboard.press("Escape");

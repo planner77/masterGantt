@@ -118,19 +118,50 @@ for (const width of [390, 1024, 1440]) test(`#552 OFF date request ${width}px op
   expect(after.selected).not.toContain(id); await expectSameGanttRoot(page, identity); expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
 });
 
-test("#552 legacy native M selection is removed by public toggle while the ordinary Task selection remains", async ({ page }) => {
-  const state = await fixture(page, true), frame = page.locator(".project-gantt-frame");
-  const taskId = state.tasks[1].taskId, milestoneId = state.tasks[3].taskId;
-  await rowNamed(page, "Existing summary child").locator("input[data-copy-selection]").check();
-  await frame.evaluate((node, id) => Reflect.get(node, "__masterganttMilestoneTimeline").select([id]), milestoneId);
-  const before = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
-  expect(before.selected).toEqual(expect.arrayContaining([taskId, milestoneId])); expect(before.appSelection).toEqual([taskId]);
-  await page.getByRole("button", { name: "필터", exact: true }).click();
-  await page.getByRole("group", { name: "Task type", exact: true }).getByRole("checkbox", { name: "task", exact: true }).check(); await page.keyboard.press("Escape");
-  await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().selected)).toEqual([taskId]);
-  await expect(rowNamed(page, "Existing summary child").locator("input[data-copy-selection]")).toBeChecked();
-  expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
-  await capture(page, "legacy-native-selection-public-cleanup", { before, after: await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read()), method: "development-only public select-task UI selection experiment" });
+for (const ui of [
+  { locale: "ko", browserLocale: "ko-KR", filter: "필터", group: "작업 유형", task: "일반 작업", summary: "요약 작업" },
+  { locale: "en", browserLocale: "en-US", filter: "Filters", group: "Task type", task: "Task", summary: "Summary" },
+  { locale: "vi", browserLocale: "vi-VN", filter: "Bộ lọc", group: "Loại công việc", task: "Công việc", summary: "Công việc tổng hợp" },
+] as const) test.describe(`#552 localized Task filter ${ui.locale}`, () => {
+  test.use({ locale: ui.browserLocale });
+  test("#552 legacy native M selection is removed by public toggle while the ordinary Task selection remains", async ({ page }) => {
+    const state = await fixture(page, true), frame = page.locator(".project-gantt-frame");
+    await expect(page.locator("html")).toHaveAttribute("lang", ui.locale);
+    const identity = await rememberGanttRoot(page), canonical = JSON.stringify([state.project, state.tasks, state.links]);
+    await waitForGanttReadiness(frame, { operation: "observe", api: identity.apiId,
+      revision: state.project.revision, scale: "day", scope: null, query: "", queryWitness: { kind: "unchanged" },
+      canonicalIds: state.tasks.map(task => task.taskId), requireRenderedRows: true, allowCancelledPriorWork: true });
+    const writes: string[] = [];
+    page.on("request", request => {
+      if (new URL(request.url()).pathname.startsWith("/api/") && !["GET", "HEAD", "OPTIONS"].includes(request.method()) && !isWbsViewReadQuery(request)) writes.push(request.method());
+    });
+    const taskId = state.tasks[1].taskId, milestoneId = state.tasks[3].taskId;
+    await rowNamed(page, "Existing summary child").locator("input[data-copy-selection]").check();
+    await frame.evaluate((node, id) => Reflect.get(node, "__masterganttMilestoneTimeline").select([id]), milestoneId);
+    const before = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
+    expect(before.selected).toEqual(expect.arrayContaining([taskId, milestoneId])); expect(before.appSelection).toEqual([taskId]);
+    await page.getByRole("button", { name: ui.filter, exact: true }).click();
+    const types = page.getByRole("group", { name: ui.group, exact: true });
+    await expect(types.getByRole("checkbox")).toHaveCount(2);
+    const ordinary = types.getByRole("checkbox", { name: ui.task, exact: true });
+    await expect(types.getByRole("checkbox", { name: ui.summary, exact: true })).not.toBeChecked();
+    await ordinary.check(); await expect(ordinary).toBeChecked(); await page.keyboard.press("Escape");
+    await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().selected)).toEqual([taskId]);
+    await expect(rowNamed(page, "Existing summary child").locator("input[data-copy-selection]")).toBeChecked();
+    const after = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
+    expect(after.appSelection).toEqual([taskId]);
+    expect(after.canonicalIds).toEqual(state.tasks.map(task => task.taskId));
+    expect(before.coreTaskCount).toBe(state.tasks.length);
+    expect(after.coreTaskCount).toBe(state.tasks.length);
+    expect(before.coreMilestoneCount).toBe(state.tasks.filter(task => task.type === "milestone").length);
+    expect(after.coreMilestoneCount).toBe(before.coreMilestoneCount);
+    expect(after.links).toEqual(before.links);
+    await expect(frame.locator(`.wx-row[data-id=":${milestoneId}"],.wx-bar[data-task-id=":${milestoneId}"]`)).toHaveCount(0);
+    await expectSameGanttRoot(page, identity);
+    expect(JSON.stringify([state.project, state.tasks, state.links])).toBe(canonical);
+    expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0); expect(writes).toEqual([]);
+    await capture(page, `legacy-native-selection-public-cleanup-${ui.locale}`, { before, after, method: "development-only public select-task UI selection experiment" });
+  });
 });
 
 test("#552 scoped Summary becoming M keeps the native instance and requires explicit full-project recovery", async ({ page }) => {

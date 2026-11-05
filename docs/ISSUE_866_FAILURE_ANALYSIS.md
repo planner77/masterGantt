@@ -288,3 +288,54 @@
 - 별도Agent 정적 기술 사전검토 PASS/남은P1·P2=0이며 독립인간QA/OwnerACCEPT가 아니다. 새Head Required3/Trusted·Manager판정은 NOT TESTED, MERGE_READY=BLOCKED, #866OPEN/release_authorized=false. Main/GHCR/Release·운영backup/restore·WindowsExcel·실제AT/native125%·최종수동UX는 미실행이다. Equipment/System 번역입력 omission/clear/stale의 전용브라우저 조합은 별도 미실행이며 공용helper/12-owner HTTP·SQLite/기존CRUD 결과와 구별한다.
 - 실제 UI 캡처: [베트남어Gantt](evidence/issue-866/phasec-gantt-vi.png), [베트남어390px관리자](evidence/issue-866/phasec-master-vi-390.png). 캡처는 keyboard/CAS/상태보존 실행증거를 대체하지 않는다. root 기본worktree의 사용자 deploy/compose/output 변경은 건드리지 않았다. 현재worktree의 테스트 생성물만 별도보존 후 원본으로 복구했다.
 - CLI write 인증 만료를 우회·재설정하지 않고 허용된 Git Data API의 blob/tree/commit 및 expectedHead3fb37d77e6b4e80ee1daedf1642b6cfee1c2913b lease로 한 번 게시한다. clean committed local tree와 API 전체tree/부모·최신main을 대조한 뒤 Ref를 갱신한다. 실제 candidateHead/base/test-merge/FullRun·Attempt는 PR/PrimaryIssue STATUS 댓글에 후행기록한다. 실제 PhaseC 통합 범위로 PR제목/본문은 한 번 교정하며 상태표시를 위한 반복편집은 하지 않는다.
+
+## PR #879 REWORK-C001 — Full #3522.1 번역된 유형 필터 접근성 이름 계약 (2026-11-05)
+
+### A. 원본 출처와 전 샤드 결과
+
+[Full #3522.1 / Run42003998824](https://github.com/planner77/masterGantt/actions/runs/42003998824), attempt1/pull_request, Head `2844e0f7d78c7268057d89514a2db0239498dcb0`, main/base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `31bce4daaccab57d15f5ccbeb1d8b4fd2b70c7de`(원본 changes Job127166039851)에서 FAIL했다. 실제 Quality127168147571·Docker127169521292 및 Preflight/Policy/ESLint/TypeScript/Unit3658PASS·기존3SKIP/Next build는 SUCCESS다. 직접 FAIL은 Shard8 Job127167485478/step7 E2E shard 실행, `milestone-visibility.spec.ts:121`의legacy native M selection, assertion129 `getByRole(group,Task type).getByRole(checkbox,task).check()` 30000ms timeout이다. 이 앞의native Task+Milestone 선택/app선택Task-only 검사는통과했다.
+
+모든8샤드 원본로그 및 Shard8 report13404716878/timing13403829224를직접회수했다. 전체880계획=269관측PASS+1직접FAIL+기존SKIP1+미완료609다. 취소7샤드에추가✘/locator/expect오류는없지만관측PASS를완료SUCCESS로보지않는다.
+
+| Shard / Job | 원본결론 | 계획 | 관측PASS | 직접FAIL | 기존SKIP | 잔여 |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| 1 / 127167486055 | CANCELLED | 129 | 51 | 0 | 0 | 78 INTERRUPTED_OR_NOT_RUN |
+| 2 / 127167485306 | CANCELLED | 104 | 15 | 0 | 0 | 89 INTERRUPTED_OR_NOT_RUN |
+| 3 / 127167485386 | CANCELLED | 153 | 57 | 0 | 1 | 95 INTERRUPTED_OR_NOT_RUN |
+| 4 / 127167485367 | CANCELLED | 94 | 16 | 0 | 0 | 78 INTERRUPTED_OR_NOT_RUN |
+| 5 / 127167485511 | CANCELLED | 111 | 29 | 0 | 0 | 82 INTERRUPTED_OR_NOT_RUN |
+| 6 / 127167485372 | CANCELLED | 100 | 36 | 0 | 0 | 64 INTERRUPTED_OR_NOT_RUN |
+| 7 / 127167485544 | CANCELLED | 79 | 31 | 0 | 0 | 48 INTERRUPTED_OR_NOT_RUN |
+| 8 / 127167485478 | FAILURE | 110 | 34 | 1 | 0 | 75 DID_NOT_RUN |
+
+Shard3의SKIP1은기존logistics-table-density:41 before캡처용이다. Shard8의별도오류1건은HTML의 `Testing stopped early after 1 maximum allowed failures.`로같은fail-fast중단안내이며두번째제품FAIL이아니다. RequiredE2E127172325806·AutomatedQA127172368630 FAILURE는직접실패의파생이다. 원본FAILED/취소/미실행은그대로보존한다.
+
+### B. 전체 이력과 metadata 귀속
+
+PR8708회+8783회+87913회=CI24회(Full21/metadata3), 전attempt1을branch목록총량16/6/23과per_page100으로대조했다. 별도FAST21개는모두SKIPPED이며Required근거가아니다. 기존 22회(#3520까지, Full20/metadata2)의 상세는 누적 원장/정제 근거를 사용했고, 이번에는 새 #3522 전8샤드/changes/unit과 #3521 Automated 원문 로그를 직접 수집했다. [전체 실행 목록](evidence/issue-866/ci3522-history-20261105.json), [정제 실패 매트릭스](evidence/issue-866/ci3522-failure-matrix-20261105.json).
+
+#3521.1 Run42003913316은oldHead3fb37d77e6b4e80ee1daedf1642b6cfee1c2913b의edited METADATA_ONLY이며Required3는SUCCESS지만Automated127166090392가 `PR latest Head stale`로BLOCKED/FAIL했다. 현재Head로이동해SUPERSEDED/N/A이며원본FAIL은유지한다. 새제품오류로합산하지않고낡은event를새HeadPASS로재사용하지않는다. #3509/#3520의성공도각원본Head에만유효하다.
+
+### C. 현상 재현과 원인별 보완
+
+수정전동일Head에서 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-visibility.spec.ts --grep 'legacy native M selection' --workers=1 --retries=0 --max-failures=0`으로같은30.2초timeout을재현했다. 가설우선순위는낡은접근성이름→필터창준비상태→legacy M 선택정리경로였다. 원격/로컬snapshot에는정상필터창의 `작업 유형`/`일반 작업`이있고정리직전선택도정상이어서첫가설을확정했다. 제품코드오류/권한/DB/canonical소실근거는없다. 분류TEST_CONTRACT다.
+
+PhaseC는rawenum task/summary를저장하면서UI는 `t(작업 유형)` 및 `t(일반 작업/요약 작업)`로표시한다. `Task type/task`를UI접근성이름으로고정한소비자가남았다. 별도qa_docs가146spec의영어role/label/placeholder/text를교차대조해같은유형필터5곳/4spec과Resource관리자positiveheading1곳을확인했다.
+
+- `milestone-visibility.spec.ts`, `project-task-quick-view.spec.ts`의두경로, `milestone-timeline-lane.spec.ts`, `milestone-stage-grid.spec.ts`: 정확한ko접근성이름으로교정. rawenum/API값/userTask명/keyboard는변경하지않는다.
+- `resource-admin-layout.spec.ts:112`: positive `Global catalog`조회는현재ko의 `전역 카탈로그`로교정한다. `Catalog Revision`부재음성과원래geometry/가로폭단언은유지한다.
+- 기존legacy선택회귀를ko/en/vi3언어로확장한다. 두정확checkbox/summary미선택/일반Task선택, native M+Task→Task-only/app선택, fullcanonicalIDs/counts/links·원본project/tasks/links bytes·같은API/DOMinstance·mutation0을확인한다. 수정후직접3사례PASS13.2초다. 이단독green을아래동결확대검증에중복합산하지않는다.
+
+과거FULL-002의native헤더·PhaseC Edit/Workspace와같은현지화표시소비자누락유형이며 B00820px/번역옵션/경합·TS/migration/DOC_SYNC·구870HTTP와직접인과는구별한다. 최신한파일만재실행하지않고기존실패17spec+새5소비자+native i18n·인접메뉴/전송을선정하여한정묶음으로검증한다. 제품·DB/API·의존성/버전·CI/QA/8shard/timeout/retry/skip·기존허용오차는변경하지않는다.
+
+### D. 최종 동결 검증과 게시 경계
+
+최종 source `55c4fbc65ebe9414efa2a608dc3362566a2d5661ef4d1b50465fdb91a2556e97`(code/test/config 등1317파일)는 시작/종료 bytes가 같다. workers1/retries0/max-failures0, A13/B4/C7 각20분·D1 10분 상한의 수동 CLI에서 **25고유spec/155계획=153PASS+기존2SKIP/FAIL0**이다. A66PASS/기존2SKIP+B20PASS+C59PASS+D8PASS이며, 최초 RED와 직접3언어 green·이전 Head 결과는 중복 가산하지 않았다. 기존2SKIP은 `logistics-table-density.spec.ts:41`(#454 before) 및 `master-controls-density.spec.ts:30`(#455 before)의 캡처용이다. #752 Actions 진단workflow의 자동24spec 상한은 변경하지 않았다. [최종 실행·명령·범위·지문 증거](evidence/issue-866/ci3522-local-validation-20261105.json)를 참조한다.
+
+관련9파일 Unit197PASS(2.22초), 원본 Next설정 복구 후 `npx tsc --noEmit --incremental false` PASS, 수정5spec 동일ESLint PASS, 테스트탐색298Unit파일/882브라우저사례·버전0.142.0·CIcache계약·Markdown410파일 연결검사·main버전 docs_gate/AC01~09 구조검사는 PASS다. DOC_SYNC의 구조 성공은 인간QA/업무 의미 검토의 PASS가 아니다. 제품/DB/Unit/공용설정·의존성/빌드/Docker 입력은 시작 Head와 동일해서 전체 Vitest/build/Docker를 로컬 중복 실행하지 않았다. 원본 #3522의3658Unit/기존3SKIP·build/Docker 성공은 원본 Head에만 귀속하며 새 원격 Required 결과로 승계하지 않는다.
+
+자동 `verify:prepr --mode=fast`는 **UNKNOWN94/missing0/BLOCKED**, 실행 중 sourceStable=true다. 수동 선정·실제 실행은 별도 증거이며 자동 매핑 공백을 PASS로 바꾸지 않는다. 최종 `.prepr-reports/ci3522/prepr-publish-final/report.json`/SUMMARY를 보존한다. 로컬 생성물은 현재 worktree의 것만 ignored 보고서에 옮기고 원본 bytes로 복구했으며, 기본 worktree의 사용자 deploy/compose/output 변경은 건드리지 않았다.
+
+별도 qa_docs 정적 기술검토 PASS/남은P1·P2=0, 미해결 리뷰스레드0(기존 물류유형 스레드 resolved/outdated), 최신 main과 충돌없음을 확인했다. 새 Head Required quality/e2e/docker·Trusted QA/독립인간QA/Owner·Manager는 NOT TESTED, MERGE_READY=BLOCKED, HIGH/OWNER_MANAGED/qa_required=true 및 release_authorized=false/#866OPEN을 유지한다. WindowsExcel/운영 backup-restore/실제AT/native125%/최종수동UX·Main/GHCR/Release는 미실행이다.
+
+코드·테스트·문서·원장을 committed clean source로 준비하고 API 전체tree/부모·최신main/expected Head를 대조한 뒤 Ref 한 번으로 게시한다. 기존 PR제목/본문의 실제 Phase A+B+C 범위는 유지하고 상태표시용 metadata-only CI를 추가하지 않는다. 실제 게시 Head/base/test-merge/FullRun·Attempt는 PR #879와 Issue #866 STATUS 댓글에 기록하며, 새 CI 시작 확인 뒤 결과를 모니터링하지 않는다.

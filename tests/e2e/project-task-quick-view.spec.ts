@@ -18,7 +18,7 @@ test.describe("Issue #552 replaces #196 quick views with marker-OFF WBS", () => 
     page.on("request", request => { if (request.resourceType() === "document") documents.push(request.url()); if (!["GET","HEAD"].includes(request.method())) mutations.push(request.method()); });
     await page.goto(`/projects/${publicId}`); const identity = await rememberGanttRoot(page); documents.length=0; mutations.length=0;
     await page.getByRole("button", { name: "필터", exact: true }).click();
-    await page.getByRole("group", { name: "Task type", exact: true }).getByRole("checkbox", { name: "task", exact: true }).check();
+    await page.getByRole("group", { name: "작업 유형", exact: true }).getByRole("checkbox", { name: "일반 작업", exact: true }).check();
     await page.keyboard.press("Escape");
     await expect(rowNamed(page,"Stable leaf")).toBeVisible(); await expect(rowNamed(page,"Existing summary child")).toBeVisible(); await expect(rowNamed(page,"Stable summary")).toBeVisible();
     const toggle=page.getByRole("button",{name:"◆ Milestone 표시",exact:true});
@@ -29,7 +29,7 @@ test.describe("Issue #552 replaces #196 quick views with marker-OFF WBS", () => 
   test("검색어와 Task 유형은 AND이며 Timeline 토글로 검색 조건과 전체 M 모집단을 바꾸지 않는다",async({page})=>{
     await installStatefulProjectFixture(page);await page.goto(`/projects/${publicId}`);
     const search=page.getByRole("searchbox",{name:"작업명, 설명, External ID 검색"});await search.fill("Existing");
-    await page.getByRole("button",{name:/^필터/}).click();await page.getByRole("group",{name:"Task type",exact:true}).getByRole("checkbox",{name:"task",exact:true}).check();await page.keyboard.press("Escape");
+    await page.getByRole("button",{name:/^필터/}).click();await page.getByRole("group",{name:"작업 유형",exact:true}).getByRole("checkbox",{name:"일반 작업",exact:true}).check();await page.keyboard.press("Escape");
     await expect(rowNamed(page,"Existing summary child")).toBeVisible();await expect(rowNamed(page,"Stable leaf")).toHaveCount(0);
     const toggle=page.getByRole("button",{name:"◆ Milestone 표시",exact:true}); await expect(toggle).toHaveCount(0);
     await openWorkspaceView(page, "milestones"); await page.getByRole("tab",{name:"일정",exact:true}).click();

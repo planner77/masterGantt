@@ -1199,3 +1199,9 @@ Full #3519.1 / Run `41970024640`, Head `a7cbef53bd0c89f4f3a7a3c3ed5a76ba7cb2266e
 ## Issue #866 Phase C — 최종 로컬 소비자 검증 인계
 
 25개spec158계획 중고유156PASS/기존2SKIP, 전체Unit3658PASS/기존3SKIP·build/type/lint·문서정합 구조검사를 확보했다. 마지막변경은한E2Espec의500 oracle/응답완료순서뿐이며그파일8사례전체를재실행하고, 다른1316개제품·Unit·공용입력/24spec의byte동일성을증명했다. 전역지문변경과과거C73PASS/1FAIL·중간7PASS/1FAIL은숨기거나합산하지않는다. 상세명령/지문·선정과미검증은 [Work Packet](exec-plans/active/ISSUE_866.md)과 [정제 증거](evidence/issue-866/phasec-local-validation-20261105.json)에있다. 자동Pre-PR는UNKNOWN94/missing0으로BLOCKED, 수동실행과구별한다. 새exactHead quality/e2e/docker·Trusted/인간QA·Owner/Manager ACCEPT는NOT TESTED이며CI시작후모니터링하지않는다.
+
+## Issue #866 REWORK-C001 — Full #3522.1 유형 필터 표시 계약
+
+원본Shard8 milestone-visibility:129의 Task type/task timeout을30.2초로재현했고현재ko작업유형/일반작업과불일치하는TEST_CONTRACT로분리했다. 같은유형4spec와Resource관리자heading1spec를정확표시로고치고기존선택/Data/ID/인스턴스/무mutation·geometry를보존한다. ko/en/vi2사례추가로146spec/882browsercases가되며8shard배치·기존skip/retry/timeout/Required3는불변이다. 전체24회CI목록과취소7샤드를포함한원본8로그, metadata3521 SUPERSEDED/N/A 및기존실패합집합/인접/음성동결검증은 [Work Packet](exec-plans/active/ISSUE_866.md)과 [단일원장](ISSUE_866_FAILURE_ANALYSIS.md)의현재절을따른다. 새exactHead의공식전체CI·Trusted·인간QA/Owner판정은NOT TESTED이며새Full시작만확인하고모니터링하지않는다.
+
+최종 동일 source55c4fbc65ebe9414efa2a608dc3362566a2d5661ef4d1b50465fdb91a2556e97에서 수동25spec의153PASS/기존2SKIP/FAIL0, 관련Unit197PASS와 원본설정 typecheck/5spec lint/탐색882·정책·문서구조를 확인했다. 자동Pre-PR UNKNOWN94/missing0는BLOCKED이며 수동 증거와 구별한다. [최종 명령·선정·지문·결과](evidence/issue-866/ci3522-local-validation-20261105.json)를 참조한다. 새Head Required3·Trusted·인간QA/Owner/Manager는NOT TESTED이며 CI 시작 뒤 모니터링하지 않는다.

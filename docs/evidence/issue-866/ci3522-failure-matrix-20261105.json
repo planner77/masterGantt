@@ -1,0 +1,209 @@
+{
+  "schema": "issue866-ci3522-failure-matrix-v1",
+  "repository": "planner77/masterGantt",
+  "pr": 879,
+  "issue": 866,
+  "run_id": 42003998824,
+  "run_number": 3522,
+  "attempt": 1,
+  "event": "pull_request",
+  "head": "2844e0f7d78c7268057d89514a2db0239498dcb0",
+  "base": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+  "test_merge": "31bce4daaccab57d15f5ccbeb1d8b4fd2b70c7de",
+  "source_evidence_job": 127166039851,
+  "required": {
+    "quality": {
+      "job": 127168147571,
+      "result": "success"
+    },
+    "e2e": {
+      "job": 127172325806,
+      "result": "failure"
+    },
+    "docker": {
+      "job": 127169521292,
+      "result": "success"
+    }
+  },
+  "actual_unit": {
+    "job": 127166372515,
+    "passed": 3658,
+    "skipped": 3,
+    "files_passed": 297,
+    "files_skipped": 1
+  },
+  "shards": [
+    {
+      "shard": 1,
+      "job_id": 127167486055,
+      "conclusion": "cancelled",
+      "observed_pass_lines": 51,
+      "observed_fail_lines": [],
+      "planned": 129,
+      "observed_skipped": 0,
+      "observed_failed": 0,
+      "remaining_incomplete": 78,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN"
+    },
+    {
+      "shard": 2,
+      "job_id": 127167485306,
+      "conclusion": "cancelled",
+      "observed_pass_lines": 15,
+      "observed_fail_lines": [],
+      "planned": 104,
+      "observed_skipped": 0,
+      "observed_failed": 0,
+      "remaining_incomplete": 89,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN"
+    },
+    {
+      "shard": 3,
+      "job_id": 127167485386,
+      "conclusion": "cancelled",
+      "observed_pass_lines": 57,
+      "observed_fail_lines": [],
+      "planned": 153,
+      "observed_skipped": 1,
+      "observed_failed": 0,
+      "remaining_incomplete": 95,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN"
+    },
+    {
+      "shard": 4,
+      "job_id": 127167485367,
+      "conclusion": "cancelled",
+      "observed_pass_lines": 16,
+      "observed_fail_lines": [],
+      "planned": 94,
+      "observed_skipped": 0,
+      "observed_failed": 0,
+      "remaining_incomplete": 78,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN"
+    },
+    {
+      "shard": 5,
+      "job_id": 127167485511,
+      "conclusion": "cancelled",
+      "observed_pass_lines": 29,
+      "observed_fail_lines": [],
+      "planned": 111,
+      "observed_skipped": 0,
+      "observed_failed": 0,
+      "remaining_incomplete": 82,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN"
+    },
+    {
+      "shard": 6,
+      "job_id": 127167485372,
+      "conclusion": "cancelled",
+      "observed_pass_lines": 36,
+      "observed_fail_lines": [],
+      "planned": 100,
+      "observed_skipped": 0,
+      "observed_failed": 0,
+      "remaining_incomplete": 64,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN"
+    },
+    {
+      "shard": 7,
+      "job_id": 127167485544,
+      "conclusion": "cancelled",
+      "observed_pass_lines": 31,
+      "observed_fail_lines": [],
+      "planned": 79,
+      "observed_skipped": 0,
+      "observed_failed": 0,
+      "remaining_incomplete": 48,
+      "remaining_classification": "INTERRUPTED_OR_NOT_RUN"
+    },
+    {
+      "shard": 8,
+      "job_id": 127167485478,
+      "conclusion": "failure",
+      "observed_pass_lines": 34,
+      "observed_fail_lines": [
+        "2026-11-05T09:50:13.4265525Z   ✘   35 [chromium] › tests/e2e/milestone-visibility.spec.ts:121:5 › #552 legacy native M selection is removed by public toggle while the ordinary Task selection remains (30.2s)"
+      ],
+      "planned": 110,
+      "observed_skipped": 0,
+      "observed_failed": 1,
+      "remaining_incomplete": 75,
+      "remaining_classification": "DID_NOT_RUN"
+    }
+  ],
+  "totals": {
+    "planned": 880,
+    "observed_pass": 269,
+    "direct_fail": 1,
+    "observed_existing_skip": 1,
+    "remaining_incomplete": 609,
+    "shard8_did_not_run": 75,
+    "cancelled_shards_interrupted_or_not_run": 534
+  },
+  "direct_failure": {
+    "file": "tests/e2e/milestone-visibility.spec.ts",
+    "case_line": 121,
+    "assertion_line": 129,
+    "title": "#552 legacy native M selection is removed by public toggle while the ordinary Task selection remains",
+    "timestamp": "2026-11-05T09:50:13.4265525Z",
+    "job_id": 127167485478,
+    "step": 7,
+    "message": "locator.check: Test timeout of 30000ms exceeded.",
+    "locator": "getByRole('group', { name: 'Task type', exact: true }).getByRole('checkbox', { name: 'task', exact: true })",
+    "preceding_assertions": "canonical selected에 task+Milestone, appSelection에 task만 있는 line127은 통과",
+    "classification": "TEST_CONTRACT",
+    "extra_non_test_error": "Testing stopped early after 1 maximum allowed failures. (HTML report errors confirms same fail-fast stop, not independent product failure)",
+    "remote_snapshot": {
+      "group": "작업 유형",
+      "checkbox": "일반 작업",
+      "source": "downloaded playwright-report-shard-8 artifact error-context.md"
+    }
+  },
+  "metadata3521": {
+    "run_id": 42003913316,
+    "run_number": 3521,
+    "attempt": 1,
+    "head": "3fb37d77e6b4e80ee1daedf1642b6cfee1c2913b",
+    "original_conclusion": "failure",
+    "automated_job": 127166090392,
+    "automated_status": "BLOCKED",
+    "reason": "PR latest Head stale",
+    "classification": "SUPERSEDED/N/A relative to current Head; preserve original FAILURE",
+    "required": [
+      {
+        "name": "Docker build and runtime smoke test",
+        "id": 127166039656,
+        "conclusion": "success"
+      },
+      {
+        "name": "Chromium end-to-end tests",
+        "id": 127166039788,
+        "conclusion": "success"
+      },
+      {
+        "name": "Build, static checks, and unit tests",
+        "id": 127166040007,
+        "conclusion": "success"
+      }
+    ]
+  },
+  "artifacts": {
+    "html_report": {
+      "id": 13404716878,
+      "expired": false,
+      "local": "report8.zip"
+    },
+    "timing": {
+      "id": 13403829224,
+      "expired": false,
+      "local": "timing8.zip"
+    }
+  },
+  "boundaries": [
+    "취소 Shard의 관측 PASS는 완료 SUCCESS가 아님",
+    "관측 SKIP1과 fail-fast 미실행75를 구별",
+    "기존 #3509/#3520 성공은 다른 Head이며 이번 PASS로 승계 불가",
+    "새 CI 결과/Trusted/Owner/Manager는 NOT TESTED"
+  ]
+}
