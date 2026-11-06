@@ -37,3 +37,10 @@
 - 전역 latest migration 시점의 test fixtures/expected migration lists/count만 0037까지 추가한다. migration source 파일/checksum/구버전<=24/25/26/27/28/32/33/35 이전 DB fixture는 변조하지 않는다.
 - 실패했던 11개 test files: `tests/server/migration-cli.test.ts`, `tests/server/calendars/country-calendar-integration.test.ts`, `tests/server/db/database.test.ts`, `tests/server/db/issue-623-target-migration.test.ts`, `tests/server/i18n/managed-display-names.test.ts`, `tests/server/logistics/logistics-targets-acceptance.test.ts`, `tests/server/logistics/task-target-bindings.test.ts`, `tests/server/process-catalog/process-catalog-service.test.ts`, `tests/server/process-catalog/process-context-service.test.ts`, `tests/server/projects/project-issues.test.ts`, `tests/server/resources/project-resource-memberships.test.ts`; 15 assertion failures end-to-end. `tests/fixtures/legacy-project.ts` DTO defaults와 Gantt React-hook 오류를 함께 보완한다.
 - Test Lifecycle: existing tests EXTEND or KEEP_UNIQUE; no skipped tests, no Expected failure marking, no disabled assertions. Actual new HEAD local Node/npm/Vitest/ESLint/Playwright unavailable; GitHub exact Full8/Required3 result NOT TESTED until run.
+
+## F881-003 — 0037 목록 검증과 원본 비교 복구
+
+- #3540.1 / 42312940879 (Attempt1, HEAD `d30bf51717de1a9f834ef6d6f412ae8506a169e9`): 3,722 Vitest 중 3 FAIL, 3,716 PASS, 3 SKIP. 정책/TypeScript/ESLint PASS. 마지막 남은 migration list 누락 3건이며 제품 migration 실패·업무 데이터 손상은 직접 관측되지 않았다.
+- `tests/server/db/database.test.ts` 신규 schema와 legacy 0021 upgrade의 적용 migration 리스트에 0037을 추가하고, `tests/server/resources/project-resource-memberships.test.ts` legacy 0028 upgrade 기대 목록에 0037을 추가한다.
+- Old Project row equality는 0031 `visibility` 및 새 0037 세 `workspace_*_visible` 컬럼만 명시적으로 제외한다. 원래 존재하던 컬럼과 관련 업무 테이블은 정확히 비교하고 추가 칼럼은 `1/1/1` default로 별도 assertion한다. 데이터 보존 보호를 느슨하게 하는 과도한 필드 제외/skip/후처리 삭제를 금지한다.
+- 新 HEAD actual Vitest/TypeScript/ESLint/Chromium8/Docker·TrustedQA는 원격 PR CI 결과 전 NOT TESTED.

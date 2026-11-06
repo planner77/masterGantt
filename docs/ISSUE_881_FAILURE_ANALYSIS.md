@@ -31,3 +31,18 @@
 - **파생 FAIL/NOT RUN:** PR 빠른 검사 Job 128206458336, Required Quality Job128206572612, E2E aggregate Job128206572725, Docker aggregate Job128206572374 및 QA Automated Job128206615179은 직접 TypeScript/Lint/Unit 실패 또는 필요한 Required 근거 부재의 **파생 실패**. Chromium E2E8, Docker implementation, Next.js production build는 **SKIPPED/NOT TESTED**, 제품 E2E·Docker 결함이 확인된 것은 아님.
 - **조치·판정:** 모든 추가 테스트 변경은 기존 검사량을 줄이거나 실패를 skip하지 않고 additive 0037을 인정하는 최소 보완. `AGENTS.md`/기존 Required3/E2E8/QA/Owner gate·historical migration 파일·실패 결과 불변. GitHub 원격 수정만 수행하여 새 HEAD의 실제 TypeScript/ESLint/Vitest/E2E/Docker 결과는 PR CI 실행 전 **NOT TESTED**.
 - **결과 경계:** 새 커밋/PR CI는 별도 현재 정확 Head/Run/Attempt로 기록. 이 이력은 성공 근거가 아니며 병합·Main CI·GHCR·이슈 종료에 승인 부여하지 않음.
+
+## F881-003 — PR #884 Full #3540.1 마지막 3개 migration 회귀 기대값 미반영 (2026-11-07 KST)
+
+- **원본:** [PR CI #3540.1 / Run 42312940879](https://github.com/planner77/masterGantt/actions/runs/42312940879), Attempt 1, `pull_request`, PR #884, Head `d30bf51717de1a9f834ef6d6f412ae8506a169e9`, Base main `229604522969133d1ccc6de0477e373252670c86`, **FAILURE**.
+- **직접 PASS:** 변경 경로 판정 Job128218538829, QA 신뢰 경계 Job128218539110, Preflight Job128218645665, ESLint Job128218752869, TypeScript Job128218752983, 정책/저장소 검사 Job128218752969. 즉, 기존 F881-001 정책 서식과 F881-002 TypeScript/ESLint 직접 결함은 새 소스에서 재발하지 않았다.
+- **단일 직접 실패 계통:** [Vitest Job128218752910](https://github.com/planner77/masterGantt/actions/runs/42312940879/job/128218752910)의 `npm test`가 304 test files 중 2 failed/301 passed/1 skipped, 3,722 tests 중 **3 failed/3,716 passed/3 skipped**로 종료.
+  1. `tests/server/db/database.test.ts:145`: 0021→현재 업그레이드 후 적용 파일 목록에서 `0037_project_workspace_tabs.sql` 1건 추가를 기대하지 않음.
+  2. `tests/server/db/database.test.ts:163`: 최신 전체 신규 DB migration 적용 목록에서 마지막 `0037` 누락.
+  3. `tests/server/resources/project-resource-memberships.test.ts:328`: 0028→현재 업그레이드 후 적용 파일 목록에서 마지막 `0037` 누락.
+  각 원본 assertion diff는 배열 끝의 `+ "0037_project_workspace_tabs.sql"` 한 줄만 보고한다. Migration SQL 실행/데이터 변형 자체가 실패한 것이 아니다.
+- **원인:** 이전 F881-002 보완에서 두 파일의 신규 0037 플래그 기본 ON 검증은 추가했지만, 동일 파일의 **최신 migration 전체 목록 기대값**과 레거시 원본 비교 시 새 컬럼 제외 목록을 갱신하지 못했다. 재실행 없이 PASS 선언 금지.
+- **교정:** 위 두 테스트의 기존 `"0036_display_name_translations.sql"` 이후 `"0037_project_workspace_tabs.sql"`을 명시 추가(각각 2·1곳), **원본 행 동등성 비교 시에만** `visibility`와 0037 신설 세 컬럼을 정확한 allowlist로 제외한다. 데이터 보존의 다른 모든 컬럼·테이블과 FOREIGN KEY, 신규 1/1/1 default 검사, 전체/부분 migration checksum/rollback 검증은 그대로 유지한다.
+- **파생 FAIL/실행 범위:** PR 빠른 검사 Job128219428232, Required Quality aggregate Job128219535685, E2E aggregate Job128219535684, Docker aggregate Job128219535577 및 QA Automated Job128219565293은 직접 Vitest 실패에 따른 후속 결과. Chromium E2E8, Docker 구현, Next production build는 **SKIPPED / NOT TESTED**이고 그 자체의 제품 결함 원인은 관측되지 않았다.
+- **테스트 수명주기:** `TEST_LIFECYCLE_REVIEW=EXTEND` (기존 두 migration 회귀 테스트만 보강), `KEEP_UNIQUE` (그 외 테스트 보존); 삭제·skip·timeout/retry/required-check 약화 없음.
+- **검증 경계:** 보완 커밋은 새 Head로 별도 Full CI를 시작해야 검증된다. 최초 #3534.1, #3538.1, #3540.1 실패는 모두 원장에 보존하며 이전 PASS를 신규 HEAD로 이월하지 않는다. 병합/Main/GHCR/Release/Issue 종료 미승인.

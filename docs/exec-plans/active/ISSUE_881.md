@@ -73,6 +73,15 @@ The following explicit per-path status is checked by trusted `scripts/qa_final_a
 - **DOCUMENTATION_SYNC:** `docs/ISSUE_881_FAILURE_ANALYSIS.md`: UPDATED; `docs/exec-plans/active/ISSUE_881.md`: UPDATED; `docs/ISSUE_881_TEST_PLAN.md`: UPDATED. 기존 AGENTS/DESIGN/API/DB/SECURITY의 기술 계약 변경 없음. Build/CI/QA gate, 기존 migration 파일 및 #882 owner-only 구분 불변.
 - **경계:** 새 HEAD PR Full CI kickoff만 승인. 미해결 리뷰/충돌은 새 커밋의 pre-CI 읽기 결과 기록; CI 결과 모니터링·merge/Main/Release/Finalizer/GHCR/Issue close는 수행하지 않음.
 
+## F881-003 — Full PR CI #3540.1 마지막 migration 회귀 보완
+
+- Exact [Run #3540.1 / 42312940879](https://github.com/planner77/masterGantt/actions/runs/42312940879), Attempt1, Head `d30bf51717de1a9f834ef6d6f412ae8506a169e9`, Base `229604522969133d1ccc6de0477e373252670c86`: Quality FAILED; 정책/Preflight·TypeScript·ESLint PASS, Vitest 3/3722 FAIL. E2E8·Docker·Next build SKIPPED; remote Full PASS 아님.
+- `database.test.ts` 2건, `project-resource-memberships.test.ts` 1건은 각각 최신 SQLite migration 0037 목록이 누락됐다. 두 파일의 기존 역사 원본 행 비교는 원래 컬럼을 그대로 검증하되 신규 `workspace_*_visible` 세 컬럼 및 이미 별도 확인하는 `visibility`만 제외한다. migration default ON, 기존 DB 데이터·FK·checksum assert는 유지한다.
+- TEST_LIFECYCLE_REVIEW: EXTEND 기존 SQLite upgrade/schema acceptance 2개 파일, KEEP_UNIQUE 나머지; 삭제/skip/weakening 0.
+- AC_TEST_COVERAGE: AC1/AC3/AC8은 정확한 최신 migration 0037 파일 목록과 Project 신규 플래그 ON default 및 데이터 보존을 기존 테스트에서 재검증; AC2/4/5/6/7/9/10은 위 인수 기준과 새 Full CI 증거가 필요하다.
+- DOCUMENTATION_SYNC: `docs/ISSUE_881_FAILURE_ANALYSIS.md`: UPDATED, `docs/exec-plans/active/ISSUE_881.md`: UPDATED, `docs/ISSUE_881_TEST_PLAN.md`: UPDATED. AGENTS.md/DESIGN.md/API.md/DB_SCHEMA.md/SECURITY.md/CI·QA 정책 원문은 기술 계약 변경 없으므로 유지.
+- Previous F881-001/002/003 are immutable FAILURE provenance; next exact Head Full PR CI starts via branch synchronize, not a rerun of the old failure. Review/mergeability read-only check; no monitor/merge/Main/GHCR/Issue close.
+
 ## Verification & release boundary
 
 Remote GitHub connector edits only. There is no locally mounted repository or dependency tree; full TypeScript/Vitest/Playwright/Docker local execution NOT TESTED. Work performed is implementation+commit+new PR to begin full CI; requested stop after kickoff. Existing review threads/mergeable state to be read at PR creation, no monitor after. No merge/Main/GHCR/tag/Issue close/Owner release approval.
